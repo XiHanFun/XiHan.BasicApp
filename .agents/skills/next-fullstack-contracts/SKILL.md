@@ -5,7 +5,7 @@ description: 在 next 分支设计、变更、审查或诊断 XiHan.BasicApp 6.0
 
 # XiHan.BasicApp 6.0 全栈契约
 
-只用于 `next` 分支（`backend-next/`、`frontend-next/`、`docs-next/`、`nextdocs/`）。契约形态先读 `references/contracts.md`；涉及框架锁定、配置、Provider、表结构或部署时读 `references/operations.md`。方案 `nextdocs/下一代总体方案.md` 的 D1–D12、5.4、5.13、5.14 与第 6.3 节是设计依据。
+只用于 `next` 分支（`backend-next/`、`frontend-next/`、`docs/`、`nextdocs/`）。契约形态先读 `references/contracts.md`；涉及框架锁定、配置、Provider、表结构或部署时读 `references/operations.md`。方案 `nextdocs/下一代总体方案.md` 的 D1–D12、5.4、5.13、5.14 与第 6.3 节是设计依据。
 
 ## 契约清单
 
@@ -17,7 +17,7 @@ description: 在 next 分支设计、变更、审查或诊断 XiHan.BasicApp 6.0
 4. 权限码、作用侧、`audited`、页面登记（页面码、路由、组件路径、读权限）与对应种子。
 5. 推送方法与载荷（`realtime.json`）。
 6. 后端 `contracts export` → `frontend-next/contracts/*` → `pnpm gen:contracts` → `packages/contracts/*` → 页面与测试。
-7. 后端测试、前端门禁、docs-next 与方案修订。
+7. 后端测试、前端门禁、docs 与方案修订。
 
 ## 不可变边界
 

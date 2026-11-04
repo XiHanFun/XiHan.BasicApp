@@ -1,12 +1,12 @@
 ---
 layout: home
-title: 曦寒基础应用
-titleTemplate: 基于 .NET 与 Vue 的超高颜值中后台内核
+title: 曦寒基础应用 6.0
+titleTemplate: XiHan.BasicApp 6.0 文档
 
 hero:
-  name: 曦寒基础应用
-  text: 超高颜值的企业级中后台内核
-  tagline: 基于 XiHan.Framework 与 XiHan.UI · 多租户 · RBAC + 数据范围 + 字段脱敏 · 代码生成 · 实时通信
+  name: 曦寒基础应用 6.0
+  text: 基于 XiHan.Framework 5 的能力包式中后台应用
+  tagline: 后端基于 XiHan.Framework 5，前端基于 XiHan.UI；一份操作契约同时发布为 HTTP、gRPC 与 MCP，内置多租户与多层授权。
   image:
     src: /images/logo.png
     alt: 曦寒基础应用
@@ -19,88 +19,61 @@ hero:
       text: 应用简介
       link: /introduction
 
-    - theme: brand
-      text: 在线体验
-      link: https://basicapp.xihanfun.com
+    - theme: alt
+      text: 为什么是 6.0
+      link: /why
 
 features:
-  - title: 多租户隔离
-    icon: 🏢
-    details: 字段级隔离贯穿到每一次读写，租户上下文由令牌还原，切租户走会话轮换而非重新登录，配套版本门控与到期停用。
+  - title: 能力包 + 操作契约
+    details: 每个业务能力是一个 IFeature，每个公开方法是一个 [Operation]；路由、OpenAPI、gRPC 方法与 MCP 工具都从同一份操作登记推导，不使用 Controller。
+    link: /backend/introduction
+    linkText: "了解架构"
+
+  - title: 多租户
+    details: 平台库实体不实现 IMultiTenant，租户库实体由框架仓储严格过滤并可随租户分库；租户 ID 是字符串，切换租户换令牌、整页重建。
     link: /backend/multi-tenancy
     linkText: "了解多租户"
 
-  - title: RBAC + 数据范围 + 字段脱敏
-    icon: 🔐
-    details: 权限码、数据范围与字段级脱敏三层叠加，后端判定、前端感知，列表页的列、按钮与导出口径由同一份权限推导。
+  - title: 多层授权
+    details: 授予来自框架 Security.Database，Deny、角色继承、限时委托、套餐门控与 ABAC 条件逐层收窄；数据范围与字段安全在查询与投影处显式套用。
     link: /backend/permission
     linkText: "了解权限模型"
 
-  - title: 无 Controller 的接口层
-    icon: ⚡
-    details: 应用服务经动态 API 直接暴露为 REST，统一响应信封、业务码与分页协议全站一致，前端 api 层与之一一对应。
+  - title: 前端契约由后端生成
+    details: 后端导出一份 openapi.json，前端生成类型、操作客户端、权限码与枚举；CI 重新生成后比对，不一致即失败。
+    link: /frontend/request
+    linkText: "了解契约层"
+
+  - title: RFC 9457 错误与无信封响应
+    details: 成功响应就是 DTO，失败是 application/problem+json；客户端只按 code 分支，字段级 errors 直接挂回表单。
     link: /api-guide
     linkText: "查看接口对接指南"
 
-  - title: 代码生成
-    icon: 🧬
-    details: 从数据表反推实体、DTO、服务、接口与前端页面，模板可改，生成的代码与手写代码同一套约定，不引入外键耦合。
-    link: /backend/code-generation
-    linkText: "了解代码生成"
-
-  - title: 实时通信与消息中心
-    icon: 💬
-    details: SignalR 承载在线聊天、AI 助手与站内推送；消息中心含五类分类、强制阅读、定向投递与运营闭环。
-    link: /backend/messaging
-    linkText: "了解消息与实时"
-
-  - title: Schema 驱动的前端
-    icon: 🧭
-    details: 列表页由 Schema 描述，搜索、列设置、排序、导出与脱敏全部复用同一份定义；权限、租户、偏好三重感知。
-    link: /frontend/schema-page
-    linkText: "了解 Schema 驱动页面"
+  - title: 结构约束由测试保证
+    details: 包间层级、Expose 显式、权限码文法、匿名白名单、十种语言键集、XML 文档与框架锁定提交都由架构测试检查。
+    link: /backend/development
+    linkText: "了解开发流程"
 ---
 
-<script setup>
-import dashboardPreview from '../assets/preview/dashboard.png'
-</script>
-
-<div class="bap-preview">
-<span class="bap-eyebrow">在线演示</span>
-<h2 class="bap-title">不用本地搭建，直接看它长什么样</h2>
-<p class="bap-desc">演示环境部署的就是本仓库的代码，多租户、权限、代码生成、实时通信都可以直接点开试。<br />点击下方窗口进入。</p>
-<div class="bap-window">
-<div class="bap-bar"><span class="bap-dots"><span class="bap-dot bap-dot--r"></span><span class="bap-dot bap-dot--y"></span><span class="bap-dot bap-dot--g"></span></span><span class="bap-url">basicapp.xihanfun.com</span></div>
-<a class="bap-screen" href="https://basicapp.xihanfun.com" target="_blank" rel="noreferrer">
-<img class="bap-img" :src="dashboardPreview" alt="曦寒基础应用工作台预览" />
-</a>
-</div>
+<div class="bap-status">
+<h2 class="bap-title">开始使用</h2>
+<p class="bap-desc">按快速开始在本机建库、执行表结构升级与种子，再启动后端和前端。<br />5.x 部署留在维护线上，文档见 <a href="https://basicapp.docs.xihanfun.com/v5/">5.x 文档</a>；6.0 不提供数据迁移。</p>
 <div class="bap-actions">
-<a class="bap-btn" href="https://basicapp.xihanfun.com" target="_blank" rel="noreferrer">立即在线体验 →</a>
-<a class="bap-link" href="/getting-started">在本地跑起来</a>
+<a class="bap-btn" href="/getting-started">快速开始</a>
+<a class="bap-link" href="/changelog">更新日志</a>
 </div>
-<p class="bap-cred">演示账号 <code>superadmin</code> · 密码 <code>SuperAdmin@123</code> · 演示环境，请勿录入真实数据</p>
+<p class="bap-cred">初始账号 <code>superadmin</code> · 密码 <code>SuperAdmin@123</code>（由 <code>seed</code> 写入，首次登录后请修改）</p>
 </div>
 
 <style>
-.bap-preview {
+.bap-status {
   max-width: 1080px;
-  margin: 112px auto 0;
+  margin: 96px auto 0;
   padding: 0 24px;
   text-align: center;
 }
-/* 选择器均带 .bap-preview 前缀以覆盖 VitePress 默认的 .vp-doc h2 / a / p / img 样式 */
-.bap-preview .bap-eyebrow {
-  display: inline-block;
-  padding: 5px 14px;
-  border-radius: 999px;
-  background: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-1);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-}
-.bap-preview h2.bap-title {
+/* 选择器均带 .bap-status 前缀以覆盖 VitePress 默认的 .vp-doc h2 / a / p 样式 */
+.bap-status h2.bap-title {
   font-size: 32px;
   line-height: 1.2;
   font-weight: 800;
@@ -109,67 +82,13 @@ import dashboardPreview from '../assets/preview/dashboard.png'
   padding-top: 0;
   letter-spacing: -0.02em;
 }
-.bap-preview p.bap-desc {
-  max-width: 640px;
-  margin: 0 auto 36px;
+.bap-status p.bap-desc {
+  max-width: 680px;
+  margin: 0 auto 32px;
   color: var(--vp-c-text-2);
   line-height: 1.75;
 }
-.bap-preview .bap-window {
-  max-width: 1040px;
-  margin: 0 auto;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid var(--vp-c-divider);
-  background: var(--vp-c-bg-soft);
-  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.3);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-.bap-preview .bap-window:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 36px 72px -18px rgba(0, 0, 0, 0.4);
-}
-.bap-preview .bap-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 42px;
-  padding: 0 16px;
-  background: var(--vp-c-bg-alt);
-  border-bottom: 1px solid var(--vp-c-divider);
-}
-.bap-preview .bap-dots {
-  position: absolute;
-  left: 16px;
-  display: flex;
-  gap: 8px;
-}
-.bap-preview .bap-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-.bap-preview .bap-dot--r { background: #ff5f57; }
-.bap-preview .bap-dot--y { background: #febc2e; }
-.bap-preview .bap-dot--g { background: #28c840; }
-.bap-preview .bap-url {
-  margin: 0 auto;
-  padding: 4px 18px;
-  min-width: 240px;
-  border-radius: 8px;
-  background: var(--vp-c-bg);
-  color: var(--vp-c-text-3);
-  font-size: 13px;
-}
-.bap-preview .bap-screen {
-  display: block;
-}
-.bap-preview .bap-img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.bap-preview .bap-actions {
+.bap-status .bap-actions {
   display: flex;
   gap: 14px;
   justify-content: center;
@@ -177,7 +96,7 @@ import dashboardPreview from '../assets/preview/dashboard.png'
   flex-wrap: wrap;
   margin: 36px 0 14px;
 }
-.bap-preview a.bap-btn {
+.bap-status a.bap-btn {
   display: inline-flex;
   align-items: center;
   padding: 12px 30px;
@@ -186,16 +105,14 @@ import dashboardPreview from '../assets/preview/dashboard.png'
   color: #fff;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.24);
-  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition: background 0.25s ease, transform 0.25s ease;
 }
-.bap-preview a.bap-btn:hover {
+.bap-status a.bap-btn:hover {
   background: var(--vp-c-brand-2);
   color: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px -8px rgba(0, 0, 0, 0.3);
 }
-.bap-preview a.bap-link {
+.bap-status a.bap-link {
   display: inline-flex;
   align-items: center;
   padding: 12px 24px;
@@ -206,24 +123,17 @@ import dashboardPreview from '../assets/preview/dashboard.png'
   text-decoration: none;
   transition: border-color 0.25s ease, color 0.25s ease;
 }
-.bap-preview a.bap-link:hover {
+.bap-status a.bap-link:hover {
   border-color: var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
 }
-.bap-preview p.bap-cred {
+.bap-status p.bap-cred {
   margin-top: 8px;
   color: var(--vp-c-text-3);
   font-size: 13.5px;
 }
 @media (max-width: 640px) {
-  .bap-preview { margin-top: 72px; }
-  .bap-preview h2.bap-title { font-size: 26px; }
-  .bap-preview .bap-url {
-    min-width: 0;
-    max-width: 160px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  .bap-status { margin-top: 64px; }
+  .bap-status h2.bap-title { font-size: 26px; }
 }
 </style>

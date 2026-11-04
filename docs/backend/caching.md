@@ -1,151 +1,82 @@
 # 缓存与异步
 
-BasicApp 的热点读路径走 Redis 分布式缓存，写路径**精准失效**；耗时动作（发邮件短信、导出）不占请求线程，走队列 + 后台消费。这两条机制的时序稍有偏差就会出现「改完不生效」「读到脏数据」「任务丢了」，本页把它们说透。
+本页说明 6.0 的缓存用法与缓存管理，以及定时作业、托管循环、日志队列与提交后推送等异步机制，适用于后端开发者。
 
 ## 缓存
 
-### 三层结构
+### 缓存接口
 
-```text
-① 缓存条目类（Application/Caching/Saas*CacheItem.cs）
-     一个热点读定义一个条目类，用 [CacheName] 绑定缓存名并定义缓存值结构
-② 缓存键常量（SaasCacheNames / SaasCacheKeys）
-     缓存名一律 const 集中在 SaasCacheNames，业务键/匹配模式由 SaasCacheKeys 拼，禁止内联字符串
-③ 失效器（ISaasCacheInvalidator / SaasCacheInvalidator）
-     按域提供精准失效方法，底层 RemoveByPatternAsync(..., considerUow: true)
-```
-
-### 缓存条目一览
-
-| 缓存条目 | 键前缀 | 用途 |
+| 接口 | 来源 | 用途 |
 | --- | --- | --- |
-| `SaasAuthorizationSnapshotCacheItem` | `basicapp:saas:auth:snapshot:v2` | **授权快照**——请求期鉴权热路径，让授权变更免重登即生效；带权限条件 |
-| `SaasMenuRoutesCacheItem` | `basicapp:saas:navigation:routes` | 菜单路由（前端动态路由数据源） |
-| `SaasConfigValueCacheItem` | `basicapp:saas:config:value` | 系统参数值 |
-| `SaasDictItemTreeCacheItem` | `basicapp:saas:configuration:dict-tree` | 字典项树（下拉高频读） |
-| `SaasEditionGateCacheItem` | `basicapp:saas:tenancy:edition-gate` | 租户版本权限白名单门控 |
-| `SaasEnabledEditionsCacheItem` | `basicapp:saas:tenancy:editions` | 启用中的版本套餐 |
-| `SaasMessageTemplateCacheItem` | `basicapp:saas:message:template` | 消息模板（发送链路高频读） |
-| `SaasDepartmentTreeCacheItem` | `basicapp:saas:organization:dept-tree` | 部门树 |
-| `SaasUserSettingCacheItem` | `basicapp:saas:user:setting` | 用户 UI 偏好 |
-| `SaasSessionStateCacheItem` | `basicapp:saas:identity:session-state` | 会话状态（会话闸门读它判 401/423） |
-| `SaasPermissionSelectCacheItem` / `SaasRoleSelectCacheItem` / `SaasResourceSelectCacheItem` / `SaasOperationSelectCacheItem` | `basicapp:saas:{域}:select` | 各类下拉选择项 |
-| `SaasTelegramConversationStateCacheItem` | `basicapp:saas:bot:telegram-conversation` | Telegram 会话态 |
+| `ISharedCache` | 框架 `Caching.Abstractions` | 跨请求共享的对象缓存：授权规则、指派、会话门禁、验证码散列、登录节流计数、条件与策略、套餐白名单 |
+| `ICache` / 字节存储 | 框架 | 框架内部（分布式锁、租约等） |
 
-缓存名统一在 `SaasCacheNames` 里定义为 `const`（条目类用 `[CacheName]` 引用），业务键与匹配模式拼接在 `SaasCacheKeys`。**新增缓存必须走这套，不要内联字符串**——否则失效器找不到你的键。
+不配 Redis 时是 Full Profile 的进程内实现：零外部依赖，单实例部署即可；多实例时各实例的缓存不共享（授权规则写入方即时失效只对本实例生效，其他实例最迟按缓存时长过期）。配了 Redis 连接（绑定 `cache`，见[配置参考](../configuration#分布式缓存与消息)），宿主装上 `Caching.Redis` 与 `Caching.Hybrid`：`ISharedCache`、字节存储与分布式锁走 Redis，写入方的失效对所有实例生效；`ICache` 是本机 L1 + Redis L2，写入经 Redis 频道失效各实例的 L1。
 
-### 失效器
+Redis 下 `ISharedCache` 的值要序列化（框架的 JSON 缓存序列化器），进程内模式存的是对象引用；缓存的类型因此要能按 JSON 往返，取回的对象也不要原地修改。
 
-`ISaasCacheInvalidator` 按域给出精准失效方法，而不是「一把清空」：
+### 缓存时长与失效
 
-| 方法 | 影响 |
+| 数据 | 时长 | 失效 |
+| --- | --- | --- |
+| 会话门禁 | `BasicApp:Auth:SessionCacheSeconds`（30 秒） | 吊销、锁屏、解锁会话时清除（提交之后） |
+| 套餐白名单（按租户） | 30 秒 | 换套餐、改白名单时清除（提交之后） |
+| 权限规则、角色指派（按主体） | 60 秒 | 写入方即时失效 |
+| 字段安全规则（按侧 × 实体） | 60 秒 | 写入即失效 |
+| 启用的约束规则（按侧） | 60 秒 | 写入即失效 |
+| 租户目录、授予存储 | 框架有界 TTL | 框架 `TenantRecordStore` / `PermissionGrantRecordStore` 写入时失效 |
+
+有效期类的判定（授予与指派的生效 / 到期）在判定时按当前时间比较，不依赖缓存重建。
+
+失效的时机：Access 的读穿缓存（权限规则、角色指派、继承图、委托、条件、访问策略、字段安全、约束规则）、Identity 的会话门禁与 Tenancy 的套餐白名单缓存未命中时在独立的只读工作单元里读库，看不到调用里还没提交的写入；所以写入方在调用里的失效经 Runtime 的 `CacheInvalidation` 只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库；同一缓存的键一次往返）。若在提交之前删键，同一请求里的后续读取（如新建角色委托时的约束检查）或并发请求（如被强制下线的会话恰在提交前发来的请求）会把提交前的旧数据写回缓存，变更要等缓存过期才生效。新写的读穿缓存照此失效。
+
+### 命名空间与缓存管理
+
+每个包用 `AddCacheNamespace` 登记自己的键前缀，缓存管理只开放登记过的前缀，框架自己的键（如分布式锁）不出现：
+
+| 命名空间 | 能否改写值 |
 | --- | --- |
-| `InvalidateAuthorizationAsync(userId?)` | 授权快照；传 `userId` 只清该用户，不传清全部 |
-| `InvalidateNavigationAsync()` | 菜单路由 |
-| `InvalidateConfigurationAsync(configKey?)` | 系统参数 |
-| `InvalidateDictionaryAsync()` | 字典项树 |
-| `InvalidateEditionGateAsync()` / `InvalidateTenantEditionAsync()` | 版本门控 / 版本套餐 |
-| `InvalidateOrganizationAsync()` | 部门树 |
-| `InvalidateMessageTemplateAsync()` | 消息模板 |
-| `InvalidateUserSettingAsync(userId)` | 指定用户偏好 |
-| `InvalidatePermissionDefinitionAsync()` / `InvalidateRoleDefinitionAsync()` / `InvalidateResourceDefinitionAsync()` / `InvalidateOperationDefinitionAsync()` | 各类定义与下拉 |
-| `InvalidateSessionStateAsync(userSessionId)` / `InvalidateAllSessionStatesAsync()` | 会话状态 |
+| `access:` | 否（鉴权相关） |
+| `identity:` | 否 |
+| `tenancy:` | 否 |
+| `openplatform:` | 否 |
+| `notification:` | 是 |
 
-写侧 `*AppService` 改完数据后调对应方法，例如 `ConfigAppService` 在增删改后调 `InvalidateConfigurationAsync`。
+不可改写的命名空间仍可删除，删除后缓存按需重建。
 
-### `considerUow: true` 是关键
+缓存管理（Maintenance，平台侧）：
 
-失效底层一律是：
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `caches.namespaces` | `maintenance.caches.read` | 已登记的命名空间 |
+| `caches.keys` | `maintenance.caches.read` | 按前缀列键，分页续取（`continuation`） |
+| `caches.inspect` | `maintenance.caches.read` | 查看值、类型与剩余存活 |
+| `caches.update` | `maintenance.caches.update` | 改写值（只对可改写的命名空间） |
+| `caches.delete` / `caches.delete-by-prefix` | `maintenance.caches.delete` | 按键或按前缀删除 |
 
-```csharp
-_configValueCache.RemoveByPatternAsync(pattern, hideErrors: true, considerUow: true, token: ct);
-```
+进程内模式下框架的对象缓存与字节存储是分开的两张表，`caches.keys` 两层合起来列（先对象缓存、再字节存储），每个键标出所在的层；Redis 下对象条目序列化进字节存储，只有一层；列键是 SCAN，一段可能一个都没有，`caches.keys` 在操作里接着列到攒满一页（扫空一段提示值加倍、最多 100 次往返），续页标记照旧，同一个键可能出现在两页、同一页内去重。
 
-`considerUow: true` 表示**排队到工作单元提交之后**才真正清缓存。
+## 异步与后台工作
 
-::: danger 为什么不能立即清
-如果在事务提交前就清了缓存，并发请求会立刻回源查库，读到的是**尚未提交的旧值**，然后把旧值重新写回缓存——事务提交后缓存反而是错的，且不会自愈。这类问题极难复现，务必保持 `considerUow: true`。
-:::
+6.0 没有自建的「后台任务框架」，异步工作分四类：
 
-### 加一个新缓存的清单
+| 类型 | 机制 | 例子 |
+| --- | --- | --- |
+| 定时作业 | 框架 `Scheduling.Database`：`AddJob<T>` 代码登记、`IJobScheduler.ScheduleAsync` 运行时登记 | 日志保留清理、OAuth 清理、分片上传过期，见[定时任务](./scheduling) |
+| 托管能力包 | `IHostedFeature` 随应用启停的循环 | Notification 的发件箱发送循环与 Telegram 接收；Auditing 的日志批量写入 |
+| 有界队列 | 调用里只入队，后台批量落库 | 七类分表日志（`BasicApp:Auditing:QueueCapacity` / `BatchSize` / `FlushIntervalSeconds`） |
+| 提交后推送 | `RealtimeDispatchMiddleware` 暂存，调用成功才发 | `ForceLogout`、`ReceiveNotification`、`TaskProgress` |
+| 提交后失效 | `CacheInvalidationMiddleware` 暂存，工作单元结束后删键 | Access 的授权类缓存、会话门禁、套餐白名单 |
 
-1. 在 `SaasCacheNames` 加缓存名常量；必要时在 `SaasCacheKeys` 加业务键/匹配模式拼接方法。
-2. 新建 `SaasXxxCacheItem`，用 `[CacheName]` 绑定第 1 步的常量并定义值结构。
-3. 读侧 `*QueryService` 里先查缓存、未命中回源并回填（过期时间在回填时用 `DistributedCacheEntryOptions` 指定）。
-4. 在 `ISaasCacheInvalidator` / `SaasCacheInvalidator` 加一个 `InvalidateXxxAsync`，底层用 `RemoveByPatternAsync(..., considerUow: true)`。
-5. **所有会改到该数据的写侧方法都要调它**——漏一个就会出现「某个入口改完不生效」。
+### 发件箱
 
-## 异步：队列承载工作
+- 宿主装了框架的 `OutboxFeature`：领域事件与业务写入同事务派发（已登记的事件见[实体基类](./entity#领域事件)）。
+- 邮件、短信、机器人消息的「待发送记录」是应用表（`SysEmail`、`SysSms`、`SysBotMessage`），本身即可查询、可重发的发件箱：发布通知时经 `Contracts` 的 `IMessageSender` 直接入队，发送循环按 `BasicApp:Notification:DispatchInterval` 轮询，失败按 `RetryDelay` 重试至多 `MaxAttempts` 次，超过 `StuckAfter` 的发送中记录视为卡死重新排队。
 
-原则是**队列承载工作 + 拉取消费**，不在请求线程里做耗时动作，也不额外造心跳/调度层。
+### 导出
 
-```text
-写侧（请求线程）                      后台常驻服务（XiHanBackgroundServiceBase）
-   │ 业务行落库（状态 Pending）
-   │ 事务提交
-   ▼
-IRedisDelayQueue<T>.EnqueueAsync ─────►  拉取 → 原子领取（置 Sending / Processing）→ 执行 → 置终态
-   （提交之后才入队）                       │
-                                            └─ 启动时复位崩溃残留的在途状态 → Pending 并重投
-```
+导出任务（`export-tasks.submit`）在后台以发起人的凭据逐页调用对应的列表操作（权限、租户、数据范围与字段安全照常生效），生成 CSV / XLSX 存成 7 天的临时文件，进度经 `TaskProgress` 推送。见[文件与存储](./file)。
 
-三条设计要点：
+## 下一步
 
-1. **数据库表是事实源，队列只承载「待办工作」**。状态、重试次数、定时、审计都在表里；队列里只有一个轻量消息（通常就是实体 Id）。
-2. **提交之后才入队**，保证后台拉到消息时业务行已经可见（无环境工作单元时直接入队）。
-3. **原子领取**：发件箱的 `TryClaimForSendingAsync` 原子地把行由 `Pending` / 可重试 `Failed` 置为 `Sending`（天然去重、按 `MaxRetryCount` 自限重试）；导出的 `ClaimByIdAsync` 原子地把行由 `Pending` 置为 `Processing`。
-
-### 现有的两条异步链路
-
-| 链路 | 入队方 | 消费方 | 事实源表 |
-| --- | --- | --- | --- |
-| **邮件 / 短信发件箱** | `DbMessageOutbox.EnqueueAsync(channel, entityId)` | `MessageOutboxHostedService` | `Sys_Email` / `Sys_Sms` |
-| **异步导出** | `ExportTaskAppService` 提交时入队 | `ExportTaskHostedService` | `Sys_Export_Task` |
-
-两者都继承框架的 `XiHanBackgroundServiceBase<T>`（封装了循环拉取、并发控制、重试、优雅停机、运行统计），子类实现 `FetchWorkItemsAsync`（取任务）和 `ProcessItemAsync`（处理任务）两个抽象方法，并重写 `ExecuteAsync` 在循环前做一次启动复位。
-
-### 崩溃恢复
-
-进程被杀时可能留下一批处于在途状态（发件箱 `Sending`、导出 `Processing`）的行——它们既不会被再次领取，也永远不会完成。所以后台服务**启动时先做一次复位**：发件箱用 `ResetInFlightAndCollectPendingAsync` 把残留的 `Sending` 改回 `Pending` 并收集待发送重新投递；导出用 `ResetOrphanedProcessingAsync` 复位后再由 `GetPendingIdsAsync` 取出待执行任务重投。
-
-新增异步链路时这一步别漏，否则一次异常重启就会永久卡住一批任务。
-
-### 与框架后台作业的分工
-
-| 需求 | 用什么 |
-| --- | --- |
-| 周期性/定时触发（每天凌晨跑报表） | 框架 [Tasks](https://framework.docs.xihanfun.com/packages/tasks) 的调度器 + `Sys_Task` 配置 |
-| 一次性 fire-and-forget，入队即返回 | 框架 `IBackgroundJobManager.EnqueueAsync` |
-| **持续拉队列消费，且要业务表做状态机** | **`XiHanBackgroundServiceBase<T>` + `IRedisDelayQueue<T>`（BasicApp 的两条链路都是这种）** |
-| 等人审批的长流程 | [工作流](./workflow) |
-
-## 事件
-
-BasicApp 的写路径大量使用本地事件解耦（如授权变更 → 写权限变更日志、待办创建 → 发站内通知）。
-
-::: warning 事件处理器必须显式登记
-本地事件总线只订阅登记在 `XiHanLocalEventBusOptions.Handlers` 里的处理器类型。裸 `services.AddTransient<MyHandler>()` **不会被订阅，静默失败**。必须用 `AddSaasLocalEventHandler<T>()`（内部 `AddTransient` + 把类型加进 `XiHanLocalEventBusOptions.Handlers`），并在 `AddSaasEventHandlers` 里登记。
-:::
-
-发布时机（框架保证）：
-
-- **本地事件在事务提交前**发布——处理器可能继续写库，这些写入必须落在同一事务里。
-- **分布式事件在事务提交成功后**发布——避免「事务回滚了事件照发」的幽灵事件。
-
-## 排查速查
-
-| 现象 | 原因 |
-| --- | --- |
-| 改了配置/菜单/字典，页面还是旧值 | 写侧漏调对应的 `InvalidateXxxAsync` |
-| 偶发读到旧值且不自愈 | 失效没走 `considerUow: true`，在提交前清了缓存 |
-| 授权改了不生效 | `InvalidateAuthorizationAsync` 没调；注意传 `userId` 只清单个用户 |
-| 邮件/短信卡在 `Sending` 不动 | 进程崩溃残留，检查后台服务的启动复位逻辑是否执行 |
-| 导出任务提交后没反应 | 队列是否入队（是否在提交后）、后台服务是否在跑 |
-| 事件处理器不触发 | 没加进 `XiHanLocalEventBusOptions.Handlers` |
-
-## 相关页面
-
-- [请求生命周期](./request-lifecycle)：收尾顺序的完整时序
-- [数据模型](./data-model)：事实源表的结构
-- [消息中心](./messaging)：邮件/短信/通知的业务设计
-- [Caching 包](https://framework.docs.xihanfun.com/packages/caching) / [Tasks 包](https://framework.docs.xihanfun.com/packages/tasks)：框架侧实现
+- [定时任务](./scheduling) · [消息通知](./messaging) · [实时推送](./realtime)

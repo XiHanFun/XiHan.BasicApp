@@ -1,109 +1,110 @@
-# 访问策略
+# 访问策略与权限条件
 
-访问策略按请求的 IP、地区、时段、User-Agent、路径、用户、角色、客户端类型、接口权限码等属性**放行、拒绝或只记录**请求，管的是「从哪里、什么时候、以什么方式访问」。它与[权限条件](./permission#权限条件-syspermissioncondition)分工不同：
+本页说明访问策略与权限条件两类 ABAC 能力的规则、操作与日志，适用于后端开发者与安全配置人员。
+
+两套 ABAC 能力共用一个条件引擎（框架 `Security.Abstractions.Conditions`，十五个运算符、CIDR、跨零点时段、时区）与同一份属性目录（Access 的 `AccessConditionAttributes`）：
 
 | | 访问策略 | 权限条件 |
 | --- | --- | --- |
-| 挂在哪里 | 独立的策略，不看授权 | 某一条角色授权或用户直授 |
-| 作用 | 整个请求放行或拒绝 | 只收窄这一条授权 |
-| 平台超管、租户所有者 | 同样受约束 | 不受约束（不走授权行） |
-| 求值时机 | 认证前、认证后、登录时 | 鉴权时 |
+| 作用 | 判定一次调用能否进入，与持有的权限无关 | 判定持有的某个权限码在什么条件下生效 |
+| 挂在哪里 | 平台层 / 租户层的独立策略 | 某个授权绑定（角色或用户的某个权限码）上 |
+| 管道位置 | Tenant 阶段（认证与租户都已知之后） | Authorize 阶段，框架授权之后 |
+| 失败 | `ACCESS_DENIED_004`（403） | 按模式拒绝或只记录 |
 
-两者共用同一套条件属性与运算符，命中都记进「条件命中」。登录失败过多的 IP 自动封禁也在这里管理。
+两者的每一次命中都记一条条件命中日志（`condition-hits.*`）。
 
-## 策略的组成
+## 条件属性
 
-| 字段 | 说明 |
+| 前缀 | 属性 |
 | --- | --- |
-| 策略编码 | 同一层内唯一，不能有空白 |
-| 动作 | **只记录**：命中只写命中记录；**拒绝**：命中即拒绝；**放行**：同一层里压过拒绝，用来给拒绝策略开例外 |
-| 条件 | 同一条件组内全部满足这组才满足，任一组满足策略就命中；至少一条条件，空条件会匹配所有请求，不允许保存 |
-| 优先级 | 越小越先求；同时命中多条时只决定报告哪一条，不改变放行压过拒绝的结论 |
-| 状态与生效期 | 启用且当前时间落在生效时间～失效时间内才求值 |
+| `subject.*` | `userid`、`username`、`tenantcode`、`rolecodes`、`departmentcodes`、`maindepartmentcode`、`positioncodes`、`isimpersonating` … |
+| `environment.*` | `ip`、`geo.country` / `province` / `city` / `isp`（IP 归属地）、`client.kind`、`client.useragent`、`date`、`time`、`hour`、`weekday` |
+| `resource.*` | `operation`、`permission`、`permissioncodes`、`path`、`method`、`service`、`action` |
 
-条件属性见[权限模型 · 权限条件](./permission#权限条件-syspermissioncondition)的属性表，访问策略能用其中除数据行属性（`resource.<字段>`）以外的全部属性。`environment.ip` 的条件值可写单个地址或 CIDR 列表，时间类属性按 [`Saas:Conditions:TimeZone`](../configuration#saas-conditions) 计算，取不到值的条件按不满足处理。
+条件的时段、日期按 `BasicApp:Access:ConditionTimeZone`（缺省 `Asia/Shanghai`）判定。`policies.attributes` 与 `permission-conditions.attributes` 返回属性目录供界面选择。
 
-## 两层与裁决
+::: warning IP 类条件与反向代理
+放在反向代理后时，要把代理的地址或网段写进 `BasicApp:ForwardedHeaders`，`environment.ip` 与归属地才是客户端的，见[部署](../deployment)。
+:::
 
-- **平台级**：在平台上下文维护，对全部请求生效。
-- **租户级**：租户管理员在自己的租户里维护，只作用于该租户已登录的请求和登录进该租户的那一次；匿名请求不按请求头里的租户选策略。租户看不到平台的策略。
-- 同一层里放行压过拒绝；平台的拒绝，租户的放行救不回来。
-- 认证前已经拦下的平台拒绝，认证后的平台放行救不回来（请求已经结束）。要给认证前的拒绝开例外，放行策略也只能用认证前就能判定的条件。
+## 访问策略
 
-## 求值时机
+### 求值规则
 
-时机由策略引用的属性自动决定，列表的「求值时机」列显示它：
+- 平台层作用于全部调用（含租户的调用），租户层只作用于已登录的本租户调用；平台层拦下即不看租户层。
+- 层内：有放行命中即不拒绝，否则第一条命中的拒绝策略拦下。
+- 时机按策略引用的属性推出：只引用认证前就取得到的属性（地址、归属地、客户端、时间）的是「认证前」，否则「认证后」；另有登录时机，在 `auth.login` 等开会话之前由登录守卫求值。5.x 分认证前、认证后两个中间件，6.0 认证在 Tenant 阶段之前，合成一个中间件。
+- 动作：`Deny` 拒绝、`Allow` 放行、`LogOnly` 只记录；状态 `Active` / `Disabled`；按优先级排序。
+- 判定本身出错时放行并记警告。
 
-| 时机 | 哪些策略 | 位置 | 被拒绝时 |
-| --- | --- | --- | --- |
-| 认证前 | 平台级、只引用 `environment.ip`、`environment.geo.*`、`environment.location`、时间类属性、`environment.client.userAgent`、`resource.path`、`resource.method` 的策略 | 请求管线最前，接口、实时通道、`/uploads` 静态文件与接口文档都在它后面 | 403「访问被安全策略拒绝。」 |
-| 认证后 | 平台级里用到用户、角色、部门、客户端类型、端点权限码等属性的策略，加上已登录请求所在租户的全部策略 | 认证、租户解析与路由之后，会话闸门与授权之前；匿名接口、Minimal API 与实时通道的协商请求同样经过 | 403「访问被安全策略拒绝。」 |
-| 登录时 | 与认证后同样的两层，按登录的用户与目标租户求 | 核对凭据之后、签发令牌之前；覆盖密码、两步验证、邮箱、手机号、第三方登录与切换租户 | 登录失败「当前网络或时段不允许登录。」，登录日志结果为「访问策略拒绝」 |
+### 操作
 
-OAuth 授权码换令牌与模仿登录不做登录时检查：前者由第三方服务端发起，后者发起人自己的请求已经过了闸门。策略求值本身出错时记错误日志、本次放行。各时机在管线中的位置见[请求生命周期](./request-lifecycle)。
-
-## 从模板新建
-
-「系统管理 → 访问策略」的「从模板新建」列出六条预置模板，平台与租户都能用；平台初始化时按模板写好同名的预置策略：
-
-| 模板 | 用途 | 平台预置策略 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| IP 黑名单 | 命中的地址或网段拒绝一切请求 | 拒绝，停用 |
-| 管理员只能在办公网访问 | 超级管理员与租户所有者只能从办公网访问 | 拒绝，停用 |
-| 敏感操作限定网络 | 导出、删除、模仿登录与授权类操作只能从办公网发起 | 拒绝，停用 |
-| 非工作时间访问 | 周末全天，以及工作日 08:00–20:00 之外的访问 | 只记录，启用 |
-| 境外访问 | 离线地址库查得到国家、且国家不是中国的访问 | 只记录，启用 |
-| 爬虫与脚本访问 | 没有 User-Agent 或是常见脚本工具的请求，开放接口签名调用除外 | 只记录，启用 |
+| `policies.list` / `get` / `templates` / `attributes` | `access.policies.read` | |
+| `policies.create` / `update` / `delete` | `access.policies.create` / `update` / `delete` | 可从模板新建（一律先只记录） |
+| `policies.set-action` / `set-status` | `access.policies.update` | 改动作、启停 |
+| `policies.trial` | `access.policies.trial` | 试运行：按模拟的请求属性看会命中哪些策略 |
 
-模板里的办公网段与黑名单地址是文档保留网段（`203.0.113.0/24`、`2001:db8::/32`），只作占位，启用前换成真实网段。离线地址库里港澳台的国家是「中国」，要算作境外须另加省份条件。
+防自锁：改完仍是启用中的拒绝策略、且会拦下当前这次请求时拒绝保存。
 
-## 启用拦截
+### 六个模板
 
-- **新建一律只记录**，从模板新建也一样。先看命中记录，或试运行确认无误，再在列表里「启用拦截」「设为放行」或「改为只记录」。
-- **不会把自己锁在外面**：保存后是启用中的拒绝策略时（启用拦截、启用、编辑），先拿当前这个请求试一次，会拦下自己就不保存。它只试当前请求：按路径、方法拒绝的策略可能不拦保存请求、却拦别的页面，这种情况见[部署 · 误封了自己](../deployment#误封了自己)。
-- **试运行**：对已保存的策略或编辑中的条件草稿，按填写的 IP、时刻、User-Agent、路径、方法、用户与端点权限码求一次，给出会不会拦下、各条件取到的值。只求这一条，不看生效期与其他策略；不填的项取当前请求与当前用户；草稿按「拒绝」来试；不模拟客户端类型（模拟请求按匿名算）。
-
-## 命中记录
-
-「审计中心 → 条件命中」收访问策略与权限条件两种来源的命中，访问策略列表的「命中记录」直接跳过去只看那一条，列表也显示每条策略近 24 小时的命中次数。
-
-- 只记录、拒绝、放行的命中都记；拒绝被同一层的放行豁免时记为「未拦截」。权限条件在 `LogOnly` 模式下本该拒绝的请求也记在这里。
-- 平台策略的命中记在平台，租户策略与权限条件的命中记在该租户。
-- 同一策略、动作、时机、是否拦截、IP、方法、路径、用户在同一分钟里合并为一行、累计次数；内存里的合并键上限见 [`Saas:AccessPolicy:HitBufferCapacity`](../configuration#saas-accesspolicy)。
-- 按月分表，保留期跟其他日志一样读 `saas.log.retention-days`；按 TraceId、IP、用户可在[日志链路追踪](./logging#相关能力-权限变更日志与链路追踪查询)里与其他日志串起来看。暂不提供导出。
-
-## 登录失败自动封禁
-
-同一 IP 在计数窗口内登录失败（跨账号累计）达到上限即被暂时封禁，封禁期间这个 IP 的全部请求返回 429「登录失败次数过多，当前 IP 已被暂时封禁。」并带 `Retry-After`。
-
-- 参数 [`saas.security.login-auto-ban`](./settings)，**缺省关闭**；打开后缺省 10 分钟内失败 20 次封 30 分钟，24 小时内再犯时长翻倍，最长 1440 分钟。只认平台这一条，租户不能覆盖。
-- 计入的是账号密码不对、登录验证码不对、两步验证码不对这类失败；被访问策略拒绝的登录不计，认证前命中平台放行策略的 IP 不计。
-- 平台上下文的访问策略页有「自动封禁」：查看当前封禁、解封（权限码 `saas:access-policy:ban`，解封同时清零计数），有参数配置编辑权限时直接在这里改参数。
-- 多实例部署必须启用 Redis，计数与名单才在节点间共享，见[部署 · 访问策略与真实 IP](../deployment#访问策略与真实-ip)。
-
-## 权限码与菜单
-
-| 权限码 | 说明 |
+| 模板 | 用途 |
 | --- | --- |
-| `saas:access-policy:read` | 查看访问策略与当前封禁（菜单「系统管理 → 访问策略」） |
-| `saas:access-policy:create` | 新建（只能建成只记录） |
-| `saas:access-policy:update` | 修改条件、优先级、生效期与动作（含启用拦截） |
-| `saas:access-policy:status` | 启用、停用 |
-| `saas:access-policy:delete` | 删除，历史命中记录保留 |
-| `saas:access-policy:trial` | 试运行 |
-| `saas:access-policy:ban` | 解除自动封禁，只在平台生效 |
-| `saas:access-policy-hit:read` | 查看命中记录（菜单「审计中心 → 条件命中」） |
+| `preset.ip-blacklist` | IP 黑名单（示例网段需替换） |
+| `preset.admin-office-network` | 管理员只能从办公网络调用 |
+| `preset.sensitive-ops-network` | 导出、删除、模仿、授权等敏感操作只能从办公网络调用 |
+| `preset.off-hours` | 非工作时间访问 |
+| `preset.overseas` | 境外访问 |
+| `preset.block-scripts` | 脚本与爬虫（`curl`、`python-requests` 等 User-Agent） |
 
-平台与租户两侧都有这些权限码（`ban` 只在平台）。初始化的专业版、企业版套餐都含除 `ban` 外的全部；已有套餐不会自动带上，要到「租户管理 → 版本套餐」勾选。
+种子 `access.policies` 按这六个模板在平台层写入六条策略：拒绝类停用、只记录类启用。启用拒绝类之前替换示例网段，并先试运行。
 
-## 运行与运维
+### 登录失败自动封禁
 
-- 真实客户端 IP、出错时放行、多实例生效时延、误封自己后的解围，见[部署 · 访问策略与真实 IP](../deployment#访问策略与真实-ip)。
-- 总开关与刷新间隔见[配置 · `Saas:AccessPolicy`](../configuration#saas-accesspolicy)。
-- 策略与条件存在平台库，命中记录随其他日志存在各租户的库里，见[多租户 · 库隔离](./multi-tenancy#库隔离-平台库是目录库)。
+系统参数 `access.security.login-auto-ban`（只认平台的，JSON 值，缺省关闭）：窗口分钟数、同一地址失败上限、首次封禁时长等。达到上限后该地址的请求在访问策略之前即被拒绝（503 `ACCESS_UNAVAILABLE_001`，带重试秒数），并记一条编码 `login-auto-ban` 的命中。平台层有放行命中的调用，认证失败不计入封禁。
+
+| 操作 | 权限码 |
+| --- | --- |
+| `login-bans.list` | `access.login-bans.read` |
+| `login-bans.lift` | `access.login-bans.lift` |
+
+## 权限条件
+
+### 结构与语义
+
+条件挂在授权绑定上（`SysPermissionCondition`）：组内 AND、组间 OR。框架的权限过滤器拿不到请求属性，所以分两步：
+
+1. 过滤器乐观放行带条件的权限码；
+2. `PermissionConditionMiddleware` 在框架授权之后，按调用来源（地址、User-Agent、路径与方法）、主体与时刻精确判定操作声明的那个权限码。
+
+`resource.*` 属性在列表查询里由查询条件补算。
+
+### 模式
+
+`BasicApp:Access:PermissionConditionMode`：
+
+| 值 | 不满足时 |
+| --- | --- |
+| `Enforce`（缺省） | 拒绝，记命中 |
+| `LogOnly` | 放行，记命中 |
+| `Disabled` | 不判定 |
+
+### 操作
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `permission-conditions.list` / `attributes` | `access.permission-conditions.read` | |
+| `permission-conditions.create` / `update` / `delete` | `access.permission-conditions.create` / `update` / `delete` | |
+| `permission-conditions.trial` | `access.permission-conditions.trial` | 按模拟的时间、IP 等试算某人某权限的结论 |
+| `permission-conditions.batch-trial` | `access.permission-conditions.trial` | 影响试算：一组主体同时试算 |
+| `permission-conditions.inventory` | `access.permission-conditions.trial` | 盘点：找出未登记的属性、旧名字、不合法的条件与失效的绑定 |
+
+## 条件命中日志
+
+`condition-hits.list` / `get`（`auditing.condition-hits.read`）：哪条策略或条件、动作、是否拦截、请求属性快照。平台层的命中落在平台一侧。
 
 ## 下一步
 
-- [权限模型](./permission)：权限条件与判定链
-- [请求生命周期](./request-lifecycle)：访问策略在管线中的位置
-- [日志审计](./logging)：条件命中与链路追踪
+- [权限管理](./permission) · [约束规则与审批](./approval) · [日志审计](./logging)

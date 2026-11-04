@@ -18,7 +18,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 
 ## 开始前必须做
 
-1. 按任务读取对应技能：后端实现读取 `.agents/skills/backend-development/SKILL.md`；Vue 管理端读取 `.agents/skills/frontend-development/SKILL.md`；跨端 API、权限、租户和运维契约读取 `.agents/skills/fullstack-contracts/SKILL.md`。这三个是 4.x 技能，只用于 `backend/`、`frontend/`；在 `next` 上做 6.0（`backend-next/`、`frontend-next/`、`docs-next/`、`nextdocs/`）时改读 `.agents/skills/next-backend-development`、`next-frontend-development`、`next-fullstack-contracts` 三个 6.0 技能。
+1. 按任务读取对应技能：后端实现读取 `.agents/skills/backend-development/SKILL.md`；Vue 管理端读取 `.agents/skills/frontend-development/SKILL.md`；跨端 API、权限、租户和运维契约读取 `.agents/skills/fullstack-contracts/SKILL.md`。这三个是 4.x 技能，只用于 `backend/`、`frontend/`；在 `next` 上做 6.0（`backend-next/`、`frontend-next/`、`docs/`、`nextdocs/`）时改读 `.agents/skills/next-backend-development`、`next-frontend-development`、`next-fullstack-contracts` 三个 6.0 技能。
 2. 同时涉及多个职责时加载对应多个技能，不要一次读取无关资料。
 3. 检查当前分支、`git status` 和最近提交；保留用户已有改动。在 worktree 中还要按「分支与 worktree」核对分支分组和基线。
 4. 阅读目标模块 README、相邻实现、测试和配置，确认当前契约。

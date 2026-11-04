@@ -1,6 +1,6 @@
 # 6.0 管理端开发参考
 
-真源顺序：后端契约（`frontend-next/contracts/openapi.json` 与生成的 `packages/contracts/*`）→ 代码与门禁脚本 → 方案第 6 节 → `docs-next/frontend/*.md`。
+真源顺序：后端契约（`frontend-next/contracts/openapi.json` 与生成的 `packages/contracts/*`）→ 代码与门禁脚本 → 方案第 6 节 → `docs/frontend/*.md`。
 
 ## 目录
 

@@ -7,7 +7,7 @@ description: 在 next 分支实现、重构、审查或测试 XiHan.BasicApp 6.0
 
 只用于 `next` 分支的 `frontend-next/`。4.x 的 `src/api/modules` 手写 facade、`createDynamicApiClient`、`*.types.ts` 在这里一律不存在。
 
-开始前读 `references/frontend.md`；视觉与交互改动另读仓库根 `AGENTS.md` 的「前端架构与设计」与 `docs-next/frontend/theme.md`；动公共包（`packages/` 下的壳层、路由、组件、错误页）前先对照 4.x `frontend/packages` 的同名文件。
+开始前读 `references/frontend.md`；视觉与交互改动另读仓库根 `AGENTS.md` 的「前端架构与设计」与 `docs/frontend/theme.md`；动公共包（`packages/` 下的壳层、路由、组件、错误页）前先对照 4.x `frontend/packages` 的同名文件。
 
 ## 边界
 

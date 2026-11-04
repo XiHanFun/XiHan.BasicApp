@@ -7,7 +7,7 @@ description: 在 next 分支实现、重构、审查或测试 XiHan.BasicApp 6.0
 
 只用于 `next` 分支的 `backend-next/`。4.x 的 Dynamic API、`[UnitOfWork]`、`[PermissionAuthorize]`、`TenantId = 0` 写法在这里一律不适用。
 
-开始前读 `references/backend.md`，再读方案 `nextdocs/下一代总体方案.md` 第 5 节里对应的小节、`docs-next/backend/development.md`，以及目标包的 `<包>Feature.cs`、相邻操作、`Queries/` 与集成测试。
+开始前读 `references/backend.md`，再读方案 `nextdocs/下一代总体方案.md` 第 5 节里对应的小节、`docs/backend/development.md`，以及目标包的 `<包>Feature.cs`、相邻操作、`Queries/` 与集成测试。
 
 ## 架构边界
 

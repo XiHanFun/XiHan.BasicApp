@@ -1,263 +1,161 @@
 # AI 能力
 
-BasicApp 的 AI 能力落在独立模块 `XiHan.BasicApp.AI` 里，与代码生成模块同构（独立工程、独立种子段、独立权限资源）。它坐落在框架薄层 [XiHan.Framework.AI](https://framework.docs.xihanfun.com/packages/ai) 之上：**框架**提供 provider 解析、会话/嵌入门面、RAG 切片检索、提示词模板、Agent 与 MCP 桥接的抽象与默认实现；**BasicApp** 在其上做三件业务落地——把 AI Provider 配置**库化管理**（存库 + 加密 + 前端可维护 + 热切换），把 RAG 知识库**接上真实向量库（Qdrant）**并暴露为文档管理 / 检索问答 / MCP 工具，以及把**提示词模板库化**（覆盖框架默认 Options 实现，前端可维护）。
+本页说明 AI 模块的提供商、Provider 目录、提示词、知识库、助手与模块开关，适用于接入或配置模型的后端与前端开发者。
 
-模块只依赖 `XiHanBasicAppSaasModule`（复用 RBAC 表、`SaasRepository`、DataProtection 密文前缀），框架 AI 经 Saas → Core 传递进来。
+AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/v5/backend/ai)。
 
-## 三大能力
-
-| 能力 | 做什么 | 关键实体 / 服务 | 权限资源 |
-| --- | --- | --- | --- |
-| **Provider 库化管理** | AI 服务商配置存库、加密密钥、CRUD、设默认、测连接、改配置即时热切换 | `SysAiProvider`、`AiProviderAppService`、`SaasAiProviderConfigStore` | `ai` |
-| **RAG 知识库** | 文档摄取（切片 → 嵌入 → 写 Qdrant）、重建索引、语义检索、注入 prompt 生成带引用答案 | `SysKnowledgeDocument`、`KnowledgeDocumentAppService`、`KnowledgeQueryAppService` | `knowledge_base` |
-| **提示词库** | 提示词模板存库、CRUD、按编码/版本取用，覆盖框架默认提示词库 | `SysAiPrompt`、`AiPromptAppService`、`SaasAiPromptStore` | `ai_prompt` |
-
-此外还有一条**Agent / MCP** 支线：知识检索被封装为技能（`KnowledgeRetrieveSkill`），框架技能注册表自动收纳，进而投影为对话工具与 MCP tools，供外部 AI 客户端（Claude Code / Cursor 等）调用。
-
-模块前端页面挂在「开发工具（develop）」目录下：**AI 提供商**（`/develop/aiProvider`）、**知识库**（`/develop/knowledge`）与**AI 提示词**（`/develop/aiPrompt`），三者均仅对持有 `ai:read` / `knowledge_base:read` / `ai_prompt:read` 者（默认=超管通配 `*`）可见。
-
----
-
-## Provider 库化管理
-
-### 为什么存库而不写 appsettings
-
-框架默认的 provider 配置源 `OptionsAiProviderConfigStore` 读 `XiHan:AI` 配置节兜底。BasicApp 把它**替换**为数据库实现 `SaasAiProviderConfigStore`，好处是：配置可在前端维护、天然按租户隔离、密钥加密落库、且改完能不重启热切换。
-
-`SysAiProvider`（表 `Sys_Ai_Provider`）关键字段：
-
-| 字段 | 列 | 说明 |
-| --- | --- | --- |
-| `ConfigCode` | `Config_Code` | 配置编码，**租户内唯一**（`UX_TeId_CoCd`，含 `IsDeleted` 末列，软删后可复用），上层解析器/配置源以它为 provider 键；**创建后不可变** |
-| `ConfigName` | `Config_Name` | 配置名称（展示） |
-| `Provider` | `Provider` | 提供商/协议标识，**自由字符串**（`OpenAI`/`DeepSeek`/`Azure`/`vLLM`/`Custom` 等），仅作分组与展示，**不是枚举** |
-| `Model` | `Model` | 会话模型名 |
-| `EmbeddingModel` | `Embedding_Model` | 嵌入模型名（RAG 用；与会话同端点同密钥、仅模型 id 不同，如 `text-embedding-3-small`；空则该 provider 不支持嵌入） |
-| `BaseUrl` | `Base_Url` | 端点地址（空则用提供商默认端点，如 OpenAI 官方） |
-| `ApiKey` | `Api_Key` | API 密钥，**可逆加密落库**，双 `[JsonIgnore]` 防外泄 |
-| `MaxOutputTokens` / `Temperature` / `TimeoutSeconds` / `ExtraJson` | 同名列 | 采样与扩展参数，`ExtraJson` 免改表结构扩展 |
-| `IsDefault` | `Is_Default` | 是否默认 provider（**租户内单默认**，软约束） |
-| `IsEnabled` / `Status` | `Is_Enabled` / `Status` | 运行开关与状态；禁用或非 `Enabled` 均不参与配置源解析 |
-
-::: tip 一个适配器打天下
-OpenAI / DeepSeek / Azure / vLLM / Ollama / 自训模型多数走 OpenAI 兼容协议——`BaseUrl` 指向对应端点、填 `Model` 与 `ApiKey` 即可，无须每家写一个适配器。`Provider` 字段只是分组标签，真正决定行为的是 `BaseUrl` + `Model`。
+::: tip
+本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
 :::
 
-### 密钥加密
+## 提供商
 
-`ApiKey` 经 `DataProtectionAiProviderSecretProtector` 用 ASP.NET Core Data Protection 加密，密文带统一前缀，使用**独立 Purpose**（与存储密钥/短信密钥/邮件密码/租户连接串互不影响）。要点：
+模型提供商 `SysAiProvider` 是平台库实体、只在平台一侧：平台配置，租户经助手用到（与 5.x 相同）。协议只有 OpenAI 兼容一种，改端点即可接 DeepSeek、Azure OpenAI、Moonshot、自建的 vLLM 等。
 
-- **写入**：创建时明文提交、服务端加密；更新时 `ApiKey` **留空表示保留原密钥**，非空才替换重加密。
-- **读出**：列表/详情 DTO **永不回读密钥**——只暴露布尔标志 `HasApiKey`；`[JsonIgnore]` 双注解在实体层再兜一道底。
-- **解密**：只解本保护器写入的密文，去前缀直接解密，**失败即抛**（fail-closed，不做旧明文兼容）。
-- **多实例部署**须共享 Data Protection 密钥环（持久化到共享存储），否则其它实例无法解密。
+| 字段 | 规则 |
+| --- | --- |
+| 编码 | 框架 Provider 名的文法：小写字母或数字开头，只有小写字母、数字与 `._-`，至多 64 个字符；唯一（部分唯一索引，删了可以重建），建后不可改。5.x 至多 100 个字符、可大写 |
+| 厂商 | 只用于分组展示（OpenAI、DeepSeek、Azure、Moonshot、自建、自定义，可自填） |
+| 聊天模型 | 必填 |
+| 嵌入模型 | 为空即不能用于知识库 |
+| 端点 | 绝对的 http 或 https 地址；为空即厂商的官方端点 |
+| API 密钥 | 经 `ISecretProtector` 加密存储，明文至多 1000 个字符；响应只给 `hasApiKey`，修改时留空即保留原密钥 |
+| 最大输出、温度 | 每次聊天调用带上（温度 0～2）；5.x 存了从没用到 |
+| 超时 | 1～3600 秒，为空即框架缺省的 100 秒；流式回复按每个增量计时 |
+| 缺省 | 最多一个；助手与知识库没写提供商时用它。停用的不能设为缺省（`AI_CONFLICT_102`） |
+| 启停 | 一个状态（5.x 有「是否启用」与状态两个开关）；停用的不进 Provider 目录 |
 
-### 配置源解析
-
-`SaasAiProviderConfigStore`（Singleton，经 `IServiceScopeFactory` 开作用域取 Scoped 仓储）实现框架的 `IAiProviderConfigStore`：
-
-- `GetAsync(null)`：取**默认且启用**行（`IsDefault && IsEnabled && Status==Enabled`，按 `Sort` 取首条）。
-- `GetAsync(configCode)`：按 `ConfigCode` 取启用行；无匹配返回 `null`（框架按「未配置」处理）。
-- `GetAllAsync`：枚举全部启用行；单行解密失败**跳过并告警**，不阻断全表、不回退明文（fail-closed）。
-- 映射为框架 `AiProviderOptions` 时，**`Provider` 键即 `ConfigCode`**，供解析器按此缓存。配置源本身**不做进程内缓存**——缓存在解析器那层。
-
-### 热切换（改配置即时生效）
-
-框架解析器（`IAiChatClientResolver` / `IAiEmbeddingGeneratorResolver`）按 provider 名缓存构建好的 `IChatClient` / 嵌入生成器，**不会自动感知 DB 变更**。所以 `AiProviderAppService` 在**每个写操作后**都调 `InvalidateResolvers()`：
-
-```csharp
-private void InvalidateResolvers()
-{
-    _chatClientResolver.Invalidate();      // 清空会话客户端缓存
-    _embeddingResolver.Invalidate();       // 清空嵌入生成器缓存
-}
-```
-
-`Create` / `Update` / `UpdateStatus` / `SetDefault` / `Delete` 全部在返回前 `Invalidate`——下次解析按最新 DB 配置重建，运维改完 key/baseUrl/model **无须重启**即生效。这是「库化管理 + 配置热切换」的闭环关键。
-
-### 应用服务动作
-
-`AiProviderAppService`（`[DynamicApi]`，无 Controller）暴露的动作：
-
-| 动作 | 权限码 | 事务 | 说明 |
-| --- | --- | --- | --- |
-| `CreateAsync` | `ai:create` | `[UnitOfWork]` | 新增配置；`ConfigCode` 不能含空白、租户内不重复 |
-| `UpdateAsync` | `ai:update` | `[UnitOfWork]` | 更新；`ConfigCode` 不可变，`ApiKey` 留空保留原值 |
-| `UpdateStatusAsync` | `ai:update` | `[UnitOfWork]` | 启停状态 |
-| `SetDefaultAsync` | `ai:update` | `[UnitOfWork]` | 设为默认（已禁用者不可设默认）；领域服务清除其它行 `IsDefault`（单默认互斥） |
-| `DeleteAsync` | `ai:delete` | `[UnitOfWork]` | 软删 |
-| `TestConnectionAsync` | `ai:execute` | 无 | `[HttpPost]`；用**一次性客户端**（不入解析器缓存）向 provider 发一句 `ping`，返回成功/耗时/finishReason——**可测尚未启用的配置** |
-
-查询侧 `AiProviderQueryService`：`GetPageAsync`（`[HttpPost]`，`ai:read`，FLS 门控排序/过滤 + 默认兜底排序）与 `GetDetailAsync`。列表/详情均走 `HasApiKey` 布尔而非明文。
-
-采样温度限定 `0~2`，越界抛异常。
-
----
-
-## RAG 知识库
-
-一条最小可用的 RAG：**摄取**（文档切片 → 嵌入 → 写向量库）与**检索问答**（query 嵌入 → 向量检索 → 注入 prompt → 会话生成带引用答案）。切片与向量落在 **Qdrant**，本模块的 `SysKnowledgeDocument`（表 `Sys_Knowledge_Document`）只存文档元信息与**原文**（`RawContent`，用于免重传重建索引）。
-
-### 向量库与嵌入约定（以框架为准）
-
-RAG 的底层实现由框架 `AddXiHanRAG()` 提供（切片/摄取/检索/增强），BasicApp 负责登记具体向量连接器与嵌入模型选择。以下约定源自框架 `VectorStoreKnowledgeRecord`，是**部署前必须对齐**的硬约束：
-
-| 约定 | 值 | 说明 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| 向量库 | **Qdrant**（当前 preview） | BasicApp 经 `AddQdrantVectorStore(...)` 登记（gRPC），框架本身不引用 Qdrant |
-| 集合名 | `xihan_knowledge` | 固定常量 |
-| 主键 | `Guid`（Qdrant 只支持 `Guid`/`ulong` 键） | 由 `MD5(documentId:index)` **确定性派生**——同文档同序号恒等，重复摄取即覆盖（幂等） |
-| 嵌入模型 | 取自 `SysAiProvider.EmbeddingModel` | 与会话同端点同密钥、仅模型 id 不同；空则该 provider 不支持嵌入 |
-| 向量维度 | **`1536`（编译期常量，硬编码）** | 对齐 `text-embedding-3-small`。换用不同维度的嵌入模型**必须改框架常量并重建集合**，否则维度不匹配 |
-| 距离 / 索引 | `CosineSimilarity` / `Hnsw` | — |
+| `ai-providers.list` / `get` | `ai.ai-providers.read` | 列表可按状态、厂商与是否缺省筛选，按编码、名称与聊天模型搜索 |
+| `ai-providers.create` / `update` | `ai.ai-providers.create` / `update` | 修改与启停交回读到的 `concurrencyStamp` |
+| `ai-providers.set-status` / `set-default` | `ai.ai-providers.update` | 单条 |
+| `ai-providers.delete` | `ai.ai-providers.delete` | 批量，逐项结果 |
+| `ai-providers.test` | `ai.ai-providers.execute` | 测试连接，见下 |
 
-::: warning 换嵌入模型 = 改常量 + 重建集合
-维度 `1536` 是框架编译期常量。若换到维度不同的嵌入模型（如某些 1024/3072 维模型），仅在前端改 `EmbeddingModel` 会导致 upsert/检索维度不匹配。这属于需改框架源码并重建 Qdrant 集合的动作，不是运行期配置项。拿不准的维度**以仓库为准**。
-:::
+权限码都只在平台一侧，写操作进操作日志。字段安全登记了提供商的读、建、改。
 
-### 文档摄取与索引
+测试连接按当前配置临时建一次客户端（停用的也能测，用完即释放）：聊天模型发一句 `ping`（最大输出 16 个令牌），配了嵌入模型再嵌入一次并回报维度。连不通不是失败的调用，结果里写提供商给的原因；密钥解不开是 503 `AI_UNAVAILABLE_101`。
 
-`SysKnowledgeDocument` 关键字段：`Title`、`SourceType`（`PasteText` / `UploadFile`，上传文件由前端读为文本后提交）、`Source`（文件名/标签，引用溯源用）、`RawContent`（原文）、`ChunkCount`（已入库切片数）、`EmbeddingProviderCode`（嵌入 provider 编码，空=默认 provider）、`Status`（`Pending` / `Indexed` / `Failed`）、`ErrorMessage`。
+## Provider 目录
 
-`KnowledgeDocumentAppService` 动作（均 `[HttpPost]` 除删除）：
+框架的聊天、嵌入与知识库都经 `IAIProviderCatalog` 按名字解析客户端。框架缺省的目录读配置 `XiHan:AI:Providers`；BasicApp 以落库的 `AiProviderCatalog` 取代它，提供商在页面上维护：
 
-| 动作 | 权限码 | 说明 |
+- 启用中的提供商按编码映射成框架的 Provider 配置，种类 `openai`；缺省提供商是标为缺省的那一个（不在只有一个时自动取它）。
+- 框架的目录接口是同步的，所以目录持一份内存快照：宿主启动时装载，提供商写入的调用提交之后当场重载，新的调用即用新配置。
+- 配了 Redis 时，写入的实例改写共享缓存的戳键 `ai:providers:stamp`，别的实例经共享缓存的变更通知重载；没配 Redis 即单实例。
+- 重载只丢掉配置变了或没了的提供商缓存的客户端。解不开密钥的提供商记 Warning 后不进目录，按未配置处理，不当明文用。
+- 目录以框架的 `AIProviderConformance` 一致性套件自证。
+
+没写提供商的编码时，聊天、嵌入与知识库都向目录要缺省提供商。不要配 `XiHan:AI:Knowledge:EmbeddingProvider`：它排在目录的缺省之前，缺省提供商改了也不跟着变。
+
+## 提示词
+
+提示词 `SysAiPrompt` 是平台库实体、只在平台一侧（与 5.x 相同）：正文原样当助手的系统提示词，没有变量渲染，版本只是标签、同一编码只有一行。
+
+| 字段 | 规则 |
+| --- | --- |
+| 编码 | 必填，至多 100 个字符；唯一（部分唯一索引，删了可以重建），重复报 409 `AI_CONFLICT_103`；建后不可改 |
+| 名称 | 必填，至多 200 个字符 |
+| 分类、版本 | 可选的标签，各至多 100 个字符 |
+| 正文 | 必填，不限长度；列表不带正文，`ai-prompts.get` 才返回 |
+| 启停 | 新建时选，之后走 `ai-prompts.set-status` |
+
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `IngestAsync` | `knowledge_base:create` | 摄取：落库 `Pending` → 切片嵌入写 Qdrant → 回写 `Indexed`/`Failed` |
-| `ReindexAsync` | `knowledge_base:update` | 重建：先按当前 `ChunkCount` 清旧向量，再用 `RawContent` 重新索引 |
-| `DeleteAsync` | `knowledge_base:delete` | 先删向量再删文档 |
+| `ai-prompts.list` / `get` | `ai.ai-prompts.read` | 列表可按状态与分类筛选，按编码与名称搜索 |
+| `ai-prompts.create` / `update` | `ai.ai-prompts.create` / `update` | 修改与启停交回读到的 `concurrencyStamp` |
+| `ai-prompts.set-status` | `ai.ai-prompts.update` | 单条 |
+| `ai-prompts.delete` | `ai.ai-prompts.delete` | 批量，逐项结果 |
 
-::: tip 摄取不套 UnitOfWork
-摄取/重建含外部 I/O（嵌入 API + 向量库网络调用），领域服务**刻意不套 `[UnitOfWork]`**：先落库 `Pending`、索引后独立提交 `Indexed`/`Failed`，避免网络 I/O 期间长事务。进程中断则停留 `Pending`，可重建恢复。
-:::
+提示词与提供商的必填文本都不接受纯空白（校验错误，消息键 `ai.fields.blank`）。
 
-### 补偿清理（防孤儿向量）
+提示词还被助手引用时不能删除，逐项报 `AI_CONFLICT_107`；提供商也一样（`AI_CONFLICT_104`）。5.x 不查，用到时才报找不到。
 
-摄取的一致性难点：向量已写进 Qdrant（N 条），但回写 `ChunkCount` 的 DB 更新失败——此后 DB 记 0、向量库有 N，后续按 `ChunkCount(=0)` 无法清理，**孤儿向量持续污染检索**。领域服务的处理：回写 DB 失败时，**补偿清理**刚写入的向量（`RemoveDocumentAsync(documentId, writtenChunkCount)`）以保证 DB 与向量库一致；补偿本身再失败则落错误日志（可能残留孤儿，需人工介入）。删除/重建也据 `ChunkCount` 枚举全部确定性主键来清向量。
+## 知识库
 
-### 检索与问答
+知识文档 `SysKnowledgeDocument` 是租户库实体，平台与各租户各自维护、互不可见（5.x 是平台一张表按租户过滤）。向量也按侧分集合：平台 `knowledge.platform`，租户 `knowledge.<租户 ID>`；检索只在调用方一侧的集合里做，不靠元数据过滤。向量不在数据库里，库和向量库要一起备份与还原，见[部署](../deployment#备份与还原)。
 
-`KnowledgeQueryAppService.QueryAsync`（`[HttpPost]`，`knowledge_base:execute`）：
+| 字段 | 规则 |
+| --- | --- |
+| 标题 | 必填，至多 200 个字符 |
+| 来源类型、来源标识 | 粘贴文本或上传文件；上传的文件由前端读成文本提交，来源标识记文件名 |
+| 原文 | 必填，只收文本（与 5.x 相同），留在库里供重建 |
+| 嵌入提供商 | 提供商的编码，为空即缺省提供商；写了但不存在或已停用报 400 `AI_VALIDATION_102` |
+| 块数、状态、失败原因 | 状态是待索引、已索引或失败；失败时记错误码与发起人区域的文案。模型或向量库调用失败时原因只有异常类型，完整异常看应用日志 |
 
-1. `topK` 收敛到 `1~20`（默认取 RAG 配置的 `DefaultTopK`）。
-2. 按**当前租户**过滤检索（无租户上下文=平台全局 `TenantId=0`）：`IKnowledgeRetriever.RetrieveAsync(query, topK, filter, provider)`。
-3. 返回命中片段（`Citations`：文档 id / 序号 / 标题 / 来源 / 相似度 / 文本）。
-4. 若 `Answer=true` 且有命中：`IRagPromptAugmenter.Augment` 把片段注入 prompt，走会话门面 `IXiHanAiService.ChatAsync` 生成**带引用的答案**（`Answer` 字段）。
-
-请求里的 `Provider` 编码**同时用于嵌入与会话**；`Answer=false` 时只返回命中片段不调用大模型。
-
-### RAG 部署配置
-
-向量库连接属**部署级基础设施配置**，走 `appsettings` 的 `XiHan:AI:Rag` 节（`XiHanRagOptions`）：
-
-| 字段 | 默认 | 说明 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `QdrantHost` | `localhost` | Qdrant 主机（gRPC） |
-| `QdrantPort` | `6334` | gRPC 端口 |
-| `QdrantHttps` | `false` | Qdrant Cloud 用 `true` + `QdrantApiKey` |
-| `QdrantApiKey` | `null` | 云端鉴权 |
-| `DefaultTopK` | `5` | 检索默认返回条数 |
+| `knowledge-documents.list` / `get` | `ai.knowledge-documents.read` | 列表可按来源类型与状态筛选，按标题与来源搜索，不带原文 |
+| `knowledge-documents.ingest` | `ai.knowledge-documents.create` | 请求内同步切块、嵌入并写入向量库 |
+| `knowledge-documents.reindex` | `ai.knowledge-documents.update` | 用原文重建 |
+| `knowledge-documents.delete` | `ai.knowledge-documents.delete` | 批量，逐项结果；连同向量一起删 |
+| `knowledge-documents.query` | `ai.knowledge-documents.execute` | 知识问答，`GET`，问题至多 2000 个字符、条数 1～20 |
+| `knowledge-documents.search` | `ai.knowledge-documents.execute` | 只检索，也发布为 MCP 与 AI 工具（取代 5.x 的 `knowledge_retrieve`） |
 
-```json
-{
-  "XiHan": {
-    "AI": {
-      "Rag": {
-        "QdrantHost": "localhost",
-        "QdrantPort": 6334,
-        "QdrantHttps": false,
-        "DefaultTopK": 5
-      }
-    }
-  }
-}
-```
+权限码两侧都有，写操作进操作日志。
 
----
+- **事务**：摄入与重建有网络 I/O，不放在调用的事务里。摄入先写一行待索引，索引之后再回写结果，两次写入各自提交；进程在途中中断即停在待索引，可以重建。回写失败时删掉刚写入的向量（与 5.x 相同）。
+- **索引失败不是失败的调用**（与 5.x 相同）：没配向量库、模型不可达、维度不符时文档以失败状态保存并成功返回，原因记在文档上，修好之后重建。
+- **重建先写后删**：新块写入成功之后才裁掉旧版本多出来的块；失败时旧块照常可检索，块数不变（5.x 先删后写，失败时旧块已经没了）。
+- **删除**：先删向量再软删行。向量库不可达时这一项失败、行不删；索引失败且块数为 0 的文档没写入过向量，不碰向量库，没配向量库也删得掉。
+- **问答**：要答案且有命中时才调模型，用框架内置的增强模板，最大输出与温度取提供商的配置。片段在列表里的顺序就是答案里的引用编号：`[n]` 对应第 n 个片段。检索失败照框架的错误码返回，不退化成纯模型回答。
 
-## 提示词库
+向量库配置见[配置参考](../configuration#basicapp-ai-qdrant)。不配即知识库不可用：摄入的文档以失败保存，问答与检索返回 503 `AI_UNAVAILABLE_002`，不悄悄退到内存。向量维度要与嵌入模型一致（`XiHan:AI:Knowledge:Dimensions`，缺省 1536），不一致报 `AI_VALIDATION_002`；检索条数与切块参数也在这一节，缺省 5 条、块 1000 个字符、重叠 100。
 
-独立于 Provider 与 RAG 的第三条能力：把框架 `IAiPromptStore` 抽象的默认 Options 实现**替换**为数据库实现，让「发给大模型的提示词模板」从代码/配置搬进库里维护。提示词**非机密**，无需加密。
+提供商还被知识文档或助手引用时不能删除，逐项报 `AI_CONFLICT_104`（5.x 不查，用到时才报找不到）。文档可能在任何一侧，所以删除时要逐个租户查一遍，独立库的租户查它自己的库；哪一侧查不了，这次删除就失败。
 
-`SysAiPrompt`（表 `Sys_Ai_Prompt`）关键字段：
+## 助手
 
-| 字段 | 列 | 说明 |
+助手 `SysAiAssistant` 是平台库实体：只在平台一侧配置，平台与租户的聊天都用同一批助手（与 5.x 相同）。会话复用聊天，聊天里的操作见[在线聊天](./chat#助手会话)。
+
+| 字段 | 规则 |
+| --- | --- |
+| 编码 | 必填，至多 100 个字符、不含空白；唯一（部分唯一索引，删了可以重建），重复报 409 `AI_CONFLICT_105`；建后不可改 |
+| 名称、简介、开场白、头像 | 名称必填；头像是图片地址，为空用首字母；开场白在新建会话时作为第一条助手消息，为空不发 |
+| 提示词的编码 | 为空用内置的系统提示词（按调用方区域取）；写了须存在且启用，否则报 400 `AI_VALIDATION_105` |
+| 聊天提供商、嵌入提供商的编码 | 为空用缺省提供商；写了须存在且启用，否则报 400 `AI_VALIDATION_104` |
+| 是否检索知识库 | 缺省开，检索的片段数 1～20，缺省 5；没配向量库时表单给出提示，开着的助手回复会失败 |
+| 带入上下文的历史消息条数 | 0～50，缺省 10；至少带上本轮提问 |
+| 可用的工具 | 缺省不带；只能勾框架工具目录里的（`Expose.Ai` 的只读操作），否则报 400 `AI_VALIDATION_106`；5.x 没有工具 |
+| 缺省 | 最多一个；新建会话时缺省选中它。停用的不能设为缺省（`AI_CONFLICT_106`） |
+| 启停 | 一个状态（5.x 有「是否启用」与状态两个开关）；停用的不再出现在聊天里，已有会话不能继续提问 |
+
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `PromptCode` | `Prompt_Code` | 提示词编码，**租户内唯一**（`UX_TeId_PrCd`，含 `IsDeleted` 末列，软删后可复用），上层按此取用；**创建后不可变** |
-| `PromptName` | `Prompt_Name` | 提示词名称（展示） |
-| `Category` | `Category` | 分组/分类（可选） |
-| `Version` | `Version` | 版本（可选；空代表当前/最新，按名 + 版本显式选取，无默认标记） |
-| `Content` | `Content` | 提示词正文（可含占位/Scriban 变量） |
-| `IsEnabled` / `Status` | `Is_Enabled` / `Status` | 运行开关与状态；禁用或非 `Enabled` 均不参与库解析 |
+| `ai-assistants.list` / `get` | `ai.ai-assistants.read` | 列表可按状态与是否缺省筛选，按编码、名称与简介搜索 |
+| `ai-assistants.tools` | `ai.ai-assistants.read` | 可勾选的工具（说明按调用方区域）与有没有向量库 |
+| `ai-assistants.create` / `update` | `ai.ai-assistants.create` / `update` | 修改与启停交回读到的 `concurrencyStamp` |
+| `ai-assistants.set-status` / `set-default` | `ai.ai-assistants.update` | 单条 |
+| `ai-assistants.delete` | `ai.ai-assistants.delete` | 批量，逐项结果；已有会话不删，但不能继续提问 |
 
-`SaasAiPromptStore`（Singleton，经 `IServiceScopeFactory` 开作用域取 Scoped 仓储）实现框架 `IAiPromptStore`：
+权限码都只在平台一侧，写操作进操作日志。页面 `ai.assistants`（`/ai/assistants`）。
 
-- `GetAsync(name, version)`：按 `PromptCode`（+可选 `Version`）取启用行，映射为框架 `AiPromptTemplate`（`Name`=`PromptCode`、`Content`、`Version`、`Description`=`PromptName`）；无匹配返回 `null`。
-- `ListAsync`：枚举全部启用行。
+生成一次回复的流程（`IChatAssistants`，Contracts 定义，AI 实现，Chat 只认这个接口）：
 
-::: tip Replace 而非 TryAdd
-框架 `AddXiHanAI` 已 `TryAddSingleton` 默认 Options 提示词库，`AddPromptStore` 必须用 `Replace` 覆盖——`TryAdd` 会被静默忽略，导致 DB 里的提示词永不生效。这与 provider 配置源的覆盖方式（`AddAIConfigStore`）同构。
-:::
+1. 系统提示词：配了提示词用它的正文，引用的提示词后来停用或没了即回复失败（`AI_UNAVAILABLE_103`），不回落到内置的；没配用内置的。
+2. 历史：Chat 从库里取最近的提问与回复，不信前端传的。
+3. 检索增强：开了知识库时，在调用方一侧检索本轮提问，有命中才把提问换成增强后的（框架内置的模板，片段带编号）。检索失败回复失败，不退化成纯模型回答（5.x 吞掉错误继续答）。
+4. 生成：带上助手勾选的工具，最大输出与温度取提供商的配置，流式产出。工具以调用方身份执行，权限与租户隔离照常判定；没有权限时模型收到拒绝，回复本身不失败。
 
-`AiPromptAppService`（`[DynamicApi]`，无 Controller）暴露的动作：`CreateAsync`（`ai_prompt:create`）、`UpdateAsync`（`ai_prompt:update`，`PromptCode` 不可变）、`UpdateStatusAsync`（`ai_prompt:update`）、`DeleteAsync`（`ai_prompt:delete`，软删），均 `[UnitOfWork]`。查询侧 `AiPromptQueryService`：`GetPageAsync`（`[HttpPost]`，`ai_prompt:read`，FLS 门控排序/过滤 + 默认排序 `Sort` 升序→`CreatedTime` 降序）与 `GetDetailAsync`。
+5.x 的 Agent 工厂不迁移，也不做用量统计（5.x 也没有）。
 
-::: warning 当前无消费方
-v1 仅提供提示词的库化 CRUD 与框架存储层替换（`IAiPromptStore`），BasicApp 内尚无对话/技能/RAG 环节显式调用 `IAiPromptStore.GetAsync` 取用——RAG 问答走的是独立的 `IRagPromptAugmenter.Augment` 拼装 prompt，不经此库。提示词库是面向未来对话/技能场景预置的模板仓库。
-:::
+## 操作作为工具
 
----
+6.0 的操作可以按 `Expose` 发布为 MCP 工具（`Expose.Mcp`）与框架 AI 工具（`Expose.Ai`）：
 
-## Agent 与 MCP
+- 目前发布的是只读目录类操作（用户、部门、岗位、部门成员、权限目录、字典与字典项）与知识检索 `knowledge-documents.search`，助手从这些工具里勾选；
+- 工具说明取自操作的本地化 `.title` / `.description`，权限与租户隔离照常生效；
+- 宿主映射了 `/mcp` 端点，MCP 客户端可以带用户令牌直接调用，见 [MCP Server](../ai/mcp)。
 
-BasicApp 通过框架把知识检索能力对外暴露为标准工具，两条投影链路：
+长操作 ID 作为工具名时会被框架截断加哈希，资源名控制在 30 字符以内；新增 `Expose.Mcp` / `Expose.Ai` 的操作必须只读，并登记在 `OperationExposureTests`。
 
-**技能 → 对话工具 / MCP 工具**：`KnowledgeRetrieveSkill` 实现框架 `IAiSkill`（名 `knowledge_retrieve`），在模块 `AddAISkills()` 里注册为单例。框架 `DefaultAiSkillRegistry` **构造时自动收纳** DI 里全部 `IAiSkill`，一处注册即同时可用于：
+## 模块开关
 
-- **对话工具**：`skill.AsFunction()` 产出 `AIFunction`，可挂进 Agent 的工具集（框架 `IXiHanAgentFactory` 经 `IChatClient.AsAIAgent(...)` 产出 MAF 原生 `AIAgent`，支持工具调用与多轮会话）。
-- **MCP tools**：框架把技能 `AsFunction()` 经官方 `McpServerTool.Create` 桥接进 MCP 工具集。
+`BasicApp:Modules:AI:Enabled=false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，也不装向量库连接器与知识库 Provider，`sys_ai_provider`、`sys_ai_prompt`、`sys_ai_assistant` 与 `sys_knowledge_document` 照样建。框架的工具目录随 Full 画像照常装配，MCP 工具不受影响。
 
-`KnowledgeRetrieveSkill` **只读、无副作用**，故 MCP 暴露安全（无需批准）。经 MCP 调用时无用户/租户上下文（应用管理的 key 为平台级凭据），检索**不加租户过滤**（知识库文档视为平台级）；`topK` 内部收敛 `1~20`。
+聊天不依赖 AI：关掉之后聊天照常，聊天的三个助手操作返回 503 `CHAT_UNAVAILABLE_001`，前端首次展开「新建」菜单时据此隐藏助手入口。
 
-::: warning 工具会被自动执行
-框架工厂套了 `UseFunctionInvocation`、MAF Agent 内部也套 `FunctionInvokingChatClient`——工具/技能会被**自动调用、无人工批准**。当前 v1 技能均只读（知识检索）安全；将来接入有副作用的技能须自行加批准/审计。
-:::
+## 下一步
 
-### MCP Server（应用管理 key，fail-closed）
-
-MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://framework.docs.xihanfun.com/packages/web-mcp) 负责；BasicApp 通过 `XiHanBasicAppWebCoreModule` 依赖 `XiHanWebMcpModule`，WebHost 无需重复声明。配置节 `XiHan:AI:Mcp`（`XiHanMcpOptions`）：
-
-| 字段 | 默认 | 说明 |
-| --- | --- | --- |
-| `Enabled` | `false` | 是否启用（默认关） |
-| `ApiKey` | `null` | **应用管理的**访问密钥，外部 MCP 客户端须携带 |
-| `HeaderName` | `X-Api-Key` | 携带密钥的请求头（或 `Authorization: Bearer`） |
-| `Path` | `/mcp` | 端点路径 |
-| `Stateless` | `true` | 无状态 HTTP（检索类工具足够） |
-
-鉴权是**应用管理的 key**、不是用户令牌：`/mcp` 端点 `AllowAnonymous()` 绕过全局授权 FallbackPolicy，改由 `McpApiKeyEndpointFilter` 端点过滤器守门——请求头不匹配即 401。
-
-**fail-closed**：`IsExposable = Enabled && !string.IsNullOrWhiteSpace(ApiKey)`。**未启用或未配 `ApiKey` 则根本不注册、不映射 `/mcp` 端点**——宁可不暴露，也不裸奔。
-
----
-
-## 部署前置
-
-启用 AI / 知识库能力前，须准备：
-
-1. **Qdrant 向量库**：可连接的 Qdrant 实例，`XiHan:AI:Rag` 节配好 `QdrantHost`/`QdrantPort`（云端另加 `QdrantHttps` + `QdrantApiKey`）。未注册向量库而调用 RAG 会因缺依赖失败。
-2. **嵌入模型对齐 `1536` 维**：默认 `text-embedding-3-small`（1536 维）。换维度须改框架常量并**重建 Qdrant 集合**。
-3. **准备数据库结构**：全新数据库首次启动会自动建立 AI 相关表并执行种子；存量数据库应通过对应版本的 `UpdateScripts` 前向迁移。
-4. **provider 配置入库**：库化管理下 provider 不写 appsettings——建库后在前端「AI 提供商」页新增配置、填好 `Model`/`EmbeddingModel`/`ApiKey`、设默认并测连接。
-5. **（可选）MCP**：需要对外暴露 MCP tools 时，`XiHan:AI:Mcp` 显式 `Enabled=true` 并配 `ApiKey`。
-6. **多实例**：共享 Data Protection 密钥环，否则各实例无法互相解密 provider 密钥。
-
-种子说明：权限目录 `AiPermissionCatalogSeeder` 声明模型服务、提示词、助手、知识库四个资源的「资源 × 操作」权限，全部是平台侧；菜单由 `AiMenuSeeder` 按本模块 `PageRegistry` 播种。超管在平台天然拥有这些权限，其它平台角色按需在权限管理里授予。
-
----
-
-## 相关文档
-
-- [框架 · XiHan.Framework.AI](https://framework.docs.xihanfun.com/packages/ai)：底层 provider 解析/热切换、RAG 切片检索、提示词模板、Agent/MCP 桥接的抽象与默认实现
-- [权限模型](./permission)：权限码（本模块用 `ai:read` 这类两段式）、数据范围、字段级脱敏
-- [多租户](./multi-tenancy)：字段级隔离与 `TenantId=0` 全局约定
-- [部署](../deployment)：环境要求、升级入口与生产配置
+- [MCP Server](../ai/mcp) · [在线聊天](./chat) · [实时推送](./realtime) · [配置参考](../configuration#basicapp-modules)

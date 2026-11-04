@@ -1,169 +1,86 @@
-# 前端架构
+# 框架简介
 
-前端不是「一个 Vue 工程」，而是**分层的单仓库多包结构**。本页讲分层与依赖方向、启动引导链路、请求链路的完整时序，以及第三方依赖的归属规则。具体怎么写页面见 [开发流程](./development)。
+本页介绍 6.0 管理端的技术栈、目录结构、模块划分与启动流程，适用于前端开发者。
 
-## 技术栈
+`frontend-next` 是 6.0 的管理端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5（`next` 线）。Node 24+、pnpm 11+，没有锁文件。
 
-| 领域 | 选型 |
+## 与 5.x 管理端的关系
+
+壳层原样从 5.x 搬入，页面背后的数据换成 6.0：
+
+| 部分 | 6.0 |
 | --- | --- |
-| 框架 | Vue（`<script setup>`） |
-| 语言 / 构建 | TypeScript · Vite |
-| UI 库 | XiHan.UI |
-| 状态 | Pinia（Setup Store + `$reset` 插件） |
-| 样式 | Tailwind CSS（CSS-first `@theme`，**preflight 关闭**） |
-| 路由 | vue-router（默认 hash 模式） |
-| 国际化 | vue-i18n（`legacy: false`） |
-| 实时 | `@microsoft/signalr` |
-| 图标 | Iconify（**离线模式**） |
-| 拖拽 | `@dnd-kit/vue` |
+| 壳层（布局、主题、偏好中心、全局搜索、标签栏、收藏、分屏、通知中心、灵动岛、锁屏） | 从 5.x 搬入 `packages/layouts`、`packages/design`、`packages/components` 等，行为一致 |
+| 路由与守卫 | `packages/router` 与 5.x 相同，菜单数据换成 `auth.permissions` |
+| 列表页 | `SchemaPage` 从 5.x 原样搬入，资源适配器对接 6.0 的 `PageRequest` |
+| API 层 | 5.x 的 `src/api` 整体消失：由后端 `openapi.json` 生成 `packages/contracts`，运行时只有一个通用客户端 `packages/request` |
+| 页面组织 | 5.x 的 `src/views` 平铺；6.0 页面全部进 `src/modules/<包>/views`，与后端能力包一一对应 |
+| 按钮权限 | 不再有按钮码：按钮直接用对应操作的权限码 |
 
-> 版本号以仓库 `package.json` 为准。
-
-## 五层结构
-
-**依赖方向单向向下，`packages/` 绝不反向依赖 `src/`。**
+## 目录
 
 ```text
-┌──────────────────────────────────────────────────────────────────┐
-│  ⑤ 业务视图层  src/views/**                                       │
-│     按域分目录：approval / develop / file / identity / log /      │
-│     message / oauth / openapi / setting / tenant / workbench /    │
-│     workflow                                                      │
-│     每个列表页 = 一份 PageSchema + 一个 <SchemaPage>              │
-├──────────────────────────────────────────────────────────────────┤
-│  ④ 应用装配层  src/main.ts · App.vue · app/context.ts · router/  │
-│     引导顺序、Provider 装配、把 api 实例 / 视图 glob / 静态路由    │
-│     注册进 app-context，安装路由守卫                              │
-├──────────────────────────────────────────────────────────────────┤
-│  ③ 接口契约层  src/api/**                                         │
-│     base（动态 API 客户端）· factory（资源工厂）· helpers（分页）  │
-│     modules/**（按域的 API 与 DTO 类型）                          │
-├──────────────────────────────────────────────────────────────────┤
-│  ② 可复用内核  packages/**                                        │
-│     components(schema/chat/common) · composables · hooks ·        │
-│     stores · layouts · router · locales · design · iconify ·      │
-│     designers · plugins · views · types · utils · constants       │
-├──────────────────────────────────────────────────────────────────┤
-│  ① 传输底座  packages/request                                     │
-│     RequestClient：请求头注入 / 响应解包 / 401 刷新重放 /          │
-│     423 锁屏 / 可选签名加密                                        │
-└──────────────────────────────────────────────────────────────────┘
-                              ↕ HTTP + SignalR
-                        后端动态 API（无 Controller）
+frontend-next/
+├─ contracts/            后端导出的 openapi.json、realtime.json（入库，CI 比对）
+├─ scripts/              gen-contracts 与门禁脚本
+├─ packages/  (~)        壳层与通用能力，禁止反向引用 @/
+│  ├─ contracts/         生成物 + paging.ts
+│  ├─ request/           运行时客户端
+│  ├─ router/  stores/  layouts/  components/  composables/  hooks/
+│  ├─ design/            令牌与全局样式
+│  ├─ locales/           壳层文案 × 10
+│  ├─ iconify/           离线图标与 IconPicker
+│  └─ views/_core/       认证、控制中心、个人中心、OAuth 同意页、403 / 404 / 500
+└─ src/  (@)             应用侧
+   ├─ main.ts  App.vue  app/context.ts  router/  styles/
+   └─ modules/<包>/      views/、locales/<区域>.ts × 10、setup.ts
 ```
 
-两个路径别名贯穿全项目：
+| 别名 | 指向 |
+| --- | --- |
+| `@` | `frontend-next/src` |
+| `~` | `frontend-next/packages`（如 `~/contracts`、`~/components`、`~/request`、`~/stores`） |
 
-| 别名 | 指向 | 层 |
-| --- | --- | --- |
-| `@` | `src/` | ③④⑤ 应用侧 |
-| `~` | `packages/` | ①② 内核侧 |
+## 已有的模块
 
-### 为什么 `src/` 薄、`packages/` 厚
+| 模块 | 页面 |
+| --- | --- |
+| `workbench` | 工作台 |
+| `identity` | 用户、在线用户 |
+| `organization` | 部门、岗位 |
+| `tenancy` | 租户、套餐、我的订阅 |
+| `access` | 角色、权限目录、委托、字段安全、访问策略、约束规则、菜单 |
+| `settings` | 参数、字典、业务编号 |
+| `files` | 文件库、存储配置、导出中心 |
+| `notification` | 通知公告、发送记录、模板、邮件 / 短信 / 机器人 / Telegram 配置、我的消息 |
+| `auditing` | 链路追踪与八个日志页 |
+| `maintenance` | 作业、缓存、服务监控、版本、升级记录 |
+| `openplatform` | OAuth 应用 |
+| `printing` | 打印模板（设计器、样例数据、预览与直打） |
+| `chat` | 在线聊天（全屏页与顶栏的浮动面板）、聊天审计 |
+| `workflow` | 流程定义、流程实例、审批中心 |
+| `codegeneration` | 代码生成（数据源、表配置、模板、生成历史） |
+| `ai` | AI 提供商、提示词、知识库、助手 |
 
-`packages/` 里的东西**与具体业务无关**：布局、Schema 表格引擎、请求客户端、主题、i18n、图标、状态管理骨架。`src/` 只做两件事：装配（把内核接起来）和业务视图。
+## 应用启动
 
-这样分的好处是内核可以被独立演进甚至复用，而业务视图始终只依赖稳定的契约。代价是**新人容易找错文件**——记住：找「怎么渲染表格 / 怎么发请求 / 怎么切主题」去 `packages/`，找「某个页面长什么样」去 `src/views/`。
+1. `main.ts` 创建应用、Pinia、i18n 与路由；
+2. 各模块的 `setup.ts` 登记本模块的文案（`registerModuleLocales`）与壳层扩展；
+3. `src/app/context.ts` 向壳层注入接口实现（`AppContextApis`：用户设置、字典选项、收件箱、导出、文件上传、个人中心等），壳层不直接依赖业务模块；
+4. `configureRequest` 注入令牌、区域与错误钩子；
+5. 守卫首次进入时调 `auth.permissions`，把菜单树装成动态路由。
 
-### 第三方依赖的归属规则
+## 命令
 
-- **底层功能依赖归属对应的 `packages/` 子包**（自包含）。
-- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上组件库 `@xihan-ui/*` 与 `vue-i18n`）。
-- **`src/` 里禁止直接 import 已下沉的第三方**，一律经 `~/` 转出。
-- 改完依赖归属须跑 `pnpm install` + `pnpm type-check`；死依赖当场删。
+| 任务 | 命令 |
+| --- | --- |
+| 安装 | `pnpm install --no-frozen-lockfile` |
+| 开发 | `pnpm dev`（`http://localhost:9100`，`/api`、`/hubs` 等代理到 9710） |
+| 生成契约 | `pnpm gen:contracts` |
+| 综合检查 | `pnpm check` |
+| 单测 | `pnpm test` |
+| 构建 | `pnpm build` |
 
-## 启动引导链路
+## 下一步
 
-`src/main.ts` 的顺序决定了「图标、语言、请求头、登出钩子、路由守卫」在挂载前如何就位：
-
-```ts
-await setupIconifyOffline()           // ① 预加载离线图标集（必须最先，否则首屏图标空白）
-invalidateCacheIfBuildTimeChanged()   // ② 构建时间变则清本地缓存
-// createApp → pinia → setupI18n      // ③ 应用实例 / 状态 / 国际化
-bindRouter(router)                    // ④ 请求层拿到 router（401 跳登录用）
-bindLogoutHook(() => { /* 重置 access / user store */ })
-registerApplicationContext(router)    // ⑤ 注册视图 glob、api 实例、静态路由到 app-context
-setupRouterGuard(router)              // ⑥ 安装 beforeEach 权限/路由守卫
-app.use(router).mount('#app')
-```
-
-第 ④⑤ 步是**依赖倒置的关键**：`packages/request` 不能反向依赖 `src/router` 与业务 store，所以由 `src/main.ts` 在启动时把 router 和登出回调「注入」给它。同理 `app/context.ts` 把 api 实例、视图 glob、静态路由注册进 `~/stores/app-context`，底层包据此工作而不必知道 `src/` 的存在。
-
-## 请求链路时序
-
-```text
-视图 (SchemaPage)
-  └─ resource.page(params)                       ← 页面自己写的适配器
-       └─ src/api/modules/**  positionApi.page()
-            └─ createDynamicApiClient('PositionQuery').post('PositionPage', body)
-                 │      URL = /{apiPrefix}/{控制器名}/{动作名}
-                 └─ packages/request  RequestClient.post()
-                      ├─ 请求拦截
-                      │    Authorization: Bearer <token>
-                      │    X-Timezone   （已选时区 / 浏览器 Intl）
-                      │    X-Language   （当前 locale）
-                      │    X-Request-Id （前端自生成，供本地请求日志面板）
-                      │    FormData 时删除 Content-Type 让浏览器带 boundary
-                      │    （可选）API 签名与请求体加密
-                      ▼
-                    后端动态 API
-                      ▲
-                      ├─ 响应拦截
-                      │    （可选）解密 → 记本地请求日志（含 traceId）
-                      │    423 → 触发锁屏遮罩钩子（必须先于 401 分支，且不刷新不登出）
-                      │    401 → 刷新令牌并重放原请求
-                      │           · 并发请求排队等同一次刷新
-                      │           · 刷新请求自带 _isRefresh 标记，不会再次触发刷新
-                      │           · 刷新失败 → 清 token + 调 logout 钩子 + 跳登录页
-                      └─ 解包 ApiResponse 信封
-                           isSuccess === true → 返回 data（可能是 null）
-                           否则 reject(new Error(message))
-                 ← 业务代码拿到的是**已解包的强类型 data**
-```
-
-两个要点：
-
-1. **业务代码永远看不到 `ApiResponse` 信封**。解包统一在 `RequestClient.request` 完成，失败时把可展示的中文提示抛成 `Error`，业务侧 `catch` 直接用 `error.message`。
-2. **判定成功用 `isSuccess`，不是「有没有 `data` 字段」**——服务端 `WhenWritingNull` 会把 `data: null` 整个省略。
-
-## 环境变量
-
-| 变量 | 开发默认 | 说明 |
-| --- | --- | --- |
-| `VITE_PORT` | `9800` | dev server 端口 |
-| `VITE_API_BASE_URL` | 空 | 协议+主机。**开发态留空**走同源 Vite 代理，天然无 CORS |
-| `VITE_API_PREFIX` | `/api` | 接口前缀 |
-| `VITE_DEV_PROXY_TARGET` | `http://localhost:9708` | 开发态代理目标（后端地址） |
-| `VITE_ROUTER_HISTORY` | `hash` | 路由模式 |
-| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页兜底路径（后端菜单未派生出首页时用） |
-| `VITE_AUTH_ROUTE_MODE` | 动态 | 设为 `static` 则用前端静态路由 + 权限过滤 |
-| `VITE_APP_TITLE` / `SUBTITLE` / `LOGO` | — | 品牌兜底（登录后由 `/Auth/UserInfo` 的 `appTitle` / `appLogo` 覆盖） |
-| `VITE_API_SECURITY_*` | `ENABLED=false` | 前端侧接口签名/加密开关与密钥 |
-
-::: warning 改了后端端口
-要同步改 `frontend/.env.development` 的 `VITE_DEV_PROXY_TARGET`，否则 dev server 转发到旧端口。
-:::
-
-## 后端驱动的部分
-
-前端有相当一部分「事实源在后端」，这是理解整体架构的关键：
-
-| 东西 | 事实源 | 前端做什么 |
-| --- | --- | --- |
-| 菜单 / 路由 / 组件路径 | 后端 `PageRegistry` → `SysMenu` | 登录后拉 `/api/Auth/Permissions` 拿 `menus`，`mapMenuToRoutes` 转成路由并 `addRoute` |
-| 权限码 | 后端 `SaasPermissionDefinitions` | 拿到码集合，按页面/字段/操作三级过滤 |
-| 枚举标签 | 后端枚举元数据（`Enums.{culture}.json`） | 按 `X-Language` 拉取，切语言响应式重取 |
-| 字段脱敏规则 | 后端 `SysFieldLevelSecurity` | **脱敏在服务端完成**，前端只用规则控制只读/标识 |
-| 站点品牌 | 后端 `/Auth/UserInfo` 的 `appTitle` / `appLogo` | 登录后写入 app store，覆盖 `.env` 兜底 |
-
-因此**新增页面的主要工作在后端**（`PageRegistry` + 权限），前端只补视图组件、API 客户端与 i18n 文案。
-
-## 相关页面
-
-- [开发流程](./development)：新增一个页面的五步与自检清单
-- [Schema 驱动页面](../frontend/schema-page)：列表页开发手册
-- [路由与菜单](../frontend/routing)：动态路由生成与守卫
-- [权限与脱敏](../frontend/permission)：三级过滤与 FLS
-- [布局与主题](./theme)：布局、Tailwind CSS、主题、偏好同步
-- [国际化](./i18n)：语言包与文案
-- [接口对接指南](../api-guide)：响应信封与请求协议
+- [开发流程](./development) · [契约与请求](./request) · [菜单与路由](./routing)

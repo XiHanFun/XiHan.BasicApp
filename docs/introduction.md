@@ -1,101 +1,53 @@
-# XiHan.BasicApp 基础应用
+# XiHan.BasicApp 6.0
 
-**企业级中后台内核。** 后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
+本页介绍 XiHan.BasicApp 6.0 的定位与它和 5.x 的差异，适用于初次了解 6.0 的读者。
 
-## 它是什么
+::: tip 正在使用 5.x
+5.x 部署留在 `release/v5` / `hotfix/v5` 维护线，文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/v5/)。6.0 不提供数据迁移，见[表结构升级](./backend/upgrade)。
+:::
 
-XiHan.BasicApp 采用**前后端分离**架构：
+## 定位
 
-- **后端** 遵循 DDD 分层与 CQRS，应用服务经**动态 API** 直接暴露为 REST 接口，无需写 Controller
-- **前端** 使用 Vue + TypeScript + XiHan.UI，Schema 驱动的列表页、权限/租户/偏好三重感知
+XiHan.BasicApp 是曦寒生态的企业级中后台应用。6.0 是一次从零重写：后端基于 XiHan.Framework 5，按框架原生的「能力包 + 操作契约」写法组织；前端基于 XiHan.UI，API 层由后端导出的 `openapi.json` 生成。
 
-系统内置完整的身份、权限、租户与审计能力。你可以拿它当项目脚手架直接改，也可以只读它的代码学习框架怎么用。
+6.0 有两个用途。一是作为 XiHan.Framework 5 的官方参考实现，只使用框架的一等公民概念（`IFeature` 能力包、`[Operation]` 操作、管道阶段中间件、Provider、消息键），不另建平行机制。二是作为新项目的起点模板，已包含多租户、身份与会话、RBAC 及其收窄规则、组织机构、参数与字典、文件、通知、审计日志、任务调度与开放平台等中后台的通用部分，另有工作流、在线聊天、打印模板、代码生成与 AI 几个可选模块。
 
-## 从这里开始
+## 与 5.x 的差异
 
-<div class="tip custom-block" style="padding-top: 8px">
+| 方面 | 5.x | 6.0 |
+| --- | --- | --- |
+| 接口层 | `[DynamicApi]` 应用服务，`/Controller/Action` 风格路由 | 一方法一个 `[Operation("<资源>.<动词>")]`，路由由操作 ID 推导，前缀 `/api` |
+| 响应 | 统一 `ApiResponse` 信封 + 业务码 | 成功即 DTO；失败为 RFC 9457 `application/problem+json`，按 `code` 分支 |
+| 协议 | HTTP | 同一份操作同时服务 HTTP、gRPC（内部调用）、MCP（AI 工具） |
+| 主键 / 租户 ID | 雪花 `long` / `long`，0 表示平台 | UUID v7 / 字符串（即租户编码），平台数据不实现 `IMultiTenant` |
+| 权限码 | 冒号形式 + 226 个按钮码 | `<包>.<资源>.<动作>` 点分三段，按钮即操作 |
+| 前端 API 层 | 78 组手写 facade 与 `*.types.ts` | 由 `openapi.json` 生成类型、操作客户端、权限码与枚举 |
+| 数据 | 可从 4.x / 5.x 升级 | 不提供 5.x → 6.0 数据迁移，从种子全新初始化（见[表结构升级](./backend/upgrade)） |
 
-还在做技术选型？先读 [**为什么选择曦寒**](./why) —— 它适合什么项目、和其它中后台方案的区别、以及它的短板。
+动机与取舍见[为什么是 6.0](./why)，逐项能力见[功能清单](./features)，版本变化见[更新日志](./changelog)。
 
-已经决定动手？按这个顺序走：
+## 阅读路径
 
-1. [**快速开始**](./getting-started) —— 在本地把前后端跑起来（约 10 分钟）
-2. [**系统架构**](./backend/introduction) —— 看懂后端模块划分与前后端协作
-3. [**权限模型**](./backend/permission) —— 理解 RBAC、数据范围、字段脱敏与多租户隔离
-
-</div>
-
-## 文档地图
-
-**入门**
-
-- [为什么选择曦寒](./why) —— 选型指南：适合什么项目、四条方案路线的取舍、它的短板
-- [系统概述](./overview) —— 定位、技术栈、能力全景、**按角色的阅读路线**
-- [开发环境](./dev-environment) —— Docker 起数据库与 Redis
-- [快速开始](./getting-started) —— 跑起来并调通第一个接口
-- [目录结构与代码地图](./project-structure) —— **「我要改 X 该去哪个文件」**
-
-**架构**
-
-- [架构总览](./backend/introduction) —— 全景、四条贯穿全局的设计、数据流
-- [后端架构](./backend/introduction) —— 分层、模块装配、DDD、DI 约定、种子
-- [前端架构](./frontend/introduction) —— 五层结构、启动引导、请求时序
-- [请求生命周期](./backend/request-lifecycle) —— 中间件管道逐段、401/403/423、UoW 收尾
-- [数据模型](./backend/data-model) —— 实体基类、审计与软删、多租户列、全表清单
-- [缓存与异步](./backend/caching) —— 缓存条目、精准失效、队列消费
-- [健康与可观测性](./backend/health-observability) —— `/health`、数据库/Redis/Qdrant 探测、OpenTelemetry
-
-**身份与访问**
-
-- [身份与认证](./backend/authentication) —— 多种登录、JWT 双令牌、会话、2FA
-- [权限模型](./backend/permission) —— RBAC、权限码、数据范围、字段脱敏
-- [组织架构](./backend/organization) —— 部门树与闭包表、岗位、用户归属
-- [多租户与版本](./backend/multi-tenancy) —— 字段级隔离、租户切换、版本门控
-
-**业务功能**
-
-- [消息中心](./backend/messaging) · [工作流](./backend/workflow) · [审批与约束规则](./backend/approval)
-- [文件与存储](./backend/file) · [任务调度](./backend/scheduling) · [系统设置](./backend/settings)
-- [开放能力](./backend/open-api) · [审计日志](./backend/logging) · [升级与迁移](./backend/upgrade)
-- [代码生成](./backend/code-generation) · [AI 能力](./backend/ai)
-
-**前端开发**
-
-- [前端开发指南](./frontend/introduction) —— 技术栈、api 层、SignalR、常用组件
-- [Schema 驱动页面](./frontend/schema-page) · [路由与菜单](./frontend/routing) · [权限与脱敏](./frontend/permission) · [主题与国际化](./frontend/theme)
-
-**二次开发与参考**
-
-- [二次开发](./backend/development) —— 加功能纵切片 / 加独立模块 / 加前端页
-- [接口对接指南](./api-guide) —— 响应信封、业务码、**怎么获取 token**、分页协议
-- [配置参考](./configuration) —— `appsettings` 全量配置节
-- [功能清单](./features) · [常见问题](./faq) · [部署](./deployment) · [更新日志](./changelog)
-
-**给 AI 工具**
-
-文档站在构建期另外产出几份纯文本，与本站同源：
-
-| 地址 | 内容 |
+| 目标 | 文档 |
 | --- | --- |
-| [`/llms.txt`](https://basicapp.docs.xihanfun.com/llms.txt) | 全站索引，每行一页 |
-| [`/llms-full.txt`](https://basicapp.docs.xihanfun.com/llms-full.txt) | 全站正文 |
-| [`/llms-backend.txt`](https://basicapp.docs.xihanfun.com/llms-backend.txt) | 后端手册全部章节 |
-| [`/llms-frontend.txt`](https://basicapp.docs.xihanfun.com/llms-frontend.txt) | 前端手册全部章节 |
+| 在本机运行 | [开发环境](./dev-environment) → [快速开始](./getting-started) |
+| 了解整体结构 | [系统概述](./overview) → [目录结构](./project-structure) → [后端架构总览](./backend/introduction) |
+| 新增操作或页面 | [后端开发流程](./backend/development) · [前端开发流程](./frontend/development) |
+| 对接接口 | [接口对接指南](./api-guide) |
+| 查阅配置项 | [配置参考](./configuration) |
+| 部署与升级 | [部署](./deployment) · [表结构升级](./backend/upgrade) |
 
-只需要一页时，把地址后缀改为 `.md`，如 `https://basicapp.docs.xihanfun.com/backend/permission.md`；每页正文右上角的「取本页 Markdown」指向的也是它。
+## 技术栈
 
-## 技术栈速览
-
-| 端 | 关键技术 |
+| 区域 | 技术 |
 | --- | --- |
-| 后端 | .NET · XiHan.Framework · SqlSugar（PostgreSQL/MySQL/MariaDB）· Redis · SignalR · Serilog · Scalar |
-| 前端 | Vue · TypeScript · Vite · XiHan.UI · Pinia · Tailwind CSS · Tiptap · vue-i18n |
-
-## 在线体验
-
-- **在线用例**：<https://basicapp.xihanfun.com>
-- **源码**：[GitHub](https://github.com/XiHanFun/XiHan.BasicApp) · [Gitee](https://gitee.com/XiHanFun/XiHan.BasicApp)
+| 后端 | .NET 10、XiHan.Framework 5（`Profiles.Full`）、SqlSugar、PostgreSQL（缺省）、JWT（HS256）、SignalR、Scriban |
+| 协议 | HTTP（OpenAPI 3.1 + Scalar）、gRPC（内部服务调用）、MCP |
+| 前端 | Vue 3.5、Vite、TypeScript、Pinia、vue-router、vue-i18n（10 种区域）、Tailwind CSS 4、XiHan.UI |
+| 测试 | xUnit（Microsoft.Testing.Platform）、Vitest |
 
 ## 与 XiHan.Framework 的关系
 
-XiHan.BasicApp 构建在 [XiHan.Framework](https://framework.docs.xihanfun.com/) 之上——框架提供认证、授权、数据、缓存、事件总线、多租户、动态 API 等底层能力，BasicApp 在其上实现具体的中后台业务。想先理解底层机制，建议先读[框架快速上手](https://framework.docs.xihanfun.com/quickstart)。
+框架只提供通用能力与 Provider：令牌校验、策略判定、仓储、工作单元、租户目录、授予存储、操作审计、调度、对象存储、本地化。BasicApp 在其上实现「业务」：签发令牌与会话、角色与授权规则、租户开通、菜单、日志查询、通知渠道等。框架没有的、或属于应用的（SignalR Hub、OAuth 服务端、模板引擎、第三方登录），都是 BasicApp 自己的能力包。
+
+`backend-next` 以 ProjectReference 引用同级检出的 `XiHan.Framework/next/src`，锁定提交写在 `backend-next/props/framework.props` 的 `XiHanFrameworkCommit`，架构测试核对检出的 HEAD；框架 5.0 发布到 NuGet 前不走包引用。

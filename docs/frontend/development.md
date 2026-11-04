@@ -1,125 +1,98 @@
 # 开发流程
 
-从零加一个前端页面的完整流程。**前端页面的事实源在后端**——菜单、路由、组件路径、权限码、i18n 键都在后端 `PageRegistry` 登记，前端只补落盘文件。所以流程是「后端先行、前端跟进」。
+本页以在 Settings 模块中新增页面为例，说明管理端新增页面的完整步骤，适用于前端开发者。阅读前建议先了解[框架简介](./introduction)。
 
-## 五步
+## 一、确定后端契约
 
-```text
-① 后端 PageRegistry 登记页面与按钮（建菜单即绑权限）
-② 后端加分页/详情/写入接口（分页记得标 [HttpPost]）
-③ 前端加 API 模块（src/api/modules/{域}/）
-④ 前端加视图文件（src/views/{域}/{页}/index.vue）
-⑤ 补 i18n 文案（menu.ts + 模块文案）
+前端不手写接口：操作、DTO、权限码与页面登记都在后端（见[后端开发流程](../backend/development)）。后端改完导出契约：
+
+```bash
+# 仓库根
+dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"
+cd frontend-next && pnpm gen:contracts
 ```
 
-前两步属于后端，见 [后端手册 · 二次开发](../backend/development)。下面只讲前端三步。
+`contracts/openapi.json` 与 `packages/contracts/*` 都是生成物、都入库，和后端改动、页面改动同一个提交。
 
-## ③ API 模块
+## 二、创建页面
 
-按域建两个文件：
+页面路径由后端页面登记决定：路由 `/settings/configs` → 组件路径 `settings/configs/index` → 文件 `src/modules/settings/views/configs/index.vue`。
 
-```text
-src/api/modules/organization/
-├── position.ts          # API 定义
-└── position.types.ts    # DTO 类型
+```vue
+<script lang="ts" setup>
+import type { ListFieldSchema, PageSchema } from '~/components'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { SchemaPage } from '~/components'
+import { configsResource } from './use-configs'
+
+defineOptions({ name: 'SettingsConfigsView' })
+const { t } = useI18n()
+const resource = configsResource()
+
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('settings.configs.search'), dataType: 'string', visible: false, searchable: true },
+  { key: 'name', title: t('settings.configs.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 160 },
+  // …
+])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'settings.configs',
+  pageName: t('settings.configs.title'),
+  rowKey: 'id',
+  fields: fields.value,
+  resource,
+  actions: [
+    { key: 'create', title: t('settings.configs.actions.create'), scope: 'page', icon: 'lucide:plus', permission: 'settings.configs.create' },
+  ],
+}))
+</script>
+
+<template>
+  <SchemaPage :schema="schema" />
+</template>
 ```
 
-标准 CRUD 用资源工厂：
+- 列表页一律用 [SchemaPage](./schema-page)；新增 / 编辑用 `XEditModal`，每个字段都有可见标签。
+- 资源适配器（`use-<页面>.ts`）用生成的操作客户端：`import { configs } from '~/contracts'`，经 `toPageRequest` / `toSchemaPageResult` 对接分页。
+- 按钮的 `permission` 直接填操作的权限码；门禁会核对它存在于生成的 `permissions.ts`。
+- 大页面拆成 `index.vue` + `use-*.ts` 组合式函数。
 
-```ts
-import { defineResource } from '../../factory'
+## 三、文案
 
-export const positionApi = defineResource<
-  PositionListItemDto, PositionDetailDto,
-  PositionCreateDto, PositionUpdateDto, PositionPageQueryDto
->({
-  query: 'PositionQuery',
-  command: 'Position',
-})
+在 `src/modules/settings/locales/<区域>.ts` 加键，10 种区域都要有、键集完全对称（`pnpm i18n:check`）。菜单标题的键来自后端页面登记（如 `settings.configs.title`），枚举文案在前端按契约字面量写出。
+
+## 四、样式
+
+- 只用 XiHan.UI 组件与语义令牌；不新增裸 px（`pnpm px:check` 按文件计数，只许减不许增）；
+- 圆角：偏好设置的圆角接到组件库的圆角种子，控件、承载面与浮层同一档，内嵌件取一半，对话框与抽屉朝页面的两角取 1.25 倍；自写样式只写形状角色（`--xh-shape-control / surface / overlay / inset / sheet`），不写 `--xh-radius-*` 档位；按下 150ms 缩放到 0.97、释放 200ms；浮层只用 frosted，不用 glass；
+- 管理端保持紧凑，不加营销式大标题。
+
+## 五、门禁与测试
+
+```bash
+pnpm check   # type-check → lint → px → token → i18n → modules → contracts → permissions
+pnpm test    # Vitest + jsdom
+pnpm build
 ```
 
-有自定义动作时改用低层客户端逐个拼（`position.ts` 就是这种写法）：
-
-```ts
-// position.ts
-import { createDynamicApiClient, createReadApi } from '../../base'
-
-const positionQueryApi = createDynamicApiClient('PositionQuery')
-const positionCommandApi = createDynamicApiClient('Position')
-const positionReadApi = createReadApi<PositionListItemDto, PositionDetailDto, PositionPageQueryDto>(
-  'PositionQuery',
-  'Position',
-)
-
-export const positionApi = {
-  detail: (id: ApiId) => positionReadApi.detail(id),
-  page: (input: PositionPageQueryDto) => positionQueryApi.post('PositionPage', input),
-  updateStatus: (input: PositionStatusUpdateDto) => positionCommandApi.put('PositionStatus', input),
-}
-```
-
-别忘了在该域的 `index.ts` 里导出。动作名推导规则与分页协议见 [服务端交互](./request)。
-
-## ④ 视图文件
-
-**路径由后端 `PageDescriptor.Component` 决定**，约定是 `Path` 去前导斜杠 + `/index`：
-
-| 后端 `Path` | 后端 `Component` | 前端文件 |
-| --- | --- | --- |
-| `/identity/position` | `identity/position/index` | `src/views/identity/position/index.vue` |
-
-列表页直接照 [Schema 驱动页面](./schema-page) 的骨架写，三段：字段声明 → 查询构建 → 页面 Schema。
-
-::: warning `_core` 页面要额外登记
-不落在 `src/views` 的页面（个人中心、关于页等，源码在 `packages/views/_core/`），`Component` 写 `_core/xxx/index`，**必须同时在 `packages/router/dynamic.ts` 的 `coreComponentMap` 登记**，否则菜单有、点进去 404。
-:::
-
-## ⑤ i18n 文案
-
-两处：
-
-| 文件 | 键 | 说明 |
-| --- | --- | --- |
-| `packages/locales/langs/{zh-CN,en-US}/menu.ts` | `identity_position` | 菜单标题。键 = 后端 `I18nKey` 去掉 `menu.` 前缀 |
-| `src/locales/langs/{zh-CN,en-US}/{模块}.ts` | `identity.position.position_name` 等 | 页面内文案，约定 `模块.实体.字段或动作`。新增模块文件要在同级 `zh-CN.ts` / `en-US.ts` 里 import 并导出 |
-
-::: danger 裸 `@` 会白屏
-文案里出现裸 `@`（如 `联系 @admin`）会触发 vue-i18n 的 linked message 语法而抛错、整页白屏。必须转义成 <code v-pre>{'@'}</code>。见 [国际化](./i18n)。
-:::
-
-## 自检清单
-
-写完对照一遍，漏哪项就是哪种表现：
-
-| 项 | 漏了会怎样 |
+| 门禁 | 检查 |
 | --- | --- |
-| 后端 `PageRegistry` 登记 | 侧边栏没有这个菜单 |
-| 后端权限定义落库 | 菜单种子 fail-closed 跳过，菜单还是不出现 |
-| 后端分页方法标 `[HttpPost]` | 前端发的 body 后端收不到 |
-| 视图文件路径与 `Component` 一致 | 菜单有、点进去 404 |
-| `_core` 页面登记 `coreComponentMap` | 同上 |
-| `menu.ts` 文案 | 侧边栏显示 `menu.xxx` 原文 |
-| 字段 `permission` / `exportPermission` | 无权用户也看得到列/按钮（**服务端仍会拦，但体验差**） |
+| `type-check` | `vue-tsc --noEmit` |
+| `lint` | oxlint + eslint（antfu） |
+| `px:check` | 裸 px 按文件计数的白名单（`scripts/px-allowlist.json`，`--update` 收紧） |
+| `token:check` | 引用的 `--xh-*` 令牌在当前组件库版本里存在 |
+| `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
+| `modules:check` | 模块名与后端能力包一致；有 `setup.ts` 与 `locales/`；视图键全局唯一 |
+| `contracts:check` | 重新生成契约，diff 必须为空 |
+| `permissions:check` | `permission:`、`can('…')` 里的权限码都存在于生成的 `permissions.ts` |
 
-## 质量门禁
+视觉与交互改动还要在真实浏览器里看亮 / 暗色、窄视口、键盘与焦点、减少动态效果。
 
-```bash
-pnpm type-check
-```
+## 六、XiHan.UI 本地联调
 
-```bash
-npx eslint src/views/identity/position/index.vue --fix
-```
+目标是 XiHan.UI 的 `next` 线。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 指向同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
 
-::: warning 别跑全仓 lint
-`pnpm run lint:fix` 展开是 `cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix`，会扫全仓并改动与你无关的文件。**只对本次改动的文件跑**；误跑了用 `git checkout HEAD -- <非本次任务的文件>` 还原。
-:::
+## 下一步
 
-前端改动由开发者自行在浏览器验证，不走自动化预览。
-
-## 相关页面
-
-- [后端手册 · 二次开发](../backend/development)：后端纵切片的完整接线清单
-- [路由与菜单](./routing)：路由怎么从后端菜单生成
-- [Schema 驱动页面](./schema-page)：列表页开发手册
-- [目录结构与代码地图](../project-structure#前端)：我要改 X 去哪个文件
+- [菜单与路由](./routing) · [契约与请求](./request) · [Schema 驱动页面](./schema-page)

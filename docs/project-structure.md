@@ -1,160 +1,143 @@
 # 目录结构与代码地图
 
-这页解决一个具体问题：**「我要改 X，该去哪个文件？」** 上半部分是目录树，下半部分是按任务索引的代码地图。
+本页说明仓库、后端与前端的目录结构，并列出常见改动对应的代码位置，适用于开始修改代码之前查阅。
 
 ## 仓库全貌
 
-```text
-XiHan.BasicApp/
-├── backend/                          # 后端（.NET）
-│   ├── src/
-│   │   ├── framework/                #   基座层
-│   │   │   ├── XiHan.BasicApp.Core/          实体/DTO 基类、查询服务标记、聚合框架模块
-│   │   │   └── XiHan.BasicApp.Web.Core/      聚合 Web 能力并接入升级维护模式
-│   │   ├── modules/                  #   业务模块层（四个一等模块）
-│   │   │   ├── XiHan.BasicApp.Saas/
-│   │   │   ├── XiHan.BasicApp.CodeGeneration/
-│   │   │   ├── XiHan.BasicApp.AI/
-│   │   │   └── XiHan.BasicApp.Workflow/
-│   │   ├── business/                 #   OA/CMS/CRM/ERP 等领域脚手架（当前未接入 WebHost）
-│   │   └── main/
-│   │       └── XiHan.BasicApp.WebHost/       启动入口 + 根模块 + appsettings
-│   ├── props/                        #   共享 MSBuild 属性（framework.props 源码/NuGet 切换）
-│   ├── test/                         #   测试项目
-│   └── XiHan.BasicApp.slnx           #   解决方案（始终走 NuGet 引用框架）
-├── frontend/                         # 前端（Vue + Vite）
-│   ├── src/                          #   应用装配与业务视图
-│   ├── packages/                     #   可复用内核
-│   ├── .env / .env.development / .env.production
-│   └── nginx.conf                    #   生产静态托管与 /api 反代示例
-├── docker-compose.yml
-└── assets/                           # 品牌与文档资源
-    ├── architecture.html             # 架构图源文件（导出 architecture*.png）
-    └── preview/                      # 功能预览截图
-```
-
-`backend/src/business` 下的 OA、CMS、CRM、HRM、ERP 等 15 个项目目前是解决方案内脚手架，模块注册基本为空，且 `XiHanBasicAppWebHostModule` 未依赖它们。它们代表预留边界，不应当作已交付业务功能。
-
-## 后端：一个业务模块内部
-
-以 `XiHan.BasicApp.Saas` 为例，各模块结构一致：
+6.0 与 5.x 的代码在 `next` 分支上并存，互不引用；6.0 GA 时 `backend-next/`、`frontend-next/` 才会 `git mv` 成 `backend/`、`frontend/`。`docs/` 已经是 6.0 的文档，5.x 的文档留在 `release/v5` 与 `hotfix/v5`，发布在站点的 `/v5/` 下。
 
 ```text
-XiHan.BasicApp.Saas/
-├── XiHanBasicAppSaasModule.cs        # 模块类：[DependsOn] + ConfigureServices
-├── Extensions/
-│   └── ServiceCollectionExtensions.cs  # ★ 所有接线集中在这里
-├── Domain/                           # 领域层
-│   ├── Entities/                     #   实体（+ Expands 派生属性 / Aggregates 聚合行为 / Enums）
-│   ├── DomainServices/               #   领域服务（接口 + Implementations + 命令 record）
-│   ├── Repositories/                 #   仓储接口
-│   ├── Permissions/                  #   ★ 权限码与权限定义（单一事实源）
-│   ├── Events/                       #   领域事件
-│   ├── Specifications/ ValueObjects/ Enums/
-├── Application/                      # 应用层
-│   ├── AppServices/                  #   ★ 写侧应用服务（按域分目录）
-│   ├── QueryServices/                #   ★ 读侧查询服务
-│   ├── Contracts/                    #   应用服务接口
-│   ├── Dtos/  Mappers/               #   DTO 与映射
-│   ├── Caching/                      #   ★ 缓存条目 + 键常量 + 失效器
-│   ├── EventHandlers/                #   事件处理器
-│   ├── Pages/PageRegistry.cs         #   ★ 菜单/路由/权限码/i18n 键单一事实源
-│   └── Exporting/                    #   导出投影
-├── Infrastructure/                   # 基础设施层
-│   ├── Repositories/                 #   仓储实现
-│   ├── Seeders/                      #   ★ 种子数据（System 基线 / Demo 演示）
-│   ├── Auth/  Security/  MultiTenancy/
-│   ├── Messaging/  Logging/  Tasks/  OAuth/
-├── Hubs/                             # SignalR Hub
-└── OpenApi/                          # 开放接口自测端点
+XiHan.BasicApp/                 # next 分支
+├─ AGENTS.md  CLAUDE.md         # Agent 约定（CLAUDE.md 链接到 AGENTS.md）
+├─ .agents/skills/              # 仓库技能
+├─ backend-next/                # 6.0 后端
+├─ frontend-next/               # 6.0 管理端
+├─ docs/                        # 本文档站
+├─ nextdocs/下一代总体方案.md    # 6.0 总体方案（设计、分期与拍板记录）
+├─ backend/  frontend/          # 5.x，GA 前保持不动
+└─ .github/workflows/next-ci.yml  # 6.0 的 CI：后端构建测试、契约漂移、前端门禁
 ```
 
-带 ★ 的是**改动频率最高**的位置。
-
-## 前端目录
+## 后端
 
 ```text
-frontend/
-├── src/                              # 应用侧（别名 @）
-│   ├── main.ts                       #   ★ 引导顺序（图标→i18n→请求绑定→守卫→mount）
-│   ├── App.vue                       #   Provider 装配 + 全局挂件
-│   ├── app/context.ts                #   ★ 注册视图 glob / api 实例 / 静态路由
-│   ├── api/
-│   │   ├── base.ts                   #   ★ 动态 API 客户端
-│   │   ├── factory.ts                #   ★ defineResource 资源工厂
-│   │   ├── helpers.ts                #   分页/过滤/排序构造
-│   │   └── modules/**                #   ★ 按域的 API 与 DTO 类型
-│   ├── router/                       #   路由入口（守卫、静态路由）
-│   ├── styles/index.css              #   Tailwind 入口（CSS-first @theme）
-│   ├── locales/                      #   应用级语言包
-│   └── views/**                      #   ★ 业务视图
-└── packages/                         # 内核侧（别名 ~）
-    ├── request/                      #   ★ RequestClient（拦截器/解包/401/423）
-    ├── components/
-    │   ├── schema/                   #   ★ Schema 驱动表格引擎
-    │   ├── common/  chat/
-    ├── router/                       #   ★ dynamic.ts（后端菜单→路由）+ guard.ts
-    ├── stores/  hooks/  composables/
-    ├── layouts/                      #   布局与顶部横幅/通知门
-    ├── locales/langs/{zh-CN,en-US}/  #   ★ 语言包（含 menu.ts）
-    ├── design/  iconify/  designers/  plugins/  views/
-    └── types/  utils/  constants/
+backend-next/
+├─ XiHan.BasicApp.slnx
+├─ Directory.Build.props        # net10.0、版本 6.0.0-preview.1、警告即错误、生成文档文件
+├─ Directory.Packages.props     # 中央包版本
+├─ Directory.Build.targets      # XiHanFrameworkReference → ProjectReference 或 PackageReference
+├─ props/framework.props        # 框架引用方式与锁定提交 XiHanFrameworkCommit
+├─ src/
+│  ├─ XiHan.BasicApp.Contracts      Tier 0  实体基类、分页 / 批量、权限描述、页面登记、跨包接口、种子号段
+│  ├─ XiHan.BasicApp.Runtime        Tier 0  SqlSugar 回调、TenantScopedQuery、操作人、数据保护、表结构升级、种子执行
+│  ├─ XiHan.BasicApp.Identity       Tier 1  账号、登录、会话、个人中心、模仿
+│  ├─ XiHan.BasicApp.Tenancy        Tier 1  租户、套餐、成员、订阅
+│  ├─ XiHan.BasicApp.Organization   Tier 1  部门、岗位、部门成员
+│  ├─ XiHan.BasicApp.Access         Tier 1  角色、授权与收窄规则、菜单
+│  ├─ XiHan.BasicApp.Settings       Tier 2  参数、字典、业务编号
+│  ├─ XiHan.BasicApp.Files          Tier 2  存储、文件、导出导入
+│  ├─ XiHan.BasicApp.Notification   Tier 2  通知、模板、邮件短信、机器人
+│  ├─ XiHan.BasicApp.Auditing       Tier 2  日志查询与写入
+│  ├─ XiHan.BasicApp.Maintenance    Tier 2  作业、缓存、服务监控、版本
+│  ├─ XiHan.BasicApp.OpenPlatform   Tier 2  签名开放接口、OAuth / OIDC
+│  ├─ XiHan.BasicApp.Realtime       Tier 2  SignalR Hub 与推送
+│  ├─ XiHan.BasicApp.Workbench      Tier 3  工作台小组件
+│  └─ XiHan.BasicApp.Host           装配、普通端点、命令、Schema/、appsettings
+└─ test/
+   ├─ XiHan.BasicApp.Architecture.Tests   层级、Expose、权限码、目录与文案、XML 文档、框架锁定
+   └─ XiHan.BasicApp.Integration.Tests    TestServer + SQLite / PostgreSQL 的端到端用例、Conformance、冒烟
 ```
 
-## 代码地图：我要改 X，去哪儿
+### 一个能力包内部
+
+以 Identity 为例，目录名全仓统一（`PackageStructureTests` 守护白名单）：
+
+```text
+XiHan.BasicApp.Identity/
+├─ IdentityFeature.cs           # IFeature：清单（Id、Provides、Requires）与 Configure 登记
+├─ IdentityCapabilities.cs      # 本包对外提供的能力 ID（basicapp.identity@1）
+├─ IdentityPermissions.cs       # PermissionDescriptor 常量：码、显示名、作用侧、是否审计
+├─ IdentityPages.cs             # 页面登记：页面码、路由、文案键、图标、排序、所需权限
+├─ IdentityMessages.cs          # 消息键常量与消息目录
+├─ IdentityErrors.cs            # 错误码常量 IDENTITY_<KIND>_<NNN>
+├─ IdentityJsonContext.cs       # 本包请求 / 响应 DTO 的源生成序列化上下文
+├─ IdentityOptions.cs           # BasicApp:Auth 配置
+├─ Localization/<区域>.json × 10
+├─ Domain/Entities  Domain/Services
+├─ Operations/<资源>/<动词>.cs  # 一方法一操作，请求 / 响应 record 与操作同目录
+├─ Queries/                     # 分页、投影、联表（以 TenantScopedQuery 起手）
+├─ Middleware/                  # 本包贡献的管道中间件（SessionGateMiddleware）
+├─ Infrastructure/              # Provider 实现、外部网关、小组件提供者
+└─ Seeds/                       # 种子
+```
+
+其他包按需带 `Jobs/`（`IJob`）、`Handlers/`；没有用到的目录不建。表结构脚本统一放在 `Host/Schema/<版本>/`，不在包里。
+
+## 前端
+
+```text
+frontend-next/
+├─ package.json  pnpm-workspace.yaml  vite.config.ts  vitest.config.ts  eslint.config.mjs
+├─ .env  .env.example           # VITE_PORT、VITE_DEV_PROXY_TARGET、VITE_HOME_PATH、VITE_REALTIME_HUB …
+├─ contracts/                   # 后端导出的 openapi.json、realtime.json（入库，CI 比对）
+├─ scripts/                     # gen-contracts 与 px / token / i18n / modules / permissions 门禁
+├─ packages/                    # 别名 ~，壳层与通用能力；禁止反向引用 @/
+│  ├─ contracts/                # 生成物：types.ts、operations.ts、permissions.ts、enums.ts、realtime.ts；paging.ts
+│  ├─ request/                  # 运行时客户端：拼路由、放头、Problem Details → ApiError、刷新与钩子
+│  ├─ router/                   # 守卫、菜单 → 路由、核心路由
+│  ├─ stores/                   # access、auth、app、标签栏等
+│  ├─ layouts/                  # 管理端壳层（侧栏、顶栏、标签、偏好、全局搜索、分屏）
+│  ├─ components/               # common（XDataTable、EditModal、PageShell…）与 schema（SchemaPage）
+│  ├─ composables/  hooks/  utils/  constants/  types/  iconify/
+│  ├─ design/                   # 令牌（variables.css）与 XiHan.UI 令牌桥（xihan-ui.css）
+│  ├─ locales/                  # 壳层文案 × 10 区域
+│  └─ views/_core/              # 认证页、控制中心、个人中心、OAuth 同意页、403 / 404 / 500
+└─ src/                         # 别名 @，应用侧
+   ├─ main.ts  App.vue  app/context.ts  router/  styles/
+   └─ modules/<包>/             # 与后端能力包一一对应
+      ├─ views/<页面>/index.vue
+      ├─ locales/<区域>.ts × 10
+      └─ setup.ts
+```
+
+已有的模块：`access`、`auditing`、`files`、`identity`、`maintenance`、`notification`、`openplatform`、`organization`、`settings`、`tenancy`、`workbench`。
+
+## 代码定位
 
 ### 后端
 
-| 我要… | 改这里 |
+| 要做的事 | 位置 |
 | --- | --- |
-| 加一个业务实体 | `Domain/Entities/SysXxx.cs`（+ `Expands/`），选对[实体基类](./backend/entity#先选对基类) |
-| 加一个权限码 | `Domain/Permissions/SaasPermissionCodes.cs`（常量）**和** `SaasPermissionDefinitions.cs`（落库定义），两处都要 |
-| 加一个菜单/页面/按钮 | `Application/Pages/PageRegistry.cs` 的 `All` / `Buttons` |
-| 加一个接口 | `Application/AppServices/**`（写）或 `QueryServices/**`（读）；**分页方法记得标 `[HttpPost]`** |
-| 注册领域服务 | `Extensions/ServiceCollectionExtensions.cs` 的 `AddSaasDomainServices`（**必须手写**） |
-| 覆盖框架默认实现 | `Extensions/ServiceCollectionExtensions.cs`，用 **`services.Replace(...)`** |
-| 加事件处理器 | `Application/EventHandlers/**` + `AddSaasLocalEventHandler<T>()` 登记 |
-| 加缓存 | `Application/Caching/`：条目类 + `SaasCacheNames` 常量 + 失效器方法 |
-| 加种子数据 | `Infrastructure/Seeders/System/**`，注意 `Order` 段与「操作→资源→权限→菜单→授权」顺序 |
-| 改中间件管道 | 在模块的 `OnPreApplicationInitialization` / `OnApplicationInitialization` 里加 |
-| 改启动/健康检查/Webhook | `main/XiHan.BasicApp.WebHost/XiHanBasicAppWebHostModule.cs` |
-| 改数据库连接/Redis/JWT | `main/XiHan.BasicApp.WebHost/appsettings.*.json`，见 [配置参考](./configuration) |
+| 新增 / 修改一个接口 | `src/<包>/Operations/<资源>/<动词>.cs`，请求与响应 record 同目录 |
+| 新增权限码 | `<包>Permissions.cs`（`PermissionDescriptor`），在 `All` 里登记 |
+| 新增页面（菜单） | `<包>Pages.cs`，前端在 `src/modules/<包>/views/<路径>/index.vue` |
+| 新增错误码 / 文案 | `<包>Errors.cs`、`<包>Messages.cs` 与 `Localization/*.json`（10 种区域键集一致） |
+| 改表结构 | 实体 + `Host/Schema/<版本>/*.sql` |
+| 新增配置项 | 包的 `<包>Options.cs`（`BasicApp:*`）与 `Host/appsettings.json` |
+| 新增种子 | 包的 `Seeds/`，实现 `ISeeder`，号段见 `Contracts/Seeding/SeedOrders.cs` |
+| 新增后台作业 | 包的 `Jobs/`，在 `Configure` 里登记 |
+| 新增普通端点（上传、重定向、Hub） | 包内的 `Map*` 扩展，宿主在 `BasicAppHost.MapBasicAppEndpoints` 里调用 |
 
 ### 前端
 
-| 我要… | 改这里 |
+| 要做的事 | 位置 |
 | --- | --- |
-| 加一个页面 | `src/views/{域}/{页}/index.vue`（路径由后端 `PageDescriptor.Component` 决定） |
-| 加一个 `_core` 页面 | 视图放 `packages/views/_core/**`，**并在 `packages/router/dynamic.ts` 的 `coreComponentMap` 登记** |
-| 加 API 客户端 | `src/api/modules/{域}/xxx.ts` + `xxx.types.ts`；标准 CRUD 用 `defineResource` |
-| 加菜单文案 | `packages/locales/langs/{zh-CN,en-US}/menu.ts`（键 = 后端 `I18nKey` 去掉 `menu.` 前缀） |
-| 加业务文案 | `packages/locales/langs/{lang}/{模块}.ts`；**注意裸 `@` 会白屏** |
-| 改列表页字段/搜索/导出 | 页面里的 `ListFieldSchema[]`（**字段单一事实源**） |
-| 改表格引擎行为 | `packages/components/schema/**` |
-| 改请求头/401 处理/解包 | `packages/request/index.ts` |
-| 改动态路由生成 | `packages/router/dynamic.ts` |
-| 改路由守卫 | `packages/router/guard.ts` |
-| 改主题/暗色令牌 | `packages/design/**` 与 `src/styles/index.css` |
-| 改后端地址/端口 | `frontend/.env.development` 的 `VITE_DEV_PROXY_TARGET` |
+| 调用后端操作 | `import { users } from '~/contracts'`，不手写 URL |
+| 列表页 | `SchemaPage` + 资源适配器（`packages/contracts/paging.ts`） |
+| 新增模块的文案 | `src/modules/<包>/locales/<区域>.ts`，10 种区域键集一致 |
+| 壳层注入的接口实现 | `src/app/context.ts`（`AppContextApis`） |
+| 主题与令牌 | `packages/design/` |
 
-### 常见「两处都要改」
+### 前后端同时改动的情形
 
-新人最容易只改一处的地方：
+| 变更 | 后端 | 前端 |
+| --- | --- | --- |
+| 改 DTO 字段 | 请求 / 响应 record | 重新导出 `openapi.json` → `pnpm gen:contracts` → 改页面 |
+| 新增操作 | 操作类 + 权限码 + 文案 | 生成契约 → 页面按 `can('<权限码>')` 门控 |
+| 新增页面 | `<包>Pages.cs`（组件路径 = 路由去前导斜杠 + `/index`） | 同路径的 `index.vue` 与菜单文案键 |
 
-| 事情 | 必须同时改 |
-| --- | --- |
-| 加权限码 | `SaasPermissionCodes`（代码引用） **+** `SaasPermissionDefinitions`（落库） |
-| 加菜单 | `PageRegistry`（后端） **+** `src/views/**` 视图文件（前端） **+** `menu.ts` 文案 |
-| 加 `_core` 页面 | 视图文件 **+** `coreComponentMap` 登记 |
-| 加领域服务 | 接口与实现 **+** `AddSaasDomainServices` 手写注册 |
-| 加事件处理器 | 处理器类 **+** `XiHanLocalEventBusOptions.Handlers` 登记 |
-| 加缓存 | 条目类 **+** 失效器方法 **+** 所有会改到该数据的写侧调用 |
-
-漏掉右边那一半，表现基本都是**静默失效**：不报错、但功能不生效。完整清单见 [二次开发](./backend/development)。
+契约改动的完整顺序见[前端契约与请求](./frontend/request)。
 
 ## 相关页面
 
-- [后端架构](./backend/introduction)：分层与装配机制
-- [前端架构](./frontend/introduction)：五层结构与依赖方向
-- [二次开发](./backend/development)：新增功能的端到端清单
-- [配置参考](./configuration)：`appsettings` 全量
+- [系统概述](./overview) · [后端架构总览](./backend/introduction) · [前端框架简介](./frontend/introduction)

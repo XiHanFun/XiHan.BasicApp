@@ -16,7 +16,7 @@ Tier 1 身份能力包：账号、认证、会话与个人中心。提供能力 
 
 ## 配置
 
-`BasicApp:Auth`：令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流、双因素、邮件 / 短信验证码与自助注册开关（`SelfRegistrationEnabled`，缺省关）；第三方登录在 `BasicApp:Auth:OAuth`。键与缺省见 docs-next 的配置页。
+`BasicApp:Auth`：令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流、双因素、邮件 / 短信验证码与自助注册开关（`SelfRegistrationEnabled`，缺省关）；第三方登录在 `BasicApp:Auth:OAuth`。键与缺省见 docs 的配置页。
 
 ## 约束
 

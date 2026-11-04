@@ -1,103 +1,75 @@
 # 组织架构
 
-组织架构回答的是「**这个人在公司里是谁**」：属于哪个部门、担任什么岗位、能看到哪个范围的数据。它是数据范围（`DepartmentOnly` / `DepartmentAndChildren`）的底座，也是消息定向的依据。
+本页说明 Organization 包（Tier 1，依赖 Identity 与 Tenancy）提供的部门、岗位与部门成员，适用于后端开发者。三者都是租户库实体：每个租户一套，平台一侧没有组织架构。
 
-> 用户主体与登录见 [身份与认证](./authentication)；数据范围如何参与鉴权见 [权限模型](./permission)；跨租户的成员关系见 [多租户与版本](./multi-tenancy)。
+## 部门
 
-## 三个主体
+| 实体 | 说明 |
+| --- | --- |
+| `SysDepartment` | 编码（租户内唯一）、名称、类型（集团、总部、公司、部门、小组等 16 种，缺省部门）、上级、负责人、排序、状态、联系电话、邮箱、地址、说明 |
+| `SysDepartmentHierarchy` | 闭包表：每对「祖先—后代」一行，带深度 |
 
-| 实体 | 表 | 定位 |
+闭包表让「部门及其下级」成为一次索引查询，数据范围的 `DepartmentAndChildren`、字段安全的部门规则、通知的定向投递都依赖它。
+
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `SysDepartment` | `Sys_Department` | 组织架构树节点（**严格单父树**） |
-| `SysDepartmentHierarchy` | `Sys_Department_Hierarchy` | 部门层级**闭包表**（查询加速镜像） |
-| `SysPosition` | `Sys_Position` | **扁平**岗位字典（职务/职位），不成树 |
-| `SysUserDepartment` | `Sys_User_Department` | 用户 ↔ 部门的多对多归属，承载岗位、工号、职级、入职日期 |
+| `departments.tree` | `organization.departments.read` | 部门树（`GET`，声明只读；也进 MCP / AI 工具）。`keyword` 不分大小写匹配编码、名称、电话、邮箱、地址与说明，只留命中的部门，上级没命中的当作顶层 |
+| `departments.get` | `organization.departments.read` | 详情 |
+| `departments.create` | `organization.departments.create` | 创建并挂到上级（为空即顶层） |
+| `departments.update` | `organization.departments.update` | 改名称、类型、负责人、排序、联系方式等 |
+| `departments.move` | `organization.departments.update` | 移到新上级：整棵子树重算闭包，拒绝移到自己或子孙之下 |
+| `departments.delete` | `organization.departments.delete` | 批量删除，摘除闭包行 |
 
-前端页面：`/identity/org`（组织机构）与 `/identity/position`（岗位管理）。
-
-## 部门树与闭包表
-
-### 为什么需要闭包表
-
-数据范围 `DepartmentAndChildren`（本部门及下级）要回答「某部门的全部后代」。在邻接表（只有 `ParentId`）上这是递归查询，深树上很慢且难以下推到 SQL。
-
-`SysDepartmentHierarchy` 把**所有「祖先-后代」对预计算出来**（含 `Depth=0` 的自环），一次 `WHERE AncestorId = ?` 就能 O(1) 展开整棵子树。表里还冗余了 `Path` / `PathName` 便于直接渲染面包屑。
-
-### 闭包表是镜像，不是业务数据
-
-**所有写入必须由 `SysDepartment` 的变更触发**，`DepartmentDomainService` 在部门增/删/移时清空当前租户的闭包记录，再按全量部门整体重算（不是按子树增量维护）：
-
-```text
-新增部门        → 清空闭包记录，按全量部门重建
-修改部门父级    → 清空闭包记录，按全量部门重建（仅 ParentId 变化时触发）
-删除部门        → 清空闭包记录，按全量部门重建
-```
-
-重建时逐个部门回溯祖先链，遇到自身重复（环路）或父级缺失会直接抛异常终止，不会写出半截闭包。仅改名称、联系方式、排序或启停状态不触发重建。
-
-::: warning 绕过服务层直改 `Sys_Department` 会让闭包表失真
-表现是数据范围算错——某些下级部门的数据看不到，或看到了本不该看到的。修复要走服务层重建闭包表，不要手工补行。
-:::
+负责人是本租户的用户（`leaderUserId`）。前端编辑弹窗按关键字远程检索用户（需要 `identity.users.read`，看不了用户时这一栏不显示）。
 
 ## 岗位
 
-岗位是**扁平字典**，不参与层级、不参与数据范围计算。它的作用是描述「这个人在这个部门里做什么」，被 `SysUserDepartment.PositionId` 引用。
+`SysPosition`：编码（租户内唯一）、名称、排序、启停、说明。操作 `positions.create / get / list / update / delete`，权限 `organization.positions.*`；`positions.get` / `list` 也是 MCP / AI 工具。
 
-岗位编码在租户内唯一（`Sys_Position` 的 `TenantId + PositionCode` 唯一索引）。
+## 部门成员
 
-需要「岗位也有上下级」的场景，用角色层级（`SysRoleHierarchy`）表达，别把岗位改成树。
+`SysUserDepartment`：用户 × 部门，带岗位、是否主部门、工号、职级、入职时间（UTC）、部门内排序与备注。
 
-## 用户归属
-
-`SysUserDepartment` 是多对多关联，一个用户可以属于多个部门：
-
-| 字段 | 说明 |
-| --- | --- |
-| `UserId` / `DepartmentId` | 关联主体 |
-| `IsMain` | **主部门标识**——组织架构展示取主部门（数据范围按全部有效归属计算），一个用户至多一个 |
-| `PositionId` | 岗位（可空） |
-| 工号 / 职级 / 入职日期 | 人事属性 |
-
-::: tip 主部门唯一性靠服务层保证
-表上没有「一个用户只能有一个主部门」的约束，是服务层在设置主部门时把其余归属的 `IsMain` 置 false；用户第一条部门归属会自动成为主部门，主归属被撤销或置无效时自动提升另一条有效归属。批量导入用户时要走同一条服务方法，别直接写表。
-:::
-
-## 与数据范围的关系
-
-数据范围是**独立于权限码的另一个维度**：权限码回答「能不能做这个操作」，数据范围回答「能对哪些行做」。
-
-| 数据范围（`DataPermissionScope`） | 含义 | 依赖 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `SelfOnly` | 仅本人 | — |
-| `DepartmentOnly` | 本部门 | `SysUserDepartment` 的**全部有效归属** |
-| `DepartmentAndChildren` | 本部门及下级 | 全部有效归属 + **闭包表**展开后代 |
-| `All` | 全部数据 | — |
-| `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
+| `memberships.list` | `organization.memberships.read` | 按部门（可含下级）列成员，按数据范围收窄 |
+| `memberships.create` | `organization.memberships.create` | 用户须在当前租户（注册在这里或[外部成员](./multi-tenancy#外部成员)）；用户的第一个归属自动是主部门 |
+| `memberships.update` | `organization.memberships.update` | 改岗位、主部门、工号、职级、入职时间、备注 |
+| `memberships.delete` | `organization.memberships.delete` | 批量移出 |
 
-`Custom` 行上的 `IncludeChildren` 决定该部门是否连同后代一起展开。数据范围目前只作用于用户列表（含用户导出），其它资源的列表不按部门收窄。完整判定见 [权限模型](./permission)。
+加入与移出部门时记领域事件 `basicapp.organization.membership-changed`（`Contracts` 的 `MembershipChanged`：用户、部门、加入还是移出、发生时间），随写入进发件箱；改岗位、主部门等不发。Chat 据此同步部门群成员，见[在线聊天](./chat#部门群同步)。
 
-::: warning 用户列表「有权限但查不到人」多半是数据范围
-返回 200 且列表为空、而不是 403——这是数据范围在起作用，不是 bug。排查顺序：用户的部门归属对不对 → 角色的数据范围设成了什么 → 闭包表是否完整。
-:::
+## 使用方
 
-## 组织变更的连锁影响
-
-改组织架构不是改一张表，下面这些会跟着变：
-
-| 变更 | 连锁影响 |
+| 使用方 | 用法 |
 | --- | --- |
-| 移动部门 | 闭包表整表重建 → 该子树下所有人的 `DepartmentAndChildren` 范围变化 |
-| 增删用户部门归属 | 该用户的 `DepartmentOnly` / `DepartmentAndChildren` 范围变化 |
-| 删除部门 | 存在子部门、用户归属、角色/用户数据范围引用或字段级安全引用时直接拒绝，必须先解除；删除后闭包表整表重建 |
-| 任一变更 | 需失效 `SaasDepartmentTreeCacheItem`（`InvalidateOrganizationAsync`），涉及授权的还要失效授权快照 |
+| Access 数据范围 | 本部门 / 本部门及下级 / 自定义部门 |
+| Access 字段安全 | 部门目标的规则认所在部门及其上级 |
+| Access 条件属性 | `subject.departmentcodes`、`subject.maindepartmentcode`、`subject.positioncodes` |
+| Identity 用户列表 | 按部门筛选（含下级），经 `Contracts` 的 `IRecipientSource` |
+| Notification | 按部门定向投递 |
 
-::: danger 漏失效缓存 = 改完不生效
-部门树走 Redis 缓存（`basicapp:saas:organization:dept-tree`）。写侧改完必须调 `ISaasCacheInvalidator.InvalidateOrganizationAsync()`，否则前端组织树、下拉选项都还是旧的。详见 [缓存与异步](./caching)。
-:::
+## 演示数据
 
-## 相关页面
+`BasicApp:Seed:EnableDemoData` 打开时，种子 `organization.demo` 在演示租户 `demo` 里写部门 `hq → rd / mkt / hr`、岗位 `gm / manager / engineer / specialist` 与负责人，并给演示成员排主部门任职（流程演示要用，照 5.x 示例企业）：
 
-- [身份与认证](./authentication)：用户主体、会话、登录
-- [权限模型](./permission)：数据范围如何参与鉴权
-- [多租户与版本](./multi-tenancy)：租户成员关系（与部门归属是两件事）
-- [数据模型](./data-model#组织与租户)：相关表结构
+| 账号 | 部门 / 岗位 | 负责人 |
+| --- | --- | --- |
+| `admin` | 总部 / 总经理 | 总部 |
+| `manager` | 研发部 / 经理 | 研发部 |
+| `lead` | 研发部 / 工程师 | — |
+| `hr` | 人事部 / 专员 | — |
+
+只首写：租户里已有部门即跳过。
+
+## 组织目录
+
+Contracts 的 `IOrganizationDirectory`（Organization 实现）给别的包按编码取部门成员、部门负责人、岗位任职，按用户取主部门往上的部门链，以及选人用的部门与岗位清单；只读调用所在租户、只取启用的部门与岗位，平台一侧为空。工作流的组织类受理人用它。
+
+## 前端
+
+`src/modules/organization`：部门页是 SchemaPage 树表（关键字搜索、成员抽屉、移动），岗位页是普通列表。成员列表显示岗位、工号、职级与入职日期（按本地日期显示）。搜索时上级部门的候选与详情里的子部门仍取整棵树。
+
+## 下一步
+
+- [数据权限与字段安全](./data-permission) · [多租户 SaaS](./multi-tenancy)

@@ -1,266 +1,111 @@
 # 开发环境
 
-承接 [系统概述](/overview) 对整体架构的了解，本篇用 **Docker 命令行** 准备本地开发可用的 **Redis** 与关系型数据库，并给出与仓库 `appsettings.Development.json` 对齐的默认 PostgreSQL 组合。其他数据库示例只用于开发验证；当前发布升级脚本以 PostgreSQL 为准。
-
-> 数据库表结构无需手动创建——后端首次启动会自动建表并初始化种子数据。你只需准备好一个「可连接、账号密码正确」的数据库与 Redis 实例。
+本页列出在本机开发 6.0 所需的工具、仓库布局、数据库准备与常用命令，适用于参与后端或前端开发的开发者。
 
 ## 前置条件
 
-- 已安装 **Docker Desktop**（或 Docker Engine），且引擎处于运行状态（`docker version` 能正常输出）。
-- 下面的命令 **PowerShell 与 bash 通用**：ACL 等特殊字符统一用 **单引号** 包裹（单引号在两种 shell 里都是字面量，避免 `>`、`&`、`~` 被 shell 解释）。
-- 数据以 **命名卷**（如 `-v pg-data:/var/lib/postgresql/data`）持久化，容器删了数据还在。
-- 端口只映射到本机，密码仅为本地开发示例；**切勿用于生产**。
-
-::: warning 命名冲突
-若同名容器已存在，`docker run` 会报错。重建前先删除：`docker rm -f <名称>`（下面命令已在示例中带上）。
-:::
-
-## 与 appsettings 的对应关系
-
-需要改动的文件：`backend/src/main/XiHan.BasicApp.WebHost/appsettings.Development.json`，两处：
-
-| 依赖 | 配置节 | 键 |
+| 工具 | 版本 | 用途 |
 | --- | --- | --- |
-| 关系型数据库 | `XiHan:Data:SqlSugarCore:ConnectionConfigs[0]` | `DbType` + `ConnectionString` |
-| Redis | `XiHan:Caching:Redis` | `IsEnabled` + `Configuration` |
+| .NET SDK | 10.x | 后端构建、测试与运行（`backend-next` 目标框架 `net10.0`） |
+| Node.js | 24+ | 前端与文档站 |
+| pnpm | 11+ | 前端包管理（`frontend-next` 没有锁文件，安装用 `--no-frozen-lockfile`） |
+| Git | 任意近期版本 | 检出 BasicApp 与 XiHan.Framework 两个仓库 |
+| PostgreSQL | 14+（CI 用 17） | 平台库；独立库租户另建库 |
 
-数据库按需 **选一种** 即可（把对应的 `DbType` 与连接串填进去）。Redis 可关闭并回退进程内实现，但多实例与分布式锁/队列场景必须启用。
+6.0 开发态只要求 PostgreSQL。Redis、RabbitMQ、对象存储都不是必需：不配连接时缓存、消息、对象存储走框架 Full Profile 的内存或文件系统缺省实现（文件缺省落本地目录 `App_Data/files`）；要在本机联调 Redis / RabbitMQ，配上绑定 `cache` / `queue` 即可（见[配置参考](./configuration#分布式缓存与消息)），相关集成测试读环境变量 `XIHAN_TEST_REDIS` / `XIHAN_TEST_RABBITMQ`。
 
----
+## 两个仓库并排检出
 
-## Redis 6+（生产多实例必需）
+`backend-next` 以 ProjectReference 引用框架源码，缺省路径是与 BasicApp 同级的 `XiHan.Framework/next/src`：
 
-用于分布式缓存、分布式锁与延迟/流式队列。仓库默认连接串用的是 **ACL 用户** `user=redis,password=redis`，所以要在容器里建好同名 ACL 用户（官方 `redis` 镜像默认既无密码、也没有名为 `redis` 的用户，直接连会报 `WRONGPASS`）。
+```text
+<工作目录>/
+├─ XiHan.BasicApp/          # 切到 next 分支
+│  ├─ backend-next/
+│  └─ frontend-next/
+└─ XiHan.Framework/         # 检出 backend-next/props/framework.props 锁定的提交
+   └─ next/src/
+```
 
 ```bash
-docker rm -f redis
-docker run -d --name redis -p 6379:6379 -v redis-data:/data redis:8-alpine redis-server --appendonly yes --user default off --user redis on '>redis' '~*' '&*' '+@all'
+git clone -b next https://github.com/XiHanFun/XiHan.BasicApp.git
+git clone https://github.com/XiHanFun/XiHan.Framework.git
 ```
 
-- `--user redis on '>redis' '~*' '&*' '+@all'`：建用户 `redis`、密码 `redis`，授予全部键（`~*`）、全部频道（`&*`，本项目用到发布订阅/Streams，必须给）、全部命令（`+@all`）。
-- `--user default off`：关闭默认匿名用户（加固）。本地嫌麻烦可去掉这一行，但端口就是裸奔的。
-- `--appendonly yes`：开启 AOF 持久化。
-
-对应 `appsettings.Development.json`：
-
-```json
-{
-  "XiHan": {
-    "Caching": {
-      "Redis": {
-        "IsEnabled": true,
-        "Configuration": "127.0.0.1:6379,user=redis,password=redis,defaultDatabase=0"
-      }
-    }
-  }
-}
-```
-
-验证（返回 `PONG` 即通）：
+锁定提交写在 `backend-next/props/framework.props` 的 `XiHanFrameworkCommit`（撰写时为 `26bdff62`）。把框架检出到这个提交：
 
 ```bash
-docker exec -it redis redis-cli -u redis://redis:redis@127.0.0.1:6379 ping
+git -C XiHan.Framework checkout 26bdff62
 ```
 
-::: tip 不想用密码？
-把 `IsEnabled` 设为 `false` 会退化为进程内内存缓存（单实例够用，失去分布式缓存/锁/队列）；此时无需启动 Redis 容器。
+架构测试 `FrameworkPinTests` 会核对框架检出的 HEAD 是否以锁定提交开头；检出不在锁定上时这条测试失败，其余测试照常。框架不在同级目录时，用 `-p:XiHanFrameworkSrc=<检出>/next/src/` 显式指路。
+
+::: tip NuGet 包引用
+框架 5.0 还没有发布到 nuget.org。`-p:UseXiHanFrameworkSource=false` 可以切到 `5.0.0-preview.*` 包引用（本地源 `next/artifacts/packages`），但日常开发与 CI 都走源码引用。
 :::
 
----
+## PostgreSQL
 
-## 关系型数据库（按需选一种）
-
-### PostgreSQL 14+（默认，推荐）
+`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp_next` 库，账号为开发用占位值。先建库：
 
 ```bash
-docker rm -f postgres
-docker run -d --name postgres -p 5432:5432 -v pg-data:/var/lib/postgresql/data -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=XiHanBasicApp postgres:17-alpine
+createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
 ```
 
-对应连接串：
-
-```json
-{
-  "DbType": "PostgreSQL",
-  "ConnectionString": "Server=127.0.0.1;Port=5432;Database=XiHanBasicApp;Username=postgres;Password=postgres;TrustServerCertificate=true;"
-}
-```
-
-验证：
+连接串写在 `XiHan:Bindings:db:value`，库类型写在同一节的 `provider`（缺省 `postgresql`）。本机账号不同就在 `appsettings.Development.json` 之外用环境变量或用户机密覆盖，不要提交真实密码：
 
 ```bash
-docker exec -it postgres psql -U postgres -d XiHanBasicApp -c "select version();"
+# 环境变量覆盖（节名以双下划线分隔）
+export XiHan__Bindings__db__value="Host=127.0.0.1;Port=5432;Database=xihan_basicapp_next;Username=<用户>;Password=<密码>"
 ```
 
-### MySQL 8+
+Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已登记的实体建缺表、加缺列。正式环境由 `Schema/<版本>/*.sql` 管理表结构，见[表结构升级](./backend/upgrade)。
+
+## 可选：Telegram、邮件、短信、对象存储
+
+这些都在运行时由后台页面配置（邮件配置、短信配置、存储配置、Telegram 机器人），不需要在开发环境预装服务。第三方登录的客户端 ID 与密钥写在 `BasicApp:Auth:OAuth:Providers`，见[配置参考](./configuration)。
+
+## 端口一览
+
+| 进程 | 地址 | 来源 |
+| --- | --- | --- |
+| 后端 HTTP | `http://localhost:9710` | `appsettings.json` 的 `Kestrel:Endpoints:Http` |
+| 后端 gRPC（HTTP/2） | `http://127.0.0.1:9711` | `Kestrel:Endpoints:Grpc`，只监听本机 |
+| 前端开发服务器 | `http://localhost:9100` | `frontend-next/.env` 的 `VITE_PORT` |
+| 文档站 | `http://localhost:5173` | VitePress 缺省 |
+
+前端开发服务器把 `/api`、`/openapi.json`、`/mcp`、`/health`、`/blobs` 与 `/hubs`（WebSocket）代理到 `VITE_DEV_PROXY_TARGET`（缺省 `http://localhost:9710`）。
+
+## 常用命令
 
 ```bash
-docker rm -f mysql
-docker run -d --name mysql -p 3306:3306 -v mysql-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=mysql -e MYSQL_DATABASE=XiHanBasicApp mysql:8.4
+# 后端（仓库根）
+dotnet restore backend-next/XiHan.BasicApp.slnx
+dotnet build backend-next/XiHan.BasicApp.slnx -c Release --no-restore
+dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
+dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
 ```
-
-对应连接串（SqlSugar 的 MySql 类型）：
-
-```json
-{
-  "DbType": "MySql",
-  "ConnectionString": "Server=127.0.0.1;Port=3306;Database=XiHanBasicApp;Uid=root;Pwd=mysql;"
-}
-```
-
-验证：
 
 ```bash
-docker exec -it mysql mysql -uroot -pmysql -e "select version();"
+# 前端（frontend-next/）
+pnpm install --no-frozen-lockfile
+pnpm dev
+pnpm check
+pnpm test
+pnpm build
 ```
 
-### MariaDB 11.8+
-
-MariaDB 与 MySQL 协议兼容，SqlSugar 仍用 `MySql` 类型。
+测试走 Microsoft.Testing.Platform：解决方案必须用 `--solution` 传入。需要对真实 PostgreSQL 跑的用例读环境变量 `XIHAN_TEST_POSTGRES`（只写到服务器级，不含库名），没设置时这些用例跳过：
 
 ```bash
-docker rm -f mariadb
-docker run -d --name mariadb -p 3306:3306 -v mariadb-data:/var/lib/mysql -e MARIADB_ROOT_PASSWORD=mariadb -e MARIADB_DATABASE=XiHanBasicApp mariadb:11.8
+XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=<密码>' \
+  dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
-```json
-{
-  "DbType": "MySql",
-  "ConnectionString": "Server=127.0.0.1;Port=3306;Database=XiHanBasicApp;Uid=root;Pwd=mariadb;"
-}
-```
+## 工作区解决方案
 
-### SQL Server 2025+
-
-SQL Server 对 SA 密码有强度要求（≥8 位，含大小写、数字、符号）。
-
-```bash
-docker rm -f mssql
-docker run -d --name mssql -p 1433:1433 -v mssql-data:/var/opt/mssql -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD=XiHan@2026 mcr.microsoft.com/mssql/server:2025-latest
-```
-
-对应连接串（数据库 `XiHanBasicApp` 会由后端首启时自动创建）：
-
-```json
-{
-  "DbType": "SqlServer",
-  "ConnectionString": "Server=127.0.0.1,1433;Database=XiHanBasicApp;User Id=sa;Password=XiHan@2026;TrustServerCertificate=true;"
-}
-```
-
-验证：
-
-```bash
-docker exec -it mssql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'XiHan@2026' -C -Q "select @@version"
-```
-
-### Oracle（框架支持但不建议）
-
-用社区维护的 `gvenzl/oracle-free` 镜像（Oracle Database 23ai Free）。Oracle 没有「新建数据库」概念，改为用 `APP_USER` 建一个业务 schema。首次启动较慢（需初始化实例）。
-
-```bash
-docker rm -f oracle
-docker run -d --name oracle -p 1521:1521 -v oracle-data:/opt/oracle/oradata -e ORACLE_PASSWORD=oracle -e APP_USER=xihan -e APP_USER_PASSWORD=xihan gvenzl/oracle-free:latest
-```
-
-```json
-{
-  "DbType": "Oracle",
-  "ConnectionString": "User Id=xihan;Password=xihan;Data Source=127.0.0.1:1521/FREEPDB1;"
-}
-```
-
-### 国产数据库（达梦 DM / 人大金仓 Kingbase / 华为 GaussDB）
-
-SqlSugar 同样支持这些国产库（`DbType` 取 `Dm` / `Kdbndp` / `PostgreSQL` 等对应值）。它们的官方镜像通常需从厂商渠道获取（并非都在 Docker Hub 公开），拿到镜像后按厂商说明 `docker run`，再把 `DbType` 与连接串填入 `ConnectionConfigs[0]` 即可，用法与上面一致。
-
-限制：仓库没有针对达梦、人大金仓做过验证；它们不在独立库租户可选的数据库类型里；仓库只提供 PostgreSQL 升级脚本，存量库升级要自备对应方言的脚本。详见[数据库配置](./backend/database#支持的数据库)。
-
----
-
-## 向量数据库 Qdrant（可选，AI 知识库用）
-
-仅当你要启用 **AI 知识库 / RAG** 能力时才需要。
-
-```bash
-docker rm -f qdrant
-docker run -d --name qdrant -p 6333:6333 -p 6334:6334 -v qdrant-data:/qdrant/storage qdrant/qdrant:v1.15.1
-```
-
-- `6333` 为 HTTP/REST 与管理面板（浏览器访问 `http://127.0.0.1:6333/dashboard`），`6334` 为 gRPC。
-- 具体接入配置见 [AI 能力](/backend/ai)。
-
----
-
-## 一键起（docker compose 备选）
-
-把「PostgreSQL + Redis」这套默认组合一次拉起。在任意目录新建 `docker-compose.yml`：
-
-```yaml
-services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: postgres
-    restart: unless-stopped
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: XiHanBasicApp
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:8-alpine
-    container_name: redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    command: >
-      redis-server --appendonly yes
-      --user default off
-      --user redis on >redis ~* &* +@all
-    volumes:
-      - redis-data:/data
-
-volumes:
-  pg-data:
-  redis-data:
-```
-
-启动 / 停止：
-
-```bash
-docker compose up -d      # 后台启动
-docker compose ps         # 查看状态
-docker compose down       # 停止并删除容器（命名卷保留，数据不丢）
-```
-
-> compose 的 `command:` 用 YAML 折叠块（`>`）书写，其中的 `>redis`、`~*`、`&*` 无需再加引号（YAML 会整体作为一行字符串传给容器）。
-
----
-
-## 常用运维命令
-
-```bash
-docker ps                 # 查看运行中的容器
-docker logs -f redis      # 跟踪日志（换成 postgres/mysql 等）
-docker stop redis         # 停止
-docker start redis        # 启动
-docker rm -f redis        # 强制删除容器（命名卷不受影响）
-docker exec -it redis sh  # 进入容器
-docker volume ls          # 查看数据卷
-```
-
----
+同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（如 `XiHanFun.Next.Local.slnx`），登记 `backend-next` 全部工程与框架 `next/src`。它不入任何仓库，新增工程时自己补进去。
 
 ## 下一步
 
-依赖就绪后：
-
-1. 把上面选定数据库的 `DbType` + `ConnectionString`、以及 Redis 的 `Configuration` 填入 `appsettings.Development.json`。
-2. 进入下一篇 [快速开始](/getting-started)：克隆代码、启动前后端并登录系统（首次运行会自动建表并写入种子数据）。
-3. 生产环境请改用独立的强密码、密钥库/环境变量注入，部署细节见 [部署](/deployment)。
-
-> 上一篇：[系统概述](/overview) · 下一篇：[快速开始](/getting-started)
+- [快速开始](./getting-started) · [目录结构](./project-structure) · [配置参考](./configuration)

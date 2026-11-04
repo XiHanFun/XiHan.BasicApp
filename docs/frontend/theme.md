@@ -1,103 +1,56 @@
 # 布局与主题
 
-外观相关的一切：布局结构、Tailwind CSS 的用法与陷阱、主题系统、偏好同步。
+本页说明管理端的设计令牌、样式约束、布局与偏好同步，适用于前端开发者。
+
+壳层与设计令牌整体从 5.x 搬入（方案修订（十一）），所以布局、配色、偏好中心的行为与 5.x 一致。XiHan.UI 是组件与样式契约的真源。
+
+## 双层令牌
+
+| 层 | 位置 | 作用 |
+| --- | --- | --- |
+| 应用令牌 | `packages/design/variables.css` | HSL 分量形式的应用令牌，是视觉真源 |
+| 令牌桥 | `packages/design/xihan-ui.css` | 把 XiHan.UI 的 `--xh-*` 令牌改写到应用令牌上，组件库随之换色 |
+| Tailwind | `src/styles/index.css` | 层序 + `@theme` 把工具类映射到 `hsl(var(--x))` |
+
+主题色、圆角、明暗、密度由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：`data-theme`、`data-density` 与 `--radius` / `--radius-card` 等变量，组件库跟着走。
+
+## 约束
+
+| 项 | 规则 |
+| --- | --- |
+| 圆角 | 偏好设置的 `--radius` 接到组件库的圆角种子 `--xh-radius-seed`：控件、承载面与浮层同一档（卡片另有 `--radius-card`），内嵌件（菜单与下拉的行、方框、已选标签）取一半，对话框与抽屉朝页面的两角、通知卡片取 1.25 倍；自写样式只写形状角色 `--xh-shape-*`；pill 只用于明确的胶囊语义 |
+| 按压 | 离散按钮按下 150ms 缩放到 0.97，释放 200ms（时长随组件库） |
+| 聚焦环 | 与组件库同一道：2px 实线画在元素自己的盒内（`--xh-ring-width`、`--xh-ring-offset`），外沿与边框外沿重合，自写的可聚焦元素照写。环不出盒，`overflow` 不是 visible 的容器也裁不到它，不必留位。面是实心或任意颜色时环内侧衬一道底色间隔线（`--xh-ring-gap`），环两侧都是底色 |
+| 浮层 | 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊），禁止 glass |
+| 取值 | 颜色、间距、圆角、阴影、动效只用语义令牌 |
+| 裸 px | 按文件计数的白名单（`scripts/px-allowlist.json`），只许减不许增；新文件不进白名单。描边 1px / 2px、`0px`、`9999px` 不计 |
+| 令牌 | 引用的 `--xh-*` 必须存在于当前组件库版本（`pnpm token:check`） |
+| 风格 | 管理端紧凑、任务导向，不在控制台页面用营销式大标题或装饰性 Hero |
 
 ## 布局
 
-`packages/layouts/` 提供整套外壳：侧边栏、顶栏、标签页（tabbar）、内容区、页脚。
+`packages/layouts/basic` 提供管理端壳：侧栏、顶栏、标签栏、面包屑、内容区、页脚。偏好中心可切换布局形态、侧栏宽度、标签样式、内容宽度等；`registerShellExtension` 是模块向壳层注入能力的扩展点。
 
-### 滚动模型
+壳层的常驻能力：
 
-::: warning 滚动源不是 `window`
-布局根是**定高**的（`h-full`），滚动发生在**内容容器内部**。这意味着：
-
-- 监听 `window` 的 scroll 事件拿不到滚动；
-- 需要吸顶/吸底的整屏页直接用 `h-full` 或 `XPageShell` 即可；
-- **不要写 per-page 的 JS 定高 hack**。
-
-回到顶部、路由切换重置滚动都已由布局适配器统一处理。
-:::
-
-## 样式：Tailwind CSS（CSS-first）
-
-用 `@tailwindcss/vite` + **CSS-first `@theme`**（入口 `src/styles/index.css`），**没有 JS config 文件**。
-
-三条关键约定：
-
-| 约定 | 说明 |
+| 能力 | 说明 |
 | --- | --- |
-| **只引入 theme + utilities，不引入 preflight** | 基础重置由 XiHan.UI 的 `xihan.reset` 层与 `design/global.css` 的最小重置负责，避免两套重置互相打架 |
-| 颜色令牌用运行时 HSL CSS 变量 | `--color-primary: hsl(var(--primary))` 等，保证明暗与主题色能动态切换 |
-| 暗色走 class 策略 | `@custom-variant dark (&:where(.dark, .dark *))` |
+| 全局搜索 | 命令面板式，`Ctrl / ⌘ + K`，拼音首字母直达页面 |
+| 收藏 | 页面收藏，跨端同步 |
+| 分屏 | 两个页面左右并排 |
+| 通知中心 | 顶栏，读收件箱，接 `ReceiveNotification` |
+| 灵动岛 | 网络 / 实时连接状态、后台任务进度（`TaskProgress`） |
+| 锁屏 | 调 `auth.lock` / `auth.unlock`，服务端强制 |
+| 水印 | 偏好中心开关 |
 
-### 嵌套 `.dark` 的坑
+## 偏好与同步
 
-::: danger 深色侧栏里 `bg-*` / `text-*` 不变暗
-`@theme` 里声明的 `--color-*` **只在 `:root` 解析**。深色侧栏、深色子栏、深色顶栏这类**嵌套 `.dark`** 的容器里，Tailwind 的颜色工具类拿不到暗色值，表现是「局部深色区域里的元素还是亮色」。
+亮 / 暗 / 跟随系统、主题色、圆角、密度、色弱 / 灰度、布局等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，其他设备改了经 `UserSettingChanged` 实时应用。
 
-修法：在 `variables.css` 的 **`:root, .dark`** 块里**重新声明全部 `--color-*`**，让嵌套作用域也能解析到。
-:::
+## 无障碍与适配
 
-## 主题系统
+视觉或交互改动要在真实浏览器里检查：亮 / 暗色、窄视口（手机宽度）、键盘导航与焦点、减少动态效果（reduced motion）。
 
-`useTheme()`（`~/hooks/useTheme.ts`）管理外观：
+## 下一步
 
-| 维度 | 可调 |
-| --- | --- |
-| 明暗 | 亮 / 暗 / 跟随系统 |
-| 主题色 | 任意品牌色 |
-| 形状 | 圆角 |
-| 排版 | 字号 |
-
-### Material You 动态取色
-
-**从单个品牌色派生整套和谐色阶**——辅色、容器色、前景色、聚焦环、带品牌色相的中性色，明暗自适应，以内联 CSS 变量写到根元素。
-
-所以**换主题色不需要改任何 CSS**：改一个色值，整套配色跟着重算。
-
-主色、明暗、圆角、字号变化都会同步到 CSS 变量，页面里的自定义元素也能直接用这些变量。
-
-### 切换动画
-
-`startViewTransition` 从点击处圆形扩散——明暗切换时的视觉过渡。
-
-## 偏好同步
-
-UI 偏好走 `UserSettingAppService`，按**场景 + key** 存取：
-
-```text
-localStorage（事实源）
-   ↕
-后端 SysUserSetting（用户 × 场景 × 设置键）
-   ↕ SignalR UserSettingChanged
-其它设备已打开的页面即时应用
-```
-
-三条策略：
-
-1. **localStorage 是事实源**——后端加载成功则覆盖本地，保存失败静默忽略（尽力而为，不阻断交互）。
-2. **服务端不解释 value**，只作跨端状态载体。
-3. 其它设备保存后经 SignalR 广播实时应用。
-
-Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套机制，见 [Schema 驱动页面](./schema-page#偏好与视图)。
-
-::: tip `pageCode` 要稳定
-偏好按 `pageCode` 存储，**只改它等于用户的所有个性化配置丢失**。页面上线后不要再动它；确需改名见 [Schema 驱动页面](./schema-page#偏好与视图)。
-:::
-
-## 排查
-
-| 现象 | 原因 |
-| --- | --- |
-| 深色区域里的元素还是亮色 | 嵌套 `.dark` 令牌问题，见上面的 danger 块 |
-| 改了主题色但某些地方没变 | 那些地方写死了颜色值，没用 CSS 变量 |
-| 页面滚不动 / 吸顶失效 | 用了 `window` 滚动的假设；改用 `h-full` 或 `XPageShell` |
-| 打开 preflight 后组件样式错乱 | preflight 是**故意关闭**的，别去打开——基础重置由 XiHan.UI 的 `xihan.reset` 层负责 |
-| 偏好换台设备就没了 | 后端保存失败被静默忽略了，查接口是否可用 |
-
-## 相关页面
-
-- [国际化](./i18n)：文案与枚举标签
-- [字体图标](./icon)：图标用法与离线限制
-- [常用组件](./components)：布局相关组件
-- [框架简介](./introduction)：前端分层与启动引导
+- [常用组件](./components) · [字体图标](./icon) · [国际化与时区](./i18n)

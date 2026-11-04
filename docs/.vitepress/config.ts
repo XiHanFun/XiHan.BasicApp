@@ -3,13 +3,13 @@ import type { DefaultTheme } from "vitepress";
 import { defineXiHanConfig } from "@xihanfun/vitepress-theme/config";
 const require = createRequire(import.meta.url);
 
-// 导航末项显示的版本号取自应用包 package.json，发版时只改那一处。
-const { version } = require("../../frontend/package.json");
+// 导航末项显示的版本号取自 6.0 管理端的 package.json（与后端 Directory.Build.props 同号），发版时只改那一处
+const { version } = require("../../frontend-next/package.json");
 
-const title: string = "曦寒基础应用文档";
-const description: string = "基于曦寒开发框架的企业级中后台应用";
+const title: string = "曦寒基础应用 6.0 文档";
+const description: string = "基于曦寒开发框架 5 的能力包式中后台应用";
 const keywords: string =
-  "曦寒,曦寒懿,基础应用,中后台,多租户,权限,官方文档,开源,XiHanFun,XiHan.BasicApp";
+  "曦寒,曦寒懿,基础应用,中后台,多租户,权限,能力包,操作契约,官方文档,开源,XiHanFun,XiHan.BasicApp,6.0";
 
 // 生成手册条目：自动带序号前缀
 function manual(
@@ -28,7 +28,7 @@ const startSidebar: DefaultTheme.SidebarItem[] = [
     collapsed: false,
     items: [
       { text: "应用简介", link: "/introduction" },
-      { text: "为什么选择曦寒", link: "/why" },
+      { text: "为什么是 6.0", link: "/why" },
       { text: "系统概述", link: "/overview" },
       { text: "开发环境", link: "/dev-environment" },
       { text: "快速开始", link: "/getting-started" },
@@ -59,12 +59,13 @@ const startSidebar: DefaultTheme.SidebarItem[] = [
   },
 ];
 
+// 条目与 5.x 文档一一对应，改了口径的在名字上写清楚
 const backendSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: "后端手册",
     collapsed: false,
     items: manual("backend", [
-      ["框架简介", "introduction"],
+      ["架构总览", "introduction"],
       ["开发流程", "development"],
       ["请求生命周期", "request-lifecycle"],
       ["实体基类", "entity"],
@@ -72,25 +73,27 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["数据模型", "data-model"],
       ["统一认证", "authentication"],
       ["权限管理", "permission"],
-      ["数据权限", "data-permission"],
-      ["访问策略", "access-policy"],
+      ["数据权限与字段安全", "data-permission"],
+      ["访问策略与权限条件", "access-policy"],
       ["组织架构", "organization"],
       ["多租户 SaaS", "multi-tenancy"],
       ["缓存与异步", "caching"],
       ["定时任务", "scheduling"],
       ["工作流", "workflow"],
-      ["审批与约束", "approval"],
+      ["约束规则与审批", "approval"],
       ["消息通知", "messaging"],
-      ["即时通讯", "realtime"],
+      ["实时推送", "realtime"],
+      ["在线聊天", "chat"],
       ["打印模板", "printing"],
       ["文件与存储", "file"],
       ["日志审计", "logging"],
       ["健康与可观测性", "health-observability"],
       ["系统设置", "settings"],
-      ["升级与迁移", "upgrade"],
-      ["开放接口", "open-api"],
+      ["表结构升级（不做 5.x 迁移）", "upgrade"],
+      ["开放平台", "open-api"],
       ["代码生成", "code-generation"],
       ["AI 能力", "ai"],
+      ["工作台（6.0 新增）", "workbench"],
     ]),
   },
 ];
@@ -103,11 +106,11 @@ const frontendSidebar: DefaultTheme.SidebarItem[] = [
       ["框架简介", "introduction"],
       ["开发流程", "development"],
       ["菜单与路由", "routing"],
-      ["服务端交互", "request"],
+      ["契约与请求", "request"],
       ["Schema 驱动页面", "schema-page"],
       ["权限与脱敏", "permission"],
       ["布局与主题", "theme"],
-      ["国际化", "i18n"],
+      ["国际化与时区", "i18n"],
       ["字体图标", "icon"],
       ["实时通信", "realtime"],
       ["常用组件", "components"],
@@ -116,7 +119,7 @@ const frontendSidebar: DefaultTheme.SidebarItem[] = [
 ];
 
 // 每个顶部导航板块各自一份侧栏，由路径前缀决定用哪一份；
-// 首页是 layout: home，不落任何一份。
+// 首页是 layout: home，不落任何一份
 const sidebar: DefaultTheme.Sidebar = {
   "/backend/": backendSidebar,
   "/frontend/": frontendSidebar,
@@ -181,7 +184,10 @@ const nav: DefaultTheme.NavItem[] = [
   },
   {
     text: `v${version}`,
-    items: [{ text: "更新日志", link: "/changelog" }],
+    items: [
+      { text: "更新日志", link: "/changelog" },
+      { text: "5.x 文档", link: "https://basicapp.docs.xihanfun.com/v5/" },
+    ],
   },
 ];
 
@@ -190,16 +196,12 @@ export default defineXiHanConfig({
   description,
   keywords,
   repo: "XiHan.BasicApp",
-  banner: {
-    id: "2026-10-designers-rc",
-    text: "生态产品多个设计器现已发布候选版本",
-    link: "https://docs.xihanfun.com/cosmos/ecosystem",
-    linkText: "查看生态总览",
-  },
   llms: {
-    title: "曦寒基础应用",
+    title: "曦寒基础应用 6.0",
     summary:
-      "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信。",
+      "后端基于 .NET 10 与 XiHan.Framework 5 的能力包与操作契约（一份契约同时服务 HTTP / gRPC / MCP），前端基于 Vue 3 与 XiHan.UI，契约层由后端 openapi.json 生成；内置多租户、RBAC + Deny + 继承委托 + 数据范围 + 字段安全 + ABAC 的权限体系。",
+    // 与 package.json 的 homepage 一致
+    site: "https://basicapp.docs.xihanfun.com",
     sections: [
       { dir: ".", label: "开始" },
       { dir: "ai", label: "AI 辅助开发" },

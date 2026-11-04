@@ -38,4 +38,4 @@
 | 契约漂移 | 重新 `contracts export` 比对 `contracts/*`，再 `pnpm contracts:check` 比对生成物 |
 | 前端 | `pnpm check`（八项）、`pnpm test`、`pnpm build` |
 
-文档：行为或配置变了同步 `docs-next/` 对应页与更新日志、`nextdocs/下一代总体方案.md` 写修订（编号接在最后一条之后，正文与第 8 节状态行一致）。代码、文档与提交信息里不写参考项目名。
+文档：行为或配置变了同步 `docs/` 对应页与更新日志、`nextdocs/下一代总体方案.md` 写修订（编号接在最后一条之后，正文与第 8 节状态行一致）。代码、文档与提交信息里不写参考项目名。
