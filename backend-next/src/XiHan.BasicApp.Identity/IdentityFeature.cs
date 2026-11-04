@@ -88,7 +88,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<ContactCodes>();
         context.Services.AddSingleton<TotpEnrollments>();
         context.Services.AddScoped<LoginSessions>();
-        context.Services.AddScoped<ImpersonationNotifier>();
+        context.Services.AddScoped<SecurityNotices>();
         context.Services.AddScoped<UserAccountService>();
         context.Services.AddScoped<SideUsers>();
         context.Services.AddScoped<UserQueries>();

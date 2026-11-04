@@ -19,12 +19,15 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// </summary>
 /// <remarks>
 /// 自助操作，只要求已认证。<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话
+/// 当前会话处于强制改密锁定时一并解开（门禁单独放行本操作），4.x 同
 /// </remarks>
 /// <param name="users">用户仓储</param>
+/// <param name="sessions">会话仓储</param>
 /// <param name="accounts">账号域服务</param>
+/// <param name="gate">会话门禁</param>
 /// <param name="clock">时间源</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class ChangePassword(IRepository<SysUser, Guid> users, UserAccountService accounts, TimeProvider clock) : IOperation<ChangePasswordRequest, PasswordChangedResponse>
+public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository<SysUserSession, Guid> sessions, UserAccountService accounts, SessionGate gate, TimeProvider clock) : IOperation<ChangePasswordRequest, PasswordChangedResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -63,6 +66,24 @@ public sealed class ChangePassword(IRepository<SysUser, Guid> users, UserAccount
         var sid = principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         var current = sid is not null && Guid.TryParse(sid, out var sessionId) ? sessionId : (Guid?)null;
         var revoked = await accounts.RevokeSessionsAsync(user.Id, "password-changed", context.CancellationToken, except: current).ConfigureAwait(false);
-        return revoked.IsFailure ? revoked.Error! : new PasswordChangedResponse(user.Id, clock.GetUtcNow(), SessionsRevoked: true);
+        if (revoked.IsFailure)
+        {
+            return revoked.Error!;
+        }
+
+        if (current is { } id && (await sessions.FindAsync(id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var session) && session.IsPasswordChangeRequired())
+        {
+            session.LockReason = null;
+            session.LockedAt = null;
+            var released = await sessions.UpdateAsync(session, context.CancellationToken).ConfigureAwait(false);
+            if (released.IsFailure)
+            {
+                return released.Error!;
+            }
+
+            await gate.InvalidateAsync(id, context.CancellationToken).ConfigureAwait(false);
+        }
+
+        return new PasswordChangedResponse(user.Id, clock.GetUtcNow(), SessionsRevoked: true);
     }
 }

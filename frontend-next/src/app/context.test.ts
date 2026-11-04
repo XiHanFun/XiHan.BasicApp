@@ -32,7 +32,7 @@ function userOf(patch: object = {}) {
 
 /** 本人资料（后端 ProfileResponse）：没改过用户名 */
 function profileOf(userPatch: object = {}) {
-  return { user: userOf(userPatch), twoFactorEnabled: false, twoFactorMethods: [], passwordChangedAt: null, mustChangePassword: false, failedAccessCount: 0, lockoutEndAt: null, realName: '张三', gender: 'Female', birthday: '1990-05-04T00:00:00Z', country: '中国', remark: null, userNameChangedAt: null, userNameChangeableAt: null, emailVerified: true, phoneVerified: false }
+  return { user: userOf(userPatch), twoFactorEnabled: false, twoFactorMethods: [], passwordChangedAt: null, failedAccessCount: 0, lockoutEndAt: null, realName: '张三', gender: 'Female', birthday: '1990-05-04T00:00:00Z', country: '中国', remark: null, userNameChangedAt: null, userNameChangeableAt: null, emailVerified: true, phoneVerified: false }
 }
 
 function sessionOf() {

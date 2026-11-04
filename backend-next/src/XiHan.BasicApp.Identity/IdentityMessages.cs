@@ -380,6 +380,29 @@ public static class IdentityMessages
     public const string ImpersonationNoticeContent = "identity.impersonation.notice_content";
 
     /// <summary>
+    /// 系统参数里的密码设置写得不对
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>
+    /// </remarks>
+    public const string PasswordSettingsInvalid = "identity.password.settings_invalid";
+
+    /// <summary>
+    /// 会话因为要先改密而锁定
+    /// </summary>
+    public const string PasswordChangeRequired = "identity.password.change_required";
+
+    /// <summary>
+    /// 提醒本人先改密的通知的标题
+    /// </summary>
+    public const string PasswordChangeNoticeTitle = "identity.password.notice_title";
+
+    /// <summary>
+    /// 提醒本人先改密的通知的正文
+    /// </summary>
+    public const string PasswordChangeNoticeContent = "identity.password.notice_content";
+
+    /// <summary>
     /// 操作 <c>auth.verify-two-factor</c> 的说明
     /// </summary>
     public const string VerifyTwoFactorDescription = "auth.verify_two_factor.description";

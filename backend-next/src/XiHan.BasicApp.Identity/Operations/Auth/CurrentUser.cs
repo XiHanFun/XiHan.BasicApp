@@ -3,7 +3,6 @@
 
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
-using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.Framework.Kernel.Operations;
@@ -21,10 +20,9 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// 操作 <c>auth.me</c>（自助操作，只要求已认证）。按令牌 <c>sub</c> 取用户资料，附当前租户（含显示名）、会话、角色与模仿发起人。类名不用 <c>Me</c>（VB 关键字，CA1716）
 /// </remarks>
 /// <param name="users">用户仓储</param>
-/// <param name="accounts">账号域服务</param>
 /// <param name="tenants">框架租户目录（取当前租户的显示名）</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class CurrentUser(IRepository<SysUser, Guid> users, UserAccountService accounts, ITenantStore tenants) : IOperation<MeRequest, MeResponse>
+public sealed class CurrentUser(IRepository<SysUser, Guid> users, ITenantStore tenants) : IOperation<MeRequest, MeResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -42,12 +40,6 @@ public sealed class CurrentUser(IRepository<SysUser, Guid> users, UserAccountSer
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", security.Principal.Id)));
         }
 
-        var account = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
-        if (!account.TryGetValue(out var accountSecurity))
-        {
-            return account.Error!;
-        }
-
         var sid = security.Principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         var tenantName = await TenantNames.ResolveAsync(tenants, security.Tenant?.Id, context.CancellationToken).ConfigureAwait(false);
         string? impersonator = null;
@@ -61,7 +53,6 @@ public sealed class CurrentUser(IRepository<SysUser, Guid> users, UserAccountSer
             security.Tenant?.Id,
             sid is not null && Guid.TryParse(sid, out var sessionId) ? sessionId : null,
             security.Principal.ClaimValues(IdentityClaims.Role).ToList(),
-            accountSecurity.MustChangePassword,
             tenantName,
             impersonator);
     }

@@ -105,16 +105,10 @@ public sealed class StopImpersonation(
             return updated.Error!;
         }
 
-        var securityResult = await accounts.SecurityOfAsync(actor.Id, context.CancellationToken).ConfigureAwait(false);
-        if (!securityResult.TryGetValue(out var security))
-        {
-            return securityResult.Error!;
-        }
-
         var roles = await accounts.RolesOfAsync(actor.Id, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var active = await activators.RefreshAsync(origin.Id, actor.Id, origin.ActiveTenantId, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(actor, origin.Id, origin.ActiveTenantId, active);
         var tenantName = await TenantNames.ResolveAsync(tenants, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, origin.RefreshExpiresAt, origin.Id, origin.ActiveTenantId, security.MustChangePassword, UserResponse.From(actor), tenantName);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, origin.RefreshExpiresAt, origin.Id, origin.ActiveTenantId, origin.IsPasswordChangeRequired(), UserResponse.From(actor), tenantName);
     }
 }

@@ -108,12 +108,6 @@ public sealed class Refresh(
             return Error.Denied(IdentityErrors.TenantNotAccessible, IdentityMessages.TenantNotAccessible, MessageArguments.Of(("tenantId", memberTenant)));
         }
 
-        var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
-        if (!securityResult.TryGetValue(out var security))
-        {
-            return securityResult.Error!;
-        }
-
         // 轮换：旧刷新令牌立即失效；会话有效期按滑动口径顺延，模仿会话不顺延
         var refreshToken = RefreshTokens.Generate();
         session.RefreshTokenHash = RefreshTokens.Hash(refreshToken);
@@ -133,7 +127,7 @@ public sealed class Refresh(
         var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var active = await activators.RefreshAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active, session.ImpersonatorUserId, session.ImpersonatorUserId is null ? null : session.RefreshExpiresAt);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName, impersonator);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, session.IsPasswordChangeRequired(), UserResponse.From(user), tenantName, impersonator);
     }
 
     private async Task<bool> CanEnterAsync(string tenantId, Guid userId, CancellationToken cancellationToken)

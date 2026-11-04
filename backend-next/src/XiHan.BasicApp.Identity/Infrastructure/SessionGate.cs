@@ -52,9 +52,26 @@ public sealed class SessionGate
             return Result.Success();
         }
 
-        return state.StartsWith(LockedPrefix, StringComparison.Ordinal)
-            ? Error.Denied(IdentityErrors.SessionLocked, IdentityMessages.SessionLocked, MessageArguments.Of(("reason", state[LockedPrefix.Length..])))
-            : Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
+        if (!state.StartsWith(LockedPrefix, StringComparison.Ordinal))
+        {
+            return Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
+        }
+
+        var reason = state[LockedPrefix.Length..];
+        return Error.Denied(IdentityErrors.SessionLocked, string.Equals(reason, SessionLockReasons.PasswordChangeRequired, StringComparison.Ordinal) ? IdentityMessages.PasswordChangeRequired : IdentityMessages.SessionLocked, MessageArguments.Of(("reason", reason)));
+    }
+
+    /// <summary>
+    /// 这个门禁错误是不是强制改密锁
+    /// </summary>
+    /// <param name="error">门禁返回的错误</param>
+    /// <returns>是强制改密锁为真</returns>
+    public static bool IsPasswordChangeLock(Error error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+        return string.Equals(error.Code, IdentityErrors.SessionLocked, StringComparison.Ordinal)
+            && error.Details?.GetValueOrDefault("reason") is string reason
+            && string.Equals(reason, SessionLockReasons.PasswordChangeRequired, StringComparison.Ordinal);
     }
 
     /// <summary>

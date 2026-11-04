@@ -132,7 +132,7 @@ public sealed class SysUserSession : AppAuditedEntity
     /// 锁定原因
     /// </summary>
     /// <remarks>
-    /// 为空即没锁。锁屏为 <see cref="SessionLockReasons.ScreenLock"/>，4.x 同。锁定的会话只放行解锁与注销
+    /// 为空即没锁，取值见 <see cref="SessionLockReasons"/>，4.x 同。锁定的会话只放行解锁与注销，强制改密锁另放行改密
     /// </remarks>
     [StringLength(32)]
     public string? LockReason { get; set; }
@@ -157,6 +157,11 @@ public sealed class SysUserSession : AppAuditedEntity
     /// 当前是否有效：未吊销且未过期
     /// </summary>
     public bool IsActive(DateTimeOffset now) => RevokedAt is null && RefreshExpiresAt > now;
+
+    /// <summary>
+    /// 当前是否因为要先改密而锁定
+    /// </summary>
+    public bool IsPasswordChangeRequired() => string.Equals(LockReason, SessionLockReasons.PasswordChangeRequired, StringComparison.Ordinal);
 }
 
 /// <summary>
@@ -171,6 +176,14 @@ public static class SessionLockReasons
     /// 锁屏
     /// </summary>
     public const string ScreenLock = "ScreenLock";
+
+    /// <summary>
+    /// 强制改密
+    /// </summary>
+    /// <remarks>
+    /// 登录时写入（系统参数 <c>identity.password</c> 打开、密码由他人设置），解开它的办法就是改密
+    /// </remarks>
+    public const string PasswordChangeRequired = "PasswordChangeRequired";
 
     /// <summary>
     /// 锁屏连错几次即吊销会话

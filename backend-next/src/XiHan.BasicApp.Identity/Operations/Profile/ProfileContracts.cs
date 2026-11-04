@@ -23,7 +23,6 @@ public sealed record ProfileRequest;
 /// <param name="TwoFactorEnabled">是否开启了双因素</param>
 /// <param name="TwoFactorMethods">开启的双因素方式</param>
 /// <param name="PasswordChangedAt">最近一次改密时间</param>
-/// <param name="MustChangePassword">是否必须先改密</param>
 /// <param name="FailedAccessCount">自上次成功登录以来的连续失败次数（含双因素码错误）</param>
 /// <param name="LockoutEndAt">登录失败锁定的截止时间；没在锁定期为 <see langword="null"/></param>
 /// <param name="UserNameChangedAt">最近一次本人改用户名的时间；没改过为空</param>
@@ -36,7 +35,6 @@ public sealed record ProfileResponse(
     bool TwoFactorEnabled,
     IReadOnlyList<TwoFactorMethod> TwoFactorMethods,
     DateTimeOffset? PasswordChangedAt,
-    bool MustChangePassword,
     int FailedAccessCount,
     DateTimeOffset? LockoutEndAt,
     DateTimeOffset? UserNameChangedAt,
@@ -57,7 +55,6 @@ public sealed record ProfileResponse(
             security.TwoFactorEnabled,
             TwoFactorSettings.MethodsOf(security.TwoFactorMethods),
             security.PasswordChangedAt,
-            security.MustChangePassword,
             security.FailedAccessCount,
             security.LockoutEndAt,
             security.UserNameChangedAt,

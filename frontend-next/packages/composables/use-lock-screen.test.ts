@@ -368,7 +368,8 @@ describe('doChangePassword 强制改密', () => {
     expect(changePasswordApi).toHaveBeenCalledWith({ oldPassword: 'old', newPassword: 'newpwd' })
     expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
     expect(lock.lockMode.value).toBe('off')
-    expect(replaceSpy).toHaveBeenCalledWith(HOME_PATH)
+    // 登录后本来就落在首页，同一地址要 force，否则守卫不重跑、路由装不上
+    expect(replaceSpy).toHaveBeenCalledWith({ path: HOME_PATH, force: true })
   })
 
   it('改密失败时展示接口错误，引导仍在', async () => {

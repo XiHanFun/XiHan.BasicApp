@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// 初始化租户管理员
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tenants/{id}:initialize-admin</c>。在租户注册地建用户、设初始密码（首次登录须改密），
+/// <c>POST /api/tenants/{id}:initialize-admin</c>。在租户注册地建用户、设初始密码（记下密码由他人设置，系统参数 <c>identity.password</c> 打开时登录要先改），
 /// 并以租户范围的用户授予 <c>*</c> 给到该租户侧的全部权限（Tenancy 不能引用 Access，角色化的租户管理员随 Access 的租户种子加入）。每个租户只能初始化一次；独立库的租户要先初始化数据库（<c>TENANCY_CONFLICT_014</c>）
 /// </remarks>
 /// <param name="tenants">租户仓储</param>

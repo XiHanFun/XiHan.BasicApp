@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// <remarks>
 /// 作用域服务。密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对
 /// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写
+/// 用密码登录、密码由他人设置且系统参数 <see cref="PasswordSettings.ConfigKey"/> 打开时，会话一开即锁定到改密为止并提醒本人（4.x 同；验证码与第三方登录不走这一步）
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
 /// <param name="users">用户仓储</param>
@@ -31,6 +32,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// <param name="options">身份配置</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="clock">时间源</param>
+/// <param name="notices">发给本人的安全通知</param>
 public sealed class LoginSessions(
     UserAccountService accounts,
     IRepository<SysUser, Guid> users,
@@ -41,7 +43,8 @@ public sealed class LoginSessions(
     IEnumerable<ISessionRoleActivator> activators,
     IdentityOptions options,
     IIdGenerator<Guid> ids,
-    TimeProvider clock)
+    TimeProvider clock,
+    SecurityNotices notices)
 {
     /// <summary>
     /// 为已通过全部验证的账号开会话
@@ -52,7 +55,8 @@ public sealed class LoginSessions(
     /// <param name="tenantName">上下文的显示名</param>
     /// <param name="log">本次调用登记的登录日志</param>
     /// <param name="context">调用上下文</param>
-    public async Task<Result<TokenResponse>> StartAsync(SysUser user, SysUserSecurity security, string? tenantId, string? tenantName, LoginLogEntry log, InvocationContext context)
+    /// <param name="byPassword">这次登录是不是凭密码（验证码、第三方登录不是）</param>
+    public async Task<Result<TokenResponse>> StartAsync(SysUser user, SysUserSecurity security, string? tenantId, string? tenantName, LoginLogEntry log, InvocationContext context, bool byPassword = false)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(security);
@@ -63,6 +67,23 @@ public sealed class LoginSessions(
         if (guarded.IsFailure)
         {
             return guarded.Error!;
+        }
+
+        var locked = false;
+        if (byPassword && security.MustChangePassword)
+        {
+            var configured = await PasswordSettings.ReadAsync(context).ConfigureAwait(false);
+            if (!configured.TryGetValue(out var settings))
+            {
+                return configured.Error!;
+            }
+
+            locked = settings.ForceChange;
+        }
+
+        if (locked)
+        {
+            await notices.PasswordChangeRequiredAsync(user, tenantId, context).ConfigureAwait(false);
         }
 
         var now = clock.GetUtcNow();
@@ -93,6 +114,8 @@ public sealed class LoginSessions(
             RefreshExpiresAt = now + options.RefreshTokenLifetime,
             IpAddress = SessionClient.AddressOf(context),
             ClientInfo = SessionClient.AgentOf(context),
+            LockReason = locked ? SessionLockReasons.PasswordChangeRequired : null,
+            LockedAt = locked ? now : null,
         };
         SessionClient.Describe(session, context);
         var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);
@@ -110,6 +133,6 @@ public sealed class LoginSessions(
         log.SessionId = session.Id;
         var active = await activators.StartAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, locked, UserResponse.From(user), tenantName);
     }
 }

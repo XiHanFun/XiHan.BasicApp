@@ -131,15 +131,9 @@ public sealed class SwitchTenant(
             return updated.Error!;
         }
 
-        var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
-        if (!securityResult.TryGetValue(out var security))
-        {
-            return securityResult.Error!;
-        }
-
         var active = await activators.StartAsync(session.Id, user.Id, target, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, target, active);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, target, security.MustChangePassword, UserResponse.From(user), tenantName);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, target, session.IsPasswordChangeRequired(), UserResponse.From(user), tenantName);
     }
 
     private async Task<bool> CanEnterAsync(string tenantId, Guid userId, CancellationToken cancellationToken)

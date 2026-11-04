@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 管理员重置密码
 /// </summary>
 /// <remarks>
-/// <c>POST /api/users/{id}:reset-password</c>。设新密码并标记下次登录必须改密，吊销该用户全部会话
+/// <c>POST /api/users/{id}:reset-password</c>。设新密码、记下密码由他人设置，吊销该用户全部会话。要不要逼他改密看登录时的系统参数 <see cref="PasswordSettings.ConfigKey"/>（缺省不逼，4.x 同）
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>

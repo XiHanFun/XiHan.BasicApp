@@ -139,12 +139,12 @@ public sealed class Login(
                 return Error.Denied(IdentityErrors.TwoFactorUnavailable, IdentityMessages.TwoFactorUnavailable);
             }
 
-            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, methods, context.CancellationToken).ConfigureAwait(false);
+            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, methods, context.CancellationToken, byPassword: true).ConfigureAwait(false);
             log.Event = LoginEvent.TwoFactorChallenge;
             return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
-        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);
+        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context, byPassword: true).ConfigureAwait(false);
         return token.TryGetValue(out var issued) ? new LoginResponse(issued, null) : token.Error!;
     }
 

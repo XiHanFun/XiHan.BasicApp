@@ -23,7 +23,8 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// <param name="Methods">第二步能用的方式（签发时可用的，验证码登录去掉了第一步用过的那种）</param>
 /// <param name="Failures">已输错的次数</param>
 /// <param name="ExpiresAt">过期时间（签发起算，不顺延）</param>
-public sealed record TwoFactorTicket(Guid UserId, string? TenantId, TwoFactorMethods Methods, int Failures, DateTimeOffset ExpiresAt)
+/// <param name="ByPassword">第一步是不是凭密码（强制改密只管凭密码的登录）</param>
+public sealed record TwoFactorTicket(Guid UserId, string? TenantId, TwoFactorMethods Methods, int Failures, DateTimeOffset ExpiresAt, bool ByPassword)
 {
     /// <summary>
     /// 这张票据能不能用这种方式
@@ -46,11 +47,11 @@ public sealed class TwoFactorTickets(ISharedCache cache, IdentityOptions options
     /// <summary>
     /// 签发票据
     /// </summary>
-    public async Task<(string Ticket, DateTimeOffset ExpiresAt)> IssueAsync(Guid userId, string? tenantId, IReadOnlyList<TwoFactorMethod> methods, CancellationToken cancellationToken)
+    public async Task<(string Ticket, DateTimeOffset ExpiresAt)> IssueAsync(Guid userId, string? tenantId, IReadOnlyList<TwoFactorMethod> methods, CancellationToken cancellationToken, bool byPassword = false)
     {
         ArgumentNullException.ThrowIfNull(methods);
         var ticket = RefreshTokens.Generate();
-        var state = new TwoFactorTicket(userId, tenantId, TwoFactorSettings.FlagsOf(methods), 0, clock.GetUtcNow() + options.TwoFactorTicketLifetime);
+        var state = new TwoFactorTicket(userId, tenantId, TwoFactorSettings.FlagsOf(methods), 0, clock.GetUtcNow() + options.TwoFactorTicketLifetime, byPassword);
         await cache.SetAsync(KeyOf(ticket), Encode(state), CacheEntryOptions.Expires(options.TwoFactorTicketLifetime), cancellationToken).ConfigureAwait(false);
         return (ticket, state.ExpiresAt);
     }
@@ -104,19 +105,19 @@ public sealed class TwoFactorTickets(ISharedCache cache, IdentityOptions options
 
     private static CacheKey KeyOf(string ticket) => new($"identity:two-factor:{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(ticket)))}");
 
-    // 存成一行文本，不依赖缓存的对象序列化：用户 | 租户 | 次数 | 过期（Unix 毫秒）| 方式（按位）
+    // 存成一行文本，不依赖缓存的对象序列化：用户 | 租户 | 次数 | 过期（Unix 毫秒）| 方式（按位）| 第一步是否凭密码
     private static string Encode(TwoFactorTicket state)
-        => string.Create(CultureInfo.InvariantCulture, $"{state.UserId:N}|{state.TenantId}|{state.Failures}|{state.ExpiresAt.ToUnixTimeMilliseconds()}|{(int)state.Methods}");
+        => string.Create(CultureInfo.InvariantCulture, $"{state.UserId:N}|{state.TenantId}|{state.Failures}|{state.ExpiresAt.ToUnixTimeMilliseconds()}|{(int)state.Methods}|{(state.ByPassword ? 1 : 0)}");
 
     private static TwoFactorTicket? Decode(string raw)
     {
         var parts = raw.Split('|');
-        return parts.Length == 5
+        return parts.Length == 6
             && Guid.TryParseExact(parts[0], "N", out var userId)
             && int.TryParse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture, out var failures)
             && long.TryParse(parts[3], NumberStyles.None, CultureInfo.InvariantCulture, out var expires)
             && int.TryParse(parts[4], NumberStyles.None, CultureInfo.InvariantCulture, out var methods)
-            ? new TwoFactorTicket(userId, parts[1].Length == 0 ? null : parts[1], (TwoFactorMethods)methods, failures, DateTimeOffset.FromUnixTimeMilliseconds(expires))
+            ? new TwoFactorTicket(userId, parts[1].Length == 0 ? null : parts[1], (TwoFactorMethods)methods, failures, DateTimeOffset.FromUnixTimeMilliseconds(expires), parts[5] == "1")
             : null;
     }
 }

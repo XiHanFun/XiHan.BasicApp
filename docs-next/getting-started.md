@@ -88,7 +88,7 @@ pnpm dev
 
 登录成功后落到工作台（`VITE_HOME_PATH=/workbench/dashboard`）。要体验租户侧，有三种办法：
 
-- 用租户 `demo` 的管理员 `admin` 登录（初始密码见 `DemoTenantSeeder`，首次登录须改密）；
+- 用租户 `demo` 的管理员 `admin` 登录（初始密码见 `DemoTenantSeeder`）；
 - 在租户管理里把自己加为 `demo` 的运维支持成员，再从控制中心切换过去（`auth.switch-tenant` 只能进注册地租户、生效中的成员租户或平台）；
 - 用模仿登录以租户用户的身份进入（`impersonation.start`）。
 

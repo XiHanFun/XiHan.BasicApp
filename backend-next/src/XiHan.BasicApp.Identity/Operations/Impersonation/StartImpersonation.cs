@@ -38,7 +38,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
-/// <param name="notifier">通知被模仿者</param>
+/// <param name="notices">通知被模仿者</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class StartImpersonation(
     IRepository<SysUser, Guid> users,
@@ -50,7 +50,7 @@ public sealed class StartImpersonation(
     TimeProvider clock,
     ITenantStore tenants,
     IEnumerable<ISessionRoleActivator> activators,
-    ImpersonationNotifier notifier) : IOperation<StartImpersonationRequest, TokenResponse>
+    SecurityNotices notices) : IOperation<StartImpersonationRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -131,7 +131,7 @@ public sealed class StartImpersonation(
             return configured.Error!;
         }
 
-        await notifier.NotifyAsync(target, actor, requested, settings, context).ConfigureAwait(false);
+        await notices.ImpersonationAsync(target, actor, requested, settings, context).ConfigureAwait(false);
         var refreshToken = RefreshTokens.Generate();
         var session = new SysUserSession
         {
@@ -154,16 +154,10 @@ public sealed class StartImpersonation(
         }
 
         log.SessionId = session.Id;
-        var securityResult = await accounts.SecurityOfAsync(target.Id, context.CancellationToken).ConfigureAwait(false);
-        if (!securityResult.TryGetValue(out var targetSecurity))
-        {
-            return securityResult.Error!;
-        }
-
         var roles = await accounts.RolesOfAsync(target.Id, requested, context.CancellationToken).ConfigureAwait(false);
         var active = await activators.StartAsync(session.Id, target.Id, requested, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(target, session.Id, requested, active, actor.Id, notAfter: session.RefreshExpiresAt);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, requested, targetSecurity.MustChangePassword, UserResponse.From(target), tenantName, actor.UserName);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, requested, session.IsPasswordChangeRequired(), UserResponse.From(target), tenantName, actor.UserName);
     }
 
     private async Task<bool> IsMemberAsync(string tenantId, Guid userId, CancellationToken cancellationToken)

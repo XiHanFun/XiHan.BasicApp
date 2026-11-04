@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="RefreshExpiresAt">刷新令牌（会话）过期时间（UTC）</param>
 /// <param name="SessionId">会话 ID（令牌的 <c>sid</c>）</param>
 /// <param name="TenantId">当前租户；平台账号为 <see langword="null"/></param>
-/// <param name="MustChangePassword">是否必须先改密</param>
+/// <param name="MustChangePassword">本会话是否因为要先改密而锁定（系统参数 <c>identity.password</c> 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 <c>profile.change-password</c> 与注销</param>
 /// <param name="User">用户资料</param>
 /// <param name="TenantName">当前租户的显示名；平台为 <see langword="null"/></param>
 /// <param name="ImpersonatorUserName">模仿会话的发起人登录名；普通会话为 <see langword="null"/></param>

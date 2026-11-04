@@ -112,14 +112,8 @@ public sealed class ActivateRoles(
             return updated.Error!;
         }
 
-        var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
-        if (!securityResult.TryGetValue(out var security))
-        {
-            return securityResult.Error!;
-        }
-
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active);
         var tenantName = await TenantNames.ResolveAsync(tenants, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, session.IsPasswordChangeRequired(), UserResponse.From(user), tenantName);
     }
 }

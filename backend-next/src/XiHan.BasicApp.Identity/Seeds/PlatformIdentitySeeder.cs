@@ -73,7 +73,8 @@ public sealed class PlatformIdentitySeeder(
                 return securityResult.ToResult();
             }
 
-            var set = await accounts.SetPasswordAsync(security, options.SuperAdminPassword, mustChange: false, context.CancellationToken).ConfigureAwait(false);
+            // 种子写的密码：记下来，系统参数 identity.password 打开时登录要先改（4.x 同）
+            var set = await accounts.SetPasswordAsync(security, options.SuperAdminPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
             if (set.IsFailure)
             {
                 return set;

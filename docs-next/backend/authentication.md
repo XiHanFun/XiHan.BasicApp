@@ -41,7 +41,18 @@
 2. 图形验证码（`BasicApp:Auth:CaptchaEnabled`，缺省开）：4 位数字 SVG，共享缓存里只存散列，5 分钟内用一次即作废；
 3. 账号与密码：PBKDF2；连续失败达到 `MaxFailedAccessAttempts`（5）锁定 `LockoutMinutes`（15）分钟。
 
-之后过租户状态与登录守卫（访问策略的登录时机、登录失败自动封禁），再开会话。管理员重置过密码的账号返回 `mustChangePassword: true`。
+之后过租户状态与登录守卫（访问策略的登录时机、登录失败自动封禁），再开会话。
+
+### 强制修改由他人设置的密码
+
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，没建即关）的 `forceChange` 决定要不要逼：
+
+| 状态 | 效果 |
+| --- | --- |
+| 关（缺省） | 只留着标记，直接放行 |
+| 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（`mustChangePassword: true`，原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
+
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照旧可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录与模仿打开的会话不走这一步，这些入口没有当前密码可核对。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
@@ -103,7 +114,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 ## 锁屏
 
-`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝，只影响这一个端。解锁密码连错 5 次吊销会话（`IDENTITY_DENIED_014`）。5.x 的 HTTP 423 在 6.0 统一为这个错误码（403）。
+`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码连错 5 次吊销会话（`IDENTITY_DENIED_014`）。5.x 的 HTTP 423 在 6.0 统一为这个错误码（403）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码，见[强制修改由他人设置的密码](#强制修改由他人设置的密码)；与 5.x 不同，锁屏的会话不能靠改密绕过。
 
 ## 模仿登录
 

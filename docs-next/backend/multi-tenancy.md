@@ -32,7 +32,7 @@
 ```text
 tenants.create                        写 SysTenant + 登记租户目录（启用），绑定套餐（不填即缺省套餐）
   └─（独立库时）tenants.configure-database → tenants.initialize-database
-tenants.initialize-admin              建租户管理员（首次登录必须改密），成为所有者，并初始化租户内置角色
+tenants.initialize-admin              建租户管理员（系统参数 identity.password 打开时首次登录必须改密），成为所有者，并初始化租户内置角色
 ```
 
 | 操作 | 权限码 | 说明 |
@@ -97,7 +97,7 @@ tenants.initialize-admin              建租户管理员（首次登录必须改
 
 ## 演示租户
 
-`BasicApp:Seed:EnableDemoData` 打开时，种子 `tenancy.demo` 写演示租户 `demo`、其管理员 `admin`，以及流程演示要用的成员账号 `manager`、`lead`、`hr`（密码同管理员，首次登录都须改密，初始密码见 `DemoTenantSeeder`）；种子 `access.demo` 在 `demo` 里建角色 `employee`（工作流的查看与发起、聊天的查看与发送，指派给三个成员）与 `hr_specialist`（自定义数据范围研发部与市场部，指派给 `hr`），可选模块的权限码只授出已登记的；种子 `access.demo-policies` 在 `demo` 里写两条只记录的访问策略（`demo.off-hours`、`demo.overseas`，内容取同名模板），让命中记录页有数据。种子 `settings.demo` 写两个平台字典（`demo_customer_level` 带缺省项与停用项，`demo_region` 是树形），`notification.demo` 写三条草稿通知（平台的上手指南，`demo` 里一条按部门、一条按角色定向），发布之后才展开收件人。这几个种子都只首写：写过一次（含已删除的）就不再碰。
+`BasicApp:Seed:EnableDemoData` 打开时，种子 `tenancy.demo` 写演示租户 `demo`、其管理员 `admin`，以及流程演示要用的成员账号 `manager`、`lead`、`hr`（密码同管理员，初始密码见 `DemoTenantSeeder`；系统参数 `identity.password` 打开时首次登录都须改密）；种子 `access.demo` 在 `demo` 里建角色 `employee`（工作流的查看与发起、聊天的查看与发送，指派给三个成员）与 `hr_specialist`（自定义数据范围研发部与市场部，指派给 `hr`），可选模块的权限码只授出已登记的；种子 `access.demo-policies` 在 `demo` 里写两条只记录的访问策略（`demo.off-hours`、`demo.overseas`，内容取同名模板），让命中记录页有数据。种子 `settings.demo` 写两个平台字典（`demo_customer_level` 带缺省项与停用项，`demo_region` 是树形），`notification.demo` 写三条草稿通知（平台的上手指南，`demo` 里一条按部门、一条按角色定向），发布之后才展开收件人。这几个种子都只首写：写过一次（含已删除的）就不再碰。
 
 ## 下一步
 

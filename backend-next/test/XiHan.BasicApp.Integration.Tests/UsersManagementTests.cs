@@ -78,7 +78,7 @@ public sealed class UsersManagementTests : IDisposable
 
         bob = (await AuthFlowTests.LoginAsync(server, "bob", "Bob@123456", "acme")).GetProperty("accessToken").GetString()!;
 
-        // reset-password：POST /users/{id}:reset-password；吊销会话，下次登录须改密
+        // reset-password：POST /users/{id}:reset-password；吊销会话；系统参数没打开时登录不逼改密（打开的情形见 ForcePasswordChangeTests）
         var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/users/{bobId}:reset-password", """{"newPassword":"Bob@999999"}""", admin));
         Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
         Assert.True(resetBody.GetProperty("sessionsRevoked").GetBoolean());
@@ -87,7 +87,7 @@ public sealed class UsersManagementTests : IDisposable
         var (oldPassword, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"bob","password":"Bob@123456","tenant":"acme"}"""));
         Assert.Equal(HttpStatusCode.Forbidden, oldPassword.StatusCode);
         var relogin = await AuthFlowTests.LoginAsync(server, "bob", "Bob@999999", "acme");
-        Assert.True(relogin.GetProperty("mustChangePassword").GetBoolean());
+        Assert.False(relogin.GetProperty("mustChangePassword").GetBoolean());
 
         // 集合入参、1 到 100 个：空集合在 Validate 阶段拒绝
         var (empty, emptyBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:lock", """{"ids":[]}""", admin));

@@ -160,6 +160,6 @@ public sealed class VerifyTwoFactor(
         }
 
         await tickets.RevokeAsync(request.Ticket, context.CancellationToken).ConfigureAwait(false);
-        return await logins.StartAsync(user, security, ticket.TenantId, tenantName, log, context).ConfigureAwait(false);
+        return await logins.StartAsync(user, security, ticket.TenantId, tenantName, log, context, ticket.ByPassword).ConfigureAwait(false);
     }
 }

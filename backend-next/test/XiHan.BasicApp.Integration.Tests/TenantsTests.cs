@@ -61,7 +61,7 @@ public sealed class TenantsTests : IDisposable
         Assert.Equal(HttpStatusCode.Forbidden, tenantSide.StatusCode);
         Assert.Equal("SECURITY_DENIED_004", tenantSideBody.GetProperty("code").GetString());
 
-        // 初始化管理员：建用户、首次须改密、租户范围的 * 授予；只能一次
+        // 初始化管理员：建用户、租户范围的 * 授予；只能一次
         var (initialized, initializedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{id}:initialize-admin", """{"userName":"admin","password":"Admin@123456","displayName":"Contoso Admin"}""", admin));
         Assert.Equal(HttpStatusCode.OK, initialized.StatusCode);
         Assert.Equal("admin", initializedBody.GetProperty("userName").GetString());
@@ -74,9 +74,9 @@ public sealed class TenantsTests : IDisposable
         Assert.Equal("admin", detailBody.GetProperty("adminUserName").GetString());
         Assert.Equal(1, detailBody.GetProperty("userCount").GetInt64());
 
-        // 租户管理员登录：带租户、须改密；有效权限是租户侧目录全部，菜单没有平台专属页
+        // 租户管理员登录：带租户（系统参数没打开时不逼改密，打开的情形见 ForcePasswordChangeTests）；有效权限是租户侧目录全部，菜单没有平台专属页
         var login = await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", "contoso");
-        Assert.True(login.GetProperty("mustChangePassword").GetBoolean());
+        Assert.False(login.GetProperty("mustChangePassword").GetBoolean());
         Assert.Equal("contoso", login.GetProperty("tenantId").GetString());
         var tenantAdmin = login.GetProperty("accessToken").GetString()!;
         var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: tenantAdmin));
@@ -147,7 +147,7 @@ public sealed class TenantsTests : IDisposable
         await server.RunSeedersAsync();
         var login = await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo");
         Assert.Equal("demo", login.GetProperty("tenantId").GetString());
-        Assert.True(login.GetProperty("mustChangePassword").GetBoolean());
+        Assert.False(login.GetProperty("mustChangePassword").GetBoolean());
 
         var admin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (listed, listedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants:list", "{}", admin));

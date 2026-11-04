@@ -391,7 +391,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!session.value)
       return
     const me = await authApi.me({})
-    store({ ...session.value, user: me.user, tenantId: me.tenantId, mustChangePassword: me.mustChangePassword })
+    store({ ...session.value, user: me.user, tenantId: me.tenantId })
   }
 
   /** 本人改密成功后：当前会话保留，强制改密标记清除 */

@@ -14408,8 +14408,6 @@ export interface components {
              * @description 最近一次改密时间
              */
             passwordChangedAt?: string | null;
-            /** @description 是否必须先改密 */
-            mustChangePassword: boolean;
             /**
              * Format: int32
              * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -15114,7 +15112,7 @@ export interface components {
             sessionId: string;
             /** @description 当前租户；平台账号为 null */
             tenantId?: string | null;
-            /** @description 是否必须先改密 */
+            /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
             mustChangePassword: boolean;
             /** @description 用户资料 */
             user: components["schemas"]["UserResponse"];
@@ -18158,7 +18156,7 @@ export interface operations {
                         sessionId: string;
                         /** @description 当前租户；平台账号为 null */
                         tenantId?: string | null;
-                        /** @description 是否必须先改密 */
+                        /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
                         mustChangePassword: boolean;
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
@@ -18519,8 +18517,6 @@ export interface operations {
                         sessionId?: string | null;
                         /** @description 角色（令牌里的 role 声明） */
                         roles: string[];
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /** @description 当前租户的显示名；平台为 null */
                         tenantName?: string | null;
                         /** @description 模仿会话的发起人登录名；普通会话为 null */
@@ -18624,7 +18620,7 @@ export interface operations {
                         sessionId: string;
                         /** @description 当前租户；平台账号为 null */
                         tenantId?: string | null;
-                        /** @description 是否必须先改密 */
+                        /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
                         mustChangePassword: boolean;
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
@@ -18965,7 +18961,7 @@ export interface operations {
                         sessionId: string;
                         /** @description 当前租户；平台账号为 null */
                         tenantId?: string | null;
-                        /** @description 是否必须先改密 */
+                        /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
                         mustChangePassword: boolean;
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
@@ -19076,7 +19072,7 @@ export interface operations {
                         sessionId: string;
                         /** @description 当前租户；平台账号为 null */
                         tenantId?: string | null;
-                        /** @description 是否必须先改密 */
+                        /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
                         mustChangePassword: boolean;
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
@@ -29587,7 +29583,7 @@ export interface operations {
                         sessionId: string;
                         /** @description 当前租户；平台账号为 null */
                         tenantId?: string | null;
-                        /** @description 是否必须先改密 */
+                        /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
                         mustChangePassword: boolean;
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
@@ -29651,7 +29647,7 @@ export interface operations {
                         sessionId: string;
                         /** @description 当前租户；平台账号为 null */
                         tenantId?: string | null;
-                        /** @description 是否必须先改密 */
+                        /** @description 本会话是否因为要先改密而锁定（系统参数 identity.password 打开时，密码由他人设置的账号用密码登录才会）；锁定期间只放行 profile.change-password 与注销 */
                         mustChangePassword: boolean;
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
@@ -38850,8 +38846,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -38956,8 +38950,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -39218,8 +39210,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -39399,8 +39389,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -39494,8 +39482,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -39714,8 +39700,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）
@@ -40198,8 +40182,6 @@ export interface operations {
                          * @description 最近一次改密时间
                          */
                         passwordChangedAt?: string | null;
-                        /** @description 是否必须先改密 */
-                        mustChangePassword: boolean;
                         /**
                          * Format: int32
                          * @description 自上次成功登录以来的连续失败次数（含双因素码错误）

@@ -69,8 +69,12 @@ public sealed class SysUserSecurity : AppAuditedEntity
     public string SecurityStamp { get; set; } = string.Empty;
 
     /// <summary>
-    /// 下次登录后必须改密（管理员重置、初始密码）
+    /// 密码由他人设置、本人还没改过
     /// </summary>
+    /// <remarks>
+    /// 管理员创建或重置、开通租户管理员、种子写入时为真，本人改密或找回密码后清除
+    /// 只在系统参数 <c>identity.password</c> 的 <c>forceChange</c> 打开时生效：用密码登录后锁定到改密为止（4.x 同）
+    /// </remarks>
     public bool MustChangePassword { get; set; }
 
     /// <summary>

@@ -5017,7 +5017,7 @@
                       ]
                     },
                     "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+                      "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
                       "type": "boolean"
                     },
                     "user": {
@@ -5698,10 +5698,6 @@
                         "type": "string"
                       }
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "tenantName": {
                       "description": "\u5F53\u524D\u79DF\u6237\u7684\u663E\u793A\u540D\uFF1B\u5E73\u53F0\u4E3A null",
                       "type": [
@@ -5719,8 +5715,7 @@
                   },
                   "required": [
                     "user",
-                    "roles",
-                    "mustChangePassword"
+                    "roles"
                   ]
                 }
               }
@@ -5893,7 +5888,7 @@
                       ]
                     },
                     "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+                      "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
                       "type": "boolean"
                     },
                     "user": {
@@ -6521,7 +6516,7 @@
                       ]
                     },
                     "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+                      "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
                       "type": "boolean"
                     },
                     "user": {
@@ -6726,7 +6721,7 @@
                       ]
                     },
                     "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+                      "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
                       "type": "boolean"
                     },
                     "user": {
@@ -27012,7 +27007,7 @@
                       ]
                     },
                     "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+                      "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
                       "type": "boolean"
                     },
                     "user": {
@@ -27126,7 +27121,7 @@
                       ]
                     },
                     "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+                      "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
                       "type": "boolean"
                     },
                     "user": {
@@ -45638,10 +45633,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -45725,7 +45716,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -45851,10 +45841,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -45938,7 +45924,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -46310,10 +46295,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -46397,7 +46378,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -46635,10 +46615,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -46722,7 +46698,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -46818,10 +46793,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -46905,7 +46876,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -47211,10 +47181,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -47298,7 +47264,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -48061,10 +48026,6 @@
                       ],
                       "format": "date-time"
                     },
-                    "mustChangePassword": {
-                      "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-                      "type": "boolean"
-                    },
                     "failedAccessCount": {
                       "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
                       "type": "integer",
@@ -48148,7 +48109,6 @@
                     "user",
                     "twoFactorEnabled",
                     "twoFactorMethods",
-                    "mustChangePassword",
                     "failedAccessCount",
                     "gender",
                     "emailVerified",
@@ -72170,10 +72130,6 @@
             ],
             "format": "date-time"
           },
-          "mustChangePassword": {
-            "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
-            "type": "boolean"
-          },
           "failedAccessCount": {
             "description": "\u81EA\u4E0A\u6B21\u6210\u529F\u767B\u5F55\u4EE5\u6765\u7684\u8FDE\u7EED\u5931\u8D25\u6B21\u6570\uFF08\u542B\u53CC\u56E0\u7D20\u7801\u9519\u8BEF\uFF09",
             "type": "integer",
@@ -72257,7 +72213,6 @@
           "user",
           "twoFactorEnabled",
           "twoFactorMethods",
-          "mustChangePassword",
           "failedAccessCount",
           "gender",
           "emailVerified",
@@ -73625,7 +73580,7 @@
             ]
           },
           "mustChangePassword": {
-            "description": "\u662F\u5426\u5FC5\u987B\u5148\u6539\u5BC6",
+            "description": "\u672C\u4F1A\u8BDD\u662F\u5426\u56E0\u4E3A\u8981\u5148\u6539\u5BC6\u800C\u9501\u5B9A\uFF08\u7CFB\u7EDF\u53C2\u6570 identity.password \u6253\u5F00\u65F6\uFF0C\u5BC6\u7801\u7531\u4ED6\u4EBA\u8BBE\u7F6E\u7684\u8D26\u53F7\u7528\u5BC6\u7801\u767B\u5F55\u624D\u4F1A\uFF09\uFF1B\u9501\u5B9A\u671F\u95F4\u53EA\u653E\u884C profile.change-password \u4E0E\u6CE8\u9500",
             "type": "boolean"
           },
           "user": {
