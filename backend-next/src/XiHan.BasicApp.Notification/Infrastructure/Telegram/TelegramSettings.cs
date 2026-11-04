@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Settings;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
@@ -26,7 +27,7 @@ public sealed record TelegramNetwork
     /// Bot API 的根地址
     /// </summary>
     /// <remarks>
-    /// 为空即官方 <c>https://api.telegram.org</c>；自建 Bot API Server 时改这里
+    /// 为空即官方 <c>https://api.telegram.org</c>；自建 Bot API Server 时改这里，主机要在 <c>XiHan:Security:Outbound:AllowedHosts</c> 放行：令牌在路径里，只有改系统参数权限的人不能把它发到别处
     /// </remarks>
     public string? BaseUrl { get; init; }
 
@@ -132,6 +133,17 @@ public sealed record TelegramSettings
     /// <returns>地址</returns>
     public string WebhookUrlOf(string botName) => $"{WebhookBaseUrl!.Trim().TrimEnd('/')}{RoutePrefix}/{Uri.EscapeDataString(botName)}";
 
+    private static bool IsAllowedBase(string baseUrl, InvocationContext context)
+    {
+        if (!Uri.TryCreate(baseUrl.Trim(), UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        return string.Equals(uri.Host, "api.telegram.org", StringComparison.OrdinalIgnoreCase)
+            || (context.Services.GetService<OutboundAddressOptions>() is { } outbound && outbound.AllowedHosts.Contains(uri.Host, StringComparer.OrdinalIgnoreCase));
+    }
+
     /// <summary>
     /// 在平台调用里读两个参数
     /// </summary>
@@ -169,6 +181,11 @@ public sealed record TelegramSettings
             {
                 return Error.Validation(NotificationErrors.TelegramSettingsInvalid, NotificationMessages.TelegramSettingsInvalid, MessageArguments.Of(("key", ConfigKey), ("detail", exception.Message)));
             }
+        }
+
+        if (settings.Network?.BaseUrl is { } baseUrl && !string.IsNullOrWhiteSpace(baseUrl) && !IsAllowedBase(baseUrl, context))
+        {
+            return Error.Validation(NotificationErrors.TelegramSettingsInvalid, NotificationMessages.TelegramSettingsInvalid, MessageArguments.Of(("key", ConfigKey), ("detail", "Network.BaseUrl is not in XiHan:Security:Outbound:AllowedHosts")));
         }
 
         var secret = await reader.GetAsync(SecretConfigKey, context).ConfigureAwait(false);

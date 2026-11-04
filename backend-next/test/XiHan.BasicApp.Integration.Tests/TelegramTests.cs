@@ -210,6 +210,12 @@ public sealed class TelegramTests : IDisposable
         // 关掉总开关：删 Webhook，之后收到的 Update 不处理
         var configs = (await SendAsync(server, HttpMethod.Post, "/api/configs:list", """{"page":{"index":1,"size":50}}""", platform)).Body.GetProperty("items").EnumerateArray().ToList();
         var settingsId = configs.Single(static c => c.GetProperty("key").GetString() == TelegramSettings.ConfigKey).GetProperty("id").GetString()!;
+        // 根地址是令牌的去向：只有改系统参数的权限，指不到没放行的主机
+        var (redirectStatus, _) = await SendAsync(server, HttpMethod.Put, $"/api/configs/{settingsId}", new { name = "Telegram", dataType = "Json", value = """{"enabled":true,"network":{"baseUrl":"https://attacker.example"},"webhookBaseUrl":"https://bot.example.com/","managerRefreshSeconds":0}""" }, platform);
+        Assert.Equal(HttpStatusCode.OK, redirectStatus);
+        var loaded = await SettingsTestHost.InvokeAsync(server, null, static context => TelegramSettings.LoadAsync(context));
+        Assert.Equal("NOTIFICATION_VALIDATION_015", loaded.Error?.Code);
+
         Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/configs/{settingsId}", new { name = "Telegram", dataType = "Json", value = """{"enabled":false,"webhookBaseUrl":"https://bot.example.com"}""" }, platform)).Status);
         Assert.True(await manager.RefreshAsync(CancellationToken.None));
         Assert.Equal("deleteWebhook", _api.Calls.Last().Method);
