@@ -27,7 +27,7 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | --- | --- | --- |
 | `ForceLogout` | Identity | 会话被吊销（强制下线、改密、锁定、停用、删除），带给用户看的原因 |
 | `ReceiveNotification` | Notification | 发布或提醒时按接收人推送 |
-| `TaskProgress` | Files | 导出任务进度 |
+| `TaskProgress` | Files、Notification | 导出任务与通知发布的进度，只推给发起人，见[任务进度](#任务进度) |
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
 | `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更与正在输入，见[在线聊天](./chat#推送) |
 
@@ -54,6 +54,29 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、助手的流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
 
 吊销会话时先推 `ForceLogout`，再把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
+
+## 任务进度
+
+`TaskProgress` 的载荷是 Contracts 的 `TaskProgressPayload`，推给发起人在任务那一侧的连接（`UsersIn(side, [发起人])`，切到别的租户收不到），前端灵动岛按 `taskId` 复用同一条，进行中常驻，成功或失败后自动收起。
+
+| 字段 | 说明 |
+| --- | --- |
+| `taskId` | 任务标识：导出是 `export:<任务 ID>`，通知发布是 `notification-publish:<trace-id>` |
+| `label` / `detail` | 文案与副文本，服务端按发起人的区域翻好 |
+| `state` | `loading`、`success` 或 `error` |
+| `progress` | 进度 0 到 100，为空是不确定态 |
+| `link` | 点击跳转的路由（导出中心、通知公告） |
+
+| 任务 | 什么时候推 | 怎么发出 |
+| --- | --- | --- |
+| 导出 | 领到任务（准备中，进度 0）；每写一千行或到 99%（已写行数）；完成（总行数，点击去导出中心）；失败（失败原因） | 随写任务表的那次调用提交后发出，失败走独立的短事务后立即发出。文案按提交时 `Accept-Language` 协商出的区域 |
+| 通知发布（`notifications.publish`） | 开始（不确定态）；成功（接收人数，点击去通知公告）；失败（失败原因，异常时没有原因） | 成功随提交发出。开始与失败不随事务生效，由 Transaction 阶段开头、工作单元之外的 `PublishProgressMiddleware` 立即发出，回滚、提交失败与异常都会收尾 |
+
+建好即发布的 `notifications.create` 不推进度，与 5.x 相同。
+
+## Hub 参数
+
+保活、超时、消息大小等参数在配置节 `BasicApp:Realtime:SignalR`，对全部 Hub 生效，见[配置参考](../configuration#basicapp-realtime-signalr)。
 
 ## 在线状态
 

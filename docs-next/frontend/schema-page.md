@@ -84,6 +84,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 | `filters` | 其余搜索字段的运算符：`{ 字段: 'eq' \| 'contains' \| … }` |
 | 区间 | `searchRange` 的字段拆成后端的 `ge` 与 `le` 两条 |
 | 多选 | `searchMultiple` 的选中值合成 `in`（逗号分隔） |
+| `bounds` | 上下限的两个输入框落到同一个后端字段：`{ 搜索键: { field, operator: 'ge' \| 'le' } }`（如日志的最小、最大耗时） |
 
 只接登记过的字段：出现没登记的区间或多选条件即抛错，而不是静默丢掉条件。资源还可以实现 `tree`（树表一次取整棵）、`export`、`buildQuery`。
 

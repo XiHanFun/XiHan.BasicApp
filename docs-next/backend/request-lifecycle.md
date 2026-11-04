@@ -33,7 +33,7 @@ Ingress → Observe → Resilience → Authenticate → Tenant → Authorize →
 | Authorize | 按操作声明的权限码 / 策略判定；`PermissionChecker` 查授予存储与 `IPermissionGrantSource`，再经各 `IPermissionFilter` 收窄 | Access 登记的 `AccessGrantSource`（继承、委托）、`AccessPermissionFilter`（Deny、有效期、作用侧）、`EditionPermissionFilter`（套餐门控）<br>`PermissionConditionMiddleware`（排在框架授权之后）：持有的权限码挂了条件时按请求属性精确判定 |
 | Validate | 按操作请求的 JSON Schema 校验载荷，再执行 `IValidatableObject`；失败带字段级 `errors` | — |
 | Idempotency | 幂等键去重 | — |
-| Transaction | 工作单元：成功提交、失败回滚；提交前派发领域事件到发件箱 | `RealtimeDispatchMiddleware`（Realtime，阶段开头、工作单元之外）：调用里的推送先暂存，提交且成功后才发出<br>`AuditorStampMiddleware`（Runtime）：把当前主体 ID 放进异步本地值，SqlSugar 回调据此填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
+| Transaction | 工作单元：成功提交、失败回滚；提交前派发领域事件到发件箱 | `RealtimeDispatchMiddleware`（Realtime，阶段开头、工作单元之外）：调用里的推送先暂存，提交且成功后才发出<br>`PublishProgressMiddleware`（Notification，阶段开头、工作单元之外）：通知发布的开始与失败立即推给发布人<br>`AuditorStampMiddleware`（Runtime）：把当前主体 ID 放进异步本地值，SqlSugar 回调据此填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
 | Handle | 调用操作的 `HandleAsync` | 操作本身；数据范围与字段安全在查询与投影处显式套用 |
 | Egress | 结果与错误翻译：错误码 → 状态码，消息键按调用方区域翻译成 `detail` | — |
 

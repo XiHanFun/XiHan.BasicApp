@@ -309,6 +309,36 @@ public static class FilesMessages
     public const string ExportResultRemark = "files.export.result_remark";
 
     /// <summary>
+    /// 导出进度：进行中（{name}）
+    /// </summary>
+    public const string ExportProgressRunning = "files.export.progress_running";
+
+    /// <summary>
+    /// 导出进度：还没开始写行
+    /// </summary>
+    public const string ExportProgressPreparing = "files.export.progress_preparing";
+
+    /// <summary>
+    /// 导出进度：已写行数（{processed}、{total}）
+    /// </summary>
+    public const string ExportProgressRows = "files.export.progress_rows";
+
+    /// <summary>
+    /// 导出进度：完成（{name}）
+    /// </summary>
+    public const string ExportProgressSucceeded = "files.export.progress_succeeded";
+
+    /// <summary>
+    /// 导出进度：完成的副文本（{count}）
+    /// </summary>
+    public const string ExportProgressSucceededDetail = "files.export.progress_succeeded_detail";
+
+    /// <summary>
+    /// 导出进度：失败（{name}）
+    /// </summary>
+    public const string ExportProgressFailed = "files.export.progress_failed";
+
+    /// <summary>
     /// 操作 <c>files.start-upload</c> 的说明
     /// </summary>
     public const string StartUploadDescription = "files.start_upload.description";

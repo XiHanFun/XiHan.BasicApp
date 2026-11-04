@@ -33,6 +33,7 @@ namespace XiHan.BasicApp.Realtime;
 /// 连接登记与在线状态（<see cref="IRealtimePresence"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起
 /// 宿主配了 Redis 时以 <c>scaleOut</c> 装配（方案 N3 第二批，用户定「配置了就跨实例」）：SignalR 接 Redis 背板（连接配置取宿主的 Redis 缓存配置，频道带同一键前缀），
 /// 在线状态的连接登记存进共享缓存、按实例心跳续期，断开连接经消息代理广播到各实例；没配即全部在本实例内
+/// Hub 的保活、超时与消息大小等参数见 <see cref="RealtimeSignalROptions"/>
 /// </remarks>
 public sealed class RealtimeFeature : IHostedFeature, IDisposable
 {
@@ -97,7 +98,7 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
     public void Configure(FeatureContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        var signalR = context.Services.AddSignalR();
+        var signalR = context.Services.AddSignalR(RealtimeSignalROptions.FromConfiguration(context.Configuration).Apply);
         // Hub 绕过内核管道：认证交给框架的 XiHan 方案（与内核同一套令牌校验，ADR-0051），浏览器的 WebSocket / EventSource 只在 Hub 路径下认查询串令牌；会话门禁由过滤器做
         context.Services.AddAuthentication().AddXiHan(static options => options.QueryTokenPaths.Add(RealtimeHubs.Prefix));
         context.Services.AddSingleton<IInvocationAuthenticationFilter, SessionAuthenticationFilter>();

@@ -10,6 +10,7 @@ using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Primitives;
 
@@ -374,6 +375,42 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
 
         await PushAsync(context, notification, readers).ConfigureAwait(false);
         return readers.Count;
+    }
+
+    /// <summary>
+    /// 一次发布的进度任务标识
+    /// </summary>
+    /// <remarks>
+    /// 同一次调用的几条进度共用，灵动岛靠它复用同一条
+    /// </remarks>
+    /// <param name="context">调用上下文</param>
+    /// <returns>任务标识</returns>
+    public static string PublishTaskIdOf(InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return $"notification-publish:{context.TraceId}";
+    }
+
+    /// <summary>
+    /// 把发布成功的进度推给发布人，随提交发出
+    /// </summary>
+    /// <param name="context">调用上下文</param>
+    /// <param name="recipients">接收人数</param>
+    /// <returns>记下即完成</returns>
+    public async Task PushPublishedAsync(InvocationContext context, int recipients)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (_push is null || CallerOf(context) is not { } publisher)
+        {
+            return;
+        }
+
+        var payload = TaskProgressPayload.Succeeded(
+            PublishTaskIdOf(context),
+            context.Localize(NotificationMessages.PublishProgressSucceeded),
+            context.Localize(NotificationMessages.PublishProgressSucceededDetail, MessageArguments.Of(("count", recipients))),
+            NotificationPages.Notifications.Route);
+        await _push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(SideRows.SideOf(context), [publisher]), RealtimeMethods.TaskProgress, payload, NotificationJsonContext.Default.TaskProgressPayload, context.CancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

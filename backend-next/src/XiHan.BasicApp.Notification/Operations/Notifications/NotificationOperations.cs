@@ -172,6 +172,7 @@ public sealed class DeleteNotifications(NotificationService service) : IOperatio
 /// </summary>
 /// <remarks>
 /// <c>POST /api/notifications/{id}:publish</c>。解析接收人、写收件箱，提交后实时推送；重复发布 <c>NOTIFICATION_CONFLICT_001</c>，找不到接收人 <c>NOTIFICATION_VALIDATION_004</c>
+/// 发布进度经 <c>TaskProgress</c> 推给发布人：开始与失败见 <see cref="Middleware.PublishProgressMiddleware"/>，成功在这里随提交发出
 /// </remarks>
 /// <param name="service">通知服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
@@ -194,7 +195,13 @@ public sealed class PublishNotification(NotificationService service) : IOperatio
         }
 
         var published = await service.PublishAsync(context, notification).ConfigureAwait(false);
-        return published.TryGetValue(out var count) ? new NotificationDeliveryResponse(notification.Id, count, notification.PublishedAt!.Value) : published.Error!;
+        if (!published.TryGetValue(out var count))
+        {
+            return published.Error!;
+        }
+
+        await service.PushPublishedAsync(context, count).ConfigureAwait(false);
+        return new NotificationDeliveryResponse(notification.Id, count, notification.PublishedAt!.Value);
     }
 }
 

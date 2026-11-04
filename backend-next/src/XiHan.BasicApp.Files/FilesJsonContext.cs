@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Files.Operations.ExportTasks;
 using XiHan.BasicApp.Files.Operations.Files;
 using XiHan.BasicApp.Files.Operations.ImportHistories;
@@ -49,6 +50,7 @@ namespace XiHan.BasicApp.Files;
 [JsonSerializable(typeof(PageResult<ExportTaskResponse>))]
 [JsonSerializable(typeof(ExportTaskIdRequest))]
 [JsonSerializable(typeof(ExportTaskIdsRequest))]
+[JsonSerializable(typeof(TaskProgressPayload))]
 [JsonSerializable(typeof(List<ExportColumnSnapshot>))]
 [JsonSerializable(typeof(CreateImportHistoryRequest))]
 [JsonSerializable(typeof(ImportHistoryResponse))]

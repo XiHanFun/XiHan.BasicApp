@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Domain.Services;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -22,12 +23,18 @@ using XiHan.Framework.Security.Abstractions.Authentication;
 namespace XiHan.BasicApp.Files.Infrastructure;
 
 /// <summary>
-/// 一个待执行的导出：任务、所在的侧与发起人这次调用的凭据（只在内存里，不落库）
+/// 一个待执行的导出：任务、所在的侧、发起人与这次调用的凭据
 /// </summary>
+/// <remarks>
+/// 只在内存里，不落库
+/// </remarks>
 /// <param name="TaskId">任务 ID</param>
 /// <param name="Side">任务所在的侧</param>
+/// <param name="TaskName">任务名称（进度文案用，失败时任务可能还没读出来）</param>
+/// <param name="RequesterId">发起人（进度推给他）</param>
+/// <param name="Locale">发起人提交时的区域；调用没带即为空</param>
 /// <param name="Credential">发起人的凭据</param>
-public sealed record ExportJob(Guid TaskId, string Side, AuthenticationCredential Credential);
+public sealed record ExportJob(Guid TaskId, string Side, string TaskName, Guid RequesterId, string? Locale, AuthenticationCredential Credential);
 
 /// <summary>
 /// 导出队列（进程内）：提交时入队，后台循环取出执行
@@ -61,6 +68,7 @@ public sealed class ExportJobs
 /// 4.x 同至多并发 2。以发起人的凭据新开调用、经全管道逐页调列表操作（授权、租户、数据范围与字段安全都与发起人自己查询一致），
 /// 行随到随写进临时文件，写完经 <see cref="FileService"/> 存成临时文件（7 天到期，访问级别「已登录」），任务记下结果文件
 /// 凭据过期或会话吊销即失败；失败与中断经独立的短事务记到任务上（那时发起人的凭据可能已经用不了）
+/// 进度经 <see cref="RealtimeMethods.TaskProgress"/> 推给发起人（4.x 同，每一千行或到 99% 推一次）：随写任务表的那次调用提交后发出，文案与错误按发起人提交时的区域翻译。没装 Realtime 即不推，任务表照常记
 /// </remarks>
 /// <param name="queue">导出队列</param>
 /// <param name="scopes">作用域工厂</param>
@@ -88,6 +96,14 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     public static readonly TimeSpan ResultLifetime = TimeSpan.FromDays(7);
 
     /// <summary>
+    /// 每写多少行推一次进度
+    /// </summary>
+    /// <remarks>
+    /// 4.x 同
+    /// </remarks>
+    private const long ProgressStep = 1000;
+
+    /// <summary>
     /// 后台循环：并发执行队列里的作业，直到取消
     /// </summary>
     /// <param name="cancellationToken">取消令牌（应用停止）</param>
@@ -105,7 +121,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
                     LogExportCrashed(logger, exception, job.TaskId);
-                    await FailAsync(job.TaskId, exception.Message, CancellationToken.None).ConfigureAwait(false);
+                    await FailAsync(job, exception.Message, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
@@ -153,14 +169,14 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
             var written = await WriteAsync(job, task, columns, temp, cancellationToken).ConfigureAwait(false);
             if (written.IsFailure)
             {
-                await FailAsync(job.TaskId, written.Error!.Message, cancellationToken).ConfigureAwait(false);
+                await FailAsync(job, written.Error!.Message, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var saved = await SaveAsync(job, task, temp, cancellationToken).ConfigureAwait(false);
             if (saved.IsFailure)
             {
-                await FailAsync(job.TaskId, saved.Error!.Message, cancellationToken).ConfigureAwait(false);
+                await FailAsync(job, saved.Error!.Message, cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -196,6 +212,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                     task.Status = ExportTaskStatus.Processing;
                     task.StartedAt = clock.GetUtcNow();
                     await rows.UpdateAsync(task, context.CancellationToken).ConfigureAwait(false);
+                    await PushAsync(context.Services, job, TaskProgressPayload.Running(TaskIdOf(job), RunningLabel(context, job), context.Localize(FilesMessages.ExportProgressPreparing), 0)).ConfigureAwait(false);
                 }
 
                 found = task;
@@ -203,7 +220,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
             }, cancellationToken).ConfigureAwait(false);
             if (outcome.IsFailure)
             {
-                await FailAsync(job.TaskId, outcome.Error!.Message, cancellationToken).ConfigureAwait(false);
+                await FailAsync(job, outcome.Error!.Message, cancellationToken).ConfigureAwait(false);
                 return null;
             }
 
@@ -240,6 +257,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                 await sink.WriteRowAsync([.. columns.Select(static c => c.Title)], cancellationToken).ConfigureAwait(false);
                 long processed = 0;
                 long total = 0;
+                long notified = 0;
                 for (var page = startIndex; ; page++)
                 {
                     query["page"] = new JsonObject { ["index"] = page, ["size"] = size };
@@ -262,6 +280,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                     }
 
                     var progress = total == 0 ? 100 : (int)Math.Min(99, processed * 100 / total);
+                    var notify = processed - notified >= ProgressStep || progress >= 99;
                     var reported = await InCallAsync(job, async context =>
                     {
                         var rows = context.Services.GetRequiredService<SideRows>();
@@ -271,6 +290,11 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                             current.ProcessedCount = processed;
                             current.Progress = progress;
                             await rows.UpdateAsync(current, context.CancellationToken).ConfigureAwait(false);
+                            if (notify)
+                            {
+                                var detail = context.Localize(FilesMessages.ExportProgressRows, MessageArguments.Of(("processed", processed), ("total", total)));
+                                await PushAsync(context.Services, job, TaskProgressPayload.Running(TaskIdOf(job), RunningLabel(context, job), detail, progress)).ConfigureAwait(false);
+                            }
                         }
 
                         return Result.Success();
@@ -278,6 +302,11 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                     if (reported.IsFailure)
                     {
                         return reported;
+                    }
+
+                    if (notify)
+                    {
+                        notified = processed;
                     }
 
                     if (single || result.Items.Count < size || processed >= total)
@@ -324,6 +353,9 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                 current.FileSize = file.Size;
                 current.FinishedAt = clock.GetUtcNow();
                 await rows.UpdateAsync(current, context.CancellationToken).ConfigureAwait(false);
+                var label = context.Localize(FilesMessages.ExportProgressSucceeded, MessageArguments.Of(("name", job.TaskName)));
+                var detail = context.Localize(FilesMessages.ExportProgressSucceededDetail, MessageArguments.Of(("count", current.ProcessedCount)));
+                await PushAsync(context.Services, job, TaskProgressPayload.Succeeded(TaskIdOf(job), label, detail, FilesPages.ExportCenter.Route)).ConfigureAwait(false);
                 return Result.Success();
             }
         }, cancellationToken).ConfigureAwait(false);
@@ -335,7 +367,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     private async Task<Result<(IReadOnlyList<JsonElement> Items, long Total)>> PageAsync(ExportJob job, string operationId, JsonObject query, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
-        var context = App.CreateContext(scope.ServiceProvider, cancellationToken);
+        var context = ContextOf(scope.ServiceProvider, job, cancellationToken);
         context.SetCredential(job.Credential);
         var invoker = scope.ServiceProvider.GetRequiredService<IOperationInvoker>();
         var response = await invoker.InvokeAsync(context, new OperationRequest(operationId, Encoding.UTF8.GetBytes(query.ToJsonString()))).ConfigureAwait(false);
@@ -355,12 +387,12 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     /// 以发起人的身份开一次调用执行 <paramref name="action"/>
     /// </summary>
     /// <remarks>
-    /// 全管道、自带工作单元；失败时错误信息按默认区域翻译
+    /// 全管道、自带工作单元；失败时错误信息按发起人提交时的区域翻译
     /// </remarks>
     private async Task<Result> InCallAsync(ExportJob job, Func<InvocationContext, Task<Result>> action, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
-        var context = App.CreateContext(scope.ServiceProvider, cancellationToken);
+        var context = ContextOf(scope.ServiceProvider, job, cancellationToken);
         context.SetCredential(job.Credential);
         var outcome = await app.InvokeAsync(context, async inner => inner.SetOutcome(await action(inner).ConfigureAwait(false))).ConfigureAwait(false);
         if (outcome.IsFailure)
@@ -372,17 +404,22 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     }
 
     /// <summary>
-    /// 记失败（独立的短事务，按 ID 改，不依赖发起人的凭据）
+    /// 记失败并告诉发起人
     /// </summary>
-    private async Task FailAsync(Guid taskId, string message, CancellationToken cancellationToken)
+    /// <remarks>
+    /// 独立的短事务，按 ID 改，不依赖发起人的凭据。任务已经成功或已删除时没有改到行，不再推失败；记不下来也照推，灵动岛那一条要收尾
+    /// </remarks>
+    private async Task FailAsync(ExportJob job, string message, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
         var reason = message.Length <= 1000 ? message : message[..1000];
+        var taskId = job.TaskId;
+        var updated = 0;
         var written = await StoreScope.WriteAsync(scopes, async (services, ct) =>
         {
             var unitOfWork = services.GetRequiredService<SqlSugarUnitOfWork>();
             await unitOfWork.EnsureTransactionAsync(ct).ConfigureAwait(false);
-            await unitOfWork.ConnectionFor(typeof(SysExportTask)).Updateable<SysExportTask>()
+            updated = await unitOfWork.ConnectionFor(typeof(SysExportTask)).Updateable<SysExportTask>()
                 .SetColumns(t => new SysExportTask { Status = ExportTaskStatus.Failed, ErrorMessage = reason, FinishedAt = now })
                 .Where(t => t.Id == taskId && t.Status != ExportTaskStatus.Success)
                 .ExecuteCommandAsync(ct).ConfigureAwait(false);
@@ -391,6 +428,39 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
         if (written.IsFailure)
         {
             LogFailNotRecorded(logger, taskId, written.Error!.Code);
+        }
+        else if (updated == 0)
+        {
+            return;
+        }
+
+        await using var scope = scopes.CreateAsyncScope();
+        var context = ContextOf(scope.ServiceProvider, job, CancellationToken.None);
+        await PushAsync(scope.ServiceProvider, job, TaskProgressPayload.Failed(TaskIdOf(job), context.Localize(FilesMessages.ExportProgressFailed, MessageArguments.Of(("name", job.TaskName))), reason)).ConfigureAwait(false);
+    }
+
+    private static string TaskIdOf(ExportJob job) => $"export:{job.TaskId}";
+
+    private static string RunningLabel(InvocationContext context, ExportJob job)
+        => context.Localize(FilesMessages.ExportProgressRunning, MessageArguments.Of(("name", job.TaskName)));
+
+    /// <summary>
+    /// 开一个带发起人区域的调用上下文
+    /// </summary>
+    private static InvocationContext ContextOf(IServiceProvider services, ExportJob job, CancellationToken cancellationToken)
+        => App.CreateContext(services, cancellationToken, baggage: job.Locale is null ? null : new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Locale] = job.Locale });
+
+    /// <summary>
+    /// 把进度推给发起人在这一侧的连接
+    /// </summary>
+    /// <remarks>
+    /// 调用管道里随提交发出，管道外立即发出；推送只改善观感，取消令牌不传进去
+    /// </remarks>
+    private static async Task PushAsync(IServiceProvider services, ExportJob job, TaskProgressPayload payload)
+    {
+        foreach (var push in services.GetServices<IRealtimePush>())
+        {
+            await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(job.Side, [job.RequesterId]), RealtimeMethods.TaskProgress, payload, FilesJsonContext.Default.TaskProgressPayload, CancellationToken.None).ConfigureAwait(false);
         }
     }
 

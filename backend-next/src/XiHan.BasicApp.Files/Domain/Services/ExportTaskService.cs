@@ -102,7 +102,7 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
             RequesterId = requester,
         };
         await rows.InsertAsync(task, context.CancellationToken).ConfigureAwait(false);
-        queue.Enqueue(new ExportJob(task.Id, side, credential));
+        queue.Enqueue(new ExportJob(task.Id, side, task.TaskName, requester, context.TryGetBaggage(BaggageKeys.Locale, out var locale) ? locale : null, credential));
         return task;
     }
 

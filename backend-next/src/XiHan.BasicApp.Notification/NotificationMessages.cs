@@ -549,6 +549,26 @@ public static class NotificationMessages
     public const string PublishDenied = "notification.notification.publish_denied";
 
     /// <summary>
+    /// 发布进度：进行中
+    /// </summary>
+    public const string PublishProgressRunning = "notification.notification.publish_progress_running";
+
+    /// <summary>
+    /// 发布进度：成功
+    /// </summary>
+    public const string PublishProgressSucceeded = "notification.notification.publish_progress_succeeded";
+
+    /// <summary>
+    /// 发布进度：成功的副文本（{count}）
+    /// </summary>
+    public const string PublishProgressSucceededDetail = "notification.notification.publish_progress_succeeded_detail";
+
+    /// <summary>
+    /// 发布进度：失败
+    /// </summary>
+    public const string PublishProgressFailed = "notification.notification.publish_progress_failed";
+
+    /// <summary>
     /// 没有装解析这类目标的包
     /// </summary>
     /// <remarks>

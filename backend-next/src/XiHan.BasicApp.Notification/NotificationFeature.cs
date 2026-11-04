@@ -13,6 +13,7 @@ using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
+using XiHan.BasicApp.Notification.Middleware;
 using XiHan.BasicApp.Notification.Queries;
 using XiHan.BasicApp.Notification.Seeds;
 using XiHan.BasicApp.Runtime;
@@ -23,7 +24,9 @@ using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Persistence.Abstractions;
+using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Security.Abstractions;
@@ -67,6 +70,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         ],
         Contributes = new Contributions
         {
+            Pipeline = [new PipelineContribution(typeof(PublishProgressMiddleware).FullName!, PipelineStage.Transaction, Before: [typeof(UnitOfWorkMiddleware).FullName!])],
             Permissions = NotificationPermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(NotificationFeature).FullName,
@@ -133,6 +137,9 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
             context.AddPermission(permission.ToDefinition());
         }
 
+        // 发布进度的开始与失败要在事务之外立即发出：排在 Transaction 阶段开头，并显式排在框架工作单元中间件之前
+        context.AddMiddleware<PublishProgressMiddleware>(PipelineStage.Transaction, Placement.Beginning);
+        context.Pipeline.Before<PublishProgressMiddleware, UnitOfWorkMiddleware>();
         context.AddGeneratedOperations();
     }
 

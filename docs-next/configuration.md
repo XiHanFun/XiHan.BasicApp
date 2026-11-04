@@ -366,6 +366,22 @@
 | `DispatchInterval` / `RetryDelay` / `MaxAttempts` / `StuckAfter` | `00:00:05` / `00:00:30` / `3` / `00:10:00` | 邮件 / 短信 / 机器人发件箱的轮询、重试与卡死判定 |
 | `Telegram:*` | — | Telegram 交互：回复文案（`Texts`）、出站重试（`Retry`）、并发、去重时长、长轮询超时；机器人本身在后台页面配置 |
 
+## `BasicApp:Realtime:SignalR`
+
+SignalR 的 Hub 参数，对全部 Hub 生效。键、语义与缺省照 5.x 的 `XiHan:Web:RealTime:SignalR`，缺省值也就是 ASP.NET Core 的缺省值，不配即可。配置写错启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `EnableDetailedErrors` | `false` | 把详细错误发给客户端，生产环境不要打开 |
+| `KeepAliveInterval` | `00:00:15` | 服务端发保活消息的间隔 |
+| `ClientTimeoutInterval` | `00:00:30` | 多久没收到客户端的消息算断开，一般设成客户端保活间隔的两倍 |
+| `HandshakeTimeout` | `00:00:15` | 握手的超时 |
+| `MaximumReceiveMessageSize` | `32768` | 单条入站消息的大小上限（字节） |
+| `StreamBufferCapacity` | `10` | 流式调用的缓冲容量 |
+| `MaximumParallelInvocationsPerClient` | `1` | 每个客户端的最大并行调用数 |
+
+时长写 `hh:mm:ss`（可带天数 `d.hh:mm:ss`），必须大于零；只写 `15` 或 `00:15` 都算写错。数字必须是正整数。前端用的是 SignalR 客户端的缺省超时（服务端 30 秒没消息即断开），把 `KeepAliveInterval` 调到 30 秒以上会让浏览器不断掉线重连。5.x 还有 `EnableConnectionMetrics`，没有任何消费方，没有搬。
+
 ## `BasicApp:OpenPlatform`
 
 | 键 | 缺省 | 说明 |

@@ -21,7 +21,7 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 | --- | --- | --- |
 | `notifications.list` / `get` / `read-stats` / `recipients` | `notification.notifications.read` | 阅读统计、接收人与阅读确认状态 |
 | `notifications.create` / `update` / `delete` | `notification.notifications.create` / `update` / `delete` | 缺省存草稿；`publishImmediately` 另要发布权限 |
-| `notifications.publish` | `notification.notifications.publish` | 解析接收人、写收件箱，提交后按人推 `ReceiveNotification`，并按渠道入队 |
+| `notifications.publish` | `notification.notifications.publish` | 解析接收人、写收件箱，提交后按人推 `ReceiveNotification`，并按渠道入队；进度经 `TaskProgress` 推给发布人（见[任务进度](./realtime#任务进度)） |
 | `notifications.remind` | `notification.notifications.publish` | 再推给未读或未确认的接收人 |
 
 ### 收件箱（我的消息）

@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.Notification.Operations.BotConfigs;
@@ -50,6 +51,7 @@ namespace XiHan.BasicApp.Notification;
 [JsonSerializable(typeof(MarkAllInboxReadRequest))]
 [JsonSerializable(typeof(InboxCountResponse))]
 [JsonSerializable(typeof(NotificationPushPayload))]
+[JsonSerializable(typeof(TaskProgressPayload))]
 [JsonSerializable(typeof(MessagingIdRequest))]
 [JsonSerializable(typeof(MessagingIdsRequest))]
 [JsonSerializable(typeof(MessageTemplateResponse))]
