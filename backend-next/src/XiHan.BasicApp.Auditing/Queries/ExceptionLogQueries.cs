@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Auditing.Queries;
 /// 异常日志查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配异常类型、消息与操作 ID；另有筛选 <c>exceptionType</c>（eq / contains）、<c>operationId</c>、<c>path</c>（contains）、<c>machineName</c>、<c>environmentName</c>；
+/// 关键字匹配异常类型、消息、发生位置与操作 ID；另有筛选 <c>exceptionType</c>（eq / contains）、<c>location</c>（contains）、<c>operationId</c>、<c>path</c>（contains）、<c>machineName</c>、<c>environmentName</c>；
 /// 另有排序 <c>exceptionType</c>、<c>operationId</c>。列表项不含堆栈，详情才有
 /// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元</param>
@@ -21,7 +21,7 @@ public sealed class ExceptionLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLo
 {
     /// <inheritdoc />
     protected override ISugarQueryable<SysExceptionLog> ApplyKeyword(ISugarQueryable<SysExceptionLog> query, string keyword)
-        => query.Where(e => e.ExceptionType.Contains(keyword) || e.Message.Contains(keyword) || (e.OperationId != null && e.OperationId.Contains(keyword)));
+        => query.Where(e => e.ExceptionType.Contains(keyword) || e.Message.Contains(keyword) || (e.Location != null && e.Location.Contains(keyword)) || (e.OperationId != null && e.OperationId.Contains(keyword)));
 
     /// <inheritdoc />
     protected override Result<ISugarQueryable<SysExceptionLog>> ApplyFilter(ISugarQueryable<SysExceptionLog> query, string field, string op, string value)
@@ -29,6 +29,7 @@ public sealed class ExceptionLogQueries(SqlSugarUnitOfWork unitOfWork) : AuditLo
         {
             ("exceptionType", "eq") => Result.Success(query.Where(e => e.ExceptionType == value)),
             ("exceptionType", "contains") => Result.Success(query.Where(e => e.ExceptionType.Contains(value))),
+            ("location", "contains") => Result.Success(query.Where(e => e.Location!.Contains(value))),
             ("operationId", "eq") => Result.Success(query.Where(e => e.OperationId == value)),
             ("path", "contains") => Result.Success(query.Where(e => e.Path!.Contains(value))),
             ("machineName", "eq") => Result.Success(query.Where(e => e.MachineName == value)),

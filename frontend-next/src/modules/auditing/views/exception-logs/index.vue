@@ -29,7 +29,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'occurredAt', title: t('auditing.common.occurred_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, exportable: true, minWidth: 170, order: 1 },
   { key: 'exceptionType', title: t('auditing.exception_logs.exception_type'), dataType: 'string', sortable: true, searchable: true, searchPlaceholder: t('auditing.exception_logs.exception_type'), exportable: true, minWidth: 220, order: 2 },
   { key: 'message', title: t('auditing.exception_logs.message'), dataType: 'string', ellipsis: true, exportable: true, minWidth: 260, order: 3 },
-  { key: 'location', title: t('auditing.exception_logs.location'), dataType: 'string', ellipsis: true, minWidth: 240, order: 4 },
+  { key: 'location', title: t('auditing.exception_logs.location'), dataType: 'string', advancedSearch: true, ellipsis: true, minWidth: 240, order: 4 },
   { key: 'operationId', title: t('auditing.common.operation_id'), dataType: 'string', sortable: true, advancedSearch: true, exportable: true, minWidth: 180, order: 5 },
   { key: 'method', title: t('auditing.common.method'), dataType: 'string', width: 100, order: 6, render: row => renderHttpMethod(asRow(row).method) },
   { key: 'path', title: t('auditing.common.path'), dataType: 'string', advancedSearch: true, ellipsis: true, minWidth: 200, order: 7 },

@@ -56,6 +56,23 @@ describe('日志列表的后端筛选登记', () => {
     ])
   })
 
+  it('访问与开放接口日志的耗时上下限落到 durationMs 的 ge / le，导出的查询快照同样带上', () => {
+    const params = { page: 1, pageSize: 20, filters: { minDurationMs: '100', maxDurationMs: '2000' }, conditionFilters: [] }
+    const bounds = [
+      { field: 'durationMs', operator: 'ge', value: '100' },
+      { field: 'durationMs', operator: 'le', value: '2000' },
+    ]
+    expect(toPageRequest(params, ACCESS_LOG_QUERY).filters).toEqual(bounds)
+    expect(toPageRequest(params, OPEN_API_LOG_QUERY).filters).toEqual(bounds)
+    expect(accessLogsResource().export?.buildQuery?.(params)).toMatchObject({ filters: bounds })
+    expect(openApiLogsResource().export?.buildQuery?.(params)).toMatchObject({ filters: bounds })
+  })
+
+  it('异常日志按发生位置包含匹配', () => {
+    const request = toPageRequest({ page: 1, pageSize: 20, filters: { location: ' UserService ' }, conditionFilters: [] }, EXCEPTION_LOG_QUERY)
+    expect(request.filters).toEqual([{ field: 'location', operator: 'contains', value: 'UserService' }])
+  })
+
   it('4.x 有服务端导出的六种日志提交到导出中心：业务类型是各自的列表操作，查询快照按列表同一份登记换算', () => {
     const params = {
       page: 2,

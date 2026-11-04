@@ -63,6 +63,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'userName', title: t('auditing.common.user_name'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 120, order: 12 },
   { key: 'clientIp', title: t('auditing.common.client_ip'), dataType: 'string', advancedSearch: true, exportable: true, minWidth: 130, order: 13 },
   { key: 'traceId', title: t('auditing.common.trace_id'), dataType: 'string', advancedSearch: true, visible: false, minWidth: 260, order: 14 },
+  { key: 'minDurationMs', title: t('auditing.common.min_duration'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('auditing.common.min_duration'), order: 15 },
+  { key: 'maxDurationMs', title: t('auditing.common.max_duration'), dataType: 'number', visible: false, advancedSearch: true, searchPlaceholder: t('auditing.common.max_duration'), order: 16 },
 ])
 
 const schema = computed<PageSchema>(() => ({

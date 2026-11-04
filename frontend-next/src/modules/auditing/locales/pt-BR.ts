@@ -20,6 +20,8 @@ export default {
       referer: 'Referer',
       status_code: 'Código de status',
       duration: 'Duração',
+      min_duration: 'Duração mín. (ms)',
+      max_duration: 'Duração máx. (ms)',
       error_code: 'Código de erro',
       error_message: 'Mensagem de erro',
       operation_id: 'Operação',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: 'Registros de exceções',
       detail_title: 'Detalhes do registro de exceção',
-      keyword_placeholder: 'Pesquisar tipos de exceção, mensagens ou operações',
+      keyword_placeholder: 'Pesquisar tipos de exceção, mensagens, locais ou operações',
       exception_type: 'Tipo de exceção',
       message: 'Mensagem',
       stack_trace: 'Rastreamento de pilha',

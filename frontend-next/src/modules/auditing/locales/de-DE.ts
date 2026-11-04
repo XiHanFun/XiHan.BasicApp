@@ -20,6 +20,8 @@ export default {
       referer: 'Referer',
       status_code: 'Statuscode',
       duration: 'Dauer',
+      min_duration: 'Min. Dauer (ms)',
+      max_duration: 'Max. Dauer (ms)',
       error_code: 'Fehlercode',
       error_message: 'Fehlermeldung',
       operation_id: 'Vorgang',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: 'Ausnahmeprotokolle',
       detail_title: 'Ausnahmeprotokoll-Details',
-      keyword_placeholder: 'Ausnahmetypen, Meldungen oder Vorgänge suchen',
+      keyword_placeholder: 'Ausnahmetypen, Meldungen, Orte oder Vorgänge suchen',
       exception_type: 'Ausnahmetyp',
       message: 'Meldung',
       stack_trace: 'Stacktrace',

@@ -255,6 +255,21 @@ public sealed class AuditingTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
         Assert.Contains("boom", detailBody.GetProperty("stackTrace").GetString(), StringComparison.Ordinal);
 
+        // 发生位置（抛出点的类型与方法）：筛选按包含匹配，关键字也匹配它，别的位置查不到
+        var location = failure.GetProperty("location").GetString()!;
+        Assert.Contains(nameof(AuditingTests), location, StringComparison.Ordinal);
+        Assert.Single(await ListAsync(server, "exception-logs", platform, $$"""{"filters":[{"field":"location","operator":"contains","value":"{{nameof(AuditingTests)}}"}]}"""));
+        Assert.Single(await ListAsync(server, "exception-logs", platform, $$"""{"keyword":"{{nameof(AuditingTests)}}"}"""));
+        Assert.Empty(await ListAsync(server, "exception-logs", platform, """{"filters":[{"field":"location","operator":"contains","value":"NoSuchService"}]}"""));
+        Assert.Empty(await ListAsync(server, "exception-logs", platform, """{"keyword":"NoSuchService"}"""));
+
+        // 耗时上下限：访问日志的 durationMs 按 ge / le 筛，不是数字即拒绝
+        Assert.NotEmpty(await ListAsync(server, "access-logs", platform, """{"filters":[{"field":"durationMs","operator":"ge","value":"0"},{"field":"durationMs","operator":"le","value":"3600000"}]}"""));
+        Assert.Empty(await ListAsync(server, "access-logs", platform, """{"filters":[{"field":"durationMs","operator":"ge","value":"3600000"}]}"""));
+        var (badDuration, badDurationBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/access-logs:list", """{"filters":[{"field":"durationMs","operator":"ge","value":"fast"}]}""", platform));
+        Assert.Equal(HttpStatusCode.BadRequest, badDuration.StatusCode);
+        Assert.Equal("AUDITING_VALIDATION_002", badDurationBody.GetProperty("code").GetString());
+
         // 白名单外的筛选与排序、不合法的值都拒绝；时间范围既是条件也限定扫描的月表（范围里没有月表即空）
         var (unsupported, unsupportedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/access-logs:list", """{"filters":[{"field":"durationMs","operator":"eq","value":"1"}]}""", platform));
         Assert.Equal(HttpStatusCode.BadRequest, unsupported.StatusCode);

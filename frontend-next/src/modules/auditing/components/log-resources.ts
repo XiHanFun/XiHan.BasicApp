@@ -33,8 +33,15 @@ function mapping(extra: PageQueryMapping): PageQueryMapping {
     ranges: [...(COMMON.ranges ?? []), ...(extra.ranges ?? [])],
     multiples: extra.multiples ?? [],
     filters: { ...COMMON.filters, ...extra.filters },
+    bounds: extra.bounds ?? {},
   }
 }
+
+/** 耗时上下限（4.x 高级搜索的最小、最大耗时）：两个输入框落到后端 durationMs 的 ge / le */
+const DURATION_BOUNDS = {
+  minDurationMs: { field: 'durationMs', operator: 'ge' },
+  maxDurationMs: { field: 'durationMs', operator: 'le' },
+} as const
 
 type ListOperation<TRow> = (request: PageRequest) => Promise<{ items: TRow[], total: number | string, page: { index?: number, size?: number } }>
 
@@ -51,13 +58,13 @@ function exportable<TRow>(businessType: Extract<OperationId, `${string}.list`>, 
   return { ...readonly(list, query), export: { businessType, buildQuery: (params: SchemaQueryParams) => toPageRequest(params, query) } }
 }
 
-export const ACCESS_LOG_QUERY = mapping({ multiples: ['result'], filters: { operationId: 'contains', method: 'eq', path: 'contains', statusCode: 'eq', errorCode: 'eq' } })
-export const EXCEPTION_LOG_QUERY = mapping({ filters: { exceptionType: 'contains', operationId: 'eq', path: 'contains', machineName: 'eq', environmentName: 'eq' } })
+export const ACCESS_LOG_QUERY = mapping({ multiples: ['result'], bounds: DURATION_BOUNDS, filters: { operationId: 'contains', method: 'eq', path: 'contains', statusCode: 'eq', errorCode: 'eq' } })
+export const EXCEPTION_LOG_QUERY = mapping({ filters: { exceptionType: 'contains', location: 'contains', operationId: 'eq', path: 'contains', machineName: 'eq', environmentName: 'eq' } })
 export const LOGIN_LOG_QUERY = mapping({ multiples: ['event'], filters: { succeeded: 'eq', errorCode: 'eq', accountTenantId: 'eq' } })
 export const DIFF_LOG_QUERY = mapping({ multiples: ['kind'], filters: { entityType: 'contains', tableName: 'eq', entityId: 'eq', operationId: 'eq' } })
 export const PERMISSION_CHANGE_LOG_QUERY = mapping({ multiples: ['changeType'], filters: { roleId: 'eq', targetUserName: 'contains', targetTenantId: 'eq', permissionCodes: 'contains' } })
 export const CONDITION_HIT_QUERY = mapping({ multiples: ['action'], filters: { source: 'eq', phase: 'eq', isBlocked: 'eq', policyCode: 'contains', path: 'contains' } })
-export const OPEN_API_LOG_QUERY = mapping({ filters: { clientId: 'eq', method: 'eq', path: 'contains', statusCode: 'eq', succeeded: 'eq', signatureValid: 'eq' } })
+export const OPEN_API_LOG_QUERY = mapping({ bounds: DURATION_BOUNDS, filters: { clientId: 'eq', method: 'eq', path: 'contains', statusCode: 'eq', succeeded: 'eq', signatureValid: 'eq' } })
 /** 操作日志查的是框架的审计表：没有会话与地址列，按用户主键筛 */
 export const OPERATION_LOG_QUERY: PageQueryMapping = { ranges: ['occurredAt'], filters: { operationId: 'contains', succeeded: 'eq', errorCode: 'eq', traceId: 'eq', userId: 'eq' } }
 

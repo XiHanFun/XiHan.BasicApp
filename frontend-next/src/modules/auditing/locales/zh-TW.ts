@@ -20,6 +20,8 @@ export default {
       referer: '來源位址',
       status_code: '狀態碼',
       duration: '耗時',
+      min_duration: '最短耗時(ms)',
+      max_duration: '最長耗時(ms)',
       error_code: '錯誤碼',
       error_message: '錯誤訊息',
       operation_id: '操作',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: '例外日誌',
       detail_title: '例外日誌詳情',
-      keyword_placeholder: '搜尋例外類型、訊息或操作',
+      keyword_placeholder: '搜尋例外類型、訊息、位置或操作',
       exception_type: '例外類型',
       message: '訊息',
       stack_trace: '堆疊追蹤',

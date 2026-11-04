@@ -20,6 +20,8 @@ export default {
       referer: 'Referer',
       status_code: 'Код состояния',
       duration: 'Длительность',
+      min_duration: 'Мин. длительность (мс)',
+      max_duration: 'Макс. длительность (мс)',
       error_code: 'Код ошибки',
       error_message: 'Сообщение об ошибке',
       operation_id: 'Операция',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: 'Журнал исключений',
       detail_title: 'Сведения о записи журнала исключений',
-      keyword_placeholder: 'Поиск по типам исключений, сообщениям или операциям',
+      keyword_placeholder: 'Поиск по типам исключений, сообщениям, местам или операциям',
       exception_type: 'Тип исключения',
       message: 'Сообщение',
       stack_trace: 'Трассировка стека',

@@ -20,6 +20,8 @@ export default {
       referer: '리퍼러',
       status_code: '상태 코드',
       duration: '소요 시간',
+      min_duration: '최소 소요 시간(ms)',
+      max_duration: '최대 소요 시간(ms)',
       error_code: '오류 코드',
       error_message: '오류 메시지',
       operation_id: '작업',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: '예외 로그',
       detail_title: '예외 로그 상세',
-      keyword_placeholder: '예외 유형, 메시지, 작업 검색',
+      keyword_placeholder: '예외 유형, 메시지, 발생 위치, 작업 검색',
       exception_type: '예외 유형',
       message: '메시지',
       stack_trace: '스택 트레이스',

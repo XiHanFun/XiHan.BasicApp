@@ -43,6 +43,16 @@ describe('schemaPage ↔ PageRequest', () => {
     ])
   })
 
+  it('上下限的两个搜索字段落到同一个后端字段的 ge / le，空值不下发，填了别的字段照常报错', () => {
+    const mapping = { bounds: { minMs: { field: 'durationMs', operator: 'ge' }, maxMs: { field: 'durationMs', operator: 'le' } } } as const
+    expect(toPageRequest({ page: 1, pageSize: 20, filters: { minMs: ' 100 ', maxMs: 2000 } }, mapping).filters).toEqual([
+      { field: 'durationMs', operator: 'ge', value: '100' },
+      { field: 'durationMs', operator: 'le', value: '2000' },
+    ])
+    expect(toPageRequest({ page: 1, pageSize: 20, filters: { minMs: '', maxMs: null } }, mapping).filters).toEqual([])
+    expect(() => toPageRequest({ page: 1, pageSize: 20, filters: { durationMs: '100' } }, mapping)).toThrow(/durationMs/)
+  })
+
   it('分页结果换成 SchemaPage 读的 PageResult：总数、页码与首末记录', () => {
     const result = toSchemaPageResult({ items: ['a', 'b'], total: '22', page: { index: 2, size: 20 } }, { page: 2, pageSize: 20, filters: {} })
     expect(result.items).toEqual(['a', 'b'])

@@ -23,6 +23,8 @@ export interface PageQueryMapping {
   ranges?: readonly string[]
   /** 多选搜索（searchMultiple）的字段：选中的值合成后端的 `in`（逗号分隔） */
   multiples?: readonly string[]
+  /** 上下限搜索（4.x 的最小、最大两个输入框）：搜索字段键 → 后端字段与运算符，两个键落到同一个后端字段 */
+  bounds?: Readonly<Record<string, { readonly field: string, readonly operator: 'ge' | 'le' }>>
 }
 
 function isBlank(value: unknown): boolean {
@@ -51,6 +53,11 @@ export function toPageRequest(params: SchemaQueryParams, mapping: PageQueryMappi
     // 区间与多选的原始值已由 conditionFilters 下发
     if (field === keywordField || ranges.has(field) || multiples.has(field) || isBlank(value))
       continue
+    const bound = mapping.bounds?.[field]
+    if (bound) {
+      filters.push({ field: bound.field, operator: bound.operator, value: String(value).trim() })
+      continue
+    }
     const operator = mapping.filters?.[field]
     if (!operator)
       throw new Error(`搜索字段 ${field} 没有登记后端筛选运算符`)

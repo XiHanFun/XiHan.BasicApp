@@ -20,6 +20,8 @@ export default {
       referer: '来源地址',
       status_code: '状态码',
       duration: '耗时',
+      min_duration: '最小耗时(ms)',
+      max_duration: '最大耗时(ms)',
       error_code: '错误码',
       error_message: '错误消息',
       operation_id: '操作',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: '异常日志',
       detail_title: '异常日志详情',
-      keyword_placeholder: '搜索异常类型、消息或操作',
+      keyword_placeholder: '搜索异常类型、消息、位置或操作',
       exception_type: '异常类型',
       message: '异常消息',
       stack_trace: '异常堆栈',

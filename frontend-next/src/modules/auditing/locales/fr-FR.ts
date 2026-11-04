@@ -20,6 +20,8 @@ export default {
       referer: 'Referer',
       status_code: 'Code d’état',
       duration: 'Durée',
+      min_duration: 'Durée min. (ms)',
+      max_duration: 'Durée max. (ms)',
       error_code: 'Code d’erreur',
       error_message: 'Message d’erreur',
       operation_id: 'Opération',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: 'Journaux d’exceptions',
       detail_title: 'Détails du journal d’exception',
-      keyword_placeholder: 'Rechercher des types d’exception, messages ou opérations',
+      keyword_placeholder: 'Rechercher des types d’exception, messages, emplacements ou opérations',
       exception_type: 'Type d’exception',
       message: 'Message',
       stack_trace: 'Trace de la pile',

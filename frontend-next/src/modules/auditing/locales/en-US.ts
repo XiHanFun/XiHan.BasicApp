@@ -20,6 +20,8 @@ export default {
       referer: 'Referer',
       status_code: 'Status code',
       duration: 'Duration',
+      min_duration: 'Min Duration (ms)',
+      max_duration: 'Max Duration (ms)',
       error_code: 'Error code',
       error_message: 'Error message',
       operation_id: 'Operation',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: 'Exception logs',
       detail_title: 'Exception log details',
-      keyword_placeholder: 'Search exception types, messages or operations',
+      keyword_placeholder: 'Search exception types, messages, locations or operations',
       exception_type: 'Exception type',
       message: 'Message',
       stack_trace: 'Stack trace',

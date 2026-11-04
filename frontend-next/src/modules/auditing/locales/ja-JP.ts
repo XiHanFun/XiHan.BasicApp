@@ -20,6 +20,8 @@ export default {
       referer: 'リファラー',
       status_code: 'ステータスコード',
       duration: '所要時間',
+      min_duration: '最小所要時間 (ms)',
+      max_duration: '最大所要時間 (ms)',
       error_code: 'エラーコード',
       error_message: 'エラーメッセージ',
       operation_id: '操作',
@@ -151,7 +153,7 @@ export default {
     exception_logs: {
       title: '例外ログ',
       detail_title: '例外ログの詳細',
-      keyword_placeholder: '例外の種類、メッセージ、操作を検索',
+      keyword_placeholder: '例外の種類、メッセージ、発生箇所、操作を検索',
       exception_type: '例外の種類',
       message: 'メッセージ',
       stack_trace: 'スタックトレース',
