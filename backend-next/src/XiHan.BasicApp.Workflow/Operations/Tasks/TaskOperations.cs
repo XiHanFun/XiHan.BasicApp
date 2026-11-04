@@ -9,9 +9,10 @@ using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Services;
 using XiHan.BasicApp.Workflow.Queries;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Instances;
+using XiHan.Framework.Workflow.Abstractions.Storage;
 using XiHan.Framework.Workflow.Abstractions.Tasks;
 
 namespace XiHan.BasicApp.Workflow.Operations.Tasks;
@@ -24,11 +25,11 @@ namespace XiHan.BasicApp.Workflow.Operations.Tasks;
 /// 过滤与分页在存储里做（4.x 在内存里分页）。每条补上节点名、发起人与审批业务名
 /// </remarks>
 /// <param name="tasks">任务服务</param>
-/// <param name="engine">引擎</param>
+/// <param name="instanceStore">实例存储（一页的实例一次读完）</param>
 /// <param name="lookup">人名与定义</param>
 /// <param name="registry">审批业务登记表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Policy = Policies.Authenticated)]
-public sealed class ListTasks(IWorkflowTaskService tasks, IWorkflowEngine engine, WorkflowLookup lookup, WorkflowBusinessRegistry registry) : IOperation<PageRequest, PageResult<WorkflowTaskResponse>>
+public sealed class ListTasks(IWorkflowTaskService tasks, IWorkflowInstanceStore instanceStore, WorkflowLookup lookup, WorkflowBusinessRegistry registry) : IOperation<PageRequest, PageResult<WorkflowTaskResponse>>
 {
     /// <summary>
     /// 操作 ID
@@ -57,20 +58,14 @@ public sealed class ListTasks(IWorkflowTaskService tasks, IWorkflowEngine engine
             return queried.Error!;
         }
 
-        var instances = new Dictionary<string, WorkflowInstance>(StringComparer.Ordinal);
-        foreach (var instanceId in page.Items.Select(static t => t.InstanceId).Distinct(StringComparer.Ordinal))
+        // 分区与引擎读实例同一口径：调用方这一次调用的租户；不存在或在别的分区的不在结果里
+        var found = await instanceStore.FindManyAsync(context.GetSecurity().Tenant?.Id, [.. page.Items.Select(static t => t.InstanceId).Distinct(StringComparer.Ordinal)], context.CancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var read))
         {
-            var found = await engine.FindInstanceAsync(instanceId, context.CancellationToken).ConfigureAwait(false);
-            if (!found.TryGetValue(out var maybe))
-            {
-                return found.Error!;
-            }
-
-            if (maybe.TryGetValue(out var instance))
-            {
-                instances[instanceId] = instance;
-            }
+            return found.Error!;
         }
+
+        var instances = read.ToDictionary(static i => i.Id, StringComparer.Ordinal);
 
         var starters = await lookup.NamesAsync(page.Items.Select(static t => t.StarterId), context).ConfigureAwait(false);
         var items = new List<WorkflowTaskResponse>(page.Items.Count);

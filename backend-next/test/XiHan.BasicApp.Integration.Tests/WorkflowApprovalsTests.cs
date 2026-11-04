@@ -8,19 +8,21 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Contracts.Workflow;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Services;
-using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Workflow.Handlers;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Messaging.Abstractions.Envelopes;
 using XiHan.Framework.Messaging.Abstractions.Handlers;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Events;
 using XiHan.Framework.Workflow.Abstractions.Instances;
 using XiHan.Framework.Workflow.Abstractions.Serialization;
+using XiHan.Framework.Workflow.Abstractions.Storage;
 using XiHan.Framework.Workflow.Abstractions.Tasks;
+using XiHan.Framework.Workflow.Abstractions;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -33,6 +35,9 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class WorkflowApprovalsTests : IDisposable
 {
+    // 书签还在、实例行没了：框架把这条待办当作不在运行，不进列表
+    private const int MissingInstanceRows = 0;
+
     private const string Approval = """
         {
           "id": "x", "name": "tests-business", "displayName": "Approval", "category": "Tests",
@@ -53,6 +58,56 @@ public sealed class WorkflowApprovalsTests : IDisposable
     private readonly SqliteDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
+
+    [Fact]
+    public async Task TaskList_ReadsInstancesOfTheCallersPartitionOnly()
+    {
+        var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+
+        // 平台与租户各起一个流程，受理人是发起人自己
+        async Task<(string Id, string TaskId)> StartAsync(string token, string assignee)
+        {
+            var document = Approval.Replace("ASSIGNEE", assignee, StringComparison.Ordinal).Replace("CC", assignee, StringComparison.Ordinal);
+            var (drafted, draft) = await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions", Json(new { document }), token);
+            Assert.True(drafted == HttpStatusCode.Created, draft.ToString());
+            Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/workflow-definitions/{draft.GetProperty("id").GetString()}:publish", "{}", token)).Status);
+            var (started, instance) = await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:start", Json(new { name = "tests-business", displayName = "Partitioned" }), token);
+            Assert.True(started == HttpStatusCode.OK, instance.ToString());
+            return (instance.GetProperty("id").GetString()!, Assert.Single(await ListAsync(server, "tasks", token)).GetProperty("id").GetString()!);
+        }
+
+        async Task<string> MeAsync(string token) => (await SendAsync(server, HttpMethod.Get, "/api/auth:me", null, token)).Body.GetProperty("user").GetProperty("id").GetString()!;
+        var (platformInstance, _) = await StartAsync(platform, await MeAsync(platform));
+        var (tenantInstance, _) = await StartAsync(tenant, await MeAsync(tenant));
+
+        // 节点名来自实例的定义：取得到实例才有显示名
+        foreach (var (token, instance) in new[] { (platform, platformInstance), (tenant, tenantInstance) })
+        {
+            var todo = Assert.Single(await ListAsync(server, "tasks", token));
+            Assert.Equal((instance, "Manager review"), (todo.GetProperty("instanceId").GetString(), todo.GetProperty("nodeName").GetString()));
+        }
+
+        // 别的分区的实例取不到
+        var engineIds = new[] { platformInstance, tenantInstance }.Select(static id => WorkflowIds.ToEngine(Guid.Parse(id))).ToList();
+        var seen = await SettingsTestHost.InvokeAsync(server, "contoso", async ctx =>
+            (await ctx.Services.GetRequiredService<IWorkflowInstanceStore>().FindManyAsync(ctx.GetSecurity().Tenant?.Id, engineIds, ctx.CancellationToken)).ValueOrThrow().Select(static i => i.Id).ToList());
+        Assert.Equal([engineIds[1]], seen);
+
+        // 实例行缺失时列表还在：节点名退回节点 ID
+        await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(_database.ConnectionString))
+        {
+            await connection.OpenAsync(TestContext.Current.CancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM workflow_instance_record WHERE id = $id";
+            command.Parameters.AddWithValue("$id", engineIds[1]);
+            Assert.Equal(1, await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken));
+        }
+
+        var (listed, afterDelete) = await SendAsync(server, HttpMethod.Post, "/api/tasks:list", """{"page":{"index":1,"size":50}}""", tenant);
+        Assert.True(listed == HttpStatusCode.OK, afterDelete.ToString());
+        Assert.Equal(MissingInstanceRows, afterDelete.GetProperty("items").GetArrayLength());
+    }
 
     [Fact]
     public async Task Tasks_ApprovalCenter_AndBusinessCallbacks_FollowParticipation()
