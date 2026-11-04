@@ -346,6 +346,20 @@ describe('首页与 404 收敛', () => {
     await router.push(NOT_FOUND_PATH)
     expect(router.currentRoute.value.path).toBe(NOT_FOUND_PATH)
   })
+
+  it('不存在的路由不留标签，真实页面照常进标签栏', async () => {
+    signInWithLoadedRoutes(permissions([page('identity.users', '/identity/user')]))
+    const router = createGuardedRouter()
+    await router.push('/identity/user')
+    await router.push('/no-such-page')
+    expect(router.currentRoute.value.path).toBe(NOT_FOUND_PATH)
+    await router.push(FORBIDDEN_PATH)
+    expect(router.currentRoute.value.path).toBe(FORBIDDEN_PATH)
+    const paths = useTabbarStore().tabs.map(tab => tab.path)
+    expect(paths).toContain('/identity/user')
+    expect(paths).not.toContain(NOT_FOUND_PATH)
+    expect(paths).not.toContain(FORBIDDEN_PATH)
+  })
 })
 
 describe('meta 上的角色与权限校验', () => {

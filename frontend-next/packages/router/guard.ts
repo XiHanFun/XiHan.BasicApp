@@ -183,7 +183,8 @@ export function setupRouterGuard(router: Router) {
     }
 
     // 独立公共页（控制中心等，meta.standalone）不挂主布局、不进入标签栏
-    if (to.meta?.standalone) {
+    // 403 / 404 / 500 同样不挂主布局：进了标签栏，回到主布局还留着一个点回去就是错误页的标签
+    if (to.meta?.standalone || WHITE_LIST.includes(to.path)) {
       return true
     }
 
