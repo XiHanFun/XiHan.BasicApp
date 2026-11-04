@@ -14475,6 +14475,8 @@ export interface components {
             expiresAt?: string | null;
             /** @description 是否外部成员：注册在别处、以成员身份加入本租户（4.x 同） */
             isExternalMember: boolean;
+            /** @description 是否运维支持成员：平台账号以运维支持身份进入本租户（这时 IsExternalMember 也为真） */
+            isSupportMember: boolean;
         };
         /** @description 继承链上的一个角色 */
         RoleRelativeResponse: {
@@ -15293,6 +15295,8 @@ export interface components {
             lastLoginIp?: string | null;
             /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护 */
             isExternalMember: boolean;
+            /** @description 是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 IsExternalMember 也为真） */
+            isSupportMember: boolean;
             /** @description 当前一侧的角色名称（启用的角色、此刻在有效期内的指派） */
             roleNames: string[];
             /** @description 主部门名称（没标主部门时取最早加入的）；平台一侧为空 */
@@ -15362,6 +15366,8 @@ export interface components {
             lastLoginIp?: string | null;
             /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
             isExternalMember: boolean;
+            /** @description 是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 IsExternalMember 也为真）。只有用户管理的查询判定，其余响应为假 */
+            isSupportMember: boolean;
         };
         /** @description 管理员看到的账号安全状态 */
         UserSecurityDetailResponse: {
@@ -40908,6 +40914,8 @@ export interface operations {
                         expiresAt?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入本租户（4.x 同） */
                         isExternalMember: boolean;
+                        /** @description 是否运维支持成员：平台账号以运维支持身份进入本租户（这时 IsExternalMember 也为真） */
+                        isSupportMember: boolean;
                     };
                 };
             };
@@ -44006,6 +44014,7 @@ export interface operations {
                         remark?: string | null;
                         lastLoginIp?: string | null;
                         isExternalMember: boolean;
+                        isSupportMember: boolean;
                     };
                 };
             };
@@ -44989,6 +44998,8 @@ export interface operations {
                         lastLoginIp?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
                         isExternalMember: boolean;
+                        /** @description 是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 IsExternalMember 也为真）。只有用户管理的查询判定，其余响应为假 */
+                        isSupportMember: boolean;
                     };
                 };
             };
@@ -45110,6 +45121,8 @@ export interface operations {
                         lastLoginIp?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
                         isExternalMember: boolean;
+                        /** @description 是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 IsExternalMember 也为真）。只有用户管理的查询判定，其余响应为假 */
+                        isSupportMember: boolean;
                     };
                 };
             };
@@ -45226,6 +45239,8 @@ export interface operations {
                         lastLoginIp?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
                         isExternalMember: boolean;
+                        /** @description 是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 IsExternalMember 也为真）。只有用户管理的查询判定，其余响应为假 */
+                        isSupportMember: boolean;
                     };
                 };
             };

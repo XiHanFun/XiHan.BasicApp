@@ -23,4 +23,5 @@ public sealed record RoleMembersResponse(IReadOnlyList<RoleMemberResponse> Items
 /// <param name="EffectiveAt">生效时间；为空即立即生效</param>
 /// <param name="ExpiresAt">到期时间（不含）；为空即长期有效</param>
 /// <param name="IsExternalMember">是否外部成员：注册在别处、以成员身份加入本租户（4.x 同）</param>
-public sealed record RoleMemberResponse(Guid UserId, string UserName, string DisplayName, UserStatus Status, DateTimeOffset AssignedAt, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, bool IsExternalMember);
+/// <param name="IsSupportMember">是否运维支持成员：平台账号以运维支持身份进入本租户（这时 <c>IsExternalMember</c> 也为真）</param>
+public sealed record RoleMemberResponse(Guid UserId, string UserName, string DisplayName, UserStatus Status, DateTimeOffset AssignedAt, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt, bool IsExternalMember, bool IsSupportMember);

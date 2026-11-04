@@ -99,6 +99,7 @@ export default {
       members_target: 'Участники роли',
       members_search: 'Поиск по имени / имени пользователя',
       member_external: 'Внешний',
+      member_support: 'Поддержка',
       members_save: 'Сохранить участников',
       members_no_change: 'Состав участников не изменился',
       members_saved: 'Сохранено (добавлено {grant}, исключено {revoke})',

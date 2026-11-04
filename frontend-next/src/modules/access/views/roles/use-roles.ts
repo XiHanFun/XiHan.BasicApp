@@ -289,6 +289,8 @@ export interface MemberCandidate {
   userName: string
   /** 外部成员：注册在别处、以成员身份加入本租户 */
   isExternalMember: boolean
+  /** 运维支持成员：平台账号以运维支持身份进入本租户 */
+  isSupportMember: boolean
 }
 
 /**
@@ -296,11 +298,11 @@ export interface MemberCandidate {
  * 保存时被当成移出
  */
 export function mergeMemberCandidates(users: readonly UserOption[], members: readonly RoleMember[]): MemberCandidate[] {
-  const items: MemberCandidate[] = users.map(user => ({ basicId: user.id, displayName: user.displayName, userName: user.userName, isExternalMember: user.isExternalMember }))
+  const items: MemberCandidate[] = users.map(user => ({ basicId: user.id, displayName: user.displayName, userName: user.userName, isExternalMember: user.isExternalMember, isSupportMember: user.isSupportMember }))
   const known = new Set(items.map(item => item.basicId))
   for (const member of members) {
     if (!known.has(member.userId))
-      items.push({ basicId: member.userId, displayName: member.displayName, userName: member.userName, isExternalMember: member.isExternalMember })
+      items.push({ basicId: member.userId, displayName: member.displayName, userName: member.userName, isExternalMember: member.isExternalMember, isSupportMember: member.isSupportMember })
   }
   return items
 }

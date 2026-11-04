@@ -76,7 +76,7 @@ public sealed class ConditionInsightService(
             return checkedRequest.Error!;
         }
 
-        if (!(await sideUsers.FindAsync(request.UserId, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
+        if (!(await sideUsers.FindWithSupportAsync(request.UserId, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
         {
             return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", request.UserId)));
         }
@@ -130,7 +130,7 @@ public sealed class ConditionInsightService(
 
         var time = request.Time ?? clock.GetUtcNow();
         var holders = await HoldersAsync(owner, request.SubjectKind, request.SubjectId, time, cancellationToken).ConfigureAwait(false);
-        var people = (await sideUsers.FindManyAsync(holders, owner, cancellationToken).ConfigureAwait(false))
+        var people = (await sideUsers.FindManyWithSupportAsync(holders, owner, cancellationToken).ConfigureAwait(false))
             .OrderBy(static u => u.UserName, StringComparer.OrdinalIgnoreCase)
             .ToList();
         var items = new List<ConditionBatchTrialItemResponse>();

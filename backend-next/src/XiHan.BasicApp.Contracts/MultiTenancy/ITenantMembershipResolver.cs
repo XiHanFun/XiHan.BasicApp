@@ -38,6 +38,14 @@ public interface ITenantMembershipResolver
     Task<IReadOnlyList<Guid>> MembersOfAsync(string tenantId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// <paramref name="tenantId"/> 的运维支持成员用户 ID
+    /// </summary>
+    /// <remarks>
+    /// 只含生效期内的。只有用户管理的查询与配角色认他们（4.x 同）；席位、模仿候选、群发收件人和聊天目录都不含
+    /// </remarks>
+    Task<IReadOnlyList<Guid>> SupportMembersOfAsync(string tenantId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// <paramref name="userIds"/> 里是某个租户所有者的用户
     /// </summary>
     /// <remarks>

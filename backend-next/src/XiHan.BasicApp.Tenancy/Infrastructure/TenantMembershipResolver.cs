@@ -45,6 +45,14 @@ public sealed class TenantMembershipResolver(IRepository<SysTenantMember, Guid> 
     }
 
     /// <inheritdoc />
+    public async Task<IReadOnlyList<Guid>> SupportMembersOfAsync(string tenantId, CancellationToken cancellationToken)
+    {
+        var rows = await members.ListAsync(EntityQuery.All<SysTenantMember>().Where(new Specification<SysTenantMember>(m => m.TenantId == tenantId && m.MemberType == TenantMemberType.Support)), cancellationToken).ConfigureAwait(false);
+        var now = clock.GetUtcNow();
+        return rows.Where(m => m.IsInEffect(now)).Select(static m => m.UserId).Distinct().ToList();
+    }
+
+    /// <inheritdoc />
     public async Task<IReadOnlySet<Guid>> OwnersAmongAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(userIds);

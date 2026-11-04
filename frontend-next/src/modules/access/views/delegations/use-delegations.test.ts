@@ -81,6 +81,8 @@ describe('useDelegationEditor', () => {
     await editor.start()
     expect(editor.open.value).toBe(true)
     expect(editor.userOptions.value).toEqual([{ value: 'u-1', label: 'Alice', description: '@alice' }])
+    // 运维支持成员后端不认，不进候选
+    expect(calls.find(c => c.url === '/api/users:list')?.body).toMatchObject({ filters: [{ field: 'isSupportMember', operator: 'eq', value: 'false' }] })
     expect(editor.roleOptions.value.map(o => o.value)).toEqual(['r-1'])
     expect(editor.permissionOptions.value).toEqual([{ value: 'identity.users.read', label: 'Read users', description: 'identity.users.read' }])
     expect(calls.find(c => c.url === '/api/roles:list')?.body).toMatchObject({ filters: [{ field: 'status', operator: 'eq', value: 'Active' }] })

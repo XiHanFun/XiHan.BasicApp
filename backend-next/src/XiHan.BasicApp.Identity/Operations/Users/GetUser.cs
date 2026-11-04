@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 按 ID 取用户
 /// </summary>
 /// <remarks>
-/// <c>GET /api/users/{id}</c>。租户主体只能看自己租户的用户与外部成员；平台主体（无租户）能看全部
+/// <c>GET /api/users/{id}</c>。租户主体只能看自己租户的用户、外部成员与运维支持成员；平台主体（无租户）能看全部
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露；与 <c>users.list</c> 一起是内部服务查用户目录的 gRPC 面
 /// </remarks>
 /// <param name="users">用户仓储</param>
@@ -36,12 +36,12 @@ public sealed class GetUser(IRepository<SysUser, Guid> users, SideUsers sideUser
         var tenantId = context.GetSecurity().Tenant?.Id;
         var found = tenantId is null
             ? await users.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)
-            : await sideUsers.FindAsync(request.Id, tenantId, context.CancellationToken).ConfigureAwait(false);
+            : await sideUsers.FindWithSupportAsync(request.Id, tenantId, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var user) || !(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false)).Allows(user.Id))
         {
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        return UserResponse.From(user, tenantId);
+        return UserResponse.From(user, tenantId, tenantId is not null && await sideUsers.IsSupportMemberAsync(user.Id, tenantId, context.CancellationToken).ConfigureAwait(false));
     }
 }

@@ -149,7 +149,7 @@ describe('useDepartmentEditor', () => {
     const editor = useDepartmentEditor(tree)
     editor.startCreate()
     await editor.searchLeaders(' ali ')
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list', body: { keyword: 'ali' } })
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:list', body: { keyword: 'ali', filters: [{ field: 'isSupportMember', operator: 'eq', value: 'false' }] } })
     expect(editor.leaderOptions.value).toEqual([{ label: 'Alice', value: 'u-7', description: 'alice' }])
     Object.assign(editor.form, { code: 'ops', name: 'Ops', leaderUserId: 'u-7' })
     expect(await editor.submit()).toBe(true)
@@ -257,6 +257,7 @@ describe('useMembershipEditor', () => {
     const editor = useMembershipEditor()
     await editor.startCreate('d-2', { users: true, positions: true })
     expect(editor.userOptions.value).toEqual([{ label: 'Carol', value: 'u-2', description: 'carol' }])
+    expect(calls.find(c => c.url === '/api/users:list')!.body).toMatchObject({ filters: [{ field: 'isSupportMember', operator: 'eq', value: 'false' }] })
     expect(editor.positionOptions.value).toEqual([{ label: 'Manager', value: 'p-1' }])
     expect(calls.find(c => c.url === '/api/positions:list')!.body).toMatchObject({ filters: [{ field: 'status', operator: 'eq', value: 'Active' }] })
 

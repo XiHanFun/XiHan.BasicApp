@@ -3,6 +3,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import type { SelectOption, TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
+import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { departments as departmentsApi, memberships as membershipsApi, positions as positionsApi, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
@@ -182,7 +183,7 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
     const seq = ++leaderSeq
     leaderLoading.value = true
     try {
-      const result = await usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [], sorts: [{ field: 'userName' }], keyword: keyword.trim() || null })
+      const result = await usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [{ field: 'userName' }], keyword: keyword.trim() || null })
       if (seq !== leaderSeq)
         return
       const options: UserOption[] = result.items.map(user => ({ label: user.displayName, value: user.id, description: user.userName }))
@@ -394,7 +395,7 @@ export function useMembershipEditor() {
     optionsLoading.value = true
     try {
       const [usersPage, positionsPage] = await Promise.all([
-        scope.users ? usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [], sorts: [{ field: 'userName' }] }) : Promise.resolve(null),
+        scope.users ? usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [{ field: 'userName' }] }) : Promise.resolve(null),
         scope.positions ? positionsApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order' }] }) : Promise.resolve(null),
       ])
       if (usersPage)

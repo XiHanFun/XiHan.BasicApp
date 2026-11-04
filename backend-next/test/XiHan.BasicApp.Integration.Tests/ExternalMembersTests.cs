@@ -253,20 +253,6 @@ public sealed class ExternalMembersTests : IDisposable
     }
 
     [Fact]
-    public async Task SupportMembers_AreNotTenantUsers()
-    {
-        var scene = await StartAsync(_database.ConnectionString);
-        await using var running = scene.Server;
-        var ops = await CreateAsync(scene.Server, scene.Platform, "ops");
-        var (added, addedBody) = await SendAsync(scene.Server, HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{ops}}","memberType":"Support"}""", scene.Platform);
-        Assert.True(added == HttpStatusCode.Created, addedBody.ToString());
-        Assert.DoesNotContain("ops", UserNames(await ListAsync(scene.Server, scene.Contoso)));
-        var roleId = await CreateRoleAsync(scene.Server, scene.Contoso, "reader");
-        var (_, assigned) = await SendAsync(scene.Server, HttpMethod.Post, $"/api/roles/{roleId}:assign", $$"""{"userIds":["{{ops}}"]}""", scene.Contoso);
-        Assert.Equal(AccessErrors.MemberNotFound, FailureCode(assigned));
-    }
-
-    [Fact]
     public async Task LeavingTheTenant_EndsVisibilityAndRoles_WhileAMembershipOutsideItsWindowHidesThem()
     {
         var scene = await StartAsync(_database.ConnectionString);

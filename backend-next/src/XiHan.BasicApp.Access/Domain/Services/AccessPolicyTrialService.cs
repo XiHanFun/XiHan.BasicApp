@@ -85,7 +85,7 @@ public sealed class AccessPolicyTrialService(
         IReadOnlyList<Guid> roleIds = [];
         if (request.UserId is { } id)
         {
-            if (!(await users.FindAsync(id, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
+            if (!(await users.FindWithSupportAsync(id, owner, cancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
             {
                 return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", id)));
             }

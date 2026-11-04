@@ -249,9 +249,16 @@ async function savePermissions() {
 const canListUsers = computed(() => auth.can('identity.users.read'))
 const memberGroups = computed(() => [{ key: 'members', name: '', items: memberEditor.items.value }])
 
-/** 外部成员在 @用户名 后面带标记（4.x 同） */
+/** 外部成员、运维支持成员的标记（4.x 同）；运维支持成员注册在别处，先看它 */
+function memberMark(item: { isExternalMember: boolean, isSupportMember: boolean }): null | string {
+  if (item.isSupportMember)
+    return t('access.roles.member_support')
+  return item.isExternalMember ? t('access.roles.member_external') : null
+}
+
 function memberDescription(item: MemberCandidate): string {
-  return item.isExternalMember ? `@${item.userName} · ${t('access.roles.member_external')}` : `@${item.userName}`
+  const mark = memberMark(item)
+  return mark ? `@${item.userName} · ${mark}` : `@${item.userName}`
 }
 
 async function saveMembers() {
@@ -468,7 +475,7 @@ async function saveScope() {
                   </thead>
                   <tbody>
                     <tr v-for="item in detailView.members.value" :key="item.userId">
-                      <td>{{ item.isExternalMember ? `${item.displayName} · ${t('access.roles.member_external')}` : item.displayName }}</td>
+                      <td>{{ memberMark(item) ? `${item.displayName} · ${memberMark(item)}` : item.displayName }}</td>
                       <td>{{ item.userName }}</td>
                       <td>{{ memberStatusLabel(item.status) }}</td>
                       <td>{{ formatDate(item.assignedAt) }}</td>

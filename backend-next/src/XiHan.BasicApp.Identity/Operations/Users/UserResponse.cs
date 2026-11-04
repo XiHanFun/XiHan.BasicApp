@@ -30,6 +30,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="Remark">备注（本人在个人中心看到的个人简介是同一列）</param>
 /// <param name="LastLoginIp">最近一次登录的 IP</param>
 /// <param name="IsExternalMember">是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（<c>users.list / get / detail</c>）判定，其余响应为假</param>
+/// <param name="IsSupportMember">是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 <c>IsExternalMember</c> 也为真）。只有用户管理的查询判定，其余响应为假</param>
 public sealed record UserResponse(
     Guid Id,
     string UserName,
@@ -49,7 +50,8 @@ public sealed record UserResponse(
     string? Country,
     string? Remark,
     string? LastLoginIp,
-    bool IsExternalMember)
+    bool IsExternalMember,
+    bool IsSupportMember)
 {
     /// <summary>
     /// 由实体投影
@@ -61,7 +63,8 @@ public sealed record UserResponse(
     /// </summary>
     /// <param name="user">用户</param>
     /// <param name="tenantId">调用方所在的租户；平台一侧为空</param>
-    public static UserResponse From(SysUser user, string? tenantId)
+    /// <param name="isSupportMember">是不是调用方所在租户的运维支持成员</param>
+    public static UserResponse From(SysUser user, string? tenantId, bool isSupportMember = false)
     {
         ArgumentNullException.ThrowIfNull(user);
         return new UserResponse(
@@ -83,6 +86,7 @@ public sealed record UserResponse(
             user.Country,
             user.Remark,
             user.LastLoginIp,
-            tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal));
+            tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal),
+            isSupportMember);
     }
 }

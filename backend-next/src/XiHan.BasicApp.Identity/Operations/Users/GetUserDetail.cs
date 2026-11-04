@@ -105,13 +105,13 @@ public sealed class GetUserDetail(IRepository<SysUser, Guid> users, SideUsers si
         var tenantId = context.GetSecurity().Tenant?.Id;
         var found = tenantId is null
             ? await users.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)
-            : await sideUsers.FindAsync(request.Id, tenantId, context.CancellationToken).ConfigureAwait(false);
+            : await sideUsers.FindWithSupportAsync(request.Id, tenantId, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var user) || !(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false)).Allows(user.Id))
         {
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        var response = UserResponse.From(user, tenantId);
+        var response = UserResponse.From(user, tenantId, tenantId is not null && await sideUsers.IsSupportMemberAsync(user.Id, tenantId, context.CancellationToken).ConfigureAwait(false));
         UserSecurityDetailResponse? security = null;
         if (!response.IsExternalMember)
         {

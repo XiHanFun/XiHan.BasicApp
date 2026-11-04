@@ -9,6 +9,7 @@ import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XCombobox, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
+import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { constraintRules as constraintRulesApi, permissions as permissionsApi, policies as policiesApi, roles as rolesApi, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 import { formatDate } from '~/utils'
@@ -340,7 +341,7 @@ async function searchTargets(keyword = '') {
         break
       }
       case 'User': {
-        const page = await usersApi.list({ page: { index: 1, size: 50 }, filters: [], sorts: [], keyword: kw })
+        const page = await usersApi.list({ page: { index: 1, size: 50 }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [], keyword: kw })
         next = page.items.map(user => ({ value: user.id, label: user.displayName, description: `@${user.userName}` }))
         break
       }

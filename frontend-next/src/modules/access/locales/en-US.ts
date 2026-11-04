@@ -99,6 +99,7 @@ export default {
       members_target: 'Role members',
       members_search: 'Search name / username',
       member_external: 'External',
+      member_support: 'Support',
       members_save: 'Save members',
       members_no_change: 'No member changes',
       members_saved: 'Saved ({grant} added, {revoke} removed)',

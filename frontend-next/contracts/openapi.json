@@ -49386,6 +49386,10 @@
                     "isExternalMember": {
                       "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u672C\u79DF\u6237\uFF084.x \u540C\uFF09",
                       "type": "boolean"
+                    },
+                    "isSupportMember": {
+                      "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u672C\u79DF\u6237\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -49394,7 +49398,8 @@
                     "displayName",
                     "status",
                     "assignedAt",
-                    "isExternalMember"
+                    "isExternalMember",
+                    "isSupportMember"
                   ]
                 }
               }
@@ -55525,6 +55530,9 @@
                     },
                     "isExternalMember": {
                       "type": "boolean"
+                    },
+                    "isSupportMember": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -55536,7 +55544,8 @@
                     "createdAt",
                     "isSystemAccount",
                     "gender",
-                    "isExternalMember"
+                    "isExternalMember",
+                    "isSupportMember"
                   ]
                 }
               }
@@ -57562,6 +57571,10 @@
                     "isExternalMember": {
                       "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u6CE8\u518C\u5730\u7EF4\u62A4\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\uFF08users.list / get / detail\uFF09\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
                       "type": "boolean"
+                    },
+                    "isSupportMember": {
+                      "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u5E73\u53F0\u7EF4\u62A4\u3001\u53EA\u80FD\u914D\u89D2\u8272\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -57573,7 +57586,8 @@
                     "createdAt",
                     "isSystemAccount",
                     "gender",
-                    "isExternalMember"
+                    "isExternalMember",
+                    "isSupportMember"
                   ]
                 }
               }
@@ -57735,6 +57749,10 @@
                     "isExternalMember": {
                       "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u6CE8\u518C\u5730\u7EF4\u62A4\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\uFF08users.list / get / detail\uFF09\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
                       "type": "boolean"
+                    },
+                    "isSupportMember": {
+                      "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u5E73\u53F0\u7EF4\u62A4\u3001\u53EA\u80FD\u914D\u89D2\u8272\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -57746,7 +57764,8 @@
                     "createdAt",
                     "isSystemAccount",
                     "gender",
-                    "isExternalMember"
+                    "isExternalMember",
+                    "isSupportMember"
                   ]
                 }
               }
@@ -57988,6 +58007,10 @@
                     "isExternalMember": {
                       "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u6CE8\u518C\u5730\u7EF4\u62A4\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\uFF08users.list / get / detail\uFF09\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
                       "type": "boolean"
+                    },
+                    "isSupportMember": {
+                      "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u5E73\u53F0\u7EF4\u62A4\u3001\u53EA\u80FD\u914D\u89D2\u8272\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -57999,7 +58022,8 @@
                     "createdAt",
                     "isSystemAccount",
                     "gender",
-                    "isExternalMember"
+                    "isExternalMember",
+                    "isSupportMember"
                   ]
                 }
               }
@@ -72013,6 +72037,10 @@
           "isExternalMember": {
             "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u672C\u79DF\u6237\uFF084.x \u540C\uFF09",
             "type": "boolean"
+          },
+          "isSupportMember": {
+            "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u672C\u79DF\u6237\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09",
+            "type": "boolean"
           }
         },
         "required": [
@@ -72021,7 +72049,8 @@
           "displayName",
           "status",
           "assignedAt",
-          "isExternalMember"
+          "isExternalMember",
+          "isSupportMember"
         ]
       },
       "RoleRelativeResponse": {
@@ -73750,6 +73779,10 @@
             "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u6CE8\u518C\u5730\u7EF4\u62A4",
             "type": "boolean"
           },
+          "isSupportMember": {
+            "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u5E73\u53F0\u7EF4\u62A4\u3001\u53EA\u80FD\u914D\u89D2\u8272\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09",
+            "type": "boolean"
+          },
           "roleNames": {
             "description": "\u5F53\u524D\u4E00\u4FA7\u7684\u89D2\u8272\u540D\u79F0\uFF08\u542F\u7528\u7684\u89D2\u8272\u3001\u6B64\u523B\u5728\u6709\u6548\u671F\u5185\u7684\u6307\u6D3E\uFF09",
             "type": "array",
@@ -73783,6 +73816,7 @@
           "isSystemAccount",
           "gender",
           "isExternalMember",
+          "isSupportMember",
           "roleNames",
           "isLocked",
           "twoFactorEnabled"
@@ -73910,6 +73944,10 @@
           "isExternalMember": {
             "description": "\u662F\u5426\u5916\u90E8\u6210\u5458\uFF1A\u6CE8\u518C\u5728\u522B\u5904\u3001\u4EE5\u6210\u5458\u8EAB\u4EFD\u52A0\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u6CE8\u518C\u5730\u7EF4\u62A4\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\uFF08users.list / get / detail\uFF09\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
             "type": "boolean"
+          },
+          "isSupportMember": {
+            "description": "\u662F\u5426\u8FD0\u7EF4\u652F\u6301\u6210\u5458\uFF1A\u5E73\u53F0\u8D26\u53F7\u4EE5\u8FD0\u7EF4\u652F\u6301\u8EAB\u4EFD\u8FDB\u5165\u5F53\u524D\u79DF\u6237\uFF0C\u8D26\u53F7\u7531\u5E73\u53F0\u7EF4\u62A4\u3001\u53EA\u80FD\u914D\u89D2\u8272\uFF08\u8FD9\u65F6 IsExternalMember \u4E5F\u4E3A\u771F\uFF09\u3002\u53EA\u6709\u7528\u6237\u7BA1\u7406\u7684\u67E5\u8BE2\u5224\u5B9A\uFF0C\u5176\u4F59\u54CD\u5E94\u4E3A\u5047",
+            "type": "boolean"
           }
         },
         "required": [
@@ -73921,7 +73959,8 @@
           "createdAt",
           "isSystemAccount",
           "gender",
-          "isExternalMember"
+          "isExternalMember",
+          "isSupportMember"
         ]
       },
       "UserSecurityDetailResponse": {

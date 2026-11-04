@@ -2,6 +2,7 @@ import type { PermissionNameOf } from '../permissions/permission-names'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { RequestOf, ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
+import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { delegations as delegationsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
@@ -116,7 +117,7 @@ export function useDelegationEditor() {
     const seq = ++userSeq
     userLoading.value = true
     try {
-      const result = await usersApi.list({ page: { index: 1, size: 50 }, filters: [], sorts: [], keyword: keyword.trim() || null })
+      const result = await usersApi.list({ page: { index: 1, size: 50 }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [], keyword: keyword.trim() || null })
       if (seq === userSeq)
         userOptions.value = result.items.map(user => ({ value: user.id, label: user.displayName, description: `@${user.userName}` }))
     }

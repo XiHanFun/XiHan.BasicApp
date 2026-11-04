@@ -69,6 +69,16 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 - 账号本身只有注册地（或平台）能动：`users.update`、`users.reset-password`、`users.lock`、`users.disable`、`users.delete`、`users.reset-two-factor`、`users.set-login-policy` 在成员租户里一律按不存在回答。`users.detail` 不给账号安全一节，今日统计与当前会话只算这个租户里的。
 - 被移出租户时（`tenant-members.delete`）解除他在这个租户的角色，再加回来不带旧角色；部门归属与直授留着，人不在这一侧就用不上。成员关系到期不解除，只是看不到、用不上。
 
+### 运维支持成员
+
+生效中的运维支持成员不算租户内的用户，只进用户管理：
+
+- `users.list`、`users.get`、`users.detail` 带出他们，响应标 `isSupportMember`（注册在平台，`isExternalMember` 也为真）。别的选人入口用 `users.list` 的 `isSupportMember eq false` 筛掉他们。
+- 账号只读，与外部成员相同，由平台维护。
+- 能配本租户的角色（`roles.assign`、`roles.update-member`），切进租户后按角色使用；权限条件与访问策略的试算认他们。到期或被移出之后切不进去，留在里面的会话续签被拒（`IDENTITY_DENIED_006`）；被移出时解除角色，再加回来不带旧角色。
+- 不能配部门、数据范围与直授，也不能作为委托人、字段安全目标与约束规则目标。
+- 不占席位，不进模仿候选、群发收件人、工作流受理人与聊天目录。
+
 ## 套餐与配额
 
 `SysEdition` / `SysEditionGrant`：

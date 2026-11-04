@@ -57,6 +57,8 @@ const isPlatformCaller = () => auth.tenantId === null
 const isOwnSide = (row: UserRow) => row.isExternalMember || row.homeTenantId === (auth.tenantId ?? PLATFORM_TENANT_ID)
 /** 账号级操作（锁定、启停、重置、下线、删除）只对注册在这一侧的账号，外部成员由其注册地维护（4.x 同） */
 const isHomeAccount = (row: UserRow) => !row.isExternalMember
+/** 运维支持成员只能配角色：部门、数据范围、直授与模仿，后端都不算他们 */
+const isTenantUser = (row: UserRow) => !row.isSupportMember
 /** 后端拒绝对自己锁定、删除与模仿，入口随之收起 */
 const isSelf = (row: UserRow) => row.id === auth.user?.id
 
@@ -109,7 +111,9 @@ function renderUserInfo(row: UserRow) {
     h('div', { class: 'flex items-center gap-1' }, [
       h('span', { class: 'truncate text-body font-semibold text-fg' }, displayNameOf(row)),
       row.isSystemAccount ? renderTag(t('identity.users.system_account_tag'), 'warning') : null,
-      row.isExternalMember ? renderTag(t('identity.users.external_member_tag'), 'info') : null,
+      row.isSupportMember
+        ? renderTag(t('identity.users.support_member_tag'), 'info')
+        : row.isExternalMember ? renderTag(t('identity.users.external_member_tag'), 'info') : null,
     ]),
     h('div', { class: 'truncate text-caption text-fg-muted' }, `@${row.userName}`),
   ])
@@ -186,11 +190,11 @@ const schema = computed<PageSchema>(() => ({
     // 回显要读角色；指派只对同一侧的用户成立（平台角色给平台账号、租户角色给本租户用户）
     { key: 'assignRoles', title: t('identity.users.actions.assign_roles'), scope: 'row', icon: 'lucide:users-round', visible: row => isOwnSide(asRow(row)) && auth.can('access.roles.read'), permission: 'access.roles.assign' },
     // 直接授权只对同一侧的用户成立；数据范围覆盖只在租户侧
-    { key: 'grantPermissions', title: t('identity.users.actions.grant_permissions'), scope: 'row', icon: 'lucide:key-round', visible: row => isOwnSide(asRow(row)), permission: 'access.user-grants.read' },
-    { key: 'conditions', title: t('access.conditions.open'), scope: 'row', icon: 'lucide:filter', visible: row => isOwnSide(asRow(row)), permission: 'access.permission-conditions.read' },
-    { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)), permission: 'access.user-data-scopes.read' },
+    { key: 'grantPermissions', title: t('identity.users.actions.grant_permissions'), scope: 'row', icon: 'lucide:key-round', visible: row => isOwnSide(asRow(row)) && isTenantUser(asRow(row)), permission: 'access.user-grants.read' },
+    { key: 'conditions', title: t('access.conditions.open'), scope: 'row', icon: 'lucide:filter', visible: row => isOwnSide(asRow(row)) && isTenantUser(asRow(row)), permission: 'access.permission-conditions.read' },
+    { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)) && isTenantUser(asRow(row)), permission: 'access.user-data-scopes.read' },
     // 部门与岗位是租户侧数据：平台态不出这个入口
-    { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformCaller(), permission: 'organization.memberships.read' },
+    { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: row => !isPlatformCaller() && isTenantUser(asRow(row)), permission: 'organization.memberships.read' },
     { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Locked' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.lock' },
     { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Locked', permission: 'identity.users.lock' },
     { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Disabled' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.disable' },
@@ -201,7 +205,7 @@ const schema = computed<PageSchema>(() => ({
     // 列表带了双因素标记：没开的人不出这个入口（4.x 同）
     { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).twoFactorEnabled && !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
     // 模仿态里不能再模仿；目标须是正常状态的他人
-    { key: 'impersonate', title: t('identity.users.actions.impersonate'), scope: 'row', icon: 'lucide:user-round-cog', confirm: true, confirmText: row => t('identity.users.impersonate_content', { name: displayNameOf(asRow(row)) }), visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)), permission: 'identity.impersonation.start' },
+    { key: 'impersonate', title: t('identity.users.actions.impersonate'), scope: 'row', icon: 'lucide:user-round-cog', confirm: true, confirmText: row => t('identity.users.impersonate_content', { name: displayNameOf(asRow(row)) }), visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)) && isTenantUser(asRow(row)), permission: 'identity.impersonation.start' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.delete' },
   ],
 }))
@@ -453,7 +457,9 @@ const detailBadges = computed<{ label: string, tone: Tone, icon: string }[]>(() 
     if (security.failedAccessCount > 0)
       badges.push({ label: t('identity.users.badge.failed_login', { count: security.failedAccessCount }), tone: 'warning', icon: 'lucide:triangle-alert' })
   }
-  if (current.user.isExternalMember)
+  if (current.user.isSupportMember)
+    badges.push({ label: t('identity.users.badge.support_member'), tone: 'info', icon: 'lucide:building-2' })
+  else if (current.user.isExternalMember)
     badges.push({ label: t('identity.users.badge.external_member'), tone: 'info', icon: 'lucide:building-2' })
   return badges
 })
@@ -571,7 +577,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
           <Icon icon="lucide:building-2" width="16" height="16" />
         </XhAlertIndicator>
         <XhAlertContent>
-          <XhAlertDescription>{{ t('identity.users.form_external_hint') }}</XhAlertDescription>
+          <XhAlertDescription>{{ editor.editing.value?.isSupportMember ? t('identity.users.form_support_hint') : t('identity.users.form_external_hint') }}</XhAlertDescription>
         </XhAlertContent>
       </XhAlertRoot>
       <XhFormRoot :id="editFormId" class="xh-edit-form-grid" data-testid="user-form" @submit="onSubmit">

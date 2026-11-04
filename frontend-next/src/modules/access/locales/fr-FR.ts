@@ -99,6 +99,7 @@ export default {
       members_target: 'Membres du rôle',
       members_search: 'Rechercher un nom / nom d\'utilisateur',
       member_external: 'Externe',
+      member_support: 'Support',
       members_save: 'Enregistrer les membres',
       members_no_change: 'Aucune modification des membres',
       members_saved: 'Enregistré ({grant} ajoutés, {revoke} retirés)',

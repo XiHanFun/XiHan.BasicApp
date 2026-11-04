@@ -16,8 +16,8 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// 列出角色成员
 /// </summary>
 /// <remarks>
-/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要，标出外部成员
-/// 只列还在这一侧的人：外部成员的成员关系到期之后不再显示（指派留着，续上即恢复；被移出的指派已解除）
+/// <c>GET /api/roles/{id}:members</c>（声明只读，ADR-0041），带用户摘要，标出外部成员与运维支持成员
+/// 只列还在这一侧的人：外部成员与运维支持成员的成员关系到期之后不再显示（指派留着，续上即恢复；被移出的指派已解除）
 /// </remarks>
 /// <param name="service">角色域服务</param>
 /// <param name="members">指派仓储</param>
@@ -53,9 +53,10 @@ public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Gu
         }
 
         var assignments = rows.ToDictionary(static m => m.UserId);
-        var found = await users.FindManyAsync(rows.Select(static m => m.UserId).ToList(), owner, context.CancellationToken).ConfigureAwait(false);
+        var found = await users.FindManyWithSupportAsync(rows.Select(static m => m.UserId).ToList(), owner, context.CancellationToken).ConfigureAwait(false);
+        var support = await users.SupportMembersOfAsync(owner, context.CancellationToken).ConfigureAwait(false);
         var items = found
-            .Select(u => new RoleMemberResponse(u.Id, u.UserName, u.DisplayName, u.Status, assignments[u.Id].CreatedAt, assignments[u.Id].EffectiveAt, assignments[u.Id].ExpiresAt, !string.Equals(u.HomeTenantId, owner, StringComparison.Ordinal)))
+            .Select(u => new RoleMemberResponse(u.Id, u.UserName, u.DisplayName, u.Status, assignments[u.Id].CreatedAt, assignments[u.Id].EffectiveAt, assignments[u.Id].ExpiresAt, !string.Equals(u.HomeTenantId, owner, StringComparison.Ordinal), support.Contains(u.Id)))
             .OrderBy(static m => m.UserName, StringComparer.Ordinal)
             .ToList();
         return new RoleMembersResponse(items, total - (rows.Count - items.Count));

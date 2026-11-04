@@ -229,6 +229,14 @@ describe('useRoleMemberEditor', () => {
     expect(mergeMemberCandidates([], [])).toEqual([])
   })
 
+  it('运维支持成员在候选与现有成员里都带标记', () => {
+    const items = mergeMemberCandidates(
+      [{ id: 'u-1', displayName: 'Ops', userName: 'ops', isExternalMember: true, isSupportMember: true }] as never,
+      [{ ...member('u-2', 'ops2'), isExternalMember: true, isSupportMember: true }, { ...member('u-3', 'carol'), isExternalMember: true, isSupportMember: false }] as never,
+    )
+    expect(items.map(item => [item.basicId, item.isSupportMember])).toEqual([['u-1', true], ['u-2', true], ['u-3', false]])
+  })
+
   it('外部成员在候选与现有成员里都带标记', () => {
     const items = mergeMemberCandidates(
       [{ id: 'u-1', displayName: 'Alice', userName: 'alice', isExternalMember: true }, { id: 'u-2', displayName: 'Bob', userName: 'bob', isExternalMember: false }] as never,

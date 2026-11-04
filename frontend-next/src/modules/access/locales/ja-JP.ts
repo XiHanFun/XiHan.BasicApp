@@ -99,6 +99,7 @@ export default {
       members_target: '追加済みのメンバー',
       members_search: '氏名 / ユーザー名で検索',
       member_external: '外部メンバー',
+      member_support: '運用サポート',
       members_save: 'メンバーを保存',
       members_no_change: 'メンバーに変更はありません',
       members_saved: '保存しました（追加 {grant} 人、削除 {revoke} 人）',

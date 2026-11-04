@@ -99,6 +99,7 @@ export default {
       members_target: '추가된 멤버',
       members_search: '이름 / 사용자 이름 검색',
       member_external: '외부 멤버',
+      member_support: '운영 지원',
       members_save: '멤버 저장',
       members_no_change: '멤버에 변경 사항이 없어요',
       members_saved: '저장했어요(추가 {grant}명, 제외 {revoke}명)',

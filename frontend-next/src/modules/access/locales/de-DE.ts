@@ -99,6 +99,7 @@ export default {
       members_target: 'Rollenmitglieder',
       members_search: 'Name / Benutzername suchen',
       member_external: 'Extern',
+      member_support: 'Support',
       members_save: 'Mitglieder speichern',
       members_no_change: 'Keine Mitgliederänderungen',
       members_saved: 'Gespeichert ({grant} hinzugefügt, {revoke} entfernt)',

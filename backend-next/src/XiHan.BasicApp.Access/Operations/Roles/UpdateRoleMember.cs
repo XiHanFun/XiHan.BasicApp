@@ -69,7 +69,7 @@ public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRol
         var roleId = role.Id;
         var userId = request.UserId;
         var rows = await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId && m.UserId == userId)), context.CancellationToken).ConfigureAwait(false);
-        if (rows.Count == 0 || !(await users.FindAsync(userId, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
+        if (rows.Count == 0 || !(await users.FindWithSupportAsync(userId, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
         {
             return Error.NotFound(AccessErrors.MemberNotFound, AccessMessages.MemberNotFound, MessageArguments.Of(("id", userId)));
         }
@@ -105,6 +105,6 @@ public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRol
             TargetUserName = user.UserName,
             Detail = string.Create(CultureInfo.InvariantCulture, $"{request.EffectiveAt:O} -> {request.ExpiresAt:O}"),
         });
-        return new RoleMemberResponse(user.Id, user.UserName, user.DisplayName, user.Status, row.CreatedAt, row.EffectiveAt, row.ExpiresAt, !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal));
+        return new RoleMemberResponse(user.Id, user.UserName, user.DisplayName, user.Status, row.CreatedAt, row.EffectiveAt, row.ExpiresAt, !string.Equals(user.HomeTenantId, owner, StringComparison.Ordinal), await users.IsSupportMemberAsync(user.Id, owner, context.CancellationToken).ConfigureAwait(false));
     }
 }

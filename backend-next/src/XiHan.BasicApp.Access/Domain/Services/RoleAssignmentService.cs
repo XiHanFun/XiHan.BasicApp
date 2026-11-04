@@ -54,7 +54,7 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
         }
 
         var roleId = role.Id;
-        var found = (await users.FindManyAsync(request.UserIds, owner, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
+        var found = (await users.FindManyWithSupportAsync(request.UserIds, owner, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
         var existing = (await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), context.CancellationToken).ConfigureAwait(false)).Select(static m => m.UserId).ToHashSet();
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();

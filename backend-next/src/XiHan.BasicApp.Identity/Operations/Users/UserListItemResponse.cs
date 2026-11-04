@@ -31,6 +31,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="Remark">备注</param>
 /// <param name="LastLoginIp">最近一次登录的 IP</param>
 /// <param name="IsExternalMember">是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护</param>
+/// <param name="IsSupportMember">是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 <c>IsExternalMember</c> 也为真）</param>
 /// <param name="RoleNames">当前一侧的角色名称（启用的角色、此刻在有效期内的指派）</param>
 /// <param name="DepartmentName">主部门名称（没标主部门时取最早加入的）；平台一侧为空</param>
 /// <param name="IsLocked">是否锁定：管理员锁定或登录失败锁定期内</param>
@@ -55,6 +56,7 @@ public sealed record UserListItemResponse(
     string? Remark,
     string? LastLoginIp,
     bool IsExternalMember,
+    bool IsSupportMember,
     IReadOnlyList<string> RoleNames,
     string? DepartmentName,
     bool IsLocked,
@@ -87,6 +89,7 @@ public sealed record UserListItemResponse(
             user.Remark,
             user.LastLoginIp,
             user.IsExternalMember,
+            user.IsSupportMember,
             roleNames,
             departmentName,
             isLocked,

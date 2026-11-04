@@ -1,6 +1,7 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
+import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { departments as departmentsApi, fieldSecurity as fieldSecurityApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
@@ -200,7 +201,7 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
       let next: TargetOption[]
       switch (form.targetKind) {
         case 'User': {
-          const result = await usersApi.list({ page: { index: 1, size: 50 }, filters: [], sorts: [], keyword: kw })
+          const result = await usersApi.list({ page: { index: 1, size: 50 }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [], keyword: kw })
           next = result.items.map(user => ({ value: user.id, label: user.displayName, description: `@${user.userName}` }))
           break
         }
