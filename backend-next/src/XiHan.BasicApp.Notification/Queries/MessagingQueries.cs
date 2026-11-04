@@ -6,6 +6,7 @@ using SqlSugar;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Notification.Domain.Entities;
+using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Operations.BotConfigs;
 using XiHan.BasicApp.Notification.Operations.Messaging;
 using XiHan.BasicApp.Notification.Operations.TelegramBots;
@@ -22,7 +23,8 @@ namespace XiHan.BasicApp.Notification.Queries;
 /// 筛选与排序逐个登记，未登记的报 <c>NOTIFICATION_VALIDATION_005</c>
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
-public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
+/// <param name="bots">机器人配置服务</param>
+public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork, BotConfigService bots)
 {
     /// <summary>
     /// 分页列出消息模板
@@ -154,7 +156,7 @@ public sealed class MessagingQueries(SqlSugarUnitOfWork unitOfWork)
             "order" => q.OrderBy(c => c.Order, d),
             "createdAt" => q.OrderBy(c => c.CreatedAt, d),
             _ => null,
-        }, static q => q.OrderBy(c => c.Provider).OrderBy(c => c.IsDefault, OrderByType.Desc).OrderBy(c => c.Order).OrderBy(c => c.Code), BotConfigResponse.From);
+        }, static q => q.OrderBy(c => c.Provider).OrderBy(c => c.IsDefault, OrderByType.Desc).OrderBy(c => c.Order).OrderBy(c => c.Code), c => BotConfigResponse.From(c, bots));
     }
 
     /// <summary>

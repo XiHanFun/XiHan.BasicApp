@@ -30,11 +30,13 @@ public sealed record BotConfigResponse(Guid Id, string Code, string Name, BotPro
     /// 从实体投影
     /// </summary>
     /// <param name="c">配置</param>
+    /// <param name="service">配置服务（解开地址才知道主机）</param>
     /// <returns>响应</returns>
-    public static BotConfigResponse From(SysBotConfig c)
+    public static BotConfigResponse From(SysBotConfig c, BotConfigService service)
     {
         ArgumentNullException.ThrowIfNull(c);
-        return new(c.Id, c.Code, c.Name, c.Provider, BotConfigService.MaskWebhook(c.WebhookUrl), c.Secret is not null, c.Keyword, c.IsDefault, c.IsEnabled, c.Order, c.Remark, c.CreatedAt, c.ModifiedAt);
+        ArgumentNullException.ThrowIfNull(service);
+        return new(c.Id, c.Code, c.Name, c.Provider, service.MaskedWebhookOf(c), c.Secret is not null, c.Keyword, c.IsDefault, c.IsEnabled, c.Order, c.Remark, c.CreatedAt, c.ModifiedAt);
     }
 }
 

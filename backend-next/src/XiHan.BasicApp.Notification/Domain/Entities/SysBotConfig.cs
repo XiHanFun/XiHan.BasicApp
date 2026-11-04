@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// <remarks>
 /// 钉钉、飞书或企业微信的 Webhook 地址、签名密钥与安全关键词
 /// 每个服务商在一侧有一个缺省机器人，通知按机器人渠道发到本侧每个服务商的缺省机器人；租户没有就不发（不借平台的机器人，4.x 同）
-/// 签名密钥加密存储，响应里不回显
+/// Webhook 地址与签名密钥加密存储，响应里不回显（地址只给主机）
 /// </remarks>
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]
 public sealed class SysBotConfig : AppAuditedEntity, IOwnedByTenant
@@ -38,12 +38,13 @@ public sealed class SysBotConfig : AppAuditedEntity, IOwnedByTenant
     public BotProvider Provider { get; set; } = BotProvider.DingTalk;
 
     /// <summary>
-    /// 完整的 Webhook 地址
+    /// 完整的 Webhook 地址（密文）
     /// </summary>
     /// <remarks>
-    /// 钉钉带 <c>access_token</c>、飞书带机器人令牌、企业微信带 <c>key</c>
+    /// 钉钉带 <c>access_token</c>、飞书带机器人令牌、企业微信带 <c>key</c>，拿到就能往群里发消息
+    /// 请求限 500 字符，全是三字节字符的最长地址加密后约 2100 字符
     /// </remarks>
-    [StringLength(500)]
+    [StringLength(2500)]
     public string WebhookUrl { get; set; } = string.Empty;
 
     /// <summary>

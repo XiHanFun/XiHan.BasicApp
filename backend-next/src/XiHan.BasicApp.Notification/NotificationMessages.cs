@@ -412,6 +412,14 @@ public static class NotificationMessages
     public const string BotWebhookInvalid = "notification.bot_config.webhook_invalid";
 
     /// <summary>
+    /// 机器人的 Webhook 地址解不开（密钥环变了，或库里是没加密的旧值）
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>
+    /// </remarks>
+    public const string BotWebhookUnreadable = "notification.bot_config.webhook_unreadable";
+
+    /// <summary>
     /// 消息模板不存在（或不在当前一侧）
     /// </summary>
     /// <remarks>

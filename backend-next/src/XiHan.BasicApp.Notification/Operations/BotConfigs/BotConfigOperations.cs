@@ -49,7 +49,7 @@ public sealed class GetBotConfig(BotConfigService service) : IOperation<Messagin
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var found = await service.FindAsync(SideRows.SideOf(context), request.Id, context.CancellationToken).ConfigureAwait(false);
-        return found.TryGetValue(out var config) ? BotConfigResponse.From(config) : found.Error!;
+        return found.TryGetValue(out var config) ? BotConfigResponse.From(config, service) : found.Error!;
     }
 }
 
@@ -74,7 +74,7 @@ public sealed class CreateBotConfig(BotConfigService service) : IOperation<Creat
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var created = await service.CreateAsync(SideRows.SideOf(context), request.Code, request.ToDraft(), context.CancellationToken).ConfigureAwait(false);
-        return created.TryGetValue(out var config) ? BotConfigResponse.From(config) : created.Error!;
+        return created.TryGetValue(out var config) ? BotConfigResponse.From(config, service) : created.Error!;
     }
 }
 
@@ -82,7 +82,7 @@ public sealed class CreateBotConfig(BotConfigService service) : IOperation<Creat
 /// 修改机器人配置
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/bot-configs/{id}</c>（签名密钥不填即保留；缺省的不能停用也不能换服务商）
+/// <c>PUT /api/bot-configs/{id}</c>（签名密钥不填即保留；缺省的不能停用也不能换服务商；交回遮过的地址即保留，原地址解不开时 <c>NOTIFICATION_UNAVAILABLE_004</c>）
 /// </remarks>
 /// <param name="service">配置服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.BotConfigsUpdate)]
@@ -105,7 +105,7 @@ public sealed class UpdateBotConfig(BotConfigService service) : IOperation<Updat
         }
 
         var updated = await service.UpdateAsync(config, request.ToDraft(), context.CancellationToken).ConfigureAwait(false);
-        return updated.IsFailure ? updated.Error! : BotConfigResponse.From(config);
+        return updated.IsFailure ? updated.Error! : BotConfigResponse.From(config, service);
     }
 }
 
@@ -136,7 +136,7 @@ public sealed class SetDefaultBotConfig(BotConfigService service) : IOperation<M
         }
 
         var set = await service.SetDefaultAsync(config, context.CancellationToken).ConfigureAwait(false);
-        return set.IsFailure ? set.Error! : BotConfigResponse.From(config);
+        return set.IsFailure ? set.Error! : BotConfigResponse.From(config, service);
     }
 }
 

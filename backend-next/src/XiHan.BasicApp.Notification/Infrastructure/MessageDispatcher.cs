@@ -213,24 +213,30 @@ public sealed partial class MessageDispatcher(
             return;
         }
 
-        var (record, endpoint) = await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        var (record, endpoint, unreadable) = await StoreScope.ReadAsync(scopes, async (services, ct) =>
         {
             var row = await services.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysBotMessage)).Queryable<SysBotMessage>().InSingleAsync(id).ConfigureAwait(false);
             if (row?.ConfigId is not { } configId)
             {
-                return (row, (BotEndpoint?)null);
+                return (row, (BotEndpoint?)null, (string?)null);
             }
 
             if (row.Channel == BotChannel.Telegram)
             {
                 var telegram = services.GetRequiredService<TelegramBotService>();
                 var bot = await telegram.FindAsync(configId, ct).ConfigureAwait(false);
-                return (row, bot.TryGetValue(out var b) && b.IsEnabled && row.ChatId is { } chat ? telegram.EndpointOf(b, chat) : null);
+                return (row, bot.TryGetValue(out var b) && b.IsEnabled && row.ChatId is { } chat ? telegram.EndpointOf(b, chat) : null, (string?)null);
             }
 
             var configs = services.GetRequiredService<BotConfigService>();
             var found = await configs.FindAsync(row.OwnerTenantId, configId, ct).ConfigureAwait(false);
-            return (row, found.TryGetValue(out var config) && config.IsEnabled ? configs.EndpointOf(config) : null);
+            if (!found.TryGetValue(out var config) || !config.IsEnabled)
+            {
+                return (row, (BotEndpoint?)null, (string?)null);
+            }
+
+            var opened = configs.EndpointOf(config);
+            return opened.TryGetValue(out var target) ? (row, target, (string?)null) : (row, (BotEndpoint?)null, opened.Error!.Message);
         }, cancellationToken).ConfigureAwait(false);
         if (record is null)
         {
@@ -238,11 +244,13 @@ public sealed partial class MessageDispatcher(
         }
 
         var transport = _bots.FirstOrDefault(t => t.Channel == record.Channel);
-        var result = endpoint is null
-            ? TransportResult.Failed("The bot configuration was disabled or deleted.")
-            : transport is null
-                ? TransportResult.Failed($"No transport for bot channel '{record.Channel}'.")
-                : await transport.SendAsync(endpoint, record.Content, cancellationToken).ConfigureAwait(false);
+        var result = unreadable is not null
+            ? TransportResult.Failed(unreadable)
+            : endpoint is null
+                ? TransportResult.Failed("The bot configuration was disabled or deleted.")
+                : transport is null
+                    ? TransportResult.Failed($"No transport for bot channel '{record.Channel}'.")
+                    : await transport.SendAsync(endpoint, record.Content, cancellationToken).ConfigureAwait(false);
         await FinishAsync<SysBotMessage>(record, record.ConfigId, result, provider: null, cancellationToken).ConfigureAwait(false);
     }
 

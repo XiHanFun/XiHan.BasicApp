@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Notification.Domain.Entities;
+using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Operations.BotConfigs;
 using XiHan.BasicApp.Notification.Operations.EmailConfigs;
 using XiHan.BasicApp.Notification.Operations.Emails;
@@ -61,7 +62,7 @@ public static class NotificationFieldSecurity
             .Entity<BotConfigResponse>("notification.bot-configs", "notification.bot_configs.title", "notification.bot_configs.columns.")
                 .Reads(ListBotConfigs.Id, GetBotConfig.Id)
                 .Creates(CreateBotConfig.Id)
-                .Updates<UpdateBotConfigRequest>(UpdateBotConfig.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysBotConfig>(context, request.Id, BotConfigResponse.From))
+                .Updates<UpdateBotConfigRequest>(UpdateBotConfig.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysBotConfig>(context, request.Id, config => BotConfigResponse.From(config, context.Services.GetRequiredService<BotConfigService>())))
                 .Keyword("code", "name")
             .Entity<TelegramBotResponse>("notification.telegram-bots", "notification.telegram_bots.title", "notification.telegram_bots.columns.")
                 .Reads(ListTelegramBots.Id, GetTelegramBot.Id)

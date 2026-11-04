@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "Der Befehl „{item}“ ist ungültig: nur Kleinbuchstaben, Ziffern und Unterstriche, höchstens 32.",
   "notification.bot_config.not_found": "Die Bot-Konfiguration {id} existiert nicht.",
   "notification.bot_config.webhook_invalid": "Die Webhook-Adresse {url} muss eine offizielle https-Adresse des gewählten Anbieters sein.",
+  "notification.bot_config.webhook_unreadable": "Die Webhook-Adresse von Bot '{code}' kann nicht entschlüsselt werden; die Datenschutzschlüssel haben sich möglicherweise geändert, oder es ist ein alter unverschlüsselter Wert. Geben Sie die vollständige Adresse erneut ein.",
   "notification.template.not_found": "Die Nachrichtenvorlage {id} existiert nicht.",
   "notification.template.other_side": "Die Nachrichtenvorlage {id} gehört zur Plattform und wird dort gepflegt; ein Mandant, der anderen Inhalt braucht, legt zum Überschreiben eine Vorlage mit demselben Code an.",
   "notification.email_config.not_found": "Die E-Mail-Konfiguration {id} existiert nicht.",

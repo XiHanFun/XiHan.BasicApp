@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "命令「{item}」不合法：只能是小寫字母、數字與底線，最長 32。",
   "notification.bot_config.not_found": "機器人設定 {id} 不存在。",
   "notification.bot_config.webhook_invalid": "Webhook 位址 {url} 須是所選服務商的官方 https 位址。",
+  "notification.bot_config.webhook_unreadable": "機器人「{code}」的 Webhook 位址無法解密，可能是資料保護金鑰變了，或是未加密的舊資料，請重新填寫完整位址。",
   "notification.template.not_found": "訊息範本 {id} 不存在。",
   "notification.template.other_side": "訊息範本 {id} 屬於平台，只能在平台維護；租戶需要不同的內容請建立同編碼的範本覆蓋。",
   "notification.email_config.not_found": "郵件設定 {id} 不存在。",

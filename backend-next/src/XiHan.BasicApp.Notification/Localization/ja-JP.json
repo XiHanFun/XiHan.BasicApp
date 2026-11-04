@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "コマンド「{item}」は無効です。小文字・数字・アンダースコアのみ、32 文字以内にしてください。",
   "notification.bot_config.not_found": "ボット設定 {id} は存在しません。",
   "notification.bot_config.webhook_invalid": "Webhook アドレス {url} は選んだ事業者の公式 https アドレスにしてください。",
+  "notification.bot_config.webhook_unreadable": "ボット '{code}' の Webhook アドレスを復号できません。データ保護キーが変わったか、暗号化されていない古い値の可能性があります。完全なアドレスをもう一度入力してください。",
   "notification.template.not_found": "メッセージテンプレート {id} は存在しません。",
   "notification.template.other_side": "メッセージテンプレート {id} はプラットフォームのもので、プラットフォームでのみ管理できます。テナントで内容を変えるには同じコードのテンプレートを作成して上書きしてください。",
   "notification.email_config.not_found": "メール設定 {id} は存在しません。",

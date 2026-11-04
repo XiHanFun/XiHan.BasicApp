@@ -31,7 +31,7 @@ public sealed record BotConfigDraft(string Name, BotProvider Provider, string We
 /// </summary>
 /// <remarks>
 /// 编码在同一侧唯一、建好不改；每侧每个服务商至多一个缺省，这个服务商的第一个自动成为缺省；缺省的须启用，不能停用或删除；
-/// Webhook 地址只认各服务商的官方 https 地址（租户能填的地址不许指向别处）；发送只用本侧的，不借平台的机器人。签名密钥加密存储
+/// Webhook 地址只认各服务商的官方 https 地址（租户能填的地址不许指向别处）；发送只用本侧的，不借平台的机器人。Webhook 地址与签名密钥加密存储
 /// </remarks>
 /// <param name="bots">配置仓储</param>
 /// <param name="secrets">密钥保护</param>
@@ -42,6 +42,11 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     /// 签名密钥的加密用途
     /// </summary>
     public const string SecretPurpose = "XiHan.BasicApp.Notification.BotSecret";
+
+    /// <summary>
+    /// Webhook 地址的加密用途
+    /// </summary>
+    public const string WebhookPurpose = "XiHan.BasicApp.Notification.BotWebhook";
 
     /// <summary>
     /// 各服务商的官方 Webhook 主机
@@ -91,20 +96,21 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     public async Task<Result<SysBotConfig>> CreateAsync(string owner, string code, BotConfigDraft draft, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(draft);
-        var valid = Validate(draft);
+        var webhook = draft.WebhookUrl.Trim();
+        var valid = Validate(draft.Provider, webhook);
         if (valid.IsFailure)
         {
             return valid.Error!;
         }
 
-        var existing = await bots.ListAsync(EntityQuery.All<SysBotConfig>().Where(new Specification<SysBotConfig>(c => c.OwnerTenantId == owner)), cancellationToken).ConfigureAwait(false);
+        var existing =await bots.ListAsync(EntityQuery.All<SysBotConfig>().Where(new Specification<SysBotConfig>(c => c.OwnerTenantId == owner)), cancellationToken).ConfigureAwait(false);
         if (existing.Any(c => string.Equals(c.Code, code, StringComparison.Ordinal)))
         {
             return Error.Conflict(NotificationErrors.ConfigCodeTaken, NotificationMessages.ConfigCodeTaken, MessageArguments.Of(("code", code)));
         }
 
         var config = new SysBotConfig { Id = ids.NewId(), OwnerTenantId = owner, Code = code, IsDefault = !existing.Any(c => c.Provider == draft.Provider && c.IsDefault) };
-        Apply(config, draft);
+        Apply(config, draft, webhook);
         config.IsEnabled = config.IsEnabled || config.IsDefault;
         var added = await bots.AddAsync(config, cancellationToken).ConfigureAwait(false);
         return added.IsFailure ? added.Error! : config;
@@ -114,7 +120,7 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     /// 修改机器人配置
     /// </summary>
     /// <remarks>
-    /// 编码不改；缺省的不能停用，也不能换服务商
+    /// 编码不改；缺省的不能停用，也不能换服务商；交回遮过的地址即保留原地址，原地址解不开时要重新填（<c>NOTIFICATION_UNAVAILABLE_004</c>）
     /// </remarks>
     /// <param name="config">配置</param>
     /// <param name="draft">内容</param>
@@ -124,7 +130,23 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     {
         ArgumentNullException.ThrowIfNull(config);
         ArgumentNullException.ThrowIfNull(draft);
-        var valid = Validate(draft);
+        var webhook = draft.WebhookUrl.Trim();
+        if (IsMasked(webhook))
+        {
+            if (WebhookOf(config) is not { } stored)
+            {
+                return WebhookUnreadable(config.Code);
+            }
+
+            if (!string.Equals(webhook, MaskWebhook(stored), StringComparison.OrdinalIgnoreCase))
+            {
+                return WebhookInvalid(webhook);
+            }
+
+            webhook = stored;
+        }
+
+        var valid = Validate(draft.Provider, webhook);
         if (valid.IsFailure)
         {
             return valid;
@@ -135,7 +157,7 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
             return DefaultLocked(config.Code);
         }
 
-        Apply(config, draft);
+        Apply(config, draft, webhook);
         return await bots.UpdateAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
@@ -214,18 +236,37 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     }
 
     /// <summary>
-    /// 发送用的机器人（签名密钥解密）
+    /// 发送用的机器人（Webhook 地址与签名密钥解密）
     /// </summary>
     /// <remarks>
-    /// 签名密钥解不开按不签名处理，由服务商拒绝
+    /// 地址解不开就发不了，不把库里的值当明文用；签名密钥解不开按不签名处理，由服务商拒绝
     /// </remarks>
     /// <param name="config">配置</param>
-    /// <returns>机器人</returns>
-    public BotEndpoint EndpointOf(SysBotConfig config)
+    /// <returns>机器人；地址解不开即 <c>NOTIFICATION_UNAVAILABLE_004</c></returns>
+    public Result<BotEndpoint> EndpointOf(SysBotConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
+        if (WebhookOf(config) is not { } webhook)
+        {
+            return WebhookUnreadable(config.Code);
+        }
+
         var secret = config.Secret is not null && secrets.TryUnprotect(SecretPurpose, config.Secret, out var plain) ? plain : null;
-        return new BotEndpoint((BotChannel)(int)config.Provider, config.WebhookUrl, secret, config.Keyword);
+        return new BotEndpoint((BotChannel)(int)config.Provider, webhook, secret, config.Keyword);
+    }
+
+    /// <summary>
+    /// 响应里的 Webhook 地址
+    /// </summary>
+    /// <remarks>
+    /// 只给主机；解不开只给 <c>***</c>，列表照常能看、能改这一行
+    /// </remarks>
+    /// <param name="config">配置</param>
+    /// <returns>遮掉之后的地址</returns>
+    public string MaskedWebhookOf(SysBotConfig config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return MaskWebhook(WebhookOf(config) ?? string.Empty);
     }
 
     /// <summary>
@@ -239,25 +280,34 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
     public static string MaskWebhook(string webhook)
         => Uri.TryCreate(webhook, UriKind.Absolute, out var uri) ? $"{uri.Scheme}://{uri.Host}/***" : "***";
 
-    private static Result Validate(BotConfigDraft draft)
-        => Uri.TryCreate(draft.WebhookUrl.Trim(), UriKind.Absolute, out var uri)
+    private static bool IsMasked(string webhook) => string.Equals(webhook, MaskWebhook(webhook), StringComparison.OrdinalIgnoreCase);
+
+    private static Result Validate(BotProvider provider, string webhook)
+        => !IsMasked(webhook)
+            && Uri.TryCreate(webhook, UriKind.Absolute, out var uri)
             && string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal)
             && uri.IsDefaultPort
-            && _hosts.TryGetValue(draft.Provider, out var hosts)
+            && _hosts.TryGetValue(provider, out var hosts)
             && hosts.Contains(uri.Host, StringComparer.OrdinalIgnoreCase)
             ? Result.Success()
-            : Error.Validation(NotificationErrors.BotWebhookInvalid, NotificationMessages.BotWebhookInvalid, MessageArguments.Of(("url", draft.WebhookUrl)));
+            : WebhookInvalid(webhook);
+
+    // 错误参数会进操作日志，地址里的令牌不能跟着进去
+    private static Error WebhookInvalid(string webhook) => Error.Validation(NotificationErrors.BotWebhookInvalid, NotificationMessages.BotWebhookInvalid, MessageArguments.Of(("url", MaskWebhook(webhook))));
+
+    private static Error WebhookUnreadable(string code) => Error.Unavailable(NotificationErrors.BotWebhookUnreadable, NotificationMessages.BotWebhookUnreadable, MessageArguments.Of(("code", code)));
 
     private static Error DefaultLocked(string code) => Error.Conflict(NotificationErrors.DefaultConfigLocked, NotificationMessages.DefaultConfigLocked, MessageArguments.Of(("code", code)));
 
-    private void Apply(SysBotConfig config, BotConfigDraft draft)
+    private string? WebhookOf(SysBotConfig config) => secrets.TryUnprotect(WebhookPurpose, config.WebhookUrl, out var webhook) ? webhook : null;
+
+    private void Apply(SysBotConfig config, BotConfigDraft draft, string webhook)
     {
         config.Name = draft.Name.Trim();
         config.Provider = draft.Provider;
-        var webhook = draft.WebhookUrl.Trim();
-        if (!string.Equals(webhook, MaskWebhook(config.WebhookUrl), StringComparison.Ordinal))
+        if (!string.Equals(webhook, WebhookOf(config), StringComparison.Ordinal))
         {
-            config.WebhookUrl = webhook;
+            config.WebhookUrl = secrets.Protect(WebhookPurpose, webhook);
         }
 
         if (!string.IsNullOrEmpty(draft.Secret))

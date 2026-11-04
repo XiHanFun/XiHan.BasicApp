@@ -2,14 +2,23 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Reflection;
 using System.Text.Json;
 using System.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Notification.Domain.Entities;
+using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Runtime.Security;
+using XiHan.Framework.Persistence.Abstractions.Queries;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Persistence.SqlSugar;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -18,12 +27,16 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// Webhook 只认各服务商的官方 https 地址；每个服务商一个缺省，缺省的不能删、停用或换服务商；签名密钥不回显；
+/// Webhook 地址加密存储，投递时解开，解不开就不发、不当明文用，别的一侧读不到也用不了；
 /// 通知的机器人渠道发到本侧每个服务商的缺省机器人（经发件箱，由发送循环发出），租户没有自己的机器人即不可用（不借平台的）；
 /// Telegram 机器人只在平台、令牌不回显，广播到每个启用的机器人的每个广播群；三家群机器人通道的地址、签名与载荷（Telegram 的出站在 TelegramTests）
 /// </remarks>
 public sealed class BotTests : IDisposable
 {
     private const string TelegramToken = "123456789:AAEexampleTOKEN_for-tests-only0";
+    private const string WebhookToken = "plain-webhook-token";
+    private const string Webhook = "https://oapi.dingtalk.com/robot/send?access_token=" + WebhookToken;
+    private const string MaskedWebhook = "https://oapi.dingtalk.com/***";
 
     private static readonly string[] _withBot = ["InApp", "Bot"];
 
@@ -160,6 +173,137 @@ public sealed class BotTests : IDisposable
     }
 
     [Fact]
+    public async Task WebhookUrl_IsEncryptedAtRest_AndDeliveredDecrypted()
+    {
+        var (server, platform, _) = await StartWithFakeTransportsAsync();
+        await using var running = server;
+        var created = await CreatedAsync(server, "/api/bot-configs", new { code = "ding", name = "Ding", provider = "DingTalk", webhookUrl = Webhook }, platform);
+        var id = created.GetProperty("id").GetString()!;
+
+        // 库里是密文，换个用途解不开；响应照旧只给主机
+        var stored = await StoredWebhookAsync(server, id);
+        Assert.StartsWith("dp:", stored, StringComparison.Ordinal);
+        Assert.DoesNotContain(WebhookToken, stored, StringComparison.Ordinal);
+        var secrets = server.Services.GetRequiredService<ISecretProtector>();
+        Assert.True(secrets.TryUnprotect(BotConfigService.WebhookPurpose, stored, out var opened));
+        Assert.Equal(Webhook, opened);
+        Assert.False(secrets.TryUnprotect(BotConfigService.SecretPurpose, stored, out _));
+        Assert.Equal(MaskedWebhook, created.GetProperty("webhookUrl").GetString());
+        Assert.Equal(MaskedWebhook, (await SendAsync(server, HttpMethod.Get, $"/api/bot-configs/{id}", null, platform)).Body.GetProperty("webhookUrl").GetString());
+        Assert.Equal(MaskedWebhook, (await SendAsync(server, HttpMethod.Post, "/api/bot-configs:list", "{}", platform)).Body.GetProperty("items")[0].GetProperty("webhookUrl").GetString());
+
+        // 交回遮过的值或原地址都不改库里的值（差异日志没有变化）
+        foreach (var same in new[] { MaskedWebhook, Webhook })
+        {
+            Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{id}", new { name = "Ding", provider = "DingTalk", webhookUrl = same }, platform)).Status);
+            Assert.Equal(stored, await StoredWebhookAsync(server, id));
+        }
+
+        // 遮过的值不是地址：新建不接受，主机对不上也不算保留；错误里不带地址里的令牌（错误参数会进操作日志）
+        Assert.Equal("NOTIFICATION_VALIDATION_011", (await SendAsync(server, HttpMethod.Post, "/api/bot-configs", new { code = "masked", name = "Masked", provider = "DingTalk", webhookUrl = MaskedWebhook }, platform)).Body.GetProperty("code").GetString());
+        Assert.Equal("NOTIFICATION_VALIDATION_011", (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{id}", new { name = "Ding", provider = "DingTalk", webhookUrl = "https://open.feishu.cn/***" }, platform)).Body.GetProperty("code").GetString());
+        var refused = (await SendAsync(server, HttpMethod.Post, "/api/bot-configs", new { code = "wrong", name = "Wrong", provider = "Lark", webhookUrl = Webhook }, platform)).Body;
+        Assert.Equal("NOTIFICATION_VALIDATION_011", refused.GetProperty("code").GetString());
+        Assert.DoesNotContain(WebhookToken, refused.ToString(), StringComparison.Ordinal);
+        Assert.Equal(stored, await StoredWebhookAsync(server, id));
+
+        // 发送用解开的地址
+        await PublishAsync(server, "First", platform);
+        Assert.Equal(Webhook, (await WaitSentAsync("First")).WebhookUrl);
+
+        // 换地址即重新加密，之后按新地址发
+        const string next = "https://oapi.dingtalk.com/robot/send?access_token=next-token";
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{id}", new { name = "Ding", provider = "DingTalk", webhookUrl = next }, platform)).Status);
+        var replaced = await StoredWebhookAsync(server, id);
+        Assert.StartsWith("dp:", replaced, StringComparison.Ordinal);
+        Assert.NotEqual(stored, replaced);
+        Assert.DoesNotContain("next-token", replaced, StringComparison.Ordinal);
+        await PublishAsync(server, "Second", platform);
+        Assert.Equal(next, (await WaitSentAsync("Second")).WebhookUrl);
+
+        // 请求限 500 字符，全是三字节字符的地址加密后也放得下
+        var longest = "https://oapi.dingtalk.com/" + new string('中', 500 - 26);
+        var column = typeof(SysBotConfig).GetProperty(nameof(SysBotConfig.WebhookUrl))!.GetCustomAttribute<StringLengthAttribute>()!.MaximumLength;
+        Assert.InRange(secrets.Protect(BotConfigService.WebhookPurpose, longest).Length, 501, column);
+    }
+
+    [Theory]
+    [InlineData(Webhook)]
+    [InlineData("dp:not-a-ciphertext")]
+    public async Task WebhookUrl_ThatCannotBeDecrypted_IsReported_AndNeverUsed(string column)
+    {
+        var (server, platform, _) = await StartWithFakeTransportsAsync();
+        await using var running = server;
+        var id = (await CreatedAsync(server, "/api/bot-configs", new { code = "ding", name = "Ding", provider = "DingTalk", webhookUrl = Webhook }, platform)).GetProperty("id").GetString()!;
+        var key = Guid.Parse(id);
+        var overwritten = await StoreScope.WriteAsync(server.Services.GetRequiredService<IServiceScopeFactory>(), async (services, ct) =>
+        {
+            var unitOfWork = services.GetRequiredService<SqlSugarUnitOfWork>();
+            await unitOfWork.EnsureTransactionAsync(ct);
+            await unitOfWork.ConnectionFor(typeof(SysBotConfig)).Updateable<SysBotConfig>().SetColumns(c => new SysBotConfig { WebhookUrl = column }).Where(c => c.Id == key).ExecuteCommandAsync(ct);
+            return Result.Success();
+        }, CancellationToken.None);
+        Assert.True(overwritten.IsSuccess, overwritten.Error?.Code);
+
+        // 列表与详情照常，地址只给 ***，这一行还能改
+        Assert.Equal("***", (await SendAsync(server, HttpMethod.Get, $"/api/bot-configs/{id}", null, platform)).Body.GetProperty("webhookUrl").GetString());
+        Assert.Equal("***", (await SendAsync(server, HttpMethod.Post, "/api/bot-configs:list", "{}", platform)).Body.GetProperty("items")[0].GetProperty("webhookUrl").GetString());
+
+        // 发送不用库里的值，发送记录写明原因
+        await PublishAsync(server, "Blocked", platform);
+        var error = await WaitBotErrorAsync(server, static row => row.Content == "Blocked");
+        Assert.Contains("ding", error, StringComparison.Ordinal);
+        Assert.DoesNotContain(WebhookToken, error, StringComparison.Ordinal);
+        Assert.Empty(_sent);
+
+        // 交回遮过的值保留不了，明确报错
+        foreach (var masked in new[] { MaskedWebhook, "***" })
+        {
+            var (status, body) = await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{id}", new { name = "Ding", provider = "DingTalk", webhookUrl = masked }, platform);
+            Assert.Equal((HttpStatusCode.ServiceUnavailable, "NOTIFICATION_UNAVAILABLE_004"), (status, body.GetProperty("code").GetString()));
+        }
+
+        // 重新填完整地址即恢复
+        Assert.Equal(MaskedWebhook, (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{id}", new { name = "Ding", provider = "DingTalk", webhookUrl = Webhook }, platform)).Body.GetProperty("webhookUrl").GetString());
+        Assert.StartsWith("dp:", await StoredWebhookAsync(server, id), StringComparison.Ordinal);
+        await PublishAsync(server, "Fixed", platform);
+        Assert.Equal(Webhook, (await WaitSentAsync("Fixed")).WebhookUrl);
+    }
+
+    [Fact]
+    public async Task WebhookUrl_OfAnotherSide_CannotBeReadOrUsed()
+    {
+        var (server, platform, contoso) = await StartWithFakeTransportsAsync();
+        await using var running = server;
+        var fabrikam = await OpenTenantAsync(server, platform, "fabrikam");
+        var id = (await CreatedAsync(server, "/api/bot-configs", new { code = "ding", name = "Ding", provider = "DingTalk", webhookUrl = Webhook }, contoso)).GetProperty("id").GetString()!;
+
+        // 别的租户与平台：读、改、设缺省、删都当不存在，列表里没有
+        foreach (var other in new[] { fabrikam, platform })
+        {
+            Assert.Equal("NOTIFICATION_NOTFOUND_008", (await SendAsync(server, HttpMethod.Get, $"/api/bot-configs/{id}", null, other)).Body.GetProperty("code").GetString());
+            Assert.Equal("NOTIFICATION_NOTFOUND_008", (await SendAsync(server, HttpMethod.Put, $"/api/bot-configs/{id}", new { name = "Mine", provider = "DingTalk", webhookUrl = MaskedWebhook }, other)).Body.GetProperty("code").GetString());
+            Assert.Equal("NOTIFICATION_NOTFOUND_008", (await SendAsync(server, HttpMethod.Post, $"/api/bot-configs/{id}:set-default", "{}", other)).Body.GetProperty("code").GetString());
+            Assert.Equal("NOTIFICATION_NOTFOUND_008", (await SendAsync(server, HttpMethod.Delete, $"/api/bot-configs?ids={id}", null, other)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
+            Assert.Equal(0, (await SendAsync(server, HttpMethod.Post, "/api/bot-configs:list", "{}", other)).Body.GetProperty("total").GetInt32());
+        }
+
+        // 所属租户发得出去；别的租户没有自己的机器人，渠道不可用
+        await PublishAsync(server, "Own", contoso);
+        Assert.Equal(Webhook, (await WaitSentAsync("Own")).WebhookUrl);
+        var draft = await CreatedAsync(server, "/api/notifications", new { title = "Other", deliveryChannels = _withBot }, fabrikam);
+        Assert.Equal("NOTIFICATION_UNAVAILABLE_003", (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{draft.GetProperty("id").GetString()}:publish", "{}", fabrikam)).Body.GetProperty("code").GetString());
+
+        // 就算发件箱里有一条别的租户的消息指向这个配置，也解不到它的地址
+        var key = Guid.Parse(id);
+        var forged = await StoreScope.WriteAsync(server.Services.GetRequiredService<IServiceScopeFactory>(), async (services, ct) =>
+            await services.GetRequiredService<IRepository<SysBotMessage, Guid>>().AddAsync(new SysBotMessage { Id = Guid.NewGuid(), OwnerTenantId = "fabrikam", Channel = BotChannel.DingTalk, ConfigId = key, Content = "Forged", MaxAttempts = 1 }, ct), CancellationToken.None);
+        Assert.True(forged.IsSuccess, forged.Error?.Code);
+        Assert.Equal("The bot configuration was disabled or deleted.", await WaitBotErrorAsync(server, static row => row.Content == "Forged"));
+        Assert.DoesNotContain(_sent, static s => s.Text == "Forged");
+    }
+
+    [Fact]
     public async Task Transports_SignAndShapeTheirRequests()
     {
         var clock = new ManualClock(DateTimeOffset.FromUnixTimeMilliseconds(1_700_000_000_123));
@@ -187,6 +331,64 @@ public sealed class BotTests : IDisposable
         var wecom = await new WeComBotTransport(new Factory(wecomHandler)).SendAsync(new BotEndpoint(BotChannel.WeCom, "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k", null, null), "hello", CancellationToken.None);
         Assert.Equal((false, "93000: invalid webhook url"), (wecom.Succeeded, wecom.Error));
         Assert.Equal(("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=k", """{"msgtype":"text","text":{"content":"hello"}}"""), (Assert.Single(wecomHandler.Requests).Uri.ToString(), wecomHandler.Requests[0].Body));
+    }
+
+    private Task<(BasicAppTestServer Server, string Platform, string Tenant)> StartWithFakeTransportsAsync() => SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder =>
+    {
+        builder.Configuration.AddInMemoryCollection([new("BasicApp:Notification:DispatchInterval", "00:00:00.100")]);
+        foreach (var channel in Enum.GetValues<BotChannel>())
+        {
+            builder.Services.AddSingleton<IBotTransport>(new FakeBotTransport(channel, _sent));
+        }
+    });
+
+    private static async Task<string> OpenTenantAsync(BasicAppTestServer server, string platform, string tenantId)
+    {
+        var enterprise = await EditionsTests.EditionIdAsync(server, platform, "enterprise");
+        var tenant = await CreatedAsync(server, "/api/tenants", new { tenantId, name = tenantId, editionId = enterprise }, platform);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/tenants/{tenant.GetProperty("id").GetString()}:initialize-admin", new { userName = "admin", password = "Admin@123456" }, platform)).Status);
+        return (await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", tenantId)).GetProperty("accessToken").GetString()!;
+    }
+
+    private static Task<string> StoredWebhookAsync(BasicAppTestServer server, string id)
+        => SettingsTestHost.InvokeAsync(server, null, async ctx => (await ctx.Services.GetRequiredService<IRepository<SysBotConfig, Guid>>().FindAsync(Guid.Parse(id), ctx.CancellationToken)).ValueOrThrow().WebhookUrl);
+
+    private static async Task PublishAsync(BasicAppTestServer server, string title, string token)
+    {
+        var notification = await CreatedAsync(server, "/api/notifications", new { title, deliveryChannels = _withBot }, token);
+        var (status, body) = await SendAsync(server, HttpMethod.Post, $"/api/notifications/{notification.GetProperty("id").GetString()}:publish", "{}", token);
+        Assert.True(status == HttpStatusCode.OK, body.ToString());
+    }
+
+    private async Task<BotEndpoint> WaitSentAsync(string text)
+    {
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            if (_sent.FirstOrDefault(s => s.Text == text) is { Endpoint: { } endpoint })
+            {
+                return endpoint;
+            }
+
+            await Task.Delay(100);
+        }
+
+        throw new TimeoutException($"Nothing was sent for '{text}'.");
+    }
+
+    private static async Task<string> WaitBotErrorAsync(BasicAppTestServer server, Func<SysBotMessage, bool> match)
+    {
+        for (var attempt = 0; attempt < 100; attempt++)
+        {
+            var rows = await SettingsTestHost.InvokeAsync(server, null, async ctx => await ctx.Services.GetRequiredService<IRepository<SysBotMessage, Guid>>().ListAsync(EntityQuery.All<SysBotMessage>(), ctx.CancellationToken));
+            if (rows.FirstOrDefault(match) is { ErrorMessage: { } error })
+            {
+                return error;
+            }
+
+            await Task.Delay(100);
+        }
+
+        throw new TimeoutException("The bot message was not attempted.");
     }
 
     private sealed class FakeBotTransport(BotChannel channel, ConcurrentQueue<(BotEndpoint Endpoint, string Text)> sent) : IBotTransport

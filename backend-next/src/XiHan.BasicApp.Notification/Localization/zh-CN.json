@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "命令「{item}」不合法：只能是小写字母、数字与下划线，最长 32。",
   "notification.bot_config.not_found": "机器人配置 {id} 不存在。",
   "notification.bot_config.webhook_invalid": "Webhook 地址 {url} 须是所选服务商的官方 https 地址。",
+  "notification.bot_config.webhook_unreadable": "机器人「{code}」的 Webhook 地址解不开，可能是数据保护密钥变了，或是没加密的旧数据，请重新填写完整地址。",
   "notification.template.not_found": "消息模板 {id} 不存在。",
   "notification.template.other_side": "消息模板 {id} 是平台的，只能在平台维护；租户要不同的内容请建同编码的模板覆盖。",
   "notification.email_config.not_found": "邮件配置 {id} 不存在。",

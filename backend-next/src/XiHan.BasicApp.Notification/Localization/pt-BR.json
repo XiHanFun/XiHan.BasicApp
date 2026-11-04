@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "O comando \"{item}\" é inválido: apenas letras minúsculas, dígitos e sublinhados, no máximo 32.",
   "notification.bot_config.not_found": "A configuração de bot {id} não existe.",
   "notification.bot_config.webhook_invalid": "O endereço do webhook {url} deve ser um endereço https oficial do provedor escolhido.",
+  "notification.bot_config.webhook_unreadable": "Não é possível descriptografar o endereço do webhook do bot '{code}'; as chaves de proteção de dados podem ter mudado, ou é um valor antigo não criptografado. Informe o endereço completo novamente.",
   "notification.template.not_found": "O modelo de mensagem {id} não existe.",
   "notification.template.other_side": "O modelo de mensagem {id} pertence à plataforma e é mantido lá; um locatário que precise de outro conteúdo cria um modelo com o mesmo código para substituí-lo.",
   "notification.email_config.not_found": "A configuração de e-mail {id} não existe.",

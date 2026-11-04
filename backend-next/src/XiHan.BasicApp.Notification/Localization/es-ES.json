@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "El comando «{item}» no es válido: solo minúsculas, dígitos y guiones bajos, 32 como máximo.",
   "notification.bot_config.not_found": "La configuración de bot {id} no existe.",
   "notification.bot_config.webhook_invalid": "La dirección del webhook {url} debe ser una dirección https oficial del proveedor elegido.",
+  "notification.bot_config.webhook_unreadable": "No se puede descifrar la dirección del webhook del bot '{code}'; puede que hayan cambiado las claves de protección de datos o que sea un valor antiguo sin cifrar. Vuelve a introducir la dirección completa.",
   "notification.template.not_found": "La plantilla de mensaje {id} no existe.",
   "notification.template.other_side": "La plantilla de mensaje {id} pertenece a la plataforma y se mantiene allí; un inquilino que necesite otro contenido crea una plantilla con el mismo código para sustituirla.",
   "notification.email_config.not_found": "La configuración de correo {id} no existe.",

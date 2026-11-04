@@ -119,7 +119,6 @@
 - SQL 日志、错误日志与慢 SQL 可配；SignalR 的保活、超时与消息大小可配；转发头（缺省只信本机回环）与跨域（不配即不启用）可配。
 - 密码哈希 PBKDF2-SHA256，迭代 60 万次（与 5.x 相同）。
 - **首次执行 `seed` 必须配 `BasicApp:Seed:SuperAdminPassword`**，没有公开的缺省密码了（`appsettings.Development.json` 里写的只用于开发）。
-- 平台令牌带 `baggage: xihan.tenant=…` 进不了租户（`IDENTITY_DENIED_006`），进租户走 `auth.switch-tenant`。
 - 响应一律 `X-Content-Type-Options: nosniff`。文件只有图片（不含 SVG）、音视频、PDF 与纯文本能内联打开，别的类型以附件下载；`/blobs` 除 PDF 外放进沙箱。
 - 代码生成：表名不能改；零代码运行时不读应用自己的表；外部数据源过出站地址策略（**内网业务库要在 `XiHan:Security:Outbound` 放行**）；SQLite 数据源缺省关（`BasicApp:CodeGeneration:AllowSqliteDataSource`）。
 - 系统参数关掉加密且不给新值时清空，不再解密成明文；差异日志遮加密参数的值、AI 密钥、连接串与 Webhook 地址。
@@ -130,6 +129,7 @@
 - 网络调用方的租户只来自令牌：HTTP、gRPC、MCP 入站丢掉调用方写的 `xihan.tenant`、`xihan.principal`，靠 `baggage` 头选租户不再生效，进租户走 `auth.switch-tenant`。CloudEvents 入站的 `xihantenant` 仍能选租户，端点缺省关闭，打开后要 `runtime.cloud-events.deliver`；这个权限只在平台一侧，持 `*` 的租户管理员调不了，只授给平台的服务账号。
 - 配了从库时，授予、租户目录与决定授权的读取都读主库：撤销与停用的生效时间回到缓存时长，不再叠加复制延迟，这部分读压力回到主库。没配从库的部署没有变化。
 - 数据库宕了，`persistence.sqlsugar.database` 与运行时数据源的健康项如实报失败（错误码 `KERNEL_UNAVAILABLE_005`）：按健康项告警的部署会开始收到告警。代码生成的数据源连接测试有了上限，缺省 15 秒，冷启动慢的库调大 `XiHan:Persistence:DataSources:HealthProbeIntervalSeconds`。
+- 群机器人的 Webhook 地址加密存放（`sys_bot_config.webhook_url` 加宽到 2500，`6.0.0` 基线已改，没有迁移脚本）。解不开时不当明文用：响应只给 `***`，发送失败并在发送记录里写明原因，修改时交回遮过的值报 `NOTIFICATION_UNAVAILABLE_004`；地址无效的错误里也只有主机。**预览版开发库里加密之前留下的明文行不会自动转换**：开着 `InitTables` 启动时列会加宽，这些行要重新填完整地址才能再发送。
 
 ### 明确删除
 

@@ -402,7 +402,7 @@ SignalR 的 Hub 参数，对全部 Hub 生效。键、语义与缺省照 5.x 的
 
 ## `BasicApp:DataProtection:KeysDirectory`
 
-`ISecretProtector`（加密参数、存储密钥、租户连接串、认证器密钥）使用 ASP.NET Core Data Protection。多实例部署时必须配置共享的密钥目录，否则各实例互相解不开密文。
+`ISecretProtector`（加密参数、存储密钥、租户连接串、认证器密钥、通道密钥与机器人 Webhook 地址）使用 ASP.NET Core Data Protection。多实例部署时必须配置共享的密钥目录，否则各实例互相解不开密文。
 
 ## 前端 `.env`
 

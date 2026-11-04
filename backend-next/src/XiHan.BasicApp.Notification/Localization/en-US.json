@@ -127,6 +127,7 @@
   "notification.telegram_bot.commands_invalid": "The command \"{item}\" is invalid: use lowercase letters, digits and underscores, at most 32.",
   "notification.bot_config.not_found": "Bot configuration {id} does not exist.",
   "notification.bot_config.webhook_invalid": "The webhook URL {url} must be an official https address of the chosen provider.",
+  "notification.bot_config.webhook_unreadable": "The webhook URL of bot '{code}' cannot be decrypted; the data protection keys may have changed, or it is an old unencrypted value. Enter the full URL again.",
   "notification.template.not_found": "Message template {id} does not exist.",
   "notification.template.other_side": "Message template {id} belongs to the platform and is maintained there; a tenant that needs different content creates a template with the same code to override it.",
   "notification.email_config.not_found": "Email configuration {id} does not exist.",

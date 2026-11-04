@@ -320,7 +320,7 @@ CREATE TABLE IF NOT EXISTS "sys_bot_config" (
     "code" character varying(64) NOT NULL,
     "name" character varying(128) NOT NULL,
     "provider" integer DEFAULT 0 NOT NULL,
-    "webhook_url" character varying(500) NOT NULL,
+    "webhook_url" character varying(2500) NOT NULL,
     "secret" character varying(1024) DEFAULT NULL::character varying NULL,
     "keyword" character varying(100) DEFAULT NULL::character varying NULL,
     "is_default" boolean DEFAULT false NOT NULL,
