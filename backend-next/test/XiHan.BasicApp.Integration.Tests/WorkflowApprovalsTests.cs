@@ -418,6 +418,11 @@ public sealed class WorkflowApprovalsTests : IDisposable
         var notice = (await InboxAsync(server, platform)).Single(static i => i.GetProperty("link").GetString() == "/workflow/approvals?tab=started");
         Assert.StartsWith("ワークフロー障害：", notice.GetProperty("title").GetString(), StringComparison.Ordinal);
         Assert.EndsWith("：ユーザータスク 'approve' の担当者を解決できませんでした。", notice.GetProperty("content").GetString(), StringComparison.Ordinal);
+
+        // 发起人能撤回故障的实例（4.x 同）：实例取消，审批业务收到中止回写，单据不会一直停在审批中
+        var faultedId = instance.GetProperty("id").GetString()!;
+        var (withdrawn, after) = await SendAsync(server, HttpMethod.Post, $"/api/approvals/{faultedId}:withdraw", "{}", platform);
+        Assert.Equal((HttpStatusCode.OK, "Canceled"), (withdrawn, after.GetProperty("status").GetString()));
     }
 
     private static async Task<List<JsonElement>> ListAsync(BasicAppTestServer server, string resource, string token, string body = """{"page":{"index":1,"size":50}}""", string suffix = "list")
