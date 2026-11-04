@@ -50,7 +50,7 @@ public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departmen
 
             if (await service.ChildCountAsync(id, context.CancellationToken).ConfigureAwait(false) > 0 || await service.MemberCountAsync(id, context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.DepartmentInUse, OrganizationMessages.DepartmentInUse.L(("id", id))));
+                failed.Add(new BatchFailure(id, OrganizationErrors.DepartmentInUse, OrganizationMessages.DepartmentInUse.L(("id", department.Name))));
                 continue;
             }
 

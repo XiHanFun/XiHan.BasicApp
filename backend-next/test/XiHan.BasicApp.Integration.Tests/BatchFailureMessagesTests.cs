@@ -60,6 +60,21 @@ public sealed class BatchFailureMessagesTests : IDisposable
     }
 
     [Fact]
+    public async Task ARowAtHand_IsNamedRatherThanShownAsAGuid()
+    {
+        var (server, _, contoso) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", """{"code":"hq","name":"总部"}""", contoso));
+        Assert.True(created.StatusCode == HttpStatusCode.Created, createdBody.ToString());
+        var parentId = createdBody.GetProperty("id").GetString()!;
+        var (child, childBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments", $$"""{"code":"rd","name":"研发部","parentId":"{{parentId}}"}""", contoso));
+        Assert.True(child.StatusCode == HttpStatusCode.Created, childBody.ToString());
+
+        var failure = await FailureAsync(server, HttpMethod.Delete, $"/api/departments?ids={parentId}", null, contoso, "zh-CN");
+        Assert.Equal("部门 '总部' 还有子部门或成员。", failure.GetProperty("message").GetString());
+    }
+
+    [Fact]
     public async Task PermissionBatch_CarriesTheReason()
     {
         var (server, _, contoso) = await SettingsTestHost.StartAsync(_database.ConnectionString);

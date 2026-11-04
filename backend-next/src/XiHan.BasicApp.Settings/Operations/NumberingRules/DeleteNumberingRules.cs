@@ -45,7 +45,7 @@ public sealed class DeleteNumberingRules(IRepository<SysNumberingRule, Guid> rul
 
             if (!SettingsScope.IsOwnedBy(rule, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", id))));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", rule.Code))));
                 continue;
             }
 
