@@ -8,7 +8,7 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 
 ### 通知
 
-`SysNotification`（租户库实体）：标题、正文（文本 / Markdown / HTML）、类型（`System`、`Security`、`Business`、`Todo`、`Emergency`）、优先级、图标、链接、业务类型与 ID、投递渠道、目标、展示方式与有效期。
+`SysNotification`（租户库实体）：标题、正文（文本 / Markdown / HTML）、类型（`System`、`Security`、`Business`、`Todo`、`Emergency`）、优先级、图标、链接、业务类型与 ID、投递渠道、目标、展示方式与有效期。 HTML 正文渲染前净化：去掉脚本、事件处理器、`javascript:` 链接、`<style>` 与表单控件，行内样式保留。
 
 | 维度 | 取值 |
 | --- | --- |
@@ -56,7 +56,7 @@ Notification 包（Tier 2）负责站内通知与收件箱、消息模板、邮�
 
 | 配置 | 实体 | 说明 |
 | --- | --- | --- |
-| 邮件 | `SysEmailConfig` | SMTP（MailKit），多通道、缺省通道 |
+| 邮件 | `SysEmailConfig` | SMTP（MailKit），多通道、缺省通道；连接过[出站地址策略](../configuration#xihan-security-outbound)，内网中继要放行 |
 | 短信 | `SysSmsConfig` | 阿里云（Dysmsapi）、腾讯云（SMS 2021-01-11），直接签名调用、不引 SDK |
 
 - 租户没有可用通道时回落平台的配置；机器人不回落。

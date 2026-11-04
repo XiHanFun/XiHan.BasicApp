@@ -51,7 +51,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `CHAT_VALIDATION_026` | 不是助手会话 |
 | `CHAT_VALIDATION_027` | 会话里没有可回答的提问 |
 | `CHAT_UNAVAILABLE_001` | 助手不可用（AI 没有装配） |
-| `CHAT_UNAVAILABLE_002` | 生成失败，正文带提供商给的原因 |
+| `CHAT_UNAVAILABLE_002` | 生成失败。原因只有异常类型，完整异常看应用日志 |
 | `CHAT_UNAVAILABLE_003` | 模型没有产生任何内容 |
 
 ## 操作与权限

@@ -145,14 +145,14 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 平台库可以配从库（配置见 [`BasicApp:Database`](./configuration#basicapp-database) 与 [`XiHan:Persistence:SqlSugar`](./configuration#xihan-persistence-sqlsugar)）。配之前先看这几条：
 
 - **跨调用不保证读己之写**：写完马上发起的 `get`、`list` 可能读到落后的数据。比如保存之后立刻刷新列表，可能看到旧值。
-- **权限撤销生效会多一段复制延迟**：框架自己的只读工作单元也走从库，包括授予、租户目录和租约探测。
+- **权限撤销**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，强制下线、改密、禁用与撤销角色不受复制延迟影响。框架自己的只读工作单元还走从库，包括授予和租户目录：角色或用户的授予被撤销、租户被停用时，生效要多等一段复制延迟，加上授予缓存的时长（`XiHan:Security:Database:CacheTimeToLiveSeconds`）。
 - **探测只看连通**：落后很多但连得上的从库照常接读流量，复制延迟要另外监控。
 - **只在 PostgreSQL 上实测过**：MySQL、SQL Server、Oracle 的从库没有实测。
 - 独立库租户不配从库，读写都走它自己的主库。主库不同的连接不能共用从库，启动失败（`PERSISTENCE_VALIDATION_009`）。
 
 ## 出站地址
 
-用户填的地址（工作流 `Http` 活动、群机器人 Webhook、AI 提供商、第三方登录、S3 兼容存储）缺省只能连公网。自建 MinIO、内网 Webhook、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
+用户填的地址（工作流 `Http` 活动、群机器人 Webhook、SMTP 服务器、AI 提供商、第三方登录、S3 兼容存储）缺省只能连公网。自建 MinIO、内网 Webhook、内网 SMTP 中继、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
 
 ## 备份与还原
 
