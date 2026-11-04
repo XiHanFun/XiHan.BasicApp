@@ -347,7 +347,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls).toEqual([{ method: 'GET', url: '/api/profile', body: null }])
 
     // 冷却期已过（或从没改过）即能改；性别未设置是 0
-    response = { ...profileOf({ avatarFileId: null }), realName: null, gender: 'Unknown', birthday: null, country: null, remark: '自我介绍', userNameChangedAt: '2026-07-01T00:00:00Z', userNameChangeableAt: new Date(Date.now() - DAY).toISOString() }
+    response = { ...profileOf({ avatarFileId: null, realName: null, gender: 'Unknown', birthday: null, country: null, remark: '自我介绍' }), userNameChangedAt: '2026-07-01T00:00:00Z', userNameChangeableAt: new Date(Date.now() - DAY).toISOString() }
     const bare = await useAppContext().apis.getProfileApi()
     expect(bare).toMatchObject({ gender: 0, remark: '自我介绍', lastUserNameChangeTime: '2026-07-01T00:00:00Z', canChangeUserName: true })
     for (const key of ['avatar', 'realName', 'birthday', 'country'])

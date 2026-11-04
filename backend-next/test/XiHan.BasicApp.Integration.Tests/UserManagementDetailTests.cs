@@ -67,7 +67,7 @@ public sealed class UserManagementDetailTests : IDisposable
         // 备注与本人的个人简介是同一列（4.x 同）
         var own = (await AuthFlowTests.LoginAsync(server, "erin", Password, "contoso")).GetProperty("accessToken").GetString()!;
         var (_, profile) = await SendAsync(server, HttpMethod.Get, "/api/profile", null, own);
-        Assert.Equal("换了部门", profile.GetProperty("remark").GetString());
+        Assert.Equal("换了部门", profile.GetProperty("user").GetProperty("remark").GetString());
         var (_, changed) = await SendAsync(server, HttpMethod.Put, "/api/profile", """{"displayName":"Erin Z","gender":"Male","remark":"本人写的简介"}""", own);
         Assert.Equal("本人写的简介", changed.GetProperty("remark").GetString());
         var (_, seen) = await SendAsync(server, HttpMethod.Get, $"/api/users/{id}", null, tenant);

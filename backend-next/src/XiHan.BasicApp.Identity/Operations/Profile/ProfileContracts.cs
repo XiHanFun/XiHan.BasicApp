@@ -26,11 +26,6 @@ public sealed record ProfileRequest;
 /// <param name="MustChangePassword">是否必须先改密</param>
 /// <param name="FailedAccessCount">自上次成功登录以来的连续失败次数（含双因素码错误）</param>
 /// <param name="LockoutEndAt">登录失败锁定的截止时间；没在锁定期为 <see langword="null"/></param>
-/// <param name="RealName">真实姓名</param>
-/// <param name="Gender">性别</param>
-/// <param name="Birthday">生日</param>
-/// <param name="Country">国家或地区</param>
-/// <param name="Remark">个人简介</param>
 /// <param name="UserNameChangedAt">最近一次本人改用户名的时间；没改过为空</param>
 /// <param name="UserNameChangeableAt">下次能改用户名的时间（上次改后 90 天）；没改过为空，即现在就能改</param>
 /// <param name="EmailVerified">邮箱是否已验证</param>
@@ -44,11 +39,6 @@ public sealed record ProfileResponse(
     bool MustChangePassword,
     int FailedAccessCount,
     DateTimeOffset? LockoutEndAt,
-    string? RealName,
-    UserGender Gender,
-    DateTimeOffset? Birthday,
-    string? Country,
-    string? Remark,
     DateTimeOffset? UserNameChangedAt,
     DateTimeOffset? UserNameChangeableAt,
     bool EmailVerified,
@@ -70,11 +60,6 @@ public sealed record ProfileResponse(
             security.MustChangePassword,
             security.FailedAccessCount,
             security.LockoutEndAt,
-            user.RealName,
-            user.Gender,
-            user.Birthday,
-            user.Country,
-            user.Remark,
             security.UserNameChangedAt,
             security.UserNameChangedAt?.Add(UserNameChange.Cooldown),
             user.EmailVerified,

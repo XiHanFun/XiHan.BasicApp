@@ -38,6 +38,7 @@ namespace XiHan.BasicApp.Runtime;
 public sealed class RuntimeFeature : IHostedFeature
 {
     private bool _initTables;
+    private ILogger? _sqlLogger;
 
     /// <inheritdoc />
     public Manifest Manifest { get; } = new()
@@ -110,7 +111,8 @@ public sealed class RuntimeFeature : IHostedFeature
     public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(services);
-        SqlDiagnostics.SharedLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("XiHan.BasicApp.Sql");
+        _sqlLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("XiHan.BasicApp.Sql");
+        SqlDiagnostics.UseSharedLogger(_sqlLogger);
         if (!_initTables)
         {
             return;
@@ -123,5 +125,13 @@ public sealed class RuntimeFeature : IHostedFeature
     }
 
     /// <inheritdoc />
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_sqlLogger is { } logger)
+        {
+            SqlDiagnostics.ReleaseSharedLogger(logger);
+        }
+
+        return Task.CompletedTask;
+    }
 }

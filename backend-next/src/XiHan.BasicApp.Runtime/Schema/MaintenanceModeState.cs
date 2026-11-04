@@ -49,6 +49,8 @@ public sealed class MaintenanceModeState(IServiceScopeFactory scopes, SchemaOpti
         cancellationToken.ThrowIfCancellationRequested();
         await using var scope = scopes.CreateAsyncScope();
         var client = scope.ServiceProvider.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysVersion));
+        // 新库还没建表时读不到，下面接住了：不是错误，不进 SQL 错误日志
+        using var expected = SqlDiagnostics.ExpectErrors();
         if (client.CurrentConnectionConfig.DbType != DbType.PostgreSQL)
         {
             return false;

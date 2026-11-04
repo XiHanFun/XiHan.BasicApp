@@ -116,6 +116,23 @@ public sealed class SqlSugarRuntimeTests : IDisposable
         Assert.Empty(logger.Entries);
     }
 
+    [Fact]
+    public async Task SqlDiagnostics_SkipErrorsTheCallerExpects()
+    {
+        var logger = new RecordingLogger();
+        var options = DatabaseOptions.FromConfiguration(ConfigurationOf());
+        using var client = NewClient(_database.ConnectionString, new SqlDiagnostics(options, logger));
+
+        using (SqlDiagnostics.ExpectErrors())
+        {
+            await Assert.ThrowsAnyAsync<Exception>(() => client.Ado.ExecuteCommandAsync("SELECT * FROM missing_table"));
+        }
+
+        Assert.Empty(logger.Entries);
+        await Assert.ThrowsAnyAsync<Exception>(() => client.Ado.ExecuteCommandAsync("SELECT * FROM missing_table"));
+        Assert.Single(logger.Entries);
+    }
+
     private static SqlSugarClient NewClient(string connectionString, SqlDiagnostics diagnostics)
     {
         var config = new ConnectionConfig { ConnectionString = connectionString, DbType = DbType.Sqlite, IsAutoCloseConnection = true, AopEvents = new AopEvents() };

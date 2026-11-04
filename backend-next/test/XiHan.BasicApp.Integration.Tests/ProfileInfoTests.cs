@@ -68,9 +68,9 @@ public sealed class ProfileInfoTests : IDisposable
         // 资料整体覆盖，空白当作没填
         var (saved, savedBody) = await SendAsync(server, HttpMethod.Put, "/api/profile", """{"displayName":" Ann A ","realName":"  ","gender":"Female","birthday":"1990-05-01T00:00:00+08:00","country":"CN","remark":"hello"}""", ann);
         Assert.Equal(HttpStatusCode.OK, saved);
-        Assert.Equal(("Ann A", JsonValueKind.Null, "Female", "CN", "hello"), (savedBody.GetProperty("user").GetProperty("displayName").GetString(), savedBody.GetProperty("realName").ValueKind, savedBody.GetProperty("gender").GetString(), savedBody.GetProperty("country").GetString(), savedBody.GetProperty("remark").GetString()));
+        Assert.Equal(("Ann A", JsonValueKind.Null, "Female", "CN", "hello"), (savedBody.GetProperty("user").GetProperty("displayName").GetString(), savedBody.GetProperty("user").GetProperty("realName").ValueKind, savedBody.GetProperty("user").GetProperty("gender").GetString(), savedBody.GetProperty("user").GetProperty("country").GetString(), savedBody.GetProperty("user").GetProperty("remark").GetString()));
         var (_, profile) = await SendAsync(server, HttpMethod.Get, "/api/profile", null, ann);
-        Assert.Equal(new DateTimeOffset(1990, 5, 1, 0, 0, 0, TimeSpan.FromHours(8)), profile.GetProperty("birthday").GetDateTimeOffset());
+        Assert.Equal(new DateTimeOffset(1990, 5, 1, 0, 0, 0, TimeSpan.FromHours(8)), profile.GetProperty("user").GetProperty("birthday").GetDateTimeOffset());
         Assert.Equal(JsonValueKind.Null, profile.GetProperty("userNameChangeableAt").ValueKind);
 
         // 改用户名：密码不对、与现在相同、被占用、格式不对都拒绝；改后新名字能登录、旧名字不能，90 天一次
