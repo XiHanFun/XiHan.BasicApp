@@ -200,6 +200,9 @@ export type LoginEvent = (typeof LoginEvent)[number]
 export const MenuKind = ['Page', 'Directory', 'Link'] as const
 export type MenuKind = (typeof MenuKind)[number]
 
+export const MenuStatus = ['Active', 'Disabled'] as const
+export type MenuStatus = (typeof MenuStatus)[number]
+
 export const MessageSendStatus = ['Pending', 'Sending', 'Success', 'Failed', 'Cancelled'] as const
 export type MessageSendStatus = (typeof MessageSendStatus)[number]
 
@@ -409,6 +412,7 @@ export const enums = {
   LifecycleState,
   LoginEvent,
   MenuKind,
+  MenuStatus,
   MessageSendStatus,
   NetworkInterfaceType,
   NotificationContentFormat,

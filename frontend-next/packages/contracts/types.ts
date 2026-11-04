@@ -5034,7 +5034,7 @@ export interface paths {
         };
         /**
          * List menu tree
-         * @description List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.
+         * @description List the whole menu tree (including hidden and disabled nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.
          *
          *     Requires permission access.menus.read (Read menus).
          */
@@ -5075,7 +5075,7 @@ export interface paths {
         get: operations["menus.get"];
         /**
          * Update menu
-         * @description Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission.
+         * @description Update a menu node: page nodes only change their presentation (title, icon, order, directory, visibility, keep-alive, affix, badge) and become customized; operator nodes can also change the link and the permission.
          *
          *     Requires permission access.menus.update (Update menus).
          */
@@ -5098,11 +5098,33 @@ export interface paths {
         put?: never;
         /**
          * Reset menu defaults
-         * @description Restore a page node's presentation to its registration and clear the customization flag.
+         * @description Restore a page node's presentation to its registration (enabled, no badge) and clear the customization flag.
          *
          *     Requires permission access.menus.update (Update menus).
          */
         post: operations["menus.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/menus/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable or disable a menu
+         * @description Enable or disable a menu node. A disabled node and its subtree stay out of auth.permissions, so its pages have no route; a page node is marked as customized.
+         *
+         *     Requires permission access.menus.update (Update menus).
+         */
+        post: operations["menus.set-status"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13113,6 +13135,12 @@ export interface components {
             keepAlive: boolean;
             /** @description 是否固定在标签栏 */
             affix: boolean;
+            /** @description 徽标文字 */
+            badge?: string | null;
+            /** @description 徽标语气（组件库的 tone） */
+            badgeType?: string | null;
+            /** @description 是否显示圆点（优先于徽标文字） */
+            badgeDot: boolean;
             /** @description 子节点 */
             children: components["schemas"]["MenuNode"][];
         };
@@ -13159,11 +13187,24 @@ export interface components {
             keepAlive: boolean;
             /** @description 是否固定在标签栏 */
             isAffix: boolean;
+            /** @description 启停状态：停用的节点连同子树不下发 */
+            status: components["schemas"]["MenuStatus"];
+            /** @description 徽标文字 */
+            badge?: string | null;
+            /** @description 徽标语气（组件库的 tone） */
+            badgeType?: string | null;
+            /** @description 是否显示圆点（优先于徽标文字） */
+            badgeDot: boolean;
             /** @description 页面节点的展示是否被改过（可恢复默认） */
             isCustomized: boolean;
             /** @description 子节点 */
             children: components["schemas"]["MenuResponse"][];
         };
+        /**
+         * @description 菜单节点的启停状态
+         * @enum {string}
+         */
+        MenuStatus: "Active" | "Disabled";
         /**
          * @description 邮件与短信发送记录的状态
          * @enum {string}
@@ -31517,6 +31558,14 @@ export interface operations {
                     permission?: string | null;
                     /** @description 是否在导航里显示 */
                     isVisible?: boolean;
+                    /** @description 启停状态 */
+                    status?: components["schemas"]["MenuStatus"];
+                    /** @description 徽标文字，可空，最多 50 个字符 */
+                    badge?: string | null;
+                    /** @description 徽标语气，可空：neutral、brand、info、success、warning、danger */
+                    badgeType?: string | null;
+                    /** @description 是否显示圆点（优先于徽标文字） */
+                    badgeDot?: boolean;
                 };
             };
         };
@@ -31569,6 +31618,14 @@ export interface operations {
                         keepAlive: boolean;
                         /** @description 是否固定在标签栏 */
                         isAffix: boolean;
+                        /** @description 启停状态：停用的节点连同子树不下发 */
+                        status: components["schemas"]["MenuStatus"];
+                        /** @description 徽标文字 */
+                        badge?: string | null;
+                        /** @description 徽标语气（组件库的 tone） */
+                        badgeType?: string | null;
+                        /** @description 是否显示圆点（优先于徽标文字） */
+                        badgeDot: boolean;
                         /** @description 页面节点的展示是否被改过（可恢复默认） */
                         isCustomized: boolean;
                         /** @description 子节点 */
@@ -31682,6 +31739,14 @@ export interface operations {
                         keepAlive: boolean;
                         /** @description 是否固定在标签栏 */
                         isAffix: boolean;
+                        /** @description 启停状态：停用的节点连同子树不下发 */
+                        status: components["schemas"]["MenuStatus"];
+                        /** @description 徽标文字 */
+                        badge?: string | null;
+                        /** @description 徽标语气（组件库的 tone） */
+                        badgeType?: string | null;
+                        /** @description 是否显示圆点（优先于徽标文字） */
+                        badgeDot: boolean;
                         /** @description 页面节点的展示是否被改过（可恢复默认） */
                         isCustomized: boolean;
                         /** @description 子节点 */
@@ -31743,6 +31808,12 @@ export interface operations {
                     externalUrl?: string | null;
                     /** @description 所需权限码：运营节点可选，页面节点为空 */
                     permission?: string | null;
+                    /** @description 徽标文字，可空，最多 50 个字符 */
+                    badge?: string | null;
+                    /** @description 徽标语气，可空：neutral、brand、info、success、warning、danger */
+                    badgeType?: string | null;
+                    /** @description 是否显示圆点（优先于徽标文字） */
+                    badgeDot?: boolean;
                 };
             };
         };
@@ -31795,6 +31866,14 @@ export interface operations {
                         keepAlive: boolean;
                         /** @description 是否固定在标签栏 */
                         isAffix: boolean;
+                        /** @description 启停状态：停用的节点连同子树不下发 */
+                        status: components["schemas"]["MenuStatus"];
+                        /** @description 徽标文字 */
+                        badge?: string | null;
+                        /** @description 徽标语气（组件库的 tone） */
+                        badgeType?: string | null;
+                        /** @description 是否显示圆点（优先于徽标文字） */
+                        badgeDot: boolean;
                         /** @description 页面节点的展示是否被改过（可恢复默认） */
                         isCustomized: boolean;
                         /** @description 子节点 */
@@ -31884,6 +31963,113 @@ export interface operations {
                         keepAlive: boolean;
                         /** @description 是否固定在标签栏 */
                         isAffix: boolean;
+                        /** @description 启停状态：停用的节点连同子树不下发 */
+                        status: components["schemas"]["MenuStatus"];
+                        /** @description 徽标文字 */
+                        badge?: string | null;
+                        /** @description 徽标语气（组件库的 tone） */
+                        badgeType?: string | null;
+                        /** @description 是否显示圆点（优先于徽标文字） */
+                        badgeDot: boolean;
+                        /** @description 页面节点的展示是否被改过（可恢复默认） */
+                        isCustomized: boolean;
+                        /** @description 子节点 */
+                        children: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 菜单主键 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description menus.set-status 的请求：标识由路由值 {id} 绑定 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 菜单主键
+                     */
+                    id: string;
+                    /** @description 启用或停用 */
+                    status: components["schemas"]["MenuStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description 菜单节点的管理视图（menus.*） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 主键
+                         */
+                        id: string;
+                        /** @description 编码（页面码或 custom.<名>） */
+                        code: string;
+                        /** @description 种类 */
+                        kind: components["schemas"]["MenuKind"];
+                        /** @description 所属包；运营节点是 custom */
+                        package: string;
+                        /**
+                         * Format: uuid
+                         * @description 上级
+                         */
+                        parentId?: string | null;
+                        /** @description 路由路径；目录与外链为空 */
+                        route: string;
+                        /** @description 组件路径；目录与外链为空 */
+                        component: string;
+                        /** @description 标题文案键；运营节点为空 */
+                        titleKey: string;
+                        /** @description 标题原文（运营节点）或覆盖（页面节点） */
+                        title?: string | null;
+                        /** @description 图标 */
+                        icon?: string | null;
+                        /**
+                         * Format: int32
+                         * @description 排序号
+                         */
+                        order: number;
+                        /** @description 所需权限码 */
+                        permission?: string | null;
+                        /** @description 外链地址 */
+                        externalUrl?: string | null;
+                        /** @description 是否在导航里显示 */
+                        isVisible: boolean;
+                        /** @description 页面标签是否参与缓存 */
+                        keepAlive: boolean;
+                        /** @description 是否固定在标签栏 */
+                        isAffix: boolean;
+                        /** @description 启停状态：停用的节点连同子树不下发 */
+                        status: components["schemas"]["MenuStatus"];
+                        /** @description 徽标文字 */
+                        badge?: string | null;
+                        /** @description 徽标语气（组件库的 tone） */
+                        badgeType?: string | null;
+                        /** @description 是否显示圆点（优先于徽标文字） */
+                        badgeDot: boolean;
                         /** @description 页面节点的展示是否被改过（可恢复默认） */
                         isCustomized: boolean;
                         /** @description 子节点 */

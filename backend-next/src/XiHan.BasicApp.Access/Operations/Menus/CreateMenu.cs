@@ -74,6 +74,10 @@ public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
             Permission = string.IsNullOrWhiteSpace(request.Permission) ? null : request.Permission.Trim(),
             ExternalUrl = request.Kind == MenuKind.Link ? request.ExternalUrl!.Trim() : null,
             IsVisible = request.IsVisible,
+            Status = request.Status,
+            Badge = MenuRules.Normalize(request.Badge),
+            BadgeType = MenuRules.Normalize(request.BadgeType),
+            BadgeDot = request.BadgeDot,
         };
         var added = await menus.AddAsync(row, context.CancellationToken).ConfigureAwait(false);
         return added.IsFailure ? added.Error! : MenuResponse.From(row);
@@ -81,10 +85,20 @@ public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
 }
 
 /// <summary>
-/// 运营节点的外链与权限规则（新建与修改共用）
+/// 菜单节点的外链、权限与徽标规则（新建与修改共用）
 /// </summary>
 internal static class MenuRules
 {
+    /// <summary>
+    /// 徽标语气的取值：与组件库的 tone 同名
+    /// </summary>
+    public const string BadgeTypePattern = "^(neutral|brand|info|success|warning|danger)$";
+
+    /// <summary>
+    /// 去掉首尾空白，空白即空
+    /// </summary>
+    public static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
     /// <summary>
     /// 校验外链地址与权限码
     /// </summary>

@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// 菜单节点的管理视图（<c>menus.*</c>）
 /// </summary>
 /// <remarks>
-/// 含隐藏节点与定制标记；<c>menus.list</c> 里带子节点，其余操作的 <see cref="Children"/> 为空
+/// 含隐藏与停用的节点、定制标记；<c>menus.list</c> 里带子节点，其余操作的 <see cref="Children"/> 为空
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="Code">编码（页面码或 <c>custom.&lt;名&gt;</c>）</param>
@@ -27,6 +27,10 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// <param name="IsVisible">是否在导航里显示</param>
 /// <param name="KeepAlive">页面标签是否参与缓存</param>
 /// <param name="IsAffix">是否固定在标签栏</param>
+/// <param name="Status">启停状态：停用的节点连同子树不下发</param>
+/// <param name="Badge">徽标文字</param>
+/// <param name="BadgeType">徽标语气（组件库的 tone）</param>
+/// <param name="BadgeDot">是否显示圆点（优先于徽标文字）</param>
 /// <param name="IsCustomized">页面节点的展示是否被改过（可恢复默认）</param>
 /// <param name="Children">子节点</param>
 public sealed record MenuResponse(
@@ -46,6 +50,10 @@ public sealed record MenuResponse(
     bool IsVisible,
     bool KeepAlive,
     bool IsAffix,
+    MenuStatus Status,
+    string? Badge,
+    string? BadgeType,
+    bool BadgeDot,
     bool IsCustomized,
     IReadOnlyList<MenuResponse> Children)
 {
@@ -55,7 +63,7 @@ public sealed record MenuResponse(
     public static MenuResponse From(SysMenu row, IReadOnlyList<MenuResponse>? children = null)
     {
         ArgumentNullException.ThrowIfNull(row);
-        return new MenuResponse(row.Id, row.Code, row.Kind, row.Package, row.ParentId, row.Route, row.Component, row.TitleKey, row.Title, row.Icon, row.Order, row.Permission, row.ExternalUrl, row.IsVisible, row.KeepAlive, row.IsAffix, row.IsCustomized, children ?? []);
+        return new MenuResponse(row.Id, row.Code, row.Kind, row.Package, row.ParentId, row.Route, row.Component, row.TitleKey, row.Title, row.Icon, row.Order, row.Permission, row.ExternalUrl, row.IsVisible, row.KeepAlive, row.IsAffix, row.Status, row.Badge, row.BadgeType, row.BadgeDot, row.IsCustomized, children ?? []);
     }
 }
 

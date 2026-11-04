@@ -6,11 +6,13 @@ import { ApiError } from '~/request'
 
 export type MenuRow = ResponseOf<'menus.list'>['items'][number]
 export type MenuKind = MenuRow['kind']
+export type MenuStatus = MenuRow['status']
 /** 运营能新建的种类：页面菜单来自页面登记，不在这里新建 */
 export type OperatorKind = Exclude<MenuKind, 'Page'>
 
 export const MENU_KINDS: readonly MenuKind[] = ['Directory', 'Page', 'Link']
 export const OPERATOR_KINDS: readonly OperatorKind[] = ['Directory', 'Link']
+export const MENU_STATUSES: readonly MenuStatus[] = ['Active', 'Disabled']
 
 /** 运营节点的编码存为 custom.<名>（后端补前缀） */
 export const CUSTOM_CODE_PREFIX = 'custom.'
@@ -35,7 +37,7 @@ export function flattenMenus(nodes: readonly MenuRow[], out: MenuRow[] = []): Me
 }
 
 /** 本地筛选登记的字段：menus.list 一次返回整棵树、不收筛选参数，搜索在取回的整树上做 */
-const LOCAL_FILTERS = new Set(['keyword', 'kind', 'isVisible', 'isCustomized'])
+const LOCAL_FILTERS = new Set(['keyword', 'kind', 'status', 'isVisible', 'isCustomized'])
 
 function isBlank(value: unknown): boolean {
   return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
@@ -47,7 +49,7 @@ function matchesBoolean(value: unknown, actual: boolean): boolean {
 
 /**
  * 按搜索条件筛整棵菜单树：节点自身命中、或有命中的后代就留下（保留祖先链看得出层级），留下节点的子级只留命中的
- * 关键字匹配显示标题、编码、路由与外链地址；种类、显示、已定制精确匹配。没登记的字段、区间 / 多选出现即报错，不静默丢条件
+ * 关键字匹配显示标题、编码、路由与外链地址；种类、状态、显示、已定制精确匹配。没登记的字段、区间 / 多选出现即报错，不静默丢条件
  */
 export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQueryParams, 'conditionFilters' | 'filters'>, titleOf: (node: MenuRow) => string): MenuRow[] {
   if (params.conditionFilters?.length)
@@ -65,6 +67,8 @@ export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQue
     if (keyword !== null && ![titleOf(node), node.code, node.route, node.externalUrl ?? ''].some(text => text.toLowerCase().includes(keyword)))
       return false
     if (!isBlank(filters.kind) && node.kind !== filters.kind)
+      return false
+    if (!isBlank(filters.status) && node.status !== filters.status)
       return false
     if (!isBlank(filters.isVisible) && !matchesBoolean(filters.isVisible, node.isVisible))
       return false
@@ -89,6 +93,7 @@ export function menusResource(titleOf: (node: MenuRow) => string, onLoaded: (nod
       return filterMenuTree(items, params, titleOf)
     },
     remove: async id => failedCodes(await menusApi.delete({ ids: [String(id)] })),
+    updateStatus: async (id, enabled) => menusApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
   }
 }
 
@@ -111,17 +116,23 @@ export interface MenuForm {
   isVisible: boolean
   keepAlive: boolean
   isAffix: boolean
+  /** 只在新建时可填；已有节点的启停走行操作（menus.set-status） */
+  status: MenuStatus
+  badge: string
+  /** 徽标语气；null 即不指定（文字徽标取中性、圆点取提醒红） */
+  badgeType: null | string
+  badgeDot: boolean
 }
 
 export type MenuEditorMode = 'create' | 'edit'
 
 function emptyForm(): MenuForm {
-  return { kind: 'Directory', code: '', title: '', icon: '', order: 0, parentId: null, externalUrl: '', permission: '', isVisible: true, keepAlive: false, isAffix: false }
+  return { kind: 'Directory', code: '', title: '', icon: '', order: 0, parentId: null, externalUrl: '', permission: '', isVisible: true, keepAlive: false, isAffix: false, status: 'Active', badge: '', badgeType: null, badgeDot: false }
 }
 
 /**
  * 菜单的编辑弹窗（平台侧）：新建目录（只在顶层）或外链（可挂目录）、编辑节点
- * 页面节点只改展示（标题覆盖、图标、排序、所属目录、显示、缓存、固定标签），改过即定制；路由、组件与权限来自页面登记，不送
+ * 页面节点只改展示（标题覆盖、图标、排序、所属目录、显示、缓存、固定标签、徽标），改过即定制；路由、组件与权限来自页面登记，不送
  * 子页面钉在登记的父页面下，所属目录不能改。字段级错误挂回对应字段
  */
 export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
@@ -167,6 +178,10 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
       isVisible: row.isVisible,
       keepAlive: row.keepAlive,
       isAffix: row.isAffix,
+      status: row.status,
+      badge: row.badge ?? '',
+      badgeType: row.badgeType ?? null,
+      badgeDot: row.badgeDot,
     })
     open.value = true
   }
@@ -201,6 +216,9 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           isAffix: form.isAffix,
           externalUrl: link ? blankToNull(form.externalUrl) : null,
           permission: current.kind === 'Page' ? null : blankToNull(form.permission),
+          badge: blankToNull(form.badge),
+          badgeType: form.badgeType,
+          badgeDot: form.badgeDot,
         })
       }
       else {
@@ -214,6 +232,10 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           externalUrl: link ? blankToNull(form.externalUrl) : null,
           permission: blankToNull(form.permission),
           isVisible: form.isVisible,
+          status: form.status,
+          badge: blankToNull(form.badge),
+          badgeType: form.badgeType,
+          badgeDot: form.badgeDot,
         })
       }
       open.value = false

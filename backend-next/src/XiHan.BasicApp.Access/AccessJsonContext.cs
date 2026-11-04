@@ -66,6 +66,7 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(GetMenuRequest))]
 [JsonSerializable(typeof(CreateMenuRequest))]
 [JsonSerializable(typeof(UpdateMenuRequest))]
+[JsonSerializable(typeof(SetMenuStatusRequest))]
 [JsonSerializable(typeof(ResetMenuRequest))]
 [JsonSerializable(typeof(MenuIdsRequest))]
 [JsonSerializable(typeof(MenuResponse))]

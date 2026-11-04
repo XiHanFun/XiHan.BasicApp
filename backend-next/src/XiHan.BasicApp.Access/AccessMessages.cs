@@ -197,6 +197,11 @@ public static class AccessMessages
     public const string UpdateMenuDescription = "menus.update.description";
 
     /// <summary>
+    /// 操作 <c>menus.set-status</c> 的说明
+    /// </summary>
+    public const string SetMenuStatusDescription = "menus.set_status.description";
+
+    /// <summary>
     /// 操作 <c>menus.reset</c> 的说明
     /// </summary>
     public const string ResetMenuDescription = "menus.reset.description";

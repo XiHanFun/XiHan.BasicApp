@@ -147,6 +147,121 @@ public sealed class MenusTests : IDisposable
     }
 
     [Fact]
+    public async Task Status_DisabledNodes_AreNotDelivered_AndSurviveTheSeeder_UntilReset()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var roles = Node(listBody.GetProperty("items"), "access.roles");
+        var rolesId = roles.GetProperty("id").GetString()!;
+        Assert.Equal("Active", roles.GetProperty("status").GetString());
+
+        // 停用页面：标为已定制，菜单管理里照常列出，auth.permissions 的菜单树与页面码都不再有它
+        var (disabled, disabledBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{rolesId}:set-status", """{"status":"Disabled"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, disabled.StatusCode);
+        Assert.Equal("Disabled", disabledBody.GetProperty("status").GetString());
+        Assert.True(disabledBody.GetProperty("isCustomized").GetBoolean());
+        var (_, afterDisable) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.DoesNotContain("access.roles", Codes(afterDisable.GetProperty("menus")));
+        Assert.DoesNotContain("access.roles", afterDisable.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
+        var (_, stillListed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        Assert.Equal("Disabled", Node(stillListed.GetProperty("items"), "access.roles").GetProperty("status").GetString());
+
+        // 种子再跑不覆盖运营的停用
+        await server.RunSeedersAsync();
+        var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/menus/{rolesId}", token: superadmin));
+        Assert.Equal("Disabled", afterSeed.GetProperty("status").GetString());
+
+        // 恢复默认即重新启用
+        var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{rolesId}:reset", "{}", superadmin));
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        Assert.Equal("Active", resetBody.GetProperty("status").GetString());
+        Assert.False(resetBody.GetProperty("isCustomized").GetBoolean());
+        var (_, afterReset) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.Contains("access.roles", Codes(afterReset.GetProperty("menus")));
+
+        // 新建时可直接停用；停用的目录连同子树不下发，启用即恢复；状态没变不算定制
+        var (directory, directoryBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"ops","title":"Ops","status":"Disabled"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, directory.StatusCode);
+        Assert.Equal("Disabled", directoryBody.GetProperty("status").GetString());
+        var directoryId = directoryBody.GetProperty("id").GetString()!;
+        var (link, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Link","code":"ops-docs","title":"Docs","externalUrl":"https://docs.xihanfun.com","parentId":"{{directoryId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, link.StatusCode);
+        var (_, whileDisabled) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.DoesNotContain("custom.ops", Codes(whileDisabled.GetProperty("menus")));
+        Assert.DoesNotContain("custom.ops-docs", Codes(whileDisabled.GetProperty("menus")));
+        var (enabled, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{directoryId}:set-status", """{"status":"Active"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, enabled.StatusCode);
+        var (_, afterEnable) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.Equal(["custom.ops-docs"], Codes(Node(afterEnable.GetProperty("menus"), "custom.ops").GetProperty("children")));
+        var (_, unchanged) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{rolesId}:set-status", """{"status":"Active"}""", superadmin));
+        Assert.False(unchanged.GetProperty("isCustomized").GetBoolean());
+
+        // 不存在的节点 404；租户主体碰不到
+        var (missing, missingBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{Guid.NewGuid()}:set-status", """{"status":"Disabled"}""", superadmin));
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        Assert.Equal("ACCESS_NOTFOUND_004", missingBody.GetProperty("code").GetString());
+        var (tenantSide, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{rolesId}:set-status", """{"status":"Disabled"}""", TestTokens.Issue("alice", "acme", "admin")));
+        Assert.Equal(HttpStatusCode.Forbidden, tenantSide.StatusCode);
+    }
+
+    [Fact]
+    public async Task Badges_ReachTheMenuTree_AreKeptByTheSeeder_AndClearedByReset()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var roles = Node(listBody.GetProperty("items"), "access.roles");
+        var rolesId = roles.GetProperty("id").GetString()!;
+        Assert.Equal(JsonValueKind.Null, roles.GetProperty("badge").ValueKind);
+        Assert.False(roles.GetProperty("badgeDot").GetBoolean());
+
+        // 页面节点：徽标是展示字段，改了标为已定制；首尾空白去掉
+        var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{rolesId}", """{"order":200,"badge":" New ","badgeType":"success","badgeDot":false}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        Assert.Equal("New", updatedBody.GetProperty("badge").GetString());
+        Assert.Equal("success", updatedBody.GetProperty("badgeType").GetString());
+        Assert.True(updatedBody.GetProperty("isCustomized").GetBoolean());
+        var (_, delivered) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        var deliveredRoles = Node(delivered.GetProperty("menus"), "access.roles");
+        Assert.Equal("New", deliveredRoles.GetProperty("badge").GetString());
+        Assert.Equal("success", deliveredRoles.GetProperty("badgeType").GetString());
+        Assert.False(deliveredRoles.GetProperty("badgeDot").GetBoolean());
+
+        // 语气只收组件库的 tone，超长的文字也拒绝
+        var (badType, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{rolesId}", """{"order":200,"badgeType":"primary"}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, badType.StatusCode);
+        var (tooLong, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{rolesId}", $$"""{"order":200,"badge":"{{new string('x', 51)}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, tooLong.StatusCode);
+
+        // 种子再跑不覆盖，恢复默认才去掉
+        await server.RunSeedersAsync();
+        var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/menus/{rolesId}", token: superadmin));
+        Assert.Equal("New", afterSeed.GetProperty("badge").GetString());
+        var (_, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{rolesId}:reset", "{}", superadmin));
+        Assert.Equal(JsonValueKind.Null, resetBody.GetProperty("badge").ValueKind);
+        Assert.Equal(JsonValueKind.Null, resetBody.GetProperty("badgeType").ValueKind);
+        Assert.False(resetBody.GetProperty("badgeDot").GetBoolean());
+
+        // 运营节点：新建与修改都能带徽标，圆点也下发
+        var (link, linkBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Link","code":"news","title":"News","externalUrl":"https://docs.xihanfun.com","badgeDot":true,"badgeType":"danger"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, link.StatusCode);
+        Assert.True(linkBody.GetProperty("badgeDot").GetBoolean());
+        var linkId = linkBody.GetProperty("id").GetString()!;
+        var (_, withDot) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.True(Node(withDot.GetProperty("menus"), "custom.news").GetProperty("badgeDot").GetBoolean());
+        var (linkUpdated, linkUpdatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{linkId}", """{"title":"News","externalUrl":"https://docs.xihanfun.com","badge":"3"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, linkUpdated.StatusCode);
+        Assert.Equal("3", linkUpdatedBody.GetProperty("badge").GetString());
+        Assert.False(linkUpdatedBody.GetProperty("badgeDot").GetBoolean());
+        Assert.False(linkUpdatedBody.GetProperty("isCustomized").GetBoolean());
+    }
+
+    [Fact]
     public async Task WorkbenchModule_CanBeSwitchedOff()
     {
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, settings: [new("BasicApp:Modules:Workbench:Enabled", "false")]);

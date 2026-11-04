@@ -255,7 +255,7 @@ public static class AccessPermissions
     public const string MenusCreate = "access.menus.create";
 
     /// <summary>
-    /// 修改菜单与恢复页面默认：<c>menus.update / reset</c>
+    /// 修改菜单、启停与恢复页面默认：<c>menus.update / set-status / reset</c>
     /// </summary>
     public const string MenusUpdate = "access.menus.update";
 
@@ -313,7 +313,7 @@ public static class AccessPermissions
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),
-        new(MenusUpdate, "Update menus", PermissionScope.Platform, audited: true, description: "Change how menu nodes are presented and restore page defaults."),
+        new(MenusUpdate, "Update menus", PermissionScope.Platform, audited: true, description: "Change how menu nodes are presented, enable or disable them, and restore page defaults."),
         new(MenusDelete, "Delete menus", PermissionScope.Platform, audited: true, description: "Delete operator-created directories and links."),
     ];
 }

@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 import type { Tone } from '@xihan-ui/core'
-import type { MenuKind, MenuRow, OperatorKind } from './use-menus'
+import type { MenuKind, MenuRow, MenuStatus, OperatorKind } from './use-menus'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption, TreeSelectOption } from '~/types'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { actionConfirmText, deleteConfirmText, Icon, IconPicker, renderTag, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
+import { actionConfirmText, deleteConfirmText, Icon, IconPicker, renderTag, SchemaPage, statusConfirmText, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
-import { CUSTOM_CODE_PREFIX, MENU_KINDS, menusResource, OPERATOR_KINDS, resetMenu, useMenuEditor, useMenuTree } from './use-menus'
+import { menuBadgeDotColor, resolveMenuBadgeTone } from '~/utils'
+import { CUSTOM_CODE_PREFIX, MENU_KINDS, MENU_STATUSES, menusResource, OPERATOR_KINDS, resetMenu, useMenuEditor, useMenuTree } from './use-menus'
 
 defineOptions({ name: 'AccessMenusView' })
 
@@ -73,8 +74,39 @@ function renderIconCell(node: MenuRow, text: string) {
   ])
 }
 
+function statusLabel(status: MenuStatus): string {
+  return status === 'Active' ? t('access.menus.statuses.active') : t('access.menus.statuses.disabled')
+}
+
+/** 圆点与侧栏同色：没配标签类型时按提醒红 */
+function badgeDotStyle(badgeType?: null | string) {
+  return {
+    display: 'inline-block',
+    inlineSize: 'var(--xh-space-2)',
+    blockSize: 'var(--xh-space-2)',
+    borderRadius: 'var(--xh-shape-circle)',
+    backgroundColor: menuBadgeDotColor(resolveMenuBadgeTone(badgeType, true)),
+  }
+}
+
+/** 徽标单元格：圆点优先于文字（与侧栏同一口径），都没有显示 - */
+function renderBadge(node: MenuRow) {
+  if (node.badgeDot)
+    return h('span', { style: badgeDotStyle(node.badgeType) })
+  return node.badge ? renderTag(node.badge, resolveMenuBadgeTone(node.badgeType)) : '-'
+}
+
 const kindOptions = computed<SelectOption[]>(() => MENU_KINDS.map(kind => ({ label: kindLabel(kind), value: kind })))
 const operatorKindOptions = computed<SelectOption[]>(() => OPERATOR_KINDS.map(kind => ({ label: kindLabel(kind), value: kind })))
+const statusOptions = computed<SelectOption[]>(() => MENU_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
+const badgeTypeOptions = computed<SelectOption[]>(() => [
+  { label: t('access.menus.badge_types.neutral'), value: 'neutral' },
+  { label: t('access.menus.badge_types.brand'), value: 'brand' },
+  { label: t('access.menus.badge_types.info'), value: 'info' },
+  { label: t('access.menus.badge_types.success'), value: 'success' },
+  { label: t('access.menus.badge_types.warning'), value: 'warning' },
+  { label: t('access.menus.badge_types.danger'), value: 'danger' },
+])
 const yesNoOptions = computed(() => [
   { label: t('common.statuses.yes'), value: 'true' },
   { label: t('common.statuses.no'), value: 'false' },
@@ -92,11 +124,13 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'route', title: t('access.menus.fields.target'), dataType: 'string', exportable: true, render: row => formatNullable(targetOf(asRow(row))), ellipsis: true, minWidth: 200, order: 4 },
   { key: 'icon', title: t('access.menus.fields.icon'), dataType: 'string', render: row => (asRow(row).icon ? renderIconCell(asRow(row), asRow(row).icon!) : '-'), minWidth: 160, order: 5 },
   { key: 'permission', title: t('access.menus.fields.permission'), dataType: 'string', exportable: true, minWidth: 180, order: 6 },
-  { key: 'isVisible', title: t('access.menus.fields.visible'), dataType: 'boolean', advancedSearch: true, exportable: true, options: yesNoOptions.value, width: 90, order: 7 },
-  { key: 'keepAlive', title: t('access.menus.fields.keep_alive'), dataType: 'boolean', exportable: true, width: 90, order: 8 },
-  { key: 'isAffix', title: t('access.menus.fields.affix'), dataType: 'boolean', exportable: true, width: 90, order: 9 },
-  { key: 'isCustomized', title: t('access.menus.fields.customized'), dataType: 'boolean', advancedSearch: true, exportable: true, options: yesNoOptions.value, render: row => (asRow(row).kind === 'Page' ? renderTag(formatBoolean(asRow(row).isCustomized), asRow(row).isCustomized ? 'info' : 'neutral') : '-'), width: 90, order: 10 },
-  { key: 'order', title: t('access.menus.fields.order'), dataType: 'number', exportable: true, width: 80, order: 11 },
+  { key: 'badge', title: t('access.menus.fields.badge'), dataType: 'string', exportable: true, render: row => renderBadge(asRow(row)), width: 110, order: 7 },
+  { key: 'status', title: t('access.menus.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, searchPlaceholder: t('access.menus.fields.status'), render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 8 },
+  { key: 'isVisible', title: t('access.menus.fields.visible'), dataType: 'boolean', advancedSearch: true, exportable: true, options: yesNoOptions.value, width: 90, order: 9 },
+  { key: 'keepAlive', title: t('access.menus.fields.keep_alive'), dataType: 'boolean', exportable: true, width: 90, order: 10 },
+  { key: 'isAffix', title: t('access.menus.fields.affix'), dataType: 'boolean', exportable: true, width: 90, order: 11 },
+  { key: 'isCustomized', title: t('access.menus.fields.customized'), dataType: 'boolean', advancedSearch: true, exportable: true, options: yesNoOptions.value, render: row => (asRow(row).kind === 'Page' ? renderTag(formatBoolean(asRow(row).isCustomized), asRow(row).isCustomized ? 'info' : 'neutral') : '-'), width: 90, order: 12 },
+  { key: 'order', title: t('access.menus.fields.order'), dataType: 'number', exportable: true, width: 80, order: 13 },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -105,6 +139,7 @@ const schema = computed<PageSchema>(() => ({
   exportPermission: 'access.menus.read',
   batchRemovable: true,
   removePermission: 'access.menus.delete',
+  statusPermission: 'access.menus.update',
   rowKey: 'id',
   tree: { childrenKey: 'children', defaultExpandAll: false },
   fields: fields.value,
@@ -115,6 +150,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'addLink', title: t('access.menus.actions.add_link'), scope: 'row', icon: 'lucide:link', visible: row => asRow(row).kind === 'Directory', permission: 'access.menus.create' },
     { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.menus.update' },
+    { key: 'toggle', title: t('access.menus.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', titleOf(asRow(row))), permission: 'access.menus.update' },
     { key: 'reset', title: t('access.menus.actions.reset'), scope: 'row', icon: 'lucide:rotate-ccw', confirm: true, confirmText: row => actionConfirmText(t, t('access.menus.actions.reset'), titleOf(asRow(row))), visible: row => asRow(row).kind === 'Page' && asRow(row).isCustomized, permission: 'access.menus.update' },
     // 页面节点来自登记，不能删；还有子节点的目录由后端拒绝
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, titleOf(asRow(row))), visible: row => asRow(row).kind !== 'Page', permission: 'access.menus.delete' },
@@ -139,6 +175,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'edit':
       if (row)
         editor.startEdit(row)
+      break
+    case 'toggle':
+      if (row)
+        void toggleStatus(row)
       break
     case 'reset':
       if (row)
@@ -182,6 +222,17 @@ async function onSubmit() {
   if (await editor.submit()) {
     toast.success(t('common.messages.save_success'))
     reload()
+  }
+}
+
+async function toggleStatus(row: MenuRow) {
+  try {
+    await resource.updateStatus?.(row.id, row.status !== 'Active')
+    toast.success(t('common.messages.status_updated'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.status_failed'))
   }
 }
 
@@ -315,6 +366,24 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('access.menus.fields.permission') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>{{ formatNullable(detail.permission) }}</XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('access.menus.fields.status') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot variant="subtle" size="sm" :tone="detail.status === 'Active' ? 'success' : 'danger'">
+                      <XhTagLabel>{{ statusLabel(detail.status) }}</XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('access.menus.fields.badge') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <span v-if="detail.badgeDot" :style="badgeDotStyle(detail.badgeType)" />
+                    <XhTagRoot v-else-if="detail.badge" variant="subtle" size="sm" :tone="resolveMenuBadgeTone(detail.badgeType)">
+                      <XhTagLabel>{{ detail.badge }}</XhTagLabel>
+                    </XhTagRoot>
+                    <span v-else>-</span>
+                  </XhDescriptionsValue>
                 </XhDescriptionsItem>
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('access.menus.fields.visible') }}</XhDescriptionsLabel>
@@ -471,6 +540,36 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
           <XhFieldErrorText v-if="editor.fieldError('permission')">
             {{ editor.fieldError('permission') }}
           </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('badge')">
+          <XhFieldLabel>{{ t('access.menus.fields.badge_content') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.badge" name="badge" clearable autocomplete="off" :placeholder="t('access.menus.badge_content_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('badge')">
+            {{ editor.fieldError('badge') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('badgeType')">
+          <XhFieldLabel>{{ t('access.menus.fields.badge_type') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.badgeType" name="badgeType" :options="badgeTypeOptions" clearable :placeholder="t('access.menus.badge_type_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('badgeType')">
+            {{ editor.fieldError('badgeType') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('access.menus.fields.badge_dot') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="editor.form.badgeDot" name="badgeDot" />
+          </XhFieldControl>
+        </XhFieldRoot>
+        <XhFieldRoot v-if="!editor.isEdit.value">
+          <XhFieldLabel>{{ t('access.menus.fields.status') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.status" name="status" :options="statusOptions" />
+          </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('access.menus.fields.visible') }}</XhFieldLabel>

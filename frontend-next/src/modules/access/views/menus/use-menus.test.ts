@@ -8,7 +8,7 @@ function json(status: number, body: object, contentType = 'application/json'): R
 }
 
 function node(id: string, code: string, kind: 'Page' | 'Directory' | 'Link', extra: Record<string, unknown> = {}): MenuRow {
-  return { id, code, kind, package: kind === 'Page' ? code.split('.')[0]! : 'custom', parentId: null, route: kind === 'Page' ? `/${code.replace('.', '/')}` : '', component: kind === 'Page' ? `${code.replace('.', '/')}/index` : '', titleKey: kind === 'Page' ? `${code}.title` : '', title: kind === 'Page' ? null : code, icon: null, order: 0, permission: null, externalUrl: null, isVisible: true, keepAlive: false, isAffix: false, isCustomized: false, children: [], ...extra } as MenuRow
+  return { id, code, kind, package: kind === 'Page' ? code.split('.')[0]! : 'custom', parentId: null, route: kind === 'Page' ? `/${code.replace('.', '/')}` : '', component: kind === 'Page' ? `${code.replace('.', '/')}/index` : '', titleKey: kind === 'Page' ? `${code}.title` : '', title: kind === 'Page' ? null : code, icon: null, order: 0, permission: null, externalUrl: null, isVisible: true, keepAlive: false, isAffix: false, status: 'Active', badge: null, badgeType: null, badgeDot: false, isCustomized: false, children: [], ...extra } as MenuRow
 }
 
 /** 测试树：顶层目录 System（挂一个外链 Docs）、顶层页面 Roles（挂登记的子页面 Audit，已隐藏）、顶层页面 Users（已定制） */
@@ -68,6 +68,8 @@ describe('menusResource', () => {
     expect(codes(filterMenuTree(tree, { filters: { keyword: 'XIHANFUN.COM' } }, titleOf))).toEqual([['custom.system', ['custom.docs']]])
     expect(codes(filterMenuTree(tree, { filters: { kind: 'Link' } }, titleOf))).toEqual([['custom.system', ['custom.docs']]])
     expect(codes(filterMenuTree(tree, { filters: { isVisible: 'false' } }, titleOf))).toEqual([['access.roles', ['access.roles-audit']]])
+    expect(codes(filterMenuTree(tree, { filters: { status: 'Disabled' } }, titleOf))).toEqual([])
+    expect(codes(filterMenuTree([{ ...tree[2]!, status: 'Disabled' }], { filters: { status: 'Disabled' } }, titleOf))).toEqual(['identity.users'])
     expect(codes(filterMenuTree(tree, { filters: { isCustomized: 'true', kind: 'Page' } }, titleOf))).toEqual(['identity.users'])
     expect(codes(filterMenuTree(tree, { filters: { keyword: '  ', kind: null } }, titleOf))).toHaveLength(3)
     expect(() => filterMenuTree(tree, { filters: { permission: 'access.roles.read' } }, titleOf)).toThrow('permission')
@@ -84,6 +86,15 @@ describe('menusResource', () => {
     expect(calls[0]!.url).toBe('/api/menus?ids=m-roles')
     expect((await resetMenu('m-users')).isCustomized).toBe(false)
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/menus/m-users:reset' })
+  })
+
+  it('启停调 menus.set-status：启用送 Active，停用送 Disabled', async () => {
+    const calls = record(() => json(200, node('m-users', 'identity.users', 'Page')))
+    const resource = menusResource(titleOf)
+    await resource.updateStatus!('m-users', false)
+    await resource.updateStatus!('m-users', true)
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/menus/m-users:set-status', body: { status: 'Disabled' } })
+    expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/menus/m-users:set-status', body: { status: 'Active' } })
   })
 })
 
@@ -117,14 +128,14 @@ describe('useMenuEditor', () => {
     expect(await editor.submit()).toBe(true)
     expect(editor.open.value).toBe(false)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/menus' })
-    expect(calls[0]!.body).toEqual({ kind: 'Directory', code: 'ops', title: 'Ops', icon: null, order: 5, parentId: null, externalUrl: null, permission: null, isVisible: true })
+    expect(calls[0]!.body).toEqual({ kind: 'Directory', code: 'ops', title: 'Ops', icon: null, order: 5, parentId: null, externalUrl: null, permission: null, isVisible: true, status: 'Active', badge: null, badgeType: null, badgeDot: false })
 
     editor.startCreate('Link', 'm-sys')
     expect(editor.form).toMatchObject({ kind: 'Link', parentId: 'm-sys' })
     expect(editor.parentLocked.value).toBe(false)
-    Object.assign(editor.form, { code: 'docs2', title: 'Docs 2', externalUrl: ' https://docs.xihanfun.com/2 ', permission: ' access.roles.read ', isVisible: false })
+    Object.assign(editor.form, { code: 'docs2', title: 'Docs 2', externalUrl: ' https://docs.xihanfun.com/2 ', permission: ' access.roles.read ', isVisible: false, status: 'Disabled', badge: ' New ', badgeType: 'success', badgeDot: true })
     expect(await editor.submit()).toBe(true)
-    expect(calls[1]!.body).toEqual({ kind: 'Link', code: 'docs2', title: 'Docs 2', icon: null, order: 0, parentId: 'm-sys', externalUrl: 'https://docs.xihanfun.com/2', permission: 'access.roles.read', isVisible: false })
+    expect(calls[1]!.body).toEqual({ kind: 'Link', code: 'docs2', title: 'Docs 2', icon: null, order: 0, parentId: 'm-sys', externalUrl: 'https://docs.xihanfun.com/2', permission: 'access.roles.read', isVisible: false, status: 'Disabled', badge: 'New', badgeType: 'success', badgeDot: true })
 
     editor.startCreate('Link', 'm-sys')
     editor.changeKind('Directory')
@@ -138,10 +149,10 @@ describe('useMenuEditor', () => {
     expect(editor.isPage.value).toBe(true)
     expect(editor.parentLocked.value).toBe(false)
     expect(editor.form).toMatchObject({ title: '', order: 200, permission: 'access.roles.read', parentId: null })
-    Object.assign(editor.form, { title: '  Roles & grants ', parentId: 'm-sys', keepAlive: true })
+    Object.assign(editor.form, { title: '  Roles & grants ', parentId: 'm-sys', keepAlive: true, badge: ' 3 ', badgeType: 'danger' })
     expect(await editor.submit()).toBe(true)
     expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/menus/m-roles' })
-    expect(calls[0]!.body).toEqual({ title: 'Roles & grants', icon: null, order: 200, parentId: 'm-sys', isVisible: true, keepAlive: true, isAffix: false, externalUrl: null, permission: null })
+    expect(calls[0]!.body).toEqual({ title: 'Roles & grants', icon: null, order: 200, parentId: 'm-sys', isVisible: true, keepAlive: true, isAffix: false, externalUrl: null, permission: null, badge: '3', badgeType: 'danger', badgeDot: false })
 
     editor.startEdit(tree.find('m-audit')!)
     expect(editor.parentLocked.value).toBe(true)
@@ -157,7 +168,7 @@ describe('useMenuEditor', () => {
     editor.form.parentId = null
     editor.form.permission = 'identity.users.read'
     expect(await editor.submit()).toBe(true)
-    expect(calls[0]!.body).toEqual({ title: 'Docs', icon: null, order: 0, parentId: null, isVisible: true, keepAlive: false, isAffix: false, externalUrl: 'https://docs.xihanfun.com', permission: 'identity.users.read' })
+    expect(calls[0]!.body).toEqual({ title: 'Docs', icon: null, order: 0, parentId: null, isVisible: true, keepAlive: false, isAffix: false, externalUrl: 'https://docs.xihanfun.com', permission: 'identity.users.read', badge: null, badgeType: null, badgeDot: false })
 
     editor.startEdit(tree.find('m-sys')!)
     expect(editor.parentLocked.value).toBe(true)

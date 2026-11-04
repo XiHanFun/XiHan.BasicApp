@@ -263,6 +263,7 @@ export const routes = {
   'menus.get': { method: 'GET', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
   'menus.list': { method: 'GET', template: '/api/menus', path: [], query: [], success: 200 },
   'menus.reset': { method: 'POST', template: '/api/menus/{id}:reset', path: ['id'], query: [], success: 200 },
+  'menus.set-status': { method: 'POST', template: '/api/menus/{id}:set-status', path: ['id'], query: [], success: 200 },
   'menus.update': { method: 'PUT', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
   'message-templates.create': { method: 'POST', template: '/api/message-templates', path: [], query: [], success: 201 },
   'message-templates.delete': { method: 'DELETE', template: '/api/message-templates', path: [], query: ['ids'], success: 200 },
@@ -937,6 +938,7 @@ export const menus = {
   get: (request: RequestOf<'menus.get'>, options?: CallOptions) => invoke<RequestOf<'menus.get'>, ResponseOf<'menus.get'>>('menus.get', routes['menus.get'], request, options),
   list: (request: RequestOf<'menus.list'>, options?: CallOptions) => invoke<RequestOf<'menus.list'>, ResponseOf<'menus.list'>>('menus.list', routes['menus.list'], request, options),
   reset: (request: RequestOf<'menus.reset'>, options?: CallOptions) => invoke<RequestOf<'menus.reset'>, ResponseOf<'menus.reset'>>('menus.reset', routes['menus.reset'], request, options),
+  setStatus: (request: RequestOf<'menus.set-status'>, options?: CallOptions) => invoke<RequestOf<'menus.set-status'>, ResponseOf<'menus.set-status'>>('menus.set-status', routes['menus.set-status'], request, options),
   update: (request: RequestOf<'menus.update'>, options?: CallOptions) => invoke<RequestOf<'menus.update'>, ResponseOf<'menus.update'>>('menus.update', routes['menus.update'], request, options),
 }
 

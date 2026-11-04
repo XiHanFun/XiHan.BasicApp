@@ -94,7 +94,7 @@ function session(): Session {
 }
 
 function page(code: string, route: string, extra: Partial<MenuNode> = {}): MenuNode {
-  return { code, kind: 'Page', route, component: `${route.slice(1)}/index`, titleKey: `${code}.title`, title: null, icon: null, order: 0, permission: null, externalUrl: null, hidden: false, keepAlive: false, affix: false, children: [], ...extra }
+  return { code, kind: 'Page', route, component: `${route.slice(1)}/index`, titleKey: `${code}.title`, title: null, icon: null, order: 0, permission: null, externalUrl: null, hidden: false, keepAlive: false, affix: false, badge: null, badgeType: null, badgeDot: false, children: [], ...extra }
 }
 
 function permissions(menus: MenuNode[] = [page('workbench.dashboard', HOME_PATH)], codes: string[] = [], roles: string[] = ['admin']): Permissions {

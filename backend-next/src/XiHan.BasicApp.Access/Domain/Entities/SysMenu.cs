@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 页面节点由各包的页面登记派生：<see cref="Route"/>、<see cref="Component"/>、<see cref="TitleKey"/>、<see cref="Permission"/> 归登记，
-/// 种子每次对齐；展示字段（标题覆盖、图标、排序、所属目录、可见、缓存、固定标签）运营可改，改过即 <see cref="IsCustomized"/>，种子不再覆盖，可经 <c>menus.reset</c> 恢复登记的值
+/// 种子每次对齐；展示字段（标题覆盖、图标、排序、所属目录、可见、缓存、固定标签、启停、徽标）运营可改，改过即 <see cref="IsCustomized"/>，种子不再覆盖，可经 <c>menus.reset</c> 恢复登记的值
 /// 目录与外链节点由运营新建（编码 <c>custom.&lt;名&gt;</c>），种子不碰
 /// </remarks>
 [ActiveUniqueIndex(nameof(Code))]
@@ -117,6 +117,32 @@ public sealed class SysMenu : AppAuditedEntity
     /// 是否固定在标签栏（不能关闭）
     /// </summary>
     public bool IsAffix { get; set; }
+
+    /// <summary>
+    /// 启停状态
+    /// </summary>
+    /// <remarks>
+    /// 停用的节点连同子树不进 <c>auth.permissions</c>，页面没有路由；菜单管理里照常列出
+    /// </remarks>
+    public MenuStatus Status { get; set; } = MenuStatus.Active;
+
+    /// <summary>
+    /// 徽标文字（显示在菜单项右侧，如 <c>New</c>、<c>3</c>）
+    /// </summary>
+    public string? Badge { get; set; }
+
+    /// <summary>
+    /// 徽标语气
+    /// </summary>
+    /// <remarks>
+    /// 与组件库的 tone 同名：<c>neutral</c>、<c>brand</c>、<c>info</c>、<c>success</c>、<c>warning</c>、<c>danger</c>；为空时文字徽标取中性、圆点取提醒红
+    /// </remarks>
+    public string? BadgeType { get; set; }
+
+    /// <summary>
+    /// 是否显示圆点（优先于徽标文字）
+    /// </summary>
+    public bool BadgeDot { get; set; }
 
     /// <summary>
     /// 页面节点的展示是否被运营改过

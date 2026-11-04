@@ -31161,7 +31161,7 @@
           "menus"
         ],
         "summary": "List menu tree",
-        "description": "List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.\n\nRequires permission access.menus.read (Read menus).",
+        "description": "List the whole menu tree (including hidden and disabled nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.\n\nRequires permission access.menus.read (Read menus).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.menus.read",
         "parameters": [],
@@ -31281,6 +31281,30 @@
                   "isVisible": {
                     "description": "\u662F\u5426\u5728\u5BFC\u822A\u91CC\u663E\u793A",
                     "type": "boolean"
+                  },
+                  "status": {
+                    "description": "\u542F\u505C\u72B6\u6001",
+                    "$ref": "#/components/schemas/MenuStatus"
+                  },
+                  "badge": {
+                    "description": "\u5FBD\u6807\u6587\u5B57\uFF0C\u53EF\u7A7A\uFF0C\u6700\u591A 50 \u4E2A\u5B57\u7B26",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "badgeType": {
+                    "description": "\u5FBD\u6807\u8BED\u6C14\uFF0C\u53EF\u7A7A\uFF1Aneutral\u3001brand\u3001info\u3001success\u3001warning\u3001danger",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^(neutral|brand|info|success|warning|danger)$"
+                  },
+                  "badgeDot": {
+                    "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -31384,6 +31408,28 @@
                       "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
                       "type": "boolean"
                     },
+                    "status": {
+                      "description": "\u542F\u505C\u72B6\u6001\uFF1A\u505C\u7528\u7684\u8282\u70B9\u8FDE\u540C\u5B50\u6811\u4E0D\u4E0B\u53D1",
+                      "$ref": "#/components/schemas/MenuStatus"
+                    },
+                    "badge": {
+                      "description": "\u5FBD\u6807\u6587\u5B57",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeType": {
+                      "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeDot": {
+                      "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                      "type": "boolean"
+                    },
                     "isCustomized": {
                       "description": "\u9875\u9762\u8282\u70B9\u7684\u5C55\u793A\u662F\u5426\u88AB\u6539\u8FC7\uFF08\u53EF\u6062\u590D\u9ED8\u8BA4\uFF09",
                       "type": "boolean"
@@ -31408,6 +31454,8 @@
                     "isVisible",
                     "keepAlive",
                     "isAffix",
+                    "status",
+                    "badgeDot",
                     "isCustomized",
                     "children"
                   ]
@@ -31543,6 +31591,28 @@
                       "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
                       "type": "boolean"
                     },
+                    "status": {
+                      "description": "\u542F\u505C\u72B6\u6001\uFF1A\u505C\u7528\u7684\u8282\u70B9\u8FDE\u540C\u5B50\u6811\u4E0D\u4E0B\u53D1",
+                      "$ref": "#/components/schemas/MenuStatus"
+                    },
+                    "badge": {
+                      "description": "\u5FBD\u6807\u6587\u5B57",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeType": {
+                      "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeDot": {
+                      "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                      "type": "boolean"
+                    },
                     "isCustomized": {
                       "description": "\u9875\u9762\u8282\u70B9\u7684\u5C55\u793A\u662F\u5426\u88AB\u6539\u8FC7\uFF08\u53EF\u6062\u590D\u9ED8\u8BA4\uFF09",
                       "type": "boolean"
@@ -31567,6 +31637,8 @@
                     "isVisible",
                     "keepAlive",
                     "isAffix",
+                    "status",
+                    "badgeDot",
                     "isCustomized",
                     "children"
                   ]
@@ -31592,7 +31664,7 @@
           "menus"
         ],
         "summary": "Update menu",
-        "description": "Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission.\n\nRequires permission access.menus.update (Update menus).",
+        "description": "Update a menu node: page nodes only change their presentation (title, icon, order, directory, visibility, keep-alive, affix, badge) and become customized; operator nodes can also change the link and the permission.\n\nRequires permission access.menus.update (Update menus).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.menus.update",
         "parameters": [
@@ -31681,6 +31753,26 @@
                       "null"
                     ],
                     "maxLength": 128
+                  },
+                  "badge": {
+                    "description": "\u5FBD\u6807\u6587\u5B57\uFF0C\u53EF\u7A7A\uFF0C\u6700\u591A 50 \u4E2A\u5B57\u7B26",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "badgeType": {
+                    "description": "\u5FBD\u6807\u8BED\u6C14\uFF0C\u53EF\u7A7A\uFF1Aneutral\u3001brand\u3001info\u3001success\u3001warning\u3001danger",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^(neutral|brand|info|success|warning|danger)$"
+                  },
+                  "badgeDot": {
+                    "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -31782,6 +31874,28 @@
                       "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
                       "type": "boolean"
                     },
+                    "status": {
+                      "description": "\u542F\u505C\u72B6\u6001\uFF1A\u505C\u7528\u7684\u8282\u70B9\u8FDE\u540C\u5B50\u6811\u4E0D\u4E0B\u53D1",
+                      "$ref": "#/components/schemas/MenuStatus"
+                    },
+                    "badge": {
+                      "description": "\u5FBD\u6807\u6587\u5B57",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeType": {
+                      "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeDot": {
+                      "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                      "type": "boolean"
+                    },
                     "isCustomized": {
                       "description": "\u9875\u9762\u8282\u70B9\u7684\u5C55\u793A\u662F\u5426\u88AB\u6539\u8FC7\uFF08\u53EF\u6062\u590D\u9ED8\u8BA4\uFF09",
                       "type": "boolean"
@@ -31806,6 +31920,8 @@
                     "isVisible",
                     "keepAlive",
                     "isAffix",
+                    "status",
+                    "badgeDot",
                     "isCustomized",
                     "children"
                   ]
@@ -31833,7 +31949,7 @@
           "menus"
         ],
         "summary": "Reset menu defaults",
-        "description": "Restore a page node\u0027s presentation to its registration and clear the customization flag.\n\nRequires permission access.menus.update (Update menus).",
+        "description": "Restore a page node\u0027s presentation to its registration (enabled, no badge) and clear the customization flag.\n\nRequires permission access.menus.update (Update menus).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.menus.update",
         "parameters": [
@@ -31964,6 +32080,28 @@
                       "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
                       "type": "boolean"
                     },
+                    "status": {
+                      "description": "\u542F\u505C\u72B6\u6001\uFF1A\u505C\u7528\u7684\u8282\u70B9\u8FDE\u540C\u5B50\u6811\u4E0D\u4E0B\u53D1",
+                      "$ref": "#/components/schemas/MenuStatus"
+                    },
+                    "badge": {
+                      "description": "\u5FBD\u6807\u6587\u5B57",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeType": {
+                      "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeDot": {
+                      "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                      "type": "boolean"
+                    },
                     "isCustomized": {
                       "description": "\u9875\u9762\u8282\u70B9\u7684\u5C55\u793A\u662F\u5426\u88AB\u6539\u8FC7\uFF08\u53EF\u6062\u590D\u9ED8\u8BA4\uFF09",
                       "type": "boolean"
@@ -31988,6 +32126,219 @@
                     "isVisible",
                     "keepAlive",
                     "isAffix",
+                    "status",
+                    "badgeDot",
+                    "isCustomized",
+                    "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/menus/{id}:set-status": {
+      "post": {
+        "operationId": "menus.set-status",
+        "tags": [
+          "menus"
+        ],
+        "summary": "Enable or disable a menu",
+        "description": "Enable or disable a menu node. A disabled node and its subtree stay out of auth.permissions, so its pages have no route; a page node is marked as customized.\n\nRequires permission access.menus.update (Update menus).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u83DC\u5355\u4E3B\u952E",
+            "required": true,
+            "schema": {
+              "description": "\u83DC\u5355\u4E3B\u952E",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "menus.set-status \u7684\u8BF7\u6C42\uFF1A\u6807\u8BC6\u7531\u8DEF\u7531\u503C {id} \u7ED1\u5B9A",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetMenuStatusRequest",
+                "description": "menus.set-status \u7684\u8BF7\u6C42\uFF1A\u6807\u8BC6\u7531\u8DEF\u7531\u503C {id} \u7ED1\u5B9A",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u83DC\u5355\u4E3B\u952E",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "status": {
+                    "description": "\u542F\u7528\u6216\u505C\u7528",
+                    "$ref": "#/components/schemas/MenuStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u83DC\u5355\u8282\u70B9\u7684\u7BA1\u7406\u89C6\u56FE\uFF08menus.*\uFF09",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MenuResponse",
+                  "description": "\u83DC\u5355\u8282\u70B9\u7684\u7BA1\u7406\u89C6\u56FE\uFF08menus.*\uFF09",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u4E3B\u952E",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "description": "\u7F16\u7801\uFF08\u9875\u9762\u7801\u6216 custom.\u003C\u540D\u003E\uFF09",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "description": "\u79CD\u7C7B",
+                      "$ref": "#/components/schemas/MenuKind"
+                    },
+                    "package": {
+                      "description": "\u6240\u5C5E\u5305\uFF1B\u8FD0\u8425\u8282\u70B9\u662F custom",
+                      "type": "string"
+                    },
+                    "parentId": {
+                      "description": "\u4E0A\u7EA7",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "route": {
+                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "type": "string"
+                    },
+                    "component": {
+                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "type": "string"
+                    },
+                    "titleKey": {
+                      "description": "\u6807\u9898\u6587\u6848\u952E\uFF1B\u8FD0\u8425\u8282\u70B9\u4E3A\u7A7A",
+                      "type": "string"
+                    },
+                    "title": {
+                      "description": "\u6807\u9898\u539F\u6587\uFF08\u8FD0\u8425\u8282\u70B9\uFF09\u6216\u8986\u76D6\uFF08\u9875\u9762\u8282\u70B9\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "icon": {
+                      "description": "\u56FE\u6807",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "description": "\u6392\u5E8F\u53F7",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "permission": {
+                      "description": "\u6240\u9700\u6743\u9650\u7801",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "externalUrl": {
+                      "description": "\u5916\u94FE\u5730\u5740",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isVisible": {
+                      "description": "\u662F\u5426\u5728\u5BFC\u822A\u91CC\u663E\u793A",
+                      "type": "boolean"
+                    },
+                    "keepAlive": {
+                      "description": "\u9875\u9762\u6807\u7B7E\u662F\u5426\u53C2\u4E0E\u7F13\u5B58",
+                      "type": "boolean"
+                    },
+                    "isAffix": {
+                      "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u542F\u505C\u72B6\u6001\uFF1A\u505C\u7528\u7684\u8282\u70B9\u8FDE\u540C\u5B50\u6811\u4E0D\u4E0B\u53D1",
+                      "$ref": "#/components/schemas/MenuStatus"
+                    },
+                    "badge": {
+                      "description": "\u5FBD\u6807\u6587\u5B57",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeType": {
+                      "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "badgeDot": {
+                      "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+                      "type": "boolean"
+                    },
+                    "isCustomized": {
+                      "description": "\u9875\u9762\u8282\u70B9\u7684\u5C55\u793A\u662F\u5426\u88AB\u6539\u8FC7\uFF08\u53EF\u6062\u590D\u9ED8\u8BA4\uFF09",
+                      "type": "boolean"
+                    },
+                    "children": {
+                      "description": "\u5B50\u8282\u70B9",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "kind",
+                    "package",
+                    "route",
+                    "component",
+                    "titleKey",
+                    "order",
+                    "isVisible",
+                    "keepAlive",
+                    "isAffix",
+                    "status",
+                    "badgeDot",
                     "isCustomized",
                     "children"
                   ]
@@ -68367,6 +68718,24 @@
             "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
             "type": "boolean"
           },
+          "badge": {
+            "description": "\u5FBD\u6807\u6587\u5B57",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "badgeType": {
+            "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "badgeDot": {
+            "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+            "type": "boolean"
+          },
           "children": {
             "description": "\u5B50\u8282\u70B9",
             "type": "array",
@@ -68385,6 +68754,7 @@
           "hidden",
           "keepAlive",
           "affix",
+          "badgeDot",
           "children"
         ]
       },
@@ -68474,6 +68844,28 @@
             "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F",
             "type": "boolean"
           },
+          "status": {
+            "description": "\u542F\u505C\u72B6\u6001\uFF1A\u505C\u7528\u7684\u8282\u70B9\u8FDE\u540C\u5B50\u6811\u4E0D\u4E0B\u53D1",
+            "$ref": "#/components/schemas/MenuStatus"
+          },
+          "badge": {
+            "description": "\u5FBD\u6807\u6587\u5B57",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "badgeType": {
+            "description": "\u5FBD\u6807\u8BED\u6C14\uFF08\u7EC4\u4EF6\u5E93\u7684 tone\uFF09",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "badgeDot": {
+            "description": "\u662F\u5426\u663E\u793A\u5706\u70B9\uFF08\u4F18\u5148\u4E8E\u5FBD\u6807\u6587\u5B57\uFF09",
+            "type": "boolean"
+          },
           "isCustomized": {
             "description": "\u9875\u9762\u8282\u70B9\u7684\u5C55\u793A\u662F\u5426\u88AB\u6539\u8FC7\uFF08\u53EF\u6062\u590D\u9ED8\u8BA4\uFF09",
             "type": "boolean"
@@ -68498,8 +68890,18 @@
           "isVisible",
           "keepAlive",
           "isAffix",
+          "status",
+          "badgeDot",
           "isCustomized",
           "children"
+        ]
+      },
+      "MenuStatus": {
+        "description": "\u83DC\u5355\u8282\u70B9\u7684\u542F\u505C\u72B6\u6001",
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
         ]
       },
       "MessageSendStatus": {
@@ -74119,7 +74521,7 @@
       "access.menus.update": {
         "code": "access.menus.update",
         "displayName": "Update menus",
-        "description": "Change how menu nodes are presented and restore page defaults."
+        "description": "Change how menu nodes are presented, enable or disable them, and restore page defaults."
       },
       "access.permission-conditions.create": {
         "code": "access.permission-conditions.create",

@@ -88,6 +88,9 @@ public sealed class UpdateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
         row.IsVisible = request.IsVisible;
         row.KeepAlive = request.KeepAlive;
         row.IsAffix = request.IsAffix;
+        row.Badge = MenuRules.Normalize(request.Badge);
+        row.BadgeType = MenuRules.Normalize(request.BadgeType);
+        row.BadgeDot = request.BadgeDot;
         var updated = await menus.UpdateAsync(row, context.CancellationToken).ConfigureAwait(false);
         return updated.IsFailure ? updated.Error! : MenuResponse.From(row);
     }

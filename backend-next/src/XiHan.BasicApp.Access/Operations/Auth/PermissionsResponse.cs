@@ -35,7 +35,7 @@ public sealed record RoleSummary(Guid Id, string Code, string Name);
 /// 菜单节点
 /// </summary>
 /// <remarks>
-/// 页面生成路由记录；目录只做分组；外链在新标签打开、不生成路由
+/// 页面生成路由记录；目录只做分组；外链在新标签打开、不生成路由；停用的节点不下发
 /// </remarks>
 /// <param name="Code">节点编码（页面码或 <c>custom.&lt;名&gt;</c>）</param>
 /// <param name="Kind">种类</param>
@@ -50,6 +50,9 @@ public sealed record RoleSummary(Guid Id, string Code, string Name);
 /// <param name="Hidden">导航里不显示（页面仍可直接访问）</param>
 /// <param name="KeepAlive">页面标签是否参与缓存</param>
 /// <param name="Affix">是否固定在标签栏</param>
+/// <param name="Badge">徽标文字</param>
+/// <param name="BadgeType">徽标语气（组件库的 tone）</param>
+/// <param name="BadgeDot">是否显示圆点（优先于徽标文字）</param>
 /// <param name="Children">子节点</param>
 public sealed record MenuNode(
     string Code,
@@ -65,4 +68,7 @@ public sealed record MenuNode(
     bool Hidden,
     bool KeepAlive,
     bool Affix,
+    string? Badge,
+    string? BadgeType,
+    bool BadgeDot,
     IReadOnlyList<MenuNode> Children);
