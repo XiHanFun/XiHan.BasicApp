@@ -36,7 +36,7 @@
 | 方式 | 说明 |
 | --- | --- |
 | 启动时 | `BasicApp:Schema:AutoUpgrade`（缺省 `true`）：宿主启动前执行，失败即以日志 `Startup aborted: schema upgrade failed` 中断启动 |
-| 命令 | `XiHan.BasicApp.Host schema upgrade`：命令模式执行并以 JSON 输出报告（`from`、`to`、`applied`） |
+| 命令 | `XiHan.BasicApp.Host schema upgrade`：不启动应用（Feature 启动就要读写自己的表，新库上要排在它们之前），执行后以 JSON 输出报告（`from`、`to`、`applied`）；关掉 `AutoUpgrade` 时由运维先跑它再启动 |
 
 ```bash
 dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade

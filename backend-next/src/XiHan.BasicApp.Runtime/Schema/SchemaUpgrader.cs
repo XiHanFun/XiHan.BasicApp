@@ -112,6 +112,11 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
             {
                 await Task.Delay(_retryDelay, clock, cancellationToken).ConfigureAwait(false);
             }
+            catch (Exception exception) when (exception.GetType() == typeof(Exception))
+            {
+                // InitTables 把连不上库（库不存在、地址错）包成裸的 Exception，外层只认数据库异常
+                return Error.Literal(RuntimeErrors.SchemaUpgradeFailed, $"Schema upgrade failed: {exception.Message}");
+            }
         }
 
         if (!await client.Queryable<SysVersion>().AnyAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false))

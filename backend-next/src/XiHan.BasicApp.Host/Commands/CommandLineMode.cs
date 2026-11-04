@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Host.Commands;
 /// </summary>
 /// <remarks>
 /// <c>dotnet run -- &lt;命令&gt; [...]</c> 时用同一套装配启动宿主，但不监听端口，由框架的命令行运行器分发命令（<c>help</c>、<c>graph</c>、<c>pipeline</c>、<c>operations</c>、<c>invoke</c>、<c>seed</c>）
-/// <c>contracts export</c> 不启动应用，另走 <see cref="Contracts.ContractsExporter"/>
+/// <c>contracts export</c> 不启动应用，另走 <see cref="Contracts.ContractsExporter"/>；<c>schema upgrade</c> 也不启动，见 <see cref="SchemaCommand"/>
 /// </remarks>
 public static class CommandLineMode
 {

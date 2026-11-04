@@ -2,14 +2,18 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using SqlSugar;
 using XiHan.BasicApp.Host;
+using XiHan.BasicApp.Host.Commands;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Runtime.Schema;
+using XiHan.Framework.Hosting.CommandLine;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -26,6 +30,58 @@ public sealed class SchemaBaselineTests
     private const string UpdateVariable = "XIHAN_UPDATE_SCHEMA_BASELINE";
     private const string BaselineVersion = "6.0.0";
     private const string BaselineScript = "0001-baseline.sql";
+
+    [Fact]
+    public async Task UpgradeCommand_BuildsAnEmptyDatabase_WithoutStartingTheApp()
+    {
+        await using var database = await PostgresDatabase.CreateAsync(PostgresDatabase.RequireServer(), "xihan_basicapp_test_schema_command");
+        IEnumerable<KeyValuePair<string, string?>> baseline = [new("XiHan:Persistence:SqlSugar:InitTables", "false"), new(SchemaOptions.ConfigurationSection + ":Directory", Path.Combine(RepositoryRoot(), "src", "XiHan.BasicApp.Host", "Schema"))];
+        await using var app = BasicAppHost.Create([], builder =>
+        {
+            builder.WebHost.UseTestServer();
+            builder.Services.AddBasicAppCommands();
+            builder.Configuration.AddInMemoryCollection(BasicAppTestServer.Settings(database.ConnectionString, DatabaseProviders.PostgreSql));
+            builder.Configuration.AddInMemoryCollection(baseline);
+        });
+
+        // 空库上启动应用会失败（Feature 启动就要读写自己的表），所以这条命令不启动
+        Assert.True(SchemaCommand.IsUpgrade(["schema", "upgrade"]));
+        Assert.False(SchemaCommand.IsUpgrade(["schema"]));
+        Assert.False(SchemaCommand.IsUpgrade(["seed", "upgrade"]));
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var exitCode = await SchemaCommand.UpgradeBeforeStartAsync(app.Services, output, error, TestContext.Current.CancellationToken);
+        Assert.True(exitCode == CommandLineExitCodes.Success, error.ToString());
+        var report = JsonDocument.Parse(output.ToString()).RootElement;
+        Assert.Equal(BaselineVersion, report.GetProperty("to").GetString());
+        Assert.Equal($"{BaselineVersion}/{BaselineScript}", Assert.Single(report.GetProperty("applied").EnumerateArray()).GetString());
+
+        // 升级之后同一个库能正常启动，表都在（还没执行种子，登录是账号不存在）
+        await using var server = await BasicAppTestServer.StartAsync(database.ConnectionString, DatabaseProviders.PostgreSql, baseline);
+        var (login, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"superadmin","password":"SuperAdmin@123"}"""));
+        Assert.Equal(HttpStatusCode.Forbidden, login.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpgradeCommand_ReportsAMissingDatabase_AsACommandFailure()
+    {
+        var missing = new NpgsqlConnectionStringBuilder(PostgresDatabase.RequireServer()) { Database = $"xihan_basicapp_test_missing_{Guid.NewGuid():N}" }.ConnectionString;
+        await using var app = BasicAppHost.Create([], builder =>
+        {
+            builder.WebHost.UseTestServer();
+            builder.Services.AddBasicAppCommands();
+            builder.Configuration.AddInMemoryCollection(BasicAppTestServer.Settings(missing, DatabaseProviders.PostgreSql));
+            builder.Configuration.AddInMemoryCollection([new("XiHan:Persistence:SqlSugar:InitTables", "false")]);
+        });
+
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var exitCode = await SchemaCommand.UpgradeBeforeStartAsync(app.Services, output, error, TestContext.Current.CancellationToken);
+
+        Assert.NotEqual(CommandLineExitCodes.Success, exitCode);
+        Assert.Empty(output.ToString());
+        Assert.Equal("RUNTIME_UNAVAILABLE_001", JsonDocument.Parse(error.ToString()).RootElement.GetProperty("code").GetString());
+    }
 
     [Fact]
     public async Task Baseline_BuildsTheSameTablesAsInitTables_AndRunsOnce()
