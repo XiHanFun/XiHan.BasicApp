@@ -26,6 +26,7 @@ namespace XiHan.BasicApp.Access.Middleware;
 /// 4.x 分认证前、认证后两个中间件；6.0 认证在 Tenant 阶段之前，合成一个，认证失败的调用不再经过策略。判定本身出错时放行并记警告（4.x 同）
 /// 策略之前先看登录失败自动封禁（<see cref="LoginBans"/>）：来源地址封禁中即 503 <c>ACCESS_UNAVAILABLE_001</c>（带重试秒数），记一条编码 <c>login-auto-ban</c> 的命中
 /// 平台层有放行命中时在调用上下文里留标记（<see cref="PlatformAllowedKey"/>），这次调用的认证失败不计入封禁（4.x 同）
+/// 只管外部协议（HTTP、gRPC、MCP）：作业、消息处理、工作流与命令行是应用自己发起的调用，没有来源的内部调用（AI 工具等）在已经求值过的外部调用之内。4.x 的策略是 HTTP 中间件，本来就不管它们。不能按「没有地址」判：HTTP 请求的地址可能为空（Unix 套接字）
 /// </remarks>
 /// <param name="policies">策略缓存</param>
 /// <param name="evaluator">策略求值</param>
@@ -67,7 +68,7 @@ public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, Acce
             return;
         }
 
-        if (!options.AccessPolicyEnabled)
+        if (!options.AccessPolicyEnabled || !IsExternal(context))
         {
             await nextStep(context).ConfigureAwait(false);
             return;
@@ -92,6 +93,9 @@ public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, Acce
 
         await nextStep(context).ConfigureAwait(false);
     }
+
+    private static bool IsExternal(InvocationContext context)
+        => context.GetOrigin().TryGetValue(out var origin) && origin.Protocol is InvocationProtocols.Http or InvocationProtocols.Grpc or InvocationProtocols.Mcp;
 
     private async Task<AccessPolicyView?> DecideAsync(InvocationContext context)
     {
