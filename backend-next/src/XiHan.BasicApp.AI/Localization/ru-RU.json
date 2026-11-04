@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "Поставщик ИИ с кодом '{code}' уже существует.",
   "ai.providers.disabled": "Поставщик ИИ '{code}' отключён и не может быть назначен по умолчанию.",
   "ai.providers.endpoint_invalid": "Конечная точка должна быть абсолютным URL http или https.",
+
+  "ai.providers.endpoint_required": "Конечная точка обязательна, если поставщик не OpenAI; иначе ключ API будет отправлен в OpenAI.",
   "ai.providers.secret_unreadable": "Не удаётся расшифровать API-ключ поставщика ИИ '{code}'; возможно, изменились ключи защиты данных. Введите его заново.",
   "ai.providers.kind_unavailable": "Не установлен поставщик моделей для OpenAI-совместимого протокола.",
   "ai.query.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",

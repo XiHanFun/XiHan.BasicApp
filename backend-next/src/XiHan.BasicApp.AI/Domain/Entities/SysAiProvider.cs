@@ -61,7 +61,7 @@ public sealed class SysAiProvider : AppAuditedEntity
     /// 端点
     /// </summary>
     /// <remarks>
-    /// 绝对的 http 或 https 地址；为空即厂商的官方端点
+    /// 绝对的 http 或 https 地址；厂商是 OpenAI 时可留空，走它的官方端点；别的厂商必填
     /// </remarks>
     [StringLength(500)]
     public string? Endpoint { get; set; }

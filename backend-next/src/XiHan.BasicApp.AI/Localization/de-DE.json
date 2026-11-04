@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "Ein KI-Anbieter mit dem Code '{code}' existiert bereits.",
   "ai.providers.disabled": "KI-Anbieter '{code}' ist deaktiviert und kann nicht zum Standard werden.",
   "ai.providers.endpoint_invalid": "Der Endpunkt muss eine absolute http- oder https-URL sein.",
+
+  "ai.providers.endpoint_required": "Der Endpunkt ist erforderlich, wenn der Anbieter nicht OpenAI ist; sonst würde der API-Schlüssel an OpenAI gesendet.",
   "ai.providers.secret_unreadable": "Der API-Schlüssel von KI-Anbieter '{code}' kann nicht entschlüsselt werden; die Datenschutzschlüssel haben sich möglicherweise geändert. Bitte erneut eingeben.",
   "ai.providers.kind_unavailable": "Für das OpenAI-kompatible Protokoll ist kein Modell-Provider installiert.",
   "ai.query.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",

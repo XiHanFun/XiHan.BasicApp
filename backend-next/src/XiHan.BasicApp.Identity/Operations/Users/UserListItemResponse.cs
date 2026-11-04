@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="PhoneNumber">手机号</param>
 /// <param name="HomeTenantId">注册地租户 ID；平台账号为 <c>platform</c></param>
 /// <param name="Status">状态</param>
-/// <param name="LastLoginAt">最近登录时间（UTC）</param>
+/// <param name="LastLoginAt">最近登录时间（UTC）；运维支持成员在租户一侧为空</param>
 /// <param name="CreatedAt">创建时间（UTC）</param>
 /// <param name="CreatedBy">创建人（主体 ID）</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空</param>
@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="Birthday">生日</param>
 /// <param name="Country">国家或地区</param>
 /// <param name="Remark">备注</param>
-/// <param name="LastLoginIp">最近一次登录的 IP</param>
+/// <param name="LastLoginIp">最近一次登录的 IP；运维支持成员在租户一侧为空</param>
 /// <param name="IsExternalMember">是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护</param>
 /// <param name="IsSupportMember">是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 <c>IsExternalMember</c> 也为真）</param>
 /// <param name="RoleNames">当前一侧的角色名称（启用的角色、此刻在有效期内的指派）</param>

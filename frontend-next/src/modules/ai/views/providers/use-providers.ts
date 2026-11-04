@@ -15,6 +15,12 @@ export const VENDOR_VALUES = ['OpenAI', 'DeepSeek', 'Azure', 'Moonshot', 'SelfHo
 /** 品牌厂商的显示名；自建与自定义按语言取文案 */
 const VENDOR_BRAND_LABELS: Record<string, string> = { OpenAI: 'OpenAI', DeepSeek: 'DeepSeek', Azure: 'Azure OpenAI', Moonshot: 'Moonshot' }
 
+/** 这个厂商要不要写端点：只有 OpenAI 能留空（校验在后端，这里只负责标必填） */
+export function endpointRequired(vendor: string): boolean {
+  const name = vendor.trim().toLowerCase()
+  return name !== '' && name !== 'openai'
+}
+
 /** 厂商建议项：label 由调用方的翻译函数补上自建与自定义 */
 export function vendorOptions(t: (key: string) => string): { label: string, value: string }[] {
   return VENDOR_VALUES.map(value => ({

@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="PhoneNumber">手机号</param>
 /// <param name="HomeTenantId">注册地租户 ID；平台账号为 <c>platform</c></param>
 /// <param name="Status">状态</param>
-/// <param name="LastLoginAt">最近登录时间（UTC）</param>
+/// <param name="LastLoginAt">最近登录时间（UTC）；运维支持成员在租户一侧为空</param>
 /// <param name="CreatedAt">创建时间（UTC）</param>
 /// <param name="CreatedBy">创建人（主体 ID）</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）；没设为空</param>
@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="Birthday">生日</param>
 /// <param name="Country">国家或地区</param>
 /// <param name="Remark">备注（本人在个人中心看到的个人简介是同一列）</param>
-/// <param name="LastLoginIp">最近一次登录的 IP</param>
+/// <param name="LastLoginIp">最近一次登录的 IP；运维支持成员在租户一侧为空</param>
 /// <param name="IsExternalMember">是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（<c>users.list / get / detail</c>）判定，其余响应为假</param>
 /// <param name="IsSupportMember">是否运维支持成员：平台账号以运维支持身份进入当前租户，账号由平台维护、只能配角色（这时 <c>IsExternalMember</c> 也为真）。只有用户管理的查询判定，其余响应为假</param>
 public sealed record UserResponse(
@@ -75,7 +75,8 @@ public sealed record UserResponse(
             user.PhoneNumber,
             user.HomeTenantId,
             user.Status,
-            user.LastLoginAt,
+            // 运维支持成员是平台账号：最近登录是账号全局的信息，不给租户
+            isSupportMember ? null : user.LastLoginAt,
             user.CreatedAt,
             user.CreatedBy,
             user.AvatarFileId,
@@ -85,7 +86,7 @@ public sealed record UserResponse(
             user.Birthday,
             user.Country,
             user.Remark,
-            user.LastLoginIp,
+            isSupportMember ? null : user.LastLoginIp,
             tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal),
             isSupportMember);
     }

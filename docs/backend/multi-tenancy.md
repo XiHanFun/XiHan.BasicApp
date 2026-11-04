@@ -74,7 +74,7 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 生效中的运维支持成员不算租户内的用户，只进用户管理：
 
 - `users.list`、`users.get`、`users.detail` 带出他们，响应标 `isSupportMember`（注册在平台，`isExternalMember` 也为真）。别的选人入口用 `users.list` 的 `isSupportMember eq false` 筛掉他们。
-- 账号只读，与外部成员相同，由平台维护。
+- 账号只读，与外部成员相同，由平台维护。最近登录时间与 IP 是平台账号的全局信息，租户一侧不下发。
 - 能配本租户的角色（`roles.assign`、`roles.update-member`），切进租户后按角色使用；权限条件与访问策略的试算认他们。到期或被移出之后切不进去，留在里面的会话续签被拒（`IDENTITY_DENIED_006`）；被移出时解除角色，再加回来不带旧角色。
 - 不能配部门、数据范围与直授，也不能作为委托人、字段安全目标与约束规则目标。
 - 不占席位，不进模仿候选、群发收件人、工作流受理人与聊天目录。

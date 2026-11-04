@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "An AI provider with code '{code}' already exists.",
   "ai.providers.disabled": "AI provider '{code}' is disabled and cannot be made the default.",
   "ai.providers.endpoint_invalid": "The endpoint must be an absolute http or https URL.",
+
+  "ai.providers.endpoint_required": "The endpoint is required unless the vendor is OpenAI; otherwise the API key would be sent to OpenAI.",
   "ai.providers.secret_unreadable": "The API key of AI provider '{code}' cannot be decrypted; the data protection keys may have changed. Enter it again.",
   "ai.providers.kind_unavailable": "No model provider for the OpenAI-compatible protocol is installed.",
   "ai.query.filter_unsupported": "Filtering on '{field} {operator}' is not supported.",

@@ -185,6 +185,11 @@ public static class AIMessages
     public const string ProviderEndpointInvalid = "ai.providers.endpoint_invalid";
 
     /// <summary>
+    /// 厂商不是 OpenAI 却没写端点
+    /// </summary>
+    public const string ProviderEndpointRequired = "ai.providers.endpoint_required";
+
+    /// <summary>
     /// API 密钥解不开（参数 <c>code</c>）
     /// </summary>
     public const string ProviderSecretUnreadable = "ai.providers.secret_unreadable";

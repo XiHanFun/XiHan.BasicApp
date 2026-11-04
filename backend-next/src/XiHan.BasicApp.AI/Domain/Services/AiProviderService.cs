@@ -63,6 +63,17 @@ public sealed class AiProviderService(IRepository<SysAiProvider, Guid> providers
            || (Uri.TryCreate(value.Trim(), UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps));
 
     /// <summary>
+    /// 厂商不是 OpenAI 却没写端点
+    /// </summary>
+    /// <remarks>
+    /// 厂商只用于分组，不决定地址：端点留空走 SDK 缺省的 OpenAI 官方地址，别家的密钥就发给了 OpenAI
+    /// </remarks>
+    public static bool MissesEndpoint(string? vendor, string? endpoint)
+        => string.IsNullOrWhiteSpace(endpoint)
+           && !string.IsNullOrWhiteSpace(vendor)
+           && !string.Equals(vendor.Trim(), "OpenAI", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
     /// 按一行提供商得出框架的 Provider 配置
     /// </summary>
     /// <param name="provider">提供商</param>

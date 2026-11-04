@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "코드가 '{code}'인 AI 제공업체가 이미 있습니다.",
   "ai.providers.disabled": "AI 제공업체 '{code}'은(는) 중지되어 기본으로 지정할 수 없습니다.",
   "ai.providers.endpoint_invalid": "엔드포인트는 절대 http 또는 https URL이어야 합니다.",
+
+  "ai.providers.endpoint_required": "공급업체가 OpenAI가 아니면 엔드포인트가 필수입니다. 그렇지 않으면 API 키가 OpenAI로 전송됩니다.",
   "ai.providers.secret_unreadable": "AI 제공업체 '{code}'의 API 키를 복호화할 수 없습니다. 데이터 보호 키가 바뀌었을 수 있으니 다시 입력하세요.",
   "ai.providers.kind_unavailable": "OpenAI 호환 프로토콜의 모델 Provider가 구성되어 있지 않습니다.",
   "ai.query.filter_unsupported": "필터 '{field} {operator}'은(는) 지원하지 않습니다.",

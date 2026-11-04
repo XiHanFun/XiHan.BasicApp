@@ -116,7 +116,7 @@ public sealed record AiProviderIdRequest(Guid Id);
 /// <param name="ChatModel">聊天模型</param>
 /// <param name="Vendor">厂商（只用于分组展示，如 OpenAI、DeepSeek）</param>
 /// <param name="EmbeddingModel">嵌入模型</param>
-/// <param name="Endpoint">端点：绝对的 http 或 https 地址，为空即厂商的官方端点</param>
+/// <param name="Endpoint">端点：绝对的 http 或 https 地址，厂商是 OpenAI 时可留空，走它的官方端点；别的厂商必填</param>
 /// <param name="ApiKey">API 密钥</param>
 /// <param name="MaxOutputTokens">最大输出令牌数</param>
 /// <param name="Temperature">采样温度</param>
@@ -156,6 +156,11 @@ public sealed record CreateAiProviderRequest(
         {
             yield return new ValidationResult(AIMessages.ProviderEndpointInvalid.L(), [nameof(Endpoint)]);
         }
+
+        if (AiProviderService.MissesEndpoint(Vendor, Endpoint))
+        {
+            yield return new ValidationResult(AIMessages.ProviderEndpointRequired.L(), [nameof(Endpoint)]);
+        }
     }
 }
 
@@ -171,7 +176,7 @@ public sealed record CreateAiProviderRequest(
 /// <param name="ChatModel">聊天模型</param>
 /// <param name="Vendor">厂商（只用于分组展示，如 OpenAI、DeepSeek）</param>
 /// <param name="EmbeddingModel">嵌入模型</param>
-/// <param name="Endpoint">端点：绝对的 http 或 https 地址，为空即厂商的官方端点</param>
+/// <param name="Endpoint">端点：绝对的 http 或 https 地址，厂商是 OpenAI 时可留空，走它的官方端点；别的厂商必填</param>
 /// <param name="ApiKey">API 密钥，留空即不改</param>
 /// <param name="MaxOutputTokens">最大输出令牌数</param>
 /// <param name="Temperature">采样温度</param>
@@ -209,6 +214,11 @@ public sealed record UpdateAiProviderRequest(
         if (!AiProviderService.IsEndpoint(Endpoint))
         {
             yield return new ValidationResult(AIMessages.ProviderEndpointInvalid.L(), [nameof(Endpoint)]);
+        }
+
+        if (AiProviderService.MissesEndpoint(Vendor, Endpoint))
+        {
+            yield return new ValidationResult(AIMessages.ProviderEndpointRequired.L(), [nameof(Endpoint)]);
         }
     }
 }

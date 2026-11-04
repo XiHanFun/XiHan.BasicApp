@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "已有編碼為「{code}」的供應商。",
   "ai.providers.disabled": "供應商「{code}」已停用，不能設為預設。",
   "ai.providers.endpoint_invalid": "端點須是絕對的 http 或 https 位址。",
+
+  "ai.providers.endpoint_required": "廠商不是 OpenAI 時必須填寫端點，否則 API 金鑰會傳送給 OpenAI。",
   "ai.providers.secret_unreadable": "供應商「{code}」的 API 金鑰無法解密，可能是資料保護金鑰變了，請重新填寫。",
   "ai.providers.kind_unavailable": "沒有裝配 OpenAI 相容協定的模型 Provider。",
   "ai.query.filter_unsupported": "不支援篩選 '{field} {operator}'。",

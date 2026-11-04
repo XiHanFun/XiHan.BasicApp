@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "コード '{code}' の AI プロバイダーは既に存在します。",
   "ai.providers.disabled": "AI プロバイダー '{code}' は無効のため既定にできません。",
   "ai.providers.endpoint_invalid": "エンドポイントは絶対 http または https URL である必要があります。",
+
+  "ai.providers.endpoint_required": "ベンダーが OpenAI でない場合、エンドポイントは必須です。指定しないと API キーが OpenAI に送信されます。",
   "ai.providers.secret_unreadable": "AI プロバイダー '{code}' の API キーを復号できません。データ保護キーが変わった可能性があります。もう一度入力してください。",
   "ai.providers.kind_unavailable": "OpenAI 互換プロトコルのモデル Provider が組み込まれていません。",
   "ai.query.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",

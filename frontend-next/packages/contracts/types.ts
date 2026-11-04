@@ -15268,7 +15268,7 @@ export interface components {
             status: components["schemas"]["UserStatus"];
             /**
              * Format: date-time
-             * @description 最近登录时间（UTC）
+             * @description 最近登录时间（UTC）；运维支持成员在租户一侧为空
              */
             lastLoginAt?: string | null;
             /**
@@ -15298,7 +15298,7 @@ export interface components {
             country?: string | null;
             /** @description 备注 */
             remark?: string | null;
-            /** @description 最近一次登录的 IP */
+            /** @description 最近一次登录的 IP；运维支持成员在租户一侧为空 */
             lastLoginIp?: string | null;
             /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护 */
             isExternalMember: boolean;
@@ -15339,7 +15339,7 @@ export interface components {
             status: components["schemas"]["UserStatus"];
             /**
              * Format: date-time
-             * @description 最近登录时间（UTC）
+             * @description 最近登录时间（UTC）；运维支持成员在租户一侧为空
              */
             lastLoginAt?: string | null;
             /**
@@ -15369,7 +15369,7 @@ export interface components {
             country?: string | null;
             /** @description 备注（本人在个人中心看到的个人简介是同一列） */
             remark?: string | null;
-            /** @description 最近一次登录的 IP */
+            /** @description 最近一次登录的 IP；运维支持成员在租户一侧为空 */
             lastLoginIp?: string | null;
             /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
             isExternalMember: boolean;
@@ -17167,7 +17167,7 @@ export interface operations {
                     vendor: string;
                     /** @description 嵌入模型 */
                     embeddingModel?: string | null;
-                    /** @description 端点：绝对的 http 或 https 地址，为空即厂商的官方端点 */
+                    /** @description 端点：绝对的 http 或 https 地址，厂商是 OpenAI 时可留空，走它的官方端点；别的厂商必填 */
                     endpoint?: string | null;
                     /** @description API 密钥 */
                     apiKey?: string | null;
@@ -17433,7 +17433,7 @@ export interface operations {
                     vendor: string;
                     /** @description 嵌入模型 */
                     embeddingModel?: string | null;
-                    /** @description 端点：绝对的 http 或 https 地址，为空即厂商的官方端点 */
+                    /** @description 端点：绝对的 http 或 https 地址，厂商是 OpenAI 时可留空，走它的官方端点；别的厂商必填 */
                     endpoint?: string | null;
                     /** @description API 密钥，留空即不改 */
                     apiKey?: string | null;
@@ -44971,7 +44971,7 @@ export interface operations {
                         status: components["schemas"]["UserStatus"];
                         /**
                          * Format: date-time
-                         * @description 最近登录时间（UTC）
+                         * @description 最近登录时间（UTC）；运维支持成员在租户一侧为空
                          */
                         lastLoginAt?: string | null;
                         /**
@@ -45001,7 +45001,7 @@ export interface operations {
                         country?: string | null;
                         /** @description 备注（本人在个人中心看到的个人简介是同一列） */
                         remark?: string | null;
-                        /** @description 最近一次登录的 IP */
+                        /** @description 最近一次登录的 IP；运维支持成员在租户一侧为空 */
                         lastLoginIp?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
                         isExternalMember: boolean;
@@ -45094,7 +45094,7 @@ export interface operations {
                         status: components["schemas"]["UserStatus"];
                         /**
                          * Format: date-time
-                         * @description 最近登录时间（UTC）
+                         * @description 最近登录时间（UTC）；运维支持成员在租户一侧为空
                          */
                         lastLoginAt?: string | null;
                         /**
@@ -45124,7 +45124,7 @@ export interface operations {
                         country?: string | null;
                         /** @description 备注（本人在个人中心看到的个人简介是同一列） */
                         remark?: string | null;
-                        /** @description 最近一次登录的 IP */
+                        /** @description 最近一次登录的 IP；运维支持成员在租户一侧为空 */
                         lastLoginIp?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
                         isExternalMember: boolean;
@@ -45212,7 +45212,7 @@ export interface operations {
                         status: components["schemas"]["UserStatus"];
                         /**
                          * Format: date-time
-                         * @description 最近登录时间（UTC）
+                         * @description 最近登录时间（UTC）；运维支持成员在租户一侧为空
                          */
                         lastLoginAt?: string | null;
                         /**
@@ -45242,7 +45242,7 @@ export interface operations {
                         country?: string | null;
                         /** @description 备注（本人在个人中心看到的个人简介是同一列） */
                         remark?: string | null;
-                        /** @description 最近一次登录的 IP */
+                        /** @description 最近一次登录的 IP；运维支持成员在租户一侧为空 */
                         lastLoginIp?: string | null;
                         /** @description 是否外部成员：注册在别处、以成员身份加入当前租户，账号由注册地维护。只有用户管理的查询（users.list / get / detail）判定，其余响应为假 */
                         isExternalMember: boolean;

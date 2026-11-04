@@ -3110,7 +3110,7 @@
                     "maxLength": 100
                   },
                   "endpoint": {
-                    "description": "\u7AEF\u70B9\uFF1A\u7EDD\u5BF9\u7684 http \u6216 https \u5730\u5740\uFF0C\u4E3A\u7A7A\u5373\u5382\u5546\u7684\u5B98\u65B9\u7AEF\u70B9",
+                    "description": "\u7AEF\u70B9\uFF1A\u7EDD\u5BF9\u7684 http \u6216 https \u5730\u5740\uFF0C\u5382\u5546\u662F OpenAI \u65F6\u53EF\u7559\u7A7A\uFF0C\u8D70\u5B83\u7684\u5B98\u65B9\u7AEF\u70B9\uFF1B\u522B\u7684\u5382\u5546\u5FC5\u586B",
                     "type": [
                       "string",
                       "null"
@@ -3563,7 +3563,7 @@
                     "maxLength": 100
                   },
                   "endpoint": {
-                    "description": "\u7AEF\u70B9\uFF1A\u7EDD\u5BF9\u7684 http \u6216 https \u5730\u5740\uFF0C\u4E3A\u7A7A\u5373\u5382\u5546\u7684\u5B98\u65B9\u7AEF\u70B9",
+                    "description": "\u7AEF\u70B9\uFF1A\u7EDD\u5BF9\u7684 http \u6216 https \u5730\u5740\uFF0C\u5382\u5546\u662F OpenAI \u65F6\u53EF\u7559\u7A7A\uFF0C\u8D70\u5B83\u7684\u5B98\u65B9\u7AEF\u70B9\uFF1B\u522B\u7684\u5382\u5546\u5FC5\u586B",
                     "type": [
                       "string",
                       "null"
@@ -57497,7 +57497,7 @@
                       "$ref": "#/components/schemas/UserStatus"
                     },
                     "lastLoginAt": {
-                      "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09",
+                      "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57562,7 +57562,7 @@
                       ]
                     },
                     "lastLoginIp": {
-                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP",
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57675,7 +57675,7 @@
                       "$ref": "#/components/schemas/UserStatus"
                     },
                     "lastLoginAt": {
-                      "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09",
+                      "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57740,7 +57740,7 @@
                       ]
                     },
                     "lastLoginIp": {
-                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP",
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57933,7 +57933,7 @@
                       "$ref": "#/components/schemas/UserStatus"
                     },
                     "lastLoginAt": {
-                      "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09",
+                      "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57998,7 +57998,7 @@
                       ]
                     },
                     "lastLoginIp": {
-                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP",
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -73723,7 +73723,7 @@
             "$ref": "#/components/schemas/UserStatus"
           },
           "lastLoginAt": {
-            "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09",
+            "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
             "type": [
               "string",
               "null"
@@ -73788,7 +73788,7 @@
             ]
           },
           "lastLoginIp": {
-            "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP",
+            "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
             "type": [
               "string",
               "null"
@@ -73889,7 +73889,7 @@
             "$ref": "#/components/schemas/UserStatus"
           },
           "lastLoginAt": {
-            "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09",
+            "description": "\u6700\u8FD1\u767B\u5F55\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
             "type": [
               "string",
               "null"
@@ -73954,7 +73954,7 @@
             ]
           },
           "lastLoginIp": {
-            "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP",
+            "description": "\u6700\u8FD1\u4E00\u6B21\u767B\u5F55\u7684 IP\uFF1B\u8FD0\u7EF4\u652F\u6301\u6210\u5458\u5728\u79DF\u6237\u4E00\u4FA7\u4E3A\u7A7A",
             "type": [
               "string",
               "null"

@@ -55,6 +55,29 @@ public sealed class AIProvidersTests : IDisposable
         => SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code, name = code.ToUpperInvariant(), chatModel, embeddingModel, endpoint = FakeOpenAIHandler.Endpoint, apiKey, isDefault, vendor = "OpenAI" }), token);
 
     [Fact]
+    public async Task AVendorOtherThanOpenAI_MustNameItsEndpoint()
+    {
+        await using var server = await StartAsync();
+        var admin = TestTokens.Issue("root", null, Admin);
+
+        // 厂商只用于分组：端点留空走 OpenAI 的官方地址，别家的密钥就发给了 OpenAI
+        var (missing, missingBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code = "deepseek", name = "DeepSeek", chatModel = "m", vendor = "DeepSeek", apiKey = "sk-x" }), admin);
+        Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
+        Assert.True(missingBody.GetProperty("errors").TryGetProperty("endpoint", out _));
+
+        // OpenAI 可以留空，大小写不敏感；别的厂商写了端点就行
+        var (openai, openaiBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code = "openai", name = "OpenAI", chatModel = "m", vendor = "openai" }), admin);
+        Assert.True(openai.StatusCode == HttpStatusCode.Created, openaiBody.ToString());
+        var (named, namedBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code = "named", name = "Named", chatModel = "m", vendor = "DeepSeek", endpoint = "https://api.deepseek.com" }), admin);
+        Assert.True(named.StatusCode == HttpStatusCode.Created, namedBody.ToString());
+
+        // 修改同样：把厂商改掉而端点留空被拒
+        var (moved, movedBody) = await SendAsync(server, HttpMethod.Put, $"/api/ai-providers/{openaiBody.GetProperty("id").GetString()}", Json(new { concurrencyStamp = openaiBody.GetProperty("concurrencyStamp").GetString(), name = "OpenAI", chatModel = "m", vendor = "DeepSeek" }), admin);
+        Assert.Equal(HttpStatusCode.BadRequest, moved.StatusCode);
+        Assert.True(movedBody.GetProperty("errors").TryGetProperty("endpoint", out _));
+    }
+
+    [Fact]
     public async Task Providers_FollowTheRulesOf4x_AndKeepKeysOutOfResponses()
     {
         await using var server = await StartAsync();

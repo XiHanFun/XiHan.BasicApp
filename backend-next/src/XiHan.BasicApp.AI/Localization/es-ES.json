@@ -19,6 +19,8 @@
   "ai.providers.code_taken": "Ya existe un proveedor de IA con el código '{code}'.",
   "ai.providers.disabled": "El proveedor de IA '{code}' está desactivado y no puede ser el predeterminado.",
   "ai.providers.endpoint_invalid": "El punto de conexión debe ser una URL http o https absoluta.",
+
+  "ai.providers.endpoint_required": "El punto de conexión es obligatorio si el proveedor no es OpenAI; de lo contrario, la clave de API se enviaría a OpenAI.",
   "ai.providers.secret_unreadable": "No se puede descifrar la clave de API del proveedor de IA '{code}'; puede que hayan cambiado las claves de protección de datos. Vuelve a introducirla.",
   "ai.providers.kind_unavailable": "No hay ningún proveedor de modelos instalado para el protocolo compatible con OpenAI.",
   "ai.query.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",

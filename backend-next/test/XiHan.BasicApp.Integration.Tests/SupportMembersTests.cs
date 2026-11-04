@@ -83,6 +83,7 @@ public sealed class SupportMembersTests : IDisposable
         var (server, platform, contoso) = await SettingsTestHost.StartAsync(_database.ConnectionString);
         await using var running = server;
         var ops = await AddOpsAsync(server, platform);
+        await AuthFlowTests.LoginAsync(server, "ops", Password);
 
         // 列表带标记；注册在别处，外部成员的标记也为真（账号只读靠它）；普通用户两个都是假
         var rows = (await ListAsync(server, contoso)).GetProperty("items").EnumerateArray().ToList();
@@ -99,6 +100,16 @@ public sealed class SupportMembersTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, detail);
         Assert.True(detailBody.GetProperty("user").GetProperty("isSupportMember").GetBoolean());
         Assert.Equal(JsonValueKind.Null, detailBody.GetProperty("security").ValueKind);
+
+        // 最近登录是平台账号的全局信息：列表、按 ID 取与详情都不给租户，平台一侧照常
+        foreach (var view in new[] { row, foundBody, detailBody.GetProperty("user") })
+        {
+            Assert.Equal(JsonValueKind.Null, view.GetProperty("lastLoginAt").ValueKind);
+            Assert.Equal(JsonValueKind.Null, view.GetProperty("lastLoginIp").ValueKind);
+        }
+
+        var (onPlatform, onPlatformBody) = await SendAsync(server, HttpMethod.Get, $"/api/users/{ops}", null, platform);
+        Assert.Equal((HttpStatusCode.OK, JsonValueKind.String), (onPlatform, onPlatformBody.GetProperty("lastLoginAt").ValueKind));
 
         // 别的选人入口用这个筛选去掉他们；只接受 eq 与布尔值
         Assert.DoesNotContain("ops", UserNames(await ListAsync(server, contoso, "false")));

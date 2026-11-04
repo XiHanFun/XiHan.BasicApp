@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { probeLines, providersResource, useProviderEditor, vendorOptions } from './use-providers'
+import { endpointRequired, probeLines, providersResource, useProviderEditor, vendorOptions } from './use-providers'
+
+describe('endpointRequired', () => {
+  it('只有 OpenAI 能留空，没选厂商时不标必填', () => {
+    expect(endpointRequired('OpenAI')).toBe(false)
+    expect(endpointRequired(' openai ')).toBe(false)
+    expect(endpointRequired('')).toBe(false)
+    expect(endpointRequired('DeepSeek')).toBe(true)
+    expect(endpointRequired('SelfHosted')).toBe(true)
+  })
+})
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })

@@ -13,7 +13,7 @@ import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, statusConf
 import { notification, toast } from '~/composables'
 import { aiProviders } from '~/contracts'
 import { throwOnFailed } from '~/request'
-import { probeLines, providersResource, useProviderEditor, vendorOptions } from './use-providers'
+import { endpointRequired, probeLines, providersResource, useProviderEditor, vendorOptions } from './use-providers'
 
 defineOptions({ name: 'AiProvidersPage' })
 
@@ -291,7 +291,7 @@ async function onSubmit() {
             {{ editor.fieldError('order') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <XhFieldRoot :invalid="!!editor.fieldError('endpoint')" class="xh-span-2">
+        <XhFieldRoot :invalid="!!editor.fieldError('endpoint')" :required="endpointRequired(editor.form.vendor)" class="xh-span-2">
           <XhFieldLabel>{{ t('ai.providers.form_endpoint') }}</XhFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="editor.form.endpoint" name="endpoint" clearable :placeholder="t('ai.providers.form_endpoint_placeholder')" />

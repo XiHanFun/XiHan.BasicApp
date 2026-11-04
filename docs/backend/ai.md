@@ -18,7 +18,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 | 厂商 | 只用于分组展示（OpenAI、DeepSeek、Azure、Moonshot、自建、自定义，可自填） |
 | 聊天模型 | 必填 |
 | 嵌入模型 | 为空即不能用于知识库。DeepSeek 文档里没有嵌入接口，要另配一个带嵌入模型的提供商，助手在表单的「嵌入提供商」里指定它 |
-| 端点 | 绝对的 http 或 https 地址；为空即 OpenAI 的官方端点，与厂商无关，用别的厂商一定要填（DeepSeek 填 `https://api.deepseek.com`） |
+| 端点 | 绝对的 http 或 https 地址。厂商是 OpenAI 时可留空，走它的官方端点；别的厂商必填（DeepSeek 填 `https://api.deepseek.com`），否则密钥会发给 OpenAI |
 | API 密钥 | 经 `ISecretProtector` 加密存储，明文至多 1000 个字符；响应只给 `hasApiKey`，修改时留空即保留原密钥 |
 | 最大输出、温度 | 每次聊天调用带上（温度 0～2）；5.x 存了从没用到 |
 | 超时 | 1～3600 秒，为空即框架缺省的 100 秒；流式回复按每个增量计时 |
