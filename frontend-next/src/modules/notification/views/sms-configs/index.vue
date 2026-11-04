@@ -15,7 +15,7 @@ import { emptySmsConfigForm, findSmsConfigProblem, needsSdkAppId, smsConfigProbl
 defineOptions({ name: 'NotificationSmsConfigsView' })
 
 const { t } = useI18n()
-const resource = smsConfigResource(t)
+const resource = smsConfigResource()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

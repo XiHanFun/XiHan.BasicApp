@@ -41,8 +41,8 @@ describe('assistantsResource', () => {
   })
 
   it('批量删除逐项调用，逐项失败抛出码', async () => {
-    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'x-1', code: 'AI_NOTFOUND_104' }] }))
-    await expect(assistantsResource().remove!('x-1')).rejects.toThrow('AI_NOTFOUND_104')
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'x-1', code: 'AI_NOTFOUND_104', message: 'AI_NOTFOUND_104 的原因' }] }))
+    await expect(assistantsResource().remove!('x-1')).rejects.toThrow('AI_NOTFOUND_104 的原因')
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/ai-assistants?ids=x-1' })
     record(() => json(200, { succeeded: ['x-2'], failed: [] }))
     await expect(assistantsResource().remove!('x-2')).resolves.toBeUndefined()

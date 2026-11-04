@@ -79,16 +79,16 @@ describe('通知公告的列表筛选', () => {
     })
   })
 
-  it('列表走 notifications.list；删除逐项拒绝时认得的错误码翻成文案', async () => {
+  it('列表走 notifications.list；删除逐项拒绝时带着原因抛出', async () => {
     const calls = stub(
       { items: [], total: 0, page: { index: 1, size: 20 } },
       { succeeded: ['n1'], failed: [] },
-      { succeeded: [], failed: [{ id: 'n2', code: 'NOTIFICATION_NOTFOUND_001' }] },
+      { succeeded: [], failed: [{ id: 'n2', code: 'NOTIFICATION_NOTFOUND_001', message: 'NOTIFICATION_NOTFOUND_001 的原因' }] },
     )
-    const resource = notificationResource(t)
+    const resource = notificationResource()
     await resource.page!({ page: 1, pageSize: 20, filters: {} })
     await resource.remove!('n1')
-    await expect(resource.remove!('n2')).rejects.toThrow('notification.notifications.msg_not_found')
+    await expect(resource.remove!('n2')).rejects.toThrow('NOTIFICATION_NOTFOUND_001 的原因')
     expect(calls.map(call => `${call.method} ${call.url}`)).toEqual([
       'POST /api/notifications:list',
       'DELETE /api/notifications?ids=n1',

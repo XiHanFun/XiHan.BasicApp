@@ -5,7 +5,6 @@ import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 import {
   appTypeLabel,
-  assertBatch,
   CLIENT_ID_PATTERN,
   clientTypeLabel,
   emptyOAuthAppForm,
@@ -164,22 +163,21 @@ describe('应用管理：表单', () => {
 })
 
 describe('应用管理：资源', () => {
-  it('启停取最新一份再整体修改；删除逐项拒绝时翻成文案', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'a1', code: 'OPENPLATFORM_NOTFOUND_001' }] })
-    const resource = oauthAppResource(t)
+  it('启停取最新一份再整体修改；删除逐项拒绝时带着原因抛出', async () => {
+    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'a1', code: 'OPENPLATFORM_NOTFOUND_001', message: 'OPENPLATFORM_NOTFOUND_001 的原因' }] })
+    const resource = oauthAppResource()
     await resource.updateStatus!('a1', false)
-    await expect(resource.remove!('a1')).rejects.toThrow('openplatform.oauth_apps.msg_app_not_found')
+    await expect(resource.remove!('a1')).rejects.toThrow('OPENPLATFORM_NOTFOUND_001 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/oauth-apps/a1' })
     expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/oauth-apps/a1', body: { isEnabled: false, redirectUris: ['https://portal.example/cb', 'https://portal.example/cb2'], grantTypes: ['authorization_code', 'refresh_token'], refreshTokenLifetime: 2592000 } })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/oauth-apps?ids=a1' })
   })
 
-  it('分页：POST oauth-apps:list，结果换成 SchemaPage 的分页；未知失败码原样', async () => {
+  it('分页：POST oauth-apps:list，结果换成 SchemaPage 的分页', async () => {
     const calls = stub({ items: [ROW], total: 1, page: { index: 1, size: 20 } })
-    const result = await oauthAppResource(t).page!({ page: 1, pageSize: 20, filters: {}, conditionFilters: [], sorts: [] })
+    const result = await oauthAppResource().page!({ page: 1, pageSize: 20, filters: {}, conditionFilters: [], sorts: [] })
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/oauth-apps:list', body: { page: { index: 1, size: 20 }, filters: [], sorts: [], keyword: null } })
     expect(result.items).toHaveLength(1)
     expect(result.page.totalCount).toBe(1)
-    expect(() => assertBatch(t, { failed: [{ code: 'X_1' }, { code: 'X_1' }] })).toThrow(/^X_1$/)
   })
 })

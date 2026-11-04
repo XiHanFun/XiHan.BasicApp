@@ -41,16 +41,16 @@ describe('configsResource', () => {
     expect(result.page.totalCount).toBe(1)
   })
 
-  it('删除被后端逐项拒绝时带着错误码抛出；启停整体覆盖更新，加密参数的值传空即保留', async () => {
+  it('删除被后端逐项拒绝时带着原因抛出；启停整体覆盖更新，加密参数的值传空即保留', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'c-2', code: 'SETTINGS_CONFLICT_006' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'c-2', code: 'SETTINGS_CONFLICT_006', message: 'SETTINGS_CONFLICT_006 的原因' }] })
       if (call.method === 'GET')
         return json(200, config('c-2', 'demo.secret', false, { isEncrypted: true, value: null }))
       return json(200, config('c-2', 'demo.secret', false, { status: 'Disabled' }))
     })
     const resource = configsResource()
-    await expect(resource.remove!('c-2')).rejects.toThrow('SETTINGS_CONFLICT_006')
+    await expect(resource.remove!('c-2')).rejects.toThrow('SETTINGS_CONFLICT_006 的原因')
     await resource.updateStatus!('c-2', false)
     expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/configs/c-2', body: { name: 'demo.secret', value: null, isEncrypted: true, status: 'Disabled' } })
   })

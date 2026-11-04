@@ -194,7 +194,7 @@ public sealed class DeleteConstraintRules(ConstraintRuleService service) : IOper
         {
             if (!(await service.FindAsync(id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var rule))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.ConstraintRuleNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.ConstraintRuleNotFound, AccessMessages.ConstraintRuleNotFound.L(("id", id))));
                 continue;
             }
 

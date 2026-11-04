@@ -186,7 +186,7 @@ public sealed class DeleteDelegations(DelegationService service) : IOperation<De
         {
             if (!(await service.FindAsync(id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var delegation))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.DelegationNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.DelegationNotFound, AccessMessages.DelegationNotFound.L(("id", id))));
                 continue;
             }
 

@@ -72,21 +72,21 @@ describe('usersResource', () => {
     await expect(usersResource().page!({ page: 1, pageSize: 20, filters: { homeTenantId: 'acme' } })).rejects.toThrow('homeTenantId')
   })
 
-  it('删除走 users.delete；被后端逐项拒绝（如删自己）时带着错误码抛出', async () => {
-    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_VALIDATION_009' }] }))
-    await expect(usersResource().remove!('u-1')).rejects.toThrow('IDENTITY_VALIDATION_009')
+  it('删除走 users.delete；被后端逐项拒绝（如删自己）时带着原因抛出', async () => {
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_VALIDATION_009', message: 'IDENTITY_VALIDATION_009 的原因' }] }))
+    await expect(usersResource().remove!('u-1')).rejects.toThrow('IDENTITY_VALIDATION_009 的原因')
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/users?ids=u-1' })
   })
 })
 
 describe('setUserLocked', () => {
-  it('锁定走 users.lock、解锁走 users.unlock，逐项失败带着错误码抛出', async () => {
+  it('锁定走 users.lock、解锁走 users.unlock，逐项失败带着原因抛出', async () => {
     const calls = record(call => call.url.endsWith(':lock')
       ? json(200, { succeeded: ['u-1'], failed: [] })
-      : json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_NOTFOUND_001' }] }))
+      : json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_NOTFOUND_001', message: 'IDENTITY_NOTFOUND_001 的原因' }] }))
     await setUserLocked('u-1', true)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:lock', body: { ids: ['u-1'] } })
-    await expect(setUserLocked('u-1', false)).rejects.toThrow('IDENTITY_NOTFOUND_001')
+    await expect(setUserLocked('u-1', false)).rejects.toThrow('IDENTITY_NOTFOUND_001 的原因')
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/users:unlock', body: { ids: ['u-1'] } })
   })
 })
@@ -102,9 +102,9 @@ describe('setUserDisabled 与批量启停', () => {
     ])
   })
 
-  it('锁定中的用户启用被拒：带着错误码抛出', async () => {
-    record(() => json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_CONFLICT_012' }] }))
-    await expect(setUserDisabled('u-1', false)).rejects.toThrow('IDENTITY_CONFLICT_012')
+  it('锁定中的用户启用被拒：带着原因抛出', async () => {
+    record(() => json(200, { succeeded: [], failed: [{ id: 'u-1', code: 'IDENTITY_CONFLICT_012', message: 'IDENTITY_CONFLICT_012 的原因' }] }))
+    await expect(setUserDisabled('u-1', false)).rejects.toThrow('IDENTITY_CONFLICT_012 的原因')
   })
 })
 

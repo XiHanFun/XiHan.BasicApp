@@ -10277,6 +10277,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             code: string;
+            message: string;
         };
         BoardInfo: {
             manufacturer?: string | null;
@@ -10341,6 +10342,8 @@ export interface components {
             key: string;
             /** @description 原因码 */
             code: string;
+            /** @description 失败原因，已按这次调用的区域本地化，可直接显示 */
+            message: string;
         };
         /** @description 列出的一个缓存键 */
         CacheKeyItem: {
@@ -12717,6 +12720,8 @@ export interface components {
             id: string;
             /** @description 错误码 */
             code: string;
+            /** @description 失败原因，已按这次调用的区域本地化，可直接显示 */
+            message: string;
         };
         /** @description 作业一次运行的结果 */
         JobOutcomeResponse: {
@@ -14114,6 +14119,8 @@ export interface components {
             permission: string;
             /** @description 错误码 */
             code: string;
+            /** @description 失败原因，已按这次调用的区域本地化，可直接显示 */
+            message: string;
         };
         /** @description 等着办的人 */
         PermissionRequestAssignee: {

@@ -3,7 +3,7 @@ import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import type { SelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, roles as rolesApi, sessions as sessionsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { flattenDepartments } from './use-user-departments'
 
 export type UserRow = ResponseOf<'users.list'>['items'][number]
@@ -44,12 +44,6 @@ export interface LoginPolicyForm {
   maxLoginDevices: number
 }
 
-/** 批量操作的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** 展示名：显示名为空时退回用户名 */
 export function displayNameOf(row: Pick<UserRow, 'displayName' | 'userName'>): string {
   return row.displayName || row.userName
@@ -74,20 +68,20 @@ export function usersResource(): SchemaResource<UserRow> {
   const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await usersApi.list(toRequest(params)), params),
-    remove: async id => failedCodes(await usersApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => failedCodes(enabled ? await usersApi.enable({ ids: [String(id)] }) : await usersApi.disable({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await usersApi.delete({ ids: [String(id)] })),
+    updateStatus: async (id, enabled) => throwOnFailed(enabled ? await usersApi.enable({ ids: [String(id)] }) : await usersApi.disable({ ids: [String(id)] })),
     export: { businessType: 'users.list', buildQuery: toRequest },
   }
 }
 
-/** 锁定（状态置为 Locked、会话下线）或解锁一个用户；被后端逐项拒绝时带着错误码抛出 */
+/** 锁定（状态置为 Locked、会话下线）或解锁一个用户；被后端逐项拒绝时带着原因抛出 */
 export async function setUserLocked(id: string, locked: boolean): Promise<void> {
-  failedCodes(locked ? await usersApi.lock({ ids: [id] }) : await usersApi.unlock({ ids: [id] }))
+  throwOnFailed(locked ? await usersApi.lock({ ids: [id] }) : await usersApi.unlock({ ids: [id] }))
 }
 
 /**
  * 按人强制下线：取此人在当前一侧的有效会话，一次交给 sessions.revoke（与在线用户页同一套语义与审计）；
- * 返回下线的会话数，没有会话为 0，全部被拒时带着错误码抛出
+ * 返回下线的会话数，没有会话为 0，全部被拒时带着原因抛出
  */
 export async function forceSignOut(userId: string, reason: string): Promise<number> {
   const page = await sessionsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'userId', operator: 'eq', value: userId }], sorts: [] })
@@ -96,7 +90,7 @@ export async function forceSignOut(userId: string, reason: string): Promise<numb
     return 0
   const result = await sessionsApi.revoke({ ids, reason })
   if (result.succeeded.length === 0)
-    failedCodes(result)
+    throwOnFailed(result)
   return result.succeeded.length
 }
 
@@ -111,14 +105,14 @@ export async function loadDepartmentOptions(): Promise<SelectOption[]> {
   return flattenDepartments((await departmentsApi.tree({})).items)
 }
 
-/** 停用（状态置为 Disabled、会话下线、不能登录）或启用一个用户；被后端逐项拒绝时带着错误码抛出 */
+/** 停用（状态置为 Disabled、会话下线、不能登录）或启用一个用户；被后端逐项拒绝时带着原因抛出 */
 export async function setUserDisabled(id: string, disabled: boolean): Promise<void> {
-  failedCodes(disabled ? await usersApi.disable({ ids: [id] }) : await usersApi.enable({ ids: [id] }))
+  throwOnFailed(disabled ? await usersApi.disable({ ids: [id] }) : await usersApi.enable({ ids: [id] }))
 }
 
-/** 重置一个用户的双因素（清掉全部方式与认证器密钥，下次只凭密码登录）；被后端逐项拒绝时带着错误码抛出 */
+/** 重置一个用户的双因素（清掉全部方式与认证器密钥，下次只凭密码登录）；被后端逐项拒绝时带着原因抛出 */
 export async function resetUserTwoFactor(id: string): Promise<void> {
-  failedCodes(await usersApi.resetTwoFactor({ ids: [id] }))
+  throwOnFailed(await usersApi.resetTwoFactor({ ids: [id] }))
 }
 
 /** 生成临时密码：大小写 + 数字 + 符号各至少一个，规避易混淆字符（0O1lI），满足后端「至少 8 位、含字母与数字」的策略 */

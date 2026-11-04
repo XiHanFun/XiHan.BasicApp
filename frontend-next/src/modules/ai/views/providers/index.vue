@@ -12,6 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { notification, toast } from '~/composables'
 import { aiProviders } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { probeLines, providersResource, useProviderEditor, vendorOptions } from './use-providers'
 
 defineOptions({ name: 'AiProvidersPage' })
@@ -205,8 +206,7 @@ async function handleToggle(row: ProviderRow) {
 async function handleDelete(row: ProviderRow) {
   try {
     const result = await aiProviders.delete({ ids: [row.id] })
-    if (result.failed.length > 0)
-      throw new Error(result.failed.map(f => f.code).join('; '))
+    throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
   }

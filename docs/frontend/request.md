@@ -37,7 +37,7 @@ import { users } from '~/contracts'
 
 const page = await users.list({ page: { index: 1, size: 20 }, keyword: 'zhang' })
 const user = await users.get({ id })
-const result = await users.lock({ ids: [id] })        // BatchResult：{ succeeded, failed }
+const result = await users.lock({ ids: [id] })        // BatchResult：{ succeeded, failed: [{ id, code, message }] }
 ```
 
 每个函数的签名是 `(request: RequestOf<'<操作 ID>'>, options?: CallOptions) => Promise<ResponseOf<'<操作 ID>'>>`。`invoke` 按路由表拼请求：路由字段进路径、`GET` / `DELETE` 的其余字段进查询串、其余进 JSON 请求体。
@@ -69,7 +69,7 @@ const result = await users.lock({ ids: [id] })        // BatchResult：{ succeed
 
 ## 错误
 
-失败统一抛 `ApiError { code, status, detail, traceId, errors?, details? }`（由 Problem Details 解包）。`detail` 已按 `Accept-Language` 本地化、可直接展示，`message` 与它相同，不带错误码；分支只看 `code`。运行时客户端按错误码触发钩子：
+失败统一抛 `ApiError { code, status, detail, traceId, errors?, details? }`（由 Problem Details 解包）。`detail` 已按 `Accept-Language` 本地化、可直接展示，`message` 与它相同，不带错误码；分支只看 `code`。批量结果的失败项同样带本地化的 `message`，`throwOnFailed(result)`（`~/request`）把它们拼成一条报错抛出。运行时客户端按错误码触发钩子：
 
 | `code` | 钩子 | 行为 |
 | --- | --- | --- |

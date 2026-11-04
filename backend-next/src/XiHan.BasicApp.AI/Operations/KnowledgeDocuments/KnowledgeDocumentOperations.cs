@@ -170,14 +170,14 @@ public sealed class DeleteKnowledgeDocuments(KnowledgeDocumentService service, S
             var found = await service.FindAsync(id, context).ConfigureAwait(false);
             if (!found.TryGetValue(out var document))
             {
-                failed.Add(new BatchFailure(id, AIErrors.KnowledgeDocumentNotFound));
+                failed.Add(new BatchFailure(id, AIErrors.KnowledgeDocumentNotFound, AIMessages.KnowledgeDocumentNotFound.L(("id", id))));
                 continue;
             }
 
             var removed = await service.RemoveVectorsAsync(document, context.CancellationToken).ConfigureAwait(false);
             if (removed.IsFailure)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
                 continue;
             }
 

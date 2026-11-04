@@ -47,16 +47,16 @@ describe('positionsResource', () => {
     expect(calls).toHaveLength(0)
   })
 
-  it('删除被后端逐项拒绝时带着错误码抛出；启停取当前值整体替换，只改状态', async () => {
+  it('删除被后端逐项拒绝时带着原因抛出；启停取当前值整体替换，只改状态', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'p-1', code: 'ORGANIZATION_CONFLICT_004', detail: 'in use' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'p-1', code: 'ORGANIZATION_CONFLICT_004', message: 'ORGANIZATION_CONFLICT_004 的原因', detail: 'in use' }] })
       if (call.method === 'GET')
         return json(200, position('p-1', 'manager', { order: 5, description: 'Leads a team' }))
       return json(200, position('p-1', 'manager', { status: 'Disabled' }))
     })
     const resource = positionsResource()
-    await expect(resource.remove!('p-1')).rejects.toThrow('ORGANIZATION_CONFLICT_004')
+    await expect(resource.remove!('p-1')).rejects.toThrow('ORGANIZATION_CONFLICT_004 的原因')
     expect(calls[0]!.url).toBe('/api/positions?ids=p-1')
     await resource.updateStatus!('p-1', false)
     expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/positions/p-1', body: { name: 'MANAGER', order: 5, description: 'Leads a team', status: 'Disabled' } })

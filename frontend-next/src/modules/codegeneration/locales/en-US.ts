@@ -166,7 +166,6 @@ export default {
         update_status_remark: 'Update data source status from frontend',
         title: 'Data Source',
         form_connection_string_edit: 'Connection String (leave blank to keep)',
-        in_use: 'The data source is still used by a table configuration and cannot be deleted',
         connection_string_set: 'An explicit connection string is set',
       },
       template: {

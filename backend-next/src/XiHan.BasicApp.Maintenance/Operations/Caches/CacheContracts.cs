@@ -115,7 +115,8 @@ public sealed record CacheDeleteResult(IReadOnlyList<string> Removed, IReadOnlyL
 /// </summary>
 /// <param name="Key">键</param>
 /// <param name="Code">原因码</param>
-public sealed record CacheDeleteFailure(string Key, string Code);
+/// <param name="Message">失败原因，已按这次调用的区域本地化，可直接显示</param>
+public sealed record CacheDeleteFailure(string Key, string Code, string Message);
 
 /// <summary>
 /// <c>caches.delete-by-prefix</c> 的请求

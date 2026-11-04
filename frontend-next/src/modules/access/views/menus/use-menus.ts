@@ -2,7 +2,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { menus as menusApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type MenuRow = ResponseOf<'menus.list'>['items'][number]
 export type MenuKind = MenuRow['kind']
@@ -19,12 +19,6 @@ export const CUSTOM_CODE_PREFIX = 'custom.'
 
 function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
-}
-
-/** 批量删除的结果里只有失败项的错误码：页面节点（ACCESS_CONFLICT_004）、还有子节点的目录（ACCESS_CONFLICT_005）由后端逐项拒绝 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
 }
 
 /** 深度优先摊平整棵树（上级菜单的候选、子页面判定都在摊平后的序列里找） */
@@ -92,7 +86,7 @@ export function menusResource(titleOf: (node: MenuRow) => string, onLoaded: (nod
       onLoaded(items)
       return filterMenuTree(items, params, titleOf)
     },
-    remove: async id => failedCodes(await menusApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await menusApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => menusApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
   }
 }

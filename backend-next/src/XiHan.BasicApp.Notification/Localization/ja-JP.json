@@ -138,6 +138,7 @@
   "notification.config.default_locked": "設定 {code} は既定（または無効）です。既定の設定は有効である必要があり、無効化も削除もできません。",
   "notification.record.busy": "この記録は待機中または送信中です。",
   "notification.record.not_pending": "取り消せるのは待機中の記録だけです。",
+  "notification.record.not_resendable": "認証コードの記録は再送できません。ユーザーに新しいコードを取得してもらってください。",
   "notification.template.invalid": "テンプレートに誤りがあります：{detail}",
   "notification.email.address_invalid": "メールアドレス {address} の形式が正しくありません。",
   "notification.sms_config.template_map_invalid": "テンプレート対応は JSON オブジェクト（テンプレートコード → 事業者のテンプレート ID）にしてください。",

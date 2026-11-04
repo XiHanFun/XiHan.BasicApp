@@ -2,7 +2,7 @@ import type { StorageConfigForm, StorageConfigRow } from './storage-config'
 import { describe, expect, it } from 'vitest'
 import { toPageRequest } from '~/contracts'
 import { QueryOperator } from '~/types/contracts'
-import { batchFailureMessage, configProblemMessage, emptyStorageConfigForm, findConfigProblem, STORAGE_CONFIG_QUERY, toCreateBody, toStorageConfigForm, toUpdateBody } from './storage-config'
+import { configProblemMessage, emptyStorageConfigForm, findConfigProblem, STORAGE_CONFIG_QUERY, toCreateBody, toStorageConfigForm, toUpdateBody } from './storage-config'
 
 const t = (key: string, values?: Record<string, unknown>) => `${key}${values ? JSON.stringify(values) : ''}`
 
@@ -75,11 +75,5 @@ describe('存储配置的表单', () => {
   it('已保存的配置回填表单，访问密钥不回显', () => {
     const row: StorageConfigRow = { id: 'c1', code: 'oss', name: 'OSS', type: 'Oss', endpoint: 'https://e', region: null, bucket: 'b-1', accessKeyId: 'AK', hasSecretAccessKey: true, conditionalWrites: false, isDefault: true, status: 'Active', order: 5, remark: null, createdAt: '2026-10-01T00:00:00Z', modifiedAt: null }
     expect(toStorageConfigForm(row)).toEqual({ id: 'c1', code: 'oss', name: 'OSS', type: 'Oss', bucket: 'b-1', endpoint: 'https://e', region: '', accessKeyId: 'AK', secretAccessKey: '', conditionalWrites: false, isDefault: true, status: 'Active', order: 5, remark: '' })
-  })
-
-  it('批量删除的失败码认得的翻成文案，其余原样', () => {
-    expect(batchFailureMessage(t, 'FILES_CONFLICT_002')).toBe('files.storage_configs.batch.default_locked')
-    expect(batchFailureMessage(t, 'FILES_CONFLICT_003')).toBe('files.storage_configs.batch.in_use')
-    expect(batchFailureMessage(t, 'KERNEL_UNEXPECTED_000')).toBe('KERNEL_UNEXPECTED_000')
   })
 })

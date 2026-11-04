@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: 'Status konnte nicht aktualisiert werden',
       msg_app_deleted: 'Anwendung gelöscht',
       msg_delete_failed: 'Anwendung konnte nicht gelöscht werden',
-      msg_app_not_found: 'Die Anwendung existiert nicht oder wurde gelöscht',
     },
   },
 }

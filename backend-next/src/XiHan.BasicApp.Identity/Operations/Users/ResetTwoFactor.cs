@@ -42,7 +42,7 @@ public sealed class ResetTwoFactor(IRepository<SysUser, Guid> users, IRepository
             var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
             if (!securityResult.TryGetValue(out var security))
             {
-                failed.Add(new BatchFailure(user.Id, securityResult.Error!.Code));
+                failed.Add(BatchFailure.From(user.Id, securityResult.Error!));
                 continue;
             }
 
@@ -54,7 +54,7 @@ public sealed class ResetTwoFactor(IRepository<SysUser, Guid> users, IRepository
             var updated = await securities.UpdateAsync(security, context.CancellationToken).ConfigureAwait(false);
             if (updated.IsFailure)
             {
-                failed.Add(new BatchFailure(user.Id, updated.Error!.Code));
+                failed.Add(BatchFailure.From(user.Id, updated.Error!));
                 continue;
             }
 

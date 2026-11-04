@@ -180,10 +180,6 @@ export default {
         storage_status_updated: '副本狀態已更新',
         storage_status_failed: '更新副本狀態失敗',
       },
-      batch: {
-        not_found: '檔案不存在或已刪除',
-        unavailable: '已損毀的檔案不能封存或還原，請先在儲存副本中修復',
-      },
     },
     storage_configs: {
       title: '儲存設定',
@@ -273,11 +269,6 @@ export default {
         set_default_success: '已設為預設儲存',
         set_default_failed: '設定預設儲存失敗',
       },
-      batch: {
-        not_found: '儲存設定不存在或已刪除',
-        default_locked: '預設儲存設定不能刪除，請先將其他設定設為預設',
-        in_use: '儲存設定仍有檔案副本，無法刪除',
-      },
     },
     export_center: {
       title: '匯出中心',
@@ -333,10 +324,6 @@ export default {
         delete_content: '確定刪除「{name}」嗎？結果檔案會一併刪除，無法復原。',
         deleted: '已刪除',
         download_failed: '下載失敗',
-      },
-      batch: {
-        not_found: '匯出任務不存在或已刪除',
-        processing: '執行中的匯出任務不能刪除，請等它結束',
       },
     },
   },

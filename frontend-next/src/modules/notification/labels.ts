@@ -127,27 +127,3 @@ export function enabledLabel(t: Translate, enabled: boolean): string {
 
 /** 模板与配置的编码文法（与后端 `MessagingCodes.Pattern` 一致） */
 export const MESSAGING_CODE_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/
-
-/** 发送记录、模板与配置的批量操作只回失败项的错误码：认得的翻成文案，其余原样 */
-export function messagingFailureMessage(t: Translate, code: string): string {
-  switch (code) {
-    case 'NOTIFICATION_NOTFOUND_003': return t('notification.messaging.failures.template_not_found')
-    case 'NOTIFICATION_DENIED_002': return t('notification.messaging.failures.template_other_side')
-    case 'NOTIFICATION_NOTFOUND_004':
-    case 'NOTIFICATION_NOTFOUND_005':
-    case 'NOTIFICATION_NOTFOUND_008': return t('notification.messaging.failures.config_not_found')
-    case 'NOTIFICATION_NOTFOUND_009': return t('notification.messaging.failures.bot_not_found')
-    case 'NOTIFICATION_NOTFOUND_006':
-    case 'NOTIFICATION_NOTFOUND_007': return t('notification.messaging.failures.record_not_found')
-    case 'NOTIFICATION_CONFLICT_005': return t('notification.messaging.failures.default_locked')
-    case 'NOTIFICATION_CONFLICT_006': return t('notification.messaging.failures.record_busy')
-    case 'NOTIFICATION_CONFLICT_007': return t('notification.messaging.failures.record_not_pending')
-    default: return code
-  }
-}
-
-/** 批量结果里有失败项即抛错：逐项原因去重后拼成一条 */
-export function assertBatch(t: Translate, result: { failed: readonly { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error([...new Set(result.failed.map(failure => messagingFailureMessage(t, failure.code)))].join('; '))
-}

@@ -5,7 +5,7 @@ import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/c
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { useAppStore } from '~/stores'
 import { usePermissionNames } from '../permissions/permission-names'
 import { buildNameMap, isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from './data-scope'
@@ -28,12 +28,6 @@ function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
 }
 
-/** 批量删除 / 指派的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** 修改角色是整体覆盖名称 / 说明 / 排序 / 状态；数据范围与自定义部门不传即保留 */
 function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {}) {
   return { id: role.id, name: role.name, description: role.description ?? null, order: role.order, status: patch.status ?? role.status }
@@ -50,7 +44,7 @@ export function rolesResource(): SchemaResource<RoleRow> {
       params,
     ),
     // 内建角色由后端逐项拒绝（ACCESS_CONFLICT_002）
-    remove: async id => failedCodes(await rolesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await rolesApi.delete({ ids: [String(id)] })),
     // 先取当前值再只改状态
     updateStatus: async (id, enabled) => {
       const { role } = await rolesApi.get({ id: String(id) })
@@ -191,7 +185,7 @@ export function diffGrants(draft: readonly string[], granted: readonly string[])
   }
 }
 
-/** 一次保存的结果：成功授予 / 撤销的条数，逐项失败（权限码: 错误码） */
+/** 一次保存的结果：成功授予 / 撤销的条数，逐项失败的原因 */
 export interface ChangeOutcome {
   added: number
   removed: number
@@ -262,12 +256,12 @@ export function useRolePermissionEditor() {
       if (grant.length > 0) {
         const result = await rolesApi.grant({ id: current.id, permissions: grant })
         outcome.added = result.succeeded.length
-        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.code}`))
+        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.message}`))
       }
       if (revoke.length > 0) {
         const result = await rolesApi.revoke({ id: current.id, permissions: revoke })
         outcome.removed = result.succeeded.length
-        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.code}`))
+        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.message}`))
       }
       applyGranted((await rolesApi.get({ id: current.id })).permissions)
       return outcome
@@ -370,12 +364,12 @@ export function useRoleMemberEditor() {
       if (assign.length > 0) {
         const result = await rolesApi.assign({ id: current.id, userIds: assign })
         outcome.added = result.succeeded.length
-        outcome.failures.push(...result.failed.map(f => `${f.id}: ${f.code}`))
+        outcome.failures.push(...result.failed.map(f => f.message))
       }
       if (unassign.length > 0) {
         const result = await rolesApi.unassign({ id: current.id, userIds: unassign })
         outcome.removed = result.succeeded.length
-        outcome.failures.push(...result.failed.map(f => `${f.id}: ${f.code}`))
+        outcome.failures.push(...result.failed.map(f => f.message))
       }
       applyMembers((await rolesApi.members({ id: current.id })).items)
       return outcome

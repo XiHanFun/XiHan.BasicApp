@@ -70,10 +70,10 @@ function describe(error: unknown): string {
   return error instanceof ApiError ? error.detail : String(error)
 }
 
-/** 批量结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { permission: string, code: string }[] }): void {
+/** 逐项拒绝的权限码与原因拼成一条报错 */
+function throwOnFailedPermissions(result: { failed: { permission: string, message: string }[] }): void {
   if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => `${f.permission}: ${f.code}`).join('; '))
+    throw new Error(result.failed.map(f => `${f.permission}: ${f.message}`).join('; '))
 }
 
 /**
@@ -147,11 +147,11 @@ export function useUserGrants(outsideGroup: () => string) {
     loading.value = true
     try {
       if (diff.revoke.length > 0)
-        failedCodes(await userGrantsApi.revoke({ userId: target.id, permissions: diff.revoke }))
+        throwOnFailedPermissions(await userGrantsApi.revoke({ userId: target.id, permissions: diff.revoke }))
       if (diff.grant.length > 0)
-        failedCodes(await userGrantsApi.grant({ userId: target.id, permissions: diff.grant }))
+        throwOnFailedPermissions(await userGrantsApi.grant({ userId: target.id, permissions: diff.grant }))
       if (diff.deny.length > 0)
-        failedCodes(await userGrantsApi.deny({ userId: target.id, permissions: diff.deny }))
+        throwOnFailedPermissions(await userGrantsApi.deny({ userId: target.id, permissions: diff.deny }))
       await reloadGrants(target.id)
       return { grant: diff.grant.length, deny: diff.deny.length, revoke: diff.revoke.length }
     }

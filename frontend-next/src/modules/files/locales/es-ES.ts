@@ -180,10 +180,6 @@ export default {
         storage_status_updated: 'Estado de la copia actualizado',
         storage_status_failed: 'No se pudo actualizar el estado de la copia',
       },
-      batch: {
-        not_found: 'El archivo no existe o ya se eliminó',
-        unavailable: 'Un archivo dañado no se puede archivar ni restaurar; repáralo primero desde sus copias de almacenamiento',
-      },
     },
     storage_configs: {
       title: 'Configuración de almacenamiento',
@@ -273,11 +269,6 @@ export default {
         set_default_success: 'Establecida como almacenamiento predeterminado',
         set_default_failed: 'No se pudo establecer el almacenamiento predeterminado',
       },
-      batch: {
-        not_found: 'La configuración de almacenamiento no existe o ya se eliminó',
-        default_locked: 'La configuración de almacenamiento predeterminada no se puede eliminar; establece primero otra como predeterminada',
-        in_use: 'La configuración de almacenamiento aún tiene copias de archivos y no se puede eliminar',
-      },
     },
     export_center: {
       title: 'Centro de exportación',
@@ -333,10 +324,6 @@ export default {
         delete_content: '¿Eliminar «{name}»? También se elimina su archivo de resultados. Esta acción no se puede deshacer.',
         deleted: 'Eliminada',
         download_failed: 'Error en la descarga',
-      },
-      batch: {
-        not_found: 'La tarea de exportación no existe o ya se eliminó',
-        processing: 'No se puede eliminar una tarea de exportación en curso. Espere a que termine.',
       },
     },
   },

@@ -33,6 +33,7 @@
   "identity.user.name_taken": "用户名 '{userName}' 在租户 '{tenant}' 内已被占用。",
   "identity.user.tenant_mismatch": "注册地租户 '{requested}' 与当前租户 '{current}' 不一致。",
   "identity.user.self_operation": "不能对自己的账号执行该操作。",
+  "identity.user.locked": "用户 '{name}' 处于锁定状态，要先解锁。",
   "identity.user.display_name_blank": "显示名不能只有空白。",
   "identity.user.email_invalid": "邮箱地址格式不正确。",
   "identity.user.filter_unsupported": "不支持筛选 '{field} {operator}'。",

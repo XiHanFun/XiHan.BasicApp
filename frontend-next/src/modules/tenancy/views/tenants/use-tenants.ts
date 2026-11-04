@@ -4,7 +4,7 @@ import type { RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref, shallowRef } from 'vue'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { editions as editionsApi, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { formatFileSize } from '~/utils'
 import { formatSeats, quotaLevel, storageLimitBytes, usageText } from '../subscription/subscription'
 
@@ -130,12 +130,6 @@ export function memberUserFilters(memberType: TenantMemberType): { field: string
   return [{ field: 'homeTenantId', operator: memberType === 'Support' ? 'eq' : 'ne', value: PLATFORM_TENANT_ID }]
 }
 
-/** 批量结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** 提交失败的落点：字段级错误挂回字段，其余给整条提示 */
 function captureErrors(error: unknown, fieldErrors: { value: Record<string, string[]> }, submitError: { value: null | string }) {
   if (error instanceof ApiError) {
@@ -160,8 +154,8 @@ export function tenantsResource(quotas?: { load: () => Promise<void> }): SchemaR
       return toSchemaPageResult(page, params)
     },
     // 还有用户的租户由后端逐项拒绝（TENANCY_CONFLICT_003）
-    remove: async id => failedCodes(await tenantsApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => failedCodes(await (enabled ? tenantsApi.resume : tenantsApi.suspend)({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await tenantsApi.delete({ ids: [String(id)] })),
+    updateStatus: async (id, enabled) => throwOnFailed(await (enabled ? tenantsApi.resume : tenantsApi.suspend)({ ids: [String(id)] })),
   }
 }
 
@@ -593,7 +587,7 @@ export function useTenantDetail(canReadMembers: () => boolean) {
 
   /** 移除成员：成员行不存在（TENANCY_NOTFOUND_002）、是租户所有者（TENANCY_CONFLICT_012）由后端逐项拒绝，以错误码抛出；成功后重取成员 */
   async function removeMember(member: TenantMember) {
-    failedCodes(await tenantMembersApi.delete({ ids: [member.id] }))
+    throwOnFailed(await tenantMembersApi.delete({ ids: [member.id] }))
     await loadMembers()
   }
 

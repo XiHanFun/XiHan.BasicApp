@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "Não é possível ordenar por {field}.",
   "maintenance.jobs.schedule_invalid": "A agenda é inválida: {expression}.",
   "maintenance.jobs.not_found": "A tarefa {name} não existe.",
+  "maintenance.jobs.from_code": "Tarefas registradas em código não podem ser excluídas.",
   "openapi.tags.jobs.name": "Tarefas",
   "openapi.tags.jobs.description": "Tarefas agendadas: estado, pausa e retomada, execução imediata e validação da agenda.",
   "openapi.groups.maintenance.name": "Manutenção",

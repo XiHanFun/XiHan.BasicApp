@@ -97,11 +97,11 @@ describe('邮件配置的表单', () => {
     expect(body).not.toHaveProperty('code')
   })
 
-  it('启停取最新一份再整体修改（不带密码）；缺省配置删除被拒时翻成文案', async () => {
-    const calls = stub({ ...ROW, isDefault: false }, ROW, { succeeded: [], failed: [{ id: 'c1', code: 'NOTIFICATION_CONFLICT_005' }] })
-    const resource = emailConfigResource(t)
+  it('启停取最新一份再整体修改（不带密码）；缺省配置删除被拒时带着原因抛出', async () => {
+    const calls = stub({ ...ROW, isDefault: false }, ROW, { succeeded: [], failed: [{ id: 'c1', code: 'NOTIFICATION_CONFLICT_005', message: 'NOTIFICATION_CONFLICT_005 的原因' }] })
+    const resource = emailConfigResource()
     await resource.updateStatus!('c1', false)
-    await expect(resource.remove!('c1')).rejects.toThrow('notification.messaging.failures.default_locked')
+    await expect(resource.remove!('c1')).rejects.toThrow('NOTIFICATION_CONFLICT_005 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/email-configs/c1' })
     expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/email-configs/c1', body: { isEnabled: false, password: null, smtpHost: 'smtp.example.com' } })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/email-configs?ids=c1' })

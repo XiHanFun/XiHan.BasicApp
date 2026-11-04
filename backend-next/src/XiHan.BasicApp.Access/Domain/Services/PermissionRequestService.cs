@@ -348,14 +348,14 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
             var found = await store.FindAsync(side, id, context.CancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var row))
             {
-                failed.Add(new BatchFailure(id, found.Error!.Code));
+                failed.Add(BatchFailure.From(id, found.Error!));
                 continue;
             }
 
             var allowed = await check(row).ConfigureAwait(false);
             if (allowed.IsFailure)
             {
-                failed.Add(new BatchFailure(id, allowed.Error!.Code));
+                failed.Add(BatchFailure.From(id, allowed.Error!));
                 continue;
             }
 
@@ -367,7 +367,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
 
             if (row.Status != PermissionRequestStatus.Pending)
             {
-                failed.Add(new BatchFailure(id, AccessErrors.PermissionRequestNotPending));
+                failed.Add(new BatchFailure(id, AccessErrors.PermissionRequestNotPending, AccessMessages.PermissionRequestNotPending.L(("id", id), ("status", row.Status))));
                 continue;
             }
 

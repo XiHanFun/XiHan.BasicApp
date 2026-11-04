@@ -307,7 +307,7 @@ internal static class JobBatches
             }
             else
             {
-                failed.Add(new JobBatchFailure(id, MaintenanceErrors.JobNotFound));
+                failed.Add(new JobBatchFailure(id, MaintenanceErrors.JobNotFound, MaintenanceMessages.JobNotFound.L(("name", id))));
             }
         }
 
@@ -323,7 +323,7 @@ internal static class JobBatches
                 }
                 else
                 {
-                    failed.Add(new JobBatchFailure(names[i].Value, results[i].Error!.Code));
+                    failed.Add(JobBatchFailure.From(names[i].Value, results[i].Error!));
                 }
             }
         }

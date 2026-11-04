@@ -47,8 +47,8 @@ describe('knowledgeDocumentsResource', () => {
   })
 
   it('批量删除逐项调用，逐项失败抛出码', async () => {
-    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'd-1', code: 'AI_UNAVAILABLE_002' }] }))
-    await expect(knowledgeDocumentsResource().remove!('d-1')).rejects.toThrow('AI_UNAVAILABLE_002')
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'd-1', code: 'AI_UNAVAILABLE_002', message: 'AI_UNAVAILABLE_002 的原因' }] }))
+    await expect(knowledgeDocumentsResource().remove!('d-1')).rejects.toThrow('AI_UNAVAILABLE_002 的原因')
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/knowledge-documents?ids=d-1' })
   })
 })

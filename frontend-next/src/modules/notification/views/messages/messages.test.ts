@@ -4,8 +4,6 @@ import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 import { canCancel, cancelRecord, canDelete, canResend, emailRecordResource, formatAttempts, prettyJson, RECORD_QUERY, resendRecord, smsRecordResource } from './messages'
 
-const t = (key: string) => key
-
 function json(status: number, body: object): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 }
@@ -50,17 +48,17 @@ describe('发送记录的列表筛选', () => {
     })
   })
 
-  it('邮件走 emails.list、短信走 sms.list；删除逐项拒绝时翻成文案', async () => {
+  it('邮件走 emails.list、短信走 sms.list；删除逐项拒绝时带着原因抛出', async () => {
     const calls = stub(
       { items: [], total: 0, page: { index: 1, size: 20 } },
       { items: [], total: 0, page: { index: 1, size: 20 } },
       { succeeded: ['e1'], failed: [] },
-      { succeeded: [], failed: [{ id: 's1', code: 'NOTIFICATION_CONFLICT_006' }] },
+      { succeeded: [], failed: [{ id: 's1', code: 'NOTIFICATION_CONFLICT_006', message: 'NOTIFICATION_CONFLICT_006 的原因' }] },
     )
-    await emailRecordResource(t).page!({ page: 1, pageSize: 20, filters: {} })
-    await smsRecordResource(t).page!({ page: 1, pageSize: 20, filters: {} })
-    await emailRecordResource(t).remove!('e1')
-    await expect(smsRecordResource(t).remove!('s1')).rejects.toThrow('notification.messaging.failures.record_busy')
+    await emailRecordResource().page!({ page: 1, pageSize: 20, filters: {} })
+    await smsRecordResource().page!({ page: 1, pageSize: 20, filters: {} })
+    await emailRecordResource().remove!('e1')
+    await expect(smsRecordResource().remove!('s1')).rejects.toThrow('NOTIFICATION_CONFLICT_006 的原因')
     expect(calls.map(call => `${call.method} ${call.url}`)).toEqual([
       'POST /api/emails:list',
       'POST /api/sms:list',
@@ -82,11 +80,11 @@ describe('发送记录的行操作', () => {
     const calls = stub(
       { succeeded: ['e1'], failed: [] },
       { succeeded: ['s1'], failed: [] },
-      { succeeded: [], failed: [{ id: 'e2', code: 'NOTIFICATION_CONFLICT_007' }] },
+      { succeeded: [], failed: [{ id: 'e2', code: 'NOTIFICATION_CONFLICT_007', message: 'NOTIFICATION_CONFLICT_007 的原因' }] },
     )
-    await resendRecord(t, 'email', 'e1')
-    await cancelRecord(t, 'sms', 's1')
-    await expect(cancelRecord(t, 'email', 'e2')).rejects.toThrow('notification.messaging.failures.record_not_pending')
+    await resendRecord('email', 'e1')
+    await cancelRecord('sms', 's1')
+    await expect(cancelRecord('email', 'e2')).rejects.toThrow('NOTIFICATION_CONFLICT_007 的原因')
     expect(calls).toEqual([
       { method: 'POST', url: '/api/emails:resend', body: { ids: ['e1'] } },
       { method: 'POST', url: '/api/sms:cancel', body: { ids: ['s1'] } },

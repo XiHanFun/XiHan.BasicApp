@@ -3,7 +3,7 @@ import type { components, LoginEvent, ResponseOf, TwoFactorMethod, UserGender } 
 import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
 import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
-import { endpointUrl, uploadForm } from '~/request'
+import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 import { getDisplayTimeZone } from '~/utils'
 
@@ -496,11 +496,10 @@ export function registerApplicationContext(router: Router): void {
     createApiCredentialApi: async credentialName => toShellSecret(await myApiCredentialOps.create({ name: credentialName ?? null })),
     rotateApiCredentialSecretApi: async id => toShellSecret(await myApiCredentialOps.rotateSecret({ id: String(id) })),
     updateApiCredentialStatusApi: async (id, status) => toShellCredential(await myApiCredentialOps.update({ id: String(id), isEnabled: status === 'Enabled' })),
-    // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带错误码，不当成删除成功
+    // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带原因，不当成删除成功
     deleteApiCredentialApi: async (id) => {
       const result = await myApiCredentialOps.delete({ ids: [String(id)] })
-      if (result.failed.length > 0)
-        throw new Error(result.failed.map(failure => failure.code).join('; '))
+      throwOnFailed(result)
       return result
     },
     getApiCallSettingsApi: async () => toShellCallSettings(await myApiCredentialOps.settings({})),
@@ -540,11 +539,10 @@ export function registerApplicationContext(router: Router): void {
         isEnabled: status === 'Enabled',
       }))
     },
-    // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带错误码，不当成删除成功
+    // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带原因，不当成删除成功
     deleteMyOAuthAppApi: async (id) => {
       const result = await myOAuthAppOps.delete({ ids: [String(id)] })
-      if (result.failed.length > 0)
-        throw new Error(result.failed.map(failure => failure.code).join('; '))
+      throwOnFailed(result)
       return result
     },
     // 已授权的应用（OpenPlatform 的 oauth-consents.*，只要求已登录，模仿会话撤销被拒）：撤销按 ClientId，同时吊销该应用拿到的令牌

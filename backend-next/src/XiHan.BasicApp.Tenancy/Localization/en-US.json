@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "Tenant ID '{tenantId}' is already taken.",
   "tenancy.tenant.admin_initialized": "Tenant '{tenantId}' already has an administrator.",
   "tenancy.tenant.has_users": "Tenant '{tenantId}' still has {count} users and cannot be deleted.",
+  "tenancy.tenant.expired": "Tenant '{tenantId}' is past its expiry time. Extend the expiry time before resuming it.",
   "tenancy.tenant.platform_only": "Tenants are managed from the platform side only.",
   "tenancy.tenant.filter_unsupported": "Filter '{field} {operator}' is not supported.",
   "tenancy.tenant.sort_unsupported": "Sorting by '{field}' is not supported.",

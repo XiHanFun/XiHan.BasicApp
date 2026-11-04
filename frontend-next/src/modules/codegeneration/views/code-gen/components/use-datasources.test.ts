@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { datasourcesResource, failedDeleteCodes, useDatasourceEditor } from './use-datasources'
+import { datasourcesResource, useDatasourceEditor } from './use-datasources'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -38,10 +38,6 @@ describe('datasourcesResource', () => {
     } as never)
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/codegen-datasources:list' })
     expect(calls[0]!.body).toMatchObject({ keyword: 'erp', filters: [{ field: 'databaseType', operator: 'in', value: 'MySql,Sqlite' }] })
-  })
-
-  it('批量删除的逐项失败码原样取出', () => {
-    expect(failedDeleteCodes({ failed: [{ code: 'CODEGENERATION_CONFLICT_002' }] })).toEqual(['CODEGENERATION_CONFLICT_002'])
   })
 })
 

@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: 'Code jobs cannot be deleted',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: 'Create job',
       create_title: 'Create job',
@@ -183,12 +182,10 @@ export default {
       task_enabled: 'Task enabled',
       task_disabled: 'Task disabled',
       toggle_failed: 'Failed to update task status',
-      job_not_found: 'Task not found',
       rescheduled: 'Schedule changed',
       reschedule_failed: 'Failed to change the schedule',
       restored: 'Code schedule restored',
       restore_failed: 'Failed to restore the code schedule',
-      no_code_definition: 'The task has no code definition to restore',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: 'Copy failed',
       saved: 'Saved',
       key_already_gone: 'The key no longer exists or has expired',
-      namespace_denied: 'Not in a namespace open to management',
       batch_deleted: 'Deleted {count} keys',
       batch_deleted_with_missing: 'Deleted {count} keys; {missing} no longer existed',
       batch_delete_partial: 'Delete finished: {success} succeeded, {failed} failed ({reason})',

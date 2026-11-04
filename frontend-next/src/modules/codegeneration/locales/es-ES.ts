@@ -166,7 +166,6 @@ export default {
         update_status_remark: 'Estado cambiado desde la interfaz',
         title: 'Origen de datos',
         form_connection_string_edit: 'Cadena de conexión (déjala vacía para conservarla)',
-        in_use: 'Una configuración de tabla aún usa el origen de datos; no se puede eliminar',
         connection_string_set: 'Hay una cadena de conexión explícita',
       },
       template: {

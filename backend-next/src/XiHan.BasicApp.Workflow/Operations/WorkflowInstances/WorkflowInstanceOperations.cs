@@ -366,7 +366,7 @@ internal static class WorkflowInstances
         {
             if (!outcomes[i].TryGetValue(out var instance))
             {
-                failed.Add(new BatchFailure(ids[i], outcomes[i].Error!.Code));
+                failed.Add(BatchFailure.From(ids[i], outcomes[i].Error!));
                 continue;
             }
 
@@ -377,7 +377,7 @@ internal static class WorkflowInstances
             }
             else
             {
-                failed.Add(new BatchFailure(ids[i], notified.Error!.Code));
+                failed.Add(BatchFailure.From(ids[i], notified.Error!));
             }
         }
 
@@ -396,7 +396,7 @@ internal static class WorkflowInstances
             }
             else
             {
-                failed.Add(new BatchFailure(ids[i], outcomes[i].Error!.Code));
+                failed.Add(BatchFailure.From(ids[i], outcomes[i].Error!));
             }
         }
 

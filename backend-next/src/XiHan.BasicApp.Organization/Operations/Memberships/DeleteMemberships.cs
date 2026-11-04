@@ -47,7 +47,7 @@ public sealed class DeleteMemberships(IRepository<SysUserDepartment, Guid> membe
         {
             if (!found.TryGetValue(id, out var membership))
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.MembershipNotFound));
+                failed.Add(new BatchFailure(id, OrganizationErrors.MembershipNotFound, OrganizationMessages.MembershipNotFound.L(("id", id))));
                 continue;
             }
 

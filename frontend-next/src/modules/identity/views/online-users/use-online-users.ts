@@ -1,6 +1,7 @@
 import type { SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { sessions, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 
 export type OnlineSessionRow = ResponseOf<'sessions.list'>['items'][number]
 export type SessionSummary = ResponseOf<'sessions.summary'>
@@ -54,9 +55,8 @@ export function loadSessionSummary(): Promise<SessionSummary> {
   return sessions.summary({})
 }
 
-/** 强制下线一条会话；逐项拒绝（已失效、是自己当前的会话）按错误码抛出 */
+/** 强制下线一条会话；逐项拒绝（已失效、是自己当前的会话）带着原因抛出 */
 export async function revokeSession(id: string, reason: string): Promise<void> {
   const result = await sessions.revoke({ ids: [id], reason })
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
+  throwOnFailed(result)
 }

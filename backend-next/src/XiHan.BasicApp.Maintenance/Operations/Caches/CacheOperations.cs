@@ -386,7 +386,7 @@ public sealed class DeleteCacheEntries(ISharedCache cache, IEnumerable<CacheName
         {
             if (!CacheKey.IsValid(key) || CacheAccess.NamespaceOf(namespaces, key) is null)
             {
-                failed.Add(new CacheDeleteFailure(key, MaintenanceErrors.CacheNamespaceDenied));
+                failed.Add(new CacheDeleteFailure(key, MaintenanceErrors.CacheNamespaceDenied, MaintenanceMessages.CacheNamespaceDenied.L(("key", key))));
                 continue;
             }
 

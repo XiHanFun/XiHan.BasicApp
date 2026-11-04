@@ -47,7 +47,7 @@ public sealed class DeleteTenants(IRepository<SysTenant, Guid> tenants, IReposit
         {
             if (!found.TryGetValue(id, out var tenant))
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.TenantNotFound));
+                failed.Add(new BatchFailure(id, TenancyErrors.TenantNotFound, TenancyMessages.TenantNotFound.L(("id", id))));
                 continue;
             }
 
@@ -55,7 +55,7 @@ public sealed class DeleteTenants(IRepository<SysTenant, Guid> tenants, IReposit
             var count = await users.CountAsync(EntityQuery.All<SysUser>().Where(new Specification<SysUser>(u => u.HomeTenantId == tenantId)), context.CancellationToken).ConfigureAwait(false);
             if (count > 0)
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.HasUsers));
+                failed.Add(new BatchFailure(id, TenancyErrors.HasUsers, TenancyMessages.HasUsers.L(("tenantId", tenantId), ("count", count))));
                 continue;
             }
 

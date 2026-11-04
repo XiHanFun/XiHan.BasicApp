@@ -228,14 +228,14 @@ public sealed class DeleteStorageConfigs(StorageConfigService service) : IOperat
         {
             if (!(await service.FindAsync(id, side, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
             {
-                failed.Add(new BatchFailure(id, FilesErrors.StorageConfigNotFound));
+                failed.Add(new BatchFailure(id, FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound.L(("id", id))));
                 continue;
             }
 
             var removed = await service.DeleteAsync(config, context.CancellationToken).ConfigureAwait(false);
             if (removed.IsFailure)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
                 continue;
             }
 

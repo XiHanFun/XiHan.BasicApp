@@ -138,6 +138,7 @@
   "notification.config.default_locked": "配置 {code} 是缺省配置（或未启用）：缺省配置须启用，不能停用或删除。",
   "notification.record.busy": "这条记录正在排队或发送中。",
   "notification.record.not_pending": "只有排队中的记录能取消。",
+  "notification.record.not_resendable": "验证码记录不能重发，请让用户重新获取。",
   "notification.template.invalid": "模板有误：{detail}",
   "notification.email.address_invalid": "邮件地址 {address} 格式不正确。",
   "notification.sms_config.template_map_invalid": "模板映射须是 JSON 对象（模板编码 → 服务商模板 ID）。",

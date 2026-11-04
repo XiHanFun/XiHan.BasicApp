@@ -194,15 +194,15 @@ public sealed class BotConfigService(IRepository<SysBotConfig, Guid> bots, ISecr
             var found = await FindAsync(owner, id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var config))
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.BotConfigNotFound));
+                failed.Add(new BatchFailure(id, NotificationErrors.BotConfigNotFound, NotificationMessages.BotConfigNotFound.L(("id", id))));
             }
             else if (config.IsDefault)
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.DefaultConfigLocked));
+                failed.Add(new BatchFailure(id, NotificationErrors.DefaultConfigLocked, NotificationMessages.DefaultConfigLocked.L(("code", config.Code))));
             }
             else if ((await bots.RemoveAsync(config, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {

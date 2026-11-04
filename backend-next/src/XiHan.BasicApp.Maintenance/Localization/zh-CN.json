@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "不支持按 {field} 排序。",
   "maintenance.jobs.schedule_invalid": "计划写得不对：{expression}。",
   "maintenance.jobs.not_found": "作业 {name} 不存在。",
+  "maintenance.jobs.from_code": "代码登记的作业不能删除。",
   "openapi.tags.jobs.name": "任务调度",
   "openapi.tags.jobs.description": "定时作业的状态、暂停与恢复、立即执行与计划校验。",
   "openapi.groups.maintenance.name": "运维",

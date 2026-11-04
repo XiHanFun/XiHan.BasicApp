@@ -46,14 +46,14 @@ public sealed class DeletePositions(IRepository<SysPosition, Guid> positions, IR
         {
             if (!found.TryGetValue(id, out var position))
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.PositionNotFound));
+                failed.Add(new BatchFailure(id, OrganizationErrors.PositionNotFound, OrganizationMessages.PositionNotFound.L(("id", id))));
                 continue;
             }
 
             var positionId = position.Id;
             if (await memberships.CountAsync(EntityQuery.All<SysUserDepartment>().Where(new Specification<SysUserDepartment>(m => m.PositionId == positionId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.PositionInUse));
+                failed.Add(new BatchFailure(id, OrganizationErrors.PositionInUse, OrganizationMessages.PositionInUse.L(("id", id))));
                 continue;
             }
 

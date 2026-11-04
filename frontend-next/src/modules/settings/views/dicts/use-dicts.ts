@@ -3,7 +3,7 @@ import type { ResponseOf } from '~/contracts'
 import type { TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
 import { dictItems as dictItemsApi, dicts as dictsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type DictRow = ResponseOf<'dicts.list'>['items'][number]
 export type DictItemRow = ResponseOf<'dict-items.list'>['items'][number]
@@ -49,12 +49,6 @@ function emptyDictForm(): DictForm {
 
 function emptyItemForm(): DictItemForm {
   return { code: '', name: '', parentId: null, value: '', description: '', metadata: '', isDefault: false, order: 0, status: 'Active' }
-}
-
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
 }
 
 /** 把后端的深度优先平铺列表按 parentId 挂成树；上级不在列表里的项按顶层处理 */
@@ -110,7 +104,7 @@ export function dictsResource(): SchemaResource<DictRow> {
       params,
     ),
     // 内建、还有项、另一侧的字典由后端逐项拒绝
-    remove: async id => failedCodes(await dictsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await dictsApi.delete({ ids: [String(id)] })),
     // 更新是整体覆盖：先取当前值再只改状态
     updateStatus: async (id, enabled) => {
       const row = await dictsApi.get({ id: String(id) })
@@ -138,7 +132,7 @@ export function dictItemsResource(dictId: string, editable: boolean): SchemaReso
   return {
     tree,
     // 还有下级的项由后端拒绝
-    remove: async id => failedCodes(await dictItemsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await dictItemsApi.delete({ ids: [String(id)] })),
     // 更新是整体覆盖：先取当前值再只改状态
     updateStatus: async (id, enabled) => {
       const row = await dictItemsApi.get({ id: String(id) })

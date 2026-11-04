@@ -1,6 +1,7 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { storageConfigs as storageConfigsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 
 export type StorageConfigRow = ResponseOf<'storage-configs.list'>['items'][number]
 export type StorageType = StorageConfigRow['type']
@@ -149,27 +150,15 @@ export function toUpdateBody(form: StorageConfigForm & { id: string }): RequestO
   }
 }
 
-/** 批量删除只回失败项的错误码：认得的翻成文案，其余原样 */
-export function batchFailureMessage(t: Translate, code: string): string {
-  switch (code) {
-    case 'FILES_NOTFOUND_002': return t('files.storage_configs.batch.not_found')
-    case 'FILES_CONFLICT_002': return t('files.storage_configs.batch.default_locked')
-    case 'FILES_CONFLICT_003': return t('files.storage_configs.batch.in_use')
-    default: return code
-  }
-}
-
 /**
  * SchemaPage 的资源：分页（缺省配置在前）、删除、启停
  * 删除逐项拒绝的原因（缺省配置、还有副本）拼成一条报错
  */
-export function storageConfigResource(t: Translate): SchemaResource<StorageConfigRow> {
+export function storageConfigResource(): SchemaResource<StorageConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await storageConfigsApi.list(toPageRequest(params, STORAGE_CONFIG_QUERY)), params),
     remove: async (id) => {
-      const result = await storageConfigsApi.delete({ ids: [String(id)] })
-      if (result.failed.length > 0)
-        throw new Error(result.failed.map(failure => batchFailureMessage(t, failure.code)).join('; '))
+      throwOnFailed(await storageConfigsApi.delete({ ids: [String(id)] }))
     },
     updateStatus: async (id, enabled) => storageConfigsApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
   }

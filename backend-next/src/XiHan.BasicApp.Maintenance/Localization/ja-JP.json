@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "{field} で並べ替えることはできません。",
   "maintenance.jobs.schedule_invalid": "スケジュールが正しくありません：{expression}。",
   "maintenance.jobs.not_found": "ジョブ {name} は存在しません。",
+  "maintenance.jobs.from_code": "コードで登録したジョブは削除できません。",
   "openapi.tags.jobs.name": "ジョブ",
   "openapi.tags.jobs.description": "定期ジョブの状態、一時停止と再開、即時実行、スケジュールの検証。",
   "openapi.groups.maintenance.name": "運用",

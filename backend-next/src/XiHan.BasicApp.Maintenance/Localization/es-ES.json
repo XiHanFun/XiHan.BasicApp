@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "No se admite ordenar por {field}.",
   "maintenance.jobs.schedule_invalid": "La programación no es válida: {expression}.",
   "maintenance.jobs.not_found": "El trabajo {name} no existe.",
+  "maintenance.jobs.from_code": "Las tareas registradas en código no se pueden eliminar.",
   "openapi.tags.jobs.name": "Trabajos",
   "openapi.tags.jobs.description": "Trabajos programados: estado, pausa y reanudación, ejecución inmediata y validación de la programación.",
   "openapi.groups.maintenance.name": "Mantenimiento",

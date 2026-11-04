@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: 'Les tâches enregistrées dans le code ne peuvent pas être supprimées',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: 'Créer une tâche',
       create_title: 'Créer une tâche',
@@ -183,12 +182,10 @@ export default {
       task_enabled: 'Tâche activée',
       task_disabled: 'Tâche désactivée',
       toggle_failed: 'Échec de la mise à jour de l’état de la tâche',
-      job_not_found: 'La tâche n’existe pas',
       rescheduled: 'Planification modifiée',
       reschedule_failed: 'Échec de la modification de la planification',
       restored: 'Planification du code restaurée',
       restore_failed: 'Échec de la restauration de la planification du code',
-      no_code_definition: 'La tâche n’a pas de définition dans le code à restaurer',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: 'Échec de la copie',
       saved: 'Enregistré',
       key_already_gone: 'La clé n’existe plus ou a expiré',
-      namespace_denied: 'Hors des espaces de noms ouverts à la gestion',
       batch_deleted: '{count} clés supprimées',
       batch_deleted_with_missing: '{count} clés supprimées ; {missing} n’existaient plus',
       batch_delete_partial: 'Suppression terminée : {success} réussies, {failed} échouées ({reason})',

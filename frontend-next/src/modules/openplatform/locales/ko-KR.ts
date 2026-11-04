@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: '상태를 업데이트하지 못했어요',
       msg_app_deleted: '애플리케이션을 삭제했어요',
       msg_delete_failed: '애플리케이션을 삭제하지 못했어요',
-      msg_app_not_found: '애플리케이션이 없거나 이미 삭제됐어요',
     },
   },
 }

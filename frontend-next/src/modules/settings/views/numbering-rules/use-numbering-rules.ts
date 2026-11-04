@@ -2,7 +2,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref, watch } from 'vue'
 import { numberingRules as rulesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type RuleRow = ResponseOf<'numbering-rules.list'>['items'][number]
 export type AllocationRow = ResponseOf<'numbering-rules.allocations'>['items'][number]
@@ -66,12 +66,6 @@ function emptyRuleForm(): RuleForm {
   return { code: '', name: '', prefix: '', separator: '-', dateFormat: 'YyyyMMdd', serialLength: 4, resetCycle: 'Daily', timeZoneId: 'UTC', allowTenantUse: false, order: 0, description: '', status: 'Active' }
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** 提交失败：字段级错误挂回对应字段，其余给整条提示 */
 function capture(error: unknown, fieldErrors: { value: Record<string, string[]> }, submitError: { value: null | string }) {
   if (error instanceof ApiError) {
@@ -107,7 +101,7 @@ export function numberingRulesResource(): SchemaResource<RuleRow> {
       params,
     ),
     // 发过号的与另一侧的规则由后端逐项拒绝
-    remove: async id => failedCodes(await rulesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await rulesApi.delete({ ids: [String(id)] })),
     // 更新是整体覆盖：先取当前值再只改状态（格式原样带回，发过号的规则不会被判成改格式）
     updateStatus: async (id, enabled) => {
       const row = await rulesApi.get({ id: String(id) })

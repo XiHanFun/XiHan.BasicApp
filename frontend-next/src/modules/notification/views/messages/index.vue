@@ -33,8 +33,8 @@ defineOptions({ name: 'NotificationMessagesView' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
-const emailResource = emailRecordResource(t)
-const smsResource = smsRecordResource(t)
+const emailResource = emailRecordResource()
+const smsResource = smsRecordResource()
 
 const activeTab = ref<MessageTab>('email')
 const emailPageRef = ref<SchemaPageInstance | null>(null)
@@ -137,10 +137,10 @@ async function handleAction(tab: MessageTab, key: string, id: string) {
       await openDetail(tab, id)
       break
     case 'resend':
-      await runAction(tab, () => resendRecord(t, tab, id), tab === 'email' ? t('notification.messages.msg_email_requeued') : t('notification.messages.msg_sms_requeued'), t('notification.messages.msg_resend_failed'))
+      await runAction(tab, () => resendRecord(tab, id), tab === 'email' ? t('notification.messages.msg_email_requeued') : t('notification.messages.msg_sms_requeued'), t('notification.messages.msg_resend_failed'))
       break
     case 'cancel':
-      await runAction(tab, () => cancelRecord(t, tab, id), t('notification.messages.msg_cancelled'), t('notification.messages.msg_cancel_failed'))
+      await runAction(tab, () => cancelRecord(tab, id), t('notification.messages.msg_cancelled'), t('notification.messages.msg_cancel_failed'))
       break
     case 'delete':
       await runAction(tab, async () => (tab === 'email' ? emailResource : smsResource).remove?.(id), tab === 'email' ? t('notification.messages.msg_email_deleted') : t('notification.messages.msg_sms_deleted'), t('notification.messages.msg_delete_failed'))

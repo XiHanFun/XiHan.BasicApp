@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "Сортировка по {field} не поддерживается.",
   "maintenance.jobs.schedule_invalid": "Неверное расписание: {expression}.",
   "maintenance.jobs.not_found": "Задание {name} не существует.",
+  "maintenance.jobs.from_code": "Задания из кода нельзя удалить.",
   "openapi.tags.jobs.name": "Задания",
   "openapi.tags.jobs.description": "Плановые задания: состояние, приостановка и возобновление, немедленный запуск и проверка расписания.",
   "openapi.groups.maintenance.name": "Обслуживание",

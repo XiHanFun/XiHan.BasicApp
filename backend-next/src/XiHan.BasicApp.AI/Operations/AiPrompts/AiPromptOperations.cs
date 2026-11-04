@@ -215,13 +215,13 @@ public sealed class DeleteAiPrompts(IRepository<SysAiPrompt, Guid> prompts, IRep
         {
             if (!found.TryGetValue(id, out var prompt))
             {
-                failed.Add(new BatchFailure(id, AIErrors.PromptNotFound));
+                failed.Add(new BatchFailure(id, AIErrors.PromptNotFound, AIMessages.PromptNotFound.L(("id", id))));
                 continue;
             }
 
             if (inUse.Contains(prompt.Code))
             {
-                failed.Add(new BatchFailure(id, AIErrors.PromptInUse));
+                failed.Add(new BatchFailure(id, AIErrors.PromptInUse, AIMessages.PromptInUse.L(("code", prompt.Code))));
                 continue;
             }
 

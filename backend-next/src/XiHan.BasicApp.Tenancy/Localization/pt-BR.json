@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "O ID de locatário '{tenantId}' já está em uso.",
   "tenancy.tenant.admin_initialized": "O locatário '{tenantId}' já tem administrador.",
   "tenancy.tenant.has_users": "O locatário '{tenantId}' ainda tem {count} usuários e não pode ser excluído.",
+  "tenancy.tenant.expired": "O locatário '{tenantId}' expirou. Prorrogue a data de expiração primeiro.",
   "tenancy.tenant.platform_only": "Locatários só são gerenciados pelo lado da plataforma.",
   "tenancy.tenant.filter_unsupported": "O filtro '{field} {operator}' não é suportado.",
   "tenancy.tenant.sort_unsupported": "A ordenação por '{field}' não é suportada.",

@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "Sortieren nach {field} wird nicht unterstützt.",
   "maintenance.jobs.schedule_invalid": "Der Zeitplan ist ungültig: {expression}.",
   "maintenance.jobs.not_found": "Der Job {name} existiert nicht.",
+  "maintenance.jobs.from_code": "Im Code registrierte Jobs können nicht gelöscht werden.",
   "openapi.tags.jobs.name": "Jobs",
   "openapi.tags.jobs.description": "Geplante Jobs: Status, Pausieren und Fortsetzen, sofort ausführen und Zeitplan prüfen.",
   "openapi.groups.maintenance.name": "Wartung",

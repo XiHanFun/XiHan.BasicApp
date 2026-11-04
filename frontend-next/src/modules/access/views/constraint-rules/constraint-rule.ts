@@ -1,6 +1,7 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { RequestOf, ResponseOf } from '~/contracts'
 import { constraintRules as constraintRulesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 
 export type ConstraintRuleRow = ResponseOf<'constraint-rules.list'>['items'][number]
 export type ConstraintRuleItem = ConstraintRuleRow['items'][number]
@@ -89,12 +90,6 @@ export function actionTone(action: ConstraintViolationAction): ConstraintTone {
   }
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** 列表行：规则项数是列也是导出字段（导出按行里的键取值），契约只给规则项本身，这里算进行里 */
 export type ConstraintRuleListRow = ConstraintRuleRow & { itemCount: number }
 
@@ -112,7 +107,7 @@ export function constraintRuleResource(): SchemaResource<ConstraintRuleListRow> 
       const result = await constraintRulesApi.list(toPageRequest(params, { multiples: ['type', 'targetType', 'violationAction', 'status'] }))
       return toSchemaPageResult({ ...result, items: result.items.map(toListRow) }, params)
     },
-    remove: async id => failedCodes(await constraintRulesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await constraintRulesApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => constraintRulesApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
   }
 }

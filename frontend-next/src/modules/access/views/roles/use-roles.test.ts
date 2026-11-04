@@ -76,16 +76,16 @@ describe('rolesResource', () => {
     expect(calls).toHaveLength(0)
   })
 
-  it('删除被后端逐项拒绝（内建角色）时带着错误码抛出；启停先取详情再整体回传，数据范围不传即保留', async () => {
+  it('删除被后端逐项拒绝（内建角色）时带着原因抛出；启停先取详情再整体回传，数据范围不传即保留', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'r-admin', code: 'ACCESS_CONFLICT_002' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'r-admin', code: 'ACCESS_CONFLICT_002', message: 'ACCESS_CONFLICT_002 的原因' }] })
       if (call.method === 'GET')
         return json(200, { role: role('r-2', 'auditor', { name: 'Auditor', description: 'Reads logs', order: 5, dataScope: 'Custom' }), permissions: [], memberCount: 0, customDepartments: [{ departmentId: 'd-1', includeChildren: true }] })
       return json(200, role('r-2', 'auditor', { status: 'Disabled' }))
     })
     const resource = rolesResource()
-    await expect(resource.remove!('r-admin')).rejects.toThrow('ACCESS_CONFLICT_002')
+    await expect(resource.remove!('r-admin')).rejects.toThrow('ACCESS_CONFLICT_002 的原因')
     expect(calls[0]!.url).toBe('/api/roles?ids=r-admin')
     await resource.updateStatus!('r-2', false)
     const put = calls.find(c => c.method === 'PUT')
@@ -141,7 +141,7 @@ describe('useRolePermissionEditor', () => {
         return json(200, { roleId: 'r-1', ancestors: [], descendants: [], inherited: [{ permission: 'identity.users.read', action: 'Grant', sourceRoleId: 'r-0', sourceRoleName: 'Base', depth: 1 }, { permission: 'identity.users.read', action: 'Grant', sourceRoleId: 'r-9', sourceRoleName: 'Root', depth: 2 }, { permission: 'access.roles.read', action: 'Deny', sourceRoleId: 'r-0', sourceRoleName: 'Base', depth: 1 }] })
       if (call.url.endsWith(':grant')) {
         granted = [...granted, 'identity.users.create']
-        return json(200, { succeeded: ['identity.users.create'], failed: [{ permission: 'access.roles.read', code: 'ACCESS_VALIDATION_002' }] })
+        return json(200, { succeeded: ['identity.users.create'], failed: [{ permission: 'access.roles.read', code: 'ACCESS_VALIDATION_002', message: 'ACCESS_VALIDATION_002 的原因' }] })
       }
       if (call.url.endsWith(':revoke')) {
         granted = granted.filter(code => code !== 'identity.users.read')
@@ -171,7 +171,7 @@ describe('useRolePermissionEditor', () => {
     const outcome = await editor.save()
     expect(calls.find(c => c.url.endsWith(':grant'))?.body).toEqual({ permissions: ['identity.users.create', 'access.roles.read'] })
     expect(calls.find(c => c.url.endsWith(':revoke'))?.body).toEqual({ permissions: ['identity.users.read'] })
-    expect(outcome).toEqual({ added: 1, removed: 1, failures: ['access.roles.read: ACCESS_VALIDATION_002'] })
+    expect(outcome).toEqual({ added: 1, removed: 1, failures: ['access.roles.read: ACCESS_VALIDATION_002 的原因'] })
     expect(editor.draft.value).toEqual(['tenancy.tenants.read', 'identity.users.create'])
 
     await editor.start(role('r-1', 'auditor') as never)

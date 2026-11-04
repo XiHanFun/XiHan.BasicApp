@@ -459,7 +459,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         {
             if (!found.TryGetValue(id, out var notification))
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.NotificationNotFound));
+                failed.Add(new BatchFailure(id, NotificationErrors.NotificationNotFound, NotificationMessages.NotificationNotFound.L(("id", id))));
                 continue;
             }
 

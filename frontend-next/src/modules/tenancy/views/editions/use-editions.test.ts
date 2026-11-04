@@ -54,13 +54,13 @@ describe('editionsResource', () => {
     expect(result.page).toMatchObject({ totalCount: 5, pageIndex: 2, pageSize: 2, totalPages: 3, startRecord: 3, endRecord: 4, hasNext: true })
   })
 
-  it('后端不收筛选与排序：查询里出现就报错且不发请求；删除被逐项拒绝时带着错误码抛出', async () => {
-    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'e-1', code: 'TENANCY_CONFLICT_007' }] }))
+  it('后端不收筛选与排序：查询里出现就报错且不发请求；删除被逐项拒绝时带着原因抛出', async () => {
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'e-1', code: 'TENANCY_CONFLICT_007', message: 'TENANCY_CONFLICT_007 的原因' }] }))
     const resource = editionsResource()
     await expect(resource.page!({ page: 1, pageSize: 20, filters: { code: 'free' } })).rejects.toThrow('code')
     await expect(resource.page!({ page: 1, pageSize: 20, filters: {}, sorts: [{ field: 'name', order: 'asc' }] })).rejects.toThrow('name')
     expect(calls).toHaveLength(0)
-    await expect(resource.remove!('e-1')).rejects.toThrow('TENANCY_CONFLICT_007')
+    await expect(resource.remove!('e-1')).rejects.toThrow('TENANCY_CONFLICT_007 的原因')
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/editions?ids=e-1' })
   })
 

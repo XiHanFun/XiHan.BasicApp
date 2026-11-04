@@ -34,7 +34,7 @@ function backend(initial: string[], reject: Record<string, string> = {}) {
       if (match) {
         const [, id, verb] = match
         if (reject[id!])
-          return json(200, { succeeded: [], failed: [{ id: 'u-1', code: reject[id!] }] })
+          return json(200, { succeeded: [], failed: [{ id: 'u-1', code: reject[id!]!, message: `${reject[id!]} 的原因` }] })
         if (verb === 'assign')
           mine.add(id!)
         else mine.delete(id!)
@@ -82,12 +82,12 @@ describe('useUserRoles', () => {
     expect(calls).toHaveLength(before)
   })
 
-  it('逐项被拒时带着错误码抛出，已落地的部分照样重取', async () => {
+  it('逐项被拒时带着原因抛出，已落地的部分照样重取', async () => {
     backend([], { 'r-2': 'ACCESS_VALIDATION_005' })
     const roles = useUserRoles()
     await roles.start(bob as never)
     roles.change(['r-1', 'r-2'])
-    await expect(roles.save()).rejects.toThrow('ACCESS_VALIDATION_005')
+    await expect(roles.save()).rejects.toThrow('ACCESS_VALIDATION_005 的原因')
     expect(roles.assigned.value).toEqual(['r-1'])
     expect(roles.draft.value).toEqual(['r-1'])
     expect(roles.loading.value).toBe(false)

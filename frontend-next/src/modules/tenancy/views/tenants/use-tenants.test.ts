@@ -71,20 +71,20 @@ describe('tenantsResource', () => {
     expect(result.page).toMatchObject({ totalCount: 21, pageIndex: 2, totalPages: 2, startRecord: 21, isLastPage: true })
   })
 
-  it('删除与启停都是集合操作：逐项拒绝的以错误码抛出；启用走 resume、停用走 suspend', async () => {
+  it('删除与启停都是集合操作：逐项拒绝的以原因抛出；启用走 resume、停用走 suspend', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 't-1', code: 'TENANCY_CONFLICT_003' }] })
+        return json(200, { succeeded: [], failed: [{ id: 't-1', code: 'TENANCY_CONFLICT_003', message: 'TENANCY_CONFLICT_003 的原因' }] })
       if (call.url.endsWith(':resume'))
-        return json(200, { succeeded: [], failed: [{ id: 't-1', code: 'TENANCY_NOTFOUND_001' }] })
+        return json(200, { succeeded: [], failed: [{ id: 't-1', code: 'TENANCY_NOTFOUND_001', message: 'TENANCY_NOTFOUND_001 的原因' }] })
       return json(200, { succeeded: ['t-1'], failed: [] })
     })
     const resource = tenantsResource()
-    await expect(resource.remove!('t-1')).rejects.toThrow('TENANCY_CONFLICT_003')
+    await expect(resource.remove!('t-1')).rejects.toThrow('TENANCY_CONFLICT_003 的原因')
     expect(calls[0]!.url).toBe('/api/tenants?ids=t-1')
     await resource.updateStatus!('t-1', false)
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/tenants:suspend', body: { ids: ['t-1'] } })
-    await expect(resource.updateStatus!('t-1', true)).rejects.toThrow('TENANCY_NOTFOUND_001')
+    await expect(resource.updateStatus!('t-1', true)).rejects.toThrow('TENANCY_NOTFOUND_001 的原因')
     expect(calls[2]).toMatchObject({ method: 'POST', url: '/api/tenants:resume', body: { ids: ['t-1'] } })
   })
 
@@ -388,7 +388,7 @@ describe('useAdminInitializer', () => {
 })
 
 describe('useTenantDetail', () => {
-  it('取详情后按目录键取成员；移除被逐项拒绝时以错误码抛出，成功后重取成员', async () => {
+  it('取详情后按目录键取成员；移除被逐项拒绝时以原因抛出，成功后重取成员', async () => {
     let roster = [member('m-1', 'alice'), member('m-2', 'bob', { memberType: 'Support', homeTenantId: 'platform' })]
     const calls = record((call) => {
       if (call.url === '/api/tenants/t-1')
@@ -396,7 +396,7 @@ describe('useTenantDetail', () => {
       if (call.url.startsWith('/api/tenant-members?tenantId='))
         return json(200, { items: roster })
       if (call.url === '/api/tenant-members?ids=m-9')
-        return json(200, { succeeded: [], failed: [{ id: 'm-9', code: 'TENANCY_NOTFOUND_002' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'm-9', code: 'TENANCY_NOTFOUND_002', message: 'TENANCY_NOTFOUND_002 的原因' }] })
       roster = roster.filter(m => m.id !== 'm-1')
       return json(200, { succeeded: ['m-1'], failed: [] })
     })
@@ -407,7 +407,7 @@ describe('useTenantDetail', () => {
     expect(calls[1]).toMatchObject({ method: 'GET', url: '/api/tenant-members?tenantId=contoso' })
     expect(detail.members.value.map(m => m.userName)).toEqual(['alice', 'bob'])
 
-    await expect(detail.removeMember(member('m-9', 'ghost') as never)).rejects.toThrow('TENANCY_NOTFOUND_002')
+    await expect(detail.removeMember(member('m-9', 'ghost') as never)).rejects.toThrow('TENANCY_NOTFOUND_002 的原因')
     await detail.removeMember(detail.members.value[0]!)
     expect(calls.find(c => c.method === 'DELETE' && c.url.endsWith('m-1'))?.url).toBe('/api/tenant-members?ids=m-1')
     expect(detail.members.value.map(m => m.userName)).toEqual(['bob'])

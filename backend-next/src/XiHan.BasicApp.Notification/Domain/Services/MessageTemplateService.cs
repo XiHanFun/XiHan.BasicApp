@@ -181,14 +181,14 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
             var found = await FindOwnedAsync(owner, id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var template))
             {
-                failed.Add(new BatchFailure(id, found.Error!.Code));
+                failed.Add(BatchFailure.From(id, found.Error!));
                 continue;
             }
 
             var removed = await templates.RemoveAsync(template, cancellationToken).ConfigureAwait(false);
             if (removed.IsFailure)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
                 continue;
             }
 

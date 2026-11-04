@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "Die Mandanten-ID '{tenantId}' ist bereits vergeben.",
   "tenancy.tenant.admin_initialized": "Der Mandant '{tenantId}' hat bereits einen Administrator.",
   "tenancy.tenant.has_users": "Der Mandant '{tenantId}' hat noch {count} Benutzer und kann nicht gelöscht werden.",
+  "tenancy.tenant.expired": "Der Mandant '{tenantId}' ist abgelaufen. Verlängern Sie zuerst das Ablaufdatum.",
   "tenancy.tenant.platform_only": "Mandanten werden nur von der Plattformseite verwaltet.",
   "tenancy.tenant.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
   "tenancy.tenant.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",

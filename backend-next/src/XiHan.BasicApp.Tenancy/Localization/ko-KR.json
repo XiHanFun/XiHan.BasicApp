@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "테넌트 ID '{tenantId}'은(는) 이미 사용 중입니다.",
   "tenancy.tenant.admin_initialized": "테넌트 '{tenantId}'에는 이미 관리자가 있습니다.",
   "tenancy.tenant.has_users": "테넌트 '{tenantId}'에 아직 사용자 {count}명이 있어 삭제할 수 없습니다.",
+  "tenancy.tenant.expired": "테넌트 '{tenantId}'의 만료 시간이 지났습니다. 먼저 만료 시간을 연장한 뒤 재개하세요.",
   "tenancy.tenant.platform_only": "테넌트는 플랫폼 측에서만 관리할 수 있습니다.",
   "tenancy.tenant.filter_unsupported": "필터 '{field} {operator}'은(는) 지원되지 않습니다.",
   "tenancy.tenant.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다.",

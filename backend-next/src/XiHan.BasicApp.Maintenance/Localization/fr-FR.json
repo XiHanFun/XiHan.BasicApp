@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "Le tri par {field} n'est pas pris en charge.",
   "maintenance.jobs.schedule_invalid": "La planification n'est pas valide : {expression}.",
   "maintenance.jobs.not_found": "La tâche {name} n'existe pas.",
+  "maintenance.jobs.from_code": "Les tâches enregistrées dans le code ne peuvent pas être supprimées.",
   "openapi.tags.jobs.name": "Tâches",
   "openapi.tags.jobs.description": "Tâches planifiées : état, suspension et reprise, exécution immédiate et validation de la planification.",
   "openapi.groups.maintenance.name": "Maintenance",

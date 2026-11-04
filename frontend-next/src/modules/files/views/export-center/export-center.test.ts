@@ -4,7 +4,6 @@ import { toPageRequest } from '~/contracts'
 import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 import {
-  batchFailureMessage,
   businessTypeLabel,
   canCancel,
   canDelete,
@@ -70,24 +69,18 @@ describe('导出任务列表的后端筛选', () => {
 })
 
 describe('导出任务的删除', () => {
-  it('走 export-tasks.delete；执行中的被逐项拒绝时翻成文案抛出', async () => {
+  it('走 export-tasks.delete；执行中的被逐项拒绝时带着原因抛出', async () => {
     const calls: string[] = []
     configureRequest({
       baseUrl: '',
       getToken: () => 't',
       fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
         calls.push(`${init?.method ?? 'GET'} ${String(url)}`)
-        return new Response(JSON.stringify({ succeeded: [], failed: [{ id: 'e1', code: 'FILES_CONFLICT_007' }] }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({ succeeded: [], failed: [{ id: 'e1', code: 'FILES_CONFLICT_007', message: 'FILES_CONFLICT_007 的原因' }] }), { status: 200, headers: { 'Content-Type': 'application/json' } })
       }) as unknown as typeof fetch,
     })
-    await expect(exportTaskResource(t).remove!('e1')).rejects.toThrow('files.export_center.batch.processing')
+    await expect(exportTaskResource().remove!('e1')).rejects.toThrow('FILES_CONFLICT_007 的原因')
     expect(calls).toEqual(['DELETE /api/export-tasks?ids=e1'])
-  })
-
-  it('认得的错误码翻成文案，其余原样', () => {
-    expect(batchFailureMessage(t, 'FILES_NOTFOUND_005')).toBe('files.export_center.batch.not_found')
-    expect(batchFailureMessage(t, 'FILES_CONFLICT_007')).toBe('files.export_center.batch.processing')
-    expect(batchFailureMessage(t, 'OTHER_001')).toBe('OTHER_001')
   })
 })
 

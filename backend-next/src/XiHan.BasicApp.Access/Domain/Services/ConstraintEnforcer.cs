@@ -183,14 +183,14 @@ public sealed class ConstraintEnforcer(
     /// <param name="context">调用上下文</param>
     /// <param name="roleId">主体是角色时的角色</param>
     /// <param name="userId">主体是用户时的用户</param>
-    /// <returns>被拦下的权限码</returns>
-    public async Task<IReadOnlyList<string>> ScreenPermissionsAsync(string owner, IReadOnlyCollection<string> held, IReadOnlyList<string> candidates, InvocationContext context, Guid? roleId = null, Guid? userId = null)
+    /// <returns>被拦下的权限码与原因</returns>
+    public async Task<IReadOnlyList<(string Permission, Error Reason)>> ScreenPermissionsAsync(string owner, IReadOnlyCollection<string> held, IReadOnlyList<string> candidates, InvocationContext context, Guid? roleId = null, Guid? userId = null)
     {
         ArgumentNullException.ThrowIfNull(held);
         ArgumentNullException.ThrowIfNull(candidates);
         ArgumentNullException.ThrowIfNull(context);
         var current = held.ToHashSet(StringComparer.Ordinal);
-        var blocked = new List<string>();
+        var blocked = new List<(string Permission, Error Reason)>();
         foreach (var code in candidates)
         {
             if (current.Contains(code))
@@ -199,9 +199,9 @@ public sealed class ConstraintEnforcer(
             }
 
             var violations = await CheckPermissionsAsync(owner, [.. current, code], [code], context.CancellationToken).ConfigureAwait(false);
-            if (Settle(context, violations, roleId, userId) is not null)
+            if (Settle(context, violations, roleId, userId) is { } reason)
             {
-                blocked.Add(code);
+                blocked.Add((code, reason));
                 continue;
             }
 

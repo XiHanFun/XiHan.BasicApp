@@ -2,7 +2,7 @@ import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { oauthApps as oauthAppsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
 
@@ -98,17 +98,6 @@ export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
   return error instanceof Error ? error.message : String(error ?? '')
-}
-
-/** 批量删除只回失败项的错误码：认得的翻成文案，其余原样 */
-export function batchFailureMessage(t: Translate, code: string): string {
-  return code === 'OPENPLATFORM_NOTFOUND_001' ? t('openplatform.oauth_apps.msg_app_not_found') : code
-}
-
-/** 批量结果里有失败项即抛错：逐项原因去重后拼成一条 */
-export function assertBatch(t: Translate, result: { failed: readonly { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error([...new Set(result.failed.map(failure => batchFailureMessage(t, failure.code)))].join('; '))
 }
 
 /** 回调地址的文本（一行一个，逗号也认）→ 地址列表，去掉空项 */
@@ -273,10 +262,10 @@ export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oa
 /**
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改
  */
-export function oauthAppResource(t: Translate): SchemaResource<OAuthAppRow> {
+export function oauthAppResource(): SchemaResource<OAuthAppRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await oauthAppsApi.list(toPageRequest(params, OAUTH_APP_QUERY)), params),
-    remove: async id => assertBatch(t, await oauthAppsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await oauthAppsApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const current = await oauthAppsApi.get({ id: String(id) })
       return oauthAppsApi.update(toUpdateBody({ ...toOAuthAppForm(current), id: current.id, isEnabled: enabled }))

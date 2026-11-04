@@ -166,7 +166,6 @@ export default {
         update_status_remark: 'Datenquellenstatus über das Frontend aktualisiert',
         title: 'Datenquelle',
         form_connection_string_edit: 'Verbindungszeichenfolge (leer lassen zum Beibehalten)',
-        in_use: 'Die Datenquelle wird noch von einer Tabellenkonfiguration verwendet und kann nicht gelöscht werden',
         connection_string_set: 'Eine explizite Verbindungszeichenfolge ist gesetzt',
       },
       template: {

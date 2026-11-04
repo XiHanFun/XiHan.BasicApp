@@ -296,7 +296,7 @@ public sealed class DeleteWorkflowDefinitions(IWorkflowDefinitionCatalog catalog
             }
             else
             {
-                failed.Add(new BatchFailure(ids[i], outcomes[i].Error!.Code));
+                failed.Add(BatchFailure.From(ids[i], outcomes[i].Error!));
             }
         }
 
@@ -402,7 +402,7 @@ internal static class WorkflowDefinitions
             }
             else
             {
-                failed.Add(new BatchFailure(ids[i], outcomes[i].Error!.Code));
+                failed.Add(BatchFailure.From(ids[i], outcomes[i].Error!));
             }
         }
 

@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "L'identifiant de locataire '{tenantId}' est déjà pris.",
   "tenancy.tenant.admin_initialized": "Le locataire '{tenantId}' a déjà un administrateur.",
   "tenancy.tenant.has_users": "Le locataire '{tenantId}' a encore {count} utilisateurs et ne peut pas être supprimé.",
+  "tenancy.tenant.expired": "Le locataire '{tenantId}' a expiré. Prolongez d'abord sa date d'expiration.",
   "tenancy.tenant.platform_only": "Les locataires ne se gèrent que du côté plateforme.",
   "tenancy.tenant.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",
   "tenancy.tenant.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge.",

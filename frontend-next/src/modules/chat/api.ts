@@ -5,7 +5,7 @@ import type {
 } from './types'
 import type { components } from '~/contracts'
 import { chatConversations, chatMessages } from '~/contracts'
-import { endpointUrl, uploadForm } from '~/request'
+import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
 
 type ChatAttachmentResponse = components['schemas']['ChatAttachmentResponse']
 type ChatAttachmentUploadResponse = components['schemas']['ChatAttachmentUploadResponse']
@@ -16,12 +16,6 @@ export const CHAT_ATTACHMENT_UPLOAD_PATH = '/api/chat-messages/attachments'
 
 /** 秒传探测的大小上限：整份读进内存算 SHA-256，超大文件直接走普通上传 */
 export const FAST_UPLOAD_MAX_BYTES = 200 * 1024 * 1024
-
-/** 批量操作的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错抛出，而不是当成功吞掉 */
-function throwOnFailed(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(item => item.code).join('; '))
-}
 
 function mapDepartment(node: ChatDepartmentNode): ChatDepartmentPickerNode {
   return {

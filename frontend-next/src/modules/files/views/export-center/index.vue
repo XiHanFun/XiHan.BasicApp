@@ -31,7 +31,7 @@ import {
 defineOptions({ name: 'FilesExportCenterView' })
 
 const { t } = useI18n()
-const resource = exportTaskResource(t)
+const resource = exportTaskResource()
 
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
 

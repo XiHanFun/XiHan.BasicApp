@@ -54,10 +54,10 @@ describe('numberingRulesResource', () => {
     expect(result.page).toMatchObject({ totalCount: 1, totalPages: 1, isFirstPage: true, isLastPage: true })
   })
 
-  it('发过号的规则删除被拒时带着错误码抛出；启停把格式原样带回整体覆盖；导入按新建弹窗的缺省值兜底', async () => {
+  it('发过号的规则删除被拒时带着原因抛出；启停把格式原样带回整体覆盖；导入按新建弹窗的缺省值兜底', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'r-1', code: 'SETTINGS_CONFLICT_009' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'r-1', code: 'SETTINGS_CONFLICT_009', message: 'SETTINGS_CONFLICT_009 的原因' }] })
       if (call.method === 'GET')
         return json(200, rule('r-1', 'order', true, { hasAllocated: true, dateFormat: 'YyyyMMdd', resetCycle: 'Daily', allowTenantUse: true, order: 2 }))
       if (call.method === 'PUT')
@@ -65,7 +65,7 @@ describe('numberingRulesResource', () => {
       return json(201, rule('r-2', 'invoice', false))
     })
     const resource = numberingRulesResource()
-    await expect(resource.remove!('r-1')).rejects.toThrow('SETTINGS_CONFLICT_009')
+    await expect(resource.remove!('r-1')).rejects.toThrow('SETTINGS_CONFLICT_009 的原因')
     expect(calls[0]!.url).toContain('/api/numbering-rules?ids=r-1')
 
     await resource.updateStatus!('r-1', false)

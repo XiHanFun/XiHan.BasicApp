@@ -138,6 +138,7 @@
   "notification.config.default_locked": "Configuration {code} is the default (or disabled): the default must stay enabled and cannot be disabled or deleted.",
   "notification.record.busy": "The record is queued or being sent.",
   "notification.record.not_pending": "Only queued records can be cancelled.",
+  "notification.record.not_resendable": "Verification code records cannot be resent. Ask the user to request a new code.",
   "notification.template.invalid": "The template is invalid: {detail}",
   "notification.email.address_invalid": "Email address {address} is not valid.",
   "notification.sms_config.template_map_invalid": "The template map must be a JSON object (template code → provider template ID).",

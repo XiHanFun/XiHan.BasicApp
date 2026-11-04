@@ -124,18 +124,18 @@ describe('消息模板的表单', () => {
     expect(toCreateBody(override)).toMatchObject({ code: 'auth-sms-login-code', channel: 'Sms', name: '短信验证码' })
   })
 
-  it('启停取最新一份再整体修改；删除逐项拒绝时翻成文案', async () => {
-    const calls = stub(ROW, { ...ROW, isEnabled: false }, { succeeded: [], failed: [{ id: 'tp1', code: 'NOTIFICATION_NOTFOUND_003' }] })
-    const resource = templateResource(t)
+  it('启停取最新一份再整体修改；删除逐项拒绝时带着原因抛出', async () => {
+    const calls = stub(ROW, { ...ROW, isEnabled: false }, { succeeded: [], failed: [{ id: 'tp1', code: 'NOTIFICATION_NOTFOUND_003', message: 'NOTIFICATION_NOTFOUND_003 的原因' }] })
+    const resource = templateResource()
     await resource.updateStatus!('tp1', false)
-    await expect(resource.remove!('tp1')).rejects.toThrow('notification.messaging.failures.template_not_found')
+    await expect(resource.remove!('tp1')).rejects.toThrow('NOTIFICATION_NOTFOUND_003 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/message-templates/tp1' })
     expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/message-templates/tp1', body: { name: '短信验证码', content: '验证码 {{ code }}', isEnabled: false, order: 10 } })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/message-templates?ids=tp1' })
   })
 
-  it('租户删平台的模板被逐项拒绝（NOTIFICATION_DENIED_002）时翻成文案', async () => {
-    stub({ succeeded: [], failed: [{ id: 'tp1', code: 'NOTIFICATION_DENIED_002' }] })
-    await expect(templateResource(t).remove!('tp1')).rejects.toThrow('notification.messaging.failures.template_other_side')
+  it('租户删平台的模板被逐项拒绝（NOTIFICATION_DENIED_002）时带着原因抛出', async () => {
+    stub({ succeeded: [], failed: [{ id: 'tp1', code: 'NOTIFICATION_DENIED_002', message: 'NOTIFICATION_DENIED_002 的原因' }] })
+    await expect(templateResource().remove!('tp1')).rejects.toThrow('NOTIFICATION_DENIED_002 的原因')
   })
 })

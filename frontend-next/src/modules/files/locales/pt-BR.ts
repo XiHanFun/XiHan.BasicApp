@@ -180,10 +180,6 @@ export default {
         storage_status_updated: 'Status da cópia atualizado',
         storage_status_failed: 'Falha ao atualizar o status da cópia',
       },
-      batch: {
-        not_found: 'O arquivo não existe ou já foi excluído',
-        unavailable: 'Um arquivo corrompido não pode ser arquivado nem restaurado; repare-o primeiro pelas cópias de armazenamento',
-      },
     },
     storage_configs: {
       title: 'Configuração de armazenamento',
@@ -273,11 +269,6 @@ export default {
         set_default_success: 'Definida como armazenamento padrão',
         set_default_failed: 'Falha ao definir o armazenamento padrão',
       },
-      batch: {
-        not_found: 'A configuração de armazenamento não existe ou já foi excluída',
-        default_locked: 'A configuração de armazenamento padrão não pode ser excluída; defina outra como padrão primeiro',
-        in_use: 'A configuração de armazenamento ainda tem cópias de arquivos e não pode ser excluída',
-      },
     },
     export_center: {
       title: 'Central de exportação',
@@ -333,10 +324,6 @@ export default {
         delete_content: 'Excluir "{name}"? O arquivo de resultado também é excluído. Esta ação não pode ser desfeita.',
         deleted: 'Excluída',
         download_failed: 'Falha no download',
-      },
-      batch: {
-        not_found: 'A tarefa de exportação não existe ou já foi excluída',
-        processing: 'Uma tarefa de exportação em andamento não pode ser excluída. Aguarde a conclusão.',
       },
     },
   },

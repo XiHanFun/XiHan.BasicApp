@@ -22,9 +22,6 @@ export const DELETE_BATCH_SIZE = 100
 /** 键已过期或不存在 */
 export const ENTRY_NOT_FOUND = 'MAINTENANCE_NOTFOUND_003'
 
-/** 键不在开放的命名空间里 */
-export const NAMESPACE_DENIED = 'MAINTENANCE_DENIED_002'
-
 /** 按序数比较（与后端 StringComparer.Ordinal 一致），不随区域排序规则变 */
 function compareOrdinal(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
@@ -419,11 +416,6 @@ export function goneKeys(outcome: CacheDeleteOutcome): string[] {
   return [...outcome.removed, ...outcome.missing]
 }
 
-/** 没删成的原因码：认得的翻成文案，其余原样 */
-export function deleteFailureMessage(t: Translate, code: string): string {
-  return code === NAMESPACE_DENIED ? t('maintenance.caches.namespace_denied') : code
-}
-
 /** 结果提示：语气与文案 */
 export interface CacheToast {
   tone: 'danger' | 'success' | 'warning'
@@ -434,7 +426,7 @@ export interface CacheToast {
 export function singleDeleteToast(t: Translate, outcome: CacheDeleteOutcome): CacheToast {
   const failure = outcome.failed[0]
   if (failure)
-    return { tone: 'danger', message: deleteFailureMessage(t, failure.code) }
+    return { tone: 'danger', message: failure.message }
   if (outcome.removed.length === 0)
     return { tone: 'warning', message: t('maintenance.caches.key_already_gone') }
   return { tone: 'success', message: t('common.messages.delete_success') }
@@ -443,7 +435,7 @@ export function singleDeleteToast(t: Translate, outcome: CacheDeleteOutcome): Ca
 /** 批量删除的提示（4.x 同口径）：全部不在了即成功（其中已过期的单独说一句）；有没删成的提示成功与失败各几个，并附原因 */
 export function batchDeleteToast(t: Translate, outcome: CacheDeleteOutcome): CacheToast {
   if (outcome.failed.length > 0) {
-    const reason = [...new Set(outcome.failed.map(failure => deleteFailureMessage(t, failure.code)))].join('; ')
+    const reason = [...new Set(outcome.failed.map(failure => failure.message))].join('; ')
     return {
       tone: 'warning',
       message: t('maintenance.caches.batch_delete_partial', { success: goneKeys(outcome).length, failed: outcome.failed.length, reason }),

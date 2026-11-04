@@ -47,11 +47,6 @@ function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
 }
 
-/** 批量删除的逐项失败码：引用中的给专门的提示，其余原样拼出 */
-export function failedDeleteCodes(result: { failed: { code: string }[] }): string[] {
-  return result.failed.map(f => f.code)
-}
-
 /**
  * SchemaPage 的资源：分页与删除
  * 搜索字段按后端白名单下发：数据库类型与状态多选，关键字匹配名称、描述、主机与库名

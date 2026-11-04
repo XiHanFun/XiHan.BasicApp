@@ -180,10 +180,6 @@ export default {
         storage_status_updated: '副本状态已更新',
         storage_status_failed: '更新副本状态失败',
       },
-      batch: {
-        not_found: '文件不存在或已删除',
-        unavailable: '已损坏的文件不能归档或恢复，请先在存储副本里修复',
-      },
     },
     storage_configs: {
       title: '存储配置',
@@ -273,11 +269,6 @@ export default {
         set_default_success: '已设为默认存储',
         set_default_failed: '设置默认存储失败',
       },
-      batch: {
-        not_found: '存储配置不存在或已删除',
-        default_locked: '默认存储配置不能删除，先把别的配置设为默认',
-        in_use: '存储配置还有文件副本，不能删除',
-      },
     },
     export_center: {
       title: '导出中心',
@@ -333,10 +324,6 @@ export default {
         delete_content: '确定删除「{name}」吗？结果文件会一并删除，不可恢复。',
         deleted: '已删除',
         download_failed: '下载失败',
-      },
-      batch: {
-        not_found: '导出任务不存在或已删除',
-        processing: '执行中的导出任务不能删除，请等它结束',
       },
     },
   },

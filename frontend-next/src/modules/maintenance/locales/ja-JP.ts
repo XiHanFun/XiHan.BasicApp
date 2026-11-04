@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: 'コードで登録したジョブは削除できません',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: 'ジョブを作成',
       create_title: 'ジョブを作成',
@@ -183,12 +182,10 @@ export default {
       task_enabled: 'タスクを有効化しました',
       task_disabled: 'タスクを無効化しました',
       toggle_failed: 'タスクのステータス更新に失敗しました',
-      job_not_found: 'タスクが存在しません',
       rescheduled: 'スケジュールを変更しました',
       reschedule_failed: 'スケジュールの変更に失敗しました',
       restored: 'コードのスケジュールに戻しました',
       restore_failed: 'コードのスケジュールに戻せませんでした',
-      no_code_definition: 'このタスクには戻せるコード定義がありません',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: 'コピーに失敗しました',
       saved: '保存しました',
       key_already_gone: 'キーはすでに存在しないか、期限切れです',
-      namespace_denied: '管理対象の名前空間にありません',
       batch_deleted: '{count} 件のキーを削除しました',
       batch_deleted_with_missing: '{count} 件のキーを削除しました（{missing} 件はすでに存在しません）',
       batch_delete_partial: '削除完了：成功 {success} 件、失敗 {failed} 件（{reason}）',

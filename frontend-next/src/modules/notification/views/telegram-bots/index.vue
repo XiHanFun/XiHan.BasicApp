@@ -14,7 +14,7 @@ import { emptyTelegramBotForm, findTelegramBotProblem, telegramBotProblemMessage
 defineOptions({ name: 'NotificationTelegramBotsView' })
 
 const { t } = useI18n()
-const resource = telegramBotResource(t)
+const resource = telegramBotResource()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

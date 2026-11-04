@@ -4,7 +4,7 @@ import type { RequestOf, ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
 import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { delegations as delegationsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type DelegationRow = ResponseOf<'delegations.list'>['items'][number]
 export type DelegationStatus = DelegationRow['status']
@@ -37,12 +37,6 @@ function emptyForm(): DelegationForm {
 
 /** 候选一次取的上限（后端页大小上限） */
 const CANDIDATE_LIMIT = 500
-
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
 
 /** 委托对象的显示名：角色名，或权限在当前界面语言的显示名 */
 export function delegationTarget(row: Pick<DelegationRow, 'permission' | 'roleId' | 'roleName'>, nameOf: PermissionNameOf): string {
@@ -86,7 +80,7 @@ export function delegationsResource(loadNames: () => Promise<void>): SchemaResou
       const [list] = await Promise.all([delegationsApi.list(toPageRequest(params, { multiples: ['status'] })), loadNames()])
       return toSchemaPageResult(list, params)
     },
-    remove: async id => failedCodes(await delegationsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await delegationsApi.delete({ ids: [String(id)] })),
   }
 }
 

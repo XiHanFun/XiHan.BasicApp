@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "Идентификатор арендатора '{tenantId}' уже занят.",
   "tenancy.tenant.admin_initialized": "У арендатора '{tenantId}' уже есть администратор.",
   "tenancy.tenant.has_users": "У арендатора '{tenantId}' ещё {count} пользователей, удалить нельзя.",
+  "tenancy.tenant.expired": "Срок действия арендатора '{tenantId}' истёк. Сначала продлите его.",
   "tenancy.tenant.platform_only": "Арендаторами управляют только со стороны платформы.",
   "tenancy.tenant.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
   "tenancy.tenant.sort_unsupported": "Сортировка по '{field}' не поддерживается.",

@@ -166,7 +166,6 @@ export default {
         update_status_remark: '프런트엔드에서 데이터 소스 상태 변경',
         title: '데이터 소스',
         form_connection_string_edit: '연결 문자열(비우면 유지)',
-        in_use: '테이블 설정이 이 데이터 소스를 참조하고 있어 삭제할 수 없습니다',
         connection_string_set: '명시적 연결 문자열이 설정되어 있습니다',
       },
       template: {

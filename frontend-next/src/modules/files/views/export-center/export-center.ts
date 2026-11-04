@@ -1,6 +1,7 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { OperationId, PageQueryMapping, ResponseOf } from '~/contracts'
 import { exportTasks as exportTasksApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 
 export type ExportTaskRow = ResponseOf<'export-tasks.list'>['items'][number]
 export type ExportTaskStatus = ExportTaskRow['status']
@@ -44,25 +45,11 @@ export const EXPORT_TASK_QUERY: PageQueryMapping = {
   filters: { businessType: 'eq' },
 }
 
-/** 批量删除只回失败项的错误码：认得的翻成文案，其余原样 */
-export function batchFailureMessage(t: Translate, code: string): string {
-  switch (code) {
-    case 'FILES_NOTFOUND_005': return t('files.export_center.batch.not_found')
-    case 'FILES_CONFLICT_007': return t('files.export_center.batch.processing')
-    default: return code
-  }
-}
-
-export function throwOnFailed(t: Translate, result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(failure => batchFailureMessage(t, failure.code)).join('; '))
-}
-
 /** SchemaPage 的资源：分页与删除（连同结果文件；执行中的后端逐项拒绝） */
-export function exportTaskResource(t: Translate): SchemaResource<ExportTaskRow> {
+export function exportTaskResource(): SchemaResource<ExportTaskRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await exportTasksApi.list(toPageRequest(params, EXPORT_TASK_QUERY)), params),
-    remove: async id => throwOnFailed(t, await exportTasksApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await exportTasksApi.delete({ ids: [String(id)] })),
   }
 }
 

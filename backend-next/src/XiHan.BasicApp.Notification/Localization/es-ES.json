@@ -138,6 +138,7 @@
   "notification.config.default_locked": "La configuración {code} es la predeterminada (o está desactivada): la predeterminada debe seguir activa y no se puede desactivar ni eliminar.",
   "notification.record.busy": "El registro está en cola o enviándose.",
   "notification.record.not_pending": "Solo se pueden cancelar los registros en cola.",
+  "notification.record.not_resendable": "Los registros de códigos de verificación no se pueden reenviar. El usuario debe solicitar un código nuevo.",
   "notification.template.invalid": "La plantilla no es válida: {detail}",
   "notification.email.address_invalid": "La dirección de correo {address} no es válida.",
   "notification.sms_config.template_map_invalid": "El mapa de plantillas debe ser un objeto JSON (código de plantilla → ID del proveedor).",

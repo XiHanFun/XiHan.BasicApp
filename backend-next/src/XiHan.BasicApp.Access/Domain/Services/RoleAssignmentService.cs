@@ -64,7 +64,7 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
         {
             if (!found.TryGetValue(userId, out var user))
             {
-                failed.Add(new BatchFailure(userId, AccessErrors.MemberNotFound));
+                failed.Add(new BatchFailure(userId, AccessErrors.MemberNotFound, AccessMessages.MemberNotFound.L(("id", userId))));
                 continue;
             }
 
@@ -74,9 +74,9 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
                 held.Add(roleId);
                 var violations = new List<ConstraintViolation>(await enforcer.CheckUserRolesAsync(owner, userId, user.UserName, held, [roleId], context).ConfigureAwait(false));
                 violations.AddRange(await enforcer.CheckRoleMembersAsync(owner, roleId, memberCount + additions.Count + 1, context.CancellationToken).ConfigureAwait(false));
-                if (ConstraintEnforcer.Settle(context, violations, roleId, userId) is not null)
+                if (ConstraintEnforcer.Settle(context, violations, roleId, userId) is { } blocked)
                 {
-                    failed.Add(new BatchFailure(userId, AccessErrors.ConstraintViolated));
+                    failed.Add(BatchFailure.From(userId, blocked));
                     continue;
                 }
 

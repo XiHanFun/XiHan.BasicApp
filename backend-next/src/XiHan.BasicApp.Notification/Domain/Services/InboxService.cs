@@ -162,7 +162,7 @@ public sealed class InboxService(SideRows rows, TimeProvider clock)
         var found = (await rows.Query<SysUserNotification>(SideRows.SideOf(context))
             .Where(u => wanted.Contains(u.Id) && u.UserId == me)
             .ToListAsync(context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
-        var failed = wanted.Where(id => !found.ContainsKey(id)).Select(static id => new BatchFailure(id, NotificationErrors.InboxItemNotFound)).ToList();
+        var failed = wanted.Where(id => !found.ContainsKey(id)).Select(static id => new BatchFailure(id, NotificationErrors.InboxItemNotFound, NotificationMessages.InboxItemNotFound.L(("id", id)))).ToList();
         return ([.. wanted.Where(found.ContainsKey).Select(id => found[id])], failed);
     }
 }

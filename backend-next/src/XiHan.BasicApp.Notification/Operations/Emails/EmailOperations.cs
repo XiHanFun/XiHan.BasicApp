@@ -75,7 +75,7 @@ public sealed class ResendEmails(IRepository<SysEmail, Guid> emails, MessageReco
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await service.ResendAsync(emails, SideRows.SideOf(context), request.Ids, NotificationErrors.EmailRecordNotFound, context.CancellationToken).ConfigureAwait(false);
+        return await service.ResendAsync(emails, SideRows.SideOf(context), request.Ids, NotificationErrors.EmailRecordNotFound, NotificationMessages.EmailRecordNotFound, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -96,7 +96,7 @@ public sealed class CancelEmails(IRepository<SysEmail, Guid> emails) : IOperatio
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await MessageRecordService.CancelAsync(emails, SideRows.SideOf(context), request.Ids, NotificationErrors.EmailRecordNotFound, context.CancellationToken).ConfigureAwait(false);
+        return await MessageRecordService.CancelAsync(emails, SideRows.SideOf(context), request.Ids, NotificationErrors.EmailRecordNotFound, NotificationMessages.EmailRecordNotFound, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -120,6 +120,6 @@ public sealed class DeleteEmails(IRepository<SysEmail, Guid> emails) : IOperatio
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await MessageRecordService.DeleteAsync(emails, SideRows.SideOf(context), request.Ids, NotificationErrors.EmailRecordNotFound, context.CancellationToken).ConfigureAwait(false);
+        return await MessageRecordService.DeleteAsync(emails, SideRows.SideOf(context), request.Ids, NotificationErrors.EmailRecordNotFound, NotificationMessages.EmailRecordNotFound, context.CancellationToken).ConfigureAwait(false);
     }
 }

@@ -31,6 +31,6 @@ public sealed class ResumeTenants(IRepository<SysTenant, Guid> tenants, TenantSe
         ArgumentNullException.ThrowIfNull(context);
         // 停用或到期的都能恢复，但要没过到期时间；过了的记为逐项失败（先延长到期时间）
         var now = clock.GetUtcNow();
-        return TenantStatusBatch.RunAsync(request, context, tenants, service, TenantStatus.Active, tenant => tenant.ExpiresAt is { } expiresAt && expiresAt <= now ? TenancyErrors.TenantExpired : null);
+        return TenantStatusBatch.RunAsync(request, context, tenants, service, TenantStatus.Active, tenant => tenant.ExpiresAt is { } expiresAt && expiresAt <= now ? Error.Conflict(TenancyErrors.TenantExpired, TenancyMessages.TenantExpired, MessageArguments.Of(("tenantId", tenant.TenantId))) : null);
     }
 }

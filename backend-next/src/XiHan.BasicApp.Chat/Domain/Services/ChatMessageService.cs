@@ -157,7 +157,7 @@ public sealed class ChatMessageService(
         {
             if ((await store.ConversationAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false)).IsFailure)
             {
-                failed.Add(new BatchFailure(conversationId, ChatErrors.ConversationNotFound));
+                failed.Add(new BatchFailure(conversationId, ChatErrors.ConversationNotFound, ChatMessages.ConversationNotFound.L()));
                 continue;
             }
 
@@ -165,7 +165,9 @@ public sealed class ChatMessageService(
             var sender = current.FirstOrDefault(m => m.UserId == caller.UserId);
             if (sender is null || sender.IsSilenced)
             {
-                failed.Add(new BatchFailure(conversationId, sender is null ? ChatErrors.NotMember : ChatErrors.Silenced));
+                failed.Add(sender is null
+                    ? new BatchFailure(conversationId, ChatErrors.NotMember, ChatMessages.NotMember.L())
+                    : new BatchFailure(conversationId, ChatErrors.Silenced, ChatMessages.Silenced.L()));
                 continue;
             }
 

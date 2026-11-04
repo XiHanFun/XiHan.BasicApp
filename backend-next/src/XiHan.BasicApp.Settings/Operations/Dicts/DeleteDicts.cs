@@ -42,26 +42,26 @@ public sealed class DeleteDicts(IRepository<SysDict, Guid> dicts, IRepository<Sy
         {
             if (!found.TryGetValue(id, out var dict) || !SettingsScope.IsVisible(dict, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.DictNotFound));
+                failed.Add(new BatchFailure(id, SettingsErrors.DictNotFound, SettingsMessages.DictNotFound.L(("id", id))));
                 continue;
             }
 
             if (!SettingsScope.IsOwnedBy(dict, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", id))));
                 continue;
             }
 
             if (dict.IsBuiltIn)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected));
+                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("id", id))));
                 continue;
             }
 
             var dictId = dict.Id;
             if (await items.CountAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.DictId == dictId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.DictHasItems));
+                failed.Add(new BatchFailure(id, SettingsErrors.DictHasItems, SettingsMessages.DictHasItems.L(("id", id))));
                 continue;
             }
 

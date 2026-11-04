@@ -138,6 +138,7 @@
   "notification.config.default_locked": "A configuração {code} é a padrão (ou está desativada): a padrão deve continuar ativa e não pode ser desativada nem excluída.",
   "notification.record.busy": "O registro está na fila ou sendo enviado.",
   "notification.record.not_pending": "Só registros na fila podem ser cancelados.",
+  "notification.record.not_resendable": "Registros de códigos de verificação não podem ser reenviados. O usuário deve solicitar um novo código.",
   "notification.template.invalid": "O modelo é inválido: {detail}",
   "notification.email.address_invalid": "O endereço de e-mail {address} não é válido.",
   "notification.sms_config.template_map_invalid": "O mapa de modelos deve ser um objeto JSON (código do modelo → ID do provedor).",

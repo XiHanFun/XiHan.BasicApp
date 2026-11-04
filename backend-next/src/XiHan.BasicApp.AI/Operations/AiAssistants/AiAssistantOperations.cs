@@ -340,7 +340,7 @@ public sealed class DeleteAiAssistants(IRepository<SysAiAssistant, Guid> assista
         {
             if (!found.TryGetValue(id, out var assistant))
             {
-                failed.Add(new BatchFailure(id, AIErrors.AssistantNotFound));
+                failed.Add(new BatchFailure(id, AIErrors.AssistantNotFound, AIMessages.AssistantNotFound.L(("id", id))));
                 continue;
             }
 

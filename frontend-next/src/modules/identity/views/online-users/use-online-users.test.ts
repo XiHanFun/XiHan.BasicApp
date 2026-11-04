@@ -55,11 +55,11 @@ describe('在线用户', () => {
     })
   })
 
-  it('概况走 GET sessions:summary；强制下线带原因，逐项拒绝按错误码报错', async () => {
-    const calls = stub({ activeSessions: 3, activeUsers: 2, realtimeOnlineUsers: 1 }, { succeeded: ['s1'], failed: [] }, { succeeded: [], failed: [{ id: 's2', code: 'IDENTITY_CONFLICT_005' }] })
+  it('概况走 GET sessions:summary；强制下线带原因，逐项拒绝按原因报错', async () => {
+    const calls = stub({ activeSessions: 3, activeUsers: 2, realtimeOnlineUsers: 1 }, { succeeded: ['s1'], failed: [] }, { succeeded: [], failed: [{ id: 's2', code: 'IDENTITY_CONFLICT_005', message: 'IDENTITY_CONFLICT_005 的原因' }] })
     expect(await loadSessionSummary()).toEqual({ activeSessions: 3, activeUsers: 2, realtimeOnlineUsers: 1 })
     await revokeSession('s1', 'maintenance')
-    await expect(revokeSession('s2', 'maintenance')).rejects.toThrow('IDENTITY_CONFLICT_005')
+    await expect(revokeSession('s2', 'maintenance')).rejects.toThrow('IDENTITY_CONFLICT_005 的原因')
     expect(calls.map(c => `${c.method} ${c.url}`)).toEqual(['GET /api/sessions:summary', 'POST /api/sessions:revoke', 'POST /api/sessions:revoke'])
     expect(calls[1]?.body).toEqual({ ids: ['s1'], reason: 'maintenance' })
   })

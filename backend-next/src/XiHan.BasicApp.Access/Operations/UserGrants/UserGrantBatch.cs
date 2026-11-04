@@ -37,7 +37,7 @@ internal static class UserGrantBatch
         PermissionCatalog catalog,
         PermissionChangeType change,
         Func<SysUser, string, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply,
-        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>>? screen = null)
+        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<(string Permission, Error Reason)>>>? screen = null)
     {
         var owner = RoleService.OwnerOf(context);
         var found = await FindUserAsync(users, request.UserId, owner, context.CancellationToken).ConfigureAwait(false);
@@ -54,11 +54,11 @@ internal static class UserGrantBatch
             var descriptor = catalog.Find(code);
             if (descriptor is null)
             {
-                failed.Add(new PermissionFailure(code, AccessErrors.PermissionUnknown));
+                failed.Add(new PermissionFailure(code, AccessErrors.PermissionUnknown, AccessMessages.PermissionUnknown.L(("code", code))));
             }
             else if (!PermissionCatalog.AllowsSide(descriptor, platformSide))
             {
-                failed.Add(new PermissionFailure(code, AccessErrors.PermissionScopeMismatch));
+                failed.Add(new PermissionFailure(code, AccessErrors.PermissionScopeMismatch, AccessMessages.PermissionScopeMismatch.L(("code", code), ("side", platformSide ? "platform" : "tenant"))));
             }
             else
             {
@@ -69,8 +69,8 @@ internal static class UserGrantBatch
         if (screen is not null && accepted.Count > 0)
         {
             var blocked = await screen(user, owner, accepted, context.CancellationToken).ConfigureAwait(false);
-            failed.AddRange(blocked.Select(static code => new PermissionFailure(code, AccessErrors.ConstraintViolated)));
-            accepted.RemoveAll(code => blocked.Contains(code, StringComparer.Ordinal));
+            failed.AddRange(blocked.Select(static item => PermissionFailure.From(item.Permission, item.Reason)));
+            accepted.RemoveAll(code => blocked.Any(item => string.Equals(item.Permission, code, StringComparison.Ordinal)));
         }
 
         var succeeded = new List<string>(accepted.Count);
@@ -84,7 +84,7 @@ internal static class UserGrantBatch
                 }
                 else
                 {
-                    failed.Add(new PermissionFailure(outcome.Grant.Permission, outcome.Outcome.Error!.Code));
+                    failed.Add(PermissionFailure.From(outcome.Grant.Permission, outcome.Outcome.Error!));
                 }
             }
         }

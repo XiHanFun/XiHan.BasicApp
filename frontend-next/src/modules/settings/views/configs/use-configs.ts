@@ -2,7 +2,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { configs as configsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type ConfigRow = ResponseOf<'configs.list'>['items'][number]
 export type ConfigDataType = ConfigRow['dataType']
@@ -35,12 +35,6 @@ function emptyForm(): ConfigForm {
   return { key: '', name: '', group: '', dataType: 'Text', value: '', defaultValue: '', isEncrypted: false, allowTenantOverride: true, order: 0, description: '', status: 'Active' }
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /**
  * SchemaPage 的资源：分页（读共享：平台参数 + 本侧参数）、删除、启停与导入新建
  * 搜索字段按后端白名单下发：分组 / 数据类型 / 所属 / 状态 / 是否加密精确匹配，关键字匹配键与名称
@@ -51,7 +45,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
       await configsApi.list(toPageRequest(params, { filters: { group: 'eq', dataType: 'eq', owner: 'eq', status: 'eq', isEncrypted: 'eq' } })),
       params,
     ),
-    remove: async id => failedCodes(await configsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await configsApi.delete({ ids: [String(id)] })),
     // 更新是整体覆盖：先取当前值再只改状态；加密参数的值传空即保留原值
     updateStatus: async (id, enabled) => {
       const row = await configsApi.get({ id: String(id) })

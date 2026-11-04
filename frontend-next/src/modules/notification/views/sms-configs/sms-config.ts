@@ -2,7 +2,8 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf, SmsProvider } from '~/contracts'
 import { smsConfigs as smsConfigsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { assertBatch, MESSAGING_CODE_PATTERN } from '../../labels'
+import { throwOnFailed } from '~/request'
+import { MESSAGING_CODE_PATTERN } from '../../labels'
 
 export type SmsConfigRow = ResponseOf<'sms-configs.list'>['items'][number]
 
@@ -148,10 +149,10 @@ export function toUpdateBody(form: SmsConfigForm & { id: string }): RequestOf<'s
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（访问密钥不带即保留）；
  * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
-export function smsConfigResource(t: Translate): SchemaResource<SmsConfigRow> {
+export function smsConfigResource(): SchemaResource<SmsConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await smsConfigsApi.list(toPageRequest(params, SMS_CONFIG_QUERY)), params),
-    remove: async id => assertBatch(t, await smsConfigsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await smsConfigsApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const current = await smsConfigsApi.get({ id: String(id) })
       return smsConfigsApi.update(toUpdateBody({ ...toSmsConfigForm(current), id: current.id, isEnabled: enabled }))

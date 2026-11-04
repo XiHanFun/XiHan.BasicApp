@@ -2,7 +2,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { positions as positionsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type PositionRow = ResponseOf<'positions.list'>['items'][number]
 export type PositionStatus = PositionRow['status']
@@ -26,12 +26,6 @@ function emptyForm(): PositionForm {
   return { code: '', name: '', order: 0, description: '', status: 'Active' }
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /**
  * SchemaPage 的资源：分页、删除、启停与导入新建
  * 搜索字段按后端白名单下发：关键字匹配编码与名称，状态精确匹配；可排序列是编码、名称、排序与创建时间
@@ -42,7 +36,7 @@ export function positionsResource(): SchemaResource<PositionRow> {
       await positionsApi.list(toPageRequest(params, { filters: { status: 'eq' } })),
       params,
     ),
-    remove: async id => failedCodes(await positionsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await positionsApi.delete({ ids: [String(id)] })),
     // 更新是整体替换：先取当前值再只改状态
     updateStatus: async (id, enabled) => {
       const row = await positionsApi.get({ id: String(id) })

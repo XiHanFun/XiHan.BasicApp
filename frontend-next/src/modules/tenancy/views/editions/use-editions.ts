@@ -2,7 +2,7 @@ import type { PermissionGrantItem, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { editions as editionsApi, permissions as permissionsApi, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { randomString } from '~/utils'
 
 export type EditionRow = ResponseOf<'editions.list'>['items'][number]
@@ -75,12 +75,6 @@ function describe(error: unknown): string {
   return error instanceof ApiError ? error.detail : String(error)
 }
 
-/** 批量结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 function sameSet(left: readonly string[], right: readonly string[]): boolean {
   const set = new Set(right)
   return left.length === set.size && left.every(code => set.has(code))
@@ -106,7 +100,7 @@ export function editionsResource(): SchemaResource<EditionRow> {
       return toSchemaPageResult({ items: items.slice(start, start + params.pageSize), total: items.length, page: { index: params.page, size: params.pageSize } }, params)
     },
     // 还有租户绑定的套餐由后端逐项拒绝（TENANCY_CONFLICT_007）
-    remove: async id => failedCodes(await editionsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await editionsApi.delete({ ids: [String(id)] })),
     // 更新是整体覆盖：先取当前值再只改状态；停用缺省套餐由后端拒绝（TENANCY_CONFLICT_017）
     updateStatus: async (id, enabled) => {
       const { edition } = await editionsApi.get({ id: String(id) })

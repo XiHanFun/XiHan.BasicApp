@@ -166,13 +166,13 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
             var found = await FindAsync(context, id).ConfigureAwait(false);
             if (!found.TryGetValue(out var task))
             {
-                failed.Add(new BatchFailure(id, found.Error!.Code));
+                failed.Add(BatchFailure.From(id, found.Error!));
                 continue;
             }
 
             if (task.Status == ExportTaskStatus.Processing)
             {
-                failed.Add(new BatchFailure(id, FilesErrors.ExportNotPending));
+                failed.Add(new BatchFailure(id, FilesErrors.ExportNotPending, FilesMessages.ExportNotPending.L(("status", task.Status))));
                 continue;
             }
 

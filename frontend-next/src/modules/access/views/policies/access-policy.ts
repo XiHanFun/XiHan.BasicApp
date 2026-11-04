@@ -2,6 +2,7 @@ import type { ConditionAttribute, ConditionOperator } from '../roles/permission-
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { RequestOf, ResponseOf } from '~/contracts'
 import { policies as policiesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { composeAttributeName, requiresValue, resolveAttribute } from '../roles/permission-condition'
 
 export type AccessPolicyRow = ResponseOf<'policies.list'>['items'][number]
@@ -145,12 +146,6 @@ export function actionTone(action: AccessPolicyAction): AccessPolicyTone {
   }
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /**
  * SchemaPage 的资源：分页（作用侧 = 当前租户或平台，缺省按求值顺序）、删除、启停
  * 搜索按后端白名单：关键字匹配编码、名称与说明；动作、状态多选（合成 in）
@@ -161,7 +156,7 @@ export function accessPolicyResource(): SchemaResource<AccessPolicyRow> {
       await policiesApi.list(toPageRequest(params, { multiples: ['action', 'status'] })),
       params,
     ),
-    remove: async id => failedCodes(await policiesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await policiesApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => policiesApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
   }
 }

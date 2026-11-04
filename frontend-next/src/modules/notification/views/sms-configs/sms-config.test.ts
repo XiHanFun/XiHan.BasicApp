@@ -116,11 +116,11 @@ describe('短信配置的表单', () => {
     expect(body).not.toHaveProperty('code')
   })
 
-  it('启停取最新一份再整体修改（不带密钥）；删除逐项拒绝时翻成文案', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 's1', code: 'NOTIFICATION_NOTFOUND_005' }] })
-    const resource = smsConfigResource(t)
+  it('启停取最新一份再整体修改（不带密钥）；删除逐项拒绝时带着原因抛出', async () => {
+    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 's1', code: 'NOTIFICATION_NOTFOUND_005', message: 'NOTIFICATION_NOTFOUND_005 的原因' }] })
+    const resource = smsConfigResource()
     await resource.updateStatus!('s1', false)
-    await expect(resource.remove!('s1')).rejects.toThrow('notification.messaging.failures.config_not_found')
+    await expect(resource.remove!('s1')).rejects.toThrow('NOTIFICATION_NOTFOUND_005 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/sms-configs/s1' })
     expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/sms-configs/s1', body: { isEnabled: false, accessKeySecret: null, provider: 'Tencent' } })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/sms-configs?ids=s1' })

@@ -2,7 +2,8 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { BotProvider, PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { botConfigs as botConfigsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { assertBatch, MESSAGING_CODE_PATTERN } from '../../labels'
+import { throwOnFailed } from '~/request'
+import { MESSAGING_CODE_PATTERN } from '../../labels'
 
 export type BotConfigRow = ResponseOf<'bot-configs.list'>['items'][number]
 
@@ -131,10 +132,10 @@ export function toUpdateBody(form: BotConfigForm & { id: string }): RequestOf<'b
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（签名密钥不带即保留）；
  * 默认机器人不能删除、不能停用、不能换服务商（NOTIFICATION_CONFLICT_005）
  */
-export function botConfigResource(t: Translate): SchemaResource<BotConfigRow> {
+export function botConfigResource(): SchemaResource<BotConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await botConfigsApi.list(toPageRequest(params, BOT_CONFIG_QUERY)), params),
-    remove: async id => assertBatch(t, await botConfigsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await botConfigsApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const current = await botConfigsApi.get({ id: String(id) })
       return botConfigsApi.update(toUpdateBody({ ...toBotConfigForm(current), id: current.id, isEnabled: enabled }))

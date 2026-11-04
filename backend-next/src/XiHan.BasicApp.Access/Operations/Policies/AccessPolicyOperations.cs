@@ -240,7 +240,7 @@ public sealed class DeleteAccessPolicies(AccessPolicyService service) : IOperati
         {
             if (!(await service.FindAsync(id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var policy))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.PolicyNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.PolicyNotFound, AccessMessages.PolicyNotFound.L(("id", id))));
                 continue;
             }
 

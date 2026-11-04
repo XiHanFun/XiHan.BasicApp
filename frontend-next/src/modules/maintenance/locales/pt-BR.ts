@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: 'Tarefas registradas em código não podem ser excluídas',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: 'Criar tarefa',
       create_title: 'Criar tarefa',
@@ -183,12 +182,10 @@ export default {
       task_enabled: 'Tarefa ativada',
       task_disabled: 'Tarefa desativada',
       toggle_failed: 'Falha ao atualizar o status da tarefa',
-      job_not_found: 'A tarefa não existe',
       rescheduled: 'Agendamento alterado',
       reschedule_failed: 'Falha ao alterar o agendamento',
       restored: 'Agendamento do código restaurado',
       restore_failed: 'Falha ao restaurar o agendamento do código',
-      no_code_definition: 'A tarefa não tem definição no código para restaurar',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: 'Falha ao copiar',
       saved: 'Salvo',
       key_already_gone: 'A chave não existe mais ou expirou',
-      namespace_denied: 'Fora dos namespaces abertos ao gerenciamento',
       batch_deleted: '{count} chaves excluídas',
       batch_deleted_with_missing: '{count} chaves excluídas; {missing} já não existiam',
       batch_delete_partial: 'Exclusão concluída: {success} com sucesso, {failed} com falha ({reason})',

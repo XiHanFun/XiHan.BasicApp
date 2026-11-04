@@ -178,7 +178,7 @@ public sealed class DeletePermissionConditions(PermissionConditionService servic
         {
             if (!(await service.FindAsync(id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var condition))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.ConditionNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.ConditionNotFound, AccessMessages.ConditionNotFound.L(("id", id))));
                 continue;
             }
 

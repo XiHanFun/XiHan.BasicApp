@@ -138,6 +138,7 @@
   "notification.config.default_locked": "설정 {code}은(는) 기본값이거나 사용 중이 아닙니다. 기본 설정은 사용 중이어야 하며 끄거나 삭제할 수 없습니다.",
   "notification.record.busy": "이 기록은 대기 중이거나 발송 중입니다.",
   "notification.record.not_pending": "대기 중인 기록만 취소할 수 있습니다.",
+  "notification.record.not_resendable": "인증 코드 기록은 다시 보낼 수 없습니다. 사용자에게 새 코드를 받도록 안내하세요.",
   "notification.template.invalid": "템플릿에 오류가 있습니다: {detail}",
   "notification.email.address_invalid": "메일 주소 {address}의 형식이 올바르지 않습니다.",
   "notification.sms_config.template_map_invalid": "템플릿 매핑은 JSON 객체(템플릿 코드 → 사업자 템플릿 ID)여야 합니다.",

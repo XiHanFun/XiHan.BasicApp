@@ -41,20 +41,20 @@ public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items) : IOpe
         {
             if (!found.TryGetValue(id, out var item) || !SettingsScope.IsVisible(item, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.DictItemNotFound));
+                failed.Add(new BatchFailure(id, SettingsErrors.DictItemNotFound, SettingsMessages.DictItemNotFound.L(("id", id))));
                 continue;
             }
 
             if (!SettingsScope.IsOwnedBy(item, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", id))));
                 continue;
             }
 
             var itemId = item.Id;
             if (await items.CountAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.ParentId == itemId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.DictItemHasChildren));
+                failed.Add(new BatchFailure(id, SettingsErrors.DictItemHasChildren, SettingsMessages.DictItemHasChildren.L(("id", id))));
                 continue;
             }
 

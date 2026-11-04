@@ -27,7 +27,7 @@ src/XiHan.BasicApp.<包>/
 ## 操作
 
 - 操作 ID `<资源>.<动词>`（资源复数 kebab）；标准动词 `create / get / list / update / delete`，写动作用动词原形，`get` / `list` 以外的只读查询一律 `ReadOnly = true`。
-- 对已有对象按标识的写入（删除、启停、授权、撤销）只给批量形态，返回 `BatchResult`，逐项 `Result`。
+- 对已有对象按标识的写入（删除、启停、授权、撤销）只给批量形态，返回 `BatchResult`，逐项 `Result`。失败项要带文案：有 `Error` 用 `BatchFailure.From(id, error)`，只有错误码用 `new BatchFailure(id, XErrors.Y, XMessages.Y.L(("id", id)))`；`key.L()` 按这次调用的区域解析，不用传上下文。
 - 授权：`Permission = <包>Permissions.X`；自助操作 `Policy = "authenticated"`；匿名操作两者都不写，并登记进 `OperationContractTests` 的匿名白名单。
 - 请求 / 响应是 `record`：有缺省值的属性用 `set` 不用 `init`（`ContractDtoTests`）；时间 `DateTimeOffset`（UTC）；主键 `Guid`；租户 ID `string`；`long` 保持 `long`。单字段约束用 DataAnnotations，跨字段规则实现 `IValidatableObject`。
 - 文案：`<操作 ID>.title` / `.description`（资源段的 `-` 换 `_`），`openapi.tags.<资源>.name`，`permissions.<码>.name` / `.description`（`permissions.list` 按调用方区域取，界面不显示描述表里的英文）；10 个区域键集一致且与常量一一对应。

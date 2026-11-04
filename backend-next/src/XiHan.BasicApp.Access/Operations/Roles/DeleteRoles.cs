@@ -52,13 +52,13 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
         {
             if (!found.TryGetValue(id, out var role))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.RoleNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.RoleNotFound, AccessMessages.RoleNotFound.L(("id", id))));
                 continue;
             }
 
             if (role.IsBuiltIn)
             {
-                failed.Add(new BatchFailure(id, AccessErrors.BuiltInRole));
+                failed.Add(new BatchFailure(id, AccessErrors.BuiltInRole, AccessMessages.BuiltInRole.L(("code", role.Code))));
                 continue;
             }
 
@@ -71,7 +71,7 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
 
             if (!free)
             {
-                failed.Add(new BatchFailure(id, AccessErrors.RoleHasChildren));
+                failed.Add(new BatchFailure(id, AccessErrors.RoleHasChildren, AccessMessages.RoleHasChildren.L(("name", role.Name))));
                 continue;
             }
 

@@ -165,6 +165,14 @@ public static class IdentityMessages
     public const string SelfOperation = "identity.user.self_operation";
 
     /// <summary>
+    /// 用户处于锁定状态，要先解锁
+    /// </summary>
+    /// <remarks>
+    /// 批量结果的逐项错误码 <c>IDENTITY_CONFLICT_012</c> 的文案，参数 <c>name</c>
+    /// </remarks>
+    public const string UserLocked = "identity.user.locked";
+
+    /// <summary>
     /// 用户是租户的所有者，不能删除或锁定
     /// </summary>
     public const string TenantOwner = "identity.user.tenant_owner";

@@ -166,7 +166,6 @@ export default {
         update_status_remark: 'フロントエンドからデータソースのステータスを更新',
         title: 'データソース',
         form_connection_string_edit: '接続文字列（空欄なら変更しない）',
-        in_use: 'データソースはテーブル設定から参照されているため削除できません',
         connection_string_set: '明示的な接続文字列が設定されています',
       },
       template: {

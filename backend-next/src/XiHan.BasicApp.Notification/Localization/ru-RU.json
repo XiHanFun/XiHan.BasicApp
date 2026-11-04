@@ -138,6 +138,7 @@
   "notification.config.default_locked": "Настройка {code} используется по умолчанию (или выключена): настройка по умолчанию должна быть включена, её нельзя выключить или удалить.",
   "notification.record.busy": "Запись в очереди или отправляется.",
   "notification.record.not_pending": "Отменить можно только записи в очереди.",
+  "notification.record.not_resendable": "Записи с кодами подтверждения нельзя отправить повторно. Пользователь должен запросить новый код.",
   "notification.template.invalid": "Шаблон некорректен: {detail}",
   "notification.email.address_invalid": "Адрес почты {address} некорректен.",
   "notification.sms_config.template_map_invalid": "Сопоставление шаблонов должно быть JSON-объектом (код шаблона → ID шаблона у провайдера).",

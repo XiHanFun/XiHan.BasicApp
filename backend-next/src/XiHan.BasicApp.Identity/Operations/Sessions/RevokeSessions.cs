@@ -42,11 +42,11 @@ public sealed class RevokeSessions(SessionQueries queries, UserAccountService ac
         {
             if (!found.TryGetValue(id, out var session))
             {
-                failed.Add(new BatchFailure(id, IdentityErrors.SessionNotFound));
+                failed.Add(new BatchFailure(id, IdentityErrors.SessionNotFound, IdentityMessages.SessionNotFound.L(("id", id))));
             }
             else if (id == current)
             {
-                failed.Add(new BatchFailure(id, IdentityErrors.CurrentSessionNotRevocable));
+                failed.Add(new BatchFailure(id, IdentityErrors.CurrentSessionNotRevocable, IdentityMessages.CurrentSessionNotRevocable.L()));
             }
             else
             {

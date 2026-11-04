@@ -2,6 +2,7 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { DeliveryChannel, NotificationContentFormat, NotificationPriority, NotificationRecipientFilter, NotificationTargetType, NotificationType, PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { DeliveryChannel as DELIVERY_CHANNELS, departments as departmentsApi, notifications as notificationsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { csvNeutralize } from '~/utils'
 
 export type NotificationRow = ResponseOf<'notifications.list'>['items'][number]
@@ -200,19 +201,12 @@ export function toUpdateBody(form: NotificationForm & { id: string }): RequestOf
   return { id: form.id, ...commonBody(form) }
 }
 
-/** 批量操作只回失败项的错误码：认得的翻成文案，其余原样 */
-export function batchFailureMessage(t: Translate, code: string): string {
-  return code === 'NOTIFICATION_NOTFOUND_001' ? t('notification.notifications.msg_not_found') : code
-}
-
 /** SchemaPage 的资源：分页与删除（删除逐项拒绝的原因拼成一条报错） */
-export function notificationResource(t: Translate): SchemaResource<NotificationRow> {
+export function notificationResource(): SchemaResource<NotificationRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await notificationsApi.list(toPageRequest(params, NOTIFICATION_QUERY)), params),
     remove: async (id) => {
-      const result = await notificationsApi.delete({ ids: [String(id)] })
-      if (result.failed.length > 0)
-        throw new Error(result.failed.map(failure => batchFailureMessage(t, failure.code)).join('; '))
+      throwOnFailed(await notificationsApi.delete({ ids: [String(id)] }))
     },
   }
 }

@@ -53,13 +53,13 @@ public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> membe
         {
             if (!found.TryGetValue(id, out var member))
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.MemberNotFound));
+                failed.Add(new BatchFailure(id, TenancyErrors.MemberNotFound, TenancyMessages.MemberNotFound.L(("id", id))));
                 continue;
             }
 
             if (owners.TryGetValue(member.TenantId, out var ownerId) && ownerId == member.UserId)
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.OwnerRemoval));
+                failed.Add(new BatchFailure(id, TenancyErrors.OwnerRemoval, TenancyMessages.OwnerRemoval.L(("userId", member.UserId), ("tenantId", member.TenantId))));
                 continue;
             }
 

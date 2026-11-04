@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "{field}(으)로 정렬할 수 없습니다.",
   "maintenance.jobs.schedule_invalid": "일정이 올바르지 않습니다: {expression}.",
   "maintenance.jobs.not_found": "작업 {name}이(가) 없습니다.",
+  "maintenance.jobs.from_code": "코드로 등록한 작업은 삭제할 수 없습니다.",
   "openapi.tags.jobs.name": "작업",
   "openapi.tags.jobs.description": "예약 작업의 상태, 일시 중지와 재개, 즉시 실행, 일정 검증.",
   "openapi.groups.maintenance.name": "운영",

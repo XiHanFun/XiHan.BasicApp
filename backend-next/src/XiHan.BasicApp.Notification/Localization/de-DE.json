@@ -138,6 +138,7 @@
   "notification.config.default_locked": "Die Konfiguration {code} ist Standard (oder deaktiviert): Der Standard muss aktiviert bleiben und kann weder deaktiviert noch gelöscht werden.",
   "notification.record.busy": "Der Eintrag wartet oder wird gerade gesendet.",
   "notification.record.not_pending": "Nur wartende Einträge können abgebrochen werden.",
+  "notification.record.not_resendable": "Datensätze mit Bestätigungscodes können nicht erneut gesendet werden. Der Benutzer muss einen neuen Code anfordern.",
   "notification.template.invalid": "Die Vorlage ist ungültig: {detail}",
   "notification.email.address_invalid": "Die E-Mail-Adresse {address} ist ungültig.",
   "notification.sms_config.template_map_invalid": "Die Vorlagenzuordnung muss ein JSON-Objekt sein (Vorlagencode → Anbieter-Vorlagen-ID).",

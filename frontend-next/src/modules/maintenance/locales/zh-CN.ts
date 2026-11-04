@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: '代码登记的作业不能删除',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: '新建作业',
       create_title: '新建作业',
@@ -183,12 +182,10 @@ export default {
       task_enabled: '任务已启用',
       task_disabled: '任务已停用',
       toggle_failed: '更新任务状态失败',
-      job_not_found: '任务不存在',
       rescheduled: '计划已修改',
       reschedule_failed: '修改计划失败',
       restored: '已恢复代码计划',
       restore_failed: '恢复代码计划失败',
-      no_code_definition: '任务没有代码定义，无法恢复',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: '复制失败',
       saved: '已保存',
       key_already_gone: '键已不存在或已过期',
-      namespace_denied: '不在开放管理的命名空间里',
       batch_deleted: '已删除 {count} 个键',
       batch_deleted_with_missing: '已删除 {count} 个键，另有 {missing} 个已不存在',
       batch_delete_partial: '删除完成：成功 {success} 个，失败 {failed} 个（{reason}）',

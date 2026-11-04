@@ -35,14 +35,14 @@ describe('delegationsResource', () => {
   it('状态多选合成 in，删除逐项失败即报错', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'd-9', code: 'ACCESS_NOTFOUND_006' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'd-9', code: 'ACCESS_NOTFOUND_006', message: 'ACCESS_NOTFOUND_006 的原因' }] })
       return json(200, { items: [delegation()], total: 1, page: { index: 1, size: 20 } })
     })
     const result = await delegationsResource(async () => {}).page!({ page: 1, pageSize: 20, filters: { keyword: ' vac ' }, conditionFilters: [{ field: 'status', operator: QueryOperator.In, values: ['Active', 'Pending'] }] })
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/delegations:list' })
     expect(calls[0]!.body).toMatchObject({ keyword: 'vac', filters: [{ field: 'status', operator: 'in', value: 'Active,Pending' }] })
     expect(result.items.map(r => r.id)).toEqual(['d-1'])
-    await expect(delegationsResource(async () => {}).remove!('d-9')).rejects.toThrow('ACCESS_NOTFOUND_006')
+    await expect(delegationsResource(async () => {}).remove!('d-9')).rejects.toThrow('ACCESS_NOTFOUND_006 的原因')
   })
 })
 

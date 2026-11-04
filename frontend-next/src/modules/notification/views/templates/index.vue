@@ -33,7 +33,7 @@ import { canOverrideTemplate, emptyTemplateForm, findTemplateProblem, hasSubject
 defineOptions({ name: 'NotificationTemplatesView' })
 
 const { t } = useI18n()
-const resource = templateResource(t)
+const resource = templateResource()
 const auth = useAuthStore()
 /** 平台一侧：平台的模板是自己的；租户一侧看得到平台的、只能覆盖（4.x 同） */
 const isPlatformCaller = () => auth.tenantId === null

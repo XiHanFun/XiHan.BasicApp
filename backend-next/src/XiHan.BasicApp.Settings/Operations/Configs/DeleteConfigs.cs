@@ -38,19 +38,19 @@ public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs) : IOpera
         {
             if (!found.TryGetValue(id, out var config) || !SettingsScope.IsVisible(config, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.ConfigNotFound));
+                failed.Add(new BatchFailure(id, SettingsErrors.ConfigNotFound, SettingsMessages.ConfigNotFound.L(("id", id))));
                 continue;
             }
 
             if (!SettingsScope.IsOwnedBy(config, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", id))));
                 continue;
             }
 
             if (config.IsBuiltIn)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected));
+                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("id", id))));
                 continue;
             }
 

@@ -20,6 +20,7 @@
   "maintenance.query.sort_unsupported": "Sorting by {field} is not supported.",
   "maintenance.jobs.schedule_invalid": "The schedule is invalid: {expression}.",
   "maintenance.jobs.not_found": "Job {name} does not exist.",
+  "maintenance.jobs.from_code": "Code jobs cannot be deleted.",
   "openapi.tags.jobs.name": "Jobs",
   "openapi.tags.jobs.description": "Scheduled jobs: state, pause and resume, run now and schedule validation.",
   "openapi.groups.maintenance.name": "Maintenance",

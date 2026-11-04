@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: 'Échec de la mise à jour du statut',
       msg_app_deleted: 'Application supprimée',
       msg_delete_failed: 'Échec de la suppression de l’application',
-      msg_app_not_found: 'L’application n’existe pas ou a été supprimée',
     },
   },
 }

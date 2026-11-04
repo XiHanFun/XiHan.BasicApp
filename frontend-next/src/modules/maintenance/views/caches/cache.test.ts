@@ -7,7 +7,6 @@ import {
   canEditEntry,
   collectGroupKeys,
   deleteByPrefix,
-  deleteFailureMessage,
   deleteKeys,
   formatSeconds,
   formatSize,
@@ -327,9 +326,8 @@ describe('缓存管理：删除', () => {
   it('删除当前键：删掉即成功，本来就不在提醒一句，没删成报原因', () => {
     expect(singleDeleteToast(t, { removed: ['a:1'], missing: [], failed: [] })).toEqual({ tone: 'success', message: 'common.messages.delete_success' })
     expect(singleDeleteToast(t, { removed: [], missing: ['a:1'], failed: [] })).toEqual({ tone: 'warning', message: 'maintenance.caches.key_already_gone' })
-    expect(singleDeleteToast(t, { removed: [], missing: [], failed: [{ key: 'a:1', code: 'MAINTENANCE_DENIED_002' }] }))
-      .toEqual({ tone: 'danger', message: 'maintenance.caches.namespace_denied' })
-    expect(deleteFailureMessage(t, 'X_UNKNOWN_1')).toBe('X_UNKNOWN_1')
+    expect(singleDeleteToast(t, { removed: [], missing: [], failed: [{ key: 'a:1', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' }] }))
+      .toEqual({ tone: 'danger', message: 'MAINTENANCE_DENIED_002 的原因' })
   })
 
   it('批量删除：全部不在了即成功（已过期的单独说），有失败时报成功与失败个数并附去重后的原因', () => {
@@ -340,10 +338,10 @@ describe('缓存管理：删除', () => {
     expect(batchDeleteToast(t, {
       removed: ['a'],
       missing: ['b'],
-      failed: [{ key: 'x', code: 'MAINTENANCE_DENIED_002' }, { key: 'y', code: 'MAINTENANCE_DENIED_002' }],
+      failed: [{ key: 'x', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' }, { key: 'y', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' }],
     })).toEqual({
       tone: 'warning',
-      message: 'maintenance.caches.batch_delete_partial:{"success":2,"failed":2,"reason":"maintenance.caches.namespace_denied"}',
+      message: 'maintenance.caches.batch_delete_partial:{"success":2,"failed":2,"reason":"MAINTENANCE_DENIED_002 的原因"}',
     })
   })
 

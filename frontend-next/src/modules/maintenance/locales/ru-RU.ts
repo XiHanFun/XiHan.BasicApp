@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: 'Задания из кода нельзя удалить',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: 'Создать задание',
       create_title: 'Создать задание',
@@ -183,12 +182,10 @@ export default {
       task_enabled: 'Задача включена',
       task_disabled: 'Задача отключена',
       toggle_failed: 'Не удалось обновить статус задачи',
-      job_not_found: 'Задача не найдена',
       rescheduled: 'Расписание изменено',
       reschedule_failed: 'Не удалось изменить расписание',
       restored: 'Расписание из кода восстановлено',
       restore_failed: 'Не удалось восстановить расписание из кода',
-      no_code_definition: 'У задачи нет определения в коде для восстановления',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: 'Не удалось скопировать',
       saved: 'Сохранено',
       key_already_gone: 'Ключ уже не существует или истёк',
-      namespace_denied: 'Вне пространств имён, открытых для управления',
       batch_deleted: 'Удалено ключей: {count}',
       batch_deleted_with_missing: 'Удалено ключей: {count}; уже отсутствовали: {missing}',
       batch_delete_partial: 'Удаление завершено: успешно {success}, с ошибкой {failed} ({reason})',

@@ -45,6 +45,7 @@ import { actionConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker
 import { confirmDanger, dialog, islandStart, toast } from '~/composables'
 import { files as filesApi } from '~/contracts'
 import { usePermission } from '~/hooks'
+import { throwOnFailed } from '~/request'
 import { formatDate, formatFileSize } from '~/utils'
 import { downloadFile, fetchFileBlob, fileLink, uploadFile } from '../../api'
 import { storageTypeLabel } from '../storage-configs/storage-config'
@@ -72,7 +73,6 @@ import {
   storageStatusTone,
   storageToggleTarget,
   textLangOf,
-  throwOnFailed,
   toCsvTable,
   toDetailsForm,
   toFileDetails,
@@ -82,7 +82,7 @@ defineOptions({ name: 'FilesLibraryView' })
 
 const { t } = useI18n()
 const { hasPermission } = usePermission()
-const resource = fileResource(t)
+const resource = fileResource()
 
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
 
@@ -265,7 +265,7 @@ async function saveMetadata() {
 // ── 归档 / 恢复 / 彻底删除 / 下载 ────────────────────────────────
 async function setFileStatus(row: FileRow, status: 'Archived' | 'Normal', successText: string) {
   try {
-    throwOnFailed(t, await filesApi.setStatus({ ids: [row.id], status }))
+    throwOnFailed(await filesApi.setStatus({ ids: [row.id], status }))
     toast.success(successText)
     reload()
   }

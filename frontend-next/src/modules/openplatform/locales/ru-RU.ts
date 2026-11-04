@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: 'Не удалось обновить статус',
       msg_app_deleted: 'Приложение удалено',
       msg_delete_failed: 'Не удалось удалить приложение',
-      msg_app_not_found: 'Приложение не существует или уже удалено',
     },
   },
 }

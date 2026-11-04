@@ -3,7 +3,7 @@ import type { RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { departments as departmentsApi, fieldSecurity as fieldSecurityApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type FieldRuleRow = ResponseOf<'field-security.list'>['items'][number]
 export type FieldSecurityEntity = ResponseOf<'field-security.entities'>['items'][number]
@@ -44,12 +44,6 @@ function emptyForm(): FieldRuleForm {
   return { targetKind: 'Role', targetId: '', entity: '', field: '', strategy: 'Hidden', keepHead: 3, keepTail: 4, replacement: '', isEditable: false, status: 'Active', remark: '' }
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** 只提交当前读取方式用得到的参数（4.x 的 buildDefinition）；明文规则一律只读 */
 export function toDefinition(form: FieldRuleForm): Omit<RequestOf<'field-security.create'>, 'status'> {
   const partial = form.strategy === 'PartialMask'
@@ -82,7 +76,7 @@ export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
       await fieldSecurityApi.list(toPageRequest(params, { multiples: ['entity', 'targetKind', 'strategy', 'status'] })),
       params,
     ),
-    remove: async id => failedCodes(await fieldSecurityApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await fieldSecurityApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const row = await fieldSecurityApi.get({ id: String(id) })
       return fieldSecurityApi.update(updateRequest(row, enabled ? 'Active' : 'Disabled'))

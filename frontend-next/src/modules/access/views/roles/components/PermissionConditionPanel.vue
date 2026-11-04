@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon, XEditModal, XInput, XNumberInput, XSegmented, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { permissionConditions as conditionsApi } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { attributeLabel, operatorLabel, valueHint } from '../condition-labels'
 import { verdictLabel, verdictTone } from '../condition-trial'
 import { composeAttributeName, CONDITION_OPERATORS, groupConditions, nextGroupNumber, requiresValue, resolveAttribute } from '../permission-condition'
@@ -203,8 +204,7 @@ function remove(item: PermissionConditionItem) {
     onOk: async () => {
       try {
         const result = await conditionsApi.delete({ ids: [item.id] })
-        if (result.failed.length > 0)
-          throw new Error(result.failed.map(f => f.code).join('; '))
+        throwOnFailed(result)
         toast.success(t('access.conditions.msg_deleted'))
         emit('changed')
       }

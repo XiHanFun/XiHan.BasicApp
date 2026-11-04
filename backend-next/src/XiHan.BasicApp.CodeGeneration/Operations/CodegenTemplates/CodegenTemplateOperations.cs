@@ -252,13 +252,13 @@ public sealed class DeleteCodegenTemplates(IRepository<SysCodeGenTemplate, Guid>
         {
             if (!found.TryGetValue(id, out var template))
             {
-                failed.Add(new BatchFailure(id, CodeGenerationErrors.TemplateNotFound));
+                failed.Add(new BatchFailure(id, CodeGenerationErrors.TemplateNotFound, CodeGenerationMessages.TemplateNotFound.L(("id", id))));
                 continue;
             }
 
             if (template.IsBuiltIn)
             {
-                failed.Add(new BatchFailure(id, CodeGenerationErrors.TemplateBuiltIn));
+                failed.Add(new BatchFailure(id, CodeGenerationErrors.TemplateBuiltIn, CodeGenerationMessages.TemplateBuiltIn.L(("code", template.TemplateCode))));
                 continue;
             }
 

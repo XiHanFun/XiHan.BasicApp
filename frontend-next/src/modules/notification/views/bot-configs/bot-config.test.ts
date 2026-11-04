@@ -120,12 +120,12 @@ describe('机器人配置的表单', () => {
     expect(body).not.toHaveProperty('code')
   })
 
-  it('启停取最新一份再整体修改（不带密钥）；删除逐项拒绝时翻成文案', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'b1', code: 'NOTIFICATION_CONFLICT_005' }] }, { succeeded: [], failed: [{ id: 'b2', code: 'NOTIFICATION_NOTFOUND_008' }] })
-    const resource = botConfigResource(t)
+  it('启停取最新一份再整体修改（不带密钥）；删除逐项拒绝时带着原因抛出', async () => {
+    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'b1', code: 'NOTIFICATION_CONFLICT_005', message: 'NOTIFICATION_CONFLICT_005 的原因' }] }, { succeeded: [], failed: [{ id: 'b2', code: 'NOTIFICATION_NOTFOUND_008', message: 'NOTIFICATION_NOTFOUND_008 的原因' }] })
+    const resource = botConfigResource()
     await resource.updateStatus!('b1', false)
-    await expect(resource.remove!('b1')).rejects.toThrow('notification.messaging.failures.default_locked')
-    await expect(resource.remove!('b2')).rejects.toThrow('notification.messaging.failures.config_not_found')
+    await expect(resource.remove!('b1')).rejects.toThrow('NOTIFICATION_CONFLICT_005 的原因')
+    await expect(resource.remove!('b2')).rejects.toThrow('NOTIFICATION_NOTFOUND_008 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/bot-configs/b1' })
     expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/bot-configs/b1', body: { isEnabled: false, secret: null, provider: 'Lark', keyword: '通知' } })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/bot-configs?ids=b1' })

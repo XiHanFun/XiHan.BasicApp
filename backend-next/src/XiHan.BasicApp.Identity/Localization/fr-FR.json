@@ -33,6 +33,7 @@
   "identity.user.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans le locataire '{tenant}'.",
   "identity.user.tenant_mismatch": "Le locataire d'origine '{requested}' diffère du locataire courant '{current}'.",
   "identity.user.self_operation": "Vous ne pouvez pas effectuer cette opération sur votre propre compte.",
+  "identity.user.locked": "L'utilisateur '{name}' est verrouillé. Déverrouillez-le d'abord.",
   "identity.user.display_name_blank": "Le nom d'affichage ne doit pas être vide.",
   "identity.user.email_invalid": "L'adresse e-mail n'est pas bien formée.",
   "identity.user.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",

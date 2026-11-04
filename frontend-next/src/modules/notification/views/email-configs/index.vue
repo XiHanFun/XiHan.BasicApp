@@ -14,7 +14,7 @@ import { emailConfigProblemMessage, emailConfigResource, emptyEmailConfigForm, f
 defineOptions({ name: 'NotificationEmailConfigsView' })
 
 const { t } = useI18n()
-const resource = emailConfigResource(t)
+const resource = emailConfigResource()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

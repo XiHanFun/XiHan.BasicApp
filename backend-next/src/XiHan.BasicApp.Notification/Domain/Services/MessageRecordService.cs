@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Notification.Domain.Services;
 
@@ -27,12 +28,13 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
     /// <param name="owner">侧</param>
     /// <param name="ids">记录 ID</param>
     /// <param name="notFound">不存在时的错误码</param>
+    /// <param name="notFoundMessage">不存在时的文案键（参数 <c>id</c>）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>批量结果</returns>
-    public async Task<BatchResult> ResendAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
+    public async Task<BatchResult> ResendAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, string notFoundMessage, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
     {
-        var result = await ApplyAsync(records, owner, ids, notFound, static r => string.Equals(r.BusinessType, MessageBusinessTypes.Verification, StringComparison.Ordinal) ? NotificationErrors.RecordNotResendable : r.Status is MessageSendStatus.Pending or MessageSendStatus.Sending ? NotificationErrors.RecordBusy : null, static r =>
+        var result = await ApplyAsync(records, owner, ids, notFound, notFoundMessage, static r => string.Equals(r.BusinessType, MessageBusinessTypes.Verification, StringComparison.Ordinal) ? Error.Conflict(NotificationErrors.RecordNotResendable, NotificationMessages.RecordNotResendable) : r.Status is MessageSendStatus.Pending or MessageSendStatus.Sending ? Error.Conflict(NotificationErrors.RecordBusy, NotificationMessages.RecordBusy) : null, static r =>
         {
             r.Status = MessageSendStatus.Pending;
             r.Attempts = 0;
@@ -55,11 +57,12 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
     /// <param name="owner">侧</param>
     /// <param name="ids">记录 ID</param>
     /// <param name="notFound">不存在时的错误码</param>
+    /// <param name="notFoundMessage">不存在时的文案键（参数 <c>id</c>）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>批量结果</returns>
-    public static Task<BatchResult> CancelAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
+    public static Task<BatchResult> CancelAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, string notFoundMessage, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
-        => ApplyAsync(records, owner, ids, notFound, static r => r.Status == MessageSendStatus.Pending ? null : NotificationErrors.RecordNotPending, static r => r.Status = MessageSendStatus.Cancelled, cancellationToken);
+        => ApplyAsync(records, owner, ids, notFound, notFoundMessage, static r => r.Status == MessageSendStatus.Pending ? null : Error.Conflict(NotificationErrors.RecordNotPending, NotificationMessages.RecordNotPending), static r => r.Status = MessageSendStatus.Cancelled, cancellationToken);
 
     /// <summary>
     /// 批量删除（发送中的逐项拒绝）
@@ -69,9 +72,10 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
     /// <param name="owner">侧</param>
     /// <param name="ids">记录 ID</param>
     /// <param name="notFound">不存在时的错误码</param>
+    /// <param name="notFoundMessage">不存在时的文案键（参数 <c>id</c>）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>批量结果</returns>
-    public static async Task<BatchResult> DeleteAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, CancellationToken cancellationToken)
+    public static async Task<BatchResult> DeleteAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, string notFoundMessage, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
     {
         ArgumentNullException.ThrowIfNull(records);
@@ -83,15 +87,15 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
             var found = await records.FindAsync(id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var record) || !string.Equals(record.OwnerTenantId, owner, StringComparison.Ordinal))
             {
-                failed.Add(new BatchFailure(id, notFound));
+                failed.Add(new BatchFailure(id, notFound, notFoundMessage.L(("id", id))));
             }
             else if (record.Status == MessageSendStatus.Sending)
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.RecordBusy));
+                failed.Add(new BatchFailure(id, NotificationErrors.RecordBusy, NotificationMessages.RecordBusy.L()));
             }
             else if ((await records.RemoveAsync(record, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {
@@ -102,7 +106,7 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
         return new BatchResult(succeeded, failed);
     }
 
-    private static async Task<BatchResult> ApplyAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, Func<T, string?> reject, Action<T> change, CancellationToken cancellationToken)
+    private static async Task<BatchResult> ApplyAsync<T>(IRepository<T, Guid> records, string owner, IReadOnlyList<Guid> ids, string notFound, string notFoundMessage, Func<T, Error?> reject, Action<T> change, CancellationToken cancellationToken)
         where T : AppAuditedEntity, IMessageRecord
     {
         ArgumentNullException.ThrowIfNull(records);
@@ -114,13 +118,13 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
             var found = await records.FindAsync(id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var record) || !string.Equals(record.OwnerTenantId, owner, StringComparison.Ordinal))
             {
-                failed.Add(new BatchFailure(id, notFound));
+                failed.Add(new BatchFailure(id, notFound, notFoundMessage.L(("id", id))));
                 continue;
             }
 
-            if (reject(record) is { } code)
+            if (reject(record) is { } rejected)
             {
-                failed.Add(new BatchFailure(id, code));
+                failed.Add(BatchFailure.From(id, rejected));
                 continue;
             }
 
@@ -128,7 +132,7 @@ public sealed class MessageRecordService(MessageDispatchSignal signal)
             var updated = await records.UpdateAsync(record, cancellationToken).ConfigureAwait(false);
             if (updated.IsFailure)
             {
-                failed.Add(new BatchFailure(id, updated.Error!.Code));
+                failed.Add(BatchFailure.From(id, updated.Error!));
                 continue;
             }
 

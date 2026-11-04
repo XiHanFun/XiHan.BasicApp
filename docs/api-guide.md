@@ -189,10 +189,10 @@ curl -X POST http://localhost:9710/api/roles:list \
 删除、启停、锁定、撤销一类按标识的写操作只有批量形态，单条是一元集合。响应是逐项结果：
 
 ```json
-{ "succeeded": ["0193…"], "failed": [{ "id": "0193…", "code": "IDENTITY_CONFLICT_005" }] }
+{ "succeeded": ["0193…"], "failed": [{ "id": "0193…", "code": "IDENTITY_CONFLICT_002", "message": "不能对自己的账号执行该操作。" }] }
 ```
 
-部分失败时 HTTP 仍是 200，逐项看 `failed`。
+部分失败时 HTTP 仍是 200，逐项看 `failed`。`message` 已按 `Accept-Language` 本地化，可直接显示；程序分支看 `code`。
 
 ## 文件上传与下载
 

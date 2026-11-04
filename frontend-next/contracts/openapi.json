@@ -62687,11 +62687,15 @@
           },
           "code": {
             "type": "string"
+          },
+          "message": {
+            "type": "string"
           }
         },
         "required": [
           "id",
-          "code"
+          "code",
+          "message"
         ]
       },
       "BoardInfo": {
@@ -62856,11 +62860,16 @@
           "code": {
             "description": "\u539F\u56E0\u7801",
             "type": "string"
+          },
+          "message": {
+            "description": "\u5931\u8D25\u539F\u56E0\uFF0C\u5DF2\u6309\u8FD9\u6B21\u8C03\u7528\u7684\u533A\u57DF\u672C\u5730\u5316\uFF0C\u53EF\u76F4\u63A5\u663E\u793A",
+            "type": "string"
           }
         },
         "required": [
           "key",
-          "code"
+          "code",
+          "message"
         ]
       },
       "CacheKeyItem": {
@@ -68068,11 +68077,16 @@
           "code": {
             "description": "\u9519\u8BEF\u7801",
             "type": "string"
+          },
+          "message": {
+            "description": "\u5931\u8D25\u539F\u56E0\uFF0C\u5DF2\u6309\u8FD9\u6B21\u8C03\u7528\u7684\u533A\u57DF\u672C\u5730\u5316\uFF0C\u53EF\u76F4\u63A5\u663E\u793A",
+            "type": "string"
           }
         },
         "required": [
           "id",
-          "code"
+          "code",
+          "message"
         ]
       },
       "JobOutcomeResponse": {
@@ -71241,11 +71255,16 @@
           "code": {
             "description": "\u9519\u8BEF\u7801",
             "type": "string"
+          },
+          "message": {
+            "description": "\u5931\u8D25\u539F\u56E0\uFF0C\u5DF2\u6309\u8FD9\u6B21\u8C03\u7528\u7684\u533A\u57DF\u672C\u5730\u5316\uFF0C\u53EF\u76F4\u63A5\u663E\u793A",
+            "type": "string"
           }
         },
         "required": [
           "permission",
-          "code"
+          "code",
+          "message"
         ]
       },
       "PermissionRequestAssignee": {

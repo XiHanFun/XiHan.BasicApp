@@ -12,7 +12,8 @@ import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { codegenDatasources } from '~/contracts'
-import { DATABASE_TYPE_OPTIONS, databaseTypeLabel, datasourcesResource, failedDeleteCodes, useDatasourceEditor } from './use-datasources'
+import { throwOnFailed } from '~/request'
+import { DATABASE_TYPE_OPTIONS, databaseTypeLabel, datasourcesResource, useDatasourceEditor } from './use-datasources'
 
 defineOptions({ name: 'CodegenDatasourcePanel' })
 
@@ -178,11 +179,7 @@ async function handleEdit(row: DatasourceRow) {
 
 async function handleDelete(row: DatasourceRow) {
   try {
-    const codes = failedDeleteCodes(await codegenDatasources.delete({ ids: [row.id] }))
-    if (codes.includes('CODEGENERATION_CONFLICT_002'))
-      throw new Error(t('codegeneration.code_gen.datasource.in_use'))
-    if (codes.length > 0)
-      throw new Error(codes.join('; '))
+    throwOnFailed(await codegenDatasources.delete({ ids: [row.id] }))
     toast.success(t('common.messages.delete_success'))
     reload()
   }

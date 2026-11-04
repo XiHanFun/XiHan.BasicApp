@@ -175,10 +175,10 @@ describe('撤回与手工处理', () => {
   it('批量接口传单个 ID，逐项失败即报错', async () => {
     const calls = record((call) => {
       if (call.url === '/api/permission-requests:withdraw')
-        return json(200, { succeeded: [], failed: [{ id: 'pr-1', code: 'ACCESS_CONFLICT_014' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'pr-1', code: 'ACCESS_CONFLICT_014', message: 'ACCESS_CONFLICT_014 的原因' }] })
       return json(200, { succeeded: ['pr-1'], failed: [] })
     })
-    await expect(withdrawPermissionRequest('pr-1')).rejects.toThrow('ACCESS_CONFLICT_014')
+    await expect(withdrawPermissionRequest('pr-1')).rejects.toThrow('ACCESS_CONFLICT_014 的原因')
     expect(calls[0]!.body).toEqual({ ids: ['pr-1'] })
 
     const closer = usePermissionRequestCloser()

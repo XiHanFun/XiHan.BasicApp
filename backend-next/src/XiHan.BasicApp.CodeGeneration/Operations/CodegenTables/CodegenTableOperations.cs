@@ -358,7 +358,7 @@ public sealed class DeleteCodegenTables(IRepository<SysCodeGenTable, Guid> table
         {
             if (!found.TryGetValue(id, out var table))
             {
-                failed.Add(new BatchFailure(id, CodeGenerationErrors.TableNotFound));
+                failed.Add(new BatchFailure(id, CodeGenerationErrors.TableNotFound, CodeGenerationMessages.TableNotFound.L(("id", id))));
                 continue;
             }
 

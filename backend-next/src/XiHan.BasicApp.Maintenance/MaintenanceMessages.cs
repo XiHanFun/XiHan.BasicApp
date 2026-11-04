@@ -257,6 +257,14 @@ public static class MaintenanceMessages
     public const string JobNotFound = "maintenance.jobs.not_found";
 
     /// <summary>
+    /// 代码登记的作业不能删除
+    /// </summary>
+    /// <remarks>
+    /// 批量结果的逐项错误码 <c>MAINTENANCE_CONFLICT_004</c> 的文案
+    /// </remarks>
+    public const string JobFromCode = "maintenance.jobs.from_code";
+
+    /// <summary>
     /// 版本台账或执行记录不存在
     /// </summary>
     /// <remarks>

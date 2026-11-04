@@ -72,7 +72,7 @@ public sealed class ResendSms(IRepository<SysSms, Guid> sms, MessageRecordServic
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await service.ResendAsync(sms, SideRows.SideOf(context), request.Ids, NotificationErrors.SmsRecordNotFound, context.CancellationToken).ConfigureAwait(false);
+        return await service.ResendAsync(sms, SideRows.SideOf(context), request.Ids, NotificationErrors.SmsRecordNotFound, NotificationMessages.SmsRecordNotFound, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -93,7 +93,7 @@ public sealed class CancelSms(IRepository<SysSms, Guid> sms) : IOperation<Messag
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await MessageRecordService.CancelAsync(sms, SideRows.SideOf(context), request.Ids, NotificationErrors.SmsRecordNotFound, context.CancellationToken).ConfigureAwait(false);
+        return await MessageRecordService.CancelAsync(sms, SideRows.SideOf(context), request.Ids, NotificationErrors.SmsRecordNotFound, NotificationMessages.SmsRecordNotFound, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -117,6 +117,6 @@ public sealed class DeleteSms(IRepository<SysSms, Guid> sms) : IOperation<Messag
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return await MessageRecordService.DeleteAsync(sms, SideRows.SideOf(context), request.Ids, NotificationErrors.SmsRecordNotFound, context.CancellationToken).ConfigureAwait(false);
+        return await MessageRecordService.DeleteAsync(sms, SideRows.SideOf(context), request.Ids, NotificationErrors.SmsRecordNotFound, NotificationMessages.SmsRecordNotFound, context.CancellationToken).ConfigureAwait(false);
     }
 }

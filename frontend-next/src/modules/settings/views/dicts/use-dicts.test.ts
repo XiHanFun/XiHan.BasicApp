@@ -58,10 +58,10 @@ describe('dictsResource', () => {
     expect(result.page).toMatchObject({ totalCount: 21, pageIndex: 2, totalPages: 2, startRecord: 21, endRecord: 21, isLastPage: true })
   })
 
-  it('删除被后端逐项拒绝时带着错误码抛出；启停整体覆盖更新；导入把记录换成新建请求', async () => {
+  it('删除被后端逐项拒绝时带着原因抛出；启停整体覆盖更新；导入把记录换成新建请求', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'd-1', code: 'SETTINGS_CONFLICT_004' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'd-1', code: 'SETTINGS_CONFLICT_004', message: 'SETTINGS_CONFLICT_004 的原因' }] })
       if (call.method === 'GET')
         return json(200, dict('d-1', 'region', false, { category: 'geo', description: 'Regions', order: 3 }))
       if (call.method === 'PUT')
@@ -69,7 +69,7 @@ describe('dictsResource', () => {
       return json(201, dict('d-2', 'color', false))
     })
     const resource = dictsResource()
-    await expect(resource.remove!('d-1')).rejects.toThrow('SETTINGS_CONFLICT_004')
+    await expect(resource.remove!('d-1')).rejects.toThrow('SETTINGS_CONFLICT_004 的原因')
     expect(calls[0]!.url).toContain('/api/dicts?ids=d-1')
 
     await resource.updateStatus!('d-1', false)
@@ -86,7 +86,7 @@ describe('dictItemsResource', () => {
       if (call.method === 'GET' && call.url.includes('dictId=d-1'))
         return json(200, { items: flatItems })
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'i-1', code: 'SETTINGS_CONFLICT_005' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'i-1', code: 'SETTINGS_CONFLICT_005', message: 'SETTINGS_CONFLICT_005 的原因' }] })
       if (call.method === 'GET')
         return json(200, item('i-2', 'shanghai', 'i-1', 1, { metadata: '{"short":"SH"}', isDefault: true }))
       if (call.method === 'PUT')
@@ -100,7 +100,7 @@ describe('dictItemsResource', () => {
     expect(tree[0]!.children![0]!.children!.map(n => n.code)).toEqual(['pudong'])
     expect(tree[1]!.children).toBeUndefined()
 
-    await expect(resource.remove!('i-1')).rejects.toThrow('SETTINGS_CONFLICT_005')
+    await expect(resource.remove!('i-1')).rejects.toThrow('SETTINGS_CONFLICT_005 的原因')
 
     await resource.updateStatus!('i-2', false)
     expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/dict-items/i-2', body: { name: 'shanghai', parentId: 'i-1', metadata: '{"short":"SH"}', isDefault: true, status: 'Disabled' } })

@@ -136,6 +136,14 @@ public static class TenancyMessages
     public const string HasUsers = "tenancy.tenant.has_users";
 
     /// <summary>
+    /// 租户已过到期时间，先延长到期时间再恢复
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>tenantId</c>
+    /// </remarks>
+    public const string TenantExpired = "tenancy.tenant.expired";
+
+    /// <summary>
     /// 只有平台主体能管理租户
     /// </summary>
     public const string PlatformOnly = "tenancy.tenant.platform_only";

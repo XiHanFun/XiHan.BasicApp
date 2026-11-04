@@ -33,6 +33,7 @@
   "identity.user.name_taken": "El nombre de usuario '{userName}' ya está en uso en el inquilino '{tenant}'.",
   "identity.user.tenant_mismatch": "El inquilino de origen '{requested}' difiere del inquilino actual '{current}'.",
   "identity.user.self_operation": "No puede realizar esta operación sobre su propia cuenta.",
+  "identity.user.locked": "El usuario '{name}' está bloqueado. Desbloquéelo primero.",
   "identity.user.display_name_blank": "El nombre para mostrar no puede estar en blanco.",
   "identity.user.email_invalid": "La dirección de correo no tiene un formato válido.",
   "identity.user.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",

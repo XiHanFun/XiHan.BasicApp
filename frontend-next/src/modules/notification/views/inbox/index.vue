@@ -114,7 +114,7 @@ async function handleMarkRead(item: InboxItem) {
   if (!isUnread(item))
     return
   try {
-    await markRead(item.id, t('notification.inbox.msg_not_found'))
+    await markRead(item.id)
     item.status = 'Read'
     item.readAt = item.readAt ?? new Date().toISOString()
     notificationStore.markItemRead(item.id)
@@ -162,7 +162,7 @@ function handleDelete(item: InboxItem) {
     cancelText: t('common.actions.cancel'),
     onOk: async () => {
       try {
-        await deleteItem(item.id, t('notification.inbox.msg_not_found'))
+        await deleteItem(item.id)
         toast.success(t('notification.inbox.delete_success'))
         await refresh()
       }

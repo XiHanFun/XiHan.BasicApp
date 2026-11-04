@@ -4,7 +4,7 @@ import type { ResponseOf } from '~/contracts'
 import type { SelectOption } from '~/types'
 import { reactive, ref } from 'vue'
 import { departments as departmentsApi, memberships as membershipsApi, positions as positionsApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { loadMemberships } from './use-user-detail'
 
 type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
@@ -103,7 +103,7 @@ export function useUserDepartments() {
     }
   }
 
-  /** 移出部门：被后端拒绝时带着错误码抛出；无论成败都按服务端重取归属 */
+  /** 移出部门：被后端拒绝时带着原因抛出；无论成败都按服务端重取归属 */
   async function remove(membershipId: string): Promise<void> {
     const current = user.value
     if (!current)
@@ -112,8 +112,7 @@ export function useUserDepartments() {
     try {
       const result = await membershipsApi.delete({ ids: [membershipId] })
       memberships.value = await loadMemberships(current.id)
-      if (result.failed.length > 0)
-        throw new Error(result.failed.map(f => f.code).join('; '))
+      throwOnFailed(result)
     }
     finally {
       working.value = false

@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: 'Falha ao atualizar o status',
       msg_app_deleted: 'Aplicativo excluído',
       msg_delete_failed: 'Falha ao excluir o aplicativo',
-      msg_app_not_found: 'O aplicativo não existe ou já foi excluído',
     },
   },
 }

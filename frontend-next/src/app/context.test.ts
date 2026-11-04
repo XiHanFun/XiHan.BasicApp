@@ -142,7 +142,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
       if (url.includes(':reset-secret'))
         return json(200, { id: 'o-1', clientId: 'cid_x', clientType: 'Confidential', clientSecret: 'cs_y' })
       if (url.includes('?ids='))
-        return json(200, deleteFails ? { succeeded: [], failed: [{ id: 'o-1', code: 'OPENPLATFORM_NOTFOUND_001' }] } : { succeeded: ['o-1'], failed: [] })
+        return json(200, deleteFails ? { succeeded: [], failed: [{ id: 'o-1', code: 'OPENPLATFORM_NOTFOUND_001', message: 'OPENPLATFORM_NOTFOUND_001 的原因' }] } : { succeeded: ['o-1'], failed: [] })
       return json(200, calls.at(-1)?.method === 'PUT' ? { ...app, ...(calls.at(-1)?.body as object) } : app)
     })
     const apis = useAppContext().apis
@@ -160,7 +160,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     await apis.deleteMyOAuthAppApi('o-1')
     expect(calls[7]).toEqual({ method: 'DELETE', url: '/api/my-oauth-apps?ids=o-1', body: null })
     deleteFails = true
-    await expect(apis.deleteMyOAuthAppApi('o-1')).rejects.toThrow('OPENPLATFORM_NOTFOUND_001')
+    await expect(apis.deleteMyOAuthAppApi('o-1')).rejects.toThrow('OPENPLATFORM_NOTFOUND_001 的原因')
   })
 
   it('已授权的应用：oauth-consents.list 投影成壳层条目（授权时间换成 grantedTime），撤销按 ClientId 交给 oauth-consents.revoke', async () => {

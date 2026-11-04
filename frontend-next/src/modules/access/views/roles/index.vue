@@ -222,7 +222,7 @@ async function toggleStatus(row: RoleRow) {
   }
 }
 
-/** 授予 / 指派的结果：逐项失败单独提示（错误码），其余按条数报成功 */
+/** 授予 / 指派的结果：逐项失败单独提示原因，其余按条数报成功 */
 function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, revoke: number) => string, noChange: string) {
   if (!outcome) {
     toast.info(noChange)

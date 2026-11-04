@@ -247,11 +247,11 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
             var found = ownerUserId is { } owner ? await FindOwnedAsync(owner, id, cancellationToken).ConfigureAwait(false) : await FindAsync(id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var app))
             {
-                failed.Add(new BatchFailure(id, found.Error!.Code));
+                failed.Add(BatchFailure.From(id, found.Error!));
             }
             else if ((await apps.RemoveAsync(app, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {

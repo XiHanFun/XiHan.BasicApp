@@ -44,7 +44,7 @@ function backend(options: { createError?: Response, deleteFailure?: string } = {
       }
       if (path.startsWith('/api/memberships?') && method === 'DELETE') {
         if (options.deleteFailure)
-          return json(200, { succeeded: [], failed: [{ id: 'm-1', code: options.deleteFailure }] })
+          return json(200, { succeeded: [], failed: [{ id: 'm-1', code: options.deleteFailure, message: `${options.deleteFailure} 的原因` }] })
         rows.splice(rows.findIndex(row => path.endsWith(`ids=${row.id}`)), 1)
         return json(200, { succeeded: ['m-1'], failed: [] })
       }
@@ -108,7 +108,7 @@ describe('useUserDepartments', () => {
     expect(departments.working.value).toBe(false)
   })
 
-  it('移出部门走 memberships.delete；被拒时带着错误码抛出，归属照样重取', async () => {
+  it('移出部门走 memberships.delete；被拒时带着原因抛出，归属照样重取', async () => {
     let calls = backend()
     const departments = useUserDepartments()
     await departments.start(bob as never, { departments: false, positions: false })

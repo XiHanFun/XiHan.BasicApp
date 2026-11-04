@@ -98,16 +98,16 @@ describe('departmentsResource', () => {
     expect(single).toHaveLength(1)
   })
 
-  it('删除被后端逐项拒绝时带着错误码抛出；启停取当前值整体替换，类型、负责人与联系方式原样带回', async () => {
+  it('删除被后端逐项拒绝时带着原因抛出；启停取当前值整体替换，类型、负责人与联系方式原样带回', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'd-2', code: 'ORGANIZATION_CONFLICT_002' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'd-2', code: 'ORGANIZATION_CONFLICT_002', message: 'ORGANIZATION_CONFLICT_002 的原因' }] })
       if (call.method === 'GET')
         return json(200, { department: rd, ancestors: [hq], leaderUserName: 'leader', childCount: 1, memberCount: 2 })
       return json(200, { ...rd, status: 'Disabled' })
     })
     const resource = departmentsResource()
-    await expect(resource.remove!('d-2')).rejects.toThrow('ORGANIZATION_CONFLICT_002')
+    await expect(resource.remove!('d-2')).rejects.toThrow('ORGANIZATION_CONFLICT_002 的原因')
     expect(calls[0]!.url).toBe('/api/departments?ids=d-2')
     await resource.updateStatus!('d-2', false)
     expect(calls.find(c => c.method === 'PUT')).toMatchObject({ url: '/api/departments/d-2', body: { name: 'R&D', departmentType: 'Center', leaderUserId: 'u-9', order: 10, phone: '010-1000', email: 'rd@example.com', address: 'Building 7', description: 'Research', status: 'Disabled' } })
@@ -312,14 +312,14 @@ describe('useMembershipEditor', () => {
 })
 
 describe('成员行操作', () => {
-  it('设为主部门整体替换其余字段原样；移出被拒绝时带着错误码抛出', async () => {
+  it('设为主部门整体替换其余字段原样；移出被拒绝时带着原因抛出', async () => {
     const member = membership('m-3', 'dave', { positionId: 'p-1', employeeNumber: '0003', jobGrade: 'P3', hiredAt: '2026-03-01T00:00:00Z', order: 2, remark: 'On loan' })
     const calls = record(call => call.method === 'DELETE'
-      ? json(200, { succeeded: [], failed: [{ id: 'm-3', code: 'ORGANIZATION_NOTFOUND_003' }] })
+      ? json(200, { succeeded: [], failed: [{ id: 'm-3', code: 'ORGANIZATION_NOTFOUND_003', message: 'ORGANIZATION_NOTFOUND_003 的原因' }] })
       : json(200, { ...member, isPrimary: true }))
     await setPrimaryMembership(member as never)
     expect(calls[0]).toMatchObject({ method: 'PUT', url: '/api/memberships/m-3', body: { positionId: 'p-1', isPrimary: true, employeeNumber: '0003', jobGrade: 'P3', hiredAt: '2026-03-01T00:00:00Z', order: 2, remark: 'On loan' } })
-    await expect(removeMembership('m-3')).rejects.toThrow('ORGANIZATION_NOTFOUND_003')
+    await expect(removeMembership('m-3')).rejects.toThrow('ORGANIZATION_NOTFOUND_003 的原因')
     expect(calls[1]!.url).toBe('/api/memberships?ids=m-3')
   })
 })

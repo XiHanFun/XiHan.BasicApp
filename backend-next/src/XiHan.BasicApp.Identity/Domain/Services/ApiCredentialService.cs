@@ -150,11 +150,11 @@ public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid>
             var found = await FindOwnedAsync(userId, id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var credential))
             {
-                failed.Add(new BatchFailure(id, found.Error!.Code));
+                failed.Add(BatchFailure.From(id, found.Error!));
             }
             else if ((await credentials.RemoveAsync(credential, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {

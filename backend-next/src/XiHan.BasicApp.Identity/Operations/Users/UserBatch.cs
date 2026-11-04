@@ -37,11 +37,11 @@ internal static class UserBatch
         {
             if (!found.TryGetValue(id, out var user) || (tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal)) || !scope.Allows(id))
             {
-                failed.Add(new BatchFailure(id, IdentityErrors.UserNotFound));
+                failed.Add(new BatchFailure(id, IdentityErrors.UserNotFound, IdentityMessages.UserNotFound.L(("id", id))));
             }
             else if (rejectSelf && id == selfId)
             {
-                failed.Add(new BatchFailure(id, IdentityErrors.SelfOperation));
+                failed.Add(new BatchFailure(id, IdentityErrors.SelfOperation, IdentityMessages.SelfOperation.L()));
             }
             else
             {
@@ -69,7 +69,7 @@ internal static class UserBatch
         foreach (var owner in targets.Where(u => owners.Contains(u.Id)).ToList())
         {
             targets.Remove(owner);
-            failed.Add(new BatchFailure(owner.Id, IdentityErrors.TenantOwner));
+            failed.Add(new BatchFailure(owner.Id, IdentityErrors.TenantOwner, IdentityMessages.TenantOwner.L()));
         }
     }
 
@@ -81,7 +81,7 @@ internal static class UserBatch
         foreach (var user in targets.Where(static u => u.IsSystemAccount).ToList())
         {
             targets.Remove(user);
-            failed.Add(new BatchFailure(user.Id, IdentityErrors.SystemAccount));
+            failed.Add(new BatchFailure(user.Id, IdentityErrors.SystemAccount, IdentityMessages.SystemAccount.L()));
         }
     }
 
@@ -99,7 +99,7 @@ internal static class UserBatch
             }
             else
             {
-                failed.Add(new BatchFailure(targets[i].Id, outcomes[i].Error!.Code));
+                failed.Add(BatchFailure.From(targets[i].Id, outcomes[i].Error!));
             }
         }
 

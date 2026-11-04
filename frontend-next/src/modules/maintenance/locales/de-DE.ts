@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: 'Im Code registrierte Jobs können nicht gelöscht werden',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: 'Job anlegen',
       create_title: 'Job anlegen',
@@ -183,12 +182,10 @@ export default {
       task_enabled: 'Aufgabe aktiviert',
       task_disabled: 'Aufgabe deaktiviert',
       toggle_failed: 'Aufgabenstatus konnte nicht aktualisiert werden',
-      job_not_found: 'Aufgabe nicht gefunden',
       rescheduled: 'Zeitplan geändert',
       reschedule_failed: 'Zeitplan konnte nicht geändert werden',
       restored: 'Code-Zeitplan wiederhergestellt',
       restore_failed: 'Code-Zeitplan konnte nicht wiederhergestellt werden',
-      no_code_definition: 'Für diese Aufgabe gibt es keine Code-Definition zum Wiederherstellen',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: 'Kopieren fehlgeschlagen',
       saved: 'Gespeichert',
       key_already_gone: 'Der Schlüssel existiert nicht mehr oder ist abgelaufen',
-      namespace_denied: 'Nicht in einem zur Verwaltung freigegebenen Namensraum',
       batch_deleted: '{count} Schlüssel gelöscht',
       batch_deleted_with_missing: '{count} Schlüssel gelöscht; {missing} existierten nicht mehr',
       batch_delete_partial: 'Löschen abgeschlossen: {success} erfolgreich, {failed} fehlgeschlagen ({reason})',

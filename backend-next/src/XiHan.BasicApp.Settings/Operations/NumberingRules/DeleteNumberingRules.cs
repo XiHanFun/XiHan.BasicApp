@@ -39,19 +39,19 @@ public sealed class DeleteNumberingRules(IRepository<SysNumberingRule, Guid> rul
         {
             if (!found.TryGetValue(id, out var rule) || !NumberingRuleService.IsVisible(rule, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.NumberingRuleNotFound));
+                failed.Add(new BatchFailure(id, SettingsErrors.NumberingRuleNotFound, SettingsMessages.NumberingRuleNotFound.L(("id", id))));
                 continue;
             }
 
             if (!SettingsScope.IsOwnedBy(rule, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", id))));
                 continue;
             }
 
             if (rule.HasAllocated)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.NumberingRuleFrozen));
+                failed.Add(new BatchFailure(id, SettingsErrors.NumberingRuleFrozen, SettingsMessages.NumberingRuleFrozen.L(("code", rule.Code))));
                 continue;
             }
 

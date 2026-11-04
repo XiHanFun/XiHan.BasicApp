@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "El ID de inquilino '{tenantId}' ya está en uso.",
   "tenancy.tenant.admin_initialized": "El inquilino '{tenantId}' ya tiene administrador.",
   "tenancy.tenant.has_users": "El inquilino '{tenantId}' aún tiene {count} usuarios y no se puede eliminar.",
+  "tenancy.tenant.expired": "El inquilino '{tenantId}' ha caducado. Amplíe primero la fecha de caducidad.",
   "tenancy.tenant.platform_only": "Los inquilinos solo se gestionan desde el lado de plataforma.",
   "tenancy.tenant.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
   "tenancy.tenant.sort_unsupported": "La ordenación por '{field}' no es compatible.",

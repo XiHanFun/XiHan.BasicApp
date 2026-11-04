@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, Icon, renderTag, SchemaPage, XCodeEditor, XContentEditorField, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { codegenTemplates } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { enumKey, TEMPLATE_TYPES } from './use-tables'
 import { TEMPLATE_ENGINES, templatesResource, WRITE_MODES } from './use-templates'
 
@@ -183,8 +183,7 @@ async function toggle(row: TemplateRow) {
 async function remove(row: TemplateRow) {
   try {
     const result = await codegenTemplates.delete({ ids: [row.id] })
-    if (result.failed.length > 0)
-      throw new Error(result.failed.map(f => f.code).join('; '))
+    throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
   }

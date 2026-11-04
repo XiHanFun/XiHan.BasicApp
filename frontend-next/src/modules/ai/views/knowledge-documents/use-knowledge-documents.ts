@@ -2,7 +2,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
 import { knowledgeDocuments, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type KnowledgeRow = ResponseOf<'knowledge-documents.list'>['items'][number]
 export type KnowledgeDetail = ResponseOf<'knowledge-documents.get'>
@@ -31,12 +31,6 @@ function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /**
  * SchemaPage 的资源：分页与删除
  * 搜索字段按后端白名单下发：来源类型与状态多选，关键字匹配标题与来源；只看调用方一侧
@@ -47,7 +41,7 @@ export function knowledgeDocumentsResource(): SchemaResource<KnowledgeRow> {
       await knowledgeDocuments.list(toPageRequest(params, { multiples: ['sourceType', 'status'] })),
       params,
     ),
-    remove: async id => failedCodes(await knowledgeDocuments.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await knowledgeDocuments.delete({ ids: [String(id)] })),
   }
 }
 

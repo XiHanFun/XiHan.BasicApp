@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: 'ステータスの更新に失敗しました',
       msg_app_deleted: 'アプリケーションを削除しました',
       msg_delete_failed: 'アプリケーションの削除に失敗しました',
-      msg_app_not_found: 'アプリケーションが存在しないか、削除されています',
     },
   },
 }

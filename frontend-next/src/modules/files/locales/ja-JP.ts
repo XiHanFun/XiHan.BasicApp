@@ -180,10 +180,6 @@ export default {
         storage_status_updated: 'レプリカのステータスを更新しました',
         storage_status_failed: 'レプリカのステータス更新に失敗しました',
       },
-      batch: {
-        not_found: 'ファイルが存在しないか、削除済みです',
-        unavailable: '破損したファイルはアーカイブも復元もできません。先にストレージレプリカで修復してください',
-      },
     },
     storage_configs: {
       title: 'ストレージ設定',
@@ -273,11 +269,6 @@ export default {
         set_default_success: 'デフォルトストレージに設定しました',
         set_default_failed: 'デフォルトストレージの設定に失敗しました',
       },
-      batch: {
-        not_found: 'ストレージ設定が存在しないか、削除済みです',
-        default_locked: 'デフォルトのストレージ設定は削除できません。先に別の設定をデフォルトにしてください',
-        in_use: 'このストレージ設定にはまだファイルのレプリカがあるため削除できません',
-      },
     },
     export_center: {
       title: 'エクスポートセンター',
@@ -333,10 +324,6 @@ export default {
         delete_content: '「{name}」を削除しますか？結果ファイルも削除され、元に戻せません。',
         deleted: '削除しました',
         download_failed: 'ダウンロードに失敗しました',
-      },
-      batch: {
-        not_found: 'エクスポートタスクが存在しないか、削除済みです',
-        processing: '実行中のエクスポートタスクは削除できません。終了するまでお待ちください。',
       },
     },
   },

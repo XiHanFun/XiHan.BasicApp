@@ -329,13 +329,13 @@ public sealed class DeleteAiProviders(IRepository<SysAiProvider, Guid> providers
         {
             if (!found.TryGetValue(id, out var provider))
             {
-                failed.Add(new BatchFailure(id, AIErrors.ProviderNotFound));
+                failed.Add(new BatchFailure(id, AIErrors.ProviderNotFound, AIMessages.ProviderNotFound.L(("id", id))));
                 continue;
             }
 
             if (inUse.Contains(provider.Code))
             {
-                failed.Add(new BatchFailure(id, AIErrors.ProviderInUse));
+                failed.Add(new BatchFailure(id, AIErrors.ProviderInUse, AIMessages.ProviderInUse.L(("code", provider.Code))));
                 continue;
             }
 

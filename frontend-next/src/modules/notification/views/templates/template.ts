@@ -2,7 +2,8 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf, TemplateChannel } from '~/contracts'
 import { messageTemplates as templatesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { assertBatch, MESSAGING_CODE_PATTERN } from '../../labels'
+import { throwOnFailed } from '~/request'
+import { MESSAGING_CODE_PATTERN } from '../../labels'
 
 export type TemplateRow = ResponseOf<'message-templates.list'>['items'][number]
 
@@ -122,10 +123,10 @@ export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'me
 /**
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改
  */
-export function templateResource(t: Translate): SchemaResource<TemplateRow> {
+export function templateResource(): SchemaResource<TemplateRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await templatesApi.list(toPageRequest(params, TEMPLATE_QUERY)), params),
-    remove: async id => assertBatch(t, await templatesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await templatesApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const current = await templatesApi.get({ id: String(id) })
       return templatesApi.update(toUpdateBody({ ...toTemplateForm(current), id: current.id, isEnabled: enabled }))

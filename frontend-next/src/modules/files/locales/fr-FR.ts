@@ -180,10 +180,6 @@ export default {
         storage_status_updated: 'Statut de la copie mis à jour',
         storage_status_failed: 'Échec de la mise à jour du statut de la copie',
       },
-      batch: {
-        not_found: 'Le fichier n’existe pas ou a été supprimé',
-        unavailable: 'Un fichier corrompu ne peut être ni archivé ni restauré ; réparez-le d’abord depuis ses copies de stockage',
-      },
     },
     storage_configs: {
       title: 'Configuration du stockage',
@@ -273,11 +269,6 @@ export default {
         set_default_success: 'Défini comme stockage par défaut',
         set_default_failed: 'Impossible de définir le stockage par défaut',
       },
-      batch: {
-        not_found: 'La configuration de stockage n’existe pas ou a été supprimée',
-        default_locked: 'La configuration de stockage par défaut ne peut pas être supprimée ; définissez d’abord une autre configuration par défaut',
-        in_use: 'La configuration de stockage contient encore des copies de fichiers et ne peut pas être supprimée',
-      },
     },
     export_center: {
       title: 'Centre d’export',
@@ -333,10 +324,6 @@ export default {
         delete_content: 'Supprimer « {name} » ? Son fichier de résultat est aussi supprimé. Cette action est irréversible.',
         deleted: 'Supprimée',
         download_failed: 'Échec du téléchargement',
-      },
-      batch: {
-        not_found: 'La tâche d’export n’existe pas ou a été supprimée',
-        processing: 'Une tâche d’export en cours ne peut pas être supprimée. Attendez qu’elle se termine.',
       },
     },
   },

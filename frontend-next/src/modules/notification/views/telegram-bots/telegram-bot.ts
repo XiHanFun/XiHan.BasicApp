@@ -2,7 +2,7 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { telegramBots as telegramBotsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { assertBatch } from '../../labels'
+import { throwOnFailed } from '~/request'
 
 export type TelegramBotRow = ResponseOf<'telegram-bots.list'>['items'][number]
 
@@ -135,10 +135,10 @@ export function toUpdateBody(form: TelegramBotForm & { id: string }): RequestOf<
 /**
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（令牌不带即保留）
  */
-export function telegramBotResource(t: Translate): SchemaResource<TelegramBotRow> {
+export function telegramBotResource(): SchemaResource<TelegramBotRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await telegramBotsApi.list(toPageRequest(params, TELEGRAM_BOT_QUERY)), params),
-    remove: async id => assertBatch(t, await telegramBotsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await telegramBotsApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const current = await telegramBotsApi.get({ id: String(id) })
       return telegramBotsApi.update(toUpdateBody({ ...toTelegramBotForm(current), id: current.id, isEnabled: enabled }))

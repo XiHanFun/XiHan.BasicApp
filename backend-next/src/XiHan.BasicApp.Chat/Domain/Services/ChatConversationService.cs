@@ -224,15 +224,15 @@ public sealed class ChatConversationService(
         {
             if (userId == caller.UserId)
             {
-                failed.Add(new BatchFailure(userId, ChatErrors.SelfTarget));
+                failed.Add(new BatchFailure(userId, ChatErrors.SelfTarget, ChatMessages.SelfTarget.L()));
             }
             else if (!current.TryGetValue(userId, out var member))
             {
-                failed.Add(new BatchFailure(userId, ChatErrors.NotMember));
+                failed.Add(new BatchFailure(userId, ChatErrors.NotMember, ChatMessages.NotMember.L()));
             }
             else if (conversation.OwnerUserId == userId)
             {
-                failed.Add(new BatchFailure(userId, ChatErrors.OwnerCannotLeave));
+                failed.Add(new BatchFailure(userId, ChatErrors.OwnerCannotLeave, ChatMessages.OwnerCannotLeave.L()));
             }
             else
             {
@@ -473,13 +473,13 @@ public sealed class ChatConversationService(
         {
             if (!byUser.TryGetValue(userId, out var target))
             {
-                failed.Add(new BatchFailure(userId, ChatErrors.NotMember));
+                failed.Add(new BatchFailure(userId, ChatErrors.NotMember, ChatMessages.NotMember.L()));
                 continue;
             }
 
             if (target.Role is ChatMemberRole.Owner or ChatMemberRole.Admin)
             {
-                failed.Add(new BatchFailure(userId, ChatErrors.SilenceProtected));
+                failed.Add(new BatchFailure(userId, ChatErrors.SilenceProtected, ChatMessages.SilenceProtected.L()));
                 continue;
             }
 

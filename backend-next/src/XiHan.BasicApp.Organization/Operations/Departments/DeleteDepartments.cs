@@ -44,13 +44,13 @@ public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departmen
         {
             if (!found.TryGetValue(id, out var department))
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.DepartmentNotFound));
+                failed.Add(new BatchFailure(id, OrganizationErrors.DepartmentNotFound, OrganizationMessages.DepartmentNotFound.L(("id", id))));
                 continue;
             }
 
             if (await service.ChildCountAsync(id, context.CancellationToken).ConfigureAwait(false) > 0 || await service.MemberCountAsync(id, context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.DepartmentInUse));
+                failed.Add(new BatchFailure(id, OrganizationErrors.DepartmentInUse, OrganizationMessages.DepartmentInUse.L(("id", id))));
                 continue;
             }
 

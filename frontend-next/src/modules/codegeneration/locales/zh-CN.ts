@@ -166,7 +166,6 @@ export default {
         update_status_remark: '前端更新数据源状态',
         title: '数据源',
         form_connection_string_edit: '连接字符串（留空不修改）',
-        in_use: '数据源仍被表配置引用，不能删除',
         connection_string_set: '已设显式连接串',
       },
       template: {

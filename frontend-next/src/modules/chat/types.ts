@@ -166,9 +166,9 @@ export interface ChatApiContract {
   openSingleConversation: (peerUserId: string) => Promise<ChatConversationOpenResult>
   createGroupConversation: (conversationName: string, memberUserIds: string[]) => Promise<ChatConversationOpenResult>
   openDepartmentConversation: (departmentId: string) => Promise<ChatConversationOpenResult>
-  /** 加成员；逐项失败的抛出（带错误码） */
+  /** 加成员；逐项失败的抛出（带原因） */
   addMembers: (conversationId: string, userIds: string[]) => Promise<void>
-  /** 移出成员；逐项失败的抛出（带错误码） */
+  /** 移出成员；逐项失败的抛出（带原因） */
   removeMember: (conversationId: string, userId: string) => Promise<void>
   /** 主动退群：退出对象恒为当前登录用户，只要会话读权限，不要群治理权限 */
   leaveConversation: (conversationId: string) => Promise<void>
@@ -179,7 +179,7 @@ export interface ChatApiContract {
   editMessage: (messageId: string, content: string) => Promise<ChatMessageItem>
   /** 表情回应开关：再点同一个即取消 */
   toggleReaction: (messageId: string, emoji: string) => Promise<{ added: boolean }>
-  /** 转发到一个或多个会话（服务端原样复制类型、正文与附件）；逐项失败的抛出（带错误码） */
+  /** 转发到一个或多个会话（服务端原样复制类型、正文与附件）；逐项失败的抛出（带原因） */
   forwardMessage: (messageId: string, conversationIds: string[]) => Promise<void>
   /** Pin / 取消 Pin 消息 */
   pinMessage: (messageId: string) => Promise<void>
@@ -190,7 +190,7 @@ export interface ChatApiContract {
   /** 群治理：信息编辑 / 转让群主 / 成员禁言（群主与管理员） */
   updateConversationInfo: (input: ChatConversationInfoUpdateInput) => Promise<void>
   transferOwner: (conversationId: string, newOwnerUserId: string) => Promise<void>
-  /** 禁言或解除；逐项失败的抛出（带错误码） */
+  /** 禁言或解除；逐项失败的抛出（带原因） */
   setMemberSilence: (conversationId: string, userId: string, isSilenced: boolean) => Promise<void>
   /** 设置成员角色（仅群主；Admin ↔ Member） */
   setMemberRole: (conversationId: string, userId: string, memberRole: Exclude<ChatMemberRole, 'Owner'>) => Promise<void>

@@ -2,7 +2,8 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { emailConfigs as emailConfigsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { assertBatch, MESSAGING_CODE_PATTERN } from '../../labels'
+import { throwOnFailed } from '~/request'
+import { MESSAGING_CODE_PATTERN } from '../../labels'
 
 export type EmailConfigRow = ResponseOf<'email-configs.list'>['items'][number]
 
@@ -126,10 +127,10 @@ export function toUpdateBody(form: EmailConfigForm & { id: string }): RequestOf<
  * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（密码不带即保留）；
  * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
-export function emailConfigResource(t: Translate): SchemaResource<EmailConfigRow> {
+export function emailConfigResource(): SchemaResource<EmailConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await emailConfigsApi.list(toPageRequest(params, EMAIL_CONFIG_QUERY)), params),
-    remove: async id => assertBatch(t, await emailConfigsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await emailConfigsApi.delete({ ids: [String(id)] })),
     updateStatus: async (id, enabled) => {
       const current = await emailConfigsApi.get({ id: String(id) })
       return emailConfigsApi.update(toUpdateBody({ ...toEmailConfigForm(current), id: current.id, isEnabled: enabled }))

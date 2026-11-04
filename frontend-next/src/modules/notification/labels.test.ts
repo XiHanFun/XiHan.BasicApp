@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import { LOCALES } from '~/locales'
-import { assertBatch, enabledOptions, MESSAGING_CODE_PATTERN, messagingFailureMessage, sendStatusLabel, sendStatusTone, smsProviderLabel, templateChannelLabel } from './labels'
+import { enabledOptions, MESSAGING_CODE_PATTERN, sendStatusLabel, sendStatusTone, smsProviderLabel, templateChannelLabel } from './labels'
 
 /** 假翻译：键原样返回 */
 const t = (key: string) => key
@@ -38,17 +38,6 @@ describe('发送记录、模板与配置共用的文案', () => {
     expect(MESSAGING_CODE_PATTERN.test('smtp main')).toBe(false)
     expect(MESSAGING_CODE_PATTERN.test('a'.repeat(64))).toBe(true)
     expect(MESSAGING_CODE_PATTERN.test('a'.repeat(65))).toBe(false)
-  })
-
-  it('批量结果逐项拒绝即抛错：认得的错误码翻成文案、去重后拼成一条，其余原样', () => {
-    expect(messagingFailureMessage(t, 'NOTIFICATION_CONFLICT_005')).toBe('notification.messaging.failures.default_locked')
-    expect(messagingFailureMessage(t, 'NOTIFICATION_CONFLICT_006')).toBe('notification.messaging.failures.record_busy')
-    expect(messagingFailureMessage(t, 'NOTIFICATION_CONFLICT_007')).toBe('notification.messaging.failures.record_not_pending')
-    expect(messagingFailureMessage(t, 'NOTIFICATION_NOTFOUND_007')).toBe('notification.messaging.failures.record_not_found')
-    expect(messagingFailureMessage(t, 'KERNEL_UNEXPECTED_000')).toBe('KERNEL_UNEXPECTED_000')
-    expect(() => assertBatch(t, { failed: [] })).not.toThrow()
-    expect(() => assertBatch(t, { failed: [{ code: 'NOTIFICATION_CONFLICT_006' }, { code: 'NOTIFICATION_CONFLICT_006' }, { code: 'X_1' }] }))
-      .toThrow('notification.messaging.failures.record_busy; X_1')
   })
 })
 

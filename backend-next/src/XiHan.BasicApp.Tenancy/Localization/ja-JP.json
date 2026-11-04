@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "テナント ID '{tenantId}' は既に使用されています。",
   "tenancy.tenant.admin_initialized": "テナント '{tenantId}' には既に管理者がいます。",
   "tenancy.tenant.has_users": "テナント '{tenantId}' にはまだ {count} 人のユーザーがいるため削除できません。",
+  "tenancy.tenant.expired": "テナント '{tenantId}' は有効期限を過ぎています。再開する前に有効期限を延長してください。",
   "tenancy.tenant.platform_only": "テナントはプラットフォーム側からのみ管理できます。",
   "tenancy.tenant.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
   "tenancy.tenant.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",

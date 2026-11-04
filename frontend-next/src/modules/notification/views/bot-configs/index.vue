@@ -15,7 +15,7 @@ import { BOT_WEBHOOK_HOSTS, botConfigProblemMessage, botConfigResource, emptyBot
 defineOptions({ name: 'NotificationBotConfigsView' })
 
 const { t } = useI18n()
-const resource = botConfigResource(t)
+const resource = botConfigResource()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

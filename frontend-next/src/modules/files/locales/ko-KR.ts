@@ -180,10 +180,6 @@ export default {
         storage_status_updated: '사본 상태를 업데이트했어요',
         storage_status_failed: '사본 상태 업데이트에 실패했어요',
       },
-      batch: {
-        not_found: '파일이 없거나 이미 삭제됐어요',
-        unavailable: '손상된 파일은 보관하거나 복원할 수 없어요. 먼저 스토리지 사본에서 복구하세요',
-      },
     },
     storage_configs: {
       title: '스토리지 설정',
@@ -273,11 +269,6 @@ export default {
         set_default_success: '기본 스토리지로 설정했어요',
         set_default_failed: '기본 스토리지 설정에 실패했어요',
       },
-      batch: {
-        not_found: '스토리지 설정이 없거나 이미 삭제됐어요',
-        default_locked: '기본 스토리지 설정은 삭제할 수 없어요. 먼저 다른 설정을 기본으로 지정하세요',
-        in_use: '스토리지 설정에 아직 파일 사본이 있어 삭제할 수 없어요',
-      },
     },
     export_center: {
       title: '내보내기 센터',
@@ -333,10 +324,6 @@ export default {
         delete_content: '"{name}"을(를) 삭제할까요? 결과 파일도 함께 삭제되며 되돌릴 수 없어요.',
         deleted: '삭제했어요',
         download_failed: '다운로드에 실패했어요',
-      },
-      batch: {
-        not_found: '내보내기 작업이 없거나 이미 삭제됐어요',
-        processing: '실행 중인 내보내기 작업은 삭제할 수 없어요. 끝날 때까지 기다려 주세요.',
       },
     },
   },

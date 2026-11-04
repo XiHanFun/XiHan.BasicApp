@@ -131,7 +131,6 @@ export default {
       msg_update_status_failed: '更新状态失败',
       msg_app_deleted: '应用已删除',
       msg_delete_failed: '删除应用失败',
-      msg_app_not_found: '应用不存在或已删除',
     },
   },
 }

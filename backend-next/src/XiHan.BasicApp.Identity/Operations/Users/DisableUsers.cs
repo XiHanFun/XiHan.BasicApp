@@ -81,7 +81,7 @@ public sealed class EnableUsers(IRepository<SysUser, Guid> users) : IOperation<U
         var disabled = targets.Where(static u => u.Status == UserStatus.Disabled).ToList();
         var untouched = targets.Where(static u => u.Status == UserStatus.Active).Select(static u => u.Id).ToList();
         var locked = targets.Where(static u => u.Status == UserStatus.Locked)
-            .Select(static u => new BatchFailure(u.Id, IdentityErrors.UserLocked))
+            .Select(static u => new BatchFailure(u.Id, IdentityErrors.UserLocked, IdentityMessages.UserLocked.L(("name", u.UserName))))
             .ToList();
         foreach (var user in disabled)
         {

@@ -4,7 +4,6 @@ import { toPageRequest } from '~/contracts'
 import { QueryOperator } from '~/types/contracts'
 import {
   accessLevelLabel,
-  batchFailureMessage,
   canPreview,
   canSetPrimary,
   defaultExpiry,
@@ -87,12 +86,6 @@ describe('文件列表的后端筛选', () => {
     expect(normalizeExtension(' .Md ')).toBe('.md')
     expect(normalizeExtension('')).toBe('')
     expect(normalizeExtension(undefined)).toBeUndefined()
-  })
-
-  it('批量操作的失败码认得的翻成文案，其余原样', () => {
-    expect(batchFailureMessage(t, 'FILES_CONFLICT_005')).toBe('files.library.batch.unavailable')
-    expect(batchFailureMessage(t, 'FILES_NOTFOUND_001')).toBe('files.library.batch.not_found')
-    expect(batchFailureMessage(t, 'X_Y_001')).toBe('X_Y_001')
   })
 })
 

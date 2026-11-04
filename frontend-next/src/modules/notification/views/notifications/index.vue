@@ -65,7 +65,7 @@ defineOptions({ name: 'NotificationNotificationsView' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
-const resource = notificationResource(t)
+const resource = notificationResource()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

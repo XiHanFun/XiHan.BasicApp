@@ -166,7 +166,6 @@ export default {
         update_status_remark: 'Status alterado pela interface',
         title: 'Fonte de dados',
         form_connection_string_edit: 'Cadeia de conexão (deixe em branco para manter)',
-        in_use: 'A fonte de dados ainda é usada por uma configuração de tabela e não pode ser excluída',
         connection_string_set: 'Há uma cadeia de conexão explícita',
       },
       template: {

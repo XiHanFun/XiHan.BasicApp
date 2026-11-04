@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Contracts.Batch;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 using XiHan.Framework.Scheduling.Abstractions.Schedules;
@@ -130,7 +132,18 @@ public sealed record JobBatchResult(IReadOnlyList<string> Succeeded, IReadOnlyLi
 /// </summary>
 /// <param name="Id">作业名</param>
 /// <param name="Code">错误码</param>
-public sealed record JobBatchFailure(string Id, string Code);
+/// <param name="Message">失败原因，已按这次调用的区域本地化，可直接显示</param>
+public sealed record JobBatchFailure(string Id, string Code, string Message)
+{
+    /// <summary>
+    /// 由失败结果得出错误码与文案
+    /// </summary>
+    public static JobBatchFailure From(string id, Error error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+        return new JobBatchFailure(id, error.Code, error.LocalizedMessage());
+    }
+}
 
 /// <summary>
 /// 立即执行作业的结果

@@ -51,7 +51,7 @@ defineOptions({ name: 'MaintenanceJobsView' })
 
 const { t } = useI18n()
 const { hasPermission } = usePermission()
-const resource = jobResource(t)
+const resource = jobResource()
 
 const schemaPageRef = ref<SchemaPageInstance | null>(null)
 /** 新建作业弹窗（页面操作） */
@@ -400,7 +400,7 @@ function handleToggleStatus(row: JobRow) {
 // ── 行操作：删除运行时作业 ───────────────────────────────────
 async function handleDelete(row: JobRow) {
   try {
-    await deleteJob(t, row.name)
+    await deleteJob(row.name)
     toast.success(t('maintenance.jobs.deleted'))
     reloadJob()
   }
@@ -437,7 +437,7 @@ function handleRestore(row: JobRow) {
     onOk: async () => {
       try {
         // 丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；没有代码定义的逐项报错
-        await restoreJobs(t, [row.name])
+        await restoreJobs([row.name])
         toast.success(t('maintenance.jobs.restored'))
         reloadJob()
       }

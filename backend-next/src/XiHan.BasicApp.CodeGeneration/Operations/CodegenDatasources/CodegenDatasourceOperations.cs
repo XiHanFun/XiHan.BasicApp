@@ -295,13 +295,13 @@ public sealed class DeleteCodegenDatasources(IRepository<SysCodeGenDataSource, G
         {
             if (!found.TryGetValue(id, out var source))
             {
-                failed.Add(new BatchFailure(id, CodeGenerationErrors.DataSourceNotFound));
+                failed.Add(new BatchFailure(id, CodeGenerationErrors.DataSourceNotFound, CodeGenerationMessages.DataSourceNotFound.L(("id", id))));
                 continue;
             }
 
             if (await service.InUseAsync(id, context.CancellationToken).ConfigureAwait(false))
             {
-                failed.Add(new BatchFailure(id, CodeGenerationErrors.DataSourceInUse));
+                failed.Add(new BatchFailure(id, CodeGenerationErrors.DataSourceInUse, CodeGenerationMessages.DataSourceInUse.L()));
                 continue;
             }
 

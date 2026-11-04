@@ -2,6 +2,7 @@ import type { NotificationType, RequestOf, ResponseOf } from '~/contracts'
 import type { NotificationItem } from '~/stores'
 import type { NotificationContentFormat as ShellContentFormat, NotificationStatus as ShellStatus, NotificationType as ShellType } from '~/types/enums'
 import { inbox as inboxApi } from '~/contracts'
+import { throwOnFailed } from '~/request'
 
 export type InboxItem = ResponseOf<'inbox.list'>['items'][number]
 export type InboxPage = ResponseOf<'inbox.list'>
@@ -75,20 +76,14 @@ export function toHeaderItem(item: InboxItem): NotificationItem {
   }
 }
 
-/** 批量操作只回失败项的错误码：认得的翻成文案，其余原样 */
-function throwOnFailures(result: { failed: { code: string }[] }, notFound: string): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(failure => (failure.code === 'NOTIFICATION_NOTFOUND_002' ? notFound : failure.code)).join('; '))
-}
-
-/** 标为已读；`notFound` 是条目已不在收件箱时的文案 */
-export async function markRead(id: string, notFound: string): Promise<void> {
-  throwOnFailures(await inboxApi.markRead({ ids: [id] }), notFound)
+/** 标为已读 */
+export async function markRead(id: string): Promise<void> {
+  throwOnFailed(await inboxApi.markRead({ ids: [id] }))
 }
 
 /** 从本人收件箱删除（通知本身不受影响） */
-export async function deleteItem(id: string, notFound: string): Promise<void> {
-  throwOnFailures(await inboxApi.delete({ ids: [id] }), notFound)
+export async function deleteItem(id: string): Promise<void> {
+  throwOnFailed(await inboxApi.delete({ ids: [id] }))
 }
 
 export async function confirmItem(id: string): Promise<void> {

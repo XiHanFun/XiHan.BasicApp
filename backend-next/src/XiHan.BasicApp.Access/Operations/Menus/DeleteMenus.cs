@@ -45,19 +45,19 @@ public sealed class DeleteMenus(IRepository<SysMenu, Guid> menus, MenuService se
             var row = rows.FirstOrDefault(r => r.Id == id);
             if (row is null)
             {
-                failed.Add(new BatchFailure(id, AccessErrors.MenuNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.MenuNotFound, AccessMessages.MenuNotFound.L(("id", id))));
                 continue;
             }
 
             if (row.Kind == MenuKind.Page)
             {
-                failed.Add(new BatchFailure(id, AccessErrors.MenuBuiltIn));
+                failed.Add(new BatchFailure(id, AccessErrors.MenuBuiltIn, AccessMessages.MenuBuiltIn.L(("code", row.Code))));
                 continue;
             }
 
             if (rows.Any(r => r.ParentId == id))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.MenuHasChildren));
+                failed.Add(new BatchFailure(id, AccessErrors.MenuHasChildren, AccessMessages.MenuHasChildren.L(("code", row.Code))));
                 continue;
             }
 

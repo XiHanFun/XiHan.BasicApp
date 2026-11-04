@@ -340,13 +340,13 @@ public sealed class DeletePrintTemplates(IRepository<SysPrintTemplate, Guid> tem
         {
             if (!found.TryGetValue(id, out var template) || !string.Equals(template.OwnerTenantId, side, StringComparison.Ordinal))
             {
-                failed.Add(new BatchFailure(id, PrintingErrors.TemplateNotFound));
+                failed.Add(new BatchFailure(id, PrintingErrors.TemplateNotFound, PrintingMessages.TemplateNotFound.L(("id", id))));
                 continue;
             }
 
             if (template.Status != PrintTemplateStatus.Disabled)
             {
-                failed.Add(new BatchFailure(id, PrintingErrors.TemplateEnabled));
+                failed.Add(new BatchFailure(id, PrintingErrors.TemplateEnabled, PrintingMessages.TemplateEnabled.L()));
                 continue;
             }
 

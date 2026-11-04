@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { aiAssistants } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { assistantsResource, useAssistantEditor } from './use-assistants'
 
 defineOptions({ name: 'AiAssistantsPage' })
@@ -161,8 +162,7 @@ async function handleToggle(row: AssistantRow) {
 async function handleDelete(row: AssistantRow) {
   try {
     const result = await aiAssistants.delete({ ids: [row.id] })
-    if (result.failed.length > 0)
-      throw new Error(result.failed.map(f => f.code).join('; '))
+    throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
   }

@@ -8,6 +8,7 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, renderTag, SchemaPage, XEditModal, XInput, XJsonBlock } from '~/components'
 import { toast } from '~/composables'
 import { toPageRequest, toSchemaPageResult, workflowInstances } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { formatDate } from '~/utils'
 import WorkflowGraphView from '../definitions/designer/WorkflowGraphView.vue'
 import { graphStatuses, instanceStatusTone, nodeStatusTone, nodeTitles, outcomeTone, standardOutcome } from './instance-labels'
@@ -147,12 +148,6 @@ async function handleDetail(row: WorkflowInstanceRow) {
 }
 
 // ── 批量操作的结果 ─────────────────────────────────────────────
-/** 结果里只有失败项的错误码：被后端逐项拒绝时带着错误码报错 */
-function ensureSucceeded(result: { failed: { code: string }[] }) {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(failure => failure.code).join('; '))
-}
-
 // ── 带原因的操作（取消/终止/挂起） ──────────────────────────────
 /** 弹窗底部的确认钮靠这个 id 关联到表单，点它走表单提交 */
 const reasonFormId = useId()
@@ -187,11 +182,11 @@ async function handleReasonConfirm() {
   const input = { ids: [reasonTarget.value.id], reason: reasonText.value.trim() || null }
   try {
     if (reasonAction.value === 'cancel')
-      ensureSucceeded(await workflowInstances.cancel(input))
+      throwOnFailed(await workflowInstances.cancel(input))
     else if (reasonAction.value === 'terminate')
-      ensureSucceeded(await workflowInstances.terminate(input))
+      throwOnFailed(await workflowInstances.terminate(input))
     else
-      ensureSucceeded(await workflowInstances.suspend(input))
+      throwOnFailed(await workflowInstances.suspend(input))
     toast.success(t('workflow.instances.msg_operated'))
     reasonVisible.value = false
     reload()
@@ -207,9 +202,9 @@ async function handleReasonConfirm() {
 async function handleSimple(action: 'retry' | 'resume', row: WorkflowInstanceRow) {
   try {
     if (action === 'retry')
-      ensureSucceeded(await workflowInstances.retry({ ids: [row.id] }))
+      throwOnFailed(await workflowInstances.retry({ ids: [row.id] }))
     else
-      ensureSucceeded(await workflowInstances.resume({ ids: [row.id] }))
+      throwOnFailed(await workflowInstances.resume({ ids: [row.id] }))
     toast.success(t('workflow.instances.msg_operated'))
     reload()
   }

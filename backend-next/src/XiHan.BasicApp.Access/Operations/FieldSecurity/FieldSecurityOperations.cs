@@ -183,7 +183,7 @@ public sealed class DeleteFieldSecurityRules(FieldSecurityService service) : IOp
         {
             if (!(await service.FindAsync(id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var rule))
             {
-                failed.Add(new BatchFailure(id, AccessErrors.FieldRuleNotFound));
+                failed.Add(new BatchFailure(id, AccessErrors.FieldRuleNotFound, AccessMessages.FieldRuleNotFound.L(("id", id))));
                 continue;
             }
 

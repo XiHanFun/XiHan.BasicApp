@@ -33,6 +33,7 @@
   "identity.user.name_taken": "ユーザー名 '{userName}' はテナント '{tenant}' で既に使用されています。",
   "identity.user.tenant_mismatch": "所属テナント '{requested}' が現在のテナント '{current}' と一致しません。",
   "identity.user.self_operation": "自分自身のアカウントに対してこの操作は実行できません。",
+  "identity.user.locked": "ユーザー '{name}' はロックされています。先にロックを解除してください。",
   "identity.user.display_name_blank": "表示名を空白のみにすることはできません。",
   "identity.user.email_invalid": "メールアドレスの形式が正しくありません。",
   "identity.user.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",

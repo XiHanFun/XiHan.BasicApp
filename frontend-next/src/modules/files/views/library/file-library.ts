@@ -1,6 +1,7 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { files as filesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { parseCsvRows } from '~/utils'
 
 export type FileRow = ResponseOf<'files.list'>['items'][number]
@@ -40,28 +41,14 @@ export function normalizeExtension(value: unknown): unknown {
   return extension.startsWith('.') ? extension : `.${extension}`
 }
 
-/** 批量操作只回失败项的错误码：认得的翻成文案，其余原样 */
-export function batchFailureMessage(t: Translate, code: string): string {
-  switch (code) {
-    case 'FILES_NOTFOUND_001': return t('files.library.batch.not_found')
-    case 'FILES_CONFLICT_005': return t('files.library.batch.unavailable')
-    default: return code
-  }
-}
-
-export function throwOnFailed(t: Translate, result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(failure => batchFailureMessage(t, failure.code)).join('; '))
-}
-
 /** SchemaPage 的资源：分页（缺省按上传时间倒序）与删除（内容不再被别的文件用到时随之从存储里删除） */
-export function fileResource(t: Translate): SchemaResource<FileRow> {
+export function fileResource(): SchemaResource<FileRow> {
   return {
     page: async (params: SchemaQueryParams) => {
       const normalized = { ...params, filters: { ...params.filters, extension: normalizeExtension(params.filters.extension) } }
       return toSchemaPageResult(await filesApi.list(toPageRequest(normalized, FILE_QUERY)), params)
     },
-    remove: async id => throwOnFailed(t, await filesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await filesApi.delete({ ids: [String(id)] })),
   }
 }
 

@@ -12,6 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { aiPrompts } from '~/contracts'
+import { throwOnFailed } from '~/request'
 import { promptsResource, usePromptEditor } from './use-prompts'
 
 defineOptions({ name: 'AiPromptsPage' })
@@ -119,8 +120,7 @@ async function handleToggle(row: PromptRow) {
 async function handleDelete(row: PromptRow) {
   try {
     const result = await aiPrompts.delete({ ids: [row.id] })
-    if (result.failed.length > 0)
-      throw new Error(result.failed.map(f => f.code).join('; '))
+    throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
   }

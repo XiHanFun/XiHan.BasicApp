@@ -128,15 +128,15 @@ describe('我的消息的操作', () => {
       { count: 1 },
       { count: 3 },
       { succeeded: ['i1'], failed: [] },
-      { succeeded: [], failed: [{ id: 'i2', code: 'NOTIFICATION_NOTFOUND_002' }] },
-      { succeeded: [], failed: [{ id: 'i3', code: 'KERNEL_UNEXPECTED_000' }] },
+      { succeeded: [], failed: [{ id: 'i2', code: 'NOTIFICATION_NOTFOUND_002', message: 'NOTIFICATION_NOTFOUND_002 的原因' }] },
+      { succeeded: [], failed: [{ id: 'i3', code: 'KERNEL_UNEXPECTED_000', message: 'KERNEL_UNEXPECTED_000 的原因' }] },
     )
-    await markRead('i1', 'gone')
+    await markRead('i1')
     await confirmItem('i1')
     expect(await markAllRead()).toBe(3)
-    await deleteItem('i1', 'gone')
-    await expect(deleteItem('i2', 'gone')).rejects.toThrow('gone')
-    await expect(markRead('i3', 'gone')).rejects.toThrow('KERNEL_UNEXPECTED_000')
+    await deleteItem('i1')
+    await expect(deleteItem('i2')).rejects.toThrow('NOTIFICATION_NOTFOUND_002 的原因')
+    await expect(markRead('i3')).rejects.toThrow('KERNEL_UNEXPECTED_000 的原因')
     expect(calls.map(call => `${call.method} ${call.url}`)).toEqual([
       'POST /api/inbox:mark-read',
       'POST /api/inbox/i1:confirm',

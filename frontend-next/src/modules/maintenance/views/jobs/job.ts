@@ -2,7 +2,7 @@ import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource, SchemaSelectOption } from '~/components'
 import type { JobRetryBackoff, JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, RequestOf, ResponseOf, TriggerState } from '~/contracts'
 import { jobRuns as jobRunsApi, jobs as jobsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { formatSeconds } from '../caches/cache'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
@@ -233,24 +233,6 @@ export function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error ?? '')
 }
 
-/** 批量暂停 / 恢复 / 恢复代码计划只回失败项的错误码：认得的翻成文案，其余原样 */
-export function batchFailureMessage(t: Translate, code: string): string {
-  switch (code) {
-    case 'MAINTENANCE_NOTFOUND_001': return t('maintenance.jobs.job_not_found')
-    // 恢复代码计划：作业没有代码定义（运行时登记的作业没有可恢复的定义）
-    case 'SCHEDULING_NOTFOUND_005': return t('maintenance.jobs.no_code_definition')
-    // 删除：代码登记的作业（含改过计划的）不能删
-    case 'MAINTENANCE_CONFLICT_004': return t('maintenance.jobs.code_job_undeletable')
-    default: return code
-  }
-}
-
-/** 批量结果里有失败项即抛错：逐项原因去重后拼成一条 */
-export function assertBatch(t: Translate, result: { failed: readonly { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error([...new Set(result.failed.map(failure => batchFailureMessage(t, failure.code)))].join('; '))
-}
-
 /**
  * 列表的后端筛选：关键字匹配作业名、显示名与说明；触发类型、启停与登记来源精确匹配；作业类型多选（`in`，逗号分隔）；
  * 运行状态不是后端字段，由 runStatusFilters 换成 running / paused 两条
@@ -269,7 +251,7 @@ export function toJobsRequest(params: SchemaQueryParams): PageRequest {
 }
 
 /** SchemaPage 的资源：分页与启停（启用即恢复、停用即暂停；没有新增、编辑与删除——作业在代码里登记） */
-export function jobResource(t: Translate): SchemaResource<JobRow> {
+export function jobResource(): SchemaResource<JobRow> {
   return {
     page: async (params: SchemaQueryParams) => {
       const result = await jobsApi.list(toJobsRequest(params))
@@ -277,7 +259,7 @@ export function jobResource(t: Translate): SchemaResource<JobRow> {
     },
     updateStatus: async (id, enabled) => {
       const request = { ids: [String(id)] }
-      assertBatch(t, enabled ? await jobsApi.resume(request) : await jobsApi.pause(request))
+      throwOnFailed(enabled ? await jobsApi.resume(request) : await jobsApi.pause(request))
     },
   }
 }
@@ -351,8 +333,8 @@ export async function previewSchedule(form: ScheduleForm): Promise<SchedulePrevi
 }
 
 /** 恢复代码计划（按作业名批量）：丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；逐项失败翻成文案抛出 */
-export async function restoreJobs(t: Translate, names: readonly string[]): Promise<void> {
-  assertBatch(t, await jobsApi.restore({ ids: [...names] }))
+export async function restoreJobs(names: readonly string[]): Promise<void> {
+  throwOnFailed(await jobsApi.restore({ ids: [...names] }))
 }
 
 /** 间隔秒数写成计划的文本写法：`every [d.]hh:mm:ss`（后端按 TimeSpan 的 c 格式解析） */
@@ -486,9 +468,9 @@ export async function createJob(form: JobCreateForm): Promise<JobResponse> {
   return jobsApi.create(toCreateRequest(form))
 }
 
-/** 删除一个运行时作业（DELETE jobs?ids=）；代码登记的与不存在的翻成文案抛出 */
-export async function deleteJob(t: Translate, name: string): Promise<void> {
-  assertBatch(t, await jobsApi.delete({ ids: [name] }))
+/** 删除一个运行时作业（DELETE jobs?ids=）；代码登记的与不存在的带着原因抛出 */
+export async function deleteJob(name: string): Promise<void> {
+  throwOnFailed(await jobsApi.delete({ ids: [name] }))
 }
 
 /** 能否删除：只有运行时登记的作业 */

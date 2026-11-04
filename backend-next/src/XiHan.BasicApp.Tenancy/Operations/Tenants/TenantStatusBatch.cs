@@ -20,7 +20,7 @@ internal static class TenantStatusBatch
     /// <summary>
     /// 执行一批
     /// </summary>
-    public static async ValueTask<Result<BatchResult>> RunAsync(TenantIdsRequest request, InvocationContext context, IRepository<SysTenant, Guid> tenants, TenantService service, TenantStatus target, Func<SysTenant, string?>? refuse = null)
+    public static async ValueTask<Result<BatchResult>> RunAsync(TenantIdsRequest request, InvocationContext context, IRepository<SysTenant, Guid> tenants, TenantService service, TenantStatus target, Func<SysTenant, Error?>? refuse = null)
     {
         if (TenantService.RequirePlatform(context) is { } denied)
         {
@@ -34,15 +34,15 @@ internal static class TenantStatusBatch
         {
             if (!found.TryGetValue(id, out var tenant))
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.TenantNotFound));
+                failed.Add(new BatchFailure(id, TenancyErrors.TenantNotFound, TenancyMessages.TenantNotFound.L(("id", id))));
                 continue;
             }
 
             if (tenant.Status != target)
             {
-                if (refuse?.Invoke(tenant) is { } code)
+                if (refuse?.Invoke(tenant) is { } refused)
                 {
-                    failed.Add(new BatchFailure(id, code));
+                    failed.Add(BatchFailure.From(id, refused));
                     continue;
                 }
 

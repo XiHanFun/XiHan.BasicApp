@@ -54,10 +54,10 @@ afterEach(() => {
 })
 
 describe('批量操作的逐项失败', () => {
-  it('移出成员走批量接口，被逐项拒绝时带着错误码抛出', async () => {
-    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'u-2', code: 'CHAT_DENIED_004' }] }))
+  it('移出成员走批量接口，被逐项拒绝时带着原因抛出', async () => {
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'u-2', code: 'CHAT_DENIED_004', message: 'CHAT_DENIED_004 的原因' }] }))
 
-    await expect(createChatApi().removeMember('c-1', 'u-2')).rejects.toThrow('CHAT_DENIED_004')
+    await expect(createChatApi().removeMember('c-1', 'u-2')).rejects.toThrow('CHAT_DENIED_004 的原因')
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/chat-conversations:remove-members', body: { conversationId: 'c-1', userIds: ['u-2'] } })
   })
 
@@ -70,9 +70,9 @@ describe('批量操作的逐项失败', () => {
   })
 
   it('转发是服务端操作：目标会话逐项失败时抛出', async () => {
-    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'c-9', code: 'CHAT_NOTFOUND_001' }] }))
+    const calls = record(() => json(200, { succeeded: [], failed: [{ id: 'c-9', code: 'CHAT_NOTFOUND_001', message: 'CHAT_NOTFOUND_001 的原因' }] }))
 
-    await expect(createChatApi().forwardMessage('m-1', ['c-9'])).rejects.toThrow('CHAT_NOTFOUND_001')
+    await expect(createChatApi().forwardMessage('m-1', ['c-9'])).rejects.toThrow('CHAT_NOTFOUND_001 的原因')
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/chat-messages:forward', body: { messageId: 'm-1', conversationIds: ['c-9'] } })
   })
 })

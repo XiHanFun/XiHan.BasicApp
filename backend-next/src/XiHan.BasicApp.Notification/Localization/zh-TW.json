@@ -138,6 +138,7 @@
   "notification.config.default_locked": "設定 {code} 是預設設定（或未啟用）：預設設定須啟用，不能停用或刪除。",
   "notification.record.busy": "這筆紀錄正在排隊或發送中。",
   "notification.record.not_pending": "只有排隊中的紀錄能取消。",
+  "notification.record.not_resendable": "驗證碼記錄不能重發，請讓使用者重新取得。",
   "notification.template.invalid": "範本有誤：{detail}",
   "notification.email.address_invalid": "郵件地址 {address} 格式不正確。",
   "notification.sms_config.template_map_invalid": "範本對應須是 JSON 物件（範本編碼 → 服務商範本 ID）。",

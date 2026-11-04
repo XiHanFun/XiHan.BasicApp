@@ -19,6 +19,7 @@
   "tenancy.tenant.id_taken": "租户 ID '{tenantId}' 已被占用。",
   "tenancy.tenant.admin_initialized": "租户 '{tenantId}' 已有管理员。",
   "tenancy.tenant.has_users": "租户 '{tenantId}' 下还有 {count} 个用户，不能删除。",
+  "tenancy.tenant.expired": "租户 '{tenantId}' 已过到期时间，要先延长到期时间才能恢复。",
   "tenancy.tenant.platform_only": "租户只能在平台侧管理。",
   "tenancy.tenant.filter_unsupported": "不支持筛选 '{field} {operator}'。",
   "tenancy.tenant.sort_unsupported": "不支持按 '{field}' 排序。",

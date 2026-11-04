@@ -122,11 +122,11 @@ describe('平台托管的 Telegram 机器人：表单', () => {
     expect(toUpdateBody({ ...filled, id: 'g1' })).toMatchObject({ id: 'g1', token: null, allowedCommands: 'start,help', remark: null })
   })
 
-  it('启停取最新一份再整体修改（不带令牌）；删除逐项拒绝时翻成文案', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'g1', code: 'NOTIFICATION_NOTFOUND_009' }] })
-    const resource = telegramBotResource(t)
+  it('启停取最新一份再整体修改（不带令牌）；删除逐项拒绝时带着原因抛出', async () => {
+    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'g1', code: 'NOTIFICATION_NOTFOUND_009', message: 'NOTIFICATION_NOTFOUND_009 的原因' }] })
+    const resource = telegramBotResource()
     await resource.updateStatus!('g1', false)
-    await expect(resource.remove!('g1')).rejects.toThrow('notification.messaging.failures.bot_not_found')
+    await expect(resource.remove!('g1')).rejects.toThrow('NOTIFICATION_NOTFOUND_009 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/telegram-bots/g1' })
     expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/telegram-bots/g1', body: { isEnabled: false, token: null, broadcastChatIds: '-1001234567890,-1009876543210' } })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/telegram-bots?ids=g1' })

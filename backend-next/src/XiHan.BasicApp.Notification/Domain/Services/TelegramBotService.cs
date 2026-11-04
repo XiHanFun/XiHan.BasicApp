@@ -132,11 +132,11 @@ public sealed partial class TelegramBotService(IRepository<SysTelegramBot, Guid>
             var found = await FindAsync(id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var bot))
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.TelegramBotNotFound));
+                failed.Add(new BatchFailure(id, NotificationErrors.TelegramBotNotFound, NotificationMessages.TelegramBotNotFound.L(("id", id))));
             }
             else if ((await bots.RemoveAsync(bot, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {

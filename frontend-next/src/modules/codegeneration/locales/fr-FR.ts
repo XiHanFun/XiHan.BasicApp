@@ -166,7 +166,6 @@ export default {
         update_status_remark: 'Statut modifié depuis l’interface',
         title: 'Source de données',
         form_connection_string_edit: 'Chaîne de connexion (laisser vide pour conserver)',
-        in_use: 'La source de données est encore utilisée par une configuration de table et ne peut pas être supprimée',
         connection_string_set: 'Une chaîne de connexion explicite est définie',
       },
       template: {

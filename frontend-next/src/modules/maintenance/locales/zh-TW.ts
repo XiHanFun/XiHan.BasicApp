@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: '程式碼登記的作業不能刪除',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: '新增作業',
       create_title: '新增作業',
@@ -183,12 +182,10 @@ export default {
       task_enabled: '任務已啟用',
       task_disabled: '任務已停用',
       toggle_failed: '更新任務狀態失敗',
-      job_not_found: '任務不存在',
       rescheduled: '排程已修改',
       reschedule_failed: '修改排程失敗',
       restored: '已恢復程式碼排程',
       restore_failed: '恢復程式碼排程失敗',
-      no_code_definition: '任務沒有程式碼定義，無法恢復',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: '複製失敗',
       saved: '已儲存',
       key_already_gone: '鍵已不存在或已過期',
-      namespace_denied: '不在開放管理的命名空間中',
       batch_deleted: '已刪除 {count} 個鍵',
       batch_deleted_with_missing: '已刪除 {count} 個鍵，另有 {missing} 個已不存在',
       batch_delete_partial: '刪除完成：成功 {success} 個，失敗 {failed} 個（{reason}）',

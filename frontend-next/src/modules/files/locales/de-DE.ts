@@ -180,10 +180,6 @@ export default {
         storage_status_updated: 'Status der Kopie aktualisiert',
         storage_status_failed: 'Status der Kopie konnte nicht aktualisiert werden',
       },
-      batch: {
-        not_found: 'Die Datei existiert nicht oder wurde gelöscht',
-        unavailable: 'Eine beschädigte Datei kann weder archiviert noch wiederhergestellt werden; reparieren Sie sie zuerst über ihre Speicherkopien',
-      },
     },
     storage_configs: {
       title: 'Speicherkonfiguration',
@@ -273,11 +269,6 @@ export default {
         set_default_success: 'Als Standardspeicher festgelegt',
         set_default_failed: 'Standardspeicher konnte nicht festgelegt werden',
       },
-      batch: {
-        not_found: 'Die Speicherkonfiguration existiert nicht oder wurde gelöscht',
-        default_locked: 'Die Standard-Speicherkonfiguration kann nicht gelöscht werden; legen Sie zuerst eine andere Konfiguration als Standard fest',
-        in_use: 'Die Speicherkonfiguration enthält noch Dateikopien und kann nicht gelöscht werden',
-      },
     },
     export_center: {
       title: 'Exportcenter',
@@ -333,10 +324,6 @@ export default {
         delete_content: 'Möchten Sie „{name}“ wirklich löschen? Die Ergebnisdatei wird ebenfalls gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.',
         deleted: 'Gelöscht',
         download_failed: 'Download fehlgeschlagen',
-      },
-      batch: {
-        not_found: 'Die Exportaufgabe existiert nicht oder wurde gelöscht',
-        processing: 'Eine laufende Exportaufgabe kann nicht gelöscht werden. Warten Sie, bis sie abgeschlossen ist.',
       },
     },
   },

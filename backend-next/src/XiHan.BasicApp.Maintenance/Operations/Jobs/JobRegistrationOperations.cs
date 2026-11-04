@@ -167,15 +167,15 @@ public sealed class DeleteJobs(IJobScheduler scheduler) : IOperation<JobIdsReque
             var found = JobName.IsValid(id) ? await scheduler.StatusAsync(new JobName(id), context.CancellationToken).ConfigureAwait(false) : Result.Success(Maybe.None<JobStatus>());
             if (!found.TryGetValue(out var maybe))
             {
-                failed.Add(new JobBatchFailure(id, found.Error!.Code));
+                failed.Add(JobBatchFailure.From(id, found.Error!));
             }
             else if (!maybe.TryGetValue(out var status))
             {
-                failed.Add(new JobBatchFailure(id, MaintenanceErrors.JobNotFound));
+                failed.Add(new JobBatchFailure(id, MaintenanceErrors.JobNotFound, MaintenanceMessages.JobNotFound.L(("name", id))));
             }
             else if (status.Job.Source != JobSource.Runtime)
             {
-                failed.Add(new JobBatchFailure(id, MaintenanceErrors.JobFromCode));
+                failed.Add(new JobBatchFailure(id, MaintenanceErrors.JobFromCode, MaintenanceMessages.JobFromCode.L()));
             }
             else
             {
@@ -194,7 +194,7 @@ public sealed class DeleteJobs(IJobScheduler scheduler) : IOperation<JobIdsReque
                 }
                 else
                 {
-                    failed.Add(new JobBatchFailure(removable[i].Value, outcomes[i].Error!.Code));
+                    failed.Add(JobBatchFailure.From(removable[i].Value, outcomes[i].Error!));
                 }
             }
         }

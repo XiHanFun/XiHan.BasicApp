@@ -33,6 +33,7 @@
   "identity.user.name_taken": "Der Benutzername '{userName}' ist im Mandanten '{tenant}' bereits vergeben.",
   "identity.user.tenant_mismatch": "Der Heimatmandant '{requested}' weicht vom aktuellen Mandanten '{current}' ab.",
   "identity.user.self_operation": "Dieser Vorgang kann nicht auf das eigene Konto angewendet werden.",
+  "identity.user.locked": "Der Benutzer '{name}' ist gesperrt. Entsperren Sie ihn zuerst.",
   "identity.user.display_name_blank": "Der Anzeigename darf nicht nur aus Leerzeichen bestehen.",
   "identity.user.email_invalid": "Die E-Mail-Adresse ist nicht wohlgeformt.",
   "identity.user.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",

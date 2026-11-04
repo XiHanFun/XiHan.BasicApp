@@ -143,7 +143,6 @@ export default {
       publish_confirm_content: '确定发布「{title}」吗？{target}发布后不可再编辑。',
       publish_positive: '发布',
       // 提示
-      msg_not_found: '公告不存在',
       msg_load_detail_failed: '加载公告详情失败',
       msg_load_failed: '加载公告失败',
       msg_load_targets_failed: '加载接收对象失败',
@@ -186,16 +185,6 @@ export default {
       },
       enabled: '启用',
       disabled: '停用',
-      failures: {
-        template_other_side: '平台的模板只能在平台维护',
-        template_not_found: '模板不存在',
-        config_not_found: '配置不存在',
-        bot_not_found: '机器人不存在',
-        record_not_found: '记录不存在',
-        default_locked: '默认配置不能删除或停用',
-        record_busy: '记录正在排队或发送中，暂不能操作',
-        record_not_pending: '只能取消还在排队的记录',
-      },
     },
     messages: {
       title: '邮件短信',
@@ -644,7 +633,6 @@ export default {
       no_content: '无正文',
       read_at: '已读 {time}',
       confirmed_at: '已确认 {time}',
-      msg_not_found: '这条消息已不在收件箱',
       load_failed: '加载站内信失败',
       mark_read_failed: '标记已读失败',
       confirm_failed: '确认通知失败',

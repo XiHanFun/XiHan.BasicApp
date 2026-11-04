@@ -166,7 +166,6 @@ export default {
         update_status_remark: '前端更新資料來源狀態',
         title: '資料來源',
         form_connection_string_edit: '連線字串（留空不修改）',
-        in_use: '資料來源仍被資料表設定引用，不能刪除',
         connection_string_set: '已設定明確的連線字串',
       },
       template: {

@@ -335,13 +335,13 @@ public sealed partial class FileService(
         {
             if (!(await rows.FindAsync<SysFile>(side, id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var file))
             {
-                failed.Add(new BatchFailure(id, FilesErrors.FileNotFound));
+                failed.Add(new BatchFailure(id, FilesErrors.FileNotFound, FilesMessages.FileNotFound.L(("id", id))));
                 continue;
             }
 
             if (file.Status == FileStatus.Corrupted)
             {
-                failed.Add(new BatchFailure(id, FilesErrors.FileUnavailable));
+                failed.Add(new BatchFailure(id, FilesErrors.FileUnavailable, FilesMessages.FileUnavailable.L(("status", file.Status))));
                 continue;
             }
 
@@ -376,7 +376,7 @@ public sealed partial class FileService(
         {
             if (!(await rows.FindAsync<SysFile>(side, id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var file))
             {
-                failed.Add(new BatchFailure(id, FilesErrors.FileNotFound));
+                failed.Add(new BatchFailure(id, FilesErrors.FileNotFound, FilesMessages.FileNotFound.L(("id", id))));
                 continue;
             }
 

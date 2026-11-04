@@ -5,7 +5,7 @@ import type { SelectOption, TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
 import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { departments as departmentsApi, memberships as membershipsApi, positions as positionsApi, users as usersApi } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 
 export type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
 export type DepartmentRecord = DepartmentNode['department']
@@ -73,12 +73,6 @@ function isBlank(value: unknown): boolean {
   return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
 }
 
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-
 /** departments.tree 的节点（部门 + 成员数 + 子节点）→ SchemaPage 树表的行 */
 export function toDepartmentRows(nodes: DepartmentNode[]): DepartmentRow[] {
   return nodes.map(node => ({ ...node.department, memberCount: Number(node.memberCount), children: toDepartmentRows(node.children) }))
@@ -126,7 +120,7 @@ export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): S
         onTree?.(toDepartmentRows(whole.items))
       return toDepartmentRows(matched.items)
     },
-    remove: async id => failedCodes(await departmentsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await departmentsApi.delete({ ids: [String(id)] })),
     // 更新是整体替换：先取当前值再只改状态（类型、负责人、联系方式原样带回）
     updateStatus: async (id, enabled) => {
       const { department } = await departmentsApi.get({ id: String(id) })
@@ -522,5 +516,5 @@ export async function setPrimaryMembership(member: MembershipRow): Promise<void>
 
 /** 移出部门：被后端逐项拒绝时带着错误码抛出 */
 export async function removeMembership(id: string): Promise<void> {
-  failedCodes(await membershipsApi.delete({ ids: [id] }))
+  throwOnFailed(await membershipsApi.delete({ ids: [id] }))
 }

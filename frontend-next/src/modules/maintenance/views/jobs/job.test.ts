@@ -4,9 +4,7 @@ import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 import {
   activeTriggerCount,
-  assertBatch,
   backoffOptions,
-  batchFailureMessage,
   blankRetry,
   canDelete,
   canReschedule,
@@ -193,26 +191,25 @@ describe('任务调度：列表筛选', () => {
 describe('任务调度：资源', () => {
   it('分页：POST jobs:list，结果换成列表行与 SchemaPage 的分页', async () => {
     const calls = stub({ items: [job()], total: 1, page: { index: 1, size: 20 } })
-    const result = await jobResource(t).page!({ page: 1, pageSize: 20, filters: { paused: 'true' }, conditionFilters: [], sorts: [] })
+    const result = await jobResource().page!({ page: 1, pageSize: 20, filters: { paused: 'true' }, conditionFilters: [], sorts: [] })
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/jobs:list', body: { page: { index: 1, size: 20 }, filters: [{ field: 'paused', operator: 'eq', value: 'true' }], sorts: [], keyword: null } })
     expect(result.items[0]).toMatchObject({ name: 'auditing.retention', group: 'auditing', executedCount: 14 })
     expect(result.page.totalCount).toBe(1)
   })
 
-  it('启用即恢复、停用即暂停（按作业名批量）；逐项失败翻成文案，未知码原样', async () => {
+  it('启用即恢复、停用即暂停（按作业名批量）；逐项失败带着原因抛出，未知码原样', async () => {
     const calls = stub(
       { succeeded: ['auditing.retention'], failed: [] },
       { succeeded: ['auditing.retention'], failed: [] },
-      { succeeded: [], failed: [{ id: 'gone.job', code: 'MAINTENANCE_NOTFOUND_001' }] },
+      { succeeded: [], failed: [{ id: 'gone.job', code: 'MAINTENANCE_NOTFOUND_001', message: 'MAINTENANCE_NOTFOUND_001 的原因' }] },
     )
-    const resource = jobResource(t)
+    const resource = jobResource()
     await resource.updateStatus!('auditing.retention', true)
     await resource.updateStatus!('auditing.retention', false)
-    await expect(resource.updateStatus!('gone.job', false)).rejects.toThrow('maintenance.jobs.job_not_found')
+    await expect(resource.updateStatus!('gone.job', false)).rejects.toThrow('MAINTENANCE_NOTFOUND_001 的原因')
     expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/jobs:resume', body: { ids: ['auditing.retention'] } })
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/jobs:pause', body: { ids: ['auditing.retention'] } })
     expect(calls[2]).toMatchObject({ method: 'POST', url: '/api/jobs:pause', body: { ids: ['gone.job'] } })
-    expect(() => assertBatch(t, { failed: [{ code: 'X_1' }, { code: 'X_1' }] })).toThrow(/^X_1$/)
   })
 
   it('详情按作业名取；立即执行按作业名排进一次性触发器，返回触发器名', async () => {
@@ -380,11 +377,11 @@ describe('任务调度：新建与删除运行时作业', () => {
     expect(retryText(t, job({ retry: { maxRetries: 3, delaySeconds: 60, backoff: 'Exponential', maxDelaySeconds: 3600 } }))).toMatch(/^maintenance.jobs.retry_exponential_capped_value:.*"max":"maintenance.caches.units.hour/)
   })
 
-  it('只有运行时登记的能删；删除走 DELETE jobs?ids=，代码登记的翻成文案抛出', async () => {
+  it('只有运行时登记的能删；删除走 DELETE jobs?ids=，代码登记的带着原因抛出', async () => {
     expect(canDelete({ source: 'Runtime' })).toBe(true)
     expect(canDelete({ source: 'Overridden' })).toBe(false)
-    const calls = stub({ succeeded: [], failed: [{ id: 'auditing.retention', code: 'MAINTENANCE_CONFLICT_004' }] })
-    await expect(deleteJob(t, 'auditing.retention')).rejects.toThrow('maintenance.jobs.code_job_undeletable')
+    const calls = stub({ succeeded: [], failed: [{ id: 'auditing.retention', code: 'MAINTENANCE_CONFLICT_004', message: 'MAINTENANCE_CONFLICT_004 的原因' }] })
+    await expect(deleteJob('auditing.retention')).rejects.toThrow('MAINTENANCE_CONFLICT_004 的原因')
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/jobs?ids=auditing.retention' })
   })
 })
@@ -392,15 +389,13 @@ describe('任务调度：新建与删除运行时作业', () => {
 describe('任务调度：恢复代码计划', () => {
   it('按作业名批量 POST jobs:restore；全部成功不抛错', async () => {
     const calls = stub({ succeeded: ['auditing.retention'], failed: [] })
-    await restoreJobs(t, ['auditing.retention'])
+    await restoreJobs(['auditing.retention'])
     expect(calls[0]).toEqual({ method: 'POST', url: '/api/jobs:restore', body: { ids: ['auditing.retention'] } })
   })
 
-  it('没有代码定义（SCHEDULING_NOTFOUND_005）与作业不存在翻成文案抛出；未知码原样', async () => {
-    stub({ succeeded: [], failed: [{ id: 'runtime.job', code: 'SCHEDULING_NOTFOUND_005' }, { id: 'gone.job', code: 'MAINTENANCE_NOTFOUND_001' }] })
-    await expect(restoreJobs(t, ['runtime.job', 'gone.job'])).rejects.toThrow('maintenance.jobs.no_code_definition; maintenance.jobs.job_not_found')
-    expect(batchFailureMessage(t, 'SCHEDULING_NOTFOUND_005')).toBe('maintenance.jobs.no_code_definition')
-    expect(batchFailureMessage(t, 'X_9')).toBe('X_9')
+  it('没有代码定义与作业不存在时带着原因抛出', async () => {
+    stub({ succeeded: [], failed: [{ id: 'runtime.job', code: 'SCHEDULING_NOTFOUND_005', message: 'SCHEDULING_NOTFOUND_005 的原因' }, { id: 'gone.job', code: 'MAINTENANCE_NOTFOUND_001', message: 'MAINTENANCE_NOTFOUND_001 的原因' }] })
+    await expect(restoreJobs(['runtime.job', 'gone.job'])).rejects.toThrow('SCHEDULING_NOTFOUND_005 的原因; MAINTENANCE_NOTFOUND_001 的原因')
   })
 })
 

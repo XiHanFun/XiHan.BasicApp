@@ -10,7 +10,7 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XJsonBlock, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { toPageRequest, toSchemaPageResult, workflowDefinitions, workflowInstances } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { formatDate } from '~/utils'
 import MetadataModal from './DefinitionMetadataModal.vue'
 import { serverDiagnostics } from './designer/server-diagnostics'
@@ -262,12 +262,6 @@ async function handleStart() {
 }
 
 // ── 生命周期操作 ───────────────────────────────────────────────
-/** 批量操作的结果里只有失败项的错误码：被后端逐项拒绝时带着错误码报错 */
-function ensureSucceeded(result: { failed: { code: string }[] }) {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(failure => failure.code).join('; '))
-}
-
 /**
  * 发布被定义校验拒绝时（Problem Details 带字段级 errors，键是节点与连线的路径）：打开这份草稿的设计器，问题标在对应的节点与连线上
  * @returns 是否已经这样处理
@@ -293,15 +287,15 @@ async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'arch
         toast.success(t('workflow.definitions.msg_new_version'))
         break
       case 'disable':
-        ensureSucceeded(await workflowDefinitions.disable({ ids: [row.id] }))
+        throwOnFailed(await workflowDefinitions.disable({ ids: [row.id] }))
         toast.success(t('workflow.definitions.msg_disabled'))
         break
       case 'archive':
-        ensureSucceeded(await workflowDefinitions.archive({ ids: [row.id] }))
+        throwOnFailed(await workflowDefinitions.archive({ ids: [row.id] }))
         toast.success(t('workflow.definitions.msg_archived'))
         break
       case 'delete':
-        ensureSucceeded(await workflowDefinitions.delete({ ids: [row.id] }))
+        throwOnFailed(await workflowDefinitions.delete({ ids: [row.id] }))
         toast.success(t('workflow.definitions.msg_deleted'))
         break
     }

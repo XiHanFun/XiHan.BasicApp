@@ -180,10 +180,6 @@ export default {
         storage_status_updated: 'Copy status updated',
         storage_status_failed: 'Failed to update copy status',
       },
-      batch: {
-        not_found: 'The file does not exist or has been deleted',
-        unavailable: 'A corrupted file cannot be archived or restored; repair it from its storage copies first',
-      },
     },
     storage_configs: {
       title: 'Storage Configuration',
@@ -273,11 +269,6 @@ export default {
         set_default_success: 'Set as default storage',
         set_default_failed: 'Failed to set default storage',
       },
-      batch: {
-        not_found: 'The storage config does not exist or has been deleted',
-        default_locked: 'The default storage config cannot be deleted; set another config as default first',
-        in_use: 'The storage config still holds file copies and cannot be deleted',
-      },
     },
     export_center: {
       title: 'Export Center',
@@ -333,10 +324,6 @@ export default {
         delete_content: 'Delete "{name}"? Its result file is deleted too. This action cannot be undone.',
         deleted: 'Deleted',
         download_failed: 'Download failed',
-      },
-      batch: {
-        not_found: 'The export task does not exist or has been deleted',
-        processing: 'A running export task cannot be deleted. Wait for it to finish.',
       },
     },
   },

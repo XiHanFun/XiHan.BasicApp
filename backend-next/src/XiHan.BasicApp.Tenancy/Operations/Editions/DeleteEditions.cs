@@ -43,13 +43,13 @@ public sealed class DeleteEditions(IRepository<SysEdition, Guid> editions, Editi
         {
             if (!found.TryGetValue(id, out var edition))
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.EditionNotFound));
+                failed.Add(new BatchFailure(id, TenancyErrors.EditionNotFound, TenancyMessages.EditionNotFound.L(("id", id))));
                 continue;
             }
 
             if ((await service.TenantsUsingAsync(id, context.CancellationToken).ConfigureAwait(false)).Count > 0)
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.EditionInUse));
+                failed.Add(new BatchFailure(id, TenancyErrors.EditionInUse, TenancyMessages.EditionInUse.L(("code", edition.Code))));
                 continue;
             }
 

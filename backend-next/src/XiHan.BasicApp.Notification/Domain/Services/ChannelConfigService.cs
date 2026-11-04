@@ -253,15 +253,15 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
             var found = await FindEmailAsync(owner, id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var config))
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.EmailConfigNotFound));
+                failed.Add(new BatchFailure(id, NotificationErrors.EmailConfigNotFound, NotificationMessages.EmailConfigNotFound.L(("id", id))));
             }
             else if (config.IsDefault)
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.DefaultConfigLocked));
+                failed.Add(new BatchFailure(id, NotificationErrors.DefaultConfigLocked, NotificationMessages.DefaultConfigLocked.L(("code", config.Code))));
             }
             else if ((await emails.RemoveAsync(config, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {
@@ -385,15 +385,15 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
             var found = await FindSmsAsync(owner, id, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var config))
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.SmsConfigNotFound));
+                failed.Add(new BatchFailure(id, NotificationErrors.SmsConfigNotFound, NotificationMessages.SmsConfigNotFound.L(("id", id))));
             }
             else if (config.IsDefault)
             {
-                failed.Add(new BatchFailure(id, NotificationErrors.DefaultConfigLocked));
+                failed.Add(new BatchFailure(id, NotificationErrors.DefaultConfigLocked, NotificationMessages.DefaultConfigLocked.L(("code", config.Code))));
             }
             else if ((await sms.RemoveAsync(config, cancellationToken).ConfigureAwait(false)) is { IsFailure: true } removed)
             {
-                failed.Add(new BatchFailure(id, removed.Error!.Code));
+                failed.Add(BatchFailure.From(id, removed.Error!));
             }
             else
             {

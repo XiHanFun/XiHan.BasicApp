@@ -76,13 +76,13 @@ describe('menusResource', () => {
     expect(() => filterMenuTree(tree, { filters: {}, conditionFilters: [{ field: 'order', operator: 'In', value: [1] } as never] }, titleOf)).toThrow()
   })
 
-  it('删除页面节点被后端逐项拒绝时带着错误码抛出；恢复默认调 menus.reset', async () => {
+  it('删除页面节点被后端逐项拒绝时带着原因抛出；恢复默认调 menus.reset', async () => {
     const calls = record((call) => {
       if (call.method === 'DELETE')
-        return json(200, { succeeded: [], failed: [{ id: 'm-roles', code: 'ACCESS_CONFLICT_004' }] })
+        return json(200, { succeeded: [], failed: [{ id: 'm-roles', code: 'ACCESS_CONFLICT_004', message: 'ACCESS_CONFLICT_004 的原因' }] })
       return json(200, node('m-users', 'identity.users', 'Page'))
     })
-    await expect(menusResource(titleOf).remove!('m-roles')).rejects.toThrow('ACCESS_CONFLICT_004')
+    await expect(menusResource(titleOf).remove!('m-roles')).rejects.toThrow('ACCESS_CONFLICT_004 的原因')
     expect(calls[0]!.url).toBe('/api/menus?ids=m-roles')
     expect((await resetMenu('m-users')).isCustomized).toBe(false)
     expect(calls[1]).toMatchObject({ method: 'POST', url: '/api/menus/m-users:reset' })

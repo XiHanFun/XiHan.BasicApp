@@ -3,7 +3,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { components, RequestOf } from '~/contracts'
 import { reactive, ref } from 'vue'
 import { permissions as permissionsApi, permissionRequests as requestsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError } from '~/request'
+import { ApiError, throwOnFailed } from '~/request'
 import { formatDate } from '~/utils'
 
 /** 一条授权申请（列表、详情与审批单据同一形态） */
@@ -39,12 +39,6 @@ function emptyForm(): PermissionRequestForm {
 
 /** 候选一次取的上限（后端页大小上限） */
 const CANDIDATE_LIMIT = 500
-
-/** 批量结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
 
 function toMillis(value?: null | string): null | number {
   return value ? new Date(value).getTime() : null
@@ -161,7 +155,7 @@ export function permissionRequestsResource(): SchemaResource<PermissionRequestRo
 
 /** 撤回自己待审批的一条申请（批量接口传单个 ID） */
 export async function withdrawPermissionRequest(id: string): Promise<void> {
-  failedCodes(await requestsApi.withdraw({ ids: [id] }))
+  throwOnFailed(await requestsApi.withdraw({ ids: [id] }))
 }
 
 /** 提交出错：字段级错误挂回字段，其余留在弹窗里 */
@@ -270,7 +264,7 @@ export function usePermissionRequestCloser() {
     submitting.value = true
     submitError.value = null
     try {
-      failedCodes(await requestsApi.setStatus({ ids: [target.value.id], status: status.value, remark: remark.value.trim() || null }))
+      throwOnFailed(await requestsApi.setStatus({ ids: [target.value.id], status: status.value, remark: remark.value.trim() || null }))
       open.value = false
       return true
     }

@@ -2,7 +2,6 @@
 export default {
   maintenance: {
     jobs: {
-      code_job_undeletable: '코드로 등록한 작업은 삭제할 수 없어요',
       // 新建与删除运行时作业、计划编辑的触发方式
       create: '작업 만들기',
       create_title: '작업 만들기',
@@ -183,12 +182,10 @@ export default {
       task_enabled: '작업을 활성화했어요',
       task_disabled: '작업을 비활성화했어요',
       toggle_failed: '작업 상태 업데이트에 실패했어요',
-      job_not_found: '작업이 존재하지 않아요',
       rescheduled: '일정을 변경했어요',
       reschedule_failed: '일정 변경에 실패했어요',
       restored: '코드 일정으로 복원했어요',
       restore_failed: '코드 일정 복원에 실패했어요',
-      no_code_definition: '이 작업에는 복원할 코드 정의가 없어요',
     },
     // 缓存管理
     caches: {
@@ -263,7 +260,6 @@ export default {
       copy_failed: '복사에 실패했어요',
       saved: '저장했어요',
       key_already_gone: '키가 이미 없거나 만료됐어요',
-      namespace_denied: '관리할 수 있는 네임스페이스가 아니에요',
       batch_deleted: '키 {count}개를 삭제했어요',
       batch_deleted_with_missing: '키 {count}개를 삭제했어요({missing}개는 이미 없었어요)',
       batch_delete_partial: '삭제 완료: 성공 {success}개, 실패 {failed}개({reason})',
