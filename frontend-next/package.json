@@ -59,6 +59,7 @@
     "@xihan-ui/tokens": "catalog:",
     "@xihan-ui/vue": "catalog:",
     "dayjs": "catalog:",
+    "dompurify": "catalog:",
     "emoji-mart": "catalog:",
     "pinia": "catalog:",
     "pinyin-pro": "catalog:",
