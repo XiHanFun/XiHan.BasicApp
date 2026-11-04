@@ -3,13 +3,13 @@ name: Next CI
 # 6.0（backend-next / frontend-next）的构建、测试与门禁。框架 5 尚未发包，按 backend-next/props/framework.props 锁定的提交检出同级 XiHan.Framework 源码。
 on:
   push:
-    branches: [next]
+    branches: [next, preview]
     paths:
       - "backend-next/**"
       - "frontend-next/**"
       - ".github/workflows/next-ci.yml"
   pull_request:
-    branches: [next]
+    branches: [next, preview]
     paths:
       - "backend-next/**"
       - "frontend-next/**"
@@ -18,7 +18,8 @@ on:
 
 concurrency:
   group: next-ci-${{ github.ref }}
-  cancel-in-progress: true
+  # preview 上每个提交都要跑出完整结论，发版时以它为据
+  cancel-in-progress: ${{ github.ref != 'refs/heads/preview' }}
 
 permissions:
   contents: read
