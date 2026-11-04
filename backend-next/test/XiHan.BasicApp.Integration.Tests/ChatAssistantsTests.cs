@@ -304,6 +304,8 @@ public sealed class ChatAssistantsTests : IDisposable
         var (failed, failedBody) = await ReplyAsync(server, conversation, token, replyId: "r-fail");
         Assert.Equal(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
         Assert.Equal(ChatErrors.AssistantReplyFailed, failedBody.GetProperty("code").GetString());
+        // 原因只有异常类型：调用方是租户用户，模型服务的响应与地址不外露，完整异常在日志里
+        Assert.DoesNotContain("fake failure", failedBody.GetProperty("detail").GetString(), StringComparison.Ordinal);
         _model.Failing = false;
 
         // 空输出

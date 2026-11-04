@@ -10,8 +10,9 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// </summary>
 /// <param name="Succeeded">是否发出</param>
 /// <param name="MessageId">服务商的消息 ID</param>
-/// <param name="Error">失败原因</param>
-public sealed record TransportResult(bool Succeeded, string? MessageId, string? Error)
+/// <param name="Error">失败原因，写进发送记录，租户看得到</param>
+/// <param name="Exception">抛出的异常，只进日志</param>
+public sealed record TransportResult(bool Succeeded, string? MessageId, string? Error, Exception? Exception = null)
 {
     /// <summary>
     /// 发出
@@ -26,6 +27,20 @@ public sealed record TransportResult(bool Succeeded, string? MessageId, string? 
     /// <param name="error">原因</param>
     /// <returns>结果</returns>
     public static TransportResult Failed(string error) => new(false, null, error);
+
+    /// <summary>
+    /// 抛了异常
+    /// </summary>
+    /// <remarks>
+    /// 发送记录只留异常类型：异常原文可能带内网主机与端口，租户填的地址连不上时，原文就是一个探测内网的回显，完整异常进日志
+    /// </remarks>
+    /// <param name="exception">异常</param>
+    /// <returns>结果</returns>
+    public static TransportResult Failed(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        return new(false, null, exception.GetType().FullName ?? exception.GetType().Name, exception);
+    }
 }
 
 /// <summary>

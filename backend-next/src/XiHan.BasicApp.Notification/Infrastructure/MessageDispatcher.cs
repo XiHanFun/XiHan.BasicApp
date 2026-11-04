@@ -283,7 +283,7 @@ public sealed partial class MessageDispatcher(
         var id = record.Id;
         if (!result.Succeeded)
         {
-            LogSendFailed(logger, typeof(T).Name, id, attempts, error);
+            LogSendFailed(logger, result.Exception, typeof(T).Name, id, attempts, error);
         }
 
         await StoreScope.WriteAsync(scopes, async (services, ct) =>
@@ -321,5 +321,5 @@ public sealed partial class MessageDispatcher(
     private static partial void LogRoundFailed(ILogger logger, Exception exception);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{Kind} {Id} attempt {Attempt} failed: {Error}")]
-    private static partial void LogSendFailed(ILogger logger, string kind, Guid id, int attempt, string? error);
+    private static partial void LogSendFailed(ILogger logger, Exception? exception, string kind, Guid id, int attempt, string? error);
 }

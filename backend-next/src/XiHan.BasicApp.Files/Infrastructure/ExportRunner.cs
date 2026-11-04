@@ -121,7 +121,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
                     LogExportCrashed(logger, exception, job.TaskId);
-                    await FailAsync(job, exception.Message, CancellationToken.None).ConfigureAwait(false);
+                    await FailAsync(job, exception.GetType().FullName ?? exception.GetType().Name, CancellationToken.None).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }

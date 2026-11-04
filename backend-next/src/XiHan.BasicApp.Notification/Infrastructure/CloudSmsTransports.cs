@@ -74,7 +74,7 @@ public sealed class AliyunSmsTransport(IHttpClientFactory http, TimeProvider clo
         catch (Exception exception) when (exception is not OperationCanceledException)
 #pragma warning restore CA1031
         {
-            return TransportResult.Failed(exception.Message);
+            return TransportResult.Failed(exception);
         }
     }
 
@@ -162,7 +162,7 @@ public sealed class TencentSmsTransport(IHttpClientFactory http, TimeProvider cl
         catch (Exception exception) when (exception is not OperationCanceledException)
 #pragma warning restore CA1031
         {
-            return TransportResult.Failed(exception.Message);
+            return TransportResult.Failed(exception);
         }
     }
 

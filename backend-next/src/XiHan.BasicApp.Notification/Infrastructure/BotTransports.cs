@@ -68,12 +68,13 @@ public abstract class WebhookBotTransport(IHttpClientFactory http) : IBotTranspo
         {
             using var client = http.CreateClient(GetType().Name);
             using var response = await client.PostAsJsonAsync(uri, payload, NotificationJsonContext.Default.JsonObject, cancellationToken).ConfigureAwait(false);
-            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                return TransportResult.Failed($"HTTP {(int)response.StatusCode}: {body}");
+                // 地址是租户填的，不把对方的响应正文回显进发送记录
+                return TransportResult.Failed($"HTTP {(int)response.StatusCode}");
             }
 
+            var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             using var json = JsonDocument.Parse(body);
             return Read(json.RootElement) is { } error ? TransportResult.Failed(error) : TransportResult.Sent(null);
         }
@@ -81,7 +82,7 @@ public abstract class WebhookBotTransport(IHttpClientFactory http) : IBotTranspo
         catch (Exception exception) when (exception is not OperationCanceledException)
 #pragma warning restore CA1031
         {
-            return TransportResult.Failed(exception.Message);
+            return TransportResult.Failed(exception);
         }
     }
 

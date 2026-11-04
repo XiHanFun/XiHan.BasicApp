@@ -209,7 +209,7 @@ public sealed partial class ChatAssistantService(
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             LogReplyFailed(logger, exception, conversationId);
-            return Error.Unavailable(ChatErrors.AssistantReplyFailed, ChatMessages.AssistantReplyFailed, MessageArguments.Of(("reason", exception.Message)));
+            return Error.Unavailable(ChatErrors.AssistantReplyFailed, ChatMessages.AssistantReplyFailed, MessageArguments.Of(("reason", exception.GetType().FullName ?? exception.GetType().Name)));
         }
 
         var answer = builder.ToString().Trim();
