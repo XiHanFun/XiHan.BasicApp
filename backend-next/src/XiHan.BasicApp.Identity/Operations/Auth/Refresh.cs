@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// </summary>
 /// <remarks>
 /// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>
+/// 模仿会话只换令牌不顺延：到期时间在发起时定死，新令牌也不超过它（4.x 干脆不许刷新，6.0 的时长可以比访问令牌长，所以让刷新，但续不了期）
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
 /// <param name="users">用户仓储</param>
@@ -113,11 +114,15 @@ public sealed class Refresh(
             return securityResult.Error!;
         }
 
-        // 轮换：旧刷新令牌立即失效；会话有效期按滑动口径顺延
+        // 轮换：旧刷新令牌立即失效；会话有效期按滑动口径顺延，模仿会话不顺延
         var refreshToken = RefreshTokens.Generate();
         session.RefreshTokenHash = RefreshTokens.Hash(refreshToken);
         session.LastSeenAt = now;
-        session.RefreshExpiresAt = now + options.RefreshTokenLifetime;
+        if (session.ImpersonatorUserId is null)
+        {
+            session.RefreshExpiresAt = now + options.RefreshTokenLifetime;
+        }
+
         var updated = await sessions.UpdateAsync(session, context.CancellationToken).ConfigureAwait(false);
         if (updated.IsFailure)
         {
@@ -127,7 +132,7 @@ public sealed class Refresh(
         // 角色在每次刷新时重算：角色指派的变化最迟在下一次刷新生效；激活集沿用并按当前的动态职责分离规则重新核对
         var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var active = await activators.RefreshAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active, session.ImpersonatorUserId);
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active, session.ImpersonatorUserId, session.ImpersonatorUserId is null ? null : session.RefreshExpiresAt);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName, impersonator);
     }
 

@@ -449,4 +449,12 @@ public static class IdentityErrors
     /// 停用、删除、锁定、管理员重置密码、本人改用户名与关闭账号
     /// </remarks>
     public const string SystemAccount = "IDENTITY_CONFLICT_014";
+
+    /// <summary>
+    /// 系统参数里的模仿登录设置写得不对
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>（系统参数的键）
+    /// </remarks>
+    public const string ImpersonationSettingsInvalid = "IDENTITY_VALIDATION_024";
 }

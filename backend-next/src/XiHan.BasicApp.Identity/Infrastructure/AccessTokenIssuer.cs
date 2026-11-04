@@ -43,12 +43,18 @@ public sealed class AccessTokenIssuer
     /// <param name="tenantId">当前租户；平台账号传 <see langword="null"/></param>
     /// <param name="roles">角色（进 <c>role</c> 声明）</param>
     /// <param name="actorId">模仿会话的发起人；普通会话传 <see langword="null"/></param>
-    public IssuedToken Issue(SysUser user, Guid sessionId, string? tenantId, IReadOnlyList<string> roles, Guid? actorId = null)
+    /// <param name="notAfter">令牌不能活过这个时刻（模仿会话的到期时间）；为空即按配置的时长</param>
+    public IssuedToken Issue(SysUser user, Guid sessionId, string? tenantId, IReadOnlyList<string> roles, Guid? actorId = null, DateTimeOffset? notAfter = null)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(roles);
         var now = _clock.GetUtcNow();
         var expires = now + _options.AccessTokenLifetime;
+        if (notAfter is { } limit && limit < expires)
+        {
+            expires = limit;
+        }
+
         var claims = new Dictionary<string, object>(StringComparer.Ordinal)
         {
             [IdentityClaims.Subject] = user.Id.ToString("D"),

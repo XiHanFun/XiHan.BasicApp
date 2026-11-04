@@ -27,17 +27,18 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// 不是目标用户的一次登录：不写登录痕迹。发起人的会话保留，<c>impersonation.stop</c> 时回到它
 /// 范围：不填租户即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户（目标须是该租户的注册地用户或成员）或平台（目标须是平台账号）
 /// 不能模仿自己，不能在模仿态里再模仿
+/// 模仿会话的时长与要不要通知被模仿者看系统参数 <see cref="ImpersonationSettings.ConfigKey"/>（缺省 30 分钟、通知，4.x 同）。时长是从发起算起的硬期限，<c>auth.refresh</c> 只换令牌不顺延，到期即结束，要接着用就重新发起
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="sessions">会话仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="memberships">成员关系（Tenancy 实现）</param>
 /// <param name="issuer">令牌签发器</param>
-/// <param name="options">身份配置</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
+/// <param name="notifier">通知被模仿者</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class StartImpersonation(
     IRepository<SysUser, Guid> users,
@@ -45,11 +46,11 @@ public sealed class StartImpersonation(
     UserAccountService accounts,
     IEnumerable<ITenantMembershipResolver> memberships,
     AccessTokenIssuer issuer,
-    IdentityOptions options,
     IIdGenerator<Guid> ids,
     TimeProvider clock,
     ITenantStore tenants,
-    IEnumerable<ISessionRoleActivator> activators) : IOperation<StartImpersonationRequest, TokenResponse>
+    IEnumerable<ISessionRoleActivator> activators,
+    ImpersonationNotifier notifier) : IOperation<StartImpersonationRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -124,6 +125,13 @@ public sealed class StartImpersonation(
         log.UserName = target.UserName;
         log.AccountTenantId = target.HomeTenantId;
         log.Detail = actor.UserName;
+        var configured = await ImpersonationSettings.ReadAsync(context).ConfigureAwait(false);
+        if (!configured.TryGetValue(out var settings))
+        {
+            return configured.Error!;
+        }
+
+        await notifier.NotifyAsync(target, actor, requested, settings, context).ConfigureAwait(false);
         var refreshToken = RefreshTokens.Generate();
         var session = new SysUserSession
         {
@@ -132,7 +140,7 @@ public sealed class StartImpersonation(
             ActiveTenantId = requested,
             RefreshTokenHash = RefreshTokens.Hash(refreshToken),
             IssuedAt = now,
-            RefreshExpiresAt = now + options.RefreshTokenLifetime,
+            RefreshExpiresAt = now + settings.SessionLifetime,
             ImpersonatorUserId = actor.Id,
             ImpersonatorSessionId = origin.Id,
             IpAddress = SessionClient.AddressOf(context),
@@ -154,7 +162,7 @@ public sealed class StartImpersonation(
 
         var roles = await accounts.RolesOfAsync(target.Id, requested, context.CancellationToken).ConfigureAwait(false);
         var active = await activators.StartAsync(session.Id, target.Id, requested, roles, context).ConfigureAwait(false);
-        var access = issuer.Issue(target, session.Id, requested, active, actor.Id);
+        var access = issuer.Issue(target, session.Id, requested, active, actor.Id, notAfter: session.RefreshExpiresAt);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, requested, targetSecurity.MustChangePassword, UserResponse.From(target), tenantName, actor.UserName);
     }
 

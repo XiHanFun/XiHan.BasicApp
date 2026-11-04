@@ -317,8 +317,9 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// </summary>
     /// <param name="context">调用上下文</param>
     /// <param name="notification">草稿</param>
+    /// <param name="ignorePreferences">不看接收人的通知偏好（账号安全提醒）</param>
     /// <returns>送达结果</returns>
-    public async Task<Result<int>> PublishAsync(InvocationContext context, SysNotification notification)
+    public async Task<Result<int>> PublishAsync(InvocationContext context, SysNotification notification, bool ignorePreferences = false)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(notification);
@@ -355,7 +356,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
 
         // 通知偏好（4.x 同）：站内信只发给愿意收站内信的人，邮件与短信在扇出时各按自己的渠道筛；强制阅读与紧急通知不筛
         var side = SideRows.SideOf(context);
-        var readers = await AcceptingAsync(notification, recipients, NotificationPreferenceChannel.InApp, context.CancellationToken).ConfigureAwait(false);
+        var readers = ignorePreferences ? recipients : await AcceptingAsync(notification, recipients, NotificationPreferenceChannel.InApp, context.CancellationToken).ConfigureAwait(false);
         var inbox = readers.Select(userId => new SysUserNotification { Id = ids.NewId(), TenantId = side, NotificationId = notification.Id, UserId = userId }).ToList();
         if (inbox.Count > 0)
         {

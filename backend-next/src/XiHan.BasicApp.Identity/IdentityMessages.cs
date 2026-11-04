@@ -359,6 +359,27 @@ public static class IdentityMessages
     public const string ImpersonationTargetUnavailable = "identity.impersonation.target_unavailable";
 
     /// <summary>
+    /// 系统参数里的模仿登录设置写得不对
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>
+    /// </remarks>
+    public const string ImpersonationSettingsInvalid = "identity.impersonation.settings_invalid";
+
+    /// <summary>
+    /// 给被模仿者的通知的标题
+    /// </summary>
+    public const string ImpersonationNoticeTitle = "identity.impersonation.notice_title";
+
+    /// <summary>
+    /// 给被模仿者的通知的正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>actor</c>（发起人登录名）、<c>minutes</c>（有效分钟数）
+    /// </remarks>
+    public const string ImpersonationNoticeContent = "identity.impersonation.notice_content";
+
+    /// <summary>
     /// 操作 <c>auth.verify-two-factor</c> 的说明
     /// </summary>
     public const string VerifyTwoFactorDescription = "auth.verify_two_factor.description";

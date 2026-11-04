@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// <see cref="IInboxDelivery"/> 的实现
 /// </summary>
 /// <remarks>
-/// 照 4.x 的待办提醒：在调用所在的一侧建一条指定用户的「待办」通知（纯文本、普通优先级、只走站内）并立即发布，
-/// 收件人按站内偏好过滤，实时推送在提交之后发出（<see cref="NotificationService.PublishAsync"/>）
+/// 照 4.x 的待办提醒与账号通知：在调用所在的一侧建一条指定用户的通知（纯文本、普通优先级、只走站内）并立即发布，实时推送在提交之后发出（<see cref="NotificationService.PublishAsync"/>）
+/// 待办按收件人的站内偏好过滤；账号安全不看偏好，4.x 的账号通知同样不经偏好门控
 /// </remarks>
 /// <param name="notifications">通知域服务</param>
 public sealed class InboxDelivery(NotificationService notifications) : IInboxDelivery
@@ -29,11 +29,12 @@ public sealed class InboxDelivery(NotificationService notifications) : IInboxDel
             return 0;
         }
 
+        var security = message.Kind == InboxMessageKind.Security;
         var draft = new NotificationDraft(
             message.Title,
             message.Content,
             NotificationContentFormat.Text,
-            NotificationType.Todo,
+            security ? NotificationType.Security : NotificationType.Todo,
             NotificationPriority.Normal,
             NotificationTargetType.User,
             recipients,
@@ -51,7 +52,7 @@ public sealed class InboxDelivery(NotificationService notifications) : IInboxDel
             MessageChannels.InApp);
         var created = await notifications.CreateAsync(context, draft).ConfigureAwait(false);
         return created.TryGetValue(out var notification)
-            ? await notifications.PublishAsync(context, notification).ConfigureAwait(false)
+            ? await notifications.PublishAsync(context, notification, ignorePreferences: security).ConfigureAwait(false)
             : created.Error!;
     }
 }

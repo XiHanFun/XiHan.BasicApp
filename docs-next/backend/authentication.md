@@ -23,7 +23,7 @@
 | 项 | 说明 |
 | --- | --- |
 | 访问令牌 | HS256 JWT，缺省 120 分钟（`BasicApp:Auth:AccessTokenMinutes`）；声明 `sub` 用户 ID、`tenant` 当前租户（平台没有）、`sid` 会话 ID、`role` 本会话激活的角色、模仿时 `act` |
-| 刷新令牌 | 不透明字符串，库里只存散列，缺省 7 天；每次刷新轮换，旧的立即失效 |
+| 刷新令牌 | 不透明字符串，库里只存散列，缺省 7 天；每次刷新轮换，旧的立即失效；模仿会话的到期时间不随刷新顺延 |
 | 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型与登录地点（IP 归属地） |
 | 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段核对会话仍有效（缓存 `SessionCacheSeconds` 秒），吊销 / 过期 / 用户非正常即 `IDENTITY_DENIED_001` |
 
@@ -114,6 +114,15 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | `impersonation.stop` | 结束模仿，回到发起人的会话 |
 
 范围不填即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户或平台。不能模仿自己，不能在模仿态里再模仿。权限码 `identity.impersonation.start`，开始与结束都进登录日志。
+
+系统参数 `identity.impersonation`（JSON，没建即缺省，按发起人所在的一侧取，写错即 `IDENTITY_VALIDATION_024`、不发起）：
+
+| 字段 | 缺省 | 说明 |
+| --- | --- | --- |
+| `sessionMinutes` | `30` | 模仿会话存活分钟数，1 到 480。从发起算起的硬期限：`auth.refresh` 只换令牌不顺延，访问令牌也不超过它；到期后 `IDENTITY_DENIED_001`，要接着用就重新发起 |
+| `notifyTarget` | `true` | 发起时给被模仿者发一条安全站内信（落在模仿会话所在的一侧，按被模仿者的界面语言，不看通知偏好）；投递失败只记日志，不挡模仿 |
+
+与 5.x 的差别：5.x 不许刷新模仿令牌，6.0 的时长可以比访问令牌长，所以能刷新，但续不了期；5.x 把越界的分钟数归到上下限，6.0 报错。
 
 ## 登录策略
 

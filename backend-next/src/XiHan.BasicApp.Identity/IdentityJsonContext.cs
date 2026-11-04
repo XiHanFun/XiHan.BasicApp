@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Operations.Auth;
 using XiHan.BasicApp.Identity.Operations.Impersonation;
 using XiHan.BasicApp.Identity.Operations.MyApiCredentials;
@@ -68,6 +69,7 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(UserSettingChangedPayload))]
 [JsonSerializable(typeof(SwitchTenantRequest))]
 [JsonSerializable(typeof(ActivateRolesRequest))]
+[JsonSerializable(typeof(ImpersonationSettings))]
 [JsonSerializable(typeof(StartImpersonationRequest))]
 [JsonSerializable(typeof(StopImpersonationRequest))]
 [JsonSerializable(typeof(ImpersonationCandidatesRequest))]
