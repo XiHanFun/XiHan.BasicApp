@@ -2,6 +2,7 @@ import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { DeliveryChannel, NotificationContentFormat, NotificationPriority, NotificationRecipientFilter, NotificationTargetType, NotificationType, PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { DeliveryChannel as DELIVERY_CHANNELS, departments as departmentsApi, notifications as notificationsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { csvNeutralize } from '~/utils'
 
 export type NotificationRow = ResponseOf<'notifications.list'>['items'][number]
 export type NotificationDetail = ResponseOf<'notifications.get'>
@@ -255,7 +256,7 @@ export async function loadUnreadForExport(id: string): Promise<{ rows: Recipient
 }
 
 function csvCell(value: string): string {
-  return `"${value.replaceAll('"', '""')}"`
+  return `"${csvNeutralize(value).replaceAll('"', '""')}"`
 }
 
 /** 未读人员 CSV（4.x 同：带 BOM 防中文乱码、CRLF 换行、每格加引号）：用户名、显示名、收到时间 */

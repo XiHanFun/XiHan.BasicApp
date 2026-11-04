@@ -1,4 +1,5 @@
 import type { ResponseOf } from '~/contracts'
+import { csvCell } from '~/utils'
 
 export type ConditionTrialResult = ResponseOf<'permission-conditions.trial'>
 export type ConditionTrialPath = ConditionTrialResult['paths'][number]
@@ -124,7 +125,6 @@ export function conclusionLabel(t: Translate, conclusion: ConditionGroupConclusi
 
 /** 盘点明细导出成 CSV：表头与诊断、结论都用调用方给的文案；带 BOM，表格软件按 UTF-8 打开中文不乱码 */
 export function inventoryToCsv(items: readonly ConditionInventoryItem[], headers: readonly string[], describe: (item: ConditionInventoryItem) => readonly string[]): string {
-  const escape = (value: string) => (/[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value)
-  const lines = [headers, ...items.map(describe)].map(row => row.map(cell => escape(cell ?? '')).join(','))
+  const lines = [headers, ...items.map(describe)].map(row => row.map(cell => csvCell(cell ?? '')).join(','))
   return `\uFEFF${lines.join('\r\n')}`
 }

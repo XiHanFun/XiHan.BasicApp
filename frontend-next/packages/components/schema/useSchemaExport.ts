@@ -2,13 +2,8 @@ import type { ListFieldSchema } from './types'
 import { ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { i18n } from '~/locales'
-import { downloadBlob } from '~/utils'
+import { csvCell, downloadBlob } from '~/utils'
 import { formatFieldText } from './renderer'
-
-/** CSV 单元格转义：含逗号/引号/换行时包裹双引号并转义内部引号 */
-function csvCell(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
-}
 
 /**
  * 将行集合按导出字段序列化为 CSV 文本（带 UTF-8 BOM，便于 Excel 正确识别中文）

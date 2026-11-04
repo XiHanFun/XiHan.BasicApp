@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Globalization;
 using System.IO.Compression;
 using System.Security;
 using System.Text;
@@ -94,7 +95,26 @@ internal sealed class CsvExportSink(Stream output) : IExportSink
     public ValueTask DisposeAsync() => _writer.DisposeAsync();
 
     private static string Escape(string value)
-        => value.AsSpan().IndexOfAny(",\"\r\n") >= 0 ? $"\"{value.Replace("\"", "\"\"", StringComparison.Ordinal)}\"" : value;
+    {
+        var safe = Neutralize(value);
+        return safe.AsSpan().IndexOfAny(",\"\r\n") >= 0 ? $"\"{safe.Replace("\"", "\"\"", StringComparison.Ordinal)}\"" : safe;
+    }
+
+    /// <summary>
+    /// 防公式注入
+    /// </summary>
+    /// <remarks>
+    /// 以这些字符开头的单元格，电子表格软件打开时会当公式执行，前面加单引号；单个字符（如占位的 -）与普通数字（如负数、带加号的手机号）不是公式，保持原样。XLSX 写的是内联字符串，不会被当公式
+    /// </remarks>
+    private static string Neutralize(string value)
+    {
+        if (value.Length < 2 || value[0] is not ('=' or '+' or '-' or '@' or '\t' or '\r' or '\n'))
+        {
+            return value;
+        }
+
+        return decimal.TryParse(value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out _) ? value : "'" + value;
+    }
 }
 
 /// <summary>

@@ -69,6 +69,36 @@ public sealed class ExportImportTests : IDisposable
     }
 
     [Fact]
+    public async Task CsvCells_CannotRunAsFormulas_AndPlainNumbersStayAsTheyAre()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder => builder.Configuration.AddInMemoryCollection([new("BasicApp:Files:LocalRootPath", _root)]));
+        await using var running = server;
+        foreach (var (name, display, phone) in new[] { ("fx-formula", "=HYPERLINK(\"http://evil.test\",\"x\")", "+8613800000000"), ("fx-at", "@SUM(A1)", "13800000001"), ("fx-plain", "张三", "13800000002") })
+        {
+            var (created, body) = await SendAsync(server, HttpMethod.Post, "/api/users", JsonSerializer.Serialize(new { userName = name, displayName = display, phoneNumber = phone, password = "Pass@123456" }), platform);
+            Assert.True(created == HttpStatusCode.Created, body.ToString());
+        }
+
+        var request = new
+        {
+            businessType = "users.list",
+            format = "Csv",
+            scope = "SearchResult",
+            taskName = "formula",
+            querySnapshot = JsonSerializer.Serialize(new { page = new { index = 1, size = 20 }, filters = Array.Empty<object>(), sorts = Array.Empty<object>(), keyword = "fx-" }),
+            columns = new object[] { new { key = "userName", title = "Login" }, new { key = "displayName", title = "Name" }, new { key = "phoneNumber", title = "Phone" } },
+        };
+        var (_, task) = await SendAsync(server, HttpMethod.Post, "/api/export-tasks:submit", JsonSerializer.Serialize(request), platform);
+        var done = await FinishedAsync(server, platform, task.GetProperty("id").GetString()!);
+        var bytes = await DownloadAsync(server, platform, done.GetProperty("fileId").GetString()!);
+        var csv = Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
+
+        Assert.Contains("fx-formula,\"'=HYPERLINK(\"\"http://evil.test\"\",\"\"x\"\")\",+8613800000000\r\n", csv, StringComparison.Ordinal);
+        Assert.Contains("fx-at,'@SUM(A1),13800000001\r\n", csv, StringComparison.Ordinal);
+        Assert.Contains("fx-plain,张三,13800000002\r\n", csv, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Exports_RunAsTheRequester_AndImportHistoryStaysPersonal()
     {
         var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder => builder.Configuration.AddInMemoryCollection([new("BasicApp:Files:LocalRootPath", _root)]));

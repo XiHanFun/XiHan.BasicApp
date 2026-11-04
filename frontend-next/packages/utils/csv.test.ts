@@ -6,7 +6,22 @@
  * 内嵌逗号与换行、CRLF、BOM、空行跳过，以及公式注入前缀不被处理的现状
  */
 import { describe, expect, it } from 'vitest'
-import { parseCsvRows } from './csv'
+import { csvCell, csvNeutralize, parseCsvRows } from './csv'
+
+describe('写出 CSV 的防公式注入', () => {
+  it.each(['=1+1', '=HYPERLINK("http://evil.test")', '+1+1', '-1+1', '@SUM(A1)', '\tcmd', '\r=1', '\n=1'])('%j 前面加单引号', (value) => {
+    expect(csvNeutralize(value)).toBe(`'${value}`)
+  })
+
+  it.each(['-', '=', '-12.5', '+8613800000000', '42', '张三', 'a=b', 'user@example.com', ''])('%j 保持原样', (value) => {
+    expect(csvNeutralize(value)).toBe(value)
+  })
+
+  it('防注入之后再转义：含逗号与引号的公式也包上双引号', () => {
+    expect(csvCell('=SUM(A1,"x")')).toBe('"\'=SUM(A1,""x"")"')
+    expect(csvCell('普通,文本')).toBe('"普通,文本"')
+  })
+})
 
 describe('parseCsvRows', () => {
   it('逗号分隔的多行文本按行拆成二维数组，首行即表头行', () => {
