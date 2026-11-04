@@ -50,9 +50,8 @@ function toShellDisplayItem(item: InboxItem): AppUserInboxDisplayItem {
 const PAGE_MAX_SIZE = 500
 
 /**
- * 壳层用到、但 6.0 后端还没有的接口：显式拒绝而不是回空
- * 对应的壳层件（如通知、锁屏）缺省关着（见 stores/app/preferences.ts 的缺省值），
- * 用户在偏好中心打开后会看到这条错误，而不是一个看似工作的空件
+ * 壳层类型里有、但 6.0 后端没有也用不到的接口（用户信息与权限走 auth.permissions，枚举元数据走契约的值集）：显式拒绝而不是回空
+ * 有人调到就是接线错了，看到这条错误，而不是一个看似工作的空件
  */
 function notAvailable(name: string): never {
   throw new Error(`${name} 尚未接入 6.0 后端`)

@@ -116,7 +116,7 @@ describe('默认值', () => {
     expect(store.checkUpdatesInterval).toBe(30)
   })
 
-  it('widget 缺省显示（通知与锁屏除外：后端还没接），五个工具与偏好入口的位置默认 auto', () => {
+  it('widget 缺省显示（通知与锁屏也开着，与 4.x 相同），五个工具与偏好入口的位置默认 auto', () => {
     const store = freshStore()
 
     expect(store.widgetSearchPlacement).toBe('auto')
@@ -124,8 +124,8 @@ describe('默认值', () => {
     expect(store.widgetLanguagePlacement).toBe('auto')
     expect(store.widgetTimezonePlacement).toBe('auto')
     expect(store.widgetFullscreenPlacement).toBe('auto')
-    expect(store.widgetNotification).toBe(false)
-    expect(store.widgetLockScreen).toBe(false)
+    expect(store.widgetNotification).toBe(true)
+    expect(store.widgetLockScreen).toBe(true)
     expect(store.widgetSidebarToggle).toBe(true)
     expect(store.widgetRefresh).toBe(true)
     expect(store.widgetFavorites).toBe(true)
@@ -148,13 +148,13 @@ describe('默认值', () => {
     expect(store.copyrightIcpUrl).toBe('')
   })
 
-  it('快捷键总开关与子项默认开启（锁屏除外：后端还没接）', () => {
+  it('快捷键总开关与子项默认开启', () => {
     const store = freshStore()
 
     expect(store.shortcutEnable).toBe(true)
     expect(store.shortcutSearch).toBe(true)
     expect(store.shortcutLogout).toBe(true)
-    expect(store.shortcutLock).toBe(false)
+    expect(store.shortcutLock).toBe(true)
     expect(store.shortcutTabOverview).toBe(true)
   })
 })
@@ -359,7 +359,7 @@ describe('setter 落地', () => {
     expect(store.shortcutEnable).toBe(true)
     expect(store.shortcutSearch).toBe(false)
     expect(store.shortcutLogout).toBe(true)
-    expect(store.shortcutLock).toBe(false)
+    expect(store.shortcutLock).toBe(true)
     expect(store.shortcutTabOverview).toBe(true)
   })
 

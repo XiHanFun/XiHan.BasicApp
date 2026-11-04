@@ -36,7 +36,7 @@ function setupStores(): ReturnType<typeof useFavoritesStore> {
 }
 
 beforeEach(() => {
-  // 收藏同步缺省关闭（6.0 还没接服务端）：这套用例测的是开着时的行为
+  // 这套用例测的是收藏同步开着时的行为，写明而不是依赖缺省值
   localStorage.setItem(FAVORITES_SYNC_KEY, 'true')
   getApi.mockReset()
   saveApi.mockReset()

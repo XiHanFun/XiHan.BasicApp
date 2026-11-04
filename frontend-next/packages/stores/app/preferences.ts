@@ -96,9 +96,9 @@ export function createPreferencesSlice() {
   const widgetTimezonePlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_TIMEZONE_PLACEMENT_KEY, LEGACY_WIDGET_TIMEZONE_KEY))
   const widgetFullscreenPlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_FULLSCREEN_PLACEMENT_KEY, LEGACY_WIDGET_FULLSCREEN_KEY))
   const widgetNotification = ref<boolean>(
-    LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? false,
+    LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true,
   )
-  const widgetLockScreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_LOCKSCREEN_KEY) ?? false)
+  const widgetLockScreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_LOCKSCREEN_KEY) ?? true)
   const widgetSidebarToggle = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_SIDEBAR_TOGGLE_KEY) ?? true,
   )
@@ -129,7 +129,7 @@ export function createPreferencesSlice() {
   const shortcutEnable = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
   const shortcutSearch = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_SEARCH_KEY) ?? true)
   const shortcutLogout = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOGOUT_KEY) ?? true)
-  const shortcutLock = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOCK_KEY) ?? false)
+  const shortcutLock = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_LOCK_KEY) ?? true)
   const shortcutTabOverview = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_TAB_OVERVIEW_KEY) ?? true)
 
   // ---- 持久化绑定 ----
