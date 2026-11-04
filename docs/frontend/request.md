@@ -69,7 +69,7 @@ const result = await users.lock({ ids: [id] })        // BatchResult：{ succeed
 
 ## 错误
 
-失败统一抛 `ApiError { code, status, detail, traceId, errors?, details? }`（由 Problem Details 解包）。`detail` 已按 `Accept-Language` 本地化、可直接展示；分支只看 `code`。运行时客户端按错误码触发钩子：
+失败统一抛 `ApiError { code, status, detail, traceId, errors?, details? }`（由 Problem Details 解包）。`detail` 已按 `Accept-Language` 本地化、可直接展示，`message` 与它相同，不带错误码；分支只看 `code`。运行时客户端按错误码触发钩子：
 
 | `code` | 钩子 | 行为 |
 | --- | --- | --- |

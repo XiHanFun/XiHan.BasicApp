@@ -63,6 +63,9 @@ describe('invoke', () => {
     const error = (await invoke('users.create', create, { userName: 'a' }).then(() => null, (e: unknown) => e)) as ApiError
     expect(error).toBeInstanceOf(ApiError)
     expect(error.code).toBe('KERNEL_VALIDATION_003')
+    // 页面直接把 message 给用户看，错误码不进去
+    expect(error.message).toBe('请求不合法。')
+    expect(error.detail).toBe('请求不合法。')
     expect(error.status).toBe(400)
     expect(error.kind).toBe('VALIDATION')
     expect(error.traceId).toBe('abc')

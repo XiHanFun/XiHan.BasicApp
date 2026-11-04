@@ -66,7 +66,6 @@ describe('个人中心的错误提示', () => {
     ['安全', renderSecurityAndStartTotp],
     ['个人中心页', renderPage],
   ])('%s：后端错误不带错误码，别的异常保持 message', async (_name, run) => {
-    expect(problem.message).toBe('[IDENTITY_DENIED_021] 没有权限。')
     const failures = await failuresOf(problem, run)
     expect(failures.length).toBeGreaterThan(0)
     expect(new Set(failures)).toEqual(new Set(['没有权限。']))

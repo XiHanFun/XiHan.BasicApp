@@ -284,7 +284,6 @@ describe('chatErrorText 报错文案', () => {
   it('后端的问题详情只取已本地化的正文，不带错误码前缀', () => {
     const error = new ApiError(409, { code: 'CHAT_CONFLICT_001', detail: '对方不是会话成员' })
 
-    expect(error.message).toContain('CHAT_CONFLICT_001')
     expect(chatErrorText(error)).toBe('对方不是会话成员')
   })
 

@@ -25,7 +25,8 @@ export class ApiError extends Error {
   constructor(status: number, problem: ProblemDetails, fallbackTraceId = '') {
     const code = problem.code ?? (status === 401 ? 'SECURITY_DENIED_001' : status === 404 ? 'PROTOCOLS_NOTFOUND_000' : 'KERNEL_UNEXPECTED_000')
     const detail = problem.detail ?? problem.title ?? `HTTP ${status}`
-    super(`[${code}] ${detail}`)
+    // 页面直接把 message 给用户看：只放本地化的文案，错误码在 code
+    super(detail)
     this.name = 'ApiError'
     this.code = code
     this.status = problem.status ?? status
