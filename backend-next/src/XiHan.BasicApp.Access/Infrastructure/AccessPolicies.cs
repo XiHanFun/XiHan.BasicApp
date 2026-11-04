@@ -87,7 +87,7 @@ public sealed class AccessPolicies(ISharedCache cache, IServiceScopeFactory scop
     private static CacheKey KeyOf(string owner) => new($"access:policies:{owner}");
 
     private async ValueTask<string> LoadAsync(string owner, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var policies = await services.GetRequiredService<IRepository<SysAccessPolicy, Guid>>()
                 .ListAsync(EntityQuery.All<SysAccessPolicy>().Where(new Specification<SysAccessPolicy>(p => p.OwnerTenantId == owner && p.Status == AccessPolicyStatus.Active)), ct)

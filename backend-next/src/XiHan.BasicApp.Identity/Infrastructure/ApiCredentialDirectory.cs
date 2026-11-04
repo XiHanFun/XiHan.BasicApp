@@ -47,7 +47,7 @@ public sealed class ApiCredentialDirectory(IServiceScopeFactory scopes, ISecretP
         }
 
         var now = clock.GetUtcNow();
-        return await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        return await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var credentials = services.GetRequiredService<IRepository<SysUserApiCredential, Guid>>();
             var rows = await credentials.ListAsync(EntityQuery.All<SysUserApiCredential>().Where(new Specification<SysUserApiCredential>(c => c.AppKey == appKey)).Page(0, 1), ct).ConfigureAwait(false);

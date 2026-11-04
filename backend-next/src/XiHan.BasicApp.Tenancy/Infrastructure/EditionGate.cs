@@ -71,7 +71,7 @@ public sealed class EditionGate : IEditionGate
 
     private async ValueTask<string> LoadAsync(string tenantId, CancellationToken cancellationToken)
     {
-        return await StoreScope.ReadAsync(_scopes, async (services, ct) =>
+        return await StoreScope.ReadPrimaryAsync(_scopes, async (services, ct) =>
         {
             var tenants = services.GetRequiredService<IRepository<SysTenant, Guid>>();
             var rows = await tenants.ListAsync(EntityQuery.All<SysTenant>().Where(new Specification<SysTenant>(t => t.TenantId == tenantId)).Page(0, 1), ct).ConfigureAwait(false);

@@ -214,7 +214,7 @@ public sealed class RoleHierarchy(ISharedCache cache, IServiceScopeFactory scope
     private static CacheKey KeyOf(string owner) => new($"access:hierarchy:{owner}");
 
     private async ValueTask<string> LoadAsync(string owner, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var edges = await services.GetRequiredService<IRepository<SysRoleInheritance, Guid>>()
                 .ListAsync(EntityQuery.All<SysRoleInheritance>().Where(new Specification<SysRoleInheritance>(e => e.OwnerTenantId == owner)), ct)

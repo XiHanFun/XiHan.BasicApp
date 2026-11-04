@@ -92,7 +92,7 @@ public sealed class ConstraintRules(ISharedCache cache, IServiceScopeFactory sco
     private static CacheKey KeyOf(string owner) => new($"access:constraints:{owner}");
 
     private async ValueTask<string> LoadAsync(string owner, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var rules = await services.GetRequiredService<IRepository<SysConstraintRule, Guid>>()
                 .ListAsync(EntityQuery.All<SysConstraintRule>().Where(new Specification<SysConstraintRule>(r => r.OwnerTenantId == owner && r.Status == ConstraintRuleStatus.Active)), ct)

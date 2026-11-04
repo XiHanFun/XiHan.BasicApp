@@ -66,7 +66,7 @@ public sealed class FieldSecurityRules(ISharedCache cache, IServiceScopeFactory 
     private static CacheKey KeyOf(string owner, string entity) => new($"access:field-rules:{owner}:{entity}");
 
     private async ValueTask<string> LoadAsync(string owner, string entity, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var rows = await services.GetRequiredService<IRepository<SysFieldSecurityRule, Guid>>()
                 .ListAsync(EntityQuery.All<SysFieldSecurityRule>().Where(new Specification<SysFieldSecurityRule>(r => r.OwnerTenantId == owner && r.Entity == entity && r.Status == FieldRuleStatus.Active)), ct)

@@ -68,7 +68,7 @@ public sealed class Delegations(ISharedCache cache, IServiceScopeFactory scopes,
     private static CacheKey KeyOf(string owner, Guid delegateeId) => new($"access:delegations:{owner}:{delegateeId:N}");
 
     private async ValueTask<string> LoadAsync(string owner, Guid delegateeId, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var now = clock.GetUtcNow();
             var rows = await services.GetRequiredService<IRepository<SysPermissionDelegation, Guid>>()

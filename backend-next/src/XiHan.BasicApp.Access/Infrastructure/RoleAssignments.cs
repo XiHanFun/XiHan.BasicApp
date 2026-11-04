@@ -71,7 +71,7 @@ public sealed class RoleAssignments(ISharedCache cache, IServiceScopeFactory sco
     private static CacheKey KeyOf(string owner, Guid userId) => new($"access:assignments:{owner}:{userId:N}");
 
     private async ValueTask<string> LoadAsync(string owner, Guid userId, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var rows = await services.GetRequiredService<IRepository<SysUserRole, Guid>>()
                 .ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(a => a.UserId == userId && a.OwnerTenantId == owner)), ct)

@@ -62,7 +62,7 @@ public sealed class PermissionRules(ISharedCache cache, IServiceScopeFactory sco
     private static CacheKey KeyOf(string owner, GrantSubjectKind kind, Guid subjectId) => new($"access:rules:{owner}:{kind}:{subjectId:N}");
 
     private async ValueTask<string> LoadAsync(string owner, GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var rows = await services.GetRequiredService<IRepository<SysPermissionRule, Guid>>()
                 .ListAsync(EntityQuery.All<SysPermissionRule>().Where(new Specification<SysPermissionRule>(r => r.OwnerTenantId == owner && r.SubjectKind == kind && r.SubjectId == subjectId)), ct)

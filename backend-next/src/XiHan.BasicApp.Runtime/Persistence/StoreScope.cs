@@ -44,6 +44,43 @@ public static class StoreScope
     }
 
     /// <summary>
+    /// 在独立作用域里读主库
+    /// </summary>
+    /// <remarks>
+    /// 只读工作单元读从库，会写的工作单元才钉主库，所以这里开一个不写的工作单元：没有写入就不开事务。
+    /// 给决定授权的读取用（会话门禁、角色指派、权限规则、访问策略等）：这些结果进缓存，读到落后的从库时，被撤销的权限要等缓存过期才失效，从库一直落后就一直不失效。
+    /// 没配从库时与只读读取没有差别
+    /// </remarks>
+    /// <typeparam name="T">结果类型</typeparam>
+    /// <param name="scopes">作用域工厂</param>
+    /// <param name="read">读取</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>读到的结果</returns>
+    public static async Task<T> ReadPrimaryAsync<T>(IServiceScopeFactory scopes, Func<IServiceProvider, CancellationToken, Task<T>> read, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(scopes);
+        ArgumentNullException.ThrowIfNull(read);
+        await using var scope = scopes.CreateAsyncScope();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        await unitOfWork.BeginAsync(UnitOfWorkOptions.Default, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var result = await read(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);
+            (await unitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false)).ThrowIfFailure();
+            return result;
+        }
+        catch
+        {
+            if (unitOfWork.State == UnitOfWorkState.Active)
+            {
+                await unitOfWork.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 在读写工作单元里执行委托
     /// </summary>
     /// <remarks>

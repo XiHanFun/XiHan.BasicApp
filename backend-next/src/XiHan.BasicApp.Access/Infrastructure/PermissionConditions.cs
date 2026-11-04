@@ -72,7 +72,7 @@ public sealed class PermissionConditions(ISharedCache cache, IServiceScopeFactor
     private static CacheKey KeyOf(string owner, GrantSubjectKind kind, Guid subjectId) => new($"access:conditions:{owner}:{kind}:{subjectId:N}");
 
     private async ValueTask<string> LoadAsync(string owner, GrantSubjectKind kind, Guid subjectId, CancellationToken cancellationToken)
-        => await StoreScope.ReadAsync(scopes, async (services, ct) =>
+        => await StoreScope.ReadPrimaryAsync(scopes, async (services, ct) =>
         {
             var rows = await services.GetRequiredService<IRepository<SysPermissionCondition, Guid>>()
                 .ListAsync(EntityQuery.All<SysPermissionCondition>().Where(new Specification<SysPermissionCondition>(c => c.OwnerTenantId == owner && c.SubjectKind == kind && c.SubjectId == subjectId && c.Status == ConditionStatus.Active)), ct)

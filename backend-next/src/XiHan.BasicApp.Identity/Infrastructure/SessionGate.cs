@@ -88,7 +88,7 @@ public sealed class SessionGate
     private async ValueTask<string> LoadAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         var now = _clock.GetUtcNow();
-        return await StoreScope.ReadAsync(_scopes, async (services, ct) =>
+        return await StoreScope.ReadPrimaryAsync(_scopes, async (services, ct) =>
         {
             var sessions = services.GetRequiredService<IRepository<SysUserSession, Guid>>();
             var session = await sessions.FindAsync(sessionId, ct).ConfigureAwait(false);
