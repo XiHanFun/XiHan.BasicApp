@@ -71,7 +71,7 @@ public sealed class TenantQuotaTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, subscribed);
         Assert.Equal(("tiny", 2, 1L, 1L, 0L, false), (subscription.GetProperty("editionCode").GetString(), subscription.GetProperty("userLimit").GetInt32(), subscription.GetProperty("usedSeats").GetInt64(), subscription.GetProperty("storageLimitMb").GetInt64(), subscription.GetProperty("usedStorageBytes").GetInt64(), subscription.GetProperty("isExpired").GetBoolean()));
         var (platformSide, platformSideBody) = await SendAsync(server, HttpMethod.Get, "/api/subscription", null, platform);
-        Assert.Equal((HttpStatusCode.Forbidden, "TENANCY_DENIED_002"), (platformSide, platformSideBody.GetProperty("code").GetString()));
+        Assert.Equal((HttpStatusCode.Forbidden, "SECURITY_DENIED_004"), (platformSide, platformSideBody.GetProperty("code").GetString()));
 
         // 席位：租户一侧第二个用户可以，第三个超额；平台代租户建用户不受限，超额进审计
         Assert.Equal(HttpStatusCode.Created, (await SendAsync(server, HttpMethod.Post, "/api/users", """{"userName":"ann","displayName":"Ann","password":"Pass@123456"}""", tenant)).Status);
