@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.StaticFiles;
 using XiHan.BasicApp.Files.Domain.Entities;
 
@@ -15,6 +16,11 @@ namespace XiHan.BasicApp.Files.Domain.Services;
 public static class FileKinds
 {
     private static readonly FileExtensionContentTypeProvider _contentTypes = new();
+
+    private static readonly HashSet<string> _inlineTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp", "image/avif", "application/pdf", "text/plain",
+    };
 
     private static readonly HashSet<string> _documents = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -47,12 +53,33 @@ public static class FileKinds
     /// <returns>内容类型</returns>
     public static string ContentTypeOf(string? declared, string fileName)
     {
-        if (!string.IsNullOrWhiteSpace(declared) && declared.Length <= 100 && !string.Equals(declared, "application/octet-stream", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(declared) && declared.Length <= 100 && !string.Equals(declared, "application/octet-stream", StringComparison.OrdinalIgnoreCase) && MediaTypeHeaderValue.TryParse(declared.Trim(), out _))
         {
             return declared.Trim();
         }
 
         return _contentTypes.TryGetContentType(fileName, out var guessed) ? guessed : "application/octet-stream";
+    }
+
+    /// <summary>
+    /// 这个内容类型能不能在浏览器里内联打开
+    /// </summary>
+    /// <remarks>
+    /// 只放行跑不了脚本的类型。内容类型是上传方给的，HTML、SVG 内联打开时脚本运行在应用的源上，能读走本地存的令牌，要以附件下载
+    /// </remarks>
+    /// <param name="contentType">内容类型</param>
+    /// <returns>能内联时为 <see langword="true"/></returns>
+    public static bool IsInlineSafe(string contentType)
+    {
+        ArgumentNullException.ThrowIfNull(contentType);
+        if (!MediaTypeHeaderValue.TryParse(contentType, out var parsed) || parsed.MediaType is not { } mediaType)
+        {
+            return false;
+        }
+
+        return _inlineTypes.Contains(mediaType)
+            || mediaType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase)
+            || mediaType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

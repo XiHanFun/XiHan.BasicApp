@@ -201,6 +201,7 @@ public static class BasicAppHost
     {
         ArgumentNullException.ThrowIfNull(app);
         app.UseForwardedHeaders();
+        app.UseMiddleware<ResponseSecurityHeadersMiddleware>();
         if (CorsSettings.FromConfiguration(app.Configuration).Enabled)
         {
             app.UseCors();

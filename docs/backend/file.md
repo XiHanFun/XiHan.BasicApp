@@ -65,7 +65,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 | `GET /api/files/{id}/content` | 按身份读取内容，支持 `Range`（音视频拖动） |
 | `POST /api/profile/avatar` | 头像：只要求登录，按文件头认 JPEG / PNG，不超过 2 MB；平台侧的公开文件，跟着用户走、不计入租户配额 |
 
-签名地址由存储签出（框架 ADR-0049）：S3 兼容存储直连存储，本地存储走宿主的 `/blobs` 签名端点（密钥 `XiHan:ObjectStorage:SignedUrls:Secret`）。缺省 30 分钟有效，最长 `MaxLinkLifetime`（7 天）。
+签名地址由存储签出（框架 ADR-0049）：S3 兼容存储直连存储，本地存储走宿主的 `/blobs` 签名端点（密钥 `XiHan:ObjectStorage:SignedUrls:Secret`）。缺省 30 分钟有效，最长 `MaxLinkLifetime`（7 天）。 内容类型是上传方给的，所以只有图片（不含 SVG）、音视频、PDF 与纯文本能内联打开，别的类型（HTML、SVG、XML 等）即使不要 `download` 也以附件下载；`/blobs` 的响应不让浏览器猜类型（`X-Content-Type-Options: nosniff`），除 PDF 外都在沙箱里（`Content-Security-Policy: sandbox`），上传的脚本拿不到管理端的源。
 
 ### 分片上传（大文件）
 

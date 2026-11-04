@@ -231,7 +231,7 @@ public sealed partial class FileService(
     /// </remarks>
     /// <param name="file">文件</param>
     /// <param name="lifetime">有效期；为空取缺省值</param>
-    /// <param name="download">是否以附件下载（带原始文件名）；否则按内容类型内联显示</param>
+    /// <param name="download">是否以附件下载（带原始文件名）；否则按内容类型内联显示，只有 <see cref="FileKinds.IsInlineSafe"/> 放行的类型才内联</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>地址与到期时间</returns>
     public async Task<Result<(string Url, DateTimeOffset ExpiresAt)>> SignAsync(SysFile file, TimeSpan? lifetime, bool download, CancellationToken cancellationToken)
@@ -249,7 +249,7 @@ public sealed partial class FileService(
             return located.Error!;
         }
 
-        var request = BlobUrlRequest.ForDownload(span, download ? file.OriginalName : null);
+        var request = BlobUrlRequest.ForDownload(span, download || !FileKinds.IsInlineSafe(file.ContentType) ? file.OriginalName : null);
         var signed = await stores.SignerOf(target.Config, target.Store).SignAsync(target.Storage.Bucket, target.Storage.Key, request, cancellationToken).ConfigureAwait(false);
         if (!signed.TryGetValue(out var url))
         {

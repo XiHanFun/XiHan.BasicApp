@@ -43,6 +43,8 @@ public sealed class ChatMessageService(
     IIdGenerator<Guid> ids,
     TimeProvider clock)
 {
+    private const int MaxAttachmentCandidates = 200;
+
     private readonly IAttachmentFiles? _files = attachments.FirstOrDefault();
 
     /// <summary>
@@ -539,6 +541,25 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
+    /// 文件是不是这个会话里某条消息的附件
+    /// </summary>
+    /// <remarks>
+    /// 文本匹配只用来缩小范围：附件 JSON 里有上传方给的文件名，写上别人的文件 ID 也能命中，要解析出来逐条比。命中文本的消息只有这么多，超过上限的不再看
+    /// </remarks>
+    private async Task<bool> IsAttachedAsync(string side, Guid conversationId, Guid fileId, CancellationToken cancellationToken)
+    {
+        var marker = fileId.ToString();
+        var candidates = await store.Messages(side)
+            .Where(m => m.ConversationId == conversationId && m.Attachments != null && m.Attachments.Contains(marker))
+            .OrderByDescending(m => m.Seq)
+            .Take(MaxAttachmentCandidates)
+            .Select(m => m.Attachments)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return candidates.Any(json => ChatAttachmentsJson.Deserialize(json).Any(a => a.FileId == fileId));
+    }
+
+    /// <summary>
     /// 会话成员凭会话换附件的下载地址
     /// </summary>
     /// <remarks>
@@ -560,7 +581,7 @@ public sealed class ChatMessageService(
         var marker = request.FileId.ToString();
         var conversationId = request.ConversationId;
         var referenced = await store.Conversations(caller.Side).Where(c => c.Id == conversationId && c.Avatar == marker).AnyAsync(context.CancellationToken).ConfigureAwait(false)
-            || await store.Messages(caller.Side).Where(m => m.ConversationId == conversationId && m.Attachments != null && m.Attachments.Contains(marker)).AnyAsync(context.CancellationToken).ConfigureAwait(false);
+            || await IsAttachedAsync(caller.Side, conversationId, request.FileId, context.CancellationToken).ConfigureAwait(false);
         if (!referenced)
         {
             var own = await _files.FindAsync(context, [request.FileId]).ConfigureAwait(false);

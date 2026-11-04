@@ -196,6 +196,40 @@ public sealed class ChatTests : IDisposable
     }
 
     [Fact]
+    public async Task Presign_ComparesAttachmentIds_NotTheirFileNames()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob, carol, dave) = (users["alice"], users["bob"], users["carol"], users["dave"]);
+        var private1 = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var carols = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = dave }, carol)).Body.GetProperty("conversationId").GetString()!;
+
+        async Task<string> SendFileAsync(string user, string conversation, string name)
+        {
+            var request = BasicAppTestServer.Request(HttpMethod.Post, "/api/chat-messages/attachments", token: Token(user));
+            var content = new ByteArrayContent("%PDF-1.4"u8.ToArray());
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            request.Content = new MultipartFormDataContent { { content, "file", name } };
+            var (_, uploaded) = await server.SendAsync(request);
+            var fileId = uploaded.GetProperty("attachment").GetProperty("fileId").GetString()!;
+            var (status, sent) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId = conversation, messageType = "File", attachments = new[] { new { fileId, fileName = name, size = 8L } } }, user);
+            Assert.True(status == HttpStatusCode.OK, sent.ToString());
+            return fileId;
+        }
+
+        // 别人会话里的文件：把它的 ID 写进自己附件的文件名，发到自己的会话，也换不到它的地址
+        var secret = await SendFileAsync(alice, private1, "secret.pdf");
+        var mine = await SendFileAsync(carol, carols, $"{secret}.pdf");
+        var (denied, deniedBody) = await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:presign?conversationId={carols}&fileId={secret}&download=true", null, carol);
+        Assert.Equal(HttpStatusCode.NotFound, denied);
+        Assert.Equal("CHAT_NOTFOUND_005", deniedBody.GetProperty("code").GetString());
+
+        // 自己的附件照常
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:presign?conversationId={carols}&fileId={mine}", null, dave)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:presign?conversationId={private1}&fileId={secret}", null, bob)).Status);
+    }
+
+    [Fact]
     public async Task Attachments_AreScopedToTheConversation_AndMessagesForwardServerSide()
     {
         var (server, users) = await StartAsync();

@@ -88,6 +88,55 @@ public sealed class FilesTests : IDisposable
         return body.GetProperty("url").GetString()!;
     }
 
+    [Fact]
+    public async Task SignedLinks_NeverServeUploadedScriptsInline()
+    {
+        var (server, platform, _) = await StartAsync();
+        await using var running = server;
+
+        // 同样的内容共用一个对象（元数据是第一次上传时的类型），所以默认每个文件内容不同
+        async Task<HttpResponseMessage> OpenAsync(string name, string contentType, string? content = null)
+        {
+            using var form = new MultipartFormDataContent();
+            var file = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(content ?? $"<script>alert('{name}')</script>"));
+            file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            form.Add(file, "file", name);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/files/upload") { Content = form };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", platform);
+            var (uploaded, body) = await server.SendAsync(request);
+            Assert.True(uploaded.StatusCode == HttpStatusCode.Created || uploaded.StatusCode == HttpStatusCode.OK, body.ToString());
+            var (status, _, response) = await GetRawAsync(server, await PresignAsync(server, platform, body.GetProperty("id").GetString()!));
+            Assert.Equal(HttpStatusCode.OK, status);
+            return response;
+        }
+
+        // 能跑脚本的类型：不要 download 也是附件；响应在沙箱里，不让浏览器猜类型
+        foreach (var (name, contentType) in new[] { ("page.html", "text/html"), ("image.svg", "image/svg+xml"), ("page.xhtml", "application/xhtml+xml"), ("data.xml", "text/xml") })
+        {
+            var risky = await OpenAsync(name, contentType);
+            Assert.Equal("attachment", risky.Content.Headers.ContentDisposition?.DispositionType);
+            Assert.Equal("nosniff", Assert.Single(risky.Headers.GetValues("X-Content-Type-Options")));
+            Assert.Contains("sandbox", Assert.Single(risky.Headers.GetValues("Content-Security-Policy")), StringComparison.Ordinal);
+        }
+
+        // 跑不了脚本的类型照常内联；PDF 的内置阅读器在沙箱里打不开
+        var image = await OpenAsync("image.png", "image/png");
+        Assert.Null(image.Content.Headers.ContentDisposition);
+        Assert.Equal("nosniff", Assert.Single(image.Headers.GetValues("X-Content-Type-Options")));
+        var pdf = await OpenAsync("doc.pdf", "application/pdf");
+        Assert.Null(pdf.Content.Headers.ContentDisposition);
+        Assert.False(pdf.Headers.Contains("Content-Security-Policy"));
+
+        // 先传 HTML、再把同样的内容声明成图片：响应的类型来自对象，还是 HTML，这时沙箱兜底
+        await OpenAsync("first.html", "text/html", "<script>alert('same')</script>");
+        var disguised = await OpenAsync("second.png", "image/png", "<script>alert('same')</script>");
+        Assert.Equal("text/html", disguised.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("sandbox", Assert.Single(disguised.Headers.GetValues("Content-Security-Policy")), StringComparison.Ordinal);
+
+        // 声明的类型不合法时按扩展名推，不把控制字符写进响应头
+        Assert.Equal("text/plain", XiHan.BasicApp.Files.Domain.Services.FileKinds.ContentTypeOf("text/plain\r\nX-Evil: 1", "note.txt"));
+    }
+
     private static async Task<List<JsonElement>> StoragesAsync(BasicAppTestServer server, string token, string fileId)
         => [.. (await SendAsync(server, HttpMethod.Get, $"/api/files/{fileId}:storages", null, token)).Body.GetProperty("items").EnumerateArray()];
 
