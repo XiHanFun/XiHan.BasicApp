@@ -182,12 +182,12 @@ public sealed class ConditionAttributeSource : IConditionAttributeSource
         }, cancellationToken).ConfigureAwait(false);
     }
 
-    // 判定在事务阶段之前：查库另开只读工作单元，租户库按所属侧显式指定
+    // 判定在事务阶段之前：查库另开只读工作单元，租户库按所属侧显式指定；结果决定放不放行，配了从库也读主库
     private async Task<T> ReadAsync<T>(string? tenantId, Func<IServiceProvider, CancellationToken, Task<T>> read, CancellationToken cancellationToken)
     {
         await using var scope = _scopes.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenantId, IsReadOnly: true), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenantId, IsReadOnly: true) { ReadsPrimary = true }, cancellationToken).ConfigureAwait(false);
         try
         {
             var result = await read(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);

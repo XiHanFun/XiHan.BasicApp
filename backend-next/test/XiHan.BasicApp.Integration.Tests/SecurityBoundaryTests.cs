@@ -1,13 +1,22 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using Scriban;
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Access;
+using XiHan.BasicApp.Host;
+using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Runtime.Templates;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Messaging.Abstractions;
+using XiHan.Framework.Messaging.Abstractions.Handlers;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -112,14 +121,24 @@ public sealed class SecurityBoundaryTests : IDisposable
             return request;
         }
 
-        // 没有任何权限的平台账号，也试不进去
-        var (denied, deniedBody) = await server.SendAsync(Assignees(platformAccount, "xihan.tenant=contoso"));
-        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
-        Assert.Equal("IDENTITY_DENIED_006", deniedBody.GetProperty("code").GetString());
+        // 框架入站丢掉这个头（ADR-0121）：没有任何权限的平台账号带上它，也还在平台这一侧，看不到租户的用户
+        var (ignored, ignoredBody) = await server.SendAsync(Assignees(platformAccount, "xihan.tenant=contoso"));
+        Assert.True(ignored.StatusCode == HttpStatusCode.OK, ignoredBody.ToString());
+        Assert.DoesNotContain(ignoredBody.GetProperty("items").EnumerateArray(), static u => u.GetProperty("userName").GetString() == "alice");
 
-        // 超级管理员也一样：进租户走 auth.switch-tenant
-        var (superDenied, _) = await server.SendAsync(Assignees(superadmin, "xihan.tenant=contoso"));
-        Assert.Equal(HttpStatusCode.Forbidden, superDenied.StatusCode);
+        // 持 * 的超级管理员也一样：进租户走 auth.switch-tenant
+        var (superIgnored, superIgnoredBody) = await server.SendAsync(Assignees(superadmin, "xihan.tenant=contoso"));
+        Assert.True(superIgnored.StatusCode == HttpStatusCode.OK, superIgnoredBody.ToString());
+        Assert.DoesNotContain(superIgnoredBody.GetProperty("items").EnumerateArray(), static u => u.GetProperty("userName").GetString() == "alice");
+
+        // 只在租户侧的操作照样进不去；进得去的话这里是 200。xihan.principal 同样被丢掉
+        var departments = BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: superadmin);
+        departments.Headers.Add("baggage", "xihan.tenant=contoso");
+        var (tenantOnly, tenantOnlyBody) = await server.SendAsync(departments);
+        Assert.Equal((HttpStatusCode.Forbidden, "SECURITY_DENIED_004"), (tenantOnly.StatusCode, tenantOnlyBody.GetProperty("code").GetString()));
+        var anonymous = BasicAppTestServer.Request(HttpMethod.Get, "/api/workflow-assignees:users?limit=200");
+        anonymous.Headers.Add("baggage", "xihan.tenant=contoso,xihan.principal=superadmin");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await server.SendAsync(anonymous)).Response.StatusCode);
 
         // 不带头照常，别的 Baggage 键不受影响；租户令牌的声明优先，带别的租户也还在自己这一侧
         var (plain, plainBody) = await server.SendAsync(Assignees(platformAccount, null));
@@ -130,6 +149,57 @@ public sealed class SecurityBoundaryTests : IDisposable
         var (own, ownBody) = await server.SendAsync(Assignees(tenantAdmin, "xihan.tenant=other"));
         Assert.True(own.StatusCode == HttpStatusCode.OK, ownBody.ToString());
         Assert.Contains(ownBody.GetProperty("items").EnumerateArray(), static u => u.GetProperty("userName").GetString() == "alice");
+    }
+
+    [Fact]
+    public async Task CloudEvents_TenantAdministratorHoldingStar_IsDenied_AndCannotDeliverIntoAnotherTenant()
+    {
+        const string topic = "basicapp.tests.boundary";
+        var received = new ConcurrentQueue<string?>();
+        await using var server = await BasicAppTestServer.StartAsync(
+            _database.ConnectionString,
+            settings: [new($"{CloudEventsSettings.ConfigurationSection}:Enabled", "true")],
+            configure: builder => builder.Services.AddSingleton(received).AddMessageHandler<TenantRecordingHandler>(topic));
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var contoso = await UnrestrictedTenantAdminAsync(server, superadmin, "contoso");
+        await UnrestrictedTenantAdminAsync(server, superadmin, "fabrikam");
+
+        // 这个令牌确实持 *：拦下来的不是「没有授予」
+        var (_, roles) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles:list", "{}", contoso));
+        var adminRole = roles.GetProperty("items").EnumerateArray().Single(static r => r.GetProperty("code").GetString() == "admin").GetProperty("id").GetString();
+        var (_, adminDetail) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/roles/{adminRole}", token: contoso));
+        Assert.Contains(adminDetail.GetProperty("permissions").EnumerateArray(), static p => p.GetString() == "*");
+
+        HttpRequestMessage Delivery(string token, string tenant)
+        {
+            var request = BasicAppTestServer.Request(HttpMethod.Post, CloudEventsSettings.Path, token: token);
+            var json = JsonSerializer.Serialize(new { specversion = "1.0", id = Guid.NewGuid().ToString("N"), source = "/tests", type = topic, datacontenttype = "application/json", xihantenant = tenant, data = new { ping = 1 } });
+            request.Content = new StringContent(json, Encoding.UTF8, "application/cloudevents+json");
+            return request;
+        }
+
+        // 投不进别的租户，也投不进自己的：入站权限码只在平台这一侧
+        foreach (var tenant in new[] { "fabrikam", "contoso" })
+        {
+            var (denied, deniedBody) = await server.SendAsync(Delivery(contoso, tenant));
+            Assert.Equal((HttpStatusCode.Forbidden, "SECURITY_DENIED_004"), (denied.StatusCode, deniedBody.GetProperty("code").GetString()));
+            Assert.Empty(received);
+        }
+
+        // 也不能给自己配上这个权限码
+        var roleCode = $"r{Guid.NewGuid():N}"[..12];
+        var (_, role) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles", $$"""{"code":"{{roleCode}}","name":"{{roleCode}}"}""", contoso));
+        var (_, roleGrant) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{role.GetProperty("id").GetString()}:grant", JsonSerializer.Serialize(new { permissions = new[] { RuntimePermissions.CloudEventsDeliver } }), contoso));
+        Assert.Equal(AccessErrors.PermissionScopeMismatch, Assert.Single(roleGrant.GetProperty("failed").EnumerateArray()).GetProperty("code").GetString());
+        var (_, me) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: contoso));
+        Assert.DoesNotContain(me.GetProperty("permissions").EnumerateArray(), static p => p.GetString() == RuntimePermissions.CloudEventsDeliver);
+
+        // 对照：平台一侧持这个权限的调用方进得来，事件落在信封指定的租户（这是协议的设计，所以权限只给平台的服务账号）
+        var (accepted, acceptedBody) = await server.SendAsync(Delivery(superadmin, "contoso"));
+        Assert.True(accepted.StatusCode == HttpStatusCode.Accepted, acceptedBody.ToString());
+        Assert.Equal("contoso", Assert.Single(received));
     }
 
     [Fact]
@@ -416,5 +486,18 @@ public sealed class SecurityBoundaryTests : IDisposable
         Assert.True(own.StatusCode == HttpStatusCode.Created, ownBody.ToString());
         var (byAdmin, byAdminBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/delegations", JsonSerializer.Serialize(new { delegatorId = ownerId, delegateeId = bystanderId, permission = "access.roles.grant", expiresAt }), superadmin));
         Assert.True(byAdmin.StatusCode == HttpStatusCode.Created, byAdminBody.ToString());
+    }
+
+    /// <summary>
+    /// 记下事件落在哪个租户
+    /// </summary>
+    private sealed class TenantRecordingHandler(ConcurrentQueue<string?> received) : IMessageHandler
+    {
+        /// <inheritdoc />
+        public ValueTask<Result> HandleAsync(MessageDelivery delivery, InvocationContext context, CancellationToken cancellationToken)
+        {
+            received.Enqueue(context.GetSecurity().Tenant?.Id);
+            return ValueTask.FromResult(Result.Success());
+        }
     }
 }

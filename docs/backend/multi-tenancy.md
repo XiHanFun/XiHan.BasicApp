@@ -10,7 +10,7 @@
 | --- | --- |
 | 租户 ID | 字符串，文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`（即 5.x 的租户编码），创建后不可改；`platform` 是保留 ID |
 | 平台 | 不是一个租户：平台主体的令牌没有 `tenant` 声明；平台数据不实现 `IMultiTenant` |
-| 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`（内部调用用）；不支持查询串与 `X-Tenant-Id` 头。本应用签发的令牌，上下文租户必须等于声明（`TokenTenantMiddleware`）：平台令牌带 `baggage` 头进租户是 `IDENTITY_DENIED_006`，进租户走 `auth.switch-tenant` |
+| 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`（只来自内部调用：作业、消息处理、工作流）；不支持查询串与 `X-Tenant-Id` 头。HTTP、gRPC、MCP 入站丢掉调用方写的 `xihan.tenant`、`xihan.principal`（框架 ADR-0121）：平台令牌带 `baggage` 头也还在平台一侧，进租户走 `auth.switch-tenant`。CloudEvents 入站的 `xihantenant` 仍能选租户，这是协议的设计，所以 `/events` 缺省关闭，打开后要 `runtime.cloud-events.deliver`，这个权限只在平台一侧，只授给平台的服务账号 |
 | 隔离方式 | `Field`（缺省，共库、按 `tenant_id` 过滤）与 `Database`（独立库）；5.x 的 Schema 隔离已删除 |
 
 框架仓储对实现 `IMultiTenant` 的实体做严格相等过滤，没有租户上下文时看不到任何行；`XiHan:MultiTenancy:RequireTenant` 为 `false`，平台主体可以调用平台侧操作。

@@ -47,8 +47,8 @@ public static class StoreScope
     /// 在独立作用域里读主库
     /// </summary>
     /// <remarks>
-    /// 只读工作单元读从库，会写的工作单元才钉主库，所以这里开一个不写的工作单元：没有写入就不开事务。
-    /// 给决定授权的读取用（会话门禁、角色指派、权限规则、访问策略等）：这些结果进缓存，读到落后的从库时，被撤销的权限要等缓存过期才失效，从库一直落后就一直不失效。
+    /// 只读工作单元缺省读从库，这里声明 <c>ReadsPrimary</c> 钉主库，写入照样被只读保护拦下
+    /// 给决定授权的读取用（会话门禁、角色指派、权限规则、访问策略等）：这些结果进缓存，读到落后的从库时，被撤销的权限要等缓存过期才失效，从库一直落后就一直不失效
     /// 没配从库时与只读读取没有差别
     /// </remarks>
     /// <typeparam name="T">结果类型</typeparam>
@@ -62,7 +62,7 @@ public static class StoreScope
         ArgumentNullException.ThrowIfNull(read);
         await using var scope = scopes.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(UnitOfWorkOptions.Default, cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions(IsReadOnly: true) { ReadsPrimary = true }, cancellationToken).ConfigureAwait(false);
         try
         {
             var result = await read(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);

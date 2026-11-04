@@ -24,7 +24,6 @@ using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
-using XiHan.Framework.MultiTenancy.Abstractions.Resolution;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
@@ -137,8 +136,6 @@ public sealed class IdentityFeature : IFeature
         // 同阶段的基准次序按归属（清单 ID）字符串序排，identity 会排在 security.jwt 之前：显式声明在认证中间件之后，先认出主体，再核对会话
         context.AddMiddleware<SessionGateMiddleware>(PipelineStage.Authenticate);
         context.Pipeline.After<SessionGateMiddleware, AuthenticationMiddleware>();
-        context.AddMiddleware<TokenTenantMiddleware>(PipelineStage.Tenant);
-        context.Pipeline.After<TokenTenantMiddleware, TenantResolutionMiddleware>();
         // 操作登记由 Kernel.Generators 从 [Operation] 生成（含请求 / 响应 JSON Schema）
         context.AddGeneratedOperations();
     }

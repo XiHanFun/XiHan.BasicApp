@@ -22,7 +22,7 @@ public sealed class MessageTransportTests
     private static readonly EmailEnvelope _envelope = new("someone@example.test", "subject", "body", false);
 
     private static SmtpEmailTransport Smtp(OutboundAddressOptions options)
-        => new(new OutboundAddressPolicy(options, NullLoggerFactory.Instance), options);
+        => new(new OutboundAddressPolicy(options, NullLoggerFactory.Instance));
 
     private static EmailServer Server(string host, int port) => new(host, port, false, false, "noreply@example.test", null, null, null);
 

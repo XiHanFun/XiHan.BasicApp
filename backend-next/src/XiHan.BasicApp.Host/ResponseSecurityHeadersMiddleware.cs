@@ -7,8 +7,7 @@ namespace XiHan.BasicApp.Host;
 /// 响应的安全头
 /// </summary>
 /// <remarks>
-/// 一律不让浏览器猜内容类型。本地存储的签名端点 <c>/blobs</c> 与管理端同源，内容是用户上传的：放进沙箱，脚本拿不到应用的源
-/// PDF 不进沙箱，内置阅读器在沙箱里打不开，它本身跑不了页面脚本
+/// 一律不让浏览器猜内容类型。本地存储的签名端点 <c>/blobs</c> 的沙箱由框架给（ADR-0125）
 /// </remarks>
 /// <param name="next">下一个中间件</param>
 public sealed class ResponseSecurityHeadersMiddleware(RequestDelegate next)
@@ -22,20 +21,6 @@ public sealed class ResponseSecurityHeadersMiddleware(RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
         context.Response.Headers.XContentTypeOptions = "nosniff";
-        if (context.Request.Path.StartsWithSegments("/blobs"))
-        {
-            context.Response.OnStarting(static state =>
-            {
-                var response = (HttpResponse)state;
-                if (!string.Equals(response.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase))
-                {
-                    response.Headers.ContentSecurityPolicy = "sandbox; default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'";
-                }
-
-                return Task.CompletedTask;
-            }, context.Response);
-        }
-
         return next(context);
     }
 }
