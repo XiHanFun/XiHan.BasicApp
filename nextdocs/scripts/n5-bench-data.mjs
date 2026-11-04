@@ -162,7 +162,7 @@ psql(`DROP TABLE IF EXISTS bench_user, bench_other, bench_dept, bench_role, benc
 cloneFrom('sys_user_security', `SELECT * FROM sys_user_security WHERE user_id = '${limited.id}'`, '(SELECT id AS user_id, 0 AS seq FROM bench_user UNION ALL SELECT id, 0 FROM bench_other) s', { user_id: 's.user_id' }, 'now()');
 
 step(`部门 ${n(500)}（6 层，含闭包表）`);
-const fanout = 3; // 三叉树：500 个部门正好落在 6 层
+const fanout = 4; // 四叉树：500 个部门正好落在 6 层
 psql(`CREATE TABLE bench_dept AS SELECT bench_uuid7(now() + g * interval '1 millisecond') AS id, g AS seq, CASE WHEN g = 1 THEN NULL ELSE (g - 2) / ${fanout} + 1 END AS parent_seq FROM generate_series(1, ${n(500)}) g;`);
 const deptCols = columns('sys_department');
 psql(`INSERT INTO sys_department (${deptCols.map((c) => `"${c}"`).join(',')})

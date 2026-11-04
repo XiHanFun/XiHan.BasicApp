@@ -12,6 +12,8 @@
 //   ai         流式首包与检索（要仿真模型端点，延迟扣除 --model-delay）
 //   provider   删提供商：所有侧的引用检查耗时
 //   frontend   dist 里首屏与懒加载块的 gzip 体积；给 BENCH_PLAYWRIGHT 时再量首屏与路由装配
+//   restart    只重启宿主（两实例之后回到单实例）
+//   sql        查 N+1：同一列表按页大小 20 与 50 各跑 10 次，去掉后台轮询，看每个请求每条语句执行几次
 //
 // 环境变量：BENCH_API、BENCH_CONTAINER、BENCH_DB、BENCH_HOST_EXE（宿主可执行文件，login、fanout 要重启它；环境变量沿用当前进程的）、
 // BENCH_SUPERADMIN_PASSWORD；造数见 n5-bench-data.mjs
@@ -219,6 +221,42 @@ async function benchLists() {
   write('lists', result);
 }
 
+// 后台轮询的语句：发件箱、调度、工作流书签、租户目录、连接复位、分表存在性检查、命中记录
+const BACKGROUND = /outbox_message|scheduler_|job_run|job_entity|job_definition|workflow_bookmark_record|tenant_record|DISCARD ALL|relname|pg_tables|sys_condition_hit|lease|information_schema/i;
+async function benchSql() {
+  const identities = { admin: await loginAs('admin'), limited: await loginAs('limited') };
+  const targets = [...LIST_TARGETS, ['tasks', 'tasks:list']];
+  const repeat = 10;
+  const result = {};
+  for (const [who, token] of Object.entries(identities)) {
+    result[who] = {};
+    for (const [name, target] of targets) {
+      const bySize = {};
+      for (const size of [20, 50]) {
+        const body = { page: { index: 1, size } };
+        await raw(API, token, 'POST', target, body);
+        resetStatements();
+        let rows = 0;
+        for (let i = 0; i < repeat; i++) {
+          const response = await raw(API, token, 'POST', target, body);
+          rows = response.body?.items?.length ?? 0;
+        }
+
+        const seen = statements(200).filter((s) => !BACKGROUND.test(s.query));
+        const perRequest = seen.reduce((sum, s) => sum + s.calls, 0) / repeat;
+        bySize[size] = { rows, perRequest, statements: seen.map((s) => ({ perRequest: s.calls / repeat, msPerCall: Math.round((s.ms / s.calls) * 100) / 100, blocksPerCall: Math.round(s.blocks / s.calls), query: s.query })) };
+      }
+
+      // 语句数随返回行数变多就是 N+1：行数没变的不算
+      const grew = bySize[50].rows > bySize[20].rows && bySize[50].perRequest > bySize[20].perRequest + 0.5;
+      result[who][name] = { ...bySize, nPlusOne: grew };
+      log(`${who} ${name}：20 行 ${bySize[20].perRequest} 条，${bySize[50].rows} 行 ${bySize[50].perRequest} 条${grew ? '，随行数增长' : ''}`);
+    }
+  }
+
+  write('sql', result);
+}
+
 async function benchExport() {
   const admin = await loginAs('admin');
   const pid = hostPid();
@@ -422,6 +460,7 @@ async function benchFrontend() {
     note: '数字是临时 overrides（本地 XiHan.UI）下的',
   };
   log(JSON.stringify({ totalGzipKb: result.totalGzipKb, initialGzipKb: result.initialGzipKb, groups: result.groups }));
+  write('frontend', result);
   if (process.env.BENCH_PLAYWRIGHT) {
     const require = createRequire(path.join(process.env.BENCH_PLAYWRIGHT, 'package.json'));
     const { chromium } = require('playwright');
@@ -429,22 +468,23 @@ async function benchFrontend() {
     const browser = await chromium.launch();
     const timings = [];
     for (let round = 0; round < rounds; round++) {
-      const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: 'zh-CN' });
       const page = await context.newPage();
       const started = performance.now();
-      await page.goto(`${base}/`, { waitUntil: 'commit' });
-      await page.waitForSelector('input', { timeout: 30000 });
+      await page.goto(`${base}/#/auth/login`, { waitUntil: 'commit' });
+      await page.getByPlaceholder('请输入密码').waitFor({ timeout: 30000 });
       const loginReady = performance.now() - started;
       const paint = await page.evaluate(() => performance.getEntriesByType('paint').find((e) => e.name === 'first-contentful-paint')?.startTime ?? null);
-      const inputs = page.locator('input');
-      await inputs.nth(0).fill('admin');
-      await inputs.nth(1).fill(PASSWORD);
-      const tenantInput = await inputs.count() > 2 ? inputs.nth(2) : null;
-      if (tenantInput) await tenantInput.fill(TENANT);
+      await page.getByPlaceholder('租户 ID').fill(TENANT);
+      await page.getByPlaceholder('请输入用户名或邮箱').fill('admin');
+      await page.getByPlaceholder('请输入密码').fill(PASSWORD);
       const submitted = performance.now();
-      await page.keyboard.press('Enter');
-      await page.waitForFunction(() => !location.pathname.includes('login') && document.querySelectorAll('nav a, [role=menuitem]').length > 0, null, { timeout: 60000 }).catch(() => {});
-      timings.push({ firstContentfulPaintMs: paint === null ? null : Math.round(paint), loginPageReadyMs: Math.round(loginReady), routeAssemblyMs: Math.round(performance.now() - submitted), landed: new URL(page.url()).pathname });
+      await page.getByRole('button', { name: '登录' }).click();
+      await page.waitForURL((url) => !url.href.includes('/auth/login'), { timeout: 60000 });
+      const routed = performance.now() - submitted;
+      await page.locator('nav').first().waitFor({ timeout: 30000 });
+      await page.waitForLoadState('networkidle').catch(() => {});
+      timings.push({ firstContentfulPaintMs: paint === null ? null : Math.round(paint), loginPageReadyMs: Math.round(loginReady), loginToRouteMs: Math.round(routed), loginToIdleMs: Math.round(performance.now() - submitted), landed: page.url().split('#')[1] });
       await context.close();
     }
 
@@ -456,7 +496,7 @@ async function benchFrontend() {
   write('frontend', result);
 }
 
-const benches = { login: benchLogin, lists: benchLists, export: benchExport, idle: benchIdle, fanout: benchFanout, workflow: benchWorkflow, ai: benchAi, provider: benchProvider, frontend: benchFrontend };
+const benches = { restart: restartHost, sql: benchSql, login: benchLogin, lists: benchLists, export: benchExport, idle: benchIdle, fanout: benchFanout, workflow: benchWorkflow, ai: benchAi, provider: benchProvider, frontend: benchFrontend };
 if (!benches[item]) {
   console.error(`未知的项 ${item}，可选：${Object.keys(benches).join('、')}`);
   process.exit(2);
