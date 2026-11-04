@@ -42,7 +42,7 @@ for (const [section, names] of bySection) {
 }
 if (missing.length) throw new Error(`功能条目没有去处：${missing.join('、')}`);
 if (sections.has(NOT_LISTED)) {
-  body.push(`## ${NOT_LISTED}`, '', '4.x 登记了、`docs/features.md` 的 63 条里没有的页面。', '', sections.get(NOT_LISTED).replace(/^### .*\n/, ''), '');
+  body.push(`## ${NOT_LISTED}`, '', '4.x 登记了、功能清单的 63 条里没有的页面。', '', sections.get(NOT_LISTED).replace(/^### .*\n/, ''), '');
   sections.delete(NOT_LISTED);
 }
 if (sections.size) throw new Error(`多出的节：${[...sections.keys()].join('、')}`);
@@ -69,7 +69,7 @@ const header = [
   '',
   '4.x 的每项能力在 6.0 的去处，N5 第一批逐项核销（方案第 8 节「N5 对齐与收口的做法」）。第 7 节的粗表是总览，这里是逐项结论。',
   '',
-  '- 一级是 `docs/features.md` 的 63 条，二级是 4.x 的页面、按钮与接口；非页面能力在最后一节。',
+  '- 一级是 4.x 功能清单的 63 条（`v5.9.1` 的 `docs/features.md`），二级是 4.x 的页面、按钮与接口；非页面能力在最后一节。',
   '- 结论：**对齐**；**改口径**（引修订号或第 10 节的拍板）；**删除**（在第 7 节「明确删除」里）。N5 第一批的缺口都已补完并改为对齐，用户确认的改口径与删除见修订（一百三十二）。',
   '- 证据写测试类名；没有用例的写页面文件并标「无用例」。名字对上不等于对齐：每行都读过两侧代码。',
   '- 依据的清单快照在 `nextdocs/alignment/`（`nextdocs/scripts/n5-inventory.mjs` 生成），4.x 目录在 N6 删除之后以它为准。',

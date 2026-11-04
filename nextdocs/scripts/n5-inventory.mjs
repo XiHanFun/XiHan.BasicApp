@@ -4,6 +4,7 @@
 //   node nextdocs/scripts/n5-inventory.mjs [--blocks <草稿目录>]
 //
 // 对应关系是第一遍候选，结论由人工核对，名字对上不等于对齐
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,13 +25,15 @@ const walk = (dir, filter, found = []) => {
 };
 const read = (file) => fs.readFileSync(path.join(file.startsWith(root) ? '' : root, file), 'utf8');
 const rel = (file) => path.relative(root, file).replace(/\\/g, '/');
+// 4.x 的文档在 N5 第二批切走了，从标签读
+const read4x = (file) => execFileSync('git', ['show', `v5.9.1:${file}`], { cwd: root, encoding: 'utf8', maxBuffer: 1 << 26 });
 
 // ---------- 4.x ----------
 
 function featureRows() {
   const rows = [];
   let section = '';
-  for (const line of read('docs/features.md').split(/\r?\n/)) {
+  for (const line of read4x('docs/features.md').split(/\r?\n/)) {
     if (line.startsWith('## ')) section = line.slice(3);
     const hit = line.match(/^- \*\*(.+?)\*\*：(.*)$/);
     if (hit) rows.push({ section, name: hit[1], text: hit[2] });
@@ -147,12 +150,12 @@ function dynamicApis(calls) {
   return methods;
 }
 
-function configurationRows(file) {
+function configurationRows(file, reader = read) {
   const rows = [];
   let h2 = '';
   let h3 = '';
-  for (const line of read(file).split(/\r?\n/)) {
-    if (line.startsWith('## ')) {
+  for (const line of reader(file).split(/\r?\n/)) {
+if (line.startsWith('## ')) {
       h2 = line.slice(3).replace(/`/g, '');
       h3 = '';
     } else if (line.startsWith('### ')) h3 = line.slice(4).replace(/`/g, '');
@@ -203,7 +206,7 @@ function inventory4x() {
     hosted,
     tasks,
     realtime: [...realtime].sort(),
-    configuration: configurationRows('docs/configuration.md'),
+    configuration: configurationRows('docs/configuration.md', read4x),
     endpoints: plainEndpoints('backend/src'),
   };
 }
@@ -274,7 +277,7 @@ function inventory6x() {
     seeders: seeders.sort(),
     jobs: jobs.sort(),
     configurationSections: [...sections].sort(),
-    configuration: configurationRows('docs-next/configuration.md'),
+    configuration: configurationRows('docs/configuration.md'),
     realtime: JSON.parse(read('frontend-next/contracts/realtime.json')).hubs,
     endpoints: plainEndpoints('backend-next/src'),
   };
@@ -474,7 +477,7 @@ function buildNonPageBlock(old, next) {
     table('后台作业与托管服务', ['4.x', ...verdict], [...old.hosted.map((h) => [h, '', '', '']), ...old.tasks.map((t) => [`任务种子 ${t}`, '', '', ''])]),
     `6.0 作业：${next.jobs.join('、')}\n`,
     table('配置键', ['4.x 节', '4.x 键', ...verdict], old.configuration.map((c) => [c.section, c.key, '', '', ''])),
-    `6.0 配置节：${next.configurationSections.join('、')}（键见 docs-next/configuration.md）\n`,
+    `6.0 配置节：${next.configurationSections.join('、')}（键见 docs/configuration.md）\n`,
     table('种子', ['4.x', ...verdict], old.seeders.map((s) => [`${s.name}（${s.file.split('/').pop()}）`, '', '', ''])),
     `6.0 种子：${next.seeders.join('、')}\n`,
     table('普通端点', ['4.x', ...verdict], old.endpoints.map((e) => [`${e.verb} ${e.hub ?? e.route}（${e.file.split('/').pop()}）`, '', '', ''])),
