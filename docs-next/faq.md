@@ -67,7 +67,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ### 接口返回 403，`code` 是 `IDENTITY_DENIED_002`
 
-会话处于锁屏状态。前端进锁屏界面，调 `auth.unlock` 解锁；5.x 的 423 在 6.0 统一成这个错误码。
+会话被锁定，`details.reason` 说明原因：`ScreenLock` 是锁屏，前端进锁屏界面，调 `auth.unlock` 解锁；`PasswordChangeRequired` 是强制改密（系统参数 `identity.password`），调 `profile.change-password` 改完即解开。5.x 的 423 在 6.0 统一成这个错误码。
 
 ### 授予权限后是否需要重新登录？
 

@@ -150,7 +150,7 @@ curl -X POST http://localhost:9710/api/roles:list \
 | `SECURITY_DENIED_001`（401） | 未认证 | 用刷新令牌调 `auth.refresh` 一次并重放；刷新也失败即回登录 |
 | `SECURITY_DENIED_003`（401） | 令牌过期、签名不符、格式错 | 同上 |
 | `IDENTITY_DENIED_001` | 会话已吊销（注销、改密、锁定、被强制下线） | 直接回登录，不要刷新 |
-| `IDENTITY_DENIED_002` | 已锁屏 | 进锁屏界面，`auth.unlock` 解锁 |
+| `IDENTITY_DENIED_002` | 会话已锁定（`details.reason`：`ScreenLock` 锁屏、`PasswordChangeRequired` 强制改密） | 锁屏用 `auth.unlock` 解锁；强制改密用 `profile.change-password` 改完即解开 |
 
 刷新令牌每次轮换，旧的立即失效；并发请求要串行化刷新。
 

@@ -28,7 +28,7 @@ Ingress → Observe → Resilience → Authenticate → Tenant → Authorize →
 | Ingress | 协议归一化、大小限制、构造调用上下文与调用来源（协议、目标、远端地址、User-Agent） | — |
 | Observe | 链路、日志、指标；Full Profile 的 `AuditMiddleware`（`Selection = None`） | `AuditLogMiddleware`（Auditing，排在框架审计之内）：标了审计的操作声明审计动作并补耗时、登录名、会话、客户端信息；按结果写访问、异常日志，以及调用里登记的登录、权限变更日志与数据变更（只在成功时） |
 | Resilience | 截止时间（`xihan-deadline`）、按操作 ID 的熔断、限流、并发上限 | — |
-| Authenticate | JWT 校验（HS256） | `SessionGateMiddleware`（Identity，排在 JWT 之后）：令牌带 `sid` 时核对会话有效，已吊销 → `IDENTITY_DENIED_001`；锁屏的会话只放行 `auth.unlock` 与 `auth.logout`，其余 `IDENTITY_DENIED_002`<br>`RequestSigningMiddleware`（OpenPlatform，只对 `open.*`）：验签、防重放、解密，并登记开放接口日志 |
+| Authenticate | JWT 校验（HS256） | `SessionGateMiddleware`（Identity，排在 JWT 之后）：令牌带 `sid` 时核对会话有效，已吊销 → `IDENTITY_DENIED_001`；锁定的会话只放行 `auth.unlock` 与 `auth.logout`（强制改密锁另放行 `profile.change-password`），其余 `IDENTITY_DENIED_002`<br>`RequestSigningMiddleware`（OpenPlatform，只对 `open.*`）：验签、防重放、解密，并登记开放接口日志 |
 | Tenant | 从令牌 `tenant` 声明（及 Baggage）解析租户 | `AccessPolicyMiddleware`（Access，排在租户解析之后）：先看登录失败自动封禁（`ACCESS_UNAVAILABLE_001`），再求平台层、租户层访问策略，拒绝 → `ACCESS_DENIED_004`，命中都记条件命中 |
 | Authorize | 按操作声明的权限码 / 策略判定；`PermissionChecker` 查授予存储与 `IPermissionGrantSource`，再经各 `IPermissionFilter` 收窄 | Access 登记的 `AccessGrantSource`（继承、委托）、`AccessPermissionFilter`（Deny、有效期、作用侧）、`EditionPermissionFilter`（套餐门控）<br>`PermissionConditionMiddleware`（排在框架授权之后）：持有的权限码挂了条件时按请求属性精确判定 |
 | Validate | 按操作请求的 JSON Schema 校验载荷，再执行 `IValidatableObject`；失败带字段级 `errors` | — |
@@ -48,7 +48,7 @@ Ingress → Observe → Resilience → Authenticate → Tenant → Authorize →
 | 未携带令牌 | Authorize | `SECURITY_DENIED_001`（401） | 刷新一次，失败则返回登录页 |
 | 令牌过期 / 签名不符 | Authenticate | `SECURITY_DENIED_003`（401） | 刷新一次并重放 |
 | 会话被吊销 | Authenticate（会话门禁） | `IDENTITY_DENIED_001` | 返回登录页 |
-| 已锁屏 | Authenticate（会话门禁） | `IDENTITY_DENIED_002` | 显示锁屏 |
+| 已锁定 | Authenticate（会话门禁） | `IDENTITY_DENIED_002` | 按 `details.reason` 显示锁屏或强制改密 |
 | 没有权限码 / 被 Deny / 套餐不含 | Authorize | `SECURITY_DENIED_004`（403） | 提示无权限 |
 
 ### 失败调用的副作用
