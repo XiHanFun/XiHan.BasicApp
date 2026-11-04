@@ -63,7 +63,7 @@ Host              XiHan.BasicApp.Host
 | 跨层协作经 `Contracts` | 如 `IConfigValueReader`、`INumberGenerator`、`ITenantQuota`、`IFieldSecurity`、`IRecipientSource`、`IMessageSender`、`IRealtimePush`、`IWorkbenchWidgetProvider`、`CacheNamespace` |
 | 能力依赖用能力 ID | 清单里写 `basicapp.identity@1` 这类能力，不写包名 |
 
-层级由 `Architecture.Tests` 的 `TierDependencyTests` 守护。Tier 3 里 Workbench、Printing、Chat 已落地；Workflow、CodeGeneration 规划在 N3，AI 规划在 N4。
+层级由 `Architecture.Tests` 的 `TierDependencyTests` 守护。
 
 ## 宿主装配
 

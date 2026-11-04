@@ -1,9 +1,9 @@
 # 功能预览
 
-本页说明如何在本机查看 6.0 已落地的页面，适用于希望直观了解 6.0 功能的读者。
+本页说明如何在本机查看 6.0 的各个页面，适用于希望直观了解 6.0 功能的读者。
 
 ::: info 在线演示
-线上演示环境 [basicapp.xihanfun.com](https://basicapp.xihanfun.com) 部署的是 5.x。6.0 预览版只能在本地运行查看，截图会在发布前补上。
+线上演示环境 [basicapp.xihanfun.com](https://basicapp.xihanfun.com) 目前部署的是 5.x，6.0 可以按下面的步骤在本机运行查看。
 :::
 
 6.0 的管理端壳层（布局、主题、偏好中心、全局搜索、标签栏、分屏、通知中心）是从 5.x 原样搬入的，所以界面观感与 5.x 一致；不同在于页面背后的数据全部来自 6.0 的操作，菜单与按钮按 6.0 的权限码门控。
@@ -26,14 +26,15 @@
 | 日志链路 | `/auditing/traces` | 按 trace-id 串起访问、操作、登录、异常、数据变更日志的时间线与流向图 |
 | 任务调度 | `/maintenance/jobs` | 代码登记的作业、Cron 构建器、立即执行与运行历史 |
 | 在线聊天 | `/chat/conversations` | 两个浏览器各登录一个账号互发消息：已读回执、正在输入、撤回、回应、转发；建群与部门群 |
+| 流程定义与实例 | `/workflow/definitions`、`/workflow/instances` | 全屏设计器、发布与新版本；实例详情里看变量、节点执行历史与流程图 |
+| 审批中心 | `/workflow/approvals` | 待我审批、我已审批、我发起的、抄送我的；打开演示数据时演示租户里有费用报销、请假、采购、入职四个流程 |
+| 打印模板 | `/printing/print-templates` | 拖拽设计、样例数据、预览与直打 |
+| 代码生成 | `/codegeneration/code-gen` | 数据源、表结构导入、模板、预览产物、生成历史与零代码运行时 |
+| AI | `/ai/providers`、`/ai/assistants`、`/ai/knowledge-documents` | 配好提供商后，在聊天的「新建」菜单里找助手，回复流式显示；知识库有检索试玩页签 |
 | 接口文档 | `http://localhost:9710/scalar` | 全量与按包分组的文档，说明按 `Accept-Language` 本地化 |
 
 亮暗主题、窄视口、键盘导航与减少动态效果都随壳层可用，可以在偏好中心里切换。
 
-## 规划中的模块
-
-工作流（流程设计器、审批中心）、代码生成与 AI 助手在 6.0 里还没有实现，菜单里不会出现。它们的设计见后端手册里标注「规划中」的各页。
-
 ## 相关
 
-- [功能清单](./features) · [快速开始](./getting-started) · [5.x 功能预览](https://basicapp.docs.xihanfun.com/preview)
+- [功能清单](./features) · [快速开始](./getting-started) · [5.x 功能预览](https://basicapp.docs.xihanfun.com/v5/preview)

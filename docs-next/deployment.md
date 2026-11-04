@@ -1,10 +1,6 @@
 # 部署
 
-本页说明 6.0 后端与前端的发布、首次初始化、反向代理配置与部署限制，适用于搭建评估或预发环境。
-
-::: warning 预览版
-6.0 尚未发布，下面是 `next` 分支当前的部署形态，适合评估与预发环境。生产系统请继续使用 5.x。
-:::
+本页说明 6.0 后端与前端的发布、首次初始化、反向代理、备份还原与部署限制，适用于部署人员。
 
 ## 环境要求
 
@@ -157,6 +153,15 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 ## 出站地址
 
 用户填的地址（工作流 `Http` 活动、群机器人 Webhook、AI 提供商、第三方登录、S3 兼容存储）缺省只能连公网。自建 MinIO、内网 Webhook、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
+
+## 备份与还原
+
+平台库、独立库租户的库、对象存储与知识库的向量库要在同一时间点一起备份、一起还原。
+
+向量不在数据库里（`BasicApp:AI:Qdrant`，集合 `knowledge.platform` 与 `knowledge.<租户 ID>`）。只还原数据库时，旧向量还会被检索命中，包括库里已经不存在的文档。没有整库重建索引的入口（5.x 同样没有），要手工处理：
+
+1. 删掉要还原那一侧的集合（Qdrant 的 `DELETE /collections/<集合名>`）；
+2. 在那一侧逐篇重建索引：知识库页的行操作「重建索引」，或操作 `knowledge-documents.reindex`。集合在第一次写入时重新建好，重建用的是库里留存的原文。
 
 ## 多实例部署
 

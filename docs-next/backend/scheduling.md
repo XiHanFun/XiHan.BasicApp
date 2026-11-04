@@ -44,10 +44,13 @@
 | `jobs.restore` | `maintenance.jobs.reschedule` | 丢弃运行时改过的计划，按代码定义重新登记，暂停状态保留 |
 | `job-runs.list` | `maintenance.job-runs.read` | 运行历史，框架给出总数与筛选 |
 
-## 尚未支持
+## 重试与时限
 
-- 重试策略与单次执行超时：框架 `JobDefinition` 目前没有这两项（5.x 有 `maxRetryCount`、`timeoutSeconds`），已提给框架，升级锁定提交后再接。
-- 租户级作业：作业只在平台一侧管理；需要逐租户处理的作业在作业内部经 `TenantShardScope` 逐个绑定租户。
+运行时作业在 `jobs.create` 时设：`timeoutSeconds` 是单次执行的时限，超过即取消并记失败（`SCHEDULING_TIMEOUT_001`）；`maxRetries`、`retryDelaySeconds`、`retryBackoff`（每次相同或指数退避）与 `retryMaxDelaySeconds` 是失败后的重试。代码登记的作业写在框架 `JobDefinition` 的 `Timeout` 与 `Retry` 上。不设即不限时、不重试。`jobs.list` 带这两项，`job-runs.list` 的 `retryOf` 指向重试所属的首次运行。
+
+## 租户级作业
+
+作业只在平台一侧管理。需要逐租户处理的作业在作业内部逐侧遍历（`TenantSides`）并绑定分片，有一处失败时作业记为失败（`RUNTIME_UNAVAILABLE_006`），其余各处照常处理完。
 
 ## 编写作业
 

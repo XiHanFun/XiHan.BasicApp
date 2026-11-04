@@ -3,7 +3,7 @@
 本页说明在 6.0（`next` 分支）上使用 Claude Code、Codex、Cursor、GitHub Copilot 等 AI 编程工具时，如何让生成的代码符合项目约定，适用于借助 AI 工具开发 BasicApp 的开发者。
 
 ::: tip 与 AI 模块的区别
-本页讨论的是用 AI 工具开发 BasicApp。BasicApp 自带的 AI 功能（提供商、知识库、助手）属于 N4，规划中，见后端手册的 [AI 能力](../backend/ai)。
+本页讨论的是用 AI 工具开发 BasicApp。BasicApp 自带的 AI 功能（提供商、提示词、知识库、助手）见后端手册的 [AI 能力](../backend/ai)。
 :::
 
 ## 提示词

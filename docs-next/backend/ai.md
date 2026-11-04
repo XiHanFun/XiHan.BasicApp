@@ -2,7 +2,7 @@
 
 本页说明 AI 模块的提供商、Provider 目录、提示词、知识库、助手与模块开关，适用于接入或配置模型的后端与前端开发者。
 
-AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/ai)。
+AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），架在框架 5 的 AI 子系统（`AI.Abstractions`、`AI.OpenAI`）之上。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的 AI 文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/v5/backend/ai)。
 
 ::: tip
 本页说的是 BasicApp 自带的 AI 功能。用 AI 工具开发 BasicApp 见 [For Agents](../ai/agents)。
@@ -74,7 +74,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ## 知识库
 
-知识文档 `SysKnowledgeDocument` 是租户库实体，平台与各租户各自维护、互不可见（5.x 是平台一张表按租户过滤）。向量也按侧分集合：平台 `knowledge.platform`，租户 `knowledge.<租户 ID>`；检索只在调用方一侧的集合里做，不靠元数据过滤。
+知识文档 `SysKnowledgeDocument` 是租户库实体，平台与各租户各自维护、互不可见（5.x 是平台一张表按租户过滤）。向量也按侧分集合：平台 `knowledge.platform`，租户 `knowledge.<租户 ID>`；检索只在调用方一侧的集合里做，不靠元数据过滤。向量不在数据库里，库和向量库要一起备份与还原，见[部署](../deployment#备份与还原)。
 
 | 字段 | 规则 |
 | --- | --- |

@@ -58,8 +58,9 @@ frontend-next/
 | `openplatform` | OAuth 应用 |
 | `printing` | 打印模板（设计器、样例数据、预览与直打） |
 | `chat` | 在线聊天（全屏页与顶栏的浮动面板）、聊天审计 |
-
-`workflow`、`codegen`、`ai` 随后端 N3 / N4 再建。
+| `workflow` | 流程定义、流程实例、审批中心 |
+| `codegeneration` | 代码生成（数据源、表配置、模板、生成历史） |
+| `ai` | AI 提供商、提示词、知识库、助手 |
 
 ## 应用启动
 

@@ -31,7 +31,7 @@
 
 框架没有操作人字段。`Runtime` 的 `AuditorStampMiddleware` 在管道 Transaction 阶段把当前主体 ID 放进异步本地值（`AuditorStamp`），SqlSugar 的 `AopEvents.DataExecuting` 回调据此在插入、更新、软删除时填 `CreatedBy` / `ModifiedBy` / `DeletedBy`。
 
-为什么不经依赖注入：持久化「方式一」的 `ConnectionConfig` 在装配时只建一份、回调里没有服务提供者，异步本地值是能读到当前主体的方式（N0 冒烟结论，SQLite 与 PostgreSQL 都验证过）。作业与种子里的写入没有主体，操作人字段为空。
+为什么不经依赖注入：持久化「方式一」的 `ConnectionConfig` 在装配时只建一份、回调里没有服务提供者，异步本地值是能读到当前主体的方式（冒烟结论，SQLite 与 PostgreSQL 都验证过）。作业与种子里的写入没有主体，操作人字段为空。
 
 ## 平台数据：不实现 `IMultiTenant`
 

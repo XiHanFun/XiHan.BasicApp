@@ -1,6 +1,6 @@
 # 表结构升级（不做 5.x 迁移）
 
-本页说明 6.0 不提供 5.x 数据迁移的决定，以及 6.0 各版本之间的表结构升级机制，适用于部署人员与修改实体的后端开发者。
+本页说明从 5.x 换到 6.0 要做什么，以及 6.0 各版本之间的表结构升级机制，适用于部署人员与修改实体的后端开发者。
 
 ::: danger 6.0 不提供 5.x → 6.0 数据迁移
 这是方案的明确决定（D12，2026-10-27 拍板）：6.0 的主键（雪花 `long` → UUID v7）、租户 ID（`long` → 字符串）、并发戳、权限码文法与表名全部改变，不做原地升级，也不提供迁移工具。
@@ -11,9 +11,64 @@
 - 不要把 6.0 指向 5.x 的库：两者的表结构不兼容，基线脚本按「表不存在才建」执行，不会改造已有的同名表，结果不可预期。
 :::
 
-本页其余内容讲 6.0 自身版本之间的表结构管理。
+## 从 5.x 换到 6.0
 
-## 机制
+::: warning 升级须知
+不提供数据迁移，也不提供协议兼容层。换到 6.0 就是新建库、经 `schema upgrade` + `seed` 初始化、在 6.0 上重录租户与账号、按下面两张表改对接代码与配置。
+:::
+
+### 协议变化
+
+| 项 | 5.x | 6.0 |
+| --- | --- | --- |
+| 响应 | `ApiResponse` 信封 + 业务码 | 成功即 DTO，没有信封 |
+| 路由 | `/Controller/Action` | 由操作 ID 推导，前缀 `/api`；写动词是 `POST /api/<资源>:<动词>` |
+| 错误 | 信封里的业务码 | RFC 9457 Problem Details，按 `code` 分支，字段级错误在 `errors` |
+| 权限码 | 冒号形式 | `<包>.<资源>.<动作>` 点分三段 |
+| 按钮码 | 226 个 | 取消，按钮即操作 |
+| 主键 | 雪花 `long` | UUID v7 |
+| 租户 ID | `long`，0 表示平台 | 字符串（即租户编码），平台数据不实现 `IMultiTenant` |
+| 时间 | 服务端按 `X-Timezone` 换算 | UTC 带 `Z`，没有 `X-Timezone`，显示时区归前端 |
+| 语言 | 含 `hi-IN` | 10 种区域，去掉 `hi-IN` |
+
+调用方的改法见[接口对接指南](../api-guide)。
+
+### 配置节对照
+
+| 5.x | 6.0 |
+| --- | --- |
+| `XiHan:Data:SqlSugarCore` 连接的 `ConnectionString` / `DbType` | `XiHan:Bindings:db:value` / `provider` |
+| `SlaveConnectionConfigs` | `BasicApp:Database:Replicas`（只给平台库） |
+| `EnableSqlLog` / `EnableSqlErrorLog` / `EnableSlowSqlLog` / `SlowSqlThresholdMilliseconds` | `BasicApp:Database` 的 `LogSql` / `LogSqlErrors` / `LogSlowSql` / `SlowSqlThresholdMilliseconds` |
+| `CommandTimeoutSeconds`、从库探针四项 | `XiHan:Persistence:SqlSugar` 的 `CommandTimeoutSeconds`、`Replicas:*` |
+| `EnableTableInitialization` | `XiHan:Persistence:SqlSugar:InitTables`，正式环境走 `Schema/` 基线 |
+| `EnableDbInitialization` / `EnableDataSeeding` | 没有：平台库要先建空库，种子由 `seed` 命令执行 |
+| `XiHan:Authentication:Jwt` 的 `SecretKey` / `Issuer` / `Audience` | `XiHan:Security:Jwt` 的 `Secret` / `Issuer` / `Audience` |
+| `AccessTokenExpirationMinutes` / `RefreshTokenExpirationDays` | `BasicApp:Auth:AccessTokenMinutes` / `RefreshTokenDays` |
+| `ClockSkewMinutes` | `XiHan:Security:Jwt:ClockSkewSeconds` |
+| `XiHan:Authentication:OAuth` | `BasicApp:Auth:OAuth` |
+| `XiHan:Caching:Redis` 的 `Configuration` / `InstanceName` | `Configuration` 或绑定 `XiHan:Bindings:cache` / `KeyPrefix`；没有 `IsEnabled`，配了连接才装，连不上启动即失败 |
+| `XiHan:Web:Api:ForwardedHeaders` / `Cors` | `BasicApp:ForwardedHeaders` / `BasicApp:Cors` |
+| `XiHan:Web:Api:OpenApiSecurity` | `BasicApp:OpenPlatform`；凭证存库，经 `my-api-credentials.*` 自助管理，签名恒开 |
+| `XiHan:Web:RealTime:SignalR` | `BasicApp:Realtime:SignalR` |
+| `XiHan:Web:Core:ClientInfo` 的 IP 库路径 | `XiHan:Security:Ip2Region` 的 `V4Database` / `V6Database` |
+| `XiHan:Observability` | `XiHan:Observability:OpenTelemetry`，分项控制，没有总开关 |
+| `XiHan:Upgrade` 的 `EnableAutoCheckOnStartup` / `MigrationsRootPath` | `BasicApp:Schema` 的 `AutoUpgrade` / `Directory`（另有 `LockExpiryMinutes`、`LockWaitMinutes`） |
+| `XiHan:Localization` 的 `DefaultCulture` / `SupportedCultures` | `DefaultLocale` / `Locales` |
+| `XiHan:ObjectStorage` 的 `Local.RootPath` | `BasicApp:Files:LocalRootPath`；没有静态 URL 前缀，走签名地址 |
+| `Saas:Seed:EnableDemoData` | `BasicApp:Seed:EnableDemoData` |
+| `Saas:Conditions` / `PermissionConditions` / `AccessPolicy` | `BasicApp:Access` |
+| `CodeGeneration` | `BasicApp:CodeGeneration` |
+| 没有 | `BasicApp:Modules:<名>:Enabled`（可选模块开关）、`XiHan:Security:Outbound`（出站地址策略，自建服务要放行） |
+| `XiHan:Web:Gateway`、`GrayRouting`、`XiHan:VirtualFileSystem`、`XiHan:DistributedIds`、`XiHan:Upgrade:EnableFileUpdate` / `EnableRollingRestart` | 删除 |
+
+每一项的说明见[配置参考](../configuration)。
+
+## 6.0 版本之间
+
+下面讲 6.0 自身版本之间的表结构管理。
+
+### 机制
 
 | 项 | 说明 |
 | --- | --- |
@@ -22,7 +77,7 @@
 | 台账 | `sys_version`（库的结构版本、应用版本、是否升级中）与 `sys_migration_history`（每个脚本的执行记录，成功失败都记） |
 | 执行器 | `Runtime` 的 `SchemaUpgrader` |
 
-### 执行顺序
+#### 执行顺序
 
 1. 台账两张表先按实体建好；
 2. 经台账行的条件更新抢升级锁（时间按库的 `now()`，`BasicApp:Schema:LockExpiryMinutes` / `LockWaitMinutes`），别的节点等它升完再看还有没有要执行的；升级期间别的节点进入维护模式（503）；
@@ -31,7 +86,7 @@
 
 只支持 PostgreSQL：别的库（测试用的 SQLite）跳过脚本，由 InitTables 建表。
 
-### 执行时机
+#### 执行时机
 
 | 方式 | 说明 |
 | --- | --- |
@@ -42,7 +97,7 @@
 dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
 ```
 
-## 写升级脚本
+### 写升级脚本
 
 改了实体（加表、加列、改长度）时：
 
@@ -56,10 +111,10 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 :::
 
 ::: tip 升级框架后建不出唯一索引
-框架锁定提交升级可能带来新的唯一索引（如 `25614c9a` 给 `message_translation` 的键 + 区域、`permission_grant_record` 与 `trigger_entity` 加的）。开发库里已有重复数据时 InitTables 建不出索引，宿主启动即失败。6.0 发布前不做数据迁移、不为此写升级脚本：开发库重建后重新 `seed`，或按报错的表手工去掉重复行再启动。
+框架锁定提交升级可能带来新的唯一索引（如 `25614c9a` 给 `message_translation` 的键 + 区域、`permission_grant_record` 与 `trigger_entity` 加的）。开发库里已有重复数据时 InitTables 建不出索引，宿主启动即失败。开发库重建后重新 `seed`，或按报错的表手工去掉重复行再启动。
 :::
 
-## 版本与升级记录
+### 版本与升级记录
 
 Maintenance 包提供只读的管理面（平台侧）：
 

@@ -40,9 +40,9 @@
 | `XPopconfirm`、`XTooltip`、`XDropdown`、`XIconButton` | 交互小件 |
 | `LockScreen`、`DynamicIsland`、`AppWatermark`、`LocaleSwitcher`、`TimezoneSwitcher` | 壳层用 |
 
-## 尚未搬入
+## 没有搬入
 
-- 流程设计器的接线（`packages/designers/flow`），随 N3 的 Workflow；打印设计器（`packages/printing`）与设计器共用的接线（`packages/designers`）已随 Printing 搬入。
+- 富文本编辑 `XRichTextEditor` 与 JSON 编辑 `XJsonEditor`：5.x 只有演示页在用，6.0 不搬。JSON 只有查看（`XJsonBlock`），正文编辑用 Markdown 编辑器。
 
 ## 写法约定
 

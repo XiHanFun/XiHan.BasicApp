@@ -74,4 +74,4 @@ curl -X POST http://localhost:9710/mcp \
 
 ## 相关
 
-- [For Agents](./agents) · [LLMs.txt](./llms) · [AI 能力（规划中）](../backend/ai)
+- [For Agents](./agents) · [LLMs.txt](./llms) · [AI 能力](../backend/ai)

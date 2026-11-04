@@ -24,7 +24,7 @@ Ring 1  Kernel（操作、管道、Result / Error、消息目录）    Ring 0  P
 Tier 0 基座       Contracts → Runtime
 Tier 1 身份租户    Identity → Tenancy → Organization → Access
 Tier 2 平台能力    Settings | Notification | Files | Auditing | Maintenance | OpenPlatform | Realtime
-Tier 3 可选模块    Workbench | Printing | Chat（已落地）| Workflow | CodeGeneration | AI（规划中）
+Tier 3 可选模块    Workbench | Printing | Chat | Workflow | CodeGeneration | AI
 Host              XiHan.BasicApp.Host
 ```
 
@@ -47,26 +47,27 @@ Host              XiHan.BasicApp.Host
 
 ## 能力包一览
 
-| 包 | Tier | 主要内容 | 状态 |
-| --- | --- | --- | --- |
-| `Contracts` | 0 | 实体基类与审计协议、分页 / 批量结果、权限描述、页面登记、跨包接口、种子号段 | 已落地 |
-| `Runtime` | 0 | SqlSugar 回调、`TenantScopedQuery`、操作人、数据保护、表结构升级器、种子执行器、维护模式 | 已落地 |
-| `Identity` | 1 | 登录（密码、验证码、第三方、双因素）、令牌与会话、锁屏、用户管理、在线用户、个人中心、模仿登录、用户设置 | 已落地 |
-| `Tenancy` | 1 | 租户开通三步、独立库、套餐与配额、成员与所有权转移、我的订阅、切换租户 | 已落地 |
-| `Organization` | 1 | 部门（闭包表）、岗位、部门成员 | 已落地 |
-| `Access` | 1 | 角色与授权、Deny、继承、委托、数据范围、字段安全、权限条件、访问策略、约束规则、菜单 | 已落地 |
-| `Settings` | 2 | 参数配置、字典、业务编号 | 已落地 |
-| `Files` | 2 | 存储配置、文件与副本、秒传、分片上传、签名地址、导出中心、导入历史 | 已落地 |
-| `Notification` | 2 | 通知公告、收件箱、消息模板、邮件 / 短信、群机器人、Telegram 机器人 | 已落地 |
-| `Auditing` | 2 | 八类日志与链路追踪的查询面、日志写入队列、保留清理 | 已落地 |
-| `Maintenance` | 2 | 任务调度、缓存管理、服务监控、版本与升级记录 | 已落地 |
-| `OpenPlatform` | 2 | 签名开放接口、OAuth 2.0 / OIDC 服务端、OAuth 应用、我的应用、授权同意 | 已落地 |
-| `Realtime` | 2 | 通知 Hub、连接与在线状态、按受众推送 | 已落地 |
-| `Workbench` | 3 | 工作台小组件汇总（各包登记的指标、图表与列表） | 已落地 |
-| `Printing` | 3 | 打印模板（平台全局与租户）、按编码解析、打印数据源目录 | 已落地 |
-| `Chat` | 3 | 单聊、群聊、部门群与助手会话类型、聊天 Hub、聊天审计、保留清理 | 已落地 |
-| `Workflow` · `CodeGeneration` | 3 | 工作流与审批中心、代码生成 | 规划中（N3） |
-| `AI` | 3 | AI 提供商、提示词、知识库、助手 | 规划中（N4） |
+| 包 | Tier | 主要内容 |
+| --- | --- | --- |
+| `Contracts` | 0 | 实体基类与审计协议、分页 / 批量结果、权限描述、页面登记、跨包接口、种子号段 |
+| `Runtime` | 0 | SqlSugar 回调、`TenantScopedQuery`、操作人、数据保护、表结构升级器、种子执行器、维护模式 |
+| `Identity` | 1 | 登录（密码、验证码、第三方、双因素）、令牌与会话、锁屏、用户管理、在线用户、个人中心、模仿登录、用户设置 |
+| `Tenancy` | 1 | 租户开通三步、独立库、套餐与配额、成员与所有权转移、我的订阅、切换租户 |
+| `Organization` | 1 | 部门（闭包表）、岗位、部门成员 |
+| `Access` | 1 | 角色与授权、Deny、继承、委托、数据范围、字段安全、权限条件、访问策略、约束规则、菜单 |
+| `Settings` | 2 | 参数配置、字典、业务编号 |
+| `Files` | 2 | 存储配置、文件与副本、秒传、分片上传、签名地址、导出中心、导入历史 |
+| `Notification` | 2 | 通知公告、收件箱、消息模板、邮件 / 短信、群机器人、Telegram 机器人 |
+| `Auditing` | 2 | 八类日志与链路追踪的查询面、日志写入队列、保留清理 |
+| `Maintenance` | 2 | 任务调度、缓存管理、服务监控、版本与升级记录 |
+| `OpenPlatform` | 2 | 签名开放接口、OAuth 2.0 / OIDC 服务端、OAuth 应用、我的应用、授权同意 |
+| `Realtime` | 2 | 通知 Hub、连接与在线状态、按受众推送 |
+| `Workbench` | 3 | 工作台小组件汇总（各包登记的指标、图表与列表） |
+| `Printing` | 3 | 打印模板（平台全局与租户）、按编码解析、打印数据源目录 |
+| `Chat` | 3 | 单聊、群聊、部门群与助手会话类型、聊天 Hub、聊天审计、保留清理 |
+| `Workflow` | 3 | 工作流与审批中心 |
+| `CodeGeneration` | 3 | 代码生成、零代码运行时 |
+| `AI` | 3 | AI 提供商、提示词、知识库、助手 |
 
 ## 技术栈
 
@@ -96,7 +97,7 @@ Host              XiHan.BasicApp.Host
 
 ## 阅读建议
 
-建议先按[快速开始](./getting-started)在本机运行 6.0，再阅读[目录结构](./project-structure)。后端开发从[架构总览](./backend/introduction)与[开发流程](./backend/development)开始，前端开发从[框架简介](./frontend/introduction)开始。侧栏中标注「规划中」的页面描述的是方案设计，不是已有功能。
+建议先按[快速开始](./getting-started)在本机运行 6.0，再阅读[目录结构](./project-structure)。后端开发从[架构总览](./backend/introduction)与[开发流程](./backend/development)开始，前端开发从[框架简介](./frontend/introduction)开始。
 
 ## 下一步
 

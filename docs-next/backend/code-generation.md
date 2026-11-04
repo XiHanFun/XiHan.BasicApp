@@ -2,7 +2,7 @@
 
 本页说明代码生成的数据源、表与列配置、模板与生成的代码、交付、零代码运行时和退出验证，适用于用它生成业务包的开发者与维护模板的人。
 
-CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个 6.0 包与前端模块，记生成历史，另有零代码只读运行时。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/backend/code-generation)。
+CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个 6.0 包与前端模块，记生成历史，另有零代码只读运行时。模型与规则沿用 5.x，写法换成 6.0 的；5.x 的代码生成文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/v5/backend/code-generation)。
 
 ## 页面与权限
 
