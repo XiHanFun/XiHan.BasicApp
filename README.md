@@ -259,7 +259,7 @@ The development configuration turns on demo data (`Saas:Seed:EnableDemoData`): d
 
 ## Ecosystem
 
-- [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) - A fast, lightweight, efficient and thoughtfully built modern modular framework for .NET
+- [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) - A fast, lightweight, efficient, thoughtful .NET framework: microkernel, capability graph, pipeline execution
 - [XiHan.UI](https://github.com/XiHanFun/XiHan.UI) - A fast, lightweight, efficient and thoughtfully built framework-agnostic component library
 - [XiHan.BasicApp](https://github.com/XiHanFun/XiHan.BasicApp) - A beautifully crafted admin kernel built on .NET and Vue
 
