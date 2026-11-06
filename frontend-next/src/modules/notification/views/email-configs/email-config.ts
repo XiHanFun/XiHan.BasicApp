@@ -41,7 +41,22 @@ export interface EmailConfigForm {
 }
 
 export function emptyEmailConfigForm(): EmailConfigForm {
-  return { id: null, code: '', name: '', smtpHost: '', smtpPort: 587, useSsl: true, acceptInvalidCertificate: false, fromEmail: '', fromName: '', userName: '', password: '', isEnabled: true, order: 100, remark: '' }
+  return {
+    id: null,
+    code: '',
+    name: '',
+    smtpHost: '',
+    smtpPort: 587,
+    useSsl: true,
+    acceptInvalidCertificate: false,
+    fromEmail: '',
+    fromName: '',
+    userName: '',
+    password: '',
+    isEnabled: true,
+    order: 100,
+    remark: '',
+  }
 }
 
 /** 已保存的配置回填表单（密码不回显） */
@@ -115,12 +130,18 @@ function draft(form: EmailConfigForm) {
 
 /** 新建：本侧第一份配置由后端自动设为缺省（并强制启用） */
 export function toCreateBody(form: EmailConfigForm): RequestOf<'email-configs.create'> {
-  return { code: form.code.trim(), ...draft(form) }
+  return {
+    code: form.code.trim(),
+    ...draft(form),
+  }
 }
 
 /** 编辑：编码不改；密码留空即保留原值 */
 export function toUpdateBody(form: EmailConfigForm & { id: string }): RequestOf<'email-configs.update'> {
-  return { id: form.id, ...draft(form) }
+  return {
+    id: form.id,
+    ...draft(form),
+  }
 }
 
 /**
@@ -130,10 +151,20 @@ export function toUpdateBody(form: EmailConfigForm & { id: string }): RequestOf<
 export function emailConfigResource(): SchemaResource<EmailConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await emailConfigsApi.list(toPageRequest(params, EMAIL_CONFIG_QUERY)), params),
-    remove: async id => throwOnFailed(await emailConfigsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await emailConfigsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const current = await emailConfigsApi.get({ id: String(id) })
-      return emailConfigsApi.update(toUpdateBody({ ...toEmailConfigForm(current), id: current.id, isEnabled: enabled }))
+      const current = await emailConfigsApi.get({
+        id: String(id),
+      })
+      return emailConfigsApi.update(toUpdateBody({
+        ...toEmailConfigForm(current),
+        id: current.id,
+        isEnabled: enabled,
+      }))
     },
   }
 }

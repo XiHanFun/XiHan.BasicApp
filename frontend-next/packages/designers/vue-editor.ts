@@ -15,7 +15,9 @@ export function createVuePropertyEditor<D, T>(
   return (initial) => {
     const element = document.createElement('div')
     const context = shallowRef(initial)
-    const vnode = h(defineComponent({ setup: () => () => renderEditor(context.value) }))
+    const vnode = h(defineComponent({
+      setup: () => () => renderEditor(context.value),
+    }))
     vnode.appContext = appContext
     render(vnode, element)
     return {

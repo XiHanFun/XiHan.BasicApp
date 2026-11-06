@@ -20,7 +20,10 @@ import {
 } from './inbox'
 
 function json(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 /** 记下请求（方法、地址、请求体），按顺序回给定的响应 */
@@ -30,7 +33,13 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
       return json(200, responses[calls.length - 1] ?? {})
     }) as unknown as typeof fetch,
   })
@@ -64,7 +73,12 @@ function item(patch: Partial<InboxItem> = {}): InboxItem {
 
 describe('我的消息的查询', () => {
   it('类型精确匹配、待处理走 pending eq true，按发布时间倒序（后端缺省，不传排序）', () => {
-    expect(inboxRequest({ type: null, scope: 'all', page: 1 })).toEqual({ page: { index: 1, size: INBOX_PAGE_SIZE }, filters: [], sorts: [], keyword: null })
+    expect(inboxRequest({ type: null, scope: 'all', page: 1 })).toEqual({
+      page: { index: 1, size: INBOX_PAGE_SIZE },
+      filters: [],
+      sorts: [],
+      keyword: null,
+    })
     expect(inboxRequest({ type: 'Security', scope: 'pending', page: 3 }).filters).toEqual([
       { field: 'notificationType', operator: 'eq', value: 'Security' },
       { field: 'pending', operator: 'eq', value: 'true' },
@@ -73,14 +87,36 @@ describe('我的消息的查询', () => {
 
   it('列表与待处理样本都走 inbox.list；样本与顶栏同取最近 100 条待处理的', async () => {
     const calls = stub(
-      { items: [item()], total: 1, page: { index: 2, size: 20 } },
-      { items: [item()], total: 1, page: { index: 1, size: 100 } },
+      {
+        items: [
+          item(),
+        ],
+        total: 1,
+        page: { index: 2, size: 20 },
+      },
+      {
+        items: [
+          item(),
+        ],
+        total: 1,
+        page: { index: 1, size: 100 },
+      },
     )
     expect((await loadInbox({ type: 'Todo', scope: 'all', page: 2 })).items).toHaveLength(1)
     expect(await loadPending()).toHaveLength(1)
     expect(calls.map(call => `${call.method} ${call.url}`)).toEqual(['POST /api/inbox:list', 'POST /api/inbox:list'])
-    expect(calls[0]?.body).toMatchObject({ page: { index: 2, size: INBOX_PAGE_SIZE }, filters: [{ field: 'notificationType', operator: 'eq', value: 'Todo' }] })
-    expect(calls[1]?.body).toMatchObject({ page: { index: 1, size: PENDING_SAMPLE_SIZE }, filters: [{ field: 'pending', operator: 'eq', value: 'true' }] })
+    expect(calls[0]?.body).toMatchObject({
+      page: { index: 2, size: INBOX_PAGE_SIZE },
+      filters: [
+        { field: 'notificationType', operator: 'eq', value: 'Todo' },
+      ],
+    })
+    expect(calls[1]?.body).toMatchObject({
+      page: { index: 1, size: PENDING_SAMPLE_SIZE },
+      filters: [
+        { field: 'pending', operator: 'eq', value: 'true' },
+      ],
+    })
   })
 
   it('删掉末页最后一条后页码退回最后一页', () => {
@@ -96,14 +132,24 @@ describe('我的消息的计数与顶栏同步', () => {
       item({ id: 'a' }),
       item({ id: 'b', status: 'Read', needConfirm: true }),
       item({ id: 'c', needConfirm: true }),
-      item({ id: 'd', status: 'Read', needConfirm: true, confirmedAt: '2026-10-29T09:00:00Z' }),
+      item({
+        id: 'd',
+        status: 'Read',
+        needConfirm: true,
+        confirmedAt: '2026-10-29T09:00:00Z',
+      }),
     ]
     expect(inboxCounts(items)).toEqual({ unread: 2, confirm: 2 })
     expect(items.map(needsAttention)).toEqual([true, true, true, false])
   })
 
   it('收件箱条目换成顶栏通知中心的条目（4.x 字段名，空值去掉）', () => {
-    expect(toHeaderItem(item({ status: 'Read', readAt: '2026-10-29T09:00:00Z', link: '/workbench', contentFormat: 'Markdown' }))).toEqual({
+    expect(toHeaderItem(item({
+      status: 'Read',
+      readAt: '2026-10-29T09:00:00Z',
+      link: '/workbench',
+      contentFormat: 'Markdown',
+    }))).toEqual({
       basicId: 'i1',
       title: '系统维护',
       content: '今晚停机',
@@ -124,12 +170,28 @@ describe('我的消息的计数与顶栏同步', () => {
 describe('我的消息的操作', () => {
   it('标为已读、确认、全部已读与删除各走自己的操作；条目已不在收件箱时报给定文案', async () => {
     const calls = stub(
-      { succeeded: ['i1'], failed: [] },
+      {
+        succeeded: ['i1'],
+        failed: [],
+      },
       { count: 1 },
       { count: 3 },
-      { succeeded: ['i1'], failed: [] },
-      { succeeded: [], failed: [{ id: 'i2', code: 'NOTIFICATION_NOTFOUND_002', message: 'NOTIFICATION_NOTFOUND_002 的原因' }] },
-      { succeeded: [], failed: [{ id: 'i3', code: 'KERNEL_UNEXPECTED_000', message: 'KERNEL_UNEXPECTED_000 的原因' }] },
+      {
+        succeeded: ['i1'],
+        failed: [],
+      },
+      {
+        succeeded: [],
+        failed: [
+          { id: 'i2', code: 'NOTIFICATION_NOTFOUND_002', message: 'NOTIFICATION_NOTFOUND_002 的原因' },
+        ],
+      },
+      {
+        succeeded: [],
+        failed: [
+          { id: 'i3', code: 'KERNEL_UNEXPECTED_000', message: 'KERNEL_UNEXPECTED_000 的原因' },
+        ],
+      },
     )
     await markRead('i1')
     await confirmItem('i1')
@@ -145,7 +207,9 @@ describe('我的消息的操作', () => {
       'DELETE /api/inbox?ids=i2',
       'POST /api/inbox:mark-read',
     ])
-    expect(calls[0]?.body).toEqual({ ids: ['i1'] })
+    expect(calls[0]?.body).toEqual({
+      ids: ['i1'],
+    })
   })
 
   it('链接：站内路由走跳转、http(s) 新窗口打开，其它协议不当链接', () => {

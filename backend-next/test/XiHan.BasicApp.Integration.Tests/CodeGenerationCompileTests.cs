@@ -102,7 +102,8 @@ public sealed class CodeGenerationCompileTests : IDisposable
             var group = Regex.Replace(Block(blocks, "csharp", "Group("), @",\s*\d+\)", $", {order})");
             order += 10;
             Insert(Path.Combine(host, "BasicAppOpenApi.cs"), "        ],\n    };", "            " + group + "\n");
-            Insert(Path.Combine(frontend, "scripts", "check-modules.mjs"), "'codegeneration', ", Block(blocks, "js", "'") + " ");
+            // KNOWN 一项一行：片段给的就是带尾逗号的一整项，插成新的一行
+            Insert(Path.Combine(frontend, "scripts", "check-modules.mjs"), "  'codegeneration',\n", "  " + Block(blocks, "js", "'") + "\n");
         }
 
         // 后端：宿主连同四个新包 Release 构建，警告即失败

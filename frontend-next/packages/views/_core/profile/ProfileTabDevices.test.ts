@@ -20,8 +20,26 @@ const apis = {
   revokeOtherSessionsApi: vi.fn(),
 }
 
-const current: UserSessionItem = { sessionId: 's-1', deviceType: 3, browser: 'Chrome', operatingSystem: 'Windows', ipAddress: '10.0.0.1', loginTime: '2026-10-30T00:00:00Z', lastActivityTime: '2026-10-30T02:00:00Z', isCurrent: true }
-const phone: UserSessionItem = { sessionId: 's-2', deviceType: 2, operatingSystem: 'iOS', ipAddress: '10.0.0.2', location: '上海', loginTime: '2026-10-29T00:00:00Z', lastActivityTime: '2026-10-29T03:04:00Z', isCurrent: false }
+const current: UserSessionItem = {
+  sessionId: 's-1',
+  deviceType: 3,
+  browser: 'Chrome',
+  operatingSystem: 'Windows',
+  ipAddress: '10.0.0.1',
+  loginTime: '2026-10-30T00:00:00Z',
+  lastActivityTime: '2026-10-30T02:00:00Z',
+  isCurrent: true,
+}
+const phone: UserSessionItem = {
+  sessionId: 's-2',
+  deviceType: 2,
+  operatingSystem: 'iOS',
+  ipAddress: '10.0.0.2',
+  location: '上海',
+  loginTime: '2026-10-29T00:00:00Z',
+  lastActivityTime: '2026-10-29T03:04:00Z',
+  isCurrent: false,
+}
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -41,7 +59,12 @@ afterEach(() => {
 
 /** 踢下线的确认浮层传送到 body 下，挂到文档上才点得到 */
 async function render() {
-  const wrapper = mount(ProfileTabDevices, { global: { plugins: [i18n] }, attachTo: document.body })
+  const wrapper = mount(ProfileTabDevices, {
+    global: {
+      plugins: [i18n],
+    },
+    attachTo: document.body,
+  })
   mounted.push(wrapper)
   await flushPromises()
   return wrapper
@@ -72,7 +95,9 @@ describe('登录设备页签', () => {
   it('踢下线确认后按会话主键下线并重拉列表；被拒即提示后端文案', async () => {
     const success = vi.spyOn(toast, 'success').mockImplementation(() => '')
     const danger = vi.spyOn(toast, 'danger').mockImplementation(() => '')
-    apis.revokeSessionApi.mockResolvedValue({ items: [current] })
+    apis.revokeSessionApi.mockResolvedValue({
+      items: [current],
+    })
     const wrapper = await render()
 
     async function kick() {
@@ -102,7 +127,9 @@ describe('登录设备页签', () => {
       await options.onOk?.()
       return true
     })
-    apis.revokeOtherSessionsApi.mockResolvedValue({ items: [current] })
+    apis.revokeOtherSessionsApi.mockResolvedValue({
+      items: [current],
+    })
     const wrapper = await render()
     const button = () => wrapper.findAll('.pf-section__extra button').find(item => item.text() === '登出其他设备')!
 

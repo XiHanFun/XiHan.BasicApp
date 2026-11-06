@@ -18,7 +18,9 @@ const TRANSITION_PATH = /^transitions\[(\d+)\]/
 
 function idsOf(value: unknown): (string | undefined)[] {
   return Array.isArray(value)
-    ? value.map(item => (typeof item === 'object' && item !== null && typeof (item as { id?: unknown }).id === 'string') ? (item as { id: string }).id : undefined)
+    ? value.map(item => (typeof item === 'object' && item !== null && typeof (item as { id?: unknown }).id === 'string')
+        ? (item as { id: string }).id
+        : undefined)
     : []
 }
 
@@ -26,12 +28,16 @@ function targetOf(path: string, nodes: (string | undefined)[], transitions: (str
   const node = NODE_PATH.exec(path)
   if (node) {
     const id = nodes[Number(node[1])]
-    return id ? { kind: 'node', id } : undefined
+    return id
+      ? { kind: 'node', id }
+      : undefined
   }
   const transition = TRANSITION_PATH.exec(path)
   if (transition) {
     const id = transitions[Number(transition[1])]
-    return id ? { kind: 'edge', id } : undefined
+    return id
+      ? { kind: 'edge', id }
+      : undefined
   }
   return undefined
 }
@@ -55,6 +61,8 @@ export function serverDiagnostics(definitionJson: string, errors: Readonly<Recor
   }
   return Object.entries(errors).flatMap(([path, messages]) => {
     const target = targetOf(path, nodes, transitions)
-    return messages.map(message => target ? { target, message } : { message })
+    return messages.map(message => target
+      ? { target, message }
+      : { message })
   })
 }

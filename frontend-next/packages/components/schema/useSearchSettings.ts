@@ -75,7 +75,12 @@ export function useSearchSettings(
       const def = defaultMap.get(p.key)
       if (def) {
         // visible 旧数据缺省视为 true（向后兼容）
-        ordered.push({ key: p.key, title: def.title, pinned: p.pinned, visible: p.visible ?? true })
+        ordered.push({
+          key: p.key,
+          title: def.title,
+          pinned: p.pinned,
+          visible: p.visible ?? true,
+        })
         defaultMap.delete(p.key)
       }
     }

@@ -92,12 +92,22 @@ const groupAttrs = computed(() => segmentGroupWiring(controlAttrs.value))
 
 const { locale, t } = useI18n()
 
-const isoValue = computed<string[]>(() => (props.value == null ? [] : [timestampToIso(props.value, props.showTime)]))
-const isoMin = computed(() => (props.min == null ? undefined : timestampToIso(props.min, props.showTime)))
-const isoMax = computed(() => (props.max == null ? undefined : timestampToIso(props.max, props.showTime)))
+const isoValue = computed<string[]>(() => (props.value == null
+  ? []
+  : [
+      timestampToIso(props.value, props.showTime),
+    ]))
+const isoMin = computed(() => (props.min == null
+  ? undefined
+  : timestampToIso(props.min, props.showTime)))
+const isoMax = computed(() => (props.max == null
+  ? undefined
+  : timestampToIso(props.max, props.showTime)))
 
 function onValueChange(next: string[]): void {
-  emit('update:value', next.length === 0 ? null : isoToTimestamp(next[0] ?? ''))
+  emit('update:value', next.length === 0
+    ? null
+    : isoToTimestamp(next[0] ?? ''))
 }
 </script>
 

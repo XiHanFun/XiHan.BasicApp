@@ -14,7 +14,13 @@ vi.mock('~/designers', () => ({
 }))
 vi.mock('~/designers/flow', () => ({ XIHAN_WORKFLOW_ASSIGNEE_RULES: 'xihan-workflow:assignee-rules' }))
 
-const leave: WorkflowBusinessType = { code: 'leave-request', nameKey: 'workflow.business.leave', formComponent: 'hr/leave-approval/index', variables: [], outcomes: ['approved', 'rejected'] }
+const leave: WorkflowBusinessType = {
+  code: 'leave-request',
+  nameKey: 'workflow.business.leave',
+  formComponent: 'hr/leave-approval/index',
+  variables: [],
+  outcomes: ['approved', 'rejected'],
+}
 
 function setup() {
   const extension = createWorkflowExtension({
@@ -24,7 +30,13 @@ function setup() {
     t: key => key,
   })
   const document = extension.editors?.byTarget?.document as Record<string, { render: (context: unknown) => VNode }> | undefined
-  const render = (path: string, value: unknown) => document?.[path]?.render({ value, descriptor: { label: path }, readonly: false, setValue: vi.fn(), commit: vi.fn() })
+  const render = (path: string, value: unknown) => document?.[path]?.render({
+    value,
+    descriptor: { label: path },
+    readonly: false,
+    setValue: vi.fn(),
+    commit: vi.fn(),
+  })
   return { document, render }
 }
 
@@ -32,8 +44,18 @@ describe('流程元数据在设计器里只读', () => {
   it('编码、名称、分类、描述都由扩展接管，只显示当前值', () => {
     const { document, render } = setup()
 
-    expect(Object.keys(document ?? {})).toEqual(expect.arrayContaining(['data.code', 'data.name', 'data.category', 'data.description']))
-    for (const [path, value] of [['data.code', 'leave-request'], ['data.name', '请假审批'], ['data.category', '人事'], ['data.description', '年假']] as const) {
+    expect(Object.keys(document ?? {})).toEqual(expect.arrayContaining([
+      'data.code',
+      'data.name',
+      'data.category',
+      'data.description',
+    ]))
+    for (const [path, value] of [
+      ['data.code', 'leave-request'],
+      ['data.name', '请假审批'],
+      ['data.category', '人事'],
+      ['data.description', '年假'],
+    ] as const) {
       const props = render(path, value)?.props ?? {}
       expect(props.value).toBe(value)
       expect(Object.keys(props).some(key => key.startsWith('onUpdate'))).toBe(false)

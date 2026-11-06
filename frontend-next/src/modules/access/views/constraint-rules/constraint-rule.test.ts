@@ -9,15 +9,33 @@ describe('约束规则的编辑', () => {
     expect(targetTypesOf('Condition')).toEqual(['Role'])
     expect(targetTypesOf('MutualExclusion')).toEqual(['Permission'])
     expect(targetTypesOf('Cardinality')).toEqual(['Role', 'User'])
-    expect([minItemsOf('Ssd'), minItemsOf('Dsd'), minItemsOf('MutualExclusion'), minItemsOf('Cardinality'), minItemsOf('Condition')]).toEqual([2, 2, 2, 1, 1])
+    expect([
+      minItemsOf('Ssd'),
+      minItemsOf('Dsd'),
+      minItemsOf('MutualExclusion'),
+      minItemsOf('Cardinality'),
+      minItemsOf('Condition'),
+    ]).toEqual([2, 2, 2, 1, 1])
     expect(usesMaxAllowed('Cardinality')).toBe(true)
     expect(usesMaxAllowed('Condition')).toBe(false)
   })
 
   it('已保存的规则项转成编辑行再转回，备注留空写成 null', () => {
     const saved: ConstraintRuleItem[] = [
-      { targetId: 'r1', targetName: '出纳', targetCode: 'cashier', groupNo: 0, remark: '财务' },
-      { targetId: 'r2', targetName: null, targetCode: null, groupNo: 1, remark: null },
+      {
+        targetId: 'r1',
+        targetName: '出纳',
+        targetCode: 'cashier',
+        groupNo: 0,
+        remark: '财务',
+      },
+      {
+        targetId: 'r2',
+        targetName: null,
+        targetCode: null,
+        groupNo: 1,
+        remark: null,
+      },
     ]
     const models = toItemModels(saved)
     expect(new Set(models.map(m => m.key)).size).toBe(2)
@@ -30,12 +48,18 @@ describe('约束规则的编辑', () => {
 
   it('提交前找出第一处规则项问题：太少、没选目标、目标重复', () => {
     const t = (key: string, values?: Record<string, unknown>) => `${key}:${JSON.stringify(values ?? {})}`
-    const first = { ...emptyItem(), targetId: 'r1' }
+    const first = {
+      ...emptyItem(),
+      targetId: 'r1',
+    }
     expect(findItemProblem('Ssd', [first])).toEqual({ problem: 'too_few', index: 2 })
     expect(findItemProblem('Cardinality', [first])).toBeNull()
     const blank = emptyItem()
     expect(findItemProblem('Ssd', [first, blank])).toEqual({ problem: 'no_target', index: 2 })
-    const repeat = { ...emptyItem(1), targetId: 'r1' }
+    const repeat = {
+      ...emptyItem(1),
+      targetId: 'r1',
+    }
     const found = findItemProblem('Dsd', [first, repeat])
     expect(found).toEqual({ problem: 'duplicate', index: 2 })
     expect(itemProblemMessage(t, found!)).toBe('access.constraint_rules.warn_item_duplicate:{"index":2}')
@@ -43,6 +67,16 @@ describe('约束规则的编辑', () => {
   })
 
   it('拒绝与需审批同为拦截色，警告为警示色，只记录为中性', () => {
-    expect([actionTone('Deny'), actionTone('RequireApproval'), actionTone('Warning'), actionTone('Log')]).toEqual(['danger', 'danger', 'warning', 'neutral'])
+    expect([
+      actionTone('Deny'),
+      actionTone('RequireApproval'),
+      actionTone('Warning'),
+      actionTone('Log'),
+    ]).toEqual([
+      'danger',
+      'danger',
+      'warning',
+      'neutral',
+    ])
   })
 })

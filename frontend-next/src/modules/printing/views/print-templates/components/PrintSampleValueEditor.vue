@@ -30,13 +30,21 @@ const inputType = computed<PrintSampleInputType>(() => props.field.kind === 'ima
   : inferPrintSampleInputType(props.field.inputType, props.value))
 const placeholder = computed(() => props.field.placeholder
   || t('printing.print_templates.sample_field_placeholder', { label: props.field.label }))
-const stringValue = computed(() => props.value === null || props.value === undefined ? '' : String(props.value))
-const numberValue = computed(() => typeof props.value === 'number' ? props.value : null)
+const stringValue = computed(() => props.value === null || props.value === undefined
+  ? ''
+  : String(props.value))
+const numberValue = computed(() => typeof props.value === 'number'
+  ? props.value
+  : null)
 const booleanValue = computed(() => props.value === true)
 /** 样值以文本存，日期选择收发时间戳：解析不出来就当未填 */
 const dateValue = computed(() => {
-  const parsed = stringValue.value ? new Date(stringValue.value).getTime() : Number.NaN
-  return Number.isNaN(parsed) ? null : parsed
+  const parsed = stringValue.value
+    ? new Date(stringValue.value).getTime()
+    : Number.NaN
+  return Number.isNaN(parsed)
+    ? null
+    : parsed
 })
 
 /**

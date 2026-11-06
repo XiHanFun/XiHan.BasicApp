@@ -19,7 +19,9 @@ function migrateNode(node: unknown): unknown {
   if (!isRecord(node) || node.activityType !== 'UserTask' || !isRecord(node.properties))
     return node
   const properties = { ...node.properties }
-  return migrateLegacyAssignees(properties) ? { ...node, properties } : node
+  return migrateLegacyAssignees(properties)
+    ? { ...node, properties }
+    : node
 }
 
 /** 解析后端定义文档为流程定义；JSON 非法或结构不对时抛错，由调用方提示 */
@@ -28,7 +30,9 @@ export function openDefinition(json: string): FlowDocument {
   if (!isRecord(raw))
     throw new TypeError('definition must be a JSON object')
   const legacy = fromWorkflowJson(raw as WorkflowJsonDefinition)
-  const nodes = Array.isArray(legacy.nodes) ? legacy.nodes.map(migrateNode) : legacy.nodes
+  const nodes = Array.isArray(legacy.nodes)
+    ? legacy.nodes.map(migrateNode)
+    : legacy.nodes
   return fromWorkflowDefinition({ ...legacy, nodes } as XihanWorkflowDefinition)
 }
 

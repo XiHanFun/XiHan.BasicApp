@@ -37,14 +37,19 @@ function resolveDependencyVersion(name: string, spec: string): string {
       // 装坏的包按读不到处理
     }
   }
-  return PNPM_PROTOCOL_RE.test(spec) ? '-' : spec
+  return PNPM_PROTOCOL_RE.test(spec)
+    ? '-'
+    : spec
 }
 
 /** 把一组依赖声明整体解析成 包名 → 真实版本 */
 function resolveDependencyVersions(declarations: Record<string, unknown>): Record<string, string> {
   const result: Record<string, string> = {}
-  for (const [name, spec] of Object.entries(declarations))
-    result[name] = resolveDependencyVersion(name, typeof spec === 'string' ? spec : '')
+  for (const [name, spec] of Object.entries(declarations)) {
+    result[name] = resolveDependencyVersion(name, typeof spec === 'string'
+      ? spec
+      : '')
+  }
   return result
 }
 
@@ -71,7 +76,16 @@ export default defineConfig(({ mode }) => {
   // 开发态把 /api、/openapi.json、/mcp、/health 与签名地址 /blobs 代理到后端宿主（Kestrel 的 Http 端点）；实时 Hub /hubs 要转 WebSocket
   const target = env.VITE_DEV_PROXY_TARGET || 'http://localhost:9710'
   const proxy = {
-    ...Object.fromEntries(['/api', '/openapi.json', '/mcp', '/health', '/blobs'].map(path => [path, { target, changeOrigin: true }])),
+    ...Object.fromEntries([
+      '/api',
+      '/openapi.json',
+      '/mcp',
+      '/health',
+      '/blobs',
+    ].map(path => [
+      path,
+      { target, changeOrigin: true },
+    ])),
     '/hubs': { target, changeOrigin: true, ws: true },
   }
 
@@ -93,10 +107,18 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       // 设计器是 Web Components（<xh-print-designer> 等），模板里的 xh- 标签交给浏览器，不当组件解析；
       // 应用里的组件库组件一律写 PascalCase 的 Xh*，不受影响
-      vue({ template: { compilerOptions: { isCustomElement: tag => tag.startsWith('xh-') } } }),
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: tag => tag.startsWith('xh-'),
+          },
+        },
+      }),
       Components({
         // XiHan.UI 是解剖式组件库：模板里的 Xh* 标签由库自带的解析器按需映射到 @xihan-ui/vue 的具名导出，摇树不受影响
-        resolvers: [XiHanUIResolver()],
+        resolvers: [
+          XiHanUIResolver(),
+        ],
         // 只解析 XiHan.UI 的部件；应用自有组件一律显式 import
         dirs: [],
         dts: 'src/types/components.d.ts',
@@ -108,17 +130,32 @@ export default defineConfig(({ mode }) => {
         '~': fileURLToPath(new URL('./packages', import.meta.url)),
       },
       // 临时用 overrides 链到同级 XiHan.UI 源码时，组件库的 peer 依赖可能解析到另一份 Vue；去重以免出现两份运行时
-      dedupe: ['vue', 'vue-router', 'pinia', 'vue-i18n', '@vue/runtime-core'],
+      dedupe: [
+        'vue',
+        'vue-router',
+        'pinia',
+        'vue-i18n',
+        '@vue/runtime-core',
+      ],
     },
     optimizeDeps: {
       // 打印设计器与应用共用 @xihan-ui/web-components 的全局配置（语言、滚动源）：预构建会把 web-components 打进 @xihan-print 自己的块，
       // 链到同级 XiHan.UI 源码联调时应用写的是另一份，设计器只看得见英文缺省；不预构建即按源码引用同一份（生产构建按真实路径去重，不受影响）
-      exclude: ['@xihan-flow/core', '@xihan-flow/designer', '@xihan-flow/runtime', '@xihan-print/core', '@xihan-print/designer', '@xihan-print/runtime'],
+      exclude: [
+        '@xihan-flow/core',
+        '@xihan-flow/designer',
+        '@xihan-flow/runtime',
+        '@xihan-print/core',
+        '@xihan-print/designer',
+        '@xihan-print/runtime',
+      ],
     },
     server: {
       port: Number(env.VITE_PORT) || 9100,
       // 链到同级 XiHan.UI 源码时仓外路径要在允许范围内；装正式版时这一条没有副作用
-      fs: { allow: ['..', '../../XiHan.UI'] },
+      fs: {
+        allow: ['..', '../../XiHan.UI'],
+      },
       proxy,
     },
     build: {

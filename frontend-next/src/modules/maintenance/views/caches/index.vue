@@ -62,7 +62,9 @@ const subPrefix = ref('')
 const namespaceSelectOptions = computed(() => namespaceOptions(t, namespaces.value))
 
 /** 当前要查（或按前缀删）的完整前缀；没有可选的命名空间时为 null */
-const searchPrefix = computed(() => (namespacePrefix.value === null ? null : keyPrefix(namespacePrefix.value, subPrefix.value)))
+const searchPrefix = computed(() => (namespacePrefix.value === null
+  ? null
+  : keyPrefix(namespacePrefix.value, subPrefix.value)))
 
 // ── 键值状态（右侧详情；左侧选中时要读当前键，故先声明） ──
 const entryState = useCacheEntry()
@@ -82,7 +84,9 @@ const treeData = computed(() => buildKeyTree(cacheKeys.value))
 const keyCount = computed(() => cacheKeys.value.length)
 const hasMore = computed(() => continuation.value !== null)
 /** 还有下一页时计数后带 +：列表只是已加载的部分 */
-const keyCountText = computed(() => (hasMore.value ? `${keyCount.value}+` : String(keyCount.value)))
+const keyCountText = computed(() => (hasMore.value
+  ? `${keyCount.value}+`
+  : String(keyCount.value)))
 const selectedCount = computed(() => selectedKeys.value.length)
 
 function renderTreeLabel(option: Record<string, unknown>) {
@@ -94,7 +98,12 @@ function renderTreeLabel(option: Record<string, unknown>) {
     // 进程内对象缓存的条目（不在字节存储里）标出来；键长时省略号收起，标签始终露出
     return h('span', { class: 'cache-tree-leaf-row' }, [
       leaf,
-      h(XhTagRoot, { class: 'cache-tree-leaf-tag', variant: 'subtle', size: 'sm', tone: 'neutral' }, () => h(XhTagLabel, () => t('maintenance.caches.object_tag'))),
+      h(XhTagRoot, {
+        class: 'cache-tree-leaf-tag',
+        variant: 'subtle',
+        size: 'sm',
+        tone: 'neutral',
+      }, () => h(XhTagLabel, () => t('maintenance.caches.object_tag'))),
     ])
   }
   return h('span', { class: 'cache-tree-group' }, [
@@ -148,7 +157,9 @@ async function handleSearch() {
 
 /** 换命名空间即重查；子前缀是相对上一个命名空间写的，一并清掉 */
 function changeNamespace(value: unknown) {
-  namespacePrefix.value = typeof value === 'string' ? value : null
+  namespacePrefix.value = typeof value === 'string'
+    ? value
+    : null
   subPrefix.value = ''
   void handleSearch()
 }
@@ -176,7 +187,9 @@ function handleSelect(keys: string[]) {
   const previous = new Set(selectedKeys.value)
   const added = leaves.filter(key => !previous.has(key))
   selectedKeys.value = leaves
-  const only = added.length === 1 ? added[0] : undefined
+  const only = added.length === 1
+    ? added[0]
+    : undefined
   if (only && only !== detailKey.value) {
     void loadValue(only)
   }
@@ -190,13 +203,17 @@ function clearSelection() {
 /** 值按 UTF-8 解出的文本；不是文本（二进制）为 null */
 const valueText = computed(() => entry.value?.text ?? null)
 /** 不能改写的原因：二进制值，或鉴权相关的只读命名空间 */
-const reason = computed(() => (entry.value ? readOnlyReason(entry.value) : null))
+const reason = computed(() => (entry.value
+  ? readOnlyReason(entry.value)
+  : null))
 const canEdit = computed(() => canEditEntry(entry.value, canUpdate.value))
 const displayValue = computed(() => {
   if (valueText.value === null) {
     return ''
   }
-  return format.value === 'json' ? prettyJson(valueText.value) : valueText.value
+  return format.value === 'json'
+    ? prettyJson(valueText.value)
+    : valueText.value
 })
 
 function resetDetail() {
@@ -217,7 +234,9 @@ async function loadValue(key: string) {
   if (detailKey.value === key) {
     const value = entry.value?.text ?? ''
     draft.value = value
-    format.value = isJson(value) ? 'json' : 'text'
+    format.value = isJson(value)
+      ? 'json'
+      : 'text'
   }
 }
 
@@ -261,7 +280,9 @@ async function handleSave() {
     await entryState.save(draft.value)
     toast.success(t('maintenance.caches.saved'))
     editing.value = false
-    format.value = isJson(valueText.value ?? '') ? 'json' : 'text'
+    format.value = isJson(valueText.value ?? '')
+      ? 'json'
+      : 'text'
   }
   catch (error) {
     toast.danger(errorText(error) || t('common.messages.save_failed'))

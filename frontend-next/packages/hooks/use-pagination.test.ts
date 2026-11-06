@@ -78,7 +78,9 @@ describe('usePagination 响应式源', () => {
 
   it('传入 getter 时按最新返回值分页', () => {
     const flag = ref(true)
-    const { total, totalPages } = usePagination(() => (flag.value ? makeList(7) : []))
+    const { total, totalPages } = usePagination(() => (flag.value
+      ? makeList(7)
+      : []))
 
     expect(total.value).toBe(7)
 

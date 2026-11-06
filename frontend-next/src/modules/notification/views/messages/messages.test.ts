@@ -5,7 +5,10 @@ import { QueryOperator } from '~/types/contracts'
 import { canCancel, cancelRecord, canDelete, canResend, emailRecordResource, formatAttempts, prettyJson, RECORD_QUERY, resendRecord, smsRecordResource } from './messages'
 
 function json(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 /** 记下请求（方法、地址、请求体），按顺序回给定的响应 */
@@ -15,7 +18,13 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
       return json(200, responses[calls.length - 1] ?? {})
     }) as unknown as typeof fetch,
   })
@@ -27,12 +36,28 @@ describe('发送记录的列表筛选', () => {
     const request = toPageRequest({
       page: 1,
       pageSize: 20,
-      filters: { keyword: ' a@b.com ', status: ['Failed', 'Cancelled'], templateCode: ' auth-email-login-code ', businessType: 'notification', createdAt: ['2026-10-01T00:00:00Z', '2026-10-31T23:59:59Z'] },
+      filters: {
+        keyword: ' a@b.com ',
+        status: ['Failed', 'Cancelled'],
+        templateCode: ' auth-email-login-code ',
+        businessType: 'notification',
+        createdAt: ['2026-10-01T00:00:00Z', '2026-10-31T23:59:59Z'],
+      },
       conditionFilters: [
-        { field: 'status', operator: QueryOperator.In, values: ['Failed', 'Cancelled'] },
-        { field: 'createdAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00Z', '2026-10-31T23:59:59Z'] },
+        {
+          field: 'status',
+          operator: QueryOperator.In,
+          values: ['Failed', 'Cancelled'],
+        },
+        {
+          field: 'createdAt',
+          operator: QueryOperator.Between,
+          values: ['2026-10-01T00:00:00Z', '2026-10-31T23:59:59Z'],
+        },
       ],
-      sorts: [{ field: 'sentAt', order: 'desc' }],
+      sorts: [
+        { field: 'sentAt', order: 'desc' },
+      ],
     }, RECORD_QUERY)
     expect(request).toEqual({
       page: { index: 1, size: 20 },
@@ -44,16 +69,34 @@ describe('发送记录的列表筛选', () => {
         { field: 'templateCode', operator: 'eq', value: 'auth-email-login-code' },
         { field: 'businessType', operator: 'eq', value: 'notification' },
       ],
-      sorts: [{ field: 'sentAt', descending: true }],
+      sorts: [
+        { field: 'sentAt', descending: true },
+      ],
     })
   })
 
   it('邮件走 emails.list、短信走 sms.list；删除逐项拒绝时带着原因抛出', async () => {
     const calls = stub(
-      { items: [], total: 0, page: { index: 1, size: 20 } },
-      { items: [], total: 0, page: { index: 1, size: 20 } },
-      { succeeded: ['e1'], failed: [] },
-      { succeeded: [], failed: [{ id: 's1', code: 'NOTIFICATION_CONFLICT_006', message: 'NOTIFICATION_CONFLICT_006 的原因' }] },
+      {
+        items: [],
+        total: 0,
+        page: { index: 1, size: 20 },
+      },
+      {
+        items: [],
+        total: 0,
+        page: { index: 1, size: 20 },
+      },
+      {
+        succeeded: ['e1'],
+        failed: [],
+      },
+      {
+        succeeded: [],
+        failed: [
+          { id: 's1', code: 'NOTIFICATION_CONFLICT_006', message: 'NOTIFICATION_CONFLICT_006 的原因' },
+        ],
+      },
     )
     await emailRecordResource().page!({ page: 1, pageSize: 20, filters: {} })
     await smsRecordResource().page!({ page: 1, pageSize: 20, filters: {} })
@@ -72,23 +115,57 @@ describe('发送记录的行操作', () => {
   it('重发不收排队中与发送中的，取消只收排队中的，删除不收发送中的', () => {
     expect(MessageSendStatus.filter(canResend)).toEqual(['Success', 'Failed', 'Cancelled'])
     expect(MessageSendStatus.filter(canCancel)).toEqual(['Pending'])
-    expect(MessageSendStatus.filter(canDelete)).toEqual(['Pending', 'Success', 'Failed', 'Cancelled'])
+    expect(MessageSendStatus.filter(canDelete)).toEqual([
+      'Pending',
+      'Success',
+      'Failed',
+      'Cancelled',
+    ])
     expect(formatAttempts({ attempts: 2, maxAttempts: 5 })).toBe('2/5')
   })
 
   it('重发与取消按种类走各自的批量接口，逐项拒绝即抛错', async () => {
     const calls = stub(
-      { succeeded: ['e1'], failed: [] },
-      { succeeded: ['s1'], failed: [] },
-      { succeeded: [], failed: [{ id: 'e2', code: 'NOTIFICATION_CONFLICT_007', message: 'NOTIFICATION_CONFLICT_007 的原因' }] },
+      {
+        succeeded: ['e1'],
+        failed: [],
+      },
+      {
+        succeeded: ['s1'],
+        failed: [],
+      },
+      {
+        succeeded: [],
+        failed: [
+          { id: 'e2', code: 'NOTIFICATION_CONFLICT_007', message: 'NOTIFICATION_CONFLICT_007 的原因' },
+        ],
+      },
     )
     await resendRecord('email', 'e1')
     await cancelRecord('sms', 's1')
     await expect(cancelRecord('email', 'e2')).rejects.toThrow('NOTIFICATION_CONFLICT_007 的原因')
     expect(calls).toEqual([
-      { method: 'POST', url: '/api/emails:resend', body: { ids: ['e1'] } },
-      { method: 'POST', url: '/api/sms:cancel', body: { ids: ['s1'] } },
-      { method: 'POST', url: '/api/emails:cancel', body: { ids: ['e2'] } },
+      {
+        method: 'POST',
+        url: '/api/emails:resend',
+        body: {
+          ids: ['e1'],
+        },
+      },
+      {
+        method: 'POST',
+        url: '/api/sms:cancel',
+        body: {
+          ids: ['s1'],
+        },
+      },
+      {
+        method: 'POST',
+        url: '/api/emails:cancel',
+        body: {
+          ids: ['e2'],
+        },
+      },
     ])
   })
 

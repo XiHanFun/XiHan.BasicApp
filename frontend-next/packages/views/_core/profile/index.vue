@@ -50,36 +50,76 @@ const navGroups = computed<ProfileNavGroup[]>(() => [
   {
     title: null,
     items: [
-      { key: 'profile', label: t('component.profile.nav.tab_profile'), icon: 'lucide:contact' },
+      {
+        key: 'profile',
+        label: t('component.profile.nav.tab_profile'),
+        icon: 'lucide:contact',
+      },
     ],
   },
   {
     title: t('component.profile.nav.group_access_security'),
     items: [
-      { key: 'security', label: t('component.profile.nav.tab_security'), icon: 'lucide:shield-check' },
-      { key: 'binding', label: t('component.profile.nav.tab_binding'), icon: 'lucide:link' },
-      { key: 'devices', label: t('component.profile.nav.tab_devices'), icon: 'lucide:monitor-smartphone' },
-      { key: 'loginLogs', label: t('component.profile.nav.tab_login_logs'), icon: 'lucide:file-clock' },
+      {
+        key: 'security',
+        label: t('component.profile.nav.tab_security'),
+        icon: 'lucide:shield-check',
+      },
+      {
+        key: 'binding',
+        label: t('component.profile.nav.tab_binding'),
+        icon: 'lucide:link',
+      },
+      {
+        key: 'devices',
+        label: t('component.profile.nav.tab_devices'),
+        icon: 'lucide:monitor-smartphone',
+      },
+      {
+        key: 'loginLogs',
+        label: t('component.profile.nav.tab_login_logs'),
+        icon: 'lucide:file-clock',
+      },
     ],
   },
   {
     title: t('component.profile.nav.group_preferences'),
     items: [
-      { key: 'notifications', label: t('component.profile.nav.tab_notifications'), icon: 'lucide:bell-ring' },
+      {
+        key: 'notifications',
+        label: t('component.profile.nav.tab_notifications'),
+        icon: 'lucide:bell-ring',
+      },
     ],
   },
   {
     title: t('component.profile.nav.group_tenants_data'),
     items: [
-      { key: 'tenants', label: t('component.profile.nav.tab_tenants'), icon: 'lucide:building-2' },
-      { key: 'stats', label: t('component.profile.nav.tab_stats'), icon: 'lucide:bar-chart-3' },
+      {
+        key: 'tenants',
+        label: t('component.profile.nav.tab_tenants'),
+        icon: 'lucide:building-2',
+      },
+      {
+        key: 'stats',
+        label: t('component.profile.nav.tab_stats'),
+        icon: 'lucide:bar-chart-3',
+      },
     ],
   },
   {
     title: t('component.profile.nav.group_developer'),
     items: [
-      { key: 'developer', label: t('component.profile.nav.tab_developer'), icon: 'lucide:code-2' },
-      { key: 'oauth', label: t('component.profile.nav.tab_oauth'), icon: 'lucide:blocks' },
+      {
+        key: 'developer',
+        label: t('component.profile.nav.tab_developer'),
+        icon: 'lucide:code-2',
+      },
+      {
+        key: 'oauth',
+        label: t('component.profile.nav.tab_oauth'),
+        icon: 'lucide:blocks',
+      },
     ],
   },
 ])
@@ -101,7 +141,9 @@ const tabComponents: Record<string, Component> = {
 // 注意：个人中心是「一个页面」，子页签切换只改内部状态，不再写入路由 query，
 // 否则带不同 ?tab= 的 fullPath 会被标签栏识别为新标签，导致每点一次就多开一个标签
 activeTab.value = (() => {
-  const queryTab = typeof route.query.tab === 'string' ? route.query.tab : ''
+  const queryTab = typeof route.query.tab === 'string'
+    ? route.query.tab
+    : ''
   if (queryTab && queryTab in tabComponents) {
     return queryTab
   }
@@ -127,7 +169,9 @@ function selectTab(key: string) {
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadProfile() {

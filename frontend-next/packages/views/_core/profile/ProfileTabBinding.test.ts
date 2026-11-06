@@ -27,7 +27,11 @@ beforeEach(() => {
   registerAppContext({ apis: apis as unknown as AppContextApis })
   apis.getLoginConfigApi.mockResolvedValue({
     loginMethods: ['password'],
-    oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }, { name: 'feishu', displayName: '飞书', type: 'lark' }, { name: 'gitee', displayName: 'Gitee', type: 'gitee' }],
+    oAuthProviders: [
+      { name: 'github', displayName: 'GitHub', type: 'github' },
+      { name: 'feishu', displayName: '飞书', type: 'lark' },
+      { name: 'gitee', displayName: 'Gitee', type: 'gitee' },
+    ],
     captchaEnabled: false,
   })
   apis.getLinkedAccountsApi.mockResolvedValue([
@@ -38,7 +42,11 @@ beforeEach(() => {
 })
 
 async function render() {
-  const wrapper = mount(ProfileTabBinding, { global: { plugins: [i18n] } })
+  const wrapper = mount(ProfileTabBinding, {
+    global: {
+      plugins: [i18n],
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -55,7 +63,11 @@ describe('账号绑定页签', () => {
   it('按登录配置带的规范类型对齐绑定（名称 feishu 的类型是 lark），对不上已配置渠道的绑定排在后面', async () => {
     const wrapper = await render()
     expect(rows(wrapper)).toEqual([
-      { title: 'GitHub', desc: expect.stringContaining('octo@example.com'), action: '解除绑定' },
+      {
+        title: 'GitHub',
+        desc: expect.stringContaining('octo@example.com'),
+        action: '解除绑定',
+      },
       { title: '飞书', desc: '未关联邮箱', action: '解除绑定' },
       { title: 'Gitee', desc: '未绑定', action: '绑定' },
       { title: 'wecom', desc: 'w@example.com', action: '解除绑定' },
@@ -78,7 +90,12 @@ describe('账号绑定页签', () => {
   })
 
   it('没有配置任何渠道、也没有绑定时显示空态', async () => {
-    apis.getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false, registrationEnabled: false })
+    apis.getLoginConfigApi.mockResolvedValue({
+      loginMethods: ['password'],
+      oAuthProviders: [],
+      captchaEnabled: false,
+      registrationEnabled: false,
+    })
     apis.getLinkedAccountsApi.mockResolvedValue([])
     const wrapper = await render()
     expect(wrapper.text()).toContain(i18n.global.t('component.profile.binding.empty'))

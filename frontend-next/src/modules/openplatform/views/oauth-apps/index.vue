@@ -51,47 +51,197 @@ function reloadApp() {
 
 const asRow = (row: object) => row as OAuthAppRow
 const statusOptions = computed<SelectOption[]>(() => enabledOptions(t))
-const appTypeOptions = computed<SelectOption[]>(() => OAUTH_APP_TYPES.map(type => ({ label: appTypeLabel(t, type), value: type })))
-const clientTypeOptions = computed<SelectOption[]>(() => OAUTH_CLIENT_TYPES.map(type => ({ label: clientTypeLabel(t, type), value: type })))
+const appTypeOptions = computed<SelectOption[]>(() => OAUTH_APP_TYPES.map(type => ({
+  label: appTypeLabel(t, type),
+  value: type,
+})))
+const clientTypeOptions = computed<SelectOption[]>(() => OAUTH_CLIENT_TYPES.map(type => ({
+  label: clientTypeLabel(t, type),
+  value: type,
+})))
 /** 授权确认的搜索选项：后端按 `skipConsent eq true / false` 精确匹配 */
 const consentOptions = computed<SelectOption[]>(() => [
-  { label: t('openplatform.oauth_apps.consent_skip'), value: 'true' },
-  { label: t('openplatform.oauth_apps.consent_required'), value: 'false' },
+  {
+    label: t('openplatform.oauth_apps.consent_skip'),
+    value: 'true',
+  },
+  {
+    label: t('openplatform.oauth_apps.consent_required'),
+    value: 'false',
+  },
 ])
 /** 归属的搜索选项：后端按 `personal eq true / false` 区分用户在个人中心建的与平台建的 */
 const ownerOptions = computed<SelectOption[]>(() => [
-  { label: t('openplatform.oauth_apps.owner_platform'), value: 'false' },
-  { label: t('openplatform.oauth_apps.owner_personal'), value: 'true' },
+  {
+    label: t('openplatform.oauth_apps.owner_platform'),
+    value: 'false',
+  },
+  {
+    label: t('openplatform.oauth_apps.owner_personal'),
+    value: 'true',
+  },
 ])
 
 function formatNullable(value: unknown) {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 function formatList(values: readonly string[]) {
-  return values.length > 0 ? values.join(', ') : '-'
+  return values.length > 0
+    ? values.join(', ')
+    : '-'
 }
 
 function formatNullableDate(value?: null | string) {
-  return value ? formatDate(value) : '-'
+  return value
+    ? formatDate(value)
+    : '-'
 }
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：名称、Client ID、访问令牌有效期、创建时间） ──
 // 导出只取能按选项翻成文案的列：启用与授权确认是布尔值，导出器按字符串选项对不上
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('openplatform.oauth_apps.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('openplatform.oauth_apps.keyword_placeholder'), width: 250, order: 0 },
-  { key: 'appName', title: t('openplatform.oauth_apps.app_name'), dataType: 'string', sortable: true, exportable: true, minWidth: 160, order: 1 },
-  { key: 'clientId', title: t('openplatform.oauth_apps.client_id'), dataType: 'string', sortable: true, exportable: true, minWidth: 220, order: 2 },
-  { key: 'appType', title: t('openplatform.oauth_apps.app_type'), dataType: 'enum', searchable: true, searchMultiple: true, exportable: true, options: appTypeOptions.value, searchPlaceholder: t('openplatform.oauth_apps.app_type_placeholder'), minWidth: 110, order: 3, render: row => appTypeLabel(t, asRow(row).appType) },
-  { key: 'clientType', title: t('openplatform.oauth_apps.client_type'), dataType: 'enum', searchable: true, exportable: true, options: clientTypeOptions.value, searchPlaceholder: t('openplatform.oauth_apps.client_type_placeholder'), width: 110, order: 4, render: row => renderTag(clientTypeLabel(t, asRow(row).clientType), clientTypeTone(asRow(row).clientType)) },
-  { key: 'grantTypes', title: t('openplatform.oauth_apps.grant_types'), dataType: 'string', exportable: true, ellipsis: true, minWidth: 180, order: 5, render: row => formatList(asRow(row).grantTypes) },
-  { key: 'scopes', title: t('openplatform.oauth_apps.scopes'), dataType: 'string', exportable: true, ellipsis: true, minWidth: 160, order: 6, render: row => formatList(asRow(row).scopes) },
-  { key: 'accessTokenLifetime', title: t('openplatform.oauth_apps.access_token'), dataType: 'number', sortable: true, exportable: true, minWidth: 130, order: 7, render: row => formatSeconds(t, asRow(row).accessTokenLifetime) },
-  { key: 'skipConsent', title: t('openplatform.oauth_apps.skip_consent'), dataType: 'enum', searchable: true, options: consentOptions.value, searchPlaceholder: t('openplatform.oauth_apps.skip_consent_placeholder'), width: 110, order: 8, render: row => renderTag(asRow(row).skipConsent ? t('openplatform.oauth_apps.tag_skip') : t('openplatform.oauth_apps.tag_confirm'), asRow(row).skipConsent ? 'warning' : 'neutral') },
-  { key: 'ownerUserName', title: t('openplatform.oauth_apps.owner'), dataType: 'string', exportable: true, minWidth: 120, order: 9, render: row => ownerLabel(t, asRow(row)) },
-  { key: 'personal', title: t('openplatform.oauth_apps.owner'), dataType: 'enum', visible: false, searchable: true, options: ownerOptions.value, searchPlaceholder: t('openplatform.oauth_apps.owner_placeholder'), order: 10 },
-  { key: 'isEnabled', title: t('openplatform.oauth_apps.status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('openplatform.oauth_apps.status_placeholder'), width: 90, order: 11, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
-  { key: 'createdAt', title: t('openplatform.oauth_apps.created_time'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 12 },
+  {
+    key: 'keyword',
+    title: t('openplatform.oauth_apps.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('openplatform.oauth_apps.keyword_placeholder'),
+    width: 250,
+    order: 0,
+  },
+  {
+    key: 'appName',
+    title: t('openplatform.oauth_apps.app_name'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 160,
+    order: 1,
+  },
+  {
+    key: 'clientId',
+    title: t('openplatform.oauth_apps.client_id'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 220,
+    order: 2,
+  },
+  {
+    key: 'appType',
+    title: t('openplatform.oauth_apps.app_type'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    exportable: true,
+    options: appTypeOptions.value,
+    searchPlaceholder: t('openplatform.oauth_apps.app_type_placeholder'),
+    minWidth: 110,
+    order: 3,
+    render: row => appTypeLabel(t, asRow(row).appType),
+  },
+  {
+    key: 'clientType',
+    title: t('openplatform.oauth_apps.client_type'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: clientTypeOptions.value,
+    searchPlaceholder: t('openplatform.oauth_apps.client_type_placeholder'),
+    width: 110,
+    order: 4,
+    render: row => renderTag(clientTypeLabel(t, asRow(row).clientType), clientTypeTone(asRow(row).clientType)),
+  },
+  {
+    key: 'grantTypes',
+    title: t('openplatform.oauth_apps.grant_types'),
+    dataType: 'string',
+    exportable: true,
+    ellipsis: true,
+    minWidth: 180,
+    order: 5,
+    render: row => formatList(asRow(row).grantTypes),
+  },
+  {
+    key: 'scopes',
+    title: t('openplatform.oauth_apps.scopes'),
+    dataType: 'string',
+    exportable: true,
+    ellipsis: true,
+    minWidth: 160,
+    order: 6,
+    render: row => formatList(asRow(row).scopes),
+  },
+  {
+    key: 'accessTokenLifetime',
+    title: t('openplatform.oauth_apps.access_token'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    minWidth: 130,
+    order: 7,
+    render: row => formatSeconds(t, asRow(row).accessTokenLifetime),
+  },
+  {
+    key: 'skipConsent',
+    title: t('openplatform.oauth_apps.skip_consent'),
+    dataType: 'enum',
+    searchable: true,
+    options: consentOptions.value,
+    searchPlaceholder: t('openplatform.oauth_apps.skip_consent_placeholder'),
+    width: 110,
+    order: 8,
+    render: row => renderTag(asRow(row).skipConsent
+      ? t('openplatform.oauth_apps.tag_skip')
+      : t('openplatform.oauth_apps.tag_confirm'), asRow(row).skipConsent
+      ? 'warning'
+      : 'neutral'),
+  },
+  {
+    key: 'ownerUserName',
+    title: t('openplatform.oauth_apps.owner'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 120,
+    order: 9,
+    render: row => ownerLabel(t, asRow(row)),
+  },
+  {
+    key: 'personal',
+    title: t('openplatform.oauth_apps.owner'),
+    dataType: 'enum',
+    visible: false,
+    searchable: true,
+    options: ownerOptions.value,
+    searchPlaceholder: t('openplatform.oauth_apps.owner_placeholder'),
+    order: 10,
+  },
+  {
+    key: 'isEnabled',
+    title: t('openplatform.oauth_apps.status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('openplatform.oauth_apps.status_placeholder'),
+    width: 90,
+    order: 11,
+    render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'createdAt',
+    title: t('openplatform.oauth_apps.created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 12,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -105,19 +255,66 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('openplatform.oauth_apps.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'openplatform.oauth-apps.create' },
-    { key: 'view', title: t('openplatform.oauth_apps.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('openplatform.oauth_apps.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'openplatform.oauth-apps.update' },
-    { key: 'toggle', title: t('openplatform.oauth_apps.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).isEnabled, asRow(row).appName), permission: 'openplatform.oauth-apps.update' },
+    {
+      key: 'create',
+      title: t('openplatform.oauth_apps.action_create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'openplatform.oauth-apps.create',
+    },
+    {
+      key: 'view',
+      title: t('openplatform.oauth_apps.action_view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('openplatform.oauth_apps.action_edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'openplatform.oauth-apps.update',
+    },
+    {
+      key: 'toggle',
+      title: t('openplatform.oauth_apps.action_toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).isEnabled, asRow(row).appName),
+      permission: 'openplatform.oauth-apps.update',
+    },
     // 公开客户端没有密钥（后端拒绝重置），不给入口
-    { key: 'secret', title: t('openplatform.oauth_apps.action_secret'), scope: 'row', icon: 'lucide:key-square', tone: 'danger', confirm: true, confirmText: row => t('openplatform.oauth_apps.confirm_secret', { name: asRow(row).appName }), visible: row => asRow(row).clientType === 'Confidential', permission: 'openplatform.oauth-apps.update' },
-    { key: 'delete', title: t('openplatform.oauth_apps.action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).appName), permission: 'openplatform.oauth-apps.delete' },
+    {
+      key: 'secret',
+      title: t('openplatform.oauth_apps.action_secret'),
+      scope: 'row',
+      icon: 'lucide:key-square',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => t('openplatform.oauth_apps.confirm_secret', { name: asRow(row).appName }),
+      visible: row => asRow(row).clientType === 'Confidential',
+      permission: 'openplatform.oauth-apps.update',
+    },
+    {
+      key: 'delete',
+      title: t('openplatform.oauth_apps.action_delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).appName),
+      permission: 'openplatform.oauth-apps.delete',
+    },
   ],
 }))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       handleAdd()
@@ -159,7 +356,9 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const submitError = ref<null | string>(null)
 const appForm = reactive<OAuthAppForm>(emptyOAuthAppForm())
-const modalTitle = computed(() => (appForm.id ? t('openplatform.oauth_apps.modal_edit') : t('openplatform.oauth_apps.modal_add')))
+const modalTitle = computed(() => (appForm.id
+  ? t('openplatform.oauth_apps.modal_edit')
+  : t('openplatform.oauth_apps.modal_add')))
 
 async function handleView(row: OAuthAppRow) {
   detailVisible.value = true
@@ -268,7 +467,9 @@ async function handleToggleStatus(row: OAuthAppRow) {
   const enabled = !row.isEnabled
   try {
     await resource.updateStatus?.(row.id, enabled)
-    toast.success(enabled ? t('openplatform.oauth_apps.msg_app_enabled') : t('openplatform.oauth_apps.msg_app_disabled'))
+    toast.success(enabled
+      ? t('openplatform.oauth_apps.msg_app_enabled')
+      : t('openplatform.oauth_apps.msg_app_disabled'))
     reloadApp()
   }
   catch (error) {

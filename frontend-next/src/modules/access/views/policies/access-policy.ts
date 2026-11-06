@@ -61,7 +61,14 @@ export function newKey() {
 
 /** 空白条件 */
 export function emptyRow(): ConditionRowModel {
-  return { key: newKey(), attribute: '', familySuffix: '', operator: 'Equals', isNegated: false, value: '' }
+  return {
+    key: newKey(),
+    attribute: '',
+    familySuffix: '',
+    operator: 'Equals',
+    isNegated: false,
+    value: '',
+  }
 }
 
 /** 已保存的条件按组号转成编辑器的组（组内保持写入顺序） */
@@ -80,7 +87,12 @@ export function toGroups(conditions: readonly PolicyConditionLike[], catalog: re
     })
     groups.set(condition.groupNo, rows)
   }
-  return [...groups.entries()].sort(([left], [right]) => left - right).map(([, rows]) => ({ key: newKey(), rows }))
+  return [
+    ...groups.entries(),
+  ].sort(([left], [right]) => left - right).map(([, rows]) => ({
+    key: newKey(),
+    rows,
+  }))
 }
 
 /** 编辑器的组转回条件：空组去掉，组号按顺序重排；判空类运算符不带值 */
@@ -91,10 +103,14 @@ export function toConditions(groups: readonly ConditionGroupModel[], catalog: re
       const attribute = catalog.find(item => item.name === row.attribute)
       return {
         groupNo: index,
-        attributeName: attribute ? composeAttributeName(attribute, row.familySuffix) : row.attribute,
+        attributeName: attribute
+          ? composeAttributeName(attribute, row.familySuffix)
+          : row.attribute,
         operator: row.operator,
         isNegated: row.isNegated,
-        value: requiresValue(row.operator) ? row.value.trim() : null,
+        value: requiresValue(row.operator)
+          ? row.value.trim()
+          : null,
         description: null,
       }
     }))
@@ -124,7 +140,9 @@ export function phaseOf(groups: readonly ConditionGroupModel[], catalog: readonl
   if (!platform)
     return 'AfterAuthentication'
   const attributes = groups.flatMap(group => group.rows).map(row => catalog.find(item => item.name === row.attribute))
-  return attributes.every(attribute => attribute?.isBeforeAuthentication ?? true) ? 'BeforeAuthentication' : 'AfterAuthentication'
+  return attributes.every(attribute => attribute?.isBeforeAuthentication ?? true)
+    ? 'BeforeAuthentication'
+    : 'AfterAuthentication'
 }
 
 /** 条件里是否还留着占位的办公网段 */
@@ -153,11 +171,20 @@ export function actionTone(action: AccessPolicyAction): AccessPolicyTone {
 export function accessPolicyResource(): SchemaResource<AccessPolicyRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await policiesApi.list(toPageRequest(params, { multiples: ['action', 'status'] })),
+      await policiesApi.list(toPageRequest(params, {
+        multiples: ['action', 'status'],
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await policiesApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => policiesApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
+    remove: async id => throwOnFailed(await policiesApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
+    updateStatus: async (id, enabled) => policiesApi.setStatus({
+      id: String(id),
+      status: enabled ? 'Active' : 'Disabled',
+    }),
   }
 }
 
@@ -172,7 +199,9 @@ export function actionLabel(t: Translate, action: AccessPolicyAction): string {
 }
 
 export function statusLabel(t: Translate, status: AccessPolicyStatus): string {
-  return status === 'Disabled' ? t('access.policies.statuses.disabled') : t('access.policies.statuses.active')
+  return status === 'Disabled'
+    ? t('access.policies.statuses.disabled')
+    : t('access.policies.statuses.active')
 }
 
 export function phaseLabel(t: Translate, phase: AccessPolicyPhase): string {
@@ -196,12 +225,30 @@ export function incompleteMessage(t: Translate, incomplete: { reason: Incomplete
 /** 模板的名称与说明按界面语言显示；认不出的模板（后端新增）用后端给的原文 */
 export function templateText(t: Translate, template: Pick<AccessPolicyTemplate, 'code' | 'description' | 'name'>): { name: string, description: string } {
   switch (template.code) {
-    case 'preset.ip-blacklist': return { name: t('access.policies.templates.ip_blacklist.name'), description: t('access.policies.templates.ip_blacklist.description') }
-    case 'preset.admin-office-network': return { name: t('access.policies.templates.admin_office_network.name'), description: t('access.policies.templates.admin_office_network.description') }
-    case 'preset.sensitive-ops-network': return { name: t('access.policies.templates.sensitive_ops_network.name'), description: t('access.policies.templates.sensitive_ops_network.description') }
-    case 'preset.off-hours': return { name: t('access.policies.templates.off_hours.name'), description: t('access.policies.templates.off_hours.description') }
-    case 'preset.overseas': return { name: t('access.policies.templates.overseas.name'), description: t('access.policies.templates.overseas.description') }
-    case 'preset.block-scripts': return { name: t('access.policies.templates.block_scripts.name'), description: t('access.policies.templates.block_scripts.description') }
+    case 'preset.ip-blacklist': return {
+      name: t('access.policies.templates.ip_blacklist.name'),
+      description: t('access.policies.templates.ip_blacklist.description'),
+    }
+    case 'preset.admin-office-network': return {
+      name: t('access.policies.templates.admin_office_network.name'),
+      description: t('access.policies.templates.admin_office_network.description'),
+    }
+    case 'preset.sensitive-ops-network': return {
+      name: t('access.policies.templates.sensitive_ops_network.name'),
+      description: t('access.policies.templates.sensitive_ops_network.description'),
+    }
+    case 'preset.off-hours': return {
+      name: t('access.policies.templates.off_hours.name'),
+      description: t('access.policies.templates.off_hours.description'),
+    }
+    case 'preset.overseas': return {
+      name: t('access.policies.templates.overseas.name'),
+      description: t('access.policies.templates.overseas.description'),
+    }
+    case 'preset.block-scripts': return {
+      name: t('access.policies.templates.block_scripts.name'),
+      description: t('access.policies.templates.block_scripts.description'),
+    }
     default: return { name: template.name, description: template.description }
   }
 }

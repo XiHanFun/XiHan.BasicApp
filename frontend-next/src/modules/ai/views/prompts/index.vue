@@ -32,18 +32,59 @@ function reload() {
 const asRow = (row: object) => row as PromptRow
 
 function statusLabel(status: PromptStatus): string {
-  return status === 'Active' ? t('common.statuses.enabled') : t('common.statuses.disabled')
+  return status === 'Active'
+    ? t('common.statuses.enabled')
+    : t('common.statuses.disabled')
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('ai.prompts.col_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('ai.prompts.search_placeholder'), order: 0 },
-  { key: 'name', title: t('ai.prompts.col_name'), dataType: 'string', minWidth: 180, fixed: 'left', sortable: true, order: 1 },
-  { key: 'code', title: t('ai.prompts.col_code'), dataType: 'string', minWidth: 150, sortable: true, order: 2 },
-  { key: 'category', title: t('ai.prompts.col_category'), dataType: 'string', width: 120, sortable: true, order: 3 },
-  { key: 'version', title: t('ai.prompts.col_version'), dataType: 'string', width: 100, order: 4 },
+  {
+    key: 'keyword',
+    title: t('ai.prompts.col_name'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('ai.prompts.search_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('ai.prompts.col_name'),
+    dataType: 'string',
+    minWidth: 180,
+    fixed: 'left',
+    sortable: true,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('ai.prompts.col_code'),
+    dataType: 'string',
+    minWidth: 150,
+    sortable: true,
+    order: 2,
+  },
+  {
+    key: 'category',
+    title: t('ai.prompts.col_category'),
+    dataType: 'string',
+    width: 120,
+    sortable: true,
+    order: 3,
+  },
+  {
+    key: 'version',
+    title: t('ai.prompts.col_version'),
+    dataType: 'string',
+    width: 100,
+    order: 4,
+  },
   {
     key: 'status',
     title: t('ai.common.status'),
@@ -55,9 +96,18 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('ai.common.status'),
     width: 90,
     order: 5,
-    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'),
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
   },
-  { key: 'order', title: t('ai.common.order'), dataType: 'number', width: 80, sortable: true, order: 6 },
+  {
+    key: 'order',
+    title: t('ai.common.order'),
+    dataType: 'number',
+    width: 80,
+    sortable: true,
+    order: 6,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -69,15 +119,47 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('ai.prompts.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'ai.ai-prompts.create' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai.ai-prompts.update' },
-    { key: 'toggle', title: t('ai.common.toggle_status'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'ai.ai-prompts.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'ai.ai-prompts.delete' },
+    {
+      key: 'create',
+      title: t('ai.prompts.add'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'ai.ai-prompts.create',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'ai.ai-prompts.update',
+    },
+    {
+      key: 'toggle',
+      title: t('ai.common.toggle_status'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'ai.ai-prompts.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'ai.ai-prompts.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -108,7 +190,13 @@ async function handleEdit(row: PromptRow) {
 
 async function handleToggle(row: PromptRow) {
   try {
-    await aiPrompts.setStatus({ id: row.id, concurrencyStamp: row.concurrencyStamp, status: row.status === 'Active' ? 'Disabled' : 'Active' })
+    await aiPrompts.setStatus({
+      id: row.id,
+      concurrencyStamp: row.concurrencyStamp,
+      status: row.status === 'Active'
+        ? 'Disabled'
+        : 'Active',
+    })
     toast.success(t('ai.common.status_updated'))
     reload()
   }
@@ -119,7 +207,9 @@ async function handleToggle(row: PromptRow) {
 
 async function handleDelete(row: PromptRow) {
   try {
-    const result = await aiPrompts.delete({ ids: [row.id] })
+    const result = await aiPrompts.delete({
+      ids: [row.id],
+    })
     throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
@@ -129,7 +219,9 @@ async function handleDelete(row: PromptRow) {
   }
 }
 
-const modalTitle = computed(() => editor.isEdit.value ? t('ai.prompts.modal_edit_title') : t('ai.prompts.modal_add_title'))
+const modalTitle = computed(() => editor.isEdit.value
+  ? t('ai.prompts.modal_edit_title')
+  : t('ai.prompts.modal_add_title'))
 
 async function onSubmit() {
   if (await editor.submit()) {

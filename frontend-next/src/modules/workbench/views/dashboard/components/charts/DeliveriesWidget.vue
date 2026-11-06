@@ -13,7 +13,12 @@ import ChartWidget from './ChartWidget.vue'
 defineOptions({ name: 'DeliveriesWidget' })
 
 const DAYS = 30
-const STATUSES = ['succeeded', 'failed', 'pending', 'cancelled'] as const
+const STATUSES = [
+  'succeeded',
+  'failed',
+  'pending',
+  'cancelled',
+] as const
 
 const { t, locale } = useI18n()
 const { data, loading, error } = useWidgetData('notification.deliveries', DAYS)

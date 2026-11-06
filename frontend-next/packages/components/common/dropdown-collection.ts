@@ -29,10 +29,18 @@ export function toDropdownCollection(options: ReadonlyArray<AppDropdownOption>):
     }
     out.push({
       value: option.key,
-      label: typeof option.label === 'string' ? option.label : option.key,
-      ...(option.disabled ? { disabled: true } : {}),
-      ...(option.tone ? { tone: option.tone } : {}),
-      ...(pendingSeparator || option.divider ? { separatorBefore: true } : {}),
+      label: typeof option.label === 'string'
+        ? option.label
+        : option.key,
+      ...(option.disabled
+        ? { disabled: true }
+        : {}),
+      ...(option.tone
+        ? { tone: option.tone }
+        : {}),
+      ...(pendingSeparator || option.divider
+        ? { separatorBefore: true }
+        : {}),
     })
     pendingSeparator = false
   }

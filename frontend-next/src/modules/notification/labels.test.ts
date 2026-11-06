@@ -11,8 +11,12 @@ const locales = import.meta.glob<{ default: Messages }>('./locales/*.ts', { eage
 
 function flatten(value: Messages, prefix = ''): string[] {
   return Object.entries(value).flatMap(([key, child]) => {
-    const path = prefix ? `${prefix}.${key}` : key
-    return child && typeof child === 'object' ? flatten(child as Messages, path) : [path]
+    const path = prefix
+      ? `${prefix}.${key}`
+      : key
+    return child && typeof child === 'object'
+      ? flatten(child as Messages, path)
+      : [path]
   })
 }
 
@@ -52,7 +56,14 @@ describe('通知包的文案', () => {
     for (const locale of LOCALES) {
       const messages = locales[`./locales/${locale}.ts`]!.default
       for (const key of flatten(messages)) {
-        const text = i18n.global.t(key, { name: 'N', title: 'T', count: 1, n: 1, target: 'X', time: 'Z' }, { locale })
+        const text = i18n.global.t(key, {
+          name: 'N',
+          title: 'T',
+          count: 1,
+          n: 1,
+          target: 'X',
+          time: 'Z',
+        }, { locale })
         expect(text, `${locale} ${key}`).not.toBe(key)
         expect(text, `${locale} ${key}`).not.toContain('{\'')
       }

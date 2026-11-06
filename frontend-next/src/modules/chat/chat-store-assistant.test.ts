@@ -160,7 +160,9 @@ describe('助手入口的探测（后端关掉 AI、前端 AI 模块还在）', 
     registerChatAssistantProvider(fakeProvider({
       availableAssistants: () => {
         calls += 1
-        return calls === 1 ? Promise.reject(new ApiError(500, { code: 'KERNEL_UNEXPECTED_000', status: 500, detail: '出错了' })) : Promise.resolve([])
+        return calls === 1
+          ? Promise.reject(new ApiError(500, { code: 'KERNEL_UNEXPECTED_000', status: 500, detail: '出错了' }))
+          : Promise.resolve([])
       },
     }))
     const store = setup()
@@ -201,7 +203,9 @@ describe('未注册助手提供方时的降级', () => {
 
 describe('助手增量气泡', () => {
   it('发起回复即建立生成中的空气泡，replyId 与后续增量配对', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
 
     void store.requestAssistantReply('a')
@@ -211,7 +215,9 @@ describe('助手增量气泡', () => {
   })
 
   it('增量按到达顺序拼接成完整文本', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
     void store.requestAssistantReply('a')
     const replyId = store.assistantStreams.a?.replyId ?? ''
@@ -223,7 +229,9 @@ describe('助手增量气泡', () => {
   })
 
   it('replyId 不匹配的增量被丢弃，上一轮的迟到分片不会污染本轮气泡', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
     void store.requestAssistantReply('a')
     const replyId = store.assistantStreams.a?.replyId ?? ''
@@ -243,7 +251,9 @@ describe('助手增量气泡', () => {
   })
 
   it('完成推送成功时直接丢弃临时气泡，让正式落库消息接管，避免重影', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
     void store.requestAssistantReply('a')
     const replyId = store.assistantStreams.a?.replyId ?? ''
@@ -255,7 +265,9 @@ describe('助手增量气泡', () => {
   })
 
   it('完成推送带错误时保留气泡并转为错误态供用户看见原因', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
     void store.requestAssistantReply('a')
     const replyId = store.assistantStreams.a?.replyId ?? ''
@@ -267,7 +279,9 @@ describe('助手增量气泡', () => {
   })
 
   it('replyId 不匹配的完成推送不会误关掉当前这一轮气泡', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
     void store.requestAssistantReply('a')
 
@@ -278,7 +292,9 @@ describe('助手增量气泡', () => {
 
   it('后端的失败取本地化正文，不带错误码前缀', async () => {
     const problem = new ApiError(503, { code: 'CHAT_UNAVAILABLE_002', status: 503, detail: '助手回复生成失败' })
-    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.reject(problem) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => Promise.reject(problem),
+    }))
     const store = setup()
 
     await store.requestAssistantReply('a')
@@ -288,7 +304,9 @@ describe('助手增量气泡', () => {
   })
 
   it('提供方抛异常时取 message 作为错误文案', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.reject(new Error('请求超时')) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => Promise.reject(new Error('请求超时')),
+    }))
     const store = setup()
 
     await store.requestAssistantReply('a')
@@ -310,7 +328,9 @@ describe('助手增量气泡', () => {
   })
 
   it('手动关闭错误气泡后该会话不再有临时气泡', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => Promise.reject(new Error('失败')) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => Promise.reject(new Error('失败')),
+    }))
     const store = setup()
     await store.requestAssistantReply('a')
 
@@ -320,7 +340,9 @@ describe('助手增量气泡', () => {
   })
 
   it('activeAssistantStream 只跟随当前活跃会话，切走后取不到别的会话的气泡', async () => {
-    registerChatAssistantProvider(fakeProvider({ reply: () => new Promise(() => {}) }))
+    registerChatAssistantProvider(fakeProvider({
+      reply: () => new Promise(() => {}),
+    }))
     const store = setup()
     void store.requestAssistantReply('a')
 
@@ -364,7 +386,9 @@ describe('助手增量气泡', () => {
       },
     }))
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
       sendMessage: (input: { clientMessageId?: null | string }) => Promise.resolve(
         message({ messageId: '900', clientMessageId: input.clientMessageId }),
       ),
@@ -394,7 +418,9 @@ describe('发起会话', () => {
       },
       myConversations: () => {
         order.push('list')
-        return Promise.resolve([conversation({ conversationId: 'new-1' })])
+        return Promise.resolve([
+          conversation({ conversationId: 'new-1' }),
+        ])
       },
     })
 
@@ -408,7 +434,9 @@ describe('发起会话', () => {
   it('建群后进入新会话', async () => {
     const store = setup({
       createGroupConversation: () => Promise.resolve(opened),
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'new-1' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'new-1' }),
+      ]),
     })
 
     await store.startGroupConversation('项目组', ['u2', 'u3'])
@@ -419,7 +447,9 @@ describe('发起会话', () => {
   it('部门群打开后进入新会话', async () => {
     const store = setup({
       openDepartmentConversation: () => Promise.resolve({ ...opened, conversationType: 'Department' }),
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'new-1' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'new-1' }),
+      ]),
     })
 
     await store.startDepartmentConversation('dept-9')
@@ -495,10 +525,16 @@ describe('会话变更推送', () => {
 
 describe('$reset 清理', () => {
   it('清空全部会话与消息态', async () => {
-    const store = setup({ myConversations: () => Promise.resolve([conversation({ conversationId: 'a', unreadCount: 3 })]) })
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', unreadCount: 3 }),
+      ]),
+    })
     await store.loadConversations()
     await store.openConversation('a')
-    store.messages.a = [message({ messageId: '1' })]
+    store.messages.a = [
+      message({ messageId: '1' }),
+    ]
     store.mentionsPending.a = true
     store.highlightMessageId = '1'
     store.detachedConversations.a = true
@@ -535,7 +571,12 @@ describe('$reset 清理', () => {
   it('$reset 取消高亮定时器后，旧定时器不会把新一轮高亮清掉', async () => {
     vi.useFakeTimers()
     const store = setup({
-      messageHistory: () => Promise.resolve({ items: [message({ messageId: '100' })], hasMore: false }),
+      messageHistory: () => Promise.resolve({
+        items: [
+          message({ messageId: '100' }),
+        ],
+        hasMore: false,
+      }),
     })
     await store.jumpToMessage('a', '100')
 

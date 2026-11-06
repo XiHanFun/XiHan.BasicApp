@@ -101,10 +101,14 @@ const conversationTypeLabel = computed(() => {
 })
 
 const historyLoading = computed(() =>
-  conversationId.value ? chatStore.historyLoading[conversationId.value] ?? false : false,
+  conversationId.value
+    ? chatStore.historyLoading[conversationId.value] ?? false
+    : false,
 )
 const hasMoreOlder = computed(() =>
-  conversationId.value ? chatStore.hasMoreOlder[conversationId.value] ?? false : false,
+  conversationId.value
+    ? chatStore.hasMoreOlder[conversationId.value] ?? false
+    : false,
 )
 
 function canRecall(item: ChatLocalMessage): boolean {
@@ -145,7 +149,9 @@ const canPin = computed(() => {
 })
 
 const pinnedList = computed(() =>
-  conversationId.value ? chatStore.pinnedMessages[conversationId.value] ?? [] : [])
+  conversationId.value
+    ? chatStore.pinnedMessages[conversationId.value] ?? []
+    : [])
 
 /** 公告首行（横条内单行预览，全文在弹层） */
 const announcementFirstLine = computed(() =>
@@ -219,20 +225,50 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
   }
   const items: ChatContextMenuItem[] = []
   if (target.messageType === 'Text' && target.content) {
-    items.push({ key: 'copy', label: t('chat.thread.copy'), icon: 'lucide:copy' })
+    items.push({
+      key: 'copy',
+      label: t('chat.thread.copy'),
+      icon: 'lucide:copy',
+    })
   }
-  items.push({ key: 'reply', label: t('chat.thread.reply'), icon: 'lucide:reply' })
-  items.push({ key: 'forward', label: t('chat.thread.forward'), icon: 'lucide:corner-up-right' })
+  items.push({
+    key: 'reply',
+    label: t('chat.thread.reply'),
+    icon: 'lucide:reply',
+  })
+  items.push({
+    key: 'forward',
+    label: t('chat.thread.forward'),
+    icon: 'lucide:corner-up-right',
+  })
   if (canEdit(target)) {
-    items.push({ key: 'edit', label: t('chat.thread.edit'), icon: 'lucide:pencil' })
+    items.push({
+      key: 'edit',
+      label: t('chat.thread.edit'),
+      icon: 'lucide:pencil',
+    })
   }
   if (canPin.value) {
     items.push(target.isPinned
-      ? { key: 'unpin', label: t('chat.thread.unpin'), icon: 'lucide:pin-off' }
-      : { key: 'pin', label: t('chat.thread.pin'), icon: 'lucide:pin' })
+      ? {
+          key: 'unpin',
+          label: t('chat.thread.unpin'),
+          icon: 'lucide:pin-off',
+        }
+      : {
+          key: 'pin',
+          label: t('chat.thread.pin'),
+          icon: 'lucide:pin',
+        })
   }
   if (canRecall(target)) {
-    items.push({ key: 'recall', label: t('chat.thread.recall'), icon: 'lucide:undo-2', danger: true, divided: true })
+    items.push({
+      key: 'recall',
+      label: t('chat.thread.recall'),
+      icon: 'lucide:undo-2',
+      danger: true,
+      divided: true,
+    })
   }
   return items
 })
@@ -298,10 +334,18 @@ const memberCtxItems = computed<ChatContextMenuItem[]>(() => {
     return []
   }
   const items: ChatContextMenuItem[] = [
-    { key: 'dm', label: t('chat.member_menu.send_message'), icon: 'lucide:message-circle' },
+    {
+      key: 'dm',
+      label: t('chat.member_menu.send_message'),
+      icon: 'lucide:message-circle',
+    },
   ]
   if (isGroupLike.value) {
-    items.push({ key: 'mention', label: t('chat.member_menu.mention'), icon: 'lucide:at-sign' })
+    items.push({
+      key: 'mention',
+      label: t('chat.member_menu.mention'),
+      icon: 'lucide:at-sign',
+    })
   }
   const iAmOwner = conv.memberRole === 'Owner'
   const iCanManage = (iAmOwner || conv.memberRole === 'Admin')
@@ -310,16 +354,40 @@ const memberCtxItems = computed<ChatContextMenuItem[]>(() => {
   if (conv.conversationType === 'Group' && iAmOwner
     && userStore.hasPermission(CHAT_PERMISSIONS.manage) && role && role !== 'Owner') {
     items.push(role === 'Admin'
-      ? { key: 'unset-admin', label: t('chat.member_menu.unset_admin'), icon: 'lucide:shield-off', divided: true }
-      : { key: 'set-admin', label: t('chat.member_menu.set_admin'), icon: 'lucide:shield', divided: true })
+      ? {
+          key: 'unset-admin',
+          label: t('chat.member_menu.unset_admin'),
+          icon: 'lucide:shield-off',
+          divided: true,
+        }
+      : {
+          key: 'set-admin',
+          label: t('chat.member_menu.set_admin'),
+          icon: 'lucide:shield',
+          divided: true,
+        })
   }
   if (isGroupLike.value && iCanManage && role === 'Member') {
     items.push(memberTargetSilenced.value
-      ? { key: 'unsilence', label: t('chat.members.unsilence'), icon: 'lucide:mic' }
-      : { key: 'silence', label: t('chat.members.silence'), icon: 'lucide:mic-off' })
+      ? {
+          key: 'unsilence',
+          label: t('chat.members.unsilence'),
+          icon: 'lucide:mic',
+        }
+      : {
+          key: 'silence',
+          label: t('chat.members.silence'),
+          icon: 'lucide:mic-off',
+        })
   }
   if (conv.conversationType === 'Group' && iCanManage && role && role !== 'Owner') {
-    items.push({ key: 'remove', label: t('chat.member_menu.remove'), icon: 'lucide:user-minus', danger: true, divided: true })
+    items.push({
+      key: 'remove',
+      label: t('chat.member_menu.remove'),
+      icon: 'lucide:user-minus',
+      danger: true,
+      divided: true,
+    })
   }
   return items
 })
@@ -417,7 +485,9 @@ async function handleCtxSelect(key: string | number) {
 // ===== 会话内搜索 =====
 
 const isDetached = computed(() =>
-  conversationId.value ? Boolean(chatStore.detachedConversations[conversationId.value]) : false)
+  conversationId.value
+    ? Boolean(chatStore.detachedConversations[conversationId.value])
+    : false)
 
 async function runSearch(loadMore = false) {
   const id = conversationId.value
@@ -430,7 +500,9 @@ async function runSearch(loadMore = false) {
   const seq = ++searchSeq
   searchLoading.value = true
   try {
-    const before = loadMore ? searchResults.value.at(-1)?.messageId : null
+    const before = loadMore
+      ? searchResults.value.at(-1)?.messageId
+      : null
     const result = await getChatApi().searchMessages({
       conversationId: id,
       keyword,
@@ -440,7 +512,12 @@ async function runSearch(loadMore = false) {
     if (seq !== searchSeq) {
       return
     }
-    searchResults.value = loadMore ? [...searchResults.value, ...result.items] : result.items
+    searchResults.value = loadMore
+      ? [
+          ...searchResults.value,
+          ...result.items,
+        ]
+      : result.items
     searchHasMore.value = result.hasMore
   }
   catch (error) {

@@ -5,5 +5,7 @@ import type { Tone } from '@xihan-ui/core'
  * 其余与普通条目同档——菜单里一片彩字就分不出哪条危险了
  */
 export function actionMenuTone(tone: Tone | undefined): Tone | undefined {
-  return tone === 'danger' || tone === 'warning' ? tone : undefined
+  return tone === 'danger' || tone === 'warning'
+    ? tone
+    : undefined
 }

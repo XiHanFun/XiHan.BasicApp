@@ -52,11 +52,27 @@ export function useUserDepartments() {
 
   async function loadPickers(pickers: DepartmentPickers) {
     const [tree, positions] = await Promise.all([
-      pickers.departments ? departmentsApi.tree({}) : Promise.resolve(null),
-      pickers.positions ? positionsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order' }] }) : Promise.resolve(null),
+      pickers.departments
+        ? departmentsApi.tree({})
+        : Promise.resolve(null),
+      pickers.positions
+        ? positionsApi.list({
+            page: { index: 1, size: 100 },
+            filters: [
+              { field: 'status', operator: 'eq', value: 'Active' },
+            ],
+            sorts: [
+              { field: 'order' },
+            ],
+          })
+        : Promise.resolve(null),
     ])
-    departmentOptions.value = tree ? flattenDepartments(tree.items) : []
-    positionOptions.value = positions ? positions.items.map(position => ({ label: position.name, value: position.id })) : []
+    departmentOptions.value = tree
+      ? flattenDepartments(tree.items)
+      : []
+    positionOptions.value = positions
+      ? positions.items.map(position => ({ label: position.name, value: position.id }))
+      : []
   }
 
   /** 打开抽屉并装载归属与候选；取数失败时抛出，由页面提示 */
@@ -69,7 +85,10 @@ export function useUserDepartments() {
     open.value = true
     loading.value = true
     try {
-      const [rows] = await Promise.all([loadMemberships(row.id), loadPickers(pickers)])
+      const [rows] = await Promise.all([
+        loadMemberships(row.id),
+        loadPickers(pickers),
+      ])
       memberships.value = rows
     }
     finally {
@@ -110,7 +129,9 @@ export function useUserDepartments() {
       return
     working.value = true
     try {
-      const result = await membershipsApi.delete({ ids: [membershipId] })
+      const result = await membershipsApi.delete({
+        ids: [membershipId],
+      })
       memberships.value = await loadMemberships(current.id)
       throwOnFailed(result)
     }
@@ -119,5 +140,18 @@ export function useUserDepartments() {
     }
   }
 
-  return { open, user, loading, working, memberships, departmentOptions, positionOptions, form, fieldError, start, add, remove }
+  return {
+    open,
+    user,
+    loading,
+    working,
+    memberships,
+    departmentOptions,
+    positionOptions,
+    form,
+    fieldError,
+    start,
+    add,
+    remove,
+  }
 }

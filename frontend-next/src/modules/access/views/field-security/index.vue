@@ -51,28 +51,38 @@ function targetKindLabel(kind: FieldTargetKind): string {
 }
 
 function statusLabel(status: FieldRuleStatus): string {
-  return status === 'Disabled' ? t('access.field_security.statuses.disabled') : t('access.field_security.statuses.active')
+  return status === 'Disabled'
+    ? t('access.field_security.statuses.disabled')
+    : t('access.field_security.statuses.active')
 }
 
 /** 实体与字段的显示名是各包登记的界面文案键；文案没装（模块关闭）时显示原码 */
 function titleOf(key: string, fallback: string): string {
-  return te(key) ? t(key) : fallback
+  return te(key)
+    ? t(key)
+    : fallback
 }
 
 function entityTitle(code: string): string | null {
   const entity = catalog.find(code)
-  return entity ? titleOf(entity.titleKey, entity.code) : null
+  return entity
+    ? titleOf(entity.titleKey, entity.code)
+    : null
 }
 
 /** 字段显示名：登记的键、同页的同名键与通用字段词表依次找，都没有即字段名 */
 function fieldLabel(field: { titleKey: string, name: string }): string {
   const key = fieldTitleKey(field.titleKey, field.name, messageKeyList.value)
-  return key ? t(key) : field.name
+  return key
+    ? t(key)
+    : field.name
 }
 
 function fieldTitle(code: string, name: string): string | null {
   const field = catalog.find(code)?.fields.find(item => item.name === name)
-  return field ? fieldLabel(field) : null
+  return field
+    ? fieldLabel(field)
+    : null
 }
 
 /** 确认框里的规则名：实体 · 字段 */
@@ -93,17 +103,41 @@ function strategySummary(row: FieldRuleRow): string {
 function renderCatalogName(title: string | null, code: string) {
   return title
     ? h('span', { title: code }, title)
-    : h('span', { class: 'fls-invalid' }, [code, ' ', h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('access.field_security.invalid')))])
+    : h('span', { class: 'fls-invalid' }, [
+        code,
+        ' ',
+        h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('access.field_security.invalid'))),
+      ])
 }
 
-const entityOptions = computed<SelectOption[]>(() => catalog.entities.value.map(entity => ({ label: titleOf(entity.titleKey, entity.code), value: entity.code })))
-const targetKindOptions = computed<SelectOption[]>(() => FIELD_TARGET_KINDS.map(kind => ({ label: targetKindLabel(kind), value: kind })))
-const strategyOptions = computed<SelectOption[]>(() => FIELD_MASK_STRATEGIES.map(strategy => ({ label: strategyLabel(strategy), value: strategy })))
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const entityOptions = computed<SelectOption[]>(() => catalog.entities.value.map(entity => ({
+  label: titleOf(entity.titleKey, entity.code),
+  value: entity.code,
+})))
+const targetKindOptions = computed<SelectOption[]>(() => FIELD_TARGET_KINDS.map(kind => ({
+  label: targetKindLabel(kind),
+  value: kind,
+})))
+const strategyOptions = computed<SelectOption[]>(() => FIELD_MASK_STRATEGIES.map(strategy => ({
+  label: strategyLabel(strategy),
+  value: strategy,
+})))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 /** 表单里只列当前字段能用的读取方式 */
 const formStrategyOptions = computed(() => strategyOptions.value.map(option => ({ ...option, disabled: !editor.strategyAllowed(option.value as FieldMaskStrategy) })))
-const comboEntityOptions = computed(() => catalog.entities.value.map(entity => ({ value: entity.code, label: titleOf(entity.titleKey, entity.code), description: entity.code })))
-const comboFieldOptions = computed(() => (editor.currentEntity.value?.fields ?? []).map(field => ({ value: field.name, label: fieldLabel(field), description: field.name })))
+const comboEntityOptions = computed(() => catalog.entities.value.map(entity => ({
+  value: entity.code,
+  label: titleOf(entity.titleKey, entity.code),
+  description: entity.code,
+})))
+const comboFieldOptions = computed(() => (editor.currentEntity.value?.fields ?? []).map(field => ({
+  value: field.name,
+  label: fieldLabel(field),
+  description: field.name,
+})))
 
 const targetPlaceholder = computed(() => {
   switch (editor.form.targetKind) {
@@ -117,16 +151,113 @@ const targetPlaceholder = computed(() => {
 const asRow = (row: object) => row as FieldRuleRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.field_security.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.field_security.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'entity', title: t('access.field_security.fields.entity'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: entityOptions.value, searchPlaceholder: t('access.field_security.entity_placeholder'), minWidth: 150, order: 1, render: row => renderCatalogName(entityTitle(asRow(row).entity), asRow(row).entity) },
-  { key: 'field', title: t('access.field_security.fields.field'), dataType: 'string', sortable: true, minWidth: 150, order: 2, render: row => renderCatalogName(fieldTitle(asRow(row).entity, asRow(row).field), asRow(row).field) },
-  { key: 'targetKind', title: t('access.field_security.fields.target_kind'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: targetKindOptions.value, searchPlaceholder: t('access.field_security.target_kind_placeholder'), width: 110, order: 3, render: row => targetKindLabel(asRow(row).targetKind) },
-  { key: 'targetName', title: t('access.field_security.fields.target'), dataType: 'string', minWidth: 160, order: 4, render: row => asRow(row).targetName ?? asRow(row).targetId },
-  { key: 'strategy', title: t('access.field_security.fields.strategy'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: strategyOptions.value, searchPlaceholder: t('access.field_security.strategy_placeholder'), minWidth: 160, order: 5, render: row => strategySummary(asRow(row)) },
-  { key: 'isEditable', title: t('access.field_security.fields.write_mode'), dataType: 'boolean', sortable: true, width: 90, order: 6, render: row => asRow(row).isEditable ? renderTag(t('access.field_security.write_only'), 'info') : renderTag(t('access.field_security.read_only'), 'neutral') },
-  { key: 'status', title: t('access.field_security.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: statusOptions.value, searchPlaceholder: t('access.field_security.status_placeholder'), width: 90, order: 7, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger') },
-  { key: 'remark', title: t('access.field_security.fields.remark'), dataType: 'text', visible: false, order: 7.5 },
-  { key: 'createdAt', title: t('access.field_security.fields.created_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 8 },
+  {
+    key: 'keyword',
+    title: t('access.field_security.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.field_security.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
+  {
+    key: 'entity',
+    title: t('access.field_security.fields.entity'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: entityOptions.value,
+    searchPlaceholder: t('access.field_security.entity_placeholder'),
+    minWidth: 150,
+    order: 1,
+    render: row => renderCatalogName(entityTitle(asRow(row).entity), asRow(row).entity),
+  },
+  {
+    key: 'field',
+    title: t('access.field_security.fields.field'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 150,
+    order: 2,
+    render: row => renderCatalogName(fieldTitle(asRow(row).entity, asRow(row).field), asRow(row).field),
+  },
+  {
+    key: 'targetKind',
+    title: t('access.field_security.fields.target_kind'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: targetKindOptions.value,
+    searchPlaceholder: t('access.field_security.target_kind_placeholder'),
+    width: 110,
+    order: 3,
+    render: row => targetKindLabel(asRow(row).targetKind),
+  },
+  {
+    key: 'targetName',
+    title: t('access.field_security.fields.target'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 4,
+    render: row => asRow(row).targetName ?? asRow(row).targetId,
+  },
+  {
+    key: 'strategy',
+    title: t('access.field_security.fields.strategy'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: strategyOptions.value,
+    searchPlaceholder: t('access.field_security.strategy_placeholder'),
+    minWidth: 160,
+    order: 5,
+    render: row => strategySummary(asRow(row)),
+  },
+  {
+    key: 'isEditable',
+    title: t('access.field_security.fields.write_mode'),
+    dataType: 'boolean',
+    sortable: true,
+    width: 90,
+    order: 6,
+    render: row => asRow(row).isEditable
+      ? renderTag(t('access.field_security.write_only'), 'info')
+      : renderTag(t('access.field_security.read_only'), 'neutral'),
+  },
+  {
+    key: 'status',
+    title: t('access.field_security.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('access.field_security.status_placeholder'),
+    width: 90,
+    order: 7,
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'remark',
+    title: t('access.field_security.fields.remark'),
+    dataType: 'text',
+    visible: false,
+    order: 7.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('access.field_security.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 8,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -140,15 +271,47 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.field_security.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.field-security.create' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.field-security.update' },
-    { key: 'toggle', title: t('access.field_security.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', ruleName(asRow(row))), permission: 'access.field-security.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, ruleName(asRow(row))), permission: 'access.field-security.delete' },
+    {
+      key: 'create',
+      title: t('access.field_security.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.field-security.create',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'access.field-security.update',
+    },
+    {
+      key: 'toggle',
+      title: t('access.field_security.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', ruleName(asRow(row))),
+      permission: 'access.field-security.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, ruleName(asRow(row))),
+      permission: 'access.field-security.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate().catch((error: unknown) => toast.danger((error as Error).message || t('access.field_security.msg_load_target_failed')))
@@ -229,7 +392,9 @@ async function toggleStatus(row: FieldRuleRow) {
   }
 }
 
-const modalTitle = computed(() => (editor.isEdit.value ? t('access.field_security.edit_title') : t('access.field_security.create_title')))
+const modalTitle = computed(() => (editor.isEdit.value
+  ? t('access.field_security.edit_title')
+  : t('access.field_security.create_title')))
 const fieldHint = computed(() => {
   const field = editor.currentField.value
   if (field && !field.isText)

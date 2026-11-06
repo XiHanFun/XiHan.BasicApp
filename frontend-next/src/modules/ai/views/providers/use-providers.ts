@@ -10,10 +10,22 @@ export type ProviderStatus = ProviderRow['status']
 export type ProviderTestResult = ResponseOf<'ai-providers.test'>
 
 /** 厂商建议项的值（照 4.x：只用于分组展示，都走 OpenAI 兼容协议，可自填） */
-export const VENDOR_VALUES = ['OpenAI', 'DeepSeek', 'Azure', 'Moonshot', 'SelfHosted', 'Custom'] as const
+export const VENDOR_VALUES = [
+  'OpenAI',
+  'DeepSeek',
+  'Azure',
+  'Moonshot',
+  'SelfHosted',
+  'Custom',
+] as const
 
 /** 品牌厂商的显示名；自建与自定义按语言取文案 */
-const VENDOR_BRAND_LABELS: Record<string, string> = { OpenAI: 'OpenAI', DeepSeek: 'DeepSeek', Azure: 'Azure OpenAI', Moonshot: 'Moonshot' }
+const VENDOR_BRAND_LABELS: Record<string, string> = {
+  OpenAI: 'OpenAI',
+  DeepSeek: 'DeepSeek',
+  Azure: 'Azure OpenAI',
+  Moonshot: 'Moonshot',
+}
 
 /** 这个厂商要不要写端点：只有 OpenAI 能留空（校验在后端，这里只负责标必填） */
 export function endpointRequired(vendor: string): boolean {
@@ -25,7 +37,9 @@ export function endpointRequired(vendor: string): boolean {
 export function vendorOptions(t: (key: string) => string): { label: string, value: string }[] {
   return VENDOR_VALUES.map(value => ({
     value,
-    label: VENDOR_BRAND_LABELS[value] ?? t(value === 'SelfHosted' ? 'ai.providers.vendor_self_hosted' : 'ai.providers.vendor_custom'),
+    label: VENDOR_BRAND_LABELS[value] ?? t(value === 'SelfHosted'
+      ? 'ai.providers.vendor_self_hosted'
+      : 'ai.providers.vendor_custom'),
   }))
 }
 
@@ -48,11 +62,28 @@ export interface ProviderForm {
 }
 
 export function emptyProviderForm(): ProviderForm {
-  return { code: '', name: '', vendor: 'OpenAI', chatModel: '', embeddingModel: '', endpoint: '', apiKey: '', maxOutputTokens: null, temperature: null, timeoutSeconds: null, isDefault: false, order: 100, status: 'Active', remark: '' }
+  return {
+    code: '',
+    name: '',
+    vendor: 'OpenAI',
+    chatModel: '',
+    embeddingModel: '',
+    endpoint: '',
+    apiKey: '',
+    maxOutputTokens: null,
+    temperature: null,
+    timeoutSeconds: null,
+    isDefault: false,
+    order: 100,
+    status: 'Active',
+    remark: '',
+  }
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /**
@@ -62,10 +93,16 @@ function blankToNull(value: string): null | string {
 export function providersResource(): SchemaResource<ProviderRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await aiProviders.list(toPageRequest(params, { multiples: ['status'] })),
+      await aiProviders.list(toPageRequest(params, {
+        multiples: ['status'],
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await aiProviders.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await aiProviders.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -81,10 +118,23 @@ export interface ProbeLine {
 /** 测试连接的结果拆成逐行（照 4.x 的通知正文：会话一行、嵌入一行，没配嵌入模型时嵌入一行说明不能用于知识库） */
 export function probeLines(result: ProviderTestResult): { lines: ProbeLine[], embeddingAbsent: boolean } {
   const lines: ProbeLine[] = [
-    { kind: 'chat', success: result.chat.success, elapsedMilliseconds: result.chat.elapsedMilliseconds, message: result.chat.message ?? null, dimensions: null },
+    {
+      kind: 'chat',
+      success: result.chat.success,
+      elapsedMilliseconds: result.chat.elapsedMilliseconds,
+      message: result.chat.message ?? null,
+      dimensions: null,
+    },
   ]
-  if (result.embedding)
-    lines.push({ kind: 'embedding', success: result.embedding.success, elapsedMilliseconds: result.embedding.elapsedMilliseconds, message: result.embedding.message ?? null, dimensions: result.embedding.dimensions ?? null })
+  if (result.embedding) {
+    lines.push({
+      kind: 'embedding',
+      success: result.embedding.success,
+      elapsedMilliseconds: result.embedding.elapsedMilliseconds,
+      message: result.embedding.message ?? null,
+      dimensions: result.embedding.dimensions ?? null,
+    })
+  }
   return { lines, embeddingAbsent: !result.embedding }
 }
 
@@ -158,10 +208,16 @@ export function useProviderEditor() {
         order: form.order,
         remark: blankToNull(form.remark),
       }
-      if (current)
+      if (current) {
         await aiProviders.update({ id: current.id, concurrencyStamp: current.concurrencyStamp, ...common })
-      else
-        await aiProviders.create({ ...common, code: form.code.trim(), status: form.status })
+      }
+      else {
+        await aiProviders.create({
+          ...common,
+          code: form.code.trim(),
+          status: form.status,
+        })
+      }
       open.value = false
       return true
     }
@@ -181,5 +237,16 @@ export function useProviderEditor() {
     }
   }
 
-  return { open, editing, isEdit, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    editing,
+    isEdit,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }

@@ -47,31 +47,117 @@ function reload() {
 }
 
 const asRow = (row: object) => row as TemplateRow
-const channelOptions = computed<SelectOption[]>(() => CHANNELS.map(channel => ({ label: templateChannelLabel(t, channel), value: channel })))
+const channelOptions = computed<SelectOption[]>(() => CHANNELS.map(channel => ({
+  label: templateChannelLabel(t, channel),
+  value: channel,
+})))
 const statusOptions = computed<SelectOption[]>(() => enabledOptions(t))
 
 function yesNo(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 function ownerLabel(row: TemplateRow): string {
-  return row.isPlatform ? t('notification.templates.owner_platform') : t('notification.templates.owner_tenant')
+  return row.isPlatform
+    ? t('notification.templates.owner_platform')
+    : t('notification.templates.owner_tenant')
 }
 
 const isOwn = (row: object) => isOwnTemplate(asRow(row), isPlatformCaller())
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：编码、排序） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.templates.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.templates.search_keyword_placeholder'), order: 0 },
-  { key: 'code', title: t('notification.templates.col_code'), dataType: 'string', sortable: true, minWidth: 200, order: 10 },
-  { key: 'channel', title: t('notification.templates.col_channel'), dataType: 'enum', searchable: true, searchMultiple: true, options: channelOptions.value, searchPlaceholder: t('notification.templates.search_channel_placeholder'), width: 100, order: 11, render: row => templateChannelLabel(t, asRow(row).channel) },
-  { key: 'name', title: t('notification.templates.col_name'), dataType: 'string', minWidth: 140, order: 12 },
-  { key: 'subject', title: t('notification.templates.col_subject'), dataType: 'string', minWidth: 200, order: 13 },
-  { key: 'isPlatform', title: t('notification.templates.col_owner'), dataType: 'enum', width: 90, order: 14, render: row => renderTag(ownerLabel(asRow(row)), asRow(row).isPlatform ? 'info' : 'neutral') },
-  { key: 'isHtml', title: t('notification.templates.col_is_html'), dataType: 'enum', width: 80, order: 15, render: row => yesNo(asRow(row).isHtml) },
-  { key: 'description', title: t('notification.templates.col_description'), dataType: 'string', minWidth: 220, order: 16 },
-  { key: 'isEnabled', title: t('notification.templates.col_status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('notification.templates.search_status_placeholder'), width: 90, order: 17, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
-  { key: 'order', title: t('notification.templates.col_order'), dataType: 'number', sortable: true, width: 80, order: 18 },
+  {
+    key: 'keyword',
+    title: t('notification.templates.col_keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.templates.search_keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('notification.templates.col_code'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 200,
+    order: 10,
+  },
+  {
+    key: 'channel',
+    title: t('notification.templates.col_channel'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: channelOptions.value,
+    searchPlaceholder: t('notification.templates.search_channel_placeholder'),
+    width: 100,
+    order: 11,
+    render: row => templateChannelLabel(t, asRow(row).channel),
+  },
+  {
+    key: 'name',
+    title: t('notification.templates.col_name'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 12,
+  },
+  {
+    key: 'subject',
+    title: t('notification.templates.col_subject'),
+    dataType: 'string',
+    minWidth: 200,
+    order: 13,
+  },
+  {
+    key: 'isPlatform',
+    title: t('notification.templates.col_owner'),
+    dataType: 'enum',
+    width: 90,
+    order: 14,
+    render: row => renderTag(ownerLabel(asRow(row)), asRow(row).isPlatform
+      ? 'info'
+      : 'neutral'),
+  },
+  {
+    key: 'isHtml',
+    title: t('notification.templates.col_is_html'),
+    dataType: 'enum',
+    width: 80,
+    order: 15,
+    render: row => yesNo(asRow(row).isHtml),
+  },
+  {
+    key: 'description',
+    title: t('notification.templates.col_description'),
+    dataType: 'string',
+    minWidth: 220,
+    order: 16,
+  },
+  {
+    key: 'isEnabled',
+    title: t('notification.templates.col_status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.templates.search_status_placeholder'),
+    width: 90,
+    order: 17,
+    render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'order',
+    title: t('notification.templates.col_order'),
+    dataType: 'number',
+    sortable: true,
+    width: 80,
+    order: 18,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -83,17 +169,64 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('notification.templates.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.message-templates.create' },
-    { key: 'view', title: t('notification.templates.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('notification.templates.action_edit'), scope: 'row', icon: 'lucide:pen', visible: isOwn, permission: 'notification.message-templates.update' },
-    { key: 'override', title: t('notification.templates.action_override'), scope: 'row', icon: 'lucide:copy-plus', visible: row => canOverrideTemplate(asRow(row), isPlatformCaller()), permission: 'notification.message-templates.create' },
-    { key: 'toggle', title: t('notification.templates.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).isEnabled, asRow(row).name), visible: isOwn, permission: 'notification.message-templates.update' },
-    { key: 'delete', title: t('notification.templates.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: t('notification.templates.confirm_delete'), visible: isOwn, permission: 'notification.message-templates.delete' },
+    {
+      key: 'create',
+      title: t('notification.templates.action_create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'notification.message-templates.create',
+    },
+    {
+      key: 'view',
+      title: t('notification.templates.action_view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('notification.templates.action_edit'),
+      scope: 'row',
+      icon: 'lucide:pen',
+      visible: isOwn,
+      permission: 'notification.message-templates.update',
+    },
+    {
+      key: 'override',
+      title: t('notification.templates.action_override'),
+      scope: 'row',
+      icon: 'lucide:copy-plus',
+      visible: row => canOverrideTemplate(asRow(row), isPlatformCaller()),
+      permission: 'notification.message-templates.create',
+    },
+    {
+      key: 'toggle',
+      title: t('notification.templates.action_toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).isEnabled, asRow(row).name),
+      visible: isOwn,
+      permission: 'notification.message-templates.update',
+    },
+    {
+      key: 'delete',
+      title: t('notification.templates.action_delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: t('notification.templates.confirm_delete'),
+      visible: isOwn,
+      permission: 'notification.message-templates.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -145,12 +278,16 @@ const overriding = ref(false)
 const modalTitle = computed(() => {
   if (form.id)
     return t('notification.templates.edit_title')
-  return overriding.value ? t('notification.templates.override_title') : t('notification.templates.add_title')
+  return overriding.value
+    ? t('notification.templates.override_title')
+    : t('notification.templates.add_title')
 })
 const emailChannel = computed(() => isEmailChannel(form.channel))
 const subjectChannel = computed(() => hasSubject(form.channel))
 /** 站内通知的主题即通知标题 */
-const subjectLabel = computed(() => form.channel === 'InApp' ? t('notification.templates.form_notice_title') : t('notification.templates.form_subject'))
+const subjectLabel = computed(() => form.channel === 'InApp'
+  ? t('notification.templates.form_notice_title')
+  : t('notification.templates.form_subject'))
 const codeLocked = computed(() => Boolean(form.id) || overriding.value)
 
 function openCreate() {

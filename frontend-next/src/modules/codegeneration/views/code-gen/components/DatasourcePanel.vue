@@ -33,15 +33,28 @@ function reload() {
 const asRow = (row: object) => row as DatasourceRow
 
 function statusLabel(status: DatasourceStatus): string {
-  return status === 'Active' ? t('common.statuses.enabled') : t('common.statuses.disabled')
+  return status === 'Active'
+    ? t('common.statuses.enabled')
+    : t('common.statuses.disabled')
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const databaseTypeOptions = computed<SelectOption[]>(() => DATABASE_TYPE_OPTIONS.map(option => ({ label: option.label, value: option.value })))
 
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('codegeneration.code_gen.datasource.col_source_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('codegeneration.code_gen.datasource.search_placeholder'), order: 0 },
+  {
+    key: 'keyword',
+    title: t('codegeneration.code_gen.datasource.col_source_name'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('codegeneration.code_gen.datasource.search_placeholder'),
+    order: 0,
+  },
   {
     key: 'sourceName',
     title: t('codegeneration.code_gen.datasource.col_source_name'),
@@ -82,7 +95,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: row => `${asRow(row).host}:${asRow(row).port}`,
   },
-  { key: 'databaseName', title: t('codegeneration.code_gen.datasource.col_database_name'), dataType: 'string', minWidth: 120, sortable: true, order: 4 },
+  {
+    key: 'databaseName',
+    title: t('codegeneration.code_gen.datasource.col_database_name'),
+    dataType: 'string',
+    minWidth: 120,
+    sortable: true,
+    order: 4,
+  },
   {
     key: 'lastTestResult',
     title: t('codegeneration.code_gen.datasource.col_connection'),
@@ -110,9 +130,18 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('codegeneration.code_gen.common.status'),
     width: 90,
     order: 6,
-    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'),
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
   },
-  { key: 'order', title: t('codegeneration.code_gen.datasource.form_sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
+  {
+    key: 'order',
+    title: t('codegeneration.code_gen.datasource.form_sort'),
+    dataType: 'number',
+    width: 80,
+    sortable: true,
+    order: 7,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -122,15 +151,47 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('codegeneration.code_gen.datasource.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'codegeneration.codegen-datasources.create' },
-    { key: 'test', title: t('codegeneration.code_gen.datasource.action_test'), scope: 'row', tone: 'info', icon: 'lucide:plug', permission: 'codegeneration.codegen-datasources.update', disabled: row => testingId.value === asRow(row).id },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'codegeneration.codegen-datasources.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).sourceName), permission: 'codegeneration.codegen-datasources.delete' },
+    {
+      key: 'create',
+      title: t('codegeneration.code_gen.datasource.add'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'codegeneration.codegen-datasources.create',
+    },
+    {
+      key: 'test',
+      title: t('codegeneration.code_gen.datasource.action_test'),
+      scope: 'row',
+      tone: 'info',
+      icon: 'lucide:plug',
+      permission: 'codegeneration.codegen-datasources.update',
+      disabled: row => testingId.value === asRow(row).id,
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'codegeneration.codegen-datasources.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).sourceName),
+      permission: 'codegeneration.codegen-datasources.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -179,7 +240,9 @@ async function handleEdit(row: DatasourceRow) {
 
 async function handleDelete(row: DatasourceRow) {
   try {
-    throwOnFailed(await codegenDatasources.delete({ ids: [row.id] }))
+    throwOnFailed(await codegenDatasources.delete({
+      ids: [row.id],
+    }))
     toast.success(t('common.messages.delete_success'))
     reload()
   }
@@ -188,7 +251,9 @@ async function handleDelete(row: DatasourceRow) {
   }
 }
 
-const modalTitle = computed(() => editor.isEdit.value ? t('codegeneration.code_gen.datasource.modal_edit_title') : t('codegeneration.code_gen.datasource.modal_add_title'))
+const modalTitle = computed(() => editor.isEdit.value
+  ? t('codegeneration.code_gen.datasource.modal_edit_title')
+  : t('codegeneration.code_gen.datasource.modal_add_title'))
 
 async function onSubmit() {
   if (await editor.submit(t('codegeneration.code_gen.datasource.update_status_remark'))) {

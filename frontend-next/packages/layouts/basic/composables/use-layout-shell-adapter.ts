@@ -20,7 +20,9 @@ export function useLayoutShellAdapter() {
   const route = useRoute()
   const { contentIsMaximize: contentMaximized } = useContentMaximize()
 
-  const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const viewportWidth = ref(typeof window !== 'undefined'
+    ? window.innerWidth
+    : 1200)
   const isMobile = computed(() => viewportWidth.value < MOBILE_BREAKPOINT)
   const isNarrowScreen = computed(() => viewportWidth.value < 960)
 
@@ -85,7 +87,9 @@ export function useLayoutShellAdapter() {
   })
 
   const sidebarMarginTop = computed(() => {
-    return isMixedNav.value && !isMobile.value ? headerHeight.value : 0
+    return isMixedNav.value && !isMobile.value
+      ? headerHeight.value
+      : 0
   })
 
   /**
@@ -198,7 +202,9 @@ export function useLayoutShellAdapter() {
     const fixed = headerFixed.value
     const maximized = contentMaximized.value
     const marginTop = maximized
-      ? (appStore.tabbarEnabled && !isFullContent.value ? `${tabbarHeight.value}px` : '0')
+      ? (appStore.tabbarEnabled && !isFullContent.value
+          ? `${tabbarHeight.value}px`
+          : '0')
       : (
           fixed
           && !isFullContent.value
@@ -209,7 +215,9 @@ export function useLayoutShellAdapter() {
         )
     return {
       marginTop,
-      paddingBottom: `${appStore.footerEnable && appStore.footerFixed && !maximized ? footerHeight.value : 0}px`,
+      paddingBottom: `${appStore.footerEnable && appStore.footerFixed && !maximized
+        ? footerHeight.value
+        : 0}px`,
     }
   })
 
@@ -225,21 +233,33 @@ export function useLayoutShellAdapter() {
     // （绝对定位在顶栏内，不走 portal）会被这层按外壳高度切掉。内容最大化也不裁：顶栏要带着
     // 标签栏一起用负 margin-top 滑出画面，外壳先收到标签栏的高度，裁了标签栏就先没了
     return {
-      height: isFullContent.value ? '0' : `${headerWrapperHeight.value}px`,
+      height: isFullContent.value
+        ? '0'
+        : `${headerWrapperHeight.value}px`,
       overflow: isFullContent.value ? 'hidden' : 'visible',
-      left: maximized ? '0' : (isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth),
-      position: fixed || maximized ? 'fixed' : 'static',
+      left: maximized
+        ? '0'
+        : (isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth),
+      position: fixed || maximized
+        ? 'fixed'
+        : 'static',
       top: maximized
         ? '0'
-        : (headerIsHidden.value || isFullContent.value ? `-${headerWrapperHeight.value}px` : '0'),
+        : (headerIsHidden.value || isFullContent.value
+            ? `-${headerWrapperHeight.value}px`
+            : '0'),
       transition: maximized ? 'none' : undefined,
       width: maximized ? '100%' : mainStyle.value.width,
-      zIndex: maximized ? Z_INDEX_BASE + 10 : headerZIndex.value,
+      zIndex: maximized
+        ? Z_INDEX_BASE + 10
+        : headerZIndex.value,
     }
   })
 
   const sidebarZIndex = computed(() => {
-    let offset = isMobile.value || isSideMode.value ? 1 : -1
+    let offset = isMobile.value || isSideMode.value
+      ? 1
+      : -1
     if (isMixedNav.value)
       offset += 1
     return Z_INDEX_BASE + offset
@@ -292,7 +312,9 @@ export function useLayoutShellAdapter() {
   })
 
   const expandedSidebarWidth = computed(() => {
-    return currentLayout.value === 'mix' ? 224 : sidebarWidth.value
+    return currentLayout.value === 'mix'
+      ? 224
+      : sidebarWidth.value
   })
 
   const siderWidth = computed(() => {
@@ -306,7 +328,9 @@ export function useLayoutShellAdapter() {
       return getSideCollapseWidth.value
     if (effectiveCollapsed.value)
       return getSideCollapseWidth.value
-    return currentLayout.value === 'mix' ? 224 : sidebarWidth.value
+    return currentLayout.value === 'mix'
+      ? 224
+      : sidebarWidth.value
   })
 
   const showSider = computed(() => {
@@ -356,7 +380,9 @@ export function useLayoutShellAdapter() {
       return
     }
 
-    const direction = scrollY.value > lastScrollY ? 'down' : 'up'
+    const direction = scrollY.value > lastScrollY
+      ? 'down'
+      : 'up'
     lastScrollY = scrollY.value
 
     if (direction !== lastScrollDirection) {
@@ -425,7 +451,9 @@ export function useLayoutShellAdapter() {
   // 内容滚动容器由布局通过 :ref 注入；滚动搬入容器后，滚动源改读容器 scrollTop（back-top/顶栏阴影/自动隐藏都依赖它）
   // 组件实例取 $el 拿到它的根元素，收到的必须是真正 overflow:auto 的那层
   function setContentScrollEl(el: ComponentPublicInstance | Element | null) {
-    const host = el && '$el' in el ? (el.$el as HTMLElement | null) : el
+    const host = el && '$el' in el
+      ? (el.$el as HTMLElement | null)
+      : el
     const next = (host as HTMLElement | null) ?? null
     if (next === contentScrollEl.value)
       return

@@ -25,7 +25,14 @@ function crumbs(...paths: string[]): LayoutBreadcrumbItem[] {
 async function mountNav(breadcrumbs: LayoutBreadcrumbItem[]) {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/:pathMatch(.*)*', component: defineComponent({ render: () => null }) }],
+    routes: [
+      {
+        path: '/:pathMatch(.*)*',
+        component: defineComponent({
+          render: () => null,
+        }),
+      },
+    ],
   })
   await router.push('/')
   const warnings: string[] = []
@@ -35,7 +42,9 @@ async function mountNav(breadcrumbs: LayoutBreadcrumbItem[]) {
       plugins: [router],
       // test-utils 缺省把 TransitionGroup 换成桩，桩不按 Vue 的规则拼子项 key，撞 key 就测不出来
       stubs: { 'transition-group': false },
-      config: { warnHandler: msg => warnings.push(msg) },
+      config: {
+        warnHandler: msg => warnings.push(msg),
+      },
     },
     attachTo: document.body,
   })
@@ -50,7 +59,9 @@ describe('headerNav 面包屑过渡列表', () => {
   it('换一组层级时不报重复 key：条目与它后面的分隔符各有各的 key', async () => {
     const { warnings, wrapper } = await mountNav(crumbs('/workbench', '/workbench/dashboard'))
 
-    await wrapper.setProps({ breadcrumbs: crumbs('/tenant', '/tenant/list') })
+    await wrapper.setProps({
+      breadcrumbs: crumbs('/tenant', '/tenant/list'),
+    })
 
     expect(warnings.filter(msg => msg.includes('Duplicate keys'))).toEqual([])
     // 退场的旧层级由 .crumb-leave-active 当场 display: none，这里只数留在列表里的

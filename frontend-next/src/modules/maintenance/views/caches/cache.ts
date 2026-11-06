@@ -24,7 +24,11 @@ export const ENTRY_NOT_FOUND = 'MAINTENANCE_NOTFOUND_003'
 
 /** 按序数比较（与后端 StringComparer.Ordinal 一致），不随区域排序规则变 */
 function compareOrdinal(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0
+  return a < b
+    ? -1
+    : a > b
+      ? 1
+      : 0
 }
 
 // ── 命名空间 ────────────────────────────────────────────────────
@@ -44,10 +48,15 @@ export function packageLabel(t: Translate, name: string): string {
 /** 命名空间下拉的选项：值是前缀，文本是「前缀 · 包名」，鉴权相关（不可改写）的标上只读 */
 export function namespaceOptions(t: Translate, namespaces: readonly CacheNamespace[]): { label: string, value: string }[] {
   return namespaces.map((namespace) => {
-    const values = { prefix: namespace.prefix, name: packageLabel(t, namespace.package) }
+    const values = {
+      prefix: namespace.prefix,
+      name: packageLabel(t, namespace.package),
+    }
     return {
       value: namespace.prefix,
-      label: namespace.editable ? t('maintenance.caches.namespace_option', values) : t('maintenance.caches.namespace_option_read_only', values),
+      label: namespace.editable
+        ? t('maintenance.caches.namespace_option', values)
+        : t('maintenance.caches.namespace_option_read_only', values),
     }
   })
 }
@@ -74,17 +83,27 @@ export function keyPrefix(namespacePrefix: string, subPrefix: string): string {
 
 /** caches.keys 的请求：第一页不带续页标记 */
 export function toKeysRequest(prefix: string, continuation: null | string): RequestOf<'caches.keys'> {
-  return continuation ? { prefix, limit: KEY_PAGE_SIZE, continuation } : { prefix, limit: KEY_PAGE_SIZE }
+  return continuation
+    ? { prefix, limit: KEY_PAGE_SIZE, continuation }
+    : { prefix, limit: KEY_PAGE_SIZE }
 }
 
 /** 并入下一页的键：Redis 的 SCAN 游标可能把同一个键排进两页，跨页去重后按序数排序（4.x 同样排序后建树） */
 export function mergeKeys(existing: readonly string[], incoming: readonly string[]): string[] {
-  return [...new Set([...existing, ...incoming])].sort(compareOrdinal)
+  return [
+    ...new Set([
+      ...existing,
+      ...incoming,
+    ]),
+  ].sort(compareOrdinal)
 }
 
 /** 并入下一页里对象缓存的键（进程内缓存的对象条目，树上据此标出来） */
 export function mergeObjectKeys(existing: ReadonlySet<string>, incoming: readonly CacheKeyItem[]): Set<string> {
-  return new Set([...existing, ...incoming.filter(item => item.layer === 'Objects').map(item => item.key)])
+  return new Set([
+    ...existing,
+    ...incoming.filter(item => item.layer === 'Objects').map(item => item.key),
+  ])
 }
 
 /**
@@ -114,8 +133,12 @@ export function useCacheKeys() {
       if (current !== generation)
         return false
       prefix.value = at
-      keys.value = mergeKeys(append ? keys.value : [], page.items.map(item => item.key))
-      objectKeys.value = mergeObjectKeys(append ? objectKeys.value : new Set(), page.items)
+      keys.value = mergeKeys(append
+        ? keys.value
+        : [], page.items.map(item => item.key))
+      objectKeys.value = mergeObjectKeys(append
+        ? objectKeys.value
+        : new Set(), page.items)
       continuation.value = page.continuation ?? null
       return true
     }
@@ -151,7 +174,17 @@ export function useCacheKeys() {
     objectKeys.value = new Set([...objectKeys.value].filter(key => !set.has(key)))
   }
 
-  return { keys, objectKeys, continuation, prefix, loading, appending, load, loadMore, discard }
+  return {
+    keys,
+    objectKeys,
+    continuation,
+    prefix,
+    loading,
+    appending,
+    load,
+    loadMore,
+    discard,
+  }
 }
 
 // ── 键树（4.x 原样：按 : 分组） ─────────────────────────────────
@@ -182,10 +215,17 @@ export function buildKeyTree(keys: readonly string[]): CacheTreeOption[] {
     let path = ''
     for (let i = 0; i < parts.length - 1; i++) {
       const segment = parts[i]!
-      path = path ? `${path}:${segment}` : segment
+      path = path
+        ? `${path}:${segment}`
+        : segment
       let group = groups.get(path)
       if (!group) {
-        group = { value: `${GROUP_PREFIX}${path}`, label: segment, children: [], leafCount: 0 }
+        group = {
+          value: `${GROUP_PREFIX}${path}`,
+          label: segment,
+          children: [],
+          leafCount: 0,
+        }
         groups.set(path, group)
         siblings.push(group)
       }
@@ -227,7 +267,9 @@ export const EXPAND_ALL_LIMIT = 100
 
 /** caches.inspect 的数值是 int64，统一按 Number 读 */
 function seconds(value: null | number | undefined): null | number {
-  return value === null || value === undefined ? null : Number(value)
+  return value === null || value === undefined
+    ? null
+    : Number(value)
 }
 
 /** 字节大小（4.x 同）：不足 1 KB 按 B，不足 1 MB 按 KB 保留一位，否则按 MB 保留两位 */
@@ -244,15 +286,29 @@ export function formatSize(bytes: number): string {
 export function formatSeconds(t: Translate, value: number): string {
   const total = Math.max(0, Math.round(value))
   const units = [
-    { amount: Math.floor(total / 86400), label: (n: number) => t('maintenance.caches.units.day', { n }) },
-    { amount: Math.floor((total % 86400) / 3600), label: (n: number) => t('maintenance.caches.units.hour', { n }) },
-    { amount: Math.floor((total % 3600) / 60), label: (n: number) => t('maintenance.caches.units.minute', { n }) },
-    { amount: total % 60, label: (n: number) => t('maintenance.caches.units.second', { n }) },
+    {
+      amount: Math.floor(total / 86400),
+      label: (n: number) => t('maintenance.caches.units.day', { n }),
+    },
+    {
+      amount: Math.floor((total % 86400) / 3600),
+      label: (n: number) => t('maintenance.caches.units.hour', { n }),
+    },
+    {
+      amount: Math.floor((total % 3600) / 60),
+      label: (n: number) => t('maintenance.caches.units.minute', { n }),
+    },
+    {
+      amount: total % 60,
+      label: (n: number) => t('maintenance.caches.units.second', { n }),
+    },
   ]
   const first = units.findIndex(unit => unit.amount > 0)
   if (first < 0)
     return units[3]!.label(0)
-  const parts = [units[first]!.label(units[first]!.amount)]
+  const parts = [
+    units[first]!.label(units[first]!.amount),
+  ]
   const next = units[first + 1]
   if (next && next.amount > 0)
     parts.push(next.label(next.amount))
@@ -262,18 +318,24 @@ export function formatSeconds(t: Translate, value: number): string {
 /** 剩余存活：不过期为「永不过期」 */
 export function timeToLiveText(t: Translate, entry: Pick<CacheEntry, 'timeToLiveSeconds'>): string {
   const value = seconds(entry.timeToLiveSeconds)
-  return value === null ? t('maintenance.caches.never_expire') : formatSeconds(t, value)
+  return value === null
+    ? t('maintenance.caches.never_expire')
+    : formatSeconds(t, value)
 }
 
 /** 滑动过期：没有为「无」 */
 export function slidingText(t: Translate, entry: Pick<CacheEntry, 'slidingSeconds'>): string {
   const value = seconds(entry.slidingSeconds)
-  return value === null ? t('maintenance.caches.no_sliding') : formatSeconds(t, value)
+  return value === null
+    ? t('maintenance.caches.no_sliding')
+    : formatSeconds(t, value)
 }
 
 /** 所在层的文案 */
 export function layerLabel(t: Translate, layer: CacheLayer): string {
-  return layer === 'Objects' ? t('maintenance.caches.layers.objects') : t('maintenance.caches.layers.store')
+  return layer === 'Objects'
+    ? t('maintenance.caches.layers.objects')
+    : t('maintenance.caches.layers.store')
 }
 
 /** 能否改写：有改写权限，且后端判定可改（字节存储里、命名空间可改写、值是文本） */
@@ -376,7 +438,15 @@ export function useCacheEntry() {
     loading.value = false
   }
 
-  return { key, entry, loading, open, reload, save, reset }
+  return {
+    key,
+    entry,
+    loading,
+    open,
+    reload,
+    save,
+    reset,
+  }
 }
 
 // ── 删除 ────────────────────────────────────────────────────────
@@ -390,7 +460,9 @@ export interface CacheDeleteOutcome {
 
 /** 去重后每 100 个一批 */
 export function toDeleteBatches(keys: readonly string[]): string[][] {
-  const unique = [...new Set(keys)]
+  const unique = [
+    ...new Set(keys),
+  ]
   const batches: string[][] = []
   for (let i = 0; i < unique.length; i += DELETE_BATCH_SIZE)
     batches.push(unique.slice(i, i + DELETE_BATCH_SIZE))
@@ -407,13 +479,23 @@ export async function deleteKeys(keys: readonly string[]): Promise<CacheDeleteOu
     removed.push(...result.removed)
     failed.push(...result.failed)
   }
-  const settled = new Set([...removed, ...failed.map(failure => failure.key)])
-  return { removed, failed, missing: batches.flat().filter(key => !settled.has(key)) }
+  const settled = new Set([
+    ...removed,
+    ...failed.map(failure => failure.key),
+  ])
+  return {
+    removed,
+    failed,
+    missing: batches.flat().filter(key => !settled.has(key)),
+  }
 }
 
 /** 已经不在缓存里的键（删掉的加本来就不在的）：列表里一并拿掉 */
 export function goneKeys(outcome: CacheDeleteOutcome): string[] {
-  return [...outcome.removed, ...outcome.missing]
+  return [
+    ...outcome.removed,
+    ...outcome.missing,
+  ]
 }
 
 /** 结果提示：语气与文案 */
@@ -427,23 +509,39 @@ export function singleDeleteToast(t: Translate, outcome: CacheDeleteOutcome): Ca
   const failure = outcome.failed[0]
   if (failure)
     return { tone: 'danger', message: failure.message }
-  if (outcome.removed.length === 0)
-    return { tone: 'warning', message: t('maintenance.caches.key_already_gone') }
-  return { tone: 'success', message: t('common.messages.delete_success') }
+  if (outcome.removed.length === 0) {
+    return {
+      tone: 'warning',
+      message: t('maintenance.caches.key_already_gone'),
+    }
+  }
+  return {
+    tone: 'success',
+    message: t('common.messages.delete_success'),
+  }
 }
 
 /** 批量删除的提示（4.x 同口径）：全部不在了即成功（其中已过期的单独说一句）；有没删成的提示成功与失败各几个，并附原因 */
 export function batchDeleteToast(t: Translate, outcome: CacheDeleteOutcome): CacheToast {
   if (outcome.failed.length > 0) {
-    const reason = [...new Set(outcome.failed.map(failure => failure.message))].join('; ')
+    const reason = [
+      ...new Set(outcome.failed.map(failure => failure.message)),
+    ].join('; ')
     return {
       tone: 'warning',
       message: t('maintenance.caches.batch_delete_partial', { success: goneKeys(outcome).length, failed: outcome.failed.length, reason }),
     }
   }
-  if (outcome.missing.length > 0)
-    return { tone: 'success', message: t('maintenance.caches.batch_deleted_with_missing', { count: outcome.removed.length, missing: outcome.missing.length }) }
-  return { tone: 'success', message: t('maintenance.caches.batch_deleted', { count: outcome.removed.length }) }
+  if (outcome.missing.length > 0) {
+    return {
+      tone: 'success',
+      message: t('maintenance.caches.batch_deleted_with_missing', { count: outcome.removed.length, missing: outcome.missing.length }),
+    }
+  }
+  return {
+    tone: 'success',
+    message: t('maintenance.caches.batch_deleted', { count: outcome.removed.length }),
+  }
 }
 
 /** 按前缀删除（前缀须落在开放的命名空间里，不支持通配），返回删掉的键数 */

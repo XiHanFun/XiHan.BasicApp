@@ -12,7 +12,9 @@ export type Translate = (key: string, values?: Record<string, unknown>) => strin
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
-  return error instanceof Error ? error.message : String(error ?? '')
+  return error instanceof Error
+    ? error.message
+    : String(error ?? '')
 }
 
 export function notificationTypeLabel(t: Translate, type: NotificationType): string {
@@ -102,7 +104,9 @@ export function templateChannelLabel(t: Translate, channel: TemplateChannel): st
 }
 
 export function smsProviderLabel(t: Translate, provider: SmsProvider): string {
-  return provider === 'Tencent' ? t('notification.messaging.providers.tencent') : t('notification.messaging.providers.aliyun')
+  return provider === 'Tencent'
+    ? t('notification.messaging.providers.tencent')
+    : t('notification.messaging.providers.aliyun')
 }
 
 export function botProviderLabel(t: Translate, provider: BotProvider): string {
@@ -116,13 +120,21 @@ export function botProviderLabel(t: Translate, provider: BotProvider): string {
 /** 启用状态的搜索选项：后端按 `isEnabled eq true / false` 精确匹配 */
 export function enabledOptions(t: Translate): { label: string, value: string }[] {
   return [
-    { label: t('notification.messaging.enabled'), value: 'true' },
-    { label: t('notification.messaging.disabled'), value: 'false' },
+    {
+      label: t('notification.messaging.enabled'),
+      value: 'true',
+    },
+    {
+      label: t('notification.messaging.disabled'),
+      value: 'false',
+    },
   ]
 }
 
 export function enabledLabel(t: Translate, enabled: boolean): string {
-  return enabled ? t('notification.messaging.enabled') : t('notification.messaging.disabled')
+  return enabled
+    ? t('notification.messaging.enabled')
+    : t('notification.messaging.disabled')
 }
 
 /** 模板与配置的编码文法（与后端 `MessagingCodes.Pattern` 一致） */

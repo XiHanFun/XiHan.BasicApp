@@ -75,9 +75,14 @@ const LOCALES = [
 ] as const
 
 /** 当前选中：apply 取应用语言，否则取受控值（兜底应用语言） */
-const current = computed(() => (props.apply ? appStore.locale : (props.value ?? appStore.locale)))
+const current = computed(() => (props.apply
+  ? appStore.locale
+  : (props.value ?? appStore.locale)))
 
-const options = computed<MenuNode[]>(() => LOCALES.map(l => ({ value: l.value, label: t(l.labelKey) })))
+const options = computed<MenuNode[]>(() => LOCALES.map(l => ({
+  value: l.value,
+  label: t(l.labelKey),
+})))
 
 /** 选中值：组件库的选中值恒为数组，单选也是长度 1 */
 const selected = computed(() => [current.value])
@@ -85,7 +90,11 @@ const selected = computed(() => [current.value])
 const selectStyle = computed(() =>
   props.selectWidth == null
     ? undefined
-    : { inlineSize: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
+    : {
+        inlineSize: typeof props.selectWidth === 'number'
+          ? `${props.selectWidth}px`
+          : props.selectWidth,
+      })
 
 function choose(key: string) {
   if (props.apply)

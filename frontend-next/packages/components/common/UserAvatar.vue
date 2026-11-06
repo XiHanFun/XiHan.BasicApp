@@ -27,7 +27,9 @@ const resolvedUrl = useAvatarUrl(computed(() => props.avatar))
 /** 首字母回退（取前两位，兼容中英文） */
 const initials = computed(() => {
   const n = (props.name ?? '').trim()
-  return n ? n.slice(0, 2) : '?'
+  return n
+    ? n.slice(0, 2)
+    : '?'
 })
 
 /** 回退字随头像尺寸放大，两个汉字在小头像里也放得下 */

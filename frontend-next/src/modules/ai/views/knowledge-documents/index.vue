@@ -37,7 +37,9 @@ function reload() {
 const asRow = (row: object) => row as KnowledgeRow
 
 function sourceTypeLabel(type: KnowledgeSourceType): string {
-  return type === 'UploadFile' ? t('ai.knowledge_documents.source_upload') : t('ai.knowledge_documents.source_paste')
+  return type === 'UploadFile'
+    ? t('ai.knowledge_documents.source_upload')
+    : t('ai.knowledge_documents.source_paste')
 }
 
 const STATUS_TONE = { Pending: 'warning', Indexed: 'success', Failed: 'danger' } as const
@@ -45,16 +47,40 @@ const STATUS_TONE = { Pending: 'warning', Indexed: 'success', Failed: 'danger' }
 function statusLabel(status: KnowledgeIndexStatus): string {
   if (status === 'Indexed')
     return t('ai.knowledge_documents.status_indexed')
-  return status === 'Failed' ? t('ai.knowledge_documents.status_failed') : t('ai.knowledge_documents.status_pending')
+  return status === 'Failed'
+    ? t('ai.knowledge_documents.status_failed')
+    : t('ai.knowledge_documents.status_pending')
 }
 
-const sourceTypeOptions = computed<SelectOption[]>(() => (['PasteText', 'UploadFile'] as const).map(type => ({ label: sourceTypeLabel(type), value: type })))
-const statusOptions = computed<SelectOption[]>(() => (['Pending', 'Indexed', 'Failed'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const sourceTypeOptions = computed<SelectOption[]>(() => (['PasteText', 'UploadFile'] as const).map(type => ({
+  label: sourceTypeLabel(type),
+  value: type,
+})))
+const statusOptions = computed<SelectOption[]>(() => (['Pending', 'Indexed', 'Failed'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('ai.knowledge_documents.col_title'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('ai.knowledge_documents.search_placeholder'), order: 0 },
-  { key: 'title', title: t('ai.knowledge_documents.col_title'), dataType: 'string', minWidth: 200, fixed: 'left', sortable: true, order: 1 },
+  {
+    key: 'keyword',
+    title: t('ai.knowledge_documents.col_title'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('ai.knowledge_documents.search_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'title',
+    title: t('ai.knowledge_documents.col_title'),
+    dataType: 'string',
+    minWidth: 200,
+    fixed: 'left',
+    sortable: true,
+    order: 1,
+  },
   {
     key: 'sourceType',
     title: t('ai.knowledge_documents.col_source_type'),
@@ -67,8 +93,21 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: row => sourceTypeLabel(asRow(row).sourceType),
   },
-  { key: 'source', title: t('ai.knowledge_documents.col_source'), dataType: 'string', minWidth: 140, order: 3 },
-  { key: 'chunkCount', title: t('ai.knowledge_documents.col_chunk_count'), dataType: 'number', width: 90, sortable: true, order: 4 },
+  {
+    key: 'source',
+    title: t('ai.knowledge_documents.col_source'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 3,
+  },
+  {
+    key: 'chunkCount',
+    title: t('ai.knowledge_documents.col_chunk_count'),
+    dataType: 'number',
+    width: 90,
+    sortable: true,
+    order: 4,
+  },
   {
     key: 'status',
     title: t('ai.common.status'),
@@ -82,8 +121,21 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: row => renderTag(statusLabel(asRow(row).status), STATUS_TONE[asRow(row).status]),
   },
-  { key: 'errorMessage', title: t('ai.knowledge_documents.col_error'), dataType: 'string', minWidth: 200, order: 6 },
-  { key: 'createdAt', title: t('ai.knowledge_documents.col_created_at'), dataType: 'datetime', minWidth: 170, sortable: true, order: 7 },
+  {
+    key: 'errorMessage',
+    title: t('ai.knowledge_documents.col_error'),
+    dataType: 'string',
+    minWidth: 200,
+    order: 6,
+  },
+  {
+    key: 'createdAt',
+    title: t('ai.knowledge_documents.col_created_at'),
+    dataType: 'datetime',
+    minWidth: 170,
+    sortable: true,
+    order: 7,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -95,14 +147,41 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('ai.knowledge_documents.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'ai.knowledge-documents.create' },
-    { key: 'reindex', title: t('ai.knowledge_documents.action_reindex'), scope: 'row', tone: 'info', icon: 'lucide:refresh-cw', confirm: true, confirmText: () => t('ai.knowledge_documents.confirm_reindex'), permission: 'ai.knowledge-documents.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: () => t('ai.knowledge_documents.confirm_delete'), permission: 'ai.knowledge-documents.delete' },
+    {
+      key: 'create',
+      title: t('ai.knowledge_documents.add'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'ai.knowledge-documents.create',
+    },
+    {
+      key: 'reindex',
+      title: t('ai.knowledge_documents.action_reindex'),
+      scope: 'row',
+      tone: 'info',
+      icon: 'lucide:refresh-cw',
+      confirm: true,
+      confirmText: () => t('ai.knowledge_documents.confirm_reindex'),
+      permission: 'ai.knowledge-documents.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: () => t('ai.knowledge_documents.confirm_delete'),
+      permission: 'ai.knowledge-documents.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       ingest.startCreate()

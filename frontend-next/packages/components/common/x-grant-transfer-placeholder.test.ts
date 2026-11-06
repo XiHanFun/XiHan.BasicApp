@@ -16,13 +16,17 @@ function mountTransfer(items: GrantTransferItem[], value: string[], loading = fa
       items,
       value,
       loading,
-      groups: [{ key: 'all', name: '', items }],
+      groups: [
+        { key: 'all', name: '', items },
+      ],
       getLabel: (item: GrantTransferItem) => `条目${item.basicId}`,
       sourceTitle: '可授予',
       targetTitle: '已授予',
       searchPlaceholder: '搜索',
     },
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [i18n],
+    },
   })
 }
 
@@ -43,7 +47,10 @@ describe('xGrantTransfer 在途与空态', () => {
   })
 
   it('一侧没有条目时那一侧露出空态，另一侧照常列条目', async () => {
-    const wrapper = mountTransfer([{ basicId: '1' }, { basicId: '2' }], [])
+    const wrapper = mountTransfer([
+      { basicId: '1' },
+      { basicId: '2' },
+    ], [])
     await flushPromises()
 
     expect(placeholder(wrapper, 'empty', 'target').attributes('hidden')).toBeUndefined()
@@ -52,7 +59,9 @@ describe('xGrantTransfer 在途与空态', () => {
   })
 
   it('搜不出时空态说的是「没有匹配的结果」', async () => {
-    const wrapper = mountTransfer([{ basicId: '1' }], [])
+    const wrapper = mountTransfer([
+      { basicId: '1' },
+    ], [])
     await wrapper.find('[data-scope="transfer"][data-part="search"][data-side="source"]').setValue('不存在')
     await flushPromises()
 

@@ -10,7 +10,12 @@ export type DelegationRow = ResponseOf<'delegations.list'>['items'][number]
 export type DelegationStatus = DelegationRow['status']
 export type DelegationTargetKind = 'role' | 'permission'
 
-export const DELEGATION_STATUSES: readonly DelegationStatus[] = ['Pending', 'Active', 'Expired', 'Revoked']
+export const DELEGATION_STATUSES: readonly DelegationStatus[] = [
+  'Pending',
+  'Active',
+  'Expired',
+  'Revoked',
+]
 
 /** 组合框候选：value 一律是字符串 */
 export interface DelegationOption {
@@ -32,7 +37,16 @@ export interface DelegationForm {
 }
 
 function emptyForm(): DelegationForm {
-  return { delegatorId: '', delegateeId: '', targetKind: 'role', roleId: '', permission: '', effectiveAt: null, expiresAt: null, reason: '' }
+  return {
+    delegatorId: '',
+    delegateeId: '',
+    targetKind: 'role',
+    roleId: '',
+    permission: '',
+    effectiveAt: null,
+    expiresAt: null,
+    reason: '',
+  }
 }
 
 /** 候选一次取的上限（后端页大小上限） */
@@ -61,9 +75,15 @@ export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.cr
   return {
     delegatorId: form.delegatorId,
     delegateeId: form.delegateeId,
-    roleId: form.targetKind === 'role' ? form.roleId : null,
-    permission: form.targetKind === 'permission' ? form.permission : null,
-    effectiveAt: form.effectiveAt === null ? null : new Date(form.effectiveAt).toISOString(),
+    roleId: form.targetKind === 'role'
+      ? form.roleId
+      : null,
+    permission: form.targetKind === 'permission'
+      ? form.permission
+      : null,
+    effectiveAt: form.effectiveAt === null
+      ? null
+      : new Date(form.effectiveAt).toISOString(),
     expiresAt: new Date(form.expiresAt ?? 0).toISOString(),
     reason: form.reason.trim() || null,
   }
@@ -77,10 +97,19 @@ export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.cr
 export function delegationsResource(loadNames: () => Promise<void>): SchemaResource<DelegationRow> {
   return {
     page: async (params: SchemaQueryParams) => {
-      const [list] = await Promise.all([delegationsApi.list(toPageRequest(params, { multiples: ['status'] })), loadNames()])
+      const [list] = await Promise.all([
+        delegationsApi.list(toPageRequest(params, {
+          multiples: ['status'],
+        })),
+        loadNames(),
+      ])
       return toSchemaPageResult(list, params)
     },
-    remove: async id => throwOnFailed(await delegationsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await delegationsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -111,7 +140,12 @@ export function useDelegationEditor() {
     const seq = ++userSeq
     userLoading.value = true
     try {
-      const result = await usersApi.list({ page: { index: 1, size: 50 }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [], keyword: keyword.trim() || null })
+      const result = await usersApi.list({
+        page: { index: 1, size: 50 },
+        filters: [NOT_SUPPORT_MEMBER_FILTER],
+        sorts: [],
+        keyword: keyword.trim() || null,
+      })
       if (seq === userSeq)
         userOptions.value = result.items.map(user => ({ value: user.id, label: user.displayName, description: `@${user.userName}` }))
     }
@@ -126,7 +160,16 @@ export function useDelegationEditor() {
     targetLoading.value = true
     try {
       const [roles, catalog] = await Promise.all([
-        rolesApi.list({ page: { index: 1, size: CANDIDATE_LIMIT }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order', descending: false }], keyword: null }),
+        rolesApi.list({
+          page: { index: 1, size: CANDIDATE_LIMIT },
+          filters: [
+            { field: 'status', operator: 'eq', value: 'Active' },
+          ],
+          sorts: [
+            { field: 'order', descending: false },
+          ],
+          keyword: null,
+        }),
         permissionsApi.list({}),
       ])
       roleOptions.value = roles.items.filter(role => !role.isBuiltIn).map(role => ({ value: role.id, label: role.name, description: role.code }))
@@ -143,7 +186,10 @@ export function useDelegationEditor() {
     submitError.value = null
     userOptions.value = []
     open.value = true
-    return Promise.all([searchUsers(''), loadTargets()])
+    return Promise.all([
+      searchUsers(''),
+      loadTargets(),
+    ])
   }
 
   function fieldError(field: string): string | undefined {
@@ -175,5 +221,20 @@ export function useDelegationEditor() {
     }
   }
 
-  return { open, form, fieldErrors, submitError, submitting, userOptions, userLoading, roleOptions, permissionOptions, targetLoading, searchUsers, start, fieldError, submit }
+  return {
+    open,
+    form,
+    fieldErrors,
+    submitError,
+    submitting,
+    userOptions,
+    userLoading,
+    roleOptions,
+    permissionOptions,
+    targetLoading,
+    searchUsers,
+    start,
+    fieldError,
+    submit,
+  }
 }

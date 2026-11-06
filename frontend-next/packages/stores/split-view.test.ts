@@ -18,7 +18,9 @@ vi.mock('~/composables/useIsMobile', async () => {
   mobileRef.current = isMobileRef
   return {
     MOBILE_BREAKPOINT: 768,
-    useIsMobile: () => ({ isMobile: vue.readonly(isMobileRef) }),
+    useIsMobile: () => ({
+      isMobile: vue.readonly(isMobileRef),
+    }),
   }
 })
 
@@ -32,7 +34,9 @@ function setMobile(value: boolean): void {
 
 function readPersisted(): Record<string, unknown> | null {
   const raw = sessionStorage.getItem(SPLIT_VIEW_KEY)
-  return raw ? (JSON.parse(raw) as Record<string, unknown>) : null
+  return raw
+    ? (JSON.parse(raw) as Record<string, unknown>)
+    : null
 }
 
 beforeEach(() => {
@@ -327,7 +331,13 @@ describe('关闭与持久化', () => {
     expect(store.leftPath).toBe('')
     expect(store.rightPath).toBe('')
     expect(store.reversed).toBe(false)
-    expect(readPersisted()).toEqual({ active: false, left: '', right: '', ratio: 0.5, reversed: false })
+    expect(readPersisted()).toEqual({
+      active: false,
+      left: '',
+      right: '',
+      ratio: 0.5,
+      reversed: false,
+    })
   })
 
   it('close 不重置宽度占比 —— 下次开启沿用用户拖出来的分割线位置', () => {
@@ -345,7 +355,13 @@ describe('关闭与持久化', () => {
 
     store.open('/a', '/b')
 
-    expect(readPersisted()).toEqual({ active: true, left: '/a', right: '/b', ratio: 0.5, reversed: false })
+    expect(readPersisted()).toEqual({
+      active: true,
+      left: '/a',
+      right: '/b',
+      ratio: 0.5,
+      reversed: false,
+    })
   })
 })
 

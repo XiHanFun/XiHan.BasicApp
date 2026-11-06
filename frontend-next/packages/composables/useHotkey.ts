@@ -54,7 +54,10 @@ export function useHotkey(options: UseHotkeyOptions | (() => UseHotkeyOptions)):
       return
     if (o.preventDefault !== false)
       event.preventDefault()
-    o.onHotKey({ keys: [...o.keys], event })
+    o.onHotKey({
+      keys: [...o.keys],
+      event,
+    })
   }
 
   let bound: EventTarget | null = null
@@ -65,7 +68,11 @@ export function useHotkey(options: UseHotkeyOptions | (() => UseHotkeyOptions)):
 
   watchEffect(() => {
     const custom = toValue(options).target
-    const next = custom ? custom() : (typeof document === 'undefined' ? null : document)
+    const next = custom
+      ? custom()
+      : (typeof document === 'undefined'
+          ? null
+          : document)
     if (next === bound)
       return
     stop()

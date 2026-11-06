@@ -37,12 +37,18 @@ function stubCanvas(options: { dataUrl: string, wideFontMarker?: string }): void
     fillRect: () => {},
     fillText: () => {},
     measureText(): { width: number } {
-      return { width: context.font.includes(marker) ? 111 : 100 }
+      return {
+        width: context.font.includes(marker)
+          ? 111
+          : 100,
+      }
     },
   }
 
   defineTemporary(HTMLCanvasElement.prototype, 'getContext', (kind: string) =>
-    (kind === '2d' ? context : null))
+    (kind === '2d'
+      ? context
+      : null))
   defineTemporary(HTMLCanvasElement.prototype, 'toDataURL', () => options.dataUrl)
 }
 
@@ -51,7 +57,9 @@ function stubCanvasUnavailable(): void {
 }
 
 function createAudioParam(): { setValueAtTime: () => void } {
-  return { setValueAtTime: () => {} }
+  return {
+    setValueAtTime: () => {},
+  }
 }
 
 /** 离线音频上下文替身：渲染结果由 sampleValue 决定，便于制造不同音频特征 */
@@ -85,7 +93,9 @@ function createOfflineAudioContextStub(sampleValue: number, shouldReject = false
         return Promise.reject(new Error('渲染失败'))
       }
       const channel = new Float32Array(44100).fill(sampleValue)
-      return Promise.resolve({ getChannelData: () => channel })
+      return Promise.resolve({
+        getChannelData: () => channel,
+      })
     }
   }
 }
@@ -211,7 +221,10 @@ describe('不同环境的可分辨性', () => {
 
   it('插件列表不同则指纹不同', async () => {
     const before = await generateDeviceFingerprint()
-    defineTemporary(window.navigator, 'plugins', { length: 1, 0: { name: 'PDF Viewer' } })
+    defineTemporary(window.navigator, 'plugins', {
+      length: 1,
+      0: { name: 'PDF Viewer' },
+    })
 
     expect(await generateDeviceFingerprint()).not.toBe(before)
   })
@@ -220,7 +233,11 @@ describe('不同环境的可分辨性', () => {
     const makePlugins = (lastName: string): Record<number | string, unknown> => {
       const plugins: Record<number | string, unknown> = { length: 25 }
       for (let i = 0; i < 25; i++) {
-        plugins[i] = { name: i === 24 ? lastName : `p${String(i).padStart(2, '0')}` }
+        plugins[i] = {
+          name: i === 24
+            ? lastName
+            : `p${String(i).padStart(2, '0')}`,
+        }
       }
       return plugins
     }

@@ -9,11 +9,17 @@ import { byteScale, localDay } from './charts/chart-helpers'
 import { lineOf, useWidgetData, viewerOffset } from './widget-data'
 
 function ok(body: object): Response {
-  return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 function problem(status: number, code: string, detail: string): Response {
-  return new Response(JSON.stringify({ status, code, detail, title: detail }), { status, headers: { 'Content-Type': 'application/problem+json' } })
+  return new Response(JSON.stringify({ status, code, detail, title: detail }), {
+    status,
+    headers: { 'Content-Type': 'application/problem+json' },
+  })
 }
 
 function capture(respond: () => Response): string[] {
@@ -38,12 +44,25 @@ async function settle() {
 }
 
 afterEach(() => {
-  configureRequest({ baseUrl: '', getToken: () => null })
+  configureRequest({
+    baseUrl: '',
+    getToken: () => null,
+  })
 })
 
 describe('useWidgetData', () => {
   it('按键与天数取数，带上查看者的时区偏移；天数变了重取', async () => {
-    const urls = capture(() => ok({ series: { categories: ['2026-10-30'], lines: [{ key: 'succeeded', values: [3] }] } }))
+    const urls = capture(() => ok({
+      series: {
+        categories: ['2026-10-30'],
+        lines: [
+          {
+            key: 'succeeded',
+            values: [3],
+          },
+        ],
+      },
+    }))
     const days = ref(7)
     const { data, loading, error } = useWidgetData('auditing.login-trend', days)
     await settle()
@@ -87,7 +106,10 @@ describe('辅助换算', () => {
   })
 
   it('字节按最大的一块挑单位', () => {
-    expect(byteScale(512)).toEqual({ divisor: 1, format: { style: 'unit', unit: 'byte' } })
+    expect(byteScale(512)).toEqual({
+      divisor: 1,
+      format: { style: 'unit', unit: 'byte' },
+    })
     expect(byteScale(5 * 1024 ** 2).format.unit).toBe('megabyte')
     expect(byteScale(3 * 1024 ** 3).divisor).toBe(1024 ** 3)
     expect(byteScale(0).format.unit).toBe('byte')
@@ -95,6 +117,11 @@ describe('辅助换算', () => {
 
   it('本地日按本地零点解析', () => {
     const day = localDay('2026-10-31')
-    expect([day.getFullYear(), day.getMonth(), day.getDate(), day.getHours()]).toEqual([2026, 9, 31, 0])
+    expect([
+      day.getFullYear(),
+      day.getMonth(),
+      day.getDate(),
+      day.getHours(),
+    ]).toEqual([2026, 9, 31, 0])
   })
 })

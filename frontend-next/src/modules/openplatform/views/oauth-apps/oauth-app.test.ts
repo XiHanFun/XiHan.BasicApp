@@ -24,10 +24,17 @@ import {
 } from './oauth-app'
 
 /** 假翻译：键原样返回，带参数时拼上参数便于断言 */
-const t = (key: string, values?: Record<string, unknown>) => (values ? `${key}:${JSON.stringify(values)}` : key)
+function t(key: string, values?: Record<string, unknown>) {
+  return values
+    ? `${key}:${JSON.stringify(values)}`
+    : key
+}
 
 function json(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 function stub(...responses: object[]): { method: string, url: string, body: unknown }[] {
@@ -36,7 +43,13 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
       return json(200, responses[calls.length - 1] ?? {})
     }) as unknown as typeof fetch,
   })
@@ -44,7 +57,12 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
 }
 
 function form(patch: Partial<OAuthAppForm> = {}): OAuthAppForm {
-  return { ...emptyOAuthAppForm(), appName: '报表门户', redirectUris: 'https://portal.example/cb', ...patch }
+  return {
+    ...emptyOAuthAppForm(),
+    appName: '报表门户',
+    redirectUris: 'https://portal.example/cb',
+    ...patch,
+  }
 }
 
 const ROW: OAuthAppRow = {
@@ -76,9 +94,23 @@ describe('应用管理：列表筛选', () => {
     const request = toPageRequest({
       page: 2,
       pageSize: 20,
-      filters: { keyword: ' portal ', clientType: 'Public', isEnabled: 'true', skipConsent: 'false', personal: 'true' },
-      conditionFilters: [{ field: 'appType', operator: QueryOperator.In, values: ['Web', 'Service'] }],
-      sorts: [{ field: 'accessTokenLifetime', order: 'desc' }],
+      filters: {
+        keyword: ' portal ',
+        clientType: 'Public',
+        isEnabled: 'true',
+        skipConsent: 'false',
+        personal: 'true',
+      },
+      conditionFilters: [
+        {
+          field: 'appType',
+          operator: QueryOperator.In,
+          values: ['Web', 'Service'],
+        },
+      ],
+      sorts: [
+        { field: 'accessTokenLifetime', order: 'desc' },
+      ],
     }, OAUTH_APP_QUERY)
     expect(request.filters).toEqual([
       { field: 'appType', operator: 'in', value: 'Web,Service' },
@@ -89,7 +121,9 @@ describe('应用管理：列表筛选', () => {
     ])
     expect(request.keyword).toBe('portal')
     expect(request.page).toEqual({ index: 2, size: 20 })
-    expect(request.sorts).toEqual([{ field: 'accessTokenLifetime', descending: true }])
+    expect(request.sorts).toEqual([
+      { field: 'accessTokenLifetime', descending: true },
+    ])
   })
 })
 
@@ -126,7 +160,9 @@ describe('应用管理：表单', () => {
     expect(findOAuthAppProblem(form({ clientId: 'x' }))).toBe('client_id')
     expect(findOAuthAppProblem(form({ id: 'a1', clientId: 'legacy id' }))).toBeNull()
     expect(findOAuthAppProblem(form({ redirectUris: ' \n ' }))).toBe('redirect_uris')
-    expect(findOAuthAppProblem(form({ redirectUris: Array.from({ length: 11 }, (_, i) => `https://a/${i}`).join('\n') }))).toBe('redirect_uris')
+    expect(findOAuthAppProblem(form({
+      redirectUris: Array.from({ length: 11 }, (_, i) => `https://a/${i}`).join('\n'),
+    }))).toBe('redirect_uris')
     expect(findOAuthAppProblem(form({ accessTokenLifetime: 59 }))).toBe('lifetimes')
     expect(findOAuthAppProblem(form({ refreshTokenLifetime: null }))).toBe('lifetimes')
     expect(findOAuthAppProblem(form({ authorizationCodeLifetime: 601 }))).toBe('lifetimes')
@@ -135,7 +171,12 @@ describe('应用管理：表单', () => {
   })
 
   it('新建：Client ID 留空写 null、带客户端类型，空白写 null；编辑回填按行拼回调地址，修改整体替换且不带 Client ID 与客户端类型', () => {
-    expect(toCreateBody(form({ clientType: 'Public', grantTypes: ['refresh_token'], scopes: ['phone'], appDescription: ' ' }))).toEqual({
+    expect(toCreateBody(form({
+      clientType: 'Public',
+      grantTypes: ['refresh_token'],
+      scopes: ['phone'],
+      appDescription: ' ',
+    }))).toEqual({
       appName: '报表门户',
       appDescription: null,
       appType: 'Web',
@@ -154,9 +195,21 @@ describe('应用管理：表单', () => {
       clientType: 'Public',
     })
     const filled = toOAuthAppForm(ROW)
-    expect(filled).toMatchObject({ id: 'a1', clientId: 'portal', redirectUris: 'https://portal.example/cb\nhttps://portal.example/cb2', homepage: 'https://portal.example', remark: '' })
+    expect(filled).toMatchObject({
+      id: 'a1',
+      clientId: 'portal',
+      redirectUris: 'https://portal.example/cb\nhttps://portal.example/cb2',
+      homepage: 'https://portal.example',
+      remark: '',
+    })
     const body = toUpdateBody({ ...filled, id: 'a1' })
-    expect(body).toMatchObject({ id: 'a1', redirectUris: ['https://portal.example/cb', 'https://portal.example/cb2'], scopes: ['openid', 'profile'], authorizationCodeLifetime: 300, skipConsent: true })
+    expect(body).toMatchObject({
+      id: 'a1',
+      redirectUris: ['https://portal.example/cb', 'https://portal.example/cb2'],
+      scopes: ['openid', 'profile'],
+      authorizationCodeLifetime: 300,
+      skipConsent: true,
+    })
     expect(body).not.toHaveProperty('clientId')
     expect(body).not.toHaveProperty('clientType')
   })
@@ -164,19 +217,52 @@ describe('应用管理：表单', () => {
 
 describe('应用管理：资源', () => {
   it('启停取最新一份再整体修改；删除逐项拒绝时带着原因抛出', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'a1', code: 'OPENPLATFORM_NOTFOUND_001', message: 'OPENPLATFORM_NOTFOUND_001 的原因' }] })
+    const calls = stub(ROW, ROW, {
+      succeeded: [],
+      failed: [
+        { id: 'a1', code: 'OPENPLATFORM_NOTFOUND_001', message: 'OPENPLATFORM_NOTFOUND_001 的原因' },
+      ],
+    })
     const resource = oauthAppResource()
     await resource.updateStatus!('a1', false)
     await expect(resource.remove!('a1')).rejects.toThrow('OPENPLATFORM_NOTFOUND_001 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/oauth-apps/a1' })
-    expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/oauth-apps/a1', body: { isEnabled: false, redirectUris: ['https://portal.example/cb', 'https://portal.example/cb2'], grantTypes: ['authorization_code', 'refresh_token'], refreshTokenLifetime: 2592000 } })
+    expect(calls[1]).toMatchObject({
+      method: 'PUT',
+      url: '/api/oauth-apps/a1',
+      body: {
+        isEnabled: false,
+        redirectUris: ['https://portal.example/cb', 'https://portal.example/cb2'],
+        grantTypes: ['authorization_code', 'refresh_token'],
+        refreshTokenLifetime: 2592000,
+      },
+    })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/oauth-apps?ids=a1' })
   })
 
   it('分页：POST oauth-apps:list，结果换成 SchemaPage 的分页', async () => {
-    const calls = stub({ items: [ROW], total: 1, page: { index: 1, size: 20 } })
-    const result = await oauthAppResource().page!({ page: 1, pageSize: 20, filters: {}, conditionFilters: [], sorts: [] })
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/oauth-apps:list', body: { page: { index: 1, size: 20 }, filters: [], sorts: [], keyword: null } })
+    const calls = stub({
+      items: [ROW],
+      total: 1,
+      page: { index: 1, size: 20 },
+    })
+    const result = await oauthAppResource().page!({
+      page: 1,
+      pageSize: 20,
+      filters: {},
+      conditionFilters: [],
+      sorts: [],
+    })
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/oauth-apps:list',
+      body: {
+        page: { index: 1, size: 20 },
+        filters: [],
+        sorts: [],
+        keyword: null,
+      },
+    })
     expect(result.items).toHaveLength(1)
     expect(result.page.totalCount).toBe(1)
   })

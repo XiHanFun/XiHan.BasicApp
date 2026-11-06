@@ -178,7 +178,9 @@ function collectEnums(doc) {
         visitSchema(response?.content?.['application/json']?.schema)
     }
   }
-  return [...found.entries()].sort(([a], [b]) => a.localeCompare(b))
+  return [
+    ...found.entries(),
+  ].sort(([a], [b]) => a.localeCompare(b))
 }
 
 function emitEnums(enums) {
@@ -213,8 +215,12 @@ function hubName(path) {
 
 function emitRealtime(manifest) {
   const hubs = manifest.hubs ?? []
-  const methods = [...new Set(hubs.flatMap(hub => hub.methods ?? []))].sort()
-  const lines = [HEADER.replace('contracts/openapi.json', 'contracts/realtime.json')]
+  const methods = [
+    ...new Set(hubs.flatMap(hub => hub.methods ?? [])),
+  ].sort()
+  const lines = [
+    HEADER.replace('contracts/openapi.json', 'contracts/realtime.json'),
+  ]
   lines.push('/** 实时 Hub 的路径（后端 RealtimeHubs） */')
   lines.push('export const RealtimeHubs = {')
   for (const hub of hubs)
@@ -229,7 +235,9 @@ function emitRealtime(manifest) {
   lines.push('')
   lines.push('export type RealtimeMethod = typeof RealtimeMethods[keyof typeof RealtimeMethods]')
   lines.push('')
-  const invocations = [...new Set(hubs.flatMap(hub => hub.invocations ?? []))].sort()
+  const invocations = [
+    ...new Set(hubs.flatMap(hub => hub.invocations ?? [])),
+  ].sort()
   lines.push('/** 客户端可调的 Hub 方法名（后端各 Hub 的客户端方法，如聊天的进入会话、正在输入） */')
   lines.push('export const RealtimeInvocations = {')
   for (const invocation of invocations)

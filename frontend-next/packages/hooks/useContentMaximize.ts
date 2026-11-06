@@ -28,5 +28,10 @@ export function useContentMaximize() {
     _contentMaximized.value = !_contentMaximized.value
   }
 
-  return { contentIsMaximize, maximize, restore, toggleMaximize }
+  return {
+    contentIsMaximize,
+    maximize,
+    restore,
+    toggleMaximize,
+  }
 }

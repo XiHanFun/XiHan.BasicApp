@@ -64,13 +64,19 @@ function reset() {
 
 /** 可选数据源：文案带库类型与库名，免得只看名称时要回想它指向哪 */
 async function loadDataSources() {
-  const primary = { label: t('codegeneration.code_gen.import.data_source_primary'), value: PRIMARY }
+  const primary = {
+    label: t('codegeneration.code_gen.import.data_source_primary'),
+    value: PRIMARY,
+  }
   try {
     const { items } = await codegenDatasources.options({})
-    dataSourceOptions.value = [primary, ...items.map(item => ({
-      label: `${item.sourceName}（${databaseTypeLabel(item.databaseType)} · ${item.databaseName}）`,
-      value: item.id,
-    }))]
+    dataSourceOptions.value = [
+      primary,
+      ...items.map(item => ({
+        label: `${item.sourceName}（${databaseTypeLabel(item.databaseType)} · ${item.databaseName}）`,
+        value: item.id,
+      })),
+    ]
   }
   catch {
     dataSourceOptions.value = [primary]
@@ -86,7 +92,12 @@ async function loadTables() {
       keyword: queryKeyword.value.trim() || null,
       page: { index: 1, size: 500 },
     })
-    tableOptions.value = page.items.map(item => ({ label: item.comment ? `${item.name}（${item.comment}）` : item.name, value: item.name }))
+    tableOptions.value = page.items.map(item => ({
+      label: item.comment
+        ? `${item.name}（${item.comment}）`
+        : item.name,
+      value: item.name,
+    }))
   }
   catch (error) {
     toast.danger((error as Error).message || t('codegeneration.code_gen.import.load_tables_failed'))

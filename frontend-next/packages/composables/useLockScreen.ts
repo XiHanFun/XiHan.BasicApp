@@ -15,7 +15,9 @@ export type LockMode = 'off' | 'setting' | 'locked' | 'password-change'
 
 /** 后端错误只显示文案（不带错误码前缀），其他错误照旧显示消息 */
 function errorText(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error)?.message
 }
 
 /**

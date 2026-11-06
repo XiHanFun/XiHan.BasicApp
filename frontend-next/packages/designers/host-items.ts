@@ -21,7 +21,9 @@ export const DesignerMenubarTitle = defineComponent({
     code: { type: String, default: undefined },
   },
   setup(props) {
-    const text = computed(() => props.code ? `${props.name} · ${props.code}` : props.name)
+    const text = computed(() => props.code
+      ? `${props.name} · ${props.code}`
+      : props.name)
     return () => h('span', { slot: 'menubar-center', class: 'designer-menubar-title', title: text.value }, text.value)
   },
 })
@@ -45,7 +47,9 @@ export const DesignerStatusText = defineComponent({
       'class': 'designer-status-text',
       'title': props.title,
       'data-tone': props.tone,
-      'style': props.tone === 'warning' ? { color: 'var(--xh-fg-warning)' } : undefined,
+      'style': props.tone === 'warning'
+        ? { color: 'var(--xh-fg-warning)' }
+        : undefined,
     }, props.text)
   },
 })

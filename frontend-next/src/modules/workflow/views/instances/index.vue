@@ -27,12 +27,30 @@ function reload() {
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 const statusOptions = computed<{ label: string, value: WorkflowInstanceStatus }[]>(() => [
-  { label: t('workflow.instances.status_running'), value: 'Running' },
-  { label: t('workflow.instances.status_suspended'), value: 'Suspended' },
-  { label: t('workflow.instances.status_completed'), value: 'Completed' },
-  { label: t('workflow.instances.status_canceled'), value: 'Canceled' },
-  { label: t('workflow.instances.status_faulted'), value: 'Faulted' },
-  { label: t('workflow.instances.status_terminated'), value: 'Terminated' },
+  {
+    label: t('workflow.instances.status_running'),
+    value: 'Running',
+  },
+  {
+    label: t('workflow.instances.status_suspended'),
+    value: 'Suspended',
+  },
+  {
+    label: t('workflow.instances.status_completed'),
+    value: 'Completed',
+  },
+  {
+    label: t('workflow.instances.status_canceled'),
+    value: 'Canceled',
+  },
+  {
+    label: t('workflow.instances.status_faulted'),
+    value: 'Faulted',
+  },
+  {
+    label: t('workflow.instances.status_terminated'),
+    value: 'Terminated',
+  },
 ])
 
 function statusLabel(status: WorkflowInstanceStatus) {
@@ -63,7 +81,16 @@ function isRunning(row: WorkflowInstanceRow) {
 const asRow = (row: object) => row as WorkflowInstanceRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('workflow.instances.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('workflow.instances.keyword_placeholder'), width: 240, order: 0 },
+  {
+    key: 'keyword',
+    title: t('workflow.instances.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('workflow.instances.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
   {
     key: 'status',
     title: t('workflow.instances.status'),
@@ -76,27 +103,102 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: row => renderTag(statusLabel(asRow(row).status), instanceStatusTone(asRow(row).status)),
   },
-  { key: 'outcome', title: t('workflow.instances.outcome'), dataType: 'string', width: 100, order: 2, render: (row) => {
-    const outcome = asRow(row).outcome
-    return outcome ? renderTag(outcomeLabel(outcome), outcomeTone(outcome)) : '-'
-  } },
-  { key: 'definitionName', title: t('workflow.instances.definition_code'), dataType: 'string', searchable: true, sortable: true, minWidth: 150, order: 3 },
-  { key: 'title', title: t('workflow.instances.name'), dataType: 'string', sortable: true, minWidth: 180, order: 10 },
-  { key: 'definitionVersion', title: t('workflow.instances.version'), dataType: 'number', width: 80, order: 11, render: row => renderTag(`v${asRow(row).definitionVersion}`, 'neutral') },
-  { key: 'correlationId', title: t('workflow.instances.correlation_id'), dataType: 'string', searchable: true, minWidth: 140, order: 12 },
-  { key: 'starterName', title: t('workflow.instances.starter'), dataType: 'string', minWidth: 110, order: 13, render: row => asRow(row).starterName || asRow(row).starterId || '-' },
-  { key: 'faultMessage', title: t('workflow.instances.fault_message'), dataType: 'string', minWidth: 200, ellipsis: true, order: 14 },
-  { key: 'createdAt', title: t('workflow.instances.creation_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 15 },
-  { key: 'endedAt', title: t('workflow.instances.end_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 16, render: (row) => {
-    const endedAt = asRow(row).endedAt
-    return endedAt ? formatDate(endedAt) : '-'
-  } },
+  {
+    key: 'outcome',
+    title: t('workflow.instances.outcome'),
+    dataType: 'string',
+    width: 100,
+    order: 2,
+    render: (row) => {
+      const outcome = asRow(row).outcome
+      return outcome
+        ? renderTag(outcomeLabel(outcome), outcomeTone(outcome))
+        : '-'
+    },
+  },
+  {
+    key: 'definitionName',
+    title: t('workflow.instances.definition_code'),
+    dataType: 'string',
+    searchable: true,
+    sortable: true,
+    minWidth: 150,
+    order: 3,
+  },
+  {
+    key: 'title',
+    title: t('workflow.instances.name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 180,
+    order: 10,
+  },
+  {
+    key: 'definitionVersion',
+    title: t('workflow.instances.version'),
+    dataType: 'number',
+    width: 80,
+    order: 11,
+    render: row => renderTag(`v${asRow(row).definitionVersion}`, 'neutral'),
+  },
+  {
+    key: 'correlationId',
+    title: t('workflow.instances.correlation_id'),
+    dataType: 'string',
+    searchable: true,
+    minWidth: 140,
+    order: 12,
+  },
+  {
+    key: 'starterName',
+    title: t('workflow.instances.starter'),
+    dataType: 'string',
+    minWidth: 110,
+    order: 13,
+    render: row => asRow(row).starterName || asRow(row).starterId || '-',
+  },
+  {
+    key: 'faultMessage',
+    title: t('workflow.instances.fault_message'),
+    dataType: 'string',
+    minWidth: 200,
+    ellipsis: true,
+    order: 14,
+  },
+  {
+    key: 'createdAt',
+    title: t('workflow.instances.creation_time'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    advancedSearch: true,
+    minWidth: 170,
+    order: 15,
+  },
+  {
+    key: 'endedAt',
+    title: t('workflow.instances.end_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 16,
+    render: (row) => {
+      const endedAt = asRow(row).endedAt
+      return endedAt
+        ? formatDate(endedAt)
+        : '-'
+    },
+  },
 ])
 
 /** 分页：状态、定义名与业务单号精确匹配，创建时间按区间（后端白名单） */
 const resource: SchemaResource<WorkflowInstanceRow> = {
   page: async params => toSchemaPageResult(
-    await workflowInstances.list(toPageRequest(params, { filters: { status: 'eq', definitionName: 'eq', correlationId: 'eq' }, ranges: ['createdAt'] })),
+    await workflowInstances.list(toPageRequest(params, {
+      filters: { status: 'eq', definitionName: 'eq', correlationId: 'eq' },
+      ranges: ['createdAt'],
+    })),
     params,
   ),
 }
@@ -108,13 +210,73 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'signal', title: t('workflow.instances.action_signal'), scope: 'page', icon: 'lucide:radio', permission: 'workflow.workflow-instances.execute' },
-    { key: 'view', title: t('workflow.instances.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'suspend', title: t('workflow.instances.action_suspend'), scope: 'row', icon: 'lucide:pause', tone: 'warning', permission: 'workflow.workflow-instances.update', visible: row => isRunning(asRow(row)) },
-    { key: 'resume', title: t('workflow.instances.action_resume'), scope: 'row', icon: 'lucide:play', tone: 'success', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.instances.action_resume'), asRow(row).title), permission: 'workflow.workflow-instances.update', visible: row => asRow(row).status === 'Suspended' },
-    { key: 'retry', title: t('workflow.instances.action_retry'), scope: 'row', icon: 'lucide:rotate-cw', tone: 'brand', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.instances.action_retry'), asRow(row).title), permission: 'workflow.workflow-instances.execute', visible: row => asRow(row).status === 'Faulted' },
-    { key: 'cancel', title: t('workflow.instances.action_cancel'), scope: 'row', icon: 'lucide:circle-x', tone: 'warning', permission: 'workflow.workflow-instances.execute', visible: row => isRunning(asRow(row)) || asRow(row).status === 'Suspended' },
-    { key: 'terminate', title: t('workflow.instances.action_terminate'), scope: 'row', icon: 'lucide:octagon-x', tone: 'danger', permission: 'workflow.workflow-instances.execute', visible: row => !['Completed', 'Canceled', 'Faulted', 'Terminated'].includes(asRow(row).status) },
+    {
+      key: 'signal',
+      title: t('workflow.instances.action_signal'),
+      scope: 'page',
+      icon: 'lucide:radio',
+      permission: 'workflow.workflow-instances.execute',
+    },
+    {
+      key: 'view',
+      title: t('workflow.instances.action_view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'suspend',
+      title: t('workflow.instances.action_suspend'),
+      scope: 'row',
+      icon: 'lucide:pause',
+      tone: 'warning',
+      permission: 'workflow.workflow-instances.update',
+      visible: row => isRunning(asRow(row)),
+    },
+    {
+      key: 'resume',
+      title: t('workflow.instances.action_resume'),
+      scope: 'row',
+      icon: 'lucide:play',
+      tone: 'success',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('workflow.instances.action_resume'), asRow(row).title),
+      permission: 'workflow.workflow-instances.update',
+      visible: row => asRow(row).status === 'Suspended',
+    },
+    {
+      key: 'retry',
+      title: t('workflow.instances.action_retry'),
+      scope: 'row',
+      icon: 'lucide:rotate-cw',
+      tone: 'brand',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('workflow.instances.action_retry'), asRow(row).title),
+      permission: 'workflow.workflow-instances.execute',
+      visible: row => asRow(row).status === 'Faulted',
+    },
+    {
+      key: 'cancel',
+      title: t('workflow.instances.action_cancel'),
+      scope: 'row',
+      icon: 'lucide:circle-x',
+      tone: 'warning',
+      permission: 'workflow.workflow-instances.execute',
+      visible: row => isRunning(asRow(row)) || asRow(row).status === 'Suspended',
+    },
+    {
+      key: 'terminate',
+      title: t('workflow.instances.action_terminate'),
+      scope: 'row',
+      icon: 'lucide:octagon-x',
+      tone: 'danger',
+      permission: 'workflow.workflow-instances.execute',
+      visible: row => ![
+        'Completed',
+        'Canceled',
+        'Faulted',
+        'Terminated',
+      ].includes(asRow(row).status),
+    },
   ],
 }))
 
@@ -126,7 +288,9 @@ const detailData = ref<WorkflowInstanceDetail | null>(null)
 /** 定义节点 id → 运行态（取该节点最近一次执行的状态；等待中的补 waiting） */
 const nodeStatuses = computed<Record<string, FlowNodeStatus | null>>(() => {
   const detail = detailData.value
-  return detail ? graphStatuses(detail.nodes, detail.waits) : {}
+  return detail
+    ? graphStatuses(detail.nodes, detail.waits)
+    : {}
 })
 
 /** 执行历史只带节点 id，节点名从实例所用的定义里取 */
@@ -179,7 +343,10 @@ async function handleReasonConfirm() {
   if (!reasonTarget.value)
     return
   reasonLoading.value = true
-  const input = { ids: [reasonTarget.value.id], reason: reasonText.value.trim() || null }
+  const input = {
+    ids: [reasonTarget.value.id],
+    reason: reasonText.value.trim() || null,
+  }
   try {
     if (reasonAction.value === 'cancel')
       throwOnFailed(await workflowInstances.cancel(input))
@@ -201,10 +368,16 @@ async function handleReasonConfirm() {
 
 async function handleSimple(action: 'retry' | 'resume', row: WorkflowInstanceRow) {
   try {
-    if (action === 'retry')
-      throwOnFailed(await workflowInstances.retry({ ids: [row.id] }))
-    else
-      throwOnFailed(await workflowInstances.resume({ ids: [row.id] }))
+    if (action === 'retry') {
+      throwOnFailed(await workflowInstances.retry({
+        ids: [row.id],
+      }))
+    }
+    else {
+      throwOnFailed(await workflowInstances.resume({
+        ids: [row.id],
+      }))
+    }
     toast.success(t('workflow.instances.msg_operated'))
     reload()
   }
@@ -245,7 +418,9 @@ async function handleSignal() {
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'signal':
       signalForm.value = { name: '', correlationId: '', payload: '{}' }

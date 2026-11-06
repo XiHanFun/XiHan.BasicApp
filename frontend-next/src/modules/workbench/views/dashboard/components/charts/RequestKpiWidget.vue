@@ -43,19 +43,57 @@ const cards = computed(() => {
   const { number, percent, milliseconds } = formatters.value
   const total = lineOf(data.value, 'total')
   const failed = lineOf(data.value, 'failed')
-  const rate = total.map((count, index) => (count === 0 ? 0 : (failed[index] ?? 0) / count))
+  const rate = total.map((count, index) => (count === 0
+    ? 0
+    : (failed[index] ?? 0) / count))
   const definitions: Card[] = [
-    { key: 'total', label: t('workbench.charts.requests'), values: total, format: number, variant: 'area', markers: 'extremes' },
-    { key: 'failed', label: t('workbench.charts.failed_requests'), values: failed, format: number, variant: 'bar', markers: 'last', lowerIsBetter: true },
-    { key: 'rate', label: t('workbench.charts.failure_rate'), values: rate, format: percent, variant: 'win-loss', lowerIsBetter: true },
-    { key: 'average', label: t('workbench.charts.average_duration'), values: lineOf(data.value, 'average_ms'), format: milliseconds, variant: 'line', reference: 'mean', lowerIsBetter: true },
+    {
+      key: 'total',
+      label: t('workbench.charts.requests'),
+      values: total,
+      format: number,
+      variant: 'area',
+      markers: 'extremes',
+    },
+    {
+      key: 'failed',
+      label: t('workbench.charts.failed_requests'),
+      values: failed,
+      format: number,
+      variant: 'bar',
+      markers: 'last',
+      lowerIsBetter: true,
+    },
+    {
+      key: 'rate',
+      label: t('workbench.charts.failure_rate'),
+      values: rate,
+      format: percent,
+      variant: 'win-loss',
+      lowerIsBetter: true,
+    },
+    {
+      key: 'average',
+      label: t('workbench.charts.average_duration'),
+      values: lineOf(data.value, 'average_ms'),
+      format: milliseconds,
+      variant: 'line',
+      reference: 'mean',
+      lowerIsBetter: true,
+    },
   ]
 
   return definitions.map((card) => {
     const today = card.values.at(-1) ?? 0
     const yesterday = card.values.at(-2) ?? 0
-    const trend: StatisticTrend = today > yesterday ? 'up' : today < yesterday ? 'down' : 'flat'
-    const good = trend === 'flat' ? null : (trend === 'up') !== !!card.lowerIsBetter
+    const trend: StatisticTrend = today > yesterday
+      ? 'up'
+      : today < yesterday
+        ? 'down'
+        : 'flat'
+    const good = trend === 'flat'
+      ? null
+      : (trend === 'up') !== !!card.lowerIsBetter
     const series = card.variant === 'win-loss'
       ? card.values.slice(1).map((value, index) => value - card.values[index]!)
       : card.values.slice(1)
@@ -63,12 +101,16 @@ const cards = computed(() => {
       ...card,
       value: card.format(today),
       trend,
-      tone: good === null ? undefined : good ? 'success' as const : 'danger' as const,
+      tone: good === null
+        ? undefined
+        : good ? 'success' as const : 'danger' as const,
       note: trend === 'flat'
         ? t('workbench.charts.vs_yesterday_flat')
         : yesterday === 0
           ? t('workbench.charts.vs_yesterday_new')
-          : t('workbench.charts.vs_yesterday', { value: percent(Math.abs(today - yesterday) / yesterday) }),
+          : t('workbench.charts.vs_yesterday', {
+              value: percent(Math.abs(today - yesterday) / yesterday),
+            }),
       series,
       sparkLabel: t('workbench.charts.spark_label', { name: card.label, n: SPARK_DAYS }),
     }

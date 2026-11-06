@@ -539,7 +539,9 @@ export function buildPath(config: LoaderConfig, detailScale: number, steps: numb
   let d = ''
   for (let index = 0; index <= steps; index++) {
     const point = config.point(index / steps, detailScale, config)
-    d += `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)} `
+    d += `${index === 0
+      ? 'M'
+      : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)} `
   }
   return d
 }

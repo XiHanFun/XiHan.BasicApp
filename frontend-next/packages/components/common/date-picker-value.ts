@@ -16,7 +16,9 @@ function pad(part: number): string {
 export function timestampToIso(timestamp: number, withTime: boolean): string {
   const date = new Date(timestamp)
   const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-  return withTime ? `${day}T${pad(date.getHours())}:${pad(date.getMinutes())}` : day
+  return withTime
+    ? `${day}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+    : day
 }
 
 const ISO_PATTERN = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?)?$/
@@ -29,7 +31,9 @@ export function isoToTimestamp(iso: string): number | null {
   }
   const [, year, month, day, hour = '0', minute = '0', second = '0'] = match
   const date = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second))
-  return Number.isNaN(date.getTime()) ? null : date.getTime()
+  return Number.isNaN(date.getTime())
+    ? null
+    : date.getTime()
 }
 
 /** 段位前的字面分隔：日期段之间 `-`，日期与时刻之间、时刻与上下午之间留空格，时刻段之间 `:` */
@@ -45,7 +49,9 @@ export function segmentLiteralBefore(type: DateSegmentType): string {
 
 /** 区间受控值 → 交给组件库的两端草稿；无值是空数组。withTime 为真时两端带上时:分 */
 export function rangeToDraft(value: readonly [number, number] | null | undefined, withTime = false): string[] {
-  return value == null ? [] : value.map(ts => timestampToIso(ts, withTime))
+  return value == null
+    ? []
+    : value.map(ts => timestampToIso(ts, withTime))
 }
 
 /**

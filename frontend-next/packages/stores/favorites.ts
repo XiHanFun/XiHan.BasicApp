@@ -26,7 +26,12 @@ function parseFavorites(value: unknown): FavoriteItem[] | null {
   }
   return value
     .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
-    .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
+    .map(x => ({
+      key: x.path,
+      title: x.title,
+      path: x.path,
+      icon: x.icon,
+    }))
 }
 export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
   const favorites = ref<FavoriteItem[]>(LocalStorage.get<FavoriteItem[]>(FAVORITES_KEY) ?? [])
@@ -60,7 +65,12 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
       void useAppContext()
         .apis
         .userSettingApi
-        .save({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID })
+        .save({
+          scene: UserSettingScene.Preference,
+          settingKey: FAVORITES_SETTING_KEY,
+          settingValue,
+          clientId: USER_SETTING_CLIENT_ID,
+        })
         .then(() => task.success())
         .catch(() => task.error())
     }, 600)
@@ -71,7 +81,10 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     if (!item.path || has(item.path)) {
       return false
     }
-    favorites.value = [...favorites.value, { ...item, key: item.path }]
+    favorites.value = [
+      ...favorites.value,
+      { ...item, key: item.path },
+    ]
     persist()
     return true
   }
@@ -130,7 +143,9 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     const task = settingSyncIsland('favorites:hydrate', i18n.global.t('island.sync.name.favorites'))
     try {
       const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY })
-      const list = parseFavorites(dto?.settingValue ? JSON.parse(dto.settingValue) : null)
+      const list = parseFavorites(dto?.settingValue
+        ? JSON.parse(dto.settingValue)
+        : null)
       task.success()
       return list ?? undefined
     }
@@ -193,5 +208,17 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     settingSyncRemoteApplied('favorites:remote', i18n.global.t('island.sync.name.favorites'))
   }
 
-  return { favorites, ready, count, has, add, remove, toggle, move, clear, hydrate, applyRemote }
+  return {
+    favorites,
+    ready,
+    count,
+    has,
+    add,
+    remove,
+    toggle,
+    move,
+    clear,
+    hydrate,
+    applyRemote,
+  }
 })

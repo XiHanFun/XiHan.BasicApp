@@ -23,7 +23,10 @@ const allCrumbs = computed(() => {
   const result: Array<{ key: string, isHome?: boolean, index?: number }> = []
   if (props.appStore.breadcrumbShowHome)
     result.push({ key: 'home', isHome: true })
-  props.breadcrumbs.forEach((_, i) => result.push({ key: String(i), index: i }))
+  props.breadcrumbs.forEach((_, i) => result.push({
+    key: String(i),
+    index: i,
+  }))
   return result
 })
 
@@ -39,7 +42,9 @@ const shouldShowBreadcrumb = computed(() => {
 function resolveIcon(icon: string) {
   if (!icon)
     return icon
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 function isLast(isHome: boolean, index?: number): boolean {
@@ -54,8 +59,18 @@ function isLast(isHome: boolean, index?: number): boolean {
  * 而带 v-if 的分隔符被编译器补上 key 0，与条目的序号 0 拼成同一个 key
  */
 const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
-  const entry = { kind: 'item' as const, key: item.path, item, index }
-  return isLast(false, index) ? [entry] : [entry, { ...entry, kind: 'separator' as const, key: `${item.path}#separator` }]
+  const entry = {
+    kind: 'item' as const,
+    key: item.path,
+    item,
+    index,
+  }
+  return isLast(false, index)
+    ? [entry]
+    : [
+        entry,
+        { ...entry, kind: 'separator' as const, key: `${item.path}#separator` },
+      ]
 }))
 </script>
 

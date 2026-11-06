@@ -49,15 +49,31 @@ const codeCells = ref<string[]>([])
 
 const rules = computed<FormRules<typeof formData.value>>(() => ({
   email: [
-    { required: true, message: t('page.auth.email_placeholder') },
-    { type: 'email', message: t('page.auth.email_invalid') },
+    {
+      required: true,
+      message: t('page.auth.email_placeholder'),
+    },
+    {
+      type: 'email',
+      message: t('page.auth.email_invalid'),
+    },
   ],
   code: [
-    { required: true, message: t('page.auth.code_required') },
-    { min: OTP_CODE_LENGTH, max: OTP_CODE_LENGTH, message: t('page.auth.code_length_tip') },
+    {
+      required: true,
+      message: t('page.auth.code_required'),
+    },
+    {
+      min: OTP_CODE_LENGTH,
+      max: OTP_CODE_LENGTH,
+      message: t('page.auth.code_length_tip'),
+    },
   ],
   newPassword: [
-    { required: true, message: t('page.auth.reset_new_password_placeholder') },
+    {
+      required: true,
+      message: t('page.auth.reset_new_password_placeholder'),
+    },
     {
       // 与后端密码策略一致：至少 8 位，同时含字母与数字（不合格后端也不消费验证码）
       validator: (value) => {
@@ -73,10 +89,15 @@ const rules = computed<FormRules<typeof formData.value>>(() => ({
     },
   ],
   confirmPassword: [
-    { required: true, message: t('page.auth.confirm_password_placeholder') },
+    {
+      required: true,
+      message: t('page.auth.confirm_password_placeholder'),
+    },
     {
       deps: ['newPassword'],
-      validator: (value, values) => (value === values.newPassword ? null : t('page.auth.password_mismatch')),
+      validator: (value, values) => (value === values.newPassword
+        ? null
+        : t('page.auth.password_mismatch')),
     },
   ],
 }))

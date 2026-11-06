@@ -19,7 +19,9 @@ export interface PermissionGroup<T extends PermissionGrantItem> {
 /** 取权限码的资源段作为分组键：saas:{resource}:{action} → resource */
 function resourceKey(code: string): string {
   const parts = (code ?? '').split(':')
-  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
+  return parts.length >= 3
+    ? parts[1]!
+    : (parts[0] ?? '')
 }
 
 /** 一组权限名的公共前缀，作为功能块显示名 */
@@ -66,7 +68,9 @@ export function groupPermissions<T extends PermissionGrantItem>(
       map.set(key, [item])
     }
   }
-  return [...map.entries()].map(([key, groupItems]) => ({
+  return [
+    ...map.entries(),
+  ].map(([key, groupItems]) => ({
     key,
     name: groupItems[0]?.groupName
       || commonPrefix(groupItems.map(groupItem => groupItem.permissionName))

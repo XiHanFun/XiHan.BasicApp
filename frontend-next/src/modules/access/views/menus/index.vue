@@ -27,7 +27,9 @@ function titleOf(node: MenuRow): string {
 }
 
 function registeredTitle(node: MenuRow): string {
-  return te(node.titleKey) ? t(node.titleKey) : node.titleKey
+  return te(node.titleKey)
+    ? t(node.titleKey)
+    : node.titleKey
 }
 
 const resource = menusResource(titleOf, tree.setNodes)
@@ -44,38 +46,52 @@ function reload() {
 function kindLabel(kind: MenuKind): string {
   if (kind === 'Directory')
     return t('access.menus.kinds.directory')
-  return kind === 'Link' ? t('access.menus.kinds.link') : t('access.menus.kinds.page')
+  return kind === 'Link'
+    ? t('access.menus.kinds.link')
+    : t('access.menus.kinds.page')
 }
 
 /** 种类标签配色：按层级递减强调，目录最显眼（与 4.x 的菜单类型同一口径），外链最安静 */
 function kindTone(kind: MenuKind): Tone {
   if (kind === 'Directory')
     return 'warning'
-  return kind === 'Page' ? 'info' : 'neutral'
+  return kind === 'Page'
+    ? 'info'
+    : 'neutral'
 }
 
 function targetOf(node: MenuRow): string {
-  return node.kind === 'Link' ? node.externalUrl ?? '' : node.route
+  return node.kind === 'Link'
+    ? node.externalUrl ?? ''
+    : node.route
 }
 
 function formatBoolean(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 /** 图标 + 文字的单元格；没有图标的行留出同宽空位，标题列的文字才对得齐（render 的节点不带页面 scope，样式用工具类） */
 function renderIconCell(node: MenuRow, text: string) {
   return h('span', { class: 'inline-flex items-center gap-1.5' }, [
-    node.icon ? h(Icon, { icon: node.icon, width: 16 }) : h('span', { class: 'inline-block w-4' }),
+    node.icon
+      ? h(Icon, { icon: node.icon, width: 16 })
+      : h('span', { class: 'inline-block w-4' }),
     h('span', text),
   ])
 }
 
 function statusLabel(status: MenuStatus): string {
-  return status === 'Active' ? t('access.menus.statuses.active') : t('access.menus.statuses.disabled')
+  return status === 'Active'
+    ? t('access.menus.statuses.active')
+    : t('access.menus.statuses.disabled')
 }
 
 /** 圆点与侧栏同色：没配标签类型时按提醒红 */
@@ -91,25 +107,63 @@ function badgeDotStyle(badgeType?: null | string) {
 
 /** 徽标单元格：圆点优先于文字（与侧栏同一口径），都没有显示 - */
 function renderBadge(node: MenuRow) {
-  if (node.badgeDot)
-    return h('span', { style: badgeDotStyle(node.badgeType) })
-  return node.badge ? renderTag(node.badge, resolveMenuBadgeTone(node.badgeType)) : '-'
+  if (node.badgeDot) {
+    return h('span', {
+      style: badgeDotStyle(node.badgeType),
+    })
+  }
+  return node.badge
+    ? renderTag(node.badge, resolveMenuBadgeTone(node.badgeType))
+    : '-'
 }
 
-const kindOptions = computed<SelectOption[]>(() => MENU_KINDS.map(kind => ({ label: kindLabel(kind), value: kind })))
-const operatorKindOptions = computed<SelectOption[]>(() => OPERATOR_KINDS.map(kind => ({ label: kindLabel(kind), value: kind })))
-const statusOptions = computed<SelectOption[]>(() => MENU_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
+const kindOptions = computed<SelectOption[]>(() => MENU_KINDS.map(kind => ({
+  label: kindLabel(kind),
+  value: kind,
+})))
+const operatorKindOptions = computed<SelectOption[]>(() => OPERATOR_KINDS.map(kind => ({
+  label: kindLabel(kind),
+  value: kind,
+})))
+const statusOptions = computed<SelectOption[]>(() => MENU_STATUSES.map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const badgeTypeOptions = computed<SelectOption[]>(() => [
-  { label: t('access.menus.badge_types.neutral'), value: 'neutral' },
-  { label: t('access.menus.badge_types.brand'), value: 'brand' },
-  { label: t('access.menus.badge_types.info'), value: 'info' },
-  { label: t('access.menus.badge_types.success'), value: 'success' },
-  { label: t('access.menus.badge_types.warning'), value: 'warning' },
-  { label: t('access.menus.badge_types.danger'), value: 'danger' },
+  {
+    label: t('access.menus.badge_types.neutral'),
+    value: 'neutral',
+  },
+  {
+    label: t('access.menus.badge_types.brand'),
+    value: 'brand',
+  },
+  {
+    label: t('access.menus.badge_types.info'),
+    value: 'info',
+  },
+  {
+    label: t('access.menus.badge_types.success'),
+    value: 'success',
+  },
+  {
+    label: t('access.menus.badge_types.warning'),
+    value: 'warning',
+  },
+  {
+    label: t('access.menus.badge_types.danger'),
+    value: 'danger',
+  },
 ])
 const yesNoOptions = computed(() => [
-  { label: t('common.statuses.yes'), value: 'true' },
-  { label: t('common.statuses.no'), value: 'false' },
+  {
+    label: t('common.statuses.yes'),
+    value: 'true',
+  },
+  {
+    label: t('common.statuses.no'),
+    value: 'false',
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序）。整树在本地筛选，后端不排序，故不声明 sortable ──
@@ -117,20 +171,144 @@ const yesNoOptions = computed(() => [
 const asRow = (row: object) => row as MenuRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.menus.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.menus.keyword_placeholder'), order: 0 },
-  { key: 'title', title: t('access.menus.fields.title'), dataType: 'string', treeColumn: true, exportable: true, render: row => renderIconCell(asRow(row), titleOf(asRow(row))), minWidth: 200, order: 1 },
-  { key: 'code', title: t('access.menus.fields.code'), dataType: 'string', exportable: true, minWidth: 160, order: 2 },
-  { key: 'kind', title: t('access.menus.fields.kind'), dataType: 'enum', searchable: true, exportable: true, options: kindOptions.value, render: row => renderTag(kindLabel(asRow(row).kind), kindTone(asRow(row).kind)), width: 90, order: 3 },
-  { key: 'route', title: t('access.menus.fields.target'), dataType: 'string', exportable: true, render: row => formatNullable(targetOf(asRow(row))), ellipsis: true, minWidth: 200, order: 4 },
-  { key: 'icon', title: t('access.menus.fields.icon'), dataType: 'string', render: row => (asRow(row).icon ? renderIconCell(asRow(row), asRow(row).icon!) : '-'), minWidth: 160, order: 5 },
-  { key: 'permission', title: t('access.menus.fields.permission'), dataType: 'string', exportable: true, minWidth: 180, order: 6 },
-  { key: 'badge', title: t('access.menus.fields.badge'), dataType: 'string', exportable: true, render: row => renderBadge(asRow(row)), width: 110, order: 7 },
-  { key: 'status', title: t('access.menus.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, searchPlaceholder: t('access.menus.fields.status'), render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 8 },
-  { key: 'isVisible', title: t('access.menus.fields.visible'), dataType: 'boolean', advancedSearch: true, exportable: true, options: yesNoOptions.value, width: 90, order: 9 },
-  { key: 'keepAlive', title: t('access.menus.fields.keep_alive'), dataType: 'boolean', exportable: true, width: 90, order: 10 },
-  { key: 'isAffix', title: t('access.menus.fields.affix'), dataType: 'boolean', exportable: true, width: 90, order: 11 },
-  { key: 'isCustomized', title: t('access.menus.fields.customized'), dataType: 'boolean', advancedSearch: true, exportable: true, options: yesNoOptions.value, render: row => (asRow(row).kind === 'Page' ? renderTag(formatBoolean(asRow(row).isCustomized), asRow(row).isCustomized ? 'info' : 'neutral') : '-'), width: 90, order: 12 },
-  { key: 'order', title: t('access.menus.fields.order'), dataType: 'number', exportable: true, width: 80, order: 13 },
+  {
+    key: 'keyword',
+    title: t('access.menus.search'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.menus.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'title',
+    title: t('access.menus.fields.title'),
+    dataType: 'string',
+    treeColumn: true,
+    exportable: true,
+    render: row => renderIconCell(asRow(row), titleOf(asRow(row))),
+    minWidth: 200,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('access.menus.fields.code'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 160,
+    order: 2,
+  },
+  {
+    key: 'kind',
+    title: t('access.menus.fields.kind'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: kindOptions.value,
+    render: row => renderTag(kindLabel(asRow(row).kind), kindTone(asRow(row).kind)),
+    width: 90,
+    order: 3,
+  },
+  {
+    key: 'route',
+    title: t('access.menus.fields.target'),
+    dataType: 'string',
+    exportable: true,
+    render: row => formatNullable(targetOf(asRow(row))),
+    ellipsis: true,
+    minWidth: 200,
+    order: 4,
+  },
+  {
+    key: 'icon',
+    title: t('access.menus.fields.icon'),
+    dataType: 'string',
+    render: row => (asRow(row).icon
+      ? renderIconCell(asRow(row), asRow(row).icon!)
+      : '-'),
+    minWidth: 160,
+    order: 5,
+  },
+  {
+    key: 'permission',
+    title: t('access.menus.fields.permission'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 180,
+    order: 6,
+  },
+  {
+    key: 'badge',
+    title: t('access.menus.fields.badge'),
+    dataType: 'string',
+    exportable: true,
+    render: row => renderBadge(asRow(row)),
+    width: 110,
+    order: 7,
+  },
+  {
+    key: 'status',
+    title: t('access.menus.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('access.menus.fields.status'),
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 8,
+  },
+  {
+    key: 'isVisible',
+    title: t('access.menus.fields.visible'),
+    dataType: 'boolean',
+    advancedSearch: true,
+    exportable: true,
+    options: yesNoOptions.value,
+    width: 90,
+    order: 9,
+  },
+  {
+    key: 'keepAlive',
+    title: t('access.menus.fields.keep_alive'),
+    dataType: 'boolean',
+    exportable: true,
+    width: 90,
+    order: 10,
+  },
+  {
+    key: 'isAffix',
+    title: t('access.menus.fields.affix'),
+    dataType: 'boolean',
+    exportable: true,
+    width: 90,
+    order: 11,
+  },
+  {
+    key: 'isCustomized',
+    title: t('access.menus.fields.customized'),
+    dataType: 'boolean',
+    advancedSearch: true,
+    exportable: true,
+    options: yesNoOptions.value,
+    render: row => (asRow(row).kind === 'Page'
+      ? renderTag(formatBoolean(asRow(row).isCustomized), asRow(row).isCustomized
+          ? 'info'
+          : 'neutral')
+      : '-'),
+    width: 90,
+    order: 12,
+  },
+  {
+    key: 'order',
+    title: t('access.menus.fields.order'),
+    dataType: 'number',
+    exportable: true,
+    width: 80,
+    order: 13,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -145,21 +323,75 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.menus.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.menus.create' },
+    {
+      key: 'create',
+      title: t('access.menus.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.menus.create',
+    },
     // 目录下只能挂外链（子目录不允许，页面来自登记）
-    { key: 'addLink', title: t('access.menus.actions.add_link'), scope: 'row', icon: 'lucide:link', visible: row => asRow(row).kind === 'Directory', permission: 'access.menus.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.menus.update' },
-    { key: 'toggle', title: t('access.menus.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', titleOf(asRow(row))), permission: 'access.menus.update' },
-    { key: 'reset', title: t('access.menus.actions.reset'), scope: 'row', icon: 'lucide:rotate-ccw', confirm: true, confirmText: row => actionConfirmText(t, t('access.menus.actions.reset'), titleOf(asRow(row))), visible: row => asRow(row).kind === 'Page' && asRow(row).isCustomized, permission: 'access.menus.update' },
+    {
+      key: 'addLink',
+      title: t('access.menus.actions.add_link'),
+      scope: 'row',
+      icon: 'lucide:link',
+      visible: row => asRow(row).kind === 'Directory',
+      permission: 'access.menus.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'access.menus.update',
+    },
+    {
+      key: 'toggle',
+      title: t('access.menus.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', titleOf(asRow(row))),
+      permission: 'access.menus.update',
+    },
+    {
+      key: 'reset',
+      title: t('access.menus.actions.reset'),
+      scope: 'row',
+      icon: 'lucide:rotate-ccw',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('access.menus.actions.reset'), titleOf(asRow(row))),
+      visible: row => asRow(row).kind === 'Page' && asRow(row).isCustomized,
+      permission: 'access.menus.update',
+    },
     // 页面节点来自登记，不能删；还有子节点的目录由后端拒绝
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, titleOf(asRow(row))), visible: row => asRow(row).kind !== 'Page', permission: 'access.menus.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, titleOf(asRow(row))),
+      visible: row => asRow(row).kind !== 'Page',
+      permission: 'access.menus.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -194,7 +426,9 @@ function onAction(payload: SchemaActionPayload) {
 const modalTitle = computed(() => {
   if (editor.isEdit.value)
     return t('access.menus.edit_title')
-  return editor.form.kind === 'Link' ? t('access.menus.create_link_title') : t('access.menus.create_title')
+  return editor.form.kind === 'Link'
+    ? t('access.menus.create_link_title')
+    : t('access.menus.create_title')
 })
 
 /** 所属目录的候选：顶层不选即可；子页面只出它登记的父页面（只读） */
@@ -202,15 +436,27 @@ const parentOptions = computed<TreeSelectOption[]>(() => {
   const current = editor.editing.value
   if (current && tree.isChildPage(current)) {
     const parent = tree.find(current.parentId)
-    return parent ? [{ value: parent.id, label: titleOf(parent) }] : []
+    return parent
+      ? [
+          {
+            value: parent.id,
+            label: titleOf(parent),
+          },
+        ]
+      : []
   }
-  return tree.directories.value.filter(directory => directory.id !== current?.id).map(directory => ({ value: directory.id, label: titleOf(directory) }))
+  return tree.directories.value.filter(directory => directory.id !== current?.id).map(directory => ({
+    value: directory.id,
+    label: titleOf(directory),
+  }))
 })
 
 const parentValue = computed({
   get: () => editor.form.parentId,
   set: (value: null | number | string) => {
-    editor.form.parentId = value === null || value === '' ? null : String(value)
+    editor.form.parentId = value === null || value === ''
+      ? null
+      : String(value)
   },
 })
 
@@ -275,10 +521,36 @@ function editFromDetail() {
 }
 
 const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
-  { title: t('access.menus.fields.title'), key: 'title', minWidth: 120, ellipsis: true, render: row => titleOf(row) },
-  { title: t('access.menus.fields.code'), key: 'code', width: 160, ellipsis: true },
-  { title: t('access.menus.fields.kind'), key: 'kind', width: 80, render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: kindTone(row.kind) }, () => h(XhTagLabel, null, () => kindLabel(row.kind))) },
-  { title: t('access.menus.fields.target'), key: 'route', minWidth: 120, ellipsis: true, render: row => formatNullable(targetOf(row)) },
+  {
+    title: t('access.menus.fields.title'),
+    key: 'title',
+    minWidth: 120,
+    ellipsis: true,
+    render: row => titleOf(row),
+  },
+  {
+    title: t('access.menus.fields.code'),
+    key: 'code',
+    width: 160,
+    ellipsis: true,
+  },
+  {
+    title: t('access.menus.fields.kind'),
+    key: 'kind',
+    width: 80,
+    render: row => h(XhTagRoot, {
+      variant: 'subtle',
+      size: 'sm',
+      tone: kindTone(row.kind),
+    }, () => h(XhTagLabel, null, () => kindLabel(row.kind))),
+  },
+  {
+    title: t('access.menus.fields.target'),
+    key: 'route',
+    minWidth: 120,
+    ellipsis: true,
+    render: row => formatNullable(targetOf(row)),
+  },
 ])
 </script>
 

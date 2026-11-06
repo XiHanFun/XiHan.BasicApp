@@ -117,7 +117,12 @@ function saveSection(pageCode: string, section: string, value: unknown): void {
     setTimeout(() => {
       const task = settingSyncIsland(`page:${pageCode}`, sectionName(section))
       void resolveApi()
-        .save({ scene: UserSettingScene.Page, settingKey: pageCode, settingValue: JSON.stringify(payload), clientId: USER_SETTING_CLIENT_ID })
+        .save({
+          scene: UserSettingScene.Page,
+          settingKey: pageCode,
+          settingValue: JSON.stringify(payload),
+          clientId: USER_SETTING_CLIENT_ID,
+        })
         .then(() => task.success())
         .catch(() => task.error())
     }, 600),
@@ -162,7 +167,9 @@ export function subscribeRemotePageSetting(
 export function applyRemotePageSetting(pageCode: string, settingValue?: null | string): void {
   let payload: Record<string, unknown>
   try {
-    payload = settingValue ? JSON.parse(settingValue) as Record<string, unknown> : {}
+    payload = settingValue
+      ? JSON.parse(settingValue) as Record<string, unknown>
+      : {}
   }
   catch {
     return
@@ -232,7 +239,9 @@ export function useUserSettingSync(pageCode: string): UserSettingSync {
       // 本会话已拉过这页（或收到过推送、本机保存过）：直接采用缓存，页面来回切换不再等
       peek: () => {
         const cached = cache.get(pageCode)
-        return cached ? { value: cached[section] } : undefined
+        return cached
+          ? { value: cached[section] }
+          : undefined
       },
       load: () => loadSection(pageCode, section),
       subscribe: listener => subscribeRemotePageSetting(pageCode, section, listener),

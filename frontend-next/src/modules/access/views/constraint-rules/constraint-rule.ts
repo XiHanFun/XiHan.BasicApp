@@ -16,9 +16,20 @@ type Translate = (key: string, values?: Record<string, unknown>) => string
 /** 色调，与 XiHan.UI 标签一致 */
 export type ConstraintTone = 'danger' | 'info' | 'neutral' | 'success' | 'warning'
 
-export const CONSTRAINT_TYPES: readonly ConstraintType[] = ['Ssd', 'Dsd', 'MutualExclusion', 'Cardinality', 'Condition']
+export const CONSTRAINT_TYPES: readonly ConstraintType[] = [
+  'Ssd',
+  'Dsd',
+  'MutualExclusion',
+  'Cardinality',
+  'Condition',
+]
 export const CONSTRAINT_TARGET_TYPES: readonly ConstraintTargetType[] = ['Role', 'Permission', 'User']
-export const CONSTRAINT_ACTIONS: readonly ConstraintViolationAction[] = ['Deny', 'Warning', 'Log', 'RequireApproval']
+export const CONSTRAINT_ACTIONS: readonly ConstraintViolationAction[] = [
+  'Deny',
+  'Warning',
+  'Log',
+  'RequireApproval',
+]
 export const CONSTRAINT_STATUSES: readonly ConstraintRuleStatus[] = ['Active', 'Disabled']
 
 /** 约束类型用得了哪些目标类型（与后端一致）：职责分离与条件只约束角色，互斥只约束权限，基数约束角色或用户 */
@@ -32,7 +43,9 @@ export function targetTypesOf(type: ConstraintType): readonly ConstraintTargetTy
 
 /** 这类约束至少几个规则项（职责分离与互斥按组判定，至少两个） */
 export function minItemsOf(type: ConstraintType): number {
-  return type === 'Ssd' || type === 'Dsd' || type === 'MutualExclusion' ? 2 : 1
+  return type === 'Ssd' || type === 'Dsd' || type === 'MutualExclusion'
+    ? 2
+    : 1
 }
 
 /** 用不用数量上限（条件类不用） */
@@ -51,11 +64,21 @@ export interface ConstraintItemModel {
 let nextKey = 1
 
 export function emptyItem(groupNo = 0): ConstraintItemModel {
-  return { key: nextKey++, targetId: '', groupNo, remark: '' }
+  return {
+    key: nextKey++,
+    targetId: '',
+    groupNo,
+    remark: '',
+  }
 }
 
 export function toItemModels(items: readonly ConstraintRuleItem[]): ConstraintItemModel[] {
-  return items.map(item => ({ key: nextKey++, targetId: item.targetId, groupNo: item.groupNo, remark: item.remark ?? '' }))
+  return items.map(item => ({
+    key: nextKey++,
+    targetId: item.targetId,
+    groupNo: item.groupNo,
+    remark: item.remark ?? '',
+  }))
 }
 
 export function toItemInputs(items: readonly ConstraintItemModel[]): ConstraintItemInput[] {
@@ -66,8 +89,12 @@ export function toItemInputs(items: readonly ConstraintItemModel[]): ConstraintI
 export type ItemProblem = 'duplicate' | 'no_target' | 'too_few'
 
 export function findItemProblem(type: ConstraintType, items: readonly ConstraintItemModel[]): { problem: ItemProblem, index: number } | null {
-  if (items.length < minItemsOf(type))
-    return { problem: 'too_few', index: minItemsOf(type) }
+  if (items.length < minItemsOf(type)) {
+    return {
+      problem: 'too_few',
+      index: minItemsOf(type),
+    }
+  }
   const seen = new Set<string>()
   for (const [index, item] of items.entries()) {
     if (!item.targetId)
@@ -104,11 +131,28 @@ export function toListRow(row: ConstraintRuleRow): ConstraintRuleListRow {
 export function constraintRuleResource(): SchemaResource<ConstraintRuleListRow> {
   return {
     page: async (params: SchemaQueryParams) => {
-      const result = await constraintRulesApi.list(toPageRequest(params, { multiples: ['type', 'targetType', 'violationAction', 'status'] }))
-      return toSchemaPageResult({ ...result, items: result.items.map(toListRow) }, params)
+      const result = await constraintRulesApi.list(toPageRequest(params, {
+        multiples: [
+          'type',
+          'targetType',
+          'violationAction',
+          'status',
+        ],
+      }))
+      return toSchemaPageResult({
+        ...result,
+        items: result.items.map(toListRow),
+      }, params)
     },
-    remove: async id => throwOnFailed(await constraintRulesApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => constraintRulesApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
+    remove: async id => throwOnFailed(await constraintRulesApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
+    updateStatus: async (id, enabled) => constraintRulesApi.setStatus({
+      id: String(id),
+      status: enabled ? 'Active' : 'Disabled',
+    }),
   }
 }
 
@@ -152,7 +196,9 @@ export function actionLabel(t: Translate, action: ConstraintViolationAction): st
 }
 
 export function statusLabel(t: Translate, status: ConstraintRuleStatus): string {
-  return status === 'Disabled' ? t('access.constraint_rules.statuses.disabled') : t('access.constraint_rules.statuses.active')
+  return status === 'Disabled'
+    ? t('access.constraint_rules.statuses.disabled')
+    : t('access.constraint_rules.statuses.active')
 }
 
 export function itemProblemMessage(t: Translate, found: { problem: ItemProblem, index: number }): string {

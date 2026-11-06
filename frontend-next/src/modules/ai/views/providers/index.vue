@@ -33,15 +33,28 @@ function reload() {
 const asRow = (row: object) => row as ProviderRow
 
 function statusLabel(status: ProviderStatus): string {
-  return status === 'Active' ? t('common.statuses.enabled') : t('common.statuses.disabled')
+  return status === 'Active'
+    ? t('common.statuses.enabled')
+    : t('common.statuses.disabled')
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const vendors = computed(() => vendorOptions(t))
 
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('ai.providers.col_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('ai.providers.search_placeholder'), order: 0 },
+  {
+    key: 'keyword',
+    title: t('ai.providers.col_name'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('ai.providers.search_placeholder'),
+    order: 0,
+  },
   {
     key: 'name',
     title: t('ai.providers.col_name'),
@@ -60,9 +73,30 @@ const fields = computed<ListFieldSchema[]>(() => [
       ])
     },
   },
-  { key: 'code', title: t('ai.providers.col_code'), dataType: 'string', minWidth: 140, sortable: true, order: 2 },
-  { key: 'vendor', title: t('ai.providers.col_vendor'), dataType: 'string', width: 120, sortable: true, order: 3 },
-  { key: 'chatModel', title: t('ai.providers.col_chat_model'), dataType: 'string', minWidth: 150, sortable: true, order: 4 },
+  {
+    key: 'code',
+    title: t('ai.providers.col_code'),
+    dataType: 'string',
+    minWidth: 140,
+    sortable: true,
+    order: 2,
+  },
+  {
+    key: 'vendor',
+    title: t('ai.providers.col_vendor'),
+    dataType: 'string',
+    width: 120,
+    sortable: true,
+    order: 3,
+  },
+  {
+    key: 'chatModel',
+    title: t('ai.providers.col_chat_model'),
+    dataType: 'string',
+    minWidth: 150,
+    sortable: true,
+    order: 4,
+  },
   {
     key: 'hasApiKey',
     title: t('ai.providers.col_api_key'),
@@ -84,9 +118,18 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('ai.common.status'),
     width: 90,
     order: 6,
-    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'),
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
   },
-  { key: 'order', title: t('ai.common.order'), dataType: 'number', width: 80, sortable: true, order: 7 },
+  {
+    key: 'order',
+    title: t('ai.common.order'),
+    dataType: 'number',
+    width: 80,
+    sortable: true,
+    order: 7,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -98,17 +141,66 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('ai.providers.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'ai.ai-providers.create' },
-    { key: 'test', title: t('ai.providers.action_test'), scope: 'row', tone: 'info', icon: 'lucide:plug', permission: 'ai.ai-providers.execute', disabled: row => testingId.value === asRow(row).id },
-    { key: 'default', title: t('ai.providers.action_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => actionConfirmText(t, t('ai.providers.action_default'), asRow(row).name), disabled: row => asRow(row).isDefault || asRow(row).status !== 'Active', permission: 'ai.ai-providers.update' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai.ai-providers.update' },
-    { key: 'toggle', title: t('ai.common.toggle_status'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'ai.ai-providers.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'ai.ai-providers.delete' },
+    {
+      key: 'create',
+      title: t('ai.providers.add'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'ai.ai-providers.create',
+    },
+    {
+      key: 'test',
+      title: t('ai.providers.action_test'),
+      scope: 'row',
+      tone: 'info',
+      icon: 'lucide:plug',
+      permission: 'ai.ai-providers.execute',
+      disabled: row => testingId.value === asRow(row).id,
+    },
+    {
+      key: 'default',
+      title: t('ai.providers.action_default'),
+      scope: 'row',
+      icon: 'lucide:star',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('ai.providers.action_default'), asRow(row).name),
+      disabled: row => asRow(row).isDefault || asRow(row).status !== 'Active',
+      permission: 'ai.ai-providers.update',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'ai.ai-providers.update',
+    },
+    {
+      key: 'toggle',
+      title: t('ai.common.toggle_status'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'ai.ai-providers.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'ai.ai-providers.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -140,10 +232,14 @@ function onAction(payload: SchemaActionPayload) {
 function probeText(result: ProviderTestResult): string {
   const { lines, embeddingAbsent } = probeLines(result)
   const text = lines.map((line) => {
-    const name = line.kind === 'chat' ? t('ai.providers.probe_chat') : t('ai.providers.probe_embedding')
+    const name = line.kind === 'chat'
+      ? t('ai.providers.probe_chat')
+      : t('ai.providers.probe_embedding')
     if (!line.success)
       return `${name} ${t('ai.providers.probe_failed', { message: line.message ?? '' })}`
-    const dimensions = line.dimensions === null ? '' : t('ai.providers.probe_dimensions', { n: line.dimensions })
+    const dimensions = line.dimensions === null
+      ? ''
+      : t('ai.providers.probe_dimensions', { n: line.dimensions })
     return `${name} ${t('ai.providers.probe_ok', { ms: line.elapsedMilliseconds })}${dimensions}`
   })
   if (embeddingAbsent)
@@ -158,10 +254,18 @@ async function handleTest(row: ProviderRow) {
     const result = await aiProviders.test({ id: row.id })
     loading.destroy()
     // 成功 5 秒后自动关闭，失败常驻待看完（照 4.x）
-    if (result.success)
-      notification.success(t('ai.providers.test_success'), { description: probeText(result), duration: 5000 })
-    else
-      notification.danger(t('ai.providers.test_failed'), { description: probeText(result), duration: 0 })
+    if (result.success) {
+      notification.success(t('ai.providers.test_success'), {
+        description: probeText(result),
+        duration: 5000,
+      })
+    }
+    else {
+      notification.danger(t('ai.providers.test_failed'), {
+        description: probeText(result),
+        duration: 0,
+      })
+    }
   }
   catch (error) {
     loading.destroy()
@@ -194,7 +298,13 @@ async function handleEdit(row: ProviderRow) {
 
 async function handleToggle(row: ProviderRow) {
   try {
-    await aiProviders.setStatus({ id: row.id, concurrencyStamp: row.concurrencyStamp, status: row.status === 'Active' ? 'Disabled' : 'Active' })
+    await aiProviders.setStatus({
+      id: row.id,
+      concurrencyStamp: row.concurrencyStamp,
+      status: row.status === 'Active'
+        ? 'Disabled'
+        : 'Active',
+    })
     toast.success(t('ai.common.status_updated'))
     reload()
   }
@@ -205,7 +315,9 @@ async function handleToggle(row: ProviderRow) {
 
 async function handleDelete(row: ProviderRow) {
   try {
-    const result = await aiProviders.delete({ ids: [row.id] })
+    const result = await aiProviders.delete({
+      ids: [row.id],
+    })
     throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
@@ -215,7 +327,9 @@ async function handleDelete(row: ProviderRow) {
   }
 }
 
-const modalTitle = computed(() => editor.isEdit.value ? t('ai.providers.modal_edit_title') : t('ai.providers.modal_add_title'))
+const modalTitle = computed(() => editor.isEdit.value
+  ? t('ai.providers.modal_edit_title')
+  : t('ai.providers.modal_add_title'))
 
 async function onSubmit() {
   if (await editor.submit()) {

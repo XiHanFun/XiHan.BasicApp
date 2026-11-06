@@ -5,11 +5,16 @@ import { BYTES_PER_MB, formatPrice, quotaLevel, storageLimitBytes, subscriptionE
 
 /** 假翻译：键原样返回，带参数时拼上参数，断言能看出用了哪个键与什么值 */
 function t(key: string, values?: Record<string, unknown>): string {
-  return values ? `${key}${JSON.stringify(values)}` : key
+  return values
+    ? `${key}${JSON.stringify(values)}`
+    : key
 }
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': contentType },
+  })
 }
 
 function subscription(extra: Partial<Subscription> = {}): Subscription {
@@ -56,13 +61,42 @@ describe('quotaLevel', () => {
 
 describe('subscriptionQuotas', () => {
   it('席位按有效上限算剩余，存储按 MB 上限换算字节后比较；不限只出提示、不出比例', () => {
-    const [seats, storage] = subscriptionQuotas(t, subscription({ userLimit: 10, usedSeats: 3, storageLimitMb: null, usedStorageBytes: 5 * BYTES_PER_MB }))
-    expect(seats).toMatchObject({ key: 'seats', usedText: '3', limitText: '10', ratio: 0.3, tone: 'muted', hint: 'tenancy.subscription.remaining{"value":"7"}' })
-    expect(storage).toMatchObject({ key: 'storage', usedText: '5 MB', limitText: null, ratio: null, tone: 'muted', hint: 'tenancy.subscription.unlimited' })
+    const [seats, storage] = subscriptionQuotas(t, subscription({
+      userLimit: 10,
+      usedSeats: 3,
+      storageLimitMb: null,
+      usedStorageBytes: 5 * BYTES_PER_MB,
+    }))
+    expect(seats).toMatchObject({
+      key: 'seats',
+      usedText: '3',
+      limitText: '10',
+      ratio: 0.3,
+      tone: 'muted',
+      hint: 'tenancy.subscription.remaining{"value":"7"}',
+    })
+    expect(storage).toMatchObject({
+      key: 'storage',
+      usedText: '5 MB',
+      limitText: null,
+      ratio: null,
+      tone: 'muted',
+      hint: 'tenancy.subscription.unlimited',
+    })
 
-    const [fullSeats, tightStorage] = subscriptionQuotas(t, subscription({ userLimit: 10, usedSeats: 10, storageLimitMb: 1024, usedStorageBytes: 900 * BYTES_PER_MB }))
+    const [fullSeats, tightStorage] = subscriptionQuotas(t, subscription({
+      userLimit: 10,
+      usedSeats: 10,
+      storageLimitMb: 1024,
+      usedStorageBytes: 900 * BYTES_PER_MB,
+    }))
     expect(fullSeats).toMatchObject({ ratio: 1, tone: 'danger', hint: 'tenancy.subscription.over_limit' })
-    expect(tightStorage).toMatchObject({ usedText: '900 MB', limitText: '1 GB', tone: 'warning', hint: 'tenancy.subscription.remaining{"value":"124 MB"}' })
+    expect(tightStorage).toMatchObject({
+      usedText: '900 MB',
+      limitText: '1 GB',
+      tone: 'warning',
+      hint: 'tenancy.subscription.remaining{"value":"124 MB"}',
+    })
   })
 })
 
@@ -106,7 +140,12 @@ describe('useSubscription', () => {
     expect(state.subscription.value?.userLimit).toBe(5)
     expect(state.error.value).toBeNull()
 
-    respond = () => json(403, { code: 'TENANCY_DENIED_002', status: 403, detail: 'tenant side only', traceId: 'x' }, 'application/problem+json')
+    respond = () => json(403, {
+      code: 'TENANCY_DENIED_002',
+      status: 403,
+      detail: 'tenant side only',
+      traceId: 'x',
+    }, 'application/problem+json')
     await state.load()
     expect(state.subscription.value).toBeNull()
     expect(state.error.value).toBe('tenant side only')

@@ -75,8 +75,17 @@ export function queryFiltersFromSchema<TRow extends object>(
       if (Array.isArray(value) && value.length === 2 && value[0] != null && value[1] != null) {
         const startIso = new Date(value[0] as number).toISOString()
         const endRaw = value[1] as number
-        const endTs = field.dataType === 'date' ? endOfDayTimestamp(endRaw) : endRaw
-        result.push({ field: field.key, operator: QueryOperator.Between, values: [startIso, new Date(endTs).toISOString()] })
+        const endTs = field.dataType === 'date'
+          ? endOfDayTimestamp(endRaw)
+          : endRaw
+        result.push({
+          field: field.key,
+          operator: QueryOperator.Between,
+          values: [
+            startIso,
+            new Date(endTs).toISOString(),
+          ],
+        })
       }
     }
     else if (field.searchMultiple) {
@@ -123,7 +132,9 @@ export function toColumns<TRow extends object>(
   if (options?.columnOrder) {
     const indexOf = (key: string) => {
       const i = options.columnOrder!.indexOf(key)
-      return i === -1 ? Number.MAX_SAFE_INTEGER : i
+      return i === -1
+        ? Number.MAX_SAFE_INTEGER
+        : i
     }
     fields = [...fields].sort((a, b) => indexOf(a.key) - indexOf(b.key))
   }

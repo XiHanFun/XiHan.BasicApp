@@ -43,7 +43,12 @@ vi.mock('./views', () => ({
   resolveView: (component: string) => {
     if (component.includes('missing'))
       throw new Error(`View '${component}' is not found`)
-    return async () => ({ default: defineComponent({ name: 'MenuPageProbe', render: () => null }) })
+    return async () => ({
+      default: defineComponent({
+        name: 'MenuPageProbe',
+        render: () => null,
+      }),
+    })
   },
   viewKeys: () => [],
 }))
@@ -51,11 +56,19 @@ vi.mock('./views', () => ({
 const { useAppStore, useAuthStore, useTabbarStore } = await import('~/stores')
 const { setupRouterGuard } = await import('./guard')
 
-const Blank = defineComponent({ name: 'BlankProbe', render: () => null })
+const Blank = defineComponent({
+  name: 'BlankProbe',
+  render: () => null,
+})
 
 function baseRoutes(): RouteRecordRaw[] {
   return [
-    { path: '/', name: 'RootLayout', component: Blank, children: [] },
+    {
+      path: '/',
+      name: 'RootLayout',
+      component: Blank,
+      children: [],
+    },
     {
       path: '/auth',
       name: 'Authentication',
@@ -66,43 +79,135 @@ function baseRoutes(): RouteRecordRaw[] {
         { path: 'oauth-callback', name: 'OAuthCallback', component: Blank },
       ],
     },
-    { path: HOME_PATH, name: 'Dashboard', component: Blank, meta: { title: 'page.control_center.title' } },
-    { path: '/identity/user', name: 'IdentityUser', component: Blank, meta: { title: 'error.forbidden', icon: 'mdi:account', keepAlive: true } },
-    { path: '/plain', name: 'Plain', component: Blank, meta: { title: '自定义标题🚀' } },
-    { path: '/affix', name: 'Affix', component: Blank, meta: { title: 'error.server_error', affixTab: true } },
-    { path: '/standalone', name: 'Standalone', component: Blank, meta: { title: 'page.control_center.title', standalone: true } },
+    {
+      path: HOME_PATH,
+      name: 'Dashboard',
+      component: Blank,
+      meta: { title: 'page.control_center.title' },
+    },
+    {
+      path: '/identity/user',
+      name: 'IdentityUser',
+      component: Blank,
+      meta: { title: 'error.forbidden', icon: 'mdi:account', keepAlive: true },
+    },
+    {
+      path: '/plain',
+      name: 'Plain',
+      component: Blank,
+      meta: { title: '自定义标题🚀' },
+    },
+    {
+      path: '/affix',
+      name: 'Affix',
+      component: Blank,
+      meta: { title: 'error.server_error', affixTab: true },
+    },
+    {
+      path: '/standalone',
+      name: 'Standalone',
+      component: Blank,
+      meta: { title: 'page.control_center.title', standalone: true },
+    },
     { path: '/no-title', name: 'NoTitle', component: Blank },
     { path: '/anonymous', component: Blank },
-    { path: '/broken', name: 'Broken', component: () => Promise.reject(new Error('chunk load failed')) },
+    {
+      path: '/broken',
+      name: 'Broken',
+      component: () => Promise.reject(new Error('chunk load failed')),
+    },
     { path: FORBIDDEN_PATH, name: 'Forbidden', component: Blank },
     { path: SERVER_ERROR_PATH, name: 'ServerError', component: Blank },
-    { path: NOT_FOUND_PATH, name: 'NotFound', component: Blank, meta: { title: 'error.not_found' } },
+    {
+      path: NOT_FOUND_PATH,
+      name: 'NotFound',
+      component: Blank,
+      meta: { title: 'error.not_found' },
+    },
     { path: '/:pathMatch(.*)*', name: 'NotFoundCatchAll', component: Blank },
   ]
 }
 
 function createGuardedRouter(extra: RouteRecordRaw[] = []): Router {
-  const router = createRouter({ history: createMemoryHistory(), routes: [...baseRoutes(), ...extra] })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      ...baseRoutes(),
+      ...extra,
+    ],
+  })
   setupRouterGuard(router)
   return router
 }
 
-const user = { id: 'u-1', userName: 'alice', displayName: 'Alice', email: null, phoneNumber: null, homeTenantId: 'platform', status: 'Active', lastLoginAt: null, createdAt: '2026-10-28T00:00:00Z', createdBy: null } as Session['user']
+const user = {
+  id: 'u-1',
+  userName: 'alice',
+  displayName: 'Alice',
+  email: null,
+  phoneNumber: null,
+  homeTenantId: 'platform',
+  status: 'Active',
+  lastLoginAt: null,
+  createdAt: '2026-10-28T00:00:00Z',
+  createdBy: null,
+} as Session['user']
 
 function session(): Session {
-  return { accessToken: 'token-abc', accessExpiresAt: '2026-10-28T02:00:00Z', refreshToken: 'r-1', refreshExpiresAt: '2026-11-04T00:00:00Z', sessionId: 's-1', tenantId: null, tenantName: null, impersonatorUserName: null, mustChangePassword: false, user } as Session
+  return {
+    accessToken: 'token-abc',
+    accessExpiresAt: '2026-10-28T02:00:00Z',
+    refreshToken: 'r-1',
+    refreshExpiresAt: '2026-11-04T00:00:00Z',
+    sessionId: 's-1',
+    tenantId: null,
+    tenantName: null,
+    impersonatorUserName: null,
+    mustChangePassword: false,
+    user,
+  } as Session
 }
 
 function page(code: string, route: string, extra: Partial<MenuNode> = {}): MenuNode {
-  return { code, kind: 'Page', route, component: `${route.slice(1)}/index`, titleKey: `${code}.title`, title: null, icon: null, order: 0, permission: null, externalUrl: null, hidden: false, keepAlive: false, affix: false, badge: null, badgeType: null, badgeDot: false, children: [], ...extra }
+  return {
+    code,
+    kind: 'Page',
+    route,
+    component: `${route.slice(1)}/index`,
+    titleKey: `${code}.title`,
+    title: null,
+    icon: null,
+    order: 0,
+    permission: null,
+    externalUrl: null,
+    hidden: false,
+    keepAlive: false,
+    affix: false,
+    badge: null,
+    badgeType: null,
+    badgeDot: false,
+    children: [],
+    ...extra,
+  }
 }
 
-function permissions(menus: MenuNode[] = [page('workbench.dashboard', HOME_PATH)], codes: string[] = [], roles: string[] = ['admin']): Permissions {
-  return { permissions: codes, roles: roles.map(code => ({ id: `r-${code}`, code, name: code })), menus, pages: [], isPlatform: true }
+function permissions(menus: MenuNode[] = [
+  page('workbench.dashboard', HOME_PATH),
+], codes: string[] = [], roles: string[] = ['admin']): Permissions {
+  return {
+    permissions: codes,
+    roles: roles.map(code => ({ id: `r-${code}`, code, name: code })),
+    menus,
+    pages: [],
+    isPlatform: true,
+  }
 }
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': contentType },
+  })
 }
 
 /** 已登录、权限与菜单已装载（不触发装载分支） */
@@ -124,14 +229,25 @@ function signInPending(respond: () => Response | Promise<Response>): { calls: ()
         count++
         return respond()
       }
-      return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: String(url) }, 'application/problem+json')
+      return json(404, {
+        code: 'PROTOCOLS_NOTFOUND_000',
+        status: 404,
+        detail: String(url),
+      }, 'application/problem+json')
     }) as unknown as typeof fetch,
   })
-  return { calls: () => count }
+  return {
+    calls: () => count,
+  }
 }
 
 function serverDown(): Response {
-  return json(500, { code: 'KERNEL_UNEXPECTED_000', status: 500, detail: 'menus down', traceId: 't' }, 'application/problem+json')
+  return json(500, {
+    code: 'KERNEL_UNEXPECTED_000',
+    status: 500,
+    detail: 'menus down',
+    traceId: 't',
+  }, 'application/problem+json')
 }
 
 let originalTitle = ''
@@ -194,7 +310,9 @@ describe('未登录', () => {
 
 describe('已登录访问认证页', () => {
   it('被弹回菜单推导出的首页，认证前缀下的注册页同样弹回', async () => {
-    signInWithLoadedRoutes(permissions([page('identity.users', '/identity/user')]))
+    signInWithLoadedRoutes(permissions([
+      page('identity.users', '/identity/user'),
+    ]))
     const router = createGuardedRouter()
     await router.push(LOGIN_PATH)
     expect(router.currentRoute.value.path).toBe('/identity/user')
@@ -214,7 +332,9 @@ describe('已登录访问认证页', () => {
 
 describe('后端菜单装载', () => {
   it('菜单装成可导航的路由，装载完成后重进当前地址，query 与 hash 原样保留', async () => {
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users', { permission: 'identity.users.read' })], ['identity.users.read'])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users', { permission: 'identity.users.read' }),
+    ], ['identity.users.read'])))
     const router = createGuardedRouter()
     await router.push('/identity/users?keyword=abc#top')
     expect(router.currentRoute.value.name).toBe('identity.users')
@@ -222,7 +342,17 @@ describe('后端菜单装载', () => {
   })
 
   it('目录节点带子路由并自动重定向到第一个子页面', async () => {
-    const directory: MenuNode = { ...page('custom.system', ''), kind: 'Directory', component: '', titleKey: '', title: 'System', children: [page('access.roles', '/access/roles'), page('identity.users', '/identity/users')] }
+    const directory: MenuNode = {
+      ...page('custom.system', ''),
+      kind: 'Directory',
+      component: '',
+      titleKey: '',
+      title: 'System',
+      children: [
+        page('access.roles', '/access/roles'),
+        page('identity.users', '/identity/users'),
+      ],
+    }
     signInPending(() => json(200, permissions([directory])))
     const router = createGuardedRouter()
     await router.push('/custom.system')
@@ -230,8 +360,18 @@ describe('后端菜单装载', () => {
   })
 
   it('外链菜单不落地成路由，但仍完整保存在菜单投影里供菜单渲染', async () => {
-    const link: MenuNode = { ...page('custom.docs', ''), kind: 'Link', component: '', titleKey: '', title: 'Docs', externalUrl: 'https://docs.xihanfun.com' }
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users'), link])))
+    const link: MenuNode = {
+      ...page('custom.docs', ''),
+      kind: 'Link',
+      component: '',
+      titleKey: '',
+      title: 'Docs',
+      externalUrl: 'https://docs.xihanfun.com',
+    }
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+      link,
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(router.hasRoute('custom.docs')).toBe(false)
@@ -239,7 +379,10 @@ describe('后端菜单装载', () => {
   })
 
   it('组件找不到的菜单回落到 404 兜底视图并留下错误日志，不连累其它页面', async () => {
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users'), page('identity.broken', '/identity/missing')])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+      page('identity.broken', '/identity/missing'),
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(router.currentRoute.value.name).toBe('identity.users')
@@ -248,20 +391,26 @@ describe('后端菜单装载', () => {
   })
 
   it('换账号后重新装载，上一份菜单装上的路由先被卸掉', async () => {
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users')])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(router.hasRoute('identity.users')).toBe(true)
 
     useAuthStore().clear()
-    signInPending(() => json(200, permissions([page('access.roles', '/access/roles')])))
+    signInPending(() => json(200, permissions([
+      page('access.roles', '/access/roles'),
+    ])))
     await router.push('/access/roles')
     expect(router.hasRoute('identity.users')).toBe(false)
     expect(router.currentRoute.value.name).toBe('access.roles')
   })
 
   it('装载成功后拉取后端偏好，且只在装载那一次导航里拉', async () => {
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users')])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     await router.push('/plain')
@@ -270,7 +419,9 @@ describe('后端菜单装载', () => {
 
   it('偏好同步失败只记日志，不影响已经建好的路由表', async () => {
     stubs.hydratePreferencesFromBackend.mockRejectedValueOnce(new Error('sync down'))
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users')])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(router.currentRoute.value.name).toBe('identity.users')
@@ -279,7 +430,9 @@ describe('后端菜单装载', () => {
 
   it('刚经模仿换了身份：装载后标记偏好身份已切换，标记只用一次', async () => {
     sessionStorage.setItem('xihan.next.identity-switched', '1')
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users')])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(stubs.markPreferenceIdentitySwitched).toHaveBeenCalledTimes(1)
@@ -298,7 +451,11 @@ describe('装载失败', () => {
 
   it('失败后路由仍是未装载态：停在 /500 不自我循环，下一次导航重新尝试', async () => {
     let fail = true
-    const pending = signInPending(() => (fail ? serverDown() : json(200, permissions([page('identity.users', '/identity/users')]))))
+    const pending = signInPending(() => (fail
+      ? serverDown()
+      : json(200, permissions([
+          page('identity.users', '/identity/users'),
+        ]))))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(router.currentRoute.value.path).toBe(SERVER_ERROR_PATH)
@@ -313,7 +470,12 @@ describe('装载失败', () => {
   it('会话已失效（请求层清掉了会话）时回登录页并带上原路径，而不是 500', async () => {
     signInPending(() => {
       useAuthStore().clear()
-      return json(401, { code: 'SECURITY_UNAUTHENTICATED_000', status: 401, detail: 'expired', traceId: 't' }, 'application/problem+json')
+      return json(401, {
+        code: 'SECURITY_UNAUTHENTICATED_000',
+        status: 401,
+        detail: 'expired',
+        traceId: 't',
+      }, 'application/problem+json')
     })
     const router = createGuardedRouter()
     await router.push('/identity/users')
@@ -332,7 +494,9 @@ describe('装载失败', () => {
 
 describe('首页与 404 收敛', () => {
   it('根路径收敛到 homePath', async () => {
-    signInWithLoadedRoutes(permissions([page('identity.users', '/identity/user')]))
+    signInWithLoadedRoutes(permissions([
+      page('identity.users', '/identity/user'),
+    ]))
     const router = createGuardedRouter()
     await router.push('/')
     expect(router.currentRoute.value.path).toBe('/identity/user')
@@ -348,7 +512,9 @@ describe('首页与 404 收敛', () => {
   })
 
   it('不存在的路由不留标签，真实页面照常进标签栏', async () => {
-    signInWithLoadedRoutes(permissions([page('identity.users', '/identity/user')]))
+    signInWithLoadedRoutes(permissions([
+      page('identity.users', '/identity/user'),
+    ]))
     const router = createGuardedRouter()
     await router.push('/identity/user')
     await router.push('/no-such-page')
@@ -364,9 +530,31 @@ describe('首页与 404 收敛', () => {
 
 describe('meta 上的角色与权限校验', () => {
   const guarded: RouteRecordRaw[] = [
-    { path: '/by-role', name: 'ByRole', component: Blank, meta: { roles: ['admin'] } },
-    { path: '/by-code', name: 'ByCode', component: Blank, meta: { permissions: ['identity.users.read'] } },
-    { path: '/deny', name: 'Deny', component: Blank, meta: { roles: ['nobody'], permissions: ['nope'] } },
+    {
+      path: '/by-role',
+      name: 'ByRole',
+      component: Blank,
+      meta: {
+        roles: ['admin'],
+      },
+    },
+    {
+      path: '/by-code',
+      name: 'ByCode',
+      component: Blank,
+      meta: {
+        permissions: ['identity.users.read'],
+      },
+    },
+    {
+      path: '/deny',
+      name: 'Deny',
+      component: Blank,
+      meta: {
+        roles: ['nobody'],
+        permissions: ['nope'],
+      },
+    },
   ]
 
   it('命中所需角色或权限码即放行', async () => {
@@ -393,7 +581,9 @@ describe('meta 上的角色与权限校验', () => {
   })
 
   it('动态菜单 meta 里的权限声明同样被守卫执行', async () => {
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users', { permission: 'identity.users.read' })], [])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users', { permission: 'identity.users.read' }),
+    ], [])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     expect(router.currentRoute.value.path).toBe(FORBIDDEN_PATH)
@@ -508,7 +698,14 @@ describe('标签栏写入', () => {
 
     const tabbarStore = useTabbarStore()
     const tab = tabbarStore.tabs.find(item => item.key === '/identity/user?keyword=abc')
-    expect(tab).toMatchObject({ path: '/identity/user?keyword=abc', title: 'error.forbidden', name: 'IdentityUser', keepAlive: true, pinned: false, closable: true })
+    expect(tab).toMatchObject({
+      path: '/identity/user?keyword=abc',
+      title: 'error.forbidden',
+      name: 'IdentityUser',
+      keepAlive: true,
+      pinned: false,
+      closable: true,
+    })
     expect(tab?.meta?.icon).toBe('mdi:account')
     expect(tabbarStore.cachedTabNames).toContain('IdentityUser')
   })
@@ -565,7 +762,9 @@ describe('标签栏写入', () => {
   })
 
   it('菜单装上的页面以页面码为路由名进标签，KeepAlive 按它命中', async () => {
-    signInPending(() => json(200, permissions([page('identity.users', '/identity/users', { keepAlive: true })])))
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users', { keepAlive: true }),
+    ])))
     const router = createGuardedRouter()
     await router.push('/identity/users')
     const tabbarStore = useTabbarStore()

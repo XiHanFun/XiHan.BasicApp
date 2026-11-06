@@ -426,8 +426,23 @@ describe('useDynamicIsland 会话级持久化', () => {
 
   it('刷新后恢复服务端进行中任务与历史', async () => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-      tasks: [{ id: 'server:job-1', label: '恢复的任务', progress: 40, startedAt: 1000 }],
-      history: [{ id: 'h1', label: '历史项', state: 'success', order: 7, time: 1 }],
+      tasks: [
+        {
+          id: 'server:job-1',
+          label: '恢复的任务',
+          progress: 40,
+          startedAt: 1000,
+        },
+      ],
+      history: [
+        {
+          id: 'h1',
+          label: '历史项',
+          state: 'success',
+          order: 7,
+          time: 1,
+        },
+      ],
     }))
 
     const { useDynamicIsland } = await loadModule()
@@ -442,7 +457,15 @@ describe('useDynamicIsland 会话级持久化', () => {
   it('恢复历史后序号续接，新任务不会与恢复项撞 order', async () => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
       tasks: [],
-      history: [{ id: 'h1', label: '历史项', state: 'success', order: 7, time: 1 }],
+      history: [
+        {
+          id: 'h1',
+          label: '历史项',
+          state: 'success',
+          order: 7,
+          time: 1,
+        },
+      ],
     }))
 
     const { islandStart, useDynamicIsland } = await loadModule()
@@ -534,7 +557,13 @@ describe('useDynamicIsland 服务端任务进度', () => {
   it('null 的 detail / progress / link 被规整为 undefined，不写进任务', async () => {
     const { applyServerTaskProgress, useDynamicIsland } = await loadModule()
 
-    applyServerTaskProgress({ taskId: 'job-1', label: '任务', detail: null, progress: null, link: null })
+    applyServerTaskProgress({
+      taskId: 'job-1',
+      label: '任务',
+      detail: null,
+      progress: null,
+      link: null,
+    })
 
     const task = useDynamicIsland().activeTasks.value[0]
     expect(task?.detail).toBeUndefined()
@@ -547,7 +576,10 @@ describe('useDynamicIsland 关闭时的兜底接管', () => {
   it('关闭后 islandStart 不进岛，终态改由轻提示接管', async () => {
     const { configureDynamicIsland, islandStart, useDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     islandStart('t', '正在保存').success('保存成功')
 
@@ -558,7 +590,10 @@ describe('useDynamicIsland 关闭时的兜底接管', () => {
   it('关闭后进行中态静默，不产生任何轻提示', async () => {
     const { configureDynamicIsland, islandStart } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     const task = islandStart('t', '正在保存')
     task.update('还在保存')
@@ -570,7 +605,10 @@ describe('useDynamicIsland 关闭时的兜底接管', () => {
   it('关闭后终态未带文案时沿用最后一次 update 的文案', async () => {
     const { configureDynamicIsland, islandStart } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     const task = islandStart('t', '初始文案')
     task.update('最新文案')
@@ -582,7 +620,10 @@ describe('useDynamicIsland 关闭时的兜底接管', () => {
   it('关闭后文案为空白时不发轻提示，避免空气泡', async () => {
     const { configureDynamicIsland, islandStart } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     islandStart('t', '   ').success()
 
@@ -592,7 +633,10 @@ describe('useDynamicIsland 关闭时的兜底接管', () => {
   it('关闭后常驻状态整体静默，不降级成消息噪音', async () => {
     const { configureDynamicIsland, islandStatus, useDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     const status = islandStatus('net', '网络已断开')
     status.error('仍然断开')
@@ -605,7 +649,10 @@ describe('useDynamicIsland 关闭时的兜底接管', () => {
   it('关闭后服务端任务的进行中态静默、终态走轻提示', async () => {
     const { configureDynamicIsland, applyServerTaskProgress, useDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     applyServerTaskProgress({ taskId: 'job-1', label: '导入中' })
     expect(message).not.toHaveBeenCalled()

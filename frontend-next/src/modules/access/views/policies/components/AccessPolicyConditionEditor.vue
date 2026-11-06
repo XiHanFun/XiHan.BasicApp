@@ -35,16 +35,23 @@ function attributeOf(row: ConditionRowModel) {
 
 /** 选了属性只列它可用的运算符，没选列出全部 */
 function operatorOptionsFor(row: ConditionRowModel) {
-  return (attributeOf(row)?.operators ?? CONDITION_OPERATORS).map(operator => ({ value: operator, label: operatorLabel(t, operator) }))
+  return (attributeOf(row)?.operators ?? CONDITION_OPERATORS).map(operator => ({
+    value: operator,
+    label: operatorLabel(t, operator),
+  }))
 }
 
 function hintFor(row: ConditionRowModel) {
   const attribute = attributeOf(row)
-  return attribute ? valueHint(t, attribute.kind, row.operator) : t('access.policies.editor.pick_attribute_first')
+  return attribute
+    ? valueHint(t, attribute.kind, row.operator)
+    : t('access.policies.editor.pick_attribute_first')
 }
 
 function onAttributeChange(row: ConditionRowModel, value: unknown) {
-  row.attribute = typeof value === 'string' ? value : ''
+  row.attribute = typeof value === 'string'
+    ? value
+    : ''
   row.familySuffix = ''
   const operators = attributeOf(row)?.operators ?? []
   if (operators.length > 0 && !operators.includes(row.operator))
@@ -52,7 +59,15 @@ function onAttributeChange(row: ConditionRowModel, value: unknown) {
 }
 
 function addGroup() {
-  groups.value = [...groups.value, { key: newKey(), rows: [emptyRow()] }]
+  groups.value = [
+    ...groups.value,
+    {
+      key: newKey(),
+      rows: [
+        emptyRow(),
+      ],
+    },
+  ]
 }
 
 function removeGroup(index: number) {

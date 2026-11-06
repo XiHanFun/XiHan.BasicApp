@@ -51,7 +51,9 @@ const summary = computed(() => {
     return ''
   }
   const flat = text.replace(/\s+/g, ' ')
-  return flat.length > props.summaryLimit ? `${flat.slice(0, props.summaryLimit)}…` : flat
+  return flat.length > props.summaryLimit
+    ? `${flat.slice(0, props.summaryLimit)}…`
+    : flat
 })
 
 function open() {

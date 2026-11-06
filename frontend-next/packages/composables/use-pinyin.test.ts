@@ -119,7 +119,9 @@ describe('getPinyinIndex 索引内容', () => {
     expect(index?.fullMap).toEqual([0, 0, 2, 2, 2])
     expect(index?.initials).toBe('🚀p')
     // 首字母串按码点数只有两位（emoji + p），而不是三位
-    expect([...(index?.initials ?? '')]).toHaveLength(2)
+    expect([
+      ...(index?.initials ?? ''),
+    ]).toHaveLength(2)
   })
 
   // 回归锚点（清单条目 44）：fullMap 必须与 full 逐码元等长，

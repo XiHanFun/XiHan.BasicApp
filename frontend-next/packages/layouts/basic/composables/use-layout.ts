@@ -4,7 +4,9 @@ import { computed, toRef } from 'vue'
 
 export function useLayout(layoutModeRef: Ref<string> | (() => string)) {
   const currentLayout
-    = typeof layoutModeRef === 'function' ? computed(layoutModeRef) : toRef(layoutModeRef)
+    = typeof layoutModeRef === 'function'
+      ? computed(layoutModeRef)
+      : toRef(layoutModeRef)
 
   const isSideNav = computed(() => currentLayout.value === 'side')
   const isSideMixedNav = computed(() => currentLayout.value === 'side-mixed')

@@ -36,7 +36,17 @@ interface FieldNode {
 function valueNode(name: string, label: string, inputType: PrintSampleInputType | undefined, kind?: PrintFieldKind): FieldNode {
   const type = inputType ? VALUE_TYPES[inputType] : undefined
   const content = kind ? CONTENTS[kind] : undefined
-  return { name, label, kind: 'value', ...(type ? { type } : {}), ...(content ? { content } : {}) }
+  return {
+    name,
+    label,
+    kind: 'value',
+    ...(type
+      ? { type }
+      : {}),
+    ...(content
+      ? { content }
+      : {}),
+  }
 }
 
 /** 按点号路径把叶子放进树里，中间层是 object */
@@ -72,7 +82,12 @@ export function toPrintDataFields(fields: readonly PrintFieldDefinition[]): Data
   const root: FieldNode[] = []
   for (const field of fields) {
     const leaf: FieldNode = field.kind === 'table'
-      ? { name: field.key, label: field.label, kind: 'list', children: columnNodes(field.columns ?? []) }
+      ? {
+          name: field.key,
+          label: field.label,
+          kind: 'list',
+          children: columnNodes(field.columns ?? []),
+        }
       : valueNode(field.key, field.label, field.inputType, field.kind)
     insert(root, field.key.split('.'), leaf)
   }
@@ -89,7 +104,9 @@ export function listUnregisteredPrintFields(document: PrintDocument, fields: rea
   const missing: string[] = []
   const walk = (used: readonly DataField[], offered: readonly DataField[] | undefined, prefix: string): void => {
     for (const field of used) {
-      const path = prefix ? `${prefix}.${field.name}` : field.name
+      const path = prefix
+        ? `${prefix}.${field.name}`
+        : field.name
       const match = offered?.find(item => item.name === field.name)
       if (!match)
         missing.push(path)

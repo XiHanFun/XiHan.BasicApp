@@ -54,7 +54,9 @@ const {
 } = useDynamicIsland()
 
 /** 壳体是否可见：折叠态需有当前任务，展开态需有面板内容 */
-const shellVisible = computed(() => enabled.value && (expanded.value ? hasPanel.value : !!current.value))
+const shellVisible = computed(() => enabled.value && (expanded.value
+  ? hasPanel.value
+  : !!current.value))
 
 // ── 折叠态形态 ──────────────────────────────────────────────────
 // 单任务＝第一形态：中~宽自适应胶囊，显示任务文案
@@ -145,9 +147,13 @@ function relativeTime(time: number): string {
     return t('island.just_now')
   }
   if (diff < 3_600_000) {
-    return t('island.minutes_ago', { n: Math.floor(diff / 60_000) })
+    return t('island.minutes_ago', {
+      n: Math.floor(diff / 60_000),
+    })
   }
-  return t('island.hours_ago', { n: Math.floor(diff / 3_600_000) })
+  return t('island.hours_ago', {
+    n: Math.floor(diff / 3_600_000),
+  })
 }
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
@@ -196,7 +202,9 @@ const cardTaskId = ref<string | null>(null)
 let cardTimer: ReturnType<typeof setTimeout> | null = null
 
 const cardTask = computed<IslandTask | null>(() =>
-  (cardTaskId.value ? activeTasks.value.find(item => item.id === cardTaskId.value) ?? null : null))
+  (cardTaskId.value
+    ? activeTasks.value.find(item => item.id === cardTaskId.value) ?? null
+    : null))
 
 function clearCardTimer(): void {
   if (cardTimer) {
@@ -259,7 +267,9 @@ function triggerSlideIn(): void {
 watch(
   // 键里带 detail：同一条目内容被更新（如同一任务推来新正文）也要重新呈现卡片，
   // 否则内容变了却因 id/状态/标题未变而静默停留在胶囊
-  () => (current.value ? `${current.value.id}:${current.value.state}:${current.value.label}:${current.value.detail ?? ''}` : null),
+  () => (current.value
+    ? `${current.value.id}:${current.value.state}:${current.value.label}:${current.value.detail ?? ''}`
+    : null),
   (next, prev) => {
     const task = current.value
     if (!next || !task) {
@@ -331,7 +341,13 @@ watch(panelLayerRef, (layer, _old, onCleanup) => {
 }, { flush: 'post' })
 
 watch(
-  () => [displayLabel.value, current.value?.state, current.value?.progress != null, loadingCount.value, pendingCount.value] as const,
+  () => [
+    displayLabel.value,
+    current.value?.state,
+    current.value?.progress != null,
+    loadingCount.value,
+    pendingCount.value,
+  ] as const,
   () => {
     void measurePill()
   },
@@ -345,7 +361,9 @@ const STACK_MAX_LAYERS = 2
 const hovering = ref(false)
 
 /** 露在后方的消息：栈顶之下由新到旧取前几条 */
-const stackTasks = computed(() => (expanded.value ? [] : pendingTasks.value.slice(0, STACK_MAX_LAYERS)))
+const stackTasks = computed(() => (expanded.value
+  ? []
+  : pendingTasks.value.slice(0, STACK_MAX_LAYERS)))
 
 /**
  * 叠层几何：与最前一条等大，逐层向下挪并缩小，从下缘露出边
@@ -356,7 +374,9 @@ function layerStyle(depth: number): Record<string, string> {
   const isCard = mode.value === 'card'
   const lift = (hovering.value ? 18 : 12) * depth
   return {
-    width: `${isCard ? panelWidth() : pillWidth.value}px`,
+    width: `${isCard
+      ? panelWidth()
+      : pillWidth.value}px`,
     height: `${isCard ? cardHeight.value : PILL_HEIGHT}px`,
     borderRadius: isCard ? '20px' : '18px',
     transform: `translateX(-50%) translateY(${lift}px) scale(${1 - 0.05 * depth})`,
@@ -372,7 +392,10 @@ function layerStyle(depth: number): Record<string, string> {
  * DOM 顺序保持由新到旧固定不变（前后靠 z-index 定），避免 TransitionGroup 走 FLIP 与行内 transform 打架
  */
 const stackLayers = computed(() =>
-  stackTasks.value.map((task, index) => ({ key: task.id, style: layerStyle(index + 1) })))
+  stackTasks.value.map((task, index) => ({
+    key: task.id,
+    style: layerStyle(index + 1),
+  })))
 
 const shellStyle = computed(() => {
   if (expanded.value) {

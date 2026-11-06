@@ -46,8 +46,12 @@ function getWebGLFingerprint(): string {
       return ''
 
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
-    const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : ''
-    const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : ''
+    const vendor = debugInfo
+      ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)
+      : ''
+    const renderer = debugInfo
+      ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+      : ''
 
     return `${vendor}~${renderer}`
   }
@@ -118,9 +122,13 @@ function getNavigatorFeatures(): string {
     nav.hardwareConcurrency ?? '',
     nav.deviceMemory ?? '',
     nav.maxTouchPoints ?? 0,
-    'ontouchstart' in window ? 1 : 0,
+    'ontouchstart' in window
+      ? 1
+      : 0,
     nav.cookieEnabled ? 1 : 0,
-    typeof nav.getBattery === 'function' ? 1 : 0,
+    typeof nav.getBattery === 'function'
+      ? 1
+      : 0,
   ].join('|')
 }
 

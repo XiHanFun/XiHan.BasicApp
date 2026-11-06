@@ -24,7 +24,12 @@ export interface RoleSaveResult {
 const ROLE_CATALOG_SIZE = 500
 
 function toItem(role: Pick<RoleRow, 'code' | 'id' | 'name' | 'status'>): RoleGrantItem {
-  return { basicId: role.id, name: role.name, code: role.code, disabled: role.status === 'Disabled' }
+  return {
+    basicId: role.id,
+    name: role.name,
+    code: role.code,
+    disabled: role.status === 'Disabled',
+  }
 }
 
 /**
@@ -47,12 +52,22 @@ export function useUserRoles() {
 
   async function load(userId: string) {
     const [catalog, mine] = await Promise.all([
-      rolesApi.list({ page: { index: 1, size: ROLE_CATALOG_SIZE }, filters: [], sorts: [{ field: 'order' }, { field: 'code' }] }),
+      rolesApi.list({
+        page: { index: 1, size: ROLE_CATALOG_SIZE },
+        filters: [],
+        sorts: [
+          { field: 'order' },
+          { field: 'code' },
+        ],
+      }),
       rolesApi.byUser({ userId }),
     ])
     // 已有却不在目录里的（目录超过一页）补进条目，右栏「已分配」才看得全
     const known = new Set(catalog.items.map(role => role.id))
-    items.value = [...catalog.items, ...mine.items.filter(role => !known.has(role.id))].map(toItem)
+    items.value = [
+      ...catalog.items,
+      ...mine.items.filter(role => !known.has(role.id)),
+    ].map(toItem)
     assigned.value = mine.items.map(role => role.id)
     draft.value = [...assigned.value]
   }
@@ -93,10 +108,18 @@ export function useUserRoles() {
       const failed: string[] = []
       let interrupted: unknown = null
       try {
-        for (const roleId of toAssign)
-          failed.push(...(await rolesApi.assign({ id: roleId, userIds: [current.id] })).failed.map(f => f.message))
-        for (const roleId of toUnassign)
-          failed.push(...(await rolesApi.unassign({ id: roleId, userIds: [current.id] })).failed.map(f => f.message))
+        for (const roleId of toAssign) {
+          failed.push(...(await rolesApi.assign({
+            id: roleId,
+            userIds: [current.id],
+          })).failed.map(f => f.message))
+        }
+        for (const roleId of toUnassign) {
+          failed.push(...(await rolesApi.unassign({
+            id: roleId,
+            userIds: [current.id],
+          })).failed.map(f => f.message))
+        }
       }
       catch (error) {
         interrupted = error
@@ -114,5 +137,16 @@ export function useUserRoles() {
     }
   }
 
-  return { open, user, loading, items, assigned, draft, dirty, start, change, save }
+  return {
+    open,
+    user,
+    loading,
+    items,
+    assigned,
+    draft,
+    dirty,
+    start,
+    change,
+    save,
+  }
 }

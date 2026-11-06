@@ -145,7 +145,9 @@ const current = computed<IslandTask | null>(() => {
   if (statusTasks.value.length === 0) {
     return null
   }
-  return statusTasks.value.reduce((latest, item) => (item.order > latest.order ? item : latest))
+  return statusTasks.value.reduce((latest, item) => (item.order > latest.order
+    ? item
+    : latest))
 })
 
 /** 进行中任务数（折叠态可提示并发数量） */
@@ -170,7 +172,14 @@ function pushHistory(task: IslandTask): void {
     return
   }
   history.value = [
-    { id: task.id, label: task.label, detail: task.detail, state: task.state, order: ++orderSeq, time: Date.now() },
+    {
+      id: task.id,
+      label: task.label,
+      detail: task.detail,
+      state: task.state,
+      order: ++orderSeq,
+      time: Date.now(),
+    },
     ...history.value,
   ].slice(0, HISTORY_CAP)
 }
@@ -191,7 +200,9 @@ function scheduleRemoval(id: string, delay: number): void {
 
 function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' | 'status', source: 'local' | 'server' = 'local'): void {
   const index = tasks.value.findIndex(item => item.id === id)
-  const base: Partial<IslandTask> = index >= 0 ? tasks.value[index]! : {}
+  const base: Partial<IslandTask> = index >= 0
+    ? tasks.value[index]!
+    : {}
   const next: IslandTask = {
     id,
     kind: (base.kind as IslandTask['kind']) ?? kind,
@@ -230,7 +241,11 @@ function trimMessages(): void {
 }
 
 function lingerOf(state: IslandState): number {
-  return state === 'error' ? ERROR_LINGER : state === 'info' ? INFO_LINGER : SUCCESS_LINGER
+  return state === 'error'
+    ? ERROR_LINGER
+    : state === 'info'
+      ? INFO_LINGER
+      : SUCCESS_LINGER
 }
 
 /** 终态收尾：非常驻的消息各自开始倒计时（面板展开时不计时，收起后统一重排） */
@@ -261,7 +276,9 @@ function makeHandle(id: string): IslandHandle {
   const apply = (label: string | undefined, state: IslandState, opts?: IslandTaskInit) => {
     const existing = tasks.value.find(item => item.id === id)
     // 终态默认清除常驻标记（如「网络已恢复」短暂展示后消失）
-    const persistent = opts?.persistent ?? (state === 'info' ? existing?.persistent : false)
+    const persistent = opts?.persistent ?? (state === 'info'
+      ? existing?.persistent
+      : false)
     upsert(id, label ?? existing?.label ?? '', { ...opts, state, persistent }, existing?.kind ?? 'event')
     if (!persistent) {
       settle(id, state)
@@ -278,7 +295,10 @@ function makeHandle(id: string): IslandHandle {
     },
     setProgress(n) {
       const existing = tasks.value.find(item => item.id === id)
-      upsert(id, existing?.label ?? '', { progress: Math.max(0, Math.min(100, n)), state: 'loading' }, existing?.kind ?? 'event')
+      upsert(id, existing?.label ?? '', {
+        progress: Math.max(0, Math.min(100, n)),
+        state: 'loading',
+      }, existing?.kind ?? 'event')
     },
     success(label, opts) {
       apply(label, 'success', opts)
@@ -375,7 +395,9 @@ export function configureDynamicIsland(options: { isEnabled: () => boolean, mess
 }
 
 function islandEnabled(): boolean {
-  return enabledResolver ? enabledResolver() : true
+  return enabledResolver
+    ? enabledResolver()
+    : true
 }
 
 /** 关闭灵动岛时的事件兜底句柄：进行中态静默，终态交给轻提示，其余为空操作 */
@@ -413,7 +435,15 @@ function fallbackEventHandle(initialLabel: string): IslandHandle {
 /** 关闭灵动岛时的常驻状态兜底句柄：整体静默（不把网络等状态指示降级成消息噪音） */
 function silentHandle(): IslandHandle {
   const noop = () => {}
-  return { update: noop, patch: noop, setProgress: noop, success: noop, error: noop, info: noop, dismiss: noop }
+  return {
+    update: noop,
+    patch: noop,
+    setProgress: noop,
+    success: noop,
+    error: noop,
+    info: noop,
+    dismiss: noop,
+  }
 }
 
 /**
@@ -462,7 +492,9 @@ export function applyServerTaskProgress(payload: ServerTaskProgressPayload): voi
 
   if (!islandEnabled()) {
     if (state !== 'loading') {
-      messageSink?.(state === 'info' ? 'info' : state, payload.label)
+      messageSink?.(state === 'info'
+        ? 'info'
+        : state, payload.label)
     }
     return
   }
@@ -473,7 +505,9 @@ export function applyServerTaskProgress(payload: ServerTaskProgressPayload): voi
     progress: payload.progress ?? undefined,
     link: payload.link ?? undefined,
     state,
-    icon: state === 'loading' ? 'lucide:server' : undefined,
+    icon: state === 'loading'
+      ? 'lucide:server'
+      : undefined,
   }, 'event', 'server')
 
   if (state !== 'loading') {

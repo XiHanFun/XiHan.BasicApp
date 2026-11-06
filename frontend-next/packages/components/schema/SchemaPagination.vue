@@ -42,10 +42,15 @@ const { t } = useI18n()
 const siblingCount = computed(() => (props.compact ? 1 : 2))
 
 const sizeOptions = computed(() =>
-  props.pageSizes.map(size => ({ value: String(size), label: t('component.pagination.per_page', { size }) })),
+  props.pageSizes.map(size => ({
+    value: String(size),
+    label: t('component.pagination.per_page', { size }),
+  })),
 )
 
-const sizeValue = computed(() => [String(props.pageSize)])
+const sizeValue = computed(() => [
+  String(props.pageSize),
+])
 
 function onSizeChange(value: string[]): void {
   const next = Number(value[0])

@@ -14,10 +14,17 @@ function mountWithToggle(initial: boolean) {
   const shown = ref(initial)
   const Host = defineComponent({
     setup: () => () => h(XTooltip, { content: '刷新' }, {
-      default: () => [shown.value ? h('button', { type: 'button', class: 'target' }, 'R') : createCommentVNode('v-if', true)],
+      default: () => [
+        shown.value
+          ? h('button', { type: 'button', class: 'target' }, 'R')
+          : createCommentVNode('v-if', true),
+      ],
     }),
   })
-  return { shown, wrapper: mount(Host, { attachTo: document.body }) }
+  return {
+    shown,
+    wrapper: mount(Host, { attachTo: document.body }),
+  }
 }
 
 afterEach(() => {

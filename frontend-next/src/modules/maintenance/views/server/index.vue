@@ -38,7 +38,9 @@ const { info, loading, initialized, refresh } = useServerInfo()
 
 const overview = computed(() => overviewItems(t, info.value))
 /** 概览角标取最差的健康项；还没取到过数据时不显示 */
-const summary = computed(() => (info.value ? healthSummary(t, info.value.health) : null))
+const summary = computed(() => (info.value
+  ? healthSummary(t, info.value.health)
+  : null))
 
 /** CPU 使用率由后台采样，启动后第一个采样间隔内读不到（显示 -，不当作 0%） */
 const cpuPct = computed(() => cpuUsage(info.value?.processor))

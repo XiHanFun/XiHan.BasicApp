@@ -201,7 +201,9 @@ async function executeDirectPrint<T>(
   let job
   try {
     job = runtime.printWithClient(document, toRecords(data), {
-      ...(printerName ? { printer: printerName } : {}),
+      ...(printerName
+        ? { printer: printerName }
+        : {}),
       copies,
       timeoutMs,
     })
@@ -218,8 +220,11 @@ async function executeDirectPrint<T>(
     await job.done
   }
   catch (error) {
-    if (options.signal?.aborted)
-      throw options.signal.reason instanceof Error ? options.signal.reason : new DOMException('打印任务已取消。', 'AbortError')
+    if (options.signal?.aborted) {
+      throw options.signal.reason instanceof Error
+        ? options.signal.reason
+        : new DOMException('打印任务已取消。', 'AbortError')
+    }
     throw toClientError(error)
   }
   finally {
@@ -272,7 +277,9 @@ async function resolveTemplate(
 
 /** 单对象包成一条记录，数组原样；空数组拒绝 */
 function toRecords<T>(data: T | T[]): unknown[] {
-  const records = Array.isArray(data) ? data : [data]
+  const records = Array.isArray(data)
+    ? data
+    : [data]
   if (records.length === 0)
     throw new RangeError('打印数据不能为空数组。')
   return records
@@ -298,5 +305,7 @@ function toClientError(error: unknown): Error {
     const code = (error as PrintClientError).code
     return new Error(CLIENT_ERROR_MESSAGES[code] ?? `直接打印失败：${code}`, { cause: error })
   }
-  return error instanceof Error ? error : new Error('直接打印失败。')
+  return error instanceof Error
+    ? error
+    : new Error('直接打印失败。')
 }

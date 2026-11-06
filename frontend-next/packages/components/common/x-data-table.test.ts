@@ -12,11 +12,21 @@ import { describe, expect, it, vi } from 'vitest'
 import { i18n } from '~/locales'
 import XDataTable from './XDataTable.vue'
 
-const columns = [{ key: 'name', title: '名称' }]
-const data = [{ basicId: '1', name: '甲' }, { basicId: '2', name: '乙' }]
+const columns = [
+  { key: 'name', title: '名称' },
+]
+const data = [
+  { basicId: '1', name: '甲' },
+  { basicId: '2', name: '乙' },
+]
 
 function mountTable(props: Record<string, unknown> = {}) {
-  return mount(XDataTable, { props: { columns, data, ...props }, global: { plugins: [i18n] } })
+  return mount(XDataTable, {
+    props: { columns, data, ...props },
+    global: {
+      plugins: [i18n],
+    },
+  })
 }
 
 describe('xDataTable 与列表页同一副样式', () => {
@@ -35,7 +45,14 @@ describe('xDataTable 与列表页同一副样式', () => {
 
   it('给了分页就出条数与页码，翻页回调调用方，且不再透传成属性', async () => {
     const onUpdatePage = vi.fn()
-    const wrapper = mountTable({ pagination: { page: 1, pageSize: 10, itemCount: 25, onUpdatePage } })
+    const wrapper = mountTable({
+      pagination: {
+        page: 1,
+        pageSize: 10,
+        itemCount: 25,
+        onUpdatePage,
+      },
+    })
 
     expect(wrapper.attributes('pagination')).toBeUndefined()
     const count = wrapper.find('.x-data-table__count').text().replace(/\s+/g, '')
@@ -66,7 +83,11 @@ describe('xDataTable 与列表页同一副样式', () => {
   })
 
   it('居中列的列头与数据格都带上对齐标记，格内控件随之居中', () => {
-    const wrapper = mountTable({ columns: [{ key: 'name', title: '名称', align: 'center' }] })
+    const wrapper = mountTable({
+      columns: [
+        { key: 'name', title: '名称', align: 'center' },
+      ],
+    })
 
     const header = wrapper.find('[data-scope="table"][data-part="column-header"][data-value="name"]')
     const cells = wrapper.findAll('[data-scope="table"][data-part="cell"][data-value="name"]')
@@ -76,8 +97,17 @@ describe('xDataTable 与列表页同一副样式', () => {
   })
 
   it('调用方不接条数变更时不出条数选择器', () => {
-    const withoutSizeChange = mountTable({ pagination: { page: 1, pageSize: 10, itemCount: 25 } })
-    const withSizeChange = mountTable({ pagination: { page: 1, pageSize: 10, itemCount: 25, onUpdatePageSize: vi.fn() } })
+    const withoutSizeChange = mountTable({
+      pagination: { page: 1, pageSize: 10, itemCount: 25 },
+    })
+    const withSizeChange = mountTable({
+      pagination: {
+        page: 1,
+        pageSize: 10,
+        itemCount: 25,
+        onUpdatePageSize: vi.fn(),
+      },
+    })
 
     expect(withoutSizeChange.find('.x-data-table__footer [data-scope="select"]').exists()).toBe(false)
     expect(withSizeChange.find('.x-data-table__footer [data-scope="select"]').exists()).toBe(true)

@@ -51,14 +51,25 @@ export function gotoTraceDimension(router: Router, dimension: string, value: str
   if (value == null || value === '')
     return false
 
-  const at = time ? new Date(time).getTime() : Number.NaN
+  const at = time
+    ? new Date(time).getTime()
+    : Number.NaN
   const hasAt = Number.isFinite(at)
   const now = Date.now()
-  const start = hasAt ? at - DAY_MS : now - FALLBACK_WINDOW_MS
-  const end = hasAt ? at + DAY_MS : now
+  const start = hasAt
+    ? at - DAY_MS
+    : now - FALLBACK_WINDOW_MS
+  const end = hasAt
+    ? at + DAY_MS
+    : now
 
   // 经共享预设传参并跳转到无 query 的固定路径，保证链路追踪始终复用同一标签页
-  tracePreset.value = { dimension, value: String(value), start, end }
+  tracePreset.value = {
+    dimension,
+    value: String(value),
+    start,
+    end,
+  }
   void router.push(TRACE_ROUTE)
   return true
 }
@@ -72,7 +83,9 @@ export function gotoTrace(router: Router, row: TraceNavRow, time?: string | null
   if (!value)
     return false
 
-  const dimension = row.traceId ? 'TraceId' : row.sessionId ? 'SessionId' : 'UserName'
+  const dimension = row.traceId
+    ? 'TraceId'
+    : row.sessionId ? 'SessionId' : 'UserName'
   return gotoTraceDimension(router, dimension, value, time)
 }
 

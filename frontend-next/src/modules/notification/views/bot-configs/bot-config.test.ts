@@ -9,7 +9,10 @@ import { BOT_CONFIG_QUERY, botConfigProblemMessage, botConfigResource, emptyBotC
 const t = (key: string) => key
 
 function json(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 function stub(...responses: object[]): { method: string, url: string, body: unknown }[] {
@@ -18,7 +21,13 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
       return json(200, responses[calls.length - 1] ?? {})
     }) as unknown as typeof fetch,
   })
@@ -28,7 +37,15 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
 const DINGTALK = 'https://oapi.dingtalk.com/robot/send?access_token=abc'
 
 function form(patch: Partial<BotConfigForm> = {}): BotConfigForm {
-  return { ...emptyBotConfigForm(), code: 'bot-alert', name: '告警群', webhookUrl: DINGTALK, secret: 'SEC', keyword: '告警', ...patch }
+  return {
+    ...emptyBotConfigForm(),
+    code: 'bot-alert',
+    name: '告警群',
+    webhookUrl: DINGTALK,
+    secret: 'SEC',
+    keyword: '告警',
+    ...patch,
+  }
 }
 
 const ROW: BotConfigRow = {
@@ -52,9 +69,20 @@ describe('机器人配置的列表筛选', () => {
     const request = toPageRequest({
       page: 1,
       pageSize: 20,
-      filters: { provider: ['DingTalk', 'WeCom'], isEnabled: 'false' },
-      conditionFilters: [{ field: 'provider', operator: QueryOperator.In, values: ['DingTalk', 'WeCom'] }],
-      sorts: [{ field: 'order', order: 'asc' }],
+      filters: {
+        provider: ['DingTalk', 'WeCom'],
+        isEnabled: 'false',
+      },
+      conditionFilters: [
+        {
+          field: 'provider',
+          operator: QueryOperator.In,
+          values: ['DingTalk', 'WeCom'],
+        },
+      ],
+      sorts: [
+        { field: 'order', order: 'asc' },
+      ],
     }, BOT_CONFIG_QUERY)
     expect(request.filters).toEqual([
       { field: 'provider', operator: 'in', value: 'DingTalk,WeCom' },
@@ -114,20 +142,52 @@ describe('机器人配置的表单', () => {
 
   it('编辑回填不带密钥；修改不带编码，密钥留空即保留', () => {
     const filled = toBotConfigForm(ROW)
-    expect(filled).toMatchObject({ id: 'b1', code: 'bot-lark', provider: 'Lark', secret: '', keyword: '通知', remark: '' })
+    expect(filled).toMatchObject({
+      id: 'b1',
+      code: 'bot-lark',
+      provider: 'Lark',
+      secret: '',
+      keyword: '通知',
+      remark: '',
+    })
     const body = toUpdateBody({ ...filled, id: 'b1' })
-    expect(body).toMatchObject({ id: 'b1', provider: 'Lark', secret: null, keyword: '通知', remark: null })
+    expect(body).toMatchObject({
+      id: 'b1',
+      provider: 'Lark',
+      secret: null,
+      keyword: '通知',
+      remark: null,
+    })
     expect(body).not.toHaveProperty('code')
   })
 
   it('启停取最新一份再整体修改（不带密钥）；删除逐项拒绝时带着原因抛出', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'b1', code: 'NOTIFICATION_CONFLICT_005', message: 'NOTIFICATION_CONFLICT_005 的原因' }] }, { succeeded: [], failed: [{ id: 'b2', code: 'NOTIFICATION_NOTFOUND_008', message: 'NOTIFICATION_NOTFOUND_008 的原因' }] })
+    const calls = stub(ROW, ROW, {
+      succeeded: [],
+      failed: [
+        { id: 'b1', code: 'NOTIFICATION_CONFLICT_005', message: 'NOTIFICATION_CONFLICT_005 的原因' },
+      ],
+    }, {
+      succeeded: [],
+      failed: [
+        { id: 'b2', code: 'NOTIFICATION_NOTFOUND_008', message: 'NOTIFICATION_NOTFOUND_008 的原因' },
+      ],
+    })
     const resource = botConfigResource()
     await resource.updateStatus!('b1', false)
     await expect(resource.remove!('b1')).rejects.toThrow('NOTIFICATION_CONFLICT_005 的原因')
     await expect(resource.remove!('b2')).rejects.toThrow('NOTIFICATION_NOTFOUND_008 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/bot-configs/b1' })
-    expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/bot-configs/b1', body: { isEnabled: false, secret: null, provider: 'Lark', keyword: '通知' } })
+    expect(calls[1]).toMatchObject({
+      method: 'PUT',
+      url: '/api/bot-configs/b1',
+      body: {
+        isEnabled: false,
+        secret: null,
+        provider: 'Lark',
+        keyword: '通知',
+      },
+    })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/bot-configs?ids=b1' })
   })
 

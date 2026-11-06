@@ -26,7 +26,9 @@ function files(dir, out = []) {
   return out
 }
 
-const declared = new Set([...readFileSync(PERMISSIONS, 'utf8').matchAll(/^\s+'([a-z][a-z0-9-]*\.[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*)': \{ code/gm)].map(m => m[1]))
+const declared = new Set([
+  ...readFileSync(PERMISSIONS, 'utf8').matchAll(/^\s+'([a-z][a-z0-9-]*\.[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*)': \{ code/gm),
+].map(m => m[1]))
 
 let failures = 0
 for (const file of SCAN.flatMap(dir => files(join(ROOT, dir)))) {

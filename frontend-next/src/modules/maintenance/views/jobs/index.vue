@@ -68,7 +68,9 @@ function formatBoolean(value?: boolean | null) {
   if (value === undefined || value === null) {
     return '-'
   }
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 /** 首个触发器（列表的触发类型、行展开的 Cron 与间隔都看它；多个触发器在详情里逐个列出） */
@@ -83,10 +85,42 @@ function execStats(row: JobRow) {
 // ── 字段单一事实源：列 + 常用搜索（可排序的只放后端白名单：名称、编码、下次 / 上次执行、更新时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('maintenance.jobs.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('maintenance.jobs.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'title', title: t('maintenance.jobs.task_name'), dataType: 'string', sortable: true, exportable: true, minWidth: 180, order: 1 },
-  { key: 'name', title: t('maintenance.jobs.task_code'), dataType: 'string', sortable: true, exportable: true, minWidth: 160, order: 2 },
-  { key: 'group', title: t('maintenance.jobs.task_group'), dataType: 'string', exportable: true, minWidth: 120, order: 3 },
+  {
+    key: 'keyword',
+    title: t('maintenance.jobs.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('maintenance.jobs.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
+  {
+    key: 'title',
+    title: t('maintenance.jobs.task_name'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 180,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('maintenance.jobs.task_code'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 160,
+    order: 2,
+  },
+  {
+    key: 'group',
+    title: t('maintenance.jobs.task_group'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 120,
+    order: 3,
+  },
   // 作业类型仅搜索：候选取自 jobs.types（登记键即显示文本），可多选
   {
     key: 'jobType',
@@ -145,7 +179,9 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('maintenance.jobs.status_placeholder'),
     width: 100,
     order: 8,
-    render: row => renderTag(enabledLabel(t, asRow(row).paused), asRow(row).paused ? 'danger' : 'success'),
+    render: row => renderTag(enabledLabel(t, asRow(row).paused), asRow(row).paused
+      ? 'danger'
+      : 'success'),
   },
   {
     key: 'allowConcurrent',
@@ -154,12 +190,47 @@ const fields = computed<ListFieldSchema[]>(() => [
     exportable: true,
     width: 86,
     order: 9,
-    render: row => renderTag(asRow(row).allowConcurrent ? t('maintenance.jobs.allow') : t('maintenance.jobs.forbid'), asRow(row).allowConcurrent ? 'warning' : 'info'),
+    render: row => renderTag(asRow(row).allowConcurrent
+      ? t('maintenance.jobs.allow')
+      : t('maintenance.jobs.forbid'), asRow(row).allowConcurrent
+      ? 'warning'
+      : 'info'),
   },
-  { key: 'executedCount', title: t('maintenance.jobs.executed_count'), dataType: 'number', exportable: true, minWidth: 100, order: 10 },
-  { key: 'nextRunAt', title: t('maintenance.jobs.next_run'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 11 },
-  { key: 'lastRunAt', title: t('maintenance.jobs.last_run'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 12 },
-  { key: 'updatedAt', title: t('maintenance.jobs.updated_time'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 13 },
+  {
+    key: 'executedCount',
+    title: t('maintenance.jobs.executed_count'),
+    dataType: 'number',
+    exportable: true,
+    minWidth: 100,
+    order: 10,
+  },
+  {
+    key: 'nextRunAt',
+    title: t('maintenance.jobs.next_run'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 11,
+  },
+  {
+    key: 'lastRunAt',
+    title: t('maintenance.jobs.last_run'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 12,
+  },
+  {
+    key: 'updatedAt',
+    title: t('maintenance.jobs.updated_time'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 13,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -173,20 +244,79 @@ const schema = computed<PageSchema>(() => ({
   // 修改计划排在 4.x「编辑」的位置；恢复代码计划只对已改计划的作业出现
   actions: [
     // 新建运行时作业（照 4.x 的新建任务）；只有运行时登记的作业能删
-    { key: 'create', title: t('maintenance.jobs.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'maintenance.jobs.create' },
-    { key: 'view', title: t('maintenance.jobs.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'logs', title: t('maintenance.jobs.logs'), scope: 'row', icon: 'lucide:history', permission: 'maintenance.job-runs.read' },
-    { key: 'reschedule', title: t('maintenance.jobs.reschedule'), scope: 'row', icon: 'lucide:calendar-clock', disabled: row => !canReschedule(asRow(row)), permission: 'maintenance.jobs.reschedule' },
-    { key: 'restore', title: t('maintenance.jobs.restore'), scope: 'row', icon: 'lucide:rotate-ccw', visible: row => canRestore(asRow(row)), permission: 'maintenance.jobs.reschedule' },
-    { key: 'trigger', title: t('maintenance.jobs.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.trigger' },
-    { key: 'toggle', title: t('maintenance.jobs.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).title), visible: row => canDelete(asRow(row)), disabled: row => isRunning(asRow(row)), permission: 'maintenance.jobs.delete' },
+    {
+      key: 'create',
+      title: t('maintenance.jobs.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'maintenance.jobs.create',
+    },
+    {
+      key: 'view',
+      title: t('maintenance.jobs.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'logs',
+      title: t('maintenance.jobs.logs'),
+      scope: 'row',
+      icon: 'lucide:history',
+      permission: 'maintenance.job-runs.read',
+    },
+    {
+      key: 'reschedule',
+      title: t('maintenance.jobs.reschedule'),
+      scope: 'row',
+      icon: 'lucide:calendar-clock',
+      disabled: row => !canReschedule(asRow(row)),
+      permission: 'maintenance.jobs.reschedule',
+    },
+    {
+      key: 'restore',
+      title: t('maintenance.jobs.restore'),
+      scope: 'row',
+      icon: 'lucide:rotate-ccw',
+      visible: row => canRestore(asRow(row)),
+      permission: 'maintenance.jobs.reschedule',
+    },
+    {
+      key: 'trigger',
+      title: t('maintenance.jobs.trigger_immediate'),
+      scope: 'row',
+      icon: 'lucide:play',
+      disabled: row => isRunning(asRow(row)),
+      permission: 'maintenance.jobs.trigger',
+    },
+    {
+      key: 'toggle',
+      title: t('maintenance.jobs.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      disabled: row => isRunning(asRow(row)),
+      permission: 'maintenance.jobs.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).title),
+      visible: row => canDelete(asRow(row)),
+      disabled: row => isRunning(asRow(row)),
+      permission: 'maintenance.jobs.delete',
+    },
   ],
 }))
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       createVisible.value = true
@@ -264,14 +394,55 @@ const logStateOptions = computed(() => runStateOptions(t))
 const logFailedOptions = computed(() => runFailedOptions(t))
 
 const jobRunColumns = computed<XDataTableColumn<JobRunRow>[]>(() => [
-  { ellipsis: true, key: 'triggerName', render: row => row.triggerName || '-', title: t('maintenance.jobs.trigger_name'), width: 150 },
-  { key: 'state', render: row => renderTag(runStateLabel(t, row.state), runStateTone(row.state)), title: t('maintenance.jobs.log_status'), width: 96 },
-  { key: 'trigger', render: row => runTriggerLabel(t, row.trigger), title: t('maintenance.jobs.trigger_mode'), width: 96 },
-  { key: 'attempt', title: t('maintenance.jobs.attempt'), width: 64 },
-  { key: 'startedAt', render: row => formatDate(row.startedAt), title: t('maintenance.jobs.start_time'), width: 160 },
-  { key: 'completedAt', render: row => formatDate(row.completedAt), title: t('maintenance.jobs.end_time'), width: 160 },
-  { key: 'durationMs', render: row => formatDuration(row.durationMs), title: t('maintenance.jobs.execution_time'), width: 90 },
-  { ellipsis: true, key: 'nodeId', render: row => row.nodeId || '-', title: t('maintenance.jobs.node_id'), width: 120 },
+  {
+    ellipsis: true,
+    key: 'triggerName',
+    render: row => row.triggerName || '-',
+    title: t('maintenance.jobs.trigger_name'),
+    width: 150,
+  },
+  {
+    key: 'state',
+    render: row => renderTag(runStateLabel(t, row.state), runStateTone(row.state)),
+    title: t('maintenance.jobs.log_status'),
+    width: 96,
+  },
+  {
+    key: 'trigger',
+    render: row => runTriggerLabel(t, row.trigger),
+    title: t('maintenance.jobs.trigger_mode'),
+    width: 96,
+  },
+  {
+    key: 'attempt',
+    title: t('maintenance.jobs.attempt'),
+    width: 64,
+  },
+  {
+    key: 'startedAt',
+    render: row => formatDate(row.startedAt),
+    title: t('maintenance.jobs.start_time'),
+    width: 160,
+  },
+  {
+    key: 'completedAt',
+    render: row => formatDate(row.completedAt),
+    title: t('maintenance.jobs.end_time'),
+    width: 160,
+  },
+  {
+    key: 'durationMs',
+    render: row => formatDuration(row.durationMs),
+    title: t('maintenance.jobs.execution_time'),
+    width: 90,
+  },
+  {
+    ellipsis: true,
+    key: 'nodeId',
+    render: row => row.nodeId || '-',
+    title: t('maintenance.jobs.node_id'),
+    width: 120,
+  },
 ])
 
 // 行点击查看这次运行的详情与异常信息
@@ -300,7 +471,11 @@ function changeLogState(value: unknown) {
 
 /** 「是否出错」下拉的值是 'true' / 'false' 字符串，清空为 null */
 function changeLogFailed(value: unknown) {
-  logFailedFilter.value = value === 'true' ? true : value === 'false' ? false : null
+  logFailedFilter.value = value === 'true'
+    ? true
+    : value === 'false'
+      ? false
+      : null
   void loadJobRuns(1)
 }
 
@@ -387,7 +562,9 @@ function handleToggleStatus(row: JobRow) {
       try {
         // 启用即恢复、停用即暂停（停用的作业不再按计划触发，正在运行的不受影响）
         await resource.updateStatus?.(row.name, !enabled)
-        toast.success(enabled ? t('maintenance.jobs.task_disabled') : t('maintenance.jobs.task_enabled'))
+        toast.success(enabled
+          ? t('maintenance.jobs.task_disabled')
+          : t('maintenance.jobs.task_enabled'))
         reloadJob()
       }
       catch (error) {
@@ -416,7 +593,9 @@ const rescheduleTarget = ref<JobRow | null>(null)
 function handleReschedule(row: JobRow) {
   // 行内动作已按触发器个数禁用；详情抽屉的入口同样走这里
   if (!canReschedule(row)) {
-    toast.warning(t('maintenance.jobs.triggers_many_hint', { count: activeTriggerCount(row) }))
+    toast.warning(t('maintenance.jobs.triggers_many_hint', {
+      count: activeTriggerCount(row),
+    }))
     return
   }
   rescheduleTarget.value = row

@@ -49,7 +49,9 @@ watch(() => props.show, (show) => {
 
 /** 每次打开按详情重填一份表单，取消不留痕 */
 function reset(): void {
-  form.value = props.detail ? toPrintTemplateForm(props.detail) : createDefaultPrintTemplateForm()
+  form.value = props.detail
+    ? toPrintTemplateForm(props.detail)
+    : createDefaultPrintTemplateForm()
   formKey.value += 1
 }
 

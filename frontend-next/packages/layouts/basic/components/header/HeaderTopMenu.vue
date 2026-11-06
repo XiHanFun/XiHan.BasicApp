@@ -70,10 +70,20 @@ function entryHref(key: string): string {
 const entries = computed<NavigationMenuNode[]>(() =>
   props.options.map<NavigationMenuNode>(option => ({
     value: option.key,
-    label: typeof option.label === 'string' ? option.label : option.key,
-    ...(option.disabled ? { disabled: true } : {}),
-    ...(option.children?.length ? {} : { href: entryHref(option.key) }),
-    ...(option.key === props.activeKey ? { current: true } : {}),
+    label: typeof option.label === 'string'
+      ? option.label
+      : option.key,
+    ...(option.disabled
+      ? { disabled: true }
+      : {}),
+    ...(option.children?.length
+      ? {}
+      : {
+          href: entryHref(option.key),
+        }),
+    ...(option.key === props.activeKey
+      ? { current: true }
+      : {}),
   })),
 )
 
@@ -83,7 +93,11 @@ function holdsActive(option: AppMenuOption): boolean {
 }
 
 /** 排得下时入口按偏好对齐；排不下时列表宽过滚动区，对齐自然失效、改为从头滚 */
-const listJustify = computed(() => (props.align === 'center' ? 'center' : props.align === 'end' ? 'flex-end' : 'flex-start'))
+const listJustify = computed(() => (props.align === 'center'
+  ? 'center'
+  : props.align === 'end'
+    ? 'flex-end'
+    : 'flex-start'))
 
 /** 带子级的入口：面板统一铺在共享外壳里，顺序与入口一致 */
 const panelOptions = computed(() => props.options.filter(option => option.children?.length))
@@ -109,7 +123,9 @@ const scrollAtStart = ref(true)
 const scrollAtEnd = ref(false)
 
 function scrollBehavior(): ScrollBehavior {
-  return resolveMotionPreference() === 'reduce' ? 'instant' : 'smooth'
+  return resolveMotionPreference() === 'reduce'
+    ? 'instant'
+    : 'smooth'
 }
 
 /**
@@ -152,8 +168,15 @@ function scrollDirection(dir: 'start' | 'end') {
   }
   const isRtl = getComputedStyle(vp).direction === 'rtl'
   const step = Math.max(vp.clientWidth - SCROLL_OVERLAP, SCROLL_OVERLAP)
-  const toEnd = dir === 'end' ? 1 : -1
-  vp.scrollBy({ behavior: scrollBehavior(), left: (isRtl ? -toEnd : toEnd) * step })
+  const toEnd = dir === 'end'
+    ? 1
+    : -1
+  vp.scrollBy({
+    behavior: scrollBehavior(),
+    left: (isRtl
+      ? -toEnd
+      : toEnd) * step,
+  })
 }
 
 /** 当前页所在的入口滚进可视区：切路由后不必自己找 */
@@ -167,7 +190,11 @@ async function scrollToActive() {
     return
   }
   const active = vp.querySelector<HTMLElement>('[data-top-menu-active]')
-  active?.scrollIntoView({ behavior: scrollBehavior(), inline: 'nearest', block: 'nearest' })
+  active?.scrollIntoView({
+    behavior: scrollBehavior(),
+    inline: 'nearest',
+    block: 'nearest',
+  })
 }
 
 function handleWheel(event: WheelEvent) {
@@ -176,7 +203,11 @@ function handleWheel(event: WheelEvent) {
     return
   }
   event.preventDefault()
-  vp.scrollBy({ left: event.deltaY !== 0 ? event.deltaY * 3 : event.deltaX * 3 })
+  vp.scrollBy({
+    left: event.deltaY !== 0
+      ? event.deltaY * 3
+      : event.deltaX * 3,
+  })
 }
 
 // ── 面板落位：共享外壳挂在根上，水平位置跟着当前入口走 ────────────────
@@ -209,8 +240,12 @@ async function syncPanelInset() {
   const panelWidth = panel.offsetWidth
   const isRtl = getComputedStyle(root).direction === 'rtl'
   // 内联起点：LTR 量左缘到左缘，RTL 量右缘到右缘
-  const raw = isRtl ? rootRect.right - triggerRect.right : triggerRect.left - rootRect.left
-  const rootStart = isRtl ? window.innerWidth - rootRect.right : rootRect.left
+  const raw = isRtl
+    ? rootRect.right - triggerRect.right
+    : triggerRect.left - rootRect.left
+  const rootStart = isRtl
+    ? window.innerWidth - rootRect.right
+    : rootRect.left
   const maxInset = window.innerWidth - rootStart - panelWidth - PANEL_EDGE_GAP
   panelInsetStart.value = Math.max(0, Math.min(raw, Math.max(maxInset, 0)))
 }

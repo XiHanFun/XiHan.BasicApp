@@ -52,12 +52,16 @@ export function useSchemaDictionaries(
   type Loader = NonNullable<ListFieldSchema['optionsLoader']>
 
   /** 需要调用的异步选项加载器（同一加载器只调一次） */
-  const loaders = computed(() => [...new Set(toValue(fields).map(field => field.optionsLoader).filter((loader): loader is Loader => !!loader))])
+  const loaders = computed(() => [
+    ...new Set(toValue(fields).map(field => field.optionsLoader).filter((loader): loader is Loader => !!loader)),
+  ])
   /** 本页已加载的异步选项（按加载器；不跨页缓存，关联数据改了重进页面即是新的） */
   const loaded = shallowReactive(new Map<Loader, ReadonlyArray<SchemaSelectOption>>())
 
   /** 需要取字典选项的系统字典编码 */
-  const dictCodes = computed(() => [...new Set(toValue(fields).map(field => field.dictCode).filter((code): code is string => !!code))])
+  const dictCodes = computed(() => [
+    ...new Set(toValue(fields).map(field => field.dictCode).filter((code): code is string => !!code)),
+  ])
 
   function optionsFor(field: ListFieldSchema): ReadonlyArray<SchemaSelectOption> | undefined {
     if (field.optionsLoader) {
@@ -86,7 +90,9 @@ export function useSchemaDictionaries(
   // optionsMap 读响应式 enumState 自动更新，故此处无需再各自监听 locale（否则每页各发一次请求）
   async function resolve(): Promise<void> {
     await Promise.all([
-      codes.value.length > 0 ? enumService.ensureBatch(codes.value) : undefined,
+      codes.value.length > 0
+        ? enumService.ensureBatch(codes.value)
+        : undefined,
       // 字典加载失败已在 ensureDictOptions 里提示，这里不让一个字典的失败拖住其余取值
       ...dictCodes.value.map(code => ensureDictOptions(code).catch(() => undefined)),
       // 加载失败已在 loadAsyncOptions 里提示

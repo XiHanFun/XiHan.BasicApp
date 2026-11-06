@@ -33,20 +33,52 @@ interface PrefItem {
 }
 
 const channels = computed<PrefItem[]>(() => [
-  { key: 'channelInApp', label: t('component.profile.notifications.channel_in_app'), desc: t('component.profile.notifications.channel_in_app_desc'), icon: 'lucide:bell' },
-  { key: 'channelEmail', label: t('component.profile.notifications.channel_email'), desc: t('component.profile.notifications.channel_email_desc'), icon: 'lucide:mail' },
-  { key: 'channelSms', label: t('component.profile.notifications.channel_sms'), desc: t('component.profile.notifications.channel_sms_desc'), icon: 'lucide:smartphone' },
+  {
+    key: 'channelInApp',
+    label: t('component.profile.notifications.channel_in_app'),
+    desc: t('component.profile.notifications.channel_in_app_desc'),
+    icon: 'lucide:bell',
+  },
+  {
+    key: 'channelEmail',
+    label: t('component.profile.notifications.channel_email'),
+    desc: t('component.profile.notifications.channel_email_desc'),
+    icon: 'lucide:mail',
+  },
+  {
+    key: 'channelSms',
+    label: t('component.profile.notifications.channel_sms'),
+    desc: t('component.profile.notifications.channel_sms_desc'),
+    icon: 'lucide:smartphone',
+  },
 ])
 
 const types = computed<PrefItem[]>(() => [
-  { key: 'typeAnnouncement', label: t('component.profile.notifications.type_announcement'), desc: t('component.profile.notifications.type_announcement_desc'), icon: 'lucide:megaphone' },
-  { key: 'typeTask', label: t('component.profile.notifications.type_task'), desc: t('component.profile.notifications.type_task_desc'), icon: 'lucide:check-square' },
-  { key: 'typeSecurity', label: t('component.profile.notifications.type_security'), desc: t('component.profile.notifications.type_security_desc'), icon: 'lucide:shield-alert' },
+  {
+    key: 'typeAnnouncement',
+    label: t('component.profile.notifications.type_announcement'),
+    desc: t('component.profile.notifications.type_announcement_desc'),
+    icon: 'lucide:megaphone',
+  },
+  {
+    key: 'typeTask',
+    label: t('component.profile.notifications.type_task'),
+    desc: t('component.profile.notifications.type_task_desc'),
+    icon: 'lucide:check-square',
+  },
+  {
+    key: 'typeSecurity',
+    label: t('component.profile.notifications.type_security'),
+    desc: t('component.profile.notifications.type_security_desc'),
+    icon: 'lucide:shield-alert',
+  },
 ])
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadPreference() {

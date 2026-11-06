@@ -1,5 +1,12 @@
 /** 菜单标签的语气：存库取值就是组件库的 tone 词，后端只接受这六个 */
-export const MENU_BADGE_TONES = ['neutral', 'brand', 'info', 'success', 'warning', 'danger'] as const
+export const MENU_BADGE_TONES = [
+  'neutral',
+  'brand',
+  'info',
+  'success',
+  'warning',
+  'danger',
+] as const
 
 export type MenuBadgeTone = (typeof MENU_BADGE_TONES)[number]
 

@@ -2,27 +2,58 @@ import type { RouteDef } from './client'
 import { describe, expect, it, vi } from 'vitest'
 import { ApiError, buildRequest, configureRequest, downloadEndpoint, invoke } from './client'
 
-const create: RouteDef = { method: 'POST', template: '/api/users', path: [], query: [], success: 201 }
-const get: RouteDef = { method: 'GET', template: '/api/users/{id}', path: ['id'], query: [], success: 200 }
-const list: RouteDef = { method: 'POST', template: '/api/users:list', path: [], query: [], success: 200 }
+const create: RouteDef = {
+  method: 'POST',
+  template: '/api/users',
+  path: [],
+  query: [],
+  success: 201,
+}
+const get: RouteDef = {
+  method: 'GET',
+  template: '/api/users/{id}',
+  path: ['id'],
+  query: [],
+  success: 200,
+}
+const list: RouteDef = {
+  method: 'POST',
+  template: '/api/users:list',
+  path: [],
+  query: [],
+  success: 200,
+}
 
 function problem(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/problem+json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/problem+json' },
+  })
 }
 
 describe('buildRequest', () => {
   it('fills path parameters and moves the rest of a GET into the query string', () => {
     configureRequest({ baseUrl: '' })
-    const { url, body } = buildRequest('users.get', get, { id: 'u-1', keyword: 'a b', tags: ['x', 'y'] })
+    const { url, body } = buildRequest('users.get', get, {
+      id: 'u-1',
+      keyword: 'a b',
+      tags: ['x', 'y'],
+    })
     expect(url).toBe('/api/users/u-1?keyword=a+b&tags=x&tags=y')
     expect(body).toBeUndefined()
   })
 
   it('sends the whole request as the JSON body for POST', () => {
     configureRequest({ baseUrl: 'https://api.example' })
-    const { url, body } = buildRequest('users.list', list, { page: { index: 1, size: 20 }, keyword: 'x' })
+    const { url, body } = buildRequest('users.list', list, {
+      page: { index: 1, size: 20 },
+      keyword: 'x',
+    })
     expect(url).toBe('https://api.example/api/users:list')
-    expect(JSON.parse(body!)).toEqual({ page: { index: 1, size: 20 }, keyword: 'x' })
+    expect(JSON.parse(body!)).toEqual({
+      page: { index: 1, size: 20 },
+      keyword: 'x',
+    })
   })
 
   it('rejects a missing path parameter', () => {
@@ -38,9 +69,17 @@ describe('invoke', () => {
       expect(headers['Accept-Language']).toBe('zh-CN')
       expect(headers.traceparent).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/)
       expect(headers['Content-Type']).toBe('application/json')
-      return new Response(JSON.stringify({ id: 'u-1', userName: 'alice' }), { status: 201, headers: { 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ id: 'u-1', userName: 'alice' }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      })
     })
-    configureRequest({ baseUrl: '', fetch: fetchMock as unknown as typeof fetch, getToken: () => 't-1', getLocale: () => 'zh-CN' })
+    configureRequest({
+      baseUrl: '',
+      fetch: fetchMock as unknown as typeof fetch,
+      getToken: () => 't-1',
+      getLocale: () => 'zh-CN',
+    })
     const user = await invoke<{ userName: string }, { id: string, userName: string }>('users.create', create, { userName: 'alice' })
     expect(user).toEqual({ id: 'u-1', userName: 'alice' })
     expect(fetchMock).toHaveBeenCalledOnce()
@@ -56,7 +95,10 @@ describe('invoke', () => {
         detail: '请求不合法。',
         code: 'KERNEL_VALIDATION_003',
         traceId: 'abc',
-        errors: { userName: ['长度必须 >= 3'], displayName: ['必填'] },
+        errors: {
+          userName: ['长度必须 >= 3'],
+          displayName: ['必填'],
+        },
       })) as unknown as typeof fetch,
       getToken: () => null,
     })
@@ -84,7 +126,12 @@ describe('invoke', () => {
         : problem(401, { code: 'SECURITY_DENIED_001', status: 401, detail: 'auth' })
     })
     const onUnauthenticated = vi.fn(async () => 'fresh')
-    configureRequest({ baseUrl: '', fetch: fetchMock as unknown as typeof fetch, getToken: () => 'stale', hooks: { onUnauthenticated } })
+    configureRequest({
+      baseUrl: '',
+      fetch: fetchMock as unknown as typeof fetch,
+      getToken: () => 'stale',
+      hooks: { onUnauthenticated },
+    })
     const result = await invoke<object, { ok: boolean }>('users.list', list, {})
     expect(result).toEqual({ ok: true })
     expect(seen).toEqual(['Bearer stale', 'Bearer fresh'])
@@ -101,7 +148,12 @@ describe('invoke', () => {
         : problem(403, { code: 'SECURITY_DENIED_003', status: 403, detail: 'expired' })
     })
     const onUnauthenticated = vi.fn(async () => 'fresh')
-    configureRequest({ baseUrl: '', fetch: fetchMock as unknown as typeof fetch, getToken: () => 'expired', hooks: { onUnauthenticated } })
+    configureRequest({
+      baseUrl: '',
+      fetch: fetchMock as unknown as typeof fetch,
+      getToken: () => 'expired',
+      hooks: { onUnauthenticated },
+    })
     expect(await invoke<object, { ok: boolean }>('users.list', list, {})).toEqual({ ok: true })
     expect(seen).toEqual(['Bearer expired', 'Bearer fresh'])
 
@@ -116,7 +168,12 @@ describe('invoke', () => {
       return problem(401, { code: 'SECURITY_DENIED_001', status: 401, detail: 'auth' })
     })
     const onUnauthenticated = vi.fn(async () => 'fresh')
-    configureRequest({ baseUrl: '', fetch: fetchMock as unknown as typeof fetch, getToken: () => 'stale', hooks: { onUnauthenticated } })
+    configureRequest({
+      baseUrl: '',
+      fetch: fetchMock as unknown as typeof fetch,
+      getToken: () => 'stale',
+      hooks: { onUnauthenticated },
+    })
     await expect(invoke('auth.login', list, {}, { anonymous: true })).rejects.toMatchObject({ code: 'SECURITY_DENIED_001' })
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(onUnauthenticated).not.toHaveBeenCalled()
@@ -124,14 +181,24 @@ describe('invoke', () => {
 
   it('invokes the session hook on IDENTITY_DENIED_001 and still throws', async () => {
     const onSessionInvalid = vi.fn()
-    configureRequest({ baseUrl: '', fetch: (async () => problem(403, { code: 'IDENTITY_DENIED_001', status: 403, detail: 'revoked' })) as unknown as typeof fetch, getToken: () => 't', hooks: { onSessionInvalid } })
+    configureRequest({
+      baseUrl: '',
+      fetch: (async () => problem(403, { code: 'IDENTITY_DENIED_001', status: 403, detail: 'revoked' })) as unknown as typeof fetch,
+      getToken: () => 't',
+      hooks: { onSessionInvalid },
+    })
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'IDENTITY_DENIED_001' })
     expect(onSessionInvalid).toHaveBeenCalledOnce()
   })
 
   it('invokes the lock hook on IDENTITY_DENIED_002 and still throws', async () => {
     const onLocked = vi.fn()
-    configureRequest({ baseUrl: '', fetch: (async () => problem(403, { code: 'IDENTITY_DENIED_002', status: 403, detail: 'locked' })) as unknown as typeof fetch, getToken: () => 't', hooks: { onLocked } })
+    configureRequest({
+      baseUrl: '',
+      fetch: (async () => problem(403, { code: 'IDENTITY_DENIED_002', status: 403, detail: 'locked' })) as unknown as typeof fetch,
+      getToken: () => 't',
+      hooks: { onLocked },
+    })
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'IDENTITY_DENIED_002' })
     expect(onLocked).toHaveBeenCalledOnce()
   })
@@ -139,7 +206,12 @@ describe('invoke', () => {
   it('invokes the maintenance hook while the database is upgraded or the kernel is not serving, and still throws', async () => {
     const onMaintenance = vi.fn()
     let code = 'RUNTIME_UNAVAILABLE_003'
-    configureRequest({ baseUrl: '', fetch: (async () => problem(503, { code, status: 503, detail: 'upgrading' })) as unknown as typeof fetch, getToken: () => 't', hooks: { onMaintenance } })
+    configureRequest({
+      baseUrl: '',
+      fetch: (async () => problem(503, { code, status: 503, detail: 'upgrading' })) as unknown as typeof fetch,
+      getToken: () => 't',
+      hooks: { onMaintenance },
+    })
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'RUNTIME_UNAVAILABLE_003' })
     code = 'KERNEL_UNAVAILABLE_001'
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'KERNEL_UNAVAILABLE_001' })
@@ -154,16 +226,27 @@ describe('downloadEndpoint', () => {
     const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
       expect(String(url)).toBe('https://api.example/api/codegen-histories/h-1/package')
       expect((init!.headers as Record<string, string>).Authorization).toBe('Bearer t-1')
-      return new Response(new Uint8Array([80, 75]), { status: 200, headers: { 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="x.zip"; filename*=UTF-8\'\'%E5%95%86%E5%93%81.zip' } })
+      return new Response(new Uint8Array([80, 75]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="x.zip"; filename*=UTF-8\'\'%E5%95%86%E5%93%81.zip' },
+      })
     })
-    configureRequest({ baseUrl: 'https://api.example', fetch: fetchMock as unknown as typeof fetch, getToken: () => 't-1' })
+    configureRequest({
+      baseUrl: 'https://api.example',
+      fetch: fetchMock as unknown as typeof fetch,
+      getToken: () => 't-1',
+    })
     const file = await downloadEndpoint('/api/codegen-histories/h-1/package')
     expect(file.fileName).toBe('商品.zip')
     expect(file.blob.size).toBe(2)
   })
 
   it('throws the problem as an ApiError', async () => {
-    configureRequest({ baseUrl: '', fetch: (async () => problem(404, { code: 'CODEGENERATION_NOTFOUND_005', status: 404, detail: 'gone' })) as unknown as typeof fetch, getToken: () => 't' })
+    configureRequest({
+      baseUrl: '',
+      fetch: (async () => problem(404, { code: 'CODEGENERATION_NOTFOUND_005', status: 404, detail: 'gone' })) as unknown as typeof fetch,
+      getToken: () => 't',
+    })
     await expect(downloadEndpoint('/api/codegen-histories/h-2/package')).rejects.toMatchObject({ code: 'CODEGENERATION_NOTFOUND_005' })
   })
 })

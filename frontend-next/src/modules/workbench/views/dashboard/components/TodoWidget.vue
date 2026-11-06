@@ -22,7 +22,9 @@ const draft = ref('')
 onMounted(() => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    todos.value = raw ? (JSON.parse(raw) as Todo[]) : []
+    todos.value = raw
+      ? (JSON.parse(raw) as Todo[])
+      : []
   }
   catch {
     todos.value = []
@@ -37,7 +39,11 @@ function add() {
   const text = draft.value.trim()
   if (!text)
     return
-  todos.value.unshift({ id: Date.now(), text, done: false })
+  todos.value.unshift({
+    id: Date.now(),
+    text,
+    done: false,
+  })
   draft.value = ''
 }
 function remove(id: number) {

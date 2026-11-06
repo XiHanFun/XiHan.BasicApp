@@ -79,7 +79,10 @@ function registered(widget: WorkbenchListWidget): WidgetDef {
     descKey: widget.descKey,
     icon: widget.icon,
     defaultSpan: widget.defaultSpan,
-    component: markRaw(defineComponent({ name: 'RegisteredWidget', setup: () => () => h(RegisteredListWidget, { widget }) })),
+    component: markRaw(defineComponent({
+      name: 'RegisteredWidget',
+      setup: () => () => h(RegisteredListWidget, { widget }),
+    })),
     permission: widget.permission,
     page: widget.page,
   }

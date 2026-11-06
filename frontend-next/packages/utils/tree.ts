@@ -42,7 +42,9 @@ export function listToTree<T extends { basicId: string, parentId?: string, child
         list.filter(item => item.parentId === node.basicId),
         new Set(ancestors).add(node.basicId),
       )
-      return children.length > 0 ? { ...node, children } : asLeaf(node)
+      return children.length > 0
+        ? { ...node, children }
+        : asLeaf(node)
     })
 
   if (parentId !== null) {
@@ -72,12 +74,23 @@ export function relationOptionsToTree(
   options: ReadonlyArray<{ label: string, value: string, parentValue?: null | string, disabled?: boolean }>,
 ): TreeSelectOption[] {
   interface Node { basicId: string, parentId?: string, label: string, disabled?: boolean, children?: Node[] }
-  const nodes: Node[] = options.map(option => ({ basicId: option.value, parentId: option.parentValue ?? undefined, label: option.label, disabled: option.disabled }))
+  const nodes: Node[] = options.map(option => ({
+    basicId: option.value,
+    parentId: option.parentValue ?? undefined,
+    label: option.label,
+    disabled: option.disabled,
+  }))
   const toOption = (node: Node): TreeSelectOption => ({
     label: node.label,
     value: node.basicId,
-    ...(node.disabled ? { disabled: true } : {}),
-    ...(node.children?.length ? { children: node.children.map(toOption) } : {}),
+    ...(node.disabled
+      ? { disabled: true }
+      : {}),
+    ...(node.children?.length
+      ? {
+          children: node.children.map(toOption),
+        }
+      : {}),
   })
   return listToTree(nodes).map(toOption)
 }
@@ -145,7 +158,9 @@ export function filterTree<T extends { children?: T[] }>(
 
   const dfs = (nodes: T[]): T[] => {
     return nodes.reduce<T[]>((acc, node) => {
-      const children = Array.isArray(node.children) ? dfs(node.children) : []
+      const children = Array.isArray(node.children)
+        ? dfs(node.children)
+        : []
       if (match(node, normalizedKeyword) || children.length > 0) {
         if (children.length > 0) {
           acc.push({ ...node, children } as T)

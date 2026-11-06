@@ -25,5 +25,8 @@ export function resolveView(component: string): ViewLoader {
 
 /** 已登记的全部组件路径（门禁与菜单校验用） */
 export function viewKeys(): string[] {
-  return [...Object.keys(coreViews), ...Object.keys(views).map(key => key.replace(/^\/src\/modules\/([^/]+)\/views\/(.+)\.vue$/, '$1/$2'))]
+  return [
+    ...Object.keys(coreViews),
+    ...Object.keys(views).map(key => key.replace(/^\/src\/modules\/([^/]+)\/views\/(.+)\.vue$/, '$1/$2')),
+  ]
 }

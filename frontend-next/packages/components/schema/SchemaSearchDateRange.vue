@@ -52,12 +52,30 @@ function inclusiveEnd(timestamp: number): number {
  * 把「今天」放进渲染期会跨零点算出两个答案
  */
 const presets = computed(() => [
-  { label: t('component.search_date_range.today'), value: dateRangePickerPresetRange(0, 0) },
-  { label: t('component.search_date_range.yesterday'), value: dateRangePickerPresetRange(-1, -1) },
-  { label: t('component.search_date_range.last7'), value: dateRangePickerPresetRange(-6, 0) },
-  { label: t('component.search_date_range.last30'), value: dateRangePickerPresetRange(-29, 0) },
-  { label: t('component.search_date_range.this_month'), value: dateRangePickerPresetMonth(0) },
-  { label: t('component.search_date_range.last_month'), value: dateRangePickerPresetMonth(-1) },
+  {
+    label: t('component.search_date_range.today'),
+    value: dateRangePickerPresetRange(0, 0),
+  },
+  {
+    label: t('component.search_date_range.yesterday'),
+    value: dateRangePickerPresetRange(-1, -1),
+  },
+  {
+    label: t('component.search_date_range.last7'),
+    value: dateRangePickerPresetRange(-6, 0),
+  },
+  {
+    label: t('component.search_date_range.last30'),
+    value: dateRangePickerPresetRange(-29, 0),
+  },
+  {
+    label: t('component.search_date_range.this_month'),
+    value: dateRangePickerPresetMonth(0),
+  },
+  {
+    label: t('component.search_date_range.last_month'),
+    value: dateRangePickerPresetMonth(-1),
+  },
 ])
 
 /**
@@ -69,7 +87,10 @@ function onRangeChange(next: [number, number] | null): void {
     emit('update:value', null)
     return
   }
-  emit('update:value', [next[0], inclusiveEnd(next[1])])
+  emit('update:value', [
+    next[0],
+    inclusiveEnd(next[1]),
+  ])
 }
 </script>
 

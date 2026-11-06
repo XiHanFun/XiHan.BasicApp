@@ -28,19 +28,87 @@ const asRow = (row: object) => row as TelegramBotRow
 const statusOptions = computed<SelectOption[]>(() => enabledOptions(t))
 /** 兜底回复的搜索选项：后端按 `enableFallbackReply eq true / false` 精确匹配 */
 const fallbackOptions = computed<SelectOption[]>(() => [
-  { label: t('notification.telegram_bots.fallback.on'), value: 'true' },
-  { label: t('notification.telegram_bots.fallback.off'), value: 'false' },
+  {
+    label: t('notification.telegram_bots.fallback.on'),
+    value: 'true',
+  },
+  {
+    label: t('notification.telegram_bots.fallback.off'),
+    value: 'false',
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：名称、排序、创建时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.telegram_bots.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.telegram_bots.columns.keyword_placeholder'), order: 0 },
-  { key: 'name', title: t('notification.telegram_bots.columns.bot_name'), dataType: 'string', sortable: true, minWidth: 160, order: 1 },
-  { key: 'hasToken', title: t('notification.telegram_bots.columns.has_token'), dataType: 'enum', width: 100, order: 2, render: row => (asRow(row).hasToken ? renderTag(t('notification.telegram_bots.tag.token_configured'), 'success') : renderTag(t('notification.telegram_bots.tag.token_missing'), 'warning')) },
-  { key: 'enableFallbackReply', title: t('notification.telegram_bots.columns.fallback_reply'), dataType: 'enum', searchable: true, options: fallbackOptions.value, searchPlaceholder: t('notification.telegram_bots.columns.fallback_reply_placeholder'), width: 110, order: 3, render: row => (asRow(row).enableFallbackReply ? renderTag(t('notification.telegram_bots.fallback.on'), 'info') : '-') },
-  { key: 'isEnabled', title: t('notification.telegram_bots.columns.status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('notification.telegram_bots.columns.status_placeholder'), width: 90, order: 4, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
-  { key: 'order', title: t('notification.telegram_bots.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 5 },
-  { key: 'createdAt', title: t('notification.telegram_bots.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
+  {
+    key: 'keyword',
+    title: t('notification.telegram_bots.columns.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.telegram_bots.columns.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('notification.telegram_bots.columns.bot_name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 160,
+    order: 1,
+  },
+  {
+    key: 'hasToken',
+    title: t('notification.telegram_bots.columns.has_token'),
+    dataType: 'enum',
+    width: 100,
+    order: 2,
+    render: row => (asRow(row).hasToken
+      ? renderTag(t('notification.telegram_bots.tag.token_configured'), 'success')
+      : renderTag(t('notification.telegram_bots.tag.token_missing'), 'warning')),
+  },
+  {
+    key: 'enableFallbackReply',
+    title: t('notification.telegram_bots.columns.fallback_reply'),
+    dataType: 'enum',
+    searchable: true,
+    options: fallbackOptions.value,
+    searchPlaceholder: t('notification.telegram_bots.columns.fallback_reply_placeholder'),
+    width: 110,
+    order: 3,
+    render: row => (asRow(row).enableFallbackReply
+      ? renderTag(t('notification.telegram_bots.fallback.on'), 'info')
+      : '-'),
+  },
+  {
+    key: 'isEnabled',
+    title: t('notification.telegram_bots.columns.status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.telegram_bots.columns.status_placeholder'),
+    width: 90,
+    order: 4,
+    render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'order',
+    title: t('notification.telegram_bots.columns.sort'),
+    dataType: 'number',
+    sortable: true,
+    width: 80,
+    order: 5,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.telegram_bots.columns.created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 6,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -51,10 +119,40 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('notification.telegram_bots.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.telegram-bots.create' },
-    { key: 'edit', title: t('notification.telegram_bots.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'notification.telegram-bots.update' },
-    { key: 'toggle', title: t('notification.telegram_bots.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => toggleConfirmText(asRow(row)), permission: 'notification.telegram-bots.update' },
-    { key: 'delete', title: t('notification.telegram_bots.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => t('notification.telegram_bots.message.delete_content', { name: asRow(row).name }), permission: 'notification.telegram-bots.delete' },
+    {
+      key: 'create',
+      title: t('notification.telegram_bots.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'notification.telegram-bots.create',
+    },
+    {
+      key: 'edit',
+      title: t('notification.telegram_bots.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'notification.telegram-bots.update',
+    },
+    {
+      key: 'toggle',
+      title: t('notification.telegram_bots.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => toggleConfirmText(asRow(row)),
+      permission: 'notification.telegram-bots.update',
+    },
+    {
+      key: 'delete',
+      title: t('notification.telegram_bots.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => t('notification.telegram_bots.message.delete_content', { name: asRow(row).name }),
+      permission: 'notification.telegram-bots.delete',
+    },
   ],
 }))
 
@@ -65,7 +163,9 @@ function toggleConfirmText(row: TelegramBotRow): string {
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -92,8 +192,12 @@ const submitError = ref<null | string>(null)
 /** 编辑的机器人是否已存了令牌：已存的留空即保留，占位提示随之改 */
 const editingHasToken = ref(false)
 const form = reactive<TelegramBotForm>(emptyTelegramBotForm())
-const modalTitle = computed(() => (form.id ? t('notification.telegram_bots.form.edit_title') : t('notification.telegram_bots.form.add_title')))
-const tokenPlaceholder = computed(() => (form.id && editingHasToken.value ? t('notification.telegram_bots.form.token_configured') : t('notification.telegram_bots.form.token_placeholder')))
+const modalTitle = computed(() => (form.id
+  ? t('notification.telegram_bots.form.edit_title')
+  : t('notification.telegram_bots.form.add_title')))
+const tokenPlaceholder = computed(() => (form.id && editingHasToken.value
+  ? t('notification.telegram_bots.form.token_configured')
+  : t('notification.telegram_bots.form.token_placeholder')))
 
 function openCreate() {
   Object.assign(form, emptyTelegramBotForm())

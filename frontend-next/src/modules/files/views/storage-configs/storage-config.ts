@@ -47,7 +47,22 @@ export interface StorageConfigForm {
 }
 
 export function emptyStorageConfigForm(): StorageConfigForm {
-  return { id: null, code: '', name: '', type: 'Local', bucket: '', endpoint: '', region: '', accessKeyId: '', secretAccessKey: '', conditionalWrites: true, isDefault: false, status: 'Active', order: 100, remark: '' }
+  return {
+    id: null,
+    code: '',
+    name: '',
+    type: 'Local',
+    bucket: '',
+    endpoint: '',
+    region: '',
+    accessKeyId: '',
+    secretAccessKey: '',
+    conditionalWrites: true,
+    isDefault: false,
+    status: 'Active',
+    order: 100,
+    remark: '',
+  }
 }
 
 /** 已保存的配置回填表单（访问密钥不回显） */
@@ -114,10 +129,18 @@ function blankToNull(value: string): null | string {
 function remoteSettings(form: StorageConfigForm) {
   const remote = isRemote(form.type)
   return {
-    endpoint: remote ? blankToNull(form.endpoint) : null,
-    region: remote ? blankToNull(form.region) : null,
-    accessKeyId: remote ? blankToNull(form.accessKeyId) : null,
-    secretAccessKey: remote ? blankToNull(form.secretAccessKey) : null,
+    endpoint: remote
+      ? blankToNull(form.endpoint)
+      : null,
+    region: remote
+      ? blankToNull(form.region)
+      : null,
+    accessKeyId: remote
+      ? blankToNull(form.accessKeyId)
+      : null,
+    secretAccessKey: remote
+      ? blankToNull(form.secretAccessKey)
+      : null,
     conditionalWrites: remote ? form.conditionalWrites : true,
   }
 }
@@ -158,9 +181,16 @@ export function storageConfigResource(): SchemaResource<StorageConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await storageConfigsApi.list(toPageRequest(params, STORAGE_CONFIG_QUERY)), params),
     remove: async (id) => {
-      throwOnFailed(await storageConfigsApi.delete({ ids: [String(id)] }))
+      throwOnFailed(await storageConfigsApi.delete({
+        ids: [
+          String(id),
+        ],
+      }))
     },
-    updateStatus: async (id, enabled) => storageConfigsApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
+    updateStatus: async (id, enabled) => storageConfigsApi.setStatus({
+      id: String(id),
+      status: enabled ? 'Active' : 'Disabled',
+    }),
   }
 }
 
@@ -177,7 +207,9 @@ export function storageTypeLabel(t: Translate, type: StorageType): string {
 }
 
 export function storageConfigStatusLabel(t: Translate, status: StorageConfigStatus): string {
-  return status === 'Disabled' ? t('files.storage_configs.statuses.disabled') : t('files.storage_configs.statuses.active')
+  return status === 'Disabled'
+    ? t('files.storage_configs.statuses.disabled')
+    : t('files.storage_configs.statuses.active')
 }
 
 export function configProblemMessage(t: Translate, problem: StorageConfigProblem): string {

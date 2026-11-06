@@ -67,23 +67,68 @@ const rawText = ref(props.value ?? '')
 const weekNames = computed(() => t('component.cron.week_names').split(','))
 
 const fieldDefs = computed<FieldDef[]>(() => [
-  { key: 'second', label: t('component.cron.field_second'), min: 0, max: 59, unspecified: false },
-  { key: 'minute', label: t('component.cron.field_minute'), min: 0, max: 59, unspecified: false },
-  { key: 'hour', label: t('component.cron.field_hour'), min: 0, max: 23, unspecified: false },
-  { key: 'day', label: t('component.cron.field_day'), min: 1, max: 31, unspecified: true },
-  { key: 'month', label: t('component.cron.field_month'), min: 1, max: 12, unspecified: false },
-  { key: 'week', label: t('component.cron.field_week'), min: 0, max: 6, unspecified: true },
+  {
+    key: 'second',
+    label: t('component.cron.field_second'),
+    min: 0,
+    max: 59,
+    unspecified: false,
+  },
+  {
+    key: 'minute',
+    label: t('component.cron.field_minute'),
+    min: 0,
+    max: 59,
+    unspecified: false,
+  },
+  {
+    key: 'hour',
+    label: t('component.cron.field_hour'),
+    min: 0,
+    max: 23,
+    unspecified: false,
+  },
+  {
+    key: 'day',
+    label: t('component.cron.field_day'),
+    min: 1,
+    max: 31,
+    unspecified: true,
+  },
+  {
+    key: 'month',
+    label: t('component.cron.field_month'),
+    min: 1,
+    max: 12,
+    unspecified: false,
+  },
+  {
+    key: 'week',
+    label: t('component.cron.field_week'),
+    min: 0,
+    max: 6,
+    unspecified: true,
+  },
 ])
 
 const activeFieldDefs = computed(() =>
-  hasSeconds.value ? fieldDefs.value : fieldDefs.value.filter(d => d.key !== 'second'))
+  hasSeconds.value
+    ? fieldDefs.value
+    : fieldDefs.value.filter(d => d.key !== 'second'))
 
 function defOf(key: FieldKey): FieldDef {
   return fieldDefs.value.find(d => d.key === key) ?? fieldDefs.value[1]!
 }
 
 function createField(min: number): FieldState {
-  return { mode: 'every', start: min, step: 1, from: min, to: min, values: [] }
+  return {
+    mode: 'every',
+    start: min,
+    step: 1,
+    from: min,
+    to: min,
+    values: [],
+  }
 }
 
 const fields = reactive<Record<FieldKey, FieldState>>({
@@ -104,11 +149,34 @@ const activeTab = ref<FieldKey>('minute')
 let syncingFromValue = false
 
 // ── 工具 ───────────────────────────────────────────────────────
-const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const MONTH_NAMES = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+]
+const DAY_NAMES = [
+  'SUN',
+  'MON',
+  'TUE',
+  'WED',
+  'THU',
+  'FRI',
+  'SAT',
+]
 
 function clamp(v: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, Number.isFinite(v) ? v : min))
+  return Math.min(max, Math.max(min, Number.isFinite(v)
+    ? v
+    : min))
 }
 
 function toNum(v: string, def: FieldDef, fallback: number): number {
@@ -144,7 +212,9 @@ function fieldToStr(f: FieldState, def: FieldDef): string {
     case 'range':
       return `${clamp(f.from, def.min, def.max)}-${clamp(f.to, def.min, def.max)}`
     case 'specific':
-      return f.values.length ? [...f.values].sort((a, b) => a - b).join(',') : '*'
+      return f.values.length
+        ? [...f.values].sort((a, b) => a - b).join(',')
+        : '*'
     default:
       return '*'
   }
@@ -165,7 +235,9 @@ function parseFieldStr(raw: string, def: FieldDef): FieldState {
     const segs = s.split('/')
     const head = segs[0] ?? '*'
     f.mode = 'interval'
-    f.start = head === '*' || head === '' ? def.min : toNum(head, def, def.min)
+    f.start = head === '*' || head === ''
+      ? def.min
+      : toNum(head, def, def.min)
     f.step = Math.max(1, Number.parseInt(segs[1] ?? '1', 10) || 1)
     return f
   }
@@ -193,15 +265,30 @@ function parseFieldStr(raw: string, def: FieldDef): FieldState {
     }
   }
   f.mode = 'specific'
-  f.values = [...new Set(values)].filter(v => v >= def.min && v <= def.max).sort((a, b) => a - b)
+  f.values = [
+    ...new Set(values),
+  ].filter(v => v >= def.min && v <= def.max).sort((a, b) => a - b)
   return f
 }
 
 // ── 组装 / 解析整表达式 ────────────────────────────────────────
 const fieldOrder = computed<FieldKey[]>(() =>
   hasSeconds.value
-    ? ['second', 'minute', 'hour', 'day', 'month', 'week']
-    : ['minute', 'hour', 'day', 'month', 'week'])
+    ? [
+        'second',
+        'minute',
+        'hour',
+        'day',
+        'month',
+        'week',
+      ]
+    : [
+        'minute',
+        'hour',
+        'day',
+        'month',
+        'week',
+      ])
 
 const expression = computed(() => fieldOrder.value.map(k => fieldToStr(fields[k], defOf(k))).join(' '))
 
@@ -221,7 +308,10 @@ function applyExpression(raw: string | null | undefined): void {
 }
 
 // 构建器结构变化 → 向上 emit（同步回填期间不发）
-watch([() => hasSeconds.value, fields], () => {
+watch([
+  () => hasSeconds.value,
+  fields,
+], () => {
   if (syncingFromValue) {
     return
   }
@@ -262,7 +352,10 @@ function specificOptions(def: FieldDef): { label: string, value: number }[] {
   }
   const out: { label: string, value: number }[] = []
   for (let i = def.min; i <= def.max; i++) {
-    out.push({ label: String(i), value: i })
+    out.push({
+      label: String(i),
+      value: i,
+    })
   }
   return out
 }
@@ -289,7 +382,9 @@ function fieldAllowed(f: FieldState, def: FieldDef): Set<number> | null {
     }
     case 'specific':
       // 未选值时视为通配（与 fieldToStr 输出 '*' 一致），避免空集导致永不匹配的长循环
-      return f.values.length ? new Set(f.values) : null
+      return f.values.length
+        ? new Set(f.values)
+        : null
     default:
       return null
   }
@@ -304,7 +399,9 @@ let previewTimer: ReturnType<typeof setTimeout> | null = null
  * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环
  */
 function computeNextRuns(): Date[] {
-  const sec = hasSeconds.value ? fieldAllowed(fields.second, defOf('second')) : new Set([0])
+  const sec = hasSeconds.value
+    ? fieldAllowed(fields.second, defOf('second'))
+    : new Set([0])
   const min = fieldAllowed(fields.minute, defOf('minute'))
   const hour = fieldAllowed(fields.hour, defOf('hour'))
   const day = fieldAllowed(fields.day, defOf('day'))
@@ -328,7 +425,9 @@ function computeNextRuns(): Date[] {
       && hit(hour, cursor.getHours())
       && hit(min, cursor.getMinutes())
     ) {
-      const fromSec = m === 0 ? startSecond : 0
+      const fromSec = m === 0
+        ? startSecond
+        : 0
       for (let s = fromSec; s <= 59 && results.length < props.previewCount; s++) {
         if (hit(sec, s)) {
           results.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), cursor.getHours(), cursor.getMinutes(), s))
@@ -368,12 +467,30 @@ function fmt(d: Date): string {
 
 // ── 预设 ───────────────────────────────────────────────────────
 const presets = computed(() => [
-  { label: t('component.cron.preset_per_minute'), value: '0 * * * * ?' },
-  { label: t('component.cron.preset_per_5min'), value: '0 0/5 * * * ?' },
-  { label: t('component.cron.preset_hourly'), value: '0 0 * * * ?' },
-  { label: t('component.cron.preset_daily'), value: '0 0 0 * * ?' },
-  { label: t('component.cron.preset_weekly'), value: '0 0 0 ? * 1' },
-  { label: t('component.cron.preset_monthly'), value: '0 0 0 1 * ?' },
+  {
+    label: t('component.cron.preset_per_minute'),
+    value: '0 * * * * ?',
+  },
+  {
+    label: t('component.cron.preset_per_5min'),
+    value: '0 0/5 * * * ?',
+  },
+  {
+    label: t('component.cron.preset_hourly'),
+    value: '0 0 * * * ?',
+  },
+  {
+    label: t('component.cron.preset_daily'),
+    value: '0 0 0 * * ?',
+  },
+  {
+    label: t('component.cron.preset_weekly'),
+    value: '0 0 0 ? * 1',
+  },
+  {
+    label: t('component.cron.preset_monthly'),
+    value: '0 0 0 1 * ?',
+  },
 ])
 function applyPreset(v: string): void {
   applyExpression(v)

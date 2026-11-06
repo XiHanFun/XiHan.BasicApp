@@ -154,7 +154,9 @@ const treeExpanded = ref<Set<string> | null>(null)
 
 function isTreeOpen(key: string): boolean {
   // null 表示还没人动过：按 defaultExpandAll 决定
-  return treeExpanded.value === null ? props.defaultExpandAll : treeExpanded.value.has(key)
+  return treeExpanded.value === null
+    ? props.defaultExpandAll
+    : treeExpanded.value.has(key)
 }
 
 function toggleTreeRow(key: string): void {
@@ -202,10 +204,18 @@ const flatRows = computed<FlatRow[]>(() => {
   const walk = (nodes: TRow[], level: number, prefix: string) => {
     nodes.forEach((node, i) => {
       const key = rowKeyOf(node)
-      const label = prefix ? `${prefix}.${i + 1}` : `${i + 1}`
+      const label = prefix
+        ? `${prefix}.${i + 1}`
+        : `${i + 1}`
       const children = childrenOf(node)
       const branch = !!children?.length
-      out.push({ key, row: node, level, indexLabel: label, branch })
+      out.push({
+        key,
+        row: node,
+        level,
+        indexLabel: label,
+        branch,
+      })
       if (branch && isTreeOpen(key)) {
         walk(children!, level + 1, label)
       }
@@ -226,7 +236,10 @@ const prefixColumns = computed<Array<{ id: string, width: number }>>(() => {
     list.push({ id: SELECT_COL, width: PREFIX_COL_W })
   }
   if (props.showIndex) {
-    list.push({ id: INDEX_COL, width: props.tree ? 90 : 60 })
+    list.push({
+      id: INDEX_COL,
+      width: props.tree ? 90 : 60,
+    })
   }
   return list
 })
@@ -264,24 +277,40 @@ const tableColumns = computed<TableColumnDef[]>(() => {
       width: c.width,
       minWidth: c.width,
       maxWidth: c.width,
-      ...(pinPrefix ? { sticky: 'start' } : {}),
+      ...(pinPrefix
+        ? { sticky: 'start' }
+        : {}),
     })),
     ...props.columns.map<TableColumnDef>((column) => {
       const width = declaredWidthOf(column)
       return {
         id: column.key,
         label: column.title,
-        ...(column.sortable ? { sortable: true } : {}),
+        ...(column.sortable
+          ? { sortable: true }
+          : {}),
         // 吸附偏移由库按列宽累加，这里只报侧别
-        ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+        ...(column.fixed
+          ? {
+              sticky: column.fixed === 'right'
+                ? 'end'
+                : 'start',
+            }
+          : {}),
         // 对齐交给库落到列头与数据格上（data-align），起始边是库的缺省，不必写出来
-        ...(props.align === 'left' ? {} : { align: COLUMN_ALIGN[props.align] }),
+        ...(props.align === 'left'
+          ? {}
+          : { align: COLUMN_ALIGN[props.align] }),
         width,
         minWidth: column.minWidth ?? width,
         // 操作列不给拖：它的宽度跟着按钮走，拖窄了按钮会被挤掉
-        ...(column.key === ACTION_COL ? { maxWidth: width } : {}),
+        ...(column.key === ACTION_COL
+          ? { maxWidth: width }
+          : {}),
         // 改宽由库接管：它按下那一刻量出各列的实际宽度做基线，因此钉住的一瞬间视觉不跳
-        ...(column.resizable === false || column.key === ACTION_COL ? {} : { resizable: true }),
+        ...(column.resizable === false || column.key === ACTION_COL
+          ? {}
+          : { resizable: true }),
       }
     }),
   ]
@@ -295,7 +324,9 @@ const lastWidths = ref<Record<string, number>>({})
 function onColumnPreferenceChange(details: { value: { widths?: Record<string, number | string> } }): void {
   const widths = details.value.widths ?? {}
   for (const [key, raw] of Object.entries(widths)) {
-    const width = typeof raw === 'number' ? raw : Number.NaN
+    const width = typeof raw === 'number'
+      ? raw
+      : Number.NaN
     if (Number.isFinite(width) && lastWidths.value[key] !== width) {
       lastWidths.value = { ...lastWidths.value, [key]: width }
       // 前缀列不归业务侧管，它们的宽度是固定的
@@ -307,17 +338,29 @@ function onColumnPreferenceChange(details: { value: { widths?: Record<string, nu
 
 const tableRows = computed<TableRowDef[]>(() => flatRows.value.map(r => ({
   id: r.key,
-  ...(props.renderExpand && (props.rowExpandable?.(r.row) ?? true) ? { expandable: true } : {}),
+  ...(props.renderExpand && (props.rowExpandable?.(r.row) ?? true)
+    ? { expandable: true }
+    : {}),
 })))
 
 // ── 排序 ──────────────────────────────────────────────────────────────
 /** 应用侧的 { field, order } 与组件库的 { id, direction } 互转；数组顺序即优先级 */
 const sortChain = computed<TableSortDescriptor[]>(() =>
-  props.sorts.map(rule => ({ id: rule.field, direction: rule.order === 'asc' ? 'asc' : 'desc' })),
+  props.sorts.map(rule => ({
+    id: rule.field,
+    direction: rule.order === 'asc'
+      ? 'asc'
+      : 'desc',
+  })),
 )
 
 function onSortChange(chain: TableSortDescriptor[]): void {
-  emit('sort', chain.map(item => ({ field: item.id, order: item.direction === 'asc' ? 'asc' : 'desc' })))
+  emit('sort', chain.map(item => ({
+    field: item.id,
+    order: item.direction === 'asc'
+      ? 'asc'
+      : 'desc',
+  })))
 }
 
 // ── 多选 ──────────────────────────────────────────────────────────────
@@ -325,15 +368,21 @@ const selection = computed<TableSelection>(() => props.checkedKeys.map(String))
 
 function onSelectionChange(next: TableSelection): void {
   // 裸 'all' 摊成当前页的显式键：上层按键数组做批量操作
-  const keys = next === 'all' ? flatRows.value.map(r => r.key) : next
+  const keys = next === 'all'
+    ? flatRows.value.map(r => r.key)
+    : next
   emit('update:checkedKeys', keys)
 }
 
 // 行属性：悬停速览的事件（未启用时不挂，省掉每行三个监听）与页面附加属性合并，同名事件都保留
 function rowAttrs(row: TRow, rowIndex: number) {
-  const peekHandlers = peekEnabled.value ? peek.rowProps(row) : {}
+  const peekHandlers = peekEnabled.value
+    ? peek.rowProps(row)
+    : {}
   const extra = props.rowProps?.(row, rowIndex)
-  return extra ? mergeProps(peekHandlers, extra) : peekHandlers
+  return extra
+    ? mergeProps(peekHandlers, extra)
+    : peekHandlers
 }
 </script>
 

@@ -6,7 +6,11 @@ import { useI18n } from 'vue-i18n'
 export const COUNT_COMPACT: NumberFormatSpec = { notation: 'compact' }
 
 /** 图表 format 用的毫秒规格 */
-export const MILLISECONDS: NumberFormatSpec = { style: 'unit', unit: 'millisecond', precision: { type: 'fixed', digits: 0 } }
+export const MILLISECONDS: NumberFormatSpec = {
+  style: 'unit',
+  unit: 'millisecond',
+  precision: { type: 'fixed', digits: 0 },
+}
 
 /** 字节数换成合适的单位：图表的值按它缩放，format 用它的单位 */
 const BYTE_UNITS = [
@@ -19,13 +23,19 @@ const BYTE_UNITS = [
 /** 按最大的值挑一个字节单位：返回缩放倍数与 format 规格 */
 export function byteScale(max: number): { divisor: number, format: NumberFormatSpec } {
   const picked = BYTE_UNITS.find(entry => max >= entry.size) ?? BYTE_UNITS[BYTE_UNITS.length - 1]!
-  return { divisor: picked.size, format: { style: 'unit', unit: picked.unit } }
+  return {
+    divisor: picked.size,
+    format: { style: 'unit', unit: picked.unit },
+  }
 }
 
 /** 区间切换的选项：「n 天」 */
 export function useRangeOptions(days: readonly number[]) {
   const { t } = useI18n()
-  return computed(() => days.map(n => ({ value: String(n), label: t('workbench.charts.days', { n }) })))
+  return computed(() => days.map(n => ({
+    value: String(n),
+    label: t('workbench.charts.days', { n }),
+  })))
 }
 
 /** 卡片与说明文字里直接用的数字格式，跟随当前语言 */

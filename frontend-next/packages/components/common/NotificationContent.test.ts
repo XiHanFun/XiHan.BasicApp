@@ -4,7 +4,9 @@ import { NotificationContentFormat } from '~/types/enums'
 import NotificationContent from './NotificationContent.vue'
 
 function html(content: string): string {
-  return mount(NotificationContent, { props: { content, format: NotificationContentFormat.Html } }).find('.notif-content-html').element.innerHTML
+  return mount(NotificationContent, {
+    props: { content, format: NotificationContentFormat.Html },
+  }).find('.notif-content-html').element.innerHTML
 }
 
 describe('通知 HTML 正文的净化', () => {
@@ -31,7 +33,9 @@ describe('通知 HTML 正文的净化', () => {
   })
 
   it('纯文本不当 HTML', () => {
-    const wrapper = mount(NotificationContent, { props: { content: '<script>alert(1)</script>', format: NotificationContentFormat.Text } })
+    const wrapper = mount(NotificationContent, {
+      props: { content: '<script>alert(1)</script>', format: NotificationContentFormat.Text },
+    })
     expect(wrapper.find('.notif-content-text').text()).toBe('<script>alert(1)</script>')
     expect(wrapper.find('script').exists()).toBe(false)
   })

@@ -51,10 +51,21 @@ onDeactivated(stopSummaryPolling)
 onBeforeUnmount(stopSummaryPolling)
 
 // ── 列表 ─────────────────────────────────────────────────────────
-const deviceOptions = computed(() => DEVICE_TYPES.map(value => ({ label: deviceLabel(value, t), value })))
+const deviceOptions = computed(() => DEVICE_TYPES.map(value => ({
+  label: deviceLabel(value, t),
+  value,
+})))
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('identity.online_users.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.online_users.keyword_placeholder'), order: 0 },
+  {
+    key: 'keyword',
+    title: t('identity.online_users.col_keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('identity.online_users.keyword_placeholder'),
+    order: 0,
+  },
   {
     key: 'userName',
     title: t('identity.online_users.col_user'),
@@ -65,7 +76,9 @@ const fields = computed<ListFieldSchema[]>(() => [
       const r = asRow(row)
       return h('div', { class: 'ou-user' }, [
         h('span', { class: 'ou-user__name' }, sessionUserName(r)),
-        r.userName && r.displayName ? h('span', { class: 'ou-user__login' }, `@${r.userName}`) : null,
+        r.userName && r.displayName
+          ? h('span', { class: 'ou-user__login' }, `@${r.userName}`)
+          : null,
       ])
     },
   },
@@ -77,7 +90,9 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const online = asRow(row).isRealtimeOnline
-      return renderTag(online ? t('identity.online_users.realtime_online') : t('identity.online_users.realtime_logged'), online ? 'success' : 'neutral')
+      return renderTag(online
+        ? t('identity.online_users.realtime_online')
+        : t('identity.online_users.realtime_logged'), online ? 'success' : 'neutral')
     },
   },
   {
@@ -92,12 +107,52 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 12,
     render: row => renderTag(deviceLabel(asRow(row).device, t), 'info'),
   },
-  { key: 'os', title: t('identity.online_users.col_os'), dataType: 'string', advancedSearch: true, minWidth: 110, order: 14 },
-  { key: 'browser', title: t('identity.online_users.col_browser'), dataType: 'string', advancedSearch: true, minWidth: 110, order: 15 },
-  { key: 'ipAddressMasked', title: t('identity.online_users.col_ip'), dataType: 'string', minWidth: 120, order: 16 },
-  { key: 'location', title: t('identity.online_users.col_location'), dataType: 'string', minWidth: 140, order: 17 },
-  { key: 'loginAt', title: t('identity.online_users.col_login_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 18 },
-  { key: 'lastActiveAt', title: t('identity.online_users.col_last_activity'), dataType: 'datetime', sortable: true, minWidth: 170, order: 19 },
+  {
+    key: 'os',
+    title: t('identity.online_users.col_os'),
+    dataType: 'string',
+    advancedSearch: true,
+    minWidth: 110,
+    order: 14,
+  },
+  {
+    key: 'browser',
+    title: t('identity.online_users.col_browser'),
+    dataType: 'string',
+    advancedSearch: true,
+    minWidth: 110,
+    order: 15,
+  },
+  {
+    key: 'ipAddressMasked',
+    title: t('identity.online_users.col_ip'),
+    dataType: 'string',
+    minWidth: 120,
+    order: 16,
+  },
+  {
+    key: 'location',
+    title: t('identity.online_users.col_location'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 17,
+  },
+  {
+    key: 'loginAt',
+    title: t('identity.online_users.col_login_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 18,
+  },
+  {
+    key: 'lastActiveAt',
+    title: t('identity.online_users.col_last_activity'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 19,
+  },
   {
     key: 'onlineDuration',
     title: t('identity.online_users.col_online_duration'),
@@ -106,8 +161,22 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 20,
     render: row => h('span', formatDuration(onlineSeconds(asRow(row)), t)),
   },
-  { key: 'id', title: t('identity.online_users.col_session_id'), dataType: 'string', visible: false, minWidth: 180, order: 21 },
-  { key: 'userId', title: t('identity.online_users.col_user_id'), dataType: 'string', visible: false, advancedSearch: true, order: 30 },
+  {
+    key: 'id',
+    title: t('identity.online_users.col_session_id'),
+    dataType: 'string',
+    visible: false,
+    minWidth: 180,
+    order: 21,
+  },
+  {
+    key: 'userId',
+    title: t('identity.online_users.col_user_id'),
+    dataType: 'string',
+    visible: false,
+    advancedSearch: true,
+    order: 30,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -118,12 +187,22 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'revoke', title: t('identity.online_users.action_revoke'), scope: 'row', icon: 'lucide:log-out', tone: 'danger', permission: 'identity.sessions.revoke', visible: row => !asRow(row as object).isCurrent },
+    {
+      key: 'revoke',
+      title: t('identity.online_users.action_revoke'),
+      scope: 'row',
+      icon: 'lucide:log-out',
+      tone: 'danger',
+      permission: 'identity.sessions.revoke',
+      visible: row => !asRow(row as object).isCurrent,
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   if (payload.key === 'revoke' && row) {
     confirmRevoke(row)
   }
@@ -134,7 +213,9 @@ function confirmRevoke(row: OnlineSessionRow) {
     badge: 'warning',
     tone: 'danger',
     title: t('identity.online_users.revoke_title'),
-    content: t('identity.online_users.revoke_content', { name: sessionUserName(row) }),
+    content: t('identity.online_users.revoke_content', {
+      name: sessionUserName(row),
+    }),
     okText: t('identity.online_users.revoke_confirm'),
     cancelText: t('common.actions.cancel'),
     onOk: async () => {

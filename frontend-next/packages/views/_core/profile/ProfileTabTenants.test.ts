@@ -15,15 +15,58 @@ import { formatDate } from '~/utils'
 import ProfileTabTenants from './ProfileTabTenants.vue'
 
 const apis = {
-  tenantApi: { myAvailableTenants: vi.fn(), switchTenant: vi.fn() },
+  tenantApi: {
+    myAvailableTenants: vi.fn(),
+    switchTenant: vi.fn(),
+  },
 }
 
 const tenants: AppTenantSwitcherItem[] = [
-  { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isOwner: false, isCurrent: true, joinedTime: '2026-01-02T12:00:00Z' },
-  { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Member', isOwner: true, isCurrent: false, joinedTime: '2026-03-04T12:00:00Z' },
-  { tenantId: 'beta', tenantName: 'Beta', isHome: false, memberType: 'Member', isOwner: false, isCurrent: false, joinedTime: '2026-05-06T12:00:00Z' },
-  { tenantId: 'ops', tenantName: 'Ops', isHome: false, memberType: 'Support', isOwner: false, isCurrent: false, joinedTime: '2026-07-08T12:00:00Z' },
-  { tenantId: 'own', tenantName: 'Own', isHome: true, memberType: null, isOwner: true, isCurrent: false, joinedTime: '2026-09-10T12:00:00Z' },
+  {
+    tenantId: 'acme',
+    tenantName: 'Acme',
+    isHome: true,
+    memberType: null,
+    isOwner: false,
+    isCurrent: true,
+    joinedTime: '2026-01-02T12:00:00Z',
+  },
+  {
+    tenantId: 'demo',
+    tenantName: 'Demo Tenant',
+    isHome: false,
+    memberType: 'Member',
+    isOwner: true,
+    isCurrent: false,
+    joinedTime: '2026-03-04T12:00:00Z',
+  },
+  {
+    tenantId: 'beta',
+    tenantName: 'Beta',
+    isHome: false,
+    memberType: 'Member',
+    isOwner: false,
+    isCurrent: false,
+    joinedTime: '2026-05-06T12:00:00Z',
+  },
+  {
+    tenantId: 'ops',
+    tenantName: 'Ops',
+    isHome: false,
+    memberType: 'Support',
+    isOwner: false,
+    isCurrent: false,
+    joinedTime: '2026-07-08T12:00:00Z',
+  },
+  {
+    tenantId: 'own',
+    tenantName: 'Own',
+    isHome: true,
+    memberType: null,
+    isOwner: true,
+    isCurrent: false,
+    joinedTime: '2026-09-10T12:00:00Z',
+  },
 ]
 
 beforeEach(() => {
@@ -36,7 +79,11 @@ beforeEach(() => {
 })
 
 async function render() {
-  const wrapper = mount(ProfileTabTenants, { global: { plugins: [i18n] } })
+  const wrapper = mount(ProfileTabTenants, {
+    global: {
+      plugins: [i18n],
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -57,14 +104,46 @@ describe('我的租户页签', () => {
       desc: text(item.find('.pf-list-desc').text()),
       tag: item.find('.pf-tenant-actions [data-part="label"]').text(),
       tone: item.find('.pf-tenant-actions [data-part="root"]').attributes('data-tone') ?? null,
-      action: item.find('.pf-tenant-actions button').exists() ? item.find('.pf-tenant-actions button').text() : null,
+      action: item.find('.pf-tenant-actions button').exists()
+        ? item.find('.pf-tenant-actions button').text()
+        : null,
     }))
     expect(rows).toEqual([
-      { title: 'Acme 当前', desc: `注册地 · ${joined(tenants[0]!)}`, tag: '注册地', tone: 'brand', action: null },
-      { title: 'Demo Tenant', desc: `租户所有者 · ${joined(tenants[1]!)}`, tag: '租户所有者', tone: 'warning', action: '切换' },
-      { title: 'Beta', desc: `普通成员 · ${joined(tenants[2]!)}`, tag: '普通成员', tone: 'neutral', action: '切换' },
-      { title: 'Ops', desc: `运维支持 · ${joined(tenants[3]!)}`, tag: '运维支持', tone: 'info', action: '切换' },
-      { title: 'Own', desc: `租户所有者 · ${joined(tenants[4]!)}`, tag: '租户所有者', tone: 'warning', action: '切换' },
+      {
+        title: 'Acme 当前',
+        desc: `注册地 · ${joined(tenants[0]!)}`,
+        tag: '注册地',
+        tone: 'brand',
+        action: null,
+      },
+      {
+        title: 'Demo Tenant',
+        desc: `租户所有者 · ${joined(tenants[1]!)}`,
+        tag: '租户所有者',
+        tone: 'warning',
+        action: '切换',
+      },
+      {
+        title: 'Beta',
+        desc: `普通成员 · ${joined(tenants[2]!)}`,
+        tag: '普通成员',
+        tone: 'neutral',
+        action: '切换',
+      },
+      {
+        title: 'Ops',
+        desc: `运维支持 · ${joined(tenants[3]!)}`,
+        tag: '运维支持',
+        tone: 'info',
+        action: '切换',
+      },
+      {
+        title: 'Own',
+        desc: `租户所有者 · ${joined(tenants[4]!)}`,
+        tag: '租户所有者',
+        tone: 'warning',
+        action: '切换',
+      },
     ])
     expect(wrapper.findAll('.pf-list-item')[0]!.classes()).toContain('pf-list-item--active')
   })

@@ -139,7 +139,10 @@ export function traceStatusLabel(t: Translate, value: TraceItemStatus): string {
 }
 
 function optionsOf<T extends string>(values: readonly T[], label: (value: T) => string): LogDetailOption[] {
-  return values.map(value => ({ label: label(value), value }))
+  return values.map(value => ({
+    label: label(value),
+    value,
+  }))
 }
 
 export const accessResultOptions = (t: Translate) => optionsOf(AccessResult, value => accessResultLabel(t, value))
@@ -154,8 +157,17 @@ export const traceLogTypeOptions = (t: Translate) => optionsOf(TraceLogType, val
 
 /** 是 / 否两项（布尔筛选的值是后端接受的 'true' / 'false'；文案由调用方翻好传入） */
 export function yesNoOptions(yes: string, no: string): LogDetailOption[] {
-  return [{ label: yes, value: 'true' }, { label: no, value: 'false' }]
+  return [
+    { label: yes, value: 'true' },
+    { label: no, value: 'false' },
+  ]
 }
 
 /** HTTP 方法的搜索选项（原文即文案） */
-export const HTTP_METHOD_OPTIONS: LogDetailOption[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(method => ({ label: method, value: method }))
+export const HTTP_METHOD_OPTIONS: LogDetailOption[] = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+].map(method => ({ label: method, value: method }))

@@ -7,7 +7,18 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const LOCALES = ['en-US', 'zh-CN', 'zh-TW', 'ja-JP', 'ko-KR', 'de-DE', 'es-ES', 'fr-FR', 'pt-BR', 'ru-RU']
+const LOCALES = [
+  'en-US',
+  'zh-CN',
+  'zh-TW',
+  'ja-JP',
+  'ko-KR',
+  'de-DE',
+  'es-ES',
+  'fr-FR',
+  'pt-BR',
+  'ru-RU',
+]
 const SCAN = ['src', 'packages']
 const SKIP = new Set(['node_modules', 'dist', 'contracts'])
 
@@ -20,7 +31,9 @@ function loadModule(path) {
 
 function flatten(value, prefix = '', out = new Set()) {
   for (const [key, child] of Object.entries(value)) {
-    const path = prefix ? `${prefix}.${key}` : key
+    const path = prefix
+      ? `${prefix}.${key}`
+      : key
     if (child && typeof child === 'object')
       flatten(child, path, out)
     else out.add(path)
@@ -41,7 +54,9 @@ function files(dir, out = []) {
   return out
 }
 
-const roots = [join(ROOT, 'packages', 'locales', 'langs')]
+const roots = [
+  join(ROOT, 'packages', 'locales', 'langs'),
+]
 const modules = join(ROOT, 'src', 'modules')
 try {
   for (const name of readdirSync(modules)) {
@@ -84,8 +99,11 @@ for (const root of roots) {
 
 const T_CALL = /\b\$?t\(\s*['"`]([a-z][\w-]*(?:\.[\w-]+)+)['"`]/g
 for (const file of SCAN.flatMap(dir => files(join(ROOT, dir)))) {
-  if (file.includes(`${join('locales')}${process.platform === 'win32' ? '\\' : '/'}`))
+  if (file.includes(`${join('locales')}${process.platform === 'win32'
+    ? '\\'
+    : '/'}`)) {
     continue
+  }
   const source = readFileSync(file, 'utf8')
   for (const match of source.matchAll(T_CALL)) {
     if (!known.has(match[1])) {

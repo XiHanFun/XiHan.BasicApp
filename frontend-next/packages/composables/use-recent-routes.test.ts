@@ -30,7 +30,10 @@ describe('useRecentRoutes 初始化', () => {
   })
 
   it('导入期读取本地已存记录并原样恢复', async () => {
-    localStorage.setItem(RECENT_ROUTES_KEY, JSON.stringify([route('/a'), route('/b')]))
+    localStorage.setItem(RECENT_ROUTES_KEY, JSON.stringify([
+      route('/a'),
+      route('/b'),
+    ]))
 
     const { recent } = await loadModule()
 

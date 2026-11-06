@@ -29,11 +29,27 @@ const saved = vi.hoisted(() => ({
 
 const printing = vi.hoisted(() => {
   class PrintTemplateFormatError extends Error {}
-  return { PrintTemplateFormatError, parsePrintTemplateJson: vi.fn((): unknown => ({})) }
+  return {
+    PrintTemplateFormatError,
+    parsePrintTemplateJson: vi.fn((): unknown => ({})),
+  }
 })
 
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
-vi.mock('~/composables', () => ({ dialog: { confirm: vi.fn() }, toast: { success: vi.fn(), warning: vi.fn(), danger: vi.fn() } }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}))
+vi.mock('~/composables', () => ({
+  dialog: {
+    confirm: vi.fn(),
+  },
+  toast: {
+    success: vi.fn(),
+    warning: vi.fn(),
+    danger: vi.fn(),
+  },
+}))
 vi.mock('~/printing', () => ({
   createDefaultPrintSampleData: vi.fn(),
   directPrintByCode: vi.fn(),
@@ -44,14 +60,23 @@ vi.mock('~/printing', () => ({
   refreshPrinters: vi.fn(async () => []),
   setPreferredPrinter: vi.fn(),
 }))
-vi.mock('~/printing/designer', () => ({ createEmptyPrintDocument: () => ({}) }))
+vi.mock('~/printing/designer', () => ({
+  createEmptyPrintDocument: () => ({}),
+}))
 vi.mock('~/contracts', () => ({
-  printTemplates: { update: vi.fn(async () => saved) },
+  printTemplates: {
+    update: vi.fn(async () => saved),
+  },
 }))
 
 function setup(detail: PrintTemplateDetail | null, emit: (...args: unknown[]) => void = () => {}) {
   let editor!: ReturnType<typeof usePrintTemplateEditor>
-  const props = reactive({ detail, globalMode: false, scope: 'Tenant' as const, show: false })
+  const props = reactive({
+    detail,
+    globalMode: false,
+    scope: 'Tenant' as const,
+    show: false,
+  })
   mount(defineComponent({
     setup() {
       editor = usePrintTemplateEditor(props, emit as never)
@@ -83,11 +108,20 @@ describe('打开', () => {
 
 describe('保存', () => {
   it('只更新这份模板：设计取设计器里的，元数据与并发戳沿用详情；存好后设计器记为已保存', async () => {
-    const { editor, props } = setup({ ...saved, id: 'tpl-9', remark: '季度版', concurrencyStamp: '3' } as unknown as PrintTemplateDetail)
+    const { editor, props } = setup({
+      ...saved,
+      id: 'tpl-9',
+      remark: '季度版',
+      concurrencyStamp: '3',
+    } as unknown as PrintTemplateDetail)
     props.show = true
     await flushPromises()
     const markSaved = vi.fn()
-    editor.setDesignerRef({ validate: () => [], getJson: () => ({ pages: [] }), markSaved })
+    editor.setDesignerRef({
+      validate: () => [],
+      getJson: () => ({ pages: [] }),
+      markSaved,
+    })
 
     await editor.save()
 
@@ -165,7 +199,11 @@ describe('未保存', () => {
     expect(editor.dirty.value).toBe(true)
 
     // 存好后设计器记为已保存，随之报干净
-    editor.setDesignerRef({ validate: () => [], getJson: () => ({ pages: [] }), markSaved: () => editor.onDesignerDirtyChange(false) })
+    editor.setDesignerRef({
+      validate: () => [],
+      getJson: () => ({ pages: [] }),
+      markSaved: () => editor.onDesignerDirtyChange(false),
+    })
     await editor.save()
     expect(editor.dirty.value).toBe(false)
   })

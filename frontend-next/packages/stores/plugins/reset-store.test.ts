@@ -22,7 +22,9 @@ function nextId(prefix: string): string {
 function usePluginPinia(): void {
   const pinia = createPinia()
   pinia.use(resetSetupStorePlugin())
-  createApp({ render: () => null }).use(pinia)
+  createApp({
+    render: () => null,
+  }).use(pinia)
   setActivePinia(pinia)
 }
 
@@ -49,7 +51,9 @@ describe('无自定义 $reset 的 setup store', () => {
 
   it('未加插件时 setup store 的 $reset 直接抛错 —— 这正是插件存在的理由', () => {
     setActivePinia(createPinia())
-    const useBare = defineStore(nextId('bare'), () => ({ count: ref(0) }))
+    const useBare = defineStore(nextId('bare'), () => ({
+      count: ref(0),
+    }))
     const store = useBare()
 
     expect(() => store.$reset()).toThrow(/setup syntax/)
@@ -57,7 +61,10 @@ describe('无自定义 $reset 的 setup store', () => {
 
   it('嵌套对象按深拷贝还原，改动不会渗回快照', () => {
     const useNested = defineStore(nextId('nested'), () => {
-      const config = ref({ list: [1, 2], inner: { flag: false } })
+      const config = ref({
+        list: [1, 2],
+        inner: { flag: false },
+      })
       return { config }
     })
     const store = useNested()
@@ -66,12 +73,17 @@ describe('无自定义 $reset 的 setup store', () => {
 
     store.$reset()
 
-    expect(store.config).toEqual({ list: [1, 2], inner: { flag: false } })
+    expect(store.config).toEqual({
+      list: [1, 2],
+      inner: { flag: false },
+    })
   })
 
   it('连续两次 reset 都能还原 —— 快照没有被上一次还原污染', () => {
     const useNested = defineStore(nextId('nested-twice'), () => ({
-      config: ref({ list: [1] }),
+      config: ref({
+        list: [1],
+      }),
     }))
     const store = useNested()
 
@@ -84,7 +96,9 @@ describe('无自定义 $reset 的 setup store', () => {
   })
 
   it('reset 后写入新值不会改动快照，第三次 reset 仍回到最初值', () => {
-    const useCounter = defineStore(nextId('counter-again'), () => ({ count: ref(7) }))
+    const useCounter = defineStore(nextId('counter-again'), () => ({
+      count: ref(7),
+    }))
     const store = useCounter()
 
     store.$reset()

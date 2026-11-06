@@ -31,7 +31,13 @@ interface TrialFormModel {
 
 const { t } = useI18n()
 const formId = useId()
-const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(method => ({ value: method, label: method }))
+const methodOptions = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+].map(method => ({ value: method, label: method }))
 
 const form = ref<TrialFormModel>(emptyForm())
 const userOptions = ref<Array<{ label: string, value: string, description?: string }>>([])
@@ -39,18 +45,34 @@ const userLoading = ref(false)
 const permissionOptions = ref<Array<{ label: string, value: string, description?: string }>>([])
 const running = ref(false)
 const result = ref<ConditionTrialResult | null>(null)
-const blocks = computed(() => result.value ? trialBlocks(result.value) : [])
+const blocks = computed(() => result.value
+  ? trialBlocks(result.value)
+  : [])
 let userSeq = 0
 
 function emptyForm(): TrialFormModel {
-  return { userId: null, permission: null, ip: '', time: null, userAgent: '', path: '', method: null, isImpersonating: false }
+  return {
+    userId: null,
+    permission: null,
+    ip: '',
+    time: null,
+    userAgent: '',
+    path: '',
+    method: null,
+    isImpersonating: false,
+  }
 }
 
 async function searchUsers(keyword = '') {
   const seq = ++userSeq
   userLoading.value = true
   try {
-    const page = await usersApi.list({ page: { index: 1, size: 50 }, filters: [], sorts: [], keyword: keyword.trim() || null })
+    const page = await usersApi.list({
+      page: { index: 1, size: 50 },
+      filters: [],
+      sorts: [],
+      keyword: keyword.trim() || null,
+    })
     if (seq === userSeq)
       userOptions.value = page.items.map(user => ({ label: user.displayName, value: user.id, description: `@${user.userName}` }))
   }
@@ -85,7 +107,9 @@ async function run() {
       userId: form.value.userId,
       permission: form.value.permission,
       ip: form.value.ip.trim() || null,
-      time: form.value.time ? new Date(form.value.time).toISOString() : null,
+      time: form.value.time
+        ? new Date(form.value.time).toISOString()
+        : null,
       userAgent: form.value.userAgent.trim() || null,
       path: form.value.path.trim() || null,
       method: form.value.method,
@@ -101,12 +125,18 @@ async function run() {
 }
 
 function setTitle(set: ConditionTrialSet): string {
-  const side = set.action === 'Deny' ? t('access.conditions.deny_sets') : t('access.conditions.grant_sets')
-  return set.subjectName ? `${side} · ${set.subjectName}` : side
+  const side = set.action === 'Deny'
+    ? t('access.conditions.deny_sets')
+    : t('access.conditions.grant_sets')
+  return set.subjectName
+    ? `${side} · ${set.subjectName}`
+    : side
 }
 
 function setOutcome(set: ConditionTrialSet): string {
-  return set.outcome ? outcomeLabel(t, set.outcome) : t('access.conditions.missing_set')
+  return set.outcome
+    ? outcomeLabel(t, set.outcome)
+    : t('access.conditions.missing_set')
 }
 
 function verdictText(verdict: ConditionVerdict): string {

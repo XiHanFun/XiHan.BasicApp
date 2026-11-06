@@ -8,7 +8,10 @@ import { emptySmsConfigForm, findSmsConfigProblem, isValidTemplateMap, SMS_CONFI
 const t = (key: string) => key
 
 function json(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 function stub(...responses: object[]): { method: string, url: string, body: unknown }[] {
@@ -17,7 +20,13 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
       return json(200, responses[calls.length - 1] ?? {})
     }) as unknown as typeof fetch,
   })
@@ -25,7 +34,15 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
 }
 
 function form(patch: Partial<SmsConfigForm> = {}): SmsConfigForm {
-  return { ...emptySmsConfigForm(), code: 'sms-main', name: '阿里云短信', accessKeyId: 'AK', accessKeySecret: 'SK', signName: '曦寒', ...patch }
+  return {
+    ...emptySmsConfigForm(),
+    code: 'sms-main',
+    name: '阿里云短信',
+    accessKeyId: 'AK',
+    accessKeySecret: 'SK',
+    signName: '曦寒',
+    ...patch,
+  }
 }
 
 const ROW: SmsConfigRow = {
@@ -52,9 +69,20 @@ describe('短信配置的列表筛选', () => {
     const request = toPageRequest({
       page: 1,
       pageSize: 20,
-      filters: { provider: ['Aliyun', 'Tencent'], isEnabled: 'true' },
-      conditionFilters: [{ field: 'provider', operator: QueryOperator.In, values: ['Aliyun', 'Tencent'] }],
-      sorts: [{ field: 'order', order: 'asc' }],
+      filters: {
+        provider: ['Aliyun', 'Tencent'],
+        isEnabled: 'true',
+      },
+      conditionFilters: [
+        {
+          field: 'provider',
+          operator: QueryOperator.In,
+          values: ['Aliyun', 'Tencent'],
+        },
+      ],
+      sorts: [
+        { field: 'order', order: 'asc' },
+      ],
     }, SMS_CONFIG_QUERY)
     expect(request.filters).toEqual([
       { field: 'provider', operator: 'in', value: 'Aliyun,Tencent' },
@@ -110,19 +138,34 @@ describe('短信配置的表单', () => {
       remark: null,
     })
     const filled = toSmsConfigForm(ROW)
-    expect(filled).toMatchObject({ id: 's1', provider: 'Tencent', accessKeySecret: '', region: '', templateMap: '{"auth-sms-login-code":"123456"}' })
+    expect(filled).toMatchObject({
+      id: 's1',
+      provider: 'Tencent',
+      accessKeySecret: '',
+      region: '',
+      templateMap: '{"auth-sms-login-code":"123456"}',
+    })
     const body = toUpdateBody({ ...filled, id: 's1' })
     expect(body).toMatchObject({ id: 's1', accessKeySecret: null, sdkAppId: '1400000000' })
     expect(body).not.toHaveProperty('code')
   })
 
   it('启停取最新一份再整体修改（不带密钥）；删除逐项拒绝时带着原因抛出', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 's1', code: 'NOTIFICATION_NOTFOUND_005', message: 'NOTIFICATION_NOTFOUND_005 的原因' }] })
+    const calls = stub(ROW, ROW, {
+      succeeded: [],
+      failed: [
+        { id: 's1', code: 'NOTIFICATION_NOTFOUND_005', message: 'NOTIFICATION_NOTFOUND_005 的原因' },
+      ],
+    })
     const resource = smsConfigResource()
     await resource.updateStatus!('s1', false)
     await expect(resource.remove!('s1')).rejects.toThrow('NOTIFICATION_NOTFOUND_005 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/sms-configs/s1' })
-    expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/sms-configs/s1', body: { isEnabled: false, accessKeySecret: null, provider: 'Tencent' } })
+    expect(calls[1]).toMatchObject({
+      method: 'PUT',
+      url: '/api/sms-configs/s1',
+      body: { isEnabled: false, accessKeySecret: null, provider: 'Tencent' },
+    })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/sms-configs?ids=s1' })
   })
 })

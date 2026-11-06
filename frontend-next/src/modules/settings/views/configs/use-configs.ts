@@ -8,7 +8,13 @@ export type ConfigRow = ResponseOf<'configs.list'>['items'][number]
 export type ConfigDataType = ConfigRow['dataType']
 export type ConfigStatus = ConfigRow['status']
 
-export const CONFIG_DATA_TYPES: readonly ConfigDataType[] = ['Text', 'Number', 'Boolean', 'Json', 'Array']
+export const CONFIG_DATA_TYPES: readonly ConfigDataType[] = [
+  'Text',
+  'Number',
+  'Boolean',
+  'Json',
+  'Array',
+]
 
 /** 弹窗表单：新建、编辑与覆盖平台参数共用一份（键只在新建时可改） */
 export interface ConfigForm {
@@ -28,11 +34,25 @@ export interface ConfigForm {
 export type ConfigEditorMode = 'create' | 'edit' | 'override'
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value
+  return value.trim() === ''
+    ? null
+    : value
 }
 
 function emptyForm(): ConfigForm {
-  return { key: '', name: '', group: '', dataType: 'Text', value: '', defaultValue: '', isEncrypted: false, allowTenantOverride: true, order: 0, description: '', status: 'Active' }
+  return {
+    key: '',
+    name: '',
+    group: '',
+    dataType: 'Text',
+    value: '',
+    defaultValue: '',
+    isEncrypted: false,
+    allowTenantOverride: true,
+    order: 0,
+    description: '',
+    status: 'Active',
+  }
 }
 
 /**
@@ -42,13 +62,27 @@ function emptyForm(): ConfigForm {
 export function configsResource(): SchemaResource<ConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await configsApi.list(toPageRequest(params, { filters: { group: 'eq', dataType: 'eq', owner: 'eq', status: 'eq', isEncrypted: 'eq' } })),
+      await configsApi.list(toPageRequest(params, {
+        filters: {
+          group: 'eq',
+          dataType: 'eq',
+          owner: 'eq',
+          status: 'eq',
+          isEncrypted: 'eq',
+        },
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await configsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await configsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体覆盖：先取当前值再只改状态；加密参数的值传空即保留原值
     updateStatus: async (id, enabled) => {
-      const row = await configsApi.get({ id: String(id) })
+      const row = await configsApi.get({
+        id: String(id),
+      })
       return configsApi.update({
         id: row.id,
         name: row.name,
@@ -73,7 +107,9 @@ export function configsResource(): SchemaResource<ConfigRow> {
       defaultValue: blankToNull(String(record.defaultValue ?? '')),
       isEncrypted: false,
       allowTenantOverride: true,
-      order: typeof record.order === 'number' ? record.order : 0,
+      order: typeof record.order === 'number'
+        ? record.order
+        : 0,
       description: blankToNull(String(record.description ?? '')),
     }),
   }
@@ -125,7 +161,9 @@ export function useConfigEditor(isPlatformCaller: () => boolean) {
       name: row.name,
       group: row.group ?? '',
       dataType: row.dataType,
-      value: row.isEncrypted ? '' : (row.value ?? ''),
+      value: row.isEncrypted
+        ? ''
+        : (row.value ?? ''),
       defaultValue: row.defaultValue ?? '',
       isEncrypted: row.isEncrypted,
       allowTenantOverride: row.allowTenantOverride,
@@ -140,7 +178,13 @@ export function useConfigEditor(isPlatformCaller: () => boolean) {
   function startOverride(row: ConfigRow) {
     mode.value = 'override'
     editing.value = null
-    reset({ key: row.key, name: row.name, group: row.group ?? '', dataType: row.dataType, allowTenantOverride: false })
+    reset({
+      key: row.key,
+      name: row.name,
+      group: row.group ?? '',
+      dataType: row.dataType,
+      allowTenantOverride: false,
+    })
     open.value = true
   }
 
@@ -202,5 +246,20 @@ export function useConfigEditor(isPlatformCaller: () => boolean) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, isOwn, canOverride, startCreate, startEdit, startOverride, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    isOwn,
+    canOverride,
+    startCreate,
+    startEdit,
+    startOverride,
+    submit,
+  }
 }

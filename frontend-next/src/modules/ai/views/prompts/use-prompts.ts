@@ -21,11 +21,22 @@ export interface PromptForm {
 }
 
 export function emptyPromptForm(): PromptForm {
-  return { code: '', name: '', category: '', version: '', content: '', order: 100, status: 'Active', remark: '' }
+  return {
+    code: '',
+    name: '',
+    category: '',
+    version: '',
+    content: '',
+    order: 100,
+    status: 'Active',
+    remark: '',
+  }
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /**
@@ -35,10 +46,16 @@ function blankToNull(value: string): null | string {
 export function promptsResource(): SchemaResource<PromptRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await aiPrompts.list(toPageRequest(params, { multiples: ['status'] })),
+      await aiPrompts.list(toPageRequest(params, {
+        multiples: ['status'],
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await aiPrompts.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await aiPrompts.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -101,10 +118,16 @@ export function usePromptEditor() {
         order: form.order,
         remark: blankToNull(form.remark),
       }
-      if (current)
+      if (current) {
         await aiPrompts.update({ id: current.id, concurrencyStamp: current.concurrencyStamp, ...common })
-      else
-        await aiPrompts.create({ ...common, code: form.code.trim(), status: form.status })
+      }
+      else {
+        await aiPrompts.create({
+          ...common,
+          code: form.code.trim(),
+          status: form.status,
+        })
+      }
       open.value = false
       return true
     }
@@ -124,5 +147,16 @@ export function usePromptEditor() {
     }
   }
 
-  return { open, editing, isEdit, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    editing,
+    isEdit,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }

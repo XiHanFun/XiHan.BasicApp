@@ -66,7 +66,12 @@ const timeAxis = computed(() => {
   const buckets = timeline.value.buckets
   const crossesDays = buckets.length > 0 && buckets[0]!.start.toDateString() !== buckets[buckets.length - 1]!.start.toDateString()
   const format: Intl.DateTimeFormatOptions = crossesDays
-    ? { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }
+    ? {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }
     : { hour: '2-digit', minute: '2-digit' }
   return { format }
 })

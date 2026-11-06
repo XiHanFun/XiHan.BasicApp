@@ -34,7 +34,15 @@ const formId = useId()
 const timeZones = useTimezoneOptions()
 
 function blank(): Omit<JobCreateForm, keyof RetryForm> {
-  return { name: '', jobType: '', expression: '', timeZone: '', data: '', allowConcurrent: false, description: '' }
+  return {
+    name: '',
+    jobType: '',
+    expression: '',
+    timeZone: '',
+    data: '',
+    allowConcurrent: false,
+    description: '',
+  }
 }
 
 const form = reactive(blank())
@@ -64,7 +72,9 @@ watch(() => props.show, async (show) => {
 }, { immediate: true })
 
 function onTimeZone(value: unknown) {
-  form.timeZone = value === null || value === undefined ? '' : String(value)
+  form.timeZone = value === null || value === undefined
+    ? ''
+    : String(value)
 }
 
 /** 后端的错误码落到对应字段，认不出的弹提示 */
@@ -82,19 +92,29 @@ async function submit() {
   saving.value = true
   fieldErrors.value = {}
   try {
-    const saved = await createJob({ ...form, ...retry.value })
+    const saved = await createJob({
+      ...form,
+      ...retry.value,
+    })
     toast.success(t('maintenance.jobs.created'))
     emit('saved', saved)
     emit('update:show', false)
   }
   catch (error) {
-    const field = error instanceof ApiError ? CODE_FIELDS[error.code] : undefined
-    if (error instanceof ApiError && field)
-      fieldErrors.value = { [field]: [error.detail] }
-    else if (error instanceof ApiError && error.hasFieldErrors)
+    const field = error instanceof ApiError
+      ? CODE_FIELDS[error.code]
+      : undefined
+    if (error instanceof ApiError && field) {
+      fieldErrors.value = {
+        [field]: [error.detail],
+      }
+    }
+    else if (error instanceof ApiError && error.hasFieldErrors) {
       fieldErrors.value = error.errors ?? {}
-    else
+    }
+    else {
       toast.danger(errorText(error) || t('maintenance.jobs.create_failed'))
+    }
   }
   finally {
     saving.value = false

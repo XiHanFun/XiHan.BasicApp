@@ -35,10 +35,22 @@ const activeArtifact = computed(() => artifacts.value[activeIndex.value] ?? null
 type SideFilter = 'all' | ArtifactSide
 const activeSide = ref<SideFilter>('all')
 const sideOptions = computed(() => [
-  { label: t('codegeneration.code_gen.preview.side_all'), value: 'all' },
-  { label: t('codegeneration.code_gen.preview.side_backend'), value: 'Backend' },
-  { label: t('codegeneration.code_gen.preview.side_frontend'), value: 'Frontend' },
-  { label: t('codegeneration.code_gen.preview.side_registration'), value: 'Registration' },
+  {
+    label: t('codegeneration.code_gen.preview.side_all'),
+    value: 'all',
+  },
+  {
+    label: t('codegeneration.code_gen.preview.side_backend'),
+    value: 'Backend',
+  },
+  {
+    label: t('codegeneration.code_gen.preview.side_frontend'),
+    value: 'Frontend',
+  },
+  {
+    label: t('codegeneration.code_gen.preview.side_registration'),
+    value: 'Registration',
+  },
 ])
 
 /** 当前分栏下的产物（带原下标，选中态与内容区据此定位） */
@@ -51,7 +63,12 @@ const fileName = computed(() => activeArtifact.value?.path.split('/').at(-1) ?? 
 /** 展开态：缺省全展开，切换分栏后按新树重置 */
 const expandedKeys = ref<string[]>([])
 function directoryKeys(node: ArtifactTreeNode): string[] {
-  return node.children ? [node.value, ...node.children.flatMap(directoryKeys)] : []
+  return node.children
+    ? [
+        node.value,
+        ...node.children.flatMap(directoryKeys),
+      ]
+    : []
 }
 
 // 树重建（首次加载或切换分栏）：全展开，选中项落到当前分栏的第一个文件
@@ -74,7 +91,9 @@ function onSelect(keys: string[]) {
 function renderLabel(node: Record<string, unknown>) {
   const item = node as unknown as ArtifactTreeNode
   const icon = item.children
-    ? (expandedKeys.value.includes(item.value) ? 'lucide:folder-open' : 'lucide:folder')
+    ? (expandedKeys.value.includes(item.value)
+        ? 'lucide:folder-open'
+        : 'lucide:folder')
     : fileIconOf(item.label)
   return h('span', { class: 'preview__node' }, [
     h(Icon, { class: 'preview__node-icon', icon }),
@@ -85,7 +104,9 @@ function renderLabel(node: Record<string, unknown>) {
   ])
 }
 
-const title = computed(() => (props.tableName ? `${t('codegeneration.code_gen.preview.title')} · ${props.tableName}` : t('codegeneration.code_gen.preview.title')))
+const title = computed(() => (props.tableName
+  ? `${t('codegeneration.code_gen.preview.title')} · ${props.tableName}`
+  : t('codegeneration.code_gen.preview.title')))
 
 watch(() => props.show, (open) => {
   if (open && props.tableId) {

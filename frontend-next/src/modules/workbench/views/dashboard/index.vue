@@ -18,7 +18,9 @@ const MIN_SPAN = 1
 const SIZE_OPTIONS = Array.from({ length: GRID_COLS - MIN_SPAN + 1 }, (_, i) => MIN_SPAN + i)
 
 function gcd(a: number, b: number): number {
-  return b === 0 ? a : gcd(b, a % b)
+  return b === 0
+    ? a
+    : gcd(b, a % b)
 }
 // 用最简分数 x/x 表示宽度（占整行比例）：3/12→1/4、5/12→5/12、12/12→1/1
 function spanLabel(span: number): string {
@@ -47,7 +49,10 @@ function clampSpan(span: number) {
   return Math.min(GRID_COLS, Math.max(MIN_SPAN, Math.round(span)))
 }
 function sanitize(items: BoardItem[]): BoardItem[] {
-  return items.filter(item => canShow(item.key)).map(item => ({ key: item.key, span: clampSpan(item.span) }))
+  return items.filter(item => canShow(item.key)).map(item => ({
+    key: item.key,
+    span: clampSpan(item.span),
+  }))
 }
 
 const LOCAL_BOARD_KEY = 'xh:workbench:widgets:board'
@@ -101,8 +106,12 @@ function onToolbarDragStart(event: PointerEvent) {
 function readLocalBoard(): BoardItem[] | null {
   try {
     const raw = localStorage.getItem(LOCAL_BOARD_KEY)
-    const parsed = raw ? (JSON.parse(raw) as { items?: BoardItem[] }) : null
-    return Array.isArray(parsed?.items) ? parsed.items : null
+    const parsed = raw
+      ? (JSON.parse(raw) as { items?: BoardItem[] })
+      : null
+    return Array.isArray(parsed?.items)
+      ? parsed.items
+      : null
   }
   catch {
     return null
@@ -156,7 +165,10 @@ function addWidget(key: string) {
   const def = WIDGET_MAP[key]
   if (!def)
     return
-  board.value = [...board.value, { key, span: def.defaultSpan }]
+  board.value = [
+    ...board.value,
+    { key, span: def.defaultSpan },
+  ]
   dirty.value = true
 }
 function removeWidget(key: string) {
@@ -195,7 +207,9 @@ let resize: { item: BoardItem, startX: number, startSpan: number, colUnit: numbe
 // 实时列数 → 落地列数：吸附到最近的尺寸档位（全部列宽都吸）
 function resolveSpan(cols: number): number {
   const clamped = Math.min(GRID_COLS, Math.max(MIN_SPAN, cols))
-  return SIZE_OPTIONS.reduce((best, span) => (Math.abs(span - clamped) < Math.abs(best - clamped) ? span : best), SIZE_OPTIONS[0] ?? MIN_SPAN)
+  return SIZE_OPTIONS.reduce((best, span) => (Math.abs(span - clamped) < Math.abs(best - clamped)
+    ? span
+    : best), SIZE_OPTIONS[0] ?? MIN_SPAN)
 }
 function onResizeMove(event: PointerEvent) {
   if (!resize)
@@ -217,7 +231,15 @@ function onResizeStart(event: PointerEvent, item: BoardItem, side: 'left' | 'rig
     return
   event.preventDefault()
   event.stopPropagation()
-  resize = { item, startX: event.clientX, startSpan: item.span, colUnit: width / 12, sign: side === 'left' ? -1 : 1 }
+  resize = {
+    item,
+    startX: event.clientX,
+    startSpan: item.span,
+    colUnit: width / 12,
+    sign: side === 'left'
+      ? -1
+      : 1,
+  }
   window.addEventListener('pointermove', onResizeMove)
   window.addEventListener('pointerup', onResizeEnd, { once: true })
 }

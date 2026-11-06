@@ -15,9 +15,15 @@ async function flush(): Promise<void> {
 async function bootstrap(options: OptionsFn) {
   vi.resetModules()
   const danger = vi.fn()
-  vi.doMock('./ui-service', () => ({ toast: { danger } }))
+  vi.doMock('./ui-service', () => ({
+    toast: { danger },
+  }))
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { dictApi: { options } } as never })
+  registerAppContext({
+    apis: {
+      dictApi: { options },
+    } as never,
+  })
   // 文案按区域懒加载：模块重置后要重新装一次
   await (await import('~/locales')).setLocale('zh-CN')
   const module = await import('./useDictOptions')
@@ -25,8 +31,19 @@ async function bootstrap(options: OptionsFn) {
 }
 
 const levels = [
-  { value: 'vip', label: '重要客户', parentValue: null, isDefault: false, disabled: false },
-  { value: 'blocked', label: '已拉黑', isDefault: false, disabled: true },
+  {
+    value: 'vip',
+    label: '重要客户',
+    parentValue: null,
+    isDefault: false,
+    disabled: false,
+  },
+  {
+    value: 'blocked',
+    label: '已拉黑',
+    isDefault: false,
+    disabled: true,
+  },
 ]
 
 describe('ensureDictOptions', () => {
@@ -34,7 +51,10 @@ describe('ensureDictOptions', () => {
     const api = vi.fn<OptionsFn>(async () => levels)
     const { ensureDictOptions } = await bootstrap(api)
 
-    const [first, second] = await Promise.all([ensureDictOptions('demo_level'), ensureDictOptions(' demo_level ')])
+    const [first, second] = await Promise.all([
+      ensureDictOptions('demo_level'),
+      ensureDictOptions(' demo_level '),
+    ])
     const third = await ensureDictOptions('demo_level')
 
     expect(api).toHaveBeenCalledTimes(1)
@@ -72,7 +92,16 @@ describe('ensureDictOptions', () => {
 
 describe('useDictOptions', () => {
   it('随编码变化加载，未加载前为空数组', async () => {
-    const api = vi.fn<OptionsFn>(async code => (code === 'demo_level' ? levels : [{ value: 'east', label: '华东', isDefault: true, disabled: false }]))
+    const api = vi.fn<OptionsFn>(async code => (code === 'demo_level'
+      ? levels
+      : [
+          {
+            value: 'east',
+            label: '华东',
+            isDefault: true,
+            disabled: false,
+          },
+        ]))
     const { useDictOptions } = await bootstrap(api)
     const code = ref('demo_level')
 

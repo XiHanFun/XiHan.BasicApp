@@ -75,7 +75,10 @@ watch(placeholder, (el) => {
   observer.observe(el)
 }, { flush: 'post' })
 
-watch([shell, () => appStore.chartAnimateInView], ([el, inView]) => {
+watch([
+  shell,
+  () => appStore.chartAnimateInView,
+], ([el, inView]) => {
   stopTracking()
   // 外壳是 display: contents，没有盒子可观察，盯它里面的第一个盒子（图表根）
   const target = el?.firstElementChild
@@ -85,7 +88,9 @@ watch([shell, () => appStore.chartAnimateInView], ([el, inView]) => {
     const entry = entries.at(-1)
     if (entry)
       halfVisible = entry.intersectionRatio >= VISIBLE_RATIO
-  }, { threshold: [0, VISIBLE_RATIO] })
+  }, {
+    threshold: [0, VISIBLE_RATIO],
+  })
   tracker.observe(target)
 }, { flush: 'post' })
 

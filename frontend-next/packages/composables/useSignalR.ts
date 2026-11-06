@@ -25,7 +25,9 @@ function isUnauthorizedError(error: unknown): boolean {
   if ((error as { statusCode?: number } | null)?.statusCode === 401) {
     return true
   }
-  const message = error instanceof Error ? error.message : String(error ?? '')
+  const message = error instanceof Error
+    ? error.message
+    : String(error ?? '')
   return message.includes('401')
 }
 
@@ -47,7 +49,9 @@ function getInstanceState(hubPath: string): SignalRInstanceState {
  * Hub 路径默认 /hubs/notification，认证时自动携带 JWT
  */
 export function useSignalR(hubPath = '/hubs/notification') {
-  const normalizedHubPath = hubPath.startsWith('/') ? hubPath : `/${hubPath}`
+  const normalizedHubPath = hubPath.startsWith('/')
+    ? hubPath
+    : `/${hubPath}`
   const state = getInstanceState(normalizedHubPath)
 
   function normalizeBaseForHub(rawBase: string): string {
@@ -109,7 +113,9 @@ export function useSignalR(hubPath = '/hubs/notification') {
           return delays[Math.min(retryContext.previousRetryCount, delays.length - 1)] ?? null
         },
       })
-      .configureLogging(import.meta.env.DEV ? LogLevel.Information : LogLevel.Warning)
+      .configureLogging(import.meta.env.DEV
+        ? LogLevel.Information
+        : LogLevel.Warning)
       .build()
 
     conn.onreconnecting(() => {
@@ -231,6 +237,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
  * 销毁全部 Hub 连接（登出时调用，避免逐个枚举 hubPath）
  */
 export async function destroyAllSignalRConnections() {
-  const paths = [...instances.keys()]
+  const paths = [
+    ...instances.keys(),
+  ]
   await Promise.all(paths.map(path => useSignalR(path).destroy()))
 }

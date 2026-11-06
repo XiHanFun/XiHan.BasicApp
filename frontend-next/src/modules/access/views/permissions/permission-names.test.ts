@@ -20,16 +20,37 @@ function record(): Call[] {
     getLocale: () => useAppStore().locale,
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
       const locale = new Headers(init?.headers).get('Accept-Language')
-      calls.push({ url: String(url), locale })
-      const items = Object.entries(DISPLAY[locale ?? 'en-US'] ?? {}).map(([code, displayName]) => ({ code, displayName, description: null, package: 'identity', resource: 'users', action: 'read', scope: 'Both', audited: false }))
-      return new Response(JSON.stringify({ items }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      calls.push({
+        url: String(url),
+        locale,
+      })
+      const items = Object.entries(DISPLAY[locale ?? 'en-US'] ?? {}).map(([code, displayName]) => ({
+        code,
+        displayName,
+        description: null,
+        package: 'identity',
+        resource: 'users',
+        action: 'read',
+        scope: 'Both',
+        audited: false,
+      }))
+      return new Response(JSON.stringify({ items }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }) as unknown as typeof fetch,
   })
   return calls
 }
 
 function grant(permissions: string[]) {
-  useAuthStore().permissions = { permissions, roles: [], menus: [], pages: [], isPlatform: true } as never
+  useAuthStore().permissions = {
+    permissions,
+    roles: [],
+    menus: [],
+    pages: [],
+    isPlatform: true,
+  } as never
 }
 
 beforeEach(() => {
@@ -45,7 +66,9 @@ describe('usePermissionNames', () => {
     const names = usePermissionNames()
     await names.load()
     await names.load()
-    expect(calls).toEqual([{ url: '/api/permissions', locale: 'zh-CN' }])
+    expect(calls).toEqual([
+      { url: '/api/permissions', locale: 'zh-CN' },
+    ])
     expect(names.nameOf('identity.users.read')).toBe('读取用户')
     expect(names.nameOf('custom.thing')).toBe('custom.thing')
 

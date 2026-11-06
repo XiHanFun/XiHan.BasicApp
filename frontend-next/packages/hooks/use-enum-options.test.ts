@@ -51,7 +51,14 @@ async function mountOptions(
   vi.resetModules()
   setActivePinia(createPinia())
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { enumApi: { getBatch, getByName: () => Promise.reject(new Error('未使用')) } } as never })
+  registerAppContext({
+    apis: {
+      enumApi: {
+        getBatch,
+        getByName: () => Promise.reject(new Error('未使用')),
+      },
+    } as never,
+  })
   const { useEnumOptions } = await import('./useEnumOptions')
 
   let captured: ComputedRef<EnumOptionItem[]> | null = null
@@ -78,7 +85,14 @@ describe('useEnumOptions 拉取时机', () => {
     vi.resetModules()
     setActivePinia(createPinia())
     const { registerAppContext } = await import('~/stores/app-context')
-    registerAppContext({ apis: { enumApi: { getBatch, getByName: () => Promise.reject(new Error('未使用')) } } as never })
+    registerAppContext({
+      apis: {
+        enumApi: {
+          getBatch,
+          getByName: () => Promise.reject(new Error('未使用')),
+        },
+      } as never,
+    })
     const { useEnumOptions } = await import('./useEnumOptions')
 
     mount(defineComponent({
@@ -97,14 +111,19 @@ describe('useEnumOptions 拉取时机', () => {
 
 describe('useEnumOptions 元数据优先与兜底', () => {
   it('元数据为空时返回静态兜底选项', async () => {
-    const fallback = [{ label: '启用', value: 1 }, { label: '禁用', value: 0 }]
+    const fallback = [
+      { label: '启用', value: 1 },
+      { label: '禁用', value: 0 },
+    ]
     const { options } = await mountOptions(vi.fn<BatchFn>(async () => ({})), 'EnableStatus', fallback)
 
     expect(options.value).toEqual(fallback)
   })
 
   it('兜底项返回的是浅拷贝，改动结果不会污染常量数组', async () => {
-    const fallback = [{ label: '启用', value: 1 }]
+    const fallback = [
+      { label: '启用', value: 1 },
+    ]
     const { options } = await mountOptions(vi.fn<BatchFn>(async () => ({})), 'EnableStatus', fallback)
 
     expect(options.value[0]).not.toBe(fallback[0])
@@ -112,7 +131,9 @@ describe('useEnumOptions 元数据优先与兜底', () => {
   })
 
   it('兜底项的附加字段（索引签名）被完整保留', async () => {
-    const fallback = [{ label: '启用', value: 1, tagType: 'success' }]
+    const fallback = [
+      { label: '启用', value: 1, tagType: 'success' },
+    ]
     const { options } = await mountOptions(vi.fn<BatchFn>(async () => ({})), 'EnableStatus', fallback)
 
     expect(options.value[0]?.tagType).toBe('success')
@@ -133,16 +154,23 @@ describe('useEnumOptions 元数据优先与兜底', () => {
     const getBatch = vi.fn<BatchFn>(() => new Promise((resolve) => {
       resolveBatch = resolve
     }))
-    const { options } = await mountOptions(getBatch, 'EnableStatus', [{ label: '兜底', value: -1 }])
+    const { options } = await mountOptions(getBatch, 'EnableStatus', [
+      { label: '兜底', value: -1 },
+    ])
 
     // 请求还挂着，先给兜底，不能让下拉空着
-    expect(options.value).toEqual([{ label: '兜底', value: -1 }])
+    expect(options.value).toEqual([
+      { label: '兜底', value: -1 },
+    ])
 
     resolveBatch!({ EnableStatus: definition })
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(options.value).toEqual([{ label: '启用', value: 1 }, { label: '禁用', value: 0 }])
+    expect(options.value).toEqual([
+      { label: '启用', value: 1 },
+      { label: '禁用', value: 0 },
+    ])
   })
 })
 
@@ -151,14 +179,21 @@ describe('useEnumOptions 值类型过滤', () => {
     const definition = makeDefinition('Mixed', [
       makeOption({ label: '数字', value: 1, order: 1 }),
       makeOption({ label: '布尔', value: true, order: 2 }),
-      makeOption({ label: '对象', value: { a: 1 }, order: 3 }),
+      makeOption({
+        label: '对象',
+        value: { a: 1 },
+        order: 3,
+      }),
       makeOption({ label: '字符串', value: 'x', order: 4 }),
     ])
     const { options } = await mountOptions(vi.fn<BatchFn>(async () => ({ Mixed: definition })), 'Mixed')
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(options.value).toEqual([{ label: '数字', value: 1 }, { label: '字符串', value: 'x' }])
+    expect(options.value).toEqual([
+      { label: '数字', value: 1 },
+      { label: '字符串', value: 'x' },
+    ])
   })
 
   it('条目全部被过滤掉时退回静态兜底', async () => {
@@ -169,21 +204,29 @@ describe('useEnumOptions 值类型过滤', () => {
     const { options } = await mountOptions(
       vi.fn<BatchFn>(async () => ({ AllBool: definition })),
       'AllBool',
-      [{ label: '兜底', value: 'fb' }],
+      [
+        { label: '兜底', value: 'fb' },
+      ],
     )
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(options.value).toEqual([{ label: '兜底', value: 'fb' }])
+    expect(options.value).toEqual([
+      { label: '兜底', value: 'fb' },
+    ])
   })
 
   it('只保留 label 与 value 两个字段，丢弃 disabled 等元数据附加项', async () => {
-    const definition = makeDefinition('Flag', [makeOption({ label: '停用中', value: 9, disabled: true })])
+    const definition = makeDefinition('Flag', [
+      makeOption({ label: '停用中', value: 9, disabled: true }),
+    ])
     const { options } = await mountOptions(vi.fn<BatchFn>(async () => ({ Flag: definition })), 'Flag')
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(options.value).toEqual([{ label: '停用中', value: 9 }])
+    expect(options.value).toEqual([
+      { label: '停用中', value: 9 },
+    ])
     expect(Object.keys(options.value[0] ?? {})).toEqual(['label', 'value'])
   })
 
@@ -196,6 +239,9 @@ describe('useEnumOptions 值类型过滤', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(options.value).toEqual([{ label: '零', value: 0 }, { label: '空串', value: '' }])
+    expect(options.value).toEqual([
+      { label: '零', value: 0 },
+      { label: '空串', value: '' },
+    ])
   })
 })

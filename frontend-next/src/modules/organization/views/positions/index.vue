@@ -28,27 +28,97 @@ function reload() {
 
 // 状态值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: PositionStatus): string {
-  return status === 'Disabled' ? t('organization.positions.status.disabled') : t('organization.positions.status.active')
+  return status === 'Disabled'
+    ? t('organization.positions.status.disabled')
+    : t('organization.positions.status.active')
 }
 
 function statusTone(status: PositionStatus) {
-  return status === 'Active' ? 'success' : 'danger'
+  return status === 'Active'
+    ? 'success'
+    : 'danger'
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as PositionRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('organization.positions.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('organization.positions.keyword_placeholder'), order: 0 },
-  { key: 'name', title: t('organization.positions.fields.name'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 180, order: 1 },
-  { key: 'code', title: t('organization.positions.fields.code'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 160, order: 2 },
-  { key: 'status', title: t('organization.positions.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 100, order: 3 },
-  { key: 'order', title: t('organization.positions.fields.order'), dataType: 'number', sortable: true, importable: true, exportable: true, width: 90, order: 4 },
-  { key: 'description', title: t('organization.positions.fields.description'), dataType: 'text', visible: false, importable: true, exportable: true, order: 4.5 },
-  { key: 'createdAt', title: t('organization.positions.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 5 },
+  {
+    key: 'keyword',
+    title: t('organization.positions.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('organization.positions.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('organization.positions.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 180,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('organization.positions.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 160,
+    order: 2,
+  },
+  {
+    key: 'status',
+    title: t('organization.positions.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)),
+    width: 100,
+    order: 3,
+  },
+  {
+    key: 'order',
+    title: t('organization.positions.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    importable: true,
+    exportable: true,
+    width: 90,
+    order: 4,
+  },
+  {
+    key: 'description',
+    title: t('organization.positions.fields.description'),
+    dataType: 'text',
+    visible: false,
+    importable: true,
+    exportable: true,
+    order: 4.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('organization.positions.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 5,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -63,18 +133,55 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('organization.positions.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'organization.positions.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'organization.positions.update' },
-    { key: 'toggle', title: t('organization.positions.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'organization.positions.update' },
+    {
+      key: 'create',
+      title: t('organization.positions.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'organization.positions.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'organization.positions.update',
+    },
+    {
+      key: 'toggle',
+      title: t('organization.positions.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'organization.positions.update',
+    },
     // 还被归属引用的由后端逐项拒绝（ORGANIZATION_CONFLICT_004）
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'organization.positions.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'organization.positions.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -98,7 +205,9 @@ function onAction(payload: SchemaActionPayload) {
   }
 }
 
-const modalTitle = computed(() => editor.isEdit.value ? t('organization.positions.edit_title') : t('organization.positions.create_title'))
+const modalTitle = computed(() => editor.isEdit.value
+  ? t('organization.positions.edit_title')
+  : t('organization.positions.create_title'))
 
 async function onSubmit() {
   if (await editor.submit()) {
@@ -147,7 +256,9 @@ function editFromDetail() {
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 </script>
 

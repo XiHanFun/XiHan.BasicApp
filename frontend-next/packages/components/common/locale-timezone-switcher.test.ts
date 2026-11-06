@@ -32,7 +32,9 @@ describe('localeSwitcher 行内下拉的读屏名', () => {
   it('触发器的名字由隐藏 label 与值文本拼成，两个 id 都落得到节点', async () => {
     const wrapper = mount(LocaleSwitcher, {
       props: { variant: 'select', value: 'en-US' },
-      global: { plugins: [i18n] },
+      global: {
+        plugins: [i18n],
+      },
       attachTo: document.body,
     })
     await flushPromises()
@@ -48,13 +50,17 @@ describe('timezoneSwitcher 行内下拉', () => {
     let resolve!: (list: { id: string, baseUtcOffsetMinutes: number }[]) => void
     registerAppContext({
       apis: {
-        timeZoneApi: { options: () => new Promise((r) => { resolve = r }) },
+        timeZoneApi: {
+          options: () => new Promise((r) => { resolve = r }),
+        },
       } as unknown as AppContextApis,
     })
 
     const wrapper = mount(TimezoneSwitcher, {
       props: { variant: 'select', value: 'Asia/Shanghai' },
-      global: { plugins: [i18n] },
+      global: {
+        plugins: [i18n],
+      },
       attachTo: document.body,
     })
     await flushPromises()
@@ -63,7 +69,10 @@ describe('timezoneSwitcher 行内下拉', () => {
     // 目录未到时 withCurrent 先补上当前值，输入框不空着
     expect(input.value).toBe('Asia/Shanghai')
 
-    resolve([{ id: 'UTC', baseUtcOffsetMinutes: 0 }, { id: 'Asia/Shanghai', baseUtcOffsetMinutes: 480 }])
+    resolve([
+      { id: 'UTC', baseUtcOffsetMinutes: 0 },
+      { id: 'Asia/Shanghai', baseUtcOffsetMinutes: 480 },
+    ])
     await flushPromises()
 
     expect(input.value).toBe('Asia/Shanghai (UTC+08:00)')

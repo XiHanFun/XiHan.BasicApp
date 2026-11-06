@@ -70,7 +70,9 @@ beforeAll(async () => {
     writable: true,
     configurable: true,
     value: (query: string) => ({
-      matches: query.includes('reduced-motion') ? reduceMotion : false,
+      matches: query.includes('reduced-motion')
+        ? reduceMotion
+        : false,
       media: query,
       onchange: null,
       addListener: () => {},
@@ -92,8 +94,12 @@ beforeAll(async () => {
   const mod = await import('./useContainerTransform')
   setup = mod.setupContainerTransform
   // 幂等：连装三次也只应留下一份监听
-  setup({ enabled: () => enabled })
-  setup({ enabled: () => false })
+  setup({
+    enabled: () => enabled,
+  })
+  setup({
+    enabled: () => false,
+  })
   setup()
   installSnapshot = [...addSpyCalls]
 })
@@ -433,7 +439,9 @@ describe('卸载入口', () => {
   // pointerdown 监听与 MutationObserver 装上后没有任何卸载入口，
   // 微前端 / 多实例卸载场景会残留监听，lastSource 也长期握着 DOMRect
   it('卸载后 pointerdown 不再被记录、弹窗挂载也不再变形，重装后恢复', async () => {
-    const dispose = setup({ enabled: () => enabled })
+    const dispose = setup({
+      enabled: () => enabled,
+    })
     expect(typeof dispose).toBe('function')
 
     dispose()
@@ -445,7 +453,9 @@ describe('卸载入口', () => {
     expect(animations).toHaveLength(0)
 
     // 重装后重新生效（installed 标志已随卸载复位）
-    const reinstalled = setup({ enabled: () => enabled })
+    const reinstalled = setup({
+      enabled: () => enabled,
+    })
     clock += 1_000_000
     clickSource()
     openModal()
@@ -457,14 +467,20 @@ describe('卸载入口', () => {
   })
 
   it('重复安装拿到的是同一个卸载函数，重复卸载不误伤后来的安装', async () => {
-    const first = setup({ enabled: () => enabled })
-    const second = setup({ enabled: () => false })
+    const first = setup({
+      enabled: () => enabled,
+    })
+    const second = setup({
+      enabled: () => false,
+    })
 
     expect(second).toBe(first)
 
     first()
     // 卸载后重装，再拿旧句柄卸一次：不应把新安装也卸掉
-    setup({ enabled: () => enabled })
+    setup({
+      enabled: () => enabled,
+    })
     first()
 
     clock += 1_000_000

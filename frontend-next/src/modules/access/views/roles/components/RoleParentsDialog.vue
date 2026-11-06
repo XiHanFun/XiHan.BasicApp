@@ -40,7 +40,9 @@ const title = computed(() => t('access.roles.parents.title', { name: props.role?
 
 /** 候选值都是字符串，多选收上来的是数组 */
 function onSelect(value: unknown) {
-  selected.value = Array.isArray(value) ? value.map(String) : []
+  selected.value = Array.isArray(value)
+    ? value.map(String)
+    : []
 }
 
 async function load(role: RoleRow) {
@@ -50,7 +52,15 @@ async function load(role: RoleRow) {
   selected.value = []
   try {
     const [candidates, hierarchy] = await Promise.all([
-      rolesApi.list({ page: { index: 1, size: CANDIDATE_LIMIT }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order', descending: false }] }),
+      rolesApi.list({
+        page: { index: 1, size: CANDIDATE_LIMIT },
+        filters: [
+          { field: 'status', operator: 'eq', value: 'Active' },
+        ],
+        sorts: [
+          { field: 'order', descending: false },
+        ],
+      }),
       rolesApi.hierarchy({ id: role.id }),
     ])
     options.value = buildRoleParentOptions(role.id, candidates.items, hierarchy.ancestors, hierarchy.descendants, {

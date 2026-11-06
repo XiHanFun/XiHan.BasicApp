@@ -10,7 +10,12 @@ import { toListRow } from './constraint-rule'
 import ConstraintRulesPage from './index.vue'
 
 function pageSchema(): PageSchema {
-  const wrapper = mount(ConstraintRulesPage, { global: { plugins: [i18n], stubs: { SchemaPage: true } } })
+  const wrapper = mount(ConstraintRulesPage, {
+    global: {
+      plugins: [i18n],
+      stubs: { SchemaPage: true },
+    },
+  })
   return wrapper.findComponent({ name: 'SchemaPage' }).props('schema') as PageSchema
 }
 
@@ -33,14 +38,19 @@ describe('约束规则的导出', () => {
       type: 'Ssd',
       targetType: 'Role',
       violationAction: 'Deny',
-      items: [{ targetId: 'r1' }, { targetId: 'r2' }],
+      items: [
+        { targetId: 'r1' },
+        { targetId: 'r2' },
+      ],
       priority: 5,
       status: 'Active',
       isEffective: true,
       description: null,
       createdAt: null,
     } as unknown as ConstraintRuleRow
-    const [, line] = toCsv(toExportFields(pageSchema(), () => true), [toListRow(row)]).replace('﻿', '').split('\r\n')
+    const [, line] = toCsv(toExportFields(pageSchema(), () => true), [
+      toListRow(row),
+    ]).replace('﻿', '').split('\r\n')
     const cells = line!.split(',')
     expect(cells[0]).toBe('ssd-1')
     expect(cells[5]).toBe('2')

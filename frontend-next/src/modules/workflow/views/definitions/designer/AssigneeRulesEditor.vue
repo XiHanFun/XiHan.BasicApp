@@ -39,21 +39,32 @@ const typeOptions = computed(() => ASSIGNEE_RULE_TYPES.map(meta => ({
 })))
 
 const expressionPlaceholder = computed(() => props.variables?.length
-  ? t('workflow.designer.rule.expression_placeholder_vars', { vars: props.variables.join(', ') })
+  ? t('workflow.designer.rule.expression_placeholder_vars', {
+      vars: props.variables.join(', '),
+    })
   : t('workflow.designer.rule.expression_placeholder'))
 
 function emitRules(next: AssigneeRule[]) {
-  emit('update:value', next.length > 0 ? next : null)
+  emit('update:value', next.length > 0
+    ? next
+    : null)
 }
 
 function updateRule(index: number, patch: Partial<AssigneeRule>) {
-  emitRules(rules.value.map((rule, current) => current === index ? { ...rule, ...patch } : rule))
+  emitRules(rules.value.map((rule, current) => current === index
+    ? {
+        ...rule,
+        ...patch,
+      }
+    : rule))
 }
 
 function changeType(index: number, type: string | number | (string | number)[] | null) {
   if (typeof type !== 'string' || !type)
     return
-  emitRules(rules.value.map((rule, current) => current === index ? createRule(type) : rule))
+  emitRules(rules.value.map((rule, current) => current === index
+    ? createRule(type)
+    : rule))
 }
 
 function removeRule(index: number) {
@@ -61,13 +72,18 @@ function removeRule(index: number) {
 }
 
 function addRule() {
-  emitRules([...rules.value, createRule('Role')])
+  emitRules([
+    ...rules.value,
+    createRule('Role'),
+  ])
 }
 
 function toValues(value: string | number | (string | number)[] | null): string[] {
   if (value === null || value === undefined)
     return []
-  return (Array.isArray(value) ? value : [value]).map(item => String(item))
+  return (Array.isArray(value)
+    ? value
+    : [value]).map(item => String(item))
 }
 
 function editorOf(rule: AssigneeRule) {

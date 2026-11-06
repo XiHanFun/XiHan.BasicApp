@@ -571,7 +571,12 @@ describe('useSignalR 调用与清理', () => {
 
     const result = await hub.invoke<string>('SendMessage', 'room-1', 42)
 
-    expect(lastConnection().invokeCalls).toEqual([{ method: 'SendMessage', args: ['room-1', 42] }])
+    expect(lastConnection().invokeCalls).toEqual([
+      {
+        method: 'SendMessage',
+        args: ['room-1', 42],
+      },
+    ])
     expect(result).toBe('SendMessage:ok')
   })
 

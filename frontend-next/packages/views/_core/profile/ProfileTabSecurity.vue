@@ -22,7 +22,9 @@ const { apis } = useAppContext()
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 // ==================== 2FA flags 常量（与后端 [Flags] 枚举对应） ====================
@@ -41,17 +43,34 @@ const pwdForm = ref({
 })
 // 校验时机由表单的 validate-on 统一定；确认密码挂 deps，先填它、再改新密码时跟着重验
 const pwdRules = computed<FormRules<typeof pwdForm.value>>(() => ({
-  oldPassword: [{ required: true, message: t('component.profile.security.rule_old_password_required') }],
+  oldPassword: [
+    {
+      required: true,
+      message: t('component.profile.security.rule_old_password_required'),
+    },
+  ],
   newPassword: [
-    { required: true, message: t('component.profile.security.rule_new_password_required') },
-    { min: 6, max: 32, message: t('component.profile.security.rule_password_length') },
+    {
+      required: true,
+      message: t('component.profile.security.rule_new_password_required'),
+    },
+    {
+      min: 6,
+      max: 32,
+      message: t('component.profile.security.rule_password_length'),
+    },
   ],
   confirmPassword: [
-    { required: true, message: t('component.profile.security.rule_confirm_password_required') },
+    {
+      required: true,
+      message: t('component.profile.security.rule_confirm_password_required'),
+    },
     {
       deps: ['newPassword'],
       validator: (value, values) =>
-        value === values.newPassword ? null : t('component.profile.security.rule_password_mismatch'),
+        value === values.newPassword
+          ? null
+          : t('component.profile.security.rule_password_mismatch'),
     },
   ],
 }))
@@ -180,7 +199,9 @@ async function sendSetupCode(method: number) {
   tfLoading.value = true
   try {
     const res = await apis.send2FASetupCodeApi(method)
-    toast.success(method === TF_EMAIL ? t('component.profile.security.msg_code_sent_email') : t('component.profile.security.msg_code_sent_phone'))
+    toast.success(method === TF_EMAIL
+      ? t('component.profile.security.msg_code_sent_email')
+      : t('component.profile.security.msg_code_sent_phone'))
     tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {

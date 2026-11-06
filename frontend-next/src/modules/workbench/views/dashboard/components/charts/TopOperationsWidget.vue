@@ -22,8 +22,14 @@ const range = ref('7')
 const rangeOptions = useRangeOptions([7, 30])
 const view = ref<View>('count')
 const viewOptions = computed(() => [
-  { value: 'count' as const, label: t('workbench.charts.view_count') },
-  { value: 'duration' as const, label: t('workbench.charts.view_duration') },
+  {
+    value: 'count' as const,
+    label: t('workbench.charts.view_count'),
+  },
+  {
+    value: 'duration' as const,
+    label: t('workbench.charts.view_duration'),
+  },
 ])
 const { data, loading, error } = useWidgetData('auditing.top-operations', () => Number(range.value))
 
@@ -42,13 +48,36 @@ const rows = computed(() => {
 const chart = computed<{ series: CartesianSeries[], format: typeof COUNT_COMPACT }>(() => view.value === 'count'
   ? {
       series: [
-        { id: 'succeeded', mark: 'bar', x: 'operation', y: 'succeeded', stack: 'calls', name: t('workbench.charts.succeeded') },
-        { id: 'failed', mark: 'bar', x: 'operation', y: 'failed', stack: 'calls', name: t('workbench.charts.failed') },
+        {
+          id: 'succeeded',
+          mark: 'bar',
+          x: 'operation',
+          y: 'succeeded',
+          stack: 'calls',
+          name: t('workbench.charts.succeeded'),
+        },
+        {
+          id: 'failed',
+          mark: 'bar',
+          x: 'operation',
+          y: 'failed',
+          stack: 'calls',
+          name: t('workbench.charts.failed'),
+        },
       ],
       format: COUNT_COMPACT,
     }
   : {
-      series: [{ mark: 'bar', shape: 'lollipop', x: 'operation', y: 'average', labels: 'end', name: t('workbench.charts.average_duration') }],
+      series: [
+        {
+          mark: 'bar',
+          shape: 'lollipop',
+          x: 'operation',
+          y: 'average',
+          labels: 'end',
+          name: t('workbench.charts.average_duration'),
+        },
+      ],
       format: MILLISECONDS,
     })
 </script>

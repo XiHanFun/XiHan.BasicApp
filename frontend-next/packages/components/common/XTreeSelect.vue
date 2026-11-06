@@ -37,7 +37,11 @@ const emit = defineEmits<{
 const { attrs, controlAttrs } = useControlAttrs()
 
 /** 根只收字符串数组，单选就是长度 0 或 1 */
-const selected = computed<string[]>(() => (props.value == null || props.value === '' ? [] : [String(props.value)]))
+const selected = computed<string[]>(() => (props.value == null || props.value === ''
+  ? []
+  : [
+      String(props.value),
+    ]))
 
 /** 树的值恒为字符串，数字 id 在喂进去前统一转一道 */
 function toNodes(options: TreeSelectOption[]): { value: string, label: string, disabled?: boolean, children?: ReturnType<typeof toNodes> }[] {
@@ -45,7 +49,11 @@ function toNodes(options: TreeSelectOption[]): { value: string, label: string, d
     value: String(o.value),
     label: o.label,
     disabled: o.disabled,
-    ...(o.children?.length ? { children: toNodes(o.children) } : {}),
+    ...(o.children?.length
+      ? {
+          children: toNodes(o.children),
+        }
+      : {}),
   }))
 }
 

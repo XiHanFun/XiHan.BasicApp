@@ -45,7 +45,10 @@ watch(
 )
 
 function options<T extends string>(group: string, values: readonly T[]): SelectOption[] {
-  return values.map(value => ({ label: t(enumKey(group, value)), value }))
+  return values.map(value => ({
+    label: t(enumKey(group, value)),
+    value,
+  }))
 }
 
 const queryTypeOptions = computed(() => options('query_type', QUERY_TYPES))
@@ -58,7 +61,12 @@ const dictOptions = ref<SelectOption[]>([])
 async function loadDicts() {
   try {
     // 字典是配置型数据，一页取完（页大小上限 500）
-    const result = await dicts.list({ page: { index: 1, size: 500 }, filters: [], sorts: [], keyword: null })
+    const result = await dicts.list({
+      page: { index: 1, size: 500 },
+      filters: [],
+      sorts: [],
+      keyword: null,
+    })
     dictOptions.value = result.items.map(dict => ({ label: `${dict.name}（${dict.code}）`, value: dict.code }))
   }
   catch (error) {
@@ -84,11 +92,22 @@ async function loadTables() {
 function relationTableOptionsFor(row: ColumnRow): SelectOption[] {
   const candidates = tables.value
     .filter(table => row.dictSelectorType !== 'TreeSelector' || table.templateType === 'Tree')
-    .map(table => ({ label: table.tableComment ? `${table.tableComment}（${table.tableName}）` : table.tableName, value: table.id }))
+    .map(table => ({
+      label: table.tableComment
+        ? `${table.tableComment}（${table.tableName}）`
+        : table.tableName,
+      value: table.id,
+    }))
   const current = row.relationTableId
   if (!current || candidates.some(option => option.value === current))
     return candidates
-  return [{ label: t('codegeneration.code_gen.column.relation_table_not_found', { id: current }), value: current }, ...candidates]
+  return [
+    {
+      label: t('codegeneration.code_gen.column.relation_table_not_found', { id: current }),
+      value: current,
+    },
+    ...candidates,
+  ]
 }
 
 /** 关联表的列（显示列的候选），按表缓存 */
@@ -109,13 +128,23 @@ async function ensureRelationColumns(tableId: null | string | undefined) {
 
 /** 显示列的候选：关联表的字符业务列；已选的列不在其中时也列出来 */
 function relationLabelOptionsFor(row: ColumnRow): SelectOption[] {
-  const candidates = (row.relationTableId ? relationColumns.get(row.relationTableId) ?? [] : [])
+  const candidates = (row.relationTableId
+    ? relationColumns.get(row.relationTableId) ?? []
+    : [])
     .filter(column => !column.isBase && column.cSharpType?.replace('?', '') === 'string')
-    .map(column => ({ label: column.columnComment ? `${column.columnComment}（${column.columnName}）` : column.columnName, value: column.columnName }))
+    .map(column => ({
+      label: column.columnComment
+        ? `${column.columnComment}（${column.columnName}）`
+        : column.columnName,
+      value: column.columnName,
+    }))
   const current = row.relationLabelColumn
   if (!current || candidates.some(option => option.value === current))
     return candidates
-  return [{ label: current, value: current }, ...candidates]
+  return [
+    { label: current, value: current },
+    ...candidates,
+  ]
 }
 
 /** 本列可选的字典：已填的编码不在列表里（字典被删或写错）时也列出来并标明，免得下拉显示成空 */
@@ -123,7 +152,13 @@ function dictOptionsFor(row: ColumnRow): SelectOption[] {
   const current = row.dictCode?.trim()
   if (!current || dictOptions.value.some(option => option.value === current))
     return dictOptions.value
-  return [{ label: t('codegeneration.code_gen.column.dict_not_found', { code: current }), value: current }, ...dictOptions.value]
+  return [
+    {
+      label: t('codegeneration.code_gen.column.dict_not_found', { code: current }),
+      value: current,
+    },
+    ...dictOptions.value,
+  ]
 }
 
 async function loadColumns() {
@@ -210,7 +245,9 @@ function renderSelectorValue(row: ColumnRow) {
         'clearable': true,
         'placeholder': t('codegeneration.code_gen.column.relation_table_placeholder'),
         'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
-          row.relationTableId = raw == null ? null : String(raw)
+          row.relationTableId = raw == null
+            ? null
+            : String(raw)
           // 换了关联的表，原来的显示列不再成立
           row.relationLabelColumn = null
           void ensureRelationColumns(row.relationTableId)
@@ -222,7 +259,9 @@ function renderSelectorValue(row: ColumnRow) {
         'value': row.relationLabelColumn || null,
         'options': relationLabelOptionsFor(row),
         'clearable': true,
-        'placeholder': isTree ? t('codegeneration.code_gen.column.relation_label_tree_placeholder') : t('codegeneration.code_gen.column.relation_label_placeholder'),
+        'placeholder': isTree
+          ? t('codegeneration.code_gen.column.relation_label_tree_placeholder')
+          : t('codegeneration.code_gen.column.relation_label_placeholder'),
         'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
           row.relationLabelColumn = (raw as null | string) ?? null
         },
@@ -263,19 +302,77 @@ const columns = computed<XDataTableColumn<ColumnRow>[]>(() => [
     ellipsis: true,
     render: row => h('div', { class: 'col-name' }, [
       h('span', null, row.columnName),
-      isLocked(row) ? h(XhTagRoot, { variant: 'subtle', tone: 'neutral' }, () => h(XhTagLabel, () => t('codegeneration.code_gen.column.base_column'))) : null,
+      isLocked(row)
+        ? h(XhTagRoot, { variant: 'subtle', tone: 'neutral' }, () => h(XhTagLabel, () => t('codegeneration.code_gen.column.base_column')))
+        : null,
     ]),
   },
-  { key: 'columnComment', title: t('codegeneration.code_gen.column.col_column_comment'), minWidth: 160, ellipsis: true },
-  { key: 'columnType', title: t('codegeneration.code_gen.column.col_column_type'), width: 110, ellipsis: true },
-  { key: 'cSharpType', title: t('codegeneration.code_gen.column.col_csharp_type'), width: 130, render: row => textInput(row, 'cSharpType') },
-  { key: 'cSharpProperty', title: t('codegeneration.code_gen.column.col_csharp_property'), width: 140, render: row => textInput(row, 'cSharpProperty') },
-  { key: 'isRequired', title: t('codegeneration.code_gen.column.col_required'), width: 60, align: 'center', render: row => renderCheckbox(row, 'isRequired') },
-  { key: 'isUnique', title: t('codegeneration.code_gen.column.col_unique'), width: 60, align: 'center', render: row => renderCheckbox(row, 'isUnique') },
-  { key: 'isList', title: t('codegeneration.code_gen.column.col_list'), width: 60, align: 'center', render: row => renderCheckbox(row, 'isList') },
-  { key: 'isInsert', title: t('codegeneration.code_gen.column.col_insert'), width: 60, align: 'center', render: row => renderCheckbox(row, 'isInsert') },
-  { key: 'isEdit', title: t('codegeneration.code_gen.column.col_edit'), width: 60, align: 'center', render: row => renderCheckbox(row, 'isEdit') },
-  { key: 'isQuery', title: t('codegeneration.code_gen.column.col_query'), width: 60, align: 'center', render: row => renderCheckbox(row, 'isQuery') },
+  {
+    key: 'columnComment',
+    title: t('codegeneration.code_gen.column.col_column_comment'),
+    minWidth: 160,
+    ellipsis: true,
+  },
+  {
+    key: 'columnType',
+    title: t('codegeneration.code_gen.column.col_column_type'),
+    width: 110,
+    ellipsis: true,
+  },
+  {
+    key: 'cSharpType',
+    title: t('codegeneration.code_gen.column.col_csharp_type'),
+    width: 130,
+    render: row => textInput(row, 'cSharpType'),
+  },
+  {
+    key: 'cSharpProperty',
+    title: t('codegeneration.code_gen.column.col_csharp_property'),
+    width: 140,
+    render: row => textInput(row, 'cSharpProperty'),
+  },
+  {
+    key: 'isRequired',
+    title: t('codegeneration.code_gen.column.col_required'),
+    width: 60,
+    align: 'center',
+    render: row => renderCheckbox(row, 'isRequired'),
+  },
+  {
+    key: 'isUnique',
+    title: t('codegeneration.code_gen.column.col_unique'),
+    width: 60,
+    align: 'center',
+    render: row => renderCheckbox(row, 'isUnique'),
+  },
+  {
+    key: 'isList',
+    title: t('codegeneration.code_gen.column.col_list'),
+    width: 60,
+    align: 'center',
+    render: row => renderCheckbox(row, 'isList'),
+  },
+  {
+    key: 'isInsert',
+    title: t('codegeneration.code_gen.column.col_insert'),
+    width: 60,
+    align: 'center',
+    render: row => renderCheckbox(row, 'isInsert'),
+  },
+  {
+    key: 'isEdit',
+    title: t('codegeneration.code_gen.column.col_edit'),
+    width: 60,
+    align: 'center',
+    render: row => renderCheckbox(row, 'isEdit'),
+  },
+  {
+    key: 'isQuery',
+    title: t('codegeneration.code_gen.column.col_query'),
+    width: 60,
+    align: 'center',
+    render: row => renderCheckbox(row, 'isQuery'),
+  },
   {
     key: 'queryType',
     title: t('codegeneration.code_gen.column.col_query_type'),
@@ -326,7 +423,12 @@ const columns = computed<XDataTableColumn<ColumnRow>[]>(() => [
       },
     }),
   },
-  { key: 'dictValue', title: t('codegeneration.code_gen.column.col_dict_value'), width: 320, render: row => renderSelectorValue(row) },
+  {
+    key: 'dictValue',
+    title: t('codegeneration.code_gen.column.col_dict_value'),
+    width: 320,
+    render: row => renderSelectorValue(row),
+  },
 ])
 
 async function handleSubmit() {

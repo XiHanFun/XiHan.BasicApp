@@ -19,7 +19,9 @@ export function viewerOffset(date: Date = new Date()): number {
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
-  return error instanceof Error ? error.message : String(error ?? '')
+  return error instanceof Error
+    ? error.message
+    : String(error ?? '')
 }
 
 /** 取一个小组件的数据；天数变了重取，失败只记文案不抛出（看板上其它小组件照常） */
@@ -34,7 +36,11 @@ export function useWidgetData(key: string, days: MaybeRefOrGetter<number> = 30) 
     loading.value = true
     error.value = null
     try {
-      const result = await workbenchApi.widgetData({ key, days: toValue(days), offset: viewerOffset() })
+      const result = await workbenchApi.widgetData({
+        key,
+        days: toValue(days),
+        offset: viewerOffset(),
+      })
       if (current === seq)
         data.value = result
     }

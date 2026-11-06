@@ -35,7 +35,7 @@ allowBuilds:
 
 # 依赖目录（单一版本事实源）：入口包与 packages/* 一律 catalog: 引用，升级只改这里一处
 catalog:
-  '@antfu/eslint-config': ^9.5.1
+  '@antfu/eslint-config': ^10.0.0
   '@emoji-mart/data': ^1.2.1
   '@iconify-json/carbon': ^1.2.29
   '@iconify-json/ep': ^1.2.4

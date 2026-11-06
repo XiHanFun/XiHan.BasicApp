@@ -4,9 +4,21 @@ import { actionsConflict, enumKey, parseEnabledActions, serializeEnabledActions,
 
 describe('包含操作', () => {
   it('空即缺省集合，恰为缺省集合时提交空（照 4.x）', () => {
-    expect(parseEnabledActions(null)).toEqual(['create', 'update', 'delete', 'export', 'import'])
+    expect(parseEnabledActions(null)).toEqual([
+      'create',
+      'update',
+      'delete',
+      'export',
+      'import',
+    ])
     expect(parseEnabledActions('print, CREATE ,unknown')).toEqual(['create', 'print'])
-    expect(serializeEnabledActions(['import', 'create', 'update', 'delete', 'export'])).toBeNull()
+    expect(serializeEnabledActions([
+      'import',
+      'create',
+      'update',
+      'delete',
+      'export',
+    ])).toBeNull()
     expect(serializeEnabledActions([])).toBeNull()
     expect(serializeEnabledActions(['print', 'create'])).toBe('create,print')
   })
@@ -32,17 +44,47 @@ describe('tablesResource', () => {
       baseUrl: '',
       getToken: () => 't',
       fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-        calls.push({ url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
-        return new Response(JSON.stringify({ items: [], total: 0, page: { index: 1, size: 20 } }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+        calls.push({
+          url: String(url),
+          body: init?.body
+            ? JSON.parse(String(init.body))
+            : undefined,
+        })
+        return new Response(JSON.stringify({
+          items: [],
+          total: 0,
+          page: { index: 1, size: 20 },
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
       }) as unknown as typeof fetch,
     })
     await tablesResource().page!({
       page: 1,
       pageSize: 20,
       filters: {},
-      conditionFilters: [{ field: 'templateType', operator: 3000, values: ['Tree', 'MasterDetail'] }],
-      sorts: [{ field: 'tableName', order: 'asc' }],
+      conditionFilters: [
+        {
+          field: 'templateType',
+          operator: 3000,
+          values: ['Tree', 'MasterDetail'],
+        },
+      ],
+      sorts: [
+        { field: 'tableName', order: 'asc' },
+      ],
     } as never)
-    expect(calls[0]).toMatchObject({ url: '/api/codegen-tables:list', body: { filters: [{ field: 'templateType', operator: 'in', value: 'Tree,MasterDetail' }], sorts: [{ field: 'tableName', descending: false }] } })
+    expect(calls[0]).toMatchObject({
+      url: '/api/codegen-tables:list',
+      body: {
+        filters: [
+          { field: 'templateType', operator: 'in', value: 'Tree,MasterDetail' },
+        ],
+        sorts: [
+          { field: 'tableName', descending: false },
+        ],
+      },
+    })
   })
 })

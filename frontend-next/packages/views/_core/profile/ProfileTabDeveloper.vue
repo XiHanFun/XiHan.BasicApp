@@ -25,7 +25,9 @@ const createName = ref('')
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadCredentials() {
@@ -85,7 +87,9 @@ function handleRotateSecret(cred: ApiCredentialItem) {
 async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
   try {
     await apis.updateApiCredentialStatusApi(cred.basicId, enabled ? 'Enabled' : 'Disabled')
-    toast.success(enabled ? t('component.profile.developer.msg_credential_enabled') : t('component.profile.developer.msg_credential_disabled'))
+    toast.success(enabled
+      ? t('component.profile.developer.msg_credential_enabled')
+      : t('component.profile.developer.msg_credential_disabled'))
     await loadCredentials()
   }
   catch (e) {

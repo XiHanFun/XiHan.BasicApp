@@ -17,7 +17,9 @@ async function flush(): Promise<void> {
 async function bootstrap(getFilePresignedUrlApi: PresignedFn) {
   vi.resetModules()
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { getFilePresignedUrlApi } as never })
+  registerAppContext({
+    apis: { getFilePresignedUrlApi } as never,
+  })
   return import('./useAvatarUrl')
 }
 

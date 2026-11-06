@@ -51,7 +51,11 @@ for (const name of ['ResizeObserver', 'IntersectionObserver', 'MutationObserver'
 
 /** scrollTo：jsdom 只抛 "not implemented"，噪声大且无信息量 */
 if (typeof window.scrollTo !== 'function' || window.scrollTo.toString().includes('not implemented')) {
-  Object.defineProperty(window, 'scrollTo', { writable: true, configurable: true, value: () => {} })
+  Object.defineProperty(window, 'scrollTo', {
+    writable: true,
+    configurable: true,
+    value: () => {},
+  })
 }
 Object.defineProperty(Element.prototype, 'scrollIntoView', {
   writable: true,
@@ -72,7 +76,10 @@ Object.defineProperty(window.navigator, 'languages', {
 type Messages = Record<string, unknown>
 const shell = import.meta.glob<{ default: Messages }>('../packages/locales/langs/*.ts', { eager: true })
 const modules = import.meta.glob<{ default: Messages }>('../src/modules/*/locales/*.ts', { eager: true })
-for (const [path, mod] of [...Object.entries(shell), ...Object.entries(modules)]) {
+for (const [path, mod] of [
+  ...Object.entries(shell),
+  ...Object.entries(modules),
+]) {
   const locale = path.match(/([a-z]{2}-[A-Z]{2})\.ts$/)?.[1]
   if (locale)
     i18n.global.mergeLocaleMessage(locale, mod.default)

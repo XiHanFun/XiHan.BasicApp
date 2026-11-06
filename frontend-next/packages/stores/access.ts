@@ -16,7 +16,9 @@ export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
   return menus.map(node => ({
     path: node.route || `/${node.code}`,
     name: node.code,
-    component: node.kind === 'Page' ? node.component || undefined : undefined,
+    component: node.kind === 'Page'
+      ? node.component || undefined
+      : undefined,
     meta: {
       title: node.title || node.titleKey,
       icon: node.icon ?? undefined,
@@ -24,13 +26,19 @@ export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
       hidden: node.hidden || undefined,
       keepAlive: node.keepAlive || undefined,
       affixTab: node.affix || undefined,
-      link: node.kind === 'Link' ? node.externalUrl ?? undefined : undefined,
-      permissions: node.permission ? [node.permission] : undefined,
+      link: node.kind === 'Link'
+        ? node.externalUrl ?? undefined
+        : undefined,
+      permissions: node.permission
+        ? [node.permission]
+        : undefined,
       badge: node.badge ?? undefined,
       badgeType: node.badgeType ?? undefined,
       dot: node.badgeDot || undefined,
     },
-    children: node.children.length > 0 ? toMenuRoutes(node.children) : undefined,
+    children: node.children.length > 0
+      ? toMenuRoutes(node.children)
+      : undefined,
   }))
 }
 
@@ -63,5 +71,16 @@ export const useAccessStore = defineStore(SetupStoreId.Access, () => {
     auth.clear()
   }
 
-  return { accessToken, accessRoutes, accessCodes, accessButtons, isRoutesLoaded, loginExpired, homePath, setLoginExpired, hasCode, $reset }
+  return {
+    accessToken,
+    accessRoutes,
+    accessCodes,
+    accessButtons,
+    isRoutesLoaded,
+    loginExpired,
+    homePath,
+    setLoginExpired,
+    hasCode,
+    $reset,
+  }
 })

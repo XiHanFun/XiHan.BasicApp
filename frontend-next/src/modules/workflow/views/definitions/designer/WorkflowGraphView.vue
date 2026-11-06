@@ -23,7 +23,11 @@ ensureFlowViewer()
 
 const viewerRef = ref<XhFlowViewer | null>(null)
 
-const extensions = computed(() => [createXihanWorkflow({ texts: xihanWorkflowTexts(locale.value) })])
+const extensions = computed(() => [
+  createXihanWorkflow({
+    texts: xihanWorkflowTexts(locale.value),
+  }),
+])
 
 const document = computed<FlowDocument | null>(() => {
   try {
@@ -41,7 +45,10 @@ watch([viewerRef, extensions, document], ([viewer, list, schema]) => {
   viewer.schema = schema
 }, { immediate: true })
 
-watch([viewerRef, () => props.statuses], ([viewer, statuses]) => {
+watch([
+  viewerRef,
+  () => props.statuses,
+], ([viewer, statuses]) => {
   if (viewer)
     viewer.statuses = statuses ?? {}
 }, { immediate: true, deep: true })

@@ -24,7 +24,9 @@ const { apis } = useAppContext()
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 // ==================== 用户名修改 ====================
@@ -106,9 +108,18 @@ const profileForm = ref({
 })
 
 const genderOptions = computed(() => [
-  { label: t('component.profile.info.gender_unset'), value: 0 },
-  { label: t('common.gender.male'), value: 1 },
-  { label: t('common.gender.female'), value: 2 },
+  {
+    label: t('component.profile.info.gender_unset'),
+    value: 0,
+  },
+  {
+    label: t('common.gender.male'),
+    value: 1,
+  },
+  {
+    label: t('common.gender.female'),
+    value: 2,
+  },
 ])
 
 // ==================== 头像上传 / 删除 ====================
@@ -223,7 +234,9 @@ function syncProfileForm() {
     nickName: p.nickName ?? '',
     realName: p.realName ?? '',
     gender: p.gender ?? 0,
-    birthday: p.birthday ? new Date(p.birthday).getTime() : null,
+    birthday: p.birthday
+      ? new Date(p.birthday).getTime()
+      : null,
     country: p.country ?? '',
     remark: p.remark ?? '',
   }
@@ -237,7 +250,9 @@ async function saveProfile() {
     // 整体覆盖（6.0 的 profile.update 不收头像）；显示名进顶栏由壳层刷新会话里的用户（4.x 在这里改 userStore）
     await apis.updateProfileApi({
       ...profileForm.value,
-      birthday: profileForm.value.birthday ? new Date(profileForm.value.birthday).toISOString() : undefined,
+      birthday: profileForm.value.birthday
+        ? new Date(profileForm.value.birthday).toISOString()
+        : undefined,
     })
     toast.success(t('component.profile.info.msg_profile_updated'))
     emit('saved')
@@ -283,7 +298,9 @@ async function sendVerifyCode(type: ContactTarget) {
     const res = type === 'email'
       ? await apis.sendEmailVerifyCodeApi()
       : await apis.sendPhoneVerifyCodeApi()
-    toast.success(type === 'email' ? t('component.profile.info.msg_code_sent_email') : t('component.profile.info.msg_code_sent_phone'))
+    toast.success(type === 'email'
+      ? t('component.profile.info.msg_code_sent_email')
+      : t('component.profile.info.msg_code_sent_phone'))
     verifyTarget.value = type
     verifyCode.value = []
     // 先归零再赋值：这个入口在计时期间仍可点，值不变的话倒计时不会重新起跑
@@ -341,7 +358,9 @@ function openChangeDialog(type: ContactTarget) {
 
 async function sendChangeCode() {
   if (!changeNewValue.value.trim()) {
-    toast.warning(changeTarget.value === 'email' ? t('component.profile.info.warn_new_email_required') : t('component.profile.info.warn_new_phone_required'))
+    toast.warning(changeTarget.value === 'email'
+      ? t('component.profile.info.warn_new_email_required')
+      : t('component.profile.info.warn_new_phone_required'))
     return
   }
   if (!changePassword.value) {
@@ -383,7 +402,9 @@ async function confirmChange() {
       await apis.confirmChangeEmailApi(changeCodeStr.value)
     else
       await apis.confirmChangePhoneApi(changeCodeStr.value)
-    toast.success(changeTarget.value === 'email' ? t('component.profile.info.msg_email_updated') : t('component.profile.info.msg_phone_updated'))
+    toast.success(changeTarget.value === 'email'
+      ? t('component.profile.info.msg_email_updated')
+      : t('component.profile.info.msg_phone_updated'))
     cancelChange()
     emit('saved')
   }

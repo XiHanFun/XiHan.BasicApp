@@ -128,7 +128,12 @@ describe('历史分页与合并', () => {
     await store.loadHistory('a')
     expect(calls).toBe(1)
 
-    release({ items: [message({ messageId: 'm1' })], hasMore: true })
+    release({
+      items: [
+        message({ messageId: 'm1' }),
+      ],
+      hasMore: true,
+    })
     await first
 
     expect(calls).toBe(1)
@@ -137,8 +142,14 @@ describe('历史分页与合并', () => {
 
   it('更早一页拼在现有消息之前，保持时间正序', async () => {
     const pages: Record<string, ChatMessageItem[]> = {
-      latest: [message({ messageId: '300' }), message({ messageId: '400' })],
-      older: [message({ messageId: '100' }), message({ messageId: '200' })],
+      latest: [
+        message({ messageId: '300' }),
+        message({ messageId: '400' }),
+      ],
+      older: [
+        message({ messageId: '100' }),
+        message({ messageId: '200' }),
+      ],
     }
     const store = setup({
       messageHistory: (query: { beforeMessageId?: null | string }) => Promise.resolve({
@@ -155,7 +166,9 @@ describe('历史分页与合并', () => {
 
   it('推送乱序到达时按 seq 落位，而不是按到达先后追加', () => {
     const store = setup()
-    store.messages.a = [message({ messageId: '100' })]
+    store.messages.a = [
+      message({ messageId: '100' }),
+    ]
 
     store.applyIncomingMessage({
       message: message({ messageId: '300' }),
@@ -170,8 +183,12 @@ describe('历史分页与合并', () => {
   })
 
   it('他人的新消息落在本地占位之前：发送中的占位留在最下方', () => {
-    const store = setup({ sendMessage: () => new Promise<ChatMessageItem>(() => {}) })
-    store.messages.a = [message({ messageId: '100' })]
+    const store = setup({
+      sendMessage: () => new Promise<ChatMessageItem>(() => {}),
+    })
+    store.messages.a = [
+      message({ messageId: '100' }),
+    ]
     void store.sendMessage({ conversationId: 'a', messageType: 'Text', content: '在发' })
 
     store.applyIncomingMessage({
@@ -179,7 +196,9 @@ describe('历史分页与合并', () => {
       conversation: { conversationId: 'a', conversationType: 'Single' },
     })
 
-    expect(store.messages.a?.map(item => item.messageId.startsWith('local:') ? 'local' : item.messageId)).toStrictEqual(['100', '200', 'local'])
+    expect(store.messages.a?.map(item => item.messageId.startsWith('local:')
+      ? 'local'
+      : item.messageId)).toStrictEqual(['100', '200', 'local'])
   })
 
   it('回执的序号比先到的推送小：占位换成正式消息后按 seq 排到推送之前', async () => {
@@ -189,7 +208,9 @@ describe('历史分页与合并', () => {
         resolveSend = () => resolve(message({ messageId: '200', senderUserId: 'me', clientMessageId: input.clientMessageId }))
       }),
     })
-    store.messages.a = [message({ messageId: '100' })]
+    store.messages.a = [
+      message({ messageId: '100' }),
+    ]
     const pending = store.sendMessage({ conversationId: 'a', messageType: 'Text', content: '先发的' })
     store.applyIncomingMessage({
       message: message({ messageId: '300' }),
@@ -204,7 +225,14 @@ describe('历史分页与合并', () => {
 
   it('推送重复到达不替换已有那条：历史里带的表情回应不被不带回应的推送冲掉', () => {
     const store = setup()
-    store.messages.a = [message({ messageId: '100', reactions: [{ emoji: '👍', userId: 'u2', userName: '李四' }] })]
+    store.messages.a = [
+      message({
+        messageId: '100',
+        reactions: [
+          { emoji: '👍', userId: 'u2', userName: '李四' },
+        ],
+      }),
+    ]
 
     store.applyIncomingMessage({
       message: message({ messageId: '100' }),
@@ -217,7 +245,10 @@ describe('历史分页与合并', () => {
   it('推送先到的消息不会被历史页重复插入一遍', async () => {
     const store = setup({
       messageHistory: () => Promise.resolve({
-        items: [message({ messageId: '100' }), message({ messageId: '200' })],
+        items: [
+          message({ messageId: '100' }),
+          message({ messageId: '200' }),
+        ],
         hasMore: false,
       }),
     })
@@ -242,7 +273,9 @@ describe('历史分页与合并', () => {
       sendMessage: () => new Promise<ChatMessageItem>(() => {}),
     })
     await store.loadHistory('a')
-    store.messages.a = [message({ messageId: '500' })]
+    store.messages.a = [
+      message({ messageId: '500' }),
+    ]
     void store.sendMessage({ conversationId: 'a', messageType: 'Text', content: '在发' })
     store.hasMoreOlder.a = true
 
@@ -257,7 +290,12 @@ describe('历史分页与合并', () => {
     const store = setup({
       messageHistory: () => {
         calls += 1
-        return Promise.resolve({ items: [message({ messageId: '1' })], hasMore: false })
+        return Promise.resolve({
+          items: [
+            message({ messageId: '1' }),
+          ],
+          hasMore: false,
+        })
       },
     })
     await store.loadHistory('a')
@@ -375,7 +413,9 @@ describe('乐观上屏与回执收敛', () => {
   })
 
   it('发送失败的条目转为 failed 且异常继续上抛给调用方', async () => {
-    const store = setup({ sendMessage: () => Promise.reject(new Error('禁言中')) })
+    const store = setup({
+      sendMessage: () => Promise.reject(new Error('禁言中')),
+    })
 
     await expect(
       store.sendMessage({ conversationId: 'a', messageType: 'Text', content: '试试' }),
@@ -449,7 +489,9 @@ describe('乐观上屏与回执收敛', () => {
   })
 
   it('重发再次失败时条目回到 failed，仍可继续重试', async () => {
-    const store = setup({ sendMessage: () => Promise.reject(new Error('还是不行')) })
+    const store = setup({
+      sendMessage: () => Promise.reject(new Error('还是不行')),
+    })
     await expect(
       store.sendMessage({ conversationId: 'a', messageType: 'Text', content: 'x' }),
     ).rejects.toThrow('还是不行')
@@ -461,8 +503,12 @@ describe('乐观上屏与回执收敛', () => {
   })
 
   it('移除本地消息只清理 pending/failed 条目，已落库消息不受影响', async () => {
-    const store = setup({ sendMessage: () => Promise.reject(new Error('失败')) })
-    store.messages.a = [message({ messageId: '800', clientMessageId: 'shared' })]
+    const store = setup({
+      sendMessage: () => Promise.reject(new Error('失败')),
+    })
+    store.messages.a = [
+      message({ messageId: '800', clientMessageId: 'shared' }),
+    ]
     await expect(
       store.sendMessage({ conversationId: 'a', messageType: 'Text', content: 'x' }),
     ).rejects.toThrow('失败')
@@ -477,7 +523,9 @@ describe('乐观上屏与回执收敛', () => {
   it('发送成功后刷新会话预览，超长正文截断到 60 字并补省略号', async () => {
     const long = '字'.repeat(80)
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
       sendMessage: () => Promise.resolve(message({
         messageId: '902',
         senderUserId: 'me',
@@ -496,7 +544,9 @@ describe('乐观上屏与回执收敛', () => {
   it('恰好 60 字的正文不加省略号', async () => {
     const exact = '字'.repeat(60)
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
       sendMessage: () => Promise.resolve(message({ messageId: '903', senderUserId: 'me', content: exact })),
     })
     await store.loadConversations()
@@ -508,7 +558,9 @@ describe('乐观上屏与回执收敛', () => {
 
   it('无正文的图片消息按张数生成预览', async () => {
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
       sendMessage: () => Promise.resolve(message({
         messageId: '904',
         senderUserId: 'me',
@@ -531,10 +583,16 @@ describe('乐观上屏与回执收敛', () => {
 describe('推送回灌', () => {
   it('他人消息在非活跃会话累计未读，并在被 @ 时置起提示', () => {
     const store = setup()
-    store.conversations = [conversation({ conversationId: 'a', unreadCount: 1 })]
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 1 }),
+    ]
 
     store.applyIncomingMessage({
-      message: message({ messageId: '1', senderUserId: 'other', mentionedUserIds: ['me'] }),
+      message: message({
+        messageId: '1',
+        senderUserId: 'other',
+        mentionedUserIds: ['me'],
+      }),
       conversation: { conversationId: 'a', conversationType: 'Single' },
     })
 
@@ -544,7 +602,9 @@ describe('推送回灌', () => {
 
   it('自己发的消息回声不累计未读', () => {
     const store = setup()
-    store.conversations = [conversation({ conversationId: 'a', unreadCount: 0 })]
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 0 }),
+    ]
 
     store.applyIncomingMessage({
       message: message({ messageId: '1', senderUserId: 'me' }),
@@ -556,7 +616,9 @@ describe('推送回灌', () => {
 
   it('系统提示消息只刷时间线与预览，不计未读（与后端口径一致）', () => {
     const store = setup()
-    store.conversations = [conversation({ conversationId: 'a', unreadCount: 0 })]
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 0 }),
+    ]
 
     store.applyIncomingMessage({
       message: message({
@@ -581,7 +643,9 @@ describe('推送回灌', () => {
         return Promise.resolve()
       },
     })
-    store.conversations = [conversation({ conversationId: 'a', unreadCount: 3 })]
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 3 }),
+    ]
     store.activeConversationId = 'a'
     vi.spyOn(document, 'hasFocus').mockReturnValue(true)
 
@@ -597,7 +661,9 @@ describe('推送回灌', () => {
 
   it('会话虽活跃但窗口失焦时仍累计未读', () => {
     const store = setup()
-    store.conversations = [conversation({ conversationId: 'a', unreadCount: 0 })]
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 0 }),
+    ]
     store.activeConversationId = 'a'
     vi.spyOn(document, 'hasFocus').mockReturnValue(false)
 
@@ -614,7 +680,9 @@ describe('推送回灌', () => {
     const store = setup({
       myConversations: () => {
         calls += 1
-        return Promise.resolve([conversation({ conversationId: 'brand-new' })])
+        return Promise.resolve([
+          conversation({ conversationId: 'brand-new' }),
+        ])
       },
     })
 
@@ -629,7 +697,9 @@ describe('推送回灌', () => {
 
   it('对方发来新消息即清掉他自己的「正在输入」提示', () => {
     const store = setup()
-    store.conversations = [conversation({ conversationId: 'a' })]
+    store.conversations = [
+      conversation({ conversationId: 'a' }),
+    ]
     store.typingIndicators.a = { conversationId: 'a', userId: 'other' }
 
     store.applyIncomingMessage({
@@ -642,7 +712,9 @@ describe('推送回灌', () => {
 
   it('撤回回灌把正文清空并置撤回标记', () => {
     const store = setup()
-    store.messages.a = [message({ messageId: '1', content: '说错话了' })]
+    store.messages.a = [
+      message({ messageId: '1', content: '说错话了' }),
+    ]
 
     store.applyMessageRecalled({ conversationId: 'a', messageId: '1' })
 
@@ -652,7 +724,9 @@ describe('推送回灌', () => {
 
   it('编辑回灌同时更新正文与编辑时间，缓存里没有该消息时静默忽略', () => {
     const store = setup()
-    store.messages.a = [message({ messageId: '1', content: '原文' })]
+    store.messages.a = [
+      message({ messageId: '1', content: '原文' }),
+    ]
 
     store.applyMessageEdited({
       conversationId: 'a',
@@ -669,8 +743,16 @@ describe('推送回灌', () => {
 
   it('表情回应增删幂等：重复 added 不叠加，重复移除不报错', () => {
     const store = setup()
-    store.messages.a = [message({ messageId: '1' })]
-    const payload = { conversationId: 'a', messageId: '1', emoji: '👍', userId: 'u2', userName: '李四' }
+    store.messages.a = [
+      message({ messageId: '1' }),
+    ]
+    const payload = {
+      conversationId: 'a',
+      messageId: '1',
+      emoji: '👍',
+      userId: 'u2',
+      userName: '李四',
+    }
 
     store.applyReactionChanged({ ...payload, added: true })
     store.applyReactionChanged({ ...payload, added: true })
@@ -683,10 +765,24 @@ describe('推送回灌', () => {
 
   it('同一条消息上不同人的同一表情各占一项', () => {
     const store = setup()
-    store.messages.a = [message({ messageId: '1' })]
+    store.messages.a = [
+      message({ messageId: '1' }),
+    ]
 
-    store.applyReactionChanged({ conversationId: 'a', messageId: '1', emoji: '👍', userId: 'u2', added: true })
-    store.applyReactionChanged({ conversationId: 'a', messageId: '1', emoji: '👍', userId: 'u3', added: true })
+    store.applyReactionChanged({
+      conversationId: 'a',
+      messageId: '1',
+      emoji: '👍',
+      userId: 'u2',
+      added: true,
+    })
+    store.applyReactionChanged({
+      conversationId: 'a',
+      messageId: '1',
+      emoji: '👍',
+      userId: 'u3',
+      added: true,
+    })
 
     expect(store.messages.a?.[0]?.reactions.map(item => item.userId)).toStrictEqual(['u2', 'u3'])
   })
@@ -695,8 +791,18 @@ describe('推送回灌', () => {
     const store = setup()
     store.readPositions.a = { u2: 0 }
 
-    store.applyReadPositionChanged({ conversationId: 'a', userId: 'u2', lastReadMessageId: 'm-500', lastReadSeq: 500 })
-    store.applyReadPositionChanged({ conversationId: 'never-loaded', userId: 'u2', lastReadMessageId: 'm-500', lastReadSeq: 500 })
+    store.applyReadPositionChanged({
+      conversationId: 'a',
+      userId: 'u2',
+      lastReadMessageId: 'm-500',
+      lastReadSeq: 500,
+    })
+    store.applyReadPositionChanged({
+      conversationId: 'never-loaded',
+      userId: 'u2',
+      lastReadMessageId: 'm-500',
+      lastReadSeq: 500,
+    })
 
     expect(store.readPositions.a).toStrictEqual({ u2: 500 })
     expect(store.readPositions['never-loaded']).toBeUndefined()
@@ -706,8 +812,18 @@ describe('推送回灌', () => {
     const store = setup()
     store.readPositions.a = { u2: 0 }
 
-    store.applyReadPositionChanged({ conversationId: 'a', userId: 'u2', lastReadMessageId: 'm-500', lastReadSeq: 500 })
-    store.applyReadPositionChanged({ conversationId: 'a', userId: 'u2', lastReadMessageId: 'm-300', lastReadSeq: 300 })
+    store.applyReadPositionChanged({
+      conversationId: 'a',
+      userId: 'u2',
+      lastReadMessageId: 'm-500',
+      lastReadSeq: 500,
+    })
+    store.applyReadPositionChanged({
+      conversationId: 'a',
+      userId: 'u2',
+      lastReadMessageId: 'm-300',
+      lastReadSeq: 300,
+    })
 
     expect(store.readPositions.a).toStrictEqual({ u2: 500 })
   })
@@ -715,8 +831,12 @@ describe('推送回灌', () => {
 
 describe('表情回应与 Pin 的乐观写', () => {
   it('点表情先本地生效，接口失败后回滚到点之前的状态', async () => {
-    const store = setup({ toggleReaction: () => Promise.reject(new Error('网络断了')) })
-    store.messages.a = [message({ messageId: '1' })]
+    const store = setup({
+      toggleReaction: () => Promise.reject(new Error('网络断了')),
+    })
+    store.messages.a = [
+      message({ messageId: '1' }),
+    ]
 
     await expect(store.toggleReaction('a', '1', '👍')).rejects.toThrow('网络断了')
 
@@ -724,11 +844,17 @@ describe('表情回应与 Pin 的乐观写', () => {
   })
 
   it('取消已有表情失败时把自己的那一项加回来', async () => {
-    const store = setup({ toggleReaction: () => Promise.reject(new Error('网络断了')) })
-    store.messages.a = [message({
-      messageId: '1',
-      reactions: [{ emoji: '👍', userId: 'me', userName: '我' }],
-    })]
+    const store = setup({
+      toggleReaction: () => Promise.reject(new Error('网络断了')),
+    })
+    store.messages.a = [
+      message({
+        messageId: '1',
+        reactions: [
+          { emoji: '👍', userId: 'me', userName: '我' },
+        ],
+      }),
+    ]
 
     await expect(store.toggleReaction('a', '1', '👍')).rejects.toThrow('网络断了')
 
@@ -738,11 +864,17 @@ describe('表情回应与 Pin 的乐观写', () => {
   // 回归锚点（缺陷 39）：回滚原先传 userName: null，加回来的那一项没了展示名，
   // 表情气泡的悬浮提示变空白，直到重新拉历史才恢复
   it('取消已有表情失败回滚时沿用原展示名，不会把名字抹成 null', async () => {
-    const store = setup({ toggleReaction: () => Promise.reject(new Error('网络断了')) })
-    store.messages.a = [message({
-      messageId: '1',
-      reactions: [{ emoji: '👍', userId: 'me', userName: '服务端给的名字' }],
-    })]
+    const store = setup({
+      toggleReaction: () => Promise.reject(new Error('网络断了')),
+    })
+    store.messages.a = [
+      message({
+        messageId: '1',
+        reactions: [
+          { emoji: '👍', userId: 'me', userName: '服务端给的名字' },
+        ],
+      }),
+    ]
 
     await expect(store.toggleReaction('a', '1', '👍')).rejects.toThrow('网络断了')
 
@@ -757,10 +889,14 @@ describe('表情回应与 Pin 的乐观写', () => {
       pinMessage: () => Promise.resolve(),
       pinnedMessages: () => {
         pinnedCalls += 1
-        return Promise.resolve([message({ messageId: '1', isPinned: true })])
+        return Promise.resolve([
+          message({ messageId: '1', isPinned: true }),
+        ])
       },
     })
-    store.messages.a = [message({ messageId: '1' })]
+    store.messages.a = [
+      message({ messageId: '1' }),
+    ]
 
     await store.pinMessage('a', '1')
 
@@ -774,7 +910,9 @@ describe('表情回应与 Pin 的乐观写', () => {
       unpinMessage: () => Promise.resolve(),
       pinnedMessages: () => Promise.resolve([]),
     })
-    store.messages.a = [message({ messageId: '1', isPinned: true })]
+    store.messages.a = [
+      message({ messageId: '1', isPinned: true }),
+    ]
 
     await store.unpinMessage('a', '1')
 
@@ -783,8 +921,12 @@ describe('表情回应与 Pin 的乐观写', () => {
   })
 
   it('撤回接口成功后本地立即落撤回态', async () => {
-    const store = setup({ recallMessage: () => Promise.resolve() })
-    store.messages.a = [message({ messageId: '1', content: '撤回我' })]
+    const store = setup({
+      recallMessage: () => Promise.resolve(),
+    })
+    store.messages.a = [
+      message({ messageId: '1', content: '撤回我' }),
+    ]
 
     await store.recallMessage('a', '1')
 
@@ -799,7 +941,9 @@ describe('表情回应与 Pin 的乐观写', () => {
         editedAt: '2026-08-27T02:00:00Z',
       })),
     })
-    store.messages.a = [message({ messageId: '1', content: '原文' })]
+    store.messages.a = [
+      message({ messageId: '1', content: '原文' }),
+    ]
     store.editTarget = store.messages.a[0] ?? null
 
     await store.editMessage('a', '1', '我输入的正文')
@@ -814,7 +958,10 @@ describe('搜索定位与视口分离态', () => {
     vi.useFakeTimers()
     const store = setup({
       messageHistory: () => Promise.resolve({
-        items: [message({ messageId: '100' }), message({ messageId: '200' })],
+        items: [
+          message({ messageId: '100' }),
+          message({ messageId: '200' }),
+        ],
         hasMore: true,
       }),
     })
@@ -831,9 +978,16 @@ describe('搜索定位与视口分离态', () => {
 
   it('分离态下新到达的消息不追加进当前 bucket，避免历史与最新之间出现空洞', async () => {
     const store = setup({
-      messageHistory: () => Promise.resolve({ items: [message({ messageId: '100' })], hasMore: true }),
+      messageHistory: () => Promise.resolve({
+        items: [
+          message({ messageId: '100' }),
+        ],
+        hasMore: true,
+      }),
     })
-    store.conversations = [conversation({ conversationId: 'a' })]
+    store.conversations = [
+      conversation({ conversationId: 'a' }),
+    ]
     await store.jumpToMessage('a', '100')
 
     store.applyIncomingMessage({
@@ -851,7 +1005,13 @@ describe('搜索定位与视口分离态', () => {
       messageHistory: () => {
         call += 1
         return Promise.resolve({
-          items: call === 1 ? [message({ messageId: '100' })] : [message({ messageId: '900' })],
+          items: call === 1
+            ? [
+                message({ messageId: '100' }),
+              ]
+            : [
+                message({ messageId: '900' }),
+              ],
           hasMore: call === 1,
         })
       },
@@ -871,7 +1031,13 @@ describe('搜索定位与视口分离态', () => {
       messageHistory: () => {
         call += 1
         return Promise.resolve({
-          items: call === 1 ? [message({ messageId: '100' })] : [message({ messageId: '900' })],
+          items: call === 1
+            ? [
+                message({ messageId: '100' }),
+              ]
+            : [
+                message({ messageId: '900' }),
+              ],
           hasMore: false,
         })
       },
@@ -961,7 +1127,9 @@ describe('群已读人数', () => {
 
   it('还没落库的乐观占位（seq 0）不计已读', async () => {
     const store = setup({
-      readPositions: () => Promise.resolve([{ userId: 'u2', lastReadMessageId: 'm-9', lastReadSeq: 9 }]),
+      readPositions: () => Promise.resolve([
+        { userId: 'u2', lastReadMessageId: 'm-9', lastReadSeq: 9 },
+      ]),
     })
     await store.loadReadPositions('a')
 

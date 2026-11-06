@@ -18,7 +18,9 @@ export const MENU_STATUSES: readonly MenuStatus[] = ['Active', 'Disabled']
 export const CUSTOM_CODE_PREFIX = 'custom.'
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /** 深度优先摊平整棵树（上级菜单的候选、子页面判定都在摊平后的序列里找） */
@@ -31,7 +33,13 @@ export function flattenMenus(nodes: readonly MenuRow[], out: MenuRow[] = []): Me
 }
 
 /** 本地筛选登记的字段：menus.list 一次返回整棵树、不收筛选参数，搜索在取回的整树上做 */
-const LOCAL_FILTERS = new Set(['keyword', 'kind', 'status', 'isVisible', 'isCustomized'])
+const LOCAL_FILTERS = new Set([
+  'keyword',
+  'kind',
+  'status',
+  'isVisible',
+  'isCustomized',
+])
 
 function isBlank(value: unknown): boolean {
   return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
@@ -56,10 +64,18 @@ export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQue
   if (active.length === 0)
     return [...nodes]
   const filters = Object.fromEntries(active)
-  const keyword = isBlank(filters.keyword) ? null : String(filters.keyword).trim().toLowerCase()
+  const keyword = isBlank(filters.keyword)
+    ? null
+    : String(filters.keyword).trim().toLowerCase()
   const matches = (node: MenuRow): boolean => {
-    if (keyword !== null && ![titleOf(node), node.code, node.route, node.externalUrl ?? ''].some(text => text.toLowerCase().includes(keyword)))
+    if (keyword !== null && ![
+      titleOf(node),
+      node.code,
+      node.route,
+      node.externalUrl ?? '',
+    ].some(text => text.toLowerCase().includes(keyword))) {
       return false
+    }
     if (!isBlank(filters.kind) && node.kind !== filters.kind)
       return false
     if (!isBlank(filters.status) && node.status !== filters.status)
@@ -70,7 +86,11 @@ export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQue
   }
   const walk = (list: readonly MenuRow[]): MenuRow[] => list.flatMap((node) => {
     const children = walk(node.children)
-    return matches(node) || children.length > 0 ? [{ ...node, children }] : []
+    return matches(node) || children.length > 0
+      ? [
+          { ...node, children },
+        ]
+      : []
   })
   return walk(nodes)
 }
@@ -86,8 +106,15 @@ export function menusResource(titleOf: (node: MenuRow) => string, onLoaded: (nod
       onLoaded(items)
       return filterMenuTree(items, params, titleOf)
     },
-    remove: async id => throwOnFailed(await menusApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => menusApi.setStatus({ id: String(id), status: enabled ? 'Active' : 'Disabled' }),
+    remove: async id => throwOnFailed(await menusApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
+    updateStatus: async (id, enabled) => menusApi.setStatus({
+      id: String(id),
+      status: enabled ? 'Active' : 'Disabled',
+    }),
   }
 }
 
@@ -121,7 +148,23 @@ export interface MenuForm {
 export type MenuEditorMode = 'create' | 'edit'
 
 function emptyForm(): MenuForm {
-  return { kind: 'Directory', code: '', title: '', icon: '', order: 0, parentId: null, externalUrl: '', permission: '', isVisible: true, keepAlive: false, isAffix: false, status: 'Active', badge: '', badgeType: null, badgeDot: false }
+  return {
+    kind: 'Directory',
+    code: '',
+    title: '',
+    icon: '',
+    order: 0,
+    parentId: null,
+    externalUrl: '',
+    permission: '',
+    isVisible: true,
+    keepAlive: false,
+    isAffix: false,
+    status: 'Active',
+    badge: '',
+    badgeType: null,
+    badgeDot: false,
+  }
 }
 
 /**
@@ -155,7 +198,12 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
   function startCreate(kind: OperatorKind = 'Directory', parentId: null | string = null) {
     mode.value = 'create'
     editing.value = null
-    reset({ kind, parentId: kind === 'Link' ? parentId : null })
+    reset({
+      kind,
+      parentId: kind === 'Link'
+        ? parentId
+        : null,
+    })
     open.value = true
   }
 
@@ -206,12 +254,18 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           title: blankToNull(form.title),
           icon: blankToNull(form.icon),
           order: form.order,
-          parentId: current.kind === 'Directory' ? null : form.parentId,
+          parentId: current.kind === 'Directory'
+            ? null
+            : form.parentId,
           isVisible: form.isVisible,
           keepAlive: form.keepAlive,
           isAffix: form.isAffix,
-          externalUrl: link ? blankToNull(form.externalUrl) : null,
-          permission: current.kind === 'Page' ? null : blankToNull(form.permission),
+          externalUrl: link
+            ? blankToNull(form.externalUrl)
+            : null,
+          permission: current.kind === 'Page'
+            ? null
+            : blankToNull(form.permission),
           badge: blankToNull(form.badge),
           badgeType: form.badgeType,
           badgeDot: form.badgeDot,
@@ -225,7 +279,9 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           icon: blankToNull(form.icon),
           order: form.order,
           parentId: link ? form.parentId : null,
-          externalUrl: link ? blankToNull(form.externalUrl) : null,
+          externalUrl: link
+            ? blankToNull(form.externalUrl)
+            : null,
           permission: blankToNull(form.permission),
           isVisible: form.isVisible,
           status: form.status,
@@ -253,7 +309,23 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
     }
   }
 
-  return { open, mode, isEdit, isPage, hasTitleKey, parentLocked, editing, form, fieldError, submitError, submitting, startCreate, startEdit, changeKind, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    isPage,
+    hasTitleKey,
+    parentLocked,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    changeKind,
+    submit,
+  }
 }
 
 /**
@@ -266,7 +338,9 @@ export function useMenuTree() {
   const directories = computed(() => flat.value.filter(node => node.kind === 'Directory'))
 
   function find(id: null | string | undefined): MenuRow | undefined {
-    return id ? flat.value.find(node => node.id === id) : undefined
+    return id
+      ? flat.value.find(node => node.id === id)
+      : undefined
   }
 
   function isChildPage(node: MenuRow): boolean {
@@ -277,5 +351,12 @@ export function useMenuTree() {
     nodes.value = next
   }
 
-  return { nodes, flat, directories, find, isChildPage, setNodes }
+  return {
+    nodes,
+    flat,
+    directories,
+    find,
+    isChildPage,
+    setNodes,
+  }
 }

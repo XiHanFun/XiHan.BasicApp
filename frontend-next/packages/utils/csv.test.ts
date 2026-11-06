@@ -9,11 +9,30 @@ import { describe, expect, it } from 'vitest'
 import { csvCell, csvNeutralize, parseCsvRows } from './csv'
 
 describe('写出 CSV 的防公式注入', () => {
-  it.each(['=1+1', '=HYPERLINK("http://evil.test")', '+1+1', '-1+1', '@SUM(A1)', '\tcmd', '\r=1', '\n=1'])('%j 前面加单引号', (value) => {
+  it.each([
+    '=1+1',
+    '=HYPERLINK("http://evil.test")',
+    '+1+1',
+    '-1+1',
+    '@SUM(A1)',
+    '\tcmd',
+    '\r=1',
+    '\n=1',
+  ])('%j 前面加单引号', (value) => {
     expect(csvNeutralize(value)).toBe(`'${value}`)
   })
 
-  it.each(['-', '=', '-12.5', '+8613800000000', '42', '张三', 'a=b', 'user@example.com', ''])('%j 保持原样', (value) => {
+  it.each([
+    '-',
+    '=',
+    '-12.5',
+    '+8613800000000',
+    '42',
+    '张三',
+    'a=b',
+    'user@example.com',
+    '',
+  ])('%j 保持原样', (value) => {
     expect(csvNeutralize(value)).toBe(value)
   })
 
@@ -55,15 +74,21 @@ describe('parseCsvRows', () => {
   })
 
   it('双引号包裹的字段可以内嵌逗号而不被拆列', () => {
-    expect(parseCsvRows('a,"b,c",d')).toEqual([['a', 'b,c', 'd']])
+    expect(parseCsvRows('a,"b,c",d')).toEqual([
+      ['a', 'b,c', 'd'],
+    ])
   })
 
   it('字段内的双引号以两个双引号转义，还原为单个双引号', () => {
-    expect(parseCsvRows('a,"他说""你好""",c')).toEqual([['a', '他说"你好"', 'c']])
+    expect(parseCsvRows('a,"他说""你好""",c')).toEqual([
+      ['a', '他说"你好"', 'c'],
+    ])
   })
 
   it('引号内的换行属于字段内容，不切分成新行', () => {
-    expect(parseCsvRows('a,"第一行\n第二行",c')).toEqual([['a', '第一行\n第二行', 'c']])
+    expect(parseCsvRows('a,"第一行\n第二行",c')).toEqual([
+      ['a', '第一行\n第二行', 'c'],
+    ])
   })
 
   it('自动探测分隔符，分号与制表符同样能解析', () => {
@@ -82,15 +107,21 @@ describe('parseCsvRows', () => {
   })
 
   it('纯空白文本保留为单行单列，空白不会被自动去除', () => {
-    expect(parseCsvRows('   ')).toEqual([['   ']])
+    expect(parseCsvRows('   ')).toEqual([
+      ['   '],
+    ])
   })
 
   it('单元格值一律保持字符串，数字与布尔不会被转型', () => {
-    expect(parseCsvRows('1,true,null')).toEqual([['1', 'true', 'null']])
+    expect(parseCsvRows('1,true,null')).toEqual([
+      ['1', 'true', 'null'],
+    ])
   })
 
   it('连续分隔符产出空串单元格，列数不塌陷', () => {
-    expect(parseCsvRows('a,,c')).toEqual([['a', '', 'c']])
+    expect(parseCsvRows('a,,c')).toEqual([
+      ['a', '', 'c'],
+    ])
   })
 
   it('各行列数不一致时按各自实际列数返回，不做补齐或截断', () => {
@@ -107,7 +138,9 @@ describe('parseCsvRows', () => {
   })
 
   it('emoji 与全角标点不会被拆列或改写', () => {
-    expect(parseCsvRows('🙂,中文，标点')).toEqual([['🙂', '中文，标点']])
+    expect(parseCsvRows('🙂,中文，标点')).toEqual([
+      ['🙂', '中文，标点'],
+    ])
   })
 
   it('超长单元格内容完整返回，不被截断', () => {

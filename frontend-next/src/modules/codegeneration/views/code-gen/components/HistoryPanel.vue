@@ -23,17 +23,44 @@ const asRow = (row: object) => row as HistoryRow
 function generationTone(status: GenerationStatus) {
   if (status === 'Generated')
     return 'success'
-  return status === 'Failed' ? 'danger' : 'neutral'
+  return status === 'Failed'
+    ? 'danger'
+    : 'neutral'
 }
 
 function options(group: string, values: readonly string[]): SelectOption[] {
-  return values.map(value => ({ label: t(enumKey(group, value)), value }))
+  return values.map(value => ({
+    label: t(enumKey(group, value)),
+    value,
+  }))
 }
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('codegeneration.code_gen.history.col_table_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('codegeneration.code_gen.history.search_placeholder'), order: 0 },
-  { key: 'tableName', title: t('codegeneration.code_gen.history.col_table_name'), dataType: 'string', sortable: true, minWidth: 150, order: 1 },
-  { key: 'batchNumber', title: t('codegeneration.code_gen.history.col_batch_number'), dataType: 'string', sortable: true, minWidth: 190, order: 2 },
+  {
+    key: 'keyword',
+    title: t('codegeneration.code_gen.history.col_table_name'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('codegeneration.code_gen.history.search_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'tableName',
+    title: t('codegeneration.code_gen.history.col_table_name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 150,
+    order: 1,
+  },
+  {
+    key: 'batchNumber',
+    title: t('codegeneration.code_gen.history.col_batch_number'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 190,
+    order: 2,
+  },
   {
     key: 'generationStatus',
     title: t('codegeneration.code_gen.history.col_status'),
@@ -47,12 +74,59 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: row => renderTag(t(enumKey('generation_status', asRow(row).generationStatus)), generationTone(asRow(row).generationStatus)),
   },
-  { key: 'deliveryType', title: t('codegeneration.code_gen.history.col_gen_type'), dataType: 'enum', sortable: true, options: options('delivery_type', DELIVERY_TYPES), width: 120, order: 4 },
-  { key: 'fileCount', title: t('codegeneration.code_gen.history.col_file_count'), dataType: 'number', sortable: true, width: 90, order: 5 },
-  { key: 'totalSize', title: t('codegeneration.code_gen.history.col_total_size'), dataType: 'number', sortable: true, width: 110, order: 6, render: row => formatSize(asRow(row).totalSize) },
-  { key: 'duration', title: t('codegeneration.code_gen.history.col_duration'), dataType: 'number', sortable: true, width: 100, order: 7, render: row => formatDuration(asRow(row).duration) },
-  { key: 'operatorName', title: t('codegeneration.code_gen.history.col_operator'), dataType: 'string', sortable: true, width: 120, order: 8 },
-  { key: 'generatedAt', title: t('codegeneration.code_gen.history.col_gen_time'), dataType: 'datetime', searchable: true, searchRange: true, sortable: true, minWidth: 170, order: 9 },
+  {
+    key: 'deliveryType',
+    title: t('codegeneration.code_gen.history.col_gen_type'),
+    dataType: 'enum',
+    sortable: true,
+    options: options('delivery_type', DELIVERY_TYPES),
+    width: 120,
+    order: 4,
+  },
+  {
+    key: 'fileCount',
+    title: t('codegeneration.code_gen.history.col_file_count'),
+    dataType: 'number',
+    sortable: true,
+    width: 90,
+    order: 5,
+  },
+  {
+    key: 'totalSize',
+    title: t('codegeneration.code_gen.history.col_total_size'),
+    dataType: 'number',
+    sortable: true,
+    width: 110,
+    order: 6,
+    render: row => formatSize(asRow(row).totalSize),
+  },
+  {
+    key: 'duration',
+    title: t('codegeneration.code_gen.history.col_duration'),
+    dataType: 'number',
+    sortable: true,
+    width: 100,
+    order: 7,
+    render: row => formatDuration(asRow(row).duration),
+  },
+  {
+    key: 'operatorName',
+    title: t('codegeneration.code_gen.history.col_operator'),
+    dataType: 'string',
+    sortable: true,
+    width: 120,
+    order: 8,
+  },
+  {
+    key: 'generatedAt',
+    title: t('codegeneration.code_gen.history.col_gen_time'),
+    dataType: 'datetime',
+    searchable: true,
+    searchRange: true,
+    sortable: true,
+    minWidth: 170,
+    order: 9,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -62,13 +136,28 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'view', title: t('common.actions.detail'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'download', title: t('codegeneration.code_gen.history.action_download'), scope: 'row', tone: 'brand', icon: 'lucide:download', visible: row => hasPackage(asRow(row)), permission: 'codegeneration.codegen-histories.read' },
+    {
+      key: 'view',
+      title: t('common.actions.detail'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'download',
+      title: t('codegeneration.code_gen.history.action_download'),
+      scope: 'row',
+      tone: 'brand',
+      icon: 'lucide:download',
+      visible: row => hasPackage(asRow(row)),
+      permission: 'codegeneration.codegen-histories.read',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'view':
       if (row)
@@ -111,7 +200,9 @@ async function openDetail(row: HistoryRow) {
 }
 
 function orDash(value: null | string | undefined): string {
-  return value == null || value === '' ? '-' : value
+  return value == null || value === ''
+    ? '-'
+    : value
 }
 </script>
 

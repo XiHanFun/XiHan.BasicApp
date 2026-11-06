@@ -19,18 +19,29 @@ const EXECUTED_AT = 'executedAt'
  * 缺省（不排序）由后端按执行时间倒序
  */
 export const MIGRATION_QUERY: PageQueryMapping = {
-  filters: { version: 'contains', scriptName: 'contains', nodeName: 'contains', success: 'eq' },
+  filters: {
+    version: 'contains',
+    scriptName: 'contains',
+    nodeName: 'contains',
+    success: 'eq',
+  },
 }
 
 /** 执行时间的区间 → `ge 起点` 与 `lt 终点后 1 毫秒`：区间选择器给的终点是含在内的那一刻 */
 export function executedAtFilters(condition: QueryFilter): PageFilter[] {
   const [start, end] = (condition.values ?? []).map(value => String(value))
-  const endAt = end ? Date.parse(end) : Number.NaN
+  const endAt = end
+    ? Date.parse(end)
+    : Number.NaN
   if (condition.operator !== QueryOperator.Between || !start || Number.isNaN(endAt))
     throw new Error(`执行时间的筛选只认区间：${JSON.stringify(condition)}`)
   return [
     { field: EXECUTED_AT, operator: 'ge', value: start },
-    { field: EXECUTED_AT, operator: 'lt', value: new Date(endAt + 1).toISOString() },
+    {
+      field: EXECUTED_AT,
+      operator: 'lt',
+      value: new Date(endAt + 1).toISOString(),
+    },
   ]
 }
 
@@ -40,21 +51,33 @@ export function toMigrationsRequest(params: SchemaQueryParams): PageRequest {
   // 区间的原始值已由 conditionFilters 下发
   delete filters[EXECUTED_AT]
   const conditions = params.conditionFilters ?? []
-  const request = toPageRequest({ ...params, filters, conditionFilters: conditions.filter(condition => condition.field !== EXECUTED_AT) }, MIGRATION_QUERY)
+  const request = toPageRequest({
+    ...params,
+    filters,
+    conditionFilters: conditions.filter(condition => condition.field !== EXECUTED_AT),
+  }, MIGRATION_QUERY)
   for (const condition of conditions.filter(item => item.field === EXECUTED_AT))
     request.filters.push(...executedAtFilters(condition))
   return request
 }
 
 export function successLabel(t: Translate, success: boolean): string {
-  return success ? t('maintenance.migrations.success_yes') : t('maintenance.migrations.success_no')
+  return success
+    ? t('maintenance.migrations.success_yes')
+    : t('maintenance.migrations.success_no')
 }
 
 /** 执行结果的搜索选项：后端按 `success eq true / false` 匹配 */
 export function successOptions(t: Translate): { label: string, value: string }[] {
   return [
-    { label: successLabel(t, true), value: 'true' },
-    { label: successLabel(t, false), value: 'false' },
+    {
+      label: successLabel(t, true),
+      value: 'true',
+    },
+    {
+      label: successLabel(t, false),
+      value: 'false',
+    },
   ]
 }
 
@@ -83,14 +106,47 @@ export function migrationDetailSchema(t: Translate): LogDetailSchema {
       meta: ['executedAt', 'nodeName'],
     },
     fields: [
-      { key: 'version', label: t('maintenance.migrations.version') },
-      { key: 'scriptName', label: t('maintenance.migrations.script_name') },
-      { key: 'success', label: t('maintenance.migrations.success'), type: 'boolean', trueText: t('maintenance.migrations.success_yes'), falseText: t('maintenance.migrations.success_no'), tone: booleanTone },
-      { key: 'executedAt', label: t('maintenance.migrations.executed_time'), type: 'date' },
-      { key: 'durationMs', label: t('maintenance.migrations.duration'), type: 'duration' },
-      { key: 'nodeName', label: t('maintenance.migrations.node_name') },
-      { key: 'id', label: t('maintenance.migrations.record_id'), group: 'trace', mono: true },
-      { key: 'errorMessage', label: t('maintenance.migrations.error_message'), type: 'code' },
+      {
+        key: 'version',
+        label: t('maintenance.migrations.version'),
+      },
+      {
+        key: 'scriptName',
+        label: t('maintenance.migrations.script_name'),
+      },
+      {
+        key: 'success',
+        label: t('maintenance.migrations.success'),
+        type: 'boolean',
+        trueText: t('maintenance.migrations.success_yes'),
+        falseText: t('maintenance.migrations.success_no'),
+        tone: booleanTone,
+      },
+      {
+        key: 'executedAt',
+        label: t('maintenance.migrations.executed_time'),
+        type: 'date',
+      },
+      {
+        key: 'durationMs',
+        label: t('maintenance.migrations.duration'),
+        type: 'duration',
+      },
+      {
+        key: 'nodeName',
+        label: t('maintenance.migrations.node_name'),
+      },
+      {
+        key: 'id',
+        label: t('maintenance.migrations.record_id'),
+        group: 'trace',
+        mono: true,
+      },
+      {
+        key: 'errorMessage',
+        label: t('maintenance.migrations.error_message'),
+        type: 'code',
+      },
     ],
   }
 }

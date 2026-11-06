@@ -73,12 +73,16 @@ function statusLabel(status: TenantStatus): string {
 }
 
 function memberTypeLabel(type: TenantMemberType): string {
-  return type === 'Support' ? t('tenancy.tenants.members.types.support') : t('tenancy.tenants.members.types.member')
+  return type === 'Support'
+    ? t('tenancy.tenants.members.types.support')
+    : t('tenancy.tenants.members.types.member')
 }
 
 /** 运维支持（平台账号）与普通成员分开着色；所有者另打一个标签 */
 function memberTypeTone(type: TenantMemberType) {
-  return type === 'Support' ? 'info' : 'neutral'
+  return type === 'Support'
+    ? 'info'
+    : 'neutral'
 }
 
 /** 列表与详情里的套餐：没绑定即不受套餐限制 */
@@ -94,7 +98,9 @@ function adminTag(row: TenantRow) {
 
 // ── 独立库：隔离方式、库类型与状态的文案（枚举值是契约字面量，文案键静态写出） ──
 function isolationLabel(mode: TenantIsolationMode): string {
-  return mode === 'Database' ? t('tenancy.tenants.database.isolation.database') : t('tenancy.tenants.database.isolation.field')
+  return mode === 'Database'
+    ? t('tenancy.tenants.database.isolation.database')
+    : t('tenancy.tenants.database.isolation.field')
 }
 
 /** 共库即「共库」；独立库按状态：待初始化、已就绪、初始化失败 */
@@ -128,33 +134,45 @@ function databaseStatusTone(status: TenantDatabaseStatus) {
 function providerLabel(row: Pick<TenantRow, 'databaseProvider' | 'isolationMode'>): string {
   if (row.isolationMode !== 'Database')
     return '-'
-  return row.databaseProvider ? (DATABASE_PROVIDER_NAMES[row.databaseProvider] ?? row.databaseProvider) : t('tenancy.tenants.database.provider_platform')
+  return row.databaseProvider
+    ? (DATABASE_PROVIDER_NAMES[row.databaseProvider] ?? row.databaseProvider)
+    : t('tenancy.tenants.database.provider_platform')
 }
 
 /** 列表的数据库列：状态标签，初始化失败时悬停看原因（详情抽屉里也写着） */
 function databaseTag(row: TenantRow) {
   const tag = renderTag(databaseStatusLabel(row.databaseStatus), databaseStatusTone(row.databaseStatus))
   return row.databaseStatus === 'Failed' && row.databaseError
-    ? h(XTooltip, { content: row.databaseError }, { default: () => tag })
+    ? h(XTooltip, { content: row.databaseError }, {
+        default: () => tag,
+      })
     : tag
 }
 
 // ── 配额：用量单元格（4.x 同：超限标红、到 80% 标黄，其余普通文本），弹窗里上限留空时沿用套餐的值 ──
 function seatCell(quota: TenantQuota | undefined): UsageCell | null {
-  return quota ? seatUsage(quota, t('tenancy.tenants.quota.unlimited')) : null
+  return quota
+    ? seatUsage(quota, t('tenancy.tenants.quota.unlimited'))
+    : null
 }
 
 function storageCell(quota: TenantQuota | undefined): UsageCell | null {
-  return quota ? storageUsage(quota, t('tenancy.tenants.quota.unlimited')) : null
+  return quota
+    ? storageUsage(quota, t('tenancy.tenants.quota.unlimited'))
+    : null
 }
 
 function renderUsage(cell: UsageCell | null) {
   if (!cell)
     return '-'
-  return cell.tone === 'muted' ? cell.text : renderTag(cell.text, cell.tone)
+  return cell.tone === 'muted'
+    ? cell.text
+    : renderTag(cell.text, cell.tone)
 }
 
-const inherited = computed(() => (canReadEditions.value ? inheritedEdition(editions.editions.value, editor.form.editionId, !editor.isEdit.value) : undefined))
+const inherited = computed(() => (canReadEditions.value
+  ? inheritedEdition(editions.editions.value, editor.form.editionId, !editor.isEdit.value)
+  : undefined))
 
 /** 上限的占位：沿用的套餐知道就写出它的值，没有套餐即不限，说不出来就只说沿用套餐 */
 function limitPlaceholder(edition: EditionOption | null | undefined, value: (edition: EditionOption) => null | string): string {
@@ -165,43 +183,94 @@ function limitPlaceholder(edition: EditionOption | null | undefined, value: (edi
   return t('tenancy.tenants.quota.from_edition', { value: value(edition) ?? t('tenancy.tenants.quota.unlimited') })
 }
 
-const userLimitPlaceholder = computed(() => limitPlaceholder(inherited.value, e => (e.userLimit === null || e.userLimit === undefined ? null : String(e.userLimit))))
-const storageLimitPlaceholder = computed(() => limitPlaceholder(inherited.value, e => (e.storageLimitMb === null || e.storageLimitMb === undefined ? null : t('tenancy.tenants.quota.storage_mb', { size: e.storageLimitMb }))))
+const userLimitPlaceholder = computed(() => limitPlaceholder(inherited.value, e => (e.userLimit === null || e.userLimit === undefined
+  ? null
+  : String(e.userLimit))))
+const storageLimitPlaceholder = computed(() => limitPlaceholder(inherited.value, e => (e.storageLimitMb === null || e.storageLimitMb === undefined
+  ? null
+  : t('tenancy.tenants.quota.storage_mb', { size: e.storageLimitMb }))))
 
 const auditColumns = computed<XDataTableColumn<TenantQuota>[]>(() => [
-  { key: 'tenantId', title: t('tenancy.tenants.fields.tenant_id'), minWidth: 120, ellipsis: true },
-  { key: 'name', title: t('tenancy.tenants.fields.name'), minWidth: 140, ellipsis: true },
-  { key: 'edition', title: t('tenancy.tenants.fields.edition'), minWidth: 110, ellipsis: true, render: quota => quota.editionName ?? t('tenancy.tenants.edition_unrestricted') },
-  { key: 'seats', title: t('tenancy.tenants.fields.seat_usage'), minWidth: 120, render: quota => renderUsage(seatCell(quota)) },
-  { key: 'storage', title: t('tenancy.tenants.fields.storage_usage'), minWidth: 170, render: quota => renderUsage(storageCell(quota)) },
+  {
+    key: 'tenantId',
+    title: t('tenancy.tenants.fields.tenant_id'),
+    minWidth: 120,
+    ellipsis: true,
+  },
+  {
+    key: 'name',
+    title: t('tenancy.tenants.fields.name'),
+    minWidth: 140,
+    ellipsis: true,
+  },
+  {
+    key: 'edition',
+    title: t('tenancy.tenants.fields.edition'),
+    minWidth: 110,
+    ellipsis: true,
+    render: quota => quota.editionName ?? t('tenancy.tenants.edition_unrestricted'),
+  },
+  {
+    key: 'seats',
+    title: t('tenancy.tenants.fields.seat_usage'),
+    minWidth: 120,
+    render: quota => renderUsage(seatCell(quota)),
+  },
+  {
+    key: 'storage',
+    title: t('tenancy.tenants.fields.storage_usage'),
+    minWidth: 170,
+    render: quota => renderUsage(storageCell(quota)),
+  },
 ])
 
-const statusOptions = computed<SelectOption[]>(() => TENANT_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
-const isolationOptions = computed<SelectOption[]>(() => TENANT_ISOLATION_MODES.map(mode => ({ label: isolationLabel(mode), value: mode })))
+const statusOptions = computed<SelectOption[]>(() => TENANT_STATUSES.map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
+const isolationOptions = computed<SelectOption[]>(() => TENANT_ISOLATION_MODES.map(mode => ({
+  label: isolationLabel(mode),
+  value: mode,
+})))
 /** 列与导出用的数据库状态文案 */
-const databaseStatusOptions = computed<SelectOption[]>(() => TENANT_DATABASE_STATUSES.map(status => ({ label: databaseStatusLabel(status), value: status })))
+const databaseStatusOptions = computed<SelectOption[]>(() => TENANT_DATABASE_STATUSES.map(status => ({
+  label: databaseStatusLabel(status),
+  value: status,
+})))
 
 /** 下拉的选项值不能为空：「与平台库相同」以占位值出现，收上来换回 null */
 const SAME_AS_PLATFORM = 'platform'
 const providerOptions = computed<SelectOption[]>(() => [
-  { label: t('tenancy.tenants.database.provider_platform'), value: SAME_AS_PLATFORM },
+  {
+    label: t('tenancy.tenants.database.provider_platform'),
+    value: SAME_AS_PLATFORM,
+  },
   ...TENANT_DATABASE_PROVIDERS.map(provider => ({ label: DATABASE_PROVIDER_NAMES[provider] ?? provider, value: provider })),
 ])
 
 function onProviderChange(value: unknown) {
-  editor.form.databaseProvider = typeof value === 'string' && value !== SAME_AS_PLATFORM ? value : null
+  editor.form.databaseProvider = typeof value === 'string' && value !== SAME_AS_PLATFORM
+    ? value
+    : null
 }
 
 /** 选了独立库：显出库类型与连接串，开通后的提示改为先初始化数据库 */
 const choosesDatabase = computed(() => canConfigureDatabase.value && editor.form.isolationMode === 'Database')
 /** 连接串必填：选了独立库而还没配过连接（开通，或从共库改过来）；配过的留空即沿用 */
 const connectionRequired = computed(() => choosesDatabase.value && !editor.hasConnection.value)
-const memberTypeOptions = computed<SelectOption[]>(() => TENANT_MEMBER_TYPES.map(type => ({ label: memberTypeLabel(type), value: type })))
+const memberTypeOptions = computed<SelectOption[]>(() => TENANT_MEMBER_TYPES.map(type => ({
+  label: memberTypeLabel(type),
+  value: type,
+})))
 /** 列与导出用的套餐名 */
 const editionColumnOptions = computed<SelectOption[]>(() => editions.editions.value.map(e => ({ label: e.name, value: e.id })))
 /** 弹窗下拉：缺省套餐带标注（开通时留空即用它）；停用的只留租户当前绑着的那个，也带标注 */
 const editionFormOptions = computed<SelectOption[]>(() => selectableEditions(editions.editions.value, editor.form.editionId).map((e) => {
-  const suffix = e.isDefault ? t('tenancy.tenants.edition_default_suffix') : e.status === 'Active' ? '' : t('tenancy.tenants.edition_disabled_suffix')
+  const suffix = e.isDefault
+    ? t('tenancy.tenants.edition_default_suffix')
+    : e.status === 'Active'
+      ? ''
+      : t('tenancy.tenants.edition_disabled_suffix')
   return { label: `${e.name}${suffix}`, value: e.id }
 }))
 
@@ -210,21 +279,126 @@ const editionFormOptions = computed<SelectOption[]>(() => selectableEditions(edi
 const asRow = (row: object) => row as TenantRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('tenancy.tenants.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('tenancy.tenants.keyword_placeholder'), order: 0 },
-  { key: 'tenantId', title: t('tenancy.tenants.fields.tenant_id'), dataType: 'string', sortable: true, exportable: true, minWidth: 140, order: 1 },
-  { key: 'name', title: t('tenancy.tenants.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 160, order: 2 },
-  { key: 'status', title: t('tenancy.tenants.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), tenantStatusTone(asRow(row).status)), width: 90, order: 3 },
-  { key: 'editionId', title: t('tenancy.tenants.fields.edition'), dataType: 'enum', exportable: true, options: editionColumnOptions.value, render: row => editionLabel(asRow(row).editionId), ellipsis: true, minWidth: 130, order: 4 },
-  { key: 'adminUserId', title: t('tenancy.tenants.fields.admin'), dataType: 'string', render: row => adminTag(asRow(row)), width: 100, order: 5 },
+  {
+    key: 'keyword',
+    title: t('tenancy.tenants.search'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('tenancy.tenants.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'tenantId',
+    title: t('tenancy.tenants.fields.tenant_id'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('tenancy.tenants.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 160,
+    order: 2,
+  },
+  {
+    key: 'status',
+    title: t('tenancy.tenants.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asRow(row).status), tenantStatusTone(asRow(row).status)),
+    width: 90,
+    order: 3,
+  },
+  {
+    key: 'editionId',
+    title: t('tenancy.tenants.fields.edition'),
+    dataType: 'enum',
+    exportable: true,
+    options: editionColumnOptions.value,
+    render: row => editionLabel(asRow(row).editionId),
+    ellipsis: true,
+    minWidth: 130,
+    order: 4,
+  },
+  {
+    key: 'adminUserId',
+    title: t('tenancy.tenants.fields.admin'),
+    dataType: 'string',
+    render: row => adminTag(asRow(row)),
+    width: 100,
+    order: 5,
+  },
   // 共库即「共库」，独立库按状态（4.x 的配置状态）；失败原因悬停可看
-  { key: 'databaseStatus', title: t('tenancy.tenants.fields.database'), dataType: 'enum', exportable: true, options: databaseStatusOptions.value, render: row => databaseTag(asRow(row)), width: 110, order: 5.5 },
-  { key: 'expiresAt', title: t('tenancy.tenants.fields.expires_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 6 },
+  {
+    key: 'databaseStatus',
+    title: t('tenancy.tenants.fields.database'),
+    dataType: 'enum',
+    exportable: true,
+    options: databaseStatusOptions.value,
+    render: row => databaseTag(asRow(row)),
+    width: 110,
+    order: 5.5,
+  },
+  {
+    key: 'expiresAt',
+    title: t('tenancy.tenants.fields.expires_at'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 6,
+  },
   // 用量来自 tenants.quotas（有效上限 = 租户自己的 → 套餐的 → 不限），不进后端排序与导出
-  { key: 'seatUsage', title: t('tenancy.tenants.fields.seat_usage'), dataType: 'string', render: row => renderUsage(seatCell(quotas.of(asRow(row).tenantId))), minWidth: 120, order: 6.2 },
-  { key: 'storageUsage', title: t('tenancy.tenants.fields.storage_usage'), dataType: 'string', render: row => renderUsage(storageCell(quotas.of(asRow(row).tenantId))), minWidth: 170, order: 6.4 },
-  { key: 'order', title: t('tenancy.tenants.fields.order'), dataType: 'number', sortable: true, exportable: true, width: 80, order: 7 },
-  { key: 'description', title: t('tenancy.tenants.fields.description'), dataType: 'text', visible: false, exportable: true, order: 7.5 },
-  { key: 'createdAt', title: t('tenancy.tenants.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 8 },
+  {
+    key: 'seatUsage',
+    title: t('tenancy.tenants.fields.seat_usage'),
+    dataType: 'string',
+    render: row => renderUsage(seatCell(quotas.of(asRow(row).tenantId))),
+    minWidth: 120,
+    order: 6.2,
+  },
+  {
+    key: 'storageUsage',
+    title: t('tenancy.tenants.fields.storage_usage'),
+    dataType: 'string',
+    render: row => renderUsage(storageCell(quotas.of(asRow(row).tenantId))),
+    minWidth: 170,
+    order: 6.4,
+  },
+  {
+    key: 'order',
+    title: t('tenancy.tenants.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    width: 80,
+    order: 7,
+  },
+  {
+    key: 'description',
+    title: t('tenancy.tenants.fields.description'),
+    dataType: 'text',
+    visible: false,
+    exportable: true,
+    order: 7.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('tenancy.tenants.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 8,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -239,23 +413,92 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('tenancy.tenants.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'tenancy.tenants.create' },
-    { key: 'quota-audit', title: t('tenancy.tenants.actions.quota_audit'), scope: 'page', icon: 'lucide:gauge', permission: 'tenancy.tenants.read' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'tenancy.tenants.update' },
+    {
+      key: 'create',
+      title: t('tenancy.tenants.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'tenancy.tenants.create',
+    },
+    {
+      key: 'quota-audit',
+      title: t('tenancy.tenants.actions.quota_audit'),
+      scope: 'page',
+      icon: 'lucide:gauge',
+      permission: 'tenancy.tenants.read',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'tenancy.tenants.update',
+    },
     // 开通三步：独立库先初始化数据库（待初始化或失败后再试；确认框在页面里弹，初始化期间确认钮转圈）
-    { key: 'initialize-database', title: t('tenancy.tenants.actions.initialize_database'), scope: 'row', icon: 'lucide:database', visible: row => canInitializeDatabase(asRow(row)), permission: 'tenancy.tenants.initialize-database' },
+    {
+      key: 'initialize-database',
+      title: t('tenancy.tenants.actions.initialize_database'),
+      scope: 'row',
+      icon: 'lucide:database',
+      visible: row => canInitializeDatabase(asRow(row)),
+      permission: 'tenancy.tenants.initialize-database',
+    },
     // 每个租户只初始化一次：已有管理员就不再出这一项；独立库没就绪时也不出（后端拒绝 TENANCY_CONFLICT_014）
-    { key: 'initialize-admin', title: t('tenancy.tenants.actions.initialize_admin'), scope: 'row', icon: 'lucide:user-plus', visible: row => canInitializeAdmin(asRow(row)), permission: 'tenancy.tenants.initialize-admin' },
-    { key: 'resume', title: t('tenancy.tenants.actions.resume'), scope: 'row', tone: 'success', icon: 'lucide:play', confirm: true, confirmText: row => t('tenancy.tenants.resume_confirm', { name: asRow(row).name }), visible: row => asRow(row).status !== 'Active', permission: 'tenancy.tenants.suspend' },
-    { key: 'suspend', title: t('tenancy.tenants.actions.suspend'), scope: 'row', tone: 'warning', icon: 'lucide:pause', confirm: true, confirmText: row => t('tenancy.tenants.suspend_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Active', permission: 'tenancy.tenants.suspend' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'tenancy.tenants.delete' },
+    {
+      key: 'initialize-admin',
+      title: t('tenancy.tenants.actions.initialize_admin'),
+      scope: 'row',
+      icon: 'lucide:user-plus',
+      visible: row => canInitializeAdmin(asRow(row)),
+      permission: 'tenancy.tenants.initialize-admin',
+    },
+    {
+      key: 'resume',
+      title: t('tenancy.tenants.actions.resume'),
+      scope: 'row',
+      tone: 'success',
+      icon: 'lucide:play',
+      confirm: true,
+      confirmText: row => t('tenancy.tenants.resume_confirm', { name: asRow(row).name }),
+      visible: row => asRow(row).status !== 'Active',
+      permission: 'tenancy.tenants.suspend',
+    },
+    {
+      key: 'suspend',
+      title: t('tenancy.tenants.actions.suspend'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:pause',
+      confirm: true,
+      confirmText: row => t('tenancy.tenants.suspend_confirm', { name: asRow(row).name }),
+      visible: row => asRow(row).status === 'Active',
+      permission: 'tenancy.tenants.suspend',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'tenancy.tenants.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -331,12 +574,16 @@ async function confirmInitializeDatabase(row: TenantRow, content: string, thenAd
     title: t('tenancy.tenants.actions.initialize_database'),
     content,
     okText: t('tenancy.tenants.actions.initialize_database'),
-    cancelText: thenAdmin ? t('tenancy.tenants.database.init_later') : t('common.actions.cancel'),
+    cancelText: thenAdmin
+      ? t('tenancy.tenants.database.init_later')
+      : t('common.actions.cancel'),
     onOk: async () => {
       const outcome = await initializeTenantDatabase(row)
       reload()
       if (!outcome.ready) {
-        toast.danger(t('tenancy.tenants.database.init_failed'), outcome.error ? { description: outcome.error } : undefined)
+        toast.danger(t('tenancy.tenants.database.init_failed'), outcome.error
+          ? { description: outcome.error }
+          : undefined)
         return
       }
       toast.success(t('tenancy.tenants.database.init_success'))
@@ -384,9 +631,15 @@ function startAddMember() {
 }
 
 /** 用户一栏随成员类型换说法：运维支持只在平台账号里挑（4.x「支持人员入驻」的写法） */
-const memberUserLabel = computed(() => (memberEditor.form.memberType === 'Support' ? t('tenancy.tenants.members.platform_user') : t('tenancy.tenants.members.user')))
-const memberUserPlaceholder = computed(() => (memberEditor.form.memberType === 'Support' ? t('tenancy.tenants.members.platform_user_placeholder') : t('tenancy.tenants.members.user_placeholder')))
-const memberTypeHint = computed(() => (memberEditor.form.memberType === 'Support' ? t('tenancy.tenants.members.type_hint_support') : t('tenancy.tenants.members.type_hint_member')))
+const memberUserLabel = computed(() => (memberEditor.form.memberType === 'Support'
+  ? t('tenancy.tenants.members.platform_user')
+  : t('tenancy.tenants.members.user')))
+const memberUserPlaceholder = computed(() => (memberEditor.form.memberType === 'Support'
+  ? t('tenancy.tenants.members.platform_user_placeholder')
+  : t('tenancy.tenants.members.user_placeholder')))
+const memberTypeHint = computed(() => (memberEditor.form.memberType === 'Support'
+  ? t('tenancy.tenants.members.type_hint_support')
+  : t('tenancy.tenants.members.type_hint_member')))
 
 async function onMemberSubmit() {
   if (await memberEditor.submit()) {
@@ -397,15 +650,20 @@ async function onMemberSubmit() {
 
 /** 到期时间：没有即长期有效 */
 function memberExpiry(member: TenantMember): string {
-  return member.expiresAt ? formatDate(member.expiresAt) : t('tenancy.tenants.members.never_expires')
+  return member.expiresAt
+    ? formatDate(member.expiresAt)
+    : t('tenancy.tenants.members.never_expires')
 }
 
 // ── 所有权 ──
 /** 概览里「转移所有权」不预选；成员行「设为所有者」预选该成员。候选里的成员取详情抽屉已取的（读不了成员即只在本租户用户里挑） */
 function startOwnerTransfer(preset: null | string = null) {
   const current = detail.detail.value
-  if (current)
-    ownerTransfer.start(current.tenant, canReadMembers.value ? detail.members.value : [], preset)
+  if (current) {
+    ownerTransfer.start(current.tenant, canReadMembers.value
+      ? detail.members.value
+      : [], preset)
+  }
 }
 
 async function onOwnerSubmit() {
@@ -442,11 +700,15 @@ function confirmRemoveMember(member: TenantMember) {
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 function formatNullableDate(value: null | string | undefined): string {
-  return value ? formatDate(value) : '-'
+  return value
+    ? formatDate(value)
+    : '-'
 }
 </script>
 

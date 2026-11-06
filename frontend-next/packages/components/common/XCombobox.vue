@@ -95,7 +95,9 @@ const { attrs, controlAttrs } = useControlAttrs()
 
 const ariaLabel = computed(() => {
   const label = attrs['aria-label']
-  return typeof label === 'string' && label !== '' ? label : undefined
+  return typeof label === 'string' && label !== ''
+    ? label
+    : undefined
 })
 const inputAttrs = computed(() => {
   const rest = { ...controlAttrs.value }
@@ -114,13 +116,20 @@ watch(() => props.options, (options) => {
   }
 }, { immediate: true })
 
-const currentByKey = computed(() => new Map(props.options.map(option => [String(option.value), option])))
+const currentByKey = computed(() => new Map(props.options.map(option => [
+  String(option.value),
+  option,
+])))
 
 const selected = computed<string[]>(() => {
   if (props.value == null) {
     return []
   }
-  return Array.isArray(props.value) ? props.value.map(String) : [String(props.value)]
+  return Array.isArray(props.value)
+    ? props.value.map(String)
+    : [
+        String(props.value),
+      ]
 })
 
 /** 选中项文字：当前选项优先，其次见过的，都没有退回值本身（与 XSelect 的值文本同一口径） */
@@ -130,8 +139,12 @@ function labelOf(key: string): string {
 
 /** String(value) → 原始值，收上来时按此还原，数字选项不会变成字符串 */
 function restore(key: string): string | number {
-  const held = Array.isArray(props.value) ? props.value.find(value => String(value) === key) : props.value
-  return currentByKey.value.get(key)?.value ?? known.get(key)?.value ?? (held != null && String(held) === key ? held : key)
+  const held = Array.isArray(props.value)
+    ? props.value.find(value => String(value) === key)
+    : props.value
+  return currentByKey.value.get(key)?.value ?? known.get(key)?.value ?? (held != null && String(held) === key
+    ? held
+    : key)
 }
 
 /** 正在打的字；null 表示没在打字，输入框显示选中项文字 */
@@ -142,7 +155,9 @@ const inputValue = computed(() => {
     return draft.value
   }
   const first = selected.value[0]
-  return props.multiple || first === undefined ? '' : labelOf(first)
+  return props.multiple || first === undefined
+    ? ''
+    : labelOf(first)
 })
 
 const keyword = computed(() => (draft.value ?? '').trim())
@@ -151,8 +166,12 @@ const collection = computed(() => {
   const nodes = props.options.map(option => ({
     value: String(option.value),
     label: option.label,
-    ...(option.description ? { description: option.description } : {}),
-    ...(option.disabled ? { disabled: true } : {}),
+    ...(option.description
+      ? { description: option.description }
+      : {}),
+    ...(option.disabled
+      ? { disabled: true }
+      : {}),
   }))
   const needle = keyword.value.toLowerCase()
   if (props.remote || needle === '') {
@@ -161,7 +180,9 @@ const collection = computed(() => {
   return nodes.filter(node => node.label.toLowerCase().includes(needle) || node.description?.toLowerCase().includes(needle))
 })
 
-const emptyText = computed(() => props.empty ?? (keyword.value === '' ? t('common.no_data') : t('common.no_result')))
+const emptyText = computed(() => props.empty ?? (keyword.value === ''
+  ? t('common.no_data')
+  : t('common.no_result')))
 
 // 选中值换了（选中、清空、外部改值）就不再算在打字：输入框回到选中项文字
 watch(() => selected.value.join('\u0000'), () => {

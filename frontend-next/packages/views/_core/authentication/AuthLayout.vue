@@ -28,7 +28,12 @@ const showFooter = computed(
   () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
 )
 const showEntryTabs = computed(() =>
-  [LOGIN_PATH, CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, QRCODE_LOGIN_PATH].includes(route.path),
+  [
+    LOGIN_PATH,
+    CODE_LOGIN_PATH,
+    EMAIL_LOGIN_PATH,
+    QRCODE_LOGIN_PATH,
+  ].includes(route.path),
 )
 
 /** 登录设置开放的方式：切换器只列这些入口；取到之前为 null */

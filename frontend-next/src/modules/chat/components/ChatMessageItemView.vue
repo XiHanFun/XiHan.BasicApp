@@ -64,7 +64,12 @@ const groupedReactions = computed(() => {
   for (const reaction of props.message.reactions ?? []) {
     let group = groups.get(reaction.emoji)
     if (!group) {
-      group = { emoji: reaction.emoji, count: 0, mine: false, users: [] }
+      group = {
+        emoji: reaction.emoji,
+        count: 0,
+        mine: false,
+        users: [],
+      }
       groups.set(reaction.emoji, group)
     }
     group.count += 1
@@ -75,7 +80,9 @@ const groupedReactions = computed(() => {
       group.users.push(reaction.userName)
     }
   }
-  return [...groups.values()]
+  return [
+    ...groups.values(),
+  ]
 })
 
 /** 已读回执文案（仅本人已落库消息） */
@@ -87,9 +94,13 @@ const readReceiptLabel = computed(() => {
     return ''
   }
   if (props.conversationType === 'Single') {
-    return props.readCount > 0 ? t('chat.thread.read') : t('chat.thread.unread')
+    return props.readCount > 0
+      ? t('chat.thread.read')
+      : t('chat.thread.unread')
   }
-  return props.readCount > 0 ? t('chat.thread.read_count', { n: props.readCount }) : t('chat.thread.unread')
+  return props.readCount > 0
+    ? t('chat.thread.read_count', { n: props.readCount })
+    : t('chat.thread.unread')
 })
 
 /** 附件列表（图片/文件消息） */
@@ -101,18 +112,26 @@ const imageGridClass = computed(() => {
   if (count <= 1) {
     return ''
   }
-  return count === 2 ? 'chat-image-grid chat-image-grid--2' : 'chat-image-grid chat-image-grid--3'
+  return count === 2
+    ? 'chat-image-grid chat-image-grid--2'
+    : 'chat-image-grid chat-image-grid--3'
 })
 
 /** 相册各图的可显示地址，与 attachments 逐项对应；还在按会话换签名地址的为空 */
-const imageUrls = useChatFileUrls(() => (isImage.value ? attachments.value.map(att => ({ conversationId: props.message.conversationId, fileId: att.fileId })) : []))
+const imageUrls = useChatFileUrls(() => (isImage.value
+  ? attachments.value.map(att => ({ conversationId: props.message.conversationId, fileId: att.fileId }))
+  : []))
 
 /** 点缩略图从这一张打开会话图片组，左右翻得到同会话的其他图片 */
 const gallery = useChatImageGallery()
 
 // ── 语音气泡：单个音频附件，就地播放 ─────────────────────────────────
-const voiceAttachment = computed(() => (isVoice.value ? attachments.value[0] ?? null : null))
-const voiceUrl = useChatFileUrl(() => (voiceAttachment.value?.fileId ? { conversationId: props.message.conversationId, fileId: voiceAttachment.value.fileId } : null))
+const voiceAttachment = computed(() => (isVoice.value
+  ? attachments.value[0] ?? null
+  : null))
+const voiceUrl = useChatFileUrl(() => (voiceAttachment.value?.fileId
+  ? { conversationId: props.message.conversationId, fileId: voiceAttachment.value.fileId }
+  : null))
 const audioRef = ref<HTMLAudioElement | null>(null)
 const voicePlaying = ref(false)
 const voicePlayedRatio = ref(0)
@@ -122,7 +141,9 @@ const voiceSeconds = computed(() => voiceAttachment.value?.durationSeconds ?? 0)
 
 const voiceDurationText = computed(() => {
   const seconds = voiceSeconds.value
-  return seconds >= 60 ? `${Math.floor(seconds / 60)}'${String(seconds % 60).padStart(2, '0')}"` : `${seconds}"`
+  return seconds >= 60
+    ? `${Math.floor(seconds / 60)}'${String(seconds % 60).padStart(2, '0')}"`
+    : `${seconds}"`
 })
 
 /** 气泡宽度随时长增长，最短 90px、到上限 60 秒时 220px——微信式的长短条 */

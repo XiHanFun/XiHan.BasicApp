@@ -19,12 +19,21 @@ const { t, locale } = useI18n()
 const { data, loading, error } = useWidgetData('auditing.login-failures', DAYS)
 
 const rows = computed(() => (data.value?.slices ?? []).map(slice => ({
-  reason: slice.key === 'others' ? t('workbench.charts.others') : (slice.label || slice.key),
+  reason: slice.key === 'others'
+    ? t('workbench.charts.others')
+    : (slice.label || slice.key),
   count: slice.value,
 })))
 
 const series = computed<CartesianSeries[]>(() => [
-  { mark: 'bar', shape: 'lollipop', x: 'reason', y: 'count', labels: 'end', name: t('workbench.charts.failed') },
+  {
+    mark: 'bar',
+    shape: 'lollipop',
+    x: 'reason',
+    y: 'count',
+    labels: 'end',
+    name: t('workbench.charts.failed'),
+  },
 ])
 const yAxis = { format: COUNT_COMPACT }
 </script>

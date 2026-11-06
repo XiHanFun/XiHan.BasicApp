@@ -90,7 +90,9 @@ function membershipLabel(tenant: AppTenantSwitcherItem): string {
   if (tenant.isHome) {
     return t('page.control_center.home_tenant')
   }
-  return tenant.memberType === 'Support' ? t('page.control_center.member_type.support') : t('page.control_center.member_type.member')
+  return tenant.memberType === 'Support'
+    ? t('page.control_center.member_type.support')
+    : t('page.control_center.member_type.member')
 }
 
 function membershipTone(tenant: AppTenantSwitcherItem) {
@@ -100,7 +102,9 @@ function membershipTone(tenant: AppTenantSwitcherItem) {
   if (tenant.isHome) {
     return 'brand'
   }
-  return tenant.memberType === 'Support' ? 'info' : 'neutral'
+  return tenant.memberType === 'Support'
+    ? 'info'
+    : 'neutral'
 }
 
 onMounted(loadTenants)

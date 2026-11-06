@@ -31,12 +31,16 @@ const summary = computed(() => {
 })
 
 function subjectOf(item: ConditionInventoryItem): string {
-  const kind = item.subjectKind === 'User' ? t('access.conditions.subject_user') : t('access.conditions.subject_role')
+  const kind = item.subjectKind === 'User'
+    ? t('access.conditions.subject_user')
+    : t('access.conditions.subject_role')
   return `${kind} · ${item.subjectName ?? item.subjectId}`
 }
 
 function bindingOf(item: ConditionInventoryItem): string {
-  return `${item.permission} · ${item.action === 'Deny' ? t('access.conditions.action_deny') : t('access.conditions.action_grant')}`
+  return `${item.permission} · ${item.action === 'Deny'
+    ? t('access.conditions.action_deny')
+    : t('access.conditions.action_grant')}`
 }
 
 async function load() {
@@ -56,13 +60,24 @@ function exportCsv() {
   const items = inventory.value?.items ?? []
   const csv = inventoryToCsv(
     items,
-    [t('access.conditions.th_subject'), t('access.conditions.th_binding'), t('access.conditions.th_group'), t('access.conditions.th_clause'), t('access.conditions.th_status'), t('access.conditions.th_diagnostics'), t('access.conditions.th_conclusion'), t('access.conditions.th_message')],
+    [
+      t('access.conditions.th_subject'),
+      t('access.conditions.th_binding'),
+      t('access.conditions.th_group'),
+      t('access.conditions.th_clause'),
+      t('access.conditions.th_status'),
+      t('access.conditions.th_diagnostics'),
+      t('access.conditions.th_conclusion'),
+      t('access.conditions.th_message'),
+    ],
     item => [
       subjectOf(item),
       bindingOf(item),
       String(item.groupNo),
       describeCondition(t, item),
-      item.status === 'Active' ? t('access.conditions.status_on') : t('access.conditions.status_off'),
+      item.status === 'Active'
+        ? t('access.conditions.status_on')
+        : t('access.conditions.status_off'),
       item.diagnostics.map(d => diagnosticLabel(t, d)).join('; '),
       conclusionLabel(t, item.groupConclusion),
       item.message ?? '',

@@ -10,18 +10,27 @@ import { centeredSquare, exportAvatar, loadAvatarSource, releaseAvatarSource } f
 
 vi.mock('@xihan-ui/headless', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@xihan-ui/headless')>()
-  return { ...actual, cropToCanvas: vi.fn() }
+  return {
+    ...actual,
+    cropToCanvas: vi.fn(),
+  }
 })
 
 /** 假画布：toBlob 按要的格式回一块数据，encodable 为假时回 null */
 function canvasOf(encodable = true) {
   return {
-    toBlob: (done: (blob: Blob | null) => void, type: string) => done(encodable ? new Blob(['pixels'], { type }) : null),
+    toBlob: (done: (blob: Blob | null) => void, type: string) => done(encodable
+      ? new Blob(['pixels'], { type })
+      : null),
   } as unknown as HTMLCanvasElement
 }
 
 function sourceOf(name: string, type: string): AvatarCropSource {
-  return { file: new File(['raw'], name, { type }), image: { naturalWidth: 2000, naturalHeight: 1000 } as HTMLImageElement, url: 'blob:avatar' }
+  return {
+    file: new File(['raw'], name, { type }),
+    image: { naturalWidth: 2000, naturalHeight: 1000 } as HTMLImageElement,
+    url: 'blob:avatar',
+  }
 }
 
 beforeEach(() => {
@@ -35,19 +44,44 @@ afterEach(() => {
 
 describe('头像裁剪', () => {
   it('初始裁切框是居中的最大正方形', () => {
-    expect(centeredSquare({ naturalWidth: 800, naturalHeight: 600 })).toEqual({ x: 100, y: 0, width: 600, height: 600 })
-    expect(centeredSquare({ naturalWidth: 300, naturalHeight: 900 })).toEqual({ x: 0, y: 300, width: 300, height: 300 })
+    expect(centeredSquare({ naturalWidth: 800, naturalHeight: 600 })).toEqual({
+      x: 100,
+      y: 0,
+      width: 600,
+      height: 600,
+    })
+    expect(centeredSquare({ naturalWidth: 300, naturalHeight: 900 })).toEqual({
+      x: 0,
+      y: 300,
+      width: 300,
+      height: 300,
+    })
   })
 
   it('出图是整块正方形：边长封顶 512、不放大小图，PNG 不铺底色，文件名与格式随原图', async () => {
     vi.mocked(cropToCanvas).mockReturnValue(canvasOf())
     const source = sourceOf('me.png', 'image/png')
 
-    const large = await exportAvatar(source, { x: 500, y: 0, width: 1000, height: 1000 })
-    expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, { x: 500, y: 0, width: 1000, height: 1000 }, { width: 512, background: undefined })
+    const large = await exportAvatar(source, {
+      x: 500,
+      y: 0,
+      width: 1000,
+      height: 1000,
+    })
+    expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, {
+      x: 500,
+      y: 0,
+      width: 1000,
+      height: 1000,
+    }, { width: 512, background: undefined })
     expect(large).toMatchObject({ name: 'me.png', type: 'image/png' })
 
-    await exportAvatar(source, { x: 0, y: 0, width: 120.4, height: 120.4 })
+    await exportAvatar(source, {
+      x: 0,
+      y: 0,
+      width: 120.4,
+      height: 120.4,
+    })
     expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, expect.anything(), { width: 120, background: undefined })
   })
 

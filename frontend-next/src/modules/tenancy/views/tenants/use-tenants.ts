@@ -28,16 +28,33 @@ export const TENANT_STATUSES: readonly TenantStatus[] = ['Active', 'Suspended', 
 export function tenantStatusTone(status: TenantStatus): 'success' | 'danger' | 'warning' {
   if (status === 'Active')
     return 'success'
-  return status === 'Suspended' ? 'danger' : 'warning'
+  return status === 'Suspended'
+    ? 'danger'
+    : 'warning'
 }
 /** 隔离方式：共库（与平台同一个库、按租户字段隔离）与独立库（租户的业务数据在自己的库里） */
 export const TENANT_ISOLATION_MODES: readonly TenantIsolationMode[] = ['Field', 'Database']
 /** 独立库的状态：共库即无需独立库；独立库从待初始化起，初始化成功即就绪、失败可改正连接后再试 */
-export const TENANT_DATABASE_STATUSES: readonly TenantDatabaseStatus[] = ['NotRequired', 'Pending', 'Ready', 'Failed']
+export const TENANT_DATABASE_STATUSES: readonly TenantDatabaseStatus[] = [
+  'NotRequired',
+  'Pending',
+  'Ready',
+  'Failed',
+]
 /** 独立库的库类型（与 tenants.configure-database 接受的取值一致）；不选即与平台库相同 */
-export const TENANT_DATABASE_PROVIDERS = ['postgresql', 'sqlite', 'mysql', 'sqlserver'] as const
+export const TENANT_DATABASE_PROVIDERS = [
+  'postgresql',
+  'sqlite',
+  'mysql',
+  'sqlserver',
+] as const
 /** 库类型的显示名是产品名，不随区域翻译 */
-export const DATABASE_PROVIDER_NAMES: Readonly<Record<string, string>> = { postgresql: 'PostgreSQL', sqlite: 'SQLite', mysql: 'MySQL', sqlserver: 'SQL Server' }
+export const DATABASE_PROVIDER_NAMES: Readonly<Record<string, string>> = {
+  postgresql: 'PostgreSQL',
+  sqlite: 'SQLite',
+  mysql: 'MySQL',
+  sqlserver: 'SQL Server',
+}
 /** 成员类型：普通成员（注册地在别的租户的用户，占席位）与运维支持（平台账号，不占席位、不能当所有者）；所有者是租户上的 adminUserId，不是成员类型 */
 export const TENANT_MEMBER_TYPES: readonly TenantMemberType[] = ['Member', 'Support']
 
@@ -97,19 +114,27 @@ export interface MemberForm {
 
 function blankToNull(value: string): null | string {
   const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
+  return trimmed === ''
+    ? null
+    : trimmed
 }
 
 function toTimestamp(value: null | string | undefined): number | null {
-  return value ? new Date(value).getTime() : null
+  return value
+    ? new Date(value).getTime()
+    : null
 }
 
 function toIso(value: number | null): null | string {
-  return value === null ? null : new Date(value).toISOString()
+  return value === null
+    ? null
+    : new Date(value).toISOString()
 }
 
 function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
+  return error instanceof ApiError
+    ? error.detail
+    : String(error)
 }
 
 /** 成员是否在有效期里：生效时间为空或已到、到期时间为空或还没到（与后端 IsInEffect 同口径） */
@@ -127,7 +152,15 @@ export function isMemberExpired(member: Pick<TenantMember, 'expiresAt'>, now = D
 
 /** 成员候选的用户范围（users.list 的 homeTenantId 筛选）：运维支持只能是平台账号，普通成员只能是租户用户（注册地就是本租户的另由调用方去掉） */
 export function memberUserFilters(memberType: TenantMemberType): { field: string, operator: 'eq' | 'ne', value: string }[] {
-  return [{ field: 'homeTenantId', operator: memberType === 'Support' ? 'eq' : 'ne', value: PLATFORM_TENANT_ID }]
+  return [
+    {
+      field: 'homeTenantId',
+      operator: memberType === 'Support'
+        ? 'eq'
+        : 'ne',
+      value: PLATFORM_TENANT_ID,
+    },
+  ]
 }
 
 /** 提交失败的落点：字段级错误挂回字段，其余给整条提示 */
@@ -150,12 +183,25 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
 export function tenantsResource(quotas?: { load: () => Promise<void> }): SchemaResource<TenantRow> {
   return {
     page: async (params) => {
-      const [page] = await Promise.all([tenantsApi.list(toPageRequest(params, { filters: { status: 'eq' } })), quotas?.load()])
+      const [page] = await Promise.all([
+        tenantsApi.list(toPageRequest(params, {
+          filters: { status: 'eq' },
+        })),
+        quotas?.load(),
+      ])
       return toSchemaPageResult(page, params)
     },
     // 还有用户的租户由后端逐项拒绝（TENANCY_CONFLICT_003）
-    remove: async id => throwOnFailed(await tenantsApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => throwOnFailed(await (enabled ? tenantsApi.resume : tenantsApi.suspend)({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await tenantsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
+    updateStatus: async (id, enabled) => throwOnFailed(await (enabled ? tenantsApi.resume : tenantsApi.suspend)({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -201,7 +247,9 @@ export function selectableEditions(editions: readonly EditionOption[], currentId
 export function inheritedEdition(editions: readonly EditionOption[], editionId: null | string, creating: boolean): EditionOption | null | undefined {
   if (editionId)
     return editions.find(e => e.id === editionId)
-  return creating ? editions.find(e => e.isDefault) : null
+  return creating
+    ? editions.find(e => e.isDefault)
+    : null
 }
 
 /** 一项用量的单元格：「已用 / 上限」与水位（到 80% 吃紧、到上限超限，与订阅页同一口径） */
@@ -213,13 +261,19 @@ export interface UsageCell {
 /** 席位用量：席位 = 注册地是该租户的用户 + 租户成员 */
 export function seatUsage(quota: Pick<TenantQuota, 'usedSeats' | 'userLimit'>, unlimited: string): UsageCell {
   const limit = quota.userLimit ?? null
-  return { text: usageText(quota.usedSeats, limit, formatSeats, unlimited), tone: quotaLevel(quota.usedSeats, limit).tone }
+  return {
+    text: usageText(quota.usedSeats, limit, formatSeats, unlimited),
+    tone: quotaLevel(quota.usedSeats, limit).tone,
+  }
 }
 
 /** 存储用量：上限以 MB 表达、已用以字节统计，换算到字节再比 */
 export function storageUsage(quota: Pick<TenantQuota, 'storageLimitMb' | 'usedStorageBytes'>, unlimited: string): UsageCell {
   const limit = storageLimitBytes(quota.storageLimitMb)
-  return { text: usageText(quota.usedStorageBytes, limit, formatFileSize, unlimited), tone: quotaLevel(quota.usedStorageBytes, limit).tone }
+  return {
+    text: usageText(quota.usedStorageBytes, limit, formatFileSize, unlimited),
+    tone: quotaLevel(quota.usedStorageBytes, limit).tone,
+  }
 }
 
 /**
@@ -280,7 +334,14 @@ export function useQuotaAudit() {
     await load()
   }
 
-  return { open, loading, items, error, load, start }
+  return {
+    open,
+    loading,
+    items,
+    error,
+    load,
+    start,
+  }
 }
 
 // ── 独立库（开通三步：开通 →（独立库）初始化数据库 → 初始化管理员） ──
@@ -296,8 +357,11 @@ export function databaseConfiguration(
 ): DatabaseConfiguration | null {
   if (tenant.databaseStatus === 'Ready')
     return null
-  if (form.isolationMode === 'Field')
-    return tenant.isolationMode === 'Field' ? null : { isolationMode: 'Field' }
+  if (form.isolationMode === 'Field') {
+    return tenant.isolationMode === 'Field'
+      ? null
+      : { isolationMode: 'Field' }
+  }
   const connectionString = blankToNull(form.connectionString)
   const databaseProvider = form.databaseProvider ?? null
   if (tenant.isolationMode === 'Database' && connectionString === null && databaseProvider === (tenant.databaseProvider ?? null))
@@ -332,15 +396,37 @@ export async function initializeTenantDatabase(row: Pick<TenantRow, 'id'>): Prom
   try {
     const tenant = await tenantsApi.initializeDatabase({ id: row.id })
     const ready = tenant.databaseStatus === 'Ready'
-    return { ready, tenant, error: ready ? null : (tenant.databaseError ?? null) }
+    return {
+      ready,
+      tenant,
+      error: ready
+        ? null
+        : (tenant.databaseError ?? null),
+    }
   }
   catch (e) {
-    return { ready: false, tenant: null, error: describe(e) }
+    return {
+      ready: false,
+      tenant: null,
+      error: describe(e),
+    }
   }
 }
 
 function emptyForm(): TenantForm {
-  return { tenantId: '', name: '', description: '', expiresAt: null, order: 0, editionId: null, userLimit: null, storageLimitMb: null, isolationMode: 'Field', databaseProvider: null, connectionString: '' }
+  return {
+    tenantId: '',
+    name: '',
+    description: '',
+    expiresAt: null,
+    order: 0,
+    editionId: null,
+    userLimit: null,
+    storageLimitMb: null,
+    isolationMode: 'Field',
+    databaseProvider: null,
+    connectionString: '',
+  }
 }
 
 /**
@@ -447,7 +533,9 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
         })
       }
       // 更新与换套餐不动隔离设置：保存后的租户就是配库前的现状（开通的即共库）
-      const database = canConfigureDatabase() ? databaseConfiguration(form, saved) : null
+      const database = canConfigureDatabase()
+        ? databaseConfiguration(form, saved)
+        : null
       if (database)
         saved = await tenantsApi.configureDatabase({ id: saved.id, ...database })
       open.value = false
@@ -464,11 +552,30 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, databaseLocked, hasConnection, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    databaseLocked,
+    hasConnection,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }
 
 function emptyAdminForm(): AdminForm {
-  return { userName: '', password: '', displayName: '', email: '' }
+  return {
+    userName: '',
+    password: '',
+    displayName: '',
+    email: '',
+  }
 }
 
 /**
@@ -521,7 +628,16 @@ export function useAdminInitializer() {
     }
   }
 
-  return { open, tenant, form, fieldError, submitError, submitting, start, submit }
+  return {
+    open,
+    tenant,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    start,
+    submit,
+  }
 }
 
 /**
@@ -587,15 +703,34 @@ export function useTenantDetail(canReadMembers: () => boolean) {
 
   /** 移除成员：成员行不存在（TENANCY_NOTFOUND_002）、是租户所有者（TENANCY_CONFLICT_012）由后端逐项拒绝，以错误码抛出；成功后重取成员 */
   async function removeMember(member: TenantMember) {
-    throwOnFailed(await tenantMembersApi.delete({ ids: [member.id] }))
+    throwOnFailed(await tenantMembersApi.delete({
+      ids: [member.id],
+    }))
     await loadMembers()
   }
 
-  return { open, loading, detail, error, members, membersLoading, membersError, show, refresh, loadMembers, removeMember }
+  return {
+    open,
+    loading,
+    detail,
+    error,
+    members,
+    membersLoading,
+    membersError,
+    show,
+    refresh,
+    loadMembers,
+    removeMember,
+  }
 }
 
 function emptyMemberForm(): MemberForm {
-  return { userId: null, memberType: 'Member', effectiveAt: null, expiresAt: null }
+  return {
+    userId: null,
+    memberType: 'Member',
+    effectiveAt: null,
+    expiresAt: null,
+  }
 }
 
 /**
@@ -624,7 +759,12 @@ export function useMemberEditor() {
     userLoading.value = true
     userError.value = null
     try {
-      const result = await usersApi.list({ page: { index: 1, size: MEMBER_USER_PAGE_SIZE }, filters: memberUserFilters(form.memberType), sorts: [], keyword: blankToNull(keyword) })
+      const result = await usersApi.list({
+        page: { index: 1, size: MEMBER_USER_PAGE_SIZE },
+        filters: memberUserFilters(form.memberType),
+        sorts: [],
+        keyword: blankToNull(keyword),
+      })
       if (seq !== searchSeq)
         return
       const options = result.items.filter(user => user.homeTenantId !== home).map(user => userOption(user, user.id))
@@ -698,7 +838,21 @@ export function useMemberEditor() {
     }
   }
 
-  return { open, tenantId, form, userOptions, userLoading, userError, fieldError, submitError, submitting, searchUsers, changeMemberType, start, submit }
+  return {
+    open,
+    tenantId,
+    form,
+    userOptions,
+    userLoading,
+    userError,
+    fieldError,
+    submitError,
+    submitting,
+    searchUsers,
+    changeMemberType,
+    start,
+    submit,
+  }
 }
 
 /**
@@ -707,7 +861,9 @@ export function useMemberEditor() {
  */
 export function ownerCandidates(users: readonly UserRow[], members: readonly TenantMember[], keyword: string, ownerId: null | string | undefined, now = Date.now()): UserOption[] {
   const term = keyword.trim().toLowerCase()
-  const seen = new Set<string>(ownerId ? [ownerId] : [])
+  const seen = new Set<string>(ownerId
+    ? [ownerId]
+    : [])
   const options: UserOption[] = []
   for (const user of users) {
     if (seen.has(user.id))
@@ -762,7 +918,10 @@ export function useOwnerTransfer() {
     try {
       users = (await usersApi.list({
         page: { index: 1, size: MEMBER_USER_PAGE_SIZE },
-        filters: [{ field: 'homeTenantId', operator: 'eq', value: current.tenantId }, { field: 'status', operator: 'eq', value: 'Active' }],
+        filters: [
+          { field: 'homeTenantId', operator: 'eq', value: current.tenantId },
+          { field: 'status', operator: 'eq', value: 'Active' },
+        ],
         sorts: [],
         keyword: blankToNull(keyword),
       })).items
@@ -791,8 +950,12 @@ export function useOwnerTransfer() {
   function start(target: TenantRow, members: readonly TenantMember[], preset: null | string = null) {
     tenant.value = target
     roster = members
-    const seeded = preset ? ownerCandidates([], members, '', target.adminUserId).filter(option => option.value === preset) : []
-    userId.value = seeded.length > 0 ? preset : null
+    const seeded = preset
+      ? ownerCandidates([], members, '', target.adminUserId).filter(option => option.value === preset)
+      : []
+    userId.value = seeded.length > 0
+      ? preset
+      : null
     options.value = seeded
     loadError.value = null
     fieldErrors.value = {}
@@ -827,5 +990,18 @@ export function useOwnerTransfer() {
     }
   }
 
-  return { open, tenant, userId, options, loading, loadError, fieldError, submitError, submitting, search, start, submit }
+  return {
+    open,
+    tenant,
+    userId,
+    options,
+    loading,
+    loadError,
+    fieldError,
+    submitError,
+    submitting,
+    search,
+    start,
+    submit,
+  }
 }

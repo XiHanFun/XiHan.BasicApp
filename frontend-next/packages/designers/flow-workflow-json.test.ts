@@ -23,26 +23,65 @@ const stored: WorkflowJsonDefinition = {
   compensateOnFault: false,
   timeoutAction: 'Fault',
   createdAt: '2026-10-30T08:00:00+00:00',
-  variables: [{ name: 'days', required: true, description: '天数' }],
+  variables: [
+    { name: 'days', required: true, description: '天数' },
+  ],
   nodes: [
-    { id: 'start', activityType: 'Start', displayName: '开始', properties: {}, continueOnError: false },
+    {
+      id: 'start',
+      activityType: 'Start',
+      displayName: '开始',
+      properties: {},
+      continueOnError: false,
+    },
     {
       id: 'approve',
       activityType: 'UserTask',
       displayName: '主管审批',
-      properties: { AssigneeRules: [{ type: 'Role', values: ['manager'] }] },
+      properties: {
+        AssigneeRules: [
+          {
+            type: 'Role',
+            values: ['manager'],
+          },
+        ],
+      },
       retryPolicy: { maxAttempts: 3, firstDelay: '00:00:30', backoffFactor: 2 },
       timeout: '1.02:00:00',
       continueOnError: false,
     },
-    { id: 'end', activityType: 'End', displayName: '结束', properties: { Outcome: 'approved' }, continueOnError: false },
+    {
+      id: 'end',
+      activityType: 'End',
+      displayName: '结束',
+      properties: { Outcome: 'approved' },
+      continueOnError: false,
+    },
   ],
   transitions: [
-    { id: 't1', sourceNodeId: 'start', targetNodeId: 'approve', priority: 0, isDefault: false },
-    { id: 't2', sourceNodeId: 'approve', targetNodeId: 'end', condition: 'outcome == \'approved\'', priority: 0, isDefault: false, displayName: '通过' },
+    {
+      id: 't1',
+      sourceNodeId: 'start',
+      targetNodeId: 'approve',
+      priority: 0,
+      isDefault: false,
+    },
+    {
+      id: 't2',
+      sourceNodeId: 'approve',
+      targetNodeId: 'end',
+      condition: 'outcome == \'approved\'',
+      priority: 0,
+      isDefault: false,
+      displayName: '通过',
+    },
   ],
   properties: {
-    designerLayout: { start: { x: 60, y: 80 }, approve: { x: 320, y: 80 }, end: { x: 580, y: 80 } },
+    designerLayout: {
+      start: { x: 60, y: 80 },
+      approve: { x: 320, y: 80 },
+      end: { x: 580, y: 80 },
+    },
     owner: 'hr',
   },
 }
@@ -69,9 +108,20 @@ describe('fromWorkflowJson：WorkflowJson → 预设的 4.x 定义', () => {
   it('名字成编码、显示名成名称，节点超时与重试换成秒，画面数据进 extraProperties 的 JSON 字符串', () => {
     const legacy = fromWorkflowJson(stored)
 
-    expect(legacy).toMatchObject({ code: 'leave', name: '请假', version: 3, category: '人事', status: 'Draft' })
+    expect(legacy).toMatchObject({
+      code: 'leave',
+      name: '请假',
+      version: 3,
+      category: '人事',
+      status: 'Draft',
+    })
     expect((legacy as Record<string, unknown>).displayName).toBeUndefined()
-    expect(legacy.nodes?.[1]).toMatchObject({ id: 'approve', name: '主管审批', timeoutSeconds: 93_600, retryPolicy: { maxAttempts: 3, firstDelaySeconds: 30, backoffFactor: 2 } })
+    expect(legacy.nodes?.[1]).toMatchObject({
+      id: 'approve',
+      name: '主管审批',
+      timeoutSeconds: 93_600,
+      retryPolicy: { maxAttempts: 3, firstDelaySeconds: 30, backoffFactor: 2 },
+    })
     expect((legacy.nodes?.[1] as Record<string, unknown> | undefined)?.timeout).toBeUndefined()
     expect(legacy.transitions?.[1]).toMatchObject({ id: 't2', name: '通过' })
     expect(JSON.parse(legacy.extraProperties?.designerLayout ?? 'null')).toEqual(stored.properties?.designerLayout)
@@ -81,8 +131,15 @@ describe('fromWorkflowJson：WorkflowJson → 预设的 4.x 定义', () => {
   it('缺 id 的节点与连线补上框架认的 id，不交给预设补出含 -> 与 # 的 id', () => {
     const legacy = fromWorkflowJson({
       name: 'gen',
-      nodes: [{ id: 'start', activityType: 'Start' }, { activityType: 'UserTask' }, { id: 'UserTask_1', activityType: 'UserTask' }],
-      transitions: [{ sourceNodeId: 'start', targetNodeId: 'UserTask_1' }, { id: 'edge_1', sourceNodeId: 'UserTask_1', targetNodeId: 'start' }],
+      nodes: [
+        { id: 'start', activityType: 'Start' },
+        { activityType: 'UserTask' },
+        { id: 'UserTask_1', activityType: 'UserTask' },
+      ],
+      transitions: [
+        { sourceNodeId: 'start', targetNodeId: 'UserTask_1' },
+        { id: 'edge_1', sourceNodeId: 'UserTask_1', targetNodeId: 'start' },
+      ],
     })
 
     expect(legacy.nodes?.map(node => node.id)).toEqual(['start', 'UserTask_2', 'UserTask_1'])
@@ -94,7 +151,11 @@ describe('fromWorkflowJson：WorkflowJson → 预设的 4.x 定义', () => {
   it('不是对象、nodes 不是数组、超时不是 TimeSpan 时抛 TypeError', () => {
     expect(() => fromWorkflowJson([] as unknown as WorkflowJsonDefinition)).toThrow(TypeError)
     expect(() => fromWorkflowJson({ nodes: {} as never })).toThrow(TypeError)
-    expect(() => fromWorkflowJson({ nodes: [{ id: 'a', activityType: 'Delay', timeout: 'soon' }] })).toThrow(TypeError)
+    expect(() => fromWorkflowJson({
+      nodes: [
+        { id: 'a', activityType: 'Delay', timeout: 'soon' },
+      ],
+    })).toThrow(TypeError)
   })
 })
 
@@ -104,10 +165,30 @@ describe('toWorkflowJson：预设的 4.x 定义 → WorkflowJson', () => {
       code: 'expense',
       name: '报销',
       nodes: [
-        { id: 'start', name: '', activityType: 'Start', properties: {} },
-        { id: 'pay', name: '付款', activityType: 'Http', properties: { Url: 'https://pay' }, timeoutSeconds: 3600, retryPolicy: { maxAttempts: 2, firstDelaySeconds: 10 } },
+        {
+          id: 'start',
+          name: '',
+          activityType: 'Start',
+          properties: {},
+        },
+        {
+          id: 'pay',
+          name: '付款',
+          activityType: 'Http',
+          properties: { Url: 'https://pay' },
+          timeoutSeconds: 3600,
+          retryPolicy: { maxAttempts: 2, firstDelaySeconds: 10 },
+        },
       ],
-      transitions: [{ id: 'edge_1', name: '去付款', sourceNodeId: 'start', targetNodeId: 'pay', priority: 0 }],
+      transitions: [
+        {
+          id: 'edge_1',
+          name: '去付款',
+          sourceNodeId: 'start',
+          targetNodeId: 'pay',
+          priority: 0,
+        },
+      ],
       extraProperties: { designerLayout: '{"start":{"x":0,"y":0},"pay":{"x":200,"y":0}}' },
     })
 
@@ -115,14 +196,45 @@ describe('toWorkflowJson：预设的 4.x 定义 → WorkflowJson', () => {
     expect(json.code).toBeUndefined()
     expect(json.extraProperties).toBeUndefined()
     expect(json.nodes?.[0]).toEqual({ id: 'start', activityType: 'Start', properties: {} })
-    expect(json.nodes?.[1]).toEqual({ id: 'pay', activityType: 'Http', displayName: '付款', properties: { Url: 'https://pay' }, retryPolicy: { maxAttempts: 2, firstDelay: '00:00:10' }, timeout: '01:00:00' })
-    expect(json.transitions?.[0]).toEqual({ id: 'edge_1', sourceNodeId: 'start', targetNodeId: 'pay', priority: 0, displayName: '去付款' })
-    expect(json.properties).toEqual({ designerLayout: { start: { x: 0, y: 0 }, pay: { x: 200, y: 0 } } })
+    expect(json.nodes?.[1]).toEqual({
+      id: 'pay',
+      activityType: 'Http',
+      displayName: '付款',
+      properties: { Url: 'https://pay' },
+      retryPolicy: { maxAttempts: 2, firstDelay: '00:00:10' },
+      timeout: '01:00:00',
+    })
+    expect(json.transitions?.[0]).toEqual({
+      id: 'edge_1',
+      sourceNodeId: 'start',
+      targetNodeId: 'pay',
+      priority: 0,
+      displayName: '去付款',
+    })
+    expect(json.properties).toEqual({
+      designerLayout: {
+        start: { x: 0, y: 0 },
+        pay: { x: 200, y: 0 },
+      },
+    })
   })
 
   it('去掉 4.x 才有的 creationTime、publishTime 与数字租户，框架的字符串租户留着', () => {
-    const legacy = toWorkflowJson({ code: 'a', name: 'A', tenantId: 7, creationTime: '2025-01-01', publishTime: null, nodes: [], transitions: [] }) as Record<string, unknown>
-    expect(Object.keys(legacy)).toEqual(['name', 'displayName', 'nodes', 'transitions'])
+    const legacy = toWorkflowJson({
+      code: 'a',
+      name: 'A',
+      tenantId: 7,
+      creationTime: '2025-01-01',
+      publishTime: null,
+      nodes: [],
+      transitions: [],
+    }) as Record<string, unknown>
+    expect(Object.keys(legacy)).toEqual([
+      'name',
+      'displayName',
+      'nodes',
+      'transitions',
+    ])
 
     const current = toWorkflowJson({ code: 'a', tenantId: 'acme' } as never) as Record<string, unknown>
     expect(current.tenantId).toBe('acme')
@@ -135,7 +247,11 @@ describe('经预设往返', () => {
 
   it('坐标照 properties.designerLayout 还原，保存后字段与坐标都不变', () => {
     const document = open(stored)
-    expect(document.nodes.map(node => [node.id, node.x, node.y])).toEqual([['start', 60, 80], ['approve', 320, 80], ['end', 580, 80]])
+    expect(document.nodes.map(node => [node.id, node.x, node.y])).toEqual([
+      ['start', 60, 80],
+      ['approve', 320, 80],
+      ['end', 580, 80],
+    ])
 
     const saved = save(document)
     expect(saved).toEqual(stored)
@@ -152,7 +268,18 @@ describe('经预设往返', () => {
       displayName: 'Onboarding',
       nodes: [
         { id: 'start', activityType: 'Start' },
-        { id: 'it', activityType: 'UserTask', properties: { AssigneeRules: [{ type: 'Role', values: ['admin'] }] } },
+        {
+          id: 'it',
+          activityType: 'UserTask',
+          properties: {
+            AssigneeRules: [
+              {
+                type: 'Role',
+                values: ['admin'],
+              },
+            ],
+          },
+        },
         { id: 'end', activityType: 'End' },
       ],
       transitions: [
@@ -162,7 +289,9 @@ describe('经预设往返', () => {
     })
     expect(document.nodes.every(node => Number.isFinite(node.x) && Number.isFinite(node.y))).toBe(true)
     expect(new Set(document.nodes.map(node => node.x)).size).toBe(3)
-    expect(save(document).properties).toMatchObject({ designerLayout: expect.any(Object) })
+    expect(save(document).properties).toMatchObject({
+      designerLayout: expect.any(Object),
+    })
   })
 })
 
@@ -172,9 +301,29 @@ describe('节点属性的叫法', () => {
     name: 'onboarding',
     version: 1,
     nodes: [
-      { id: 'wait', activityType: 'Delay', properties: { Duration: 60 } },
-      { id: 'each', activityType: 'ForEach', properties: { Items: 'equipment', ItemVariable: 'itemName', DefinitionName: 'procurement', Parallel: true } },
-      { id: 'sub', activityType: 'SubWorkflow', properties: { DefinitionName: 'expense', VariableExpressions: { amount: 'travelAmount' } } },
+      {
+        id: 'wait',
+        activityType: 'Delay',
+        properties: { Duration: 60 },
+      },
+      {
+        id: 'each',
+        activityType: 'ForEach',
+        properties: {
+          Items: 'equipment',
+          ItemVariable: 'itemName',
+          DefinitionName: 'procurement',
+          Parallel: true,
+        },
+      },
+      {
+        id: 'sub',
+        activityType: 'SubWorkflow',
+        properties: {
+          DefinitionName: 'expense',
+          VariableExpressions: { amount: 'travelAmount' },
+        },
+      },
     ],
     transitions: [],
   }
@@ -183,8 +332,16 @@ describe('节点属性的叫法', () => {
     const opened = fromWorkflowJson(document)
     expect(opened.nodes?.map(node => node.properties)).toEqual([
       { DurationSeconds: 60 },
-      { ItemsExpression: 'equipment', ItemVariableName: 'itemName', DefinitionCode: 'procurement', Parallel: true },
-      { DefinitionCode: 'expense', VariableExpressions: { amount: 'travelAmount' } },
+      {
+        ItemsExpression: 'equipment',
+        ItemVariableName: 'itemName',
+        DefinitionCode: 'procurement',
+        Parallel: true,
+      },
+      {
+        DefinitionCode: 'expense',
+        VariableExpressions: { amount: 'travelAmount' },
+      },
     ])
     expect(toWorkflowJson(opened).nodes?.map(node => node.properties)).toEqual(document.nodes?.map(node => node.properties))
   })

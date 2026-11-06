@@ -67,7 +67,13 @@ function sceneOf(scene: number): 'Page' | 'Preference' {
 }
 
 function toShellSetting(setting: ResponseOf<'user-settings.get'>) {
-  return { scene: setting.scene === 'Page' ? 1 : 0, settingKey: setting.key, settingValue: setting.value ?? null }
+  return {
+    scene: setting.scene === 'Page'
+      ? 1
+      : 0,
+    settingKey: setting.key,
+    settingValue: setting.value ?? null,
+  }
 }
 
 /** 双因素方式：壳层（4.x 个人中心）按位标志 1 = 认证器、2 = 邮箱、4 = 手机传，契约是字面量 */
@@ -100,33 +106,61 @@ type ProfileResponse = components['schemas']['ProfileResponse']
  * 锁定取账号状态与登录失败锁定期
  */
 function toShellProfile(profile: ProfileResponse): UserProfile {
-  const lockedUntil = profile.lockoutEndAt && Date.parse(profile.lockoutEndAt) > Date.now() ? profile.lockoutEndAt : null
+  const lockedUntil = profile.lockoutEndAt && Date.parse(profile.lockoutEndAt) > Date.now()
+    ? profile.lockoutEndAt
+    : null
   return {
     userId: profile.user.id,
     userName: profile.user.userName,
-    ...(profile.user.realName ? { realName: profile.user.realName } : {}),
+    ...(profile.user.realName
+      ? { realName: profile.user.realName }
+      : {}),
     nickName: profile.user.displayName,
-    ...(profile.user.avatarFileId ? { avatar: profile.user.avatarFileId } : {}),
-    ...(profile.user.email ? { email: profile.user.email } : {}),
-    ...(profile.user.phoneNumber ? { phone: profile.user.phoneNumber } : {}),
+    ...(profile.user.avatarFileId
+      ? { avatar: profile.user.avatarFileId }
+      : {}),
+    ...(profile.user.email
+      ? { email: profile.user.email }
+      : {}),
+    ...(profile.user.phoneNumber
+      ? { phone: profile.user.phoneNumber }
+      : {}),
     gender: GENDER_CODES[profile.user.gender],
-    ...(profile.user.birthday ? { birthday: profile.user.birthday } : {}),
-    ...(profile.user.country ? { country: profile.user.country } : {}),
-    ...(profile.user.remark ? { remark: profile.user.remark } : {}),
-    tenantId: profile.user.homeTenantId === 'platform' ? null : profile.user.homeTenantId,
-    ...(profile.user.lastLoginAt ? { lastLoginTime: profile.user.lastLoginAt } : {}),
+    ...(profile.user.birthday
+      ? { birthday: profile.user.birthday }
+      : {}),
+    ...(profile.user.country
+      ? { country: profile.user.country }
+      : {}),
+    ...(profile.user.remark
+      ? { remark: profile.user.remark }
+      : {}),
+    tenantId: profile.user.homeTenantId === 'platform'
+      ? null
+      : profile.user.homeTenantId,
+    ...(profile.user.lastLoginAt
+      ? { lastLoginTime: profile.user.lastLoginAt }
+      : {}),
     isSystemAccount: profile.user.isSystemAccount,
     twoFactorEnabled: profile.twoFactorEnabled,
     twoFactorMethod: profile.twoFactorMethods.reduce((bits, method) => bits | TWO_FACTOR_FLAGS[method], 0),
     emailVerified: profile.emailVerified,
     phoneVerified: profile.phoneVerified,
-    ...(profile.passwordChangedAt ? { lastPasswordChangeTime: profile.passwordChangedAt } : {}),
-    ...(profile.userNameChangedAt ? { lastUserNameChangeTime: profile.userNameChangedAt } : {}),
+    ...(profile.passwordChangedAt
+      ? { lastPasswordChangeTime: profile.passwordChangedAt }
+      : {}),
+    ...(profile.userNameChangedAt
+      ? { lastUserNameChangeTime: profile.userNameChangedAt }
+      : {}),
     canChangeUserName: !profile.userNameChangeableAt || Date.parse(profile.userNameChangeableAt) <= Date.now(),
     isLocked: profile.user.status === 'Locked' || lockedUntil !== null,
-    ...(lockedUntil ? { lockoutEndTime: lockedUntil } : {}),
+    ...(lockedUntil
+      ? { lockoutEndTime: lockedUntil }
+      : {}),
     failedLoginAttempts: profile.failedAccessCount,
-    ...(profile.lastFailedLoginAt ? { lastFailedLoginTime: profile.lastFailedLoginAt } : {}),
+    ...(profile.lastFailedLoginAt
+      ? { lastFailedLoginTime: profile.lastFailedLoginAt }
+      : {}),
   }
 }
 
@@ -140,10 +174,18 @@ function applyProfile(profile: ProfileResponse): UserProfile {
 function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): ExternalLoginItem {
   return {
     provider: login.provider,
-    ...(login.displayName ? { providerDisplayName: login.displayName } : {}),
-    ...(login.email ? { email: login.email } : {}),
-    ...(login.avatarUrl ? { avatarUrl: login.avatarUrl } : {}),
-    ...(login.lastLoginAt ? { lastLoginTime: login.lastLoginAt } : {}),
+    ...(login.displayName
+      ? { providerDisplayName: login.displayName }
+      : {}),
+    ...(login.email
+      ? { email: login.email }
+      : {}),
+    ...(login.avatarUrl
+      ? { avatarUrl: login.avatarUrl }
+      : {}),
+    ...(login.lastLoginAt
+      ? { lastLoginTime: login.lastLoginAt }
+      : {}),
   }
 }
 
@@ -155,10 +197,18 @@ function toShellSession(session: ResponseOf<'profile.sessions'>['items'][number]
   return {
     sessionId: session.id,
     deviceType: SESSION_DEVICE_TYPES[session.device ?? ''] ?? 1,
-    ...(session.browser ? { browser: session.browser } : {}),
-    ...(session.os ? { operatingSystem: session.os } : {}),
-    ...(session.ipAddress ? { ipAddress: session.ipAddress } : {}),
-    ...(session.location ? { location: session.location } : {}),
+    ...(session.browser
+      ? { browser: session.browser }
+      : {}),
+    ...(session.os
+      ? { operatingSystem: session.os }
+      : {}),
+    ...(session.ipAddress
+      ? { ipAddress: session.ipAddress }
+      : {}),
+    ...(session.location
+      ? { location: session.location }
+      : {}),
     loginTime: session.loginAt,
     lastActivityTime: session.lastActiveAt,
     isCurrent: session.isCurrent,
@@ -189,8 +239,11 @@ const LOGIN_FAILURE_RESULTS: Record<string, LoginAuditResult> = {
 type MyLoginLog = ResponseOf<'my-login-logs.list'>['items'][number]
 
 function loginResultOf(log: MyLoginLog): LoginAuditResult {
-  if (log.event === 'Login')
-    return log.succeeded ? 'Success' : LOGIN_FAILURE_RESULTS[log.errorCode ?? ''] ?? 'Failed'
+  if (log.event === 'Login') {
+    return log.succeeded
+      ? 'Success'
+      : LOGIN_FAILURE_RESULTS[log.errorCode ?? ''] ?? 'Failed'
+  }
   return log.succeeded ? LOGIN_EVENT_RESULTS[log.event] : 'Failed'
 }
 
@@ -198,11 +251,19 @@ function loginResultOf(log: MyLoginLog): LoginAuditResult {
 function toShellLoginLog(log: MyLoginLog): LoginLogItem {
   return {
     loginTime: log.occurredAt,
-    ...(log.clientIp ? { loginIp: log.clientIp } : {}),
-    ...(log.browser ? { browser: log.browser } : {}),
-    ...(log.os ? { os: log.os } : {}),
+    ...(log.clientIp
+      ? { loginIp: log.clientIp }
+      : {}),
+    ...(log.browser
+      ? { browser: log.browser }
+      : {}),
+    ...(log.os
+      ? { os: log.os }
+      : {}),
     loginResult: loginResultOf(log),
-    ...(log.errorMessage ? { message: log.errorMessage } : {}),
+    ...(log.errorMessage
+      ? { message: log.errorMessage }
+      : {}),
   }
 }
 
@@ -221,7 +282,12 @@ function toShellNotificationPreference(preference: ResponseOf<'profile.notificat
 type MyActivity = ResponseOf<'my-activity.summary'>
 
 function toShellActivityPeriod(counts: MyActivity['today']): UserActivityPeriod {
-  return { loginCount: counts.logins, accessCount: counts.accesses, operationCount: counts.operations, onlineTime: counts.onlineSeconds }
+  return {
+    loginCount: counts.logins,
+    accessCount: counts.accesses,
+    operationCount: counts.operations,
+    onlineTime: counts.onlineSeconds,
+  }
 }
 
 /** `my-activity.summary` → 4.x 个人中心「统计」的活跃度：次数、在线时长与时间换成 4.x 的 *Count / onlineTime / *Time 字段名，没有的最近时间不给 */
@@ -230,10 +296,21 @@ function toShellActivity(activity: MyActivity): UserActivity {
     today: toShellActivityPeriod(activity.today),
     thisWeek: toShellActivityPeriod(activity.thisWeek),
     thisMonth: toShellActivityPeriod(activity.thisMonth),
-    ...(activity.lastLoginAt ? { lastLoginTime: activity.lastLoginAt } : {}),
-    ...(activity.lastAccessAt ? { lastAccessTime: activity.lastAccessAt } : {}),
-    ...(activity.lastOperationAt ? { lastOperationTime: activity.lastOperationAt } : {}),
-    trend: activity.trend.map(day => ({ date: day.date, accessCount: day.accesses, operationCount: day.operations, onlineMinutes: day.onlineMinutes })),
+    ...(activity.lastLoginAt
+      ? { lastLoginTime: activity.lastLoginAt }
+      : {}),
+    ...(activity.lastAccessAt
+      ? { lastAccessTime: activity.lastAccessAt }
+      : {}),
+    ...(activity.lastOperationAt
+      ? { lastOperationTime: activity.lastOperationAt }
+      : {}),
+    trend: activity.trend.map(day => ({
+      date: day.date,
+      accessCount: day.accesses,
+      operationCount: day.operations,
+      onlineMinutes: day.onlineMinutes,
+    })),
   }
 }
 
@@ -254,7 +331,11 @@ function toShellSecret(secret: ResponseOf<'my-api-credentials.create'>): ApiCred
 }
 
 function toShellCallSettings(settings: ResponseOf<'my-api-credentials.settings'>): ApiCallSettings {
-  return { signAlgorithm: settings.signatureAlgorithm, ipWhitelist: [...settings.ipAllowList], algorithms: [...settings.algorithms] }
+  return {
+    signAlgorithm: settings.signatureAlgorithm,
+    ipWhitelist: [...settings.ipAllowList],
+    algorithms: [...settings.algorithms],
+  }
 }
 
 /** `my-oauth-apps.*` → 4.x 个人中心「OAuth 应用」的条目：主键沿用 basicId，启停换成状态字面量，授权类型与范围用逗号、回调地址按行拼成 4.x 的字符串 */
@@ -277,7 +358,12 @@ function toShellOAuthApp(app: ResponseOf<'my-oauth-apps.get'>): MyOAuthAppItem {
 
 /** 一次性客户端密钥：公开客户端没有密钥（后端给 null），壳层按空串判断不显示 */
 function toShellOAuthSecret(secret: ResponseOf<'my-oauth-apps.create'>): MyOAuthAppSecret {
-  return { basicId: secret.id, clientId: secret.clientId, clientType: secret.clientType, clientSecret: secret.clientSecret ?? '' }
+  return {
+    basicId: secret.id,
+    clientId: secret.clientId,
+    clientType: secret.clientType,
+    clientSecret: secret.clientSecret ?? '',
+  }
 }
 
 /** `oauth-consents.list` → 个人中心「已授权的应用」条目：授权时间换成壳层的 *Time 命名，范围保持列表（按标签显示） */
@@ -300,13 +386,24 @@ function splitRedirectUris(value: string): string[] {
 /** 时区目录：浏览器自带的 IANA 清单（后端时区目录接入后换成 metadata 操作） */
 function timeZoneOptions() {
   const now = new Date()
-  const ids = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : ['UTC']
+  const ids = typeof Intl.supportedValuesOf === 'function'
+    ? Intl.supportedValuesOf('timeZone')
+    : ['UTC']
   return Promise.resolve(ids.map((id) => {
     const parts = new Intl.DateTimeFormat('en-US', { timeZone: id, timeZoneName: 'longOffset' }).formatToParts(now)
     const offset = parts.find(part => part.type === 'timeZoneName')?.value ?? 'GMT'
     const match = offset.match(/([+-])(\d{2}):(\d{2})/)
-    const minutes = match ? (match[1] === '-' ? -1 : 1) * (Number(match[2]) * 60 + Number(match[3])) : 0
-    return { id, displayName: `(${offset}) ${id.replaceAll('_', ' ')}`, baseUtcOffsetMinutes: minutes, supportsDaylightSavingTime: false }
+    const minutes = match
+      ? (match[1] === '-'
+          ? -1
+          : 1) * (Number(match[2]) * 60 + Number(match[3]))
+      : 0
+    return {
+      id,
+      displayName: `(${offset}) ${id.replaceAll('_', ' ')}`,
+      baseUtcOffsetMinutes: minutes,
+      supportsDaylightSavingTime: false,
+    }
   }))
 }
 
@@ -318,7 +415,12 @@ export function registerApplicationContext(router: Router): void {
   const apis: AppContextApis = {
     getLoginConfigApi: async () => {
       const config = await authOps.loginConfig({}, { anonymous: true })
-      return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })), captchaEnabled: config.captchaEnabled, registrationEnabled: config.registrationEnabled }
+      return {
+        loginMethods: [...config.loginMethods],
+        oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })),
+        captchaEnabled: config.captchaEnabled,
+        registrationEnabled: config.registrationEnabled,
+      }
     },
     getCaptchaApi: () => authOps.captcha({}, { anonymous: true }),
     // 自助注册（auth.register，匿名）：注册平台账号，显示名不填即用户名；没开放即 IDENTITY_DENIED_020
@@ -334,8 +436,18 @@ export function registerApplicationContext(router: Router): void {
       return { userName: registered.userName }
     },
     // 找回密码（auth.request-password-reset / auth.reset-password，匿名）：4.x 发一次性链接，6.0 发验证码到邮箱；租户留空即平台
-    requestPasswordResetApi: input => authOps.requestPasswordReset({ channel: 'Email', target: input.email.trim(), tenant: input.tenant?.trim() || null }, { anonymous: true }),
-    resetPasswordApi: input => authOps.resetPassword({ channel: 'Email', target: input.email.trim(), code: input.code, newPassword: input.newPassword, tenant: input.tenant?.trim() || null }, { anonymous: true }),
+    requestPasswordResetApi: input => authOps.requestPasswordReset({
+      channel: 'Email',
+      target: input.email.trim(),
+      tenant: input.tenant?.trim() || null,
+    }, { anonymous: true }),
+    resetPasswordApi: input => authOps.resetPassword({
+      channel: 'Email',
+      target: input.email.trim(),
+      code: input.code,
+      newPassword: input.newPassword,
+      tenant: input.tenant?.trim() || null,
+    }, { anonymous: true }),
     // 验证码登录发码（auth.send-login-code，匿名）：租户留空即平台；账号不存在、不唯一也回答已发送（不发），不返回调试码
     sendEmailLoginCodeApi: (email, tenant) => authOps.sendLoginCode({ channel: 'Email', target: email, tenant: tenant?.trim() || null }, { anonymous: true }),
     sendPhoneLoginCodeApi: (phone, tenant) => authOps.sendLoginCode({ channel: 'Phone', target: phone, tenant: tenant?.trim() || null }, { anonymous: true }),
@@ -386,10 +498,18 @@ export function registerApplicationContext(router: Router): void {
       const setup = await profileOps.setupTotp({})
       return { sharedKey: setup.sharedKey, authenticatorUri: setup.authenticatorUri }
     },
-    enable2FAApi: (method, code) => profileOps.enableTwoFactor({ method: twoFactorMethodOf(method), code }),
-    disable2FAApi: (method, code) => profileOps.disableTwoFactor({ method: twoFactorMethodOf(method), code }),
+    enable2FAApi: (method, code) => profileOps.enableTwoFactor({
+      method: twoFactorMethodOf(method),
+      code,
+    }),
+    disable2FAApi: (method, code) => profileOps.disableTwoFactor({
+      method: twoFactorMethodOf(method),
+      code,
+    }),
     // 邮箱 / 短信双因素的开关凭发到本人已验证联系方式的码（profile.send-two-factor-code），认证器不发码
-    send2FASetupCodeApi: method => profileOps.sendTwoFactorCode({ method: twoFactorMethodOf(method) }),
+    send2FASetupCodeApi: method => profileOps.sendTwoFactorCode({
+      method: twoFactorMethodOf(method),
+    }),
     deactivateAccountApi: async (password) => {
       await profileOps.deactivateAccount({ password })
     },
@@ -410,7 +530,12 @@ export function registerApplicationContext(router: Router): void {
     // 登录日志（Auditing 的 my-login-logs.list，只要求已登录、只看本人的认证事件，pageSize 1–50）：页码与条数照 4.x 回请求的那一页
     getLoginLogsApi: async (page, pageSize) => {
       const result = await myLoginLogOps.list({ page, pageSize })
-      return { items: result.items.map(toShellLoginLog), total: result.total, page, pageSize }
+      return {
+        items: result.items.map(toShellLoginLog),
+        total: result.total,
+        page,
+        pageSize,
+      }
     },
     // 通知偏好（Identity 的 profile.notification-preference / update-notification-preference，只要求已登录）：整体覆盖，没保存过即全收；强制阅读与紧急通知不受偏好影响
     getNotificationPreferenceApi: async () => toShellNotificationPreference(await profileOps.notificationPreference({})),
@@ -423,14 +548,25 @@ export function registerApplicationContext(router: Router): void {
       typeSecurity: input.typeSecurity,
     })),
     // 活跃度（Auditing 的 my-activity.summary，只要求已登录、只按本人）：按应用时区分天（与界面上的时间一致；4.x 按 UTC），本周从周一算
-    getActivityApi: async () => toShellActivity(await myActivityOps.summary({ timeZone: getDisplayTimeZone() })),
+    getActivityApi: async () => toShellActivity(await myActivityOps.summary({
+      timeZone: getDisplayTimeZone(),
+    })),
     // 锁屏（服务端强制）：auth.lock 记本会话一次性的锁屏密码，锁定中除解锁与注销外的请求都是 IDENTITY_DENIED_002（请求层 onLocked 拉起锁屏）
     lockSessionApi: input => authOps.lock({ password: input.password }),
     unlockSessionApi: input => authOps.unlock({ password: input.password }),
     // 用户设置（Identity 的 user-settings，按 用户 × 场景 × 键 整体覆盖）：偏好与收藏的跨端同步；clientId / origin 随实时回推（UserSettingChanged）原样转给其他端
     userSettingApi: {
-      get: async input => toShellSetting(await userSettingOps.get({ scene: sceneOf(input.scene), key: input.settingKey })),
-      save: async input => toShellSetting(await userSettingOps.update({ scene: sceneOf(input.scene), key: input.settingKey, value: input.settingValue ?? null, clientId: input.clientId ?? null, origin: input.origin ?? null })),
+      get: async input => toShellSetting(await userSettingOps.get({
+        scene: sceneOf(input.scene),
+        key: input.settingKey,
+      })),
+      save: async input => toShellSetting(await userSettingOps.update({
+        scene: sceneOf(input.scene),
+        key: input.settingKey,
+        value: input.settingValue ?? null,
+        clientId: input.clientId ?? null,
+        origin: input.origin ?? null,
+      })),
     },
     // 收件箱（Notification 的 inbox.*，只看本人在当前一侧的）：壳层传的用户与租户参数是 4.x 的遗留，后端按令牌认人与侧
     userInboxApi: {
@@ -438,31 +574,55 @@ export function registerApplicationContext(router: Router): void {
       confirm: id => inboxOps.confirm({ id }),
       list: async (_userId, unreadOnly) => (await inboxOps.list({
         page: { index: 1, size: INBOX_PANEL_SIZE },
-        filters: unreadOnly ? [{ field: 'pending', operator: 'eq', value: 'true' }] : [],
+        filters: unreadOnly
+          ? [
+              { field: 'pending', operator: 'eq', value: 'true' },
+            ]
+          : [],
         sorts: [],
       })).items.map(toShellInboxItem),
       mandatoryUnread: async () => (await inboxOps.mandatory({})).items.map(toShellDisplayItem),
       markAllRead: () => inboxOps.markAllRead({}),
       markPopupShown: id => inboxOps.markPopupShown({ id }),
-      markRead: id => inboxOps.markRead({ ids: [id] }),
+      markRead: id => inboxOps.markRead({
+        ids: [id],
+      }),
       popup: async () => (await inboxOps.popups({})).items.map(toShellDisplayItem),
     },
     // 模仿登录（方案 5.8）：平台主体先选范围（平台账号或某个租户的成员），租户主体钉在本租户；候选、发起与结束都是 Identity 的操作
     impersonationApi: {
       // 可选范围：全部正常状态的租户（只有平台主体会调到；tenants.list 是平台专属操作）
-      tenants: async () => (await tenantOps.list({ page: { index: 1, size: PAGE_MAX_SIZE }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }] })).items.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name })),
+      tenants: async () => (await tenantOps.list({
+        page: { index: 1, size: PAGE_MAX_SIZE },
+        filters: [
+          { field: 'status', operator: 'eq', value: 'Active' },
+        ],
+      })).items.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name })),
       candidates: async input => (await impersonationOps.candidates({ tenantId: input.tenantId ?? null, keyword: input.keyword ?? null })).items.map(candidate => ({ basicId: candidate.id, userName: candidate.userName, nickName: candidate.displayName })),
       start: input => impersonationOps.start({ targetUserId: input.targetUserId, tenantId: input.tenantId ?? null, reason: input.reason ?? null }),
       stop: () => impersonationOps.stop({}),
     },
     // 控制中心与个人中心「我的租户」：我能进入的租户（注册地 + 成员）与能否进入平台；切换走 auth.switch-tenant，在目标上下文续接当前会话
     tenantApi: {
-      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isOwner: tenant.isOwner, isCurrent: tenant.isCurrent, joinedTime: tenant.joinedAt })),
+      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({
+        tenantId: tenant.tenantId,
+        tenantName: tenant.name,
+        isHome: tenant.isHome,
+        memberType: tenant.memberType ?? null,
+        isOwner: tenant.isOwner,
+        isCurrent: tenant.isCurrent,
+        joinedTime: tenant.joinedAt,
+      })),
       switchTenant: input => authOps.switchTenant({ tenantId: input.tenantId ?? null }),
     },
     // 切换角色：auth.session-roles 列出持有与激活，auth.activate-roles 换激活集并续接会话（Access 的动态职责分离在服务端判定）
     sessionRoleApi: {
-      list: async () => (await authOps.sessionRoles({})).items.map(role => ({ roleId: role.roleId, code: role.code, name: role.name, isActive: role.isActive })),
+      list: async () => (await authOps.sessionRoles({})).items.map(role => ({
+        roleId: role.roleId,
+        code: role.code,
+        name: role.name,
+        isActive: role.isActive,
+      })),
       activate: roleIds => authOps.activateRoles({ roleIds }),
     },
     // 文件引用（头像、表格里的文件列）：files.presign 签发的签名地址补上接口前缀，图片标签不带令牌也能取
@@ -479,7 +639,17 @@ export function registerApplicationContext(router: Router): void {
     // 导入历史：import-histories.create / recent（只看自己的）；壳层沿用 4.x 的 basicId / createdTime 字段名
     importHistoryApi: {
       create: input => importHistoryOps.create({ ...input, resourceCode: input.resourceCode ?? null, errorSummary: input.errorSummary ?? null }),
-      recent: async (pageCode, count) => (await importHistoryOps.recent({ pageCode, count: count ?? 5 })).items.map(item => ({ basicId: item.id, pageCode: item.pageCode, resourceCode: item.resourceCode, fileName: item.fileName, totalCount: item.totalCount, successCount: item.successCount, failCount: item.failCount, errorSummary: item.errorSummary, createdTime: item.createdAt })),
+      recent: async (pageCode, count) => (await importHistoryOps.recent({ pageCode, count: count ?? 5 })).items.map(item => ({
+        basicId: item.id,
+        pageCode: item.pageCode,
+        resourceCode: item.resourceCode,
+        fileName: item.fileName,
+        totalCount: item.totalCount,
+        successCount: item.successCount,
+        failCount: item.failCount,
+        errorSummary: item.errorSummary,
+        createdTime: item.createdAt,
+      })),
     },
     // 导出中心：export-tasks.submit，后台以发起人的身份逐页调页面声明的列表操作；壳层的范围与格式是 4.x 的数字，换成契约的名称
     exportTaskApi: {
@@ -487,18 +657,29 @@ export function registerApplicationContext(router: Router): void {
         businessType: input.businessType,
         taskName: input.taskName ?? null,
         scope: EXPORT_SCOPES[input.scope] ?? 'SearchResult',
-        format: input.format === 1 ? 'Xlsx' : 'Csv',
+        format: input.format === 1
+          ? 'Xlsx'
+          : 'Csv',
         querySnapshot: input.querySnapshot ?? null,
         columns: input.columns.map(column => ({ key: column.key, title: column.title, valueMap: column.valueMap ?? null })),
       }),
     },
     getApiCredentialsApi: async () => (await myApiCredentialOps.list({})).items.map(toShellCredential),
     createApiCredentialApi: async credentialName => toShellSecret(await myApiCredentialOps.create({ name: credentialName ?? null })),
-    rotateApiCredentialSecretApi: async id => toShellSecret(await myApiCredentialOps.rotateSecret({ id: String(id) })),
-    updateApiCredentialStatusApi: async (id, status) => toShellCredential(await myApiCredentialOps.update({ id: String(id), isEnabled: status === 'Enabled' })),
+    rotateApiCredentialSecretApi: async id => toShellSecret(await myApiCredentialOps.rotateSecret({
+      id: String(id),
+    })),
+    updateApiCredentialStatusApi: async (id, status) => toShellCredential(await myApiCredentialOps.update({
+      id: String(id),
+      isEnabled: status === 'Enabled',
+    })),
     // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带原因，不当成删除成功
     deleteApiCredentialApi: async (id) => {
-      const result = await myApiCredentialOps.delete({ ids: [String(id)] })
+      const result = await myApiCredentialOps.delete({
+        ids: [
+          String(id),
+        ],
+      })
       throwOnFailed(result)
       return result
     },
@@ -515,7 +696,9 @@ export function registerApplicationContext(router: Router): void {
       logo: input.logo ?? null,
     })),
     updateMyOAuthAppApi: async (input) => {
-      const current = await myOAuthAppOps.get({ id: String(input.basicId) })
+      const current = await myOAuthAppOps.get({
+        id: String(input.basicId),
+      })
       return toShellOAuthApp(await myOAuthAppOps.update({
         id: current.id,
         appName: input.appName,
@@ -526,9 +709,13 @@ export function registerApplicationContext(router: Router): void {
         isEnabled: current.isEnabled,
       }))
     },
-    regenerateMyOAuthAppSecretApi: async id => toShellOAuthSecret(await myOAuthAppOps.resetSecret({ id: String(id) })),
+    regenerateMyOAuthAppSecretApi: async id => toShellOAuthSecret(await myOAuthAppOps.resetSecret({
+      id: String(id),
+    })),
     updateMyOAuthAppStatusApi: async (id, status) => {
-      const current = await myOAuthAppOps.get({ id: String(id) })
+      const current = await myOAuthAppOps.get({
+        id: String(id),
+      })
       return toShellOAuthApp(await myOAuthAppOps.update({
         id: current.id,
         appName: current.appName,
@@ -541,7 +728,11 @@ export function registerApplicationContext(router: Router): void {
     },
     // 删除按批量结果判定：被拒的（不存在或不是本人的）抛错带原因，不当成删除成功
     deleteMyOAuthAppApi: async (id) => {
-      const result = await myOAuthAppOps.delete({ ids: [String(id)] })
+      const result = await myOAuthAppOps.delete({
+        ids: [
+          String(id),
+        ],
+      })
       throwOnFailed(result)
       return result
     },
@@ -553,7 +744,9 @@ export function registerApplicationContext(router: Router): void {
       getByName: () => notAvailable('enumApi.getByName'),
     },
     // 字典选项（Settings 的 dicts.options，只要求已登录）：树形字典已按深度优先展平
-    dictApi: { options: async code => (await dictOps.options({ code })).items },
+    dictApi: {
+      options: async code => (await dictOps.options({ code })).items,
+    },
   }
 
   registerAppContext({

@@ -43,16 +43,23 @@ const smsPageRef = ref<SchemaPageInstance | null>(null)
 const canReadSms = computed(() => auth.can('notification.sms.read'))
 
 function reload(tab: MessageTab) {
-  void (tab === 'email' ? emailPageRef : smsPageRef).value?.reload()
+  void (tab === 'email'
+    ? emailPageRef
+    : smsPageRef).value?.reload()
 }
 
 const asEmail = (row: object) => row as EmailRecordRow
 const asSms = (row: object) => row as SmsRecordRow
 
-const statusOptions = computed<SelectOption[]>(() => STATUSES.map(status => ({ label: sendStatusLabel(t, status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => STATUSES.map(status => ({
+  label: sendStatusLabel(t, status),
+  value: status,
+})))
 
 function yesNo(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 function statusTag(row: { status: EmailRecordRow['status'] }) {
@@ -61,18 +68,111 @@ function statusTag(row: { status: EmailRecordRow['status'] }) {
 
 // ── 邮件（字段单一事实源；可排序的只放后端白名单里的：发送时间、创建时间） ──
 const emailFields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.messages.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.messages.email_search_keyword_placeholder'), order: 0 },
-  { key: 'toEmail', title: t('notification.messages.col_to_email'), dataType: 'string', minWidth: 200, order: 1 },
-  { key: 'subject', title: t('notification.messages.col_subject'), dataType: 'string', minWidth: 220, order: 2 },
-  { key: 'status', title: t('notification.messages.col_status'), dataType: 'enum', searchable: true, searchMultiple: true, options: statusOptions.value, searchPlaceholder: t('notification.messages.search_status_placeholder'), width: 100, order: 3, render: row => statusTag(asEmail(row)) },
-  { key: 'isHtml', title: t('notification.messages.col_is_html'), dataType: 'boolean', width: 82, order: 4, render: row => renderTag(yesNo(asEmail(row).isHtml), asEmail(row).isHtml ? 'info' : 'neutral') },
-  { key: 'businessType', title: t('notification.messages.col_business_type'), dataType: 'string', searchable: true, searchPlaceholder: t('notification.messages.search_business_type_placeholder'), minWidth: 130, order: 5 },
-  { key: 'senderId', title: t('notification.messages.col_sender'), dataType: 'string', visible: false, minWidth: 280, order: 6 },
-  { key: 'receiverId', title: t('notification.messages.col_receiver'), dataType: 'string', visible: false, minWidth: 280, order: 7 },
-  { key: 'templateCode', title: t('notification.messages.col_template_code'), dataType: 'string', searchable: true, searchPlaceholder: t('notification.messages.search_template_code_placeholder'), minWidth: 150, order: 8 },
-  { key: 'attempts', title: t('notification.messages.col_attempts'), dataType: 'string', width: 90, order: 9, render: row => formatAttempts(asEmail(row)) },
-  { key: 'sentAt', title: t('notification.messages.col_sent_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
-  { key: 'createdAt', title: t('notification.messages.col_created_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 11 },
+  {
+    key: 'keyword',
+    title: t('notification.messages.col_keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.messages.email_search_keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'toEmail',
+    title: t('notification.messages.col_to_email'),
+    dataType: 'string',
+    minWidth: 200,
+    order: 1,
+  },
+  {
+    key: 'subject',
+    title: t('notification.messages.col_subject'),
+    dataType: 'string',
+    minWidth: 220,
+    order: 2,
+  },
+  {
+    key: 'status',
+    title: t('notification.messages.col_status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.messages.search_status_placeholder'),
+    width: 100,
+    order: 3,
+    render: row => statusTag(asEmail(row)),
+  },
+  {
+    key: 'isHtml',
+    title: t('notification.messages.col_is_html'),
+    dataType: 'boolean',
+    width: 82,
+    order: 4,
+    render: row => renderTag(yesNo(asEmail(row).isHtml), asEmail(row).isHtml
+      ? 'info'
+      : 'neutral'),
+  },
+  {
+    key: 'businessType',
+    title: t('notification.messages.col_business_type'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('notification.messages.search_business_type_placeholder'),
+    minWidth: 130,
+    order: 5,
+  },
+  {
+    key: 'senderId',
+    title: t('notification.messages.col_sender'),
+    dataType: 'string',
+    visible: false,
+    minWidth: 280,
+    order: 6,
+  },
+  {
+    key: 'receiverId',
+    title: t('notification.messages.col_receiver'),
+    dataType: 'string',
+    visible: false,
+    minWidth: 280,
+    order: 7,
+  },
+  {
+    key: 'templateCode',
+    title: t('notification.messages.col_template_code'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('notification.messages.search_template_code_placeholder'),
+    minWidth: 150,
+    order: 8,
+  },
+  {
+    key: 'attempts',
+    title: t('notification.messages.col_attempts'),
+    dataType: 'string',
+    width: 90,
+    order: 9,
+    render: row => formatAttempts(asEmail(row)),
+  },
+  {
+    key: 'sentAt',
+    title: t('notification.messages.col_sent_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 10,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.messages.col_created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    minWidth: 170,
+    order: 11,
+  },
 ])
 
 const emailSchema = computed<PageSchema>(() => ({
@@ -83,27 +183,156 @@ const emailSchema = computed<PageSchema>(() => ({
   fields: emailFields.value,
   resource: emailResource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'detail', title: t('notification.messages.action_detail'), scope: 'row', tone: 'brand', icon: 'lucide:eye' },
-    { key: 'resend', title: t('notification.messages.action_resend'), scope: 'row', tone: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('notification.messages.action_resend'), asEmail(row).subject), visible: row => canResend(asEmail(row).status), permission: 'notification.emails.resend' },
-    { key: 'cancel', title: t('notification.messages.action_cancel'), scope: 'row', icon: 'lucide:circle-slash', confirm: true, confirmText: row => actionConfirmText(t, t('notification.messages.action_cancel'), asEmail(row).subject), visible: row => canCancel(asEmail(row).status), permission: 'notification.emails.resend' },
-    { key: 'delete', title: t('notification.messages.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: t('notification.messages.delete_email_content'), visible: row => canDelete(asEmail(row).status), permission: 'notification.emails.delete' },
+    {
+      key: 'detail',
+      title: t('notification.messages.action_detail'),
+      scope: 'row',
+      tone: 'brand',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'resend',
+      title: t('notification.messages.action_resend'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:refresh-cw',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('notification.messages.action_resend'), asEmail(row).subject),
+      visible: row => canResend(asEmail(row).status),
+      permission: 'notification.emails.resend',
+    },
+    {
+      key: 'cancel',
+      title: t('notification.messages.action_cancel'),
+      scope: 'row',
+      icon: 'lucide:circle-slash',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('notification.messages.action_cancel'), asEmail(row).subject),
+      visible: row => canCancel(asEmail(row).status),
+      permission: 'notification.emails.resend',
+    },
+    {
+      key: 'delete',
+      title: t('notification.messages.action_delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: t('notification.messages.delete_email_content'),
+      visible: row => canDelete(asEmail(row).status),
+      permission: 'notification.emails.delete',
+    },
   ],
 }))
 
 // ── 短信 ─────────────────────────────────────────────────────────
 const smsFields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.messages.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.messages.sms_search_keyword_placeholder'), order: 0 },
-  { key: 'toPhone', title: t('notification.messages.col_to_phone'), dataType: 'string', minWidth: 140, order: 1 },
-  { key: 'provider', title: t('notification.messages.col_provider'), dataType: 'enum', width: 110, order: 2, render: row => (asSms(row).provider ? renderTag(smsProviderLabel(t, asSms(row).provider!), 'info') : '-') },
-  { key: 'content', title: t('notification.messages.col_content'), dataType: 'string', ellipsis: true, minWidth: 220, order: 3 },
-  { key: 'status', title: t('notification.messages.col_status'), dataType: 'enum', searchable: true, searchMultiple: true, options: statusOptions.value, searchPlaceholder: t('notification.messages.search_status_placeholder'), width: 100, order: 4, render: row => statusTag(asSms(row)) },
-  { key: 'businessType', title: t('notification.messages.col_business_type'), dataType: 'string', searchable: true, searchPlaceholder: t('notification.messages.search_business_type_placeholder'), minWidth: 130, order: 5 },
-  { key: 'senderId', title: t('notification.messages.col_sender'), dataType: 'string', visible: false, minWidth: 280, order: 6 },
-  { key: 'receiverId', title: t('notification.messages.col_receiver'), dataType: 'string', visible: false, minWidth: 280, order: 7 },
-  { key: 'templateCode', title: t('notification.messages.col_template_code'), dataType: 'string', searchable: true, searchPlaceholder: t('notification.messages.search_template_code_placeholder'), minWidth: 150, order: 8 },
-  { key: 'attempts', title: t('notification.messages.col_attempts'), dataType: 'string', width: 90, order: 9, render: row => formatAttempts(asSms(row)) },
-  { key: 'sentAt', title: t('notification.messages.col_sent_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
-  { key: 'createdAt', title: t('notification.messages.col_created_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 11 },
+  {
+    key: 'keyword',
+    title: t('notification.messages.col_keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.messages.sms_search_keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'toPhone',
+    title: t('notification.messages.col_to_phone'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'provider',
+    title: t('notification.messages.col_provider'),
+    dataType: 'enum',
+    width: 110,
+    order: 2,
+    render: row => (asSms(row).provider
+      ? renderTag(smsProviderLabel(t, asSms(row).provider!), 'info')
+      : '-'),
+  },
+  {
+    key: 'content',
+    title: t('notification.messages.col_content'),
+    dataType: 'string',
+    ellipsis: true,
+    minWidth: 220,
+    order: 3,
+  },
+  {
+    key: 'status',
+    title: t('notification.messages.col_status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.messages.search_status_placeholder'),
+    width: 100,
+    order: 4,
+    render: row => statusTag(asSms(row)),
+  },
+  {
+    key: 'businessType',
+    title: t('notification.messages.col_business_type'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('notification.messages.search_business_type_placeholder'),
+    minWidth: 130,
+    order: 5,
+  },
+  {
+    key: 'senderId',
+    title: t('notification.messages.col_sender'),
+    dataType: 'string',
+    visible: false,
+    minWidth: 280,
+    order: 6,
+  },
+  {
+    key: 'receiverId',
+    title: t('notification.messages.col_receiver'),
+    dataType: 'string',
+    visible: false,
+    minWidth: 280,
+    order: 7,
+  },
+  {
+    key: 'templateCode',
+    title: t('notification.messages.col_template_code'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('notification.messages.search_template_code_placeholder'),
+    minWidth: 150,
+    order: 8,
+  },
+  {
+    key: 'attempts',
+    title: t('notification.messages.col_attempts'),
+    dataType: 'string',
+    width: 90,
+    order: 9,
+    render: row => formatAttempts(asSms(row)),
+  },
+  {
+    key: 'sentAt',
+    title: t('notification.messages.col_sent_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 10,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.messages.col_created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    minWidth: 170,
+    order: 11,
+  },
 ])
 
 const smsSchema = computed<PageSchema>(() => ({
@@ -114,10 +343,45 @@ const smsSchema = computed<PageSchema>(() => ({
   fields: smsFields.value,
   resource: smsResource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'detail', title: t('notification.messages.action_detail'), scope: 'row', tone: 'brand', icon: 'lucide:eye' },
-    { key: 'resend', title: t('notification.messages.action_resend'), scope: 'row', tone: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('notification.messages.action_resend'), asSms(row).toPhone), visible: row => canResend(asSms(row).status), permission: 'notification.sms.resend' },
-    { key: 'cancel', title: t('notification.messages.action_cancel'), scope: 'row', icon: 'lucide:circle-slash', confirm: true, confirmText: row => actionConfirmText(t, t('notification.messages.action_cancel'), asSms(row).toPhone), visible: row => canCancel(asSms(row).status), permission: 'notification.sms.resend' },
-    { key: 'delete', title: t('notification.messages.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: t('notification.messages.delete_sms_content'), visible: row => canDelete(asSms(row).status), permission: 'notification.sms.delete' },
+    {
+      key: 'detail',
+      title: t('notification.messages.action_detail'),
+      scope: 'row',
+      tone: 'brand',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'resend',
+      title: t('notification.messages.action_resend'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:refresh-cw',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('notification.messages.action_resend'), asSms(row).toPhone),
+      visible: row => canResend(asSms(row).status),
+      permission: 'notification.sms.resend',
+    },
+    {
+      key: 'cancel',
+      title: t('notification.messages.action_cancel'),
+      scope: 'row',
+      icon: 'lucide:circle-slash',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('notification.messages.action_cancel'), asSms(row).toPhone),
+      visible: row => canCancel(asSms(row).status),
+      permission: 'notification.sms.resend',
+    },
+    {
+      key: 'delete',
+      title: t('notification.messages.action_delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: t('notification.messages.delete_sms_content'),
+      visible: row => canDelete(asSms(row).status),
+      permission: 'notification.sms.delete',
+    },
   ],
 }))
 
@@ -137,13 +401,19 @@ async function handleAction(tab: MessageTab, key: string, id: string) {
       await openDetail(tab, id)
       break
     case 'resend':
-      await runAction(tab, () => resendRecord(tab, id), tab === 'email' ? t('notification.messages.msg_email_requeued') : t('notification.messages.msg_sms_requeued'), t('notification.messages.msg_resend_failed'))
+      await runAction(tab, () => resendRecord(tab, id), tab === 'email'
+        ? t('notification.messages.msg_email_requeued')
+        : t('notification.messages.msg_sms_requeued'), t('notification.messages.msg_resend_failed'))
       break
     case 'cancel':
       await runAction(tab, () => cancelRecord(tab, id), t('notification.messages.msg_cancelled'), t('notification.messages.msg_cancel_failed'))
       break
     case 'delete':
-      await runAction(tab, async () => (tab === 'email' ? emailResource : smsResource).remove?.(id), tab === 'email' ? t('notification.messages.msg_email_deleted') : t('notification.messages.msg_sms_deleted'), t('notification.messages.msg_delete_failed'))
+      await runAction(tab, async () => (tab === 'email'
+        ? emailResource
+        : smsResource).remove?.(id), tab === 'email'
+        ? t('notification.messages.msg_email_deleted')
+        : t('notification.messages.msg_sms_deleted'), t('notification.messages.msg_delete_failed'))
       break
   }
 }
@@ -182,7 +452,9 @@ async function openDetail(tab: MessageTab, id: string) {
       currentSms.value = await smsApi.get({ id })
   }
   catch (error) {
-    toast.danger(errorText(error) || (tab === 'email' ? t('notification.messages.msg_load_email_detail_failed') : t('notification.messages.msg_load_sms_detail_failed')))
+    toast.danger(errorText(error) || (tab === 'email'
+      ? t('notification.messages.msg_load_email_detail_failed')
+      : t('notification.messages.msg_load_sms_detail_failed')))
   }
   finally {
     detailLoading.value = false

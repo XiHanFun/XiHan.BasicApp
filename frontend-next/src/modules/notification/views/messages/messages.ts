@@ -42,24 +42,44 @@ export function formatAttempts(row: { attempts: number, maxAttempts: number }): 
 export function emailRecordResource(): SchemaResource<EmailRecordRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await emailsApi.list(toPageRequest(params, RECORD_QUERY)), params),
-    remove: async id => throwOnFailed(await emailsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await emailsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
 export function smsRecordResource(): SchemaResource<SmsRecordRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await smsApi.list(toPageRequest(params, RECORD_QUERY)), params),
-    remove: async id => throwOnFailed(await smsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await smsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
 /** 重发（重新排队、清零尝试次数）与取消：批量接口逐项拒绝即抛错 */
 export async function resendRecord(tab: MessageTab, id: string): Promise<void> {
-  throwOnFailed(tab === 'email' ? await emailsApi.resend({ ids: [id] }) : await smsApi.resend({ ids: [id] }))
+  throwOnFailed(tab === 'email'
+    ? await emailsApi.resend({
+        ids: [id],
+      })
+    : await smsApi.resend({
+        ids: [id],
+      }))
 }
 
 export async function cancelRecord(tab: MessageTab, id: string): Promise<void> {
-  throwOnFailed(tab === 'email' ? await emailsApi.cancel({ ids: [id] }) : await smsApi.cancel({ ids: [id] }))
+  throwOnFailed(tab === 'email'
+    ? await emailsApi.cancel({
+        ids: [id],
+      })
+    : await smsApi.cancel({
+        ids: [id],
+      }))
 }
 
 /** 短信模板参数（JSON）排版成多行；不是合法 JSON 的原样返回 */

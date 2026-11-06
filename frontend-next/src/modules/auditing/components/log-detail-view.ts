@@ -6,7 +6,14 @@ import type { Tone } from '@xihan-ui/core'
 import type { LogDetailField, LogDetailGroup, LogDetailSchema } from './log-detail.types'
 
 /** 分组的排版顺序 */
-export const LOG_DETAIL_GROUP_ORDER: readonly LogDetailGroup[] = ['subject', 'request', 'client', 'runtime', 'handling', 'trace']
+export const LOG_DETAIL_GROUP_ORDER: readonly LogDetailGroup[] = [
+  'subject',
+  'request',
+  'client',
+  'runtime',
+  'handling',
+  'trace',
+]
 
 export interface LogDetailEntry {
   field: LogDetailField
@@ -44,17 +51,35 @@ export function buildLogDetailView(schema: LogDetailSchema, record: object, form
     const value = values[key]
     if (!field || isEmptyValue(value))
       return null
-    return { field, raw: typeof value === 'object' ? JSON.stringify(value) : String(value), text: format(field, value) }
+    return {
+      field,
+      raw: typeof value === 'object'
+        ? JSON.stringify(value)
+        : String(value),
+      text: format(field, value),
+    }
   }
 
   const pick = (keys: readonly string[] = []) => keys.map(entryOf).filter((entry): entry is LogDetailEntry => entry !== null)
 
   const { header } = schema
-  const headerKeys = new Set([...header.title, ...(header.status ? [header.status] : []), ...(header.badges ?? []), ...header.meta])
+  const headerKeys = new Set([
+    ...header.title,
+    ...(header.status
+      ? [header.status]
+      : []),
+    ...(header.badges ?? []),
+    ...header.meta,
+  ])
 
-  const statusEntry = header.status ? entryOf(header.status) : null
+  const statusEntry = header.status
+    ? entryOf(header.status)
+    : null
   const status = statusEntry?.field.tone
-    ? { ...statusEntry, tone: statusEntry.field.tone(values[header.status!]) }
+    ? {
+        ...statusEntry,
+        tone: statusEntry.field.tone(values[header.status!]),
+      }
     : undefined
 
   const groups = LOG_DETAIL_GROUP_ORDER
@@ -71,7 +96,12 @@ export function buildLogDetailView(schema: LogDetailSchema, record: object, form
     title: pick(header.title).map(entry => entry.text).join(' · '),
     status: status ?? undefined,
     // 没有语气的结果字段退回成普通标签
-    badges: [...(statusEntry && !status ? [statusEntry] : []), ...pick(header.badges)],
+    badges: [
+      ...(statusEntry && !status
+        ? [statusEntry]
+        : []),
+      ...pick(header.badges),
+    ],
     meta: pick(header.meta),
     groups,
     blocks: schema.fields

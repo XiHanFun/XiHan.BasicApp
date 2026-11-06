@@ -46,7 +46,11 @@ import {
 } from './server'
 
 /** 假翻译：键原样返回，带参数时拼上参数便于断言 */
-const t = (key: string, values?: Record<string, unknown>) => (values ? `${key}:${JSON.stringify(values)}` : key)
+function t(key: string, values?: Record<string, unknown>) {
+  return values
+    ? `${key}:${JSON.stringify(values)}`
+    : key
+}
 
 const GiB = 1024 ** 3
 
@@ -79,18 +83,56 @@ function info(): ServerInfo {
       gen2Collections: 0,
       processCpuUsagePercent: null,
     },
-    processor: { name: 'AMD Ryzen 9 7950X', vendor: 'AuthenticAMD', architecture: 'X64', physicalCores: null, logicalCores: 32, frequencyMhz: 4500, cacheBytes: 64 * 1024 * 1024, usagePercent: null },
-    memory: { totalBytes: 64 * GiB, availableBytes: 48 * GiB, freeBytes: null, cachedBytes: null, usedBytes: 16 * GiB, usagePercent: null },
+    processor: {
+      name: 'AMD Ryzen 9 7950X',
+      vendor: 'AuthenticAMD',
+      architecture: 'X64',
+      physicalCores: null,
+      logicalCores: 32,
+      frequencyMhz: 4500,
+      cacheBytes: 64 * 1024 * 1024,
+      usagePercent: null,
+    },
+    memory: {
+      totalBytes: 64 * GiB,
+      availableBytes: 48 * GiB,
+      freeBytes: null,
+      cachedBytes: null,
+      usedBytes: 16 * GiB,
+      usagePercent: null,
+    },
     disks: [],
     networkInterfaces: [],
     gpus: [],
-    board: { manufacturer: 'ASUSTeK', product: 'ROG X670E', version: 'Rev 1.xx', serialNumber: null, systemManufacturer: null, systemProduct: null, biosVendor: 'AMI', biosVersion: '2401', biosDate: '08/13/2024' },
+    board: {
+      manufacturer: 'ASUSTeK',
+      product: 'ROG X670E',
+      version: 'Rev 1.xx',
+      serialNumber: null,
+      systemManufacturer: null,
+      systemProduct: null,
+      biosVendor: 'AMI',
+      biosVersion: '2401',
+      biosDate: '08/13/2024',
+    },
     health: [],
   }
 }
 
 function disk(patch: Partial<DiskInfo> = {}): DiskInfo {
-  return { name: 'C:\\', device: null, label: 'System', format: 'NTFS', type: 'Fixed', totalBytes: 1000, freeBytes: 250, availableBytes: 200, usedBytes: 750, usagePercent: 75.04, ...patch }
+  return {
+    name: 'C:\\',
+    device: null,
+    label: 'System',
+    format: 'NTFS',
+    type: 'Fixed',
+    totalBytes: 1000,
+    freeBytes: 250,
+    availableBytes: 200,
+    usedBytes: 750,
+    usagePercent: 75.04,
+    ...patch,
+  }
 }
 
 function nic(patch: Partial<NetworkInterfaceInfo> = {}): NetworkInterfaceInfo {
@@ -117,7 +159,17 @@ function nic(patch: Partial<NetworkInterfaceInfo> = {}): NetworkInterfaceInfo {
 }
 
 function health(patch: Partial<HealthItem> = {}): HealthItem {
-  return { name: 'database', state: 'Ready', errorCode: null, errorMessage: null, description: null, checkedAt: null, durationMs: 1.234, data: {}, ...patch }
+  return {
+    name: 'database',
+    state: 'Ready',
+    errorCode: null,
+    errorMessage: null,
+    description: null,
+    checkedAt: null,
+    durationMs: 1.234,
+    data: {},
+    ...patch,
+  }
 }
 
 afterEach(() => {
@@ -126,15 +178,33 @@ afterEach(() => {
 
 describe('服务监控：读不到与为零', () => {
   it('null、缺省与非有限数都算读不到，0 照常是 0', () => {
-    expect([knownNumber(null), knownNumber(undefined), knownNumber(Number.NaN), knownNumber(0), knownNumber(7)]).toEqual([null, null, null, 0, 7])
-    expect([textOrDash(null), textOrDash(''), textOrDash('x')]).toEqual(['-', '-', 'x'])
-    expect([countText(null), countText(0), countText(32)]).toEqual(['-', '0', '32'])
+    expect([
+      knownNumber(null),
+      knownNumber(undefined),
+      knownNumber(Number.NaN),
+      knownNumber(0),
+      knownNumber(7),
+    ]).toEqual([null, null, null, 0, 7])
+    expect([
+      textOrDash(null),
+      textOrDash(''),
+      textOrDash('x'),
+    ]).toEqual(['-', '-', 'x'])
+    expect([
+      countText(null),
+      countText(0),
+      countText(32),
+    ]).toEqual(['-', '0', '32'])
     expect(formatCount(null)).toBe('-')
     expect(formatCount(1234567)).toBe((1234567).toLocaleString())
   })
 
   it('字节按 1024 进位（4.x 同），读不到为 -、0 写作 0 B；速率加 /s', () => {
-    expect([formatBytes(null), formatBytes(undefined), formatBytes(-1)]).toEqual(['-', '-', '-'])
+    expect([
+      formatBytes(null),
+      formatBytes(undefined),
+      formatBytes(-1),
+    ]).toEqual(['-', '-', '-'])
     expect(formatBytes(0)).toBe('0 B')
     expect(formatBytes(512)).toBe('512 B')
     expect(formatBytes(1536)).toBe('1.50 KB')
@@ -145,11 +215,33 @@ describe('服务监控：读不到与为零', () => {
   })
 
   it('网卡速率按 1000 进位并去掉多余的零；频率满 1000 MHz 写 GHz；温度保留一位；检查耗时按量级取精度', () => {
-    expect([formatBitRate(null), formatBitRate(0), formatBitRate(999)]).toEqual(['-', '0 bps', '999 bps'])
-    expect([formatBitRate(100_000_000), formatBitRate(1_000_000_000), formatBitRate(2_500_000_000)]).toEqual(['100 Mbps', '1 Gbps', '2.5 Gbps'])
-    expect([formatFrequency(null), formatFrequency(0), formatFrequency(800.4), formatFrequency(3600)]).toEqual(['-', '-', '800 MHz', '3.60 GHz'])
-    expect([formatTemperature(null), formatTemperature(0), formatTemperature(65.26)]).toEqual(['-', '0°C', '65.3°C'])
-    expect([formatDurationMs(null), formatDurationMs(0.4567), formatDurationMs(12.4), formatDurationMs(1500)]).toEqual(['-', '0.46 ms', '12 ms', '1.50 s'])
+    expect([
+      formatBitRate(null),
+      formatBitRate(0),
+      formatBitRate(999),
+    ]).toEqual(['-', '0 bps', '999 bps'])
+    expect([
+      formatBitRate(100_000_000),
+      formatBitRate(1_000_000_000),
+      formatBitRate(2_500_000_000),
+    ]).toEqual(['100 Mbps', '1 Gbps', '2.5 Gbps'])
+    expect([
+      formatFrequency(null),
+      formatFrequency(0),
+      formatFrequency(800.4),
+      formatFrequency(3600),
+    ]).toEqual(['-', '-', '800 MHz', '3.60 GHz'])
+    expect([
+      formatTemperature(null),
+      formatTemperature(0),
+      formatTemperature(65.26),
+    ]).toEqual(['-', '0°C', '65.3°C'])
+    expect([
+      formatDurationMs(null),
+      formatDurationMs(0.4567),
+      formatDurationMs(12.4),
+      formatDurationMs(1500),
+    ]).toEqual(['-', '0.46 ms', '12 ms', '1.50 s'])
   })
 })
 
@@ -158,13 +250,37 @@ describe('服务监控：百分比与使用率', () => {
     expect(roundPercent(12.345)).toBe(12.3)
     expect(roundPercent(null)).toBeNull()
     expect(ratioPercent(1, 3)).toBe(33.3)
-    expect([ratioPercent(1, 0), ratioPercent(null, 10), ratioPercent(1, null)]).toEqual([null, null, null])
-    expect([formatPercent(null), formatPercent(0), formatPercent(12.34)]).toEqual(['-', '0%', '12.3%'])
+    expect([
+      ratioPercent(1, 0),
+      ratioPercent(null, 10),
+      ratioPercent(1, null),
+    ]).toEqual([null, null, null])
+    expect([
+      formatPercent(null),
+      formatPercent(0),
+      formatPercent(12.34),
+    ]).toEqual(['-', '0%', '12.3%'])
   })
 
   it('语气同 4.x：低于 50 绿、低于 80 黄、否则红；读不到为中性', () => {
-    expect([usageTone(null), usageTone(0), usageTone(49.9), usageTone(50), usageTone(79.9), usageTone(80), usageTone(100)])
-      .toEqual(['neutral', 'success', 'success', 'warning', 'warning', 'danger', 'danger'])
+    expect([
+      usageTone(null),
+      usageTone(0),
+      usageTone(49.9),
+      usageTone(50),
+      usageTone(79.9),
+      usageTone(80),
+      usageTone(100),
+    ])
+      .toEqual([
+        'neutral',
+        'success',
+        'success',
+        'warning',
+        'warning',
+        'danger',
+        'danger',
+      ])
   })
 
   it('处理器使用率在首个采样间隔内为 null；内存与磁盘取后端使用率，没有时按已用 / 总量算', () => {
@@ -181,16 +297,40 @@ describe('服务监控：百分比与使用率', () => {
     expect(diskUsage(disk())).toBe(75)
     expect(diskUsage(disk({ usagePercent: null }))).toBe(75)
     expect(diskUsage(disk({ usagePercent: null, usedBytes: undefined, freeBytes: 600 }))).toBe(40)
-    expect(diskUsage(disk({ usagePercent: null, totalBytes: 0, freeBytes: 0, usedBytes: 0 }))).toBeNull()
+    expect(diskUsage(disk({
+      usagePercent: null,
+      totalBytes: 0,
+      freeBytes: 0,
+      usedBytes: 0,
+    }))).toBeNull()
   })
 })
 
 describe('服务监控：运行时长', () => {
   it('解析 .NET TimeSpan 的常规写法，不认得的为 null', () => {
-    expect(parseDuration('3.04:05:06.7890000')).toEqual({ days: 3, hours: 4, minutes: 5, seconds: 6 })
-    expect(parseDuration('01:02:03.4560000')).toEqual({ days: 0, hours: 1, minutes: 2, seconds: 3 })
-    expect(parseDuration('00:00:05')).toEqual({ days: 0, hours: 0, minutes: 0, seconds: 5 })
-    expect([parseDuration(null), parseDuration(''), parseDuration('P1D')]).toEqual([null, null, null])
+    expect(parseDuration('3.04:05:06.7890000')).toEqual({
+      days: 3,
+      hours: 4,
+      minutes: 5,
+      seconds: 6,
+    })
+    expect(parseDuration('01:02:03.4560000')).toEqual({
+      days: 0,
+      hours: 1,
+      minutes: 2,
+      seconds: 3,
+    })
+    expect(parseDuration('00:00:05')).toEqual({
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 5,
+    })
+    expect([
+      parseDuration(null),
+      parseDuration(''),
+      parseDuration('P1D'),
+    ]).toEqual([null, null, null])
   })
 
   it('满一天带天数、时分秒补两位（4.x 同）；读不到为 -，写法不认得时原样', () => {
@@ -206,7 +346,13 @@ describe('服务监控：各区块的行', () => {
     expect(overviewItems(t, null).map(item => item.value)).toEqual(['-', '-', '-', '-', '-'])
 
     const items = overviewItems(t, info())
-    expect(items.map(item => item.icon)).toEqual(['lucide:cpu', 'lucide:memory-stick', 'lucide:monitor', 'lucide:box', 'lucide:timer'])
+    expect(items.map(item => item.icon)).toEqual([
+      'lucide:cpu',
+      'lucide:memory-stick',
+      'lucide:monitor',
+      'lucide:box',
+      'lucide:timer',
+    ])
     expect(items[0]).toMatchObject({ value: 'AMD Ryzen 9 7950X', sub: 'maintenance.server.cores_threads:{"physical":"-","logical":"32"}' })
     expect(items[1]).toMatchObject({ value: '64.00 GB', sub: 'maintenance.server.usage_rate_value:{"pct":"25%"}' })
     expect(items[2]!.sub).toBe('maintenance.server.arch_suffix:{"arch":"X64"}')
@@ -215,13 +361,37 @@ describe('服务监控：各区块的行', () => {
   })
 
   it('处理器明细带本进程占用（未采样为 -），内存明细读不到空闲与缓存的平台写 -', () => {
-    expect(cpuDetails(t, info()).map(row => row.value)).toEqual(['X64', '4.50 GHz', '64.00 MB', '-', '32', '-'])
+    expect(cpuDetails(t, info()).map(row => row.value)).toEqual([
+      'X64',
+      '4.50 GHz',
+      '64.00 MB',
+      '-',
+      '32',
+      '-',
+    ])
     expect(cpuDetails(t, null).every(row => row.value === '-')).toBe(true)
-    expect(memoryDetails(t, info().memory).map(row => row.value)).toEqual(['64.00 GB', '16.00 GB', '48.00 GB', '75%', '-', '-'])
+    expect(memoryDetails(t, info().memory).map(row => row.value)).toEqual([
+      '64.00 GB',
+      '16.00 GB',
+      '48.00 GB',
+      '75%',
+      '-',
+      '-',
+    ])
   })
 
   it('主板与系统信息：读不到为 -，交互模式写是 / 否，GC 写三代次数', () => {
-    expect(boardDetails(t, info().board).map(row => row.value)).toEqual(['ASUSTeK', 'ROG X670E', 'Rev 1.xx', '-', '-', '-', 'AMI', '2401', '08/13/2024'])
+    expect(boardDetails(t, info().board).map(row => row.value)).toEqual([
+      'ASUSTeK',
+      'ROG X670E',
+      'Rev 1.xx',
+      '-',
+      '-',
+      '-',
+      'AMI',
+      '2401',
+      '08/13/2024',
+    ])
 
     const rows = systemDetails(t, info().runtime)
     const value = (label: string) => rows.find(row => row.label === label)?.value
@@ -258,11 +428,25 @@ describe('服务监控：磁盘、显卡与网卡', () => {
     })
     expect(diskCard(t, disk({ label: null, usedBytes: undefined })).used).toBe('750 B')
     expect(diskCard(t, disk({ label: null })).hint).toBe('C:\\')
-    expect(diskCard(t, disk({ usagePercent: null, totalBytes: 0, freeBytes: 0, usedBytes: 0 }))).toMatchObject({ percent: null, percentText: '-', tone: 'neutral' })
+    expect(diskCard(t, disk({
+      usagePercent: null,
+      totalBytes: 0,
+      freeBytes: 0,
+      usedBytes: 0,
+    }))).toMatchObject({ percent: null, percentText: '-', tone: 'neutral' })
   })
 
   it('显卡只列读得到的项（0 照常列出）；PCI ID 两段都有时用冒号连起', () => {
-    const gpu: GpuInfo = { name: 'NVIDIA RTX 4090', vendor: 'NVIDIA', vendorId: '10de', deviceId: '2684', driver: 'nvidia', driverVersion: '560.70', memoryBytes: null, temperatureCelsius: 0 }
+    const gpu: GpuInfo = {
+      name: 'NVIDIA RTX 4090',
+      vendor: 'NVIDIA',
+      vendorId: '10de',
+      deviceId: '2684',
+      driver: 'nvidia',
+      driverVersion: '560.70',
+      memoryBytes: null,
+      temperatureCelsius: 0,
+    }
     expect(gpuDetails(t, gpu)).toEqual([
       { label: 'maintenance.server.driver', value: 'nvidia' },
       { label: 'maintenance.server.driver_version', value: '560.70' },
@@ -271,7 +455,10 @@ describe('服务监控：磁盘、显卡与网卡', () => {
       { label: 'maintenance.server.temperature', value: '0°C' },
     ])
     expect(gpuDetails(t, { name: 'Basic Display' })).toEqual([])
-    expect([pciId({ vendorId: '8086' }), pciId({ deviceId: null, vendorId: null })]).toEqual(['8086', null])
+    expect([
+      pciId({ vendorId: '8086' }),
+      pciId({ deviceId: null, vendorId: null }),
+    ]).toEqual(['8086', null])
   })
 
   it('活跃网卡同 4.x：已连通且不是虚拟过滤网卡；地址组只列有地址的，速率未采样为 -', () => {
@@ -284,11 +471,24 @@ describe('服务监控：磁盘、显卡与网卡', () => {
     expect(activeNetworkInterfaces(list).map(item => item.id)).toEqual(['{A1}'])
 
     expect(networkAddresses(t, nic())).toEqual([
-      { label: 'IPv4', values: ['192.168.1.5/24'] },
-      { label: 'maintenance.server.gateways', values: ['192.168.1.1'] },
+      {
+        label: 'IPv4',
+        values: ['192.168.1.5/24'],
+      },
+      {
+        label: 'maintenance.server.gateways',
+        values: ['192.168.1.1'],
+      },
     ])
     expect(networkAddresses(t, {})).toEqual([])
-    expect(networkTraffic(t, nic()).map(row => row.value)).toEqual(['-', '1.50 KB/s', '2.00 KB', '0 B', (1234567).toLocaleString(), '-'])
+    expect(networkTraffic(t, nic()).map(row => row.value)).toEqual([
+      '-',
+      '1.50 KB/s',
+      '2.00 KB',
+      '0 B',
+      (1234567).toLocaleString(),
+      '-',
+    ])
   })
 })
 
@@ -296,24 +496,63 @@ describe('服务监控：健康项', () => {
   it('九种状态都有文案；就绪绿、降级与排空黄、故障红、停止中性，启动途中为信息', () => {
     expect(healthStateLabel(t, 'Draining')).toBe('maintenance.server.health_states.draining')
     expect(healthStateLabel(t, 'Failed')).toBe('maintenance.server.health_states.failed')
-    expect((['Declared', 'Resolved', 'Configured', 'Started', 'Ready', 'Degraded', 'Draining', 'Stopped', 'Failed'] as const).map(healthStateTone))
-      .toEqual(['info', 'info', 'info', 'info', 'success', 'warning', 'warning', 'neutral', 'danger'])
+    expect(([
+      'Declared',
+      'Resolved',
+      'Configured',
+      'Started',
+      'Ready',
+      'Degraded',
+      'Draining',
+      'Stopped',
+      'Failed',
+    ] as const).map(healthStateTone))
+      .toEqual([
+        'info',
+        'info',
+        'info',
+        'info',
+        'success',
+        'warning',
+        'warning',
+        'neutral',
+        'danger',
+      ])
   })
 
   it('概览角标取最差的一项：全部就绪或没有健康项为运行正常', () => {
     expect(healthSummary(t, [])).toEqual({ tone: 'success', label: 'maintenance.server.running_normal' })
-    expect(healthSummary(t, [{ state: 'Ready' }])).toEqual({ tone: 'success', label: 'maintenance.server.running_normal' })
-    expect(healthSummary(t, [{ state: 'Ready' }, { state: 'Started' }])).toEqual({ tone: 'info', label: 'maintenance.server.health_pending' })
-    expect(healthSummary(t, [{ state: 'Stopped' }, { state: 'Degraded' }, { state: 'Started' }])).toEqual({ tone: 'warning', label: 'maintenance.server.health_degraded' })
-    expect(healthSummary(t, [{ state: 'Failed' }, { state: 'Degraded' }])).toEqual({ tone: 'danger', label: 'maintenance.server.health_failed' })
+    expect(healthSummary(t, [
+      { state: 'Ready' },
+    ])).toEqual({ tone: 'success', label: 'maintenance.server.running_normal' })
+    expect(healthSummary(t, [
+      { state: 'Ready' },
+      { state: 'Started' },
+    ])).toEqual({ tone: 'info', label: 'maintenance.server.health_pending' })
+    expect(healthSummary(t, [
+      { state: 'Stopped' },
+      { state: 'Degraded' },
+      { state: 'Started' },
+    ])).toEqual({ tone: 'warning', label: 'maintenance.server.health_degraded' })
+    expect(healthSummary(t, [
+      { state: 'Failed' },
+      { state: 'Degraded' },
+    ])).toEqual({ tone: 'danger', label: 'maintenance.server.health_failed' })
   })
 
   it('明细按后端顺序列出、空值写 -；一格健康项带耗时与检查时间，空串的说明与错误当作没有', () => {
-    expect(healthData(health({ data: { pool: '8', lastError: null } }))).toEqual([
+    expect(healthData(health({
+      data: { pool: '8', lastError: null },
+    }))).toEqual([
       { label: 'pool', value: '8' },
       { label: 'lastError', value: '-' },
     ])
-    expect(healthCard(t, health({ state: 'Failed', errorCode: 'CACHE_UNAVAILABLE_001', errorMessage: '连不上', description: '' }))).toEqual({
+    expect(healthCard(t, health({
+      state: 'Failed',
+      errorCode: 'CACHE_UNAVAILABLE_001',
+      errorMessage: '连不上',
+      description: '',
+    }))).toEqual({
       name: 'database',
       stateLabel: 'maintenance.server.health_states.failed',
       tone: 'danger',
@@ -342,7 +581,10 @@ describe('服务监控：取数与自动刷新', () => {
   }
 
   function ok(body: object): Response {
-    return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   it('按 GET /api/server 取整份；上一次在途时不再发', async () => {
@@ -367,7 +609,15 @@ describe('服务监控：取数与自动刷新', () => {
     stubServer(() => ok(info()))
     const state = useServerInfo()
     await state.refresh()
-    stubServer(() => new Response(JSON.stringify({ code: 'MAINTENANCE_UNAVAILABLE_009', status: 503, detail: 'down', traceId: 'x' }), { status: 503, headers: { 'Content-Type': 'application/problem+json' } }))
+    stubServer(() => new Response(JSON.stringify({
+      code: 'MAINTENANCE_UNAVAILABLE_009',
+      status: 503,
+      detail: 'down',
+      traceId: 'x',
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/problem+json' },
+    }))
     await expect(state.refresh()).rejects.toMatchObject({ code: 'MAINTENANCE_UNAVAILABLE_009' })
     expect(state.info.value?.runtime.machineName).toBe('XIHAN-01')
     expect([state.loading.value, state.initialized.value]).toEqual([false, true])

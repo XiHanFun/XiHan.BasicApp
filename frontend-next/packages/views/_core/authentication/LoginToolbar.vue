@@ -22,10 +22,18 @@ const { isDark, toggleThemeWithTransition, setThemeColor } = useTheme()
 const { t } = useI18n()
 
 const colorPresets = computed(() => {
-  const presets = [{ color: DEFAULT_THEME_COLOR, label: t('preference.appearance.color.default') }]
+  const presets = [
+    {
+      color: DEFAULT_THEME_COLOR,
+      label: t('preference.appearance.color.default'),
+    },
+  ]
   for (const group of THEME_COLOR_GROUPS) {
     for (const item of group.items) {
-      presets.push({ color: item.color, label: t(item.nameKey) })
+      presets.push({
+        color: item.color,
+        label: t(item.nameKey),
+      })
     }
   }
   return presets

@@ -24,7 +24,9 @@ const show = defineModel<boolean>('show', { default: false })
 const { t } = useI18n()
 
 function text(value: null | number | string | undefined): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 /** 群主的展示名：成员表里有群主就用他的名字，否则给主键 */
@@ -33,16 +35,52 @@ const ownerName = computed(() => {
   if (!conversation?.ownerUserId)
     return '-'
   const owner = props.members?.items.find(member => member.userId === conversation.ownerUserId)
-  return owner ? (owner.displayName || owner.userName || owner.userId) : conversation.ownerUserId
+  return owner
+    ? (owner.displayName || owner.userName || owner.userId)
+    : conversation.ownerUserId
 })
 
 const columns = computed<XDataTableColumn<ChatAuditMember>[]>(() => [
-  { key: 'displayName', title: t('chat.audit.display_name'), minWidth: 140, ellipsis: true, render: row => text(row.displayName) },
-  { key: 'userName', title: t('chat.audit.user_name'), minWidth: 120, ellipsis: true, render: row => text(row.userName) },
-  { key: 'memberRole', title: t('chat.audit.member_role'), width: 100, render: row => renderTag(memberRoleLabel(t, row.memberRole), memberRoleTone(row.memberRole)) },
-  { key: 'isSilenced', title: t('chat.members.silenced'), width: 90, render: row => (row.isSilenced ? renderTag(t('common.statuses.yes'), 'danger') : renderTag(t('common.statuses.no'), 'neutral')) },
-  { key: 'joinedAt', title: t('chat.audit.joined_at'), minWidth: 170, render: row => formatDate(row.joinedAt) },
-  { key: 'userId', title: t('chat.audit.user_id'), minWidth: 280, ellipsis: true },
+  {
+    key: 'displayName',
+    title: t('chat.audit.display_name'),
+    minWidth: 140,
+    ellipsis: true,
+    render: row => text(row.displayName),
+  },
+  {
+    key: 'userName',
+    title: t('chat.audit.user_name'),
+    minWidth: 120,
+    ellipsis: true,
+    render: row => text(row.userName),
+  },
+  {
+    key: 'memberRole',
+    title: t('chat.audit.member_role'),
+    width: 100,
+    render: row => renderTag(memberRoleLabel(t, row.memberRole), memberRoleTone(row.memberRole)),
+  },
+  {
+    key: 'isSilenced',
+    title: t('chat.members.silenced'),
+    width: 90,
+    render: row => (row.isSilenced
+      ? renderTag(t('common.statuses.yes'), 'danger')
+      : renderTag(t('common.statuses.no'), 'neutral')),
+  },
+  {
+    key: 'joinedAt',
+    title: t('chat.audit.joined_at'),
+    minWidth: 170,
+    render: row => formatDate(row.joinedAt),
+  },
+  {
+    key: 'userId',
+    title: t('chat.audit.user_id'),
+    minWidth: 280,
+    ellipsis: true,
+  },
 ])
 </script>
 

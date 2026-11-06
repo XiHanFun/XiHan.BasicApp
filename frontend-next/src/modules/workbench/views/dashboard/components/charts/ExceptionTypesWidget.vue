@@ -17,7 +17,9 @@ const { t, locale } = useI18n()
 const { data, loading, error } = useWidgetData('auditing.exception-types', DAYS)
 
 const rows = computed(() => (data.value?.slices ?? []).map(slice => ({
-  name: slice.key === 'others' ? t('workbench.charts.others') : (slice.key.split('.').at(-1) || slice.key),
+  name: slice.key === 'others'
+    ? t('workbench.charts.others')
+    : (slice.key.split('.').at(-1) || slice.key),
   count: slice.value,
 })))
 </script>

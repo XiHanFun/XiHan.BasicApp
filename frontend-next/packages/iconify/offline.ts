@@ -34,7 +34,12 @@ const PACKAGE_LOADERS: Record<IconPackageName, () => Promise<IconifyJSON>> = {
  * simple-icons（第三方登录品牌 logo 如 Gitee，登录页/绑定页离线渲染需预载）
  * 预加载避免离线模式图标空白（离线 Icon 对已挂载组件不会因后加载而重渲染）
  */
-const PRELOAD_ICON_PACKAGES: IconPackageName[] = ['lucide', 'tabler', 'mdi', 'simple-icons']
+const PRELOAD_ICON_PACKAGES: IconPackageName[] = [
+  'lucide',
+  'tabler',
+  'mdi',
+  'simple-icons',
+]
 
 export async function setupIconifyOffline() {
   await Promise.all(PRELOAD_ICON_PACKAGES.map(async (packageName) => {

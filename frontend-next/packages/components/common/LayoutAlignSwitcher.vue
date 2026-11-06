@@ -39,7 +39,10 @@ const ALIGNS = [
 ] as const
 
 const options = computed<MenuNode[]>(() =>
-  ALIGNS.map(a => ({ value: a.value, label: t(a.labelKey) })),
+  ALIGNS.map(a => ({
+    value: a.value,
+    label: t(a.labelKey),
+  })),
 )
 
 /** 条目里的图标与选中态：collection 只带文本，图标与高亮走 item 插槽 */

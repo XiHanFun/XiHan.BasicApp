@@ -42,13 +42,18 @@ async function createRuntime(): Promise<PrintRuntime> {
 
   /** 多份数据各自分页再接成一份；分页的缺省注入项与 printDocument 相同 */
   function paginateRecords(document: PrintDocument, records: readonly unknown[]): PaginationResult {
-    return runtime.mergePaginationResults(records.map(record => runtime.paginateDocument(document, record, { locale: locale() })))
+    return runtime.mergePaginationResults(records.map(record => runtime.paginateDocument(document, record, {
+      locale: locale(),
+    })))
   }
 
   return {
     async printInBrowser(document, records, options) {
       if (records.length === 1) {
-        const outcome = await runtime.printDocument(document, records[0], { ...options, locale: locale() })
+        const outcome = await runtime.printDocument(document, records[0], {
+          ...options,
+          locale: locale(),
+        })
         return outcome.sheets
       }
       const result = paginateRecords(document, records)
@@ -58,7 +63,10 @@ async function createRuntime(): Promise<PrintRuntime> {
     printWithClient(document, records, options) {
       const target = (client ??= clientModule.createPrintClient())
       return records.length === 1
-        ? target.printDocument(document, records[0], { ...options, locale: locale() })
+        ? target.printDocument(document, records[0], {
+            ...options,
+            locale: locale(),
+          })
         : target.printSheets(paginateRecords(document, records), options)
     },
     client: () => (client ??= clientModule.createPrintClient()),

@@ -56,7 +56,18 @@ export interface BotConfigForm {
 }
 
 export function emptyBotConfigForm(): BotConfigForm {
-  return { id: null, code: '', name: '', provider: 'DingTalk', webhookUrl: '', secret: '', keyword: '', isEnabled: true, order: 100, remark: '' }
+  return {
+    id: null,
+    code: '',
+    name: '',
+    provider: 'DingTalk',
+    webhookUrl: '',
+    secret: '',
+    keyword: '',
+    isEnabled: true,
+    order: 100,
+    remark: '',
+  }
 }
 
 /** 已保存的配置回填表单（签名密钥不回显） */
@@ -110,8 +121,12 @@ function draft(form: BotConfigForm) {
     name: form.name.trim(),
     provider: form.provider,
     webhookUrl: form.webhookUrl.trim(),
-    secret: signing ? blankToNull(form.secret) : null,
-    keyword: signing ? blankToNull(form.keyword) : null,
+    secret: signing
+      ? blankToNull(form.secret)
+      : null,
+    keyword: signing
+      ? blankToNull(form.keyword)
+      : null,
     isEnabled: form.isEnabled,
     order: form.order ?? 0,
     remark: blankToNull(form.remark),
@@ -120,12 +135,18 @@ function draft(form: BotConfigForm) {
 
 /** 新建：本侧这个服务商的第一个机器人由后端自动设为默认（并强制启用） */
 export function toCreateBody(form: BotConfigForm): RequestOf<'bot-configs.create'> {
-  return { code: form.code.trim(), ...draft(form) }
+  return {
+    code: form.code.trim(),
+    ...draft(form),
+  }
 }
 
 /** 编辑：编码不改；签名密钥留空即保留原值 */
 export function toUpdateBody(form: BotConfigForm & { id: string }): RequestOf<'bot-configs.update'> {
-  return { id: form.id, ...draft(form) }
+  return {
+    id: form.id,
+    ...draft(form),
+  }
 }
 
 /**
@@ -135,10 +156,20 @@ export function toUpdateBody(form: BotConfigForm & { id: string }): RequestOf<'b
 export function botConfigResource(): SchemaResource<BotConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await botConfigsApi.list(toPageRequest(params, BOT_CONFIG_QUERY)), params),
-    remove: async id => throwOnFailed(await botConfigsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await botConfigsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const current = await botConfigsApi.get({ id: String(id) })
-      return botConfigsApi.update(toUpdateBody({ ...toBotConfigForm(current), id: current.id, isEnabled: enabled }))
+      const current = await botConfigsApi.get({
+        id: String(id),
+      })
+      return botConfigsApi.update(toUpdateBody({
+        ...toBotConfigForm(current),
+        id: current.id,
+        isEnabled: enabled,
+      }))
     },
   }
 }

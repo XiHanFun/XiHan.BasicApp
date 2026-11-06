@@ -76,7 +76,12 @@ export function valueHint(t: Translate, kind: ConditionValueKind, operator: Cond
 
 /** 条件的一行文字：属性、运算符（取反加前缀）与值 */
 export function describeCondition(t: Translate, condition: { attributeName: string, operator: ConditionOperator, isNegated: boolean, value?: null | string }): string {
-  const parts = [attributeLabel(t, condition.attributeName), `${condition.isNegated ? t('access.conditions.negated_prefix') : ''}${operatorLabel(t, condition.operator)}`]
+  const parts = [
+    attributeLabel(t, condition.attributeName),
+    `${condition.isNegated
+      ? t('access.conditions.negated_prefix')
+      : ''}${operatorLabel(t, condition.operator)}`,
+  ]
   if (requiresValue(condition.operator) && condition.value)
     parts.push(condition.value)
   return parts.join(' ')

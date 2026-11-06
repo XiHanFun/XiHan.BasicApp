@@ -71,11 +71,35 @@ const isTree = computed(() => form.templateType === 'Tree')
 const isMasterDetail = computed(() => form.templateType === 'MasterDetail')
 
 function emptyForm(): TableForm {
-  return { tableName: '', tableComment: '', className: '', namespace: '', moduleName: '', businessName: '', functionName: '', author: '', templateType: 'Single', deliveryType: 'Zip', scope: 'All', target: 'NewPackage', enabledActions: [...ALL_ACTIONS], databaseType: 'PostgreSql', primaryKeyColumn: null, treeParentColumn: null, treeNameColumn: null, masterTableId: null, masterForeignKey: null, status: 'Active' }
+  return {
+    tableName: '',
+    tableComment: '',
+    className: '',
+    namespace: '',
+    moduleName: '',
+    businessName: '',
+    functionName: '',
+    author: '',
+    templateType: 'Single',
+    deliveryType: 'Zip',
+    scope: 'All',
+    target: 'NewPackage',
+    enabledActions: [...ALL_ACTIONS],
+    databaseType: 'PostgreSql',
+    primaryKeyColumn: null,
+    treeParentColumn: null,
+    treeNameColumn: null,
+    masterTableId: null,
+    masterForeignKey: null,
+    status: 'Active',
+  }
 }
 
 function options<T extends string>(group: string, values: readonly T[]): SelectOption[] {
-  return values.map(value => ({ label: t(enumKey(group, value)), value }))
+  return values.map(value => ({
+    label: t(enumKey(group, value)),
+    value,
+  }))
 }
 
 const templateTypeOptions = computed(() => options('template_type', TEMPLATE_TYPES))
@@ -85,8 +109,14 @@ const targetOptions = computed(() => options('target', GENERATION_TARGETS))
 const actionOptions = computed(() => options('action', ALL_ACTIONS))
 const databaseTypeOptions = computed<SelectOption[]>(() => DATABASE_TYPE_OPTIONS.map(option => ({ label: option.label, value: option.value })))
 const statusOptions = computed<SelectOption[]>(() => [
-  { label: t('common.statuses.enabled'), value: 'Active' },
-  { label: t('common.statuses.disabled'), value: 'Disabled' },
+  {
+    label: t('common.statuses.enabled'),
+    value: 'Active',
+  },
+  {
+    label: t('common.statuses.disabled'),
+    value: 'Disabled',
+  },
 ])
 
 watch(
@@ -114,7 +144,9 @@ async function loadDetail() {
     const table = detail.table
     current.value = table
     columnOptions.value = detail.columns.map(column => ({
-      label: column.columnComment ? `${column.columnName}（${column.columnComment}）` : column.columnName,
+      label: column.columnComment
+        ? `${column.columnName}（${column.columnComment}）`
+        : column.columnName,
       value: column.columnName,
     }))
     Object.assign(form, {
@@ -216,7 +248,9 @@ function validateForm(): boolean {
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 async function handleSubmit() {

@@ -37,24 +37,32 @@ export function knownNumber(value: MaybeNumber): null | number {
   if (value === null || value === undefined)
     return null
   const number = Number(value)
-  return Number.isFinite(number) ? number : null
+  return Number.isFinite(number)
+    ? number
+    : null
 }
 
 /** 文本：读不到或空串为 - */
 export function textOrDash(value: MaybeText): string {
-  return value === null || value === undefined || value === '' ? UNKNOWN : value
+  return value === null || value === undefined || value === ''
+    ? UNKNOWN
+    : value
 }
 
 /** 计数（核心数、进程 ID 等）：读不到为 -，0 照常显示 */
 export function countText(value: MaybeNumber): string {
   const number = knownNumber(value)
-  return number === null ? UNKNOWN : String(number)
+  return number === null
+    ? UNKNOWN
+    : String(number)
 }
 
 /** 大计数（包数等）按千分位写出（4.x 同用 toLocaleString） */
 export function formatCount(value: MaybeNumber): string {
   const number = knownNumber(value)
-  return number === null ? UNKNOWN : number.toLocaleString()
+  return number === null
+    ? UNKNOWN
+    : number.toLocaleString()
 }
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const
@@ -67,13 +75,17 @@ export function formatBytes(value: MaybeNumber): string {
   if (bytes === 0)
     return '0 B'
   const index = Math.min(Math.max(Math.floor(Math.log(bytes) / Math.log(1024)), 0), BYTE_UNITS.length - 1)
-  return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 2)} ${BYTE_UNITS[index]}`
+  return `${(bytes / 1024 ** index).toFixed(index === 0
+    ? 0
+    : 2)} ${BYTE_UNITS[index]}`
 }
 
 /** 字节速率（网卡收发）：字节写法加 /s */
 export function formatByteRate(value: MaybeNumber): string {
   const text = formatBytes(value)
-  return text === UNKNOWN ? UNKNOWN : `${text}/s`
+  return text === UNKNOWN
+    ? UNKNOWN
+    : `${text}/s`
 }
 
 const BIT_UNITS = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'] as const
@@ -94,13 +106,17 @@ export function formatFrequency(mhz: MaybeNumber): string {
   const value = knownNumber(mhz)
   if (value === null || value <= 0)
     return UNKNOWN
-  return value >= 1000 ? `${(value / 1000).toFixed(2)} GHz` : `${Math.round(value)} MHz`
+  return value >= 1000
+    ? `${(value / 1000).toFixed(2)} GHz`
+    : `${Math.round(value)} MHz`
 }
 
 /** 温度（℃），保留一位 */
 export function formatTemperature(celsius: MaybeNumber): string {
   const value = knownNumber(celsius)
-  return value === null ? UNKNOWN : `${Number.parseFloat(value.toFixed(1))}°C`
+  return value === null
+    ? UNKNOWN
+    : `${Number.parseFloat(value.toFixed(1))}°C`
 }
 
 /** 检查耗时（毫秒，带小数）：不足 10 ms 保留两位、不足一秒取整，否则按秒保留两位 */
@@ -110,7 +126,9 @@ export function formatDurationMs(ms: MaybeNumber): string {
     return UNKNOWN
   if (value >= 1000)
     return `${(value / 1000).toFixed(2)} s`
-  return `${Number.parseFloat(value.toFixed(value < 10 ? 2 : 0))} ms`
+  return `${Number.parseFloat(value.toFixed(value < 10
+    ? 2
+    : 0))} ms`
 }
 
 // ── 百分比与使用率 ──────────────────────────────────────────────
@@ -118,7 +136,9 @@ export function formatDurationMs(ms: MaybeNumber): string {
 /** 百分比保留一位（4.x 磁盘同） */
 export function roundPercent(value: MaybeNumber): null | number {
   const number = knownNumber(value)
-  return number === null ? null : Math.round(number * 10) / 10
+  return number === null
+    ? null
+    : Math.round(number * 10) / 10
 }
 
 /** 部分占总量的百分比；任一读不到或总量不为正为 null */
@@ -133,7 +153,9 @@ export function ratioPercent(part: MaybeNumber, total: MaybeNumber): null | numb
 /** 百分比文本：读不到为 -（不写成 0%） */
 export function formatPercent(value: MaybeNumber): string {
   const percent = roundPercent(value)
-  return percent === null ? UNKNOWN : `${percent}%`
+  return percent === null
+    ? UNKNOWN
+    : `${percent}%`
 }
 
 /** 使用率的语气（4.x 同：低于 50 为绿、低于 80 为黄、否则为红）；读不到为中性 */
@@ -183,11 +205,18 @@ const TIME_SPAN = /^(?:(\d+)\.)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?$/
 
 /** 解析运行时长；读不到或写法不认得为 null */
 export function parseDuration(raw: MaybeText): DurationParts | null {
-  const match = raw ? TIME_SPAN.exec(raw) : null
+  const match = raw
+    ? TIME_SPAN.exec(raw)
+    : null
   if (!match)
     return null
   const [, days = '0', hours = '0', minutes = '0', seconds = '0'] = match
-  return { days: Number(days), hours: Number(hours), minutes: Number(minutes), seconds: Number(seconds) }
+  return {
+    days: Number(days),
+    hours: Number(hours),
+    minutes: Number(minutes),
+    seconds: Number(seconds),
+  }
 }
 
 function pad(value: number): string {
@@ -199,7 +228,11 @@ export function formatUptime(t: Translate, raw: MaybeText): string {
   const parts = parseDuration(raw)
   if (!parts)
     return textOrDash(raw)
-  const values = { hour: pad(parts.hours), minute: pad(parts.minutes), second: pad(parts.seconds) }
+  const values = {
+    hour: pad(parts.hours),
+    minute: pad(parts.minutes),
+    second: pad(parts.seconds),
+  }
   return parts.days > 0
     ? t('maintenance.server.uptime_with_day', { day: parts.days, ...values })
     : t('maintenance.server.uptime', values)
@@ -233,19 +266,26 @@ export function overviewItems(t: Translate, info: ServerInfo | null): OverviewIt
       icon: 'lucide:cpu',
       title: t('maintenance.server.processor'),
       value: textOrDash(processor?.name),
-      sub: t('maintenance.server.cores_threads', { physical: countText(processor?.physicalCores), logical: countText(processor?.logicalCores) }),
+      sub: t('maintenance.server.cores_threads', {
+        physical: countText(processor?.physicalCores),
+        logical: countText(processor?.logicalCores),
+      }),
     },
     {
       icon: 'lucide:memory-stick',
       title: t('maintenance.server.memory'),
       value: formatBytes(memory?.totalBytes),
-      sub: t('maintenance.server.usage_rate_value', { pct: formatPercent(memoryUsage(memory)) }),
+      sub: t('maintenance.server.usage_rate_value', {
+        pct: formatPercent(memoryUsage(memory)),
+      }),
     },
     {
       icon: 'lucide:monitor',
       title: t('maintenance.server.os'),
       value: textOrDash(runtime?.osDescription),
-      sub: t('maintenance.server.arch_suffix', { arch: textOrDash(runtime?.osArchitecture) }),
+      sub: t('maintenance.server.arch_suffix', {
+        arch: textOrDash(runtime?.osArchitecture),
+      }),
     },
     {
       icon: 'lucide:box',
@@ -257,7 +297,9 @@ export function overviewItems(t: Translate, info: ServerInfo | null): OverviewIt
       icon: 'lucide:timer',
       title: t('maintenance.server.system_uptime'),
       value: formatUptime(t, runtime?.systemUptime),
-      sub: t('maintenance.server.process_uptime', { uptime: formatUptime(t, runtime?.processUptime) }),
+      sub: t('maintenance.server.process_uptime', {
+        uptime: formatUptime(t, runtime?.processUptime),
+      }),
     },
   ]
 }
@@ -266,67 +308,225 @@ export function overviewItems(t: Translate, info: ServerInfo | null): OverviewIt
 export function cpuDetails(t: Translate, info: ServerInfo | null): DetailRow[] {
   const processor = info?.processor
   return [
-    { label: t('maintenance.server.processor_arch'), value: textOrDash(processor?.architecture) },
-    { label: t('maintenance.server.base_clock'), value: formatFrequency(processor?.frequencyMhz) },
-    { label: t('maintenance.server.cache_size'), value: formatBytes(processor?.cacheBytes) },
-    { label: t('maintenance.server.physical_cores'), value: countText(processor?.physicalCores) },
-    { label: t('maintenance.server.logical_cores'), value: countText(processor?.logicalCores) },
-    { label: t('maintenance.server.process_cpu'), value: formatPercent(info?.runtime.processCpuUsagePercent) },
+    {
+      label: t('maintenance.server.processor_arch'),
+      value: textOrDash(processor?.architecture),
+    },
+    {
+      label: t('maintenance.server.base_clock'),
+      value: formatFrequency(processor?.frequencyMhz),
+    },
+    {
+      label: t('maintenance.server.cache_size'),
+      value: formatBytes(processor?.cacheBytes),
+    },
+    {
+      label: t('maintenance.server.physical_cores'),
+      value: countText(processor?.physicalCores),
+    },
+    {
+      label: t('maintenance.server.logical_cores'),
+      value: countText(processor?.logicalCores),
+    },
+    {
+      label: t('maintenance.server.process_cpu'),
+      value: formatPercent(info?.runtime.processCpuUsagePercent),
+    },
   ]
 }
 
 /** 内存明细：4.x 的四行加上空闲与文件缓存（读不到的平台为 -） */
 export function memoryDetails(t: Translate, memory: MemoryInfo | null | undefined): DetailRow[] {
   return [
-    { label: t('maintenance.server.total_memory'), value: formatBytes(memory?.totalBytes) },
-    { label: t('maintenance.server.used'), value: formatBytes(memory?.usedBytes) },
-    { label: t('maintenance.server.available'), value: formatBytes(memory?.availableBytes) },
-    { label: t('maintenance.server.available_rate'), value: formatPercent(availableRate(memory)) },
-    { label: t('maintenance.server.free'), value: formatBytes(memory?.freeBytes) },
-    { label: t('maintenance.server.cached'), value: formatBytes(memory?.cachedBytes) },
+    {
+      label: t('maintenance.server.total_memory'),
+      value: formatBytes(memory?.totalBytes),
+    },
+    {
+      label: t('maintenance.server.used'),
+      value: formatBytes(memory?.usedBytes),
+    },
+    {
+      label: t('maintenance.server.available'),
+      value: formatBytes(memory?.availableBytes),
+    },
+    {
+      label: t('maintenance.server.available_rate'),
+      value: formatPercent(availableRate(memory)),
+    },
+    {
+      label: t('maintenance.server.free'),
+      value: formatBytes(memory?.freeBytes),
+    },
+    {
+      label: t('maintenance.server.cached'),
+      value: formatBytes(memory?.cachedBytes),
+    },
   ]
 }
 
 /** 主板信息：4.x 的厂商、型号、版本、序列号，加上整机与 BIOS */
 export function boardDetails(t: Translate, board: BoardInfo | null | undefined): IconDetailRow[] {
   return [
-    { icon: 'lucide:factory', label: t('maintenance.server.manufacturer'), value: textOrDash(board?.manufacturer) },
-    { icon: 'lucide:tag', label: t('maintenance.server.model'), value: textOrDash(board?.product) },
-    { icon: 'lucide:git-branch', label: t('maintenance.server.version'), value: textOrDash(board?.version) },
-    { icon: 'lucide:barcode', label: t('maintenance.server.serial_number'), value: textOrDash(board?.serialNumber) },
-    { icon: 'lucide:building-2', label: t('maintenance.server.system_manufacturer'), value: textOrDash(board?.systemManufacturer) },
-    { icon: 'lucide:laptop', label: t('maintenance.server.system_model'), value: textOrDash(board?.systemProduct) },
-    { icon: 'lucide:microchip', label: t('maintenance.server.bios_vendor'), value: textOrDash(board?.biosVendor) },
-    { icon: 'lucide:binary', label: t('maintenance.server.bios_version'), value: textOrDash(board?.biosVersion) },
-    { icon: 'lucide:calendar-days', label: t('maintenance.server.bios_date'), value: textOrDash(board?.biosDate) },
+    {
+      icon: 'lucide:factory',
+      label: t('maintenance.server.manufacturer'),
+      value: textOrDash(board?.manufacturer),
+    },
+    {
+      icon: 'lucide:tag',
+      label: t('maintenance.server.model'),
+      value: textOrDash(board?.product),
+    },
+    {
+      icon: 'lucide:git-branch',
+      label: t('maintenance.server.version'),
+      value: textOrDash(board?.version),
+    },
+    {
+      icon: 'lucide:barcode',
+      label: t('maintenance.server.serial_number'),
+      value: textOrDash(board?.serialNumber),
+    },
+    {
+      icon: 'lucide:building-2',
+      label: t('maintenance.server.system_manufacturer'),
+      value: textOrDash(board?.systemManufacturer),
+    },
+    {
+      icon: 'lucide:laptop',
+      label: t('maintenance.server.system_model'),
+      value: textOrDash(board?.systemProduct),
+    },
+    {
+      icon: 'lucide:microchip',
+      label: t('maintenance.server.bios_vendor'),
+      value: textOrDash(board?.biosVendor),
+    },
+    {
+      icon: 'lucide:binary',
+      label: t('maintenance.server.bios_version'),
+      value: textOrDash(board?.biosVersion),
+    },
+    {
+      icon: 'lucide:calendar-days',
+      label: t('maintenance.server.bios_date'),
+      value: textOrDash(board?.biosDate),
+    },
   ]
 }
 
 /** 系统信息：4.x 的十二项，加上平台、运行时标识、进程架构、私有内存、托管堆、线程、句柄与 GC 次数 */
 export function systemDetails(t: Translate, runtime: RuntimeInfo | null | undefined): IconDetailRow[] {
-  const gc = runtime ? `${runtime.gen0Collections} / ${runtime.gen1Collections} / ${runtime.gen2Collections}` : UNKNOWN
-  const interactive = runtime ? (runtime.interactive ? t('common.statuses.yes') : t('common.statuses.no')) : UNKNOWN
+  const gc = runtime
+    ? `${runtime.gen0Collections} / ${runtime.gen1Collections} / ${runtime.gen2Collections}`
+    : UNKNOWN
+  const interactive = runtime
+    ? (runtime.interactive
+        ? t('common.statuses.yes')
+        : t('common.statuses.no'))
+    : UNKNOWN
   return [
-    { icon: 'lucide:monitor', label: t('maintenance.server.os'), value: textOrDash(runtime?.osDescription) },
-    { icon: 'lucide:hash', label: t('maintenance.server.os_version'), value: textOrDash(runtime?.osVersion) },
-    { icon: 'lucide:layers', label: t('maintenance.server.os_arch'), value: textOrDash(runtime?.osArchitecture) },
-    { icon: 'lucide:app-window', label: t('maintenance.server.os_platform'), value: textOrDash(runtime?.osPlatform) },
-    { icon: 'lucide:box', label: t('maintenance.server.framework'), value: textOrDash(runtime?.framework) },
-    { icon: 'lucide:package', label: t('maintenance.server.runtime_identifier'), value: textOrDash(runtime?.runtimeIdentifier) },
-    { icon: 'lucide:server', label: t('maintenance.server.machine_name'), value: textOrDash(runtime?.machineName) },
-    { icon: 'lucide:user', label: t('maintenance.server.current_user'), value: textOrDash(runtime?.userName) },
-    { icon: 'lucide:calendar', label: t('maintenance.server.system_start'), value: formatDate(runtime?.systemStartedAt) },
-    { icon: 'lucide:play', label: t('maintenance.server.process_start'), value: formatDate(runtime?.processStartedAt) },
-    { icon: 'lucide:fingerprint', label: t('maintenance.server.process_id'), value: countText(runtime?.processId) },
-    { icon: 'lucide:terminal', label: t('maintenance.server.process_name'), value: textOrDash(runtime?.processName) },
-    { icon: 'lucide:layers-2', label: t('maintenance.server.process_arch'), value: textOrDash(runtime?.processArchitecture) },
-    { icon: 'lucide:hard-drive', label: t('maintenance.server.working_set'), value: formatBytes(runtime?.workingSetBytes) },
-    { icon: 'lucide:lock', label: t('maintenance.server.private_bytes'), value: formatBytes(runtime?.privateBytes) },
-    { icon: 'lucide:database', label: t('maintenance.server.managed_heap'), value: formatBytes(runtime?.managedHeapBytes) },
-    { icon: 'lucide:git-fork', label: t('maintenance.server.thread_count'), value: countText(runtime?.threadCount) },
-    { icon: 'lucide:link', label: t('maintenance.server.handle_count'), value: countText(runtime?.handleCount) },
-    { icon: 'lucide:recycle', label: t('maintenance.server.gc_collections'), value: gc },
-    { icon: 'lucide:toggle-right', label: t('maintenance.server.interactive_mode'), value: interactive },
+    {
+      icon: 'lucide:monitor',
+      label: t('maintenance.server.os'),
+      value: textOrDash(runtime?.osDescription),
+    },
+    {
+      icon: 'lucide:hash',
+      label: t('maintenance.server.os_version'),
+      value: textOrDash(runtime?.osVersion),
+    },
+    {
+      icon: 'lucide:layers',
+      label: t('maintenance.server.os_arch'),
+      value: textOrDash(runtime?.osArchitecture),
+    },
+    {
+      icon: 'lucide:app-window',
+      label: t('maintenance.server.os_platform'),
+      value: textOrDash(runtime?.osPlatform),
+    },
+    {
+      icon: 'lucide:box',
+      label: t('maintenance.server.framework'),
+      value: textOrDash(runtime?.framework),
+    },
+    {
+      icon: 'lucide:package',
+      label: t('maintenance.server.runtime_identifier'),
+      value: textOrDash(runtime?.runtimeIdentifier),
+    },
+    {
+      icon: 'lucide:server',
+      label: t('maintenance.server.machine_name'),
+      value: textOrDash(runtime?.machineName),
+    },
+    {
+      icon: 'lucide:user',
+      label: t('maintenance.server.current_user'),
+      value: textOrDash(runtime?.userName),
+    },
+    {
+      icon: 'lucide:calendar',
+      label: t('maintenance.server.system_start'),
+      value: formatDate(runtime?.systemStartedAt),
+    },
+    {
+      icon: 'lucide:play',
+      label: t('maintenance.server.process_start'),
+      value: formatDate(runtime?.processStartedAt),
+    },
+    {
+      icon: 'lucide:fingerprint',
+      label: t('maintenance.server.process_id'),
+      value: countText(runtime?.processId),
+    },
+    {
+      icon: 'lucide:terminal',
+      label: t('maintenance.server.process_name'),
+      value: textOrDash(runtime?.processName),
+    },
+    {
+      icon: 'lucide:layers-2',
+      label: t('maintenance.server.process_arch'),
+      value: textOrDash(runtime?.processArchitecture),
+    },
+    {
+      icon: 'lucide:hard-drive',
+      label: t('maintenance.server.working_set'),
+      value: formatBytes(runtime?.workingSetBytes),
+    },
+    {
+      icon: 'lucide:lock',
+      label: t('maintenance.server.private_bytes'),
+      value: formatBytes(runtime?.privateBytes),
+    },
+    {
+      icon: 'lucide:database',
+      label: t('maintenance.server.managed_heap'),
+      value: formatBytes(runtime?.managedHeapBytes),
+    },
+    {
+      icon: 'lucide:git-fork',
+      label: t('maintenance.server.thread_count'),
+      value: countText(runtime?.threadCount),
+    },
+    {
+      icon: 'lucide:link',
+      label: t('maintenance.server.handle_count'),
+      value: countText(runtime?.handleCount),
+    },
+    {
+      icon: 'lucide:recycle',
+      label: t('maintenance.server.gc_collections'),
+      value: gc,
+    },
+    {
+      icon: 'lucide:toggle-right',
+      label: t('maintenance.server.interactive_mode'),
+      value: interactive,
+    },
   ]
 }
 
@@ -349,7 +549,9 @@ export function driveTypeLabel(t: Translate, type: DriveType): string {
 /** 磁盘标签：类型，读得到文件系统时带上（如「本地磁盘 · NTFS」） */
 export function diskTag(t: Translate, disk: Pick<DiskInfo, 'format' | 'type'>): string {
   const type = driveTypeLabel(t, disk.type)
-  return disk.format ? `${type} · ${disk.format}` : type
+  return disk.format
+    ? `${type} · ${disk.format}`
+    : type
 }
 
 /** 一格磁盘：4.x 的名称、类型、使用率、进度与已用 / 总量 / 可用 */
@@ -395,19 +597,43 @@ export function pciId(gpu: Pick<GpuInfo, 'deviceId' | 'vendorId'>): null | strin
 /** 显卡明细：只列读得到的项（4.x 同样按有无显示）；读不到的平台差异（如 NVIDIA 的显存与温度）不占行 */
 export function gpuDetails(t: Translate, gpu: GpuInfo): DetailRow[] {
   const rows: DetailRow[] = []
-  if (knownNumber(gpu.memoryBytes) !== null)
-    rows.push({ label: t('maintenance.server.gpu_memory'), value: formatBytes(gpu.memoryBytes) })
-  if (gpu.driver)
-    rows.push({ label: t('maintenance.server.driver'), value: gpu.driver })
-  if (gpu.driverVersion)
-    rows.push({ label: t('maintenance.server.driver_version'), value: gpu.driverVersion })
-  if (gpu.vendor)
-    rows.push({ label: t('maintenance.server.vendor'), value: gpu.vendor })
+  if (knownNumber(gpu.memoryBytes) !== null) {
+    rows.push({
+      label: t('maintenance.server.gpu_memory'),
+      value: formatBytes(gpu.memoryBytes),
+    })
+  }
+  if (gpu.driver) {
+    rows.push({
+      label: t('maintenance.server.driver'),
+      value: gpu.driver,
+    })
+  }
+  if (gpu.driverVersion) {
+    rows.push({
+      label: t('maintenance.server.driver_version'),
+      value: gpu.driverVersion,
+    })
+  }
+  if (gpu.vendor) {
+    rows.push({
+      label: t('maintenance.server.vendor'),
+      value: gpu.vendor,
+    })
+  }
   const pci = pciId(gpu)
-  if (pci)
-    rows.push({ label: t('maintenance.server.pci_id'), value: pci })
-  if (knownNumber(gpu.temperatureCelsius) !== null)
-    rows.push({ label: t('maintenance.server.temperature'), value: formatTemperature(gpu.temperatureCelsius) })
+  if (pci) {
+    rows.push({
+      label: t('maintenance.server.pci_id'),
+      value: pci,
+    })
+  }
+  if (knownNumber(gpu.temperatureCelsius) !== null) {
+    rows.push({
+      label: t('maintenance.server.temperature'),
+      value: formatTemperature(gpu.temperatureCelsius),
+    })
+  }
   return rows
 }
 
@@ -431,8 +657,14 @@ export function networkAddresses(t: Translate, nic: Pick<NetworkInterfaceInfo, '
   const groups: AddressGroup[] = [
     { label: 'IPv4', values: nic.iPv4Addresses ?? [] },
     { label: 'IPv6', values: nic.iPv6Addresses ?? [] },
-    { label: t('maintenance.server.gateways'), values: nic.gateways ?? [] },
-    { label: t('maintenance.server.dns_servers'), values: nic.dnsServers ?? [] },
+    {
+      label: t('maintenance.server.gateways'),
+      values: nic.gateways ?? [],
+    },
+    {
+      label: t('maintenance.server.dns_servers'),
+      values: nic.dnsServers ?? [],
+    },
   ]
   return groups.filter(group => group.values.length > 0)
 }
@@ -440,12 +672,30 @@ export function networkAddresses(t: Translate, nic: Pick<NetworkInterfaceInfo, '
 /** 网卡流量：速率（后台采样，启动后第一个采样间隔内为 -）与累计收发 */
 export function networkTraffic(t: Translate, nic: NetworkInterfaceInfo): DetailRow[] {
   return [
-    { label: t('maintenance.server.receive_rate'), value: formatByteRate(nic.receiveBytesPerSecond) },
-    { label: t('maintenance.server.send_rate'), value: formatByteRate(nic.sendBytesPerSecond) },
-    { label: t('maintenance.server.received'), value: formatBytes(nic.bytesReceived) },
-    { label: t('maintenance.server.sent'), value: formatBytes(nic.bytesSent) },
-    { label: t('maintenance.server.received_packets'), value: formatCount(nic.packetsReceived) },
-    { label: t('maintenance.server.sent_packets'), value: formatCount(nic.packetsSent) },
+    {
+      label: t('maintenance.server.receive_rate'),
+      value: formatByteRate(nic.receiveBytesPerSecond),
+    },
+    {
+      label: t('maintenance.server.send_rate'),
+      value: formatByteRate(nic.sendBytesPerSecond),
+    },
+    {
+      label: t('maintenance.server.received'),
+      value: formatBytes(nic.bytesReceived),
+    },
+    {
+      label: t('maintenance.server.sent'),
+      value: formatBytes(nic.bytesSent),
+    },
+    {
+      label: t('maintenance.server.received_packets'),
+      value: formatCount(nic.packetsReceived),
+    },
+    {
+      label: t('maintenance.server.sent_packets'),
+      value: formatCount(nic.packetsSent),
+    },
   ]
 }
 
@@ -503,16 +753,31 @@ export function healthSummary(t: Translate, items: readonly Pick<HealthItem, 'st
       worst = tone
   }
   switch (worst) {
-    case 'danger': return { tone: 'danger', label: t('maintenance.server.health_failed') }
-    case 'warning': return { tone: 'warning', label: t('maintenance.server.health_degraded') }
-    case 'success': return { tone: 'success', label: t('maintenance.server.running_normal') }
-    default: return { tone: 'info', label: t('maintenance.server.health_pending') }
+    case 'danger': return {
+      tone: 'danger',
+      label: t('maintenance.server.health_failed'),
+    }
+    case 'warning': return {
+      tone: 'warning',
+      label: t('maintenance.server.health_degraded'),
+    }
+    case 'success': return {
+      tone: 'success',
+      label: t('maintenance.server.running_normal'),
+    }
+    default: return {
+      tone: 'info',
+      label: t('maintenance.server.health_pending'),
+    }
   }
 }
 
 /** 健康项明细（名字到值，按后端给的顺序）；值为空写 - */
 export function healthData(item: Pick<HealthItem, 'data'>): DetailRow[] {
-  return Object.entries(item.data).map(([label, value]) => ({ label, value: textOrDash(value) }))
+  return Object.entries(item.data).map(([label, value]) => ({
+    label,
+    value: textOrDash(value),
+  }))
 }
 
 /** 一格健康项：名字、状态、耗时、检查时间、说明、错误与明细 */
@@ -533,8 +798,12 @@ export function healthCard(t: Translate, item: HealthItem): HealthCard {
     name: item.name,
     stateLabel: healthStateLabel(t, item.state),
     tone: healthStateTone(item.state),
-    duration: t('maintenance.server.duration_value', { value: formatDurationMs(item.durationMs) }),
-    checkedAt: t('maintenance.server.checked_at_value', { value: formatDate(item.checkedAt) }),
+    duration: t('maintenance.server.duration_value', {
+      value: formatDurationMs(item.durationMs),
+    }),
+    checkedAt: t('maintenance.server.checked_at_value', {
+      value: formatDate(item.checkedAt),
+    }),
     description: item.description || null,
     errorCode: item.errorCode || null,
     errorMessage: item.errorMessage || null,

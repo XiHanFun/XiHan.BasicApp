@@ -35,12 +35,29 @@ interface PreviewTableRow {
 
 const title = computed(() => t('settings.numbering_rules.preview_title', { code: props.rule?.code ?? '' }))
 const modeOptions = computed(() => [
-  { value: 'single' as const, label: t('settings.numbering_rules.preview_single') },
-  { value: 'batch' as const, label: t('settings.numbering_rules.preview_batch') },
+  {
+    value: 'single' as const,
+    label: t('settings.numbering_rules.preview_single'),
+  },
+  {
+    value: 'batch' as const,
+    label: t('settings.numbering_rules.preview_batch'),
+  },
 ])
 const columns = computed<XDataTableColumn<PreviewTableRow>[]>(() => [
-  { key: 'sequence', title: t('settings.numbering_rules.preview_sequence'), width: 90, align: 'center' },
-  { key: 'number', title: t('settings.numbering_rules.preview_number'), minWidth: 260, align: 'center', ellipsis: true },
+  {
+    key: 'sequence',
+    title: t('settings.numbering_rules.preview_sequence'),
+    width: 90,
+    align: 'center',
+  },
+  {
+    key: 'number',
+    title: t('settings.numbering_rules.preview_number'),
+    minWidth: 260,
+    align: 'center',
+    ellipsis: true,
+  },
 ])
 
 watch(

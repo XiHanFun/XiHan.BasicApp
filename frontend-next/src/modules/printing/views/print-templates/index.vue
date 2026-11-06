@@ -86,9 +86,31 @@ function switchScope(): void {
 }
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('printing.print_templates.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('printing.print_templates.keyword_placeholder'), order: 0 },
-  { key: 'templateCode', title: t('printing.print_templates.template_code'), dataType: 'string', sortable: true, minWidth: 170, order: 1 },
-  { key: 'templateName', title: t('printing.print_templates.template_name'), dataType: 'string', sortable: true, minWidth: 170, order: 2 },
+  {
+    key: 'keyword',
+    title: t('printing.print_templates.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('printing.print_templates.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'templateCode',
+    title: t('printing.print_templates.template_code'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 170,
+    order: 1,
+  },
+  {
+    key: 'templateName',
+    title: t('printing.print_templates.template_name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 170,
+    order: 2,
+  },
   {
     key: 'dataSourceCode',
     title: t('printing.print_templates.data_source'),
@@ -108,7 +130,12 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 110,
     order: 5,
     visible: activeScope.value === 'Global',
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: (row as unknown as PrintTemplateRow).allowTenantUse ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as PrintTemplateRow).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no'))),
+    render: row => h(XhTagRoot, {
+      variant: 'subtle',
+      tone: (row as unknown as PrintTemplateRow).allowTenantUse ? 'success' : 'neutral',
+    }, () => h(XhTagLabel, () => (row as unknown as PrintTemplateRow).allowTenantUse
+      ? t('common.statuses.yes')
+      : t('common.statuses.no'))),
   },
   {
     key: 'status',
@@ -117,10 +144,30 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 90,
     sortable: true,
     order: 6,
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: (row as unknown as PrintTemplateRow).status === 'Active' ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as PrintTemplateRow).status === 'Active' ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
+    render: row => h(XhTagRoot, {
+      variant: 'subtle',
+      tone: (row as unknown as PrintTemplateRow).status === 'Active'
+        ? 'success'
+        : 'danger',
+    }, () => h(XhTagLabel, () => (row as unknown as PrintTemplateRow).status === 'Active'
+      ? t('common.statuses.enabled')
+      : t('common.statuses.disabled'))),
   },
-  { key: 'order', title: t('printing.print_templates.order'), dataType: 'number', width: 80, sortable: true, order: 7 },
-  { key: 'remark', title: t('printing.print_templates.remark'), dataType: 'string', minWidth: 180, order: 8 },
+  {
+    key: 'order',
+    title: t('printing.print_templates.order'),
+    dataType: 'number',
+    width: 80,
+    sortable: true,
+    order: 7,
+  },
+  {
+    key: 'remark',
+    title: t('printing.print_templates.remark'),
+    dataType: 'string',
+    minWidth: 180,
+    order: 8,
+  },
 ])
 
 /** 分页：租户的「可用全局模板」加作用域筛选 Global（只有启用且开放的）；平台缺省就是全局模板 */
@@ -128,7 +175,10 @@ const resource: SchemaResource<PrintTemplateRow> = {
   page: async (params) => {
     const request = toPageRequest(params)
     const filters = !isPlatform.value && activeScope.value === 'Global'
-      ? [...request.filters, { field: 'scope', operator: 'eq', value: 'Global' }]
+      ? [
+          ...request.filters,
+          { field: 'scope', operator: 'eq', value: 'Global' },
+        ]
       : request.filters
     return toSchemaPageResult(await printTemplates.list({ ...request, filters }), params)
   },
@@ -142,14 +192,69 @@ const schema = computed<PageSchema>(() => ({
   resource: resource as unknown as PageSchema['resource'],
   actions: [
     ...(canMaintain.value
-      ? [{ key: 'create', title: t('printing.print_templates.action_create'), scope: 'page' as const, tone: 'brand' as const, icon: 'lucide:plus', permission: 'printing.print-templates.create' }]
+      ? [
+          {
+            key: 'create',
+            title: t('printing.print_templates.action_create'),
+            scope: 'page' as const,
+            tone: 'brand' as const,
+            icon: 'lucide:plus',
+            permission: 'printing.print-templates.create',
+          },
+        ]
       : []),
-    { key: 'preview', title: t('printing.print_templates.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'printing.print-templates.use', disabled: row => (row as unknown as PrintTemplateRow).status !== 'Active' },
-    { key: 'direct', title: t('printing.print_templates.action_direct'), scope: 'row', icon: 'lucide:printer', permission: 'printing.print-templates.use', disabled: row => (row as unknown as PrintTemplateRow).status !== 'Active' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'printing.print-templates.update', visible: () => canMaintain.value },
-    { key: 'design', title: t('printing.print_templates.action_design'), scope: 'row', icon: 'lucide:pen-tool', permission: 'printing.print-templates.update', visible: () => canMaintain.value },
-    { key: 'toggle', title: t('printing.print_templates.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PrintTemplateRow).status === 'Active', (row as unknown as PrintTemplateRow).templateName), permission: 'printing.print-templates.status', visible: () => canMaintain.value },
-    { key: 'delete', title: t('printing.print_templates.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'printing.print-templates.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateRow).status !== 'Disabled' },
+    {
+      key: 'preview',
+      title: t('printing.print_templates.action_preview'),
+      scope: 'row',
+      icon: 'lucide:scan-eye',
+      permission: 'printing.print-templates.use',
+      disabled: row => (row as unknown as PrintTemplateRow).status !== 'Active',
+    },
+    {
+      key: 'direct',
+      title: t('printing.print_templates.action_direct'),
+      scope: 'row',
+      icon: 'lucide:printer',
+      permission: 'printing.print-templates.use',
+      disabled: row => (row as unknown as PrintTemplateRow).status !== 'Active',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'printing.print-templates.update',
+      visible: () => canMaintain.value,
+    },
+    {
+      key: 'design',
+      title: t('printing.print_templates.action_design'),
+      scope: 'row',
+      icon: 'lucide:pen-tool',
+      permission: 'printing.print-templates.update',
+      visible: () => canMaintain.value,
+    },
+    {
+      key: 'toggle',
+      title: t('printing.print_templates.action_toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, (row as unknown as PrintTemplateRow).status === 'Active', (row as unknown as PrintTemplateRow).templateName),
+      permission: 'printing.print-templates.status',
+      visible: () => canMaintain.value,
+    },
+    {
+      key: 'delete',
+      title: t('printing.print_templates.action_delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      permission: 'printing.print-templates.delete',
+      visible: () => canMaintain.value,
+      disabled: row => (row as unknown as PrintTemplateRow).status !== 'Disabled',
+    },
   ],
 }))
 
@@ -293,7 +398,9 @@ async function toggleStatus(row: PrintTemplateRow): Promise<void> {
     await printTemplates.setStatus({
       id: row.id,
       concurrencyStamp: row.concurrencyStamp,
-      status: row.status === 'Active' ? 'Disabled' : 'Active',
+      status: row.status === 'Active'
+        ? 'Disabled'
+        : 'Active',
     })
     toast.success(t('printing.print_templates.status_success'))
     void schemaPageRef.value?.reload()
@@ -321,7 +428,9 @@ function remove(row: PrintTemplateRow): void {
       actionLoading.value = true
       try {
         // 6.0 的删除是批量形态：逐项结果里没有成功即报失败（启用中的模板后端逐项拒绝）
-        const result = await printTemplates.delete({ ids: [row.id] })
+        const result = await printTemplates.delete({
+          ids: [row.id],
+        })
         if (result.failed.length > 0)
           throw new Error(t('printing.print_templates.delete_failed'))
         toast.success(t('printing.print_templates.delete_success'))

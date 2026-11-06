@@ -16,7 +16,9 @@ type Translate = (key: string, named?: Record<string, unknown>) => string
 export function chatErrorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
-  return error instanceof Error ? error.message : ''
+  return error instanceof Error
+    ? error.message
+    : ''
 }
 
 /** 这类会话显示不显示已读回执：助手不读消息，助手会话不显示（否则永远是「未读」），其余照常 */
@@ -60,13 +62,17 @@ export function messageBodyLabel(message: {
   }
   const count = message.attachments?.length ?? 0
   if (message.messageType === 'Image') {
-    return count > 1 ? `[图片] ${count}张` : '[图片]'
+    return count > 1
+      ? `[图片] ${count}张`
+      : '[图片]'
   }
   if (message.messageType === 'Voice') {
     return `[语音] ${message.attachments?.[0]?.durationSeconds ?? 0}"`
   }
   if (count > 0) {
-    return count > 1 ? `[文件] ${count}个` : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
+    return count > 1
+      ? `[文件] ${count}个`
+      : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
   }
   return ''
 }
@@ -74,7 +80,9 @@ export function messageBodyLabel(message: {
 /** 一个时刻在显示时区里的日历日（YYYY-MM-DD）；空值与解析不出的为 null */
 function calendarDayOf(time: string | Date, zone: string): null | string {
   const day = formatDateTime(time, zone, 'YYYY-MM-DD')
-  return day === '-' ? null : day
+  return day === '-'
+    ? null
+    : day
 }
 
 /** 日历日的前一天（按日历算，不受夏令时影响） */
@@ -86,7 +94,9 @@ function previousDay(day: string): string {
 /** 会话列表时间：今天 HH:mm；昨天；同年 M/D；跨年 YYYY/M/D（按应用时区，同审计页的 formatDate） */
 export function formatConversationTime(t: Translate, time?: null | string): string {
   const zone = getDisplayTimeZone()
-  const day = time ? calendarDayOf(time, zone) : null
+  const day = time
+    ? calendarDayOf(time, zone)
+    : null
   if (!time || !day) {
     return ''
   }
@@ -97,13 +107,17 @@ export function formatConversationTime(t: Translate, time?: null | string): stri
   if (day === previousDay(today)) {
     return t('chat.time.yesterday')
   }
-  return formatDateTime(time, zone, day.slice(0, 4) === today.slice(0, 4) ? 'M/D' : 'YYYY/M/D')
+  return formatDateTime(time, zone, day.slice(0, 4) === today.slice(0, 4)
+    ? 'M/D'
+    : 'YYYY/M/D')
 }
 
 /** 消息时间：今天 HH:mm；否则 M/D HH:mm（跨年带年份；按应用时区） */
 export function formatMessageTime(time?: null | string): string {
   const zone = getDisplayTimeZone()
-  const day = time ? calendarDayOf(time, zone) : null
+  const day = time
+    ? calendarDayOf(time, zone)
+    : null
   if (!time || !day) {
     return ''
   }
@@ -111,7 +125,9 @@ export function formatMessageTime(time?: null | string): string {
   if (day === today) {
     return formatDateTime(time, zone, 'HH:mm')
   }
-  return formatDateTime(time, zone, day.slice(0, 4) === today.slice(0, 4) ? 'M/D HH:mm' : 'YYYY/M/D HH:mm')
+  return formatDateTime(time, zone, day.slice(0, 4) === today.slice(0, 4)
+    ? 'M/D HH:mm'
+    : 'YYYY/M/D HH:mm')
 }
 
 /** 文件大小：B/KB/MB/GB（保留一位小数） */

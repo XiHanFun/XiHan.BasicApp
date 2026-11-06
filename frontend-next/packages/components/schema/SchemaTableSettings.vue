@@ -44,21 +44,48 @@ const { t } = useI18n()
 const appStore = useAppStore()
 
 const densityOptions = computed<Array<{ label: string, value: TableDensity }>>(() => [
-  { label: t('component.schema_table_settings.density_small'), value: 'sm' },
-  { label: t('component.schema_table_settings.density_medium'), value: 'md' },
-  { label: t('component.schema_table_settings.density_large'), value: 'lg' },
+  {
+    label: t('component.schema_table_settings.density_small'),
+    value: 'sm',
+  },
+  {
+    label: t('component.schema_table_settings.density_medium'),
+    value: 'md',
+  },
+  {
+    label: t('component.schema_table_settings.density_large'),
+    value: 'lg',
+  },
 ])
 
 const alignOptions = computed<Array<{ label: string, value: TableAlign }>>(() => [
-  { label: t('component.schema_table_settings.align_left'), value: 'left' },
-  { label: t('component.schema_table_settings.align_center'), value: 'center' },
-  { label: t('component.schema_table_settings.align_right'), value: 'right' },
+  {
+    label: t('component.schema_table_settings.align_left'),
+    value: 'left',
+  },
+  {
+    label: t('component.schema_table_settings.align_center'),
+    value: 'center',
+  },
+  {
+    label: t('component.schema_table_settings.align_right'),
+    value: 'right',
+  },
 ])
 
 const styleOptions = computed<Array<{ label: string, key: keyof TableStyle }>>(() => [
-  { label: t('component.schema_table_settings.striped'), key: 'striped' },
-  { label: t('component.schema_table_settings.bordered'), key: 'bordered' },
-  { label: t('component.schema_table_settings.ruled'), key: 'ruled' },
+  {
+    label: t('component.schema_table_settings.striped'),
+    key: 'striped',
+  },
+  {
+    label: t('component.schema_table_settings.bordered'),
+    key: 'bordered',
+  },
+  {
+    label: t('component.schema_table_settings.ruled'),
+    key: 'ruled',
+  },
 ])
 
 /** 风格是一组可同时开的开关：选中集合即开着的那几项 */
@@ -79,7 +106,11 @@ function onAlignChange(value: string | string[] | null) {
 }
 
 function onStyleChange(value: string | string[] | null) {
-  const next = new Set(Array.isArray(value) ? value : value == null ? [] : [value])
+  const next = new Set(Array.isArray(value)
+    ? value
+    : value == null
+      ? []
+      : [value])
   for (const opt of styleOptions.value) {
     const shown = next.has(opt.key)
     if (shown !== props.tableStyle[opt.key])
@@ -91,12 +122,20 @@ function onStyleChange(value: string | string[] | null) {
 const FEATURE_SELECTABLE = 'selectable'
 const FEATURE_INDEX = 'index'
 const featureValue = computed(() => [
-  ...(props.selectable ? [FEATURE_SELECTABLE] : []),
-  ...(props.showIndex ? [FEATURE_INDEX] : []),
+  ...(props.selectable
+    ? [FEATURE_SELECTABLE]
+    : []),
+  ...(props.showIndex
+    ? [FEATURE_INDEX]
+    : []),
 ])
 
 function onFeatureChange(value: string | string[] | null) {
-  const next = new Set(Array.isArray(value) ? value : value == null ? [] : [value])
+  const next = new Set(Array.isArray(value)
+    ? value
+    : value == null
+      ? []
+      : [value])
   if (next.has(FEATURE_SELECTABLE) !== props.selectable)
     emit('setSelectable', next.has(FEATURE_SELECTABLE))
   if (next.has(FEATURE_INDEX) !== props.showIndex)

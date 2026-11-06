@@ -50,7 +50,9 @@ const currentIconId = computed(() => {
   if (!v) {
     return ''
   }
-  return v.includes(':') ? v : `lucide:${v}`
+  return v.includes(':')
+    ? v
+    : `lucide:${v}`
 })
 
 async function loadIcons() {

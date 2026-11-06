@@ -72,7 +72,14 @@ function installViewTransition() {
   const animate = vi.fn(() => animation)
   defineTemporary(document.documentElement, 'animate', animate)
 
-  return { startViewTransition, animate, animation, skipTransition, resolveReady, rejectReady }
+  return {
+    startViewTransition,
+    animate,
+    animation,
+    skipTransition,
+    resolveReady,
+    rejectReady,
+  }
 }
 
 /** 从 circle(R% at X% Y%) 里取出三个百分比数值 */
@@ -81,7 +88,11 @@ function parseCircle(value: string): { radius: number, x: number, y: number } {
   if (!matched) {
     throw new Error(`clipPath 不是预期的百分比 circle 形式: ${value}`)
   }
-  return { radius: Number(matched[1]), x: Number(matched[2]), y: Number(matched[3]) }
+  return {
+    radius: Number(matched[1]),
+    x: Number(matched[2]),
+    y: Number(matched[3]),
+  }
 }
 
 afterEach(async () => {
@@ -184,7 +195,10 @@ describe('视图过渡动画分支', () => {
   it('切亮色时新层由 0 扩散到全屏，作用在 view-transition-new 伪元素上', async () => {
     const { animate, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: false, commit: () => {} })
+    await runThemeTransition({
+      toDark: false,
+      commit: () => {},
+    })
     resolveReady()
     await flush()
 
@@ -200,7 +214,10 @@ describe('视图过渡动画分支', () => {
   it('切暗色时旧层由全屏收缩到 0，作用在 view-transition-old 伪元素上', async () => {
     const { animate, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: true, commit: () => {} })
+    await runThemeTransition({
+      toDark: true,
+      commit: () => {},
+    })
     resolveReady()
     await flush()
 
@@ -216,7 +233,11 @@ describe('视图过渡动画分支', () => {
   it('clipPath 一律使用百分比，出现 px 会在页面缩放时把圆心压向左上', async () => {
     const { animate, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: false, commit: () => {}, origin: { clientX: 100, clientY: 60 } })
+    await runThemeTransition({
+      toDark: false,
+      commit: () => {},
+      origin: { clientX: 100, clientY: 60 },
+    })
     resolveReady()
     await flush()
 
@@ -230,7 +251,10 @@ describe('视图过渡动画分支', () => {
   it('省略 origin 时从视口中心扩散，半径按对角线参照解析为约 70.71%', async () => {
     const { animate, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: false, commit: () => {} })
+    await runThemeTransition({
+      toDark: false,
+      commit: () => {},
+    })
     resolveReady()
     await flush()
 
@@ -245,7 +269,11 @@ describe('视图过渡动画分支', () => {
   it('起点取到视口角落时半径超过 100%，仍能覆盖整屏', async () => {
     const { animate, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: false, commit: () => {}, origin: { clientX: 0, clientY: 0 } })
+    await runThemeTransition({
+      toDark: false,
+      commit: () => {},
+      origin: { clientX: 0, clientY: 0 },
+    })
     resolveReady()
     await flush()
 
@@ -259,7 +287,10 @@ describe('视图过渡动画分支', () => {
   it('动画时长与缓动固定为 450ms / ease-in', async () => {
     const { animate, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: true, commit: () => {} })
+    await runThemeTransition({
+      toDark: true,
+      commit: () => {},
+    })
     resolveReady()
     await flush()
 
@@ -271,7 +302,10 @@ describe('视图过渡动画分支', () => {
   it('动画播完后跳过剩余 ViewTransition 并摘掉 theme-switching，消除尾帧闪烁', async () => {
     const { animation, skipTransition, resolveReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: true, commit: () => {} })
+    await runThemeTransition({
+      toDark: true,
+      commit: () => {},
+    })
     resolveReady()
     await flush()
 
@@ -285,7 +319,10 @@ describe('视图过渡动画分支', () => {
   it('ready 被拒绝时兜底摘掉 theme-switching，页面不会永久停在禁用过渡状态', async () => {
     const { animate, rejectReady } = installViewTransition()
 
-    await runThemeTransition({ toDark: false, commit: () => {} })
+    await runThemeTransition({
+      toDark: false,
+      commit: () => {},
+    })
     rejectReady(new Error('transition aborted'))
     await flush()
 

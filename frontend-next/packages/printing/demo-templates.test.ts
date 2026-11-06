@@ -42,7 +42,12 @@ const systemPrintDemo: DemoDataSource = {
       columns: [
         { field: 'sku', title: '物料编码', width: 90 },
         { field: 'name', title: '物料名称', width: 120 },
-        { field: 'quantity', title: '数量', width: 60, inputType: 'number' },
+        {
+          field: 'quantity',
+          title: '数量',
+          width: 60,
+          inputType: 'number',
+        },
         { field: 'unit', title: '单位', width: 50 },
       ],
     },
@@ -56,8 +61,18 @@ const systemPrintDemo: DemoDataSource = {
     barcode: 'DEMO-20260729-0001',
     qrCode: 'https://basicapp.xihanfun.com/print-demo/DEMO-20260729-0001',
     items: [
-      { sku: 'SKU-001', name: '示例物料 A', quantity: 2, unit: '件' },
-      { sku: 'SKU-002', name: '示例物料 B', quantity: 5, unit: '箱' },
+      {
+        sku: 'SKU-001',
+        name: '示例物料 A',
+        quantity: 2,
+        unit: '件',
+      },
+      {
+        sku: 'SKU-002',
+        name: '示例物料 B',
+        quantity: 5,
+        unit: '箱',
+      },
     ],
   },
 }
@@ -91,13 +106,21 @@ const measurer = {
 }
 
 /** 预览里会显示成报错占位或丢值的诊断：错误级之外，再加格式、表达式与数据形状不对的警告 */
-const blockingWarnings = new Set(['format.unavailable', 'format.failed', 'expression.unavailable', 'data.notArray', 'data.notScalar'])
+const blockingWarnings = new Set([
+  'format.unavailable',
+  'format.failed',
+  'expression.unavailable',
+  'data.notArray',
+  'data.notScalar',
+])
 
 describe('打印演示种子', () => {
   it('模板与数据源文件一一登记，没有漏掉或多出的', () => {
     expect(readdirSync(join(demoRoot, 'Templates')).map(file => file.replace(/\.json$/, '')).sort())
       .toEqual(templates.map(([code]) => code).sort())
-    expect([...dataSources.keys()].filter(code => code.startsWith('demo.')).sort())
+    expect([
+      ...dataSources.keys(),
+    ].filter(code => code.startsWith('demo.')).sort())
       .toEqual(templates.map(([, dataSource]) => dataSource).filter(code => code.startsWith('demo.')).sort())
   })
 

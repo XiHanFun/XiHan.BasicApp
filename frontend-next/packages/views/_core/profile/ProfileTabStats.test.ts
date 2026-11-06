@@ -20,16 +20,51 @@ const apis = {
 }
 
 const activity: UserActivity = {
-  today: { loginCount: 1, accessCount: 20, operationCount: 3, onlineTime: 0 },
-  thisWeek: { loginCount: 4, accessCount: 120, operationCount: 9, onlineTime: 2700 },
-  thisMonth: { loginCount: 12, accessCount: 480, operationCount: 30, onlineTime: 37800 },
+  today: {
+    loginCount: 1,
+    accessCount: 20,
+    operationCount: 3,
+    onlineTime: 0,
+  },
+  thisWeek: {
+    loginCount: 4,
+    accessCount: 120,
+    operationCount: 9,
+    onlineTime: 2700,
+  },
+  thisMonth: {
+    loginCount: 12,
+    accessCount: 480,
+    operationCount: 30,
+    onlineTime: 37800,
+  },
   lastLoginTime: '2026-10-30T01:00:00Z',
   lastOperationTime: '2026-10-30T02:30:00Z',
   trend: [
-    { date: '2026-10-01', accessCount: 8, operationCount: 3, onlineMinutes: 30 },
-    { date: '2026-10-02', accessCount: 5, operationCount: 0, onlineMinutes: 0 },
-    { date: '2026-10-29', accessCount: 40, operationCount: 5, onlineMinutes: 45 },
-    { date: '2026-10-30', accessCount: 20, operationCount: 1, onlineMinutes: 0 },
+    {
+      date: '2026-10-01',
+      accessCount: 8,
+      operationCount: 3,
+      onlineMinutes: 30,
+    },
+    {
+      date: '2026-10-02',
+      accessCount: 5,
+      operationCount: 0,
+      onlineMinutes: 0,
+    },
+    {
+      date: '2026-10-29',
+      accessCount: 40,
+      operationCount: 5,
+      onlineMinutes: 45,
+    },
+    {
+      date: '2026-10-30',
+      accessCount: 20,
+      operationCount: 1,
+      onlineMinutes: 0,
+    },
   ],
 }
 
@@ -39,7 +74,9 @@ beforeEach(() => {
   apis.getActivityApi.mockReset()
   registerAppContext({ apis: apis as unknown as AppContextApis })
   apis.getActivityApi.mockResolvedValue(activity)
-  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.useFakeTimers({
+    toFake: ['Date'],
+  })
   vi.setSystemTime(new Date(2026, 9, 30, 12, 0, 0))
 })
 
@@ -48,7 +85,11 @@ afterEach(() => {
 })
 
 async function render() {
-  const wrapper = mount(ProfileTabStats, { global: { plugins: [i18n] } })
+  const wrapper = mount(ProfileTabStats, {
+    global: {
+      plugins: [i18n],
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -57,7 +98,10 @@ describe('统计页签', () => {
   it('本月四张卡、今日 / 本周四行（在线时长按小时与分钟显示，0 即「0 分钟」），最近活动没有的显示「—」', async () => {
     const wrapper = await render()
     expect(apis.getActivityApi).toHaveBeenCalledTimes(1)
-    expect(wrapper.findAll('.pf-stat-card').map(card => [card.find('.pf-stat-card__label').text(), card.find('.pf-stat-card__value').text()])).toEqual([
+    expect(wrapper.findAll('.pf-stat-card').map(card => [
+      card.find('.pf-stat-card__label').text(),
+      card.find('.pf-stat-card__value').text(),
+    ])).toEqual([
       ['本月登录', '12'],
       ['本月访问', '480'],
       ['本月操作', '30'],
@@ -65,11 +109,43 @@ describe('统计页签', () => {
     ])
     expect(wrapper.findAll('.pf-period').map(period => ({
       title: period.find('.pf-period__title').text(),
-      rows: period.findAll('.pf-period__row').map(row => [row.find('span').text(), row.find('b').text()]),
+      rows: period.findAll('.pf-period__row').map(row => [
+        row.find('span').text(),
+        row.find('b').text(),
+      ]),
     }))).toEqual([
-      { title: '今日', rows: [['登录', '1'], ['访问', '20'], ['操作', '3'], ['在线', '0 分钟']] },
-      { title: '本周', rows: [['登录', '4'], ['访问', '120'], ['操作', '9'], ['在线', '45 分钟']] },
-      { title: '最近活动', rows: [['最后登录', formatDate(activity.lastLoginTime!)], ['最后访问', '—'], ['最后操作', formatDate(activity.lastOperationTime!)]] },
+      {
+        title: '今日',
+        rows: [
+          ['登录', '1'],
+          ['访问', '20'],
+          ['操作', '3'],
+          ['在线', '0 分钟'],
+        ],
+      },
+      {
+        title: '本周',
+        rows: [
+          ['登录', '4'],
+          ['访问', '120'],
+          ['操作', '9'],
+          ['在线', '45 分钟'],
+        ],
+      },
+      {
+        title: '最近活动',
+        rows: [
+          [
+            '最后登录',
+            formatDate(activity.lastLoginTime!),
+          ],
+          ['最后访问', '—'],
+          [
+            '最后操作',
+            formatDate(activity.lastOperationTime!),
+          ],
+        ],
+      },
     ])
     expect(wrapper.text()).not.toContain('component.profile')
   })

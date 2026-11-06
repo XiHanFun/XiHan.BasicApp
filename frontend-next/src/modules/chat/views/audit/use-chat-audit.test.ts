@@ -12,7 +12,13 @@ function record(respond: (call: Call) => Response): Call[] {
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      const call = { method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined }
+      const call = {
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      }
       calls.push(call)
       return respond(call)
     }) as unknown as typeof fetch,
@@ -21,23 +27,62 @@ function record(respond: (call: Call) => Response): Call[] {
 }
 
 function row(id: string) {
-  return { id, conversationId: 'c-1', conversationName: '研发群', conversationType: 'Group', senderUserId: null, senderUserName: null, messageType: 'System', content: '张三加入了群聊', fileName: null, isRecalled: false, editedAt: null, createdAt: '2026-11-01T00:00:00Z' }
+  return {
+    id,
+    conversationId: 'c-1',
+    conversationName: '研发群',
+    conversationType: 'Group',
+    senderUserId: null,
+    senderUserName: null,
+    messageType: 'System',
+    content: '张三加入了群聊',
+    fileName: null,
+    isRecalled: false,
+    editedAt: null,
+    createdAt: '2026-11-01T00:00:00Z',
+  }
 }
 
 const t = (key: string) => key
 
 describe('chatAuditResource', () => {
   it('把 SchemaPage 的查询换成 chat-audit.list 的分页请求：多选合成 in、发送时间拆成 ge / le、会话与发送人精确匹配', async () => {
-    const calls = record(() => new Response(JSON.stringify({ items: [row('m-1')], total: 1, page: { index: 1, size: 20 } }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    const calls = record(() => new Response(JSON.stringify({
+      items: [
+        row('m-1'),
+      ],
+      total: 1,
+      page: { index: 1, size: 20 },
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
     const params: SchemaQueryParams = {
       page: 1,
       pageSize: 20,
-      filters: { keyword: ' 加入 ', conversationId: 'c-1', senderUserId: 'u-1', includeRecalled: 'true', messageType: ['Text', 'System'], createdAt: ['2026-10-01T00:00:00Z', '2026-11-01T00:00:00Z'] },
+      filters: {
+        keyword: ' 加入 ',
+        conversationId: 'c-1',
+        senderUserId: 'u-1',
+        includeRecalled: 'true',
+        messageType: ['Text', 'System'],
+        createdAt: ['2026-10-01T00:00:00Z', '2026-11-01T00:00:00Z'],
+      },
       conditionFilters: [
-        { field: 'messageType', operator: QueryOperator.In, values: ['Text', 'System'] },
-        { field: 'createdAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00Z', '2026-11-01T00:00:00Z'] },
+        {
+          field: 'messageType',
+          operator: QueryOperator.In,
+          values: ['Text', 'System'],
+        },
+        {
+          field: 'createdAt',
+          operator: QueryOperator.Between,
+          values: ['2026-10-01T00:00:00Z', '2026-11-01T00:00:00Z'],
+        },
       ],
-      sorts: [{ field: 'createdAt', order: 'desc' }],
+      sorts: [
+        { field: 'createdAt', order: 'desc' },
+      ],
     }
 
     const result = await chatAuditResource().page!(params)
@@ -54,7 +99,9 @@ describe('chatAuditResource', () => {
         { field: 'senderUserId', operator: 'eq', value: 'u-1' },
         { field: 'includeRecalled', operator: 'eq', value: 'true' },
       ],
-      sorts: [{ field: 'createdAt', descending: true }],
+      sorts: [
+        { field: 'createdAt', descending: true },
+      ],
     })
     expect(result.items.map(item => item.id)).toEqual(['m-1'])
     expect(result.page.totalCount).toBe(1)
@@ -63,7 +110,11 @@ describe('chatAuditResource', () => {
   it('没登记的筛选字段直接报错，而不是静默丢掉条件', async () => {
     record(() => new Response('{}', { status: 200 }))
 
-    await expect(chatAuditResource().page!({ page: 1, pageSize: 20, filters: { content: 'x' } })).rejects.toThrow('content')
+    await expect(chatAuditResource().page!({
+      page: 1,
+      pageSize: 20,
+      filters: { content: 'x' },
+    })).rejects.toThrow('content')
   })
 })
 

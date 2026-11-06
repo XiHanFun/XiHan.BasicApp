@@ -7,7 +7,12 @@ import { i18n } from '~/locales'
 import LibraryPage from './index.vue'
 
 function pageSchema(): PageSchema {
-  const wrapper = mount(LibraryPage, { global: { plugins: [i18n], stubs: { SchemaPage: true } } })
+  const wrapper = mount(LibraryPage, {
+    global: {
+      plugins: [i18n],
+      stubs: { SchemaPage: true },
+    },
+  })
   return wrapper.findComponent({ name: 'SchemaPage' }).props('schema') as PageSchema
 }
 

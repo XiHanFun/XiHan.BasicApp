@@ -11,11 +11,18 @@ import { buildApprovalSteps } from './approval-steps'
 
 /** 把键与参数原样拼出来，断言文案选择而不依赖语言包 */
 function t(key: string, named?: Record<string, unknown>) {
-  return named ? `${key}${JSON.stringify(named)}` : key
+  return named
+    ? `${key}${JSON.stringify(named)}`
+    : key
 }
 
 function item(kind: WorkflowApprovalTimelineKind, patch: Partial<ApprovalTimelineItem> = {}): ApprovalTimelineItem {
-  return { kind, targetUserNames: [], time: '2026-10-14T14:34:57+08:00', ...patch }
+  return {
+    kind,
+    targetUserNames: [],
+    time: '2026-10-14T14:34:57+08:00',
+    ...patch,
+  }
 }
 
 const started = item('Started', { userName: '李管理' })
@@ -48,7 +55,13 @@ describe('审批流程步骤条', () => {
   it('通过后全部走完，办理与结束都标成功色，意见单独一行', () => {
     const { steps, value } = buildApprovalSteps(t, [
       started,
-      item('Completed', { nodeId: 'admin', nodeName: '管理员审批', userName: '张总', outcome: 'approved', comment: '同意' }),
+      item('Completed', {
+        nodeId: 'admin',
+        nodeName: '管理员审批',
+        userName: '张总',
+        outcome: 'approved',
+        comment: '同意',
+      }),
       item('Finished', { instanceStatus: 'Completed', outcome: 'approved' }),
     ])
 
@@ -71,7 +84,10 @@ describe('审批流程步骤条', () => {
       item('Finished', { instanceStatus: 'Canceled' }),
     ])
     expect(canceled.value).toBe(2)
-    expect(canceled.steps[1]).toMatchObject({ tone: 'neutral', lines: ['workflow.instances.status_canceled'] })
+    expect(canceled.steps[1]).toMatchObject({
+      tone: 'neutral',
+      lines: ['workflow.instances.status_canceled'],
+    })
   })
 
   it('同一节点连续抄送合成一步', () => {
@@ -82,7 +98,10 @@ describe('审批流程步骤条', () => {
     ])
 
     expect(steps).toHaveLength(3)
-    expect(steps[1]).toMatchObject({ tone: 'neutral', lines: ['workflow.approvals.tl_cc{"user":"孙审计、钱人事"}'] })
+    expect(steps[1]).toMatchObject({
+      tone: 'neutral',
+      lines: ['workflow.approvals.tl_cc{"user":"孙审计、钱人事"}'],
+    })
   })
 
   it('进行中却没有待办（自动推进或故障）时当前步落在「结束」上', () => {

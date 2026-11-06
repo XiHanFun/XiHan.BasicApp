@@ -90,7 +90,10 @@ const appContext = getCurrentInstance()?.appContext ?? null
  * 预设的文案随语言换：换语言就换一个扩展对象，设计器按卸下再装上处理，流程定义不变
  * 受理人只用受理人规则一种写法，属性面板不显示旧的受理人三项；节点类型按后端的活动类型目录收窄（取不到时只去掉 Script）
  */
-const preset = computed(() => restrictActivityTypes(createXihanWorkflow({ texts: xihanWorkflowTexts(locale.value), legacyAssignees: false }), activityTypes.value))
+const preset = computed(() => restrictActivityTypes(createXihanWorkflow({
+  texts: xihanWorkflowTexts(locale.value),
+  legacyAssignees: false,
+}), activityTypes.value))
 
 /** 审批业务清单到达后重建一次：规则按关联的业务检查结束节点，新的扩展对象让设计器重新校验 */
 const workflowExtension = computed(() => {
@@ -100,7 +103,9 @@ const workflowExtension = computed(() => {
     appContext,
     businessTypes: () => businessTypes.value,
     document: () => schema.value,
-    t: (key, params) => params ? t(key, params) : t(key),
+    t: (key, params) => params
+      ? t(key, params)
+      : t(key),
     serverDiagnostics: () => diagnostics,
   })
 })
@@ -119,7 +124,10 @@ const groupTexts = computed(() => xihanWorkflowTexts(locale.value))
 
 function applyExtensions(designer: XhFlowDesigner) {
   designer.extensions = extensions.value
-  designer.paletteGroupLabels = { ...groupTexts.value?.categories, ...categoryNames.value }
+  designer.paletteGroupLabels = {
+    ...groupTexts.value?.categories,
+    ...categoryNames.value,
+  }
   designer.propertyGroupLabels = groupTexts.value?.groups
 }
 
@@ -171,8 +179,12 @@ const saved = computed(() => !dirty.value)
 const identity = computed(() => {
   const data = schema.value?.data
   return {
-    name: typeof data?.name === 'string' ? data.name : '',
-    code: typeof data?.code === 'string' ? data.code : '',
+    name: typeof data?.name === 'string'
+      ? data.name
+      : '',
+    code: typeof data?.code === 'string'
+      ? data.code
+      : '',
   }
 })
 

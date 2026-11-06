@@ -17,9 +17,24 @@ const CHANGELOG_URL = 'https://basicapp.docs.xihanfun.com/changelog'
 
 /** 源码仓库的三处托管：GitHub 取 package.json 的 repository（与页脚、登录页同源），另有 Gitee 与 GitCode */
 const repositories = computed(() => [
-  { key: 'github', label: t('workbench.widgets.welcome_github'), icon: 'simple-icons:github', url: __APP_REPOSITORY__ },
-  { key: 'gitee', label: t('workbench.widgets.welcome_gitee'), icon: 'simple-icons:gitee', url: 'https://gitee.com/XiHanFun/XiHan.BasicApp' },
-  { key: 'gitcode', label: t('workbench.widgets.welcome_gitcode'), icon: 'simple-icons:gitcode', url: 'https://gitcode.com/XiHanFun/XiHan.BasicApp' },
+  {
+    key: 'github',
+    label: t('workbench.widgets.welcome_github'),
+    icon: 'simple-icons:github',
+    url: __APP_REPOSITORY__,
+  },
+  {
+    key: 'gitee',
+    label: t('workbench.widgets.welcome_gitee'),
+    icon: 'simple-icons:gitee',
+    url: 'https://gitee.com/XiHanFun/XiHan.BasicApp',
+  },
+  {
+    key: 'gitcode',
+    label: t('workbench.widgets.welcome_gitcode'),
+    icon: 'simple-icons:gitcode',
+    url: 'https://gitcode.com/XiHanFun/XiHan.BasicApp',
+  },
 ])
 
 function open(url: string) {

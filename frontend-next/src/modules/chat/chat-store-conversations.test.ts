@@ -26,7 +26,9 @@ vi.mock('~/composables/useSignalR', () => ({
   useSignalR: () => ({
     invoke: (method: string, conversationId: string) => {
       hub.calls.push({ method, conversationId })
-      return hub.shouldFail ? Promise.reject(new Error('未连接')) : Promise.resolve()
+      return hub.shouldFail
+        ? Promise.reject(new Error('未连接'))
+        : Promise.resolve()
     },
   }),
 }))
@@ -110,7 +112,9 @@ describe('会话列表拉取', () => {
     await store.loadConversations()
     expect(calls).toBe(1)
 
-    release([conversation({ conversationId: 'a' })])
+    release([
+      conversation({ conversationId: 'a' }),
+    ])
     await first
 
     expect(calls).toBe(1)
@@ -122,7 +126,11 @@ describe('会话列表拉取', () => {
     const store = setup({
       myConversations: () => {
         calls += 1
-        return calls === 1 ? Promise.reject(new Error('网络错误')) : Promise.resolve([conversation({ conversationId: 'a' })])
+        return calls === 1
+          ? Promise.reject(new Error('网络错误'))
+          : Promise.resolve([
+              conversation({ conversationId: 'a' }),
+            ])
       },
     })
 
@@ -150,12 +158,20 @@ describe('会话列表拉取', () => {
   })
 
   it('活跃会话在新一轮列表中消失时收敛回列表态，避免停留在已被移出的会话', async () => {
-    const store = setup({ myConversations: () => Promise.resolve([conversation({ conversationId: 'gone' })]) })
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'gone' }),
+      ]),
+    })
     await store.loadConversations()
     await store.openConversation('gone')
     expect(store.activeConversationId).toBe('gone')
 
-    setChatApi(createApi({ myConversations: () => Promise.resolve([conversation({ conversationId: 'other' })]) }))
+    setChatApi(createApi({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'other' }),
+      ]),
+    }))
     await store.loadConversations()
 
     expect(store.activeConversationId).toBeNull()
@@ -236,7 +252,9 @@ describe('会话排序', () => {
   it('开关目标不在列表里时不知道当前值：不发请求、不新增幽灵条目', async () => {
     let calls = 0
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a' })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
       setConversationPinned: () => {
         calls += 1
         return Promise.resolve({ isOn: true })
@@ -281,7 +299,12 @@ describe('未读合计', () => {
 
 describe('打开与关闭会话', () => {
   it('切换会话时先离开旧组再加入新组，顺序不可颠倒', async () => {
-    const store = setup({ myConversations: () => Promise.resolve([conversation({ conversationId: 'a' }), conversation({ conversationId: 'b' })]) })
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+        conversation({ conversationId: 'b' }),
+      ]),
+    })
     await store.loadConversations()
 
     await store.openConversation('a')
@@ -296,7 +319,11 @@ describe('打开与关闭会话', () => {
 
   it('连接未建立导致进组失败时不阻塞打开会话，消息仍照常加载', async () => {
     hub.shouldFail = true
-    const store = setup({ myConversations: () => Promise.resolve([conversation({ conversationId: 'a' })]) })
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
+    })
     await store.loadConversations()
 
     await store.openConversation('a')
@@ -321,7 +348,9 @@ describe('打开与关闭会话', () => {
   })
 
   it('历史加载失败不阻塞进入会话，进入后可下拉重试', async () => {
-    const store = setup({ messageHistory: () => Promise.reject(new Error('历史服务不可用')) })
+    const store = setup({
+      messageHistory: () => Promise.reject(new Error('历史服务不可用')),
+    })
 
     await expect(store.openConversation('a')).resolves.toBeUndefined()
 
@@ -329,7 +358,11 @@ describe('打开与关闭会话', () => {
   })
 
   it('重复点击当前会话不重新进组，只消费未读', async () => {
-    const store = setup({ myConversations: () => Promise.resolve([conversation({ conversationId: 'a', unreadCount: 5 })]) })
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', unreadCount: 5 }),
+      ]),
+    })
     await store.loadConversations()
     await store.openConversation('a')
     store.conversations[0]!.unreadCount = 5
@@ -373,7 +406,9 @@ describe('打开与关闭会话', () => {
     store.closeActiveConversation()
 
     expect(store.activeConversationId).toBeNull()
-    expect(hub.calls).toStrictEqual([{ method: RealtimeInvocations.LeaveConversation, conversationId: 'a' }])
+    expect(hub.calls).toStrictEqual([
+      { method: RealtimeInvocations.LeaveConversation, conversationId: 'a' },
+    ])
   })
 
   it('没有活跃会话时关闭是安全空转，不发出退组调用', () => {
@@ -390,7 +425,9 @@ describe('已读上报防抖', () => {
     vi.useFakeTimers()
     const marked: string[] = []
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a', unreadCount: 9 })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', unreadCount: 9 }),
+      ]),
       markRead: (conversationId: string) => {
         marked.push(conversationId)
         return Promise.resolve()
@@ -435,7 +472,9 @@ describe('已读上报防抖', () => {
     vi.useFakeTimers()
     const marked: string[] = []
     const store = setup({
-      myConversations: () => Promise.resolve([conversation({ conversationId: 'a', unreadCount: 0 })]),
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', unreadCount: 0 }),
+      ]),
       markRead: (conversationId: string) => {
         marked.push(conversationId)
         return Promise.resolve()

@@ -20,12 +20,19 @@ const getApi = vi.fn<(input: { scene: number, settingKey: string }) => Promise<S
 const saveApi = vi.fn<(input: { scene: number, settingKey: string, settingValue?: null | string }) => Promise<SettingDto>>()
 
 function item(path: string, overrides?: Partial<FavoriteItem>): FavoriteItem {
-  return { key: path, title: path, path, ...overrides }
+  return {
+    key: path,
+    title: path,
+    path,
+    ...overrides,
+  }
 }
 
 function readLocal(): FavoriteItem[] | null {
   const raw = localStorage.getItem(FAVORITES_KEY)
-  return raw ? (JSON.parse(raw) as FavoriteItem[]) : null
+  return raw
+    ? (JSON.parse(raw) as FavoriteItem[])
+    : null
 }
 
 /** 每个用例都重建 pinia 并重新注册偏好（helpers 的偏好注册表是模块级的，必须刷新指向新 store 的 ref） */
@@ -43,7 +50,9 @@ beforeEach(() => {
   getApi.mockResolvedValue({ scene: 0, settingKey: FAVORITES_SETTING_KEY, settingValue: null })
   saveApi.mockResolvedValue({ scene: 0, settingKey: FAVORITES_SETTING_KEY })
   registerAppContext({
-    apis: { userSettingApi: { get: getApi, save: saveApi } } as unknown as AppContextApis,
+    apis: {
+      userSettingApi: { get: getApi, save: saveApi },
+    } as unknown as AppContextApis,
   })
 })
 
@@ -60,7 +69,10 @@ describe('初始状态与本地还原', () => {
   })
 
   it('store 初始化时从 localStorage 还原收藏列表', () => {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify([item('/a'), item('/b')]))
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify([
+      item('/a'),
+      item('/b'),
+    ]))
     const store = setupStores()
 
     expect(store.favorites.map(x => x.path)).toEqual(['/a', '/b'])
@@ -291,22 +303,49 @@ describe('hydrate：从后端拉取覆盖本地', () => {
     getApi.mockResolvedValue({
       scene: 0,
       settingKey: FAVORITES_SETTING_KEY,
-      settingValue: JSON.stringify([{ key: '乱写', title: 'T', path: '/remote', icon: 'i', 多余字段: 1 }]),
+      settingValue: JSON.stringify([
+        {
+          key: '乱写',
+          title: 'T',
+          path: '/remote',
+          icon: 'i',
+          多余字段: 1,
+        },
+      ]),
     })
     const store = setupStores()
     store.add(item('/local'))
 
     await store.hydrate()
 
-    expect(store.favorites).toEqual([{ key: '/remote', title: 'T', path: '/remote', icon: 'i' }])
-    expect(readLocal()).toEqual([{ key: '/remote', title: 'T', path: '/remote', icon: 'i' }])
+    expect(store.favorites).toEqual([
+      {
+        key: '/remote',
+        title: 'T',
+        path: '/remote',
+        icon: 'i',
+      },
+    ])
+    expect(readLocal()).toEqual([
+      {
+        key: '/remote',
+        title: 'T',
+        path: '/remote',
+        icon: 'i',
+      },
+    ])
   })
 
   it('远端数组里 path 非字符串的脏数据被过滤掉', async () => {
     getApi.mockResolvedValue({
       scene: 0,
       settingKey: FAVORITES_SETTING_KEY,
-      settingValue: JSON.stringify([null, { title: 'no-path' }, { path: 123 }, { path: '/ok', title: 'OK' }]),
+      settingValue: JSON.stringify([
+        null,
+        { title: 'no-path' },
+        { path: 123 },
+        { path: '/ok', title: 'OK' },
+      ]),
     })
     const store = setupStores()
 
@@ -356,7 +395,11 @@ describe('hydrate：从后端拉取覆盖本地', () => {
   it('并发调用共享同一次请求（in-flight 去重）', async () => {
     const store = setupStores()
 
-    await Promise.all([store.hydrate(), store.hydrate(), store.hydrate()])
+    await Promise.all([
+      store.hydrate(),
+      store.hydrate(),
+      store.hydrate(),
+    ])
 
     expect(getApi).toHaveBeenCalledTimes(1)
   })
@@ -386,9 +429,18 @@ describe('applyRemote：其它设备推来的变更', () => {
     const store = setupStores()
     store.add(item('/local'))
 
-    store.applyRemote(JSON.stringify([{ path: '/pushed', title: 'P' }]))
+    store.applyRemote(JSON.stringify([
+      { path: '/pushed', title: 'P' },
+    ]))
 
-    expect(store.favorites).toEqual([{ key: '/pushed', title: 'P', path: '/pushed', icon: undefined }])
+    expect(store.favorites).toEqual([
+      {
+        key: '/pushed',
+        title: 'P',
+        path: '/pushed',
+        icon: undefined,
+      },
+    ])
     expect(readLocal()?.map(x => x.path)).toEqual(['/pushed'])
   })
 
@@ -433,7 +485,9 @@ describe('applyRemote：其它设备推来的变更', () => {
     vi.useFakeTimers()
     const store = setupStores()
 
-    store.applyRemote(JSON.stringify([{ path: '/pushed', title: 'P' }]))
+    store.applyRemote(JSON.stringify([
+      { path: '/pushed', title: 'P' },
+    ]))
     await vi.advanceTimersByTimeAsync(1000)
 
     expect(saveApi).not.toHaveBeenCalled()
@@ -445,7 +499,9 @@ describe('applyRemote：其它设备推来的变更', () => {
     const store = useFavoritesStore()
     store.add(item('/local'))
 
-    store.applyRemote(JSON.stringify([{ path: '/pushed', title: 'P' }]))
+    store.applyRemote(JSON.stringify([
+      { path: '/pushed', title: 'P' },
+    ]))
 
     expect(store.favorites.map(x => x.path)).toEqual(['/local'])
   })

@@ -42,7 +42,12 @@ const providers = computed(() => {
   })
   for (const linked of linkedAccounts.value) {
     if (!rows.some(row => row.linked === linked)) {
-      rows.push({ name: linked.provider, displayName: linked.provider, type: linked.provider, linked })
+      rows.push({
+        name: linked.provider,
+        displayName: linked.provider,
+        type: linked.provider,
+        linked,
+      })
     }
   }
   return rows
@@ -50,7 +55,9 @@ const providers = computed(() => {
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadData() {

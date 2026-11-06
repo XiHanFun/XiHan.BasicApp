@@ -42,7 +42,9 @@ const ERROR_TEXT: Record<string, string> = {
 function readCallbackParams(): Record<string, string> {
   const params: Record<string, string> = {}
   for (const [key, value] of Object.entries(route.query)) {
-    const first = Array.isArray(value) ? value[0] : value
+    const first = Array.isArray(value)
+      ? value[0]
+      : value
     if (typeof first === 'string') {
       params[key] = first
     }
@@ -52,14 +54,19 @@ function readCallbackParams(): Record<string, string> {
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀，未绑定、票据过期、账号停用或锁定都在这里说清），其余用兜底文案 */
 function failureText(error: unknown, fallback: string): string {
-  return error instanceof ApiError && error.detail ? error.detail : t(fallback)
+  return error instanceof ApiError && error.detail
+    ? error.detail
+    : t(fallback)
 }
 
 function goProfileBinding() {
   // 个人中心路由由应用注册；未配置时回落到首页，别把用户扔到一个不存在的路径上
   const profilePath = appContext.shellRoutes.profile
   return profilePath
-    ? router.replace({ path: profilePath, query: { tab: 'binding' } })
+    ? router.replace({
+        path: profilePath,
+        query: { tab: 'binding' },
+      })
     : router.replace('/')
 }
 
@@ -70,7 +77,9 @@ function fail(message: string, mode: OAuthMode) {
   loading.value = false
   toast.danger(message)
   timer = setTimeout(() => {
-    void (backToProfile.value ? goProfileBinding() : router.replace(LOGIN_PATH))
+    void (backToProfile.value
+      ? goProfileBinding()
+      : router.replace(LOGIN_PATH))
   }, 3000)
 }
 
@@ -103,12 +112,18 @@ async function completeLogin(ticket: string, redirect?: string) {
 onMounted(async () => {
   const query = readCallbackParams()
   const pending = takeOAuthPending()
-  const mode: OAuthMode = (query.mode ?? pending?.mode) === 'bind' ? 'bind' : 'login'
+  const mode: OAuthMode = (query.mode ?? pending?.mode) === 'bind'
+    ? 'bind'
+    : 'login'
 
   const error = query.error
   if (error) {
     const key = ERROR_TEXT[error]
-    fail(key ? t(key) : t(mode === 'bind' ? 'page.auth.oauth_bind_failed' : 'page.auth.oauth_callback_failed'), mode)
+    fail(key
+      ? t(key)
+      : t(mode === 'bind'
+          ? 'page.auth.oauth_bind_failed'
+          : 'page.auth.oauth_callback_failed'), mode)
     return
   }
 

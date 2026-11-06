@@ -24,11 +24,20 @@ export interface IngestForm {
 }
 
 export function emptyIngestForm(): IngestForm {
-  return { title: '', sourceType: 'PasteText', source: '', text: '', embeddingProviderCode: '', remark: '' }
+  return {
+    title: '',
+    sourceType: 'PasteText',
+    source: '',
+    text: '',
+    embeddingProviderCode: '',
+    remark: '',
+  }
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /**
@@ -38,10 +47,16 @@ function blankToNull(value: string): null | string {
 export function knowledgeDocumentsResource(): SchemaResource<KnowledgeRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await knowledgeDocuments.list(toPageRequest(params, { multiples: ['sourceType', 'status'] })),
+      await knowledgeDocuments.list(toPageRequest(params, {
+        multiples: ['sourceType', 'status'],
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await knowledgeDocuments.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await knowledgeDocuments.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -108,7 +123,16 @@ export function useKnowledgeIngest() {
     }
   }
 
-  return { open, form, fieldError, submitError, submitting, startCreate, applyFile, submit }
+  return {
+    open,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    applyFile,
+    submit,
+  }
 }
 
 /**
@@ -132,7 +156,12 @@ export function useKnowledgePlayground() {
       return false
     loading.value = true
     try {
-      const result = await knowledgeDocuments.query({ question: text, top: top.value, provider: blankToNull(provider.value), answer: wantAnswer.value })
+      const result = await knowledgeDocuments.query({
+        question: text,
+        top: top.value,
+        provider: blankToNull(provider.value),
+        answer: wantAnswer.value,
+      })
       answer.value = result.answer ?? null
       citations.value = result.citations
       searched.value = true
@@ -143,7 +172,17 @@ export function useKnowledgePlayground() {
     }
   }
 
-  return { question, top, provider, wantAnswer, loading, answer, citations, searched, run }
+  return {
+    question,
+    top,
+    provider,
+    wantAnswer,
+    loading,
+    answer,
+    citations,
+    searched,
+    run,
+  }
 }
 
 /** 片段的显示名：标题，没有即来源，再没有即文档 ID（照 4.x） */

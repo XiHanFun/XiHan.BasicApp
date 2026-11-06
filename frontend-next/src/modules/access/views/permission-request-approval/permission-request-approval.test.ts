@@ -39,7 +39,17 @@ function data(extra: Partial<PermissionRequestRow> = {}): PermissionRequestRow {
 }
 
 function render(row: PermissionRequestRow) {
-  return mount(PermissionRequestApproval, { props: { businessId: row.id, data: row, mode: 'approve', nodeId: 'admin-approve' }, global: { plugins: [i18n] } })
+  return mount(PermissionRequestApproval, {
+    props: {
+      businessId: row.id,
+      data: row,
+      mode: 'approve',
+      nodeId: 'admin-approve',
+    },
+    global: {
+      plugins: [i18n],
+    },
+  })
 }
 
 describe('授权申请单据（审批中心里的只读单据）', () => {
@@ -55,7 +65,12 @@ describe('授权申请单据（审批中心里的只读单据）', () => {
   })
 
   it('同时申请角色与权限时两样都列出，期望失效时间已过标「已过期」，有备注出备注', () => {
-    const text = render(data({ permissionCode: 'identity.users.read', permissionName: '读取用户', isExpectedExpired: true, remark: '加急' })).text()
+    const text = render(data({
+      permissionCode: 'identity.users.read',
+      permissionName: '读取用户',
+      isExpectedExpired: true,
+      remark: '加急',
+    })).text()
     expect(text).toContain('审批员 (approver)')
     expect(text).toContain('读取用户 (identity.users.read)')
     expect(text).toContain('已过期')

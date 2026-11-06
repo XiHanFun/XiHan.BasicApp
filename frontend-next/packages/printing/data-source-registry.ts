@@ -5,7 +5,14 @@
 import type { PrintDataSourceDefinition, PrintFieldDefinition } from './types'
 
 const dataSources = new Map<string, PrintDataSourceDefinition<unknown>>()
-const SUPPORTED_SAMPLE_INPUT_TYPES = new Set(['boolean', 'date', 'datetime', 'number', 'text', 'textarea'])
+const SUPPORTED_SAMPLE_INPUT_TYPES = new Set([
+  'boolean',
+  'date',
+  'datetime',
+  'number',
+  'text',
+  'textarea',
+])
 
 /**
  * 注册一个打印数据源；重复编码立即抛错，避免后注册模块静默覆盖已有字段契约
@@ -77,7 +84,9 @@ export function requirePrintDataSource<T = Record<string, unknown>>(
  * @returns 按编码排序的只读快照
  */
 export function listPrintDataSources(): readonly Readonly<PrintDataSourceDefinition<unknown>>[] {
-  return [...dataSources.values()].sort((left, right) => left.code.localeCompare(right.code))
+  return [
+    ...dataSources.values(),
+  ].sort((left, right) => left.code.localeCompare(right.code))
 }
 
 /** 规范化并校验编码 */
@@ -105,8 +114,15 @@ function normalizeField(
     throw new Error(`打印字段 ${key} 的名称不能为空。`)
 
   const kind = field.kind ?? 'text'
-  if (!['barcode', 'image', 'qrcode', 'table', 'text'].includes(kind))
+  if (![
+    'barcode',
+    'image',
+    'qrcode',
+    'table',
+    'text',
+  ].includes(kind)) {
     throw new Error(`打印字段 ${key} 的类型无效：${kind}`)
+  }
   if (kind === 'table' && (!field.columns || field.columns.length === 0))
     throw new Error(`明细表字段 ${key} 至少需要一列。`)
 

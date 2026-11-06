@@ -134,7 +134,12 @@ describe('布局事件名', () => {
 
 describe('路由路径常量', () => {
   it('全部登录入口都挂在 /auth 之下', () => {
-    for (const path of [LOGIN_PATH, CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, QRCODE_LOGIN_PATH]) {
+    for (const path of [
+      LOGIN_PATH,
+      CODE_LOGIN_PATH,
+      EMAIL_LOGIN_PATH,
+      QRCODE_LOGIN_PATH,
+    ]) {
       expect(path.startsWith(`${AUTH_PATH}/`)).toBe(true)
     }
   })

@@ -41,7 +41,9 @@ const tree = computed<unknown>(() => {
   }
   try {
     const parsed: unknown = JSON.parse(text.value)
-    return typeof parsed === 'object' && parsed !== null ? parsed : undefined
+    return typeof parsed === 'object' && parsed !== null
+      ? parsed
+      : undefined
   }
   catch {
     return undefined

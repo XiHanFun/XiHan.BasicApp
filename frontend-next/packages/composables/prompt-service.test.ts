@@ -27,12 +27,16 @@ vi.mock('./ui-service', () => ({
 function renderBody(fields: Parameters<typeof prompt>[0]['fields']) {
   void prompt({ title: '修改用户名', fields })
   const value = reactive<Record<string, string>>(Object.fromEntries(fields.map(f => [f.key, f.value ?? ''])))
-  return mount({ render: () => h('div', captured.options!.body(value) as never) })
+  return mount({
+    render: () => h('div', captured.options!.body(value) as never),
+  })
 }
 
 describe('prompt 字段结构', () => {
   it('文本字段的输入框套在 control 部件里', () => {
-    const wrapper = renderBody([{ key: 'userName', value: 'admin', placeholder: '新用户名' }])
+    const wrapper = renderBody([
+      { key: 'userName', value: 'admin', placeholder: '新用户名' },
+    ])
     const control = wrapper.find('[data-scope="text-field"][data-part="control"]')
     expect(control.exists()).toBe(true)
     expect(control.attributes('data-xh-field-chrome')).toBe('')
@@ -40,7 +44,9 @@ describe('prompt 字段结构', () => {
   })
 
   it('密码字段的大写锁定提示在盒内、排在显隐钮前', () => {
-    const wrapper = renderBody([{ key: 'password', type: 'password', placeholder: '当前密码' }])
+    const wrapper = renderBody([
+      { key: 'password', type: 'password', placeholder: '当前密码' },
+    ])
     const control = wrapper.find('[data-scope="password-input"][data-part="control"]')
     const parts = [...control.element.children].map(el => el.getAttribute('data-part'))
     expect(parts).toEqual(['input', 'caps-lock-indicator', 'visibility-trigger'])

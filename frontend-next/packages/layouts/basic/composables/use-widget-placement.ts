@@ -11,7 +11,14 @@ import { useEffectiveLayoutMode } from './use-effective-layout-mode'
 export type ResolvedWidgetPlacement = 'header' | 'floating' | 'hidden'
 
 /** 顶栏上从左到右的次序：挤不下时按它从左往右一个个让到悬浮组，放得下了从右往左放回 */
-const WIDGET_KEYS = ['search', 'language', 'timezone', 'theme', 'fullscreen', 'preference'] as const
+const WIDGET_KEYS = [
+  'search',
+  'language',
+  'timezone',
+  'theme',
+  'fullscreen',
+  'preference',
+] as const
 type WidgetKey = typeof WIDGET_KEYS[number]
 
 // 模块级单例：顶栏量出来的挤压程度，顶栏、悬浮组与偏好抽屉读的是同一份
@@ -52,7 +59,9 @@ export function useWidgetPlacement() {
     && effectiveLayoutMode.value !== 'full')
 
   /** 会被挤压的工具：设成自动、此刻本该在顶栏的，按顶栏上的次序排 */
-  const squeezable = computed(() => autoInHeader.value ? WIDGET_KEYS.filter(key => settings.value[key] === 'auto') : [])
+  const squeezable = computed(() => autoInHeader.value
+    ? WIDGET_KEYS.filter(key => settings.value[key] === 'auto')
+    : [])
 
   function resolve(key: WidgetKey): ResolvedWidgetPlacement {
     switch (settings.value[key]) {
@@ -66,7 +75,9 @@ export function useWidgetPlacement() {
         if (!autoInHeader.value) {
           return 'floating'
         }
-        return squeezable.value.indexOf(key) < squeezedCount.value ? 'floating' : 'header'
+        return squeezable.value.indexOf(key) < squeezedCount.value
+          ? 'floating'
+          : 'header'
     }
   }
 
@@ -79,12 +90,29 @@ export function useWidgetPlacement() {
 
   /** 悬浮组里是否有东西（没有就不渲染悬浮按钮） */
   const hasFloating = computed(() =>
-    [search, language, timezone, theme, fullscreen, preference].some(item => item.value === 'floating'))
+    [
+      search,
+      language,
+      timezone,
+      theme,
+      fullscreen,
+      preference,
+    ].some(item => item.value === 'floating'))
 
   /** 顶栏挤压到第一档：命令面板收成图标钮 */
   const searchSqueezed = computed(() => squeezeLevel.value >= 1)
 
-  return { search, language, timezone, theme, fullscreen, preference, hasFloating, squeezable, searchSqueezed }
+  return {
+    search,
+    language,
+    timezone,
+    theme,
+    fullscreen,
+    preference,
+    hasFloating,
+    squeezable,
+    searchSqueezed,
+  }
 }
 
 /**
@@ -198,6 +226,9 @@ export function useHeaderSqueeze(
   useResizeObserver(toolbar, scheduleSettle)
   useResizeObserver(breadcrumb, scheduleSettle)
   onBeforeUnmount(() => cancelAnimationFrame(frame))
-  watch(() => [squeezable.value.join(), appStore.locale], () => remeasure())
+  watch(() => [
+    squeezable.value.join(),
+    appStore.locale,
+  ], () => remeasure())
   onMounted(() => remeasure())
 }

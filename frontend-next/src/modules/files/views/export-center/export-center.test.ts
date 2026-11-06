@@ -18,7 +18,11 @@ import {
   statusTone,
 } from './export-center'
 
-const t = (key: string, values?: Record<string, unknown>) => `${key}${values ? JSON.stringify(values) : ''}`
+function t(key: string, values?: Record<string, unknown>) {
+  return `${key}${values
+    ? JSON.stringify(values)
+    : ''}`
+}
 
 function task(patch: Partial<ExportTaskRow> = {}): ExportTaskRow {
   return {
@@ -47,12 +51,27 @@ describe('导出任务列表的后端筛选', () => {
     const request = toPageRequest({
       page: 1,
       pageSize: 20,
-      filters: { keyword: ' 用户 ', status: ['Pending', 'Processing'], format: ['Xlsx'], businessType: 'users.list' },
+      filters: {
+        keyword: ' 用户 ',
+        status: ['Pending', 'Processing'],
+        format: ['Xlsx'],
+        businessType: 'users.list',
+      },
       conditionFilters: [
-        { field: 'status', operator: QueryOperator.In, values: ['Pending', 'Processing'] },
-        { field: 'format', operator: QueryOperator.In, values: ['Xlsx'] },
+        {
+          field: 'status',
+          operator: QueryOperator.In,
+          values: ['Pending', 'Processing'],
+        },
+        {
+          field: 'format',
+          operator: QueryOperator.In,
+          values: ['Xlsx'],
+        },
       ],
-      sorts: [{ field: 'createdAt', order: 'desc' }],
+      sorts: [
+        { field: 'createdAt', order: 'desc' },
+      ],
     }, EXPORT_TASK_QUERY)
     expect(request.keyword).toBe('用户')
     expect(request.filters).toEqual([
@@ -60,11 +79,17 @@ describe('导出任务列表的后端筛选', () => {
       { field: 'format', operator: 'in', value: 'Xlsx' },
       { field: 'businessType', operator: 'eq', value: 'users.list' },
     ])
-    expect(request.sorts).toEqual([{ field: 'createdAt', descending: true }])
+    expect(request.sorts).toEqual([
+      { field: 'createdAt', descending: true },
+    ])
   })
 
   it('后端不支持的筛选（如范围）不静默丢弃，直接报错', () => {
-    expect(() => toPageRequest({ page: 1, pageSize: 20, filters: { scope: 'All' } }, EXPORT_TASK_QUERY)).toThrow(/scope/)
+    expect(() => toPageRequest({
+      page: 1,
+      pageSize: 20,
+      filters: { scope: 'All' },
+    }, EXPORT_TASK_QUERY)).toThrow(/scope/)
   })
 })
 
@@ -76,7 +101,15 @@ describe('导出任务的删除', () => {
       getToken: () => 't',
       fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
         calls.push(`${init?.method ?? 'GET'} ${String(url)}`)
-        return new Response(JSON.stringify({ succeeded: [], failed: [{ id: 'e1', code: 'FILES_CONFLICT_007', message: 'FILES_CONFLICT_007 的原因' }] }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({
+          succeeded: [],
+          failed: [
+            { id: 'e1', code: 'FILES_CONFLICT_007', message: 'FILES_CONFLICT_007 的原因' },
+          ],
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
       }) as unknown as typeof fetch,
     })
     await expect(exportTaskResource().remove!('e1')).rejects.toThrow('FILES_CONFLICT_007 的原因')

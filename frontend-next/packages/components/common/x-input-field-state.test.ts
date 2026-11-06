@@ -44,7 +44,9 @@ describe('xInput 三态随字段走', () => {
   })
 
   it('不在字段里、也没写三态时，control 上没有任何状态标记', () => {
-    const wrapper = mount(XInput, { props: { value: '' } })
+    const wrapper = mount(XInput, {
+      props: { value: '' },
+    })
     const el = control(wrapper)
     expect(el.attributes('data-invalid')).toBeUndefined()
     expect(el.attributes('data-disabled')).toBeUndefined()

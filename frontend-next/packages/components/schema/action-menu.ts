@@ -14,11 +14,19 @@ import { Icon } from '~/iconify'
 export function actionMenuPrefix(
   actions: ReadonlyArray<Pick<ActionSchema, 'key' | 'icon'>>,
 ): ((node: MenuNodeMeta) => VNode[]) | undefined {
-  const icons = new Map(actions.flatMap(a => (a.icon ? [[a.key, a.icon] as const] : [])))
+  const icons = new Map(actions.flatMap(a => (a.icon
+    ? [
+        [a.key, a.icon] as const,
+      ]
+    : [])))
   if (icons.size === 0)
     return undefined
   return (node) => {
     const icon = icons.get(node.value)
-    return icon ? [h(Icon, { icon })] : []
+    return icon
+      ? [
+          h(Icon, { icon }),
+        ]
+      : []
   }
 }

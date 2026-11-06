@@ -11,21 +11,31 @@ import { describe, expect, it } from 'vitest'
 import { i18n } from '~/locales'
 import XGrantTransfer from './GrantTransfer.vue'
 
-const items: GrantTransferItem[] = [{ basicId: '1' }, { basicId: '2' }]
-const names = new Map([['1', '甲'], ['2', '乙']])
+const items: GrantTransferItem[] = [
+  { basicId: '1' },
+  { basicId: '2' },
+]
+const names = new Map([
+  ['1', '甲'],
+  ['2', '乙'],
+])
 
 function mountTransfer(sourceTitle: string, targetTitle: string) {
   return mount(XGrantTransfer, {
     props: {
       items,
       value: ['2'],
-      groups: [{ key: 'all', name: '', items }],
+      groups: [
+        { key: 'all', name: '', items },
+      ],
       getLabel: (item: GrantTransferItem) => names.get(String(item.basicId)) ?? '',
       sourceTitle,
       targetTitle,
       searchPlaceholder: '搜索',
     },
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [i18n],
+    },
   })
 }
 

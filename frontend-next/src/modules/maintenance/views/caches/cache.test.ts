@@ -34,7 +34,11 @@ import {
 } from './cache'
 
 /** 假翻译：键原样返回，带参数时拼上参数便于断言 */
-const t = (key: string, values?: Record<string, unknown>) => (values ? `${key}:${JSON.stringify(values)}` : key)
+function t(key: string, values?: Record<string, unknown>) {
+  return values
+    ? `${key}:${JSON.stringify(values)}`
+    : key
+}
 
 interface Call {
   method: string
@@ -43,7 +47,10 @@ interface Call {
 }
 
 function json(status: number, body: object, type = 'application/json'): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': type } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': type },
+  })
 }
 
 /** 逐个请求交给 respond 回答（可返回 Promise 以控制先后），记下方法、地址与请求体 */
@@ -53,7 +60,13 @@ function stub(respond: (call: Call, index: number) => Promise<Response> | Respon
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      const call = { method: init?.method ?? 'GET', url: decodeURIComponent(String(url)), body: init?.body ? JSON.parse(String(init.body)) : undefined }
+      const call = {
+        method: init?.method ?? 'GET',
+        url: decodeURIComponent(String(url)),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      }
       calls.push(call)
       return respond(call, calls.length - 1)
     }) as unknown as typeof fetch,
@@ -67,7 +80,12 @@ function reply(...bodies: object[]): Call[] {
 }
 
 function problem(status: number, code: string): Response {
-  return json(status, { code, status, detail: `detail of ${code}`, traceId: 'x' }, 'application/problem+json')
+  return json(status, {
+    code,
+    status,
+    detail: `detail of ${code}`,
+    traceId: 'x',
+  }, 'application/problem+json')
 }
 
 /** 手动放行的响应：用来造「先发后到」 */
@@ -86,7 +104,17 @@ const NAMESPACES: CacheNamespace[] = [
 ]
 
 function entry(patch: Partial<CacheEntry> = {}): CacheEntry {
-  return { key: 'notification:telegram:1', layer: 'Store', typeName: null, size: 12, timeToLiveSeconds: 3700, slidingSeconds: null, text: '{"a":1}', editable: true, ...patch }
+  return {
+    key: 'notification:telegram:1',
+    layer: 'Store',
+    typeName: null,
+    size: 12,
+    timeToLiveSeconds: 3700,
+    slidingSeconds: null,
+    text: '{"a":1}',
+    editable: true,
+    ...patch,
+  }
 }
 
 /** 字节存储里的键 */
@@ -104,7 +132,9 @@ describe('缓存管理：命名空间', () => {
 
     const calls = reply({ items: NAMESPACES })
     expect(await loadNamespaces()).toEqual(NAMESPACES)
-    expect(calls).toEqual([{ method: 'GET', url: '/api/caches:namespaces', body: undefined }])
+    expect(calls).toEqual([
+      { method: 'GET', url: '/api/caches:namespaces', body: undefined },
+    ])
   })
 
   it('键或前缀按开头归到命名空间；不在任何开放命名空间里为 null', () => {
@@ -128,8 +158,17 @@ describe('缓存管理：键列表请求', () => {
 
   it('第一页按前缀取，加载更多带上续页标记并去重并入；没有下一页时不再发请求', async () => {
     const calls = reply(
-      { items: [{ key: 'access:b', layer: 'Objects' }, ...stored('access:a')], continuation: 's:c1' },
-      { items: stored('access:b', 'access:c'), continuation: null },
+      {
+        items: [
+          { key: 'access:b', layer: 'Objects' },
+          ...stored('access:a'),
+        ],
+        continuation: 's:c1',
+      },
+      {
+        items: stored('access:b', 'access:c'),
+        continuation: null,
+      },
     )
     const list = useCacheKeys()
     expect(await list.load('access:')).toBe(true)
@@ -157,7 +196,10 @@ describe('缓存管理：键列表请求', () => {
     stub((call) => {
       if (call.url.includes('prefix=access:'))
         return slow.promise
-      return json(200, { items: stored('notification:x'), continuation: null })
+      return json(200, {
+        items: stored('notification:x'),
+        continuation: null,
+      })
     })
     const list = useCacheKeys()
     const first = list.load('access:')
@@ -175,7 +217,14 @@ describe('缓存管理：键列表请求', () => {
     await expect(list.load('locks:')).rejects.toMatchObject({ code: 'MAINTENANCE_DENIED_002' })
     expect(list.loading.value).toBe(false)
 
-    reply({ items: [...stored('access:a'), { key: 'access:b', layer: 'Objects' }, ...stored('access:c')], continuation: 'c9' })
+    reply({
+      items: [
+        ...stored('access:a'),
+        { key: 'access:b', layer: 'Objects' },
+        ...stored('access:c'),
+      ],
+      continuation: 'c9',
+    })
     await list.load('access:')
     list.discard(['access:b', 'access:zzz'])
     expect(list.keys.value).toEqual(['access:a', 'access:c'])
@@ -194,7 +243,14 @@ describe('缓存管理：键树（4.x 同）', () => {
         leafCount: 3,
         children: [
           { value: 'a:b', label: 'b' },
-          { value: `${GROUP_PREFIX}a:b`, label: 'b', leafCount: 1, children: [{ value: 'a:b:c', label: 'c' }] },
+          {
+            value: `${GROUP_PREFIX}a:b`,
+            label: 'b',
+            leafCount: 1,
+            children: [
+              { value: 'a:b:c', label: 'c' },
+            ],
+          },
           { value: 'a:d', label: 'd' },
         ],
       },
@@ -238,7 +294,12 @@ describe('缓存管理：缓存项', () => {
   })
 
   it('对象缓存的值按 JSON 只读：写得出为 object，写不出为 unrenderable；所在层写出文案', () => {
-    const object = entry({ layer: 'Objects', typeName: 'Demo.Snapshot', size: null, editable: false })
+    const object = entry({
+      layer: 'Objects',
+      typeName: 'Demo.Snapshot',
+      size: null,
+      editable: false,
+    })
     expect(readOnlyReason(object)).toBe('object')
     expect(readOnlyReason({ ...object, text: null })).toBe('unrenderable')
     expect(canEditEntry(object, true)).toBe(false)
@@ -259,7 +320,9 @@ describe('缓存管理：缓存项', () => {
     const calls = stub((call, index) => {
       if (index === 0)
         return json(200, entry())
-      return call.url.includes('gone') ? problem(404, 'MAINTENANCE_NOTFOUND_003') : problem(503, 'MAINTENANCE_UNAVAILABLE_001')
+      return call.url.includes('gone')
+        ? problem(404, 'MAINTENANCE_NOTFOUND_003')
+        : problem(503, 'MAINTENANCE_UNAVAILABLE_001')
     })
     const state = useCacheEntry()
     await state.open('notification:telegram:1')
@@ -281,7 +344,9 @@ describe('缓存管理：缓存项', () => {
     const calls = stub((call) => {
       if (call.method === 'PUT')
         return json(200, entry({ key: 'notification:b', text: 'new', size: 3 }))
-      return call.url.includes('notification:a') ? slow.promise : json(200, entry({ key: 'notification:b', text: 'old' }))
+      return call.url.includes('notification:a')
+        ? slow.promise
+        : json(200, entry({ key: 'notification:b', text: 'old' }))
     })
     const state = useCacheEntry()
     const first = state.open('notification:a')
@@ -292,7 +357,11 @@ describe('缓存管理：缓存项', () => {
     expect(state.entry.value?.text).toBe('old')
 
     await state.save('new')
-    expect(calls.at(-1)).toEqual({ method: 'PUT', url: '/api/caches', body: { key: 'notification:b', value: 'new' } })
+    expect(calls.at(-1)).toEqual({
+      method: 'PUT',
+      url: '/api/caches',
+      body: { key: 'notification:b', value: 'new' },
+    })
     expect(state.entry.value).toMatchObject({ text: 'new', size: 3 })
 
     state.reset()
@@ -310,35 +379,66 @@ describe('缓存管理：删除', () => {
       // 每批删掉偶数号，k1 不在开放命名空间里（造一个失败），其余奇数号已过期
       return json(200, {
         removed: sent.filter(key => Number(key.slice(8)) % 2 === 0),
-        failed: sent.includes('access:k1') ? [{ key: 'access:k1', code: 'MAINTENANCE_DENIED_002' }] : [],
+        failed: sent.includes('access:k1')
+          ? [
+              { key: 'access:k1', code: 'MAINTENANCE_DENIED_002' },
+            ]
+          : [],
       })
     })
     const outcome = await deleteKeys([...keys, 'access:k0'])
     expect(calls.map(call => call.method)).toEqual(['DELETE', 'DELETE', 'DELETE'])
     expect(calls[0]!.url.startsWith('/api/caches?keys=access:k0&keys=access:k1&')).toBe(true)
     expect(outcome.removed).toHaveLength(103)
-    expect(outcome.failed).toEqual([{ key: 'access:k1', code: 'MAINTENANCE_DENIED_002' }])
+    expect(outcome.failed).toEqual([
+      { key: 'access:k1', code: 'MAINTENANCE_DENIED_002' },
+    ])
     expect(outcome.missing).toHaveLength(101)
     expect(outcome.missing).not.toContain('access:k1')
     expect(goneKeys(outcome)).toHaveLength(204)
   })
 
   it('删除当前键：删掉即成功，本来就不在提醒一句，没删成报原因', () => {
-    expect(singleDeleteToast(t, { removed: ['a:1'], missing: [], failed: [] })).toEqual({ tone: 'success', message: 'common.messages.delete_success' })
-    expect(singleDeleteToast(t, { removed: [], missing: ['a:1'], failed: [] })).toEqual({ tone: 'warning', message: 'maintenance.caches.key_already_gone' })
-    expect(singleDeleteToast(t, { removed: [], missing: [], failed: [{ key: 'a:1', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' }] }))
+    expect(singleDeleteToast(t, {
+      removed: ['a:1'],
+      missing: [],
+      failed: [],
+    })).toEqual({ tone: 'success', message: 'common.messages.delete_success' })
+    expect(singleDeleteToast(t, {
+      removed: [],
+      missing: ['a:1'],
+      failed: [],
+    })).toEqual({ tone: 'warning', message: 'maintenance.caches.key_already_gone' })
+    expect(singleDeleteToast(t, {
+      removed: [],
+      missing: [],
+      failed: [
+        { key: 'a:1', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' },
+      ],
+    }))
       .toEqual({ tone: 'danger', message: 'MAINTENANCE_DENIED_002 的原因' })
   })
 
   it('批量删除：全部不在了即成功（已过期的单独说），有失败时报成功与失败个数并附去重后的原因', () => {
-    expect(batchDeleteToast(t, { removed: ['a', 'b'], missing: [], failed: [] }))
+    expect(batchDeleteToast(t, {
+      removed: ['a', 'b'],
+      missing: [],
+      failed: [],
+    }))
       .toEqual({ tone: 'success', message: 'maintenance.caches.batch_deleted:{"count":2}' })
-    expect(batchDeleteToast(t, { removed: ['a'], missing: ['b'], failed: [] }))
+    expect(batchDeleteToast(t, {
+      removed: ['a'],
+      missing: ['b'],
+      failed: [],
+    }))
       .toEqual({ tone: 'success', message: 'maintenance.caches.batch_deleted_with_missing:{"count":1,"missing":1}' })
     expect(batchDeleteToast(t, {
       removed: ['a'],
       missing: ['b'],
-      failed: [{ key: 'x', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' }, { key: 'y', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' }],
+      failed: [
+        { key: 'x', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' },
+        { key: 'y', code: 'MAINTENANCE_DENIED_002', message: 'MAINTENANCE_DENIED_002 的原因' },
+      ],
     })).toEqual({
       tone: 'warning',
       message: 'maintenance.caches.batch_delete_partial:{"success":2,"failed":2,"reason":"MAINTENANCE_DENIED_002 的原因"}',
@@ -348,6 +448,12 @@ describe('缓存管理：删除', () => {
   it('按前缀删除走 POST，返回删掉的键数', async () => {
     const calls = reply({ removed: 7 })
     expect(await deleteByPrefix('notification:telegram:')).toBe(7)
-    expect(calls).toEqual([{ method: 'POST', url: '/api/caches:delete-by-prefix', body: { prefix: 'notification:telegram:' } }])
+    expect(calls).toEqual([
+      {
+        method: 'POST',
+        url: '/api/caches:delete-by-prefix',
+        body: { prefix: 'notification:telegram:' },
+      },
+    ])
   })
 })

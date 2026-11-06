@@ -23,7 +23,12 @@ function mountModel(initial: number | null, props: Record<string, unknown> = {},
       },
     }, slots),
   }), { attachTo: document.body })
-  return { wrapper, model, emitted, input: () => wrapper.find('input') }
+  return {
+    wrapper,
+    model,
+    emitted,
+    input: () => wrapper.find('input'),
+  }
 }
 
 describe('xNumberInput precision', () => {
@@ -63,7 +68,9 @@ describe('xNumberInput precision', () => {
   })
 
   it('非法位数直接报错，不夹取', () => {
-    expect(() => mount(XNumberInput, { props: { value: 1, precision: 1.5 } })).toThrow(RangeError)
+    expect(() => mount(XNumberInput, {
+      props: { value: 1, precision: 1.5 },
+    })).toThrow(RangeError)
   })
 })
 
@@ -108,7 +115,10 @@ describe('xNumberInput 部件', () => {
   })
 
   it('前后缀进组件库的 prefix / suffix 部件', () => {
-    const { wrapper } = mountModel(1, {}, { prefix: () => '¥', suffix: () => 'mm' })
+    const { wrapper } = mountModel(1, {}, {
+      prefix: () => '¥',
+      suffix: () => 'mm',
+    })
     expect(wrapper.find('[data-part="prefix"]').text()).toBe('¥')
     expect(wrapper.find('[data-part="suffix"]').text()).toBe('mm')
     wrapper.unmount()

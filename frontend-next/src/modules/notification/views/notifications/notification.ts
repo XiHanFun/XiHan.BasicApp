@@ -98,7 +98,9 @@ function toTimestamp(value: null | string | undefined): null | number {
   if (!value)
     return null
   const time = Date.parse(value)
-  return Number.isNaN(time) ? null : time
+  return Number.isNaN(time)
+    ? null
+    : time
 }
 
 /** 草稿回填表单：6.0 的详情带投递目标，编辑时原目标一并回填（4.x 要重新填写） */
@@ -111,7 +113,9 @@ export function toNotificationForm(detail: NotificationDetail): NotificationForm
     notificationType: detail.notificationType,
     priority: detail.priority,
     targetType: detail.targetType,
-    targetIds: needsTargets(detail.targetType) ? [...detail.targetIds] : [],
+    targetIds: needsTargets(detail.targetType)
+      ? [...detail.targetIds]
+      : [],
     deliveryChannels: normalizeChannels(detail.deliveryChannels),
     icon: detail.icon ?? '',
     link: detail.link ?? '',
@@ -164,7 +168,9 @@ function blankToNull(value: null | string): null | string {
 }
 
 function toIso(value: null | number): null | string {
-  return value === null ? null : new Date(value).toISOString()
+  return value === null
+    ? null
+    : new Date(value).toISOString()
 }
 
 /** 新建与修改共用的字段；目标 ID 去空白、去重，全员时为空；渠道总带站内信 */
@@ -176,7 +182,11 @@ function commonBody(form: NotificationForm) {
     notificationType: form.notificationType,
     priority: form.priority,
     targetType: form.targetType,
-    targetIds: needsTargets(form.targetType) ? [...new Set(form.targetIds.map(id => id.trim()).filter(Boolean))] : [],
+    targetIds: needsTargets(form.targetType)
+      ? [
+          ...new Set(form.targetIds.map(id => id.trim()).filter(Boolean)),
+        ]
+      : [],
     deliveryChannels: normalizeChannels(form.deliveryChannels),
     icon: blankToNull(form.icon),
     link: blankToNull(form.link),
@@ -194,11 +204,17 @@ function commonBody(form: NotificationForm) {
 
 /** 新建只存草稿，在列表里再发布（4.x 同） */
 export function toCreateBody(form: NotificationForm): RequestOf<'notifications.create'> {
-  return { ...commonBody(form), publishImmediately: false }
+  return {
+    ...commonBody(form),
+    publishImmediately: false,
+  }
 }
 
 export function toUpdateBody(form: NotificationForm & { id: string }): RequestOf<'notifications.update'> {
-  return { id: form.id, ...commonBody(form) }
+  return {
+    id: form.id,
+    ...commonBody(form),
+  }
 }
 
 /** SchemaPage 的资源：分页与删除（删除逐项拒绝的原因拼成一条报错） */
@@ -206,19 +222,27 @@ export function notificationResource(): SchemaResource<NotificationRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await notificationsApi.list(toPageRequest(params, NOTIFICATION_QUERY)), params),
     remove: async (id) => {
-      throwOnFailed(await notificationsApi.delete({ ids: [String(id)] }))
+      throwOnFailed(await notificationsApi.delete({
+        ids: [
+          String(id),
+        ],
+      }))
     },
   }
 }
 
 /** 已读率（百分比取整）；没有接收人时为 0 */
 export function readRate(stats: Pick<ReadStats, 'readCount' | 'recipientCount'>): number {
-  return stats.recipientCount > 0 ? Math.round((stats.readCount / stats.recipientCount) * 100) : 0
+  return stats.recipientCount > 0
+    ? Math.round((stats.readCount / stats.recipientCount) * 100)
+    : 0
 }
 
 /** 接收人筛选：要求确认的通知才有「未确认」一档 */
 export function recipientFilters(needConfirm: boolean): readonly NotificationRecipientFilter[] {
-  return needConfirm ? ['Unread', 'Read', 'Unconfirmed', 'All'] : ['Unread', 'Read', 'All']
+  return needConfirm
+    ? ['Unread', 'Read', 'Unconfirmed', 'All']
+    : ['Unread', 'Read', 'All']
 }
 
 export function recipientFilterLabel(t: Translate, filter: NotificationRecipientFilter): string {
@@ -232,7 +256,11 @@ export function recipientFilterLabel(t: Translate, filter: NotificationRecipient
 
 /** 一页接收人（运营数据抽屉；4.x 只有未读人员一档） */
 export function loadRecipients(id: string, filter: NotificationRecipientFilter, page: number): Promise<RecipientPage> {
-  return notificationsApi.recipients({ id, filter, page: { index: page, size: RECIPIENT_PAGE_SIZE } })
+  return notificationsApi.recipients({
+    id,
+    filter,
+    page: { index: page, size: RECIPIENT_PAGE_SIZE },
+  })
 }
 
 /** 导出用的未读人员：按后端页上限逐页取，至多 {@link EXPORT_LIMIT} 人；`truncated` 表示还有没取到的 */
@@ -240,13 +268,20 @@ export async function loadUnreadForExport(id: string): Promise<{ rows: Recipient
   const rows: RecipientRow[] = []
   let total = 0
   for (let page = 1; rows.length < EXPORT_LIMIT; page++) {
-    const result = await notificationsApi.recipients({ id, filter: 'Unread', page: { index: page, size: PAGE_MAX_SIZE } })
+    const result = await notificationsApi.recipients({
+      id,
+      filter: 'Unread',
+      page: { index: page, size: PAGE_MAX_SIZE },
+    })
     total = Number(result.total)
     rows.push(...result.items)
     if (result.items.length < PAGE_MAX_SIZE || rows.length >= total)
       break
   }
-  return { rows: rows.slice(0, EXPORT_LIMIT), truncated: total > EXPORT_LIMIT }
+  return {
+    rows: rows.slice(0, EXPORT_LIMIT),
+    truncated: total > EXPORT_LIMIT,
+  }
 }
 
 function csvCell(value: string): string {
@@ -255,21 +290,39 @@ function csvCell(value: string): string {
 
 /** 未读人员 CSV（4.x 同：带 BOM 防中文乱码、CRLF 换行、每格加引号）：用户名、显示名、收到时间 */
 export function unreadCsv(header: readonly [string, string, string], rows: readonly RecipientRow[], formatTime: (value: string) => string): string {
-  const lines = [header, ...rows.map(row => [row.userName, row.displayName || '-', formatTime(row.receivedAt)] as const)]
+  const lines = [
+    header,
+    ...rows.map(row => [
+      row.userName,
+      row.displayName || '-',
+      formatTime(row.receivedAt),
+    ] as const),
+  ]
     .map(cells => cells.map(csvCell).join(','))
   return `${String.fromCharCode(0xFEFF)}${lines.join('\r\n')}`
 }
 
 /** 角色目标的候选：本侧启用的角色（4.x 同） */
 export async function loadRoleOptions(): Promise<{ label: string, value: string }[]> {
-  const result = await rolesApi.list({ page: { index: 1, size: PAGE_MAX_SIZE }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [], keyword: null })
+  const result = await rolesApi.list({
+    page: { index: 1, size: PAGE_MAX_SIZE },
+    filters: [
+      { field: 'status', operator: 'eq', value: 'Active' },
+    ],
+    sorts: [],
+    keyword: null,
+  })
   return result.items.map(role => ({ label: role.name, value: role.id }))
 }
 
 /** 部门树展平成候选：停用的部门不列出（下级照常列） */
 export function flattenDepartments(nodes: readonly DepartmentNode[]): { label: string, value: string }[] {
   return nodes.flatMap(node => [
-    ...(node.department.status === 'Active' ? [{ label: node.department.name, value: node.department.id }] : []),
+    ...(node.department.status === 'Active'
+      ? [
+          { label: node.department.name, value: node.department.id },
+        ]
+      : []),
     ...flattenDepartments(node.children),
   ])
 }

@@ -86,16 +86,45 @@ const valuePlaceholder = computed(() => {
 
 // 通用搜索组件字段（单一事实源）：维度 / 值 / 日志类型 / 时间范围
 const searchFields = computed<ListFieldSchema[]>(() => [
-  { key: 'dimension', title: t('auditing.traces.dimension'), dataType: 'enum', searchable: true, options: traceDimensionOptions(t), searchPlaceholder: t('auditing.traces.dimension') },
-  { key: 'value', title: t('auditing.traces.value'), dataType: 'string', searchable: true, searchPlaceholder: valuePlaceholder.value },
-  { key: 'logTypes', title: t('auditing.traces.log_types_label'), dataType: 'enum', searchable: true, searchMultiple: true, options: traceLogTypeOptions(t), searchPlaceholder: t('auditing.traces.log_types_label') },
-  { key: 'timeRange', title: t('auditing.traces.time_range'), dataType: 'datetime', searchable: true, searchRange: true },
+  {
+    key: 'dimension',
+    title: t('auditing.traces.dimension'),
+    dataType: 'enum',
+    searchable: true,
+    options: traceDimensionOptions(t),
+    searchPlaceholder: t('auditing.traces.dimension'),
+  },
+  {
+    key: 'value',
+    title: t('auditing.traces.value'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: valuePlaceholder.value,
+  },
+  {
+    key: 'logTypes',
+    title: t('auditing.traces.log_types_label'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: traceLogTypeOptions(t),
+    searchPlaceholder: t('auditing.traces.log_types_label'),
+  },
+  {
+    key: 'timeRange',
+    title: t('auditing.traces.time_range'),
+    dataType: 'datetime',
+    searchable: true,
+    searchRange: true,
+  },
 ])
 
 const items = computed(() => result.value?.items ?? [])
 
 const emptyDescription = computed(() =>
-  hasQueried.value ? t('auditing.traces.empty_result') : t('auditing.traces.empty_initial'))
+  hasQueried.value
+    ? t('auditing.traces.empty_result')
+    : t('auditing.traces.empty_initial'))
 
 const detailTitle = computed(() =>
   detailLogType.value
@@ -135,13 +164,17 @@ async function runQuery() {
       value,
       from: new Date(range[0]).toISOString(),
       to: new Date(range[1]).toISOString(),
-      logTypes: types.length === ALL_LOG_TYPES.length ? null : types,
+      logTypes: types.length === ALL_LOG_TYPES.length
+        ? null
+        : types,
       maxPerType: 200,
     })
     hasQueried.value = true
   }
   catch (error) {
-    toast.danger(error instanceof ApiError ? error.message : t('auditing.traces.query_failed'))
+    toast.danger(error instanceof ApiError
+      ? error.message
+      : t('auditing.traces.query_failed'))
   }
   finally {
     loading.value = false
@@ -201,7 +234,9 @@ function logTypeClass(item: TraceItem): string {
 /** 状态文案：有正整数 HTTP 码显码，否则显结果文案 */
 function statusText(item: TraceItem): string {
   const code = Number(item.statusCode)
-  return Number.isFinite(code) && code > 0 ? String(code) : resultLabel(item.status)
+  return Number.isFinite(code) && code > 0
+    ? String(code)
+    : resultLabel(item.status)
 }
 
 /** 路径 / 标题（method + path 为主，没有路径显标题，如操作 ID、异常类型）；登录事件与权限变更类型是契约字面量，换成文案 */
@@ -231,7 +266,12 @@ const groups = computed(() => {
   for (const item of items.value) {
     const key = minuteKey(item.occurredAt)
     if (key !== prev) {
-      out.push({ key, datetime: key.replace(' ', 'T'), minute: timeText(item.occurredAt).slice(0, 5), items: [] })
+      out.push({
+        key,
+        datetime: key.replace(' ', 'T'),
+        minute: timeText(item.occurredAt).slice(0, 5),
+        items: [],
+      })
       prev = key
     }
     out[out.length - 1]!.items.push(item)
@@ -256,7 +296,9 @@ function hasDuration(item: TraceItem): boolean {
 }
 function barWidth(item: TraceItem): string {
   const v = Number(item.durationMs)
-  const pct = Number.isFinite(v) ? (v / maxDuration.value) * 100 : 0
+  const pct = Number.isFinite(v)
+    ? (v / maxDuration.value) * 100
+    : 0
   return `${Math.max(6, Math.min(100, Math.round(pct)))}%`
 }
 
@@ -273,16 +315,41 @@ function durationLevel(item: TraceItem): 'fast' | 'mid' | 'slow' {
 /** 元信息（机器值等宽，用户 / 地址 + 链路 / 会话次之） */
 function metaParts(item: TraceItem): { key: string, label: string, value: string }[] {
   const parts: { key: string, label: string, value: string }[] = []
-  if (item.userName)
-    parts.push({ key: 'user', label: t('auditing.common.user_name'), value: item.userName })
-  else if (item.userId != null)
-    parts.push({ key: 'user', label: t('auditing.common.user_id'), value: item.userId })
-  if (item.clientIp)
-    parts.push({ key: 'ip', label: t('auditing.common.client_ip'), value: item.clientIp })
-  if (item.traceId)
-    parts.push({ key: 'trace', label: t('auditing.common.trace_id'), value: item.traceId })
-  if (item.sessionId)
-    parts.push({ key: 'session', label: t('auditing.common.session_id'), value: item.sessionId })
+  if (item.userName) {
+    parts.push({
+      key: 'user',
+      label: t('auditing.common.user_name'),
+      value: item.userName,
+    })
+  }
+  else if (item.userId != null) {
+    parts.push({
+      key: 'user',
+      label: t('auditing.common.user_id'),
+      value: item.userId,
+    })
+  }
+  if (item.clientIp) {
+    parts.push({
+      key: 'ip',
+      label: t('auditing.common.client_ip'),
+      value: item.clientIp,
+    })
+  }
+  if (item.traceId) {
+    parts.push({
+      key: 'trace',
+      label: t('auditing.common.trace_id'),
+      value: item.traceId,
+    })
+  }
+  if (item.sessionId) {
+    parts.push({
+      key: 'session',
+      label: t('auditing.common.session_id'),
+      value: item.sessionId,
+    })
+  }
   return parts
 }
 
@@ -310,7 +377,9 @@ async function openDetail(item: TraceItem) {
     detailData.value = await detailFetchers[item.logType](item.id)
   }
   catch (error) {
-    toast.danger(error instanceof ApiError ? error.message : t('auditing.common.detail_load_failed'))
+    toast.danger(error instanceof ApiError
+      ? error.message
+      : t('auditing.common.detail_load_failed'))
   }
   finally {
     detailLoading.value = false
@@ -330,12 +399,24 @@ const DETAIL_SCHEMA_BY_TYPE: Record<TraceLogType, (t: Translate) => LogDetailSch
 }
 
 const detailSchema = computed<LogDetailSchema>(() =>
-  detailLogType.value != null ? DETAIL_SCHEMA_BY_TYPE[detailLogType.value](t) : { header: { title: [], meta: [] }, fields: [] })
+  detailLogType.value != null
+    ? DETAIL_SCHEMA_BY_TYPE[detailLogType.value](t)
+    : {
+        header: { title: [], meta: [] },
+        fields: [],
+      })
 
 // ── 深链预填（从各日志页「追踪」跳转，经共享预设复用同一标签页） ──
 function applyPreset(preset: TracePreset) {
-  if ((['TraceId', 'UserId', 'UserName', 'SessionId', 'ClientIp'] as const).includes(preset.dimension as TraceDimension))
+  if (([
+    'TraceId',
+    'UserId',
+    'UserName',
+    'SessionId',
+    'ClientIp',
+  ] as const).includes(preset.dimension as TraceDimension)) {
     filters.dimension = preset.dimension
+  }
   filters.value = preset.value
   filters.timeRange = [preset.start, preset.end]
   filters.logTypes = [...ALL_LOG_TYPES]

@@ -139,7 +139,9 @@ watch(() => [form.expression, form.timeZone], () => {
 onBeforeUnmount(clearPreviewTimer)
 
 function onTimeZone(value: unknown) {
-  form.timeZone = value === null || value === undefined ? '' : String(value)
+  form.timeZone = value === null || value === undefined
+    ? ''
+    : String(value)
 }
 
 function applyPreset(value: string) {
@@ -156,7 +158,11 @@ async function submit() {
     return
   }
   if (!form.expression.trim()) {
-    fieldErrors.value = { expression: [t('maintenance.jobs.expression_required')] }
+    fieldErrors.value = {
+      expression: [
+        t('maintenance.jobs.expression_required'),
+      ],
+    }
     return
   }
   if (retryIncomplete(retry.value)) {
@@ -165,7 +171,10 @@ async function submit() {
   saving.value = true
   fieldErrors.value = {}
   try {
-    const request: RescheduleForm = { ...form, ...retry.value }
+    const request: RescheduleForm = {
+      ...form,
+      ...retry.value,
+    }
     const saved = await rescheduleJob(job.name, request)
     toast.success(t('maintenance.jobs.rescheduled'))
     emit('saved', saved)
@@ -174,7 +183,9 @@ async function submit() {
   catch (error) {
     // 计划写错落在计划框下；请求体的字段校验按字段落位；冲突（多个触发器、类型没登记）等其余错误弹提示
     if (error instanceof ApiError && error.code === 'MAINTENANCE_VALIDATION_002') {
-      fieldErrors.value = { expression: [error.detail] }
+      fieldErrors.value = {
+        expression: [error.detail],
+      }
     }
     else if (error instanceof ApiError && error.hasFieldErrors) {
       fieldErrors.value = error.errors ?? {}

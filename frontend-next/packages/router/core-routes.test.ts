@@ -23,11 +23,21 @@ function collectFullPaths(routes: RouteRecordRaw[], parent = ''): string[] {
 }
 
 function collectNames(routes: RouteRecordRaw[]): string[] {
-  return routes.flatMap(route => [...(route.name ? [String(route.name)] : []), ...collectNames(route.children ?? [])])
+  return routes.flatMap(route => [
+    ...(route.name
+      ? [
+          String(route.name),
+        ]
+      : []),
+    ...collectNames(route.children ?? []),
+  ])
 }
 
 function flatten(routes: RouteRecordRaw[]): RouteRecordRaw[] {
-  return routes.flatMap(route => [route, ...flatten(route.children ?? [])])
+  return routes.flatMap(route => [
+    route,
+    ...flatten(route.children ?? []),
+  ])
 }
 
 describe('coreRoutes 结构约束', () => {

@@ -85,26 +85,44 @@ const isSilenced = computed(() => chatStore.activeConversation?.isSilenced ?? fa
 const trimmedDraft = computed(() => draft.value.trim())
 const isEditing = computed(() => chatStore.editTarget?.conversationId === props.conversationId && !!chatStore.editTarget)
 const replyTarget = computed(() =>
-  chatStore.replyTarget?.conversationId === props.conversationId ? chatStore.replyTarget : null)
+  chatStore.replyTarget?.conversationId === props.conversationId
+    ? chatStore.replyTarget
+    : null)
 const isGroupLike = computed(() =>
   chatStore.activeConversation?.conversationType === 'Group'
   || chatStore.activeConversation?.conversationType === 'Department')
 
 const placeholder = computed(() =>
-  sendKey.value === 'enter' ? t('chat.composer.placeholder_enter') : t('chat.composer.placeholder_ctrl_enter'))
+  sendKey.value === 'enter'
+    ? t('chat.composer.placeholder_enter')
+    : t('chat.composer.placeholder_ctrl_enter'))
 
 /** 发送模式下拉（当前项打勾，另一项占位对齐） */
 const sendKeyOptions = computed<AppDropdownOption[]>(() => {
   const check = () => h(Icon, { icon: 'lucide:check', width: 14, height: 14 })
   const blank = () => h('span', { style: 'display:inline-block;width:14px' })
   return [
-    { key: 'enter', label: t('chat.composer.send_key_enter'), icon: sendKey.value === 'enter' ? check : blank },
-    { key: 'ctrl-enter', label: t('chat.composer.send_key_ctrl_enter'), icon: sendKey.value === 'ctrl-enter' ? check : blank },
+    {
+      key: 'enter',
+      label: t('chat.composer.send_key_enter'),
+      icon: sendKey.value === 'enter'
+        ? check
+        : blank,
+    },
+    {
+      key: 'ctrl-enter',
+      label: t('chat.composer.send_key_ctrl_enter'),
+      icon: sendKey.value === 'ctrl-enter'
+        ? check
+        : blank,
+    },
   ]
 })
 
 function handleSendKeySelect(key: number | string) {
-  sendKey.value = key === 'ctrl-enter' ? 'ctrl-enter' : 'enter'
+  sendKey.value = key === 'ctrl-enter'
+    ? 'ctrl-enter'
+    : 'enter'
   LocalStorage.set(CHAT_SEND_KEY_STORAGE_KEY, sendKey.value)
 }
 
@@ -480,12 +498,14 @@ async function stopTalking(): Promise<void> {
       conversationId: props.conversationId,
       messageType: 'Voice',
       content: null,
-      attachments: [{
-        fileId: uploaded.fileId,
-        fileName: uploaded.fileName,
-        fileSize: uploaded.fileSize,
-        durationSeconds: result.durationSeconds,
-      }],
+      attachments: [
+        {
+          fileId: uploaded.fileId,
+          fileName: uploaded.fileName,
+          fileSize: uploaded.fileSize,
+          durationSeconds: result.durationSeconds,
+        },
+      ],
     })
     // 发完留在面板：连着说几条是常态，退出交给 Esc 或「退出」
   }
@@ -540,7 +560,9 @@ async function uploadPending(attachments: PendingAttachment[]) {
         fileName: uploaded.fileName,
         fileSize: uploaded.fileSize,
       }
-      ;(attachment.messageType === 'Image' ? images : files).push(entry)
+      ;(attachment.messageType === 'Image'
+        ? images
+        : files).push(entry)
     }
     return { images, files }
   }
@@ -562,12 +584,16 @@ function clearPendingAttachments() {
 /** 暂存到待发列表（QQ 语义：先进输入区，发送时才上传）；不传 forcedType 时按 MIME 归类 */
 function addAttachments(files: File[], forcedType?: ChatMessageType) {
   for (const file of files) {
-    const messageType = forcedType ?? (file.type.startsWith('image/') ? 'Image' : 'File')
+    const messageType = forcedType ?? (file.type.startsWith('image/')
+      ? 'Image'
+      : 'File')
     pendingAttachments.value.push({
       id: ++attachmentSeq,
       file,
       messageType,
-      previewUrl: messageType === 'Image' ? URL.createObjectURL(file) : null,
+      previewUrl: messageType === 'Image'
+        ? URL.createObjectURL(file)
+        : null,
     })
   }
 }
@@ -595,7 +621,9 @@ function handlePaste(event: ClipboardEvent) {
   if (isEditing.value) {
     return
   }
-  const files = [...(event.clipboardData?.files ?? [])]
+  const files = [
+    ...(event.clipboardData?.files ?? []),
+  ]
   if (!files.length) {
     return
   }

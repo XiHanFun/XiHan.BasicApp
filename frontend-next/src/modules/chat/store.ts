@@ -169,23 +169,35 @@ export const useChatStore = defineStore('chat', () => {
     conversations.value.find(c => c.conversationId === activeConversationId.value) ?? null,
   )
   const activeMessages = computed(() =>
-    activeConversationId.value ? messages.value[activeConversationId.value] ?? [] : [],
+    activeConversationId.value
+      ? messages.value[activeConversationId.value] ?? []
+      : [],
   )
   const activeTyping = computed(() =>
-    activeConversationId.value ? typingIndicators.value[activeConversationId.value] ?? null : null,
+    activeConversationId.value
+      ? typingIndicators.value[activeConversationId.value] ?? null
+      : null,
   )
   const activeAssistantStream = computed(() =>
-    activeConversationId.value ? assistantStreams.value[activeConversationId.value] ?? null : null,
+    activeConversationId.value
+      ? assistantStreams.value[activeConversationId.value] ?? null
+      : null,
   )
 
   function sortConversations() {
     conversations.value.sort((a, b) => {
       // 置顶优先，再按最后消息时间倒序
       if (a.isPinned !== b.isPinned) {
-        return a.isPinned ? -1 : 1
+        return a.isPinned
+          ? -1
+          : 1
       }
-      const ta = a.lastMessageAt ? Date.parse(a.lastMessageAt) : 0
-      const tb = b.lastMessageAt ? Date.parse(b.lastMessageAt) : 0
+      const ta = a.lastMessageAt
+        ? Date.parse(a.lastMessageAt)
+        : 0
+      const tb = b.lastMessageAt
+        ? Date.parse(b.lastMessageAt)
+        : 0
       return tb - ta
     })
   }
@@ -220,7 +232,9 @@ export const useChatStore = defineStore('chat', () => {
 
   /** 合并一页历史：与推送先行到达 / 乐观消息按 messageId 去重，按 seq 插到各自的位置 */
   function mergeHistory(conversationId: string, items: ChatMessageItem[]) {
-    const merged = [...(messages.value[conversationId] ?? [])]
+    const merged = [
+      ...(messages.value[conversationId] ?? []),
+    ]
     const known = new Set(merged.map(m => m.messageId))
     for (const item of items) {
       if (!known.has(item.messageId)) {
@@ -350,13 +364,19 @@ export const useChatStore = defineStore('chat', () => {
     let text = message.content || ''
     if (!text) {
       if (message.messageType === 'Image') {
-        text = count > 1 ? `[图片] ${count}张` : '[图片]'
+        text = count > 1
+          ? `[图片] ${count}张`
+          : '[图片]'
       }
       else if (count > 0) {
-        text = count > 1 ? `[文件] ${count}个` : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
+        text = count > 1
+          ? `[文件] ${count}个`
+          : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
       }
     }
-    return text.length > 60 ? `${text.slice(0, 60)}…` : text
+    return text.length > 60
+      ? `${text.slice(0, 60)}…`
+      : text
   }
 
   /**
@@ -375,7 +395,9 @@ export const useChatStore = defineStore('chat', () => {
     if (localIndex < 0 && known) {
       return
     }
-    const next = localIndex >= 0 ? list.filter((_, index) => index !== localIndex) : [...list]
+    const next = localIndex >= 0
+      ? list.filter((_, index) => index !== localIndex)
+      : [...list]
     if (!known) {
       insertBySeq(next, { ...saved })
     }
@@ -423,7 +445,10 @@ export const useChatStore = defineStore('chat', () => {
       reactions: [],
       pending: true,
     }
-    messages.value[input.conversationId] = [...(messages.value[input.conversationId] ?? []), local]
+    messages.value[input.conversationId] = [
+      ...(messages.value[input.conversationId] ?? []),
+      local,
+    ]
     try {
       const saved = await api().sendMessage({ ...input, clientMessageId })
       reconcileSaved(saved)
@@ -476,7 +501,12 @@ export const useChatStore = defineStore('chat', () => {
   /** 编辑消息（REST 成功后本地收敛；推送回执对其他端收敛） */
   async function editMessage(conversationId: string, messageId: string, content: string) {
     const saved = await api().editMessage(messageId, content)
-    applyMessageEdited({ conversationId, messageId, content: saved.content, editedAt: saved.editedAt })
+    applyMessageEdited({
+      conversationId,
+      messageId,
+      content: saved.content,
+      editedAt: saved.editedAt,
+    })
     if (editTarget.value?.messageId === messageId) {
       editTarget.value = null
     }
@@ -524,7 +554,14 @@ export const useChatStore = defineStore('chat', () => {
     }
     catch (error) {
       // 回滚乐观应用
-      applyReactionChanged({ conversationId, messageId, emoji, userId: me, userName: myName, added: hadMine })
+      applyReactionChanged({
+        conversationId,
+        messageId,
+        emoji,
+        userId: me,
+        userName: myName,
+        added: hadMine,
+      })
       throw error
     }
   }
@@ -790,7 +827,12 @@ export const useChatStore = defineStore('chat', () => {
 
   /** 请求在输入框插入 @提及（composer 监听 mentionRequest 执行插入） */
   function requestMention(conversationId: string, userId: string, userName: string) {
-    mentionRequest.value = { conversationId, userId, userName, seq: ++mentionSeq }
+    mentionRequest.value = {
+      conversationId,
+      userId,
+      userName,
+      seq: ++mentionSeq,
+    }
   }
 
   /** 输入中提示节流上报（组播给会话内其他成员） */
@@ -873,7 +915,11 @@ export const useChatStore = defineStore('chat', () => {
       await provider.reply(conversationId, replyId)
     }
     catch (error) {
-      markAssistantFailed(conversationId, replyId, error instanceof ApiError ? error.detail : error instanceof Error ? error.message : String(error))
+      markAssistantFailed(conversationId, replyId, error instanceof ApiError
+        ? error.detail
+        : error instanceof Error
+          ? error.message
+          : String(error))
     }
   }
 

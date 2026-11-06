@@ -33,14 +33,21 @@ const loading = ref(false)
 const selectedIds = computed(() => {
   if (props.value === null || props.value === undefined)
     return []
-  return Array.isArray(props.value) ? props.value : [props.value]
+  return Array.isArray(props.value)
+    ? props.value
+    : [props.value]
 })
 
 const options = computed(() => {
   const merged = new Map<string, DirectoryOption>()
-  for (const option of [...selectedOptions.value, ...searchOptions.value])
+  for (const option of [
+    ...selectedOptions.value,
+    ...searchOptions.value,
+  ])
     merged.set(option.value, option)
-  return [...merged.values()]
+  return [
+    ...merged.values(),
+  ]
 })
 
 async function syncSelected() {
@@ -63,11 +70,17 @@ async function onSearch(keyword: string) {
 
 function onUpdate(value: string | number | Array<string | number> | null) {
   if (props.multiple) {
-    const list = Array.isArray(value) ? value.map(item => String(item)) : []
-    emit('update:value', list.length > 0 ? list : null)
+    const list = Array.isArray(value)
+      ? value.map(item => String(item))
+      : []
+    emit('update:value', list.length > 0
+      ? list
+      : null)
     return
   }
-  emit('update:value', value === null || value === undefined || Array.isArray(value) ? null : String(value))
+  emit('update:value', value === null || value === undefined || Array.isArray(value)
+    ? null
+    : String(value))
 }
 
 watch(selectedIds, () => {

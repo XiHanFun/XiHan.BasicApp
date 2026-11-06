@@ -50,8 +50,14 @@ function toNodes(options: ReadonlyArray<TreeSelectOption>): CascaderNode[] {
   return options.map(option => ({
     value: String(option.value),
     label: option.label,
-    ...(option.disabled ? { disabled: true } : {}),
-    ...(option.children?.length ? { children: toNodes(option.children) } : {}),
+    ...(option.disabled
+      ? { disabled: true }
+      : {}),
+    ...(option.children?.length
+      ? {
+          children: toNodes(option.children),
+        }
+      : {}),
   }))
 }
 
@@ -67,7 +73,9 @@ const pathValue = computed<string[]>(() => {
       const next = [...trail, node.value]
       if (node.value === target)
         return next
-      const hit = node.children?.length ? walk(node.children, next) : null
+      const hit = node.children?.length
+        ? walk(node.children, next)
+        : null
       if (hit)
         return hit
     }
@@ -77,8 +85,12 @@ const pathValue = computed<string[]>(() => {
 })
 
 function onValueChange(details: { value: readonly string[] | readonly (readonly string[])[] }) {
-  const path = (Array.isArray(details.value[0]) ? details.value[0] : details.value) as readonly string[]
-  value.value = path.length ? path[path.length - 1]! : null
+  const path = (Array.isArray(details.value[0])
+    ? details.value[0]
+    : details.value) as readonly string[]
+  value.value = path.length
+    ? path[path.length - 1]!
+    : null
 }
 </script>
 

@@ -19,7 +19,12 @@ async function loadModule() {
   await setLocale('zh-CN')
   const island = await import('./useDynamicIsland')
   const sync = await import('./useSettingSyncIsland')
-  return { ...sync, ...island, i18n, setLocale }
+  return {
+    ...sync,
+    ...island,
+    i18n,
+    setLocale,
+  }
 }
 
 afterEach(() => {
@@ -161,7 +166,10 @@ describe('settingSyncIsland 与灵动岛开关联动', () => {
   it('灵动岛关闭时同步提示改由轻提示接管，不进岛', async () => {
     const { settingSyncIsland, configureDynamicIsland, useDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     settingSyncIsland('sync:pref', '偏好设置').success()
 
@@ -172,7 +180,10 @@ describe('settingSyncIsland 与灵动岛开关联动', () => {
   it('灵动岛关闭时静默收尾不发任何轻提示（高频场景不刷屏）', async () => {
     const { settingSyncIsland, configureDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     settingSyncIsland('sync:pref', '偏好设置').dismiss()
 
@@ -182,7 +193,10 @@ describe('settingSyncIsland 与灵动岛开关联动', () => {
   it('灵动岛关闭时失败仍会提示，不静默吞掉错误', async () => {
     const { settingSyncIsland, configureDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     settingSyncIsland('sync:table', '表格设置').error()
 

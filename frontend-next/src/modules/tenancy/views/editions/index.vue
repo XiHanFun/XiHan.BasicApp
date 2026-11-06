@@ -38,7 +38,9 @@ const asRow = (row: object) => row as EditionRow
 function renderName(row: EditionRow) {
   return h('div', { class: 'flex min-w-0 flex-col' }, [
     h('span', { class: 'font-medium' }, row.name),
-    row.description ? h('span', { class: 'truncate text-caption text-fg-muted' }, row.description) : null,
+    row.description
+      ? h('span', { class: 'truncate text-caption text-fg-muted' }, row.description)
+      : null,
   ])
 }
 
@@ -46,44 +48,172 @@ function renderName(row: EditionRow) {
 function renderPrice(row: EditionRow) {
   if (row.isFree)
     return renderTag(t('tenancy.editions.free'), 'success')
-  return row.price === null || row.price === undefined ? '-' : formatPrice(row.price)
+  return row.price === null || row.price === undefined
+    ? '-'
+    : formatPrice(row.price)
 }
 
 function billingPeriodText(row: EditionRow): string {
-  return row.billingPeriodMonths === null || row.billingPeriodMonths === undefined ? '-' : t('tenancy.editions.billing_period_months', { count: row.billingPeriodMonths })
+  return row.billingPeriodMonths === null || row.billingPeriodMonths === undefined
+    ? '-'
+    : t('tenancy.editions.billing_period_months', { count: row.billingPeriodMonths })
 }
 
 /** 上限为空即不限 */
 function userLimitText(row: EditionRow): string {
-  return row.userLimit === null || row.userLimit === undefined ? t('tenancy.editions.unlimited') : String(row.userLimit)
+  return row.userLimit === null || row.userLimit === undefined
+    ? t('tenancy.editions.unlimited')
+    : String(row.userLimit)
 }
 
 function storageLimitText(row: EditionRow): string {
-  return row.storageLimitMb === null || row.storageLimitMb === undefined ? t('tenancy.editions.unlimited') : t('tenancy.editions.storage_mb', { size: row.storageLimitMb })
+  return row.storageLimitMb === null || row.storageLimitMb === undefined
+    ? t('tenancy.editions.unlimited')
+    : t('tenancy.editions.storage_mb', { size: row.storageLimitMb })
 }
 
 // 状态值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: EditionStatus): string {
-  return status === 'Disabled' ? t('tenancy.editions.status_disabled') : t('tenancy.editions.status_active')
+  return status === 'Disabled'
+    ? t('tenancy.editions.status_disabled')
+    : t('tenancy.editions.status_active')
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'code', title: t('tenancy.editions.fields.code'), dataType: 'string', exportable: true, minWidth: 140, order: 1 },
-  { key: 'name', title: t('tenancy.editions.fields.name'), dataType: 'string', exportable: true, render: row => renderName(asRow(row)), minWidth: 180, order: 2 },
-  { key: 'price', title: t('tenancy.editions.fields.price'), dataType: 'money', exportable: true, render: row => renderPrice(asRow(row)), width: 110, order: 3 },
-  { key: 'billingPeriodMonths', title: t('tenancy.editions.fields.billing_period'), dataType: 'number', exportable: true, render: row => billingPeriodText(asRow(row)), width: 100, order: 4 },
-  { key: 'userLimit', title: t('tenancy.editions.fields.user_limit'), dataType: 'number', exportable: true, render: row => userLimitText(asRow(row)), width: 100, order: 5 },
-  { key: 'storageLimitMb', title: t('tenancy.editions.fields.storage_limit'), dataType: 'number', exportable: true, render: row => storageLimitText(asRow(row)), width: 120, order: 6 },
-  { key: 'isFree', title: t('tenancy.editions.fields.is_free'), dataType: 'boolean', exportable: true, render: row => renderTag(asRow(row).isFree ? t('common.statuses.yes') : t('common.statuses.no'), asRow(row).isFree ? 'success' : 'neutral'), width: 86, order: 7 },
-  { key: 'isDefault', title: t('tenancy.editions.fields.is_default'), dataType: 'boolean', exportable: true, render: row => (asRow(row).isDefault ? renderTag(t('tenancy.editions.default_badge'), 'warning') : '-'), width: 100, order: 8 },
-  { key: 'status', title: t('tenancy.editions.fields.status'), dataType: 'enum', options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 8.5 },
-  { key: 'permissionCount', title: t('tenancy.editions.fields.permissions'), dataType: 'number', exportable: true, width: 100, order: 9 },
-  { key: 'tenantCount', title: t('tenancy.editions.fields.tenants'), dataType: 'number', exportable: true, width: 100, order: 10 },
-  { key: 'order', title: t('tenancy.editions.fields.order'), dataType: 'number', exportable: true, width: 80, order: 11 },
-  { key: 'description', title: t('tenancy.editions.fields.description'), dataType: 'text', visible: false, exportable: true, order: 11.5 },
-  { key: 'createdAt', title: t('tenancy.editions.fields.created_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 12 },
+  {
+    key: 'code',
+    title: t('tenancy.editions.fields.code'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('tenancy.editions.fields.name'),
+    dataType: 'string',
+    exportable: true,
+    render: row => renderName(asRow(row)),
+    minWidth: 180,
+    order: 2,
+  },
+  {
+    key: 'price',
+    title: t('tenancy.editions.fields.price'),
+    dataType: 'money',
+    exportable: true,
+    render: row => renderPrice(asRow(row)),
+    width: 110,
+    order: 3,
+  },
+  {
+    key: 'billingPeriodMonths',
+    title: t('tenancy.editions.fields.billing_period'),
+    dataType: 'number',
+    exportable: true,
+    render: row => billingPeriodText(asRow(row)),
+    width: 100,
+    order: 4,
+  },
+  {
+    key: 'userLimit',
+    title: t('tenancy.editions.fields.user_limit'),
+    dataType: 'number',
+    exportable: true,
+    render: row => userLimitText(asRow(row)),
+    width: 100,
+    order: 5,
+  },
+  {
+    key: 'storageLimitMb',
+    title: t('tenancy.editions.fields.storage_limit'),
+    dataType: 'number',
+    exportable: true,
+    render: row => storageLimitText(asRow(row)),
+    width: 120,
+    order: 6,
+  },
+  {
+    key: 'isFree',
+    title: t('tenancy.editions.fields.is_free'),
+    dataType: 'boolean',
+    exportable: true,
+    render: row => renderTag(asRow(row).isFree
+      ? t('common.statuses.yes')
+      : t('common.statuses.no'), asRow(row).isFree
+      ? 'success'
+      : 'neutral'),
+    width: 86,
+    order: 7,
+  },
+  {
+    key: 'isDefault',
+    title: t('tenancy.editions.fields.is_default'),
+    dataType: 'boolean',
+    exportable: true,
+    render: row => (asRow(row).isDefault
+      ? renderTag(t('tenancy.editions.default_badge'), 'warning')
+      : '-'),
+    width: 100,
+    order: 8,
+  },
+  {
+    key: 'status',
+    title: t('tenancy.editions.fields.status'),
+    dataType: 'enum',
+    options: statusOptions.value,
+    exportable: true,
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 8.5,
+  },
+  {
+    key: 'permissionCount',
+    title: t('tenancy.editions.fields.permissions'),
+    dataType: 'number',
+    exportable: true,
+    width: 100,
+    order: 9,
+  },
+  {
+    key: 'tenantCount',
+    title: t('tenancy.editions.fields.tenants'),
+    dataType: 'number',
+    exportable: true,
+    width: 100,
+    order: 10,
+  },
+  {
+    key: 'order',
+    title: t('tenancy.editions.fields.order'),
+    dataType: 'number',
+    exportable: true,
+    width: 80,
+    order: 11,
+  },
+  {
+    key: 'description',
+    title: t('tenancy.editions.fields.description'),
+    dataType: 'text',
+    visible: false,
+    exportable: true,
+    order: 11.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('tenancy.editions.fields.created_at'),
+    dataType: 'datetime',
+    exportable: true,
+    minWidth: 170,
+    order: 12,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -97,19 +227,78 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('tenancy.editions.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'tenancy.editions.create' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'tenancy.editions.update' },
-    { key: 'enable', title: t('tenancy.editions.actions.enable'), scope: 'row', tone: 'success', icon: 'lucide:play', confirm: true, confirmText: row => t('tenancy.editions.enable_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Disabled', permission: 'tenancy.editions.update' },
-    { key: 'disable', title: t('tenancy.editions.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:pause', confirm: true, confirmText: row => t('tenancy.editions.disable_confirm', { name: asRow(row).name }), visible: row => asRow(row).status === 'Active', permission: 'tenancy.editions.update' },
-    { key: 'set-default', title: t('tenancy.editions.actions.set_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => t('tenancy.editions.set_default_confirm', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, permission: 'tenancy.editions.update' },
-    { key: 'permissions', title: t('tenancy.editions.actions.permissions'), scope: 'row', icon: 'lucide:shield-check', permission: 'tenancy.editions.read' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'tenancy.editions.delete' },
+    {
+      key: 'create',
+      title: t('tenancy.editions.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'tenancy.editions.create',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'tenancy.editions.update',
+    },
+    {
+      key: 'enable',
+      title: t('tenancy.editions.actions.enable'),
+      scope: 'row',
+      tone: 'success',
+      icon: 'lucide:play',
+      confirm: true,
+      confirmText: row => t('tenancy.editions.enable_confirm', { name: asRow(row).name }),
+      visible: row => asRow(row).status === 'Disabled',
+      permission: 'tenancy.editions.update',
+    },
+    {
+      key: 'disable',
+      title: t('tenancy.editions.actions.disable'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:pause',
+      confirm: true,
+      confirmText: row => t('tenancy.editions.disable_confirm', { name: asRow(row).name }),
+      visible: row => asRow(row).status === 'Active',
+      permission: 'tenancy.editions.update',
+    },
+    {
+      key: 'set-default',
+      title: t('tenancy.editions.actions.set_default'),
+      scope: 'row',
+      icon: 'lucide:star',
+      confirm: true,
+      confirmText: row => t('tenancy.editions.set_default_confirm', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      permission: 'tenancy.editions.update',
+    },
+    {
+      key: 'permissions',
+      title: t('tenancy.editions.actions.permissions'),
+      scope: 'row',
+      icon: 'lucide:shield-check',
+      permission: 'tenancy.editions.read',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'tenancy.editions.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -156,7 +345,9 @@ async function onSubmit() {
 async function toggleStatus(row: EditionRow, enabled: boolean) {
   try {
     await resource.updateStatus?.(row.id, enabled)
-    toast.success(enabled ? t('tenancy.editions.enabled') : t('tenancy.editions.disabled'))
+    toast.success(enabled
+      ? t('tenancy.editions.enabled')
+      : t('tenancy.editions.disabled'))
     reload()
   }
   catch (error) {

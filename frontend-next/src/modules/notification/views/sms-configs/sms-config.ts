@@ -37,7 +37,21 @@ export interface SmsConfigForm {
 }
 
 export function emptySmsConfigForm(): SmsConfigForm {
-  return { id: null, code: '', name: '', provider: 'Aliyun', accessKeyId: '', accessKeySecret: '', sdkAppId: '', signName: '', region: '', templateMap: '', isEnabled: true, order: 100, remark: '' }
+  return {
+    id: null,
+    code: '',
+    name: '',
+    provider: 'Aliyun',
+    accessKeyId: '',
+    accessKeySecret: '',
+    sdkAppId: '',
+    signName: '',
+    region: '',
+    templateMap: '',
+    isEnabled: true,
+    order: 100,
+    remark: '',
+  }
 }
 
 /** 已保存的配置回填表单（访问密钥不回显） */
@@ -125,7 +139,9 @@ function draft(form: SmsConfigForm) {
     provider: form.provider,
     accessKeyId: form.accessKeyId.trim(),
     accessKeySecret: blankToNull(form.accessKeySecret),
-    sdkAppId: needsSdkAppId(form.provider) ? blankToNull(form.sdkAppId) : null,
+    sdkAppId: needsSdkAppId(form.provider)
+      ? blankToNull(form.sdkAppId)
+      : null,
     signName: form.signName.trim(),
     region: blankToNull(form.region),
     templateMap: blankToNull(form.templateMap),
@@ -137,12 +153,18 @@ function draft(form: SmsConfigForm) {
 
 /** 新建：本侧第一份配置由后端自动设为缺省（并强制启用） */
 export function toCreateBody(form: SmsConfigForm): RequestOf<'sms-configs.create'> {
-  return { code: form.code.trim(), ...draft(form) }
+  return {
+    code: form.code.trim(),
+    ...draft(form),
+  }
 }
 
 /** 编辑：编码不改；访问密钥留空即保留原值 */
 export function toUpdateBody(form: SmsConfigForm & { id: string }): RequestOf<'sms-configs.update'> {
-  return { id: form.id, ...draft(form) }
+  return {
+    id: form.id,
+    ...draft(form),
+  }
 }
 
 /**
@@ -152,10 +174,20 @@ export function toUpdateBody(form: SmsConfigForm & { id: string }): RequestOf<'s
 export function smsConfigResource(): SchemaResource<SmsConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await smsConfigsApi.list(toPageRequest(params, SMS_CONFIG_QUERY)), params),
-    remove: async id => throwOnFailed(await smsConfigsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await smsConfigsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const current = await smsConfigsApi.get({ id: String(id) })
-      return smsConfigsApi.update(toUpdateBody({ ...toSmsConfigForm(current), id: current.id, isEnabled: enabled }))
+      const current = await smsConfigsApi.get({
+        id: String(id),
+      })
+      return smsConfigsApi.update(toUpdateBody({
+        ...toSmsConfigForm(current),
+        id: current.id,
+        isEnabled: enabled,
+      }))
     },
   }
 }

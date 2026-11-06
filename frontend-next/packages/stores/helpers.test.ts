@@ -73,7 +73,9 @@ beforeEach(() => {
   getApi.mockResolvedValue({ scene: 0, settingKey: PREFERENCE_SETTING_KEY, settingValue: null })
   saveApi.mockResolvedValue({ scene: 0, settingKey: PREFERENCE_SETTING_KEY })
   registerAppContext({
-    apis: { userSettingApi: { get: getApi, save: saveApi } } as unknown as AppContextApis,
+    apis: {
+      userSettingApi: { get: getApi, save: saveApi },
+    } as unknown as AppContextApis,
   })
 })
 
@@ -162,7 +164,13 @@ describe('五个同步开关：默认开启且属设备本地维度', () => {
 
     const snapshot = lastSavedSnapshot()
     expect(snapshot[THEME_COLOR_KEY]).toBe('#123456')
-    for (const key of [PREFERENCE_SYNC_KEY, FAVORITES_SYNC_KEY, SEARCH_SYNC_KEY, TABLE_SYNC_KEY, WIDGETS_SYNC_KEY]) {
+    for (const key of [
+      PREFERENCE_SYNC_KEY,
+      FAVORITES_SYNC_KEY,
+      SEARCH_SYNC_KEY,
+      TABLE_SYNC_KEY,
+      WIDGETS_SYNC_KEY,
+    ]) {
       expect(key in snapshot).toBe(false)
     }
   })

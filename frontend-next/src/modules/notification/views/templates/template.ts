@@ -49,7 +49,19 @@ export interface TemplateForm {
 }
 
 export function emptyTemplateForm(): TemplateForm {
-  return { id: null, code: '', channel: 'Email', name: '', subject: '', content: '', isHtml: false, description: '', isEnabled: true, order: 100, remark: '' }
+  return {
+    id: null,
+    code: '',
+    channel: 'Email',
+    name: '',
+    subject: '',
+    content: '',
+    isHtml: false,
+    description: '',
+    isEnabled: true,
+    order: 100,
+    remark: '',
+  }
 }
 
 export function toTemplateForm(row: TemplateRow): TemplateForm {
@@ -70,7 +82,11 @@ export function toTemplateForm(row: TemplateRow): TemplateForm {
 
 /** 覆盖平台模板的表单：照平台那份预填，存成本侧的新模板（编码与渠道不改） */
 export function toOverrideForm(row: TemplateRow): TemplateForm {
-  return { ...toTemplateForm(row), id: null, isEnabled: true }
+  return {
+    ...toTemplateForm(row),
+    id: null,
+    isEnabled: true,
+  }
 }
 
 /** 表单的第一处问题（4.x 的提交前校验，编码另按后端文法核对）；都好为空 */
@@ -103,7 +119,9 @@ function draft(form: TemplateForm) {
   return {
     name: form.name.trim(),
     content: form.content,
-    subject: hasSubject(form.channel) ? blankToNull(form.subject) : null,
+    subject: hasSubject(form.channel)
+      ? blankToNull(form.subject)
+      : null,
     isHtml: isEmailChannel(form.channel) && form.isHtml,
     description: blankToNull(form.description),
     isEnabled: form.isEnabled,
@@ -113,11 +131,18 @@ function draft(form: TemplateForm) {
 }
 
 export function toCreateBody(form: TemplateForm): RequestOf<'message-templates.create'> {
-  return { code: form.code.trim(), channel: form.channel, ...draft(form) }
+  return {
+    code: form.code.trim(),
+    channel: form.channel,
+    ...draft(form),
+  }
 }
 
 export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'message-templates.update'> {
-  return { id: form.id, ...draft(form) }
+  return {
+    id: form.id,
+    ...draft(form),
+  }
 }
 
 /**
@@ -126,10 +151,20 @@ export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'me
 export function templateResource(): SchemaResource<TemplateRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await templatesApi.list(toPageRequest(params, TEMPLATE_QUERY)), params),
-    remove: async id => throwOnFailed(await templatesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await templatesApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const current = await templatesApi.get({ id: String(id) })
-      return templatesApi.update(toUpdateBody({ ...toTemplateForm(current), id: current.id, isEnabled: enabled }))
+      const current = await templatesApi.get({
+        id: String(id),
+      })
+      return templatesApi.update(toUpdateBody({
+        ...toTemplateForm(current),
+        id: current.id,
+        isEnabled: enabled,
+      }))
     },
   }
 }

@@ -91,7 +91,10 @@ const itemByKey = computed(() => {
 const collection = computed(() =>
   props.items.map(item => ({
     value: String(item.basicId),
-    label: [props.getLabel(item), props.getDescription?.(item)].filter(Boolean).join(' '),
+    label: [
+      props.getLabel(item),
+      props.getDescription?.(item),
+    ].filter(Boolean).join(' '),
   })),
 )
 
@@ -99,7 +102,9 @@ const selectedKeys = computed({
   get: () => props.value.map(String),
   set: (next: string[]) => emit('update:value', next.flatMap((key) => {
     const item = itemByKey.value.get(key)
-    return item ? [item.basicId] : []
+    return item
+      ? [item.basicId]
+      : []
   })),
 })
 

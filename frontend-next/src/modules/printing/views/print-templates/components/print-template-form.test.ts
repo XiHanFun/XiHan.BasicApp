@@ -54,7 +54,12 @@ describe('新增', () => {
   })
 
   it('只有维护全局模板时才能开放给租户', () => {
-    const form = { ...createDefaultPrintTemplateForm(), templateCode: 'a', templateName: 'A', allowTenantUse: true }
+    const form = {
+      ...createDefaultPrintTemplateForm(),
+      templateCode: 'a',
+      templateName: 'A',
+      allowTenantUse: true,
+    }
 
     expect(toPrintTemplateCreateInput(form, '{}', { globalMode: false }).allowTenantUse).toBe(false)
     expect(toPrintTemplateCreateInput(form, '{}', { globalMode: true }).allowTenantUse).toBe(true)
@@ -63,7 +68,13 @@ describe('新增', () => {
 
 describe('编辑', () => {
   it('主键与并发戳取自详情，不带编码与状态', () => {
-    const form = { ...toPrintTemplateForm(detail), templateName: ' 销售发票 ', dataSourceCode: null, order: 8, remark: ' 季度版 ' }
+    const form = {
+      ...toPrintTemplateForm(detail),
+      templateName: ' 销售发票 ',
+      dataSourceCode: null,
+      order: 8,
+      remark: ' 季度版 ',
+    }
 
     expect(toPrintTemplateUpdateInput(detail, form, detail.templateJson, { globalMode: true })).toEqual({
       id: 'tpl-9',

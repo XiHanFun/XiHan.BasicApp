@@ -58,7 +58,9 @@ async function ensureCatalog(): Promise<boolean> {
   if (catalog.value.length > 0)
     return true
   try {
-    catalog.value = [...(await policiesApi.attributes({})).items]
+    catalog.value = [
+      ...(await policiesApi.attributes({})).items,
+    ]
     return true
   }
   catch (error) {
@@ -69,25 +71,141 @@ async function ensureCatalog(): Promise<boolean> {
 
 const asRow = (row: object) => row as AccessPolicyRow
 
-const actionOptions = computed<SelectOption[]>(() => ACCESS_POLICY_ACTIONS.map(action => ({ label: actionLabel(t, action), value: action })))
-const statusOptions = computed<SelectOption[]>(() => ACCESS_POLICY_STATUSES.map(status => ({ label: statusLabel(t, status), value: status })))
-const phaseOptions = computed<SelectOption[]>(() => ACCESS_POLICY_PHASES.map(phase => ({ label: phaseLabel(t, phase), value: phase })))
+const actionOptions = computed<SelectOption[]>(() => ACCESS_POLICY_ACTIONS.map(action => ({
+  label: actionLabel(t, action),
+  value: action,
+})))
+const statusOptions = computed<SelectOption[]>(() => ACCESS_POLICY_STATUSES.map(status => ({
+  label: statusLabel(t, status),
+  value: status,
+})))
+const phaseOptions = computed<SelectOption[]>(() => ACCESS_POLICY_PHASES.map(phase => ({
+  label: phaseLabel(t, phase),
+  value: phase,
+})))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.policies.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.policies.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'code', title: t('access.policies.fields.code'), dataType: 'string', sortable: true, minWidth: 190, order: 1 },
-  { key: 'name', title: t('access.policies.fields.name'), dataType: 'string', sortable: true, minWidth: 180, order: 2 },
-  { key: 'action', title: t('access.policies.fields.action'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: actionOptions.value, searchPlaceholder: t('access.policies.action_placeholder'), width: 100, order: 3, render: row => renderTag(actionLabel(t, asRow(row).action), actionTone(asRow(row).action)) },
-  { key: 'phase', title: t('access.policies.fields.phase'), dataType: 'enum', options: phaseOptions.value, width: 110, order: 4, render: row => phaseLabel(t, asRow(row).phase) },
-  { key: 'priority', title: t('access.policies.fields.priority'), dataType: 'number', sortable: true, width: 88, order: 5 },
-  { key: 'status', title: t('access.policies.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: statusOptions.value, searchPlaceholder: t('access.policies.status_placeholder'), width: 88, order: 6, render: row => renderTag(statusLabel(t, asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'neutral') },
-  { key: 'isEffective', title: t('access.policies.fields.is_effective'), dataType: 'boolean', width: 92, order: 7, render: row => renderTag(asRow(row).isEffective ? t('access.policies.effective_yes') : t('access.policies.effective_no'), asRow(row).isEffective ? 'success' : 'neutral') },
-  { key: 'conditionCount', title: t('access.policies.fields.condition_count'), dataType: 'number', width: 88, order: 8, render: row => String(asRow(row).conditions.length) },
-  { key: 'effectiveAt', title: t('access.policies.fields.effective_at'), dataType: 'datetime', minWidth: 170, order: 9 },
-  { key: 'expiresAt', title: t('access.policies.fields.expires_at'), dataType: 'datetime', minWidth: 170, order: 10 },
-  { key: 'description', title: t('access.policies.fields.description'), dataType: 'string', minWidth: 220, order: 11 },
-  { key: 'modifiedAt', title: t('access.policies.fields.modified_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 12 },
+  {
+    key: 'keyword',
+    title: t('access.policies.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.policies.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('access.policies.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 190,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('access.policies.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 180,
+    order: 2,
+  },
+  {
+    key: 'action',
+    title: t('access.policies.fields.action'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: actionOptions.value,
+    searchPlaceholder: t('access.policies.action_placeholder'),
+    width: 100,
+    order: 3,
+    render: row => renderTag(actionLabel(t, asRow(row).action), actionTone(asRow(row).action)),
+  },
+  {
+    key: 'phase',
+    title: t('access.policies.fields.phase'),
+    dataType: 'enum',
+    options: phaseOptions.value,
+    width: 110,
+    order: 4,
+    render: row => phaseLabel(t, asRow(row).phase),
+  },
+  {
+    key: 'priority',
+    title: t('access.policies.fields.priority'),
+    dataType: 'number',
+    sortable: true,
+    width: 88,
+    order: 5,
+  },
+  {
+    key: 'status',
+    title: t('access.policies.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('access.policies.status_placeholder'),
+    width: 88,
+    order: 6,
+    render: row => renderTag(statusLabel(t, asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'neutral'),
+  },
+  {
+    key: 'isEffective',
+    title: t('access.policies.fields.is_effective'),
+    dataType: 'boolean',
+    width: 92,
+    order: 7,
+    render: row => renderTag(asRow(row).isEffective
+      ? t('access.policies.effective_yes')
+      : t('access.policies.effective_no'), asRow(row).isEffective
+      ? 'success'
+      : 'neutral'),
+  },
+  {
+    key: 'conditionCount',
+    title: t('access.policies.fields.condition_count'),
+    dataType: 'number',
+    width: 88,
+    order: 8,
+    render: row => String(asRow(row).conditions.length),
+  },
+  {
+    key: 'effectiveAt',
+    title: t('access.policies.fields.effective_at'),
+    dataType: 'datetime',
+    minWidth: 170,
+    order: 9,
+  },
+  {
+    key: 'expiresAt',
+    title: t('access.policies.fields.expires_at'),
+    dataType: 'datetime',
+    minWidth: 170,
+    order: 10,
+  },
+  {
+    key: 'description',
+    title: t('access.policies.fields.description'),
+    dataType: 'string',
+    minWidth: 220,
+    order: 11,
+  },
+  {
+    key: 'modifiedAt',
+    title: t('access.policies.fields.modified_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 12,
+  },
 ])
 
 function switchAction(key: string, title: string, icon: string, action: AccessPolicyAction, confirmKey: (name: string) => string) {
@@ -96,7 +214,9 @@ function switchAction(key: string, title: string, icon: string, action: AccessPo
     title,
     scope: 'row' as const,
     icon,
-    tone: action === 'Deny' ? 'warning' as const : undefined,
+    tone: action === 'Deny'
+      ? 'warning' as const
+      : undefined,
     confirm: true,
     confirmText: (row: object) => confirmKey(asRow(row).name),
     permission: 'access.policies.update',
@@ -114,23 +234,82 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.policies.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.policies.create' },
-    { key: 'from-template', title: t('access.policies.actions.from_template'), scope: 'page', icon: 'lucide:layout-template', permission: 'access.policies.create' },
+    {
+      key: 'create',
+      title: t('access.policies.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.policies.create',
+    },
+    {
+      key: 'from-template',
+      title: t('access.policies.actions.from_template'),
+      scope: 'page',
+      icon: 'lucide:layout-template',
+      permission: 'access.policies.create',
+    },
     // 登录失败自动封禁只在平台
-    ...(isPlatform.value ? [{ key: 'bans', title: t('access.policies.actions.bans'), scope: 'page' as const, icon: 'lucide:ban', permission: 'access.login-bans.read' }] : []),
-    { key: 'view', title: t('access.policies.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.policies.update' },
-    { key: 'trial', title: t('access.policies.actions.trial'), scope: 'row', icon: 'lucide:flask-conical', permission: 'access.policies.trial' },
+    ...(isPlatform.value
+      ? [
+          {
+            key: 'bans',
+            title: t('access.policies.actions.bans'),
+            scope: 'page' as const,
+            icon: 'lucide:ban',
+            permission: 'access.login-bans.read',
+          },
+        ]
+      : []),
+    {
+      key: 'view',
+      title: t('access.policies.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'access.policies.update',
+    },
+    {
+      key: 'trial',
+      title: t('access.policies.actions.trial'),
+      scope: 'row',
+      icon: 'lucide:flask-conical',
+      permission: 'access.policies.trial',
+    },
     switchAction('enable-blocking', t('access.policies.actions.enable_blocking'), 'lucide:shield-x', 'Deny', name => t('access.policies.confirm_enable_blocking', { name })),
     switchAction('set-allow', t('access.policies.actions.set_allow'), 'lucide:shield-check', 'Allow', name => t('access.policies.confirm_set_allow', { name })),
     switchAction('set-log-only', t('access.policies.actions.set_log_only'), 'lucide:notebook-pen', 'LogOnly', name => t('access.policies.confirm_set_log_only', { name })),
-    { key: 'toggle', title: t('access.policies.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'access.policies.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'access.policies.delete' },
+    {
+      key: 'toggle',
+      title: t('access.policies.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'access.policies.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'access.policies.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       void openCreate(null)
@@ -150,8 +329,14 @@ function onAction(payload: SchemaActionPayload) {
         void openEdit(row)
       break
     case 'trial':
-      if (row)
-        openTrial({ title: row.name, policyId: row.id, conditions: null, action: row.action })
+      if (row) {
+        openTrial({
+          title: row.name,
+          policyId: row.id,
+          conditions: null,
+          action: row.action,
+        })
+      }
       break
     case 'enable-blocking':
       if (row)
@@ -196,8 +381,11 @@ const templates = ref<AccessPolicyTemplate[]>([])
 
 async function openTemplates() {
   try {
-    if (templates.value.length === 0)
-      templates.value = [...(await policiesApi.templates({})).items]
+    if (templates.value.length === 0) {
+      templates.value = [
+        ...(await policiesApi.templates({})).items,
+      ]
+    }
     templatesVisible.value = true
   }
   catch (error) {
@@ -224,7 +412,17 @@ interface PolicyFormModel {
 }
 
 function emptyForm(): PolicyFormModel {
-  return { id: null, code: '', name: '', description: '', priority: 100, effectiveAt: null, expiresAt: null, templateCode: null, remark: '' }
+  return {
+    id: null,
+    code: '',
+    name: '',
+    description: '',
+    priority: 100,
+    effectiveAt: null,
+    expiresAt: null,
+    templateCode: null,
+    remark: '',
+  }
 }
 
 const modalVisible = ref(false)
@@ -232,16 +430,26 @@ const submitting = ref(false)
 const submitError = ref<null | string>(null)
 const form = reactive<PolicyFormModel>(emptyForm())
 const groups = ref<ConditionGroupModel[]>([])
-const modalTitle = computed(() => (form.id ? t('access.policies.edit_title') : t('access.policies.create_title')))
+const modalTitle = computed(() => (form.id
+  ? t('access.policies.edit_title')
+  : t('access.policies.create_title')))
 const draftConditions = computed(() => toConditions(groups.value, catalog.value))
 const placeholderNetwork = computed(() => usesPlaceholderNetwork(draftConditions.value))
 
 async function openCreate(template: AccessPolicyTemplate | null) {
   if (!await ensureCatalog())
     return
-  const text = template ? templateText(t, template) : null
+  const text = template
+    ? templateText(t, template)
+    : null
   Object.assign(form, emptyForm(), template && text
-    ? { code: codeFromTemplate(template.code), name: text.name, description: text.description, priority: template.priority, templateCode: template.code }
+    ? {
+        code: codeFromTemplate(template.code),
+        name: text.name,
+        description: text.description,
+        priority: template.priority,
+        templateCode: template.code,
+      }
     : {})
   groups.value = toGroups(template?.conditions ?? [], catalog.value)
   submitError.value = null
@@ -259,8 +467,12 @@ async function openEdit(row: AccessPolicyRow) {
       name: current.name,
       description: current.description ?? '',
       priority: current.priority,
-      effectiveAt: current.effectiveAt ? new Date(current.effectiveAt).getTime() : null,
-      expiresAt: current.expiresAt ? new Date(current.expiresAt).getTime() : null,
+      effectiveAt: current.effectiveAt
+        ? new Date(current.effectiveAt).getTime()
+        : null,
+      expiresAt: current.expiresAt
+        ? new Date(current.expiresAt).getTime()
+        : null,
       templateCode: current.templateCode ?? null,
       remark: current.remark ?? '',
     })
@@ -308,8 +520,12 @@ async function onSubmit() {
     name: form.name.trim(),
     description: form.description.trim() || null,
     priority: form.priority ?? 100,
-    effectiveAt: form.effectiveAt != null ? new Date(form.effectiveAt).toISOString() : null,
-    expiresAt: form.expiresAt != null ? new Date(form.expiresAt).toISOString() : null,
+    effectiveAt: form.effectiveAt != null
+      ? new Date(form.effectiveAt).toISOString()
+      : null,
+    expiresAt: form.expiresAt != null
+      ? new Date(form.expiresAt).toISOString()
+      : null,
     templateCode: form.templateCode,
     remark: form.remark.trim() || null,
     conditions: draftConditions.value,
@@ -326,7 +542,9 @@ async function onSubmit() {
     reload()
   }
   catch (error) {
-    submitError.value = error instanceof ApiError ? error.detail : String(error)
+    submitError.value = error instanceof ApiError
+      ? error.detail
+      : String(error)
   }
   finally {
     submitting.value = false
@@ -335,7 +553,12 @@ async function onSubmit() {
 
 // ── 试运行 ──────────────────────────────────────────────────────
 const trialVisible = ref(false)
-const trialTarget = ref<{ title: string, policyId: null | string, conditions: AccessPolicyConditionInput[] | null, action: AccessPolicyAction }>({ title: '', policyId: null, conditions: null, action: 'LogOnly' })
+const trialTarget = ref<{ title: string, policyId: null | string, conditions: AccessPolicyConditionInput[] | null, action: AccessPolicyAction }>({
+  title: '',
+  policyId: null,
+  conditions: null,
+  action: 'LogOnly',
+})
 
 function openTrial(target: typeof trialTarget.value) {
   trialTarget.value = target
@@ -349,7 +572,12 @@ function trialDraft() {
     toast.warning(incompleteMessage(t, incomplete))
     return
   }
-  openTrial({ title: form.name.trim() || t('access.policies.draft'), policyId: null, conditions: draftConditions.value, action: 'Deny' })
+  openTrial({
+    title: form.name.trim() || t('access.policies.draft'),
+    policyId: null,
+    conditions: draftConditions.value,
+    action: 'Deny',
+  })
 }
 
 // ── 改动作 / 启停 / 删除 ────────────────────────────────────────

@@ -171,7 +171,10 @@ describe('本地还原', () => {
   })
 
   it('未保存语言时跟随浏览器语言，且不把偵测结果写回本地存储', () => {
-    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['ja'] })
+    Object.defineProperty(window.navigator, 'languages', {
+      configurable: true,
+      get: () => ['ja'],
+    })
     try {
       const store = freshStore()
 
@@ -179,7 +182,10 @@ describe('本地还原', () => {
       expect(localStorage.getItem(LOCALE_KEY)).toBeNull()
     }
     finally {
-      Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+      Object.defineProperty(window.navigator, 'languages', {
+        configurable: true,
+        get: () => ['zh-CN'],
+      })
     }
   })
 
@@ -236,7 +242,10 @@ describe('locale 是 vue-i18n 的唯一入口', () => {
 
 describe('重置偏好', () => {
   it('语言重置为浏览器语言，而不是固定回退 DEFAULT_LOCALE', () => {
-    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['de-DE'] })
+    Object.defineProperty(window.navigator, 'languages', {
+      configurable: true,
+      get: () => ['de-DE'],
+    })
     try {
       const store = freshStore()
       store.setLocale('ja-JP')
@@ -246,7 +255,10 @@ describe('重置偏好', () => {
       expect(store.locale).toBe('de-DE')
     }
     finally {
-      Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+      Object.defineProperty(window.navigator, 'languages', {
+        configurable: true,
+        get: () => ['zh-CN'],
+      })
     }
   })
 })

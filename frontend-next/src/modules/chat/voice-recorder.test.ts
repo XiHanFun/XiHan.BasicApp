@@ -69,7 +69,9 @@ function installMediaStack(): void {
           },
         }
         tracks.push(track)
-        return Promise.resolve({ getTracks: () => [track] })
+        return Promise.resolve({
+          getTracks: () => [track],
+        })
       },
     },
   })
@@ -85,7 +87,10 @@ function mountRecorder(): { recorder: Recorder, unmount: () => void } {
       return () => h('div')
     },
   }))
-  return { recorder: captured as unknown as Recorder, unmount: () => wrapper.unmount() }
+  return {
+    recorder: captured as unknown as Recorder,
+    unmount: () => wrapper.unmount(),
+  }
 }
 
 beforeEach(() => {

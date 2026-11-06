@@ -16,7 +16,9 @@ export const ONLINE_SESSION_QUERY: PageQueryMapping = {
 }
 
 export function onlineSessionsResource(): SchemaResource<OnlineSessionRow> {
-  return { page: async params => toSchemaPageResult(await sessions.list(toPageRequest(params, ONLINE_SESSION_QUERY)), params) }
+  return {
+    page: async params => toSchemaPageResult(await sessions.list(toPageRequest(params, ONLINE_SESSION_QUERY)), params),
+  }
 }
 
 /** 设备类型的文案：认不出的算未知（在线用户页与用户详情共用） */
@@ -39,11 +41,21 @@ export function onlineSeconds(row: Pick<OnlineSessionRow, 'loginAt'>, now: numbe
 export function formatDuration(seconds: number, t: (key: string, values?: Record<string, unknown>) => string): string {
   if (seconds < 60)
     return t('identity.online_users.duration_seconds', { n: seconds })
-  if (seconds < 3600)
-    return t('identity.online_users.duration_minutes', { n: Math.floor(seconds / 60) })
-  if (seconds < 86400)
-    return t('identity.online_users.duration_hours', { h: Math.floor(seconds / 3600), m: Math.floor((seconds % 3600) / 60) })
-  return t('identity.online_users.duration_days', { d: Math.floor(seconds / 86400), h: Math.floor((seconds % 86400) / 3600) })
+  if (seconds < 3600) {
+    return t('identity.online_users.duration_minutes', {
+      n: Math.floor(seconds / 60),
+    })
+  }
+  if (seconds < 86400) {
+    return t('identity.online_users.duration_hours', {
+      h: Math.floor(seconds / 3600),
+      m: Math.floor((seconds % 3600) / 60),
+    })
+  }
+  return t('identity.online_users.duration_days', {
+    d: Math.floor(seconds / 86400),
+    h: Math.floor((seconds % 86400) / 3600),
+  })
 }
 
 /** 展示名：显示名为空时退回登录名 */
@@ -57,6 +69,9 @@ export function loadSessionSummary(): Promise<SessionSummary> {
 
 /** 强制下线一条会话；逐项拒绝（已失效、是自己当前的会话）带着原因抛出 */
 export async function revokeSession(id: string, reason: string): Promise<void> {
-  const result = await sessions.revoke({ ids: [id], reason })
+  const result = await sessions.revoke({
+    ids: [id],
+    reason,
+  })
   throwOnFailed(result)
 }

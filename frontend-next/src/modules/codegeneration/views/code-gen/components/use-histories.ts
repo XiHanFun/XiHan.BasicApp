@@ -13,7 +13,10 @@ export type HistoryDetail = ResponseOf<'codegen-histories.get'>
 export function historiesResource(): SchemaResource<HistoryRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await codegenHistories.list(toPageRequest(params, { ranges: ['generatedAt'], multiples: ['generationStatus'] })),
+      await codegenHistories.list(toPageRequest(params, {
+        ranges: ['generatedAt'],
+        multiples: ['generationStatus'],
+      })),
       params,
     ),
   }
@@ -21,14 +24,18 @@ export function historiesResource(): SchemaResource<HistoryRow> {
 
 /** 耗时：满一秒按秒、两位小数，否则按毫秒（照 4.x） */
 export function formatDuration(ms: number): string {
-  return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${ms}ms`
+  return ms >= 1000
+    ? `${(ms / 1000).toFixed(2)}s`
+    : `${ms}ms`
 }
 
 /** 大小：按 B / KB / MB（照 4.x） */
 export function formatSize(bytes: number): string {
   if (bytes >= 1024 * 1024)
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`
-  return bytes >= 1024 ? `${(bytes / 1024).toFixed(2)} KB` : `${bytes} B`
+  return bytes >= 1024
+    ? `${(bytes / 1024).toFixed(2)} KB`
+    : `${bytes} B`
 }
 
 /** 产物包还能不能下载：有产物包且没到期 */

@@ -92,36 +92,200 @@ function reload() {
 
 const asRow = (row: object) => row as FileRow
 const displayName = (file: FileRow) => file.originalName || file.name
-const kindOptions = computed<SelectOption[]>(() => FILE_KINDS.map(kind => ({ label: kindLabel(t, kind), value: kind })))
-const statusOptions = computed<SelectOption[]>(() => FILE_STATUSES.map(status => ({ label: fileStatusLabel(t, status), value: status })))
-const accessLevelOptions = computed<SelectOption[]>(() => FILE_ACCESS_LEVELS.map(level => ({ label: accessLevelLabel(t, level), value: level })))
-const sourceOptions = computed<SelectOption[]>(() => FILE_SOURCES.map(source => ({ label: sourceLabel(t, source), value: source })))
+const kindOptions = computed<SelectOption[]>(() => FILE_KINDS.map(kind => ({
+  label: kindLabel(t, kind),
+  value: kind,
+})))
+const statusOptions = computed<SelectOption[]>(() => FILE_STATUSES.map(status => ({
+  label: fileStatusLabel(t, status),
+  value: status,
+})))
+const accessLevelOptions = computed<SelectOption[]>(() => FILE_ACCESS_LEVELS.map(level => ({
+  label: accessLevelLabel(t, level),
+  value: level,
+})))
+const sourceOptions = computed<SelectOption[]>(() => FILE_SOURCES.map(source => ({
+  label: sourceLabel(t, source),
+  value: source,
+})))
 const yesNoOptions = computed<SelectOption[]>(() => [
-  { label: t('common.statuses.yes'), value: 'true' },
-  { label: t('common.statuses.no'), value: 'false' },
+  {
+    label: t('common.statuses.yes'),
+    value: 'true',
+  },
+  {
+    label: t('common.statuses.no'),
+    value: 'false',
+  },
 ])
 
 function yesNo(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序、可筛选的只放后端白名单里的） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('files.library.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('files.library.placeholders.keyword'), width: 220, order: 0 },
-  { key: 'originalName', title: t('files.library.fields.original_name'), dataType: 'string', sortable: true, exportable: true, minWidth: 220, fixed: 'left', order: 1 },
-  { key: 'name', title: t('files.library.fields.name'), dataType: 'string', exportable: true, minWidth: 220, order: 2 },
-  { key: 'kindIcon', title: t('files.library.fields.kind_icon'), dataType: 'string', width: 64, order: 2.5, render: row => h('span', { class: 'flex items-center justify-center' }, h(Icon, { icon: kindIcon(asRow(row).kind), width: 16 })) },
-  { key: 'kind', title: t('files.library.fields.kind'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, exportable: true, options: kindOptions.value, searchPlaceholder: t('files.library.placeholders.kind'), width: 110, order: 3, render: row => renderTag(kindLabel(t, asRow(row).kind), 'neutral') },
-  { key: 'size', title: t('files.library.fields.size'), dataType: 'number', sortable: true, exportable: true, minWidth: 110, order: 4, render: row => formatFileSize(Number(asRow(row).size)) },
-  { key: 'status', title: t('files.library.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, exportable: true, options: statusOptions.value, searchPlaceholder: t('files.library.placeholders.status'), width: 110, order: 5, render: row => renderTag(fileStatusLabel(t, asRow(row).status), fileStatusTone(asRow(row).status)) },
-  { key: 'accessLevel', title: t('files.library.fields.access_level'), dataType: 'enum', searchable: true, searchMultiple: true, exportable: true, options: accessLevelOptions.value, searchPlaceholder: t('files.library.placeholders.access_level'), minWidth: 110, order: 6, render: row => accessLevelLabel(t, asRow(row).accessLevel) },
-  { key: 'isTemporary', title: t('files.library.fields.is_temporary'), dataType: 'boolean', searchable: true, exportable: true, options: yesNoOptions.value, searchPlaceholder: t('files.library.placeholders.is_temporary'), width: 82, order: 7 },
-  { key: 'extension', title: t('files.library.fields.extension'), dataType: 'string', advancedSearch: true, exportable: true, searchPlaceholder: t('files.library.placeholders.extension'), minWidth: 90, order: 9 },
-  { key: 'contentType', title: t('files.library.fields.content_type'), dataType: 'string', advancedSearch: true, exportable: true, searchPlaceholder: t('files.library.placeholders.content_type'), minWidth: 160, order: 10 },
-  { key: 'source', title: t('files.library.fields.source'), dataType: 'enum', visible: false, advancedSearch: true, options: sourceOptions.value, searchPlaceholder: t('files.library.placeholders.source'), order: 10.5 },
-  { key: 'downloadCount', title: t('files.library.fields.download_count'), dataType: 'number', sortable: true, exportable: true, minWidth: 90, order: 11 },
-  { key: 'expiresAt', title: t('files.library.fields.expires_at'), dataType: 'datetime', visible: false, advancedSearch: true, searchRange: true, order: 12 },
-  { key: 'createdAt', title: t('files.library.fields.created_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, exportable: true, minWidth: 170, order: 13 },
+  {
+    key: 'keyword',
+    title: t('files.library.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('files.library.placeholders.keyword'),
+    width: 220,
+    order: 0,
+  },
+  {
+    key: 'originalName',
+    title: t('files.library.fields.original_name'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 220,
+    fixed: 'left',
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('files.library.fields.name'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 220,
+    order: 2,
+  },
+  {
+    key: 'kindIcon',
+    title: t('files.library.fields.kind_icon'),
+    dataType: 'string',
+    width: 64,
+    order: 2.5,
+    render: row => h('span', { class: 'flex items-center justify-center' }, h(Icon, {
+      icon: kindIcon(asRow(row).kind),
+      width: 16,
+    })),
+  },
+  {
+    key: 'kind',
+    title: t('files.library.fields.kind'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    exportable: true,
+    options: kindOptions.value,
+    searchPlaceholder: t('files.library.placeholders.kind'),
+    width: 110,
+    order: 3,
+    render: row => renderTag(kindLabel(t, asRow(row).kind), 'neutral'),
+  },
+  {
+    key: 'size',
+    title: t('files.library.fields.size'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    minWidth: 110,
+    order: 4,
+    render: row => formatFileSize(Number(asRow(row).size)),
+  },
+  {
+    key: 'status',
+    title: t('files.library.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    exportable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('files.library.placeholders.status'),
+    width: 110,
+    order: 5,
+    render: row => renderTag(fileStatusLabel(t, asRow(row).status), fileStatusTone(asRow(row).status)),
+  },
+  {
+    key: 'accessLevel',
+    title: t('files.library.fields.access_level'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    exportable: true,
+    options: accessLevelOptions.value,
+    searchPlaceholder: t('files.library.placeholders.access_level'),
+    minWidth: 110,
+    order: 6,
+    render: row => accessLevelLabel(t, asRow(row).accessLevel),
+  },
+  {
+    key: 'isTemporary',
+    title: t('files.library.fields.is_temporary'),
+    dataType: 'boolean',
+    searchable: true,
+    exportable: true,
+    options: yesNoOptions.value,
+    searchPlaceholder: t('files.library.placeholders.is_temporary'),
+    width: 82,
+    order: 7,
+  },
+  {
+    key: 'extension',
+    title: t('files.library.fields.extension'),
+    dataType: 'string',
+    advancedSearch: true,
+    exportable: true,
+    searchPlaceholder: t('files.library.placeholders.extension'),
+    minWidth: 90,
+    order: 9,
+  },
+  {
+    key: 'contentType',
+    title: t('files.library.fields.content_type'),
+    dataType: 'string',
+    advancedSearch: true,
+    exportable: true,
+    searchPlaceholder: t('files.library.placeholders.content_type'),
+    minWidth: 160,
+    order: 10,
+  },
+  {
+    key: 'source',
+    title: t('files.library.fields.source'),
+    dataType: 'enum',
+    visible: false,
+    advancedSearch: true,
+    options: sourceOptions.value,
+    searchPlaceholder: t('files.library.placeholders.source'),
+    order: 10.5,
+  },
+  {
+    key: 'downloadCount',
+    title: t('files.library.fields.download_count'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    minWidth: 90,
+    order: 11,
+  },
+  {
+    key: 'expiresAt',
+    title: t('files.library.fields.expires_at'),
+    dataType: 'datetime',
+    visible: false,
+    advancedSearch: true,
+    searchRange: true,
+    order: 12,
+  },
+  {
+    key: 'createdAt',
+    title: t('files.library.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    exportable: true,
+    minWidth: 170,
+    order: 13,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -134,21 +298,82 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'upload', title: t('files.library.actions.upload'), scope: 'page', tone: 'brand', icon: 'lucide:upload', permission: 'files.files.create' },
-    { key: 'preview', title: t('files.library.actions.preview'), scope: 'row', icon: 'lucide:scan-eye', visible: row => canPreview(asRow(row)) },
-    { key: 'download', title: t('files.library.actions.download'), scope: 'row', icon: 'lucide:download', visible: row => asRow(row).status === 'Normal' },
-    { key: 'view', title: t('files.library.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'metadata', title: t('files.library.actions.metadata'), scope: 'row', icon: 'lucide:tags', permission: 'files.files.update' },
-    { key: 'storages', title: t('files.library.actions.storages'), scope: 'row', icon: 'lucide:hard-drive' },
+    {
+      key: 'upload',
+      title: t('files.library.actions.upload'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:upload',
+      permission: 'files.files.create',
+    },
+    {
+      key: 'preview',
+      title: t('files.library.actions.preview'),
+      scope: 'row',
+      icon: 'lucide:scan-eye',
+      visible: row => canPreview(asRow(row)),
+    },
+    {
+      key: 'download',
+      title: t('files.library.actions.download'),
+      scope: 'row',
+      icon: 'lucide:download',
+      visible: row => asRow(row).status === 'Normal',
+    },
+    {
+      key: 'view',
+      title: t('files.library.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'metadata',
+      title: t('files.library.actions.metadata'),
+      scope: 'row',
+      icon: 'lucide:tags',
+      permission: 'files.files.update',
+    },
+    {
+      key: 'storages',
+      title: t('files.library.actions.storages'),
+      scope: 'row',
+      icon: 'lucide:hard-drive',
+    },
     // 正常的可归档，归档的可恢复（损坏的要经副本修复，不在这里恢复），任意状态可彻底删除
-    { key: 'archive', title: t('files.library.actions.archive'), scope: 'row', icon: 'lucide:archive', tone: 'warning', confirm: true, confirmText: row => actionConfirmText(t, t('files.library.actions.archive'), displayName(asRow(row))), visible: row => asRow(row).status === 'Normal', permission: 'files.files.update' },
-    { key: 'restore', title: t('files.library.actions.restore'), scope: 'row', icon: 'lucide:archive-restore', visible: row => asRow(row).status === 'Archived', permission: 'files.files.update' },
-    { key: 'delete', title: t('files.library.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', permission: 'files.files.delete' },
+    {
+      key: 'archive',
+      title: t('files.library.actions.archive'),
+      scope: 'row',
+      icon: 'lucide:archive',
+      tone: 'warning',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('files.library.actions.archive'), displayName(asRow(row))),
+      visible: row => asRow(row).status === 'Normal',
+      permission: 'files.files.update',
+    },
+    {
+      key: 'restore',
+      title: t('files.library.actions.restore'),
+      scope: 'row',
+      icon: 'lucide:archive-restore',
+      visible: row => asRow(row).status === 'Archived',
+      permission: 'files.files.update',
+    },
+    {
+      key: 'delete',
+      title: t('files.library.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      permission: 'files.files.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'upload':
       openUpload()
@@ -249,7 +474,10 @@ async function saveMetadata() {
     return
   metadataSaving.value = true
   try {
-    await filesApi.update({ id: file.id, ...toFileDetails(metadataForm) })
+    await filesApi.update({
+      id: file.id,
+      ...toFileDetails(metadataForm),
+    })
     toast.success(t('files.library.metadata.updated'))
     metadataVisible.value = false
     reload()
@@ -265,7 +493,10 @@ async function saveMetadata() {
 // ── 归档 / 恢复 / 彻底删除 / 下载 ────────────────────────────────
 async function setFileStatus(row: FileRow, status: 'Archived' | 'Normal', successText: string) {
   try {
-    throwOnFailed(await filesApi.setStatus({ ids: [row.id], status }))
+    throwOnFailed(await filesApi.setStatus({
+      ids: [row.id],
+      status,
+    }))
     toast.success(successText)
     reload()
   }
@@ -278,7 +509,9 @@ async function setFileStatus(row: FileRow, status: 'Archived' | 'Normal', succes
 function confirmDelete(row: FileRow) {
   void confirmDanger({
     title: t('files.library.messages.delete_title'),
-    content: t('files.library.messages.delete_content', { name: displayName(row) }),
+    content: t('files.library.messages.delete_content', {
+      name: displayName(row),
+    }),
     okText: t('files.library.actions.delete'),
     cancelText: t('common.actions.cancel'),
     onOk: async () => {
@@ -310,7 +543,9 @@ const detailLoading = ref(false)
 const detailKind = ref<'file' | 'storage'>('file')
 const fileDetail = ref<FileRow | null>(null)
 const storageDetail = ref<FileStorageRow | null>(null)
-const detailTitle = computed(() => (detailKind.value === 'file' ? t('files.library.detail.title') : t('files.library.detail.storage_title')))
+const detailTitle = computed(() => (detailKind.value === 'file'
+  ? t('files.library.detail.title')
+  : t('files.library.detail.storage_title')))
 
 async function openFileDetail(row: FileRow) {
   detailKind.value = 'file'
@@ -359,7 +594,9 @@ async function loadStorages() {
     return
   storagesLoading.value = true
   try {
-    storageRows.value = [...(await filesApi.storages({ id: file.id })).items]
+    storageRows.value = [
+      ...(await filesApi.storages({ id: file.id })).items,
+    ]
   }
   catch (error) {
     storageRows.value = []
@@ -410,7 +647,9 @@ async function verifyStorage(storage: FileStorageRow) {
 }
 
 function toggleLabel(target: 'Normal' | 'Unavailable'): string {
-  return target === 'Unavailable' ? t('files.library.storage_list.tooltip.disable') : t('files.library.storage_list.tooltip.enable')
+  return target === 'Unavailable'
+    ? t('files.library.storage_list.tooltip.disable')
+    : t('files.library.storage_list.tooltip.enable')
 }
 
 function toggleStorage(storage: FileStorageRow) {
@@ -441,7 +680,9 @@ function toggleStorage(storage: FileStorageRow) {
 function primaryHint(storage: FileStorageRow): string {
   if (storage.isPrimary)
     return t('files.library.storage_list.tooltip.is_primary')
-  return canSetPrimary(storage) ? t('files.library.storage_list.tooltip.set_primary') : t('files.library.storage_list.tooltip.not_usable')
+  return canSetPrimary(storage)
+    ? t('files.library.storage_list.tooltip.set_primary')
+    : t('files.library.storage_list.tooltip.not_usable')
 }
 
 /** 启停钮：主副本不能停用、校验失败的要先重新校验，这两种钮置灰并说明原因 */
@@ -449,18 +690,45 @@ function toggleHint(storage: FileStorageRow): string {
   const target = storageToggleTarget(storage)
   if (target)
     return toggleLabel(target)
-  return storage.isPrimary ? t('files.library.storage_list.tooltip.primary_locked') : t('files.library.storage_list.tooltip.verify_first')
+  return storage.isPrimary
+    ? t('files.library.storage_list.tooltip.primary_locked')
+    : t('files.library.storage_list.tooltip.verify_first')
 }
 
 function renderStorageActions(storage: FileStorageRow) {
   const target = storageToggleTarget(storage)
   return h('div', { class: 'inline-flex items-center gap-1' }, [
-    h(XIconButton, { icon: 'lucide:eye', label: t('files.library.storage_list.tooltip.detail'), onClick: () => openStorageDetail(storage) }),
+    h(XIconButton, {
+      icon: 'lucide:eye',
+      label: t('files.library.storage_list.tooltip.detail'),
+      onClick: () => openStorageDetail(storage),
+    }),
     canUpdateFile.value
       ? [
-          h(XIconButton, { icon: 'lucide:star', label: primaryHint(storage), tone: 'brand', disabled: !canSetPrimary(storage), onClick: () => setPrimary(storage) }),
-          h(XIconButton, { icon: 'lucide:shield-check', label: t('files.library.storage_list.tooltip.verify'), tone: 'info', onClick: () => verifyStorage(storage) }),
-          h(XIconButton, { icon: target === 'Normal' ? 'lucide:circle-check' : 'lucide:ban', label: toggleHint(storage), tone: target === 'Normal' ? 'success' : 'warning', disabled: !target, onClick: () => toggleStorage(storage) }),
+          h(XIconButton, {
+            icon: 'lucide:star',
+            label: primaryHint(storage),
+            tone: 'brand',
+            disabled: !canSetPrimary(storage),
+            onClick: () => setPrimary(storage),
+          }),
+          h(XIconButton, {
+            icon: 'lucide:shield-check',
+            label: t('files.library.storage_list.tooltip.verify'),
+            tone: 'info',
+            onClick: () => verifyStorage(storage),
+          }),
+          h(XIconButton, {
+            icon: target === 'Normal'
+              ? 'lucide:circle-check'
+              : 'lucide:ban',
+            label: toggleHint(storage),
+            tone: target === 'Normal'
+              ? 'success'
+              : 'warning',
+            disabled: !target,
+            onClick: () => toggleStorage(storage),
+          }),
         ]
       : null,
   ])
@@ -468,20 +736,58 @@ function renderStorageActions(storage: FileStorageRow) {
 
 /** 状态列：校验失败的在标签后跟上原因 */
 function renderStorageStatus(storage: FileStorageRow) {
-  const reason = storage.status === 'VerificationFailed' ? storageReasonLabel(t, storage.remark) : ''
+  const reason = storage.status === 'VerificationFailed'
+    ? storageReasonLabel(t, storage.remark)
+    : ''
   return h('span', { class: 'file-storage-status' }, [
     renderTag(storageStatusLabel(t, storage.status), storageStatusTone(storage.status)),
-    reason ? h('span', { class: 'file-storage-status__reason' }, reason) : null,
+    reason
+      ? h('span', { class: 'file-storage-status__reason' }, reason)
+      : null,
   ])
 }
 
 const storageColumns = computed<XDataTableColumn<FileStorageRow>[]>(() => [
-  { key: 'storageType', title: t('files.library.storage_list.columns.storage_type'), minWidth: 110, render: storage => storageTypeLabel(t, storage.storageType) },
-  { key: 'storageConfig', title: t('files.library.storage_list.columns.storage_config'), minWidth: 150, ellipsis: true, render: storage => storage.storageConfigName || storage.storageConfigCode || '-' },
-  { key: 'isPrimary', title: t('files.library.storage_list.columns.is_primary'), width: 80, render: storage => (storage.isPrimary ? renderTag(t('files.library.storage_list.primary_tag'), 'info') : '-') },
-  { key: 'verifiedAt', title: t('files.library.storage_list.columns.verified_at'), minWidth: 160, render: storage => formatDate(storage.verifiedAt) },
-  { key: 'status', title: t('files.library.storage_list.columns.status'), minWidth: 120, render: renderStorageStatus },
-  { key: 'actions', title: t('component.schema_page.actions_column'), width: 150, fixed: 'right', render: renderStorageActions },
+  {
+    key: 'storageType',
+    title: t('files.library.storage_list.columns.storage_type'),
+    minWidth: 110,
+    render: storage => storageTypeLabel(t, storage.storageType),
+  },
+  {
+    key: 'storageConfig',
+    title: t('files.library.storage_list.columns.storage_config'),
+    minWidth: 150,
+    ellipsis: true,
+    render: storage => storage.storageConfigName || storage.storageConfigCode || '-',
+  },
+  {
+    key: 'isPrimary',
+    title: t('files.library.storage_list.columns.is_primary'),
+    width: 80,
+    render: storage => (storage.isPrimary
+      ? renderTag(t('files.library.storage_list.primary_tag'), 'info')
+      : '-'),
+  },
+  {
+    key: 'verifiedAt',
+    title: t('files.library.storage_list.columns.verified_at'),
+    minWidth: 160,
+    render: storage => formatDate(storage.verifiedAt),
+  },
+  {
+    key: 'status',
+    title: t('files.library.storage_list.columns.status'),
+    minWidth: 120,
+    render: renderStorageStatus,
+  },
+  {
+    key: 'actions',
+    title: t('component.schema_page.actions_column'),
+    width: 150,
+    fixed: 'right',
+    render: renderStorageActions,
+  },
 ])
 
 // ── 预览 ────────────────────────────────────────────────────────
@@ -494,7 +800,9 @@ const previewText = ref('')
 /** 预览的代码着色与 Markdown 解析（4.x 同：着色用组件库的 code-highlight，Markdown 一次给全、非流式） */
 const highlighter = createHighlighter()
 const markdown = createStreamRenderer({ idPrefix: 'file-preview-' })
-const previewBlocks = computed(() => previewKind.value === 'markdown' ? markdown.render(previewText.value, { ended: true }) : [])
+const previewBlocks = computed(() => previewKind.value === 'markdown'
+  ? markdown.render(previewText.value, { ended: true })
+  : [])
 onBeforeUnmount(() => markdown.dispose())
 const previewLang = ref<string | undefined>(undefined)
 const previewError = ref('')

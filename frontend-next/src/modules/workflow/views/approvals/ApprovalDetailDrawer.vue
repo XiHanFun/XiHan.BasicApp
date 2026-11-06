@@ -55,7 +55,9 @@ const outcomes = computed(() => handleOutcomes(detail.value?.task?.allowedOutcom
 /** 非审批业务流程：节点表单数据原文（空对象不展示） */
 const taskFormJson = computed(() => {
   const json = detail.value?.task?.formData?.trim()
-  return json && json !== '{}' ? json : null
+  return json && json !== '{}'
+    ? json
+    : null
 })
 
 /** 审批轨迹归并成步骤条：走过的步打勾，当前步是正在等的待办，没结束时末尾留「结束」 */
@@ -93,7 +95,9 @@ async function load() {
     const result = await approvals.get({ id: props.instanceId, taskId: props.taskId ?? null })
     detail.value = result
     if (result.business) {
-      formData.value = result.business.data ? JSON.parse(result.business.data) as unknown : null
+      formData.value = result.business.data
+        ? JSON.parse(result.business.data) as unknown
+        : null
       formComponent.value = resolveForm(result.business.formComponent)
     }
   }
@@ -127,12 +131,18 @@ async function complete(outcome: string) {
       id: task.taskId,
       outcome,
       comment: comment.value.trim() || null,
-      variables: variables && Object.keys(variables).length > 0 ? JSON.stringify(variables) : null,
+      variables: variables && Object.keys(variables).length > 0
+        ? JSON.stringify(variables)
+        : null,
     })
-    if (result.faultMessage)
+    if (result.faultMessage) {
       toast.warning(t('workflow.approvals.warn_faulted', { message: result.faultMessage }))
-    else
-      toast.success(t('workflow.approvals.msg_handled', { outcome: outcomeLabel(t, outcome) }))
+    }
+    else {
+      toast.success(t('workflow.approvals.msg_handled', {
+        outcome: outcomeLabel(t, outcome),
+      }))
+    }
     finish()
   }
   catch (error) {

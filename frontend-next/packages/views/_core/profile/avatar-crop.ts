@@ -37,7 +37,12 @@ export function releaseAvatarSource(source: AvatarCropSource): void {
 /** 初始裁切框：居中的最大正方形 */
 export function centeredSquare(image: Pick<HTMLImageElement, 'naturalWidth' | 'naturalHeight'>): ImageCropperRect {
   const side = Math.min(image.naturalWidth, image.naturalHeight)
-  return { x: (image.naturalWidth - side) / 2, y: (image.naturalHeight - side) / 2, width: side, height: side }
+  return {
+    x: (image.naturalWidth - side) / 2,
+    y: (image.naturalHeight - side) / 2,
+    width: side,
+    height: side,
+  }
 }
 
 /**
@@ -45,14 +50,20 @@ export function centeredSquare(image: Pick<HTMLImageElement, 'naturalWidth' | 'n
  * 裁切器里的圆形只是取景遮罩：头像在别处也按方形显示，存下来的是整块正方形
  */
 export async function exportAvatar(source: AvatarCropSource, rect: ImageCropperRect): Promise<File | null> {
-  const type = source.file.type === 'image/png' ? 'image/png' : 'image/jpeg'
+  const type = source.file.type === 'image/png'
+    ? 'image/png'
+    : 'image/jpeg'
   const canvas = cropToCanvas(source.image, rect, {
     width: Math.min(AVATAR_OUTPUT_SIZE, Math.round(rect.width)),
     // JPEG 没有透明通道，透明像素会被编码成黑块，先铺白底
-    background: type === 'image/jpeg' ? '#fff' : undefined,
+    background: type === 'image/jpeg'
+      ? '#fff'
+      : undefined,
   })
   if (!canvas)
     return null
   const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, type, AVATAR_JPEG_QUALITY))
-  return blob ? new File([blob], source.file.name, { type }) : null
+  return blob
+    ? new File([blob], source.file.name, { type })
+    : null
 }

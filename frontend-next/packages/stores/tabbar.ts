@@ -16,7 +16,9 @@ export const useTabbarStore = defineStore('tabbar', () => {
     pinned: true,
     closable: false,
   })
-  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [createDefaultTab()])
+  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [
+    createDefaultTab(),
+  ])
 
   const activeTab = ref(HOME_PATH)
   const refreshSeeds = ref<Record<string, number>>({})
@@ -39,7 +41,10 @@ export const useTabbarStore = defineStore('tabbar', () => {
       existing.name = tab.name
       existing.keepAlive = tab.keepAlive
       if (tab.meta) {
-        existing.meta = { ...existing.meta, ...tab.meta }
+        existing.meta = {
+          ...existing.meta,
+          ...tab.meta,
+        }
         existing.title = tab.title
       }
     }
@@ -111,7 +116,9 @@ export const useTabbarStore = defineStore('tabbar', () => {
     if (tabs.value.some(tab => tab.key === activeTab.value)) {
       return
     }
-    activeTab.value = tabs.value.some(tab => tab.key === fallbackKey) ? fallbackKey : HOME_PATH
+    activeTab.value = tabs.value.some(tab => tab.key === fallbackKey)
+      ? fallbackKey
+      : HOME_PATH
   }
 
   function closeLeft(key: string) {
@@ -151,7 +158,9 @@ export const useTabbarStore = defineStore('tabbar', () => {
    * 不用 closeAll：它留着置顶的标签，那些页面下一个登录的人未必有
    */
   function $reset() {
-    tabs.value = [createDefaultTab()]
+    tabs.value = [
+      createDefaultTab(),
+    ]
     activeTab.value = HOME_PATH
     refreshSeeds.value = {}
     SessionStorage.remove(TABS_LIST_KEY)

@@ -22,7 +22,11 @@ describe('generated contracts', () => {
 
   it('derives users.create as POST /api/users and users.list as POST /api/users:list', () => {
     expect(routes['users.create']).toMatchObject({ method: 'POST', template: '/api/users', success: 201 })
-    expect(routes['users.get']).toMatchObject({ method: 'GET', template: '/api/users/{id}', path: ['id'] })
+    expect(routes['users.get']).toMatchObject({
+      method: 'GET',
+      template: '/api/users/{id}',
+      path: ['id'],
+    })
     expect(routes['users.list']).toMatchObject({ method: 'POST', template: '/api/users:list' })
     expect(typeof users.create).toBe('function')
   })

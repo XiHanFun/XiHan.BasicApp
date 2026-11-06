@@ -22,7 +22,13 @@ export interface MemberDataScopeDraft {
 }
 
 /** 档位的展示顺序：从宽到窄，自定义垫底（与 4.x 一致） */
-export const DATA_SCOPE_LEVELS: readonly DataScopeValue[] = ['All', 'DepartmentAndChildren', 'DepartmentOnly', 'SelfOnly', 'Custom']
+export const DATA_SCOPE_LEVELS: readonly DataScopeValue[] = [
+  'All',
+  'DepartmentAndChildren',
+  'DepartmentOnly',
+  'SelfOnly',
+  'Custom',
+]
 
 /** 勾选变化后同步部门明细：留下的部门保留各自的含下级，新勾选的默认含下级 */
 export function syncPickedDepartments(current: readonly ScopeDepartment[], pickedIds: readonly string[]): ScopeDepartment[] {
@@ -32,7 +38,9 @@ export function syncPickedDepartments(current: readonly ScopeDepartment[], picke
 
 /** 改某个部门的含下级 */
 export function setIncludeChildren(current: readonly ScopeDepartment[], departmentId: string, includeChildren: boolean): ScopeDepartment[] {
-  return current.map(item => (item.departmentId === departmentId ? { ...item, includeChildren } : item))
+  return current.map(item => (item.departmentId === departmentId
+    ? { ...item, includeChildren }
+    : item))
 }
 
 /** 部门树拍平成 部门 → 上级 */

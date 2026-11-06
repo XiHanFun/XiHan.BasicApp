@@ -41,16 +41,28 @@ const filteredConversations = computed(() => {
 
 const startOptions = computed<AppDropdownOption[]>(() => {
   const options: AppDropdownOption[] = [
-    { key: 'single', label: t('chat.start.single') },
-    { key: 'department', label: t('chat.start.department') },
+    {
+      key: 'single',
+      label: t('chat.start.single'),
+    },
+    {
+      key: 'department',
+      label: t('chat.start.department'),
+    },
   ]
   // AI 助手入口仅在助手提供方已登记（AI 模块在位）、后端也没有关掉 AI 时出现
   if (getChatAssistantProvider() && !chatStore.assistantsUnavailable) {
-    options.push({ key: 'assistant', label: t('chat.start.assistant') })
+    options.push({
+      key: 'assistant',
+      label: t('chat.start.assistant'),
+    })
   }
   // 建群需要会话管理权限（后端 chat.chat-conversations.manage 门控）
   if (userStore.hasPermission(CHAT_PERMISSIONS.manage)) {
-    options.splice(1, 0, { key: 'group', label: t('chat.start.group') })
+    options.splice(1, 0, {
+      key: 'group',
+      label: t('chat.start.group'),
+    })
   }
   return options
 })
@@ -89,11 +101,27 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
   }
   return [
     conv.isPinned
-      ? { key: 'pin', label: t('chat.list.unpin'), icon: 'lucide:pin-off' }
-      : { key: 'pin', label: t('chat.list.pin'), icon: 'lucide:pin' },
+      ? {
+          key: 'pin',
+          label: t('chat.list.unpin'),
+          icon: 'lucide:pin-off',
+        }
+      : {
+          key: 'pin',
+          label: t('chat.list.pin'),
+          icon: 'lucide:pin',
+        },
     conv.isMuted
-      ? { key: 'mute', label: t('chat.list.unmute'), icon: 'lucide:bell' }
-      : { key: 'mute', label: t('chat.list.mute'), icon: 'lucide:bell-off' },
+      ? {
+          key: 'mute',
+          label: t('chat.list.unmute'),
+          icon: 'lucide:bell',
+        }
+      : {
+          key: 'mute',
+          label: t('chat.list.mute'),
+          icon: 'lucide:bell-off',
+        },
   ]
 })
 

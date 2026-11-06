@@ -14,8 +14,17 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
-      return new Response(JSON.stringify(responses[calls.length - 1] ?? {}), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
+      return new Response(JSON.stringify(responses[calls.length - 1] ?? {}), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }) as unknown as typeof fetch,
   })
   return calls
@@ -37,9 +46,24 @@ describe('升级记录：列表筛选', () => {
     const request = toMigrationsRequest({
       page: 2,
       pageSize: 20,
-      filters: { keyword: ' 6.0 ', version: '6.0', scriptName: 'init', nodeName: 'node', success: 'false', executedAt: [1, 2] },
-      conditionFilters: [{ field: 'executedAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00.000Z', '2026-10-31T23:59:59.999Z'] }],
-      sorts: [{ field: 'durationMs', order: 'desc' }],
+      filters: {
+        keyword: ' 6.0 ',
+        version: '6.0',
+        scriptName: 'init',
+        nodeName: 'node',
+        success: 'false',
+        executedAt: [1, 2],
+      },
+      conditionFilters: [
+        {
+          field: 'executedAt',
+          operator: QueryOperator.Between,
+          values: ['2026-10-01T00:00:00.000Z', '2026-10-31T23:59:59.999Z'],
+        },
+      ],
+      sorts: [
+        { field: 'durationMs', order: 'desc' },
+      ],
     })
     expect(request).toEqual({
       page: { index: 2, size: 20 },
@@ -52,14 +76,24 @@ describe('升级记录：列表筛选', () => {
         { field: 'executedAt', operator: 'ge', value: '2026-10-01T00:00:00.000Z' },
         { field: 'executedAt', operator: 'lt', value: '2026-11-01T00:00:00.000Z' },
       ],
-      sorts: [{ field: 'durationMs', descending: true }],
+      sorts: [
+        { field: 'durationMs', descending: true },
+      ],
     })
   })
 
   it('不排序即交给后端按执行时间倒序；执行时间只认区间，别的写法直接报错', () => {
     expect(toMigrationsRequest({ page: 1, pageSize: 10, filters: {} })).toMatchObject({ filters: [], sorts: [] })
-    expect(() => executedAtFilters({ field: 'executedAt', operator: QueryOperator.In, values: ['2026-10-01T00:00:00Z'] })).toThrow()
-    expect(() => executedAtFilters({ field: 'executedAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00Z', 'x'] })).toThrow()
+    expect(() => executedAtFilters({
+      field: 'executedAt',
+      operator: QueryOperator.In,
+      values: ['2026-10-01T00:00:00Z'],
+    })).toThrow()
+    expect(() => executedAtFilters({
+      field: 'executedAt',
+      operator: QueryOperator.Between,
+      values: ['2026-10-01T00:00:00Z', 'x'],
+    })).toThrow()
   })
 })
 
@@ -71,21 +105,49 @@ describe('升级记录：文案与详情', () => {
   })
 
   it('详情抬头是版本 · 脚本、红色的失败标签与耗时，副信息是执行时间与节点；记录 ID 在追踪组，失败原因排在最后', () => {
-    const view = buildLogDetailView(migrationDetailSchema(t), FAILED, (field, value) => field.type === 'boolean' ? (value ? field.trueText! : field.falseText!) : String(value))
+    const view = buildLogDetailView(migrationDetailSchema(t), FAILED, (field, value) => field.type === 'boolean'
+      ? (value ? field.trueText! : field.falseText!)
+      : String(value))
     expect(view.title).toBe('6.0.1 · 6.0.1.sql')
     expect(view.status).toMatchObject({ text: 'maintenance.migrations.success_no', tone: 'danger' })
     expect(view.badges.map(entry => entry.field.key)).toEqual(['durationMs'])
     expect(view.meta.map(entry => entry.field.key)).toEqual(['executedAt', 'nodeName'])
-    expect(view.groups).toEqual([{ group: 'trace', entries: [expect.objectContaining({ raw: FAILED.id })] }])
+    expect(view.groups).toEqual([
+      {
+        group: 'trace',
+        entries: [
+          expect.objectContaining({ raw: FAILED.id }),
+        ],
+      },
+    ])
     expect(view.blocks.map(entry => entry.text)).toEqual([FAILED.errorMessage])
   })
 })
 
 describe('升级记录：资源', () => {
   it('分页走 POST migrations:list，详情按 ID 取', async () => {
-    const calls = stub({ items: [FAILED], total: 1, page: { index: 1, size: 20 } }, FAILED)
-    const result = await migrationResource().page!({ page: 1, pageSize: 20, filters: {}, conditionFilters: [], sorts: [] })
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/migrations:list', body: { page: { index: 1, size: 20 }, filters: [], sorts: [], keyword: null } })
+    const calls = stub({
+      items: [FAILED],
+      total: 1,
+      page: { index: 1, size: 20 },
+    }, FAILED)
+    const result = await migrationResource().page!({
+      page: 1,
+      pageSize: 20,
+      filters: {},
+      conditionFilters: [],
+      sorts: [],
+    })
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/migrations:list',
+      body: {
+        page: { index: 1, size: 20 },
+        filters: [],
+        sorts: [],
+        keyword: null,
+      },
+    })
     expect(result.items).toEqual([FAILED])
     expect(await getMigration(FAILED.id)).toEqual(FAILED)
     expect(calls[1]).toMatchObject({ method: 'GET', url: `/api/migrations/${FAILED.id}` })

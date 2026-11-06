@@ -10,14 +10,20 @@ import { h } from 'vue'
 import XInput from './XInput.vue'
 
 function mountInput(props: Record<string, unknown> = {}, slots: Record<string, () => unknown> = {}) {
-  return mount(XInput, { props: { value: 'abc', ...props }, slots, attachTo: document.body })
+  return mount(XInput, {
+    props: { value: 'abc', ...props },
+    slots,
+    attachTo: document.body,
+  })
 }
 
 describe('xInput clear 事件', () => {
   it('点清除钮先清值再报 clear', async () => {
     const wrapper = mountInput({ clearable: true })
     await wrapper.find('[data-part="clear-trigger"]').trigger('click')
-    expect(wrapper.emitted('update:value')).toEqual([['']])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [''],
+    ])
     expect(wrapper.emitted('clear')).toHaveLength(1)
     wrapper.unmount()
   })
@@ -30,7 +36,9 @@ describe('xInput clear 事件', () => {
     expect(wrapper.emitted('clear')).toBeUndefined()
 
     await input.trigger('keydown', { key: 'Escape' })
-    expect(wrapper.emitted('update:value')).toEqual([['']])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [''],
+    ])
     expect(wrapper.emitted('clear')).toHaveLength(1)
     wrapper.unmount()
 
@@ -49,7 +57,9 @@ describe('xInput clear 事件', () => {
   it('密码档 Escape 清空也报 clear', async () => {
     const wrapper = mountInput({ type: 'password', clearable: true })
     await wrapper.find('input').trigger('keydown', { key: 'Escape' })
-    expect(wrapper.emitted('update:value')).toEqual([['']])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [''],
+    ])
     expect(wrapper.emitted('clear')).toHaveLength(1)
     wrapper.unmount()
   })
@@ -95,7 +105,10 @@ describe('xInput 部件', () => {
   })
 
   it('suffix 插槽进组件库的 suffix 部件，与前缀同在盒内', () => {
-    const wrapper = mountInput({}, { prefix: () => h('i', 'P'), suffix: () => h('i', 'S') })
+    const wrapper = mountInput({}, {
+      prefix: () => h('i', 'P'),
+      suffix: () => h('i', 'S'),
+    })
     const control = wrapper.find('[data-part="control"]')
     expect(control.find('[data-part="prefix"]').text()).toBe('P')
     expect(control.find('[data-part="suffix"]').text()).toBe('S')

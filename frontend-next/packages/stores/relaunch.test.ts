@@ -3,7 +3,9 @@ import { destroyAllSignalRConnections } from '~/composables/useSignalR'
 import { LOCK_STATE_KEY, TABS_LIST_KEY } from '~/constants'
 import { relaunchApp } from './relaunch'
 
-vi.mock('~/composables/useSignalR', () => ({ destroyAllSignalRConnections: vi.fn(async () => {}) }))
+vi.mock('~/composables/useSignalR', () => ({
+  destroyAllSignalRConnections: vi.fn(async () => {}),
+}))
 
 describe('relaunchApp', () => {
   let descriptor: PropertyDescriptor | undefined
@@ -15,7 +17,11 @@ describe('relaunchApp', () => {
     vi.mocked(destroyAllSignalRConnections).mockClear()
     descriptor = Object.getOwnPropertyDescriptor(window, 'location')
     assign = vi.fn()
-    Object.defineProperty(window, 'location', { configurable: true, writable: true, value: { assign } })
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: { assign },
+    })
   })
 
   afterEach(() => {

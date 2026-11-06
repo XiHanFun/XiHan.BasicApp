@@ -56,11 +56,15 @@ function formatSize(value: unknown) {
 function formatValue(field: LogDetailField, value: unknown) {
   switch (field.type) {
     case 'boolean':
-      return value ? field.trueText ?? t('common.statuses.yes') : field.falseText ?? t('common.statuses.no')
+      return value
+        ? field.trueText ?? t('common.statuses.yes')
+        : field.falseText ?? t('common.statuses.no')
     case 'bytes':
       return formatSize(value)
     case 'code':
-      return typeof value === 'string' ? value : JSON.stringify(value)
+      return typeof value === 'string'
+        ? value
+        : JSON.stringify(value)
     case 'date':
       return formatDate(String(value))
     case 'duration':
@@ -72,13 +76,17 @@ function formatValue(field: LogDetailField, value: unknown) {
   }
 }
 
-const view = computed(() => props.record ? buildLogDetailView(props.schema, props.record, formatValue) : null)
+const view = computed(() => props.record
+  ? buildLogDetailView(props.schema, props.record, formatValue)
+  : null)
 
 /** 记录的发生时间：跳链路追踪时把时间窗口居中到这一刻 */
 const recordTime = computed(() => {
   const key = props.schema.header.timeKey
   const value = key ? (props.record as Record<string, unknown> | null)?.[key] : null
-  return typeof value === 'string' ? value : null
+  return typeof value === 'string'
+    ? value
+    : null
 })
 
 const GROUP_LABEL_KEYS: Record<LogDetailGroup, string> = {
@@ -92,7 +100,9 @@ const GROUP_LABEL_KEYS: Record<LogDetailGroup, string> = {
 
 /** 放标识、地址这类长值的组排两列，其余排三列 */
 function columnsOf(entries: LogDetailEntry[]) {
-  return entries.some(entry => entry.field.mono) ? 2 : 3
+  return entries.some(entry => entry.field.mono)
+    ? 2
+    : 3
 }
 
 function openTrace(entry: LogDetailEntry) {
@@ -100,7 +110,10 @@ function openTrace(entry: LogDetailEntry) {
     visible.value = false
 }
 
-const clipboardTranslations = computed(() => ({ copy: t('auditing.detail.copy'), copied: t('auditing.detail.copied') }))
+const clipboardTranslations = computed(() => ({
+  copy: t('auditing.detail.copy'),
+  copied: t('auditing.detail.copied'),
+}))
 </script>
 
 <template>

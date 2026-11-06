@@ -45,25 +45,73 @@ const asRow = (row: object) => row as TableRow
 function generationTone(status: GenerationStatus) {
   if (status === 'Generated')
     return 'success'
-  return status === 'Failed' ? 'danger' : 'neutral'
+  return status === 'Failed'
+    ? 'danger'
+    : 'neutral'
 }
 
 function options<T extends string>(group: string, values: readonly T[]): SelectOption[] {
-  return values.map(value => ({ label: t(enumKey(group, value)), value }))
+  return values.map(value => ({
+    label: t(enumKey(group, value)),
+    value,
+  }))
 }
 
 const statusOptions = computed<SelectOption[]>(() => [
-  { label: t('common.statuses.enabled'), value: 'Active' },
-  { label: t('common.statuses.disabled'), value: 'Disabled' },
+  {
+    label: t('common.statuses.enabled'),
+    value: 'Active',
+  },
+  {
+    label: t('common.statuses.disabled'),
+    value: 'Disabled',
+  },
 ])
 
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('codegeneration.code_gen.table.col_table_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('codegeneration.code_gen.table.search_placeholder'), order: 0 },
-  { key: 'tableName', title: t('codegeneration.code_gen.table.col_table_name'), dataType: 'string', minWidth: 170, fixed: 'left', sortable: true, order: 1 },
-  { key: 'className', title: t('codegeneration.code_gen.table.col_class_name'), dataType: 'string', minWidth: 150, sortable: true, order: 2 },
-  { key: 'tableComment', title: t('codegeneration.code_gen.table.col_table_comment'), dataType: 'string', minWidth: 140, sortable: true, order: 3 },
-  { key: 'moduleName', title: t('codegeneration.code_gen.table.col_module'), dataType: 'string', width: 120, sortable: true, order: 4 },
+  {
+    key: 'keyword',
+    title: t('codegeneration.code_gen.table.col_table_name'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('codegeneration.code_gen.table.search_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'tableName',
+    title: t('codegeneration.code_gen.table.col_table_name'),
+    dataType: 'string',
+    minWidth: 170,
+    fixed: 'left',
+    sortable: true,
+    order: 1,
+  },
+  {
+    key: 'className',
+    title: t('codegeneration.code_gen.table.col_class_name'),
+    dataType: 'string',
+    minWidth: 150,
+    sortable: true,
+    order: 2,
+  },
+  {
+    key: 'tableComment',
+    title: t('codegeneration.code_gen.table.col_table_comment'),
+    dataType: 'string',
+    minWidth: 140,
+    sortable: true,
+    order: 3,
+  },
+  {
+    key: 'moduleName',
+    title: t('codegeneration.code_gen.table.col_module'),
+    dataType: 'string',
+    width: 120,
+    sortable: true,
+    order: 4,
+  },
   {
     key: 'templateType',
     title: t('codegeneration.code_gen.table.col_template_type'),
@@ -114,9 +162,20 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('codegeneration.code_gen.table.filter_status'),
     width: 90,
     order: 8,
-    render: row => renderTag(asRow(row).status === 'Active' ? t('common.statuses.enabled') : t('common.statuses.disabled'), asRow(row).status === 'Active' ? 'success' : 'danger'),
+    render: row => renderTag(asRow(row).status === 'Active'
+      ? t('common.statuses.enabled')
+      : t('common.statuses.disabled'), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
   },
-  { key: 'lastGeneratedAt', title: t('codegeneration.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
+  {
+    key: 'lastGeneratedAt',
+    title: t('codegeneration.code_gen.table.col_last_gen'),
+    dataType: 'datetime',
+    minWidth: 170,
+    sortable: true,
+    order: 9,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -126,23 +185,93 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'import', title: t('codegeneration.code_gen.table.import'), scope: 'page', tone: 'brand', icon: 'lucide:database', permission: 'codegeneration.codegen-tables.import' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'codegeneration.codegen-tables.update' },
-    { key: 'columns', title: t('codegeneration.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'codegeneration.codegen-table-columns.update' },
-    { key: 'preview', title: t('codegeneration.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye', permission: 'codegeneration.codegen-tables.read' },
+    {
+      key: 'import',
+      title: t('codegeneration.code_gen.table.import'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:database',
+      permission: 'codegeneration.codegen-tables.import',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'codegeneration.codegen-tables.update',
+    },
+    {
+      key: 'columns',
+      title: t('codegeneration.code_gen.table.action_columns'),
+      scope: 'row',
+      icon: 'lucide:table-2',
+      permission: 'codegeneration.codegen-table-columns.update',
+    },
+    {
+      key: 'preview',
+      title: t('codegeneration.code_gen.table.action_preview'),
+      scope: 'row',
+      icon: 'lucide:eye',
+      permission: 'codegeneration.codegen-tables.read',
+    },
     // 两个生成动作按表配置的交付方式二选一呈现（照 4.x），免得同时给两个入口让人猜
-    { key: 'generate', title: t('codegeneration.code_gen.table.action_generate'), scope: 'row', tone: 'brand', icon: 'lucide:download', visible: row => asRow(row).deliveryType === 'Zip', disabled: () => generating.value, permission: 'codegeneration.codegen-tables.execute' },
+    {
+      key: 'generate',
+      title: t('codegeneration.code_gen.table.action_generate'),
+      scope: 'row',
+      tone: 'brand',
+      icon: 'lucide:download',
+      visible: row => asRow(row).deliveryType === 'Zip',
+      disabled: () => generating.value,
+      permission: 'codegeneration.codegen-tables.execute',
+    },
     // 直接写开发机上的代码目录，已存在的只首次写的文件跳过，其余覆盖
-    { key: 'generateToDisk', title: t('codegeneration.code_gen.table.action_generate_to_disk'), scope: 'row', tone: 'brand', icon: 'lucide:folder-input', confirm: true, confirmText: () => t('codegeneration.code_gen.table.generate_to_disk_confirm'), visible: row => asRow(row).deliveryType === 'Project', disabled: () => generating.value, permission: 'codegeneration.codegen-tables.execute' },
-    { key: 'sync', title: t('codegeneration.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw', confirm: true, confirmText: () => t('codegeneration.code_gen.table.sync_confirm'), permission: 'codegeneration.codegen-tables.import' },
+    {
+      key: 'generateToDisk',
+      title: t('codegeneration.code_gen.table.action_generate_to_disk'),
+      scope: 'row',
+      tone: 'brand',
+      icon: 'lucide:folder-input',
+      confirm: true,
+      confirmText: () => t('codegeneration.code_gen.table.generate_to_disk_confirm'),
+      visible: row => asRow(row).deliveryType === 'Project',
+      disabled: () => generating.value,
+      permission: 'codegeneration.codegen-tables.execute',
+    },
+    {
+      key: 'sync',
+      title: t('codegeneration.code_gen.table.action_sync'),
+      scope: 'row',
+      icon: 'lucide:refresh-cw',
+      confirm: true,
+      confirmText: () => t('codegeneration.code_gen.table.sync_confirm'),
+      permission: 'codegeneration.codegen-tables.import',
+    },
     // 只读查看表里的数据，不生成代码（照 4.x）；停用的表配置由后端拒绝
-    { key: 'runtime', title: t('codegeneration.code_gen.table.action_runtime'), scope: 'row', icon: 'lucide:database', permission: 'codegeneration.codegen-runtime.read' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).tableName), permission: 'codegeneration.codegen-tables.delete' },
+    {
+      key: 'runtime',
+      title: t('codegeneration.code_gen.table.action_runtime'),
+      scope: 'row',
+      icon: 'lucide:database',
+      permission: 'codegeneration.codegen-runtime.read',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).tableName),
+      permission: 'codegeneration.codegen-tables.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'import':
       importVisible.value = true
@@ -219,7 +348,11 @@ async function handleGenerateToDisk(row: TableRow) {
   generating.value = true
   try {
     const result = await codegenTables.generate({ id: row.id, deliveryType: 'Project' })
-    toast.success(t('codegeneration.code_gen.generate.write_success', { written: result.writtenCount, skipped: result.skippedPaths.length, location: result.targetRoots.join('、') }))
+    toast.success(t('codegeneration.code_gen.generate.write_success', {
+      written: result.writtenCount,
+      skipped: result.skippedPaths.length,
+      location: result.targetRoots.join('、'),
+    }))
     reload()
   }
   catch (error) {
@@ -244,7 +377,9 @@ async function handleSync(row: TableRow) {
 
 async function handleDelete(row: TableRow) {
   try {
-    const result = await codegenTables.delete({ ids: [row.id] })
+    const result = await codegenTables.delete({
+      ids: [row.id],
+    })
     throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()

@@ -25,13 +25,22 @@ const entries = computed(() => {
     return []
   }
   return props.fields
-    .map(field => ({ key: field.key, label: field.title, value: formatFieldText(field, row) }))
+    .map(field => ({
+      key: field.key,
+      label: field.title,
+      value: formatFieldText(field, row),
+    }))
     .filter(item => item.value !== '-')
 })
 
 // 定位：光标右下偏移 16px；超出视口时左翻/上收，并留 12px 安全边距
 watch(
-  [() => props.visible, () => props.x, () => props.y, () => props.row],
+  [
+    () => props.visible,
+    () => props.x,
+    () => props.y,
+    () => props.row,
+  ],
   async ([visible]) => {
     if (!visible) {
       return

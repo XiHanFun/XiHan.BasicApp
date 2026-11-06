@@ -35,7 +35,9 @@ onMounted(async () => {
     const { items } = await workbenchApi.widgets({})
     // 认得的指标按登记顺序排在前（登录、访问、异常、在线），其余按键名跟在后面
     const order = Object.keys(METRIC_META)
-    const rank = (key: string) => (order.includes(key) ? order.indexOf(key) : order.length)
+    const rank = (key: string) => (order.includes(key)
+      ? order.indexOf(key)
+      : order.length)
     const keys = items.filter(item => item.kind === 'Metric').map(item => item.key).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
     const offset = viewerOffset()
     metrics.value = await Promise.all(keys.map(async key => ({
@@ -63,8 +65,14 @@ const statCards = computed(() => metrics.value.map(({ key, data }) => {
   return {
     key,
     label: labelOf(key),
-    value: value == null ? '-' : formatters.value.number(value),
-    hint: value == null || previous == null ? undefined : t('workbench.charts.vs_yesterday_count', { value: formatters.value.number(previous) }),
+    value: value == null
+      ? '-'
+      : formatters.value.number(value),
+    hint: value == null || previous == null
+      ? undefined
+      : t('workbench.charts.vs_yesterday_count', {
+          value: formatters.value.number(previous),
+        }),
     icon: meta.icon,
     color: meta.color,
   }

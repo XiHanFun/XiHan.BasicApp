@@ -32,15 +32,57 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined
 const title = computed(() => t('settings.numbering_rules.allocation_title', { code: props.rule?.code ?? '' }))
 
 const columns = computed<XDataTableColumn<AllocationRow>[]>(() => [
-  { key: 'generatedAt', title: t('settings.numbering_rules.allocation_fields.generated_at'), width: 170, render: row => formatDate(row.generatedAt) },
-  { key: 'requestTenantId', title: t('settings.numbering_rules.allocation_fields.requester'), width: 110 },
-  { key: 'idempotencyKey', title: t('settings.numbering_rules.allocation_fields.idempotency_key'), minWidth: 180, ellipsis: true },
-  { key: 'periodKey', title: t('settings.numbering_rules.allocation_fields.period'), width: 110 },
-  { key: 'range', title: t('settings.numbering_rules.allocation_fields.serial_range'), width: 130, render: row => `${row.startValue} - ${row.endValue}` },
-  { key: 'count', title: t('settings.numbering_rules.allocation_fields.count'), width: 80 },
-  { key: 'firstNumber', title: t('settings.numbering_rules.allocation_fields.first_number'), minWidth: 170, ellipsis: true },
-  { key: 'lastNumber', title: t('settings.numbering_rules.allocation_fields.last_number'), minWidth: 170, ellipsis: true },
-  { key: 'business', title: t('settings.numbering_rules.allocation_fields.business'), minWidth: 160, render: row => h('span', `${row.businessType ?? '-'} / ${row.businessId ?? '-'}`) },
+  {
+    key: 'generatedAt',
+    title: t('settings.numbering_rules.allocation_fields.generated_at'),
+    width: 170,
+    render: row => formatDate(row.generatedAt),
+  },
+  {
+    key: 'requestTenantId',
+    title: t('settings.numbering_rules.allocation_fields.requester'),
+    width: 110,
+  },
+  {
+    key: 'idempotencyKey',
+    title: t('settings.numbering_rules.allocation_fields.idempotency_key'),
+    minWidth: 180,
+    ellipsis: true,
+  },
+  {
+    key: 'periodKey',
+    title: t('settings.numbering_rules.allocation_fields.period'),
+    width: 110,
+  },
+  {
+    key: 'range',
+    title: t('settings.numbering_rules.allocation_fields.serial_range'),
+    width: 130,
+    render: row => `${row.startValue} - ${row.endValue}`,
+  },
+  {
+    key: 'count',
+    title: t('settings.numbering_rules.allocation_fields.count'),
+    width: 80,
+  },
+  {
+    key: 'firstNumber',
+    title: t('settings.numbering_rules.allocation_fields.first_number'),
+    minWidth: 170,
+    ellipsis: true,
+  },
+  {
+    key: 'lastNumber',
+    title: t('settings.numbering_rules.allocation_fields.last_number'),
+    minWidth: 170,
+    ellipsis: true,
+  },
+  {
+    key: 'business',
+    title: t('settings.numbering_rules.allocation_fields.business'),
+    minWidth: 160,
+    render: row => h('span', `${row.businessType ?? '-'} / ${row.businessId ?? '-'}`),
+  },
 ])
 
 function reportLoadFailure(error: unknown) {

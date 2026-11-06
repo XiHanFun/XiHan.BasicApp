@@ -33,15 +33,24 @@ export interface QuotaLevel {
 export function quotaLevel(used: number, limit: number | null | undefined): QuotaLevel {
   if (limit === null || limit === undefined)
     return { ratio: null, tone: 'muted' }
-  const ratio = limit <= 0 ? 1 : used / limit
+  const ratio = limit <= 0
+    ? 1
+    : used / limit
   if (ratio >= 1)
     return { ratio, tone: 'danger' }
-  return { ratio, tone: ratio >= QUOTA_WARNING_RATIO ? 'warning' : 'muted' }
+  return {
+    ratio,
+    tone: ratio >= QUOTA_WARNING_RATIO
+      ? 'warning'
+      : 'muted',
+  }
 }
 
 /** 存储上限（MB）换成字节；为空即不限 */
 export function storageLimitBytes(limitMb: number | null | undefined): number | null {
-  return limitMb === null || limitMb === undefined ? null : limitMb * BYTES_PER_MB
+  return limitMb === null || limitMb === undefined
+    ? null
+    : limitMb * BYTES_PER_MB
 }
 
 /** 席位数原样显示 */
@@ -51,7 +60,9 @@ export function formatSeats(value: number): string {
 
 /** 「已用 / 上限」：上限为空时显示不限文案 */
 export function usageText(used: number, limit: number | null, format: (value: number) => string, unlimited: string): string {
-  return `${format(used)} / ${limit === null ? unlimited : format(limit)}`
+  return `${format(used)} / ${limit === null
+    ? unlimited
+    : format(limit)}`
 }
 
 /** 价格：人民币、两位小数（4.x 列表同一符号；后端按两位小数存） */
@@ -76,12 +87,33 @@ export interface QuotaView {
 function toQuotaView(t: Translate, key: QuotaView['key'], icon: string, label: string, used: number, limit: number | null, format: (value: number) => string): QuotaView {
   const usedText = format(used)
   const { ratio, tone } = quotaLevel(used, limit)
-  if (limit === null || ratio === null)
-    return { key, icon, label, usedText, limitText: null, ratio: null, hint: t('tenancy.subscription.unlimited'), tone }
+  if (limit === null || ratio === null) {
+    return {
+      key,
+      icon,
+      label,
+      usedText,
+      limitText: null,
+      ratio: null,
+      hint: t('tenancy.subscription.unlimited'),
+      tone,
+    }
+  }
   const hint = tone === 'danger'
     ? t('tenancy.subscription.over_limit')
-    : t('tenancy.subscription.remaining', { value: format(limit - used) })
-  return { key, icon, label, usedText, limitText: format(limit), ratio, hint, tone }
+    : t('tenancy.subscription.remaining', {
+        value: format(limit - used),
+      })
+  return {
+    key,
+    icon,
+    label,
+    usedText,
+    limitText: format(limit),
+    ratio,
+    hint,
+    tone,
+  }
 }
 
 /** 席位与存储两项（4.x 同）：已用 / 上限、占用比例、剩余或超限提示 */
@@ -101,13 +133,29 @@ export interface ExpiryView {
 
 /** 到期（4.x 同）：没有到期时间即长期有效；已到期标红；不足 30 天标黄，剩余天数向上取整 */
 export function subscriptionExpiry(t: Translate, value: Pick<Subscription, 'expiresAt' | 'isExpired'>, now = Date.now()): ExpiryView {
-  if (!value.expiresAt)
-    return { text: t('tenancy.subscription.never_expires'), hint: null, tone: 'muted' }
+  if (!value.expiresAt) {
+    return {
+      text: t('tenancy.subscription.never_expires'),
+      hint: null,
+      tone: 'muted',
+    }
+  }
   const text = formatDate(value.expiresAt, 'YYYY-MM-DD')
-  if (value.isExpired)
-    return { text, hint: t('tenancy.subscription.expired'), tone: 'danger' }
+  if (value.isExpired) {
+    return {
+      text,
+      hint: t('tenancy.subscription.expired'),
+      tone: 'danger',
+    }
+  }
   const days = Math.max(0, Math.ceil((new Date(value.expiresAt).getTime() - now) / MS_PER_DAY))
-  return { text, hint: t('tenancy.subscription.days_left', { days }), tone: days <= EXPIRY_WARNING_DAYS ? 'warning' : 'muted' }
+  return {
+    text,
+    hint: t('tenancy.subscription.days_left', { days }),
+    tone: days <= EXPIRY_WARNING_DAYS
+      ? 'warning'
+      : 'muted',
+  }
 }
 
 /** 套餐的价格与计费周期 */
@@ -122,15 +170,23 @@ export interface PricingView {
  * 有价格标价格、有周期标周期，都没有为 null（不显示）
  */
 export function subscriptionPricing(t: Translate, value: Pick<Subscription, 'billingPeriodMonths' | 'isFree' | 'price'>): null | PricingView {
-  if (value.isFree)
-    return { value: t('tenancy.subscription.free'), period: null }
+  if (value.isFree) {
+    return {
+      value: t('tenancy.subscription.free'),
+      period: null,
+    }
+  }
   const price = value.price ?? null
   const months = value.billingPeriodMonths ?? null
   if (price === null && months === null)
     return null
   return {
-    value: price === null ? t('tenancy.subscription.unpriced') : formatPrice(price),
-    period: months === null ? null : t('tenancy.subscription.billing_period', { count: months }),
+    value: price === null
+      ? t('tenancy.subscription.unpriced')
+      : formatPrice(price),
+    period: months === null
+      ? null
+      : t('tenancy.subscription.billing_period', { count: months }),
   }
 }
 
@@ -138,7 +194,9 @@ export function subscriptionPricing(t: Translate, value: Pick<Subscription, 'bil
 export function statusTone(status: SubscriptionStatus): 'danger' | 'success' | 'warning' {
   if (status === 'Active')
     return 'success'
-  return status === 'Suspended' ? 'danger' : 'warning'
+  return status === 'Suspended'
+    ? 'danger'
+    : 'warning'
 }
 
 /**
@@ -157,7 +215,9 @@ export function useSubscription() {
     }
     catch (e) {
       subscription.value = null
-      error.value = e instanceof ApiError ? e.detail : String(e)
+      error.value = e instanceof ApiError
+        ? e.detail
+        : String(e)
     }
     finally {
       loading.value = false

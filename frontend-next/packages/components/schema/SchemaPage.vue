@@ -70,7 +70,9 @@ const resolvedFields = computed<ListFieldSchema[]>(() =>
       return field
     }
     const options = dictionaries.optionsFor(field)
-    return options && options !== field.options ? { ...field, options } : field
+    return options && options !== field.options
+      ? { ...field, options }
+      : field
   }),
 )
 const resolvedSchema = computed<PageSchema<Row>>(() => ({ ...props.schema, fields: resolvedFields.value }))
@@ -199,7 +201,9 @@ function applyView(code: string) {
     filters[key] = null
   }
   Object.assign(filters, snapshot.filters)
-  sorts.value = snapshot.sorts ? [...snapshot.sorts] : []
+  sorts.value = snapshot.sorts
+    ? [...snapshot.sorts]
+    : []
   if (snapshot.pageSize) {
     pageSize.value = snapshot.pageSize
   }
@@ -246,7 +250,9 @@ const columns = computed<SchemaColumn<Row>[]>(() => {
 
 /** 行展开：页面提供 #expand 作用域插槽时启用（行前出现展开箭头，展开渲染该插槽内容） */
 const slots = useSlots()
-const renderExpand = computed(() => (slots.expand ? (row: Row) => slots.expand!({ row }) : undefined))
+const renderExpand = computed(() => (slots.expand
+  ? (row: Row) => slots.expand!({ row })
+  : undefined))
 
 function visibleRowActions(row: Row): ActionSchema<Row>[] {
   return rowActions.value.filter(a => !a.visible || a.visible(row))
@@ -257,7 +263,9 @@ function renderRowActions(row: Row) {
   const collection: MenuNode[] = actions.map(a => ({
     value: a.key,
     label: a.title,
-    disabled: a.disabled ? a.disabled(row) : false,
+    disabled: a.disabled
+      ? a.disabled(row)
+      : false,
     tone: actionMenuTone(a.tone),
   }))
   if (collection.length === 0) {
@@ -277,9 +285,14 @@ function renderRowActions(row: Row) {
       trigger: () => h(
         XhButton,
         { variant: 'outline', size: 'sm' },
-        () => [t('component.schema_page.more'), h(Icon, { icon: 'lucide:chevron-down' })],
+        () => [
+          t('component.schema_page.more'),
+          h(Icon, { icon: 'lucide:chevron-down' }),
+        ],
       ),
-      ...(itemPrefix ? { 'item-prefix': itemPrefix } : {}),
+      ...(itemPrefix
+        ? { 'item-prefix': itemPrefix }
+        : {}),
     },
   )
 }
@@ -296,13 +309,17 @@ function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
   }
 
   const content = typeof action.confirmText === 'function'
-    ? (payload.row ? action.confirmText(payload.row) : undefined)
+    ? (payload.row
+        ? action.confirmText(payload.row)
+        : undefined)
     : action.confirmText
   void dialog.confirm({
     title: action.title,
     content: content ?? t('component.schema_page.action_confirm'),
     badge: 'warning',
-    tone: action.tone === 'danger' ? 'danger' : undefined,
+    tone: action.tone === 'danger'
+      ? 'danger'
+      : undefined,
     okText: t('component.schema_page.confirm'),
     cancelText: t('component.schema_page.cancel'),
     onOk: () => {
@@ -376,7 +393,9 @@ function handleBatchStatus(enabled: boolean) {
     return
   }
   const rowKey = props.schema.rowKey ?? 'basicId'
-  const label = enabled ? t('component.schema_page.label_enable') : t('component.schema_page.label_disable')
+  const label = enabled
+    ? t('component.schema_page.label_enable')
+    : t('component.schema_page.label_disable')
   void dialog.confirm({
     title: t('component.schema_page.batch_action_title', { label }),
     content: t('component.schema_page.batch_action_content', { label, count: targets.length }),
@@ -476,11 +495,24 @@ const canSubmitExport = computed(() => !!props.schema.resource.export)
 const submittingExport = ref(false)
 
 const exportMenuOptions = computed<MenuNode[]>(() => [
-  { value: 'center:1', label: t('component.schema_page.export_results') },
-  { value: 'center:0', label: t('component.schema_page.export_current_page') },
-  { value: 'center:2', label: t('component.schema_page.export_all') },
+  {
+    value: 'center:1',
+    label: t('component.schema_page.export_results'),
+  },
+  {
+    value: 'center:0',
+    label: t('component.schema_page.export_current_page'),
+  },
+  {
+    value: 'center:2',
+    label: t('component.schema_page.export_all'),
+  },
   // 本地 CSV 与三档「提交到导出中心」不是一类事，条前画一条分隔线
-  { value: 'local', label: t('component.schema_page.export_csv_local'), separatorBefore: true },
+  {
+    value: 'local',
+    label: t('component.schema_page.export_csv_local'),
+    separatorBefore: true,
+  },
 ])
 
 /** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
@@ -488,7 +520,10 @@ function buildExportColumns() {
   return effectiveExportFields.value.map((field) => {
     const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: field.key, title: field.title }
     if (field.options?.length) {
-      column.valueMap = Object.fromEntries(field.options.map(option => [String(option.value), option.label]))
+      column.valueMap = Object.fromEntries(field.options.map(option => [
+        String(option.value),
+        option.label,
+      ]))
     }
     return column
   })
@@ -508,7 +543,9 @@ async function submitExport(scope: number) {
     // 导出复用列表的区间/多选过滤，保证导出范围与界面筛选一致
     conditionFilters: queryFiltersFromSchema(props.schema.fields, filters),
   }
-  const query = cfg.buildQuery ? cfg.buildQuery(params) : params
+  const query = cfg.buildQuery
+    ? cfg.buildQuery(params)
+    : params
   submittingExport.value = true
   const task = islandStart('export:submit', t('island.export.submitting'), { icon: 'lucide:download', progress: 0 })
   try {
@@ -519,7 +556,9 @@ async function submitExport(scope: number) {
       querySnapshot: JSON.stringify(query),
       columns: buildExportColumns(),
     })
-    task.success(t('island.export.submitted'), { detail: t('island.export.submitted_detail') })
+    task.success(t('island.export.submitted'), {
+      detail: t('island.export.submitted_detail'),
+    })
   }
   catch (error) {
     task.error(t('island.export.submit_failed'), { detail: (error as Error).message })
@@ -570,7 +609,9 @@ function formatRow(row: object): Record<string, string> {
   const result: Record<string, string> = {}
   for (const field of resolvedFields.value) {
     const raw = (row as Record<string, unknown>)[field.key]
-    result[field.key] = raw == null || raw === '' ? '' : formatFieldText(field, row as Row)
+    result[field.key] = raw == null || raw === ''
+      ? ''
+      : formatFieldText(field, row as Row)
   }
   return result
 }
@@ -596,7 +637,18 @@ defineExpose({
 const SKELETON_ROWS = 14
 const SKELETON_ROW_HEIGHT: Record<TableDensity, number> = { sm: 40, md: 48, lg: 56 }
 // 单元格内骨架条占列宽的比例（按列位置循环，模拟不同长度的内容）
-const SKELETON_CELL_FILL = ['62%', '48%', '80%', '55%', '70%', '45%', '75%', '58%', '66%', '50%']
+const SKELETON_CELL_FILL = [
+  '62%',
+  '48%',
+  '80%',
+  '55%',
+  '70%',
+  '45%',
+  '75%',
+  '58%',
+  '66%',
+  '50%',
+]
 
 const skeletonRowHeight = computed(() => SKELETON_ROW_HEIGHT[settings.density.value])
 
@@ -604,20 +656,37 @@ const skeletonColumns = computed(() => {
   // 前缀列（展开/多选/序号）不在 columns 里——它们由表格面板按开关插入，骨架屏照同一套开关补上
   const prefix: Array<{ key: string, width: string, control: boolean, fill: string }> = []
   if (renderExpand.value) {
-    prefix.push({ key: '__expand__', width: '40px', control: true, fill: '' })
+    prefix.push({
+      key: '__expand__',
+      width: '40px',
+      control: true,
+      fill: '',
+    })
   }
   if (settings.selectable.value) {
-    prefix.push({ key: '__select__', width: '40px', control: true, fill: '' })
+    prefix.push({
+      key: '__select__',
+      width: '40px',
+      control: true,
+      fill: '',
+    })
   }
   if (settings.showIndex.value) {
-    prefix.push({ key: '__index__', width: '60px', control: false, fill: '40%' })
+    prefix.push({
+      key: '__index__',
+      width: '60px',
+      control: false,
+      fill: '40%',
+    })
   }
   return [
     ...prefix,
     ...columns.value.map((col, i) => ({
       key: col.key,
       // 按真实列宽，无宽度则 flex 平分剩余空间
-      width: col.width === undefined ? '' : `${col.width}px`,
+      width: col.width === undefined
+        ? ''
+        : `${col.width}px`,
       control: false,
       fill: SKELETON_CELL_FILL[i % SKELETON_CELL_FILL.length] as string,
     })),

@@ -10,7 +10,9 @@ export type AsyncOptionsLoader<T> = () => Promise<ReadonlyArray<T>>
 const inflight = new Map<AsyncOptionsLoader<unknown>, Promise<ReadonlyArray<unknown>>>()
 
 function reasonOf(error: unknown): string {
-  return error instanceof Error && error.message ? error.message : String(error)
+  return error instanceof Error && error.message
+    ? error.message
+    : String(error)
 }
 
 /**
@@ -25,7 +27,9 @@ export function loadAsyncOptions<T>(loader: AsyncOptionsLoader<T>): Promise<Read
     const request = loader()
     pending = request
       .catch((error: unknown) => {
-        toast.danger(i18n.global.t('component.async_options.load_failed', { reason: reasonOf(error) }))
+        toast.danger(i18n.global.t('component.async_options.load_failed', {
+          reason: reasonOf(error),
+        }))
         throw error
       })
       .finally(() => {

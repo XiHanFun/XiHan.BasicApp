@@ -53,9 +53,20 @@ function levelHint(scope: DataScopeValue): string {
 }
 
 const levels = computed(() => {
-  const list = DATA_SCOPE_LEVELS.map(scope => ({ value: scope as string, label: levelLabel(scope), hint: levelHint(scope) }))
+  const list = DATA_SCOPE_LEVELS.map(scope => ({
+    value: scope as string,
+    label: levelLabel(scope),
+    hint: levelHint(scope),
+  }))
   return props.allowInherit
-    ? [{ value: INHERIT, label: t('access.roles.scope_editor.inherit'), hint: t('access.roles.scope_editor.hint_inherit') }, ...list]
+    ? [
+        {
+          value: INHERIT,
+          label: t('access.roles.scope_editor.inherit'),
+          hint: t('access.roles.scope_editor.hint_inherit'),
+        },
+        ...list,
+      ]
     : list
 })
 
@@ -64,7 +75,12 @@ const selectedLevel = computed(() => draft.value.dataScope ?? INHERIT)
 function onLevelChange(value: null | string) {
   if (value === null || props.readonly)
     return
-  draft.value = { ...draft.value, dataScope: value === INHERIT ? null : value as DataScopeValue } as TDraft
+  draft.value = {
+    ...draft.value,
+    dataScope: value === INHERIT
+      ? null
+      : value as DataScopeValue,
+  } as TDraft
 }
 
 const isCustom = computed(() => draft.value.dataScope === 'Custom')
@@ -79,7 +95,11 @@ function toOptions(nodes: readonly DepartmentNode[]): DepartmentOption[] {
   return nodes.map(node => ({
     value: node.department.id,
     label: node.department.name,
-    ...(node.children.length > 0 ? { children: toOptions(node.children) } : {}),
+    ...(node.children.length > 0
+      ? {
+          children: toOptions(node.children),
+        }
+      : {}),
   }))
 }
 
@@ -103,13 +123,19 @@ function departmentName(departmentId: string): string {
 function onPick(keys: string[]) {
   if (props.readonly)
     return
-  draft.value = { ...draft.value, departments: syncPickedDepartments(draft.value.departments, keys) } as TDraft
+  draft.value = {
+    ...draft.value,
+    departments: syncPickedDepartments(draft.value.departments, keys),
+  } as TDraft
 }
 
 function onIncludeChildren(departmentId: string, includeChildren: boolean) {
   if (props.readonly)
     return
-  draft.value = { ...draft.value, departments: setIncludeChildren(draft.value.departments, departmentId, includeChildren) } as TDraft
+  draft.value = {
+    ...draft.value,
+    departments: setIncludeChildren(draft.value.departments, departmentId, includeChildren),
+  } as TDraft
 }
 
 function remove(departmentId: string) {

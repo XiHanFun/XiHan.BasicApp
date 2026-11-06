@@ -23,16 +23,31 @@ const { t } = useI18n()
 
 /** 名字（编码）：编码与名字相同时不重复写 */
 function nameWithCode(name?: null | string, code?: null | string): string {
-  return [name, code && code !== name ? `(${code})` : null].filter(Boolean).join(' ') || '-'
+  return [
+    name,
+    code && code !== name
+      ? `(${code})`
+      : null,
+  ].filter(Boolean).join(' ') || '-'
 }
 
 /** 申请的对象：6.0 可以同时申请角色与权限，各占一行 */
 const targets = computed(() => {
   const items: { kind: string, name: string, description?: null | string }[] = []
-  if (props.data.roleId)
-    items.push({ kind: t('access.permission_requests.kind_role'), name: nameWithCode(props.data.roleName, props.data.roleCode), description: props.data.roleDescription })
-  if (props.data.permissionCode)
-    items.push({ kind: t('access.permission_requests.kind_permission'), name: nameWithCode(props.data.permissionName, props.data.permissionCode), description: props.data.permissionDescription })
+  if (props.data.roleId) {
+    items.push({
+      kind: t('access.permission_requests.kind_role'),
+      name: nameWithCode(props.data.roleName, props.data.roleCode),
+      description: props.data.roleDescription,
+    })
+  }
+  if (props.data.permissionCode) {
+    items.push({
+      kind: t('access.permission_requests.kind_permission'),
+      name: nameWithCode(props.data.permissionName, props.data.permissionCode),
+      description: props.data.permissionDescription,
+    })
+  }
   return items
 })
 </script>

@@ -62,8 +62,18 @@ afterEach(() => {
 
 /** jsdom 没有 getAnimations：给外壳补上，交出一条有限时长的入场动画与一条循环动画 */
 function stubAnimations() {
-  const entry = { effect: { getComputedTiming: () => ({ endTime: 400 }) }, finish: vi.fn() }
-  const spinner = { effect: { getComputedTiming: () => ({ endTime: Infinity }) }, finish: vi.fn() }
+  const entry = {
+    effect: {
+      getComputedTiming: () => ({ endTime: 400 }),
+    },
+    finish: vi.fn(),
+  }
+  const spinner = {
+    effect: {
+      getComputedTiming: () => ({ endTime: Infinity }),
+    },
+    finish: vi.fn(),
+  }
   Object.defineProperty(HTMLElement.prototype, 'getAnimations', {
     configurable: true,
     value: () => [entry, spinner],
@@ -73,7 +83,9 @@ function stubAnimations() {
 
 function mountChart() {
   return mount(ChartInView, {
-    slots: { default: () => h('div', { class: 'chart' }) },
+    slots: {
+      default: () => h('div', { class: 'chart' }),
+    },
     attachTo: document.body,
   })
 }

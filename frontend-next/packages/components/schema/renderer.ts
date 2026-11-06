@@ -23,7 +23,9 @@ function toMutableOptions(
  * 行值 → 选项值：6.0 的布尔筛选项是后端接受的 'true' / 'false'，行里的值却是布尔，严格比较匹配不上
  */
 function toOptionValue(raw: unknown): string | number {
-  return typeof raw === 'boolean' ? String(raw) : raw as string | number
+  return typeof raw === 'boolean'
+    ? String(raw)
+    : raw as string | number
 }
 
 /**
@@ -31,7 +33,9 @@ function toOptionValue(raw: unknown): string | number {
  * S2 可由后端 FLS 规则下发，覆盖此处默认
  */
 const maskers: Record<string, (value: string) => string> = {
-  maskPhone: value => (value.length >= 11 ? `${value.slice(0, 3)}****${value.slice(-4)}` : value),
+  maskPhone: value => (value.length >= 11
+    ? `${value.slice(0, 3)}****${value.slice(-4)}`
+    : value),
   maskEmail: (value) => {
     const at = value.indexOf('@')
     if (at <= 1) {
@@ -39,7 +43,9 @@ const maskers: Record<string, (value: string) => string> = {
     }
     return `${value[0]}***${value.slice(at)}`
   },
-  maskIdCard: value => (value.length >= 15 ? `${value.slice(0, 3)}************${value.slice(-4)}` : value),
+  maskIdCard: value => (value.length >= 15
+    ? `${value.slice(0, 3)}************${value.slice(-4)}`
+    : value),
 }
 
 /**
@@ -66,7 +72,9 @@ export function formatFieldText<TRow extends object>(
     case 'datetime':
       return formatDate(String(raw))
     case 'boolean':
-      return raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no')
+      return raw
+        ? i18n.global.t('common.statuses.yes')
+        : i18n.global.t('common.statuses.no')
     case 'enum':
     case 'tag':
       return field.options
@@ -111,7 +119,10 @@ export function renderFieldCell<TRow extends object>(
     if (raw == null || raw === '') {
       return '-'
     }
-    return h(SchemaFileRefCell, { value: String(raw), kind: field.dataType })
+    return h(SchemaFileRefCell, {
+      value: String(raw),
+      kind: field.dataType,
+    })
   }
 
   if (field.dataType === 'boolean') {
@@ -119,7 +130,12 @@ export function renderFieldCell<TRow extends object>(
       return '-'
     }
     // 是 / 否是状态，不是身份
-    return h(XhTagRoot, { variant: 'subtle', tone: raw ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no'))))
+    return h(XhTagRoot, {
+      variant: 'subtle',
+      tone: raw ? 'success' : 'neutral',
+    }, () => h(XhTagLabel, () => (raw
+      ? i18n.global.t('common.statuses.yes')
+      : i18n.global.t('common.statuses.no'))))
   }
 
   return formatFieldText(field, row)

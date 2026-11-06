@@ -19,7 +19,10 @@ function record(respond: (call: Call) => Response): Call[] {
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      const call = { method: init?.method ?? 'GET', url: String(url) }
+      const call = {
+        method: init?.method ?? 'GET',
+        url: String(url),
+      }
       calls.push(call)
       return respond(call)
     }) as unknown as typeof fetch,
@@ -28,12 +31,19 @@ function record(respond: (call: Call) => Response): Call[] {
 }
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': contentType },
+  })
 }
 
 async function render(permissions: string[]) {
   vi.spyOn(useAuthStore(), 'can').mockImplementation(code => permissions.includes(code))
-  const wrapper = mount(AboutPage, { global: { plugins: [i18n] } })
+  const wrapper = mount(AboutPage, {
+    global: {
+      plugins: [i18n],
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -45,11 +55,24 @@ beforeEach(() => {
 
 describe('关于页', () => {
   it('有服务监控读权限：取后端依赖清单并列出', async () => {
-    const calls = record(() => json(200, { items: [{ packageName: 'SqlSugar', packageVersion: '5.1.4.0' }, { packageName: 'Serilog', packageVersion: '4.3.0.0' }] }))
+    const calls = record(() => json(200, {
+      items: [
+        { packageName: 'SqlSugar', packageVersion: '5.1.4.0' },
+        { packageName: 'Serilog', packageVersion: '4.3.0.0' },
+      ],
+    }))
     const wrapper = await render(['maintenance.server.read'])
-    expect(calls).toEqual([{ method: 'GET', url: '/api/server:packages' }])
+    expect(calls).toEqual([
+      { method: 'GET', url: '/api/server:packages' },
+    ])
     const backend = wrapper.findAll('.ab-card').find(card => card.text().includes('后端生产环境依赖'))!
-    expect(backend.findAll('.ab-pkg-item').map(item => [item.find('.ab-pkg-name').text(), item.find('.ab-pkg-ver').text()])).toEqual([['SqlSugar', '5.1.4.0'], ['Serilog', '4.3.0.0']])
+    expect(backend.findAll('.ab-pkg-item').map(item => [
+      item.find('.ab-pkg-name').text(),
+      item.find('.ab-pkg-ver').text(),
+    ])).toEqual([
+      ['SqlSugar', '5.1.4.0'],
+      ['Serilog', '4.3.0.0'],
+    ])
     expect(backend.find('.ab-pkg-count').text()).toBe('2')
   })
 
@@ -70,14 +93,24 @@ describe('关于页', () => {
     record(() => json(200, { items: [] }))
     const wrapper = await render([])
     const frontend = wrapper.findAll('.ab-card').find(card => card.text().includes('前端生产环境依赖'))!
-    const versions = new Map(frontend.findAll('.ab-pkg-item').map(item => [item.find('.ab-pkg-name').text(), item.find('.ab-pkg-ver').text()]))
+    const versions = new Map(frontend.findAll('.ab-pkg-item').map(item => [
+      item.find('.ab-pkg-name').text(),
+      item.find('.ab-pkg-ver').text(),
+    ]))
     expect(versions.get('vue')).toMatch(/^\d+\.\d+\.\d+/)
-    expect([...versions.values()].some(version => version.includes('catalog:'))).toBe(false)
+    expect([
+      ...versions.values(),
+    ].some(version => version.includes('catalog:'))).toBe(false)
   })
 
   it('有权限却加载失败：提示后端文案', async () => {
     const danger = vi.spyOn(toast, 'danger').mockImplementation(() => '')
-    record(() => json(503, { code: 'KERNEL_UNEXPECTED_001', status: 503, detail: '服务暂不可用', traceId: 'x' }, 'application/problem+json'))
+    record(() => json(503, {
+      code: 'KERNEL_UNEXPECTED_001',
+      status: 503,
+      detail: '服务暂不可用',
+      traceId: 'x',
+    }, 'application/problem+json'))
     await render(['maintenance.server.read'])
     expect(danger).toHaveBeenCalledWith('服务暂不可用')
   })

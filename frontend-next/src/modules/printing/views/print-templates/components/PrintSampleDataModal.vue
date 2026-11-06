@@ -166,7 +166,10 @@ function duplicateRecord(): void {
   if (!current)
     return
   const currentIndex = records.value.findIndex(record => record.id === current.id)
-  const duplicate = { id: crypto.randomUUID(), data: clonePrintSampleRecord(current.data) }
+  const duplicate = {
+    id: crypto.randomUUID(),
+    data: clonePrintSampleRecord(current.data),
+  }
   records.value = [
     ...records.value.slice(0, currentIndex + 1),
     duplicate,
@@ -204,7 +207,10 @@ function requestVisible(value: boolean): void {
 
 /** 用独立数据和 UUID 替换全部记录 */
 function setRecords(values: readonly Record<string, unknown>[]): void {
-  records.value = values.map(data => ({ id: crypto.randomUUID(), data: clonePrintSampleRecord(data) }))
+  records.value = values.map(data => ({
+    id: crypto.randomUUID(),
+    data: clonePrintSampleRecord(data),
+  }))
   activeRecordId.value = records.value[0]?.id ?? ''
 }
 

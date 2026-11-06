@@ -26,21 +26,40 @@ const itemFormId = useId()
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: SettingStatus): string {
-  return status === 'Disabled' ? t('settings.dicts.status.disabled') : t('settings.dicts.status.active')
+  return status === 'Disabled'
+    ? t('settings.dicts.status.disabled')
+    : t('settings.dicts.status.active')
 }
 
 function ownerLabel(row: DictRow): string {
-  return row.isPlatform ? t('settings.dicts.owner.platform') : t('settings.dicts.owner.tenant')
+  return row.isPlatform
+    ? t('settings.dicts.owner.platform')
+    : t('settings.dicts.owner.tenant')
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const ownerOptions = computed(() => [
-  { label: t('settings.dicts.owner.platform'), value: 'platform' },
-  { label: t('settings.dicts.owner.tenant'), value: 'tenant' },
+  {
+    label: t('settings.dicts.owner.platform'),
+    value: 'platform',
+  },
+  {
+    label: t('settings.dicts.owner.tenant'),
+    value: 'tenant',
+  },
 ])
 const builtInOptions = computed(() => [
-  { label: t('settings.dicts.built_in'), value: 'true' },
-  { label: t('settings.dicts.not_built_in'), value: 'false' },
+  {
+    label: t('settings.dicts.built_in'),
+    value: 'true',
+  },
+  {
+    label: t('settings.dicts.not_built_in'),
+    value: 'false',
+  },
 ])
 
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
@@ -66,22 +85,115 @@ watch(() => dictPageRef.value?.rows, (rows) => {
     currentDict.value = null
     return
   }
-  const latest = currentDict.value ? rows.find(d => d.id === currentDict.value?.id) : undefined
+  const latest = currentDict.value
+    ? rows.find(d => d.id === currentDict.value?.id)
+    : undefined
   currentDict.value = latest ?? rows[0]!
 })
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
 const dictFields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('settings.dicts.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('settings.dicts.keyword_placeholder'), order: 0 },
-  { key: 'name', title: t('settings.dicts.fields.name'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 140, order: 1 },
-  { key: 'code', title: t('settings.dicts.fields.code'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 140, order: 2 },
-  { key: 'category', title: t('settings.dicts.fields.category'), dataType: 'string', sortable: true, advancedSearch: true, importable: true, exportable: true, minWidth: 100, order: 3 },
-  { key: 'owner', title: t('settings.dicts.fields.owner'), dataType: 'enum', searchable: true, options: ownerOptions.value, render: row => ownerLabel(asDict(row)), width: 90, order: 4 },
-  { key: 'isBuiltIn', title: t('settings.dicts.built_in'), dataType: 'boolean', advancedSearch: true, options: builtInOptions.value, width: 80, order: 5 },
-  { key: 'status', title: t('settings.dicts.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asDict(row).status), asDict(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 6 },
-  { key: 'order', title: t('settings.dicts.fields.order'), dataType: 'number', sortable: true, importable: true, exportable: true, width: 80, order: 7 },
-  { key: 'description', title: t('settings.dicts.fields.description'), dataType: 'text', visible: false, importable: true, order: 7.5 },
-  { key: 'createdAt', title: t('settings.dicts.fields.created_at'), dataType: 'datetime', sortable: true, visible: false, minWidth: 170, order: 8 },
+  {
+    key: 'keyword',
+    title: t('settings.dicts.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('settings.dicts.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('settings.dicts.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('settings.dicts.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 140,
+    order: 2,
+  },
+  {
+    key: 'category',
+    title: t('settings.dicts.fields.category'),
+    dataType: 'string',
+    sortable: true,
+    advancedSearch: true,
+    importable: true,
+    exportable: true,
+    minWidth: 100,
+    order: 3,
+  },
+  {
+    key: 'owner',
+    title: t('settings.dicts.fields.owner'),
+    dataType: 'enum',
+    searchable: true,
+    options: ownerOptions.value,
+    render: row => ownerLabel(asDict(row)),
+    width: 90,
+    order: 4,
+  },
+  {
+    key: 'isBuiltIn',
+    title: t('settings.dicts.built_in'),
+    dataType: 'boolean',
+    advancedSearch: true,
+    options: builtInOptions.value,
+    width: 80,
+    order: 5,
+  },
+  {
+    key: 'status',
+    title: t('settings.dicts.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asDict(row).status), asDict(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 6,
+  },
+  {
+    key: 'order',
+    title: t('settings.dicts.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    importable: true,
+    exportable: true,
+    width: 80,
+    order: 7,
+  },
+  {
+    key: 'description',
+    title: t('settings.dicts.fields.description'),
+    dataType: 'text',
+    visible: false,
+    importable: true,
+    order: 7.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('settings.dicts.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    visible: false,
+    minWidth: 170,
+    order: 8,
+  },
 ])
 
 const dictSchema = computed<PageSchema>(() => ({
@@ -96,12 +208,50 @@ const dictSchema = computed<PageSchema>(() => ({
   fields: dictFields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('settings.dicts.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'settings.dicts.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', visible: row => dictEditor.isOwn(asDict(row)), permission: 'settings.dicts.update' },
-    { key: 'toggle', title: t('settings.dicts.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asDict(row).status === 'Active', asDict(row).name), visible: row => dictEditor.isOwn(asDict(row)), permission: 'settings.dicts.update' },
+    {
+      key: 'create',
+      title: t('settings.dicts.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'settings.dicts.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      visible: row => dictEditor.isOwn(asDict(row)),
+      permission: 'settings.dicts.update',
+    },
+    {
+      key: 'toggle',
+      title: t('settings.dicts.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asDict(row).status === 'Active', asDict(row).name),
+      visible: row => dictEditor.isOwn(asDict(row)),
+      permission: 'settings.dicts.update',
+    },
     // 内建字典由种子维护，还有项的字典后端也拒绝删除
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asDict(row).name), visible: row => dictEditor.isOwn(asDict(row)) && !asDict(row).isBuiltIn, permission: 'settings.dicts.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asDict(row).name),
+      visible: row => dictEditor.isOwn(asDict(row)) && !asDict(row).isBuiltIn,
+      permission: 'settings.dicts.delete',
+    },
   ],
 }))
 
@@ -109,7 +259,9 @@ const dictSchema = computed<PageSchema>(() => ({
 function dictRowProps(row: Record<string, unknown>) {
   const dict = asDict(row)
   return {
-    class: currentDict.value?.id === dict.id ? 'dict-row--active' : undefined,
+    class: currentDict.value?.id === dict.id
+      ? 'dict-row--active'
+      : undefined,
     style: 'cursor: pointer;',
     onClick: (e: MouseEvent) => {
       if ((e.target as HTMLElement | null)?.closest('[data-scope="table"][data-part="row-select-trigger"], [data-scope="checkbox"]'))
@@ -120,7 +272,9 @@ function dictRowProps(row: Record<string, unknown>) {
 }
 
 function onDictAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asDict(payload.row) : undefined
+  const row = payload.row
+    ? asDict(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       dictEditor.startCreate()
@@ -191,18 +345,94 @@ function itemTree(): DictItemNode[] {
 }
 
 /** 另一侧的字典只带取数：批量删除 / 启停与导入都依赖资源上的对应函数，没有就不出 */
-const itemResource = computed(() => currentDict.value ? dictItemsResource(currentDict.value.id, canMaintainItems.value) : null)
+const itemResource = computed(() => currentDict.value
+  ? dictItemsResource(currentDict.value.id, canMaintainItems.value)
+  : null)
 
 const itemFields = computed<ListFieldSchema[]>(() => [
-  { key: 'name', title: t('settings.dicts.item_fields.name'), dataType: 'string', treeColumn: true, importable: true, required: true, exportable: true, minWidth: 160, order: 1 },
-  { key: 'code', title: t('settings.dicts.item_fields.code'), dataType: 'string', importable: true, required: true, exportable: true, minWidth: 130, order: 2 },
-  { key: 'value', title: t('settings.dicts.item_fields.value'), dataType: 'string', importable: true, exportable: true, minWidth: 90, order: 3 },
-  { key: 'isDefault', title: t('settings.dicts.item_fields.default'), dataType: 'boolean', importable: true, exportable: true, width: 80, order: 4 },
-  { key: 'status', title: t('settings.dicts.item_fields.status'), dataType: 'enum', exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asItem(row).status), asItem(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 5 },
-  { key: 'order', title: t('settings.dicts.item_fields.order'), dataType: 'number', importable: true, exportable: true, width: 80, order: 6 },
-  { key: 'description', title: t('settings.dicts.item_fields.description'), dataType: 'text', visible: false, importable: true, order: 6.5 },
-  { key: 'metadata', title: t('settings.dicts.item_fields.metadata'), dataType: 'text', visible: false, order: 6.6 },
-  { key: 'createdAt', title: t('settings.dicts.item_fields.created_at'), dataType: 'datetime', visible: false, minWidth: 170, order: 7 },
+  {
+    key: 'name',
+    title: t('settings.dicts.item_fields.name'),
+    dataType: 'string',
+    treeColumn: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 160,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('settings.dicts.item_fields.code'),
+    dataType: 'string',
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 130,
+    order: 2,
+  },
+  {
+    key: 'value',
+    title: t('settings.dicts.item_fields.value'),
+    dataType: 'string',
+    importable: true,
+    exportable: true,
+    minWidth: 90,
+    order: 3,
+  },
+  {
+    key: 'isDefault',
+    title: t('settings.dicts.item_fields.default'),
+    dataType: 'boolean',
+    importable: true,
+    exportable: true,
+    width: 80,
+    order: 4,
+  },
+  {
+    key: 'status',
+    title: t('settings.dicts.item_fields.status'),
+    dataType: 'enum',
+    exportable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asItem(row).status), asItem(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 5,
+  },
+  {
+    key: 'order',
+    title: t('settings.dicts.item_fields.order'),
+    dataType: 'number',
+    importable: true,
+    exportable: true,
+    width: 80,
+    order: 6,
+  },
+  {
+    key: 'description',
+    title: t('settings.dicts.item_fields.description'),
+    dataType: 'text',
+    visible: false,
+    importable: true,
+    order: 6.5,
+  },
+  {
+    key: 'metadata',
+    title: t('settings.dicts.item_fields.metadata'),
+    dataType: 'text',
+    visible: false,
+    order: 6.6,
+  },
+  {
+    key: 'createdAt',
+    title: t('settings.dicts.item_fields.created_at'),
+    dataType: 'datetime',
+    visible: false,
+    minWidth: 170,
+    order: 7,
+  },
 ])
 
 /**
@@ -224,18 +454,60 @@ const itemSchema = computed<PageSchema>(() => ({
   actions: [
     // SchemaActionPanel 仅按权限筛选页面级动作，因此只在可维护的字典里组装「新增」按钮
     ...(canMaintainItems.value
-      ? [{ key: 'create', title: t('settings.dicts.actions.create_item'), scope: 'page' as const, tone: 'brand' as const, icon: 'lucide:plus', permission: 'settings.dict-items.create' }]
+      ? [
+          {
+            key: 'create',
+            title: t('settings.dicts.actions.create_item'),
+            scope: 'page' as const,
+            tone: 'brand' as const,
+            icon: 'lucide:plus',
+            permission: 'settings.dict-items.create',
+          },
+        ]
       : []),
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', visible: () => canMaintainItems.value, permission: 'settings.dict-items.update' },
-    { key: 'toggle', title: t('settings.dicts.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asItem(row).status === 'Active', asItem(row).name), visible: () => canMaintainItems.value, permission: 'settings.dict-items.update' },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      visible: () => canMaintainItems.value,
+      permission: 'settings.dict-items.update',
+    },
+    {
+      key: 'toggle',
+      title: t('settings.dicts.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asItem(row).status === 'Active', asItem(row).name),
+      visible: () => canMaintainItems.value,
+      permission: 'settings.dict-items.update',
+    },
     // 还有下级的项后端拒绝删除
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asItem(row).name), visible: () => canMaintainItems.value, permission: 'settings.dict-items.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asItem(row).name),
+      visible: () => canMaintainItems.value,
+      permission: 'settings.dict-items.delete',
+    },
   ],
 }))
 
 function onItemAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asItem(payload.row) : undefined
+  const row = payload.row
+    ? asItem(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       if (currentDict.value)
@@ -307,15 +579,21 @@ function openItemDetail(row: DictItemNode) {
 
 function parentLabel(row: DictItemNode): string {
   const parent = findDictItem(itemTree(), row.parentId)
-  return parent ? `${parent.code} · ${parent.name}` : t('settings.dicts.top_level')
+  return parent
+    ? `${parent.code} · ${parent.name}`
+    : t('settings.dicts.top_level')
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 function formatBoolean(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 </script>
 

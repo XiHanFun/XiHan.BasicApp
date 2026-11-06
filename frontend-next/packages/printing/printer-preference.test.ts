@@ -14,7 +14,12 @@ const PREFIX = 'xihan:printing:preferred-printer'
 
 /** 6.0 的用户态是 auth 会话的投影：写入会话后换一个新的 pinia，auth store 重新读出 */
 function signIn(userId: string, tenantId: null | string) {
-  localStorage.setItem('xihan.next.session', JSON.stringify({ accessToken: 'a-1', refreshToken: 'r-1', tenantId, user: { id: userId, userName: userId } }))
+  localStorage.setItem('xihan.next.session', JSON.stringify({
+    accessToken: 'a-1',
+    refreshToken: 'r-1',
+    tenantId,
+    user: { id: userId, userName: userId },
+  }))
   setActivePinia(createPinia())
 }
 

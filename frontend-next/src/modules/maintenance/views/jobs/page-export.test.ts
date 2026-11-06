@@ -8,7 +8,12 @@ import { i18n } from '~/locales'
 import JobsPage from './index.vue'
 
 function pageSchema(): PageSchema {
-  const wrapper = mount(JobsPage, { global: { plugins: [i18n], stubs: { SchemaPage: true } } })
+  const wrapper = mount(JobsPage, {
+    global: {
+      plugins: [i18n],
+      stubs: { SchemaPage: true },
+    },
+  })
   return wrapper.findComponent({ name: 'SchemaPage' }).props('schema') as PageSchema
 }
 
@@ -25,7 +30,20 @@ describe('任务调度的导出', () => {
   })
 
   it('字段对齐 4.x 的列（重试次数、优先级在 6.0 不是作业的字段），枚举与启停写文案', () => {
-    const row = { title: '审计日志清理', name: 'auditing.retention', group: null, source: 'Code', kind: 'Cron', runState: 'Paused', paused: true, allowConcurrent: false, executedCount: 14, nextRunAt: null, lastRunAt: null, updatedAt: null }
+    const row = {
+      title: '审计日志清理',
+      name: 'auditing.retention',
+      group: null,
+      source: 'Code',
+      kind: 'Cron',
+      runState: 'Paused',
+      paused: true,
+      allowConcurrent: false,
+      executedCount: 14,
+      nextRunAt: null,
+      lastRunAt: null,
+      updatedAt: null,
+    }
     const [header, line] = toCsv(toExportFields(pageSchema(), () => true), [row]).replace('﻿', '').split('\r\n')
     expect(header!.split(',').length).toBe(12)
     expect(line!.split(',').slice(0, 2)).toEqual(['审计日志清理', 'auditing.retention'])

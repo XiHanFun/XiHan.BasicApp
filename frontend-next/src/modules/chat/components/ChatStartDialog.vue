@@ -84,7 +84,9 @@ function mapDepartment(node: ChatDepartmentPickerNode): TreeSelectOption {
   return {
     value: node.departmentId,
     label: node.departmentName,
-    children: node.children?.length ? node.children.map(mapDepartment) : undefined,
+    children: node.children?.length
+      ? node.children.map(mapDepartment)
+      : undefined,
   }
 }
 

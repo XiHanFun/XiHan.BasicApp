@@ -40,11 +40,27 @@ export interface DatasourceForm {
 }
 
 export function emptyDatasourceForm(): DatasourceForm {
-  return { sourceName: '', sourceDescription: '', databaseType: 'MySql', host: '', port: 3306, databaseName: '', userName: '', password: '', connectionString: '', connectionTimeout: 30, isDefault: false, order: 100, status: 'Active' }
+  return {
+    sourceName: '',
+    sourceDescription: '',
+    databaseType: 'MySql',
+    host: '',
+    port: 3306,
+    databaseName: '',
+    userName: '',
+    password: '',
+    connectionString: '',
+    connectionTimeout: 30,
+    isDefault: false,
+    order: 100,
+    status: 'Active',
+  }
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /**
@@ -54,7 +70,9 @@ function blankToNull(value: string): null | string {
 export function datasourcesResource(): SchemaResource<DatasourceRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await codegenDatasources.list(toPageRequest(params, { multiples: ['databaseType', 'status'] })),
+      await codegenDatasources.list(toPageRequest(params, {
+        multiples: ['databaseType', 'status'],
+      })),
       params,
     ),
   }
@@ -131,8 +149,14 @@ export function useDatasourceEditor() {
       if (current) {
         const updated = await codegenDatasources.update({ id: current.id, concurrencyStamp: current.concurrencyStamp, ...common })
         // 状态变了另调启停（照 4.x），带上刚写入的并发戳
-        if (updated.status !== form.status)
-          await codegenDatasources.setStatus({ id: current.id, concurrencyStamp: updated.concurrencyStamp, status: form.status, remark: statusRemark })
+        if (updated.status !== form.status) {
+          await codegenDatasources.setStatus({
+            id: current.id,
+            concurrencyStamp: updated.concurrencyStamp,
+            status: form.status,
+            remark: statusRemark,
+          })
+        }
       }
       else {
         await codegenDatasources.create({ ...common, status: form.status })
@@ -156,5 +180,16 @@ export function useDatasourceEditor() {
     }
   }
 
-  return { open, editing, isEdit, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    editing,
+    isEdit,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }

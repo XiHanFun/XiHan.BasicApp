@@ -75,7 +75,11 @@ export function useViewManager(pageCode: string) {
 
   /** 新增视图 */
   function addView(name: string, snapshot: ViewSnapshot): PersonalView {
-    const view: PersonalView = { code: nextCode(), name, snapshot }
+    const view: PersonalView = {
+      code: nextCode(),
+      name,
+      snapshot,
+    }
     views.value = [...views.value, view]
     persist()
     return view

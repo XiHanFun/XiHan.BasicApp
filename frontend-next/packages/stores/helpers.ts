@@ -39,7 +39,9 @@ export const preferenceDraftDirty = ref(false)
  * 强制使用新默认值，解决"用户本地偏好锁死新功能"的问题
  */
 export function invalidateCacheIfBuildTimeChanged() {
-  const currentBuildTime = typeof __APP_BUILD_TIME__ === 'string' ? __APP_BUILD_TIME__ : ''
+  const currentBuildTime = typeof __APP_BUILD_TIME__ === 'string'
+    ? __APP_BUILD_TIME__
+    : ''
   if (!currentBuildTime)
     return
 
@@ -84,7 +86,9 @@ export function setPendingPreferenceOrigin(origin: null | string): void {
 /** 读注册表里某条偏好的当前值（未注册时回退 localStorage） */
 function readLocalPreference<T>(key: string): T | undefined {
   const source = registry.get(key)
-  return source ? (source.value as T) : (LocalStorage.get<T>(key) ?? undefined)
+  return source
+    ? (source.value as T)
+    : (LocalStorage.get<T>(key) ?? undefined)
 }
 
 /**
@@ -177,7 +181,13 @@ function pushPreferencesToBackend(): void {
   void useAppContext()
     .apis
     .userSettingApi
-    .save({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY, settingValue, clientId: USER_SETTING_CLIENT_ID, origin })
+    .save({
+      scene: UserSettingScene.Preference,
+      settingKey: PREFERENCE_SETTING_KEY,
+      settingValue,
+      clientId: USER_SETTING_CLIENT_ID,
+      origin,
+    })
     .then(() => task.success())
     .catch(() => task.error())
 }
@@ -323,13 +333,17 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
     return
   }
   // 登录流程由登录灵动岛统一覆盖，此处不重复提示；刷新恢复会话时则独立提示
-  const task = options?.showIsland === false ? null : settingSyncIsland('pref:hydrate', i18n.global.t('island.sync.name.preferences'))
+  const task = options?.showIsland === false
+    ? null
+    : settingSyncIsland('pref:hydrate', i18n.global.t('island.sync.name.preferences'))
   // 应用远端期间暂停回写，避免把刚拉取的远端值原样回传
   backendSyncEnabled = false
   let needSeed = false
   try {
     const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: PREFERENCE_SETTING_KEY })
-    const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as Record<string, unknown>) : null
+    const remote = dto?.settingValue
+      ? (JSON.parse(dto.settingValue) as Record<string, unknown>)
+      : null
     if (remote && typeof remote === 'object') {
       const map = remote as Record<string, unknown>
       registry.forEach((source, key) => {

@@ -45,7 +45,10 @@ watch(
       return
     }
     rows.value = Array.isArray(value)
-      ? value.filter(isRecord).map(data => ({ id: crypto.randomUUID(), data: clonePlainRecord(data) }))
+      ? value.filter(isRecord).map(data => ({
+          id: crypto.randomUUID(),
+          data: clonePlainRecord(data),
+        }))
       : []
   },
   { immediate: true },
@@ -80,7 +83,9 @@ function updateCell(rowIndex: number, column: PrintTableColumn, value: unknown):
     return
   const nextData = clonePrintSampleRecord(target.data)
   setPrintSampleValue(nextData, column.field, value)
-  rows.value = rows.value.map((row, index) => index === rowIndex ? { ...row, data: nextData } : row)
+  rows.value = rows.value.map((row, index) => index === rowIndex
+    ? { ...row, data: nextData }
+    : row)
   publishRows()
 }
 
@@ -95,7 +100,13 @@ function addRow(): void {
         : ''
     setPrintSampleValue(data, column.field, value)
   }
-  rows.value = [...rows.value, { id: crypto.randomUUID(), data }]
+  rows.value = [
+    ...rows.value,
+    {
+      id: crypto.randomUUID(),
+      data,
+    },
+  ]
   publishRows()
 }
 
@@ -104,7 +115,10 @@ function duplicateRow(rowIndex: number): void {
   const source = rows.value[rowIndex]
   if (!source)
     return
-  const duplicate = { id: crypto.randomUUID(), data: clonePrintSampleRecord(source.data) }
+  const duplicate = {
+    id: crypto.randomUUID(),
+    data: clonePrintSampleRecord(source.data),
+  }
   rows.value = [
     ...rows.value.slice(0, rowIndex + 1),
     duplicate,

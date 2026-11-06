@@ -39,18 +39,25 @@ const tabOverviewShortcut = formatShortcut(GLOBAL_HOTKEYS.tabOverview.join('+'))
 const visibleTabs = computed(() => tabbarStore.tabs.filter(tab => !splitViewStore.isMergedTab(tab.path)))
 const localizedTabs = computed(() => {
   return visibleTabs.value.map((tab) => {
-    const translated = te(tab.title) ? t(tab.title) : tab.title
+    const translated = te(tab.title)
+      ? t(tab.title)
+      : tab.title
     // 分屏锚定标签：视觉合并为「左icon 左标题 | 右icon 右标题」（顺序跟随视觉反转）
     if (splitViewStore.isSplitTab(tab.path)) {
       const right = tabbarStore.tabs.find(item => item.path === splitViewStore.rightPath)
       if (right) {
-        const rightTitle = te(right.title) ? t(right.title) : right.title
+        const rightTitle = te(right.title)
+          ? t(right.title)
+          : right.title
         const rightIcon = right.meta?.icon as string | undefined
         const anchorIcon = tab.meta?.icon as string | undefined
         const rev = splitViewStore.reversed
         return {
           ...tab,
-          meta: { ...tab.meta, icon: rev ? rightIcon : anchorIcon },
+          meta: {
+            ...tab.meta,
+            icon: rev ? rightIcon : anchorIcon,
+          },
           displayTitle: rev ? rightTitle : translated,
           splitRight: {
             title: rev ? translated : rightTitle,
@@ -201,7 +208,9 @@ function handleContextMenuSelect(key: string, tabPath: string) {
       // 仅「新增收藏」时播放飞入动画（取消收藏不播）
       if (!wasFavorited) {
         flyToFavorites(contextTabRect.value, {
-          label: te(target.title) ? t(target.title) : target.title,
+          label: te(target.title)
+            ? t(target.title)
+            : target.title,
         })
       }
       break
@@ -235,7 +244,9 @@ function openActiveTabMenu(e: MouseEvent) {
   const btnRect = (e.currentTarget as HTMLElement | null)?.getBoundingClientRect() ?? null
   contextTabRect.value = btnRect
   contextMenuX.value = btnRect ? btnRect.right : e.clientX
-  contextMenuY.value = btnRect ? btnRect.bottom + 4 : e.clientY
+  contextMenuY.value = btnRect
+    ? btnRect.bottom + 4
+    : e.clientY
   contextMenuVisible.value = true
 }
 
@@ -380,7 +391,9 @@ const debouncedEdge = useDebounceFn(updateScrollEdge, 80)
 
 /** 减少动效时改为瞬时滚动 */
 function scrollBehavior(): ScrollBehavior {
-  return resolveMotionPreference() === 'reduce' ? 'instant' : 'smooth'
+  return resolveMotionPreference() === 'reduce'
+    ? 'instant'
+    : 'smooth'
 }
 
 function scrollDirection(dir: 'left' | 'right', distance = 150) {
@@ -389,7 +402,9 @@ function scrollDirection(dir: 'left' | 'right', distance = 150) {
     return
   vp.scrollBy({
     behavior: scrollBehavior(),
-    left: dir === 'left' ? -(vp.clientWidth - distance) : +(vp.clientWidth - distance),
+    left: dir === 'left'
+      ? -(vp.clientWidth - distance)
+      : +(vp.clientWidth - distance),
   })
 }
 
@@ -402,7 +417,10 @@ async function scrollToActive() {
     return
   requestAnimationFrame(() => {
     const activeEl = vp.querySelector('.is-active') as HTMLElement | null
-    activeEl?.scrollIntoView({ behavior: scrollBehavior(), inline: 'nearest' })
+    activeEl?.scrollIntoView({
+      behavior: scrollBehavior(),
+      inline: 'nearest',
+    })
   })
 }
 
@@ -412,7 +430,11 @@ function handleTabsWheel(e: WheelEvent) {
     return
   if (appStore.tabbarScrollResponse) {
     e.preventDefault()
-    vp.scrollBy({ left: e.deltaY !== 0 ? e.deltaY * 3 : e.deltaX * 3 })
+    vp.scrollBy({
+      left: e.deltaY !== 0
+        ? e.deltaY * 3
+        : e.deltaX * 3,
+    })
   }
 }
 

@@ -24,7 +24,9 @@ const cache = ref<Record<string, DictOption[]>>({})
 const inflight = new Map<string, Promise<DictOption[]>>()
 
 function reasonOf(error: unknown): string {
-  return error instanceof Error && error.message ? error.message : String(error)
+  return error instanceof Error && error.message
+    ? error.message
+    : String(error)
 }
 
 /**
@@ -58,7 +60,10 @@ export function ensureDictOptions(dictCode: string): Promise<DictOption[]> {
         return options
       })
       .catch((error: unknown) => {
-        toast.danger(i18n.global.t('component.dict_options.load_failed', { code, reason: reasonOf(error) }))
+        toast.danger(i18n.global.t('component.dict_options.load_failed', {
+          code,
+          reason: reasonOf(error),
+        }))
         throw error
       })
       .finally(() => {

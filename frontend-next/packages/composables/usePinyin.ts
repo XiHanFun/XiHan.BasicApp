@@ -61,7 +61,9 @@ export function getPinyinIndex(text: string): PinyinIndex | null {
     // i 仍是 UTF-16 码元下标——fullMap 的值直接喂给按码元切段的高亮函数
     let i = 0
     for (const char of text) {
-      const syllable = HAN_RE.test(char) ? pinyinFn(char, { toneType: 'none' }).toLowerCase() : char.toLowerCase()
+      const syllable = HAN_RE.test(char)
+        ? pinyinFn(char, { toneType: 'none' }).toLowerCase()
+        : char.toLowerCase()
       let isFirst = true
       for (const c of syllable) {
         // 首字母取整个首码点，而不是半个代理对

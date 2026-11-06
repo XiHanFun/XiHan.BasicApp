@@ -31,7 +31,9 @@ const errorMsg = ref<string | null>(null)
 const displayName = computed(() => userStore.nickname || userStore.username)
 const appName = computed(() => preview.value?.appName || preview.value?.clientId || '')
 const scopes = computed(() => preview.value?.scopes ?? [])
-const appInitial = computed(() => (appName.value ? appName.value.charAt(0).toUpperCase() : '?'))
+const appInitial = computed(() => (appName.value
+  ? appName.value.charAt(0).toUpperCase()
+  : '?'))
 
 /** 授权错误码 → 友好文案 */
 const ERROR_TEXT: Record<string, string> = {
@@ -79,7 +81,9 @@ function resolveError(error?: string | null, description?: string | null): strin
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余用页面的兜底文案 */
 function failureText(error: unknown, fallback: string): string {
-  return error instanceof ApiError && error.detail ? error.detail : t(fallback)
+  return error instanceof ApiError && error.detail
+    ? error.detail
+    : t(fallback)
 }
 
 /** 同意授权：后端创建授权码，整页跳回第三方 redirect_uri?code=...&state=... */

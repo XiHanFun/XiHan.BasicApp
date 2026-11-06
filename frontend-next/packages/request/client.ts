@@ -62,7 +62,10 @@ let config: RequestConfig = {}
 
 /** 应用启动时注入令牌、区域与钩子；测试里也用它换掉 fetch */
 export function configureRequest(next: RequestConfig): void {
-  config = { ...config, ...next }
+  config = {
+    ...config,
+    ...next,
+  }
 }
 
 /** 32 位 trace-id + 16 位 span-id 的 W3C traceparent；排障时以它为准，失败响应的 traceId 由 Problem Details 携带 */
@@ -82,7 +85,9 @@ function isScalar(value: unknown): value is string | number | boolean {
 
 /** 按路由表把请求拆成 URL（路由值、查询串）与请求体 */
 export function buildRequest(id: string, route: RouteDef, request: unknown): { url: string, body: string | undefined } {
-  const data: Record<string, unknown> = request && typeof request === 'object' ? { ...(request as Record<string, unknown>) } : {}
+  const data: Record<string, unknown> = request && typeof request === 'object'
+    ? { ...(request as Record<string, unknown>) }
+    : {}
   let path = route.template
   for (const name of route.path) {
     const value = data[name]
@@ -111,8 +116,15 @@ export function buildRequest(id: string, route: RouteDef, request: unknown): { u
   }
 
   const search = query.toString()
-  const url = `${config.baseUrl ?? ''}${path}${search ? `?${search}` : ''}`
-  return { url, body: readsBody ? JSON.stringify(data) : undefined }
+  const url = `${config.baseUrl ?? ''}${path}${search
+    ? `?${search}`
+    : ''}`
+  return {
+    url,
+    body: readsBody
+      ? JSON.stringify(data)
+      : undefined,
+  }
 }
 
 /** 调用一个操作：成功返回响应 DTO（无正文时为 undefined），失败抛 `ApiError` */
@@ -132,10 +144,17 @@ export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, r
       headers.Authorization = `Bearer ${token}`
     if (options.deadline)
       headers['xihan-deadline'] = options.deadline.toISOString()
-    return (config.fetch ?? fetch)(url, { method: route.method, headers, body, signal: options.signal })
+    return (config.fetch ?? fetch)(url, {
+      method: route.method,
+      headers,
+      body,
+      signal: options.signal,
+    })
   }
 
-  let response = await send(options.anonymous ? null : config.getToken?.() ?? null)
+  let response = await send(options.anonymous
+    ? null
+    : config.getToken?.() ?? null)
   if (!response.ok) {
     let error = await parseProblem(response, traceparent.split('-')[1] ?? '')
     if ((error.code === ErrorCodes.unauthenticated || error.code === ErrorCodes.tokenRejected) && !options.anonymous && config.hooks?.onUnauthenticated) {
@@ -162,7 +181,9 @@ async function readBody<T>(response: Response): Promise<T> {
   if (response.status === 204)
     return undefined as T
   const text = await response.text()
-  return (text.length === 0 ? undefined : JSON.parse(text)) as T
+  return (text.length === 0
+    ? undefined
+    : JSON.parse(text)) as T
 }
 
 export { ApiError }
@@ -170,7 +191,9 @@ export type { ProblemDetails } from './problem'
 
 /** 普通端点（上传、下载等不在路由表里的端点）的完整地址：接口前缀 + 路径；后端签发的相对地址（如签名下载地址）也经这里补前缀 */
 export function endpointUrl(path: string): string {
-  return /^https?:\/\//i.test(path) ? path : `${config.baseUrl ?? ''}${path}`
+  return /^https?:\/\//i.test(path)
+    ? path
+    : `${config.baseUrl ?? ''}${path}`
 }
 
 export interface UploadOptions {
@@ -197,7 +220,10 @@ export async function uploadForm<TResponse>(path: string, form: FormData, option
       if (event.lengthComputable)
         options.onProgress?.(Math.round((event.loaded / event.total) * 100))
     }
-    xhr.onload = () => resolve(new Response(xhr.responseText, { status: xhr.status, headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') ?? 'application/json' } }))
+    xhr.onload = () => resolve(new Response(xhr.responseText, {
+      status: xhr.status,
+      headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') ?? 'application/json' },
+    }))
     xhr.onerror = () => reject(new TypeError('Network request failed'))
     xhr.onabort = () => reject(new DOMException('The upload was aborted.', 'AbortError'))
     options.signal?.addEventListener('abort', () => xhr.abort(), { once: true })
@@ -269,8 +295,12 @@ export async function downloadEndpoint(path: string, options: { signal?: AbortSi
       const refreshed = await config.hooks.onUnauthenticated()
       if (refreshed) {
         response = await send(refreshed)
-        if (response.ok)
-          return { blob: await response.blob(), fileName: fileNameOf(response.headers.get('Content-Disposition')) }
+        if (response.ok) {
+          return {
+            blob: await response.blob(),
+            fileName: fileNameOf(response.headers.get('Content-Disposition')),
+          }
+        }
         error = await parseProblem(response, traceparent.split('-')[1] ?? '')
       }
     }
@@ -278,5 +308,8 @@ export async function downloadEndpoint(path: string, options: { signal?: AbortSi
       config.hooks?.onSessionInvalid?.(error)
     throw error
   }
-  return { blob: await response.blob(), fileName: fileNameOf(response.headers.get('Content-Disposition')) }
+  return {
+    blob: await response.blob(),
+    fileName: fileNameOf(response.headers.get('Content-Disposition')),
+  }
 }

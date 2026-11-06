@@ -11,7 +11,23 @@ export type ConditionSubjectKind = PermissionConditionsResult['subjectKind']
 export type ConditionAction = ConditionBinding['action']
 
 /** 全部运算符（还没选属性时列出，4.x 同；选了属性只列它可用的） */
-export const CONDITION_OPERATORS: readonly ConditionOperator[] = ['Equals', 'NotEquals', 'GreaterThan', 'GreaterThanOrEquals', 'LessThan', 'LessThanOrEquals', 'Contains', 'NotContains', 'In', 'NotIn', 'Between', 'StartsWith', 'EndsWith', 'IsNull', 'IsNotNull']
+export const CONDITION_OPERATORS: readonly ConditionOperator[] = [
+  'Equals',
+  'NotEquals',
+  'GreaterThan',
+  'GreaterThanOrEquals',
+  'LessThan',
+  'LessThanOrEquals',
+  'Contains',
+  'NotContains',
+  'In',
+  'NotIn',
+  'Between',
+  'StartsWith',
+  'EndsWith',
+  'IsNull',
+  'IsNotNull',
+]
 
 /** 一条可配置条件的授权：主体在一个权限码上的授予或拒绝 */
 export interface GrantConditionTarget {
@@ -58,14 +74,18 @@ export function groupConditions(conditions: readonly PermissionConditionItem[]) 
     items.push(condition)
     groups.set(condition.groupNo, items)
   }
-  return [...groups.entries()]
+  return [
+    ...groups.entries(),
+  ]
     .sort(([left], [right]) => left - right)
     .map(([group, items]) => ({ group, items }))
 }
 
 /** 新建条件组时用的下一个组号 */
 export function nextGroupNumber(conditions: readonly PermissionConditionItem[]) {
-  return conditions.length === 0 ? 0 : Math.max(...conditions.map(condition => condition.groupNo)) + 1
+  return conditions.length === 0
+    ? 0
+    : Math.max(...conditions.map(condition => condition.groupNo)) + 1
 }
 
 /** 条件属性目录项的最小形状：权限条件与访问策略的目录项都满足 */
@@ -83,15 +103,22 @@ export function resolveAttribute<T extends ConditionAttributeLike>(catalog: read
     return { attribute: aliased, isAlias: true, familySuffix: null }
 
   const family = catalog.find(item => item.isFamily && target.startsWith(item.name.slice(0, -1).toLowerCase()) && target.length > item.name.length - 1)
-  if (family)
-    return { attribute: family, isAlias: false, familySuffix: name.trim().slice(family.name.length - 1) }
+  if (family) {
+    return {
+      attribute: family,
+      isAlias: false,
+      familySuffix: name.trim().slice(family.name.length - 1),
+    }
+  }
 
   return { attribute: null, isAlias: false, familySuffix: null }
 }
 
 /** 一族属性的完整名：前缀加上填写的名字 */
 export function composeAttributeName(attribute: ConditionAttributeLike, familySuffix: null | string | undefined) {
-  return attribute.isFamily ? `${attribute.name.slice(0, -1)}${(familySuffix ?? '').trim()}` : attribute.name
+  return attribute.isFamily
+    ? `${attribute.name.slice(0, -1)}${(familySuffix ?? '').trim()}`
+    : attribute.name
 }
 
 /** 空值判断的运算符不看条件值 */
@@ -103,10 +130,16 @@ export function requiresValue(operator: ConditionOperator) {
 export function valueHintKey(kind: ConditionValueKind, operator: ConditionOperator) {
   if (!requiresValue(operator))
     return 'hint_no_value'
-  if (operator === 'Between')
-    return kind === 'TimeOfDay' ? 'hint_time_range' : 'hint_range'
-  if (operator === 'In' || operator === 'NotIn')
-    return kind === 'IpAddress' ? 'hint_ip_list' : 'hint_list'
+  if (operator === 'Between') {
+    return kind === 'TimeOfDay'
+      ? 'hint_time_range'
+      : 'hint_range'
+  }
+  if (operator === 'In' || operator === 'NotIn') {
+    return kind === 'IpAddress'
+      ? 'hint_ip_list'
+      : 'hint_list'
+  }
   switch (kind) {
     case 'Boolean': return 'hint_boolean'
     case 'TimeOfDay': return 'hint_time'

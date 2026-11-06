@@ -42,12 +42,19 @@ export function toPageRequest(params: SchemaQueryParams, mapping: PageQueryMappi
   const filters: PageFilter[] = []
   for (const condition of params.conditionFilters ?? []) {
     const values = (condition.values ?? []).map(value => String(value))
-    if (condition.operator === QueryOperator.Between && ranges.has(condition.field) && values.length === 2)
+    if (condition.operator === QueryOperator.Between && ranges.has(condition.field) && values.length === 2) {
       filters.push({ field: condition.field, operator: 'ge', value: values[0]! }, { field: condition.field, operator: 'le', value: values[1]! })
-    else if (condition.operator === QueryOperator.In && multiples.has(condition.field) && values.length > 0)
-      filters.push({ field: condition.field, operator: 'in', value: values.join(',') })
-    else
+    }
+    else if (condition.operator === QueryOperator.In && multiples.has(condition.field) && values.length > 0) {
+      filters.push({
+        field: condition.field,
+        operator: 'in',
+        value: values.join(','),
+      })
+    }
+    else {
       throw new Error(`搜索字段 ${condition.field} 的区间 / 多选条件没有登记后端筛选：页面要在 ranges / multiples 里登记它（searchRange / searchMultiple）`)
+    }
   }
   for (const [field, value] of Object.entries(params.filters)) {
     // 区间与多选的原始值已由 conditionFilters 下发
@@ -55,20 +62,30 @@ export function toPageRequest(params: SchemaQueryParams, mapping: PageQueryMappi
       continue
     const bound = mapping.bounds?.[field]
     if (bound) {
-      filters.push({ field: bound.field, operator: bound.operator, value: String(value).trim() })
+      filters.push({
+        field: bound.field,
+        operator: bound.operator,
+        value: String(value).trim(),
+      })
       continue
     }
     const operator = mapping.filters?.[field]
     if (!operator)
       throw new Error(`搜索字段 ${field} 没有登记后端筛选运算符`)
-    filters.push({ field, operator, value: String(value).trim() })
+    filters.push({
+      field,
+      operator,
+      value: String(value).trim(),
+    })
   }
   const keyword = params.filters[keywordField]
   return {
     page: { index: params.page, size: params.pageSize },
     filters,
     sorts: (params.sorts ?? []).map(sort => ({ field: sort.field, descending: sort.order === 'desc' })),
-    keyword: isBlank(keyword) ? null : String(keyword).trim(),
+    keyword: isBlank(keyword)
+      ? null
+      : String(keyword).trim(),
   }
 }
 
@@ -78,12 +95,16 @@ export function toSchemaPageResult<T>(result: { items: T[], total: number | stri
   const pageIndex = result.page.index ?? requested.page
   const pageSize = result.page.size ?? requested.pageSize
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
-  const startRecord = totalCount === 0 ? 0 : (pageIndex - 1) * pageSize + 1
+  const startRecord = totalCount === 0
+    ? 0
+    : (pageIndex - 1) * pageSize + 1
   return {
     items: result.items,
     page: {
       currentPageCount: result.items.length,
-      endRecord: totalCount === 0 ? 0 : startRecord + result.items.length - 1,
+      endRecord: totalCount === 0
+        ? 0
+        : startRecord + result.items.length - 1,
       hasNext: pageIndex < totalPages,
       hasPrevious: pageIndex > 1,
       isFirstPage: pageIndex <= 1,

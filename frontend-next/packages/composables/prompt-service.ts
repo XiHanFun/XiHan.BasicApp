@@ -86,7 +86,9 @@ function renderField(field: PromptField, value: Record<string, string>): VNodeCh
 
 function renderBody(options: PromptOptions, value: Record<string, string>): VNodeChild {
   return [
-    options.description ? h(XhDialogDescription, () => options.description) : null,
+    options.description
+      ? h(XhDialogDescription, () => options.description)
+      : null,
     h('div', { class: 'x-prompt__fields' }, options.fields.map(field => renderField(field, value))),
   ]
 }
@@ -102,6 +104,8 @@ export function prompt(options: PromptOptions): Promise<Record<string, string> |
     initialValue: Object.fromEntries(options.fields.map(f => [f.key, f.value ?? ''])),
     initialFocus: '.x-prompt__fields input',
     body: value => renderBody(options, value),
-    onOk: options.onOk ? value => options.onOk!({ ...value }) : undefined,
+    onOk: options.onOk
+      ? value => options.onOk!({ ...value })
+      : undefined,
   })
 }

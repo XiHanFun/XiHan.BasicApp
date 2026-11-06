@@ -25,14 +25,26 @@ export type OpenApiLogRow = ResponseOf<'open-api-logs.list'>['items'][number]
 /** 各日志共有的筛选：发生时间按区间（拆成 ge / le，后端据此限定扫描的月表），链路、会话、用户、地址精确匹配 */
 const COMMON: PageQueryMapping = {
   ranges: ['occurredAt'],
-  filters: { traceId: 'eq', sessionId: 'eq', userId: 'eq', userName: 'contains', clientIp: 'eq' },
+  filters: {
+    traceId: 'eq',
+    sessionId: 'eq',
+    userId: 'eq',
+    userName: 'contains',
+    clientIp: 'eq',
+  },
 }
 
 function mapping(extra: PageQueryMapping): PageQueryMapping {
   return {
-    ranges: [...(COMMON.ranges ?? []), ...(extra.ranges ?? [])],
+    ranges: [
+      ...(COMMON.ranges ?? []),
+      ...(extra.ranges ?? []),
+    ],
     multiples: extra.multiples ?? [],
-    filters: { ...COMMON.filters, ...extra.filters },
+    filters: {
+      ...COMMON.filters,
+      ...extra.filters,
+    },
     bounds: extra.bounds ?? {},
   }
 }
@@ -47,7 +59,9 @@ type ListOperation<TRow> = (request: PageRequest) => Promise<{ items: TRow[], to
 
 /** 只读列表的资源：分页即可（本地导出由 SchemaPage 按当前筛选逐页取回再生成 CSV） */
 function readonly<TRow>(list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
-  return { page: async params => toSchemaPageResult(await list(toPageRequest(params, query)), params) }
+  return {
+    page: async params => toSchemaPageResult(await list(toPageRequest(params, query)), params),
+  }
 }
 
 /**
@@ -55,18 +69,90 @@ function readonly<TRow>(list: ListOperation<TRow>, query: PageQueryMapping): Sch
  * 后台以发起人的身份逐页调它，查询快照与列表用同一份分页请求（同一份筛选登记）
  */
 function exportable<TRow>(businessType: Extract<OperationId, `${string}.list`>, list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
-  return { ...readonly(list, query), export: { businessType, buildQuery: (params: SchemaQueryParams) => toPageRequest(params, query) } }
+  return {
+    ...readonly(list, query),
+    export: {
+      businessType,
+      buildQuery: (params: SchemaQueryParams) => toPageRequest(params, query),
+    },
+  }
 }
 
-export const ACCESS_LOG_QUERY = mapping({ multiples: ['result'], bounds: DURATION_BOUNDS, filters: { operationId: 'contains', method: 'eq', path: 'contains', statusCode: 'eq', errorCode: 'eq' } })
-export const EXCEPTION_LOG_QUERY = mapping({ filters: { exceptionType: 'contains', location: 'contains', operationId: 'eq', path: 'contains', machineName: 'eq', environmentName: 'eq' } })
-export const LOGIN_LOG_QUERY = mapping({ multiples: ['event'], filters: { succeeded: 'eq', errorCode: 'eq', accountTenantId: 'eq' } })
-export const DIFF_LOG_QUERY = mapping({ multiples: ['kind'], filters: { entityType: 'contains', tableName: 'eq', entityId: 'eq', operationId: 'eq' } })
-export const PERMISSION_CHANGE_LOG_QUERY = mapping({ multiples: ['changeType'], filters: { roleId: 'eq', targetUserName: 'contains', targetTenantId: 'eq', permissionCodes: 'contains' } })
-export const CONDITION_HIT_QUERY = mapping({ multiples: ['action'], filters: { source: 'eq', phase: 'eq', isBlocked: 'eq', policyCode: 'contains', path: 'contains' } })
-export const OPEN_API_LOG_QUERY = mapping({ bounds: DURATION_BOUNDS, filters: { clientId: 'eq', method: 'eq', path: 'contains', statusCode: 'eq', succeeded: 'eq', signatureValid: 'eq' } })
+export const ACCESS_LOG_QUERY = mapping({
+  multiples: ['result'],
+  bounds: DURATION_BOUNDS,
+  filters: {
+    operationId: 'contains',
+    method: 'eq',
+    path: 'contains',
+    statusCode: 'eq',
+    errorCode: 'eq',
+  },
+})
+export const EXCEPTION_LOG_QUERY = mapping({
+  filters: {
+    exceptionType: 'contains',
+    location: 'contains',
+    operationId: 'eq',
+    path: 'contains',
+    machineName: 'eq',
+    environmentName: 'eq',
+  },
+})
+export const LOGIN_LOG_QUERY = mapping({
+  multiples: ['event'],
+  filters: { succeeded: 'eq', errorCode: 'eq', accountTenantId: 'eq' },
+})
+export const DIFF_LOG_QUERY = mapping({
+  multiples: ['kind'],
+  filters: {
+    entityType: 'contains',
+    tableName: 'eq',
+    entityId: 'eq',
+    operationId: 'eq',
+  },
+})
+export const PERMISSION_CHANGE_LOG_QUERY = mapping({
+  multiples: ['changeType'],
+  filters: {
+    roleId: 'eq',
+    targetUserName: 'contains',
+    targetTenantId: 'eq',
+    permissionCodes: 'contains',
+  },
+})
+export const CONDITION_HIT_QUERY = mapping({
+  multiples: ['action'],
+  filters: {
+    source: 'eq',
+    phase: 'eq',
+    isBlocked: 'eq',
+    policyCode: 'contains',
+    path: 'contains',
+  },
+})
+export const OPEN_API_LOG_QUERY = mapping({
+  bounds: DURATION_BOUNDS,
+  filters: {
+    clientId: 'eq',
+    method: 'eq',
+    path: 'contains',
+    statusCode: 'eq',
+    succeeded: 'eq',
+    signatureValid: 'eq',
+  },
+})
 /** 操作日志查的是框架的审计表：没有会话与地址列，按用户主键筛 */
-export const OPERATION_LOG_QUERY: PageQueryMapping = { ranges: ['occurredAt'], filters: { operationId: 'contains', succeeded: 'eq', errorCode: 'eq', traceId: 'eq', userId: 'eq' } }
+export const OPERATION_LOG_QUERY: PageQueryMapping = {
+  ranges: ['occurredAt'],
+  filters: {
+    operationId: 'contains',
+    succeeded: 'eq',
+    errorCode: 'eq',
+    traceId: 'eq',
+    userId: 'eq',
+  },
+}
 
 export const accessLogsResource = () => exportable<AccessLogRow>('access-logs.list', request => accessLogs.list(request), ACCESS_LOG_QUERY)
 export const exceptionLogsResource = () => exportable<ExceptionLogRow>('exception-logs.list', request => exceptionLogs.list(request), EXCEPTION_LOG_QUERY)

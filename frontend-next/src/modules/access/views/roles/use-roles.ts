@@ -25,12 +25,20 @@ export const ROLE_STATUSES: readonly RoleStatus[] = ['Active', 'Disabled']
 const CANDIDATE_LIMIT = 500
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /** 修改角色是整体覆盖名称 / 说明 / 排序 / 状态；数据范围与自定义部门不传即保留 */
 function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {}) {
-  return { id: role.id, name: role.name, description: role.description ?? null, order: role.order, status: patch.status ?? role.status }
+  return {
+    id: role.id,
+    name: role.name,
+    description: role.description ?? null,
+    order: role.order,
+    status: patch.status ?? role.status,
+  }
 }
 
 /**
@@ -40,15 +48,25 @@ function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {
 export function rolesResource(): SchemaResource<RoleRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await rolesApi.list(toPageRequest(params, { filters: { status: 'eq' } })),
+      await rolesApi.list(toPageRequest(params, {
+        filters: { status: 'eq' },
+      })),
       params,
     ),
     // 内建角色由后端逐项拒绝（ACCESS_CONFLICT_002）
-    remove: async id => throwOnFailed(await rolesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await rolesApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 先取当前值再只改状态
     updateStatus: async (id, enabled) => {
-      const { role } = await rolesApi.get({ id: String(id) })
-      return rolesApi.update(updateBody(role, { status: enabled ? 'Active' : 'Disabled' }))
+      const { role } = await rolesApi.get({
+        id: String(id),
+      })
+      return rolesApi.update(updateBody(role, {
+        status: enabled ? 'Active' : 'Disabled',
+      }))
     },
   }
 }
@@ -67,7 +85,13 @@ export interface RoleForm {
 export type RoleEditorMode = 'create' | 'edit'
 
 function emptyForm(): RoleForm {
-  return { code: '', name: '', description: '', order: 0, status: 'Active' }
+  return {
+    code: '',
+    name: '',
+    description: '',
+    order: 0,
+    status: 'Active',
+  }
 }
 
 /**
@@ -101,7 +125,13 @@ export function useRoleEditor() {
   function startEdit(row: RoleRow) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, description: row.description ?? '', order: row.order, status: row.status })
+    reset({
+      code: row.code,
+      name: row.name,
+      description: row.description ?? '',
+      order: row.order,
+      status: row.status,
+    })
     open.value = true
   }
 
@@ -116,10 +146,21 @@ export function useRoleEditor() {
     try {
       const current = editing.value
       if (mode.value === 'edit' && current) {
-        await rolesApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), order: form.order, status: form.status })
+        await rolesApi.update({
+          id: current.id,
+          name: form.name.trim(),
+          description: blankToNull(form.description),
+          order: form.order,
+          status: form.status,
+        })
       }
       else {
-        await rolesApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), order: form.order })
+        await rolesApi.create({
+          code: form.code.trim(),
+          name: form.name.trim(),
+          description: blankToNull(form.description),
+          order: form.order,
+        })
       }
       open.value = false
       return true
@@ -140,7 +181,19 @@ export function useRoleEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }
 
 // ── 权限分配（穿梭框） ──
@@ -169,8 +222,15 @@ export function toPermissionItems(catalog: readonly PermissionItem[], granted: r
   }))
   const known = new Set(items.map(item => item.basicId))
   for (const code of granted) {
-    if (!known.has(code))
-      items.push({ basicId: code, permissionCode: code, permissionName: code, groupCode: groupOf(code), groupName: groupOf(code) })
+    if (!known.has(code)) {
+      items.push({
+        basicId: code,
+        permissionCode: code,
+        permissionName: code,
+        groupCode: groupOf(code),
+        groupName: groupOf(code),
+      })
+    }
   }
   return items
 }
@@ -226,7 +286,9 @@ export function useRolePermissionEditor() {
     try {
       const locale = useAppStore().locale
       const [list, detail, hierarchy] = await Promise.all([
-        catalogLocale === locale ? Promise.resolve(null) : permissionsApi.list({}),
+        catalogLocale === locale
+          ? Promise.resolve(null)
+          : permissionsApi.list({}),
         rolesApi.get({ id: row.id }),
         rolesApi.hierarchy({ id: row.id }),
       ])
@@ -271,7 +333,20 @@ export function useRolePermissionEditor() {
     }
   }
 
-  return { open, role, catalog, granted, draft, inherited, items, dirty, loading, saving, start, save }
+  return {
+    open,
+    role,
+    catalog,
+    granted,
+    draft,
+    inherited,
+    items,
+    dirty,
+    loading,
+    saving,
+    start,
+    save,
+  }
 }
 
 // ── 角色成员（穿梭框） ──
@@ -292,11 +367,24 @@ export interface MemberCandidate {
  * 保存时被当成移出
  */
 export function mergeMemberCandidates(users: readonly UserOption[], members: readonly RoleMember[]): MemberCandidate[] {
-  const items: MemberCandidate[] = users.map(user => ({ basicId: user.id, displayName: user.displayName, userName: user.userName, isExternalMember: user.isExternalMember, isSupportMember: user.isSupportMember }))
+  const items: MemberCandidate[] = users.map(user => ({
+    basicId: user.id,
+    displayName: user.displayName,
+    userName: user.userName,
+    isExternalMember: user.isExternalMember,
+    isSupportMember: user.isSupportMember,
+  }))
   const known = new Set(items.map(item => item.basicId))
   for (const member of members) {
-    if (!known.has(member.userId))
-      items.push({ basicId: member.userId, displayName: member.displayName, userName: member.userName, isExternalMember: member.isExternalMember, isSupportMember: member.isSupportMember })
+    if (!known.has(member.userId)) {
+      items.push({
+        basicId: member.userId,
+        displayName: member.displayName,
+        userName: member.userName,
+        isExternalMember: member.isExternalMember,
+        isSupportMember: member.isSupportMember,
+      })
+    }
   }
   return items
 }
@@ -341,7 +429,15 @@ export function useRoleMemberEditor() {
     try {
       const [current, candidates] = await Promise.all([
         rolesApi.members({ id: row.id }),
-        canListUsers ? usersApi.list({ page: { index: 1, size: CANDIDATE_LIMIT }, filters: [], sorts: [{ field: 'userName' }] }) : Promise.resolve(null),
+        canListUsers
+          ? usersApi.list({
+              page: { index: 1, size: CANDIDATE_LIMIT },
+              filters: [],
+              sorts: [
+                { field: 'userName' },
+              ],
+            })
+          : Promise.resolve(null),
       ])
       users.value = candidates?.items ?? []
       applyMembers(current.items)
@@ -379,7 +475,19 @@ export function useRoleMemberEditor() {
     }
   }
 
-  return { open, role, members, users, draft, items, dirty, loading, saving, start, save }
+  return {
+    open,
+    role,
+    members,
+    users,
+    draft,
+    items,
+    dirty,
+    loading,
+    saving,
+    start,
+    save,
+  }
 }
 
 // ── 数据范围 ──
@@ -417,7 +525,9 @@ export function useRoleDataScopeEditor() {
     try {
       const [current, departments] = await Promise.all([
         rolesApi.get({ id: row.id }),
-        canReadDepartments ? departmentsApi.tree({}) : Promise.resolve(null),
+        canReadDepartments
+          ? departmentsApi.tree({})
+          : Promise.resolve(null),
       ])
       detail.value = current
       tree.value = departments?.items ?? []
@@ -440,7 +550,10 @@ export function useRoleDataScopeEditor() {
       return false
     saving.value = true
     try {
-      await rolesApi.update({ ...updateBody(current.role), ...toDataScopePayload(draft.value) })
+      await rolesApi.update({
+        ...updateBody(current.role),
+        ...toDataScopePayload(draft.value),
+      })
       open.value = false
       return true
     }
@@ -449,7 +562,19 @@ export function useRoleDataScopeEditor() {
     }
   }
 
-  return { open, role, detail, tree, draft, dirty, complete, loading, saving, start, save }
+  return {
+    open,
+    role,
+    detail,
+    tree,
+    draft,
+    dirty,
+    complete,
+    loading,
+    saving,
+    start,
+    save,
+  }
 }
 
 // ── 详情 ──
@@ -501,8 +626,13 @@ export function useRoleDetail() {
   const departmentNames = ref<Map<string, string>>(new Map())
   const permissionNames = usePermissionNames()
 
-  const permissions = computed<RolePermissionEntry[]>(() => detail.value ? rolePermissionEntries(detail.value.permissions, detail.value.rules, permissionNames.nameOf) : [])
-  const inherited = computed<InheritedPermissionEntry[]>(() => (hierarchy.value?.inherited ?? []).map(item => ({ ...item, displayName: permissionNames.nameOf(item.permission) })))
+  const permissions = computed<RolePermissionEntry[]>(() => detail.value
+    ? rolePermissionEntries(detail.value.permissions, detail.value.rules, permissionNames.nameOf)
+    : [])
+  const inherited = computed<InheritedPermissionEntry[]>(() => (hierarchy.value?.inherited ?? []).map(item => ({
+    ...item,
+    displayName: permissionNames.nameOf(item.permission),
+  })))
   const ancestors = computed(() => hierarchy.value?.ancestors ?? [])
   const descendants = computed(() => hierarchy.value?.descendants ?? [])
 
@@ -517,13 +647,17 @@ export function useRoleDetail() {
         rolesApi.get({ id: row.id }),
         rolesApi.members({ id: row.id }),
         rolesApi.hierarchy({ id: row.id }),
-        canReadDepartments && row.dataScope === 'Custom' ? departmentsApi.tree({}) : Promise.resolve(null),
+        canReadDepartments && row.dataScope === 'Custom'
+          ? departmentsApi.tree({})
+          : Promise.resolve(null),
         permissionNames.load(),
       ])
       detail.value = current
       members.value = list.items
       hierarchy.value = relatives
-      departmentNames.value = departments ? buildNameMap(departments.items) : new Map()
+      departmentNames.value = departments
+        ? buildNameMap(departments.items)
+        : new Map()
     }
     finally {
       loading.value = false
@@ -534,5 +668,16 @@ export function useRoleDetail() {
     return departmentNames.value.get(id) ?? id
   }
 
-  return { open, loading, detail, members, permissions, inherited, ancestors, descendants, start, departmentName }
+  return {
+    open,
+    loading,
+    detail,
+    members,
+    permissions,
+    inherited,
+    ancestors,
+    descendants,
+    start,
+    departmentName,
+  }
 }

@@ -46,15 +46,32 @@ async function bootstrap(getBatch: BatchFn) {
   vi.resetModules()
   setActivePinia(createPinia())
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { enumApi: { getBatch, getByName: () => Promise.reject(new Error('未使用')) } } as never })
+  registerAppContext({
+    apis: {
+      enumApi: {
+        getBatch,
+        getByName: () => Promise.reject(new Error('未使用')),
+      },
+    } as never,
+  })
   const { useEnumService } = await import('./useEnumService')
   const { useAppStore } = await import('~/stores')
   return { useEnumService, useAppStore }
 }
 
 const enableStatus = makeDefinition('EnableStatus', [
-  makeOption({ label: '禁用', value: 0, valueText: '0', order: 2 }),
-  makeOption({ label: '启用', value: 1, valueText: '1', order: 1 }),
+  makeOption({
+    label: '禁用',
+    value: 0,
+    valueText: '0',
+    order: 2,
+  }),
+  makeOption({
+    label: '启用',
+    value: 1,
+    valueText: '1',
+    order: 1,
+  }),
 ])
 
 beforeEach(() => {
@@ -259,7 +276,10 @@ describe('useEnumService.toSelectOptions', () => {
     const getBatch = vi.fn<BatchFn>(async () => ({
       Mixed: makeDefinition('Mixed', [
         makeOption({ label: '有序', value: 'a', order: 5 }),
-        { ...makeOption({ label: '无序', value: 'b' }), order: undefined as unknown as number },
+        {
+          ...makeOption({ label: '无序', value: 'b' }),
+          order: undefined as unknown as number,
+        },
       ]),
     }))
     const { useEnumService } = await bootstrap(getBatch)
@@ -272,18 +292,26 @@ describe('useEnumService.toSelectOptions', () => {
   it('定义不存在时返回传入的兜底选项', async () => {
     const getBatch = vi.fn<BatchFn>(async () => ({}))
     const { useEnumService } = await bootstrap(getBatch)
-    const fallback = [{ label: '兜底', value: 'x' }]
+    const fallback = [
+      { label: '兜底', value: 'x' },
+    ]
 
     expect(useEnumService().toSelectOptions('NotExists', fallback)).toBe(fallback)
   })
 
   it('定义存在但 items 为空数组时同样走兜底', async () => {
-    const getBatch = vi.fn<BatchFn>(async () => ({ Empty: makeDefinition('Empty', []) }))
+    const getBatch = vi.fn<BatchFn>(async () => ({
+      Empty: makeDefinition('Empty', []),
+    }))
     const { useEnumService } = await bootstrap(getBatch)
     const service = useEnumService()
     await service.ensureEnum('Empty')
 
-    expect(service.toSelectOptions('Empty', [{ label: '兜底', value: 0 }])).toEqual([{ label: '兜底', value: 0 }])
+    expect(service.toSelectOptions('Empty', [
+      { label: '兜底', value: 0 },
+    ])).toEqual([
+      { label: '兜底', value: 0 },
+    ])
   })
 
   it('未传兜底且定义缺失时返回空数组', async () => {
@@ -295,7 +323,9 @@ describe('useEnumService.toSelectOptions', () => {
 
   it('保留条目的 disabled 标记，供下拉禁用项', async () => {
     const getBatch = vi.fn<BatchFn>(async () => ({
-      Flag: makeDefinition('Flag', [makeOption({ label: '停用中', value: 9, disabled: true })]),
+      Flag: makeDefinition('Flag', [
+        makeOption({ label: '停用中', value: 9, disabled: true }),
+      ]),
     }))
     const { useEnumService } = await bootstrap(getBatch)
     const service = useEnumService()

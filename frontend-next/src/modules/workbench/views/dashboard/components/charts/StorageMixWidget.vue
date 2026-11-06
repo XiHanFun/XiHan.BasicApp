@@ -16,15 +16,34 @@ defineOptions({ name: 'StorageMixWidget' })
 
 type Layout = 'treemap' | 'sunburst' | 'icicle' | 'pack'
 
-const FILE_KINDS = ['Image', 'Document', 'Video', 'Audio', 'Archive', 'Other'] as const
+const FILE_KINDS = [
+  'Image',
+  'Document',
+  'Video',
+  'Audio',
+  'Archive',
+  'Other',
+] as const
 
 const { t, locale } = useI18n()
 const layout = ref<Layout>('treemap')
 const layoutOptions = computed(() => [
-  { value: 'treemap' as const, label: t('workbench.charts.layout_treemap') },
-  { value: 'sunburst' as const, label: t('workbench.charts.layout_sunburst') },
-  { value: 'icicle' as const, label: t('workbench.charts.layout_icicle') },
-  { value: 'pack' as const, label: t('workbench.charts.layout_pack') },
+  {
+    value: 'treemap' as const,
+    label: t('workbench.charts.layout_treemap'),
+  },
+  {
+    value: 'sunburst' as const,
+    label: t('workbench.charts.layout_sunburst'),
+  },
+  {
+    value: 'icicle' as const,
+    label: t('workbench.charts.layout_icicle'),
+  },
+  {
+    value: 'pack' as const,
+    label: t('workbench.charts.layout_pack'),
+  },
 ])
 const { data, loading, error } = useWidgetData('files.storage-mix')
 
@@ -36,13 +55,20 @@ const tree = computed<ChartRow>(() => {
   for (const slice of slices.value) {
     const [kind = 'Other', extension = ''] = slice.key.split('/')
     const children = kinds.get(kind) ?? []
-    children.push({ name: extension ? `.${extension}` : t('workbench.charts.no_extension'), value: slice.value / scale.value.divisor })
+    children.push({
+      name: extension
+        ? `.${extension}`
+        : t('workbench.charts.no_extension'),
+      value: slice.value / scale.value.divisor,
+    })
     kinds.set(kind, children)
   }
   return {
     name: t('workbench.charts.all_files'),
     children: [...kinds].map(([kind, children]) => ({
-      name: (FILE_KINDS as readonly string[]).includes(kind) ? t(`workbench.charts.file_kind.${kind}`) : kind,
+      name: (FILE_KINDS as readonly string[]).includes(kind)
+        ? t(`workbench.charts.file_kind.${kind}`)
+        : kind,
       children,
     })),
   }

@@ -32,7 +32,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * @throws PrintTemplateFormatError JSON 无效或不是当前格式
  */
 export function parsePrintTemplateJson(json: string, templateCode?: string): PrintDocument {
-  const subject = templateCode ? `打印模板 ${templateCode}` : '打印模板'
+  const subject = templateCode
+    ? `打印模板 ${templateCode}`
+    : '打印模板'
   let value: unknown
   try {
     value = JSON.parse(json)

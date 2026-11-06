@@ -82,7 +82,11 @@ export async function runThemeTransition(options: ThemeTransitionOptions): Promi
       // 切暗色 → 旧层（亮）在上，全屏 → 0 收缩（z-index 由 html.dark CSS 类自动控制）
       // 切亮色 → 新层（亮）在上，0 → 全屏 扩散
       const anim = root.animate(
-        { clipPath: toDark ? [...clipPath].reverse() : clipPath },
+        {
+          clipPath: toDark
+            ? [...clipPath].reverse()
+            : clipPath,
+        },
         {
           duration: 450,
           easing: 'ease-in',

@@ -28,7 +28,9 @@ function message(messageId: string, patch: Partial<ChatMessageItem> = {}): ChatM
     mentionedUserIds: [],
     isPinned: false,
     reactions: [],
-    attachments: [{ fileId: `f-${messageId}`, fileName: `${messageId}.png` }],
+    attachments: [
+      { fileId: `f-${messageId}`, fileName: `${messageId}.png` },
+    ],
     ...patch,
   }
 }
@@ -36,10 +38,19 @@ function message(messageId: string, patch: Partial<ChatMessageItem> = {}): ChatM
 describe('取法', () => {
   it('按消息先后、附件先后串起来；撤回的与非图片消息不算；同一张图发两次算两张', () => {
     const entries = chatGalleryEntries([
-      message('m1', { attachments: [{ fileId: 'a', fileName: 'a.png' }, { fileId: 'b', fileName: 'b.png' }] }),
+      message('m1', {
+        attachments: [
+          { fileId: 'a', fileName: 'a.png' },
+          { fileId: 'b', fileName: 'b.png' },
+        ],
+      }),
       message('m2', { messageType: 'Text' }),
       message('m3', { isRecalled: true }),
-      message('m4', { attachments: [{ fileId: 'a', fileName: 'a.png' }] }),
+      message('m4', {
+        attachments: [
+          { fileId: 'a', fileName: 'a.png' },
+        ],
+      }),
     ])
 
     expect(entries.map(entry => entry.key)).toStrictEqual(['m1:a', 'm1:b', 'm4:a'])
@@ -63,12 +74,21 @@ function setup(initial: ChatMessageItem[]) {
     },
   })
   const wrapper = mount(Host)
-  return { wrapper, messages, gallery: gallery!, open: open! }
+  return {
+    wrapper,
+    messages,
+    gallery: gallery!,
+    open: open!,
+  }
 }
 
 describe('从某张打开', () => {
   it('浮层列表是整个会话的图片；下标指到点的那张在会话里的位置', () => {
-    const { gallery, open, wrapper } = setup([message('m1'), message('m2'), message('m3')])
+    const { gallery, open, wrapper } = setup([
+      message('m1'),
+      message('m2'),
+      message('m3'),
+    ])
 
     expect(gallery.items.value.map(item => item.key)).toStrictEqual(['m1:f-m1', 'm2:f-m2', 'm3:f-m3'])
     // 地址按图片所在的会话换
@@ -81,7 +101,9 @@ describe('从某张打开', () => {
   })
 
   it('点的那张不在组里（地址还没换到等）：什么都不做', () => {
-    const { gallery, open, wrapper } = setup([message('m1')])
+    const { gallery, open, wrapper } = setup([
+      message('m1'),
+    ])
 
     open('nope', 'nope')
 
@@ -90,11 +112,18 @@ describe('从某张打开', () => {
   })
 
   it('往上翻出更早的历史：列表在前面多出几张，下标对回正在看的那张', async () => {
-    const { gallery, open, messages, wrapper } = setup([message('m3'), message('m4')])
+    const { gallery, open, messages, wrapper } = setup([
+      message('m3'),
+      message('m4'),
+    ])
     open('m4', 'f-m4')
     expect(gallery.index.value).toBe(1)
 
-    messages.value = [message('m1'), message('m2'), ...messages.value]
+    messages.value = [
+      message('m1'),
+      message('m2'),
+      ...messages.value,
+    ]
     await nextTick()
 
     expect(gallery.index.value).toBe(3)
@@ -105,12 +134,18 @@ describe('从某张打开', () => {
 
 describe('在浮层里翻页', () => {
   it('翻到下一张后往上翻出更早的历史：下标仍对着翻到的那张', async () => {
-    const { gallery, open, messages, wrapper } = setup([message('m3'), message('m4')])
+    const { gallery, open, messages, wrapper } = setup([
+      message('m3'),
+      message('m4'),
+    ])
     open('m3', 'f-m3')
     // 浮层翻页经 v-model:index 写回
     gallery.index.value = 1
 
-    messages.value = [message('m1'), ...messages.value]
+    messages.value = [
+      message('m1'),
+      ...messages.value,
+    ]
     await nextTick()
 
     expect(gallery.items.value[gallery.index.value]?.key).toBe('m4:f-m4')

@@ -35,12 +35,19 @@ export interface WorkflowRuleOptions {
 }
 
 function nodeIssue(document: FlowDocument, index: number, code: string, severity: 'error' | 'warning'): SchemaIssue {
-  return { code, path: ['nodes', index], target: { kind: 'node', id: document.nodes[index]!.id }, severity }
+  return {
+    code,
+    path: ['nodes', index],
+    target: { kind: 'node', id: document.nodes[index]!.id },
+    severity,
+  }
 }
 
 function propertiesOf(document: FlowDocument, index: number): Record<string, unknown> {
   const properties = document.nodes[index]!.data?.properties
-  return typeof properties === 'object' && properties !== null && !Array.isArray(properties) ? properties as Record<string, unknown> : {}
+  return typeof properties === 'object' && properties !== null && !Array.isArray(properties)
+    ? properties as Record<string, unknown>
+    : {}
 }
 
 export function createWorkflowRules(options: WorkflowRuleOptions): SchemaRule<FlowDocument, unknown>[] {
@@ -50,31 +57,70 @@ export function createWorkflowRules(options: WorkflowRuleOptions): SchemaRule<Fl
     const properties = propertiesOf(document, index)
     const incomplete = RULE_PROPERTY_KEYS.some(key => readRules(properties[key])
       .some(rule => !PRESET_RULE_TYPES.has(rule.type) && !isRuleComplete(rule)))
-    return incomplete ? [nodeIssue(document, index, 'workflow.assignee-incomplete', 'error')] : []
+    return incomplete
+      ? [
+          nodeIssue(document, index, 'workflow.assignee-incomplete', 'error'),
+        ]
+      : []
   })
 
   const businessOutcomes: SchemaRule<FlowDocument, unknown> = (document) => {
-    const code = typeof document.data?.code === 'string' ? document.data.code.trim() : ''
-    const outcomes = code ? options.businessOutcomes(code) : undefined
+    const code = typeof document.data?.code === 'string'
+      ? document.data.code.trim()
+      : ''
+    const outcomes = code
+      ? options.businessOutcomes(code)
+      : undefined
     if (!outcomes)
       return []
     return document.nodes.flatMap((node, index) => {
-      if (node.type === 'Terminate')
-        return [nodeIssue(document, index, 'workflow.business-terminate', 'warning')]
+      if (node.type === 'Terminate') {
+        return [
+          nodeIssue(document, index, 'workflow.business-terminate', 'warning'),
+        ]
+      }
       const outcome = propertiesOf(document, index).Outcome
-      if (node.type === 'End' && (typeof outcome !== 'string' || !outcomes.includes(outcome)))
-        return [nodeIssue(document, index, 'workflow.business-end-outcome', 'warning')]
+      if (node.type === 'End' && (typeof outcome !== 'string' || !outcomes.includes(outcome))) {
+        return [
+          nodeIssue(document, index, 'workflow.business-end-outcome', 'warning'),
+        ]
+      }
       return []
     })
   }
 
   const serverIssues: SchemaRule<FlowDocument, unknown> = document => (options.serverDiagnostics?.() ?? []).flatMap((diagnostic): SchemaIssue[] => {
     const params = { message: diagnostic.message }
-    if (!diagnostic.target)
-      return [{ code: SERVER_DIAGNOSTIC_CODE, path: [], severity: 'error', params }]
+    if (!diagnostic.target) {
+      return [
+        {
+          code: SERVER_DIAGNOSTIC_CODE,
+          path: [],
+          severity: 'error',
+          params,
+        },
+      ]
+    }
     const { kind, id } = diagnostic.target
-    const index = (kind === 'node' ? document.nodes : document.edges).findIndex(item => item.id === id)
-    return index < 0 ? [] : [{ code: SERVER_DIAGNOSTIC_CODE, path: [kind === 'node' ? 'nodes' : 'edges', index], target: { kind, id }, severity: 'error', params }]
+    const index = (kind === 'node'
+      ? document.nodes
+      : document.edges).findIndex(item => item.id === id)
+    return index < 0
+      ? []
+      : [
+          {
+            code: SERVER_DIAGNOSTIC_CODE,
+            path: [
+              kind === 'node'
+                ? 'nodes'
+                : 'edges',
+              index,
+            ],
+            target: { kind, id },
+            severity: 'error',
+            params,
+          },
+        ]
   })
 
   return [assigneeIncomplete, businessOutcomes, serverIssues]

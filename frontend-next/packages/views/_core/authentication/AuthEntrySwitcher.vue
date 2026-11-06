@@ -41,7 +41,9 @@ const { width } = useElementSize(computed(() => rootRef.value?.$el as HTMLElemen
 const entrySize = computed(() => {
   if (width.value >= LG_MIN_WIDTH)
     return 'lg'
-  return width.value >= MD_MIN_WIDTH ? 'md' : 'sm'
+  return width.value >= MD_MIN_WIDTH
+    ? 'md'
+    : 'sm'
 })
 
 /**
@@ -51,10 +53,30 @@ const entrySize = computed(() => {
 const entryList = computed(() => {
   const opened = new Set(props.methods ?? [])
   return [
-    { value: 'account', method: 'password', path: LOGIN_PATH, label: t('page.auth.entry.account') },
-    { value: 'mobile', method: 'phone', path: CODE_LOGIN_PATH, label: t('page.auth.entry.mobile') },
-    { value: 'email', method: 'email', path: EMAIL_LOGIN_PATH, label: t('page.auth.entry.email') },
-    { value: 'qrcode', method: 'qrcode', path: QRCODE_LOGIN_PATH, label: t('page.auth.entry.qrcode') },
+    {
+      value: 'account',
+      method: 'password',
+      path: LOGIN_PATH,
+      label: t('page.auth.entry.account'),
+    },
+    {
+      value: 'mobile',
+      method: 'phone',
+      path: CODE_LOGIN_PATH,
+      label: t('page.auth.entry.mobile'),
+    },
+    {
+      value: 'email',
+      method: 'email',
+      path: EMAIL_LOGIN_PATH,
+      label: t('page.auth.entry.email'),
+    },
+    {
+      value: 'qrcode',
+      method: 'qrcode',
+      path: QRCODE_LOGIN_PATH,
+      label: t('page.auth.entry.qrcode'),
+    },
   ].filter(entry => opened.has(entry.method))
 })
 
@@ -67,7 +89,11 @@ const activeEntry = computed(
 
 /** 停在没开放的登录方式上：换到第一个开放的入口，不把表单留给一个后端会拒绝的方式 */
 watch(
-  [() => props.enabled, entryList, () => route.path],
+  [
+    () => props.enabled,
+    entryList,
+    () => route.path,
+  ],
   ([enabled, entries, path]) => {
     const first = entries[0]
     if (enabled && props.methods && first && !entries.some(entry => entry.path === path)) {

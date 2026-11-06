@@ -18,7 +18,14 @@ const apis = {
   updateNotificationPreferenceApi: vi.fn(),
 }
 
-const saved: NotificationPreference = { channelInApp: true, channelEmail: false, channelSms: true, typeAnnouncement: false, typeTask: true, typeSecurity: true }
+const saved: NotificationPreference = {
+  channelInApp: true,
+  channelEmail: false,
+  channelSms: true,
+  typeAnnouncement: false,
+  typeTask: true,
+  typeSecurity: true,
+}
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -30,7 +37,11 @@ beforeEach(() => {
 })
 
 async function render() {
-  const wrapper = mount(ProfileTabNotifications, { global: { plugins: [i18n] } })
+  const wrapper = mount(ProfileTabNotifications, {
+    global: {
+      plugins: [i18n],
+    },
+  })
   await flushPromises()
   return wrapper
 }

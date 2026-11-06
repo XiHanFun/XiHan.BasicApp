@@ -18,7 +18,26 @@ const apis = {
   getLoginLogsApi: vi.fn(),
 }
 
-const RESULTS: LoginAuditResult[] = ['AccountDisabled', 'AccountLocked', 'Failed', 'ImpersonationEnded', 'ImpersonationStarted', 'InvalidCredentials', 'Logout', 'MfaBound', 'MfaUnbound', 'PasswordChanged', 'PasswordReset', 'RequiresTwoFactor', 'RolesActivated', 'SessionRevoked', 'Success', 'TenantSwitched', 'TokenRefreshed', 'TwoFactorFailed']
+const RESULTS: LoginAuditResult[] = [
+  'AccountDisabled',
+  'AccountLocked',
+  'Failed',
+  'ImpersonationEnded',
+  'ImpersonationStarted',
+  'InvalidCredentials',
+  'Logout',
+  'MfaBound',
+  'MfaUnbound',
+  'PasswordChanged',
+  'PasswordReset',
+  'RequiresTwoFactor',
+  'RolesActivated',
+  'SessionRevoked',
+  'Success',
+  'TenantSwitched',
+  'TokenRefreshed',
+  'TwoFactorFailed',
+]
 
 function page(items: LoginLogItem[], total = items.length) {
   return { items, total, page: 1, pageSize: 10 }
@@ -31,14 +50,24 @@ beforeEach(() => {
     fn.mockReset()
   registerAppContext({ apis: apis as unknown as AppContextApis })
   apis.getLoginLogsApi.mockResolvedValue(page([
-    { loginTime: '2026-10-30T01:00:00Z', loginIp: '10.0.0.1', browser: 'Chrome', os: 'Windows', loginResult: 'Success' },
+    {
+      loginTime: '2026-10-30T01:00:00Z',
+      loginIp: '10.0.0.1',
+      browser: 'Chrome',
+      os: 'Windows',
+      loginResult: 'Success',
+    },
     { loginTime: '2026-10-30T00:00:00Z', loginResult: 'InvalidCredentials', message: '用户名或密码错误。' },
     { loginTime: '2026-10-29T00:00:00Z', loginIp: '10.0.0.2', loginResult: 'RolesActivated' },
   ]))
 })
 
 async function render() {
-  const wrapper = mount(ProfileTabLoginLogs, { global: { plugins: [i18n] } })
+  const wrapper = mount(ProfileTabLoginLogs, {
+    global: {
+      plugins: [i18n],
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -53,14 +82,31 @@ describe('登录日志页签', () => {
     expect(apis.getLoginLogsApi).toHaveBeenCalledWith(1, 10)
     const rows = wrapper.findAll('.pf-log-row').map(row => ({
       result: row.find('.pf-list-title [data-part="label"]').text(),
-      message: row.find('.pf-log-message').exists() ? row.find('.pf-log-message').text() : null,
+      message: row.find('.pf-log-message').exists()
+        ? row.find('.pf-log-message').text()
+        : null,
       desc: text(row.find('.pf-list-desc').text()),
       danger: row.find('.pf-list-icon--danger').exists(),
     }))
     expect(rows).toEqual([
-      { result: '成功', message: null, desc: '10.0.0.1 · Chrome · Windows', danger: false },
-      { result: '密码错误', message: '用户名或密码错误。', desc: '未知 IP', danger: true },
-      { result: '切换角色', message: null, desc: '10.0.0.2', danger: false },
+      {
+        result: '成功',
+        message: null,
+        desc: '10.0.0.1 · Chrome · Windows',
+        danger: false,
+      },
+      {
+        result: '密码错误',
+        message: '用户名或密码错误。',
+        desc: '未知 IP',
+        danger: true,
+      },
+      {
+        result: '切换角色',
+        message: null,
+        desc: '10.0.0.2',
+        danger: false,
+      },
     ])
     expect(wrapper.findComponent(SchemaPagination).exists()).toBe(false)
   })
@@ -76,7 +122,9 @@ describe('登录日志页签', () => {
 
   it('超过一页才出分页，翻页按页码重取；加载失败提示后端文案并显示空态', async () => {
     const danger = vi.spyOn(toast, 'danger').mockImplementation(() => '')
-    apis.getLoginLogsApi.mockResolvedValue(page([{ loginTime: '2026-10-30T00:00:00Z', loginResult: 'Logout' }], 12))
+    apis.getLoginLogsApi.mockResolvedValue(page([
+      { loginTime: '2026-10-30T00:00:00Z', loginResult: 'Logout' },
+    ], 12))
     const wrapper = await render()
     const pagination = wrapper.findComponent(SchemaPagination)
     expect(pagination.exists()).toBe(true)

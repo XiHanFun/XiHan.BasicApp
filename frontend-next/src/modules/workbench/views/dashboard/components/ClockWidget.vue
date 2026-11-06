@@ -24,7 +24,13 @@ onUnmounted(() => {
 // 两者不一致，且日语界面下会显示中文格式；时刻与问候按应用时区，与界面上其他时间一致
 const time = computed(() => now.value.toLocaleTimeString(appStore.locale, { hour12: false, timeZone: appStore.appTimezone }))
 const date = computed(() =>
-  now.value.toLocaleDateString(appStore.locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long', timeZone: appStore.appTimezone }),
+  now.value.toLocaleDateString(appStore.locale, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+    timeZone: appStore.appTimezone,
+  }),
 )
 const greeting = computed(() => {
   const h = Number(formatDateTime(now.value, appStore.appTimezone, 'H'))

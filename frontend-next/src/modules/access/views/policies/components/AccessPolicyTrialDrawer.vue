@@ -42,7 +42,13 @@ interface TrialFormModel {
 
 const { t } = useI18n()
 const formId = useId()
-const methodOptions = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(method => ({ value: method, label: method }))
+const methodOptions = [
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+].map(method => ({ value: method, label: method }))
 
 const form = ref<TrialFormModel>(emptyForm())
 const userOptions = ref<Array<{ label: string, value: string, description?: string }>>([])
@@ -52,14 +58,27 @@ const result = ref<AccessPolicyTrialResult | null>(null)
 let userSeq = 0
 
 function emptyForm(): TrialFormModel {
-  return { ip: '', time: null, userAgent: '', path: '', method: null, userId: null, permissionCodes: '' }
+  return {
+    ip: '',
+    time: null,
+    userAgent: '',
+    path: '',
+    method: null,
+    userId: null,
+    permissionCodes: '',
+  }
 }
 
 async function searchUsers(keyword = '') {
   const seq = ++userSeq
   userLoading.value = true
   try {
-    const page = await usersApi.list({ page: { index: 1, size: 50 }, filters: [], sorts: [], keyword: keyword.trim() || null })
+    const page = await usersApi.list({
+      page: { index: 1, size: 50 },
+      filters: [],
+      sorts: [],
+      keyword: keyword.trim() || null,
+    })
     if (seq === userSeq)
       userOptions.value = page.items.map(user => ({ label: user.displayName, value: user.id, description: `@${user.userName}` }))
   }
@@ -78,15 +97,21 @@ async function run() {
     const codes = form.value.permissionCodes.split(/[\s,，]+/).map(code => code.trim()).filter(Boolean)
     result.value = await policiesApi.trial({
       policyId: props.policyId ?? null,
-      conditions: props.policyId ? null : (props.conditions ?? []),
+      conditions: props.policyId
+        ? null
+        : (props.conditions ?? []),
       action: props.action,
       ip: form.value.ip.trim() || null,
-      time: form.value.time ? new Date(form.value.time).toISOString() : null,
+      time: form.value.time
+        ? new Date(form.value.time).toISOString()
+        : null,
       userAgent: form.value.userAgent.trim() || null,
       path: form.value.path.trim() || null,
       method: form.value.method,
       userId: form.value.userId,
-      permissionCodes: codes.length > 0 ? codes : null,
+      permissionCodes: codes.length > 0
+        ? codes
+        : null,
     })
   }
   catch (error) {

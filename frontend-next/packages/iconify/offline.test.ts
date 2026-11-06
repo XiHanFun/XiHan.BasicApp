@@ -8,7 +8,9 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { addCollection } = vi.hoisted(() => ({ addCollection: vi.fn() }))
+const { addCollection } = vi.hoisted(() => ({
+  addCollection: vi.fn(),
+}))
 
 vi.mock('@iconify/vue/offline', () => ({ addCollection }))
 
@@ -108,7 +110,9 @@ describe('loadIconNames 查找与回退', () => {
 
   it('图标包内容缺失 icons 字段时返回空数组而不是抛错', async () => {
     vi.resetModules()
-    vi.doMock('@iconify-json/ep', () => ({ icons: { prefix: 'ep' } }))
+    vi.doMock('@iconify-json/ep', () => ({
+      icons: { prefix: 'ep' },
+    }))
     const mod: OfflineModule = await import('./offline')
 
     await expect(mod.loadIconNames('ep')).resolves.toEqual([])
@@ -117,7 +121,10 @@ describe('loadIconNames 查找与回退', () => {
   it('图标名未按序给出时由本函数补齐排序', async () => {
     vi.resetModules()
     vi.doMock('@iconify-json/ep', () => ({
-      icons: { prefix: 'ep', icons: { zebra: {}, apple: {}, mango: {} } },
+      icons: {
+        prefix: 'ep',
+        icons: { zebra: {}, apple: {}, mango: {} },
+      },
     }))
     const mod: OfflineModule = await import('./offline')
 
@@ -129,7 +136,12 @@ describe('setupIconifyOffline 预载范围', () => {
   it('预载 lucide / tabler / mdi / simple-icons 四个运行期常用图标集', async () => {
     await setupIconifyOffline()
 
-    expect(registeredPrefixes().sort()).toEqual(['lucide', 'mdi', 'simple-icons', 'tabler'])
+    expect(registeredPrefixes().sort()).toEqual([
+      'lucide',
+      'mdi',
+      'simple-icons',
+      'tabler',
+    ])
   })
 
   it('simple-icons 必须在预载之列，第三方登录品牌 logo 离线渲染依赖它', async () => {

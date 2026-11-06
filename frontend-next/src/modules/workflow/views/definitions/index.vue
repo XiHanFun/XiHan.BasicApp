@@ -28,10 +28,22 @@ function reload() {
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 const statusOptions = computed<{ label: string, value: WorkflowDefinitionStatus }[]>(() => [
-  { label: t('workflow.definitions.status_draft'), value: 'Draft' },
-  { label: t('workflow.definitions.status_published'), value: 'Published' },
-  { label: t('workflow.definitions.status_disabled'), value: 'Disabled' },
-  { label: t('workflow.definitions.status_archived'), value: 'Archived' },
+  {
+    label: t('workflow.definitions.status_draft'),
+    value: 'Draft',
+  },
+  {
+    label: t('workflow.definitions.status_published'),
+    value: 'Published',
+  },
+  {
+    label: t('workflow.definitions.status_disabled'),
+    value: 'Disabled',
+  },
+  {
+    label: t('workflow.definitions.status_archived'),
+    value: 'Archived',
+  },
 ])
 
 function statusTag(status: WorkflowDefinitionStatus): Tone {
@@ -69,7 +81,16 @@ onMounted(async () => {
 const asRow = (row: object) => row as WorkflowDefinitionRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('workflow.definitions.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('workflow.definitions.keyword_placeholder'), width: 240, order: 0 },
+  {
+    key: 'keyword',
+    title: t('workflow.definitions.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('workflow.definitions.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
   {
     key: 'status',
     title: t('workflow.definitions.status'),
@@ -82,26 +103,94 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: row => renderTag(statusLabel(asRow(row).status), statusTag(asRow(row).status)),
   },
-  { key: 'name', title: t('workflow.definitions.code'), dataType: 'string', sortable: true, minWidth: 160, order: 10 },
-  { key: 'displayName', title: t('workflow.definitions.name'), dataType: 'string', sortable: true, minWidth: 180, order: 11 },
-  { key: 'business', title: t('workflow.definitions.business'), dataType: 'string', minWidth: 120, order: 11.5, render: (row) => {
-    const key = asRow(row).businessNameKey
-    return key ? renderTag(t(key), 'brand') : '-'
-  } },
-  { key: 'version', title: t('workflow.definitions.version'), dataType: 'number', sortable: true, width: 90, order: 12, render: row => renderTag(`v${asRow(row).version}`, 'neutral') },
-  { key: 'category', title: t('workflow.definitions.category'), dataType: 'string', searchable: true, minWidth: 120, order: 13 },
-  { key: 'description', title: t('workflow.definitions.description'), dataType: 'string', minWidth: 200, ellipsis: true, order: 14 },
-  { key: 'publishedAt', title: t('workflow.definitions.publish_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15, render: (row) => {
-    const publishedAt = asRow(row).publishedAt
-    return publishedAt ? formatDate(publishedAt) : '-'
-  } },
-  { key: 'createdAt', title: t('workflow.definitions.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 16 },
+  {
+    key: 'name',
+    title: t('workflow.definitions.code'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 160,
+    order: 10,
+  },
+  {
+    key: 'displayName',
+    title: t('workflow.definitions.name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 180,
+    order: 11,
+  },
+  {
+    key: 'business',
+    title: t('workflow.definitions.business'),
+    dataType: 'string',
+    minWidth: 120,
+    order: 11.5,
+    render: (row) => {
+      const key = asRow(row).businessNameKey
+      return key
+        ? renderTag(t(key), 'brand')
+        : '-'
+    },
+  },
+  {
+    key: 'version',
+    title: t('workflow.definitions.version'),
+    dataType: 'number',
+    sortable: true,
+    width: 90,
+    order: 12,
+    render: row => renderTag(`v${asRow(row).version}`, 'neutral'),
+  },
+  {
+    key: 'category',
+    title: t('workflow.definitions.category'),
+    dataType: 'string',
+    searchable: true,
+    minWidth: 120,
+    order: 13,
+  },
+  {
+    key: 'description',
+    title: t('workflow.definitions.description'),
+    dataType: 'string',
+    minWidth: 200,
+    ellipsis: true,
+    order: 14,
+  },
+  {
+    key: 'publishedAt',
+    title: t('workflow.definitions.publish_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 15,
+    render: (row) => {
+      const publishedAt = asRow(row).publishedAt
+      return publishedAt
+        ? formatDate(publishedAt)
+        : '-'
+    },
+  },
+  {
+    key: 'createdAt',
+    title: t('workflow.definitions.created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    advancedSearch: true,
+    minWidth: 170,
+    order: 16,
+  },
 ])
 
 /** 分页：关键字匹配名字、显示名与说明；状态与分类精确匹配、创建时间按区间（后端白名单） */
 const resource: SchemaResource<WorkflowDefinitionRow> = {
   page: async params => toSchemaPageResult(
-    await workflowDefinitions.list(toPageRequest(params, { filters: { status: 'eq', category: 'eq' }, ranges: ['createdAt'] })),
+    await workflowDefinitions.list(toPageRequest(params, {
+      filters: { status: 'eq', category: 'eq' },
+      ranges: ['createdAt'],
+    })),
     params,
   ),
 }
@@ -119,16 +208,97 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('workflow.definitions.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'workflow.workflow-definitions.create' },
-    { key: 'view', title: t('workflow.definitions.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('workflow.definitions.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'workflow.workflow-definitions.update', visible: row => asRow(row).status === 'Draft' },
-    { key: 'design', title: t('workflow.definitions.action_design'), scope: 'row', icon: 'lucide:pen-tool', permission: 'workflow.workflow-definitions.update', visible: row => asRow(row).status === 'Draft' },
-    { key: 'publish', title: t('workflow.definitions.action_publish'), scope: 'row', icon: 'lucide:send', tone: 'success', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.definitions.action_publish'), definitionName(row)), permission: 'workflow.workflow-definitions.update', visible: row => asRow(row).status === 'Draft' },
-    { key: 'start', title: t('workflow.definitions.action_start'), scope: 'row', icon: 'lucide:play', tone: 'brand', permission: 'workflow.workflow-instances.execute', visible: row => asRow(row).status === 'Published' },
-    { key: 'newVersion', title: t('workflow.definitions.action_new_version'), scope: 'row', icon: 'lucide:git-branch-plus', permission: 'workflow.workflow-definitions.create', visible: row => asRow(row).status !== 'Draft' },
-    { key: 'disable', title: t('workflow.definitions.action_disable'), scope: 'row', icon: 'lucide:pause', tone: 'warning', confirm: true, confirmText: row => statusConfirmText(t, true, definitionName(row)), permission: 'workflow.workflow-definitions.update', visible: row => asRow(row).status === 'Published' },
-    { key: 'archive', title: t('workflow.definitions.action_archive'), scope: 'row', icon: 'lucide:archive', tone: 'warning', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.definitions.action_archive'), definitionName(row)), permission: 'workflow.workflow-definitions.update', visible: row => asRow(row).status === 'Disabled' },
-    { key: 'delete', title: t('workflow.definitions.action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, definitionName(row)), permission: 'workflow.workflow-definitions.delete', visible: row => asRow(row).status === 'Draft' },
+    {
+      key: 'create',
+      title: t('workflow.definitions.action_create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'workflow.workflow-definitions.create',
+    },
+    {
+      key: 'view',
+      title: t('workflow.definitions.action_view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('workflow.definitions.action_edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'workflow.workflow-definitions.update',
+      visible: row => asRow(row).status === 'Draft',
+    },
+    {
+      key: 'design',
+      title: t('workflow.definitions.action_design'),
+      scope: 'row',
+      icon: 'lucide:pen-tool',
+      permission: 'workflow.workflow-definitions.update',
+      visible: row => asRow(row).status === 'Draft',
+    },
+    {
+      key: 'publish',
+      title: t('workflow.definitions.action_publish'),
+      scope: 'row',
+      icon: 'lucide:send',
+      tone: 'success',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('workflow.definitions.action_publish'), definitionName(row)),
+      permission: 'workflow.workflow-definitions.update',
+      visible: row => asRow(row).status === 'Draft',
+    },
+    {
+      key: 'start',
+      title: t('workflow.definitions.action_start'),
+      scope: 'row',
+      icon: 'lucide:play',
+      tone: 'brand',
+      permission: 'workflow.workflow-instances.execute',
+      visible: row => asRow(row).status === 'Published',
+    },
+    {
+      key: 'newVersion',
+      title: t('workflow.definitions.action_new_version'),
+      scope: 'row',
+      icon: 'lucide:git-branch-plus',
+      permission: 'workflow.workflow-definitions.create',
+      visible: row => asRow(row).status !== 'Draft',
+    },
+    {
+      key: 'disable',
+      title: t('workflow.definitions.action_disable'),
+      scope: 'row',
+      icon: 'lucide:pause',
+      tone: 'warning',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, true, definitionName(row)),
+      permission: 'workflow.workflow-definitions.update',
+      visible: row => asRow(row).status === 'Published',
+    },
+    {
+      key: 'archive',
+      title: t('workflow.definitions.action_archive'),
+      scope: 'row',
+      icon: 'lucide:archive',
+      tone: 'warning',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('workflow.definitions.action_archive'), definitionName(row)),
+      permission: 'workflow.workflow-definitions.update',
+      visible: row => asRow(row).status === 'Disabled',
+    },
+    {
+      key: 'delete',
+      title: t('workflow.definitions.action_delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, definitionName(row)),
+      permission: 'workflow.workflow-definitions.delete',
+      visible: row => asRow(row).status === 'Draft',
+    },
   ],
 }))
 
@@ -233,10 +403,22 @@ async function handleDesignerSave(json: string) {
 const startFormId = useId()
 const startVisible = ref(false)
 const startLoading = ref(false)
-const startForm = ref({ name: '', version: null as number | null, displayName: '', correlationId: '', variables: '{}' })
+const startForm = ref({
+  name: '',
+  version: null as number | null,
+  displayName: '',
+  correlationId: '',
+  variables: '{}',
+})
 
 function openStart(row: WorkflowDefinitionRow) {
-  startForm.value = { name: row.name, version: row.version, displayName: '', correlationId: '', variables: '{}' }
+  startForm.value = {
+    name: row.name,
+    version: row.version,
+    displayName: '',
+    correlationId: '',
+    variables: '{}',
+  }
   startVisible.value = true
 }
 
@@ -287,15 +469,21 @@ async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'arch
         toast.success(t('workflow.definitions.msg_new_version'))
         break
       case 'disable':
-        throwOnFailed(await workflowDefinitions.disable({ ids: [row.id] }))
+        throwOnFailed(await workflowDefinitions.disable({
+          ids: [row.id],
+        }))
         toast.success(t('workflow.definitions.msg_disabled'))
         break
       case 'archive':
-        throwOnFailed(await workflowDefinitions.archive({ ids: [row.id] }))
+        throwOnFailed(await workflowDefinitions.archive({
+          ids: [row.id],
+        }))
         toast.success(t('workflow.definitions.msg_archived'))
         break
       case 'delete':
-        throwOnFailed(await workflowDefinitions.delete({ ids: [row.id] }))
+        throwOnFailed(await workflowDefinitions.delete({
+          ids: [row.id],
+        }))
         toast.success(t('workflow.definitions.msg_deleted'))
         break
     }
@@ -309,7 +497,9 @@ async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'arch
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()

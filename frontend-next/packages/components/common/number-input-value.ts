@@ -18,24 +18,34 @@ export function assertPrecision(precision: number | undefined): void {
 
 /** 按小数位数回舍；不给位数时原样。-0 一律收成 0，免得模型里出现带符号的零 */
 export function roundToPrecision(value: number, precision?: number): number {
-  const rounded = precision === undefined ? value : Number(value.toFixed(precision))
-  return rounded === 0 ? 0 : rounded
+  const rounded = precision === undefined
+    ? value
+    : Number(value.toFixed(precision))
+  return rounded === 0
+    ? 0
+    : rounded
 }
 
 /** 数 → 显示串：给了位数时补齐到固定小数位（12.5 → 12.50） */
 export function formatNumber(value: number, precision?: number): string {
-  return precision === undefined ? String(value) : value.toFixed(precision)
+  return precision === undefined
+    ? String(value)
+    : value.toFixed(precision)
 }
 
 /** 显示串 → 数：与组件库缺省同口径，严格 Number()，空串与纯空白为 NaN */
 export function parseNumber(text: string): number {
   const trimmed = text.trim()
-  return trimmed === '' ? Number.NaN : Number(trimmed)
+  return trimmed === ''
+    ? Number.NaN
+    : Number(trimmed)
 }
 
 /** 不写 step 时的缺省步长：给了位数就按最小一位走（2 位 → 0.01，0 位 → 1） */
 export function defaultStep(precision?: number): number | undefined {
-  return precision === undefined ? undefined : Number(`1e-${precision}`)
+  return precision === undefined
+    ? undefined
+    : Number(`1e-${precision}`)
 }
 
 /**
@@ -46,7 +56,9 @@ export function toModelValue(text: string, precision?: number): number | null | 
   if (text.trim() === '')
     return null
   const parsed = parseNumber(text)
-  return Number.isFinite(parsed) ? roundToPrecision(parsed, precision) : undefined
+  return Number.isFinite(parsed)
+    ? roundToPrecision(parsed, precision)
+    : undefined
 }
 
 /** 用户正在打的那一串，以及它对应的模型值 */
@@ -64,5 +76,7 @@ export interface NumberDraft {
 export function resolveDisplayText(value: number | null, draft: NumberDraft | null, precision?: number): string {
   if (draft && draft.value === value)
     return draft.text
-  return value == null ? '' : formatNumber(value, precision)
+  return value == null
+    ? ''
+    : formatNumber(value, precision)
 }

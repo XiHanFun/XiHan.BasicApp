@@ -20,7 +20,9 @@ export const TEMPLATE_ENGINES: readonly TemplateEngine[] = ['Scriban']
 export function templatesResource(): SchemaResource<TemplateRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await codegenTemplates.list(toPageRequest(params, { multiples: ['templateType', 'writeMode', 'status'] })),
+      await codegenTemplates.list(toPageRequest(params, {
+        multiples: ['templateType', 'writeMode', 'status'],
+      })),
       params,
     ),
   }
@@ -49,7 +51,9 @@ export function buildArtifactTree(entries: readonly { artifact: Artifact, index:
     let siblings = roots
     let prefix = ''
     for (const segment of segments) {
-      prefix = prefix ? `${prefix}/${segment}` : segment
+      prefix = prefix
+        ? `${prefix}/${segment}`
+        : segment
       let directory = directories.get(prefix)
       if (!directory) {
         directory = { value: `dir:${prefix}`, label: segment, children: [] }
@@ -58,14 +62,22 @@ export function buildArtifactTree(entries: readonly { artifact: Artifact, index:
       }
       siblings = directory.children!
     }
-    siblings.push({ value: `file:${index}`, label: fileName, index, writeOnce: artifact.writeMode === 'WriteOnce' })
+    siblings.push({
+      value: `file:${index}`,
+      label: fileName,
+      index,
+      writeOnce: artifact.writeMode === 'WriteOnce',
+    })
   }
 
   function sort(nodes: ArtifactTreeNode[]): ArtifactTreeNode[] {
     nodes.sort((a, b) => {
       const aIsDirectory = a.children !== undefined
-      if (aIsDirectory !== (b.children !== undefined))
-        return aIsDirectory ? -1 : 1
+      if (aIsDirectory !== (b.children !== undefined)) {
+        return aIsDirectory
+          ? -1
+          : 1
+      }
       return a.label.localeCompare(b.label)
     })
     for (const node of nodes) {

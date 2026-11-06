@@ -41,39 +41,83 @@ describe('规则类型目录', () => {
 describe('readRules', () => {
   it('驼峰与帕斯卡两种形状都认，参数统一成非空字符串', () => {
     expect(readRules([
-      { type: 'Role', values: ['finance', ''] },
-      { Type: 'User', Values: [1001, '1002'] },
+      {
+        type: 'Role',
+        values: ['finance', ''],
+      },
+      {
+        Type: 'User',
+        Values: [1001, '1002'],
+      },
     ])).toEqual([
-      { type: 'Role', values: ['finance'] },
-      { type: 'User', values: ['1001', '1002'] },
+      {
+        type: 'Role',
+        values: ['finance'],
+      },
+      {
+        type: 'User',
+        values: ['1001', '1002'],
+      },
     ])
   })
 
   it('非数组、无类型的项与非对象项一律丢弃，不抛错', () => {
     expect(readRules(null)).toEqual([])
     expect(readRules('Role')).toEqual([])
-    expect(readRules([null, 'x', { values: ['a'] }, { type: '  ' }])).toEqual([])
+    expect(readRules([
+      null,
+      'x',
+      {
+        values: ['a'],
+      },
+      { type: '  ' },
+    ])).toEqual([])
   })
 })
 
 describe('createRule 与 isRuleComplete', () => {
   it('主管类规则缺省 1 级且视为完整，其余规则缺省无参数', () => {
-    expect(createRule('StarterLeader')).toEqual({ type: 'StarterLeader', values: ['1'] })
+    expect(createRule('StarterLeader')).toEqual({
+      type: 'StarterLeader',
+      values: ['1'],
+    })
     expect(createRule('Role')).toEqual({ type: 'Role', values: [] })
   })
 
   it('发起人规则无参数即完整；编码与用户类规则至少要一个值', () => {
     expect(isRuleComplete({ type: 'Starter', values: [] })).toBe(true)
     expect(isRuleComplete({ type: 'Role', values: [] })).toBe(false)
-    expect(isRuleComplete({ type: 'User', values: ['1001'] })).toBe(true)
-    expect(isRuleComplete({ type: 'Expression', values: ['  '] })).toBe(false)
+    expect(isRuleComplete({
+      type: 'User',
+      values: ['1001'],
+    })).toBe(true)
+    expect(isRuleComplete({
+      type: 'Expression',
+      values: ['  '],
+    })).toBe(false)
   })
 
   it('主管层级只接受 1 到上限的整数', () => {
-    expect(isRuleComplete({ type: 'StarterLeaderChain', values: [String(MAX_LEADER_LEVEL)] })).toBe(true)
-    expect(isRuleComplete({ type: 'StarterLeader', values: ['0'] })).toBe(false)
-    expect(isRuleComplete({ type: 'StarterLeader', values: ['1.5'] })).toBe(false)
-    expect(isRuleComplete({ type: 'StarterLeader', values: [String(MAX_LEADER_LEVEL + 1)] })).toBe(false)
+    expect(isRuleComplete({
+      type: 'StarterLeaderChain',
+      values: [
+        String(MAX_LEADER_LEVEL),
+      ],
+    })).toBe(true)
+    expect(isRuleComplete({
+      type: 'StarterLeader',
+      values: ['0'],
+    })).toBe(false)
+    expect(isRuleComplete({
+      type: 'StarterLeader',
+      values: ['1.5'],
+    })).toBe(false)
+    expect(isRuleComplete({
+      type: 'StarterLeader',
+      values: [
+        String(MAX_LEADER_LEVEL + 1),
+      ],
+    })).toBe(false)
   })
 
   it('未登记的规则类型（应用自己扩展的）不在前端判定，交给后端发布校验', () => {
@@ -86,15 +130,29 @@ describe('migrateLegacyAssignees', () => {
     const properties: Record<string, unknown> = {
       Assignees: ['1001'],
       AssigneesExpression: 'approverIds',
-      AssigneeRules: [{ type: 'Role', values: ['finance'] }],
+      AssigneeRules: [
+        {
+          type: 'Role',
+          values: ['finance'],
+        },
+      ],
     }
 
     expect(migrateLegacyAssignees(properties)).toBe(true)
     expect(properties).toEqual({
       AssigneeRules: [
-        { type: 'User', values: ['1001'] },
-        { type: 'Expression', values: ['approverIds'] },
-        { type: 'Role', values: ['finance'] },
+        {
+          type: 'User',
+          values: ['1001'],
+        },
+        {
+          type: 'Expression',
+          values: ['approverIds'],
+        },
+        {
+          type: 'Role',
+          values: ['finance'],
+        },
       ],
     })
   })
@@ -107,9 +165,17 @@ describe('migrateLegacyAssignees', () => {
   })
 
   it('没有旧写法时不改动属性', () => {
-    const properties: Record<string, unknown> = { AssigneeRules: [{ type: 'Starter', values: [] }] }
+    const properties: Record<string, unknown> = {
+      AssigneeRules: [
+        { type: 'Starter', values: [] },
+      ],
+    }
 
     expect(migrateLegacyAssignees(properties)).toBe(false)
-    expect(properties).toEqual({ AssigneeRules: [{ type: 'Starter', values: [] }] })
+    expect(properties).toEqual({
+      AssigneeRules: [
+        { type: 'Starter', values: [] },
+      ],
+    })
   })
 })

@@ -55,7 +55,10 @@ function reload() {
 const asRow = (row: object) => row as TemplateRow
 
 function options<T extends string>(group: string, values: readonly T[]): SelectOption[] {
-  return values.map(value => ({ label: t(enumKey(group, value)), value }))
+  return values.map(value => ({
+    label: t(enumKey(group, value)),
+    value,
+  }))
 }
 
 // 模板的生成模式含「通用」（适用于全部模式），表配置那边不含
@@ -63,16 +66,52 @@ const templateTypeOptions = computed(() => options('template_type', [...TEMPLATE
 const writeModeOptions = computed(() => options('write_mode', WRITE_MODES))
 const engineOptions = computed(() => options('template_engine', TEMPLATE_ENGINES))
 const statusOptions = computed<SelectOption[]>(() => [
-  { label: t('common.statuses.enabled'), value: 'Active' },
-  { label: t('common.statuses.disabled'), value: 'Disabled' },
+  {
+    label: t('common.statuses.enabled'),
+    value: 'Active',
+  },
+  {
+    label: t('common.statuses.disabled'),
+    value: 'Disabled',
+  },
 ])
 
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('codegeneration.code_gen.template.col_template_name'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('codegeneration.code_gen.template.search_placeholder'), order: 0 },
-  { key: 'templateName', title: t('codegeneration.code_gen.template.col_template_name'), dataType: 'string', minWidth: 160, fixed: 'left', sortable: true, order: 1 },
-  { key: 'templateCode', title: t('codegeneration.code_gen.template.col_template_code'), dataType: 'string', minWidth: 190, sortable: true, order: 2 },
-  { key: 'templateGroup', title: t('codegeneration.code_gen.template.col_template_group'), dataType: 'string', width: 140, sortable: true, order: 3 },
+  {
+    key: 'keyword',
+    title: t('codegeneration.code_gen.template.col_template_name'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('codegeneration.code_gen.template.search_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'templateName',
+    title: t('codegeneration.code_gen.template.col_template_name'),
+    dataType: 'string',
+    minWidth: 160,
+    fixed: 'left',
+    sortable: true,
+    order: 1,
+  },
+  {
+    key: 'templateCode',
+    title: t('codegeneration.code_gen.template.col_template_code'),
+    dataType: 'string',
+    minWidth: 190,
+    sortable: true,
+    order: 2,
+  },
+  {
+    key: 'templateGroup',
+    title: t('codegeneration.code_gen.template.col_template_group'),
+    dataType: 'string',
+    width: 140,
+    sortable: true,
+    order: 3,
+  },
   {
     key: 'templateType',
     title: t('codegeneration.code_gen.template.col_template_type'),
@@ -107,7 +146,13 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: row => t(enumKey('template_engine', asRow(row).templateEngine)),
   },
-  { key: 'fileExtension', title: t('codegeneration.code_gen.template.col_file_extension'), dataType: 'string', width: 90, order: 6 },
+  {
+    key: 'fileExtension',
+    title: t('codegeneration.code_gen.template.col_file_extension'),
+    dataType: 'string',
+    width: 90,
+    order: 6,
+  },
   {
     key: 'isBuiltIn',
     title: t('codegeneration.code_gen.template.col_built_in'),
@@ -115,7 +160,11 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 90,
     order: 7,
     // 内置模板随程序版本对齐、不能编辑删除，单列呈现比挂在名称后更容易扫读（照 4.x）
-    render: row => renderTag(asRow(row).isBuiltIn ? t('codegeneration.code_gen.template.built_in') : t('codegeneration.code_gen.template.custom'), asRow(row).isBuiltIn ? 'warning' : 'neutral'),
+    render: row => renderTag(asRow(row).isBuiltIn
+      ? t('codegeneration.code_gen.template.built_in')
+      : t('codegeneration.code_gen.template.custom'), asRow(row).isBuiltIn
+      ? 'warning'
+      : 'neutral'),
   },
   {
     key: 'status',
@@ -128,9 +177,20 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('codegeneration.code_gen.common.status'),
     width: 90,
     order: 8,
-    render: row => renderTag(asRow(row).status === 'Active' ? t('common.statuses.enabled') : t('common.statuses.disabled'), asRow(row).status === 'Active' ? 'success' : 'danger'),
+    render: row => renderTag(asRow(row).status === 'Active'
+      ? t('common.statuses.enabled')
+      : t('common.statuses.disabled'), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
   },
-  { key: 'createdAt', title: t('codegeneration.code_gen.common.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },
+  {
+    key: 'createdAt',
+    title: t('codegeneration.code_gen.common.created_time'),
+    dataType: 'datetime',
+    minWidth: 170,
+    sortable: true,
+    order: 9,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -140,16 +200,48 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('codegeneration.code_gen.template.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'codegeneration.codegen-templates.create' },
+    {
+      key: 'create',
+      title: t('codegeneration.code_gen.template.add'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'codegeneration.codegen-templates.create',
+    },
     // 内置模板启动时会按程序带的文件对齐，改了也会被覆盖，故与删除一样禁用（照 4.x）
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', disabled: row => asRow(row).isBuiltIn, permission: 'codegeneration.codegen-templates.update' },
-    { key: 'toggle', title: t('codegeneration.code_gen.template.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'codegeneration.codegen-templates.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', disabled: row => asRow(row).isBuiltIn, confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).templateName), permission: 'codegeneration.codegen-templates.delete' },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      disabled: row => asRow(row).isBuiltIn,
+      permission: 'codegeneration.codegen-templates.update',
+    },
+    {
+      key: 'toggle',
+      title: t('codegeneration.code_gen.template.action_toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      permission: 'codegeneration.codegen-templates.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      disabled: row => asRow(row).isBuiltIn,
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).templateName),
+      permission: 'codegeneration.codegen-templates.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       startCreate()
@@ -171,7 +263,13 @@ function onAction(payload: SchemaActionPayload) {
 
 async function toggle(row: TemplateRow) {
   try {
-    await codegenTemplates.setStatus({ id: row.id, concurrencyStamp: row.concurrencyStamp, status: row.status === 'Active' ? 'Disabled' : 'Active' })
+    await codegenTemplates.setStatus({
+      id: row.id,
+      concurrencyStamp: row.concurrencyStamp,
+      status: row.status === 'Active'
+        ? 'Disabled'
+        : 'Active',
+    })
     toast.success(t('common.messages.save_success'))
     reload()
   }
@@ -182,7 +280,9 @@ async function toggle(row: TemplateRow) {
 
 async function remove(row: TemplateRow) {
   try {
-    const result = await codegenTemplates.delete({ ids: [row.id] })
+    const result = await codegenTemplates.delete({
+      ids: [row.id],
+    })
     throwOnFailed(result)
     toast.success(t('common.messages.delete_success'))
     reload()
@@ -199,14 +299,18 @@ const validating = ref(false)
 const fieldErrors = ref<Record<string, string[]>>({})
 const form = reactive<TemplateForm>(emptyForm())
 const isEdit = computed(() => form.id !== null)
-const modalTitle = computed(() => (isEdit.value ? t('codegeneration.code_gen.template.modal_edit_title') : t('codegeneration.code_gen.template.modal_add_title')))
+const modalTitle = computed(() => (isEdit.value
+  ? t('codegeneration.code_gen.template.modal_edit_title')
+  : t('codegeneration.code_gen.template.modal_add_title')))
 
 /** 编辑器按目标文件的扩展名高亮模板里字面代码的部分（照 4.x） */
 const editorFileName = computed(() => {
   const extension = form.fileExtension.trim()
   if (!extension)
     return null
-  return extension.startsWith('.') ? `template${extension}` : `template.${extension}`
+  return extension.startsWith('.')
+    ? `template${extension}`
+    : `template.${extension}`
 })
 
 function emptyForm(): TemplateForm {
@@ -236,7 +340,9 @@ function fieldError(field: keyof TemplateForm): string | undefined {
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 function startCreate() {
@@ -309,7 +415,9 @@ async function onSubmit() {
     templateType: form.templateType,
     templateEngine: form.templateEngine,
     writeMode: form.writeMode,
-    templateContent: form.templateContent === '' ? null : form.templateContent,
+    templateContent: form.templateContent === ''
+      ? null
+      : form.templateContent,
     templateDescription: blankToNull(form.templateDescription),
     templateGroup: blankToNull(form.templateGroup),
     fileNameExpression: blankToNull(form.fileNameExpression),
@@ -320,10 +428,15 @@ async function onSubmit() {
     remark: blankToNull(form.remark),
   }
   try {
-    if (form.id)
+    if (form.id) {
       await codegenTemplates.update({ id: form.id, concurrencyStamp: form.concurrencyStamp, ...shared })
-    else
-      await codegenTemplates.create({ templateCode: form.templateCode.trim(), ...shared })
+    }
+    else {
+      await codegenTemplates.create({
+        templateCode: form.templateCode.trim(),
+        ...shared,
+      })
+    }
     toast.success(t('common.messages.save_success'))
     open.value = false
     reload()

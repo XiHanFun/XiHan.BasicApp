@@ -57,7 +57,9 @@ export function useRowPeek<TRow extends object>(options?: {
   }
 
   function enabled(): boolean {
-    return options?.enabled ? options.enabled() : true
+    return options?.enabled
+      ? options.enabled()
+      : true
   }
 
   function onRowEnter(target: TRow, e: MouseEvent): void {

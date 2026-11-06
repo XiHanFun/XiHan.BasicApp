@@ -27,7 +27,9 @@ function definition(
   return {
     code: uniqueCode('ds'),
     name: '数据源',
-    fields: [{ key: 'title', label: '标题' }],
+    fields: [
+      { key: 'title', label: '标题' },
+    ],
     createSampleData: () => ({}),
     ...patch,
   }
@@ -51,7 +53,9 @@ describe('数据源级校验', () => {
   it('编码含空白字符或超过 100 字时报错', () => {
     expect(() => registerPrintDataSource(definition({ code: 'sales order' }))).toThrow(/不能超过 100 个字符/u)
     expect(() => registerPrintDataSource(definition({ code: 'a\tb' }))).toThrow(/不能超过 100 个字符/u)
-    expect(() => registerPrintDataSource(definition({ code: 'x'.repeat(101) }))).toThrow(/不能超过 100 个字符/u)
+    expect(() => registerPrintDataSource(definition({
+      code: 'x'.repeat(101),
+    }))).toThrow(/不能超过 100 个字符/u)
   })
 
   it('恰好 100 字的编码可以注册，边界不误杀', () => {
@@ -89,70 +93,120 @@ describe('数据源级校验', () => {
 describe('字段级校验', () => {
   it('字段编码为空时报错并给出是第几个字段（从 1 数）', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf(), fieldOf({ key: '' })],
+      fields: [
+        fieldOf(),
+        fieldOf({ key: '' }),
+      ],
     }))).toThrow(/第 2 个字段编码不能为空/u)
   })
 
   it('同一数据源内重复字段编码立即报错', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ key: 'title' }), fieldOf({ key: 'title', label: '另一个标题' })],
+      fields: [
+        fieldOf({ key: 'title' }),
+        fieldOf({ key: 'title', label: '另一个标题' }),
+      ],
     }))).toThrow(/存在重复字段：title/u)
   })
 
   it('字段名称为空时报错', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ label: '   ' })],
+      fields: [
+        fieldOf({ label: '   ' }),
+      ],
     }))).toThrow(/的名称不能为空/u)
   })
 
   it('字段类型不在受支持集合内时报错并回显该类型', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ kind: 'chart' as never })],
+      fields: [
+        fieldOf({ kind: 'chart' as never }),
+      ],
     }))).toThrow(/类型无效：chart/u)
   })
 
   it('明细表字段没有列时报错', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ key: 'details', kind: 'table' })],
+      fields: [
+        fieldOf({ key: 'details', kind: 'table' }),
+      ],
     }))).toThrow(/至少需要一列/u)
 
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ key: 'details', kind: 'table', columns: [] })],
+      fields: [
+        fieldOf({ key: 'details', kind: 'table', columns: [] }),
+      ],
     }))).toThrow(/至少需要一列/u)
   })
 
   it('明细表列字段为空或列标题为空时报错', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ key: 'details', kind: 'table', columns: [{ field: '  ', title: '物料' }] })],
+      fields: [
+        fieldOf({
+          key: 'details',
+          kind: 'table',
+          columns: [
+            { field: '  ', title: '物料' },
+          ],
+        }),
+      ],
     }))).toThrow(/列字段不能为空/u)
 
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ key: 'details', kind: 'table', columns: [{ field: 'code', title: ' ' }] })],
+      fields: [
+        fieldOf({
+          key: 'details',
+          kind: 'table',
+          columns: [
+            { field: 'code', title: ' ' },
+          ],
+        }),
+      ],
     }))).toThrow(/列标题不能为空/u)
   })
 
   it('模拟数据控件类型不在白名单内时报错，字段级与列级都拦', () => {
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({ inputType: 'richtext' as never })],
+      fields: [
+        fieldOf({ inputType: 'richtext' as never }),
+      ],
     }))).toThrow(/控件类型无效：richtext/u)
 
     expect(() => registerPrintDataSource(definition({
-      fields: [fieldOf({
-        key: 'details',
-        kind: 'table',
-        columns: [{ field: 'code', title: '编码', inputType: 'richtext' as never }],
-      })],
+      fields: [
+        fieldOf({
+          key: 'details',
+          kind: 'table',
+          columns: [
+            { field: 'code', title: '编码', inputType: 'richtext' as never },
+          ],
+        }),
+      ],
     }))).toThrow(/控件类型无效：richtext/u)
   })
 
   it('六种受支持的控件类型全部放行', () => {
     const registered = registerPrintDataSource(definition({
-      fields: (['boolean', 'date', 'datetime', 'number', 'text', 'textarea'] as const)
+      fields: ([
+        'boolean',
+        'date',
+        'datetime',
+        'number',
+        'text',
+        'textarea',
+      ] as const)
         .map(inputType => fieldOf({ key: `f_${inputType}`, label: inputType, inputType })),
     }))
 
     expect(registered.fields.map(field => field.inputType))
-      .toStrictEqual(['boolean', 'date', 'datetime', 'number', 'text', 'textarea'])
+      .toStrictEqual([
+        'boolean',
+        'date',
+        'datetime',
+        'number',
+        'text',
+        'textarea',
+      ])
   })
 
   it('校验一旦失败该数据源不进注册表，编码可被后续正确定义重新占用', () => {
@@ -167,21 +221,34 @@ describe('字段级校验', () => {
 describe('规范化结果', () => {
   it('字段编码与名称的首尾空白被裁掉', () => {
     const registered = registerPrintDataSource(definition({
-      fields: [fieldOf({ key: '  amount  ', label: '  金额  ' })],
+      fields: [
+        fieldOf({ key: '  amount  ', label: '  金额  ' }),
+      ],
     }))
 
     expect(registered.fields[0]).toMatchObject({ key: 'amount', label: '金额' })
   })
 
   it('未声明类型的字段默认按文本处理', () => {
-    const registered = registerPrintDataSource(definition({ fields: [fieldOf()] }))
+    const registered = registerPrintDataSource(definition({
+      fields: [
+        fieldOf(),
+      ],
+    }))
 
     expect(registered.fields[0]?.kind).toBe('text')
   })
 
   it('非明细表字段的列一律归一为 undefined，即使调用方传了列', () => {
     const registered = registerPrintDataSource(definition({
-      fields: [fieldOf({ kind: 'text', columns: [{ field: 'code', title: '编码' }] })],
+      fields: [
+        fieldOf({
+          kind: 'text',
+          columns: [
+            { field: 'code', title: '编码' },
+          ],
+        }),
+      ],
     }))
 
     expect(registered.fields[0]?.columns).toBeUndefined()
@@ -189,7 +256,10 @@ describe('规范化结果', () => {
 
   it('纯空白占位文案等同未配置，避免设计器显示一片空白提示', () => {
     const registered = registerPrintDataSource(definition({
-      fields: [fieldOf({ placeholder: '   ' }), fieldOf({ key: 'note', label: '备注', placeholder: '  请填写  ' })],
+      fields: [
+        fieldOf({ placeholder: '   ' }),
+        fieldOf({ key: 'note', label: '备注', placeholder: '  请填写  ' }),
+      ],
     }))
 
     expect(registered.fields[0]?.placeholder).toBeUndefined()
@@ -198,11 +268,15 @@ describe('规范化结果', () => {
 
   it('明细表列的标题与字段被裁剪，空白占位同样归一', () => {
     const registered = registerPrintDataSource(definition({
-      fields: [fieldOf({
-        key: 'details',
-        kind: 'table',
-        columns: [{ field: '  code  ', title: '  物料编码  ', placeholder: '  ' }],
-      })],
+      fields: [
+        fieldOf({
+          key: 'details',
+          kind: 'table',
+          columns: [
+            { field: '  code  ', title: '  物料编码  ', placeholder: '  ' },
+          ],
+        }),
+      ],
     }))
 
     expect(registered.fields[0]?.columns?.[0]).toMatchObject({ field: 'code', title: '物料编码' })
@@ -218,7 +292,9 @@ describe('规范化结果', () => {
   })
 
   it('注册后再改传进去的原始定义，不会影响注册表里的快照', () => {
-    const fields: PrintFieldDefinition[] = [fieldOf({ key: 'title', label: '标题' })]
+    const fields: PrintFieldDefinition[] = [
+      fieldOf({ key: 'title', label: '标题' }),
+    ]
     const source = definition({ fields })
 
     const registered = registerPrintDataSource(source)

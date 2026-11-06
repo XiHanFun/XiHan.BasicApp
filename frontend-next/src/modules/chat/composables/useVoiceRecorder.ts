@@ -90,7 +90,9 @@ export function useVoiceRecorder() {
     }
     stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     const mimeType = pickMimeType()
-    recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
+    recorder = new MediaRecorder(stream, mimeType
+      ? { mimeType }
+      : undefined)
     chunks = []
     startedAt = Date.now()
 
@@ -165,5 +167,12 @@ export function useVoiceRecorder() {
 
   onBeforeUnmount(cancel)
 
-  return { supported, recording, elapsed, start, stop, cancel }
+  return {
+    supported,
+    recording,
+    elapsed,
+    start,
+    stop,
+    cancel,
+  }
 }

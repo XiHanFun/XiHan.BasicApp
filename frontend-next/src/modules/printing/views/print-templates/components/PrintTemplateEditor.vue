@@ -94,7 +94,17 @@ function handleClose(): void {
 
 // 编辑会话的状态变了设计器不知道：让它重算宿主命令的可用、打印机的勾与随语言变的文字
 watch(
-  [designerReady, previewLoading, directLoading, canDirectPrint, currentDetail, printerOptions, selectedPrinter, printerLoading, locale],
+  [
+    designerReady,
+    previewLoading,
+    directLoading,
+    canDirectPrint,
+    currentDetail,
+    printerOptions,
+    selectedPrinter,
+    printerLoading,
+    locale,
+  ],
   () => canvasRef.value?.refreshCommands(),
 )
 

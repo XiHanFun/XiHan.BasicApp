@@ -65,7 +65,12 @@ export function useEnumService() {
     inflightLang = lang
     loading.value = true
     inflight = ctx.apis.enumApi
-      .getBatch({ enumNames: [], language: lang, includeHidden: false, includeDict: true })
+      .getBatch({
+        enumNames: [],
+        language: lang,
+        includeHidden: false,
+        includeDict: true,
+      })
       .then((all) => {
         enumState.value = all
         loadedLang.value = lang

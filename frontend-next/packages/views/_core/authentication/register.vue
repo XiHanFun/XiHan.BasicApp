@@ -93,7 +93,13 @@ const strengthLabel = computed(() => {
 
 /** 强度色走组件库语气前景：弱 danger、中 warning、强 success、很强 info，深浅两态与状态色设置都跟着走 */
 const strengthColor = computed(() => {
-  const colors = ['var(--xh-fg-danger)', 'var(--xh-fg-danger)', 'var(--xh-fg-warning)', 'var(--xh-fg-success)', 'var(--xh-fg-info)']
+  const colors = [
+    'var(--xh-fg-danger)',
+    'var(--xh-fg-danger)',
+    'var(--xh-fg-warning)',
+    'var(--xh-fg-success)',
+    'var(--xh-fg-info)',
+  ]
   return colors[passwordStrength.value] || 'var(--xh-fg-danger)'
 })
 
@@ -102,15 +108,31 @@ const USERNAME_RE = /^[a-z][a-z0-9._-]{2,63}$/
 
 const rules = computed<FormRules<typeof formData.value>>(() => ({
   username: [
-    { required: true, message: t('page.auth.username_placeholder') },
-    { validator: value => (!value || USERNAME_RE.test(String(value)) ? null : t('page.auth.username_rule')) },
+    {
+      required: true,
+      message: t('page.auth.username_placeholder'),
+    },
+    {
+      validator: value => (!value || USERNAME_RE.test(String(value))
+        ? null
+        : t('page.auth.username_rule')),
+    },
   ],
   email: [
-    { required: true, message: t('page.auth.email_placeholder') },
-    { type: 'email', message: t('page.auth.email_invalid') },
+    {
+      required: true,
+      message: t('page.auth.email_placeholder'),
+    },
+    {
+      type: 'email',
+      message: t('page.auth.email_invalid'),
+    },
   ],
   password: [
-    { required: true, message: t('page.login.password_placeholder') },
+    {
+      required: true,
+      message: t('page.login.password_placeholder'),
+    },
     {
       // 与后端密码策略一致：至少 8 位，同时含字母与数字；空值交给上面那条 required
       validator: (value) => {
@@ -126,11 +148,16 @@ const rules = computed<FormRules<typeof formData.value>>(() => ({
     },
   ],
   confirmPassword: [
-    { required: true, message: t('page.auth.confirm_password_placeholder') },
+    {
+      required: true,
+      message: t('page.auth.confirm_password_placeholder'),
+    },
     {
       // 第二参是整表值，跨字段规则从它读；先填它、再改密码时由 deps 带着重验
       deps: ['password'],
-      validator: (value, values) => (value === values.password ? null : t('page.auth.password_mismatch')),
+      validator: (value, values) => (value === values.password
+        ? null
+        : t('page.auth.password_mismatch')),
     },
   ],
 }))

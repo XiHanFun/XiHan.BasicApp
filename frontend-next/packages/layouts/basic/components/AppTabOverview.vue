@@ -30,14 +30,18 @@ const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? nul
 usePageScrollLock(visible)
 
 function tr(title: string): string {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 function resolveIcon(icon?: string): string {
   if (!icon) {
     return 'lucide:file'
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 interface OverviewCard {
@@ -60,7 +64,9 @@ const cards = computed<OverviewCard[]>(() =>
       let splitWith: string | undefined
       if (splitViewStore.isSplitTab(tab.path)) {
         const right = tabbarStore.tabs.find(item => item.path === splitViewStore.rightPath)
-        splitWith = right ? tr(right.title) : undefined
+        splitWith = right
+          ? tr(right.title)
+          : undefined
       }
       return {
         key: tab.path,
@@ -166,7 +172,9 @@ function columnsCount(): number {
   if (!grid) {
     return 1
   }
-  const items = [...grid.querySelectorAll<HTMLElement>('[data-overview-card]')]
+  const items = [
+    ...grid.querySelectorAll<HTMLElement>('[data-overview-card]'),
+  ]
   if (items.length <= 1) {
     return 1
   }

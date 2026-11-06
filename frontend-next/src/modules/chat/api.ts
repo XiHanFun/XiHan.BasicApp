@@ -21,7 +21,9 @@ function mapDepartment(node: ChatDepartmentNode): ChatDepartmentPickerNode {
   return {
     departmentId: node.departmentId,
     departmentName: node.departmentName,
-    children: node.children.length > 0 ? node.children.map(mapDepartment) : null,
+    children: node.children.length > 0
+      ? node.children.map(mapDepartment)
+      : null,
   }
 }
 
@@ -32,7 +34,9 @@ function toUploadResult(attachment: ChatAttachmentResponse): ChatAttachmentUploa
 /** SHA-256（十六进制小写，与后端秒传同一算法） */
 async function sha256Hex(file: File): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
-  return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('')
+  return [
+    ...new Uint8Array(digest),
+  ].map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /**
@@ -46,7 +50,10 @@ export function createChatApi(): ChatApiContract {
     createGroupConversation: (conversationName, memberUserIds) => chatConversations.createGroup({ conversationName, memberUserIds }),
     openDepartmentConversation: departmentId => chatConversations.openDepartment({ departmentId }),
     addMembers: async (conversationId, userIds) => throwOnFailed(await chatConversations.addMembers({ conversationId, userIds })),
-    removeMember: async (conversationId, userId) => throwOnFailed(await chatConversations.removeMembers({ conversationId, userIds: [userId] })),
+    removeMember: async (conversationId, userId) => throwOnFailed(await chatConversations.removeMembers({
+      conversationId,
+      userIds: [userId],
+    })),
     leaveConversation: async (conversationId) => {
       await chatConversations.leave({ conversationId })
     },
@@ -74,7 +81,11 @@ export function createChatApi(): ChatApiContract {
     transferOwner: async (conversationId, newOwnerUserId) => {
       await chatConversations.transferOwner({ conversationId, newOwnerUserId })
     },
-    setMemberSilence: async (conversationId, userId, isSilenced) => throwOnFailed(await chatConversations.silenceMembers({ conversationId, userIds: [userId], isSilenced })),
+    setMemberSilence: async (conversationId, userId, isSilenced) => throwOnFailed(await chatConversations.silenceMembers({
+      conversationId,
+      userIds: [userId],
+      isSilenced,
+    })),
     setMemberRole: async (conversationId, userId, memberRole) => {
       await chatConversations.setMemberRole({ conversationId, userId, memberRole })
     },
@@ -97,7 +108,12 @@ export function createChatApi(): ChatApiContract {
       // 秒传：同一侧已有内容相同的文件即直接得到附件；没命中、浏览器不支持或文件超大时走普通上传
       if (file.size > 0 && file.size <= FAST_UPLOAD_MAX_BYTES && globalThis.crypto?.subtle) {
         try {
-          const fast = await chatMessages.fastUpload({ hash: await sha256Hex(file), size: file.size, fileName: file.name, contentType: file.type || null })
+          const fast = await chatMessages.fastUpload({
+            hash: await sha256Hex(file),
+            size: file.size,
+            fileName: file.name,
+            contentType: file.type || null,
+          })
           if (fast.attachment) {
             onProgress?.(100)
             return toUploadResult(fast.attachment)
@@ -117,7 +133,10 @@ export function createChatApi(): ChatApiContract {
     // 后端签发的地址原样使用（不能再拼参数）；相对地址补上接口前缀
     getFileUrl: async (conversationId, fileId, download = false) => {
       const signed = await chatMessages.presign({ conversationId, fileId, download })
-      return { url: endpointUrl(signed.url), expiresAt: signed.expiresAt }
+      return {
+        url: endpointUrl(signed.url),
+        expiresAt: signed.expiresAt,
+      }
     },
   }
 }

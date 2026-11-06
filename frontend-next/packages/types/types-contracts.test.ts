@@ -56,7 +56,13 @@ describe('字符串枚举与后端序列化口径', () => {
   })
 
   it('通知类型固定为五种，紧急独立于系统与业务', () => {
-    expect(memberNames(NotificationType)).toStrictEqual(['System', 'Security', 'Business', 'Todo', 'Emergency'])
+    expect(memberNames(NotificationType)).toStrictEqual([
+      'System',
+      'Security',
+      'Business',
+      'Todo',
+      'Emergency',
+    ])
   })
 
   it('通知优先级由低到高共四档', () => {
@@ -89,7 +95,10 @@ describe('查询算子编号契约', () => {
     for (const name of numericMemberNames(QueryOperator)) {
       const value = QueryOperator[name as keyof typeof QueryOperator]
       const segment = segmentOf(value)
-      grouped[segment] = [...(grouped[segment] ?? []), name]
+      grouped[segment] = [
+        ...(grouped[segment] ?? []),
+        name,
+      ]
     }
 
     expect(grouped[1000]).toStrictEqual([

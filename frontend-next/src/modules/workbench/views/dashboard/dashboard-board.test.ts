@@ -22,8 +22,18 @@ const remote = vi.hoisted(() => ({
 }))
 
 vi.mock('./components', () => {
-  const stub = (key: string) => markRaw(defineComponent({ name: `Stub-${key}`, render: () => h('div', { 'data-widget': key }) }))
-  const WIDGETS = ['welcome', 'clock', 'todo'].map(key => ({ key, titleKey: key, descKey: key, icon: 'lucide:box', defaultSpan: 4, component: stub(key) }))
+  const stub = (key: string) => markRaw(defineComponent({
+    name: `Stub-${key}`,
+    render: () => h('div', { 'data-widget': key }),
+  }))
+  const WIDGETS = ['welcome', 'clock', 'todo'].map(key => ({
+    key,
+    titleKey: key,
+    descKey: key,
+    icon: 'lucide:box',
+    defaultSpan: 4,
+    component: stub(key),
+  }))
   return {
     WIDGETS,
     WIDGET_MAP: Object.fromEntries(WIDGETS.map(widget => [widget.key, widget])),
@@ -55,7 +65,9 @@ vi.mock('~/components/schema', async () => {
 
 vi.mock('~/hooks', async importOriginal => ({
   ...await importOriginal<typeof import('~/hooks')>(),
-  usePermission: () => ({ hasPermission: () => true }),
+  usePermission: () => ({
+    hasPermission: () => true,
+  }),
 }))
 
 function shown(wrapper: ReturnType<typeof mount>): string[] {
@@ -85,7 +97,12 @@ function localKeys(): string[] {
 }
 
 function mountDashboard() {
-  return mount(Dashboard, { global: { plugins: [i18n] }, attachTo: document.body })
+  return mount(Dashboard, {
+    global: {
+      plugins: [i18n],
+    },
+    attachTo: document.body,
+  })
 }
 
 beforeEach(() => {
@@ -102,7 +119,10 @@ afterEach(() => {
 
 describe('开着同步：以后端那份为准，不闪出别的布局', () => {
   it('另一台设备清空后这台刷新：本地还是旧布局，也不先摆出旧的小组件', async () => {
-    writeLocal([{ key: 'clock', span: 6 }, { key: 'todo', span: 4 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+      { key: 'todo', span: 4 },
+    ])
     const wrapper = mountDashboard()
     await flushPromises()
     expect(shown(wrapper)).toStrictEqual([])
@@ -115,9 +135,15 @@ describe('开着同步：以后端那份为准，不闪出别的布局', () => {
   })
 
   it('后端那份写回本地：下次刷新（含关掉同步之后）首屏就是最新布局', async () => {
-    writeLocal([{ key: 'clock', span: 6 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+    ])
     const wrapper = mountDashboard()
-    remote.resolve?.({ items: [{ key: 'todo', span: 4 }] })
+    remote.resolve?.({
+      items: [
+        { key: 'todo', span: 4 },
+      ],
+    })
     await flushPromises()
 
     expect(shown(wrapper)).toStrictEqual(['todo'])
@@ -138,7 +164,9 @@ describe('开着同步：以后端那份为准，不闪出别的布局', () => {
 
   it('后端迟迟不回：1.5s 后先按本地摆出来，回来后再换成后端那份', async () => {
     vi.useFakeTimers()
-    writeLocal([{ key: 'clock', span: 6 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+    ])
     const wrapper = mountDashboard()
     await flushPromises()
 
@@ -149,16 +177,26 @@ describe('开着同步：以后端那份为准，不闪出别的布局', () => {
     await flushPromises()
     expect(shown(wrapper)).toStrictEqual(['clock'])
 
-    remote.resolve?.({ items: [{ key: 'todo', span: 4 }] })
+    remote.resolve?.({
+      items: [
+        { key: 'todo', span: 4 },
+      ],
+    })
     await flushPromises()
     expect(shown(wrapper)).toStrictEqual(['todo'])
     wrapper.unmount()
   })
 
   it('其它设备推来的布局当场采用并写回本地，空布局同样照办', async () => {
-    writeLocal([{ key: 'clock', span: 6 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+    ])
     const wrapper = mountDashboard()
-    remote.resolve?.({ items: [{ key: 'clock', span: 6 }] })
+    remote.resolve?.({
+      items: [
+        { key: 'clock', span: 6 },
+      ],
+    })
     await flushPromises()
 
     remote.listener?.({ items: [] })
@@ -170,7 +208,10 @@ describe('开着同步：以后端那份为准，不闪出别的布局', () => {
   })
 
   it('编辑中途后端那份才回来，不覆盖用户的改动', async () => {
-    writeLocal([{ key: 'clock', span: 6 }, { key: 'todo', span: 4 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+      { key: 'todo', span: 4 },
+    ])
     vi.useFakeTimers()
     const wrapper = mountDashboard()
     vi.advanceTimersByTime(1500)
@@ -178,7 +219,11 @@ describe('开着同步：以后端那份为准，不闪出别的布局', () => {
     await startCustomizing(wrapper)
     await button(wrapper, 'workbench.widgets.clear').trigger('click')
 
-    remote.resolve?.({ items: [{ key: 'welcome', span: 4 }] })
+    remote.resolve?.({
+      items: [
+        { key: 'welcome', span: 4 },
+      ],
+    })
     await flushPromises()
 
     expect(shown(wrapper)).toStrictEqual([])
@@ -189,7 +234,9 @@ describe('开着同步：以后端那份为准，不闪出别的布局', () => {
 describe('关着同步：本地就是事实源', () => {
   it('首屏直接按本地那份渲染，不等后端', async () => {
     useAppStore().widgetsSyncEnabled = false
-    writeLocal([{ key: 'clock', span: 6 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+    ])
     const wrapper = mountDashboard()
 
     expect(shown(wrapper)).toStrictEqual(['clock'])
@@ -218,7 +265,10 @@ describe('关着同步：本地就是事实源', () => {
 describe('清空小组件', () => {
   it('编辑时一键清空：当场变成空状态，点「完成」才落地成空布局', async () => {
     useAppStore().widgetsSyncEnabled = false
-    writeLocal([{ key: 'clock', span: 6 }, { key: 'todo', span: 4 }])
+    writeLocal([
+      { key: 'clock', span: 6 },
+      { key: 'todo', span: 4 },
+    ])
     const wrapper = mountDashboard()
     await startCustomizing(wrapper)
 

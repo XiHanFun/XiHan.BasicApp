@@ -71,7 +71,11 @@ export function provideChatImageGallery(messages: MaybeRefOrGetter<readonly Chat
   // 地址还没换到的那张先不进（它的缩略图也还没出来，点不到）
   const items = computed<ChatGalleryItem[]>(() => entries.value.flatMap((entry, index) => {
     const src = urls.value[index]
-    return src ? [{ key: entry.key, src, alt: entry.alt }] : []
+    return src
+      ? [
+          { key: entry.key, src, alt: entry.alt },
+        ]
+      : []
   }))
   const open = ref(false)
   const position = ref(0)
@@ -85,7 +89,9 @@ export function provideChatImageGallery(messages: MaybeRefOrGetter<readonly Chat
     },
   })
   watch(items, (list) => {
-    const found = current ? list.findIndex(item => item.key === current) : -1
+    const found = current
+      ? list.findIndex(item => item.key === current)
+      : -1
     if (found >= 0)
       position.value = found
   })

@@ -240,7 +240,12 @@ describe('setBranding 的逐字段语义', () => {
 
     store.setBranding({})
 
-    expect([store.brandTitle, store.brandSubtitle, store.brandDescription, store.brandLogo])
+    expect([
+      store.brandTitle,
+      store.brandSubtitle,
+      store.brandDescription,
+      store.brandLogo,
+    ])
       .toEqual(['T', 'S', 'D', '/L.png'])
   })
 })

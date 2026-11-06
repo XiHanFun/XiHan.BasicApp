@@ -7,7 +7,9 @@ import { ApiError } from '~/request'
 type UserRow = ResponseOf<'users.list'>['items'][number]
 
 function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
+  return error instanceof ApiError
+    ? error.detail
+    : String(error)
 }
 
 function same(left: MemberDataScopeDraft, right: MemberDataScopeDraft): boolean {
@@ -40,12 +42,23 @@ export function useUserDataScope() {
     original.value = { dataScope: null, departments: [] }
     loading.value = true
     try {
-      const [setting, departments] = await Promise.all([userDataScopesApi.get({ userId: row.id }), tree.value.length > 0 ? Promise.resolve(null) : departmentsApi.tree({})])
+      const [setting, departments] = await Promise.all([
+        userDataScopesApi.get({ userId: row.id }),
+        tree.value.length > 0
+          ? Promise.resolve(null)
+          : departmentsApi.tree({}),
+      ])
       if (departments)
         tree.value = [...departments.items]
-      const loaded: MemberDataScopeDraft = { dataScope: setting.dataScope ?? null, departments: setting.departments.map(d => ({ departmentId: d.departmentId, includeChildren: d.includeChildren ?? false })) }
+      const loaded: MemberDataScopeDraft = {
+        dataScope: setting.dataScope ?? null,
+        departments: setting.departments.map(d => ({ departmentId: d.departmentId, includeChildren: d.includeChildren ?? false })),
+      }
       draft.value = loaded
-      original.value = { ...loaded, departments: [...loaded.departments] }
+      original.value = {
+        ...loaded,
+        departments: [...loaded.departments],
+      }
     }
     catch (e) {
       error.value = describe(e)
@@ -61,8 +74,17 @@ export function useUserDataScope() {
       return false
     loading.value = true
     try {
-      await userDataScopesApi.set({ userId: target.id, dataScope: draft.value.dataScope, departments: draft.value.dataScope === 'Custom' ? draft.value.departments : [] })
-      original.value = { ...draft.value, departments: [...draft.value.departments] }
+      await userDataScopesApi.set({
+        userId: target.id,
+        dataScope: draft.value.dataScope,
+        departments: draft.value.dataScope === 'Custom'
+          ? draft.value.departments
+          : [],
+      })
+      original.value = {
+        ...draft.value,
+        departments: [...draft.value.departments],
+      }
       return true
     }
     finally {
@@ -70,5 +92,16 @@ export function useUserDataScope() {
     }
   }
 
-  return { open, user, loading, error, tree, draft, dirty, complete, start, save }
+  return {
+    open,
+    user,
+    loading,
+    error,
+    tree,
+    draft,
+    dirty,
+    complete,
+    start,
+    save,
+  }
 }

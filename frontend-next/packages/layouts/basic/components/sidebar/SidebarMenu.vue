@@ -24,9 +24,17 @@ const emit = defineEmits<{ menuUpdate: [key: string] }>()
 function toCollection(nodes: AppMenuOption[]): SideNavNode[] {
   return nodes.map<SideNavNode>(node => ({
     value: node.key,
-    label: typeof node.label === 'string' ? node.label : node.key,
-    ...(node.disabled ? { disabled: true } : {}),
-    ...(node.children?.length ? { children: toCollection(node.children) } : {}),
+    label: typeof node.label === 'string'
+      ? node.label
+      : node.key,
+    ...(node.disabled
+      ? { disabled: true }
+      : {}),
+    ...(node.children?.length
+      ? {
+          children: toCollection(node.children),
+        }
+      : {}),
   }))
 }
 

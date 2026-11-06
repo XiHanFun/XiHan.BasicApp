@@ -80,7 +80,9 @@ const CAPTCHA_INVALID = 'IDENTITY_VALIDATION_007'
 
 /** 提示用的文案：服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 // 键名对齐服务端 ResolveTwoFactorMethods 给出的方式标识：totp / email / phone
@@ -104,10 +106,16 @@ const formData = ref({
 
 const rules = computed<FormRules<typeof formData.value>>(() => ({
   username: [
-    { required: true, message: t('page.login.username_placeholder') },
+    {
+      required: true,
+      message: t('page.login.username_placeholder'),
+    },
   ],
   password: [
-    { required: true, message: t('page.login.password_placeholder') },
+    {
+      required: true,
+      message: t('page.login.password_placeholder'),
+    },
   ],
 }))
 
@@ -144,7 +152,9 @@ const OAUTH_ROW_MIN_WIDTH = 320
 const oauthRowRef = useTemplateRef('oauthRow')
 const { width: oauthRowWidth } = useElementSize(oauthRowRef)
 const oauthInlineCount = computed(() =>
-  oauthRowWidth.value >= OAUTH_ROW_MIN_WIDTH ? OAUTH_INLINE_COUNT : OAUTH_INLINE_COUNT_NARROW,
+  oauthRowWidth.value >= OAUTH_ROW_MIN_WIDTH
+    ? OAUTH_INLINE_COUNT
+    : OAUTH_INLINE_COUNT_NARROW,
 )
 const inlineOauthProviders = computed(() => oauthProviders.value.slice(0, oauthInlineCount.value))
 const moreOauthProviders = computed(() => oauthProviders.value.slice(oauthInlineCount.value))
@@ -224,8 +234,12 @@ function buildLoginParams() {
     username: formData.value.username,
     password: formData.value.password,
     captchaId: carryCaptcha ? captcha.value?.captchaId : undefined,
-    captchaCode: carryCaptcha ? captchaCodeStr.value || undefined : undefined,
-    twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
+    captchaCode: carryCaptcha
+      ? captchaCodeStr.value || undefined
+      : undefined,
+    twoFactorCode: tfStage.value === 'code-input'
+      ? twoFactorCode.value.join('')
+      : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     twoFactorTicket: twoFactorTicket.value || undefined,
     deviceId: cachedDeviceId.value || undefined,

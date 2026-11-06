@@ -20,12 +20,17 @@ function controlIdOf(wrapper: ReturnType<typeof mount>): string {
 }
 
 function nodesWithId(id: string): Element[] {
-  return [...document.querySelectorAll(`[id="${id}"]`)]
+  return [
+    ...document.querySelectorAll(`[id="${id}"]`),
+  ]
 }
 
 function mountField(control: () => unknown) {
   return mount({
-    render: () => h(XhFieldRoot, null, () => [h(XhFieldLabel, null, () => '名称'), control()]),
+    render: () => h(XhFieldRoot, null, () => [
+      h(XhFieldLabel, null, () => '名称'),
+      control(),
+    ]),
   }, { attachTo: document.body })
 }
 

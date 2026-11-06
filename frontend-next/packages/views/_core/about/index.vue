@@ -94,10 +94,26 @@ const coreCapabilities = computed(() => [
 ])
 
 const governanceItems = computed(() => [
-  { icon: 'lucide:activity', label: t('component.about.feature_stability_label'), value: t('component.about.feature_stability_value') },
-  { icon: 'lucide:database', label: t('component.about.feature_data_label'), value: '.NET + SqlSugar' },
-  { icon: 'lucide:globe', label: t('component.about.feature_i18n_label'), value: t('component.about.feature_i18n_value') },
-  { icon: 'lucide:layers', label: t('component.about.feature_architecture_label'), value: t('component.about.feature_architecture_value') },
+  {
+    icon: 'lucide:activity',
+    label: t('component.about.feature_stability_label'),
+    value: t('component.about.feature_stability_value'),
+  },
+  {
+    icon: 'lucide:database',
+    label: t('component.about.feature_data_label'),
+    value: '.NET + SqlSugar',
+  },
+  {
+    icon: 'lucide:globe',
+    label: t('component.about.feature_i18n_label'),
+    value: t('component.about.feature_i18n_value'),
+  },
+  {
+    icon: 'lucide:layers',
+    label: t('component.about.feature_architecture_label'),
+    value: t('component.about.feature_architecture_value'),
+  },
 ])
 
 const backendDependencies = ref<ResponseOf<'server.packages'>['items']>([])
@@ -110,7 +126,9 @@ async function fetchBackendDependencies() {
     backendDependencies.value = (await serverApi.packages({})).items
   }
   catch (error) {
-    toast.danger((error instanceof ApiError ? error.detail : (error as Error).message) || t('common.messages.load_failed'))
+    toast.danger((error instanceof ApiError
+      ? error.detail
+      : (error as Error).message) || t('common.messages.load_failed'))
   }
 }
 

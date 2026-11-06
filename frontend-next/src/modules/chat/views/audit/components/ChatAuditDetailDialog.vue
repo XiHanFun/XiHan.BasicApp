@@ -31,26 +31,68 @@ const show = defineModel<boolean>('show', { default: false })
 const { t } = useI18n()
 
 function text(value: null | number | string | undefined): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 function yesNo(value: boolean, at?: null | string): string {
   if (!value)
     return t('common.statuses.no')
-  return at ? `${t('common.statuses.yes')}（${formatDate(at)}）` : t('common.statuses.yes')
+  return at
+    ? `${t('common.statuses.yes')}（${formatDate(at)}）`
+    : t('common.statuses.yes')
 }
 
 const attachmentColumns = computed<XDataTableColumn<ChatMessageAttachment>[]>(() => [
-  { key: 'fileName', title: t('chat.audit.file_name'), minWidth: 200, ellipsis: true },
-  { key: 'fileSize', title: t('chat.audit.file_size'), width: 110, render: row => formatFileSize(row.fileSize) || '-' },
-  { key: 'durationSeconds', title: t('chat.audit.duration'), width: 100, render: row => (row.durationSeconds == null ? '-' : `${row.durationSeconds}"`) },
-  { key: 'fileId', title: t('chat.audit.file_id'), minWidth: 280, ellipsis: true },
+  {
+    key: 'fileName',
+    title: t('chat.audit.file_name'),
+    minWidth: 200,
+    ellipsis: true,
+  },
+  {
+    key: 'fileSize',
+    title: t('chat.audit.file_size'),
+    width: 110,
+    render: row => formatFileSize(row.fileSize) || '-',
+  },
+  {
+    key: 'durationSeconds',
+    title: t('chat.audit.duration'),
+    width: 100,
+    render: row => (row.durationSeconds == null
+      ? '-'
+      : `${row.durationSeconds}"`),
+  },
+  {
+    key: 'fileId',
+    title: t('chat.audit.file_id'),
+    minWidth: 280,
+    ellipsis: true,
+  },
 ])
 
 const reactionColumns = computed<XDataTableColumn<ChatReactionItem>[]>(() => [
-  { key: 'emoji', title: t('chat.audit.reaction_emoji'), width: 90, align: 'center' },
-  { key: 'userName', title: t('chat.audit.reaction_user'), minWidth: 140, ellipsis: true, render: row => text(row.userName) },
-  { key: 'userId', title: t('chat.audit.user_id'), minWidth: 280, ellipsis: true },
+  {
+    key: 'emoji',
+    title: t('chat.audit.reaction_emoji'),
+    width: 90,
+    align: 'center',
+  },
+  {
+    key: 'userName',
+    title: t('chat.audit.reaction_user'),
+    minWidth: 140,
+    ellipsis: true,
+    render: row => text(row.userName),
+  },
+  {
+    key: 'userId',
+    title: t('chat.audit.user_id'),
+    minWidth: 280,
+    ellipsis: true,
+  },
 ])
 </script>
 

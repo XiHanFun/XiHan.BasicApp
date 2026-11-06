@@ -54,7 +54,10 @@ const themeModes = [
 const themeColorGroups = THEME_COLOR_GROUPS
 const allPresetColors = ALL_THEME_COLORS
 
-const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
+const localizedModes = computed(() => themeModes.map(m => ({
+  ...m,
+  label: t(m.labelKey),
+})))
 
 /**
  * 模式切换：change 事件不带坐标，取被点中的模式卡片矩形中心作为扩散起点，
@@ -77,8 +80,14 @@ function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
 
 // 界面密度：两档对应 XiHan.UI 的 data-density，控件 28/32/36 与 24/28/32
 const densityOptions = computed<Array<{ value: UiDensity, label: string }>>(() => [
-  { value: UI_DENSITY_COMFORTABLE, label: t('preference.appearance.density.comfortable') },
-  { value: UI_DENSITY_COMPACT, label: t('preference.appearance.density.compact') },
+  {
+    value: UI_DENSITY_COMFORTABLE,
+    label: t('preference.appearance.density.comfortable'),
+  },
+  {
+    value: UI_DENSITY_COMPACT,
+    label: t('preference.appearance.density.compact'),
+  },
 ])
 
 // 图表配色：四套方案对应组件库的 data-xh-chart-palette。卡片里的色点取八个分类色槽，色点容器写上
@@ -105,18 +114,54 @@ function onChartPaletteChange(value: string | null) {
 }
 
 const transitionItems = computed(() => [
-  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
-  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
-  { value: 'slide-left', label: t('preference.general.animation.slide_left') },
-  { value: 'slide-right', label: t('preference.general.animation.slide_right') },
-  { value: 'slide-up', label: t('preference.general.animation.slide_up') },
-  { value: 'slide-down', label: t('preference.general.animation.slide_down') },
-  { value: 'skew-slide', label: t('preference.general.animation.skew_slide') },
-  { value: 'fade', label: t('preference.general.animation.fade') },
-  { value: 'zoom-fade', label: t('preference.general.animation.zoom_fade') },
-  { value: 'blur-fade', label: t('preference.general.animation.blur_fade') },
-  { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
-  { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
+  {
+    value: 'scale-up',
+    label: t('preference.general.animation.scale_up'),
+  },
+  {
+    value: 'scale-down',
+    label: t('preference.general.animation.scale_down'),
+  },
+  {
+    value: 'slide-left',
+    label: t('preference.general.animation.slide_left'),
+  },
+  {
+    value: 'slide-right',
+    label: t('preference.general.animation.slide_right'),
+  },
+  {
+    value: 'slide-up',
+    label: t('preference.general.animation.slide_up'),
+  },
+  {
+    value: 'slide-down',
+    label: t('preference.general.animation.slide_down'),
+  },
+  {
+    value: 'skew-slide',
+    label: t('preference.general.animation.skew_slide'),
+  },
+  {
+    value: 'fade',
+    label: t('preference.general.animation.fade'),
+  },
+  {
+    value: 'zoom-fade',
+    label: t('preference.general.animation.zoom_fade'),
+  },
+  {
+    value: 'blur-fade',
+    label: t('preference.general.animation.blur_fade'),
+  },
+  {
+    value: 'rotate-fade',
+    label: t('preference.general.animation.rotate_fade'),
+  },
+  {
+    value: 'flip-fade',
+    label: t('preference.general.animation.flip_fade'),
+  },
 ])
 
 /**

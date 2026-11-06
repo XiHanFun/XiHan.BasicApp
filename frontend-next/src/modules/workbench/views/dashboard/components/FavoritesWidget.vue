@@ -28,14 +28,18 @@ const QUICK_PALETTE = [
 
 /** 收藏标题多为 i18n key（如 menu.user），渲染时翻译；非 key 原样展示 */
 function displayTitle(title: string) {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 function resolveIcon(icon?: string | null) {
   if (!icon) {
     return 'lucide:bookmark'
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 const links = computed(() =>

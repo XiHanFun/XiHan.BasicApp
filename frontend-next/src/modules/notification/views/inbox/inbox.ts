@@ -27,7 +27,12 @@ export function inboxRequest(query: InboxQuery, size: number = INBOX_PAGE_SIZE):
     filters.push({ field: 'notificationType', operator: 'eq', value: query.type })
   if (query.scope === 'pending')
     filters.push({ field: 'pending', operator: 'eq', value: 'true' })
-  return { page: { index: query.page, size }, filters, sorts: [], keyword: null }
+  return {
+    page: { index: query.page, size },
+    filters,
+    sorts: [],
+    keyword: null,
+  }
 }
 
 export function loadInbox(query: InboxQuery): Promise<InboxPage> {
@@ -78,12 +83,16 @@ export function toHeaderItem(item: InboxItem): NotificationItem {
 
 /** 标为已读 */
 export async function markRead(id: string): Promise<void> {
-  throwOnFailed(await inboxApi.markRead({ ids: [id] }))
+  throwOnFailed(await inboxApi.markRead({
+    ids: [id],
+  }))
 }
 
 /** 从本人收件箱删除（通知本身不受影响） */
 export async function deleteItem(id: string): Promise<void> {
-  throwOnFailed(await inboxApi.delete({ ids: [id] }))
+  throwOnFailed(await inboxApi.delete({
+    ids: [id],
+  }))
 }
 
 export async function confirmItem(id: string): Promise<void> {
@@ -112,7 +121,9 @@ export function resolveLink(link: null | string | undefined): { kind: 'external'
     return { kind: 'route', path: value }
   try {
     const url = new URL(value)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? { kind: 'external', url: url.href } : null
+    return url.protocol === 'http:' || url.protocol === 'https:'
+      ? { kind: 'external', url: url.href }
+      : null
   }
   catch {
     return null

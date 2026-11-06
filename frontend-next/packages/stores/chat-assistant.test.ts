@@ -12,8 +12,23 @@ async function load(): Promise<typeof import('./chat-assistant')> {
 
 function createFakeProvider(tag: string): ChatAssistantProvider {
   return {
-    availableAssistants: () => Promise.resolve([{ id: tag, code: tag, name: tag, avatar: null, description: null, isDefault: false }]),
-    openConversation: assistantId => Promise.resolve({ conversationId: tag, assistantId, assistantName: tag, avatar: null, created: true }),
+    availableAssistants: () => Promise.resolve([
+      {
+        id: tag,
+        code: tag,
+        name: tag,
+        avatar: null,
+        description: null,
+        isDefault: false,
+      },
+    ]),
+    openConversation: assistantId => Promise.resolve({
+      conversationId: tag,
+      assistantId,
+      assistantName: tag,
+      avatar: null,
+      created: true,
+    }),
     reply: () => Promise.resolve({ messageId: tag }),
   }
 }

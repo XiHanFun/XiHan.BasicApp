@@ -22,7 +22,9 @@ export function workflowProgressTone(progress?: WorkflowProgress | null): Tone {
     case 'Faulted':
       return 'danger'
     case 'Completed':
-      return progress.outcome === 'rejected' ? 'danger' : 'success'
+      return progress.outcome === 'rejected'
+        ? 'danger'
+        : 'success'
     default:
       return 'neutral'
   }

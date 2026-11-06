@@ -60,7 +60,9 @@ watch(designerRef, (designer) => {
   if (!designer)
     return
   designerSettings.attach(designer)
-  designer.extensions = props.hostExtension ? [props.hostExtension] : undefined
+  designer.extensions = props.hostExtension
+    ? [props.hostExtension]
+    : undefined
   void initialize()
 }, { flush: 'post' })
 
@@ -107,8 +109,12 @@ async function applyDataSource(): Promise<void> {
     return
   }
   const source = getPrintDataSource(code)
-  designer.fields = source ? toPrintDataFields(source.fields) : undefined
-  const sample = source ? normalizePrintSampleData(await createDefaultPrintSampleData(code)).records[0] : undefined
+  designer.fields = source
+    ? toPrintDataFields(source.fields)
+    : undefined
+  const sample = source
+    ? normalizePrintSampleData(await createDefaultPrintSampleData(code)).records[0]
+    : undefined
   designer.sampleData = sample
   designer.data = sample
 }
@@ -178,7 +184,13 @@ function refreshCommands(): void {
   designerRef.value?.requestUpdate()
 }
 
-defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
+defineExpose({
+  getJson,
+  markSaved,
+  preview,
+  refreshCommands,
+  validate,
+})
 </script>
 
 <template>

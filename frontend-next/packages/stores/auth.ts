@@ -73,7 +73,9 @@ function toPageChallenge(twoFactor: TwoFactorChallenge): LoginResponse {
 
 /** 回跳只认站内路径（防开放重定向） */
 function safeRedirect(redirect: string | undefined): string {
-  return redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
+  return redirect && redirect.startsWith('/') && !redirect.startsWith('//')
+    ? redirect
+    : '/'
 }
 
 // ==================== 第三方登录 / 绑定的发起记录 ====================
@@ -117,7 +119,14 @@ export function takeOAuthPending(): OAuthPending | null {
       return null
     if (Date.now() - parsed.startedAt > OAUTH_PENDING_TTL_MS)
       return null
-    return { mode: parsed.mode, provider: parsed.provider, startedAt: parsed.startedAt, ...(typeof parsed.redirect === 'string' ? { redirect: parsed.redirect } : {}) }
+    return {
+      mode: parsed.mode,
+      provider: parsed.provider,
+      startedAt: parsed.startedAt,
+      ...(typeof parsed.redirect === 'string'
+        ? { redirect: parsed.redirect }
+        : {}),
+    }
   }
   catch {
     return null
@@ -146,7 +155,9 @@ function readSession(): Session | null {
     if (!raw)
       return null
     const parsed = JSON.parse(raw) as Partial<Session>
-    return typeof parsed.accessToken === 'string' && typeof parsed.refreshToken === 'string' && parsed.user ? (parsed as Session) : null
+    return typeof parsed.accessToken === 'string' && typeof parsed.refreshToken === 'string' && parsed.user
+      ? (parsed as Session)
+      : null
   }
   catch {
     return null
@@ -210,7 +221,13 @@ export const useAuthStore = defineStore('auth', () => {
         // 没带码：登录页选好邮箱 / 短信方式或点重发，凭票据请服务端发码（认证器不发码，登录页不走这里）
         if (!params.twoFactorCode) {
           await authApi.sendTwoFactorCode({ ticket: params.twoFactorTicket, method }, { anonymous: true })
-          return { requiresTwoFactor: true, twoFactorMethod: params.twoFactorMethod, codeSent: true, twoFactorTicket: params.twoFactorTicket, token: null }
+          return {
+            requiresTwoFactor: true,
+            twoFactorMethod: params.twoFactorMethod,
+            codeSent: true,
+            twoFactorTicket: params.twoFactorTicket,
+            token: null,
+          }
         }
         const token = await authApi.verifyTwoFactor({ ticket: params.twoFactorTicket, method, code: params.twoFactorCode }, { anonymous: true })
         await afterLogin(token, redirect)
@@ -244,14 +261,25 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** 第三方登录（4.x 同为整页跳去发起）：带上登录页填的注册地租户（平台账号留空）；登录页的回跳地址随发起记录带回来 */
   function startOAuthLogin(provider: OAuthProviderItem, options: { tenant?: string, redirect?: string } = {}): void {
-    writeOAuthPending({ mode: 'login', provider: provider.name.toLowerCase(), startedAt: Date.now(), ...(options.redirect ? { redirect: options.redirect } : {}) })
+    writeOAuthPending({
+      mode: 'login',
+      provider: provider.name.toLowerCase(),
+      startedAt: Date.now(),
+      ...(options.redirect
+        ? { redirect: options.redirect }
+        : {}),
+    })
     window.location.assign(oauthChallengeUrl(provider.name, options.tenant))
   }
 
   /** 绑定第三方账号（个人中心发起，4.x 同为先换绑定票据再跳）：先领本人的绑定意图、拿到后端给的发起地址再整页跳去，回调页由本人调 `profile.link-external` 确认 */
   async function startOAuthBind(provider: string): Promise<void> {
     const url = await useAppContext().apis.beginOAuthBindApi(provider)
-    writeOAuthPending({ mode: 'bind', provider: provider.toLowerCase(), startedAt: Date.now() })
+    writeOAuthPending({
+      mode: 'bind',
+      provider: provider.toLowerCase(),
+      startedAt: Date.now(),
+    })
     window.location.assign(endpointUrl(url))
   }
 
@@ -272,12 +300,22 @@ export const useAuthStore = defineStore('auth', () => {
    * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走（4.x 的验证码登录跳过双因素）
    */
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
-    await finishOrChallenge(() => authApi.loginByCode({ channel: 'Phone', target: params.phone.trim(), code: params.code, tenant: params.tenant?.trim() || null }, { anonymous: true }), redirect)
+    await finishOrChallenge(() => authApi.loginByCode({
+      channel: 'Phone',
+      target: params.phone.trim(),
+      code: params.code,
+      tenant: params.tenant?.trim() || null,
+    }, { anonymous: true }), redirect)
   }
 
   /** 邮箱验证码登录（同上） */
   async function loginByEmailCode(params: EmailLoginParams, redirect?: string): Promise<void> {
-    await finishOrChallenge(() => authApi.loginByCode({ channel: 'Email', target: params.email.trim(), code: params.code, tenant: params.tenant?.trim() || null }, { anonymous: true }), redirect)
+    await finishOrChallenge(() => authApi.loginByCode({
+      channel: 'Email',
+      target: params.email.trim(),
+      code: params.code,
+      tenant: params.tenant?.trim() || null,
+    }, { anonymous: true }), redirect)
   }
 
   /** 第三方登录与验证码登录的共同收尾：有令牌即存会话、跳回跳地址；是双因素挑战即记下挑战、带着回跳地址回登录页 */
@@ -302,7 +340,12 @@ export const useAuthStore = defineStore('auth', () => {
     pendingTwoFactor.value = challenge
     const target = safeRedirect(redirect)
     const router = await useAppContext().getRouter()
-    await router.replace({ path: LOGIN_PATH, query: target === '/' ? {} : { redirect: target } })
+    await router.replace({
+      path: LOGIN_PATH,
+      query: target === '/'
+        ? {}
+        : { redirect: target },
+    })
   }
 
   /** 取走（并清除）第三方登录或验证码登录留下的双因素挑战 */
@@ -381,8 +424,12 @@ export const useAuthStore = defineStore('auth', () => {
     catch {
       // 路由走不通也要回到登录页：整页跳过去
       const base = import.meta.env.VITE_BASE || '/'
-      const normalizedBase = base.endsWith('/') ? base : `${base}/`
-      window.location.assign(import.meta.env.VITE_ROUTER_HISTORY === 'history' ? LOGIN_PATH : `${normalizedBase}#${LOGIN_PATH}`)
+      const normalizedBase = base.endsWith('/')
+        ? base
+        : `${base}/`
+      window.location.assign(import.meta.env.VITE_ROUTER_HISTORY === 'history'
+        ? LOGIN_PATH
+        : `${normalizedBase}#${LOGIN_PATH}`)
     }
   }
 

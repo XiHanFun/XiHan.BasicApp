@@ -90,10 +90,14 @@ const { attrs, controlAttrs } = useControlAttrs()
 const isMultiline = computed(() => props.type === 'textarea')
 
 /** 交给根部件的原生 type：多行宿主不发 */
-const fieldType = computed<TextFieldType | undefined>(() => (props.type === 'textarea' ? undefined : props.type))
+const fieldType = computed<TextFieldType | undefined>(() => (props.type === 'textarea'
+  ? undefined
+  : props.type))
 
 /** 多行宿主的行数：没写就不发这个键，免得盖掉组件库按 autosize 区间给的起始行数 */
-const textareaAttrs = computed(() => (props.rows === undefined ? {} : { rows: props.rows }))
+const textareaAttrs = computed(() => (props.rows === undefined
+  ? {}
+  : { rows: props.rows }))
 
 const controlRef = ref<InstanceType<typeof XhPasswordInputControl> | InstanceType<typeof XhTextFieldControl> | null>(null)
 

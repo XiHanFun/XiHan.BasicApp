@@ -13,8 +13,17 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
-      return new Response(JSON.stringify(responses[calls.length - 1] ?? {}), { status: 200, headers: { 'Content-Type': 'application/json' } })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
+      return new Response(JSON.stringify(responses[calls.length - 1] ?? {}), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }) as unknown as typeof fetch,
   })
   return calls
@@ -36,8 +45,15 @@ describe('版本管理：列表筛选', () => {
     const request = toPageRequest({
       page: 1,
       pageSize: 20,
-      filters: { keyword: ' node ', appVersion: '6.0.0', dbVersion: ' 5.9.0 ', isUpgrading: 'true' },
-      sorts: [{ field: 'upgradedAt', order: 'desc' }],
+      filters: {
+        keyword: ' node ',
+        appVersion: '6.0.0',
+        dbVersion: ' 5.9.0 ',
+        isUpgrading: 'true',
+      },
+      sorts: [
+        { field: 'upgradedAt', order: 'desc' },
+      ],
     }, VERSION_QUERY)
     expect(request).toEqual({
       page: { index: 1, size: 20 },
@@ -47,12 +63,18 @@ describe('版本管理：列表筛选', () => {
         { field: 'dbVersion', operator: 'eq', value: '5.9.0' },
         { field: 'isUpgrading', operator: 'eq', value: 'true' },
       ],
-      sorts: [{ field: 'upgradedAt', descending: true }],
+      sorts: [
+        { field: 'upgradedAt', descending: true },
+      ],
     })
   })
 
   it('没有登记的搜索字段直接报错，而不是静默丢掉条件', () => {
-    expect(() => toPageRequest({ page: 1, pageSize: 20, filters: { upgradeNode: 'a' } }, VERSION_QUERY)).toThrow()
+    expect(() => toPageRequest({
+      page: 1,
+      pageSize: 20,
+      filters: { upgradeNode: 'a' },
+    }, VERSION_QUERY)).toThrow()
   })
 })
 
@@ -62,17 +84,44 @@ describe('版本管理：文案', () => {
     expect(databaseLabel(t, 'tenant_acme')).toBe('tenant_acme')
     expect(upgradingLabel(t, true)).toBe('maintenance.versions.upgrading')
     expect(upgradingLabel(t, false)).toBe('maintenance.versions.normal')
-    expect([upgradingTone(true), upgradingTone(false)]).toEqual(['warning', 'success'])
+    expect([
+      upgradingTone(true),
+      upgradingTone(false),
+    ]).toEqual(['warning', 'success'])
     expect(upgradingOptions(t).map(option => option.value)).toEqual(['true', 'false'])
   })
 })
 
 describe('版本管理：资源', () => {
   it('分页走 POST versions:list，结果换成 SchemaPage 的分页；详情按库名取', async () => {
-    const calls = stub({ items: [ROW], total: 1, page: { index: 1, size: 20 } }, ROW)
-    const result = await versionResource(t).page!({ page: 1, pageSize: 20, filters: {}, conditionFilters: [], sorts: [] })
-    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/versions:list', body: { page: { index: 1, size: 20 }, filters: [], sorts: [], keyword: null } })
-    expect(result.items).toEqual([{ ...ROW, databaseName: databaseLabel(t, ROW.database) }])
+    const calls = stub({
+      items: [ROW],
+      total: 1,
+      page: { index: 1, size: 20 },
+    }, ROW)
+    const result = await versionResource(t).page!({
+      page: 1,
+      pageSize: 20,
+      filters: {},
+      conditionFilters: [],
+      sorts: [],
+    })
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/versions:list',
+      body: {
+        page: { index: 1, size: 20 },
+        filters: [],
+        sorts: [],
+        keyword: null,
+      },
+    })
+    expect(result.items).toEqual([
+      {
+        ...ROW,
+        databaseName: databaseLabel(t, ROW.database),
+      },
+    ])
     expect(result.page.totalCount).toBe(1)
     expect(await getVersion('tenant_acme')).toEqual(ROW)
     expect(calls[1]).toMatchObject({ method: 'GET', url: '/api/versions/tenant_acme' })

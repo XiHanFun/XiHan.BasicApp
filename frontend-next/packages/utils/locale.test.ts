@@ -9,7 +9,10 @@ import { DEFAULT_LOCALE, FALLBACK_LOCALE, LOCALE_KEY } from '~/constants'
 import { resolveBrowserLocale, resolveInitialLocale } from './locale'
 
 function stubBrowserLanguages(languages: string[] | undefined): void {
-  Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => languages })
+  Object.defineProperty(window.navigator, 'languages', {
+    configurable: true,
+    get: () => languages,
+  })
 }
 
 afterEach(() => {

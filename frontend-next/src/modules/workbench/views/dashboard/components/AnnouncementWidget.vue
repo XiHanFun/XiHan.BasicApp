@@ -37,7 +37,10 @@ const TYPE_META: Record<string, TypeMeta> = {
 
 function metaOf(type?: string | null): TypeMeta {
   const meta = (type && TYPE_META[type]) || DEFAULT_META
-  return { ...meta, label: t(meta.label) }
+  return {
+    ...meta,
+    label: t(meta.label),
+  }
 }
 
 function slideStyle(item: Announcement) {

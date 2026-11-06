@@ -12,7 +12,14 @@ export type FieldTargetKind = FieldRuleRow['targetKind']
 export type FieldRuleStatus = FieldRuleRow['status']
 type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
 
-export const FIELD_MASK_STRATEGIES: readonly FieldMaskStrategy[] = ['None', 'Hidden', 'FullMask', 'PartialMask', 'Hash', 'Redact']
+export const FIELD_MASK_STRATEGIES: readonly FieldMaskStrategy[] = [
+  'None',
+  'Hidden',
+  'FullMask',
+  'PartialMask',
+  'Hash',
+  'Redact',
+]
 export const FIELD_TARGET_KINDS: readonly FieldTargetKind[] = ['Role', 'User', 'Department']
 
 /** 部分脱敏保留位数上限，与后端一致 */
@@ -41,7 +48,19 @@ export interface FieldRuleForm {
 }
 
 function emptyForm(): FieldRuleForm {
-  return { targetKind: 'Role', targetId: '', entity: '', field: '', strategy: 'Hidden', keepHead: 3, keepTail: 4, replacement: '', isEditable: false, status: 'Active', remark: '' }
+  return {
+    targetKind: 'Role',
+    targetId: '',
+    entity: '',
+    field: '',
+    strategy: 'Hidden',
+    keepHead: 3,
+    keepTail: 4,
+    replacement: '',
+    isEditable: false,
+    status: 'Active',
+    remark: '',
+  }
 }
 
 /** 只提交当前读取方式用得到的参数（4.x 的 buildDefinition）；明文规则一律只读 */
@@ -55,7 +74,9 @@ export function toDefinition(form: FieldRuleForm): Omit<RequestOf<'field-securit
     strategy: form.strategy,
     keepHead: partial ? form.keepHead : null,
     keepTail: partial ? form.keepTail : null,
-    replacement: form.strategy === 'Redact' ? (form.replacement.trim() || null) : null,
+    replacement: form.strategy === 'Redact'
+      ? (form.replacement.trim() || null)
+      : null,
     isEditable: form.strategy !== 'None' && form.isEditable,
     remark: form.remark.trim() || null,
   }
@@ -63,7 +84,20 @@ export function toDefinition(form: FieldRuleForm): Omit<RequestOf<'field-securit
 
 /** 一条规则的整体修改请求：启停也走它（后端是整体覆盖） */
 function updateRequest(row: FieldRuleRow, status: FieldRuleStatus): RequestOf<'field-security.update'> {
-  return { id: row.id, targetKind: row.targetKind, targetId: row.targetId, entity: row.entity, field: row.field, strategy: row.strategy, keepHead: row.keepHead, keepTail: row.keepTail, replacement: row.replacement, isEditable: row.isEditable, status, remark: row.remark }
+  return {
+    id: row.id,
+    targetKind: row.targetKind,
+    targetId: row.targetId,
+    entity: row.entity,
+    field: row.field,
+    strategy: row.strategy,
+    keepHead: row.keepHead,
+    keepTail: row.keepTail,
+    replacement: row.replacement,
+    isEditable: row.isEditable,
+    status,
+    remark: row.remark,
+  }
 }
 
 /**
@@ -73,12 +107,25 @@ function updateRequest(row: FieldRuleRow, status: FieldRuleStatus): RequestOf<'f
 export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await fieldSecurityApi.list(toPageRequest(params, { multiples: ['entity', 'targetKind', 'strategy', 'status'] })),
+      await fieldSecurityApi.list(toPageRequest(params, {
+        multiples: [
+          'entity',
+          'targetKind',
+          'strategy',
+          'status',
+        ],
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await fieldSecurityApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await fieldSecurityApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const row = await fieldSecurityApi.get({ id: String(id) })
+      const row = await fieldSecurityApi.get({
+        id: String(id),
+      })
       return fieldSecurityApi.update(updateRequest(row, enabled ? 'Active' : 'Disabled'))
     },
   }
@@ -88,8 +135,19 @@ export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
 export function flattenDepartments(nodes: readonly DepartmentNode[], path: string[] = []): TargetOption[] {
   return nodes.flatMap((node) => {
     const trail = [...path, node.department.name]
-    const self = node.department.status === 'Active' ? [{ value: node.department.id, label: node.department.name, description: trail.join(' / ') }] : []
-    return [...self, ...flattenDepartments(node.children, trail)]
+    const self = node.department.status === 'Active'
+      ? [
+          {
+            value: node.department.id,
+            label: node.department.name,
+            description: trail.join(' / '),
+          },
+        ]
+      : []
+    return [
+      ...self,
+      ...flattenDepartments(node.children, trail),
+    ]
   })
 }
 
@@ -98,8 +156,12 @@ export function messageKeys(messages: unknown, prefix = ''): string[] {
   if (!messages || typeof messages !== 'object')
     return []
   return Object.entries(messages as Record<string, unknown>).flatMap(([key, value]) => {
-    const path = prefix ? `${prefix}.${key}` : key
-    return typeof value === 'string' ? [path] : messageKeys(value, path)
+    const path = prefix
+      ? `${prefix}.${key}`
+      : key
+    return typeof value === 'string'
+      ? [path]
+      : messageKeys(value, path)
   })
 }
 
@@ -120,12 +182,19 @@ export function fieldTitleKey(titleKey: string, name: string, keys: readonly str
     return titleKey
   const snake = snakeOf(name)
   const namespace = `${titleKey.split('.').slice(0, 2).join('.')}.`
-  const tails = new Set([snake, `col_${snake}`, `detail_${snake}`, `form_${snake}`])
+  const tails = new Set([
+    snake,
+    `col_${snake}`,
+    `detail_${snake}`,
+    `form_${snake}`,
+  ])
   const sibling = keys.find(key => key.startsWith(namespace) && tails.has(key.slice(key.lastIndexOf('.') + 1)))
   if (sibling)
     return sibling
   const common = `${COMMON_FIELD_PREFIX}${snake}`
-  return known.has(common) ? common : null
+  return known.has(common)
+    ? common
+    : null
 }
 
 /** 实体目录：实体、字段下拉的唯一来源，页面打开时取一次 */
@@ -136,7 +205,9 @@ export function useFieldSecurityEntities() {
   async function load() {
     loading.value = true
     try {
-      entities.value = [...(await fieldSecurityApi.entities({})).items]
+      entities.value = [
+        ...(await fieldSecurityApi.entities({})).items,
+      ]
     }
     finally {
       loading.value = false
@@ -195,18 +266,32 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
       let next: TargetOption[]
       switch (form.targetKind) {
         case 'User': {
-          const result = await usersApi.list({ page: { index: 1, size: 50 }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [], keyword: kw })
+          const result = await usersApi.list({
+            page: { index: 1, size: 50 },
+            filters: [NOT_SUPPORT_MEMBER_FILTER],
+            sorts: [],
+            keyword: kw,
+          })
           next = result.items.map(user => ({ value: user.id, label: user.displayName, description: `@${user.userName}` }))
           break
         }
         case 'Department': {
           const tree = await departmentsApi.tree({})
           const all = flattenDepartments(tree.items)
-          next = kw ? all.filter(option => option.label.toLowerCase().includes(kw.toLowerCase()) || option.description?.toLowerCase().includes(kw.toLowerCase())) : all
+          next = kw
+            ? all.filter(option => option.label.toLowerCase().includes(kw.toLowerCase()) || option.description?.toLowerCase().includes(kw.toLowerCase()))
+            : all
           break
         }
         default: {
-          const result = await rolesApi.list({ page: { index: 1, size: 50 }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [], keyword: kw })
+          const result = await rolesApi.list({
+            page: { index: 1, size: 50 },
+            filters: [
+              { field: 'status', operator: 'eq', value: 'Active' },
+            ],
+            sorts: [],
+            keyword: kw,
+          })
           next = result.items.map(role => ({ value: role.id, label: role.name, description: role.code }))
           break
         }
@@ -244,7 +329,9 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
       remark: row.remark ?? '',
     })
     // 先放入当前目标一条：远程候选还没回来时输入框也念得出它的名字
-    targetOptions.value = [{ value: row.targetId, label: row.targetName ?? row.targetId }]
+    targetOptions.value = [
+      { value: row.targetId, label: row.targetName ?? row.targetId },
+    ]
     open.value = true
   }
 
@@ -268,8 +355,11 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
   /** 选中的字段不再适用当前读取方式时，退回隐藏或明文 */
   function changeField(name: string) {
     form.field = name
-    if (!strategyAllowed(form.strategy))
-      changeStrategy(strategyAllowed('Hidden') ? 'Hidden' : 'None')
+    if (!strategyAllowed(form.strategy)) {
+      changeStrategy(strategyAllowed('Hidden')
+        ? 'Hidden'
+        : 'None')
+    }
   }
 
   /** 明文规则只能是只读，否则什么都没限制 */
@@ -289,10 +379,19 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
     fieldErrors.value = {}
     try {
       const current = editing.value
-      if (current)
-        await fieldSecurityApi.update({ id: current.id, ...toDefinition(form), status: form.status })
-      else
-        await fieldSecurityApi.create({ ...toDefinition(form), status: form.status })
+      if (current) {
+        await fieldSecurityApi.update({
+          id: current.id,
+          ...toDefinition(form),
+          status: form.status,
+        })
+      }
+      else {
+        await fieldSecurityApi.create({
+          ...toDefinition(form),
+          status: form.status,
+        })
+      }
       open.value = false
       return true
     }
@@ -312,5 +411,27 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
     }
   }
 
-  return { open, isEdit, editing, form, fieldError, submitError, submitting, targetOptions, targetLoading, currentEntity, currentField, isMasked, strategyAllowed, searchTargets, startCreate, startEdit, changeTargetKind, changeEntity, changeField, changeStrategy, submit }
+  return {
+    open,
+    isEdit,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    targetOptions,
+    targetLoading,
+    currentEntity,
+    currentField,
+    isMasked,
+    strategyAllowed,
+    searchTargets,
+    startCreate,
+    startEdit,
+    changeTargetKind,
+    changeEntity,
+    changeField,
+    changeStrategy,
+    submit,
+  }
 }

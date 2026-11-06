@@ -46,7 +46,9 @@ const keyword = ref('')
 const selectedKey = ref<null | string>(null)
 
 const permissionNames = usePermissionNames()
-const grants = computed(() => result.value ? toGrantConditionTargets(result.value, permissionNames.nameOf) : [])
+const grants = computed(() => result.value
+  ? toGrantConditionTargets(result.value, permissionNames.nameOf)
+  : [])
 const filtered = computed(() => {
   const value = keyword.value.trim().toLowerCase()
   return value
@@ -54,7 +56,9 @@ const filtered = computed(() => {
     : grants.value
 })
 const selected = computed(() => grants.value.find(grant => grant.key === selectedKey.value) ?? null)
-const selectedConditions = computed(() => selected.value ? conditionsOf(result.value, selected.value) : [])
+const selectedConditions = computed(() => selected.value
+  ? conditionsOf(result.value, selected.value)
+  : [])
 
 async function load() {
   if (!props.subjectId)
@@ -63,7 +67,9 @@ async function load() {
   try {
     const [list, attributes] = await Promise.all([
       conditionsApi.list({ subjectKind: props.subjectKind, subjectId: props.subjectId }),
-      catalog.value.length > 0 ? Promise.resolve(null) : conditionsApi.attributes({}),
+      catalog.value.length > 0
+        ? Promise.resolve(null)
+        : conditionsApi.attributes({}),
       permissionNames.load(),
     ])
     result.value = list

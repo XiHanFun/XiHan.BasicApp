@@ -22,7 +22,10 @@ function recordRecent(item: RecentRoute): void {
   if (!item.path || !item.title) {
     return
   }
-  const next = [item, ...recent.value.filter(r => r.path !== item.path)].slice(0, CAP)
+  const next = [
+    item,
+    ...recent.value.filter(r => r.path !== item.path),
+  ].slice(0, CAP)
   recent.value = next
   LocalStorage.set(RECENT_ROUTES_KEY, next)
 }

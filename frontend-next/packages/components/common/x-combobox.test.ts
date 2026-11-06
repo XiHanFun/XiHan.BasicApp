@@ -23,14 +23,18 @@ function mountCombobox(props: Props = {}, attrs: Record<string, unknown> = {}) {
   return mount(XCombobox, {
     props: { options, ...props },
     attrs,
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [i18n],
+    },
     attachTo: document.body,
   })
 }
 
 /** 浮层经 Portal 挂在 body 上，条目与空态都到 document 里找 */
 function visibleItems(): string[] {
-  return [...document.querySelectorAll('[data-scope="combobox"][data-part="item"]')]
+  return [
+    ...document.querySelectorAll('[data-scope="combobox"][data-part="item"]'),
+  ]
     .map(el => el.querySelector('[data-part="item-text"]')?.textContent?.trim() ?? '')
 }
 
@@ -114,7 +118,11 @@ describe('xCombobox 取值', () => {
   })
 
   it('多选的已选项排成标签，超出 maxTagCount 合成 +N', async () => {
-    const wrapper = mountCombobox({ value: [1, 2, 3], multiple: true, maxTagCount: 2 })
+    const wrapper = mountCombobox({
+      value: [1, 2, 3],
+      multiple: true,
+      maxTagCount: 2,
+    })
     await flushPromises()
 
     const tags = wrapper.findAll('[data-scope="tag"][data-value]').map(tag => tag.text())
@@ -126,7 +134,10 @@ describe('xCombobox 取值', () => {
 describe('xCombobox 自填', () => {
   function mountCustom() {
     const wrapper = mountCombobox({
-      'options': [{ label: 'OpenAI', value: 'OpenAI' }, { label: 'DeepSeek', value: 'DeepSeek' }],
+      'options': [
+        { label: 'OpenAI', value: 'OpenAI' },
+        { label: 'DeepSeek', value: 'DeepSeek' },
+      ],
       'value': null,
       'allowCustomValue': true,
       'onUpdate:value': (value: unknown) => wrapper.setProps({ value: value as string | null }),
@@ -172,7 +183,12 @@ describe('xCombobox 自填', () => {
   })
 
   it('不开自填时，失焦丢掉清单外的字', async () => {
-    const wrapper = mountCombobox({ options: [{ label: 'OpenAI', value: 'OpenAI' }], value: null })
+    const wrapper = mountCombobox({
+      options: [
+        { label: 'OpenAI', value: 'OpenAI' },
+      ],
+      value: null,
+    })
     await open(wrapper)
     await type(wrapper, 'Moonshot')
 
@@ -214,17 +230,29 @@ describe('xCombobox 筛选与检索', () => {
     expect(wrapper.emitted('search')).toBeUndefined()
 
     vi.advanceTimersByTime(300)
-    expect(wrapper.emitted('search')).toEqual([['广']])
+    expect(wrapper.emitted('search')).toEqual([
+      ['广'],
+    ])
 
     await type(wrapper, '广')
     vi.advanceTimersByTime(300)
-    expect(wrapper.emitted('search')).toEqual([['广']])
+    expect(wrapper.emitted('search')).toEqual([
+      ['广'],
+    ])
   })
 
   it('remote 换掉候选后，已选项的标签仍念得出名字，删掉另一枚时它照样按原类型收上来', async () => {
-    const wrapper = mountCombobox({ remote: true, multiple: true, value: [1, 2] })
+    const wrapper = mountCombobox({
+      remote: true,
+      multiple: true,
+      value: [1, 2],
+    })
     await flushPromises()
-    await wrapper.setProps({ options: [{ label: '深圳', value: 4 }] })
+    await wrapper.setProps({
+      options: [
+        { label: '深圳', value: 4 },
+      ],
+    })
     await flushPromises()
 
     expect(wrapper.findAll('[data-scope="tag"][data-value]').map(tag => tag.text())).toEqual(['北京', '上海'])
@@ -232,7 +260,9 @@ describe('xCombobox 筛选与检索', () => {
     await wrapper.find('[data-scope="tag"][data-value="2"] button').trigger('click')
     await flushPromises()
 
-    expect(wrapper.emitted('update:value')?.at(-1)).toEqual([[1]])
+    expect(wrapper.emitted('update:value')?.at(-1)).toEqual([
+      [1],
+    ])
   })
 
   it('加载中且没有候选时露出在途占位、列表报 aria-busy', async () => {

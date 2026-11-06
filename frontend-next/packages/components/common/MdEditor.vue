@@ -66,7 +66,9 @@ const resolvedPlaceholder = computed(() => props.placeholder ?? t('component.md_
 // 中文语系（zh-CN / zh-TW）统一用 zh-CN——繁中用户读简中工具栏比读英文更顺；
 // 其余语言回退 en-US——回退中文会让中文工具栏混进外语界面
 const resolvedLanguage = computed<'zh-CN' | 'en-US'>(
-  () => props.language ?? (appStore.locale.startsWith('zh') ? 'zh-CN' : 'en-US'),
+  () => props.language ?? (appStore.locale.startsWith('zh')
+    ? 'zh-CN'
+    : 'en-US'),
 )
 
 function handleSave(val: string) {

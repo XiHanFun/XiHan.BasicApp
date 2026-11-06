@@ -26,22 +26,97 @@ function reload() {
 }
 
 const asRow = (row: object) => row as SmsConfigRow
-const providerOptions = computed<SelectOption[]>(() => PROVIDERS.map(provider => ({ label: smsProviderLabel(t, provider), value: provider })))
+const providerOptions = computed<SelectOption[]>(() => PROVIDERS.map(provider => ({
+  label: smsProviderLabel(t, provider),
+  value: provider,
+})))
 const statusOptions = computed<SelectOption[]>(() => enabledOptions(t))
 /** 模板映射的示例：JSON 不进文案（花括号与引号要转义），各区域同一份 */
 const TEMPLATE_MAP_EXAMPLE = '{ "auth-sms-login-code": "SMS_123456789" }'
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：排序、创建时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.sms_configs.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.sms_configs.columns.keyword_placeholder'), order: 0 },
-  { key: 'code', title: t('notification.sms_configs.columns.config_code'), dataType: 'string', minWidth: 140, order: 1 },
-  { key: 'name', title: t('notification.sms_configs.columns.config_name'), dataType: 'string', minWidth: 140, order: 2 },
-  { key: 'provider', title: t('notification.sms_configs.columns.provider'), dataType: 'enum', searchable: true, searchMultiple: true, options: providerOptions.value, searchPlaceholder: t('notification.sms_configs.columns.provider_placeholder'), width: 110, order: 3, render: row => renderTag(smsProviderLabel(t, asRow(row).provider), 'info') },
-  { key: 'signName', title: t('notification.sms_configs.columns.sign_name'), dataType: 'string', minWidth: 120, order: 4 },
-  { key: 'isDefault', title: t('notification.sms_configs.columns.is_default'), dataType: 'enum', width: 90, order: 5, render: row => (asRow(row).isDefault ? renderTag(t('notification.sms_configs.tag.default'), 'warning') : '-') },
-  { key: 'isEnabled', title: t('notification.sms_configs.columns.status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('notification.sms_configs.columns.status_placeholder'), width: 90, order: 6, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
-  { key: 'order', title: t('notification.sms_configs.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 7 },
-  { key: 'createdAt', title: t('notification.sms_configs.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 8 },
+  {
+    key: 'keyword',
+    title: t('notification.sms_configs.columns.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.sms_configs.columns.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('notification.sms_configs.columns.config_code'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('notification.sms_configs.columns.config_name'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 2,
+  },
+  {
+    key: 'provider',
+    title: t('notification.sms_configs.columns.provider'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: providerOptions.value,
+    searchPlaceholder: t('notification.sms_configs.columns.provider_placeholder'),
+    width: 110,
+    order: 3,
+    render: row => renderTag(smsProviderLabel(t, asRow(row).provider), 'info'),
+  },
+  {
+    key: 'signName',
+    title: t('notification.sms_configs.columns.sign_name'),
+    dataType: 'string',
+    minWidth: 120,
+    order: 4,
+  },
+  {
+    key: 'isDefault',
+    title: t('notification.sms_configs.columns.is_default'),
+    dataType: 'enum',
+    width: 90,
+    order: 5,
+    render: row => (asRow(row).isDefault
+      ? renderTag(t('notification.sms_configs.tag.default'), 'warning')
+      : '-'),
+  },
+  {
+    key: 'isEnabled',
+    title: t('notification.sms_configs.columns.status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.sms_configs.columns.status_placeholder'),
+    width: 90,
+    order: 6,
+    render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'order',
+    title: t('notification.sms_configs.columns.sort'),
+    dataType: 'number',
+    sortable: true,
+    width: 80,
+    order: 7,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.sms_configs.columns.created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 8,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -52,12 +127,54 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('notification.sms_configs.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.sms-configs.create' },
-    { key: 'edit', title: t('notification.sms_configs.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'notification.sms-configs.update' },
+    {
+      key: 'create',
+      title: t('notification.sms_configs.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'notification.sms-configs.create',
+    },
+    {
+      key: 'edit',
+      title: t('notification.sms_configs.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'notification.sms-configs.update',
+    },
     // 缺省配置不能停用也不能删除（后端拒绝），入口随之收起；停用的不能设为缺省
-    { key: 'toggle', title: t('notification.sms_configs.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => toggleConfirmText(asRow(row)), visible: row => !asRow(row).isDefault, permission: 'notification.sms-configs.update' },
-    { key: 'setDefault', title: t('notification.sms_configs.actions.set_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => t('notification.sms_configs.message.set_default_content', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, disabled: row => !asRow(row).isEnabled, permission: 'notification.sms-configs.update' },
-    { key: 'delete', title: t('notification.sms_configs.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => t('notification.sms_configs.message.delete_content', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, permission: 'notification.sms-configs.delete' },
+    {
+      key: 'toggle',
+      title: t('notification.sms_configs.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => toggleConfirmText(asRow(row)),
+      visible: row => !asRow(row).isDefault,
+      permission: 'notification.sms-configs.update',
+    },
+    {
+      key: 'setDefault',
+      title: t('notification.sms_configs.actions.set_default'),
+      scope: 'row',
+      icon: 'lucide:star',
+      confirm: true,
+      confirmText: row => t('notification.sms_configs.message.set_default_content', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      disabled: row => !asRow(row).isEnabled,
+      permission: 'notification.sms-configs.update',
+    },
+    {
+      key: 'delete',
+      title: t('notification.sms_configs.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => t('notification.sms_configs.message.delete_content', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      permission: 'notification.sms-configs.delete',
+    },
   ],
 }))
 
@@ -68,7 +185,9 @@ function toggleConfirmText(row: SmsConfigRow): string {
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -99,9 +218,13 @@ const submitError = ref<null | string>(null)
 /** 编辑的配置是否已存了访问密钥：已存的留空即保留，占位提示随之改 */
 const editingHasSecret = ref(false)
 const form = reactive<SmsConfigForm>(emptySmsConfigForm())
-const modalTitle = computed(() => (form.id ? t('notification.sms_configs.form.edit_title') : t('notification.sms_configs.form.add_title')))
+const modalTitle = computed(() => (form.id
+  ? t('notification.sms_configs.form.edit_title')
+  : t('notification.sms_configs.form.add_title')))
 const tencent = computed(() => needsSdkAppId(form.provider))
-const secretPlaceholder = computed(() => (form.id && editingHasSecret.value ? t('notification.sms_configs.form.secret_configured') : t('notification.sms_configs.form.secret_placeholder')))
+const secretPlaceholder = computed(() => (form.id && editingHasSecret.value
+  ? t('notification.sms_configs.form.secret_configured')
+  : t('notification.sms_configs.form.secret_placeholder')))
 
 function openCreate() {
   Object.assign(form, emptySmsConfigForm())

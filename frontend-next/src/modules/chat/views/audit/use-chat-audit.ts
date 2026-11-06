@@ -13,7 +13,14 @@ export type ChatAuditConversation = ChatAuditMembers['conversation']
 type Translate = (key: string, values?: Record<string, unknown>) => string
 
 /** 消息类型（契约字面量；审计里能出现全部六种） */
-export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'System']
+export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = [
+  'Text',
+  'Image',
+  'Voice',
+  'File',
+  'Assistant',
+  'System',
+]
 
 /**
  * 列表的后端筛选（与后端 ChatAuditQueries 的白名单一致）：关键字匹配正文、发送人名与附件；
@@ -23,7 +30,12 @@ export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = ['Text', 'Image', 
 export const CHAT_AUDIT_QUERY: PageQueryMapping = {
   ranges: ['createdAt'],
   multiples: ['messageType'],
-  filters: { conversationId: 'eq', senderUserId: 'eq', isRecalled: 'eq', includeRecalled: 'eq' },
+  filters: {
+    conversationId: 'eq',
+    senderUserId: 'eq',
+    isRecalled: 'eq',
+    includeRecalled: 'eq',
+  },
 }
 
 /** SchemaPage 的资源：只读分页（4.x 同，没有导出） */

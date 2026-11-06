@@ -30,10 +30,26 @@ const rows = computed(() => {
 const empty = computed(() => rows.value.every(row => row.succeeded === 0 && row.failed === 0))
 
 const series = computed<CartesianSeries[]>(() => [
-  { id: 'succeeded', mark: 'bar', x: 'date', y: 'succeeded', stack: 'runs', name: t('workbench.charts.succeeded') },
-  { id: 'failed', mark: 'bar', x: 'date', y: 'failed', stack: 'runs', name: t('workbench.charts.failed') },
+  {
+    id: 'succeeded',
+    mark: 'bar',
+    x: 'date',
+    y: 'succeeded',
+    stack: 'runs',
+    name: t('workbench.charts.succeeded'),
+  },
+  {
+    id: 'failed',
+    mark: 'bar',
+    x: 'date',
+    y: 'failed',
+    stack: 'runs',
+    name: t('workbench.charts.failed'),
+  },
 ])
-const xAxis = { format: { month: 'numeric', day: 'numeric' } } as const
+const xAxis = {
+  format: { month: 'numeric', day: 'numeric' },
+} as const
 const yAxis = { format: COUNT_COMPACT }
 </script>
 

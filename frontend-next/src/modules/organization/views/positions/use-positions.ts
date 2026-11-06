@@ -19,11 +19,19 @@ export interface PositionForm {
 export type PositionEditorMode = 'create' | 'edit'
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 function emptyForm(): PositionForm {
-  return { code: '', name: '', order: 0, description: '', status: 'Active' }
+  return {
+    code: '',
+    name: '',
+    order: 0,
+    description: '',
+    status: 'Active',
+  }
 }
 
 /**
@@ -33,13 +41,21 @@ function emptyForm(): PositionForm {
 export function positionsResource(): SchemaResource<PositionRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await positionsApi.list(toPageRequest(params, { filters: { status: 'eq' } })),
+      await positionsApi.list(toPageRequest(params, {
+        filters: { status: 'eq' },
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await positionsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await positionsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体替换：先取当前值再只改状态
     updateStatus: async (id, enabled) => {
-      const row = await positionsApi.get({ id: String(id) })
+      const row = await positionsApi.get({
+        id: String(id),
+      })
       return positionsApi.update({
         id: row.id,
         name: row.name,
@@ -52,7 +68,9 @@ export function positionsResource(): SchemaResource<PositionRow> {
     create: record => positionsApi.create({
       code: String(record.code ?? '').trim(),
       name: String(record.name ?? '').trim(),
-      order: typeof record.order === 'number' ? record.order : 0,
+      order: typeof record.order === 'number'
+        ? record.order
+        : 0,
       description: blankToNull(String(record.description ?? '')),
     }),
   }
@@ -89,7 +107,13 @@ export function usePositionEditor() {
   function startEdit(row: PositionRow) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, order: row.order, description: row.description ?? '', status: row.status })
+    reset({
+      code: row.code,
+      name: row.name,
+      order: row.order,
+      description: row.description ?? '',
+      status: row.status,
+    })
     open.value = true
   }
 
@@ -139,5 +163,17 @@ export function usePositionEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }

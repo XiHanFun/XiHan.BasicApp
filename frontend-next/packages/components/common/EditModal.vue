@@ -72,7 +72,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const modalStyle = computed(() => ({
-  '--xh-dialog-max-w': typeof props.width === 'number' ? `${props.width}px` : props.width,
+  '--xh-dialog-max-w': typeof props.width === 'number'
+    ? `${props.width}px`
+    : props.width,
 }))
 
 function handleCancel() {

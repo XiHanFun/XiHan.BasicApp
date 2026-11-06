@@ -21,7 +21,9 @@ const activity = ref<UserActivity | null>(null)
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadActivity() {
@@ -58,10 +60,35 @@ function formatOnline(seconds: number): string {
 const statCards = computed(() => {
   const m = activity.value?.thisMonth
   return [
-    { key: 'login', label: t('component.profile.stats.card_login'), icon: 'lucide:log-in', value: m?.loginCount ?? 0, tone: 'brand' },
-    { key: 'access', label: t('component.profile.stats.card_access'), icon: 'lucide:eye', value: m?.accessCount ?? 0, tone: 'sky' },
-    { key: 'operation', label: t('component.profile.stats.card_operation'), icon: 'lucide:mouse-pointer-click', value: m?.operationCount ?? 0, tone: 'brand' },
-    { key: 'online', label: t('component.profile.stats.card_online'), icon: 'lucide:clock', value: formatOnline(m?.onlineTime ?? 0), tone: 'amber', isText: true },
+    {
+      key: 'login',
+      label: t('component.profile.stats.card_login'),
+      icon: 'lucide:log-in',
+      value: m?.loginCount ?? 0,
+      tone: 'brand',
+    },
+    {
+      key: 'access',
+      label: t('component.profile.stats.card_access'),
+      icon: 'lucide:eye',
+      value: m?.accessCount ?? 0,
+      tone: 'sky',
+    },
+    {
+      key: 'operation',
+      label: t('component.profile.stats.card_operation'),
+      icon: 'lucide:mouse-pointer-click',
+      value: m?.operationCount ?? 0,
+      tone: 'brand',
+    },
+    {
+      key: 'online',
+      label: t('component.profile.stats.card_online'),
+      icon: 'lucide:clock',
+      value: formatOnline(m?.onlineTime ?? 0),
+      tone: 'amber',
+      isText: true,
+    },
   ]
 })
 
@@ -69,8 +96,16 @@ const statCards = computed(() => {
 const periodSummary = computed(() => {
   const a = activity.value
   return [
-    { key: 'today', label: t('component.profile.stats.period_today'), period: a?.today },
-    { key: 'week', label: t('component.profile.stats.period_week'), period: a?.thisWeek },
+    {
+      key: 'today',
+      label: t('component.profile.stats.period_today'),
+      period: a?.today,
+    },
+    {
+      key: 'week',
+      label: t('component.profile.stats.period_week'),
+      period: a?.thisWeek,
+    },
   ]
 })
 
@@ -100,7 +135,10 @@ const heatRange = computed(() => {
   const start = new Date(end)
   start.setFullYear(start.getFullYear() - 1)
   start.setDate(start.getDate() + 1)
-  return { start: dateKey(start), end: dateKey(end) }
+  return {
+    start: dateKey(start),
+    end: dateKey(end),
+  }
 })
 
 const heatmapData = computed<HeatmapPoint[]>(() =>
@@ -114,12 +152,19 @@ const heatmapData = computed<HeatmapPoint[]>(() =>
  * 故逐档至少比上一档大 1，档数始终是五档
  */
 const heatThresholds = computed(() => {
-  const positives = [...countByDate.value.values()].filter(v => v > 0).sort((a, b) => a - b)
+  const positives = [
+    ...countByDate.value.values(),
+  ].filter(v => v > 0).sort((a, b) => a - b)
   if (positives.length === 0) {
     return [1, 2, 3, 4]
   }
   const at = (ratio: number) => positives[Math.min(positives.length - 1, Math.floor(positives.length * ratio))] ?? 1
-  const bounds = [1, at(0.25) + 1, at(0.5) + 1, at(0.75) + 1]
+  const bounds = [
+    1,
+    at(0.25) + 1,
+    at(0.5) + 1,
+    at(0.75) + 1,
+  ]
   for (let i = 1; i < bounds.length; i++) {
     bounds[i] = Math.max(bounds[i]!, bounds[i - 1]! + 1)
   }
@@ -155,9 +200,27 @@ const heatTotalOps = computed(() => trend.value.reduce((sum, t) => sum + t.opera
 const recentTimes = computed(() => {
   const a = activity.value
   return [
-    { key: 'login', label: t('component.profile.stats.last_login'), value: a?.lastLoginTime ? formatDate(a.lastLoginTime) : '—' },
-    { key: 'access', label: t('component.profile.stats.last_access'), value: a?.lastAccessTime ? formatDate(a.lastAccessTime) : '—' },
-    { key: 'operation', label: t('component.profile.stats.last_operation'), value: a?.lastOperationTime ? formatDate(a.lastOperationTime) : '—' },
+    {
+      key: 'login',
+      label: t('component.profile.stats.last_login'),
+      value: a?.lastLoginTime
+        ? formatDate(a.lastLoginTime)
+        : '—',
+    },
+    {
+      key: 'access',
+      label: t('component.profile.stats.last_access'),
+      value: a?.lastAccessTime
+        ? formatDate(a.lastAccessTime)
+        : '—',
+    },
+    {
+      key: 'operation',
+      label: t('component.profile.stats.last_operation'),
+      value: a?.lastOperationTime
+        ? formatDate(a.lastOperationTime)
+        : '—',
+    },
   ]
 })
 </script>

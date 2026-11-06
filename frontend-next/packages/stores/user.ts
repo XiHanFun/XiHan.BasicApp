@@ -61,5 +61,17 @@ export const useUserStore = defineStore(SetupStoreId.User, () => {
     auth.clear()
   }
 
-  return { userInfo, isLoggedIn, username, nickname, avatar, roles, permissions, hasRole, hasPermission, hasAnyRole, $reset }
+  return {
+    userInfo,
+    isLoggedIn,
+    username,
+    nickname,
+    avatar,
+    roles,
+    permissions,
+    hasRole,
+    hasPermission,
+    hasAnyRole,
+    $reset,
+  }
 })

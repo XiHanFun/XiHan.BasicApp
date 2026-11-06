@@ -39,12 +39,26 @@ describe('运行轨迹', () => {
         { nodeId: 'call', status: 'Completed' },
         { nodeId: 'approve', status: 'Suspended' },
       ],
-      [{ nodeId: 'approve' }, { nodeId: 'timer' }],
-    )).toEqual({ call: 'completed', start: 'completed', approve: 'waiting', timer: 'waiting' })
+      [
+        { nodeId: 'approve' },
+        { nodeId: 'timer' },
+      ],
+    )).toEqual({
+      call: 'completed',
+      start: 'completed',
+      approve: 'waiting',
+      timer: 'waiting',
+    })
   })
 
   it('节点名取定义文档里的显示名；文档读不出来时为空表', () => {
-    const document = JSON.stringify({ name: 'leave', nodes: [{ id: 'start', activityType: 'Start', displayName: '开始' }, { id: 'end', activityType: 'End' }] })
+    const document = JSON.stringify({
+      name: 'leave',
+      nodes: [
+        { id: 'start', activityType: 'Start', displayName: '开始' },
+        { id: 'end', activityType: 'End' },
+      ],
+    })
     expect(nodeTitles(document)).toEqual({ start: '开始' })
     expect(nodeTitles('{')).toEqual({})
     expect(nodeTitles(null)).toEqual({})

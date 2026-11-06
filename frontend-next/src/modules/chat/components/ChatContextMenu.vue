@@ -34,7 +34,9 @@ const show = defineModel<boolean>('show', { default: false })
 /** 视口边缘收敛（按估算尺寸夹取，避免菜单溢出屏幕） */
 const wrapStyle = computed(() => {
   const menuWidth = 168
-  const reactionsWidth = props.reactions.length ? props.reactions.length * 36 + 20 : 0
+  const reactionsWidth = props.reactions.length
+    ? props.reactions.length * 36 + 20
+    : 0
   const estWidth = Math.max(menuWidth, reactionsWidth)
   const estHeight = (props.reactions.length ? 50 : 0) + props.items.length * 34 + 14
   const vw = window.innerWidth

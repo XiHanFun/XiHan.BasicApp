@@ -31,7 +31,9 @@ const SIGN_BATCH = 100
  * 超过 {@link MULTIPART_THRESHOLD} 的走分片上传（各分片经签名地址直传存储，后端拼好后回读校验）
  */
 export function uploadFile(file: File, options: UploadFileOptions = {}): Promise<FileRow> {
-  return file.size > MULTIPART_THRESHOLD ? uploadInParts(file, options) : uploadInOneRequest(file, options)
+  return file.size > MULTIPART_THRESHOLD
+    ? uploadInParts(file, options)
+    : uploadInOneRequest(file, options)
 }
 
 function uploadInOneRequest(file: File, options: UploadFileOptions): Promise<FileRow> {
@@ -70,7 +72,9 @@ async function uploadInParts(file: File, options: UploadFileOptions): Promise<Fi
   const report = () => options.onProgress?.(Math.min(99, Math.round((sent.reduce((total, bytes) => total + bytes, 0) / file.size) * 100)))
   try {
     for (let first = 1; first <= upload.partCount; first += SIGN_BATCH) {
-      const numbers = Array.from({ length: Math.min(SIGN_BATCH, upload.partCount - first + 1) }, (_, index) => first + index)
+      const numbers = Array.from({
+        length: Math.min(SIGN_BATCH, upload.partCount - first + 1),
+      }, (_, index) => first + index)
       const { parts } = await filesOps.signUploadParts({ uploadId: upload.id, partNumbers: numbers }, { signal })
       await eachWithConcurrency(parts, PART_CONCURRENCY, async (part) => {
         const start = (part.partNumber - 1) * upload.partSize
@@ -97,7 +101,9 @@ async function uploadInParts(file: File, options: UploadFileOptions): Promise<Fi
 /** 以至多 `limit` 个并发依次处理 `items`；任一失败即整体失败 */
 async function eachWithConcurrency<T>(items: readonly T[], limit: number, worker: (item: T) => Promise<void>): Promise<void> {
   let next = 0
-  const lanes = Array.from({ length: Math.min(limit, items.length) }, async () => {
+  const lanes = Array.from({
+    length: Math.min(limit, items.length),
+  }, async () => {
     while (next < items.length) {
       const item = items[next++] as T
       await worker(item)
@@ -123,7 +129,10 @@ function putPart(url: string, chunk: Blob, onProgress: (loaded: number) => void,
         resolve()
         return
       }
-      const response = new Response(xhr.responseText || null, { status: xhr.status, headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') ?? 'text/plain' } })
+      const response = new Response(xhr.responseText || null, {
+        status: xhr.status,
+        headers: { 'Content-Type': xhr.getResponseHeader('Content-Type') ?? 'text/plain' },
+      })
       parseProblem(response, '').then(reject, reject)
     }
     xhr.onerror = () => reject(new TypeError('Network request failed'))
@@ -139,7 +148,9 @@ function putPart(url: string, chunk: Blob, onProgress: (loaded: number) => void,
  * `download` 为真时以附件下载（带原始文件名），否则按内容类型内联显示
  */
 export async function fileLink(id: string, download = false): Promise<string> {
-  const { url } = await filesOps.presign(download ? { id, download } : { id })
+  const { url } = await filesOps.presign(download
+    ? { id, download }
+    : { id })
   return endpointUrl(url)
 }
 

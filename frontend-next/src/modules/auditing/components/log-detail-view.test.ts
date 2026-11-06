@@ -30,7 +30,17 @@ describe('日志详情定义', () => {
   it.each(Object.entries(SCHEMAS))('%s：抬头引用的字段都在字段表里，字段键不重复', (_, schema) => {
     const keys = schema.fields.map(field => field.key)
     const header = schema.header
-    const headerKeys = [...header.title, ...(header.status ? [header.status] : []), ...(header.badges ?? []), ...header.meta, ...(header.timeKey ? [header.timeKey] : [])]
+    const headerKeys = [
+      ...header.title,
+      ...(header.status
+        ? [header.status]
+        : []),
+      ...(header.badges ?? []),
+      ...header.meta,
+      ...(header.timeKey
+        ? [header.timeKey]
+        : []),
+    ]
 
     expect(new Set(keys).size).toBe(keys.length)
     expect(headerKeys.filter(key => !keys.includes(key))).toEqual([])
@@ -48,21 +58,41 @@ describe('日志详情定义', () => {
 
   it('操作日志的详情带描述与写入时记下的客户端信息，客户端地址可追踪', () => {
     const fields = SCHEMAS.operation!.fields
-    expect(fields.map(field => field.key)).toEqual(expect.arrayContaining(['description', 'clientIp', 'location', 'browser', 'os', 'device', 'userAgent']))
+    expect(fields.map(field => field.key)).toEqual(expect.arrayContaining([
+      'description',
+      'clientIp',
+      'location',
+      'browser',
+      'os',
+      'device',
+      'userAgent',
+    ]))
     expect(fields.find(field => field.key === 'clientIp')?.trace).toBe('ClientIp')
     expect(SCHEMAS.operation!.header.meta).toContain('clientIp')
   })
 
   it('数据变更的种类有恢复（4.x 同），带文案与语气', () => {
     const kind = SCHEMAS.diff!.fields.find(field => field.key === 'kind')!
-    expect(kind.options?.map(option => option.value)).toEqual(['Insert', 'Update', 'Delete', 'Restore'])
+    expect(kind.options?.map(option => option.value)).toEqual([
+      'Insert',
+      'Update',
+      'Delete',
+      'Restore',
+    ])
     expect(kind.options?.at(-1)?.label).toBe('auditing.diff_logs.kinds.restore')
     expect(kind.tone?.('Restore')).toBe('warning')
   })
 
   it('枚举字段带上契约字面量的选项（6.0 没有枚举元数据接口）', () => {
     const result = SCHEMAS.access!.fields.find(field => field.key === 'result')!
-    expect(result.options?.map(option => option.value)).toEqual(['Success', 'Failed', 'Forbidden', 'Unauthorized', 'NotFound', 'ServerError'])
+    expect(result.options?.map(option => option.value)).toEqual([
+      'Success',
+      'Failed',
+      'Forbidden',
+      'Unauthorized',
+      'NotFound',
+      'ServerError',
+    ])
     expect(result.tone?.('Forbidden')).toBe('warning')
   })
 })
@@ -104,7 +134,13 @@ describe('日志详情视图', () => {
   it('分组按固定顺序、跳过空组，抬头用过的字段不重复出现', () => {
     expect(view.groups.map(group => group.group)).toEqual(['request', 'client', 'trace'])
     const groupKeys = view.groups.flatMap(group => group.entries.map(entry => entry.field.key))
-    expect(groupKeys).toEqual(['protocol', 'path', 'browser', 'traceId', 'id'])
+    expect(groupKeys).toEqual([
+      'protocol',
+      'path',
+      'browser',
+      'traceId',
+      'id',
+    ])
     expect(LOG_DETAIL_GROUP_ORDER[0]).toBe('subject')
   })
 
@@ -113,7 +149,17 @@ describe('日志详情视图', () => {
   })
 
   it('没有语气的结果字段退回成普通标签', () => {
-    const plain: LogDetailSchema = { header: { title: ['name'], status: 'state', meta: [] }, fields: [{ key: 'name', label: 'name' }, { key: 'state', label: 'state' }] }
+    const plain: LogDetailSchema = {
+      header: {
+        title: ['name'],
+        status: 'state',
+        meta: [],
+      },
+      fields: [
+        { key: 'name', label: 'name' },
+        { key: 'state', label: 'state' },
+      ],
+    }
     const result = buildLogDetailView(plain, { name: 'a', state: 'b' }, format)
 
     expect(result.status).toBeUndefined()
@@ -121,8 +167,15 @@ describe('日志详情视图', () => {
   })
 
   it('对象值的原文按 JSON 保留，复制与追踪拿到的是原值', () => {
-    const json: LogDetailSchema = { header: { title: [], meta: [] }, fields: [{ key: 'details', label: 'x', type: 'code' }] }
-    const result = buildLogDetailView(json, { details: { a: 1 } }, format)
+    const json: LogDetailSchema = {
+      header: { title: [], meta: [] },
+      fields: [
+        { key: 'details', label: 'x', type: 'code' },
+      ],
+    }
+    const result = buildLogDetailView(json, {
+      details: { a: 1 },
+    }, format)
 
     expect(result.blocks[0]?.raw).toBe('{"a":1}')
   })

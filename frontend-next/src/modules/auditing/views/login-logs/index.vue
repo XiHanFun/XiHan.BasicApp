@@ -25,9 +25,37 @@ const { visible: detailVisible, loading: detailLoading, record: detailRecord, op
 const asRow = (row: object) => row as LoginLogRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('auditing.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('auditing.login_logs.keyword_placeholder'), width: 220, order: 0 },
-  { key: 'occurredAt', title: t('auditing.common.occurred_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, exportable: true, minWidth: 170, order: 1 },
-  { key: 'userName', title: t('auditing.common.user_name'), dataType: 'string', sortable: true, advancedSearch: true, exportable: true, minWidth: 120, order: 2 },
+  {
+    key: 'keyword',
+    title: t('auditing.common.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('auditing.login_logs.keyword_placeholder'),
+    width: 220,
+    order: 0,
+  },
+  {
+    key: 'occurredAt',
+    title: t('auditing.common.occurred_at'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    exportable: true,
+    minWidth: 170,
+    order: 1,
+  },
+  {
+    key: 'userName',
+    title: t('auditing.common.user_name'),
+    dataType: 'string',
+    sortable: true,
+    advancedSearch: true,
+    exportable: true,
+    minWidth: 120,
+    order: 2,
+  },
   {
     key: 'event',
     title: t('auditing.login_logs.event'),
@@ -52,18 +80,93 @@ const fields = computed<ListFieldSchema[]>(() => [
     exportable: true,
     width: 100,
     order: 4,
-    render: row => renderTag(asRow(row).succeeded ? t('auditing.common.success') : t('auditing.common.failed'), booleanTone(asRow(row).succeeded)),
+    render: row => renderTag(asRow(row).succeeded
+      ? t('auditing.common.success')
+      : t('auditing.common.failed'), booleanTone(asRow(row).succeeded)),
   },
-  { key: 'errorCode', title: t('auditing.common.error_code'), dataType: 'string', advancedSearch: true, exportable: true, minWidth: 180, order: 5 },
-  { key: 'errorMessage', title: t('auditing.common.error_message'), dataType: 'string', ellipsis: true, minWidth: 200, order: 6 },
-  { key: 'accountTenantId', title: t('auditing.login_logs.account_tenant'), dataType: 'string', advancedSearch: true, exportable: true, minWidth: 120, order: 7 },
-  { key: 'detail', title: t('auditing.login_logs.detail'), dataType: 'string', ellipsis: true, minWidth: 140, order: 8 },
-  { key: 'clientIp', title: t('auditing.common.client_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('auditing.common.client_ip'), exportable: true, minWidth: 130, order: 9 },
-  { key: 'browser', title: t('auditing.common.browser'), dataType: 'string', minWidth: 110, order: 10 },
-  { key: 'os', title: t('auditing.common.os'), dataType: 'string', minWidth: 110, order: 11 },
-  { key: 'device', title: t('auditing.common.device'), dataType: 'string', visible: false, minWidth: 100, order: 12 },
-  { key: 'traceId', title: t('auditing.common.trace_id'), dataType: 'string', advancedSearch: true, visible: false, minWidth: 260, order: 13 },
-  { key: 'sessionId', title: t('auditing.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 280, order: 14 },
+  {
+    key: 'errorCode',
+    title: t('auditing.common.error_code'),
+    dataType: 'string',
+    advancedSearch: true,
+    exportable: true,
+    minWidth: 180,
+    order: 5,
+  },
+  {
+    key: 'errorMessage',
+    title: t('auditing.common.error_message'),
+    dataType: 'string',
+    ellipsis: true,
+    minWidth: 200,
+    order: 6,
+  },
+  {
+    key: 'accountTenantId',
+    title: t('auditing.login_logs.account_tenant'),
+    dataType: 'string',
+    advancedSearch: true,
+    exportable: true,
+    minWidth: 120,
+    order: 7,
+  },
+  {
+    key: 'detail',
+    title: t('auditing.login_logs.detail'),
+    dataType: 'string',
+    ellipsis: true,
+    minWidth: 140,
+    order: 8,
+  },
+  {
+    key: 'clientIp',
+    title: t('auditing.common.client_ip'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('auditing.common.client_ip'),
+    exportable: true,
+    minWidth: 130,
+    order: 9,
+  },
+  {
+    key: 'browser',
+    title: t('auditing.common.browser'),
+    dataType: 'string',
+    minWidth: 110,
+    order: 10,
+  },
+  {
+    key: 'os',
+    title: t('auditing.common.os'),
+    dataType: 'string',
+    minWidth: 110,
+    order: 11,
+  },
+  {
+    key: 'device',
+    title: t('auditing.common.device'),
+    dataType: 'string',
+    visible: false,
+    minWidth: 100,
+    order: 12,
+  },
+  {
+    key: 'traceId',
+    title: t('auditing.common.trace_id'),
+    dataType: 'string',
+    advancedSearch: true,
+    visible: false,
+    minWidth: 260,
+    order: 13,
+  },
+  {
+    key: 'sessionId',
+    title: t('auditing.common.session_id'),
+    dataType: 'string',
+    advancedSearch: true,
+    minWidth: 280,
+    order: 14,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -74,15 +177,27 @@ const schema = computed<PageSchema>(() => ({
   fields: decorateTraceFields(fields.value, router),
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'view', title: t('common.actions.detail'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'trace', title: t('auditing.common.trace_action'), scope: 'row', icon: 'lucide:route' },
+    {
+      key: 'view',
+      title: t('common.actions.detail'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'trace',
+      title: t('auditing.common.trace_action'),
+      scope: 'row',
+      icon: 'lucide:route',
+    },
   ],
 }))
 
 const detailSchema = computed(() => loginLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   if (payload.key === 'view' && row)
     void openDetail(row)
   else if (payload.key === 'trace' && row && !gotoTrace(router, row, row.occurredAt))

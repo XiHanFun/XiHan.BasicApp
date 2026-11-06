@@ -44,16 +44,25 @@ function variableNames(value: unknown): string[] {
   if (!Array.isArray(value))
     return []
   return value.flatMap(item => (typeof item === 'object' && item !== null && typeof (item as { name?: unknown }).name === 'string')
-    ? [((item as { name: string }).name).trim()]
+    ? [
+        ((item as { name: string }).name).trim(),
+      ]
     : []).filter(Boolean)
 }
 
 /** 表达式可引用的变量：关联业务声明的变量 + 定义里声明的启动变量 */
 function knownVariables(options: WorkflowExtensionOptions): string[] {
   const data = options.document()?.data
-  const code = typeof data?.code === 'string' ? data.code.trim() : ''
+  const code = typeof data?.code === 'string'
+    ? data.code.trim()
+    : ''
   const business = options.businessTypes().find(item => item.code === code)
-  return [...new Set([...(business?.variables.map(variable => variable.name) ?? []), ...variableNames(data?.variables)])]
+  return [
+    ...new Set([
+      ...(business?.variables.map(variable => variable.name) ?? []),
+      ...variableNames(data?.variables),
+    ]),
+  ]
 }
 
 /** 编码一行的提示：关联了审批业务时先说业务要的结束结果，再说这几项去哪里改 */
@@ -61,7 +70,13 @@ function codeHints(options: WorkflowExtensionOptions, code: string): string[] {
   const business = options.businessTypes().find(item => item.code === code.trim())
   const readonlyTip = options.t('workflow.designer.metadata_readonly_tip')
   return business
-    ? [options.t('workflow.designer.flow_business_tip', { name: options.t(business.nameKey), outcomes: business.outcomes.join(' / ') }), readonlyTip]
+    ? [
+        options.t('workflow.designer.flow_business_tip', {
+          name: options.t(business.nameKey),
+          outcomes: business.outcomes.join(' / '),
+        }),
+        readonlyTip,
+      ]
     : [readonlyTip]
 }
 
@@ -70,15 +85,23 @@ function sourceOutcomes(options: WorkflowExtensionOptions, context: Context): re
     return []
   const edge = context.target[0]!.value as unknown as FlowEdge
   const source = options.document()?.nodes.find(node => node.id === edge.source?.node)
-  return source ? OUTCOME_HINTS[source.type] ?? [] : []
+  return source
+    ? OUTCOME_HINTS[source.type] ?? []
+    : []
 }
 
 export function createWorkflowExtension(options: WorkflowExtensionOptions): FlowDesignerExtension {
   const editor = (render: (context: Context) => ReturnType<typeof h>) => createVuePropertyEditor(options.appContext, render)
   /** 流程元数据只显示当前值 */
   const metadata = (extra: (value: string) => Record<string, unknown> = () => ({})) => editor((context) => {
-    const value = typeof context.value === 'string' ? context.value : ''
-    return h(FlowMetadataField, { value, label: context.descriptor.label, ...extra(value) })
+    const value = typeof context.value === 'string'
+      ? context.value
+      : ''
+    return h(FlowMetadataField, {
+      value,
+      label: context.descriptor.label,
+      ...extra(value),
+    })
   })
 
   return {
@@ -91,7 +114,9 @@ export function createWorkflowExtension(options: WorkflowExtensionOptions): Flow
       if (issue.code === SERVER_DIAGNOSTIC_CODE)
         return String(issue.params?.message ?? '')
       const key = WORKFLOW_ISSUE_KEYS[issue.code]
-      return key ? options.t(`workflow.designer.validate.${key}`) : undefined
+      return key
+        ? options.t(`workflow.designer.validate.${key}`)
+        : undefined
     },
     editors: {
       byControl: {
@@ -107,14 +132,18 @@ export function createWorkflowExtension(options: WorkflowExtensionOptions): Flow
       },
       byTarget: {
         document: {
-          'data.code': metadata(code => ({ hints: codeHints(options, code) })),
+          'data.code': metadata(code => ({
+            hints: codeHints(options, code),
+          })),
           'data.name': metadata(),
           'data.category': metadata(),
           'data.description': metadata(() => ({ multiline: true })),
         },
         edge: {
           'data.condition': editor(context => h(EdgeConditionEditor, {
-            'value': typeof context.value === 'string' ? context.value : undefined,
+            'value': typeof context.value === 'string'
+              ? context.value
+              : undefined,
             'label': context.descriptor.label,
             'readonly': context.readonly,
             'outcomes': sourceOutcomes(options, context),

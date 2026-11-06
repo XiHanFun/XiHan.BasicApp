@@ -32,8 +32,12 @@ const props = withDefaults(defineProps<{
   ariaLabel: undefined,
 })
 
-const selectedKeys = defineModel<string[]>('selectedKeys', { default: () => [] })
-const expandedKeys = defineModel<string[]>('expandedKeys', { default: () => [] })
+const selectedKeys = defineModel<string[]>('selectedKeys', {
+  default: () => [],
+})
+const expandedKeys = defineModel<string[]>('expandedKeys', {
+  default: () => [],
+})
 
 /** 机器的节点只认字符串键，逐层归一；业务字段随节点一起带下去 */
 function toNodes(options: ReadonlyArray<unknown>): TreeNode[] {
@@ -43,7 +47,11 @@ function toNodes(options: ReadonlyArray<unknown>): TreeNode[] {
     return {
       ...option,
       value: String(option.value),
-      ...(children?.length ? { children: toNodes(children) } : {}),
+      ...(children?.length
+        ? {
+            children: toNodes(children),
+          }
+        : {}),
     } as TreeNode
   })
 }

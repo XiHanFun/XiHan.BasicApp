@@ -103,7 +103,9 @@ export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
 
       if (component) {
         // 包一层「名字 = 路由名」的壳，使 KeepAlive 的 include（路由名列表）稳定匹配，页面组件自身名字不参与
-        route.component = withRouteName(component, item.name ? String(item.name) : undefined)
+        route.component = withRouteName(component, item.name
+          ? String(item.name)
+          : undefined)
       }
 
       if (!route.component && (!route.children || route.children.length === 0) && fallbackView) {

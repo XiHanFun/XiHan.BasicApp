@@ -62,11 +62,15 @@ export type MembershipEditorMode = 'create' | 'edit'
 const LIST_LIMIT = 100
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
+  return error instanceof ApiError
+    ? error.detail
+    : String(error)
 }
 
 function isBlank(value: unknown): boolean {
@@ -75,14 +79,20 @@ function isBlank(value: unknown): boolean {
 
 /** departments.tree 的节点（部门 + 成员数 + 子节点）→ SchemaPage 树表的行 */
 export function toDepartmentRows(nodes: DepartmentNode[]): DepartmentRow[] {
-  return nodes.map(node => ({ ...node.department, memberCount: Number(node.memberCount), children: toDepartmentRows(node.children) }))
+  return nodes.map(node => ({
+    ...node.department,
+    memberCount: Number(node.memberCount),
+    children: toDepartmentRows(node.children),
+  }))
 }
 
 /** 上级部门的候选树：编辑时去掉部门自己连同整棵子树（后端也拒绝循环，这里只是少给错误的选项） */
 export function toParentOptions(rows: DepartmentRow[], excludeId?: string): TreeSelectOption[] {
   return rows.filter(row => row.id !== excludeId).map((row) => {
     const children = toParentOptions(row.children, excludeId)
-    return children.length > 0 ? { label: row.name, value: row.id, children } : { label: row.name, value: row.id }
+    return children.length > 0
+      ? { label: row.name, value: row.id, children }
+      : { label: row.name, value: row.id }
   })
 }
 
@@ -109,21 +119,34 @@ export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): S
       const { keyword, ...others } = params.filters
       if ((params.sorts ?? []).length > 0 || (params.conditionFilters ?? []).length > 0 || Object.values(others).some(value => !isBlank(value)))
         throw new Error('部门树（departments.tree）只接受关键字：页面字段不要声明别的 searchable / advancedSearch / sortable')
-      const term = typeof keyword === 'string' ? keyword.trim() : ''
+      const term = typeof keyword === 'string'
+        ? keyword.trim()
+        : ''
       if (term === '') {
         const rows = toDepartmentRows((await departmentsApi.tree({})).items)
         onTree?.(rows)
         return rows
       }
-      const [matched, whole] = await Promise.all([departmentsApi.tree({ keyword: term }), onTree ? departmentsApi.tree({}) : Promise.resolve(null)])
+      const [matched, whole] = await Promise.all([
+        departmentsApi.tree({ keyword: term }),
+        onTree
+          ? departmentsApi.tree({})
+          : Promise.resolve(null),
+      ])
       if (whole)
         onTree?.(toDepartmentRows(whole.items))
       return toDepartmentRows(matched.items)
     },
-    remove: async id => throwOnFailed(await departmentsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await departmentsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体替换：先取当前值再只改状态（类型、负责人、联系方式原样带回）
     updateStatus: async (id, enabled) => {
-      const { department } = await departmentsApi.get({ id: String(id) })
+      const { department } = await departmentsApi.get({
+        id: String(id),
+      })
       return departmentsApi.update({
         id: department.id,
         name: department.name,
@@ -141,7 +164,19 @@ export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): S
 }
 
 function emptyDepartmentForm(): DepartmentForm {
-  return { code: '', name: '', departmentType: 'Department', parentId: null, leaderUserId: null, order: 0, phone: '', email: '', address: '', description: '', status: 'Active' }
+  return {
+    code: '',
+    name: '',
+    departmentType: 'Department',
+    parentId: null,
+    leaderUserId: null,
+    order: 0,
+    phone: '',
+    email: '',
+    address: '',
+    description: '',
+    status: 'Active',
+  }
 }
 
 /**
@@ -177,7 +212,14 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
     const seq = ++leaderSeq
     leaderLoading.value = true
     try {
-      const result = await usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [{ field: 'userName' }], keyword: keyword.trim() || null })
+      const result = await usersApi.list({
+        page: { index: 1, size: LIST_LIMIT },
+        filters: [NOT_SUPPORT_MEMBER_FILTER],
+        sorts: [
+          { field: 'userName' },
+        ],
+        keyword: keyword.trim() || null,
+      })
       if (seq !== leaderSeq)
         return
       const options: UserOption[] = result.items.map(user => ({ label: user.displayName, value: user.id, description: user.userName }))
@@ -204,7 +246,19 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
   function startEdit(row: DepartmentRow, leaders = false) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, departmentType: row.departmentType, parentId: row.parentId ?? null, leaderUserId: row.leaderUserId ?? null, order: row.order, phone: row.phone ?? '', email: row.email ?? '', address: row.address ?? '', description: row.description ?? '', status: row.status })
+    reset({
+      code: row.code,
+      name: row.name,
+      departmentType: row.departmentType,
+      parentId: row.parentId ?? null,
+      leaderUserId: row.leaderUserId ?? null,
+      order: row.order,
+      phone: row.phone ?? '',
+      email: row.email ?? '',
+      address: row.address ?? '',
+      description: row.description ?? '',
+      status: row.status,
+    })
     open.value = true
     if (leaders && row.leaderUserId)
       void seedLeader(row.id, row.leaderUserId)
@@ -214,8 +268,12 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
   async function seedLeader(departmentId: string, userId: string) {
     try {
       const user = await usersApi.get({ id: userId })
-      if (editing.value?.id === departmentId && form.leaderUserId === userId && !leaderOptions.value.some(option => option.value === userId))
-        leaderOptions.value = [{ label: user.displayName, value: user.id, description: user.userName }, ...leaderOptions.value]
+      if (editing.value?.id === departmentId && form.leaderUserId === userId && !leaderOptions.value.some(option => option.value === userId)) {
+        leaderOptions.value = [
+          { label: user.displayName, value: user.id, description: user.userName },
+          ...leaderOptions.value,
+        ]
+      }
     }
     catch (error) {
       submitError.value = describe(error)
@@ -282,14 +340,35 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, parentOptions, leaderOptions, leaderLoading, searchLeaders, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    parentOptions,
+    leaderOptions,
+    leaderLoading,
+    searchLeaders,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }
 
 function listMembers(departmentId: string) {
   return membershipsApi.list({
     page: { index: 1, size: LIST_LIMIT },
-    filters: [{ field: 'departmentId', operator: 'eq', value: departmentId }],
-    sorts: [{ field: 'order' }, { field: 'createdAt' }],
+    filters: [
+      { field: 'departmentId', operator: 'eq', value: departmentId },
+    ],
+    sorts: [
+      { field: 'order' },
+      { field: 'createdAt' },
+    ],
   })
 }
 
@@ -315,7 +394,9 @@ export function useDepartmentDetail(canReadMembers: () => boolean) {
   async function load(id: string) {
     const [loaded, memberPage] = await Promise.all([
       departmentsApi.get({ id }),
-      canReadMembers() ? listMembers(id) : Promise.resolve(null),
+      canReadMembers()
+        ? listMembers(id)
+        : Promise.resolve(null),
     ])
     detail.value = loaded
     members.value = memberPage?.items ?? []
@@ -345,19 +426,42 @@ export function useDepartmentDetail(canReadMembers: () => boolean) {
       await load(row.value.id)
   }
 
-  return { open, loading, row, detail, members, error, path, show, refresh }
+  return {
+    open,
+    loading,
+    row,
+    detail,
+    members,
+    error,
+    path,
+    show,
+    refresh,
+  }
 }
 
 function emptyMembershipForm(): MembershipForm {
-  return { userId: null, positionId: null, employeeNumber: '', jobGrade: '', hiredAt: null, order: 0, isPrimary: false, remark: '' }
+  return {
+    userId: null,
+    positionId: null,
+    employeeNumber: '',
+    jobGrade: '',
+    hiredAt: null,
+    order: 0,
+    isPrimary: false,
+    remark: '',
+  }
 }
 
 function toTimestamp(value: null | string | undefined): null | number {
-  return value ? new Date(value).getTime() : null
+  return value
+    ? new Date(value).getTime()
+    : null
 }
 
 function toIso(value: null | number): null | string {
-  return value === null ? null : new Date(value).toISOString()
+  return value === null
+    ? null
+    : new Date(value).toISOString()
 }
 
 /** 候选从哪里取：没有读用户 / 读岗位权限的主体不发对应请求，页面也不出对应字段 */
@@ -389,8 +493,26 @@ export function useMembershipEditor() {
     optionsLoading.value = true
     try {
       const [usersPage, positionsPage] = await Promise.all([
-        scope.users ? usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [{ field: 'userName' }] }) : Promise.resolve(null),
-        scope.positions ? positionsApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order' }] }) : Promise.resolve(null),
+        scope.users
+          ? usersApi.list({
+              page: { index: 1, size: LIST_LIMIT },
+              filters: [NOT_SUPPORT_MEMBER_FILTER],
+              sorts: [
+                { field: 'userName' },
+              ],
+            })
+          : Promise.resolve(null),
+        scope.positions
+          ? positionsApi.list({
+              page: { index: 1, size: LIST_LIMIT },
+              filters: [
+                { field: 'status', operator: 'eq', value: 'Active' },
+              ],
+              sorts: [
+                { field: 'order' },
+              ],
+            })
+          : Promise.resolve(null),
       ])
       if (usersPage)
         userOptions.value = usersPage.items.map(user => ({ label: user.displayName, value: user.id, description: user.userName }))
@@ -497,7 +619,22 @@ export function useMembershipEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, userOptions, positionOptions, optionsLoading, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    userOptions,
+    positionOptions,
+    optionsLoading,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }
 
 /** 设为主部门：update 是整体替换，其余字段原样带回 */
@@ -516,5 +653,7 @@ export async function setPrimaryMembership(member: MembershipRow): Promise<void>
 
 /** 移出部门：被后端逐项拒绝时带着错误码抛出 */
 export async function removeMembership(id: string): Promise<void> {
-  throwOnFailed(await membershipsApi.delete({ ids: [id] }))
+  throwOnFailed(await membershipsApi.delete({
+    ids: [id],
+  }))
 }

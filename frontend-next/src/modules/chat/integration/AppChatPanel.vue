@@ -36,7 +36,16 @@ const GAP = 12
 const PANEL_SIZE: FloatingPanelSize = { width: 420, height: 640 }
 /** 尺寸下限：再小会话列表与输入框就挤不下 */
 const MIN_SIZE: FloatingPanelSize = { width: 320, height: 360 }
-const RESIZE_EDGES: FloatingPanelResizeEdge[] = ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw']
+const RESIZE_EDGES: FloatingPanelResizeEdge[] = [
+  'n',
+  'e',
+  's',
+  'w',
+  'ne',
+  'nw',
+  'se',
+  'sw',
+]
 
 const { t } = useI18n()
 const router = useRouter()

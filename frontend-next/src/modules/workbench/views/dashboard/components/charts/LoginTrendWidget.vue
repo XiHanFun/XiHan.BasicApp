@@ -33,19 +33,48 @@ const rows = computed(() => {
 const empty = computed(() => rows.value.every(row => row.succeeded === 0 && row.failed === 0))
 
 const series = computed<CartesianSeries[]>(() => [
-  { id: 'succeeded', mark: 'bar', x: 'date', y: 'succeeded', stack: 'logins', name: t('workbench.charts.succeeded') },
-  { id: 'failed', mark: 'bar', x: 'date', y: 'failed', stack: 'logins', name: t('workbench.charts.failed') },
+  {
+    id: 'succeeded',
+    mark: 'bar',
+    x: 'date',
+    y: 'succeeded',
+    stack: 'logins',
+    name: t('workbench.charts.succeeded'),
+  },
+  {
+    id: 'failed',
+    mark: 'bar',
+    x: 'date',
+    y: 'failed',
+    stack: 'logins',
+    name: t('workbench.charts.failed'),
+  },
 ])
 
 /** 均线要够长的区间才有意义：7 天就只标峰值 */
 const annotations = computed<CartesianAnnotation[]>(() => [
   ...(Number(range.value) > MOVING_AVERAGE_DAYS
-    ? [{ kind: 'trend' as const, series: 'succeeded', method: 'moving-average' as const, window: MOVING_AVERAGE_DAYS, label: t('workbench.charts.moving_average', { n: MOVING_AVERAGE_DAYS }) }]
+    ? [
+        {
+          kind: 'trend' as const,
+          series: 'succeeded',
+          method: 'moving-average' as const,
+          window: MOVING_AVERAGE_DAYS,
+          label: t('workbench.charts.moving_average', { n: MOVING_AVERAGE_DAYS }),
+        },
+      ]
     : []),
-  { kind: 'point', series: 'succeeded', at: 'max', label: t('workbench.charts.peak') },
+  {
+    kind: 'point',
+    series: 'succeeded',
+    at: 'max',
+    label: t('workbench.charts.peak'),
+  },
 ])
 
-const xAxis = { format: { month: 'numeric', day: 'numeric' } } as const
+const xAxis = {
+  format: { month: 'numeric', day: 'numeric' },
+} as const
 const yAxis = { format: COUNT_COMPACT }
 </script>
 

@@ -82,13 +82,21 @@ export function bindSyncedSetting<T>(
 
   if (!source.enabled()) {
     markReady()
-    return { ready, settled: Promise.resolve(), dispose: unsubscribe }
+    return {
+      ready,
+      settled: Promise.resolve(),
+      dispose: unsubscribe,
+    }
   }
   const inHand = source.peek?.()
   if (inHand) {
     adopt(inHand.value)
     markReady()
-    return { ready, settled: Promise.resolve(), dispose: unsubscribe }
+    return {
+      ready,
+      settled: Promise.resolve(),
+      dispose: unsubscribe,
+    }
   }
 
   let timer: ReturnType<typeof setTimeout> | null = setTimeout(markReady, options.wait ?? SYNCED_SETTING_WAIT)

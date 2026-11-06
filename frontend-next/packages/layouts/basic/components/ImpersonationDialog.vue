@@ -40,7 +40,10 @@ const scope = ref<string>(PLATFORM_SCOPE)
 const tenants = ref<ImpersonationTenantOption[]>([])
 const tenantsLoading = ref(false)
 const scopeOptions = computed(() => [
-  { label: t('header.impersonation.scope_platform'), value: PLATFORM_SCOPE },
+  {
+    label: t('header.impersonation.scope_platform'),
+    value: PLATFORM_SCOPE,
+  },
   ...tenants.value.map(tenant => ({ label: tenant.tenantName, value: tenant.tenantId })),
 ])
 /** 当前要检索的租户：平台里取选中的租户，租户里取本租户 */
@@ -48,7 +51,9 @@ const targetTenantId = computed(() => {
   if (!isPlatform.value) {
     return userStore.userInfo?.tenantId ?? undefined
   }
-  return scope.value === PLATFORM_SCOPE ? undefined : scope.value
+  return scope.value === PLATFORM_SCOPE
+    ? undefined
+    : scope.value
 })
 const loading = ref(false)
 const candidates = ref<ImpersonationCandidate[]>([])
@@ -108,7 +113,9 @@ async function start(candidate: ImpersonationCandidate) {
     await authStore.startImpersonation({
       targetUserId: candidate.basicId,
       // 平台选了租户就进该租户；租户里不传，沿用当前租户
-      tenantId: isPlatform.value ? (targetTenantId.value ?? null) : undefined,
+      tenantId: isPlatform.value
+        ? (targetTenantId.value ?? null)
+        : undefined,
       reason: reason.value.trim() || null,
     })
   }
@@ -132,7 +139,9 @@ async function loadTenants() {
 }
 
 function onScopeChange(value: string | number | Array<string | number> | null) {
-  scope.value = value === null || Array.isArray(value) ? PLATFORM_SCOPE : String(value)
+  scope.value = value === null || Array.isArray(value)
+    ? PLATFORM_SCOPE
+    : String(value)
   void loadCandidates()
 }
 

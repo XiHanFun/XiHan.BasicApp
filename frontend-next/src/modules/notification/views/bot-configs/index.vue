@@ -26,19 +26,88 @@ function reload() {
 }
 
 const asRow = (row: object) => row as BotConfigRow
-const providerOptions = computed<SelectOption[]>(() => PROVIDERS.map(provider => ({ label: botProviderLabel(t, provider), value: provider })))
+const providerOptions = computed<SelectOption[]>(() => PROVIDERS.map(provider => ({
+  label: botProviderLabel(t, provider),
+  value: provider,
+})))
 const statusOptions = computed<SelectOption[]>(() => enabledOptions(t))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：排序、创建时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.bot_configs.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.bot_configs.columns.keyword_placeholder'), order: 0 },
-  { key: 'code', title: t('notification.bot_configs.columns.config_code'), dataType: 'string', minWidth: 140, order: 1 },
-  { key: 'name', title: t('notification.bot_configs.columns.config_name'), dataType: 'string', minWidth: 140, order: 2 },
-  { key: 'provider', title: t('notification.bot_configs.columns.provider'), dataType: 'enum', searchable: true, searchMultiple: true, options: providerOptions.value, searchPlaceholder: t('notification.bot_configs.columns.provider_placeholder'), width: 110, order: 3, render: row => renderTag(botProviderLabel(t, asRow(row).provider), 'info') },
-  { key: 'isDefault', title: t('notification.bot_configs.columns.is_default'), dataType: 'enum', width: 90, order: 4, render: row => (asRow(row).isDefault ? renderTag(t('notification.bot_configs.tag.default'), 'warning') : '-') },
-  { key: 'isEnabled', title: t('notification.bot_configs.columns.status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('notification.bot_configs.columns.status_placeholder'), width: 90, order: 5, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
-  { key: 'order', title: t('notification.bot_configs.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 6 },
-  { key: 'createdAt', title: t('notification.bot_configs.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
+  {
+    key: 'keyword',
+    title: t('notification.bot_configs.columns.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.bot_configs.columns.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('notification.bot_configs.columns.config_code'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('notification.bot_configs.columns.config_name'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 2,
+  },
+  {
+    key: 'provider',
+    title: t('notification.bot_configs.columns.provider'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: providerOptions.value,
+    searchPlaceholder: t('notification.bot_configs.columns.provider_placeholder'),
+    width: 110,
+    order: 3,
+    render: row => renderTag(botProviderLabel(t, asRow(row).provider), 'info'),
+  },
+  {
+    key: 'isDefault',
+    title: t('notification.bot_configs.columns.is_default'),
+    dataType: 'enum',
+    width: 90,
+    order: 4,
+    render: row => (asRow(row).isDefault
+      ? renderTag(t('notification.bot_configs.tag.default'), 'warning')
+      : '-'),
+  },
+  {
+    key: 'isEnabled',
+    title: t('notification.bot_configs.columns.status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.bot_configs.columns.status_placeholder'),
+    width: 90,
+    order: 5,
+    render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'order',
+    title: t('notification.bot_configs.columns.sort'),
+    dataType: 'number',
+    sortable: true,
+    width: 80,
+    order: 6,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.bot_configs.columns.created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 7,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -49,12 +118,54 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('notification.bot_configs.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.bot-configs.create' },
-    { key: 'edit', title: t('notification.bot_configs.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'notification.bot-configs.update' },
+    {
+      key: 'create',
+      title: t('notification.bot_configs.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'notification.bot-configs.create',
+    },
+    {
+      key: 'edit',
+      title: t('notification.bot_configs.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'notification.bot-configs.update',
+    },
     // 默认机器人不能停用也不能删除（后端拒绝），入口随之收起；停用的不能设为默认
-    { key: 'toggle', title: t('notification.bot_configs.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => toggleConfirmText(asRow(row)), visible: row => !asRow(row).isDefault, permission: 'notification.bot-configs.update' },
-    { key: 'setDefault', title: t('notification.bot_configs.actions.set_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => t('notification.bot_configs.message.set_default_content', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, disabled: row => !asRow(row).isEnabled, permission: 'notification.bot-configs.update' },
-    { key: 'delete', title: t('notification.bot_configs.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => t('notification.bot_configs.message.delete_content', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, permission: 'notification.bot-configs.delete' },
+    {
+      key: 'toggle',
+      title: t('notification.bot_configs.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => toggleConfirmText(asRow(row)),
+      visible: row => !asRow(row).isDefault,
+      permission: 'notification.bot-configs.update',
+    },
+    {
+      key: 'setDefault',
+      title: t('notification.bot_configs.actions.set_default'),
+      scope: 'row',
+      icon: 'lucide:star',
+      confirm: true,
+      confirmText: row => t('notification.bot_configs.message.set_default_content', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      disabled: row => !asRow(row).isEnabled,
+      permission: 'notification.bot-configs.update',
+    },
+    {
+      key: 'delete',
+      title: t('notification.bot_configs.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => t('notification.bot_configs.message.delete_content', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      permission: 'notification.bot-configs.delete',
+    },
   ],
 }))
 
@@ -65,7 +176,9 @@ function toggleConfirmText(row: BotConfigRow): string {
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -98,10 +211,14 @@ const editingHasSecret = ref(false)
 /** 编辑的是不是这个服务商的默认机器人：默认的不能换服务商（后端拒绝） */
 const editingIsDefault = ref(false)
 const form = reactive<BotConfigForm>(emptyBotConfigForm())
-const modalTitle = computed(() => (form.id ? t('notification.bot_configs.form.edit_title') : t('notification.bot_configs.form.add_title')))
+const modalTitle = computed(() => (form.id
+  ? t('notification.bot_configs.form.edit_title')
+  : t('notification.bot_configs.form.add_title')))
 const signing = computed(() => supportsSigning(form.provider))
 const providerLocked = computed(() => Boolean(form.id) && editingIsDefault.value)
-const secretPlaceholder = computed(() => (form.id && editingHasSecret.value ? t('notification.bot_configs.form.secret_configured') : t('notification.bot_configs.form.secret_placeholder')))
+const secretPlaceholder = computed(() => (form.id && editingHasSecret.value
+  ? t('notification.bot_configs.form.secret_configured')
+  : t('notification.bot_configs.form.secret_placeholder')))
 /** Webhook 的占位与提示随服务商（4.x 同）：只认官方 https 地址 */
 const webhookPlaceholder = computed(() => {
   switch (form.provider) {
@@ -110,7 +227,9 @@ const webhookPlaceholder = computed(() => {
     default: return t('notification.bot_configs.form.webhook_url_placeholder_ding_talk')
   }
 })
-const webhookHint = computed(() => t('notification.bot_configs.form.webhook_url_hint', { hosts: BOT_WEBHOOK_HOSTS[form.provider].join(' / ') }))
+const webhookHint = computed(() => t('notification.bot_configs.form.webhook_url_hint', {
+  hosts: BOT_WEBHOOK_HOSTS[form.provider].join(' / '),
+}))
 
 function openCreate() {
   Object.assign(form, emptyBotConfigForm())

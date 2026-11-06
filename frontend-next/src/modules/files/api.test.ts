@@ -49,7 +49,9 @@ class FakeXhr {
       this.upload.onprogress?.({ loaded: body.size })
       const failed = FakeXhr.failing.has(this.url)
       this.status = failed ? 403 : 200
-      this.responseText = failed ? JSON.stringify({ code: 'OBJECTSTORAGE_DENIED_001', detail: 'The signed URL is invalid.', status: 403 }) : ''
+      this.responseText = failed
+        ? JSON.stringify({ code: 'OBJECTSTORAGE_DENIED_001', detail: 'The signed URL is invalid.', status: 403 })
+        : ''
       this.onload?.()
     })
   }
@@ -60,7 +62,9 @@ class FakeXhr {
 }
 
 function fileOf(size: number): File {
-  return new File([new Uint8Array(size)], 'big.bin', { type: 'application/octet-stream' })
+  return new File([
+    new Uint8Array(size),
+  ], 'big.bin', { type: 'application/octet-stream' })
 }
 
 beforeEach(() => {
@@ -90,11 +94,17 @@ describe('uploadFile', () => {
 
   it('splits large files into signed part uploads and completes them', async () => {
     const progress: number[] = []
-    const created = await uploadFile(fileOf(MULTIPART_THRESHOLD + 10), { tags: ' a ', onProgress: p => progress.push(p) })
+    const created = await uploadFile(fileOf(MULTIPART_THRESHOLD + 10), {
+      tags: ' a ',
+      onProgress: p => progress.push(p),
+    })
 
     expect(created).toEqual({ id: 'f1' })
     expect(ops.startUpload).toHaveBeenCalledWith(expect.objectContaining({ originalName: 'big.bin', size: MULTIPART_THRESHOLD + 10, tags: 'a' }), expect.anything())
-    expect(ops.signUploadParts).toHaveBeenCalledWith({ uploadId: 'u1', partNumbers: [1, 2, 3] }, expect.anything())
+    expect(ops.signUploadParts).toHaveBeenCalledWith({
+      uploadId: 'u1',
+      partNumbers: [1, 2, 3],
+    }, expect.anything())
     expect(FakeXhr.sent.map(s => s.size).sort((a, b) => a - b)).toEqual([10, 8 * MiB, 8 * MiB])
     expect(FakeXhr.sent.every(s => s.url.startsWith('/blobs/files/k'))).toBe(true)
     expect(ops.completeUpload).toHaveBeenCalledWith({ uploadId: 'u1' }, expect.anything())

@@ -19,14 +19,21 @@ export function permissionsResource(): SchemaResource<PermissionRow> {
   return {
     page: async (params) => {
       const unsupported = [
-        ...Object.keys(params.filters).filter(field => !['keyword', 'package', 'scope', 'audited'].includes(field)),
+        ...Object.keys(params.filters).filter(field => ![
+          'keyword',
+          'package',
+          'scope',
+          'audited',
+        ].includes(field)),
         ...(params.sorts ?? []).map(sort => sort.field).filter(field => !['code', 'package'].includes(field)),
         ...(params.conditionFilters ?? []).map(filter => filter.field),
       ]
       if (unsupported.length > 0)
         throw new Error(`权限目录不支持按 ${unsupported.join(', ')} 筛选或排序`)
       const { items } = await permissionsApi.list({})
-      const keyword = isBlank(params.filters.keyword) ? '' : String(params.filters.keyword).trim().toLowerCase()
+      const keyword = isBlank(params.filters.keyword)
+        ? ''
+        : String(params.filters.keyword).trim().toLowerCase()
       const filtered = items.filter(item =>
         (keyword === '' || [item.code, item.displayName, item.description ?? ''].some(text => text.toLowerCase().includes(keyword)))
         && (isBlank(params.filters.package) || item.package === params.filters.package)
@@ -34,15 +41,23 @@ export function permissionsResource(): SchemaResource<PermissionRow> {
         && (isBlank(params.filters.audited) || String(item.audited) === String(params.filters.audited)))
       const sort = params.sorts?.[0]
       const ordered = sort
-        ? [...filtered].sort((a, b) => (sort.order === 'desc' ? -1 : 1) * String(a[sort.field as 'code' | 'package']).localeCompare(String(b[sort.field as 'code' | 'package'])))
+        ? [...filtered].sort((a, b) => (sort.order === 'desc'
+            ? -1
+            : 1) * String(a[sort.field as 'code' | 'package']).localeCompare(String(b[sort.field as 'code' | 'package'])))
         : filtered
       const start = (params.page - 1) * params.pageSize
-      return toSchemaPageResult({ items: ordered.slice(start, start + params.pageSize), total: ordered.length, page: { index: params.page, size: params.pageSize } }, params)
+      return toSchemaPageResult({
+        items: ordered.slice(start, start + params.pageSize),
+        total: ordered.length,
+        page: { index: params.page, size: params.pageSize },
+      }, params)
     },
   }
 }
 
 /** 目录里出现过的包，给筛选下拉用 */
 export function packagesOf(items: readonly PermissionRow[]): string[] {
-  return [...new Set(items.map(item => item.package))].sort()
+  return [
+    ...new Set(items.map(item => item.package)),
+  ].sort()
 }

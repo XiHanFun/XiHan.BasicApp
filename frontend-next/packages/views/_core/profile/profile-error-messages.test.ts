@@ -24,8 +24,17 @@ beforeEach(() => {
   setActivePinia(createPinia())
   i18n.global.locale.value = 'zh-CN'
   rejected.mockReset()
-  const names = ['getApiCredentialsApi', 'getApiCallSettingsApi', 'getMyOAuthAppsApi', 'getOAuthConsentsApi', 'getProfileApi', 'setup2FAApi']
-  registerAppContext({ apis: Object.fromEntries(names.map(name => [name, rejected])) as unknown as AppContextApis })
+  const names = [
+    'getApiCredentialsApi',
+    'getApiCallSettingsApi',
+    'getMyOAuthAppsApi',
+    'getOAuthConsentsApi',
+    'getProfileApi',
+    'setup2FAApi',
+  ]
+  registerAppContext({
+    apis: Object.fromEntries(names.map(name => [name, rejected])) as unknown as AppContextApis,
+  })
 })
 
 afterEach(() => {
@@ -44,25 +53,56 @@ async function failuresOf(error: unknown, run: () => Promise<void>) {
 
 function renderTab(component: typeof ProfileTabDeveloper | typeof ProfileTabOAuth) {
   return async () => {
-    mounted.push(mount(component, { global: { plugins: [i18n] }, attachTo: document.body }))
+    mounted.push(mount(component, {
+      global: {
+        plugins: [i18n],
+      },
+      attachTo: document.body,
+    }))
   }
 }
 
 async function renderSecurityAndStartTotp() {
-  const wrapper = mount(ProfileTabSecurity, { props: { profile: null }, global: { plugins: [i18n] }, attachTo: document.body })
+  const wrapper = mount(ProfileTabSecurity, {
+    props: { profile: null },
+    global: {
+      plugins: [i18n],
+    },
+    attachTo: document.body,
+  })
   mounted.push(wrapper)
   await (wrapper.vm as unknown as { startTotpSetup: () => Promise<void> }).startTotpSetup()
 }
 
 async function renderPage() {
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div />' } }] })
-  mounted.push(mount(ProfilePage, { global: { plugins: [i18n, router], stubs: { ProfileTabInfo: true } }, attachTo: document.body }))
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/',
+        component: { template: '<div />' },
+      },
+    ],
+  })
+  mounted.push(mount(ProfilePage, {
+    global: {
+      plugins: [i18n, router],
+      stubs: { ProfileTabInfo: true },
+    },
+    attachTo: document.body,
+  }))
 }
 
 describe('个人中心的错误提示', () => {
   it.each([
-    ['开发者', renderTab(ProfileTabDeveloper)],
-    ['OAuth', renderTab(ProfileTabOAuth)],
+    [
+      '开发者',
+      renderTab(ProfileTabDeveloper),
+    ],
+    [
+      'OAuth',
+      renderTab(ProfileTabOAuth),
+    ],
     ['安全', renderSecurityAndStartTotp],
     ['个人中心页', renderPage],
   ])('%s：后端错误不带错误码，别的异常保持 message', async (_name, run) => {

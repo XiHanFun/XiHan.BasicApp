@@ -13,7 +13,12 @@ type Translate = (key: string, values?: Record<string, unknown>) => string
 /** 色调，与 XiHan.UI 标签一致 */
 export type ExportTaskTone = 'danger' | 'info' | 'neutral' | 'success'
 
-export const EXPORT_TASK_STATUSES: readonly ExportTaskStatus[] = ['Pending', 'Processing', 'Success', 'Failed']
+export const EXPORT_TASK_STATUSES: readonly ExportTaskStatus[] = [
+  'Pending',
+  'Processing',
+  'Success',
+  'Failed',
+]
 export const EXPORT_FORMATS: readonly ExportFormat[] = ['Csv', 'Xlsx']
 
 /**
@@ -49,7 +54,11 @@ export const EXPORT_TASK_QUERY: PageQueryMapping = {
 export function exportTaskResource(): SchemaResource<ExportTaskRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await exportTasksApi.list(toPageRequest(params, EXPORT_TASK_QUERY)), params),
-    remove: async id => throwOnFailed(await exportTasksApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await exportTasksApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -137,7 +146,9 @@ export function scopeLabel(t: Translate, scope: ExportScope): string {
 
 /** 格式名不翻译（4.x 同） */
 export function formatLabel(format: ExportFormat): string {
-  return format === 'Xlsx' ? 'Excel' : 'CSV'
+  return format === 'Xlsx'
+    ? 'Excel'
+    : 'CSV'
 }
 
 /** 业务类型是列表操作 ID：认得的翻成页面名，其余原样 */
@@ -158,5 +169,7 @@ export function businessTypeLabel(t: Translate, businessType: string): string {
 export function errorMessageText(t: Translate, message: null | string | undefined): string {
   if (!message)
     return ''
-  return message === INTERRUPTED_MESSAGE ? t('files.export_center.interrupted') : message
+  return message === INTERRUPTED_MESSAGE
+    ? t('files.export_center.interrupted')
+    : message
 }

@@ -39,7 +39,9 @@ function resolveIcon(icon: string) {
   if (!icon) {
     return icon
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 const tabClass = computed(() => {

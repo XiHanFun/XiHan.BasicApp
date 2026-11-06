@@ -17,7 +17,16 @@ export interface DetailSections {
 
 /** 一个用户的部门归属（按排序号与加入时间） */
 export async function loadMemberships(userId: string): Promise<MembershipRow[]> {
-  return (await membershipsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'userId', operator: 'eq', value: userId }], sorts: [{ field: 'order' }, { field: 'createdAt' }] })).items
+  return (await membershipsApi.list({
+    page: { index: 1, size: 100 },
+    filters: [
+      { field: 'userId', operator: 'eq', value: userId },
+    ],
+    sorts: [
+      { field: 'order' },
+      { field: 'createdAt' },
+    ],
+  })).items
 }
 
 /**
@@ -48,9 +57,16 @@ export function useUserDetail() {
     loading.value = true
     try {
       const [overview, roleList, membershipList] = await Promise.all([
-        usersApi.detail({ id: row.id, timeZone: getDisplayTimeZone() }),
-        wanted.roles ? rolesApi.byUser({ userId: row.id }).then(result => result.items) : Promise.resolve(null),
-        wanted.departments ? loadMemberships(row.id) : Promise.resolve(null),
+        usersApi.detail({
+          id: row.id,
+          timeZone: getDisplayTimeZone(),
+        }),
+        wanted.roles
+          ? rolesApi.byUser({ userId: row.id }).then(result => result.items)
+          : Promise.resolve(null),
+        wanted.departments
+          ? loadMemberships(row.id)
+          : Promise.resolve(null),
       ])
       if (current !== seq)
         return
@@ -59,8 +75,11 @@ export function useUserDetail() {
       memberships.value = membershipList
     }
     catch (e) {
-      if (current === seq)
-        error.value = e instanceof ApiError ? e.detail : String(e)
+      if (current === seq) {
+        error.value = e instanceof ApiError
+          ? e.detail
+          : String(e)
+      }
     }
     finally {
       if (current === seq)
@@ -68,5 +87,15 @@ export function useUserDetail() {
     }
   }
 
-  return { open, user, detail, sections, roles, memberships, loading, error, show }
+  return {
+    open,
+    user,
+    detail,
+    sections,
+    roles,
+    memberships,
+    loading,
+    error,
+    show,
+  }
 }

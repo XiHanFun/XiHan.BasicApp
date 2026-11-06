@@ -80,7 +80,9 @@ function statusTone(status: UserStatus): Tone {
 }
 
 function homeTenantLabel(homeTenantId: string): string {
-  return homeTenantId === PLATFORM_TENANT_ID ? t('identity.users.home.platform') : homeTenantId
+  return homeTenantId === PLATFORM_TENANT_ID
+    ? t('identity.users.home.platform')
+    : homeTenantId
 }
 
 function genderLabel(gender: UserGender): string {
@@ -99,8 +101,14 @@ function genderTone(gender: UserGender): Tone {
   }
 }
 
-const statusOptions = computed<SelectOption[]>(() => USER_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
-const genderOptions = computed<SelectOption[]>(() => USER_GENDERS.map(gender => ({ label: genderLabel(gender), value: gender })))
+const statusOptions = computed<SelectOption[]>(() => USER_STATUSES.map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
+const genderOptions = computed<SelectOption[]>(() => USER_GENDERS.map(gender => ({
+  label: genderLabel(gender),
+  value: gender,
+})))
 
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as UserRow
@@ -110,10 +118,14 @@ function renderUserInfo(row: UserRow) {
   return h('div', { class: 'min-w-0 leading-snug' }, [
     h('div', { class: 'flex items-center gap-1' }, [
       h('span', { class: 'truncate text-body font-semibold text-fg' }, displayNameOf(row)),
-      row.isSystemAccount ? renderTag(t('identity.users.system_account_tag'), 'warning') : null,
+      row.isSystemAccount
+        ? renderTag(t('identity.users.system_account_tag'), 'warning')
+        : null,
       row.isSupportMember
         ? renderTag(t('identity.users.support_member_tag'), 'info')
-        : row.isExternalMember ? renderTag(t('identity.users.external_member_tag'), 'info') : null,
+        : row.isExternalMember
+          ? renderTag(t('identity.users.external_member_tag'), 'info')
+          : null,
     ]),
     h('div', { class: 'truncate text-caption text-fg-muted' }, `@${row.userName}`),
   ])
@@ -134,8 +146,12 @@ function renderRoles(row: UserRow) {
 /** 安全列：锁定与双因素，都没有即正常（4.x 同） */
 function renderSecurity(row: UserRow) {
   const tags = [
-    row.isLocked ? renderTag(t('identity.users.security_locked'), 'danger') : null,
-    row.twoFactorEnabled ? renderTag(t('identity.users.security_two_factor'), 'success') : null,
+    row.isLocked
+      ? renderTag(t('identity.users.security_locked'), 'danger')
+      : null,
+    row.twoFactorEnabled
+      ? renderTag(t('identity.users.security_two_factor'), 'success')
+      : null,
   ].filter(tag => tag !== null)
   return tags.length === 0
     ? h('span', { class: 'text-fg-muted' }, t('identity.users.security_normal'))
@@ -144,33 +160,202 @@ function renderSecurity(row: UserRow) {
 
 // ── 字段单一事实源（列 + 搜索；仅搜索 / 仅导出字段 visible:false；order 控顺序；可排序与可筛选的只放后端白名单里的） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('identity.users.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('identity.users.keyword_placeholder'), order: 0 },
-  { key: 'avatarFileId', title: t('identity.users.fields.avatar'), dataType: 'string', render: row => h(XUserAvatar, { avatar: asRow(row).avatarFileId ?? null, name: displayNameOf(asRow(row)), size: 40 }), width: 80, order: 0.5 },
-  { key: 'userName', title: t('identity.users.fields.user_info'), dataType: 'string', sortable: true, exportable: true, render: row => renderUserInfo(asRow(row)), minWidth: 180, order: 1 },
-  { key: 'displayName', title: t('identity.users.fields.display_name'), dataType: 'string', visible: false, exportable: true, order: 1.5 },
-  { key: 'email', title: t('identity.users.fields.email'), dataType: 'email', advancedSearch: true, exportable: true, minWidth: 180, order: 2 },
-  { key: 'phoneNumber', title: t('identity.users.fields.phone'), dataType: 'phone', advancedSearch: true, searchPlaceholder: t('identity.users.phone_placeholder'), exportable: true, width: 140, order: 3 },
-  { key: 'gender', title: t('identity.users.fields.gender'), dataType: 'enum', advancedSearch: true, options: genderOptions.value, searchPlaceholder: t('identity.users.gender_placeholder'), exportable: true, render: row => renderTag(genderLabel(asRow(row).gender), genderTone(asRow(row).gender)), width: 80, order: 3.1 },
+  {
+    key: 'keyword',
+    title: t('identity.users.search'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('identity.users.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'avatarFileId',
+    title: t('identity.users.fields.avatar'),
+    dataType: 'string',
+    render: row => h(XUserAvatar, {
+      avatar: asRow(row).avatarFileId ?? null,
+      name: displayNameOf(asRow(row)),
+      size: 40,
+    }),
+    width: 80,
+    order: 0.5,
+  },
+  {
+    key: 'userName',
+    title: t('identity.users.fields.user_info'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    render: row => renderUserInfo(asRow(row)),
+    minWidth: 180,
+    order: 1,
+  },
+  {
+    key: 'displayName',
+    title: t('identity.users.fields.display_name'),
+    dataType: 'string',
+    visible: false,
+    exportable: true,
+    order: 1.5,
+  },
+  {
+    key: 'email',
+    title: t('identity.users.fields.email'),
+    dataType: 'email',
+    advancedSearch: true,
+    exportable: true,
+    minWidth: 180,
+    order: 2,
+  },
+  {
+    key: 'phoneNumber',
+    title: t('identity.users.fields.phone'),
+    dataType: 'phone',
+    advancedSearch: true,
+    searchPlaceholder: t('identity.users.phone_placeholder'),
+    exportable: true,
+    width: 140,
+    order: 3,
+  },
+  {
+    key: 'gender',
+    title: t('identity.users.fields.gender'),
+    dataType: 'enum',
+    advancedSearch: true,
+    options: genderOptions.value,
+    searchPlaceholder: t('identity.users.gender_placeholder'),
+    exportable: true,
+    render: row => renderTag(genderLabel(asRow(row).gender), genderTone(asRow(row).gender)),
+    width: 80,
+    order: 3.1,
+  },
   // 仅搜索：角色（启用的角色、生效中的指派）、部门（含下级，部门是租户侧数据）
-  { key: 'roleId', title: t('identity.users.fields.roles'), dataType: 'enum', visible: false, advancedSearch: true, searchFilterable: true, optionsLoader: loadRoleOptions, permission: 'access.roles.read', searchPlaceholder: t('identity.users.role_placeholder'), order: 3.2 },
+  {
+    key: 'roleId',
+    title: t('identity.users.fields.roles'),
+    dataType: 'enum',
+    visible: false,
+    advancedSearch: true,
+    searchFilterable: true,
+    optionsLoader: loadRoleOptions,
+    permission: 'access.roles.read',
+    searchPlaceholder: t('identity.users.role_placeholder'),
+    order: 3.2,
+  },
   ...(isPlatformCaller()
     ? []
-    : [{ key: 'departmentId', title: t('identity.users.fields.departments'), dataType: 'enum' as const, visible: false, advancedSearch: true, searchFilterable: true, optionsLoader: loadDepartmentOptions, permission: 'organization.departments.read', searchPlaceholder: t('identity.users.department_placeholder'), order: 3.3 }]),
-  { key: 'country', title: t('identity.users.fields.country'), dataType: 'string', exportable: true, ellipsis: true, width: 120, order: 3.5 },
+    : [
+        {
+          key: 'departmentId',
+          title: t('identity.users.fields.departments'),
+          dataType: 'enum' as const,
+          visible: false,
+          advancedSearch: true,
+          searchFilterable: true,
+          optionsLoader: loadDepartmentOptions,
+          permission: 'organization.departments.read',
+          searchPlaceholder: t('identity.users.department_placeholder'),
+          order: 3.3,
+        },
+      ]),
+  {
+    key: 'country',
+    title: t('identity.users.fields.country'),
+    dataType: 'string',
+    exportable: true,
+    ellipsis: true,
+    width: 120,
+    order: 3.5,
+  },
   // 平台看得见全部用户，注册地一列才有区分意义；租户里的外部成员在用户信息列带标记
   ...(isPlatformCaller()
-    ? [{ key: 'homeTenantId', title: t('identity.users.fields.home_tenant'), dataType: 'string' as const, exportable: true, render: (row: object) => homeTenantLabel(asRow(row).homeTenantId), ellipsis: true, width: 120, order: 4 }]
+    ? [
+        {
+          key: 'homeTenantId',
+          title: t('identity.users.fields.home_tenant'),
+          dataType: 'string' as const,
+          exportable: true,
+          render: (row: object) => homeTenantLabel(asRow(row).homeTenantId),
+          ellipsis: true,
+          width: 120,
+          order: 4,
+        },
+      ]
     : []),
-  { key: 'status', title: t('identity.users.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, searchPlaceholder: t('identity.users.status_placeholder'), options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 100, order: 5 },
-  { key: 'roleNames', title: t('identity.users.fields.roles'), dataType: 'string', exportable: true, render: row => renderRoles(asRow(row)), minWidth: 160, order: 5.1 },
+  {
+    key: 'status',
+    title: t('identity.users.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    searchPlaceholder: t('identity.users.status_placeholder'),
+    options: statusOptions.value,
+    exportable: true,
+    render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)),
+    width: 100,
+    order: 5,
+  },
+  {
+    key: 'roleNames',
+    title: t('identity.users.fields.roles'),
+    dataType: 'string',
+    exportable: true,
+    render: row => renderRoles(asRow(row)),
+    minWidth: 160,
+    order: 5.1,
+  },
   // 部门是租户侧数据：平台一侧没有这一列
   ...(isPlatformCaller()
     ? []
-    : [{ key: 'departmentName', title: t('identity.users.fields.department'), dataType: 'string' as const, exportable: true, render: (row: object) => asRow(row).departmentName ? renderTag(asRow(row).departmentName!, 'neutral') : renderEmptyCell(), minWidth: 120, order: 5.2 }]),
-  { key: 'security', title: t('identity.users.fields.security'), dataType: 'string', render: row => renderSecurity(asRow(row)), width: 120, order: 5.3 },
-  { key: 'lastLoginAt', title: t('identity.users.fields.last_login_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
-  { key: 'lastLoginIp', title: t('identity.users.fields.last_login_ip'), dataType: 'string', exportable: true, minWidth: 130, order: 6.1 },
-  { key: 'createdAt', title: t('identity.users.fields.created_at'), dataType: 'datetime', sortable: true, advancedSearch: true, searchRange: true, exportable: true, minWidth: 170, order: 7 },
+    : [
+        {
+          key: 'departmentName',
+          title: t('identity.users.fields.department'),
+          dataType: 'string' as const,
+          exportable: true,
+          render: (row: object) => asRow(row).departmentName
+            ? renderTag(asRow(row).departmentName!, 'neutral')
+            : renderEmptyCell(),
+          minWidth: 120,
+          order: 5.2,
+        },
+      ]),
+  {
+    key: 'security',
+    title: t('identity.users.fields.security'),
+    dataType: 'string',
+    render: row => renderSecurity(asRow(row)),
+    width: 120,
+    order: 5.3,
+  },
+  {
+    key: 'lastLoginAt',
+    title: t('identity.users.fields.last_login_at'),
+    dataType: 'datetime',
+    exportable: true,
+    minWidth: 170,
+    order: 6,
+  },
+  {
+    key: 'lastLoginIp',
+    title: t('identity.users.fields.last_login_ip'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 130,
+    order: 6.1,
+  },
+  {
+    key: 'createdAt',
+    title: t('identity.users.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    advancedSearch: true,
+    searchRange: true,
+    exportable: true,
+    minWidth: 170,
+    order: 7,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -184,35 +369,189 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('identity.users.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.users.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.users.update' },
+    {
+      key: 'create',
+      title: t('identity.users.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'identity.users.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'identity.users.update',
+    },
     // 回显要读角色；指派只对同一侧的用户成立（平台角色给平台账号、租户角色给本租户用户）
-    { key: 'assignRoles', title: t('identity.users.actions.assign_roles'), scope: 'row', icon: 'lucide:users-round', visible: row => isOwnSide(asRow(row)) && auth.can('access.roles.read'), permission: 'access.roles.assign' },
+    {
+      key: 'assignRoles',
+      title: t('identity.users.actions.assign_roles'),
+      scope: 'row',
+      icon: 'lucide:users-round',
+      visible: row => isOwnSide(asRow(row)) && auth.can('access.roles.read'),
+      permission: 'access.roles.assign',
+    },
     // 直接授权只对同一侧的用户成立；数据范围覆盖只在租户侧
-    { key: 'grantPermissions', title: t('identity.users.actions.grant_permissions'), scope: 'row', icon: 'lucide:key-round', visible: row => isOwnSide(asRow(row)) && isTenantUser(asRow(row)), permission: 'access.user-grants.read' },
-    { key: 'conditions', title: t('access.conditions.open'), scope: 'row', icon: 'lucide:filter', visible: row => isOwnSide(asRow(row)) && isTenantUser(asRow(row)), permission: 'access.permission-conditions.read' },
-    { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)) && isTenantUser(asRow(row)), permission: 'access.user-data-scopes.read' },
+    {
+      key: 'grantPermissions',
+      title: t('identity.users.actions.grant_permissions'),
+      scope: 'row',
+      icon: 'lucide:key-round',
+      visible: row => isOwnSide(asRow(row)) && isTenantUser(asRow(row)),
+      permission: 'access.user-grants.read',
+    },
+    {
+      key: 'conditions',
+      title: t('access.conditions.open'),
+      scope: 'row',
+      icon: 'lucide:filter',
+      visible: row => isOwnSide(asRow(row)) && isTenantUser(asRow(row)),
+      permission: 'access.permission-conditions.read',
+    },
+    {
+      key: 'dataScope',
+      title: t('identity.users.actions.data_scope'),
+      scope: 'row',
+      icon: 'lucide:scan-eye',
+      visible: row => !isPlatformCaller() && isOwnSide(asRow(row)) && isTenantUser(asRow(row)),
+      permission: 'access.user-data-scopes.read',
+    },
     // 部门与岗位是租户侧数据：平台态不出这个入口
-    { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: row => !isPlatformCaller() && isTenantUser(asRow(row)), permission: 'organization.memberships.read' },
-    { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Locked' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.lock' },
-    { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Locked', permission: 'identity.users.lock' },
-    { key: 'disable', title: t('identity.users.actions.disable'), scope: 'row', tone: 'warning', icon: 'lucide:ban', confirm: true, confirmText: row => t('identity.users.confirm_disable', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Disabled' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.disable' },
-    { key: 'enable', title: t('identity.users.actions.enable'), scope: 'row', icon: 'lucide:circle-check', confirm: true, confirmText: row => t('identity.users.confirm_enable', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Disabled', permission: 'identity.users.disable' },
+    {
+      key: 'departments',
+      title: t('identity.users.actions.departments'),
+      scope: 'row',
+      icon: 'lucide:building-2',
+      visible: row => !isPlatformCaller() && isTenantUser(asRow(row)),
+      permission: 'organization.memberships.read',
+    },
+    {
+      key: 'lock',
+      title: t('identity.users.actions.lock'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:lock',
+      confirm: true,
+      confirmText: row => t('identity.users.confirm_lock', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Locked' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount,
+      permission: 'identity.users.lock',
+    },
+    {
+      key: 'unlock',
+      title: t('identity.users.actions.unlock'),
+      scope: 'row',
+      icon: 'lucide:lock-open',
+      confirm: true,
+      confirmText: row => t('identity.users.confirm_unlock', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Locked',
+      permission: 'identity.users.lock',
+    },
+    {
+      key: 'disable',
+      title: t('identity.users.actions.disable'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:ban',
+      confirm: true,
+      confirmText: row => t('identity.users.confirm_disable', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => isHomeAccount(asRow(row)) && asRow(row).status !== 'Disabled' && !isSelf(asRow(row)) && !asRow(row).isSystemAccount,
+      permission: 'identity.users.disable',
+    },
+    {
+      key: 'enable',
+      title: t('identity.users.actions.enable'),
+      scope: 'row',
+      icon: 'lucide:circle-check',
+      confirm: true,
+      confirmText: row => t('identity.users.confirm_enable', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => isHomeAccount(asRow(row)) && asRow(row).status === 'Disabled',
+      permission: 'identity.users.disable',
+    },
     // 按人强制下线：列出此人在当前一侧的会话再走 sessions.revoke，要能看会话
-    { key: 'forceSignOut', title: t('identity.users.actions.force_sign_out'), scope: 'row', tone: 'warning', icon: 'lucide:log-out', confirm: true, confirmText: row => t('identity.users.confirm_force_sign_out', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && auth.can('identity.sessions.read'), permission: 'identity.sessions.revoke' },
-    { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', visible: row => isHomeAccount(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.reset-password' },
+    {
+      key: 'forceSignOut',
+      title: t('identity.users.actions.force_sign_out'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:log-out',
+      confirm: true,
+      confirmText: row => t('identity.users.confirm_force_sign_out', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && auth.can('identity.sessions.read'),
+      permission: 'identity.sessions.revoke',
+    },
+    {
+      key: 'resetPassword',
+      title: t('identity.users.actions.reset_password'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:key-square',
+      visible: row => isHomeAccount(asRow(row)) && !asRow(row).isSystemAccount,
+      permission: 'identity.users.reset-password',
+    },
     // 列表带了双因素标记：没开的人不出这个入口（4.x 同）
-    { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => isHomeAccount(asRow(row)) && asRow(row).twoFactorEnabled && !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
+    {
+      key: 'resetTwoFactor',
+      title: t('identity.users.actions.reset_two_factor'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:shield-off',
+      confirm: true,
+      confirmText: row => t('identity.users.confirm_reset_two_factor', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => isHomeAccount(asRow(row)) && asRow(row).twoFactorEnabled && !isSelf(asRow(row)),
+      permission: 'identity.users.reset-two-factor',
+    },
     // 模仿态里不能再模仿；目标须是正常状态的他人
-    { key: 'impersonate', title: t('identity.users.actions.impersonate'), scope: 'row', icon: 'lucide:user-round-cog', confirm: true, confirmText: row => t('identity.users.impersonate_content', { name: displayNameOf(asRow(row)) }), visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)) && isTenantUser(asRow(row)), permission: 'identity.impersonation.start' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && !asRow(row).isSystemAccount, permission: 'identity.users.delete' },
+    {
+      key: 'impersonate',
+      title: t('identity.users.actions.impersonate'),
+      scope: 'row',
+      icon: 'lucide:user-round-cog',
+      confirm: true,
+      confirmText: row => t('identity.users.impersonate_content', {
+        name: displayNameOf(asRow(row)),
+      }),
+      visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)) && isTenantUser(asRow(row)),
+      permission: 'identity.impersonation.start',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))),
+      visible: row => isHomeAccount(asRow(row)) && !isSelf(asRow(row)) && !asRow(row).isSystemAccount,
+      permission: 'identity.users.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -296,7 +635,9 @@ async function onSubmit() {
 async function toggleDisabled(row: UserRow, disabled: boolean) {
   try {
     await setUserDisabled(row.id, disabled)
-    toast.success(disabled ? t('identity.users.disabled_done') : t('identity.users.enabled_done'))
+    toast.success(disabled
+      ? t('identity.users.disabled_done')
+      : t('identity.users.enabled_done'))
     reload()
   }
   catch (error) {
@@ -320,7 +661,9 @@ async function signOut(row: UserRow) {
 async function toggleLock(row: UserRow, locked: boolean) {
   try {
     await setUserLocked(row.id, locked)
-    toast.success(locked ? t('identity.users.locked') : t('identity.users.unlocked'))
+    toast.success(locked
+      ? t('identity.users.locked')
+      : t('identity.users.unlocked'))
     reload()
   }
   catch (error) {
@@ -381,7 +724,12 @@ async function removeRow(row: UserRow) {
 /** 平台里模仿进目标的注册地（平台账号即平台）；租户里不传，沿用当前租户。成功后整页重建 */
 async function impersonate(row: UserRow) {
   try {
-    await auth.startImpersonation({ targetUserId: row.id, tenantId: isPlatformCaller() ? row.homeTenantId : null })
+    await auth.startImpersonation({
+      targetUserId: row.id,
+      tenantId: isPlatformCaller()
+        ? row.homeTenantId
+        : null,
+    })
   }
   catch (error) {
     toast.danger((error as Error).message || t('identity.users.impersonate_failed'))
@@ -389,7 +737,11 @@ async function impersonate(row: UserRow) {
 }
 
 // ── 重置密码：预填随机密码，提交后出一次性的复制框 ──
-const resetTitle = computed(() => t('identity.users.reset_title', { name: passwordReset.target.value ? displayNameOf(passwordReset.target.value) : '' }))
+const resetTitle = computed(() => t('identity.users.reset_title', {
+  name: passwordReset.target.value
+    ? displayNameOf(passwordReset.target.value)
+    : '',
+}))
 
 async function onResetSubmit() {
   const row = passwordReset.target.value
@@ -402,10 +754,14 @@ async function onResetSubmit() {
     // 正文摆一个只读的新密码与复制钮，复制态由剪贴板部件自己反馈
     content: () => [
       h(XhClipboardRoot, { value: password }, () => [
-        h(XhClipboardLabel, () => t('identity.users.reset_done_content', { name: displayNameOf(row) })),
+        h(XhClipboardLabel, () => t('identity.users.reset_done_content', {
+          name: displayNameOf(row),
+        })),
         h(XhClipboardControl, null, () => [
           h(XhClipboardInput),
-          h(XhClipboardCopyTrigger, { 'aria-label': t('identity.users.reset_copy') }, () => [
+          h(XhClipboardCopyTrigger, {
+            'aria-label': t('identity.users.reset_copy'),
+          }, () => [
             h(XhClipboardIndicator),
             h(XhClipboardIndicator, { copied: true }),
           ]),
@@ -424,7 +780,9 @@ function openDetail(row: UserRow) {
 }
 
 function formatNullable(value: null | string | undefined): string {
-  return value === null || value === undefined || value === '' ? '-' : value
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : value
 }
 
 /** 双因素方式的文案（4.x 同：认证器写 TOTP） */
@@ -445,38 +803,82 @@ const detailBadges = computed<{ label: string, tone: Tone, icon: string }[]>(() 
   const security = current.security
   if (security) {
     badges.push(security.emailVerified
-      ? { label: t('identity.users.badge.email_verified'), tone: 'success', icon: 'lucide:mail' }
-      : { label: t('identity.users.badge.email_unverified'), tone: 'neutral', icon: 'lucide:mail' })
+      ? {
+          label: t('identity.users.badge.email_verified'),
+          tone: 'success',
+          icon: 'lucide:mail',
+        }
+      : {
+          label: t('identity.users.badge.email_unverified'),
+          tone: 'neutral',
+          icon: 'lucide:mail',
+        })
     badges.push(security.phoneVerified
-      ? { label: t('identity.users.badge.phone_verified'), tone: 'success', icon: 'lucide:phone' }
-      : { label: t('identity.users.badge.phone_unverified'), tone: 'neutral', icon: 'lucide:phone' })
+      ? {
+          label: t('identity.users.badge.phone_verified'),
+          tone: 'success',
+          icon: 'lucide:phone',
+        }
+      : {
+          label: t('identity.users.badge.phone_unverified'),
+          tone: 'neutral',
+          icon: 'lucide:phone',
+        })
     if (security.twoFactorEnabled)
       badges.push({ label: `2FA: ${security.twoFactorMethods.map(twoFactorMethodLabel).join('+')}`, tone: 'info', icon: 'lucide:shield-check' })
-    if (security.isLocked)
-      badges.push({ label: t('identity.users.badge.account_locked'), tone: 'danger', icon: 'lucide:lock' })
-    if (security.failedAccessCount > 0)
-      badges.push({ label: t('identity.users.badge.failed_login', { count: security.failedAccessCount }), tone: 'warning', icon: 'lucide:triangle-alert' })
+    if (security.isLocked) {
+      badges.push({
+        label: t('identity.users.badge.account_locked'),
+        tone: 'danger',
+        icon: 'lucide:lock',
+      })
+    }
+    if (security.failedAccessCount > 0) {
+      badges.push({
+        label: t('identity.users.badge.failed_login', { count: security.failedAccessCount }),
+        tone: 'warning',
+        icon: 'lucide:triangle-alert',
+      })
+    }
   }
-  if (current.user.isSupportMember)
-    badges.push({ label: t('identity.users.badge.support_member'), tone: 'info', icon: 'lucide:building-2' })
-  else if (current.user.isExternalMember)
-    badges.push({ label: t('identity.users.badge.external_member'), tone: 'info', icon: 'lucide:building-2' })
+  if (current.user.isSupportMember) {
+    badges.push({
+      label: t('identity.users.badge.support_member'),
+      tone: 'info',
+      icon: 'lucide:building-2',
+    })
+  }
+  else if (current.user.isExternalMember) {
+    badges.push({
+      label: t('identity.users.badge.external_member'),
+      tone: 'info',
+      icon: 'lucide:building-2',
+    })
+  }
   return badges
 })
 
 /** 当前会话那一行的标题：设备 · 浏览器 */
 function sessionTitle(device: null | string | undefined, browser: null | string | undefined): string {
-  return browser ? `${deviceLabel(device, t)} · ${browser}` : deviceLabel(device, t)
+  return browser
+    ? `${deviceLabel(device, t)} · ${browser}`
+    : deviceLabel(device, t)
 }
 
 /** 部门归属的标签文案：部门 · 岗位，主部门另加标注 */
 function membershipLabel(membership: MembershipRow): string {
-  const text = membership.positionName ? `${membership.departmentName} · ${membership.positionName}` : membership.departmentName
-  return membership.isPrimary ? t('identity.users.primary_label', { name: text }) : text
+  const text = membership.positionName
+    ? `${membership.departmentName} · ${membership.positionName}`
+    : membership.departmentName
+  return membership.isPrimary
+    ? t('identity.users.primary_label', { name: text })
+    : text
 }
 
 // ── 分配角色抽屉 ──
-const roleGroups = computed<GrantTransferGroup<RoleGrantItem>[]>(() => [{ key: 'roles', name: '', items: roleAssign.items.value }])
+const roleGroups = computed<GrantTransferGroup<RoleGrantItem>[]>(() => [
+  { key: 'roles', name: '', items: roleAssign.items.value },
+])
 
 async function openRoles(row: UserRow) {
   try {
@@ -544,16 +946,42 @@ function confirmRemoveDepartment(membership: MembershipRow) {
 }
 
 const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
-  { key: 'departmentName', title: t('identity.users.member_form.department'), minWidth: 160, ellipsis: true },
-  { key: 'positionName', title: t('identity.users.member_form.position'), minWidth: 120, ellipsis: true, render: membership => membership.positionName ?? '-' },
-  { key: 'isPrimary', title: t('identity.users.fields.primary'), width: 110, render: membership => membership.isPrimary ? renderTag(t('common.statuses.yes'), 'brand') : '-' },
+  {
+    key: 'departmentName',
+    title: t('identity.users.member_form.department'),
+    minWidth: 160,
+    ellipsis: true,
+  },
+  {
+    key: 'positionName',
+    title: t('identity.users.member_form.position'),
+    minWidth: 120,
+    ellipsis: true,
+    render: membership => membership.positionName ?? '-',
+  },
+  {
+    key: 'isPrimary',
+    title: t('identity.users.fields.primary'),
+    width: 110,
+    render: membership => membership.isPrimary
+      ? renderTag(t('common.statuses.yes'), 'brand')
+      : '-',
+  },
   ...(canRemoveDepartment.value
-    ? [{
-        key: 'actions',
-        title: t('component.schema_page.actions_column'),
-        width: 90,
-        render: (membership: MembershipRow) => h(XhButton, { size: 'sm', variant: 'outline', tone: 'danger', disabled: departments.working.value, onClick: () => confirmRemoveDepartment(membership) }, () => t('identity.users.actions.remove_department')),
-      }]
+    ? [
+        {
+          key: 'actions',
+          title: t('component.schema_page.actions_column'),
+          width: 90,
+          render: (membership: MembershipRow) => h(XhButton, {
+            size: 'sm',
+            variant: 'outline',
+            tone: 'danger',
+            disabled: departments.working.value,
+            onClick: () => confirmRemoveDepartment(membership),
+          }, () => t('identity.users.actions.remove_department')),
+        },
+      ]
     : []),
 ])
 </script>

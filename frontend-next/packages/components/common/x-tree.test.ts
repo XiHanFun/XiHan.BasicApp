@@ -33,7 +33,13 @@ function branchControl(wrapper: ReturnType<typeof mount>, label: string) {
 
 describe('xTree 选中与展开各管各的', () => {
   it('分支行与叶子行都在行尾放指示位，不再渲染勾选框部件', () => {
-    const wrapper = mount(XTree, { props: { data, multiple: true, expandedKeys: ['east'] } })
+    const wrapper = mount(XTree, {
+      props: {
+        data,
+        multiple: true,
+        expandedKeys: ['east'],
+      },
+    })
     const rows = wrapper.findAll('[data-part="branch-control"], [data-part="item"]')
     expect(rows).toHaveLength(4)
     for (const row of rows) {
@@ -44,24 +50,38 @@ describe('xTree 选中与展开各管各的', () => {
   })
 
   it('点分支文字只选中，不展开', async () => {
-    const wrapper = mount(XTree, { props: { data } })
+    const wrapper = mount(XTree, {
+      props: { data },
+    })
     await branchControl(wrapper, '华东').find('[data-part="branch-text"]').trigger('click')
 
-    expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([['east']])
+    expect(wrapper.emitted('update:selectedKeys')?.at(-1)).toEqual([
+      ['east'],
+    ])
     expect(wrapper.emitted('update:expandedKeys')).toBeUndefined()
   })
 
   it('点箭头只展开，不选中', async () => {
-    const wrapper = mount(XTree, { props: { data } })
+    const wrapper = mount(XTree, {
+      props: { data },
+    })
     await branchControl(wrapper, '华东').find('[data-part="branch-trigger"]').trigger('click')
 
-    expect(wrapper.emitted('update:expandedKeys')?.at(-1)).toEqual([['east']])
+    expect(wrapper.emitted('update:expandedKeys')?.at(-1)).toEqual([
+      ['east'],
+    ])
     expect(wrapper.emitted('update:selectedKeys')).toBeUndefined()
   })
 
   it('多选级联：勾目录连同整枝，部分勾中时目录报半选', async () => {
     const wrapper = mount(XTree, {
-      props: { data, multiple: true, cascade: true, selectedKeys: ['sh'], expandedKeys: ['east'] },
+      props: {
+        data,
+        multiple: true,
+        cascade: true,
+        selectedKeys: ['sh'],
+        expandedKeys: ['east'],
+      },
     })
     const east = branchControl(wrapper, '华东')
     expect(east.element.closest('[role="treeitem"]')?.getAttribute('aria-checked')).toBe('mixed')

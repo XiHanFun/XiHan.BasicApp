@@ -45,7 +45,9 @@ function reducedMotion(): boolean {
 function layoutRect(el: HTMLElement): DOMRect {
   const rect = el.getBoundingClientRect()
   const style = getComputedStyle(el)
-  const matrix = new DOMMatrixReadOnly(style.transform === 'none' ? '' : style.transform)
+  const matrix = new DOMMatrixReadOnly(style.transform === 'none'
+    ? ''
+    : style.transform)
   const sx = matrix.a || 1
   const sy = matrix.d || 1
   if (sx === 1 && sy === 1) {
@@ -85,9 +87,19 @@ function morph(from: DOMRect, to: DOMRect, duration: number): void {
   const sy = from.height / to.height
   const animation = ghost.animate(
     [
-      { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, opacity: 0.96, transformOrigin: 'top left', offset: 0 },
+      {
+        transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+        opacity: 0.96,
+        transformOrigin: 'top left',
+        offset: 0,
+      },
       { opacity: 0.96, offset: 0.6 },
-      { transform: 'translate(0, 0) scale(1, 1)', opacity: 0, transformOrigin: 'top left', offset: 1 },
+      {
+        transform: 'translate(0, 0) scale(1, 1)',
+        opacity: 0,
+        transformOrigin: 'top left',
+        offset: 1,
+      },
     ],
     { duration, easing: EASING, fill: 'forwards' },
   )
@@ -127,13 +139,18 @@ export function setupContainerTransform(options?: { enabled?: () => boolean }): 
   }
   installed = true
 
-  const enabled = () => (options?.enabled ? options.enabled() : true) && !reducedMotion()
+  const enabled = () => (options?.enabled
+    ? options.enabled()
+    : true) && !reducedMotion()
 
   // 记录点击源（捕获期，任何 UI 框架处理前）
   const onPointerDown = (e: Event) => {
     const target = (e.target as HTMLElement | null)?.closest<HTMLElement>(SOURCE_SELECTOR)
     if (target) {
-      lastSource = { rect: target.getBoundingClientRect(), time: Date.now() }
+      lastSource = {
+        rect: target.getBoundingClientRect(),
+        time: Date.now(),
+      }
     }
   }
   document.addEventListener('pointerdown', onPointerDown, true)

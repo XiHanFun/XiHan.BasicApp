@@ -18,7 +18,10 @@ function inMinutes(minutes: number): string {
 beforeEach(() => {
   clearChatFileUrlCache()
   calls = []
-  respond = (conversationId, fileId) => Promise.resolve({ url: `https://oss/${conversationId}/${fileId}`, expiresAt: inMinutes(5) })
+  respond = (conversationId, fileId) => Promise.resolve({
+    url: `https://oss/${conversationId}/${fileId}`,
+    expiresAt: inMinutes(5),
+  })
   setChatApi({
     getFileUrl: (conversationId: string, fileId: string) => {
       calls.push({ conversationId, fileId })
@@ -47,7 +50,10 @@ describe('换取与缓存', () => {
     await resolveChatFileUrl({ conversationId: 'c-1', fileId: 'f-1' })
     await resolveChatFileUrl({ conversationId: 'c-2', fileId: 'f-1' })
 
-    expect(calls).toEqual([{ conversationId: 'c-1', fileId: 'f-1' }, { conversationId: 'c-2', fileId: 'f-1' }])
+    expect(calls).toEqual([
+      { conversationId: 'c-1', fileId: 'f-1' },
+      { conversationId: 'c-2', fileId: 'f-1' },
+    ])
   })
 
   it('快到期的地址不再复用，重新换一次', async () => {
@@ -66,8 +72,14 @@ describe('响应式地址', () => {
   it('一组附件逐项对应；换不到的那一项为空串，其余照常', async () => {
     respond = (conversationId, fileId) => (fileId === 'bad'
       ? Promise.reject(new Error('denied'))
-      : Promise.resolve({ url: `https://oss/${conversationId}/${fileId}`, expiresAt: inMinutes(5) }))
-    const urls = useChatFileUrls(() => [{ conversationId: 'c-1', fileId: 'f-1' }, { conversationId: 'c-1', fileId: 'bad' }])
+      : Promise.resolve({
+          url: `https://oss/${conversationId}/${fileId}`,
+          expiresAt: inMinutes(5),
+        }))
+    const urls = useChatFileUrls(() => [
+      { conversationId: 'c-1', fileId: 'f-1' },
+      { conversationId: 'c-1', fileId: 'bad' },
+    ])
 
     await vi.waitFor(() => expect(urls.value[0]).toBe('https://oss/c-1/f-1'))
     expect(urls.value[1]).toBe('')

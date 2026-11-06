@@ -64,7 +64,11 @@ export function buildTabContextOptions(params: {
   let splitItems: AppDropdownOption[] = []
   if (isSplitTab) {
     splitItems = [
-      { key: 'splitClose', label: t('tabbar.split_close'), icon: createDropdownIcon('lucide:columns-2') },
+      {
+        key: 'splitClose',
+        label: t('tabbar.split_close'),
+        icon: createDropdownIcon('lucide:columns-2'),
+      },
     ]
   }
   else if (splitEnabled && splitTargets.length > 0) {
@@ -83,27 +87,43 @@ export function buildTabContextOptions(params: {
   }
 
   return [
-    { key: 'reload', label: t('tabbar.reload'), icon: createDropdownIcon('lucide:refresh-cw') },
+    {
+      key: 'reload',
+      label: t('tabbar.reload'),
+      icon: createDropdownIcon('lucide:refresh-cw'),
+    },
     { key: 'divider-open-before', type: 'divider' },
-    { key: 'open', label: t('tabbar.open'), icon: createDropdownIcon('lucide:external-link') },
+    {
+      key: 'open',
+      label: t('tabbar.open'),
+      icon: createDropdownIcon('lucide:external-link'),
+    },
     ...splitItems,
     { key: 'divider-open-after', type: 'divider' },
     ...(favoritesEnabled
-      ? [{
-          key: 'favorite',
-          label: favorited ? t('tabbar.unfavorite') : t('tabbar.favorite'),
-          icon: createDropdownIcon(favorited ? 'lucide:star-off' : 'lucide:star'),
-        }]
+      ? [
+          {
+            key: 'favorite',
+            label: favorited
+              ? t('tabbar.unfavorite')
+              : t('tabbar.favorite'),
+            icon: createDropdownIcon(favorited ? 'lucide:star-off' : 'lucide:star'),
+          },
+        ]
       : []),
     {
       key: 'pin',
-      label: pinned ? t('tabbar.unpin') : t('tabbar.pin'),
+      label: pinned
+        ? t('tabbar.unpin')
+        : t('tabbar.pin'),
       disabled: pinDisabled,
       icon: createDropdownIcon(pinned ? 'lucide:pin-off' : 'lucide:pin'),
     },
     {
       key: 'maximize',
-      label: isContentMaximized ? t('tabbar.unmaximize') : t('tabbar.maximize'),
+      label: isContentMaximized
+        ? t('tabbar.unmaximize')
+        : t('tabbar.maximize'),
       icon: createDropdownIcon(isContentMaximized ? 'lucide:minimize-2' : 'lucide:maximize-2'),
     },
     { key: 'divider-1', type: 'divider' },

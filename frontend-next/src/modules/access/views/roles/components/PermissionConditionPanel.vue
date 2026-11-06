@@ -55,15 +55,36 @@ const batchDenied = computed(() => batchResult.value?.items.filter(item => item.
 const groups = computed(() => groupConditions(props.conditions))
 const attributeOptions = computed(() => props.catalog.map(item => ({ value: item.name, label: `${attributeLabel(t, item.name)} · ${item.name}` })))
 const selectedAttribute = computed(() => props.catalog.find(item => item.name === form.value.attribute) ?? null)
-const formOperatorOptions = computed(() => (selectedAttribute.value?.operators ?? CONDITION_OPERATORS).map(operator => ({ value: operator, label: operatorLabel(t, operator) })))
-const formValueHint = computed(() => selectedAttribute.value ? valueHint(t, selectedAttribute.value.kind, form.value.operator) : '')
+const formOperatorOptions = computed(() => (selectedAttribute.value?.operators ?? CONDITION_OPERATORS).map(operator => ({
+  value: operator,
+  label: operatorLabel(t, operator),
+})))
+const formValueHint = computed(() => selectedAttribute.value
+  ? valueHint(t, selectedAttribute.value.kind, form.value.operator)
+  : '')
 const negateOptions = computed(() => [
-  { value: 'plain', label: t('access.conditions.negate_plain') },
-  { value: 'negated', label: t('access.conditions.negate_negated') },
+  {
+    value: 'plain',
+    label: t('access.conditions.negate_plain'),
+  },
+  {
+    value: 'negated',
+    label: t('access.conditions.negate_negated'),
+  },
 ])
 
 function emptyForm(group: number): ConditionFormModel {
-  return { id: null, groupNo: group, attribute: '', familySuffix: '', operator: 'Equals', negated: 'plain', value: '', description: '', status: 'Active' }
+  return {
+    id: null,
+    groupNo: group,
+    attribute: '',
+    familySuffix: '',
+    operator: 'Equals',
+    negated: 'plain',
+    value: '',
+    description: '',
+    status: 'Active',
+  }
 }
 
 /** 换了一条授权，上一条的影响试算不再适用 */
@@ -81,7 +102,9 @@ function nameOf(item: PermissionConditionItem): string {
   const { attribute, familySuffix } = resolveAttribute(props.catalog, item.attributeName)
   if (!attribute)
     return item.attributeName
-  return attribute.isFamily ? `${attributeLabel(t, attribute.name)} · ${familySuffix}` : attributeLabel(t, attribute.name)
+  return attribute.isFamily
+    ? `${attributeLabel(t, attribute.name)} · ${familySuffix}`
+    : attributeLabel(t, attribute.name)
 }
 
 function openCreate(group?: number) {
@@ -113,7 +136,16 @@ function openEdit(item: PermissionConditionItem) {
 
 /** 修改是整体覆盖：启停也带上其余字段 */
 function updateBody(item: PermissionConditionItem, status: PermissionConditionItem['status']) {
-  return { id: item.id, attributeName: item.attributeName, operator: item.operator, groupNo: item.groupNo, isNegated: item.isNegated, value: item.value ?? null, description: item.description ?? null, status }
+  return {
+    id: item.id,
+    attributeName: item.attributeName,
+    operator: item.operator,
+    groupNo: item.groupNo,
+    isNegated: item.isNegated,
+    value: item.value ?? null,
+    description: item.description ?? null,
+    status,
+  }
 }
 
 async function submit() {
@@ -136,16 +168,26 @@ async function submit() {
     operator: form.value.operator,
     groupNo: form.value.groupNo,
     isNegated: form.value.negated === 'negated',
-    value: requiresValue(form.value.operator) ? form.value.value.trim() : null,
+    value: requiresValue(form.value.operator)
+      ? form.value.value.trim()
+      : null,
     description: form.value.description.trim() || null,
     status: form.value.status,
   }
   submitting.value = true
   try {
-    if (form.value.id)
+    if (form.value.id) {
       await conditionsApi.update({ ...body, id: form.value.id })
-    else
-      await conditionsApi.create({ ...body, subjectKind: props.target.subjectKind, subjectId: props.target.subjectId, permission: props.target.permission, action: props.target.action })
+    }
+    else {
+      await conditionsApi.create({
+        ...body,
+        subjectKind: props.target.subjectKind,
+        subjectId: props.target.subjectId,
+        permission: props.target.permission,
+        action: props.target.action,
+      })
+    }
     toast.success(t('access.conditions.msg_saved'))
     formVisible.value = false
     emit('changed')
@@ -162,9 +204,15 @@ function toggleStatus(item: PermissionConditionItem) {
   const enable = item.status !== 'Active'
   void dialog.confirm({
     badge: 'warning',
-    title: enable ? t('access.conditions.confirm_enable_title') : t('access.conditions.confirm_disable_title'),
-    content: enable ? t('access.conditions.confirm_enable_content') : t('access.conditions.confirm_disable_content'),
-    okText: enable ? t('access.conditions.action_enable') : t('access.conditions.action_disable'),
+    title: enable
+      ? t('access.conditions.confirm_enable_title')
+      : t('access.conditions.confirm_disable_title'),
+    content: enable
+      ? t('access.conditions.confirm_enable_content')
+      : t('access.conditions.confirm_disable_content'),
+    okText: enable
+      ? t('access.conditions.action_enable')
+      : t('access.conditions.action_disable'),
     cancelText: t('common.actions.cancel'),
     onOk: async () => {
       try {
@@ -198,12 +246,16 @@ function remove(item: PermissionConditionItem) {
     badge: 'warning',
     tone: 'danger',
     title: t('access.conditions.confirm_delete_title'),
-    content: t('access.conditions.confirm_delete_content', { name: nameOf(item) }),
+    content: t('access.conditions.confirm_delete_content', {
+      name: nameOf(item),
+    }),
     okText: t('access.conditions.action_delete'),
     cancelText: t('common.actions.cancel'),
     onOk: async () => {
       try {
-        const result = await conditionsApi.delete({ ids: [item.id] })
+        const result = await conditionsApi.delete({
+          ids: [item.id],
+        })
         throwOnFailed(result)
         toast.success(t('access.conditions.msg_deleted'))
         emit('changed')

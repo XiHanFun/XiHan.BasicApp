@@ -13,7 +13,9 @@ export function toCsv<TRow extends object>(fields: ListFieldSchema<TRow>[], rows
   const body = rows
     .map(row => fields.map(f => csvCell(formatFieldText(f, row))).join(','))
     .join('\r\n')
-  return `\uFEFF${header}${body ? `\r\n${body}` : ''}`
+  return `\uFEFF${header}${body
+    ? `\r\n${body}`
+    : ''}`
 }
 
 /** 触发浏览器下载文本文件 */
@@ -55,14 +57,25 @@ export function useSchemaExport<TRow extends object>(options: UseSchemaExportOpt
       task.success(i18n.global.t('island.export.success', { n: rows.length }), {
         detail: fileName,
         actions: [
-          { key: 'again', label: i18n.global.t('island.export.again'), icon: 'lucide:rotate-cw', handler: () => void exportCsv() },
+          {
+            key: 'again',
+            label: i18n.global.t('island.export.again'),
+            icon: 'lucide:rotate-cw',
+            handler: () => void exportCsv(),
+          },
         ],
       })
     }
     catch {
       task.error(i18n.global.t('island.export.failed'), {
         actions: [
-          { key: 'retry', label: i18n.global.t('island.export.retry'), icon: 'lucide:rotate-cw', tone: 'brand', handler: () => void exportCsv() },
+          {
+            key: 'retry',
+            label: i18n.global.t('island.export.retry'),
+            icon: 'lucide:rotate-cw',
+            tone: 'brand',
+            handler: () => void exportCsv(),
+          },
         ],
       })
     }

@@ -37,11 +37,18 @@ function parseDefinition(json: string): Record<string, unknown> {
 }
 
 function text(value: unknown): string {
-  return typeof value === 'string' ? value : ''
+  return typeof value === 'string'
+    ? value
+    : ''
 }
 
 export function emptyDefinitionMetadata(): WorkflowDefinitionMetadata {
-  return { code: '', name: '', category: '', description: '' }
+  return {
+    code: '',
+    name: '',
+    category: '',
+    description: '',
+  }
 }
 
 /** 流程编码合不合框架的定义名语法（去掉首尾空白后判） */
@@ -52,7 +59,12 @@ export function isWorkflowName(code: string): boolean {
 /** 从定义文档读出元数据；JSON 不是对象时抛错 */
 export function readDefinitionMetadata(json: string): WorkflowDefinitionMetadata {
   const raw = parseDefinition(json)
-  return { code: text(raw.name), name: text(raw.displayName), category: text(raw.category), description: text(raw.description) }
+  return {
+    code: text(raw.name),
+    name: text(raw.displayName),
+    category: text(raw.category),
+    description: text(raw.description),
+  }
 }
 
 /** 编码与名称都填了，且编码合语法 */
@@ -62,7 +74,13 @@ export function isDefinitionMetadataComplete(metadata: WorkflowDefinitionMetadat
 
 /** 选了审批业务：编码换成业务编码（流程编码即业务编码），名称空着时带上业务名（businessName 是已翻译的显示名） */
 export function bindDefinitionBusiness(metadata: WorkflowDefinitionMetadata, business: WorkflowBusinessType, businessName: string): WorkflowDefinitionMetadata {
-  return { ...metadata, code: business.code, name: metadata.name.trim() ? metadata.name : businessName }
+  return {
+    ...metadata,
+    code: business.code,
+    name: metadata.name.trim()
+      ? metadata.name
+      : businessName,
+  }
 }
 
 /**

@@ -43,7 +43,9 @@ function reload() {
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: RoleStatus): string {
-  return status === 'Disabled' ? t('access.roles.status.disabled') : t('access.roles.status.active')
+  return status === 'Disabled'
+    ? t('access.roles.status.disabled')
+    : t('access.roles.status.active')
 }
 
 function dataScopeLabel(scope: DataScopeValue): string {
@@ -59,50 +61,158 @@ function dataScopeLabel(scope: DataScopeValue): string {
 function memberStatusLabel(status: RoleMember['status']): string {
   if (status === 'Locked')
     return t('access.roles.member_status.locked')
-  return status === 'Disabled' ? t('access.roles.member_status.disabled') : t('access.roles.member_status.active')
+  return status === 'Disabled'
+    ? t('access.roles.member_status.disabled')
+    : t('access.roles.member_status.active')
 }
 
 function ownerLabel(owner: string): string {
-  return owner === 'platform' ? t('access.roles.owner_platform') : owner
+  return owner === 'platform'
+    ? t('access.roles.owner_platform')
+    : owner
 }
 
 function formatBoolean(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 /** 继承方式：1 级为直接继承，更深为经其他上级的间接继承 */
 function inheritMode(depth: number): string {
-  return depth <= 1 ? t('access.roles.inherit_direct') : t('access.roles.inherit_indirect', { depth })
+  return depth <= 1
+    ? t('access.roles.inherit_direct')
+    : t('access.roles.inherit_indirect', { depth })
 }
 
 /** 4.x 的「{from} 至 {to}」：两端都没有即不限 */
 function validityRange(from?: null | string, to?: null | string): string {
   if (!from && !to)
     return t('access.roles.validity_unlimited')
-  return t('access.roles.validity_range', { from: from ? formatDate(from) : '-', to: to ? formatDate(to) : '-' })
+  return t('access.roles.validity_range', {
+    from: from
+      ? formatDate(from)
+      : '-',
+    to: to
+      ? formatDate(to)
+      : '-',
+  })
 }
 
-const statusOptions = computed<SelectOption[]>(() => ROLE_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
-const dataScopeOptions = computed<SelectOption[]>(() => (['All', 'DepartmentAndChildren', 'DepartmentOnly', 'SelfOnly', 'Custom'] as const).map(scope => ({ label: dataScopeLabel(scope), value: scope })))
+const statusOptions = computed<SelectOption[]>(() => ROLE_STATUSES.map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
+const dataScopeOptions = computed<SelectOption[]>(() => ([
+  'All',
+  'DepartmentAndChildren',
+  'DepartmentOnly',
+  'SelfOnly',
+  'Custom',
+] as const).map(scope => ({
+  label: dataScopeLabel(scope),
+  value: scope,
+})))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as RoleRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.roles.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.roles.keyword_placeholder'), order: 0 },
-  { key: 'name', title: t('access.roles.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 150, order: 1 },
-  { key: 'code', title: t('access.roles.fields.code'), dataType: 'string', sortable: true, exportable: true, minWidth: 150, order: 2 },
-  { key: 'description', title: t('access.roles.fields.description'), dataType: 'text', exportable: true, ellipsis: true, minWidth: 220, order: 3 },
-  { key: 'dataScope', title: t('access.roles.fields.data_scope'), dataType: 'enum', exportable: true, options: dataScopeOptions.value, render: row => dataScopeLabel(asRow(row).dataScope), minWidth: 130, order: 4 },
-  { key: 'isBuiltIn', title: t('access.roles.fields.built_in'), dataType: 'boolean', exportable: true, render: row => renderTag(formatBoolean(asRow(row).isBuiltIn), asRow(row).isBuiltIn ? 'warning' : 'neutral'), width: 82, order: 5 },
-  { key: 'order', title: t('access.roles.fields.order'), dataType: 'number', sortable: true, exportable: true, width: 80, order: 6 },
-  { key: 'status', title: t('access.roles.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 7 },
-  { key: 'createdAt', title: t('access.roles.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 8 },
+  {
+    key: 'keyword',
+    title: t('access.roles.search'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.roles.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('access.roles.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 150,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('access.roles.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 150,
+    order: 2,
+  },
+  {
+    key: 'description',
+    title: t('access.roles.fields.description'),
+    dataType: 'text',
+    exportable: true,
+    ellipsis: true,
+    minWidth: 220,
+    order: 3,
+  },
+  {
+    key: 'dataScope',
+    title: t('access.roles.fields.data_scope'),
+    dataType: 'enum',
+    exportable: true,
+    options: dataScopeOptions.value,
+    render: row => dataScopeLabel(asRow(row).dataScope),
+    minWidth: 130,
+    order: 4,
+  },
+  {
+    key: 'isBuiltIn',
+    title: t('access.roles.fields.built_in'),
+    dataType: 'boolean',
+    exportable: true,
+    render: row => renderTag(formatBoolean(asRow(row).isBuiltIn), asRow(row).isBuiltIn
+      ? 'warning'
+      : 'neutral'),
+    width: 82,
+    order: 5,
+  },
+  {
+    key: 'order',
+    title: t('access.roles.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    width: 80,
+    order: 6,
+  },
+  {
+    key: 'status',
+    title: t('access.roles.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 7,
+  },
+  {
+    key: 'createdAt',
+    title: t('access.roles.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 8,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -116,25 +226,97 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.roles.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.roles.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.roles.update' },
+    {
+      key: 'create',
+      title: t('access.roles.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.roles.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'access.roles.update',
+    },
     // 权限分配要读权限目录（套餐收窄后的本侧目录）
-    { key: 'assignPermission', title: t('access.roles.actions.assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: () => auth.can('access.permissions.read'), permission: 'access.roles.grant' },
-    { key: 'members', title: t('access.roles.actions.members'), scope: 'row', icon: 'lucide:users', permission: 'access.roles.assign' },
+    {
+      key: 'assignPermission',
+      title: t('access.roles.actions.assign_permission'),
+      scope: 'row',
+      icon: 'lucide:key-round',
+      visible: () => auth.can('access.permissions.read'),
+      permission: 'access.roles.grant',
+    },
+    {
+      key: 'members',
+      title: t('access.roles.actions.members'),
+      scope: 'row',
+      icon: 'lucide:users',
+      permission: 'access.roles.assign',
+    },
     // 内建角色不挂条件、不参与继承
-    { key: 'conditions', title: t('access.conditions.open'), scope: 'row', icon: 'lucide:filter', visible: row => !asRow(row).isBuiltIn, permission: 'access.permission-conditions.read' },
-    { key: 'parents', title: t('access.roles.actions.parents'), scope: 'row', icon: 'lucide:git-fork', visible: row => !asRow(row).isBuiltIn, permission: 'access.roles.set-parents' },
-    { key: 'assignDataScope', title: t('access.roles.actions.data_scope'), scope: 'row', icon: 'lucide:building-2', visible: () => isTenantCaller.value, permission: 'access.roles.update' },
-    { key: 'toggle', title: t('access.roles.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'access.roles.update' },
+    {
+      key: 'conditions',
+      title: t('access.conditions.open'),
+      scope: 'row',
+      icon: 'lucide:filter',
+      visible: row => !asRow(row).isBuiltIn,
+      permission: 'access.permission-conditions.read',
+    },
+    {
+      key: 'parents',
+      title: t('access.roles.actions.parents'),
+      scope: 'row',
+      icon: 'lucide:git-fork',
+      visible: row => !asRow(row).isBuiltIn,
+      permission: 'access.roles.set-parents',
+    },
+    {
+      key: 'assignDataScope',
+      title: t('access.roles.actions.data_scope'),
+      scope: 'row',
+      icon: 'lucide:building-2',
+      visible: () => isTenantCaller.value,
+      permission: 'access.roles.update',
+    },
+    {
+      key: 'toggle',
+      title: t('access.roles.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'access.roles.update',
+    },
     // 内建角色后端不许删
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), visible: row => !asRow(row).isBuiltIn, permission: 'access.roles.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      visible: row => !asRow(row).isBuiltIn,
+      permission: 'access.roles.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -191,7 +373,9 @@ async function run(task: Promise<unknown>, fallback: string) {
   }
 }
 
-const modalTitle = computed(() => (editor.isEdit.value ? t('access.roles.edit_title') : t('access.roles.create_title')))
+const modalTitle = computed(() => (editor.isEdit.value
+  ? t('access.roles.edit_title')
+  : t('access.roles.create_title')))
 
 async function onSubmit() {
   if (await editor.submit()) {
@@ -228,10 +412,14 @@ function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, rev
     toast.info(noChange)
     return
   }
-  if (outcome.failures.length > 0)
-    toast.warning(t('access.roles.partial_failed', { failures: outcome.failures.join('; ') }))
-  else
+  if (outcome.failures.length > 0) {
+    toast.warning(t('access.roles.partial_failed', {
+      failures: outcome.failures.join('; '),
+    }))
+  }
+  else {
     toast.success(saved(outcome.added, outcome.removed))
+  }
 }
 
 // ── 权限分配 ──
@@ -247,18 +435,24 @@ async function savePermissions() {
 // ── 角色成员 ──
 /** 读不到用户目录时候选里只有现有成员：只能移出 */
 const canListUsers = computed(() => auth.can('identity.users.read'))
-const memberGroups = computed(() => [{ key: 'members', name: '', items: memberEditor.items.value }])
+const memberGroups = computed(() => [
+  { key: 'members', name: '', items: memberEditor.items.value },
+])
 
 /** 外部成员、运维支持成员的标记（4.x 同）；运维支持成员注册在别处，先看它 */
 function memberMark(item: { isExternalMember: boolean, isSupportMember: boolean }): null | string {
   if (item.isSupportMember)
     return t('access.roles.member_support')
-  return item.isExternalMember ? t('access.roles.member_external') : null
+  return item.isExternalMember
+    ? t('access.roles.member_external')
+    : null
 }
 
 function memberDescription(item: MemberCandidate): string {
   const mark = memberMark(item)
-  return mark ? `@${item.userName} · ${mark}` : `@${item.userName}`
+  return mark
+    ? `@${item.userName} · ${mark}`
+    : `@${item.userName}`
 }
 
 async function saveMembers() {

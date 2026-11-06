@@ -48,23 +48,39 @@ const pending = ref<InboxItem[]>([])
 const counts = computed(() => inboxCounts(pending.value))
 
 const typeOptions = computed<SelectOption[]>(() => [
-  { label: t('notification.inbox.type_all'), value: '' },
-  ...TYPES.map(type => ({ label: notificationTypeLabel(t, type), value: type })),
+  {
+    label: t('notification.inbox.type_all'),
+    value: '',
+  },
+  ...TYPES.map(type => ({
+    label: notificationTypeLabel(t, type),
+    value: type,
+  })),
 ])
 
 const scopeOptions = computed<SelectOption[]>(() => [
-  { label: t('notification.inbox.scope_all'), value: 'all' },
-  { label: t('notification.inbox.scope_pending'), value: 'pending' },
+  {
+    label: t('notification.inbox.scope_all'),
+    value: 'all',
+  },
+  {
+    label: t('notification.inbox.scope_pending'),
+    value: 'pending',
+  },
 ])
 
 function changeType(value: unknown) {
-  typeFilter.value = typeof value === 'string' && value ? value as NotificationType : null
+  typeFilter.value = typeof value === 'string' && value
+    ? value as NotificationType
+    : null
   page.value = 1
   void refresh()
 }
 
 function changeScope(value: unknown) {
-  scope.value = value === 'pending' ? 'pending' : 'all'
+  scope.value = value === 'pending'
+    ? 'pending'
+    : 'all'
   page.value = 1
   void refresh()
 }
@@ -100,7 +116,10 @@ async function loadCounts() {
 async function refresh() {
   loading.value = true
   try {
-    await Promise.all([loadList(), loadCounts()])
+    await Promise.all([
+      loadList(),
+      loadCounts(),
+    ])
   }
   catch (error) {
     toast.danger(errorText(error) || t('notification.inbox.load_failed'))

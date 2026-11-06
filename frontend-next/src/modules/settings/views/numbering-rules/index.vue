@@ -47,23 +47,44 @@ function cycleLabel(cycle: ResetCycle): string {
 }
 
 function dateFormatLabel(format: DateFormat): string {
-  return format === 'None' ? t('settings.numbering_rules.no_date') : datePattern(format)
+  return format === 'None'
+    ? t('settings.numbering_rules.no_date')
+    : datePattern(format)
 }
 
 function statusLabel(status: RuleStatus): string {
-  return status === 'Disabled' ? t('settings.numbering_rules.status.disabled') : t('settings.numbering_rules.status.active')
+  return status === 'Disabled'
+    ? t('settings.numbering_rules.status.disabled')
+    : t('settings.numbering_rules.status.active')
 }
 
 function ownerLabel(row: RuleRow): string {
-  return row.isPlatform ? t('settings.numbering_rules.owner.platform') : t('settings.numbering_rules.owner.tenant')
+  return row.isPlatform
+    ? t('settings.numbering_rules.owner.platform')
+    : t('settings.numbering_rules.owner.tenant')
 }
 
-const dateFormatOptions = computed<SelectOption[]>(() => DATE_FORMATS.map(format => ({ label: dateFormatLabel(format), value: format })))
-const resetCycleOptions = computed<SelectOption[]>(() => RESET_CYCLES.map(cycle => ({ label: cycleLabel(cycle), value: cycle })))
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const dateFormatOptions = computed<SelectOption[]>(() => DATE_FORMATS.map(format => ({
+  label: dateFormatLabel(format),
+  value: format,
+})))
+const resetCycleOptions = computed<SelectOption[]>(() => RESET_CYCLES.map(cycle => ({
+  label: cycleLabel(cycle),
+  value: cycle,
+})))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const ownerOptions = computed(() => [
-  { label: t('settings.numbering_rules.owner.platform'), value: 'platform' },
-  { label: t('settings.numbering_rules.owner.tenant'), value: 'tenant' },
+  {
+    label: t('settings.numbering_rules.owner.platform'),
+    value: 'platform',
+  },
+  {
+    label: t('settings.numbering_rules.owner.tenant'),
+    value: 'tenant',
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索 / 导入字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
@@ -71,24 +92,167 @@ const ownerOptions = computed(() => [
 const asRow = (row: object) => row as RuleRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('settings.numbering_rules.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('settings.numbering_rules.keyword_placeholder'), order: 0 },
-  { key: 'code', title: t('settings.numbering_rules.fields.code'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 150, order: 1 },
-  { key: 'name', title: t('settings.numbering_rules.fields.name'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 140, order: 2 },
-  { key: 'template', title: t('settings.numbering_rules.fields.template'), dataType: 'string', exportable: true, minWidth: 210, order: 3 },
-  { key: 'prefix', title: t('settings.numbering_rules.fields.prefix'), dataType: 'string', visible: false, importable: true, order: 3.1 },
-  { key: 'separator', title: t('settings.numbering_rules.fields.separator'), dataType: 'string', visible: false, importable: true, order: 3.2 },
-  { key: 'dateFormat', title: t('settings.numbering_rules.fields.date_format'), dataType: 'enum', visible: false, importable: true, options: dateFormatOptions.value, order: 3.3 },
-  { key: 'serialLength', title: t('settings.numbering_rules.fields.serial_length'), dataType: 'number', visible: false, importable: true, order: 3.4 },
-  { key: 'resetCycle', title: t('settings.numbering_rules.fields.reset_cycle'), dataType: 'enum', advancedSearch: true, importable: true, exportable: true, options: resetCycleOptions.value, render: row => cycleLabel(asRow(row).resetCycle), ellipsis: true, width: 100, order: 4 },
-  { key: 'timeZoneId', title: t('settings.numbering_rules.fields.time_zone'), dataType: 'string', importable: true, exportable: true, width: 140, order: 5 },
-  { key: 'currentPeriod', title: t('settings.numbering_rules.fields.current_period'), dataType: 'string', render: row => asRow(row).currentPeriod || '-', ellipsis: true, width: 110, order: 6 },
-  { key: 'currentValue', title: t('settings.numbering_rules.fields.current_value'), dataType: 'number', exportable: true, width: 120, order: 7 },
-  { key: 'owner', title: t('settings.numbering_rules.fields.owner'), dataType: 'enum', searchable: true, options: ownerOptions.value, render: row => ownerLabel(asRow(row)), width: 90, order: 8 },
+  {
+    key: 'keyword',
+    title: t('settings.numbering_rules.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('settings.numbering_rules.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('settings.numbering_rules.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 150,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('settings.numbering_rules.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 140,
+    order: 2,
+  },
+  {
+    key: 'template',
+    title: t('settings.numbering_rules.fields.template'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 210,
+    order: 3,
+  },
+  {
+    key: 'prefix',
+    title: t('settings.numbering_rules.fields.prefix'),
+    dataType: 'string',
+    visible: false,
+    importable: true,
+    order: 3.1,
+  },
+  {
+    key: 'separator',
+    title: t('settings.numbering_rules.fields.separator'),
+    dataType: 'string',
+    visible: false,
+    importable: true,
+    order: 3.2,
+  },
+  {
+    key: 'dateFormat',
+    title: t('settings.numbering_rules.fields.date_format'),
+    dataType: 'enum',
+    visible: false,
+    importable: true,
+    options: dateFormatOptions.value,
+    order: 3.3,
+  },
+  {
+    key: 'serialLength',
+    title: t('settings.numbering_rules.fields.serial_length'),
+    dataType: 'number',
+    visible: false,
+    importable: true,
+    order: 3.4,
+  },
+  {
+    key: 'resetCycle',
+    title: t('settings.numbering_rules.fields.reset_cycle'),
+    dataType: 'enum',
+    advancedSearch: true,
+    importable: true,
+    exportable: true,
+    options: resetCycleOptions.value,
+    render: row => cycleLabel(asRow(row).resetCycle),
+    ellipsis: true,
+    width: 100,
+    order: 4,
+  },
+  {
+    key: 'timeZoneId',
+    title: t('settings.numbering_rules.fields.time_zone'),
+    dataType: 'string',
+    importable: true,
+    exportable: true,
+    width: 140,
+    order: 5,
+  },
+  {
+    key: 'currentPeriod',
+    title: t('settings.numbering_rules.fields.current_period'),
+    dataType: 'string',
+    render: row => asRow(row).currentPeriod || '-',
+    ellipsis: true,
+    width: 110,
+    order: 6,
+  },
+  {
+    key: 'currentValue',
+    title: t('settings.numbering_rules.fields.current_value'),
+    dataType: 'number',
+    exportable: true,
+    width: 120,
+    order: 7,
+  },
+  {
+    key: 'owner',
+    title: t('settings.numbering_rules.fields.owner'),
+    dataType: 'enum',
+    searchable: true,
+    options: ownerOptions.value,
+    render: row => ownerLabel(asRow(row)),
+    width: 90,
+    order: 8,
+  },
   // 只有平台规则能供租户使用：租户这一侧这一列没有意义
-  { key: 'allowTenantUse', title: t('settings.numbering_rules.fields.allow_tenant_use'), dataType: 'boolean', visible: isPlatformCaller(), width: 110, order: 9 },
-  { key: 'status', title: t('settings.numbering_rules.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 10 },
-  { key: 'order', title: t('settings.numbering_rules.fields.order'), dataType: 'number', sortable: true, importable: true, exportable: true, width: 80, order: 11 },
-  { key: 'description', title: t('settings.numbering_rules.fields.description'), dataType: 'text', visible: false, importable: true, order: 11.5 },
+  {
+    key: 'allowTenantUse',
+    title: t('settings.numbering_rules.fields.allow_tenant_use'),
+    dataType: 'boolean',
+    visible: isPlatformCaller(),
+    width: 110,
+    order: 9,
+  },
+  {
+    key: 'status',
+    title: t('settings.numbering_rules.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    exportable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 10,
+  },
+  {
+    key: 'order',
+    title: t('settings.numbering_rules.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    importable: true,
+    exportable: true,
+    width: 80,
+    order: 11,
+  },
+  {
+    key: 'description',
+    title: t('settings.numbering_rules.fields.description'),
+    dataType: 'text',
+    visible: false,
+    importable: true,
+    order: 11.5,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -103,16 +267,75 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('settings.numbering_rules.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'settings.numbering-rules.create' },
-    { key: 'preview', title: t('settings.numbering_rules.actions.preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'settings.numbering-rules.read' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
+    {
+      key: 'create',
+      title: t('settings.numbering_rules.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'settings.numbering-rules.create',
+    },
+    {
+      key: 'preview',
+      title: t('settings.numbering_rules.actions.preview'),
+      scope: 'row',
+      icon: 'lucide:scan-eye',
+      permission: 'settings.numbering-rules.read',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
     // 另一侧的规则只读：租户看得见供租户使用的平台规则，改不了
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', visible: row => editor.isOwn(asRow(row)), permission: 'settings.numbering-rules.update' },
-    { key: 'toggle', title: t('settings.numbering_rules.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), visible: row => editor.isOwn(asRow(row)), permission: 'settings.numbering-rules.update' },
-    { key: 'reset', title: t('settings.numbering_rules.actions.reset'), scope: 'row', tone: 'warning', icon: 'lucide:rotate-ccw', visible: row => editor.isOwn(asRow(row)), permission: 'settings.numbering-rules.reset' },
-    { key: 'allocations', title: t('settings.numbering_rules.actions.allocations'), scope: 'row', icon: 'lucide:history', permission: 'settings.numbering-rules.read' },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      visible: row => editor.isOwn(asRow(row)),
+      permission: 'settings.numbering-rules.update',
+    },
+    {
+      key: 'toggle',
+      title: t('settings.numbering_rules.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      visible: row => editor.isOwn(asRow(row)),
+      permission: 'settings.numbering-rules.update',
+    },
+    {
+      key: 'reset',
+      title: t('settings.numbering_rules.actions.reset'),
+      scope: 'row',
+      tone: 'warning',
+      icon: 'lucide:rotate-ccw',
+      visible: row => editor.isOwn(asRow(row)),
+      permission: 'settings.numbering-rules.reset',
+    },
+    {
+      key: 'allocations',
+      title: t('settings.numbering_rules.actions.allocations'),
+      scope: 'row',
+      icon: 'lucide:history',
+      permission: 'settings.numbering-rules.read',
+    },
     // 发过号的规则不能删（发出的号永久记录）
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), visible: row => editor.isOwn(asRow(row)), disabled: row => asRow(row).hasAllocated, permission: 'settings.numbering-rules.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      visible: row => editor.isOwn(asRow(row)),
+      disabled: row => asRow(row).hasAllocated,
+      permission: 'settings.numbering-rules.delete',
+    },
   ],
 }))
 
@@ -123,7 +346,9 @@ const previewRule = ref<RuleRow | null>(null)
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -218,11 +443,15 @@ function openDetail(row: RuleRow) {
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 function formatBoolean(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 </script>
 

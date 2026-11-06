@@ -12,7 +12,10 @@ const gesture = vi.hoisted(() => ({ attached: 0, unlock: null as null | (() => v
 vi.mock('@xihan-ui/vue/sound', () => ({
   getSoundPlayer: () => ({
     play: (kind: string) => {
-      player.played.push({ kind, at: performance.now() })
+      player.played.push({
+        kind,
+        at: performance.now(),
+      })
     },
     unlock: () => {
       player.unlocks += 1
@@ -35,7 +38,9 @@ async function loadModule() {
 }
 
 beforeEach(() => {
-  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] })
+  vi.useFakeTimers({
+    toFake: ['setTimeout', 'clearTimeout', 'performance'],
+  })
   player.played = []
   player.unlocks = 0
   gesture.attached = 0

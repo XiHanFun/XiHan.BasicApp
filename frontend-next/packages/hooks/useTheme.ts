@@ -24,10 +24,14 @@ function hexToHsl(hex: string): [number, number, number] {
   const l = (max + min) / 2
   if (max !== min) {
     const d = max - min
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    s = l > 0.5
+      ? d / (2 - max - min)
+      : d / (max + min)
     switch (max) {
       case r:
-        h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+        h = ((g - b) / d + (g < b
+          ? 6
+          : 0)) / 6
         break
       case g:
         h = ((b - r) / d + 2) / 6
@@ -36,7 +40,11 @@ function hexToHsl(hex: string): [number, number, number] {
         h = ((r - g) / d + 4) / 6
     }
   }
-  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)]
+  return [
+    Math.round(h * 360),
+    Math.round(s * 100),
+    Math.round(l * 100),
+  ]
 }
 
 /** 将 HSL 数值转换为 hex 字符串 */
@@ -92,7 +100,9 @@ function generatePrimaryScale(hex: string) {
  * 传进来的要是实际当底色的那一档（色阶的 600），不是用户挑的原色
  */
 function onSolidFor(color: string): string {
-  return relativeLuminance(color) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 100%'
+  return relativeLuminance(color) > ON_COLOR_CROSSOVER
+    ? '220 12% 12%'
+    : '0 0% 100%'
 }
 
 /**
@@ -213,7 +223,11 @@ function sharedThemeOf(appStore: ReturnType<typeof useAppStore>): SharedTheme {
     watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
     // 主色 / 明暗 / 动态取色开关 变化都需重算派生色阶（Material You 明暗自适应）
     watch(
-      [() => appStore.themeColor, isDark, () => appStore.themeDynamicColor],
+      [
+        () => appStore.themeColor,
+        isDark,
+        () => appStore.themeDynamicColor,
+      ],
       ([hex, dark, dynamic]) => applyThemePalette(hex, dark, dynamic),
       { immediate: true },
     )

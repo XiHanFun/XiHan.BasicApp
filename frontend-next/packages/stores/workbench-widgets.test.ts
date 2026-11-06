@@ -12,7 +12,17 @@ async function freshModule(): Promise<typeof import('./workbench-widgets')> {
 }
 
 function widget(key: string): WorkbenchListWidget {
-  return { key, dataKey: `pkg.${key}`, titleKey: `${key}.title`, descKey: `${key}.desc`, emptyKey: `${key}.empty`, icon: 'lucide:box', defaultSpan: 4, page: `pkg.${key}`, moreLink: `/pkg/${key}` }
+  return {
+    key,
+    dataKey: `pkg.${key}`,
+    titleKey: `${key}.title`,
+    descKey: `${key}.desc`,
+    emptyKey: `${key}.empty`,
+    icon: 'lucide:box',
+    defaultSpan: 4,
+    page: `pkg.${key}`,
+    moreLink: `/pkg/${key}`,
+  }
 }
 
 beforeEach(() => {

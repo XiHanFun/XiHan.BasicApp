@@ -31,11 +31,24 @@ export interface UserForm {
 export type UserEditorMode = 'create' | 'edit'
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 function emptyForm(): UserForm {
-  return { userName: '', displayName: '', email: '', phoneNumber: '', password: '', realName: '', gender: 'Unknown', birthday: null, country: '', remark: '' }
+  return {
+    userName: '',
+    displayName: '',
+    email: '',
+    phoneNumber: '',
+    password: '',
+    realName: '',
+    gender: 'Unknown',
+    birthday: null,
+    country: '',
+    remark: '',
+  }
 }
 
 /** 登录策略：只在编辑时读写，要有设置权限 */
@@ -54,7 +67,13 @@ export function displayNameOf(row: Pick<UserRow, 'displayName' | 'userName'>): s
  * 状态多选，创建时间按区间
  */
 export const USER_QUERY: PageQueryMapping = {
-  filters: { email: 'contains', phoneNumber: 'contains', gender: 'eq', roleId: 'eq', departmentId: 'eq' },
+  filters: {
+    email: 'contains',
+    phoneNumber: 'contains',
+    gender: 'eq',
+    roleId: 'eq',
+    departmentId: 'eq',
+  },
   ranges: ['createdAt'],
   multiples: ['status'],
 }
@@ -68,15 +87,35 @@ export function usersResource(): SchemaResource<UserRow> {
   const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await usersApi.list(toRequest(params)), params),
-    remove: async id => throwOnFailed(await usersApi.delete({ ids: [String(id)] })),
-    updateStatus: async (id, enabled) => throwOnFailed(enabled ? await usersApi.enable({ ids: [String(id)] }) : await usersApi.disable({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await usersApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
+    updateStatus: async (id, enabled) => throwOnFailed(enabled
+      ? await usersApi.enable({
+          ids: [
+            String(id),
+          ],
+        })
+      : await usersApi.disable({
+          ids: [
+            String(id),
+          ],
+        })),
     export: { businessType: 'users.list', buildQuery: toRequest },
   }
 }
 
 /** 锁定（状态置为 Locked、会话下线）或解锁一个用户；被后端逐项拒绝时带着原因抛出 */
 export async function setUserLocked(id: string, locked: boolean): Promise<void> {
-  throwOnFailed(locked ? await usersApi.lock({ ids: [id] }) : await usersApi.unlock({ ids: [id] }))
+  throwOnFailed(locked
+    ? await usersApi.lock({
+        ids: [id],
+      })
+    : await usersApi.unlock({
+        ids: [id],
+      }))
 }
 
 /**
@@ -84,7 +123,13 @@ export async function setUserLocked(id: string, locked: boolean): Promise<void> 
  * 返回下线的会话数，没有会话为 0，全部被拒时带着原因抛出
  */
 export async function forceSignOut(userId: string, reason: string): Promise<number> {
-  const page = await sessionsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'userId', operator: 'eq', value: userId }], sorts: [] })
+  const page = await sessionsApi.list({
+    page: { index: 1, size: 100 },
+    filters: [
+      { field: 'userId', operator: 'eq', value: userId },
+    ],
+    sorts: [],
+  })
   const ids = page.items.map(session => session.id)
   if (ids.length === 0)
     return 0
@@ -96,7 +141,11 @@ export async function forceSignOut(userId: string, reason: string): Promise<numb
 
 /** 角色筛选的选项：当前一侧的全部角色 */
 export async function loadRoleOptions(): Promise<{ label: string, value: string }[]> {
-  const page = await rolesApi.list({ page: { index: 1, size: 500 }, filters: [], sorts: [] })
+  const page = await rolesApi.list({
+    page: { index: 1, size: 500 },
+    filters: [],
+    sorts: [],
+  })
   return page.items.map(role => ({ label: role.name, value: role.id }))
 }
 
@@ -107,12 +156,20 @@ export async function loadDepartmentOptions(): Promise<SelectOption[]> {
 
 /** 停用（状态置为 Disabled、会话下线、不能登录）或启用一个用户；被后端逐项拒绝时带着原因抛出 */
 export async function setUserDisabled(id: string, disabled: boolean): Promise<void> {
-  throwOnFailed(disabled ? await usersApi.disable({ ids: [id] }) : await usersApi.enable({ ids: [id] }))
+  throwOnFailed(disabled
+    ? await usersApi.disable({
+        ids: [id],
+      })
+    : await usersApi.enable({
+        ids: [id],
+      }))
 }
 
 /** 重置一个用户的双因素（清掉全部方式与认证器密钥，下次只凭密码登录）；被后端逐项拒绝时带着原因抛出 */
 export async function resetUserTwoFactor(id: string): Promise<void> {
-  throwOnFailed(await usersApi.resetTwoFactor({ ids: [id] }))
+  throwOnFailed(await usersApi.resetTwoFactor({
+    ids: [id],
+  }))
 }
 
 /** 生成临时密码：大小写 + 数字 + 符号各至少一个，规避易混淆字符（0O1lI），满足后端「至少 8 位、含字母与数字」的策略 */
@@ -125,7 +182,12 @@ export function generateTempPassword(length = 12): string {
   const buf = new Uint32Array(length)
   crypto.getRandomValues(buf)
   const pick = (set: string, seed: number) => set[seed % set.length]!
-  const chars = [pick(upper, buf[0]!), pick(lower, buf[1]!), pick(digits, buf[2]!), pick(symbols, buf[3]!)]
+  const chars = [
+    pick(upper, buf[0]!),
+    pick(lower, buf[1]!),
+    pick(digits, buf[2]!),
+    pick(symbols, buf[3]!),
+  ]
   for (let i = chars.length; i < length; i++)
     chars.push(pick(all, buf[i]!))
   // Fisher-Yates 打乱（复用随机源）
@@ -202,7 +264,9 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
       phoneNumber: row.phoneNumber ?? '',
       realName: row.realName ?? '',
       gender: row.gender,
-      birthday: row.birthday ? new Date(row.birthday).getTime() : null,
+      birthday: row.birthday
+        ? new Date(row.birthday).getTime()
+        : null,
       country: row.country ?? '',
       remark: row.remark ?? '',
     })
@@ -221,7 +285,9 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
     fieldErrors.value = {}
     try {
       const current = editing.value
-      const birthday = form.birthday ? new Date(form.birthday).toISOString() : null
+      const birthday = form.birthday
+        ? new Date(form.birthday).toISOString()
+        : null
       if (mode.value === 'edit' && current) {
         await usersApi.update({
           id: current.id,
@@ -246,10 +312,14 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
           email: blankToNull(form.email),
           phoneNumber: blankToNull(form.phoneNumber),
           // 不填即账号在管理员重置密码前不能登录（后端语义）
-          password: form.password === '' ? null : form.password,
+          password: form.password === ''
+            ? null
+            : form.password,
           realName: blankToNull(form.realName),
           // 未设置不传：字段安全把性别设成只读时，不填才能建
-          gender: form.gender === 'Unknown' ? null : form.gender,
+          gender: form.gender === 'Unknown'
+            ? null
+            : form.gender,
           birthday,
           country: blankToNull(form.country),
           remark: blankToNull(form.remark),
@@ -267,7 +337,22 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
     }
   }
 
-  return { open, mode, isEdit, readonly, editing, form, loginPolicy, loadedPolicy, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    readonly,
+    editing,
+    form,
+    loginPolicy,
+    loadedPolicy,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }
 
 /**
@@ -321,5 +406,15 @@ export function usePasswordReset() {
     }
   }
 
-  return { open, target, form, fieldError, submitError, submitting, start, regenerate, submit }
+  return {
+    open,
+    target,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    start,
+    regenerate,
+    submit,
+  }
 }

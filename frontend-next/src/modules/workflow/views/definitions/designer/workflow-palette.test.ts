@@ -22,7 +22,13 @@ describe('restrictActivityTypes', () => {
   })
 
   it('有目录时只留目录里有的；目录里就算有 Script 也不放', () => {
-    const restricted = restrictActivityTypes(preset, new Set(['Start', 'End', 'UserTask', 'Script', 'EventGateway']))
+    const restricted = restrictActivityTypes(preset, new Set([
+      'Start',
+      'End',
+      'UserTask',
+      'Script',
+      'EventGateway',
+    ]))
 
     expect(typesOf(restricted)).toEqual(['Start', 'End', 'UserTask'])
   })

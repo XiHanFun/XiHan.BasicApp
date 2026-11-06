@@ -32,7 +32,9 @@ const loading = ref(false)
 let pending: Promise<void> | null = null
 
 function formatOffset(offsetMinutes: number): string {
-  const sign = offsetMinutes < 0 ? '-' : '+'
+  const sign = offsetMinutes < 0
+    ? '-'
+    : '+'
   const abs = Math.abs(offsetMinutes)
   const hours = String(Math.floor(abs / 60)).padStart(2, '0')
   const minutes = String(abs % 60).padStart(2, '0')
@@ -95,7 +97,10 @@ export function useTimezoneOptions() {
     if (!id || options.value.some(option => option.value === id)) {
       return options.value
     }
-    return [{ value: id, label: id, offsetMinutes: 0 }, ...options.value]
+    return [
+      { value: id, label: id, offsetMinutes: 0 },
+      ...options.value,
+    ]
   }
 
   return {

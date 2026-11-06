@@ -89,7 +89,12 @@ describe('与标签栏 store 的联动', () => {
     const tabbar = useTabbarStore()
 
     preferences.tabbarPersist.value = false
-    tabbar.ensureTab({ key: '/a', title: 'A', path: '/a', closable: true })
+    tabbar.ensureTab({
+      key: '/a',
+      title: 'A',
+      path: '/a',
+      closable: true,
+    })
 
     expect(localStorage.getItem(TABBAR_PERSIST_KEY)).toBe('false')
     expect(sessionStorage.getItem(TABS_LIST_KEY)).toBeNull()
@@ -99,10 +104,20 @@ describe('与标签栏 store 的联动', () => {
     const preferences = useTabbarPreferences()
     const tabbar = useTabbarStore()
     preferences.tabbarPersist.value = false
-    tabbar.ensureTab({ key: '/a', title: 'A', path: '/a', closable: true })
+    tabbar.ensureTab({
+      key: '/a',
+      title: 'A',
+      path: '/a',
+      closable: true,
+    })
 
     preferences.tabbarPersist.value = true
-    tabbar.ensureTab({ key: '/b', title: 'B', path: '/b', closable: true })
+    tabbar.ensureTab({
+      key: '/b',
+      title: 'B',
+      path: '/b',
+      closable: true,
+    })
 
     const persisted = JSON.parse(sessionStorage.getItem(TABS_LIST_KEY) ?? '[]') as Array<{ key: string }>
     expect(persisted.map(t => t.key)).toContain('/b')

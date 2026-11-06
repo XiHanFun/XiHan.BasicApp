@@ -50,7 +50,12 @@ export function resolveChatFileUrl(file: ChatFileRef): Promise<string> {
       .getFileUrl(file.conversationId, file.fileId)
       .then((signed) => {
         const expiresAt = Date.parse(signed.expiresAt)
-        cache.set(key, { url: signed.url, expiresAt: Number.isNaN(expiresAt) ? 0 : expiresAt })
+        cache.set(key, {
+          url: signed.url,
+          expiresAt: Number.isNaN(expiresAt)
+            ? 0
+            : expiresAt,
+        })
         return signed.url
       })
       .finally(() => {

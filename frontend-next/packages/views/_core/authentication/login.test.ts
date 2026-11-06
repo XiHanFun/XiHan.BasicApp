@@ -15,17 +15,36 @@ import { configureRequest } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 import LoginPage from './login.vue'
 
-vi.mock('~/utils/device-fingerprint', () => ({ generateDeviceFingerprint: async () => 'device-1' }))
+vi.mock('~/utils/device-fingerprint', () => ({
+  generateDeviceFingerprint: async () => 'device-1',
+}))
 
 const getLoginConfigApi = vi.fn()
 const getCaptchaApi = vi.fn()
 
 /** attachTo：要看焦点时挂进文档 */
 async function open(path: string, attachTo?: HTMLElement) {
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:p(.*)*', component: { render: () => null } }] })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/:p(.*)*',
+        component: {
+          render: () => null,
+        },
+      },
+    ],
+  })
   await router.push(path)
-  registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi } as unknown as AppContextApis })
-  const wrapper = mount(LoginPage, { attachTo, global: { plugins: [i18n, router] } })
+  registerAppContext({
+    apis: { getLoginConfigApi, getCaptchaApi } as unknown as AppContextApis,
+  })
+  const wrapper = mount(LoginPage, {
+    attachTo,
+    global: {
+      plugins: [i18n, router],
+    },
+  })
   await flushPromises()
   return wrapper
 }
@@ -40,7 +59,14 @@ beforeEach(() => {
   getLoginConfigApi.mockReset()
   getCaptchaApi.mockReset()
   getCaptchaApi.mockResolvedValue({ captchaId: 'c-1', image: 'data:image/svg+xml,%3Csvg%2F%3E', expiresInSeconds: 120 })
-  getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [{ name: 'github', displayName: 'GitHub', type: 'github' }], captchaEnabled: false, registrationEnabled: false })
+  getLoginConfigApi.mockResolvedValue({
+    loginMethods: ['password'],
+    oAuthProviders: [
+      { name: 'github', displayName: 'GitHub', type: 'github' },
+    ],
+    captchaEnabled: false,
+    registrationEnabled: false,
+  })
 })
 
 describe('登录页与第三方登录', () => {
@@ -48,13 +74,30 @@ describe('登录页与第三方登录', () => {
     configureRequest({
       baseUrl: '',
       getToken: () => null,
-      fetch: (async () => new Response(JSON.stringify({ token: null, twoFactor: { ticket: 't-1', methods: ['Totp'], method: 'Totp', codeSent: false, expiresAt: '2026-10-28T00:10:00Z' } }), { status: 200, headers: { 'Content-Type': 'application/json' } })) as unknown as typeof fetch,
+      fetch: (async () => new Response(JSON.stringify({
+        token: null,
+        twoFactor: {
+          ticket: 't-1',
+          methods: ['Totp'],
+          method: 'Totp',
+          codeSent: false,
+          expiresAt: '2026-10-28T00:10:00Z',
+        },
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })) as unknown as typeof fetch,
     })
     const replace = vi.fn(async () => {})
-    registerAppContext({ getRouter: () => Promise.resolve({ replace } as unknown as Router) })
+    registerAppContext({
+      getRouter: () => Promise.resolve({ replace } as unknown as Router),
+    })
     const store = useAuthStore()
     await store.handleOAuthCallback('x-1', '/settings/configs')
-    expect(replace).toHaveBeenCalledWith({ path: LOGIN_PATH, query: { redirect: '/settings/configs' } })
+    expect(replace).toHaveBeenCalledWith({
+      path: LOGIN_PATH,
+      query: { redirect: '/settings/configs' },
+    })
 
     const login = vi.spyOn(store, 'login').mockResolvedValue(null)
     const wrapper = await open(`${LOGIN_PATH}?redirect=/settings/configs`)
@@ -80,14 +123,37 @@ describe('找回密码与注册入口', () => {
     const router = createRouter({
       history: createMemoryHistory(),
       routes: [
-        { path: LOGIN_PATH, component: { render: () => null } },
-        { path: '/auth/forget-password', name: 'ForgetPassword', component: { render: () => null } },
-        { path: '/auth/register', name: 'Register', component: { render: () => null } },
+        {
+          path: LOGIN_PATH,
+          component: {
+            render: () => null,
+          },
+        },
+        {
+          path: '/auth/forget-password',
+          name: 'ForgetPassword',
+          component: {
+            render: () => null,
+          },
+        },
+        {
+          path: '/auth/register',
+          name: 'Register',
+          component: {
+            render: () => null,
+          },
+        },
       ],
     })
     await router.push(LOGIN_PATH)
-    registerAppContext({ apis: { getLoginConfigApi, getCaptchaApi } as unknown as AppContextApis })
-    const wrapper = mount(LoginPage, { global: { plugins: [i18n, router] } })
+    registerAppContext({
+      apis: { getLoginConfigApi, getCaptchaApi } as unknown as AppContextApis,
+    })
+    const wrapper = mount(LoginPage, {
+      global: {
+        plugins: [i18n, router],
+      },
+    })
     await flushPromises()
     return wrapper
   }
@@ -97,7 +163,12 @@ describe('找回密码与注册入口', () => {
     expect(closed.text()).toContain(t('page.login.forgot_password'))
     expect(closed.text()).not.toContain(t('page.auth.no_account'))
 
-    getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false, registrationEnabled: true })
+    getLoginConfigApi.mockResolvedValue({
+      loginMethods: ['password'],
+      oAuthProviders: [],
+      captchaEnabled: false,
+      registrationEnabled: true,
+    })
     const open = await mountWithAuthRoutes()
     expect(open.text()).toContain(t('page.auth.no_account'))
     expect(open.text()).toContain(t('page.login.register'))
@@ -116,7 +187,12 @@ describe('登录配置取不到', () => {
     expect(submit().attributes('disabled')).toBeDefined()
     expect(getCaptchaApi).not.toHaveBeenCalled()
 
-    getLoginConfigApi.mockResolvedValue({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: true, registrationEnabled: false })
+    getLoginConfigApi.mockResolvedValue({
+      loginMethods: ['password'],
+      oAuthProviders: [],
+      captchaEnabled: true,
+      registrationEnabled: false,
+    })
     await alert.findAll('button').find(button => button.text() === t('page.auth.load_config_retry'))!.trigger('click')
     await flushPromises()
     expect(wrapper.find('[data-testid="login-config-failed"]').exists()).toBe(false)
@@ -140,7 +216,12 @@ describe('登录配置取不到', () => {
     expect(retry.attributes('aria-busy')).toBe('true')
     expect(document.activeElement).toBe(retryButton)
 
-    resolveConfig({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false, registrationEnabled: false })
+    resolveConfig({
+      loginMethods: ['password'],
+      oAuthProviders: [],
+      captchaEnabled: false,
+      registrationEnabled: false,
+    })
     await flushPromises()
     expect(wrapper.find('[data-testid="login-config-failed"]').exists()).toBe(false)
     expect(document.activeElement).toBe(wrapper.find('input').element)

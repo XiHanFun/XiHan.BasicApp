@@ -54,11 +54,25 @@ describe('routeListContainsVisiblePath', () => {
       path: '/system',
       children: [
         { path: 'user' },
-        { path: 'secret', meta: { hidden: true } },
-        { path: 'nested', children: [{ path: 'deep' }] },
+        {
+          path: 'secret',
+          meta: { hidden: true },
+        },
+        {
+          path: 'nested',
+          children: [
+            { path: 'deep' },
+          ],
+        },
       ],
     },
-    { path: '/hidden-parent', meta: { hidden: true }, children: [{ path: 'child' }] },
+    {
+      path: '/hidden-parent',
+      meta: { hidden: true },
+      children: [
+        { path: 'child' },
+      ],
+    },
   ]
 
   it('命中可见的一级路径', () => {
@@ -87,11 +101,18 @@ describe('routeListContainsVisiblePath', () => {
   })
 
   it('meta 为 null 的路由按可见处理', () => {
-    expect(routeListContainsVisiblePath([{ path: '/a', meta: null }], '/a')).toBe(true)
+    expect(routeListContainsVisiblePath([
+      { path: '/a', meta: null },
+    ], '/a')).toBe(true)
   })
 
   it('meta.hidden 为 false 时按可见处理', () => {
-    expect(routeListContainsVisiblePath([{ path: '/a', meta: { hidden: false } }], '/a')).toBe(true)
+    expect(routeListContainsVisiblePath([
+      {
+        path: '/a',
+        meta: { hidden: false },
+      },
+    ], '/a')).toBe(true)
   })
 
   it('比较的是拼接后的完整路径，父路径不同则不命中', () => {
@@ -107,7 +128,14 @@ describe('resolveFirstNavigableRoutePath', () => {
   it('逐层下钻到第一个可见叶子', () => {
     const route: NavigableRouteLike = {
       path: '/system',
-      children: [{ path: 'user', children: [{ path: 'list' }] }],
+      children: [
+        {
+          path: 'user',
+          children: [
+            { path: 'list' },
+          ],
+        },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system/user/list')
@@ -116,7 +144,13 @@ describe('resolveFirstNavigableRoutePath', () => {
   it('跳过隐藏子路由，取第一个可见的', () => {
     const route: NavigableRouteLike = {
       path: '/system',
-      children: [{ path: 'hidden', meta: { hidden: true } }, { path: 'user' }],
+      children: [
+        {
+          path: 'hidden',
+          meta: { hidden: true },
+        },
+        { path: 'user' },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system/user')
@@ -125,7 +159,12 @@ describe('resolveFirstNavigableRoutePath', () => {
   it('全部子路由都隐藏时停在父级自身路径', () => {
     const route: NavigableRouteLike = {
       path: '/system',
-      children: [{ path: 'hidden', meta: { hidden: true } }],
+      children: [
+        {
+          path: 'hidden',
+          meta: { hidden: true },
+        },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system')
@@ -135,7 +174,10 @@ describe('resolveFirstNavigableRoutePath', () => {
     const route: NavigableRouteLike = {
       path: '/system',
       redirect: '/system/role',
-      children: [{ path: 'user' }, { path: 'role' }],
+      children: [
+        { path: 'user' },
+        { path: 'role' },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system/role')
@@ -145,7 +187,13 @@ describe('resolveFirstNavigableRoutePath', () => {
     const route: NavigableRouteLike = {
       path: '/system',
       redirect: '/system/secret',
-      children: [{ path: 'secret', meta: { hidden: true } }, { path: 'user' }],
+      children: [
+        {
+          path: 'secret',
+          meta: { hidden: true },
+        },
+        { path: 'user' },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system/user')
@@ -155,7 +203,9 @@ describe('resolveFirstNavigableRoutePath', () => {
     const route: NavigableRouteLike = {
       path: '/system',
       redirect: '/other',
-      children: [{ path: 'user' }],
+      children: [
+        { path: 'user' },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system/user')
@@ -170,7 +220,9 @@ describe('resolveFirstNavigableRoutePath', () => {
     const route: NavigableRouteLike = {
       path: '/system',
       redirect: () => '/system/user',
-      children: [{ path: 'user' }],
+      children: [
+        { path: 'user' },
+      ],
     }
 
     expect(resolveFirstNavigableRoutePath(route)).toBe('/system/user')
@@ -188,7 +240,12 @@ describe('resolveFirstNavigableRoutePath', () => {
 describe('resolveFirstNavigableRouteListPath', () => {
   it('取第一个可见路由解析出的路径', () => {
     const routes: NavigableRouteLike[] = [
-      { path: '/workbench', children: [{ path: 'dashboard' }] },
+      {
+        path: '/workbench',
+        children: [
+          { path: 'dashboard' },
+        ],
+      },
       { path: '/system' },
     ]
 
@@ -197,7 +254,13 @@ describe('resolveFirstNavigableRouteListPath', () => {
 
   it('隐藏的顶层路由不作为结果，但仍下钻它的子路由', () => {
     const routes: NavigableRouteLike[] = [
-      { path: '/layout', meta: { hidden: true }, children: [{ path: 'home' }] },
+      {
+        path: '/layout',
+        meta: { hidden: true },
+        children: [
+          { path: 'home' },
+        ],
+      },
       { path: '/system' },
     ]
 
@@ -206,7 +269,10 @@ describe('resolveFirstNavigableRouteListPath', () => {
 
   it('隐藏顶层路由没有可用子路由时继续看下一个顶层路由', () => {
     const routes: NavigableRouteLike[] = [
-      { path: '/empty', meta: { hidden: true } },
+      {
+        path: '/empty',
+        meta: { hidden: true },
+      },
       { path: '/system' },
     ]
 
@@ -220,18 +286,28 @@ describe('resolveFirstNavigableRouteListPath', () => {
 
   it('全部顶层路由都隐藏且无子路由时返回空串', () => {
     const routes: NavigableRouteLike[] = [
-      { path: '/a', meta: { hidden: true } },
-      { path: '/b', meta: { hidden: true } },
+      {
+        path: '/a',
+        meta: { hidden: true },
+      },
+      {
+        path: '/b',
+        meta: { hidden: true },
+      },
     ]
 
     expect(resolveFirstNavigableRouteListPath(routes)).toBe('')
   })
 
   it('传入父路径时顶层相对路径按其拼接', () => {
-    expect(resolveFirstNavigableRouteListPath([{ path: 'user' }], '/system')).toBe('/system/user')
+    expect(resolveFirstNavigableRouteListPath([
+      { path: 'user' },
+    ], '/system')).toBe('/system/user')
   })
 
   it('顶层路由 path 为空时解析成根路径并直接返回', () => {
-    expect(resolveFirstNavigableRouteListPath([{ path: '' }])).toBe('/')
+    expect(resolveFirstNavigableRouteListPath([
+      { path: '' },
+    ])).toBe('/')
   })
 })

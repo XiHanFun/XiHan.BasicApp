@@ -47,7 +47,12 @@ export const MAX_LEADER_LEVEL = 10
 /** 新规则的默认参数：主管类缺省 1 级，其余为空 */
 export function createRule(type: string): AssigneeRule {
   const editor = ASSIGNEE_RULE_TYPE_MAP[type]?.editor
-  return { type, values: editor === 'level' ? ['1'] : [] }
+  return {
+    type,
+    values: editor === 'level'
+      ? ['1']
+      : [],
+  }
 }
 
 /**
@@ -68,7 +73,9 @@ export function readRules(value: unknown): AssigneeRule[] {
       continue
     rules.push({
       type: type.trim(),
-      values: Array.isArray(values) ? values.map(entry => String(entry)).filter(entry => entry.trim() !== '') : [],
+      values: Array.isArray(values)
+        ? values.map(entry => String(entry)).filter(entry => entry.trim() !== '')
+        : [],
     })
   }
   return rules
@@ -109,9 +116,17 @@ export function migrateLegacyAssignees(properties: Record<string, unknown>): boo
     changed = true
   }
 
-  const legacyExpression = typeof properties.AssigneesExpression === 'string' ? properties.AssigneesExpression.trim() : ''
-  if (legacyExpression)
-    assigneeRules.splice(legacyAssignees.length > 0 ? 1 : 0, 0, { type: 'Expression', values: [legacyExpression] })
+  const legacyExpression = typeof properties.AssigneesExpression === 'string'
+    ? properties.AssigneesExpression.trim()
+    : ''
+  if (legacyExpression) {
+    assigneeRules.splice(legacyAssignees.length > 0
+      ? 1
+      : 0, 0, {
+      type: 'Expression',
+      values: [legacyExpression],
+    })
+  }
   if ('AssigneesExpression' in properties) {
     delete properties.AssigneesExpression
     changed = true

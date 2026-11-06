@@ -37,6 +37,8 @@ export function useEnumOptions(
       .toSelectOptions(enumName)
       .filter(opt => typeof opt.value === 'string' || typeof opt.value === 'number')
       .map(opt => ({ label: opt.label, value: opt.value as string | number }))
-    return resolved.length > 0 ? resolved : fallback.map(opt => ({ ...opt }))
+    return resolved.length > 0
+      ? resolved
+      : fallback.map(opt => ({ ...opt }))
   })
 }

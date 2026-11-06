@@ -49,7 +49,19 @@ export interface TelegramBotForm {
 }
 
 export function emptyTelegramBotForm(): TelegramBotForm {
-  return { id: null, name: '', token: '', adminUsers: '', allowedGroupChatIds: '', allowedCommands: '', broadcastChatIds: '', enableFallbackReply: false, isEnabled: true, order: 100, remark: '' }
+  return {
+    id: null,
+    name: '',
+    token: '',
+    adminUsers: '',
+    allowedGroupChatIds: '',
+    allowedCommands: '',
+    broadcastChatIds: '',
+    enableFallbackReply: false,
+    isEnabled: true,
+    order: 100,
+    remark: '',
+  }
 }
 
 /** 已保存的机器人回填表单（令牌不回显） */
@@ -124,12 +136,19 @@ function draft(form: TelegramBotForm) {
 
 /** 新建：令牌必填 */
 export function toCreateBody(form: TelegramBotForm): RequestOf<'telegram-bots.create'> {
-  return { ...draft(form), token: form.token.trim() }
+  return {
+    ...draft(form),
+    token: form.token.trim(),
+  }
 }
 
 /** 编辑：令牌留空即保留原值 */
 export function toUpdateBody(form: TelegramBotForm & { id: string }): RequestOf<'telegram-bots.update'> {
-  return { id: form.id, ...draft(form), token: blankToNull(form.token) }
+  return {
+    id: form.id,
+    ...draft(form),
+    token: blankToNull(form.token),
+  }
 }
 
 /**
@@ -138,10 +157,20 @@ export function toUpdateBody(form: TelegramBotForm & { id: string }): RequestOf<
 export function telegramBotResource(): SchemaResource<TelegramBotRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await telegramBotsApi.list(toPageRequest(params, TELEGRAM_BOT_QUERY)), params),
-    remove: async id => throwOnFailed(await telegramBotsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await telegramBotsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const current = await telegramBotsApi.get({ id: String(id) })
-      return telegramBotsApi.update(toUpdateBody({ ...toTelegramBotForm(current), id: current.id, isEnabled: enabled }))
+      const current = await telegramBotsApi.get({
+        id: String(id),
+      })
+      return telegramBotsApi.update(toUpdateBody({
+        ...toTelegramBotForm(current),
+        id: current.id,
+        isEnabled: enabled,
+      }))
     },
   }
 }

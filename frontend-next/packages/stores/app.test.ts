@@ -30,7 +30,12 @@ beforeEach(() => {
   discardPreferenceDraft()
   saveApi.mockClear()
   registerAppContext({
-    apis: { userSettingApi: { get: vi.fn(), save: saveApi } } as unknown as AppContextApis,
+    apis: {
+      userSettingApi: {
+        get: vi.fn(),
+        save: saveApi,
+      },
+    } as unknown as AppContextApis,
   })
   setActivePinia(createPinia())
 })

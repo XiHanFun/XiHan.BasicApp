@@ -9,7 +9,12 @@
 const GROUP_OWN_STATE = new Set(['data-disabled', 'data-readonly', 'data-invalid'])
 
 /** 只随名字一起转交给区间终点那组的状态接线 */
-const END_GROUP_WIRING = ['aria-describedby', 'aria-invalid', 'aria-required', 'aria-readonly'] as const
+const END_GROUP_WIRING = [
+  'aria-describedby',
+  'aria-invalid',
+  'aria-required',
+  'aria-readonly',
+] as const
 
 /**
  * 单日选择与区间起点那组的接线

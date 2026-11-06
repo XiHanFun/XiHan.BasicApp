@@ -25,11 +25,15 @@ const rect = ref<ImageCropperRect>()
 const exporting = ref(false)
 
 watch(() => props.source, (source) => {
-  rect.value = source ? centeredSquare(source.image) : undefined
+  rect.value = source
+    ? centeredSquare(source.image)
+    : undefined
 }, { immediate: true })
 
 /** 原图比这还小时，最小边长跟着降到原图短边 */
-const minSize = computed(() => props.source ? Math.min(MIN_CROP_SIZE, props.source.image.naturalWidth, props.source.image.naturalHeight) : 0)
+const minSize = computed(() => props.source
+  ? Math.min(MIN_CROP_SIZE, props.source.image.naturalWidth, props.source.image.naturalHeight)
+  : 0)
 
 /** 视口的高由图片撑出来：竖长图按半屏高反推视口的宽度，免得弹窗被撑出屏幕 */
 const viewportWidth = computed(() => {

@@ -30,7 +30,9 @@ export function goHome(router: Router) {
   // 必须显式 reload——hash 模式下只改 hash 不触发重载，守卫按普通导航跑一遍，
   // 目标路由依然没注册，又被打回 404，表现就是「点了没反应」
   const base = import.meta.env.VITE_BASE || '/'
-  const normalizedBase = base.endsWith('/') ? base : `${base}/`
+  const normalizedBase = base.endsWith('/')
+    ? base
+    : `${base}/`
   const href = import.meta.env.VITE_ROUTER_HISTORY === 'history'
     ? target
     : `${normalizedBase}#${target}`

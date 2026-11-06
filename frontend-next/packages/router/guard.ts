@@ -29,7 +29,9 @@ export function setupRouterGuard(router: Router) {
     }
     installedNames = []
     for (const route of routes) {
-      const routeName = route.name ? String(route.name) : ''
+      const routeName = route.name
+        ? String(route.name)
+        : ''
       const routePathExists = router.getRoutes().some(item => item.path === route.path)
       if (routePathExists) {
         // 路径已装载：正常的去重，静默跳过
@@ -150,7 +152,12 @@ export function setupRouterGuard(router: Router) {
       //    OAuth 回调的 ?code=、登录后按 redirect 回跳的带参地址
       // 2) { ...to }：会把 name 与 matched 一并带上，而 vue-router 优先按 name 解析；
       //    此刻动态路由刚装好、to 仍是装载前的匹配结果（通常是 404 兜底），重进会直接落回 404
-      return { path: to.path, query: to.query, hash: to.hash, replace: true }
+      return {
+        path: to.path,
+        query: to.query,
+        hash: to.hash,
+        replace: true,
+      }
     }
 
     const resolvedHomePath = accessStore.homePath || HOME_PATH
@@ -196,7 +203,9 @@ export function setupRouterGuard(router: Router) {
     tabbarStore.ensureTab({
       key: to.fullPath,
       // 路由名 + keepAlive 标记：供 KeepAlive 的 include 构建（见 tabbarStore.cachedTabNames）
-      name: to.name ? String(to.name) : undefined,
+      name: to.name
+        ? String(to.name)
+        : undefined,
       title: routeTitle,
       path: to.fullPath,
       pinned,
@@ -234,7 +243,9 @@ export function setupRouterGuard(router: Router) {
     }
     const title = to.meta?.title as string | undefined
     if (title) {
-      const translated = i18n.global.te(title) ? i18n.global.t(title) : title
+      const translated = i18n.global.te(title)
+        ? i18n.global.t(title)
+        : title
       document.title = `${translated} - XiHan BasicApp`
     }
   })

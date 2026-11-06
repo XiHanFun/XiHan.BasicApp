@@ -57,7 +57,9 @@ export function outcomeTone(outcome?: string | null): Tone {
 
 /** 标准结果（有文案）；业务自定义结果与空值返回 null，调用方原样显示 */
 export function standardOutcome(outcome?: string | null): StandardOutcome | null {
-  return outcome && (STANDARD_OUTCOMES as readonly string[]).includes(outcome) ? outcome as StandardOutcome : null
+  return outcome && (STANDARD_OUTCOMES as readonly string[]).includes(outcome)
+    ? outcome as StandardOutcome
+    : null
 }
 
 /** 节点执行状态 → 流程图节点着色状态 */
@@ -98,10 +100,18 @@ export function nodeTitles(document: string | null | undefined): Record<string, 
     return {}
   try {
     const raw: unknown = JSON.parse(document)
-    const nodes = typeof raw === 'object' && raw !== null && Array.isArray((raw as { nodes?: unknown }).nodes) ? (raw as { nodes: unknown[] }).nodes : []
+    const nodes = typeof raw === 'object' && raw !== null && Array.isArray((raw as { nodes?: unknown }).nodes)
+      ? (raw as { nodes: unknown[] }).nodes
+      : []
     return Object.fromEntries(nodes.flatMap((node) => {
-      const { id, displayName } = (typeof node === 'object' && node !== null ? node : {}) as { id?: unknown, displayName?: unknown }
-      return typeof id === 'string' && typeof displayName === 'string' && displayName !== '' ? [[id, displayName]] : []
+      const { id, displayName } = (typeof node === 'object' && node !== null
+        ? node
+        : {}) as { id?: unknown, displayName?: unknown }
+      return typeof id === 'string' && typeof displayName === 'string' && displayName !== ''
+        ? [
+            [id, displayName],
+          ]
+        : []
     }))
   }
   catch {

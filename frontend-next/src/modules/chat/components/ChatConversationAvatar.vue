@@ -36,7 +36,9 @@ const groupFile = computed(() => {
 const groupUrl = useChatFileUrl(groupFile)
 
 /** 交给 XUserAvatar 的值：群的文件头像给换好的地址，单聊的用户头像与直链原样（XUserAvatar 自己换） */
-const value = computed(() => (groupFile.value ? groupUrl.value || null : props.avatar))
+const value = computed(() => (groupFile.value
+  ? groupUrl.value || null
+  : props.avatar))
 </script>
 
 <template>

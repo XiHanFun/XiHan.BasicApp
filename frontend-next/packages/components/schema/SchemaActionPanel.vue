@@ -51,7 +51,11 @@ const primaryActions = computed(() => permitted.value.slice(0, props.maxButtons)
 const moreActions = computed(() => permitted.value.slice(props.maxButtons))
 
 const moreOptions = computed<MenuNode[]>(() =>
-  moreActions.value.map(a => ({ value: a.key, label: a.title, tone: actionMenuTone(a.tone) })),
+  moreActions.value.map(a => ({
+    value: a.key,
+    label: a.title,
+    tone: actionMenuTone(a.tone),
+  })),
 )
 
 /** 「更多」里的行首图标；没有一条声明图标时为空，不铺这一列 */

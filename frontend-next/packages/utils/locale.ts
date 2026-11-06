@@ -11,7 +11,9 @@ const TRADITIONAL_CHINESE = /^zh-(?:tw|hk|mo|hant)(?:-|$)/i
  * 清单非空但全部不受支持时退回 FALLBACK_LOCALE；清单为空（或拿不到 navigator）回传 null，由调用方决定默认值
  */
 export function resolveBrowserLocale(
-  languages: readonly string[] | undefined = typeof navigator === 'undefined' ? undefined : navigator.languages,
+  languages: readonly string[] | undefined = typeof navigator === 'undefined'
+    ? undefined
+    : navigator.languages,
 ): string | null {
   const candidates = (languages ?? []).map(lang => lang.trim()).filter(Boolean)
   if (candidates.length === 0) {
@@ -26,7 +28,9 @@ export function resolveBrowserLocale(
 
     const primary = lang.split('-')[0]!.toLowerCase()
     if (primary === 'zh') {
-      return TRADITIONAL_CHINESE.test(lang) ? 'zh-TW' : 'zh-CN'
+      return TRADITIONAL_CHINESE.test(lang)
+        ? 'zh-TW'
+        : 'zh-CN'
     }
 
     const samePrimary = SUPPORTED_LOCALES.find(locale => locale.split('-')[0]!.toLowerCase() === primary)

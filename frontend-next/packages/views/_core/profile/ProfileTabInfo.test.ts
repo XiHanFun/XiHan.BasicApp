@@ -18,13 +18,21 @@ import ProfileTabInfo from './ProfileTabInfo.vue'
 
 vi.mock('~/composables', async (importOriginal) => {
   const actual = await importOriginal<typeof import('~/composables')>()
-  return { ...actual, prompt: vi.fn() }
+  return {
+    ...actual,
+    prompt: vi.fn(),
+  }
 })
 
 // jsdom 不解码图片也没有画布：解码与出图换成桩，裁切框的初值照旧算
 vi.mock('./avatar-crop', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./avatar-crop')>()
-  return { ...actual, loadAvatarSource: vi.fn(), exportAvatar: vi.fn(), releaseAvatarSource: vi.fn() }
+  return {
+    ...actual,
+    loadAvatarSource: vi.fn(),
+    exportAvatar: vi.fn(),
+    releaseAvatarSource: vi.fn(),
+  }
 })
 
 const apis = {
@@ -83,7 +91,13 @@ afterEach(() => {
 })
 
 async function render(profile: UserProfile = saved) {
-  const wrapper = mount(ProfileTabInfo, { props: { profile }, global: { plugins: [i18n] }, attachTo: document.body })
+  const wrapper = mount(ProfileTabInfo, {
+    props: { profile },
+    global: {
+      plugins: [i18n],
+    },
+    attachTo: document.body,
+  })
   mounted.push(wrapper)
   await flushPromises()
   return wrapper
@@ -121,12 +135,19 @@ function usernameRow(wrapper: Wrapper) {
 
 /** 解码好的待裁剪图片：800×600 的假图 */
 function cropSource(file: File): AvatarCropSource {
-  return { file, image: { naturalWidth: 800, naturalHeight: 600 } as HTMLImageElement, url: 'blob:avatar' }
+  return {
+    file,
+    image: { naturalWidth: 800, naturalHeight: 600 } as HTMLImageElement,
+    url: 'blob:avatar',
+  }
 }
 
 async function chooseAvatar(wrapper: Wrapper, file: File) {
   const input = wrapper.find('input[type="file"]')
-  Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+  Object.defineProperty(input.element, 'files', {
+    value: [file],
+    configurable: true,
+  })
   await input.trigger('change')
   await flushPromises()
 }
@@ -134,7 +155,9 @@ async function chooseAvatar(wrapper: Wrapper, file: File) {
 /** 开着的那张对话框（传送到 body 下）；没开时为 null */
 function openDialog() {
   const content = document.body.querySelector('[data-scope="dialog"][data-part="content"]')
-  return content ? new DOMWrapper(content) : null
+  return content
+    ? new DOMWrapper(content)
+    : null
 }
 
 describe('个人资料页签', () => {
@@ -206,7 +229,11 @@ describe('个人资料页签', () => {
   })
 
   it('90 天内改过用户名：标签提示还要等几天，不给「修改」', async () => {
-    const wrapper = await render({ ...saved, canChangeUserName: false, lastUserNameChangeTime: new Date(Date.now() - 30 * DAY + DAY / 2).toISOString() })
+    const wrapper = await render({
+      ...saved,
+      canChangeUserName: false,
+      lastUserNameChangeTime: new Date(Date.now() - 30 * DAY + DAY / 2).toISOString(),
+    })
     expect(usernameRow(wrapper).find('.pf-setting-row__label').text()).toContain('还需等待 61 天后可修改')
     expect(usernameRow(wrapper).find('button').exists()).toBe(false)
   })
@@ -220,7 +247,14 @@ describe('个人资料页签', () => {
     await field(wrapper, '显示名称').setValue('Alice Z')
     await button(wrapper, '保存更改').trigger('click')
     await flushPromises()
-    expect(apis.updateProfileApi).toHaveBeenCalledWith({ nickName: 'Alice Z', realName: '张三', gender: 2, birthday: '1990-05-04T00:00:00.000Z', country: '中国', remark: '你好' })
+    expect(apis.updateProfileApi).toHaveBeenCalledWith({
+      nickName: 'Alice Z',
+      realName: '张三',
+      gender: 2,
+      birthday: '1990-05-04T00:00:00.000Z',
+      country: '中国',
+      remark: '你好',
+    })
     expect(success).toHaveBeenCalledWith('个人资料已更新')
     expect(wrapper.emitted('saved')).toHaveLength(1)
 
@@ -242,7 +276,13 @@ describe('个人资料页签', () => {
 
     await usernameRow(wrapper).find('button').trigger('click')
     const options = vi.mocked(prompt).mock.calls[0]![0]
-    expect(options).toMatchObject({ title: '修改用户名', fields: [{ key: 'userName', value: 'alice' }, { key: 'password', type: 'password' }] })
+    expect(options).toMatchObject({
+      title: '修改用户名',
+      fields: [
+        { key: 'userName', value: 'alice' },
+        { key: 'password', type: 'password' },
+      ],
+    })
 
     expect(await options.onOk!({ userName: '  ', password: 'pw' })).toBe(false)
     expect(warning).toHaveBeenLastCalledWith('请输入用户名')
@@ -267,11 +307,15 @@ describe('个人资料页签', () => {
 
     await chooseAvatar(wrapper, new File(['gif'], 'a.gif', { type: 'image/gif' }))
     expect(warning).toHaveBeenLastCalledWith('仅支持 JPG、PNG 格式的图片')
-    await chooseAvatar(wrapper, new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' }))
+    await chooseAvatar(wrapper, new File([
+      new Uint8Array(2 * 1024 * 1024 + 1),
+    ], 'big.png', { type: 'image/png' }))
     expect(warning).toHaveBeenLastCalledWith('图片大小不能超过 2MB')
     expect(loadAvatarSource).not.toHaveBeenCalled()
 
-    const avatar = new File([new Uint8Array(16)], 'me.png', { type: 'image/png' })
+    const avatar = new File([
+      new Uint8Array(16),
+    ], 'me.png', { type: 'image/png' })
     vi.mocked(loadAvatarSource).mockRejectedValueOnce(new Error('decode failed'))
     await chooseAvatar(wrapper, avatar)
     expect(warning).toHaveBeenLastCalledWith('图片无法读取，请换一张')
@@ -294,13 +338,20 @@ describe('个人资料页签', () => {
     const danger = vi.spyOn(toast, 'danger').mockImplementation(() => '')
     // 灵动岛关着时终态改由轻提示给出：接住它来看结果
     const island = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message: island })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message: island,
+    })
     apis.uploadAvatarApi.mockImplementation(async (_file: File, onProgress?: (percent: number) => void) => {
       onProgress?.(50)
       return { fileId: 'f-new' }
     })
-    const avatar = new File([new Uint8Array(16)], 'me.png', { type: 'image/png' })
-    const cropped = new File([new Uint8Array(8)], 'me.png', { type: 'image/png' })
+    const avatar = new File([
+      new Uint8Array(16),
+    ], 'me.png', { type: 'image/png' })
+    const cropped = new File([
+      new Uint8Array(8),
+    ], 'me.png', { type: 'image/png' })
     const source = cropSource(avatar)
     vi.mocked(loadAvatarSource).mockResolvedValue(source)
     const wrapper = await render()
@@ -317,7 +368,12 @@ describe('个人资料页签', () => {
     vi.mocked(exportAvatar).mockResolvedValue(cropped)
     await buttonIn(openDialog()!, '上传').trigger('click')
     await flushPromises()
-    expect(exportAvatar).toHaveBeenLastCalledWith(source, { x: 100, y: 0, width: 600, height: 600 })
+    expect(exportAvatar).toHaveBeenLastCalledWith(source, {
+      x: 100,
+      y: 0,
+      width: 600,
+      height: 600,
+    })
     expect(apis.uploadAvatarApi).toHaveBeenCalledWith(cropped, expect.any(Function))
     expect(apis.updateProfileApi).not.toHaveBeenCalled()
     expect(island).toHaveBeenLastCalledWith('success', '头像已更新')

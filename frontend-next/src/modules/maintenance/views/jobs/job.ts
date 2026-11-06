@@ -44,7 +44,9 @@ export function deriveRunStatus(job: Pick<JobResponse, 'last' | 'paused' | 'runn
 /** 任务分组：作业名的第一段（如 auditing.retention 归 auditing）；没有点分即没有分组 */
 export function jobGroup(name: string): null | string {
   const dot = name.indexOf('.')
-  return dot > 0 ? name.slice(0, dot) : null
+  return dot > 0
+    ? name.slice(0, dot)
+    : null
 }
 
 export function toJobRow(job: JobResponse): JobRow {
@@ -78,7 +80,10 @@ export function kindLabel(t: Translate, kind: JobScheduleKind | null | undefined
 
 /** 触发类型的搜索选项（4.x 的顺序）：后端按 `kind eq` 匹配任一触发器 */
 export function kindOptions(t: Translate): { label: string, value: JobScheduleKind }[] {
-  return (['Manual', 'Once', 'Interval', 'Cron'] as const).map(kind => ({ label: kindLabel(t, kind), value: kind }))
+  return (['Manual', 'Once', 'Interval', 'Cron'] as const).map(kind => ({
+    label: kindLabel(t, kind),
+    value: kind,
+  }))
 }
 
 export function runStatusLabel(t: Translate, status: JobRunStatus): string {
@@ -104,7 +109,10 @@ export function runStatusTone(status: JobRunStatus): Tone {
 
 /** 运行状态的搜索选项：后端只能按「正在运行」与「暂停」筛，成功 / 失败 / 待执行筛不了，不给选 */
 export function runStatusOptions(t: Translate): { label: string, value: JobRunStatus }[] {
-  return (['Running', 'Paused'] as const).map(status => ({ label: runStatusLabel(t, status), value: status }))
+  return (['Running', 'Paused'] as const).map(status => ({
+    label: runStatusLabel(t, status),
+    value: status,
+  }))
 }
 
 /** 运行状态的筛选：运行中即 `running eq true`；已暂停即暂停且不在运行（与列上推出的「已暂停」一致） */
@@ -112,22 +120,35 @@ export function runStatusFilters(value: unknown): PageFilter[] {
   if (value === undefined || value === null || value === '')
     return []
   switch (value) {
-    case 'Running': return [{ field: 'running', operator: 'eq', value: 'true' }]
-    case 'Paused': return [{ field: 'paused', operator: 'eq', value: 'true' }, { field: 'running', operator: 'eq', value: 'false' }]
+    case 'Running': return [
+      { field: 'running', operator: 'eq', value: 'true' },
+    ]
+    case 'Paused': return [
+      { field: 'paused', operator: 'eq', value: 'true' },
+      { field: 'running', operator: 'eq', value: 'false' },
+    ]
     default: throw new Error(`运行状态 ${String(value)} 没有对应的后端筛选`)
   }
 }
 
 /** 启停：6.0 的启停即恢复 / 暂停，停用的作业不再按计划触发 */
 export function enabledLabel(t: Translate, paused: boolean): string {
-  return paused ? t('common.statuses.disabled') : t('common.statuses.enabled')
+  return paused
+    ? t('common.statuses.disabled')
+    : t('common.statuses.enabled')
 }
 
 /** 启停的搜索选项：后端按 `paused eq true / false` 匹配，启用即没暂停 */
 export function statusOptions(t: Translate): { label: string, value: string }[] {
   return [
-    { label: t('common.statuses.enabled'), value: 'false' },
-    { label: t('common.statuses.disabled'), value: 'true' },
+    {
+      label: t('common.statuses.enabled'),
+      value: 'false',
+    },
+    {
+      label: t('common.statuses.disabled'),
+      value: 'true',
+    },
   ]
 }
 
@@ -151,7 +172,10 @@ export function sourceTone(source: JobSource): Tone {
 
 /** 登记来源的搜索选项：后端按 `source eq` 匹配 */
 export function sourceOptions(t: Translate): { label: string, value: JobSource }[] {
-  return (['Code', 'Runtime', 'Overridden'] as const).map(source => ({ label: sourceLabel(t, source), value: source }))
+  return (['Code', 'Runtime', 'Overridden'] as const).map(source => ({
+    label: sourceLabel(t, source),
+    value: source,
+  }))
 }
 
 /** 作业类型的搜索选项：取自 jobs.types（已登记的类型键，按序数排序），键即显示文本；多选时后端按 `jobType in` 匹配 */
@@ -183,7 +207,16 @@ export function runStateTone(state: JobRunState): Tone {
 }
 
 export function runStateOptions(t: Translate): { label: string, value: JobRunState }[] {
-  return (['Running', 'Succeeded', 'Failed', 'Canceled', 'Lost'] as const).map(state => ({ label: runStateLabel(t, state), value: state }))
+  return ([
+    'Running',
+    'Succeeded',
+    'Failed',
+    'Canceled',
+    'Lost',
+  ] as const).map(state => ({
+    label: runStateLabel(t, state),
+    value: state,
+  }))
 }
 
 /** 一次运行怎么触发的：按计划、手动（立即执行）、节点失联后的恢复或失败后的重试 */
@@ -223,14 +256,18 @@ export function triggerStateTone(state: TriggerState): Tone {
 export function formatDuration(ms: null | number | undefined): string {
   if (ms === null || ms === undefined || !Number.isFinite(ms))
     return '-'
-  return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms} ms`
+  return ms >= 1000
+    ? `${(ms / 1000).toFixed(2)} s`
+    : `${ms} ms`
 }
 
 /** 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案 */
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
-  return error instanceof Error ? error.message : String(error ?? '')
+  return error instanceof Error
+    ? error.message
+    : String(error ?? '')
 }
 
 /**
@@ -255,11 +292,20 @@ export function jobResource(): SchemaResource<JobRow> {
   return {
     page: async (params: SchemaQueryParams) => {
       const result = await jobsApi.list(toJobsRequest(params))
-      return toSchemaPageResult({ ...result, items: result.items.map(toJobRow) }, params)
+      return toSchemaPageResult({
+        ...result,
+        items: result.items.map(toJobRow),
+      }, params)
     },
     updateStatus: async (id, enabled) => {
-      const request = { ids: [String(id)] }
-      throwOnFailed(enabled ? await jobsApi.resume(request) : await jobsApi.pause(request))
+      const request = {
+        ids: [
+          String(id),
+        ],
+      }
+      throwOnFailed(enabled
+        ? await jobsApi.resume(request)
+        : await jobsApi.pause(request))
     },
   }
 }
@@ -308,7 +354,10 @@ export function scheduleFormOf(job: Pick<JobResponse, 'triggers'>): ScheduleForm
 /** 计划去空白；时区去空白后留空即不填（后端按 UTC） */
 function scheduleParts(form: ScheduleForm): { expression: string, timeZone: null | string } {
   const timeZone = form.timeZone.trim()
-  return { expression: form.expression.trim(), timeZone: timeZone || null }
+  return {
+    expression: form.expression.trim(),
+    timeZone: timeZone || null,
+  }
 }
 
 /** 修改计划弹窗的表单：计划与时区，加上重试与时限（后端按请求整体替换） */
@@ -316,7 +365,11 @@ export type RescheduleForm = ScheduleForm & RetryForm
 
 /** jobs.reschedule 的请求：作业名进路由值 `{id}`，请求体是计划、时区、重试与时限 */
 export function toRescheduleRequest(name: string, form: RescheduleForm): RequestOf<'jobs.reschedule'> {
-  return { id: name, ...scheduleParts(form), ...retryParts(form) }
+  return {
+    id: name,
+    ...scheduleParts(form),
+    ...retryParts(form),
+  }
 }
 
 /** 修改计划、重试与时限：其余登记与暂停状态不变，返回改后的作业 */
@@ -329,12 +382,17 @@ export const SCHEDULE_PREVIEW_COUNT = 5
 
 /** 校验计划并列出接下来的运行时间（不改任何作业）；写错即 MAINTENANCE_VALIDATION_002 */
 export async function previewSchedule(form: ScheduleForm): Promise<SchedulePreview> {
-  return jobsApi.validateSchedule({ ...scheduleParts(form), count: SCHEDULE_PREVIEW_COUNT })
+  return jobsApi.validateSchedule({
+    ...scheduleParts(form),
+    count: SCHEDULE_PREVIEW_COUNT,
+  })
 }
 
 /** 恢复代码计划（按作业名批量）：丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；逐项失败翻成文案抛出 */
 export async function restoreJobs(names: readonly string[]): Promise<void> {
-  throwOnFailed(await jobsApi.restore({ ids: [...names] }))
+  throwOnFailed(await jobsApi.restore({
+    ids: [...names],
+  }))
 }
 
 /** 间隔秒数写成计划的文本写法：`every [d.]hh:mm:ss`（后端按 TimeSpan 的 c 格式解析） */
@@ -343,7 +401,9 @@ export function intervalExpression(seconds: number): string {
   const days = Math.floor(total / 86400)
   const pad = (value: number) => String(value).padStart(2, '0')
   const clock = `${pad(Math.floor(total / 3600) % 24)}:${pad(Math.floor(total / 60) % 60)}:${pad(total % 60)}`
-  return `every ${days > 0 ? `${days}.` : ''}${clock}`
+  return `every ${days > 0
+    ? `${days}.`
+    : ''}${clock}`
 }
 
 /** 计划文本里的间隔秒数：不是 `every …` 的写法为空 */
@@ -377,17 +437,27 @@ export interface RetryForm {
 
 /** 新建时的初值：不限时、不重试 */
 export function blankRetry(): RetryForm {
-  return { timeoutSeconds: null, maxRetries: null, retryDelaySeconds: DEFAULT_RETRY_DELAY_SECONDS, retryBackoff: 'Fixed', retryMaxDelaySeconds: null }
+  return {
+    timeoutSeconds: null,
+    maxRetries: null,
+    retryDelaySeconds: DEFAULT_RETRY_DELAY_SECONDS,
+    retryBackoff: 'Fixed',
+    retryMaxDelaySeconds: null,
+  }
 }
 
 /** 修改弹窗的初值：作业现在的重试与时限（int64 统一按 Number 读）；不重试时间隔取缺省，便于勾上重试 */
 export function retryFormOf(job: Pick<JobResponse, 'retry' | 'timeoutSeconds'>): RetryForm {
   const retry = job.retry
-  const seconds = (value: null | number | undefined) => (value === null || value === undefined ? null : Number(value))
+  const seconds = (value: null | number | undefined) => (value === null || value === undefined
+    ? null
+    : Number(value))
   return {
     timeoutSeconds: seconds(job.timeoutSeconds),
     maxRetries: retry ? retry.maxRetries : null,
-    retryDelaySeconds: retry ? Number(retry.delaySeconds) : DEFAULT_RETRY_DELAY_SECONDS,
+    retryDelaySeconds: retry
+      ? Number(retry.delaySeconds)
+      : DEFAULT_RETRY_DELAY_SECONDS,
     retryBackoff: retry?.backoff ?? 'Fixed',
     retryMaxDelaySeconds: seconds(retry?.maxDelaySeconds),
   }
@@ -407,18 +477,25 @@ function retryParts(form: RetryForm): Pick<RequestOf<'jobs.create'>, 'maxRetries
     maxRetries: form.maxRetries,
     retryDelaySeconds: form.retryDelaySeconds,
     retryBackoff: form.retryBackoff,
-    retryMaxDelaySeconds: form.retryBackoff === 'Exponential' ? form.retryMaxDelaySeconds : null,
+    retryMaxDelaySeconds: form.retryBackoff === 'Exponential'
+      ? form.retryMaxDelaySeconds
+      : null,
   }
 }
 
 /** 等待方式的文案 */
 export function backoffLabel(t: Translate, backoff: JobRetryBackoff): string {
-  return backoff === 'Exponential' ? t('maintenance.jobs.retry_backoffs.exponential') : t('maintenance.jobs.retry_backoffs.fixed')
+  return backoff === 'Exponential'
+    ? t('maintenance.jobs.retry_backoffs.exponential')
+    : t('maintenance.jobs.retry_backoffs.fixed')
 }
 
 /** 等待方式的选项 */
 export function backoffOptions(t: Translate): { label: string, value: JobRetryBackoff }[] {
-  return (['Fixed', 'Exponential'] as const).map(value => ({ label: backoffLabel(t, value), value }))
+  return (['Fixed', 'Exponential'] as const).map(value => ({
+    label: backoffLabel(t, value),
+    value,
+  }))
 }
 
 /** 详情里的重试策略：不重试；最多几次、每次等多久；或最多几次、从多久起翻倍（有上限时带上） */
@@ -431,12 +508,18 @@ export function retryText(t: Translate, job: Pick<JobResponse, 'retry'>): string
     return t('maintenance.jobs.retry_fixed_value', { count: retry.maxRetries, delay })
   if (retry.maxDelaySeconds === null || retry.maxDelaySeconds === undefined)
     return t('maintenance.jobs.retry_exponential_value', { count: retry.maxRetries, delay })
-  return t('maintenance.jobs.retry_exponential_capped_value', { count: retry.maxRetries, delay, max: formatSeconds(t, Number(retry.maxDelaySeconds)) })
+  return t('maintenance.jobs.retry_exponential_capped_value', {
+    count: retry.maxRetries,
+    delay,
+    max: formatSeconds(t, Number(retry.maxDelaySeconds)),
+  })
 }
 
 /** 详情里的执行时限：不限或可读时长 */
 export function timeoutText(t: Translate, job: Pick<JobResponse, 'timeoutSeconds'>): string {
-  return job.timeoutSeconds === null || job.timeoutSeconds === undefined ? t('maintenance.jobs.no_timeout') : formatSeconds(t, Number(job.timeoutSeconds))
+  return job.timeoutSeconds === null || job.timeoutSeconds === undefined
+    ? t('maintenance.jobs.no_timeout')
+    : formatSeconds(t, Number(job.timeoutSeconds))
 }
 
 /** 新建作业的表单：作业名、类型、计划与时区、参数（JSON 对象的文本）、并发、重试与时限及说明 */
@@ -470,7 +553,9 @@ export async function createJob(form: JobCreateForm): Promise<JobResponse> {
 
 /** 删除一个运行时作业（DELETE jobs?ids=）；代码登记的与不存在的带着原因抛出 */
 export async function deleteJob(name: string): Promise<void> {
-  throwOnFailed(await jobsApi.delete({ ids: [name] }))
+  throwOnFailed(await jobsApi.delete({
+    ids: [name],
+  }))
 }
 
 /** 能否删除：只有运行时登记的作业 */
@@ -481,20 +566,44 @@ export function canDelete(job: Pick<JobResponse, 'source'>): boolean {
 /** 修改计划的常用预设（沿用 4.x Cron 构建器的六个；周按 Unix 约定，1 是周一） */
 export function schedulePresets(t: Translate): { label: string, value: string }[] {
   return [
-    { label: t('maintenance.jobs.presets.per_minute'), value: '0 * * * * ?' },
-    { label: t('maintenance.jobs.presets.per_5min'), value: '0 0/5 * * * ?' },
-    { label: t('maintenance.jobs.presets.hourly'), value: '0 0 * * * ?' },
-    { label: t('maintenance.jobs.presets.daily'), value: '0 0 0 * * ?' },
-    { label: t('maintenance.jobs.presets.weekly'), value: '0 0 0 ? * 1' },
-    { label: t('maintenance.jobs.presets.monthly'), value: '0 0 0 1 * ?' },
+    {
+      label: t('maintenance.jobs.presets.per_minute'),
+      value: '0 * * * * ?',
+    },
+    {
+      label: t('maintenance.jobs.presets.per_5min'),
+      value: '0 0/5 * * * ?',
+    },
+    {
+      label: t('maintenance.jobs.presets.hourly'),
+      value: '0 0 * * * ?',
+    },
+    {
+      label: t('maintenance.jobs.presets.daily'),
+      value: '0 0 0 * * ?',
+    },
+    {
+      label: t('maintenance.jobs.presets.weekly'),
+      value: '0 0 0 ? * 1',
+    },
+    {
+      label: t('maintenance.jobs.presets.monthly'),
+      value: '0 0 0 1 * ?',
+    },
   ]
 }
 
 /** 执行日志「是否出错」的选项：后端按 `failed eq true / false`（有无错误码）筛 */
 export function runFailedOptions(t: Translate): { label: string, value: string }[] {
   return [
-    { label: t('maintenance.jobs.log_failed_options.yes'), value: 'true' },
-    { label: t('maintenance.jobs.log_failed_options.no'), value: 'false' },
+    {
+      label: t('maintenance.jobs.log_failed_options.yes'),
+      value: 'true',
+    },
+    {
+      label: t('maintenance.jobs.log_failed_options.no'),
+      value: 'false',
+    },
   ]
 }
 
@@ -514,11 +623,18 @@ export interface JobRunsQuery {
 }
 
 export function toJobRunsRequest(query: JobRunsQuery): PageRequest {
-  const filters: PageFilter[] = [{ field: 'job', operator: 'eq', value: query.job }]
+  const filters: PageFilter[] = [
+    { field: 'job', operator: 'eq', value: query.job },
+  ]
   if (query.state)
     filters.push({ field: 'state', operator: 'eq', value: query.state })
-  if (query.failed !== null)
-    filters.push({ field: 'failed', operator: 'eq', value: String(query.failed) })
+  if (query.failed !== null) {
+    filters.push({
+      field: 'failed',
+      operator: 'eq',
+      value: String(query.failed),
+    })
+  }
   const triggerName = query.triggerName.trim()
   if (triggerName)
     filters.push({ field: 'triggerName', operator: 'eq', value: triggerName })
@@ -536,5 +652,8 @@ export function toJobRunsRequest(query: JobRunsQuery): PageRequest {
 
 export async function listJobRuns(query: JobRunsQuery): Promise<{ items: JobRunRow[], total: number }> {
   const result = await jobRunsApi.list(toJobRunsRequest(query))
-  return { items: result.items, total: Number(result.total) }
+  return {
+    items: result.items,
+    total: Number(result.total),
+  }
 }

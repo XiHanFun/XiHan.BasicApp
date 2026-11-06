@@ -11,14 +11,22 @@ import ChartWidget from './ChartWidget.vue'
  */
 defineOptions({ name: 'SessionDevicesWidget' })
 
-const DEVICES = ['Desktop', 'Mobile', 'Tablet', 'Bot', 'unknown'] as const
+const DEVICES = [
+  'Desktop',
+  'Mobile',
+  'Tablet',
+  'Bot',
+  'unknown',
+] as const
 
 const { t, locale } = useI18n()
 const formatters = useFormatters()
 const { data, loading, error } = useWidgetData('identity.session-devices')
 
 const rows = computed(() => (data.value?.slices ?? []).map(slice => ({
-  name: (DEVICES as readonly string[]).includes(slice.key) ? t(`workbench.charts.device.${slice.key}`) : slice.key,
+  name: (DEVICES as readonly string[]).includes(slice.key)
+    ? t(`workbench.charts.device.${slice.key}`)
+    : slice.key,
   sessions: slice.value,
 })))
 const total = computed(() => rows.value.reduce((sum, row) => sum + row.sessions, 0))

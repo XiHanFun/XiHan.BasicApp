@@ -39,7 +39,9 @@ function userOf(t: Translate, item: ApprovalTimelineItem) {
 
 function withComment(line: string, comment?: string | null) {
   const text = comment?.trim()
-  return text ? [line, text] : [line]
+  return text
+    ? [line, text]
+    : [line]
 }
 
 function nodeTitle(t: Translate, item: ApprovalTimelineItem) {
@@ -62,15 +64,21 @@ function finishedStep(t: Translate, item: ApprovalTimelineItem, key: string): Dr
       title: t('workflow.approvals.step_end'),
       lines: [outcomeLabel(t, item.outcome) || instanceStatusLabel(t, status)],
       time: item.time,
-      tone: item.outcome === 'rejected' ? 'danger' : 'success',
+      tone: item.outcome === 'rejected'
+        ? 'danger'
+        : 'success',
     }
   }
   return {
     key,
     title: t('workflow.approvals.step_end'),
-    lines: [instanceStatusLabel(t, status)],
+    lines: [
+      instanceStatusLabel(t, status),
+    ],
     time: item.time,
-    tone: status === 'Faulted' ? 'danger' : 'neutral',
+    tone: status === 'Faulted'
+      ? 'danger'
+      : 'neutral',
   }
 }
 
@@ -89,25 +97,53 @@ export function buildApprovalSteps(t: Translate, timeline: readonly ApprovalTime
     const targets = item.targetUserNames.join('、')
     switch (item.kind) {
       case 'Started':
-        steps.push({ key: `started-${index}`, title: t('workflow.approvals.step_started'), lines: withComment(user, item.comment), time: item.time })
+        steps.push({
+          key: `started-${index}`,
+          title: t('workflow.approvals.step_started'),
+          lines: withComment(user, item.comment),
+          time: item.time,
+        })
         break
       case 'Completed':
         steps.push({
           key: `completed-${index}`,
           title: nodeTitle(t, item),
-          lines: withComment(t('workflow.approvals.tl_completed', { user, outcome: outcomeLabel(t, item.outcome) }), item.comment),
+          lines: withComment(t('workflow.approvals.tl_completed', {
+            user,
+            outcome: outcomeLabel(t, item.outcome),
+          }), item.comment),
           time: item.time,
           tone: outcomeTone(item.outcome),
         })
         break
       case 'Transferred':
-        steps.push({ key: `transferred-${index}`, title: nodeTitle(t, item), lines: withComment(t('workflow.approvals.tl_transferred', { user, targets }), item.comment), time: item.time })
+        steps.push({
+          key: `transferred-${index}`,
+          title: nodeTitle(t, item),
+          lines: withComment(t('workflow.approvals.tl_transferred', { user, targets }), item.comment),
+          time: item.time,
+        })
         break
       case 'AddedAssignees':
-        steps.push({ key: `added-${index}`, title: nodeTitle(t, item), lines: withComment(t('workflow.approvals.tl_added', { user, targets }), item.comment), time: item.time })
+        steps.push({
+          key: `added-${index}`,
+          title: nodeTitle(t, item),
+          lines: withComment(t('workflow.approvals.tl_added', { user, targets }), item.comment),
+          time: item.time,
+        })
         break
       case 'AutoDecided':
-        steps.push({ key: `auto-${index}`, title: nodeTitle(t, item), lines: [t('workflow.approvals.tl_auto', { outcome: outcomeLabel(t, item.outcome) })], time: item.time, tone: 'warning' })
+        steps.push({
+          key: `auto-${index}`,
+          title: nodeTitle(t, item),
+          lines: [
+            t('workflow.approvals.tl_auto', {
+              outcome: outcomeLabel(t, item.outcome),
+            }),
+          ],
+          time: item.time,
+          tone: 'warning',
+        })
         break
       case 'CarbonCopied': {
         // 同一节点连续抄送给多人：合成一步，抄送对象逐个列出
@@ -115,10 +151,24 @@ export function buildApprovalSteps(t: Translate, timeline: readonly ApprovalTime
         const last = steps.at(-1)
         if (last?.group === group && last.users) {
           last.users.push(user)
-          last.lines = [t('workflow.approvals.tl_cc', { user: last.users.join('、') })]
+          last.lines = [
+            t('workflow.approvals.tl_cc', {
+              user: last.users.join('、'),
+            }),
+          ]
           break
         }
-        steps.push({ key: `${group}-${index}`, group, users: [user], title: nodeTitle(t, item), lines: [t('workflow.approvals.tl_cc', { user })], time: item.time, tone: 'neutral' })
+        steps.push({
+          key: `${group}-${index}`,
+          group,
+          users: [user],
+          title: nodeTitle(t, item),
+          lines: [
+            t('workflow.approvals.tl_cc', { user }),
+          ],
+          time: item.time,
+          tone: 'neutral',
+        })
         break
       }
       case 'Pending': {
@@ -127,12 +177,25 @@ export function buildApprovalSteps(t: Translate, timeline: readonly ApprovalTime
         const existing = steps.find(step => step.group === group)
         if (existing?.users) {
           existing.users.push(user)
-          existing.lines = [t('workflow.approvals.tl_pending', { user: existing.users.join('、') })]
+          existing.lines = [
+            t('workflow.approvals.tl_pending', {
+              user: existing.users.join('、'),
+            }),
+          ]
           break
         }
         if (current < 0)
           current = steps.length
-        steps.push({ key: group, group, users: [user], title: nodeTitle(t, item), lines: [t('workflow.approvals.tl_pending', { user })], time: item.time })
+        steps.push({
+          key: group,
+          group,
+          users: [user],
+          title: nodeTitle(t, item),
+          lines: [
+            t('workflow.approvals.tl_pending', { user }),
+          ],
+          time: item.time,
+        })
         break
       }
       default:
@@ -143,7 +206,11 @@ export function buildApprovalSteps(t: Translate, timeline: readonly ApprovalTime
 
   if (!finished) {
     // 流程还在进行：末尾补「结束」占位；没有待办（自动推进中、故障待处理）时当前步落在它上面
-    steps.push({ key: 'end', title: t('workflow.approvals.step_end'), lines: [] })
+    steps.push({
+      key: 'end',
+      title: t('workflow.approvals.step_end'),
+      lines: [],
+    })
     if (current < 0)
       current = steps.length - 1
   }

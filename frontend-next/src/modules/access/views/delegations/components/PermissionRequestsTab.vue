@@ -54,14 +54,29 @@ function me(): null | string {
   return auth.user?.id ?? null
 }
 
-const statusOptions = computed<SelectOption[]>(() => REQUEST_STATUSES.map(status => ({ label: requestStatusLabel(t, status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => REQUEST_STATUSES.map(status => ({
+  label: requestStatusLabel(t, status),
+  value: status,
+})))
 const targetKindOptions = computed(() => [
-  { value: 'role', label: t('access.permission_requests.kind_role') },
-  { value: 'permission', label: t('access.permission_requests.kind_permission') },
+  {
+    value: 'role',
+    label: t('access.permission_requests.kind_role'),
+  },
+  {
+    value: 'permission',
+    label: t('access.permission_requests.kind_permission'),
+  },
 ])
 const closeStatusOptions = computed(() => [
-  { value: 'Rejected', label: t('access.permission_requests.close_rejected') },
-  { value: 'Withdrawn', label: t('access.permission_requests.close_withdrawn') },
+  {
+    value: 'Rejected',
+    label: t('access.permission_requests.close_rejected'),
+  },
+  {
+    value: 'Withdrawn',
+    label: t('access.permission_requests.close_withdrawn'),
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的） ──
@@ -70,18 +85,82 @@ const asRow = (row: object) => row as PermissionRequestRow
 /** 审批进度：有流程时出标签，没有流程或审批未启用时出文字（4.x 同） */
 function progressCell(row: PermissionRequestRow) {
   const text = workflowProgressText(t, row.workflow, row.approvalEnabled)
-  return row.approvalEnabled && row.workflow ? renderTag(text, workflowProgressTone(row.workflow)) : text
+  return row.approvalEnabled && row.workflow
+    ? renderTag(text, workflowProgressTone(row.workflow))
+    : text
 }
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.permission_requests.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.permission_requests.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'requestUserName', title: t('access.permission_requests.fields.applicant'), dataType: 'string', minWidth: 140, order: 1, render: row => asRow(row).requestUserName ?? asRow(row).requestUserId },
-  { key: 'target', title: t('access.permission_requests.fields.target'), dataType: 'string', minWidth: 160, order: 2, render: row => requestTarget(asRow(row)) },
-  { key: 'reason', title: t('access.permission_requests.fields.reason'), dataType: 'string', minWidth: 200, order: 3 },
-  { key: 'status', title: t('access.permission_requests.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, options: statusOptions.value, searchPlaceholder: t('access.permission_requests.status_placeholder'), width: 100, order: 4, render: row => renderTag(requestStatusLabel(t, asRow(row).status), REQUEST_STATUS_TONE[asRow(row).status]) },
-  { key: 'workflow', title: t('access.permission_requests.fields.progress'), dataType: 'string', minWidth: 200, ellipsis: true, order: 4.5, render: row => progressCell(asRow(row)) },
-  { key: 'expectedExpiresAt', title: t('access.permission_requests.fields.expected_validity'), dataType: 'string', minWidth: 300, order: 5, render: row => expectedValidity(t, asRow(row)) },
-  { key: 'createdAt', title: t('access.permission_requests.fields.created_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
+  {
+    key: 'keyword',
+    title: t('access.permission_requests.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.permission_requests.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
+  {
+    key: 'requestUserName',
+    title: t('access.permission_requests.fields.applicant'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 1,
+    render: row => asRow(row).requestUserName ?? asRow(row).requestUserId,
+  },
+  {
+    key: 'target',
+    title: t('access.permission_requests.fields.target'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 2,
+    render: row => requestTarget(asRow(row)),
+  },
+  {
+    key: 'reason',
+    title: t('access.permission_requests.fields.reason'),
+    dataType: 'string',
+    minWidth: 200,
+    order: 3,
+  },
+  {
+    key: 'status',
+    title: t('access.permission_requests.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('access.permission_requests.status_placeholder'),
+    width: 100,
+    order: 4,
+    render: row => renderTag(requestStatusLabel(t, asRow(row).status), REQUEST_STATUS_TONE[asRow(row).status]),
+  },
+  {
+    key: 'workflow',
+    title: t('access.permission_requests.fields.progress'),
+    dataType: 'string',
+    minWidth: 200,
+    ellipsis: true,
+    order: 4.5,
+    render: row => progressCell(asRow(row)),
+  },
+  {
+    key: 'expectedExpiresAt',
+    title: t('access.permission_requests.fields.expected_validity'),
+    dataType: 'string',
+    minWidth: 300,
+    order: 5,
+    render: row => expectedValidity(t, asRow(row)),
+  },
+  {
+    key: 'createdAt',
+    title: t('access.permission_requests.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 6,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -92,24 +171,68 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.permission_requests.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.permission-requests.create' },
+    {
+      key: 'create',
+      title: t('access.permission_requests.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.permission-requests.create',
+    },
     // 审批在审批中心办理；这里只跳过去看进度与轨迹（发起人、审批人或有流程查看权的人可看）
-    { key: 'trace', title: t('access.permission_requests.actions.trace'), scope: 'row', icon: 'lucide:route', visible: row => canTrace(asRow(row)) },
-    { key: 'resubmit', title: t('access.permission_requests.actions.resubmit'), scope: 'row', icon: 'lucide:pencil', visible: row => canResubmit(asRow(row), me()), permission: 'access.permission-requests.update' },
-    { key: 'withdraw', title: t('access.permission_requests.actions.withdraw'), scope: 'row', icon: 'lucide:undo-2', tone: 'danger', confirm: true, confirmText: row => actionConfirmText(t, t('access.permission_requests.actions.withdraw'), requestName(asRow(row))), visible: row => canWithdraw(asRow(row), me()), permission: 'access.permission-requests.withdraw' },
-    { key: 'close', title: t('access.permission_requests.actions.close'), scope: 'row', icon: 'lucide:ban', tone: 'danger', visible: row => canClose(asRow(row), me()), permission: 'access.permission-requests.status' },
+    {
+      key: 'trace',
+      title: t('access.permission_requests.actions.trace'),
+      scope: 'row',
+      icon: 'lucide:route',
+      visible: row => canTrace(asRow(row)),
+    },
+    {
+      key: 'resubmit',
+      title: t('access.permission_requests.actions.resubmit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      visible: row => canResubmit(asRow(row), me()),
+      permission: 'access.permission-requests.update',
+    },
+    {
+      key: 'withdraw',
+      title: t('access.permission_requests.actions.withdraw'),
+      scope: 'row',
+      icon: 'lucide:undo-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('access.permission_requests.actions.withdraw'), requestName(asRow(row))),
+      visible: row => canWithdraw(asRow(row), me()),
+      permission: 'access.permission-requests.withdraw',
+    },
+    {
+      key: 'close',
+      title: t('access.permission_requests.actions.close'),
+      scope: 'row',
+      icon: 'lucide:ban',
+      tone: 'danger',
+      visible: row => canClose(asRow(row), me()),
+      permission: 'access.permission-requests.status',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.start().catch((error: unknown) => toast.danger((error as Error).message || t('access.permission_requests.msg_load_candidates_failed')))
       break
     case 'trace':
-      if (row?.workflowInstanceId)
-        void router.push({ path: '/workflow/approvals', query: { instanceId: row.workflowInstanceId } })
+      if (row?.workflowInstanceId) {
+        void router.push({
+          path: '/workflow/approvals',
+          query: { instanceId: row.workflowInstanceId },
+        })
+      }
       break
     case 'resubmit':
       if (row)
@@ -160,7 +283,9 @@ async function onSubmit() {
     return
   const resubmitting = editor.editingId.value !== null
   if (await editor.submit()) {
-    toast.success(resubmitting ? t('access.permission_requests.msg_resubmitted') : t('access.permission_requests.msg_submitted'))
+    toast.success(resubmitting
+      ? t('access.permission_requests.msg_resubmitted')
+      : t('access.permission_requests.msg_submitted'))
     reload()
   }
 }
@@ -168,7 +293,9 @@ async function onSubmit() {
 async function onClose() {
   const status = closer.status.value
   if (await closer.submit()) {
-    toast.success(status === 'Rejected' ? t('access.permission_requests.msg_rejected') : t('access.permission_requests.msg_withdrawn'))
+    toast.success(status === 'Rejected'
+      ? t('access.permission_requests.msg_rejected')
+      : t('access.permission_requests.msg_withdrawn'))
     reload()
   }
 }

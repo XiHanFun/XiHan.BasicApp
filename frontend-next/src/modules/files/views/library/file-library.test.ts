@@ -22,7 +22,11 @@ import {
   toFileDetails,
 } from './file-library'
 
-const t = (key: string, values?: Record<string, unknown>) => `${key}${values ? JSON.stringify(values) : ''}`
+function t(key: string, values?: Record<string, unknown>) {
+  return `${key}${values
+    ? JSON.stringify(values)
+    : ''}`
+}
 
 function file(patch: Partial<FileRow> = {}): FileRow {
   return {
@@ -51,7 +55,21 @@ function file(patch: Partial<FileRow> = {}): FileRow {
 }
 
 function storage(patch: Partial<FileStorageRow> = {}): FileStorageRow {
-  return { id: 's1', storageConfigId: 'c1', storageConfigCode: 'local', storageConfigName: '本地', storageType: 'Local', bucket: 'files', key: 'k', isPrimary: false, status: 'Normal', verifiedAt: '2026-10-01T00:00:00Z', remark: null, createdAt: '2026-10-01T00:00:00Z', ...patch }
+  return {
+    id: 's1',
+    storageConfigId: 'c1',
+    storageConfigCode: 'local',
+    storageConfigName: '本地',
+    storageType: 'Local',
+    bucket: 'files',
+    key: 'k',
+    isPrimary: false,
+    status: 'Normal',
+    verifiedAt: '2026-10-01T00:00:00Z',
+    remark: null,
+    createdAt: '2026-10-01T00:00:00Z',
+    ...patch,
+  }
 }
 
 describe('文件列表的后端筛选', () => {
@@ -59,14 +77,40 @@ describe('文件列表的后端筛选', () => {
     const request = toPageRequest({
       page: 2,
       pageSize: 20,
-      filters: { keyword: ' logo ', kind: ['Image', 'Video'], status: ['Normal'], accessLevel: ['Authorized'], createdAt: [1, 2], isTemporary: 'true', source: 'fast-upload' },
+      filters: {
+        keyword: ' logo ',
+        kind: ['Image', 'Video'],
+        status: ['Normal'],
+        accessLevel: ['Authorized'],
+        createdAt: [1, 2],
+        isTemporary: 'true',
+        source: 'fast-upload',
+      },
       conditionFilters: [
-        { field: 'kind', operator: QueryOperator.In, values: ['Image', 'Video'] },
-        { field: 'status', operator: QueryOperator.In, values: ['Normal'] },
-        { field: 'accessLevel', operator: QueryOperator.In, values: ['Authorized'] },
-        { field: 'createdAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00.000Z', '2026-10-02T00:00:00.000Z'] },
+        {
+          field: 'kind',
+          operator: QueryOperator.In,
+          values: ['Image', 'Video'],
+        },
+        {
+          field: 'status',
+          operator: QueryOperator.In,
+          values: ['Normal'],
+        },
+        {
+          field: 'accessLevel',
+          operator: QueryOperator.In,
+          values: ['Authorized'],
+        },
+        {
+          field: 'createdAt',
+          operator: QueryOperator.Between,
+          values: ['2026-10-01T00:00:00.000Z', '2026-10-02T00:00:00.000Z'],
+        },
       ],
-      sorts: [{ field: 'size', order: 'desc' }],
+      sorts: [
+        { field: 'size', order: 'desc' },
+      ],
     }, FILE_QUERY)
     expect(request.keyword).toBe('logo')
     expect(request.filters).toEqual([
@@ -78,7 +122,9 @@ describe('文件列表的后端筛选', () => {
       { field: 'isTemporary', operator: 'eq', value: 'true' },
       { field: 'source', operator: 'eq', value: 'fast-upload' },
     ])
-    expect(request.sorts).toEqual([{ field: 'size', descending: true }])
+    expect(request.sorts).toEqual([
+      { field: 'size', descending: true },
+    ])
   })
 
   it('扩展名补上点并转小写，空值原样', () => {
@@ -91,13 +137,29 @@ describe('文件列表的后端筛选', () => {
 
 describe('上传与元数据', () => {
   it('非临时文件不带到期时间，空串写成 null', () => {
-    const form = { ...emptyDetailsForm(), expiresAt: Date.UTC(2026, 10, 1), tags: '  ', remark: ' 合同 ' }
-    expect(toFileDetails(form)).toEqual({ accessLevel: 'Authorized', isTemporary: false, expiresAt: null, tags: null, remark: '合同' })
+    const form = {
+      ...emptyDetailsForm(),
+      expiresAt: Date.UTC(2026, 10, 1),
+      tags: '  ',
+      remark: ' 合同 ',
+    }
+    expect(toFileDetails(form)).toEqual({
+      accessLevel: 'Authorized',
+      isTemporary: false,
+      expiresAt: null,
+      tags: null,
+      remark: '合同',
+    })
     expect(toFileDetails({ ...form, isTemporary: true })).toMatchObject({ isTemporary: true, expiresAt: '2026-11-01T00:00:00.000Z' })
   })
 
   it('已有文件回填表单，临时文件缺省保留 7 天', () => {
-    expect(toDetailsForm(file({ isTemporary: true, expiresAt: '2026-11-01T00:00:00Z', tags: 'a,b', accessLevel: 'Authenticated' }))).toEqual({
+    expect(toDetailsForm(file({
+      isTemporary: true,
+      expiresAt: '2026-11-01T00:00:00Z',
+      tags: 'a,b',
+      accessLevel: 'Authenticated',
+    }))).toEqual({
       accessLevel: 'Authenticated',
       isTemporary: true,
       expiresAt: Date.UTC(2026, 10, 1),
@@ -127,7 +189,12 @@ describe('预览', () => {
     expect(previewKindOf(file({ kind: 'Archive', contentType: 'application/zip', extension: '.zip' }))).toBeNull()
     expect(textLangOf(file({ extension: '.ts' }))).toBe('typescript')
     expect(textLangOf(file({ extension: '.txt' }))).toBeUndefined()
-    expect([isTextPreview('csv'), isTextPreview('markdown'), isTextPreview('image'), isTextPreview(null)]).toEqual([true, true, false, false])
+    expect([
+      isTextPreview('csv'),
+      isTextPreview('markdown'),
+      isTextPreview('image'),
+      isTextPreview(null),
+    ]).toEqual([true, true, false, false])
   })
 
   it('只有正常的文件给预览入口', () => {
@@ -139,7 +206,10 @@ describe('预览', () => {
   it('逗号分隔表格首行作表头，缺的格补空串，行号作行主键', () => {
     expect(toCsvTable('名称,数量\n苹果,3\n梨\n')).toEqual({
       header: ['名称', '数量'],
-      rows: [{ 0: '苹果', 1: '3', _row: '1' }, { 0: '梨', 1: '', _row: '2' }],
+      rows: [
+        { 0: '苹果', 1: '3', _row: '1' },
+        { 0: '梨', 1: '', _row: '2' },
+      ],
     })
     expect(toCsvTable('')).toEqual({ header: [], rows: [] })
   })

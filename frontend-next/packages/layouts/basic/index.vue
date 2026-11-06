@@ -62,7 +62,9 @@ const shellOverlays = computed(() => shellExtensions.flatMap(extension => extens
 useCheckUpdates()
 
 // 容器变形转场：点击的行/按钮「长大」成弹窗、关闭收回原位（跟随「页面切换动画」偏好）
-setupContainerTransform({ enabled: () => shell.appStore.transitionEnable })
+setupContainerTransform({
+  enabled: () => shell.appStore.transitionEnable,
+})
 
 // 仅当「当前路由 === 分屏锚定标签」且视口足够宽时显示分屏（右标签已并入、从标签栏隐藏）；
 // 小屏禁用分屏（store 会自动关闭，此处 canSplit 再兜一道防抖动）
@@ -96,14 +98,18 @@ const splitPanels: SplitterPanelProps[] = [
 
 /** 受控布局：DOM 顺序恒为「锚定块、分隔条、副块」，reversed 时锚定块的占比取视觉右侧那一份 */
 const splitSizes = computed(() => {
-  const anchor = (splitView.reversed ? 1 - splitView.ratio : splitView.ratio) * 100
+  const anchor = (splitView.reversed
+    ? 1 - splitView.ratio
+    : splitView.ratio) * 100
   return [anchor, 100 - anchor]
 })
 
 /** 分隔条推动（拖拽或方向键）后回写视觉左侧占比 */
 function onSplitSizesChange(details: SplitterSizesChangeDetails): void {
   const anchor = (details.sizes[0] ?? 50) / 100
-  splitView.setRatio(splitView.reversed ? 1 - anchor : anchor)
+  splitView.setRatio(splitView.reversed
+    ? 1 - anchor
+    : anchor)
 }
 
 // ── 分割线悬浮工具组（左右页面各自的替换/刷新/新窗口，分组显示）────
@@ -111,23 +117,32 @@ const splitPaneRef = ref<InstanceType<typeof SplitPane> | null>(null)
 const { refresh: refreshCurrentTab } = useRefresh()
 
 function trTab(title: string): string {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 /** 可替换为的标签：其它已打开标签（排除分屏中的两个页面） */
 const splitTabOptions = computed(() =>
   tabbarStore.tabs
     .filter(item => item.path !== splitView.leftPath && item.path !== splitView.rightPath)
-    .map(item => ({ key: item.path, label: trTab(item.title) })),
+    .map(item => ({
+      key: item.path,
+      label: trTab(item.title),
+    })),
 )
 
 /** 视觉侧 → 是否为锚定 pane（锚定默认在左，reversed 后在右） */
 function sideIsAnchor(side: 'left' | 'right'): boolean {
-  return side === 'left' ? !splitView.reversed : splitView.reversed
+  return side === 'left'
+    ? !splitView.reversed
+    : splitView.reversed
 }
 
 function sidePath(side: 'left' | 'right'): string {
-  return sideIsAnchor(side) ? splitView.leftPath : splitView.rightPath
+  return sideIsAnchor(side)
+    ? splitView.leftPath
+    : splitView.rightPath
 }
 
 /** 替换某一侧页面：锚定侧需导航（watcher 在路由抵达时对齐）；副侧直接换渲染组件 */
@@ -175,7 +190,10 @@ function forwardSplitDrag(event: PointerEvent): void {
 // shrink：两屏向中心收缩淡出、各自中央弹出页面大图标 → fly：两枚图标互飞对方位置
 // →（翻转 order，幕后瞬时完成）→ expand：图标弹出消失、两屏展开
 const swapPhase = ref<'idle' | 'shrink' | 'fly' | 'expand'>('idle')
-const swapCenters = ref({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } })
+const swapCenters = ref({
+  left: { x: 0, y: 0 },
+  right: { x: 0, y: 0 },
+})
 const swapIcons = ref({ left: 'lucide:file', right: 'lucide:file' })
 
 function resolveTabIcon(path: string): string {
@@ -183,7 +201,9 @@ function resolveTabIcon(path: string): string {
   if (!icon) {
     return 'lucide:file'
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 /** 取 pane 中心点（相对分屏行），作为图标的停靠/飞行坐标 */
@@ -201,8 +221,12 @@ function paneCenter(selector: string): { x: number, y: number } {
 /** 图标位置：shrink 停在本侧中心，fly/expand 飞到对侧中心（transition 负责插值飞行） */
 function swapIconTransform(side: 'left' | 'right'): string {
   const own = swapCenters.value[side]
-  const other = swapCenters.value[side === 'left' ? 'right' : 'left']
-  const pos = swapPhase.value === 'shrink' ? own : other
+  const other = swapCenters.value[side === 'left'
+    ? 'right'
+    : 'left']
+  const pos = swapPhase.value === 'shrink'
+    ? own
+    : other
   return `translate(${pos.x}px, ${pos.y}px)`
 }
 
@@ -243,11 +267,17 @@ const appName = __APP_NAME__
 
 const sidebarForceDark = computed(() => shell.appStore.sidebarDark && !isDark.value)
 const headerForceDark = computed(() => shell.appStore.headerDark && !isDark.value)
-const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark ? 'dark' : 'light'))
+const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark
+  ? 'dark'
+  : 'light'))
 const sidebarSubTheme = computed(() =>
-  isDark.value || shell.appStore.sidebarSubDark ? 'dark' : 'light',
+  isDark.value || shell.appStore.sidebarSubDark
+    ? 'dark'
+    : 'light',
 )
-const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark ? 'dark' : 'light'))
+const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark
+  ? 'dark'
+  : 'light'))
 
 // 顶栏开关收起侧栏、内容最大化都不卸载侧栏：它照原宽度整块滑出画面，
 // 是否露出由 show-sidebar 决定，见 AppSidebar 的 stowed

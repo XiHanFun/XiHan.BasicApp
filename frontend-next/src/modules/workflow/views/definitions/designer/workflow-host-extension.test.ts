@@ -8,8 +8,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { createWorkflowHostExtension, WORKFLOW_HOST_COMMANDS } from './workflow-host-extension'
 
 function setup() {
-  const actions = { openEngineJson: vi.fn() }
-  const extension = createWorkflowHostExtension({ t: key => key, ...actions })
+  const actions = {
+    openEngineJson: vi.fn(),
+  }
+  const extension = createWorkflowHostExtension({
+    t: key => key,
+    ...actions,
+  })
   const command = (id: string) => {
     const found = extension.commands?.find(item => item.id === id)
     if (!found)
@@ -18,7 +23,9 @@ function setup() {
   }
   const label = (id: string) => {
     const value = command(id).label
-    return typeof value === 'function' ? value({} as never) : value
+    return typeof value === 'function'
+      ? value({} as never)
+      : value
   }
   return { actions, extension, command, label }
 }
@@ -28,7 +35,10 @@ describe('落点与文案', () => {
     const { extension } = setup()
 
     expect(extension.commands?.map(item => [item.id, item.placement])).toEqual([
-      [WORKFLOW_HOST_COMMANDS.engineJson, ['menubar:file']],
+      [
+        WORKFLOW_HOST_COMMANDS.engineJson,
+        ['menubar:file'],
+      ],
     ])
   })
 

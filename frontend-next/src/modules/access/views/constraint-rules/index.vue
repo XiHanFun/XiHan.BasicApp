@@ -52,25 +52,156 @@ function reload() {
 }
 
 const asRow = (row: object) => row as ConstraintRuleRow
-const typeOptions = computed<SelectOption[]>(() => CONSTRAINT_TYPES.map(type => ({ label: typeLabel(t, type), value: type })))
-const targetTypeOptions = computed<SelectOption[]>(() => CONSTRAINT_TARGET_TYPES.map(type => ({ label: targetTypeLabel(t, type), value: type })))
-const actionOptions = computed<SelectOption[]>(() => CONSTRAINT_ACTIONS.map(action => ({ label: actionLabel(t, action), value: action })))
-const statusOptions = computed<SelectOption[]>(() => CONSTRAINT_STATUSES.map(status => ({ label: statusLabel(t, status), value: status })))
+const typeOptions = computed<SelectOption[]>(() => CONSTRAINT_TYPES.map(type => ({
+  label: typeLabel(t, type),
+  value: type,
+})))
+const targetTypeOptions = computed<SelectOption[]>(() => CONSTRAINT_TARGET_TYPES.map(type => ({
+  label: targetTypeLabel(t, type),
+  value: type,
+})))
+const actionOptions = computed<SelectOption[]>(() => CONSTRAINT_ACTIONS.map(action => ({
+  label: actionLabel(t, action),
+  value: action,
+})))
+const statusOptions = computed<SelectOption[]>(() => CONSTRAINT_STATUSES.map(status => ({
+  label: statusLabel(t, status),
+  value: status,
+})))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.constraint_rules.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.constraint_rules.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'code', title: t('access.constraint_rules.fields.code'), dataType: 'string', sortable: true, exportable: true, minWidth: 170, order: 1 },
-  { key: 'name', title: t('access.constraint_rules.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 170, order: 2 },
-  { key: 'type', title: t('access.constraint_rules.fields.type'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, exportable: true, options: typeOptions.value, searchPlaceholder: t('access.constraint_rules.type_placeholder'), width: 130, order: 3, render: row => typeLabel(t, asRow(row).type) },
-  { key: 'targetType', title: t('access.constraint_rules.fields.target_type'), dataType: 'enum', searchable: true, searchMultiple: true, exportable: true, options: targetTypeOptions.value, searchPlaceholder: t('access.constraint_rules.target_type_placeholder'), width: 100, order: 4, render: row => targetTypeLabel(t, asRow(row).targetType) },
-  { key: 'violationAction', title: t('access.constraint_rules.fields.violation_action'), dataType: 'enum', searchable: true, searchMultiple: true, exportable: true, options: actionOptions.value, searchPlaceholder: t('access.constraint_rules.action_placeholder'), width: 100, order: 5, render: row => renderTag(actionLabel(t, asRow(row).violationAction), actionTone(asRow(row).violationAction)) },
-  { key: 'itemCount', title: t('access.constraint_rules.fields.item_count'), dataType: 'number', exportable: true, width: 92, order: 6 },
-  { key: 'priority', title: t('access.constraint_rules.fields.priority'), dataType: 'number', sortable: true, exportable: true, width: 88, order: 7 },
-  { key: 'status', title: t('access.constraint_rules.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, exportable: true, options: statusOptions.value, searchPlaceholder: t('access.constraint_rules.status_placeholder'), width: 88, order: 8, render: row => renderTag(statusLabel(t, asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'neutral') },
-  { key: 'isEffective', title: t('access.constraint_rules.fields.is_effective'), dataType: 'boolean', exportable: true, width: 92, order: 9, render: row => renderTag(asRow(row).isEffective ? t('access.constraint_rules.effective_yes') : t('access.constraint_rules.effective_no'), asRow(row).isEffective ? 'success' : 'neutral') },
-  { key: 'description', title: t('access.constraint_rules.fields.description'), dataType: 'string', exportable: true, minWidth: 200, order: 10 },
-  { key: 'createdAt', title: t('access.constraint_rules.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 11 },
+  {
+    key: 'keyword',
+    title: t('access.constraint_rules.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.constraint_rules.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('access.constraint_rules.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('access.constraint_rules.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 2,
+  },
+  {
+    key: 'type',
+    title: t('access.constraint_rules.fields.type'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    exportable: true,
+    options: typeOptions.value,
+    searchPlaceholder: t('access.constraint_rules.type_placeholder'),
+    width: 130,
+    order: 3,
+    render: row => typeLabel(t, asRow(row).type),
+  },
+  {
+    key: 'targetType',
+    title: t('access.constraint_rules.fields.target_type'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    exportable: true,
+    options: targetTypeOptions.value,
+    searchPlaceholder: t('access.constraint_rules.target_type_placeholder'),
+    width: 100,
+    order: 4,
+    render: row => targetTypeLabel(t, asRow(row).targetType),
+  },
+  {
+    key: 'violationAction',
+    title: t('access.constraint_rules.fields.violation_action'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    exportable: true,
+    options: actionOptions.value,
+    searchPlaceholder: t('access.constraint_rules.action_placeholder'),
+    width: 100,
+    order: 5,
+    render: row => renderTag(actionLabel(t, asRow(row).violationAction), actionTone(asRow(row).violationAction)),
+  },
+  {
+    key: 'itemCount',
+    title: t('access.constraint_rules.fields.item_count'),
+    dataType: 'number',
+    exportable: true,
+    width: 92,
+    order: 6,
+  },
+  {
+    key: 'priority',
+    title: t('access.constraint_rules.fields.priority'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    width: 88,
+    order: 7,
+  },
+  {
+    key: 'status',
+    title: t('access.constraint_rules.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    exportable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('access.constraint_rules.status_placeholder'),
+    width: 88,
+    order: 8,
+    render: row => renderTag(statusLabel(t, asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'neutral'),
+  },
+  {
+    key: 'isEffective',
+    title: t('access.constraint_rules.fields.is_effective'),
+    dataType: 'boolean',
+    exportable: true,
+    width: 92,
+    order: 9,
+    render: row => renderTag(asRow(row).isEffective
+      ? t('access.constraint_rules.effective_yes')
+      : t('access.constraint_rules.effective_no'), asRow(row).isEffective
+      ? 'success'
+      : 'neutral'),
+  },
+  {
+    key: 'description',
+    title: t('access.constraint_rules.fields.description'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 200,
+    order: 10,
+  },
+  {
+    key: 'createdAt',
+    title: t('access.constraint_rules.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 11,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -84,16 +215,53 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.constraint_rules.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.constraint-rules.create' },
-    { key: 'view', title: t('access.constraint_rules.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.constraint-rules.update' },
-    { key: 'toggle', title: t('access.constraint_rules.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'access.constraint-rules.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'access.constraint-rules.delete' },
+    {
+      key: 'create',
+      title: t('access.constraint_rules.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.constraint-rules.create',
+    },
+    {
+      key: 'view',
+      title: t('access.constraint_rules.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'access.constraint-rules.update',
+    },
+    {
+      key: 'toggle',
+      title: t('access.constraint_rules.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'access.constraint-rules.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'access.constraint-rules.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       void openCreate()
@@ -141,7 +309,10 @@ let targetSeq = 0
 const seededOptions = ref<TargetOption[]>([])
 function mergeOptions(seed: TargetOption[], next: TargetOption[]) {
   const seen = new Set(next.map(option => option.value))
-  return [...next, ...seed.filter(option => !seen.has(option.value))]
+  return [
+    ...next,
+    ...seed.filter(option => !seen.has(option.value)),
+  ]
 }
 
 // ── 新建 / 编辑 ─────────────────────────────────────────────────
@@ -162,7 +333,21 @@ interface RuleFormModel {
 }
 
 function emptyForm(): RuleFormModel {
-  return { id: null, code: '', name: '', type: 'Ssd', targetType: 'Role', maxAllowed: 1, violationAction: 'Deny', priority: 0, status: 'Active', effectiveAt: null, expiresAt: null, description: '', remark: '' }
+  return {
+    id: null,
+    code: '',
+    name: '',
+    type: 'Ssd',
+    targetType: 'Role',
+    maxAllowed: 1,
+    violationAction: 'Deny',
+    priority: 0,
+    status: 'Active',
+    effectiveAt: null,
+    expiresAt: null,
+    description: '',
+    remark: '',
+  }
 }
 
 const modalVisible = ref(false)
@@ -171,14 +356,18 @@ const submitError = ref<null | string>(null)
 const form = reactive<RuleFormModel>(emptyForm())
 const items = ref<ConstraintItemModel[]>([])
 const groups = ref<ConditionGroupModel[]>([])
-const modalTitle = computed(() => (form.id ? t('access.constraint_rules.edit_title') : t('access.constraint_rules.create_title')))
+const modalTitle = computed(() => (form.id
+  ? t('access.constraint_rules.edit_title')
+  : t('access.constraint_rules.create_title')))
 const formTargetTypeOptions = computed(() => targetTypeOptions.value.filter(option => targetTypesOf(form.type).includes(option.value as ConstraintTargetType)))
 
 async function ensureCatalog(): Promise<boolean> {
   if (catalog.value.length > 0)
     return true
   try {
-    catalog.value = [...(await policiesApi.attributes({})).items]
+    catalog.value = [
+      ...(await policiesApi.attributes({})).items,
+    ]
     return true
   }
   catch (error) {
@@ -189,7 +378,10 @@ async function ensureCatalog(): Promise<boolean> {
 
 function openCreate() {
   Object.assign(form, emptyForm())
-  items.value = [emptyItem(), emptyItem()]
+  items.value = [
+    emptyItem(),
+    emptyItem(),
+  ]
   groups.value = []
   seededOptions.value = []
   submitError.value = null
@@ -212,8 +404,12 @@ async function openEdit(row: ConstraintRuleRow) {
       violationAction: current.violationAction,
       priority: current.priority,
       status: current.status,
-      effectiveAt: current.effectiveAt ? new Date(current.effectiveAt).getTime() : null,
-      expiresAt: current.expiresAt ? new Date(current.expiresAt).getTime() : null,
+      effectiveAt: current.effectiveAt
+        ? new Date(current.effectiveAt).getTime()
+        : null,
+      expiresAt: current.expiresAt
+        ? new Date(current.expiresAt).getTime()
+        : null,
       description: current.description ?? '',
       remark: current.remark ?? '',
     })
@@ -252,7 +448,10 @@ function changeTargetType(value: unknown) {
 }
 
 function addItem() {
-  items.value = [...items.value, emptyItem(items.value.at(-1)?.groupNo ?? 0)]
+  items.value = [
+    ...items.value,
+    emptyItem(items.value.at(-1)?.groupNo ?? 0),
+  ]
 }
 
 function removeItem(index: number) {
@@ -298,13 +497,21 @@ async function onSubmit() {
     type: form.type,
     targetType: form.targetType,
     items: toItemInputs(items.value),
-    maxAllowed: usesMaxAllowed(form.type) ? (form.maxAllowed ?? 1) : 1,
-    conditions: form.type === 'Condition' ? toConditions(groups.value, catalog.value) : null,
+    maxAllowed: usesMaxAllowed(form.type)
+      ? (form.maxAllowed ?? 1)
+      : 1,
+    conditions: form.type === 'Condition'
+      ? toConditions(groups.value, catalog.value)
+      : null,
     violationAction: form.violationAction,
     priority: form.priority ?? 0,
     status: form.status,
-    effectiveAt: form.effectiveAt != null ? new Date(form.effectiveAt).toISOString() : null,
-    expiresAt: form.expiresAt != null ? new Date(form.expiresAt).toISOString() : null,
+    effectiveAt: form.effectiveAt != null
+      ? new Date(form.effectiveAt).toISOString()
+      : null,
+    expiresAt: form.expiresAt != null
+      ? new Date(form.expiresAt).toISOString()
+      : null,
     description: form.description.trim() || null,
     remark: form.remark.trim() || null,
   }
@@ -320,7 +527,9 @@ async function onSubmit() {
     reload()
   }
   catch (error) {
-    submitError.value = error instanceof ApiError ? error.detail : String(error)
+    submitError.value = error instanceof ApiError
+      ? error.detail
+      : String(error)
   }
   finally {
     submitting.value = false
@@ -337,16 +546,30 @@ async function searchTargets(keyword = '') {
     switch (form.targetType) {
       case 'Permission': {
         const all = (await permissionsApi.list({})).items.map(item => ({ value: item.code, label: item.displayName, description: item.code }))
-        next = kw ? all.filter(option => option.label.toLowerCase().includes(kw.toLowerCase()) || option.value.includes(kw)) : all
+        next = kw
+          ? all.filter(option => option.label.toLowerCase().includes(kw.toLowerCase()) || option.value.includes(kw))
+          : all
         break
       }
       case 'User': {
-        const page = await usersApi.list({ page: { index: 1, size: 50 }, filters: [NOT_SUPPORT_MEMBER_FILTER], sorts: [], keyword: kw })
+        const page = await usersApi.list({
+          page: { index: 1, size: 50 },
+          filters: [NOT_SUPPORT_MEMBER_FILTER],
+          sorts: [],
+          keyword: kw,
+        })
         next = page.items.map(user => ({ value: user.id, label: user.displayName, description: `@${user.userName}` }))
         break
       }
       default: {
-        const page = await rolesApi.list({ page: { index: 1, size: 50 }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [], keyword: kw })
+        const page = await rolesApi.list({
+          page: { index: 1, size: 50 },
+          filters: [
+            { field: 'status', operator: 'eq', value: 'Active' },
+          ],
+          sorts: [],
+          keyword: kw,
+        })
         next = page.items.map(role => ({ value: role.id, label: role.name, description: role.code }))
         break
       }

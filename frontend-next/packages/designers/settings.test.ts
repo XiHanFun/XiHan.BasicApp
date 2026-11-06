@@ -19,14 +19,20 @@ vi.mock('~/components/schema', () => ({
 }))
 
 const DEFAULTS = { 'flow.layoutDirection': 'LR', 'flow.layerGap': 88 }
-const LAYOUT = { panels: { palette: { position: 'left', order: 0 } } }
+const LAYOUT = {
+  panels: {
+    palette: { position: 'left', order: 0 },
+  },
+}
 
 function designer(): DesignerSettingsTarget {
   return { settings: undefined }
 }
 
 function change(key: string, value: unknown): Event {
-  return new CustomEvent('settings-change', { detail: { key, value, settings: {} } })
+  return new CustomEvent('settings-change', {
+    detail: { key, value, settings: {} },
+  })
 }
 
 async function loaded(): Promise<void> {
@@ -72,7 +78,10 @@ describe('设计器设置接用户设置', () => {
 
     settings.onSettingsChange(change(DESIGNER_SETTING_KEYS.layout, LAYOUT))
     settings.onSettingsChange(change(DESIGNER_SETTING_KEYS.toolbarDisplay, 'both'))
-    expect(sync.saved.at(-1)).toEqual({ section: 'designer', value: { [DESIGNER_SETTING_KEYS.layout]: LAYOUT, [DESIGNER_SETTING_KEYS.toolbarDisplay]: 'both' } })
+    expect(sync.saved.at(-1)).toEqual({
+      section: 'designer',
+      value: { [DESIGNER_SETTING_KEYS.layout]: LAYOUT, [DESIGNER_SETTING_KEYS.toolbarDisplay]: 'both' },
+    })
   })
 
   it('用户清空一项时删掉存的值，设计器回到宿主缺省', async () => {

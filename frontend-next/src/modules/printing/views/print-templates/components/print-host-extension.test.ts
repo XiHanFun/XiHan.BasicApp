@@ -24,7 +24,11 @@ function setup(overrides: Partial<State> = {}) {
     previewing: false,
     printing: false,
     canDirectPrint: true,
-    printers: [{ label: '客户端默认打印机', value: '' }, { label: 'HP', value: 'HP' }, { label: 'Zebra', value: 'Zebra' }],
+    printers: [
+      { label: '客户端默认打印机', value: '' },
+      { label: 'HP', value: 'HP' },
+      { label: 'Zebra', value: 'Zebra' },
+    ],
     selectedPrinter: 'HP',
     loadingPrinters: false,
     ...overrides,
@@ -55,10 +59,20 @@ function setup(overrides: Partial<State> = {}) {
   const enabled = (id: string) => command(id).enabled?.({} as never) ?? true
   const label = (id: string) => {
     const value = command(id).label
-    return typeof value === 'function' ? value({} as never) : value
+    return typeof value === 'function'
+      ? value({} as never)
+      : value
   }
   const menu = () => (command(PRINT_HOST_COMMANDS.printer).menu?.({} as never) ?? [])
-  return { state, actions, extension, command, enabled, label, menu }
+  return {
+    state,
+    actions,
+    extension,
+    command,
+    enabled,
+    label,
+    menu,
+  }
 }
 
 describe('落点与文案', () => {
@@ -66,9 +80,18 @@ describe('落点与文案', () => {
     const { extension } = setup()
 
     expect(extension.commands?.map(item => [item.id, item.placement])).toEqual([
-      [PRINT_HOST_COMMANDS.samplePreview, ['menubar:file', 'toolbar']],
-      [PRINT_HOST_COMMANDS.directPrint, ['menubar:file', 'toolbar']],
-      [PRINT_HOST_COMMANDS.printer, ['menubar:file']],
+      [
+        PRINT_HOST_COMMANDS.samplePreview,
+        ['menubar:file', 'toolbar'],
+      ],
+      [
+        PRINT_HOST_COMMANDS.directPrint,
+        ['menubar:file', 'toolbar'],
+      ],
+      [
+        PRINT_HOST_COMMANDS.printer,
+        ['menubar:file'],
+      ],
     ])
   })
 
@@ -131,7 +154,10 @@ describe('打印机子菜单', () => {
     select('客户端默认打印机')
     select('printing.print_templates.refresh_printers')
 
-    expect(actions.selectPrinter.mock.calls).toEqual([['Zebra'], [null]])
+    expect(actions.selectPrinter.mock.calls).toEqual([
+      ['Zebra'],
+      [null],
+    ])
     expect(actions.refreshPrinters).toHaveBeenCalledTimes(1)
   })
 })

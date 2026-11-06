@@ -33,7 +33,9 @@ const { isDark, toggleThemeWithTransition } = useTheme()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 
 const open = ref(false)
-const translations = computed(() => ({ trigger: t('header.toolbar.float_tools') }))
+const translations = computed(() => ({
+  trigger: t('header.toolbar.float_tools'),
+}))
 
 // ---- 位置 ----
 /** 贴左右两边的位置才作数：组件库按缺省 snap（inline）只会落在这两条边上 */
@@ -48,17 +50,25 @@ function isInlineEdgePosition(value: unknown): value is FloatButtonEdgePosition 
 
 function restorePosition(): FloatButtonEdgePosition {
   const saved = LocalStorage.get<unknown>(WIDGET_FLOAT_TOOLBAR_POSITION_KEY)
-  return isInlineEdgePosition(saved) ? saved : DEFAULT_POSITION
+  return isInlineEdgePosition(saved)
+    ? saved
+    : DEFAULT_POSITION
 }
 
 const position = ref<FloatButtonPosition>(restorePosition())
 // 组件库只在拖动落定后写回一次，这里随之记到本机
 watch(position, next => LocalStorage.set(WIDGET_FLOAT_TOOLBAR_POSITION_KEY, next))
 
-const edgePosition = computed(() => isInlineEdgePosition(position.value) ? position.value : DEFAULT_POSITION)
+const edgePosition = computed(() => isInlineEdgePosition(position.value)
+  ? position.value
+  : DEFAULT_POSITION)
 /** 语言、时区菜单朝屏幕里面弹：贴左边往右弹，贴右边往左弹；上半屏往下展开、下半屏往上展开 */
 const menuPlacement = computed(() =>
-  `${edgePosition.value.edge === 'inline-start' ? 'right' : 'left'}-${edgePosition.value.ratio < 0.5 ? 'start' : 'end'}` as const)
+  `${edgePosition.value.edge === 'inline-start'
+    ? 'right'
+    : 'left'}-${edgePosition.value.ratio < 0.5
+    ? 'start'
+    : 'end'}` as const)
 
 // ---- 动作 ----
 /** 点了动作就收起整组；语言与时区是菜单，选完由菜单自己收起，组保持展开以便看到结果 */

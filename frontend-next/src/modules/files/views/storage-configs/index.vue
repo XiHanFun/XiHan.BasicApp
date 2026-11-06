@@ -38,24 +38,115 @@ function reload() {
 }
 
 const asRow = (row: object) => row as StorageConfigRow
-const typeOptions = computed<SelectOption[]>(() => STORAGE_TYPES.map(type => ({ label: storageTypeLabel(t, type), value: type })))
-const statusOptions = computed<SelectOption[]>(() => STORAGE_CONFIG_STATUSES.map(status => ({ label: storageConfigStatusLabel(t, status), value: status })))
+const typeOptions = computed<SelectOption[]>(() => STORAGE_TYPES.map(type => ({
+  label: storageTypeLabel(t, type),
+  value: type,
+})))
+const statusOptions = computed<SelectOption[]>(() => STORAGE_CONFIG_STATUSES.map(status => ({
+  label: storageConfigStatusLabel(t, status),
+  value: status,
+})))
 const defaultOptions = computed<SelectOption[]>(() => [
-  { label: t('files.storage_configs.default_options.yes'), value: 'true' },
-  { label: t('files.storage_configs.default_options.no'), value: 'false' },
+  {
+    label: t('files.storage_configs.default_options.yes'),
+    value: 'true',
+  },
+  {
+    label: t('files.storage_configs.default_options.no'),
+    value: 'false',
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('files.storage_configs.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('files.storage_configs.placeholders.keyword'), order: 0 },
-  { key: 'code', title: t('files.storage_configs.fields.code'), dataType: 'string', sortable: true, minWidth: 150, order: 1 },
-  { key: 'name', title: t('files.storage_configs.fields.name'), dataType: 'string', sortable: true, minWidth: 150, order: 2 },
-  { key: 'type', title: t('files.storage_configs.fields.type'), dataType: 'enum', searchable: true, searchMultiple: true, sortable: true, options: typeOptions.value, searchPlaceholder: t('files.storage_configs.placeholders.type'), width: 110, order: 3, render: row => renderTag(storageTypeLabel(t, asRow(row).type), 'info') },
-  { key: 'bucket', title: t('files.storage_configs.fields.bucket'), dataType: 'string', minWidth: 160, order: 4 },
-  { key: 'isDefault', title: t('files.storage_configs.fields.is_default'), dataType: 'enum', searchable: true, options: defaultOptions.value, searchPlaceholder: t('files.storage_configs.placeholders.is_default'), width: 90, order: 5, render: row => (asRow(row).isDefault ? renderTag(t('files.storage_configs.default_tag'), 'warning') : '-') },
-  { key: 'status', title: t('files.storage_configs.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, options: statusOptions.value, searchPlaceholder: t('files.storage_configs.placeholders.status'), width: 90, order: 6, render: row => renderTag(storageConfigStatusLabel(t, asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger') },
-  { key: 'order', title: t('files.storage_configs.fields.order'), dataType: 'number', sortable: true, width: 80, order: 7 },
-  { key: 'createdAt', title: t('files.storage_configs.fields.created_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 8 },
+  {
+    key: 'keyword',
+    title: t('files.storage_configs.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('files.storage_configs.placeholders.keyword'),
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('files.storage_configs.fields.code'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 150,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('files.storage_configs.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 150,
+    order: 2,
+  },
+  {
+    key: 'type',
+    title: t('files.storage_configs.fields.type'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    sortable: true,
+    options: typeOptions.value,
+    searchPlaceholder: t('files.storage_configs.placeholders.type'),
+    width: 110,
+    order: 3,
+    render: row => renderTag(storageTypeLabel(t, asRow(row).type), 'info'),
+  },
+  {
+    key: 'bucket',
+    title: t('files.storage_configs.fields.bucket'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 4,
+  },
+  {
+    key: 'isDefault',
+    title: t('files.storage_configs.fields.is_default'),
+    dataType: 'enum',
+    searchable: true,
+    options: defaultOptions.value,
+    searchPlaceholder: t('files.storage_configs.placeholders.is_default'),
+    width: 90,
+    order: 5,
+    render: row => (asRow(row).isDefault
+      ? renderTag(t('files.storage_configs.default_tag'), 'warning')
+      : '-'),
+  },
+  {
+    key: 'status',
+    title: t('files.storage_configs.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('files.storage_configs.placeholders.status'),
+    width: 90,
+    order: 6,
+    render: row => renderTag(storageConfigStatusLabel(t, asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'order',
+    title: t('files.storage_configs.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    width: 80,
+    order: 7,
+  },
+  {
+    key: 'createdAt',
+    title: t('files.storage_configs.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 8,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -68,12 +159,54 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('files.storage_configs.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'files.storage-configs.create' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'files.storage-configs.update' },
+    {
+      key: 'create',
+      title: t('files.storage_configs.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'files.storage-configs.create',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'files.storage-configs.update',
+    },
     // 缺省配置不能停用也不能删除（后端拒绝），4.x 同样不给入口
-    { key: 'toggle', title: t('files.storage_configs.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => toggleConfirmText(asRow(row)), visible: row => !asRow(row).isDefault, permission: 'files.storage-configs.update' },
-    { key: 'setDefault', title: t('files.storage_configs.actions.set_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => t('files.storage_configs.confirm.set_default', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, disabled: row => asRow(row).status !== 'Active', permission: 'files.storage-configs.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => t('files.storage_configs.confirm.delete', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, permission: 'files.storage-configs.delete' },
+    {
+      key: 'toggle',
+      title: t('files.storage_configs.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => toggleConfirmText(asRow(row)),
+      visible: row => !asRow(row).isDefault,
+      permission: 'files.storage-configs.update',
+    },
+    {
+      key: 'setDefault',
+      title: t('files.storage_configs.actions.set_default'),
+      scope: 'row',
+      icon: 'lucide:star',
+      confirm: true,
+      confirmText: row => t('files.storage_configs.confirm.set_default', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      disabled: row => asRow(row).status !== 'Active',
+      permission: 'files.storage-configs.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => t('files.storage_configs.confirm.delete', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      permission: 'files.storage-configs.delete',
+    },
   ],
 }))
 
@@ -84,7 +217,9 @@ function toggleConfirmText(row: StorageConfigRow): string {
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -115,9 +250,13 @@ const submitError = ref<null | string>(null)
 /** 编辑的配置是否已存了访问密钥：已存的留空即保留，占位提示随之改 */
 const editingHasSecret = ref(false)
 const form = reactive<StorageConfigForm>(emptyStorageConfigForm())
-const modalTitle = computed(() => (form.id ? t('files.storage_configs.form.edit_title') : t('files.storage_configs.form.create_title')))
+const modalTitle = computed(() => (form.id
+  ? t('files.storage_configs.form.edit_title')
+  : t('files.storage_configs.form.create_title')))
 const remote = computed(() => isRemote(form.type))
-const secretPlaceholder = computed(() => (form.id && editingHasSecret.value ? t('files.storage_configs.form.secret_configured') : t('files.storage_configs.form.secret_placeholder')))
+const secretPlaceholder = computed(() => (form.id && editingHasSecret.value
+  ? t('files.storage_configs.form.secret_configured')
+  : t('files.storage_configs.form.secret_placeholder')))
 
 function openCreate() {
   Object.assign(form, emptyStorageConfigForm())
@@ -168,7 +307,9 @@ async function onSubmit() {
     reload()
   }
   catch (error) {
-    submitError.value = error instanceof ApiError ? error.detail : String(error)
+    submitError.value = error instanceof ApiError
+      ? error.detail
+      : String(error)
   }
   finally {
     submitting.value = false

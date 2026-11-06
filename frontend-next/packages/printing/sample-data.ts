@@ -31,7 +31,9 @@ const DANGEROUS_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype'
  */
 export function extractPrintSampleFormSchema(document: PrintDocument, dataSourceCode: null | string): PrintSampleFormSchema {
   const normalizedDataSourceCode = dataSourceCode?.trim() || null
-  const source = normalizedDataSourceCode ? requirePrintDataSource(normalizedDataSourceCode) : undefined
+  const source = normalizedDataSourceCode
+    ? requirePrintDataSource(normalizedDataSourceCode)
+    : undefined
   const registeredFields = new Map((source?.fields ?? []).map(field => [field.key, field]))
   const fields: PrintSampleFormField[] = []
   const warnings: string[] = []
@@ -75,7 +77,9 @@ export function normalizePrintSampleData(sample: unknown): PrintSampleDataSet {
     throw new TypeError('模拟打印数据必须是对象或对象数组。')
   return {
     isCollection: false,
-    records: [clonePrintSampleRecord(sample)],
+    records: [
+      clonePrintSampleRecord(sample),
+    ],
   }
 }
 
@@ -111,8 +115,12 @@ export function createBlankPrintSampleRecord(
 export async function createDefaultPrintSampleData(
   dataSourceCode: null | string,
 ): Promise<Record<string, unknown> | Record<string, unknown>[]> {
-  const source = dataSourceCode?.trim() ? requirePrintDataSource(dataSourceCode.trim()) : undefined
-  const sample = source ? await source.createSampleData() : {}
+  const source = dataSourceCode?.trim()
+    ? requirePrintDataSource(dataSourceCode.trim())
+    : undefined
+  const sample = source
+    ? await source.createSampleData()
+    : {}
   const dataSet = normalizePrintSampleData(sample)
   return createPrintSamplePayload(dataSet.records, dataSet.isCollection)
 }
@@ -243,22 +251,46 @@ const CONTENT_KINDS: Readonly<Record<NonNullable<DataField['content']>, PrintFie
  */
 function flattenUsedFields(fields: readonly DataField[], prefix: string): PrintSampleFormField[] {
   return fields.flatMap((field): PrintSampleFormField[] => {
-    const key = prefix ? `${prefix}.${field.name}` : field.name
+    const key = prefix
+      ? `${prefix}.${field.name}`
+      : field.name
     if (field.kind === 'object')
       return flattenUsedFields(field.children ?? [], key)
-    if (field.kind === 'list')
-      return [{ key, label: key, kind: 'table', columns: Object.freeze(listColumns(field.children ?? [], '')), registered: false }]
-    return [{ key, label: key, kind: field.content ? CONTENT_KINDS[field.content] : 'text', registered: false }]
+    if (field.kind === 'list') {
+      return [
+        {
+          key,
+          label: key,
+          kind: 'table',
+          columns: Object.freeze(listColumns(field.children ?? [], '')),
+          registered: false,
+        },
+      ]
+    }
+    return [
+      {
+        key,
+        label: key,
+        kind: field.content ? CONTENT_KINDS[field.content] : 'text',
+        registered: false,
+      },
+    ]
   })
 }
 
 /** 明细表一行里引用的值字段，嵌套对象展开成点路径；行里再套的数组不出列 */
 function listColumns(fields: readonly DataField[], prefix: string): PrintTableColumn[] {
   return fields.flatMap((field): PrintTableColumn[] => {
-    const path = prefix ? `${prefix}.${field.name}` : field.name
+    const path = prefix
+      ? `${prefix}.${field.name}`
+      : field.name
     if (field.kind === 'object')
       return listColumns(field.children ?? [], path)
-    return field.kind === 'value' ? [{ field: path, title: path }] : []
+    return field.kind === 'value'
+      ? [
+          { field: path, title: path },
+        ]
+      : []
   })
 }
 

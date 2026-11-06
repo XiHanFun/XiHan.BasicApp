@@ -49,7 +49,11 @@ function mountLockScreen() {
       captured = useLockScreen()
       return () => h('div')
     },
-  }), { global: { plugins: [i18n as unknown as { install: (app: App) => void }] } })
+  }), {
+    global: {
+      plugins: [i18n as unknown as { install: (app: App) => void }],
+    },
+  })
   wrappers.push(wrapper)
   return { lock: captured as unknown as ReturnType<typeof useLockScreen>, wrapper }
 }
@@ -64,7 +68,16 @@ beforeEach(() => {
   replaceSpy = vi.fn()
   registerAppContext({
     apis: { lockSessionApi, unlockSessionApi, changePasswordApi } as never,
-    getRouter: () => Promise.resolve({ replace: replaceSpy, currentRoute: { value: { path: '/notification/inbox', query: { tab: 'all' }, hash: '' } } } as never),
+    getRouter: () => Promise.resolve({
+      replace: replaceSpy,
+      currentRoute: {
+        value: {
+          path: '/notification/inbox',
+          query: { tab: 'all' },
+          hash: '',
+        },
+      },
+    } as never),
   })
 
   logoutSpy = vi.fn(async () => {})
@@ -255,7 +268,12 @@ describe('doUnlock 解锁', () => {
 
     await lock.doUnlock()
 
-    expect(replaceSpy).toHaveBeenCalledWith({ path: '/notification/inbox', query: { tab: 'all' }, hash: '', force: true })
+    expect(replaceSpy).toHaveBeenCalledWith({
+      path: '/notification/inbox',
+      query: { tab: 'all' },
+      hash: '',
+      force: true,
+    })
   })
 
   it('后端错误只显示文案，不带错误码前缀', async () => {

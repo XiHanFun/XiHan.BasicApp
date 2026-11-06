@@ -16,16 +16,29 @@ import { defineComponent, h, nextTick, reactive } from 'vue'
 const confirmSpy = vi.fn(() => Promise.resolve(false))
 const appStore = reactive({ enableCheckUpdates: true, checkUpdatesInterval: 30 })
 
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
-vi.mock('~/stores', () => ({ useAppStore: () => appStore }))
-vi.mock('~/composables', () => ({ dialog: { confirm: (...args: unknown[]) => confirmSpy(...(args as [])) } }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}))
+vi.mock('~/stores', () => ({
+  useAppStore: () => appStore,
+}))
+vi.mock('~/composables', () => ({
+  dialog: {
+    confirm: (...args: unknown[]) => confirmSpy(...(args as [])),
+  },
+}))
 
 /** 造一份发布清单：构建标记换了就等价于线上发了新的一版 */
 function stubFetchWithManifest(stamp: () => string) {
   const fetchMock = vi.fn((url: string) => Promise.resolve(url.includes('version.json')
     ? {
         ok: true,
-        json: () => Promise.resolve({ version: '9.9.9', buildStamp: stamp() }),
+        json: () => Promise.resolve({
+          version: '9.9.9',
+          buildStamp: stamp(),
+        }),
       } as unknown as Response
     : { ok: false, status: 404 } as unknown as Response))
   vi.stubGlobal('fetch', fetchMock)

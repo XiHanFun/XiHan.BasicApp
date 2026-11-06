@@ -39,9 +39,15 @@ const allowed = JSON.parse(readFileSync(ALLOWLIST, 'utf8'))
 const actual = {}
 for (const file of SCAN.flatMap(dir => files(join(ROOT, dir)))) {
   const source = readFileSync(file, 'utf8')
-  const css = file.endsWith('.vue') ? [...source.matchAll(STYLE_BLOCK)].map(m => m[1]).join('\n') : source
+  const css = file.endsWith('.vue')
+    ? [
+        ...source.matchAll(STYLE_BLOCK),
+      ].map(m => m[1]).join('\n')
+    : source
   const body = css.replace(/\/\*[\s\S]*?\*\//g, '')
-  const hits = [...body.matchAll(PX)].filter(m => counts(m[1]))
+  const hits = [
+    ...body.matchAll(PX),
+  ].filter(m => counts(m[1]))
   if (hits.length > 0)
     actual[relative(ROOT, file).replaceAll('\\', '/')] = hits.length
 }

@@ -29,17 +29,96 @@ const statusOptions = computed<SelectOption[]>(() => enabledOptions(t))
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：排序、创建时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.email_configs.columns.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.email_configs.columns.keyword_placeholder'), order: 0 },
-  { key: 'code', title: t('notification.email_configs.columns.config_code'), dataType: 'string', minWidth: 140, order: 1 },
-  { key: 'name', title: t('notification.email_configs.columns.config_name'), dataType: 'string', minWidth: 140, order: 2 },
-  { key: 'smtpHost', title: t('notification.email_configs.columns.smtp_host'), dataType: 'string', minWidth: 160, order: 3 },
-  { key: 'smtpPort', title: t('notification.email_configs.columns.smtp_port'), dataType: 'number', width: 90, order: 4 },
-  { key: 'fromEmail', title: t('notification.email_configs.columns.from_email'), dataType: 'string', minWidth: 170, order: 5 },
-  { key: 'fromName', title: t('notification.email_configs.columns.from_name'), dataType: 'string', minWidth: 120, order: 6 },
-  { key: 'isDefault', title: t('notification.email_configs.columns.is_default'), dataType: 'enum', width: 90, order: 7, render: row => (asRow(row).isDefault ? renderTag(t('notification.email_configs.tag.default'), 'warning') : '-') },
-  { key: 'isEnabled', title: t('notification.email_configs.columns.status'), dataType: 'enum', searchable: true, options: statusOptions.value, searchPlaceholder: t('notification.email_configs.columns.status_placeholder'), width: 90, order: 8, render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled ? 'success' : 'danger') },
-  { key: 'order', title: t('notification.email_configs.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 9 },
-  { key: 'createdAt', title: t('notification.email_configs.columns.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 10 },
+  {
+    key: 'keyword',
+    title: t('notification.email_configs.columns.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.email_configs.columns.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'code',
+    title: t('notification.email_configs.columns.config_code'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 1,
+  },
+  {
+    key: 'name',
+    title: t('notification.email_configs.columns.config_name'),
+    dataType: 'string',
+    minWidth: 140,
+    order: 2,
+  },
+  {
+    key: 'smtpHost',
+    title: t('notification.email_configs.columns.smtp_host'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 3,
+  },
+  {
+    key: 'smtpPort',
+    title: t('notification.email_configs.columns.smtp_port'),
+    dataType: 'number',
+    width: 90,
+    order: 4,
+  },
+  {
+    key: 'fromEmail',
+    title: t('notification.email_configs.columns.from_email'),
+    dataType: 'string',
+    minWidth: 170,
+    order: 5,
+  },
+  {
+    key: 'fromName',
+    title: t('notification.email_configs.columns.from_name'),
+    dataType: 'string',
+    minWidth: 120,
+    order: 6,
+  },
+  {
+    key: 'isDefault',
+    title: t('notification.email_configs.columns.is_default'),
+    dataType: 'enum',
+    width: 90,
+    order: 7,
+    render: row => (asRow(row).isDefault
+      ? renderTag(t('notification.email_configs.tag.default'), 'warning')
+      : '-'),
+  },
+  {
+    key: 'isEnabled',
+    title: t('notification.email_configs.columns.status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('notification.email_configs.columns.status_placeholder'),
+    width: 90,
+    order: 8,
+    render: row => renderTag(enabledLabel(t, asRow(row).isEnabled), asRow(row).isEnabled
+      ? 'success'
+      : 'danger'),
+  },
+  {
+    key: 'order',
+    title: t('notification.email_configs.columns.sort'),
+    dataType: 'number',
+    sortable: true,
+    width: 80,
+    order: 9,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.email_configs.columns.created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 10,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -50,12 +129,54 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('notification.email_configs.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.email-configs.create' },
-    { key: 'edit', title: t('notification.email_configs.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'notification.email-configs.update' },
+    {
+      key: 'create',
+      title: t('notification.email_configs.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'notification.email-configs.create',
+    },
+    {
+      key: 'edit',
+      title: t('notification.email_configs.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'notification.email-configs.update',
+    },
     // 缺省配置不能停用也不能删除（后端拒绝），入口随之收起；停用的不能设为缺省
-    { key: 'toggle', title: t('notification.email_configs.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => toggleConfirmText(asRow(row)), visible: row => !asRow(row).isDefault, permission: 'notification.email-configs.update' },
-    { key: 'setDefault', title: t('notification.email_configs.actions.set_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => t('notification.email_configs.message.set_default_content', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, disabled: row => !asRow(row).isEnabled, permission: 'notification.email-configs.update' },
-    { key: 'delete', title: t('notification.email_configs.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => t('notification.email_configs.message.delete_content', { name: asRow(row).name }), visible: row => !asRow(row).isDefault, permission: 'notification.email-configs.delete' },
+    {
+      key: 'toggle',
+      title: t('notification.email_configs.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => toggleConfirmText(asRow(row)),
+      visible: row => !asRow(row).isDefault,
+      permission: 'notification.email-configs.update',
+    },
+    {
+      key: 'setDefault',
+      title: t('notification.email_configs.actions.set_default'),
+      scope: 'row',
+      icon: 'lucide:star',
+      confirm: true,
+      confirmText: row => t('notification.email_configs.message.set_default_content', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      disabled: row => !asRow(row).isEnabled,
+      permission: 'notification.email-configs.update',
+    },
+    {
+      key: 'delete',
+      title: t('notification.email_configs.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => t('notification.email_configs.message.delete_content', { name: asRow(row).name }),
+      visible: row => !asRow(row).isDefault,
+      permission: 'notification.email-configs.delete',
+    },
   ],
 }))
 
@@ -66,7 +187,9 @@ function toggleConfirmText(row: EmailConfigRow): string {
 }
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -97,8 +220,12 @@ const submitError = ref<null | string>(null)
 /** 编辑的配置是否已存了密码：已存的留空即保留，占位提示随之改 */
 const editingHasPassword = ref(false)
 const form = reactive<EmailConfigForm>(emptyEmailConfigForm())
-const modalTitle = computed(() => (form.id ? t('notification.email_configs.form.edit_title') : t('notification.email_configs.form.add_title')))
-const passwordPlaceholder = computed(() => (form.id && editingHasPassword.value ? t('notification.email_configs.form.password_configured') : t('notification.email_configs.form.password_placeholder')))
+const modalTitle = computed(() => (form.id
+  ? t('notification.email_configs.form.edit_title')
+  : t('notification.email_configs.form.add_title')))
+const passwordPlaceholder = computed(() => (form.id && editingHasPassword.value
+  ? t('notification.email_configs.form.password_configured')
+  : t('notification.email_configs.form.password_placeholder')))
 
 function openCreate() {
   Object.assign(form, emptyEmailConfigForm())

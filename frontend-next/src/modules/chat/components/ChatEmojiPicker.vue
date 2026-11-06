@@ -36,7 +36,9 @@ function buildPicker() {
   picker?.remove()
   picker = new Picker({
     data,
-    i18n: locale.value.toLowerCase().startsWith('zh') ? i18nZh : i18nEn,
+    i18n: locale.value.toLowerCase().startsWith('zh')
+      ? i18nZh
+      : i18nEn,
     set: 'native',
     skin: 1,
     theme: isDark.value ? 'dark' : 'light',

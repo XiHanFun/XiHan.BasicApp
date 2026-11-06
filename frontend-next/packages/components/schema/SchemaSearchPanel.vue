@@ -31,9 +31,16 @@ const expanded = ref(false)
 const { isMobile } = useIsMobile()
 
 // 小屏：常用区清空，所有搜索条件收入高级区（仅保留操作按钮行，点「高级搜索」展开）
-const effectiveCommonFields = computed(() => isMobile.value ? [] : props.commonFields)
+const effectiveCommonFields = computed(() => isMobile.value
+  ? []
+  : props.commonFields)
 const effectiveAdvancedFields = computed(() =>
-  isMobile.value ? [...props.commonFields, ...props.advancedFields] : props.advancedFields,
+  isMobile.value
+    ? [
+        ...props.commonFields,
+        ...props.advancedFields,
+      ]
+    : props.advancedFields,
 )
 
 const hasAdvanced = computed(() => effectiveAdvancedFields.value.length > 0)

@@ -40,8 +40,13 @@ export function flattenDepartments(items: readonly AssigneeDepartment[]): Direct
   const ids = new Set(items.map(item => item.id))
   const children = new Map<string | null, AssigneeDepartment[]>()
   for (const item of items) {
-    const parent = item.parentId && ids.has(item.parentId) ? item.parentId : null
-    children.set(parent, [...(children.get(parent) ?? []), item])
+    const parent = item.parentId && ids.has(item.parentId)
+      ? item.parentId
+      : null
+    children.set(parent, [
+      ...(children.get(parent) ?? []),
+      item,
+    ])
   }
   const result: DirectoryOption[] = []
   const visit = (parent: string | null, parentPath: string, seen: Set<string>) => {
@@ -49,8 +54,17 @@ export function flattenDepartments(items: readonly AssigneeDepartment[]): Direct
       if (seen.has(node.id))
         continue
       seen.add(node.id)
-      const path = parentPath ? `${parentPath} / ${node.name}` : node.name
-      result.push({ label: path, value: node.code, description: node.code, ...(node.isActive ? {} : { disabled: true }) })
+      const path = parentPath
+        ? `${parentPath} / ${node.name}`
+        : node.name
+      result.push({
+        label: path,
+        value: node.code,
+        description: node.code,
+        ...(node.isActive
+          ? {}
+          : { disabled: true }),
+      })
       visit(node.id, path, seen)
     }
   }
@@ -86,7 +100,11 @@ export function userLabel(user: AssigneeUser): string {
 
 /** 用户转下拉选项（值为用户 ID，与受理人标识同形） */
 export function toUserOption(user: AssigneeUser): DirectoryOption {
-  return { label: userLabel(user), value: user.id, description: user.userName }
+  return {
+    label: userLabel(user),
+    value: user.id,
+    description: user.userName,
+  }
 }
 
 /** 按关键字检索在用账号（结果进缓存；条数由后端定） */
@@ -99,7 +117,9 @@ export async function searchUsers(keyword: string): Promise<AssigneeUser[]> {
 
 /** 按 ID 取用户（缓存命中的不再请求；查不到的与不是用户 ID 的取值不返回；一次最多回显 200 个） */
 export async function resolveUsers(ids: string[]): Promise<AssigneeUser[]> {
-  const unique = [...new Set(ids.filter(id => USER_ID.test(id)))]
+  const unique = [
+    ...new Set(ids.filter(id => USER_ID.test(id))),
+  ]
   const missing = unique.filter(id => !userCache.has(id)).slice(0, 200)
   if (missing.length > 0) {
     const { items } = await workflowAssignees.users({ ids: missing })

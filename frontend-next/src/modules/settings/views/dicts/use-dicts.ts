@@ -40,24 +40,48 @@ export interface DictItemForm {
 export type EditorMode = 'create' | 'edit'
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 function emptyDictForm(): DictForm {
-  return { code: '', name: '', category: '', description: '', order: 0, status: 'Active' }
+  return {
+    code: '',
+    name: '',
+    category: '',
+    description: '',
+    order: 0,
+    status: 'Active',
+  }
 }
 
 function emptyItemForm(): DictItemForm {
-  return { code: '', name: '', parentId: null, value: '', description: '', metadata: '', isDefault: false, order: 0, status: 'Active' }
+  return {
+    code: '',
+    name: '',
+    parentId: null,
+    value: '',
+    description: '',
+    metadata: '',
+    isDefault: false,
+    order: 0,
+    status: 'Active',
+  }
 }
 
 /** 把后端的深度优先平铺列表按 parentId 挂成树；上级不在列表里的项按顶层处理 */
 export function buildDictItemTree(items: readonly DictItemRow[]): DictItemNode[] {
-  const nodes = new Map<string, DictItemNode>(items.map(item => [item.id, { ...item }]))
+  const nodes = new Map<string, DictItemNode>(items.map(item => [
+    item.id,
+    { ...item },
+  ]))
   const roots: DictItemNode[] = []
   for (const item of items) {
     const node = nodes.get(item.id)!
-    const parent = item.parentId ? nodes.get(item.parentId) : undefined
+    const parent = item.parentId
+      ? nodes.get(item.parentId)
+      : undefined
     if (parent)
       (parent.children ??= []).push(node)
     else
@@ -89,7 +113,13 @@ export function dictItemParentOptions(nodes: readonly DictItemNode[], excludeId?
     .filter(node => node.id !== excludeId)
     .map((node) => {
       const children = dictItemParentOptions(node.children ?? [], excludeId)
-      return { value: node.id, label: `${node.code} · ${node.name}`, ...(children.length ? { children } : {}) }
+      return {
+        value: node.id,
+        label: `${node.code} · ${node.name}`,
+        ...(children.length
+          ? { children }
+          : {}),
+      }
     })
 }
 
@@ -100,15 +130,35 @@ export function dictItemParentOptions(nodes: readonly DictItemNode[], excludeId?
 export function dictsResource(): SchemaResource<DictRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await dictsApi.list(toPageRequest(params, { filters: { category: 'eq', owner: 'eq', status: 'eq', isBuiltIn: 'eq' } })),
+      await dictsApi.list(toPageRequest(params, {
+        filters: {
+          category: 'eq',
+          owner: 'eq',
+          status: 'eq',
+          isBuiltIn: 'eq',
+        },
+      })),
       params,
     ),
     // 内建、还有项、另一侧的字典由后端逐项拒绝
-    remove: async id => throwOnFailed(await dictsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await dictsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体覆盖：先取当前值再只改状态
     updateStatus: async (id, enabled) => {
-      const row = await dictsApi.get({ id: String(id) })
-      return dictsApi.update({ id: row.id, name: row.name, category: row.category, description: row.description, order: row.order, status: enabled ? 'Active' : 'Disabled' })
+      const row = await dictsApi.get({
+        id: String(id),
+      })
+      return dictsApi.update({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        description: row.description,
+        order: row.order,
+        status: enabled ? 'Active' : 'Disabled',
+      })
     },
     // 导入：importable 字段组装的记录 → 新建请求（缺省值在此兜底）
     create: record => dictsApi.create({
@@ -116,7 +166,9 @@ export function dictsResource(): SchemaResource<DictRow> {
       name: String(record.name ?? '').trim(),
       category: blankToNull(String(record.category ?? '')),
       description: blankToNull(String(record.description ?? '')),
-      order: typeof record.order === 'number' ? record.order : 0,
+      order: typeof record.order === 'number'
+        ? record.order
+        : 0,
     }),
   }
 }
@@ -132,10 +184,16 @@ export function dictItemsResource(dictId: string, editable: boolean): SchemaReso
   return {
     tree,
     // 还有下级的项由后端拒绝
-    remove: async id => throwOnFailed(await dictItemsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await dictItemsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体覆盖：先取当前值再只改状态
     updateStatus: async (id, enabled) => {
-      const row = await dictItemsApi.get({ id: String(id) })
+      const row = await dictItemsApi.get({
+        id: String(id),
+      })
       return dictItemsApi.update({
         id: row.id,
         name: row.name,
@@ -156,7 +214,9 @@ export function dictItemsResource(dictId: string, editable: boolean): SchemaReso
       value: blankToNull(String(record.value ?? '')),
       description: blankToNull(String(record.description ?? '')),
       isDefault: record.isDefault === true,
-      order: typeof record.order === 'number' ? record.order : 0,
+      order: typeof record.order === 'number'
+        ? record.order
+        : 0,
     }),
   }
 }
@@ -209,7 +269,14 @@ export function useDictEditor(isPlatformCaller: () => boolean) {
   function startEdit(row: DictRow) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, category: row.category ?? '', description: row.description ?? '', order: row.order, status: row.status })
+    reset({
+      code: row.code,
+      name: row.name,
+      category: row.category ?? '',
+      description: row.description ?? '',
+      order: row.order,
+      status: row.status,
+    })
     open.value = true
   }
 
@@ -224,10 +291,23 @@ export function useDictEditor(isPlatformCaller: () => boolean) {
     try {
       const current = editing.value
       if (mode.value === 'edit' && current) {
-        await dictsApi.update({ id: current.id, name: form.name.trim(), category: blankToNull(form.category), description: blankToNull(form.description), order: form.order ?? 0, status: form.status })
+        await dictsApi.update({
+          id: current.id,
+          name: form.name.trim(),
+          category: blankToNull(form.category),
+          description: blankToNull(form.description),
+          order: form.order ?? 0,
+          status: form.status,
+        })
       }
       else {
-        await dictsApi.create({ code: form.code.trim(), name: form.name.trim(), category: blankToNull(form.category), description: blankToNull(form.description), order: form.order ?? 0 })
+        await dictsApi.create({
+          code: form.code.trim(),
+          name: form.name.trim(),
+          category: blankToNull(form.category),
+          description: blankToNull(form.description),
+          order: form.order ?? 0,
+        })
       }
       open.value = false
       return true
@@ -241,7 +321,20 @@ export function useDictEditor(isPlatformCaller: () => boolean) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, isOwn, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    isOwn,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }
 
 /**
@@ -316,10 +409,16 @@ export function useDictItemEditor() {
         isDefault: form.isDefault,
         order: form.order ?? 0,
       }
-      if (mode.value === 'edit' && current)
+      if (mode.value === 'edit' && current) {
         await dictItemsApi.update({ id: current.id, ...common, status: form.status })
-      else
-        await dictItemsApi.create({ dictId: dictId.value ?? '', code: form.code.trim(), ...common })
+      }
+      else {
+        await dictItemsApi.create({
+          dictId: dictId.value ?? '',
+          code: form.code.trim(),
+          ...common,
+        })
+      }
       open.value = false
       return true
     }
@@ -332,5 +431,18 @@ export function useDictItemEditor() {
     }
   }
 
-  return { open, mode, isEdit, editing, form, parentOptions, fieldError, submitError, submitting, startCreate, startEdit, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    parentOptions,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }

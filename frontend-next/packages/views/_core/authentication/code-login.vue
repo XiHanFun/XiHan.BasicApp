@@ -42,13 +42,26 @@ watch(() => formData.value.code, (code) => {
 // 没写则回落 validateMessages 模板，这里逐条给了文案就不需要模板
 const rules = computed<FormRules<typeof formData.value>>(() => ({
   phone: [
-    { required: true, message: t('page.auth.phone_placeholder') },
-    { pattern: /^\d{11}$/, message: t('page.auth.phone_invalid') },
+    {
+      required: true,
+      message: t('page.auth.phone_placeholder'),
+    },
+    {
+      pattern: /^\d{11}$/,
+      message: t('page.auth.phone_invalid'),
+    },
   ],
   code: [
-    { required: true, message: t('page.auth.code_required') },
+    {
+      required: true,
+      message: t('page.auth.code_required'),
+    },
     // 组件库按 min/max 比长度，没有 len 这一档；两端同值即定长
-    { min: OTP_CODE_LENGTH, max: OTP_CODE_LENGTH, message: t('page.auth.code_length_tip') },
+    {
+      min: OTP_CODE_LENGTH,
+      max: OTP_CODE_LENGTH,
+      message: t('page.auth.code_length_tip'),
+    },
   ],
 }))
 

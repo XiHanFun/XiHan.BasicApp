@@ -20,18 +20,30 @@ describe('actionMenuTone', () => {
   })
 
   it('其余语气不着色，与普通条目同档', () => {
-    for (const tone of [undefined, 'neutral', 'brand', 'info', 'success'] as const)
+    for (const tone of [
+      undefined,
+      'neutral',
+      'brand',
+      'info',
+      'success',
+    ] as const)
       expect(actionMenuTone(tone)).toBeUndefined()
   })
 })
 
 describe('actionMenuPrefix', () => {
   it('一条图标都没有时不给插槽，不白占行首一列', () => {
-    expect(actionMenuPrefix([{ key: 'view' }, { key: 'edit' }])).toBeUndefined()
+    expect(actionMenuPrefix([
+      { key: 'view' },
+      { key: 'edit' },
+    ])).toBeUndefined()
   })
 
   it('有图标的条目铺一枚图标，没图标的留空格保持对齐', () => {
-    const prefix = actionMenuPrefix([{ key: 'view' }, { key: 'delete', icon: 'lucide:trash-2' }])!
+    const prefix = actionMenuPrefix([
+      { key: 'view' },
+      { key: 'delete', icon: 'lucide:trash-2' },
+    ])!
     expect(prefix(meta('delete'))).toHaveLength(1)
     expect(prefix(meta('view'))).toEqual([])
   })
@@ -46,7 +58,12 @@ describe('toDropdownCollection', () => {
     ])
     expect(collection).toStrictEqual([
       { value: 'duplicate', label: '复制' },
-      { value: 'delete', label: '删除', tone: 'danger', separatorBefore: true },
+      {
+        value: 'delete',
+        label: '删除',
+        tone: 'danger',
+        separatorBefore: true,
+      },
     ])
   })
 })

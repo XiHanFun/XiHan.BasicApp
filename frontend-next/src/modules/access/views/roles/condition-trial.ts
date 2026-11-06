@@ -31,15 +31,26 @@ export interface TrialBlock {
 /** 试算结果排成块：先列用户本身有条件的拒绝（有才列），再逐条授予路径 */
 export function trialBlocks(result: ConditionTrialResult): TrialBlock[] {
   const blocks: TrialBlock[] = []
-  if (result.denies.length > 0)
-    blocks.push({ key: 'denies', source: 'denies', roleName: null, holds: null, hasUnconditionalGrant: false, sets: [...result.denies] })
+  if (result.denies.length > 0) {
+    blocks.push({
+      key: 'denies',
+      source: 'denies',
+      roleName: null,
+      holds: null,
+      hasUnconditionalGrant: false,
+      sets: [...result.denies],
+    })
+  }
   result.paths.forEach((path, index) => blocks.push({
     key: `${path.source}-${path.roleId ?? index}`,
     source: path.source,
     roleName: path.roleName ?? null,
     holds: path.holds,
     hasUnconditionalGrant: path.hasUnconditionalGrant,
-    sets: [...path.grantSets, ...path.denySets],
+    sets: [
+      ...path.grantSets,
+      ...path.denySets,
+    ],
   }))
   return blocks
 }
@@ -125,6 +136,9 @@ export function conclusionLabel(t: Translate, conclusion: ConditionGroupConclusi
 
 /** 盘点明细导出成 CSV：表头与诊断、结论都用调用方给的文案；带 BOM，表格软件按 UTF-8 打开中文不乱码 */
 export function inventoryToCsv(items: readonly ConditionInventoryItem[], headers: readonly string[], describe: (item: ConditionInventoryItem) => readonly string[]): string {
-  const lines = [headers, ...items.map(describe)].map(row => row.map(cell => csvCell(cell ?? '')).join(','))
+  const lines = [
+    headers,
+    ...items.map(describe),
+  ].map(row => row.map(cell => csvCell(cell ?? '')).join(','))
   return `\uFEFF${lines.join('\r\n')}`
 }

@@ -25,7 +25,9 @@ export function usePermission() {
   function hasRole(role: string | string[]): boolean {
     if (!role)
       return true
-    const roles = Array.isArray(role) ? role : [role]
+    const roles = Array.isArray(role)
+      ? role
+      : [role]
     return roles.some(r => userStore.hasRole(r))
   }
 

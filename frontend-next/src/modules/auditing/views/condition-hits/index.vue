@@ -27,10 +27,45 @@ const asRow = (row: object) => row as ConditionHitRow
 
 // 写入方是 Access 的访问策略与权限条件（排在本批之后），在那之前这里一直是空的
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('auditing.common.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('auditing.condition_hits.keyword_placeholder'), width: 220, order: 0 },
-  { key: 'occurredAt', title: t('auditing.common.occurred_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, exportable: true, minWidth: 170, order: 1 },
-  { key: 'policyName', title: t('auditing.condition_hits.policy_name'), dataType: 'string', exportable: true, minWidth: 160, order: 2 },
-  { key: 'policyCode', title: t('auditing.condition_hits.policy_code'), dataType: 'string', sortable: true, advancedSearch: true, exportable: true, minWidth: 180, order: 3 },
+  {
+    key: 'keyword',
+    title: t('auditing.common.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('auditing.condition_hits.keyword_placeholder'),
+    width: 220,
+    order: 0,
+  },
+  {
+    key: 'occurredAt',
+    title: t('auditing.common.occurred_at'),
+    dataType: 'datetime',
+    sortable: true,
+    searchable: true,
+    searchRange: true,
+    exportable: true,
+    minWidth: 170,
+    order: 1,
+  },
+  {
+    key: 'policyName',
+    title: t('auditing.condition_hits.policy_name'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 160,
+    order: 2,
+  },
+  {
+    key: 'policyCode',
+    title: t('auditing.condition_hits.policy_code'),
+    dataType: 'string',
+    sortable: true,
+    advancedSearch: true,
+    exportable: true,
+    minWidth: 180,
+    order: 3,
+  },
   {
     key: 'action',
     title: t('auditing.condition_hits.action'),
@@ -54,16 +89,90 @@ const fields = computed<ListFieldSchema[]>(() => [
     exportable: true,
     width: 100,
     order: 5,
-    render: row => renderTag(asRow(row).isBlocked ? t('auditing.condition_hits.blocked_yes') : t('auditing.condition_hits.blocked_no'), asRow(row).isBlocked ? 'danger' : 'neutral'),
+    render: row => renderTag(asRow(row).isBlocked
+      ? t('auditing.condition_hits.blocked_yes')
+      : t('auditing.condition_hits.blocked_no'), asRow(row).isBlocked
+      ? 'danger'
+      : 'neutral'),
   },
-  { key: 'source', title: t('auditing.condition_hits.source'), dataType: 'enum', advancedSearch: true, options: conditionSourceOptions(t), exportable: true, width: 120, order: 6, render: row => conditionSourceLabel(t, asRow(row).source) },
-  { key: 'phase', title: t('auditing.condition_hits.phase'), dataType: 'enum', advancedSearch: true, options: conditionPhaseOptions(t), exportable: true, width: 120, order: 7, render: row => conditionPhaseLabel(t, asRow(row).phase) },
-  { key: 'hitCount', title: t('auditing.condition_hits.hit_count'), dataType: 'number', sortable: true, exportable: true, width: 90, order: 8 },
-  { key: 'method', title: t('auditing.common.method'), dataType: 'string', width: 100, order: 9, render: row => renderHttpMethod(asRow(row).method) },
-  { key: 'path', title: t('auditing.common.path'), dataType: 'string', advancedSearch: true, ellipsis: true, exportable: true, minWidth: 200, order: 10 },
-  { key: 'userName', title: t('auditing.common.user_name'), dataType: 'string', sortable: true, advancedSearch: true, exportable: true, minWidth: 120, order: 11 },
-  { key: 'clientIp', title: t('auditing.common.client_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('auditing.common.client_ip'), exportable: true, minWidth: 130, order: 12 },
-  { key: 'traceId', title: t('auditing.common.trace_id'), dataType: 'string', advancedSearch: true, visible: false, minWidth: 260, order: 13 },
+  {
+    key: 'source',
+    title: t('auditing.condition_hits.source'),
+    dataType: 'enum',
+    advancedSearch: true,
+    options: conditionSourceOptions(t),
+    exportable: true,
+    width: 120,
+    order: 6,
+    render: row => conditionSourceLabel(t, asRow(row).source),
+  },
+  {
+    key: 'phase',
+    title: t('auditing.condition_hits.phase'),
+    dataType: 'enum',
+    advancedSearch: true,
+    options: conditionPhaseOptions(t),
+    exportable: true,
+    width: 120,
+    order: 7,
+    render: row => conditionPhaseLabel(t, asRow(row).phase),
+  },
+  {
+    key: 'hitCount',
+    title: t('auditing.condition_hits.hit_count'),
+    dataType: 'number',
+    sortable: true,
+    exportable: true,
+    width: 90,
+    order: 8,
+  },
+  {
+    key: 'method',
+    title: t('auditing.common.method'),
+    dataType: 'string',
+    width: 100,
+    order: 9,
+    render: row => renderHttpMethod(asRow(row).method),
+  },
+  {
+    key: 'path',
+    title: t('auditing.common.path'),
+    dataType: 'string',
+    advancedSearch: true,
+    ellipsis: true,
+    exportable: true,
+    minWidth: 200,
+    order: 10,
+  },
+  {
+    key: 'userName',
+    title: t('auditing.common.user_name'),
+    dataType: 'string',
+    sortable: true,
+    advancedSearch: true,
+    exportable: true,
+    minWidth: 120,
+    order: 11,
+  },
+  {
+    key: 'clientIp',
+    title: t('auditing.common.client_ip'),
+    dataType: 'string',
+    searchable: true,
+    searchPlaceholder: t('auditing.common.client_ip'),
+    exportable: true,
+    minWidth: 130,
+    order: 12,
+  },
+  {
+    key: 'traceId',
+    title: t('auditing.common.trace_id'),
+    dataType: 'string',
+    advancedSearch: true,
+    visible: false,
+    minWidth: 260,
+    order: 13,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -74,15 +183,27 @@ const schema = computed<PageSchema>(() => ({
   fields: decorateTraceFields(fields.value, router),
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'view', title: t('common.actions.detail'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'trace', title: t('auditing.common.trace_action'), scope: 'row', icon: 'lucide:route' },
+    {
+      key: 'view',
+      title: t('common.actions.detail'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'trace',
+      title: t('auditing.common.trace_action'),
+      scope: 'row',
+      icon: 'lucide:route',
+    },
   ],
 }))
 
 const detailSchema = computed(() => conditionHitDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   if (payload.key === 'view' && row)
     void openDetail(row)
   else if (payload.key === 'trace' && row && !gotoTrace(router, row, row.occurredAt))

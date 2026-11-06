@@ -28,8 +28,14 @@ const seconds = ref<number | null>(null)
 const cron = ref('')
 
 const kindOptions = computed(() => [
-  { value: 'cron' as const, label: t('maintenance.jobs.kind_cron') },
-  { value: 'interval' as const, label: t('maintenance.jobs.kind_interval') },
+  {
+    value: 'cron' as const,
+    label: t('maintenance.jobs.kind_cron'),
+  },
+  {
+    value: 'interval' as const,
+    label: t('maintenance.jobs.kind_interval'),
+  },
 ])
 
 /** 自己刚发出去的计划：父级回传时不再回填，免得清空间隔秒数时被当成 Cron */
@@ -51,12 +57,18 @@ watch(() => props.expression, (value) => {
 }, { immediate: true })
 
 function emitCurrent() {
-  emitted = kind.value === 'cron' ? cron.value : (seconds.value && seconds.value > 0 ? intervalExpression(seconds.value) : '')
+  emitted = kind.value === 'cron'
+    ? cron.value
+    : (seconds.value && seconds.value > 0
+        ? intervalExpression(seconds.value)
+        : '')
   emit('update:expression', emitted)
 }
 
 function onKind(value: unknown) {
-  kind.value = value === 'interval' ? 'interval' : 'cron'
+  kind.value = value === 'interval'
+    ? 'interval'
+    : 'cron'
   emitCurrent()
 }
 

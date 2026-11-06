@@ -50,15 +50,22 @@ export function useDesignerSettings(pageCode: string, defaults: DesignerSettings
   const removed = new Set<string>()
 
   function apply(): void {
-    if (designer)
-      designer.settings = { ...defaults, ...changed }
+    if (designer) {
+      designer.settings = {
+        ...defaults,
+        ...changed,
+      }
+    }
   }
 
   // 取回之前用户已经改过或清空的条目以那次操作为准
   void sync.hydrate<unknown>(SETTINGS_SECTION).then((stored) => {
     if (isSettings(stored)) {
       const kept = Object.fromEntries(Object.entries(stored).filter(([key]) => !removed.has(key)))
-      changed = { ...kept, ...changed }
+      changed = {
+        ...kept,
+        ...changed,
+      }
     }
     ready.value = true
     apply()

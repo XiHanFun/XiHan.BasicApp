@@ -5,7 +5,12 @@ import { useAppStore } from '~/stores'
 
 function isLocalHost(): boolean {
   const { hostname } = window.location
-  return ['localhost', '127.0.0.1', '[::1]', '0.0.0.0'].includes(hostname)
+  return [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    '0.0.0.0',
+  ].includes(hostname)
 }
 
 /**
@@ -29,7 +34,9 @@ async function fetchDeployedStamp(): Promise<string | null> {
       return null
     }
     const manifest = await response.json() as { buildStamp?: unknown }
-    return typeof manifest.buildStamp === 'string' ? manifest.buildStamp : null
+    return typeof manifest.buildStamp === 'string'
+      ? manifest.buildStamp
+      : null
   }
   catch {
     return null

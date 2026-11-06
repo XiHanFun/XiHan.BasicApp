@@ -46,27 +46,104 @@ const STATUS_TONE: Record<DelegationStatus, 'danger' | 'neutral' | 'success' | '
 
 /** 4.x 的「{from} 至 {to}」：没有生效时间即创建即生效 */
 function validityRange(row: DelegationRow): string {
-  return t('access.delegations.validity_range', { from: row.effectiveAt ? formatDate(row.effectiveAt) : '-', to: formatDate(row.expiresAt) })
+  return t('access.delegations.validity_range', {
+    from: row.effectiveAt
+      ? formatDate(row.effectiveAt)
+      : '-',
+    to: formatDate(row.expiresAt),
+  })
 }
 
-const statusOptions = computed<SelectOption[]>(() => DELEGATION_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => DELEGATION_STATUSES.map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const targetKindOptions = computed(() => [
-  { value: 'role', label: t('access.delegations.kind_role') },
-  { value: 'permission', label: t('access.delegations.kind_permission') },
+  {
+    value: 'role',
+    label: t('access.delegations.kind_role'),
+  },
+  {
+    value: 'permission',
+    label: t('access.delegations.kind_permission'),
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的） ──
 const asRow = (row: object) => row as DelegationRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('access.delegations.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.delegations.keyword_placeholder'), width: 240, order: 0 },
-  { key: 'delegatorName', title: t('access.delegations.fields.delegator'), dataType: 'string', minWidth: 160, order: 1, render: row => asRow(row).delegatorName ?? asRow(row).delegatorId },
-  { key: 'delegateeName', title: t('access.delegations.fields.delegatee'), dataType: 'string', minWidth: 160, order: 2, render: row => asRow(row).delegateeName ?? asRow(row).delegateeId },
-  { key: 'target', title: t('access.delegations.fields.target'), dataType: 'string', minWidth: 170, order: 3, render: row => delegationTarget(asRow(row), permissionNames.nameOf) },
-  { key: 'status', title: t('access.delegations.fields.status'), dataType: 'enum', searchable: true, searchMultiple: true, options: statusOptions.value, searchPlaceholder: t('access.delegations.status_placeholder'), width: 100, order: 4, render: row => renderTag(statusLabel(asRow(row).status), STATUS_TONE[asRow(row).status]) },
-  { key: 'expiresAt', title: t('access.delegations.fields.validity'), dataType: 'string', sortable: true, minWidth: 300, order: 5, render: row => validityRange(asRow(row)) },
-  { key: 'reason', title: t('access.delegations.fields.reason'), dataType: 'text', ellipsis: true, minWidth: 160, order: 6 },
-  { key: 'createdAt', title: t('access.delegations.fields.created_at'), dataType: 'datetime', sortable: true, minWidth: 170, order: 7 },
+  {
+    key: 'keyword',
+    title: t('access.delegations.fields.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('access.delegations.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
+  {
+    key: 'delegatorName',
+    title: t('access.delegations.fields.delegator'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 1,
+    render: row => asRow(row).delegatorName ?? asRow(row).delegatorId,
+  },
+  {
+    key: 'delegateeName',
+    title: t('access.delegations.fields.delegatee'),
+    dataType: 'string',
+    minWidth: 160,
+    order: 2,
+    render: row => asRow(row).delegateeName ?? asRow(row).delegateeId,
+  },
+  {
+    key: 'target',
+    title: t('access.delegations.fields.target'),
+    dataType: 'string',
+    minWidth: 170,
+    order: 3,
+    render: row => delegationTarget(asRow(row), permissionNames.nameOf),
+  },
+  {
+    key: 'status',
+    title: t('access.delegations.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: statusOptions.value,
+    searchPlaceholder: t('access.delegations.status_placeholder'),
+    width: 100,
+    order: 4,
+    render: row => renderTag(statusLabel(asRow(row).status), STATUS_TONE[asRow(row).status]),
+  },
+  {
+    key: 'expiresAt',
+    title: t('access.delegations.fields.validity'),
+    dataType: 'string',
+    sortable: true,
+    minWidth: 300,
+    order: 5,
+    render: row => validityRange(asRow(row)),
+  },
+  {
+    key: 'reason',
+    title: t('access.delegations.fields.reason'),
+    dataType: 'text',
+    ellipsis: true,
+    minWidth: 160,
+    order: 6,
+  },
+  {
+    key: 'createdAt',
+    title: t('access.delegations.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 7,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -79,14 +156,42 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('access.delegations.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.delegations.create' },
-    { key: 'revoke', title: t('access.delegations.actions.revoke'), scope: 'row', icon: 'lucide:undo-2', tone: 'danger', confirm: true, confirmText: row => actionConfirmText(t, t('access.delegations.actions.revoke'), delegationName(asRow(row), permissionNames.nameOf)), visible: row => canRevoke(asRow(row)), permission: 'access.delegations.revoke' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(asRow(row), permissionNames.nameOf)), permission: 'access.delegations.delete' },
+    {
+      key: 'create',
+      title: t('access.delegations.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'access.delegations.create',
+    },
+    {
+      key: 'revoke',
+      title: t('access.delegations.actions.revoke'),
+      scope: 'row',
+      icon: 'lucide:undo-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => actionConfirmText(t, t('access.delegations.actions.revoke'), delegationName(asRow(row), permissionNames.nameOf)),
+      visible: row => canRevoke(asRow(row)),
+      permission: 'access.delegations.revoke',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, delegationName(asRow(row), permissionNames.nameOf)),
+      permission: 'access.delegations.delete',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.start().catch((error: unknown) => toast.danger((error as Error).message || t('access.delegations.msg_load_candidates_failed')))

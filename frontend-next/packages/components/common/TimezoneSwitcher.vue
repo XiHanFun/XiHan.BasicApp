@@ -55,7 +55,9 @@ onMounted(() => {
 })
 
 /** 当前选中：apply 取应用时区，否则取受控值（兜底应用时区） */
-const current = computed(() => (props.apply ? appStore.appTimezone : (props.value ?? appStore.appTimezone)))
+const current = computed(() => (props.apply
+  ? appStore.appTimezone
+  : (props.value ?? appStore.appTimezone)))
 
 // select 形态给完整目录（可搜索，供编号规则等需要任意时区的场景）；
 // dropdown 形态是顶栏点开即选，只给常用几条，四百多条没法用
@@ -67,7 +69,11 @@ const dropdownOptions = computed<MenuNode[]>(() =>
 const selectStyle = computed(() =>
   props.selectWidth == null
     ? undefined
-    : { inlineSize: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
+    : {
+        inlineSize: typeof props.selectWidth === 'number'
+          ? `${props.selectWidth}px`
+          : props.selectWidth,
+      })
 
 function choose(timezone: string) {
   if (props.apply) {

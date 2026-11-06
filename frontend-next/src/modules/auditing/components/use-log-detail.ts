@@ -18,7 +18,9 @@ export function useLogDetail<TRow extends { id: string }>(fetch: (id: string) =>
       record.value = await fetch(row.id)
     }
     catch (error) {
-      toast.danger(error instanceof ApiError ? error.message : failedMessage())
+      toast.danger(error instanceof ApiError
+        ? error.message
+        : failedMessage())
     }
     finally {
       loading.value = false

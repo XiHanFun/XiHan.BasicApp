@@ -296,7 +296,16 @@ describe('deepClone', () => {
   })
 
   it('嵌套对象逐层复制，修改副本不影响原对象', () => {
-    const source = { a: 1, nested: { list: [1, 2, { deep: 'x' }] } }
+    const source = {
+      a: 1,
+      nested: {
+        list: [
+          1,
+          2,
+          { deep: 'x' },
+        ],
+      },
+    }
     const cloned = deepClone(source)
 
     cloned.nested.list[2] = { deep: 'y' }
@@ -313,7 +322,10 @@ describe('deepClone', () => {
   })
 
   it('数组复制后是新数组且元素逐个深拷贝', () => {
-    const source = [{ v: 1 }, { v: 2 }]
+    const source = [
+      { v: 1 },
+      { v: 2 },
+    ]
     const cloned = deepClone(source)
 
     expect(cloned).not.toBe(source)
@@ -332,7 +344,12 @@ describe('deepClone', () => {
   })
 
   it('容器类型 Map 与 Set 会退化成空对象，结构化数据被丢失（当前行为，不支持这两类容器）', () => {
-    const cloned = deepClone({ map: new Map([['k', 'v']]), set: new Set([1, 2]) })
+    const cloned = deepClone({
+      map: new Map([
+        ['k', 'v'],
+      ]),
+      set: new Set([1, 2]),
+    })
 
     expect(cloned.map).toEqual({})
     expect(cloned.set).toEqual({})
@@ -385,7 +402,9 @@ describe('isEmpty', () => {
 
   it('容器类型 Map 与 Set 按 size 判定，非空集合不再被判为空', () => {
     // 回归锚点：同上，Map/Set 也没有自有可枚举键，原本非空集合一律判空
-    expect(isEmpty(new Map([['k', 'v']]))).toBe(false)
+    expect(isEmpty(new Map([
+      ['k', 'v'],
+    ]))).toBe(false)
     expect(isEmpty(new Set([1, 2]))).toBe(false)
     expect(isEmpty(new Map())).toBe(true)
     expect(isEmpty(new Set())).toBe(true)
@@ -531,6 +550,8 @@ describe('getOptionLabel', () => {
   })
 
   it('选项标签为空串时原样返回空串而不是兜底', () => {
-    expect(getOptionLabel([{ label: '', value: 5 }], 5)).toBe('')
+    expect(getOptionLabel([
+      { label: '', value: 5 },
+    ], 5)).toBe('')
   })
 })

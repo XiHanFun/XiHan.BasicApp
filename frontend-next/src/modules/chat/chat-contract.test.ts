@@ -142,9 +142,21 @@ describe('权限码与本地存储键', () => {
 
 describe('业务枚举与后端序列化值对齐', () => {
   it('会话类型、成员角色、消息类型的成员与后端一致（生成的契约字面量）', () => {
-    expect([...ChatConversationType]).toStrictEqual(['Single', 'Group', 'Department', 'Assistant'])
+    expect([...ChatConversationType]).toStrictEqual([
+      'Single',
+      'Group',
+      'Department',
+      'Assistant',
+    ])
     expect([...ChatMemberRole]).toStrictEqual(['Owner', 'Admin', 'Member'])
-    expect([...ChatMessageType]).toStrictEqual(['Text', 'Image', 'Voice', 'File', 'Assistant', 'System'])
+    expect([...ChatMessageType]).toStrictEqual([
+      'Text',
+      'Image',
+      'Voice',
+      'File',
+      'Assistant',
+      'System',
+    ])
   })
 
   it('三个枚举各自取值互不重复', () => {

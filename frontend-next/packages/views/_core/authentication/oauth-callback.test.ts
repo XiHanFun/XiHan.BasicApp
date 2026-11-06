@@ -15,20 +15,54 @@ import { configureRequest } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 import OAuthCallbackPage from './oauth-callback.vue'
 
-const Blank = { render: () => null }
+const Blank = {
+  render: () => null,
+}
 
-const user = { id: 'u-1', userName: 'alice', displayName: 'Alice', email: null, phoneNumber: null, homeTenantId: 'acme', status: 'Active', lastLoginAt: null, createdAt: '2026-10-28T00:00:00Z', createdBy: null }
+const user = {
+  id: 'u-1',
+  userName: 'alice',
+  displayName: 'Alice',
+  email: null,
+  phoneNumber: null,
+  homeTenantId: 'acme',
+  status: 'Active',
+  lastLoginAt: null,
+  createdAt: '2026-10-28T00:00:00Z',
+  createdBy: null,
+}
 
 function signIn() {
-  useAuthStore().session = { accessToken: 'a-1', accessExpiresAt: '2026-10-28T02:00:00Z', refreshToken: 'r-1', refreshExpiresAt: '2026-11-04T00:00:00Z', sessionId: 's-1', tenantId: 'acme', tenantName: null, impersonatorUserName: null, mustChangePassword: false, user } as never
+  useAuthStore().session = {
+    accessToken: 'a-1',
+    accessExpiresAt: '2026-10-28T02:00:00Z',
+    refreshToken: 'r-1',
+    refreshExpiresAt: '2026-11-04T00:00:00Z',
+    sessionId: 's-1',
+    tenantId: 'acme',
+    tenantName: null,
+    impersonatorUserName: null,
+    mustChangePassword: false,
+    user,
+  } as never
 }
 
 function pending(mode: 'bind' | 'login', provider = 'github', redirect?: string) {
-  sessionStorage.setItem('xihan.next.oauth-pending', JSON.stringify({ mode, provider, startedAt: Date.now(), ...(redirect ? { redirect } : {}) }))
+  sessionStorage.setItem('xihan.next.oauth-pending', JSON.stringify({
+    mode,
+    provider,
+    startedAt: Date.now(),
+    ...(redirect
+      ? { redirect }
+      : {}),
+  }))
 }
 
 function problem(status: number, code: string, detail: string): Response {
-  return new Response(JSON.stringify({ code, status, detail }), { status, headers: { 'Content-Type': 'application/problem+json' } })
+  return new Response(JSON.stringify({ code, status, detail }), {
+    status,
+    headers: { 'Content-Type': 'application/problem+json' },
+  })
 }
 
 const linkAccountApi = vi.fn()
@@ -43,9 +77,17 @@ async function open(query: string) {
       { path: '/:p(.*)*', component: Blank },
     ],
   })
-  registerAppContext({ apis: { linkAccountApi } as unknown as AppContextApis, getRouter: () => Promise.resolve(router), shellRoutes: { profile: '/profile' } })
+  registerAppContext({
+    apis: { linkAccountApi } as unknown as AppContextApis,
+    getRouter: () => Promise.resolve(router),
+    shellRoutes: { profile: '/profile' },
+  })
   await router.push(`${OAUTH_CALLBACK_PATH}?${query}`)
-  const wrapper = mount(OAuthCallbackPage, { global: { plugins: [i18n, router] } })
+  const wrapper = mount(OAuthCallbackPage, {
+    global: {
+      plugins: [i18n, router],
+    },
+  })
   await flushPromises()
   return { router, wrapper }
 }
@@ -60,7 +102,9 @@ beforeEach(() => {
   linkAccountApi.mockReset()
   vi.spyOn(toast, 'success').mockImplementation(() => '')
   vi.spyOn(toast, 'danger').mockImplementation(() => '')
-  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  vi.useFakeTimers({
+    toFake: ['setTimeout', 'clearTimeout'],
+  })
 })
 
 afterEach(() => {
@@ -80,7 +124,12 @@ describe('第三方登录回调页', () => {
   })
 
   it('四个错误码都有文案；不认识的按登录失败说', async () => {
-    for (const [code, key] of [['invalid_provider', 'oauth_err_invalid_provider'], ['invalid_state', 'oauth_err_invalid_state'], ['external_auth_failed', 'oauth_err_external_auth_failed'], ['server_error', 'oauth_callback_failed']]) {
+    for (const [code, key] of [
+      ['invalid_provider', 'oauth_err_invalid_provider'],
+      ['invalid_state', 'oauth_err_invalid_state'],
+      ['external_auth_failed', 'oauth_err_external_auth_failed'],
+      ['server_error', 'oauth_callback_failed'],
+    ]) {
       const { wrapper } = await open(`error=${code}&provider=github`)
       expect(wrapper.text()).toContain(t(`page.auth.${key}`))
       wrapper.unmount()
@@ -145,7 +194,22 @@ describe('第三方登录回调页', () => {
     configureRequest({
       baseUrl: '',
       getToken: () => null,
-      fetch: (async () => new Response(JSON.stringify({ token: { accessToken: 'a-1', accessExpiresAt: '2026-10-28T02:00:00Z', refreshToken: 'r-1', refreshExpiresAt: '2026-11-04T00:00:00Z', sessionId: 's-1', tenantId: 'acme', mustChangePassword: false, user }, twoFactor: null }), { status: 200, headers: { 'Content-Type': 'application/json' } })) as unknown as typeof fetch,
+      fetch: (async () => new Response(JSON.stringify({
+        token: {
+          accessToken: 'a-1',
+          accessExpiresAt: '2026-10-28T02:00:00Z',
+          refreshToken: 'r-1',
+          refreshExpiresAt: '2026-11-04T00:00:00Z',
+          sessionId: 's-1',
+          tenantId: 'acme',
+          mustChangePassword: false,
+          user,
+        },
+        twoFactor: null,
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })) as unknown as typeof fetch,
     })
     const { router } = await open('ticket=x-1&mode=login&provider=github')
     expect(useAuthStore().accessToken).toBe('a-1')
@@ -154,7 +218,11 @@ describe('第三方登录回调页', () => {
 
   it('登录失败（没有绑定的第三方账号等）显示后端的 detail，3 秒后回登录页', async () => {
     pending('login', 'github')
-    configureRequest({ baseUrl: '', getToken: () => null, fetch: (async () => problem(403, 'IDENTITY_DENIED_015', '这个第三方账号还没有绑定，请先用账号密码登录，再到个人中心绑定。')) as unknown as typeof fetch })
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async () => problem(403, 'IDENTITY_DENIED_015', '这个第三方账号还没有绑定，请先用账号密码登录，再到个人中心绑定。')) as unknown as typeof fetch,
+    })
     const { router, wrapper } = await open('ticket=x-1&mode=login&provider=github')
     expect(wrapper.text()).toContain('这个第三方账号还没有绑定，请先用账号密码登录，再到个人中心绑定。')
     expect(wrapper.text()).toContain(t('page.auth.oauth_callback_redirect'))

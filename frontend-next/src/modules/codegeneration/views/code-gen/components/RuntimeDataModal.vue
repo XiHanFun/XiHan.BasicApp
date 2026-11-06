@@ -107,7 +107,10 @@ async function loadData() {
     return
   dataLoading.value = true
   try {
-    const result = await codegenRuntime.list({ id: props.tableId, page: { index: page.value, size: pageSize.value } })
+    const result = await codegenRuntime.list({
+      id: props.tableId,
+      page: { index: page.value, size: pageSize.value },
+    })
     result.items.forEach((row, index) => rowKeys.set(row, String(index)))
     rows.value = result.items
     total.value = result.total

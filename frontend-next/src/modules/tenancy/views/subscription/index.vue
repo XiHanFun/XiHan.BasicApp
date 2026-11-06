@@ -25,9 +25,15 @@ function statusLabel(status: SubscriptionStatus): string {
   }
 }
 
-const quotas = computed(() => (subscription.value ? subscriptionQuotas(t, subscription.value) : []))
-const expiry = computed(() => (subscription.value ? subscriptionExpiry(t, subscription.value) : null))
-const pricing = computed(() => (subscription.value ? subscriptionPricing(t, subscription.value) : null))
+const quotas = computed(() => (subscription.value
+  ? subscriptionQuotas(t, subscription.value)
+  : []))
+const expiry = computed(() => (subscription.value
+  ? subscriptionExpiry(t, subscription.value)
+  : null))
+const pricing = computed(() => (subscription.value
+  ? subscriptionPricing(t, subscription.value)
+  : null))
 </script>
 
 <template>

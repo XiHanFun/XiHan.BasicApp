@@ -5,7 +5,9 @@ export const LocalStorage = {
   get<T = unknown>(key: string): T | null {
     try {
       const value = localStorage.getItem(key)
-      return value ? (JSON.parse(value) as T) : null
+      return value
+        ? (JSON.parse(value) as T)
+        : null
     }
     catch {
       return null
@@ -60,7 +62,9 @@ export const SessionStorage = {
   get<T = unknown>(key: string): T | null {
     try {
       const value = sessionStorage.getItem(key)
-      return value ? (JSON.parse(value) as T) : null
+      return value
+        ? (JSON.parse(value) as T)
+        : null
     }
     catch {
       return null

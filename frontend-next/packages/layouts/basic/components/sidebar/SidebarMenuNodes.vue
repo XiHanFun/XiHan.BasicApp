@@ -37,8 +37,14 @@ const props = defineProps<{
 function linkBinding(key: string) {
   const target = props.linkOf(key)
   return target.href === undefined
-    ? { is: RouterLink, attrs: { to: target.to } }
-    : { is: 'a', attrs: { href: target.href, target: '_blank', rel: 'noopener noreferrer' } }
+    ? {
+        is: RouterLink,
+        attrs: { to: target.to },
+      }
+    : {
+        is: 'a',
+        attrs: { href: target.href, target: '_blank', rel: 'noopener noreferrer' },
+      }
 }
 </script>
 

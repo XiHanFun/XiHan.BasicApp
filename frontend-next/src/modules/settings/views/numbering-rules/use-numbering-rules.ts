@@ -10,7 +10,15 @@ export type DateFormat = RuleRow['dateFormat']
 export type ResetCycle = RuleRow['resetCycle']
 export type RuleStatus = RuleRow['status']
 
-export const DATE_FORMATS: readonly DateFormat[] = ['None', 'Yyyy', 'YyyyMM', 'YyyyMMdd', 'YyMM', 'YyMMdd', 'MMdd']
+export const DATE_FORMATS: readonly DateFormat[] = [
+  'None',
+  'Yyyy',
+  'YyyyMM',
+  'YyyyMMdd',
+  'YyMM',
+  'YyMMdd',
+  'MMdd',
+]
 export const RESET_CYCLES: readonly ResetCycle[] = ['Never', 'Daily', 'Monthly', 'Yearly']
 
 /** 一次预览最多拼多少个号（后端 NumberingFormatter.MaxPreview） */
@@ -59,11 +67,26 @@ export interface ResetForm {
 export type EditorMode = 'create' | 'edit'
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 function emptyRuleForm(): RuleForm {
-  return { code: '', name: '', prefix: '', separator: '-', dateFormat: 'YyyyMMdd', serialLength: 4, resetCycle: 'Daily', timeZoneId: 'UTC', allowTenantUse: false, order: 0, description: '', status: 'Active' }
+  return {
+    code: '',
+    name: '',
+    prefix: '',
+    separator: '-',
+    dateFormat: 'YyyyMMdd',
+    serialLength: 4,
+    resetCycle: 'Daily',
+    timeZoneId: 'UTC',
+    allowTenantUse: false,
+    order: 0,
+    description: '',
+    status: 'Active',
+  }
 }
 
 /** 提交失败：字段级错误挂回对应字段，其余给整条提示 */
@@ -97,14 +120,22 @@ function formatOf(form: Pick<RuleForm, 'dateFormat' | 'prefix' | 'resetCycle' | 
 export function numberingRulesResource(): SchemaResource<RuleRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await rulesApi.list(toPageRequest(params, { filters: { owner: 'eq', status: 'eq', resetCycle: 'eq' } })),
+      await rulesApi.list(toPageRequest(params, {
+        filters: { owner: 'eq', status: 'eq', resetCycle: 'eq' },
+      })),
       params,
     ),
     // 发过号的与另一侧的规则由后端逐项拒绝
-    remove: async id => throwOnFailed(await rulesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await rulesApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体覆盖：先取当前值再只改状态（格式原样带回，发过号的规则不会被判成改格式）
     updateStatus: async (id, enabled) => {
-      const row = await rulesApi.get({ id: String(id) })
+      const row = await rulesApi.get({
+        id: String(id),
+      })
       return rulesApi.update({
         id: row.id,
         name: row.name,
@@ -127,13 +158,19 @@ export function numberingRulesResource(): SchemaResource<RuleRow> {
         code: String(record.code ?? '').trim(),
         name: String(record.name ?? '').trim(),
         prefix: blankToNull(String(record.prefix ?? '')),
-        separator: typeof record.separator === 'string' ? record.separator : defaults.separator,
+        separator: typeof record.separator === 'string'
+          ? record.separator
+          : defaults.separator,
         dateFormat: (record.dateFormat as DateFormat | undefined) ?? defaults.dateFormat,
-        serialLength: typeof record.serialLength === 'number' ? record.serialLength : 4,
+        serialLength: typeof record.serialLength === 'number'
+          ? record.serialLength
+          : 4,
         resetCycle: (record.resetCycle as ResetCycle | undefined) ?? defaults.resetCycle,
         timeZoneId: String(record.timeZoneId ?? '').trim() || defaults.timeZoneId,
         allowTenantUse: false,
-        order: typeof record.order === 'number' ? record.order : 0,
+        order: typeof record.order === 'number'
+          ? record.order
+          : 0,
         description: blankToNull(String(record.description ?? '')),
       })
     },
@@ -208,7 +245,11 @@ export function useNumberingRuleEditor(isPlatformCaller: () => boolean) {
       return
     previewing.value = true
     try {
-      const result = await rulesApi.preview({ ...formatOf(form), startValue: '1', count: 1 })
+      const result = await rulesApi.preview({
+        ...formatOf(form),
+        startValue: '1',
+        count: 1,
+      })
       previewNumber.value = result.numbers[0] ?? ''
     }
     finally {
@@ -230,10 +271,15 @@ export function useNumberingRuleEditor(isPlatformCaller: () => boolean) {
         order: form.order ?? 0,
         description: blankToNull(form.description),
       }
-      if (mode.value === 'edit' && current)
+      if (mode.value === 'edit' && current) {
         await rulesApi.update({ id: current.id, ...common, status: form.status })
-      else
-        await rulesApi.create({ code: form.code.trim(), ...common })
+      }
+      else {
+        await rulesApi.create({
+          code: form.code.trim(),
+          ...common,
+        })
+      }
       open.value = false
       return true
     }
@@ -246,7 +292,24 @@ export function useNumberingRuleEditor(isPlatformCaller: () => boolean) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, formatFrozen, fieldError, submitError, submitting, previewNumber, previewing, isOwn, startCreate, startEdit, runPreview, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    formatFrozen,
+    fieldError,
+    submitError,
+    submitting,
+    previewNumber,
+    previewing,
+    isOwn,
+    startCreate,
+    startEdit,
+    runPreview,
+    submit,
+  }
 }
 
 /**
@@ -266,7 +329,11 @@ export function useNumberingReset() {
 
   function start(row: RuleRow) {
     target.value = row
-    Object.assign(form, { nextValue: (BigInt(row.currentValue) + 1n).toString(), reason: '', confirmCode: '' })
+    Object.assign(form, {
+      nextValue: (BigInt(row.currentValue) + 1n).toString(),
+      reason: '',
+      confirmCode: '',
+    })
     fieldErrors.value = {}
     submitError.value = null
     open.value = true
@@ -288,7 +355,9 @@ export function useNumberingReset() {
         id: current.id,
         nextValue: form.nextValue.trim(),
         reason: form.reason.trim(),
-        confirmCode: needsConfirm.value ? blankToNull(form.confirmCode) : null,
+        confirmCode: needsConfirm.value
+          ? blankToNull(form.confirmCode)
+          : null,
       })
       open.value = false
       return true
@@ -302,7 +371,17 @@ export function useNumberingReset() {
     }
   }
 
-  return { open, target, form, needsConfirm, fieldError, submitError, submitting, start, submit }
+  return {
+    open,
+    target,
+    form,
+    needsConfirm,
+    fieldError,
+    submitError,
+    submitting,
+    start,
+    submit,
+  }
 }
 
 export type PreviewMode = 'batch' | 'single'
@@ -362,7 +441,9 @@ export function useNumberingPreview() {
     const start = startValue.value.trim()
     if (!SEQUENCE_VALUE.test(start))
       return 'invalid_start'
-    const size = mode.value === 'single' ? 1 : count.value
+    const size = mode.value === 'single'
+      ? 1
+      : count.value
     if (size === null || !Number.isInteger(size) || size < 1 || size > PREVIEW_MAX_COUNT)
       return 'invalid_count'
 
@@ -383,7 +464,12 @@ export function useNumberingPreview() {
       if (ticket !== version)
         return 'stale'
       numbers.value = result.numbers
-      metadata.value = { periodKey: result.periodKey, dateText: result.dateText ?? null, startValue: start, endValue: (BigInt(start) + BigInt(size - 1)).toString() }
+      metadata.value = {
+        periodKey: result.periodKey,
+        dateText: result.dateText ?? null,
+        startValue: start,
+        endValue: (BigInt(start) + BigInt(size - 1)).toString(),
+      }
       return 'done'
     }
     finally {
@@ -397,7 +483,18 @@ export function useNumberingPreview() {
     version++
   }
 
-  return { rule, mode, startValue, count, loading, rows, metadata, load, execute, dispose }
+  return {
+    rule,
+    mode,
+    startValue,
+    count,
+    loading,
+    rows,
+    metadata,
+    load,
+    execute,
+    dispose,
+  }
 }
 
 /**
@@ -421,7 +518,11 @@ export function useNumberingAllocations(pageSize = 10) {
     const ticket = ++version
     loading.value = true
     try {
-      const result = await rulesApi.allocations({ id: current.id, page: { index: page.value, size: pageSize }, keyword: keyword.value.trim() || null })
+      const result = await rulesApi.allocations({
+        id: current.id,
+        page: { index: page.value, size: pageSize },
+        keyword: keyword.value.trim() || null,
+      })
       if (ticket !== version)
         return
       items.value = result.items
@@ -461,5 +562,18 @@ export function useNumberingAllocations(pageSize = 10) {
     version++
   }
 
-  return { rule, keyword, page, pageSize, total, items, loading, open, search, changePage, load, dispose }
+  return {
+    rule,
+    keyword,
+    page,
+    pageSize,
+    total,
+    items,
+    loading,
+    open,
+    search,
+    changePage,
+    load,
+    dispose,
+  }
 }

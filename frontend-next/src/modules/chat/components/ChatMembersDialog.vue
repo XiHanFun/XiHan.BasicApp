@@ -159,7 +159,9 @@ async function handleSaveInfo() {
     await getChatApi().updateConversationInfo({
       conversationId: id,
       // 部门群名称随部门同步禁改（null 不改）
-      conversationName: isGroup.value ? infoName.value.trim() || null : null,
+      conversationName: isGroup.value
+        ? infoName.value.trim() || null
+        : null,
       announcement: infoAnnouncement.value,
       description: infoDescription.value,
       avatar: infoAvatar.value,

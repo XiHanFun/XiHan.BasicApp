@@ -49,12 +49,18 @@ export function buildRoleParentOptions(
       ? undefined
       : descendantIds.has(role.id)
         ? notes.descendant
-        : indirectAncestors.has(role.id) ? notes.indirectAncestor : undefined
+        : indirectAncestors.has(role.id)
+          ? notes.indirectAncestor
+          : undefined
     options.push({
       value: role.id,
       label: role.name,
-      description: blocked ? `${role.code} · ${blocked}` : role.code,
-      ...(blocked ? { disabled: true } : {}),
+      description: blocked
+        ? `${role.code} · ${blocked}`
+        : role.code,
+      ...(blocked
+        ? { disabled: true }
+        : {}),
     })
   }
 
@@ -62,11 +68,15 @@ export function buildRoleParentOptions(
     if (seen.has(value))
       continue
     seen.add(value)
-    const note = parent.status === 'Active' ? undefined : notes.disabledParent
+    const note = parent.status === 'Active'
+      ? undefined
+      : notes.disabledParent
     options.push({
       value,
       label: parent.name,
-      description: note ? `${parent.code} · ${note}` : parent.code,
+      description: note
+        ? `${parent.code} · ${note}`
+        : parent.code,
     })
   }
 
@@ -96,7 +106,9 @@ export function summarizeInheritedPermissions(items: readonly InheritedPermissio
   const summary = new Map<string, InheritedPermissionSources>()
   for (const item of items) {
     const entry = summary.get(item.permission) ?? { grantedBy: [], deniedBy: [] }
-    const sources = item.action === 'Deny' ? entry.deniedBy : entry.grantedBy
+    const sources = item.action === 'Deny'
+      ? entry.deniedBy
+      : entry.grantedBy
     if (!sources.includes(item.sourceRoleName))
       sources.push(item.sourceRoleName)
     summary.set(item.permission, entry)

@@ -34,18 +34,30 @@ export interface PermissionRequestForm {
 }
 
 function emptyForm(): PermissionRequestForm {
-  return { targetKind: 'role', roleId: '', permissionCode: '', expectedEffectiveAt: null, expectedExpiresAt: null, reason: '', remark: '' }
+  return {
+    targetKind: 'role',
+    roleId: '',
+    permissionCode: '',
+    expectedEffectiveAt: null,
+    expectedExpiresAt: null,
+    reason: '',
+    remark: '',
+  }
 }
 
 /** 候选一次取的上限（后端页大小上限） */
 const CANDIDATE_LIMIT = 500
 
 function toMillis(value?: null | string): null | number {
-  return value ? new Date(value).getTime() : null
+  return value
+    ? new Date(value).getTime()
+    : null
 }
 
 function toIso(value: null | number): null | string {
-  return value === null ? null : new Date(value).toISOString()
+  return value === null
+    ? null
+    : new Date(value).toISOString()
 }
 
 /** 状态标签：枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对 */
@@ -69,8 +81,12 @@ export const REQUEST_STATUS_TONE: Record<PermissionRequestStatus, Tone> = {
 /** 4.x 的「{from} 至 {to}」：两头都可以不填 */
 export function expectedValidity(t: Translate, row: Pick<PermissionRequestRow, 'expectedEffectiveAt' | 'expectedExpiresAt'>): string {
   return t('access.permission_requests.validity_range', {
-    from: row.expectedEffectiveAt ? formatDate(row.expectedEffectiveAt) : '-',
-    to: row.expectedExpiresAt ? formatDate(row.expectedExpiresAt) : '-',
+    from: row.expectedEffectiveAt
+      ? formatDate(row.expectedEffectiveAt)
+      : '-',
+    to: row.expectedExpiresAt
+      ? formatDate(row.expectedExpiresAt)
+      : '-',
   })
 }
 
@@ -116,8 +132,12 @@ export function canTrace(row: Pick<PermissionRequestRow, 'approvalEnabled' | 'wo
 /** 表单 → 提交请求：只带当前申请类型的对象，时间换成 ISO，空备注不传 */
 export function toCreateRequest(form: PermissionRequestForm): RequestOf<'permission-requests.create'> {
   return {
-    roleId: form.targetKind === 'role' ? form.roleId : null,
-    permissionCode: form.targetKind === 'permission' ? form.permissionCode : null,
+    roleId: form.targetKind === 'role'
+      ? form.roleId
+      : null,
+    permissionCode: form.targetKind === 'permission'
+      ? form.permissionCode
+      : null,
     reason: form.reason.trim(),
     expectedEffectiveAt: toIso(form.expectedEffectiveAt),
     expectedExpiresAt: toIso(form.expectedExpiresAt),
@@ -127,7 +147,10 @@ export function toCreateRequest(form: PermissionRequestForm): RequestOf<'permiss
 
 /** 表单 → 修改重提请求 */
 export function toUpdateRequest(id: string, form: PermissionRequestForm): RequestOf<'permission-requests.update'> {
-  return { id, ...toCreateRequest(form) }
+  return {
+    id,
+    ...toCreateRequest(form),
+  }
 }
 
 /** 申请 → 表单（修改重提时回填；申请类型按申请里有的对象取，角色优先） */
@@ -149,13 +172,17 @@ export function toForm(row: PermissionRequestRow): PermissionRequestForm {
  */
 export function permissionRequestsResource(): SchemaResource<PermissionRequestRow> {
   return {
-    page: async (params: SchemaQueryParams) => toSchemaPageResult(await requestsApi.list(toPageRequest(params, { multiples: ['status'] })), params),
+    page: async (params: SchemaQueryParams) => toSchemaPageResult(await requestsApi.list(toPageRequest(params, {
+      multiples: ['status'],
+    })), params),
   }
 }
 
 /** 撤回自己待审批的一条申请（批量接口传单个 ID） */
 export async function withdrawPermissionRequest(id: string): Promise<void> {
-  throwOnFailed(await requestsApi.withdraw({ ids: [id] }))
+  throwOnFailed(await requestsApi.withdraw({
+    ids: [id],
+  }))
 }
 
 /** 提交出错：字段级错误挂回字段，其余留在弹窗里 */
@@ -166,7 +193,9 @@ function captureError(error: unknown, fieldErrors: { value: Record<string, strin
       submitError.value = error.detail
   }
   else {
-    submitError.value = error instanceof Error ? error.message : String(error)
+    submitError.value = error instanceof Error
+      ? error.message
+      : String(error)
   }
 }
 
@@ -190,7 +219,16 @@ export function usePermissionRequestEditor() {
     targetLoading.value = true
     try {
       const [roles, catalog] = await Promise.all([
-        rolesApi.list({ page: { index: 1, size: CANDIDATE_LIMIT }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order', descending: false }], keyword: null }),
+        rolesApi.list({
+          page: { index: 1, size: CANDIDATE_LIMIT },
+          filters: [
+            { field: 'status', operator: 'eq', value: 'Active' },
+          ],
+          sorts: [
+            { field: 'order', descending: false },
+          ],
+          keyword: null,
+        }),
         permissionsApi.list({}),
       ])
       roleOptions.value = roles.items.map(role => ({ value: role.id, label: role.name, description: role.code }))
@@ -203,7 +241,9 @@ export function usePermissionRequestEditor() {
 
   /** 打开弹窗：不带申请即发起，带申请即修改重提（回填原内容） */
   function start(row?: PermissionRequestRow) {
-    Object.assign(form, row ? toForm(row) : emptyForm())
+    Object.assign(form, row
+      ? toForm(row)
+      : emptyForm())
     editingId.value = row?.id ?? null
     fieldErrors.value = {}
     submitError.value = null
@@ -236,7 +276,20 @@ export function usePermissionRequestEditor() {
     }
   }
 
-  return { open, editingId, form, fieldErrors, submitError, submitting, roleOptions, permissionOptions, targetLoading, start, fieldError, submit }
+  return {
+    open,
+    editingId,
+    form,
+    fieldErrors,
+    submitError,
+    submitting,
+    roleOptions,
+    permissionOptions,
+    targetLoading,
+    start,
+    fieldError,
+    submit,
+  }
 }
 
 /**
@@ -264,12 +317,20 @@ export function usePermissionRequestCloser() {
     submitting.value = true
     submitError.value = null
     try {
-      throwOnFailed(await requestsApi.setStatus({ ids: [target.value.id], status: status.value, remark: remark.value.trim() || null }))
+      throwOnFailed(await requestsApi.setStatus({
+        ids: [target.value.id],
+        status: status.value,
+        remark: remark.value.trim() || null,
+      }))
       open.value = false
       return true
     }
     catch (error) {
-      submitError.value = error instanceof ApiError ? error.detail : error instanceof Error ? error.message : String(error)
+      submitError.value = error instanceof ApiError
+        ? error.detail
+        : error instanceof Error
+          ? error.message
+          : String(error)
       return false
     }
     finally {
@@ -277,5 +338,14 @@ export function usePermissionRequestCloser() {
     }
   }
 
-  return { open, target, status, remark, submitError, submitting, start, submit }
+  return {
+    open,
+    target,
+    status,
+    remark,
+    submitError,
+    submitting,
+    start,
+    submit,
+  }
 }

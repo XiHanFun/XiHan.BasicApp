@@ -12,15 +12,33 @@ vi.mock('@xihan-ui/web-components', () => ({
   mergeXhConfig: (base: Record<string, unknown>, extra?: Record<string, unknown>) => ({
     ...base,
     ...extra,
-    translations: { ...(base.translations as object), ...(extra?.translations as object | undefined) },
+    translations: {
+      ...(base.translations as object),
+      ...(extra?.translations as object | undefined),
+    },
   }),
 }))
 
-vi.mock('~/locales', () => ({ i18n: { global: { locale: ref('zh-CN') } } }))
+vi.mock('~/locales', () => ({
+  i18n: {
+    global: {
+      locale: ref('zh-CN'),
+    },
+  },
+}))
 
 vi.mock('~/locales/xihan-ui', () => ({
-  xhLocales: { 'zh-CN': { translations: { root: 'ui-zh' } }, 'en-US': { translations: { root: 'ui-en' } } },
-  xhFallbackLocale: { translations: { root: 'ui-en' } },
+  xhLocales: {
+    'zh-CN': {
+      translations: { root: 'ui-zh' },
+    },
+    'en-US': {
+      translations: { root: 'ui-en' },
+    },
+  },
+  xhFallbackLocale: {
+    translations: { root: 'ui-en' },
+  },
 }))
 
 describe('设计器的全局配置跟随应用语言', () => {
@@ -28,7 +46,9 @@ describe('设计器的全局配置跟随应用语言', () => {
     const [{ registerXhElementsLocale }, { i18n }] = await Promise.all([import('./elements-config'), import('~/locales')])
     // 设计器在组件 setup 里登记；关掉编辑器时组件卸载，它的作用域随之停掉
     const component = effectScope()
-    component.run(() => registerXhElementsLocale(locale => ({ translations: { flow: `flow-${locale}` } } as never)))
+    component.run(() => registerXhElementsLocale(locale => ({
+      translations: { flow: `flow-${locale}` },
+    } as never)))
     component.stop()
     state.configs.length = 0
 

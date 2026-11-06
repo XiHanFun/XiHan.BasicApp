@@ -17,20 +17,78 @@ const saved = JSON.stringify({
   enableCompensation: false,
   tenantId: 'acme',
   createdAt: '2026-10-30T08:00:00+00:00',
-  variables: [{ name: 'days', required: true, description: '天数' }],
+  variables: [
+    { name: 'days', required: true, description: '天数' },
+  ],
   nodes: [
-    { id: 'start', activityType: 'Start', displayName: '开始', properties: {}, continueOnError: false },
-    { id: 'approve', activityType: 'UserTask', displayName: '主管审批', properties: { AssigneeRules: [{ type: 'Role', values: ['manager'] }] }, timeout: '01:00:00', continueOnError: false },
-    { id: 'gate', activityType: 'Decision', displayName: '天数', properties: {}, continueOnError: false },
-    { id: 'end', activityType: 'End', displayName: '结束', properties: { Outcome: 'approved' }, continueOnError: false },
+    {
+      id: 'start',
+      activityType: 'Start',
+      displayName: '开始',
+      properties: {},
+      continueOnError: false,
+    },
+    {
+      id: 'approve',
+      activityType: 'UserTask',
+      displayName: '主管审批',
+      properties: {
+        AssigneeRules: [
+          {
+            type: 'Role',
+            values: ['manager'],
+          },
+        ],
+      },
+      timeout: '01:00:00',
+      continueOnError: false,
+    },
+    {
+      id: 'gate',
+      activityType: 'Decision',
+      displayName: '天数',
+      properties: {},
+      continueOnError: false,
+    },
+    {
+      id: 'end',
+      activityType: 'End',
+      displayName: '结束',
+      properties: { Outcome: 'approved' },
+      continueOnError: false,
+    },
   ],
   transitions: [
-    { id: 't1', sourceNodeId: 'start', targetNodeId: 'approve', priority: 0, isDefault: false },
-    { id: 't2', sourceNodeId: 'approve', targetNodeId: 'gate', condition: 'outcome == \'approved\'', priority: 0, isDefault: false },
-    { id: 't3', sourceNodeId: 'gate', targetNodeId: 'end', priority: 1, isDefault: true },
+    {
+      id: 't1',
+      sourceNodeId: 'start',
+      targetNodeId: 'approve',
+      priority: 0,
+      isDefault: false,
+    },
+    {
+      id: 't2',
+      sourceNodeId: 'approve',
+      targetNodeId: 'gate',
+      condition: 'outcome == \'approved\'',
+      priority: 0,
+      isDefault: false,
+    },
+    {
+      id: 't3',
+      sourceNodeId: 'gate',
+      targetNodeId: 'end',
+      priority: 1,
+      isDefault: true,
+    },
   ],
   properties: {
-    designerLayout: { start: { x: 60, y: 80 }, approve: { x: 320, y: 80 }, gate: { x: 580, y: 80 }, end: { x: 840, y: 80 } },
+    designerLayout: {
+      start: { x: 60, y: 80 },
+      approve: { x: 320, y: 80 },
+      gate: { x: 580, y: 80 },
+      end: { x: 840, y: 80 },
+    },
     owner: 'hr',
   },
 })
@@ -50,7 +108,17 @@ describe('openDefinition 打开存过的定义', () => {
     const approve = openDefinition(saved).nodes.find(node => node.id === 'approve')!
     expect(approve.type).toBe('UserTask')
     expect(approve.label).toBe('主管审批')
-    expect(approve.data).toMatchObject({ properties: { AssigneeRules: [{ type: 'Role', values: ['manager'] }] }, timeoutSeconds: 3600 })
+    expect(approve.data).toMatchObject({
+      properties: {
+        AssigneeRules: [
+          {
+            type: 'Role',
+            values: ['manager'],
+          },
+        ],
+      },
+      timeoutSeconds: 3600,
+    })
   })
 
   it('没有坐标的定义（后端种子与代码里建的）也能打开，节点都有坐标，缺 id 的连线补上合法 id', () => {
@@ -59,7 +127,18 @@ describe('openDefinition 打开存过的定义', () => {
       displayName: '权限申请',
       nodes: [
         { id: 'start', activityType: 'Start' },
-        { id: 'admin', activityType: 'UserTask', properties: { AssigneeRules: [{ type: 'Role', values: ['admin'] }] } },
+        {
+          id: 'admin',
+          activityType: 'UserTask',
+          properties: {
+            AssigneeRules: [
+              {
+                type: 'Role',
+                values: ['admin'],
+              },
+            ],
+          },
+        },
         { id: 'end', activityType: 'End' },
       ],
       transitions: [
@@ -90,7 +169,15 @@ describe('serializeDefinition 写回 WorkflowJson', () => {
   it('打开再保存，后端字段、节点、连线与坐标都不变', () => {
     const before = JSON.parse(saved)
     const after = JSON.parse(serializeDefinition(openDefinition(saved)))
-    expect(after).toMatchObject({ id: before.id, name: 'leave', displayName: '请假', version: 3, status: 'Draft', tenantId: 'acme', variables: before.variables })
+    expect(after).toMatchObject({
+      id: before.id,
+      name: 'leave',
+      displayName: '请假',
+      version: 3,
+      status: 'Draft',
+      tenantId: 'acme',
+      variables: before.variables,
+    })
     expect(after.code).toBeUndefined()
     expect(after.nodes).toEqual(before.nodes)
     expect(after.transitions.map((item: { id: string }) => item.id)).toEqual(['t1', 't2', 't3'])
@@ -110,12 +197,36 @@ describe('openDefinition 的旧版受理人迁移', () => {
     const document = openDefinition(JSON.stringify({
       name: 'c',
       displayName: 'n',
-      nodes: [{ id: 'task', activityType: 'UserTask', properties: { Assignees: ['1', '2'], AssigneesExpression: 'starterLeader', CcUserIds: ['9'] } }],
+      nodes: [
+        {
+          id: 'task',
+          activityType: 'UserTask',
+          properties: {
+            Assignees: ['1', '2'],
+            AssigneesExpression: 'starterLeader',
+            CcUserIds: ['9'],
+          },
+        },
+      ],
       transitions: [],
     }))
     expect(document.nodes[0]!.data?.properties).toEqual({
-      AssigneeRules: [{ type: 'User', values: ['1', '2'] }, { type: 'Expression', values: ['starterLeader'] }],
-      CcRules: [{ type: 'User', values: ['9'] }],
+      AssigneeRules: [
+        {
+          type: 'User',
+          values: ['1', '2'],
+        },
+        {
+          type: 'Expression',
+          values: ['starterLeader'],
+        },
+      ],
+      CcRules: [
+        {
+          type: 'User',
+          values: ['9'],
+        },
+      ],
     })
   })
 
@@ -123,9 +234,19 @@ describe('openDefinition 的旧版受理人迁移', () => {
     const document = openDefinition(JSON.stringify({
       name: 'c',
       displayName: 'n',
-      nodes: [{ id: 'log', activityType: 'Log', properties: { Assignees: ['1'] } }],
+      nodes: [
+        {
+          id: 'log',
+          activityType: 'Log',
+          properties: {
+            Assignees: ['1'],
+          },
+        },
+      ],
       transitions: [],
     }))
-    expect(document.nodes[0]!.data?.properties).toEqual({ Assignees: ['1'] })
+    expect(document.nodes[0]!.data?.properties).toEqual({
+      Assignees: ['1'],
+    })
   })
 })

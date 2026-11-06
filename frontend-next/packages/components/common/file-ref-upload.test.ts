@@ -11,8 +11,18 @@ import { registerAppContext } from '~/stores/app-context'
 import FileRefUpload from './FileRefUpload.vue'
 
 function mountWith(getFileApi: (fileId: string) => Promise<{ originalName: string }>, value: string) {
-  registerAppContext({ apis: { getFileApi, getFilePresignedUrlApi: vi.fn(async () => '') } as never })
-  return mount(FileRefUpload, { props: { value, kind: 'file' }, global: { plugins: [i18n] } })
+  registerAppContext({
+    apis: {
+      getFileApi,
+      getFilePresignedUrlApi: vi.fn(async () => ''),
+    } as never,
+  })
+  return mount(FileRefUpload, {
+    props: { value, kind: 'file' },
+    global: {
+      plugins: [i18n],
+    },
+  })
 }
 
 describe('xFileRefUpload', () => {
@@ -42,6 +52,8 @@ describe('xFileRefUpload', () => {
     const remove = wrapper.findAll('button').find(button => button.text().includes(i18n.global.t('component.file_ref_upload.remove')))
     await remove!.trigger('click')
 
-    expect(wrapper.emitted('update:value')).toEqual([[null]])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [null],
+    ])
   })
 })

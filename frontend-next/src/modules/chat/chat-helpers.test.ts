@@ -31,7 +31,9 @@ describe('messageBodyLabel 摘要标签', () => {
     const label = messageBodyLabel({
       content: '看这张图',
       messageType: 'Image',
-      attachments: [{ fileId: '1', fileName: 'a.png' }],
+      attachments: [
+        { fileId: '1', fileName: 'a.png' },
+      ],
     })
 
     expect(label).toBe('看这张图')
@@ -41,7 +43,9 @@ describe('messageBodyLabel 摘要标签', () => {
     const label = messageBodyLabel({
       content: '',
       messageType: 'Image',
-      attachments: [{ fileId: '1', fileName: 'a.png' }],
+      attachments: [
+        { fileId: '1', fileName: 'a.png' },
+      ],
     })
 
     expect(label).toBe('[图片]')
@@ -67,7 +71,9 @@ describe('messageBodyLabel 摘要标签', () => {
   it('语音消息取首个附件时长，缺时长按 0 秒展示', () => {
     const withDuration = messageBodyLabel({
       messageType: 'Voice',
-      attachments: [{ fileId: '1', fileName: 'v.webm', durationSeconds: 12 }],
+      attachments: [
+        { fileId: '1', fileName: 'v.webm', durationSeconds: 12 },
+      ],
     })
 
     expect(withDuration).toBe('[语音] 12"')
@@ -90,7 +96,9 @@ describe('messageBodyLabel 摘要标签', () => {
   it('单文件带文件名、多文件只给个数', () => {
     const single = messageBodyLabel({
       messageType: 'File',
-      attachments: [{ fileId: '1', fileName: '合同.pdf' }],
+      attachments: [
+        { fileId: '1', fileName: '合同.pdf' },
+      ],
     })
     const many = messageBodyLabel({
       messageType: 'File',
@@ -107,7 +115,9 @@ describe('messageBodyLabel 摘要标签', () => {
   it('单文件缺文件名时尾部空格被裁掉，不留下“[文件] ”', () => {
     const label = messageBodyLabel({
       messageType: 'File',
-      attachments: [{ fileId: '1', fileName: '' }],
+      attachments: [
+        { fileId: '1', fileName: '' },
+      ],
     })
 
     expect(label).toBe('[文件]')

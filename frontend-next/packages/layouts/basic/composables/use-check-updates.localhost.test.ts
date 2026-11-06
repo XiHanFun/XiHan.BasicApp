@@ -11,9 +11,19 @@ import { defineComponent, h, nextTick, reactive } from 'vue'
 const confirmSpy = vi.fn(() => Promise.resolve(false))
 const appStore = reactive({ enableCheckUpdates: true, checkUpdatesInterval: 30 })
 
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
-vi.mock('~/stores', () => ({ useAppStore: () => appStore }))
-vi.mock('~/composables', () => ({ dialog: { confirm: (...args: unknown[]) => confirmSpy(...(args as [])) } }))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}))
+vi.mock('~/stores', () => ({
+  useAppStore: () => appStore,
+}))
+vi.mock('~/composables', () => ({
+  dialog: {
+    confirm: (...args: unknown[]) => confirmSpy(...(args as [])),
+  },
+}))
 
 afterEach(() => {
   confirmSpy.mockClear()
@@ -30,7 +40,11 @@ describe('useCheckUpdates 本机地址', () => {
     expect(window.location.hostname).toBe('localhost')
     let tag = 'v1'
     const fetchMock = vi.fn(() => Promise.resolve({
-      headers: { get: (name: string) => (name === 'etag' ? tag : null) },
+      headers: {
+        get: (name: string) => (name === 'etag'
+          ? tag
+          : null),
+      },
     } as unknown as Response))
     vi.stubGlobal('fetch', fetchMock)
 
@@ -54,7 +68,9 @@ describe('useCheckUpdates 本机地址', () => {
     vi.useFakeTimers()
     appStore.enableCheckUpdates = false
     const fetchMock = vi.fn(() => Promise.resolve({
-      headers: { get: () => 'v1' },
+      headers: {
+        get: () => 'v1',
+      },
     } as unknown as Response))
     vi.stubGlobal('fetch', fetchMock)
 

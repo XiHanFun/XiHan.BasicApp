@@ -80,28 +80,54 @@ const asRow = (row: object) => row as NotificationRow
 const isPlatformCaller = () => auth.tenantId === null
 
 // ── 选项 ─────────────────────────────────────────────────────────
-const typeOptions = computed<SelectOption[]>(() => TYPES.map(type => ({ label: notificationTypeLabel(t, type), value: type })))
-const priorityOptions = computed<SelectOption[]>(() => PRIORITIES.map(priority => ({ label: priorityLabel(t, priority), value: priority })))
-const contentFormatOptions = computed<SelectOption[]>(() => CONTENT_FORMATS.map(format => ({ label: contentFormatLabel(t, format), value: format })))
+const typeOptions = computed<SelectOption[]>(() => TYPES.map(type => ({
+  label: notificationTypeLabel(t, type),
+  value: type,
+})))
+const priorityOptions = computed<SelectOption[]>(() => PRIORITIES.map(priority => ({
+  label: priorityLabel(t, priority),
+  value: priority,
+})))
+const contentFormatOptions = computed<SelectOption[]>(() => CONTENT_FORMATS.map(format => ({
+  label: contentFormatLabel(t, format),
+  value: format,
+})))
 /** 展示用全集 */
-const targetTypeOptions = computed<SelectOption[]>(() => TARGET_TYPES.map(type => ({ label: targetTypeLabel(t, type), value: type })))
+const targetTypeOptions = computed<SelectOption[]>(() => TARGET_TYPES.map(type => ({
+  label: targetTypeLabel(t, type),
+  value: type,
+})))
 /** 表单可选目标：平台一侧没有部门 */
 const formTargetTypeOptions = computed<SelectOption[]>(() => targetTypeOptions.value.filter(option => option.value !== 'Department' || !isPlatformCaller()))
 const publishedOptions = computed<SelectOption[]>(() => [
-  { label: t('notification.notifications.published'), value: 'true' },
-  { label: t('notification.notifications.unpublished'), value: 'false' },
+  {
+    label: t('notification.notifications.published'),
+    value: 'true',
+  },
+  {
+    label: t('notification.notifications.unpublished'),
+    value: 'false',
+  },
 ])
 
 function publishedTag(published: boolean) {
-  return renderTag(published ? t('notification.notifications.published') : t('notification.notifications.unpublished'), published ? 'success' : 'neutral')
+  return renderTag(published
+    ? t('notification.notifications.published')
+    : t('notification.notifications.unpublished'), published ? 'success' : 'neutral')
 }
 
 /** 投递渠道的勾选项：站内信始终投递，固定勾选、不可取消（4.x 同） */
-const deliveryChannelOptions = computed(() => DELIVERY_CHANNELS.map(channel => ({ label: deliveryChannelLabel(t, channel), value: channel, disabled: channel === 'InApp' })))
+const deliveryChannelOptions = computed(() => DELIVERY_CHANNELS.map(channel => ({
+  label: deliveryChannelLabel(t, channel),
+  value: channel,
+  disabled: channel === 'InApp',
+})))
 
 /** 列表里的渠道标签（4.x 同）：站内信 neutral，其余 info；h() 节点不带页面 scope，样式写 :deep() */
 function channelTags(channels: readonly DeliveryChannel[]) {
-  return h('span', { class: 'notification-channels' }, normalizeChannels(channels).map(channel => renderTag(deliveryChannelLabel(t, channel), channel === 'InApp' ? 'neutral' : 'info')))
+  return h('span', { class: 'notification-channels' }, normalizeChannels(channels).map(channel => renderTag(deliveryChannelLabel(t, channel), channel === 'InApp'
+    ? 'neutral'
+    : 'info')))
 }
 
 function formatChannels(channels: readonly DeliveryChannel[]): string {
@@ -110,15 +136,85 @@ function formatChannels(channels: readonly DeliveryChannel[]): string {
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：发布时间、创建时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('notification.notifications.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.notifications.search_keyword_placeholder'), order: 0 },
-  { key: 'title', title: t('notification.notifications.col_title'), dataType: 'string', minWidth: 220, order: 10 },
-  { key: 'notificationType', title: t('notification.notifications.col_type'), dataType: 'enum', searchable: true, searchMultiple: true, options: typeOptions.value, searchPlaceholder: t('notification.notifications.search_type_placeholder'), width: 110, order: 11, render: row => renderTag(notificationTypeLabel(t, asRow(row).notificationType), notificationTypeTone(asRow(row).notificationType)) },
-  { key: 'targetType', title: t('notification.notifications.col_target_type'), dataType: 'enum', options: targetTypeOptions.value, width: 110, order: 12, render: row => targetTypeLabel(t, asRow(row).targetType) },
-  { key: 'deliveryChannels', title: t('notification.notifications.col_delivery_channels'), dataType: 'string', width: 170, order: 13, render: row => channelTags(asRow(row).deliveryChannels) },
-  { key: 'isPublished', title: t('notification.notifications.col_is_published'), dataType: 'enum', searchable: true, options: publishedOptions.value, searchPlaceholder: t('notification.notifications.search_published_placeholder'), width: 100, order: 14, render: row => publishedTag(asRow(row).isPublished) },
-  { key: 'publishedAt', title: t('notification.notifications.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
-  { key: 'expiresAt', title: t('notification.notifications.col_expiration_time'), dataType: 'datetime', minWidth: 170, order: 16 },
-  { key: 'createdAt', title: t('notification.notifications.col_created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 17 },
+  {
+    key: 'keyword',
+    title: t('notification.notifications.col_keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('notification.notifications.search_keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'title',
+    title: t('notification.notifications.col_title'),
+    dataType: 'string',
+    minWidth: 220,
+    order: 10,
+  },
+  {
+    key: 'notificationType',
+    title: t('notification.notifications.col_type'),
+    dataType: 'enum',
+    searchable: true,
+    searchMultiple: true,
+    options: typeOptions.value,
+    searchPlaceholder: t('notification.notifications.search_type_placeholder'),
+    width: 110,
+    order: 11,
+    render: row => renderTag(notificationTypeLabel(t, asRow(row).notificationType), notificationTypeTone(asRow(row).notificationType)),
+  },
+  {
+    key: 'targetType',
+    title: t('notification.notifications.col_target_type'),
+    dataType: 'enum',
+    options: targetTypeOptions.value,
+    width: 110,
+    order: 12,
+    render: row => targetTypeLabel(t, asRow(row).targetType),
+  },
+  {
+    key: 'deliveryChannels',
+    title: t('notification.notifications.col_delivery_channels'),
+    dataType: 'string',
+    width: 170,
+    order: 13,
+    render: row => channelTags(asRow(row).deliveryChannels),
+  },
+  {
+    key: 'isPublished',
+    title: t('notification.notifications.col_is_published'),
+    dataType: 'enum',
+    searchable: true,
+    options: publishedOptions.value,
+    searchPlaceholder: t('notification.notifications.search_published_placeholder'),
+    width: 100,
+    order: 14,
+    render: row => publishedTag(asRow(row).isPublished),
+  },
+  {
+    key: 'publishedAt',
+    title: t('notification.notifications.col_send_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 15,
+  },
+  {
+    key: 'expiresAt',
+    title: t('notification.notifications.col_expiration_time'),
+    dataType: 'datetime',
+    minWidth: 170,
+    order: 16,
+  },
+  {
+    key: 'createdAt',
+    title: t('notification.notifications.col_created_time'),
+    dataType: 'datetime',
+    sortable: true,
+    minWidth: 170,
+    order: 17,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -129,18 +225,63 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('notification.notifications.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'notification.notifications.create' },
-    { key: 'view', title: t('notification.notifications.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'stats', title: t('notification.notifications.action_stats'), scope: 'row', icon: 'lucide:bar-chart-3', permission: 'notification.notifications.read', visible: row => asRow(row).isPublished },
+    {
+      key: 'create',
+      title: t('notification.notifications.action_create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'notification.notifications.create',
+    },
+    {
+      key: 'view',
+      title: t('notification.notifications.action_view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'stats',
+      title: t('notification.notifications.action_stats'),
+      scope: 'row',
+      icon: 'lucide:bar-chart-3',
+      permission: 'notification.notifications.read',
+      visible: row => asRow(row).isPublished,
+    },
     // 已发布的不能再改、不能重复发布（后端同样拒绝），入口随之收起
-    { key: 'edit', title: t('notification.notifications.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'notification.notifications.update', visible: row => !asRow(row).isPublished },
-    { key: 'publish', title: t('notification.notifications.action_publish'), scope: 'row', tone: 'brand', icon: 'lucide:send', permission: 'notification.notifications.publish', visible: row => !asRow(row).isPublished },
-    { key: 'delete', title: t('notification.notifications.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'notification.notifications.delete', confirm: true, confirmText: t('notification.notifications.confirm_delete') },
+    {
+      key: 'edit',
+      title: t('notification.notifications.action_edit'),
+      scope: 'row',
+      icon: 'lucide:pen',
+      permission: 'notification.notifications.update',
+      visible: row => !asRow(row).isPublished,
+    },
+    {
+      key: 'publish',
+      title: t('notification.notifications.action_publish'),
+      scope: 'row',
+      tone: 'brand',
+      icon: 'lucide:send',
+      permission: 'notification.notifications.publish',
+      visible: row => !asRow(row).isPublished,
+    },
+    {
+      key: 'delete',
+      title: t('notification.notifications.action_delete'),
+      scope: 'row',
+      tone: 'danger',
+      icon: 'lucide:trash-2',
+      permission: 'notification.notifications.delete',
+      confirm: true,
+      confirmText: t('notification.notifications.confirm_delete'),
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       openCreate()
@@ -183,7 +324,9 @@ async function openDetail(row: NotificationRow) {
 }
 
 function yesNo(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 
 // ── 角色 / 部门目标的候选（选到这一档时取一次） ──────────────────
@@ -218,7 +361,9 @@ const submitError = ref<null | string>(null)
 const form = reactive<NotificationForm>(emptyNotificationForm())
 /** 正文按 Markdown 编辑（4.x 同：Markdown 用 md-editor-v3，其余格式用文本框） */
 const isMarkdownContent = computed(() => form.contentFormat === 'Markdown')
-const modalTitle = computed(() => (form.id ? t('notification.notifications.edit_title') : t('notification.notifications.add_title')))
+const modalTitle = computed(() => (form.id
+  ? t('notification.notifications.edit_title')
+  : t('notification.notifications.add_title')))
 
 function openCreate() {
   Object.assign(form, emptyNotificationForm())
@@ -252,7 +397,9 @@ function changeTargetType(value: unknown) {
 }
 
 function changeTargetIds(value: unknown) {
-  form.targetIds = Array.isArray(value) ? value.map(String) : []
+  form.targetIds = Array.isArray(value)
+    ? value.map(String)
+    : []
 }
 
 /** 勾选渠道：站内信总在内 */
@@ -336,19 +483,59 @@ const recipientPage = ref(1)
 const remindLoading = ref(false)
 const exportLoading = ref(false)
 
-const statsTitle = computed(() => (statsRow.value ? `${t('notification.notifications.stats_title')} · ${statsRow.value.title}` : t('notification.notifications.stats_title')))
-const statsReadRate = computed(() => (readStats.value ? readRate(readStats.value) : 0))
+const statsTitle = computed(() => (statsRow.value
+  ? `${t('notification.notifications.stats_title')} · ${statsRow.value.title}`
+  : t('notification.notifications.stats_title')))
+const statsReadRate = computed(() => (readStats.value
+  ? readRate(readStats.value)
+  : 0))
 const canRemind = computed(() => auth.can('notification.notifications.publish'))
-const recipientFilterOptions = computed(() => recipientFilters(readStats.value?.needConfirm ?? false).map(filter => ({ label: recipientFilterLabel(t, filter), value: filter })))
+const recipientFilterOptions = computed(() => recipientFilters(readStats.value?.needConfirm ?? false).map(filter => ({
+  label: recipientFilterLabel(t, filter),
+  value: filter,
+})))
 
 const recipientColumns = computed<XDataTableColumn<RecipientRow>[]>(() => [
-  { key: 'userName', title: t('notification.notifications.col_user_name'), minWidth: 140 },
-  { key: 'displayName', title: t('notification.notifications.col_display_name'), minWidth: 120, render: row => row.displayName || '-' },
-  { key: 'status', title: t('notification.notifications.col_status'), width: 90, render: row => (row.status === 'Read' ? renderTag(t('notification.notifications.stats_read'), 'success') : renderTag(t('notification.notifications.stats_unread'), 'warning')) },
-  { key: 'receivedAt', title: t('notification.notifications.col_received_time'), minWidth: 170, render: row => formatDate(row.receivedAt) },
-  { key: 'readAt', title: t('notification.notifications.col_read_time'), minWidth: 170, render: row => formatDate(row.readAt) },
+  {
+    key: 'userName',
+    title: t('notification.notifications.col_user_name'),
+    minWidth: 140,
+  },
+  {
+    key: 'displayName',
+    title: t('notification.notifications.col_display_name'),
+    minWidth: 120,
+    render: row => row.displayName || '-',
+  },
+  {
+    key: 'status',
+    title: t('notification.notifications.col_status'),
+    width: 90,
+    render: row => (row.status === 'Read'
+      ? renderTag(t('notification.notifications.stats_read'), 'success')
+      : renderTag(t('notification.notifications.stats_unread'), 'warning')),
+  },
+  {
+    key: 'receivedAt',
+    title: t('notification.notifications.col_received_time'),
+    minWidth: 170,
+    render: row => formatDate(row.receivedAt),
+  },
+  {
+    key: 'readAt',
+    title: t('notification.notifications.col_read_time'),
+    minWidth: 170,
+    render: row => formatDate(row.readAt),
+  },
   ...(readStats.value?.needConfirm
-    ? [{ key: 'confirmedAt', title: t('notification.notifications.col_confirm_time'), minWidth: 170, render: (row: RecipientRow) => formatDate(row.confirmedAt) }]
+    ? [
+        {
+          key: 'confirmedAt',
+          title: t('notification.notifications.col_confirm_time'),
+          minWidth: 170,
+          render: (row: RecipientRow) => formatDate(row.confirmedAt),
+        },
+      ]
     : []),
 ])
 
@@ -369,7 +556,10 @@ async function openStats(row: NotificationRow) {
   statsVisible.value = true
   statsLoading.value = true
   try {
-    const [stats] = await Promise.all([notificationsApi.readStats({ id: row.id }), fetchRecipients(row.id, 1)])
+    const [stats] = await Promise.all([
+      notificationsApi.readStats({ id: row.id }),
+      fetchRecipients(row.id, 1),
+    ])
     readStats.value = stats
   }
   catch (error) {

@@ -16,7 +16,11 @@ afterEach(() => {
 
 describe('本地存储读写往返', () => {
   it('对象写入后读出结构相等但不是同一引用', () => {
-    const value = { name: '羲和', tags: ['a', 'b'], nested: { n: 1 } }
+    const value = {
+      name: '羲和',
+      tags: ['a', 'b'],
+      nested: { n: 1 },
+    }
     LocalStorage.set('obj', value)
 
     const restored = LocalStorage.get<typeof value>('obj')

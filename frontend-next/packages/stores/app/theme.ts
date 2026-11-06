@@ -101,7 +101,9 @@ export function createThemeSlice() {
   bindPersist(WATERMARK_TEXT_KEY, watermarkText, 'XiHan BasicApp')
 
   function toggleTheme() {
-    save(THEME_MODE_KEY, themeMode, themeMode.value === 'light' ? 'dark' : 'light')
+    save(THEME_MODE_KEY, themeMode, themeMode.value === 'light'
+      ? 'dark'
+      : 'light')
   }
   function setTheme(mode: 'light' | 'dark' | 'auto') {
     save(THEME_MODE_KEY, themeMode, mode)

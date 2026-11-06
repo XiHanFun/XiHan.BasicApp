@@ -4,7 +4,15 @@ import { describe, expect, it } from 'vitest'
 import { buildTraceFlow, buildTraceTimeBuckets, pickTraceBucketMinutes, traceModuleOf } from './trace-analysis'
 
 function log(partial: Partial<TraceItem>): TraceItem {
-  return { id: '1', logType: 'Access', status: 'Success', occurredAt: '2026-09-30T10:00:00', title: 'roles.list', traceId: 't', ...partial } as TraceItem
+  return {
+    id: '1',
+    logType: 'Access',
+    status: 'Success',
+    occurredAt: '2026-09-30T10:00:00',
+    title: 'roles.list',
+    traceId: 't',
+    ...partial,
+  } as TraceItem
 }
 
 const labels = {
@@ -67,7 +75,9 @@ describe('buildTraceFlow', () => {
     ], labels, 1)
 
     expect(flow.nodes.filter(node => node.group === '模块').map(node => node.name)).toEqual(['a', '其他模块'])
-    expect(flow.links).toEqual(expect.arrayContaining([{ source: 'type:Access', target: 'module:*', value: 2 }]))
+    expect(flow.links).toEqual(expect.arrayContaining([
+      { source: 'type:Access', target: 'module:*', value: 2 },
+    ]))
   })
 })
 
@@ -86,7 +96,12 @@ describe('time buckets', () => {
     ])
 
     expect(bucketMinutes).toBe(1)
-    expect(buckets.map(bucket => [bucket.start.getMinutes(), bucket.Success, bucket.Warning, bucket.Failure])).toEqual([
+    expect(buckets.map(bucket => [
+      bucket.start.getMinutes(),
+      bucket.Success,
+      bucket.Warning,
+      bucket.Failure,
+    ])).toEqual([
       [0, 1, 0, 1],
       [1, 0, 0, 0],
       [2, 0, 0, 0],

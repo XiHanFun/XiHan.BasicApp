@@ -21,7 +21,9 @@ function mountSelect(props: Props = {}, attrs: Record<string, unknown> = {}) {
   return mount(XSelect, {
     props: { options, ...props },
     attrs,
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [i18n],
+    },
     attachTo: document.body,
   })
 }
@@ -41,7 +43,11 @@ afterEach(() => {
 
 describe('xSelect 多选标签', () => {
   it('已选项排成标签，超出 maxTagCount 合成 +N', async () => {
-    const wrapper = mountSelect({ value: [1, 2, 3], multiple: true, maxTagCount: 2 })
+    const wrapper = mountSelect({
+      value: [1, 2, 3],
+      multiple: true,
+      maxTagCount: 2,
+    })
     await flushPromises()
 
     const tags = wrapper.findAll('[data-scope="tag"][data-value]').map(tag => tag.text())

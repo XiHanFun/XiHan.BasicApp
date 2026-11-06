@@ -4,7 +4,9 @@ import { workflowProgressText, workflowProgressTone } from './workflow-progress'
 
 /** 把键与参数原样拼出来，断言文案选择而不依赖语言包 */
 function t(key: string, named?: Record<string, unknown>) {
-  return named ? `${key}${JSON.stringify(named)}` : key
+  return named
+    ? `${key}${JSON.stringify(named)}`
+    : key
 }
 
 function progress(patch: Partial<WorkflowProgress>): WorkflowProgress {
@@ -27,10 +29,18 @@ describe('授权申请的审批进度', () => {
   })
 
   it('进行中写出停留节点与待办理人', () => {
-    const assignees = [{ userId: 'u-1', displayName: '张三' }, { userId: 'u-2', displayName: '李四' }]
-    expect(workflowProgressText(t, progress({ pendingNodeNames: ['管理员审批'], pendingAssignees: assignees })))
+    const assignees = [
+      { userId: 'u-1', displayName: '张三' },
+      { userId: 'u-2', displayName: '李四' },
+    ]
+    expect(workflowProgressText(t, progress({
+      pendingNodeNames: ['管理员审批'],
+      pendingAssignees: assignees,
+    })))
       .toBe('access.permission_requests.progress_pending_with{"nodes":"管理员审批","assignees":"张三、李四"}')
-    expect(workflowProgressText(t, progress({ pendingNodeNames: ['管理员审批'] })))
+    expect(workflowProgressText(t, progress({
+      pendingNodeNames: ['管理员审批'],
+    })))
       .toBe('access.permission_requests.progress_pending{"nodes":"管理员审批"}')
     expect(workflowProgressText(t, progress({}))).toBe('access.permission_requests.progress_running')
     expect(workflowProgressTone(progress({}))).toBe('info')

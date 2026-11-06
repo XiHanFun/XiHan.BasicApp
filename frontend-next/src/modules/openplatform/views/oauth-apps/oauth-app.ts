@@ -40,7 +40,12 @@ export const MAX_REDIRECT_URIS = 10
  */
 export const OAUTH_APP_QUERY: PageQueryMapping = {
   multiples: ['appType'],
-  filters: { clientType: 'eq', isEnabled: 'eq', skipConsent: 'eq', personal: 'eq' },
+  filters: {
+    clientType: 'eq',
+    isEnabled: 'eq',
+    skipConsent: 'eq',
+    personal: 'eq',
+  },
 }
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
@@ -55,24 +60,36 @@ export function appTypeLabel(t: Translate, type: OAuthAppType): string {
 }
 
 export function clientTypeLabel(t: Translate, type: OAuthClientType): string {
-  return type === 'Public' ? t('openplatform.oauth_apps.client_types.public') : t('openplatform.oauth_apps.client_types.confidential')
+  return type === 'Public'
+    ? t('openplatform.oauth_apps.client_types.public')
+    : t('openplatform.oauth_apps.client_types.confidential')
 }
 
 /** 客户端类型标签的语气：公开 info、机密 neutral（个人中心同） */
 export function clientTypeTone(type: OAuthClientType): Tone {
-  return type === 'Public' ? 'info' : 'neutral'
+  return type === 'Public'
+    ? 'info'
+    : 'neutral'
 }
 
 /** 启用状态的搜索选项：后端按 `isEnabled eq true / false` 精确匹配 */
 export function enabledOptions(t: Translate): { label: string, value: string }[] {
   return [
-    { label: t('common.statuses.enabled'), value: 'true' },
-    { label: t('common.statuses.disabled'), value: 'false' },
+    {
+      label: t('common.statuses.enabled'),
+      value: 'true',
+    },
+    {
+      label: t('common.statuses.disabled'),
+      value: 'false',
+    },
   ]
 }
 
 export function enabledLabel(t: Translate, enabled: boolean): string {
-  return enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')
+  return enabled
+    ? t('common.statuses.enabled')
+    : t('common.statuses.disabled')
 }
 
 /** 归属：用户在个人中心建的应用显示建它的用户，平台建的显示「平台」 */
@@ -86,18 +103,28 @@ export function ownerLabel(t: Translate, row: Pick<OAuthAppRow, 'ownerUserId' | 
 export function formatSeconds(t: Translate, seconds: number): string {
   if (seconds < 60)
     return t('openplatform.oauth_apps.time_seconds', { value: seconds })
-  if (seconds < 3600)
-    return t('openplatform.oauth_apps.time_minutes', { value: Math.floor(seconds / 60) })
-  if (seconds < 86400)
-    return t('openplatform.oauth_apps.time_hours', { value: Math.floor(seconds / 3600) })
-  return t('openplatform.oauth_apps.time_days', { value: Math.floor(seconds / 86400) })
+  if (seconds < 3600) {
+    return t('openplatform.oauth_apps.time_minutes', {
+      value: Math.floor(seconds / 60),
+    })
+  }
+  if (seconds < 86400) {
+    return t('openplatform.oauth_apps.time_hours', {
+      value: Math.floor(seconds / 3600),
+    })
+  }
+  return t('openplatform.oauth_apps.time_days', {
+    value: Math.floor(seconds / 86400),
+  })
 }
 
 /** 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案 */
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
-  return error instanceof Error ? error.message : String(error ?? '')
+  return error instanceof Error
+    ? error.message
+    : String(error ?? '')
 }
 
 /** 回调地址的文本（一行一个，逗号也认）→ 地址列表，去掉空项 */
@@ -251,12 +278,19 @@ function draft(form: OAuthAppForm) {
 
 /** 新建：Client ID 留空写 null 由后端生成；客户端类型只在新建时定 */
 export function toCreateBody(form: OAuthAppForm): RequestOf<'oauth-apps.create'> {
-  return { ...draft(form), clientId: blankToNull(form.clientId), clientType: form.clientType }
+  return {
+    ...draft(form),
+    clientId: blankToNull(form.clientId),
+    clientType: form.clientType,
+  }
 }
 
 /** 编辑：整体替换（含启停）；Client ID 与客户端类型不改 */
 export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oauth-apps.update'> {
-  return { id: form.id, ...draft(form) }
+  return {
+    id: form.id,
+    ...draft(form),
+  }
 }
 
 /**
@@ -265,10 +299,20 @@ export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oa
 export function oauthAppResource(): SchemaResource<OAuthAppRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await oauthAppsApi.list(toPageRequest(params, OAUTH_APP_QUERY)), params),
-    remove: async id => throwOnFailed(await oauthAppsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await oauthAppsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     updateStatus: async (id, enabled) => {
-      const current = await oauthAppsApi.get({ id: String(id) })
-      return oauthAppsApi.update(toUpdateBody({ ...toOAuthAppForm(current), id: current.id, isEnabled: enabled }))
+      const current = await oauthAppsApi.get({
+        id: String(id),
+      })
+      return oauthAppsApi.update(toUpdateBody({
+        ...toOAuthAppForm(current),
+        id: current.id,
+        isEnabled: enabled,
+      }))
     },
   }
 }

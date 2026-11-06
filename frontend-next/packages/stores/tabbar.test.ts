@@ -11,12 +11,20 @@ import { useAppStore } from './app'
 import { useTabbarStore } from './tabbar'
 
 function tab(path: string, overrides?: Partial<TabItem>): TabItem {
-  return { key: path, title: path, path, closable: true, ...overrides }
+  return {
+    key: path,
+    title: path,
+    path,
+    closable: true,
+    ...overrides,
+  }
 }
 
 function readPersisted(): TabItem[] | null {
   const raw = sessionStorage.getItem(TABS_LIST_KEY)
-  return raw ? (JSON.parse(raw) as TabItem[]) : null
+  return raw
+    ? (JSON.parse(raw) as TabItem[])
+    : null
 }
 
 beforeEach(() => {
@@ -44,7 +52,12 @@ describe('$reset（退出登录）', () => {
   it('首页标签不被上一次的导航改写', () => {
     sessionStorage.removeItem(TABS_LIST_KEY)
     const store = useTabbarStore()
-    store.ensureTab(tab(HOME_PATH, { name: 'Dashboard', keepAlive: true, title: 'x', meta: { icon: 'lucide:home' } }))
+    store.ensureTab(tab(HOME_PATH, {
+      name: 'Dashboard',
+      keepAlive: true,
+      title: 'x',
+      meta: { icon: 'lucide:home' },
+    }))
 
     store.$reset()
 
@@ -66,7 +79,10 @@ describe('初始标签与会话恢复', () => {
   })
 
   it('会话缓存存在时以缓存为准（刷新保留已开标签）', () => {
-    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([tab('/a'), tab('/b')]))
+    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([
+      tab('/a'),
+      tab('/b'),
+    ]))
     setActivePinia(createPinia())
 
     const store = useTabbarStore()
@@ -115,7 +131,14 @@ describe('ensureTab：新增与去重合并', () => {
   })
 
   it('重复 ensureTab 会补齐旧持久化标签缺失的 name / keepAlive（KeepAlive 缓存名靠它）', () => {
-    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([{ key: '/a', title: '/a', path: '/a', closable: true }]))
+    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([
+      {
+        key: '/a',
+        title: '/a',
+        path: '/a',
+        closable: true,
+      },
+    ]))
     setActivePinia(createPinia())
     const store = useTabbarStore()
 
@@ -137,9 +160,15 @@ describe('ensureTab：新增与去重合并', () => {
 
   it('带 meta 的重复 ensureTab 才会合并 meta 并刷新标题', () => {
     const store = useTabbarStore()
-    store.ensureTab(tab('/a', { title: '旧标题', meta: { icon: 'old', keep: 1 } }))
+    store.ensureTab(tab('/a', {
+      title: '旧标题',
+      meta: { icon: 'old', keep: 1 },
+    }))
 
-    store.ensureTab(tab('/a', { title: '新标题', meta: { icon: 'new' } }))
+    store.ensureTab(tab('/a', {
+      title: '新标题',
+      meta: { icon: 'new' },
+    }))
 
     expect(store.tabs[1]?.title).toBe('新标题')
     expect(store.tabs[1]?.meta).toEqual({ icon: 'new', keep: 1 })
@@ -269,7 +298,9 @@ describe('固定与关闭', () => {
   })
 
   it('关掉最后一个标签后 activeTab 回落到 HOME_PATH', () => {
-    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([tab('/only')]))
+    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([
+      tab('/only'),
+    ]))
     setActivePinia(createPinia())
     const store = useTabbarStore()
     store.setActiveTab('/only')
@@ -404,7 +435,10 @@ describe('批量关闭', () => {
   })
 
   it('closeAll 在没有任何固定标签时 activeTab 回落到 HOME_PATH', () => {
-    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([tab('/a'), tab('/b')]))
+    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([
+      tab('/a'),
+      tab('/b'),
+    ]))
     setActivePinia(createPinia())
     const store = useTabbarStore()
 

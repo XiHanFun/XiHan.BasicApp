@@ -7,7 +7,19 @@ import { canShowWidget, DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './index'
 
 vi.mock('~/stores', async importOriginal => ({
   ...await importOriginal<typeof import('~/stores')>(),
-  useWorkbenchWidgets: () => [{ key: 'pkg-todo', dataKey: 'pkg.todo', titleKey: 't', descKey: 'd', emptyKey: 'e', icon: 'lucide:box', defaultSpan: 4, page: 'pkg.page', moreLink: '/pkg' }],
+  useWorkbenchWidgets: () => [
+    {
+      key: 'pkg-todo',
+      dataKey: 'pkg.todo',
+      titleKey: 't',
+      descKey: 'd',
+      emptyKey: 'e',
+      icon: 'lucide:box',
+      defaultSpan: 4,
+      page: 'pkg.page',
+      moreLink: '/pkg',
+    },
+  ],
 }))
 
 describe('模块登记的小组件', () => {

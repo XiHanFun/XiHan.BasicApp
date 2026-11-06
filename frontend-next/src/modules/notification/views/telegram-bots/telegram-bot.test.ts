@@ -7,7 +7,10 @@ import { emptyTelegramBotForm, findTelegramBotProblem, isCommandList, isIdList, 
 const t = (key: string) => key
 
 function json(status: number, body: object): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
 function stub(...responses: object[]): { method: string, url: string, body: unknown }[] {
@@ -16,7 +19,13 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
     baseUrl: '',
     getToken: () => 't',
     fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ method: init?.method ?? 'GET', url: String(url), body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      })
       return json(200, responses[calls.length - 1] ?? {})
     }) as unknown as typeof fetch,
   })
@@ -26,7 +35,12 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
 const TOKEN = '123456789:AAEhBP0av28cdef_ghij-klmn'
 
 function form(patch: Partial<TelegramBotForm> = {}): TelegramBotForm {
-  return { ...emptyTelegramBotForm(), name: 'ops', token: TOKEN, ...patch }
+  return {
+    ...emptyTelegramBotForm(),
+    name: 'ops',
+    token: TOKEN,
+    ...patch,
+  }
 }
 
 const ROW: TelegramBotRow = {
@@ -52,14 +66,18 @@ describe('平台托管的 Telegram 机器人：列表筛选', () => {
       pageSize: 20,
       filters: { keyword: 'ops', isEnabled: 'true', enableFallbackReply: 'false' },
       conditionFilters: [],
-      sorts: [{ field: 'name', order: 'asc' }],
+      sorts: [
+        { field: 'name', order: 'asc' },
+      ],
     }, TELEGRAM_BOT_QUERY)
     expect(request.filters).toEqual([
       { field: 'isEnabled', operator: 'eq', value: 'true' },
       { field: 'enableFallbackReply', operator: 'eq', value: 'false' },
     ])
     expect(request.keyword).toBe('ops')
-    expect(request.sorts).toEqual([{ field: 'name', descending: false }])
+    expect(request.sorts).toEqual([
+      { field: 'name', descending: false },
+    ])
   })
 })
 
@@ -118,17 +136,37 @@ describe('平台托管的 Telegram 机器人：表单', () => {
       remark: null,
     })
     const filled = toTelegramBotForm(ROW)
-    expect(filled).toMatchObject({ id: 'g1', token: '', broadcastChatIds: '-1001234567890,-1009876543210', enableFallbackReply: true, remark: '' })
-    expect(toUpdateBody({ ...filled, id: 'g1' })).toMatchObject({ id: 'g1', token: null, allowedCommands: 'start,help', remark: null })
+    expect(filled).toMatchObject({
+      id: 'g1',
+      token: '',
+      broadcastChatIds: '-1001234567890,-1009876543210',
+      enableFallbackReply: true,
+      remark: '',
+    })
+    expect(toUpdateBody({ ...filled, id: 'g1' })).toMatchObject({
+      id: 'g1',
+      token: null,
+      allowedCommands: 'start,help',
+      remark: null,
+    })
   })
 
   it('启停取最新一份再整体修改（不带令牌）；删除逐项拒绝时带着原因抛出', async () => {
-    const calls = stub(ROW, ROW, { succeeded: [], failed: [{ id: 'g1', code: 'NOTIFICATION_NOTFOUND_009', message: 'NOTIFICATION_NOTFOUND_009 的原因' }] })
+    const calls = stub(ROW, ROW, {
+      succeeded: [],
+      failed: [
+        { id: 'g1', code: 'NOTIFICATION_NOTFOUND_009', message: 'NOTIFICATION_NOTFOUND_009 的原因' },
+      ],
+    })
     const resource = telegramBotResource()
     await resource.updateStatus!('g1', false)
     await expect(resource.remove!('g1')).rejects.toThrow('NOTIFICATION_NOTFOUND_009 的原因')
     expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/telegram-bots/g1' })
-    expect(calls[1]).toMatchObject({ method: 'PUT', url: '/api/telegram-bots/g1', body: { isEnabled: false, token: null, broadcastChatIds: '-1001234567890,-1009876543210' } })
+    expect(calls[1]).toMatchObject({
+      method: 'PUT',
+      url: '/api/telegram-bots/g1',
+      body: { isEnabled: false, token: null, broadcastChatIds: '-1001234567890,-1009876543210' },
+    })
     expect(calls[2]).toMatchObject({ method: 'DELETE', url: '/api/telegram-bots?ids=g1' })
   })
 })

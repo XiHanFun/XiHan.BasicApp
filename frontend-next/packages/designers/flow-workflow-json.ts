@@ -78,10 +78,40 @@ const DESIGNER_KEYS: ReadonlySet<string> = new Set(['designerLayout', 'designerE
 const LEGACY_ONLY_KEYS: ReadonlySet<string> = new Set(['creationTime', 'publishTime'])
 
 /** 回写 WorkflowJson 时排在前面的字段，其余按原顺序跟在后面 */
-const DEFINITION_ORDER = ['id', 'name', 'version', 'displayName', 'description', 'category', 'status', 'enableCompensation'] as const
-const DEFINITION_TAIL = ['variables', 'nodes', 'transitions', 'properties'] as const
-const NODE_ORDER = ['id', 'activityType', 'displayName', 'properties', 'retryPolicy', 'timeout', 'continueOnError'] as const
-const TRANSITION_ORDER = ['id', 'sourceNodeId', 'targetNodeId', 'condition', 'priority', 'isDefault', 'displayName'] as const
+const DEFINITION_ORDER = [
+  'id',
+  'name',
+  'version',
+  'displayName',
+  'description',
+  'category',
+  'status',
+  'enableCompensation',
+] as const
+const DEFINITION_TAIL = [
+  'variables',
+  'nodes',
+  'transitions',
+  'properties',
+] as const
+const NODE_ORDER = [
+  'id',
+  'activityType',
+  'displayName',
+  'properties',
+  'retryPolicy',
+  'timeout',
+  'continueOnError',
+] as const
+const TRANSITION_ORDER = [
+  'id',
+  'sourceNodeId',
+  'targetNodeId',
+  'condition',
+  'priority',
+  'isDefault',
+  'displayName',
+] as const
 const RETRY_ORDER = ['maxAttempts', 'firstDelay', 'backoffFactor'] as const
 
 /** TimeSpan 的常量格式（c）：[d.]hh:mm[:ss[.fffffff]]，或只有天数 */
@@ -104,7 +134,10 @@ function present(value: unknown): boolean {
 /** 按给定顺序排出字段：列出的在前、其余按原顺序在后，值为 null 或缺省的去掉 */
 function ordered(source: JsonRecord, head: readonly string[], tail: readonly string[] = []): JsonRecord {
   const result: JsonRecord = {}
-  const listed = new Set([...head, ...tail])
+  const listed = new Set([
+    ...head,
+    ...tail,
+  ])
   for (const key of head) {
     if (present(source[key]))
       result[key] = source[key]
@@ -140,12 +173,17 @@ function withIds(items: readonly unknown[], prefixOf: (item: JsonRecord) => stri
   return items.map((item) => {
     if (!isRecord(item) || hasId(item))
       return item
-    return { ...item, id: freeId(prefixOf(item), used) }
+    return {
+      ...item,
+      id: freeId(prefixOf(item), used),
+    }
   })
 }
 
 function nodePrefix(node: JsonRecord): string {
-  return typeof node.activityType === 'string' && /^[A-Z0-9][\w.-]*$/i.test(node.activityType) ? `${node.activityType}_` : 'node_'
+  return typeof node.activityType === 'string' && /^[A-Z0-9][\w.-]*$/i.test(node.activityType)
+    ? `${node.activityType}_`
+    : 'node_'
 }
 
 function listOf(value: unknown, field: string): readonly unknown[] {
@@ -171,7 +209,9 @@ export function timeSpanToSeconds(value: string): number {
   if (Number(hours) > 23 || Number(minutes) > 59 || Number(seconds) > 59)
     fail(`'${value}' is not a TimeSpan`)
   const whole = Number(days) * 86_400 + Number(hours) * 3_600 + Number(minutes) * 60 + Number(seconds)
-  return fraction ? whole + Number(fraction.padEnd(7, '0')) / TICKS_PER_SECOND : whole
+  return fraction
+    ? whole + Number(fraction.padEnd(7, '0')) / TICKS_PER_SECOND
+    : whole
 }
 
 /**
@@ -187,7 +227,11 @@ export function secondsToTimeSpan(seconds: number): string {
   const pad = (part: number) => String(part).padStart(2, '0')
   const days = Math.floor(total / 86_400)
   const clock = `${pad(Math.floor(total % 86_400 / 3_600))}:${pad(Math.floor(total % 3_600 / 60))}:${pad(total % 60)}`
-  return `${days > 0 ? `${days}.` : ''}${clock}${fraction > 0 ? `.${String(fraction).padStart(7, '0')}` : ''}`
+  return `${days > 0
+    ? `${days}.`
+    : ''}${clock}${fraction > 0
+    ? `.${String(fraction).padStart(7, '0')}`
+    : ''}`
 }
 
 // ── WorkflowJson → 4.x 引擎定义 ─────────────────────────────────
@@ -207,7 +251,11 @@ function renameProperties(properties: unknown, direction: 0 | 1): unknown {
   const renamed: JsonRecord = {}
   for (const [key, value] of Object.entries(properties)) {
     const pair = PROPERTY_RENAMES.find(names => names[direction] === key)
-    renamed[pair ? pair[direction === 0 ? 1 : 0] : key] = value
+    renamed[pair
+      ? pair[direction === 0
+        ? 1
+        : 0]
+      : key] = value
   }
   return renamed
 }
@@ -216,7 +264,11 @@ function retryFromJson(policy: JsonRecord): JsonRecord {
   const { firstDelay, ...rest } = policy
   return {
     ...rest,
-    ...(typeof firstDelay === 'string' ? { firstDelaySeconds: timeSpanToSeconds(firstDelay) } : {}),
+    ...(typeof firstDelay === 'string'
+      ? {
+          firstDelaySeconds: timeSpanToSeconds(firstDelay),
+        }
+      : {}),
   }
 }
 
@@ -226,10 +278,24 @@ function nodeFromJson(node: unknown): unknown {
   const { displayName, timeout, retryPolicy, properties, ...rest } = node
   return {
     ...rest,
-    ...(properties !== undefined ? { properties: renameProperties(properties, 1) } : {}),
-    ...(typeof displayName === 'string' && displayName !== '' ? { name: displayName } : {}),
-    ...(isRecord(retryPolicy) ? { retryPolicy: retryFromJson(retryPolicy) } : {}),
-    ...(typeof timeout === 'string' ? { timeoutSeconds: timeSpanToSeconds(timeout) } : {}),
+    ...(properties !== undefined
+      ? {
+          properties: renameProperties(properties, 1),
+        }
+      : {}),
+    ...(typeof displayName === 'string' && displayName !== ''
+      ? { name: displayName }
+      : {}),
+    ...(isRecord(retryPolicy)
+      ? {
+          retryPolicy: retryFromJson(retryPolicy),
+        }
+      : {}),
+    ...(typeof timeout === 'string'
+      ? {
+          timeoutSeconds: timeSpanToSeconds(timeout),
+        }
+      : {}),
   }
 }
 
@@ -239,7 +305,9 @@ function transitionFromJson(transition: unknown): unknown {
   const { displayName, ...rest } = transition
   return {
     ...rest,
-    ...(typeof displayName === 'string' && displayName !== '' ? { name: displayName } : {}),
+    ...(typeof displayName === 'string' && displayName !== ''
+      ? { name: displayName }
+      : {}),
   }
 }
 
@@ -256,8 +324,11 @@ export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflo
   if (isRecord(properties)) {
     for (const [key, value] of Object.entries(properties)) {
       if (DESIGNER_KEYS.has(key)) {
-        if (present(value))
-          designer[key] = typeof value === 'string' ? value : JSON.stringify(value)
+        if (present(value)) {
+          designer[key] = typeof value === 'string'
+            ? value
+            : JSON.stringify(value)
+        }
       }
       else {
         others[key] = value
@@ -266,12 +337,20 @@ export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflo
   }
   const definition: JsonRecord = {
     ...rest,
-    ...(typeof name === 'string' ? { code: name } : {}),
-    ...(typeof displayName === 'string' && displayName !== '' ? { name: displayName } : {}),
+    ...(typeof name === 'string'
+      ? { code: name }
+      : {}),
+    ...(typeof displayName === 'string' && displayName !== ''
+      ? { name: displayName }
+      : {}),
     nodes: withIds(listOf(nodes, 'nodes'), nodePrefix).map(nodeFromJson),
     transitions: withIds(listOf(transitions, 'transitions'), () => 'edge_').map(transitionFromJson),
-    ...(Object.keys(others).length > 0 ? { properties: others } : {}),
-    ...(Object.keys(designer).length > 0 ? { extraProperties: designer } : {}),
+    ...(Object.keys(others).length > 0
+      ? { properties: others }
+      : {}),
+    ...(Object.keys(designer).length > 0
+      ? { extraProperties: designer }
+      : {}),
   }
   return definition as XihanWorkflowDefinition
 }
@@ -292,7 +371,11 @@ function retryToJson(policy: JsonRecord): JsonRecord {
   const { firstDelaySeconds, ...rest } = policy
   return ordered({
     ...rest,
-    ...(typeof firstDelaySeconds === 'number' ? { firstDelay: secondsToTimeSpan(firstDelaySeconds) } : {}),
+    ...(typeof firstDelaySeconds === 'number'
+      ? {
+          firstDelay: secondsToTimeSpan(firstDelaySeconds),
+        }
+      : {}),
   }, RETRY_ORDER)
 }
 
@@ -302,10 +385,24 @@ function nodeToJson(node: unknown): unknown {
   const { name, timeoutSeconds, retryPolicy, properties, ...rest } = node
   return ordered({
     ...rest,
-    ...(properties !== undefined ? { properties: renameProperties(properties, 0) } : {}),
-    ...(typeof name === 'string' && name !== '' ? { displayName: name } : {}),
-    ...(isRecord(retryPolicy) ? { retryPolicy: retryToJson(retryPolicy) } : {}),
-    ...(typeof timeoutSeconds === 'number' ? { timeout: secondsToTimeSpan(timeoutSeconds) } : {}),
+    ...(properties !== undefined
+      ? {
+          properties: renameProperties(properties, 0),
+        }
+      : {}),
+    ...(typeof name === 'string' && name !== ''
+      ? { displayName: name }
+      : {}),
+    ...(isRecord(retryPolicy)
+      ? {
+          retryPolicy: retryToJson(retryPolicy),
+        }
+      : {}),
+    ...(typeof timeoutSeconds === 'number'
+      ? {
+          timeout: secondsToTimeSpan(timeoutSeconds),
+        }
+      : {}),
   }, NODE_ORDER)
 }
 
@@ -315,7 +412,9 @@ function transitionToJson(transition: unknown): unknown {
   const { name, ...rest } = transition
   return ordered({
     ...rest,
-    ...(typeof name === 'string' && name !== '' ? { displayName: name } : {}),
+    ...(typeof name === 'string' && name !== ''
+      ? { displayName: name }
+      : {}),
   }, TRANSITION_ORDER)
 }
 
@@ -326,22 +425,35 @@ export function toWorkflowJson(definition: XihanWorkflowDefinition): WorkflowJso
   if (!isRecord(definition))
     fail('must be an object')
   const { code, name, nodes, transitions, extraProperties, properties, tenantId, ...rest } = definition as JsonRecord
-  const merged: JsonRecord = isRecord(properties) ? { ...properties } : {}
+  const merged: JsonRecord = isRecord(properties)
+    ? { ...properties }
+    : {}
   if (isRecord(extraProperties)) {
     for (const [key, value] of Object.entries(extraProperties)) {
-      if (present(value))
-        merged[key] = DESIGNER_KEYS.has(key) && typeof value === 'string' ? parseDesignerValue(value) : value
+      if (present(value)) {
+        merged[key] = DESIGNER_KEYS.has(key) && typeof value === 'string'
+          ? parseDesignerValue(value)
+          : value
+      }
     }
   }
   const kept = Object.fromEntries(Object.entries(rest).filter(([key]) => !LEGACY_ONLY_KEYS.has(key)))
   return ordered({
     ...kept,
     // 框架的租户是字符串；4.x 的数字租户 id 框架不认
-    ...(typeof tenantId === 'string' ? { tenantId } : {}),
-    ...(typeof code === 'string' ? { name: code } : {}),
-    ...(typeof name === 'string' && name !== '' ? { displayName: name } : {}),
+    ...(typeof tenantId === 'string'
+      ? { tenantId }
+      : {}),
+    ...(typeof code === 'string'
+      ? { name: code }
+      : {}),
+    ...(typeof name === 'string' && name !== ''
+      ? { displayName: name }
+      : {}),
     nodes: withIds(listOf(nodes, 'nodes'), nodePrefix).map(nodeToJson),
     transitions: withIds(listOf(transitions, 'transitions'), () => 'edge_').map(transitionToJson),
-    ...(Object.keys(merged).length > 0 ? { properties: merged } : {}),
+    ...(Object.keys(merged).length > 0
+      ? { properties: merged }
+      : {}),
   }, DEFINITION_ORDER, DEFINITION_TAIL) as WorkflowJsonDefinition
 }

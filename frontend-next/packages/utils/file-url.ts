@@ -37,5 +37,7 @@ export function toAbsoluteFileUrl(value: string | null | undefined): string {
   if (/^(?:https?:\/\/|data:|blob:)/i.test(raw)) {
     return raw
   }
-  return raw.startsWith('/') && BACKEND_ORIGIN ? BACKEND_ORIGIN + raw : raw
+  return raw.startsWith('/') && BACKEND_ORIGIN
+    ? BACKEND_ORIGIN + raw
+    : raw
 }

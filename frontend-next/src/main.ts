@@ -34,8 +34,12 @@ async function bootstrap() {
   let lastMaintenanceNotice = 0
   const toLogin = () => {
     auth.clear()
-    if (router.currentRoute.value.path !== LOGIN_PATH)
-      void router.replace({ path: LOGIN_PATH, query: { redirect: router.currentRoute.value.fullPath } })
+    if (router.currentRoute.value.path !== LOGIN_PATH) {
+      void router.replace({
+        path: LOGIN_PATH,
+        query: { redirect: router.currentRoute.value.fullPath },
+      })
+    }
   }
   configureRequest({
     baseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
@@ -52,7 +56,9 @@ async function bootstrap() {
       // 会话被吊销（注销、改密、锁定、重置密码）：刷新令牌同样失效，直接回登录页
       onSessionInvalid: toLogin,
       // 会话被锁屏（IDENTITY_DENIED_002，带锁定原因）：拉回锁定态，锁屏遮罩接管
-      onLocked: error => markLockedFromServer(typeof error.details?.reason === 'string' ? error.details.reason : null),
+      onLocked: error => markLockedFromServer(typeof error.details?.reason === 'string'
+        ? error.details.reason
+        : null),
       // 别的节点在升级共享库或内核还没就绪：提示稍后重试（后端这条 503 不经管道、没有本地化正文，文案由前端出）
       onMaintenance: () => {
         const now = Date.now()
@@ -64,7 +70,9 @@ async function bootstrap() {
     },
   })
   // 首屏文案先装好再挂载，否则会先渲一帧裸 key；之后切语言由偏好 store 的 locale 监听驱动
-  await setLocale(isLocale(appStore.locale) ? appStore.locale : DEFAULT_LOCALE)
+  await setLocale(isLocale(appStore.locale)
+    ? appStore.locale
+    : DEFAULT_LOCALE)
 
   // 壳层要的接口实现、路由实例与应用路由（packages 不直接依赖 src）
   registerApplicationContext(router)

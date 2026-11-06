@@ -21,11 +21,47 @@ const asRow = (row: unknown) => row as VersionRow
 // ── 字段单一事实源：列 + 常用搜索（可排序的只放后端白名单：应用版本、数据库版本、最近升级时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索（不作为列）
-  { key: 'keyword', title: t('maintenance.versions.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('maintenance.versions.keyword_placeholder'), width: 240, order: 0 },
+  {
+    key: 'keyword',
+    title: t('maintenance.versions.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('maintenance.versions.keyword_placeholder'),
+    width: 240,
+    order: 0,
+  },
   // 列 + 搜索
-  { key: 'databaseName', title: t('maintenance.versions.database'), dataType: 'string', exportable: true, minWidth: 120, order: 1 },
-  { key: 'appVersion', title: t('maintenance.versions.app_version'), dataType: 'string', searchable: true, sortable: true, exportable: true, searchPlaceholder: t('maintenance.versions.app_version_placeholder'), minWidth: 130, order: 2 },
-  { key: 'dbVersion', title: t('maintenance.versions.db_version'), dataType: 'string', searchable: true, sortable: true, exportable: true, searchPlaceholder: t('maintenance.versions.db_version_placeholder'), minWidth: 130, order: 3 },
+  {
+    key: 'databaseName',
+    title: t('maintenance.versions.database'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 120,
+    order: 1,
+  },
+  {
+    key: 'appVersion',
+    title: t('maintenance.versions.app_version'),
+    dataType: 'string',
+    searchable: true,
+    sortable: true,
+    exportable: true,
+    searchPlaceholder: t('maintenance.versions.app_version_placeholder'),
+    minWidth: 130,
+    order: 2,
+  },
+  {
+    key: 'dbVersion',
+    title: t('maintenance.versions.db_version'),
+    dataType: 'string',
+    searchable: true,
+    sortable: true,
+    exportable: true,
+    searchPlaceholder: t('maintenance.versions.db_version_placeholder'),
+    minWidth: 130,
+    order: 3,
+  },
   {
     key: 'isUpgrading',
     title: t('maintenance.versions.upgrade_status'),
@@ -40,11 +76,40 @@ const fields = computed<ListFieldSchema[]>(() => [
       ? renderTag(t('maintenance.versions.read_failed'), 'danger')
       : renderTag(upgradingLabel(t, asRow(row).isUpgrading), upgradingTone(asRow(row).isUpgrading)),
   },
-  { key: 'upgradeNode', title: t('maintenance.versions.upgrade_node'), dataType: 'string', exportable: true, minWidth: 140, order: 5 },
-  { key: 'upgradeStartedAt', title: t('maintenance.versions.upgrade_start_time'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
-  { key: 'upgradedAt', title: t('maintenance.versions.upgraded_time'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 7 },
+  {
+    key: 'upgradeNode',
+    title: t('maintenance.versions.upgrade_node'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 140,
+    order: 5,
+  },
+  {
+    key: 'upgradeStartedAt',
+    title: t('maintenance.versions.upgrade_start_time'),
+    dataType: 'datetime',
+    exportable: true,
+    minWidth: 170,
+    order: 6,
+  },
+  {
+    key: 'upgradedAt',
+    title: t('maintenance.versions.upgraded_time'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 7,
+  },
   // 读不到台账的行列表里标「读取失败」：导出没有标记，原因单独成一列，免得看成正常
-  { key: 'error', title: t('maintenance.versions.read_error'), dataType: 'string', visible: false, exportable: true, order: 8 },
+  {
+    key: 'error',
+    title: t('maintenance.versions.read_error'),
+    dataType: 'string',
+    visible: false,
+    exportable: true,
+    order: 8,
+  },
 ])
 
 // 只读页：版本行由升级执行器写入并把 IsUpgrading 用作分布式锁，页面不提供任何写操作
@@ -56,12 +121,19 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'view', title: t('maintenance.versions.view'), scope: 'row', icon: 'lucide:eye' },
+    {
+      key: 'view',
+      title: t('maintenance.versions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
   ],
 }))
 
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   if (payload.key === 'view' && row) {
     void handleDetail(row)
   }

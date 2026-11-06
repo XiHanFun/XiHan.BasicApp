@@ -41,7 +41,9 @@ const centerOffset = computed(() => {
   return { dx: 50 - (minX + maxX) / 2, dy: 50 - (minY + maxY) / 2 }
 })
 // 预览态降低粒子数与路径采样（选择器一次渲染 20+ 个）；实际加载态全量还原
-const particleCount = computed(() => props.preview ? Math.min(config.value.particleCount, 44) : config.value.particleCount)
+const particleCount = computed(() => props.preview
+  ? Math.min(config.value.particleCount, 44)
+  : config.value.particleCount)
 const pathSteps = computed(() => props.preview ? 220 : 460)
 const particleList = computed(() => Array.from({ length: particleCount.value }, (_, index) => index))
 
@@ -90,7 +92,9 @@ function frame(now: number) {
 
 function start() {
   cancelAnimationFrame(raf)
-  startTime = typeof performance === 'undefined' ? 0 : performance.now()
+  startTime = typeof performance === 'undefined'
+    ? 0
+    : performance.now()
   raf = requestAnimationFrame(frame)
 }
 

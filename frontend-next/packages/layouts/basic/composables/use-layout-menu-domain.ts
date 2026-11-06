@@ -25,7 +25,9 @@ interface BuildMenuOptionsConfig {
 type RouteRecordName = LayoutRouteRecord['name']
 
 function toRouteNameKey(name: RouteRecordName) {
-  return typeof name === 'string' || typeof name === 'number' ? String(name) : undefined
+  return typeof name === 'string' || typeof name === 'number'
+    ? String(name)
+    : undefined
 }
 
 function toLayoutMeta(record: LayoutRouteRecord): LayoutRouteMeta {
@@ -100,15 +102,21 @@ function buildMenuOptionsFromRoutes(
       = config.keyBy === 'path'
         ? fullPath
         : (toRouteNameKey(item.name)
-          ?? (childOptions?.[0]?.key ? String(childOptions[0].key) : fullPath))
+          ?? (childOptions?.[0]?.key
+            ? String(childOptions[0].key)
+            : fullPath))
 
     if (!key) {
       continue
     }
 
     const fallback = toRouteNameKey(item.name) ?? fullPath
-    const rawLabel = meta.title ? config.translate(meta.title, fallback) : fallback
-    const icon = meta.icon ? config.iconRenderer?.(meta.icon) : undefined
+    const rawLabel = meta.title
+      ? config.translate(meta.title, fallback)
+      : fallback
+    const icon = meta.icon
+      ? config.iconRenderer?.(meta.icon)
+      : undefined
 
     // 当菜单配置了标签且提供了标签渲染器时，生成带标签的 label
     const hasBadge = meta.badge || meta.dot
@@ -125,7 +133,12 @@ function buildMenuOptionsFromRoutes(
       ? () => h(
           'span',
           { style: 'display:inline-flex;align-items:center;gap:4px;min-width:0' },
-          [typeof baseLabel === 'function' ? baseLabel() : baseLabel, config.linkIcon!()],
+          [
+            typeof baseLabel === 'function'
+              ? baseLabel()
+              : baseLabel,
+            config.linkIcon!(),
+          ],
         )
       : baseLabel
 

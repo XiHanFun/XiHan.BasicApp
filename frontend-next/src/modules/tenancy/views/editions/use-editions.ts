@@ -48,7 +48,9 @@ const CODE_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
 
 /** 免费套餐标了价即不合法（价格为 0 不算标价） */
 export function editionFormProblem(form: Pick<EditionForm, 'isFree' | 'price'>): EditionFormProblem | null {
-  return form.isFree && form.price !== null && form.price > 0 ? 'free_priced' : null
+  return form.isFree && form.price !== null && form.price > 0
+    ? 'free_priced'
+    : null
 }
 
 /** 套餐的配额、价格与周期：新建与更新的请求、设为缺省时原样带回（更新是整体覆盖） */
@@ -68,11 +70,15 @@ function isBlank(value: unknown): boolean {
 
 function blankToNull(value: string): null | string {
   const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
+  return trimmed === ''
+    ? null
+    : trimmed
 }
 
 function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
+  return error instanceof ApiError
+    ? error.detail
+    : String(error)
 }
 
 function sameSet(left: readonly string[], right: readonly string[]): boolean {
@@ -97,14 +103,32 @@ export function editionsResource(): SchemaResource<EditionRow> {
         throw new Error(`editions.list 不接受筛选与排序：${conditions.join(', ')}`)
       const { items } = await editionsApi.list({})
       const start = (params.page - 1) * params.pageSize
-      return toSchemaPageResult({ items: items.slice(start, start + params.pageSize), total: items.length, page: { index: params.page, size: params.pageSize } }, params)
+      return toSchemaPageResult({
+        items: items.slice(start, start + params.pageSize),
+        total: items.length,
+        page: { index: params.page, size: params.pageSize },
+      }, params)
     },
     // 还有租户绑定的套餐由后端逐项拒绝（TENANCY_CONFLICT_007）
-    remove: async id => throwOnFailed(await editionsApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await editionsApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
     // 更新是整体覆盖：先取当前值再只改状态；停用缺省套餐由后端拒绝（TENANCY_CONFLICT_017）
     updateStatus: async (id, enabled) => {
-      const { edition } = await editionsApi.get({ id: String(id) })
-      return editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: edition.isDefault, order: edition.order, ...quotaOf(edition), status: enabled ? 'Active' : 'Disabled' })
+      const { edition } = await editionsApi.get({
+        id: String(id),
+      })
+      return editionsApi.update({
+        id: edition.id,
+        name: edition.name,
+        description: edition.description ?? null,
+        isDefault: edition.isDefault,
+        order: edition.order,
+        ...quotaOf(edition),
+        status: enabled ? 'Active' : 'Disabled',
+      })
     },
   }
 }
@@ -112,7 +136,15 @@ export function editionsResource(): SchemaResource<EditionRow> {
 /** 设为缺省：更新是整体覆盖，先取当前值再只改缺省标记（状态、配额、价格与周期原样带回）；后端随之清掉其余套餐的缺省，停用的套餐不能设为缺省（TENANCY_CONFLICT_017） */
 export async function setDefaultEdition(id: string): Promise<EditionRow> {
   const { edition } = await editionsApi.get({ id })
-  return (await editionsApi.update({ id: edition.id, name: edition.name, description: edition.description ?? null, isDefault: true, order: edition.order, ...quotaOf(edition), status: edition.status })).edition
+  return (await editionsApi.update({
+    id: edition.id,
+    name: edition.name,
+    description: edition.description ?? null,
+    isDefault: true,
+    order: edition.order,
+    ...quotaOf(edition),
+    status: edition.status,
+  })).edition
 }
 
 /**
@@ -130,14 +162,34 @@ export function toWhitelistItems(catalog: readonly CatalogItem[], whitelist: rea
   }))
   const known = new Set(catalog.map(item => item.code))
   for (const code of whitelist) {
-    if (!known.has(code))
-      items.push({ basicId: code, permissionCode: code, permissionName: code, groupCode: outsideGroup, groupName: outsideGroup, outside: true })
+    if (!known.has(code)) {
+      items.push({
+        basicId: code,
+        permissionCode: code,
+        permissionName: code,
+        groupCode: outsideGroup,
+        groupName: outsideGroup,
+        outside: true,
+      })
+    }
   }
   return items
 }
 
 function emptyForm(): EditionForm {
-  return { code: '', name: '', description: '', isDefault: false, status: 'Active', order: 0, userLimit: null, storageLimitMb: null, price: null, billingPeriodMonths: null, isFree: false }
+  return {
+    code: '',
+    name: '',
+    description: '',
+    isDefault: false,
+    status: 'Active',
+    order: 0,
+    userLimit: null,
+    storageLimitMb: null,
+    price: null,
+    billingPeriodMonths: null,
+    isFree: false,
+  }
 }
 
 /**
@@ -171,7 +223,15 @@ export function useEditionEditor(t: Translate) {
   function startEdit(row: EditionRow) {
     mode.value = 'edit'
     editing.value = row
-    reset({ code: row.code, name: row.name, description: row.description ?? '', isDefault: row.isDefault, status: row.status, order: row.order, ...quotaOf(row) })
+    reset({
+      code: row.code,
+      name: row.name,
+      description: row.description ?? '',
+      isDefault: row.isDefault,
+      status: row.status,
+      order: row.order,
+      ...quotaOf(row),
+    })
     open.value = true
   }
 
@@ -196,15 +256,36 @@ export function useEditionEditor(t: Translate) {
     submitError.value = null
     fieldErrors.value = {}
     if (editionFormProblem(form) === 'free_priced') {
-      fieldErrors.value = { price: [t('tenancy.editions.validation.free_priced')] }
+      fieldErrors.value = {
+        price: [
+          t('tenancy.editions.validation.free_priced'),
+        ],
+      }
       return null
     }
     submitting.value = true
     try {
       const current = editing.value
       const saved = mode.value === 'edit' && current
-        ? await editionsApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form), status: form.status })
-        : await editionsApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), isDefault: form.isDefault, order: form.order, ...quotaOf(form), status: form.status, permissions: [] })
+        ? await editionsApi.update({
+            id: current.id,
+            name: form.name.trim(),
+            description: blankToNull(form.description),
+            isDefault: form.isDefault,
+            order: form.order,
+            ...quotaOf(form),
+            status: form.status,
+          })
+        : await editionsApi.create({
+            code: form.code.trim(),
+            name: form.name.trim(),
+            description: blankToNull(form.description),
+            isDefault: form.isDefault,
+            order: form.order,
+            ...quotaOf(form),
+            status: form.status,
+            permissions: [],
+          })
       open.value = false
       return saved.edition
     }
@@ -224,7 +305,21 @@ export function useEditionEditor(t: Translate) {
     }
   }
 
-  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, generateCode, setFree, submit }
+  return {
+    open,
+    mode,
+    isEdit,
+    editing,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    startCreate,
+    startEdit,
+    generateCode,
+    setFree,
+    submit,
+  }
 }
 
 /**
@@ -261,7 +356,10 @@ export function useEditionPermissions() {
     open.value = true
     loading.value = true
     try {
-      const [, detail] = await Promise.all([loadCatalog(), editionsApi.get({ id: row.id })])
+      const [, detail] = await Promise.all([
+        loadCatalog(),
+        editionsApi.get({ id: row.id }),
+      ])
       edition.value = detail.edition
       whitelist.value = [...detail.permissions]
       checked.value = [...detail.permissions]
@@ -285,7 +383,10 @@ export function useEditionPermissions() {
     saving.value = true
     saveError.value = null
     try {
-      const detail = await editionsApi.setPermissions({ id: current.id, permissions: [...checked.value].sort() })
+      const detail = await editionsApi.setPermissions({
+        id: current.id,
+        permissions: [...checked.value].sort(),
+      })
       edition.value = detail.edition
       whitelist.value = [...detail.permissions]
       checked.value = [...detail.permissions]
@@ -300,5 +401,19 @@ export function useEditionPermissions() {
     }
   }
 
-  return { open, edition, catalog, whitelist, checked, dirty, loading, loadError, saving, saveError, start, setChecked, save }
+  return {
+    open,
+    edition,
+    catalog,
+    whitelist,
+    checked,
+    dirty,
+    loading,
+    loadError,
+    saving,
+    saveError,
+    start,
+    setChecked,
+    save,
+  }
 }

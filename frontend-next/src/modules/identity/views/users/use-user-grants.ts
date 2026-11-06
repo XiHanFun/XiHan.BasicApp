@@ -44,7 +44,9 @@ export function diffPermissionGrants(actions: ReadonlyMap<string, GrantAction>, 
     else
       deny.push(code)
   }
-  const revoke = [...current.keys()].filter(code => !actions.has(code))
+  const revoke = [
+    ...current.keys(),
+  ].filter(code => !actions.has(code))
   return { grant, deny, revoke }
 }
 
@@ -60,14 +62,24 @@ export function toGrantItems(catalog: readonly CatalogItem[], current: Iterable<
   }))
   const known = new Set(catalog.map(item => item.code))
   for (const code of current) {
-    if (!known.has(code))
-      items.push({ basicId: code, permissionCode: code, permissionName: code, groupCode: outsideGroup, groupName: outsideGroup, outside: true })
+    if (!known.has(code)) {
+      items.push({
+        basicId: code,
+        permissionCode: code,
+        permissionName: code,
+        groupCode: outsideGroup,
+        groupName: outsideGroup,
+        outside: true,
+      })
+    }
   }
   return items
 }
 
 function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
+  return error instanceof ApiError
+    ? error.detail
+    : String(error)
 }
 
 /** 逐项拒绝的权限码与原因拼成一条报错 */
@@ -113,7 +125,12 @@ export function useUserGrants(outsideGroup: () => string) {
     loading.value = true
     try {
       const locale = useAppStore().locale
-      const [, list] = await Promise.all([reloadGrants(row.id), catalogLocale === locale ? Promise.resolve(null) : permissionsApi.list({})])
+      const [, list] = await Promise.all([
+        reloadGrants(row.id),
+        catalogLocale === locale
+          ? Promise.resolve(null)
+          : permissionsApi.list({}),
+      ])
       if (list) {
         catalog.value = [...list.items]
         catalogLocale = locale
@@ -160,5 +177,19 @@ export function useUserGrants(outsideGroup: () => string) {
     }
   }
 
-  return { open, user, tab, loading, error, items, actions, grantIds, denyIds, dirty, start, transfer, save }
+  return {
+    open,
+    user,
+    tab,
+    loading,
+    error,
+    items,
+    actions,
+    grantIds,
+    denyIds,
+    dirty,
+    start,
+    transfer,
+    save,
+  }
 }

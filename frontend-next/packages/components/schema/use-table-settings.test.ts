@@ -17,17 +17,27 @@ vi.mock('./useUserSettingSync', async () => {
       save: vi.fn(),
       subscribeRemote: () => () => {},
       // 关着同步的样子：立即就绪，不拉后端
-      bindSection: () => ({ ready: vueRef(true), settled: Promise.resolve(), dispose: () => {} }),
+      bindSection: () => ({
+        ready: vueRef(true),
+        settled: Promise.resolve(),
+        dispose: () => {},
+      }),
     }),
   }
 })
 
-const fields = ref([{ key: 'name', title: '名称' }, { key: 'path', title: '路径' }] as ListFieldSchema[])
+const fields = ref([
+  { key: 'name', title: '名称' },
+  { key: 'path', title: '路径' },
+] as ListFieldSchema[])
 
 function setup(pageCode = 'align-test') {
   const scope = effectScope()
   const settings = scope.run(() => useTableSettings(pageCode, fields))!
-  return { settings, stop: () => scope.stop() }
+  return {
+    settings,
+    stop: () => scope.stop(),
+  }
 }
 
 afterEach(() => {
@@ -62,7 +72,12 @@ describe('useTableSettings 对齐', () => {
   })
 
   it('旧版本存下的设置没有对齐这一项时按靠左读', () => {
-    storage.set('xh:table-settings:align-test', { columns: [{ key: 'name', visible: true }], density: 'medium' })
+    storage.set('xh:table-settings:align-test', {
+      columns: [
+        { key: 'name', visible: true },
+      ],
+      density: 'medium',
+    })
     const { settings, stop } = setup()
     expect(settings.align.value).toBe('left')
     stop()
@@ -92,8 +107,18 @@ describe('useTableSettings 密度与竖线', () => {
   })
 
   it('旧版存的 small / large 换成 sm / lg', () => {
-    storage.set('xh:table-settings:density-small', { columns: [{ key: 'name', visible: true }], density: 'small' })
-    storage.set('xh:table-settings:density-large', { columns: [{ key: 'name', visible: true }], density: 'large' })
+    storage.set('xh:table-settings:density-small', {
+      columns: [
+        { key: 'name', visible: true },
+      ],
+      density: 'small',
+    })
+    storage.set('xh:table-settings:density-large', {
+      columns: [
+        { key: 'name', visible: true },
+      ],
+      density: 'large',
+    })
     const small = setup('density-small')
     const large = setup('density-large')
     expect(small.settings.density.value).toBe('sm')
@@ -103,8 +128,18 @@ describe('useTableSettings 密度与竖线', () => {
   })
 
   it('旧版存的 singleLine 反过来读成竖线开关', () => {
-    storage.set('xh:table-settings:ruled-off', { columns: [{ key: 'name', visible: true }], style: { striped: true, bordered: true, singleLine: true } })
-    storage.set('xh:table-settings:ruled-on', { columns: [{ key: 'name', visible: true }], style: { striped: false, bordered: true, singleLine: false } })
+    storage.set('xh:table-settings:ruled-off', {
+      columns: [
+        { key: 'name', visible: true },
+      ],
+      style: { striped: true, bordered: true, singleLine: true },
+    })
+    storage.set('xh:table-settings:ruled-on', {
+      columns: [
+        { key: 'name', visible: true },
+      ],
+      style: { striped: false, bordered: true, singleLine: false },
+    })
     const off = setup('ruled-off')
     const on = setup('ruled-on')
     expect(off.settings.style.value).toStrictEqual({ striped: true, bordered: true, ruled: false })

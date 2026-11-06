@@ -39,28 +39,53 @@ function dataTypeLabel(type: ConfigDataType): string {
 }
 
 function statusLabel(status: ConfigStatus): string {
-  return status === 'Disabled' ? t('settings.configs.status.disabled') : t('settings.configs.status.active')
+  return status === 'Disabled'
+    ? t('settings.configs.status.disabled')
+    : t('settings.configs.status.active')
 }
 
 function ownerLabel(row: ConfigRow): string {
-  return row.isPlatform ? t('settings.configs.owner.platform') : t('settings.configs.owner.tenant')
+  return row.isPlatform
+    ? t('settings.configs.owner.platform')
+    : t('settings.configs.owner.tenant')
 }
 
 function valueText(row: ConfigRow, value: null | string | undefined): string {
-  if (row.isEncrypted)
-    return row.hasValue ? t('settings.configs.encrypted_value') : ''
+  if (row.isEncrypted) {
+    return row.hasValue
+      ? t('settings.configs.encrypted_value')
+      : ''
+  }
   return value ?? ''
 }
 
-const dataTypeOptions = computed<SelectOption[]>(() => CONFIG_DATA_TYPES.map(type => ({ label: dataTypeLabel(type), value: type })))
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const dataTypeOptions = computed<SelectOption[]>(() => CONFIG_DATA_TYPES.map(type => ({
+  label: dataTypeLabel(type),
+  value: type,
+})))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 const ownerOptions = computed(() => [
-  { label: t('settings.configs.owner.platform'), value: 'platform' },
-  { label: t('settings.configs.owner.tenant'), value: 'tenant' },
+  {
+    label: t('settings.configs.owner.platform'),
+    value: 'platform',
+  },
+  {
+    label: t('settings.configs.owner.tenant'),
+    value: 'tenant',
+  },
 ])
 const yesNoOptions = computed(() => [
-  { label: t('common.statuses.yes'), value: 'true' },
-  { label: t('common.statuses.no'), value: 'false' },
+  {
+    label: t('common.statuses.yes'),
+    value: 'true',
+  },
+  {
+    label: t('common.statuses.no'),
+    value: 'false',
+  },
 ])
 
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
@@ -68,21 +93,149 @@ const yesNoOptions = computed(() => [
 const asRow = (row: object) => row as ConfigRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('settings.configs.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('settings.configs.keyword_placeholder'), order: 0 },
-  { key: 'name', title: t('settings.configs.fields.name'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 160, order: 1 },
-  { key: 'key', title: t('settings.configs.fields.key'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 180, order: 2 },
-  { key: 'group', title: t('settings.configs.fields.group'), dataType: 'string', sortable: true, advancedSearch: true, importable: true, exportable: true, minWidth: 100, order: 3 },
-  { key: 'dataType', title: t('settings.configs.fields.data_type'), dataType: 'enum', searchable: true, importable: true, exportable: true, options: dataTypeOptions.value, width: 110, order: 4 },
-  { key: 'value', title: t('settings.configs.fields.value'), dataType: 'text', importable: true, render: row => valueText(asRow(row), asRow(row).value), ellipsis: true, minWidth: 160, order: 5 },
-  { key: 'defaultValue', title: t('settings.configs.fields.default_value'), dataType: 'text', visible: false, importable: true, order: 5.5 },
-  { key: 'owner', title: t('settings.configs.fields.owner'), dataType: 'enum', searchable: true, options: ownerOptions.value, render: row => ownerLabel(asRow(row)), width: 90, order: 6 },
-  { key: 'isEncrypted', title: t('settings.configs.fields.encrypted'), dataType: 'boolean', advancedSearch: true, options: yesNoOptions.value, width: 90, order: 7 },
-  { key: 'isBuiltIn', title: t('settings.configs.built_in'), dataType: 'boolean', width: 80, order: 8 },
-  { key: 'allowTenantOverride', title: t('settings.configs.fields.allow_tenant_override'), dataType: 'boolean', width: 120, order: 9 },
-  { key: 'status', title: t('settings.configs.fields.status'), dataType: 'enum', searchable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 10 },
-  { key: 'order', title: t('settings.configs.fields.order'), dataType: 'number', sortable: true, importable: true, exportable: true, width: 80, order: 11 },
-  { key: 'description', title: t('settings.configs.fields.description'), dataType: 'text', visible: false, importable: true, order: 11.5 },
-  { key: 'createdAt', title: t('settings.configs.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 12 },
+  {
+    key: 'keyword',
+    title: t('settings.configs.search'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('settings.configs.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('settings.configs.fields.name'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 160,
+    order: 1,
+  },
+  {
+    key: 'key',
+    title: t('settings.configs.fields.key'),
+    dataType: 'string',
+    sortable: true,
+    importable: true,
+    required: true,
+    exportable: true,
+    minWidth: 180,
+    order: 2,
+  },
+  {
+    key: 'group',
+    title: t('settings.configs.fields.group'),
+    dataType: 'string',
+    sortable: true,
+    advancedSearch: true,
+    importable: true,
+    exportable: true,
+    minWidth: 100,
+    order: 3,
+  },
+  {
+    key: 'dataType',
+    title: t('settings.configs.fields.data_type'),
+    dataType: 'enum',
+    searchable: true,
+    importable: true,
+    exportable: true,
+    options: dataTypeOptions.value,
+    width: 110,
+    order: 4,
+  },
+  {
+    key: 'value',
+    title: t('settings.configs.fields.value'),
+    dataType: 'text',
+    importable: true,
+    render: row => valueText(asRow(row), asRow(row).value),
+    ellipsis: true,
+    minWidth: 160,
+    order: 5,
+  },
+  {
+    key: 'defaultValue',
+    title: t('settings.configs.fields.default_value'),
+    dataType: 'text',
+    visible: false,
+    importable: true,
+    order: 5.5,
+  },
+  {
+    key: 'owner',
+    title: t('settings.configs.fields.owner'),
+    dataType: 'enum',
+    searchable: true,
+    options: ownerOptions.value,
+    render: row => ownerLabel(asRow(row)),
+    width: 90,
+    order: 6,
+  },
+  {
+    key: 'isEncrypted',
+    title: t('settings.configs.fields.encrypted'),
+    dataType: 'boolean',
+    advancedSearch: true,
+    options: yesNoOptions.value,
+    width: 90,
+    order: 7,
+  },
+  {
+    key: 'isBuiltIn',
+    title: t('settings.configs.built_in'),
+    dataType: 'boolean',
+    width: 80,
+    order: 8,
+  },
+  {
+    key: 'allowTenantOverride',
+    title: t('settings.configs.fields.allow_tenant_override'),
+    dataType: 'boolean',
+    width: 120,
+    order: 9,
+  },
+  {
+    key: 'status',
+    title: t('settings.configs.fields.status'),
+    dataType: 'enum',
+    searchable: true,
+    options: statusOptions.value,
+    render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active'
+      ? 'success'
+      : 'danger'),
+    width: 90,
+    order: 10,
+  },
+  {
+    key: 'order',
+    title: t('settings.configs.fields.order'),
+    dataType: 'number',
+    sortable: true,
+    importable: true,
+    exportable: true,
+    width: 80,
+    order: 11,
+  },
+  {
+    key: 'description',
+    title: t('settings.configs.fields.description'),
+    dataType: 'text',
+    visible: false,
+    importable: true,
+    order: 11.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('settings.configs.fields.created_at'),
+    dataType: 'datetime',
+    sortable: true,
+    exportable: true,
+    minWidth: 170,
+    order: 12,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -97,20 +250,67 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('settings.configs.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'settings.configs.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
+    {
+      key: 'create',
+      title: t('settings.configs.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'settings.configs.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
     // 另一侧的参数只读：平台看得见租户参数、租户看得见平台参数，都改不了
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', visible: row => editor.isOwn(asRow(row)), permission: 'settings.configs.update' },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      visible: row => editor.isOwn(asRow(row)),
+      permission: 'settings.configs.update',
+    },
     // 租户覆盖平台参数：同键新建一条本租户的参数
-    { key: 'override', title: t('settings.configs.actions.override'), scope: 'row', icon: 'lucide:copy-plus', visible: row => editor.canOverride(asRow(row)), permission: 'settings.configs.create' },
-    { key: 'toggle', title: t('settings.configs.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), visible: row => editor.isOwn(asRow(row)), permission: 'settings.configs.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), visible: row => editor.isOwn(asRow(row)) && !asRow(row).isBuiltIn, permission: 'settings.configs.delete' },
+    {
+      key: 'override',
+      title: t('settings.configs.actions.override'),
+      scope: 'row',
+      icon: 'lucide:copy-plus',
+      visible: row => editor.canOverride(asRow(row)),
+      permission: 'settings.configs.create',
+    },
+    {
+      key: 'toggle',
+      title: t('settings.configs.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      visible: row => editor.isOwn(asRow(row)),
+      permission: 'settings.configs.update',
+    },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      visible: row => editor.isOwn(asRow(row)) && !asRow(row).isBuiltIn,
+      permission: 'settings.configs.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -185,11 +385,15 @@ function openDetail(row: ConfigRow) {
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 function formatBoolean(value: boolean): string {
-  return value ? t('common.statuses.yes') : t('common.statuses.no')
+  return value
+    ? t('common.statuses.yes')
+    : t('common.statuses.no')
 }
 </script>
 

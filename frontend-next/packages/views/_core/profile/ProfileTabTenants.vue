@@ -28,7 +28,9 @@ function memberTypeLabel(tenant: AppTenantSwitcherItem) {
   if (tenant.isHome) {
     return t('component.profile.tenants.home_tenant')
   }
-  return tenant.memberType === 'Support' ? t('component.profile.tenants.member_type.support') : t('component.profile.tenants.member_type.member')
+  return tenant.memberType === 'Support'
+    ? t('component.profile.tenants.member_type.support')
+    : t('component.profile.tenants.member_type.member')
 }
 
 const loading = ref(false)
@@ -38,7 +40,9 @@ const tenants = ref<AppTenantSwitcherItem[]>([])
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadTenants() {

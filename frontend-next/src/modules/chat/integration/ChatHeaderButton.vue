@@ -19,7 +19,9 @@ const visible = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.read))
 const unread = computed(() => chatStore.totalUnread)
 /** 图标钮的名字：气泡只是描述，未读数随名字一起念，零则只念钮名 */
 const buttonLabel = computed(() =>
-  unread.value > 0 ? `${t('chat.bell')} ${t('chat.unread_label', { n: unread.value })}` : t('chat.bell'))
+  unread.value > 0
+    ? `${t('chat.bell')} ${t('chat.unread_label', { n: unread.value })}`
+    : t('chat.bell'))
 </script>
 
 <template>

@@ -22,14 +22,18 @@ const pulsing = ref(false)
 
 /** 标题可能是 i18n key（如 'menu.workspace'），渲染时翻译；非 key 原样展示 */
 function display(title: string): string {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 function resolveIcon(icon?: string): string {
   if (!icon) {
     return 'lucide:bookmark'
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 const items = computed(() => favoritesStore.favorites)

@@ -116,7 +116,9 @@ function durationOf(styles: CSSStyleDeclaration, token: string): number {
   if (!Number.isFinite(value)) {
     return 0
   }
-  return raw.endsWith('ms') ? value : value * 1000
+  return raw.endsWith('ms')
+    ? value
+    : value * 1000
 }
 
 /**
@@ -140,7 +142,10 @@ export function playPageEnter(el: Element, name: string, done: () => void): void
     return
   }
   const easing = styles.getPropertyValue(motion.easing).trim() || 'ease'
-  const animation = el.animate([motion.from, restFrameOf(motion.from)], {
+  const animation = el.animate([
+    motion.from,
+    restFrameOf(motion.from),
+  ], {
     duration,
     easing,
     // fill 留 none：动画结束即交还页面自身的样式，不在元素上留下任何形变
@@ -191,7 +196,10 @@ export function playPageLeave(el: Element, name: string, done: () => void): void
     return
   }
   const release = pin(el)
-  const animation = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+  const animation = el.animate([
+    { opacity: 1 },
+    { opacity: 0 },
+  ], {
     duration,
     easing: styles.getPropertyValue('--xh-motion-ease-exit').trim() || 'ease-in',
     // 播完到 Vue 摘掉它之间不回弹成不透明

@@ -85,19 +85,27 @@ const props = withDefaults(defineProps<{
   rowProps: undefined,
 })
 
-const checkedKeys = defineModel<string[]>('checkedRowKeys', { default: () => [] })
+const checkedKeys = defineModel<string[]>('checkedRowKeys', {
+  default: () => [],
+})
 
 const { t } = useI18n()
 const { isMobile } = useIsMobile()
 
 const pageCount = computed(() =>
-  props.pagination ? Math.max(1, Math.ceil(props.pagination.itemCount / props.pagination.pageSize)) : 1)
+  props.pagination
+    ? Math.max(1, Math.ceil(props.pagination.itemCount / props.pagination.pageSize))
+    : 1)
 /** 调用方不接条数变更时只留当前条数一档，分页组件就不出条数选择器 */
 const pageSizes = computed(() =>
-  props.pagination?.onUpdatePageSize ? props.pagination.pageSizes : [props.pagination?.pageSize ?? 20])
+  props.pagination?.onUpdatePageSize
+    ? props.pagination.pageSizes
+    : [props.pagination?.pageSize ?? 20])
 
 function keyOf(row: T): string {
-  return typeof props.rowKey === 'function' ? props.rowKey(row) : String((row as Record<string, unknown>)[props.rowKey])
+  return typeof props.rowKey === 'function'
+    ? props.rowKey(row)
+    : String((row as Record<string, unknown>)[props.rowKey])
 }
 
 const SELECT_COL = '__select__'
@@ -120,27 +128,54 @@ const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
  * 没写的列压到皮肤的 --xh-table-cell-min-w 为止
  */
 const tableColumns = computed<TableColumnDef[]>(() => [
-  ...(props.selectable ? [{ id: SELECT_COL, width: SELECT_COL_W, ...(props.columns.some(c => c.fixed === 'left') ? { sticky: 'start' as const } : {}) }] : []),
+  ...(props.selectable
+    ? [
+        {
+          id: SELECT_COL,
+          width: SELECT_COL_W,
+          ...(props.columns.some(c => c.fixed === 'left')
+            ? { sticky: 'start' as const }
+            : {}),
+        },
+      ]
+    : []),
   ...props.columns.map<TableColumnDef>(column => ({
     id: column.key,
     label: column.title,
-    ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+    ...(column.fixed
+      ? {
+          sticky: column.fixed === 'right'
+            ? 'end'
+            : 'start',
+        }
+      : {}),
     width: declaredWidth(column),
-    ...(column.minWidth !== undefined ? { minWidth: column.minWidth } : {}),
-    ...(column.align ? { align: COLUMN_ALIGN[column.align] } : {}),
+    ...(column.minWidth !== undefined
+      ? { minWidth: column.minWidth }
+      : {}),
+    ...(column.align
+      ? { align: COLUMN_ALIGN[column.align] }
+      : {}),
   })),
 ])
 
-const rows = computed(() => props.data.map(row => ({ key: keyOf(row), row })))
+const rows = computed(() => props.data.map(row => ({
+  key: keyOf(row),
+  row,
+})))
 const tableRows = computed<TableRowDef[]>(() => rows.value.map(item => ({ id: item.key })))
 
 /** 全选时机器给的是 'all'，摊平成实际的键集合再回传 */
 function onSelectionChange(selection: TableSelection) {
-  checkedKeys.value = selection === 'all' ? rows.value.map(item => item.key) : selection
+  checkedKeys.value = selection === 'all'
+    ? rows.value.map(item => item.key)
+    : selection
 }
 
 function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeChild {
-  return column.render ? column.render(row, index) : ((row as Record<string, unknown>)[column.key] as VNodeChild)
+  return column.render
+    ? column.render(row, index)
+    : ((row as Record<string, unknown>)[column.key] as VNodeChild)
 }
 </script>
 

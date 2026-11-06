@@ -42,7 +42,9 @@ const editing = computed(() => Boolean(props.detail))
 const complete = computed(() => isDefinitionMetadataComplete(form.value))
 /** 新建时编码填了但不合定义名语法 */
 const codeInvalid = computed(() => !editing.value && form.value.code.trim() !== '' && !isWorkflowName(form.value.code))
-const title = computed(() => editing.value ? t('workflow.definitions.edit_title') : t('workflow.definitions.create_title'))
+const title = computed(() => editing.value
+  ? t('workflow.definitions.edit_title')
+  : t('workflow.definitions.create_title'))
 const boundBusiness = computed(() => props.businessTypes.find(item => item.code === form.value.code.trim()) ?? null)
 const businessOptions = computed(() => props.businessTypes.map(item => ({ label: `${t(item.nameKey)}（${item.code}）`, value: item.code })))
 
@@ -54,7 +56,9 @@ watch(() => props.show, (show) => {
 /** 每次打开按详情重填一份表单，取消不留痕；详情里的定义读不出来就提示并关掉 */
 function reset(): void {
   try {
-    form.value = props.detail ? readDefinitionMetadata(props.detail.document) : emptyDefinitionMetadata()
+    form.value = props.detail
+      ? readDefinitionMetadata(props.detail.document)
+      : emptyDefinitionMetadata()
     formKey.value += 1
   }
   catch (error) {
@@ -65,7 +69,9 @@ function reset(): void {
 
 /** 选审批业务：编码换成业务编码，名称空着时带上业务名 */
 function selectBusiness(code: string | number | (string | number)[] | null): void {
-  const business = typeof code === 'string' ? props.businessTypes.find(item => item.code === code) : undefined
+  const business = typeof code === 'string'
+    ? props.businessTypes.find(item => item.code === code)
+    : undefined
   if (business)
     form.value = bindDefinitionBusiness(form.value, business, t(business.nameKey))
 }
@@ -85,9 +91,16 @@ async function save(): Promise<void> {
   saving.value = true
   try {
     const saved = detail
-      ? await workflowDefinitions.update({ id: detail.id, document: applyDefinitionMetadata(detail.document, form.value) })
-      : await workflowDefinitions.create({ document: createDefinitionJson(form.value, props.businessTypes, key => t(key)) })
-    toast.success(detail ? t('workflow.definitions.msg_updated') : t('workflow.definitions.msg_created'))
+      ? await workflowDefinitions.update({
+          id: detail.id,
+          document: applyDefinitionMetadata(detail.document, form.value),
+        })
+      : await workflowDefinitions.create({
+          document: createDefinitionJson(form.value, props.businessTypes, key => t(key)),
+        })
+    toast.success(detail
+      ? t('workflow.definitions.msg_updated')
+      : t('workflow.definitions.msg_created'))
     emit('update:show', false)
     emit('saved', saved, !detail)
   }

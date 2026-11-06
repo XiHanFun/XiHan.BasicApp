@@ -82,7 +82,9 @@ const { attrs, controlAttrs } = useControlAttrs()
  */
 const ariaLabel = computed(() => {
   const label = attrs['aria-label']
-  return typeof label === 'string' && label !== '' ? label : undefined
+  return typeof label === 'string' && label !== ''
+    ? label
+    : undefined
 })
 const triggerAttrs = computed(() => {
   const rest = { ...controlAttrs.value }
@@ -93,17 +95,26 @@ const triggerAttrs = computed(() => {
 const collection = computed(() => props.options.map(option => ({
   value: String(option.value),
   label: option.label,
-  ...(option.disabled ? { disabled: true } : {}),
+  ...(option.disabled
+    ? { disabled: true }
+    : {}),
 })))
 
 /** String(value) → 原始值，收上来时按此还原，数字选项不会变成字符串 */
-const originalByKey = computed(() => new Map(props.options.map(option => [String(option.value), option.value])))
+const originalByKey = computed(() => new Map(props.options.map(option => [
+  String(option.value),
+  option.value,
+])))
 
 const selected = computed<string[]>(() => {
   if (props.value == null) {
     return []
   }
-  return Array.isArray(props.value) ? props.value.map(String) : [String(props.value)]
+  return Array.isArray(props.value)
+    ? props.value.map(String)
+    : [
+        String(props.value),
+      ]
 })
 
 function onValueChange(next: string[]): void {

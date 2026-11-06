@@ -73,7 +73,10 @@ export function usePrintTemplateEditor(
   /** 设计器本机草稿的键：模板 id，不同模板的草稿不串 */
   const draftKey = computed(() => currentDetail.value?.id || undefined)
   const printerOptions = computed(() => [
-    { label: t('printing.print_templates.client_default_printer'), value: '' },
+    {
+      label: t('printing.print_templates.client_default_printer'),
+      value: '',
+    },
     ...printers.value,
   ])
 
@@ -230,7 +233,9 @@ export function usePrintTemplateEditor(
       return
     directLoading.value = true
     try {
-      const saved = dirty.value ? await save() : currentDetail.value
+      const saved = dirty.value
+        ? await save()
+        : currentDetail.value
       if (!saved)
         return
       if (saved.status !== 'Active')
@@ -259,7 +264,9 @@ export function usePrintTemplateEditor(
       return
     printerLoading.value = true
     try {
-      const values = forceRefresh ? await refreshPrinters() : await listPrinters()
+      const values = forceRefresh
+        ? await refreshPrinters()
+        : await listPrinters()
       printers.value = values.map(printer => ({ label: printer.name, value: printer.name }))
     }
     catch (error) {

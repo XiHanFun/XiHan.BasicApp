@@ -44,14 +44,21 @@ function reload() {
 
 // 状态值是契约字面量，文案键静态写出以便 i18n 门禁核对
 function statusLabel(status: DepartmentStatus): string {
-  return status === 'Disabled' ? t('organization.departments.status.disabled') : t('organization.departments.status.active')
+  return status === 'Disabled'
+    ? t('organization.departments.status.disabled')
+    : t('organization.departments.status.active')
 }
 
 function statusTone(status: DepartmentStatus) {
-  return status === 'Active' ? 'success' : 'danger'
+  return status === 'Active'
+    ? 'success'
+    : 'danger'
 }
 
-const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({
+  label: statusLabel(status),
+  value: status,
+})))
 
 // 部门类型的文案键静态写出以便 i18n 门禁核对；下拉的先后照 4.x，部门是缺省值但排在中间
 const departmentTypeLabels = computed<Record<DepartmentKind, string>>(() => ({
@@ -79,18 +86,108 @@ const departmentTypeOptions = computed<SelectOption[]>(() => Object.entries(depa
 const asRow = (row: object) => row as DepartmentRow
 
 const fields = computed<ListFieldSchema[]>(() => [
-  { key: 'keyword', title: t('organization.departments.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('organization.departments.keyword_placeholder'), order: 0 },
-  { key: 'name', title: t('organization.departments.fields.name'), dataType: 'string', treeColumn: true, exportable: true, minWidth: 220, order: 1 },
-  { key: 'code', title: t('organization.departments.fields.code'), dataType: 'string', exportable: true, minWidth: 140, order: 2 },
-  { key: 'departmentType', title: t('organization.departments.fields.type'), dataType: 'enum', options: departmentTypeOptions.value, exportable: true, render: row => departmentTypeLabels.value[asRow(row).departmentType], minWidth: 100, order: 2.5 },
-  { key: 'status', title: t('organization.departments.fields.status'), dataType: 'enum', options: statusOptions.value, exportable: true, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 90, order: 3 },
-  { key: 'memberCount', title: t('organization.departments.fields.member_count'), dataType: 'number', exportable: true, width: 90, order: 4 },
-  { key: 'phone', title: t('organization.departments.fields.phone'), dataType: 'phone', exportable: true, minWidth: 130, order: 4.2 },
-  { key: 'email', title: t('organization.departments.fields.email'), dataType: 'email', exportable: true, minWidth: 180, order: 4.4 },
-  { key: 'order', title: t('organization.departments.fields.order'), dataType: 'number', exportable: true, width: 80, order: 5 },
-  { key: 'address', title: t('organization.departments.fields.address'), dataType: 'text', visible: false, exportable: true, order: 5.2 },
-  { key: 'description', title: t('organization.departments.fields.description'), dataType: 'text', visible: false, exportable: true, order: 5.5 },
-  { key: 'createdAt', title: t('organization.departments.fields.created_at'), dataType: 'datetime', exportable: true, minWidth: 170, order: 6 },
+  {
+    key: 'keyword',
+    title: t('organization.departments.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('organization.departments.keyword_placeholder'),
+    order: 0,
+  },
+  {
+    key: 'name',
+    title: t('organization.departments.fields.name'),
+    dataType: 'string',
+    treeColumn: true,
+    exportable: true,
+    minWidth: 220,
+    order: 1,
+  },
+  {
+    key: 'code',
+    title: t('organization.departments.fields.code'),
+    dataType: 'string',
+    exportable: true,
+    minWidth: 140,
+    order: 2,
+  },
+  {
+    key: 'departmentType',
+    title: t('organization.departments.fields.type'),
+    dataType: 'enum',
+    options: departmentTypeOptions.value,
+    exportable: true,
+    render: row => departmentTypeLabels.value[asRow(row).departmentType],
+    minWidth: 100,
+    order: 2.5,
+  },
+  {
+    key: 'status',
+    title: t('organization.departments.fields.status'),
+    dataType: 'enum',
+    options: statusOptions.value,
+    exportable: true,
+    render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)),
+    width: 90,
+    order: 3,
+  },
+  {
+    key: 'memberCount',
+    title: t('organization.departments.fields.member_count'),
+    dataType: 'number',
+    exportable: true,
+    width: 90,
+    order: 4,
+  },
+  {
+    key: 'phone',
+    title: t('organization.departments.fields.phone'),
+    dataType: 'phone',
+    exportable: true,
+    minWidth: 130,
+    order: 4.2,
+  },
+  {
+    key: 'email',
+    title: t('organization.departments.fields.email'),
+    dataType: 'email',
+    exportable: true,
+    minWidth: 180,
+    order: 4.4,
+  },
+  {
+    key: 'order',
+    title: t('organization.departments.fields.order'),
+    dataType: 'number',
+    exportable: true,
+    width: 80,
+    order: 5,
+  },
+  {
+    key: 'address',
+    title: t('organization.departments.fields.address'),
+    dataType: 'text',
+    visible: false,
+    exportable: true,
+    order: 5.2,
+  },
+  {
+    key: 'description',
+    title: t('organization.departments.fields.description'),
+    dataType: 'text',
+    visible: false,
+    exportable: true,
+    order: 5.5,
+  },
+  {
+    key: 'createdAt',
+    title: t('organization.departments.fields.created_at'),
+    dataType: 'datetime',
+    exportable: true,
+    minWidth: 170,
+    order: 6,
+  },
 ])
 
 const schema = computed<PageSchema>(() => ({
@@ -105,19 +202,62 @@ const schema = computed<PageSchema>(() => ({
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
   actions: [
-    { key: 'create', title: t('organization.departments.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'organization.departments.create' },
-    { key: 'addChild', title: t('organization.departments.actions.add_child'), scope: 'row', icon: 'lucide:plus', permission: 'organization.departments.create' },
-    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'organization.departments.update' },
-    { key: 'toggle', title: t('organization.departments.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'organization.departments.update' },
+    {
+      key: 'create',
+      title: t('organization.departments.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: 'organization.departments.create',
+    },
+    {
+      key: 'addChild',
+      title: t('organization.departments.actions.add_child'),
+      scope: 'row',
+      icon: 'lucide:plus',
+      permission: 'organization.departments.create',
+    },
+    {
+      key: 'view',
+      title: t('common.actions.view'),
+      scope: 'row',
+      icon: 'lucide:eye',
+    },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: 'organization.departments.update',
+    },
+    {
+      key: 'toggle',
+      title: t('organization.departments.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name),
+      permission: 'organization.departments.update',
+    },
     // 还有子部门或成员的由后端逐项拒绝（ORGANIZATION_CONFLICT_002）
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'organization.departments.delete' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, asRow(row).name),
+      permission: 'organization.departments.delete',
+    },
   ],
 }))
 
 // ── 行 / 页面操作分发 ──
 function onAction(payload: SchemaActionPayload) {
-  const row = payload.row ? asRow(payload.row) : undefined
+  const row = payload.row
+    ? asRow(payload.row)
+    : undefined
   switch (payload.key) {
     case 'create':
       editor.startCreate()
@@ -145,7 +285,9 @@ function onAction(payload: SchemaActionPayload) {
   }
 }
 
-const modalTitle = computed(() => editor.isEdit.value ? t('organization.departments.edit_title') : t('organization.departments.create_title'))
+const modalTitle = computed(() => editor.isEdit.value
+  ? t('organization.departments.edit_title')
+  : t('organization.departments.create_title'))
 
 async function onSubmit() {
   if (await editor.submit()) {
@@ -180,7 +322,9 @@ async function toggleStatus(row: DepartmentRow) {
 const detailRow = computed(() => detail.row.value)
 const childRows = computed(() => {
   const row = detail.row.value
-  return row ? findDepartmentRow(treeRows.value, row.id)?.children ?? row.children : []
+  return row
+    ? findDepartmentRow(treeRows.value, row.id)?.children ?? row.children
+    : []
 })
 
 function editFromDetail() {
@@ -192,15 +336,41 @@ function editFromDetail() {
 }
 
 function formatNullable(value: unknown): string {
-  return value === null || value === undefined || value === '' ? '-' : String(value)
+  return value === null || value === undefined || value === ''
+    ? '-'
+    : String(value)
 }
 
 const childColumns = computed<XDataTableColumn<DepartmentRow>[]>(() => [
-  { title: t('organization.departments.fields.name'), key: 'name', minWidth: 120, ellipsis: true },
-  { title: t('organization.departments.fields.code'), key: 'code', width: 120, ellipsis: true },
-  { title: t('organization.departments.fields.type'), key: 'departmentType', width: 90, render: row => departmentTypeLabels.value[row.departmentType] },
-  { title: t('organization.departments.fields.status'), key: 'status', width: 80, render: row => renderTag(statusLabel(row.status), statusTone(row.status)) },
-  { title: t('organization.departments.fields.member_count'), key: 'memberCount', width: 80 },
+  {
+    title: t('organization.departments.fields.name'),
+    key: 'name',
+    minWidth: 120,
+    ellipsis: true,
+  },
+  {
+    title: t('organization.departments.fields.code'),
+    key: 'code',
+    width: 120,
+    ellipsis: true,
+  },
+  {
+    title: t('organization.departments.fields.type'),
+    key: 'departmentType',
+    width: 90,
+    render: row => departmentTypeLabels.value[row.departmentType],
+  },
+  {
+    title: t('organization.departments.fields.status'),
+    key: 'status',
+    width: 80,
+    render: row => renderTag(statusLabel(row.status), statusTone(row.status)),
+  },
+  {
+    title: t('organization.departments.fields.member_count'),
+    key: 'memberCount',
+    width: 80,
+  },
 ])
 
 // ── 部门成员：编辑任职、设为主部门、移出各按归属的权限码放出；添加成员还要能读用户（候选来自 users.list） ──
@@ -210,36 +380,100 @@ const canRemoveMember = computed(() => hasPermission('organization.memberships.d
 const canPickPosition = computed(() => hasPermission('organization.positions.read'))
 
 function optionScope(): MembershipOptionScope {
-  return { users: hasPermission('identity.users.read'), positions: canPickPosition.value }
+  return {
+    users: hasPermission('identity.users.read'),
+    positions: canPickPosition.value,
+  }
 }
 
 function memberActions(member: MembershipRow) {
   const buttons = []
   if (canUpdateMember.value) {
-    buttons.push(h(XhButton, { size: 'sm', variant: 'ghost', tone: 'brand', onClick: () => openEditMember(member) }, () => t('organization.departments.member_actions.edit')))
-    if (!member.isPrimary)
-      buttons.push(h(XhButton, { size: 'sm', variant: 'ghost', tone: 'brand', onClick: () => void setPrimary(member) }, () => t('organization.departments.member_actions.set_primary')))
+    buttons.push(h(XhButton, {
+      size: 'sm',
+      variant: 'ghost',
+      tone: 'brand',
+      onClick: () => openEditMember(member),
+    }, () => t('organization.departments.member_actions.edit')))
+    if (!member.isPrimary) {
+      buttons.push(h(XhButton, {
+        size: 'sm',
+        variant: 'ghost',
+        tone: 'brand',
+        onClick: () => void setPrimary(member),
+      }, () => t('organization.departments.member_actions.set_primary')))
+    }
   }
-  if (canRemoveMember.value)
-    buttons.push(h(XhButton, { size: 'sm', variant: 'ghost', tone: 'danger', onClick: () => confirmRemoveMember(member) }, () => t('organization.departments.member_actions.remove')))
+  if (canRemoveMember.value) {
+    buttons.push(h(XhButton, {
+      size: 'sm',
+      variant: 'ghost',
+      tone: 'danger',
+      onClick: () => confirmRemoveMember(member),
+    }, () => t('organization.departments.member_actions.remove')))
+  }
   return h('span', { class: 'inline-flex gap-1' }, buttons)
 }
 
 const memberColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
-  { title: t('organization.departments.members.user'), key: 'displayName', minWidth: 120, ellipsis: true },
-  { title: t('organization.departments.members.user_name'), key: 'userName', width: 110, ellipsis: true },
-  { title: t('organization.departments.members.position'), key: 'positionName', width: 110, ellipsis: true, render: row => row.positionName ?? '—' },
-  { title: t('organization.departments.members.employee_number'), key: 'employeeNumber', width: 100, ellipsis: true, render: row => row.employeeNumber ?? '—' },
-  { title: t('organization.departments.members.job_grade'), key: 'jobGrade', width: 90, ellipsis: true, render: row => row.jobGrade ?? '—' },
-  { title: t('organization.departments.members.hired_at'), key: 'hiredAt', width: 110, render: row => row.hiredAt ? formatDate(row.hiredAt, 'YYYY-MM-DD') : '—' },
+  {
+    title: t('organization.departments.members.user'),
+    key: 'displayName',
+    minWidth: 120,
+    ellipsis: true,
+  },
+  {
+    title: t('organization.departments.members.user_name'),
+    key: 'userName',
+    width: 110,
+    ellipsis: true,
+  },
+  {
+    title: t('organization.departments.members.position'),
+    key: 'positionName',
+    width: 110,
+    ellipsis: true,
+    render: row => row.positionName ?? '—',
+  },
+  {
+    title: t('organization.departments.members.employee_number'),
+    key: 'employeeNumber',
+    width: 100,
+    ellipsis: true,
+    render: row => row.employeeNumber ?? '—',
+  },
+  {
+    title: t('organization.departments.members.job_grade'),
+    key: 'jobGrade',
+    width: 90,
+    ellipsis: true,
+    render: row => row.jobGrade ?? '—',
+  },
+  {
+    title: t('organization.departments.members.hired_at'),
+    key: 'hiredAt',
+    width: 110,
+    render: row => row.hiredAt
+      ? formatDate(row.hiredAt, 'YYYY-MM-DD')
+      : '—',
+  },
   {
     title: t('organization.departments.members.primary'),
     key: 'isPrimary',
     width: 80,
-    render: row => row.isPrimary ? renderTag(t('common.statuses.yes'), 'info') : h('span', { class: 'text-fg-muted' }, '—'),
+    render: row => row.isPrimary
+      ? renderTag(t('common.statuses.yes'), 'info')
+      : h('span', { class: 'text-fg-muted' }, '—'),
   },
   ...(canUpdateMember.value || canRemoveMember.value
-    ? [{ title: t('organization.departments.members.actions'), key: 'actions', width: 220, render: (row: MembershipRow) => memberActions(row) }]
+    ? [
+        {
+          title: t('organization.departments.members.actions'),
+          key: 'actions',
+          width: 220,
+          render: (row: MembershipRow) => memberActions(row),
+        },
+      ]
     : []),
 ])
 

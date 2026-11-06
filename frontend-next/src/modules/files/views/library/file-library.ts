@@ -16,7 +16,14 @@ type Translate = (key: string, values?: Record<string, unknown>) => string
 /** 色调，与 XiHan.UI 标签一致 */
 export type FileTone = 'danger' | 'info' | 'neutral' | 'success' | 'warning'
 
-export const FILE_KINDS: readonly FileKind[] = ['Image', 'Document', 'Video', 'Audio', 'Archive', 'Other']
+export const FILE_KINDS: readonly FileKind[] = [
+  'Image',
+  'Document',
+  'Video',
+  'Audio',
+  'Archive',
+  'Other',
+]
 export const FILE_STATUSES: readonly FileStatus[] = ['Normal', 'Archived', 'Corrupted']
 /** 访问级别：同一侧已登录即可、还要持有 files.files.read、公开（任何已登录主体不分侧都能换签名地址，头像用） */
 export const FILE_ACCESS_LEVELS: readonly FileAccessLevel[] = ['Authenticated', 'Authorized', 'Public']
@@ -30,7 +37,12 @@ export const FILE_SOURCES = ['upload', 'fast-upload', 'chat'] as const
 export const FILE_QUERY: PageQueryMapping = {
   multiples: ['kind', 'status', 'accessLevel'],
   ranges: ['createdAt', 'expiresAt'],
-  filters: { isTemporary: 'eq', source: 'eq', extension: 'eq', contentType: 'eq' },
+  filters: {
+    isTemporary: 'eq',
+    source: 'eq',
+    extension: 'eq',
+    contentType: 'eq',
+  },
 }
 
 /** 后端存的扩展名是小写带点（`.png`）：搜索时写成 `png`、`PNG` 也能命中 */
@@ -38,17 +50,29 @@ export function normalizeExtension(value: unknown): unknown {
   if (typeof value !== 'string' || !value.trim())
     return value
   const extension = value.trim().toLowerCase()
-  return extension.startsWith('.') ? extension : `.${extension}`
+  return extension.startsWith('.')
+    ? extension
+    : `.${extension}`
 }
 
 /** SchemaPage 的资源：分页（缺省按上传时间倒序）与删除（内容不再被别的文件用到时随之从存储里删除） */
 export function fileResource(): SchemaResource<FileRow> {
   return {
     page: async (params: SchemaQueryParams) => {
-      const normalized = { ...params, filters: { ...params.filters, extension: normalizeExtension(params.filters.extension) } }
+      const normalized = {
+        ...params,
+        filters: {
+          ...params.filters,
+          extension: normalizeExtension(params.filters.extension),
+        },
+      }
       return toSchemaPageResult(await filesApi.list(toPageRequest(normalized, FILE_QUERY)), params)
     },
-    remove: async id => throwOnFailed(await filesApi.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await filesApi.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -71,14 +95,22 @@ export function defaultExpiry(now = Date.now()): number {
 }
 
 export function emptyDetailsForm(): FileDetailsForm {
-  return { accessLevel: 'Authorized', isTemporary: false, expiresAt: null, tags: '', remark: '' }
+  return {
+    accessLevel: 'Authorized',
+    isTemporary: false,
+    expiresAt: null,
+    tags: '',
+    remark: '',
+  }
 }
 
 export function toDetailsForm(file: FileRow): FileDetailsForm {
   return {
     accessLevel: file.accessLevel,
     isTemporary: file.isTemporary,
-    expiresAt: file.expiresAt ? new Date(file.expiresAt).getTime() : null,
+    expiresAt: file.expiresAt
+      ? new Date(file.expiresAt).getTime()
+      : null,
     tags: file.tags ?? '',
     remark: file.remark ?? '',
   }
@@ -89,7 +121,9 @@ export function toFileDetails(form: FileDetailsForm) {
   return {
     accessLevel: form.accessLevel,
     isTemporary: form.isTemporary,
-    expiresAt: form.isTemporary && form.expiresAt != null ? new Date(form.expiresAt).toISOString() : null,
+    expiresAt: form.isTemporary && form.expiresAt != null
+      ? new Date(form.expiresAt).toISOString()
+      : null,
     tags: form.tags.trim() || null,
     remark: form.remark.trim() || null,
   }
@@ -103,7 +137,16 @@ export type PreviewKind = 'audio' | 'csv' | 'image' | 'markdown' | 'text' | 'vid
 /** 文本类预览上限 2MB，超出只提示下载，避免大文件拖垮浏览器 */
 export const PREVIEW_TEXT_MAX_BYTES = 2 * 1024 * 1024
 
-const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'])
+const IMAGE_EXTENSIONS = new Set([
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'webp',
+  'svg',
+  'bmp',
+  'ico',
+])
 const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'ogv'])
 const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg'])
 const MARKDOWN_EXTENSIONS = new Set(['md', 'markdown'])
@@ -181,7 +224,10 @@ export function toCsvTable(text: string): { header: string[], rows: Record<strin
   const parsed = parseCsvRows(text)
   const header = parsed[0] ?? []
   const rows = parsed.slice(1).map((row, rowIndex) => ({
-    ...Object.fromEntries(header.map((_, index) => [String(index), row[index] ?? ''])),
+    ...Object.fromEntries(header.map((_, index) => [
+      String(index),
+      row[index] ?? '',
+    ])),
     _row: String(rowIndex + 1),
   }))
   return { header, rows }
@@ -228,7 +274,9 @@ export function fileStatusTone(status: FileStatus): FileTone {
 }
 
 export function storageStatusTone(status: FileStorageStatus): FileTone {
-  return status === 'Normal' ? 'success' : 'danger'
+  return status === 'Normal'
+    ? 'success'
+    : 'danger'
 }
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对

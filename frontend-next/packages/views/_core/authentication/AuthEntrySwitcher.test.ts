@@ -24,15 +24,34 @@ vi.mock('@vueuse/core', async (importOriginal) => {
   const { ref } = await import('vue')
   return {
     ...await importOriginal<typeof import('@vueuse/core')>(),
-    useElementSize: () => ({ width: ref(strip.width), height: ref(0), stop: () => {} }),
+    useElementSize: () => ({
+      width: ref(strip.width),
+      height: ref(0),
+      stop: () => {},
+    }),
   }
 })
 
 async function labelsFor(locale: string): Promise<string[]> {
   i18n.global.locale.value = locale as typeof i18n.global.locale.value
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:p(.*)*', component: { render: () => null } }] })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/:p(.*)*',
+        component: {
+          render: () => null,
+        },
+      },
+    ],
+  })
   await router.push(LOGIN_PATH)
-  const wrapper = mount(AuthEntrySwitcher, { props: { enabled: true, methods: ALL_METHODS }, global: { plugins: [i18n, router] } })
+  const wrapper = mount(AuthEntrySwitcher, {
+    props: { enabled: true, methods: ALL_METHODS },
+    global: {
+      plugins: [i18n, router],
+    },
+  })
   captured.size = wrapper.find('[data-scope="tabs"][data-part="root"]').attributes('data-size') ?? ''
   return wrapper.findAll('[data-scope="tabs"][data-part="trigger"]').map(item => item.text())
 }
@@ -44,7 +63,12 @@ afterEach(() => {
 
 describe('登录方式切换器文案', () => {
   it('德文使用短标签，四个入口都放得进登录卡片', async () => {
-    expect(await labelsFor('de-DE')).toEqual(['Konto', 'Telefon', 'E-Mail', 'QR-Code'])
+    expect(await labelsFor('de-DE')).toEqual([
+      'Konto',
+      'Telefon',
+      'E-Mail',
+      'QR-Code',
+    ])
   })
 
   it('日文使用短标签', async () => {
@@ -57,7 +81,12 @@ describe('登录方式切换器文案', () => {
 
   it('韩文与俄文使用短标签', async () => {
     expect(await labelsFor('ko-KR')).toEqual(['계정', '휴대폰', '이메일', 'QR 코드'])
-    expect(await labelsFor('ru-RU')).toEqual(['Аккаунт', 'Телефон', 'Почта', 'QR-код'])
+    expect(await labelsFor('ru-RU')).toEqual([
+      'Аккаунт',
+      'Телефон',
+      'Почта',
+      'QR-код',
+    ])
   })
 
   it('中文四字一组：小屏一行只放得下四个四字段', async () => {
@@ -88,12 +117,24 @@ describe('登录方式切换器文案', () => {
 
 async function mountAt(path: string, methods: string[] | null) {
   i18n.global.locale.value = 'zh-CN'
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:p(.*)*', component: { render: () => null } }] })
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/:p(.*)*',
+        component: {
+          render: () => null,
+        },
+      },
+    ],
+  })
   await router.push(path)
   const wrapper = mount(AuthEntrySwitcher, {
     props: { enabled: true, methods },
     slots: { default: '<p class="form">表单</p>' },
-    global: { plugins: [i18n, router] },
+    global: {
+      plugins: [i18n, router],
+    },
   })
   await flushPromises()
   return { router, wrapper }

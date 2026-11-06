@@ -52,5 +52,9 @@ export function isActiveInstance(status: WorkflowInstanceStatus): boolean {
  */
 export function handleOutcomes(allowedOutcomes: readonly string[]): string[] {
   const outcomes = allowedOutcomes.filter(outcome => outcome.trim() !== '' && outcome !== 'timeout')
-  return outcomes.length > 0 ? [...new Set(outcomes)] : ['approved', 'rejected']
+  return outcomes.length > 0
+    ? [
+        ...new Set(outcomes),
+      ]
+    : ['approved', 'rejected']
 }

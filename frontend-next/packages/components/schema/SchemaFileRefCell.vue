@@ -22,7 +22,9 @@ const props = defineProps<{
 const { t } = useI18n()
 
 /** 缩略图地址只在图片模式换取，文件模式点开时才换 */
-const thumbnailUrl = useAvatarUrl(computed(() => (props.kind === 'image' ? props.value : null)))
+const thumbnailUrl = useAvatarUrl(computed(() => (props.kind === 'image'
+  ? props.value
+  : null)))
 
 async function open() {
   const url = await resolveAvatarUrl(props.value)

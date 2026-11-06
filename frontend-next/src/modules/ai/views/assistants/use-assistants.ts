@@ -51,7 +51,9 @@ export function emptyAssistantForm(): AssistantForm {
 }
 
 function blankToNull(value: string): null | string {
-  return value.trim() === '' ? null : value.trim()
+  return value.trim() === ''
+    ? null
+    : value.trim()
 }
 
 /**
@@ -61,10 +63,16 @@ function blankToNull(value: string): null | string {
 export function assistantsResource(): SchemaResource<AssistantRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await aiAssistants.list(toPageRequest(params, { multiples: ['status'] })),
+      await aiAssistants.list(toPageRequest(params, {
+        multiples: ['status'],
+      })),
       params,
     ),
-    remove: async id => throwOnFailed(await aiAssistants.delete({ ids: [String(id)] })),
+    remove: async id => throwOnFailed(await aiAssistants.delete({
+      ids: [
+        String(id),
+      ],
+    })),
   }
 }
 
@@ -87,7 +95,12 @@ export function useAssistantEditor() {
   const toolOptions = computed<SelectOption[]>(() => {
     const known = new Set(catalog.value.map(tool => tool.name))
     return [
-      ...catalog.value.map(tool => ({ value: tool.name, label: tool.description ? `${tool.name} - ${tool.description}` : tool.name })),
+      ...catalog.value.map(tool => ({
+        value: tool.name,
+        label: tool.description
+          ? `${tool.name} - ${tool.description}`
+          : tool.name,
+      })),
       ...form.tools.filter(name => !known.has(name)).map(name => ({ value: name, label: name })),
     ]
   })
@@ -161,10 +174,16 @@ export function useAssistantEditor() {
         order: form.order,
         remark: blankToNull(form.remark),
       }
-      if (current)
+      if (current) {
         await aiAssistants.update({ id: current.id, concurrencyStamp: current.concurrencyStamp, ...common })
-      else
-        await aiAssistants.create({ ...common, code: form.code.trim(), status: form.status })
+      }
+      else {
+        await aiAssistants.create({
+          ...common,
+          code: form.code.trim(),
+          status: form.status,
+        })
+      }
       open.value = false
       return true
     }
@@ -184,5 +203,19 @@ export function useAssistantEditor() {
     }
   }
 
-  return { open, editing, isEdit, form, fieldError, submitError, submitting, toolOptions, knowledgeAvailable, loadTools, startCreate, startEdit, submit }
+  return {
+    open,
+    editing,
+    isEdit,
+    form,
+    fieldError,
+    submitError,
+    submitting,
+    toolOptions,
+    knowledgeAvailable,
+    loadTools,
+    startCreate,
+    startEdit,
+    submit,
+  }
 }

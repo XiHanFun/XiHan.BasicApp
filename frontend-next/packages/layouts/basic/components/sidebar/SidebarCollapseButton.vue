@@ -11,7 +11,9 @@ const emit = defineEmits<{ 'update:collapsed': [value: boolean] }>()
 const { t } = useI18n()
 
 // 名字说的是按下后的动作，随状态换；顶栏那颗管整栏显隐，两者同屏，所以不复用它的文案
-const label = computed(() => props.collapsed ? t('sidebar.expand') : t('sidebar.collapse'))
+const label = computed(() => props.collapsed
+  ? t('sidebar.expand')
+  : t('sidebar.collapse'))
 
 function toggle() {
   emit('update:collapsed', !props.collapsed)

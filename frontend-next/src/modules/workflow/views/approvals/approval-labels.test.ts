@@ -18,7 +18,12 @@ describe('审批中心展示规则', () => {
   })
 
   it('白名单按原样给出，去掉超时与重复项', () => {
-    expect(handleOutcomes(['approved', 'returned', 'timeout', 'approved'])).toEqual(['approved', 'returned'])
+    expect(handleOutcomes([
+      'approved',
+      'returned',
+      'timeout',
+      'approved',
+    ])).toEqual(['approved', 'returned'])
   })
 
   it('标准结果有文案，业务自定义结果原样显示，空值为空串', () => {

@@ -20,11 +20,15 @@ export const VERSION_QUERY: PageQueryMapping = {
 
 /** 库名：平台库显示「平台库」，租户库原样显示库名 */
 export function databaseLabel(t: Translate, database: string): string {
-  return database === PLATFORM_DATABASE ? t('maintenance.versions.platform_database') : database
+  return database === PLATFORM_DATABASE
+    ? t('maintenance.versions.platform_database')
+    : database
 }
 
 export function upgradingLabel(t: Translate, upgrading: boolean): string {
-  return upgrading ? t('maintenance.versions.upgrading') : t('maintenance.versions.normal')
+  return upgrading
+    ? t('maintenance.versions.upgrading')
+    : t('maintenance.versions.normal')
 }
 
 /** 升级状态的语气（4.x 同）：升级中黄、正常绿 */
@@ -35,8 +39,14 @@ export function upgradingTone(upgrading: boolean): Tone {
 /** 升级状态的搜索选项：后端按 `isUpgrading eq true / false` 匹配 */
 export function upgradingOptions(t: Translate): { label: string, value: string }[] {
   return [
-    { label: upgradingLabel(t, true), value: 'true' },
-    { label: upgradingLabel(t, false), value: 'false' },
+    {
+      label: upgradingLabel(t, true),
+      value: 'true',
+    },
+    {
+      label: upgradingLabel(t, false),
+      value: 'false',
+    },
   ]
 }
 
@@ -48,7 +58,13 @@ export function versionResource(t: Translate): SchemaResource<VersionListRow> {
   return {
     page: async (params: SchemaQueryParams) => {
       const result = await versionsApi.list(toPageRequest(params, VERSION_QUERY))
-      return toSchemaPageResult({ ...result, items: result.items.map(row => ({ ...row, databaseName: databaseLabel(t, row.database) })) }, params)
+      return toSchemaPageResult({
+        ...result,
+        items: result.items.map(row => ({
+          ...row,
+          databaseName: databaseLabel(t, row.database),
+        })),
+      }, params)
     },
   }
 }

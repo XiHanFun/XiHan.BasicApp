@@ -3,7 +3,12 @@ import type { ResponseOf, TraceItemStatus, TraceLogType } from '~/contracts'
 export type TraceItem = ResponseOf<'traces.timeline'>['items'][number]
 
 /** 结果分类：以后端归并的 item.status 为准（与卡片着色同一口径），按 成功 → 信息 → 警告 → 失败 排 */
-export const TRACE_RESULTS = ['Success', 'Info', 'Warning', 'Failure'] as const satisfies readonly TraceItemStatus[]
+export const TRACE_RESULTS = [
+  'Success',
+  'Info',
+  'Warning',
+  'Failure',
+] as const satisfies readonly TraceItemStatus[]
 export type TraceResult = typeof TRACE_RESULTS[number]
 
 export function traceResultOf(item: TraceItem): TraceResult {
@@ -16,7 +21,9 @@ function pathnameOf(raw?: string | null): string {
   if (!/^https?:\/\//i.test(value)) {
     return value.split(/[?#]/)[0] ?? ''
   }
-  return URL.canParse(value) ? new URL(value).pathname : ''
+  return URL.canParse(value)
+    ? new URL(value).pathname
+    : ''
 }
 
 /**
@@ -78,7 +85,9 @@ export function buildTraceFlow(items: readonly TraceItem[], labels: TraceFlowLab
     }
   }
   const keptModules = new Set(
-    [...moduleCounts.entries()]
+    [
+      ...moduleCounts.entries(),
+    ]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, maxModules)
       .map(([module]) => module),
@@ -122,21 +131,53 @@ export function buildTraceFlow(items: readonly TraceItem[], labels: TraceFlowLab
   }
 
   const nodes: TraceFlowNode[] = [
-    ...[...typeCounts.entries()]
+    ...[
+      ...typeCounts.entries(),
+    ]
       .sort((a, b) => b[1] - a[1])
-      .map(([type]) => ({ id: `type:${type}`, name: labels.logType(type), group: labels.groupLogType })),
+      .map(([type]) => ({
+        id: `type:${type}`,
+        name: labels.logType(type),
+        group: labels.groupLogType,
+      })),
     ...[...keptModules].map(module => ({ id: `module:${module}`, name: module, group: labels.groupModule })),
-    ...(otherModuleCount > 0 ? [{ id: OTHER_MODULE_ID, name: labels.otherModules, group: labels.groupModule }] : []),
+    ...(otherModuleCount > 0
+      ? [
+          { id: OTHER_MODULE_ID, name: labels.otherModules, group: labels.groupModule },
+        ]
+      : []),
     ...TRACE_RESULTS
       .filter(result => resultSeen.has(result))
-      .map(result => ({ id: `result:${result}`, name: labels.result(result), group: labels.groupResult })),
+      .map(result => ({
+        id: `result:${result}`,
+        name: labels.result(result),
+        group: labels.groupResult,
+      })),
   ]
 
-  return { nodes, links: [...linkCounts.values()] }
+  return {
+    nodes,
+    links: [
+      ...linkCounts.values(),
+    ],
+  }
 }
 
 /** 时间桶的候选宽度（分钟）：都是整分、整时或整天，刻度落在读者习惯的位置 */
-const BUCKET_MINUTES = [1, 2, 5, 10, 15, 30, 60, 120, 180, 360, 720, 1440] as const
+const BUCKET_MINUTES = [
+  1,
+  2,
+  5,
+  10,
+  15,
+  30,
+  60,
+  120,
+  180,
+  360,
+  720,
+  1440,
+] as const
 
 /** 选最细、又不超过 maxBuckets 个桶的宽度 */
 export function pickTraceBucketMinutes(spanMs: number, maxBuckets = 60): number {

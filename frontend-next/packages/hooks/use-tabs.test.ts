@@ -11,7 +11,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import { HOME_PATH } from '~/constants'
 
-const routeStub = reactive<{ path: string, fullPath: string, query: Record<string, string>, hash: string }>({ path: HOME_PATH, fullPath: HOME_PATH, query: {}, hash: '' })
+const routeStub = reactive<{ path: string, fullPath: string, query: Record<string, string>, hash: string }>({
+  path: HOME_PATH,
+  fullPath: HOME_PATH,
+  query: {},
+  hash: '',
+})
 const pushSpy = vi.fn()
 const replaceSpy = vi.fn()
 
@@ -25,13 +30,23 @@ const { useRefresh } = await import('./useRefresh')
 const { useTabbarStore } = await import('~/stores')
 
 function tab(path: string, closable: boolean): TabItem {
-  return { key: path, path, title: path, closable }
+  return {
+    key: path,
+    path,
+    title: path,
+    closable,
+  }
 }
 
 /** 首页固定不可关闭，其余三个可关闭；当前停在 /b */
 function seedTabs(): ReturnType<typeof useTabbarStore> {
   const store = useTabbarStore()
-  store.tabs = [tab(HOME_PATH, false), tab('/a', true), tab('/b', true), tab('/c', true)]
+  store.tabs = [
+    tab(HOME_PATH, false),
+    tab('/a', true),
+    tab('/b', true),
+    tab('/c', true),
+  ]
   routeStub.path = '/b'
   return store
 }
@@ -91,7 +106,10 @@ describe('useTabs.disableState 禁用位判定', () => {
 
   it('停在不可关闭的首页时禁用「关闭当前」，但左右仍按可关闭标签算', () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false), tab('/a', true)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/a', true),
+    ]
     routeStub.path = HOME_PATH
 
     const state = useTabs().disableState.value
@@ -103,7 +121,10 @@ describe('useTabs.disableState 禁用位判定', () => {
 
   it('左侧只有不可关闭的首页时禁用「关闭左侧」', () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false), tab('/a', true)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/a', true),
+    ]
     routeStub.path = '/a'
 
     expect(useTabs().disableState.value.closeLeft).toBe(true)
@@ -118,21 +139,30 @@ describe('useTabs.disableState 禁用位判定', () => {
 
   it('当前标签自身可关闭时，只剩它一个可关闭标签就禁用「关闭其它」', () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false), tab('/a', true)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/a', true),
+    ]
     routeStub.path = '/a'
 
     // 可关闭标签数 1 <= 阈值 1 → 没有别的可关，禁用
     expect(useTabs().disableState.value.closeOthers).toBe(true)
     expect(useTabs().disableState.value.closeAll).toBe(false)
 
-    store.tabs = [tab(HOME_PATH, false), tab('/a', true), tab('/b', true)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/a', true),
+      tab('/b', true),
+    ]
 
     expect(useTabs().disableState.value.closeOthers).toBe(false)
   })
 
   it('当前标签不可关闭时「关闭其它」的阈值降到 0，仅剩不可关闭标签才禁用', () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+    ]
     routeStub.path = HOME_PATH
 
     const state = useTabs().disableState.value
@@ -143,7 +173,9 @@ describe('useTabs.disableState 禁用位判定', () => {
 
   it('只有一个可关闭标签且当前就是它时，关闭其它被禁用而关闭全部仍可用', () => {
     const store = useTabbarStore()
-    store.tabs = [tab('/only', true)]
+    store.tabs = [
+      tab('/only', true),
+    ]
     routeStub.path = '/only'
 
     const state = useTabs().disableState.value
@@ -171,7 +203,9 @@ describe('useTabs.disableState 禁用位判定', () => {
   // 回归锚点（清单条目 17）：无当前标签且没有任何可关闭标签时，关闭全部也应禁用
   it('当前路由不在标签列表中且无可关闭标签时，关闭全部同样禁用', () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+    ]
     routeStub.path = '/ghost'
 
     expect(useTabs().disableState.value.closeAll).toBe(true)
@@ -191,7 +225,10 @@ describe('useTabs 关闭动作', () => {
 
   it('关闭不可关闭的标签时列表不变，仍按当前激活项跳转', () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false), tab('/a', true)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/a', true),
+    ]
     routeStub.path = HOME_PATH
     store.setActiveTab(HOME_PATH)
 
@@ -236,7 +273,10 @@ describe('useTabs 关闭动作', () => {
 
   it('关闭全部时即使首页已被移出列表也仍跳首页', () => {
     const store = useTabbarStore()
-    store.tabs = [tab('/a', true), tab('/b', true)]
+    store.tabs = [
+      tab('/a', true),
+      tab('/b', true),
+    ]
     routeStub.path = '/a'
 
     useTabs().closeAllTabs()
@@ -340,7 +380,10 @@ describe('useRefresh 与 refreshCurrentTab', () => {
 describe('useTabs.consumeQuery 用掉一次性参数', () => {
   it('去掉参数换地址，带参数的标签并入目标标签', async () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false), tab('/approval/center?instanceId=1&tab=done&keep=x', true)]
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/approval/center?instanceId=1&tab=done&keep=x', true),
+    ]
     Object.assign(routeStub, {
       path: '/approval/center',
       fullPath: '/approval/center?instanceId=1&tab=done&keep=x',
@@ -355,14 +398,26 @@ describe('useTabs.consumeQuery 用掉一次性参数', () => {
 
     await useTabs().consumeQuery(['instanceId', 'tab'])
 
-    expect(replaceSpy).toHaveBeenCalledWith({ path: '/approval/center', query: { keep: 'x' }, hash: '' })
+    expect(replaceSpy).toHaveBeenCalledWith({
+      path: '/approval/center',
+      query: { keep: 'x' },
+      hash: '',
+    })
     expect(store.tabs.map(item => item.path)).toEqual([HOME_PATH, '/approval/center?keep=x'])
   })
 
   it('地址没变（参数本就不在）时不动标签', async () => {
     const store = useTabbarStore()
-    store.tabs = [tab(HOME_PATH, false), tab('/approval/center', true)]
-    Object.assign(routeStub, { path: '/approval/center', fullPath: '/approval/center', query: {}, hash: '' })
+    store.tabs = [
+      tab(HOME_PATH, false),
+      tab('/approval/center', true),
+    ]
+    Object.assign(routeStub, {
+      path: '/approval/center',
+      fullPath: '/approval/center',
+      query: {},
+      hash: '',
+    })
     replaceSpy.mockResolvedValue(undefined)
 
     await useTabs().consumeQuery(['instanceId'])

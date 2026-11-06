@@ -33,13 +33,21 @@ const form = reactive({
   logo: '',
 })
 const clientTypeOptions = [
-  { label: t('component.profile.oauth.type_confidential'), value: 'Confidential' },
-  { label: t('component.profile.oauth.type_public'), value: 'Public' },
+  {
+    label: t('component.profile.oauth.type_confidential'),
+    value: 'Confidential',
+  },
+  {
+    label: t('component.profile.oauth.type_public'),
+    value: 'Public',
+  },
 ]
 
 /** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
 function messageOf(error: unknown): string | undefined {
-  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
 }
 
 async function loadApps() {
@@ -147,7 +155,9 @@ function handleRegenerate(app: MyOAuthAppItem) {
 async function handleToggleStatus(app: MyOAuthAppItem, enabled: boolean) {
   try {
     await apis.updateMyOAuthAppStatusApi(app.basicId, enabled ? 'Enabled' : 'Disabled')
-    toast.success(enabled ? t('component.profile.oauth.msg_enabled') : t('component.profile.oauth.msg_disabled'))
+    toast.success(enabled
+      ? t('component.profile.oauth.msg_enabled')
+      : t('component.profile.oauth.msg_disabled'))
     await loadApps()
   }
   catch (e) {
@@ -207,7 +217,9 @@ function handleRevoke(consent: OAuthConsentItem) {
     badge: 'error',
     tone: 'danger',
     title: t('component.profile.oauth.revoke_title'),
-    content: t('component.profile.oauth.revoke_content', { name: consentName(consent) }),
+    content: t('component.profile.oauth.revoke_content', {
+      name: consentName(consent),
+    }),
     okText: t('component.profile.oauth.confirm_revoke'),
     cancelText: t('common.actions.cancel'),
     onOk: async () => {

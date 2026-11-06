@@ -32,7 +32,10 @@ describe('flattenDepartments', () => {
   })
 
   it('停用的部门标为不可选', () => {
-    const options = flattenDepartments([department('d-hq', 'hq', '总部'), department('d-old', 'old', '旧部门', 'd-hq', false)])
+    const options = flattenDepartments([
+      department('d-hq', 'hq', '总部'),
+      department('d-old', 'old', '旧部门', 'd-hq', false),
+    ])
 
     expect(options.map(option => option.disabled === true)).toEqual([false, true])
   })
@@ -47,7 +50,12 @@ describe('resolveUsers', () => {
       getToken: () => 't',
       fetch: (async (url: RequestInfo | URL) => {
         urls.push(String(url))
-        return new Response(JSON.stringify({ items: [alice] }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({
+          items: [alice],
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
       }) as unknown as typeof fetch,
     })
 

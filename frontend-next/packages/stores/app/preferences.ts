@@ -62,7 +62,9 @@ function readWidgetPlacement(key: string, legacyKey: string): WidgetPlacement {
     return stored as WidgetPlacement
   }
   const legacy = LocalStorage.get<boolean>(legacyKey)
-  const migrated: WidgetPlacement = legacy === false ? 'hidden' : 'auto'
+  const migrated: WidgetPlacement = legacy === false
+    ? 'hidden'
+    : 'auto'
   LocalStorage.remove(legacyKey)
   LocalStorage.set(key, migrated)
   return migrated
@@ -84,7 +86,9 @@ export function createPreferencesSlice() {
   // 应用时区（IANA，如 Asia/Shanghai），默认北京时间，空串表示跟随浏览器：后端一律返回 UTC，界面上的时间按它显示（formatDate），
   // 个人统计与工作台按它切「今天」；存下的值运行时认不出（旧版本或手改的存储）时回到默认
   const storedTimezone = LocalStorage.get<string>(APP_TIMEZONE_KEY)
-  const appTimezone = ref<string>(storedTimezone === '' || (storedTimezone && isTimeZone(storedTimezone)) ? storedTimezone : 'Asia/Shanghai')
+  const appTimezone = ref<string>(storedTimezone === '' || (storedTimezone && isTimeZone(storedTimezone))
+    ? storedTimezone
+    : 'Asia/Shanghai')
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 30)
 
