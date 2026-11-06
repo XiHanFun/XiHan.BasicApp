@@ -1,23 +1,23 @@
 minimumReleaseAgeExcludePrune: true
 # pnpm 对刚发布的包有最短发布时长闸门，升级时由它自己登记当时刚发布的版本；锁文件不再解析到的条目由 minimumReleaseAgeExcludePrune 在之后的 add / update / remove 时清掉
 minimumReleaseAgeExclude:
-  - '@xihan-ui/code-highlight@5.2.0'
-  - '@xihan-ui/core@5.2.0'
-  - '@xihan-ui/designer-kit@5.2.0'
-  - '@xihan-ui/designer-shell@5.2.0'
-  - '@xihan-ui/expression@5.2.0'
-  - '@xihan-ui/headless@5.2.0'
-  - '@xihan-ui/icons@5.2.0'
-  - '@xihan-ui/markdown@5.2.0'
-  - '@xihan-ui/motion@5.2.0'
-  - '@xihan-ui/pointer@5.2.0'
-  - '@xihan-ui/position@5.2.0'
-  - '@xihan-ui/sound@5.2.0'
-  - '@xihan-ui/styles@5.2.0'
-  - '@xihan-ui/tokens@5.2.0'
-  - '@xihan-ui/viz@5.2.0'
-  - '@xihan-ui/vue@5.2.0'
-  - '@xihan-ui/web-components@5.2.0'
+  - '@xihan-ui/code-highlight@5.3.0'
+  - '@xihan-ui/core@5.3.0'
+  - '@xihan-ui/designer-kit@5.3.0'
+  - '@xihan-ui/designer-shell@5.3.0'
+  - '@xihan-ui/expression@5.3.0'
+  - '@xihan-ui/headless@5.3.0'
+  - '@xihan-ui/icons@5.3.0'
+  - '@xihan-ui/markdown@5.3.0'
+  - '@xihan-ui/motion@5.3.0'
+  - '@xihan-ui/pointer@5.3.0'
+  - '@xihan-ui/position@5.3.0'
+  - '@xihan-ui/sound@5.3.0'
+  - '@xihan-ui/styles@5.3.0'
+  - '@xihan-ui/tokens@5.3.0'
+  - '@xihan-ui/viz@5.3.0'
+  - '@xihan-ui/vue@5.3.0'
+  - '@xihan-ui/web-components@5.3.0'
 
 trustPolicy: no-downgrade
 shellEmulator: true
@@ -58,19 +58,19 @@ catalog:
   '@xihan-print/core': ^1.0.0-rc.2
   '@xihan-print/designer': ^1.0.0-rc.2
   '@xihan-print/runtime': ^1.0.0-rc.2
-  '@xihan-ui/code-highlight': ^5.2.0
-  '@xihan-ui/core': ^5.2.0
-  '@xihan-ui/designer-kit': ^5.2.0
-  '@xihan-ui/designer-shell': ^5.2.0
-  '@xihan-ui/headless': ^5.2.0
-  '@xihan-ui/icons': ^5.2.0
-  '@xihan-ui/markdown': ^5.2.0
-  '@xihan-ui/motion': ^5.2.0
-  '@xihan-ui/sound': ^5.2.0
-  '@xihan-ui/styles': ^5.2.0
-  '@xihan-ui/tokens': ^5.2.0
-  '@xihan-ui/vue': ^5.2.0
-  '@xihan-ui/web-components': ^5.2.0
+  '@xihan-ui/code-highlight': ^5.3.0
+  '@xihan-ui/core': ^5.3.0
+  '@xihan-ui/designer-kit': ^5.3.0
+  '@xihan-ui/designer-shell': ^5.3.0
+  '@xihan-ui/headless': ^5.3.0
+  '@xihan-ui/icons': ^5.3.0
+  '@xihan-ui/markdown': ^5.3.0
+  '@xihan-ui/motion': ^5.3.0
+  '@xihan-ui/sound': ^5.3.0
+  '@xihan-ui/styles': ^5.3.0
+  '@xihan-ui/tokens': ^5.3.0
+  '@xihan-ui/vue': ^5.3.0
+  '@xihan-ui/web-components': ^5.3.0
   cross-env: ^10.1.0
   dayjs: ^1.11.23
   dompurify: ^3.4.17
