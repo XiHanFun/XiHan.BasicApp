@@ -87,10 +87,12 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
       </XhButton>
     </template>
 
-    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款 -->
+    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款
+         菜单按落定那一侧的可用高度铺开：组件库缺省的上限是 20rem，本应用根字号 14px 下只有 280px，八项就露不全 -->
     <XhMenuRoot
       v-if="moreOptions.length"
       trigger-as-child
+      fit-available-height
       :collection="moreOptions"
       @item-select="(details: { value: string }) => emit('action', details.value)"
     >

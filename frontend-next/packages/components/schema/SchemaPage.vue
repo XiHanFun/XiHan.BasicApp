@@ -279,6 +279,8 @@ function renderRowActions(row: Row) {
       // 借用下面那颗按钮当触发器。不借的话菜单根会自己包一颗裸 button，
       // 而 menu 皮肤没有 trigger 这一部件，露出的是浏览器默认按钮样式
       triggerAsChild: true,
+      // 按落定那一侧的可用高度铺开：组件库缺省的上限是 20rem，本应用根字号 14px 下只有 280px，八项就露不全
+      fitAvailableHeight: true,
       onItemSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
     },
     {
