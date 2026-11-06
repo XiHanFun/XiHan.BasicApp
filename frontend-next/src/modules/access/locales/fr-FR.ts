@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: 'Ajouter un menu',
+        add_directory: 'Ajouter un sous-répertoire',
         add_link: 'Ajouter un lien',
         toggle: 'Activer / désactiver',
         reset: 'Rétablir par défaut',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: 'Couleur du badge',
       icon_placeholder: 'Cliquez pour choisir une icône',
       permission_placeholder: 'Facultatif ; doit être un code du catalogue des permissions',
-      directory_top_level_hint: 'Les répertoires ne peuvent être qu\'au niveau supérieur',
       registered_parent_hint: 'Les sous-pages restent sous leur page parente enregistrée',
     },
     permissions: {

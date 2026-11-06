@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: '新增選單',
+        add_directory: '新增子目錄',
         add_link: '新增外部連結',
         toggle: '啟停',
         reset: '還原預設',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: '標籤顏色',
       icon_placeholder: '點擊選擇圖示',
       permission_placeholder: '可留空；填寫時須是權限目錄中的權限碼',
-      directory_top_level_hint: '目錄只能在頂層',
       registered_parent_hint: '子頁面固定在登記的父頁面下',
     },
     permissions: {

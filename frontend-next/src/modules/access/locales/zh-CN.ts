@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: '新增菜单',
+        add_directory: '新增子目录',
         add_link: '新增外链',
         toggle: '启停',
         reset: '恢复默认',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: '标签颜色',
       icon_placeholder: '点击选择图标',
       permission_placeholder: '可留空；填写时须是权限目录里的权限码',
-      directory_top_level_hint: '目录只能在顶层',
       registered_parent_hint: '子页面固定在登记的父页面下',
     },
     permissions: {

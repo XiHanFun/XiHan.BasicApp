@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/menus</c>（平台侧）。只能建目录或外链（页面 <c>ACCESS_VALIDATION_008</c>）；编码存为 <c>custom.&lt;名&gt;</c> 且唯一（<c>ACCESS_CONFLICT_003</c>）；
-/// 目录只在顶层、外链可挂目录（<c>ACCESS_VALIDATION_006</c>）；外链地址须是 http / https 绝对地址（<c>ACCESS_VALIDATION_007</c>）；权限码须在目录里（<c>ACCESS_VALIDATION_001</c>）
+/// 上级须是目录（<c>ACCESS_VALIDATION_006</c>），目录下可以再建目录；外链地址须是 http / https 绝对地址（<c>ACCESS_VALIDATION_007</c>）；权限码须在目录里（<c>ACCESS_VALIDATION_001</c>）
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
 /// <param name="service">菜单域服务</param>

@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: 'メニューを追加',
+        add_directory: 'サブディレクトリを追加',
         add_link: '外部リンクを追加',
         toggle: '有効化／無効化',
         reset: '既定に戻す',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: 'バッジの色',
       icon_placeholder: 'クリックしてアイコンを選択',
       permission_placeholder: '省略可。入力する場合は権限カタログのコード',
-      directory_top_level_hint: 'ディレクトリはトップレベルにのみ置けます',
       registered_parent_hint: '子ページは登録された親ページの下に固定されます',
     },
     permissions: {

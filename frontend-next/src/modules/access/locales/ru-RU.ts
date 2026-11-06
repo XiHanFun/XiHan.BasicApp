@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: 'Добавить меню',
+        add_directory: 'Добавить подкаталог',
         add_link: 'Добавить ссылку',
         toggle: 'Включить / отключить',
         reset: 'Восстановить по умолчанию',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: 'Цвет метки',
       icon_placeholder: 'Нажмите, чтобы выбрать значок',
       permission_placeholder: 'Необязательно; должен быть кодом из каталога разрешений',
-      directory_top_level_hint: 'Каталоги могут быть только на верхнем уровне',
       registered_parent_hint: 'Дочерние страницы остаются под зарегистрированной родительской страницей',
     },
     permissions: {

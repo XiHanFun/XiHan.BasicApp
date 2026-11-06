@@ -41,7 +41,7 @@ public sealed class SysMenu : AppAuditedEntity
     /// 上级节点
     /// </summary>
     /// <remarks>
-    /// 顶层为空。子页面挂在登记的父页面下；顶层页面与外链可挂到目录下
+    /// 顶层为空。子页面挂在登记的父页面下；目录、顶层页面与外链可挂到目录下
     /// </remarks>
     public Guid? ParentId { get; set; }
 

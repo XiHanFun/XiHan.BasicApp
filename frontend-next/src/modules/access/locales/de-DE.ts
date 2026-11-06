@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: 'Menü hinzufügen',
+        add_directory: 'Unterverzeichnis hinzufügen',
         add_link: 'Link hinzufügen',
         toggle: 'Umschalten',
         reset: 'Standard wiederherstellen',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: 'Badge-Farbe',
       icon_placeholder: 'Klicken, um ein Symbol auszuwählen',
       permission_placeholder: 'Optional; muss ein Code aus dem Berechtigungskatalog sein',
-      directory_top_level_hint: 'Verzeichnisse liegen nur auf oberster Ebene',
       registered_parent_hint: 'Unterseiten bleiben unter ihrer registrierten Elternseite',
     },
     permissions: {

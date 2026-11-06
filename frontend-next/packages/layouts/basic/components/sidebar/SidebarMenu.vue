@@ -4,7 +4,8 @@ import type { SidebarMenuPropsContract } from '../../contracts'
 import type { MenuLinkResolver } from './menu-links'
 import type { AppMenuOption } from '~/types'
 import { XhSideNavList, XhSideNavRoot } from '@xihan-ui/vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { menuAncestors, revealExpanded } from './menu-expansion'
 import SidebarMenuNodes from './SidebarMenuNodes.vue'
 
 defineOptions({ name: 'SidebarMenu' })
@@ -39,11 +40,30 @@ function toCollection(nodes: AppMenuOption[]): SideNavNode[] {
 }
 
 const collection = computed(() => toCollection(props.menuOptions))
+
+/**
+ * 展开集合由这里持有：组件库把它完全交给应用，不会自己展开到当前项
+ * 当前页换了、或菜单到了之后通往它的路径才解得出来时，把各级目录展开；
+ * 之后用户手动收起的不再强行打开，直到当前页再换
+ */
+const expanded = ref<string[]>([])
+const activePath = computed(() => menuAncestors(props.menuOptions, props.activeKey) ?? [])
+watch(
+  [
+    () => props.activeKey,
+    () => activePath.value.join('\n'),
+  ],
+  () => {
+    expanded.value = revealExpanded(expanded.value, activePath.value, props.accordion ?? true)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="app-sidebar-menu flex-1 min-h-0">
     <XhSideNavRoot
+      v-model:expanded-value="expanded"
       :value="props.activeKey"
       :collection="collection"
       :collapsed="props.collapsed"

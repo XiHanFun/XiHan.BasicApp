@@ -331,7 +331,15 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:plus',
       permission: 'access.menus.create',
     },
-    // 目录下只能挂外链（子目录不允许，页面来自登记）
+    // 目录下可以再建目录、挂外链（页面来自登记，只能改所属目录挪进来）
+    {
+      key: 'addDirectory',
+      title: t('access.menus.actions.add_directory'),
+      scope: 'row',
+      icon: 'lucide:folder-plus',
+      visible: row => asRow(row).kind === 'Directory',
+      permission: 'access.menus.create',
+    },
     {
       key: 'addLink',
       title: t('access.menus.actions.add_link'),
@@ -396,6 +404,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'create':
       editor.startCreate()
       break
+    case 'addDirectory':
+      if (row)
+        editor.startCreate('Directory', row.id)
+      break
     case 'addLink':
       if (row)
         editor.startCreate('Link', row.id)
@@ -431,7 +443,7 @@ const modalTitle = computed(() => {
     : t('access.menus.create_title')
 })
 
-/** 所属目录的候选：顶层不选即可；子页面只出它登记的父页面（只读） */
+/** 所属目录的候选：顶层不选即可；目录按层级列出，编辑目录时去掉它自己和它的下级；子页面只出它登记的父页面（只读） */
 const parentOptions = computed<TreeSelectOption[]>(() => {
   const current = editor.editing.value
   if (current && tree.isChildPage(current)) {
@@ -445,10 +457,9 @@ const parentOptions = computed<TreeSelectOption[]>(() => {
         ]
       : []
   }
-  return tree.directories.value.filter(directory => directory.id !== current?.id).map(directory => ({
-    value: directory.id,
-    label: titleOf(directory),
-  }))
+  return tree.directoryOptions(titleOf, current?.kind === 'Directory'
+    ? current.id
+    : null)
 })
 
 const parentValue = computed({
@@ -767,10 +778,7 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
           <XhFieldControl>
             <XTreeSelect v-model:value="parentValue" name="parentId" :options="parentOptions" clearable :disabled="editor.parentLocked.value" :placeholder="t('access.menus.top_level')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="editor.form.kind === 'Directory'">
-            {{ t('access.menus.directory_top_level_hint') }}
-          </XhFieldDescription>
-          <XhFieldDescription v-else-if="editor.parentLocked.value">
+          <XhFieldDescription v-if="editor.parentLocked.value">
             {{ t('access.menus.registered_parent_hint') }}
           </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('parentId')">

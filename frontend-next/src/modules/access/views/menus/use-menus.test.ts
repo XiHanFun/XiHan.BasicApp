@@ -243,11 +243,78 @@ describe('useMenuTree', () => {
       'access.roles-audit',
       'identity.users',
     ])
-    expect(tree.directories.value.map(row => row.id)).toEqual(['m-sys'])
+    expect(tree.directoryOptions(row => row.title ?? row.code)).toEqual([
+      {
+        value: 'm-sys',
+        label: 'System',
+        children: undefined,
+      },
+    ])
     expect(tree.isChildPage(tree.find('m-audit')!)).toBe(true)
     expect(tree.isChildPage(tree.find('m-roles')!)).toBe(false)
     expect(tree.isChildPage(tree.find('m-docs')!)).toBe(false)
     expect(tree.find(null)).toBeUndefined()
+  })
+
+  it('所属目录的候选按层级列出，只留目录；编辑目录时去掉它自己和它的下级', () => {
+    const inner = node('m-inner', 'custom.inner', 'Directory', {
+      title: 'Inner',
+      parentId: 'm-middle',
+      children: [
+        node('m-roles', 'access.roles', 'Page', { parentId: 'm-inner' }),
+      ],
+    })
+    const middle = node('m-middle', 'custom.middle', 'Directory', {
+      title: 'Middle',
+      parentId: 'm-outer',
+      children: [
+        inner,
+        node('m-docs', 'custom.docs', 'Link', { title: 'Docs', parentId: 'm-middle' }),
+      ],
+    })
+    const outer = node('m-outer', 'custom.outer', 'Directory', {
+      title: 'Outer',
+      children: [middle],
+    })
+    const other = node('m-other', 'custom.other', 'Directory', { title: 'Other' })
+    const tree = useMenuTree()
+    tree.setNodes([
+      outer,
+      other,
+      node('m-users', 'identity.users', 'Page'),
+    ])
+    const titleOf = (row: MenuRow) => row.title ?? row.code
+    const leaf = (value: string, label: string) => ({
+      value,
+      label,
+      children: undefined,
+    })
+
+    expect(tree.directoryOptions(titleOf)).toEqual([
+      {
+        value: 'm-outer',
+        label: 'Outer',
+        children: [
+          {
+            value: 'm-middle',
+            label: 'Middle',
+            children: [
+              leaf('m-inner', 'Inner'),
+            ],
+          },
+        ],
+      },
+      leaf('m-other', 'Other'),
+    ])
+    // 编辑 Middle：它和它下面的 Inner 都不能选
+    expect(tree.directoryOptions(titleOf, 'm-middle')).toEqual([
+      leaf('m-outer', 'Outer'),
+      leaf('m-other', 'Other'),
+    ])
+    // 编辑 Outer：整棵子树去掉，只剩别的目录
+    expect(tree.directoryOptions(titleOf, 'm-outer')).toEqual([
+      leaf('m-other', 'Other'),
+    ])
   })
 })
 
@@ -261,12 +328,12 @@ describe('useMenuEditor', () => {
     }
   }
 
-  it('新建：缺省目录（不带上级与地址）；切到外链可挂目录；在目录行上新建即外链挂在该目录', async () => {
+  it('新建：缺省目录、放在顶层，目录与外链都可选所属目录；在目录行上新建即挂在该目录；切换种类所属目录照留', async () => {
     const calls = record(call => json(201, node('m-new', `custom.${(call.body as { code: string }).code}`, (call.body as { kind: 'Directory' }).kind)))
     const { editor } = editorWithTree()
     editor.startCreate()
-    expect(editor.form.kind).toBe('Directory')
-    expect(editor.parentLocked.value).toBe(true)
+    expect(editor.form).toMatchObject({ kind: 'Directory', parentId: null })
+    expect(editor.parentLocked.value).toBe(false)
     Object.assign(editor.form, {
       code: ' ops ',
       title: ' Ops ',
@@ -283,7 +350,7 @@ describe('useMenuEditor', () => {
       title: 'Ops',
       icon: null,
       order: 5,
-      parentId: null,
+      parentId: 'm-sys',
       externalUrl: null,
       permission: null,
       isVisible: true,
@@ -324,9 +391,12 @@ describe('useMenuEditor', () => {
       badgeDot: true,
     })
 
-    editor.startCreate('Link', 'm-sys')
+    editor.startCreate('Directory', 'm-sys')
+    expect(editor.form).toMatchObject({ kind: 'Directory', parentId: 'm-sys' })
+    editor.changeKind('Link')
+    expect(editor.form).toMatchObject({ kind: 'Link', parentId: 'm-sys' })
     editor.changeKind('Directory')
-    expect(editor.form.parentId).toBeNull()
+    expect(editor.form.parentId).toBe('m-sys')
   })
 
   it('编辑页面节点只送展示字段：标题留空即用登记标题，外链与权限不送，可挂到目录', async () => {
@@ -376,7 +446,7 @@ describe('useMenuEditor', () => {
     expect(calls[1]!.body).toMatchObject({ parentId: 'm-roles', isVisible: true, permission: null })
   })
 
-  it('编辑运营节点：外链送地址与权限，目录恒在顶层', async () => {
+  it('编辑运营节点：外链送地址与权限；目录可以改所属目录', async () => {
     const calls = record(() => json(200, node('m-x', 'custom.x', 'Link')))
     const { tree, editor } = editorWithTree()
     editor.startEdit(tree.find('m-docs')!)
@@ -399,14 +469,16 @@ describe('useMenuEditor', () => {
     })
 
     editor.startEdit(tree.find('m-sys')!)
-    expect(editor.parentLocked.value).toBe(true)
+    expect(editor.parentLocked.value).toBe(false)
+    expect(editor.form.parentId).toBeNull()
     editor.form.title = 'Platform'
+    editor.form.parentId = 'm-ops'
     expect(await editor.submit()).toBe(true)
     expect(calls[1]).toMatchObject({
       url: '/api/menus/m-sys',
       body: {
         title: 'Platform',
-        parentId: null,
+        parentId: 'm-ops',
         externalUrl: null,
         permission: null,
       },

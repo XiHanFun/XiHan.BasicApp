@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 只在平台侧管理、页面登记的查找（恢复默认用）、上级节点的规则、外链地址的规则
-/// 规则：目录只在顶层；外链与顶层页面可在顶层或目录下；子页面钉在登记的父页面下
+/// 规则：目录、外链与顶层页面可在顶层或某个目录下，目录可以一层层套下去，但不能挂到自己或自己的下级目录下；子页面钉在登记的父页面下
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
 /// <param name="sections">各包的页面登记</param>
@@ -88,8 +88,9 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
     /// </summary>
     /// <remarks>
     /// 种类为 <paramref name="kind"/> 的节点改挂到 <paramref name="parentId"/> 是否合规（见类说明）；<paramref name="registeredChild"/> 为真时只能留在 <paramref name="currentParentId"/>
+    /// <paramref name="selfId"/> 是已有节点的主键（新建为空）：目录沿上级链往上走，碰到自己即成环
     /// </remarks>
-    public static Error? CheckParent(MenuKind kind, bool registeredChild, Guid? currentParentId, Guid? parentId, IReadOnlyList<SysMenu> rows)
+    public static Error? CheckParent(MenuKind kind, bool registeredChild, Guid? currentParentId, Guid? parentId, IReadOnlyList<SysMenu> rows, Guid? selfId = null)
     {
         ArgumentNullException.ThrowIfNull(rows);
         if (registeredChild)
@@ -102,13 +103,32 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
             return null;
         }
 
-        if (kind == MenuKind.Directory)
+        var byId = rows.ToDictionary(static r => r.Id);
+        if (!byId.TryGetValue(parentId.Value, out var parent) || parent.Kind != MenuKind.Directory)
         {
             return Error.Validation(AccessErrors.MenuParentInvalid, AccessMessages.MenuParentInvalid);
         }
 
-        var parent = rows.FirstOrDefault(r => r.Id == parentId.Value);
-        return parent is { Kind: MenuKind.Directory } ? null : Error.Validation(AccessErrors.MenuParentInvalid, AccessMessages.MenuParentInvalid);
+        if (kind != MenuKind.Directory || selfId is null)
+        {
+            return null;
+        }
+
+        // 只有目录能当上级，所以环只会出在目录之间：新上级是自己，或在自己的子树里
+        // 走过的节点记下来：库里万一已有环（绕过操作写进去的）也不会转不出来
+        var seen = new HashSet<Guid>();
+        var cursor = parent;
+        while (cursor is not null && seen.Add(cursor.Id))
+        {
+            if (cursor.Id == selfId.Value)
+            {
+                return Error.Validation(AccessErrors.MenuParentInvalid, AccessMessages.MenuParentInvalid);
+            }
+
+            cursor = cursor.ParentId is { } next && byId.TryGetValue(next, out var up) ? up : null;
+        }
+
+        return null;
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
+import type { TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
 import { menus as menusApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
@@ -130,7 +131,7 @@ export interface MenuForm {
   title: string
   icon: string
   order: number
-  /** 所属目录；null 即顶层（目录只能在顶层） */
+  /** 所属目录；null 即顶层 */
   parentId: null | string
   externalUrl: string
   permission: string
@@ -168,7 +169,7 @@ function emptyForm(): MenuForm {
 }
 
 /**
- * 菜单的编辑弹窗（平台侧）：新建目录（只在顶层）或外链（可挂目录）、编辑节点
+ * 菜单的编辑弹窗（平台侧）：新建目录或外链（都可在顶层或某个目录下，目录可以一层层套）、编辑节点
  * 页面节点只改展示（标题覆盖、图标、排序、所属目录、显示、缓存、固定标签、徽标），改过即定制；路由、组件与权限来自页面登记，不送
  * 子页面钉在登记的父页面下，所属目录不能改。字段级错误挂回对应字段
  */
@@ -185,8 +186,8 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
   const isPage = computed(() => form.kind === 'Page')
   /** 页面节点与内置的目录、外链带文案键：标题可留空，留空即按语言取；运营建的节点标题必填 */
   const hasTitleKey = computed(() => !!editing.value?.titleKey)
-  /** 目录只在顶层；子页面不能离开登记的父页面 */
-  const parentLocked = computed(() => form.kind === 'Directory' || (editing.value !== null && isChildPage(editing.value)))
+  /** 子页面不能离开登记的父页面；其余节点的所属目录都可以改 */
+  const parentLocked = computed(() => editing.value !== null && isChildPage(editing.value))
 
   function reset(next: Partial<MenuForm> = {}) {
     Object.assign(form, emptyForm(), next)
@@ -194,15 +195,13 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
     submitError.value = null
   }
 
-  /** 新建：缺省目录；在某个目录下新建即外链挂在该目录 */
+  /** 新建：缺省目录、放在顶层；在某个目录行上新建即挂在该目录下 */
   function startCreate(kind: OperatorKind = 'Directory', parentId: null | string = null) {
     mode.value = 'create'
     editing.value = null
     reset({
       kind,
-      parentId: kind === 'Link'
-        ? parentId
-        : null,
+      parentId,
     })
     open.value = true
   }
@@ -230,11 +229,9 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
     open.value = true
   }
 
-  /** 新建时切换种类：目录不带上级 */
+  /** 新建时切换种类：所属目录照留（目录与外链都可以挂在目录下） */
   function changeKind(kind: OperatorKind) {
     form.kind = kind
-    if (kind === 'Directory')
-      form.parentId = null
   }
 
   function fieldError(field: keyof MenuForm): string | undefined {
@@ -254,9 +251,7 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           title: blankToNull(form.title),
           icon: blankToNull(form.icon),
           order: form.order,
-          parentId: current.kind === 'Directory'
-            ? null
-            : form.parentId,
+          parentId: form.parentId,
           isVisible: form.isVisible,
           keepAlive: form.keepAlive,
           isAffix: form.isAffix,
@@ -278,7 +273,7 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           title: form.title.trim(),
           icon: blankToNull(form.icon),
           order: form.order,
-          parentId: link ? form.parentId : null,
+          parentId: form.parentId,
           externalUrl: link
             ? blankToNull(form.externalUrl)
             : null,
@@ -329,13 +324,12 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
 }
 
 /**
- * 整棵菜单树（不受搜索影响）：上级目录的候选、子页面判定
+ * 整棵菜单树（不受搜索影响）：所属目录的候选、子页面判定
  * 页面节点的上级若也是页面，就是登记里的子页面
  */
 export function useMenuTree() {
   const nodes = ref<MenuRow[]>([])
   const flat = computed(() => flattenMenus(nodes.value))
-  const directories = computed(() => flat.value.filter(node => node.kind === 'Directory'))
 
   function find(id: null | string | undefined): MenuRow | undefined {
     return id
@@ -347,6 +341,26 @@ export function useMenuTree() {
     return node.kind === 'Page' && find(node.parentId)?.kind === 'Page'
   }
 
+  /**
+   * 所属目录的候选：只留目录，照原样一层套一层
+   * 给了 excludeId（正在编辑的目录）就连它的子树一起去掉：目录不能挂到自己或自己的下级目录下
+   */
+  function directoryOptions(titleOf: (node: MenuRow) => string, excludeId: null | string = null): TreeSelectOption[] {
+    const build = (items: readonly MenuRow[]): TreeSelectOption[] => items
+      .filter(node => node.kind === 'Directory' && node.id !== excludeId)
+      .map((node) => {
+        const children = build(node.children)
+        return {
+          value: node.id,
+          label: titleOf(node),
+          children: children.length > 0
+            ? children
+            : undefined,
+        }
+      })
+    return build(nodes.value)
+  }
+
   function setNodes(next: MenuRow[]) {
     nodes.value = next
   }
@@ -354,7 +368,7 @@ export function useMenuTree() {
   return {
     nodes,
     flat,
-    directories,
+    directoryOptions,
     find,
     isChildPage,
     setNodes,

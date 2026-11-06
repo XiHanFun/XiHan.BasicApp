@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证菜单管理的页面节点、运营节点与按种类下发
 /// </summary>
 /// <remarks>
-/// 页面节点来自页面登记（只调展示、改过即定制、种子不覆盖、可恢复），运营建目录与外链，<c>auth.permissions</c> 按种类下发（目录分组、外链、隐藏页面），
+/// 页面节点来自页面登记（只调展示、改过即定制、种子不覆盖、可恢复），运营建目录与外链（目录可以一层层套、不能成环），<c>auth.permissions</c> 按种类下发（目录分组、外链、隐藏页面），
 /// 删除只针对运营节点，租户主体碰不到；工作台模块可经 <c>BasicApp:Modules:Workbench:Enabled</c> 关掉
 /// </remarks>
 public sealed class MenusTests : IDisposable
@@ -41,7 +41,7 @@ public sealed class MenusTests : IDisposable
         var usersId = Node(listBody.GetProperty("items"), "identity.users").GetProperty("id").GetString()!;
         Assert.False(roles.GetProperty("isCustomized").GetBoolean());
 
-        // 新建目录：编码存为 custom.<名>、重复冲突；目录不能挂上级；页面不能新建
+        // 新建目录：编码存为 custom.<名>、重复冲突；上级须是目录（挂到页面下即拒绝）；页面不能新建
         var (directory, directoryBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"system","title":"System","icon":"lucide:settings","order":150}""", superadmin));
         Assert.Equal(HttpStatusCode.Created, directory.StatusCode);
         Assert.Equal("custom.system", directoryBody.GetProperty("code").GetString());
@@ -49,9 +49,9 @@ public sealed class MenusTests : IDisposable
         var (duplicate, duplicateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"system","title":"Again"}""", superadmin));
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         Assert.Equal("ACCESS_CONFLICT_003", duplicateBody.GetProperty("code").GetString());
-        var (nested, nestedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Directory","code":"inner","title":"Inner","parentId":"{{directoryId}}"}""", superadmin));
-        Assert.Equal(HttpStatusCode.BadRequest, nested.StatusCode);
-        Assert.Equal("ACCESS_VALIDATION_006", nestedBody.GetProperty("code").GetString());
+        var (underPage, underPageBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Directory","code":"inner","title":"Inner","parentId":"{{rolesId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, underPage.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_006", underPageBody.GetProperty("code").GetString());
         var (page, pageBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Page","code":"fake","title":"Fake"}""", superadmin));
         Assert.Equal(HttpStatusCode.BadRequest, page.StatusCode);
         Assert.Equal("ACCESS_VALIDATION_008", pageBody.GetProperty("code").GetString());
@@ -144,6 +144,95 @@ public sealed class MenusTests : IDisposable
         var (tenantSide, tenantSideBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: TestTokens.Issue("alice", "acme", "admin")));
         Assert.Equal(HttpStatusCode.Forbidden, tenantSide.StatusCode);
         Assert.Equal("SECURITY_DENIED_004", tenantSideBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Directories_Nest_AndCannotMoveIntoTheirOwnSubtree()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var rolesId = Node(listBody.GetProperty("items"), "access.roles").GetProperty("id").GetString()!;
+
+        // 三层目录一层套一层，页面挂在最里层，外链挂在第二层
+        var (outer, outerBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"outer","title":"Outer","order":150}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, outer.StatusCode);
+        var outerId = outerBody.GetProperty("id").GetString()!;
+        var (middle, middleBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Directory","code":"middle","title":"Middle","parentId":"{{outerId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, middle.StatusCode);
+        Assert.Equal(outerId, middleBody.GetProperty("parentId").GetString());
+        var middleId = middleBody.GetProperty("id").GetString()!;
+        var (inner, innerBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Directory","code":"inner","title":"Inner","parentId":"{{middleId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, inner.StatusCode);
+        var innerId = innerBody.GetProperty("id").GetString()!;
+        var (link, linkBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Link","code":"handbook","title":"Handbook","externalUrl":"https://docs.xihanfun.com","parentId":"{{middleId}}","order":10}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, link.StatusCode);
+        var linkId = linkBody.GetProperty("id").GetString()!;
+        var (moved, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{rolesId}", $$"""{"order":200,"parentId":"{{innerId}}","isVisible":true}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+
+        // 管理端的整棵树与 auth.permissions 的菜单树都按层下发
+        var (_, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        Assert.Equal(["custom.middle"], Codes(Node(treeBody.GetProperty("items"), "custom.outer").GetProperty("children")));
+        var (_, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        var outerNode = Node(permissionsBody.GetProperty("menus"), "custom.outer");
+        Assert.Equal(["custom.middle"], Codes(outerNode.GetProperty("children")));
+        var middleNode = Node(outerNode.GetProperty("children"), "custom.middle");
+        Assert.Equal("Directory", middleNode.GetProperty("kind").GetString());
+        Assert.Equal(["custom.inner", "custom.handbook"], Codes(middleNode.GetProperty("children")));
+        Assert.Equal(["access.roles"], Codes(Node(middleNode.GetProperty("children"), "custom.inner").GetProperty("children")));
+        Assert.DoesNotContain("access.roles", Codes(permissionsBody.GetProperty("menus")));
+        Assert.Contains("access.roles", permissionsBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
+
+        // 里外都没有可下发子节点的目录，连同只装着它的外层一并不下发
+        var (hollow, hollowBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"hollow","title":"Hollow"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, hollow.StatusCode);
+        var hollowId = hollowBody.GetProperty("id").GetString()!;
+        var (hollowChild, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Directory","code":"hollow-child","title":"Hollow child","parentId":"{{hollowId}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, hollowChild.StatusCode);
+        var (_, afterHollow) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.DoesNotContain("custom.hollow", Codes(afterHollow.GetProperty("menus")));
+
+        // 成环：目录不能挂到自己、自己的子目录或更深的下级目录下
+        foreach (var target in new[] { outerId, middleId, innerId })
+        {
+            var (cycle, cycleBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{outerId}", $$"""{"title":"Outer","order":150,"parentId":"{{target}}","isVisible":true}""", superadmin));
+            Assert.Equal(HttpStatusCode.BadRequest, cycle.StatusCode);
+            Assert.Equal("ACCESS_VALIDATION_006", cycleBody.GetProperty("code").GetString());
+        }
+
+        // 上级须是目录：外链、不存在的节点都不行
+        var (underLink, underLinkBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{innerId}", $$"""{"title":"Inner","order":0,"parentId":"{{linkId}}","isVisible":true}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, underLink.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_006", underLinkBody.GetProperty("code").GetString());
+        var (underNothing, underNothingBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", $$"""{"kind":"Directory","code":"orphan","title":"Orphan","parentId":"{{Guid.NewGuid()}}"}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, underNothing.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_006", underNothingBody.GetProperty("code").GetString());
+
+        // 子目录挪到顶层之后，原来的外层可以反过来挂到它下面；这时再把它挂回去就成环
+        var (lifted, liftedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{middleId}", """{"title":"Middle","order":160,"isVisible":true}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, lifted.StatusCode);
+        Assert.Equal(JsonValueKind.Null, liftedBody.GetProperty("parentId").ValueKind);
+        var (swapped, swappedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{outerId}", $$"""{"title":"Outer","order":150,"parentId":"{{middleId}}","isVisible":true}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, swapped.StatusCode);
+        Assert.Equal(middleId, swappedBody.GetProperty("parentId").GetString());
+        var (back, backBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{middleId}", $$"""{"title":"Middle","order":160,"parentId":"{{outerId}}","isVisible":true}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, back.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_006", backBody.GetProperty("code").GetString());
+
+        // 停用外层目录：整棵子树（里层目录、页面）都不下发
+        var (disabled, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{middleId}:set-status", """{"status":"Disabled"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, disabled.StatusCode);
+        var (_, afterDisable) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.DoesNotContain("custom.middle", Codes(afterDisable.GetProperty("menus")));
+        Assert.DoesNotContain("access.roles", afterDisable.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
+
+        // 删除：还有子目录的目录拒绝，从里往外删即可
+        var (refused, refusedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/menus?ids={hollowId}", token: superadmin));
+        Assert.Equal(HttpStatusCode.OK, refused.StatusCode);
+        Assert.Equal(["ACCESS_CONFLICT_005"], refusedBody.GetProperty("failed").EnumerateArray().Select(static f => f.GetProperty("code").GetString()).ToList());
     }
 
     [Fact]

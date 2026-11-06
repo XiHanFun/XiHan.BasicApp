@@ -28,7 +28,7 @@ public sealed record GetMenuRequest(Guid Id);
 /// <param name="Title">标题原文：1 到 64 个字符</param>
 /// <param name="Icon">图标（如 <c>lucide:folder</c>），可空</param>
 /// <param name="Order">排序号</param>
-/// <param name="ParentId">上级：目录只能在顶层；外链可在顶层或某个目录下</param>
+/// <param name="ParentId">上级：空即顶层，否则须是某个目录（目录下可以再建目录）</param>
 /// <param name="ExternalUrl">外链地址（http / https 绝对地址）；外链必填，目录不填</param>
 /// <param name="Permission">所需权限码，可空；须在权限目录里</param>
 /// <param name="IsVisible">是否在导航里显示</param>
@@ -62,7 +62,7 @@ public sealed record CreateMenuRequest(
 /// <param name="Title">标题：运营节点必填；页面节点与内置节点为空即用文案键</param>
 /// <param name="Icon">图标，可空</param>
 /// <param name="Order">排序号</param>
-/// <param name="ParentId">上级：规则同新建；子页面只能留在登记的父页面下</param>
+/// <param name="ParentId">上级：规则同新建；目录不能挂到自己或自己的下级目录下，子页面只能留在登记的父页面下</param>
 /// <param name="IsVisible">是否在导航里显示（隐藏的页面仍可直接访问）</param>
 /// <param name="KeepAlive">页面标签是否参与缓存</param>
 /// <param name="IsAffix">是否固定在标签栏</param>

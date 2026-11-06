@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: 'Add menu',
+        add_directory: 'Add subdirectory',
         add_link: 'Add link',
         toggle: 'Toggle',
         reset: 'Restore defaults',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: 'Badge color',
       icon_placeholder: 'Click to select an icon',
       permission_placeholder: 'Optional; must be a code from the permission catalog',
-      directory_top_level_hint: 'Directories can only sit at the top level',
       registered_parent_hint: 'Child pages stay under their registered parent page',
     },
     permissions: {

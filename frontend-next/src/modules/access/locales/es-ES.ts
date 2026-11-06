@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: 'Añadir menú',
+        add_directory: 'Añadir subdirectorio',
         add_link: 'Añadir enlace',
         toggle: 'Habilitar / deshabilitar',
         reset: 'Restablecer',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: 'Color de la insignia',
       icon_placeholder: 'Haga clic para elegir un icono',
       permission_placeholder: 'Opcional; debe ser un código del catálogo de permisos',
-      directory_top_level_hint: 'Los directorios solo pueden estar en el nivel superior',
       registered_parent_hint: 'Las subpáginas permanecen bajo su página padre registrada',
     },
     permissions: {

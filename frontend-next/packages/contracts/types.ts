@@ -5042,7 +5042,7 @@ export interface paths {
         put?: never;
         /**
          * Create menu
-         * @description Create an operator node: a directory (top level only) or an external link (http / https, may sit in a directory); page nodes come from page registrations and cannot be created.
+         * @description Create an operator node: a directory or an external link (http / https), either at the top level or inside a directory; page nodes come from page registrations and cannot be created.
          *
          *     Requires permission access.menus.create (Create menus).
          */
@@ -31820,7 +31820,7 @@ export interface operations {
                     order?: number;
                     /**
                      * Format: uuid
-                     * @description 上级：目录只能在顶层；外链可在顶层或某个目录下
+                     * @description 上级：空即顶层，否则须是某个目录（目录下可以再建目录）
                      */
                     parentId?: string | null;
                     /** @description 外链地址（http / https 绝对地址）；外链必填，目录不填 */
@@ -32066,7 +32066,7 @@ export interface operations {
                     order?: number;
                     /**
                      * Format: uuid
-                     * @description 上级：规则同新建；子页面只能留在登记的父页面下
+                     * @description 上级：规则同新建；目录不能挂到自己或自己的下级目录下，子页面只能留在登记的父页面下
                      */
                     parentId?: string | null;
                     /** @description 是否在导航里显示（隐藏的页面仍可直接访问） */

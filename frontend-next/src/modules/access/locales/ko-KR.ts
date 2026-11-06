@@ -203,6 +203,7 @@ export default {
       },
       actions: {
         create: '메뉴 추가',
+        add_directory: '하위 디렉터리 추가',
         add_link: '외부 링크 추가',
         toggle: '활성화/비활성화',
         reset: '기본값 복원',
@@ -226,7 +227,6 @@ export default {
       badge_type_placeholder: '배지 색상',
       icon_placeholder: '클릭해서 아이콘 선택',
       permission_placeholder: '선택 사항. 입력하면 권한 카탈로그의 코드여야 해요',
-      directory_top_level_hint: '디렉터리는 최상위에만 둘 수 있어요',
       registered_parent_hint: '하위 페이지는 등록된 상위 페이지 아래에 고정돼요',
     },
     permissions: {

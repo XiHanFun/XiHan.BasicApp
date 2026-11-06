@@ -67,7 +67,7 @@ public sealed class UpdateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
                 return Error.Validation(AccessErrors.MenuTitleRequired, AccessMessages.MenuTitleRequired);
             }
 
-            if (MenuService.CheckParent(row.Kind, registeredChild: false, row.ParentId, request.ParentId, rows) is { } parentError)
+            if (MenuService.CheckParent(row.Kind, registeredChild: false, row.ParentId, request.ParentId, rows, row.Id) is { } parentError)
             {
                 return parentError;
             }
