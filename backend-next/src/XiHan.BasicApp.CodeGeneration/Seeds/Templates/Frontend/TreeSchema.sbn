@@ -29,6 +29,9 @@ import type { TreeSelectOption } from '~/types'
 import { {{ if CanDelete }}deleteConfirmText{{ end }}{{ if CanDelete && CanStatus }}, {{ end }}{{ if CanStatus }}statusConfirmText{{ end }} } from '~/components'
 {{~ end ~}}
 import { {{ value_imports | sort_names | array.join ", " }} } from '~/contracts'
+{{~ if CanDelete ~}}
+import { throwOnFailed } from '~/request'
+{{~ end ~}}
 
 type Translate = (key: string, params?: Record<string, unknown>) => string
 
@@ -385,14 +388,6 @@ export function toCreateInputFromImport(record: Record<string, unknown>): {{ Cla
   }
 }
 {{~ end ~}}
-{{~ if CanDelete ~}}
-
-/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
-function failedCodes(result: { failed: { code: string }[] }): void {
-  if (result.failed.length > 0)
-    throw new Error(result.failed.map(f => f.code).join('; '))
-}
-{{~ end ~}}
 
 /**
  * SchemaPage 的资源（树形模式）：整棵树（{{ Resource }}.tree 一次取回、不分页）{{ if CanDelete }}、删除{{ end }}{{ if CanStatus }}、启停{{ end }}{{ if can_import }}、导入新建{{ end }}{{ if CanExport }}与导出中心{{ end }}
@@ -406,7 +401,7 @@ export function baseResource(onTree?: (rows: {{ ClassName }}Row[]) => void): Sch
       return rows
     },
 {{~ if CanDelete ~}}
-    remove: async id => failedCodes(await {{ ResourceCamel }}Api.delete({
+    remove: async id => throwOnFailed(await {{ ResourceCamel }}Api.delete({
       ids: [
         String(id),
       ],

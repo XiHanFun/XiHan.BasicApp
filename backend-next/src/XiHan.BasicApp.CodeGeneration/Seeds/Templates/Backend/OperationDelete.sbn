@@ -43,7 +43,7 @@ public sealed class Delete{{ ResourcePascal }}(IRepository<{{ ClassName }}, Guid
         {
             if (!found.TryGetValue(id, out var entity))
             {
-                failed.Add(new BatchFailure(id, {{ ModuleName }}Errors.{{ ClassName }}NotFound));
+                failed.Add(BatchFailure.From(id, Error.NotFound({{ ModuleName }}Errors.{{ ClassName }}NotFound, {{ ModuleName }}Messages.{{ ClassName }}NotFound, MessageArguments.Of(("id", id)))));
                 continue;
             }
 
@@ -51,7 +51,7 @@ public sealed class Delete{{ ResourcePascal }}(IRepository<{{ ClassName }}, Guid
             var nodeId = entity.Id;
             if (await repository.CountAsync(EntityQuery.All<{{ ClassName }}>().Where(new Specification<{{ ClassName }}>(e => e.{{ TreeParentColumn.CSharpProperty }} == nodeId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, {{ ModuleName }}Errors.{{ ClassName }}HasChildren));
+                failed.Add(BatchFailure.From(id, Error.Conflict({{ ModuleName }}Errors.{{ ClassName }}HasChildren, {{ ModuleName }}Messages.{{ ClassName }}HasChildren, MessageArguments.Of(("id", id)))));
                 continue;
             }
 
