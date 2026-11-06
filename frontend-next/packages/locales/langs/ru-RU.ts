@@ -307,6 +307,8 @@ export default {
       modal_title: 'Выбор значка',
       search_placeholder: 'Поиск по названию значка...',
       select_placeholder: 'Выберите значок',
+      sets_next: 'Следующие наборы значков',
+      sets_prev: 'Предыдущие наборы значков',
     },
     search_date_range: {
       end: 'Конец',

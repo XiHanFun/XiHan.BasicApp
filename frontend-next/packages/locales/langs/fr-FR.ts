@@ -307,6 +307,8 @@ export default {
       modal_title: 'Choisir une icône',
       search_placeholder: 'Rechercher un nom d’icône...',
       select_placeholder: 'Choisir une icône',
+      sets_next: 'Jeux d’icônes suivants',
+      sets_prev: 'Jeux d’icônes précédents',
     },
     search_date_range: {
       end: 'Fin',

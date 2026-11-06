@@ -307,6 +307,8 @@ export default {
       modal_title: 'Selecionar ícone',
       search_placeholder: 'Pesquisar nome do ícone...',
       select_placeholder: 'Selecionar ícone',
+      sets_next: 'Próximos conjuntos de ícones',
+      sets_prev: 'Conjuntos de ícones anteriores',
     },
     search_date_range: {
       end: 'Fim',

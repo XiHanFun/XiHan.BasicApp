@@ -307,6 +307,8 @@ export default {
       modal_title: '아이콘 선택',
       search_placeholder: '아이콘 이름 검색...',
       select_placeholder: '아이콘 선택',
+      sets_next: '다음 아이콘 세트',
+      sets_prev: '이전 아이콘 세트',
     },
     search_date_range: {
       end: '종료 시간',

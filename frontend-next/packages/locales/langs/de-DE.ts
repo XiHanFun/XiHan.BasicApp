@@ -307,6 +307,8 @@ export default {
       modal_title: 'Symbol auswählen',
       search_placeholder: 'Symbolname suchen...',
       select_placeholder: 'Symbol auswählen',
+      sets_next: 'Nächste Symbolsätze',
+      sets_prev: 'Vorherige Symbolsätze',
     },
     search_date_range: {
       end: 'Ende',

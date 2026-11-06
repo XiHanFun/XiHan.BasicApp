@@ -307,6 +307,8 @@ export default {
       modal_title: 'アイコンを選択',
       search_placeholder: 'アイコン名を検索...',
       select_placeholder: 'アイコンを選択',
+      sets_next: '次のアイコンセット',
+      sets_prev: '前のアイコンセット',
     },
     search_date_range: {
       end: '終了日時',

@@ -307,6 +307,8 @@ export default {
       modal_title: 'Select Icon',
       search_placeholder: 'Search icon name...',
       select_placeholder: 'Select icon',
+      sets_next: 'Next icon sets',
+      sets_prev: 'Previous icon sets',
     },
     search_date_range: {
       end: 'End',

@@ -307,6 +307,8 @@ export default {
       modal_title: '选择图标',
       search_placeholder: '搜索图标名称...',
       select_placeholder: '选择图标',
+      sets_next: '下一组图标集',
+      sets_prev: '上一组图标集',
     },
     search_date_range: {
       end: '结束时间',
