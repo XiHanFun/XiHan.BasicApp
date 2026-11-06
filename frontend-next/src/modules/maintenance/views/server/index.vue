@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhAccordionContent, XhAccordionHeader, XhAccordionItem, XhAccordionRoot, XhAccordionTrigger, XhButton, XhButtonIndicator, XhButtonPrefix, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhProgress, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAccordionContent, XhAccordionHeader, XhAccordionIndicator, XhAccordionItem, XhAccordionRoot, XhAccordionTrigger, XhButton, XhButtonIndicator, XhButtonPrefix, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhProgress, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XTooltip } from '~/components'
@@ -421,6 +421,7 @@ onBeforeUnmount(polling.stop)
             <XhAccordionItem v-for="gpu in gpus" :key="gpu.key" :value="gpu.key">
               <XhAccordionHeader>
                 <XhAccordionTrigger>
+                  <XhAccordionIndicator />
                   <div class="sv-collapse-title">
                     <Icon icon="lucide:monitor" width="14" class="sv-collapse-title-icon" />
                     <span class="sv-collapse-title-text">
@@ -466,6 +467,7 @@ onBeforeUnmount(polling.stop)
             <XhAccordionItem v-for="{ nic, addresses, traffic } in networks" :key="nic.id" :value="nic.id">
               <XhAccordionHeader>
                 <XhAccordionTrigger>
+                  <XhAccordionIndicator />
                   <div class="sv-collapse-title">
                     <Icon
                       icon="lucide:wifi"

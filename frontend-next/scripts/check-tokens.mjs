@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // 门禁：引用的 --xh-* 令牌在当前安装的组件库版本里都存在
-// CSS 解析不到 var() 的值时整条声明作废，页面上看不出报错；真源是 node_modules 里的 tokens.css 与 styles/index.css，加本仓 packages/design 自己声明的名字
+// CSS 解析不到 var() 的值时整条声明作废，页面上看不出报错；真源是组件库的 tokens.css 与 styles 入口样式（按包的 exports 解析，不认包内的物理路径），加本仓 packages/design 自己声明的名字
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const SOURCES = ['node_modules/@xihan-ui/tokens/tokens.css', 'node_modules/@xihan-ui/styles/index.css']
+const SOURCES = ['@xihan-ui/tokens/tokens.css', '@xihan-ui/styles']
 const SCAN = ['src', 'packages']
 const SKIP = new Set(['node_modules', 'dist'])
 const DECLARED = /(--xh-[a-z0-9-]+)\s*:/g
@@ -28,7 +28,7 @@ function files(dir, out = []) {
 
 const declared = new Set()
 for (const source of SOURCES) {
-  const text = readFileSync(join(ROOT, source), 'utf8')
+  const text = readFileSync(fileURLToPath(import.meta.resolve(source)), 'utf8')
   for (const match of text.matchAll(DECLARED))
     declared.add(match[1])
 }

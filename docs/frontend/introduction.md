@@ -2,7 +2,7 @@
 
 本页介绍 6.0 管理端的技术栈、目录结构、模块划分与启动流程，适用于前端开发者。
 
-`frontend-next` 是 6.0 的管理端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5（`next` 线）。Node 24+、pnpm 11+，没有锁文件。
+`frontend-next` 是 6.0 的管理端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5。Node 24+、pnpm 11+，没有锁文件。
 
 ## 与 5.x 管理端的关系
 

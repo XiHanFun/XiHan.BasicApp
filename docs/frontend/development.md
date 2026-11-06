@@ -91,7 +91,7 @@ pnpm build
 
 ## 六、XiHan.UI 本地联调
 
-目标是 XiHan.UI 的 `next` 线。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 指向同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
+常规开发用 catalog 里的发布版。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 指向同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
 
 ## 下一步
 

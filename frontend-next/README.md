@@ -42,4 +42,4 @@ frontend-next/
 
 ## XiHan.UI 本地联调
 
-目标是 XiHan.UI 的 `next` 线；发布前在 `pnpm-workspace.yaml` 里加 `overrides` 把 `@xihan-ui/*` 指到同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交。CI 与常规开发用 catalog 里的发布版，页面只用两者共有的部件。
+CI 与常规开发用 catalog 里的发布版。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 把 `@xihan-ui/*` 指到同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交，页面只用两者共有的部件。

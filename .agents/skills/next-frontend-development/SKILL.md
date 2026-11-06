@@ -1,6 +1,6 @@
 ---
 name: xihan-basicapp-next-frontend-development
-description: 在 next 分支实现、重构、审查或测试 XiHan.BasicApp 6.0 管理端（frontend-next）时使用。覆盖生成的契约层 ~/contracts、模块目录与页面登记、SchemaPage 与编辑弹窗、权限码门禁、10 区域文案、从 4.x 搬入的壳层、XiHan.UI next 线与统一视觉、门禁与浏览器验证；4.x 的 frontend/ 用 frontend-development，契约变化同时用 next-fullstack-contracts。
+description: 在 next 分支实现、重构、审查或测试 XiHan.BasicApp 6.0 管理端（frontend-next）时使用。覆盖生成的契约层 ~/contracts、模块目录与页面登记、SchemaPage 与编辑弹窗、权限码门禁、10 区域文案、从 4.x 搬入的壳层、XiHan.UI 与统一视觉、门禁与浏览器验证；4.x 的 frontend/ 用 frontend-development，契约变化同时用 next-fullstack-contracts。
 ---
 
 # XiHan.BasicApp 6.0 管理端开发
@@ -16,7 +16,7 @@ description: 在 next 分支实现、重构、审查或测试 XiHan.BasicApp 6.0
 - 页面路径由后端页面登记决定：路由 `/settings/configs` → 组件 `settings/configs/index` → `src/modules/settings/views/configs/index.vue`；菜单与路由由 `auth.permissions` 下发，不另写静态业务路由。
 - 列表页用 `SchemaPage`，新增 / 编辑用 `XEditModal` + `XhFormRoot`，每个字段都有可见标签；按钮 `permission` 直接填后端权限码，安全边界在后端。
 - 壳层是从 4.x 原样搬入的：改壳层先看 4.x 同名文件与测试，6.0 还没有的后端能力在 `AppContextApis` 里显式 `notAvailable()`、对应件缺省关，不在壳里绕。
-- 组件只用 XiHan.UI（`next` 线）与语义令牌；组件库缺陷回 XiHan.UI 修，BasicApp 不写兼容；本地联调用 `pnpm-workspace.yaml` 的临时 `overrides`，不提交。
+- 组件只用 XiHan.UI 与语义令牌；组件库缺陷回 XiHan.UI 修，BasicApp 不写兼容；本地联调用 `pnpm-workspace.yaml` 的临时 `overrides`，不提交。
 
 ## 验证
 
