@@ -46,7 +46,7 @@ frontend-next/
 
 ## 视觉
 
-规则以仓库根 `AGENTS.md`「前端架构与设计」为准（圆角只写 `--xh-shape-*`、按下缩放、盒内 2px 聚焦环、浮层 frosted、禁止 glass、紧凑不加营销式标题）。不新增裸 px：`scripts/px-allowlist.json` 是按文件计数的白名单，只许减不许增（`node scripts/check-px.mjs --update` 收紧）；引用的 `--xh-*` 令牌要在当前组件库版本里存在（`token:check`）。
+规则以仓库根 `AGENTS.md`「前端架构与设计」为准（圆角只写 `--xh-shape-*`、按下只换面不缩放、盒内 2px 聚焦环、浮层 frosted、禁止 glass、紧凑不加营销式标题）。不新增裸 px：`scripts/px-allowlist.json` 是按文件计数的白名单，只许减不许增（`node scripts/check-px.mjs --update` 收紧）；引用的 `--xh-*` 令牌要在当前组件库版本里存在（`token:check`）。
 
 ## 测试与验证
 

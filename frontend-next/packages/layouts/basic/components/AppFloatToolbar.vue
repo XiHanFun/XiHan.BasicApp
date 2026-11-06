@@ -174,9 +174,7 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
   padding: 0;
   font: inherit;
   cursor: pointer;
-  transition:
-    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .float-menu-item:focus-visible {
@@ -197,7 +195,6 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
 
 .float-menu-item:active {
   background-color: var(--xh-bg-subtle-hover-opaque);
-  scale: var(--xh-motion-scale-press);
   transition-duration: var(--xh-motion-duration-press);
   transition-timing-function: var(--xh-motion-ease-press);
 }

@@ -423,8 +423,7 @@
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .xh-icon-btn:hover:not(:disabled) {
@@ -432,11 +431,10 @@
   color: var(--xh-fg-default);
 }
 
-/* 按压反馈同下面的 .xihan-icon-btn。这几颗多是组件库的按钮 / 浮层触发器，本规则不进层，
-   上面的 transition 简写与透明底压过了库在按下时改写的时长、曲线与 active 底，不补回就是瞬间跳到 0.97 */
+/* 按下只换底，同下面的 .xihan-icon-btn。这几颗多是组件库的按钮 / 浮层触发器，本规则不进层，
+   上面的 transition 简写与透明底压过了库在按下时改写的时长、曲线与 active 底，这里补回 */
 .xh-icon-btn:active:not(:disabled) {
   background: var(--xh-bg-subtle-active);
-  scale: var(--xh-motion-scale-press);
   transition-duration: var(--xh-motion-duration-press);
   transition-timing-function: var(--xh-motion-ease-press);
 }
@@ -463,8 +461,7 @@
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 键盘聚焦给焦点环；鼠标点按不出（:focus-visible） */
@@ -478,10 +475,9 @@
   color: var(--xh-fg-default);
 }
 
-/* 离散动作钮的统一按压反馈：按下缩到 0.97 并换底，松开回弹；减弱动态效果下缩放令牌归 1 */
+/* 离散动作钮按下只换底、不缩放，时长与曲线随组件库的 press 档 */
 .xihan-icon-btn:active:not(:disabled) {
   background: var(--xh-bg-subtle-active);
-  scale: var(--xh-motion-scale-press);
   transition-duration: var(--xh-motion-duration-press);
   transition-timing-function: var(--xh-motion-ease-press);
 }

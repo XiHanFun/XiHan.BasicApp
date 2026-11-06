@@ -39,22 +39,15 @@ function toggle() {
 </template>
 
 <style scoped>
-/* 换色与顶栏图标钮同一组令牌；按压缩放走组件库的 press / release，reduced motion 下令牌自己归零 */
+/* 换色与顶栏图标钮同一组令牌；按下只换色、不缩放 */
 .sidebar-collapse-button {
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .sidebar-collapse-button:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
-}
-
-.sidebar-collapse-button:active {
-  scale: var(--xh-motion-scale-press);
-  transition-duration: var(--xh-motion-duration-press);
-  transition-timing-function: var(--xh-motion-ease-press);
 }
 </style>
