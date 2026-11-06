@@ -14,6 +14,8 @@
 | `XDataTable` | 表格（SchemaPage 内部也用它）；缺省 md 尺寸 + 列分隔线，弹窗里的表格与列表页同款 |
 | `XPageShell` | 非列表页的页面外壳 |
 | `XEditModal` | 新增 / 编辑弹窗：表单字段都要有可见标签，后端返回的字段级 `errors` 挂回对应字段 |
+| `XFieldLabel` | 字段名，可带 `help`：弹出层里针对单个字段的说明收进字段名后面的问号提示，不放在字段下方 |
+| `XHelpTip` | 问号提示本体（偏好设置各项、`XFieldLabel` 都用它） |
 | `renderTag` | 状态列等的标签渲染 |
 
 ## 表单控件

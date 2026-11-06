@@ -3,10 +3,10 @@ import type { SmsConfigForm, SmsConfigRow } from './sms-config'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SmsProvider } from '~/contracts'
 import type { SelectOption } from '~/types'
-import { XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { renderTag, SchemaPage, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { SmsProvider as PROVIDERS, smsConfigs as smsConfigsApi } from '~/contracts'
 import { enabledLabel, enabledOptions, errorText, smsProviderLabel } from '../../labels'
@@ -363,11 +363,12 @@ async function removeRow(row: SmsConfigRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
-          <XhFieldLabel>{{ t('notification.sms_configs.form.template_map') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.sms_configs.form.template_map_hint')">
+            {{ t('notification.sms_configs.form.template_map') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="form.templateMap" name="templateMap" type="textarea" :rows="4" :max-length="20000" :placeholder="TEMPLATE_MAP_EXAMPLE" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.sms_configs.form.template_map_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('notification.sms_configs.form.sort') }}</XhFieldLabel>
@@ -376,11 +377,12 @@ async function removeRow(row: SmsConfigRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot v-if="!form.id">
-          <XhFieldLabel>{{ t('notification.sms_configs.form.is_enabled') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.sms_configs.form.first_default_hint')">
+            {{ t('notification.sms_configs.form.is_enabled') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XhSwitch v-model:checked="form.isEnabled" name="isEnabled" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.sms_configs.form.first_default_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
           <XhFieldLabel>{{ t('notification.sms_configs.form.remark') }}</XhFieldLabel>

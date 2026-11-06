@@ -14,6 +14,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { FIRST_CONTROL_SELECTOR } from './edit-modal-focus'
 
 defineOptions({ name: 'XEditModal' })
 
@@ -47,8 +48,8 @@ const props = withDefaults(defineProps<{
   formId?: string
   /**
    * 展开后先把焦点落到 content 内匹配此选择器的元素
-   * 不给即走组件库的默认可 tab 顺序——那会落在右上角的关闭钮上
-   * 组件库聚焦输入框时会连带全选其中的值，编辑既有记录的弹窗慎用
+   * 不给即落到第一个真正的控件上（越过关闭钮与字段名后面的问号，见 edit-modal-focus）
+   * 组件库聚焦输入框时会连带全选其中的值
    */
   initialFocus?: string
 }>(), {
@@ -89,7 +90,7 @@ function handleCancel() {
        点遮罩与 Esc 都按取消收场（组件库的缺省） -->
   <XhDialogRoot
     :open="show"
-    :initial-focus="initialFocus"
+    :initial-focus="initialFocus ?? FIRST_CONTROL_SELECTOR"
     @update:open="(value: boolean) => emit('update:show', value)"
   >
     <XhDialogContent class="xh-edit-modal" :style="modalStyle">

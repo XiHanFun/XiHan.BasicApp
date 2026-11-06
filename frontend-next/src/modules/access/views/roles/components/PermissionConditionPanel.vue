@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { ConditionBatchTrial } from '../condition-trial'
 import type { ConditionAttribute, ConditionOperator, GrantConditionTarget, PermissionConditionItem } from '../permission-condition'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XEditModal, XInput, XNumberInput, XSegmented, XSelect } from '~/components'
+import { Icon, XEditModal, XFieldLabel, XInput, XNumberInput, XSegmented, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { permissionConditions as conditionsApi } from '~/contracts'
 import { throwOnFailed } from '~/request'
@@ -402,13 +402,12 @@ function remove(item: PermissionConditionItem) {
       </XhAlertRoot>
       <XhFormRoot :id="formId" class="xh-edit-form-grid" data-testid="condition-form" @submit="submit">
         <XhFieldRoot required>
-          <XhFieldLabel>{{ t('access.conditions.label_attribute') }}</XhFieldLabel>
+          <XFieldLabel :help="selectedAttribute?.isMultiValued ? t('access.conditions.multi_hint') : undefined">
+            {{ t('access.conditions.label_attribute') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect v-model:value="form.attribute" name="attribute" :options="attributeOptions" :placeholder="t('access.conditions.ph_attribute')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="selectedAttribute?.isMultiValued">
-            {{ t('access.conditions.multi_hint') }}
-          </XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot v-if="selectedAttribute?.isFamily" required>
           <XhFieldLabel>{{ t('access.conditions.label_family_name') }}</XhFieldLabel>
@@ -429,20 +428,20 @@ function remove(item: PermissionConditionItem) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot v-if="requiresValue(form.operator)" class="xh-span-2" required>
-          <XhFieldLabel>{{ t('access.conditions.label_value') }}</XhFieldLabel>
+          <XFieldLabel :help="formValueHint">
+            {{ t('access.conditions.label_value') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="form.value" name="value" clearable />
           </XhFieldControl>
-          <XhFieldDescription v-if="formValueHint">
-            {{ formValueHint }}
-          </XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
-          <XhFieldLabel>{{ t('access.conditions.label_group') }}</XhFieldLabel>
+          <XFieldLabel :help="t('access.conditions.group_field_hint')">
+            {{ t('access.conditions.label_group') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XNumberInput v-model:value="form.groupNo" name="groupNo" :min="0" :max="99" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('access.conditions.group_field_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('access.conditions.label_description') }}</XhFieldLabel>

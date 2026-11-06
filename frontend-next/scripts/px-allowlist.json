@@ -33,7 +33,6 @@
   "packages/layouts/basic/components/header/HeaderTopMenu.vue": 5,
   "packages/layouts/basic/components/header/HeaderTopMenuPanel.vue": 5,
   "packages/layouts/basic/components/header/NotificationPopover.vue": 29,
-  "packages/layouts/basic/components/preference/PrefTip.vue": 1,
   "packages/layouts/basic/components/preference/PreferenceAppearanceTab.vue": 29,
   "packages/layouts/basic/components/preference/PreferenceLayoutTab.vue": 7,
   "packages/layouts/basic/components/sidebar/SidebarMenu.vue": 14,

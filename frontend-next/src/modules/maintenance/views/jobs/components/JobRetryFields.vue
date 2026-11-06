@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { RetryForm } from '../job'
-import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XNumberInput, XSelect } from '~/components'
+import { XFieldLabel, XNumberInput, XSelect } from '~/components'
 import { backoffOptions, MAX_RETRIES, MAX_RETRY_SECONDS } from '../job'
 
 /**
@@ -32,25 +32,27 @@ function set<K extends keyof RetryForm>(field: K, value: RetryForm[K]) {
 
 <template>
   <XhFieldRoot :invalid="!!errorOf('timeoutSeconds')">
-    <XhFieldLabel>{{ t('maintenance.jobs.timeout_label') }}</XhFieldLabel>
+    <XFieldLabel :help="t('maintenance.jobs.timeout_hint')">
+      {{ t('maintenance.jobs.timeout_label') }}
+    </XFieldLabel>
     <XhFieldControl>
       <XNumberInput :value="model.timeoutSeconds" name="timeoutSeconds" :min="1" :max="MAX_RETRY_SECONDS" :precision="0" :placeholder="t('maintenance.jobs.no_timeout')" @update:value="(value: number | null) => set('timeoutSeconds', value)" />
     </XhFieldControl>
     <XhFieldErrorText v-if="errorOf('timeoutSeconds')">
       {{ errorOf('timeoutSeconds') }}
     </XhFieldErrorText>
-    <XhFieldDescription>{{ t('maintenance.jobs.timeout_hint') }}</XhFieldDescription>
   </XhFieldRoot>
 
   <XhFieldRoot :invalid="!!errorOf('maxRetries')">
-    <XhFieldLabel>{{ t('maintenance.jobs.max_retry_count') }}</XhFieldLabel>
+    <XFieldLabel :help="t('maintenance.jobs.retry_hint')">
+      {{ t('maintenance.jobs.max_retry_count') }}
+    </XFieldLabel>
     <XhFieldControl>
       <XNumberInput :value="model.maxRetries" name="maxRetries" :min="1" :max="MAX_RETRIES" :precision="0" :placeholder="t('maintenance.jobs.no_retry')" @update:value="(value: number | null) => set('maxRetries', value)" />
     </XhFieldControl>
     <XhFieldErrorText v-if="errorOf('maxRetries')">
       {{ errorOf('maxRetries') }}
     </XhFieldErrorText>
-    <XhFieldDescription>{{ t('maintenance.jobs.retry_hint') }}</XhFieldDescription>
   </XhFieldRoot>
 
   <template v-if="retrying">
@@ -72,14 +74,15 @@ function set<K extends keyof RetryForm>(field: K, value: RetryForm[K]) {
     </XhFieldRoot>
 
     <XhFieldRoot v-if="model.retryBackoff === 'Exponential'" class="xh-span-2" :invalid="!!errorOf('retryMaxDelaySeconds')">
-      <XhFieldLabel>{{ t('maintenance.jobs.retry_max_delay_label') }}</XhFieldLabel>
+      <XFieldLabel :help="t('maintenance.jobs.retry_max_delay_hint')">
+        {{ t('maintenance.jobs.retry_max_delay_label') }}
+      </XFieldLabel>
       <XhFieldControl>
         <XNumberInput :value="model.retryMaxDelaySeconds" name="retryMaxDelaySeconds" :min="1" :max="MAX_RETRY_SECONDS" :precision="0" :placeholder="t('maintenance.jobs.no_timeout')" @update:value="(value: number | null) => set('retryMaxDelaySeconds', value)" />
       </XhFieldControl>
       <XhFieldErrorText v-if="errorOf('retryMaxDelaySeconds')">
         {{ errorOf('retryMaxDelaySeconds') }}
       </XhFieldErrorText>
-      <XhFieldDescription>{{ t('maintenance.jobs.retry_max_delay_hint') }}</XhFieldDescription>
     </XhFieldRoot>
   </template>
 </template>

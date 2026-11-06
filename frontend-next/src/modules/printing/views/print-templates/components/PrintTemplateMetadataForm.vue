@@ -6,7 +6,6 @@
 import type { PrintTemplateFormModel } from './models'
 import {
   XhFieldControl,
-  XhFieldDescription,
   XhFieldErrorText,
   XhFieldLabel,
   XhFieldRoot,
@@ -15,7 +14,7 @@ import {
   XhSwitch,
 } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
-import { XInput, XNumberInput } from '~/components'
+import { XFieldLabel, XInput, XNumberInput } from '~/components'
 import PrintTemplateDataSourceSettings from './PrintTemplateDataSourceSettings.vue'
 
 defineOptions({ name: 'PrintTemplateMetadataForm' })
@@ -47,7 +46,9 @@ const { t } = useI18n()
 
     <XhFormFieldGroup name="templateCode">
       <XhFieldRoot required>
-        <XhFieldLabel>{{ t('printing.print_templates.template_code') }}</XhFieldLabel>
+        <XFieldLabel :help="editing ? t('printing.print_templates.template_code_immutable') : undefined">
+          {{ t('printing.print_templates.template_code') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XInput
             v-model:value="model.templateCode"
@@ -56,9 +57,6 @@ const { t } = useI18n()
             :placeholder="t('printing.print_templates.template_code_placeholder')"
           />
         </XhFieldControl>
-        <XhFieldDescription v-if="editing">
-          {{ t('printing.print_templates.template_code_immutable') }}
-        </XhFieldDescription>
         <XhFieldErrorText />
       </XhFieldRoot>
     </XhFormFieldGroup>
@@ -68,24 +66,26 @@ const { t } = useI18n()
     <!-- 状态只在新建时定；已有模板在列表页启停 -->
     <XhFormFieldGroup v-if="!editing" name="status">
       <XhFieldRoot>
-        <XhFieldLabel>{{ t('printing.print_templates.initial_status') }}</XhFieldLabel>
+        <XFieldLabel :help="t('printing.print_templates.initial_status_help')">
+          {{ t('printing.print_templates.initial_status') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XhSwitch
             :checked="model.status === 'Active'"
             @update:checked="model.status = $event ? 'Active' : 'Disabled'"
           />
         </XhFieldControl>
-        <XhFieldDescription>{{ t('printing.print_templates.initial_status_help') }}</XhFieldDescription>
       </XhFieldRoot>
     </XhFormFieldGroup>
 
     <XhFormFieldGroup v-if="globalMode" name="allowTenantUse">
       <XhFieldRoot>
-        <XhFieldLabel>{{ t('printing.print_templates.allow_tenant_use') }}</XhFieldLabel>
+        <XFieldLabel :help="t('printing.print_templates.allow_tenant_use_help')">
+          {{ t('printing.print_templates.allow_tenant_use') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XhSwitch v-model:checked="model.allowTenantUse" />
         </XhFieldControl>
-        <XhFieldDescription>{{ t('printing.print_templates.allow_tenant_use_help') }}</XhFieldDescription>
       </XhFieldRoot>
     </XhFormFieldGroup>
 

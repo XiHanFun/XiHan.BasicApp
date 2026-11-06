@@ -2,10 +2,10 @@
 import type { EditionRow, EditionStatus } from './use-editions'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XEditModal, XFieldLabel, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatPrice } from '../subscription/subscription'
@@ -438,13 +438,12 @@ async function saveWhitelist() {
         </XhFieldRoot>
         <!-- 免费套餐不能标价（4.x 同）：打开免费即清空价格、价格框禁用 -->
         <XhFieldRoot :invalid="!!editor.fieldError('price')">
-          <XhFieldLabel>{{ t('tenancy.editions.fields.price') }}</XhFieldLabel>
+          <XFieldLabel :help="editor.form.isFree ? t('tenancy.editions.price_free_hint') : undefined">
+            {{ t('tenancy.editions.fields.price') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XNumberInput v-model:value="editor.form.price" name="price" :min="0" :max="99999999" :precision="2" :disabled="editor.form.isFree" :placeholder="t('tenancy.editions.price_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="editor.form.isFree">
-            {{ t('tenancy.editions.price_free_hint') }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('price')">
             {{ editor.fieldError('price') }}
           </XhFieldErrorText>

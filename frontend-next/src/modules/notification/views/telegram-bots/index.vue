@@ -2,10 +2,10 @@
 import type { TelegramBotForm, TelegramBotRow } from './telegram-bot'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput } from '~/components'
+import { renderTag, SchemaPage, XEditModal, XFieldLabel, XInput, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { telegramBots as telegramBotsApi } from '~/contracts'
 import { enabledLabel, enabledOptions, errorText } from '../../labels'
@@ -303,11 +303,12 @@ async function removeRow(row: TelegramBotRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
-          <XhFieldLabel>{{ t('notification.telegram_bots.form.broadcast_chat_ids') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.telegram_bots.form.broadcast_chat_ids_hint')">
+            {{ t('notification.telegram_bots.form.broadcast_chat_ids') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="form.broadcastChatIds" name="broadcastChatIds" clearable :max-length="500" :placeholder="t('notification.telegram_bots.form.broadcast_chat_ids_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.telegram_bots.form.broadcast_chat_ids_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('notification.telegram_bots.form.enable_fallback_reply') }}</XhFieldLabel>

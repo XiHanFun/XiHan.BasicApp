@@ -2,10 +2,10 @@
 import type { FieldMaskStrategy, FieldRuleRow, FieldRuleStatus, FieldTargetKind } from './use-field-security'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XCombobox, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { FIELD_MASK_STRATEGIES, FIELD_TARGET_KINDS, fieldSecurityResource, fieldTitleKey, MAX_MASK_KEEP, messageKeys, useFieldRuleEditor, useFieldSecurityEntities } from './use-field-security'
 
@@ -474,25 +474,23 @@ const fieldHint = computed(() => {
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('strategy')" required>
-          <XhFieldLabel>{{ t('access.field_security.fields.strategy') }}</XhFieldLabel>
+          <XFieldLabel :help="fieldHint">
+            {{ t('access.field_security.fields.strategy') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect :value="editor.form.strategy" name="strategy" :options="formStrategyOptions" @update:value="value => editor.changeStrategy(value as FieldMaskStrategy)" />
           </XhFieldControl>
-          <XhFieldDescription v-if="fieldHint">
-            {{ fieldHint }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('strategy')">
             {{ editor.fieldError('strategy') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot>
-          <XhFieldLabel>{{ t('access.field_security.fields.editable') }}</XhFieldLabel>
+          <XFieldLabel :help="editor.isMasked.value ? t('access.field_security.hint_write_only') : t('access.field_security.hint_plain_read_only')">
+            {{ t('access.field_security.fields.editable') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XhSwitch v-model:checked="editor.form.isEditable" name="isEditable" :disabled="!editor.isMasked.value" />
           </XhFieldControl>
-          <XhFieldDescription>
-            {{ editor.isMasked.value ? t('access.field_security.hint_write_only') : t('access.field_security.hint_plain_read_only') }}
-          </XhFieldDescription>
         </XhFieldRoot>
         <template v-if="editor.form.strategy === 'PartialMask'">
           <XhFieldRoot :invalid="!!editor.fieldError('keepHead')" required>

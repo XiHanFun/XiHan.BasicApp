@@ -4,10 +4,10 @@ import type { ConditionAttribute } from '../roles/permission-condition'
 import type { ConstraintItemModel, ConstraintRuleRow, ConstraintTargetType, ConstraintType, ConstraintViolationAction } from './constraint-rule'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XCombobox, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XCombobox, XDatePicker, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
 import { constraintRules as constraintRulesApi, permissions as permissionsApi, policies as policiesApi, roles as rolesApi, users as usersApi } from '~/contracts'
@@ -712,11 +712,12 @@ async function removeRow(row: ConstraintRuleRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot required>
-          <XhFieldLabel>{{ t('access.constraint_rules.fields.type') }}</XhFieldLabel>
+          <XFieldLabel :help="typeHint(t, form.type)">
+            {{ t('access.constraint_rules.fields.type') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect :value="form.type" name="type" :options="typeOptions" @update:value="changeType" />
           </XhFieldControl>
-          <XhFieldDescription>{{ typeHint(t, form.type) }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot required>
           <XhFieldLabel>{{ t('access.constraint_rules.fields.target_type') }}</XhFieldLabel>
@@ -731,11 +732,12 @@ async function removeRow(row: ConstraintRuleRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot v-if="usesMaxAllowed(form.type)">
-          <XhFieldLabel>{{ t('access.constraint_rules.fields.max_allowed') }}</XhFieldLabel>
+          <XFieldLabel :help="form.type === 'Cardinality' ? t('access.constraint_rules.hint_max_cardinality') : t('access.constraint_rules.hint_max_group')">
+            {{ t('access.constraint_rules.fields.max_allowed') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XNumberInput v-model:value="form.maxAllowed" name="maxAllowed" :min="1" :max="10000" />
           </XhFieldControl>
-          <XhFieldDescription>{{ form.type === 'Cardinality' ? t('access.constraint_rules.hint_max_cardinality') : t('access.constraint_rules.hint_max_group') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('access.constraint_rules.fields.priority') }}</XhFieldLabel>

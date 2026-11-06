@@ -3,10 +3,10 @@ import type { BotConfigForm, BotConfigRow } from './bot-config'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { BotProvider } from '~/contracts'
 import type { SelectOption } from '~/types'
-import { XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { renderTag, SchemaPage, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { botConfigs as botConfigsApi, BotProvider as PROVIDERS } from '~/contracts'
 import { botProviderLabel, enabledLabel, enabledOptions, errorText } from '../../labels'
@@ -334,13 +334,12 @@ async function removeRow(row: BotConfigRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot required>
-          <XhFieldLabel>{{ t('notification.bot_configs.form.provider') }}</XhFieldLabel>
+          <XFieldLabel :help="providerLocked ? t('notification.bot_configs.form.provider_locked_hint') : undefined">
+            {{ t('notification.bot_configs.form.provider') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect :value="form.provider" name="provider" :options="providerOptions" :disabled="providerLocked" @update:value="changeProvider" />
           </XhFieldControl>
-          <XhFieldDescription v-if="providerLocked">
-            {{ t('notification.bot_configs.form.provider_locked_hint') }}
-          </XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('notification.bot_configs.form.sort') }}</XhFieldLabel>
@@ -349,11 +348,12 @@ async function removeRow(row: BotConfigRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2" required>
-          <XhFieldLabel>{{ t('notification.bot_configs.form.webhook_url') }}</XhFieldLabel>
+          <XFieldLabel :help="webhookHint">
+            {{ t('notification.bot_configs.form.webhook_url') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="form.webhookUrl" name="webhookUrl" type="url" clearable :max-length="500" autocomplete="off" :placeholder="webhookPlaceholder" />
           </XhFieldControl>
-          <XhFieldDescription>{{ webhookHint }}</XhFieldDescription>
         </XhFieldRoot>
         <template v-if="signing">
           <XhFieldRoot>
@@ -370,11 +370,12 @@ async function removeRow(row: BotConfigRow) {
           </XhFieldRoot>
         </template>
         <XhFieldRoot v-if="!form.id" class="xh-span-2">
-          <XhFieldLabel>{{ t('notification.bot_configs.form.is_enabled') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.bot_configs.form.first_default_hint')">
+            {{ t('notification.bot_configs.form.is_enabled') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XhSwitch v-model:checked="form.isEnabled" name="isEnabled" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.bot_configs.form.first_default_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
           <XhFieldLabel>{{ t('notification.bot_configs.form.remark') }}</XhFieldLabel>

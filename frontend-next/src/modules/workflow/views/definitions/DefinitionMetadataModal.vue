@@ -4,10 +4,10 @@
 -->
 <script setup lang="ts">
 import type { WorkflowBusinessType, WorkflowDefinitionDetail, WorkflowDefinitionMetadata } from './definition-metadata'
-import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XEditModal, XInput, XSelect } from '~/components'
+import { XEditModal, XFieldLabel, XInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { workflowDefinitions } from '~/contracts'
 import {
@@ -126,7 +126,9 @@ async function save(): Promise<void> {
       <!-- 流程编码即业务编码：新建时先选要关联的审批业务，也可以不绑定直接填编码 -->
       <XhFormFieldGroup v-if="!editing" name="business">
         <XhFieldRoot>
-          <XhFieldLabel>{{ t('workflow.designer.flow_business') }}</XhFieldLabel>
+          <XFieldLabel :help="boundBusiness ? t('workflow.designer.flow_business_tip', { name: t(boundBusiness.nameKey), outcomes: boundBusiness.outcomes.join(' / ') }) : undefined">
+            {{ t('workflow.designer.flow_business') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect
               :value="boundBusiness?.code ?? null"
@@ -135,9 +137,6 @@ async function save(): Promise<void> {
               @update:value="selectBusiness"
             />
           </XhFieldControl>
-          <XhFieldDescription v-if="boundBusiness">
-            {{ t('workflow.designer.flow_business_tip', { name: t(boundBusiness.nameKey), outcomes: boundBusiness.outcomes.join(' / ') }) }}
-          </XhFieldDescription>
           <XhFieldErrorText />
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -145,7 +144,9 @@ async function save(): Promise<void> {
       <XhFormFieldGroup name="code">
         <!-- 只在语法不对时写 invalid，其余交给表单（写了 false 会盖掉表单的必填判定） -->
         <XhFieldRoot required :invalid="codeInvalid || undefined">
-          <XhFieldLabel>{{ t('workflow.definitions.code') }}</XhFieldLabel>
+          <XFieldLabel :help="editing ? t('workflow.definitions.code_immutable') : undefined">
+            {{ t('workflow.definitions.code') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput
               v-model:value="form.code"
@@ -154,9 +155,6 @@ async function save(): Promise<void> {
               :placeholder="t('workflow.designer.flow_code_placeholder')"
             />
           </XhFieldControl>
-          <XhFieldDescription v-if="editing">
-            {{ t('workflow.definitions.code_immutable') }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="codeInvalid">
             {{ t('workflow.definitions.code_invalid') }}
           </XhFieldErrorText>

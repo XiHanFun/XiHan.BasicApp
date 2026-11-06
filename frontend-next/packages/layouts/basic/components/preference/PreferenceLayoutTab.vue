@@ -3,9 +3,8 @@ import type { useAppStore } from '~/stores'
 import { XhSwitch, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XInput, XNumberInput, XSelect } from '~/components'
+import { XHelpTip as PrefTip, XInput, XNumberInput, XSelect } from '~/components'
 import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
-import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceLayoutTab' })
 

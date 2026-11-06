@@ -2,10 +2,10 @@
 import type { EmailConfigForm, EmailConfigRow } from './email-config'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput } from '~/components'
+import { renderTag, SchemaPage, XEditModal, XFieldLabel, XInput, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { emailConfigs as emailConfigsApi } from '~/contracts'
 import { enabledLabel, enabledOptions, errorText } from '../../labels'
@@ -378,11 +378,12 @@ async function removeRow(row: EmailConfigRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot v-if="!form.id">
-          <XhFieldLabel>{{ t('notification.email_configs.form.is_enabled') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.email_configs.form.first_default_hint')">
+            {{ t('notification.email_configs.form.is_enabled') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XhSwitch v-model:checked="form.isEnabled" name="isEnabled" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.email_configs.form.first_default_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
           <XhFieldLabel>{{ t('notification.email_configs.form.remark') }}</XhFieldLabel>

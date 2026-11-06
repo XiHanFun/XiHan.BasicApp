@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { JobRow, RescheduleForm, RetryForm, ScheduleForm, SchedulePreview } from '../job'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhFieldControl, XhFieldErrorText, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XCombobox, XEditModal } from '~/components'
+import { XCombobox, XEditModal, XFieldLabel } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { ApiError } from '~/request'
 import { formatDate } from '~/utils'
@@ -233,14 +233,15 @@ async function submit() {
 
     <XhFormRoot :id="formId" class="xh-edit-form-grid" data-testid="job-reschedule-form" @submit="submit">
       <XhFieldRoot class="xh-span-2" :invalid="!!expressionError" required>
-        <XhFieldLabel>{{ t('maintenance.jobs.schedule') }}</XhFieldLabel>
+        <XFieldLabel :help="t('maintenance.jobs.expression_hint')">
+          {{ t('maintenance.jobs.schedule') }}
+        </XFieldLabel>
         <XhFieldControl :as-child="false">
           <JobScheduleEditor v-model:expression="form.expression" :invalid="!!expressionError" />
         </XhFieldControl>
         <XhFieldErrorText v-if="expressionError">
           {{ expressionError }}
         </XhFieldErrorText>
-        <XhFieldDescription>{{ t('maintenance.jobs.expression_hint') }}</XhFieldDescription>
       </XhFieldRoot>
 
       <!-- 常用预设（4.x Cron 构建器的六个）：点一下填进计划框 -->
@@ -259,7 +260,9 @@ async function submit() {
       </div>
 
       <XhFieldRoot class="xh-span-2" :invalid="!!timeZoneError">
-        <XhFieldLabel>{{ t('maintenance.jobs.time_zone') }}</XhFieldLabel>
+        <XFieldLabel :help="t('maintenance.jobs.time_zone_hint')">
+          {{ t('maintenance.jobs.time_zone') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XCombobox
             class="job-reschedule__zone"
@@ -275,7 +278,6 @@ async function submit() {
         <XhFieldErrorText v-if="timeZoneError">
           {{ timeZoneError }}
         </XhFieldErrorText>
-        <XhFieldDescription>{{ t('maintenance.jobs.time_zone_hint') }}</XhFieldDescription>
       </XhFieldRoot>
 
       <JobRetryFields v-model="retry" :errors="fieldErrors" />

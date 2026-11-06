@@ -15,7 +15,6 @@ import {
   XhDialogRoot,
   XhDialogTitle,
   XhFieldControl,
-  XhFieldDescription,
   XhFieldLabel,
   XhFieldRoot,
   XhFormRoot,
@@ -23,7 +22,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { renderTag, SchemaPage, statusConfirmText, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { TemplateChannel as CHANNELS, messageTemplates as templatesApi } from '~/contracts'
 import { useAuthStore } from '~/stores'
@@ -413,11 +412,12 @@ async function removeRow(row: TemplateRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2" required>
-          <XhFieldLabel>{{ t('notification.templates.form_content') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.templates.form_content_hint')">
+            {{ t('notification.templates.form_content') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="form.content" name="content" type="textarea" show-count :max-length="100000" :autosize="{ minRows: 6, maxRows: 16 }" :placeholder="t('notification.templates.form_content_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.templates.form_content_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot v-if="emailChannel">
           <XhFieldLabel>{{ t('notification.templates.form_is_html') }}</XhFieldLabel>

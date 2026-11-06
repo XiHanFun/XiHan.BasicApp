@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { JobCreateForm, JobResponse, RetryForm } from '../job'
-import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XCombobox, XEditModal, XInput, XSelect } from '~/components'
+import { XCombobox, XEditModal, XFieldLabel, XInput, XSelect } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { ApiError } from '~/request'
 import { blankRetry, createJob, errorText, loadJobTypeOptions, retryIncomplete } from '../job'
@@ -134,14 +134,15 @@ async function submit() {
   >
     <XhFormRoot :id="formId" class="xh-edit-form-grid" data-testid="job-create-form" @submit="submit">
       <XhFieldRoot :invalid="!!errorOf('name')" required>
-        <XhFieldLabel>{{ t('maintenance.jobs.task_code') }}</XhFieldLabel>
+        <XFieldLabel :help="t('maintenance.jobs.name_hint')">
+          {{ t('maintenance.jobs.task_code') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XInput v-model:value="form.name" name="name" clearable autocomplete="off" :placeholder="t('maintenance.jobs.name_placeholder')" />
         </XhFieldControl>
         <XhFieldErrorText v-if="errorOf('name')">
           {{ errorOf('name') }}
         </XhFieldErrorText>
-        <XhFieldDescription>{{ t('maintenance.jobs.name_hint') }}</XhFieldDescription>
       </XhFieldRoot>
 
       <XhFieldRoot :invalid="!!errorOf('jobType')" required>
@@ -165,7 +166,9 @@ async function submit() {
       </XhFieldRoot>
 
       <XhFieldRoot class="xh-span-2" :invalid="!!errorOf('timeZone')">
-        <XhFieldLabel>{{ t('maintenance.jobs.time_zone') }}</XhFieldLabel>
+        <XFieldLabel :help="t('maintenance.jobs.time_zone_hint')">
+          {{ t('maintenance.jobs.time_zone') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XCombobox
             :options="timeZoneOptions"
@@ -177,18 +180,18 @@ async function submit() {
             @update:value="onTimeZone"
           />
         </XhFieldControl>
-        <XhFieldDescription>{{ t('maintenance.jobs.time_zone_hint') }}</XhFieldDescription>
       </XhFieldRoot>
 
       <XhFieldRoot class="xh-span-2" :invalid="!!errorOf('data')">
-        <XhFieldLabel>{{ t('maintenance.jobs.data') }}</XhFieldLabel>
+        <XFieldLabel :help="t('maintenance.jobs.data_hint')">
+          {{ t('maintenance.jobs.data') }}
+        </XFieldLabel>
         <XhFieldControl>
           <XInput v-model:value="form.data" name="data" type="textarea" :autosize="{ minRows: 3, maxRows: 10 }" :placeholder="DATA_EXAMPLE" />
         </XhFieldControl>
         <XhFieldErrorText v-if="errorOf('data')">
           {{ errorOf('data') }}
         </XhFieldErrorText>
-        <XhFieldDescription>{{ t('maintenance.jobs.data_hint') }}</XhFieldDescription>
       </XhFieldRoot>
 
       <JobRetryFields v-model="retry" :errors="fieldErrors" />

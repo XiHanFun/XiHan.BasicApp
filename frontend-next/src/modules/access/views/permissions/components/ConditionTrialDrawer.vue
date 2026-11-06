@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { ConditionTrialResult, ConditionTrialSet, ConditionVerdict } from '../../roles/condition-trial'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XCombobox, XDatePicker, XInput, XSelect } from '~/components'
+import { Icon, XCombobox, XDatePicker, XFieldLabel, XInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { permissionConditions as conditionsApi, permissions as permissionsApi, users as usersApi } from '~/contracts'
 import { formatDate } from '~/utils'
@@ -222,11 +222,12 @@ watch(open, (value) => {
             </XhFieldControl>
           </XhFieldRoot>
           <XhFieldRoot>
-            <XhFieldLabel>{{ t('access.conditions.label_impersonating') }}</XhFieldLabel>
+            <XFieldLabel :help="t('access.conditions.hint_impersonating')">
+              {{ t('access.conditions.label_impersonating') }}
+            </XFieldLabel>
             <XhFieldControl>
               <XhSwitch v-model:checked="form.isImpersonating" name="isImpersonating" />
             </XhFieldControl>
-            <XhFieldDescription>{{ t('access.conditions.hint_impersonating') }}</XhFieldDescription>
           </XhFieldRoot>
         </XhFormRoot>
         <div class="trial__actions">

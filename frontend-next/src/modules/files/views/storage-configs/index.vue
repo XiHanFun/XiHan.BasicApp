@@ -2,10 +2,10 @@
 import type { StorageConfigForm, StorageConfigRow, StorageType } from './storage-config'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { renderTag, SchemaPage, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { storageConfigs as storageConfigsApi } from '~/contracts'
 import { ApiError } from '~/request'
@@ -394,11 +394,12 @@ async function removeRow(row: StorageConfigRow) {
             </XhFieldControl>
           </XhFieldRoot>
           <XhFieldRoot required>
-            <XhFieldLabel>{{ t('files.storage_configs.form.bucket') }}</XhFieldLabel>
+            <XFieldLabel :help="t('files.storage_configs.form.bucket_hint')">
+              {{ t('files.storage_configs.form.bucket') }}
+            </XFieldLabel>
             <XhFieldControl>
               <XInput v-model:value="form.bucket" name="bucket" clearable :max-length="63" :placeholder="t('files.storage_configs.form.bucket_placeholder')" />
             </XhFieldControl>
-            <XhFieldDescription>{{ t('files.storage_configs.form.bucket_hint') }}</XhFieldDescription>
           </XhFieldRoot>
           <XhFieldRoot required>
             <XhFieldLabel>{{ t('files.storage_configs.form.access_key_id') }}</XhFieldLabel>
@@ -413,19 +414,21 @@ async function removeRow(row: StorageConfigRow) {
             </XhFieldControl>
           </XhFieldRoot>
           <XhFieldRoot class="xh-span-2">
-            <XhFieldLabel>{{ t('files.storage_configs.form.conditional_writes') }}</XhFieldLabel>
+            <XFieldLabel :help="t('files.storage_configs.form.conditional_writes_hint')">
+              {{ t('files.storage_configs.form.conditional_writes') }}
+            </XFieldLabel>
             <XhFieldControl>
               <XhSwitch v-model:checked="form.conditionalWrites" name="conditionalWrites" />
             </XhFieldControl>
-            <XhFieldDescription>{{ t('files.storage_configs.form.conditional_writes_hint') }}</XhFieldDescription>
           </XhFieldRoot>
         </template>
         <XhFieldRoot v-else class="xh-span-2" required>
-          <XhFieldLabel>{{ t('files.storage_configs.form.local_bucket') }}</XhFieldLabel>
+          <XFieldLabel :help="t('files.storage_configs.form.bucket_hint')">
+            {{ t('files.storage_configs.form.local_bucket') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="form.bucket" name="bucket" clearable :max-length="63" :placeholder="t('files.storage_configs.form.local_bucket_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('files.storage_configs.form.bucket_hint') }}</XhFieldDescription>
         </XhFieldRoot>
 
         <template v-if="!form.id">

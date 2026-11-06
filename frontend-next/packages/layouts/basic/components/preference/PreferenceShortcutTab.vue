@@ -2,8 +2,8 @@
 import type { useAppStore } from '~/stores'
 import { XhKbd, XhSwitch } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
+import { XHelpTip as PrefTip } from '~/components'
 import { GLOBAL_HOTKEYS } from '~/composables/useGlobalShortcuts'
-import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceShortcutTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()

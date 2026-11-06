@@ -5,7 +5,7 @@ import type { SelectOption } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XCombobox, XDataTable, XDatePicker, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
@@ -1004,7 +1004,9 @@ function formatNullableDate(value: null | string | undefined): string {
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot v-if="canReadEditions" :invalid="!!editor.fieldError('editionId')">
-          <XhFieldLabel>{{ t('tenancy.tenants.fields.edition') }}</XhFieldLabel>
+          <XFieldLabel :help="editor.isEdit.value ? t('tenancy.tenants.edition_hint') : undefined">
+            {{ t('tenancy.tenants.fields.edition') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect
               v-model:value="editor.form.editionId"
@@ -1014,9 +1016,6 @@ function formatNullableDate(value: null | string | undefined): string {
               :placeholder="editor.isEdit.value ? t('tenancy.tenants.edition_unrestricted') : t('tenancy.tenants.edition_default')"
             />
           </XhFieldControl>
-          <XhFieldDescription v-if="editor.isEdit.value">
-            {{ t('tenancy.tenants.edition_hint') }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('editionId')">
             {{ editor.fieldError('editionId') }}
           </XhFieldErrorText>
@@ -1061,13 +1060,12 @@ function formatNullableDate(value: null | string | undefined): string {
         <!-- 隔离方式与独立库的连接（4.x 同一组字段）：存好资料后另走 configure-database；独立库就绪后只读 -->
         <template v-if="canConfigureDatabase">
           <XhFieldRoot :invalid="!!editor.fieldError('isolationMode')" :disabled="editor.databaseLocked.value">
-            <XhFieldLabel>{{ t('tenancy.tenants.fields.isolation_mode') }}</XhFieldLabel>
+            <XFieldLabel :help="editor.databaseLocked.value ? t('tenancy.tenants.database.locked_hint') : t('tenancy.tenants.database.isolation_hint')">
+              {{ t('tenancy.tenants.fields.isolation_mode') }}
+            </XFieldLabel>
             <XhFieldControl>
               <XSelect v-model:value="editor.form.isolationMode" name="isolationMode" :options="isolationOptions" />
             </XhFieldControl>
-            <XhFieldDescription>
-              {{ editor.databaseLocked.value ? t('tenancy.tenants.database.locked_hint') : t('tenancy.tenants.database.isolation_hint') }}
-            </XhFieldDescription>
             <XhFieldErrorText v-if="editor.fieldError('isolationMode')">
               {{ editor.fieldError('isolationMode') }}
             </XhFieldErrorText>
@@ -1181,13 +1179,12 @@ function formatNullableDate(value: null | string | undefined): string {
       <XhFormRoot :id="memberFormId" class="xh-edit-form-grid" data-testid="member-form" @submit="onMemberSubmit">
         <!-- 先定类型：用户候选按类型分平台账号与租户用户，换类型即清掉已选的用户重新检索 -->
         <XhFieldRoot class="xh-span-2" :invalid="!!memberEditor.fieldError('memberType')" required>
-          <XhFieldLabel>{{ t('tenancy.tenants.members.type') }}</XhFieldLabel>
+          <XFieldLabel :help="memberTypeHint">
+            {{ t('tenancy.tenants.members.type') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect :value="memberEditor.form.memberType" name="memberType" :options="memberTypeOptions" @update:value="memberEditor.changeMemberType" />
           </XhFieldControl>
-          <XhFieldDescription>
-            {{ memberTypeHint }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="memberEditor.fieldError('memberType')">
             {{ memberEditor.fieldError('memberType') }}
           </XhFieldErrorText>
@@ -1260,6 +1257,7 @@ function formatNullableDate(value: null | string | undefined): string {
               @search="ownerTransfer.search"
             />
           </XhFieldControl>
+          <!-- 这张弹窗只有这一个字段，这段说的是整个转移的后果，不是字段的填法：留在外面，不收进问号 -->
           <XhFieldDescription>
             {{ t('tenancy.tenants.owner.hint') }}
           </XhFieldDescription>

@@ -10,7 +10,7 @@ import type { SelectOption } from '~/types'
 import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { actionConfirmText, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { actionConfirmText, renderTag, SchemaPage, statusConfirmText, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { aiAssistants } from '~/contracts'
 import { throwOnFailed } from '~/request'
@@ -342,6 +342,7 @@ async function onSubmit() {
           <XhFieldControl>
             <XhSwitch v-model:checked="editor.form.enableKnowledge" />
           </XhFieldControl>
+          <!-- 这是当前状态下的警告（开着会失败），不是字段的填法：留在字段下方看得见，不收进问号 -->
           <XhFieldDescription v-if="editor.form.enableKnowledge && !editor.knowledgeAvailable.value">
             {{ t('ai.assistants.form_knowledge_unavailable') }}
           </XhFieldDescription>
@@ -407,11 +408,12 @@ async function onSubmit() {
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('tools')" class="xh-span-2">
-          <XhFieldLabel>{{ t('ai.assistants.form_tools') }}</XhFieldLabel>
+          <XFieldLabel :help="t('ai.assistants.form_tools_hint')">
+            {{ t('ai.assistants.form_tools') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XSelect v-model:value="editor.form.tools" name="tools" multiple clearable :options="editor.toolOptions.value" :placeholder="t('ai.assistants.form_tools_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('ai.assistants.form_tools_hint') }}</XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('tools')">
             {{ editor.fieldError('tools') }}
           </XhFieldErrorText>

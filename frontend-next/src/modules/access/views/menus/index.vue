@@ -3,10 +3,10 @@ import type { Tone } from '@xihan-ui/core'
 import type { MenuKind, MenuRow, MenuStatus, OperatorKind } from './use-menus'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption, TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { actionConfirmText, deleteConfirmText, Icon, IconPicker, renderTag, SchemaPage, statusConfirmText, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
+import { actionConfirmText, deleteConfirmText, Icon, IconPicker, renderTag, SchemaPage, statusConfirmText, XDataTable, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { menuBadgeDotColor, resolveMenuBadgeTone } from '~/utils'
@@ -750,37 +750,34 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('code')" :required="!editor.isEdit.value">
-          <XhFieldLabel>{{ t('access.menus.fields.code') }}</XhFieldLabel>
+          <XFieldLabel :help="editor.isEdit.value ? undefined : t('access.menus.code_hint', { prefix: CUSTOM_CODE_PREFIX })">
+            {{ t('access.menus.fields.code') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="editor.form.code" name="code" clearable autocomplete="off" :disabled="editor.isEdit.value" :placeholder="t('access.menus.code_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="!editor.isEdit.value">
-            {{ t('access.menus.code_hint', { prefix: CUSTOM_CODE_PREFIX }) }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('code')">
             {{ editor.fieldError('code') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('title')" :required="!editor.hasTitleKey.value">
-          <XhFieldLabel>{{ t('access.menus.fields.title') }}</XhFieldLabel>
+          <XFieldLabel :help="editor.hasTitleKey.value ? t('access.menus.title_override_hint') : undefined">
+            {{ t('access.menus.fields.title') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="editor.form.title" name="title" clearable :placeholder="editor.hasTitleKey.value && editor.editing.value ? registeredTitle(editor.editing.value) : t('access.menus.title_placeholder')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="editor.hasTitleKey.value">
-            {{ t('access.menus.title_override_hint') }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('title')">
             {{ editor.fieldError('title') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('parentId')">
-          <XhFieldLabel>{{ t('access.menus.fields.parent') }}</XhFieldLabel>
+          <XFieldLabel :help="editor.parentLocked.value ? t('access.menus.registered_parent_hint') : undefined">
+            {{ t('access.menus.fields.parent') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XTreeSelect v-model:value="parentValue" name="parentId" :options="parentOptions" clearable :disabled="editor.parentLocked.value" :placeholder="t('access.menus.top_level')" />
           </XhFieldControl>
-          <XhFieldDescription v-if="editor.parentLocked.value">
-            {{ t('access.menus.registered_parent_hint') }}
-          </XhFieldDescription>
           <XhFieldErrorText v-if="editor.fieldError('parentId')">
             {{ editor.fieldError('parentId') }}
           </XhFieldErrorText>

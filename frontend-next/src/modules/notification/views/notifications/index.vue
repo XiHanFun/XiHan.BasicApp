@@ -20,7 +20,6 @@ import {
   XhDrawerRoot,
   XhDrawerTitle,
   XhFieldControl,
-  XhFieldDescription,
   XhFieldLabel,
   XhFieldRoot,
   XhFormRoot,
@@ -34,7 +33,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, h, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { IconPicker, NotificationContent, renderTag, SchemaPage, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
+import { IconPicker, NotificationContent, renderTag, SchemaPage, XContentEditorField, XDataTable, XDatePicker, XEditModal, XFieldLabel, XInput, XMdEditor, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
 import { dialog, toast } from '~/composables'
 import { NotificationContentFormat as CONTENT_FORMATS, DeliveryChannel as DELIVERY_CHANNELS, notifications as notificationsApi, NotificationPriority as PRIORITIES, NotificationTargetType as TARGET_TYPES, NotificationType as TYPES } from '~/contracts'
 import { useAuthStore } from '~/stores'
@@ -689,7 +688,9 @@ async function exportUnread() {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot class="xh-span-2">
-          <XhFieldLabel>{{ t('notification.notifications.form_delivery_channels') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.notifications.form_delivery_channels_hint')">
+            {{ t('notification.notifications.form_delivery_channels') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XhCheckboxGroupRoot class="notification-channel-picker" orientation="horizontal" name="deliveryChannels" :value="form.deliveryChannels" @update:value="changeChannels">
               <XhCheckboxGroupItem v-for="option in deliveryChannelOptions" :key="option.value" :value="option.value" :disabled="option.disabled">
@@ -698,7 +699,6 @@ async function exportUnread() {
               </XhCheckboxGroupItem>
             </XhCheckboxGroupRoot>
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.notifications.form_delivery_channels_hint') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot v-if="form.targetType === 'User'" class="xh-span-2" required>
           <XhFieldLabel>{{ t('notification.notifications.form_user_ids') }}</XhFieldLabel>
@@ -737,11 +737,12 @@ async function exportUnread() {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot>
-          <XhFieldLabel>{{ t('notification.notifications.form_expiration_time') }}</XhFieldLabel>
+          <XFieldLabel :help="t('notification.notifications.form_expiration_placeholder')">
+            {{ t('notification.notifications.form_expiration_time') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XDatePicker v-model:value="form.expiresAt" show-time clearable />
           </XhFieldControl>
-          <XhFieldDescription>{{ t('notification.notifications.form_expiration_placeholder') }}</XhFieldDescription>
         </XhFieldRoot>
         <XhFieldRoot>
           <XhFieldLabel>{{ t('notification.notifications.form_need_confirm') }}</XhFieldLabel>

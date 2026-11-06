@@ -6,12 +6,12 @@ import type { UserGender, UserRow, UserStatus } from './use-users'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { TwoFactorMethod } from '~/contracts'
 import type { SelectOption } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
 import GrantConditionsDrawer from '@/modules/access/views/roles/components/GrantConditionsDrawer.vue'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XFieldLabel, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { useAuthStore, useUserStore } from '~/stores'
@@ -1092,18 +1092,20 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
         </XhFieldRoot>
         <template v-if="editor.isEdit.value && editor.loadedPolicy.value">
           <XhFieldRoot>
-            <XhFieldLabel>{{ t('identity.users.allow_multi_login') }}</XhFieldLabel>
+            <XFieldLabel :help="t('identity.users.allow_multi_login_hint')">
+              {{ t('identity.users.allow_multi_login') }}
+            </XFieldLabel>
             <XhFieldControl>
               <XhSwitch v-model:checked="editor.loginPolicy.allowMultiLogin" name="allowMultiLogin" />
             </XhFieldControl>
-            <XhFieldDescription>{{ t('identity.users.allow_multi_login_hint') }}</XhFieldDescription>
           </XhFieldRoot>
           <XhFieldRoot>
-            <XhFieldLabel>{{ t('identity.users.max_login_devices') }}</XhFieldLabel>
+            <XFieldLabel :help="t('identity.users.max_login_devices_hint')">
+              {{ t('identity.users.max_login_devices') }}
+            </XFieldLabel>
             <XhFieldControl>
               <XNumberInput v-model:value="editor.loginPolicy.maxLoginDevices" name="maxLoginDevices" :min="0" :max="99" :disabled="!editor.loginPolicy.allowMultiLogin" />
             </XhFieldControl>
-            <XhFieldDescription>{{ t('identity.users.max_login_devices_hint') }}</XhFieldDescription>
           </XhFieldRoot>
         </template>
         <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('remark')">

@@ -7,9 +7,7 @@ import type { PrintFieldKind } from '~/printing'
 import {
   XhButton,
   XhFieldControl,
-  XhFieldDescription,
   XhFieldErrorText,
-  XhFieldLabel,
   XhFieldRoot,
   XhFormFieldGroup,
   XhPopoverContent,
@@ -28,7 +26,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XSelect } from '~/components'
+import { XFieldLabel, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, listPrintDataSources } from '~/printing'
@@ -91,7 +89,9 @@ function switchToFreeTemplate(): void {
 <template>
   <XhFormFieldGroup name="dataSourceCode">
     <XhFieldRoot>
-      <XhFieldLabel>{{ `${t('printing.print_templates.data_source')} (${t('printing.print_templates.optional')})` }}</XhFieldLabel>
+      <XFieldLabel :help="selectedSource ? t('printing.print_templates.data_source_registered_compact_help') : t('printing.print_templates.data_source_free_compact_help')">
+        {{ `${t('printing.print_templates.data_source')} (${t('printing.print_templates.optional')})` }}
+      </XFieldLabel>
       <XhFieldControl>
         <XSelect
           v-model:value="model.dataSourceCode"
@@ -100,11 +100,6 @@ function switchToFreeTemplate(): void {
           clearable
         />
       </XhFieldControl>
-      <XhFieldDescription>
-        {{ selectedSource
-          ? t('printing.print_templates.data_source_registered_compact_help')
-          : t('printing.print_templates.data_source_free_compact_help') }}
-      </XhFieldDescription>
       <XhFieldErrorText />
     </XhFieldRoot>
   </XhFormFieldGroup>

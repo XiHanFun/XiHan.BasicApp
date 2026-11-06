@@ -146,6 +146,7 @@ async function save() {
             @update:value="onSelect"
           />
         </XhFieldControl>
+        <!-- 这张弹窗只有这一个字段，这段说的是设置上级之后的继承规则，不是字段的填法：留在外面，不收进问号 -->
         <XhFieldDescription>{{ t('access.roles.parents.hint') }}</XhFieldDescription>
       </XhFieldRoot>
     </div>

@@ -53,7 +53,7 @@ const schema = computed<PageSchema>(() => ({
 </template>
 ```
 
-- 列表页一律用 [SchemaPage](./schema-page)；新增 / 编辑用 `XEditModal`，每个字段都有可见标签。
+- 列表页一律用 [SchemaPage](./schema-page)；新增 / 编辑用 `XEditModal`，每个字段都有可见标签；单个字段的说明写在 `XFieldLabel` 的 `help` 上（字段名后面的问号提示），不放在字段下方。
 - 资源适配器（`use-<页面>.ts`）用生成的操作客户端：`import { configs } from '~/contracts'`，经 `toPageRequest` / `toSchemaPageResult` 对接分页。
 - 按钮的 `permission` 直接填操作的权限码；门禁会核对它存在于生成的 `permissions.ts`。
 - 大页面拆成 `index.vue` + `use-*.ts` 组合式函数。

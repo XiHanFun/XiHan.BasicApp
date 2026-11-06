@@ -4,13 +4,12 @@ import type { useAppStore } from '~/stores'
 import { XhRadioGroupItem, XhRadioGroupItemDescription, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
+import { XHelpTip as PrefTip, XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
 import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
 
