@@ -137,7 +137,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 
 ## 退出验证
 
-生成的代码要跟得上各包的写法：改了 Feature、权限、页面登记、错误与消息目录、操作或 SchemaPage 的写法，要同时改内置模板（`Seeds/Templates/**/*.sbn`），再跑一次退出验证。它是手动触发的集成测试，不进缺省 CI：
+生成的代码要跟得上各包的写法：改了 Feature、权限、页面登记、错误与消息目录、操作或 SchemaPage 的写法，要同时改内置模板（`Seeds/Templates/**/*.sbn`），再跑一次退出验证。前端产物照 lint 的换行规则出（含调用的对象一个属性一行、带嵌套的数组一项一行、含调用的三元式拆三行），前端的 lint 规则变了同样要对齐模板。它是手动触发的集成测试，不进缺省 CI：
 
 ```bash
 cd backend-next

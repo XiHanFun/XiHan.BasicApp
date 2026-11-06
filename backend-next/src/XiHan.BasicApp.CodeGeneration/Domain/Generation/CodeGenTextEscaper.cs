@@ -174,8 +174,9 @@ public static class CodeGenTextEscaper
     /// <param name="json">常量选项 JSON</param>
     /// <param name="columnLabel">列的显示名（报错用）</param>
     /// <param name="tsType">列的 TypeScript 类型</param>
+    /// <param name="indent">字面量所在行的缩进格数：各项按它再进 2 格，收尾的方括号与它对齐</param>
     /// <exception cref="CodeGenRenderException">选项缺失或形状不对</exception>
-    public static string SelectOptions(string? json, string? columnLabel, string? tsType)
+    public static string SelectOptions(string? json, string? columnLabel, string? tsType, int indent)
     {
         var column = string.IsNullOrWhiteSpace(columnLabel) ? "?" : columnLabel;
         if (string.IsNullOrWhiteSpace(json))
@@ -218,10 +219,47 @@ public static class CodeGenTextEscaper
                 }
             }
 
-            var builder = new StringBuilder(json.Length + 16);
-            WriteJsValue(document.RootElement, builder);
+            var builder = new StringBuilder(json.Length + 64);
+            WriteOptionList(document.RootElement, builder, Math.Max(indent, 0));
             return builder.ToString();
         }
+    }
+
+    // 选项数组一项一行（前端 lint 的换行规则：带嵌套对象的数组各项之间要换行）
+    private static void WriteOptionList(JsonElement array, StringBuilder builder, int indent)
+    {
+        var pad = new string(' ', indent);
+        builder.Append("[\n");
+        foreach (var item in array.EnumerateArray())
+        {
+            builder.Append(pad).Append("  ");
+            WriteOptionItem(item, builder, indent + 2);
+            builder.Append(",\n");
+        }
+
+        builder.Append(pad).Append(']');
+    }
+
+    // 属性不到 4 个且都是标量的项写成一行；再多或带嵌套的一个属性一行
+    private static void WriteOptionItem(JsonElement item, StringBuilder builder, int indent)
+    {
+        var properties = item.EnumerateObject().ToList();
+        if (properties.Count < 4 && properties.TrueForAll(static p => p.Value.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array)))
+        {
+            WriteJsValue(item, builder);
+            return;
+        }
+
+        var pad = new string(' ', indent);
+        builder.Append("{\n");
+        foreach (var property in properties)
+        {
+            builder.Append(pad).Append("  ").Append(IsJsIdentifier(property.Name) ? property.Name : $"'{TsString(property.Name)}'").Append(": ");
+            WriteJsValue(property.Value, builder);
+            builder.Append(",\n");
+        }
+
+        builder.Append(pad).Append('}');
     }
 
     private static string Preview(string value)

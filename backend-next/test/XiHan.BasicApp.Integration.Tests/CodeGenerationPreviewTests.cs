@@ -267,8 +267,12 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.Contains("await productsApi.categoryIdOptions({})", schema, StringComparison.Ordinal);
         Assert.Contains("export: { businessType: 'products.list', buildQuery: buildPageQuery }", schema, StringComparison.Ordinal);
         Assert.Contains("title: t('shop.products.fields.product_code')", schema, StringComparison.Ordinal);
+
+        // 产物照前端 lint 的换行规则写：含调用的对象一个属性一行、含调用的数组一项一行（完整的门是退出验证里的 pnpm check，这里守住写法没退回单行）
+        Assert.Contains("    {\n      key: 'productCode',\n      title: t('shop.products.fields.product_code'),\n      dataType: 'string',\n", schema.ReplaceLineEndings("\n"), StringComparison.Ordinal);
         Assert.Contains("  return baseFields(t)", files[View + "products.schema.ts"], StringComparison.Ordinal);
         var page = files[View + "index.vue"];
+        Assert.Contains("    errors.productCode = [\n      t('shop.products.required_input', {\n        label: t('shop.products.fields.product_code'),\n      }),\n    ]\n  }\n", page.ReplaceLineEndings("\n"), StringComparison.Ordinal);
         Assert.Contains("<XTreeSelect v-model:value=\"form.categoryId\"", page, StringComparison.Ordinal);
         Assert.Contains("await productsApi.create(toCreateRequest(form))", page, StringComparison.Ordinal);
         Assert.Contains("registerModuleLocales", files["frontend/src/modules/shop/setup.ts"], StringComparison.Ordinal);

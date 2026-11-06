@@ -117,7 +117,10 @@ export async function load{{ col.CSharpProperty }}Options(): Promise<Array<{ lab
 export function {{ col.Field }}Options(t: Translate) {
   return [
 {{~ for member in col.EnumMembers ~}}
-    { label: t('{{ I18nPrefix }}.options.{{ col.PropertySnake }}.{{ member.Snake }}'), value: '{{ member.Name }}' as const },
+    {
+      label: t('{{ I18nPrefix }}.options.{{ col.PropertySnake }}.{{ member.Snake }}'),
+      value: '{{ member.Name }}' as const,
+    },
 {{~ end ~}}
   ]
 }
@@ -133,16 +136,86 @@ export function {{ col.Field }}Options(t: Translate) {
 export function baseFields(t: Translate): ListFieldSchema[] {
   return [
 {{~ if HasKeyword ~}}
-    { key: 'keyword', title: t('{{ I18nPrefix }}.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('{{ I18nPrefix }}.keyword_placeholder'), order: 0 },
+    {
+      key: 'keyword',
+      title: t('{{ I18nPrefix }}.keyword'),
+      dataType: 'string',
+      visible: false,
+      searchable: true,
+      searchPlaceholder: t('{{ I18nPrefix }}.keyword_placeholder'),
+      order: 0,
+    },
 {{~ end ~}}
 {{~ for col in Columns ~}}
 {{~ importable = can_import && col.IsImportable ~}}
 {{~ searchable = col.SearchKind != "" && col.SearchKind != "keyword" ~}}
 {{~ if col.InList || searchable || importable ~}}
-    { key: '{{ col.Field }}', title: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'), dataType: '{{ col.FieldDataType }}',{{ if col.OptionsKind == "relation" || col.OptionsKind == "tree" }} optionsLoader: load{{ col.CSharpProperty }}Options,{{ else if col.OptionsKind == "enum" }} options: {{ col.Field }}Options(t),{{ else if col.OptionsKind == "dict" }} dictCode: '{{ col.DictCode | ts_string }}',{{ else if col.OptionsKind == "const" }} options: {{ col.ConstValues | select_options col.Label col.TsType }},{{ else if col.OptionsKind == "bool" }} options: [{ label: t('common.statuses.yes'), value: 'true' }, { label: t('common.statuses.no'), value: 'false' }],{{ end }}{{ if !col.InList }} visible: false,{{ else if col.IsSortable && !col.Relation && col.ControlKind != "image" && col.ControlKind != "file" }} sortable: true,{{ end }}{{ if searchable }} searchable: true,{{ end }}{{ if col.SearchKind == "range" }} searchRange: true,{{ end }}{{ if col.SearchKind == "multiple" }} searchMultiple: true,{{ end }}{{ if col.Relation && col.SearchKind == "eq" }} searchFilterable: true,{{ end }}{{ if importable }} importable: true,{{ if col.IsFormRequired }} required: true,{{ end }}{{ end }}{{ if col.InList }} exportable: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+    {
+      key: '{{ col.Field }}',
+      title: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'),
+      dataType: '{{ col.FieldDataType }}',
+{{~ if col.OptionsKind == "relation" || col.OptionsKind == "tree" ~}}
+      optionsLoader: load{{ col.CSharpProperty }}Options,
+{{~ else if col.OptionsKind == "enum" ~}}
+      options: {{ col.Field }}Options(t),
+{{~ else if col.OptionsKind == "dict" ~}}
+      dictCode: '{{ col.DictCode | ts_string }}',
+{{~ else if col.OptionsKind == "const" ~}}
+      options: {{ col.ConstValues | select_options col.Label col.TsType 6 }},
+{{~ else if col.OptionsKind == "bool" ~}}
+      options: [
+        {
+          label: t('common.statuses.yes'),
+          value: 'true',
+        },
+        {
+          label: t('common.statuses.no'),
+          value: 'false',
+        },
+      ],
+{{~ end ~}}
+{{~ if !col.InList ~}}
+      visible: false,
+{{~ else if col.IsSortable && !col.Relation && col.ControlKind != "image" && col.ControlKind != "file" ~}}
+      sortable: true,
+{{~ end ~}}
+{{~ if searchable ~}}
+      searchable: true,
+{{~ end ~}}
+{{~ if col.SearchKind == "range" ~}}
+      searchRange: true,
+{{~ end ~}}
+{{~ if col.SearchKind == "multiple" ~}}
+      searchMultiple: true,
+{{~ end ~}}
+{{~ if col.Relation && col.SearchKind == "eq" ~}}
+      searchFilterable: true,
+{{~ end ~}}
+{{~ if importable ~}}
+      importable: true,
+{{~ if col.IsFormRequired ~}}
+      required: true,
 {{~ end ~}}
 {{~ end ~}}
-    { key: 'createdAt', title: t('{{ I18nPrefix }}.fields.created_at'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, exportable: true, minWidth: 170, order: 99 },
+{{~ if col.InList ~}}
+      exportable: true,
+{{~ end ~}}
+      minWidth: 140,
+      order: {{ for.index + 1 }},
+    },
+{{~ end ~}}
+{{~ end ~}}
+    {
+      key: 'createdAt',
+      title: t('{{ I18nPrefix }}.fields.created_at'),
+      dataType: 'datetime',
+      sortable: true,
+      searchable: true,
+      searchRange: true,
+      exportable: true,
+      minWidth: 170,
+      order: 99,
+    },
   ]
 }
 
@@ -156,19 +229,55 @@ export function baseActions(t: Translate): NonNullable<PageSchema['actions']> {
 {{~ end ~}}
   return [
 {{~ if can_create ~}}
-    { key: 'create', title: t('{{ I18nPrefix }}.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: '{{ PermCreate }}' },
+    {
+      key: 'create',
+      title: t('{{ I18nPrefix }}.actions.create'),
+      scope: 'page',
+      tone: 'brand',
+      icon: 'lucide:plus',
+      permission: '{{ PermCreate }}',
+    },
 {{~ end ~}}
 {{~ if can_update ~}}
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: '{{ PermUpdate }}' },
+    {
+      key: 'edit',
+      title: t('common.actions.edit'),
+      scope: 'row',
+      icon: 'lucide:pencil',
+      permission: '{{ PermUpdate }}',
+    },
 {{~ end ~}}
 {{~ if CanStatus ~}}
-    { key: 'toggle', title: t('{{ I18nPrefix }}.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as {{ ClassName }}Row).{{ StatusColumn.Field }} === 'Active', nameOf(row)), permission: '{{ PermUpdate }}' },
+    {
+      key: 'toggle',
+      title: t('{{ I18nPrefix }}.actions.toggle'),
+      scope: 'row',
+      icon: 'lucide:power',
+      confirm: true,
+      confirmText: row => statusConfirmText(t, (row as {{ ClassName }}Row).{{ StatusColumn.Field }} === 'Active', nameOf(row)),
+      permission: '{{ PermUpdate }}',
+    },
 {{~ end ~}}
 {{~ if CanPrint ~}}
-    { key: 'print', title: t('{{ I18nPrefix }}.actions.print'), scope: 'row', icon: 'lucide:printer', permission: '{{ PermRead }}' },
+    {
+      key: 'print',
+      title: t('{{ I18nPrefix }}.actions.print'),
+      scope: 'row',
+      icon: 'lucide:printer',
+      permission: '{{ PermRead }}',
+    },
 {{~ end ~}}
 {{~ if CanDelete ~}}
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, nameOf(row)), permission: '{{ PermDelete }}' },
+    {
+      key: 'delete',
+      title: t('common.actions.delete'),
+      scope: 'row',
+      icon: 'lucide:trash-2',
+      tone: 'danger',
+      confirm: true,
+      confirmText: row => deleteConfirmText(t, nameOf(row)),
+      permission: '{{ PermDelete }}',
+    },
 {{~ end ~}}
   ]
 }
@@ -183,7 +292,11 @@ export function detailTableColumns(t: Translate) {
     {{ detail.ResourceCamel }}: [
 {{~ for col in detail.Columns ~}}
 {{~ if col.InList && col.ColumnName != detail.ForeignKeyColumn ~}}
-      { key: '{{ col.Field }}', title: t('{{ detail.I18nPrefix }}.fields.{{ col.PropertySnake }}'), minWidth: 120 },
+      {
+        key: '{{ col.Field }}',
+        title: t('{{ detail.I18nPrefix }}.fields.{{ col.PropertySnake }}'),
+        minWidth: 120,
+      },
 {{~ end ~}}
 {{~ end ~}}
     ],
@@ -205,15 +318,22 @@ export const queryMapping = {
 {{~ end ~}}
   },
 {{~ end ~}}
-  ranges: [{{ for col in Columns }}{{ if col.SearchKind == "range" }}'{{ col.Field }}', {{ end }}{{ end }}'createdAt'],
+  ranges: [
+{{~ for col in Columns ~}}
+{{~ if col.SearchKind == "range" ~}}
+    '{{ col.Field }}',
+{{~ end ~}}
+{{~ end ~}}
+    'createdAt',
+  ],
 {{~ if has_multiples ~}}
-{{~ multiples = [] ~}}
+  multiples: [
 {{~ for col in Columns ~}}
 {{~ if col.SearchKind == "multiple" ~}}
-{{~ multiples = multiples | array.add ("'" + col.Field + "'") ~}}
+    '{{ col.Field }}',
 {{~ end ~}}
 {{~ end ~}}
-  multiples: [{{ multiples | array.join ", " }}],
+  ],
 {{~ end ~}}
 } satisfies PageQueryMapping
 
@@ -338,10 +458,17 @@ export function baseResource(): SchemaResource<{{ ClassName }}Row> {
   return {
     page: async params => toSchemaPageResult(await {{ ResourceCamel }}Api.list(buildPageQuery(params)), params),
 {{~ if CanDelete ~}}
-    remove: async id => failedCodes(await {{ ResourceCamel }}Api.delete({ ids: [String(id)] })),
+    remove: async id => failedCodes(await {{ ResourceCamel }}Api.delete({
+      ids: [
+        String(id),
+      ],
+    })),
 {{~ end ~}}
 {{~ if CanStatus ~}}
-    updateStatus: (id, enabled) => {{ ResourceCamel }}Api.setStatus({ id: String(id), {{ StatusColumn.Field }}: enabled ? 'Active' : 'Disabled' }),
+    updateStatus: (id, enabled) => {{ ResourceCamel }}Api.setStatus({
+      id: String(id),
+      {{ StatusColumn.Field }}: enabled ? 'Active' : 'Disabled',
+    }),
 {{~ end ~}}
 {{~ if can_import ~}}
     create: record => {{ ResourceCamel }}Api.create(toCreateInputFromImport(record)),

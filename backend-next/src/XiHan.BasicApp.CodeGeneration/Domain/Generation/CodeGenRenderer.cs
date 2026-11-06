@@ -67,7 +67,12 @@ public static class CodeGenRenderer
         var context = new TemplateContext { MemberRenamer = static member => member.Name, LoopLimit = LoopLimit, RecursiveLimit = RecursiveLimit, StrictVariables = false };
         context.PushGlobal(model);
         context.PushGlobal(new ScriptObject());
-        return template.Render(context);
+        var output = template.Render(context);
+
+        // 过滤器与列判据拼出来的换行是 \n；模板自己是 CRLF 时补齐，一份产物里不混两种换行
+        return source is not null && source.Contains("\r\n", StringComparison.Ordinal)
+            ? output.Replace("\r\n", "\n", StringComparison.Ordinal).Replace("\n", "\r\n", StringComparison.Ordinal)
+            : output;
     }
 
     /// <summary>
@@ -218,7 +223,7 @@ public static class CodeGenRenderer
         model.Import("html_comment", new Func<string?, string>(CodeGenTextEscaper.HtmlComment));
         model.Import("i18n_message", new Func<string?, string>(CodeGenTextEscaper.I18nMessage));
         model.Import("js_literal", new Func<string?, string>(CodeGenTextEscaper.JsLiteral));
-        model.Import("select_options", new Func<string?, string?, string?, string>(CodeGenTextEscaper.SelectOptions));
+        model.Import("select_options", new Func<string?, string?, string?, int, string>(CodeGenTextEscaper.SelectOptions));
         model.Import("kebab", new Func<string?, string>(static v => CodeGenNaming.Kebabize(v ?? string.Empty)));
         model.Import("snake", new Func<string?, string>(static v => CodeGenNaming.Snakeize(v ?? string.Empty)));
         model.Import("camel", new Func<string?, string>(static v => CodeGenNaming.Camelize(v ?? string.Empty)));

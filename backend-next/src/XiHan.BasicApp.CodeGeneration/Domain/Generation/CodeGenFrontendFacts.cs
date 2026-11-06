@@ -230,16 +230,17 @@ internal static class CodeGenFrontendFacts
             _ => zero,
         };
 
+        // 含调用的三元式拆三行（前端 lint 的换行规则）：这三段只用在 schema 里 4 格缩进的对象属性上，续行按 6 格缩进
         var fromSource = control switch
         {
-            "date" or "datetime" => "$s ? new Date($s).getTime() : null",
+            "date" or "datetime" => "$s\n      ? new Date($s).getTime()\n      : null",
             "switch" => "$s ?? false",
             _ => "$s ?? null",
         };
 
         var toWire = control switch
         {
-            "date" or "datetime" => nullable ? "$v == null ? null : new Date($v).toISOString()" : "new Date($v as number).toISOString()",
+            "date" or "datetime" => nullable ? "$v == null\n      ? null\n      : new Date($v).toISOString()" : "new Date($v as number).toISOString()",
             "switch" => "$v",
             _ when nullable => control is "number" or "select" or "treeselect" || column.Enum is not null ? "$v ?? null" : "$v || null",
             _ => $"$v ?? {zero}",
@@ -261,7 +262,7 @@ internal static class CodeGenFrontendFacts
         if (control is "date" or "datetime")
         {
             // 日期列没有缺省值，非空时一定按必填校验，不必填就一定可空
-            return isRequired ? "toImportInstant($r)" : "$r == null ? null : toImportInstant($r)";
+            return isRequired ? "toImportInstant($r)" : "$r == null\n      ? null\n      : toImportInstant($r)";
         }
 
         if (isRequired)

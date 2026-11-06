@@ -211,7 +211,14 @@ async function loadDetails(masterId: string) {
   detailLoading.value = { ...detailLoading.value, [masterId]: true }
   try {
 {{~ for detail in DetailTables ~}}
-    const {{ detail.ResourceCamel }}Rows = await {{ detail.ResourceCamel }}Api.list({ page: { index: 1, size: {{ DetailPageSize }} }, filters: [{ field: '{{ detail.ForeignKeyField }}', operator: 'eq', value: masterId }], sorts: [], keyword: null })
+    const {{ detail.ResourceCamel }}Rows = await {{ detail.ResourceCamel }}Api.list({
+      page: { index: 1, size: {{ DetailPageSize }} },
+      filters: [
+        { field: '{{ detail.ForeignKeyField }}', operator: 'eq', value: masterId },
+      ],
+      sorts: [],
+      keyword: null,
+    })
 {{~ end ~}}
     detailRows.value = {
       ...detailRows.value,
@@ -305,7 +312,10 @@ async function toggleStatus(row: {{ ClassName }}Row) {
  */
 async function printRow(row: {{ ClassName }}Row) {
   try {
-    const data: Record<string, unknown> = { ...row, ...schemaPageRef.value?.formatRow(row) }
+    const data: Record<string, unknown> = {
+      ...row,
+      ...schemaPageRef.value?.formatRow(row),
+    }
     await previewPrintByCode(pageMeta.pageCode, data)
   }
   catch (error) {
@@ -325,12 +335,14 @@ const fieldErrors = ref<Record<string, string[]>>({})
 const submitError = ref<string | null>(null)
 const submitting = ref(false)
 const isEdit = computed(() => editing.value !== null)
-const modalTitle = computed(() => (isEdit.value ? t('{{ I18nPrefix }}.edit_title') : t('{{ I18nPrefix }}.create_title')))
+const modalTitle = computed(() => (isEdit.value
+  ? t('{{ I18nPrefix }}.edit_title')
+  : t('{{ I18nPrefix }}.create_title')))
 {{~ for col in Columns ~}}
 {{~ if col.InForm && col.ControlKind == "select" && col.OptionsKind == "const" ~}}
 
 /** {{ col.Label | block_comment }}的常量选项 */
-const {{ col.Field }}ConstOptions: SelectOption[] = {{ col.ConstValues | select_options col.Label col.TsType }}
+const {{ col.Field }}ConstOptions: SelectOption[] = {{ col.ConstValues | select_options col.Label col.TsType 0 }}
 {{~ else if col.InForm && col.ControlKind == "select" && col.OptionsKind == "enum" ~}}
 
 /** {{ col.Label | block_comment }}的选项（枚举 {{ col.EnumShortName }}） */
@@ -397,12 +409,22 @@ function validate(): boolean {
 {{~ end ~}}
 {{~ if col.InForm && col.FormEmptyCheck ~}}
 {{~ empty_check = col.FormEmptyCheck | string.replace "$v" ("form." + col.Field) ~}}
-  if ({{ if side_guard == "" }}{{ empty_check }}{{ else }}{{ side_guard }}({{ empty_check }}){{ end }})
-    errors.{{ col.Field }} = [t('{{ I18nPrefix }}.required_{{ col.FormRequiredKind }}', { label: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}') })]
+  if ({{ if side_guard == "" }}{{ empty_check }}{{ else }}{{ side_guard }}({{ empty_check }}){{ end }}) {
+    errors.{{ col.Field }} = [
+      t('{{ I18nPrefix }}.required_{{ col.FormRequiredKind }}', {
+        label: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'),
+      }),
+    ]
+  }
 {{~ end ~}}
 {{~ if col.InForm && col.ControlKind == "time" ~}}
-  if ({{ side_guard }}form.{{ col.Field }} && !TIME_PATTERN.test(form.{{ col.Field }}))
-    errors.{{ col.Field }} = [t('{{ I18nPrefix }}.time_invalid', { label: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}') })]
+  if ({{ side_guard }}form.{{ col.Field }} && !TIME_PATTERN.test(form.{{ col.Field }})) {
+    errors.{{ col.Field }} = [
+      t('{{ I18nPrefix }}.time_invalid', {
+        label: t('{{ I18nPrefix }}.fields.{{ col.PropertySnake }}'),
+      }),
+    ]
+  }
 {{~ end ~}}
 {{~ end ~}}
   fieldErrors.value = errors
