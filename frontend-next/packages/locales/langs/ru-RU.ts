@@ -417,7 +417,7 @@ export default {
       },
       identity_personal_account: 'Личная учётная запись',
       info: {
-        avatar_desc: 'JPG или PNG, не более 2 МБ, рекомендуется квадратное изображение',
+        avatar_desc: 'JPG или PNG, не более 2 МБ, перед загрузкой можно обрезать',
         avatar_label: 'Аватар',
         bio_placeholder: 'Расскажите о себе...',
         btn_modify: 'Изменить',
@@ -429,7 +429,11 @@ export default {
         confirm_change: 'Подтвердить изменение',
         confirm_remove: 'Подтвердить удаление',
         country_placeholder: 'Например: Россия',
+        crop_avatar_alt: 'Изображение для обрезки',
+        crop_avatar_title: 'Обрезка аватара',
+        crop_zoom: 'Масштаб',
         current_password_placeholder: 'Введите текущий пароль для подтверждения личности',
+        err_avatar_crop_failed: 'Не удалось обрезать изображение',
         err_avatar_remove_failed: 'Не удалось удалить',
         err_profile_save_failed: 'Не удалось сохранить',
         msg_code_sent_email: 'Код отправлен на почту',
@@ -489,6 +493,7 @@ export default {
         value_not_set: 'Не указано',
         warn_avatar_format: 'Поддерживаются только изображения JPG и PNG',
         warn_avatar_size: 'Размер изображения не может превышать {size} МБ',
+        warn_avatar_unreadable: 'Не удалось прочитать изображение. Выберите другое',
         warn_no_avatar_to_remove: 'Нет аватара для удаления',
       },
       login_logs: {

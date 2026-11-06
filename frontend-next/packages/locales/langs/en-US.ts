@@ -417,7 +417,7 @@ export default {
       },
       identity_personal_account: 'Personal account',
       info: {
-        avatar_desc: 'JPG or PNG, up to 2MB, square image recommended',
+        avatar_desc: 'JPG or PNG, up to 2MB, crop before uploading',
         avatar_label: 'Avatar',
         bio_placeholder: 'Tell us about yourself...',
         btn_modify: 'Modify',
@@ -429,7 +429,11 @@ export default {
         confirm_change: 'Confirm Change',
         confirm_remove: 'Confirm Remove',
         country_placeholder: 'e.g. China',
+        crop_avatar_alt: 'Image to crop',
+        crop_avatar_title: 'Crop Avatar',
+        crop_zoom: 'Zoom',
         current_password_placeholder: 'Enter current password to confirm identity',
+        err_avatar_crop_failed: 'Failed to crop the image',
         err_avatar_remove_failed: 'Remove failed',
         err_profile_save_failed: 'Save failed',
         msg_code_sent_email: 'Verification code sent to your email',
@@ -489,6 +493,7 @@ export default {
         value_not_set: 'Not set',
         warn_avatar_format: 'Only JPG and PNG images are supported',
         warn_avatar_size: 'Image size cannot exceed {size}MB',
+        warn_avatar_unreadable: 'The image could not be read. Please choose another one',
         warn_no_avatar_to_remove: 'No avatar to remove',
       },
       login_logs: {

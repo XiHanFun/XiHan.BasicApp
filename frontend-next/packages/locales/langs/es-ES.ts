@@ -417,7 +417,7 @@ export default {
       },
       identity_personal_account: 'Cuenta personal',
       info: {
-        avatar_desc: 'JPG o PNG, hasta 2 MB, se recomienda una imagen cuadrada',
+        avatar_desc: 'JPG o PNG, hasta 2 MB, se puede recortar antes de subirla',
         avatar_label: 'Avatar',
         bio_placeholder: 'Cuéntenos algo sobre usted...',
         btn_modify: 'Modificar',
@@ -429,7 +429,11 @@ export default {
         confirm_change: 'Confirmar cambio',
         confirm_remove: 'Confirmar eliminación',
         country_placeholder: 'p. ej.: España',
+        crop_avatar_alt: 'Imagen para recortar',
+        crop_avatar_title: 'Recortar avatar',
+        crop_zoom: 'Zoom',
         current_password_placeholder: 'Introduzca su contraseña actual para confirmar su identidad',
+        err_avatar_crop_failed: 'Error al recortar la imagen',
         err_avatar_remove_failed: 'Error al eliminar',
         err_profile_save_failed: 'Error al guardar',
         msg_code_sent_email: 'Código enviado a tu correo',
@@ -489,6 +493,7 @@ export default {
         value_not_set: 'Sin definir',
         warn_avatar_format: 'Solo se admiten imágenes JPG y PNG',
         warn_avatar_size: 'El tamaño de la imagen no puede superar {size} MB',
+        warn_avatar_unreadable: 'No se pudo leer la imagen. Elige otra',
         warn_no_avatar_to_remove: 'No hay ningún avatar que eliminar',
       },
       login_logs: {

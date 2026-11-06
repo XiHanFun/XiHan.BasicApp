@@ -2,8 +2,9 @@
  * 个人中心「个人资料」（ProfileTabInfo.vue，4.x 原样搬入）：
  * 表单照资料填，保存把整份资料交给壳层（生日转 ISO），取消即回到资料；能改用户名时给「修改」，90 天内改过即提示还要等几天；
  * 邮箱 / 手机显示当前值与验证状态（4.x 同）：没验证的给「验证」（发码后输满 6 位确认），有值的给「修改」、没有的给「绑定」（对话框里凭当前密码发码到新的，再输码确认）；
- * 头像先在前端认格式与大小，上传即换好（不再经保存资料写头像），去掉头像先确认再交给壳层；被拒都提示后端文案
+ * 头像先在前端认格式与大小，再进裁剪弹窗（6.0 新增），确认后传裁好的那张，上传即换好（不再经保存资料写头像）；去掉头像先确认再交给壳层；被拒都提示后端文案
  */
+import type { AvatarCropSource } from './avatar-crop'
 import type { AppContextApis, UserProfile } from '~/types'
 import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -12,11 +13,18 @@ import { configureDynamicIsland, dialog, prompt, toast } from '~/composables'
 import { i18n } from '~/locales'
 import { ApiError } from '~/request'
 import { registerAppContext } from '~/stores'
+import { exportAvatar, loadAvatarSource, releaseAvatarSource } from './avatar-crop'
 import ProfileTabInfo from './ProfileTabInfo.vue'
 
 vi.mock('~/composables', async (importOriginal) => {
   const actual = await importOriginal<typeof import('~/composables')>()
   return { ...actual, prompt: vi.fn() }
+})
+
+// jsdom 不解码图片也没有画布：解码与出图换成桩，裁切框的初值照旧算
+vi.mock('./avatar-crop', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./avatar-crop')>()
+  return { ...actual, loadAvatarSource: vi.fn(), exportAvatar: vi.fn(), releaseAvatarSource: vi.fn() }
 })
 
 const apis = {
@@ -60,6 +68,9 @@ beforeEach(() => {
   for (const fn of Object.values(apis))
     fn.mockReset()
   vi.mocked(prompt).mockReset()
+  vi.mocked(loadAvatarSource).mockReset()
+  vi.mocked(exportAvatar).mockReset()
+  vi.mocked(releaseAvatarSource).mockReset()
   registerAppContext({ apis: apis as unknown as AppContextApis })
   apis.getFilePresignedUrlApi.mockResolvedValue('https://cdn.example/avatar.png')
 })
@@ -108,11 +119,22 @@ function usernameRow(wrapper: Wrapper) {
   return wrapper.findAll('.pf-setting-row').find(row => row.find('.pf-setting-row__label').text().startsWith('用户名'))!
 }
 
+/** 解码好的待裁剪图片：800×600 的假图 */
+function cropSource(file: File): AvatarCropSource {
+  return { file, image: { naturalWidth: 800, naturalHeight: 600 } as HTMLImageElement, url: 'blob:avatar' }
+}
+
 async function chooseAvatar(wrapper: Wrapper, file: File) {
   const input = wrapper.find('input[type="file"]')
   Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
   await input.trigger('change')
   await flushPromises()
+}
+
+/** 开着的那张对话框（传送到 body 下）；没开时为 null */
+function openDialog() {
+  const content = document.body.querySelector('[data-scope="dialog"][data-part="content"]')
+  return content ? new DOMWrapper(content) : null
 }
 
 describe('个人资料页签', () => {
@@ -239,8 +261,37 @@ describe('个人资料页签', () => {
     expect(danger).toHaveBeenCalledWith('用户名已被占用。')
   })
 
-  it('头像：格式或大小不对只提示不上传；合格的交给壳层上传（带进度），上传即换好、不再经保存资料写头像；被拒即在结果里给后端文案', async () => {
+  it('头像：格式或大小不对、图片读不出来都只提示，不开裁剪也不上传；合格的先进裁剪弹窗，取消即收起不上传', async () => {
     const warning = vi.spyOn(toast, 'warning').mockImplementation(() => '')
+    const wrapper = await render()
+
+    await chooseAvatar(wrapper, new File(['gif'], 'a.gif', { type: 'image/gif' }))
+    expect(warning).toHaveBeenLastCalledWith('仅支持 JPG、PNG 格式的图片')
+    await chooseAvatar(wrapper, new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' }))
+    expect(warning).toHaveBeenLastCalledWith('图片大小不能超过 2MB')
+    expect(loadAvatarSource).not.toHaveBeenCalled()
+
+    const avatar = new File([new Uint8Array(16)], 'me.png', { type: 'image/png' })
+    vi.mocked(loadAvatarSource).mockRejectedValueOnce(new Error('decode failed'))
+    await chooseAvatar(wrapper, avatar)
+    expect(warning).toHaveBeenLastCalledWith('图片无法读取，请换一张')
+    expect(openDialog()).toBeNull()
+
+    const source = cropSource(avatar)
+    vi.mocked(loadAvatarSource).mockResolvedValue(source)
+    await chooseAvatar(wrapper, avatar)
+    expect(openDialog()!.text()).toContain('裁剪头像')
+    expect(openDialog()!.find('[data-scope="image-cropper"][data-part="crop-area"]').attributes('data-shape')).toBe('round')
+    await buttonIn(openDialog()!, '取消').trigger('click')
+    await flushPromises()
+    expect(openDialog()).toBeNull()
+    expect(releaseAvatarSource).toHaveBeenCalledWith(source)
+    expect(exportAvatar).not.toHaveBeenCalled()
+    expect(apis.uploadAvatarApi).not.toHaveBeenCalled()
+  })
+
+  it('头像：裁剪弹窗里确认后传裁好的那张（带进度），上传即换好并收起弹窗、不再经保存资料写头像；被拒给后端文案、弹窗留着可再传；出不了图只提示', async () => {
+    const danger = vi.spyOn(toast, 'danger').mockImplementation(() => '')
     // 灵动岛关着时终态改由轻提示给出：接住它来看结果
     const island = vi.fn()
     configureDynamicIsland({ isEnabled: () => false, message: island })
@@ -248,25 +299,41 @@ describe('个人资料页签', () => {
       onProgress?.(50)
       return { fileId: 'f-new' }
     })
+    const avatar = new File([new Uint8Array(16)], 'me.png', { type: 'image/png' })
+    const cropped = new File([new Uint8Array(8)], 'me.png', { type: 'image/png' })
+    const source = cropSource(avatar)
+    vi.mocked(loadAvatarSource).mockResolvedValue(source)
     const wrapper = await render()
 
-    await chooseAvatar(wrapper, new File(['gif'], 'a.gif', { type: 'image/gif' }))
-    expect(warning).toHaveBeenLastCalledWith('仅支持 JPG、PNG 格式的图片')
-    await chooseAvatar(wrapper, new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' }))
-    expect(warning).toHaveBeenLastCalledWith('图片大小不能超过 2MB')
+    // 出不了图：提示，不上传，弹窗留着
+    vi.mocked(exportAvatar).mockResolvedValueOnce(null)
+    await chooseAvatar(wrapper, avatar)
+    await buttonIn(openDialog()!, '上传').trigger('click')
+    await flushPromises()
+    expect(danger).toHaveBeenLastCalledWith('图片裁剪失败')
     expect(apis.uploadAvatarApi).not.toHaveBeenCalled()
 
-    const avatar = new File([new Uint8Array(16)], 'me.png', { type: 'image/png' })
-    await chooseAvatar(wrapper, avatar)
-    expect(apis.uploadAvatarApi).toHaveBeenCalledWith(avatar, expect.any(Function))
+    // 初始裁切框是居中的最大正方形（800×600 的图取中间 600×600）
+    vi.mocked(exportAvatar).mockResolvedValue(cropped)
+    await buttonIn(openDialog()!, '上传').trigger('click')
+    await flushPromises()
+    expect(exportAvatar).toHaveBeenLastCalledWith(source, { x: 100, y: 0, width: 600, height: 600 })
+    expect(apis.uploadAvatarApi).toHaveBeenCalledWith(cropped, expect.any(Function))
     expect(apis.updateProfileApi).not.toHaveBeenCalled()
     expect(island).toHaveBeenLastCalledWith('success', '头像已更新')
     expect(wrapper.emitted('saved')).toHaveLength(1)
+    expect(openDialog()).toBeNull()
+    expect(releaseAvatarSource).toHaveBeenCalledWith(source)
 
+    vi.mocked(releaseAvatarSource).mockClear()
     apis.uploadAvatarApi.mockRejectedValue(new ApiError(400, { code: 'IDENTITY_VALIDATION_016', detail: '头像只能是不超过 2 MB 的 JPEG 或 PNG 图片。' }))
     await chooseAvatar(wrapper, avatar)
+    await buttonIn(openDialog()!, '上传').trigger('click')
+    await flushPromises()
     expect(island).toHaveBeenLastCalledWith('error', '头像只能是不超过 2 MB 的 JPEG 或 PNG 图片。')
     expect(wrapper.emitted('saved')).toHaveLength(1)
+    expect(openDialog()).not.toBeNull()
+    expect(releaseAvatarSource).not.toHaveBeenCalled()
   })
 
   it('去掉头像：确认后交给壳层、提示并通知重拉，被拒即提示后端文案；没有头像时按钮不可点', async () => {

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import type { AvatarCropSource } from './avatar-crop'
 import type { UserProfile } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, prompt, toast } from '~/composables'
@@ -11,6 +12,8 @@ import { ApiError } from '~/request'
 import { useAppContext, useUserStore } from '~/stores'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import { OTP_CODE_LENGTH } from '../shared/pin-code'
+import { loadAvatarSource, releaseAvatarSource } from './avatar-crop'
+import ProfileAvatarCropDialog from './ProfileAvatarCropDialog.vue'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
@@ -112,6 +115,7 @@ const genderOptions = computed(() => [
 // 与 4.x 不同：4.x 先把文件传进文件库、再经 updateProfileApi 把 fileId 写进资料（去掉头像写空串）；
 // 6.0 的头像端点上传即换成本人的头像并回收旧的，去掉头像走 removeAvatarApi（profile.remove-avatar），资料保存不再带头像
 // 会话里的用户由壳层换成后端回的那份（userStore 是会话的投影，顶栏与侧栏头像随之刷新），这里只重拉资料
+// 选好图片先进裁剪弹窗（4.x 没有这一步），传上去的是裁好的正方形；格式与大小仍按选中的原图认
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
 const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
@@ -119,6 +123,8 @@ const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 const avatarRemoving = ref(false)
+/** 待裁剪的图片；有值即裁剪弹窗开着 */
+const avatarCropSource = shallowRef<AvatarCropSource | null>(null)
 
 /** 头像原始值（fileId），用于按钮禁用判断与显示 */
 const currentAvatar = computed(() => props.profile?.avatar || userStore.avatar)
@@ -143,6 +149,23 @@ async function handleAvatarChange(event: Event) {
     toast.warning(t('component.profile.info.warn_avatar_size', { size: AVATAR_MAX_SIZE / 1024 / 1024 }))
     return
   }
+  try {
+    avatarCropSource.value = await loadAvatarSource(file)
+  }
+  catch {
+    toast.warning(t('component.profile.info.warn_avatar_unreadable'))
+  }
+}
+
+function closeAvatarCrop() {
+  if (avatarCropSource.value)
+    releaseAvatarSource(avatarCropSource.value)
+  avatarCropSource.value = null
+}
+
+onBeforeUnmount(closeAvatarCrop)
+
+async function uploadCroppedAvatar(file: File) {
   avatarUploading.value = true
   // 灵动岛实时进度（确定性进度条）
   const task = islandStart('avatar-upload', t('island.avatar.uploading'), { icon: 'lucide:image-up', progress: 0 })
@@ -151,8 +174,10 @@ async function handleAvatarChange(event: Event) {
     await apis.uploadAvatarApi(file, percent => task.setProgress(percent))
     emit('saved')
     task.success(t('island.avatar.updated'))
+    closeAvatarCrop()
   }
   catch (e: unknown) {
+    // 弹窗留着：裁切框还在，改一改或直接再传一次
     task.error(messageOf(e) || t('island.avatar.upload_failed'))
   }
   finally {
@@ -471,7 +496,8 @@ function cancelChange() {
                 <div class="pf-setting-row__control">
                   <XhButton
                     v-if="profile?.canChangeUserName"
-                    variant="outline"
+                    variant="subtle"
+                    size="sm"
                     tone="brand"
                     :loading="usernameChangeLoading"
                     @click="handleChangeUserName"
@@ -684,6 +710,14 @@ function cancelChange() {
         </XhButton>
       </div>
     </section>
+
+    <!-- 头像裁剪：确认后才上传，上传中关不掉，传完或取消才收起 -->
+    <ProfileAvatarCropDialog
+      :source="avatarCropSource"
+      :loading="avatarUploading"
+      @confirm="uploadCroppedAvatar"
+      @cancel="closeAvatarCrop"
+    />
 
     <!-- 换绑对话框（邮箱/手机共用）：模态对话框管焦点圈定、Escape 与遮罩点击，关闭一律走 cancelChange 清掉草稿 -->
     <XhDialogRoot

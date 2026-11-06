@@ -417,7 +417,7 @@ export default {
       },
       identity_personal_account: 'Compte personnel',
       info: {
-        avatar_desc: 'JPG ou PNG, 2 Mo maximum, image carrée recommandée',
+        avatar_desc: 'JPG ou PNG, 2 Mo maximum, recadrage possible avant l’envoi',
         avatar_label: 'Avatar',
         bio_placeholder: 'Parlez-nous de vous...',
         btn_modify: 'Modifier',
@@ -429,7 +429,11 @@ export default {
         confirm_change: 'Confirmer la modification',
         confirm_remove: 'Confirmer la suppression',
         country_placeholder: 'Par ex. : France',
+        crop_avatar_alt: 'Image à recadrer',
+        crop_avatar_title: 'Recadrer l’avatar',
+        crop_zoom: 'Zoom',
         current_password_placeholder: 'Saisissez votre mot de passe actuel pour confirmer votre identité',
+        err_avatar_crop_failed: 'Échec du recadrage de l’image',
         err_avatar_remove_failed: 'Échec de la suppression',
         err_profile_save_failed: 'Échec de l’enregistrement',
         msg_code_sent_email: 'Code envoyé à votre adresse e-mail',
@@ -489,6 +493,7 @@ export default {
         value_not_set: 'Non défini',
         warn_avatar_format: 'Seules les images JPG et PNG sont prises en charge',
         warn_avatar_size: 'La taille de l’image ne peut pas dépasser {size} Mo',
+        warn_avatar_unreadable: 'Impossible de lire l’image. Choisissez-en une autre',
         warn_no_avatar_to_remove: 'Aucun avatar à supprimer',
       },
       login_logs: {

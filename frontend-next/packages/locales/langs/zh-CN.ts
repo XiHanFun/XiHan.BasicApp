@@ -417,7 +417,7 @@ export default {
       },
       identity_personal_account: '个人账号',
       info: {
-        avatar_desc: '支持 JPG、PNG，不超过 2MB，建议正方形图片',
+        avatar_desc: '支持 JPG、PNG，不超过 2MB，上传前可裁剪',
         avatar_label: '个人头像',
         bio_placeholder: '介绍一下你自己...',
         btn_modify: '修改',
@@ -429,7 +429,11 @@ export default {
         confirm_change: '确认修改',
         confirm_remove: '确认删除',
         country_placeholder: '例如：中国',
+        crop_avatar_alt: '待裁剪的图片',
+        crop_avatar_title: '裁剪头像',
+        crop_zoom: '缩放',
         current_password_placeholder: '输入当前密码确认身份',
+        err_avatar_crop_failed: '图片裁剪失败',
         err_avatar_remove_failed: '删除失败',
         err_profile_save_failed: '保存失败',
         msg_code_sent_email: '验证码已发送至邮箱',
@@ -489,6 +493,7 @@ export default {
         value_not_set: '未设置',
         warn_avatar_format: '仅支持 JPG、PNG 格式的图片',
         warn_avatar_size: '图片大小不能超过 {size}MB',
+        warn_avatar_unreadable: '图片无法读取，请换一张',
         warn_no_avatar_to_remove: '当前没有可删除的头像',
       },
       login_logs: {

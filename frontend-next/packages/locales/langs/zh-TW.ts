@@ -417,7 +417,7 @@ export default {
       },
       identity_personal_account: '個人帳號',
       info: {
-        avatar_desc: '支援 JPG、PNG，不超過 2MB，建議使用正方形圖片',
+        avatar_desc: '支援 JPG、PNG，不超過 2MB，上傳前可裁切',
         avatar_label: '個人大頭貼',
         bio_placeholder: '簡單介紹一下你自己...',
         btn_modify: '變更',
@@ -429,7 +429,11 @@ export default {
         confirm_change: '確認修改',
         confirm_remove: '確認刪除',
         country_placeholder: '例如：中國',
+        crop_avatar_alt: '待裁切的圖片',
+        crop_avatar_title: '裁切大頭貼',
+        crop_zoom: '縮放',
         current_password_placeholder: '輸入目前密碼以確認身分',
+        err_avatar_crop_failed: '圖片裁切失敗',
         err_avatar_remove_failed: '刪除失敗',
         err_profile_save_failed: '儲存失敗',
         msg_code_sent_email: '驗證碼已傳送至電子郵件',
@@ -489,6 +493,7 @@ export default {
         value_not_set: '未設定',
         warn_avatar_format: '僅支援 JPG、PNG 格式的圖片',
         warn_avatar_size: '圖片大小不能超過 {size}MB',
+        warn_avatar_unreadable: '圖片無法讀取，請換一張',
         warn_no_avatar_to_remove: '目前沒有可刪除的大頭貼',
       },
       login_logs: {
