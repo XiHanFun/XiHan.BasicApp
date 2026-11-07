@@ -3,7 +3,7 @@ import type { InboxItem, InboxScope } from './inbox'
 import type { NotificationType } from '~/contracts'
 import type { SelectOption } from '~/types'
 import type { NotificationContentFormat as ShellContentFormat } from '~/types/enums'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onActivated, onDeactivated, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -218,41 +218,61 @@ onDeactivated(() => {
 
 <template>
   <div class="inbox-page">
-    <div class="inbox-toolbar">
-      <div class="inbox-toolbar__group">
-        <XSelect
-          class="inbox-toolbar__type"
-          :value="typeFilter ?? ''"
-          :options="typeOptions"
-          clearable
-          :placeholder="t('notification.inbox.type_placeholder')"
-          :aria-label="t('notification.inbox.type_placeholder')"
-          @update:value="changeType"
-        />
-        <XSelect
-          class="inbox-toolbar__scope"
-          :value="scope"
-          :options="scopeOptions"
-          :aria-label="t('notification.inbox.scope_label')"
-          @update:value="changeScope"
-        />
-      </div>
+    <!-- 筛选：与列表页的搜索栏同款（字段名在上、控件在下、同一标准宽），改了即生效，没有查询钮 -->
+    <XhCardRoot class="inbox-card" variant="outline">
+      <XhCardContent>
+        <div class="inbox-search">
+          <XhFieldRoot class="inbox-search__item">
+            <XhFieldLabel class="inbox-search__label">
+              {{ t('notification.inbox.type_placeholder') }}
+            </XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                :value="typeFilter ?? ''"
+                :options="typeOptions"
+                clearable
+                size="sm"
+                :placeholder="t('notification.inbox.type_placeholder')"
+                @update:value="changeType"
+              />
+            </XhFieldControl>
+          </XhFieldRoot>
+          <XhFieldRoot class="inbox-search__item">
+            <XhFieldLabel class="inbox-search__label">
+              {{ t('notification.inbox.scope_label') }}
+            </XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                :value="scope"
+                :options="scopeOptions"
+                size="sm"
+                @update:value="changeScope"
+              />
+            </XhFieldControl>
+          </XhFieldRoot>
+        </div>
+      </XhCardContent>
+    </XhCardRoot>
 
-      <div class="inbox-toolbar__group">
-        <XhTagRoot variant="subtle" size="sm">
-          <XhTagLabel>{{ t('notification.inbox.unread_count', { n: counts.unread }) }}</XhTagLabel>
-        </XhTagRoot>
-        <XhTagRoot variant="subtle" size="sm" :tone="counts.confirm > 0 ? 'warning' : 'neutral'">
-          <XhTagLabel>{{ t('notification.inbox.confirm_count', { n: counts.confirm }) }}</XhTagLabel>
-        </XhTagRoot>
-        <XhButton :disabled="counts.unread === 0" :loading="loading" size="sm" variant="subtle" tone="brand" @click="handleMarkAllRead">
-          <XhButtonIndicator />
-          <XhButtonPrefix><Icon icon="lucide:check-check" /></XhButtonPrefix>
-          <XhButtonLabel>{{ t('notification.inbox.mark_all_read') }}</XhButtonLabel>
-        </XhButton>
-        <XIconButton icon="lucide:refresh-cw" variant="subtle" :label="t('notification.inbox.refresh')" :loading="loading" @click="refresh" />
-      </div>
-    </div>
+    <!-- 工具条：计数与操作靠右，与列表页的工具条同一张卡 -->
+    <XhCardRoot class="inbox-card inbox-card--toolbar" variant="outline">
+      <XhCardContent>
+        <div class="inbox-toolbar">
+          <XhTagRoot variant="subtle" size="sm">
+            <XhTagLabel>{{ t('notification.inbox.unread_count', { n: counts.unread }) }}</XhTagLabel>
+          </XhTagRoot>
+          <XhTagRoot variant="subtle" size="sm" :tone="counts.confirm > 0 ? 'warning' : 'neutral'">
+            <XhTagLabel>{{ t('notification.inbox.confirm_count', { n: counts.confirm }) }}</XhTagLabel>
+          </XhTagRoot>
+          <XhButton :disabled="counts.unread === 0" :loading="loading" size="sm" variant="subtle" tone="brand" @click="handleMarkAllRead">
+            <XhButtonIndicator />
+            <XhButtonPrefix><Icon icon="lucide:check-check" /></XhButtonPrefix>
+            <XhButtonLabel>{{ t('notification.inbox.mark_all_read') }}</XhButtonLabel>
+          </XhButton>
+          <XIconButton icon="lucide:refresh-cw" :label="t('notification.inbox.refresh')" :loading="loading" @click="refresh" />
+        </div>
+      </XhCardContent>
+    </XhCardRoot>
 
     <div v-if="loading && items.length === 0" class="inbox-skeleton" aria-hidden="true">
       <div v-for="index in 5" :key="index" class="inbox-skeleton__row">
@@ -337,39 +357,52 @@ onDeactivated(() => {
 .inbox-page {
   display: flex;
   flex-direction: column;
-  gap: var(--xh-space-3);
+  gap: var(--xh-space-2);
   padding: var(--xh-space-3);
   height: 100%;
   min-height: 0;
 }
 
+/* 两张卡的内边距与列表页的搜索卡、工具条卡同档（SchemaPage 的 .xh-schema-card） */
+.inbox-card {
+  --xh-card-p: var(--xh-surface-pad-md) var(--xh-surface-pad-lg);
+
+  flex-shrink: 0;
+}
+
+.inbox-card--toolbar {
+  --xh-card-p: var(--xh-surface-pad-sm) var(--xh-surface-pad-lg);
+}
+
+/* 筛选项：与列表页搜索栏同款——项宽取控件下限（列表页的标准项宽就落在这一档）、字段名在上小字淡色、控件铺满项宽 */
+.inbox-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-2_5) var(--xh-space-3);
+  align-items: flex-end;
+}
+
+.inbox-search__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  inline-size: var(--xh-control-min-w);
+}
+
+.inbox-search__label {
+  font-size: var(--xh-font-size-xs);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--xh-fg-subtle);
+}
+
+/* 计数与操作：靠右一行 */
 .inbox-toolbar {
   display: flex;
-  flex-shrink: 0;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--xh-space-3);
-  padding: var(--xh-space-2) var(--xh-space-3);
-  border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-shape-surface);
-  background: var(--xh-bg-surface);
-}
-
-/* 左侧筛选、右侧计数与操作 */
-.inbox-toolbar__group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  justify-content: flex-end;
   gap: var(--xh-space-2);
-}
-
-.inbox-toolbar__type {
-  inline-size: 8rem;
-}
-
-.inbox-toolbar__scope {
-  inline-size: 6rem;
 }
 
 .inbox-skeleton {
@@ -515,9 +548,8 @@ onDeactivated(() => {
 }
 
 @media (max-width: 45rem) {
-  .inbox-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
+  .inbox-search__item {
+    inline-size: 100%;
   }
 
   .inbox-item {
