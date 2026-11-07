@@ -6,7 +6,7 @@
 通知 Hub（强制下线、站内通知、任务进度、跨端设置同步）、在线状态与配了 Redis 时的跨实例由 Realtime 包提供；聊天 Hub `/hubs/chat` 由 Chat 包登记，会话、消息与聊天专用的推送方法见[在线聊天](./chat)。
 :::
 
-框架 5 不再包装 SignalR，实时能力是 BasicApp 自己的 Realtime 包（Tier 2）：直接用 ASP.NET Core SignalR，其他包只经 `Contracts` 的接口使用它。
+实时能力由 Realtime 包（Tier 2）提供：直接用 ASP.NET Core SignalR，其他包只经 `Contracts` 的接口（`IRealtimePush`、`IRealtimePresence`）使用它。没装 Realtime 即没有推送，各包照常工作。
 
 ## Hub
 
@@ -53,7 +53,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、助手的流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
 
-吊销会话时先推 `ForceLogout`，再把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
+吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
 
 ## 任务进度
 
@@ -72,7 +72,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 | 导出 | 领到任务（准备中，进度 0）；每写一千行或到 99%（已写行数）；完成（总行数，点击去导出中心）；失败（失败原因） | 随写任务表的那次调用提交后发出，失败走独立的短事务后立即发出。文案按提交时 `Accept-Language` 协商出的区域 |
 | 通知发布（`notifications.publish`） | 开始（不确定态）；成功（接收人数，点击去通知公告）；失败（失败原因，异常时没有原因） | 成功随提交发出。开始与失败不随事务生效，由 Transaction 阶段开头、工作单元之外的 `PublishProgressMiddleware` 立即发出，回滚、提交失败与异常都会收尾 |
 
-建好即发布的 `notifications.create` 不推进度，与 5.x 相同。
+建好即发布的 `notifications.create` 不推进度。
 
 ## Hub 参数
 
@@ -94,7 +94,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 | 方面 | 不配 Redis | 配了 Redis |
 | --- | --- | --- |
 | 推送与组 | 进程内 | SignalR 接 Redis 背板：一个实例发出的推送送到各实例上的连接；背板用自己的连接，配置与账号取宿主的 Redis 缓存配置，频道带同一键前缀（`XiHan:Caching:Redis:KeyPrefix` + `realtime:`） |
-| 在线状态 | 本实例的连接登记 | 每个实例把自己的连接快照写进共享缓存（`realtime:presence:node:<实例>`），连接变化即重写，每 15 秒心跳续期、45 秒没续即过期；实例名册 `realtime:presence:nodes` 记各实例。读在线状态时汇总名册里未过期实例的快照 |
+| 在线状态 | 本实例的连接登记 | 每个实例把自己的连接快照写进共享缓存（`realtime:presence:node:<实例>`），连接变化即重新写入，每 15 秒心跳续期、45 秒没续即过期；实例名册 `realtime:presence:nodes` 记各实例。读在线状态时汇总名册里未过期实例的快照 |
 | 强制下线 | 移出组后断开本实例的连接 | 本实例的连接直接断开；别的实例上的连接经背板移出全部组（之后的推送不再送到），再以广播订阅 `basicapp.realtime.disconnect` 通知各实例断开自己的连接 |
 
 广播要经消息代理：只配了 Redis、没配 RabbitMQ 时广播只到本实例，别的实例上被吊销的连接只是被移出全部组、不再收到推送，等客户端收到 `ForceLogout` 自行断开或令牌过期——这是写明的语义，不是兜底。写共享缓存失败只记 Warning，在线状态等下一次心跳修复，不影响连接本身。

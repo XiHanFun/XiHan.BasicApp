@@ -1,12 +1,12 @@
 ---
 layout: home
-title: 曦寒基础应用 6.0
-titleTemplate: XiHan.BasicApp 6.0 文档
+title: 曦寒基础应用
+titleTemplate: XiHan.BasicApp 文档
 
 hero:
-  name: 曦寒基础应用 6.0
-  text: 基于 XiHan.Framework 5 的能力包式中后台应用
-  tagline: 后端基于 XiHan.Framework 5，前端基于 XiHan.UI；一份操作契约同时发布为 HTTP、gRPC 与 MCP，内置多租户与多层授权。
+  name: 曦寒基础应用
+  text: 能力包式中后台应用
+  tagline: 后端基于 XiHan.Framework，前端基于 XiHan.UI；一份操作契约同时发布为 HTTP、gRPC 与 MCP，内置多租户与多层授权。
   image:
     src: /images/logo.png
     alt: 曦寒基础应用
@@ -20,7 +20,7 @@ hero:
       link: /introduction
 
     - theme: alt
-      text: 为什么是 6.0
+      text: 设计取舍
       link: /why
 
 features:
@@ -57,12 +57,12 @@ features:
 
 <div class="bap-status">
 <h2 class="bap-title">开始使用</h2>
-<p class="bap-desc">按快速开始在本机建库、执行表结构升级与种子，再启动后端和前端。<br />5.x 部署留在维护线上，文档见 <a href="https://basicapp.docs.xihanfun.com/v5/">5.x 文档</a>；6.0 不提供数据迁移。</p>
+<p class="bap-desc">按快速开始在本机建库，启动后端（启动时自动升级表结构）、写入种子，再启动前端。</p>
 <div class="bap-actions">
 <a class="bap-btn" href="/getting-started">快速开始</a>
 <a class="bap-link" href="/changelog">更新日志</a>
 </div>
-<p class="bap-cred">初始账号 <code>superadmin</code> · 密码 <code>SuperAdmin@123</code>（由 <code>seed</code> 写入，首次登录后请修改）</p>
+<p class="bap-cred">开发环境初始账号 <code>superadmin</code> · 密码 <code>SuperAdmin@123</code>（<code>appsettings.Development.json</code> 配置，由 <code>seed</code> 写入）</p>
 </div>
 
 <style>

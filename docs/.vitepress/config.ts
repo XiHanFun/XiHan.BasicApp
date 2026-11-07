@@ -6,10 +6,10 @@ const require = createRequire(import.meta.url);
 // 导航末项显示的版本号取自前端的 package.json（与后端 Directory.Build.props 同号），发版时只改那一处
 const { version } = require("../../frontend/package.json");
 
-const title: string = "曦寒基础应用 6.0 文档";
-const description: string = "基于曦寒开发框架 5 的能力包式中后台应用";
+const title: string = "曦寒基础应用文档";
+const description: string = "基于曦寒开发框架的能力包式中后台应用";
 const keywords: string =
-  "曦寒,曦寒懿,基础应用,中后台,多租户,权限,能力包,操作契约,官方文档,开源,XiHanFun,XiHan.BasicApp,6.0";
+  "曦寒,曦寒懿,基础应用,中后台,多租户,权限,能力包,操作契约,官方文档,开源,XiHanFun,XiHan.BasicApp";
 
 // 生成手册条目：自动带序号前缀
 function manual(
@@ -28,7 +28,7 @@ const startSidebar: DefaultTheme.SidebarItem[] = [
     collapsed: false,
     items: [
       { text: "应用简介", link: "/introduction" },
-      { text: "为什么是 6.0", link: "/why" },
+      { text: "设计取舍", link: "/why" },
       { text: "系统概述", link: "/overview" },
       { text: "开发环境", link: "/dev-environment" },
       { text: "快速开始", link: "/getting-started" },
@@ -59,7 +59,6 @@ const startSidebar: DefaultTheme.SidebarItem[] = [
   },
 ];
 
-// 条目与 5.x 文档一一对应，改了口径的在名字上写清楚
 const backendSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: "后端手册",
@@ -89,11 +88,11 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["日志审计", "logging"],
       ["健康与可观测性", "health-observability"],
       ["系统设置", "settings"],
-      ["表结构升级（不做 5.x 迁移）", "upgrade"],
+      ["表结构升级", "upgrade"],
       ["开放平台", "open-api"],
       ["代码生成", "code-generation"],
       ["AI 能力", "ai"],
-      ["工作台（6.0 新增）", "workbench"],
+      ["工作台", "workbench"],
     ]),
   },
 ];
@@ -186,7 +185,6 @@ const nav: DefaultTheme.NavItem[] = [
     text: `v${version}`,
     items: [
       { text: "更新日志", link: "/changelog" },
-      { text: "5.x 文档", link: "https://basicapp.docs.xihanfun.com/v5/" },
     ],
   },
 ];
@@ -197,9 +195,9 @@ export default defineXiHanConfig({
   keywords,
   repo: "XiHan.BasicApp",
   llms: {
-    title: "曦寒基础应用 6.0",
+    title: "曦寒基础应用",
     summary:
-      "后端基于 .NET 10 与 XiHan.Framework 5 的能力包与操作契约（一份契约同时服务 HTTP / gRPC / MCP），前端基于 Vue 3 与 XiHan.UI，契约层由后端 openapi.json 生成；内置多租户、RBAC + Deny + 继承委托 + 数据范围 + 字段安全 + ABAC 的权限体系。",
+      "后端基于 .NET 10 与 XiHan.Framework 的能力包与操作契约（一份契约同时服务 HTTP / gRPC / MCP），前端基于 Vue 与 XiHan.UI，契约层由后端 openapi.json 生成；内置多租户、RBAC + Deny + 继承委托 + 数据范围 + 字段安全 + ABAC 的权限体系。",
     // 与 package.json 的 homepage 一致
     site: "https://basicapp.docs.xihanfun.com",
     sections: [

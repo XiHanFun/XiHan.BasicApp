@@ -1,10 +1,6 @@
 # 接口对接指南
 
-本页说明如何通过 HTTP 调用 6.0 的接口，适用于前端以外的对接方与集成开发者。6.0 的接口全部来自后端登记的操作（`[Operation("<资源>.<动词>")]`），一个操作同时是 HTTP 端点，并可按需发布为 gRPC 方法与 MCP 工具。编写操作见[后端开发流程](./backend/development)。
-
-::: warning 与 5.x 不兼容
-6.0 没有 `ApiResponse` 信封、没有 `/Controller/Action` 风格路由、没有 `X-Timezone` 头。5.x 的对接代码需要按本页改造，不提供兼容层。
-:::
+本页说明如何通过 HTTP 调用后端接口，适用于前端以外的对接方与集成开发者。接口全部来自后端登记的操作（`[Operation("<资源>.<动词>")]`），一个操作同时是 HTTP 端点，并可按需发布为 gRPC 方法与 MCP 工具。编写操作见[后端开发流程](./backend/development)。
 
 ## 基址与在线文档
 
@@ -12,30 +8,31 @@
 | --- | --- |
 | `/api/` | 全部操作，前缀由 `XiHan:Protocols:Http:RoutePrefix` 决定 |
 | `/openapi.json` | OpenAPI 3.1 全量文档，带 `x-tagGroups`（Development 缺省打开，见 `BasicApp:ApiDocs:Enabled`） |
-| `/openapi/<组名>.json` | 按包分组的文档：身份与账号、授权、租户与套餐、组织、系统设置、文件与存储、通知与消息、审计日志、运维、开放平台 |
+| `/openapi/<组名>.json` | 按包分组的文档：`identity`、`access`、`tenancy`、`organization`、`settings`、`files`、`notification`、`auditing`、`maintenance`、`openplatform`、`printing`、`chat`、`workflow`、`codegeneration`、`ai` |
 | `/scalar` | 交互式文档，下拉切换全量与各组 |
 | `/operations.proto` | 由同一份操作 Schema 生成的 gRPC 定义（只含 `Expose.Grpc` 的操作） |
 | `/mcp` | MCP 端点，见 [MCP Server](./ai/mcp) |
+| `/` | 应用名、版本与运行环境 |
 
-文档的摘要与说明按 `Accept-Language` 本地化，每个操作的说明末尾写着它要求的权限码。撰写时共 347 个操作、164 个权限码。
+文档的摘要与说明按 `Accept-Language` 本地化，每个操作带它要求的权限码（`x-xihan-permission`）或策略（`x-xihan-policy`）。全部操作可以用 `dotnet run --project backend/src/XiHan.BasicApp.Host -- operations` 列出。
 
 ## 路由推导
 
-路由由操作 ID 推导（框架 `spec/conventions/operation-ids.md`）：
+路由由操作 ID 推导：
 
 | 操作 | HTTP | 说明 |
 | --- | --- | --- |
 | `users.create` | `POST /api/users` | 成功 201 |
 | `users.get` | `GET /api/users/{id}` | 请求带 `id` 即实例级 |
-| `users.update` | `PUT /api/users/{id}` | |
+| `users.update` | `PUT /api/users/{id}` | 单例资源（请求不带 `id`）是 `PUT /api/<资源>` |
 | `users.delete` | `DELETE /api/users?ids=…&ids=…` | 批量，ID 在查询串 |
-| `users.list` | `POST /api/users:list` | 带分页对象（嵌套）即 POST |
-| `users.lock` | `POST /api/users:lock` | 集合级动词 |
+| `users.list` | `POST /api/users:list` | 带分页对象（嵌套）即 POST；没有分页对象的 `list` 是 `GET /api/<资源>` |
+| `users.lock` | `POST /api/users:lock` | 集合级动词，请求体 `{ "ids": [...] }` |
 | `users.reset-password` | `POST /api/users/{id}:reset-password` | 实例级动词 |
 | `departments.tree` | `GET /api/departments:tree` | 声明只读、没有嵌套对象即 GET，字段走查询串 |
 | `profile.get` | `GET /api/profile` | 单例资源 |
 
-请求载荷 = 路由值 ∪ JSON 请求体 ∪ 查询串，合并成一个对象；同名时路由值优先。不确定时以 `/openapi.json` 或前端生成的 `packages/contracts/operations.ts` 里的 `routes` 为准。
+请求载荷 = 路由值 ∪ JSON 请求体 ∪ 查询串，合并成一个对象；同名时路由值优先。不确定时以 `/openapi.json` 或前端生成的 `packages/contracts/operations.ts` 为准。
 
 ## 响应
 
@@ -102,7 +99,7 @@ Content-Language: zh-CN
 | `traceparent` | W3C Trace Context，建议每个请求生成；失败响应的 `traceId` 与它对应 |
 | `xihan-deadline` | 可选，RFC 3339 UTC 截止时间 |
 
-租户不能由客户端自报：没有 `X-Tenant-Id` 头，也不认查询串，租户来自令牌的 `tenant` 声明。
+租户不能由客户端自报：没有 `X-Tenant-Id` 头，也不认查询串或 `baggage` 头，租户来自令牌的 `tenant` 声明。
 
 ## 获取令牌
 
@@ -121,6 +118,8 @@ Content-Language: zh-CN
 | `auth.lock` / `auth.unlock` | `POST /api/auth:lock` / `:unlock` | 登录：锁屏 |
 | `auth.logout` | `POST /api/auth:logout` | 登录：吊销当前会话 |
 
+另有 `auth.register`（自助注册，缺省关）、`auth.request-password-reset` / `auth.reset-password`（找回密码）、`auth.external-login`（第三方登录换令牌）、`auth.session-roles` / `auth.activate-roles`（会话角色激活）。
+
 ### 第 1 步：登录
 
 ```bash
@@ -131,7 +130,7 @@ curl -X POST http://localhost:9710/api/auth:login \
 
 - 平台账号不填 `tenant`；租户账号填注册地租户 ID。
 - 开了双因素的账号返回 `{"token": null, "twoFactor": {"ticket": "…", "methods": [...], …}}`，再用 `auth.verify-two-factor` 凭票据与码换令牌。
-- 成功返回 `token`：`accessToken`（HS256 JWT，缺省 120 分钟）、`refreshToken`（不透明，缺省 7 天）、`sessionId`、`tenantId`、`mustChangePassword` 与用户资料。
+- 成功返回 `token`：`accessToken`（HS256 JWT，缺省 120 分钟）、`refreshToken`（不透明，缺省 7 天）、`sessionId`、`tenantId`（平台账号为 `null`）、`mustChangePassword` 与用户资料。
 
 ### 第 2 步：携带令牌调用
 
@@ -141,7 +140,7 @@ curl -X POST http://localhost:9710/api/roles:list \
   -d '{"page":{"index":1,"size":20},"keyword":"admin"}'
 ```
 
-访问令牌的声明：`sub` = 用户 ID、`tenant` = 当前租户（平台主体没有）、`sid` = 会话 ID、`role` = 本会话激活的角色、模仿会话另有 `act`。
+访问令牌的声明：`sub` = 用户 ID、`tenant` = 当前租户（平台主体没有）、`sid` = 会话 ID、`role` = 本会话激活的角色 ID、模仿会话另有 `act`。
 
 ### 第 3 步：令牌过期
 
@@ -186,7 +185,7 @@ curl -X POST http://localhost:9710/api/roles:list \
 
 ### 批量写操作
 
-删除、启停、锁定、撤销一类按标识的写操作只有批量形态，单条是一元集合。响应是逐项结果：
+删除、启停、锁定、撤销一类按标识的写操作只有批量形态，单条是一元集合。删除的 ID 走查询串 `ids`，其余批量动词是 POST、请求体 `{ "ids": [...] }`（不接受顶层数组）。响应是逐项结果：
 
 ```json
 { "succeeded": ["0193…"], "failed": [{ "id": "0193…", "code": "IDENTITY_CONFLICT_002", "message": "不能对自己的账号执行该操作。" }] }
@@ -203,7 +202,9 @@ curl -X POST http://localhost:9710/api/roles:list \
 | `POST /api/files/upload` | `multipart/form-data` 上传，返回与 `files.get` 相同的响应 |
 | `GET /api/files/{id}/content` | 按身份读取内容，支持 `Range` |
 | `POST /api/profile/avatar` | 上传头像（只要求登录，JPEG / PNG，≤ 2 MB） |
-| `files.presign` | 换限时签名地址（本地存储走 `/blobs`，S3 兼容存储直连） |
+| `POST /api/chat-messages/attachments` | 聊天附件上传（聊天模块开着时） |
+| `GET /api/codegen-histories/{id}/package` | 代码生成产物包下载（代码生成模块开着时） |
+| `files.presign` | `GET /api/files/{id}:presign`，换限时签名地址（本地存储走 `/blobs`，S3 兼容存储直连） |
 | `files.start-upload` → `sign-upload-parts` → `complete-upload` | 大文件分片直传 |
 
 ## 开放接口：签名调用（无 JWT）
@@ -244,16 +245,12 @@ OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-
 
 ## 实时通信（SignalR）
 
-Hub 地址 `/hubs/notification`，令牌放查询串 `access_token`（只在 `/hubs` 下读）。服务端推送的方法：
-
-| 方法 | 用途 |
+| Hub | 服务端推送的方法 |
 | --- | --- |
-| `ForceLogout` | 会话被吊销（强制下线、改密、锁定…），客户端回登录 |
-| `ReceiveNotification` | 新的站内通知 |
-| `TaskProgress` | 后台任务进度（导出等） |
-| `UserSettingChanged` | 个人设置在其他设备上改了 |
+| `/hubs/notification` | `ForceLogout`（会话被吊销，客户端回登录）、`ReceiveNotification`（新的站内通知）、`TaskProgress`（导出等后台任务进度）、`UserSettingChanged`（个人设置在其他设备上改了） |
+| `/hubs/chat` | `ReceiveChatMessage`、`ChatMessageEdited`、`ChatMessageRecalled`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatTyping`、`ChatConversationChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`；客户端可调 `JoinConversation`、`LeaveConversation`、`Typing` |
 
-方法清单由 `contracts export` 一并导出为 `realtime.json`。详见[实时推送](./backend/realtime)。
+令牌放查询串 `access_token`（只在 `/hubs` 下读）。方法清单由 `contracts export` 一并导出为 `realtime.json`。详见[实时推送](./backend/realtime)。
 
 ## 下一步
 

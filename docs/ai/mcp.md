@@ -1,8 +1,8 @@
 # MCP Server
 
-本页说明 6.0 自带的 MCP 端点与开发时可用的 MCP 服务端，适用于把 BasicApp 接入 AI 客户端或用 AI 工具开发 BasicApp 的开发者。
+本页说明宿主自带的 MCP 端点与开发时可用的 MCP 服务端，适用于把 BasicApp 接入 AI 客户端或用 AI 工具开发 BasicApp 的开发者。
 
-与 5.x 不同，6.0 的宿主本身提供 MCP 服务：宿主映射 `/mcp`，声明了 `Expose.Mcp` 的操作自动成为 MCP 工具，与 HTTP 接口共用同一份操作契约，认证、租户、权限与审计规则相同。编写前端代码时，还可以接入 XiHan.UI 的 MCP 服务端查询组件 API。
+宿主映射 `/mcp`：声明了 `Expose.Mcp` 的操作自动成为 MCP 工具，与 HTTP 接口共用同一份操作契约，认证、租户、权限与审计规则相同。编写代码时，还可以接入框架与 XiHan.UI 的 MCP 服务端查资料。
 
 ## BasicApp 的 MCP 端点
 
@@ -10,7 +10,7 @@
 
 | 项 | 说明 |
 | --- | --- |
-| 端点 | `POST /mcp`（开发态 `http://localhost:9710/mcp`，前端开发服务器也代理了 `/mcp`） |
+| 端点 | `POST /mcp`（开发时 `http://localhost:9710/mcp`，前端开发服务器也代理了 `/mcp`） |
 | 协议 | MCP `2025-06-18`，JSON-RPC 2.0，Streamable HTTP；一条消息一个答复，不开 SSE、不建会话 |
 | 认证 | 请求头 `Authorization: Bearer <访问令牌>`，与 HTTP 接口同一个令牌；凭据无效即 401 |
 | 区域 | `Accept-Language` 决定工具标题、说明与错误文案的语言 |
@@ -20,9 +20,9 @@
 
 ### 工具
 
-工具名由操作 ID 推导：`<资源>_<动词>`（资源段里的连字符保留，如 `dict-items_list`）。目前发布 13 个只读目录类操作：
+工具名由操作 ID 推导：`<资源>_<动词>`（资源段里的连字符保留，如 `dict-items_list`），可用 `XiHan:Protocols:Mcp:Tools:<操作 ID>` 覆盖。发布的都是只读操作：
 
-| 工具 | 操作 | 权限码 |
+| 工具 | 操作 | 权限 |
 | --- | --- | --- |
 | `users_get` / `users_list` | `users.get` / `users.list` | `identity.users.read` |
 | `departments_get` / `departments_tree` | `departments.get` / `departments.tree` | `organization.departments.read` |
@@ -31,11 +31,13 @@
 | `permissions_list` | `permissions.list` | `access.permissions.read` |
 | `dicts_get` / `dicts_list` / `dicts_options` | `dicts.get` / `dicts.list` / `dicts.options` | `settings.dicts.read` / 登录即可 |
 | `dict-items_list` / `dict-items_tree` | `dict-items.list` / `dict-items.tree` | `settings.dict-items.read` |
+| `tasks_list` | `tasks.list`（我的待办，受理人锁定为调用方） | 登录即可；Workflow 模块开着时 |
+| `knowledge-documents_search` | `knowledge-documents.search`（只在调用方一侧检索） | `ai.knowledge-documents.execute`；AI 模块开着时 |
 
 - `inputSchema` / `outputSchema` 就是操作的请求 / 响应 Schema；
 - `title` / `description` 是操作的本地化文案；
 - 只读工具带 `readOnlyHint`；
-- 失败的调用返回 `isError: true`，文本是本地化的错误说明，错误码在结果里。
+- 失败的调用返回 `isError: true`，文本是 `错误码: 文案`。
 
 管理类写操作不发布到 MCP。新增 MCP 工具：操作必须只读（`get` / `list` 或声明 `ReadOnly = true`），在 `Expose` 里加 `Expose.Mcp | Expose.Ai`，并登记到架构测试 `OperationExposureTests`。
 
@@ -67,10 +69,10 @@ curl -X POST http://localhost:9710/mcp \
 
 ## 开发用的 MCP 服务端
 
-| 服务端 | 用途 | 6.0 现状 |
+| 服务端 | 用途 | 接入 |
 | --- | --- | --- |
-| `xihan-ui`（npm `@xihan-ui/cli`） | 组件 API、部件、示例与设计令牌 | 可用，见 [XiHan.UI 的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp)；版本取 `frontend/pnpm-workspace.yaml` catalog 里的 `@xihan-ui/vue` |
-| `xihan-framework` | 查框架包、模块与配置键 | 5.x 的 `XiHan.Framework.Cli` 面向框架 4.x；框架 5 的 CLI 目前只有打包、迁移等命令，没有 MCP。写后端时直接读框架仓库 `next/` 的源码、`spec/` 与各包 README |
+| `xihan-framework`（`XiHan.Framework.Cli` 的 `mcp` 命令） | 以 stdio 提供框架的离线知识库：包与特性清单、配置键与缺省值、文档检索 | 见[框架文档的 MCP Server](https://framework.docs.xihanfun.com/ai/mcp)；后端以源码引用锁定提交，对照时以同级检出的 `next/src` 为准 |
+| `xihan-ui`（npm `@xihan-ui/cli`） | 组件 API、部件、示例与设计令牌 | 见 [XiHan.UI 的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp)；版本取 `frontend/pnpm-workspace.yaml` catalog 里的 `@xihan-ui/vue` |
 
 ## 相关
 

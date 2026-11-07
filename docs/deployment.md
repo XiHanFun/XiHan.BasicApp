@@ -1,6 +1,6 @@
 # 部署
 
-本页说明 6.0 后端与前端的发布、首次初始化、反向代理、备份还原与部署限制，适用于部署人员。
+本页说明后端与前端的发布、首次初始化、反向代理、读写分离、备份还原与多实例部署，适用于部署人员。
 
 ## 环境要求
 
@@ -9,27 +9,29 @@
 | 运行时 | ASP.NET Core 10 运行时（或自包含发布） |
 | 数据库 | PostgreSQL 14+；独立库租户另需建库权限或预建库 |
 | 静态托管 | 任意能托管单页应用并做反向代理的 Web 服务器（Nginx、Caddy、IIS…） |
-| 可选 | Redis 与 RabbitMQ（配了连接才用，见[配置参考](./configuration#分布式缓存与消息)）；邮件 / 短信服务、S3 兼容对象存储、Telegram（都在后台页面里配置） |
+| 可选 | Redis 与 RabbitMQ（配了连接才用，见[配置参考](./configuration#分布式缓存与消息)）；Qdrant（AI 知识库）；邮件 / 短信服务、S3 兼容对象存储、Telegram（都在后台页面里配置） |
 
-单实例零外部依赖：缓存、消息走框架内存实现，文件落本地目录。多实例部署见文末。
+单实例零外部依赖：缓存、消息走框架的进程内实现，文件落本地目录。多实例部署见[文末](#多实例部署)。
 
 ## 容器（docker compose）
 
-仓库根的 `docker-compose.yml` 起一套单实例环境：PostgreSQL、后端与前端（Nginx 托管构建产物，并把 `/api`、`/blobs`、`/hubs`、`/health` 同源反代到后端）。
+仓库根的 `docker-compose.yml` 起一套单实例环境：PostgreSQL（`postgres:17-alpine`）、后端与前端（`nginx:1.29-alpine` 托管构建产物，并把 `/api`、`/blobs`、`/hubs`、`/health` 同源反代到后端）。
 
 ```bash
 cp .env.example .env    # 改数据库密码、JWT_SECRET、SIGNED_URLS_SECRET 与 SUPERADMIN_PASSWORD
 docker compose up -d --build
 ```
 
+- 前端在 `http://localhost:${FRONTEND_PORT}`（缺省 8080），后端直连端口 `${BACKEND_PORT}`（缺省 9710）；用 `superadmin` 与 `.env` 里的 `SUPERADMIN_PASSWORD` 登录，登录后立即修改密码。
 - 后端镜像（`backend/Dockerfile`）构建时按 `props/framework.props` 锁定的提交克隆 XiHan.Framework 源码，与 CI 同一做法，需要能访问 GitHub；框架仓库在别处时用构建参数 `XIHAN_FRAMEWORK_REPO` 改指。
-- `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射、演示数据按 `.env` 的 `ENABLE_DEMO_DATA`。
+- `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行，每次 `up` 都会跑一遍），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射，演示数据按 `.env` 的 `ENABLE_DEMO_DATA`（缺省 `false`）。
 - 可写的数据都在后端容器的 `/app/data` 卷：文件存储、数据保护密钥与框架缺省的文件系统存储。`init` 与后端共用这个卷，种子加密写入的值才解得开。
-- Redis、RabbitMQ、Qdrant 在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应绑定的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
+- 编排网络固定为 `172.30.0.0/24`，后端只信这个网段里的 Nginx 转发头（`BasicApp__ForwardedHeaders__KnownNetworks__0`）。
+- Redis（`redis:8-alpine`）、RabbitMQ（`rabbitmq:4-alpine`）、Qdrant（`qdrant/qdrant:v1.15.1`）在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应配置的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
 
 ## 后端：发布
 
-框架以源码引用，发布机上同样要有锁定提交的 XiHan.Framework 检出（与 BasicApp 并排）：
+源码引用模式下，发布机上同样要有锁定提交的 XiHan.Framework 检出（与 BasicApp 并排，见[开发环境](./dev-environment#框架检出)）：
 
 ```bash
 dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
@@ -44,11 +46,12 @@ dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
 | 键 | 说明 |
 | --- | --- |
 | `XiHan__Bindings__db__value` | 平台库连接串（必需） |
-| `XiHan__Security__Jwt__Secret` | HS256 密钥，至少 32 字节（必需） |
-| `XiHan__ObjectStorage__SignedUrls__Secret` | 本地存储签名地址密钥（用本地存储时必需） |
-| `BasicApp__Seed__SuperAdminPassword` | **必需（首次 `seed`）**：超级管理员初始密码 |
+| `XiHan__Security__Jwt__Secret` | HS256 密钥，UTF-8 至少 32 字节（必需，缺失或太短启动即失败） |
+| `XiHan__ObjectStorage__SignedUrls__Secret` | 本地存储签名地址密钥，UTF-8 至少 32 字节（必需，缺失或太短启动即失败） |
+| `BasicApp__Seed__SuperAdminPassword` | 超级管理员初始密码（首次 `seed` 必需） |
 | `BasicApp__DataProtection__KeysDirectory` | 数据保护密钥目录，持久化存储；多实例共享 |
 | `BasicApp__Files__LocalRootPath` | 本地存储根目录，挂持久卷 |
+| `Kestrel__Endpoints__Http__Url` | 对外监听地址，如 `http://0.0.0.0:9710` |
 | `BasicApp__OpenPlatform__Issuer` | 对外的 OIDC 签发者（反向代理后必须显式配置） |
 | `BasicApp__Auth__OAuth__CallbackBaseUrl` | 第三方登录回调的后端对外地址 |
 | `XiHan__Bindings__cache__value` | Redis 连接（多实例时配；不配即进程内缓存） |
@@ -60,9 +63,9 @@ Kubernetes 也可以经 Service Binding 提供三个连接：`SERVICE_BINDING_RO
 
 ### 首次初始化
 
-1. 建空库（6.0 不接受 5.x 的库，见[表结构升级](./backend/upgrade)）。
-2. 启动宿主：表结构升级器执行 `Schema/6.0.0/` 基线并写版本台账；失败即中断启动。也可以先单独执行 `XiHan.BasicApp.Host schema upgrade`。
-3. 执行一次种子：`XiHan.BasicApp.Host seed`（命令模式不监听端口，可在宿主运行时执行；可重复执行）。
+1. 建空库。
+2. 执行表结构升级：启动宿主时升级器执行 `Schema/6.0.0/` 基线并写版本台账，失败即中断启动；也可以先单独执行 `schema upgrade`。
+3. 执行一次种子：`seed`（命令模式不监听端口，可在宿主运行时执行；可重复执行）。
 4. 用 `superadmin` 登录，立即修改密码，再建租户与租户管理员。
 
 ```bash
@@ -71,6 +74,8 @@ dotnet XiHan.BasicApp.Host.dll schema upgrade
 dotnet XiHan.BasicApp.Host.dll seed
 dotnet XiHan.BasicApp.Host.dll
 ```
+
+关掉 `BasicApp:Schema:AutoUpgrade` 时，每次升级版本都要先执行 `schema upgrade` 再启动，见[表结构升级](./backend/upgrade)。
 
 ### 健康检查
 
@@ -82,7 +87,7 @@ dotnet XiHan.BasicApp.Host.dll
 
 配了 Redis / RabbitMQ 时就绪探针多出 `caching.redis.connection` / `messaging.rabbitmq.connection`：启动时连不上即启动失败，运行中断开只记 Degraded，应用照常服务。
 
-宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp:6.0.0-preview.1`、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。清单只列了必需的 `db`；要让打包工具一并生成 Redis 与 RabbitMQ，在 `bindings` 里加上 `{ "name": "cache", "type": "cache:distributed" }` 与 `{ "name": "queue", "type": "queue" }`。
+宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp`（tag 与版本号一致）、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。清单只列了必需的 `db`；要让打包工具一并生成 Redis 与 RabbitMQ，在 `bindings` 里加上 `{ "name": "cache", "type": "cache:distributed" }` 与 `{ "name": "queue", "type": "queue" }`。
 
 ### 维护模式
 
@@ -99,6 +104,8 @@ pnpm build          # 产物在 dist/
 构建期变量见[配置参考](./configuration#前端-env)：`VITE_API_BASE_URL` 留空即同源；`VITE_ROUTER_HISTORY=history` 时静态托管要把未知路径回退到 `index.html`。
 
 推荐与后端同源部署：由同一个站点托管 `dist/` 并把后端路径反向代理过去，不必开跨域。前端放在别的源时，在 `BasicApp:Cors:AllowedOrigins` 列出前端的来源（见[配置参考](./configuration#basicapp-cors)）。
+
+下面的 Nginx 配置与 `frontend/nginx.conf` 同一套规则：
 
 ```nginx
 server {
@@ -124,6 +131,8 @@ server {
     location /blobs/ {
         proxy_pass http://127.0.0.1:9710;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # SignalR（WebSocket）
@@ -133,6 +142,8 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 300s;
     }
 
@@ -142,13 +153,13 @@ server {
 }
 ```
 
-`client_max_body_size` 与 `BasicApp:Files:MaxUploadBytes`（缺省 100 MB）保持一致；大文件走分片上传，分片经签名地址直传存储。
+`client_max_body_size` 与 `BasicApp:Files:MaxUploadBytes`（缺省 100 MiB）保持一致；大文件走分片上传，分片经签名地址直传存储。
 
 ::: tip 真实客户端 IP
 宿主还原 `X-Forwarded-For` / `-Proto` / `-Host`，但只信本机回环。反向代理不在本机时，把它的地址或网段写进 `BasicApp:ForwardedHeaders:KnownProxies` / `KnownNetworks`（见[配置参考](./configuration#basicapp-forwardedheaders)），否则访问日志、登录地点、会话 IP 与访问策略的 IP / 地区条件看到的都是代理地址。
 :::
 
-## gRPC
+## gRPC 与 CloudEvents
 
 gRPC 端点（`Kestrel:Endpoints:Grpc`，HTTP/2）只供内部服务调用，只发布显式 `Expose.Grpc` 的操作。保持只监听内网地址，不要经反向代理暴露到公网；`.proto` 从 `GET /operations.proto` 取。
 
@@ -159,20 +170,20 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 平台库可以配从库（配置见 [`BasicApp:Database`](./configuration#basicapp-database) 与 [`XiHan:Persistence:SqlSugar`](./configuration#xihan-persistence-sqlsugar)）。配之前先看这几条：
 
 - **跨调用不保证读己之写**：写完马上发起的 `get`、`list` 可能读到落后的数据。比如保存之后立刻刷新列表，可能看到旧值。
-- **权限撤销**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，强制下线、改密、禁用与撤销角色不受复制延迟影响。框架自己的只读工作单元还走从库，包括授予和租户目录：角色或用户的授予被撤销、租户被停用时，生效要多等一段复制延迟，加上授予缓存的时长（`XiHan:Security:Database:CacheTimeToLiveSeconds`）。
+- **授权相关的读走主库**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，框架的授予与租户目录也读主库；强制下线、改密、禁用、撤销角色与停用租户不受复制延迟影响，生效时间只取决于缓存时长（如授予缓存 `XiHan:Security:Database:CacheTimeToLiveSeconds`）。
 - **探测只看连通**：落后很多但连得上的从库照常接读流量，复制延迟要另外监控。
 - **只在 PostgreSQL 上实测过**：MySQL、SQL Server、Oracle 的从库没有实测。
 - 独立库租户不配从库，读写都走它自己的主库。主库不同的连接不能共用从库，启动失败（`PERSISTENCE_VALIDATION_009`）。
 
 ## 出站地址
 
-用户填的地址（工作流 `Http` 活动、群机器人 Webhook、SMTP 服务器、AI 提供商、第三方登录、S3 兼容存储、代码生成的外部数据源）缺省只能连公网。自建 MinIO、内网 Webhook、内网 SMTP 中继、内网业务库、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
+用户填的地址（工作流 `Http` 活动、群机器人 Webhook、SMTP 服务器、AI 提供商、第三方登录、S3 兼容存储、代码生成的外部数据源、Telegram）缺省只能连公网。自建 MinIO、内网 Webhook、内网 SMTP 中继、内网业务库、流程调内网服务、本机模型端点都要在 [`XiHan:Security:Outbound`](./configuration#xihan-security-outbound) 放行，否则连接被拒。
 
 ## 备份与还原
 
 平台库、独立库租户的库、对象存储与知识库的向量库要在同一时间点一起备份、一起还原。
 
-向量不在数据库里（`BasicApp:AI:Qdrant`，集合 `knowledge.platform` 与 `knowledge.<租户 ID>`）。只还原数据库时，旧向量还会被检索命中，包括库里已经不存在的文档。没有整库重建索引的入口（5.x 同样没有），要手工处理：
+向量不在数据库里（`BasicApp:AI:Qdrant`，集合 `knowledge.platform` 与 `knowledge.<租户 ID>`）。只还原数据库时，旧向量还会被检索命中，包括库里已经不存在的文档。没有整库重建索引的入口，要手工处理：
 
 1. 删掉要还原那一侧的集合（Qdrant 的 `DELETE /collections/<集合名>`）；
 2. 在那一侧逐篇重建索引：知识库页的行操作「重建索引」，或操作 `knowledge-documents.reindex`。集合在第一次写入时重新建好，重建用的是库里留存的原文。
@@ -185,11 +196,12 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 | 消息 | 进程内代理 | 配 RabbitMQ（`XiHan__Bindings__queue__value`）：发件箱派发与 CloudEvents 发布模式经它，各实例按主题竞争消费；队列由订阅方声明，没人订阅的主题（如框架的 `scheduling.*` 事件）发布即丢弃 |
 | 实时推送 | 进程内的连接登记与组 | 配 Redis 即跨实例：SignalR 接 Redis 背板，在线状态汇总各实例写进共享缓存的连接；强制下线时别的实例上的连接经背板移出全部组，再配 RabbitMQ 时还由所在实例断开（见[实时推送](./backend/realtime#跨实例)） |
 | 数据库译文 | 平台库 `message_translation` | 各实例按 `XiHan:Localization:Database:RefreshIntervalSeconds` 各自重载 |
-| 作业 | `Scheduling.Database` | 同左，按框架的数据库调度协调 |
+| 作业 | `Scheduling.Database` | 同左，按框架的数据库调度选主协调 |
 | 数据保护 | 本机密钥目录 | 必须共享 `BasicApp:DataProtection:KeysDirectory` |
-| 表结构升级 | 升级器取数据库租约锁 | 同左，同一时刻只有一个节点执行 |
+| 密钥 | — | `Jwt:Secret` 与 `SignedUrls:Secret` 各实例一致 |
+| 表结构升级 | 升级器取数据库租约锁 | 同左，同一时刻只有一个节点执行，其他节点进入维护模式 |
 
-因此多实例部署配 Redis 即可让缓存与实时推送跨实例；强制下线要立刻断开别的实例上的连接，还要配 RabbitMQ。
+多实例部署配 Redis 即可让缓存与实时推送跨实例；强制下线要立刻断开别的实例上的连接，还要配 RabbitMQ。
 
 ## 下一步
 

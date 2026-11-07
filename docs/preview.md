@@ -4,7 +4,7 @@
 const previewImages = import.meta.glob('../assets/preview/*.png', { eager: true, query: '?url', import: 'default' })
 </script>
 
-本页是 6.0 的界面截图，并说明如何在本机查看各个页面，适用于希望直观了解 6.0 功能的读者。逐项能力见[功能清单](./features)。
+本页说明界面截图与在本机查看各个页面的方法，适用于希望直观了解功能的读者。逐项能力见[功能清单](./features)。
 
 <table class="feature-preview-table">
   <tr>
@@ -31,20 +31,16 @@ const previewImages = import.meta.glob('../assets/preview/*.png', { eager: true,
   </tr>
 </table>
 
-::: info 在线演示
-线上演示环境 [basicapp.xihanfun.com](https://basicapp.xihanfun.com) 目前部署的是 5.x，6.0 可以按下面的步骤在本机运行查看。
-:::
-
-6.0 的前端壳层（布局、主题、偏好中心、全局搜索、标签栏、分屏、通知中心）是从 5.x 原样搬入的，所以界面观感与 5.x 一致；不同在于页面背后的数据全部来自 6.0 的操作，菜单与按钮按 6.0 的权限码门控。
+页面背后的数据都来自后端的操作，菜单与按钮按当前主体的权限码门控。
 
 ## 本地查看
 
-按[快速开始](./getting-started)启动后端、执行 `seed`、启动前端，用 `superadmin` 登录，之后可按下表查看各页面：
+按[快速开始](./getting-started)启动后端、执行 `seed`（开发环境写入演示数据）、启动前端，用 `superadmin` 登录，之后可按下表查看各页面：
 
 | 想看 | 页面路由 | 看点 |
 | --- | --- | --- |
-| 工作台 | 登录后的首页 `/workbench/dashboard` | 公告轮播、今日统计与 10 个图表都来自 `workbench.widget-data`；拖拽排布后在另一个浏览器里实时同步 |
-| 控制中心 | 顶栏入口（`_core/control-center`） | 可进入的租户与平台，切换后整页重建 |
+| 工作台 | 登录后的首页 `/workbench/dashboard` | 公告轮播、今日统计与各包登记的图表、列表都来自 `workbench.widget-data`；拖拽排布后在另一个浏览器里实时同步 |
+| 控制中心 | 顶栏入口 | 可进入的租户与平台（`superadmin` 已是演示租户 `demo` 的成员），切换后整页重建 |
 | 用户管理 | `/identity/users` | SchemaPage 高级搜索、列设置、行速览；权限直授（授予 / 拒绝）、数据范围、强制下线、模仿登录 |
 | 角色与授权 | `/access/roles` | 权限分配抽屉、Deny、有效期、上级角色、成员指派有效期 |
 | 字段安全 | `/access/field-security` | 给某个角色把手机号设成部分脱敏，回到用户列表看效果 |
@@ -66,7 +62,7 @@ const previewImages = import.meta.glob('../assets/preview/*.png', { eager: true,
 
 ## 相关
 
-- [功能清单](./features) · [快速开始](./getting-started) · [5.x 功能预览](https://basicapp.docs.xihanfun.com/v5/preview)
+- [功能清单](./features) · [快速开始](./getting-started)
 
 <style scoped>
 .feature-preview-table {

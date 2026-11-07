@@ -1,20 +1,6 @@
 # 常见问题
 
-本页汇总 6.0 在运行、认证、权限与接口联调中的常见问题，适用于开发与运维排查。
-
-## 版本与范围
-
-### 该用 6.0 还是 5.x？
-
-新项目用 6.0。已有的 5.x 部署可以留在 `release/v5` / `hotfix/v5` 维护线上继续运行，文档见 [5.x 文档](https://basicapp.docs.xihanfun.com/v5/)；要换到 6.0 见下一条。
-
-### 5.x 的数据库能否升级到 6.0？
-
-不能，这是有意的决定。6.0 的主键（UUID v7）、租户 ID（字符串）、并发戳、权限码与表名全部变了，不提供原地升级，也不提供 5.x → 6.0 的数据迁移工具。要换到 6.0 的部署从空库初始化，在 6.0 上重录租户与账号。见[表结构升级](./backend/upgrade)。
-
-### 5.x 的接口调用代码能否直接用于 6.0？
-
-不能。6.0 没有统一响应信封，路由由操作 ID 推导，错误是 Problem Details。见[接口对接指南](./api-guide)。
+本页说明运行、认证、权限与接口联调中的常见问题，适用于开发与运维排查。
 
 ## 启动与环境
 
@@ -22,18 +8,20 @@
 
 后端 HTTP `9710`、gRPC `9711`（只监听本机），前端开发服务器 `9100`。以 `appsettings.json` 的 `Kestrel:Endpoints` 与 `frontend/.env` 的 `VITE_PORT` 为准。
 
-### 构建时找不到 `XiHan.Framework.*` 工程
+### 构建或测试报框架相关的错
 
-`backend` 以源码引用框架，要求 XiHan.Framework 与 BasicApp 并排检出（`../../XiHan.Framework/next/src`）。框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/next/src/`。
+后端以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/next/src`，相对 `backend/`），并锁定在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`。同级找不到 `next/src` 时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致。把框架检出到锁定提交；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/next/src/`。见[开发环境](./dev-environment#框架检出)。
 
 ### `FrameworkPinTests` 失败
 
-框架检出不在 `backend/props/framework.props` 锁定的提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
+同级框架检出没有 `next/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
 
 ### 宿主启动后立即退出
 
 - 日志有 `RUNTIME_VALIDATION_001`：没有配置 `XiHan:Bindings:db`。
 - 日志有 `Startup aborted: schema upgrade failed`：表结构升级脚本执行失败，看后面的错误码与信息；修好后重启即可，台账里记着执行到哪。
+- JWT 密钥或签名地址密钥缺失、不足 32 字节：非 Development 环境必须配 `XiHan:Security:Jwt:Secret` 与 `XiHan:ObjectStorage:SignedUrls:Secret`。
+- 框架节写了空的 `[]` / `{}`：整项删掉，见[配置参考](./configuration#文件与优先级)。
 
 ### 表已创建，但无法以 `superadmin` 登录
 
@@ -45,17 +33,17 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 前端提示跨域错误
 
-开发态前端经 Vite 代理访问后端，与后端同源，不应出现跨域。出现了说明 `VITE_API_BASE_URL` 被设成了别的源；留空即可。部署时推荐同源；前端放在别的源时，在 `BasicApp:Cors:AllowedOrigins` 列出它，见[部署](./deployment)。
+开发时前端经 Vite 代理访问后端，与后端同源，不应出现跨域。出现了说明 `VITE_API_BASE_URL` 被设成了别的源，留空即可。部署推荐同源；前端放在别的源时，在 `BasicApp:Cors:AllowedOrigins` 列出它，见[部署](./deployment#前端-构建与部署)。
 
 ### 是否需要 Redis？
 
-不需要。不配连接时缓存与消息走框架的进程内实现，开发与单实例部署零外部依赖。多实例部署时配上 Redis（与 RabbitMQ），宿主自动装上对应 Provider，缓存与消息跨实例共享，配了 Redis 时实时推送也跨实例，见[部署](./deployment#多实例部署)。
+不需要。不配连接时缓存与消息走框架的进程内实现，开发与单实例部署零外部依赖。多实例部署时配上 Redis（与 RabbitMQ），宿主自动装上对应 Provider，缓存与消息跨实例共享，实时推送也跨实例，见[部署](./deployment#多实例部署)。
 
 ## 认证与令牌
 
 ### 初始超级管理员账号是什么？
 
-开发环境是 `superadmin` / `SuperAdmin@123`，由 `seed` 写入，写在 `appsettings.Development.json` 的 `BasicApp:Seed:SuperAdminPassword`。别的环境必须配这一项，否则 `seed` 失败。首次登录后请修改密码。
+开发环境是 `superadmin` / `SuperAdmin@123`，由 `seed` 写入，密码写在 `appsettings.Development.json` 的 `BasicApp:Seed:SuperAdminPassword`。别的环境必须配这一项，否则 `seed` 失败（`IDENTITY_VALIDATION_026`）。首次登录后请修改密码。
 
 ### 命令行调用登录接口时如何处理验证码？
 
@@ -63,11 +51,11 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 登录提示尝试过于频繁
 
-登录节流：同一账号同一地址每分钟 5 次失败、同一地址跨账号 30 次（`LoginThrottle*`），超限返回 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`。连续失败达到 `MaxFailedAccessAttempts` 还会锁定账号。
+登录节流：同一账号同一地址每分钟 5 次失败、同一地址跨账号 30 次（`BasicApp:Auth:LoginThrottle*`），超限返回 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`。连续失败达到 `MaxFailedAccessAttempts` 还会锁定账号。
 
 ### 接口返回 403，`code` 是 `IDENTITY_DENIED_002`
 
-会话被锁定，`details.reason` 说明原因：`ScreenLock` 是锁屏，前端进锁屏界面，调 `auth.unlock` 解锁；`PasswordChangeRequired` 是强制改密（系统参数 `identity.password`），调 `profile.change-password` 改完即解开。5.x 的 423 在 6.0 统一成这个错误码。
+会话被锁定，`details.reason` 说明原因：`ScreenLock` 是锁屏，前端进锁屏界面，调 `auth.unlock` 解锁；`PasswordChangeRequired` 是强制改密（系统参数 `identity.password`），调 `profile.change-password` 改完即解开。
 
 ### 授予权限后是否需要重新登录？
 
@@ -77,7 +65,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 切换租户是否会结束原来的会话？
 
-不会。`auth.switch-tenant` 续用同一个会话，只换令牌；前端换完令牌整页重载。
+不会。`auth.switch-tenant` 续用同一个会话，只换令牌；前端换完令牌整页重建。
 
 ## 权限与菜单
 
@@ -86,6 +74,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 1. 页面要登记在包的 `<包>Pages.cs` 里，并重新执行 `seed`（`access.menus` 种子从页面登记对齐菜单）。
 2. 当前主体要有页面登记里的权限码；租户主体还要被套餐白名单放行。
 3. 页面的作用侧要和当前主体一致（平台 / 租户）。
+4. 页面属于可选模块时，模块要开着（`BasicApp:Modules:<名>:Enabled`）。
 
 ### 菜单可见但页面显示 404
 
@@ -110,7 +99,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 如何确定操作的 HTTP 路由
 
-路由完全由操作 ID 与请求形状推导：请求带 `id` 即实例级（`/{id}`），带分页对象这类嵌套对象的 `list` / `get` 走 POST，声明了 `ReadOnly` 且没有嵌套对象的查询动词走 GET。以 `/openapi.json` 为准。
+路由完全由操作 ID 与请求形状推导：请求带 `id` 即实例级（`/{id}`），带分页对象这类嵌套对象的 `list` 走 POST，`get` 与声明了 `ReadOnly` 且没有嵌套对象的查询动词走 GET。以 `/openapi.json` 为准，见[接口对接指南](./api-guide#路由推导)。
 
 ### 批量删除如何传递 ID
 
@@ -118,7 +107,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 时间显示相差若干小时
 
-6.0 的接口一律 UTC（带 `Z`），没有服务端时区换算，换算是客户端的事。前端按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`，顶栏的时区切换器可改），不看浏览器所在的时区，见[国际化与时区](./frontend/i18n#时区)。自己对接时不要把带 `Z` 的时间当本地时间解析。
+接口一律 UTC（带 `Z`），服务端不做时区换算，换算是客户端的事。前端按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`，顶栏的时区切换器可改），不看浏览器所在的时区，见[国际化与时区](./frontend/i18n#时区)。自己对接时不要把带 `Z` 的时间当本地时间解析。
 
 ### 修改后端 DTO 后前端类型未更新
 

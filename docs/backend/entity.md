@@ -1,26 +1,26 @@
 # 实体基类
 
-本页说明 6.0 的实体基类、字段约定与平台数据的建模规则，适用于新增实体的后端开发者。
+本页说明应用的实体基类、字段约定、平台数据的建模规则与领域事件，适用于新增实体的后端开发者。
 
-框架 5 只提供实体协议接口（`IEntity<TKey>`、`IHasConcurrencyStamp`、`IHasCreationTime`、`ISoftDeletable`、`IMultiTenant`、`IAggregateRoot<TKey>`…），不提供基类。BasicApp 在 `XiHan.BasicApp.Contracts/Entities/` 里用这些接口组合出一组应用基类，并补上框架没有的「操作人」字段。
+框架只提供实体协议接口（`IEntity<TKey>`、`IHasConcurrencyStamp`、`IHasCreationTime`、`IHasModificationTime`、`ISoftDeletable`、`IMultiTenant`、`IAggregateRoot<TKey>` 等），不提供基类。BasicApp 在 `XiHan.BasicApp.Contracts/Entities/` 里用这些接口组合出一组应用基类，并补上框架没有的「操作人」字段（`IHasCreator`、`IHasModifier`、`IHasDeleter`）。
 
 ## 基类一览
 
 | 基类 | 组合 | 字段 | 用途 |
 | --- | --- | --- | --- |
 | `AppEntity` | `IEntity<Guid>`、`IHasConcurrencyStamp` | `Id`、`ConcurrencyStamp` | 关联表、无审计 |
-| `AppRecord` | `AppEntity` + `IHasCreationTime` + `IHasCreator` | `CreatedAt`、`CreatedBy` | 只增的记录：日志、流水、授予规则行 |
-| `AppAuditedEntity` | `AppRecord` + `IHasModificationTime` + `IHasModifier` + `ISoftDeletable` + `IHasDeleter` | `ModifiedAt`、`ModifiedBy`、`IsDeleted`、`DeletedAt`、`DeletedBy` | 默认选择 |
+| `AppRecord` | `AppEntity` + `IHasCreationTime` + `IHasCreator` | `CreatedAt`、`CreatedBy` | 只增的记录：日志、流水、投递记录、授予规则行 |
+| `AppAuditedEntity` | `AppRecord` + `IHasModificationTime` + `IHasModifier` + `ISoftDeletable` + `IHasDeleter` | `ModifiedAt`、`ModifiedBy`、`IsDeleted`、`DeletedAt`、`DeletedBy` | 缺省选择 |
 | `AppAggregateRoot` | `AppAuditedEntity` + `IAggregateRoot<Guid>` | `DomainEvents` | 有行为、要发领域事件的聚合 |
 | `TenantScopedEntity` / `TenantScopedRecord` / `TenantScopedAuditedEntity` / `TenantScopedAggregateRoot` | 上面四个 + `IMultiTenant` | `TenantId` | 只用于租户库实体 |
 
-`TenantScoped*` 即方案中的「`TenantXxx` 变体」，如此命名是为了避免与框架 `MultiTenancy.Database` 的租户目录实体 `TenantRecord` 重名。
+叫 `TenantScoped*` 是为了不与框架 `MultiTenancy.Database` 的租户目录实体 `TenantRecord` 重名。哪些实体用哪组基类见[数据模型](./data-model)。
 
 ## 字段约定
 
 | 字段 | 类型 | 谁维护 |
 | --- | --- | --- |
-| `Id` | `Guid`，UUID v7（框架 `GuidV7IdGenerator`，经 `IIdGenerator<Guid>` 取） | 操作里 `ids.NewId()` |
+| `Id` | `Guid`，UUID v7（经 `IIdGenerator<Guid>` 取） | 操作里 `ids.NewId()` |
 | `ConcurrencyStamp` | 32 位字符串 | 框架仓储，更新时比对 |
 | `CreatedAt` / `ModifiedAt` / `DeletedAt` | `DateTimeOffset`，库内 UTC | 框架仓储 |
 | `CreatedBy` / `ModifiedBy` / `DeletedBy` | `string?`，值为主体 ID | Runtime 的 SqlSugar 回调（见下） |
@@ -29,26 +29,27 @@
 
 ### 操作人字段的填充
 
-框架没有操作人字段。`Runtime` 的 `AuditorStampMiddleware` 在管道 Transaction 阶段把当前主体 ID 放进异步本地值（`AuditorStamp`），SqlSugar 的 `AopEvents.DataExecuting` 回调据此在插入、更新、软删除时填 `CreatedBy` / `ModifiedBy` / `DeletedBy`。
+框架没有操作人字段。Runtime 的 `AuditorStampMiddleware` 在管道 Transaction 阶段把当前已认证主体的 ID 放进异步本地值（`AuditorStamp`），SqlSugar 的 `AopEvents.DataExecuting` 回调据此在插入、更新、软删除时填 `CreatedBy` / `ModifiedBy` / `DeletedBy`。
 
-为什么不经依赖注入：持久化「方式一」的 `ConnectionConfig` 在装配时只建一份、回调里没有服务提供者，异步本地值是能读到当前主体的方式（冒烟结论，SQLite 与 PostgreSQL 都验证过）。作业与种子里的写入没有主体，操作人字段为空。
+不经依赖注入，是因为方式一的连接配置在装配时只建一份，回调里拿不到作用域服务，异步本地值是能读到当前主体的方式。作业与种子里的写入没有主体，操作人字段为空；要以某个主体写入时用 `AuditorStamp.Enter(主体 ID)` 开一段范围。
 
 ## 平台数据：不实现 `IMultiTenant`
 
-框架仓储对实现了 `IMultiTenant` 的实体做严格相等过滤：没有租户上下文时看不到任何行。平台管理员没有租户上下文，因此 5.x 中「`TenantId = 0` 表示平台」的做法在 6.0 不成立。
+框架仓储对实现了 `IMultiTenant` 的实体做严格相等过滤：没有租户上下文时看不到任何行。平台管理员的调用没有租户上下文，所以平台库实体不能靠租户列区分平台与租户。
 
-平台库实体（用户、会话、租户、套餐、角色与授权、菜单、参数、字典、模板、配置等）不实现 `IMultiTenant`。需要区分数据属于平台还是某个租户时，实体实现 `IOwnedByTenant`，以显式列 `OwnerTenantId` 记录属主，平台的值固定为常量 `platform`（`TenantIds.Platform`）。账号域实体（用户、会话）使用 `HomeTenantId`（注册地）列，登录等尚无租户上下文的操作按该列显式查询。
+平台库实体（用户、会话、租户、套餐、角色与授权、菜单、参数、字典、模板、各类配置等）不实现 `IMultiTenant`。需要区分数据属于平台还是某个租户时，实体实现 `IOwnedByTenant`，以显式列 `OwnerTenantId` 记录属主，平台的值固定为 `platform`（`TenantIds.Platform`）。账号 `SysUser` 用 `HomeTenantId`（注册地，平台账号为 `platform`），会话 `SysUserSession` 用 `ActiveTenantId`（会话当前所在的租户，平台为空）；登录等还没有租户上下文的操作按这些列显式查询。
 
-`Runtime` 的 `TenantScopedQuery` 为 `IOwnedByTenant` 提供两个查询扩展：
+Runtime 的 `TenantScopedQuery` 为 `IOwnedByTenant` 提供两个查询扩展：
 
 | 扩展 | 语义 | 用在 |
 | --- | --- | --- |
-| `OwnedByCurrentTenantOrPlatform()` | 读共享：当前租户的 + 平台的 | 读参数、字典、模板，租户覆盖平台 |
-| `OwnedByCurrentTenant()` | 写不共享：只认当前一侧 | 修改、删除 |
+| `OwnedByCurrentTenantOrPlatform(context)` | 读共享：当前租户的加平台的；没有租户时只有平台的 | 读参数、字典、模板，租户覆盖平台 |
+| `OwnedByCurrentTenant(context)` | 写不共享：只认当前一侧 | 修改、删除 |
 
 ## 实体示例
 
 ```csharp
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key))]
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 {
     public string OwnerTenantId { get; set; } = string.Empty;
@@ -59,30 +60,50 @@ public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
     [LongText]
     public string? Value { get; set; }
 
+    [LongText]
+    public string? DefaultValue { get; set; }
+
     public ConfigDataType DataType { get; set; } = ConfigDataType.Text;
     public bool IsEncrypted { get; set; }
+    public bool IsBuiltIn { get; set; }
     public bool AllowTenantOverride { get; set; }
     public SettingStatus Status { get; set; } = SettingStatus.Active;
     public int Order { get; set; }
+    public string? Description { get; set; }
+}
+
+public enum ConfigDataType
+{
+    Text = 0,
+    Number = 1,
+    Boolean = 2,
+    Json = 3,
+    Array = 4,
 }
 ```
 
 - 类名以 `Sys` 开头，表名、列名由命名约定转成 snake_case（`SysConfig` → `sys_config`，`OwnerTenantId` → `owner_tenant_id`）。
-- 没写长度的字符串列缺省 `varchar(512)`；长文本标 `[LongText]`，固定长度用 `[StringLength]` / `[MaxLength]`（`PersistenceMappingTests` 守住）。
-- 枚举存字符串还是数值由框架约定处理，JSON 里一律是字符串。
-- 不想进数据变更日志的属性标 `[DiffLogIgnored]`。
+- 没写长度的字符串列缺省 `varchar(512)`；长文本标 `[LongText]`，固定长度用 `[StringLength]` / `[MaxLength]`（`PersistenceMappingTests` 守护）。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
+- 软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 枚举在库里存整数，JSON 里是字符串（各包 `JsonContext` 按字符串序列化）。只被一个实体用到的枚举写在那个实体的文件里（实体类之后，同一命名空间），两个以上实体共用的才单独成文件（如 `SettingStatus.cs`）。
+- 写入极频繁或只存密文与计数的实体（会话、用户设置、账号安全、OAuth 授权码与令牌、邮件短信的发送记录、聊天会话与成员等）在类上标 `[DiffLogIgnored]`，不进数据变更日志；其余全审计实体缺省都记前后值。
 
 ## 领域事件
 
-`AppAggregateRoot` 带事件缓冲，框架的派发机制是：聚合在方法里记录事件；每种事件在所属包的 `Configure` 里 `AddDomainEvent<TEvent>(topic, type, jsonTypeInfo)` 显式登记，主题格式 `basicapp.<包>.<事件>`；工作单元在 Transaction 阶段提交前经发件箱把事件打成 CloudEvents 信封，与业务写入同事务（宿主已装 `OutboxFeature`）；未登记就发事件是装配错误，第一次调用即暴露。
+`AppAggregateRoot` 带事件缓冲，派发流程：
 
-主题常量集中在 `Contracts` 的 `Topics`，事件记录放在 `Contracts` 里发出方的目录（订阅方不引用发出方的包）。目前登记的领域事件：
+1. 聚合在方法里 `Raise(事件)`。
+2. 每种事件在发出方的 `Configure` 里 `AddDomainEvent(topic, type, jsonTypeInfo, subject)` 显式登记，主题格式 `basicapp.<包>.<事件>`。
+3. 工作单元在提交前经发件箱把事件打成 CloudEvents 信封，与业务写入同事务（宿主已装 `OutboxFeature`），再由后台投递。
+4. 聚合记了没登记的事件，提交时调用失败（`MESSAGING_VALIDATION_003`）。
+
+主题常量集中在 Contracts 的 `Topics`，事件记录放在 Contracts 里发出方的目录（订阅方不引用发出方的包）。目前登记的领域事件：
 
 | 主题 | 发出 | 订阅 |
 | --- | --- | --- |
 | `basicapp.organization.membership-changed` | Organization：加入或移出部门（`SysUserDepartment` 是聚合根） | Chat：同步部门群成员（见[在线聊天](./chat#部门群同步)） |
 
-订阅方在自己的 `Configure` 里 `AddMessageHandler<THandler>(topic)` 登记；投递至少一次、可能乱序，处理器要按当时的状态核对、重复处理无副作用。其余跨包协作照旧走 `Contracts` 里的接口（如通知发布时经 `IMessageSender` 直接入队），推送走 `IRealtimePush`。
+订阅方在自己的 `Configure` 里 `AddMessageHandler<THandler>(topic)` 登记。投递至少一次、可能乱序，处理器要按处理时的当前状态核对，重复处理无副作用。其余跨包协作走 Contracts 里的接口（如经 `IMessageSender` 排队邮件与短信），推送走 `IRealtimePush`。
 
 ## 下一步
 

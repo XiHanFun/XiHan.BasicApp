@@ -2,7 +2,7 @@
 
 本页说明在线聊天的会话与消息规则、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
 
-Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub 与聊天审计。规则沿用 5.x，写法换成 6.0 的。
+Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub 与聊天审计。
 
 ## 数据
 
@@ -15,7 +15,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `sys_chat_message` | 消息：会话内序号、发送人与名字快照、类型、正文、附件（JSON）、撤回、编辑、回复快照、提及、置顶；不软删除，按保留期物理删除 |
 | `sys_chat_message_reaction` | 表情回应：同一消息、同一用户、同一表情只有一条 |
 
-会话内的消息按序号排序：发消息时对会话行加一取得序号（行锁让同一会话的发送串行），历史的游标、已读位与已读回执都比序号。5.x 按雪花主键排序，6.0 的主键是 GUIDv7，同一毫秒内没有先后。
+会话内的消息按序号排序：发消息时对会话行加一取得序号（行锁让同一会话的发送串行），历史的游标、已读位与已读回执都比序号。主键是 GUIDv7，同一毫秒内没有先后，不能用来排序。
 
 ## 规则
 
@@ -29,7 +29,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 提及与回复 | 最多提及 20 名成员；只能回复本会话未撤回的消息，存「发送人: 内容」快照 |
 | 撤回 | 本人、发出 2 分钟内，清空正文、保留行与附件 |
 | 编辑 | 本人的文本、发出 5 分钟内、没被禁言 |
-| 置顶消息 | 单聊双方都能，群与部门群只有群主与管理员，每会话最多 10 条 |
+| 置顶消息 | 单聊双方都能，群与部门群只有群主与管理员，每会话最多 10 条（`CHAT_CONFLICT_001`） |
 | 转发 | 服务端单条转发到一个或多个会话，原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；系统提示与已撤回的不能转发，不是成员或被禁言的会话逐项失败 |
 | 已读 | 未读清零、已读位前移（不回退，没给消息即读到最新），已读位推给全体成员 |
 
@@ -37,14 +37,14 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 ## 助手会话
 
-一个用户对一个助手只有一个会话，打开时没有即建并发开场白。助手不是成员，不算未读，助手会话也不显示已读回执（5.x 显示「未读」）；回复是前端发出用户消息之后单独发起的调用（与 5.x 相同）：
+一个用户对一个助手只有一个会话，打开时没有即建并发开场白。助手不是成员，不算未读，助手会话也不显示已读回执。回复是前端发出用户消息之后单独发起的调用：
 
 1. 前端发出提问，再调 `chat-messages.reply-assistant`，带自己生成的 `replyId`。
-2. 服务端从库里取最近的提问与回复，经 Contracts 的 `IChatAssistants` 流式生成。Chat 不引用 AI，AI 关掉时没有实现，三个助手操作返回 503 `CHAT_UNAVAILABLE_001`，聊天其余功能照常。
+2. 服务端从库里取最近的提问与回复，经 Contracts 的 `IChatAssistants` 流式生成。Chat 不引用 AI，AI 关掉时没有实现，三个助手操作（`chat-conversations.assistants`、`open-assistant`、`chat-messages.reply-assistant`）返回 503 `CHAT_UNAVAILABLE_001`，聊天其余功能照常。
 3. 生成期间这次调用还没开事务，增量经立即推送发给本人（`ChatAssistantDelta`）。
 4. 结束后过敏感词（与用户输入同一套），落库为一条助手消息（超过 20000 个字符截断），提交之后按普通消息推送，再推 `ChatAssistantCompleted`。
 
-失败（模型不可达、空输出、敏感词、提示词停用、检索失败）时不留消息，操作以 Problem Details 结束，同时立即推 `ChatAssistantCompleted` 带 `errorCode` 与 `error`。5.x 返回 200 带错误。
+失败（模型不可达、空输出、敏感词、提示词停用、检索失败）时不留消息，操作以 Problem Details 结束，同时立即推 `ChatAssistantCompleted` 带 `errorCode` 与 `error`。
 
 | 错误码 | 说明 |
 | --- | --- |
@@ -54,6 +54,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `CHAT_UNAVAILABLE_002` | 生成失败。原因只有异常类型，完整异常看应用日志 |
 | `CHAT_UNAVAILABLE_003` | 模型没有产生任何内容 |
 
+助手本身的配置见 [AI 能力](./ai#助手)。
+
 ## 操作与权限
 
 | 资源 | 操作 |
@@ -62,17 +64,17 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members` |
 
-普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`）。
+普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`，要 `chat.chat-messages.send`，访问日志记作 `chat-messages.upload`）。
 
-| 权限码 | 说明 | 对应 5.x |
-| --- | --- | --- |
-| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读也用它） | `chat:read` |
-| `chat.chat-messages.read` | 查看历史、搜索、置顶消息与换附件地址 | `chat:read` |
-| `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） | `chat:send` |
-| `chat.chat-conversations.manage` | 建群与群治理（进操作日志） | `chat:manage` |
-| `chat.chat-audit.read` | 聊天审计 | `chat:audit` |
+| 权限码 | 说明 |
+| --- | --- |
+| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读也用它） |
+| `chat.chat-messages.read` | 查看历史、搜索、置顶消息与换附件地址 |
+| `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
+| `chat.chat-conversations.manage` | 建群与群治理（进操作日志） |
+| `chat.chat-audit.read` | 聊天审计 |
 
-两侧都有。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）。
+权限码两侧都有。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）在「消息中心」目录下。
 
 ## 推送
 
@@ -80,18 +82,20 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 方向 | 方法 |
 | --- | --- |
-| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`；`ChatAssistantDelta`、`ChatAssistantCompleted` 随 N4 |
+| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted` |
 | 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库） |
+
+`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`。
 
 ## 附件
 
-附件以会话为访问范围，经 Files 的附件契约 `IAttachmentFiles` 存取：上传与秒传只要聊天的发送权限，文件存在调用方这一侧、来源记 `chat`；发送时核对附件是自己在聊天里上传的（`CHAT_DENIED_009`），文件名与大小以文件记录为准；会话成员经 `chat-messages.presign` 凭会话换签名地址，附件须出现在这个会话的消息里，或是自己上传、还没发出的文件。文件管理照旧要 `files.files.read`。保留清理不删附件文件。
+附件以会话为访问范围，经 Files 的附件契约 `IAttachmentFiles` 存取：上传与秒传只要聊天的发送权限，文件存在调用方这一侧、来源记 `chat`，大小上限与存储配额同普通上传；发送时核对附件是自己在聊天里上传的（`CHAT_DENIED_009`），文件名与大小以文件记录为准；会话成员经 `chat-messages.presign` 凭会话换签名地址，附件须出现在这个会话的消息里，或是自己上传、还没发出的文件。文件管理照旧要 `files.files.read`。保留清理不删附件文件。
 
 群头像是文件主键或直链：给文件主键时同样须是自己在聊天里上传的（`CHAT_DENIED_009`），设上之后会话成员经 `chat-messages.presign` 凭会话换它的地址。单聊的头像是对端用户的头像。
 
 ## 部门群同步
 
-Organization 在加入与移出部门时记领域事件 `basicapp.organization.membership-changed`（随写入进发件箱），Chat 订阅它：已经建了的部门群里，进了部门即入群、移出部门即出群，并推会话变更。处理时按当时的归属核对，消息乱序或重复投递都只做一次；写库失败即投递失败、由消息代理重试。
+Organization 在加入与移出部门时记领域事件 `basicapp.organization.membership-changed`（随写入进发件箱），Chat 订阅它：已经建了的部门群里，进了部门即入群、移出部门即出群，并推会话变更（被移出的人也收到）。处理时按当时的归属核对，消息乱序或重复投递都只做一次；写库失败即投递失败、由消息代理重试。
 
 ## 聊天审计
 
@@ -118,12 +122,12 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 JSON 不合法或保留天数越界即 `CHAT_VALIDATION_024`，发送与清理都不按错误的值执行。
 
-内建作业 `chat.messages.cleanup` 每天 4 点按平台与每个租户逐个清理：先删所属消息已过期的表情回应，再删过期的消息；不删会话、成员与附件文件。
+内建作业 `chat.messages.cleanup` 每天 04:00（UTC）按平台与每个租户逐个清理（独立库的租户清它自己的库）：先删所属消息已过期的表情回应，再删过期的消息；不删会话、成员与附件文件。一侧失败只记日志，不影响其他侧。
 
 ## 开关
 
-`BasicApp:Modules:Chat:Enabled`（缺省开）。关掉后宿主不装配 Chat：权限目录、页面、Hub、附件上传端点与部门归属订阅都不在，菜单不下发；Organization 照常发出领域事件，没有订阅方。四张表照样建。
+`BasicApp:Modules:Chat:Enabled`（缺省开）。关掉后宿主不装配 Chat：权限目录、页面、Hub、附件上传端点与部门归属订阅都不在，菜单不下发、操作 404；Organization 照常发出领域事件，没有订阅方。四张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
 
 ## 下一步
 
-- [实时推送](./realtime) · [文件与存储](./file) · [组织机构](./organization) · [消息与事件](./messaging)
+- [实时推送](./realtime) · [文件与存储](./file) · [组织架构](./organization) · [消息通知](./messaging)

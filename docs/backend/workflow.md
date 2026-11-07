@@ -2,16 +2,16 @@
 
 本页说明工作流的引擎与存储、流程定义与实例的操作和权限、组织类受理人、待办与审批中心、审批业务的接入、通知、演示流程与模块开关，适用于设计流程、接入审批的后端与前端开发者。
 
-Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺省开）。引擎、定义目录与存储都是框架 5 的工作流，本包只做管理操作、组织类受理人、待办与审批中心、审批业务接入、通知与页面；模型与规则沿用 5.x，写法换成 6.0 的。授权申请（Access）是审批业务接入的参照实现，见[约束规则与审批](./approval#授权申请)。
+Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺省开）。引擎、定义目录与存储都是框架的工作流，本包只做管理操作、组织类受理人、待办与审批中心、审批业务接入、通知与页面。授权申请（Access）是审批业务接入的参照实现，见[约束规则与审批](./approval#授权申请)。
 
 ## 引擎与存储
 
 | 部分 | 做法 |
 | --- | --- |
-| 存储 | 宿主恒装框架的 `Workflow.Database`（模块关掉也装）：定义、实例、节点实例与书签按分区落表（租户四张随租户分库、平台四张在平台库），在调用方的工作单元里随业务提交或回滚；九张表在 6.0.0 基线里，配置见[配置参考](../configuration#xihan-workflow) |
+| 存储 | 宿主恒装框架的 `Workflow.Database`（模块关掉也装）：定义、实例、节点实例与书签按分区落表（租户四张随租户分库、平台四张在平台库），在调用方的工作单元里随业务提交或回滚；九张表在基线 `Schema/6.0.0/0001-baseline.sql` 里，配置见[配置参考](../configuration#xihan-workflow) |
 | 并发 | 租约表 `workflow_lock_record` 上的实例锁；到期书签的轮询由持有 `workflow.poller` 领导权的节点做 |
 | 分区 | 取自当前调用：平台调用只看平台的定义与实例，租户调用只看本租户的；没有全局定义，平台建的定义租户看不到 |
-| 定义格式 | 框架 5 的 WorkflowJson（节点 `properties`、`transitions`、`variables`、超时与补偿）；设计器的布局放在定义的 `properties` 里 |
+| 定义格式 | 框架的 WorkflowJson（节点 `properties`、`transitions`、`variables`、超时与补偿）；设计器的布局放在定义的 `properties` 里 |
 | 事件 | `workflow.*` 事件写进调用方事务里的发件箱，提交才发出 |
 
 ## 流程定义
@@ -23,7 +23,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 | `workflow-definitions.publish` | `.update` | 单条：关联了审批业务的先过业务校验，再由框架做结构校验（`WORKFLOW_VALIDATION_001`）：问题按路径列在字段级 `errors`（键是定义 JSON 里的路径，如 `nodes[2].properties.Cron`、`transitions[0].condition`，定义级的问题是 `nodes`；值按调用方的语言），`detail` 是汇总；设计器按下标标出对应的节点与连线 |
 | `workflow-definitions.new-version` | `.create` | 以某个名字的最新版本为底复制出新草稿 |
 | `workflow-definitions.disable` / `archive` / `delete` | `.update` / `.update` / `.delete` | 批量；停用只对已发布的，删除只删草稿 |
-| `workflow-definitions.business-types` / `activity-types` | `.read` | 已登记的审批业务；设计器可放的活动（不含 Script 与框架 5 新增的事件网关、补偿、外部任务），显示名与分类展示名 `categoryName` 按调用方的语言 |
+| `workflow-definitions.business-types` / `activity-types` | `.read` | 已登记的审批业务；设计器可放的活动（不含 Script、事件网关、补偿与外部任务），显示名与分类展示名 `categoryName` 按调用方的语言 |
 
 关联审批业务的定义（名字等于业务码）发布前要满足：每个结束节点都写结论、结论在业务允许的范围里（缺省 `approved` / `rejected`，否则 `WORKFLOW_VALIDATION_101`），不能有终止节点（`WORKFLOW_VALIDATION_102`）。
 
@@ -55,7 +55,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 ## 待办与审批中心
 
-照 5.x 只要登录（不设权限码），主体一律锁定为调用方：
+只要登录（不设权限码），主体一律锁定为调用方：
 
 | 操作 | 说明 |
 | --- | --- |
@@ -106,7 +106,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 ## 前端
 
-`src/modules/workflow`：审批中心（待我审批、我已审批、抄送我的、我发起的四个页签与详情抽屉，深链 `?tab=` / `?instanceId=` / `?taskId=`）、流程定义页（元数据弹窗、全屏设计器、发起弹窗）与流程实例页（详情抽屉、按节点状态着色的流程图），两个列表照 5.x 可按列排序，按住 Shift 点列追加次级排序。设计器是 `@xihan-flow/*`，`packages/designers` 把它的 4.x 定义格式与 WorkflowJson 互相映射，面板去掉 Script。
+`src/modules/workflow`：审批中心（待我审批、我已审批、抄送我的、我发起的四个页签与详情抽屉，深链 `?tab=` / `?instanceId=` / `?taskId=`）、流程定义页（元数据弹窗、全屏设计器、发起弹窗）与流程实例页（详情抽屉、按节点状态着色的流程图），两个列表可按列排序，按住 Shift 点列追加次级排序。设计器是 `@xihan-flow/*`，`packages/designers` 把设计器预设的定义格式与 WorkflowJson 互相映射，面板只给后端 `activity-types` 列出的活动。
 
 ## 下一步
 

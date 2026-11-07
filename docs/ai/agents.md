@@ -9,7 +9,7 @@
 ## 提示词
 
 ```text
-这是 XiHan.BasicApp：后端 .NET 10 + XiHan.Framework 5（backend/），前端 Vue 3 + XiHan.UI（frontend/）。
+这是 XiHan.BasicApp：后端 .NET 10 + XiHan.Framework（backend/），前端 Vue + XiHan.UI（frontend/）。
 开始前先读仓库根的 AGENTS.md 与对应的 .agents/skills 技能，以代码为准。
 
 后端规则：
@@ -31,13 +31,13 @@
 | 文件 | 内容 |
 | --- | --- |
 | `AGENTS.md` | 仓库概览、开始前的检查、目录结构、命令、架构约束、前后端契约、配置运维、测试与提交规范、禁止事项、分支与 worktree 规则 |
-| `CLAUDE.md` | 指向 `AGENTS.md`，Claude Code 打开仓库时自动读取 |
+| `CLAUDE.md` | 链接到 `AGENTS.md`，Claude Code 打开仓库时自动读取 |
 | `.agents/skills/` | 按任务划分的技能，`.claude/skills` 链接到这里 |
-| `plans/下一代总体方案.md` | 全局决定（D1–D12）、包清单、分期计划与各批次的落地状态 |
+| `plans/` | 总体方案：全局决定（D1–D12）、包清单与分期计划；与代码不一致时以代码为准 |
 | `backend/README.md`、各包 `README.md` | 后端布局、命令与规则 |
 | `frontend/README.md` | 前端结构、命令、契约层与会话 / 路由说明 |
 
-技能按任务划分：`backend-development`（后端能力包、操作、数据与测试）、`frontend-development`（前端页面、契约层与视觉）、`fullstack-contracts`（前后端契约、配置与运维），另有提交信息、Pull Request、Issue 回复、测试审查、更新日志与版本发布等流程技能。
+技能按任务划分：`backend-development`（后端能力包、操作、数据与测试）、`frontend-development`（前端页面、契约层与视觉）、`fullstack-contracts`（前后端契约、配置与运维），另有 `commit-msg`、`create-pr`、`issue-reply`、`test-review`、`changelog-collect` 与 `version-release` 等流程技能。
 
 ## 由门禁检查的约定
 
@@ -51,9 +51,9 @@
 
 ## 框架与组件库的资料
 
-- XiHan.Framework 5 的源码与规范在框架仓库的 `framework/`（`framework/README.md`、`framework/spec/`、各包 `README.md`），文档站在框架仓库的 `docs/`；
-- XiHan.UI 见 [ui.docs.xihanfun.com](https://ui.docs.xihanfun.com)；
-- 机读文档见 [LLMs.txt](./llms)，MCP 见 [MCP Server](./mcp)。
+- XiHan.Framework：以锁定提交的源码为准（同级检出的 `next/src`，规范在 `next/spec`，各包带 `README.md`）；文档站 [framework.docs.xihanfun.com](https://framework.docs.xihanfun.com)，框架的离线知识库 MCP 见 [MCP Server](./mcp#开发用的-mcp-服务端)；
+- XiHan.UI：[ui.docs.xihanfun.com](https://ui.docs.xihanfun.com)；
+- 本站的机读文档见 [LLMs.txt](./llms)。
 
 ## 相关
 
