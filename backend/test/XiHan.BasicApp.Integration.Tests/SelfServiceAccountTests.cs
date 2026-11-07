@@ -152,7 +152,7 @@ public sealed class SelfServiceAccountTests : IDisposable
         var record = await VerificationRecordAsync(server, platform);
         Assert.Equal(JsonValueKind.Null, record.GetProperty("content").ValueKind);
         Assert.DoesNotContain(Code, record.ToString(), StringComparison.Ordinal);
-        Assert.Equal("NOTIFICATION_CONFLICT_008", (await SendAsync(server, HttpMethod.Post, "/api/emails:resend", new { ids = new[] { record.GetProperty("id").GetString() } }, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
+        Assert.Equal("NOTIFICATION_CONFLICT_009", (await SendAsync(server, HttpMethod.Post, "/api/emails:resend", new { ids = new[] { record.GetProperty("id").GetString() } }, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
         await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(_database.ConnectionString))
         {
             await connection.OpenAsync(TestContext.Current.CancellationToken);

@@ -217,7 +217,7 @@ public static class NotificationErrors
     /// <summary>
     /// 验证码的发送记录不能重发
     /// </summary>
-    public const string RecordNotResendable = "NOTIFICATION_CONFLICT_008";
+    public const string RecordNotResendable = "NOTIFICATION_CONFLICT_009";
 
     /// <summary>
     /// 模板语法错误或渲染失败

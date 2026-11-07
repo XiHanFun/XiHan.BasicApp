@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Architecture.Tests;
 /// 检查包的目录名、区域文件、错误码与清单
 /// </summary>
 /// <remarks>
-/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀；清单 ID、包名与版本按附录 B
+/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀、包内不重复；清单 ID、包名与版本按附录 B
 /// </remarks>
 public sealed class PackageStructureTests
 {
@@ -136,6 +136,30 @@ public sealed class PackageStructureTests
                 Assert.StartsWith(package.ToUpperInvariant() + "_", code, StringComparison.Ordinal);
             }
         }
+    }
+
+    [Fact]
+    public void ErrorCodes_AreUniqueWithinEachPackage()
+    {
+        // 前端与调用方按错误码分辨失败，两个常量同码即无法区分
+        var duplicates = new List<string>();
+        foreach (var assembly in Packages.Assemblies)
+        {
+            var package = Packages.ShortName(assembly.GetName().Name!);
+            var errorsType = assembly.GetType($"{Packages.Prefix}{package}.{package}Errors");
+            if (errorsType is null)
+            {
+                continue;
+            }
+
+            duplicates.AddRange(errorsType.GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(static f => f.IsLiteral && f.FieldType == typeof(string))
+                .GroupBy(static f => (string)f.GetRawConstantValue()!, StringComparer.Ordinal)
+                .Where(static g => g.Count() > 1)
+                .Select(g => $"{package}Errors: {g.Key} = {string.Join(", ", g.Select(static f => f.Name))}"));
+        }
+
+        Assert.True(duplicates.Count == 0, $"error codes declared more than once:{Environment.NewLine}{string.Join(Environment.NewLine, duplicates)}");
     }
 
     [Fact]

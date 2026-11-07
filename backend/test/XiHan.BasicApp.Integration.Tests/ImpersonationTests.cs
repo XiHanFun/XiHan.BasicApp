@@ -264,7 +264,7 @@ public sealed class ImpersonationTests : IDisposable
             await UpdateAsync(value, dataType);
             var (rejected, rejectedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{demoAdminId}}","tenantId":"demo"}""", superadmin));
             Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
-            Assert.Equal("IDENTITY_VALIDATION_024", rejectedBody.GetProperty("code").GetString());
+            Assert.Equal("IDENTITY_VALIDATION_027", rejectedBody.GetProperty("code").GetString());
         }
 
         Assert.Single(await SecurityNoticesAsync(server, demoAdmin));

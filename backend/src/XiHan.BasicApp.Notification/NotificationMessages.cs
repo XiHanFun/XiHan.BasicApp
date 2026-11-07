@@ -505,7 +505,7 @@ public static class NotificationMessages
     /// 验证码记录不能重发
     /// </summary>
     /// <remarks>
-    /// 批量结果的逐项错误码 <c>NOTIFICATION_CONFLICT_008</c> 的文案
+    /// 批量结果的逐项错误码 <c>NOTIFICATION_CONFLICT_009</c> 的文案
     /// </remarks>
     public const string RecordNotResendable = "notification.record.not_resendable";
 

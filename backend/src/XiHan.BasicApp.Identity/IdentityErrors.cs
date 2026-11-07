@@ -474,7 +474,7 @@ public static class IdentityErrors
     /// <remarks>
     /// 参数 <c>key</c>（系统参数的键）
     /// </remarks>
-    public const string ImpersonationSettingsInvalid = "IDENTITY_VALIDATION_024";
+    public const string ImpersonationSettingsInvalid = "IDENTITY_VALIDATION_027";
 
     /// <summary>
     /// 系统参数里的密码设置写得不对
