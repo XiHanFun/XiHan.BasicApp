@@ -236,9 +236,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 <style scoped>
 /* ============ Chrome 风格 ============ */
+/* 标签文字与侧栏、面包屑同取 medium：Windows 的中文字体没有这一档会落到常规，semibold 又落到粗体、太重 */
 .chrome-tab {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
   transition: color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
@@ -376,7 +377,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 /* ============ Flat 通用基础 ============ */
 .flat-tab {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
   cursor: default;
   color: hsl(var(--muted-foreground));
 }

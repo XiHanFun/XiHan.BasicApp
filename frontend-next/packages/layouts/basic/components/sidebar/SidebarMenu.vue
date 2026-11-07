@@ -125,13 +125,14 @@ watch(
   margin-block: 0;
 }
 
-/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给
+/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给。取 medium：Windows 的中文字体只有常规与粗体两档，
+   medium 落到常规、semibold 落到粗体，粗体太重（用户 2026-11-07 试过），有 medium 字形的字体上才看得出这一档
    组件库把行定为 inline-size: 100%，下面各档又加了左右外边距：不改回 auto 的话行宽是 100% 再加两侧外边距，
    右边越出侧栏的滚动区一截，行的右缘连同画在行盒内的聚焦环一起被裁掉、左右也不对称 */
 .sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   inline-size: auto;
   margin-block: 2px;
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
 }
 
 .sidebar-menu :deep(.sidebar-menu__icon) {

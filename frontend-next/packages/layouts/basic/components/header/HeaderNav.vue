@@ -182,12 +182,14 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
+/* 各级都取 medium（与侧栏、标签栏同一档；Windows 的中文字体没有这一档会落到常规，semibold 又太重），当前页靠字色分辨 */
 .crumb-item--link {
+  font-weight: var(--xh-font-weight-medium);
   cursor: pointer;
 }
 
 .crumb-item--active {
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
   cursor: default;
   pointer-events: none;
 }
