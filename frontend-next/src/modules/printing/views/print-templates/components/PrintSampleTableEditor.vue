@@ -7,6 +7,7 @@ import type { PrintSampleFormField, PrintTableColumn } from '~/printing'
 import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XIconButton } from '~/components'
 import { Icon } from '~/iconify'
 import {
   clonePrintSampleRecord,
@@ -183,27 +184,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
               />
             </td>
             <td class="sample-row-actions">
-              <XhButton
-                variant="ghost"
-                icon-only
-                size="sm"
-                :title="t('printing.print_templates.sample_duplicate_row')"
-                :aria-label="t('printing.print_templates.sample_duplicate_row')"
-                @click="duplicateRow(rowIndex)"
-              >
-                <span><Icon icon="tabler:copy" /></span>
-              </XhButton>
-              <XhButton
-                variant="ghost"
-                icon-only
-                size="sm"
-                tone="danger"
-                :title="t('printing.print_templates.sample_delete_row')"
-                :aria-label="t('printing.print_templates.sample_delete_row')"
-                @click="removeRow(rowIndex)"
-              >
-                <span><Icon icon="tabler:trash" /></span>
-              </XhButton>
+              <XIconButton icon="lucide:copy" :label="t('printing.print_templates.sample_duplicate_row')" @click="duplicateRow(rowIndex)" />
+              <XIconButton icon="lucide:trash-2" tone="danger" :label="t('printing.print_templates.sample_delete_row')" @click="removeRow(rowIndex)" />
             </td>
           </tr>
         </tbody>

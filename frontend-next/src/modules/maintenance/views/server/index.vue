@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { XhAccordionContent, XhAccordionHeader, XhAccordionIndicator, XhAccordionItem, XhAccordionRoot, XhAccordionTrigger, XhButton, XhButtonIndicator, XhButtonPrefix, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhProgress, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAccordionContent, XhAccordionHeader, XhAccordionIndicator, XhAccordionItem, XhAccordionRoot, XhAccordionTrigger, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhProgress, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XTooltip } from '~/components'
+import { Icon, XIconButton } from '~/components'
 import { toast } from '~/composables'
 import { errorText } from '../jobs/job'
 import {
@@ -213,20 +213,7 @@ onBeforeUnmount(polling.stop)
               <Icon icon="lucide:activity" width="12" />
               <XhTagLabel>{{ summary.label }}</XhTagLabel>
             </XhTagRoot>
-            <XTooltip :content="t('common.actions.refresh')">
-              <XhButton
-                icon-only
-                size="sm"
-                variant="ghost"
-                :aria-label="t('common.actions.refresh')"
-                :loading="loading"
-                class="sv-refresh-btn"
-                @click="fetchData"
-              >
-                <XhButtonIndicator />
-                <XhButtonPrefix><Icon icon="lucide:refresh-cw" width="14" /></XhButtonPrefix>
-              </XhButton>
-            </XTooltip>
+            <XIconButton icon="lucide:refresh-cw" :label="t('common.actions.refresh')" :loading="loading" @click="fetchData" />
           </div>
         </div>
         <div class="sv-overview-grid">
@@ -675,10 +662,6 @@ onBeforeUnmount(polling.stop)
   display: flex;
   align-items: center;
   gap: var(--xh-space-1_5);
-}
-
-.sv-refresh-btn {
-  color: var(--xh-fg-muted);
 }
 
 .sv-overview-grid {

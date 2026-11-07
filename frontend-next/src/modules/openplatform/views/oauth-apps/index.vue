@@ -5,7 +5,7 @@ import type { SelectOption } from '~/types'
 import { XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
 import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XIconButton, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { oauthApps as oauthAppsApi } from '~/contracts'
 import { copyToClipboard, formatDate } from '~/utils'
@@ -787,9 +787,7 @@ async function handleDelete(row: OAuthAppRow) {
               <XhDescriptionsValue>
                 <div class="flex items-center gap-1">
                   <span class="font-mono text-sm break-all">{{ currentSecret.clientId }}</span>
-                  <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.copy')" @click="copyClientId">
-                    <span><Icon icon="lucide:copy" /></span>
-                  </XhButton>
+                  <XIconButton icon="lucide:copy" :label="t('common.actions.copy')" @click="copyClientId" />
                 </div>
               </XhDescriptionsValue>
             </XhDescriptionsItem>

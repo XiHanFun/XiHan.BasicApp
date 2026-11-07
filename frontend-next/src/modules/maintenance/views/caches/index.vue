@@ -3,7 +3,7 @@ import type { CacheNamespace, CacheToast, CacheTreeOption } from './cache'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhCardContent, XhCardHeader, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XInput, XSegmented, XSelect, XTooltip, XTree } from '~/components'
+import { Icon, XIconButton, XInput, XSegmented, XSelect, XTooltip, XTree } from '~/components'
 import { dialog, toast } from '~/composables'
 import { usePermission } from '~/hooks'
 import { errorText } from '../jobs/job'
@@ -536,25 +536,13 @@ onMounted(async () => {
                 </XhTagLabel>
               </XhTagRoot>
               <XSegmented v-if="valueText !== null && !editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" :aria-label="t('maintenance.caches.cache_content')" />
-              <XTooltip v-if="valueText !== null" :content="t('common.actions.copy')">
-                <XhButton icon-only size="sm" variant="ghost" :aria-label="t('common.actions.copy')" @click="handleCopy">
-                  <span><Icon icon="lucide:copy" /></span>
-                </XhButton>
-              </XTooltip>
-              <XTooltip :content="t('common.actions.refresh')">
-                <XhButton icon-only size="sm" variant="ghost" :aria-label="t('common.actions.refresh')" @click="reloadValue">
-                  <span><Icon icon="lucide:refresh-cw" /></span>
-                </XhButton>
-              </XTooltip>
+              <XIconButton v-if="valueText !== null" icon="lucide:copy" :label="t('common.actions.copy')" @click="handleCopy" />
+              <XIconButton icon="lucide:refresh-cw" :label="t('common.actions.refresh')" @click="reloadValue" />
               <XhButton v-if="canEdit && !editing" variant="subtle" size="sm" @click="startEdit">
                 <span><Icon icon="lucide:pencil-line" /></span>
                 {{ t('maintenance.caches.edit') }}
               </XhButton>
-              <XTooltip v-if="canDelete" :content="t('maintenance.caches.delete_this_key')">
-                <XhButton icon-only size="sm" variant="ghost" tone="danger" :aria-label="t('maintenance.caches.delete_this_key')" @click="handleDeleteCurrent">
-                  <span><Icon icon="lucide:trash-2" /></span>
-                </XhButton>
-              </XTooltip>
+              <XIconButton v-if="canDelete" icon="lucide:trash-2" tone="danger" :label="t('maintenance.caches.delete_this_key')" @click="handleDeleteCurrent" />
             </div>
           </div>
           <div v-else class="cache-card-header">
