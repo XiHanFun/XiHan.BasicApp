@@ -111,7 +111,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 - 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
 - 资源还实现了 `export`：导出菜单多出当前页、搜索结果、全部三项，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成 CSV 或 XLSX 文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
 
-有 `importable` 字段且资源实现了 `create` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入时下载按 `importable` 字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填，再以并发 4 逐行调用 `create`，失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`），对话框里显示最近几次。
+有 `importable` 字段且资源实现了 `create` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入时下载按 `importable` 字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填，再以并发 4 逐行调用 `create`，失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`，记下 `pageCode` 与页面声明的 `resourceCode`），对话框里显示最近几次。
 
 ## 个人设置
 

@@ -29,7 +29,6 @@ export type {
   SchemaResource,
   SchemaSelectOption,
   SchemaSortRule,
-  ViewSchema,
 } from './types'
 
 export { useSchemaDictionaries } from './useSchemaDictionaries'

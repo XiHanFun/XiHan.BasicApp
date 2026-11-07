@@ -57,16 +57,10 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   searchFilterable?: boolean
   /** 是否可排序（服务端排序） */
   sortable?: boolean
-  /** 是否可作为筛选条件 */
-  filterable?: boolean
   /** 是否可导出 */
   exportable?: boolean
   /** 是否可导入 */
   importable?: boolean
-  /** 是否可在表单中编辑 */
-  editable?: boolean
-  /** 是否只读 */
-  readonly?: boolean
   /** 是否必填 */
   required?: boolean
   /** 字段级权限码；当前用户无此权限时该字段隐藏 */
@@ -90,8 +84,6 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   fixed?: 'left' | 'right'
   /** 排序值（越小越靠前） */
   order?: number
-  /** 默认值 */
-  defaultValue?: unknown
   /** 搜索控件占位提示 */
   searchPlaceholder?: string
   /** 自定义单元格渲染（最高优先级，覆盖内置渲染器） */
@@ -145,30 +137,6 @@ export interface SchemaActionPayload<TRow = Record<string, unknown>> {
   row?: TRow
   /** 批量操作携带的选中行 */
   rows?: TRow[]
-}
-
-/**
- * 视图 Schema —— 预置视图（系统视图）。租户/团队/个人视图为运行时数据
- */
-export interface ViewSchema {
-  /** 视图码 */
-  code: string
-  /** 视图名（i18n key） */
-  name: string
-  /** 作用域 */
-  scope: 'system' | 'tenant' | 'team' | 'personal'
-  /** 列可见键 */
-  visibleKeys?: string[]
-  /** 列顺序 */
-  columnOrder?: string[]
-  /** 默认筛选条件 */
-  defaultFilters?: Record<string, unknown>
-  /** 默认排序 */
-  defaultSort?: { field: string, order: 'asc' | 'desc' }
-  /** 默认分页大小 */
-  pageSize?: number
-  /** 是否默认视图 */
-  isDefault?: boolean
 }
 
 /** 单条排序规则（字段 + 方向；数组顺序即优先级，越靠前优先级越高） */
@@ -249,9 +217,7 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   pageCode: string
   /** 页面名称（i18n key） */
   pageName: string
-  /** 页面级权限码 */
-  permissions?: string[]
-  /** 对应后端资源码（用于字段脱敏 FLS 规则匹配；缺省则不拉取脱敏规则） */
+  /** 后端资源码：只随导入历史记下（import-histories.create 的 resourceCode），缺省记空 */
   resourceCode?: string
   /** 导出按钮所需权限码（精准门控：声明后导出按钮仅在用户拥有该权限时显示；未声明则该页不显示导出） */
   exportPermission?: string
@@ -263,8 +229,6 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   fields: ListFieldSchema<TRow>[]
   /** 操作集合（页面级/行级/批量级） */
   actions?: ActionSchema<TRow>[]
-  /** 预置视图 */
-  views?: ViewSchema[]
   /** 行主键字段，默认 'basicId' */
   rowKey?: string
   /** 启用内置批量删除（依赖 resource.remove；选中后批量浮条出现「批量删除」，框架统一确认/并发删除/刷新） */
