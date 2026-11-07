@@ -115,12 +115,11 @@ export function configsResource(): SchemaResource<ConfigRow> {
 
 ## 个人设置
 
-列设置、搜索设置与个人视图按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到。
+列设置、搜索设置与个人视图按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到；其他设备上改了，已打开的页面经实时推送（`UserSettingChanged`）即时应用。
 
 ## 已知限制
 
-- 树表的批量操作只认勾选的顶层行；
-- 页面级设置的实时推送（`UserSettingChanged`，场景 `Page`）尚未接入，其他设备上的改动要重新打开页面才生效。
+- 树表的批量操作只认勾选的顶层行。
 
 ## 下一步
 

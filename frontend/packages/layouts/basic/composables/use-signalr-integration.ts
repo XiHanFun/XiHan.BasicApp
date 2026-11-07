@@ -4,6 +4,7 @@ import type { UserSettingChangedPayload } from '~/constants'
 import type { NotificationContentFormat } from '~/types/enums'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { applyRemotePageSetting } from '~/components/schema'
 import { applyServerTaskProgress, dialog, islandStatus, notification, playNotificationSound, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID } from '~/constants'
 import { RealtimeMethods } from '~/contracts'
@@ -147,7 +148,10 @@ export function useSignalRIntegration() {
         useFavoritesStore().applyRemote(payload.settingValue)
       }
     }
-    // 页面级设置（列设置、个人视图，UserSettingScene.Page）的跨端同步随 SchemaPage 批次接回
+    else if (payload.scene === 'Page') {
+      // 页面设置（列设置、搜索、视图、看板布局）：settingKey 是页面码，按分区分发给已打开的页面
+      applyRemotePageSetting(payload.settingKey, payload.settingValue)
+    }
   }
 
   function setupListeners() {
