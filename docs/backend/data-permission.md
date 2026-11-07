@@ -93,7 +93,7 @@ var query = rows.Query<SysFile>(SideRows.SideOf(context))
 
 ## 前端
 
-管理端不实现安全边界，只改善可用性：受保护的列显示后端给的打码值，只读字段在表单里置灰。见[前端权限与脱敏](../frontend/permission)。
+前端不实现安全边界，只改善可用性：受保护的列显示后端给的打码值，只读字段在表单里置灰。见[前端权限与脱敏](../frontend/permission)。
 
 ## 下一步
 

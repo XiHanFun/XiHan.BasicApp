@@ -4,24 +4,23 @@
 
 ## 仓库全貌
 
-6.0 与 5.x 的代码在 `next` 分支上并存，互不引用；6.0 GA 时 `backend-next/`、`frontend-next/` 才会 `git mv` 成 `backend/`、`frontend/`。`docs/` 已经是 6.0 的文档，5.x 的文档留在 `release/v5` 与 `hotfix/v5`，发布在站点的 `/v5/` 下。
+`backend/` 是后端，`frontend/` 是前端，`docs/` 是本文档站。5.x 的代码与文档留在 `release/v5` 与 `hotfix/v5` 分支，文档发布在站点的 `/v5/` 下。
 
 ```text
-XiHan.BasicApp/                 # next 分支
+XiHan.BasicApp/
 ├─ AGENTS.md  CLAUDE.md         # Agent 约定（CLAUDE.md 链接到 AGENTS.md）
 ├─ .agents/skills/              # 仓库技能
-├─ backend-next/                # 6.0 后端
-├─ frontend-next/               # 6.0 管理端
+├─ backend/                     # 后端
+├─ frontend/                    # 前端
 ├─ docs/                        # 本文档站
-├─ nextdocs/下一代总体方案.md    # 6.0 总体方案（设计、分期与拍板记录）
-├─ backend/  frontend/          # 5.x，GA 前保持不动
-└─ .github/workflows/next-ci.yml  # 6.0 的 CI：后端构建测试、契约漂移、前端门禁
+├─ plans/下一代总体方案.md       # 总体方案（设计、分期与拍板记录）
+└─ .github/workflows/ci.yml     # CI：后端构建测试、契约漂移、前端门禁
 ```
 
 ## 后端
 
 ```text
-backend-next/
+backend/
 ├─ XiHan.BasicApp.slnx
 ├─ Directory.Build.props        # net10.0、版本 6.0.0-preview.1、警告即错误、生成文档文件
 ├─ Directory.Packages.props     # 中央包版本
@@ -76,7 +75,7 @@ XiHan.BasicApp.Identity/
 ## 前端
 
 ```text
-frontend-next/
+frontend/
 ├─ package.json  pnpm-workspace.yaml  vite.config.ts  vitest.config.ts  eslint.config.mjs
 ├─ .env  .env.example           # VITE_PORT、VITE_DEV_PROXY_TARGET、VITE_HOME_PATH、VITE_REALTIME_HUB …
 ├─ contracts/                   # 后端导出的 openapi.json、realtime.json（入库，CI 比对）
@@ -86,7 +85,7 @@ frontend-next/
 │  ├─ request/                  # 运行时客户端：拼路由、放头、Problem Details → ApiError、刷新与钩子
 │  ├─ router/                   # 守卫、菜单 → 路由、核心路由
 │  ├─ stores/                   # access、auth、app、标签栏等
-│  ├─ layouts/                  # 管理端壳层（侧栏、顶栏、标签、偏好、全局搜索、分屏）
+│  ├─ layouts/                  # 前端壳层（侧栏、顶栏、标签、偏好、全局搜索、分屏）
 │  ├─ components/               # common（XDataTable、EditModal、PageShell…）与 schema（SchemaPage）
 │  ├─ composables/  hooks/  utils/  constants/  types/  iconify/
 │  ├─ design/                   # 令牌（variables.css）与 XiHan.UI 令牌桥（xihan-ui.css）

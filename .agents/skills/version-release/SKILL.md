@@ -8,16 +8,16 @@ description: 为 XiHan.BasicApp 准备版本、同步后端前端与文档版本
 ## 前置条件
 
 - 工作区干净，无 merge/rebase、冲突或 detached HEAD；目标版本、发布分支和包含范围明确。
-- 版本需要同步核对 `backend/props/version.props`、`frontend/package.json` 和 `docs/package.json`；前端 `lastBuildTime` 使用实际构建日期。6.0 在 `next` 上的版本源是 `backend-next/Directory.Build.props`、`frontend-next/package.json` 和 `docs/package.json`。
-- 发布分支：预览版从 `preview` 发（由 `next` 快进），正式版从 `main` 发（由 `dev` 快进）；标签打在对应分支的历史上。
-- `docs/changelog.md` 记录用户可感知变化，数据库变化还需对应 `UpdateScripts/<version>/<version>.sql`。
+- 版本源有三处，必须同一个值：`backend/Directory.Build.props` 的 `<Version>`、`frontend/package.json` 和 `docs/package.json` 的 `version`。
+- 发布分支：预览版（带预发布后缀）从 `preview` 发，由 `next` 快进；正式版从 `main` 发，由 `dev` 快进；标签打在对应分支的历史上。
+- `docs/changelog.md` 记录用户可感知变化；表结构变化还需对应版本目录 `backend/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`。
 - 仓库当前没有应用包自动发布工作流；不得把 CI 或文档部署当成应用已经发布。
 
 ## 准备版本
 
-1. 核对上一 tag 到当前提交的后端、前端、权限、迁移和依赖变化。
-2. 运行交互脚本 `pwsh -File backend/scripts/nuget/VersionUpgrade.ps1`；不替用户预选版本级别或通道。
-3. 显式同步前端和文档版本，检查 `lastBuildTime`、changelog 标题和升级脚本版本。
+1. 核对上一 tag 到当前提交的后端、前端、权限、表结构和依赖变化。
+2. 三处版本号手工改成同一个值；不替用户预选版本级别或通道。
+3. 检查 changelog 标题、表结构脚本的版本目录与版本号一致。
 4. 运行后端 Release 构建与测试、前端 `pnpm check && pnpm test && pnpm build`、文档 `pnpm build`。
 5. 版本提交使用 `build: vX.Y.Z`，并确认提交进入对应的发布分支：预览版 `preview`，正式版 `main`。
 

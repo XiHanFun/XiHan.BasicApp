@@ -1,6 +1,6 @@
 // N5 第三批：本机仿真 OpenAI 端点（/v1/models、/v1/chat/completions、/v1/embeddings），固定延迟，只量应用本身的开销
 //
-//   node nextdocs/scripts/n5-bench-model.mjs [--port 9734] [--delay 50] [--dims 1536]
+//   node plans/scripts/n5-bench-model.mjs [--port 9734] [--delay 50] [--dims 1536]
 import http from 'node:http';
 
 const argument = (name, fallback) => {

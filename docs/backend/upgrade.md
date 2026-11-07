@@ -72,7 +72,7 @@
 
 | 项 | 说明 |
 | --- | --- |
-| 脚本 | `backend-next/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`，PostgreSQL 方言、`CREATE TABLE IF NOT EXISTS` 风格、可重复执行；目录里的 `.sql` 按文件名顺序执行 |
+| 脚本 | `backend/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`，PostgreSQL 方言、`CREATE TABLE IF NOT EXISTS` 风格、可重复执行；目录里的 `.sql` 按文件名顺序执行 |
 | 基线 | `Schema/6.0.0/0001-baseline.sql`：由 `SchemaBaselineTests` 按 InitTables 建出的结构生成，包含应用实体与框架 Provider 的表（`tenant_record`、`permission_grant_record`、`audit_record`、调度五张表、`outbox_message`） |
 | 台账 | `sys_version`（库的结构版本、应用版本、是否升级中）与 `sys_migration_history`（每个脚本的执行记录，成功失败都记） |
 | 执行器 | `Runtime` 的 `SchemaUpgrader` |
@@ -94,7 +94,7 @@
 | 命令 | `XiHan.BasicApp.Host schema upgrade`：不启动应用（Feature 启动就要读写自己的表，新库上要排在它们之前），执行后以 JSON 输出报告（`from`、`to`、`applied`）；关掉 `AutoUpgrade` 时由运维先跑它再启动 |
 
 ```bash
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
 ```
 
 ### 写升级脚本

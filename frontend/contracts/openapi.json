@@ -63873,7 +63873,7 @@
         "type": "object",
         "properties": {
           "path": {
-            "description": "\u4EA7\u7269\u5305\u91CC\u7684\u8DEF\u5F84\uFF1Abackend/\u2026\uFF08\u76F8\u5BF9 backend-next\uFF09\u3001frontend/\u2026\uFF08\u76F8\u5BF9 frontend-next\uFF09\u6216 _registration/\u2026",
+            "description": "\u4EA7\u7269\u5305\u91CC\u7684\u8DEF\u5F84\uFF1Abackend/\u2026\u3001frontend/\u2026\uFF08\u4E0E\u4ED3\u5E93\u540C\u540D\u76EE\u5F55\u5BF9\u5E94\uFF09\u6216 _registration/\u2026",
             "type": "string"
           },
           "side": {

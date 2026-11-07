@@ -11,12 +11,12 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 public enum CodeGenSide
 {
     /// <summary>
-    /// 后端：相对 <c>backend-next</c>
+    /// 后端：相对 <c>backend</c>
     /// </summary>
     Backend = 0,
 
     /// <summary>
-    /// 前端：相对 <c>frontend-next</c>
+    /// 前端：相对 <c>frontend</c>
     /// </summary>
     Frontend = 1,
 

@@ -37,7 +37,7 @@ Ingress → Observe → Resilience → Authenticate → Tenant → Authorize →
 | Handle | 调用操作的 `HandleAsync` | 操作本身；数据范围与字段安全在查询与投影处显式套用 |
 | Egress | 结果与错误翻译：错误码 → 状态码，消息键按调用方区域翻译成 `detail` | — |
 
-用 `dotnet run --project backend-next/src/XiHan.BasicApp.Host -- pipeline` 可以打印实际的中间件次序。
+用 `dotnet run --project backend/src/XiHan.BasicApp.Host -- pipeline` 可以打印实际的中间件次序。
 
 ## 三、典型路径
 

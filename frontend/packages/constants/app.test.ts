@@ -72,7 +72,7 @@ describe('默认配置', () => {
     expect(DEFAULT_FONT_SIZE).toBeGreaterThan(0)
   })
 
-  it('界面密度两档对应 XiHan.UI 的 data-density 取值，管理端缺省紧凑', () => {
+  it('界面密度两档对应 XiHan.UI 的 data-density 取值，前端缺省紧凑', () => {
     expect(UI_DENSITY_COMFORTABLE).toBe('comfortable')
     expect(UI_DENSITY_COMPACT).toBe('compact')
     expect(UI_DENSITIES).toEqual([UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT])

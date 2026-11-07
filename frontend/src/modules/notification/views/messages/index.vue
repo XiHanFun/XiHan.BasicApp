@@ -555,7 +555,7 @@ function userRef(sender: null | string | undefined, receiver: null | string | un
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('notification.messages.detail_content') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <!-- 正文按源码显示（HTML 正文不在管理端渲染） -->
+                <!-- 正文按源码显示（HTML 正文不在前端渲染） -->
                 <pre v-if="currentEmail.content" class="message-detail__code">{{ currentEmail.content }}</pre>
                 <span v-else>-</span>
               </XhDescriptionsValue>

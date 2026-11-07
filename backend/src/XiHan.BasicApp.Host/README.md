@@ -1,6 +1,6 @@
 # XiHan.BasicApp.Host
 
-6.0 宿主（方案 5.13）。装配：Full Profile + `SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)` + `JwtSecurityFeature` + `DatabaseMultiTenancyFeature` / `DatabaseSecurityFeature` / `DatabaseAuditingFeature` / `DatabaseSchedulingFeature` / `DatabaseWorkflowFeature` / `DatabaseLocalizationFeature` + `OutboxFeature` + `RuntimeFeature` + 各能力包；配了连接时另装 `RedisCachingFeature` + `HybridCachingFeature`（绑定 `cache`）与 `RabbitMQMessagingFeature`（绑定 `queue`），由 `HostProviders` 判定，没配即 Full Profile 的内存实现。
+宿主（方案 5.13）。装配：Full Profile + `SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)` + `JwtSecurityFeature` + `DatabaseMultiTenancyFeature` / `DatabaseSecurityFeature` / `DatabaseAuditingFeature` / `DatabaseSchedulingFeature` / `DatabaseWorkflowFeature` / `DatabaseLocalizationFeature` + `OutboxFeature` + `RuntimeFeature` + 各能力包；配了连接时另装 `RedisCachingFeature` + `HybridCachingFeature`（绑定 `cache`）与 `RabbitMQMessagingFeature`（绑定 `queue`），由 `HostProviders` 判定，没配即 Full Profile 的内存实现。
 
 | 端点 | 来源 |
 | --- | --- |
@@ -17,7 +17,7 @@
 ```bash
 # 需要本地 PostgreSQL（appsettings.Development.json：127.0.0.1:5432，postgres/postgres）并先建库
 createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development
 ```
 
 Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记的实体建表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`outbox_message`、`message_translation` 与调度表），软删除实体的部分唯一索引随后补建。生产库的表结构由 `Schema/<版本>/*.sql` 与版本台账管理（`schema upgrade` 命令，或 `BasicApp:Schema:AutoUpgrade` 开着时启动自动执行），6.0.0 基线是 `Schema/6.0.0/0001-baseline.sql`。
@@ -36,13 +36,13 @@ Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记�
 ```bash
 # 导出接口文档（不启动应用、不连数据库）；前端 gen-contracts 与 CI 漂移门禁读它。
 # dotnet run 以工程目录为工作目录，--out 给绝对路径（仓库根执行时用 $PWD）
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"
+dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
 
 # 种子：按号段顺序执行各包登记的种子（可重复执行；--list 只列出，--only identity.platform 只跑指定的）
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- seed
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
 
 # 框架内建命令：help / graph / pipeline / operations / invoke <操作 ID> [--json ...]
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- operations
+dotnet run --project backend/src/XiHan.BasicApp.Host -- operations
 ```
 
 命令模式用同一套装配启动宿主但不监听端口（不与正在运行的实例争抢 9710 / 9711）；命令经完整内核管道执行，日志只写 stderr，stdout 只承载命令输出（成功是 JSON，失败是 `{"code","detail"}`，退出码按错误 KIND）。

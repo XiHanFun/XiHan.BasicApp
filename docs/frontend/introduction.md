@@ -1,10 +1,10 @@
 # 框架简介
 
-本页介绍 6.0 管理端的技术栈、目录结构、模块划分与启动流程，适用于前端开发者。
+本页介绍 6.0 前端的技术栈、目录结构、模块划分与启动流程，适用于前端开发者。
 
-`frontend-next` 是 6.0 的管理端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5。Node 24+、pnpm 11+，没有锁文件。
+`frontend` 是 6.0 的前端：Vue 3.5 + Vite 8 + TypeScript 6 + Pinia + vue-router + vue-i18n + Tailwind CSS 4 + XiHan.UI 5。Node 24+、pnpm 11+，没有锁文件。
 
-## 与 5.x 管理端的关系
+## 与 5.x 前端的关系
 
 壳层原样从 5.x 搬入，页面背后的数据换成 6.0：
 
@@ -20,7 +20,7 @@
 ## 目录
 
 ```text
-frontend-next/
+frontend/
 ├─ contracts/            后端导出的 openapi.json、realtime.json（入库，CI 比对）
 ├─ scripts/              gen-contracts 与门禁脚本
 ├─ packages/  (~)        壳层与通用能力，禁止反向引用 @/
@@ -38,8 +38,8 @@ frontend-next/
 
 | 别名 | 指向 |
 | --- | --- |
-| `@` | `frontend-next/src` |
-| `~` | `frontend-next/packages`（如 `~/contracts`、`~/components`、`~/request`、`~/stores`） |
+| `@` | `frontend/src` |
+| `~` | `frontend/packages`（如 `~/contracts`、`~/components`、`~/request`、`~/stores`） |
 
 ## 已有的模块
 

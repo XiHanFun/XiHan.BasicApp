@@ -3,8 +3,8 @@ import type { DefaultTheme } from "vitepress";
 import { defineXiHanConfig } from "@xihanfun/vitepress-theme/config";
 const require = createRequire(import.meta.url);
 
-// 导航末项显示的版本号取自 6.0 管理端的 package.json（与后端 Directory.Build.props 同号），发版时只改那一处
-const { version } = require("../../frontend-next/package.json");
+// 导航末项显示的版本号取自前端的 package.json（与后端 Directory.Build.props 同号），发版时只改那一处
+const { version } = require("../../frontend/package.json");
 
 const title: string = "曦寒基础应用 6.0 文档";
 const description: string = "基于曦寒开发框架 5 的能力包式中后台应用";

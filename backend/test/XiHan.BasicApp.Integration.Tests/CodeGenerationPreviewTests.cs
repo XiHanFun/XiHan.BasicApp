@@ -331,7 +331,7 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         // 前端：只出资源的页面与 schema，包的启动钩子与文案文件不出，文案按区域写进登记片段
         Assert.True(files.ContainsKey("frontend/src/modules/shop/views/products/index.vue"));
         Assert.DoesNotContain(files.Keys, static k => k.StartsWith("frontend/src/modules/shop/locales/", StringComparison.Ordinal) || k == "frontend/src/modules/shop/setup.ts");
-        Assert.Contains("### `frontend-next/src/modules/shop/locales/zh-CN.ts` 的 `shop` 对象里", registration, StringComparison.Ordinal);
+        Assert.Contains("### `frontend/src/modules/shop/locales/zh-CN.ts` 的 `shop` 对象里", registration, StringComparison.Ordinal);
         Assert.Contains("    title: '商品',", registration, StringComparison.Ordinal);
     }
 

@@ -195,7 +195,7 @@ public sealed class MenusTests : IDisposable
         var (moved, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{rolesId}", $$"""{"order":200,"parentId":"{{innerId}}","isVisible":true}""", superadmin));
         Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
 
-        // 管理端的整棵树与 auth.permissions 的菜单树都按层下发
+        // 菜单管理页的整棵树与 auth.permissions 的菜单树都按层下发
         var (_, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         Assert.Equal(["custom.middle"], Codes(Node(treeBody.GetProperty("items"), "custom.outer").GetProperty("children")));
         var (_, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));

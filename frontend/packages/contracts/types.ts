@@ -10831,7 +10831,7 @@ export interface components {
         CodeGenWriteMode: "AlwaysOverwrite" | "WriteOnce";
         /** @description 一个生成的文件 */
         CodegenArtifactResponse: {
-            /** @description 产物包里的路径：backend/…（相对 backend-next）、frontend/…（相对 frontend-next）或 _registration/… */
+            /** @description 产物包里的路径：backend/…、frontend/…（与仓库同名目录对应）或 _registration/… */
             path: string;
             /** @description 属于哪一侧 */
             side: components["schemas"]["CodeGenSide"];

@@ -1,7 +1,7 @@
 // N5 第一批：生成对齐矩阵的两侧清单与各组草稿（方案第 8 节「N5 对齐与收口的做法」）
-// 只在 N5 用，不进 CI；4.x 目录在 N6 删除之后，nextdocs/alignment/*.json 是矩阵依据的快照
+// 只在 N5 用，不进 CI；4.x 目录在 N6 删除之后，plans/alignment/*.json 是矩阵依据的快照
 //
-//   node nextdocs/scripts/n5-inventory.mjs [--blocks <草稿目录>]
+//   node plans/scripts/n5-inventory.mjs [--blocks <草稿目录>]
 //
 // 对应关系是第一遍候选，结论由人工核对，名字对上不等于对齐
 import { execFileSync } from 'node:child_process';
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const argBlocks = process.argv.indexOf('--blocks');
 const blocksDir = argBlocks > 0 ? path.resolve(process.argv[argBlocks + 1]) : null;
-const outDir = path.join(root, 'nextdocs/alignment');
+const outDir = path.join(root, 'plans/alignment');
 
 const walk = (dir, filter, found = []) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -215,7 +215,7 @@ function inventory4x() {
 
 function operationAttributes() {
   const byId = {};
-  for (const file of walk(path.join(root, 'backend-next/src'), (p) => p.endsWith('.cs'))) {
+  for (const file of walk(path.join(root, 'backend/src'), (p) => p.endsWith('.cs'))) {
     const text = fs.readFileSync(file, 'utf8');
     const local = Object.fromEntries([...text.matchAll(/public const string Id = "([^"]+)"/g)].map((m, i) => [i, m[1]]));
     const ids = Object.values(local);
@@ -237,7 +237,7 @@ function operationAttributes() {
 }
 
 function inventory6x() {
-  const openapi = JSON.parse(read('frontend-next/contracts/openapi.json'));
+  const openapi = JSON.parse(read('frontend/contracts/openapi.json'));
   const attributes = operationAttributes();
   const operations = [];
   for (const [route, item] of Object.entries(openapi.paths)) {
@@ -252,7 +252,7 @@ function inventory6x() {
   const seeders = [];
   const jobs = [];
   const sections = new Set();
-  for (const file of walk(path.join(root, 'backend-next/src'), (p) => p.endsWith('.cs'))) {
+  for (const file of walk(path.join(root, 'backend/src'), (p) => p.endsWith('.cs'))) {
     const text = fs.readFileSync(file, 'utf8');
     if (/Pages\.cs$/.test(file) && !/PageCatalog/.test(file)) {
       for (const m of text.matchAll(/new\(\s*"([a-z0-9.\-_]+)",\s*"(\/[^"]*)",\s*"([^"]+)"/g)) pages.push({ code: m[1], route: m[2], titleKey: m[3] });
@@ -278,8 +278,8 @@ function inventory6x() {
     jobs: jobs.sort(),
     configurationSections: [...sections].sort(),
     configuration: configurationRows('docs/configuration.md'),
-    realtime: JSON.parse(read('frontend-next/contracts/realtime.json')).hubs,
-    endpoints: plainEndpoints('backend-next/src'),
+    realtime: JSON.parse(read('frontend/contracts/realtime.json')).hubs,
+    endpoints: plainEndpoints('backend/src'),
   };
 }
 

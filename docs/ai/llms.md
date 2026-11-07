@@ -22,8 +22,8 @@
 ## 在 AI 工具中使用
 
 ```text
-阅读本站的 llms.txt 了解 XiHan.BasicApp 6.0；按需读取其中列出的页面（地址后加 .md 取 Markdown）。
-以文档、仓库根的 AGENTS.md、nextdocs/下一代总体方案.md 与 backend-next / frontend-next 的代码为准，不要沿用 5.x（backend/、frontend/）的写法。
+阅读本站的 llms.txt 了解 XiHan.BasicApp；按需读取其中列出的页面（地址后加 .md 取 Markdown）。
+以文档、仓库根的 AGENTS.md 与 backend / frontend 的代码为准。
 ```
 
 | 工具 | 做法 |

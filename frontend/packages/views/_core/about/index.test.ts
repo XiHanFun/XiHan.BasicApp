@@ -101,7 +101,7 @@ describe('关于页', () => {
     ])).toEqual([
       ['运行时', '.NET · XiHan.Framework'],
       ['数据层', 'SqlSugar · 平台库 / 租户库'],
-      ['管理端', 'Vue · XiHan.UI'],
+      ['前端', 'Vue · XiHan.UI'],
       ['国际化', '十种语言'],
       ['架构模式', '能力包分层 · 管道执行'],
     ])

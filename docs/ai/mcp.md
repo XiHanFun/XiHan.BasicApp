@@ -16,7 +16,7 @@
 | 区域 | `Accept-Language` 决定工具标题、说明与错误文案的语言 |
 | 服务名 | `XiHan:Protocols:Mcp:ServerName`，缺省 `XiHan.BasicApp` |
 
-每个 `tools/call` 都是一次独立的内核调用：以令牌的主体与租户执行，经过权限判定、数据范围、字段安全与审计，和管理端点按钮没有区别。
+每个 `tools/call` 都是一次独立的内核调用：以令牌的主体与租户执行，经过权限判定、数据范围、字段安全与审计，和前端点按钮没有区别。
 
 ### 工具
 
@@ -69,7 +69,7 @@ curl -X POST http://localhost:9710/mcp \
 
 | 服务端 | 用途 | 6.0 现状 |
 | --- | --- | --- |
-| `xihan-ui`（npm `@xihan-ui/cli`） | 组件 API、部件、示例与设计令牌 | 可用，见 [XiHan.UI 的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp)；版本取 `frontend-next/pnpm-workspace.yaml` catalog 里的 `@xihan-ui/vue` |
+| `xihan-ui`（npm `@xihan-ui/cli`） | 组件 API、部件、示例与设计令牌 | 可用，见 [XiHan.UI 的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp)；版本取 `frontend/pnpm-workspace.yaml` catalog 里的 `@xihan-ui/vue` |
 | `xihan-framework` | 查框架包、模块与配置键 | 5.x 的 `XiHan.Framework.Cli` 面向框架 4.x；框架 5 的 CLI 目前只有打包、迁移等命令，没有 MCP。写后端时直接读框架仓库 `next/` 的源码、`spec/` 与各包 README |
 
 ## 相关

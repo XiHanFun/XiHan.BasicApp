@@ -80,7 +80,7 @@
 | 绝大多数集成测试 | SQLite 文件库，经 TestServer 走完整管道 |
 | PostgreSQL 用例（两库冒烟、并发发号、Conformance、升级基线） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），没设置时跳过 |
 
-CI（`next-ci.yml`）起一个 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`。
+CI（`ci.yml`）起一个 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`。
 
 ## 下一步
 

@@ -22,7 +22,7 @@ public sealed class FrameworkPinTests
         var pinned = props.Descendants("XiHanFrameworkCommit").Single().Value.Trim();
         Assert.Matches("^[0-9a-f]{7,40}$", pinned);
 
-        // 与 framework.props 的缺省相对路径一致：backend-next/../../XiHan.Framework
+        // 与 framework.props 的缺省相对路径一致：backend/../../XiHan.Framework
         var framework = Path.GetFullPath(Path.Combine(Packages.Root, "..", "..", "XiHan.Framework"));
         Assert.True(Directory.Exists(Path.Combine(framework, "next", "src")), $"Framework source is expected at {framework} (ProjectReference mode); package mode is not used yet.");
 

@@ -1,8 +1,8 @@
 // N5 第三批：把一次性库放大到基准规模（方案第 8 节「性能与安全审查的范围」）
 // 只在 N5 用，不进 CI，不要指向用得着的库
 //
-//   node nextdocs/scripts/n5-bench-data.mjs shared [--scale 1]     共库的数据：大租户、100 个共库租户、日志、通知、聊天、流程、文件、发件箱、知识库
-//   node nextdocs/scripts/n5-bench-data.mjs isolated [--scale 1]   10 个独立库租户（第二步：空载轮询先量没有独立库的一组）
+//   node plans/scripts/n5-bench-data.mjs shared [--scale 1]     共库的数据：大租户、100 个共库租户、日志、通知、聊天、流程、文件、发件箱、知识库
+//   node plans/scripts/n5-bench-data.mjs isolated [--scale 1]   10 个独立库租户（第二步：空载轮询先量没有独立库的一组）
 //
 // 环境变量：BENCH_API（宿主地址，缺省 http://localhost:9731）、BENCH_CONTAINER（PostgreSQL 容器）、BENCH_DB（库名）、BENCH_PG_PORT（宿主连库用的端口）、
 // BENCH_MODEL（仿真模型端点，缺省 http://127.0.0.1:9734/v1）、BENCH_SUPERADMIN_PASSWORD（超级管理员密码）

@@ -341,7 +341,7 @@ async function handleGenerate(row: TableRow) {
   }
 }
 
-/** 生成到项目：后端写进 backend-next、前端写进 frontend-next（只在开发环境打开） */
+/** 生成到项目：后端写进 backend、前端写进 frontend（只在开发环境打开） */
 async function handleGenerateToDisk(row: TableRow) {
   if (generating.value)
     return

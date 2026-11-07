@@ -6,9 +6,9 @@
 
 | 工具 | 版本 | 用途 |
 | --- | --- | --- |
-| .NET SDK | 10.x | 后端构建、测试与运行（`backend-next` 目标框架 `net10.0`） |
+| .NET SDK | 10.x | 后端构建、测试与运行（`backend` 目标框架 `net10.0`） |
 | Node.js | 24+ | 前端与文档站 |
-| pnpm | 11+ | 前端包管理（`frontend-next` 没有锁文件，安装用 `--no-frozen-lockfile`） |
+| pnpm | 11+ | 前端包管理（`frontend` 没有锁文件，安装用 `--no-frozen-lockfile`） |
 | Git | 任意近期版本 | 检出 BasicApp 与 XiHan.Framework 两个仓库 |
 | PostgreSQL | 14+（CI 用 17） | 平台库；独立库租户另建库 |
 
@@ -16,14 +16,14 @@
 
 ## 两个仓库并排检出
 
-`backend-next` 以 ProjectReference 引用框架源码，缺省路径是与 BasicApp 同级的 `XiHan.Framework/next/src`：
+`backend` 以 ProjectReference 引用框架源码，缺省路径是与 BasicApp 同级的 `XiHan.Framework/next/src`：
 
 ```text
 <工作目录>/
 ├─ XiHan.BasicApp/          # 切到 next 分支
-│  ├─ backend-next/
-│  └─ frontend-next/
-└─ XiHan.Framework/         # 检出 backend-next/props/framework.props 锁定的提交
+│  ├─ backend/
+│  └─ frontend/
+└─ XiHan.Framework/         # 检出 backend/props/framework.props 锁定的提交
    └─ next/src/
 ```
 
@@ -32,7 +32,7 @@ git clone -b next https://github.com/XiHanFun/XiHan.BasicApp.git
 git clone https://github.com/XiHanFun/XiHan.Framework.git
 ```
 
-锁定提交写在 `backend-next/props/framework.props` 的 `XiHanFrameworkCommit`（撰写时为 `26bdff62`）。把框架检出到这个提交：
+锁定提交写在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`（撰写时为 `26bdff62`）。把框架检出到这个提交：
 
 ```bash
 git -C XiHan.Framework checkout 26bdff62
@@ -71,7 +71,7 @@ Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已�
 | --- | --- | --- |
 | 后端 HTTP | `http://localhost:9710` | `appsettings.json` 的 `Kestrel:Endpoints:Http` |
 | 后端 gRPC（HTTP/2） | `http://127.0.0.1:9711` | `Kestrel:Endpoints:Grpc`，只监听本机 |
-| 前端开发服务器 | `http://localhost:9100` | `frontend-next/.env` 的 `VITE_PORT` |
+| 前端开发服务器 | `http://localhost:9100` | `frontend/.env` 的 `VITE_PORT` |
 | 文档站 | `http://localhost:5173` | VitePress 缺省 |
 
 前端开发服务器把 `/api`、`/openapi.json`、`/mcp`、`/health`、`/blobs` 与 `/hubs`（WebSocket）代理到 `VITE_DEV_PROXY_TARGET`（缺省 `http://localhost:9710`）。
@@ -80,14 +80,14 @@ Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已�
 
 ```bash
 # 后端（仓库根）
-dotnet restore backend-next/XiHan.BasicApp.slnx
-dotnet build backend-next/XiHan.BasicApp.slnx -c Release --no-restore
-dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
+dotnet restore backend/XiHan.BasicApp.slnx
+dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
+dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development
 ```
 
 ```bash
-# 前端（frontend-next/）
+# 前端（frontend/）
 pnpm install --no-frozen-lockfile
 pnpm dev
 pnpm check
@@ -99,12 +99,12 @@ pnpm build
 
 ```bash
 XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=<密码>' \
-  dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
+  dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
 ## 工作区解决方案
 
-同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（如 `XiHanFun.Next.Local.slnx`），登记 `backend-next` 全部工程与框架 `next/src`。它不入任何仓库，新增工程时自己补进去。
+同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（如 `XiHanFun.Next.Local.slnx`），登记 `backend` 全部工程与框架 `next/src`。它不入任何仓库，新增工程时自己补进去。
 
 ## 下一步
 

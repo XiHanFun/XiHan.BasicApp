@@ -1,7 +1,0 @@
-interface:
-  display_name: "XiHan.BasicApp 6.0 全栈契约"
-  short_description: "维护 6.0 的操作、DTO、权限、页面、契约导出与运维契约"
-  default_prompt: "使用 $xihan-basicapp-next-fullstack-contracts 设计并核对一项 6.0 跨端契约变更。"
-
-policy:
-  allow_implicit_invocation: true

@@ -95,7 +95,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 
 ### 生成的前端代码
 
-照 5.x 按生成模式出三组模板（单表与主从共用一份，树表另一份），落在 `frontend-next/src/modules/<包>/views/<资源>/`：
+照 5.x 按生成模式出三组模板（单表与主从共用一份，树表另一份），落在 `frontend/src/modules/<包>/views/<资源>/`：
 
 | 文件 | 写入方式 |
 | --- | --- |
@@ -118,7 +118,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 | `GET /api/codegen-histories/{id}/package` | 普通端点，以附件下载这次的产物包（Zip），要生成历史的读权限 |
 
 - **打包下载**（照 5.x 的包结构）：每次覆盖的文件进 `_generated/`、只首次写的进 `_manual/`（各自下面再分 `backend/` 与 `frontend/`），登记片段在 `_registration/`，包根有 `README.txt`。产物包经 Files 的临时文件契约 `ITemporaryFiles`（Contracts）存成 7 天的临时文件（同导出中心），从上面的端点下载；写进项目、生成失败或已到期的历史没有产物包（`CODEGENERATION_NOTFOUND_005`）。5.x 把产物包以 Base64 放进生成的响应。
-- **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用，其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（`backend-next`）与 `FrontendRootPath`（`frontend-next`），不接受表配置给的任意路径；全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。宿主的 `appsettings.Development.json` 照 5.x 打开写盘并指向两个工程。
+- **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用，其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（`backend`）与 `FrontendRootPath`（`frontend`），不接受表配置给的任意路径；全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。宿主的 `appsettings.Development.json` 照 5.x 打开写盘并指向两个工程。
 - 失败的那条历史在独立的短事务里写（调用失败会回滚自己的写入），失败原因记错误码与调用方语言的文案。
 
 ## 零代码运行时
@@ -140,14 +140,14 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 生成的代码要跟得上各包的写法：改了 Feature、权限、页面登记、错误与消息目录、操作或 SchemaPage 的写法，要同时改内置模板（`Seeds/Templates/**/*.sbn`），再跑一次退出验证。前端产物照 lint 的换行规则出（含调用的对象一个属性一行、带嵌套的数组一项一行、含调用的三元式拆三行），前端的 lint 规则变了同样要对齐模板。它是手动触发的集成测试，不进缺省 CI：
 
 ```bash
-cd backend-next
+cd backend
 XIHAN_TEST_CODEGEN_COMPILE=<框架检出>/next/src/ \
   artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe \
   -class XiHan.BasicApp.Integration.Tests.CodeGenerationCompileTests
 ```
 
-- 变量是框架源码的 `src/` 目录（同 `-p:XiHanFrameworkSrc`），没设即跳过；前端要先在本检出的 `frontend-next` 装好依赖。
-- 把当前提交的 `backend-next` 与 `frontend-next` 导出到临时目录，四张演示表各配成新建包：树表 Catalog（带生成的启停枚举）、单表 Shop（关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数）、主从 Sales / SalesItems，按「生成到项目」写进去。
+- 变量是框架源码的 `src/` 目录（同 `-p:XiHanFrameworkSrc`），没设即跳过；前端要先在本检出的 `frontend` 装好依赖。
+- 把当前提交的 `backend` 与 `frontend` 导出到临时目录，四张演示表各配成新建包：树表 Catalog（带生成的启停枚举）、单表 Shop（关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数）、主从 Sales / SalesItems，按「生成到项目」写进去。
 - 照生成的登记片段登记进宿主（工程引用、`UseFeature`、OpenAPI 分组）与前端模块门禁，宿主连同四个新包 Release 构建、警告即失败；导出契约、`pnpm gen:contracts` 之后前端 `pnpm check` 八项通过。
 
 ## 模块开关

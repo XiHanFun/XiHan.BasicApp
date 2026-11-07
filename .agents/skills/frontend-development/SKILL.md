@@ -1,28 +1,30 @@
 ---
 name: xihan-basicapp-frontend-development
-description: 实现、重构、审查或测试 XiHan.BasicApp Vue 管理端时使用。覆盖 XiHan.UI、类型化 API、Pinia、动态路由、插件模块、权限可见性、统一视觉和浏览器验证；后端协议变化使用全栈契约技能。
+description: 实现、重构、审查或测试 XiHan.BasicApp 前端（frontend/）时使用。覆盖生成的契约层 ~/contracts、模块目录与页面登记、SchemaPage 与编辑弹窗、权限码门禁、10 区域文案、壳层与公共包、XiHan.UI 与统一视觉、门禁与浏览器验证；契约变化同时用 fullstack-contracts。
 ---
 
 # XiHan.BasicApp 前端开发
 
-开始前读 `references/frontend.md`，并检查相邻页面、API 类型、store、路由、语言资源和现有 XiHan.UI 组件。
+用于 `frontend/`。开始前读 `references/frontend.md`；视觉与交互改动读其中「视觉」一节与 `docs/frontend/theme.md`。
 
-## 工程边界
+## 边界
 
-- 页面位于 `frontend/src/views`，API 与 DTO 类型位于 `frontend/src/api/modules`，跨页面能力位于 `frontend/packages`。
-- 页面和 store 通过现有 request 与类型化 API facade 请求后端，不直接调用 `fetch`。
-- 跨页面状态使用 Pinia；页面局部筛选、弹窗、选择和分页留在页面或局部 composable。
-- 后端菜单驱动动态路由；可选模块保持后端注册、前端 `setup.ts`、页面和语言资源一致。
-- UI 使用 XiHan.UI，不引入 Naive UI、Ant Design Vue 或应用私有组件皮肤。
-- 通用组件缺陷回到 XiHan.UI 修复；BasicApp 只负责业务组合和应用主题桥。
-
-## 统一视觉
-
-- 圆角按形状角色取：偏好设置的圆角接到组件库的圆角种子 `--xh-radius-seed`，控件、承载面与浮层同一档，内嵌件（菜单与下拉的行、方框、已选标签）取一半，对话框与抽屉朝页面的两角、通知卡片取 1.25 倍；自写样式只写 `--xh-shape-*`，不写 `--xh-radius-*` 档位；pill 仅用于明确的胶囊语义，正方盒取 circle。
-- 离散按钮按下 150ms 缩放至 0.97、释放 200ms（时长与曲线随组件库，减弱动效下不缩放）；自写的可聚焦元素用与组件库同一道聚焦环（2px 画在盒内：`--xh-ring-width` + `--xh-ring-offset`；面是实心或任意颜色时内侧衬 `--xh-ring-gap` 底色间隔线）；锚定浮层走 frosted（实体底 + 描边 + 柔和投影），禁止 glass 材质。
-- 颜色、间距、圆角、阴影和动效使用 XiHan.UI 语义令牌，不扩大 px/token allowlist 掩盖问题。
-- 管理端保持紧凑、清晰和任务导向，并验证暗色、窄屏、键盘焦点与 reduced motion。
+- 前端不手写接口：操作客户端、类型、权限码与推送方法名都是后端 `contracts export` 之后 `pnpm gen:contracts` 生成的 `~/contracts`，生成物入库；契约不对就回后端改，不在前端补字段、双字段或 `as any`。
+- `@` 指向 `src`（应用侧），`~` 指向 `packages`（底层基建，禁止反向引用 `@/`）。业务页面只在 `src/modules/<包短名>/views/**`，模块名与后端能力包一致，带 `setup.ts` 与 10 个 `locales/<区域>.ts`。
+- 页面路径由后端页面登记决定：路由 `/settings/configs` → 组件 `settings/configs/index` → `src/modules/settings/views/configs/index.vue`；菜单与路由由 `auth.permissions` 下发，不另写静态业务路由。
+- 跨页面状态用 Pinia；筛选、弹窗、选择、分页这类页面局部状态留在页面或局部 composable。
+- 列表页用 `SchemaPage`，新增 / 编辑用 `XEditModal` + `XhFormRoot`，每个字段都有可见标签；按钮 `permission` 直接填后端权限码，安全边界在后端。
+- 壳层（布局、路由守卫、偏好设置、错误页）在 `packages/`：后端还没有的能力在 `AppContextApis` 里显式 `notAvailable()`、对应件缺省关，不在壳里绕。
+- 组件只用 XiHan.UI 与语义令牌，不引入其他组件库、不复制组件库运行时；组件库缺陷回 XiHan.UI 修，BasicApp 不写兼容；本地联调用 `pnpm-workspace.yaml` 的临时 `overrides`，不提交。
 
 ## 验证
 
-在 `frontend/` 运行 `pnpm check`、相关 `pnpm test` 和 `pnpm build`。视觉与浮层行为必须在真实浏览器验证，jsdom 不替代布局和计算样式。
+```bash
+cd frontend
+pnpm install --no-frozen-lockfile
+pnpm check   # type-check → lint → px → token → i18n → modules → contracts → permissions
+pnpm test
+pnpm build
+```
+
+视觉与交互改动在真实浏览器里看亮 / 暗色、窄视口、键盘与焦点、减少动态效果，用正式账号登录（验证码请用户输入）。没有锁文件，不加 `--frozen-lockfile`。

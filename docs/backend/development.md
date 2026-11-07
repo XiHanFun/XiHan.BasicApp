@@ -124,15 +124,15 @@ public static PageDescriptor Configs { get; } =
 一个操作至少覆盖：成功路径、权限不足、租户隔离（另一个租户看不到 / 改不了）、校验失败的字段级 `errors`、冲突与找不到的错误码。
 
 ```bash
-dotnet build backend-next/XiHan.BasicApp.slnx -c Release --no-restore
-dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
+dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
+dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
 ## 七、导出契约
 
 ```bash
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"
-cd frontend-next && pnpm gen:contracts
+dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
+cd frontend && pnpm gen:contracts
 ```
 
 `contracts export` 不启动应用、不连数据库，输出 `openapi.json` 与 `realtime.json`；`gen:contracts` 生成 `packages/contracts/*`。后端、契约文件、生成物与前端页面在同一个提交里，CI 的契约漂移门禁会重新导出并比对。
@@ -147,12 +147,12 @@ cd frontend-next && pnpm gen:contracts
 
 ```bash
 # 框架内建命令：help / graph / pipeline / operations
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- operations   # 每行：ID、稳定性、暴露、权限或策略
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- pipeline     # 管道各阶段的中间件次序
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- graph        # Feature 与能力依赖图
+dotnet run --project backend/src/XiHan.BasicApp.Host -- operations   # 每行：ID、稳定性、暴露、权限或策略
+dotnet run --project backend/src/XiHan.BasicApp.Host -- pipeline     # 管道各阶段的中间件次序
+dotnet run --project backend/src/XiHan.BasicApp.Host -- graph        # Feature 与能力依赖图
 # BasicApp 自己的命令
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- seed --list
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed --list
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
 ```
 
 命令模式用同一套装配但不监听端口，日志只写 stderr，stdout 只承载命令输出（成功是 JSON，失败是 `{"code","detail"}`，退出码按错误 KIND）。框架的 `invoke` 只发布 `Expose.CommandLine` 的操作，BasicApp 的操作都不在命令行上发布。

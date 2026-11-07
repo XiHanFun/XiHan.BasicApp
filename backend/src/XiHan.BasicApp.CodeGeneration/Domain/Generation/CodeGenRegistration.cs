@@ -79,7 +79,7 @@ public static class CodeGenRegistration
         var module = context.ModuleName;
         md.Append("## 新建包 `").Append(ns).AppendLine("`").AppendLine();
         md.AppendLine("包级文件只在第一次生成时写出，之后再加资源请选「加入已有包」。按 Tier 3（可选模块，只依赖 Contracts 与 Runtime）登记：").AppendLine();
-        md.AppendLine("1. `backend-next/XiHan.BasicApp.slnx` 的 `/3.Optional/` 文件夹：").AppendLine();
+        md.AppendLine("1. `backend/XiHan.BasicApp.slnx` 的 `/3.Optional/` 文件夹：").AppendLine();
         Code(md, "xml", $"<Project Path=\"src/{ns}/{ns}.csproj\" />");
         md.AppendLine("2. 宿主 `src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj`：").AppendLine();
         Code(md, "xml", $"<ProjectReference Include=\"../{ns}/{ns}.csproj\" />");
@@ -89,10 +89,10 @@ public static class CodeGenRegistration
         Code(md, "csharp", $"Group(\"{context.ModuleCode}\", 200),");
         md.AppendLine("5. 架构测试 `test/XiHan.BasicApp.Architecture.Tests`：工程引用这个包，`Model/Packages.cs` 的 `Ranks` 与 `Assemblies`：").AppendLine();
         Code(md, "csharp", $"[\"{module}\"] = 30,", $"typeof({ns}.{module}Feature).Assembly,");
-        md.AppendLine("6. 导出契约（`contracts export`）后在 `frontend-next` 运行 `pnpm gen:contracts`。").AppendLine();
+        md.AppendLine("6. 导出契约（`contracts export`）后在 `frontend` 运行 `pnpm gen:contracts`。").AppendLine();
         if (context.Table.Scope != CodeGenScope.BackendOnly)
         {
-            md.AppendLine("7. 前端 `frontend-next/scripts/check-modules.mjs` 的 `KNOWN` 加上模块名（模块目录与后端包短名一致）；视图键 `" + context.Resource + "/index` 要全局唯一：").AppendLine();
+            md.AppendLine("7. 前端 `frontend/scripts/check-modules.mjs` 的 `KNOWN` 加上模块名（模块目录与后端包短名一致）；视图键 `" + context.Resource + "/index` 要全局唯一：").AppendLine();
             Code(md, "js", $"'{context.ModuleCode}',");
         }
     }
@@ -142,7 +142,7 @@ public static class CodeGenRegistration
         {
             foreach (var locale in CodeGenPhrases.Locales)
             {
-                md.Append("### `frontend-next/src/modules/").Append(context.ModuleCode).Append("/locales/").Append(locale).Append(".ts` 的 `").Append(context.ModuleCode).AppendLine("` 对象里").AppendLine();
+                md.Append("### `frontend/src/modules/").Append(context.ModuleCode).Append("/locales/").Append(locale).Append(".ts` 的 `").Append(context.ModuleCode).AppendLine("` 对象里").AppendLine();
                 Code(md, "ts", CodeGenFrontendLocalization.Block(context, locale));
             }
         }

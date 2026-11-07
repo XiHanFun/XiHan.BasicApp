@@ -315,7 +315,7 @@ public sealed record CodegenGenerateResponse(Guid HistoryId, CodeGenDeliveryType
 /// <summary>
 /// 一个生成的文件
 /// </summary>
-/// <param name="Path">产物包里的路径：<c>backend/…</c>（相对 <c>backend-next</c>）、<c>frontend/…</c>（相对 <c>frontend-next</c>）或 <c>_registration/…</c></param>
+/// <param name="Path">产物包里的路径：<c>backend/…</c>、<c>frontend/…</c>（与仓库同名目录对应）或 <c>_registration/…</c></param>
 /// <param name="Side">属于哪一侧</param>
 /// <param name="TemplateCode">来源模板编码；引擎拼出的（文案、登记片段）为空</param>
 /// <param name="WriteMode">写入方式</param>

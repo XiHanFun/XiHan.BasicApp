@@ -1,6 +1,6 @@
 # 开发流程
 
-本页以在 Settings 模块中新增页面为例，说明管理端新增页面的完整步骤，适用于前端开发者。阅读前建议先了解[框架简介](./introduction)。
+本页以在 Settings 模块中新增页面为例，说明前端新增页面的完整步骤，适用于前端开发者。阅读前建议先了解[框架简介](./introduction)。
 
 ## 一、确定后端契约
 
@@ -8,8 +8,8 @@
 
 ```bash
 # 仓库根
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"
-cd frontend-next && pnpm gen:contracts
+dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
+cd frontend && pnpm gen:contracts
 ```
 
 `contracts/openapi.json` 与 `packages/contracts/*` 都是生成物、都入库，和后端改动、页面改动同一个提交。
@@ -66,7 +66,7 @@ const schema = computed<PageSchema>(() => ({
 
 - 只用 XiHan.UI 组件与语义令牌；不新增裸 px（`pnpm px:check` 按文件计数，只许减不许增）；
 - 圆角：偏好设置的圆角接到组件库的圆角种子，控件、承载面与浮层同一档，内嵌件取一半，对话框与抽屉朝页面的两角取 1.25 倍；自写样式只写形状角色（`--xh-shape-control / surface / overlay / inset / sheet`），不写 `--xh-radius-*` 档位；按下只换面、不缩放；浮层只用 frosted，不用 glass；
-- 管理端保持紧凑，不加营销式大标题。
+- 前端保持紧凑，不加营销式大标题。
 
 ## 五、门禁与测试
 

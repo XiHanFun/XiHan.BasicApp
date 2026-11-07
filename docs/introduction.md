@@ -50,4 +50,4 @@ XiHan.BasicApp 是曦寒生态的企业级中后台应用。6.0 是一次从零�
 
 框架只提供通用能力与 Provider：令牌校验、策略判定、仓储、工作单元、租户目录、授予存储、操作审计、调度、对象存储、本地化。BasicApp 在其上实现「业务」：签发令牌与会话、角色与授权规则、租户开通、菜单、日志查询、通知渠道等。框架没有的、或属于应用的（SignalR Hub、OAuth 服务端、模板引擎、第三方登录），都是 BasicApp 自己的能力包。
 
-`backend-next` 以 ProjectReference 引用同级检出的 `XiHan.Framework/next/src`，锁定提交写在 `backend-next/props/framework.props` 的 `XiHanFrameworkCommit`，架构测试核对检出的 HEAD；框架 5.0 发布到 NuGet 前不走包引用。
+`backend` 以 ProjectReference 引用同级检出的 `XiHan.Framework/next/src`，锁定提交写在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`，架构测试核对检出的 HEAD；框架 5.0 发布到 NuGet 前不走包引用。

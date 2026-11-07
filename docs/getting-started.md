@@ -11,11 +11,11 @@
 ```bash
 git clone -b next https://github.com/XiHanFun/XiHan.BasicApp.git
 git clone https://github.com/XiHanFun/XiHan.Framework.git
-# 框架检出到 backend-next/props/framework.props 里锁定的提交
+# 框架检出到 backend/props/framework.props 里锁定的提交
 git -C XiHan.Framework checkout 26bdff62
 ```
 
-两个目录必须并排放在同一个上级目录下（`backend-next` 按相对路径 `../../XiHan.Framework/next/src` 找框架源码）。
+两个目录必须并排放在同一个上级目录下（`backend` 按相对路径 `../../XiHan.Framework/next/src` 找框架源码）。
 
 ## 二、准备数据库
 
@@ -23,15 +23,15 @@ git -C XiHan.Framework checkout 26bdff62
 createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
 ```
 
-`backend-next/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向这个库。本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 覆盖连接串，不要把真实密码写进仓库。
+`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向这个库。本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 覆盖连接串，不要把真实密码写进仓库。
 
 ## 三、启动后端
 
 在仓库根：
 
 ```bash
-dotnet restore backend-next/XiHan.BasicApp.slnx
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
+dotnet restore backend/XiHan.BasicApp.slnx
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development
 ```
 
 启动时依次发生：
@@ -46,7 +46,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 种子不会随启动自动执行，另开一个终端运行 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
 
 ```bash
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- seed
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
 ```
 
 它按号段顺序执行各包登记的种子，可重复执行：
@@ -67,7 +67,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 ## 五、启动前端
 
 ```bash
-cd frontend-next
+cd frontend
 pnpm install --no-frozen-lockfile
 pnpm dev
 ```

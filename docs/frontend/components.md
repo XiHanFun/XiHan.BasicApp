@@ -1,6 +1,6 @@
 # 常用组件
 
-本页列出管理端常用的组件及其用途，适用于前端开发者。
+本页列出前端常用的组件及其用途，适用于前端开发者。
 
 组件统一来自 XiHan.UI（`@xihan-ui/vue` 等）。它是解剖式组件库：模板里的 `Xh*` 标签（如 `XhButton`、`XhDialogRoot`）由 Vite 插件自动映射到具名导出，不必逐个 import，摇树不受影响。组件 API、部件与令牌见 [XiHan.UI 文档](https://ui.docs.xihanfun.com)。
 

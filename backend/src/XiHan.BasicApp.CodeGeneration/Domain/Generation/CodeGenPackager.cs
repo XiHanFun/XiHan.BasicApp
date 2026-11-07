@@ -83,7 +83,7 @@ public static class CodeGenPackager
         text.AppendLine("================");
         text.AppendLine();
         text.Append(GeneratedDirectory).Append("/  每次覆盖的文件，共 ").Append(generated).AppendLine(" 个");
-        text.AppendLine("    由表结构完全推导，可直接整体覆盖到工程对应目录（backend/ 对应 backend-next，frontend/ 对应 frontend-next）。");
+        text.AppendLine("    由表结构完全推导，可直接整体覆盖到仓库里同名的 backend/、frontend/ 目录。");
         text.AppendLine("    请勿手改：下次重新生成会被覆盖，改动会丢失。");
         text.AppendLine();
         text.Append(ManualDirectory).Append("/  只首次写的文件，共 ").Append(manual.Count).AppendLine(" 个");

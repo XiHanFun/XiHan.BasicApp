@@ -39,7 +39,7 @@ public sealed class CodeGenerationOptions
     /// 后端根目录
     /// </summary>
     /// <remarks>
-    /// 含 <c>src/</c> 的 <c>backend-next</c> 目录，相对宿主的内容根目录
+    /// 含 <c>src/</c> 的 <c>backend</c> 目录，相对宿主的内容根目录
     /// </remarks>
     public string? BackendRootPath { get; init; }
 
@@ -47,7 +47,7 @@ public sealed class CodeGenerationOptions
     /// 前端根目录
     /// </summary>
     /// <remarks>
-    /// 含 <c>package.json</c> 的 <c>frontend-next</c> 目录，相对宿主的内容根目录
+    /// 含 <c>package.json</c> 的 <c>frontend</c> 目录，相对宿主的内容根目录
     /// </remarks>
     public string? FrontendRootPath { get; init; }
 

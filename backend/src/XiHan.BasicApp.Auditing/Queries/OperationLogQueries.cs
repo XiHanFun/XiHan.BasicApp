@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Auditing.Queries;
 /// SqlSugar 直查框架 <c>Auditing.Database</c> 的 <c>AuditRecord</c> 表，它不分表、不实现 <c>IMultiTenant</c>
 /// 租户主体只看本租户的记录，平台主体只看没有租户的记录。关键字匹配操作 ID、资源与错误码；筛选 <c>occurredAt</c>（ge / gt / le / lt）、<c>operationId</c>（eq / contains）、
 /// <c>succeeded</c>、<c>errorCode</c>、<c>traceId</c>、<c>userId</c>；排序 <c>occurredAt</c>（缺省倒序）、<c>operationId</c>
-/// 列表要页码与总数，框架查询契约 <c>IAuditTrail</c> 只有按写入序号的续页，所以管理端列表走表本身（ADR-0028 写明表结构归应用登记）
+/// 列表要页码与总数，框架查询契约 <c>IAuditTrail</c> 只有按写入序号的续页，所以列表页走表本身（ADR-0028 写明表结构归应用登记）
 /// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元</param>
 public sealed class OperationLogQueries(SqlSugarUnitOfWork unitOfWork)

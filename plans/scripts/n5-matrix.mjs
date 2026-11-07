@@ -1,14 +1,14 @@
-// N5 第一批：把七组核对片段合并成 nextdocs/对齐矩阵.md，并统计结论（方案第 8 节「N5 对齐与收口的做法」）
+// N5 第一批：把七组核对片段合并成 plans/对齐矩阵.md，并统计结论（方案第 8 节「N5 对齐与收口的做法」）
 // 只在 N5 用，不进 CI
 //
-//   node nextdocs/scripts/n5-matrix.mjs <片段目录>
+//   node plans/scripts/n5-matrix.mjs <片段目录>
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const blocksDir = path.resolve(process.argv[2]);
-const inventory = JSON.parse(fs.readFileSync(path.join(root, 'nextdocs/alignment/inventory-4x.json'), 'utf8'));
+const inventory = JSON.parse(fs.readFileSync(path.join(root, 'plans/alignment/inventory-4x.json'), 'utf8'));
 
 const NOT_LISTED = '未列入 features.md';
 const LEFTOVER = '没有挂到按钮的 4.x 接口';
@@ -72,7 +72,7 @@ const header = [
   '- 一级是 4.x 功能清单的 63 条（`v5.9.1` 的 `docs/features.md`），二级是 4.x 的页面、按钮与接口；非页面能力在最后一节。',
   '- 结论：**对齐**；**改口径**（引修订号或第 10 节的拍板）；**删除**（在第 7 节「明确删除」里）。N5 第一批的缺口都已补完并改为对齐，用户确认的改口径与删除见修订（一百三十二）。',
   '- 证据写测试类名；没有用例的写页面文件并标「无用例」。名字对上不等于对齐：每行都读过两侧代码。',
-  '- 依据的清单快照在 `nextdocs/alignment/`（`nextdocs/scripts/n5-inventory.mjs` 生成），4.x 目录在 N6 删除之后以它为准。',
+  '- 依据的清单快照在 `plans/alignment/`（`plans/scripts/n5-inventory.mjs` 生成），4.x 目录在 N6 删除之后以它为准。',
   '',
   '## 结论统计',
   '',
@@ -81,6 +81,6 @@ const header = [
   ...Object.entries(counts).map(([kind, n]) => `| ${kind} | ${n} |`),
   '',
 ].join('\n');
-fs.writeFileSync(path.join(root, 'nextdocs/对齐矩阵.md'), `${header}\n${content}`);
+fs.writeFileSync(path.join(root, 'plans/对齐矩阵.md'), `${header}\n${content}`);
 fs.writeFileSync(path.join(blocksDir, 'flagged.tsv'), `${flagged.join('\n')}\n`);
 console.log(counts, '总行', Object.values(counts).reduce((a, b) => a + b, 0));

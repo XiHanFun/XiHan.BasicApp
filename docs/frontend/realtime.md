@@ -1,6 +1,6 @@
 # 实时通信
 
-本页说明管理端的 SignalR 连接、重连与推送处理，适用于前端开发者。
+本页说明前端的 SignalR 连接、重连与推送处理，适用于前端开发者。
 
 前端经 `@microsoft/signalr` 连接后端 Realtime 包的通知 Hub；聊天模块另连聊天 Hub `/hubs/chat`（两条独立连接，见下文「聊天」）。
 

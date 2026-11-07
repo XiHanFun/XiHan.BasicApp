@@ -112,7 +112,7 @@ public static class Packages
     ];
 
     /// <summary>
-    /// backend-next 目录（含 XiHan.BasicApp.slnx）
+    /// backend 目录（含 XiHan.BasicApp.slnx）
     /// </summary>
     public static string Root { get; } = Locate();
 
@@ -158,6 +158,6 @@ public static class Packages
             directory = directory.Parent;
         }
 
-        throw new InvalidOperationException("Cannot locate the backend-next directory from " + AppContext.BaseDirectory);
+        throw new InvalidOperationException("Cannot locate the backend directory from " + AppContext.BaseDirectory);
     }
 }

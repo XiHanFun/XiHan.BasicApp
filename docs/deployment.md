@@ -18,7 +18,7 @@
 框架以源码引用，发布机上同样要有锁定提交的 XiHan.Framework 检出（与 BasicApp 并排）：
 
 ```bash
-dotnet publish backend-next/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
+dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
 ```
 
 发布目录里带着 `Schema/<版本>/*.sql`、`IpDatabases/*.xdb`（IP 归属地离线库）与 `appsettings.json`。
@@ -77,7 +77,7 @@ dotnet XiHan.BasicApp.Host.dll
 ## 前端：构建与部署
 
 ```bash
-cd frontend-next
+cd frontend
 pnpm install --no-frozen-lockfile
 pnpm build          # 产物在 dist/
 ```

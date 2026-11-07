@@ -1,29 +1,31 @@
 ---
 name: xihan-basicapp-fullstack-contracts
-description: 设计、变更、审查或诊断 XiHan.BasicApp 前后端契约时使用。覆盖 Dynamic API 服务与 DTO、权限码、租户隔离、菜单路由、可选模块、Framework 引用模式、配置、健康检查、数据库升级和部署边界。
+description: 设计、变更、审查或诊断 XiHan.BasicApp 前后端契约时使用。覆盖操作 ID 与 HTTP 路由约定、请求响应与分页批量形态、错误码与 Problem Details、权限码与作用侧、页面登记与菜单组件路径、推送方法、contracts export 与 gen-contracts、框架锁定与快照构建、配置节与 Provider、表结构基线与部署边界。
 ---
 
 # XiHan.BasicApp 全栈契约
 
-功能归属与跨端实现先读 `references/architecture.md`；涉及安全、配置、健康检查、SQL、运行或发布时再读 `references/contracts-security-and-operations.md`。
+用于 `backend/`、`frontend/` 之间的契约，以及 `docs/` 与 `plans/` 的同步。契约形态先读 `references/contracts.md`；涉及框架锁定、配置、Provider、表结构或部署时读 `references/operations.md`。方案 `plans/下一代总体方案.md` 的 D1–D12、5.4、5.13、5.14 与第 6.3 节是设计依据。
 
 ## 契约清单
 
-改变 Dynamic API 前确认并同步：
+改动任何一项都同步其余各项，并在同一个提交里落地：
 
-1. 服务名、方法名、HTTP 语义和 route value。
-2. 请求/响应 DTO 字段、nullable、枚举、ID、日期和分页。
-3. 后端 Mapper 与前端 `*.types.ts`、API facade 和调用点。
-4. 权限码、权限种子、角色授权和 UI 可见性。
-5. 后端菜单 Component 路径、动态路由映射和可选模块注册。
-6. 后端与前端测试、升级脚本和文档。
+1. 操作 ID、动词、`Expose`、`ReadOnly`、`Permission` / `Policy`（以及 `OperationExposureTests`、匿名白名单）。
+2. 请求 / 响应 record、字段可空、枚举值集、分页与批量形态，登记进包的 `JsonContext`。
+3. 错误码、消息键与 10 个区域文件；`<操作>.title` / `.description`、`openapi.tags.<资源>.name`。
+4. 权限码、作用侧、`audited`、页面登记（页面码、路由、组件路径、读权限）与对应种子。
+5. 推送方法与载荷（`realtime.json`）。
+6. 后端 `contracts export` → `frontend/contracts/*` → `pnpm gen:contracts` → `packages/contracts/*` → 页面与测试。
+7. 后端测试、前端门禁、docs 与方案修订。
 
 ## 不可变边界
 
-- 认证、授权、租户和数据范围在后端执行；客户端标识不是可信事实。
-- 不保留双字段、双 API、伪空结果或静默 fallback；破坏性变化明确迁移并一次收口。
-- 单独构建 `backend/XiHan.BasicApp.slnx` 默认使用 Framework NuGet 包；源码联调显式选择工作区或 `UseXiHanFrameworkSource`。
-- 数据库是启动硬依赖；Redis、Qdrant 与健康检查语义以当前代码和配置为准，不篡改状态掩盖不可用。
-- SQL 升级、生产配置、部署和外部发布只有用户明确要求时执行。
+- 一份 `openapi.json`、一个生成器：前端不手写路由、DTO 或权限码表；CI 的契约漂移门禁重新导出并比对，生成物与后端同一提交。
+- 认证、授权、租户、数据范围与字段安全在后端执行；前端隐藏按钮只是可用性。
+- 不保留双字段、双协议、伪空结果或静默兜底；破坏性变更明确迁移并一次收口（首个正式版发布前直接改，发布后按版本加升级脚本）。
+- 框架问题回 XiHan.Framework 修，BasicApp 只升锁定提交并跟进，不写兼容；UI 问题回 XiHan.UI 修。
+- 数据库是启动硬要求；Redis、RabbitMQ 按配置装，配了连不上即启动失败，不改失败等级掩盖不可用。
+- 不手工对任何库执行升级脚本，不推送、不发布、不部署，除非用户明确要求。
 
-跨端功能验证实际 API、权限、租户、菜单、异常和浏览器行为，不以两端分别编译成功代替契约验证。
+跨端功能要验证实际 HTTP 路由、权限、租户、菜单、错误码与浏览器行为，不以两端分别编译成功代替契约验证。

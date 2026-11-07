@@ -9,7 +9,7 @@ namespace {{ Namespace }};
 /// {{ ModuleName }} 包的页面登记
 /// </summary>
 /// <remarks>
-/// 权限只在租户侧，平台主体的菜单树里自然没有。前端页面在 <c>frontend-next/src/modules/{{ ModuleCode }}</c>
+/// 权限只在租户侧，平台主体的菜单树里自然没有。前端页面在 <c>frontend/src/modules/{{ ModuleCode }}</c>
 /// </remarks>
 public static class {{ ModuleName }}Pages
 {

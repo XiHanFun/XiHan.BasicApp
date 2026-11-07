@@ -20,15 +20,15 @@
 
 ### 后端与前端使用哪些端口？
 
-后端 HTTP `9710`、gRPC `9711`（只监听本机），前端开发服务器 `9100`。以 `appsettings.json` 的 `Kestrel:Endpoints` 与 `frontend-next/.env` 的 `VITE_PORT` 为准。
+后端 HTTP `9710`、gRPC `9711`（只监听本机），前端开发服务器 `9100`。以 `appsettings.json` 的 `Kestrel:Endpoints` 与 `frontend/.env` 的 `VITE_PORT` 为准。
 
 ### 构建时找不到 `XiHan.Framework.*` 工程
 
-`backend-next` 以源码引用框架，要求 XiHan.Framework 与 BasicApp 并排检出（`../../XiHan.Framework/next/src`）。框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/next/src/`。
+`backend` 以源码引用框架，要求 XiHan.Framework 与 BasicApp 并排检出（`../../XiHan.Framework/next/src`）。框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/next/src/`。
 
 ### `FrameworkPinTests` 失败
 
-框架检出不在 `backend-next/props/framework.props` 锁定的提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
+框架检出不在 `backend/props/framework.props` 锁定的提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
 
 ### 宿主启动后立即退出
 
@@ -40,7 +40,7 @@
 种子不随启动执行，要单独运行一次：
 
 ```bash
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- seed
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
 ```
 
 ### 前端提示跨域错误
@@ -118,7 +118,7 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Devel
 
 ### 时间显示相差若干小时
 
-6.0 的接口一律 UTC（带 `Z`），没有服务端时区换算，换算是客户端的事。管理端按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`，顶栏的时区切换器可改），不看浏览器所在的时区，见[国际化与时区](./frontend/i18n#时区)。自己对接时不要把带 `Z` 的时间当本地时间解析。
+6.0 的接口一律 UTC（带 `Z`），没有服务端时区换算，换算是客户端的事。前端按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`，顶栏的时区切换器可改），不看浏览器所在的时区，见[国际化与时区](./frontend/i18n#时区)。自己对接时不要把带 `Z` 的时间当本地时间解析。
 
 ### 修改后端 DTO 后前端类型未更新
 

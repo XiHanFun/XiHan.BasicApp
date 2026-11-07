@@ -1,7 +1,7 @@
 // N5 第三批：性能基准（方案第 8 节「性能与安全审查的范围」），先记基准再改，不设先验阈值
 // 只在 N5 用，不进 CI。要独占机器：跑之前看有没有别的会话在跑全量
 //
-//   node nextdocs/scripts/n5-bench.mjs <项> [--out 目录] [--label 标记] [--rounds 3]
+//   node plans/scripts/n5-bench.mjs <项> [--out 目录] [--label 标记] [--rounds 3]
 //
 //   login      登录与 auth.permissions：并发 1、10、50，冷启动与缓存命中各一组
 //   lists      用户与日志列表：大租户管理员与受限范围两种身份，一次请求多少条 SQL
@@ -310,7 +310,7 @@ async function benchIdle() {
 }
 
 function signalR() {
-  const root = path.resolve('frontend-next/node_modules/.pnpm');
+  const root = path.resolve('frontend/node_modules/.pnpm');
   const folder = fs.readdirSync(root).find((f) => f.startsWith('@microsoft+signalr@'));
   return createRequire(path.join(root, folder, 'node_modules/@microsoft/signalr/package.json'))('@microsoft/signalr');
 }
@@ -441,7 +441,7 @@ function walk(folder) {
   return fs.readdirSync(folder, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? walk(path.join(folder, entry.name)) : [path.join(folder, entry.name)]));
 }
 async function benchFrontend() {
-  const dist = path.resolve('frontend-next/dist');
+  const dist = path.resolve('frontend/dist');
   const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
   const initial = new Set([...html.matchAll(/(?:src|href)="\/?([^"]+\.(?:js|css))"/g)].map((m) => m[1]));
   const files = walk(dist).filter((f) => /\.(js|css)$/.test(f)).map((file) => {

@@ -55,7 +55,7 @@ public sealed class GetOAuthApp(OAuthAppService service) : IOperation<OAuthAppId
 /// 新建 OAuth 应用
 /// </summary>
 /// <remarks>
-/// <c>POST /api/oauth-apps</c>（ClientId 重复 <c>OPENPLATFORM_CONFLICT_002</c>；机密客户端的密钥只在这一次返回，4.x 管理端建不了公开客户端，这里可以）
+/// <c>POST /api/oauth-apps</c>（ClientId 重复 <c>OPENPLATFORM_CONFLICT_002</c>；机密客户端的密钥只在这一次返回；公开客户端也可以建）
 /// </remarks>
 /// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsCreate)]

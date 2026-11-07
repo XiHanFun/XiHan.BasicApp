@@ -1,6 +1,6 @@
 # 配置参考
 
-本页列出 6.0 宿主与管理端的配置项、缺省值与含义，适用于开发、部署与运维时查阅。
+本页列出 6.0 宿主与前端的配置项、缺省值与含义，适用于开发、部署与运维时查阅。
 
 ## 文件与优先级
 
@@ -295,8 +295,8 @@
 | `TablePrefixes` | `sys_` | 导入表时推断类名去掉的表名前缀，逗号分隔、取最长的匹配（5.x 是 `CodeGeneration:TablePrefixes`，缺省 `Sys_,Saas_`） |
 | `EnableGenerateToProject` | `false` | 允许「生成到项目」；打开了也只在 Development 生效（宿主的 `appsettings.Development.json` 打开） |
 | `AllowSqliteDataSource` | `false`，`appsettings.Development.json` 写的是 `true` | 是否开放 SQLite 数据源。SQLite 的「地址」是服务器上的文件路径，开放等于能读进程够得着的任意数据库文件 |
-| `BackendRootPath` | 无 | 写进项目时后端的根目录（含 `src/` 的 `backend-next`），相对宿主的内容根目录；开发配置是 `../..` |
-| `FrontendRootPath` | 无 | 写进项目时前端的根目录（含 `package.json` 的 `frontend-next`），相对宿主的内容根目录；开发配置是 `../../../frontend-next` |
+| `BackendRootPath` | 无 | 写进项目时后端的根目录（含 `src/` 的 `backend`），相对宿主的内容根目录；开发配置是 `../..` |
+| `FrontendRootPath` | 无 | 写进项目时前端的根目录（含 `package.json` 的 `frontend`），相对宿主的内容根目录；开发配置是 `../../../frontend` |
 
 ## `BasicApp:Auth`
 

@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 方案 N3 第四批的退出条件，手动触发、不进缺省 CI：设 <c>XIHAN_TEST_CODEGEN_COMPILE</c> 为框架源码的 <c>src/</c> 目录（同 <c>-p:XiHanFrameworkSrc</c>）才跑，
-/// 前端要先在本检出的 <c>frontend-next</c> 装好依赖。把当前提交的 <c>backend-next</c> 与 <c>frontend-next</c> 导出到临时目录，
+/// 前端要先在本检出的 <c>frontend</c> 装好依赖。把当前提交的 <c>backend</c> 与 <c>frontend</c> 导出到临时目录，
 /// 四张演示表（树表 Catalog 带生成的启停枚举；单表 Shop 带关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数；主从 Sales / SalesItems）
 /// 各配成新建包，按「生成到项目」写进去，再照生成的登记片段登记进宿主与模块门禁：宿主 Release 构建不许有警告，导出契约、生成前端契约之后前端 <c>pnpm check</c> 八项通过
 /// </remarks>
@@ -54,7 +54,7 @@ public sealed class CodeGenerationCompileTests : IDisposable
         var frameworkSource = Environment.GetEnvironmentVariable(Variable);
         Assert.SkipWhen(string.IsNullOrWhiteSpace(frameworkSource), $"{Variable} is not set; set it to the framework src/ directory to run the code generation exit check.");
         var repository = RepositoryRoot();
-        var nodeModules = Path.Combine(repository, "frontend-next", "node_modules");
+        var nodeModules = Path.Combine(repository, "frontend", "node_modules");
         Assert.True(Directory.Exists(nodeModules), $"Install the frontend dependencies first: {nodeModules} is missing.");
         var cancellation = TestContext.Current.CancellationToken;
 
@@ -62,12 +62,12 @@ public sealed class CodeGenerationCompileTests : IDisposable
         var checkout = Path.Combine(_root, "checkout");
         Directory.CreateDirectory(checkout);
         var archive = Path.Combine(_root, "head.tar");
-        await RunAsync("git", ["-C", repository, "archive", "--format=tar", "-o", archive, "HEAD", "backend-next", "frontend-next"], repository, TimeSpan.FromMinutes(5), cancellation);
+        await RunAsync("git", ["-C", repository, "archive", "--format=tar", "-o", archive, "HEAD", "backend", "frontend"], repository, TimeSpan.FromMinutes(5), cancellation);
         await TarFile.ExtractToDirectoryAsync(archive, checkout, overwriteFiles: false, cancellation);
-        var backend = Path.Combine(checkout, "backend-next");
-        var frontend = Path.Combine(checkout, "frontend-next");
+        var backend = Path.Combine(checkout, "backend");
+        var frontend = Path.Combine(checkout, "frontend");
         Mirror(nodeModules, Path.Combine(frontend, "node_modules"));
-        foreach (var package in Directory.GetDirectories(Path.Combine(repository, "frontend-next", "packages")))
+        foreach (var package in Directory.GetDirectories(Path.Combine(repository, "frontend", "packages")))
         {
             var modules = Path.Combine(package, "node_modules");
             if (Directory.Exists(modules))
@@ -352,12 +352,12 @@ public sealed class CodeGenerationCompileTests : IDisposable
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "backend-next", "XiHan.BasicApp.slnx")))
+            if (File.Exists(Path.Combine(directory.FullName, "backend", "XiHan.BasicApp.slnx")))
             {
                 return directory.FullName;
             }
         }
 
-        throw new InvalidOperationException("The repository root (with backend-next/XiHan.BasicApp.slnx) was not found above the test output.");
+        throw new InvalidOperationException("The repository root (with backend/XiHan.BasicApp.slnx) was not found above the test output.");
     }
 }

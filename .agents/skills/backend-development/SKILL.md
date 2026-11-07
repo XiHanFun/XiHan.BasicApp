@@ -1,29 +1,26 @@
 ---
 name: xihan-basicapp-backend-development
-description: 实现、重构、审查或测试 XiHan.BasicApp 后端模块时使用。覆盖 Dynamic API、DDD/CQRS、SqlSugar、实体、仓储、权限、租户、事务、种子和后台资源；跨前后端协议变化使用全栈契约技能。
+description: 实现、重构、审查或测试 XiHan.BasicApp 后端（backend/，基于 XiHan.Framework）时使用。覆盖能力包与 Tier、Feature 显式登记、操作与 Expose、权限码与种子、错误与消息目录、仓储与 Queries、平台库与租户库实体、表结构基线与升级脚本、宿主 Provider、快照构建与测试门禁；跨端契约变化同时用 fullstack-contracts。
 ---
 
 # XiHan.BasicApp 后端开发
 
-开始前读 `references/backend.md`，并检查所属模块 README、相邻实体、服务、仓储、权限、种子和测试。
+用于 `backend/`。开始前读 `references/backend.md`，再读方案 `plans/下一代总体方案.md` 第 5 节里对应的小节、`docs/backend/development.md`，以及目标包的 `<包>Feature.cs`、相邻操作、`Queries/` 与集成测试。
 
 ## 架构边界
 
-- `Saas` 承载租户、身份、RBAC/ABAC 与平台基础能力；AI、Chat、CodeGeneration、Printing、Workflow 是显式依赖的可选模块。
-- 普通业务 API 使用 `[DynamicApi]` Application Service/Query Service，不建立 Controller 或 Minimal API 平行入口。
-- 业务规则在 Domain，命令与查询编排在 Application，SqlSugar 实现在 Infrastructure。
-- 写操作沿用 `[UnitOfWork(true)]`；受保护操作使用模块权限常量和 `[PermissionAuthorize(...)]`。
-- 全局记录使用 `TenantId = 0`；软删除实体的唯一索引包含 `IsDeleted` 和隔离所需 TenantId。
-- 异步方法接受并传递 `CancellationToken`，不吞异常、不返回伪成功。
-- Framework 默认内存实现保持零外部依赖；BasicApp 在应用层注册分布式 Provider。
+- 能力包按 Tier 分层（Tier 0 `Contracts → Runtime`，Tier 1 `Identity → Tenancy → Organization → Access`，Tier 2 平台能力，Tier 3 可选模块，`Host` 装配），只能向下依赖，同层之间经 `Contracts` 的接口协作；`TierDependencyTests` 守护。
+- 每个包一个 `<包>Feature : IFeature`：手写清单，在 `Configure` 里显式登记仓储、服务、权限目录、页面、消息目录、中间件、作业与 `context.AddGeneratedOperations()`。没有约定扫描、`IScopedDependency` 或拦截器。
+- 业务接口是操作：`Operations/<资源 Pascal>/<动词>.cs` 里一个 `[Operation(Id, Expose = …, Permission = …)]` 类实现 `IOperation<TRequest, TResponse>`。不写 Controller 或 Minimal API 业务入口；普通端点只留给文件上传下载、OAuth 重定向、Hub、Webhook。
+- `Expose` 每个操作显式写（`XHG004` 为 error）；超出 `Expose.Http` 的必须只读并登记在 `OperationExposureTests`。
+- 权限码 `<包>.<资源>.<动作>`，资源段等于操作 ID 的资源段；在 `<包>Permissions.All` 登记 `PermissionDescriptor`（作用侧、`audited`），权限目录、菜单门控与种子都由它派生。授权只在后端，前端隐藏按钮不是安全边界。
+- 平台库实体用 `OwnerTenantId`（平台 = `TenantIds.Platform`）分侧，租户库实体用 `TenantScoped*` 基类；不绕过租户过滤与数据范围。
+- 失败是值：`Error.Validation / NotFound / Conflict / Denied / Unavailable(<包>Errors.X, <包>Messages.X, MessageArguments.Of(...))`；新消息键同时补 10 个 `Localization/<区域>.json`。不吞异常、不返回伪成功。
+- 事务由管道的 Transaction 阶段开；`context.CancellationToken` 一路传下去。要独立于调用事务的读写（失败计数、门禁读库、缓存加载）走 `Runtime.Persistence.StoreScope`。
+- 框架问题回 XiHan.Framework 仓库修，BasicApp 只升锁定提交并跟进，不写兼容、不加静默兜底。
 
 ## 契约与验证
 
-改变 DTO、服务名、方法、权限或菜单路径时，同时加载 `../fullstack-contracts/SKILL.md`。先跑所属模块测试，再运行：
+改了操作、DTO、权限码、页面登记或推送方法，同时加载 `../fullstack-contracts/SKILL.md`，契约导出与前端生成物同一提交。
 
-```bash
-dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
-dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
-```
-
-实体、应用服务、仓储、种子、测试和必要升级脚本应形成同一功能闭环。
+构建与测试对着框架锁定提交（`backend/props/framework.props` 的 `XiHanFrameworkCommit`）；同级框架检出前进了就按 `references/backend.md` 的快照做法。提交前：Release 构建 0 警告、架构测试与集成测试全过（快照构建下只有 `FrameworkPinTests` 失败属预期）、`git diff --check`、单行 summary 计数为 0。

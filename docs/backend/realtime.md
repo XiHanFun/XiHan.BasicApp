@@ -31,7 +31,7 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
 | `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更与正在输入，见[在线聊天](./chat#推送) |
 
-方法清单由 `contracts export` 一并导出为 `frontend-next/contracts/realtime.json`，前端生成 `packages/contracts/realtime.ts`。推送载荷是各包自己的记录，按各包的源生成序列化上下文序列化（枚举按名称）。
+方法清单由 `contracts export` 一并导出为 `frontend/contracts/realtime.json`，前端生成 `packages/contracts/realtime.ts`。推送载荷是各包自己的记录，按各包的源生成序列化上下文序列化（枚举按名称）。
 
 ## 推送契约
 

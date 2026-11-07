@@ -1,11 +1,11 @@
-# backend-next
+# 后端
 
-XiHan.BasicApp 6.0 后端（方案第 4、5 节）：基于 XiHan.Framework 5（`next` 分支）从零实现，能力包 + 操作契约，一份契约同时服务 HTTP / gRPC / MCP。
+XiHan.BasicApp 后端（方案第 4、5 节）：基于 XiHan.Framework 5，能力包 + 操作契约，一份契约同时服务 HTTP / gRPC / MCP。
 
 ## 布局
 
 ```text
-backend-next/
+backend/
 ├─ XiHan.BasicApp.slnx
 ├─ Directory.Build.props            版本 6.0.0-preview.1、Nullable、警告即错误、文档文件
 ├─ Directory.Packages.props         中央包版本
@@ -24,11 +24,11 @@ backend-next/
 ## 命令（仓库根）
 
 ```bash
-dotnet restore backend-next/XiHan.BasicApp.slnx
-dotnet build backend-next/XiHan.BasicApp.slnx -c Release --no-restore
-XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres' dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
-dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out frontend-next/contracts
+dotnet restore backend/XiHan.BasicApp.slnx
+dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
+XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres' dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development
+dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
 ```
 
 框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `E:\Repository\XiHanFun\XiHanFun.Next.Local.slnx` 登记本目录全部工程与框架 `next/src`。

@@ -9,8 +9,8 @@ description: 根据 XiHan.BasicApp 当前暂存区生成一行提交信息时使
 2. 只读取 `git diff --cached --stat`、完整 staged diff 和最近 20 条提交。暂存区为空时不从未暂存内容猜测。
 3. 将全部暂存变化归纳为一个意图，输出一行 Conventional Commit。
 
-格式：`<type>(<scope>): <中文说明>`。type 使用 `feat`、`fix`、`refactor`、`perf`、`docs`、`style`、`test`、`build`、`ci`、`chore`、`revert`。
+格式：`<type>(<scope>): <中文说明>`，第一人称，64 字以内，不写正文。type 使用 `feat`、`fix`、`refactor`、`perf`、`docs`、`style`、`test`、`build`、`ci`、`chore`、`revert`。
 
-scope 优先使用 `backend`、`frontend`、`saas`、`ai`、`chat`、`codegen`、`printing`、`workflow`、`webhost`、`docs`；跨前后端同一功能可以使用业务模块 scope，不逐文件罗列。
+scope 取改动所在的位置：`backend`、`frontend`、`docs`、`plans`、`ci`，或能力包短名（`identity`、`tenancy`、`organization`、`access`、`settings`、`files`、`notification`、`auditing`、`realtime`、`maintenance`、`openplatform`、`workbench`、`printing`、`chat`、`workflow`、`codegeneration`、`ai`、`host`、`runtime`、`contracts`）；跨前后端的同一功能用能力包 scope，不逐文件罗列。
 
-改变 Dynamic API、DTO、权限码、菜单路径、数据库结构或公开配置时使用 `!`，除非仓库当前兼容策略明确证明非破坏。只要求消息时最终只输出一行标题。
+改变操作 ID 或路由、DTO、权限码、页面路由、表结构或公开配置时使用 `!`，除非仓库当前兼容策略明确证明非破坏（首个正式版发布前直接改，不算破坏）。只要求消息时最终只输出一行标题。

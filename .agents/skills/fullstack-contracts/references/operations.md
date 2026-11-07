@@ -1,9 +1,9 @@
-# 6.0 框架引用、配置与运维
+# 框架引用、配置与运维
 
 ## 框架引用与锁定
 
-- `backend-next/props/framework.props` 锁 `XiHanFrameworkCommit`；缺省以 ProjectReference 引用同级 `XiHan.Framework/next/src`，`-p:XiHanFrameworkSrc=<检出>/next/src/` 改指路径，`-p:UseXiHanFrameworkSource=false` 走 NuGet 包 `5.0.0-preview.*`。工程文件只写 `<XiHanFrameworkReference Include="…" />` / `<XiHanFrameworkAnalyzer … />`，由 `Directory.Build.targets` 翻译，不写路径与版本。
-- `FrameworkPinTests` 核对同级检出的 HEAD；别的会话在框架 `next` 上提交时，按锁定提交 `git archive` 出快照再构建（命令见后端技能的 `references/backend.md`），快照下这一条失败属预期。
+- `backend/props/framework.props` 锁 `XiHanFrameworkCommit`；缺省以 ProjectReference 引用同级 `XiHan.Framework/next/src`（锁定提交时框架源码的位置），`-p:XiHanFrameworkSrc=<检出>/next/src/` 改指路径，`-p:UseXiHanFrameworkSource=false` 走 NuGet 包 `5.0.0-preview.*`。工程文件只写 `<XiHanFrameworkReference Include="…" />` / `<XiHanFrameworkAnalyzer … />`，由 `Directory.Build.targets` 翻译，不写路径与版本。
+- `FrameworkPinTests` 核对同级检出的 HEAD；别的会话在框架上提交、同级检出前进时，按锁定提交 `git archive` 出快照再构建（命令见后端技能的 `references/backend.md`），快照下这一条失败属预期。
 - 升锁定提交：改 `XiHanFrameworkCommit`，集中跟进公开面与行为变化（签名、校验、表结构），基线随之重生成，方案写一条修订；CI 按锁定提交检出框架（经 GitHub API 把短 SHA 换成完整 SHA），框架没推送前 CI 在检出步失败，推送要用户同意。
 - 框架缺陷在框架仓库修、BasicApp 只升锁定；需要回灌的事项登记在方案 9.4（N3、N4 的在 9.5）。
 - 本机 IDE 联调用工作区根的 `XiHanFun.Next.Local.slnx`（不在任何 git 里）；新建包要补进去，否则 IDE 沿用旧的 `obj`。
@@ -26,11 +26,11 @@
 ## 表结构与种子
 
 - 开发库由 Development 的 `InitTables` 建表补列；正式库只认 `Host/Schema/<版本>/*.sql`（PostgreSQL、`CREATE TABLE IF NOT EXISTS`、可重复执行）与版本台账，`SchemaUpgrader` 在启动时按库取租约锁执行、失败即中断，别的节点升级期间维护模式返回 503。
-- 6.0 发布前改表就重生成 `6.0.0/0001-baseline.sql`（`SchemaBaselineTests` + `XIHAN_UPDATE_SCHEMA_BASELINE=1` + `XIHAN_TEST_POSTGRES`），发布后每个版本一个新目录。
-- 6.0 不做 4.x 数据迁移（D12）。Agent 不对任何库手工执行脚本，也不删改用户的开发库；要验证建表，用测试自建的临时库。
+- 首个正式版发布前改表就重生成 `6.0.0/0001-baseline.sql`（`SchemaBaselineTests` + `XIHAN_UPDATE_SCHEMA_BASELINE=1` + `XIHAN_TEST_POSTGRES`），发布后每个版本一个新目录。
+- 不做上一大版本的数据迁移（D12）。Agent 不对任何库手工执行脚本，也不删改用户的开发库；要验证建表，用测试自建的临时库。
 - 种子：`dotnet XiHan.BasicApp.Host.dll seed [--only <名>] [--list]`，号段见 `SeedOrders`；初始账号 `superadmin`，密码来自 `BasicApp:Seed:SuperAdminPassword`。
 
-## 门禁与 CI（`.github/workflows/next-ci.yml`）
+## 门禁与 CI（`.github/workflows/ci.yml`）
 
 | 作业 | 内容 |
 | --- | --- |
@@ -38,4 +38,4 @@
 | 契约漂移 | 重新 `contracts export` 比对 `contracts/*`，再 `pnpm contracts:check` 比对生成物 |
 | 前端 | `pnpm check`（八项）、`pnpm test`、`pnpm build` |
 
-文档：行为或配置变了同步 `docs/` 对应页与更新日志、`nextdocs/下一代总体方案.md` 写修订（编号接在最后一条之后，正文与第 8 节状态行一致）。代码、文档与提交信息里不写参考项目名。
+文档：行为或配置变了同步 `docs/` 对应页与更新日志、`plans/下一代总体方案.md` 写修订（编号接在最后一条之后，正文与第 8 节状态行一致）。代码、文档与提交信息里不写参考项目名。

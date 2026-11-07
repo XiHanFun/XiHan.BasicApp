@@ -1,7 +1,0 @@
-interface:
-  display_name: "XiHan.BasicApp 6.0 后端开发"
-  short_description: "在 next 上开发 backend-next 的能力包、操作、权限与种子"
-  default_prompt: "使用 $xihan-basicapp-next-backend-development 在 backend-next 实现并验证一项后端功能。"
-
-policy:
-  allow_implicit_invocation: true

@@ -1,5 +1,5 @@
 <Project>
-  <!-- backend-next 自成一体：不导入仓库根或 backend/ 的任何 props，6.0 与 5.x 的构建策略互不影响 -->
+  <!-- 后端自成一体：不导入仓库根的任何 props -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
