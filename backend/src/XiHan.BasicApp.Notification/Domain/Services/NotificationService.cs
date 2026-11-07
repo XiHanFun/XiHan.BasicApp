@@ -78,16 +78,10 @@ public static class NotificationChannelSet
     /// <summary>
     /// 把按位组合换成渠道列表
     /// </summary>
-    /// <remarks>
-    /// 为 0 时按只有站内信
-    /// </remarks>
     /// <param name="channels">按位组合</param>
     /// <returns>渠道</returns>
     public static IReadOnlyList<DeliveryChannel> ToList(MessageChannels channels)
-    {
-        var effective = channels == MessageChannels.None ? MessageChannels.InApp : channels;
-        return [.. Enum.GetValues<DeliveryChannel>().Where(c => effective.HasFlag((MessageChannels)(int)c))];
-    }
+        => [.. Enum.GetValues<DeliveryChannel>().Where(c => channels.HasFlag((MessageChannels)(int)c))];
 }
 
 /// <summary>
@@ -334,7 +328,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         }
 
         // 渠道先核对能发再写：开了邮件或短信却没有可用的配置与模板即整次发布失败，不悄悄只发站内信
-        var channels = notification.DeliveryChannels == MessageChannels.None ? MessageChannels.InApp : notification.DeliveryChannels;
+        var channels = notification.DeliveryChannels;
         foreach (var (flag, kind, template) in new[] { (MessageChannels.Email, MessageKind.Email, EmailTemplate), (MessageChannels.Sms, MessageKind.Sms, SmsTemplate) })
         {
             if (channels.HasFlag(flag) && !await sender.CanSendAsync(context, kind, template).ConfigureAwait(false))
