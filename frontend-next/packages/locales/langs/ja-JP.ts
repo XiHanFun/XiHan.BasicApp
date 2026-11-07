@@ -1034,7 +1034,7 @@ export default {
   },
   page: {
     about: {
-      title: 'バージョン情報',
+      title: 'プロジェクトについて',
       name_author: '名称と作者',
       version: 'バージョン',
       license: 'ライセンス',

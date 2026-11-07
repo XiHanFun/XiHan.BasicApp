@@ -1034,7 +1034,7 @@ export default {
   },
   page: {
     about: {
-      title: 'Über',
+      title: 'Über das Projekt',
       name_author: 'Name & Autor',
       version: 'Version',
       license: 'Lizenz',

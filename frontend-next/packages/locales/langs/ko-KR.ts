@@ -1034,7 +1034,7 @@ export default {
   },
   page: {
     about: {
-      title: '정보',
+      title: '프로젝트 소개',
       name_author: '이름 및 작성자',
       version: '버전',
       license: '라이선스',

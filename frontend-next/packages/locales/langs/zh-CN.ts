@@ -1034,7 +1034,7 @@ export default {
   },
   page: {
     about: {
-      title: '关于',
+      title: '关于项目',
       name_author: '名称及作者',
       version: '版本',
       license: '许可证',

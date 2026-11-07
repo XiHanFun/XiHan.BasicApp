@@ -148,6 +148,10 @@ onMounted(() => {
   <div class="ab-page">
     <div class="ab-banner">
       <div class="ab-banner-glow" />
+      <div class="ab-banner-title">
+        <Icon icon="lucide:shield-check" width="18" />
+        <span>{{ t('page.about.title') }}</span>
+      </div>
       <div class="ab-hero">
         <div class="ab-logo">
           <img :src="appLogo" :alt="appName" class="ab-logo-img">
@@ -414,6 +418,16 @@ onMounted(() => {
   background: color-mix(in oklab, var(--xh-bg-brand) 12%, transparent);
   filter: blur(var(--xh-space-5));
   pointer-events: none;
+}
+
+.ab-banner-title {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-2);
+  margin-bottom: var(--xh-space-3);
+  font-size: var(--xh-font-size-md);
+  font-weight: var(--xh-font-weight-semibold);
+  color: var(--xh-fg-default);
 }
 
 .ab-hero {

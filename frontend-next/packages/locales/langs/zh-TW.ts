@@ -1034,7 +1034,7 @@ export default {
   },
   page: {
     about: {
-      title: '關於',
+      title: '關於專案',
       name_author: '名稱及作者',
       version: '軟體版本',
       license: '授權條款',

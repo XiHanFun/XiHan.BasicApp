@@ -81,6 +81,7 @@ describe('关于页', () => {
     const wrapper = await render([])
     expect(calls).toEqual([])
     expect(wrapper.findAll('.ab-card').some(card => card.text().includes('后端生产环境依赖'))).toBe(false)
+    expect(wrapper.find('.ab-banner-title').text()).toBe('关于项目')
     expect(wrapper.find('.ab-hero-name').text()).toBe('XiHan.BasicApp')
     // 概览卡五张正好一行：官方文档与仓库地址是外链
     expect(wrapper.findAll('.ab-overview-item').map(item => item.find('.ab-overview-label').text())).toEqual([
