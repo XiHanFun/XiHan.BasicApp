@@ -122,3 +122,78 @@ public sealed class SysTenant : AppAuditedEntity
     /// </summary>
     public DateTimeOffset? DatabaseInitializedAt { get; set; }
 }
+
+/// <summary>
+/// 租户独立库的状态
+/// </summary>
+/// <remarks>
+/// 对应 4.x 的配置状态：配好连接即待初始化，<c>tenants.initialize-database</c> 成功即就绪、失败记原因可再试
+/// </remarks>
+public enum TenantDatabaseStatus
+{
+    /// <summary>
+    /// 共库，不需要独立库
+    /// </summary>
+    NotRequired = 0,
+
+    /// <summary>
+    /// 待初始化
+    /// </summary>
+    Pending = 1,
+
+    /// <summary>
+    /// 已就绪
+    /// </summary>
+    Ready = 2,
+
+    /// <summary>
+    /// 初始化失败
+    /// </summary>
+    Failed = 3,
+}
+
+/// <summary>
+/// 租户数据的隔离方式
+/// </summary>
+/// <remarks>
+/// 方案 5.10：Field（共库、按租户列过滤，缺省）与 Database（落租户库的实体在租户自己的库里）；4.x 的 Schema 隔离未实装，6.0 不保留
+/// </remarks>
+public enum TenantIsolationMode
+{
+    /// <summary>
+    /// 共库，按租户列隔离
+    /// </summary>
+    Field = 0,
+
+    /// <summary>
+    /// 独立库
+    /// </summary>
+    Database = 1,
+}
+
+/// <summary>
+/// 租户状态
+/// </summary>
+/// <remarks>
+/// 与框架租户目录的 <c>IsEnabled</c> 同步（Active ⇔ 启用）
+/// </remarks>
+public enum TenantStatus
+{
+    /// <summary>
+    /// 生效：租户用户可登录
+    /// </summary>
+    Active = 0,
+
+    /// <summary>
+    /// 停用：目录标记为禁用，租户用户不能登录、带该租户声明的调用被拒
+    /// </summary>
+    Suspended = 1,
+
+    /// <summary>
+    /// 到期：到期作业把过了到期时间的生效租户标为到期，目录随之禁用
+    /// </summary>
+    /// <remarks>
+    /// 延长到期时间之后用 <c>tenants.resume</c> 恢复；停用照常可用
+    /// </remarks>
+    Expired = 2,
+}

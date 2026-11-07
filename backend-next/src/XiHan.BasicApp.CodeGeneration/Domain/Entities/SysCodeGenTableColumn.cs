@@ -213,3 +213,176 @@ public sealed class SysCodeGenTableColumn : AppAuditedEntity
     [StringLength(500)]
     public string? Remark { get; set; }
 }
+
+/// <summary>
+/// 列的查询方式
+/// </summary>
+public enum CodeGenQueryType
+{
+    /// <summary>
+    /// 等于
+    /// </summary>
+    Equal = 0,
+
+    /// <summary>
+    /// 不等于
+    /// </summary>
+    NotEqual = 1,
+
+    /// <summary>
+    /// 大于
+    /// </summary>
+    GreaterThan = 2,
+
+    /// <summary>
+    /// 大于等于
+    /// </summary>
+    GreaterThanOrEqual = 3,
+
+    /// <summary>
+    /// 小于
+    /// </summary>
+    LessThan = 4,
+
+    /// <summary>
+    /// 小于等于
+    /// </summary>
+    LessThanOrEqual = 5,
+
+    /// <summary>
+    /// 模糊匹配
+    /// </summary>
+    Like = 6,
+
+    /// <summary>
+    /// 左模糊
+    /// </summary>
+    LikeLeft = 7,
+
+    /// <summary>
+    /// 右模糊
+    /// </summary>
+    LikeRight = 8,
+
+    /// <summary>
+    /// 区间
+    /// </summary>
+    Between = 9,
+
+    /// <summary>
+    /// 在其中
+    /// </summary>
+    In = 10,
+
+    /// <summary>
+    /// 不在其中
+    /// </summary>
+    NotIn = 11,
+}
+
+/// <summary>
+/// 列的表单控件
+/// </summary>
+public enum CodeGenHtmlType
+{
+    /// <summary>
+    /// 文本框
+    /// </summary>
+    Input = 0,
+
+    /// <summary>
+    /// 文本域
+    /// </summary>
+    Textarea = 1,
+
+    /// <summary>
+    /// 下拉框
+    /// </summary>
+    Select = 2,
+
+    /// <summary>
+    /// 单选框
+    /// </summary>
+    Radio = 3,
+
+    /// <summary>
+    /// 复选框
+    /// </summary>
+    Checkbox = 4,
+
+    /// <summary>
+    /// 日期
+    /// </summary>
+    DatePicker = 5,
+
+    /// <summary>
+    /// 日期时间
+    /// </summary>
+    DateTimePicker = 6,
+
+    /// <summary>
+    /// 时间
+    /// </summary>
+    TimePicker = 7,
+
+    /// <summary>
+    /// 图片上传
+    /// </summary>
+    ImageUpload = 8,
+
+    /// <summary>
+    /// 文件上传
+    /// </summary>
+    FileUpload = 9,
+
+    /// <summary>
+    /// 富文本
+    /// </summary>
+    Editor = 10,
+
+    /// <summary>
+    /// 数字输入框
+    /// </summary>
+    InputNumber = 11,
+
+    /// <summary>
+    /// 开关
+    /// </summary>
+    Switch = 12,
+
+    /// <summary>
+    /// 树形选择
+    /// </summary>
+    TreeSelect = 13,
+}
+
+/// <summary>
+/// 列的选项来源
+/// </summary>
+public enum CodeGenDictSelectorType
+{
+    /// <summary>
+    /// 系统字典（字典码）
+    /// </summary>
+    DictSelector = 0,
+
+    /// <summary>
+    /// 枚举类型（枚举全名）
+    /// </summary>
+    EnumSelector = 1,
+
+    /// <summary>
+    /// 常量数组（内联 JSON）
+    /// </summary>
+    ConstSelector = 2,
+
+    /// <summary>
+    /// 关联表下拉（外键指向另一张表配置）
+    /// </summary>
+    TableSelector = 3,
+
+    /// <summary>
+    /// 关联树选择（外键指向另一张树表配置）
+    /// </summary>
+    TreeSelector = 4,
+}

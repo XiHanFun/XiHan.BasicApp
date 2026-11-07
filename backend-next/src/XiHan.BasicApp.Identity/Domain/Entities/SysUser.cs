@@ -135,3 +135,51 @@ public sealed class SysUser : AppAuditedEntity
     /// </remarks>
     public Guid? AvatarFileId { get; set; }
 }
+
+/// <summary>
+/// 性别
+/// </summary>
+/// <remarks>
+/// 个人资料，4.x 同。JSON 上是字符串枚举
+/// </remarks>
+public enum UserGender
+{
+    /// <summary>
+    /// 未设置
+    /// </summary>
+    Unknown = 0,
+
+    /// <summary>
+    /// 男
+    /// </summary>
+    Male = 1,
+
+    /// <summary>
+    /// 女
+    /// </summary>
+    Female = 2,
+}
+
+/// <summary>
+/// 用户状态
+/// </summary>
+/// <remarks>
+/// JSON 上是字符串枚举
+/// </remarks>
+public enum UserStatus
+{
+    /// <summary>
+    /// 正常
+    /// </summary>
+    Active = 0,
+
+    /// <summary>
+    /// 已禁用，不能登录
+    /// </summary>
+    Disabled = 1,
+
+    /// <summary>
+    /// 已锁定（安全策略触发），待解锁
+    /// </summary>
+    Locked = 2,
+}

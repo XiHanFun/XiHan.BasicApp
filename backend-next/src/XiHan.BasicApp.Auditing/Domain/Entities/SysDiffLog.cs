@@ -68,3 +68,32 @@ public sealed class SysDiffLog : AuditLogRecord
     [StringLength(2048)]
     public string? ChangedFields { get; set; }
 }
+
+/// <summary>
+/// 数据变更的种类
+/// </summary>
+public enum DiffKind
+{
+    /// <summary>
+    /// 新增
+    /// </summary>
+    Insert = 0,
+
+    /// <summary>
+    /// 修改（软删除也是修改）
+    /// </summary>
+    Update = 1,
+
+    /// <summary>
+    /// 物理删除
+    /// </summary>
+    Delete = 2,
+
+    /// <summary>
+    /// 恢复（软删除的数据 IsDeleted 由真变假）
+    /// </summary>
+    /// <remarks>
+    /// 4.x 同，从修改里区分出来
+    /// </remarks>
+    Restore = 3,
+}

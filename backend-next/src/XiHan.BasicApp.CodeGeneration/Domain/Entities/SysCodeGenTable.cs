@@ -190,3 +190,43 @@ public sealed class SysCodeGenTable : AppAuditedEntity
     [StringLength(500)]
     public string? Remark { get; set; }
 }
+
+/// <summary>
+/// 生成范围
+/// </summary>
+public enum CodeGenScope
+{
+    /// <summary>
+    /// 前后端都生成
+    /// </summary>
+    All = 0,
+
+    /// <summary>
+    /// 只生成后端
+    /// </summary>
+    BackendOnly = 1,
+
+    /// <summary>
+    /// 只生成前端
+    /// </summary>
+    FrontendOnly = 2,
+}
+
+/// <summary>
+/// 生成目标
+/// </summary>
+/// <remarks>
+/// 新建包另出包级文件（工程、特性、权限、页面、文案……）；加入已有包只出资源相关文件与一份要人工合入的登记片段
+/// </remarks>
+public enum CodeGenTarget
+{
+    /// <summary>
+    /// 新建包
+    /// </summary>
+    NewPackage = 0,
+
+    /// <summary>
+    /// 加入已有包
+    /// </summary>
+    ExistingPackage = 1,
+}

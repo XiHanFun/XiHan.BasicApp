@@ -101,3 +101,32 @@ public sealed class SysBotMessage : AppAuditedEntity, IOwnedByTenant, IMessageRe
     [StringLength(100)]
     public string? BusinessId { get; set; }
 }
+
+/// <summary>
+/// 机器人消息走的通道
+/// </summary>
+/// <remarks>
+/// 三家群机器人（与 <see cref="BotProvider"/> 同值）与 Telegram（平台托管）
+/// </remarks>
+public enum BotChannel
+{
+    /// <summary>
+    /// 钉钉群机器人
+    /// </summary>
+    DingTalk = 1,
+
+    /// <summary>
+    /// 飞书群机器人
+    /// </summary>
+    Lark = 2,
+
+    /// <summary>
+    /// 企业微信群机器人
+    /// </summary>
+    WeCom = 3,
+
+    /// <summary>
+    /// Telegram 机器人（只在平台一侧广播）
+    /// </summary>
+    Telegram = 4,
+}

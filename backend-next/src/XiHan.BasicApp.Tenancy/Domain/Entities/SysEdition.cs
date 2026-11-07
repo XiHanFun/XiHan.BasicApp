@@ -91,3 +91,19 @@ public sealed class SysEdition : AppAuditedEntity
     /// </summary>
     public bool IsFree { get; set; }
 }
+
+/// <summary>
+/// 套餐的启停状态
+/// </summary>
+public enum EditionStatus
+{
+    /// <summary>
+    /// 启用
+    /// </summary>
+    Active = 0,
+
+    /// <summary>
+    /// 停用：不能再分配给租户，已绑定的租户不受影响
+    /// </summary>
+    Disabled = 1,
+}

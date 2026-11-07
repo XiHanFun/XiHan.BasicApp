@@ -112,3 +112,36 @@ public sealed class SysCodeGenTemplate : AppAuditedEntity
     [StringLength(500)]
     public string? Remark { get; set; }
 }
+
+/// <summary>
+/// 模板引擎
+/// </summary>
+/// <remarks>
+/// 4.x 另有 T4，选了即抛不支持，6.0 去掉（方案 C2），字段保留给以后扩展
+/// </remarks>
+public enum CodeGenTemplateEngine
+{
+    /// <summary>
+    /// Scriban
+    /// </summary>
+    Scriban = 1,
+}
+
+/// <summary>
+/// 产物的写入方式
+/// </summary>
+/// <remarks>
+/// 自动文件由表结构推导、重新生成时覆盖；手写文件只在第一次生成时创建，此后不再碰（照 4.x「重新生成不覆盖手改」）
+/// </remarks>
+public enum CodeGenWriteMode
+{
+    /// <summary>
+    /// 每次覆盖
+    /// </summary>
+    AlwaysOverwrite = 0,
+
+    /// <summary>
+    /// 只在第一次写
+    /// </summary>
+    WriteOnce = 1,
+}

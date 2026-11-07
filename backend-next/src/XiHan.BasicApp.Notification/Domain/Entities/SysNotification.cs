@@ -149,3 +149,157 @@ public sealed class SysNotification : TenantScopedAuditedEntity
     [StringLength(500)]
     public string? Remark { get; set; }
 }
+
+/// <summary>
+/// 投递渠道
+/// </summary>
+/// <remarks>
+/// 按位组合存在通知上；站内信必有
+/// </remarks>
+[Flags]
+public enum MessageChannels
+{
+    /// <summary>
+    /// 不投递
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// 站内信（收件箱与实时推送）
+    /// </summary>
+    InApp = 1,
+
+    /// <summary>
+    /// 邮件
+    /// </summary>
+    Email = 2,
+
+    /// <summary>
+    /// 短信
+    /// </summary>
+    Sms = 4,
+
+    /// <summary>
+    /// 机器人（钉钉、飞书、企业微信的群机器人）
+    /// </summary>
+    /// <remarks>
+    /// 一条通知发到本侧每个服务商的缺省机器人
+    /// </remarks>
+    Bot = 8,
+}
+
+/// <summary>
+/// 通知类型
+/// </summary>
+/// <remarks>
+/// 4.x 同
+/// </remarks>
+public enum NotificationType
+{
+    /// <summary>
+    /// 系统公告
+    /// </summary>
+    System = 1,
+
+    /// <summary>
+    /// 安全通知
+    /// </summary>
+    Security = 2,
+
+    /// <summary>
+    /// 业务通知
+    /// </summary>
+    Business = 3,
+
+    /// <summary>
+    /// 待办通知
+    /// </summary>
+    Todo = 4,
+
+    /// <summary>
+    /// 紧急通知
+    /// </summary>
+    Emergency = 5,
+}
+
+/// <summary>
+/// 优先级
+/// </summary>
+/// <remarks>
+/// 4.x 同
+/// </remarks>
+public enum NotificationPriority
+{
+    /// <summary>
+    /// 低
+    /// </summary>
+    Low = 1,
+
+    /// <summary>
+    /// 普通
+    /// </summary>
+    Normal = 2,
+
+    /// <summary>
+    /// 高
+    /// </summary>
+    High = 3,
+
+    /// <summary>
+    /// 紧急
+    /// </summary>
+    Urgent = 4,
+}
+
+/// <summary>
+/// 正文格式
+/// </summary>
+/// <remarks>
+/// 4.x 同。HTML 正文由前端按白名单清洗后渲染
+/// </remarks>
+public enum NotificationContentFormat
+{
+    /// <summary>
+    /// 纯文本
+    /// </summary>
+    Text = 1,
+
+    /// <summary>
+    /// Markdown
+    /// </summary>
+    Markdown = 2,
+
+    /// <summary>
+    /// HTML
+    /// </summary>
+    Html = 3,
+}
+
+/// <summary>
+/// 投递目标
+/// </summary>
+/// <remarks>
+/// 4.x 同
+/// </remarks>
+public enum NotificationTargetType
+{
+    /// <summary>
+    /// 当前一侧的全部正常账号
+    /// </summary>
+    All = 0,
+
+    /// <summary>
+    /// 持有指定角色的用户
+    /// </summary>
+    Role = 1,
+
+    /// <summary>
+    /// 指定部门及其下级部门的成员（只在租户一侧）
+    /// </summary>
+    Department = 2,
+
+    /// <summary>
+    /// 指定用户
+    /// </summary>
+    User = 3,
+}

@@ -83,3 +83,24 @@ public sealed class SysBotConfig : AppAuditedEntity, IOwnedByTenant
     [StringLength(500)]
     public string? Remark { get; set; }
 }
+
+/// <summary>
+/// 群机器人的服务商
+/// </summary>
+public enum BotProvider
+{
+    /// <summary>
+    /// 钉钉自定义机器人（可选加签与安全关键词）
+    /// </summary>
+    DingTalk = 1,
+
+    /// <summary>
+    /// 飞书自定义机器人（可选签名校验与关键词）
+    /// </summary>
+    Lark = 2,
+
+    /// <summary>
+    /// 企业微信群机器人（地址里带 key，没有签名）
+    /// </summary>
+    WeCom = 3,
+}
