@@ -254,22 +254,24 @@ onDeactivated(() => {
       </XhCardContent>
     </XhCardRoot>
 
-    <!-- 工具条：计数与操作靠右，与列表页的工具条同一张卡 -->
+    <!-- 工具条：与列表页同一张卡——页面操作（全部已读）靠左，计数与刷新靠右 -->
     <XhCardRoot class="inbox-card inbox-card--toolbar" variant="outline">
       <XhCardContent>
         <div class="inbox-toolbar">
-          <XhTagRoot variant="subtle" size="sm">
-            <XhTagLabel>{{ t('notification.inbox.unread_count', { n: counts.unread }) }}</XhTagLabel>
-          </XhTagRoot>
-          <XhTagRoot variant="subtle" size="sm" :tone="counts.confirm > 0 ? 'warning' : 'neutral'">
-            <XhTagLabel>{{ t('notification.inbox.confirm_count', { n: counts.confirm }) }}</XhTagLabel>
-          </XhTagRoot>
           <XhButton :disabled="counts.unread === 0" :loading="loading" size="sm" variant="subtle" tone="brand" @click="handleMarkAllRead">
             <XhButtonIndicator />
             <XhButtonPrefix><Icon icon="lucide:check-check" /></XhButtonPrefix>
             <XhButtonLabel>{{ t('notification.inbox.mark_all_read') }}</XhButtonLabel>
           </XhButton>
-          <XIconButton icon="lucide:refresh-cw" :label="t('notification.inbox.refresh')" :loading="loading" @click="refresh" />
+          <div class="inbox-toolbar__status">
+            <XhTagRoot variant="subtle" size="sm">
+              <XhTagLabel>{{ t('notification.inbox.unread_count', { n: counts.unread }) }}</XhTagLabel>
+            </XhTagRoot>
+            <XhTagRoot variant="subtle" size="sm" :tone="counts.confirm > 0 ? 'warning' : 'neutral'">
+              <XhTagLabel>{{ t('notification.inbox.confirm_count', { n: counts.confirm }) }}</XhTagLabel>
+            </XhTagRoot>
+            <XIconButton icon="lucide:refresh-cw" :label="t('notification.inbox.refresh')" :loading="loading" @click="refresh" />
+          </div>
         </div>
       </XhCardContent>
     </XhCardRoot>
@@ -396,13 +398,20 @@ onDeactivated(() => {
   color: var(--xh-fg-subtle);
 }
 
-/* 计数与操作：靠右一行 */
+/* 操作靠左；计数与刷新作为流的最后一项推到右侧 */
 .inbox-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
   gap: var(--xh-space-2);
+}
+
+.inbox-toolbar__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--xh-space-2);
+  margin-inline-start: auto;
 }
 
 .inbox-skeleton {
