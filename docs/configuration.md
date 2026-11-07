@@ -11,6 +11,8 @@
 - 框架节 `XiHan:*`：由 XiHan.Framework 5 的各个 Feature 读取（内核、绑定、持久化、安全、租户、本地化、审计、协议）。
 - 应用节 `BasicApp:*`：由各能力包的 Options 读取，直接绑定，不进入清单的配置贡献。
 
+宿主的 `appsettings.json` 写出了上面两组的全部配置项，每一项都带注释：写出来的值就是缺省值，注释掉的是可选项（去掉 `//`、填上真实值即生效）。只在开发环境生效的值写在 `appsettings.Development.json`。.NET 的 JSON 配置允许 `//` 注释。
+
 ::: danger 不提交密钥
 `appsettings.json` 里的 JWT 密钥、签名地址密钥、数据库连接串都留空；`appsettings.Development.json` 里的值只用于本机开发，部署前必须由环境变量或密钥存储替换。下文示例一律用占位符。
 :::
