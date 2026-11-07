@@ -8,14 +8,13 @@ import type { PrintTemplateDetail, PrintTemplateRow, PrintTemplateScope } from '
 import type PrintTemplateEditor from './components/PrintTemplateEditor.vue'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaResource } from '~/components'
 import type { PrintDocument } from '~/printing/designer'
-import { XhButton, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave } from 'vue-router'
-import { SchemaPage, statusConfirmText, XTooltip } from '~/components'
+import { SchemaPage, statusConfirmText, XIconButton } from '~/components'
 import { dialog, toast } from '~/composables'
 import { printTemplates, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { Icon } from '~/iconify'
 import {
   createDefaultPrintSampleData,
   directPrintByCode,
@@ -452,12 +451,13 @@ function remove(row: PrintTemplateRow): void {
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3">
     <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
+      <!-- 作用域切换钮与同排的刷新、导出等一样是 XIconButton：同一套尺寸、悬停与按下 -->
       <template v-if="!isPlatform" #toolbar>
-        <XTooltip :content="scopeSwitchLabel">
-          <XhButton class="xh-icon-btn" variant="ghost" size="sm" icon-only :aria-label="scopeSwitchLabel" @click="switchScope">
-            <span><Icon :icon="activeScope === 'Tenant' ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
-          </XhButton>
-        </XTooltip>
+        <XIconButton
+          :icon="activeScope === 'Tenant' ? 'lucide:globe-2' : 'lucide:building-2'"
+          :label="scopeSwitchLabel"
+          @click="switchScope"
+        />
       </template>
     </SchemaPage>
 
