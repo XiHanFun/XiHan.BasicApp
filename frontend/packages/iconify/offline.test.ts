@@ -1,9 +1,9 @@
 /**
  * packages/iconify/offline.ts 单元测试
  *
- * 职责边界：离线图标集的元数据契约、按 prefix 懒加载与未知 prefix 的回退、
- * 预载清单的范围（哪些必须预载、哪些留给 IconPicker 按需加载）、以及单个图标包加载失败时的降级
- * addCollection 由替身接管，不真正写入 iconify 的全局注册表
+ * 职责边界：离线图标集的元数据契约、按 prefix 装入（只装一次）与未知 prefix 的回退、
+ * 预载清单的范围（哪些启动预载、哪些等首次用到再装）、以及单个图标包加载失败时的降级
+ * addCollection 由替身接管，不真正写入 iconify 的全局注册表；已装的图标集记在模块里，每个用例重新导入一份
  * 只测 ./offline —— 包入口 index.ts 会连带引入 IconPicker.vue，本轮不涉及组件
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -14,17 +14,23 @@ const { addCollection } = vi.hoisted(() => ({
 
 vi.mock('@iconify/vue/offline', () => ({ addCollection }))
 
-const { ICON_SET_META, loadIconNames, setupIconifyOffline } = await import('./offline')
-
 type OfflineModule = typeof import('./offline')
+
+let ICON_SET_META: OfflineModule['ICON_SET_META']
+let isIconSetLoaded: OfflineModule['isIconSetLoaded']
+let loadIconNames: OfflineModule['loadIconNames']
+let loadIconSet: OfflineModule['loadIconSet']
+let setupIconifyOffline: OfflineModule['setupIconifyOffline']
 
 /** 取出历次 addCollection 调用所注册集合的 prefix */
 function registeredPrefixes(): string[] {
   return addCollection.mock.calls.map(([collection]) => (collection as { prefix: string }).prefix)
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   addCollection.mockClear()
+  vi.resetModules()
+  ;({ ICON_SET_META, isIconSetLoaded, loadIconNames, loadIconSet, setupIconifyOffline } = await import('./offline'))
 })
 
 afterEach(() => {
@@ -90,11 +96,15 @@ describe('loadIconNames 查找与回退', () => {
     expect(addCollection).not.toHaveBeenCalled()
   })
 
-  it('同一 prefix 重复调用每次都重新注册，注册是幂等操作', async () => {
-    await loadIconNames('ep')
+  it('同一图标集只装一次：重复与并发调用都只注册一次', async () => {
+    await Promise.all([
+      loadIconNames('ep'),
+      loadIconSet('ep'),
+    ])
     await loadIconNames('ep')
 
-    expect(registeredPrefixes()).toEqual(['ep', 'ep'])
+    expect(registeredPrefixes()).toEqual(['ep'])
+    expect(isIconSetLoaded('ep')).toBe(true)
   })
 
   it('图标包加载失败时返回空数组，不注册也不把异常抛给调用方', async () => {
@@ -106,6 +116,7 @@ describe('loadIconNames 查找与回退', () => {
 
     await expect(mod.loadIconNames('ep')).resolves.toEqual([])
     expect(addCollection).not.toHaveBeenCalled()
+    expect(mod.isIconSetLoaded('ep')).toBe(false)
   })
 
   it('图标包内容缺失 icons 字段时返回空数组而不是抛错', async () => {
@@ -150,13 +161,15 @@ describe('setupIconifyOffline 预载范围', () => {
     expect(registeredPrefixes()).toContain('simple-icons')
   })
 
-  it('carbon / ep / heroicons 不预载，留给 IconPicker 按需加载', async () => {
+  it('carbon / ep / heroicons 不预载，等首次用到再装', async () => {
     await setupIconifyOffline()
 
     const prefixes = registeredPrefixes()
     expect(prefixes).not.toContain('carbon')
     expect(prefixes).not.toContain('ep')
     expect(prefixes).not.toContain('heroicons')
+    expect(isIconSetLoaded('lucide')).toBe(true)
+    expect(isIconSetLoaded('carbon')).toBe(false)
   })
 
   it('预载的图标集都在元数据清单内，不存在未登记的隐式依赖', async () => {

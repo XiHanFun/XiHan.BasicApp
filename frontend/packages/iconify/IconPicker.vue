@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { Icon } from '@iconify/vue/offline'
 import { useFieldControl, XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
+import { Icon } from './icon'
 import { ICON_SET_META, loadIconNames } from './offline'
 import { useScrollStrip } from './scroll-strip'
 

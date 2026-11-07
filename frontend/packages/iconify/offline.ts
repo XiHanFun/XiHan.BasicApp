@@ -1,8 +1,9 @@
 /**
- * Iconify 离线图标初始化
- * 预加载运行期常用图标集（lucide / tabler / mdi），其余图标集由 IconPicker 按需加载
+ * Iconify 离线图标集
+ * 启动时预载常用的四个图标集，其余图标集在首次渲染到它的图标时（或图标选择器切到它时）再装
  */
 import { addCollection } from '@iconify/vue/offline'
+import { reactive } from 'vue'
 
 type IconifyJSON = Parameters<typeof addCollection>[0]
 
@@ -30,9 +31,8 @@ const PACKAGE_LOADERS: Record<IconPackageName, () => Promise<IconifyJSON>> = {
 }
 
 /**
- * 运行期常用图标集：lucide（通用）、tabler（用户管理等页）、mdi（品牌等图标）、
- * simple-icons（第三方登录品牌 logo 如 Gitee，登录页/绑定页离线渲染需预载）
- * 预加载避免离线模式图标空白（离线 Icon 对已挂载组件不会因后加载而重渲染）
+ * 启动预载：lucide（通用）、tabler（部分页面）、mdi（品牌等图标）、simple-icons（登录页与绑定页的第三方登录 logo）
+ * 这几个先于挂载装好，首屏图标不必等加载后再重挂
  */
 const PRELOAD_ICON_PACKAGES: IconPackageName[] = [
   'lucide',
@@ -41,24 +41,57 @@ const PRELOAD_ICON_PACKAGES: IconPackageName[] = [
   'simple-icons',
 ]
 
-export async function setupIconifyOffline() {
-  await Promise.all(PRELOAD_ICON_PACKAGES.map(async (packageName) => {
-    const icons = await PACKAGE_LOADERS[packageName]().catch(() => null)
-    if (icons) {
-      addCollection(icons)
-    }
-  }))
+/** 已装好的图标集；Icon 读它，图标集装好后对应的图标重新挂载 */
+const loadedSets = reactive(new Set<string>())
+const loadingSets = new Map<string, Promise<IconifyJSON | null>>()
+
+function findPackage(prefix: string): IconPackageName | undefined {
+  return ICON_SET_META.find(meta => meta.prefix === prefix)?.package
 }
 
-/** 按 prefix 懒加载图标名称列表 */
+/** 是否是本地收录的图标集 */
+export function hasIconSet(prefix: string): boolean {
+  return findPackage(prefix) !== undefined
+}
+
+/** 图标集是否已装好 */
+export function isIconSetLoaded(prefix: string): boolean {
+  return loadedSets.has(prefix)
+}
+
+/**
+ * 按 prefix 装入图标集，同一图标集只装一次
+ * 未收录的 prefix 返回 null；加载失败也返回 null，且不记住失败，下次调用再试
+ */
+export function loadIconSet(prefix: string): Promise<IconifyJSON | null> {
+  const packageName = findPackage(prefix)
+  if (!packageName)
+    return Promise.resolve(null)
+  let task = loadingSets.get(prefix)
+  if (!task) {
+    task = PACKAGE_LOADERS[packageName]()
+      .then((data) => {
+        addCollection(data)
+        loadedSets.add(prefix)
+        return data
+      })
+      .catch(() => {
+        loadingSets.delete(prefix)
+        return null
+      })
+    loadingSets.set(prefix, task)
+  }
+  return task
+}
+
+export async function setupIconifyOffline() {
+  await Promise.all(PRELOAD_ICON_PACKAGES.map(loadIconSet))
+}
+
+/** 按 prefix 取图标名称列表（顺带装入该图标集） */
 export async function loadIconNames(prefix: string): Promise<string[]> {
-  const meta = ICON_SET_META.find(m => m.prefix === prefix)
-  const loader = meta ? PACKAGE_LOADERS[meta.package] : undefined
-  if (!loader)
-    return []
-  const data = await loader().catch(() => null)
+  const data = await loadIconSet(prefix)
   if (!data)
     return []
-  addCollection(data)
   return Object.keys(data.icons || {}).sort()
 }
