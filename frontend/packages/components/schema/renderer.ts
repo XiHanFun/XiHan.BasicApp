@@ -5,7 +5,6 @@ import { h } from 'vue'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
 import SchemaFileRefCell from './SchemaFileRefCell.vue'
-import { resolveStatusTagTone } from './status-tag'
 
 /** 安全读取行字段值（兼容具名 DTO 接口，无索引签名） */
 function readField(row: object, key: string): unknown {
@@ -103,15 +102,13 @@ export function renderFieldCell<TRow extends object>(
 
   const raw = readField(row, field.key)
 
-  // 标签型：用字典 options 映射 label，并按语气着色
+  // 标签型：按 options 映射名称，出中性标签；要按状态着色的列写 render + renderTag
   if ((field.dataType === 'tag' || field.dataType === 'enum') && field.options) {
     if (raw == null) {
       return '-'
     }
     const label = getOptionLabel(toMutableOptions(field.options), toOptionValue(raw))
-    // 登记过语气的状态字典按语气着色，其余枚举走中性
-    const tone = resolveStatusTagTone(field.dictionaryCode, raw) ?? 'neutral'
-    return h(XhTagRoot, { variant: 'subtle', tone }, () => h(XhTagLabel, () => label))
+    return h(XhTagRoot, { variant: 'subtle', tone: 'neutral' }, () => h(XhTagLabel, () => label))
   }
 
   // 文件引用（文件主键或直链）：图片出缩略图，文件出打开入口

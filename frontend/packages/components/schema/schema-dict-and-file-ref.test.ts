@@ -9,7 +9,7 @@ import type { VNode } from 'vue'
 import type { ListFieldSchema } from './types'
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
-// 预热依赖图（见 use-enum-options.test.ts 的说明）：重置模块后再导入只剩求值开销
+// 预热依赖图：~/composables 牵出 ~/stores、router、i18n 等整张图，首次转换在满并行下要数秒；重置模块后再导入只剩求值开销
 import './useSchemaDictionaries'
 
 type OptionsFn = (dictCode: string) => Promise<Array<{ value: string, label: string, parentValue?: null | string, isDefault: boolean, disabled: boolean }>>

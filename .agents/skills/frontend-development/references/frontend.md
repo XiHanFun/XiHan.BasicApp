@@ -31,7 +31,7 @@ frontend/
 
 ## 页面
 
-- 列表页：`SchemaPage` + `PageSchema`（不带泛型，回调里 `asRow(row)` 转成本页行类型）；资源适配器 `use-<页面>.ts` 用 `toPageRequest(params, { filters: { 字段: 'eq' | 'contains' }, ranges, multiples })` 与 `toSchemaPageResult`，只登记后端 `Queries/` 白名单里的字段。区间与多选要在映射里登记 `ranges`（拆成 ge / le）与 `multiples`（合成 in），后端也要接；数字上下限的两个输入框用 `bounds`（搜索键 → 后端字段与 ge / le）；不用 `dictionaryCode`，状态列用 `render` + `renderTag(label, tone)`。样板见 `src/modules/settings/views/configs`。
+- 列表页：`SchemaPage` + `PageSchema`（不带泛型，回调里 `asRow(row)` 转成本页行类型）；资源适配器 `use-<页面>.ts` 用 `toPageRequest(params, { filters: { 字段: 'eq' | 'contains' }, ranges, multiples })` 与 `toSchemaPageResult`，只登记后端 `Queries/` 白名单里的字段。区间与多选要在映射里登记 `ranges`（拆成 ge / le）与 `multiples`（合成 in），后端也要接；数字上下限的两个输入框用 `bounds`（搜索键 → 后端字段与 ge / le）；状态列用 `render` + `renderTag(label, tone)`。样板见 `src/modules/settings/views/configs`。
 - 编辑弹窗：`XEditModal` + `XhFormRoot`（表单写 `novalidate`），每个字段有可见标签；针对单个字段的说明收进字段名后面的问号提示（`XFieldLabel :help`，与偏好设置同款），不放在字段下方，只有针对整张表单的说明才留在外面；字段错误用 `XhFieldRoot :invalid` + `XhFieldErrorText`；数字字段用 `XhNumberFieldRoot`（`v-model:value` 是字符串）。
 - 弹窗里的表格与列表页同样式（`XDataTable` 缺省尺寸 + 列分隔线，分页出同款底栏）。`XDataTable` 的 `rowKey` 缺省是 `basicId`，行没有这个字段时要显式传 `row-key`；大量只读行放 `shallowRef`。
 - 公共组件里有代码编辑器 `XCodeEditor`（monaco，只读预览与模板编辑）与文件引用上传 `XFileRefUpload`（存文件库的文件 ID），用到时直接取 `~/components`。

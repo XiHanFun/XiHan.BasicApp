@@ -44,7 +44,7 @@ const schema = computed<PageSchema>(() => ({
 
 - 只放进搜索、不当列的字段写 `visible: false`；
 - 可搜索、可排序的只放后端 `Queries/` 白名单里的字段，否则请求会被后端以 VALIDATION 拒绝；
-- 状态列用 `render` + `renderTag(label, tone)`，不用 `dictionaryCode`（它走枚举元数据，后端没有对应接口）；
+- `tag` / `enum` 字段按选项出中性标签；要按状态着色的列用 `render` + `renderTag(label, tone)`；
 - `render` 用 `h()` 生成的节点不带页面 scope，样式写 `:deep()`。
 
 ### 操作

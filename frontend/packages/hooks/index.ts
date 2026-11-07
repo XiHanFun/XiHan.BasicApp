@@ -1,6 +1,4 @@
 export * from './useContentMaximize'
-export * from './useEnumOptions'
-export * from './useEnumService'
 export * from './useI18n'
 export * from './usePagination'
 export * from './usePermission'

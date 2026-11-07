@@ -59,14 +59,14 @@ const table = useSchemaTable<Row>(props.schema)
 const { loading, rows, total, page, pageSize, filters, sorts, search, reset, changePage, changePageSize, changeSort, remove } = table
 
 /**
- * 字典/枚举异步取值：按字段 dictionaryCode（枚举）或 dictCode（系统字典）拉取选项并注入 field.options，
- * 使单元格按值映射 label、搜索区自动渲染为下拉。解析结果优先，为空时回退字段静态 options
+ * 异步选项：按字段的 dictCode（系统字典）或 optionsLoader 取选项并注入 field.options，
+ * 单元格按值映射名称、搜索区渲染为下拉。取到的优先，为空时回退字段静态 options
  */
 const dictionaries = useSchemaDictionaries(() => props.schema.fields)
 const resolvedFields = computed<ListFieldSchema[]>(() =>
   props.schema.fields.map((field) => {
     // 字段脱敏已由服务端在响应里落地，前端不再二次打码
-    if (!field.dictionaryCode && !field.dictCode && !field.optionsLoader) {
+    if (!field.dictCode && !field.optionsLoader) {
       return field
     }
     const options = dictionaries.optionsFor(field)

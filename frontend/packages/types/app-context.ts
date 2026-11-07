@@ -55,48 +55,6 @@ export interface AppBackendDependency {
   packageVersion: string
 }
 
-export interface AppEnumOption {
-  name: string
-  value: boolean | number | object | string
-  valueText: string
-  label: string
-  description: string
-  theme?: string
-  icon?: string
-  order: number
-  disabled: boolean
-  source: 'dict' | 'enum' | string
-  extra?: Record<string, unknown>
-}
-
-export interface AppEnumDefinition {
-  enumName: string
-  fullName: string
-  displayName: string
-  cultureName: string
-  isFlags: boolean
-  underlyingTypeName: string
-  items: AppEnumOption[]
-}
-
-export interface AppEnumBatchQuery {
-  enumNames: string[]
-  language?: string
-  includeHidden?: boolean
-  includeDict?: boolean
-  dictCodes?: string[]
-  tenantId?: string
-}
-
-export interface AppEnumNameQuery {
-  enumName: string
-  language?: string
-  includeHidden?: boolean
-  includeDict?: boolean
-  dictCode?: string
-  tenantId?: string
-}
-
 export interface AppUserInboxItem {
   basicId: string
   title: string
@@ -279,10 +237,6 @@ export interface AppContextApis {
   /** 已授权的第三方应用（本人同意过的 OAuth 客户端）；撤销即吊销它拿到的令牌，下次登录要重新授权 */
   getOAuthConsentsApi: () => Promise<OAuthConsentItem[]>
   revokeOAuthConsentApi: (clientId: string) => Promise<unknown>
-  enumApi: {
-    getBatch: (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
-    getByName: (query: AppEnumNameQuery) => Promise<AppEnumDefinition>
-  }
   /** 系统字典选项（业务表单下拉；值为字典项编码，树形字典按深度优先展平） */
   dictApi: {
     options: (dictCode: string) => Promise<Array<{ value: string, label: string, parentValue?: null | string, isDefault: boolean, disabled: boolean }>>

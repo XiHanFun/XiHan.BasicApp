@@ -16,10 +16,6 @@ export {
   toImportFields,
   toSearchFields,
 } from './selectors'
-export { resolveStatusTagTone } from './status-tag'
-
-export type { SchemaTagTone } from './status-tag'
-
 export type {
   ActionSchema,
   ListFieldSchema,

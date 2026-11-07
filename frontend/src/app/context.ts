@@ -50,7 +50,7 @@ function toShellDisplayItem(item: InboxItem): AppUserInboxDisplayItem {
 const PAGE_MAX_SIZE = 500
 
 /**
- * 壳层类型里有、但后端没有也用不到的接口（用户信息与权限走 auth.permissions，枚举元数据走契约的值集）：显式拒绝而不是回空
+ * 壳层类型里有、但后端没有也用不到的接口（用户信息与权限走 auth.permissions）：显式拒绝而不是回空
  * 有人调到就是接线错了，看到这条错误，而不是一个看似工作的空件
  */
 function notAvailable(name: string): never {
@@ -739,10 +739,6 @@ export function registerApplicationContext(router: Router): void {
     // 已授权的应用（OpenPlatform 的 oauth-consents.*，只要求已登录，模仿会话撤销被拒）：撤销按 ClientId，同时吊销该应用拿到的令牌
     getOAuthConsentsApi: async () => (await oauthConsentOps.list({})).items.map(toShellOAuthConsent),
     revokeOAuthConsentApi: clientId => oauthConsentOps.revoke({ clientId }),
-    enumApi: {
-      getBatch: () => notAvailable('enumApi.getBatch'),
-      getByName: () => notAvailable('enumApi.getByName'),
-    },
     // 字典选项（Settings 的 dicts.options，只要求已登录）：树形字典已按深度优先展平
     dictApi: {
       options: async code => (await dictOps.options({ code })).items,
