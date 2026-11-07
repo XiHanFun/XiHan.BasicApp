@@ -48,12 +48,12 @@ XiHan.BasicApp 是前后端分离的通用中后台内核，内置身份、权�
 
 | 领域 | 能力 |
 | --- | --- |
-| 交互体验 | 亮暗双主题、Material You 动态配色、偏好云同步、Schema 驱动列表页、命令面板、应用内分屏、小屏适配、7 种语言 |
+| 交互体验 | 亮暗双主题、Material You 动态配色、偏好云同步、Schema 驱动列表页、命令面板、应用内分屏、小屏适配、10 种语言 |
 | 权限与安全 | 服务端权限快照、字段级脱敏、角色继承与职责分离、限时委托、受控模拟登录、OAuth2 / OIDC 服务端 |
 | 多租户 | 字段或独立数据库隔离、套餐门控与配额、平台代运维 |
-| 审计与运维 | 七类审计日志、TraceId 全链路、字段级变更留痕、发件箱可靠投递、异步导出 |
+| 审计与运维 | 访问、操作、登录、异常、数据与权限变更日志，TraceId 全链路、字段级变更留痕、发件箱可靠投递、异步导出 |
 | 可选模块 | 代码生成、工作流、打印设计器、在线聊天、AI 知识库，均可整块卸载 |
-| 工程底座 | 菜单、路由与权限码单一真源，结构性测试约束架构 |
+| 工程底座 | 业务接口即操作，一份契约同时服务 HTTP、gRPC 与 MCP，前端调用由契约生成；菜单、路由与权限码单一真源，结构性测试约束架构 |
 
 完整能力见[功能清单](https://basicapp.docs.xihanfun.com/features)。
 
@@ -63,12 +63,12 @@ XiHan.BasicApp 是前后端分离的通用中后台内核，内置身份、权�
 git clone https://github.com/XiHanFun/XiHan.BasicApp.git
 cd XiHan.BasicApp
 cp .env.example .env
-docker compose up -d
+docker compose up -d --build
 ```
 
-前端位于 `http://localhost:8080`，后端位于 `http://localhost:9708`。初始账号为 `superadmin` / `SuperAdmin@123`，生产环境须于首次登录后修改。
+首次构建后端镜像时会按锁定的提交克隆 [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) 源码，需要能访问 GitHub；启动时先执行表结构升级与种子，再启动后端。前端位于 `http://localhost:8080`，后端接口位于 `http://localhost:9710`。初始账号为 `superadmin`，密码是 `.env` 里的 `SUPERADMIN_PASSWORD`（缺省 `SuperAdmin@123`），首次登录后立即修改。部署前把 `.env` 里的密码与密钥都换成随机值，其余配置见[部署](https://basicapp.docs.xihanfun.com/deployment)。
 
-本机开发需 .NET 10 SDK、Node.js 24+、pnpm 11+ 与 PostgreSQL 14+，步骤见[后端](./backend/README_cn.md)与[前端](./frontend/README_cn.md)工程说明。
+本机开发需 .NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+，并把 XiHan.Framework 检出在同级目录的锁定提交上，步骤见[快速开始](https://basicapp.docs.xihanfun.com/getting-started)与[后端](./backend/README.md)、[前端](./frontend/README.md)工程说明。
 
 ## 架构
 
@@ -91,8 +91,8 @@ docker compose up -d
 | --- | --- |
 | [文档站](https://basicapp.docs.xihanfun.com) | 指南与专题文档 |
 | [在线演示](https://basicapp.xihanfun.com) | 在线体验 |
-| [后端工程说明](./backend/README_cn.md) | 分层结构、工程清单与本地开发 |
-| [前端工程说明](./frontend/README_cn.md) | 技术栈、目录结构与本地开发 |
+| [后端工程说明](./backend/README.md) | 能力包分层、工程清单与本地开发 |
+| [前端工程说明](./frontend/README.md) | 技术栈、目录结构与本地开发 |
 | [更新日志](https://basicapp.docs.xihanfun.com/changelog) | 版本变更与升级须知 |
 
 AI 问答：[Zread](https://zread.ai/XiHanFun/XiHan.BasicApp) · [DeepWiki](https://deepwiki.com/XiHanFun/XiHan.BasicApp)

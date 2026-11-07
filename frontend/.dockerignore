@@ -1,0 +1,7 @@
+node_modules/
+dist/
+TestResults/
+.env.local
+.env.*.local
+Dockerfile
+.dockerignore

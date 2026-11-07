@@ -48,12 +48,12 @@ XiHan.BasicApp is a general-purpose admin kernel with separate frontend and back
 
 | Area | Capabilities |
 | --- | --- |
-| Experience | Light and dark themes, Material You dynamic color, synced preferences, schema-driven lists, command palette, split view, small-screen layouts, 7 languages |
+| Experience | Light and dark themes, Material You dynamic color, synced preferences, schema-driven lists, command palette, split view, small-screen layouts, 10 languages |
 | Permissions and security | Server-side permission snapshots, field-level masking, role inheritance with separation of duties, time-limited delegation, guarded impersonation, an OAuth2 / OIDC server |
 | Multi-tenancy | Column or per-tenant database isolation, edition gating and quotas, platform-managed operations |
-| Auditing and operations | Seven audit logs, end-to-end TraceId, field-level change history, reliable outbox delivery, asynchronous exports |
+| Auditing and operations | Access, operation, sign-in, exception, data change and permission change logs, end-to-end TraceId, field-level change history, reliable outbox delivery, asynchronous exports |
 | Optional modules | Code generation, workflow, print designer, chat and an AI knowledge base, each removable as a unit |
-| Engineering | A single source of truth for menus, routes and permission codes, with structural tests guarding the architecture |
+| Engineering | Business APIs are operations: one contract serves HTTP, gRPC and MCP, and the frontend client is generated from it; a single source of truth for menus, routes and permission codes, with structural tests guarding the architecture |
 
 See the [feature list](https://basicapp.docs.xihanfun.com/features) for the full set.
 
@@ -63,12 +63,12 @@ See the [feature list](https://basicapp.docs.xihanfun.com/features) for the full
 git clone https://github.com/XiHanFun/XiHan.BasicApp.git
 cd XiHan.BasicApp
 cp .env.example .env
-docker compose up -d
+docker compose up -d --build
 ```
 
-The frontend runs at `http://localhost:8080` and the backend at `http://localhost:9708`. The initial account is `superadmin` / `SuperAdmin@123`; change it at first sign-in in production.
+The first backend image build clones [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) at the pinned commit, so it needs access to GitHub; on startup the schema upgrade and seed run before the backend starts. The frontend runs at `http://localhost:8080` and the backend API at `http://localhost:9710`. The initial account is `superadmin` with the `SUPERADMIN_PASSWORD` from `.env` (default `SuperAdmin@123`); change it at first sign-in. Replace every password and secret in `.env` with random values before deploying; see [Deployment](https://basicapp.docs.xihanfun.com/deployment) for the rest.
 
-Local development needs the .NET 10 SDK, Node.js 24+, pnpm 11+ and PostgreSQL 14+. See the [backend](./backend/README.md) and [frontend](./frontend/README.md) engineering notes.
+Local development needs the .NET 10 SDK, Node.js 24+, pnpm 11+, PostgreSQL 14+ and XiHan.Framework checked out side by side at the pinned commit. See [Getting Started](https://basicapp.docs.xihanfun.com/getting-started) and the [backend](./backend/README.md) and [frontend](./frontend/README.md) engineering notes.
 
 ## Architecture
 
@@ -91,7 +91,7 @@ Local development needs the .NET 10 SDK, Node.js 24+, pnpm 11+ and PostgreSQL 14
 | --- | --- |
 | [Documentation site](https://basicapp.docs.xihanfun.com) | Guides and topic docs |
 | [Live demo](https://basicapp.xihanfun.com) | Try it online |
-| [Backend notes](./backend/README.md) | Layering, projects and local development |
+| [Backend notes](./backend/README.md) | Capability package tiers, projects and local development |
 | [Frontend notes](./frontend/README.md) | Stack, layout and local development |
 | [Changelog](https://basicapp.docs.xihanfun.com/changelog) | Release notes and upgrade advisories |
 

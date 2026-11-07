@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/TestResults/
+artifacts/
+.vs/
+**/*.user
+Dockerfile
+.dockerignore

@@ -1,107 +1,131 @@
-# 自包含运行栈：前端(nginx) + 后端 + PostgreSQL + Redis + Qdrant。
-# 用法：cp .env.example .env && docker compose up -d
+# XiHan.BasicApp 一键启动：PostgreSQL + 后端 + 前端（Nginx 托管并同源反代后端）
 #
-# 后端配置来源有两层，环境变量优先于 JSON 文件（.NET 配置提供器顺序）：
-#   1. 挂载的 appsettings.Production.json —— 提供 JWT 密钥、密码哈希参数等全部调优项
-#   2. 下方 environment —— 只覆盖容器内的服务地址
-# 该 JSON 文件在 .gitignore 内、也不进镜像层，必须由宿主机挂载进来。
+# 用法：cp .env.example .env，按需改密码与密钥，然后 docker compose up -d --build
+# - 首次构建后端镜像时按 backend/props/framework.props 锁定的提交克隆 XiHan.Framework 源码，需要能访问 GitHub
+# - init 服务先执行表结构升级与种子（可重复执行，每次 up 都会跑一遍），完成后后端才启动
+# - 前端 http://localhost:${FRONTEND_PORT}，用 superadmin 与 .env 里的 SUPERADMIN_PASSWORD 登录，登录后立即修改密码
+# - 单实例零外部依赖：缓存与消息走进程内实现；要 Redis、RabbitMQ、Qdrant 时打开文末注释掉的服务
+# 完整配置项见 backend/src/XiHan.BasicApp.Host/appsettings.json，部署要点见 docs/deployment.md
 
 name: xihan-basicapp
 
+# 后端与 init 共用的环境变量（键名与 appsettings.json 一一对应，双下划线分节）
+x-backend-env: &backend-env
+  ASPNETCORE_ENVIRONMENT: Production
+  # 平台库连接（启动硬要求）
+  XiHan__Bindings__db__type: connection:relational
+  XiHan__Bindings__db__provider: postgresql
+  XiHan__Bindings__db__value: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+  # 密钥：UTF-8 至少 32 字节，缺失或太短启动即失败
+  XiHan__Security__Jwt__Secret: ${JWT_SECRET}
+  XiHan__ObjectStorage__SignedUrls__Secret: ${SIGNED_URLS_SECRET}
+  # 种子：superadmin 的初始密码（只在首次写入时使用）与是否写演示数据
+  BasicApp__Seed__SuperAdminPassword: ${SUPERADMIN_PASSWORD}
+  BasicApp__Seed__EnableDemoData: ${ENABLE_DEMO_DATA:-false}
+  # 只信本网络里的 Nginx 转发头，访问日志、登录地点与访问策略才拿得到客户端地址
+  BasicApp__ForwardedHeaders__KnownNetworks__0: 172.30.0.0/24
+  # Redis（打开下面的 redis 服务后取消注释）
+  # XiHan__Bindings__cache__type: cache:distributed
+  # XiHan__Bindings__cache__value: redis:6379
+  # RabbitMQ（打开下面的 rabbitmq 服务后取消注释）
+  # XiHan__Bindings__queue__type: queue
+  # XiHan__Bindings__queue__value: amqp://guest:guest@rabbitmq:5672
+  # Qdrant 向量库（AI 知识库；打开下面的 qdrant 服务后取消注释）
+  # BasicApp__AI__Qdrant__Host: qdrant
+
 services:
-  postgres:
+  db:
     image: postgres:17-alpine
-    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  redis:
-    image: redis:8-alpine
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
-    command: ['redis-server', '--appendonly', 'yes']
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 10
+    networks:
+      - basicapp
 
-  # AI 知识库(RAG)的向量库。不启用 AI 模块时可整段删除，
-  # 同时删掉 backend 的 XiHan__AI__Rag__* 与 depends_on。
-  qdrant:
-    image: qdrant/qdrant:v1.15.1
-    restart: unless-stopped
+  # 表结构升级与种子：执行完即退出，后端等它成功后再启动
+  init:
+    build: ./backend
+    image: xihan-basicapp-backend:local
+    entrypoint: ["/bin/sh", "-c", "dotnet XiHan.BasicApp.Host.dll schema upgrade && dotnet XiHan.BasicApp.Host.dll seed"]
+    environment: *backend-env
     volumes:
-      - qdrant-data:/qdrant/storage
+      # 与后端共用数据卷：种子加密写入的值要用同一套数据保护密钥解开
+      - backend-data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - basicapp
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      qdrant:
-        condition: service_started
-    environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      Hosting__Urls: http://0.0.0.0:9708
-
-      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__ConfigId: '1'
-      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__DbType: PostgreSQL
-      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__IsAutoCloseConnection: 'true'
-      XiHan__Data__SqlSugarCore__ConnectionConfigs__0__ConnectionString: >-
-        Server=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};TrustServerCertificate=true;
-
-      XiHan__Caching__Redis__IsEnabled: 'true'
-      XiHan__Caching__Redis__Configuration: redis:6379,defaultDatabase=0
-
-      XiHan__AI__Rag__QdrantHost: qdrant
-      XiHan__AI__Rag__QdrantPort: '6334'
-      XiHan__AI__Rag__QdrantHttps: 'false'
-
-      # 迁移执行权判据：AutoVersionUpdate 仅在 WorkerId == 1 的节点执行 UpdateScripts。
-      # 多副本部署时只能有一个节点为 1，其余必须改值（否则雪花 ID 重复）。
-      XiHan__DistributedIds__SnowflakeId__WorkerId: '1'
-      # 已知限制：AutoVersionUpdate 把「已执行到哪个版本」记在 /app/version.txt，
-      # 容器重建即丢失，被判定为全新部署并跳过全部升级脚本。UpdateScripts 目前只有
-      # 一个空的 1.0.0.sql，故暂无实际影响；写入真实升级脚本前须先把该状态挪进数据库。
+    # 与 init 同一个镜像（第二次构建全部命中缓存）
+    build: ./backend
+    image: xihan-basicapp-backend:local
+    environment: *backend-env
     volumes:
-      - ./backend/src/main/XiHan.BasicApp.WebHost/appsettings.Production.json:/app/appsettings.Production.json:ro
-      - backend-uploads:/app/wwwroot/uploads
-      - backend-logs:/app/logs
+      # 文件存储、数据保护密钥与框架缺省的文件系统存储
+      - backend-data:/app/data
     ports:
-      - '${BACKEND_PORT:-9708}:9708'
+      # 直接调用接口时用；浏览器经前端同源访问，不需要这个端口
+      - "${BACKEND_PORT:-9710}:9710"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    networks:
+      - basicapp
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        # 留空 = 同源，由 nginx 反代到 backend。填绝对地址则前端直连该地址。
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
-    restart: unless-stopped
+    build: ./frontend
+    image: xihan-basicapp-frontend:local
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
     depends_on:
       - backend
-    ports:
-      - '${FRONTEND_PORT:-8080}:80'
+    restart: unless-stopped
+    networks:
+      - basicapp
+
+  # 可选：Redis 共享缓存与两级缓存（多实例部署时需要）
+  # redis:
+  #   image: redis:8-alpine
+  #   restart: unless-stopped
+  #   networks:
+  #     - basicapp
+
+  # 可选：RabbitMQ 消息代理（发件箱派发、广播订阅经它）
+  # rabbitmq:
+  #   image: rabbitmq:4-alpine
+  #   restart: unless-stopped
+  #   networks:
+  #     - basicapp
+
+  # 可选：Qdrant 向量库（AI 知识库）
+  # qdrant:
+  #   image: qdrant/qdrant:v1.15.1
+  #   volumes:
+  #     - qdrant-data:/qdrant/storage
+  #   restart: unless-stopped
+  #   networks:
+  #     - basicapp
+
+networks:
+  basicapp:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
 
 volumes:
-  postgres-data:
-  redis-data:
-  qdrant-data:
-  backend-uploads:
-  backend-logs:
+  db-data:
+  backend-data:
+  # qdrant-data:

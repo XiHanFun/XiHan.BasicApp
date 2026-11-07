@@ -13,6 +13,20 @@
 
 单实例零外部依赖：缓存、消息走框架内存实现，文件落本地目录。多实例部署见文末。
 
+## 容器（docker compose）
+
+仓库根的 `docker-compose.yml` 起一套单实例环境：PostgreSQL、后端与前端（Nginx 托管构建产物，并把 `/api`、`/blobs`、`/hubs`、`/health` 同源反代到后端）。
+
+```bash
+cp .env.example .env    # 改数据库密码、JWT_SECRET、SIGNED_URLS_SECRET 与 SUPERADMIN_PASSWORD
+docker compose up -d --build
+```
+
+- 后端镜像（`backend/Dockerfile`）构建时按 `props/framework.props` 锁定的提交克隆 XiHan.Framework 源码，与 CI 同一做法，需要能访问 GitHub；框架仓库在别处时用构建参数 `XIHAN_FRAMEWORK_REPO` 改指。
+- `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射、演示数据按 `.env` 的 `ENABLE_DEMO_DATA`。
+- 可写的数据都在后端容器的 `/app/data` 卷：文件存储、数据保护密钥与框架缺省的文件系统存储。`init` 与后端共用这个卷，种子加密写入的值才解得开。
+- Redis、RabbitMQ、Qdrant 在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应绑定的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
+
 ## 后端：发布
 
 框架以源码引用，发布机上同样要有锁定提交的 XiHan.Framework 检出（与 BasicApp 并排）：
