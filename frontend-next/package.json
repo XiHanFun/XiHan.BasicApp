@@ -4,17 +4,17 @@
   "version": "6.0.0-preview.1",
   "private": true,
   "packageManager": "pnpm@11.22.0",
-  "description": "XiHan BasicApp - A modern Vue3 admin management system built on XiHan.UI",
+  "description": "XiHan BasicApp - An enterprise multi-tenant admin kernel built on XiHan.Framework and XiHan.UI",
   "keyword": [
-    "Vue",
-    "Vue3",
-    "XiHan.UI",
-    "Pinia",
-    "Vite",
-    "Tailwind CSS",
-    "TypeScript",
+    "XiHan",
     "BasicApp",
-    "XiHan"
+    "XiHan.Framework",
+    "XiHan.UI",
+    "Multi-tenant",
+    "Vue",
+    "TypeScript",
+    "Vite",
+    "Pinia"
   ],
   "author": {
     "name": "XiHanFun"

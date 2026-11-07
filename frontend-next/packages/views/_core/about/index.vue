@@ -24,13 +24,16 @@ const appName = __APP_NAME__
 const appLogo = import.meta.env.VITE_APP_LOGO || '/favicon.png'
 const version = __APP_VERSION__
 const lastBuildTime = __APP_BUILD_TIME__
-const description = PackageJson.description
 const license = PackageJson.license
-const homepage = PackageJson.homepage
 const repository = __APP_REPOSITORY__
 const author = PackageJson.author.name
 
 const DOCS_URL = 'https://docs.xihanfun.com'
+
+/** 一句话介绍按语言取；package.json 的 description 只给包元数据 */
+const description = computed(() => t('component.about.description'))
+/** 后端依赖清单要服务监控的读权限（平台侧）：租户侧没有这一块，不发请求也不留空卡片 */
+const canReadBackendDependencies = computed(() => auth.can('maintenance.server.read'))
 
 const dependencyCount = Object.keys(dependencies).length
 const devDependencyCount = Object.keys(devDependencies).length
@@ -54,13 +57,6 @@ const overviewItems = computed<Array<{ icon: string, label: string, value: strin
     subValue: t('component.about.sub_build_time'),
   },
   {
-    icon: 'lucide:globe',
-    label: t('page.about.homepage'),
-    value: homepage,
-    subValue: t('component.about.sub_official_site'),
-    href: homepage,
-  },
-  {
     icon: 'lucide:book-open-text',
     label: t('page.about.docs'),
     value: DOCS_URL,
@@ -72,37 +68,48 @@ const overviewItems = computed<Array<{ icon: string, label: string, value: strin
     label: t('page.about.repository'),
     value: repository,
     subValue: t('component.about.sub_source_repo'),
+    href: repository,
   },
 ])
 
 const coreCapabilities = computed(() => [
   {
-    icon: 'lucide:shield',
-    title: t('component.about.cap_security_title'),
-    desc: t('component.about.cap_security_desc'),
+    icon: 'lucide:shield-check',
+    title: t('component.about.cap_identity_title'),
+    desc: t('component.about.cap_identity_desc'),
   },
   {
-    icon: 'lucide:zap',
-    title: t('component.about.cap_efficient_title'),
-    desc: t('component.about.cap_efficient_desc'),
+    icon: 'lucide:file-code-2',
+    title: t('component.about.cap_contract_title'),
+    desc: t('component.about.cap_contract_desc'),
   },
   {
-    icon: 'lucide:workflow',
-    title: t('component.about.cap_extensible_title'),
-    desc: t('component.about.cap_extensible_desc'),
+    icon: 'lucide:blocks',
+    title: t('component.about.cap_packages_title'),
+    desc: t('component.about.cap_packages_desc'),
+  },
+  {
+    icon: 'lucide:radio',
+    title: t('component.about.cap_realtime_title'),
+    desc: t('component.about.cap_realtime_desc'),
   },
 ])
 
 const governanceItems = computed(() => [
   {
-    icon: 'lucide:activity',
-    label: t('component.about.feature_stability_label'),
-    value: t('component.about.feature_stability_value'),
+    icon: 'lucide:cpu',
+    label: t('component.about.feature_runtime_label'),
+    value: t('component.about.feature_runtime_value'),
   },
   {
     icon: 'lucide:database',
     label: t('component.about.feature_data_label'),
-    value: '.NET + SqlSugar',
+    value: t('component.about.feature_data_value'),
+  },
+  {
+    icon: 'lucide:layout-dashboard',
+    label: t('component.about.feature_frontend_label'),
+    value: t('component.about.feature_frontend_value'),
   },
   {
     icon: 'lucide:globe',
@@ -118,9 +125,9 @@ const governanceItems = computed(() => [
 
 const backendDependencies = ref<ResponseOf<'server.packages'>['items']>([])
 
-/** 页面人人可进，后端依赖清单要服务监控的读权限（平台侧）：没有权限不发请求，这一块显示暂无数据；有权限却失败才提示 */
+/** 页面人人可进；有权限才取后端依赖清单，取失败才提示 */
 async function fetchBackendDependencies() {
-  if (!auth.can('maintenance.server.read'))
+  if (!canReadBackendDependencies.value)
     return
   try {
     backendDependencies.value = (await serverApi.packages({})).items
@@ -141,12 +148,6 @@ onMounted(() => {
   <div class="ab-page">
     <div class="ab-banner">
       <div class="ab-banner-glow" />
-      <div class="ab-banner-head">
-        <div class="ab-banner-title">
-          <Icon icon="lucide:shield-check" width="18" />
-          <span>{{ t('page.about.title') }}</span>
-        </div>
-      </div>
       <div class="ab-hero">
         <div class="ab-logo">
           <img :src="appLogo" :alt="appName" class="ab-logo-img">
@@ -160,17 +161,17 @@ onMounted(() => {
           <div class="ab-hero-line2">
             <XhTagRoot variant="subtle" size="sm" tone="brand">
               <XhTagLabel>
-                {{ t('component.about.tag_enterprise_ready') }}
+                {{ t('component.about.tag_multi_tenant') }}
               </XhTagLabel>
             </XhTagRoot>
             <XhTagRoot variant="subtle" size="sm" tone="success">
               <XhTagLabel>
-                {{ t('component.about.tag_composable') }}
+                {{ t('component.about.tag_contract_driven') }}
               </XhTagLabel>
             </XhTagRoot>
             <XhTagRoot variant="subtle" size="sm" tone="info">
               <XhTagLabel>
-                {{ t('component.about.tag_modern_stack') }}
+                {{ t('component.about.tag_capability_packages') }}
               </XhTagLabel>
             </XhTagRoot>
           </div>
@@ -207,57 +208,55 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="ab-section-grid">
-      <XhCardRoot variant="ghost" class="ab-card">
-        <XhCardHeader>
-          <div class="ab-card-header">
-            <Icon icon="lucide:sparkles" width="16" />
-            <span>{{ t('component.about.core_capabilities') }}</span>
-          </div>
-        </XhCardHeader>
-        <XhCardContent>
-          <div class="ab-cap-grid">
-            <div v-for="item in coreCapabilities" :key="item.title" class="ab-cap-item">
-              <div class="ab-cap-icon">
-                <Icon :icon="item.icon" width="16" />
+    <XhCardRoot variant="ghost" class="ab-card">
+      <XhCardHeader>
+        <div class="ab-card-header">
+          <Icon icon="lucide:sparkles" width="16" />
+          <span>{{ t('component.about.core_capabilities') }}</span>
+        </div>
+      </XhCardHeader>
+      <XhCardContent>
+        <div class="ab-cap-grid">
+          <div v-for="item in coreCapabilities" :key="item.title" class="ab-cap-item">
+            <div class="ab-cap-icon">
+              <Icon :icon="item.icon" width="16" />
+            </div>
+            <div class="ab-cap-content">
+              <div class="ab-cap-title">
+                {{ item.title }}
               </div>
-              <div class="ab-cap-content">
-                <div class="ab-cap-title">
-                  {{ item.title }}
-                </div>
-                <div class="ab-cap-desc">
-                  {{ item.desc }}
-                </div>
+              <div class="ab-cap-desc">
+                {{ item.desc }}
               </div>
             </div>
           </div>
-        </XhCardContent>
-      </XhCardRoot>
-
-      <XhCardRoot variant="ghost" class="ab-card">
-        <XhCardHeader>
-          <div class="ab-card-header">
-            <Icon icon="lucide:gem" width="16" />
-            <span>{{ t('component.about.platform_features') }}</span>
-          </div>
-        </XhCardHeader>
-        <XhCardContent>
-          <div class="ab-governance">
-            <div v-for="item in governanceItems" :key="item.label" class="ab-gov-item">
-              <div class="ab-gov-left">
-                <div class="ab-gov-icon">
-                  <Icon :icon="item.icon" width="14" />
-                </div>
-                <span class="ab-gov-label">{{ item.label }}</span>
-              </div>
-              <span class="ab-gov-value">{{ item.value }}</span>
-            </div>
-          </div>
-        </XhCardContent>
-      </XhCardRoot>
-    </div>
+        </div>
+      </XhCardContent>
+    </XhCardRoot>
 
     <XhCardRoot variant="ghost" class="ab-card">
+      <XhCardHeader>
+        <div class="ab-card-header">
+          <Icon icon="lucide:boxes" width="16" />
+          <span>{{ t('component.about.platform_features') }}</span>
+        </div>
+      </XhCardHeader>
+      <XhCardContent>
+        <div class="ab-governance">
+          <div v-for="item in governanceItems" :key="item.label" class="ab-gov-item">
+            <div class="ab-gov-left">
+              <div class="ab-gov-icon">
+                <Icon :icon="item.icon" width="14" />
+              </div>
+              <span class="ab-gov-label">{{ item.label }}</span>
+            </div>
+            <span class="ab-gov-value">{{ item.value }}</span>
+          </div>
+        </div>
+      </XhCardContent>
+    </XhCardRoot>
+
+    <XhCardRoot v-if="canReadBackendDependencies" variant="ghost" class="ab-card">
       <XhCardHeader>
         <div class="ab-card-header">
           <Icon icon="lucide:box" width="16" />
@@ -417,22 +416,6 @@ onMounted(() => {
   pointer-events: none;
 }
 
-.ab-banner-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--xh-space-3);
-}
-
-.ab-banner-title {
-  display: flex;
-  align-items: center;
-  gap: var(--xh-space-2);
-  font-size: var(--xh-font-size-md);
-  font-weight: var(--xh-font-weight-semibold);
-  color: var(--xh-fg-default);
-}
-
 .ab-hero {
   display: flex;
   align-items: center;
@@ -572,12 +555,6 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.ab-section-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--xh-space-3);
-}
-
 .ab-card-header {
   display: flex;
   align-items: center;
@@ -594,8 +571,8 @@ onMounted(() => {
 }
 
 .ab-cap-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--xh-space-2);
 }
 
@@ -636,6 +613,7 @@ onMounted(() => {
 
 .ab-governance {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(var(--xh-space-8) * 7), 1fr));
   gap: var(--xh-space-2);
 }
 
@@ -743,12 +721,12 @@ onMounted(() => {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .ab-section-grid {
-    grid-template-columns: 1fr;
-  }
-
   .ab-pkg-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ab-cap-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -1,6 +1,6 @@
 /**
- * 关于页（4.x 原样搬入）：页面人人可进，后端依赖清单要服务监控的读权限，没有权限不发请求；
- * 前端依赖来自构建期注入，关键词来自 package.json；有权限却加载失败才提示后端文案
+ * 关于页（壳层从 4.x 搬入，文案按 6.0 重写）：页面人人可进，后端依赖清单要服务监控的读权限，没有权限不发请求、也不出那张卡片；
+ * 一句话介绍与核心能力按语言取，前端依赖来自构建期注入，关键词来自 package.json；有权限却加载失败才提示后端文案
  */
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -76,15 +76,36 @@ describe('关于页', () => {
     expect(backend.find('.ab-pkg-count').text()).toBe('2')
   })
 
-  it('没有权限不发请求，这一块显示暂无数据，其余照常', async () => {
+  it('没有权限不发请求、不出后端依赖卡片，其余照常；介绍、能力与特性按 6.0 文案', async () => {
     const calls = record(() => json(200, { items: [] }))
     const wrapper = await render([])
     expect(calls).toEqual([])
-    const backend = wrapper.findAll('.ab-card').find(card => card.text().includes('后端生产环境依赖'))!
-    expect(backend.find('.ab-empty').text()).toBe('暂无数据')
+    expect(wrapper.findAll('.ab-card').some(card => card.text().includes('后端生产环境依赖'))).toBe(false)
     expect(wrapper.find('.ab-hero-name').text()).toBe('XiHan.BasicApp')
+    // 概览卡五张正好一行：官方文档与仓库地址是外链
+    expect(wrapper.findAll('.ab-overview-item').map(item => item.find('.ab-overview-label').text())).toEqual([
+      '名称及作者',
+      '版本 / 许可证',
+      '发布时间',
+      '官方文档',
+      '仓库地址',
+    ])
+    expect(wrapper.findAll('.ab-overview-item a.ab-overview-link').map(link => link.attributes('href'))).toEqual(['https://docs.xihanfun.com', 'https://github.com/XiHanFun/XiHan.BasicApp'])
+    expect(wrapper.find('.ab-hero-desc').text()).toBe('基于 XiHan.Framework 与 XiHan.UI 的企业级多租户中后台内核')
+    expect(wrapper.findAll('.ab-hero-line2 [data-scope="tag"][data-part="root"]').map(tag => tag.text())).toEqual(['多租户', '契约驱动', '能力包装配'])
+    expect(wrapper.findAll('.ab-cap-title').map(item => item.text())).toEqual(['身份与授权', '操作即契约', '能力包装配', '实时与智能'])
+    expect(wrapper.findAll('.ab-gov-item').map(item => [
+      item.find('.ab-gov-label').text(),
+      item.find('.ab-gov-value').text(),
+    ])).toEqual([
+      ['运行时', '.NET · XiHan.Framework'],
+      ['数据层', 'SqlSugar · 平台库 / 租户库'],
+      ['管理端', 'Vue · XiHan.UI'],
+      ['国际化', '十种语言'],
+      ['架构模式', '能力包分层 · 管道执行'],
+    ])
     expect(wrapper.findAll('.ab-keywords .ab-empty')).toHaveLength(0)
-    expect(wrapper.find('.ab-keywords').text()).toContain('#1 Vue')
+    expect(wrapper.find('.ab-keywords').text()).toContain('#1 XiHan')
     expect(wrapper.text()).not.toContain('component.about')
     expect(wrapper.text()).not.toContain('page.about')
   })
