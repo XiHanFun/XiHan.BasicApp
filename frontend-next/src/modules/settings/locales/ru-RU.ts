@@ -54,6 +54,7 @@ export default {
       items: 'Элементы словаря',
       keyword: 'Ключевое слово',
       keyword_placeholder: 'Поиск по коду / названию / категории',
+      item_keyword_placeholder: 'Поиск по коду / названию / значению элемента',
       fields: {
         code: 'Код словаря',
         name: 'Название словаря',

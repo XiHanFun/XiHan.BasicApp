@@ -69,6 +69,7 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<INumberGenerator, NumberGenerator>();
         context.Services.AddScoped<ConfigQueries>();
         context.Services.AddScoped<DictQueries>();
+        context.Services.AddScoped<DictItemQueries>();
         context.Services.AddScoped<NumberingRuleQueries>();
         context.Services.AddScoped<NumberingAllocationQueries>();
         context.Services.AddSeeder<DemoDictSeeder>();

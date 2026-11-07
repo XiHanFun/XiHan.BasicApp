@@ -48,7 +48,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | `dicts.*` / `dict-items.*` | `settings.dicts.*` / `settings.dict-items.*` | 管理 |
 | `dicts.options` | 登录即可 | 业务表单的下拉（`GET /api/dicts:options?code=`） |
 
-`dicts.list / get / options` 与 `dict-items.list` 也是 MCP / AI 工具。前端 SchemaPage 的字典列与壳层的 `dictApi.options` 都接在 `dicts.options` 上。
+`dict-items.list` 分页检索字典项（按 `dictId` 筛选某本字典，关键字匹配编码、名称与附加值），`dict-items.tree` 一次取整本字典的项（深度优先、带层级，给上级选择与级联取值用）。`dicts.list / get / options` 与 `dict-items.list / tree` 也是 MCP / AI 工具。前端 SchemaPage 的字典列与壳层的 `dictApi.options` 都接在 `dicts.options` 上。
 
 ## 业务编号
 

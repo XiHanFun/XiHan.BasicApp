@@ -161,7 +161,8 @@ export const routes = {
   'dict-items.create': { method: 'POST', template: '/api/dict-items', path: [], query: [], success: 201 },
   'dict-items.delete': { method: 'DELETE', template: '/api/dict-items', path: [], query: ['ids'], success: 200 },
   'dict-items.get': { method: 'GET', template: '/api/dict-items/{id}', path: ['id'], query: [], success: 200 },
-  'dict-items.list': { method: 'GET', template: '/api/dict-items', path: [], query: ['dictId'], success: 200 },
+  'dict-items.list': { method: 'POST', template: '/api/dict-items:list', path: [], query: [], success: 200 },
+  'dict-items.tree': { method: 'GET', template: '/api/dict-items:tree', path: [], query: ['dictId'], success: 200 },
   'dict-items.update': { method: 'PUT', template: '/api/dict-items/{id}', path: ['id'], query: [], success: 200 },
   'dicts.create': { method: 'POST', template: '/api/dicts', path: [], query: [], success: 201 },
   'dicts.delete': { method: 'DELETE', template: '/api/dicts', path: [], query: ['ids'], success: 200 },
@@ -763,6 +764,7 @@ export const dictItems = {
   delete: (request: RequestOf<'dict-items.delete'>, options?: CallOptions) => invoke<RequestOf<'dict-items.delete'>, ResponseOf<'dict-items.delete'>>('dict-items.delete', routes['dict-items.delete'], request, options),
   get: (request: RequestOf<'dict-items.get'>, options?: CallOptions) => invoke<RequestOf<'dict-items.get'>, ResponseOf<'dict-items.get'>>('dict-items.get', routes['dict-items.get'], request, options),
   list: (request: RequestOf<'dict-items.list'>, options?: CallOptions) => invoke<RequestOf<'dict-items.list'>, ResponseOf<'dict-items.list'>>('dict-items.list', routes['dict-items.list'], request, options),
+  tree: (request: RequestOf<'dict-items.tree'>, options?: CallOptions) => invoke<RequestOf<'dict-items.tree'>, ResponseOf<'dict-items.tree'>>('dict-items.tree', routes['dict-items.tree'], request, options),
   update: (request: RequestOf<'dict-items.update'>, options?: CallOptions) => invoke<RequestOf<'dict-items.update'>, ResponseOf<'dict-items.update'>>('dict-items.update', routes['dict-items.update'], request, options),
 }
 

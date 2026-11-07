@@ -19215,65 +19215,6 @@
           }
         }
       },
-      "get": {
-        "operationId": "dict-items.list",
-        "tags": [
-          "dict-items"
-        ],
-        "summary": "List dictionary items",
-        "description": "List all items of a dictionary (depth-first, with depth).\n\nRequires permission settings.dict-items.read (Read dictionary items).",
-        "x-xihan-stability": "Preview",
-        "x-xihan-permission": "settings.dict-items.read",
-        "parameters": [
-          {
-            "name": "dictId",
-            "in": "query",
-            "description": "\u5B57\u5178\u4E3B\u952E",
-            "required": true,
-            "schema": {
-              "description": "\u5B57\u5178\u4E3B\u952E",
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "dict-items.list \u7684\u54CD\u5E94\uFF1A\u6DF1\u5EA6\u4F18\u5148\uFF0C\u5E26\u5C42\u7EA7",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "DictItemsResponse",
-                  "description": "dict-items.list \u7684\u54CD\u5E94\uFF1A\u6DF1\u5EA6\u4F18\u5148\uFF0C\u5E26\u5C42\u7EA7",
-                  "type": "object",
-                  "properties": {
-                    "items": {
-                      "description": "\u5B57\u5178\u9879",
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/DictItemResponse"
-                      }
-                    }
-                  },
-                  "required": [
-                    "items"
-                  ]
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error",
-            "content": {
-              "application/problem\u002Bjson": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      },
       "post": {
         "operationId": "dict-items.create",
         "tags": [
@@ -19795,6 +19736,160 @@
                     "order",
                     "depth",
                     "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dict-items:list": {
+      "post": {
+        "operationId": "dict-items.list",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "List dictionary items",
+        "description": "List dictionary items page by page: items of platform dictionaries plus the caller\u2019s tenant dictionaries, filter by dictId for one dictionary; the keyword matches code, name and value.\n\nRequires permission settings.dict-items.read (Read dictionary items).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfDictItemResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DictItemResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dict-items:tree": {
+      "get": {
+        "operationId": "dict-items.tree",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "Get dictionary item tree",
+        "description": "List all items of a dictionary (depth-first, with depth).\n\nRequires permission settings.dict-items.read (Read dictionary items).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.read",
+        "parameters": [
+          {
+            "name": "dictId",
+            "in": "query",
+            "description": "\u5B57\u5178\u4E3B\u952E",
+            "required": true,
+            "schema": {
+              "description": "\u5B57\u5178\u4E3B\u952E",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "dict-items.tree \u7684\u54CD\u5E94\uFF1A\u6DF1\u5EA6\u4F18\u5148\uFF0C\u5E26\u5C42\u7EA7",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictItemTreeResponse",
+                  "description": "dict-items.tree \u7684\u54CD\u5E94\uFF1A\u6DF1\u5EA6\u4F18\u5148\uFF0C\u5E26\u5C42\u7EA7",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5B57\u5178\u9879",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DictItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }

@@ -54,6 +54,7 @@ export default {
       items: 'Dictionary Items',
       keyword: 'Keyword',
       keyword_placeholder: 'Search code / name / category',
+      item_keyword_placeholder: 'Search item code / name / value',
       fields: {
         code: 'Dictionary Code',
         name: 'Dictionary Name',

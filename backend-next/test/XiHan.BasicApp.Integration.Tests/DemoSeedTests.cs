@@ -101,7 +101,7 @@ public sealed class DemoSeedTests : IDisposable
         var (dicts, dictsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dicts:list", """{"keyword":"demo_"}""", superadmin));
         Assert.Equal(HttpStatusCode.OK, dicts.StatusCode);
         var levelDictId = Find(dictsBody.GetProperty("items"), "code", "demo_customer_level").GetProperty("id").GetString()!;
-        var (_, levelItems) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items?dictId={levelDictId}", token: superadmin));
+        var (_, levelItems) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items:tree?dictId={levelDictId}", token: superadmin));
         var itemIds = string.Join('&', levelItems.GetProperty("items").EnumerateArray().Select(static i => $"ids={i.GetProperty("id").GetString()}"));
         var (removedItems, removedItemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/dict-items?{itemIds}", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, removedItems.StatusCode);

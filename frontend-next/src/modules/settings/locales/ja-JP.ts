@@ -54,6 +54,7 @@ export default {
       items: '辞書項目',
       keyword: 'キーワード',
       keyword_placeholder: 'コード / 名称 / 分類で検索',
+      item_keyword_placeholder: '項目コード / 名称 / 値で検索',
       fields: {
         code: '辞書コード',
         name: '辞書名',

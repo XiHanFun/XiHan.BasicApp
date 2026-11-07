@@ -20,7 +20,7 @@
 
 ### 工具
 
-工具名由操作 ID 推导：`<资源>_<动词>`（资源段里的连字符保留，如 `dict-items_list`）。目前发布 12 个只读目录类操作：
+工具名由操作 ID 推导：`<资源>_<动词>`（资源段里的连字符保留，如 `dict-items_list`）。目前发布 13 个只读目录类操作：
 
 | 工具 | 操作 | 权限码 |
 | --- | --- | --- |
@@ -30,7 +30,7 @@
 | `memberships_list` | `memberships.list` | `organization.memberships.read` |
 | `permissions_list` | `permissions.list` | `access.permissions.read` |
 | `dicts_get` / `dicts_list` / `dicts_options` | `dicts.get` / `dicts.list` / `dicts.options` | `settings.dicts.read` / 登录即可 |
-| `dict-items_list` | `dict-items.list` | `settings.dict-items.read` |
+| `dict-items_list` / `dict-items_tree` | `dict-items.list` / `dict-items.tree` | `settings.dict-items.read` |
 
 - `inputSchema` / `outputSchema` 就是操作的请求 / 响应 Schema；
 - `title` / `description` 是操作的本地化文案；

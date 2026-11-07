@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DictItemNode, DictRow, SettingStatus } from './use-dicts'
+import type { DictItemNode, DictItemRow, DictRow, SettingStatus } from './use-dicts'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { SelectOption } from '~/types'
 import { XhButton, XhCardContent, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
@@ -9,7 +9,7 @@ import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEdi
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
-import { dictItemsResource, dictsResource, findDictItem, useDictEditor, useDictItemEditor } from './use-dicts'
+import { dictItemsResource, dictsResource, findDictItem, loadDictItemTree, useDictEditor, useDictItemEditor } from './use-dicts'
 
 defineOptions({ name: 'SettingsDictsView' })
 
@@ -64,7 +64,7 @@ const builtInOptions = computed(() => [
 
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asDict = (row: object) => row as DictRow
-const asItem = (row: object) => row as DictItemNode
+const asItem = (row: object) => row as DictItemRow
 
 // ══════════════════════════════════════════════════════════════════
 // 左栏：字典（主）
@@ -331,17 +331,34 @@ async function toggleDict(row: DictRow) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// 右栏：字典项（从，随左栏选中重建；树形，按上级挂成层级）
+// 右栏：字典项（从，随左栏选中重建；分页列表，可按关键字与状态搜索，4.x 同）
 // ══════════════════════════════════════════════════════════════════
-const itemPageRef = ref<{ reload: () => Promise<void>, rows: DictItemNode[] } | null>(null)
+const itemPageRef = ref<{ reload: () => Promise<void>, rows: DictItemRow[] } | null>(null)
 
-function reloadItems() {
-  void itemPageRef.value?.reload()
+/** 当前字典的整棵项树（dict-items.tree）：上级下拉与详情里的上级名称从它取，列表分页后不再有整本字典 */
+const itemNodes = ref<DictItemNode[]>([])
+
+async function loadItemNodes(): Promise<DictItemNode[]> {
+  if (!currentDict.value)
+    return []
+  try {
+    itemNodes.value = await loadDictItemTree(currentDict.value.id)
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('component.schema_page.load_failed'))
+  }
+  return itemNodes.value
 }
 
-/** 当前项树（右栏 SchemaPage 取回的嵌套行）：上级下拉与详情里的上级名称都从它取 */
-function itemTree(): DictItemNode[] {
-  return itemPageRef.value?.rows ?? []
+watch(currentDict, () => {
+  itemNodes.value = []
+  void loadItemNodes()
+})
+
+/** 列表与整棵树一起刷新：改过项之后上级下拉和详情里的上级名称要跟上 */
+function reloadItems() {
+  void itemPageRef.value?.reload()
+  void loadItemNodes()
 }
 
 /** 另一侧的字典只带取数：批量删除 / 启停与导入都依赖资源上的对应函数，没有就不出 */
@@ -351,10 +368,19 @@ const itemResource = computed(() => currentDict.value
 
 const itemFields = computed<ListFieldSchema[]>(() => [
   {
+    key: 'keyword',
+    title: t('settings.dicts.keyword'),
+    dataType: 'string',
+    visible: false,
+    searchable: true,
+    searchPlaceholder: t('settings.dicts.item_keyword_placeholder'),
+    order: 0,
+  },
+  {
     key: 'name',
     title: t('settings.dicts.item_fields.name'),
     dataType: 'string',
-    treeColumn: true,
+    sortable: true,
     importable: true,
     required: true,
     exportable: true,
@@ -365,6 +391,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
     key: 'code',
     title: t('settings.dicts.item_fields.code'),
     dataType: 'string',
+    sortable: true,
     importable: true,
     required: true,
     exportable: true,
@@ -375,6 +402,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
     key: 'value',
     title: t('settings.dicts.item_fields.value'),
     dataType: 'string',
+    sortable: true,
     importable: true,
     exportable: true,
     minWidth: 90,
@@ -393,6 +421,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
     key: 'status',
     title: t('settings.dicts.item_fields.status'),
     dataType: 'enum',
+    searchable: true,
     exportable: true,
     options: statusOptions.value,
     render: row => renderTag(statusLabel(asItem(row).status), asItem(row).status === 'Active'
@@ -405,6 +434,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
     key: 'order',
     title: t('settings.dicts.item_fields.order'),
     dataType: 'number',
+    sortable: true,
     importable: true,
     exportable: true,
     width: 80,
@@ -437,7 +467,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
 
 /**
  * 字典项 Schema。取数依赖当前字典，故整个右栏按 currentDict 用 v-if + key 重建：
- * 没选字典时不渲染（也就不会发请求），换字典时展开状态一并归零。后端一次返回整本字典的项，不分页、不搜索
+ * 没选字典时不渲染（也就不会发请求），换字典时搜索与页码一并归零
  */
 const itemSchema = computed<PageSchema>(() => ({
   pageCode: 'settings.dict-items',
@@ -448,7 +478,6 @@ const itemSchema = computed<PageSchema>(() => ({
   removePermission: 'settings.dict-items.delete',
   statusPermission: 'settings.dict-items.update',
   rowKey: 'id',
-  tree: { childrenKey: 'children', defaultExpandAll: true },
   fields: itemFields.value,
   resource: (itemResource.value ?? {}) as unknown as PageSchema['resource'],
   actions: [
@@ -511,7 +540,7 @@ function onItemAction(payload: SchemaActionPayload) {
   switch (payload.key) {
     case 'create':
       if (currentDict.value)
-        itemEditor.startCreate(currentDict.value, itemTree())
+        void openItemEditor(payload.key)
       break
     case 'view':
       if (row)
@@ -519,7 +548,7 @@ function onItemAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row)
-        itemEditor.startEdit(row, itemTree())
+        void openItemEditor(payload.key, row)
       break
     case 'toggle':
       if (row)
@@ -532,6 +561,17 @@ function onItemAction(payload: SchemaActionPayload) {
   }
 }
 
+/** 新建 / 编辑都要整棵树给上级下拉：先取最新的树再开弹窗 */
+async function openItemEditor(mode: 'create' | 'edit', row?: DictItemRow) {
+  const tree = await loadItemNodes()
+  if (!currentDict.value)
+    return
+  if (mode === 'create')
+    itemEditor.startCreate(currentDict.value, tree)
+  else if (row)
+    itemEditor.startEdit(row, tree)
+}
+
 async function onItemSubmit() {
   if (await itemEditor.submit()) {
     toast.success(t('common.messages.save_success'))
@@ -539,7 +579,7 @@ async function onItemSubmit() {
   }
 }
 
-async function removeItem(row: DictItemNode) {
+async function removeItem(row: DictItemRow) {
   try {
     await itemResource.value?.remove?.(row.id)
     toast.success(t('common.messages.delete_success'))
@@ -550,7 +590,7 @@ async function removeItem(row: DictItemNode) {
   }
 }
 
-async function toggleItem(row: DictItemNode) {
+async function toggleItem(row: DictItemRow) {
   try {
     await itemResource.value?.updateStatus?.(row.id, row.status !== 'Active')
     toast.success(t('common.messages.status_updated'))
@@ -565,20 +605,20 @@ async function toggleItem(row: DictItemNode) {
 const dictDetailOpen = ref(false)
 const dictDetail = ref<DictRow | null>(null)
 const itemDetailOpen = ref(false)
-const itemDetail = ref<DictItemNode | null>(null)
+const itemDetail = ref<DictItemRow | null>(null)
 
 function openDictDetail(row: DictRow) {
   dictDetail.value = row
   dictDetailOpen.value = true
 }
 
-function openItemDetail(row: DictItemNode) {
+function openItemDetail(row: DictItemRow) {
   itemDetail.value = row
   itemDetailOpen.value = true
 }
 
-function parentLabel(row: DictItemNode): string {
-  const parent = findDictItem(itemTree(), row.parentId)
+function parentLabel(row: DictItemRow): string {
+  const parent = findDictItem(itemNodes.value, row.parentId)
   return parent
     ? `${parent.code} · ${parent.name}`
     : t('settings.dicts.top_level')

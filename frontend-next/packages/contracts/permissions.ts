@@ -368,6 +368,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'dict-items.delete': 'settings.dict-items.delete',
   'dict-items.get': 'settings.dict-items.read',
   'dict-items.list': 'settings.dict-items.read',
+  'dict-items.tree': 'settings.dict-items.read',
   'dict-items.update': 'settings.dict-items.update',
   'dicts.create': 'settings.dicts.create',
   'dicts.delete': 'settings.dicts.delete',

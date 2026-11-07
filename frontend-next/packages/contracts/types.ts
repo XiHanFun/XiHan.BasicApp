@@ -3032,13 +3032,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * List dictionary items
-         * @description List all items of a dictionary (depth-first, with depth).
-         *
-         *     Requires permission settings.dict-items.read (Read dictionary items).
-         */
-        get: operations["dict-items.list"];
+        get?: never;
         put?: never;
         /**
          * Create dictionary item
@@ -3080,6 +3074,50 @@ export interface paths {
          *     Requires permission settings.dict-items.update (Update dictionary items).
          */
         put: operations["dict-items.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dict-items:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List dictionary items
+         * @description List dictionary items page by page: items of platform dictionaries plus the caller’s tenant dictionaries, filter by dictId for one dictionary; the keyword matches code, name and value.
+         *
+         *     Requires permission settings.dict-items.read (Read dictionary items).
+         */
+        post: operations["dict-items.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dict-items:tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get dictionary item tree
+         * @description List all items of a dictionary (depth-first, with depth).
+         *
+         *     Requires permission settings.dict-items.read (Read dictionary items).
+         */
+        get: operations["dict-items.tree"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -25463,41 +25501,6 @@ export interface operations {
             };
         };
     };
-    "dict-items.list": {
-        parameters: {
-            query: {
-                /** @description 字典主键 */
-                dictId: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description dict-items.list 的响应：深度优先，带层级 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @description 字典项 */
-                        items: components["schemas"]["DictItemResponse"][];
-                    };
-                };
-            };
-            /** @description Error */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
     "dict-items.create": {
         parameters: {
             query?: never;
@@ -25813,6 +25816,84 @@ export interface operations {
                          * @description 创建时间（UTC）
                          */
                         createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DictItemResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.tree": {
+        parameters: {
+            query: {
+                /** @description 字典主键 */
+                dictId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description dict-items.tree 的响应：深度优先，带层级 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 字典项 */
+                        items: components["schemas"]["DictItemResponse"][];
                     };
                 };
             };

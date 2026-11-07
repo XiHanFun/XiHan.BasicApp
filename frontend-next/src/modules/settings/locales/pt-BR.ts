@@ -54,6 +54,7 @@ export default {
       items: 'Itens do dicionário',
       keyword: 'Palavra-chave',
       keyword_placeholder: 'Pesquisar código / nome / categoria',
+      item_keyword_placeholder: 'Pesquisar código / nome / valor do item',
       fields: {
         code: 'Código do dicionário',
         name: 'Nome do dicionário',

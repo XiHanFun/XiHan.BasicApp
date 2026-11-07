@@ -49,16 +49,16 @@ public sealed record DictItemResponse(
 }
 
 /// <summary>
-/// <c>dict-items.list</c> 的请求
+/// <c>dict-items.tree</c> 的请求
 /// </summary>
 /// <param name="DictId">字典主键</param>
-public sealed record ListDictItemsRequest(Guid DictId);
+public sealed record DictItemTreeRequest(Guid DictId);
 
 /// <summary>
-/// <c>dict-items.list</c> 的响应：深度优先，带层级
+/// <c>dict-items.tree</c> 的响应：深度优先，带层级
 /// </summary>
 /// <param name="Items">字典项</param>
-public sealed record DictItemsResponse(IReadOnlyList<DictItemResponse> Items);
+public sealed record DictItemTreeResponse(IReadOnlyList<DictItemResponse> Items);
 
 /// <summary>
 /// <c>dict-items.get</c> 的请求

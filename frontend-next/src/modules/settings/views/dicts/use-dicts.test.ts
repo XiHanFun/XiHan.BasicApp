@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
-import { buildDictItemTree, dictItemParentOptions, dictItemsResource, dictsResource, findDictItem, useDictEditor, useDictItemEditor } from './use-dicts'
+import { buildDictItemTree, dictItemParentOptions, dictItemsResource, dictsResource, findDictItem, loadDictItemTree, useDictEditor, useDictItemEditor } from './use-dicts'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), {
@@ -172,10 +172,15 @@ describe('dictsResource', () => {
 })
 
 describe('dictItemsResource', () => {
-  it('按 parentId 把深度优先的平铺项挂成树，可维护时带删除、启停与导入', async () => {
+  it('分页列出当前字典的项：dictId 固定进筛选，关键字与状态随搜索栏；可维护时带删除、启停与导入', async () => {
     const calls = record((call) => {
-      if (call.method === 'GET' && call.url.includes('dictId=d-1'))
-        return json(200, { items: flatItems })
+      if (call.method === 'POST' && call.url === '/api/dict-items:list') {
+        return json(200, {
+          items: flatItems.slice(0, 2),
+          total: 4,
+          page: { index: 1, size: 2 },
+        })
+      }
       if (call.method === 'DELETE') {
         return json(200, {
           succeeded: [],
@@ -191,11 +196,32 @@ describe('dictItemsResource', () => {
       return json(201, item('i-5', 'west', null, 0))
     })
     const resource = dictItemsResource('d-1', true)
-    const tree = await resource.tree!({ page: 1, pageSize: 20, filters: {} })
-    expect(tree.map(n => n.code)).toEqual(['east', 'north'])
-    expect(tree[0]!.children!.map(n => n.code)).toEqual(['shanghai'])
-    expect(tree[0]!.children![0]!.children!.map(n => n.code)).toEqual(['pudong'])
-    expect(tree[1]!.children).toBeUndefined()
+    const result = await resource.page!({
+      page: 1,
+      pageSize: 2,
+      filters: { keyword: ' sh ', status: 'Active' },
+      sorts: [
+        { field: 'order', order: 'asc' },
+      ],
+    })
+    expect(calls[0]!.body).toEqual({
+      page: { index: 1, size: 2 },
+      keyword: 'sh',
+      filters: [
+        { field: 'status', operator: 'eq', value: 'Active' },
+        { field: 'dictId', operator: 'eq', value: 'd-1' },
+      ],
+      sorts: [
+        { field: 'order', descending: false },
+      ],
+    })
+    expect(result.items.map(n => n.code)).toEqual(['east', 'shanghai'])
+    expect(result.page).toMatchObject({
+      totalCount: 4,
+      pageIndex: 1,
+      totalPages: 2,
+      hasNext: true,
+    })
 
     await expect(resource.remove!('i-1')).rejects.toThrow('SETTINGS_CONFLICT_005 的原因')
 
@@ -218,7 +244,7 @@ describe('dictItemsResource', () => {
       isDefault: true,
       order: 2,
     })
-    expect(calls.find(c => c.method === 'POST')).toMatchObject({
+    expect(calls.find(c => c.method === 'POST' && c.url === '/api/dict-items')).toMatchObject({
       url: '/api/dict-items',
       body: {
         dictId: 'd-1',
@@ -234,10 +260,20 @@ describe('dictItemsResource', () => {
 
   it('另一侧的字典只带取数：没有删除、启停与导入入口', () => {
     const resource = dictItemsResource('d-1', false)
-    expect(resource.tree).toBeTypeOf('function')
+    expect(resource.page).toBeTypeOf('function')
     expect(resource.remove).toBeUndefined()
     expect(resource.updateStatus).toBeUndefined()
     expect(resource.create).toBeUndefined()
+  })
+
+  it('上级选择与详情用的整棵树走 dict-items.tree：按 parentId 把深度优先的平铺项挂成树', async () => {
+    const calls = record(() => json(200, { items: flatItems }))
+    const tree = await loadDictItemTree('d-1')
+    expect(calls[0]).toMatchObject({ method: 'GET', url: '/api/dict-items:tree?dictId=d-1' })
+    expect(tree.map(n => n.code)).toEqual(['east', 'north'])
+    expect(tree[0]!.children!.map(n => n.code)).toEqual(['shanghai'])
+    expect(tree[0]!.children![0]!.children!.map(n => n.code)).toEqual(['pudong'])
+    expect(tree[1]!.children).toBeUndefined()
   })
 
   it('上级只能选不是自己、也不是自己下级的项；树里按主键能找回节点', () => {

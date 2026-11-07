@@ -60,11 +60,27 @@ public sealed class SettingsDictsTests : IDisposable
         Assert.Equal(HttpStatusCode.Conflict, platformTaken.StatusCode);
         Assert.Equal("SETTINGS_CONFLICT_002", platformTakenBody.GetProperty("code").GetString());
 
-        var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items?dictId={regionId}", token: tenant));
+        var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items:tree?dictId={regionId}", token: tenant));
         Assert.Equal(HttpStatusCode.OK, items.StatusCode);
         var rows = itemsBody.GetProperty("items").EnumerateArray().ToList();
         Assert.Equal(["east", "hangzhou", "shanghai", "north"], rows.Select(static r => r.GetProperty("code").GetString()).ToList());
         Assert.Equal([0, 1, 1, 0], rows.Select(static r => r.GetProperty("depth").GetInt32()).ToList());
+
+        // 分页列表：按 dictId 筛选、关键字匹配编码 / 名称 / 附加值、缺省按排序号再编码，层级照样给；不筛字典时两侧可见的项都在
+        var (paged, pagedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dict-items:list", $$$"""{"filters":[{"field":"dictId","operator":"eq","value":"{{{regionId}}}"}],"page":{"index":1,"size":3}}""", tenant));
+        Assert.Equal(HttpStatusCode.OK, paged.StatusCode);
+        Assert.Equal(4, pagedBody.GetProperty("total").GetInt64());
+        Assert.Equal(["east", "hangzhou", "north"], pagedBody.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
+        Assert.Equal([0, 1, 0], pagedBody.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("depth").GetInt32()).ToList());
+        var (searched, searchedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dict-items:list", $$"""{"filters":[{"field":"dictId","operator":"eq","value":"{{regionId}}"}],"keyword":"zhou"}""", tenant));
+        Assert.Equal(HttpStatusCode.OK, searched.StatusCode);
+        Assert.Equal(["hangzhou"], searchedBody.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
+        var (bothSides, bothSidesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dict-items:list", """{"sorts":[{"field":"code"}]}""", tenant));
+        Assert.Equal(HttpStatusCode.OK, bothSides.StatusCode);
+        Assert.Equal(["east", "hangzhou", "normal", "north", "shanghai", "vip"], bothSidesBody.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
+        var (badFilter, badFilterBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dict-items:list", """{"filters":[{"field":"metadata","operator":"eq","value":"x"}]}""", tenant));
+        Assert.Equal(HttpStatusCode.BadRequest, badFilter.StatusCode);
+        Assert.Equal("SETTINGS_VALIDATION_001", badFilterBody.GetProperty("code").GetString());
 
         // 上级不合法：不同字典、自己、自己的下级
         var (cycle, cycleBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/dict-items/{east}", $$"""{"name":"East","parentId":"{{shanghai}}","isDefault":true,"order":1}""", tenant));
@@ -154,7 +170,7 @@ public sealed class SettingsDictsTests : IDisposable
             await client.Insertable(rows).ExecuteCommandAsync(TestContext.Current.CancellationToken);
         }
 
-        var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items?dictId={dictId}", token: tenant));
+        var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items:tree?dictId={dictId}", token: tenant));
         Assert.Equal(HttpStatusCode.OK, items.StatusCode);
         Assert.Equal(count, itemsBody.GetProperty("items").GetArrayLength());
 

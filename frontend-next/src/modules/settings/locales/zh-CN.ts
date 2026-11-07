@@ -54,6 +54,7 @@ export default {
       items: '字典项',
       keyword: '关键词',
       keyword_placeholder: '搜索编码 / 名称 / 分类',
+      item_keyword_placeholder: '搜索项编码 / 名称 / 值',
       fields: {
         code: '字典编码',
         name: '字典名称',

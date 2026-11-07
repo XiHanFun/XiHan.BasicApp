@@ -54,6 +54,7 @@ export default {
       items: 'Wörterbucheinträge',
       keyword: 'Stichwort',
       keyword_placeholder: 'Code / Name / Kategorie suchen',
+      item_keyword_placeholder: 'Eintragscode / Name / Wert suchen',
       fields: {
         code: 'Wörterbuchcode',
         name: 'Wörterbuchname',

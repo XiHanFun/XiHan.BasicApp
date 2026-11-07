@@ -45,6 +45,7 @@ public sealed class OperationExposureTests
         // 知识检索取代 4.x 的 knowledge_retrieve 技能与 MCP 工具：以调用方身份、只在调用方一侧
         ["knowledge-documents.search"] = DirectoryRead,
         ["dict-items.list"] = DirectoryRead,
+        ["dict-items.tree"] = DirectoryRead,
         // 我的待办（5.4 已列）：受理人锁定为调用方，智能体替用户看自己的待办
         ["tasks.list"] = Expose.Http | Expose.Mcp | Expose.Ai,
     };

@@ -79,6 +79,11 @@ public static class SettingsMessages
     public const string ListDictItemsDescription = "dict_items.list.description";
 
     /// <summary>
+    /// 操作 <c>dict-items.tree</c> 的说明
+    /// </summary>
+    public const string DictItemTreeDescription = "dict_items.tree.description";
+
+    /// <summary>
     /// 操作 <c>dict-items.get</c> 的说明
     /// </summary>
     public const string GetDictItemDescription = "dict_items.get.description";

@@ -54,6 +54,7 @@ export default {
       items: '사전 항목',
       keyword: '키워드',
       keyword_placeholder: '코드 / 이름 / 분류 검색',
+      item_keyword_placeholder: '항목 코드 / 이름 / 값 검색',
       fields: {
         code: '사전 코드',
         name: '사전 이름',

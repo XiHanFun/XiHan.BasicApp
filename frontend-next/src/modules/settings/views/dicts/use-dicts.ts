@@ -6,10 +6,10 @@ import { dictItems as dictItemsApi, dicts as dictsApi, toPageRequest, toSchemaPa
 import { ApiError, throwOnFailed } from '~/request'
 
 export type DictRow = ResponseOf<'dicts.list'>['items'][number]
-export type DictItemRow = ResponseOf<'dict-items.list'>['items'][number]
+export type DictItemRow = ResponseOf<'dict-items.tree'>['items'][number]
 export type SettingStatus = DictRow['status']
 
-/** 字典项树节点：后端按深度优先平铺（带 parentId），树表按 parentId 挂成嵌套 */
+/** 字典项树节点：dict-items.tree 按深度优先平铺（带 parentId），上级选择按 parentId 挂成嵌套 */
 export type DictItemNode = DictItemRow & { children?: DictItemNode[] }
 
 /** 弹窗表单：新建与编辑字典共用一份（编码只在新建时可改） */
@@ -173,16 +173,27 @@ export function dictsResource(): SchemaResource<DictRow> {
   }
 }
 
+/** 当前字典的全部项挂成树：上级下拉与详情里的上级名称从它取 */
+export async function loadDictItemTree(dictId: string): Promise<DictItemNode[]> {
+  return buildDictItemTree((await dictItemsApi.tree({ dictId })).items)
+}
+
 /**
- * 右栏字典项的 SchemaPage 资源（树形，不分页）：取当前字典的全部项挂成树
+ * 右栏字典项的 SchemaPage 资源：分页列出当前字典的项（4.x 同），关键字匹配编码、名称与附加值，状态精确匹配
  * `editable`（字典在调用方这一侧）时才带删除、启停与导入新建（导入的项都在顶层）；另一侧的字典只读，这些入口一概不出
  */
-export function dictItemsResource(dictId: string, editable: boolean): SchemaResource<DictItemNode> {
-  const tree = async () => buildDictItemTree((await dictItemsApi.list({ dictId })).items)
+export function dictItemsResource(dictId: string, editable: boolean): SchemaResource<DictItemRow> {
+  const page = async (params: SchemaQueryParams) => {
+    const request = toPageRequest(params, {
+      filters: { status: 'eq' },
+    })
+    request.filters.push({ field: 'dictId', operator: 'eq', value: dictId })
+    return toSchemaPageResult(await dictItemsApi.list(request), params)
+  }
   if (!editable)
-    return { tree }
+    return { page }
   return {
-    tree,
+    page,
     // 还有下级的项由后端拒绝
     remove: async id => throwOnFailed(await dictItemsApi.delete({
       ids: [
