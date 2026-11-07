@@ -137,6 +137,48 @@ public sealed class FilesTests : IDisposable
         Assert.Equal("text/plain", XiHan.BasicApp.Files.Domain.Services.FileKinds.ContentTypeOf("text/plain\r\nX-Evil: 1", "note.txt"));
     }
 
+    [Fact]
+    public async Task Content_NeverServesUploadedScriptsInline()
+    {
+        var (server, platform, _) = await StartAsync();
+        await using var running = server;
+
+        async Task<HttpResponseMessage> ReadAsync(string name, string contentType, bool download = false)
+        {
+            using var form = new MultipartFormDataContent();
+            var file = new ByteArrayContent(Encoding.UTF8.GetBytes($"<script>alert('{name}')</script>"));
+            file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            form.Add(file, "file", name);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/files/upload") { Content = form };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", platform);
+            var (uploaded, body) = await server.SendAsync(request);
+            Assert.True(uploaded.StatusCode == HttpStatusCode.OK, body.ToString());
+            var (status, _, response) = await GetRawAsync(server, $"/api/files/{body.GetProperty("id").GetString()}/content{(download ? "?download=true" : string.Empty)}", platform);
+            Assert.Equal(HttpStatusCode.OK, status);
+            Assert.Equal("nosniff", Assert.Single(response.Headers.GetValues("X-Content-Type-Options")));
+            return response;
+        }
+
+        // 能跑脚本的类型：不要 download 也是附件，带原始文件名
+        foreach (var (name, contentType) in new[] { ("page.html", "text/html"), ("image.svg", "image/svg+xml"), ("page.xhtml", "application/xhtml+xml"), ("data.xml", "text/xml") })
+        {
+            var risky = await ReadAsync(name, contentType);
+            Assert.Equal(("attachment", name), (risky.Content.Headers.ContentDisposition?.DispositionType, risky.Content.Headers.ContentDisposition?.FileName?.Trim('"')));
+            Assert.Equal(contentType, risky.Content.Headers.ContentType?.MediaType);
+        }
+
+        // 跑不了脚本的类型照常内联，download=true 时以附件下载
+        foreach (var (name, contentType) in new[] { ("image.png", "image/png"), ("doc.pdf", "application/pdf"), ("note.txt", "text/plain") })
+        {
+            var inline = await ReadAsync(name, contentType);
+            Assert.Null(inline.Content.Headers.ContentDisposition);
+            Assert.Equal(contentType, inline.Content.Headers.ContentType?.MediaType);
+        }
+
+        var attachment = await ReadAsync("photo.png", "image/png", download: true);
+        Assert.Equal(("attachment", "photo.png"), (attachment.Content.Headers.ContentDisposition?.DispositionType, attachment.Content.Headers.ContentDisposition?.FileName?.Trim('"')));
+    }
+
     private static async Task<List<JsonElement>> StoragesAsync(BasicAppTestServer server, string token, string fileId)
         => [.. (await SendAsync(server, HttpMethod.Get, $"/api/files/{fileId}:storages", null, token)).Body.GetProperty("items").EnumerateArray()];
 

@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Host.Endpoints;
 /// <item><c>POST /api/files/upload</c>：multipart 表单上传一个文件（字段 <c>file</c>，可选 <c>accessLevel</c>、<c>isTemporary</c>、<c>expiresAt</c>、<c>tags</c>、<c>remark</c>），要 <c>files.files.create</c>，返回文件</item>
 /// <item><c>GET /api/files/{id}/content</c>：已登录调用方按访问级别读当前一侧的文件内容（接口客户端用），支持单个区间的 <c>Range</c> 请求（206，不可满足 416）</item>
 /// </list>
-/// 下载默认按内容类型内联显示，查询 <c>download=true</c> 时以附件下载（带原始文件名）。两者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c> 记录
+/// 内容类型是上传方给的，只有 <see cref="FileKinds.IsInlineSafe"/> 放行的类型内联显示，别的类型与查询 <c>download=true</c> 时一样以附件下载（带原始文件名）。两者都登记了审计身份，访问日志按 <c>files.upload</c>、<c>files.content</c> 记录
 /// 浏览器的图片、链接与新窗口用 <c>files.presign</c> 换的签名地址：对象存储签出，本地存储的由框架的签名端点（<c>MapXiHanBlobs()</c>，访问日志记 <c>xihan.objectstorage.blob.download</c>）收发
 /// </remarks>
 internal static class FileEndpoints
@@ -129,7 +129,7 @@ internal static class FileEndpoints
             response.ContentType = file.ContentType;
             response.Headers.AcceptRanges = "bytes";
             response.Headers.LastModified = blob.Metadata.LastModified.ToString("R", CultureInfo.InvariantCulture);
-            if (download == true)
+            if (download == true || !FileKinds.IsInlineSafe(file.ContentType))
             {
                 response.Headers.ContentDisposition = BlobContentDisposition.Attachment(file.OriginalName);
             }
