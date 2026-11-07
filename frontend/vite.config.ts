@@ -1,219 +1,62 @@
-import type { ComponentResolver } from 'unplugin-vue-components'
 import type { PluginOption } from 'vite'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
-
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
-import vueJsx from '@vitejs/plugin-vue-jsx'
-import { xihanUiBanner } from '@xihan-ui/core/vite'
-import AutoImport from 'unplugin-auto-import/vite'
+import { XiHanUIResolver } from '@xihan-ui/vue/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
 
-const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
-
+const { version, dependencies, devDependencies } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+  version: string
+  dependencies?: Record<string, unknown>
+  devDependencies?: Record<string, unknown>
+}
 const rootDir = fileURLToPath(new URL('.', import.meta.url))
 
 /** pnpm 内部依赖协议前缀，这类声明不是版本号 */
 const PNPM_PROTOCOL_RE = /^(?:catalog|workspace|link|file|npm):/
 
 /**
- * 解析单个依赖的真实版本：读 node_modules 里已安装那一份的 version。
+ * 解析单个依赖的真实版本：读 node_modules 里已安装那一份的 version
  * 安装态一次覆盖 catalog / workspace / link / overrides 四种协议，
- * 而 pnpm-workspace.yaml 的 catalog 段只写范围符、且可能与实装漂移。
- * 读不到时具体版本号原样保留，pnpm 协议串显示为 '-'。
+ * 而 pnpm-workspace.yaml 的 catalog 段只写范围符、且可能与实装漂移
+ * 读不到时具体版本号原样保留，pnpm 协议串显示为 -
  */
 function resolveDependencyVersion(name: string, spec: string): string {
   const file = join(rootDir, 'node_modules', name, 'package.json')
   if (existsSync(file)) {
     try {
-      const version = (JSON.parse(readFileSync(file, 'utf-8')) as { version?: string }).version
-      if (typeof version === 'string' && version)
-        return version
+      const installed = (JSON.parse(readFileSync(file, 'utf8')) as { version?: string }).version
+      if (typeof installed === 'string' && installed)
+        return installed
     }
     catch {
       // 装坏的包按读不到处理
     }
   }
-  return PNPM_PROTOCOL_RE.test(spec) ? '-' : spec
+  return PNPM_PROTOCOL_RE.test(spec)
+    ? '-'
+    : spec
 }
 
 /** 把一组依赖声明整体解析成 包名 → 真实版本 */
 function resolveDependencyVersions(declarations: Record<string, unknown>): Record<string, string> {
   const result: Record<string, string> = {}
-  for (const [name, spec] of Object.entries(declarations))
-    result[name] = resolveDependencyVersion(name, typeof spec === 'string' ? spec : '')
+  for (const [name, spec] of Object.entries(declarations)) {
+    result[name] = resolveDependencyVersion(name, typeof spec === 'string'
+      ? spec
+      : '')
+  }
   return result
 }
 
-const appDependencies = resolveDependencyVersions(pkg.dependencies ?? {})
-const appDevDependencies = resolveDependencyVersions(pkg.devDependencies ?? {})
-
-/**
- * XiHan.UI 是解剖式组件库：一个组件由 Root / Trigger / Content 等多个部件组成，
- * 一个页面动辄要引十几个具名导出。此解析器把模板里的 `Xh*` 标签直接映射到 `@xihan-ui/vue`，
- * 免去逐个手写 import；仍是具名导入，摇树不受影响。
- */
-function XiHanUiResolver(): ComponentResolver {
-  return {
-    type: 'component',
-    resolve(name: string) {
-      if (name.startsWith('Xh'))
-        return { name, from: '@xihan-ui/vue' }
-      return undefined
-    },
-  }
-}
-
-function createManualChunks(id: string) {
-  const normalizedId = id.replace(/\\/g, '/')
-
-  // 两种装法都要认：装 npm 正式版时路径是 /@xihan-ui/ 等作用域；临时用 overrides 链到同级源码调试时
-  // 路径不含 /node_modules/，因此下面几条判断必须排在 node_modules 早退之前。
-  // 设计器（Web Components）与它独占的 UI 包只有设计、查看流程等少数页面用到：不归入首屏的 vendor-ui，
-  // 也不另立手动分组——手动分组会把命中模块的依赖（headless、core 等公共部分）一并收走，首屏反而要引它；
-  // 交给按需分块，跟着用到它们的页面走
-  if (
-    /\/XiHan\.(?:Print|Flow|Form|Report)Designer\//.test(normalizedId)
-    || /\/@xihan-(?:print|flow|form|report)\//.test(normalizedId)
-    || /\/(?:adapters\/web-components|features\/designer-kit|features\/designer-shell|features\/xlsx)\//.test(normalizedId)
-    || /\/@xihan-ui\/(?:web-components|designer-kit|designer-shell|xlsx)\//.test(normalizedId)
-  ) {
-    return undefined
-  }
-
-  if (normalizedId.includes('/XiHan.UI/ui/packages/') || normalizedId.includes('/@xihan-ui/')) {
-    if (normalizedId.includes('/features/backgrounds/') || normalizedId.includes('/@xihan-ui/backgrounds/'))
-      return 'vendor-backgrounds'
-    return 'vendor-ui'
-  }
-
-  if (!normalizedId.includes('/node_modules/')) {
-    return undefined
-  }
-
-  if (
-    normalizedId.includes('/vue/')
-    || normalizedId.includes('/vue-router/')
-    || normalizedId.includes('/pinia/')
-    || normalizedId.includes('/@vue/')
-    || normalizedId.includes('/vue-i18n/')
-    || normalizedId.includes('/@intlify/')
-  ) {
-    return 'vendor-ui'
-  }
-
-  if (
-    normalizedId.includes('/axios/')
-    || normalizedId.includes('/dayjs/')
-    || normalizedId.includes('/@vueuse/')
-  ) {
-    return 'vendor-utils'
-  }
-
-  if (normalizedId.includes('/lodash-es/')) {
-    return 'vendor-lodash'
-  }
-
-  if (normalizedId.includes('/monaco-editor/')) {
-    return 'vendor-monaco'
-  }
-
-  if (
-    normalizedId.includes('/date-fns/')
-    || normalizedId.includes('/date-fns-tz/')
-  ) {
-    return 'vendor-date'
-  }
-
-  if (
-    normalizedId.includes('/@codemirror/')
-    || normalizedId.includes('/codemirror/')
-    || normalizedId.includes('/@marijn/')
-    || normalizedId.includes('/crelt/')
-    || normalizedId.includes('/rope-sequence/')
-    || normalizedId.includes('/style-mod/')
-    || normalizedId.includes('/w3c-keyname/')
-  ) {
-    return 'vendor-codemirror'
-  }
-
-  if (
-    normalizedId.includes('/@lezer/')
-    || normalizedId.includes('/highlight.js/')
-    || normalizedId.includes('/katex/')
-    || normalizedId.includes('/markdown-it/')
-    || normalizedId.includes('/markdown-it-')
-    || normalizedId.includes('/mermaid/')
-    || normalizedId.includes('/@vavt/')
-    || normalizedId.includes('/entities/')
-    || normalizedId.includes('/linkify-it/')
-    || normalizedId.includes('/linkifyjs/')
-    || normalizedId.includes('/mdurl/')
-    || normalizedId.includes('/medium-zoom/')
-    || normalizedId.includes('/punycode.js/')
-    || normalizedId.includes('/uc.micro/')
-  ) {
-    return 'vendor-markdown'
-  }
-
-  if (
-    normalizedId.includes('/md-editor-v3/')
-    || normalizedId.includes('/@tiptap/')
-    || normalizedId.includes('/prosemirror-')
-    || normalizedId.includes('/orderedmap/')
-  ) {
-    return 'vendor-editor'
-  }
-
-  if (
-    normalizedId.includes('/vanilla-jsoneditor/')
-    || normalizedId.includes('/vue3-ts-jsoneditor/')
-    || normalizedId.includes('/immutable-json-patch/')
-    || normalizedId.includes('/ajv/')
-  ) {
-    return 'vendor-jsoneditor'
-  }
-
-  if (
-    normalizedId.includes('/@iconify-json/carbon/')
-    || normalizedId.includes('/@iconify-json/ep/')
-    || normalizedId.includes('/@iconify-json/heroicons/')
-    || normalizedId.includes('/@iconify-json/logos/')
-    || normalizedId.includes('/@iconify-json/lucide/')
-    || normalizedId.includes('/@iconify-json/mdi/')
-    || normalizedId.includes('/@iconify-json/tabler/')
-  ) {
-    const iconSet = normalizedId.match(/\/@iconify-json\/([^/]+)\//)?.[1]
-    return iconSet ? `vendor-icon-${iconSet}` : 'vendor-icons'
-  }
-
-  if (
-    normalizedId.includes('/@iconify/')
-    || normalizedId.includes('/lucide-vue-next/')
-  ) {
-    return 'vendor-icons'
-  }
-
-  if (normalizedId.includes('/@microsoft/signalr/')) {
-    return 'vendor-realtime'
-  }
-
-  if (normalizedId.includes('/papaparse/')) {
-    return 'vendor-csv'
-  }
-
-  return undefined
-}
-
-/**
- * 本次构建的标记：同一份源码重复打包也会换新值。
- * 发版检查据它判断「线上这一版是不是我正在跑的这一版」——只看资源哈希的话，
- * 源码没动时两次发布的产物逐字节相同，发了也认不出来。
- */
+const appDependencies = resolveDependencyVersions(dependencies ?? {})
+const appDevDependencies = resolveDependencyVersions(devDependencies ?? {})
+const buildTime = new Date().toISOString().slice(0, 16).replace('T', ' ')
+/** 本次构建的标记：同一份源码重复打包也会换新值；发版检查据它判断线上那一版是不是正在跑的这一版 */
 const buildStamp = new Date().toISOString()
 
 /** 把版本与构建标记落成 version.json，随产物一起发出去 */
@@ -222,51 +65,61 @@ function releaseManifest(): PluginOption {
     name: 'xihan:release-manifest',
     apply: 'build',
     generateBundle() {
-      this.emitFile({
-        type: 'asset',
-        fileName: 'version.json',
-        source: `${JSON.stringify({ version: pkg.version, buildTime: pkg.lastBuildTime, buildStamp }, null, 2)}\n`,
-      })
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: `${JSON.stringify({ version, buildTime, buildStamp }, null, 2)}
+` })
     },
   }
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd())
-  const apiPrefix = env.VITE_API_PREFIX || '/api'
+  const env = loadEnv(mode, process.cwd(), '')
+  // 开发态把 /api、/openapi.json、/mcp、/health 与签名地址 /blobs 代理到后端宿主（Kestrel 的 Http 端点）；实时 Hub /hubs 要转 WebSocket
+  const target = env.VITE_DEV_PROXY_TARGET || 'http://localhost:9710'
+  const proxy = {
+    ...Object.fromEntries([
+      '/api',
+      '/openapi.json',
+      '/mcp',
+      '/health',
+      '/blobs',
+    ].map(path => [
+      path,
+      { target, changeOrigin: true },
+    ])),
+    '/hubs': { target, changeOrigin: true, ws: true },
+  }
 
   return {
+    // 版本号进壳层页脚；来源只有 package.json 一处
     define: {
-      __APP_VERSION__: JSON.stringify(pkg.version),
-      __APP_BUILD_TIME__: JSON.stringify(pkg.lastBuildTime),
+      __APP_VERSION__: JSON.stringify(version),
+      // 页脚与标题里的应用名（package.json 的 name 是工作区包名，不上屏）
+      __APP_NAME__: JSON.stringify('XiHan.BasicApp'),
+      __APP_BUILD_TIME__: JSON.stringify(buildTime),
       __APP_BUILD_STAMP__: JSON.stringify(buildStamp),
-      __APP_REPOSITORY__: JSON.stringify(pkg.repository?.url ?? ''),
-      __APP_NAME__: JSON.stringify(pkg.name),
-      __APP_AUTHOR_NAME__: JSON.stringify(pkg.author?.name ?? ''),
-      __APP_AUTHOR_URL__: JSON.stringify(pkg.author?.url ?? ''),
+      __APP_REPOSITORY__: JSON.stringify('https://github.com/XiHanFun/XiHan.BasicApp'),
+      // 关于页列出的前端依赖
       __APP_DEPENDENCIES__: JSON.stringify(appDependencies),
       __APP_DEV_DEPENDENCIES__: JSON.stringify(appDevDependencies),
     },
     plugins: [
-      // XiHan.UI 的启动横幅打在这个终端里，不占浏览器控制台
-      xihanUiBanner(),
       releaseManifest(),
       tailwindcss(),
-      // 设计器是 Web Components（<xh-print-designer>、<xh-flow-viewer> 等），模板里的 xh- 标签交给浏览器，不当组件解析；
+      // 设计器是 Web Components（<xh-print-designer> 等），模板里的 xh- 标签交给浏览器，不当组件解析；
       // 应用里的组件库组件一律写 PascalCase 的 Xh*，不受影响
-      vue({ template: { compilerOptions: { isCustomElement: tag => tag.startsWith('xh-') } } }),
-      vueJsx(),
-      AutoImport({
-        imports: ['vue', 'vue-router', 'pinia', '@vueuse/core'],
-        // 只给本仓源码补导入。临时链到同级 XiHan.UI 时（pnpm-workspace.yaml 的 overrides），
-        // 它的产物不在 node_modules 下、默认排除拦不住，会被补上只有本仓才装的 @vueuse/core 等导入，
-        // 在 UI 仓库里解析失败
-        exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]XiHan\.UI[\\/]/],
-        dts: 'src/types/auto-imports.d.ts',
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: tag => tag.startsWith('xh-'),
+          },
+        },
       }),
       Components({
-        resolvers: [XiHanUiResolver()],
-        // 只解析 XiHan.UI 的部件；应用自有组件一律显式 import，避免隐式全局注册
+        // XiHan.UI 是解剖式组件库：模板里的 Xh* 标签由库自带的解析器按需映射到 @xihan-ui/vue 的具名导出，摇树不受影响
+        resolvers: [
+          XiHanUIResolver(),
+        ],
+        // 只解析 XiHan.UI 的部件；应用自有组件一律显式 import
         dirs: [],
         dts: 'src/types/components.d.ts',
       }),
@@ -276,54 +129,38 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         '~': fileURLToPath(new URL('./packages', import.meta.url)),
       },
-      // @xihan-ui/* 的 peer 依赖可能解析到另一份 Vue：pnpm 的隔离 store 下如此，
-      // 临时链到同级 XiHan.UI 源码时更是如此。不去重就会出现两份 Vue 运行时，
-      // provide/inject 与响应式当场断掉。
-      dedupe: ['vue', 'vue-router', 'pinia', 'vue-i18n', '@vue/runtime-core'],
+      // 临时用 overrides 链到同级 XiHan.UI 源码时，组件库的 peer 依赖可能解析到另一份 Vue；去重以免出现两份运行时
+      dedupe: [
+        'vue',
+        'vue-router',
+        'pinia',
+        'vue-i18n',
+        '@vue/runtime-core',
+      ],
     },
-    css: {
-      preprocessorOptions: {},
+    optimizeDeps: {
+      // 打印设计器与应用共用 @xihan-ui/web-components 的全局配置（语言、滚动源）：预构建会把 web-components 打进 @xihan-print 自己的块，
+      // 链到同级 XiHan.UI 源码联调时应用写的是另一份，设计器只看得见英文缺省；不预构建即按源码引用同一份（生产构建按真实路径去重，不受影响）
+      exclude: [
+        '@xihan-flow/core',
+        '@xihan-flow/designer',
+        '@xihan-flow/runtime',
+        '@xihan-print/core',
+        '@xihan-print/designer',
+        '@xihan-print/runtime',
+      ],
     },
     server: {
-      host: '0.0.0.0',
-      port: Number(env.VITE_PORT) || 9000,
-      warmup: {
-        clientFiles: ['./src/main.ts', './src/App.vue', './packages/layouts/basic/index.vue'],
-      },
-      // 留着 ../../XiHan.UI：临时用 overrides 链到同级源码调试时，仓外路径不在
-      // Vite 默认允许的文件系统范围内。装正式版时这一条不起作用，也没有副作用。
+      port: Number(env.VITE_PORT) || 9100,
+      // 链到同级 XiHan.UI 源码时仓外路径要在允许范围内；装正式版时这一条没有副作用
       fs: {
         allow: ['..', '../../XiHan.UI'],
       },
-      proxy: {
-        [apiPrefix]: {
-          target: env.VITE_DEV_PROXY_TARGET,
-          changeOrigin: true,
-        },
-        '/hubs': {
-          target: env.VITE_DEV_PROXY_TARGET,
-          changeOrigin: true,
-          ws: true,
-        },
-        // 本地存储静态文件（头像、公开文件等）：转发到后端 UseStaticFiles 暴露的 /uploads
-        '/uploads': {
-          target: env.VITE_DEV_PROXY_TARGET,
-          changeOrigin: true,
-        },
-      },
+      proxy,
     },
     build: {
       target: 'es2022',
-      chunkSizeWarningLimit: 2000,
-      reportCompressedSize: false,
-      rollupOptions: {
-        output: {
-          chunkFileNames: 'assets/js/[name]-[hash].js',
-          entryFileNames: 'assets/js/[name]-[hash].js',
-          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
-          manualChunks: createManualChunks,
-        },
-      },
+      sourcemap: mode !== 'production',
     },
   }
 })

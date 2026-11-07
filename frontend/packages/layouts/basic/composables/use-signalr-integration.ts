@@ -4,19 +4,21 @@ import type { UserSettingChangedPayload } from '~/constants'
 import type { NotificationContentFormat } from '~/types/enums'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { applyRemotePageSetting } from '~/components'
 import { applyServerTaskProgress, dialog, islandStatus, notification, playNotificationSound, useSignalR } from '~/composables'
-import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
+import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID } from '~/constants'
+import { RealtimeMethods } from '~/contracts'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 import { notificationSummary } from '~/utils'
 
+/** 实时 Hub 路径（.env 的 VITE_REALTIME_HUB，仓库缺省为后端的 /hubs/notification）；为空即不建连接、不起重连定时器 */
+const REALTIME_HUB_PATH = (import.meta.env.VITE_REALTIME_HUB ?? '').trim()
 const SIGNALR_RECONNECT_INTERVAL_MS = 15000
 // 断开提示宽限期：持续断开超过此时长仍未恢复才弹横幅，避免自动重连期间的瞬断噪音（频繁显示）
 const REALTIME_LOST_GRACE_MS = 12000
 const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
 
 /**
- * 从 JWT payload 中提取 session_id
+ * 从 JWT payload 中提取会话 ID（6.0 的访问令牌声明为 sid）
  */
 function getSessionIdFromToken(token: string | null): string | null {
   if (!token)
@@ -26,7 +28,7 @@ function getSessionIdFromToken(token: string | null): string | null {
     if (parts.length < 2)
       return null
     const payload = JSON.parse(atob(parts[1]!.replace(/-/g, '+').replace(/_/g, '/')))
-    return payload?.session_id ?? null
+    return payload?.sid ?? null
   }
   catch {
     return null
@@ -38,10 +40,12 @@ function getSessionIdFromToken(token: string | null): string | null {
  * 需在 NDialogProvider / NNotificationProvider 内使用
  */
 export function useSignalRIntegration() {
+  if (!REALTIME_HUB_PATH)
+    return
   const { t } = useI18n()
   const accessStore = useAccessStore()
   const authStore = useAuthStore()
-  const signalR = useSignalR()
+  const signalR = useSignalR(REALTIME_HUB_PATH)
 
   let isHandlingForceLogout = false
   let isListenersBound = false
@@ -96,7 +100,7 @@ export function useSignalRIntegration() {
     const tone = toneMap[payload?.type ?? 'Info'] ?? 'info'
 
     // 卡片只出一句纯文本摘要：命令式通知的 description 是 string，承不了富文本；
-    // 整篇公告原样塞进来会露出 Markdown 记号、把卡片撑到整屏高。完整正文在消息中心按原格式渲染。
+    // 整篇公告原样塞进来会露出 Markdown 记号、把卡片撑到整屏高。完整正文在消息中心按原格式渲染
     notification.create({
       tone,
       title: payload?.title || t('page.signalr.new_notification'),
@@ -128,37 +132,34 @@ export function useSignalRIntegration() {
   }
 
   /**
-   * 同账号其它设备保存设置后的实时推送：按场景分发应用。
-   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值。
+   * 同账号其它设备保存设置后的实时推送：按场景分发应用
+   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值
    */
   function handleUserSettingChanged(payload: UserSettingChangedPayload) {
     if (!payload || payload.sourceClientId === USER_SETTING_CLIENT_ID) {
       return
     }
-    if (payload.scene === UserSettingScene.Preference) {
+    if (payload.scene === 'Preference') {
       if (payload.settingKey === PREFERENCE_SETTING_KEY) {
         void applyRemotePreferenceSnapshot(payload.settingValue, payload.origin)
       }
       else if (payload.settingKey === FAVORITES_SETTING_KEY) {
         useFavoritesStore().applyRemote(payload.settingValue)
       }
-      return
     }
-    if (payload.scene === UserSettingScene.Page && payload.settingKey) {
-      applyRemotePageSetting(payload.settingKey, payload.settingValue)
-    }
+    // 页面级设置（列设置、个人视图，UserSettingScene.Page）的跨端同步随 SchemaPage 批次接回
   }
 
   function setupListeners() {
     if (isListenersBound) {
       return
     }
-    signalR.on('ForceLogout', handleForceLogout)
-    signalR.on('ReceiveNotification', handleReceiveNotification)
+    signalR.on(RealtimeMethods.ForceLogout, handleForceLogout)
+    signalR.on(RealtimeMethods.ReceiveNotification, handleReceiveNotification)
     // 服务端后台任务进度 → 灵动岛（同 taskId 复用同一条，刷新后由会话级持久化恢复）
-    signalR.on('TaskProgress', payload => applyServerTaskProgress(payload as ServerTaskProgressPayload))
+    signalR.on(RealtimeMethods.TaskProgress, payload => applyServerTaskProgress(payload as ServerTaskProgressPayload))
     // 用户设置多端实时同步（偏好/收藏夹/页面设置）
-    signalR.on('UserSettingChanged', payload => handleUserSettingChanged(payload as UserSettingChangedPayload))
+    signalR.on(RealtimeMethods.UserSettingChanged, payload => handleUserSettingChanged(payload as UserSettingChangedPayload))
     isListenersBound = true
   }
 

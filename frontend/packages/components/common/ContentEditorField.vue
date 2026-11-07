@@ -51,7 +51,9 @@ const summary = computed(() => {
     return ''
   }
   const flat = text.replace(/\s+/g, ' ')
-  return flat.length > props.summaryLimit ? `${flat.slice(0, props.summaryLimit)}…` : flat
+  return flat.length > props.summaryLimit
+    ? `${flat.slice(0, props.summaryLimit)}…`
+    : flat
 })
 
 function open() {
@@ -113,14 +115,14 @@ function updateDraft(value: null | string) {
 .xh-content-field__summary {
   display: block;
   width: 100%;
-  min-height: 72px;
-  padding: 8px 12px;
+  min-height: 4.5rem;
+  padding: var(--xh-space-2) var(--xh-space-3);
   text-align: left;
   font: inherit;
   color: inherit;
   background-color: var(--xh-bg-surface);
   border: 1px solid var(--xh-border-default);
-  border-radius: 3px;
+  border-radius: var(--xh-shape-control);
   cursor: pointer;
   transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
@@ -140,13 +142,13 @@ function updateDraft(value: null | string) {
   -webkit-line-clamp: 3;
   line-clamp: 3;
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   line-height: 1.6;
   word-break: break-word;
 }
 
 .xh-content-field__placeholder {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   opacity: 0.45;
 }
 
@@ -154,17 +156,17 @@ function updateDraft(value: null | string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 6px;
+  gap: var(--xh-space-2);
+  margin-top: var(--xh-space-1_5);
 }
 
-/* 编辑区按视口定高并让内部编辑器撑满：md-editor-v3 自带 500px 固定高，
+/* 编辑区按视口定高并让内部编辑器撑满：md-editor-v3 自带固定高（500 像素），
    不覆盖的话弹窗放多大编辑区都还是那么高 */
 .xh-content-field__editor {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 240px);
-  min-height: 420px;
+  height: calc(100vh - 15rem);
+  min-height: 26.25rem;
 }
 
 .xh-content-field__editor > :deep(*) {
@@ -184,7 +186,7 @@ function updateDraft(value: null | string) {
 }
 
 .xh-content-field__count {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   opacity: 0.55;
 }
 </style>

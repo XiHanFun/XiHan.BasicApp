@@ -1,47 +1,74 @@
 import type { App } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { resolveInitialLocale } from '~/utils'
-import deDE from './langs/de-DE'
-import enUS from './langs/en-US'
-import hiIN from './langs/hi-IN'
-import jaJP from './langs/ja-JP'
-import koKR from './langs/ko-KR'
-import zhCN from './langs/zh-CN'
-import zhTW from './langs/zh-TW'
+
+/** 与后端一致的 10 种内置区域；默认 en-US */
+export const LOCALES = [
+  'en-US',
+  'zh-CN',
+  'zh-TW',
+  'ja-JP',
+  'ko-KR',
+  'de-DE',
+  'es-ES',
+  'fr-FR',
+  'pt-BR',
+  'ru-RU',
+] as const
+export type Locale = (typeof LOCALES)[number]
+export const DEFAULT_LOCALE: Locale = 'en-US'
+
+type Messages = Record<string, unknown>
+type Loader = () => Promise<{ default: Messages }>
+
+// 壳层文案按区域懒加载；各能力包的文案由 registerModuleLocales 以同样的方式登记
+const shellLoaders = import.meta.glob<{ default: Messages }>('./langs/*.ts')
+const moduleLoaders = new Map<string, Loader[]>()
+const loaded = new Set<string>()
 
 export const i18n = createI18n({
   legacy: false,
-  locale: resolveInitialLocale(),
-  fallbackLocale: 'zh-CN',
-  messages: {
-    'zh-CN': zhCN,
-    'zh-TW': zhTW,
-    'en-US': enUS,
-    'ja-JP': jaJP,
-    'ko-KR': koKR,
-    'hi-IN': hiIN,
-    'de-DE': deDE,
-  },
+  locale: DEFAULT_LOCALE,
+  fallbackLocale: DEFAULT_LOCALE,
+  messages: {},
 })
 
-export function setupI18n(app: App) {
-  app.use(i18n)
+export function isLocale(value: string | null | undefined): value is Locale {
+  return LOCALES.includes(value as Locale)
 }
 
-/**
- * 应用侧注册自己的业务文案。
- *
- * packages 只带 shell 自身的命名空间（common/component/menu/header/...）；
- * 业务命名空间（identity/setting/log/tenant/...）住在 src/locales，启动时经此合并进同一实例。
- * 底层包因此不必知道本应用有哪些业务模块——换一个应用复用 packages 时，它注册它自己的那套。
- *
- * 深合并：同名命名空间下的键会合并而非整体覆盖，应用可按需补充/覆写 shell 文案。
- * 必须在 app.mount() 之前调用，否则首屏会渲染出裸 key。
- */
-export function registerLocaleMessages(messages: Record<string, Record<string, unknown>>) {
-  for (const [locale, message] of Object.entries(messages)) {
-    i18n.global.mergeLocaleMessage(locale, message)
+/** 能力包在 setup.ts 里登记自己的文案加载器（`import.meta.glob('./locales/*.ts')` 的结果） */
+export function registerModuleLocales(loaders: Record<string, Loader>): void {
+  for (const [path, loader] of Object.entries(loaders)) {
+    const locale = path.match(/([a-z]{2}-[A-Z]{2})\.ts$/)?.[1]
+    if (!locale)
+      continue
+    const list = moduleLoaders.get(locale) ?? []
+    list.push(loader)
+    moduleLoaders.set(locale, list)
   }
 }
 
+/** 装载并切换区域：壳层与各能力包的文案一次合并进同一实例 */
+export async function setLocale(locale: Locale): Promise<void> {
+  if (!loaded.has(locale)) {
+    const shell = shellLoaders[`./langs/${locale}.ts`]
+    const parts = await Promise.all([
+      shell?.(),
+      ...(moduleLoaders.get(locale) ?? []).map(load => load()),
+    ])
+    for (const part of parts) {
+      if (part)
+        i18n.global.mergeLocaleMessage(locale, part.default)
+    }
+    loaded.add(locale)
+  }
+  i18n.global.locale.value = locale
+  document.documentElement.lang = locale
+}
+
+export function setupI18n(app: App): void {
+  app.use(i18n)
+}
+
+/** 组件树外取文案（store、命令式服务、路由守卫） */
 export const { t: $t } = i18n.global

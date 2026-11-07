@@ -1,9 +1,8 @@
-/**
- * 打印模块文案（业务命名空间 + 菜单键）。
- */
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
 export default {
-  setting: {
-    print_template: {
+  printing: {
+    print_templates: {
+      title: '인쇄 템플릿',
       page_name: '인쇄 템플릿',
       tenant_templates: '테넌트 템플릿',
       available_global_templates: '사용 가능한 전역 템플릿',
@@ -31,7 +30,7 @@ export default {
       initial_status: '초기 상태',
       initial_status_help: '생성 직후부터 템플릿 코드로 확인하고 사용할 수 있도록 허용',
       allow_tenant_use_help: '테넌트 Auto 범위에서 이 전역 템플릿으로 폴백하도록 허용',
-      sort: '정렬',
+      order: '정렬',
       remark: '비고',
       remark_placeholder: '템플릿 용도, 적용 시나리오, 유지 보수 설명을 보충하세요(선택 사항)',
       action_create: '템플릿 추가',
@@ -95,8 +94,5 @@ export default {
       save_blocked_issues: '템플릿에 오류가 {count}개 있습니다. 디자이너의 문제 목록에서 수정한 후 저장하세요',
       legacy_format_reset: '이 템플릿은 현재 인쇄 템플릿 형식이 아니어서 빈 템플릿으로 바꿨습니다. 다시 디자인해 저장하면 원래 내용을 덮어씁니다',
     },
-  },
-  menu: {
-    setting_print_template: '인쇄 템플릿',
   },
 }

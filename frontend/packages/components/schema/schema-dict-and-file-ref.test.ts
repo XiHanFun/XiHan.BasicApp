@@ -1,9 +1,9 @@
 /**
- * SchemaPage 的系统字典取值与文件引用单元格。
+ * SchemaPage 的系统字典取值与文件引用单元格
  *
  * 字段声明 dictCode 后，列表单元格按字典项编码映射名称、搜索区渲下拉、导入按名称反查——
- * 三者都读 optionsFor 注入的 options；字典取不到时回退字段自带的静态 options。
- * image / file 字段的单元格交给文件引用单元格（缩略图 / 打开入口），空值仍显示占位。
+ * 三者都读 optionsFor 注入的 options；字典取不到时回退字段自带的静态 options
+ * image / file 字段的单元格交给文件引用单元格（缩略图 / 打开入口），空值仍显示占位
  */
 import type { VNode } from 'vue'
 import type { ListFieldSchema } from './types'
@@ -18,17 +18,36 @@ async function bootstrap(options: OptionsFn) {
   vi.resetModules()
   setActivePinia(createPinia())
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { dictApi: { options } } as never })
+  registerAppContext({
+    apis: {
+      dictApi: { options },
+    } as never,
+  })
   return import('./useSchemaDictionaries')
 }
 
-const levelField: ListFieldSchema = { key: 'level', title: '客户等级', dataType: 'enum', dictCode: 'demo_level' }
+const levelField: ListFieldSchema = {
+  key: 'level',
+  title: '客户等级',
+  dataType: 'enum',
+  dictCode: 'demo_level',
+}
 
 describe('useSchemaDictionaries 的 dictCode', () => {
   it('按字典编码取选项并注入字段（值为字典项编码）', async () => {
     const api = vi.fn<OptionsFn>(async () => [
-      { value: 'vip', label: '重要客户', isDefault: false, disabled: false },
-      { value: 'normal', label: '普通客户', isDefault: true, disabled: false },
+      {
+        value: 'vip',
+        label: '重要客户',
+        isDefault: false,
+        disabled: false,
+      },
+      {
+        value: 'normal',
+        label: '普通客户',
+        isDefault: true,
+        disabled: false,
+      },
     ])
     const { useSchemaDictionaries } = await bootstrap(api)
     const dictionaries = useSchemaDictionaries(() => [levelField, levelField])
@@ -47,32 +66,73 @@ describe('useSchemaDictionaries 的 dictCode', () => {
       if (code === 'broken') {
         throw new Error('字典 broken 不存在。')
       }
-      return [{ value: 'east', label: '华东', isDefault: false, disabled: false }]
+      return [
+        {
+          value: 'east',
+          label: '华东',
+          isDefault: false,
+          disabled: false,
+        },
+      ]
     })
     const { useSchemaDictionaries } = await bootstrap(api)
-    const broken: ListFieldSchema = { key: 'kind', title: '类别', dataType: 'enum', dictCode: 'broken', options: [{ label: '静态', value: 's' }] }
-    const region: ListFieldSchema = { key: 'region', title: '区域', dataType: 'enum', dictCode: 'demo_region' }
+    const broken: ListFieldSchema = {
+      key: 'kind',
+      title: '类别',
+      dataType: 'enum',
+      dictCode: 'broken',
+      options: [
+        { label: '静态', value: 's' },
+      ],
+    }
+    const region: ListFieldSchema = {
+      key: 'region',
+      title: '区域',
+      dataType: 'enum',
+      dictCode: 'demo_region',
+    }
     const dictionaries = useSchemaDictionaries(() => [broken, region])
 
     await expect(dictionaries.resolve()).resolves.toBeUndefined()
 
-    expect(dictionaries.optionsFor(broken)).toEqual([{ label: '静态', value: 's' }])
-    expect(dictionaries.optionsFor(region)).toEqual([{ label: '华东', value: 'east' }])
+    expect(dictionaries.optionsFor(broken)).toEqual([
+      { label: '静态', value: 's' },
+    ])
+    expect(dictionaries.optionsFor(region)).toEqual([
+      { label: '华东', value: 'east' },
+    ])
   })
 })
 
 describe('useSchemaDictionaries 的 optionsLoader', () => {
   it('同一加载器只调一次，结果注入所有引用它的字段', async () => {
     const { useSchemaDictionaries } = await bootstrap(vi.fn<OptionsFn>())
-    const loader = vi.fn(async () => [{ label: '电子', value: '1' }, { label: '图书', value: '2' }])
-    const category: ListFieldSchema = { key: 'categoryId', title: '所属分类', dataType: 'enum', optionsLoader: loader }
-    const search: ListFieldSchema = { key: 'categoryFilter', title: '分类筛选', dataType: 'enum', optionsLoader: loader, visible: false }
+    const loader = vi.fn(async () => [
+      { label: '电子', value: '1' },
+      { label: '图书', value: '2' },
+    ])
+    const category: ListFieldSchema = {
+      key: 'categoryId',
+      title: '所属分类',
+      dataType: 'enum',
+      optionsLoader: loader,
+    }
+    const search: ListFieldSchema = {
+      key: 'categoryFilter',
+      title: '分类筛选',
+      dataType: 'enum',
+      optionsLoader: loader,
+      visible: false,
+    }
     const dictionaries = useSchemaDictionaries(() => [category, search])
 
     await dictionaries.resolve()
 
     expect(loader).toHaveBeenCalledTimes(1)
-    expect(dictionaries.optionsFor(category)).toEqual([{ label: '电子', value: '1' }, { label: '图书', value: '2' }])
+    expect(dictionaries.optionsFor(category)).toEqual([
+      { label: '电子', value: '1' },
+      { label: '图书', value: '2' },
+    ])
     expect(dictionaries.optionsFor(search)).toHaveLength(2)
   })
 
@@ -82,7 +142,9 @@ describe('useSchemaDictionaries 的 optionsLoader', () => {
       key: 'categoryId',
       title: '所属分类',
       dataType: 'enum',
-      options: [{ label: '静态', value: 's' }],
+      options: [
+        { label: '静态', value: 's' },
+      ],
       optionsLoader: async () => {
         throw new Error('没有权限')
       },
@@ -91,7 +153,9 @@ describe('useSchemaDictionaries 的 optionsLoader', () => {
 
     await expect(dictionaries.resolve()).resolves.toBeUndefined()
 
-    expect(dictionaries.optionsFor(failing)).toEqual([{ label: '静态', value: 's' }])
+    expect(dictionaries.optionsFor(failing)).toEqual([
+      { label: '静态', value: 's' },
+    ])
   })
 })
 

@@ -20,20 +20,20 @@ import { computed, ref, useSlots } from 'vue'
 import { useControlAttrs } from './control-attrs'
 
 /**
- * 单行文本输入。
+ * 单行文本输入
  *
  * 把「根 + 视觉盒 + 输入 + 清除钮 + 字数」几个部件收成一个标签——清除钮与字数在组件库里是要自己摆的部件，
- * 不是一个开关，全站几百处输入框没必要各摆一遍。回车提交也收在这里。
+ * 不是一个开关，全站几百处输入框没必要各摆一遍。回车提交也收在这里
  *
  * 描边、底色、高度与聚焦环画在 control 部件上（Field Chrome），input 本身是透明的；
  * 不套 control 的 input 没有盒。前后缀是组件库的 prefix / suffix 部件，与输入框同排在盒内，
- * 间距由盒的 gap 给，调用方只给插槽；字数部件排在盒下方右侧。
+ * 间距由盒的 gap 给，调用方只给插槽；字数部件排在盒下方右侧
  *
  * 密码档由组件库的 password-input 拼出：显隐钮、大写锁定提示与切换明暗后的光标复位都归它，
- * 盒尾由显隐钮占着，不出 suffix 与字数。
+ * 盒尾由显隐钮占着，不出 suffix 与字数
  *
  * 落在这个标签上的属性转交给里面那个 input：放在 XhFieldControl 里时，字段把 id 与 aria-*
- * 挂到唯一子节点上，那组属性要落在真正的控件上 label 的 for 才接得住，见 control-attrs.ts。
+ * 挂到唯一子节点上，那组属性要落在真正的控件上 label 的 for 才接得住，见 control-attrs.ts
  */
 defineOptions({ name: 'XInput', inheritAttrs: false })
 
@@ -90,10 +90,14 @@ const { attrs, controlAttrs } = useControlAttrs()
 const isMultiline = computed(() => props.type === 'textarea')
 
 /** 交给根部件的原生 type：多行宿主不发 */
-const fieldType = computed<TextFieldType | undefined>(() => (props.type === 'textarea' ? undefined : props.type))
+const fieldType = computed<TextFieldType | undefined>(() => (props.type === 'textarea'
+  ? undefined
+  : props.type))
 
 /** 多行宿主的行数：没写就不发这个键，免得盖掉组件库按 autosize 区间给的起始行数 */
-const textareaAttrs = computed(() => (props.rows === undefined ? {} : { rows: props.rows }))
+const textareaAttrs = computed(() => (props.rows === undefined
+  ? {}
+  : { rows: props.rows }))
 
 const controlRef = ref<InstanceType<typeof XhPasswordInputControl> | InstanceType<typeof XhTextFieldControl> | null>(null)
 
@@ -125,7 +129,7 @@ function isEscapeClear(event: KeyboardEvent): boolean {
 
 /**
  * 文本档：Escape 清空由组件库接管（它的监听排在前面），这里只在它确实清了时补报 clear；
- * canClear 取自本次按键前那一帧的根状态，已含字段继承来的禁用与只读。
+ * canClear 取自本次按键前那一帧的根状态，已含字段继承来的禁用与只读
  */
 function onTextKeydown(event: KeyboardEvent, canClear: boolean) {
   if (isEscapeClear(event)) {

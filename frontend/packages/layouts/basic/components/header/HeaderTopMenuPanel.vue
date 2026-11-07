@@ -3,11 +3,11 @@ import type { AppMenuOption } from '~/types'
 import { VNodeRender } from '~/components'
 
 /**
- * 顶栏菜单浮层里的一层条目。
+ * 顶栏菜单浮层里的一层条目
  *
  * 组件库的 menu / menubar 都只有两级，而路由菜单可以更深；导航菜单的 panel 插槽是自由内容，
- * 于是把整棵子树自己铺在面板里——本组件按 name 自引用逐层往下。
- * 条目一律渲染成按钮而非链接：导航走路由，不能让浏览器整页跳走。
+ * 于是把整棵子树自己铺在面板里——本组件按 name 自引用逐层往下
+ * 条目一律渲染成按钮而非链接：导航走路由，不能让浏览器整页跳走
  */
 defineOptions({ name: 'HeaderTopMenuPanel' })
 

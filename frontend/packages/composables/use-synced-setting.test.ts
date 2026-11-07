@@ -1,7 +1,7 @@
 /**
- * bindSyncedSetting：跨端同步设置的通用接法。
+ * bindSyncedSetting：跨端同步设置的通用接法
  * 锁定：关着同步立即就绪不拉取；已在手的后端值同步采用；开着同步等后端那份、超时先就绪；
- * 拉取与推送都经 apply 应用、经 writeLocal 写回本地；空数组照样采用；编辑中不覆盖；onReady 只调一次；dispose 退订并清计时。
+ * 拉取与推送都经 apply 应用、经 writeLocal 写回本地；空数组照样采用；编辑中不覆盖；onReady 只调一次；dispose 退订并清计时
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { bindSyncedSetting, SYNCED_SETTING_WAIT } from './useSyncedSetting'
@@ -65,16 +65,26 @@ describe('关着同步', () => {
 
 describe('已在手的后端值', () => {
   it('同步采用并写回本地，立即就绪，不再拉取', () => {
-    const rig = setup({ peek: { value: ['a'] } })
+    const rig = setup({
+      peek: {
+        value: ['a'],
+      },
+    })
 
     expect(rig.binding.ready.value).toBe(true)
-    expect(rig.applied).toStrictEqual([['a']])
-    expect(rig.written).toStrictEqual([['a']])
+    expect(rig.applied).toStrictEqual([
+      ['a'],
+    ])
+    expect(rig.written).toStrictEqual([
+      ['a'],
+    ])
     expect(rig.load).not.toHaveBeenCalled()
   })
 
   it('在手的是「后端没有这一项」：立即就绪，保留本地', () => {
-    const rig = setup({ peek: { value: undefined } })
+    const rig = setup({
+      peek: { value: undefined },
+    })
 
     expect(rig.binding.ready.value).toBe(true)
     expect(rig.applied).toStrictEqual([])
@@ -90,8 +100,12 @@ describe('开着同步：等后端那份', () => {
     rig.resolve(['b'])
     await rig.binding.settled
 
-    expect(rig.applied).toStrictEqual([['b']])
-    expect(rig.written).toStrictEqual([['b']])
+    expect(rig.applied).toStrictEqual([
+      ['b'],
+    ])
+    expect(rig.written).toStrictEqual([
+      ['b'],
+    ])
     expect(rig.binding.ready.value).toBe(true)
     expect(rig.onReady).toHaveBeenCalledTimes(1)
   })
@@ -134,7 +148,9 @@ describe('开着同步：等后端那份', () => {
 
     rig.resolve(['late'])
     await rig.binding.settled
-    expect(rig.applied).toStrictEqual([['late']])
+    expect(rig.applied).toStrictEqual([
+      ['late'],
+    ])
     expect(rig.onReady).toHaveBeenCalledTimes(1)
   })
 
@@ -155,8 +171,14 @@ describe('其它设备推来', () => {
     rig.push(['x'])
     rig.push([])
 
-    expect(rig.applied).toStrictEqual([['x'], []])
-    expect(rig.written).toStrictEqual([['x'], []])
+    expect(rig.applied).toStrictEqual([
+      ['x'],
+      [],
+    ])
+    expect(rig.written).toStrictEqual([
+      ['x'],
+      [],
+    ])
   })
 
   it('dispose 退订推送、清掉等待计时', () => {

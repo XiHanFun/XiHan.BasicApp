@@ -1,4 +1,5 @@
 import type { MenuRoute } from './menu'
+import type { ResponseOf } from '~/contracts'
 
 // ==================== 认证 & 用户类型 ====================
 
@@ -55,6 +56,14 @@ export interface ImpersonationTenantOption {
 }
 
 /** 模仿登录的候选目标 */
+/** 切换角色：当前会话此刻持有的一个角色与是否激活着（在令牌里） */
+export interface SessionRoleOption {
+  roleId: string
+  code: string
+  name: string
+  isActive: boolean
+}
+
 export interface ImpersonationCandidate {
   basicId: string
   userName: string
@@ -72,18 +81,24 @@ export interface SwitchTenantParams {
 export interface OAuthProviderItem {
   name: string
   displayName: string
+  /** 提供商类型（后端的规范名：github、wechat、lark 等；配置里的名称可能是别名或自定义名），选图标与对齐绑定用 */
+  type: string
 }
 
 export interface LoginConfig {
   loginMethods: string[]
   // 与后端序列化键一致：OAuthProviders 经 camelCase 策略输出为 oAuthProviders
   oAuthProviders: OAuthProviderItem[]
-  /** 密码登录是否要求图形验证码 */
+  /** 密码登录与注册是否要求图形验证码 */
   captchaEnabled: boolean
+  /** 是否开放自助注册（后端 BasicApp:Auth:SelfRegistrationEnabled）：开了登录页才给注册入口 */
+  registrationEnabled: boolean
 }
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
 export interface LoginParams {
+  /** 注册地租户（6.0：用户名在租户内唯一，租户账号须填；平台账号留空） */
+  tenant?: string
   /** 登录账号（邮箱，全平台唯一；平台账号也可用用户名） */
   username: string
   password: string
@@ -101,21 +116,29 @@ export interface LoginParams {
   deviceId?: string
 }
 
+/** 自助注册（auth.register）：注册的是平台账号，登录用用户名 */
 export interface RegisterParams {
   username: string
   password: string
+  /** 显示名；不填即用户名 */
   nickName?: string
-  /** 邮箱（必填，全平台唯一的登录身份标识） */
+  /** 邮箱（必填，找回密码用；平台一侧不能与正常账号重复） */
   email: string
-  phone?: string
+  /** 图形验证码（登录配置要求时） */
+  captchaId?: string
+  captchaCode?: string
 }
 
 export interface PhoneLoginParams {
+  /** 注册地租户 ID；平台账号不填（6.0 的账号属于注册地租户，4.x 没有这一项） */
+  tenant?: string
   phone: string
   code: string
 }
 
 export interface EmailLoginParams {
+  /** 注册地租户 ID；平台账号不填 */
+  tenant?: string
   email: string
   code: string
   deviceId?: string
@@ -134,14 +157,22 @@ export interface CaptchaChallenge {
   expiresInSeconds: number
 }
 
-export interface PasswordResetResult {
-  accepted: boolean
-  /** 一次性重置链接，仅开发环境回显，便于本地无邮件时联调 */
-  debugResetUrl?: string
+/** 找回密码发码（auth.request-password-reset）：账号不存在也回答已发送 */
+export interface PasswordResetRequestParams {
+  /** 注册地租户 ID；平台账号不填 */
+  tenant?: string
+  email: string
+}
+
+/** 凭找回密码的验证码设新密码（auth.reset-password）：设好后吊销这个账号的全部会话 */
+export interface PasswordResetConfirmParams extends PasswordResetRequestParams {
+  code: string
+  newPassword: string
 }
 
 export interface PasswordResetConfirmResult {
-  success: boolean
+  /** 账号的登录名（回到登录页时预填） */
+  userName: string
 }
 
 /** 登录响应（区分正常登录与双因素验证挑战） */
@@ -159,14 +190,8 @@ export interface LoginResponse {
 }
 
 /** 鉴权令牌 */
-export interface LoginToken {
-  accessToken: string
-  refreshToken: string
-  tokenType: string
-  expiresIn: number
-  issuedAt: string
-  expiresAt: string
-}
+/** 登录 / 切换租户 / 模仿登录拿回的会话（后端 `TokenResponse`：令牌对、会话 ID、当前租户与用户资料） */
+export type LoginToken = ResponseOf<'auth.refresh'>
 
 export interface PermissionInfo {
   /** 可用按钮码：页面按钮是否可见由服务端判定后下发，前端不持有权限码。缺省视为一个都没有（fail-closed） */

@@ -1,78 +1,36 @@
 <Solution>
-  <Folder Name="/1.src/" />
-  <Folder Name="/1.src/1.Framework/" Id="fc7b4289-5a6e-4dbc-8e33-0a05f6165c25">
-    <Project Path="src/framework/XiHan.BasicApp.Core/XiHan.BasicApp.Core.csproj" />
-    <Project Path="src/framework/XiHan.BasicApp.Web.Core/XiHan.BasicApp.Web.Core.csproj" />
+  <Folder Name="/0.Base/">
+    <Project Path="src/XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <Project Path="src/XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
   </Folder>
-  <Folder Name="/1.src/2.Modules/" Id="285740d0-396d-7347-2ab3-1e26ccd72e49" />
-  <Folder Name="/1.src/2.Modules/1.Saas/">
-    <Project Path="src/modules/XiHan.BasicApp.Saas/XiHan.BasicApp.Saas.csproj" />
+  <Folder Name="/1.Identity/">
+    <Project Path="src/XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <Project Path="src/XiHan.BasicApp.Tenancy/XiHan.BasicApp.Tenancy.csproj" />
+    <Project Path="src/XiHan.BasicApp.Organization/XiHan.BasicApp.Organization.csproj" />
+    <Project Path="src/XiHan.BasicApp.Access/XiHan.BasicApp.Access.csproj" />
   </Folder>
-  <Folder Name="/1.src/2.Modules/2.CodeGeneration/">
-    <Project Path="src/modules/XiHan.BasicApp.CodeGeneration/XiHan.BasicApp.CodeGeneration.csproj" />
+  <Folder Name="/2.Platform/">
+    <Project Path="src/XiHan.BasicApp.Settings/XiHan.BasicApp.Settings.csproj" />
+    <Project Path="src/XiHan.BasicApp.Files/XiHan.BasicApp.Files.csproj" />
+    <Project Path="src/XiHan.BasicApp.Notification/XiHan.BasicApp.Notification.csproj" />
+    <Project Path="src/XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
+    <Project Path="src/XiHan.BasicApp.Realtime/XiHan.BasicApp.Realtime.csproj" />
+    <Project Path="src/XiHan.BasicApp.Maintenance/XiHan.BasicApp.Maintenance.csproj" />
+    <Project Path="src/XiHan.BasicApp.OpenPlatform/XiHan.BasicApp.OpenPlatform.csproj" />
   </Folder>
-  <Folder Name="/1.src/2.Modules/3.AI/">
-    <Project Path="src/modules/XiHan.BasicApp.AI/XiHan.BasicApp.AI.csproj" />
+  <Folder Name="/3.Optional/">
+    <Project Path="src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
+    <Project Path="src/XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
+    <Project Path="src/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
+    <Project Path="src/XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.csproj" />
+    <Project Path="src/XiHan.BasicApp.CodeGeneration/XiHan.BasicApp.CodeGeneration.csproj" />
+    <Project Path="src/XiHan.BasicApp.AI/XiHan.BasicApp.AI.csproj" />
   </Folder>
-  <Folder Name="/1.src/2.Modules/4.Workflow/">
-    <Project Path="src/modules/XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.csproj" />
+  <Folder Name="/Host/">
+    <Project Path="src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
   </Folder>
-  <Folder Name="/1.src/2.Modules/5.Printing/">
-    <Project Path="src/modules/XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
-  </Folder>
-  <Folder Name="/1.src/2.Modules/6.Chat/">
-    <Project Path="src/modules/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
-  </Folder>
-  <Folder Name="/1.src/3.Business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
-  <Folder Name="/1.src/4.Main/" Id="d2d033ac-57c1-ffc6-883a-a6944cad0e51">
-    <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
-  </Folder>
-  <Folder Name="/2.test/">
-    <Project Path="test/XiHan.BasicApp.AI.Tests/XiHan.BasicApp.AI.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Api.Tests/XiHan.BasicApp.Api.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Chat.Tests/XiHan.BasicApp.Chat.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.CodeGeneration.Tests/XiHan.BasicApp.CodeGeneration.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Core.Tests/XiHan.BasicApp.Core.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Printing.Tests/XiHan.BasicApp.Printing.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Saas.Tests/XiHan.BasicApp.Saas.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Web.Core.Tests/XiHan.BasicApp.Web.Core.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.WebHost.Tests/XiHan.BasicApp.WebHost.Tests.csproj" />
-    <Project Path="test/XiHan.BasicApp.Workflow.Tests/XiHan.BasicApp.Workflow.Tests.csproj" />
-  </Folder>
-  <Folder Name="/3.others/" />
-  <Folder Name="/3.others/1.Props/">
-    <File Path="props/common.props" />
-    <File Path="props/framework.props" />
-    <File Path="props/netcore.props" />
-    <File Path="props/nuget.props" />
-    <File Path="props/test.props" />
-    <File Path="props/version.props" />
-  </Folder>
-  <Folder Name="/3.others/2.Scripts/" />
-  <Folder Name="/3.others/2.Scripts/editor/">
-    <File Path="scripts/editor/Class.cs" />
-    <File Path="scripts/editor/Controller.cs" />
-    <File Path="scripts/editor/CopyFile.ps1" />
-    <File Path="scripts/editor/FilePath.txt" />
-    <File Path="scripts/editor/Interface.cs" />
-  </Folder>
-  <Folder Name="/3.others/2.Scripts/nuget/">
-    <File Path="scripts/nuget/1.SaveNugetApiKey.ps1" />
-    <File Path="scripts/nuget/2.VersionUpgrade.ps1" />
-    <File Path="scripts/nuget/3.PushNugetPackages.ps1" />
-  </Folder>
-  <Folder Name="/3.others/2.Scripts/project/">
-    <File Path="scripts/project/ClearProjecBinObj.ps1" />
-  </Folder>
-  <Folder Name="/3.others/2.Scripts/service/">
-    <File Path="scripts/service/XiHan.BasicApp.bat" />
-    <File Path="scripts/service/XiHan.BasicApp.service" />
-  </Folder>
-  <Folder Name="/3.others/3.Root/">
-    <File Path=".editorconfig" />
-    <File Path=".gitattributes" />
-    <File Path=".gitignore" />
-    <File Path="CodeMaid.config" />
-    <File Path="global.json" />
+  <Folder Name="/Tests/">
+    <Project Path="test/XiHan.BasicApp.Architecture.Tests/XiHan.BasicApp.Architecture.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.Integration.Tests/XiHan.BasicApp.Integration.Tests.csproj" />
   </Folder>
 </Solution>

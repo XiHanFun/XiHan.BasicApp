@@ -1,36 +1,20 @@
-﻿<Project>
+<Project>
+  <!--
+    曦寒框架 5（XiHan.Framework next 工作区）的引用方式。
 
-	<!--
-		曦寒框架（XiHan.Framework）引用方式的唯一开关。
+    5.0 尚未发布到 nuget.org，缺省走 ProjectReference：同级检出 ../../XiHan.Framework/next/src 的源码，
+    并锁定在 XiHanFrameworkCommit 指定的提交（Architecture.Tests 核对检出的 HEAD）。升级框架时改这一处并集中处理公开面变化。
 
-		本仓库默认走 NuGet 包：单独 clone XiHan.BasicApp 即可还原、编译、发布，无需框架源码。
+        dotnet build -p:UseXiHanFrameworkSource=false                     NuGet 包 5.0.0-preview.*（本地源 next/artifacts/packages 或将来的 nuget.org）
+        dotnet build -p:XiHanFrameworkSrc=<检出>/next/src/                  框架源码不在同级目录时显式指路
 
-		**由打开/构建的解决方案决定**，而不是探测磁盘上有没有框架源码：
-
-		    backend/XiHan.BasicApp.slnx    → PackageReference（常规开发、发布、外部克隆）
-		    仓库根 XiHanFun[.Local].slnx   → ProjectReference（连框架源码一起调试）
-
-		为什么以解决方案为准：源码模式下 VS 要求被 ProjectReference 的工程也是解决方案成员，
-		否则设计时报 NU1105。XiHan.BasicApp.slnx 里没有、也不该有框架工程（它要能被单独
-		clone 的人打开），所以它必须始终走 NuGet；而 XiHanFun*.slnx 已登记全部框架工程，
-		走源码才成立。早先按「旁边有没有框架源码」自动探测，会在工作区里打开
-		XiHan.BasicApp.slnx 时把模式切成源码，直接 NU1105 刷屏。
-
-		强制指定（覆盖上述判定）：
-		    dotnet build -p:UseXiHanFrameworkSource=true    仅框架源码
-		    dotnet build -p:UseXiHanFrameworkSource=false   仅 NuGet 包
-
-		注：直接 dotnet build 单个 csproj（不经解决方案）时 SolutionName 为空，走 NuGet。
-	-->
-	<PropertyGroup>
-		<!-- 框架源码目录，供 ProjectReference 拼路径 -->
-		<XiHanFrameworkSrc>$(MSBuildThisFileDirectory)..\..\..\XiHan.Framework\framework\src\</XiHanFrameworkSrc>
-		<!--
-			未显式指定时：仅当构建的是仓库根工作区解决方案（XiHanFun.slnx / XiHanFun.Local.slnx）
-			且框架源码确实在位，才走源码；其余一律 NuGet。
-		-->
-		<UseXiHanFrameworkSource Condition=" '$(UseXiHanFrameworkSource)' == '' AND $(SolutionName.StartsWith('XiHanFun')) AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Core\XiHan.Framework.Core.csproj') ">true</UseXiHanFrameworkSource>
-		<UseXiHanFrameworkSource Condition=" '$(UseXiHanFrameworkSource)' == '' ">false</UseXiHanFrameworkSource>
-	</PropertyGroup>
-
+    工程文件里只写 <XiHanFrameworkReference Include="XiHan.Framework.Xxx" />，由 Directory.Build.targets 翻译成对应引用。
+  -->
+  <PropertyGroup>
+    <XiHanFrameworkCommit>c5871ecf1</XiHanFrameworkCommit>
+    <XiHanFrameworkPackageVersion>5.0.0-preview.*</XiHanFrameworkPackageVersion>
+    <XiHanFrameworkSrc Condition="'$(XiHanFrameworkSrc)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..\..\..\XiHan.Framework\next\src'))</XiHanFrameworkSrc>
+    <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Kernel\XiHan.Framework.Kernel.csproj')">true</UseXiHanFrameworkSource>
+    <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == ''">false</UseXiHanFrameworkSource>
+  </PropertyGroup>
 </Project>

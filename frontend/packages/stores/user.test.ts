@@ -1,219 +1,130 @@
-/**
- * 用户信息 Store（user）单元测试。
- * 职责边界：只覆盖 useUserStore——用户信息落地/还原、各 getter 派生的空值兜底、
- * 角色与权限判定（精确匹配，'*' 不当通配）、$reset 清场。
- */
-import type { UserInfo } from '~/types'
+import type { Permissions, Session } from './auth'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { USER_INFO_KEY } from '~/constants'
+import { useAuthStore } from './auth'
 import { useUserStore } from './user'
 
-function makeUser(overrides?: Partial<UserInfo>): UserInfo {
+const user = {
+  id: 'u-1',
+  userName: 'alice',
+  displayName: 'Alice',
+  email: null,
+  phoneNumber: null,
+  homeTenantId: 'platform',
+  status: 'Active',
+  lastLoginAt: null,
+  createdAt: '2026-10-28T00:00:00Z',
+  createdBy: null,
+}
+
+function session(extra: object = {}) {
   return {
-    basicId: 'u-1',
-    userName: 'admin',
-    nickName: '管理员',
-    avatar: 'https://example.com/a.png',
-    roles: ['admin'],
-    permissions: ['system:user:list'],
-    ...overrides,
+    accessToken: 'a-1',
+    accessExpiresAt: '2026-10-28T02:00:00Z',
+    refreshToken: 'r-1',
+    refreshExpiresAt: '2026-11-04T00:00:00Z',
+    sessionId: 's-1',
+    tenantId: null,
+    tenantName: null,
+    impersonatorUserName: null,
+    mustChangePassword: false,
+    user,
+    ...extra,
   }
 }
 
-beforeEach(() => {
-  setActivePinia(createPinia())
-})
+function grant(permissions: string[]): Permissions {
+  return {
+    isPlatform: false,
+    permissions,
+    roles: [],
+    menus: [],
+    pages: [],
+  } as unknown as Permissions
+}
 
-describe('初始状态与本地还原', () => {
-  it('无本地缓存时 userInfo 为 null 且未登录', () => {
-    const store = useUserStore()
-
-    expect(store.userInfo).toBeNull()
-    expect(store.isLoggedIn).toBe(false)
-  })
-
-  it('store 初始化时从 localStorage 还原用户信息', () => {
-    localStorage.setItem(USER_INFO_KEY, JSON.stringify(makeUser({ userName: 'restored' })))
+describe('user store（auth 会话的壳层投影）', () => {
+  beforeEach(() => {
     setActivePinia(createPinia())
-
-    const store = useUserStore()
-
-    expect(store.username).toBe('restored')
-    expect(store.isLoggedIn).toBe(true)
+    localStorage.clear()
   })
 
-  it('本地缓存是损坏 JSON 时降级为未登录，不抛异常', () => {
-    localStorage.setItem(USER_INFO_KEY, '<<broken>>')
-    setActivePinia(createPinia())
-
-    const store = useUserStore()
-
-    expect(store.userInfo).toBeNull()
-    expect(store.isLoggedIn).toBe(false)
-  })
-})
-
-describe('登录态判定以 basicId 为准', () => {
-  it('basicId 为空串时判为未登录，即使用户名存在', () => {
-    const store = useUserStore()
-
-    store.setUserInfo(makeUser({ basicId: '' }))
-
-    expect(store.username).toBe('admin')
-    expect(store.isLoggedIn).toBe(false)
+  it('没有会话时没有用户', () => {
+    expect(useUserStore().userInfo).toBeNull()
+    expect(useUserStore().isLoggedIn).toBe(false)
   })
 
-  it('basicId 非空即视为已登录', () => {
-    const store = useUserStore()
-
-    store.setUserInfo(makeUser({ basicId: '0' }))
-
-    expect(store.isLoggedIn).toBe(true)
-  })
-})
-
-describe('getter 的缺省兜底', () => {
-  it('昵称/头像缺省时返回空串而非 undefined，模板可直接渲染', () => {
-    const store = useUserStore()
-
-    store.setUserInfo({ basicId: 'u', userName: 'u', roles: [], permissions: [] })
-
-    expect(store.nickname).toBe('')
-    expect(store.avatar).toBe('')
+  it('平台账号在平台：isPlatform 与 canAccessPlatform 为真、没有租户名，没有权限码时不出模仿入口', () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session()))
+    const info = useUserStore().userInfo!
+    expect(info).toMatchObject({
+      basicId: 'u-1',
+      userName: 'alice',
+      nickName: 'Alice',
+      tenantId: null,
+      tenantName: null,
+      isPlatform: true,
+      canAccessPlatform: true,
+      canImpersonate: false,
+      isImpersonating: false,
+      impersonatorUserName: null,
+    })
   })
 
-  it('userInfo 为 null 时全部派生 getter 退化为空值', () => {
-    const store = useUserStore()
-
-    expect(store.username).toBe('')
-    expect(store.nickname).toBe('')
-    expect(store.avatar).toBe('')
-    expect(store.roles).toEqual([])
-    expect(store.permissions).toEqual([])
+  it('在租户里并持有 identity.impersonation.start：带租户名、出模仿入口；注册地不是平台的进不了平台', () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session({
+      tenantId: 'acme',
+      tenantName: 'Acme',
+      user: { ...user, homeTenantId: 'acme' },
+    })))
+    useAuthStore().permissions = grant(['identity.impersonation.start'])
+    const info = useUserStore().userInfo!
+    expect(info).toMatchObject({
+      tenantId: 'acme',
+      tenantName: 'Acme',
+      isPlatform: false,
+      canAccessPlatform: false,
+      canImpersonate: true,
+      permissions: ['identity.impersonation.start'],
+    })
+    expect(useUserStore().hasPermission('identity.impersonation.start')).toBe(true)
   })
 
-  it('中文昵称与 emoji 原样保留，不做任何转义', () => {
-    const store = useUserStore()
+  it('头像取会话用户的头像文件主键，没有即空；本人改了资料后 applyUser 换掉会话里的用户（令牌不变、写回本地），投影随之刷新', () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session()))
+    const userStore = useUserStore()
+    expect(userStore.avatar).toBe('')
 
-    store.setUserInfo(makeUser({ nickName: '曦寒🚀' }))
-
-    expect(store.nickname).toBe('曦寒🚀')
-  })
-})
-
-describe('用户信息落地与清除', () => {
-  it('setUserInfo 写入 localStorage 的是完整对象', () => {
-    const store = useUserStore()
-    const info = makeUser()
-
-    store.setUserInfo(info)
-
-    expect(JSON.parse(localStorage.getItem(USER_INFO_KEY) ?? 'null')).toEqual(info)
+    useAuthStore().applyUser({
+      ...user,
+      userName: 'alice2',
+      displayName: 'Alice Z',
+      avatarFileId: 'f-1',
+    } as Session['user'])
+    expect(userStore.userInfo).toMatchObject({ userName: 'alice2', nickName: 'Alice Z', avatar: 'f-1' })
+    expect(useAuthStore().accessToken).toBe('a-1')
+    expect(JSON.parse(localStorage.getItem('xihan.next.session')!).user).toMatchObject({ userName: 'alice2', avatarFileId: 'f-1' })
   })
 
-  it('setUserInfo(null) 移除本地键，而不是写入 null 字面量', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser())
-
-    store.setUserInfo(null)
-
-    expect(localStorage.getItem(USER_INFO_KEY)).toBeNull()
-  })
-
-  it('再次 setUserInfo 整体覆盖旧信息，不做字段合并', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ nickName: '旧昵称', roles: ['admin'] }))
-
-    store.setUserInfo({ basicId: 'u-2', userName: 'guest', roles: [], permissions: [] })
-
-    expect(store.nickname).toBe('')
-    expect(store.roles).toEqual([])
-  })
-})
-
-describe('角色与权限判定', () => {
-  it('hasRole 全等匹配，不做大小写归一', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ roles: ['admin'] }))
-
-    expect(store.hasRole('admin')).toBe(true)
-    expect(store.hasRole('Admin')).toBe(false)
-  })
-
-  it('hasRole 不支持 "*" 通配 —— 角色没有超管短路', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ roles: ['*'] }))
-
-    expect(store.hasRole('admin')).toBe(false)
-    expect(store.hasRole('*')).toBe(true)
-  })
-
-  it('hasPermission 不把超管带着的 "*" 当通配：只认服务端展开下发的码', () => {
-    const store = useUserStore()
-    // 平台超管：服务端下发 * 与平台生效的全部码，租户侧的码（如部门查看）不在其中、鉴权也拒
-    store.setUserInfo(makeUser({ permissions: ['*', 'saas:user:read'] }))
-
-    expect(store.hasPermission('saas:user:read')).toBe(true)
-    expect(store.hasPermission('saas:department:read')).toBe(false)
-    expect(store.hasPermission('')).toBe(false)
-  })
-
-  it('权限码列表为空时任意权限均判定为无', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ permissions: [] }))
-
-    expect(store.hasPermission('system:user:list')).toBe(false)
-  })
-
-  it('hasAnyRole 命中任意一个即为 true', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ roles: ['editor'] }))
-
-    expect(store.hasAnyRole(['admin', 'editor'])).toBe(true)
-  })
-
-  it('hasAnyRole 传空数组返回 false —— 空要求不等于放行', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ roles: ['admin'] }))
-
-    expect(store.hasAnyRole([])).toBe(false)
-  })
-
-  it('hasAnyRole 全部不命中返回 false', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ roles: ['viewer'] }))
-
-    expect(store.hasAnyRole(['admin', 'editor'])).toBe(false)
-  })
-
-  it('未登录时 hasRole / hasPermission / hasAnyRole 一律为 false', () => {
-    const store = useUserStore()
-
-    expect(store.hasRole('admin')).toBe(false)
-    expect(store.hasPermission('*')).toBe(false)
-    expect(store.hasAnyRole(['admin'])).toBe(false)
-  })
-})
-
-describe('$reset', () => {
-  it('$reset 清空内存并删除本地用户信息键', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser())
-
-    store.$reset()
-
-    expect(store.userInfo).toBeNull()
-    expect(store.isLoggedIn).toBe(false)
-    expect(localStorage.getItem(USER_INFO_KEY)).toBeNull()
-  })
-
-  it('$reset 后权限随之失效', () => {
-    const store = useUserStore()
-    store.setUserInfo(makeUser({ permissions: ['any'] }))
-
-    store.$reset()
-
-    expect(store.hasPermission('any')).toBe(false)
+  it('模仿态：横幅字段齐、即使有权限也收起模仿入口', () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session({
+      tenantId: 'acme',
+      tenantName: 'Acme',
+      impersonatorUserName: 'superadmin',
+      user: {
+        ...user,
+        id: 'u-2',
+        userName: 'bob',
+        homeTenantId: 'acme',
+      },
+    })))
+    useAuthStore().permissions = grant(['identity.impersonation.start'])
+    const info = useUserStore().userInfo!
+    expect(info).toMatchObject({
+      userName: 'bob',
+      isImpersonating: true,
+      impersonatorUserName: 'superadmin',
+      canImpersonate: false,
+    })
   })
 })

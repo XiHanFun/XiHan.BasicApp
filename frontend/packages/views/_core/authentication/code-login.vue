@@ -21,6 +21,7 @@ const { apis } = useAppContext()
 const resendSeconds = ref(0)
 
 const formData = ref({
+  tenant: '',
   phone: '',
   code: '',
 })
@@ -28,7 +29,7 @@ const formData = ref({
 /**
  * 验证码的逐格值。表单里的 code 是拼接后的串（规则按长度校验、发码接口回填调试码都用它），
  * 格子这边是逐格数组，两边在此互转：格子每次改动把串写回表单，表单的串被外部整份改写
- * （回填调试码）时再拆回格子。用户逐格编辑不经串往返——见 splitPinCode 的说明。
+ * （回填调试码）时再拆回格子。用户逐格编辑不经串往返——见 splitPinCode 的说明
  */
 const codeCells = ref<string[]>([])
 
@@ -39,22 +40,35 @@ watch(() => formData.value.code, (code) => {
 
 // 规则写成 computed：文案要跟着语言切换。组件库按 rule.message 优先、
 // 没写则回落 validateMessages 模板，这里逐条给了文案就不需要模板
-const rules = computed<FormRules>(() => ({
+const rules = computed<FormRules<typeof formData.value>>(() => ({
   phone: [
-    { required: true, message: t('page.auth.phone_placeholder') },
-    { pattern: /^\d{11}$/, message: t('page.auth.phone_invalid') },
+    {
+      required: true,
+      message: t('page.auth.phone_placeholder'),
+    },
+    {
+      pattern: /^\d{11}$/,
+      message: t('page.auth.phone_invalid'),
+    },
   ],
   code: [
-    { required: true, message: t('page.auth.code_required') },
+    {
+      required: true,
+      message: t('page.auth.code_required'),
+    },
     // 组件库按 min/max 比长度，没有 len 这一档；两端同值即定长
-    { min: OTP_CODE_LENGTH, max: OTP_CODE_LENGTH, message: t('page.auth.code_length_tip') },
+    {
+      min: OTP_CODE_LENGTH,
+      max: OTP_CODE_LENGTH,
+      message: t('page.auth.code_length_tip'),
+    },
   ],
 }))
 
 /**
  * 发验证码只关手机号这一个字段，而表单的公开 API 没有「单字段校验」这一项
  * （逐字段校验是 blur / change 模式下的内部动作）。这里就地判一次格式，
- * 提交那一路仍走表单自己的整表校验。
+ * 提交那一路仍走表单自己的整表校验
  */
 function handleSendCode() {
   if (!/^\d{11}$/.test(formData.value.phone)) {
@@ -63,7 +77,7 @@ function handleSendCode() {
   }
   void (async () => {
     try {
-      const response = await apis.sendPhoneLoginCodeApi(formData.value.phone)
+      const response = await apis.sendPhoneLoginCodeApi(formData.value.phone, formData.value.tenant || undefined)
       resendSeconds.value = 60
       if (response.debugCode) {
         formData.value.code = response.debugCode
@@ -78,12 +92,13 @@ function handleSendCode() {
 }
 
 /**
- * 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显。
+ * 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显
  * 返回的 Promise 交给表单：落定前提交钮自己报在途、再按不重复提交，失败在这里接住
  */
 async function onSubmit() {
   try {
     await authStore.loginByPhoneCode({
+      tenant: formData.value.tenant || undefined,
       phone: formData.value.phone,
       code: formData.value.code,
     })
@@ -118,7 +133,23 @@ const onAuthInvalid = useAuthFormInvalid()
       @invalid="onAuthInvalid"
       @submit="onSubmit"
     >
-      <!-- 字段靠占位文案表意，标签只留给读屏 -->
+      <!-- 字段靠占位文案表意，标签只留给读屏
+           6.0 的账号属于注册地租户：租户账号填租户 ID，平台账号留空（同密码登录；4.x 先登录后选租户，没有这一栏） -->
+      <XhFormFieldGroup name="tenant" class="!mb-6">
+        <XhFieldRoot>
+          <XhFieldLabel class="sr-only">
+            {{ t('page.login.tenant') }}
+          </XhFieldLabel>
+          <XhFieldControl>
+            <XInput
+              v-model:value="formData.tenant"
+              size="lg"
+              :placeholder="t('page.login.tenant_placeholder')"
+              autocomplete="organization"
+            />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </XhFormFieldGroup>
       <XhFormFieldGroup v-slot="{ value, setValue }" name="phone" class="!mb-6">
         <XhFieldRoot>
           <XhFieldLabel class="sr-only">
@@ -141,7 +172,7 @@ const onAuthInvalid = useAuthFormInvalid()
           <XhFieldLabel class="sr-only">
             {{ t('page.auth.code_required') }}
           </XhFieldLabel>
-          <!-- 布局层留在控件外面：六格与发码钮同一行，放不下时钮换到下一行靠右。
+          <!-- 布局层留在控件外面：六格与发码钮同一行，放不下时钮换到下一行靠右
                格子取缺省档：正方格的缺省档与 lg 档文本框、发码钮同一个控件高度，lg 档格子会高出一截 -->
           <div class="auth-code-row">
             <XhFieldControl>

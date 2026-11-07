@@ -20,8 +20,8 @@ const reloadKey = ref(0)
 const asyncCache = new Map<unknown, Component>()
 
 /**
- * 解析右侧路径对应的路由叶子组件，应用内直接渲染（同一应用实例，无 iframe、零重启零闪烁）。
- * 注：pane 内组件经 useRoute() 读到的是主路由；对自包含的列表页（pageCode 驱动）无影响。
+ * 解析右侧路径对应的路由叶子组件，应用内直接渲染（同一应用实例，无 iframe、零重启零闪烁）
+ * 注：pane 内组件经 useRoute() 读到的是主路由；对自包含的列表页（pageCode 驱动）无影响
  */
 const paneComponent = computed<Component | null>(() => {
   const path = splitView.rightPath

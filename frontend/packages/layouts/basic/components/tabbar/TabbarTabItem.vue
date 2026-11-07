@@ -39,7 +39,9 @@ function resolveIcon(icon: string) {
   if (!icon) {
     return icon
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 const tabClass = computed(() => {
@@ -75,7 +77,7 @@ function onAuxClick(event: MouseEvent) {
 
 /**
  * 悬停提示：首行是标签名（标题会被 120px 截断，悬停第一眼要看得到全名），
- * 次行逐条列出这枚标签当前真正可用的鼠标手势。
+ * 次行逐条列出这枚标签当前真正可用的鼠标手势
  */
 const tabHint = computed(() => {
   const parts: string[] = []
@@ -93,10 +95,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 <template>
   <!--
-    单一根 <div>，内容通过 <template v-if> 区分 chrome 与 flat 风格。
+    单一根 <div>，内容通过 <template v-if> 区分 chrome 与 flat 风格
     TransitionGroup 始终看到同一 DOM 节点类型，切换风格时只做原地 patch，
-    不触发 leave/enter 动画，彻底消除切换闪烁。
-    data-tab-item：标签栏按它数标签、找右键目标，钉在自己的根上，不靠调用方透传。
+    不触发 leave/enter 动画，彻底消除切换闪烁
+    data-tab-item：标签栏按它数标签、找右键目标，钉在自己的根上，不靠调用方透传
   -->
   <XhSortableItem
     :item-id="item.path"
@@ -234,9 +236,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 <style scoped>
 /* ============ Chrome 风格 ============ */
+/* 标签文字与侧栏、面包屑同取 medium：Windows 的中文字体没有这一档会落到常规，semibold 又落到粗体、太重 */
 .chrome-tab {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
   transition: color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
@@ -319,6 +322,12 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   transform: scale(1);
 }
 
+/* 键盘聚焦给与组件库同一道环：2px 画在钮盒内。不写的话落回浏览器缺省环，画在盒外、被页签条的 overflow 裁掉 */
+.chrome-tab__close:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
 .chrome-tab__close:hover,
 .chrome-tab__pin:hover {
   opacity: 1 !important;
@@ -368,7 +377,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 /* ============ Flat 通用基础 ============ */
 .flat-tab {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
   cursor: default;
   color: hsl(var(--muted-foreground));
 }

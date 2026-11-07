@@ -27,7 +27,9 @@ const resolvedUrl = useAvatarUrl(computed(() => props.avatar))
 /** 首字母回退（取前两位，兼容中英文） */
 const initials = computed(() => {
   const n = (props.name ?? '').trim()
-  return n ? n.slice(0, 2) : '?'
+  return n
+    ? n.slice(0, 2)
+    : '?'
 })
 
 /** 回退字随头像尺寸放大，两个汉字在小头像里也放得下 */
@@ -35,8 +37,8 @@ const fontSize = computed(() => `${Math.max(12, Math.round(props.size * 0.36))}p
 </script>
 
 <template>
-  <!-- 全应用唯一的用户头像：顶栏、用户列表、聊天、锁屏都用它，同一个人处处同一副样子。
-       回退字与底色走组件库的品牌语气，不在应用里另配颜色；尺寸与圆角经头像的公开槽给。
+  <!-- 全应用唯一的用户头像：顶栏、用户列表、聊天、锁屏都用它，同一个人处处同一副样子
+       回退字与底色走组件库的品牌语气，不在应用里另配颜色；尺寸与圆角经头像的公开槽给
        src / alt 是根部件的属性：写在 image 部件上状态机拿不到地址；图片没给 / 加载失败时自动显示回退 -->
   <XhAvatarRoot
     class="xh-user-avatar"

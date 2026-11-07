@@ -18,8 +18,8 @@ function sectionName(section: string): string {
 }
 
 /**
- * 分区是否开启后端同步：搜索→「同步搜索设置」开关；表格/视图→「同步表格设置」开关；其余默认开启。
- * 关闭时仅本地（localStorage 由各调用方维护），不上行 / 不拉取后端。
+ * 分区是否开启后端同步：搜索→「同步搜索设置」开关；表格/视图→「同步表格设置」开关；其余默认开启
+ * 关闭时仅本地（localStorage 由各调用方维护），不上行 / 不拉取后端
  */
 function isSectionSyncEnabled(section: string): boolean {
   if (section === 'search') {
@@ -35,7 +35,7 @@ function isSectionSyncEnabled(section: string): boolean {
 }
 
 /**
- * 页面设置后端同步（跨端）。
+ * 页面设置后端同步（跨端）
  *
  * 后端用户设置以 (用户 × 场景 × 设置键) 存一条 JSON 载荷；页面设置场景固定 scene=Page、settingKey=pageCode，
  * 前端在该载荷中按「分区」(section) 读写：
@@ -43,7 +43,7 @@ function isSectionSyncEnabled(section: string): boolean {
  * - 个人视图 → section `views`
  *
  * 设计为「尽力而为」：localStorage 仍是同步事实源；后端加载成功则覆盖本地，
- * 保存失败（如端点未就绪/离线）静默忽略，不阻塞交互。
+ * 保存失败（如端点未就绪/离线）静默忽略，不阻塞交互
  */
 interface UserSettingApiShape {
   get: (input: { scene: number, settingKey: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
@@ -117,7 +117,12 @@ function saveSection(pageCode: string, section: string, value: unknown): void {
     setTimeout(() => {
       const task = settingSyncIsland(`page:${pageCode}`, sectionName(section))
       void resolveApi()
-        .save({ scene: UserSettingScene.Page, settingKey: pageCode, settingValue: JSON.stringify(payload), clientId: USER_SETTING_CLIENT_ID })
+        .save({
+          scene: UserSettingScene.Page,
+          settingKey: pageCode,
+          settingValue: JSON.stringify(payload),
+          clientId: USER_SETTING_CLIENT_ID,
+        })
         .then(() => task.success())
         .catch(() => task.error())
     }, 600),
@@ -129,8 +134,8 @@ function saveSection(pageCode: string, section: string, value: unknown): void {
 const remoteListeners = new Map<string, Map<string, Set<(value: unknown) => void>>>()
 
 /**
- * 订阅某页面某分区的远端变更（其它设备保存后实时应用到已打开页面）。
- * 返回退订函数，调用方需在作用域销毁时退订。
+ * 订阅某页面某分区的远端变更（其它设备保存后实时应用到已打开页面）
+ * 返回退订函数，调用方需在作用域销毁时退订
  */
 export function subscribeRemotePageSetting(
   pageCode: string,
@@ -155,14 +160,16 @@ export function subscribeRemotePageSetting(
 
 /**
  * 应用来自其它在线设备的页面设置推送：覆盖该页合并缓存（后续 hydrate 即取新值），
- * 并按分区分发给已打开页面的监听者（同步开关关闭的分区跳过）。
+ * 并按分区分发给已打开页面的监听者（同步开关关闭的分区跳过）
  * 推送载荷为整页全量而一次保存只改一个分区，故对照旧缓存仅分发真正变化的分区，
- * 避免未变分区被重复应用、一次推送弹出多条提示。
+ * 避免未变分区被重复应用、一次推送弹出多条提示
  */
 export function applyRemotePageSetting(pageCode: string, settingValue?: null | string): void {
   let payload: Record<string, unknown>
   try {
-    payload = settingValue ? JSON.parse(settingValue) as Record<string, unknown> : {}
+    payload = settingValue
+      ? JSON.parse(settingValue) as Record<string, unknown>
+      : {}
   }
   catch {
     return
@@ -207,8 +214,8 @@ export interface UserSettingSync {
   /** 订阅该分区的远端实时变更（返回退订函数） */
   subscribeRemote: (section: string, listener: (value: unknown) => void) => () => void
   /**
-   * 按 bindSyncedSetting 的口径接一个分区：开着同步以后端为准、超时先按本地、拉取与推送都写回本地。
-   * 调用方先从本地恢复，再把 ready 接到渲染上。
+   * 按 bindSyncedSetting 的口径接一个分区：开着同步以后端为准、超时先按本地、拉取与推送都写回本地
+   * 调用方先从本地恢复，再把 ready 接到渲染上
    */
   bindSection: <T>(section: string, target: SyncedSettingTarget<T>) => SyncedSettingBinding
 }
@@ -232,7 +239,9 @@ export function useUserSettingSync(pageCode: string): UserSettingSync {
       // 本会话已拉过这页（或收到过推送、本机保存过）：直接采用缓存，页面来回切换不再等
       peek: () => {
         const cached = cache.get(pageCode)
-        return cached ? { value: cached[section] } : undefined
+        return cached
+          ? { value: cached[section] }
+          : undefined
       },
       load: () => loadSection(pageCode, section),
       subscribe: listener => subscribeRemotePageSetting(pageCode, section, listener),

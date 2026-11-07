@@ -107,14 +107,16 @@ function reportHistory(result: ImportSummary): void {
       totalCount: result.total,
       successCount: result.success,
       failCount: result.failed,
-      errorSummary: errors.length > 0 ? JSON.stringify(errors) : null,
+      errorSummary: errors.length > 0
+        ? JSON.stringify(errors)
+        : null,
     })
     .then(() => loadRecent())
     .catch(() => undefined)
 }
 
 /**
- * 已选文件受控为空：组件只当选择器用，每次选中的文件交给导入器解析后不留在组件里。
+ * 已选文件受控为空：组件只当选择器用，每次选中的文件交给导入器解析后不留在组件里
  * 否则选过一份之后 maxFiles=1 已满，重选的文件会被当成「数量超限」拒收
  */
 const NO_FILES: File[] = []
@@ -137,7 +139,10 @@ function onFileReject(details: FileUploadFileRejectDetails): void {
 }
 
 /** 选择被拒的理由在前，已载入文件的问题在后 */
-const fileProblems = computed(() => [...rejectErrors.value, ...fileErrors.value])
+const fileProblems = computed(() => [
+  ...rejectErrors.value,
+  ...fileErrors.value,
+])
 
 /** 校验/创建错误平铺为表格行 */
 const errorItems = computed(() =>
@@ -152,16 +157,29 @@ const errorItems = computed(() =>
 )
 
 const errorColumns = computed<TableColumnDef[]>(() => [
-  { id: 'row', label: t('component.schema_import.col_row'), width: 70 },
-  { id: 'field', label: t('component.schema_import.col_field'), width: 120 },
-  { id: 'message', label: t('component.schema_import.col_problem') },
+  {
+    id: 'row',
+    label: t('component.schema_import.col_row'),
+    width: 70,
+  },
+  {
+    id: 'field',
+    label: t('component.schema_import.col_field'),
+    width: 120,
+  },
+  {
+    id: 'message',
+    label: t('component.schema_import.col_problem'),
+  },
 ])
 
 /** 行号与行序的事实源；这张表不排序不选中，只报身份 */
 const errorRowDefs = computed(() => errorItems.value.map(item => ({ id: item.key })))
 
 const importPercent = computed(() =>
-  validRows.value.length === 0 ? 0 : Math.round((progress.value / validRows.value.length) * 100),
+  validRows.value.length === 0
+    ? 0
+    : Math.round((progress.value / validRows.value.length) * 100),
 )
 
 const canRun = computed(() => phase.value === 'ready' && fileErrors.value.length === 0 && validRows.value.length > 0)

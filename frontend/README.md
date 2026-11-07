@@ -1,123 +1,45 @@
-![logo](../assets/logo.png)
+# frontend-next
 
-[中文](README_cn.md)
+XiHan.BasicApp 6.0 管理端（方案第 6 节）。Vue 3.5 + Vite + TypeScript + Pinia + vue-router + vue-i18n（10 种区域）+ Tailwind 4（CSS-first）+ XiHan.UI。Node 24+、pnpm 11+，没有锁文件。
 
-# XiHan.BasicApp Frontend
-
-This file is for frontend developers and contributors. It documents **how this layer is organized**: the stack, the monorepo structure, the architectural constraints and local development.
-
-If you just want to get the whole system running, start from the [repository README](../README.md); topic-by-topic documentation lives on the [documentation site](https://basicapp.docs.xihanfun.com).
-
-## Stack
-
-Vue + TypeScript + Vite. The application root only carries vue, vue-router, pinia, vue-i18n, `@vueuse/core` and the `@xihan-ui/*` packages as runtime dependencies; every heavier library is pushed down into the workspace package that owns it.
-
-Tooling: Vite, `@vitejs/plugin-vue(-jsx)`, vue-tsc, Turbo, Tailwind CSS (`@tailwindcss/vite`, CSS-first with no JS config), unplugin-auto-import, unplugin-vue-components, oxlint + ESLint.
-
-## Requirements
-
-`packageManager` pins the exact pnpm version; `engines` requires Node ≥ 24 and pnpm ≥ 11.
-
-`@xihan-ui/*` comes from the published npm releases (pinned to `^1.1.0` in the `pnpm-workspace.yaml` catalog), so cloning this repository on its own and running `pnpm install` just works — no sibling `XiHan.UI` checkout required.
-
-> To debug against the component library sources, add an `overrides` block to `pnpm-workspace.yaml` pointing `@xihan-ui/*` at `link:../../XiHan.UI/ui/packages/*`, then remove it when you are done. That is a local-only change; do not commit it.
-
-## Monorepo Structure
-
-`pnpm-workspace.yaml` declares `packages/*` — 19 private workspace packages (all named `@xihan/<name>`, version `0.0.0`, aliased as `~/`): chat, components, composables, constants, design, designers, hooks, iconify, layouts, locales, printing, request, router, stores, types, utils, views and more.
-
-Heavier third-party libraries live in the package that owns them, never at the application root: axios → request, `@xihan-flow/*` / `@xihan-ui/web-components` → designers, tiptap / monaco / md-editor-v3 / jsoneditor → components, `@microsoft/signalr` / pinyin-pro → composables, `@xihan-print/*` → printing, emoji-mart → chat, eight `@iconify-json` sets → iconify, dayjs / papaparse → utils.
-
-Every third-party version is declared once in the `catalog:` block of `pnpm-workspace.yaml` (~75 entries); packages just write `"catalog:"`.
-
-Two path aliases: `@` → `./src` (application layer) and `~` → `./packages` (infrastructure layer).
-
-### Architectural Constraint
-
-The named ESLint rule `xihan/packages-no-reverse-dep` forbids `packages/**` from importing `@/*` or `../../src/**` — contract types belong in `packages/types`, and runtime dependencies are injected through the app context. Four files currently hold an exemption pending migration.
-
-## Directory Layout
+## 结构
 
 ```text
-frontend/
-├── src/
-│   ├── api/          # base·request·factory·helpers·types + 21 domain modules
-│   ├── app/          # application composition
-│   ├── components/   # application-level components
-│   ├── constants/
-│   ├── locales/      # zh-CN / en-US
-│   ├── modules/      # pluggable business modules, see below
-│   ├── router/
-│   ├── styles/
-│   ├── types/
-│   └── views/        # 55 pages across 10 groups
-├── packages/         # 19 workspace packages (infrastructure layer)
-└── public/
+frontend-next/
+├─ contracts/openapi.json      后端 `contracts export` 导出的接口文档（入库，CI 比对）
+├─ scripts/                    gen-contracts、各门禁（px / token / i18n / modules / permissions）
+├─ packages/                   别名 ~，底层基建，禁止反向引用 @/
+│  ├─ contracts/               生成物：types.ts、operations.ts、permissions.ts、enums.ts
+│  ├─ request/                 运行时客户端：拼路由、放头、Problem Details → ApiError、刷新 / 会话 / 锁屏 / 维护钩子
+│  ├─ stores/                  app（区域）、auth（会话：登录、刷新、注销）
+│  ├─ locales/ router/ design/
+└─ src/                        别名 @，应用侧
+   ├─ main.ts  App.vue  styles/index.css
+   └─ modules/<包>/{views/**, locales/<区域>.ts, setup.ts}   与后端能力包一一对应
 ```
 
-### Pluggable Modules
+## 命令
 
-`src/modules/<module>/` may only contain `views/`, `api/`, `locales/`, `setup.ts` and `README.md`. `main.ts` discovers startup hooks with `import.meta.glob('/src/modules/*/setup.ts', { eager: true })` — **deleting the directory uninstalls the module; no registration code has to change**.
+| 任务 | 命令 |
+| --- | --- |
+| 安装 | `pnpm install --no-frozen-lockfile` |
+| 开发 | `pnpm dev`（9100，`/api` 等代理到后端 9710） |
+| 生成契约层 | `pnpm gen:contracts`（读 `contracts/openapi.json`） |
+| 综合检查 | `pnpm check`（type-check → lint → px → token → i18n → modules → contracts → permissions） |
+| 单测 / 构建 | `pnpm test`、`pnpm build` |
 
-The modules ai / chat / codegen / printing / workflow map one-to-one onto the optional backend modules.
+## 契约层
 
-### Routing Model
+一份 `openapi.json`、一个生成器：后端在仓库根执行 `dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"` 导出（`dotnet run` 以工程目录为工作目录，`--out` 给绝对路径），`pnpm gen:contracts` 生成 `packages/contracts/*`，生成物入库；CI 先比对导出文件、再比对生成物（`pnpm contracts:check`），任一漂移即失败。改契约的顺序：后端操作 → 导出 → 生成 → 改页面 → 同一提交。
 
-Routes are driven by the backend menu by default: PascalCase component paths map to kebab-case files, `coreComponentMap` covers the `_core` pages that live in packages, and a not-found route catches the rest. Set `VITE_AUTH_ROUTE_MODE=static` to switch to frontend static permission filtering. History mode defaults to hash; set `VITE_ROUTER_HISTORY=history` for HTML5.
+运行时只依赖 `code` 与 `errors`：`SECURITY_DENIED_001`（未认证）与 `SECURITY_DENIED_003`（访问令牌过期或签名不符）走刷新钩子——用刷新令牌换一次并重放，刷新也失败即回登录页；`IDENTITY_DENIED_001`（会话被吊销：注销、改密、锁定、重置密码）直接回登录页；`IDENTITY_DENIED_002` 走锁屏钩子，`RUNTIME_UNAVAILABLE_003`（别的节点在升级共享库）与 `KERNEL_UNAVAILABLE_001`（内核未就绪）走维护钩子；字段级 `errors` 交给表单按字段显示。登录与刷新以 `anonymous: true` 调用，不带旧令牌。
 
-## Local Development
+## 会话、权限与菜单
 
-```bash
-pnpm install
-pnpm dev          # dev server, port 9800 by default
-pnpm build        # production build (runs type-check first)
-pnpm type-check
-pnpm lint         # oxlint + eslint
-pnpm test         # Vitest (jsdom)
-pnpm validate     # the i18n and module-convention gates
-```
+`/auth/login`：租户（平台账号留空）、用户名、密码 → `auth.login`；会话（访问令牌、刷新令牌、会话 ID、租户、用户资料）由 `~/stores` 的 `auth` 保存在 `localStorage`，路由守卫把未登录的访问带回跳地址送到登录页。顶栏显示当前用户与租户、修改密码入口（`/identity/profile/change-password`，`profile.change-password`）与退出（`auth.logout`）；管理员重置过密码的账号登录后顶栏提示先改密。初始账号由后端 `seed` 命令写入（`superadmin`，见 `backend-next/src/XiHan.BasicApp.Host/README.md`）。
 
-All commands are delegated through Turbo to `app:*`.
+路由与 4.x 相同：`packages/router` 的守卫（`guard.ts`）、菜单 → 路由（`dynamic.ts`）与核心路由（`routes/core.ts`：认证壳与 403 / 404 / 500），应用侧 `src/router` 用 RootLayout（管理端壳）承载业务页，地址缺省走 hash（`VITE_ROUTER_HISTORY=history` 切 HTML5 历史）。登录后守卫首次进入时调 `auth.permissions`（有效权限码、角色、按权限裁剪的菜单树、页面码），把菜单树装成动态路由（节点的 `component` 是 `<包>/<路径>/index`，按 `src/modules/*/views/**/index.vue` 精确解析，找不到落 404 兜底并报错；页面包一层「名字 = 路由名」的壳组件供 KeepAlive 命中），侧栏导航由同一棵树渲染，`/` 落到第一个菜单；`meta.permissions` 不在有效权限里进 `/403`；访问过的页面进标签栏（首页与固定标签不可关）。按钮即操作：`auth.can('identity.users.create')` 精确匹配操作的权限码控制可见性，安全边界仍在后端。刷新令牌后权限清空、下一次导航重取（角色指派的变化随之生效）。
 
-### Quality Gates
+## XiHan.UI 本地联调
 
-- `app:build` depends on `app:type-check` — a type error stops the build outright, container image builds included
-- `validate` runs two dependency-free Node gates: `validate-i18n.mjs` checks that zh-CN and en-US keys are symmetric and scans `t('...')` calls for orphan keys (vue-i18n silently returns the key itself at runtime, so neither type-check nor ESLint catches this — orphans must be zero); `validate-modules.mjs` checks the module directory convention, that view keys do not collide, and that locales come in pairs
-- `postinstall` installs the git hooks; pre-commit runs lint-staged: ts/vue/js/mjs through oxlint + ESLint fixes, json/css/html/md/yaml through Prettier
-
-## Styling and Theming
-
-`src/styles/index.css` declares the complete `@layer` order in one place:
-
-```text
-xihan.reset, xihan.tokens, xihan.motion, xihan.components,
-theme, base, components, utilities, xihan.overrides
-```
-
-Tailwind utilities deliberately sit after `xihan.components`; a component's `<style scoped>` belongs to no layer and therefore always wins. Tailwind's preflight is intentionally not imported — the base reset comes from XiHan.UI's `xihan.reset` layer. `packages/design/xihan-ui.css` is the token bridge that rewrites `--xh-*` onto the application palette, and must come after the XiHan.UI skins.
-
-## Component and API Auto-Import
-
-A custom `XiHanUiResolver` imports any `Xh`-prefixed tag from `@xihan-ui/vue` as a named import, so anatomy-style multi-part components need no per-part imports and stay tree-shakeable. `unplugin-vue-components` is configured with an empty `dirs` array — the application's own components are **not** auto-registered. Auto-imported APIs come from vue, vue-router, pinia and `@vueuse/core`.
-
-## Environment Variables
-
-Three `.env` files are committed (`.env`, `.env.development`, `.env.production`):
-
-| Group                 | Variables                                                                                                                                                                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Application identity  | `VITE_APP_TITLE` / `SUBTITLE` / `DESCRIPTION` / `LOGO` / `NAMESPACE` / `VERSION`                                                                                                                                                           |
-| API and routing       | `VITE_API_BASE_URL` (left empty in development to use the same-origin proxy and avoid CORS), `VITE_API_PREFIX=/api`, `VITE_DEV_PROXY_TARGET=http://localhost:9708`, `VITE_PORT=9800`, `VITE_ROUTER_HISTORY`, `VITE_BASE`, `VITE_HOME_PATH` |
-| API security pipeline | eight `VITE_API_SECURITY_*` variables; `ENABLED` is false in all three .env files (off by default)                                                                                                                                         |
-
-## Build and Deployment
-
-The build targets es2022 and uses a hand-written `manualChunks` split — vendor-ui, vendor-monaco, vendor-icon-`<set>` and a dozen more — emitting `assets/js/[name]-[hash].js`.
-
-`Dockerfile` is a two-stage build (`node:24-alpine` → `nginx:1.29-alpine`); `ARG VITE_API_BASE_URL` is written into `.env.production.local`, which outranks `.env.production`, and an empty value means same-origin. `nginx.conf` defines `upstream basicapp_backend = backend:9708`, serves the SPA through `try_files`, caches `/assets/` for a year as immutable while keeping `index.html` no-cache, and proxies `/api/` (300s), `/hubs/` (SignalR: Upgrade headers, `proxy_buffering off`, 3600s) and `/uploads/`, with `client_max_body_size 100m`.
-
-## Removing Optional Modules
-
-Delete `src/modules/<module>/` along with the matching `packages/{chat,printing,designers}` and their catalog entries.
-
-⚠️ **Removal must be paired with rebuilding the database** — seeded menus and permission codes are not reclaimed automatically.
+CI 与常规开发用 catalog 里的发布版。需要联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides` 把 `@xihan-ui/*` 指到同级源码（`link:../../XiHan.UI/ui/packages/<目录>`），overrides 不提交，页面只用两者共有的部件。

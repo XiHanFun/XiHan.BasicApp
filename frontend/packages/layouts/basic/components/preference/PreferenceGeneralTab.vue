@@ -2,10 +2,9 @@
 import type { useAppStore } from '~/stores'
 import { XhSwitch } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
-import { XNumberInput } from '~/components'
+import { XHelpTip as PrefTip, XNumberInput } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
-import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceGeneralTab' })
 const props = defineProps<{ appStore: ReturnType<typeof useAppStore> }>()

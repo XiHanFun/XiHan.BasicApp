@@ -4,10 +4,10 @@ import type { Tone } from '@xihan-ui/core'
 export type SchemaTagTone = Tone
 
 /**
- * 状态类枚举的标签配色表：字典码 → 枚举值 → 标签语气。
+ * 状态类枚举的标签配色表：字典码 → 枚举值 → 标签语气
  *
  * 枚举值按后端 JsonStringEnumConverter 的序列化字符串书写：packages 层不可反向依赖
- * src 下的枚举定义，故此处以字面量对齐。
+ * src 下的枚举定义，故此处以字面量对齐
  */
 const STATUS_TAG_TONES: Readonly<Record<string, Readonly<Record<string, SchemaTagTone>>>> = {
   EnableStatus: {

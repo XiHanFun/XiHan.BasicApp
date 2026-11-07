@@ -1,6 +1,6 @@
 /**
- * 异步选项（代码生成的外键下拉等）：同一页面里表单与列表同时要同一份选项。
- * 锁住「在途时共用一次请求」「结束后不缓存，下次进页面重取」「失败只提示一次且不留脏数据」。
+ * 异步选项（代码生成的外键下拉等）：同一页面里表单与列表同时要同一份选项
+ * 锁住「在途时共用一次请求」「结束后不缓存，下次进页面重取」「失败只提示一次且不留脏数据」
  */
 import { describe, expect, it, vi } from 'vitest'
 
@@ -13,19 +13,29 @@ async function flush(): Promise<void> {
 async function bootstrap() {
   vi.resetModules()
   const danger = vi.fn()
-  vi.doMock('./ui-service', () => ({ toast: { danger } }))
+  vi.doMock('./ui-service', () => ({
+    toast: { danger },
+  }))
+  // 文案按区域懒加载：模块重置后要重新装一次
+  await (await import('~/locales')).setLocale('zh-CN')
   const module = await import('./useAsyncOptions')
   return { ...module, danger }
 }
 
-const categories: Option[] = [{ label: '电子', value: '1' }, { label: '图书', value: '2' }]
+const categories: Option[] = [
+  { label: '电子', value: '1' },
+  { label: '图书', value: '2' },
+]
 
 describe('loadAsyncOptions', () => {
   it('在途时同一加载器只调一次，结束后再调会重新请求', async () => {
     const loader = vi.fn(async () => categories)
     const { loadAsyncOptions } = await bootstrap()
 
-    const [first, second] = await Promise.all([loadAsyncOptions(loader), loadAsyncOptions(loader)])
+    const [first, second] = await Promise.all([
+      loadAsyncOptions(loader),
+      loadAsyncOptions(loader),
+    ])
     expect(loader).toHaveBeenCalledTimes(1)
     expect(second).toBe(first)
 
@@ -39,7 +49,10 @@ describe('loadAsyncOptions', () => {
     })
     const { loadAsyncOptions, danger } = await bootstrap()
 
-    const results = await Promise.allSettled([loadAsyncOptions(loader), loadAsyncOptions(loader)])
+    const results = await Promise.allSettled([
+      loadAsyncOptions(loader),
+      loadAsyncOptions(loader),
+    ])
 
     expect(results.map(result => result.status)).toEqual(['rejected', 'rejected'])
     expect(danger).toHaveBeenCalledTimes(1)

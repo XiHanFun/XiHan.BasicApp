@@ -4,9 +4,9 @@ import { reactive } from 'vue'
 
 /**
  * 应用上下文：packages（核心包）不直接依赖 src（应用层），
- * 而是由 src 在启动时注册 API 实现、路由实例、视图模块等。
+ * 而是由 src 在启动时注册 API 实现、路由实例、视图模块等
  *
- * 这样 packages 只通过 ~/ 引用自身，src 通过 @/ 引用自身并注入到此处。
+ * 这样 packages 只通过 ~/ 引用自身，src 通过 @/ 引用自身并注入到此处
  */
 export interface AppContext {
   /** src 注册的 API 函数集合，packages 按名称取用 */

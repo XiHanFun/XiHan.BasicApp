@@ -33,8 +33,8 @@ export type SchemaFieldDataType
     | 'url'
 
 /**
- * 列表字段 Schema —— 页面字段的单一事实源。
- * 搜索表单、表格列、导出字段、导入模板、详情展示等均由此派生，禁止重复定义。
+ * 列表字段 Schema —— 页面字段的单一事实源
+ * 搜索表单、表格列、导出字段、导入模板、详情展示等均由此派生，禁止重复定义
  */
 export interface ListFieldSchema<TRow = Record<string, unknown>> {
   /** 字段键（对应数据行与查询参数的属性名） */
@@ -76,8 +76,8 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   /** 系统字典编码（字典管理里维护的字典，选项值为字典项编码；与 dictionaryCode 二选一） */
   dictCode?: string
   /**
-   * 异步选项加载器（如外键的关联记录选项）：SchemaPage 挂载时调用，结果注入 options。
-   * 同一加载器与页面表单下拉并发调用时只发一次请求（按函数引用去重）。
+   * 异步选项加载器（如外键的关联记录选项）：SchemaPage 挂载时调用，结果注入 options
+   * 同一加载器与页面表单下拉并发调用时只发一次请求（按函数引用去重）
    */
   optionsLoader?: () => Promise<ReadonlyArray<SchemaSelectOption>>
   /** 即时下拉/标签选项（优先于 dictionaryCode；常引用 business 常量） */
@@ -150,7 +150,7 @@ export interface SchemaActionPayload<TRow = Record<string, unknown>> {
 }
 
 /**
- * 视图 Schema —— 预置视图（系统视图）。租户/团队/个人视图为运行时数据。
+ * 视图 Schema —— 预置视图（系统视图）。租户/团队/个人视图为运行时数据
  */
 export interface ViewSchema {
   /** 视图码 */
@@ -182,8 +182,8 @@ export interface SchemaSortRule {
 }
 
 /**
- * 归一化查询参数 —— 框架向资源层传递的统一查询契约。
- * 页面侧资源适配器负责将其映射为具体后端 API 的入参。
+ * 归一化查询参数 —— 框架向资源层传递的统一查询契约
+ * 页面侧资源适配器负责将其映射为具体后端 API 的入参
  */
 export interface SchemaQueryParams {
   /** 页码（从 1 开始） */
@@ -199,33 +199,33 @@ export interface SchemaQueryParams {
 }
 
 /**
- * 资源契约 —— 框架仅依赖归一化的 page / remove。
- * 与 defineResource 产出兼容（页面侧用适配器包装），亦可手工提供。
+ * 资源契约 —— 框架仅依赖归一化的 page / remove
+ * 与 defineResource 产出兼容（页面侧用适配器包装），亦可手工提供
  */
 export interface SchemaResource<TRow> {
   /** 分页查询（列表模式必填；接收归一化参数，返回标准分页结果） */
   page?: (params: SchemaQueryParams) => Promise<PageResult<TRow>>
   /**
-   * 树形查询（树形模式必填）—— 返回嵌套数组（含 children），不分页。
-   * 入参复用 SchemaQueryParams（page/pageSize 可忽略），filters 用于服务端过滤。
+   * 树形查询（树形模式必填）—— 返回嵌套数组（含 children），不分页
+   * 入参复用 SchemaQueryParams（page/pageSize 可忽略），filters 用于服务端过滤
    */
   tree?: (params: SchemaQueryParams) => Promise<TRow[]>
   /** 删除单条（行级/批量删除依赖） */
   remove?: (id: ApiId) => Promise<void>
   /**
    * 启停单条（批量启用/停用依赖）—— 框架按行调用，enabled=true 启用 / false 停用；
-   * 页面适配器负责映射为后端状态更新 API（status 枚举/remark 等由页面填充）。
+   * 页面适配器负责映射为后端状态更新 API（status 枚举/remark 等由页面填充）
    */
   updateStatus?: (id: ApiId, enabled: boolean) => Promise<unknown>
   /**
    * 新增单条（导入闭环依赖）—— 接收按 importable 字段组装的记录（field.key → 归一化值），
-   * 页面适配器负责映射为后端 CreateDto（补默认值/裁剪字段）。
+   * 页面适配器负责映射为后端 CreateDto（补默认值/裁剪字段）
    */
   create?: (record: Record<string, unknown>) => Promise<unknown>
   /**
-   * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口。
+   * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口
    * businessType 须匹配后端 IExportProvider.BusinessType（即导出按钮所属的后端页面码，与本页 pageCode 一致）；buildQuery 复用页面适配器的查询构建，
-   * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（与线上报文同形，枚举按成员名或数值均可）。
+   * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（与线上报文同形，枚举按成员名或数值均可）
    */
   export?: {
     businessType: string
@@ -234,7 +234,7 @@ export interface SchemaResource<TRow> {
 }
 
 /**
- * SchemaPage 组件实例上页面常用的方法（经模板 ref 取得）。
+ * SchemaPage 组件实例上页面常用的方法（经模板 ref 取得）
  */
 export interface SchemaPageInstance {
   /** 按当前查询条件重新取数 */
@@ -244,7 +244,7 @@ export interface SchemaPageInstance {
 }
 
 /**
- * 页面 Schema —— 整页单一事实源。
+ * 页面 Schema —— 整页单一事实源
  */
 export interface PageSchema<TRow = Record<string, unknown>> {
   /** 页面唯一码（偏好/视图按此维度存储） */
@@ -278,9 +278,9 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   /** 默认每页数量 */
   pageSize?: number
   /**
-   * 树形模式配置（存在即启用树形）。
+   * 树形模式配置（存在即启用树形）
    * 启用后：走 resource.tree 取数（嵌套数组、不分页）、隐藏分页器、子行按 childrenKey 展开；
-   * 需在 fields 里用 treeColumn:true 标记承载展开箭头的列。
+   * 需在 fields 里用 treeColumn:true 标记承载展开箭头的列
    */
   tree?: {
     /** 子节点字段名（默认 children） */
@@ -291,10 +291,10 @@ export interface PageSchema<TRow = Record<string, unknown>> {
 }
 
 /**
- * 表格列 —— 由 toColumns 从字段 Schema 派生，SchemaTablePanel 据此铺开表头与单元格。
+ * 表格列 —— 由 toColumns 从字段 Schema 派生，SchemaTablePanel 据此铺开表头与单元格
  *
  * 只描述「这一列长什么样」：列号、列宽与排序链归组件库的 columns 契约，
- * 多选列/序号列/展开列由表格面板按开关自行插入，不出现在这里。
+ * 多选列/序号列/展开列由表格面板按开关自行插入，不出现在这里
  */
 export interface SchemaColumn<TRow = Record<string, unknown>> {
   /** 列键（同时是字段键与列身份） */

@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<{
   /** 联动下回传哪些键：all 全部勾中节点、parent 只收最高整枝、child 只留叶，缺省 child */
   checkedStrategy?: 'all' | 'parent' | 'child'
   /**
-   * 树的可及名：渲染成只给读屏的 label 部件（树上的 aria-labelledby 指向它）。
+   * 树的可及名：渲染成只给读屏的 label 部件（树上的 aria-labelledby 指向它）
    * 不给时那条引用落空，读屏只念「树」，调用方都应传
    */
   ariaLabel?: string
@@ -32,8 +32,12 @@ const props = withDefaults(defineProps<{
   ariaLabel: undefined,
 })
 
-const selectedKeys = defineModel<string[]>('selectedKeys', { default: () => [] })
-const expandedKeys = defineModel<string[]>('expandedKeys', { default: () => [] })
+const selectedKeys = defineModel<string[]>('selectedKeys', {
+  default: () => [],
+})
+const expandedKeys = defineModel<string[]>('expandedKeys', {
+  default: () => [],
+})
 
 /** 机器的节点只认字符串键，逐层归一；业务字段随节点一起带下去 */
 function toNodes(options: ReadonlyArray<unknown>): TreeNode[] {
@@ -43,7 +47,11 @@ function toNodes(options: ReadonlyArray<unknown>): TreeNode[] {
     return {
       ...option,
       value: String(option.value),
-      ...(children?.length ? { children: toNodes(children) } : {}),
+      ...(children?.length
+        ? {
+            children: toNodes(children),
+          }
+        : {}),
     } as TreeNode
   })
 }

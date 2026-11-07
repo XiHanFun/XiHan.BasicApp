@@ -1,10 +1,7 @@
 {
   "name": "@xihan/stores",
+  "type": "module",
   "version": "0.0.0",
   "private": true,
-  "main": "./index.ts",
-  "dependencies": {
-    "@xihan/constants": "workspace:*",
-    "@xihan/utils": "workspace:*"
-  }
+  "main": "./index.ts"
 }

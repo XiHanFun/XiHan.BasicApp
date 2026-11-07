@@ -101,7 +101,7 @@ const {
 const externalLinkOf = useMenuExternalLinks()
 
 const appTitle = computed(
-  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
+  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp',
 )
 const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
@@ -114,21 +114,29 @@ const isHeaderMixLayout = computed(() => effectiveLayoutMode.value === 'header-m
 const isSplitMenuLayout = computed(() => appStore.navigationSplit && effectiveLayoutMode.value === 'mix')
 
 const extraMenuTheme = computed<'dark' | 'light'>(() => {
-  return props.sidebarSubTheme === 'dark' ? 'dark' : 'light'
+  return props.sidebarSubTheme === 'dark'
+    ? 'dark'
+    : 'light'
 })
 
 function resolveIcon(icon: string) {
   if (!icon)
     return icon
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 function renderIcon(icon: string) {
-  return () => h(Icon, { icon: resolveIcon(icon) })
+  return () => h(Icon, {
+    icon: resolveIcon(icon),
+  })
 }
 
 function translateTitle(title: string, _fallback: string) {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 const menuBuildConfig = {
@@ -136,7 +144,12 @@ const menuBuildConfig = {
   translate: translateTitle,
   iconRenderer: renderIcon,
   badgeLabelRenderer: renderSidebarBadgeLabel,
-  linkIcon: () => h(Icon, { icon: 'lucide:external-link', width: 13, height: 13, style: 'opacity:0.5;flex-shrink:0' }),
+  linkIcon: () => h(Icon, {
+    icon: 'lucide:external-link',
+    width: 13,
+    height: 13,
+    style: 'opacity:0.5;flex-shrink:0',
+  }),
 }
 
 function toPrimaryOptions(routeList: LayoutRouteRecord[], parentPath = '') {
@@ -167,7 +180,9 @@ const headerMixHoverKey = ref('')
 
 // --- Side-mixed menu ---
 const sideMixedPrimaryRoutes = computed(() =>
-  isSideMixedLayout.value ? visibleRootRoutes.value : [],
+  isSideMixedLayout.value
+    ? visibleRootRoutes.value
+    : [],
 )
 const sideMixedPrimaryOptions = computed<AppMenuOption[]>(() =>
   toPrimaryOptions(sideMixedPrimaryRoutes.value),
@@ -258,7 +273,7 @@ const headerMixSecondaryOptions = computed(() =>
  */
 const stowed = computed(() => !props.isMobile && !props.showSidebar)
 
-// 收起与放出的那一帧占位列不走过渡，宽度一步到位；等这一帧真正画出来，再交还给原有的折叠过渡。
+// 收起与放出的那一帧占位列不走过渡，宽度一步到位；等这一帧真正画出来，再交还给原有的折叠过渡
 // 只等一帧不够：rAF 回调排在本帧绘制之前，那时撤掉 none，宽度变化照样会被过渡接住
 const placeholderSnap = ref(false)
 let snapFrame = 0
@@ -288,20 +303,28 @@ const placeholderStyle = computed((): CSSProperties => {
   }
 
   return {
-    ...(placeholderSnap.value ? { transition: 'none' } : {}),
+    ...(placeholderSnap.value
+      ? { transition: 'none' }
+      : {}),
     flex: `0 0 ${widthValue}`,
     maxWidth: widthValue,
     minWidth: widthValue,
     width: widthValue,
-    ...(widthValue === '0px' ? { overflow: 'hidden' } : {}),
-    marginLeft: props.showSidebar ? '0' : `-${widthValue}`,
+    ...(widthValue === '0px'
+      ? { overflow: 'hidden' }
+      : {}),
+    marginLeft: props.showSidebar
+      ? '0'
+      : `-${widthValue}`,
   }
 })
 
 const asideStyle = computed((): CSSProperties => {
   const isMixed = props.isDualColumn
   const extraW
-    = isMixed && appStore.sidebarExpandOnHover && props.extraVisible ? props.sidebarExtraWidth : 0
+    = isMixed && appStore.sidebarExpandOnHover && props.extraVisible
+      ? props.sidebarExtraWidth
+      : 0
   const totalW = props.sidebarWidth + extraW
   return {
     '--scroll-shadow': 'var(--sidebar)',
@@ -309,13 +332,23 @@ const asideStyle = computed((): CSSProperties => {
     'maxWidth': `${totalW}px`,
     'minWidth': `${totalW}px`,
     'width': `${totalW}px`,
-    'height': props.isMobile ? '100%' : `calc(100% - ${props.sidebarMarginTop}px)`,
-    'marginTop': props.isMobile ? '0' : `${props.sidebarMarginTop}px`,
-    'marginLeft': props.isMobile && !props.showSidebar ? `-${totalW}px` : '0',
-    'overflow': props.isMobile && !props.showSidebar ? 'hidden' : undefined,
+    'height': props.isMobile
+      ? '100%'
+      : `calc(100% - ${props.sidebarMarginTop}px)`,
+    'marginTop': props.isMobile
+      ? '0'
+      : `${props.sidebarMarginTop}px`,
+    'marginLeft': props.isMobile && !props.showSidebar
+      ? `-${totalW}px`
+      : '0',
+    'overflow': props.isMobile && !props.showSidebar
+      ? 'hidden'
+      : undefined,
     'zIndex': props.sidebarZIndex,
     'transform': stowed.value ? 'translate3d(-100%, 0, 0)' : undefined,
-    ...(isMixed && props.extraVisible ? { transition: 'none' } : {}),
+    ...(isMixed && props.extraVisible
+      ? { transition: 'none' }
+      : {}),
   }
 })
 
@@ -329,7 +362,9 @@ const sidebarContentStyle = computed(
 const logoAreaStyle = computed((): CSSProperties => {
   const isMixed = props.isDualColumn
   return {
-    ...(isMixed ? { display: 'flex', justifyContent: 'center' } : {}),
+    ...(isMixed
+      ? { display: 'flex', justifyContent: 'center' }
+      : {}),
     height: `${props.headerHeight - 1}px`,
   }
 })
@@ -337,7 +372,9 @@ const logoAreaStyle = computed((): CSSProperties => {
 const extraStyle = computed(
   (): CSSProperties => ({
     left: `${props.sidebarWidth}px`,
-    width: props.extraVisible && props.showSidebar ? `${props.sidebarExtraWidth}px` : '0',
+    width: props.extraVisible && props.showSidebar
+      ? `${props.sidebarExtraWidth}px`
+      : '0',
     zIndex: props.sidebarZIndex,
   }),
 )
@@ -349,7 +386,9 @@ const extraTitleStyle = computed(
 )
 
 const extraContentStyle = computed((): CSSProperties => {
-  const titleH = props.headerHeight > 0 ? props.headerHeight : 0
+  const titleH = props.headerHeight > 0
+    ? props.headerHeight
+    : 0
   return { height: `calc(100% - ${titleH + 42}px)` }
 })
 
@@ -359,7 +398,11 @@ function menuLinkOf(key: string): MenuLinkTarget {
   const href = externalLinkOf(key)
   if (href)
     return { href }
-  return { to: key.startsWith('/') ? key : { name: key } }
+  return {
+    to: key.startsWith('/')
+      ? key
+      : { name: key },
+  }
 }
 
 /** 双列主列的条目是一级目录，去处是它下面第一个可达的页面 */
@@ -417,12 +460,18 @@ function handlePrimaryColumnHover(e: MouseEvent, mode: 'header-mix' | 'side-mixe
   const hoveredKey = itemEl.dataset.value
   if (!hoveredKey)
     return
-  const options = mode === 'side-mixed' ? sideMixedPrimaryOptions.value : headerMixPrimaryOptions.value
+  const options = mode === 'side-mixed'
+    ? sideMixedPrimaryOptions.value
+    : headerMixPrimaryOptions.value
   const idx = options.findIndex(option => String(option.key) === hoveredKey)
-  const routes = mode === 'side-mixed' ? sideMixedPrimaryRoutes.value : headerMixPrimaryRoutes.value
+  const routes = mode === 'side-mixed'
+    ? sideMixedPrimaryRoutes.value
+    : headerMixPrimaryRoutes.value
   if (idx < 0 || idx >= routes.length)
     return
-  const parentPath = mode === 'header-mix' ? headerMixParentPath.value : ''
+  const parentPath = mode === 'header-mix'
+    ? headerMixParentPath.value
+    : ''
   const target = routes[idx]
   if (!target)
     return
@@ -452,8 +501,8 @@ const asideRef = ref<HTMLElement | null>(null)
 // 触摸设备没有真正的悬停：轻点也会走 pointerenter/pointerleave，交给悬停意图会一抬指就收起
 const hoverCapable = typeof window !== 'undefined' && (window.matchMedia?.('(hover: hover)').matches ?? true)
 
-// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素。
-// 必须在 setup 顶层调用：它自己挂 onMounted 等模板 ref 就位，放进 onMounted 回调里那一层永远不会执行。
+// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素
+// 必须在 setup 顶层调用：它自己挂 onMounted 等模板 ref 就位，放进 onMounted 回调里那一层永远不会执行
 // 触摸设备交给下面的 mouseenter / mouseleave，这里取不到触发元素即不跟踪
 useHoverIntent({
   getTriggerEl: () => (hoverCapable ? asideRef.value : null),

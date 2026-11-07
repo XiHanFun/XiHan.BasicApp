@@ -1,9 +1,8 @@
-/**
- * 打印模块文案（业务命名空间 + 菜单键）。
- */
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
 export default {
-  setting: {
-    print_template: {
+  printing: {
+    print_templates: {
+      title: 'Print Template',
       page_name: 'Print Templates',
       tenant_templates: 'Tenant Templates',
       available_global_templates: 'Available Global Templates',
@@ -31,7 +30,7 @@ export default {
       initial_status: 'Initial Status',
       initial_status_help: 'Allow code-based resolution and use immediately after creation',
       allow_tenant_use_help: 'Allow tenant Auto scope to fall back to this global template',
-      sort: 'Sort',
+      order: 'Sort',
       remark: 'Remark',
       remark_placeholder: 'Describe intended use, applicable scenarios, or maintenance notes (optional)',
       action_create: 'New Template',
@@ -95,8 +94,5 @@ export default {
       save_blocked_issues: 'The template has {count} error(s). Fix them in the designer\'s issue list before saving',
       legacy_format_reset: 'This template is not in the current print template format. It has been replaced with a blank template; saving after redesigning overwrites the old content',
     },
-  },
-  menu: {
-    setting_print_template: 'Print Template',
   },
 }

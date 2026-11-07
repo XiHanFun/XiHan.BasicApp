@@ -1,9 +1,9 @@
 /**
- * 消息提示音。
+ * 消息提示音
  *
  * 声音取组件库 @xihan-ui/sound 的语义音效，与组件库文档里试听的是同一套：站内通知 notification、
  * 收到聊天消息 receive、自己的消息发送成功 send。走 @xihan-ui/vue/sound 的共享播放器，音频上下文等第一次
- * 真正发声才建立；是否发声由偏好 `notifySound` 决定。
+ * 真正发声才建立；是否发声由偏好 `notifySound` 决定
  */
 import type { BuiltinSoundName } from '@xihan-ui/sound'
 import { attachDocumentSoundUnlock } from '@xihan-ui/sound'
@@ -30,7 +30,7 @@ function enabled(): boolean {
 /**
  * 注入是否发声的判定（由全局挂载的组件在 setup 时接上偏好），顺带挂上首次手势解锁：
  * 浏览器要求页面上发生过点击或按键后音频才能出声，而消息推送不是手势，
- * 借用户的第一下操作把音频上下文解锁，之后推来的消息才响得出来。
+ * 借用户的第一下操作把音频上下文解锁，之后推来的消息才响得出来
  */
 export function configureNotificationSound(isEnabled: () => boolean): void {
   enabledResolver = isEnabled
@@ -44,8 +44,8 @@ export function configureNotificationSound(isEnabled: () => boolean): void {
 }
 
 /**
- * 播放一次提示音，每条消息都会响。
- * 密集到达时依次排开，排得太靠后的直接丢；偏好关闭、浏览器不支持或尚未发生用户手势时静默跳过。
+ * 播放一次提示音，每条消息都会响
+ * 密集到达时依次排开，排得太靠后的直接丢；偏好关闭、浏览器不支持或尚未发生用户手势时静默跳过
  */
 export function playNotificationSound(kind: NotifySoundKind): void {
   if (!enabled())

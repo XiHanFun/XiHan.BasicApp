@@ -1,11 +1,13 @@
-/**
- * Chat module copy (chat namespace + menu keys).
- */
+// 聊天模块文案（chat 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（chat.conversations.title、chat.audit.title）；@ 是 vue-i18n 链接消息的保留字符，一律写成 {'@'}
 export default {
   chat: {
     bell: 'Chat',
     unread_label: '{n} unread chat messages',
     island_new_message_fallback: 'New message',
+    conversations: {
+      title: 'Chat',
+    },
     panel: {
       title: 'Chat',
       open_page: 'Open full page',
@@ -32,6 +34,11 @@ export default {
       members_required: 'Please select at least 1 member',
       department_required: 'Please select a department',
       assistant_required: 'Please select an assistant',
+      user_label: 'User',
+      group_name_label: 'Group name',
+      members_label: 'Members',
+      department_label: 'Department',
+      assistant_label: 'Assistant',
     },
     list: {
       search_placeholder: 'Search conversations',
@@ -47,6 +54,7 @@ export default {
       single: 'Direct',
       group: 'Group',
       department: 'Department',
+      assistant: 'AI Assistant',
     },
     role: {
       owner: 'Owner',
@@ -89,6 +97,7 @@ export default {
       copied: 'Copied',
       copy_failed: 'Copy failed',
       forward: 'Forward',
+      download_failed: 'Download failed',
     },
     forward: {
       title: 'Forward to…',
@@ -182,11 +191,40 @@ export default {
       type_file: 'File',
       type_voice: 'Voice',
       type_system: 'System',
+      title: 'Chat Audit',
+      keyword: 'Keyword',
+      include_recalled: 'Include recalled',
+      detail: 'Details',
+      members: 'Members',
+      detail_title: 'Message Details',
+      members_title: 'Conversation Members',
+      load_failed: 'Failed to load',
+      section_message: 'Message',
+      section_conversation: 'Conversation',
+      section_attachments: 'Attachments ({n})',
+      section_reactions: 'Reactions ({n})',
+      seq: 'Sequence',
+      pinned: 'Pinned',
+      client_message_id: 'Client message ID',
+      reply_to: 'Reply to',
+      reply_preview: 'Reply snapshot',
+      mentions: 'Mentioned users',
+      content_recalled: 'Recalled; the content is not kept',
+      member_count: 'Members',
+      created_at: 'Created at',
+      last_message_at: 'Last message at',
+      owner: 'Owner',
+      file_size: 'Size',
+      duration: 'Duration',
+      file_id: 'File ID',
+      reaction_emoji: 'Emoji',
+      reaction_user: 'Reacted by',
+      user_id: 'User ID',
+      display_name: 'Display name',
+      user_name: 'Username',
+      member_role: 'Role',
+      joined_at: 'Joined at',
+      type_assistant: 'Assistant',
     },
-  },
-  menu: {
-    chat: 'Chat',
-    message_chat: 'Chat',
-    message_chat_audit: 'Chat Audit',
   },
 }

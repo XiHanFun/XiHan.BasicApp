@@ -1,11 +1,13 @@
-/**
- * 聊天模块文案（chat 命名空间 + 菜单键）。
- */
+// 聊天模块文案（chat 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（chat.conversations.title、chat.audit.title）；@ 是 vue-i18n 链接消息的保留字符，一律写成 {'@'}
 export default {
   chat: {
     bell: '線上聊天',
     unread_label: '{n} 則未讀聊天',
     island_new_message_fallback: '收到新訊息',
+    conversations: {
+      title: '線上聊天',
+    },
     panel: {
       title: '線上聊天',
       open_page: '開啟獨立頁面',
@@ -32,6 +34,11 @@ export default {
       members_required: '請至少選擇 1 名成員',
       department_required: '請選擇部門',
       assistant_required: '請選擇助理',
+      user_label: '使用者',
+      group_name_label: '群組名稱',
+      members_label: '成員',
+      department_label: '部門',
+      assistant_label: '助手',
     },
     list: {
       search_placeholder: '搜尋對話',
@@ -41,13 +48,13 @@ export default {
       unpin: '取消置頂',
       mute: '免打擾',
       unmute: '取消免打擾',
-      // @ 是 vue-i18n 链接消息保留字符，须用 {'@'} 字面量转义，否则消息编译抛错白屏
       mention_me: '[有人{\'@\'}你] ',
     },
     type: {
       single: '單聊',
       group: '群組聊天',
       department: '部門群組',
+      assistant: 'AI 助手',
     },
     role: {
       owner: '群組擁有者',
@@ -90,6 +97,7 @@ export default {
       copied: '已複製',
       copy_failed: '複製失敗',
       forward: '轉發',
+      download_failed: '下載失敗',
     },
     forward: {
       title: '轉發給…',
@@ -183,11 +191,40 @@ export default {
       type_file: '檔案',
       type_voice: '語音',
       type_system: '系統',
+      title: '聊天稽核',
+      keyword: '關鍵字',
+      include_recalled: '包含已收回',
+      detail: '詳情',
+      members: '成員',
+      detail_title: '訊息詳情',
+      members_title: '會話成員',
+      load_failed: '載入失敗',
+      section_message: '訊息',
+      section_conversation: '所在會話',
+      section_attachments: '附件（{n}）',
+      section_reactions: '表情回應（{n}）',
+      seq: '會話內序號',
+      pinned: '置頂',
+      client_message_id: '用戶端訊息識別碼',
+      reply_to: '回覆的訊息',
+      reply_preview: '回覆快照',
+      mentions: '提及的使用者',
+      content_recalled: '已收回，內容不保留',
+      member_count: '成員數',
+      created_at: '建立時間',
+      last_message_at: '最後訊息時間',
+      owner: '群組擁有者',
+      file_size: '大小',
+      duration: '時長',
+      file_id: '檔案ID',
+      reaction_emoji: '表情',
+      reaction_user: '回應者',
+      user_id: '使用者ID',
+      display_name: '顯示名稱',
+      user_name: '使用者名稱',
+      member_role: '角色',
+      joined_at: '加入時間',
+      type_assistant: '助手',
     },
-  },
-  menu: {
-    chat: '即時通訊',
-    message_chat: '線上聊天',
-    message_chat_audit: '聊天稽核',
   },
 }

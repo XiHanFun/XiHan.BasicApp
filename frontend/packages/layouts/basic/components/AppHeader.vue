@@ -16,6 +16,7 @@ import HeaderToolbar from './header/HeaderToolbar.vue'
 import HeaderTopMenu from './header/HeaderTopMenu.vue'
 import ImpersonationDialog from './ImpersonationDialog.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
+import SwitchRolesDialog from './SwitchRolesDialog.vue'
 import XihanIconButton from './XihanIconButton.vue'
 
 interface Props {
@@ -36,6 +37,7 @@ const { t, te } = useI18n()
 const { isMobile } = useIsMobile()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const showImpersonationDialog = ref(false)
+const showSwitchRolesDialog = ref(false)
 const {
   route,
   router,
@@ -85,8 +87,8 @@ const showTopMenu = computed(
 const showBreadcrumb = computed(() => !showTopMenu.value && appStore.breadcrumbEnabled)
 
 /**
- * 顶栏空间先给横向菜单：菜单一行装不下就把命令面板收成图标钮，让出它那一截宽度。
- * 展开与收起用同一把尺量，避免来回抖动——收起后要再展开，富余量必须够放回展开态与图标态的差值。
+ * 顶栏空间先给横向菜单：菜单一行装不下就把命令面板收成图标钮，让出它那一截宽度
+ * 展开与收起用同一把尺量，避免来回抖动——收起后要再展开，富余量必须够放回展开态与图标态的差值
  */
 const SEARCH_ICON_WIDTH = 32
 const SEARCH_RESTORE_SPARE = 8
@@ -129,15 +131,21 @@ const topMenuSource = computed<LayoutRouteRecord[]>(() => baseMenuSource.value)
 function resolveIcon(icon: string) {
   if (!icon)
     return icon
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 function renderRouteIcon(icon: string) {
-  return () => h(Icon, { icon: resolveIcon(icon) })
+  return () => h(Icon, {
+    icon: resolveIcon(icon),
+  })
 }
 
 function translateMenuTitle(title: string, _fallback: string) {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 const topMenuOptions = computed<AppMenuOption[]>(() => {
@@ -146,7 +154,12 @@ const topMenuOptions = computed<AppMenuOption[]>(() => {
     translate: translateMenuTitle,
     iconRenderer: renderRouteIcon,
     badgeLabelRenderer: renderHorizontalBadgeLabel,
-    linkIcon: () => h(Icon, { icon: 'lucide:external-link', width: 13, height: 13, style: 'opacity:0.5;flex-shrink:0' }),
+    linkIcon: () => h(Icon, {
+      icon: 'lucide:external-link',
+      width: 13,
+      height: 13,
+      style: 'opacity:0.5;flex-shrink:0',
+    }),
   })
   if (isSplitMode.value) {
     return options.map(item => ({ ...item, children: undefined }))
@@ -170,7 +183,9 @@ const breadcrumbs = computed(() => {
     return []
   }
   return matched.map((item, index) => {
-    const parent = index > 0 ? matched[index - 1] : null
+    const parent = index > 0
+      ? matched[index - 1]
+      : null
     const siblings = (parent?.children ?? [])
       .filter(sibling => sibling.meta?.title && !sibling.meta?.hidden)
       .map((sibling) => {
@@ -178,13 +193,21 @@ const breadcrumbs = computed(() => {
         const siblingIcon = sibling.meta?.icon as string | undefined
         return {
           key: resolveFullPath(sibling.path, parent?.path ?? ''),
-          label: te(siblingTitle) ? t(siblingTitle) : siblingTitle,
-          icon: siblingIcon ? () => h(Icon, { icon: resolveIcon(siblingIcon) }) : undefined,
+          label: te(siblingTitle)
+            ? t(siblingTitle)
+            : siblingTitle,
+          icon: siblingIcon
+            ? () => h(Icon, {
+                icon: resolveIcon(siblingIcon),
+              })
+            : undefined,
         }
       })
     const titleKey = String(item.meta?.title)
     return {
-      title: te(titleKey) ? t(titleKey) : titleKey,
+      title: te(titleKey)
+        ? t(titleKey)
+        : titleKey,
       path: item.path,
       icon: appStore.breadcrumbShowIcon ? (item.meta?.icon as string | undefined) : undefined,
       siblings,
@@ -211,33 +234,51 @@ const contextLabel = computed(() => {
   if (!appContext.shellRoutes.controlCenter || !userStore.userInfo) {
     return null
   }
-  return userStore.userInfo.isPlatform ? t('header.context.platform') : (userStore.userInfo.tenantName || null)
+  return userStore.userInfo.isPlatform
+    ? t('header.context.platform')
+    : (userStore.userInfo.tenantName || null)
 })
 
 const userOptions = computed<AppDropdownOption[]>(() => [
-  // 个人中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，免得留一个点了没反应的死菜单。
+  // 个人中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，免得留一个点了没反应的死菜单
   // 控制中心（切换租户 / 进入平台）不在这里：顶栏的上下文切换按钮就是它的入口
   ...(appContext.shellRoutes.profile
-    ? [{
-        label: t('header.user.profile'),
-        key: 'profile',
-        icon: () => h(Icon, { icon: 'lucide:user' }),
-      }]
+    ? [
+        {
+          label: t('header.user.profile'),
+          key: 'profile',
+          icon: () => h(Icon, { icon: 'lucide:user' }),
+        },
+      ]
     : []),
   // 能否发起模仿由服务端判定后随用户信息下发；模仿态下服务端恒返回 false，此时只出「退出模仿」
+  // 切换本会话激活的角色；模仿态的会话服务端不让切，这里也不出
+  ...(!userStore.userInfo?.isImpersonating && appContext.apis.sessionRoleApi
+    ? [
+        {
+          label: t('header.switch_roles.entry'),
+          key: 'switch-roles',
+          icon: () => h(Icon, { icon: 'lucide:users-round' }),
+        },
+      ]
+    : []),
   ...(userStore.userInfo?.canImpersonate
-    ? [{
-        label: t('header.impersonation.entry'),
-        key: 'impersonate',
-        icon: () => h(Icon, { icon: 'lucide:user-round-cog' }),
-      }]
+    ? [
+        {
+          label: t('header.impersonation.entry'),
+          key: 'impersonate',
+          icon: () => h(Icon, { icon: 'lucide:user-round-cog' }),
+        },
+      ]
     : []),
   ...(userStore.userInfo?.isImpersonating
-    ? [{
-        label: t('header.impersonation.stop'),
-        key: 'stop-impersonation',
-        icon: () => h(Icon, { icon: 'lucide:user-round-x' }),
-      }]
+    ? [
+        {
+          label: t('header.impersonation.stop'),
+          key: 'stop-impersonation',
+          icon: () => h(Icon, { icon: 'lucide:user-round-x' }),
+        },
+      ]
     : []),
   ...(appStore.widgetLockScreen
     ? [
@@ -246,7 +287,9 @@ const userOptions = computed<AppDropdownOption[]>(() => [
             h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
               h('span', t('header.user.lock')),
               ...(appStore.shortcutEnable && appStore.shortcutLock
-                ? [h('kbd', { style: shortcutKbdStyle }, 'Alt L')]
+                ? [
+                    h('kbd', { style: shortcutKbdStyle }, 'Alt L'),
+                  ]
                 : []),
             ]),
           key: 'lock',
@@ -260,7 +303,9 @@ const userOptions = computed<AppDropdownOption[]>(() => [
       h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
         h('span', t('header.user.logout')),
         ...(appStore.shortcutEnable && appStore.shortcutLogout
-          ? [h('kbd', { style: shortcutKbdStyle }, 'Alt Q')]
+          ? [
+              h('kbd', { style: shortcutKbdStyle }, 'Alt Q'),
+            ]
           : []),
       ]),
     key: 'logout',
@@ -283,6 +328,10 @@ async function handleUserAction(key: string) {
   }
   if (key === 'impersonate') {
     showImpersonationDialog.value = true
+    return
+  }
+  if (key === 'switch-roles') {
+    showSwitchRolesDialog.value = true
     return
   }
   if (key === 'stop-impersonation') {
@@ -563,4 +612,5 @@ watch(() => route.fullPath, () => {
 
   <!-- 模仿登录：由用户菜单打开，选中目标即以其身份重建会话 -->
   <ImpersonationDialog v-model:show="showImpersonationDialog" />
+  <SwitchRolesDialog v-model:show="showSwitchRolesDialog" />
 </template>

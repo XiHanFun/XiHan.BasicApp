@@ -1,9 +1,8 @@
-/**
- * 打印模块文案（业务命名空间 + 菜单键）。
- */
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
 export default {
-  setting: {
-    print_template: {
+  printing: {
+    print_templates: {
+      title: 'Druckvorlage',
       page_name: 'Druckvorlagen',
       tenant_templates: 'Mandantenvorlagen',
       available_global_templates: 'Verfügbare globale Vorlagen',
@@ -31,7 +30,7 @@ export default {
       initial_status: 'Anfangsstatus',
       initial_status_help: 'Ermöglicht die codebasierte Auflösung und sofortige Nutzung nach dem Erstellen',
       allow_tenant_use_help: 'Erlaubt dem Mandanten-Geltungsbereich Auto, auf diese globale Vorlage zurückzugreifen',
-      sort: 'Sortierung',
+      order: 'Sortierung',
       remark: 'Bemerkung',
       remark_placeholder: 'Verwendungszweck, Einsatzszenarien oder Wartungshinweise beschreiben (optional)',
       action_create: 'Neue Vorlage',
@@ -95,8 +94,5 @@ export default {
       save_blocked_issues: 'Die Vorlage enthält {count} Fehler. Beheben Sie sie in der Problemliste des Designers, bevor Sie speichern',
       legacy_format_reset: 'Diese Vorlage liegt nicht im aktuellen Druckvorlagenformat vor und wurde durch eine leere Vorlage ersetzt; Speichern nach der Neugestaltung überschreibt den alten Inhalt',
     },
-  },
-  menu: {
-    setting_print_template: 'Druckvorlage',
   },
 }

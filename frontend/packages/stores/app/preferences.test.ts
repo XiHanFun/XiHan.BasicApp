@@ -1,11 +1,11 @@
 /**
- * 通用偏好切片（app/preferences）单元测试。
+ * 通用偏好切片（app/preferences）单元测试
  * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐与位置（含旧版开关迁移）、
  * 快捷键、页脚版权等偏好的默认值、本地还原与落地；以及
- * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点。
+ * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点
  */
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import {
   APP_TIMEZONE_KEY,
@@ -93,7 +93,7 @@ describe('默认值', () => {
   it('语言默认跟随浏览器（测试环境固定为 zh-CN），时区默认 Asia/Shanghai 不跟随浏览器', () => {
     const store = freshStore()
 
-    expect(store.locale).toBe(DEFAULT_LOCALE)
+    expect(store.locale).toBe('zh-CN')
     expect(store.appTimezone).toBe('Asia/Shanghai')
   })
 
@@ -116,7 +116,7 @@ describe('默认值', () => {
     expect(store.checkUpdatesInterval).toBe(30)
   })
 
-  it('全部 Widget 默认显示，五个工具与偏好入口的位置默认 auto', () => {
+  it('widget 缺省显示（通知与锁屏也开着，与 4.x 相同），五个工具与偏好入口的位置默认 auto', () => {
     const store = freshStore()
 
     expect(store.widgetSearchPlacement).toBe('auto')
@@ -148,7 +148,7 @@ describe('默认值', () => {
     expect(store.copyrightIcpUrl).toBe('')
   })
 
-  it('快捷键总开关与四个子项默认开启', () => {
+  it('快捷键总开关与子项默认开启', () => {
     const store = freshStore()
 
     expect(store.shortcutEnable).toBe(true)
@@ -171,7 +171,10 @@ describe('本地还原', () => {
   })
 
   it('未保存语言时跟随浏览器语言，且不把偵测结果写回本地存储', () => {
-    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['ja'] })
+    Object.defineProperty(window.navigator, 'languages', {
+      configurable: true,
+      get: () => ['ja'],
+    })
     try {
       const store = freshStore()
 
@@ -179,7 +182,10 @@ describe('本地还原', () => {
       expect(localStorage.getItem(LOCALE_KEY)).toBeNull()
     }
     finally {
-      Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+      Object.defineProperty(window.navigator, 'languages', {
+        configurable: true,
+        get: () => ['zh-CN'],
+      })
     }
   })
 
@@ -201,18 +207,17 @@ describe('locale 是 vue-i18n 的唯一入口', () => {
     const store = freshStore()
 
     store.setLocale('en-US')
-    await nextTick()
 
-    expect(i18n.global.locale.value).toBe('en-US')
+    // 文案按区域懒加载，切换是异步的
+    await vi.waitFor(() => expect(i18n.global.locale.value).toBe('en-US'))
   })
 
   it('直接改 locale ref（模拟远端推送覆盖）同样能带动 vue-i18n', async () => {
     const store = freshStore()
 
     store.locale = 'en-US'
-    await nextTick()
 
-    expect(i18n.global.locale.value).toBe('en-US')
+    await vi.waitFor(() => expect(i18n.global.locale.value).toBe('en-US'))
   })
 
   it('设置成空串时不改动 vue-i18n（无效语言不生效）', async () => {
@@ -237,7 +242,10 @@ describe('locale 是 vue-i18n 的唯一入口', () => {
 
 describe('重置偏好', () => {
   it('语言重置为浏览器语言，而不是固定回退 DEFAULT_LOCALE', () => {
-    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['de-DE'] })
+    Object.defineProperty(window.navigator, 'languages', {
+      configurable: true,
+      get: () => ['de-DE'],
+    })
     try {
       const store = freshStore()
       store.setLocale('ja-JP')
@@ -247,7 +255,10 @@ describe('重置偏好', () => {
       expect(store.locale).toBe('de-DE')
     }
     finally {
-      Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+      Object.defineProperty(window.navigator, 'languages', {
+        configurable: true,
+        get: () => ['zh-CN'],
+      })
     }
   })
 })

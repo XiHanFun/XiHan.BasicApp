@@ -36,14 +36,15 @@ export interface UserProfile {
   lastFailedLoginTime?: string
 }
 
+/**
+ * 保存本人资料（后端 `profile.update`，整体覆盖；nickName 即显示名、必填，gender 是壳层的数字 0 未设置 / 1 男 / 2 女，空白当作没填）
+ * 4.x 的 avatar、timeZone、language 不在 6.0 的资料里：头像走上传端点与 `profile.remove-avatar`（uploadAvatarApi / removeAvatarApi），时区与语言是偏好
+ */
 export interface UpdateProfileParams {
-  nickName?: string
+  nickName: string
   realName?: string
-  avatar?: string
-  gender?: number
+  gender: number
   birthday?: string
-  timeZone?: string
-  language?: string
   country?: string
   remark?: string
 }
@@ -63,7 +64,10 @@ export interface ChangePhoneParams {
   password: string
 }
 
-/** 与后端 LoginResult 枚举（JsonStringEnumConverter 序列化值）一致，含认证审计事件 */
+/**
+ * 个人中心「登录日志」的结果（4.x 后端 LoginResult 枚举的序列化值，含认证审计事件）：
+ * 6.0 记的是认证事件 + 成败 + 错误码，由壳层（src/app/context.ts）按事件换成这里的结果；RolesActivated 对应 6.0 新增的会话角色激活
+ */
 export type LoginAuditResult
   = | 'AccountDisabled'
     | 'AccountLocked'
@@ -77,6 +81,7 @@ export type LoginAuditResult
     | 'PasswordChanged'
     | 'PasswordReset'
     | 'RequiresTwoFactor'
+    | 'RolesActivated'
     | 'SessionRevoked'
     | 'Success'
     | 'TenantSwitched'
@@ -121,21 +126,25 @@ export interface TwoFactorSetupResult {
   authenticatorUri: string
 }
 
-/** 用户通知偏好（渠道 × 类型） */
+/**
+ * 用户通知偏好（渠道 × 类型；与后端 `profile.notification-preference` 同名同义，整体覆盖保存，没保存过即全收）
+ * 强制阅读与紧急通知不受偏好影响。4.x 的推送、机器人两个渠道与审批、营销两种类型 6.0 没有效果（没有推送渠道、机器人是群广播不分人、
+ * 审批随后续的流程模块、没有营销类通知），不显示也不存
+ */
 export interface NotificationPreference {
   channelInApp: boolean
   channelEmail: boolean
   channelSms: boolean
-  channelPush: boolean
-  /** 机器人通知（钉钉/飞书/企微/Telegram，对应 Bot 通道整体；默认关闭） */
-  channelBot: boolean
   typeAnnouncement: boolean
   typeTask: boolean
-  typeApproval: boolean
   typeSecurity: boolean
-  typeMarketing: boolean
 }
 
+/**
+ * 绑定的第三方账号（个人中心「账号绑定」；后端 `ExternalLoginResponse` 的投影）：
+ * provider 是规范的提供方类型（github / gitee / google / qq / wechat / wecom / lark / dingtalk），登录配置里的名称可能是自定义的；
+ * providerDisplayName 是第三方账号自己的显示名（4.x 同义），最近一次用它登录的时间沿用 *Time 命名
+ */
 export interface ExternalLoginItem {
   provider: string
   providerDisplayName?: string
@@ -144,6 +153,7 @@ export interface ExternalLoginItem {
   lastLoginTime?: string
 }
 
+/** 一段时间里的次数与在线时长（个人中心「统计」；后端 `my-activity.summary` 的 logins / accesses / operations / onlineSeconds，沿用 4.x 的 *Count 与 onlineTime 命名） */
 export interface UserActivityPeriod {
   loginCount: number
   accessCount: number
@@ -152,6 +162,7 @@ export interface UserActivityPeriod {
   onlineTime: number
 }
 
+/** 有活动的一天（日期是 yyyy-MM-dd，按请求的时区分天） */
 export interface UserActivityTrendPoint {
   date: string
   accessCount: number
@@ -160,6 +171,7 @@ export interface UserActivityTrendPoint {
   onlineMinutes: number
 }
 
+/** 本人的活跃度：今天、本周（周一起）、本月的次数，最近一次的时间（近一年内，没有即不给），近 371 天里有活动的日子（稀疏、日期正序） */
 export interface UserActivity {
   today: UserActivityPeriod
   thisWeek: UserActivityPeriod
@@ -186,6 +198,13 @@ export interface ApiCredentialSecret {
   basicId: number | string
   appKey: string
   appSecret: string
+}
+
+/** 开放接口的调用安全设置（签名算法与 IP 白名单，作用于本人全部凭证；algorithms 为可选的签名算法） */
+export interface ApiCallSettings {
+  signAlgorithm: string
+  ipWhitelist: string[]
+  algorithms: string[]
 }
 
 /** 我的 OAuth 应用（个人中心开发者设置；与后端 MyOAuthAppItemDto 对应） */
@@ -220,6 +239,16 @@ export interface MyOAuthAppCreateInput {
   appDescription?: string | null
   redirectUris: string
   logo?: string | null
+}
+
+/** 已授权的第三方应用（个人中心「OAuth 应用」页签；与后端 OAuthConsentResponse 对应，授权时间沿用壳层的 *Time 命名） */
+export interface OAuthConsentItem {
+  clientId: string
+  appName?: string | null
+  logo?: string | null
+  homepage?: string | null
+  scopes: string[]
+  grantedTime: string
 }
 
 /** 更新我的 OAuth 应用入参 */

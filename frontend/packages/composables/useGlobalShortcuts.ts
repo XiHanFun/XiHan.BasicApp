@@ -4,8 +4,8 @@ import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 import { useHotkey } from './useHotkey'
 
 /**
- * 全局快捷键的键位声明。注册端（useHotkey）与偏好设置里的键帽（XhKbd）读同一份。
- * `Mod` 在 Mac 上解析成 ⌘、其余平台解析成 Ctrl。
+ * 全局快捷键的键位声明。注册端（useHotkey）与偏好设置里的键帽（XhKbd）读同一份
+ * `Mod` 在 Mac 上解析成 ⌘、其余平台解析成 Ctrl
  */
 export const GLOBAL_HOTKEYS = {
   search: ['Mod', 'K'],
@@ -15,8 +15,8 @@ export const GLOBAL_HOTKEYS = {
 } as const
 
 /**
- * 注册全局快捷键（搜索 / 标签总览 / 锁屏 / 退出）及锁屏自定义事件监听。
- * 在 App 根组件中调用一次即可。
+ * 注册全局快捷键（搜索 / 标签总览 / 锁屏 / 退出）及锁屏自定义事件监听
+ * 在 App 根组件中调用一次即可
  */
 export function useGlobalShortcuts() {
   const appStore = useAppStore()

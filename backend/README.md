@@ -1,129 +1,41 @@
-![logo](../assets/logo.png)
+# backend-next
 
-[中文](README_cn.md)
+XiHan.BasicApp 6.0 后端（方案第 4、5 节）：基于 XiHan.Framework 5（`next` 分支）从零实现，能力包 + 操作契约，一份契约同时服务 HTTP / gRPC / MCP。
 
-# XiHan.BasicApp Backend
-
-This file is for backend developers and contributors. It documents **how this layer is organized**: structure, project catalog, how endpoints are exposed, the dependency footprint and local development.
-
-If you just want to get the whole system running, start from the [repository README](../README.md); topic-by-topic documentation lives on the [documentation site](https://basicapp.docs.xihanfun.com).
-
-## Architecture Overview
-
-Three layers, dependencies flow upwards only, never back:
+## 布局
 
 ```text
-src/main/       XiHan.BasicApp.WebHost          the only executable project
-      ↑
-src/modules/    Saas · CodeGeneration · AI      business modules
-                Workflow · Printing · Chat      depend on Saas or Web.Core only
-      ↑
-src/framework/  XiHan.BasicApp.Core             the only two projects referencing
-                XiHan.BasicApp.Web.Core         XiHan.Framework
+backend-next/
+├─ XiHan.BasicApp.slnx
+├─ Directory.Build.props            版本 6.0.0-preview.1、Nullable、警告即错误、文档文件
+├─ Directory.Packages.props         中央包版本
+├─ Directory.Build.targets          XiHanFrameworkReference / XiHanFrameworkAnalyzer 项 → ProjectReference 或 PackageReference
+├─ props/framework.props            缺省 ProjectReference ../../XiHan.Framework/next/src，锁定提交 XiHanFrameworkCommit；UseXiHanFrameworkSource=false 切 NuGet 包
+├─ src/
+│  ├─ XiHan.BasicApp.Contracts      Tier 0：实体协议与基类、分页 / 批量结果、权限描述
+│  ├─ XiHan.BasicApp.Runtime        Tier 0：SqlSugar 回调（库类型、连接串、操作人、snake_case）、租户作用域查询、操作人中间件
+│  ├─ XiHan.BasicApp.Identity       Tier 1：N0 最小切片（SysUser、SysUserStatistics；users.create / get / list）
+│  └─ XiHan.BasicApp.Host           Full Profile + SqlSugar + JWT + 三个数据库 Provider + 发件箱；HTTP / OpenAPI / Scalar / MCP / gRPC
+└─ test/
+   ├─ XiHan.BasicApp.Architecture.Tests   层级依赖、Expose 显式、权限码文法、匿名白名单、目录与文案、框架提交锁定
+   └─ XiHan.BasicApp.Integration.Tests    TestServer + SQLite：HTTP / MCP / gRPC 契约、事务；Smoke/ 是方案 9.1 的四项冒烟（两库冒烟需 XIHAN_TEST_POSTGRES）
 ```
 
-`Saas` is the base module — identity, permissions, multi-tenancy, auditing and platform capabilities. The rest are optional and can be removed as a whole.
-
-## Project Catalog
-
-9 source projects and 10 test projects, 19 csproj files in total, all registered in `XiHan.BasicApp.slnx` (`.slnx` format, not `.sln`).
-
-| Project | Responsibility |
-| --- | --- |
-| `XiHan.BasicApp.Core` | Application base: composes the non-web framework modules and the shared types and conventions |
-| `XiHan.BasicApp.Web.Core` | Web base (`Microsoft.NET.Sdk.Web`): composes the framework web modules, provides maintenance mode (state flag + 503/`Retry-After` middleware, passing through `/health` and `/.well-known/`) |
-| `XiHan.BasicApp.Saas` | Base business module: authentication, RBAC with data scopes and field masking, multi-tenancy, six kinds of audit log, message center, export center, scheduled jobs, open platform |
-| `XiHan.BasicApp.CodeGeneration` | Code generation: DbFirst schema import, single-table / tree / master-detail modes, Scriban templates, derived artifact generators |
-| `XiHan.BasicApp.AI` | AI: provider and API-key custody, prompt library, Qdrant knowledge-base RAG, skill registry with MCP projection, configurable assistants |
-| `XiHan.BasicApp.Workflow` | Workflow: the framework engine plus SqlSugar persistence (replacing the in-memory default), definition / instance / todo application services |
-| `XiHan.BasicApp.Printing` | Printing: print template management with the XiHan print designer; template codes are unique per tenant and immutable after creation; data sources come from a code-registered registry |
-| `XiHan.BasicApp.Chat` | Chat: single / group / department / assistant conversations, realtime delivery, sensitive-word filtering, retention cleanup |
-| `XiHan.BasicApp.WebHost` | Startup host: module composition, middleware pipeline, health checks, seeding and upgrade entry points |
-
-## Endpoint Exposure
-
-**No controllers at all.** 159 types are annotated with `[DynamicApi]` and get their routes registered automatically by the framework's dynamic API convention:
-
-| Module | Dynamic API types |
-| --- | --- |
-| Saas | 121 |
-| CodeGeneration | 12 |
-| AI | 11 |
-| Workflow | 7 |
-| Chat | 4 |
-| Printing | 4 |
-
-One constraint is enforced by tests: every dynamic API method must be covered by `PermissionAuthorizeAttribute`, `AllowAnonymousAttribute` or an explicit allowlist — forgetting authorization fails the test run.
-
-A few endpoints are neither HTTP-dynamic-API nor plain HTTP: the SignalR notification hub and chat hub; the OAuth external-login callbacks `/api/OAuth/ExternalLogin` and `/api/OAuth/Callback`; and the OIDC provider endpoints `/connect/authorize`, `/connect/token`, `/connect/revoke` plus discovery, JWKS and userinfo (not registered when disabled).
-
-## Data Model
-
-89 tables (`SugarTable`): Saas 71, CodeGeneration 5, AI 4, Chat 4, Workflow 4, Printing 1.
-
-## Dependency Footprint
-
-- **63 XiHan.Framework packages** (`4.0.0`): 56 referenced by Core, 7 by Web.Core
-- **Exactly one third-party NuGet package on the source side**: `Microsoft.SemanticKernel.Connectors.Qdrant` (for the AI knowledge base)
-- SqlSugar, Serilog, the Redis client and Scriban all arrive transitively through the framework; SignalR and MVC come from the ASP.NET Core shared framework
-- Five third-party packages on the test side: xunit, xunit.runner.visualstudio, Microsoft.NET.Test.Sdk, Moq, coverlet.collector
-
-### How the Framework Is Referenced
-
-`props/framework.props` decides whether the framework is consumed **from source** or **from NuGet**: `UseXiHanFrameworkSource` defaults to true when the **solution name starts with `XiHanFun`** and the framework's Core csproj exists; otherwise NuGet is used. Override it explicitly with `-p:UseXiHanFrameworkSource=true` / `false`. Building a single csproj leaves the solution name empty and therefore resolves to NuGet — which is exactly what the container build relies on. Only `Core` and `Web.Core` import this file.
-
-## Local Development
+## 命令（仓库根）
 
 ```bash
-dotnet restore backend/XiHan.BasicApp.slnx
-dotnet build backend/XiHan.BasicApp.slnx --configuration Release
-dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
+dotnet restore backend-next/XiHan.BasicApp.slnx
+dotnet build backend-next/XiHan.BasicApp.slnx -c Release --no-restore
+XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres' dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build
+dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development
+dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out frontend-next/contracts
 ```
 
-Run `src/main/XiHan.BasicApp.WebHost`. Development listens on `http://127.0.0.1:9708` (with `launchUrl` pointing at the scalar docs page), Production on `:9709`; both can be overridden through the `Hosting:Urls` setting.
+框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `E:\Repository\XiHanFun\XiHanFun.Next.Local.slnx` 登记本目录全部工程与框架 `next/src`。
 
-`scripts/` contains just two scripts: `nuget/VersionUpgrade.ps1` (bumps the version in `props/version.props`) and `project/ClearProjecBinObj.ps1` (clears bin/obj).
+## 规则
 
-## Configuration and External Dependencies
-
-| File | Notes |
-| --- | --- |
-| `appsettings.json` | A handful of environment-independent defaults |
-| `appsettings.Development.json` | The full annotated reference configuration; add new settings here first |
-| `appsettings.Production.json` | **Ignored by `.gitignore` and absent from the repository** — copy it from the Development one and adapt |
-
-Configuration sections: `XiHan:{Observability, DistributedIds, Authentication, Data, Upgrade, Caching, Web, Localization, VirtualFileSystem, ObjectStorage}`.
-
-External dependencies:
-
-- **Database** — the only hard requirement, PostgreSQL by default; connections support SqlServer / MySql / PostgreSQL / SQLite / Oracle
-- **Redis** — optional. Turn it off and caching falls back to in-process memory; the health check still reports Healthy, annotated as "not enabled (in-process fallback)"
-- **Qdrant** — only needed for the AI knowledge base. The app starts without it, but `/health` turns red and the knowledge base is unavailable
-
-`GET /health` is anonymous and returns the overall status plus the names of the three checks (database / redis / qdrant). It deliberately does not return connection strings or exception details.
-
-## First Start
-
-`EnableDbInitialization`, `EnableTableInitialization` and `EnableDataSeeding` all default to **false** in the framework; the repository turns them on only in `appsettings.Development.json` (`appsettings.json` does not contain these keys). Run in the Development environment, point the app at an empty database it can reach, and it will create the schema and seed it on startup; in other environments enable them yourself in the matching configuration file or environment variables. Seeds come in two kinds — the baseline always runs, while demo data is written only when `Saas:Seed:EnableDemoData` is true (off when missing; the development configuration turns it on, production turns it off). See [Introduction: seed data](../docs/backend/introduction.md#种子数据) for the phases, write rules and demo accounts.
-
-Default super administrator: username `superadmin`, email `superadmin@xihan.fun`, role code `super_admin`, initial password `SuperAdmin@123` (written by the seed; the account is flagged as needing its own password change, which is enforced once forced password change is turned on in the "Password settings" parameter). Demo accounts all use `Demo@123`.
-
-## Upgrade Scripts
-
-The repository convention is `UpdateScripts/<version>/<version>.sql`, one directory per version. By convention only the PostgreSQL dialect is provided, and each script must be safe to re-run (`IF NOT EXISTS` and friends).
-
-With `XiHan:Upgrade:EnableAutoCheckOnStartup` set to true (the default), pending scripts are **executed automatically on startup** in version order, and a failure aborts startup. Turn it off and you apply them to the target database yourself, in version order, before starting. See [Upgrade and migration](../docs/backend/upgrade.md).
-
-## Tests
-
-10 test projects and 2301 `[Fact]` / `[Theory]` annotations (Saas 652, CodeGeneration 510, AI 306, Workflow 216, Chat 206, Printing 203, Core 84, Web.Core 56, WebHost 55, Api 13). All of them are unit tests and reflection-based constraint tests; none touch a database.
-
-## Container
-
-`Dockerfile` is a two-stage build (`sdk:10.0` → `aspnet:10.0`) that copies only `props` and `src`, resolves the framework from NuGet, runs as a non-root user, exposes 9708 and ships a `HEALTHCHECK` against `/health`.
-
-## Removing Optional Modules
-
-The optional modules (CodeGeneration / AI / Workflow / Printing / Chat) can be removed wholesale: delete the project and its test project, drop them from `XiHan.BasicApp.slnx`, and remove the module dependency registration on the WebHost side. Chat and AI have a one-way dependency, so removing Chat also means deleting the three assistant bridge files on the AI side.
-
-⚠️ **Removal must be paired with rebuilding the database** — seeded menus, permission codes and tables are not reclaimed automatically.
+- 每个公开方法一个 `[Operation("<资源>.<动词>")]`，显式写 `Expose`（架构测试强制）；权限码 `<包>.<资源>.<动作>`，资源段与操作 ID 同词；匿名操作登记白名单。
+- 平台库实体不实现 `IMultiTenant`；租户库实体用 `TenantScoped*` 基类。分页、投影、联表经 `TenantScopedQuery.For<T>` 起手。
+- 请求 DTO 有缺省值的属性用 `set`，不用 `init`（源生成序列化会把 init 当构造参数，缺席成员变 null）。
+- 文案不进代码：每包 `<包>Messages` + `Localization/<区域>.json` × 10，键集与常量一一对应（架构测试守护）。

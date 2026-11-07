@@ -1,24 +1,19 @@
 <!doctype html>
-<html lang="zh">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta name="renderer" content="webkit" />
-    <meta name="description" content="XiHan BasicApp - 现代化后台管理系统" />
-    <meta name="keywords" content="XiHan BasicApp Vue3 Vite XiHan.UI" />
-    <meta name="author" content="zhaifanhua" />
+    <meta name="description" content="XiHan.BasicApp 6.0" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"
     />
-    <title>%VITE_APP_TITLE%</title>
+    <title>XiHan.BasicApp</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
     <script>
       // 首屏引导：应用挂载前先把根字号与圆角写到 <html>，让首帧就是最终值。
-      // 存储键取自 packages/constants/storage.ts，默认值与换算规则跟 constants/app.ts、
-      // useHtmlStyle、useTheme 保持一致；没存过或值不合法时按默认值写——
-      // 新装的浏览器正是没存过的那一批，不写的话首帧仍会按 CSS 默认值画一遍再跳。
+      // 存储键取自 packages/constants/storage.ts，默认值与换算规则跟 constants/app.ts、useHtmlStyle、useTheme 保持一致；
+      // 没存过或值不合法时按默认值写——新装的浏览器正是没存过的那一批，不写的话首帧仍会按 CSS 默认值画一遍再跳。
       ;(function () {
         function readNumber(key, fallback) {
           try {

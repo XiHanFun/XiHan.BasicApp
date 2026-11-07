@@ -1,13 +1,13 @@
 /**
  * packages/constants 跨模块契约测试（http / route / layout-events / user-setting /
- * notification / tenant / index 汇总）。
+ * notification / index 汇总）
  *
  * 职责边界：这些常量都是与后端或与 shell 其它层的**约定**——状态码与后端一致、
  * 场景枚举与后端 UserSettingScene 一致、静态选项覆盖枚举的全部成员、
- * 事件名不与其它自定义事件撞名、汇总入口不丢导出。逐条锁定，改一处即失败。
+ * 事件名不与其它自定义事件撞名、汇总入口不丢导出。逐条锁定，改一处即失败
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { NotificationType, TenantMemberType } from '~/types/enums'
+import { NotificationType } from '~/types/enums'
 import { BIZ_CODE, HTTP_STATUS } from './http'
 import * as barrel from './index'
 import {
@@ -26,10 +26,10 @@ import {
   HOME_PATH,
   LOGIN_PATH,
   NOT_FOUND_PATH,
+  OAUTH_CALLBACK_PATH,
   QRCODE_LOGIN_PATH,
   SERVER_ERROR_PATH,
 } from './route'
-import { MEMBER_TYPE_OPTIONS } from './tenant'
 import {
   FAVORITES_SETTING_KEY,
   PREFERENCE_SETTING_KEY,
@@ -134,7 +134,12 @@ describe('布局事件名', () => {
 
 describe('路由路径常量', () => {
   it('全部登录入口都挂在 /auth 之下', () => {
-    for (const path of [LOGIN_PATH, CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, QRCODE_LOGIN_PATH]) {
+    for (const path of [
+      LOGIN_PATH,
+      CODE_LOGIN_PATH,
+      EMAIL_LOGIN_PATH,
+      QRCODE_LOGIN_PATH,
+    ]) {
       expect(path.startsWith(`${AUTH_PATH}/`)).toBe(true)
     }
   })
@@ -152,6 +157,7 @@ describe('路由路径常量', () => {
       CODE_LOGIN_PATH,
       EMAIL_LOGIN_PATH,
       QRCODE_LOGIN_PATH,
+      OAUTH_CALLBACK_PATH,
       NOT_FOUND_PATH,
       FORBIDDEN_PATH,
       SERVER_ERROR_PATH,
@@ -161,8 +167,12 @@ describe('路由路径常量', () => {
     expect(new Set(paths).size).toBe(paths.length)
   })
 
-  it('首页兜底路径由 .env 的 VITE_HOME_PATH 提供，没被降级成根路径', () => {
-    expect(HOME_PATH).toBe('/workbench/dashboard')
+  it('第三方登录回调页挂在 /auth 之下，与后端缺省的回跳地址（/#/auth/oauth-callback）同一路径', () => {
+    expect(OAUTH_CALLBACK_PATH).toBe(`${AUTH_PATH}/oauth-callback`)
+  })
+
+  it('首页兜底路径取 .env 的 VITE_HOME_PATH，没配即根路径（6.0 的首页由守卫落到第一个菜单）', () => {
+    expect(HOME_PATH).toBe(import.meta.env.VITE_HOME_PATH || '/')
   })
 
   it('环境变量 VITE_HOME_PATH 缺省时兜底为根路径', async () => {
@@ -236,30 +246,9 @@ describe('静态选项与后端枚举对齐', () => {
     expect(new Set(labels).size).toBe(labels.length)
   })
 
-  it('租户成员类型选项覆盖 TenantMemberType 的全部成员，不多不少', () => {
-    expect(MEMBER_TYPE_OPTIONS.map(option => option.value)).toEqual(
-      Object.values(TenantMemberType),
-    )
-  })
-
-  it('租户成员类型选项的兜底中文标签非空且互不重复', () => {
-    const labels = MEMBER_TYPE_OPTIONS.map(option => option.label)
-    expect(labels.filter(label => label.trim() === '')).toEqual([])
-    expect(new Set(labels).size).toBe(labels.length)
-  })
-
-  it('两组选项的 value 都是后端序列化用的字符串枚举值，不是数字下标', () => {
-    const values = [
-      ...NOTIFICATION_TYPE_OPTIONS.map(option => option.value),
-      ...MEMBER_TYPE_OPTIONS.map(option => option.value),
-    ]
+  it('通知类型选项的 value 都是后端序列化用的字符串枚举值，不是数字下标', () => {
+    const values = NOTIFICATION_TYPE_OPTIONS.map(option => option.value)
     expect(values.filter(value => typeof value !== 'string')).toEqual([])
-  })
-
-  it('平台管理员是租户成员类型中的一员，配额统计需要能识别它', () => {
-    expect(MEMBER_TYPE_OPTIONS.map(option => option.value)).toContain(
-      TenantMemberType.PlatformAdmin,
-    )
   })
 })
 

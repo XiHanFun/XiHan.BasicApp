@@ -1,14 +1,16 @@
 /**
- * packages/iconify/offline.ts 单元测试。
+ * packages/iconify/offline.ts 单元测试
  *
  * 职责边界：离线图标集的元数据契约、按 prefix 懒加载与未知 prefix 的回退、
- * 预载清单的范围（哪些必须预载、哪些留给 IconPicker 按需加载）、以及单个图标包加载失败时的降级。
- * addCollection 由替身接管，不真正写入 iconify 的全局注册表。
- * 只测 ./offline —— 包入口 index.ts 会连带引入 IconPicker.vue，本轮不涉及组件。
+ * 预载清单的范围（哪些必须预载、哪些留给 IconPicker 按需加载）、以及单个图标包加载失败时的降级
+ * addCollection 由替身接管，不真正写入 iconify 的全局注册表
+ * 只测 ./offline —— 包入口 index.ts 会连带引入 IconPicker.vue，本轮不涉及组件
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { addCollection } = vi.hoisted(() => ({ addCollection: vi.fn() }))
+const { addCollection } = vi.hoisted(() => ({
+  addCollection: vi.fn(),
+}))
 
 vi.mock('@iconify/vue/offline', () => ({ addCollection }))
 
@@ -16,7 +18,7 @@ const { ICON_SET_META, loadIconNames, setupIconifyOffline } = await import('./of
 
 type OfflineModule = typeof import('./offline')
 
-/** 取出历次 addCollection 调用所注册集合的 prefix。 */
+/** 取出历次 addCollection 调用所注册集合的 prefix */
 function registeredPrefixes(): string[] {
   return addCollection.mock.calls.map(([collection]) => (collection as { prefix: string }).prefix)
 }
@@ -108,7 +110,9 @@ describe('loadIconNames 查找与回退', () => {
 
   it('图标包内容缺失 icons 字段时返回空数组而不是抛错', async () => {
     vi.resetModules()
-    vi.doMock('@iconify-json/ep', () => ({ icons: { prefix: 'ep' } }))
+    vi.doMock('@iconify-json/ep', () => ({
+      icons: { prefix: 'ep' },
+    }))
     const mod: OfflineModule = await import('./offline')
 
     await expect(mod.loadIconNames('ep')).resolves.toEqual([])
@@ -117,7 +121,10 @@ describe('loadIconNames 查找与回退', () => {
   it('图标名未按序给出时由本函数补齐排序', async () => {
     vi.resetModules()
     vi.doMock('@iconify-json/ep', () => ({
-      icons: { prefix: 'ep', icons: { zebra: {}, apple: {}, mango: {} } },
+      icons: {
+        prefix: 'ep',
+        icons: { zebra: {}, apple: {}, mango: {} },
+      },
     }))
     const mod: OfflineModule = await import('./offline')
 
@@ -129,7 +136,12 @@ describe('setupIconifyOffline 预载范围', () => {
   it('预载 lucide / tabler / mdi / simple-icons 四个运行期常用图标集', async () => {
     await setupIconifyOffline()
 
-    expect(registeredPrefixes().sort()).toEqual(['lucide', 'mdi', 'simple-icons', 'tabler'])
+    expect(registeredPrefixes().sort()).toEqual([
+      'lucide',
+      'mdi',
+      'simple-icons',
+      'tabler',
+    ])
   })
 
   it('simple-icons 必须在预载之列，第三方登录品牌 logo 离线渲染依赖它', async () => {

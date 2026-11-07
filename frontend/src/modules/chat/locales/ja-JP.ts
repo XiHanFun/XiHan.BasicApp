@@ -1,11 +1,13 @@
-/**
- * 聊天模块文案（chat 命名空间 + 菜单键）。
- */
+// 聊天模块文案（chat 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（chat.conversations.title、chat.audit.title）；@ 是 vue-i18n 链接消息的保留字符，一律写成 {'@'}
 export default {
   chat: {
     bell: 'チャット',
     unread_label: '未読チャット {n} 件',
     island_new_message_fallback: '新しいメッセージ',
+    conversations: {
+      title: 'オンラインチャット',
+    },
     panel: {
       title: 'チャット',
       open_page: '独立ページを開く',
@@ -32,6 +34,11 @@ export default {
       members_required: 'メンバーを 1 名以上選択してください',
       department_required: '部門を選択してください',
       assistant_required: 'アシスタントを選択してください',
+      user_label: 'ユーザー',
+      group_name_label: 'グループ名',
+      members_label: 'メンバー',
+      department_label: '部署',
+      assistant_label: 'アシスタント',
     },
     list: {
       search_placeholder: 'チャットを検索',
@@ -41,13 +48,13 @@ export default {
       unpin: 'ピン留めを解除',
       mute: 'ミュート',
       unmute: 'ミュート解除',
-      // @ 是 vue-i18n 链接消息保留字符，须用 {'@'} 字面量转义，否则消息编译抛错白屏
       mention_me: '[{\'@\'}メンションあり] ',
     },
     type: {
       single: '個人',
       group: 'グループ',
       department: '部門',
+      assistant: 'AI アシスタント',
     },
     role: {
       owner: 'オーナー',
@@ -90,6 +97,7 @@ export default {
       copied: 'コピーしました',
       copy_failed: 'コピーに失敗しました',
       forward: '転送',
+      download_failed: 'ダウンロードに失敗しました',
     },
     forward: {
       title: '転送先…',
@@ -183,11 +191,40 @@ export default {
       type_file: 'ファイル',
       type_voice: '音声',
       type_system: 'システム',
+      title: 'チャット監査',
+      keyword: 'キーワード',
+      include_recalled: '取り消し済みを含める',
+      detail: '詳細',
+      members: 'メンバー',
+      detail_title: 'メッセージ詳細',
+      members_title: '会話メンバー',
+      load_failed: '読み込みに失敗しました',
+      section_message: 'メッセージ',
+      section_conversation: '会話',
+      section_attachments: '添付ファイル（{n}）',
+      section_reactions: 'リアクション（{n}）',
+      seq: '会話内の連番',
+      pinned: 'ピン留め',
+      client_message_id: 'クライアントメッセージ ID',
+      reply_to: '返信先メッセージ',
+      reply_preview: '返信のスナップショット',
+      mentions: 'メンションされたユーザー',
+      content_recalled: '取り消し済み（本文は保持されません）',
+      member_count: 'メンバー数',
+      created_at: '作成日時',
+      last_message_at: '最終メッセージ日時',
+      owner: 'オーナー',
+      file_size: 'サイズ',
+      duration: '長さ',
+      file_id: 'ファイル ID',
+      reaction_emoji: '絵文字',
+      reaction_user: 'リアクションしたユーザー',
+      user_id: 'ユーザー ID',
+      display_name: '表示名',
+      user_name: 'ユーザー名',
+      member_role: 'ロール',
+      joined_at: '参加日時',
+      type_assistant: 'アシスタント',
     },
-  },
-  menu: {
-    chat: 'チャット',
-    message_chat: 'オンラインチャット',
-    message_chat_audit: 'チャット監査',
   },
 }

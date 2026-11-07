@@ -10,8 +10,8 @@ import { useXhUiConfig } from '~/hooks'
 
 defineOptions({ name: 'App' })
 
-// 组件库的语言标记与内建文案（日期选择器的星期、分页/下拉的读屏名等）随应用 locale 切换。
-// 传的是 computed，切语言时组件跟着重渲。
+// 组件库的语言标记与内建文案（日期选择器的星期、分页/下拉的读屏名等）随应用 locale 切换
+// 传的是 computed，切语言时组件跟着重渲
 provideXhConfig(useXhUiConfig())
 
 useHtmlStyle()

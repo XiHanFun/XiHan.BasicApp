@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 /**
- * useAvatarUrl 头像 URL 解析单元测试。
+ * useAvatarUrl 头像 URL 解析单元测试
  * 职责：锁定「空值→空串」「直链不走预签名」「其余按 fileId 换取（内存缓存 + 并发去重）」
- * 「换取失败回退空串」这几条兼容约定，以及响应式版本在解析期间不把旧 URL 错绑到新 fileId。
+ * 「换取失败回退空串」这几条兼容约定，以及响应式版本在解析期间不把旧 URL 错绑到新 fileId
  */
 import { nextTick, ref } from 'vue'
 
@@ -17,7 +17,9 @@ async function flush(): Promise<void> {
 async function bootstrap(getFilePresignedUrlApi: PresignedFn) {
   vi.resetModules()
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { getFilePresignedUrlApi } as never })
+  registerAppContext({
+    apis: { getFilePresignedUrlApi } as never,
+  })
   return import('./useAvatarUrl')
 }
 

@@ -1,9 +1,9 @@
 /**
- * packages/utils/storage.ts 单元测试。
+ * packages/utils/storage.ts 单元测试
  *
  * 职责边界：LocalStorage / SessionStorage 两个 JSON 封装的读写、缺键、损坏 JSON 容错、
- * 写入异常吞掉（配额满/隐私模式）、has 与 get 的判定差异，以及 storage 旧命名别名的等价性。
- * 不覆盖任何业务侧的 key 语义（那属于 packages/constants）。
+ * 写入异常吞掉（配额满/隐私模式）、has 与 get 的判定差异，以及 storage 旧命名别名的等价性
+ * 不覆盖任何业务侧的 key 语义（那属于 packages/constants）
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LocalStorage, SessionStorage, storage } from './storage'
@@ -16,7 +16,11 @@ afterEach(() => {
 
 describe('本地存储读写往返', () => {
   it('对象写入后读出结构相等但不是同一引用', () => {
-    const value = { name: '羲和', tags: ['a', 'b'], nested: { n: 1 } }
+    const value = {
+      name: '羲和',
+      tags: ['a', 'b'],
+      nested: { n: 1 },
+    }
     LocalStorage.set('obj', value)
 
     const restored = LocalStorage.get<typeof value>('obj')
@@ -47,7 +51,7 @@ describe('本地存储读写往返', () => {
   it('写入 undefined 等同于删键，has 与 get 的结论保持一致', () => {
     // 回归锚点：JSON.stringify(undefined) 返回 undefined，setItem 会把它转成字面量字符串
     // 'undefined' 落盘，随后 has 判真、get 解析失败返回 null——以 has 做「是否已初始化」
-    // 判断的调用方拿到 true 再 get 却是 null，走进未预期分支。
+    // 判断的调用方拿到 true 再 get 却是 null，走进未预期分支
     LocalStorage.set('u', { a: 1 })
     LocalStorage.set('u', undefined)
 

@@ -5,10 +5,10 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SchemaPagination } from '~/components'
 import { toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext } from '~/stores'
-import { formatDate, getOptionLabel } from '~/utils'
+import { formatDate } from '~/utils'
 
 defineOptions({ name: 'ProfileTabLoginLogs' })
 
@@ -23,11 +23,33 @@ const total = ref(0)
 const page = ref(1)
 const loading = ref(false)
 
-/** 登录结果随认证审计事件增长（模仿登录等），标签取后端 LoginResult 枚举元数据，前端只管配色与图标 */
-const loginResultOptions = useEnumOptions('LoginResult')
+/**
+ * 登录结果随认证审计事件增长（模仿登录、角色激活等）：4.x 取后端 LoginResult 枚举元数据，
+ * 6.0 没有枚举元数据，标签用本地文案（键静态写出以便 i18n 门禁核对），前端只管配色与图标
+ */
+const RESULT_LABELS: Record<LoginAuditResult, () => string> = {
+  AccountDisabled: () => t('component.profile.login_logs.results.account_disabled'),
+  AccountLocked: () => t('component.profile.login_logs.results.account_locked'),
+  Failed: () => t('component.profile.login_logs.results.failed'),
+  ImpersonationEnded: () => t('component.profile.login_logs.results.impersonation_ended'),
+  ImpersonationStarted: () => t('component.profile.login_logs.results.impersonation_started'),
+  InvalidCredentials: () => t('component.profile.login_logs.results.invalid_credentials'),
+  Logout: () => t('component.profile.login_logs.results.logout'),
+  MfaBound: () => t('component.profile.login_logs.results.mfa_bound'),
+  MfaUnbound: () => t('component.profile.login_logs.results.mfa_unbound'),
+  PasswordChanged: () => t('component.profile.login_logs.results.password_changed'),
+  PasswordReset: () => t('component.profile.login_logs.results.password_reset'),
+  RequiresTwoFactor: () => t('component.profile.login_logs.results.requires_two_factor'),
+  RolesActivated: () => t('component.profile.login_logs.results.roles_activated'),
+  SessionRevoked: () => t('component.profile.login_logs.results.session_revoked'),
+  Success: () => t('component.profile.login_logs.results.success'),
+  TenantSwitched: () => t('component.profile.login_logs.results.tenant_switched'),
+  TokenRefreshed: () => t('component.profile.login_logs.results.token_refreshed'),
+  TwoFactorFailed: () => t('component.profile.login_logs.results.two_factor_failed'),
+}
 
 function resultLabel(result: LoginAuditResult) {
-  return getOptionLabel(loginResultOptions.value, result, t('component.profile.login_logs.result_unknown', { result }))
+  return RESULT_LABELS[result]()
 }
 
 type TagType = 'neutral' | 'danger' | 'info' | 'success' | 'warning'
@@ -68,6 +90,13 @@ function isDanger(result: LoginAuditResult) {
   return ERROR_RESULTS.includes(result) || result === 'AccountLocked' || result === 'AccountDisabled'
 }
 
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
+}
+
 async function loadLogs(nextPage = 1) {
   loading.value = true
   try {
@@ -79,7 +108,7 @@ async function loadLogs(nextPage = 1) {
   catch (e: unknown) {
     logs.value = []
     total.value = 0
-    toast.danger((e as Error)?.message || t('component.profile.login_logs.err_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.login_logs.err_load_failed'))
   }
   finally {
     loading.value = false

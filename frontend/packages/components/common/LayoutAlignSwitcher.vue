@@ -7,9 +7,9 @@ import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
 /**
- * 布局位置切换组件（登录页等用：居左/居中/居右）。
- * - 触发器经默认插槽传入；受控值 v-model:value。
- * - 下拉项含图标 + i18n 文案，当前选中项高亮（主色 + 加粗）。
+ * 布局位置切换组件（登录页等用：居左/居中/居右）
+ * - 触发器经默认插槽传入；受控值 v-model:value
+ * - 下拉项含图标 + i18n 文案，当前选中项高亮（主色 + 加粗）
  */
 export type LayoutAlign = 'left' | 'center' | 'right'
 
@@ -39,7 +39,10 @@ const ALIGNS = [
 ] as const
 
 const options = computed<MenuNode[]>(() =>
-  ALIGNS.map(a => ({ value: a.value, label: t(a.labelKey) })),
+  ALIGNS.map(a => ({
+    value: a.value,
+    label: t(a.labelKey),
+  })),
 )
 
 /** 条目里的图标与选中态：collection 只带文本，图标与高亮走 item 插槽 */

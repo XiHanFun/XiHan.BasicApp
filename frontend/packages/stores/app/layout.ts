@@ -54,16 +54,16 @@ export function createLayoutSlice() {
 
   // ---- 品牌 ----
   const brandTitle = ref<string>(
-    LocalStorage.get<string>(BRAND_TITLE_KEY) ?? import.meta.env.VITE_APP_TITLE,
+    LocalStorage.get<string>(BRAND_TITLE_KEY) ?? import.meta.env.VITE_APP_TITLE ?? '',
   )
   const brandSubtitle = ref<string>(
-    LocalStorage.get<string>(BRAND_SUBTITLE_KEY) ?? import.meta.env.VITE_APP_SUBTITLE,
+    LocalStorage.get<string>(BRAND_SUBTITLE_KEY) ?? import.meta.env.VITE_APP_SUBTITLE ?? '',
   )
   const brandDescription = ref<string>(
-    LocalStorage.get<string>(BRAND_DESCRIPTION_KEY) ?? import.meta.env.VITE_APP_DESCRIPTION,
+    LocalStorage.get<string>(BRAND_DESCRIPTION_KEY) ?? import.meta.env.VITE_APP_DESCRIPTION ?? '',
   )
   const brandLogo = ref<string>(
-    LocalStorage.get<string>(BRAND_LOGO_KEY) ?? import.meta.env.VITE_APP_LOGO,
+    LocalStorage.get<string>(BRAND_LOGO_KEY) ?? import.meta.env.VITE_APP_LOGO ?? '',
   )
   const pageLoading = ref(false)
 

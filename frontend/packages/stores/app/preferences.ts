@@ -46,8 +46,8 @@ import {
   WIDGET_TIMEZONE_PLACEMENT_KEY,
   WIDGETS_SYNC_KEY,
 } from '~/constants'
-import { i18n } from '~/locales'
-import { LocalStorage, resolveBrowserLocale, resolveInitialLocale } from '~/utils'
+import { setLocale as applyLocale, i18n, isLocale } from '~/locales'
+import { isTimeZone, LocalStorage, resolveBrowserLocale, resolveInitialLocale, setDisplayTimeZone } from '~/utils'
 import { bindPersist, save } from '../helpers'
 
 const WIDGET_PLACEMENTS: readonly WidgetPlacement[] = ['auto', 'header', 'floating', 'hidden']
@@ -62,7 +62,9 @@ function readWidgetPlacement(key: string, legacyKey: string): WidgetPlacement {
     return stored as WidgetPlacement
   }
   const legacy = LocalStorage.get<boolean>(legacyKey)
-  const migrated: WidgetPlacement = legacy === false ? 'hidden' : 'auto'
+  const migrated: WidgetPlacement = legacy === false
+    ? 'hidden'
+    : 'auto'
   LocalStorage.remove(legacyKey)
   LocalStorage.set(key, migrated)
   return migrated
@@ -73,6 +75,7 @@ export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
+  // 偏好、收藏、SchemaPage 的搜索 / 表格设置与看板布局都已接 Identity 的 user-settings，缺省开（与 4.x 相同）
   const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? true)
   const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
   const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? true)
@@ -80,8 +83,12 @@ export function createPreferencesSlice() {
   const widgetsSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(WIDGETS_SYNC_KEY) ?? true)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
-  // 用户时区（IANA，如 Asia/Shanghai）：默认北京时间 Asia/Shanghai（空串表示跟随浏览器）；随请求头 X-Timezone 上行，后端按此换算返回时间
-  const appTimezone = ref<string>(LocalStorage.get<string>(APP_TIMEZONE_KEY) ?? 'Asia/Shanghai')
+  // 应用时区（IANA，如 Asia/Shanghai），默认北京时间，空串表示跟随浏览器：后端一律返回 UTC，界面上的时间按它显示（formatDate），
+  // 个人统计与工作台按它切「今天」；存下的值运行时认不出（旧版本或手改的存储）时回到默认
+  const storedTimezone = LocalStorage.get<string>(APP_TIMEZONE_KEY)
+  const appTimezone = ref<string>(storedTimezone === '' || (storedTimezone && isTimeZone(storedTimezone))
+    ? storedTimezone
+    : 'Asia/Shanghai')
   const enableCheckUpdates = ref<boolean>(LocalStorage.get<boolean>(CHECK_UPDATES_KEY) ?? true)
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 30)
 
@@ -142,6 +149,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGETS_SYNC_KEY, widgetsSyncEnabled, true)
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
   bindPersist(APP_TIMEZONE_KEY, appTimezone, 'Asia/Shanghai')
+  watch(appTimezone, setDisplayTimeZone, { immediate: true })
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 30)
   bindPersist(WIDGET_SEARCH_PLACEMENT_KEY, widgetSearchPlacement, 'auto')
@@ -172,14 +180,14 @@ export function createPreferencesSlice() {
   bindPersist(SHORTCUT_LOCK_KEY, shortcutLock, true)
   bindPersist(SHORTCUT_TAB_OVERVIEW_KEY, shortcutTabOverview, true)
 
-  // 语言 ref 是唯一入口：vue-i18n 跟着它走，而不是在切换函数里另外赋一次。
+  // 语言 ref 是唯一入口：vue-i18n 跟着它走，而不是在切换函数里另外赋一次
   // 否则其它设备推来的偏好只会改到这个 ref（applyRemotePreferenceSnapshot 直接给 ref 赋值），
-  // vue-i18n 收不到通知，表现为「提示已从其它端同步、界面语言却没变」。
+  // vue-i18n 收不到通知，表现为「提示已从其它端同步、界面语言却没变」
   watch(locale, (lang) => {
-    if (!lang || i18n.global.locale.value === lang) {
+    if (!isLocale(lang) || i18n.global.locale.value === lang) {
       return
     }
-    i18n.global.locale.value = lang as typeof i18n.global.locale.value
+    void applyLocale(lang)
   }, { immediate: true })
 
   // ---- Actions ----

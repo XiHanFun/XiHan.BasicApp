@@ -1,9 +1,7 @@
 {
   "name": "@xihan/locales",
+  "type": "module",
   "version": "0.0.0",
   "private": true,
-  "main": "./index.ts",
-  "dependencies": {
-    "@xihan-ui/vue": "catalog:"
-  }
+  "main": "./index.ts"
 }

@@ -1,15 +1,15 @@
 /**
- * 打印机本地偏好存储。
- * 职责：按当前用户、租户和模板编码隔离浏览器本地打印机选择，不上传到服务端。
+ * 打印机本地偏好存储
+ * 职责：按当前用户、租户和模板编码隔离浏览器本地打印机选择，不上传到服务端
  */
 import { useUserStore } from '~/stores'
 
 const PREFERENCE_PREFIX = 'xihan:printing:preferred-printer'
 
 /**
- * 读取当前用户、租户与模板的本地打印机偏好。
- * @param templateCode 模板编码。
- * @returns 打印机名称；未设置或非浏览器环境时返回 null。
+ * 读取当前用户、租户与模板的本地打印机偏好
+ * @param templateCode 模板编码
+ * @returns 打印机名称；未设置或非浏览器环境时返回 null
  */
 export function getPreferredPrinter(templateCode: string): string | null {
   if (typeof localStorage === 'undefined')
@@ -19,11 +19,11 @@ export function getPreferredPrinter(templateCode: string): string | null {
 }
 
 /**
- * 保存或清除当前用户、租户与模板的本地打印机偏好。
- * @param templateCode 模板编码。
- * @param printerName 打印机名称；null/空白表示清除。
- * @returns 无返回值。
- * @throws 模板编码为空或浏览器存储不可用（非浏览器环境）。
+ * 保存或清除当前用户、租户与模板的本地打印机偏好
+ * @param templateCode 模板编码
+ * @param printerName 打印机名称；null/空白表示清除
+ * @returns 无返回值
+ * @throws 模板编码为空或浏览器存储不可用（非浏览器环境）
  */
 export function savePreferredPrinter(templateCode: string, printerName: null | string): void {
   const key = createPreferenceKey(templateCode)
@@ -39,7 +39,7 @@ export function savePreferredPrinter(templateCode: string, printerName: null | s
   return undefined
 }
 
-/** 创建不跨用户、租户和模板串用的存储键。 */
+/** 创建不跨用户、租户和模板串用的存储键 */
 function createPreferenceKey(templateCode: string): string {
   const normalizedCode = templateCode?.trim()
   if (!normalizedCode)

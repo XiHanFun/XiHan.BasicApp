@@ -1,9 +1,9 @@
 /**
- * 授权穿梭框中间两颗箭头钮的读屏名。
+ * 授权穿梭框中间两颗箭头钮的读屏名
  *
- * 两颗钮只画箭头、没有文字，读屏名是它们唯一的说明；组件库内建的是英文「Move to target list」。
+ * 两颗钮只画箭头、没有文字，读屏名是它们唯一的说明；组件库内建的是英文「Move to target list」
  * 这里按目标栏的标题取当前语言的说法：同一页两个穿梭框（直授的允许 / 拒绝）靠它分开，
- * 窄屏改上下排后也不会念成「移到右侧」这种与布局对不上的方向。
+ * 窄屏改上下排后也不会念成「移到右侧」这种与布局对不上的方向
  */
 import type { GrantTransferItem } from './grant-transfer'
 import { mount } from '@vue/test-utils'
@@ -11,21 +11,31 @@ import { describe, expect, it } from 'vitest'
 import { i18n } from '~/locales'
 import XGrantTransfer from './GrantTransfer.vue'
 
-const items: GrantTransferItem[] = [{ basicId: '1' }, { basicId: '2' }]
-const names = new Map([['1', '甲'], ['2', '乙']])
+const items: GrantTransferItem[] = [
+  { basicId: '1' },
+  { basicId: '2' },
+]
+const names = new Map([
+  ['1', '甲'],
+  ['2', '乙'],
+])
 
 function mountTransfer(sourceTitle: string, targetTitle: string) {
   return mount(XGrantTransfer, {
     props: {
       items,
       value: ['2'],
-      groups: [{ key: 'all', name: '', items }],
+      groups: [
+        { key: 'all', name: '', items },
+      ],
       getLabel: (item: GrantTransferItem) => names.get(String(item.basicId)) ?? '',
       sourceTitle,
       targetTitle,
       searchPlaceholder: '搜索',
     },
-    global: { plugins: [i18n] },
+    global: {
+      plugins: [i18n],
+    },
   })
 }
 

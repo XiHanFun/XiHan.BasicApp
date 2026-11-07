@@ -8,15 +8,30 @@ vi.mock('@xihan-ui/web-components', () => ({
   mergeXhConfig: (base: Record<string, unknown>, extra?: Record<string, unknown>) => ({
     ...base,
     ...extra,
-    translations: { ...(base.translations as object), ...(extra?.translations as object | undefined) },
+    translations: {
+      ...(base.translations as object),
+      ...(extra?.translations as object | undefined),
+    },
   }),
 }))
 
-vi.mock('~/locales', () => ({ i18n: { global: { locale: ref('zh-CN') } } }))
+vi.mock('~/locales', () => ({
+  i18n: {
+    global: {
+      locale: ref('zh-CN'),
+    },
+  },
+}))
 
 vi.mock('~/locales/xihan-ui', () => ({
-  xhLocales: { 'zh-CN': { translations: { root: 'ui-zh' } } },
-  xhFallbackLocale: { translations: { root: 'ui-en' } },
+  xhLocales: {
+    'zh-CN': {
+      translations: { root: 'ui-zh' },
+    },
+  },
+  xhFallbackLocale: {
+    translations: { root: 'ui-en' },
+  },
 }))
 
 describe('设计器的全局配置', () => {
@@ -28,7 +43,9 @@ describe('设计器的全局配置', () => {
     const container = document.createElement('main')
     setScrollRoot(container)
 
-    registerXhElementsLocale(locale => ({ translations: { flow: `flow-${locale}` } } as never))
+    registerXhElementsLocale(locale => ({
+      translations: { flow: `flow-${locale}` },
+    } as never))
 
     const config = state.configs.at(-1)!
     expect(config.locale).toBe('zh-CN')

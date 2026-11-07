@@ -1,19 +1,19 @@
 /**
- * packages/types 的运行时契约面。
+ * packages/types 的运行时契约面
  *
- * 职责边界：本包绝大部分是纯类型，运行时只剩两组枚举（enums.ts 的通知/租户枚举、
- * contracts.ts 的查询算子与排序方向）。这里锁定它们与后端序列化口径的一致性、取值唯一性，
+ * 职责边界：本包绝大部分是纯类型，运行时只剩两组枚举（enums.ts 的通知枚举、
+ * contracts.ts 的查询算子与排序方向；租户成员类型直接用契约层生成的值集）。这里锁定它们与后端序列化口径的一致性、取值唯一性，
  * 以及「包入口不导出任何运行时值」这条分层约定——入口一旦泄漏运行时值，
- * 纯类型导入就会在打包产物里留下真实模块。
+ * 纯类型导入就会在打包产物里留下真实模块
  */
 import { describe, expect, it } from 'vitest'
+import { TenantMemberType } from '~/contracts'
 import { QueryOperator, SortDirection } from './contracts'
 import {
   NotificationContentFormat,
   NotificationPriority,
   NotificationStatus,
   NotificationType,
-  TenantMemberType,
 } from './enums'
 import * as typesEntry from './index'
 
@@ -33,7 +33,6 @@ describe('字符串枚举与后端序列化口径', () => {
     NotificationPriority,
     NotificationStatus,
     NotificationType,
-    TenantMemberType,
   }
 
   it('每个成员的取值都等于成员名，与 JsonStringEnumConverter 输出一致', () => {
@@ -57,7 +56,13 @@ describe('字符串枚举与后端序列化口径', () => {
   })
 
   it('通知类型固定为五种，紧急独立于系统与业务', () => {
-    expect(memberNames(NotificationType)).toStrictEqual(['System', 'Security', 'Business', 'Todo', 'Emergency'])
+    expect(memberNames(NotificationType)).toStrictEqual([
+      'System',
+      'Security',
+      'Business',
+      'Todo',
+      'Emergency',
+    ])
   })
 
   it('通知优先级由低到高共四档', () => {
@@ -72,16 +77,8 @@ describe('字符串枚举与后端序列化口径', () => {
     expect(memberNames(NotificationStatus)).toStrictEqual(['Unread', 'Read', 'Deleted'])
   })
 
-  it('租户成员类型含平台管理员，供控制中心做标签配色判断', () => {
-    expect(memberNames(TenantMemberType)).toStrictEqual([
-      'Owner',
-      'Admin',
-      'Member',
-      'External',
-      'Guest',
-      'Consultant',
-      'PlatformAdmin',
-    ])
+  it('租户成员类型取契约层的值集：普通成员与运维支持（所有者是租户上的 AdminUserId，不是成员类型）', () => {
+    expect([...TenantMemberType]).toStrictEqual(['Member', 'Support'])
   })
 })
 
@@ -98,7 +95,10 @@ describe('查询算子编号契约', () => {
     for (const name of numericMemberNames(QueryOperator)) {
       const value = QueryOperator[name as keyof typeof QueryOperator]
       const segment = segmentOf(value)
-      grouped[segment] = [...(grouped[segment] ?? []), name]
+      grouped[segment] = [
+        ...(grouped[segment] ?? []),
+        name,
+      ]
     }
 
     expect(grouped[1000]).toStrictEqual([

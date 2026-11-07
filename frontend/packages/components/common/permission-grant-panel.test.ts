@@ -3,12 +3,20 @@ import { describe, expect, it } from 'vitest'
 import { groupPermissions } from './permission-grant-panel'
 
 function item(basicId: string, permissionCode: string, permissionName: string, groupCode: string, groupName = ''): PermissionGrantItem {
-  return { basicId, permissionCode, permissionName, groupCode, groupName }
+  return {
+    basicId,
+    permissionCode,
+    permissionName,
+    groupCode,
+    groupName,
+  }
 }
 
 describe('groupPermissions', () => {
   it('后端给了组名就用组名', () => {
-    const groups = groupPermissions([item('1', 'saas:tenant:read', '租户查看', 'tenant', '租户')])
+    const groups = groupPermissions([
+      item('1', 'saas:tenant:read', '租户查看', 'tenant', '租户'),
+    ])
 
     expect(groups.map(group => group.name)).toEqual(['租户'])
   })

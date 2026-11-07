@@ -44,7 +44,7 @@ const emit = defineEmits<{
 }>()
 
 // 行类型在框架边界放宽：页面侧以 PageSchema<ConcreteDto> 定义时保有完整类型安全；
-// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）。
+// 此处用宽松行类型规避 Vue 泛型组件 prop 协变限制（具名 DTO 无索引签名，不兼容 Record<string, unknown>）
 // eslint-disable-next-line ts/no-explicit-any
 type Row = Record<string, any>
 
@@ -60,7 +60,7 @@ const { loading, rows, total, page, pageSize, filters, sorts, search, reset, cha
 
 /**
  * 字典/枚举异步取值：按字段 dictionaryCode（枚举）或 dictCode（系统字典）拉取选项并注入 field.options，
- * 使单元格按值映射 label、搜索区自动渲染为下拉。解析结果优先，为空时回退字段静态 options。
+ * 使单元格按值映射 label、搜索区自动渲染为下拉。解析结果优先，为空时回退字段静态 options
  */
 const dictionaries = useSchemaDictionaries(() => props.schema.fields)
 const resolvedFields = computed<ListFieldSchema[]>(() =>
@@ -70,7 +70,9 @@ const resolvedFields = computed<ListFieldSchema[]>(() =>
       return field
     }
     const options = dictionaries.optionsFor(field)
-    return options && options !== field.options ? { ...field, options } : field
+    return options && options !== field.options
+      ? { ...field, options }
+      : field
   }),
 )
 const resolvedSchema = computed<PageSchema<Row>>(() => ({ ...props.schema, fields: resolvedFields.value }))
@@ -93,8 +95,8 @@ const columnFields = computed<ListFieldSchema[]>(() =>
 )
 
 /**
- * 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地。
- * 受偏好「表格悬停速览」开关控制：关闭时返回空列表，下游据此停用悬停行为。
+ * 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地
+ * 受偏好「表格悬停速览」开关控制：关闭时返回空列表，下游据此停用悬停行为
  */
 const peekFields = computed<ListFieldSchema[]>(() =>
   appStore.tableRowPeek
@@ -125,7 +127,7 @@ function onCycleSort(key: string) {
 
 /**
  * 表格重挂载令牌：拖拽列宽会写进表格面板自己的 draggedWidths（它盖住 column.width），
- * 当通过「列宽输入框 / 恢复默认」改宽度时需重建表格清掉该缓存，新值才生效。
+ * 当通过「列宽输入框 / 恢复默认」改宽度时需重建表格清掉该缓存，新值才生效
  */
 const tableRemountKey = ref(0)
 /** 本会话被拖拽过的列（宽度已被面板内的 draggedWidths 接管，需重挂载才能被输入框覆盖） */
@@ -173,9 +175,9 @@ function toggleFullscreen() {
 }
 
 /**
- * 搜索方案（个人视图）—— 作为接口暴露，不内置 UI。
- * 当前持久化到本地（localStorage，按 pageCode）；后续可替换为后端按用户保存。
- * 页面可通过模板 ref 调用 saveView / applyView / views 自定义方案入口。
+ * 搜索方案（个人视图）—— 作为接口暴露，不内置 UI
+ * 当前持久化到本地（localStorage，按 pageCode）；后续可替换为后端按用户保存
+ * 页面可通过模板 ref 调用 saveView / applyView / views 自定义方案入口
  */
 const viewManager = useViewManager(props.schema.pageCode)
 
@@ -199,7 +201,9 @@ function applyView(code: string) {
     filters[key] = null
   }
   Object.assign(filters, snapshot.filters)
-  sorts.value = snapshot.sorts ? [...snapshot.sorts] : []
+  sorts.value = snapshot.sorts
+    ? [...snapshot.sorts]
+    : []
   if (snapshot.pageSize) {
     pageSize.value = snapshot.pageSize
   }
@@ -246,7 +250,9 @@ const columns = computed<SchemaColumn<Row>[]>(() => {
 
 /** 行展开：页面提供 #expand 作用域插槽时启用（行前出现展开箭头，展开渲染该插槽内容） */
 const slots = useSlots()
-const renderExpand = computed(() => (slots.expand ? (row: Row) => slots.expand!({ row }) : undefined))
+const renderExpand = computed(() => (slots.expand
+  ? (row: Row) => slots.expand!({ row })
+  : undefined))
 
 function visibleRowActions(row: Row): ActionSchema<Row>[] {
   return rowActions.value.filter(a => !a.visible || a.visible(row))
@@ -257,7 +263,9 @@ function renderRowActions(row: Row) {
   const collection: MenuNode[] = actions.map(a => ({
     value: a.key,
     label: a.title,
-    disabled: a.disabled ? a.disabled(row) : false,
+    disabled: a.disabled
+      ? a.disabled(row)
+      : false,
     tone: actionMenuTone(a.tone),
   }))
   if (collection.length === 0) {
@@ -271,22 +279,29 @@ function renderRowActions(row: Row) {
       // 借用下面那颗按钮当触发器。不借的话菜单根会自己包一颗裸 button，
       // 而 menu 皮肤没有 trigger 这一部件，露出的是浏览器默认按钮样式
       triggerAsChild: true,
+      // 按落定那一侧的可用高度铺开：组件库缺省的上限是 20rem，本应用根字号 14px 下只有 280px，八项就露不全
+      fitAvailableHeight: true,
       onItemSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
     },
     {
       trigger: () => h(
         XhButton,
         { variant: 'outline', size: 'sm' },
-        () => [t('component.schema_page.more'), h(Icon, { icon: 'lucide:chevron-down' })],
+        () => [
+          t('component.schema_page.more'),
+          h(Icon, { icon: 'lucide:chevron-down' }),
+        ],
       ),
-      ...(itemPrefix ? { 'item-prefix': itemPrefix } : {}),
+      ...(itemPrefix
+        ? { 'item-prefix': itemPrefix }
+        : {}),
     },
   )
 }
 
 /**
- * 派发操作：声明了 confirm 的先弹二次确认，确认后才上抛给页面。
- * 确认在此统一处理，页面侧只管收到事件后执行，不必各自写 dialog。
+ * 派发操作：声明了 confirm 的先弹二次确认，确认后才上抛给页面
+ * 确认在此统一处理，页面侧只管收到事件后执行，不必各自写 dialog
  */
 function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
   const action = (props.schema.actions ?? []).find(item => item.key === key && item.scope === payload.scope)
@@ -296,13 +311,17 @@ function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
   }
 
   const content = typeof action.confirmText === 'function'
-    ? (payload.row ? action.confirmText(payload.row) : undefined)
+    ? (payload.row
+        ? action.confirmText(payload.row)
+        : undefined)
     : action.confirmText
   void dialog.confirm({
     title: action.title,
     content: content ?? t('component.schema_page.action_confirm'),
     badge: 'warning',
-    tone: action.tone === 'danger' ? 'danger' : undefined,
+    tone: action.tone === 'danger'
+      ? 'danger'
+      : undefined,
     okText: t('component.schema_page.confirm'),
     cancelText: t('component.schema_page.cancel'),
     onOk: () => {
@@ -376,7 +395,9 @@ function handleBatchStatus(enabled: boolean) {
     return
   }
   const rowKey = props.schema.rowKey ?? 'basicId'
-  const label = enabled ? t('component.schema_page.label_enable') : t('component.schema_page.label_disable')
+  const label = enabled
+    ? t('component.schema_page.label_enable')
+    : t('component.schema_page.label_disable')
   void dialog.confirm({
     title: t('component.schema_page.batch_action_title', { label }),
     content: t('component.schema_page.batch_action_content', { label, count: targets.length }),
@@ -476,11 +497,24 @@ const canSubmitExport = computed(() => !!props.schema.resource.export)
 const submittingExport = ref(false)
 
 const exportMenuOptions = computed<MenuNode[]>(() => [
-  { value: 'center:1', label: t('component.schema_page.export_results') },
-  { value: 'center:0', label: t('component.schema_page.export_current_page') },
-  { value: 'center:2', label: t('component.schema_page.export_all') },
+  {
+    value: 'center:1',
+    label: t('component.schema_page.export_results'),
+  },
+  {
+    value: 'center:0',
+    label: t('component.schema_page.export_current_page'),
+  },
+  {
+    value: 'center:2',
+    label: t('component.schema_page.export_all'),
+  },
   // 本地 CSV 与三档「提交到导出中心」不是一类事，条前画一条分隔线
-  { value: 'local', label: t('component.schema_page.export_csv_local'), separatorBefore: true },
+  {
+    value: 'local',
+    label: t('component.schema_page.export_csv_local'),
+    separatorBefore: true,
+  },
 ])
 
 /** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
@@ -488,7 +522,10 @@ function buildExportColumns() {
   return effectiveExportFields.value.map((field) => {
     const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: field.key, title: field.title }
     if (field.options?.length) {
-      column.valueMap = Object.fromEntries(field.options.map(option => [String(option.value), option.label]))
+      column.valueMap = Object.fromEntries(field.options.map(option => [
+        String(option.value),
+        option.label,
+      ]))
     }
     return column
   })
@@ -508,7 +545,9 @@ async function submitExport(scope: number) {
     // 导出复用列表的区间/多选过滤，保证导出范围与界面筛选一致
     conditionFilters: queryFiltersFromSchema(props.schema.fields, filters),
   }
-  const query = cfg.buildQuery ? cfg.buildQuery(params) : params
+  const query = cfg.buildQuery
+    ? cfg.buildQuery(params)
+    : params
   submittingExport.value = true
   const task = islandStart('export:submit', t('island.export.submitting'), { icon: 'lucide:download', progress: 0 })
   try {
@@ -519,7 +558,9 @@ async function submitExport(scope: number) {
       querySnapshot: JSON.stringify(query),
       columns: buildExportColumns(),
     })
-    task.success(t('island.export.submitted'), { detail: t('island.export.submitted_detail') })
+    task.success(t('island.export.submitted'), {
+      detail: t('island.export.submitted_detail'),
+    })
   }
   catch (error) {
     task.error(t('island.export.submit_failed'), { detail: (error as Error).message })
@@ -563,14 +604,16 @@ onMounted(async () => {
 })
 
 /**
- * 按字段把一行格式化成显示文本：选项列（枚举、字典、异步选项）取名称、日期按格式、布尔为是/否，空值为空串。
- * 供打印这类要「显示值」而非原始值的场景用；隐藏字段（只供搜索或导入）同样格式化。
+ * 按字段把一行格式化成显示文本：选项列（枚举、字典、异步选项）取名称、日期按格式、布尔为是/否，空值为空串
+ * 供打印这类要「显示值」而非原始值的场景用；隐藏字段（只供搜索或导入）同样格式化
  */
 function formatRow(row: object): Record<string, string> {
   const result: Record<string, string> = {}
   for (const field of resolvedFields.value) {
     const raw = (row as Record<string, unknown>)[field.key]
-    result[field.key] = raw == null || raw === '' ? '' : formatFieldText(field, row as Row)
+    result[field.key] = raw == null || raw === ''
+      ? ''
+      : formatFieldText(field, row as Row)
   }
   return result
 }
@@ -596,7 +639,18 @@ defineExpose({
 const SKELETON_ROWS = 14
 const SKELETON_ROW_HEIGHT: Record<TableDensity, number> = { sm: 40, md: 48, lg: 56 }
 // 单元格内骨架条占列宽的比例（按列位置循环，模拟不同长度的内容）
-const SKELETON_CELL_FILL = ['62%', '48%', '80%', '55%', '70%', '45%', '75%', '58%', '66%', '50%']
+const SKELETON_CELL_FILL = [
+  '62%',
+  '48%',
+  '80%',
+  '55%',
+  '70%',
+  '45%',
+  '75%',
+  '58%',
+  '66%',
+  '50%',
+]
 
 const skeletonRowHeight = computed(() => SKELETON_ROW_HEIGHT[settings.density.value])
 
@@ -604,20 +658,37 @@ const skeletonColumns = computed(() => {
   // 前缀列（展开/多选/序号）不在 columns 里——它们由表格面板按开关插入，骨架屏照同一套开关补上
   const prefix: Array<{ key: string, width: string, control: boolean, fill: string }> = []
   if (renderExpand.value) {
-    prefix.push({ key: '__expand__', width: '40px', control: true, fill: '' })
+    prefix.push({
+      key: '__expand__',
+      width: '40px',
+      control: true,
+      fill: '',
+    })
   }
   if (settings.selectable.value) {
-    prefix.push({ key: '__select__', width: '40px', control: true, fill: '' })
+    prefix.push({
+      key: '__select__',
+      width: '40px',
+      control: true,
+      fill: '',
+    })
   }
   if (settings.showIndex.value) {
-    prefix.push({ key: '__index__', width: '60px', control: false, fill: '40%' })
+    prefix.push({
+      key: '__index__',
+      width: '60px',
+      control: false,
+      fill: '40%',
+    })
   }
   return [
     ...prefix,
     ...columns.value.map((col, i) => ({
       key: col.key,
       // 按真实列宽，无宽度则 flex 平分剩余空间
-      width: col.width === undefined ? '' : `${col.width}px`,
+      width: col.width === undefined
+        ? ''
+        : `${col.width}px`,
       control: false,
       fill: SKELETON_CELL_FILL[i % SKELETON_CELL_FILL.length] as string,
     })),
@@ -627,7 +698,7 @@ const skeletonColumns = computed(() => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉。
+    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉
          开着搜索设置同步时等后端那份回来再出，免得先按本地旧的常用 / 高级划分摆出来再换 -->
     <XhCardRoot
       v-if="searchSettings.ready.value && (searchFields.length || advancedFields.length)"
@@ -736,7 +807,7 @@ const skeletonColumns = computed(() => {
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
     <XhCardRoot class="xh-schema-card flex-1" variant="outline" style="height: 0">
       <XhCardContent class="xh-schema-card__body--table">
-        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据。
+        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据
              开着表格设置同步时也等后端那份回来，免得先按本地旧的列顺序、显隐与宽度摆出表格再换 -->
         <XhSkeletonRoot v-if="!firstLoaded || !settings.ready.value" class="xh-table-skeleton" aria-hidden="true">
           <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
@@ -871,8 +942,8 @@ const skeletonColumns = computed(() => {
 </template>
 
 <style scoped>
-/* 卡片内边距：Card 皮肤把内边距放在根上（--xh-card-p，缺省 surface-pad-lg），管理页三块卡片走更紧的档。
- * 只改这一个公开槽，随密度轴换档（紧凑 8/12、宽松 12/16）；不要再给 content 叠一层内边距，会双倍。 */
+/* 卡片内边距：Card 皮肤把内边距放在根上（--xh-card-p，缺省 surface-pad-lg），管理页三块卡片走更紧的档
+ * 只改这一个公开槽，随密度轴换档（紧凑 8/12、宽松 12/16）；不要再给 content 叠一层内边距，会双倍 */
 .xh-schema-card {
   --xh-card-p: var(--xh-surface-pad-md) var(--xh-surface-pad-lg);
 }
@@ -918,7 +989,7 @@ const skeletonColumns = computed(() => {
 }
 
 .xh-skel-bar--square {
-  border-radius: var(--xh-radius-sm);
+  border-radius: var(--xh-shape-inset);
 }
 
 .xh-batch-bar {

@@ -1,15 +1,19 @@
 <script lang="ts" setup>
+import type { AvatarCropSource } from './avatar-crop'
 import type { UserProfile } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, prompt, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext, useUserStore } from '~/stores'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import { OTP_CODE_LENGTH } from '../shared/pin-code'
+import { loadAvatarSource, releaseAvatarSource } from './avatar-crop'
+import ProfileAvatarCropDialog from './ProfileAvatarCropDialog.vue'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
@@ -17,6 +21,13 @@ const emit = defineEmits<{ saved: [] }>()
 const { t } = useI18n()
 const userStore = useUserStore()
 const { apis } = useAppContext()
+
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
+}
 
 // ==================== 用户名修改 ====================
 
@@ -67,12 +78,13 @@ function handleChangeUserName() {
       }
       usernameChangeLoading.value = true
       try {
+        // 改好后壳层把会话里的用户换成回来的那份（顶栏与侧栏的 @用户名 随之刷新）
         await apis.changeUserNameApi({ userName, password: values.password })
         toast.success(t('component.profile.info.msg_username_updated'))
         emit('saved')
       }
       catch (e: unknown) {
-        toast.danger((e as Error)?.message || t('component.profile.info.err_username_update_failed'))
+        toast.danger(messageOf(e) || t('component.profile.info.err_username_update_failed'))
         return false
       }
       finally {
@@ -96,12 +108,25 @@ const profileForm = ref({
 })
 
 const genderOptions = computed(() => [
-  { label: t('component.profile.info.gender_unset'), value: 0 },
-  { label: t('common.gender.male'), value: 1 },
-  { label: t('common.gender.female'), value: 2 },
+  {
+    label: t('component.profile.info.gender_unset'),
+    value: 0,
+  },
+  {
+    label: t('common.gender.male'),
+    value: 1,
+  },
+  {
+    label: t('common.gender.female'),
+    value: 2,
+  },
 ])
 
 // ==================== 头像上传 / 删除 ====================
+// 与 4.x 不同：4.x 先把文件传进文件库、再经 updateProfileApi 把 fileId 写进资料（去掉头像写空串）；
+// 6.0 的头像端点上传即换成本人的头像并回收旧的，去掉头像走 removeAvatarApi（profile.remove-avatar），资料保存不再带头像
+// 会话里的用户由壳层换成后端回的那份（userStore 是会话的投影，顶栏与侧栏头像随之刷新），这里只重拉资料
+// 选好图片先进裁剪弹窗（4.x 没有这一步），传上去的是裁好的正方形；格式与大小仍按选中的原图认
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
 const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
@@ -109,27 +134,11 @@ const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 const avatarRemoving = ref(false)
+/** 待裁剪的图片；有值即裁剪弹窗开着 */
+const avatarCropSource = shallowRef<AvatarCropSource | null>(null)
 
-/** 头像原始值（fileId 或旧数据的直链），用于按钮禁用判断与持久化对比 */
+/** 头像原始值（fileId），用于按钮禁用判断与显示 */
 const currentAvatar = computed(() => props.profile?.avatar || userStore.avatar)
-
-/** 把头像写入资料并同步全局状态（其余字段取已保存的资料快照，避免连带提交表单里未保存的编辑） */
-async function persistAvatar(avatar: string) {
-  const saved = props.profile
-  await apis.updateProfileApi({
-    nickName: saved?.nickName ?? undefined,
-    realName: saved?.realName ?? undefined,
-    gender: saved?.gender ?? 0,
-    birthday: saved?.birthday ?? undefined,
-    country: saved?.country ?? undefined,
-    remark: saved?.remark ?? undefined,
-    avatar,
-  })
-  if (userStore.userInfo) {
-    userStore.setUserInfo({ ...userStore.userInfo, avatar })
-  }
-  emit('saved')
-}
 
 function triggerAvatarUpload() {
   avatarInputRef.value?.click()
@@ -151,17 +160,36 @@ async function handleAvatarChange(event: Event) {
     toast.warning(t('component.profile.info.warn_avatar_size', { size: AVATAR_MAX_SIZE / 1024 / 1024 }))
     return
   }
+  try {
+    avatarCropSource.value = await loadAvatarSource(file)
+  }
+  catch {
+    toast.warning(t('component.profile.info.warn_avatar_unreadable'))
+  }
+}
+
+function closeAvatarCrop() {
+  if (avatarCropSource.value)
+    releaseAvatarSource(avatarCropSource.value)
+  avatarCropSource.value = null
+}
+
+onBeforeUnmount(closeAvatarCrop)
+
+async function uploadCroppedAvatar(file: File) {
   avatarUploading.value = true
   // 灵动岛实时进度（确定性进度条）
   const task = islandStart('avatar-upload', t('island.avatar.uploading'), { icon: 'lucide:image-up', progress: 0 })
   try {
-    const { fileId } = await apis.uploadAvatarApi(file, percent => task.setProgress(percent))
-    // user.avatar 存文件主键(fileId)，显示时再换取预签名 URL
-    await persistAvatar(fileId)
+    // 上传即换好（后端按文件头再认一次格式与大小），返回的 fileId 已在会话里，显示时再换签名地址
+    await apis.uploadAvatarApi(file, percent => task.setProgress(percent))
+    emit('saved')
     task.success(t('island.avatar.updated'))
+    closeAvatarCrop()
   }
   catch (e: unknown) {
-    task.error((e as Error)?.message || t('island.avatar.upload_failed'))
+    // 弹窗留着：裁切框还在，改一改或直接再传一次
+    task.error(messageOf(e) || t('island.avatar.upload_failed'))
   }
   finally {
     avatarUploading.value = false
@@ -183,11 +211,12 @@ function handleAvatarRemove() {
     onOk: async () => {
       avatarRemoving.value = true
       try {
-        await persistAvatar('')
+        await apis.removeAvatarApi()
+        emit('saved')
         toast.success(t('component.profile.info.msg_avatar_removed'))
       }
       catch (e: unknown) {
-        toast.danger((e as Error)?.message || t('component.profile.info.err_avatar_remove_failed'))
+        toast.danger(messageOf(e) || t('component.profile.info.err_avatar_remove_failed'))
         return false
       }
       finally {
@@ -205,7 +234,9 @@ function syncProfileForm() {
     nickName: p.nickName ?? '',
     realName: p.realName ?? '',
     gender: p.gender ?? 0,
-    birthday: p.birthday ? new Date(p.birthday).getTime() : null,
+    birthday: p.birthday
+      ? new Date(p.birthday).getTime()
+      : null,
     country: p.country ?? '',
     remark: p.remark ?? '',
   }
@@ -216,21 +247,18 @@ watch(() => props.profile, syncProfileForm, { immediate: true })
 async function saveProfile() {
   profileSaving.value = true
   try {
+    // 整体覆盖（6.0 的 profile.update 不收头像）；显示名进顶栏由壳层刷新会话里的用户（4.x 在这里改 userStore）
     await apis.updateProfileApi({
       ...profileForm.value,
-      birthday: profileForm.value.birthday ? new Date(profileForm.value.birthday).toISOString() : undefined,
+      birthday: profileForm.value.birthday
+        ? new Date(profileForm.value.birthday).toISOString()
+        : undefined,
     })
     toast.success(t('component.profile.info.msg_profile_updated'))
-    if (userStore.userInfo) {
-      userStore.setUserInfo({
-        ...userStore.userInfo,
-        nickName: profileForm.value.nickName,
-      })
-    }
     emit('saved')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.info.err_profile_save_failed'))
+    toast.danger(messageOf(e) || t('component.profile.info.err_profile_save_failed'))
   }
   finally {
     profileSaving.value = false
@@ -270,7 +298,9 @@ async function sendVerifyCode(type: ContactTarget) {
     const res = type === 'email'
       ? await apis.sendEmailVerifyCodeApi()
       : await apis.sendPhoneVerifyCodeApi()
-    toast.success(type === 'email' ? t('component.profile.info.msg_code_sent_email') : t('component.profile.info.msg_code_sent_phone'))
+    toast.success(type === 'email'
+      ? t('component.profile.info.msg_code_sent_email')
+      : t('component.profile.info.msg_code_sent_phone'))
     verifyTarget.value = type
     verifyCode.value = []
     // 先归零再赋值：这个入口在计时期间仍可点，值不变的话倒计时不会重新起跑
@@ -279,7 +309,7 @@ async function sendVerifyCode(type: ContactTarget) {
     verifyResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
+    toast.danger(messageOf(e) || t('component.profile.info.err_code_send_failed'))
   }
   finally {
     verifyLoading.value = false
@@ -302,7 +332,7 @@ async function confirmVerify() {
     emit('saved')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.info.err_verify_failed'))
+    toast.danger(messageOf(e) || t('component.profile.info.err_verify_failed'))
   }
   finally {
     verifyLoading.value = false
@@ -328,7 +358,9 @@ function openChangeDialog(type: ContactTarget) {
 
 async function sendChangeCode() {
   if (!changeNewValue.value.trim()) {
-    toast.warning(changeTarget.value === 'email' ? t('component.profile.info.warn_new_email_required') : t('component.profile.info.warn_new_phone_required'))
+    toast.warning(changeTarget.value === 'email'
+      ? t('component.profile.info.warn_new_email_required')
+      : t('component.profile.info.warn_new_phone_required'))
     return
   }
   if (!changePassword.value) {
@@ -352,7 +384,7 @@ async function sendChangeCode() {
     changeResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
+    toast.danger(messageOf(e) || t('component.profile.info.err_code_send_failed'))
   }
   finally {
     changeLoading.value = false
@@ -370,12 +402,14 @@ async function confirmChange() {
       await apis.confirmChangeEmailApi(changeCodeStr.value)
     else
       await apis.confirmChangePhoneApi(changeCodeStr.value)
-    toast.success(changeTarget.value === 'email' ? t('component.profile.info.msg_email_updated') : t('component.profile.info.msg_phone_updated'))
+    toast.success(changeTarget.value === 'email'
+      ? t('component.profile.info.msg_email_updated')
+      : t('component.profile.info.msg_phone_updated'))
     cancelChange()
     emit('saved')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.info.err_operation_failed'))
+    toast.danger(messageOf(e) || t('component.profile.info.err_operation_failed'))
   }
   finally {
     changeLoading.value = false
@@ -483,7 +517,8 @@ function cancelChange() {
                 <div class="pf-setting-row__control">
                   <XhButton
                     v-if="profile?.canChangeUserName"
-                    variant="outline"
+                    variant="subtle"
+                    size="sm"
                     tone="brand"
                     :loading="usernameChangeLoading"
                     @click="handleChangeUserName"
@@ -494,7 +529,7 @@ function cancelChange() {
                 </div>
               </div>
 
-              <!-- 显示名称 -->
+              <!-- 显示名称（6.0 必填，1–64 字） -->
               <div class="pf-setting-row">
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
@@ -505,7 +540,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <XInput v-model:value="profileForm.nickName" :placeholder="t('component.profile.info.nickname_placeholder')" class="pf-field" :aria-label="t('component.profile.info.field_display_name')" />
+                  <XInput v-model:value="profileForm.nickName" :placeholder="t('component.profile.info.nickname_placeholder')" :max-length="64" class="pf-field" :aria-label="t('component.profile.info.field_display_name')" />
                 </div>
               </div>
             </div>
@@ -637,7 +672,7 @@ function cancelChange() {
       </div>
     </section>
 
-    <!-- 个人信息 -->
+    <!-- 个人信息（长度上限与 6.0 的 profile.update 一致：真实姓名、国家或地区 50，简介 500） -->
     <section class="pf-section">
       <div class="pf-section__head">
         <div class="pf-section__heading">
@@ -669,7 +704,7 @@ function cancelChange() {
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_country') }}</span>
-            <XInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" :aria-label="t('component.profile.info.field_country')" />
+            <XInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" :max-length="50" :aria-label="t('component.profile.info.field_country')" />
           </div>
           <div class="pf-field-card pf-field-card--block">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_bio') }}</span>
@@ -678,7 +713,7 @@ function cancelChange() {
               type="textarea"
               :placeholder="t('component.profile.info.bio_placeholder')"
               :autosize="{ minRows: 3, maxRows: 6 }"
-              :max-length="200"
+              :max-length="500"
               show-count
               :aria-label="t('component.profile.info.field_bio')"
             />
@@ -696,6 +731,14 @@ function cancelChange() {
         </XhButton>
       </div>
     </section>
+
+    <!-- 头像裁剪：确认后才上传，上传中关不掉，传完或取消才收起 -->
+    <ProfileAvatarCropDialog
+      :source="avatarCropSource"
+      :loading="avatarUploading"
+      @confirm="uploadCroppedAvatar"
+      @cancel="closeAvatarCrop"
+    />
 
     <!-- 换绑对话框（邮箱/手机共用）：模态对话框管焦点圈定、Escape 与遮罩点击，关闭一律走 cancelChange 清掉草稿 -->
     <XhDialogRoot
@@ -783,12 +826,12 @@ function cancelChange() {
 .pf-change-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--xh-space-3);
 }
 
 .pf-change-hint {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--text-secondary);
 }
 </style>

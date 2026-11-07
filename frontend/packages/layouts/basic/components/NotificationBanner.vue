@@ -27,7 +27,9 @@ function resolveIcon(item: AppUserInboxDisplayItem): string {
   if (!icon) {
     return TONE_ICON[resolveBannerTone(item)]
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 /** 横幅只展示一句话摘要（去掉 Markdown / HTML 记号），详情走跳转 */

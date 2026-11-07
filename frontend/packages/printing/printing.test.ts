@@ -1,6 +1,6 @@
 /**
- * 公共打印包无设备单元测试。
- * 职责：通过替身运行时验证数据源约束、字段树、模板格式、浏览器打印、打印机优先级、FIFO、客户端失败与取消，以及数据源目录加载。
+ * 公共打印包无设备单元测试
+ * 职责：通过替身运行时验证数据源约束、字段树、模板格式、浏览器打印、打印机优先级、FIFO、客户端失败与取消，以及数据源目录加载
  */
 import type { PrintDocument, TextContent } from '@xihan-print/core'
 import type { PrintDevice, RemotePrintDataSourceDto, ResolvedPrintTemplate } from './types'
@@ -9,16 +9,16 @@ import { createDocument, createElementRegistry, createPage } from '@xihan-print/
 import { afterEach, beforeEach, it, vi } from 'vitest'
 // 预热依赖图：打印包经 printer-preference 引 ~/stores 桶文件，会牵出 pinia、~/locales、~/utils 等整张图，
 // 首次转换在满并行下超过 10 秒的钩子超时。静态导入让这笔开销落在文件收集阶段，不计入任何钩子或用例；
-// beforeEach 里的 vi.resetModules() 只清模块实例、保留转换结果，重新导入只剩求值开销。
-// 这份静态实例只用于预热、从不被使用：printing / pinia / stores 仍一律取自 resetModules 之后的同一次导入。
+// beforeEach 里的 vi.resetModules() 只清模块实例、保留转换结果，重新导入只剩求值开销
+// 这份静态实例只用于预热、从不被使用：printing / pinia / stores 仍一律取自 resetModules 之后的同一次导入
 import './index'
 
 /**
- * 被测模块的当前实例。
+ * 被测模块的当前实例
  *
  * 打印包有多处模块级可变单例、且不对外暴露重置入口：
  * remote-data-sources 的 loadPromise（目录拉取缓存）、print-service 的 directQueueTail（直打 FIFO 队列尾）、
- * configuration 的运行配置。每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例，乱序执行也成立。
+ * configuration 的运行配置。每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例，乱序执行也成立
  */
 let printing: typeof import('./index')
 let piniaModule: typeof import('pinia')
@@ -30,13 +30,15 @@ const TemplateJson = '{"schemaVersion":1,"pages":[{"id":"page-1"}]}'
 beforeEach(async () => {
   vi.resetModules()
   runtime = createFakeRuntime()
-  vi.doMock('./runtime', () => ({ loadPrintRuntime: async () => runtime.api }))
+  vi.doMock('./runtime', () => ({
+    loadPrintRuntime: async () => runtime.api,
+  }))
   ;[printing, piniaModule, storesModule] = await Promise.all([
     import('./index'),
     import('pinia'),
     import('~/stores'),
   ])
-  // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store。
+  // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store
   piniaModule.setActivePinia(piniaModule.createPinia())
 })
 
@@ -60,7 +62,16 @@ it('数据源字段换成设计器字段树：点号拆成对象层级，明细�
     { key: 'documentNo', label: '单号条码', kind: 'barcode' },
     { key: 'link', label: '查询码', kind: 'qrcode' },
     { key: 'createdTime', label: '创建时间', inputType: 'datetime' },
-    { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }, { field: 'spec.color', title: '颜色' }, { field: 'qty', title: '数量', inputType: 'number' }] },
+    {
+      key: 'items',
+      label: '明细',
+      kind: 'table',
+      columns: [
+        { field: 'sku', title: '编码' },
+        { field: 'spec.color', title: '颜色' },
+        { field: 'qty', title: '数量', inputType: 'number' },
+      ],
+    },
   ])
   assert.deepEqual(fields, [
     { name: 'title', label: '标题', kind: 'value' },
@@ -69,21 +80,57 @@ it('数据源字段换成设计器字段树：点号拆成对象层级，明细�
       kind: 'object',
       children: [
         { name: 'name', label: '客户名称', kind: 'value' },
-        { name: 'level', label: '客户等级', kind: 'value', type: 'number' },
+        {
+          name: 'level',
+          label: '客户等级',
+          kind: 'value',
+          type: 'number',
+        },
       ],
     },
-    { name: 'logo', label: '标志', kind: 'value', content: 'image' },
-    { name: 'documentNo', label: '单号条码', kind: 'value', content: 'barcode' },
-    { name: 'link', label: '查询码', kind: 'value', content: 'qrcode' },
-    { name: 'createdTime', label: '创建时间', kind: 'value', type: 'datetime' },
+    {
+      name: 'logo',
+      label: '标志',
+      kind: 'value',
+      content: 'image',
+    },
+    {
+      name: 'documentNo',
+      label: '单号条码',
+      kind: 'value',
+      content: 'barcode',
+    },
+    {
+      name: 'link',
+      label: '查询码',
+      kind: 'value',
+      content: 'qrcode',
+    },
+    {
+      name: 'createdTime',
+      label: '创建时间',
+      kind: 'value',
+      type: 'datetime',
+    },
     {
       name: 'items',
       label: '明细',
       kind: 'list',
       children: [
         { name: 'sku', label: '编码', kind: 'value' },
-        { name: 'spec', kind: 'object', children: [{ name: 'color', label: '颜色', kind: 'value' }] },
-        { name: 'qty', label: '数量', kind: 'value', type: 'number' },
+        {
+          name: 'spec',
+          kind: 'object',
+          children: [
+            { name: 'color', label: '颜色', kind: 'value' },
+          ],
+        },
+        {
+          name: 'qty',
+          label: '数量',
+          kind: 'value',
+          type: 'number',
+        },
       ],
     },
   ])
@@ -119,18 +166,43 @@ it('模拟数据表单只列模板引用的字段：登记过的用数据源的�
   )
 
   const schema = printing.extractPrintSampleFormSchema(document, code)
-  assert.deepEqual(schema.fields.map(field => [field.key, field.label, field.kind, field.registered]), [
+  assert.deepEqual(schema.fields.map(field => [
+    field.key,
+    field.label,
+    field.kind,
+    field.registered,
+  ]), [
     ['documentNo', '单据编号', 'text', true],
     ['items', '明细', 'table', true],
-    ['customer.name', 'customer.name', 'text', false],
+    [
+      'customer.name',
+      'customer.name',
+      'text',
+      false,
+    ],
   ])
   assert.equal(schema.warnings.length, 1)
 
   const free = printing.extractPrintSampleFormSchema(document, null)
-  assert.deepEqual(free.fields.map(field => [field.key, field.kind, field.registered, field.columns?.map(column => column.field)]), [
+  assert.deepEqual(free.fields.map(field => [
+    field.key,
+    field.kind,
+    field.registered,
+    field.columns?.map(column => column.field),
+  ]), [
     ['documentNo', 'text', false, undefined],
-    ['items', 'table', false, ['sku', 'qty']],
-    ['customer.name', 'text', false, undefined],
+    [
+      'items',
+      'table',
+      false,
+      ['sku', 'qty'],
+    ],
+    [
+      'customer.name',
+      'text',
+      false,
+      undefined,
+    ],
   ])
   assert.deepEqual(free.warnings, [])
 
@@ -141,12 +213,42 @@ it('没登记的字段按引用它的元素选输入方式：图片、条码、�
   const registry = createElementRegistry()
   const page = createPage({ id: 'page-1' })
   page.elements = [
-    registry.createElement('image', { id: 'image-1', x: 0, y: 0, overrides: { source: { kind: 'field', field: 'photo' } } }),
-    registry.createElement('barCode', { id: 'barcode-1', x: 0, y: 20, overrides: { content: { kind: 'field', field: 'sku' } } }),
-    registry.createElement('matrixCode', { id: 'qrcode-1', x: 0, y: 40, overrides: { content: { kind: 'field', field: 'link' } } }),
-    registry.createElement('text', { id: 'text-1', x: 0, y: 60, overrides: { content: { kind: 'template', template: '备注 {{remark}}' } } }),
+    registry.createElement('image', {
+      id: 'image-1',
+      x: 0,
+      y: 0,
+      overrides: {
+        source: { kind: 'field', field: 'photo' },
+      },
+    }),
+    registry.createElement('barCode', {
+      id: 'barcode-1',
+      x: 0,
+      y: 20,
+      overrides: {
+        content: { kind: 'field', field: 'sku' },
+      },
+    }),
+    registry.createElement('matrixCode', {
+      id: 'qrcode-1',
+      x: 0,
+      y: 40,
+      overrides: {
+        content: { kind: 'field', field: 'link' },
+      },
+    }),
+    registry.createElement('text', {
+      id: 'text-1',
+      x: 0,
+      y: 60,
+      overrides: {
+        content: { kind: 'template', template: '备注 {{remark}}' },
+      },
+    }),
   ]
-  const schema = printing.extractPrintSampleFormSchema(createDocument({ pages: [page] }), null)
+  const schema = printing.extractPrintSampleFormSchema(createDocument({
+    pages: [page],
+  }), null)
   assert.deepEqual(schema.fields.map(field => [field.key, field.kind]), [
     ['photo', 'image'],
     ['sku', 'barcode'],
@@ -186,10 +288,32 @@ it('模拟数据安全处理嵌套路径、控件类型、对象数组与内部�
   assert.equal(printing.inferPrintSampleInputType('date', '2026-07-30'), 'date')
 
   const blank = printing.createBlankPrintSampleRecord([
-    { key: 'customer.name', kind: 'text', label: '客户', registered: true },
-    { key: 'quantity', kind: 'text', label: '数量', inputType: 'number', registered: true },
-    { key: 'enabled', kind: 'text', label: '启用', inputType: 'boolean', registered: true },
-    { key: 'details', kind: 'table', label: '明细', registered: true },
+    {
+      key: 'customer.name',
+      kind: 'text',
+      label: '客户',
+      registered: true,
+    },
+    {
+      key: 'quantity',
+      kind: 'text',
+      label: '数量',
+      inputType: 'number',
+      registered: true,
+    },
+    {
+      key: 'enabled',
+      kind: 'text',
+      label: '启用',
+      inputType: 'boolean',
+      registered: true,
+    },
+    {
+      key: 'details',
+      kind: 'table',
+      label: '明细',
+      registered: true,
+    },
   ])
   assert.deepEqual(blank, {
     customer: { name: '' },
@@ -198,18 +322,38 @@ it('模拟数据安全处理嵌套路径、控件类型、对象数组与内部�
     quantity: null,
   })
 
-  const source = [{ enabled: true, quantity: 2, details: [{ quantity: 1 }] }]
+  const source = [
+    {
+      enabled: true,
+      quantity: 2,
+      details: [
+        { quantity: 1 },
+      ],
+    },
+  ]
   const normalized = printing.normalizePrintSampleData(source)
   assert.equal(normalized.isCollection, true)
   assert.notEqual(normalized.records[0], source[0])
   assert.notEqual(normalized.records[0]?.details, source[0]?.details)
-  assert.deepEqual(printing.normalizePrintSampleData([]), { isCollection: true, records: [{}] })
+  assert.deepEqual(printing.normalizePrintSampleData([]), {
+    isCollection: true,
+    records: [{}],
+  })
   assert.throws(() => printing.normalizePrintSampleData('invalid'), /对象或对象数组/u)
   assert.throws(() => printing.normalizePrintSampleData([{}, 'invalid']), /每一项都必须是对象/u)
 
-  const payload = printing.createPrintSamplePayload([normalized.records[0]!, { enabled: false, quantity: 3 }], true)
+  const payload = printing.createPrintSamplePayload([
+    normalized.records[0]!,
+    { enabled: false, quantity: 3 },
+  ], true)
   assert.deepEqual(payload, [
-    { enabled: true, quantity: 2, details: [{ quantity: 1 }] },
+    {
+      enabled: true,
+      quantity: 2,
+      details: [
+        { quantity: 1 },
+      ],
+    },
     { enabled: false, quantity: 3 },
   ])
 })
@@ -220,11 +364,25 @@ it('浏览器打印把单对象包成一条记录、数组原样交给运行时�
   configureFor(code)
 
   await printing.previewPrintByCode(code, { documentNo: 'V-1' })
-  await printing.previewPrintByCode(code, [{ documentNo: 'V-2' }, { documentNo: 'V-3' }], { title: '对账单' })
+  await printing.previewPrintByCode(code, [
+    { documentNo: 'V-2' },
+    { documentNo: 'V-3' },
+  ], { title: '对账单' })
 
   assert.deepEqual(runtime.browserPrints, [
-    { records: [{ documentNo: 'V-1' }], title: code },
-    { records: [{ documentNo: 'V-2' }, { documentNo: 'V-3' }], title: '对账单' },
+    {
+      records: [
+        { documentNo: 'V-1' },
+      ],
+      title: code,
+    },
+    {
+      records: [
+        { documentNo: 'V-2' },
+        { documentNo: 'V-3' },
+      ],
+      title: '对账单',
+    },
   ])
   await assert.rejects(printing.previewPrintByCode(code, []), /不能为空数组/u)
 })
@@ -307,7 +465,14 @@ it('当前会话直打队列严格 FIFO：前一个任务交给打印队列之�
   await vi.waitFor(() => assert.equal(runtime.clientPrints.length, 2))
   runtime.clientPrints[1]!.complete()
   await second
-  assert.deepEqual(runtime.clientPrints.map(print => print.records), [[{ documentNo: 'F-1' }], [{ documentNo: 'F-2' }]])
+  assert.deepEqual(runtime.clientPrints.map(print => print.records), [
+    [
+      { documentNo: 'F-1' },
+    ],
+    [
+      { documentNo: 'F-2' },
+    ],
+  ])
 })
 
 it('连不上客户端时按错误码明确报错，不退回浏览器打印', async () => {
@@ -383,22 +548,50 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
   configureCatalog(async () => {
     calls++
     return [
-      { code: localCode, name: '后端同名数据源', fields: [{ key: 'other', label: '其它', kind: 'text' }], sampleDataJson: '{}' },
+      {
+        code: localCode,
+        name: '后端同名数据源',
+        fields: [
+          { key: 'other', label: '其它', kind: 'text' },
+        ],
+        sampleDataJson: '{}',
+      },
       {
         code: remoteCode,
         name: '后端数据源',
         fields: [
-          { key: 'title', label: '标题', kind: 'text', inputType: 'textarea', placeholder: '请输入' },
+          {
+            key: 'title',
+            label: '标题',
+            kind: 'text',
+            inputType: 'textarea',
+            placeholder: '请输入',
+          },
           {
             key: 'items',
             label: '明细',
             kind: 'table',
-            columns: [{ field: 'sku', title: '编码', width: null, inputType: 'number', placeholder: '数量' }],
+            columns: [
+              {
+                field: 'sku',
+                title: '编码',
+                width: null,
+                inputType: 'number',
+                placeholder: '数量',
+              },
+            ],
           },
         ],
         sampleDataJson: '{"title":"示例","items":[{"sku":1}]}',
       },
-      { code: brokenCode, name: '坏样例', fields: [{ key: 'f', label: '字段', kind: 'text' }], sampleDataJson: '{broken' },
+      {
+        code: brokenCode,
+        name: '坏样例',
+        fields: [
+          { key: 'f', label: '字段', kind: 'text' },
+        ],
+        sampleDataJson: '{broken',
+      },
     ]
   })
 
@@ -408,7 +601,10 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
     isolationLogCount++
   }
   try {
-    await Promise.all([printing.ensureRemotePrintDataSourcesLoaded(), printing.ensureRemotePrintDataSourcesLoaded()])
+    await Promise.all([
+      printing.ensureRemotePrintDataSourcesLoaded(),
+      printing.ensureRemotePrintDataSourcesLoaded(),
+    ])
   }
   finally {
     console.error = originalConsoleError
@@ -435,7 +631,7 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
   assert.equal(second.title, '示例')
 })
 
-/** 替身运行时：记下浏览器打印与客户端任务，打印机列表、错误与任务完成时机由用例控制。 */
+/** 替身运行时：记下浏览器打印与客户端任务，打印机列表、错误与任务完成时机由用例控制 */
 interface FakeRuntime {
   api: {
     printInBrowser: (document: unknown, records: readonly unknown[], options: { title?: string }) => Promise<number>
@@ -454,13 +650,18 @@ function createFakeRuntime(): FakeRuntime {
   const fake: FakeRuntime = {
     browserPrints: [],
     clientPrints: [],
-    printers: [{ name: 'Default Printer', isDefault: true }],
+    printers: [
+      { name: 'Default Printer', isDefault: true },
+    ],
     printersError: null,
     jobError: null,
     manualJobs: false,
     api: {
       printInBrowser: async (_document, records, options) => {
-        fake.browserPrints.push({ records: [...records], title: options.title })
+        fake.browserPrints.push({
+          records: [...records],
+          title: options.title,
+        })
         return 1
       },
       printWithClient: (_document, records, options) => {
@@ -470,7 +671,12 @@ function createFakeRuntime(): FakeRuntime {
           resolve = ok
           reject = fail
         })
-        const entry = { records: [...records], options, cancelled: false, complete: () => resolve() }
+        const entry = {
+          records: [...records],
+          options,
+          cancelled: false,
+          complete: () => resolve(),
+        }
         fake.clientPrints.push(entry)
         if (fake.jobError)
           reject(fake.jobError)
@@ -497,7 +703,7 @@ function createFakeRuntime(): FakeRuntime {
   return fake
 }
 
-/** 与客户端 SDK 同名的错误：打印服务按 name 与 code 认它。 */
+/** 与客户端 SDK 同名的错误：打印服务按 name 与 code 认它 */
 function clientError(code: string): Error {
   const error = new Error(code) as Error & { code: string }
   error.name = 'PrintClientError'
@@ -505,24 +711,28 @@ function clientError(code: string): Error {
   return error
 }
 
-/** 注册单字段测试数据源。 */
+/** 注册单字段测试数据源 */
 function registerSource(code: string): void {
   printing.registerPrintDataSource({
     code,
     name: code,
-    fields: [{ key: 'documentNo', label: '单据编号', kind: 'text' }],
+    fields: [
+      { key: 'documentNo', label: '单据编号', kind: 'text' },
+    ],
     createSampleData: () => ({ documentNo: 'SAMPLE-1' }),
   })
 }
 
-/** 注入返回指定模板与数据源的稳定解析函数。 */
+/** 注入返回指定模板与数据源的稳定解析函数 */
 function configureFor(code: string, rowVersion = '1', dataSourceCode: null | string = code, templateJson = TemplateJson): void {
   printing.configurePrinting({
     resolveTemplate: async (_templateCode, scope): Promise<ResolvedPrintTemplate> => ({
       basicId: '1',
       dataSourceCode,
       requestedScope: scope,
-      resolvedScope: scope === 'Auto' ? 'Tenant' : scope,
+      resolvedScope: scope === 'Auto'
+        ? 'Tenant'
+        : scope,
       rowVersion,
       templateCode: code,
       templateJson,
@@ -531,7 +741,7 @@ function configureFor(code: string, rowVersion = '1', dataSourceCode: null | str
   })
 }
 
-/** 注入指定目录取数函数（可为空）的运行配置。 */
+/** 注入指定目录取数函数（可为空）的运行配置 */
 function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceDto[]>) | undefined): void {
   printing.configurePrinting({
     resolveTemplate: async () => {
@@ -541,18 +751,26 @@ function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceD
   })
 }
 
-/** 安装本用例前的原始 localStorage 描述符，用于用例结束后原样还原。 */
+/** 安装本用例前的原始 localStorage 描述符，用于用例结束后原样还原 */
 let originalLocalStorageDescriptor: PropertyDescriptor | undefined
 
 /**
- * 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试。
- * 替身实现完整的 Storage 接口；覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例。
+ * 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试
+ * 替身实现完整的 Storage 接口；覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例
  */
 function installBrowserPreferenceContext(): void {
-  piniaModule.setActivePinia(piniaModule.createPinia())
-  const userStore = storesModule.useUserStore()
-  userStore.userInfo = { basicId: 'tester', tenantId: 'tenant-7' } as typeof userStore.userInfo
-  const values = new Map<string, string>()
+  // 6.0 的用户态是 auth 会话的投影：会话先写进替身存储，再建 pinia，auth store 创建时读出
+  const values = new Map<string, string>([
+    [
+      'xihan.next.session',
+      JSON.stringify({
+        accessToken: 'a-1',
+        refreshToken: 'r-1',
+        tenantId: 'tenant-7',
+        user: { id: 'tester', userName: 'tester' },
+      }),
+    ],
+  ])
 
   originalLocalStorageDescriptor ??= Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
   Object.defineProperty(globalThis, 'localStorage', {
@@ -563,14 +781,18 @@ function installBrowserPreferenceContext(): void {
       },
       clear: () => values.clear(),
       getItem: (key: string) => values.get(key) ?? null,
-      key: (index: number) => [...values.keys()][index] ?? null,
+      key: (index: number) => [
+        ...values.keys(),
+      ][index] ?? null,
       removeItem: (key: string) => values.delete(key),
       setItem: (key: string, value: string) => values.set(key, value),
     } satisfies Storage,
   })
+  piniaModule.setActivePinia(piniaModule.createPinia())
+  storesModule.useUserStore()
 }
 
-/** 还原被 installBrowserPreferenceContext 覆盖的全局 localStorage。 */
+/** 还原被 installBrowserPreferenceContext 覆盖的全局 localStorage */
 function restoreBrowserPreferenceContext(): void {
   if (!originalLocalStorageDescriptor)
     return
@@ -579,29 +801,43 @@ function restoreBrowserPreferenceContext(): void {
   originalLocalStorageDescriptor = undefined
 }
 
-/** 登记一个带单号、明细与备注的数据源，供模拟数据表单与字段比对用例共用。 */
+/** 登记一个带单号、明细与备注的数据源，供模拟数据表单与字段比对用例共用 */
 function registerSampleSchemaSource(code: string): void {
   printing.registerPrintDataSource({
     code,
     name: code,
     fields: [
       { key: 'documentNo', label: '单据编号' },
-      { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }] },
+      {
+        key: 'items',
+        label: '明细',
+        kind: 'table',
+        columns: [
+          { field: 'sku', title: '编码' },
+        ],
+      },
       { key: 'remark', label: '备注' },
     ],
     createSampleData: () => ({ documentNo: 'S-1', items: [] }),
   })
 }
 
-/** 一页模板，每个文本元素按给定的内容取值。 */
+/** 一页模板，每个文本元素按给定的内容取值 */
 function documentWithTexts(...contents: TextContent[]): PrintDocument {
   const registry = createElementRegistry()
   const page = createPage({ id: 'page-1' })
-  page.elements = contents.map((content, index) => registry.createElement('text', { id: `text-${index}`, x: 0, y: index * 10, overrides: { content } }))
-  return createDocument({ pages: [page] })
+  page.elements = contents.map((content, index) => registry.createElement('text', {
+    id: `text-${index}`,
+    x: 0,
+    y: index * 10,
+    overrides: { content },
+  }))
+  return createDocument({
+    pages: [page],
+  })
 }
 
-/** 生成不会与其它测试或应用启动数据源冲突的编码。 */
+/** 生成不会与其它测试或应用启动数据源冲突的编码 */
 function uniqueCode(prefix: string): string {
   return `test.${prefix}.${crypto.randomUUID()}`
 }

@@ -1,8 +1,8 @@
 /**
- * 通知 Store（notification）单元测试。
+ * 通知 Store（notification）单元测试
  * 职责边界：只覆盖头部铃铃需要的轻量状态——「需要关注」口径（未读 或 需确认未确认）、
- * 站内信/提及我两条列表的派生、标记已读/已确认/全部已读的时间戳写入、插入与 $reset。
- * 管理页 CRUD 走 notificationApi，不在本文件范围内。
+ * 站内信/提及我两条列表的派生、标记已读/已确认/全部已读的时间戳写入、插入与 $reset
+ * 管理页 CRUD 走 notificationApi，不在本文件范围内
  */
 import type { NotificationItem } from './notification'
 import { createPinia, setActivePinia } from 'pinia'
@@ -43,7 +43,9 @@ describe('「需要关注」口径 = 未读 或 需确认但未确认', () => {
   it('未读通知计入徽章', () => {
     const store = useNotificationStore()
 
-    store.setItems([makeItem({ notificationStatus: NotificationStatus.Unread })])
+    store.setItems([
+      makeItem({ notificationStatus: NotificationStatus.Unread }),
+    ])
 
     expect(store.unreadCount).toBe(1)
   })
@@ -51,7 +53,9 @@ describe('「需要关注」口径 = 未读 或 需确认但未确认', () => {
   it('已读但 needConfirm 且无 confirmTime 仍计入徽章', () => {
     const store = useNotificationStore()
 
-    store.setItems([makeItem({ needConfirm: true })])
+    store.setItems([
+      makeItem({ needConfirm: true }),
+    ])
 
     expect(store.unreadCount).toBe(1)
   })
@@ -59,7 +63,9 @@ describe('「需要关注」口径 = 未读 或 需确认但未确认', () => {
   it('已读且已确认不计入徽章', () => {
     const store = useNotificationStore()
 
-    store.setItems([makeItem({ needConfirm: true, confirmTime: '2024-01-02T00:00:00.000Z' })])
+    store.setItems([
+      makeItem({ needConfirm: true, confirmTime: '2024-01-02T00:00:00.000Z' }),
+    ])
 
     expect(store.unreadCount).toBe(0)
   })
@@ -67,7 +73,9 @@ describe('「需要关注」口径 = 未读 或 需确认但未确认', () => {
   it('已读、不需要确认的通知不计入徽章', () => {
     const store = useNotificationStore()
 
-    store.setItems([makeItem()])
+    store.setItems([
+      makeItem(),
+    ])
 
     expect(store.unreadCount).toBe(0)
   })
@@ -86,7 +94,9 @@ describe('「需要关注」口径 = 未读 或 需确认但未确认', () => {
   it('needConfirm 为 false 时即使无 confirmTime 也不计数', () => {
     const store = useNotificationStore()
 
-    store.setItems([makeItem({ needConfirm: false })])
+    store.setItems([
+      makeItem({ needConfirm: false }),
+    ])
 
     expect(store.unreadCount).toBe(0)
   })
@@ -107,7 +117,10 @@ describe('「需要关注」口径 = 未读 或 需确认但未确认', () => {
 describe('站内信与「提及我」的切分', () => {
   it('allItems 就是全部通知（含全局）', () => {
     const store = useNotificationStore()
-    const list = [makeItem({ basicId: 'a', isGlobal: true }), makeItem({ basicId: 'b', isGlobal: false })]
+    const list = [
+      makeItem({ basicId: 'a', isGlobal: true }),
+      makeItem({ basicId: 'b', isGlobal: false }),
+    ]
 
     store.setItems(list)
 
@@ -128,7 +141,9 @@ describe('站内信与「提及我」的切分', () => {
   it('isGlobal 缺省（undefined）的通知不算「提及我」', () => {
     const store = useNotificationStore()
 
-    store.setItems([makeItem({ basicId: 'unknown' })])
+    store.setItems([
+      makeItem({ basicId: 'unknown' }),
+    ])
 
     expect(store.mentionedItems).toEqual([])
   })
@@ -152,7 +167,9 @@ describe('标记已读 / 已确认', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2024-05-01T08:00:00.000Z'))
     const store = useNotificationStore()
-    store.setItems([makeItem({ notificationStatus: NotificationStatus.Unread })])
+    store.setItems([
+      makeItem({ notificationStatus: NotificationStatus.Unread }),
+    ])
 
     store.markItemRead('n-1')
 
@@ -163,7 +180,9 @@ describe('标记已读 / 已确认', () => {
 
   it('markItemRead 传不存在的 id 时静默无副作用', () => {
     const store = useNotificationStore()
-    store.setItems([makeItem({ notificationStatus: NotificationStatus.Unread })])
+    store.setItems([
+      makeItem({ notificationStatus: NotificationStatus.Unread }),
+    ])
 
     expect(() => store.markItemRead('不存在')).not.toThrow()
     expect(store.unreadCount).toBe(1)
@@ -173,7 +192,9 @@ describe('标记已读 / 已确认', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2024-05-02T09:30:00.000Z'))
     const store = useNotificationStore()
-    store.setItems([makeItem({ notificationStatus: NotificationStatus.Unread, needConfirm: true })])
+    store.setItems([
+      makeItem({ notificationStatus: NotificationStatus.Unread, needConfirm: true }),
+    ])
 
     store.markItemConfirmed('n-1')
 
@@ -187,7 +208,9 @@ describe('标记已读 / 已确认', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2024-05-03T00:00:00.000Z'))
     const store = useNotificationStore()
-    store.setItems([makeItem({ needConfirm: true, readTime: '2020-01-01T00:00:00.000Z' })])
+    store.setItems([
+      makeItem({ needConfirm: true, readTime: '2020-01-01T00:00:00.000Z' }),
+    ])
 
     store.markItemConfirmed('n-1')
 
@@ -212,7 +235,9 @@ describe('标记已读 / 已确认', () => {
 
   it('markAllRead 不会顺手确认「需确认」的通知，徽章仍保留', () => {
     const store = useNotificationStore()
-    store.setItems([makeItem({ notificationStatus: NotificationStatus.Unread, needConfirm: true })])
+    store.setItems([
+      makeItem({ notificationStatus: NotificationStatus.Unread, needConfirm: true }),
+    ])
 
     store.markAllRead()
 
@@ -224,7 +249,9 @@ describe('标记已读 / 已确认', () => {
 describe('插入与重置', () => {
   it('prependItem 把新通知插到列表最前', () => {
     const store = useNotificationStore()
-    store.setItems([makeItem({ basicId: 'old' })])
+    store.setItems([
+      makeItem({ basicId: 'old' }),
+    ])
 
     store.prependItem(makeItem({ basicId: 'new' }))
 
@@ -233,7 +260,9 @@ describe('插入与重置', () => {
 
   it('prependItem 不做去重，同 id 会重复出现（去重责任在调用方）', () => {
     const store = useNotificationStore()
-    store.setItems([makeItem({ basicId: 'dup' })])
+    store.setItems([
+      makeItem({ basicId: 'dup' }),
+    ])
 
     store.prependItem(makeItem({ basicId: 'dup' }))
 
@@ -242,16 +271,22 @@ describe('插入与重置', () => {
 
   it('setItems 整体替换列表，旧条目立即消失', () => {
     const store = useNotificationStore()
-    store.setItems([makeItem({ basicId: 'a' })])
+    store.setItems([
+      makeItem({ basicId: 'a' }),
+    ])
 
-    store.setItems([makeItem({ basicId: 'b' })])
+    store.setItems([
+      makeItem({ basicId: 'b' }),
+    ])
 
     expect(store.items.map(n => n.basicId)).toEqual(['b'])
   })
 
   it('$reset 清空列表并复位 loading', () => {
     const store = useNotificationStore()
-    store.setItems([makeItem({ notificationStatus: NotificationStatus.Unread })])
+    store.setItems([
+      makeItem({ notificationStatus: NotificationStatus.Unread }),
+    ])
     store.loading = true
 
     store.$reset()

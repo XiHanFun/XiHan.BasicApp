@@ -9,9 +9,9 @@ import SchemaSearchDateRange from './SchemaSearchDateRange.vue'
 import SchemaSearchMultiSelect from './SchemaSearchMultiSelect.vue'
 
 /**
- * 搜索控件分发器：按字段 schema 选择渲染控件，统一绑定到 model[field.key]。
+ * 搜索控件分发器：按字段 schema 选择渲染控件，统一绑定到 model[field.key]
  * 区间(searchRange) → SchemaSearchDateRange；多选(searchMultiple) → SchemaSearchMultiSelect；
- * 枚举/标签/布尔(有 options) → 单选下拉，标了 searchFilterable 的换可搜索下拉；date/datetime → 日期选择；其余 → 文本输入。
+ * 枚举/标签/布尔(有 options) → 单选下拉，标了 searchFilterable 的换可搜索下拉；date/datetime → 日期选择；其余 → 文本输入
  */
 defineOptions({ name: 'SchemaSearchField' })
 

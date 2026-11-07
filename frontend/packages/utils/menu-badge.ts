@@ -1,10 +1,17 @@
 /** 菜单标签的语气：存库取值就是组件库的 tone 词，后端只接受这六个 */
-export const MENU_BADGE_TONES = ['neutral', 'brand', 'info', 'success', 'warning', 'danger'] as const
+export const MENU_BADGE_TONES = [
+  'neutral',
+  'brand',
+  'info',
+  'success',
+  'warning',
+  'danger',
+] as const
 
 export type MenuBadgeTone = (typeof MENU_BADGE_TONES)[number]
 
 /**
- * 菜单标签的语气。没配标签类型时，文字标签走 neutral、圆点走 danger——圆点本身就是「这里有新东西」的提醒。
+ * 菜单标签的语气。没配标签类型时，文字标签走 neutral、圆点走 danger——圆点本身就是「这里有新东西」的提醒
  */
 export function resolveMenuBadgeTone(badgeType: string | null | undefined, dot = false): MenuBadgeTone {
   return MENU_BADGE_TONES.find(tone => tone === badgeType) ?? (dot ? 'danger' : 'neutral')

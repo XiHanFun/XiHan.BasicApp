@@ -13,7 +13,9 @@ export interface BadgeInfo {
 
 /** 圆点按标签类型着色，没配时按提醒红 */
 function dotStyle(type?: string) {
-  return { background: menuBadgeDotColor(resolveMenuBadgeTone(type, true)) }
+  return {
+    background: menuBadgeDotColor(resolveMenuBadgeTone(type, true)),
+  }
 }
 
 /**
@@ -28,7 +30,10 @@ export function renderSidebarBadgeLabel(
     return () =>
       h('span', { class: 'menu-badge-wrapper' }, [
         h('span', { class: 'menu-badge-text' }, text),
-        h('span', { class: 'menu-badge-dot', style: dotStyle(badge.type) }),
+        h('span', {
+          class: 'menu-badge-dot',
+          style: dotStyle(badge.type),
+        }),
       ])
   }
   return () =>
@@ -55,7 +60,10 @@ export function renderHorizontalBadgeLabel(
     return () =>
       h('span', { class: 'inline-flex items-center gap-1' }, [
         text,
-        h('span', { class: 'menu-badge-dot menu-badge-dot--inline', style: dotStyle(badge.type) }),
+        h('span', {
+          class: 'menu-badge-dot menu-badge-dot--inline',
+          style: dotStyle(badge.type),
+        }),
       ])
   }
   return () =>

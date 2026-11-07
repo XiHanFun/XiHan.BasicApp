@@ -46,8 +46,12 @@ function getWebGLFingerprint(): string {
       return ''
 
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
-    const vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : ''
-    const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : ''
+    const vendor = debugInfo
+      ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)
+      : ''
+    const renderer = debugInfo
+      ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+      : ''
 
     return `${vendor}~${renderer}`
   }
@@ -57,13 +61,13 @@ function getWebGLFingerprint(): string {
 }
 
 /**
- * 音频指纹：离线渲染一段固定波形，取样本能量作为特征。
+ * 音频指纹：离线渲染一段固定波形，取样本能量作为特征
  *
  * 必须用 OfflineAudioContext 而非实时 AudioContext：登录页在 onMounted 即取指纹，
  * 此时没有用户手势，自动播放策略会把实时上下文挂起，onaudioprocess 永不触发，只能等超时拿空串；
  * 而退出登录后客户端跳转过来的登录页已有手势，同一段代码又能拿到真实值——
- * 同一台设备算出两种指纹，会被判成新设备而反复触发设备变更通知。
- * 离线渲染不受手势限制，结果只取决于硬件与浏览器实现，因而稳定。
+ * 同一台设备算出两种指纹，会被判成新设备而反复触发设备变更通知
+ * 离线渲染不受手势限制，结果只取决于硬件与浏览器实现，因而稳定
  */
 function getAudioFingerprint(): Promise<string> {
   return new Promise((resolve) => {
@@ -118,9 +122,13 @@ function getNavigatorFeatures(): string {
     nav.hardwareConcurrency ?? '',
     nav.deviceMemory ?? '',
     nav.maxTouchPoints ?? 0,
-    'ontouchstart' in window ? 1 : 0,
+    'ontouchstart' in window
+      ? 1
+      : 0,
     nav.cookieEnabled ? 1 : 0,
-    typeof nav.getBattery === 'function' ? 1 : 0,
+    typeof nav.getBattery === 'function'
+      ? 1
+      : 0,
   ].join('|')
 }
 

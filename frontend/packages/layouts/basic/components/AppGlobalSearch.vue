@@ -12,7 +12,7 @@ import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useAuthStore, useFavoritesStore, useLayoutBridgeStore } from '~/stores'
 
 /**
- * 命令面板：布局层常驻一份，由 layoutBridgeStore.requestOpenGlobalSearch 打开。
+ * 命令面板：布局层常驻一份，由 layoutBridgeStore.requestOpenGlobalSearch 打开
  * 顶栏入口（HeaderSearchTrigger）、悬浮组入口与快捷键都只发请求，入口放哪、藏不藏都不影响面板可用
  */
 defineOptions({ name: 'AppGlobalSearch' })
@@ -50,14 +50,18 @@ interface PaletteItem {
 type PaletteView = PaletteItem & { hl?: number[], gi?: number }
 
 function tt(title: string): string {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 function resolveIcon(icon?: string): string {
   if (!icon) {
     return 'lucide:file'
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 // ── 数据源 ───────────────────────────────────────────────────────
@@ -69,7 +73,12 @@ function flattenMenuRoutes(routes: MenuRoute[]): FlatMenu[] {
       continue
     }
     if (r.path && r.name && r.meta?.title && r.component) {
-      result.push({ name: r.name, path: r.path, title: t(r.meta.title, r.meta.title), icon: r.meta.icon })
+      result.push({
+        name: r.name,
+        path: r.path,
+        title: t(r.meta.title, r.meta.title),
+        icon: r.meta.icon,
+      })
     }
     if (r.children?.length) {
       result.push(...flattenMenuRoutes(r.children))
@@ -128,7 +137,9 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:theme',
       group: 'action',
-      title: isDark.value ? t('header.search.action.theme_light') : t('header.search.action.theme_dark'),
+      title: isDark.value
+        ? t('header.search.action.theme_light')
+        : t('header.search.action.theme_dark'),
       icon: isDark.value ? 'lucide:sun' : 'lucide:moon',
       keywords: 'theme dark light 主题 深色 浅色 切换',
       run: () => toggleThemeWithTransition(),
@@ -144,7 +155,9 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:favorite',
       group: 'action',
-      title: currentFavorited.value ? t('header.search.action.favorite_remove') : t('header.search.action.favorite_add'),
+      title: currentFavorited.value
+        ? t('header.search.action.favorite_remove')
+        : t('header.search.action.favorite_add'),
       icon: currentFavorited.value ? 'lucide:star-off' : 'lucide:star',
       keywords: 'favorite 收藏 标记',
       run: toggleFavoriteCurrent,
@@ -152,7 +165,9 @@ const actionItems = computed<PaletteItem[]>(() => {
     {
       id: 'act:fullscreen',
       group: 'action',
-      title: isFullscreen.value ? t('header.search.action.fullscreen_exit') : t('header.search.action.fullscreen_enter'),
+      title: isFullscreen.value
+        ? t('header.search.action.fullscreen_exit')
+        : t('header.search.action.fullscreen_enter'),
       icon: isFullscreen.value ? 'lucide:minimize' : 'lucide:maximize',
       keywords: 'fullscreen 全屏',
       run: () => void toggleFullscreen(),
@@ -206,7 +221,9 @@ function fuzzy(q: string, text: string): { score: number, indices: number[] } | 
   for (let i = 0; i < lower.length && qi < ql.length; i++) {
     if (lower[i] === ql[qi]) {
       indices.push(i)
-      score += i === last + 1 ? 3 : 1
+      score += i === last + 1
+        ? 3
+        : 1
       if (i === 0) {
         score += 3
       }
@@ -214,7 +231,9 @@ function fuzzy(q: string, text: string): { score: number, indices: number[] } | 
       qi++
     }
   }
-  return qi === ql.length ? { score, indices } : null
+  return qi === ql.length
+    ? { score, indices }
+    : null
 }
 
 const ASCII_QUERY_RE = /^[\w\s]+$/
@@ -234,12 +253,19 @@ function matchItem(item: PaletteItem, q: string): { score: number, indices: numb
       }
       const onFull = fuzzy(q, idx.full)
       if (onFull) {
-        return { score: onFull.score + 10, indices: [...new Set(onFull.indices.map(i => idx.fullMap[i]!))] }
+        return {
+          score: onFull.score + 10,
+          indices: [
+            ...new Set(onFull.indices.map(i => idx.fullMap[i]!)),
+          ],
+        }
       }
     }
   }
   const extra = fuzzy(q, `${item.keywords ?? ''} ${item.subtitle ?? ''}`)
-  return extra ? { score: extra.score, indices: [] } : null
+  return extra
+    ? { score: extra.score, indices: [] }
+    : null
 }
 
 function matchAndSort(items: PaletteItem[], q: string): PaletteView[] {
@@ -247,7 +273,10 @@ function matchAndSort(items: PaletteItem[], q: string): PaletteView[] {
   for (const it of items) {
     const m = matchItem(it, q)
     if (m) {
-      scored.push({ view: { ...it, hl: m.indices }, score: m.score })
+      scored.push({
+        view: { ...it, hl: m.indices },
+        score: m.score,
+      })
     }
   }
   scored.sort((a, b) => b.score - a.score)
@@ -261,21 +290,41 @@ const groups = computed<{ key: string, label: string, items: PaletteView[] }[]>(
   const result: { key: string, label: string, items: PaletteView[] }[] = []
   if (!q) {
     if (recentItems.value.length) {
-      result.push({ key: 'recent', label: t('header.search.group.recent'), items: recentItems.value.slice(0, 6) })
+      result.push({
+        key: 'recent',
+        label: t('header.search.group.recent'),
+        items: recentItems.value.slice(0, 6),
+      })
     }
     if (favoriteItems.value.length) {
-      result.push({ key: 'favorite', label: t('header.search.group.favorite'), items: favoriteItems.value.slice(0, 6) })
+      result.push({
+        key: 'favorite',
+        label: t('header.search.group.favorite'),
+        items: favoriteItems.value.slice(0, 6),
+      })
     }
-    result.push({ key: 'action', label: t('header.search.group.action'), items: actionItems.value })
+    result.push({
+      key: 'action',
+      label: t('header.search.group.action'),
+      items: actionItems.value,
+    })
     return result
   }
   const acts = matchAndSort(actionItems.value, q)
   const menus = matchAndSort(menuItems.value, q)
   if (acts.length) {
-    result.push({ key: 'action', label: t('header.search.group.action'), items: acts })
+    result.push({
+      key: 'action',
+      label: t('header.search.group.action'),
+      items: acts,
+    })
   }
   if (menus.length) {
-    result.push({ key: 'menu', label: t('header.search.group.menu'), items: menus })
+    result.push({
+      key: 'menu',
+      label: t('header.search.group.menu'),
+      items: menus,
+    })
   }
   return result
 })
@@ -294,7 +343,9 @@ const activeId = computed(() => flat.value[activeIndex.value]?.id)
 // 高亮匹配字符 → 连续段
 function highlight(text: string, indices?: number[]): { text: string, hit: boolean }[] {
   if (!indices?.length) {
-    return [{ text, hit: false }]
+    return [
+      { text, hit: false },
+    ]
   }
   const set = new Set(indices)
   const segs: { text: string, hit: boolean }[] = []
@@ -511,11 +562,11 @@ watch(
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  border-radius: 14px;
+  border-radius: var(--xh-shape-sheet);
   overflow: hidden;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
-  box-shadow: var(--xh-shadow-xl);
+  box-shadow: var(--xh-elevation-sheet);
 }
 
 .cmdk-input {
@@ -549,7 +600,7 @@ watch(
 .cmdk-esc {
   padding: 2px 7px;
   font-size: 11px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--xh-font-family-mono);
   color: hsl(var(--muted-foreground));
   background: hsl(var(--muted) / 0.6);
   border-radius: 5px;
@@ -659,7 +710,7 @@ watch(
   min-width: 16px;
   padding: 1px 4px;
   margin-right: 2px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--xh-font-family-mono);
   font-size: 11px;
   background: hsl(var(--muted) / 0.6);
   border-radius: 4px;

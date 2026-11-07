@@ -1,26 +1,31 @@
 /**
- * packages/utils/common.ts 单元测试。
+ * packages/utils/common.ts 单元测试
  *
  * 职责边界：只验证这一组通用纯函数（日期/体积格式化、防抖节流、深拷贝、空值判定、
  * 随机串、查询串解析、剪贴板、状态映射、选项取标签）的实际行为与边界，
- * 包括源码当前未做防护而产生的退化输出（用例锁定「当前真实行为」，不代表该行为正确）。
+ * 包括源码当前未做防护而产生的退化输出（用例锁定「当前真实行为」，不代表该行为正确）
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  browserTimeZone,
   copyToClipboard,
   debounce,
   deepClone,
   formatDate,
+  formatDateTime,
   formatFileSize,
+  getDisplayTimeZone,
   getOptionLabel,
   getStatusType,
   isEmpty,
+  isTimeZone,
   parseQuery,
   randomString,
+  setDisplayTimeZone,
   throttle,
 } from './common'
 
-/** 记录被临时覆盖的属性，afterEach 统一还原，避免污染同文件后续用例。 */
+/** 记录被临时覆盖的属性，afterEach 统一还原，避免污染同文件后续用例 */
 const propertyRestorers: Array<() => void> = []
 
 function overrideProperty(target: object, key: string, value: unknown): void {
@@ -49,9 +54,9 @@ describe('formatDate', () => {
   })
 
   it('时间戳 0（Unix 纪元）按正常时间格式化，不再落进占位分支', () => {
-    // 回归锚点：源码原本用 !date 判空，数字 0 与空串一起落入占位分支，纪元时刻格式化不出来。
+    // 回归锚点：源码原本用 !date 判空，数字 0 与空串一起落入占位分支，纪元时刻格式化不出来
     // 断言写成与等价 Date 实例比对而不是硬编码 '1970-01-01 08:00:00'，避免绑死运行时区；
-    // 修复前 formatDate(0) 是 '-' 而 formatDate(new Date(0)) 是正常时间串，两侧必然不等。
+    // 修复前 formatDate(0) 是 '-' 而 formatDate(new Date(0)) 是正常时间串，两侧必然不等
     expect(formatDate(0)).toBe(formatDate(new Date(0)))
     expect(formatDate(0)).not.toBe('-')
   })
@@ -73,13 +78,72 @@ describe('formatDate', () => {
     expect(formatDate('2026-08-27 13:04:05', 'YYYY/MM/DD')).toBe('2026/08/27')
   })
 
+  it('按显示时区显示后端的 UTC 时刻，换时区后同一个值跟着变', () => {
+    const original = getDisplayTimeZone()
+    try {
+      setDisplayTimeZone('Asia/Shanghai')
+      expect(formatDate('2026-11-01T00:30:00Z')).toBe('2026-11-01 08:30:00')
+      setDisplayTimeZone('UTC')
+      expect(formatDate('2026-11-01T00:30:00Z')).toBe('2026-11-01 00:30:00')
+    }
+    finally {
+      setDisplayTimeZone(original)
+    }
+  })
+
   it('传入 Date 实例与等价时间戳的格式化结果一致', () => {
     const date = new Date(2026, 7, 27, 13, 4, 5)
     expect(formatDate(date)).toBe(formatDate(date.getTime()))
   })
 
-  it('不可解析的字符串输出 Invalid Date 而非抛错', () => {
-    expect(formatDate('不是日期')).toBe('Invalid Date')
+  it('不可解析的字符串按占位符返回而非抛错', () => {
+    expect(formatDate('不是日期')).toBe('-')
+  })
+})
+
+describe('formatDateTime', () => {
+  it('按指定时区换算带 Z 或偏移的时刻，与浏览器所在的时区无关', () => {
+    expect(formatDateTime('2026-11-01T00:30:00Z', 'Asia/Shanghai')).toBe('2026-11-01 08:30:00')
+    // 纽约 11 月 1 日 06:00Z 才退出夏令时，此刻仍是 -04:00
+    expect(formatDateTime('2026-11-01T00:30:00Z', 'America/New_York')).toBe('2026-10-31 20:30:00')
+    expect(formatDateTime('2026-11-01T08:30:00+08:00', 'UTC', 'HH:mm')).toBe('00:30')
+    expect(formatDateTime(Date.UTC(2026, 10, 1, 0, 30), 'Asia/Tokyo')).toBe('2026-11-01 09:30:00')
+  })
+
+  it('只有日历日的串不换算：零点不会被挪到前一天', () => {
+    expect(formatDateTime('2026-11-01', 'America/Los_Angeles', 'YYYY-MM-DD')).toBe('2026-11-01')
+    expect(formatDateTime('2026-11-01', 'Pacific/Kiritimati', 'YYYY-MM-DD')).toBe('2026-11-01')
+  })
+
+  it('没有值与解析不出的值按占位符返回', () => {
+    expect(formatDateTime(null, 'UTC')).toBe('-')
+    expect(formatDateTime('', 'UTC')).toBe('-')
+    expect(formatDateTime(Number.NaN, 'UTC')).toBe('-')
+    expect(formatDateTime('garbage', 'UTC')).toBe('-')
+  })
+})
+
+describe('显示时区', () => {
+  it('认得 IANA 时区名，认不出的拒绝写入', () => {
+    expect(isTimeZone('Asia/Shanghai')).toBe(true)
+    expect(isTimeZone('UTC')).toBe(true)
+    expect(isTimeZone('Mars/Olympus')).toBe(false)
+    expect(isTimeZone('')).toBe(false)
+    const original = getDisplayTimeZone()
+    expect(() => setDisplayTimeZone('Mars/Olympus')).toThrow(RangeError)
+    expect(getDisplayTimeZone()).toBe(original)
+  })
+
+  it('空串表示跟随浏览器所在的时区', () => {
+    const original = getDisplayTimeZone()
+    try {
+      setDisplayTimeZone('Asia/Tokyo')
+      setDisplayTimeZone('')
+      expect(getDisplayTimeZone()).toBe(browserTimeZone())
+    }
+    finally {
+      setDisplayTimeZone(original)
+    }
   })
 })
 
@@ -115,8 +179,8 @@ describe('formatFileSize', () => {
   })
 
   it('负数与非有限数返回占位符 -，不再把 NaN undefined 渲染到界面上', () => {
-    // 回归锚点：Math.log(-1) 为 NaN → 下标 NaN → sizes[NaN] 为 undefined，原本输出 'NaN undefined'。
-    // 后端 fileSize 字段缺失被 Number() 化成 NaN 时，文件列表与配额统计会直接显示这串文案。
+    // 回归锚点：Math.log(-1) 为 NaN → 下标 NaN → sizes[NaN] 为 undefined，原本输出 'NaN undefined'
+    // 后端 fileSize 字段缺失被 Number() 化成 NaN 时，文件列表与配额统计会直接显示这串文案
     expect(formatFileSize(-1)).toBe('-')
     expect(formatFileSize(Number.NaN)).toBe('-')
     expect(formatFileSize(Number.POSITIVE_INFINITY)).toBe('-')
@@ -232,7 +296,16 @@ describe('deepClone', () => {
   })
 
   it('嵌套对象逐层复制，修改副本不影响原对象', () => {
-    const source = { a: 1, nested: { list: [1, 2, { deep: 'x' }] } }
+    const source = {
+      a: 1,
+      nested: {
+        list: [
+          1,
+          2,
+          { deep: 'x' },
+        ],
+      },
+    }
     const cloned = deepClone(source)
 
     cloned.nested.list[2] = { deep: 'y' }
@@ -249,7 +322,10 @@ describe('deepClone', () => {
   })
 
   it('数组复制后是新数组且元素逐个深拷贝', () => {
-    const source = [{ v: 1 }, { v: 2 }]
+    const source = [
+      { v: 1 },
+      { v: 2 },
+    ]
     const cloned = deepClone(source)
 
     expect(cloned).not.toBe(source)
@@ -268,7 +344,12 @@ describe('deepClone', () => {
   })
 
   it('容器类型 Map 与 Set 会退化成空对象，结构化数据被丢失（当前行为，不支持这两类容器）', () => {
-    const cloned = deepClone({ map: new Map([['k', 'v']]), set: new Set([1, 2]) })
+    const cloned = deepClone({
+      map: new Map([
+        ['k', 'v'],
+      ]),
+      set: new Set([1, 2]),
+    })
 
     expect(cloned.map).toEqual({})
     expect(cloned.set).toEqual({})
@@ -313,7 +394,7 @@ describe('isEmpty', () => {
 
   it('有效日期实例不判为空，无效日期才判为空', () => {
     // 回归锚点：Date 没有自有可枚举键，原本落到 Object.keys 分支被一律判空 ——
-    // 表单 / 查询条件用 isEmpty 裁参数时，用户选中的日期会被静默丢掉，请求少带条件。
+    // 表单 / 查询条件用 isEmpty 裁参数时，用户选中的日期会被静默丢掉，请求少带条件
     expect(isEmpty(new Date())).toBe(false)
     expect(isEmpty(new Date(0))).toBe(false)
     expect(isEmpty(new Date('不是日期'))).toBe(true)
@@ -321,7 +402,9 @@ describe('isEmpty', () => {
 
   it('容器类型 Map 与 Set 按 size 判定，非空集合不再被判为空', () => {
     // 回归锚点：同上，Map/Set 也没有自有可枚举键，原本非空集合一律判空
-    expect(isEmpty(new Map([['k', 'v']]))).toBe(false)
+    expect(isEmpty(new Map([
+      ['k', 'v'],
+    ]))).toBe(false)
     expect(isEmpty(new Set([1, 2]))).toBe(false)
     expect(isEmpty(new Map())).toBe(true)
     expect(isEmpty(new Set())).toBe(true)
@@ -467,6 +550,8 @@ describe('getOptionLabel', () => {
   })
 
   it('选项标签为空串时原样返回空串而不是兜底', () => {
-    expect(getOptionLabel([{ label: '', value: 5 }], 5)).toBe('')
+    expect(getOptionLabel([
+      { label: '', value: 5 },
+    ], 5)).toBe('')
   })
 })

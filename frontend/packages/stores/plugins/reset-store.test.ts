@@ -1,7 +1,7 @@
 /**
- * Setup Store 的 $reset 兜底插件单元测试。
+ * Setup Store 的 $reset 兜底插件单元测试
  * 职责边界：只测插件本身——自定义 $reset 优先、无自定义时用初始快照回退、
- * 快照是深拷贝（嵌套对象不共享引用）、以及 JSON 深拷贝带来的表达力边界。
+ * 快照是深拷贝（嵌套对象不共享引用）、以及 JSON 深拷贝带来的表达力边界
  */
 import { createPinia, defineStore, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -17,12 +17,14 @@ function nextId(prefix: string): string {
 
 /**
  * pinia.use 注册的插件要等宿主 app 安装 pinia 后才会进入 _p 生效，
- * 这里补一个空 app —— 少了它插件永远不会跑，用例会「假失败」在原生 $reset 上。
+ * 这里补一个空 app —— 少了它插件永远不会跑，用例会「假失败」在原生 $reset 上
  */
 function usePluginPinia(): void {
   const pinia = createPinia()
   pinia.use(resetSetupStorePlugin())
-  createApp({ render: () => null }).use(pinia)
+  createApp({
+    render: () => null,
+  }).use(pinia)
   setActivePinia(pinia)
 }
 
@@ -49,7 +51,9 @@ describe('无自定义 $reset 的 setup store', () => {
 
   it('未加插件时 setup store 的 $reset 直接抛错 —— 这正是插件存在的理由', () => {
     setActivePinia(createPinia())
-    const useBare = defineStore(nextId('bare'), () => ({ count: ref(0) }))
+    const useBare = defineStore(nextId('bare'), () => ({
+      count: ref(0),
+    }))
     const store = useBare()
 
     expect(() => store.$reset()).toThrow(/setup syntax/)
@@ -57,7 +61,10 @@ describe('无自定义 $reset 的 setup store', () => {
 
   it('嵌套对象按深拷贝还原，改动不会渗回快照', () => {
     const useNested = defineStore(nextId('nested'), () => {
-      const config = ref({ list: [1, 2], inner: { flag: false } })
+      const config = ref({
+        list: [1, 2],
+        inner: { flag: false },
+      })
       return { config }
     })
     const store = useNested()
@@ -66,12 +73,17 @@ describe('无自定义 $reset 的 setup store', () => {
 
     store.$reset()
 
-    expect(store.config).toEqual({ list: [1, 2], inner: { flag: false } })
+    expect(store.config).toEqual({
+      list: [1, 2],
+      inner: { flag: false },
+    })
   })
 
   it('连续两次 reset 都能还原 —— 快照没有被上一次还原污染', () => {
     const useNested = defineStore(nextId('nested-twice'), () => ({
-      config: ref({ list: [1] }),
+      config: ref({
+        list: [1],
+      }),
     }))
     const store = useNested()
 
@@ -84,7 +96,9 @@ describe('无自定义 $reset 的 setup store', () => {
   })
 
   it('reset 后写入新值不会改动快照，第三次 reset 仍回到最初值', () => {
-    const useCounter = defineStore(nextId('counter-again'), () => ({ count: ref(7) }))
+    const useCounter = defineStore(nextId('counter-again'), () => ({
+      count: ref(7),
+    }))
     const store = useCounter()
 
     store.$reset()
@@ -174,7 +188,7 @@ describe('自定义 $reset 优先', () => {
 
   // 回归锚点（缺陷 33）：插件曾以 originalReset() 裸调用保存下来的原生 $reset，
   // options store 的原生实现内部依赖 this.$patch，丢 this 必抛 TypeError 并被 catch 吞掉，
-  // 退化成快照回退——state() 里的动态默认值（递增序号 / Date.now() / 随机 id）不会重新生成。
+  // 退化成快照回退——state() 里的动态默认值（递增序号 / Date.now() / 随机 id）不会重新生成
   it('options store 的原生 $reset 被绑回 store 调用，state() 的动态默认值重新生成', () => {
     let seed = 0
     const useSeeded = defineStore(nextId('options-seeded'), {

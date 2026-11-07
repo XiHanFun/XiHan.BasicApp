@@ -25,7 +25,7 @@ const emit = defineEmits<{ click: [event: MouseEvent] }>()
 
 <template>
   <!-- 提示触发器合到组件库的纯图标按钮上：尺寸随 sm 档与密度走，悬停、按下与禁用都由按钮给，
-       与同排的菜单 / 浮层触发钮（同样是 sm 纯图标按钮）齐高。
+       与同排的菜单 / 浮层触发钮（同样是 sm 纯图标按钮）齐高
        根是 tooltip 的 fragment，落在标签上的属性接不住，转交给按钮 -->
   <XhTooltipRoot>
     <XhTooltipTrigger as-child>

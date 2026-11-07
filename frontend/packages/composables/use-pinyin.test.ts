@@ -1,7 +1,7 @@
 /**
- * usePinyin 拼音搜索索引单元测试。
+ * usePinyin 拼音搜索索引单元测试
  * 职责：锁定「词典懒加载、未就绪时静默退化为 null」「按文本缓存」
- * 「全拼下标 → 原字符下标 的精确映射」以及非汉字文本一律不建索引这几条约定。
+ * 「全拼下标 → 原字符下标 的精确映射」以及非汉字文本一律不建索引这几条约定
  */
 import { describe, expect, it, vi } from 'vitest'
 
@@ -107,9 +107,9 @@ describe('getPinyinIndex 索引内容', () => {
     expect(getPinyinIndex('2号楼')?.initials).toBe('2hl')
   })
 
-  // 回归锚点（清单条目 44）：代理对必须按码点整体入索引。
+  // 回归锚点（清单条目 44）：代理对必须按码点整体入索引
   // 修复前 fullMap 是 [0, 1, 2, 2, 2]——emoji 的低位半字符被映射成一个独立字符下标，
-  // 高亮到该位会切出半个代理对（乱码方块），首字母串也多算一位。
+  // 高亮到该位会切出半个代理对（乱码方块），首字母串也多算一位
   it('emoji 按码点整体入索引，代理对两个码元一并映射到同一原字符', async () => {
     const { ensurePinyin, getPinyinIndex } = await loadModule()
     await ensurePinyin()
@@ -119,11 +119,13 @@ describe('getPinyinIndex 索引内容', () => {
     expect(index?.fullMap).toEqual([0, 0, 2, 2, 2])
     expect(index?.initials).toBe('🚀p')
     // 首字母串按码点数只有两位（emoji + p），而不是三位
-    expect([...(index?.initials ?? '')]).toHaveLength(2)
+    expect([
+      ...(index?.initials ?? ''),
+    ]).toHaveLength(2)
   })
 
   // 回归锚点（清单条目 44）：fullMap 必须与 full 逐码元等长，
-  // 消费方按 full 的码元下标反查 fullMap，短一位就会取到 undefined。
+  // 消费方按 full 的码元下标反查 fullMap，短一位就会取到 undefined
   it('含 emoji 时 fullMap 仍与全拼逐码元等长', async () => {
     const { ensurePinyin, getPinyinIndex } = await loadModule()
     await ensurePinyin()

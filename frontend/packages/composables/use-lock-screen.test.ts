@@ -1,8 +1,8 @@
 /**
- * useLockScreen 锁屏 / 强制改密引导单元测试。
+ * useLockScreen 锁屏 / 强制改密引导单元测试
  * 职责：锁定前端校验的各条分支与文案、服务端置位后的本地 UI 标记、
  * 「会话已失效就直接收起遮罩而不是把用户困在打不开的锁上」「连续失败达上限直接登出」
- * 这两条注释里写明的坑，以及跨标签页 / 本标签页事件同步与卸载后监听器必须被摘干净。
+ * 这两条注释里写明的坑，以及跨标签页 / 本标签页事件同步与卸载后监听器必须被摘干净
  */
 import type { App } from 'vue'
 import { mount } from '@vue/test-utils'
@@ -11,7 +11,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HOME_PATH, LOCK_REASON_KEY, LOCK_STATE_KEY } from '~/constants'
 import { i18n } from '~/locales'
-import { useAccessStore, useAuthStore } from '~/stores'
+import { ApiError } from '~/request'
+import { useAuthStore } from '~/stores'
 import { registerAppContext } from '~/stores/app-context'
 import { SESSION_LOCK_CHANGED_EVENT } from './session-lock'
 import { useLockScreen } from './useLockScreen'
@@ -27,6 +28,20 @@ let logoutSpy = vi.fn()
 
 const wrappers: Array<{ unmount: () => void }> = []
 
+/** 6.0 的令牌在 auth 会话里：给一份只带令牌与最少资料的会话 */
+function signIn(accessToken: string) {
+  useAuthStore().session = {
+    accessToken,
+    accessExpiresAt: '2099-01-01T00:00:00Z',
+    refreshToken: 'refresh',
+    refreshExpiresAt: '2099-01-01T00:00:00Z',
+    sessionId: 'session-1',
+    tenantId: null,
+    mustChangePassword: false,
+    user: { id: 'u-1', userName: 'tester', displayName: 'Tester' },
+  } as unknown as ReturnType<typeof useAuthStore>['session']
+}
+
 function mountLockScreen() {
   let captured: ReturnType<typeof useLockScreen> | null = null
   const wrapper = mount(defineComponent({
@@ -34,7 +49,11 @@ function mountLockScreen() {
       captured = useLockScreen()
       return () => h('div')
     },
-  }), { global: { plugins: [i18n as unknown as { install: (app: App) => void }] } })
+  }), {
+    global: {
+      plugins: [i18n as unknown as { install: (app: App) => void }],
+    },
+  })
   wrappers.push(wrapper)
   return { lock: captured as unknown as ReturnType<typeof useLockScreen>, wrapper }
 }
@@ -49,14 +68,23 @@ beforeEach(() => {
   replaceSpy = vi.fn()
   registerAppContext({
     apis: { lockSessionApi, unlockSessionApi, changePasswordApi } as never,
-    getRouter: () => Promise.resolve({ replace: replaceSpy } as never),
+    getRouter: () => Promise.resolve({
+      replace: replaceSpy,
+      currentRoute: {
+        value: {
+          path: '/notification/inbox',
+          query: { tab: 'all' },
+          hash: '',
+        },
+      },
+    } as never),
   })
 
   logoutSpy = vi.fn(async () => {})
   const authStore = useAuthStore()
   vi.spyOn(authStore, 'logout').mockImplementation(logoutSpy as unknown as typeof authStore.logout)
 
-  useAccessStore().setAccessToken('tok-1')
+  signIn('tok-1')
 })
 
 afterEach(() => {
@@ -93,7 +121,7 @@ describe('挂载时按本地标记恢复', () => {
 
   it('有锁定标记但已无令牌时清掉残留标记，不让遮罩盖在登录页上', () => {
     localStorage.setItem(LOCK_STATE_KEY, '1')
-    useAccessStore().setAccessToken(null)
+    useAuthStore().clear()
 
     const { lock } = mountLockScreen()
 
@@ -233,6 +261,32 @@ describe('doUnlock 解锁', () => {
     expect(lock.unlockPwd.value).toBe('')
   })
 
+  it('锁定中整页刷新过（权限与菜单没装载）：解锁后在当前地址强制重走守卫', async () => {
+    localStorage.setItem(LOCK_STATE_KEY, '1')
+    const { lock } = mountLockScreen()
+    lock.unlockPwd.value = 'abcd'
+
+    await lock.doUnlock()
+
+    expect(replaceSpy).toHaveBeenCalledWith({
+      path: '/notification/inbox',
+      query: { tab: 'all' },
+      hash: '',
+      force: true,
+    })
+  })
+
+  it('后端错误只显示文案，不带错误码前缀', async () => {
+    localStorage.setItem(LOCK_STATE_KEY, '1')
+    unlockSessionApi.mockRejectedValueOnce(new ApiError(403, { code: 'IDENTITY_DENIED_013', status: 403, detail: '锁屏密码错误，还可尝试 4 次。' }))
+    const { lock } = mountLockScreen()
+    lock.unlockPwd.value = 'wrong'
+
+    await lock.doUnlock()
+
+    expect(lock.unlockError.value).toBe('锁屏密码错误，还可尝试 4 次。')
+  })
+
   it('解锁失败时清空输入并展示错误，遮罩仍在', async () => {
     localStorage.setItem(LOCK_STATE_KEY, '1')
     unlockSessionApi.mockRejectedValueOnce(new Error('口令不正确'))
@@ -249,7 +303,7 @@ describe('doUnlock 解锁', () => {
   it('会话已失效（令牌已被清空）时直接收起遮罩，不把用户困在打不开的锁上', async () => {
     localStorage.setItem(LOCK_STATE_KEY, '1')
     unlockSessionApi.mockImplementationOnce(async () => {
-      useAccessStore().setAccessToken(null)
+      useAuthStore().clear()
       throw new Error('登录已过期')
     })
     const { lock } = mountLockScreen()
@@ -332,7 +386,8 @@ describe('doChangePassword 强制改密', () => {
     expect(changePasswordApi).toHaveBeenCalledWith({ oldPassword: 'old', newPassword: 'newpwd' })
     expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
     expect(lock.lockMode.value).toBe('off')
-    expect(replaceSpy).toHaveBeenCalledWith(HOME_PATH)
+    // 登录后本来就落在首页，同一地址要 force，否则守卫不重跑、路由装不上
+    expect(replaceSpy).toHaveBeenCalledWith({ path: HOME_PATH, force: true })
   })
 
   it('改密失败时展示接口错误，引导仍在', async () => {
@@ -355,7 +410,7 @@ describe('doChangePassword 强制改密', () => {
     localStorage.setItem(LOCK_STATE_KEY, '1')
     localStorage.setItem(LOCK_REASON_KEY, 'PasswordChangeRequired')
     changePasswordApi.mockImplementationOnce(async () => {
-      useAccessStore().setAccessToken(null)
+      useAuthStore().clear()
       throw new Error('登录已过期')
     })
     const { lock } = mountLockScreen()
@@ -429,7 +484,7 @@ describe('锁定态同步与监听器清理', () => {
     const { lock } = mountLockScreen()
     expect(lock.lockMode.value).toBe('locked')
 
-    useAccessStore().setAccessToken(null)
+    useAuthStore().clear()
     await Promise.resolve()
 
     expect(lock.lockMode.value).toBe('off')

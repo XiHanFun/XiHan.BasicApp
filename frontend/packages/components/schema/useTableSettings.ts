@@ -57,7 +57,13 @@ function readDensity(value: string | undefined): TableDensity {
 /** 读出持久化的风格：旧版按 singleLine 存竖线（true 表示无竖线），换成 ruled */
 function readStyle(value: PersistedTableSettings['style']): TableStyle {
   const { singleLine, ...rest } = value ?? {}
-  return { ...DEFAULT_STYLE, ...(singleLine === undefined ? {} : { ruled: !singleLine }), ...rest }
+  return {
+    ...DEFAULT_STYLE,
+    ...(singleLine === undefined
+      ? {}
+      : { ruled: !singleLine }),
+    ...rest,
+  }
 }
 
 /** 默认排序单条规则（列表打开时的初始排序；列头点击的临时排序会覆盖本次会话） */
@@ -93,8 +99,8 @@ interface PersistedTableSettings {
 const STORAGE_PREFIX = 'xh:table-settings:'
 
 /**
- * 表格列设置状态机：显隐 / 排序 / 固定 / 密度，按 pageCode 持久化到 localStorage。
- * 作为用户偏好的子集；后端偏好端点就绪后（S3）可替换存储后端。
+ * 表格列设置状态机：显隐 / 排序 / 固定 / 密度，按 pageCode 持久化到 localStorage
+ * 作为用户偏好的子集；后端偏好端点就绪后（S3）可替换存储后端
  *
  * @param pageCode 页面唯一码（存储维度）
  * @param fields 列字段（schema 的可见字段，提供默认顺序与标题）
@@ -136,7 +142,9 @@ export function useTableSettings(
     const defaults = buildDefault()
     const defaultMap = new Map(defaults.map(c => [c.key, c]))
     // 兼容旧版：默认排序曾独立存储（defaultSorts/defaultSort），迁移为各列内置 sort（按字段名匹配）
-    const legacySorts = persisted.defaultSorts ?? (persisted.defaultSort ? [persisted.defaultSort] : [])
+    const legacySorts = persisted.defaultSorts ?? (persisted.defaultSort
+      ? [persisted.defaultSort]
+      : [])
     const legacySortMap = new Map(legacySorts.map(s => [s.field, s.order]))
     const ordered: ColumnSetting[] = []
     // 先按持久化顺序恢复仍存在的列
@@ -151,7 +159,9 @@ export function useTableSettings(
           width: p.width ?? def.width,
           sortable: def.sortable,
           // 列内 sort 优先；旧版独立默认排序按字段名迁移；仅可排序列保留
-          sort: def.sortable ? (p.sort ?? legacySortMap.get(p.key)) : undefined,
+          sort: def.sortable
+            ? (p.sort ?? legacySortMap.get(p.key))
+            : undefined,
         })
         defaultMap.delete(p.key)
       }
@@ -183,7 +193,13 @@ export function useTableSettings(
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {
     const data: PersistedTableSettings = {
-      columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width, sort: c.sort })),
+      columns: columns.value.map(c => ({
+        key: c.key,
+        visible: c.visible,
+        fixed: c.fixed,
+        width: c.width,
+        sort: c.sort,
+      })),
       density: density.value,
       style: { ...style.value },
       align: align.value,
@@ -235,7 +251,9 @@ export function useTableSettings(
   function setWidth(key: string, width?: number) {
     const target = columns.value.find(c => c.key === key)
     if (target) {
-      target.width = width && width > 0 ? width : undefined
+      target.width = width && width > 0
+        ? width
+        : undefined
     }
   }
 
@@ -261,7 +279,11 @@ export function useTableSettings(
     if (!target?.sortable) {
       return
     }
-    target.sort = target.sort === undefined ? 'asc' : target.sort === 'asc' ? 'desc' : undefined
+    target.sort = target.sort === undefined
+      ? 'asc'
+      : target.sort === 'asc'
+        ? 'desc'
+        : undefined
   }
 
   function move(fromIndex: number, toIndex: number) {

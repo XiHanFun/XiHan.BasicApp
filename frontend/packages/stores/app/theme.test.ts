@@ -1,7 +1,7 @@
 /**
- * 主题外观切片（app/theme）单元测试。
+ * 主题外观切片（app/theme）单元测试
  * 职责边界：主题模式/品牌色/圆角/字号/密度/动画/毛玻璃/无障碍/水印等外观偏好的
- * 默认值、本地还原、setter 落地与取值夹取，以及 isDark 派生的口径。
+ * 默认值、本地还原、setter 落地与取值夹取，以及 isDark 派生的口径
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

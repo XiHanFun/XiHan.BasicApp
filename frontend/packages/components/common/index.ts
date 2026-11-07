@@ -1,17 +1,15 @@
 import { defineAsyncComponent } from 'vue'
 
-// 重型编辑器（monaco / tiptap / md-editor-v3 / vanilla-jsoneditor）异步懒加载：
-// 避免被公共 barrel 拉入主依赖图，配合 vite manualChunks 真正按需加载，减小首屏体积。
+// 重型编辑器（monaco、md-editor-v3）与通知正文渲染异步懒加载，不进首屏依赖图（4.x 同）
 export const XCodeEditor = defineAsyncComponent(() => import('./CodeEditor.vue'))
-export const XJsonEditor = defineAsyncComponent(() => import('./JsonEditor.vue'))
 export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
 export const NotificationContent = defineAsyncComponent(() => import('./NotificationContent.vue'))
-export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'))
 
 export { default as XChartInView } from './ChartInView.vue'
 export { default as XContentEditorField } from './ContentEditorField.vue'
 export { indexDropdownOptions, toDropdownCollection } from './dropdown-collection'
 export { default as XEditModal } from './EditModal.vue'
+export { default as XFileRefUpload } from './FileRefUpload.vue'
 export type { GrantTransferGroup, GrantTransferItem, GrantTransferSide } from './grant-transfer'
 export { default as XGrantTransfer } from './GrantTransfer.vue'
 export { default as XJsonBlock } from './JsonBlock.vue'
@@ -19,6 +17,7 @@ export { default as XPageShell } from './PageShell.vue'
 export type { PermissionGrantItem, PermissionGroup } from './permission-grant-panel'
 export { groupPermissions } from './permission-grant-panel'
 export { default as XPermissionTransfer } from './PermissionTransfer.vue'
+export { renderTag } from './tag-cell'
 export { default as XUserAvatar } from './UserAvatar.vue'
 // 把 (row) => VNodeChild 这类渲染函数塞进模板的稳定壳子
 export { VNodeRender } from './VNodeRender'
@@ -30,6 +29,8 @@ export { default as XDataTable } from './XDataTable.vue'
 export { default as XDatePicker } from './XDatePicker.vue'
 export { default as XDateRangePicker } from './XDateRangePicker.vue'
 export { default as XDropdown } from './XDropdown.vue'
+export { default as XFieldLabel } from './XFieldLabel.vue'
+export { default as XHelpTip } from './XHelpTip.vue'
 export { default as XIconButton } from './XIconButton.vue'
 export { default as XInput } from './XInput.vue'
 export { default as XNumberInput } from './XNumberInput.vue'

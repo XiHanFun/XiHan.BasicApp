@@ -7,9 +7,7 @@ import {
   LogLevel,
 } from '@microsoft/signalr'
 import { ref, shallowRef } from 'vue'
-import { TOKEN_KEY } from '~/constants'
-import { refreshSessionToken } from '~/request'
-import { LocalStorage } from '~/utils'
+import { useAuthStore } from '~/stores'
 
 export type SignalREventHandler = Parameters<HubConnection['on']>[1]
 
@@ -27,7 +25,9 @@ function isUnauthorizedError(error: unknown): boolean {
   if ((error as { statusCode?: number } | null)?.statusCode === 401) {
     return true
   }
-  const message = error instanceof Error ? error.message : String(error ?? '')
+  const message = error instanceof Error
+    ? error.message
+    : String(error ?? '')
   return message.includes('401')
 }
 
@@ -49,7 +49,9 @@ function getInstanceState(hubPath: string): SignalRInstanceState {
  * Hub 路径默认 /hubs/notification，认证时自动携带 JWT
  */
 export function useSignalR(hubPath = '/hubs/notification') {
-  const normalizedHubPath = hubPath.startsWith('/') ? hubPath : `/${hubPath}`
+  const normalizedHubPath = hubPath.startsWith('/')
+    ? hubPath
+    : `/${hubPath}`
   const state = getInstanceState(normalizedHubPath)
 
   function normalizeBaseForHub(rawBase: string): string {
@@ -85,7 +87,7 @@ export function useSignalR(hubPath = '/hubs/notification') {
     }
 
     // 无 token 时不发起连接，避免 401
-    const token = LocalStorage.get<string>(TOKEN_KEY)
+    const token = useAuthStore().accessToken
     if (!token) {
       return
     }
@@ -94,7 +96,7 @@ export function useSignalR(hubPath = '/hubs/notification') {
 
     const conn = new HubConnectionBuilder()
       .withUrl(hubUrl, {
-        accessTokenFactory: () => LocalStorage.get<string>(TOKEN_KEY) ?? '',
+        accessTokenFactory: () => useAuthStore().accessToken ?? '',
         transport:
           HttpTransportType.WebSockets
           | HttpTransportType.ServerSentEvents
@@ -103,7 +105,7 @@ export function useSignalR(hubPath = '/hubs/notification') {
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {
           // token 已清除（已登出），放弃重连
-          if (!LocalStorage.get<string>(TOKEN_KEY)) {
+          if (!useAuthStore().accessToken) {
             return null
           }
           // 渐进式重连：1s, 2s, 5s, 10s, 30s
@@ -111,7 +113,9 @@ export function useSignalR(hubPath = '/hubs/notification') {
           return delays[Math.min(retryContext.previousRetryCount, delays.length - 1)] ?? null
         },
       })
-      .configureLogging(import.meta.env.DEV ? LogLevel.Information : LogLevel.Warning)
+      .configureLogging(import.meta.env.DEV
+        ? LogLevel.Information
+        : LogLevel.Warning)
       .build()
 
     conn.onreconnecting(() => {
@@ -147,7 +151,7 @@ export function useSignalR(hubPath = '/hubs/notification') {
       // negotiate 401：token 已过期，借道统一刷新后重试一次；刷新失败时内部已强制登出并清 token，
       // 调用方的 token watch 会随之停掉重连定时器——避免拿着过期 token 无限打 negotiate
       if (!isRetryAfterRefresh && isUnauthorizedError(error)) {
-        const nextToken = await refreshSessionToken()
+        const nextToken = await useAuthStore().refresh()
         if (nextToken) {
           await startCore(true)
         }
@@ -233,6 +237,8 @@ export function useSignalR(hubPath = '/hubs/notification') {
  * 销毁全部 Hub 连接（登出时调用，避免逐个枚举 hubPath）
  */
 export async function destroyAllSignalRConnections() {
-  const paths = [...instances.keys()]
+  const paths = [
+    ...instances.keys(),
+  ]
   await Promise.all(paths.map(path => useSignalR(path).destroy()))
 }

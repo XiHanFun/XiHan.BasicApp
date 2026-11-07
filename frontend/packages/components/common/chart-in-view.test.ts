@@ -1,10 +1,10 @@
 /**
- * 图表进入视口才挂载（ChartInView）。
+ * 图表进入视口才挂载（ChartInView）
  *
- * 偏好「视口内动画」开着时，图表露出一半才挂上，入场动画在用户眼前播；关着照常立刻挂。
- * 挂过之后偏好再打开也不撤；换配色重播入场：露出一半的当场重挂，其余退回占位、滚进来再挂。
+ * 偏好「视口内动画」开着时，图表露出一半才挂上，入场动画在用户眼前播；关着照常立刻挂
+ * 挂过之后偏好再打开也不撤；换配色重播入场：露出一半的当场重挂，其余退回占位、滚进来再挂
  * 打印时没进过视口的一并挂上，打印期间外壳写 data-motion="reduce"，组件库的图表据此直接画终态，
- * 减弱动效下仍留着的有限时长动画在挂上后一步播完。
+ * 减弱动效下仍留着的有限时长动画在挂上后一步播完
  */
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -62,8 +62,18 @@ afterEach(() => {
 
 /** jsdom 没有 getAnimations：给外壳补上，交出一条有限时长的入场动画与一条循环动画 */
 function stubAnimations() {
-  const entry = { effect: { getComputedTiming: () => ({ endTime: 400 }) }, finish: vi.fn() }
-  const spinner = { effect: { getComputedTiming: () => ({ endTime: Infinity }) }, finish: vi.fn() }
+  const entry = {
+    effect: {
+      getComputedTiming: () => ({ endTime: 400 }),
+    },
+    finish: vi.fn(),
+  }
+  const spinner = {
+    effect: {
+      getComputedTiming: () => ({ endTime: Infinity }),
+    },
+    finish: vi.fn(),
+  }
   Object.defineProperty(HTMLElement.prototype, 'getAnimations', {
     configurable: true,
     value: () => [entry, spinner],
@@ -73,7 +83,9 @@ function stubAnimations() {
 
 function mountChart() {
   return mount(ChartInView, {
-    slots: { default: () => h('div', { class: 'chart' }) },
+    slots: {
+      default: () => h('div', { class: 'chart' }),
+    },
     attachTo: document.body,
   })
 }

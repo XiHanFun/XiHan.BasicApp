@@ -1,7 +1,7 @@
 /**
- * 布局状态 Store（layout-state）单元测试。
+ * 布局状态 Store（layout-state）单元测试
  * 职责边界：它是 appStore 布局字段的可写代理层——读取要透传、写入必须落到 appStore 的
- * setter（而不是绕过 setter 直接改 ref），因此夹取、持久化等 setter 内的规则不能被绕过。
+ * setter（而不是绕过 setter 直接改 ref），因此夹取、持久化等 setter 内的规则不能被绕过
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

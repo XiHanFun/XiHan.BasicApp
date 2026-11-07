@@ -44,7 +44,9 @@ export function resolveFirstNavigableRoutePath(
 ): string {
   const fullPath = resolveRouteFullPath(route.path, parentPath)
   const visibleChildren = route.children?.filter(child => !isRouteHidden(child)) ?? []
-  const redirect = typeof route.redirect === 'string' ? route.redirect : ''
+  const redirect = typeof route.redirect === 'string'
+    ? route.redirect
+    : ''
 
   if (
     redirect

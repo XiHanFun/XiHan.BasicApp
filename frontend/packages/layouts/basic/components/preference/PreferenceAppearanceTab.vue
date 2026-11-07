@@ -4,13 +4,12 @@ import type { useAppStore } from '~/stores'
 import { XhRadioGroupItem, XhRadioGroupItemDescription, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
+import { XHelpTip as PrefTip, XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
 import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceAppearanceTab' })
 
@@ -54,11 +53,14 @@ const themeModes = [
 const themeColorGroups = THEME_COLOR_GROUPS
 const allPresetColors = ALL_THEME_COLORS
 
-const localizedModes = computed(() => themeModes.map(m => ({ ...m, label: t(m.labelKey) })))
+const localizedModes = computed(() => themeModes.map(m => ({
+  ...m,
+  label: t(m.labelKey),
+})))
 
 /**
  * 模式切换：change 事件不带坐标，取被点中的模式卡片矩形中心作为扩散起点，
- * 否则 useTheme 会回退到视口中心，动画看起来「从上方扩散」而非从点击处。
+ * 否则 useTheme 会回退到视口中心，动画看起来「从上方扩散」而非从点击处
  */
 function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
   const card = (event.currentTarget as HTMLElement | null)
@@ -77,8 +79,14 @@ function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
 
 // 界面密度：两档对应 XiHan.UI 的 data-density，控件 28/32/36 与 24/28/32
 const densityOptions = computed<Array<{ value: UiDensity, label: string }>>(() => [
-  { value: UI_DENSITY_COMFORTABLE, label: t('preference.appearance.density.comfortable') },
-  { value: UI_DENSITY_COMPACT, label: t('preference.appearance.density.compact') },
+  {
+    value: UI_DENSITY_COMFORTABLE,
+    label: t('preference.appearance.density.comfortable'),
+  },
+  {
+    value: UI_DENSITY_COMPACT,
+    label: t('preference.appearance.density.compact'),
+  },
 ])
 
 // 图表配色：四套方案对应组件库的 data-xh-chart-palette。卡片里的色点取八个分类色槽，色点容器写上
@@ -105,18 +113,54 @@ function onChartPaletteChange(value: string | null) {
 }
 
 const transitionItems = computed(() => [
-  { value: 'scale-up', label: t('preference.general.animation.scale_up') },
-  { value: 'scale-down', label: t('preference.general.animation.scale_down') },
-  { value: 'slide-left', label: t('preference.general.animation.slide_left') },
-  { value: 'slide-right', label: t('preference.general.animation.slide_right') },
-  { value: 'slide-up', label: t('preference.general.animation.slide_up') },
-  { value: 'slide-down', label: t('preference.general.animation.slide_down') },
-  { value: 'skew-slide', label: t('preference.general.animation.skew_slide') },
-  { value: 'fade', label: t('preference.general.animation.fade') },
-  { value: 'zoom-fade', label: t('preference.general.animation.zoom_fade') },
-  { value: 'blur-fade', label: t('preference.general.animation.blur_fade') },
-  { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
-  { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
+  {
+    value: 'scale-up',
+    label: t('preference.general.animation.scale_up'),
+  },
+  {
+    value: 'scale-down',
+    label: t('preference.general.animation.scale_down'),
+  },
+  {
+    value: 'slide-left',
+    label: t('preference.general.animation.slide_left'),
+  },
+  {
+    value: 'slide-right',
+    label: t('preference.general.animation.slide_right'),
+  },
+  {
+    value: 'slide-up',
+    label: t('preference.general.animation.slide_up'),
+  },
+  {
+    value: 'slide-down',
+    label: t('preference.general.animation.slide_down'),
+  },
+  {
+    value: 'skew-slide',
+    label: t('preference.general.animation.skew_slide'),
+  },
+  {
+    value: 'fade',
+    label: t('preference.general.animation.fade'),
+  },
+  {
+    value: 'zoom-fade',
+    label: t('preference.general.animation.zoom_fade'),
+  },
+  {
+    value: 'blur-fade',
+    label: t('preference.general.animation.blur_fade'),
+  },
+  {
+    value: 'rotate-fade',
+    label: t('preference.general.animation.rotate_fade'),
+  },
+  {
+    value: 'flip-fade',
+    label: t('preference.general.animation.flip_fade'),
+  },
 ])
 
 /**
@@ -662,6 +706,20 @@ const loaderItems = computed(() =>
 .theme-color-card.is-active {
   border-color: hsl(var(--primary));
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.22);
+}
+
+/* 键盘聚焦给与组件库同一道环：2px 画在卡片盒内。自定义卡片上的取色器是透明铺满的一层，
+   它自己的环看不见，环改画在卡片上 */
+.theme-color-card:focus-visible,
+.custom-color-card:has(:focus-visible) {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
+/* 色块铺满卡片、颜色就是候选的主题色，环压在上面可能同色：与组件库的实心面同一套，环内侧衬一道底色间隔线
+   线画在色块上（卡片自己的投影被色块盖住），从卡片描边以内铺一个环宽，露在环内侧的那一截就是间隔线 */
+.theme-color-card:focus-visible .theme-color-dot:not(.custom-dot) {
+  box-shadow: inset 0 0 0 var(--xh-ring-width) var(--xh-ring-gap);
 }
 
 /* 色块充满整个卡片 */

@@ -1,40 +1,56 @@
 import type { UserInfo } from '~/types'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { USER_INFO_KEY } from '~/constants'
-import { LocalStorage } from '~/utils'
+import { computed } from 'vue'
+import { PLATFORM_TENANT_ID } from '~/constants'
+import { useAuthStore } from './auth'
+import { SetupStoreId } from './store-ids'
 
-export const useUserStore = defineStore('user', () => {
-  const userInfo = ref<UserInfo | null>(LocalStorage.get<UserInfo>(USER_INFO_KEY))
+/**
+ * 当前用户（壳层视角）：auth 会话里的用户资料投影成 4.x 壳层认识的 UserInfo
+ * 角色与权限码来自 auth.permissions；当前上下文（平台 / 租户名）与模仿态来自会话（`tenantName`、`impersonatorUserName`）；
+ * 头像是会话用户的 `avatarFileId`（文件主键，显示时经 useAvatarUrl 换签名地址，没有头像即首字母）；应用品牌字段 6.0 还没有，留空
+ */
+export const useUserStore = defineStore(SetupStoreId.User, () => {
+  const auth = useAuthStore()
 
-  const isLoggedIn = computed(() => Boolean(userInfo.value?.basicId))
+  const userInfo = computed<UserInfo | null>(() => {
+    const user = auth.user
+    if (!user)
+      return null
+    const impersonatorUserName = auth.session?.impersonatorUserName ?? null
+    return {
+      basicId: user.id,
+      userName: user.userName,
+      nickName: user.displayName,
+      avatar: user.avatarFileId ?? undefined,
+      email: user.email ?? undefined,
+      phone: user.phoneNumber ?? undefined,
+      tenantId: auth.tenantId,
+      tenantName: auth.session?.tenantName ?? null,
+      isPlatform: auth.tenantId === null,
+      canAccessPlatform: user.homeTenantId === PLATFORM_TENANT_ID,
+      roles: (auth.permissions?.roles ?? []).map(role => role.code),
+      permissions: auth.permissions?.permissions ?? [],
+      // 模仿态里不能再模仿（后端 IDENTITY_CONFLICT_003），入口随之收起
+      canImpersonate: impersonatorUserName === null && auth.can('identity.impersonation.start'),
+      isImpersonating: impersonatorUserName !== null,
+      impersonatorUserName,
+    }
+  })
+  const isLoggedIn = computed(() => auth.isAuthenticated)
   const username = computed(() => userInfo.value?.userName ?? '')
   const nickname = computed(() => userInfo.value?.nickName ?? '')
   const avatar = computed(() => userInfo.value?.avatar ?? '')
   const roles = computed(() => userInfo.value?.roles ?? [])
   const permissions = computed(() => userInfo.value?.permissions ?? [])
 
-  function setUserInfo(info: UserInfo | null) {
-    userInfo.value = info
-    if (info) {
-      LocalStorage.set(USER_INFO_KEY, info)
-    }
-    else {
-      LocalStorage.remove(USER_INFO_KEY)
-    }
-  }
-
   function hasRole(role: string): boolean {
     return roles.value.includes(role)
   }
 
-  /**
-   * 照服务端下发的码精确匹配，不把 `*` 当通配：服务端已把超管的 `*` 展开成当前上下文生效的全部码，
-   * 作用侧不含当前上下文的码（如平台态里的租户侧码）不下发、鉴权时 `*` 也不放行。前端再拿 `*` 短路，
-   * 就会把服务端必拒的操作判成可用
-   */
+  /** 精确匹配，`*` 不当通配：后端已把超管的 `*` 展开成当前上下文生效的全部码 */
   function hasPermission(permission: string): boolean {
-    return permissions.value.includes(permission)
+    return auth.can(permission)
   }
 
   function hasAnyRole(roleList: string[]): boolean {
@@ -42,8 +58,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function $reset() {
-    userInfo.value = null
-    LocalStorage.remove(USER_INFO_KEY)
+    auth.clear()
   }
 
   return {
@@ -54,7 +69,6 @@ export const useUserStore = defineStore('user', () => {
     avatar,
     roles,
     permissions,
-    setUserInfo,
     hasRole,
     hasPermission,
     hasAnyRole,

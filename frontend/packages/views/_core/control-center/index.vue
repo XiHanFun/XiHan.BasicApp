@@ -5,12 +5,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
 import { toast } from '~/composables'
-import { MEMBER_TYPE_OPTIONS } from '~/constants'
-import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useUserStore } from '~/stores'
-import { TenantMemberType } from '~/types/enums'
-import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ControlCenter' })
 
@@ -20,12 +16,6 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 
-// 成员类型走后端枚举元数据（本地化、切语言响应式重取），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
-const memberTypeOptions = useEnumOptions('TenantMemberType', MEMBER_TYPE_OPTIONS)
-function memberTypeLabel(value: AppTenantSwitcherItem['memberType']) {
-  return getOptionLabel(memberTypeOptions.value, value)
-}
-
 const loading = ref(false)
 const loaded = ref(false)
 const switching = ref(false)
@@ -33,12 +23,13 @@ const tenants = ref<AppTenantSwitcherItem[]>([])
 
 /** 是否可进入平台（平台账号），决定是否展示平台分组 */
 const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?? false)
-/** 平台是否为当前上下文（用户信息每次整页加载都会重取，切换上下文会整页重载） */
+/** 平台是否为当前上下文（切换上下文会整页重建，会话里的租户就是当前） */
 const platformIsCurrent = computed(() => userStore.userInfo?.isPlatform ?? false)
 const displayName = computed(() => userStore.nickname || userStore.username)
 const avatar = computed(() => userStore.avatar)
-const brandTitle = computed(() => appStore.brandTitle)
-const brandLogo = computed(() => appStore.brandLogo)
+// 与侧栏品牌同一套回退：偏好里的品牌 → 构建期 VITE_APP_TITLE / VITE_APP_LOGO → 缺省
+const brandTitle = computed(() => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp')
+const brandLogo = computed(() => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png')
 
 async function loadTenants() {
   loading.value = true
@@ -54,14 +45,14 @@ async function loadTenants() {
   }
 }
 
-/** 进入租户：服务端在目标租户续接会话，本地按新上下文整页重建（允许再次进入当前租户以刷新） */
+/** 进入租户：后端在目标租户续接会话，本地按新上下文整页重建（允许再次进入当前租户以刷新） */
 async function enterTenant(tenant: AppTenantSwitcherItem) {
   if (switching.value) {
     return
   }
   switching.value = true
   try {
-    await authStore.switchContext(String(tenant.tenantId))
+    await authStore.switchTenant(tenant.tenantId)
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('page.control_center.switch_failed'))
@@ -76,7 +67,7 @@ async function enterPlatform() {
   }
   switching.value = true
   try {
-    await authStore.switchContext(null)
+    await authStore.switchTenant(null)
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('page.control_center.switch_failed'))
@@ -88,14 +79,32 @@ async function handleLogout() {
   await authStore.logout()
 }
 
-function memberTagType(type: TenantMemberType) {
-  if (type === TenantMemberType.Owner) {
+/**
+ * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地、运维支持、普通成员
+ * （文案键静态写出以便 i18n 门禁核对；与个人中心「我的租户」同口径）
+ */
+function membershipLabel(tenant: AppTenantSwitcherItem): string {
+  if (tenant.isOwner) {
+    return t('page.control_center.member_type.owner')
+  }
+  if (tenant.isHome) {
+    return t('page.control_center.home_tenant')
+  }
+  return tenant.memberType === 'Support'
+    ? t('page.control_center.member_type.support')
+    : t('page.control_center.member_type.member')
+}
+
+function membershipTone(tenant: AppTenantSwitcherItem) {
+  if (tenant.isOwner) {
     return 'warning'
   }
-  if (type === TenantMemberType.Admin || type === TenantMemberType.PlatformAdmin) {
+  if (tenant.isHome) {
     return 'brand'
   }
-  return 'neutral'
+  return tenant.memberType === 'Support'
+    ? 'info'
+    : 'neutral'
 }
 
 onMounted(loadTenants)
@@ -121,7 +130,7 @@ onMounted(loadTenants)
         <div class="cc-header">
           <XUserAvatar :avatar="avatar" :name="displayName" :size="64" class="cc-avatar" />
           <h1 class="cc-title">
-            {{ t('page.control_center.welcome') }}，{{ displayName }}
+            {{ t('page.control_center.welcome', { name: displayName }) }}
           </h1>
           <p class="cc-subtitle">
             {{ t('page.control_center.subtitle') }}
@@ -178,7 +187,7 @@ onMounted(loadTenants)
               </div>
             </template>
 
-            <!-- 我的租户分组 -->
+            <!-- 我的租户分组：注册地租户 + 成员租户 -->
             <div class="cc-group-label" :class="{ 'cc-group-label--spaced': canAccessPlatform }">
               {{ t('page.control_center.my_tenants') }}
             </div>
@@ -195,7 +204,7 @@ onMounted(loadTenants)
             <div v-else class="cc-tenant-grid">
               <button
                 v-for="tenant in tenants"
-                :key="tenant.membershipId"
+                :key="tenant.tenantId"
                 type="button"
                 class="cc-tenant"
                 :class="{ 'cc-tenant--current': tenant.isCurrent }"
@@ -203,12 +212,7 @@ onMounted(loadTenants)
                 @click="enterTenant(tenant)"
               >
                 <div class="cc-tenant__logo">
-                  <XUserAvatar
-                    :avatar="tenant.logo"
-                    :name="tenant.tenantShortName || tenant.tenantName"
-                    :size="40"
-                    :round="false"
-                  />
+                  <XUserAvatar :name="tenant.tenantName" :size="40" :round="false" />
                 </div>
                 <div class="cc-tenant__body">
                   <div class="cc-tenant__name">
@@ -220,12 +224,12 @@ onMounted(loadTenants)
                     </XhTagRoot>
                   </div>
                   <div class="cc-tenant__meta">
-                    <XhTagRoot variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
+                    <XhTagRoot variant="subtle" :tone="membershipTone(tenant)" size="sm">
                       <XhTagLabel>
-                        {{ memberTypeLabel(tenant.memberType) }}
+                        {{ membershipLabel(tenant) }}
                       </XhTagLabel>
                     </XhTagRoot>
-                    <span class="cc-tenant__code">{{ tenant.tenantCode }}</span>
+                    <span class="cc-tenant__code">{{ tenant.tenantId }}</span>
                   </div>
                 </div>
                 <Icon v-if="!tenant.isCurrent" icon="lucide:arrow-right" width="16" class="cc-tenant__arrow" />
@@ -458,7 +462,7 @@ onMounted(loadTenants)
   color: hsl(var(--muted-foreground));
 }
 
-/* 小屏适配：收紧间距，平台管理卡片纵向堆叠、按钮整行 */
+/* 小屏适配：收紧间距 */
 @media (max-width: 480px) {
   .cc-topbar {
     padding: 10px 16px;

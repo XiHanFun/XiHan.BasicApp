@@ -32,7 +32,9 @@ withDefaults(defineProps<{
 // 字段挂来的 id 与 aria-* 转交给输入框，见 control-attrs.ts
 const { attrs, controlAttrs } = useControlAttrs()
 
-const value = defineModel<string[]>('value', { default: () => [] })
+const value = defineModel<string[]>('value', {
+  default: () => [],
+})
 </script>
 
 <template>

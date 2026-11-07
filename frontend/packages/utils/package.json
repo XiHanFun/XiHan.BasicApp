@@ -1,8 +1,8 @@
 {
   "name": "@xihan/utils",
+  "type": "module",
   "version": "0.0.0",
   "private": true,
-  "main": "./index.ts",
   "dependencies": {
     "@xihan/constants": "workspace:*",
     "dayjs": "catalog:",

@@ -27,7 +27,9 @@ const value = defineModel<V>('value', { required: true })
 const collection = computed(() => props.options.map(option => ({
   value: String(option.value),
   label: option.label,
-  ...(option.disabled ? { disabled: true } : {}),
+  ...(option.disabled
+    ? { disabled: true }
+    : {}),
 })))
 
 /** 选不空，机器给回 null 时保持原值 */

@@ -1,9 +1,9 @@
 /**
- * useIsMobile 全站小屏断点单元测试。
+ * useIsMobile 全站小屏断点单元测试
  * 职责：锁定唯一断点常量 768、实际下发给 matchMedia 的查询串为 (max-width: 767px)、
- * 模块级单例只建一次监听、以及 change 事件驱动的响应式更新与只读暴露。
+ * 模块级单例只建一次监听、以及 change 事件驱动的响应式更新与只读暴露
  *
- * 断点判定必须用 matchMedia 替身验证：真实 jsdom 不实现媒体查询求值。
+ * 断点判定必须用 matchMedia 替身验证：真实 jsdom 不实现媒体查询求值
  */
 import type { Ref } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'

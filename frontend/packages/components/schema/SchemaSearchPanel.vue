@@ -31,9 +31,16 @@ const expanded = ref(false)
 const { isMobile } = useIsMobile()
 
 // 小屏：常用区清空，所有搜索条件收入高级区（仅保留操作按钮行，点「高级搜索」展开）
-const effectiveCommonFields = computed(() => isMobile.value ? [] : props.commonFields)
+const effectiveCommonFields = computed(() => isMobile.value
+  ? []
+  : props.commonFields)
 const effectiveAdvancedFields = computed(() =>
-  isMobile.value ? [...props.commonFields, ...props.advancedFields] : props.advancedFields,
+  isMobile.value
+    ? [
+        ...props.commonFields,
+        ...props.advancedFields,
+      ]
+    : props.advancedFields,
 )
 
 const hasAdvanced = computed(() => effectiveAdvancedFields.value.length > 0)
@@ -109,7 +116,7 @@ function toggleExpand() {
 <style scoped>
 /* 搜索区作为高级浮层的定位上下文（外层卡片提供容器与内边距） */
 .xh-search {
-  /* 标准搜索项宽与项间横距：区间字段的宽由这两者推出，改一处整排一起对齐。
+  /* 标准搜索项宽与项间横距：区间字段的宽由这两者推出，改一处整排一起对齐
      标准宽至少够一个控件的最小宽：控件的下限随字号走，写死像素时字号一调大，
      控件就撑出条目盒、相邻两列糊在一起 */
   --xh-search-item-w: max(180px, var(--xh-control-min-w));
@@ -126,7 +133,7 @@ function toggleExpand() {
   align-items: flex-end;
 }
 
-/* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度。
+/* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度
    项本身就是字段根，字段族控件由组件库铺满字段宽；小屏项占满整行时控件跟着铺开 */
 .xh-search__item {
   display: flex;
@@ -151,9 +158,9 @@ function toggleExpand() {
   margin-left: auto;
 }
 
-/* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表）。
+/* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表）
    left/right 用负值抵消外层卡片内容内边距（16px），使浮层铺满卡片宽度；
-   自身 padding 再以同样 16px 内缩，让高级字段左边缘与常用字段严格对齐。 */
+   自身 padding 再以同样 16px 内缩，让高级字段左边缘与常用字段严格对齐 */
 .xh-search__advanced {
   position: absolute;
   top: 100%;
@@ -168,7 +175,7 @@ function toggleExpand() {
   border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface);
-  box-shadow: var(--xh-shadow-md);
+  box-shadow: var(--xh-elevation-floating);
   /* 限制浮层高度并内部滚动：字段过多时也不会撑出视口、盖住下方列表 */
   max-height: calc(100vh - 160px);
   overflow-y: auto;

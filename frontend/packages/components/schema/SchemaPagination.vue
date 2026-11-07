@@ -42,10 +42,15 @@ const { t } = useI18n()
 const siblingCount = computed(() => (props.compact ? 1 : 2))
 
 const sizeOptions = computed(() =>
-  props.pageSizes.map(size => ({ value: String(size), label: t('component.pagination.per_page', { size }) })),
+  props.pageSizes.map(size => ({
+    value: String(size),
+    label: t('component.pagination.per_page', { size }),
+  })),
 )
 
-const sizeValue = computed(() => [String(props.pageSize)])
+const sizeValue = computed(() => [
+  String(props.pageSize),
+])
 
 function onSizeChange(value: string[]): void {
   const next = Number(value[0])
@@ -109,8 +114,8 @@ function onSizeChange(value: string[]): void {
   align-items: center;
 }
 
-/* 每页数量：外框定宽，触发器跟着收进来。
-   触发器有自己的固有宽度，不收就会顶出外框、给分页条挤出一条横向滚动条。
+/* 每页数量：外框定宽，触发器跟着收进来
+   触发器有自己的固有宽度，不收就会顶出外框、给分页条挤出一条横向滚动条
    组件库给 select 根整件 12rem 的最小宽（--xh-select-control-min-w），压得过这里的 110px，
    放开它，否则页码组被挤到 65px 宽、三颗钮竖着折成一列 */
 .schema-pagination__size {

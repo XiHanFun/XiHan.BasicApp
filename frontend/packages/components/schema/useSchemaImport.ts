@@ -6,12 +6,14 @@ import { downloadText } from './useSchemaExport'
 
 /** 本地化便捷封装：保持 i18n.global 的 this 绑定 */
 function t(key: string, named?: Record<string, unknown>): string {
-  return named ? i18n.global.t(key, named) : i18n.global.t(key)
+  return named
+    ? i18n.global.t(key, named)
+    : i18n.global.t(key)
 }
 
 /**
- * Schema 同步导入（CSV → 预校验 → 逐行 create）。
- * 模板列、解析校验均由 importable 字段派生（toImportFields），页面零额外配置。
+ * Schema 同步导入（CSV → 预校验 → 逐行 create）
+ * 模板列、解析校验均由 importable 字段派生（toImportFields），页面零额外配置
  */
 
 /** 行级错误（row 为数据行号，从 1 开始，不含表头/说明行） */
@@ -46,11 +48,13 @@ export interface ImportSummary {
 
 /** CSV 单元格转义（与导出一致） */
 function csvCell(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+  return /[",\r\n]/.test(value)
+    ? `"${value.replace(/"/g, '""')}"`
+    : value
 }
 
 /**
- * 解析 CSV 文本为单元格矩阵：支持双引号包裹、内嵌逗号/换行、"" 转义，兼容 CRLF/LF，剥离 BOM。
+ * 解析 CSV 文本为单元格矩阵：支持双引号包裹、内嵌逗号/换行、"" 转义，兼容 CRLF/LF，剥离 BOM
  */
 export function parseCsv(text: string): string[][] {
   const source = text.replace(/^\uFEFF/, '')
@@ -107,7 +111,9 @@ export function parseCsv(text: string): string[][] {
     }
     if (char === '\r') {
       pushRow()
-      index += source[index + 1] === '\n' ? 2 : 1
+      index += source[index + 1] === '\n'
+        ? 2
+        : 1
       continue
     }
     cell += char
@@ -122,7 +128,9 @@ export function parseCsv(text: string): string[][] {
 /** 字段的取值提示（模板说明行 / 校验错误提示共用） */
 function fieldHint(field: ListFieldSchema): string {
   if (field.options?.length) {
-    return t('component.schema_import.hint_options', { values: field.options.map(o => o.label).join('/') })
+    return t('component.schema_import.hint_options', {
+      values: field.options.map(o => o.label).join('/'),
+    })
   }
   switch (field.dataType) {
     case 'boolean':
@@ -143,14 +151,21 @@ function fieldHint(field: ListFieldSchema): string {
 }
 
 /**
- * 生成导入模板 CSV：表头行（字段标题）+ 以 # 开头的说明行（必填/取值提示，导入时自动跳过）。
+ * 生成导入模板 CSV：表头行（字段标题）+ 以 # 开头的说明行（必填/取值提示，导入时自动跳过）
  */
 export function buildImportTemplate(fields: ListFieldSchema[]): string {
   const header = fields.map(f => csvCell(f.title)).join(',')
   const hints = fields
     .map((f, i) => {
-      const flag = f.required ? t('component.schema_import.flag_required') : t('component.schema_import.flag_optional')
-      return csvCell(`${i === 0 ? '#' : ''}${t('component.schema_import.template_cell', { flag, hint: fieldHint(f) })}`)
+      const flag = f.required
+        ? t('component.schema_import.flag_required')
+        : t('component.schema_import.flag_optional')
+      return csvCell(`${i === 0
+        ? '#'
+        : ''}${t('component.schema_import.template_cell', {
+        flag,
+        hint: fieldHint(f),
+      })}`)
     })
     .join(',')
   return `\uFEFF${header}\r\n${hints}`
@@ -163,16 +178,27 @@ const FALSE_TOKENS = new Set(['否', 'false', '0', 'n', 'no'])
 function convertCell(field: ListFieldSchema, text: string): { value?: unknown, error?: string } {
   const trimmed = text.trim()
   if (trimmed === '') {
-    return field.required ? { error: t('component.schema_import.err_required') } : {}
+    return field.required
+      ? {
+          error: t('component.schema_import.err_required'),
+        }
+      : {}
   }
   // 有选项的字段（enum/tag/带选项的 boolean 等）：按 label 或 value 反查
   if (field.options?.length) {
     const matched = field.options.find(o => o.label === trimmed || String(o.value) === trimmed)
     if (!matched) {
-      return { error: t('component.schema_import.err_invalid_option', { value: trimmed, hint: fieldHint(field) }) }
+      return {
+        error: t('component.schema_import.err_invalid_option', {
+          value: trimmed,
+          hint: fieldHint(field),
+        }),
+      }
     }
     if (field.dataType === 'boolean') {
-      return { value: Boolean(Number(matched.value)) }
+      return {
+        value: Boolean(Number(matched.value)),
+      }
     }
     return { value: matched.value }
   }
@@ -185,18 +211,26 @@ function convertCell(field: ListFieldSchema, text: string): { value?: unknown, e
       if (FALSE_TOKENS.has(token)) {
         return { value: false }
       }
-      return { error: t('component.schema_import.err_invalid_boolean', { value: trimmed }) }
+      return {
+        error: t('component.schema_import.err_invalid_boolean', { value: trimmed }),
+      }
     }
     case 'number':
     case 'money':
     case 'percent': {
       const num = Number(trimmed.replace(/,/g, ''))
-      return Number.isNaN(num) ? { error: t('component.schema_import.err_invalid_number', { value: trimmed }) } : { value: num }
+      return Number.isNaN(num)
+        ? {
+            error: t('component.schema_import.err_invalid_number', { value: trimmed }),
+          }
+        : { value: num }
     }
     case 'date':
     case 'datetime':
       return Number.isNaN(Date.parse(trimmed))
-        ? { error: t('component.schema_import.err_invalid_date', { value: trimmed }) }
+        ? {
+            error: t('component.schema_import.err_invalid_date', { value: trimmed }),
+          }
         : { value: trimmed }
     case 'json':
       try {
@@ -204,7 +238,9 @@ function convertCell(field: ListFieldSchema, text: string): { value?: unknown, e
         return { value: trimmed }
       }
       catch {
-        return { error: t('component.schema_import.err_invalid_json') }
+        return {
+          error: t('component.schema_import.err_invalid_json'),
+        }
       }
     default:
       return { value: trimmed }
@@ -216,7 +252,9 @@ function errorMessage(error: unknown): string {
   if (error instanceof Error && error.message) {
     return error.message
   }
-  return typeof error === 'string' && error ? error : t('component.schema_import.err_create_failed')
+  return typeof error === 'string' && error
+    ? error
+    : t('component.schema_import.err_create_failed')
 }
 
 export interface UseSchemaImportOptions {
@@ -291,7 +329,9 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     // 跳过以 # 开头的说明行
     const meaningful = matrix.filter(cells => !cells[0]?.trim().startsWith('#'))
     if (meaningful.length === 0) {
-      fileErrors.value = [t('component.schema_import.err_empty_file')]
+      fileErrors.value = [
+        t('component.schema_import.err_empty_file'),
+      ]
       phase.value = 'ready'
       return
     }
@@ -308,7 +348,9 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
       errors.push(t('component.schema_import.err_no_columns'))
     }
     if (missingRequired.length > 0) {
-      errors.push(t('component.schema_import.err_missing_columns', { columns: missingRequired.map(f => f.title).join(t('component.schema_import.column_join')) }))
+      errors.push(t('component.schema_import.err_missing_columns', {
+        columns: missingRequired.map(f => f.title).join(t('component.schema_import.column_join')),
+      }))
     }
     fileErrors.value = errors
 
@@ -356,12 +398,17 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
           success += 1
         }
         catch (error) {
-          row.errors.push({ row: row.row, message: errorMessage(error) })
+          row.errors.push({
+            row: row.row,
+            message: errorMessage(error),
+          })
         }
         progress.value += 1
       }
     }
-    await Promise.all(Array.from({ length: Math.min(concurrency, queue.length || 1) }, () => worker()))
+    await Promise.all(Array.from({
+      length: Math.min(concurrency, queue.length || 1),
+    }, () => worker()))
     const result: ImportSummary = {
       total: rows.value.length,
       success,
@@ -378,12 +425,20 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     if (failed.length === 0) {
       return
     }
-    const header = [...fields.map(f => csvCell(f.title)), t('component.schema_import.error_reason_column')].join(',')
+    const header = [
+      ...fields.map(f => csvCell(f.title)),
+      t('component.schema_import.error_reason_column'),
+    ].join(',')
     const body = failed
       .map((row) => {
         const cells = fields.map(f => csvCell(row.raw[f.key] ?? ''))
-        const reason = row.errors.map(e => (e.field ? `${e.field}: ${e.message}` : e.message)).join(t('component.schema_import.error_reason_join'))
-        return [...cells, csvCell(reason)].join(',')
+        const reason = row.errors.map(e => (e.field
+          ? `${e.field}: ${e.message}`
+          : e.message)).join(t('component.schema_import.error_reason_join'))
+        return [
+          ...cells,
+          csvCell(reason),
+        ].join(',')
       })
       .join('\r\n')
     downloadText(`${options.fileName()}${t('component.schema_import.errors_filename_suffix')}.csv`, `\uFEFF${header}\r\n${body}`)

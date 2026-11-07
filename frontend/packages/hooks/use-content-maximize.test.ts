@@ -1,7 +1,7 @@
 /**
- * useContentMaximize 内容最大化单元测试。
+ * useContentMaximize 内容最大化单元测试
  * 职责：锁定「模块级单例」这一关键约定——Header / Tabbar / 页面各自调用必须共享同一份状态，
- * 以及 maximize / restore / toggleMaximize 的幂等性与只读暴露。
+ * 以及 maximize / restore / toggleMaximize 的幂等性与只读暴露
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { useContentMaximize } from './useContentMaximize'

@@ -16,7 +16,7 @@ const route = useRoute()
 const appStore = useAppStore()
 
 const appTitle = computed(
-  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan BasicApp',
+  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp',
 )
 const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
@@ -28,7 +28,12 @@ const showFooter = computed(
   () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
 )
 const showEntryTabs = computed(() =>
-  [LOGIN_PATH, CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, QRCODE_LOGIN_PATH].includes(route.path),
+  [
+    LOGIN_PATH,
+    CODE_LOGIN_PATH,
+    EMAIL_LOGIN_PATH,
+    QRCODE_LOGIN_PATH,
+  ].includes(route.path),
 )
 
 /** 登录设置开放的方式：切换器只列这些入口；取到之前为 null */
@@ -130,7 +135,7 @@ const appName = __APP_NAME__
             >
               <!-- 登录四种入口下表单即当前标签的面板，故由切换器接住；其余页面它只透传内容 -->
               <AuthEntrySwitcher :enabled="showEntryTabs" :methods="loginMethods">
-                <!-- 这层裁掉切换过渡的 ±24px 平移。不必再为聚焦环留内衬：组件库的环是 outline 配负 offset，画在控件盒内侧 -->
+                <!-- 这层裁掉切换过渡的 ±24px 平移。不必为聚焦环留内衬：组件库的环画在控件盒内，裁切容器裁不到它 -->
                 <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
                   <router-view v-slot="{ Component }">
                     <transition name="auth-slide" mode="out-in">

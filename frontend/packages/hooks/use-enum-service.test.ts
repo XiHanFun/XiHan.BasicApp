@@ -1,18 +1,18 @@
 /**
- * useEnumService 枚举元数据服务单元测试。
+ * useEnumService 枚举元数据服务单元测试
  * 职责：锁定「整库取一次、按语言缓存、同语言并发去重」这三条核心约定，
  * 以及 toSelectOptions 的排序/兜底、getLabel 的 value 与 valueText 双路匹配、
- * 切语言后整库重取一次（且未加载过时不发起无谓请求）。
+ * 切语言后整库重取一次（且未加载过时不发起无谓请求）
  *
- * 模块级缓存跨用例可见，因此每个用例都用 vi.resetModules() 拿一份全新的模块状态。
+ * 模块级缓存跨用例可见，因此每个用例都用 vi.resetModules() 拿一份全新的模块状态
  */
 import type { AppEnumBatchQuery, AppEnumDefinition, AppEnumOption } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-// 预热依赖图：~/stores 桶文件会牵出 router、i18n 等整张图，首次转换在满并行下要数秒。
+// 预热依赖图：~/stores 桶文件会牵出 router、i18n 等整张图，首次转换在满并行下要数秒
 // 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；用例里 vi.resetModules()
-// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的。
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的
 import './useEnumService'
 
 type BatchFn = (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
@@ -46,15 +46,32 @@ async function bootstrap(getBatch: BatchFn) {
   vi.resetModules()
   setActivePinia(createPinia())
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { enumApi: { getBatch, getByName: () => Promise.reject(new Error('未使用')) } } as never })
+  registerAppContext({
+    apis: {
+      enumApi: {
+        getBatch,
+        getByName: () => Promise.reject(new Error('未使用')),
+      },
+    } as never,
+  })
   const { useEnumService } = await import('./useEnumService')
   const { useAppStore } = await import('~/stores')
   return { useEnumService, useAppStore }
 }
 
 const enableStatus = makeDefinition('EnableStatus', [
-  makeOption({ label: '禁用', value: 0, valueText: '0', order: 2 }),
-  makeOption({ label: '启用', value: 1, valueText: '1', order: 1 }),
+  makeOption({
+    label: '禁用',
+    value: 0,
+    valueText: '0',
+    order: 2,
+  }),
+  makeOption({
+    label: '启用',
+    value: 1,
+    valueText: '1',
+    order: 1,
+  }),
 ])
 
 beforeEach(() => {
@@ -141,7 +158,7 @@ describe('useEnumService 整库拉取与缓存', () => {
   })
 
   // 回归锚点（清单条目 43）：空映射是合法响应（枚举模块未部署 / 全部隐藏），
-  // 必须照常写缓存；否则一屏 N 个下拉就会打 N 次全量请求。
+  // 必须照常写缓存；否则一屏 N 个下拉就会打 N 次全量请求
   it('返回空映射同样算加载成功，后续 ensure 命中缓存不再发请求', async () => {
     const getBatch = vi.fn<BatchFn>(async () => ({}))
     const { useEnumService } = await bootstrap(getBatch)
@@ -259,7 +276,10 @@ describe('useEnumService.toSelectOptions', () => {
     const getBatch = vi.fn<BatchFn>(async () => ({
       Mixed: makeDefinition('Mixed', [
         makeOption({ label: '有序', value: 'a', order: 5 }),
-        { ...makeOption({ label: '无序', value: 'b' }), order: undefined as unknown as number },
+        {
+          ...makeOption({ label: '无序', value: 'b' }),
+          order: undefined as unknown as number,
+        },
       ]),
     }))
     const { useEnumService } = await bootstrap(getBatch)
@@ -272,18 +292,26 @@ describe('useEnumService.toSelectOptions', () => {
   it('定义不存在时返回传入的兜底选项', async () => {
     const getBatch = vi.fn<BatchFn>(async () => ({}))
     const { useEnumService } = await bootstrap(getBatch)
-    const fallback = [{ label: '兜底', value: 'x' }]
+    const fallback = [
+      { label: '兜底', value: 'x' },
+    ]
 
     expect(useEnumService().toSelectOptions('NotExists', fallback)).toBe(fallback)
   })
 
   it('定义存在但 items 为空数组时同样走兜底', async () => {
-    const getBatch = vi.fn<BatchFn>(async () => ({ Empty: makeDefinition('Empty', []) }))
+    const getBatch = vi.fn<BatchFn>(async () => ({
+      Empty: makeDefinition('Empty', []),
+    }))
     const { useEnumService } = await bootstrap(getBatch)
     const service = useEnumService()
     await service.ensureEnum('Empty')
 
-    expect(service.toSelectOptions('Empty', [{ label: '兜底', value: 0 }])).toEqual([{ label: '兜底', value: 0 }])
+    expect(service.toSelectOptions('Empty', [
+      { label: '兜底', value: 0 },
+    ])).toEqual([
+      { label: '兜底', value: 0 },
+    ])
   })
 
   it('未传兜底且定义缺失时返回空数组', async () => {
@@ -295,7 +323,9 @@ describe('useEnumService.toSelectOptions', () => {
 
   it('保留条目的 disabled 标记，供下拉禁用项', async () => {
     const getBatch = vi.fn<BatchFn>(async () => ({
-      Flag: makeDefinition('Flag', [makeOption({ label: '停用中', value: 9, disabled: true })]),
+      Flag: makeDefinition('Flag', [
+        makeOption({ label: '停用中', value: 9, disabled: true }),
+      ]),
     }))
     const { useEnumService } = await bootstrap(getBatch)
     const service = useEnumService()

@@ -1,136 +1,250 @@
-import type {
-  EmailLoginParams,
-  ImpersonationCandidate,
-  ImpersonationCandidateQuery,
-  ImpersonationTenantOption,
-  LoginParams,
-  LoginResponse,
-  LoginToken,
-  OAuthProviderItem,
-  PermissionInfo,
-  PhoneLoginParams,
-  StartImpersonationParams,
-  UserInfo,
-} from '~/types'
+import type { ResponseOf, TwoFactorMethod } from '~/contracts'
+import type { EmailLoginParams, ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, PhoneLoginParams, SessionRoleOption, StartImpersonationParams } from '~/types'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { clearLockState, isLockedState } from '~/composables/session-lock'
-import { islandStart } from '~/composables/useDynamicIsland'
+import { computed, ref } from 'vue'
+import { clearLockState } from '~/composables/session-lock'
 import { destroyAllSignalRConnections } from '~/composables/useSignalR'
-import { HOME_PATH, LOGIN_PATH, TABS_LIST_KEY } from '~/constants'
-import { i18n } from '~/locales'
-import { mapMenuToRoutes } from '~/router/dynamic'
-import { collectRouteNames, CORE_ROUTE_NAMES } from '~/router/routes/core'
+import { LOGIN_PATH } from '~/constants'
+import { auth as authApi } from '~/contracts'
+import { endpointUrl } from '~/request'
 import { useAccessStore } from './access'
-import { useAppStore } from './app'
 import { useAppContext } from './app-context'
-import { hydratePreferencesFromBackend, markPreferenceIdentitySwitched, resetPreferenceBackendSync } from './helpers'
+import { resetPreferenceBackendSync } from './helpers'
+import { relaunchApp } from './relaunch'
+import { useSplitViewStore } from './split-view'
 import { useTabbarStore } from './tabbar'
-import { useUserStore } from './user'
 
+const SESSION_KEY = 'xihan.next.session'
+/** 模仿 / 退出模仿后整页重建前留的标记：重建后的偏好水合不拿本地那份（属于上一身份）给新身份播种 */
+const IDENTITY_SWITCHED_KEY = 'xihan.next.identity-switched'
+
+/** 取走（并清除）身份切换标记：本次页面生命周期是不是刚经模仿换了身份 */
+export function takeIdentitySwitchedMarker(): boolean {
+  try {
+    const marked = sessionStorage.getItem(IDENTITY_SWITCHED_KEY) !== null
+    sessionStorage.removeItem(IDENTITY_SWITCHED_KEY)
+    return marked
+  }
+  catch {
+    return false
+  }
+}
+
+/**
+ * 退出时清掉会话级存储（标签、分屏、灵动岛、第三方登录的发起记录等），只留身份切换标记：
+ * 它等重建后的守卫取走，模仿之后权限没装载成就回了登录页时还在，下一个登录的人照样不拿上一身份的偏好播种
+ */
+function clearSessionStorage(): void {
+  try {
+    const marker = sessionStorage.getItem(IDENTITY_SWITCHED_KEY)
+    sessionStorage.clear()
+    if (marker !== null)
+      sessionStorage.setItem(IDENTITY_SWITCHED_KEY, marker)
+  }
+  catch {}
+}
+
+/** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`） */
+export type Session = ResponseOf<'auth.refresh'>
+
+/** 双因素方式：契约是 `Totp` / `Email` / `Phone`，4.x 登录页按小写标识 `totp` / `email` / `phone` 认 */
+const PAGE_METHODS: Record<TwoFactorMethod, string> = { Totp: 'totp', Email: 'email', Phone: 'phone' }
+
+function contractMethodOf(method: string | undefined): TwoFactorMethod {
+  const found = (Object.keys(PAGE_METHODS) as TwoFactorMethod[]).find(key => PAGE_METHODS[key] === method)
+  if (!found)
+    throw new Error(`未知的双因素方式 ${method}`)
+  return found
+}
+
+type TwoFactorChallenge = NonNullable<ResponseOf<'auth.login'>['twoFactor']>
+
+/** 双因素挑战（`auth.login` 与 `auth.external-login` 同一形态）→ 4.x 登录页认的响应 */
+function toPageChallenge(twoFactor: TwoFactorChallenge): LoginResponse {
+  return {
+    requiresTwoFactor: true,
+    availableTwoFactorMethods: twoFactor.methods.map(method => PAGE_METHODS[method]),
+    twoFactorMethod: twoFactor.method ? PAGE_METHODS[twoFactor.method] : undefined,
+    codeSent: twoFactor.codeSent,
+    twoFactorTicket: twoFactor.ticket,
+    token: null,
+  }
+}
+
+/** 回跳只认站内路径（防开放重定向） */
+function safeRedirect(redirect: string | undefined): string {
+  return redirect && redirect.startsWith('/') && !redirect.startsWith('//')
+    ? redirect
+    : '/'
+}
+
+// ==================== 第三方登录 / 绑定的发起记录 ====================
+
+const OAUTH_PENDING_KEY = 'xihan.next.oauth-pending'
+/** 发起记录的时限：与后端 state 的有效期（10 分钟）一致，过了回调本就失败 */
+const OAUTH_PENDING_TTL_MS = 10 * 60 * 1000
+
+/** 第三方流程的用途：登录（登录页发起）或绑定（个人中心发起），与回调地址上的 `mode` 同值 */
+export type OAuthMode = 'bind' | 'login'
+
+/**
+ * 本标签页发起的第三方流程：整页跳走前记进 sessionStorage，回调页取走并核对用途与提供方
+ * 回调地址上的一次性票据谁拿到谁能用，只认这个标签页自己发起的流程带回来的：别人发来的回调链接（带着他的票据）
+ * 不会让当前登录的人确认绑上他的第三方账号，也不会把未登录的人登进他的账号。登录页的回跳地址随记录带回来（4.x 回调后一律落首页）
+ */
+export interface OAuthPending {
+  mode: OAuthMode
+  /** 提供方名称（登录配置里的 name，小写，与回调地址上的 `provider` 同值） */
+  provider: string
+  redirect?: string
+  startedAt: number
+}
+
+function writeOAuthPending(pending: OAuthPending): void {
+  try {
+    sessionStorage.setItem(OAUTH_PENDING_KEY, JSON.stringify(pending))
+  }
+  catch {}
+}
+
+/** 取走（并清除）发起记录；没有、过期或格式不对即 null */
+export function takeOAuthPending(): OAuthPending | null {
+  try {
+    const raw = sessionStorage.getItem(OAUTH_PENDING_KEY)
+    sessionStorage.removeItem(OAUTH_PENDING_KEY)
+    if (!raw)
+      return null
+    const parsed = JSON.parse(raw) as Partial<OAuthPending>
+    if ((parsed.mode !== 'login' && parsed.mode !== 'bind') || typeof parsed.provider !== 'string' || typeof parsed.startedAt !== 'number')
+      return null
+    if (Date.now() - parsed.startedAt > OAUTH_PENDING_TTL_MS)
+      return null
+    return {
+      mode: parsed.mode,
+      provider: parsed.provider,
+      startedAt: parsed.startedAt,
+      ...(typeof parsed.redirect === 'string'
+        ? { redirect: parsed.redirect }
+        : {}),
+    }
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * 第三方登录的发起地址：普通端点 `/api/oauth/{名称}/challenge`（整页跳转，不经请求层、不带令牌），带注册地租户（登录页那一栏；平台账号留空即不带）
+ * 绑定的发起地址由后端给（`profile.begin-external-bind`，带着本人的绑定意图）
+ */
+export function oauthChallengeUrl(provider: string, tenant?: string): string {
+  const query = new URLSearchParams({ mode: 'login' })
+  const home = tenant?.trim()
+  if (home)
+    query.set('tenant', home)
+  return endpointUrl(`/api/oauth/${encodeURIComponent(provider)}/challenge?${query.toString()}`)
+}
+export type SessionUser = Session['user']
+/** `auth.permissions`：有效权限码、角色、菜单树与页面码 */
+export type Permissions = ResponseOf<'auth.permissions'>
+export type MenuNode = Permissions['menus'][number]
+
+function readSession(): Session | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw)
+      return null
+    const parsed = JSON.parse(raw) as Partial<Session>
+    return typeof parsed.accessToken === 'string' && typeof parsed.refreshToken === 'string' && parsed.user
+      ? (parsed as Session)
+      : null
+  }
+  catch {
+    return null
+  }
+}
+
+function writeSession(session: Session | null): void {
+  try {
+    if (session)
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+    else localStorage.removeItem(SESSION_KEY)
+  }
+  catch {}
+}
+
+/**
+ * 会话与权限：`auth.login` 写入会话，`auth.refresh` 轮换（单飞，并发的未认证重放共用一次刷新），`auth.logout` 吊销并清掉；
+ * `auth.permissions` 在路由守卫首次进入时装载（刷新令牌后清空、下次导航重取，角色变化随之生效）
+ * 登录与刷新匿名调用（不带旧令牌，否则过期令牌先在 Authenticate 阶段被拒）。授权以后端为准，这里只保存后端返回的结果，`can` 精确匹配、不认通配
+ */
 export const useAuthStore = defineStore('auth', () => {
-  const accessStore = useAccessStore()
-  const appStore = useAppStore()
-  const userStore = useUserStore()
-  const tabbarStore = useTabbarStore()
+  const session = ref<Session | null>(readSession())
+  const permissions = ref<Permissions | null>(null)
+  let refreshing: Promise<string | null> | null = null
 
-  const loginLoading = ref(false)
-  const impersonationLoading = ref(false)
+  const isAuthenticated = computed(() => session.value !== null)
+  const accessToken = computed(() => session.value?.accessToken ?? null)
+  const user = computed(() => session.value?.user ?? null)
+  const tenantId = computed(() => session.value?.tenantId ?? null)
+  const mustChangePassword = computed(() => session.value?.mustChangePassword ?? false)
+  const granted = computed(() => new Set(permissions.value?.permissions ?? []))
+  const menus = computed(() => permissions.value?.menus ?? [])
 
-  async function afterLogin(result: LoginToken, redirect?: string) {
-    const loginTask = islandStart('auth:login', i18n.global.t('island.auth.logging_in'))
-    const ctx = useAppContext()
-    const router = await ctx.getRouter()
-
-    accessStore.setAccessToken(result.accessToken)
-    accessStore.setRefreshToken(result.refreshToken)
-
-    let userInfo: UserInfo
-    let permissionInfo: PermissionInfo
-    try {
-      ;[userInfo, permissionInfo] = await Promise.all([
-        ctx.apis.getUserInfoApi(),
-        ctx.apis.getPermissionsApi(),
-      ])
-    }
-    catch (error) {
-      // 会话被服务端锁定（强制改密）：登录本身已成功、令牌有效。
-      // 不能清令牌跳登录页——锁定遮罩（LockScreen 强制改密模式）要接管 UI；
-      // 用户信息/权限接口解锁前都会被 423，直接进入应用壳层，解锁后守卫会重新拉取。
-      if (isLockedState()) {
-        await router.replace(accessStore.homePath || HOME_PATH)
-        loginTask.success(i18n.global.t('island.auth.login_success'))
-        return
-      }
-
-      accessStore.$reset()
-      userStore.$reset()
-      loginTask.error(i18n.global.t('island.auth.login_failed'))
-      throw error
-    }
-
-    userStore.setUserInfo({
-      ...userInfo,
-      roles: permissionInfo.roles,
-      permissions: permissionInfo.permissions,
-    })
-    appStore.setBranding({
-      title: userInfo.appTitle,
-      logo: userInfo.appLogo,
-    })
-    accessStore.setAccessCodes(permissionInfo.permissions)
-    accessStore.setAccessButtons(permissionInfo.buttons ?? [])
-    accessStore.setAccessRoutes(permissionInfo.menus)
-
-    for (const route of mapMenuToRoutes(permissionInfo.menus)) {
-      const routeName = route.name ? String(route.name) : ''
-      const routePathExists = router.getRoutes().some(item => item.path === route.path)
-      if (!routePathExists && routeName && !router.hasRoute(routeName)) {
-        router.addRoute('RootLayout', route)
-      }
-    }
-
-    // 跨端同步：登录后拉取后端偏好并应用（覆盖本地），在进入应用前完成以避免闪烁
-    // showIsland:false — 同步过程由登录灵动岛统一覆盖，避免重复提示
-    await hydratePreferencesFromBackend({ showIsland: false })
-
-    // 落点由后端决定：平台账号落平台，租户账号落最近进入的可进入租户；登录后总是在一个上下文里，
-    // 换上下文走页头的控制中心
-    const homePath = accessStore.homePath || HOME_PATH
-    if (redirect) {
-      const target = decodeURIComponent(redirect)
-      const resolved = router.resolve(target)
-      const isValid
-        = resolved.matched.length > 0
-          && resolved.name !== 'NotFound'
-          && resolved.name !== 'NotFoundCatchAll'
-      await router.replace(isValid ? target : homePath)
-    }
-    else {
-      await router.replace(homePath)
-    }
-
-    loginTask.success(i18n.global.t('island.auth.login_success'))
+  function store(next: Session | null) {
+    session.value = next
+    writeSession(next)
+    if (!next)
+      permissions.value = null
   }
 
+  /** 是否持有某个权限码（精确匹配；后端已把 `*` 展开） */
+  function can(permission: string): boolean {
+    return granted.value.has(permission)
+  }
+
+  const loginLoading = ref(false)
+
   /**
-   * 账号密码登录（含双因素的后续几步）。在途时再次调用直接返回 null、不发第二个请求：
-   * 页面上点击、Enter、验证码输满自动提交几条路都汇到这里，靠这一处同步置位的 loginLoading 守住重入，
-   * 按钮的 loading 拦截只在重渲染之后才生效。
+   * 密码登录（4.x 登录页的入口，同一个函数走两步验证的每一段）：
+   * - 不带票据是首段：账号、密码与图形验证码交给 `auth.login`；账号开了双因素即返回挑战（票据、可用方式），不存会话；
+   * - 带票据与验证码是第二段：`auth.verify-two-factor` 换令牌；
+   * 拿到令牌就存会话并跳到回跳地址，返回 null。页面上的点击、Enter、验证码输满自动提交都汇到这里，`loginLoading` 同步置位守住重入
    */
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
     if (loginLoading.value)
       return null
     loginLoading.value = true
     try {
-      const ctx = useAppContext()
-      const response = await ctx.apis.loginApi(params)
-      if (response.requiresTwoFactor) {
-        return response
+      if (params.twoFactorTicket) {
+        const method = contractMethodOf(params.twoFactorMethod)
+        // 没带码：登录页选好邮箱 / 短信方式或点重发，凭票据请服务端发码（认证器不发码，登录页不走这里）
+        if (!params.twoFactorCode) {
+          await authApi.sendTwoFactorCode({ ticket: params.twoFactorTicket, method }, { anonymous: true })
+          return {
+            requiresTwoFactor: true,
+            twoFactorMethod: params.twoFactorMethod,
+            codeSent: true,
+            twoFactorTicket: params.twoFactorTicket,
+            token: null,
+          }
+        }
+        const token = await authApi.verifyTwoFactor({ ticket: params.twoFactorTicket, method, code: params.twoFactorCode }, { anonymous: true })
+        await afterLogin(token, redirect)
+        return null
       }
-      if (response.token) {
-        await afterLogin(response.token, redirect)
-      }
+      const result = await authApi.login({
+        userName: params.username.trim(),
+        password: params.password,
+        tenant: params.tenant?.trim() || null,
+        captchaId: params.captchaId ?? null,
+        captchaCode: params.captchaCode ?? null,
+      }, { anonymous: true })
+      if (result.twoFactor)
+        return toPageChallenge(result.twoFactor)
+      if (!result.token)
+        throw new Error('登录响应既没有令牌也没有双因素挑战')
+      await afterLogin(result.token, redirect)
       return null
     }
     finally {
@@ -138,208 +252,304 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string) {
-    loginLoading.value = true
-    try {
-      const ctx = useAppContext()
-      const result = await ctx.apis.phoneLoginApi(params)
-      await afterLogin(result, redirect)
-    }
-    finally {
-      loginLoading.value = false
-    }
+  /** 存下会话后跳到回跳地址（缺省首页）；权限与菜单由路由守卫首次进入时装载 */
+  async function afterLogin(token: Session, redirect?: string): Promise<void> {
+    store(token)
+    const router = await useAppContext().getRouter()
+    await router.replace(safeRedirect(redirect))
   }
 
-  async function loginByEmailCode(params: EmailLoginParams, redirect?: string) {
-    loginLoading.value = true
-    try {
-      const ctx = useAppContext()
-      const result = await ctx.apis.emailLoginApi(params)
-      await afterLogin(result, redirect)
-    }
-    finally {
-      loginLoading.value = false
-    }
+  /** 第三方登录（4.x 同为整页跳去发起）：带上登录页填的注册地租户（平台账号留空）；登录页的回跳地址随发起记录带回来 */
+  function startOAuthLogin(provider: OAuthProviderItem, options: { tenant?: string, redirect?: string } = {}): void {
+    writeOAuthPending({
+      mode: 'login',
+      provider: provider.name.toLowerCase(),
+      startedAt: Date.now(),
+      ...(options.redirect
+        ? { redirect: options.redirect }
+        : {}),
+    })
+    window.location.assign(oauthChallengeUrl(provider.name, options.tenant))
   }
 
-  function startOAuthLogin(provider: OAuthProviderItem) {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
-    const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
-    const url = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider.name)}`
-    window.location.href = url
+  /** 绑定第三方账号（个人中心发起，4.x 同为先换绑定票据再跳）：先领本人的绑定意图、拿到后端给的发起地址再整页跳去，回调页由本人调 `profile.link-external` 确认 */
+  async function startOAuthBind(provider: string): Promise<void> {
+    const url = await useAppContext().apis.beginOAuthBindApi(provider)
+    writeOAuthPending({
+      mode: 'bind',
+      provider: provider.toLowerCase(),
+      startedAt: Date.now(),
+    })
+    window.location.assign(endpointUrl(url))
   }
 
-  async function handleOAuthCallback(token: LoginToken, redirect?: string) {
-    loginLoading.value = true
-    try {
-      await afterLogin(token, redirect)
-    }
-    finally {
-      loginLoading.value = false
-    }
+  /** 第三方登录换来的双因素挑战：登录页挂载时取走，直接进验证阶段 */
+  const pendingTwoFactor = ref<LoginResponse | null>(null)
+
+  /**
+   * 第三方登录回调（4.x 回调把令牌放在地址片段里直接落地；6.0 是一次性票据，经 `auth.external-login` 换）：
+   * 拿到令牌即与密码登录同样存会话、跳回跳地址；账号开了双因素即返回挑战——记下挑战、带着回跳地址回登录页，
+   * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）
+   */
+  async function handleOAuthCallback(ticket: string, redirect?: string): Promise<void> {
+    await finishOrChallenge(() => authApi.externalLogin({ ticket }, { anonymous: true }), redirect)
   }
 
   /**
-   * 换令牌后重建整个应用壳层：清掉上一上下文留在本地的用户信息、标签页与连接 → 整页重载。
-   * 走整页重载而不是热切换，是因为路由表、权限码、菜单、SignalR 连接全都绑在旧上下文上。
-   * 换了身份（模仿 / 结束模仿）还要清偏好回写通道：偏好属于人，上一身份的不能回写进新身份。
+   * 验证码登录（4.x 同名；6.0 走 `auth.login-by-code`，带注册地租户）：与第三方登录同样，拿到令牌即落地，
+   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走（4.x 的验证码登录跳过双因素）
    */
-  function reloadWithToken(token: LoginToken, identityChanged: boolean) {
-    accessStore.setAccessToken(token.accessToken)
-    accessStore.setRefreshToken(token.refreshToken)
-    userStore.$reset()
-    tabbarStore.closeAll()
-    sessionStorage.removeItem(TABS_LIST_KEY)
-    localStorage.removeItem(TABS_LIST_KEY)
-    if (identityChanged) {
-      resetPreferenceBackendSync()
-      // 新身份的偏好由后端水合，本地这份属于上一身份：标记后让水合阶段不拿它当种子回写进新账号
-      markPreferenceIdentitySwitched()
-    }
-    clearLockState()
-    void destroyAllSignalRConnections()
-    window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
+  async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
+    await finishOrChallenge(() => authApi.loginByCode({
+      channel: 'Phone',
+      target: params.phone.trim(),
+      code: params.code,
+      tenant: params.tenant?.trim() || null,
+    }, { anonymous: true }), redirect)
   }
 
-  /** 身份切换（模仿 / 结束模仿）后重建应用 */
-  function applySwitchedIdentity(token: LoginToken) {
-    reloadWithToken(token, true)
+  /** 邮箱验证码登录（同上） */
+  async function loginByEmailCode(params: EmailLoginParams, redirect?: string): Promise<void> {
+    await finishOrChallenge(() => authApi.loginByCode({
+      channel: 'Email',
+      target: params.email.trim(),
+      code: params.code,
+      tenant: params.tenant?.trim() || null,
+    }, { anonymous: true }), redirect)
   }
 
-  /**
-   * 切换上下文：进入某个租户，或（平台账号）回到平台。服务端在目标上下文续接会话、签发新令牌，
-   * 旧令牌随即失效；本地按新上下文整页重建。
-   */
-  async function switchContext(tenantId: null | string) {
-    const token = await useAppContext().apis.tenantApi.switchTenant({ tenantId })
-    reloadWithToken(token, false)
-  }
-
-  /** 可模仿的候选用户：给了租户取该租户成员，不给取平台账号 */
-  function impersonationCandidates(input: ImpersonationCandidateQuery): Promise<ImpersonationCandidate[]> {
-    return useAppContext().apis.impersonationApi.candidates(input)
-  }
-
-  /** 平台可在其中发起模仿的租户 */
-  function impersonationTenants(): Promise<ImpersonationTenantOption[]> {
-    return useAppContext().apis.impersonationApi.tenants()
-  }
-
-  /** 发起模仿登录：以目标用户身份重建会话 */
-  async function startImpersonation(input: StartImpersonationParams) {
-    if (impersonationLoading.value) {
+  /** 第三方登录与验证码登录的共同收尾：有令牌即存会话、跳回跳地址；是双因素挑战即记下挑战、带着回跳地址回登录页 */
+  async function finishOrChallenge(signIn: () => Promise<ResponseOf<'auth.external-login'>>, redirect?: string): Promise<void> {
+    if (loginLoading.value)
       return
-    }
-    impersonationLoading.value = true
+    loginLoading.value = true
+    let challenge: LoginResponse
     try {
-      const token = await useAppContext().apis.impersonationApi.start(input)
-      applySwitchedIdentity(token)
-    }
-    catch (error) {
-      impersonationLoading.value = false
-      throw error
-    }
-  }
-
-  /** 结束模仿登录：回到发起人身份 */
-  async function stopImpersonation() {
-    if (impersonationLoading.value) {
-      return
-    }
-    impersonationLoading.value = true
-    try {
-      const token = await useAppContext().apis.impersonationApi.stop()
-      applySwitchedIdentity(token)
-    }
-    catch (error) {
-      impersonationLoading.value = false
-      throw error
-    }
-  }
-
-  async function logout() {
-    const ctx = useAppContext()
-    const router = await ctx.getRouter()
-    // 登出时保留的路由 = 应用侧静态路由（经 AppContext 注入，packages 不认识 RootLayout/EditorDemo 这些应用页名）
-    //                   + packages 自己的核心路由（登录/错误页）
-    // 原先是一份手写常量，却顶着「自动派生」的注释：它漏了 AboutProject / OAuthAuthorize，
-    // 导致登出再登录后这两页 404。改为真派生后，应用侧新增静态路由无需再回来改这里。
-    const staticRouteNames = new Set<string>([
-      ...collectRouteNames(ctx.getStaticRoutes()),
-      ...CORE_ROUTE_NAMES,
-      // 个人中心由后端菜单动态注册（coreComponentMap 的 '_core/profile/index'），不在静态路由表里
-      'Profile',
-    ])
-    try {
-      // 登出销毁全部 Hub 连接（通知/聊天等），不逐个枚举 hubPath
-      await destroyAllSignalRConnections()
-    }
-    catch {
-      // ignore signalr destroy error
-    }
-
-    try {
-      await ctx.apis.logoutApi()
-    }
-    catch {
-      // ignore logout api error
-    }
-
-    try {
-      const allRoutes = router.getRoutes()
-      for (const route of allRoutes) {
-        if (route.name && !staticRouteNames.has(route.name as string)) {
-          try {
-            router.removeRoute(route.name)
-          }
-          catch {
-            // ignore remove route error
-          }
-        }
+      const result = await signIn()
+      if (!result.twoFactor) {
+        if (!result.token)
+          throw new Error('登录响应既没有令牌也没有双因素挑战')
+        await afterLogin(result.token, redirect)
+        return
       }
+      challenge = toPageChallenge(result.twoFactor)
     }
-    catch {
-      // ignore dynamic route clear error
+    finally {
+      loginLoading.value = false
     }
+    pendingTwoFactor.value = challenge
+    const target = safeRedirect(redirect)
+    const router = await useAppContext().getRouter()
+    await router.replace({
+      path: LOGIN_PATH,
+      query: target === '/'
+        ? {}
+        : { redirect: target },
+    })
+  }
 
-    accessStore.$reset()
-    userStore.$reset()
-    tabbarStore.closeAll()
-    sessionStorage.clear()
-    // 锁屏状态在 localStorage（需跨标签页共享），sessionStorage.clear() 清不掉它；
-    // 不显式清除会导致重新登录后仍卡在锁屏。走 clearLockState 而非直接删 key：
-    // 它会广播锁定态变更，让本标签页的遮罩当场收起（storage 事件只通知其他标签页）。
+  /** 取走（并清除）第三方登录或验证码登录留下的双因素挑战 */
+  function takePendingTwoFactor(): LoginResponse | null {
+    const pending = pendingTwoFactor.value
+    pendingTwoFactor.value = null
+    return pending
+  }
+
+  /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null */
+  function refresh(): Promise<string | null> {
+    const current = session.value
+    if (!current)
+      return Promise.resolve(null)
+    refreshing ??= authApi.refresh({ refreshToken: current.refreshToken }, { anonymous: true })
+      .then((result) => {
+        store(result)
+        permissions.value = null
+        return result.accessToken
+      }, () => {
+        store(null)
+        return null
+      })
+      .finally(() => {
+        refreshing = null
+      })
+    return refreshing
+  }
+
+  /** 装载当前主体的权限、菜单与页面；没有会话即 null */
+  async function loadPermissions(): Promise<Permissions | null> {
+    if (!session.value)
+      return null
+    const result = await authApi.permissions({})
+    permissions.value = result
+    return result
+  }
+
+  /**
+   * 退出时清掉属于这个人的本地状态，下一个登录的人不该看到：
+   * 会话与权限、标签栏、分屏、会话级存储、锁屏标记与偏好回写通道
+   * 菜单路由不在这里卸：守卫下次装载前先卸掉上一份（4.x 是在这里按静态路由反选）
+   */
+  function clearLocalState(): void {
+    useAccessStore().$reset()
+    useTabbarStore().$reset()
+    useSplitViewStore().close()
+    clearSessionStorage()
+    // 锁屏标记在 localStorage（跨标签页共享），不清会让重新登录后仍卡在锁屏；
+    // 走 clearLockState 而非直接删键：它广播变更，本标签页的遮罩当场收起（storage 事件只通知其他标签页）
     clearLockState()
+    // 偏好回写通道属于这个人，退出即关；下一个登录的人重新水合
     resetPreferenceBackendSync()
+  }
 
+  /**
+   * 注销：先断开实时连接，再请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳）
+   * 没有会话也要清：刷新失败已清掉会话之后，从锁屏退出还是走这里
+   */
+  async function logout(): Promise<void> {
+    // 全部 Hub 一起销毁，不逐个枚举；各集成在令牌清空后的收尾照旧（销毁可重入）
+    await destroyAllSignalRConnections().catch(() => {})
+    if (session.value) {
+      try {
+        await authApi.logout({})
+      }
+      catch {}
+    }
+    clearLocalState()
+    const router = await useAppContext().getRouter().catch(() => null)
+    if (!router || router.currentRoute.value.path === LOGIN_PATH)
+      return
     try {
       await router.replace(LOGIN_PATH)
     }
     catch {
+      // 路由走不通也要回到登录页：整页跳过去
       const base = import.meta.env.VITE_BASE || '/'
-      const normalizedBase = base.endsWith('/') ? base : `${base}/`
-      if (import.meta.env.VITE_ROUTER_HISTORY === 'history') {
-        window.location.href = LOGIN_PATH
-      }
-      else {
-        window.location.href = `${normalizedBase}#${LOGIN_PATH}`
-      }
+      const normalizedBase = base.endsWith('/')
+        ? base
+        : `${base}/`
+      window.location.assign(import.meta.env.VITE_ROUTER_HISTORY === 'history'
+        ? LOGIN_PATH
+        : `${normalizedBase}#${LOGIN_PATH}`)
     }
   }
 
+  /** 按 `auth.me` 刷新资料（改名、改密后或打开页面时） */
+  async function loadMe(): Promise<void> {
+    if (!session.value)
+      return
+    const me = await authApi.me({})
+    store({ ...session.value, user: me.user, tenantId: me.tenantId })
+  }
+
+  /** 本人改密成功后：当前会话保留，强制改密标记清除 */
+  function markPasswordChanged(): void {
+    if (session.value)
+      store({ ...session.value, mustChangePassword: false })
+  }
+
+  /** 本人改了资料（显示名、用户名、头像）后：会话里的用户换成后端回的那份（令牌不变），顶栏、用户菜单与个人中心侧栏随之刷新 */
+  function applyUser(nextUser: Session['user']): void {
+    if (session.value)
+      store({ ...session.value, user: nextUser })
+  }
+
+  function clear(): void {
+    store(null)
+  }
+
+  /**
+   * 切换上下文：进入某个租户，或（平台账号）回到平台（`tenantId` 为 null）
+   * 后端在目标上下文续接同一会话、签发新令牌（旧令牌随即失效）；本地存下新会话后整页重建，
+   * 由守卫按新上下文重取权限、重装菜单路由（标签栏等壳层状态都属于上一上下文）
+   */
+  async function switchTenant(tenantId: null | string): Promise<void> {
+    store(await useAppContext().apis.tenantApi.switchTenant({ tenantId }))
+    relaunchApp()
+  }
+
+  // ---- 切换角色（壳层入口；接口经应用上下文注入）----
+  function sessionRoles(): Promise<SessionRoleOption[]> {
+    return useAppContext().apis.sessionRoleApi.list()
+  }
+
+  /** 换本会话激活的角色：后端续接同一会话、签发新令牌；本地存下后整页重建（与切换租户同一条路） */
+  async function activateRoles(roleIds: string[]): Promise<void> {
+    store(await useAppContext().apis.sessionRoleApi.activate(roleIds))
+    relaunchApp()
+  }
+
+  // ---- 模仿登录（壳层入口；接口经应用上下文注入）----
+  const impersonationLoading = ref(false)
+
+  function impersonationCandidates(input: ImpersonationCandidateQuery): Promise<ImpersonationCandidate[]> {
+    return useAppContext().apis.impersonationApi.candidates(input)
+  }
+
+  function impersonationTenants(): Promise<ImpersonationTenantOption[]> {
+    return useAppContext().apis.impersonationApi.tenants()
+  }
+
+  /** 模仿 / 退出模仿都拿回一份新会话：换掉当前会话后整页重建（与切换租户同一条路）；失败时放开加载态、把错误抛给调用方提示 */
+  async function applyImpersonation(run: () => Promise<Session>): Promise<void> {
+    if (impersonationLoading.value)
+      return
+    impersonationLoading.value = true
+    try {
+      store(await run())
+      // 偏好属于人：上一身份还没发出去的回写不能带着新令牌写进新身份
+      resetPreferenceBackendSync()
+      try {
+        sessionStorage.setItem(IDENTITY_SWITCHED_KEY, '1')
+      }
+      catch {}
+      relaunchApp()
+    }
+    catch (error) {
+      impersonationLoading.value = false
+      throw error
+    }
+  }
+
+  function startImpersonation(input: StartImpersonationParams): Promise<void> {
+    return applyImpersonation(() => useAppContext().apis.impersonationApi.start(input))
+  }
+
+  function stopImpersonation(): Promise<void> {
+    return applyImpersonation(() => useAppContext().apis.impersonationApi.stop())
+  }
+
   return {
+    session,
+    permissions,
+    menus,
+    isAuthenticated,
+    accessToken,
+    user,
+    tenantId,
+    mustChangePassword,
+    can,
+    login,
     loginLoading,
+    startOAuthLogin,
+    startOAuthBind,
+    handleOAuthCallback,
+    loginByPhoneCode,
+    loginByEmailCode,
+    takePendingTwoFactor,
+    refresh,
+    loadPermissions,
+    logout,
+    loadMe,
+    markPasswordChanged,
+    applyUser,
+    clear,
+    switchTenant,
+    sessionRoles,
+    activateRoles,
     impersonationLoading,
     impersonationCandidates,
     impersonationTenants,
     startImpersonation,
     stopImpersonation,
-    switchContext,
-    login,
-    loginByPhoneCode,
-    loginByEmailCode,
-    startOAuthLogin,
-    handleOAuthCallback,
-    logout,
   }
 })

@@ -7,22 +7,26 @@ import { SessionStorage } from '~/utils'
 
 export const useTabbarStore = defineStore('tabbar', () => {
   const appStore = useAppStore()
-  const defaultTab: TabItem = {
+  // 每次新建：ensureTab 会就地改写已有标签（name、keepAlive 等）
+  const createDefaultTab = (): TabItem => ({
     key: HOME_PATH,
-    title: 'menu.workspace',
+    // 首页标签的标题键：6.0 的首页跳到第一个菜单页，标签本身叫「首页」
+    title: 'common.actions.home',
     path: HOME_PATH,
     pinned: true,
     closable: false,
-  }
-  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [defaultTab])
+  })
+  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [
+    createDefaultTab(),
+  ])
 
   const activeTab = ref(HOME_PATH)
   const refreshSeeds = ref<Record<string, number>>({})
 
   const tabKeys = computed(() => tabs.value.map(item => item.key))
 
-  // KeepAlive 的 include：所有「已打开 且 开了缓存」标签的路由名（= 组件强制名，见 router/dynamic.ts）。
-  // 必须是全部缓存标签，而非仅当前路由——否则切走的标签会被踢出缓存，返回时重渲染。
+  // KeepAlive 的 include：所有「已打开 且 开了缓存」标签的路由名（= 组件强制名，见 router/dynamic.ts）
+  // 必须是全部缓存标签，而非仅当前路由——否则切走的标签会被踢出缓存，返回时重渲染
   const cachedTabNames = computed(() =>
     tabs.value.filter(item => item.keepAlive && item.name).map(item => item.name as string),
   )
@@ -37,7 +41,10 @@ export const useTabbarStore = defineStore('tabbar', () => {
       existing.name = tab.name
       existing.keepAlive = tab.keepAlive
       if (tab.meta) {
-        existing.meta = { ...existing.meta, ...tab.meta }
+        existing.meta = {
+          ...existing.meta,
+          ...tab.meta,
+        }
         existing.title = tab.title
       }
     }
@@ -103,13 +110,15 @@ export const useTabbarStore = defineStore('tabbar', () => {
   /**
    * 批量关闭后若激活标签已被移除，把激活位收敛到本次操作的目标标签（它必然被保留），
    * 目标也不在时回落首页。与 removeTab / closeOthers / closeAll 的兜底口径一致，
-   * 避免标签栏无高亮项而内容区仍停在已关闭页。
+   * 避免标签栏无高亮项而内容区仍停在已关闭页
    */
   function ensureActiveTabAlive(fallbackKey: string) {
     if (tabs.value.some(tab => tab.key === activeTab.value)) {
       return
     }
-    activeTab.value = tabs.value.some(tab => tab.key === fallbackKey) ? fallbackKey : HOME_PATH
+    activeTab.value = tabs.value.some(tab => tab.key === fallbackKey)
+      ? fallbackKey
+      : HOME_PATH
   }
 
   function closeLeft(key: string) {
@@ -142,6 +151,19 @@ export const useTabbarStore = defineStore('tabbar', () => {
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
+  }
+
+  /**
+   * 回到初始状态（退出登录）：只剩首页，也不留持久化的那份
+   * 不用 closeAll：它留着置顶的标签，那些页面下一个登录的人未必有
+   */
+  function $reset() {
+    tabs.value = [
+      createDefaultTab(),
+    ]
+    activeTab.value = HOME_PATH
+    refreshSeeds.value = {}
+    SessionStorage.remove(TABS_LIST_KEY)
   }
 
   function moveTab(sourcePath: string, targetPath: string) {
@@ -179,5 +201,6 @@ export const useTabbarStore = defineStore('tabbar', () => {
     togglePin,
     refreshTab,
     getRefreshSeed,
+    $reset,
   }
 })

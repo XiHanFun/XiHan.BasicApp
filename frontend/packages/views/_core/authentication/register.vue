@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
-import type { LegalDocumentKind } from './legal'
-
-import { XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
-import { computed, ref, useId } from 'vue'
+import type { CaptchaChallenge } from '~/types'
+import { Icon } from '@iconify/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot } from '@xihan-ui/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { XInput } from '~/components'
@@ -11,7 +11,7 @@ import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppContext } from '~/stores'
-import LegalDocumentDialog from './LegalDocumentDialog.vue'
+import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'RegisterPage' })
@@ -20,18 +20,6 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
 const { apis } = useAppContext()
-const agreePolicy = ref(false)
-/** 同意条款那段文案里夹着两颗文书按钮，放不进复选框的标签插槽，复选框经 aria-labelledby 取它作名字 */
-const agreeLabelId = useId()
-
-/** 正在查看的法律文书；弹窗关掉后保留上一份，关闭动画里标题不会跳成另一份 */
-const legalKind = ref<LegalDocumentKind>('privacy-policy')
-const legalOpen = ref(false)
-
-function openLegal(kind: LegalDocumentKind) {
-  legalKind.value = kind
-  legalOpen.value = true
-}
 
 const formData = ref({
   username: '',
@@ -39,6 +27,42 @@ const formData = ref({
   password: '',
   confirmPassword: '',
 })
+
+// ==================== 图形验证码（登录配置要求时与密码登录同一套） ====================
+
+const captchaEnabled = ref(false)
+const captcha = ref<CaptchaChallenge | null>(null)
+const captchaCode = ref<string[]>([])
+const captchaCodeStr = computed(() => captchaCode.value.join(''))
+const captchaLoading = ref(false)
+
+async function refreshCaptcha() {
+  if (!captchaEnabled.value)
+    return
+  captchaLoading.value = true
+  try {
+    captcha.value = await apis.getCaptchaApi()
+    captchaCode.value = []
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('page.login.captcha_load_failed'))
+  }
+  finally {
+    captchaLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  try {
+    captchaEnabled.value = (await apis.getLoginConfigApi()).captchaEnabled
+    await refreshCaptcha()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('page.auth.load_config_failed'))
+  }
+})
+
+// ==================== 密码强度（照 4.x 的四档） ====================
 
 const passwordStrength = computed(() => {
   const pwd = formData.value.password
@@ -69,73 +93,98 @@ const strengthLabel = computed(() => {
 
 /** 强度色走组件库语气前景：弱 danger、中 warning、强 success、很强 info，深浅两态与状态色设置都跟着走 */
 const strengthColor = computed(() => {
-  const colors = ['var(--xh-fg-danger)', 'var(--xh-fg-danger)', 'var(--xh-fg-warning)', 'var(--xh-fg-success)', 'var(--xh-fg-info)']
+  const colors = [
+    'var(--xh-fg-danger)',
+    'var(--xh-fg-danger)',
+    'var(--xh-fg-warning)',
+    'var(--xh-fg-success)',
+    'var(--xh-fg-info)',
+  ]
   return colors[passwordStrength.value] || 'var(--xh-fg-danger)'
 })
 
-const rules = computed<FormRules>(() => ({
+/** 用户名与后端一致：小写字母开头，3 到 64 位，只含小写字母、数字、.、_、- */
+const USERNAME_RE = /^[a-z][a-z0-9._-]{2,63}$/
+
+const rules = computed<FormRules<typeof formData.value>>(() => ({
   username: [
-    { required: true, message: t('page.auth.username_placeholder') },
-    { min: 3, message: t('page.auth.username_min_length') },
+    {
+      required: true,
+      message: t('page.auth.username_placeholder'),
+    },
+    {
+      validator: value => (!value || USERNAME_RE.test(String(value))
+        ? null
+        : t('page.auth.username_rule')),
+    },
   ],
   email: [
-    { required: true, message: t('page.auth.email_placeholder') },
-    { type: 'email', message: t('page.auth.email_invalid') },
+    {
+      required: true,
+      message: t('page.auth.email_placeholder'),
+    },
+    {
+      type: 'email',
+      message: t('page.auth.email_invalid'),
+    },
   ],
   password: [
-    { required: true, message: t('page.login.password_placeholder') },
     {
-      // 返回文案即失败，返回空即通过；空值交给上面那条 required 管
+      required: true,
+      message: t('page.login.password_placeholder'),
+    },
+    {
+      // 与后端密码策略一致：至少 8 位，同时含字母与数字；空值交给上面那条 required
       validator: (value) => {
         const password = String(value ?? '')
         if (!password)
           return null
         if (password.length < 8)
           return t('page.auth.password_rule_length')
-        if (!/[a-z]/.test(password))
-          return t('page.auth.password_rule_lower')
-        if (!/[A-Z]/.test(password))
-          return t('page.auth.password_rule_upper')
-        if (!/\d/.test(password))
-          return t('page.auth.password_rule_digit')
-        if (!/[^a-z0-9]/i.test(password))
-          return t('page.auth.password_rule_special')
+        if (!/[a-z]/i.test(password) || !/\d/.test(password))
+          return t('page.auth.password_rule_letter_digit')
         return null
       },
     },
   ],
   confirmPassword: [
-    { required: true, message: t('page.auth.confirm_password_placeholder') },
     {
-      // 第二参是整表值，跨字段规则从它读，不必回头取 formData；先填它、再改密码时由 deps 带着重验
+      required: true,
+      message: t('page.auth.confirm_password_placeholder'),
+    },
+    {
+      // 第二参是整表值，跨字段规则从它读；先填它、再改密码时由 deps 带着重验
       deps: ['password'],
-      validator: (value, values) =>
-        value === values.password ? null : t('page.auth.password_mismatch'),
+      validator: (value, values) => (value === values.password
+        ? null
+        : t('page.auth.password_mismatch')),
     },
   ],
 }))
 
 // 返回的 Promise 交给表单：落定前提交钮报在途、再按不重复提交，失败在这里自己接住
 async function onSubmit() {
+  if (captchaEnabled.value && (!captcha.value || captchaCodeStr.value.length < CAPTCHA_CODE_LENGTH)) {
+    toast.warning(t('page.login.captcha_required'))
+    return
+  }
   try {
-    if (!agreePolicy.value) {
-      toast.warning(t('page.auth.agree_required'))
-      return
-    }
     await apis.registerApi({
       username: formData.value.username,
       email: formData.value.email,
       password: formData.value.password,
-      nickName: formData.value.username,
+      captchaId: captchaEnabled.value ? captcha.value?.captchaId : undefined,
+      captchaCode: captchaEnabled.value ? captchaCodeStr.value : undefined,
     })
     toast.success(t('page.auth.register_success'))
     router.push(LOGIN_PATH)
   }
   catch (err: unknown) {
+    // 图形验证码一次一用：失败后换一张
+    void refreshCaptcha()
     const error = err as { message?: string }
-    if (error?.message) {
+    if (error?.message)
       toast.danger(error.message)
-    }
   }
 }
 
@@ -179,6 +228,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
+
       <XhFormFieldGroup name="email" class="!mb-6">
         <XhFieldRoot>
           <XhFieldLabel class="sr-only">
@@ -194,6 +244,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
+
       <!-- 密码档自带显隐钮，不再另摆眼睛图标 -->
       <XhFormFieldGroup name="password" class="!mb-6">
         <XhFieldRoot>
@@ -236,33 +287,38 @@ const onAuthInvalid = useAuthFormInvalid()
             v-for="i in 4"
             :key="i"
             class="flex-1 h-1 rounded-full transition-colors"
-            :style="{
-              backgroundColor:
-                i <= passwordStrength ? strengthColor : 'var(--xh-border-default)',
-            }"
+            :style="{ backgroundColor: i <= passwordStrength ? strengthColor : 'var(--xh-border-default)' }"
           />
         </div>
         <span class="auth-caption" :style="{ color: strengthColor }">{{ strengthLabel }}</span>
       </div>
 
-      <!-- 文案里夹着按钮，不能塞进复选框的标签插槽（label 里不能套可聚焦元素）：并排放一段，复选框经 aria-labelledby 指向它 -->
-      <div class="mb-6">
-        <span class="xh-checkbox-row">
-          <XhCheckbox v-model:checked="agreePolicy" :aria-labelledby="agreeLabelId" />
-          <span :id="agreeLabelId" class="xh-checkbox-row__label auth-body">
-            {{ t('page.auth.agree_text') }}
-            <!-- 打开弹窗而不是跳页：原先的 href="#" 在哈希路由下会把人带回首页 -->
-            <button type="button" class="link-primary legal-link" @click="openLegal('privacy-policy')">
-              {{ t('page.auth.privacy_policy') }}
-            </button>
-            {{ t('page.auth.and') }}
-            <button type="button" class="link-primary legal-link" @click="openLegal('terms-of-service')">
-              {{ t('page.auth.terms_of_service') }}
-            </button>
-          </span>
-        </span>
+      <!-- 图形验证码：与密码登录同一套排布，格子在左、验证码图靠右缘，点图换一张 -->
+      <div v-if="captchaEnabled" class="mb-6">
+        <span class="sr-only">{{ t('page.login.captcha_required') }}</span>
+        <div class="auth-code-row">
+          <XhPinInputRoot v-model:value="captchaCode" :length="CAPTCHA_CODE_LENGTH" type="numeric" :aria-label="t('page.login.captcha_required')">
+            <div style="display: flex">
+              <XhPinInputInput v-for="i in CAPTCHA_CODE_LENGTH" :key="i" :index="i - 1" />
+            </div>
+          </XhPinInputRoot>
+          <div
+            class="auth-captcha"
+            :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
+            :title="t('page.login.captcha_refresh_title')"
+            @click="refreshCaptcha"
+          >
+            <img
+              v-if="captcha?.image"
+              :src="captcha.image"
+              :alt="t('page.login.captcha_refresh_title')"
+              class="select-none"
+              draggable="false"
+            >
+            <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
+          </div>
+        </div>
       </div>
-      <LegalDocumentDialog v-model:open="legalOpen" :kind="legalKind" />
 
       <XhFormSubmitTrigger class="auth-submit">
         {{ t('page.auth.register_btn') }}
@@ -275,7 +331,7 @@ const onAuthInvalid = useAuthFormInvalid()
     >
       {{ t('page.auth.already_have_account') }}
       <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
-        {{ t('page.auth.go_to_login') }}
+        {{ t('page.auth.back_to_login') }}
       </span>
     </p>
   </div>
@@ -288,20 +344,5 @@ const onAuthInvalid = useAuthFormInvalid()
 
 .link-primary:hover {
   text-decoration: underline;
-}
-
-/* 文书入口是按钮（打开弹窗），外观仍是行内链接 */
-.legal-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-}
-
-.legal-link:focus-visible {
-  border-radius: var(--xh-radius-sm);
-  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
-  outline-offset: var(--xh-ring-width);
 }
 </style>

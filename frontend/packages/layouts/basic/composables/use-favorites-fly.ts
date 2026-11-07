@@ -1,11 +1,11 @@
 import { ref } from 'vue'
 
 /**
- * 「飞入收藏夹」动画。
+ * 「飞入收藏夹」动画
  *
  * 收藏夹按钮（AppFavorites）与触发收藏的标签栏（AppTabbar）是布局内的兄弟组件，
  * 这里用模块级单例桥接：AppFavorites 挂载时注册按钮 DOM 锚点，AppTabbar 收藏时
- * 调用 flyToFavorites 从标签位置飞向锚点。动画走 Web Animations API，零额外依赖。
+ * 调用 flyToFavorites 从标签位置飞向锚点。动画走 Web Animations API，零额外依赖
  */
 
 /** 收藏夹按钮的 DOM 锚点（飞行终点） */
@@ -33,8 +33,8 @@ interface FlyPayload {
 }
 
 /**
- * 从源矩形飞一枚药丸到收藏夹按钮，命中后触发按钮脉冲。
- * 缺少源矩形 / 锚点 / 非浏览器环境时退化为仅脉冲。
+ * 从源矩形飞一枚药丸到收藏夹按钮，命中后触发按钮脉冲
+ * 缺少源矩形 / 锚点 / 非浏览器环境时退化为仅脉冲
  */
 export function flyToFavorites(source: DOMRect | null, payload: FlyPayload): void {
   const target = anchorEl.value

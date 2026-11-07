@@ -1,9 +1,8 @@
-/**
- * 打印模块文案（业务命名空间 + 菜单键）。
- */
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
 export default {
-  setting: {
-    print_template: {
+  printing: {
+    print_templates: {
+      title: '列印範本',
       page_name: '列印範本',
       tenant_templates: '租戶範本',
       available_global_templates: '可用的全域範本',
@@ -31,7 +30,7 @@ export default {
       initial_status: '初始狀態',
       initial_status_help: '建立後立即允許依範本編碼解析與使用',
       allow_tenant_use_help: '允許租戶 Auto 作用域回退使用此全域範本',
-      sort: '顯示順序',
+      order: '顯示順序',
       remark: '備註',
       remark_placeholder: '補充範本用途、適用情境或維護說明（可選）',
       action_create: '新增範本',
@@ -95,8 +94,5 @@ export default {
       save_blocked_issues: '範本有 {count} 個錯誤，請依設計器的問題清單修正後再儲存',
       legacy_format_reset: '此範本不是目前的列印範本格式，已換成空白範本，重新設計後儲存會覆蓋原內容',
     },
-  },
-  menu: {
-    setting_print_template: '列印範本',
   },
 }

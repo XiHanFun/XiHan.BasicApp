@@ -19,8 +19,8 @@ export interface UseSchemaTableOptions {
 }
 
 /**
- * Schema 列表数据状态机：分页 / 搜索 / 排序 / 删除 / loading 统一封装。
- * 服务端模式：所有分页、排序、筛选均下发后端，前端不做本地处理。
+ * Schema 列表数据状态机：分页 / 搜索 / 排序 / 删除 / loading 统一封装
+ * 服务端模式：所有分页、排序、筛选均下发后端，前端不做本地处理
  */
 export function useSchemaTable<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -104,7 +104,7 @@ export function useSchemaTable<TRow extends object>(
   function reset() {
     // 置 null 而非 delete：控件在交互时会更新自己的非受控值，
     // 删除键使受控值变 undefined 会回退到该内部值（控件保留旧选择不清空）；
-    // 置 null 保持受控并清空，与 clearable 「×」行为一致。
+    // 置 null 保持受控并清空，与 clearable 「×」行为一致
     for (const key of Object.keys(filters)) {
       filters[key] = null
     }

@@ -1,8 +1,8 @@
 /**
- * 壳层扩展注册点（shell-extensions）单元测试。
+ * 壳层扩展注册点（shell-extensions）单元测试
  * 职责边界：注册顺序、三类挂载物（顶栏按钮/浮层/集成钩子）可各自省略、
- * 读取结果与内部数组是同一响应式引用（布局层依赖它做增量渲染）。
- * 注册表是模块级单例，每个用例经 vi.resetModules + 动态 import 取全新副本。
+ * 读取结果与内部数组是同一响应式引用（布局层依赖它做增量渲染）
+ * 注册表是模块级单例，每个用例经 vi.resetModules + 动态 import 取全新副本
  */
 import type { Component } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -13,7 +13,10 @@ async function freshModule(): Promise<typeof import('./shell-extensions')> {
 }
 
 function fakeComponent(name: string): Component {
-  return { name, render: () => null }
+  return {
+    name,
+    render: () => null,
+  }
 }
 
 beforeEach(() => {
@@ -31,7 +34,11 @@ describe('初始状态', () => {
     const { registerShellExtension, useShellExtensions } = await freshModule()
     const list = useShellExtensions()
 
-    registerShellExtension({ overlays: [fakeComponent('Drawer')] })
+    registerShellExtension({
+      overlays: [
+        fakeComponent('Drawer'),
+      ],
+    })
 
     expect(isReactive(list)).toBe(true)
     expect(list).toHaveLength(1)
@@ -44,8 +51,12 @@ describe('注册与顺序', () => {
     const first = fakeComponent('First')
     const second = fakeComponent('Second')
 
-    registerShellExtension({ headerToolbarItems: [first] })
-    registerShellExtension({ headerToolbarItems: [second] })
+    registerShellExtension({
+      headerToolbarItems: [first],
+    })
+    registerShellExtension({
+      headerToolbarItems: [second],
+    })
 
     expect(useShellExtensions().flatMap(e => e.headerToolbarItems ?? [])).toEqual([first, second])
   })
@@ -55,14 +66,20 @@ describe('注册与顺序', () => {
     const a = fakeComponent('A')
     const b = fakeComponent('B')
 
-    registerShellExtension({ headerToolbarItems: [a, b] })
+    registerShellExtension({
+      headerToolbarItems: [a, b],
+    })
 
     expect(useShellExtensions()[0]?.headerToolbarItems).toEqual([a, b])
   })
 
   it('同一个扩展对象重复注册会出现两次 —— 注册点不做去重', async () => {
     const { registerShellExtension, useShellExtensions } = await freshModule()
-    const extension = { overlays: [fakeComponent('Dialog')] }
+    const extension = {
+      overlays: [
+        fakeComponent('Dialog'),
+      ],
+    }
 
     registerShellExtension(extension)
     registerShellExtension(extension)
@@ -86,7 +103,9 @@ describe('注册与顺序', () => {
     const { registerShellExtension, useShellExtensions } = await freshModule()
     const hook = vi.fn()
 
-    registerShellExtension({ integrations: [hook] })
+    registerShellExtension({
+      integrations: [hook],
+    })
 
     expect(hook).not.toHaveBeenCalled()
     expect(useShellExtensions()[0]?.integrations).toEqual([hook])
@@ -96,8 +115,12 @@ describe('注册与顺序', () => {
     const { registerShellExtension, useShellExtensions } = await freshModule()
     const first = vi.fn()
     const second = vi.fn()
-    registerShellExtension({ integrations: [first] })
-    registerShellExtension({ integrations: [second] })
+    registerShellExtension({
+      integrations: [first],
+    })
+    registerShellExtension({
+      integrations: [second],
+    })
 
     useShellExtensions().forEach(ext => ext.integrations?.forEach(fn => fn()))
 
@@ -111,7 +134,11 @@ describe('注册与顺序', () => {
     const overlay = fakeComponent('Overlay')
     const hook = vi.fn()
 
-    registerShellExtension({ headerToolbarItems: [button], overlays: [overlay], integrations: [hook] })
+    registerShellExtension({
+      headerToolbarItems: [button],
+      overlays: [overlay],
+      integrations: [hook],
+    })
 
     const only = useShellExtensions()[0]
     expect(only?.headerToolbarItems).toEqual([button])

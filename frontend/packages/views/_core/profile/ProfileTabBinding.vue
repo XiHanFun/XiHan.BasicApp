@@ -5,12 +5,14 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext } from '~/stores'
+import { ApiError } from '~/request'
+import { useAppContext, useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 
 defineOptions({ name: 'ProfileTabBinding' })
 
 const { apis } = useAppContext()
+const authStore = useAuthStore()
 const { t } = useI18n()
 
 // ==================== 第三方账号 ====================
@@ -23,19 +25,40 @@ const loaded = ref(false)
 const avatarErrors = ref<Set<string>>(new Set())
 
 // 支持的渠道全部罗列（与登录页一致，支持什么显示什么）；每个渠道合并其绑定状态：
-// 已绑定 → 展示账号信息 + 解除绑定；未绑定 → 展示绑定按钮。
-const providers = computed(() =>
-  oauthProviders.value.map((provider) => {
+// 已绑定 → 展示账号信息 + 解除绑定；未绑定 → 展示绑定按钮
+// 绑定记的是规范类型、登录配置给的是名称（可能是别名或自定义名），按登录配置带的类型对齐；
+// 对不上任何已配置渠道的绑定（渠道已下线）也列出来，只能解除绑定
+const providers = computed(() => {
+  const rows = oauthProviders.value.map((provider) => {
     const linked = linkedAccounts.value.find(
-      item => item.provider.toLowerCase() === provider.name.toLowerCase(),
+      item => item.provider.toLowerCase() === provider.type,
     )
     return {
       name: provider.name,
       displayName: provider.displayName,
+      type: provider.type,
       linked,
     }
-  }),
-)
+  })
+  for (const linked of linkedAccounts.value) {
+    if (!rows.some(row => row.linked === linked)) {
+      rows.push({
+        name: linked.provider,
+        displayName: linked.provider,
+        type: linked.provider,
+        linked,
+      })
+    }
+  }
+  return rows
+})
+
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
+}
 
 async function loadData() {
   loading.value = true
@@ -50,13 +73,14 @@ async function loadData() {
     loaded.value = true
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.binding.err_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.binding.err_load_failed'))
   }
   finally {
     loading.value = false
   }
 }
 
+/** 解绑按绑定记录的规范类型（不是登录配置的名称） */
 async function handleUnlinkAccount(provider: string) {
   try {
     await apis.unlinkAccountApi(provider)
@@ -64,13 +88,13 @@ async function handleUnlinkAccount(provider: string) {
     await loadData()
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.binding.err_operation_failed'))
+    toast.danger(messageOf(e) || t('component.profile.binding.err_operation_failed'))
   }
 }
 
-// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底。
-// 企业微信、飞书在这四个集里没有品牌 logo，用语义相近的通用图标占位（与登录页保持一致）。
-function providerIcon(name: string) {
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）：mdi/simple-icons 品牌图标，lucide 兜底
+// 企业微信、飞书在这四个集里没有品牌 logo，用语义相近的通用图标占位（与登录页保持一致）
+function providerIcon(type: string) {
   const map: Record<string, string> = {
     github: 'mdi:github',
     gitee: 'simple-icons:gitee',
@@ -81,9 +105,9 @@ function providerIcon(name: string) {
     weibo: 'mdi:sina-weibo',
     dingtalk: 'tabler:brand-dingtalk',
     wecom: 'mdi:briefcase-account',
-    feishu: 'lucide:send',
+    lark: 'lucide:send',
   }
-  return map[name.toLowerCase()] || 'lucide:link-2'
+  return map[type] || 'lucide:link-2'
 }
 
 function handleAvatarError(name: string) {
@@ -92,16 +116,13 @@ function handleAvatarError(name: string) {
   avatarErrors.value = next
 }
 
+/** 发起绑定（4.x 同为先换一次性凭据再整页跳去第三方）：领本人的绑定意图后跳去后端给的地址，回到回调页由本人确认 */
 async function handleStartBind(provider: string) {
   try {
-    // 浏览器跳转不带 JWT 头，先换取一次性票据以携带当前用户身份
-    const ticket = await apis.createOAuthBindTicketApi()
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
-    const apiPrefix = import.meta.env.VITE_API_PREFIX || '/api'
-    window.location.href = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider)}&bindTicket=${encodeURIComponent(ticket)}`
+    await authStore.startOAuthBind(provider)
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.binding.err_bind_start_failed'))
+    toast.danger(messageOf(e) || t('component.profile.binding.err_bind_start_failed'))
   }
 }
 
@@ -152,7 +173,7 @@ onMounted(() => {
                   referrerpolicy="no-referrer"
                   @error="handleAvatarError(provider.name)"
                 >
-                <Icon v-else :icon="providerIcon(provider.name)" width="18" />
+                <Icon v-else :icon="providerIcon(provider.type)" width="18" />
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
@@ -170,7 +191,7 @@ onMounted(() => {
                   </template>
                 </div>
               </div>
-              <XhPopconfirmRoot v-if="provider.linked" @confirm="handleUnlinkAccount(provider.name)">
+              <XhPopconfirmRoot v-if="provider.linked" @confirm="handleUnlinkAccount(provider.linked.provider)">
                 <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
                 <XhPopconfirmTrigger class="xh-linklike-trigger">
                   {{ t('component.profile.binding.btn_unbind') }}

@@ -2,23 +2,20 @@ import type { ListFieldSchema } from './types'
 import { ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { i18n } from '~/locales'
-import { downloadBlob } from '~/utils'
+import { csvCell, downloadBlob } from '~/utils'
 import { formatFieldText } from './renderer'
 
-/** CSV 单元格转义：含逗号/引号/换行时包裹双引号并转义内部引号 */
-function csvCell(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
-}
-
 /**
- * 将行集合按导出字段序列化为 CSV 文本（带 UTF-8 BOM，便于 Excel 正确识别中文）。
+ * 将行集合按导出字段序列化为 CSV 文本（带 UTF-8 BOM，便于 Excel 正确识别中文）
  */
 export function toCsv<TRow extends object>(fields: ListFieldSchema<TRow>[], rows: TRow[]): string {
   const header = fields.map(f => csvCell(f.title)).join(',')
   const body = rows
     .map(row => fields.map(f => csvCell(formatFieldText(f, row))).join(','))
     .join('\r\n')
-  return `\uFEFF${header}${body ? `\r\n${body}` : ''}`
+  return `\uFEFF${header}${body
+    ? `\r\n${body}`
+    : ''}`
 }
 
 /** 触发浏览器下载文本文件 */
@@ -27,8 +24,8 @@ export function downloadText(filename: string, content: string, mime = 'text/csv
 }
 
 /**
- * Schema 同步导出（当前筛选结果 → CSV）。
- * 字段、文件名、取数由 SchemaPage 提供（取数通常翻页拉全集，受安全上限约束）。
+ * Schema 同步导出（当前筛选结果 → CSV）
+ * 字段、文件名、取数由 SchemaPage 提供（取数通常翻页拉全集，受安全上限约束）
  */
 export interface UseSchemaExportOptions<TRow extends object> {
   /** 导出字段（已按权限过滤） */
@@ -60,14 +57,25 @@ export function useSchemaExport<TRow extends object>(options: UseSchemaExportOpt
       task.success(i18n.global.t('island.export.success', { n: rows.length }), {
         detail: fileName,
         actions: [
-          { key: 'again', label: i18n.global.t('island.export.again'), icon: 'lucide:rotate-cw', handler: () => void exportCsv() },
+          {
+            key: 'again',
+            label: i18n.global.t('island.export.again'),
+            icon: 'lucide:rotate-cw',
+            handler: () => void exportCsv(),
+          },
         ],
       })
     }
     catch {
       task.error(i18n.global.t('island.export.failed'), {
         actions: [
-          { key: 'retry', label: i18n.global.t('island.export.retry'), icon: 'lucide:rotate-cw', tone: 'brand', handler: () => void exportCsv() },
+          {
+            key: 'retry',
+            label: i18n.global.t('island.export.retry'),
+            icon: 'lucide:rotate-cw',
+            tone: 'brand',
+            handler: () => void exportCsv(),
+          },
         ],
       })
     }

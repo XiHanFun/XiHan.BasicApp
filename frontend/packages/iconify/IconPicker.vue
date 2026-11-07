@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import { useFieldControl, XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsNextTrigger, XhTabsPrevTrigger, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
-import { computed, ref, watch } from 'vue'
+import { useFieldControl, XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
 import { ICON_SET_META, loadIconNames } from './offline'
+import { useScrollStrip } from './scroll-strip'
 
 defineOptions({ name: 'IconPicker' })
 
@@ -50,7 +51,9 @@ const currentIconId = computed(() => {
   if (!v) {
     return ''
   }
-  return v.includes(':') ? v : `lucide:${v}`
+  return v.includes(':')
+    ? v
+    : `lucide:${v}`
 })
 
 async function loadIcons() {
@@ -81,6 +84,26 @@ watch(visible, (v) => {
     loadIcons()
   }
 })
+
+/**
+ * 图标集的页签带：一行排不下时横向滚，滚动条藏起来交给两端的箭头与滚轮（与顶栏水平菜单、标签栏同一套手感）
+ * 弹窗打开、换了图标集之后，把选中的那一枚页签滚进可视区
+ */
+const setsViewport = ref<HTMLElement | null>(null)
+const {
+  overflowing: setsOverflowing,
+  atStart: setsAtStart,
+  atEnd: setsAtEnd,
+  scrollToward: scrollSets,
+  reveal: revealSet,
+} = useScrollStrip(setsViewport)
+
+async function revealActiveSet() {
+  await nextTick()
+  revealSet(setsViewport.value?.querySelector('[role="tab"][aria-selected="true"]'))
+}
+
+watch([setsViewport, activePrefix], revealActiveSet, { flush: 'post' })
 
 function handleSelect(name: string) {
   const id = `${activePrefix.value}:${name}`
@@ -135,21 +158,48 @@ function handleClear() {
             </XhButton>
           </XhFlex>
 
-          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，标签带放不下时靠两端翻页钮挪。
+          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，页签带放不下时横向滚：
+               滚动条藏起来，两端各一枚翻页箭头、滚轮折成横向，到头的一侧箭头置灰
                一个图标集上千个图标：面板内容只在选中时渲染、选走即卸，否则每个面板都铺一整份网格 -->
           <XhTabsRoot :value="activePrefix" variant="line" lazy-mount unmount-on-exit @update:value="handleTabChange">
-            <XhTabsList>
-              <XhTabsPrevTrigger />
-              <XhTabsTrigger
-                v-for="meta in ICON_SET_META"
-                :key="meta.prefix"
-                :value="meta.prefix"
+            <div class="icon-picker-sets">
+              <XhButton
+                v-show="setsOverflowing"
+                class="icon-picker-sets__arrow"
+                variant="ghost"
+                size="sm"
+                icon-only
+                :disabled="setsAtStart"
+                :aria-label="t('component.icon_picker.sets_prev')"
+                @click="scrollSets('start')"
               >
-                {{ meta.name }}
-              </XhTabsTrigger>
-              <XhTabsIndicator />
-              <XhTabsNextTrigger />
-            </XhTabsList>
+                <Icon icon="lucide:chevrons-left" width="14" />
+              </XhButton>
+              <div ref="setsViewport" class="icon-picker-sets__viewport">
+                <XhTabsList>
+                  <XhTabsTrigger
+                    v-for="meta in ICON_SET_META"
+                    :key="meta.prefix"
+                    :value="meta.prefix"
+                  >
+                    {{ meta.name }}
+                  </XhTabsTrigger>
+                  <XhTabsIndicator />
+                </XhTabsList>
+              </div>
+              <XhButton
+                v-show="setsOverflowing"
+                class="icon-picker-sets__arrow"
+                variant="ghost"
+                size="sm"
+                icon-only
+                :disabled="setsAtEnd"
+                :aria-label="t('component.icon_picker.sets_next')"
+                @click="scrollSets('end')"
+              >
+                <Icon icon="lucide:chevrons-right" width="14" />
+              </XhButton>
+            </div>
             <XhTabsContent
               v-for="meta in ICON_SET_META"
               :key="meta.prefix"
@@ -198,8 +248,11 @@ function handleClear() {
 </template>
 
 <style scoped>
-/* 触发钮是表单里的一枚字段：与 sm 档的输入框同高（钮的 size 给），内容靠起始端排 */
+/* 触发钮是表单里的一枚字段：与 sm 档的输入框同高（钮的 size 给），内容靠起始端排；
+   内衬取输入框 sm 档的那一档，占位文字才与相邻输入框的文字起点对齐 */
 .icon-picker-trigger {
+  --xh-button-px: var(--xh-control-px-sm);
+
   justify-content: flex-start;
   font-weight: var(--xh-font-weight-regular);
 }
@@ -208,31 +261,63 @@ function handleClear() {
   color: var(--xh-fg-subtle);
 }
 
+/* 页签带一行：箭头 + 滚动区；滚动区藏掉滚动条，滚动交给两端箭头与滚轮 */
+.icon-picker-sets {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-1);
+  min-inline-size: 0;
+}
+
+.icon-picker-sets__viewport {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: auto hidden;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.icon-picker-sets__viewport::-webkit-scrollbar {
+  display: none;
+}
+
+/* 页签带自己不裁、不滚：按内容一行摆开，由外面的滚动区带着走；排得下时仍铺满，底线才连得上 */
+.icon-picker-sets__viewport :deep([data-scope='tabs'][data-part='list']) {
+  inline-size: max-content;
+  min-inline-size: 100%;
+  overflow: visible;
+}
+
+.icon-picker-sets__arrow {
+  flex: none;
+}
+
 .icon-picker-loading {
-  padding: 40px;
+  padding: var(--xh-space-8);
   text-align: center;
   color: hsl(var(--muted-foreground));
 }
 
 .icon-picker-grid {
-  padding: 8px 0;
+  padding: var(--xh-space-2) 0;
 }
 
 .icon-picker-item {
-  border-radius: 6px;
+  border-radius: var(--xh-shape-inset);
   transition: background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
-/* 格子里的按钮铺满整格，去掉原生按钮的底与边，悬停 / 选中的面仍画在格子上 */
+/* 格子里的按钮铺满整格，去掉原生按钮的底与边，悬停 / 选中的面仍画在格子上；图标边长 22px 由两档间距相加 */
 .icon-picker-cell {
+  --icon-picker-glyph: calc(var(--xh-space-5) + var(--xh-space-0_5));
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--xh-space-1);
   inline-size: 100%;
-  padding: 6px 4px;
-  min-height: 52px;
+  padding: var(--xh-space-1_5) var(--xh-space-1);
   border: 0;
   border-radius: inherit;
   background: transparent;
@@ -241,15 +326,15 @@ function handleClear() {
   cursor: pointer;
 }
 
-/* 键盘焦点环与组件库同一条：环宽、内收偏移与颜色都取令牌 */
+/* 键盘焦点环与组件库同一道：2px 画在格子盒内，环宽、偏移与颜色都取令牌 */
 .icon-picker-cell:focus-visible {
   outline: var(--xh-ring-width) solid var(--xh-ring-focus);
   outline-offset: var(--xh-ring-offset);
 }
 
 .icon-picker-icon {
-  width: 22px;
-  height: 22px;
+  width: var(--icon-picker-glyph);
+  height: var(--icon-picker-glyph);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -257,12 +342,12 @@ function handleClear() {
 }
 
 .icon-picker-icon :deep(svg) {
-  width: 22px;
-  height: 22px;
+  width: var(--icon-picker-glyph);
+  height: var(--icon-picker-glyph);
 }
 
 .icon-picker-name {
-  font-size: 10px;
+  font-size: var(--xh-font-size-xs);
   color: hsl(var(--muted-foreground));
   max-width: 100%;
   overflow: hidden;

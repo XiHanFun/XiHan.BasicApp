@@ -1,8 +1,8 @@
 /**
- * useTimezoneOptions 时区目录单元测试。
+ * useTimezoneOptions 时区目录单元测试
  * 职责：锁定「模块级缓存一个会话只拉一次」「并发共享同一次请求」「失败静默兜底空目录」，
  * label 只由 IANA ID + 自算偏移拼成（不用后端 displayName），
- * 常用时区按 COMMON_TIMEZONE_IDS 顺序取且缺项跳过，withCurrent 的补位规则。
+ * 常用时区按 COMMON_TIMEZONE_IDS 顺序取且缺项跳过，withCurrent 的补位规则
  */
 import { describe, expect, it, vi } from 'vitest'
 
@@ -28,7 +28,11 @@ function dto(id: string, baseUtcOffsetMinutes: number): TimeZoneDto {
 async function bootstrap(options: OptionsFn) {
   vi.resetModules()
   const { registerAppContext } = await import('~/stores/app-context')
-  registerAppContext({ apis: { timeZoneApi: { options } } as never })
+  registerAppContext({
+    apis: {
+      timeZoneApi: { options },
+    } as never,
+  })
   const mod = await import('./useTimezoneOptions')
   return mod
 }
@@ -207,11 +211,18 @@ describe('useTimezoneOptions.commonOptions', () => {
     await tz.ensureLoaded()
 
     expect(tz.commonOptions.value.map(item => item.value))
-      .toEqual(['UTC', 'Asia/Shanghai', 'Europe/London', 'America/New_York'])
+      .toEqual([
+        'UTC',
+        'Asia/Shanghai',
+        'Europe/London',
+        'America/New_York',
+      ])
   })
 
   it('目录里没有的常用条目自动跳过，不留空洞', async () => {
-    const { useTimezoneOptions } = await bootstrap(async () => [dto('UTC', 0)])
+    const { useTimezoneOptions } = await bootstrap(async () => [
+      dto('UTC', 0),
+    ])
     const tz = useTimezoneOptions()
     await tz.ensureLoaded()
 
@@ -287,6 +298,8 @@ describe('useTimezoneOptions.withCurrent', () => {
     const { useTimezoneOptions } = await bootstrap(async () => [])
 
     expect(useTimezoneOptions().withCurrent('Legacy/Zone'))
-      .toEqual([{ value: 'Legacy/Zone', label: 'Legacy/Zone', offsetMinutes: 0 }])
+      .toEqual([
+        { value: 'Legacy/Zone', label: 'Legacy/Zone', offsetMinutes: 0 },
+      ])
   })
 })

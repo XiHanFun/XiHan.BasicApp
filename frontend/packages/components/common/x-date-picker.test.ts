@@ -1,19 +1,26 @@
 /**
- * 日期选择封装与组件库 3.0.0 的接法。
+ * 日期选择封装与组件库 3.0.0 的接法
  *
- * 1. showTime：输入行多出时、分两段，分隔按段类型出；选出的时刻随时间戳上抛，不再归零到当日零点。
- * 2. 字段接线落在 role=group 的段位组上；输入行同时有清空钮与日历钮。
- * 3. 区间受控值填到一半时交给本地草稿：组件库收到的仍是那一半，上游只收两端齐备或 null。
+ * 1. showTime：输入行多出时、分两段，分隔按段类型出；选出的时刻随时间戳上抛，不再归零到当日零点
+ * 2. 字段接线落在 role=group 的段位组上；输入行同时有清空钮与日历钮
+ * 3. 区间受控值填到一半时交给本地草稿：组件库收到的仍是那一半，上游只收两端齐备或 null
  */
 import { mount } from '@vue/test-utils'
 import { XhDatePickerRoot, XhDateRangePickerRoot, XhFieldControl, XhFieldLabel, XhFieldRoot } from '@xihan-ui/vue'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { h } from 'vue'
-import { i18n } from '~/locales'
+import { i18n, setLocale } from '~/locales'
 import XDatePicker from './XDatePicker.vue'
 import XDateRangePicker from './XDateRangePicker.vue'
 
-const withI18n = { plugins: [i18n] }
+const withI18n = {
+  plugins: [i18n],
+}
+
+// 段的铺法随区域的时钟制式变：6.0 缺省区域是 en-US（12 小时制多一段上下午），按 4.x 的中文 24 小时制断言
+beforeAll(async () => {
+  await setLocale('zh-CN')
+})
 
 function literals(group: ReturnType<ReturnType<typeof mount>['find']>): string[] {
   return group.findAll('span').map(span => span.text() || span.element.textContent || '')
@@ -22,7 +29,10 @@ function literals(group: ReturnType<ReturnType<typeof mount>['find']>): string[]
 describe('xDatePicker', () => {
   it('showTime 时输入行铺年月日时分，分隔按段类型出', () => {
     const wrapper = mount(XDatePicker, {
-      props: { value: new Date(2026, 9, 1, 9, 30).getTime(), showTime: true },
+      props: {
+        value: new Date(2026, 9, 1, 9, 30).getTime(),
+        showTime: true,
+      },
       global: withI18n,
     })
     const group = wrapper.find('[data-scope="date-picker"][data-part="segment-group"]')
@@ -32,23 +42,39 @@ describe('xDatePicker', () => {
   })
 
   it('不开 showTime 时只铺日期段，值取日历日', () => {
-    const wrapper = mount(XDatePicker, { props: { value: new Date(2026, 9, 1, 9, 30).getTime() }, global: withI18n })
+    const wrapper = mount(XDatePicker, {
+      props: {
+        value: new Date(2026, 9, 1, 9, 30).getTime(),
+      },
+      global: withI18n,
+    })
     const group = wrapper.find('[data-scope="date-picker"][data-part="segment-group"]')
     expect(group.findAll('[data-part="segment"]')).toHaveLength(3)
     expect(wrapper.findComponent(XhDatePickerRoot).props('value')).toEqual(['2026-10-01'])
   })
 
   it('选出的时刻随时间戳上抛，清空上抛 null', async () => {
-    const wrapper = mount(XDatePicker, { props: { showTime: true }, global: withI18n })
+    const wrapper = mount(XDatePicker, {
+      props: { showTime: true },
+      global: withI18n,
+    })
     const root = wrapper.findComponent(XhDatePickerRoot)
     root.vm.$emit('update:value', ['2026-10-01T18:05'])
     root.vm.$emit('update:value', [])
-    expect(wrapper.emitted('update:value')).toEqual([[new Date(2026, 9, 1, 18, 5).getTime()], [null]])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [
+        new Date(2026, 9, 1, 18, 5).getTime(),
+      ],
+      [null],
+    ])
   })
 
   it('min / max 按时间戳换算成组件库的 ISO 串', () => {
     const wrapper = mount(XDatePicker, {
-      props: { max: new Date(2026, 9, 1, 15, 0).getTime(), min: new Date(1900, 0, 1).getTime() },
+      props: {
+        max: new Date(2026, 9, 1, 15, 0).getTime(),
+        min: new Date(1900, 0, 1).getTime(),
+      },
       global: withI18n,
     })
     const root = wrapper.findComponent(XhDatePickerRoot)
@@ -79,7 +105,10 @@ describe('xDateRangePicker', () => {
   const end = new Date(2026, 8, 30).getTime()
 
   it('只填一端时不上抛，那一半仍交回组件库', async () => {
-    const wrapper = mount(XDateRangePicker, { props: { value: null }, global: withI18n })
+    const wrapper = mount(XDateRangePicker, {
+      props: { value: null },
+      global: withI18n,
+    })
     const root = wrapper.findComponent(XhDateRangePickerRoot)
 
     root.vm.$emit('update:value', ['2026-09-01', ''])
@@ -89,11 +118,18 @@ describe('xDateRangePicker', () => {
 
     root.vm.$emit('update:value', ['2026-09-01', '2026-09-30'])
     await wrapper.vm.$nextTick()
-    expect(wrapper.emitted('update:value')).toEqual([[[start, end]]])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [
+        [start, end],
+      ],
+    ])
   })
 
   it('只填了终点时同样留在草稿里', async () => {
-    const wrapper = mount(XDateRangePicker, { props: { value: null }, global: withI18n })
+    const wrapper = mount(XDateRangePicker, {
+      props: { value: null },
+      global: withI18n,
+    })
     const root = wrapper.findComponent(XhDateRangePickerRoot)
     root.vm.$emit('update:value', ['', '2026-09-30'])
     await wrapper.vm.$nextTick()
@@ -102,12 +138,19 @@ describe('xDateRangePicker', () => {
   })
 
   it('清空上抛 null；上游改值时草稿跟着上游走', async () => {
-    const wrapper = mount(XDateRangePicker, { props: { value: [start, end] as [number, number] }, global: withI18n })
+    const wrapper = mount(XDateRangePicker, {
+      props: {
+        value: [start, end] as [number, number],
+      },
+      global: withI18n,
+    })
     const root = wrapper.findComponent(XhDateRangePickerRoot)
     expect(root.props('value')).toEqual(['2026-09-01', '2026-09-30'])
 
     root.vm.$emit('update:value', [])
-    expect(wrapper.emitted('update:value')).toEqual([[null]])
+    expect(wrapper.emitted('update:value')).toEqual([
+      [null],
+    ])
 
     root.vm.$emit('update:value', ['2026-09-01', ''])
     await wrapper.setProps({ value: null })
@@ -115,7 +158,10 @@ describe('xDateRangePicker', () => {
   })
 
   it('两组段位与日历钮都在输入行里', () => {
-    const wrapper = mount(XDateRangePicker, { props: { value: null }, global: withI18n })
+    const wrapper = mount(XDateRangePicker, {
+      props: { value: null },
+      global: withI18n,
+    })
     expect(wrapper.findAll('[data-scope="date-range-picker"][data-part="segment-group"]')).toHaveLength(2)
     expect(wrapper.find('[data-scope="date-range-picker"][data-part="trigger"]').exists()).toBe(true)
   })

@@ -1,11 +1,17 @@
-/**
- * AI 模块启动注册。
- * 职责：把聊天 AI 助手提供方注册进 @xihan/chat 的助手扩展点；删除本模块后聊天无助手入口、其余照常。
- */
-import { registerChatAssistantProvider } from '~/chat'
-import { chatAssistantProviderApi } from './api/chat-assistant'
+import { chatConversations, chatMessages } from '~/contracts'
+import { registerModuleLocales } from '~/locales'
+import { registerChatAssistantProvider } from '~/stores'
 
-/** 注册聊天助手提供方。 */
-export default function setupAi(): void {
-  registerChatAssistantProvider(chatAssistantProviderApi)
+/**
+ * AI 模块的启动钩子：登记本模块文案与聊天的助手能力
+ * 页面由后端菜单下发（BasicApp:Modules:AI:Enabled 关掉即不下发），模块关着也无副作用；
+ * 助手操作在聊天一侧，后端关掉 AI 时它们报「助手不可用」，聊天列表据此隐藏入口
+ */
+export default function setup(): void {
+  registerModuleLocales(import.meta.glob<{ default: Record<string, unknown> }>('./locales/*.ts'))
+  registerChatAssistantProvider({
+    availableAssistants: async () => (await chatConversations.assistants({})).items,
+    openConversation: assistantId => chatConversations.openAssistant({ assistantId }),
+    reply: (conversationId, replyId) => chatMessages.replyAssistant({ conversationId, replyId }),
+  })
 }

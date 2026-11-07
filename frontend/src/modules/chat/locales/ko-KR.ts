@@ -1,11 +1,13 @@
-/**
- * 聊天模块文案（chat 命名空间 + 菜单键）。
- */
+// 聊天模块文案（chat 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（chat.conversations.title、chat.audit.title）；@ 是 vue-i18n 链接消息的保留字符，一律写成 {'@'}
 export default {
   chat: {
     bell: '온라인 채팅',
     unread_label: '읽지 않은 채팅 {n}건',
     island_new_message_fallback: '새 메시지 도착',
+    conversations: {
+      title: '온라인 채팅',
+    },
     panel: {
       title: '온라인 채팅',
       open_page: '전체 페이지 열기',
@@ -32,6 +34,11 @@ export default {
       members_required: '멤버를 1명 이상 선택하세요',
       department_required: '부서를 선택하세요',
       assistant_required: '어시스턴트를 선택하세요',
+      user_label: '사용자',
+      group_name_label: '그룹 이름',
+      members_label: '멤버',
+      department_label: '부서',
+      assistant_label: '어시스턴트',
     },
     list: {
       search_placeholder: '대화 검색',
@@ -41,13 +48,13 @@ export default {
       unpin: '고정 해제',
       mute: '알림 끄기',
       unmute: '알림 켜기',
-      // @ 是 vue-i18n 链接消息保留字符，须用 {'@'} 字面量转义，否则消息编译抛错白屏
       mention_me: '[{\'@\'}멘션됨] ',
     },
     type: {
       single: '개인',
       group: '그룹',
       department: '부서',
+      assistant: 'AI 어시스턴트',
     },
     role: {
       owner: '방장',
@@ -90,6 +97,7 @@ export default {
       copied: '복사했어요',
       copy_failed: '복사 실패',
       forward: '전달',
+      download_failed: '다운로드에 실패했습니다',
     },
     forward: {
       title: '전달할 대상…',
@@ -183,11 +191,40 @@ export default {
       type_file: '파일',
       type_voice: '음성',
       type_system: '시스템',
+      title: '채팅 감사',
+      keyword: '키워드',
+      include_recalled: '전송 취소된 메시지 포함',
+      detail: '상세',
+      members: '멤버',
+      detail_title: '메시지 상세',
+      members_title: '대화 멤버',
+      load_failed: '불러오지 못했습니다',
+      section_message: '메시지',
+      section_conversation: '대화',
+      section_attachments: '첨부 파일 ({n})',
+      section_reactions: '반응 ({n})',
+      seq: '대화 내 순번',
+      pinned: '고정',
+      client_message_id: '클라이언트 메시지 ID',
+      reply_to: '답장 대상 메시지',
+      reply_preview: '답장 스냅샷',
+      mentions: '멘션된 사용자',
+      content_recalled: '전송 취소됨(본문은 보관되지 않음)',
+      member_count: '멤버 수',
+      created_at: '생성 시간',
+      last_message_at: '마지막 메시지 시간',
+      owner: '방장',
+      file_size: '크기',
+      duration: '길이',
+      file_id: '파일 ID',
+      reaction_emoji: '이모지',
+      reaction_user: '반응한 사용자',
+      user_id: '사용자 ID',
+      display_name: '표시 이름',
+      user_name: '사용자 이름',
+      member_role: '역할',
+      joined_at: '참여 시간',
+      type_assistant: '어시스턴트',
     },
-  },
-  menu: {
-    chat: '채팅',
-    message_chat: '온라인 채팅',
-    message_chat_audit: '채팅 감사',
   },
 }

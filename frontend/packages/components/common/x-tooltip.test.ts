@@ -1,8 +1,8 @@
 /**
- * 悬停说明 XTooltip 借被包的那个子节点当触发器（asChild）。
+ * 悬停说明 XTooltip 借被包的那个子节点当触发器（asChild）
  *
  * 调用方常把 v-if 写在唯一的子节点上：条件为假时插槽只剩一个注释占位，
- * asChild 拿到 0 个可挂载节点直接抛错，整块页面跟着渲染失败。
+ * asChild 拿到 0 个可挂载节点直接抛错，整块页面跟着渲染失败
  */
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -14,10 +14,17 @@ function mountWithToggle(initial: boolean) {
   const shown = ref(initial)
   const Host = defineComponent({
     setup: () => () => h(XTooltip, { content: '刷新' }, {
-      default: () => [shown.value ? h('button', { type: 'button', class: 'target' }, 'R') : createCommentVNode('v-if', true)],
+      default: () => [
+        shown.value
+          ? h('button', { type: 'button', class: 'target' }, 'R')
+          : createCommentVNode('v-if', true),
+      ],
     }),
   })
-  return { shown, wrapper: mount(Host, { attachTo: document.body }) }
+  return {
+    shown,
+    wrapper: mount(Host, { attachTo: document.body }),
+  }
 }
 
 afterEach(() => {

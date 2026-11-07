@@ -1,14 +1,14 @@
 /**
- * packages/utils/download.ts 单元测试。
+ * packages/utils/download.ts 单元测试
  *
  * 职责边界：只验证「拿到数据后触发浏览器下载」这一步——临时 a 标签的创建/点击/移除、
- * download 属性的设置条件、以及 Blob 对象 URL 的延迟释放（漏 revoke 即内存泄漏）。
- * 不涉及任何真实网络请求。
+ * download 属性的设置条件、以及 Blob 对象 URL 的延迟释放（漏 revoke 即内存泄漏）
+ * 不涉及任何真实网络请求
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { downloadBlob, downloadByUrl } from './download'
 
-/** jsdom 未实现 URL.createObjectURL / revokeObjectURL，这里补桩并在用例后还原。 */
+/** jsdom 未实现 URL.createObjectURL / revokeObjectURL，这里补桩并在用例后还原 */
 const createObjectURL = vi.fn<(blob: Blob) => string>()
 const revokeObjectURL = vi.fn<(url: string) => void>()
 

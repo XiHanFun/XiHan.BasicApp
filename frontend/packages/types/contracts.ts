@@ -1,16 +1,16 @@
 /**
- * 前端基础契约类型底层（API 原始类型 + 分页/查询结构 + Basic DTO）。
+ * 前端基础契约类型底层（API 原始类型 + 分页/查询结构 + Basic DTO）
  *
  * 这些类型是前后端契约的前端表达，属于「可复用基建」，故归属 packages 底层；
- * `src/api/types.ts` 反向 re-export 它们以保持 `@/api` 入口不变。
- * 见架构审查报告 D1/H8：packages 不得反向依赖 src。
+ * `src/api/types.ts` 反向 re-export 它们以保持 `@/api` 入口不变
+ * 见架构审查报告 D1/H8：packages 不得反向依赖 src
  */
 
 export type ApiId = string
 
 /**
- * 后端 long 数值（雪花 ID 之外的耗时/大小等）经全局 LongJsonConverter 统一序列化为字符串。
- * 前端如实标注为字符串；需数值运算/格式化时显式 `Number()` 转换。
+ * 后端 long 数值（雪花 ID 之外的耗时/大小等）经全局 LongJsonConverter 统一序列化为字符串
+ * 前端如实标注为字符串；需数值运算/格式化时显式 `Number()` 转换
  */
 export type NumericString = string
 
@@ -99,8 +99,8 @@ export interface BasicDto {
 }
 
 /**
- * 关联记录选项（代码生成的外键下拉与树形选择的选项来源）。
- * 值是被关联记录的主键；树形关联平铺返回，靠 parentValue 还原层级（上级不在结果里的节点即为根）。
+ * 关联记录选项（代码生成的外键下拉与树形选择的选项来源）
+ * 值是被关联记录的主键；树形关联平铺返回，靠 parentValue 还原层级（上级不在结果里的节点即为根）
  */
 export interface RelationOptionDto {
   label: string

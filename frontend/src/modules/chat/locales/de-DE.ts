@@ -1,11 +1,13 @@
-/**
- * Chat module copy (chat namespace + menu keys).
- */
+// 聊天模块文案（chat 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（chat.conversations.title、chat.audit.title）；@ 是 vue-i18n 链接消息的保留字符，一律写成 {'@'}
 export default {
   chat: {
     bell: 'Chat',
     unread_label: '{n} ungelesene Chat-Nachrichten',
     island_new_message_fallback: 'Neue Nachricht',
+    conversations: {
+      title: 'Chat',
+    },
     panel: {
       title: 'Chat',
       open_page: 'Vollständige Seite öffnen',
@@ -32,6 +34,11 @@ export default {
       members_required: 'Bitte wählen Sie mindestens 1 Mitglied aus',
       department_required: 'Bitte wählen Sie eine Abteilung aus',
       assistant_required: 'Bitte wählen Sie einen Assistenten aus',
+      user_label: 'Benutzer',
+      group_name_label: 'Gruppenname',
+      members_label: 'Mitglieder',
+      department_label: 'Abteilung',
+      assistant_label: 'Assistent',
     },
     list: {
       search_placeholder: 'Unterhaltungen durchsuchen',
@@ -47,6 +54,7 @@ export default {
       single: 'Direkt',
       group: 'Gruppe',
       department: 'Abteilung',
+      assistant: 'KI-Assistent',
     },
     role: {
       owner: 'Inhaber',
@@ -89,6 +97,7 @@ export default {
       copied: 'Kopiert',
       copy_failed: 'Kopieren fehlgeschlagen',
       forward: 'Weiterleiten',
+      download_failed: 'Download fehlgeschlagen',
     },
     forward: {
       title: 'Weiterleiten an…',
@@ -182,11 +191,40 @@ export default {
       type_file: 'Datei',
       type_voice: 'Sprache',
       type_system: 'System',
+      title: 'Chat-Audit',
+      keyword: 'Stichwort',
+      include_recalled: 'Zurückgerufene einbeziehen',
+      detail: 'Details',
+      members: 'Mitglieder',
+      detail_title: 'Nachrichtendetails',
+      members_title: 'Gesprächsmitglieder',
+      load_failed: 'Laden fehlgeschlagen',
+      section_message: 'Nachricht',
+      section_conversation: 'Gespräch',
+      section_attachments: 'Anhänge ({n})',
+      section_reactions: 'Reaktionen ({n})',
+      seq: 'Laufnummer',
+      pinned: 'Angeheftet',
+      client_message_id: 'Client-Nachrichten-ID',
+      reply_to: 'Antwort auf',
+      reply_preview: 'Antwort-Vorschau',
+      mentions: 'Erwähnte Benutzer',
+      content_recalled: 'Zurückgerufen; der Inhalt wird nicht aufbewahrt',
+      member_count: 'Mitgliederzahl',
+      created_at: 'Erstellt am',
+      last_message_at: 'Letzte Nachricht am',
+      owner: 'Inhaber',
+      file_size: 'Größe',
+      duration: 'Dauer',
+      file_id: 'Datei-ID',
+      reaction_emoji: 'Emoji',
+      reaction_user: 'Reagiert von',
+      user_id: 'Benutzer-ID',
+      display_name: 'Anzeigename',
+      user_name: 'Benutzername',
+      member_role: 'Rolle',
+      joined_at: 'Beigetreten am',
+      type_assistant: 'Assistent',
     },
-  },
-  menu: {
-    chat: 'Chat',
-    message_chat: 'Chat',
-    message_chat_audit: 'Chat-Audit',
   },
 }

@@ -5,6 +5,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
 
@@ -17,6 +18,13 @@ const sessionsLoading = ref(false)
 const sessions = ref<UserSessionItem[]>([])
 const sessionsLoaded = ref(false)
 
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
+}
+
 async function loadSessions() {
   sessionsLoading.value = true
   try {
@@ -24,7 +32,7 @@ async function loadSessions() {
     sessionsLoaded.value = true
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.devices.err_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.devices.err_load_failed'))
   }
   finally {
     sessionsLoading.value = false
@@ -38,7 +46,7 @@ async function handleRevokeSession(sid: string) {
     await loadSessions()
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
+    toast.danger(messageOf(e) || t('component.profile.devices.err_operation_failed'))
   }
 }
 
@@ -62,7 +70,7 @@ function handleRevokeOthers() {
         await loadSessions()
       }
       catch (e: unknown) {
-        toast.danger((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
+        toast.danger(messageOf(e) || t('component.profile.devices.err_operation_failed'))
       }
     },
   })

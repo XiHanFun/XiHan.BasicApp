@@ -39,7 +39,13 @@ export function resolveBannerTone(item: AppUserInboxDisplayItem): BannerTone {
 /** 严重度排序权重（高在前） */
 function severityRank(item: AppUserInboxDisplayItem): number {
   const tone = resolveBannerTone(item)
-  return { danger: 4, warning: 3, brand: 2, success: 1, info: 0 }[tone]
+  return {
+    danger: 4,
+    warning: 3,
+    brand: 2,
+    success: 1,
+    info: 0,
+  }[tone]
 }
 
 function readDismissed(): Record<string, number> {
@@ -90,7 +96,10 @@ export function useBannerNotices() {
   }
 
   function dismiss(item: AppUserInboxDisplayItem) {
-    dismissed.value = { ...dismissed.value, [String(item.basicId)]: Date.now() }
+    dismissed.value = {
+      ...dismissed.value,
+      [String(item.basicId)]: Date.now(),
+    }
     try {
       localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissed.value))
     }
@@ -121,5 +130,13 @@ export function useBannerNotices() {
     }
   })
 
-  return { banners, active, activeIndex, paused, next, prev, dismiss }
+  return {
+    banners,
+    active,
+    activeIndex,
+    paused,
+    next,
+    prev,
+    dismiss,
+  }
 }

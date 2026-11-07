@@ -3,9 +3,8 @@ import type { useAppStore } from '~/stores'
 import { XhSwitch, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XInput, XNumberInput, XSelect } from '~/components'
+import { XHelpTip as PrefTip, XInput, XNumberInput, XSelect } from '~/components'
 import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
-import PrefTip from './PrefTip.vue'
 
 defineOptions({ name: 'PreferenceLayoutTab' })
 
@@ -33,23 +32,47 @@ const appStore = props.appStore
 const { t } = useI18n()
 
 const tabbarStyleOptions = computed(() => [
-  { label: t('preference.layout.tabbar.style_chrome'), value: 'chrome' },
-  { label: t('preference.layout.tabbar.style_plain'), value: 'plain' },
-  { label: t('preference.layout.tabbar.style_card'), value: 'card' },
-  { label: t('preference.layout.tabbar.style_brisk'), value: 'brisk' },
+  {
+    label: t('preference.layout.tabbar.style_chrome'),
+    value: 'chrome',
+  },
+  {
+    label: t('preference.layout.tabbar.style_plain'),
+    value: 'plain',
+  },
+  {
+    label: t('preference.layout.tabbar.style_card'),
+    value: 'card',
+  },
+  {
+    label: t('preference.layout.tabbar.style_brisk'),
+    value: 'brisk',
+  },
 ])
 
 /** 偏好设置入口的位置：入口不能没有，故不给「隐藏」 */
 const preferencePositionOptions = computed(() => [
-  { label: t('preference.layout.widget.placement_auto'), value: 'auto' },
-  { label: t('preference.layout.widget.placement_header'), value: 'header' },
-  { label: t('preference.layout.widget.placement_floating'), value: 'floating' },
+  {
+    label: t('preference.layout.widget.placement_auto'),
+    value: 'auto',
+  },
+  {
+    label: t('preference.layout.widget.placement_header'),
+    value: 'header',
+  },
+  {
+    label: t('preference.layout.widget.placement_floating'),
+    value: 'floating',
+  },
 ])
 
 /** 顶栏工具的位置：与偏好设置入口同一套，另可隐藏 */
 const widgetPlacementOptions = computed(() => [
   ...preferencePositionOptions.value,
-  { label: t('preference.layout.widget.placement_hidden'), value: 'hidden' },
+  {
+    label: t('preference.layout.widget.placement_hidden'),
+    value: 'hidden',
+  },
 ])
 
 const layout = computed(() => appStore.layoutMode)

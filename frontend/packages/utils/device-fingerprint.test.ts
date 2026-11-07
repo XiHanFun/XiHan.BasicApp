@@ -1,11 +1,11 @@
 /**
- * packages/utils/device-fingerprint.ts 单元测试。
+ * packages/utils/device-fingerprint.ts 单元测试
  *
  * 职责边界：只验证指纹生成的**契约**——格式、同环境稳定、不同环境可分辨、各特征采集器的
- * 降级不抛错。不验证熵值高低（那取决于真实浏览器）。
+ * 降级不抛错。不验证熵值高低（那取决于真实浏览器）
  * 其中一条是回归锚点：源码注释写明音频指纹必须走 OfflineAudioContext，
  * 用实时 AudioContext 会因自动播放策略在登录页拿到空串、退出后又拿到真实值，
- * 同一台设备算出两种指纹而被误判成新设备。
+ * 同一台设备算出两种指纹而被误判成新设备
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { generateDeviceFingerprint } from './device-fingerprint'
@@ -27,7 +27,7 @@ function defineTemporary(target: object, key: string, value: unknown): void {
   })
 }
 
-/** 画布替身：2d 上下文按 font 串给出可控的文本宽度，webgl 一律不可用。 */
+/** 画布替身：2d 上下文按 font 串给出可控的文本宽度，webgl 一律不可用 */
 function stubCanvas(options: { dataUrl: string, wideFontMarker?: string }): void {
   const marker = options.wideFontMarker ?? 'Arial'
   const context = {
@@ -37,12 +37,18 @@ function stubCanvas(options: { dataUrl: string, wideFontMarker?: string }): void
     fillRect: () => {},
     fillText: () => {},
     measureText(): { width: number } {
-      return { width: context.font.includes(marker) ? 111 : 100 }
+      return {
+        width: context.font.includes(marker)
+          ? 111
+          : 100,
+      }
     },
   }
 
   defineTemporary(HTMLCanvasElement.prototype, 'getContext', (kind: string) =>
-    (kind === '2d' ? context : null))
+    (kind === '2d'
+      ? context
+      : null))
   defineTemporary(HTMLCanvasElement.prototype, 'toDataURL', () => options.dataUrl)
 }
 
@@ -51,10 +57,12 @@ function stubCanvasUnavailable(): void {
 }
 
 function createAudioParam(): { setValueAtTime: () => void } {
-  return { setValueAtTime: () => {} }
+  return {
+    setValueAtTime: () => {},
+  }
 }
 
-/** 离线音频上下文替身：渲染结果由 sampleValue 决定，便于制造不同音频特征。 */
+/** 离线音频上下文替身：渲染结果由 sampleValue 决定，便于制造不同音频特征 */
 function createOfflineAudioContextStub(sampleValue: number, shouldReject = false) {
   return class FakeOfflineAudioContext {
     currentTime = 0
@@ -85,7 +93,9 @@ function createOfflineAudioContextStub(sampleValue: number, shouldReject = false
         return Promise.reject(new Error('渲染失败'))
       }
       const channel = new Float32Array(44100).fill(sampleValue)
-      return Promise.resolve({ getChannelData: () => channel })
+      return Promise.resolve({
+        getChannelData: () => channel,
+      })
     }
   }
 }
@@ -211,7 +221,10 @@ describe('不同环境的可分辨性', () => {
 
   it('插件列表不同则指纹不同', async () => {
     const before = await generateDeviceFingerprint()
-    defineTemporary(window.navigator, 'plugins', { length: 1, 0: { name: 'PDF Viewer' } })
+    defineTemporary(window.navigator, 'plugins', {
+      length: 1,
+      0: { name: 'PDF Viewer' },
+    })
 
     expect(await generateDeviceFingerprint()).not.toBe(before)
   })
@@ -220,7 +233,11 @@ describe('不同环境的可分辨性', () => {
     const makePlugins = (lastName: string): Record<number | string, unknown> => {
       const plugins: Record<number | string, unknown> = { length: 25 }
       for (let i = 0; i < 25; i++) {
-        plugins[i] = { name: i === 24 ? lastName : `p${String(i).padStart(2, '0')}` }
+        plugins[i] = {
+          name: i === 24
+            ? lastName
+            : `p${String(i).padStart(2, '0')}`,
+        }
       }
       return plugins
     }

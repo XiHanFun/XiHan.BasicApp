@@ -9,6 +9,7 @@ import { XInput, XTooltip } from '~/components'
 import { prompt, toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAccessStore, useAppContext, useUserStore } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 import CodeCountdown from '../shared/CodeCountdown.vue'
@@ -18,6 +19,13 @@ const emit = defineEmits<{ updated: [] }>()
 
 const { t } = useI18n()
 const { apis } = useAppContext()
+
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
+}
 
 // ==================== 2FA flags 常量（与后端 [Flags] 枚举对应） ====================
 
@@ -34,18 +42,35 @@ const pwdForm = ref({
   confirmPassword: '',
 })
 // 校验时机由表单的 validate-on 统一定；确认密码挂 deps，先填它、再改新密码时跟着重验
-const pwdRules = computed<FormRules>(() => ({
-  oldPassword: [{ required: true, message: t('component.profile.security.rule_old_password_required') }],
+const pwdRules = computed<FormRules<typeof pwdForm.value>>(() => ({
+  oldPassword: [
+    {
+      required: true,
+      message: t('component.profile.security.rule_old_password_required'),
+    },
+  ],
   newPassword: [
-    { required: true, message: t('component.profile.security.rule_new_password_required') },
-    { min: 6, max: 32, message: t('component.profile.security.rule_password_length') },
+    {
+      required: true,
+      message: t('component.profile.security.rule_new_password_required'),
+    },
+    {
+      min: 6,
+      max: 32,
+      message: t('component.profile.security.rule_password_length'),
+    },
   ],
   confirmPassword: [
-    { required: true, message: t('component.profile.security.rule_confirm_password_required') },
+    {
+      required: true,
+      message: t('component.profile.security.rule_confirm_password_required'),
+    },
     {
       deps: ['newPassword'],
       validator: (value, values) =>
-        value === values.newPassword ? null : t('component.profile.security.rule_password_mismatch'),
+        value === values.newPassword
+          ? null
+          : t('component.profile.security.rule_password_mismatch'),
     },
   ],
 }))
@@ -67,7 +92,7 @@ async function onSubmit() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_password_change_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_password_change_failed'))
   }
   finally {
     pwdSaving.value = false
@@ -132,7 +157,7 @@ async function startTotpSetup() {
     tfTotpSetup.value = await apis.setup2FAApi()
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_init_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_init_failed'))
     tfTotpSettingUp.value = false
   }
   finally {
@@ -155,7 +180,7 @@ async function confirmEnableTotp() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_enable_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -174,11 +199,13 @@ async function sendSetupCode(method: number) {
   tfLoading.value = true
   try {
     const res = await apis.send2FASetupCodeApi(method)
-    toast.success(method === TF_EMAIL ? t('component.profile.security.msg_code_sent_email') : t('component.profile.security.msg_code_sent_phone'))
+    toast.success(method === TF_EMAIL
+      ? t('component.profile.security.msg_code_sent_email')
+      : t('component.profile.security.msg_code_sent_phone'))
     tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_code_send_failed'))
   }
   finally {
     tfLoading.value = false
@@ -214,7 +241,7 @@ async function confirmEnableEmail() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_enable_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -236,7 +263,7 @@ async function confirmEnablePhone() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_enable_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -274,7 +301,7 @@ async function sendDisableCode(method: number) {
     tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_code_send_failed'))
   }
   finally {
     tfLoading.value = false
@@ -296,7 +323,7 @@ async function confirmDisable() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('component.profile.security.err_disable_failed'))
+    toast.danger(messageOf(e) || t('component.profile.security.err_disable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -351,7 +378,7 @@ function handleDeactivateAccount() {
         }, 1500)
       }
       catch (e: unknown) {
-        toast.danger((e as Error)?.message || t('component.profile.security.err_deactivate_failed'))
+        toast.danger(messageOf(e) || t('component.profile.security.err_deactivate_failed'))
         return false
       }
       finally {
@@ -389,7 +416,7 @@ function handleDeleteAccount() {
         }, 1500)
       }
       catch (e: unknown) {
-        toast.danger((e as Error)?.message || t('component.profile.security.err_delete_failed'))
+        toast.danger(messageOf(e) || t('component.profile.security.err_delete_failed'))
         return false
       }
       finally {
@@ -890,7 +917,7 @@ function handleDeleteAccount() {
       </div>
     </section>
 
-    <!-- 账号管理 -->
+    <!-- 账号管理：停用与注销账号随个人中心批次（N2 第六批）接入 6.0，之前不显示 -->
     <section class="pf-section">
       <div class="pf-section__head">
         <div class="pf-section__heading">
@@ -1056,7 +1083,7 @@ function handleDeleteAccount() {
   padding: 6px 10px;
   border-radius: 6px;
   background: hsl(var(--muted));
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--xh-font-family-mono);
   font-size: 12px;
 }
 

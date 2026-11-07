@@ -1,760 +1,822 @@
-/**
- * 认证 Store（auth）单元测试。
- * 职责边界：登录（密码/短信/邮箱/OAuth 回调）后的令牌落地、用户与权限装载、动态路由注册、
- * 智能落点与 redirect 校验、会话锁定时的特殊放行，以及登出的清场顺序与容错。
- * 路由、API、SignalR 均以替身注入；不发真实请求、不做真实导航。
- */
-import type { RouteRecordRaw } from 'vue-router'
-import type { AppContextApis, LoginResponse, LoginToken, MenuRoute, PermissionInfo, UserInfo } from '~/types'
+import type { Router } from 'vue-router'
+import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HOME_PATH, LOCK_REASON_KEY, LOCK_STATE_KEY, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY, USER_INFO_KEY } from '~/constants'
-import { useAccessStore } from './access'
-import { useAppStore } from './app'
+import { SESSION_LOCK_CHANGED_EVENT } from '~/composables/session-lock'
+import { destroyAllSignalRConnections } from '~/composables/useSignalR'
+import { HOME_PATH, LOCK_STATE_KEY, LOGIN_PATH, TABS_LIST_KEY } from '~/constants'
+import { configureRequest } from '~/request'
 import { registerAppContext } from './app-context'
-import { useAuthStore } from './auth'
+import { oauthChallengeUrl, takeIdentitySwitchedMarker, takeOAuthPending, useAuthStore } from './auth'
 import { resetPreferenceBackendSync } from './helpers'
+import { relaunchApp } from './relaunch'
+import { useSplitViewStore } from './split-view'
 import { useTabbarStore } from './tabbar'
-import { useUserStore } from './user'
 
-const destroyAllSignalRConnections = vi.fn<() => Promise<void>>()
-const mapMenuToRoutes = vi.fn<(menus: MenuRoute[]) => RouteRecordRaw[]>()
-
+// 切换上下文 / 身份后整页重建：测试里只核对它被调用
+vi.mock('./relaunch', () => ({
+  relaunchApp: vi.fn(),
+}))
 vi.mock('~/composables/useSignalR', () => ({
-  destroyAllSignalRConnections: (...args: []) => destroyAllSignalRConnections(...args),
+  destroyAllSignalRConnections: vi.fn(async () => {}),
+}))
+vi.mock('./helpers', async importOriginal => ({
+  ...await importOriginal<typeof import('./helpers')>(),
+  resetPreferenceBackendSync: vi.fn(),
 }))
 
-vi.mock('~/router/dynamic', () => ({
-  mapMenuToRoutes: (menus: MenuRoute[]) => mapMenuToRoutes(menus),
-}))
+const user = {
+  id: 'u-1',
+  userName: 'alice',
+  displayName: 'Alice',
+  email: null,
+  phoneNumber: null,
+  homeTenantId: 'acme',
+  status: 'Active',
+  lastLoginAt: null,
+  createdAt: '2026-10-28T00:00:00Z',
+  createdBy: null,
+}
 
-interface FakeRoute { name?: string, path: string }
-
-/** 最小可用的 vue-router 替身：只实现 auth store 真正用到的那几个方法 */
-function createFakeRouter(initial: FakeRoute[] = []) {
-  const routes: FakeRoute[] = [...initial]
+function session(accessToken: string, refreshToken: string) {
   return {
-    routes,
-    replace: vi.fn<(to: string) => Promise<void>>().mockResolvedValue(undefined),
-    getRoutes: () => routes.map(item => ({ ...item })),
-    hasRoute: (name: string) => routes.some(item => item.name === name),
-    addRoute: vi.fn((_parent: string, route: FakeRoute) => {
-      routes.push(route)
-    }),
-    removeRoute: vi.fn((name: string) => {
-      const index = routes.findIndex(item => item.name === name)
-      if (index >= 0) {
-        routes.splice(index, 1)
-      }
-    }),
-    resolve: vi.fn((target: string) => ({
-      matched: target.startsWith('/known') ? [{ path: target }] : [],
-      name: target.startsWith('/known') ? 'Known' : 'NotFound',
-    })),
+    accessToken,
+    accessExpiresAt: '2026-10-28T02:00:00Z',
+    refreshToken,
+    refreshExpiresAt: '2026-11-04T00:00:00Z',
+    sessionId: 's-1',
+    tenantId: 'acme',
+    mustChangePassword: false,
+    user,
   }
 }
 
-type FakeRouter = ReturnType<typeof createFakeRouter>
-
-const loginApi = vi.fn()
-const phoneLoginApi = vi.fn()
-const emailLoginApi = vi.fn()
-const logoutApi = vi.fn<() => Promise<void>>()
-const getUserInfoApi = vi.fn<() => Promise<UserInfo>>()
-const getPermissionsApi = vi.fn<() => Promise<PermissionInfo>>()
-const impersonationCandidates = vi.fn()
-const impersonationStart = vi.fn()
-const impersonationStop = vi.fn()
-const switchTenant = vi.fn()
-const userSettingGet = vi.fn()
-const userSettingSave = vi.fn()
-
-let router: FakeRouter
-let locationDescriptor: PropertyDescriptor | undefined
-
-function token(overrides?: Partial<LoginToken>): LoginToken {
-  return {
-    accessToken: 'access-1',
-    refreshToken: 'refresh-1',
-    tokenType: 'Bearer',
-    expiresIn: 3600,
-    issuedAt: '2024-01-01T00:00:00.000Z',
-    expiresAt: '2024-01-01T01:00:00.000Z',
-    ...overrides,
-  }
+function json(status: number, body: object, contentType = 'application/json'): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': contentType },
+  })
 }
 
-function user(overrides?: Partial<UserInfo>): UserInfo {
-  return {
-    basicId: 'u-1',
-    userName: 'admin',
-    appTitle: '租户甲',
-    appLogo: '/tenant-a.png',
-    tenantId: 't-1',
-    roles: [],
-    permissions: [],
-    ...overrides,
-  }
-}
+describe('auth store', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    vi.mocked(relaunchApp).mockClear()
+    vi.mocked(resetPreferenceBackendSync).mockClear()
+  })
 
-function permissions(overrides?: Partial<PermissionInfo>): PermissionInfo {
-  return { roles: ['admin'], permissions: ['system:user:list'], menus: [], ...overrides }
-}
+  it('logs in anonymously, persists the session, follows the redirect and signs out', async () => {
+    const calls: { url: string, authorization?: string }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'stale',
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        calls.push({
+          url: String(url),
+          authorization: (init!.headers as Record<string, string>).Authorization,
+        })
+        if (String(url).endsWith('/api/auth:login')) {
+          return json(200, {
+            token: session('a-1', 'r-1'),
+            twoFactor: null,
+          })
+        }
+        return json(200, { sessionId: 's-1', revokedAt: '2026-10-28T01:00:00Z' })
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace,
+        currentRoute: {
+          value: { path: '/' },
+        },
+      } as unknown as Router),
+    })
+    const store = useAuthStore()
+    expect(store.isAuthenticated).toBe(false)
 
-function registerContext(options?: {
-  staticRoutes?: RouteRecordRaw[]
-  controlCenter?: string
-}): void {
-  registerAppContext({
-    getRouter: () => Promise.resolve(router as never),
-    getStaticRoutes: () => options?.staticRoutes ?? [],
-    // shellRoutes 是逐字段合并的，用空串把上一个用例设过的控制中心关掉
-    shellRoutes: { controlCenter: options?.controlCenter ?? '' },
-    apis: {
-      loginApi,
-      phoneLoginApi,
-      emailLoginApi,
-      logoutApi,
-      getUserInfoApi,
-      getPermissionsApi,
-      userSettingApi: { get: userSettingGet, save: userSettingSave },
-      impersonationApi: {
-        candidates: impersonationCandidates,
-        start: impersonationStart,
-        stop: impersonationStop,
+    expect(await store.login({ username: 'alice', password: 'Alice@12345', tenant: 'acme' }, '/settings/configs')).toBeNull()
+    expect(replace).toHaveBeenCalledWith('/settings/configs')
+    expect(store.isAuthenticated).toBe(true)
+    expect(store.accessToken).toBe('a-1')
+    expect(store.user?.displayName).toBe('Alice')
+    expect(store.tenantId).toBe('acme')
+    expect(calls[0]).toEqual({ url: '/api/auth:login', authorization: undefined })
+    expect(JSON.parse(localStorage.getItem('xihan.next.session')!)).toMatchObject({ accessToken: 'a-1', refreshToken: 'r-1' })
+
+    await store.logout()
+    expect(calls[1]?.url).toBe('/api/auth:logout')
+    expect(store.isAuthenticated).toBe(false)
+    expect(localStorage.getItem('xihan.next.session')).toBeNull()
+  })
+
+  it('returns the two-factor challenge without a session, then finishes with the ticket and code', async () => {
+    const bodies: { url: string, body: unknown }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        bodies.push({
+          url: String(url),
+          body: JSON.parse(String(init!.body)),
+        })
+        if (String(url).endsWith('/api/auth:login')) {
+          return json(200, {
+            token: null,
+            twoFactor: {
+              ticket: 't-1',
+              methods: ['Totp'],
+              method: 'Totp',
+              codeSent: false,
+              expiresAt: '2026-10-28T00:10:00Z',
+            },
+          })
+        }
+        return json(200, session('a-1', 'r-1'))
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace,
+        currentRoute: {
+          value: { path: '/' },
+        },
+      } as unknown as Router),
+    })
+    const store = useAuthStore()
+
+    const challenge = await store.login({
+      username: ' alice ',
+      password: 'Alice@12345',
+      captchaId: 'c-1',
+      captchaCode: '1234',
+    })
+    expect(challenge).toEqual({
+      requiresTwoFactor: true,
+      availableTwoFactorMethods: ['totp'],
+      twoFactorMethod: 'totp',
+      codeSent: false,
+      twoFactorTicket: 't-1',
+      token: null,
+    })
+    expect(bodies[0]?.body).toEqual({
+      userName: 'alice',
+      password: 'Alice@12345',
+      tenant: null,
+      captchaId: 'c-1',
+      captchaCode: '1234',
+    })
+    expect(store.isAuthenticated).toBe(false)
+
+    // 第二段：外部回跳地址一律落回首页
+    expect(await store.login({
+      username: 'alice',
+      password: 'Alice@12345',
+      twoFactorTicket: 't-1',
+      twoFactorMethod: 'totp',
+      twoFactorCode: '654321',
+    }, '//evil.example')).toBeNull()
+    expect(bodies[1]).toEqual({
+      url: '/api/auth:verify-two-factor',
+      body: { ticket: 't-1', method: 'Totp', code: '654321' },
+    })
+    expect(store.accessToken).toBe('a-1')
+    expect(replace).toHaveBeenCalledWith('/')
+  })
+
+  it('a ticket without a code asks the server to send the email or SMS code, then the code finishes the login', async () => {
+    const calls: { url: string, body: unknown, auth: string | null }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        calls.push({
+          url: String(url),
+          body: JSON.parse(String(init!.body)),
+          auth: new Headers(init!.headers).get('Authorization'),
+        })
+        return String(url).endsWith(':send-two-factor-code')
+          ? json(200, { expiresInSeconds: 600 })
+          : json(200, session('a-1', 'r-1'))
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace,
+        currentRoute: {
+          value: { path: '/' },
+        },
+      } as unknown as Router),
+    })
+    const store = useAuthStore()
+
+    // 登录页选好邮箱方式（或点重发）：只发码，回来的挑战标明方式与已发送，票据照旧
+    expect(await store.login({
+      username: 'alice',
+      password: 'Alice@12345',
+      twoFactorTicket: 't-1',
+      twoFactorMethod: 'email',
+    }))
+      .toEqual({
+        requiresTwoFactor: true,
+        twoFactorMethod: 'email',
+        codeSent: true,
+        twoFactorTicket: 't-1',
+        token: null,
+      })
+    expect(calls[0]).toEqual({
+      url: '/api/auth:send-two-factor-code',
+      body: { ticket: 't-1', method: 'Email' },
+      auth: null,
+    })
+    expect(store.isAuthenticated).toBe(false)
+
+    expect(await store.login({
+      username: 'alice',
+      password: 'Alice@12345',
+      twoFactorTicket: 't-1',
+      twoFactorMethod: 'phone',
+      twoFactorCode: '246801',
+    })).toBeNull()
+    expect(calls[1]).toEqual({
+      url: '/api/auth:verify-two-factor',
+      body: { ticket: 't-1', method: 'Phone', code: '246801' },
+      auth: null,
+    })
+    expect(store.accessToken).toBe('a-1')
+  })
+
+  it('code login sends channel, trimmed target and tenant anonymously; a token lands like a password login, a two-factor challenge is kept for the login page', async () => {
+    const bodies: { url: string, body: unknown, auth: string | null }[] = []
+    let twoFactor = false
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        bodies.push({
+          url: String(url),
+          body: JSON.parse(String(init!.body)),
+          auth: new Headers(init!.headers).get('Authorization'),
+        })
+        return json(200, twoFactor
+          ? {
+              token: null,
+              twoFactor: {
+                ticket: 't-2',
+                methods: ['Totp'],
+                method: 'Totp',
+                codeSent: false,
+                expiresAt: '2026-10-28T00:10:00Z',
+              },
+            }
+          : {
+              token: session('a-2', 'r-2'),
+              twoFactor: null,
+            })
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace,
+        currentRoute: {
+          value: { path: '/' },
+        },
+      } as unknown as Router),
+    })
+    const store = useAuthStore()
+
+    await store.loginByEmailCode({ email: ' ann@example.com ', code: '135790', tenant: ' acme ' }, '/files/library')
+    expect(bodies[0]).toEqual({
+      url: '/api/auth:login-by-code',
+      body: {
+        channel: 'Email',
+        target: 'ann@example.com',
+        code: '135790',
+        tenant: 'acme',
       },
-      tenantApi: { switchTenant },
-    } as unknown as AppContextApis,
-  })
-}
-
-beforeEach(() => {
-  vi.clearAllMocks()
-  resetPreferenceBackendSync()
-  router = createFakeRouter()
-  destroyAllSignalRConnections.mockResolvedValue(undefined)
-  mapMenuToRoutes.mockReturnValue([])
-  logoutApi.mockResolvedValue(undefined)
-  getUserInfoApi.mockResolvedValue(user())
-  getPermissionsApi.mockResolvedValue(permissions())
-  impersonationCandidates.mockResolvedValue([])
-  impersonationStart.mockResolvedValue(token())
-  impersonationStop.mockResolvedValue(token())
-  userSettingGet.mockResolvedValue({ scene: 0, settingKey: 'global', settingValue: '{}' })
-  userSettingSave.mockResolvedValue({ scene: 0, settingKey: 'global' })
-  registerContext()
-  setActivePinia(createPinia())
-  // 先建 appStore，让偏好注册表指向当前 pinia 的 ref
-  useAppStore()
-})
-
-afterEach(() => {
-  if (locationDescriptor) {
-    Object.defineProperty(window, 'location', locationDescriptor)
-    locationDescriptor = undefined
-  }
-})
-
-/** 用可写替身接管 window.location，afterEach 会还原 */
-function stubLocation(): { href: string } {
-  locationDescriptor = Object.getOwnPropertyDescriptor(window, 'location')
-  const fake = { href: '' }
-  Object.defineProperty(window, 'location', { configurable: true, writable: true, value: fake })
-  return fake
-}
-
-describe('密码登录', () => {
-  it('需要双因素时原样返回响应，不落令牌也不导航', async () => {
-    const response = { requiresTwoFactor: true, availableTwoFactorMethods: ['totp'], token: null }
-    loginApi.mockResolvedValue(response)
-    const auth = useAuthStore()
-
-    const result = await auth.login({ username: 'a', password: 'b' })
-
-    expect(result).toBe(response)
-    expect(useAccessStore().accessToken).toBeNull()
-    expect(router.replace).not.toHaveBeenCalled()
-  })
-
-  it('登录成功返回 null，并把两枚令牌写入 store 与 localStorage', async () => {
-    loginApi.mockResolvedValue({ requiresTwoFactor: false, token: token() })
-    const auth = useAuthStore()
-
-    const result = await auth.login({ username: 'a', password: 'b' })
-
-    expect(result).toBeNull()
-    expect(useAccessStore().accessToken).toBe('access-1')
-    expect(localStorage.getItem(TOKEN_KEY)).toBe(JSON.stringify('access-1'))
-    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBe(JSON.stringify('refresh-1'))
-  })
-
-  it('响应既不要求双因素又没有 token 时什么都不做', async () => {
-    loginApi.mockResolvedValue({ requiresTwoFactor: false, token: null })
-    const auth = useAuthStore()
-
-    const result = await auth.login({ username: 'a', password: 'b' })
-
-    expect(result).toBeNull()
-    expect(getUserInfoApi).not.toHaveBeenCalled()
-    expect(router.replace).not.toHaveBeenCalled()
-  })
-
-  it('loginLoading 在调用期间为 true、结束后复位', async () => {
-    let duringCall = false
-    const auth = useAuthStore()
-    loginApi.mockImplementation(() => {
-      duringCall = auth.loginLoading
-      return Promise.resolve({ requiresTwoFactor: false, token: null })
+      auth: null,
     })
+    expect(store.accessToken).toBe('a-2')
+    expect(replace).toHaveBeenLastCalledWith('/files/library')
 
-    await auth.login({ username: 'a', password: 'b' })
-
-    expect(duringCall).toBe(true)
-    expect(auth.loginLoading).toBe(false)
-  })
-
-  it('登录在途时再次调用直接返回 null、不发第二个请求', async () => {
-    let release!: (value: LoginResponse) => void
-    loginApi.mockImplementation(() => new Promise<LoginResponse>((resolve) => {
-      release = resolve
-    }))
-    const auth = useAuthStore()
-
-    const first = auth.login({ username: 'a', password: 'b' })
-    const second = await auth.login({ username: 'a', password: 'b' })
-
-    expect(second).toBeNull()
-    expect(loginApi).toHaveBeenCalledTimes(1)
-
-    release({ requiresTwoFactor: true, availableTwoFactorMethods: ['email'], token: null })
-    expect((await first)?.requiresTwoFactor).toBe(true)
-    expect(auth.loginLoading).toBe(false)
-  })
-
-  it('登录接口抛错时 loginLoading 也会复位，错误继续上抛', async () => {
-    loginApi.mockRejectedValue(new Error('账号或密码错误'))
-    const auth = useAuthStore()
-
-    await expect(auth.login({ username: 'a', password: 'b' })).rejects.toThrow(/账号或密码错误/)
-    expect(auth.loginLoading).toBe(false)
-  })
-})
-
-describe('登录后的用户与权限装载', () => {
-  it('用户信息与权限信息合并写入 user store', async () => {
-    getPermissionsApi.mockResolvedValue(permissions({ roles: ['admin', 'ops'], permissions: ['a', 'b'] }))
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    const userStore = useUserStore()
-    expect(userStore.roles).toEqual(['admin', 'ops'])
-    expect(userStore.permissions).toEqual(['a', 'b'])
-    expect(userStore.username).toBe('admin')
-    expect(JSON.parse(localStorage.getItem(USER_INFO_KEY) ?? 'null')).toMatchObject({ roles: ['admin', 'ops'] })
-  })
-
-  it('权限码与菜单写入 access store，并标记路由已装载', async () => {
-    const menus: MenuRoute[] = [{ path: '/system', name: 'System', meta: { title: '系统' } }]
-    getPermissionsApi.mockResolvedValue(permissions({ permissions: ['x'], menus }))
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    const accessStore = useAccessStore()
-    expect(accessStore.hasCode('x')).toBe(true)
-    expect(accessStore.accessRoutes).toEqual(menus)
-    expect(accessStore.isRoutesLoaded).toBe(true)
-  })
-
-  it('后端下发的品牌信息覆盖 appStore 的标题与 Logo', async () => {
-    getUserInfoApi.mockResolvedValue(user({ appTitle: '租户乙', appLogo: '/tenant-b.png' }))
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    const appStore = useAppStore()
-    expect(appStore.brandTitle).toBe('租户乙')
-    expect(appStore.brandLogo).toBe('/tenant-b.png')
-  })
-
-  it('用户信息里 appLogo 为空串时品牌 Logo 回落默认', async () => {
-    getUserInfoApi.mockResolvedValue(user({ appLogo: '' }))
-    const appStore = useAppStore()
-    appStore.setBrandLogo('/上一个租户.png')
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(appStore.brandLogo).toBe('/favicon.png')
-  })
-
-  it('用户信息与权限信息并发拉取（Promise.all），两个接口各调用一次', async () => {
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(getUserInfoApi).toHaveBeenCalledTimes(1)
-    expect(getPermissionsApi).toHaveBeenCalledTimes(1)
-  })
-
-  it('登录流程会拉取后端偏好并覆盖本地', async () => {
-    userSettingGet.mockResolvedValue({
-      scene: 0,
-      settingKey: 'global',
-      settingValue: JSON.stringify({ xihan_theme_color: '#ff00ff' }),
+    twoFactor = true
+    await store.loginByPhoneCode({ phone: '13800000000', code: '246810' }, '/files/library')
+    expect(bodies[1]?.body).toEqual({
+      channel: 'Phone',
+      target: '13800000000',
+      code: '246810',
+      tenant: null,
     })
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(useAppStore().themeColor).toBe('#ff00ff')
-  })
-})
-
-describe('动态路由注册', () => {
-  it('菜单映射出的新路由被挂到 RootLayout 之下', async () => {
-    mapMenuToRoutes.mockReturnValue([{ path: '/order', name: 'Order', component: {} } as RouteRecordRaw])
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(router.addRoute).toHaveBeenCalledTimes(1)
-    expect(router.addRoute.mock.calls[0]?.[0]).toBe('RootLayout')
+    expect(replace).toHaveBeenLastCalledWith({
+      path: '/auth/login',
+      query: { redirect: '/files/library' },
+    })
+    expect(store.takePendingTwoFactor()).toMatchObject({
+      requiresTwoFactor: true,
+      twoFactorTicket: 't-2',
+      availableTwoFactorMethods: ['totp'],
+    })
+    expect(store.takePendingTwoFactor()).toBeNull()
   })
 
-  it('路径已存在的路由不重复注册', async () => {
-    router = createFakeRouter([{ name: 'Existing', path: '/order' }])
-    registerContext()
-    mapMenuToRoutes.mockReturnValue([{ path: '/order', name: 'Order', component: {} } as RouteRecordRaw])
-    const auth = useAuthStore()
+  it('refreshes once for concurrent callers and rotates the refresh token', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      expect(JSON.parse(String(init!.body))).toEqual({ refreshToken: 'r-1' })
+      expect((init!.headers as Record<string, string>).Authorization).toBeUndefined()
+      return json(200, session('a-2', 'r-2'))
+    })
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'a-1',
+      fetch: fetchMock as unknown as typeof fetch,
+    })
+    const store = useAuthStore()
+    expect(store.accessToken).toBe('a-1')
 
-    await auth.handleOAuthCallback(token())
-
-    expect(router.addRoute).not.toHaveBeenCalled()
+    const [first, second] = await Promise.all([
+      store.refresh(),
+      store.refresh(),
+    ])
+    expect(first).toBe('a-2')
+    expect(second).toBe('a-2')
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(store.session?.refreshToken).toBe('r-2')
   })
 
-  it('同名路由已注册时不重复注册', async () => {
-    router = createFakeRouter([{ name: 'Order', path: '/other' }])
-    registerContext()
-    mapMenuToRoutes.mockReturnValue([{ path: '/order', name: 'Order', component: {} } as RouteRecordRaw])
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(router.addRoute).not.toHaveBeenCalled()
+  it('clears the session when the refresh token is rejected', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'a-1',
+      fetch: (async () => json(403, { code: 'IDENTITY_DENIED_001', status: 403, detail: 'revoked' }, 'application/problem+json')) as unknown as typeof fetch,
+    })
+    const store = useAuthStore()
+    expect(await store.refresh()).toBeNull()
+    expect(store.isAuthenticated).toBe(false)
+    expect(localStorage.getItem('xihan.next.session')).toBeNull()
   })
 
-  it('没有路由名的映射结果被跳过（KeepAlive 与移除都依赖名字）', async () => {
-    mapMenuToRoutes.mockReturnValue([{ path: '/anonymous', component: {} } as RouteRecordRaw])
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(router.addRoute).not.toHaveBeenCalled()
+  it('ignores a malformed stored session', () => {
+    localStorage.setItem('xihan.next.session', '{"accessToken":1}')
+    expect(useAuthStore().isAuthenticated).toBe(false)
   })
-})
 
-describe('登录落点', () => {
-  it('无 redirect 时跳到 access store 派生的首页', async () => {
-    getPermissionsApi.mockResolvedValue(permissions({
-      menus: [{ path: '/workbench', name: 'Workbench', meta: { title: '工作台' } }],
+  it('switchTenant stores the continued session (new tenant, same sid) and relaunches the app', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const switchTenant = vi.fn(async () => ({
+      ...session('a-2', 'r-2'),
+      tenantId: 'globex',
+      tenantName: 'Globex',
     }))
-    const auth = useAuthStore()
+    registerAppContext({
+      apis: {
+        tenantApi: {
+          switchTenant,
+          myAvailableTenants: vi.fn(),
+        },
+      } as unknown as AppContextApis,
+    })
+    const store = useAuthStore()
 
-    await auth.handleOAuthCallback(token())
+    await store.switchTenant('globex')
+    expect(switchTenant).toHaveBeenCalledWith({ tenantId: 'globex' })
+    expect(store.tenantId).toBe('globex')
+    expect(store.session?.sessionId).toBe('s-1')
+    expect(JSON.parse(localStorage.getItem('xihan.next.session')!)).toMatchObject({ accessToken: 'a-2', refreshToken: 'r-2', tenantId: 'globex' })
+    expect(relaunchApp).toHaveBeenCalledOnce()
+    // 切换上下文是同一个人：不留身份切换标记，重建后照常可用本地偏好播种，回写通道也不用关
+    expect(takeIdentitySwitchedMarker()).toBe(false)
+    expect(resetPreferenceBackendSync).not.toHaveBeenCalled()
 
-    expect(router.replace).toHaveBeenCalledWith('/workbench')
+    await store.switchTenant(null)
+    expect(switchTenant).toHaveBeenLastCalledWith({ tenantId: null })
   })
 
-  it('菜单为空时回落到 HOME_PATH', async () => {
-    const auth = useAuthStore()
+  it('startImpersonation stores the target session and relaunches; the loading flag stays up until the reload', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const start = vi.fn(async () => ({
+      ...session('a-9', 'r-9'),
+      sessionId: 's-9',
+      tenantId: 'acme',
+      impersonatorUserName: 'alice',
+      user: { ...user, id: 'u-2', userName: 'bob' },
+    }))
+    registerAppContext({
+      apis: {
+        impersonationApi: {
+          start,
+          stop: vi.fn(),
+          tenants: vi.fn(),
+          candidates: vi.fn(),
+        },
+      } as unknown as AppContextApis,
+    })
+    const store = useAuthStore()
 
-    await auth.handleOAuthCallback(token())
-
-    expect(router.replace).toHaveBeenCalledWith(HOME_PATH)
+    await store.startImpersonation({ targetUserId: 'u-2', tenantId: 'acme', reason: 'ticket 42' })
+    expect(start).toHaveBeenCalledWith({ targetUserId: 'u-2', tenantId: 'acme', reason: 'ticket 42' })
+    expect(store.session).toMatchObject({
+      sessionId: 's-9',
+      impersonatorUserName: 'alice',
+      user: { userName: 'bob' },
+    })
+    expect(relaunchApp).toHaveBeenCalledOnce()
+    expect(store.impersonationLoading).toBe(true)
+    // 换了身份：重建后的偏好水合不拿本地那份给被模仿者播种；标记取一次即清
+    expect(takeIdentitySwitchedMarker()).toBe(true)
+    expect(takeIdentitySwitchedMarker()).toBe(false)
+    // 偏好属于人：上一身份还没发出去的回写不带着新令牌写进新身份
+    expect(resetPreferenceBackendSync).toHaveBeenCalledOnce()
+    // 重建前的重复点击不再发请求
+    await store.startImpersonation({ targetUserId: 'u-3' })
+    expect(start).toHaveBeenCalledOnce()
   })
 
-  it('redirect 能解析到有效路由时跳向它', async () => {
-    const auth = useAuthStore()
+  it('stopImpersonation failure releases the loading flag, keeps the session and rethrows', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const stop = vi.fn(async () => {
+      throw new Error('IDENTITY_VALIDATION_006')
+    })
+    registerAppContext({
+      apis: {
+        impersonationApi: {
+          start: vi.fn(),
+          stop,
+          tenants: vi.fn(),
+          candidates: vi.fn(),
+        },
+      } as unknown as AppContextApis,
+    })
+    const store = useAuthStore()
 
-    await auth.handleOAuthCallback(token(), '/known/page')
-
-    expect(router.replace).toHaveBeenCalledWith('/known/page')
-  })
-
-  it('redirect 会先做 URL 解码再解析', async () => {
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token(), encodeURIComponent('/known/page?a=1&b=2'))
-
-    expect(router.resolve).toHaveBeenCalledWith('/known/page?a=1&b=2')
-  })
-
-  it('redirect 解析不到路由时回落首页，不把用户丢到 404', async () => {
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token(), '/unknown/page')
-
-    expect(router.replace).toHaveBeenCalledWith(HOME_PATH)
-  })
-
-  it('落在平台（令牌不带租户）时也按首页走，不再跳控制中心——落点由后端决定', async () => {
-    getUserInfoApi.mockResolvedValue(user({ tenantId: null, isPlatform: true }))
-    registerContext({ controlCenter: '/control-center' })
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(router.replace).toHaveBeenCalledWith(HOME_PATH)
-    expect(router.replace).not.toHaveBeenCalledWith('/control-center')
-  })
-
-  it('落在租户时走正常首页', async () => {
-    registerContext({ controlCenter: '/control-center' })
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(router.replace).toHaveBeenCalledWith(HOME_PATH)
-  })
-})
-
-describe('拉取用户信息失败的两条分支', () => {
-  it('会话被服务端锁定时保留令牌并进入应用壳层（强制改密遮罩接管）', async () => {
-    localStorage.setItem(LOCK_STATE_KEY, '1')
-    localStorage.setItem(LOCK_REASON_KEY, 'PasswordChangeRequired')
-    getUserInfoApi.mockRejectedValue(new Error('423 Locked'))
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(useAccessStore().accessToken).toBe('access-1')
-    expect(router.replace).toHaveBeenCalledWith(HOME_PATH)
-  })
-
-  it('未锁定时清空令牌与用户信息并把错误上抛', async () => {
-    getPermissionsApi.mockRejectedValue(new Error('500'))
-    const auth = useAuthStore()
-
-    await expect(auth.handleOAuthCallback(token())).rejects.toThrow(/500/)
-
-    expect(useAccessStore().accessToken).toBeNull()
-    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
-    expect(useUserStore().userInfo).toBeNull()
-    expect(router.replace).not.toHaveBeenCalled()
-  })
-
-  it('锁定分支不会继续装载权限或注册动态路由', async () => {
-    localStorage.setItem(LOCK_STATE_KEY, '1')
-    getUserInfoApi.mockRejectedValue(new Error('423'))
-    mapMenuToRoutes.mockReturnValue([{ path: '/x', name: 'X', component: {} } as RouteRecordRaw])
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token())
-
-    expect(useAccessStore().isRoutesLoaded).toBe(false)
-    expect(router.addRoute).not.toHaveBeenCalled()
+    await expect(store.stopImpersonation()).rejects.toThrow('IDENTITY_VALIDATION_006')
+    expect(store.impersonationLoading).toBe(false)
+    expect(store.accessToken).toBe('a-1')
+    expect(relaunchApp).not.toHaveBeenCalled()
+    expect(takeIdentitySwitchedMarker()).toBe(false)
   })
 })
 
-describe('短信 / 邮箱验证码登录', () => {
-  it('短信登录走 phoneLoginApi 并复用同一套登录后处理', async () => {
-    phoneLoginApi.mockResolvedValue(token({ accessToken: 'phone-token' }))
-    const auth = useAuthStore()
+describe('退出登录的本地清理', () => {
+  let replace: ReturnType<typeof vi.fn>
+  let order: string[]
 
-    await auth.loginByPhoneCode({ phone: '13800000000', code: '123456' })
-
-    expect(phoneLoginApi).toHaveBeenCalledWith({ phone: '13800000000', code: '123456' })
-    expect(useAccessStore().accessToken).toBe('phone-token')
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    sessionStorage.clear()
+    order = []
+    vi.mocked(resetPreferenceBackendSync).mockClear()
+    vi.mocked(destroyAllSignalRConnections).mockClear()
+    vi.mocked(destroyAllSignalRConnections).mockImplementation(async () => {
+      order.push('hub')
+    })
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'a-1',
+      fetch: (async () => {
+        order.push('api')
+        return json(200, { sessionId: 's-1', revokedAt: '2026-10-28T01:00:00Z' })
+      }) as unknown as typeof fetch,
+    })
+    replace = vi.fn(async () => {
+      order.push('route')
+    })
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace,
+        currentRoute: {
+          value: { path: '/ai/providers' },
+        },
+      } as unknown as Router),
+    })
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
   })
 
-  it('邮箱登录走 emailLoginApi 并复用同一套登录后处理', async () => {
-    emailLoginApi.mockResolvedValue(token({ accessToken: 'email-token' }))
-    const auth = useAuthStore()
-
-    await auth.loginByEmailCode({ email: 'a@b.c', code: '654321' }, '/known/page')
-
-    expect(emailLoginApi).toHaveBeenCalledWith({ email: 'a@b.c', code: '654321' })
-    expect(router.replace).toHaveBeenCalledWith('/known/page')
-  })
-
-  it('验证码登录失败时 loginLoading 复位并上抛', async () => {
-    phoneLoginApi.mockRejectedValue(new Error('验证码错误'))
-    const auth = useAuthStore()
-
-    await expect(auth.loginByPhoneCode({ phone: '1', code: '2' })).rejects.toThrow(/验证码错误/)
-    expect(auth.loginLoading).toBe(false)
-  })
-
-  it('第三方回调复用同一套登录后处理并复位 loading', async () => {
-    const auth = useAuthStore()
-
-    await auth.handleOAuthCallback(token({ accessToken: 'oauth-token' }))
-
-    expect(useAccessStore().accessToken).toBe('oauth-token')
-    expect(auth.loginLoading).toBe(false)
-  })
-})
-
-describe('第三方登录跳转', () => {
-  it('跳转地址带上编码后的 provider 名', () => {
-    const fakeLocation = stubLocation()
-    const auth = useAuthStore()
-
-    auth.startOAuthLogin({ name: 'GitHub 登录', displayName: 'GitHub' })
-
-    expect(fakeLocation.href).toContain('/OAuth/ExternalLogin?provider=')
-    expect(fakeLocation.href).toContain(encodeURIComponent('GitHub 登录'))
-    expect(fakeLocation.href).not.toContain('GitHub 登录')
-  })
-})
-
-describe('登出清场', () => {
-  it('销毁 SignalR 连接、调用登出接口、跳回登录页', async () => {
-    const auth = useAuthStore()
-
-    await auth.logout()
-
-    expect(destroyAllSignalRConnections).toHaveBeenCalledTimes(1)
-    expect(logoutApi).toHaveBeenCalledTimes(1)
-    expect(router.replace).toHaveBeenCalledWith(LOGIN_PATH)
-  })
-
-  it('清空令牌、用户信息、标签页与会话存储', async () => {
-    const accessStore = useAccessStore()
-    accessStore.setAccessToken('a')
-    accessStore.setRefreshToken('r')
-    useUserStore().setUserInfo(user())
+  it('先断开实时连接再吊销会话，最后回登录页；标签栏只剩首页（置顶的也不留）', async () => {
     const tabbar = useTabbarStore()
-    tabbar.ensureTab({ key: '/a', title: 'A', path: '/a', closable: true })
-    sessionStorage.setItem('some_session_key', '1')
+    tabbar.ensureTab({
+      key: '/ai/providers',
+      title: 'x',
+      path: '/ai/providers',
+      closable: true,
+    })
+    tabbar.togglePin('/ai/providers')
+    const store = useAuthStore()
 
-    await useAuthStore().logout()
+    await store.logout()
 
-    expect(accessStore.accessToken).toBeNull()
-    expect(localStorage.getItem(TOKEN_KEY)).toBeNull()
-    expect(localStorage.getItem(USER_INFO_KEY)).toBeNull()
-    expect(tabbar.tabs.every(item => !item.closable)).toBe(true)
-    expect(sessionStorage.getItem('some_session_key')).toBeNull()
+    expect(order).toEqual(['hub', 'api', 'route'])
+    expect(replace).toHaveBeenCalledWith(LOGIN_PATH)
+    expect(store.isAuthenticated).toBe(false)
+    expect(store.permissions).toBeNull()
+    expect(tabbar.tabs.map(tab => tab.key)).toEqual([HOME_PATH])
+    expect(sessionStorage.getItem(TABS_LIST_KEY)).toBeNull()
   })
 
-  it('清除锁屏标记 —— 它在 localStorage，sessionStorage.clear() 清不掉', async () => {
+  it('分屏、会话级存储、锁屏标记与偏好回写通道一起清掉，遮罩当场收到变更', async () => {
+    const split = useSplitViewStore()
+    split.open('/ai/providers', '/ai/prompts')
+    sessionStorage.setItem('xihan.next.oauth-pending', '{}')
+    sessionStorage.setItem('any-other-key', '1')
     localStorage.setItem(LOCK_STATE_KEY, '1')
-    localStorage.setItem(LOCK_REASON_KEY, 'ScreenLock')
+    const lockChanged = vi.fn()
+    window.addEventListener(SESSION_LOCK_CHANGED_EVENT, lockChanged)
 
     await useAuthStore().logout()
+    window.removeEventListener(SESSION_LOCK_CHANGED_EVENT, lockChanged)
 
+    expect(split.active).toBe(false)
+    expect(sessionStorage.length).toBe(0)
     expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
-    expect(localStorage.getItem(LOCK_REASON_KEY)).toBeNull()
+    expect(lockChanged).toHaveBeenCalledOnce()
+    expect(resetPreferenceBackendSync).toHaveBeenCalledOnce()
   })
 
-  it('移除动态路由，保留核心路由（登录 / 错误页）', async () => {
-    router = createFakeRouter([
-      { name: 'Login', path: LOGIN_PATH },
-      { name: 'NotFound', path: '/404' },
-      { name: 'DynamicOrder', path: '/order' },
-    ])
-    registerContext()
+  it('模仿之后权限没装载成就退出：身份切换标记留给下一次水合，不拿上一身份的偏好播种', async () => {
+    sessionStorage.setItem('xihan.next.identity-switched', '1')
 
     await useAuthStore().logout()
 
-    expect(router.removeRoute).toHaveBeenCalledTimes(1)
-    expect(router.removeRoute).toHaveBeenCalledWith('DynamicOrder')
-    expect(router.routes.map(r => r.name)).toEqual(['Login', 'NotFound'])
+    expect(takeIdentitySwitchedMarker()).toBe(true)
   })
 
-  it('保留应用侧注册的静态路由 —— 名单是真派生的，新增静态页无需回来改这里', async () => {
-    router = createFakeRouter([
-      { name: 'AboutProject', path: '/about' },
-      { name: 'OAuthAuthorize', path: '/oauth/authorize' },
-      { name: 'DynamicOrder', path: '/order' },
-    ])
-    registerContext({
-      staticRoutes: [
-        { path: '/root', name: 'RootLayout', component: {}, children: [
-          { path: '/about', name: 'AboutProject', component: {} },
-          { path: '/oauth/authorize', name: 'OAuthAuthorize', component: {} },
-        ] } as RouteRecordRaw,
-      ],
-    })
-
-    await useAuthStore().logout()
-
-    expect(router.routes.map(r => r.name)).toEqual(['AboutProject', 'OAuthAuthorize'])
-  })
-
-  it('个人中心由后端菜单动态注册，登出时仍被显式保留', async () => {
-    router = createFakeRouter([{ name: 'Profile', path: '/profile' }])
-    registerContext()
-
-    await useAuthStore().logout()
-
-    expect(router.removeRoute).not.toHaveBeenCalled()
-  })
-
-  it('无名路由不会被尝试移除', async () => {
-    router = createFakeRouter([{ path: '/anonymous' }])
-    registerContext()
-
-    await useAuthStore().logout()
-
-    expect(router.removeRoute).not.toHaveBeenCalled()
-  })
-
-  it('实时连接销毁失败不影响后续清场', async () => {
-    destroyAllSignalRConnections.mockRejectedValue(new Error('hub 已断开'))
-
-    await expect(useAuthStore().logout()).resolves.toBeUndefined()
-    expect(logoutApi).toHaveBeenCalledTimes(1)
-    expect(router.replace).toHaveBeenCalledWith(LOGIN_PATH)
-  })
-
-  it('登出接口失败不影响本地清场', async () => {
-    logoutApi.mockRejectedValue(new Error('网络不可用'))
-    const accessStore = useAccessStore()
-    accessStore.setAccessToken('a')
-
-    await useAuthStore().logout()
-
-    expect(accessStore.accessToken).toBeNull()
-    expect(router.replace).toHaveBeenCalledWith(LOGIN_PATH)
-  })
-
-  it('单条路由移除抛错不影响其余路由的移除', async () => {
-    router = createFakeRouter([
-      { name: 'BadOne', path: '/bad' },
-      { name: 'GoodOne', path: '/good' },
-    ])
-    router.removeRoute.mockImplementation((name: string) => {
-      if (name === 'BadOne') {
-        throw new Error('无法移除')
-      }
-      const index = router.routes.findIndex(item => item.name === name)
-      if (index >= 0) {
-        router.routes.splice(index, 1)
-      }
-    })
-    registerContext()
-
-    await useAuthStore().logout()
-
-    expect(router.routes.map(r => r.name)).toEqual(['BadOne'])
-    expect(router.replace).toHaveBeenCalledWith(LOGIN_PATH)
-  })
-
-  it('路由跳转失败时退化为整页跳转登录页', async () => {
-    const fakeLocation = stubLocation()
-    router.replace.mockRejectedValue(new Error('导航被中断'))
-
-    await useAuthStore().logout()
-
-    expect(fakeLocation.href).toContain(LOGIN_PATH)
-  })
-})
-
-describe('模仿登录', () => {
-  it('发起模仿：换上新令牌、清掉上一身份的标签页与偏好回写通道，并整页重载', async () => {
-    const location = stubLocation()
-    impersonationStart.mockResolvedValue(token({ accessToken: 'imp-1', refreshToken: 'imp-r1' }))
+  it('会话已经没了（刷新失败之后从锁屏退出）：不调接口，本地照样清', async () => {
+    localStorage.removeItem('xihan.next.session')
+    localStorage.setItem(LOCK_STATE_KEY, '1')
     const tabbar = useTabbarStore()
-    tabbar.ensureTab({ key: '/known/a', name: 'A', path: '/known/a', title: 'A', closable: true } as never)
-    const auth = useAuthStore()
+    tabbar.ensureTab({
+      key: '/ai/providers',
+      title: 'x',
+      path: '/ai/providers',
+      closable: true,
+    })
 
-    await auth.startImpersonation({ targetUserId: 'u-2', reason: '排查导出失败' })
+    await useAuthStore().logout()
 
-    expect(impersonationStart).toHaveBeenCalledWith({ targetUserId: 'u-2', reason: '排查导出失败' })
-    expect(useAccessStore().accessToken).toBe('imp-1')
-    expect(useAccessStore().refreshToken).toBe('imp-r1')
-    expect(tabbar.tabs.some(item => item.key === '/known/a')).toBe(false)
-    // 上一身份的用户信息必须清掉：userInfo 从 localStorage 初始化，不清会带着旧身份进新会话
-    expect(useUserStore().userInfo).toBeNull()
-    expect(localStorage.getItem(USER_INFO_KEY)).toBeNull()
-    expect(destroyAllSignalRConnections).toHaveBeenCalled()
-    expect(location.href).not.toBe('')
+    expect(order).toEqual(['hub', 'route'])
+    expect(tabbar.tabs.map(tab => tab.key)).toEqual([HOME_PATH])
+    expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
   })
 
-  it('结束模仿：同样换令牌并整页重载', async () => {
-    const location = stubLocation()
-    impersonationStop.mockResolvedValue(token({ accessToken: 'back-1', refreshToken: 'back-r1' }))
-    const auth = useAuthStore()
+  it('断开实时连接或吊销失败都不挡退出', async () => {
+    vi.mocked(destroyAllSignalRConnections).mockRejectedValueOnce(new Error('hub down'))
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'a-1',
+      fetch: (async () => json(500, { code: 'X' })) as unknown as typeof fetch,
+    })
+    const store = useAuthStore()
 
-    await auth.stopImpersonation()
+    await store.logout()
 
-    expect(impersonationStop).toHaveBeenCalled()
-    expect(useAccessStore().accessToken).toBe('back-1')
-    expect(location.href).not.toBe('')
+    expect(store.isAuthenticated).toBe(false)
+    expect(replace).toHaveBeenCalledWith(LOGIN_PATH)
   })
 
-  it('发起失败时不动令牌，并复位 loading 供重试', async () => {
-    impersonationStart.mockRejectedValue(new Error('无权模仿'))
-    const auth = useAuthStore()
+  it('已经在登录页不再跳；路由走不通时整页跳到登录页', async () => {
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace,
+        currentRoute: {
+          value: { path: LOGIN_PATH },
+        },
+      } as unknown as Router),
+    })
+    await useAuthStore().logout()
+    expect(replace).not.toHaveBeenCalled()
 
-    await expect(auth.startImpersonation({ targetUserId: 'u-2' })).rejects.toThrow('无权模仿')
-
-    expect(useAccessStore().accessToken).toBeNull()
-    expect(auth.impersonationLoading).toBe(false)
-  })
-
-  it('结束失败时不动令牌，并复位 loading 供重试', async () => {
-    impersonationStop.mockRejectedValue(new Error('原会话已失效'))
-    const auth = useAuthStore()
-
-    await expect(auth.stopImpersonation()).rejects.toThrow('原会话已失效')
-
-    expect(useAccessStore().accessToken).toBeNull()
-    expect(auth.impersonationLoading).toBe(false)
-  })
-
-  it('进行中重复点击不会再发一次请求', async () => {
-    stubLocation()
-    let resolveStart: ((value: unknown) => void) | undefined
-    impersonationStart.mockImplementation(() => new Promise((resolve) => {
-      resolveStart = resolve
-    }))
-    const auth = useAuthStore()
-
-    const first = auth.startImpersonation({ targetUserId: 'u-2' })
-    await auth.startImpersonation({ targetUserId: 'u-3' })
-
-    expect(impersonationStart).toHaveBeenCalledTimes(1)
-    resolveStart?.(token())
-    await first
-  })
-
-  it('候选查询透传关键词与租户', async () => {
-    impersonationCandidates.mockResolvedValue([{ basicId: 'u-2', userName: 'bob' }])
-    const auth = useAuthStore()
-
-    const items = await auth.impersonationCandidates({ keyword: 'bo', tenantId: '7' })
-
-    expect(impersonationCandidates).toHaveBeenCalledWith({ keyword: 'bo', tenantId: '7' })
-    expect(items).toHaveLength(1)
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'location')
+    const assign = vi.fn()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: { assign },
+    })
+    const failing = vi.fn(async () => {
+      throw new Error('navigation failed')
+    })
+    registerAppContext({
+      getRouter: () => Promise.resolve({
+        replace: failing,
+        currentRoute: {
+          value: { path: '/' },
+        },
+      } as unknown as Router),
+    })
+    await useAuthStore().logout()
+    if (descriptor)
+      Object.defineProperty(window, 'location', descriptor)
+    expect(assign).toHaveBeenCalledOnce()
+    expect(String(assign.mock.calls[0]![0])).toContain(LOGIN_PATH)
   })
 })
 
-describe('切换上下文', () => {
-  it('换上服务端签发的新令牌、清掉旧上下文的用户信息与标签页后整页重载', async () => {
-    const location = stubLocation()
-    switchTenant.mockResolvedValue(token({ accessToken: 'switched-access', refreshToken: 'switched-refresh' }))
-    useUserStore().setUserInfo(user())
-    const auth = useAuthStore()
+describe('第三方登录与绑定', () => {
+  let locationDescriptor: PropertyDescriptor | undefined
+  let assign: ReturnType<typeof vi.fn>
 
-    await auth.switchContext('7')
-
-    expect(switchTenant).toHaveBeenCalledWith({ tenantId: '7' })
-    expect(useAccessStore().accessToken).toBe('switched-access')
-    expect(useAccessStore().refreshToken).toBe('switched-refresh')
-    expect(useUserStore().userInfo).toBeNull()
-    expect(location.href).not.toBe('')
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    sessionStorage.clear()
+    configureRequest({ baseUrl: '' })
+    // 发起是整页跳转：换掉 window.location，只记下跳去的地址
+    locationDescriptor = Object.getOwnPropertyDescriptor(window, 'location')
+    assign = vi.fn()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      writable: true,
+      value: { assign },
+    })
   })
 
-  it('服务端拒绝时原样抛出，不动本地令牌', async () => {
-    useAccessStore().setAccessToken('current-access')
-    switchTenant.mockRejectedValue(new Error('当前账号不是目标租户的有效成员，无法切换。'))
-    const auth = useAuthStore()
+  afterEach(() => {
+    if (locationDescriptor)
+      Object.defineProperty(window, 'location', locationDescriptor)
+  })
 
-    await expect(auth.switchContext('9')).rejects.toThrow('有效成员')
-    expect(useAccessStore().accessToken).toBe('current-access')
+  it('登录整页跳到 challenge 端点，带上注册地租户；回跳地址随发起记录带回来，记录取一次即清', () => {
+    useAuthStore().startOAuthLogin({ name: 'GitHub', displayName: 'GitHub', type: 'github' }, { tenant: ' acme ', redirect: '/oauth/authorize?client_id=c' })
+    expect(assign).toHaveBeenCalledWith('/api/oauth/GitHub/challenge?mode=login&tenant=acme')
+    expect(takeOAuthPending()).toMatchObject({ mode: 'login', provider: 'github', redirect: '/oauth/authorize?client_id=c' })
+    expect(takeOAuthPending()).toBeNull()
+  })
+
+  it('平台账号（租户留空）不带 tenant；名称按路径段编码，接口源取请求层的 baseUrl', () => {
+    useAuthStore().startOAuthLogin({ name: 'corp sso', displayName: 'SSO', type: 'wecom' }, { tenant: '  ' })
+    expect(assign).toHaveBeenCalledWith('/api/oauth/corp%20sso/challenge?mode=login')
+    configureRequest({ baseUrl: 'https://api.example' })
+    expect(oauthChallengeUrl('github')).toBe('https://api.example/api/oauth/github/challenge?mode=login')
+  })
+
+  it('绑定先领本人的绑定意图，整页跳去后端给的地址（接口源取请求层的 baseUrl），发起记录标明用途；领不到即不跳、不留记录', async () => {
+    const beginOAuthBindApi = vi.fn().mockResolvedValue('/api/oauth/wecom/challenge?mode=bind&intent=i-1')
+    registerAppContext({
+      apis: { beginOAuthBindApi } as unknown as AppContextApis,
+    })
+    configureRequest({ baseUrl: 'https://api.example' })
+    await useAuthStore().startOAuthBind('WeCom')
+    expect(beginOAuthBindApi).toHaveBeenCalledWith('WeCom')
+    expect(assign).toHaveBeenCalledWith('https://api.example/api/oauth/wecom/challenge?mode=bind&intent=i-1')
+    expect(takeOAuthPending()).toMatchObject({ mode: 'bind', provider: 'wecom' })
+
+    assign.mockClear()
+    beginOAuthBindApi.mockRejectedValue(new Error('denied'))
+    await expect(useAuthStore().startOAuthBind('wecom')).rejects.toThrow('denied')
+    expect(assign).not.toHaveBeenCalled()
+    expect(takeOAuthPending()).toBeNull()
+  })
+
+  it('发起记录过期（超过后端 state 的 10 分钟）或被改坏即作废', () => {
+    sessionStorage.setItem('xihan.next.oauth-pending', JSON.stringify({ mode: 'login', provider: 'github', startedAt: Date.now() - 11 * 60 * 1000 }))
+    expect(takeOAuthPending()).toBeNull()
+    sessionStorage.setItem('xihan.next.oauth-pending', JSON.stringify({
+      mode: 'admin',
+      provider: 'github',
+      startedAt: Date.now(),
+    }))
+    expect(takeOAuthPending()).toBeNull()
+    sessionStorage.setItem('xihan.next.oauth-pending', '{')
+    expect(takeOAuthPending()).toBeNull()
+  })
+
+  it('回调票据经 auth.external-login 匿名换令牌，与密码登录同样存会话、跳回跳地址', async () => {
+    const calls: { url: string, body: unknown, authorization?: string }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 'stale',
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        calls.push({
+          url: String(url),
+          body: JSON.parse(String(init!.body)),
+          authorization: (init!.headers as Record<string, string>).Authorization,
+        })
+        return json(200, {
+          token: session('a-1', 'r-1'),
+          twoFactor: null,
+        })
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({ replace } as unknown as Router),
+    })
+    const store = useAuthStore()
+
+    await store.handleOAuthCallback('x-1', '/settings/configs')
+    expect(calls).toEqual([
+      {
+        url: '/api/auth:external-login',
+        body: { ticket: 'x-1' },
+        authorization: undefined,
+      },
+    ])
+    expect(store.accessToken).toBe('a-1')
+    expect(replace).toHaveBeenCalledWith('/settings/configs')
+    expect(store.loginLoading).toBe(false)
+    expect(store.takePendingTwoFactor()).toBeNull()
+  })
+
+  it('账号开了双因素：不存会话，记下挑战带着回跳地址回登录页；登录页取走挑战后第二段照常凭票据验证', async () => {
+    const bodies: { url: string, body: unknown }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        bodies.push({
+          url: String(url),
+          body: JSON.parse(String(init!.body)),
+        })
+        if (String(url).endsWith('/api/auth:external-login')) {
+          return json(200, {
+            token: null,
+            twoFactor: {
+              ticket: 't-1',
+              methods: ['Totp'],
+              method: 'Totp',
+              codeSent: false,
+              expiresAt: '2026-10-28T00:10:00Z',
+            },
+          })
+        }
+        return json(200, session('a-1', 'r-1'))
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({ replace } as unknown as Router),
+    })
+    const store = useAuthStore()
+
+    await store.handleOAuthCallback('x-1', '/oauth/authorize?client_id=c')
+    expect(store.isAuthenticated).toBe(false)
+    expect(store.loginLoading).toBe(false)
+    expect(replace).toHaveBeenCalledWith({
+      path: '/auth/login',
+      query: { redirect: '/oauth/authorize?client_id=c' },
+    })
+    expect(store.takePendingTwoFactor()).toEqual({
+      requiresTwoFactor: true,
+      availableTwoFactorMethods: ['totp'],
+      twoFactorMethod: 'totp',
+      codeSent: false,
+      twoFactorTicket: 't-1',
+      token: null,
+    })
+    expect(store.takePendingTwoFactor()).toBeNull()
+
+    // 登录页的验证阶段走的就是密码登录的第二段
+    expect(await store.login({
+      username: '',
+      password: '',
+      twoFactorTicket: 't-1',
+      twoFactorMethod: 'totp',
+      twoFactorCode: '654321',
+    }, '/oauth/authorize?client_id=c')).toBeNull()
+    expect(bodies[1]).toEqual({
+      url: '/api/auth:verify-two-factor',
+      body: { ticket: 't-1', method: 'Totp', code: '654321' },
+    })
+    expect(store.accessToken).toBe('a-1')
+  })
+
+  it('站外回跳地址不带回登录页；换票据失败原样抛给回调页并放开加载态', async () => {
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async () => json(200, {
+        token: null,
+        twoFactor: {
+          ticket: 't-1',
+          methods: ['Totp'],
+          method: 'Totp',
+          codeSent: false,
+          expiresAt: '2026-10-28T00:10:00Z',
+        },
+      })) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({
+      getRouter: () => Promise.resolve({ replace } as unknown as Router),
+    })
+    const store = useAuthStore()
+    await store.handleOAuthCallback('x-1', '//evil.example')
+    expect(replace).toHaveBeenCalledWith({ path: '/auth/login', query: {} })
+
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async () => json(403, { code: 'IDENTITY_DENIED_015', status: 403, detail: 'not bound' }, 'application/problem+json')) as unknown as typeof fetch,
+    })
+    await expect(store.handleOAuthCallback('x-2')).rejects.toMatchObject({ code: 'IDENTITY_DENIED_015', detail: 'not bound' })
+    expect(store.loginLoading).toBe(false)
+    expect(store.isAuthenticated).toBe(false)
   })
 })

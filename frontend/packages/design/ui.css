@@ -251,20 +251,14 @@
   color: var(--xh-fg-danger);
 }
 
-/* 当文字链用的组件库按钮（表格单元格、详情里跳链路追踪那几处）：经按钮的公开槽去掉盒高、内衬与悬停 / 按下面，
-   只留品牌色字、悬停加下划线，悬停面不再铺满单元格；焦点环照旧由组件库画 */
+/* 嵌进表格单元格、详情描述里的文字链（跳链路追踪那几处）：按钮写 variant="link"（不铺面、不画边、品牌色字、
+   悬停加下划线都由组件库给），这里只经按钮的公开槽压掉盒高与内衬，不把行撑高；焦点环照旧由组件库画 */
 .xh-link-button {
   --xh-button-h: auto;
   --xh-button-px: 0;
-  --xh-button-bg-hover: transparent;
-  --xh-button-bg-active: transparent;
 
   min-block-size: 0;
   max-inline-size: 100%;
-}
-
-.xh-link-button:hover {
-  text-decoration: underline;
 }
 
 /* 正文滚动区：内容层按视口宽排版，不跟着页内最宽的东西长。
@@ -429,8 +423,7 @@
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .xh-icon-btn:hover:not(:disabled) {
@@ -438,11 +431,10 @@
   color: var(--xh-fg-default);
 }
 
-/* 按压反馈同下面的 .xihan-icon-btn。这几颗多是组件库的按钮 / 浮层触发器，本规则不进层，
-   上面的 transition 简写与透明底压过了库在按下时改写的时长、曲线与 active 底，不补回就是瞬间跳到 0.97 */
+/* 按下只换底，同下面的 .xihan-icon-btn。这几颗多是组件库的按钮 / 浮层触发器，本规则不进层，
+   上面的 transition 简写与透明底压过了库在按下时改写的时长、曲线与 active 底，这里补回 */
 .xh-icon-btn:active:not(:disabled) {
   background: var(--xh-bg-subtle-active);
-  scale: var(--xh-motion-scale-press);
   transition-duration: var(--xh-motion-duration-press);
   transition-timing-function: var(--xh-motion-ease-press);
 }
@@ -463,14 +455,13 @@
   block-size: 32px;
   padding: 0;
   border: 0;
-  border-radius: var(--xh-radius-md, 6px);
+  border-radius: var(--xh-shape-control);
   background: transparent;
   color: var(--xh-fg-muted);
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 键盘聚焦给焦点环；鼠标点按不出（:focus-visible） */
@@ -484,10 +475,9 @@
   color: var(--xh-fg-default);
 }
 
-/* 离散动作钮的统一按压反馈：按下缩到 0.97 并换底，松开回弹；减弱动态效果下缩放令牌归 1 */
+/* 离散动作钮按下只换底、不缩放，时长与曲线随组件库的 press 档 */
 .xihan-icon-btn:active:not(:disabled) {
   background: var(--xh-bg-subtle-active);
-  scale: var(--xh-motion-scale-press);
   transition-duration: var(--xh-motion-duration-press);
   transition-timing-function: var(--xh-motion-ease-press);
 }

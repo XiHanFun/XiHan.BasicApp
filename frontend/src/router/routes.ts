@@ -1,12 +1,11 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { HOME_PATH } from '~/constants'
 import BasicLayout from '~/layouts/basic/index.vue'
-import { coreRoutes } from '~/router/routes/core'
+import { coreRoutes } from '~/router'
 
-const AboutPage = () => import('~/views/_core/about/index.vue')
 const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
-const EditorDemoPage = () => import('~/views/_core/editor-demo/index.vue')
-const OAuthAuthorizePage = () => import('@/views/oauth/authorize.vue')
+const OAuthAuthorizePage = () => import('~/views/_core/oauth/authorize.vue')
+const ProfilePage = () => import('~/views/_core/profile/index.vue')
 
 export const staticRoutes: RouteRecordRaw[] = [
   {
@@ -16,33 +15,22 @@ export const staticRoutes: RouteRecordRaw[] = [
     redirect: HOME_PATH,
     children: [
       {
-        path: '/about/project',
-        name: 'AboutProject',
-        component: AboutPage,
-        meta: {
-          title: 'menu.about_project',
-          icon: 'lucide:info',
-        },
-      },
-      {
-        path: '/editor-demo',
-        name: 'EditorDemo',
-        component: EditorDemoPage,
-        meta: {
-          title: 'menu.editor_demo',
-          icon: 'lucide:file-pen-line',
-        },
+        // 个人中心（4.x 原样搬入，目前只接了账号安全页签）：顶栏用户菜单的「个人中心」指向这里，人人可进，不进菜单
+        path: '/profile',
+        name: 'Profile',
+        component: ProfilePage,
+        meta: { title: 'component.profile.title', hidden: true },
       },
     ],
   },
   {
-    // 控制中心：登录后未进入租户（平台态）的全屏独立落点页——选择租户进入 / 平台管理入口；
+    // 控制中心：切换租户 / 进入平台的全屏独立落点页——选择租户进入 / 平台管理入口；
     // 不挂载主布局（此时无菜单/标签栏），与认证页同级的顶层路由
     path: '/control-center',
     name: 'ControlCenter',
     component: ControlCenterPage,
     meta: {
-      title: 'menu.control_center',
+      title: 'page.control_center.title',
       icon: 'lucide:layout-grid',
       hidden: true,
       // 独立公共页：不挂主布局、不进入标签栏（同认证页定位）
@@ -50,8 +38,8 @@ export const staticRoutes: RouteRecordRaw[] = [
     },
   },
   {
-    // OAuth2 授权同意页：第三方经 /connect/authorize 跳入的全屏独立页——需已登录（未登录由守卫跳登录再回跳）；
-    // 不挂主布局、不进入标签栏。后端令牌/授权码流程见 OAuthConnectEndpoints / OAuthConsentAppService
+    // OAuth2 授权同意页：后端 GET /api/oauth2/authorize 把浏览器带到 /#/oauth/authorize?<原查询串> 的全屏独立页——需已登录
+    // （未登录由守卫带着完整 fullPath 跳登录再回跳）；不挂主布局、不进入标签栏。同意 / 拒绝 / 预览走 OpenPlatform 的 oauth-consents.*
     path: '/oauth/authorize',
     name: 'OAuthAuthorize',
     component: OAuthAuthorizePage,

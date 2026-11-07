@@ -5,9 +5,9 @@ import { useAppContext } from '~/stores/app-context'
 import { toast } from './ui-service'
 
 /**
- * 系统字典选项（字典管理里维护的字典，区别于后端枚举）。
+ * 系统字典选项（字典管理里维护的字典，区别于后端枚举）
  *
- * 值为字典项编码，业务数据按它存；树形字典按深度优先展平，parentValue 指向上级项编码。
+ * 值为字典项编码，业务数据按它存；树形字典按深度优先展平，parentValue 指向上级项编码
  */
 export interface DictOption {
   label: string
@@ -24,14 +24,16 @@ const cache = ref<Record<string, DictOption[]>>({})
 const inflight = new Map<string, Promise<DictOption[]>>()
 
 function reasonOf(error: unknown): string {
-  return error instanceof Error && error.message ? error.message : String(error)
+  return error instanceof Error && error.message
+    ? error.message
+    : String(error)
 }
 
 /**
- * 取字典选项（带缓存与并发去重）。
+ * 取字典选项（带缓存与并发去重）
  *
- * 失败时就地提示一次再抛出：字典编码写错或字典被删时，空下拉会让问题无声无息。
- * 失败不进缓存，下次调用会重取。
+ * 失败时就地提示一次再抛出：字典编码写错或字典被删时，空下拉会让问题无声无息
+ * 失败不进缓存，下次调用会重取
  */
 export function ensureDictOptions(dictCode: string): Promise<DictOption[]> {
   const code = dictCode.trim()
@@ -58,7 +60,10 @@ export function ensureDictOptions(dictCode: string): Promise<DictOption[]> {
         return options
       })
       .catch((error: unknown) => {
-        toast.danger(i18n.global.t('component.dict_options.load_failed', { code, reason: reasonOf(error) }))
+        toast.danger(i18n.global.t('component.dict_options.load_failed', {
+          code,
+          reason: reasonOf(error),
+        }))
         throw error
       })
       .finally(() => {
@@ -75,8 +80,8 @@ export function getDictOptions(dictCode: string): DictOption[] {
 }
 
 /**
- * 响应式字典选项：字典编码变化时自动加载，供表单下拉直接绑定。
- * 加载失败已在 ensureDictOptions 里提示，这里只防止未处理的 Promise 拒绝。
+ * 响应式字典选项：字典编码变化时自动加载，供表单下拉直接绑定
+ * 加载失败已在 ensureDictOptions 里提示，这里只防止未处理的 Promise 拒绝
  */
 export function useDictOptions(dictCode: MaybeRefOrGetter<string>): ComputedRef<DictOption[]> {
   watch(

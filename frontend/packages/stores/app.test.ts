@@ -1,8 +1,8 @@
 /**
- * 应用 Store 门面（app）单元测试。
+ * 应用 Store 门面（app）单元测试
  * 职责边界：只测「组合门面」这一层职责——三个 slice 的成员必须全部对外暴露、
- * resetPreferences 覆盖三个 slice、草稿 API 与 helpers 的模块级实现是同一套。
- * 各 slice 自身的默认值与 setter 见 app/theme|layout|preferences 的用例。
+ * resetPreferences 覆盖三个 slice、草稿 API 与 helpers 的模块级实现是同一套
+ * 各 slice 自身的默认值与 setter 见 app/theme|layout|preferences 的用例
  */
 import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
@@ -10,7 +10,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import {
   DEFAULT_LAYOUT_MODE,
-  DEFAULT_LOCALE,
   DEFAULT_THEME,
   DEFAULT_THEME_COLOR,
   THEME_COLOR_KEY,
@@ -31,7 +30,12 @@ beforeEach(() => {
   discardPreferenceDraft()
   saveApi.mockClear()
   registerAppContext({
-    apis: { userSettingApi: { get: vi.fn(), save: saveApi } } as unknown as AppContextApis,
+    apis: {
+      userSettingApi: {
+        get: vi.fn(),
+        save: saveApi,
+      },
+    } as unknown as AppContextApis,
   })
   setActivePinia(createPinia())
 })
@@ -42,7 +46,7 @@ describe('三个 slice 都被合进门面', () => {
 
     expect(store.themeMode).toBe(DEFAULT_THEME)
     expect(store.layoutMode).toBe(DEFAULT_LAYOUT_MODE)
-    expect(store.locale).toBe(DEFAULT_LOCALE)
+    expect(store.locale).toBe('zh-CN')
   })
 
   it('三类 setter 都能从同一个 store 调用', () => {

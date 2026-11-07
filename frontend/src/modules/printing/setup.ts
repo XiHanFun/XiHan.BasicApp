@@ -1,28 +1,31 @@
-/**
- * 应用打印能力启动注册。
- * 职责：把后端模板解析与数据源目录 API 注入公共 printing 包；
- * 数据源目录以后端注册表为单一事实源（含 system.print-demo），惰性拉取。
- */
-import type { PrintTemplateScope as ApiPrintTemplateScope } from './api/print-template.types'
-import type { PrintTemplateScope as PublicPrintTemplateScope, ResolvedPrintTemplate } from '~/printing'
+import type { RemotePrintDataSourceDto, ResolvedPrintTemplate } from '~/printing'
+import { printDataSources, printTemplates } from '~/contracts'
+import { registerModuleLocales } from '~/locales'
 import { configurePrinting } from '~/printing'
-import { printDataSourceApi } from './api/print-data-source'
-import { printTemplateApi } from './api/print-template'
 
 /**
- * 注册应用打印配置。
- * @returns 无返回值；打印运行时与设计器保持惰性加载，首次打印或打开设计器时才加载。
+ * 打印模块的启动钩子：登记本模块文案，把后端的模板解析与数据源目录接进公共打印包（照 4.x 的 configurePrinting）
+ * 数据源目录以后端注册表为单一事实源（含 system.print-demo），惰性拉取；打印运行时与设计器在首次打印或打开设计器时才加载
+ * 页面由后端菜单下发（BasicApp:Modules:Printing:Enabled 关掉即不下发），这里登记的只是函数，模块关着也无副作用
  */
-export default function setupPrinting(): void {
+export default function setup(): void {
+  registerModuleLocales(import.meta.glob<{ default: Record<string, unknown> }>('./locales/*.ts'))
   configurePrinting({
     resolveTemplate: async (templateCode, scope): Promise<ResolvedPrintTemplate> => {
-      const resolved = await printTemplateApi.resolveByCode(templateCode, scope as ApiPrintTemplateScope)
+      const resolved = await printTemplates.resolve({ templateCode, scope })
+      // 打印包沿用 4.x 的字段名：主键叫 basicId，并发戳叫 rowVersion（样例表单据它判断模板有没有变）
       return {
-        ...resolved,
-        requestedScope: resolved.requestedScope as PublicPrintTemplateScope,
-        resolvedScope: resolved.resolvedScope as PublicPrintTemplateScope,
+        basicId: resolved.id,
+        rowVersion: resolved.concurrencyStamp,
+        templateCode: resolved.templateCode,
+        templateName: resolved.templateName,
+        templateJson: resolved.templateJson,
+        dataSourceCode: resolved.dataSourceCode ?? null,
+        requestedScope: resolved.requestedScope,
+        resolvedScope: resolved.resolvedScope,
       }
     },
-    listDataSources: () => printDataSourceApi.list(),
+    // 字段种类在契约里是字符串：后端启动时已校验只有 text / image / barcode / qrcode / table，打印包登记时再校验一遍
+    listDataSources: async () => (await printDataSources.list({})).items as RemotePrintDataSourceDto[],
   })
 }

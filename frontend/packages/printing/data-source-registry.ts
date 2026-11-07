@@ -1,17 +1,24 @@
 /**
- * 打印数据源注册表。
- * 职责：维护代码注册的数据源与字段目录，并在重复编码或无效字段进入设计器前立即失败。
+ * 打印数据源注册表
+ * 职责：维护代码注册的数据源与字段目录，并在重复编码或无效字段进入设计器前立即失败
  */
 import type { PrintDataSourceDefinition, PrintFieldDefinition } from './types'
 
 const dataSources = new Map<string, PrintDataSourceDefinition<unknown>>()
-const SUPPORTED_SAMPLE_INPUT_TYPES = new Set(['boolean', 'date', 'datetime', 'number', 'text', 'textarea'])
+const SUPPORTED_SAMPLE_INPUT_TYPES = new Set([
+  'boolean',
+  'date',
+  'datetime',
+  'number',
+  'text',
+  'textarea',
+])
 
 /**
- * 注册一个打印数据源；重复编码立即抛错，避免后注册模块静默覆盖已有字段契约。
- * @param definition 数据源定义。
- * @returns 只读规范化定义。
- * @throws 数据源编码、名称、字段或样例工厂无效，或编码已注册。
+ * 注册一个打印数据源；重复编码立即抛错，避免后注册模块静默覆盖已有字段契约
+ * @param definition 数据源定义
+ * @returns 只读规范化定义
+ * @throws 数据源编码、名称、字段或样例工厂无效，或编码已注册
  */
 export function registerPrintDataSource<T>(
   definition: PrintDataSourceDefinition<T>,
@@ -43,9 +50,9 @@ export function registerPrintDataSource<T>(
 }
 
 /**
- * 读取已注册数据源。
- * @param code 数据源编码。
- * @returns 数据源；未注册时返回 undefined。
+ * 读取已注册数据源
+ * @param code 数据源编码
+ * @returns 数据源；未注册时返回 undefined
  */
 export function getPrintDataSource<T = Record<string, unknown>>(
   code: null | string | undefined,
@@ -57,10 +64,10 @@ export function getPrintDataSource<T = Record<string, unknown>>(
 }
 
 /**
- * 确认数据源已注册。
- * @param code 模板声明的数据源编码。
- * @returns 已注册数据源。
- * @throws 编码无效或数据源未注册。
+ * 确认数据源已注册
+ * @param code 模板声明的数据源编码
+ * @returns 已注册数据源
+ * @throws 编码无效或数据源未注册
  */
 export function requirePrintDataSource<T = Record<string, unknown>>(
   code: string,
@@ -73,14 +80,16 @@ export function requirePrintDataSource<T = Record<string, unknown>>(
 }
 
 /**
- * 列出当前会话全部数据源。
- * @returns 按编码排序的只读快照。
+ * 列出当前会话全部数据源
+ * @returns 按编码排序的只读快照
  */
 export function listPrintDataSources(): readonly Readonly<PrintDataSourceDefinition<unknown>>[] {
-  return [...dataSources.values()].sort((left, right) => left.code.localeCompare(right.code))
+  return [
+    ...dataSources.values(),
+  ].sort((left, right) => left.code.localeCompare(right.code))
 }
 
-/** 规范化并校验编码。 */
+/** 规范化并校验编码 */
 function normalizeCode(value: string, label: string): string {
   const normalized = value?.trim()
   if (!normalized)
@@ -90,7 +99,7 @@ function normalizeCode(value: string, label: string): string {
   return normalized
 }
 
-/** 校验字段以及 table 列契约。 */
+/** 校验字段以及 table 列契约 */
 function normalizeField(
   dataSourceCode: string,
   field: PrintFieldDefinition,
@@ -105,8 +114,15 @@ function normalizeField(
     throw new Error(`打印字段 ${key} 的名称不能为空。`)
 
   const kind = field.kind ?? 'text'
-  if (!['barcode', 'image', 'qrcode', 'table', 'text'].includes(kind))
+  if (![
+    'barcode',
+    'image',
+    'qrcode',
+    'table',
+    'text',
+  ].includes(kind)) {
     throw new Error(`打印字段 ${key} 的类型无效：${kind}`)
+  }
   if (kind === 'table' && (!field.columns || field.columns.length === 0))
     throw new Error(`明细表字段 ${key} 至少需要一列。`)
 
@@ -136,7 +152,7 @@ function normalizeField(
   })
 }
 
-/** 校验可选模拟数据控件类型，防止注册时引入 UI 无法识别的字符串。 */
+/** 校验可选模拟数据控件类型，防止注册时引入 UI 无法识别的字符串 */
 function normalizeSampleInputType<T extends string>(value: T | undefined, label: string): T | undefined {
   if (value === undefined)
     return undefined
@@ -145,7 +161,7 @@ function normalizeSampleInputType<T extends string>(value: T | undefined, label:
   return value
 }
 
-/** 规范化可选占位文案；纯空白等同于未配置。 */
+/** 规范化可选占位文案；纯空白等同于未配置 */
 function normalizePlaceholder(value: string | undefined): string | undefined {
   return value?.trim() || undefined
 }

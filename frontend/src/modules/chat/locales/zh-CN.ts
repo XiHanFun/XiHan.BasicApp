@@ -1,11 +1,13 @@
-/**
- * 聊天模块文案（chat 命名空间 + 菜单键）。
- */
+// 聊天模块文案（chat 命名空间）：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
+// 菜单标题键来自后端页面登记（chat.conversations.title、chat.audit.title）；@ 是 vue-i18n 链接消息的保留字符，一律写成 {'@'}
 export default {
   chat: {
     bell: '在线聊天',
     unread_label: '{n} 条未读聊天',
     island_new_message_fallback: '收到新消息',
+    conversations: {
+      title: '在线聊天',
+    },
     panel: {
       title: '在线聊天',
       open_page: '打开独立页',
@@ -32,6 +34,11 @@ export default {
       members_required: '请至少选择 1 名成员',
       department_required: '请选择部门',
       assistant_required: '请选择助手',
+      user_label: '用户',
+      group_name_label: '群聊名称',
+      members_label: '成员',
+      department_label: '部门',
+      assistant_label: '助手',
     },
     list: {
       search_placeholder: '搜索会话',
@@ -41,13 +48,13 @@ export default {
       unpin: '取消置顶',
       mute: '免打扰',
       unmute: '取消免打扰',
-      // @ 是 vue-i18n 链接消息保留字符，须用 {'@'} 字面量转义，否则消息编译抛错白屏
       mention_me: '[有人{\'@\'}我] ',
     },
     type: {
       single: '单聊',
       group: '群聊',
       department: '部门群',
+      assistant: 'AI 助手',
     },
     role: {
       owner: '群主',
@@ -90,6 +97,7 @@ export default {
       copied: '已复制',
       copy_failed: '复制失败',
       forward: '转发',
+      download_failed: '下载失败',
     },
     forward: {
       title: '转发给…',
@@ -183,11 +191,40 @@ export default {
       type_file: '文件',
       type_voice: '语音',
       type_system: '系统',
+      title: '聊天审计',
+      keyword: '关键字',
+      include_recalled: '包含已撤回',
+      detail: '详情',
+      members: '成员',
+      detail_title: '消息详情',
+      members_title: '会话成员',
+      load_failed: '加载失败',
+      section_message: '消息',
+      section_conversation: '所在会话',
+      section_attachments: '附件（{n}）',
+      section_reactions: '表情回应（{n}）',
+      seq: '会话内序号',
+      pinned: '置顶',
+      client_message_id: '客户端消息标识',
+      reply_to: '回复的消息',
+      reply_preview: '回复快照',
+      mentions: '提及的用户',
+      content_recalled: '已撤回，正文不保留',
+      member_count: '成员数',
+      created_at: '创建时间',
+      last_message_at: '最后消息时间',
+      owner: '群主',
+      file_size: '大小',
+      duration: '时长',
+      file_id: '文件ID',
+      reaction_emoji: '表情',
+      reaction_user: '回应人',
+      user_id: '用户ID',
+      display_name: '显示名',
+      user_name: '用户名',
+      member_role: '角色',
+      joined_at: '入会时间',
+      type_assistant: '助手',
     },
-  },
-  menu: {
-    chat: '聊天',
-    message_chat: '在线聊天',
-    message_chat_audit: '聊天审计',
   },
 }

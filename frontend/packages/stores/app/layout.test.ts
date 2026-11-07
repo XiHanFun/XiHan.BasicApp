@@ -1,8 +1,8 @@
 /**
- * 布局切片（app/layout）单元测试。
+ * 布局切片（app/layout）单元测试
  * 职责边界：布局模式、品牌、侧栏、顶栏、导航、内容区、标签栏、面包屑等布局偏好的
  * 默认值与本地还原、侧栏宽度夹取（读与写两侧）、顶栏对齐的旧值迁移、
- * 以及 setBranding 的逐字段语义（注释点名：logo 空串要回落默认，防止上一租户 Logo 泄漏）。
+ * 以及 setBranding 的逐字段语义（注释点名：logo 空串要回落默认，防止上一租户 Logo 泄漏）
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -33,13 +33,13 @@ describe('默认值', () => {
     expect(store.contentMaxWidth).toBe(1280)
   })
 
-  it('品牌信息默认取自构建期环境变量', () => {
+  it('品牌信息默认取自构建期环境变量，没配即空（壳层回退到应用名与站点图标）', () => {
     const store = freshStore()
 
-    expect(store.brandTitle).toBe('XiHan BasicApp')
-    expect(store.brandLogo).toBe('/favicon.png')
-    expect(store.brandSubtitle).toBeTruthy()
-    expect(store.brandDescription).toBeTruthy()
+    expect(store.brandTitle).toBe(import.meta.env.VITE_APP_TITLE ?? '')
+    expect(store.brandLogo).toBe(import.meta.env.VITE_APP_LOGO ?? '')
+    expect(store.brandSubtitle).toBe(import.meta.env.VITE_APP_SUBTITLE ?? '')
+    expect(store.brandDescription).toBe(import.meta.env.VITE_APP_DESCRIPTION ?? '')
   })
 
   it('侧栏相关开关的默认：显示/折叠按钮/固定按钮/悬停展开/自动激活子项默认开，折叠态标题与深色默认关', () => {
@@ -240,7 +240,12 @@ describe('setBranding 的逐字段语义', () => {
 
     store.setBranding({})
 
-    expect([store.brandTitle, store.brandSubtitle, store.brandDescription, store.brandLogo])
+    expect([
+      store.brandTitle,
+      store.brandSubtitle,
+      store.brandDescription,
+      store.brandLogo,
+    ])
       .toEqual(['T', 'S', 'D', '/L.png'])
   })
 })

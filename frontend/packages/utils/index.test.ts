@@ -1,9 +1,9 @@
 /**
- * packages/utils 汇总入口契约测试。
+ * packages/utils 汇总入口契约测试
  *
  * 职责边界：只验证 barrel 的转出范围——各子模块的导出必须能从 `~/utils` 取到，
  * 且 device-fingerprint 有意不在其中（登录页用 `import('~/utils/device-fingerprint')` 动态取用，
- * 收进 barrel 会把这段一次性的指纹采集代码拖进主包）。
+ * 收进 barrel 会把这段一次性的指纹采集代码拖进主包）
  */
 import { describe, expect, it } from 'vitest'
 import * as utils from './index'

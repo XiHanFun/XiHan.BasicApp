@@ -2,16 +2,16 @@ import type { MaybeRefOrGetter } from 'vue'
 import { computed, ref, toValue } from 'vue'
 
 /**
- * 数组分页工具函数。
+ * 数组分页工具函数
  *
- * 接受响应式或普通数组，自动计算分页数据。
- * 适用于前端本地分页（数据量较小且一次性加载的场景）。
+ * 接受响应式或普通数组，自动计算分页数据
+ * 适用于前端本地分页（数据量较小且一次性加载的场景）
  *
  * @param list 源数组（支持 ref / computed / 普通数组）
  * @param initialPageSize 初始每页条数，默认 10
  */
 export function usePagination<T>(list: MaybeRefOrGetter<T[]>, initialPageSize = 10) {
-  // 原始页码：只存用户意图，对外读取一律经 clampPage 夹取到当前有效范围。
+  // 原始页码：只存用户意图，对外读取一律经 clampPage 夹取到当前有效范围
   const rawPage = ref(1)
   const pageSize = ref(initialPageSize)
 
@@ -29,7 +29,7 @@ export function usePagination<T>(list: MaybeRefOrGetter<T[]>, initialPageSize = 
 
   /**
    * 当前页码。读写都走边界夹取：源数组缩短（典型场景是在末页把记录删完）后，
-   * 页码随 totalPages 自动回收到末页，不会停在越界页导致「有数据却是空表」。
+   * 页码随 totalPages 自动回收到末页，不会停在越界页导致「有数据却是空表」
    */
   const currentPage = computed<number>({
     get: () => clampPage(rawPage.value),

@@ -232,6 +232,8 @@ defineProps<{ type: string }>()
 </template>
 
 <style scoped>
+/* 缩略图的各块都从品牌色兑出来：侧栏实心、顶栏与内容块按远近依次变淡；
+   各档都比早先深一截（用户 2026-11-07 定），缩成 130×88 的小图仍分得清侧栏、顶栏与内容 */
 svg {
   width: 100%;
   height: 100%;
@@ -245,35 +247,35 @@ svg {
 }
 
 .svg-sidebar {
-  fill: hsl(var(--primary) / 0.42);
+  fill: hsl(var(--primary) / 0.6);
 }
 
 .svg-sidebar-strong {
-  fill: hsl(var(--primary) / 0.82);
+  fill: hsl(var(--primary));
 }
 
 .svg-header {
-  fill: hsl(var(--primary) / 0.18);
+  fill: hsl(var(--primary) / 0.3);
 }
 
 .svg-header-strong {
-  fill: hsl(var(--primary) / 0.7);
+  fill: hsl(var(--primary) / 0.9);
 }
 
 .svg-sub-header {
-  fill: hsl(var(--primary) / 0.24);
+  fill: hsl(var(--primary) / 0.38);
 }
 
 .svg-row {
-  fill: hsl(var(--primary) / 0.15);
+  fill: hsl(var(--primary) / 0.28);
 }
 
 .svg-block {
-  fill: hsl(var(--primary) / 0.11);
+  fill: hsl(var(--primary) / 0.2);
 }
 
 .svg-block-faint {
-  fill: hsl(var(--primary) / 0.06);
+  fill: hsl(var(--primary) / 0.12);
 }
 
 /* 徽标块压在品牌色的侧栏 / 顶栏上，取品牌底上的前景 */
@@ -282,7 +284,7 @@ svg {
 }
 
 .svg-chip {
-  fill: hsl(var(--foreground) / 0.3);
+  fill: hsl(var(--foreground) / 0.45);
 }
 
 .svg-on-dark {

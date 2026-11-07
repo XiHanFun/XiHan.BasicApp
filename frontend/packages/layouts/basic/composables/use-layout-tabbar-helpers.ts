@@ -59,12 +59,16 @@ export function buildTabContextOptions(params: {
     pinDisabled,
   } = getTabDisableState(tabs, path, closable)
 
-  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）。
-  // 小屏（splitEnabled=false）不提供「分屏打开」，但仍允许对既有分屏「关闭分屏」。
+  // 分屏菜单项：锚定标签 → 「关闭分屏」；否则 → 「右侧分屏打开」子菜单（指向其它已打开标签）
+  // 小屏（splitEnabled=false）不提供「分屏打开」，但仍允许对既有分屏「关闭分屏」
   let splitItems: AppDropdownOption[] = []
   if (isSplitTab) {
     splitItems = [
-      { key: 'splitClose', label: t('tabbar.split_close'), icon: createDropdownIcon('lucide:columns-2') },
+      {
+        key: 'splitClose',
+        label: t('tabbar.split_close'),
+        icon: createDropdownIcon('lucide:columns-2'),
+      },
     ]
   }
   else if (splitEnabled && splitTargets.length > 0) {
@@ -83,27 +87,43 @@ export function buildTabContextOptions(params: {
   }
 
   return [
-    { key: 'reload', label: t('tabbar.reload'), icon: createDropdownIcon('lucide:refresh-cw') },
+    {
+      key: 'reload',
+      label: t('tabbar.reload'),
+      icon: createDropdownIcon('lucide:refresh-cw'),
+    },
     { key: 'divider-open-before', type: 'divider' },
-    { key: 'open', label: t('tabbar.open'), icon: createDropdownIcon('lucide:external-link') },
+    {
+      key: 'open',
+      label: t('tabbar.open'),
+      icon: createDropdownIcon('lucide:external-link'),
+    },
     ...splitItems,
     { key: 'divider-open-after', type: 'divider' },
     ...(favoritesEnabled
-      ? [{
-          key: 'favorite',
-          label: favorited ? t('tabbar.unfavorite') : t('tabbar.favorite'),
-          icon: createDropdownIcon(favorited ? 'lucide:star-off' : 'lucide:star'),
-        }]
+      ? [
+          {
+            key: 'favorite',
+            label: favorited
+              ? t('tabbar.unfavorite')
+              : t('tabbar.favorite'),
+            icon: createDropdownIcon(favorited ? 'lucide:star-off' : 'lucide:star'),
+          },
+        ]
       : []),
     {
       key: 'pin',
-      label: pinned ? t('tabbar.unpin') : t('tabbar.pin'),
+      label: pinned
+        ? t('tabbar.unpin')
+        : t('tabbar.pin'),
       disabled: pinDisabled,
       icon: createDropdownIcon(pinned ? 'lucide:pin-off' : 'lucide:pin'),
     },
     {
       key: 'maximize',
-      label: isContentMaximized ? t('tabbar.unmaximize') : t('tabbar.maximize'),
+      label: isContentMaximized
+        ? t('tabbar.unmaximize')
+        : t('tabbar.maximize'),
       icon: createDropdownIcon(isContentMaximized ? 'lucide:minimize-2' : 'lucide:maximize-2'),
     },
     { key: 'divider-1', type: 'divider' },

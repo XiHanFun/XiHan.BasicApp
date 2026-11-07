@@ -23,12 +23,12 @@ import { useAppStore } from '~/stores'
 import LocaleFlag from './LocaleFlag.vue'
 
 /**
- * 语言切换组件（统一封装：选项 + 国旗 + 切换逻辑）。
- * - variant=select：行内下拉框（偏好设置、个人中心）。
- * - variant=dropdown：触发器 + 菜单（顶栏、登录页），触发器经默认插槽传入。
- * - apply=true：直接切换并同步应用语言（appStore.locale）；否则受控，仅 emit（如个人中心的资料字段）。
+ * 语言切换组件（统一封装：选项 + 国旗 + 切换逻辑）
+ * - variant=select：行内下拉框（偏好设置、个人中心）
+ * - variant=dropdown：触发器 + 菜单（顶栏、登录页），触发器经默认插槽传入
+ * - apply=true：直接切换并同步应用语言（appStore.locale）；否则受控，仅 emit（如个人中心的资料字段）
  *
- * 选项里要带国旗，所以这里不走 XSelect，直接摆部件：条目与选中态各自出一面旗。
+ * 选项里要带国旗，所以这里不走 XSelect，直接摆部件：条目与选中态各自出一面旗
  */
 defineOptions({ name: 'LocaleSwitcher' })
 
@@ -67,14 +67,22 @@ const LOCALES = [
   { value: 'en-US', labelKey: 'header.locale.en_us' },
   { value: 'ja-JP', labelKey: 'header.locale.ja_jp' },
   { value: 'ko-KR', labelKey: 'header.locale.ko_kr' },
-  { value: 'hi-IN', labelKey: 'header.locale.hi_in' },
   { value: 'de-DE', labelKey: 'header.locale.de_de' },
+  { value: 'es-ES', labelKey: 'header.locale.es_es' },
+  { value: 'fr-FR', labelKey: 'header.locale.fr_fr' },
+  { value: 'pt-BR', labelKey: 'header.locale.pt_br' },
+  { value: 'ru-RU', labelKey: 'header.locale.ru_ru' },
 ] as const
 
 /** 当前选中：apply 取应用语言，否则取受控值（兜底应用语言） */
-const current = computed(() => (props.apply ? appStore.locale : (props.value ?? appStore.locale)))
+const current = computed(() => (props.apply
+  ? appStore.locale
+  : (props.value ?? appStore.locale)))
 
-const options = computed<MenuNode[]>(() => LOCALES.map(l => ({ value: l.value, label: t(l.labelKey) })))
+const options = computed<MenuNode[]>(() => LOCALES.map(l => ({
+  value: l.value,
+  label: t(l.labelKey),
+})))
 
 /** 选中值：组件库的选中值恒为数组，单选也是长度 1 */
 const selected = computed(() => [current.value])
@@ -82,7 +90,11 @@ const selected = computed(() => [current.value])
 const selectStyle = computed(() =>
   props.selectWidth == null
     ? undefined
-    : { inlineSize: typeof props.selectWidth === 'number' ? `${props.selectWidth}px` : props.selectWidth })
+    : {
+        inlineSize: typeof props.selectWidth === 'number'
+          ? `${props.selectWidth}px`
+          : props.selectWidth,
+      })
 
 function choose(key: string) {
   if (props.apply)

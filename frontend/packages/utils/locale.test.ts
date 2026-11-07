@@ -1,15 +1,18 @@
 /**
- * 浏览器语言偵测单元测试。
+ * 浏览器语言偵测单元测试
  *
  * 职责边界：resolveBrowserLocale 的比对规则（完全相符 / 中文繁简 / 主语言 / 退回），
- * 以及 resolveInitialLocale 的优先序（本地存储 → 浏览器 → 默认语言）。
+ * 以及 resolveInitialLocale 的优先序（本地存储 → 浏览器 → 默认语言）
  */
 import { afterEach, describe, expect, it } from 'vitest'
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, LOCALE_KEY } from '~/constants'
 import { resolveBrowserLocale, resolveInitialLocale } from './locale'
 
 function stubBrowserLanguages(languages: string[] | undefined): void {
-  Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => languages })
+  Object.defineProperty(window.navigator, 'languages', {
+    configurable: true,
+    get: () => languages,
+  })
 }
 
 afterEach(() => {
@@ -33,7 +36,8 @@ describe('resolveBrowserLocale', () => {
     expect(resolveBrowserLocale(['en-GB'])).toBe('en-US')
     expect(resolveBrowserLocale(['ja'])).toBe('ja-JP')
     expect(resolveBrowserLocale(['ko'])).toBe('ko-KR')
-    expect(resolveBrowserLocale(['hi'])).toBe('hi-IN')
+    expect(resolveBrowserLocale(['pt'])).toBe('pt-BR')
+    expect(resolveBrowserLocale(['ru-UA'])).toBe('ru-RU')
   })
 
   it('繁体中文地区与 zh-Hant 对到 zh-TW', () => {
@@ -50,11 +54,11 @@ describe('resolveBrowserLocale', () => {
   })
 
   it('按浏览器语言顺序取第一个能比对到的', () => {
-    expect(resolveBrowserLocale(['fr-FR', 'ja', 'de-DE'])).toBe('ja-JP')
+    expect(resolveBrowserLocale(['hi-IN', 'ja', 'de-DE'])).toBe('ja-JP')
   })
 
   it('全部不受支持时退回 en-US', () => {
-    expect(resolveBrowserLocale(['fr-FR', 'es'])).toBe(FALLBACK_LOCALE)
+    expect(resolveBrowserLocale(['hi-IN', 'xx'])).toBe(FALLBACK_LOCALE)
     expect(FALLBACK_LOCALE).toBe('en-US')
   })
 
@@ -87,11 +91,11 @@ describe('resolveInitialLocale', () => {
   })
 
   it('浏览器语言不受支持时退回 en-US', () => {
-    stubBrowserLanguages(['fr-FR'])
+    stubBrowserLanguages(['hi-IN'])
     expect(resolveInitialLocale()).toBe('en-US')
   })
 
-  it('浏览器没有给语言时退回默认语言 zh-CN', () => {
+  it('浏览器没有给语言时退回默认语言 en-US', () => {
     stubBrowserLanguages([])
     expect(resolveInitialLocale()).toBe(DEFAULT_LOCALE)
   })

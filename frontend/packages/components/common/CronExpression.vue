@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabsNode } from '@xihan-ui/headless'
-import { useFieldControl, XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -10,11 +10,11 @@ import XNumberInput from './XNumberInput.vue'
 import XSelect from './XSelect.vue'
 
 /**
- * Cron 表达式编辑组件（公共组件）。
- * - 表现为「输入框 + 构建器按钮」，点击按钮弹出可视化构建器（不直接占用表单空间）。
- * - 支持 5 段（分 时 日 月 周）与 6 段（秒 分 时 日 月 周），与后端 CronHelper 方言一致。
- * - 字段语法：* ? , - /（不含 L/W/#）；周 0-6（0=周日）。
- * - v-model:value 双向绑定表达式字符串；构建器与手动输入实时同步，并预览最近执行时间。
+ * Cron 表达式编辑组件（公共组件）
+ * - 表现为「输入框 + 构建器按钮」，点击按钮弹出可视化构建器（不直接占用表单空间）
+ * - 支持 5 段（分 时 日 月 周）与 6 段（秒 分 时 日 月 周），与后端 CronHelper 方言一致
+ * - 字段语法：* ? , - /（不含 L/W/#）；周 0-6（0=周日）
+ * - v-model:value 双向绑定表达式字符串；构建器与手动输入实时同步，并预览最近执行时间
  */
 defineOptions({ name: 'CronExpression' })
 
@@ -67,23 +67,68 @@ const rawText = ref(props.value ?? '')
 const weekNames = computed(() => t('component.cron.week_names').split(','))
 
 const fieldDefs = computed<FieldDef[]>(() => [
-  { key: 'second', label: t('component.cron.field_second'), min: 0, max: 59, unspecified: false },
-  { key: 'minute', label: t('component.cron.field_minute'), min: 0, max: 59, unspecified: false },
-  { key: 'hour', label: t('component.cron.field_hour'), min: 0, max: 23, unspecified: false },
-  { key: 'day', label: t('component.cron.field_day'), min: 1, max: 31, unspecified: true },
-  { key: 'month', label: t('component.cron.field_month'), min: 1, max: 12, unspecified: false },
-  { key: 'week', label: t('component.cron.field_week'), min: 0, max: 6, unspecified: true },
+  {
+    key: 'second',
+    label: t('component.cron.field_second'),
+    min: 0,
+    max: 59,
+    unspecified: false,
+  },
+  {
+    key: 'minute',
+    label: t('component.cron.field_minute'),
+    min: 0,
+    max: 59,
+    unspecified: false,
+  },
+  {
+    key: 'hour',
+    label: t('component.cron.field_hour'),
+    min: 0,
+    max: 23,
+    unspecified: false,
+  },
+  {
+    key: 'day',
+    label: t('component.cron.field_day'),
+    min: 1,
+    max: 31,
+    unspecified: true,
+  },
+  {
+    key: 'month',
+    label: t('component.cron.field_month'),
+    min: 1,
+    max: 12,
+    unspecified: false,
+  },
+  {
+    key: 'week',
+    label: t('component.cron.field_week'),
+    min: 0,
+    max: 6,
+    unspecified: true,
+  },
 ])
 
 const activeFieldDefs = computed(() =>
-  hasSeconds.value ? fieldDefs.value : fieldDefs.value.filter(d => d.key !== 'second'))
+  hasSeconds.value
+    ? fieldDefs.value
+    : fieldDefs.value.filter(d => d.key !== 'second'))
 
 function defOf(key: FieldKey): FieldDef {
   return fieldDefs.value.find(d => d.key === key) ?? fieldDefs.value[1]!
 }
 
 function createField(min: number): FieldState {
-  return { mode: 'every', start: min, step: 1, from: min, to: min, values: [] }
+  return {
+    mode: 'every',
+    start: min,
+    step: 1,
+    from: min,
+    to: min,
+    values: [],
+  }
 }
 
 const fields = reactive<Record<FieldKey, FieldState>>({
@@ -104,11 +149,34 @@ const activeTab = ref<FieldKey>('minute')
 let syncingFromValue = false
 
 // ── 工具 ───────────────────────────────────────────────────────
-const MONTH_NAMES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-const DAY_NAMES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const MONTH_NAMES = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+]
+const DAY_NAMES = [
+  'SUN',
+  'MON',
+  'TUE',
+  'WED',
+  'THU',
+  'FRI',
+  'SAT',
+]
 
 function clamp(v: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, Number.isFinite(v) ? v : min))
+  return Math.min(max, Math.max(min, Number.isFinite(v)
+    ? v
+    : min))
 }
 
 function toNum(v: string, def: FieldDef, fallback: number): number {
@@ -144,7 +212,9 @@ function fieldToStr(f: FieldState, def: FieldDef): string {
     case 'range':
       return `${clamp(f.from, def.min, def.max)}-${clamp(f.to, def.min, def.max)}`
     case 'specific':
-      return f.values.length ? [...f.values].sort((a, b) => a - b).join(',') : '*'
+      return f.values.length
+        ? [...f.values].sort((a, b) => a - b).join(',')
+        : '*'
     default:
       return '*'
   }
@@ -165,7 +235,9 @@ function parseFieldStr(raw: string, def: FieldDef): FieldState {
     const segs = s.split('/')
     const head = segs[0] ?? '*'
     f.mode = 'interval'
-    f.start = head === '*' || head === '' ? def.min : toNum(head, def, def.min)
+    f.start = head === '*' || head === ''
+      ? def.min
+      : toNum(head, def, def.min)
     f.step = Math.max(1, Number.parseInt(segs[1] ?? '1', 10) || 1)
     return f
   }
@@ -193,15 +265,30 @@ function parseFieldStr(raw: string, def: FieldDef): FieldState {
     }
   }
   f.mode = 'specific'
-  f.values = [...new Set(values)].filter(v => v >= def.min && v <= def.max).sort((a, b) => a - b)
+  f.values = [
+    ...new Set(values),
+  ].filter(v => v >= def.min && v <= def.max).sort((a, b) => a - b)
   return f
 }
 
 // ── 组装 / 解析整表达式 ────────────────────────────────────────
 const fieldOrder = computed<FieldKey[]>(() =>
   hasSeconds.value
-    ? ['second', 'minute', 'hour', 'day', 'month', 'week']
-    : ['minute', 'hour', 'day', 'month', 'week'])
+    ? [
+        'second',
+        'minute',
+        'hour',
+        'day',
+        'month',
+        'week',
+      ]
+    : [
+        'minute',
+        'hour',
+        'day',
+        'month',
+        'week',
+      ])
 
 const expression = computed(() => fieldOrder.value.map(k => fieldToStr(fields[k], defOf(k))).join(' '))
 
@@ -221,7 +308,10 @@ function applyExpression(raw: string | null | undefined): void {
 }
 
 // 构建器结构变化 → 向上 emit（同步回填期间不发）
-watch([() => hasSeconds.value, fields], () => {
+watch([
+  () => hasSeconds.value,
+  fields,
+], () => {
   if (syncingFromValue) {
     return
   }
@@ -262,7 +352,10 @@ function specificOptions(def: FieldDef): { label: string, value: number }[] {
   }
   const out: { label: string, value: number }[] = []
   for (let i = def.min; i <= def.max; i++) {
-    out.push({ label: String(i), value: i })
+    out.push({
+      label: String(i),
+      value: i,
+    })
   }
   return out
 }
@@ -289,7 +382,9 @@ function fieldAllowed(f: FieldState, def: FieldDef): Set<number> | null {
     }
     case 'specific':
       // 未选值时视为通配（与 fieldToStr 输出 '*' 一致），避免空集导致永不匹配的长循环
-      return f.values.length ? new Set(f.values) : null
+      return f.values.length
+        ? new Set(f.values)
+        : null
     default:
       return null
   }
@@ -301,10 +396,12 @@ let previewTimer: ReturnType<typeof setTimeout> | null = null
 /**
  * 计算最近 N 次执行。性能要点：
  * 1) 任一字段为空集 → 永不匹配，立即返回，避免空转；
- * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环。
+ * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环
  */
 function computeNextRuns(): Date[] {
-  const sec = hasSeconds.value ? fieldAllowed(fields.second, defOf('second')) : new Set([0])
+  const sec = hasSeconds.value
+    ? fieldAllowed(fields.second, defOf('second'))
+    : new Set([0])
   const min = fieldAllowed(fields.minute, defOf('minute'))
   const hour = fieldAllowed(fields.hour, defOf('hour'))
   const day = fieldAllowed(fields.day, defOf('day'))
@@ -328,7 +425,9 @@ function computeNextRuns(): Date[] {
       && hit(hour, cursor.getHours())
       && hit(min, cursor.getMinutes())
     ) {
-      const fromSec = m === 0 ? startSecond : 0
+      const fromSec = m === 0
+        ? startSecond
+        : 0
       for (let s = fromSec; s <= 59 && results.length < props.previewCount; s++) {
         if (hit(sec, s)) {
           results.push(new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), cursor.getHours(), cursor.getMinutes(), s))
@@ -368,16 +467,43 @@ function fmt(d: Date): string {
 
 // ── 预设 ───────────────────────────────────────────────────────
 const presets = computed(() => [
-  { label: t('component.cron.preset_per_minute'), value: '0 * * * * ?' },
-  { label: t('component.cron.preset_per_5min'), value: '0 0/5 * * * ?' },
-  { label: t('component.cron.preset_hourly'), value: '0 0 * * * ?' },
-  { label: t('component.cron.preset_daily'), value: '0 0 0 * * ?' },
-  { label: t('component.cron.preset_weekly'), value: '0 0 0 ? * 1' },
-  { label: t('component.cron.preset_monthly'), value: '0 0 0 1 * ?' },
+  {
+    label: t('component.cron.preset_per_minute'),
+    value: '0 * * * * ?',
+  },
+  {
+    label: t('component.cron.preset_per_5min'),
+    value: '0 0/5 * * * ?',
+  },
+  {
+    label: t('component.cron.preset_hourly'),
+    value: '0 0 * * * ?',
+  },
+  {
+    label: t('component.cron.preset_daily'),
+    value: '0 0 0 * * ?',
+  },
+  {
+    label: t('component.cron.preset_weekly'),
+    value: '0 0 0 ? * 1',
+  },
+  {
+    label: t('component.cron.preset_monthly'),
+    value: '0 0 0 1 * ?',
+  },
 ])
+/** 与当前表达式相同的那个预设（关掉秒时按去掉秒段比）；手工改过字段就没有一个匹配 */
+const activePreset = computed(() => presets.value.find(p => p.value === expression.value || p.value.split(' ').slice(1).join(' ') === expression.value)?.value ?? null)
+
 function applyPreset(v: string): void {
   applyExpression(v)
   emit('update:value', v)
+}
+
+/** 切换按钮组不许清空：再点当前预设不会发 null，这里只接新值 */
+function onPresetChange(v: string | null): void {
+  if (v && v !== activePreset.value)
+    applyPreset(v)
 }
 </script>
 
@@ -409,21 +535,19 @@ function applyPreset(v: string): void {
       <div class="cron-editor">
         <!-- 预设 + 秒开关 -->
         <div class="cron-toolbar">
-          <div class="cron-presets">
-            <button
-              v-for="p in presets"
-              :key="p.value"
-              type="button"
-              class="cron-preset"
-              @click="applyPreset(p.value)"
-            >
-              <XhTagRoot variant="subtle" size="sm" tone="neutral">
-                <XhTagLabel>
-                  {{ p.label }}
-                </XhTagLabel>
-              </XhTagRoot>
-            </button>
-          </div>
+          <!-- 预设是切换按钮组：与当前表达式相同的那个高亮，点别的即套用；手工改过字段就没有高亮 -->
+          <XhToggleGroupRoot
+            size="sm"
+            class="cron-presets"
+            :value="activePreset"
+            disallow-empty
+            :aria-label="t('component.cron.presets_label')"
+            @update:value="onPresetChange"
+          >
+            <XhToggleGroupItem v-for="p in presets" :key="p.value" :value="p.value">
+              {{ p.label }}
+            </XhToggleGroupItem>
+          </XhToggleGroupRoot>
           <label class="cron-seconds">
             <span :id="secondsLabelId">{{ t('component.cron.with_seconds') }}</span>
             <XhSwitch v-model:checked="hasSeconds" size="sm" :aria-labelledby="secondsLabelId" />
@@ -577,60 +701,45 @@ function applyPreset(v: string): void {
 .cron-editor {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
 }
 
 .cron-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.cron-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.cron-preset {
-  cursor: pointer;
-  background: hsl(var(--accent));
-}
-
-.cron-preset:hover {
-  color: hsl(var(--primary));
+  gap: var(--xh-space-3);
 }
 
 .cron-seconds {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: hsl(var(--muted-foreground));
 }
 
 .cron-modes {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 4px 2px;
+  gap: var(--xh-space-2);
+  padding: var(--xh-space-1) var(--xh-space-0_5);
 }
 
 .cron-mode-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 28px;
+  gap: var(--xh-space-2);
+  min-height: var(--xh-control-h-sm);
   flex-wrap: wrap;
 }
 
 .cron-inline {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: var(--xh-space-1_5);
+  font-size: var(--xh-font-size-sm);
   color: hsl(var(--foreground));
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
@@ -641,21 +750,21 @@ function applyPreset(v: string): void {
 
 .cron-specific {
   flex: 1;
-  min-width: 220px;
-  max-width: 420px;
+  min-width: calc(var(--xh-space-8) * 7);
+  max-width: calc(var(--xh-space-8) * 13);
 }
 
 .cron-preview {
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.4);
-  padding: 8px 12px;
+  padding: var(--xh-space-2) var(--xh-space-3);
 }
 
 .cron-preview-title {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   color: hsl(var(--muted-foreground));
-  margin-bottom: 4px;
+  margin-bottom: var(--xh-space-1);
 }
 
 .cron-preview-list {
@@ -663,18 +772,18 @@ function applyPreset(v: string): void {
   padding: 0;
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 2px 16px;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--xh-space-8) * 5.25), 1fr));
+  gap: var(--xh-space-0_5) var(--xh-space-4);
 }
 
 .cron-preview-list li {
-  font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: var(--xh-font-size-xs);
+  font-family: var(--xh-font-family-mono);
   color: hsl(var(--foreground));
 }
 
 .cron-preview-empty {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: hsl(var(--muted-foreground));
 }
 
@@ -682,12 +791,12 @@ function applyPreset(v: string): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--xh-space-3);
 }
 
 .cron-footer-expr {
-  font-family: ui-monospace, SFMono-Regular, monospace;
-  font-size: 13px;
+  font-family: var(--xh-font-family-mono);
+  font-size: var(--xh-font-size-sm);
   color: hsl(var(--primary));
 }
 </style>

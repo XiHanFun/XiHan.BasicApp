@@ -1,13 +1,11 @@
 /**
- * useSignalR 连接管理单元测试。
+ * useSignalR 连接管理单元测试
  * 职责：用假 Hub 连接注入（绝不真连），锁定「按 hubPath 各持一条连接」
  * 「无 token 不发起连接」「已连接不重复建连」「事件订阅在重建连接时被重新绑定」
  * 「negotiate 401 借道刷新后只重试一次」「渐进式重连延迟与登出后放弃重连」
- * 以及 stop / destroy 的清理彻底性。
+ * 以及 stop / destroy 的清理彻底性
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { TOKEN_KEY } from '~/constants'
-import { LocalStorage } from '~/utils'
 
 interface ReconnectOptions {
   nextRetryDelayInMilliseconds: (ctx: { previousRetryCount: number }) => null | number
@@ -123,8 +121,17 @@ vi.mock('@microsoft/signalr', () => {
   }
 })
 
+/** 令牌与刷新来自 auth store（6.0）：整个 store 替身掉，用例只摆令牌、数刷新 */
 const refreshSessionToken = vi.hoisted(() => vi.fn<() => Promise<null | string>>())
-vi.mock('~/request', () => ({ refreshSessionToken }))
+const auth = vi.hoisted(() => ({ token: null as null | string }))
+vi.mock('~/stores', () => ({
+  useAuthStore: () => ({
+    get accessToken() {
+      return auth.token
+    },
+    refresh: refreshSessionToken,
+  }),
+}))
 
 interface FakeConn {
   state: string
@@ -152,6 +159,7 @@ function lastConnection(): FakeConn {
 }
 
 beforeEach(() => {
+  auth.token = null
   refreshSessionToken.mockReset()
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
@@ -173,7 +181,7 @@ describe('useSignalR 建连前置条件', () => {
   })
 
   it('有 token 时建连成功，连接标记置真', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
 
@@ -184,7 +192,7 @@ describe('useSignalR 建连前置条件', () => {
   })
 
   it('已连接时再次 start 直接返回，不重复建连', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
 
@@ -196,21 +204,21 @@ describe('useSignalR 建连前置条件', () => {
   })
 
   it('accessTokenFactory 每次现取本地 token，而不是建连时的快照', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     await useSignalR().start()
 
-    LocalStorage.set(TOKEN_KEY, 'tok-2')
+    auth.token = 'tok-2'
 
     expect(lastConnection().urlOptions.accessTokenFactory()).toBe('tok-2')
   })
 
   it('token 被清空后 accessTokenFactory 返回空串而不是 null', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     await useSignalR().start()
 
-    LocalStorage.remove(TOKEN_KEY)
+    auth.token = null
 
     expect(lastConnection().urlOptions.accessTokenFactory()).toBe('')
   })
@@ -219,7 +227,7 @@ describe('useSignalR 建连前置条件', () => {
 describe('useSignalR Hub 地址拼接', () => {
   it('基址末尾的 API 前缀被剥掉后再拼 Hub 路径', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:5000/api')
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     await useSignalR().start()
@@ -229,7 +237,7 @@ describe('useSignalR Hub 地址拼接', () => {
 
   it('基址末尾多余的斜杠被清理，不产生双斜杠', async () => {
     vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:5000/api///')
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     await useSignalR().start()
@@ -239,7 +247,7 @@ describe('useSignalR Hub 地址拼接', () => {
 
   it('基址为空时退化为同源相对路径', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     await useSignalR().start()
@@ -249,7 +257,7 @@ describe('useSignalR Hub 地址拼接', () => {
 
   it('传入的 Hub 路径缺少前导斜杠时自动补齐', async () => {
     vi.stubEnv('VITE_API_BASE_URL', '')
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     await useSignalR('hubs/chat').start()
@@ -260,7 +268,7 @@ describe('useSignalR Hub 地址拼接', () => {
 
 describe('useSignalR 多 Hub 隔离', () => {
   it('不同 hubPath 各持一条独立连接与独立连接标记', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     const notification = useSignalR('/hubs/notification')
@@ -273,7 +281,7 @@ describe('useSignalR 多 Hub 隔离', () => {
   })
 
   it('归一化后的同一路径复用同一实例状态', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     await useSignalR('hubs/chat').start()
@@ -282,7 +290,7 @@ describe('useSignalR 多 Hub 隔离', () => {
   })
 
   it('一个 Hub 的订阅不会绑到另一个 Hub 上', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const handler = vi.fn()
 
@@ -295,7 +303,7 @@ describe('useSignalR 多 Hub 隔离', () => {
 
 describe('useSignalR 事件订阅', () => {
   it('建连前注册的订阅在建连时被重新绑定到新连接', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     const handler = vi.fn()
@@ -307,7 +315,7 @@ describe('useSignalR 事件订阅', () => {
   })
 
   it('同一事件可注册多个处理器，全部被绑定', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     const first = vi.fn()
@@ -321,7 +329,7 @@ describe('useSignalR 事件订阅', () => {
   })
 
   it('建连后注册的订阅立即绑到现有连接上', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     await hub.start()
@@ -333,7 +341,7 @@ describe('useSignalR 事件订阅', () => {
   })
 
   it('off 传处理器时只摘掉该处理器，其余保留', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     const first = vi.fn()
@@ -349,7 +357,7 @@ describe('useSignalR 事件订阅', () => {
   })
 
   it('off 不传处理器时摘掉该事件的全部订阅', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     hub.on('Notify', vi.fn())
@@ -371,7 +379,7 @@ describe('useSignalR 事件订阅', () => {
   })
 
   it('被 off 掉的订阅不会在重建连接时复活', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     const handler = vi.fn()
@@ -384,7 +392,7 @@ describe('useSignalR 事件订阅', () => {
   })
 
   it('服务端 Connected 事件被空处理器占位，避免控制台警告', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
 
     await useSignalR().start()
@@ -395,7 +403,7 @@ describe('useSignalR 事件订阅', () => {
 
 describe('useSignalR 连接生命周期回调', () => {
   it('重连中把连接标记置假，重连成功后置真', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     await hub.start()
@@ -408,7 +416,7 @@ describe('useSignalR 连接生命周期回调', () => {
   })
 
   it('连接关闭时连接标记置假', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     await hub.start()
@@ -421,7 +429,7 @@ describe('useSignalR 连接生命周期回调', () => {
 
 describe('useSignalR 重连退避策略', () => {
   it('重连延迟按 1s/2s/5s/10s/30s 渐进', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     await useSignalR().start()
     const next = lastConnection().reconnectOptions.nextRetryDelayInMilliseconds
@@ -431,7 +439,7 @@ describe('useSignalR 重连退避策略', () => {
   })
 
   it('重试次数超出档位后固定停在 30s，不再增长', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     await useSignalR().start()
     const next = lastConnection().reconnectOptions.nextRetryDelayInMilliseconds
@@ -440,12 +448,12 @@ describe('useSignalR 重连退避策略', () => {
   })
 
   it('token 已清除（已登出）时放弃重连', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     await useSignalR().start()
     const next = lastConnection().reconnectOptions.nextRetryDelayInMilliseconds
 
-    LocalStorage.remove(TOKEN_KEY)
+    auth.token = null
 
     expect(next({ previousRetryCount: 0 })).toBeNull()
   })
@@ -453,7 +461,7 @@ describe('useSignalR 重连退避策略', () => {
 
 describe('useSignalR negotiate 401 处理', () => {
   it('带 statusCode 401 的失败会刷新令牌并重试一次', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     hoisted.startBehavior = async (attempt) => {
       if (attempt === 1) {
@@ -471,7 +479,7 @@ describe('useSignalR negotiate 401 处理', () => {
   })
 
   it('错误信息里带 401 字样时同样触发刷新重试', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     hoisted.startBehavior = async (attempt) => {
       if (attempt === 1) {
@@ -486,7 +494,7 @@ describe('useSignalR negotiate 401 处理', () => {
   })
 
   it('刷新失败（返回空）时不再重试，避免拿过期 token 无限 negotiate', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     hoisted.startBehavior = async () => {
       throw Object.assign(new Error('Unauthorized'), { statusCode: 401 })
@@ -501,7 +509,7 @@ describe('useSignalR negotiate 401 处理', () => {
   })
 
   it('刷新后重试仍 401 时只重试一次就收手', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     hoisted.startBehavior = async () => {
       throw Object.assign(new Error('Unauthorized'), { statusCode: 401 })
@@ -515,7 +523,7 @@ describe('useSignalR negotiate 401 处理', () => {
   })
 
   it('非 401 的建连失败不触发令牌刷新，连接被清空', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     hoisted.startBehavior = async () => {
       throw new Error('ECONNREFUSED')
@@ -530,7 +538,7 @@ describe('useSignalR negotiate 401 处理', () => {
   })
 
   it('建连失败后连接被清空，因此下一次 start 会重新建连', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     hoisted.startBehavior = async (attempt) => {
       if (attempt === 1) {
@@ -556,19 +564,24 @@ describe('useSignalR 调用与清理', () => {
   })
 
   it('已连接时 invoke 透传方法名与参数', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     await hub.start()
 
     const result = await hub.invoke<string>('SendMessage', 'room-1', 42)
 
-    expect(lastConnection().invokeCalls).toEqual([{ method: 'SendMessage', args: ['room-1', 42] }])
+    expect(lastConnection().invokeCalls).toEqual([
+      {
+        method: 'SendMessage',
+        args: ['room-1', 42],
+      },
+    ])
     expect(result).toBe('SendMessage:ok')
   })
 
   it('stop 关闭底层连接并清空连接引用与标记', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     await hub.start()
@@ -588,7 +601,7 @@ describe('useSignalR 调用与清理', () => {
   })
 
   it('底层 stop 抛错被吞掉，状态照样清干净', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     await hub.start()
@@ -602,7 +615,7 @@ describe('useSignalR 调用与清理', () => {
   })
 
   it('destroy 同时清空订阅登记表与连接，重连后不会复活旧订阅', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR } = await loadModule()
     const hub = useSignalR()
     hub.on('Notify', vi.fn())
@@ -616,7 +629,7 @@ describe('useSignalR 调用与清理', () => {
   })
 
   it('destroyAllSignalRConnections 关掉全部已注册的 Hub', async () => {
-    LocalStorage.set(TOKEN_KEY, 'tok-1')
+    auth.token = 'tok-1'
     const { useSignalR, destroyAllSignalRConnections } = await loadModule()
     const notification = useSignalR('/hubs/notification')
     const chat = useSignalR('/hubs/chat')

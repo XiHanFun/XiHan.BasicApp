@@ -1,9 +1,9 @@
 /**
- * 打印演示种子（后端 XiHan.BasicApp.Printing/Infrastructure/Seeders/Demo）的模板与数据源。
+ * 打印演示种子（后端 backend-next/src/XiHan.BasicApp.Printing/Seeds/Demo）的模板与数据源
  *
  * 读后端随程序集发布的同一批 JSON：每张模板都要通过打印设计器的完整校验，用所绑数据源的样例数据排版时
  * 不出错误级诊断（条码、二维码取值不合法，图片地址不安全，表达式出错等，预览里就是报错占位），也不出格式失败；
- * 模板引用的字段都要在所绑数据源里登记。
+ * 模板引用的字段都要在所绑数据源里登记
  */
 import type { PrintDocument } from '@xihan-print/core'
 import type { PrintFieldDefinition } from './types'
@@ -21,7 +21,7 @@ interface DemoDataSource {
   sample: unknown
 }
 
-const demoRoot = join(__dirname, '..', '..', '..', 'backend', 'src', 'modules', 'XiHan.BasicApp.Printing', 'Infrastructure', 'Seeders', 'Demo')
+const demoRoot = join(__dirname, '..', '..', '..', 'backend-next', 'src', 'XiHan.BasicApp.Printing', 'Seeds', 'Demo')
 
 /** 元素总览绑的内置数据源 system.print-demo：字段与样例同后端 BuiltInPrintDataSources.SystemPrintDemo */
 const systemPrintDemo: DemoDataSource = {
@@ -42,7 +42,12 @@ const systemPrintDemo: DemoDataSource = {
       columns: [
         { field: 'sku', title: '物料编码', width: 90 },
         { field: 'name', title: '物料名称', width: 120 },
-        { field: 'quantity', title: '数量', width: 60, inputType: 'number' },
+        {
+          field: 'quantity',
+          title: '数量',
+          width: 60,
+          inputType: 'number',
+        },
         { field: 'unit', title: '单位', width: 50 },
       ],
     },
@@ -56,8 +61,18 @@ const systemPrintDemo: DemoDataSource = {
     barcode: 'DEMO-20260729-0001',
     qrCode: 'https://basicapp.xihanfun.com/print-demo/DEMO-20260729-0001',
     items: [
-      { sku: 'SKU-001', name: '示例物料 A', quantity: 2, unit: '件' },
-      { sku: 'SKU-002', name: '示例物料 B', quantity: 5, unit: '箱' },
+      {
+        sku: 'SKU-001',
+        name: '示例物料 A',
+        quantity: 2,
+        unit: '件',
+      },
+      {
+        sku: 'SKU-002',
+        name: '示例物料 B',
+        quantity: 5,
+        unit: '箱',
+      },
     ],
   },
 }
@@ -91,13 +106,21 @@ const measurer = {
 }
 
 /** 预览里会显示成报错占位或丢值的诊断：错误级之外，再加格式、表达式与数据形状不对的警告 */
-const blockingWarnings = new Set(['format.unavailable', 'format.failed', 'expression.unavailable', 'data.notArray', 'data.notScalar'])
+const blockingWarnings = new Set([
+  'format.unavailable',
+  'format.failed',
+  'expression.unavailable',
+  'data.notArray',
+  'data.notScalar',
+])
 
 describe('打印演示种子', () => {
   it('模板与数据源文件一一登记，没有漏掉或多出的', () => {
     expect(readdirSync(join(demoRoot, 'Templates')).map(file => file.replace(/\.json$/, '')).sort())
       .toEqual(templates.map(([code]) => code).sort())
-    expect([...dataSources.keys()].filter(code => code.startsWith('demo.')).sort())
+    expect([
+      ...dataSources.keys(),
+    ].filter(code => code.startsWith('demo.')).sort())
       .toEqual(templates.map(([, dataSource]) => dataSource).filter(code => code.startsWith('demo.')).sort())
   })
 

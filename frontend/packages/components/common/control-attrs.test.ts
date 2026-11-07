@@ -1,9 +1,9 @@
 /**
- * 字段接线只落在真正的控件上，而且只落一次。
+ * 字段接线只落在真正的控件上，而且只落一次
  *
- * XhFieldControl 默认把 id 与 aria-* 合并到唯一子节点上，封装经 attrs 转交给里面的输入框。
+ * XhFieldControl 默认把 id 与 aria-* 合并到唯一子节点上，封装经 attrs 转交给里面的输入框
  * 封装若再从字段上下文另取一份，字段子树里的每个封装——弹窗里的搜索框、输入组、字段数组的每一行——
- * 都会拿到同一个 id：label 的 for 落空，读屏把它们都念成外层字段。
+ * 都会拿到同一个 id：label 的 for 落空，读屏把它们都念成外层字段
  */
 import { mount } from '@vue/test-utils'
 import { useFieldControl, XhButton, XhFieldControl, XhFieldLabel, XhFieldRoot, XhInputGroupRoot } from '@xihan-ui/vue'
@@ -20,12 +20,17 @@ function controlIdOf(wrapper: ReturnType<typeof mount>): string {
 }
 
 function nodesWithId(id: string): Element[] {
-  return [...document.querySelectorAll(`[id="${id}"]`)]
+  return [
+    ...document.querySelectorAll(`[id="${id}"]`),
+  ]
 }
 
 function mountField(control: () => unknown) {
   return mount({
-    render: () => h(XhFieldRoot, null, () => [h(XhFieldLabel, null, () => '名称'), control()]),
+    render: () => h(XhFieldRoot, null, () => [
+      h(XhFieldLabel, null, () => '名称'),
+      control(),
+    ]),
   }, { attachTo: document.body })
 }
 

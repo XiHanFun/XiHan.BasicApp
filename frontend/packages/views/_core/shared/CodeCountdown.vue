@@ -2,7 +2,7 @@
 import type { VNode } from 'vue'
 import { XhTimerDisplay, XhTimerRoot } from '@xihan-ui/vue'
 
-// 验证码重发倒计时：秒数大于 0 时逐拍倒数，走到 0 发 finish。
+// 验证码重发倒计时：秒数大于 0 时逐拍倒数，走到 0 发 finish
 
 defineProps<{
   /** 这一轮的时长（秒），大于 0 才计时 */

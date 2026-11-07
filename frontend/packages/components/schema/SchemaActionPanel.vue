@@ -51,7 +51,11 @@ const primaryActions = computed(() => permitted.value.slice(0, props.maxButtons)
 const moreActions = computed(() => permitted.value.slice(props.maxButtons))
 
 const moreOptions = computed<MenuNode[]>(() =>
-  moreActions.value.map(a => ({ value: a.key, label: a.title, tone: actionMenuTone(a.tone) })),
+  moreActions.value.map(a => ({
+    value: a.key,
+    label: a.title,
+    tone: actionMenuTone(a.tone),
+  })),
 )
 
 /** 「更多」里的行首图标；没有一条声明图标时为空，不铺这一列 */
@@ -83,10 +87,12 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
       </XhButton>
     </template>
 
-    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款 -->
+    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款
+         菜单按落定那一侧的可用高度铺开：组件库缺省的上限是 20rem，本应用根字号 14px 下只有 280px，八项就露不全 -->
     <XhMenuRoot
       v-if="moreOptions.length"
       trigger-as-child
+      fit-available-height
       :collection="moreOptions"
       @item-select="(details: { value: string }) => emit('action', details.value)"
     >

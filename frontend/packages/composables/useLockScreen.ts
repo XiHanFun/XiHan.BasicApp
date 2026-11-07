@@ -1,6 +1,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH, LOCK_STATE_KEY } from '~/constants'
+import { ApiError } from '~/request'
 import { useAccessStore, useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
 import {
   clearLockState,
@@ -12,15 +13,22 @@ import {
 
 export type LockMode = 'off' | 'setting' | 'locked' | 'password-change'
 
+/** 后端错误只显示文案（不带错误码前缀），其他错误照旧显示消息 */
+function errorText(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error)?.message
+}
+
 /**
- * 锁屏：**服务端强制**。
+ * 锁屏：**服务端强制**
  *
  * 锁屏位存在 `SysUserSession.IsLocked`，服务端中间件会以 423 拒绝该会话的一切请求
- * （仅放行解锁/登出/刷新）。所以改 DOM、开新标签页、乃至绕过前端直接 curl 调 API，都取不到数据。
+ * （仅放行解锁/登出/刷新）。所以改 DOM、开新标签页、乃至绕过前端直接 curl 调 API，都取不到数据
  *
  * 客户端这份 localStorage 标记**只是 UI 状态**，不是安全边界：它的作用是让本标签页
- * 立刻显示遮罩、并让其它标签页跟着同步，免得每个标签页都要先撞一次 423 才知道该锁。
- * 即便有人手动删掉它，服务端照样 423。
+ * 立刻显示遮罩、并让其它标签页跟着同步，免得每个标签页都要先撞一次 423 才知道该锁
+ * 即便有人手动删掉它，服务端照样 423
  */
 const MAX_LOCK_ATTEMPTS = 5
 
@@ -99,7 +107,7 @@ export function useLockScreen() {
       lockAttempts.value = 0
     }
     catch (error) {
-      lockPwdError.value = (error as Error)?.message || t('component.lock_screen.lock_failed')
+      lockPwdError.value = errorText(error) || t('component.lock_screen.lock_failed')
     }
     finally {
       lockLoading.value = false
@@ -125,10 +133,16 @@ export function useLockScreen() {
     try {
       await ctx.apis.unlockSessionApi({ password: unlockPwd.value })
       releaseLock()
+      // 锁定中整页刷新过：权限与菜单在锁定期间拿不到（守卫放行挂壳），解锁后在当前地址重走一次守卫装载；同一地址要 force（4.x 漏了这步，停在 404）
+      if (!accessStore.isRoutesLoaded) {
+        const router = await ctx.getRouter()
+        const { path, query, hash } = router.currentRoute.value
+        await router.replace({ path, query, hash, force: true })
+      }
     }
     catch (error) {
-      // 会话本身已失效（被其它设备登出、令牌过期）：请求层收到 401 已强制登出并跳登录页。
-      // 此时把「登录已过期」写进锁屏框，只会让用户对着一个永远打不开的锁——直接收起遮罩。
+      // 会话本身已失效（被其它设备登出、令牌过期）：请求层收到 401 已强制登出并跳登录页
+      // 此时把「登录已过期」写进锁屏框，只会让用户对着一个永远打不开的锁——直接收起遮罩
       if (!accessStore.accessToken) {
         releaseLock()
         return
@@ -141,7 +155,7 @@ export function useLockScreen() {
         void authStore.logout()
         return
       }
-      unlockError.value = (error as Error)?.message || t('component.lock_screen.unlock_failed')
+      unlockError.value = errorText(error) || t('component.lock_screen.unlock_failed')
     }
     finally {
       unlockLoading.value = false
@@ -165,11 +179,11 @@ export function useLockScreen() {
         oldPassword: changePwdOld.value,
         newPassword: changePwdNew.value,
       })
-      // 服务端已解锁会话；收起引导。锁定期间用户信息/动态路由都被 423 挡下没加载，
-      // 重新导航让守卫完整引导一遍（拉用户信息、装路由），壳层恢复正常。
+      // 服务端已解锁会话；收起引导。锁定期间用户信息/动态路由都被挡下没加载，
+      // 重新导航让守卫完整引导一遍（拉用户信息、装路由），壳层恢复正常；登录后本来就落在首页，同一地址要 force
       releaseLock()
       const router = await ctx.getRouter()
-      await router.replace(HOME_PATH)
+      await router.replace({ path: HOME_PATH, force: true })
     }
     catch (error) {
       // 会话已失效（被其它设备登出、令牌过期）：请求层 401 已强制登出并清令牌，直接收起引导
@@ -177,7 +191,7 @@ export function useLockScreen() {
         releaseLock()
         return
       }
-      changePwdError.value = (error as Error)?.message || t('component.lock_screen.change_password_failed')
+      changePwdError.value = errorText(error) || t('component.lock_screen.change_password_failed')
     }
     finally {
       changePwdLoading.value = false
@@ -217,8 +231,8 @@ export function useLockScreen() {
   function syncFromStorage() {
     const locked = isLockedState()
     // 未登录就没有会话可锁：被其它设备顶下线、令牌过期后本地令牌已被清空，
-    // 此时若仍按标记挂上遮罩，用户会看到「登录页上盖着一层怎么刷新都去不掉的锁屏」。
-    // 这个残留标记顺手清掉，免得下次进来又撞上。
+    // 此时若仍按标记挂上遮罩，用户会看到「登录页上盖着一层怎么刷新都去不掉的锁屏」
+    // 这个残留标记顺手清掉，免得下次进来又撞上
     if (locked && !accessStore.accessToken) {
       releaseLock()
       return
@@ -248,7 +262,7 @@ export function useLockScreen() {
 
   /**
    * storage 事件只在**其他**标签页触发，正是跨标签页同步所需：
-   * 一处锁屏，所有已打开的标签页立即跟着锁；一处解锁，其余一起解开。
+   * 一处锁屏，所有已打开的标签页立即跟着锁；一处解锁，其余一起解开
    */
   function handleStorage(e: StorageEvent) {
     if (e.key === null || e.key === LOCK_STATE_KEY) {
@@ -257,7 +271,7 @@ export function useLockScreen() {
   }
 
   /**
-   * 本标签页内锁定态变更：423 被拦下置位、或强制登出清位，都从这里回到 UI。
+   * 本标签页内锁定态变更：423 被拦下置位、或强制登出清位，都从这里回到 UI
    * （同标签页的 localStorage 改动不触发 storage 事件，必须靠这条自定义事件。）
    */
   function handleLockChanged() {
@@ -287,7 +301,7 @@ export function useLockScreen() {
   onMounted(() => {
     window.addEventListener('storage', handleStorage)
     window.addEventListener(SESSION_LOCK_CHANGED_EVENT, handleLockChanged)
-    // 新标签页/刷新时恢复锁屏态。真正的兜底是服务端 423——即使这里被绕过，请求也拿不到数据。
+    // 新标签页/刷新时恢复锁屏态。真正的兜底是服务端 423——即使这里被绕过，请求也拿不到数据
     syncFromStorage()
   })
 

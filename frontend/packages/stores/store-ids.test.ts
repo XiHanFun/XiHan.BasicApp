@@ -1,8 +1,8 @@
 /**
- * Store ID 契约测试。
+ * Store ID 契约测试
  * 职责边界：SetupStoreId 是全站 Pinia store 的唯一命名来源，
  * 重复取值会让两个 store 在同一个 pinia 实例里互相覆盖，这里锁住「取值唯一」与
- * 「枚举里登记的 id 与实际 defineStore 使用的 id 一致」。
+ * 「枚举里登记的 id 与实际 defineStore 使用的 id 一致」
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'

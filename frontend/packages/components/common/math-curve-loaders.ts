@@ -1,5 +1,5 @@
 // ==================== 数学曲线加载器 ====================
-// 粒子拖尾沿参数曲线运动，叠加整体旋转与「呼吸」细节缩放（detailScale）。
+// 粒子拖尾沿参数曲线运动，叠加整体旋转与「呼吸」细节缩放（detailScale）
 
 export interface LoaderConfig {
   /** 稳定标识（loadingName 取值） */
@@ -539,7 +539,9 @@ export function buildPath(config: LoaderConfig, detailScale: number, steps: numb
   let d = ''
   for (let index = 0; index <= steps; index++) {
     const point = config.point(index / steps, detailScale, config)
-    d += `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)} `
+    d += `${index === 0
+      ? 'M'
+      : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)} `
   }
   return d
 }

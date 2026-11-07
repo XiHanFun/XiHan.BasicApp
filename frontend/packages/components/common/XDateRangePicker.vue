@@ -37,14 +37,14 @@ import { rangeToDraft, resolveRangeChange, segmentLiteralBefore } from './date-p
 import { endSegmentGroupWiring, segmentGroupWiring } from './date-picker-wiring'
 
 /**
- * 日期区间选择。单日选择是另一件组件，见 XDatePicker。
+ * 日期区间选择。单日选择是另一件组件，见 XDatePicker
  *
  * 组件库把区间选择从 DatePicker 拆成了独立的 DateRangePicker：两组段位各认领一端，
- * 值按位存放为 [起, 止] 两个 ISO 日期串（`YYYY-MM-DD`），只填了一端时空缺的那端是空串。
- * 本应用上下游一律用时间戳（毫秒），换算在这里做（见 date-picker-value.ts）。
+ * 值按位存放为 [起, 止] 两个 ISO 日期串（`YYYY-MM-DD`），只填了一端时空缺的那端是空串
+ * 本应用上下游一律用时间戳（毫秒），换算在这里做（见 date-picker-value.ts）
  *
  * 只落下一端时不上抛，调用方拿到的区间要么两端齐备、要么为空；那一半留在本地草稿里
- * 交回组件库——受控值若只认两端齐备，段位里先敲完的那一端会被受控值抹回去，区间永远填不齐。
+ * 交回组件库——受控值若只认两端齐备，段位里先敲完的那一端会被受控值抹回去，区间永远填不齐
  */
 defineOptions({ name: 'XDateRangePicker', inheritAttrs: false })
 
@@ -160,7 +160,7 @@ function onValueChange(next: string[]): void {
         <!-- 面板号写在日历上，面板内的标题、网格与格子跟着它走 -->
         <XhDateRangePickerCalendar v-for="panel in panels" :key="panel.index" :index="panel.index">
           <XhDateRangePickerHeader>
-            <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张。
+            <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张
                  年钮在外、月钮在内：一大步在外圈，一小步在内圈 -->
             <XhDateRangePickerPrevYearTrigger
               v-if="panel.index === 0"

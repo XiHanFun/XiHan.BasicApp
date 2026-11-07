@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret } from '~/types'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhInputGroupRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useAppContext } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 
@@ -22,13 +23,20 @@ const createModalVisible = ref(false)
 const createSubmitting = ref(false)
 const createName = ref('')
 
+/** 服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError
+    ? error.detail
+    : (error as Error | undefined)?.message
+}
+
 async function loadCredentials() {
   credentialsLoading.value = true
   try {
     credentials.value = await apis.getApiCredentialsApi()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_load_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_load_failed'))
   }
   finally {
     credentialsLoading.value = false
@@ -49,7 +57,7 @@ async function handleCreateCredential() {
     await loadCredentials()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_create_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_create_failed'))
   }
   finally {
     createSubmitting.value = false
@@ -70,7 +78,7 @@ function handleRotateSecret(cred: ApiCredentialItem) {
         await loadCredentials()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.developer.err_rotate_failed'))
+        toast.danger(messageOf(e) || t('component.profile.developer.err_rotate_failed'))
       }
     },
   })
@@ -79,11 +87,13 @@ function handleRotateSecret(cred: ApiCredentialItem) {
 async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
   try {
     await apis.updateApiCredentialStatusApi(cred.basicId, enabled ? 'Enabled' : 'Disabled')
-    toast.success(enabled ? t('component.profile.developer.msg_credential_enabled') : t('component.profile.developer.msg_credential_disabled'))
+    toast.success(enabled
+      ? t('component.profile.developer.msg_credential_enabled')
+      : t('component.profile.developer.msg_credential_disabled'))
     await loadCredentials()
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_update_status_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_update_status_failed'))
     await loadCredentials()
   }
 }
@@ -106,7 +116,7 @@ function handleDeleteCredential(cred: ApiCredentialItem) {
         await loadCredentials()
       }
       catch (e) {
-        toast.danger((e as Error).message || t('component.profile.developer.err_delete_failed'))
+        toast.danger(messageOf(e) || t('component.profile.developer.err_delete_failed'))
       }
     },
   })
@@ -116,29 +126,24 @@ function copyText(text: string) {
   void copyToClipboard(text).then(() => toast.success(t('component.profile.developer.msg_copied')))
 }
 
-// ── 调用安全设置（签名算法 + IP 白名单，按 用户 × 设置键 持久化） ──
-const OPENAPI_SETTING_SCENE = 0 // UserSettingScene.Preference
-const OPENAPI_SETTING_KEY = 'developer.openapi'
-
-interface OpenApiSettings { signAlgorithm: string, ipWhitelist: string }
-
+// ── 调用安全设置（签名算法 + IP 白名单，作用于本人全部凭证，验签时服务端读取） ──
 const settingsSaving = ref(false)
 const signAlgorithm = ref('HmacSHA256')
 const ipWhitelist = ref('')
-const signAlgorithmOptions = [
+const signAlgorithmOptions = ref([
   { label: 'HmacSHA256', value: 'HmacSHA256' },
   { label: 'HmacSHA512', value: 'HmacSHA512' },
-  { label: 'RSA-SHA256', value: 'RSA-SHA256' },
-]
+])
+
+function applyOpenApiSettings(settings: ApiCallSettings) {
+  signAlgorithm.value = settings.signAlgorithm
+  ipWhitelist.value = settings.ipWhitelist.join('\n')
+  signAlgorithmOptions.value = settings.algorithms.map(value => ({ label: value, value }))
+}
 
 async function loadOpenApiSettings() {
   try {
-    const result = await apis.userSettingApi.get({ scene: OPENAPI_SETTING_SCENE, settingKey: OPENAPI_SETTING_KEY })
-    if (result.settingValue) {
-      const parsed = JSON.parse(result.settingValue) as Partial<OpenApiSettings>
-      signAlgorithm.value = parsed.signAlgorithm || 'HmacSHA256'
-      ipWhitelist.value = parsed.ipWhitelist || ''
-    }
+    applyOpenApiSettings(await apis.getApiCallSettingsApi())
   }
   catch {
     // 设置缺省即默认值，加载失败不打扰
@@ -146,29 +151,17 @@ async function loadOpenApiSettings() {
 }
 
 async function handleSaveOpenApiSettings() {
-  // 简单校验：每行一个 IP / CIDR
-  const invalid = ipWhitelist.value
-    .split('\n')
-    .map(line => line.trim())
-    .filter(Boolean)
-    .find(line => !/^\d{1,3}(?:\.\d{1,3}){3}(?:\/\d{1,2})?$/.test(line))
-  if (invalid) {
-    toast.danger(t('component.profile.developer.err_ip_whitelist_invalid', { value: invalid }))
-    return
-  }
-
+  // 每行一个 IP（v4 / v6）或 CIDR 网段；格式由服务端校验，不合法的那一条随错误文案返回
   settingsSaving.value = true
   try {
-    const payload: OpenApiSettings = { signAlgorithm: signAlgorithm.value, ipWhitelist: ipWhitelist.value.trim() }
-    await apis.userSettingApi.save({
-      scene: OPENAPI_SETTING_SCENE,
-      settingKey: OPENAPI_SETTING_KEY,
-      settingValue: JSON.stringify(payload),
-    })
+    applyOpenApiSettings(await apis.saveApiCallSettingsApi({
+      signAlgorithm: signAlgorithm.value,
+      ipWhitelist: ipWhitelist.value.split('\n').map(line => line.trim()).filter(Boolean),
+    }))
     toast.success(t('component.profile.developer.msg_settings_saved'))
   }
   catch (e) {
-    toast.danger((e as Error).message || t('component.profile.developer.err_save_failed'))
+    toast.danger(messageOf(e) || t('component.profile.developer.err_save_failed'))
   }
   finally {
     settingsSaving.value = false
@@ -391,7 +384,7 @@ onMounted(() => {
   flex-shrink: 0;
   width: 52px;
   font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--xh-font-family-mono);
   opacity: 0.75;
 }
 
@@ -414,7 +407,7 @@ onMounted(() => {
 
 .pf-credential__key code {
   font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--xh-font-family-mono);
   opacity: 0.85;
 }
 

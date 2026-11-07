@@ -23,21 +23,25 @@ const keyword = ref('')
 const activeIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 const gridHostRef = ref<{ $el?: HTMLElement } | null>(null)
-/** 网格的根节点。ref 落在组件上得到的是实例，键盘导航要的是它渲染出的那个元素。 */
+/** 网格的根节点。ref 落在组件上得到的是实例，键盘导航要的是它渲染出的那个元素 */
 const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? null)
 
 // 总览铺满视口期间背后的内容不该还能滚
 usePageScrollLock(visible)
 
 function tr(title: string): string {
-  return te(title) ? t(title) : title
+  return te(title)
+    ? t(title)
+    : title
 }
 
 function resolveIcon(icon?: string): string {
   if (!icon) {
     return 'lucide:file'
   }
-  return icon.includes(':') ? icon : `lucide:${icon}`
+  return icon.includes(':')
+    ? icon
+    : `lucide:${icon}`
 }
 
 interface OverviewCard {
@@ -60,7 +64,9 @@ const cards = computed<OverviewCard[]>(() =>
       let splitWith: string | undefined
       if (splitViewStore.isSplitTab(tab.path)) {
         const right = tabbarStore.tabs.find(item => item.path === splitViewStore.rightPath)
-        splitWith = right ? tr(right.title) : undefined
+        splitWith = right
+          ? tr(right.title)
+          : undefined
       }
       return {
         key: tab.path,
@@ -166,7 +172,9 @@ function columnsCount(): number {
   if (!grid) {
     return 1
   }
-  const items = [...grid.querySelectorAll<HTMLElement>('[data-overview-card]')]
+  const items = [
+    ...grid.querySelectorAll<HTMLElement>('[data-overview-card]'),
+  ]
   if (items.length <= 1) {
     return 1
   }
@@ -550,7 +558,7 @@ function onKeydown(e: KeyboardEvent): void {
   margin-right: 3px;
   border-radius: 4px;
   background: color-mix(in oklab, var(--tab-ov-ink) 16%, transparent);
-  font-family: ui-monospace, monospace;
+  font-family: var(--xh-font-family-mono);
   font-size: 11px;
 }
 

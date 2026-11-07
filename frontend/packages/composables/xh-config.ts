@@ -4,11 +4,11 @@ import { xhFallbackLocale, xhLocales } from '~/locales/xihan-ui'
 import { getScrollRoot } from './useScrollRoot'
 
 /**
- * 组件库全局配置的当前值：语言标记、内建文案与滚动源。
+ * 组件库全局配置的当前值：语言标记、内建文案与滚动源
  *
  * 组件树内经 provideXhConfig 注入，组件树外的三个命令式服务（轻提示、确认框、
- * 顶部进度条）自带宿主应用，从各自的 options.config 喂同一份。
- * 是取值函数不是常量：切语言时两边都跟着重渲。
+ * 顶部进度条）自带宿主应用，从各自的 options.config 喂同一份
+ * 是取值函数不是常量：切语言时两边都跟着重渲
  */
 
 export function xhTranslationsOfCurrentLocale(): XhTranslationOverrides {

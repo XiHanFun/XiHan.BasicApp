@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 /**
- * usePagination 前端本地分页单元测试。
+ * usePagination 前端本地分页单元测试
  * 职责：锁定页码/页长/总数派生、切片边界、setCurrentPage 的自动边界修正、
- * setPageSize 的下限与重置到首页，以及源数组变化后的派生行为。
+ * setPageSize 的下限与重置到首页，以及源数组变化后的派生行为
  */
 import { computed, ref } from 'vue'
 import { usePagination } from './usePagination'
@@ -78,7 +78,9 @@ describe('usePagination 响应式源', () => {
 
   it('传入 getter 时按最新返回值分页', () => {
     const flag = ref(true)
-    const { total, totalPages } = usePagination(() => (flag.value ? makeList(7) : []))
+    const { total, totalPages } = usePagination(() => (flag.value
+      ? makeList(7)
+      : []))
 
     expect(total.value).toBe(7)
 
@@ -159,7 +161,7 @@ describe('usePagination 边界翻页', () => {
     expect(paginationList.value).toEqual([1, 2, 3])
   })
 
-  // 回归锚点（清单条目 15）：源数组缩短后页码必须自动回收，否则「在末页删完记录」会看到空表。
+  // 回归锚点（清单条目 15）：源数组缩短后页码必须自动回收，否则「在末页删完记录」会看到空表
   it('源数组缩短后页码自动回收到末页，切片不会变空', () => {
     const source = ref(makeList(30))
     const pager = usePagination(source, 10)
@@ -174,7 +176,7 @@ describe('usePagination 边界翻页', () => {
     expect(pager.paginationList.value).toEqual([1, 2, 3, 4, 5])
   })
 
-  // 回归锚点（清单条目 15）：回收只发生在读取侧，源数组补回来后仍回到原页码。
+  // 回归锚点（清单条目 15）：回收只发生在读取侧，源数组补回来后仍回到原页码
   it('源数组恢复长度后页码回到用户此前选定的页', () => {
     const source = ref(makeList(30))
     const pager = usePagination(source, 10)
@@ -199,7 +201,7 @@ describe('usePagination 非法输入', () => {
     expect(paginationList.value).toEqual([])
   })
 
-  // 回归锚点（清单条目 42）：NaN 页长会让 totalPages 变 NaN，后续所有边界保护随之失效。
+  // 回归锚点（清单条目 42）：NaN 页长会让 totalPages 变 NaN，后续所有边界保护随之失效
   it('页长传 NaN 被忽略，页长与总页数保持原值', () => {
     const { pageSize, totalPages, setPageSize } = usePagination(makeList(10))
 
@@ -209,7 +211,7 @@ describe('usePagination 非法输入', () => {
     expect(totalPages.value).toBe(1)
   })
 
-  // 回归锚点（清单条目 42）：分页组件清空输入框常给出 NaN，不能把它写进页码。
+  // 回归锚点（清单条目 42）：分页组件清空输入框常给出 NaN，不能把它写进页码
   it('跳转页码传 NaN 被忽略，停在原页且切片不变', () => {
     const { currentPage, setCurrentPage, paginationList } = usePagination(makeList(30))
 
@@ -220,7 +222,7 @@ describe('usePagination 非法输入', () => {
     expect(paginationList.value).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
   })
 
-  // 回归锚点（清单条目 42）：Infinity 同样不是有效页长/页码。
+  // 回归锚点（清单条目 42）：Infinity 同样不是有效页长/页码
   it('页长与页码传 Infinity 一并被忽略', () => {
     const { currentPage, pageSize, setCurrentPage, setPageSize } = usePagination(makeList(30))
 

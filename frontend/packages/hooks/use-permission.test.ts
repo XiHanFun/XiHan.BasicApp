@@ -1,21 +1,32 @@
 /**
- * usePermission 权限判定单元测试。
- * 职责：锁定与 userStore / accessStore 的判定一致性——
- * 用户权限位与访问码任一命中即通过、`*` 不当通配（只认服务端展开下发的码）、空入参一律放行，
- * 以及角色判定只看 userStore.roles（不参与访问码回退）。
+ * usePermission 权限判定单元测试
+ * 职责：锁定与 userStore / accessStore 的判定一致性——两者都是 auth.permissions 的投影，
+ * 只认服务端展开下发的码（`*` 不当通配）、空入参一律放行，以及角色判定只看角色码（不参与权限码回退）
  */
-import type { UserInfo } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useAccessStore, useUserStore } from '~/stores'
+import { useAuthStore } from '~/stores'
 import { usePermission } from './usePermission'
 
-function makeUser(permissions: string[], roles: string[] = []): UserInfo {
-  return {
-    basicId: 'u-1',
-    userName: 'tester',
-    roles,
+/** 以登录态 + 服务端下发的权限码与角色码落到 auth store */
+function grant(permissions: string[], roles: string[] = []) {
+  const auth = useAuthStore()
+  auth.session = {
+    accessToken: 'token',
+    accessExpiresAt: '2099-01-01T00:00:00Z',
+    refreshToken: 'refresh',
+    refreshExpiresAt: '2099-01-01T00:00:00Z',
+    sessionId: 'session-1',
+    tenantId: null,
+    mustChangePassword: false,
+    user: { id: 'u-1', userName: 'tester', displayName: 'Tester' },
+  } as unknown as typeof auth.session
+  auth.permissions = {
     permissions,
+    roles: roles.map(code => ({ id: code, code, name: code })),
+    menus: [],
+    pages: [],
+    isPlatform: true,
   }
 }
 
@@ -24,49 +35,39 @@ beforeEach(() => {
 })
 
 describe('usePermission.hasPermission 与 store 判定一致', () => {
-  it('用户权限位命中即通过', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+  it('服务端下发的权限码命中即通过', () => {
+    grant(['identity.users.read'])
 
-    expect(usePermission().hasPermission('sys:user:list')).toBe(true)
+    expect(usePermission().hasPermission('identity.users.read')).toBe(true)
   })
 
-  it('用户权限位不含时回退查访问码，访问码命中同样通过', () => {
-    useUserStore().setUserInfo(makeUser([]))
-    useAccessStore().setAccessCodes(['sys:role:add'])
+  it('不含时判定为无权限', () => {
+    grant(['identity.users.read'])
 
-    expect(usePermission().hasPermission('sys:role:add')).toBe(true)
+    expect(usePermission().hasPermission('identity.users.delete')).toBe(false)
   })
 
-  it('两个 store 都不含时判定为无权限', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
-    useAccessStore().setAccessCodes(['sys:role:add'])
+  it('`*` 不当通配：服务端没展开下发的码判为无', () => {
+    grant(['*', 'identity.users.create'])
 
-    expect(usePermission().hasPermission('sys:user:delete')).toBe(false)
+    expect(usePermission().hasPermission('identity.users.create')).toBe(true)
+    expect(usePermission().hasPermission('identity.users.lock')).toBe(false)
+    expect(usePermission().hasPermission(['identity.users.lock', 'identity.users.reset-password'])).toBe(false)
   })
 
-  it('平台超管的 * 不放行服务端没下发的按钮码：租户侧按钮在平台态判为无', () => {
-    useUserStore().setUserInfo(makeUser(['*', 'saas:user:read']))
-    useAccessStore().setAccessCodes(['*', 'saas:user:read'])
-    useAccessStore().setAccessButtons(['identity.user.create'])
-
-    expect(usePermission().hasPermission('identity.user.create')).toBe(true)
-    expect(usePermission().hasPermission('identity.user.assign-department')).toBe(false)
-    expect(usePermission().hasPermission(['identity.user.assign-department', 'identity.user.revoke-department'])).toBe(false)
-  })
-
-  it('未登录（userInfo 为 null）且无访问码时一律拒绝', () => {
-    expect(usePermission().hasPermission('sys:user:list')).toBe(false)
+  it('未登录时一律拒绝', () => {
+    expect(usePermission().hasPermission('identity.users.read')).toBe(false)
   })
 
   it('权限码大小写敏感，不做归一化', () => {
-    useUserStore().setUserInfo(makeUser(['Sys:User:List']))
+    grant(['Identity.Users.List'])
 
-    expect(usePermission().hasPermission('sys:user:list')).toBe(false)
-    expect(usePermission().hasPermission('Sys:User:List')).toBe(true)
+    expect(usePermission().hasPermission('identity.users.read')).toBe(false)
+    expect(usePermission().hasPermission('Identity.Users.List')).toBe(true)
   })
 
   it('权限码含中文与 emoji 时按原样全等比较', () => {
-    useUserStore().setUserInfo(makeUser(['系统:用户:查看🚀']))
+    grant(['系统:用户:查看🚀'])
 
     expect(usePermission().hasPermission('系统:用户:查看🚀')).toBe(true)
     expect(usePermission().hasPermission('系统:用户:查看')).toBe(false)
@@ -79,21 +80,21 @@ describe('usePermission.hasPermission 空值与数组分支', () => {
   })
 
   it('传空数组落进「或」判定，没有任何候选因此拒绝', () => {
-    useUserStore().setUserInfo(makeUser(['*']))
+    grant(['*'])
 
     expect(usePermission().hasPermission([])).toBe(false)
   })
 
   it('数组形式只要有一项命中就放行', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+    grant(['identity.users.read'])
 
-    expect(usePermission().hasPermission(['sys:role:add', 'sys:user:list'])).toBe(true)
+    expect(usePermission().hasPermission(['access.roles.create', 'identity.users.read'])).toBe(true)
   })
 
   it('数组形式全部未命中才拒绝', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+    grant(['identity.users.read'])
 
-    expect(usePermission().hasPermission(['sys:role:add', 'sys:dept:add'])).toBe(false)
+    expect(usePermission().hasPermission(['access.roles.create', 'organization.departments.create'])).toBe(false)
   })
 
   it('数组里的空串项不享受「不限制」豁免，仍按空权限码逐项比对而拒绝', () => {
@@ -101,28 +102,21 @@ describe('usePermission.hasPermission 空值与数组分支', () => {
   })
 })
 
-describe('usePermission.hasRole 只看用户角色', () => {
+describe('usePermission.hasRole 只看角色码', () => {
   it('角色命中即通过', () => {
-    useUserStore().setUserInfo(makeUser([], ['admin']))
+    grant([], ['admin'])
 
     expect(usePermission().hasRole('admin')).toBe(true)
   })
 
   it('角色未命中判定失败', () => {
-    useUserStore().setUserInfo(makeUser([], ['admin']))
+    grant([], ['admin'])
 
     expect(usePermission().hasRole('auditor')).toBe(false)
   })
 
-  it('角色判定不吃访问码通配符，访问码为 * 也不放行角色', () => {
-    useUserStore().setUserInfo(makeUser([], []))
-    useAccessStore().setAccessCodes(['*'])
-
-    expect(usePermission().hasRole('admin')).toBe(false)
-  })
-
-  it('角色判定不吃权限位通配符，权限为 * 也不放行角色', () => {
-    useUserStore().setUserInfo(makeUser(['*'], []))
+  it('角色判定不吃权限码通配符，权限为 * 也不放行角色', () => {
+    grant(['*'], [])
 
     expect(usePermission().hasRole('admin')).toBe(false)
   })
@@ -132,13 +126,13 @@ describe('usePermission.hasRole 只看用户角色', () => {
   })
 
   it('传空数组时没有候选角色，拒绝', () => {
-    useUserStore().setUserInfo(makeUser([], ['admin']))
+    grant([], ['admin'])
 
     expect(usePermission().hasRole([])).toBe(false)
   })
 
   it('数组形式任一角色命中即通过', () => {
-    useUserStore().setUserInfo(makeUser([], ['auditor']))
+    grant([], ['auditor'])
 
     expect(usePermission().hasRole(['admin', 'auditor'])).toBe(true)
   })
@@ -146,65 +140,58 @@ describe('usePermission.hasRole 只看用户角色', () => {
 
 describe('usePermission.hasAnyPermission', () => {
   it('空数组没有候选，判定为 false', () => {
-    useUserStore().setUserInfo(makeUser(['*']))
+    grant(['*'])
 
     expect(usePermission().hasAnyPermission([])).toBe(false)
   })
 
   it('任一权限命中即通过', () => {
-    useUserStore().setUserInfo(makeUser([]))
-    useAccessStore().setAccessCodes(['sys:dept:list'])
+    grant(['organization.departments.read'])
 
-    expect(usePermission().hasAnyPermission(['sys:user:list', 'sys:dept:list'])).toBe(true)
+    expect(usePermission().hasAnyPermission(['identity.users.read', 'organization.departments.read'])).toBe(true)
   })
 
-  // 回归锚点（清单条目 16）：空串项不得触发「不限制」豁免而整组放行，
-  // 且必须与 hasPermission(同一数组) 得出相同结论。
   it('数组含空串项时空串被剔除，未登录用户仍被拒绝', () => {
     expect(usePermission().hasAnyPermission(['sys:none', ''])).toBe(false)
     expect(usePermission().hasPermission(['sys:none', ''])).toBe(false)
   })
 
-  // 回归锚点（清单条目 16）：全是空串等价于没有任何候选，按空数组口径拒绝。
   it('数组全部为空串时判定为 false，不整组放行', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+    grant(['identity.users.read'])
 
     expect(usePermission().hasAnyPermission(['', ''])).toBe(false)
   })
 
-  // 回归锚点（清单条目 16）：剔除空串不能误伤同数组里真实命中的权限码。
   it('空串与有效权限码混排时，有效项命中仍然放行', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+    grant(['identity.users.read'])
 
-    expect(usePermission().hasAnyPermission(['', 'sys:user:list'])).toBe(true)
+    expect(usePermission().hasAnyPermission(['', 'identity.users.read'])).toBe(true)
   })
 
   it('全部未命中才判定为 false', () => {
-    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+    grant(['identity.users.read'])
 
     expect(usePermission().hasAnyPermission(['a', 'b', 'c'])).toBe(false)
   })
 })
 
 describe('usePermission 与 store 变更同步', () => {
-  it('登出清空用户信息后原先通过的权限立即失效', () => {
-    const userStore = useUserStore()
-    userStore.setUserInfo(makeUser(['sys:user:list']))
+  it('登出清空会话后原先通过的权限立即失效', () => {
+    grant(['identity.users.read'])
     const { hasPermission } = usePermission()
+    expect(hasPermission('identity.users.read')).toBe(true)
 
-    expect(hasPermission('sys:user:list')).toBe(true)
+    useAuthStore().clear()
 
-    userStore.$reset()
-
-    expect(hasPermission('sys:user:list')).toBe(false)
+    expect(hasPermission('identity.users.read')).toBe(false)
   })
 
-  it('访问码后置下发后，先前取得的判定函数立刻认账', () => {
+  it('权限后置下发后，先前取得的判定函数立刻认账', () => {
     const { hasPermission } = usePermission()
-    expect(hasPermission('sys:role:add')).toBe(false)
+    expect(hasPermission('access.roles.create')).toBe(false)
 
-    useAccessStore().setAccessCodes(['sys:role:add'])
+    grant(['access.roles.create'])
 
-    expect(hasPermission('sys:role:add')).toBe(true)
+    expect(hasPermission('access.roles.create')).toBe(true)
   })
 })

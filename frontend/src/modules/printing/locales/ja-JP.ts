@@ -1,9 +1,8 @@
-/**
- * 打印模块文案（业务命名空间 + 菜单键）。
- */
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
 export default {
-  setting: {
-    print_template: {
+  printing: {
+    print_templates: {
+      title: '印刷テンプレート',
       page_name: '印刷テンプレート',
       tenant_templates: 'テナントテンプレート',
       available_global_templates: '利用可能なグローバルテンプレート',
@@ -31,7 +30,7 @@ export default {
       initial_status: '初期ステータス',
       initial_status_help: '作成後すぐにテンプレートコードでの解決と利用を許可します',
       allow_tenant_use_help: 'テナントの Auto スコープがこのグローバルテンプレートへフォールバックすることを許可します',
-      sort: '並び順',
+      order: '並び順',
       remark: '備考',
       remark_placeholder: 'テンプレートの用途、適用シーン、保守メモを補足（任意）',
       action_create: 'テンプレートを新規作成',
@@ -95,8 +94,5 @@ export default {
       save_blocked_issues: 'テンプレートに {count} 件のエラーがあります。デザイナーの問題リストで修正してから保存してください',
       legacy_format_reset: 'このテンプレートは現在の印刷テンプレート形式ではないため、空のテンプレートに置き換えました。再設計して保存すると元の内容は上書きされます',
     },
-  },
-  menu: {
-    setting_print_template: '印刷テンプレート',
   },
 }

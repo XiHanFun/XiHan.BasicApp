@@ -7,10 +7,10 @@ import { indexDropdownOptions, toDropdownCollection } from './dropdown-collectio
 import { VNodeRender } from './VNodeRender'
 
 /**
- * 下拉菜单：触发器经默认插槽传入，条目由 AppDropdownOption 描述。
+ * 下拉菜单：触发器经默认插槽传入，条目由 AppDropdownOption 描述
  *
  * 存在的理由是条目里的图标与富标签——collection 只收纯串，图标和自定义标签得走 item 插槽，
- * 全站几处下拉（面包屑同级跳转、用户菜单、标签页右键菜单）没必要各摆一遍。
+ * 全站几处下拉（面包屑同级跳转、用户菜单、标签页右键菜单）没必要各摆一遍
  */
 defineOptions({ name: 'XDropdown' })
 

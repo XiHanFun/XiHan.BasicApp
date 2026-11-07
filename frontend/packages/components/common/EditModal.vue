@@ -14,6 +14,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { FIRST_CONTROL_SELECTOR } from './edit-modal-focus'
 
 defineOptions({ name: 'XEditModal' })
 
@@ -33,22 +34,22 @@ const props = withDefaults(defineProps<{
   /** 取消按钮文案（默认 common.actions.cancel） */
   cancelText?: string
   /**
-   * 保存按钮语气：不传时不写 tone，按钮走实心形态的品牌配色。
-   * 传 danger / warning 等，让终止、拒绝这类动作在按钮上保留视觉警示。
+   * 保存按钮语气：不传时不写 tone，按钮走实心形态的品牌配色
+   * 传 danger / warning 等，让终止、拒绝这类动作在按钮上保留视觉警示
    */
   saveTone?: Tone
   /**
-   * 弹窗内表单的 id。
+   * 弹窗内表单的 id
    *
-   * 保存钮在按钮行里、表单在正文里，两者是兄弟节点——不关联的话点保存会绕过整表校验。
+   * 保存钮在按钮行里、表单在正文里，两者是兄弟节点——不关联的话点保存会绕过整表校验
    * 给了这个 id，保存钮就成为该表单的提交钮（HTML 的 form 属性允许跨节点关联），
-   * 校验通过才会走到表单的 @submit；此时本组件不再发 save 事件。
+   * 校验通过才会走到表单的 @submit；此时本组件不再发 save 事件
    */
   formId?: string
   /**
-   * 展开后先把焦点落到 content 内匹配此选择器的元素。
-   * 不给即走组件库的默认可 tab 顺序——那会落在右上角的关闭钮上。
-   * 组件库聚焦输入框时会连带全选其中的值，编辑既有记录的弹窗慎用。
+   * 展开后先把焦点落到 content 内匹配此选择器的元素
+   * 不给即落到第一个真正的控件上（越过关闭钮与字段名后面的问号，见 edit-modal-focus）
+   * 组件库聚焦输入框时会连带全选其中的值
    */
   initialFocus?: string
 }>(), {
@@ -72,7 +73,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const modalStyle = computed(() => ({
-  '--xh-dialog-max-w': typeof props.width === 'number' ? `${props.width}px` : props.width,
+  '--xh-dialog-max-w': typeof props.width === 'number'
+    ? `${props.width}px`
+    : props.width,
 }))
 
 function handleCancel() {
@@ -83,12 +86,11 @@ function handleCancel() {
 
 <template>
   <!-- 新增/编辑弹窗统一外壳（以用户页为基准）：
-       表单内容配合全局 .xh-edit-form-grid 网格（两列/紧凑行距/紧凑标签），跨整行字段加 .xh-span-2。
-       点遮罩不关：编辑到一半误点外面就丢内容，只能由取消/保存/Esc 收场 -->
+       表单内容配合全局 .xh-edit-form-grid 网格（两列/紧凑行距/紧凑标签），跨整行字段加 .xh-span-2
+       点遮罩与 Esc 都按取消收场（组件库的缺省） -->
   <XhDialogRoot
     :open="show"
-    :initial-focus="initialFocus"
-    :close-on-interact-outside="false"
+    :initial-focus="initialFocus ?? FIRST_CONTROL_SELECTOR"
     @update:open="(value: boolean) => emit('update:show', value)"
   >
     <XhDialogContent class="xh-edit-modal" :style="modalStyle">

@@ -1,10 +1,10 @@
 import { readonly, ref } from 'vue'
 
 /**
- * 内容区域最大化的组合式函数。
+ * 内容区域最大化的组合式函数
  *
  * 使用模块级单例 ref，所有调用方共享同一份状态，
- * 无需事件总线即可实现跨组件（Header、Tabbar、页面）同步。
+ * 无需事件总线即可实现跨组件（Header、Tabbar、页面）同步
  *
  */
 const _contentMaximized = ref(false)
@@ -28,5 +28,10 @@ export function useContentMaximize() {
     _contentMaximized.value = !_contentMaximized.value
   }
 
-  return { contentIsMaximize, maximize, restore, toggleMaximize }
+  return {
+    contentIsMaximize,
+    maximize,
+    restore,
+    toggleMaximize,
+  }
 }

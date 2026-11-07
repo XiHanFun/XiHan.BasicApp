@@ -19,7 +19,9 @@ export interface PermissionGroup<T extends PermissionGrantItem> {
 /** 取权限码的资源段作为分组键：saas:{resource}:{action} → resource */
 function resourceKey(code: string): string {
   const parts = (code ?? '').split(':')
-  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
+  return parts.length >= 3
+    ? parts[1]!
+    : (parts[0] ?? '')
 }
 
 /** 一组权限名的公共前缀，作为功能块显示名 */
@@ -42,10 +44,10 @@ function commonPrefix(names: string[]): string {
 }
 
 /**
- * 按资源分组：组码优先用后端 groupCode，缺省回退资源段推导。
+ * 按资源分组：组码优先用后端 groupCode，缺省回退资源段推导
  *
  * 角色、用户直授与版本权限的穿梭框共用这一份口径——各推一遍的话，同一批权限在几个界面里会分出
- * 不同的段，换用另一个界面时看起来像数据变了。
+ * 不同的段，换用另一个界面时看起来像数据变了
  */
 export function groupPermissions<T extends PermissionGrantItem>(
   items: readonly T[],
@@ -66,7 +68,9 @@ export function groupPermissions<T extends PermissionGrantItem>(
       map.set(key, [item])
     }
   }
-  return [...map.entries()].map(([key, groupItems]) => ({
+  return [
+    ...map.entries(),
+  ].map(([key, groupItems]) => ({
     key,
     name: groupItems[0]?.groupName
       || commonPrefix(groupItems.map(groupItem => groupItem.permissionName))

@@ -4,7 +4,8 @@ import type { SidebarMenuPropsContract } from '../../contracts'
 import type { MenuLinkResolver } from './menu-links'
 import type { AppMenuOption } from '~/types'
 import { XhSideNavList, XhSideNavRoot } from '@xihan-ui/vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { menuAncestors, revealExpanded } from './menu-expansion'
 import SidebarMenuNodes from './SidebarMenuNodes.vue'
 
 defineOptions({ name: 'SidebarMenu' })
@@ -17,25 +18,52 @@ const props = defineProps<SidebarMenuPropsContract & {
 const emit = defineEmits<{ menuUpdate: [key: string] }>()
 
 /**
- * 喂给组件库的 collection：条目身份、层级与禁用的事实源。
+ * 喂给组件库的 collection：条目身份、层级与禁用的事实源
  * 标签在这里给纯文本兜底（读屏与连打检索取它），真正的显示由标记里的部件渲染——
- * 菜单标签可能带角标或外链图标，塞不进一个字符串。
+ * 菜单标签可能带角标或外链图标，塞不进一个字符串
  */
 function toCollection(nodes: AppMenuOption[]): SideNavNode[] {
   return nodes.map<SideNavNode>(node => ({
     value: node.key,
-    label: typeof node.label === 'string' ? node.label : node.key,
-    ...(node.disabled ? { disabled: true } : {}),
-    ...(node.children?.length ? { children: toCollection(node.children) } : {}),
+    label: typeof node.label === 'string'
+      ? node.label
+      : node.key,
+    ...(node.disabled
+      ? { disabled: true }
+      : {}),
+    ...(node.children?.length
+      ? {
+          children: toCollection(node.children),
+        }
+      : {}),
   }))
 }
 
 const collection = computed(() => toCollection(props.menuOptions))
+
+/**
+ * 展开集合由这里持有：组件库把它完全交给应用，不会自己展开到当前项
+ * 当前页换了、或菜单到了之后通往它的路径才解得出来时，把各级目录展开；
+ * 之后用户手动收起的不再强行打开，直到当前页再换
+ */
+const expanded = ref<string[]>([])
+const activePath = computed(() => menuAncestors(props.menuOptions, props.activeKey) ?? [])
+watch(
+  [
+    () => props.activeKey,
+    () => activePath.value.join('\n'),
+  ],
+  () => {
+    expanded.value = revealExpanded(expanded.value, activePath.value, props.accordion ?? true)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="app-sidebar-menu flex-1 min-h-0">
     <XhSideNavRoot
+      v-model:expanded-value="expanded"
       :value="props.activeKey"
       :collection="collection"
       :collapsed="props.collapsed"
@@ -60,14 +88,14 @@ const collection = computed(() => toCollection(props.menuOptions))
 
 <style scoped>
 .sidebar-menu {
-  /* 组件库的侧栏根自带 --xh-sider-w / --xh-sider-collapsed-w（15rem / 4rem）的固定宽度（它设计上自己就是侧栏）。
+  /* 组件库的侧栏根自带 --xh-sider-w / --xh-sider-collapsed-w（15rem / 4rem）的固定宽度（它设计上自己就是侧栏）
      本应用的侧栏宽度由用户偏好控制，外层 aside 说了算，故让根跟着容器走，
      否则菜单比容器宽的那一截会被 overflow-x:hidden 裁掉，行尾的箭头首当其冲 */
   --xh-side-nav-w: 100%;
   --xh-side-nav-collapsed-w: 100%;
 
   /* 行的几何与各态配色走组件库的公开槽：悬停 / 按下 / 当前 / 展开路径的面由
-     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color。
+     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color
      行高与配色对齐旧版侧栏 */
   --xh-side-nav-link-h: 38px;
   --xh-side-nav-link-px: 12px;
@@ -97,10 +125,14 @@ const collection = computed(() => toCollection(props.menuOptions))
   margin-block: 0;
 }
 
-/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给 */
+/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给。取 medium：Windows 的中文字体只有常规与粗体两档，
+   medium 落到常规、semibold 落到粗体，粗体太重（用户 2026-11-07 试过），有 medium 字形的字体上才看得出这一档
+   组件库把行定为 inline-size: 100%，下面各档又加了左右外边距：不改回 auto 的话行宽是 100% 再加两侧外边距，
+   右边越出侧栏的滚动区一截，行的右缘连同画在行盒内的聚焦环一起被裁掉、左右也不对称 */
 .sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
+  inline-size: auto;
   margin-block: 2px;
-  font-weight: 500;
+  font-weight: var(--xh-font-weight-medium);
 }
 
 .sidebar-menu :deep(.sidebar-menu__icon) {
@@ -161,7 +193,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   margin-inline: 6px;
 }
 
-/* 标签不能 display:none：它是图标栏里链接与分支钮唯一的可及名。
+/* 标签不能 display:none：它是图标栏里链接与分支钮唯一的可及名
    裁法与皮肤折叠落定后的那条相同，只是折叠过程中也不占位，图标从头到尾都居中 */
 .sidebar-menu--collapsed-icon :deep(.sidebar-menu__label) {
   position: absolute;

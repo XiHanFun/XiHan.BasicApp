@@ -1,24 +1,30 @@
 /**
- * useSettingSyncIsland 用户设置同步提示封装单元测试。
+ * useSettingSyncIsland 用户设置同步提示封装单元测试
  * 职责：锁定上行保存 / 水合 / 远端下行三类场景共用同一套文案与节奏——
  * 起始「正在同步{name}…」、成功「{name}已同步」、失败「{name}同步失败」、
  * 远端下行一次性走「正在应用…」→「{name}已从其他设备同步」，
- * 以及 dismiss 为静默收尾（不落历史、不弹结果）。
+ * 以及 dismiss 为静默收尾（不落历史、不弹结果）
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-// 预热依赖图：被测模块引 ~/locales，会牵出七套语言包、vue-i18n 与 ~/utils 桶文件，首次转换在满并行下要数秒。
+// 预热依赖图：被测模块引 ~/locales，会牵出七套语言包、vue-i18n 与 ~/utils 桶文件，首次转换在满并行下要数秒
 // 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；loadModule() 里的 vi.resetModules()
-// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的。
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的
 import './useSettingSyncIsland'
 
 /** 每个用例一份全新模块状态：灵动岛的 tasks / history 是模块级的 */
 async function loadModule() {
   vi.resetModules()
-  const { i18n } = await import('~/locales')
-  i18n.global.locale.value = 'zh-CN'
+  // 文案按区域懒加载：模块重置后要重新装一次（vitest-setup 装的是上一份实例）
+  const { i18n, setLocale } = await import('~/locales')
+  await setLocale('zh-CN')
   const island = await import('./useDynamicIsland')
   const sync = await import('./useSettingSyncIsland')
-  return { ...sync, ...island, i18n }
+  return {
+    ...sync,
+    ...island,
+    i18n,
+    setLocale,
+  }
 }
 
 afterEach(() => {
@@ -105,8 +111,8 @@ describe('settingSyncIsland 上行同步', () => {
   })
 
   it('切到英文后同一封装产出英文文案', async () => {
-    const { settingSyncIsland, useDynamicIsland, i18n } = await loadModule()
-    i18n.global.locale.value = 'en-US'
+    const { settingSyncIsland, useDynamicIsland, setLocale } = await loadModule()
+    await setLocale('en-US')
 
     settingSyncIsland('sync:pref', 'Preferences').success()
 
@@ -160,7 +166,10 @@ describe('settingSyncIsland 与灵动岛开关联动', () => {
   it('灵动岛关闭时同步提示改由轻提示接管，不进岛', async () => {
     const { settingSyncIsland, configureDynamicIsland, useDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     settingSyncIsland('sync:pref', '偏好设置').success()
 
@@ -171,7 +180,10 @@ describe('settingSyncIsland 与灵动岛开关联动', () => {
   it('灵动岛关闭时静默收尾不发任何轻提示（高频场景不刷屏）', async () => {
     const { settingSyncIsland, configureDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     settingSyncIsland('sync:pref', '偏好设置').dismiss()
 
@@ -181,7 +193,10 @@ describe('settingSyncIsland 与灵动岛开关联动', () => {
   it('灵动岛关闭时失败仍会提示，不静默吞掉错误', async () => {
     const { settingSyncIsland, configureDynamicIsland } = await loadModule()
     const message = vi.fn()
-    configureDynamicIsland({ isEnabled: () => false, message })
+    configureDynamicIsland({
+      isEnabled: () => false,
+      message,
+    })
 
     settingSyncIsland('sync:table', '表格设置').error()
 

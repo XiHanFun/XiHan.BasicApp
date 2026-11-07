@@ -1,90 +1,84 @@
+import type { MenuNode } from './auth'
 import type { MenuRoute } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { HOME_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY } from '~/constants'
-import { LocalStorage, resolveFirstNavigableRouteListPath } from '~/utils'
+import { HOME_PATH } from '~/constants'
+import { firstRoute } from '~/router/menus'
+import { useAuthStore } from './auth'
+import { SetupStoreId } from './store-ids'
 
-export const useAccessStore = defineStore('access', () => {
-  const accessToken = ref<string | null>(LocalStorage.get<string>(TOKEN_KEY))
-  const refreshToken = ref<string | null>(LocalStorage.get<string>(REFRESH_TOKEN_KEY))
-  const accessRoutes = ref<MenuRoute[]>([])
-  const accessCodes = ref<string[]>([])
-  const accessButtons = ref<string[]>([])
-  const isRoutesLoaded = ref(false)
+/**
+ * 后端菜单树（auth.permissions 的 MenuNode）→ 壳层的菜单路由模型（MenuRoute）
+ * 标题：运营改过或运营建的节点给原文，其余给文案键，壳层按 te / t 翻译（各能力包的语言文件登记）
+ * 目录与外链没有路由，给它一条以节点码命名的占位路径（侧栏按它当展开键 / 外链键，不生成路由记录）；外链走 meta.link 新标签打开
+ */
+export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
+  return menus.map(node => ({
+    path: node.route || `/${node.code}`,
+    name: node.code,
+    component: node.kind === 'Page'
+      ? node.component || undefined
+      : undefined,
+    meta: {
+      title: node.title || node.titleKey,
+      icon: node.icon ?? undefined,
+      order: node.order,
+      hidden: node.hidden || undefined,
+      keepAlive: node.keepAlive || undefined,
+      affixTab: node.affix || undefined,
+      link: node.kind === 'Link'
+        ? node.externalUrl ?? undefined
+        : undefined,
+      permissions: node.permission
+        ? [node.permission]
+        : undefined,
+      badge: node.badge ?? undefined,
+      badgeType: node.badgeType ?? undefined,
+      dot: node.badgeDot || undefined,
+    },
+    children: node.children.length > 0
+      ? toMenuRoutes(node.children)
+      : undefined,
+  }))
+}
+
+/**
+ * 访问态（壳层视角）：令牌、菜单路由、权限码都是 auth store 的投影，这里不另存一份
+ * 4.x 由登录流程写入这些字段；6.0 的真源是 auth.login / auth.permissions（见 auth.ts），壳层只读
+ */
+export const useAccessStore = defineStore(SetupStoreId.Access, () => {
+  const auth = useAuthStore()
+  const accessToken = computed(() => auth.accessToken)
+  const accessRoutes = computed<MenuRoute[]>(() => toMenuRoutes(auth.menus))
+  const accessCodes = computed<string[]>(() => auth.permissions?.permissions ?? [])
+  /** 6.0 没有单独的按钮码：按钮门控直接用操作的权限码 */
+  const accessButtons = computed<string[]>(() => [])
+  const isRoutesLoaded = computed(() => auth.permissions !== null)
   const loginExpired = ref(false)
-
-  const homePath = computed(() => resolveFirstNavigableRouteListPath(accessRoutes.value) || HOME_PATH)
-
-  function setAccessToken(token: string | null) {
-    accessToken.value = token
-    if (token) {
-      LocalStorage.set(TOKEN_KEY, token)
-    }
-    else {
-      LocalStorage.remove(TOKEN_KEY)
-    }
-  }
-
-  function setRefreshToken(token: string | null) {
-    refreshToken.value = token
-    if (token) {
-      LocalStorage.set(REFRESH_TOKEN_KEY, token)
-    }
-    else {
-      LocalStorage.remove(REFRESH_TOKEN_KEY)
-    }
-  }
-
-  function setAccessRoutes(routes: MenuRoute[]) {
-    accessRoutes.value = routes
-    isRoutesLoaded.value = true
-  }
-
-  function setAccessCodes(codes: string[]) {
-    accessCodes.value = codes
-  }
-
-  /** 服务端下发的可用按钮码：页面按钮门控的唯一依据，前端不持有权限码 */
-  function setAccessButtons(buttons: string[]) {
-    accessButtons.value = buttons
-  }
+  const homePath = computed(() => firstRoute(auth.menus) ?? HOME_PATH)
 
   function setLoginExpired(expired: boolean) {
     loginExpired.value = expired
   }
 
-  /** 权限码与按钮码都照服务端下发的精确匹配，`*` 不当通配，口径见 useUserStore().hasPermission */
+  /** 权限码精确匹配，`*` 不当通配（后端已展开） */
   function hasCode(code: string): boolean {
-    return accessCodes.value.includes(code)
-      || accessButtons.value.includes(code)
+    return auth.can(code)
   }
 
   function $reset() {
-    accessToken.value = null
-    refreshToken.value = null
-    accessRoutes.value = []
-    accessCodes.value = []
-    accessButtons.value = []
-    isRoutesLoaded.value = false
     loginExpired.value = false
-    LocalStorage.remove(TOKEN_KEY)
-    LocalStorage.remove(REFRESH_TOKEN_KEY)
+    auth.clear()
   }
 
   return {
     accessToken,
-    refreshToken,
     accessRoutes,
     accessCodes,
     accessButtons,
     isRoutesLoaded,
     loginExpired,
     homePath,
-    setAccessToken,
-    setRefreshToken,
-    setAccessRoutes,
-    setAccessCodes,
-    setAccessButtons,
     setLoginExpired,
     hasCode,
     $reset,

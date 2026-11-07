@@ -1,7 +1,7 @@
 /**
- * 组件库文案随应用语言取语言包的单元测试。
- * 职责边界：组件库有语言包的应用语言取自己的那一份；没有的（hi-IN）取英文、不冒出中文；
- * 应用新上架一种语言时，这里逼着先决定它对应哪一份语言包。
+ * 组件库文案随应用语言取语言包的单元测试
+ * 职责边界：组件库有语言包的应用语言取自己的那一份；没登记语言包的标记取英文、不冒出中文；
+ * 应用新上架一种语言时，这里逼着先决定它对应哪一份语言包
  */
 import { deDE, enUS, jaJP, zhTW } from '@xihan-ui/vue/locale'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -26,14 +26,14 @@ describe('xhTranslationsOfCurrentLocale', () => {
     expect(xhTranslationsOfCurrentLocale()).toBe(pack.translations)
   })
 
-  it('组件库没有语言包的 hi-IN 取英文，不冒出中文', () => {
+  it('没登记语言包的语言标记取英文，不冒出中文', () => {
     i18n.global.locale.value = 'hi-IN'
 
     expect(xhTranslationsOfCurrentLocale()).toBe(enUS.translations)
   })
 
-  it('应用上架的语言里只有 hi-IN 没有组件库语言包', () => {
-    expect(i18n.global.availableLocales.filter(locale => !xhLocales[locale])).toEqual(['hi-IN'])
+  it('应用上架的十种语言都有组件库语言包', () => {
+    expect(i18n.global.availableLocales.filter(locale => !xhLocales[locale])).toEqual([])
   })
 })
 

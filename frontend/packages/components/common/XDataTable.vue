@@ -34,7 +34,7 @@ export interface XDataTableColumn<Row> {
 }
 
 /**
- * 次级表格的分页：给了就在表格下方出与列表页同一副底栏（左侧条数与页码、右侧分页）。
+ * 次级表格的分页：给了就在表格下方出与列表页同一副底栏（左侧条数与页码、右侧分页）
  * 不给 onUpdatePageSize 时不出条数选择器——换了条数却没人接，选了也不生效
  */
 export interface XDataTablePagination {
@@ -85,19 +85,27 @@ const props = withDefaults(defineProps<{
   rowProps: undefined,
 })
 
-const checkedKeys = defineModel<string[]>('checkedRowKeys', { default: () => [] })
+const checkedKeys = defineModel<string[]>('checkedRowKeys', {
+  default: () => [],
+})
 
 const { t } = useI18n()
 const { isMobile } = useIsMobile()
 
 const pageCount = computed(() =>
-  props.pagination ? Math.max(1, Math.ceil(props.pagination.itemCount / props.pagination.pageSize)) : 1)
+  props.pagination
+    ? Math.max(1, Math.ceil(props.pagination.itemCount / props.pagination.pageSize))
+    : 1)
 /** 调用方不接条数变更时只留当前条数一档，分页组件就不出条数选择器 */
 const pageSizes = computed(() =>
-  props.pagination?.onUpdatePageSize ? props.pagination.pageSizes : [props.pagination?.pageSize ?? 20])
+  props.pagination?.onUpdatePageSize
+    ? props.pagination.pageSizes
+    : [props.pagination?.pageSize ?? 20])
 
 function keyOf(row: T): string {
-  return typeof props.rowKey === 'function' ? props.rowKey(row) : String((row as Record<string, unknown>)[props.rowKey])
+  return typeof props.rowKey === 'function'
+    ? props.rowKey(row)
+    : String((row as Record<string, unknown>)[props.rowKey])
 }
 
 const SELECT_COL = '__select__'
@@ -106,7 +114,7 @@ const SELECT_COL_W = 48
 
 /**
  * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
- * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐。
+ * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐
  */
 function declaredWidth(column: XDataTableColumn<T>): number | string {
   return column.width ?? column.minWidth ?? 120
@@ -117,37 +125,64 @@ const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
 
 /**
  * width 只是 flex 基准，容器不够时各列按比例压缩；minWidth 交给组件库当这一列的下限，
- * 没写的列压到皮肤的 --xh-table-cell-min-w 为止。
+ * 没写的列压到皮肤的 --xh-table-cell-min-w 为止
  */
 const tableColumns = computed<TableColumnDef[]>(() => [
-  ...(props.selectable ? [{ id: SELECT_COL, width: SELECT_COL_W, ...(props.columns.some(c => c.fixed === 'left') ? { sticky: 'start' as const } : {}) }] : []),
+  ...(props.selectable
+    ? [
+        {
+          id: SELECT_COL,
+          width: SELECT_COL_W,
+          ...(props.columns.some(c => c.fixed === 'left')
+            ? { sticky: 'start' as const }
+            : {}),
+        },
+      ]
+    : []),
   ...props.columns.map<TableColumnDef>(column => ({
     id: column.key,
     label: column.title,
-    ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+    ...(column.fixed
+      ? {
+          sticky: column.fixed === 'right'
+            ? 'end'
+            : 'start',
+        }
+      : {}),
     width: declaredWidth(column),
-    ...(column.minWidth !== undefined ? { minWidth: column.minWidth } : {}),
-    ...(column.align ? { align: COLUMN_ALIGN[column.align] } : {}),
+    ...(column.minWidth !== undefined
+      ? { minWidth: column.minWidth }
+      : {}),
+    ...(column.align
+      ? { align: COLUMN_ALIGN[column.align] }
+      : {}),
   })),
 ])
 
-const rows = computed(() => props.data.map(row => ({ key: keyOf(row), row })))
+const rows = computed(() => props.data.map(row => ({
+  key: keyOf(row),
+  row,
+})))
 const tableRows = computed<TableRowDef[]>(() => rows.value.map(item => ({ id: item.key })))
 
 /** 全选时机器给的是 'all'，摊平成实际的键集合再回传 */
 function onSelectionChange(selection: TableSelection) {
-  checkedKeys.value = selection === 'all' ? rows.value.map(item => item.key) : selection
+  checkedKeys.value = selection === 'all'
+    ? rows.value.map(item => item.key)
+    : selection
 }
 
 function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeChild {
-  return column.render ? column.render(row, index) : ((row as Record<string, unknown>)[column.key] as VNodeChild)
+  return column.render
+    ? column.render(row, index)
+    : ((row as Record<string, unknown>)[column.key] as VNodeChild)
 }
 </script>
 
 <template>
   <!-- 单根包裹层：XhTableRoot 渲染的是 Fragment（表格根 + aria 播报区），Vue 只把父组件的 scoped 属性打到
        单根子组件的根元素上，Fragment 根拿不到 data-v-*。没有这一层，调用方写在 class 上的 scoped 规则
-       （flex:1、--xh-table-max-h…）与本组件的 :deep() 都选不中表格根，表格只能吃皮肤缺省的 24rem 上限。
+       （flex:1、--xh-table-max-h…）与本组件的 :deep() 都选不中表格根，表格只能吃皮肤缺省的 24rem 上限
        透传的 class / style 落在这层；--xh-table-max-h 是自定义属性，会继承进表格根 -->
   <div
     class="x-data-table"
@@ -237,7 +272,7 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 
 <style scoped>
 /* 包裹层是纵向 flex：表格根占满它的高度。调用方给包裹层 flex:1 / 定高时，表格就撑满该区域并在内部滚动；
-   没给（普通块级语境）时包裹层随内容高，表格照旧受 --xh-table-max-h（缺省 24rem）封顶。
+   没给（普通块级语境）时包裹层随内容高，表格照旧受 --xh-table-max-h（缺省 24rem）封顶
    表格撑满到多高仍由该令牌决定：要撑满容器就把它改成 100%（或经 max-height 传入） */
 .x-data-table {
   display: flex;
@@ -252,7 +287,7 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 
 /* 区段的下限从 max-content 换成 min-content：
    max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
-   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。
+   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉
    min-content 正是各列下限之和：既允许按比例压缩，行盒又始终罩得住所有单元格 */
 .x-data-table :deep([data-scope='table'][data-part='header']),
 .x-data-table :deep([data-scope='table'][data-part='body']) {

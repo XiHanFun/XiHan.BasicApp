@@ -44,8 +44,8 @@ const emit = defineEmits<{
   'update:value': [value: string]
 }>()
 
-// 离线安全：把 monaco 的 web worker 随应用打包（?worker），不走 CDN。
-// 首次挂载编辑器前执行；本组件异步懒加载，故仅在真正用到编辑器时才付出代价。
+// 离线安全：把 monaco 的 web worker 随应用打包（?worker），不走 CDN
+// 首次挂载编辑器前执行；本组件异步懒加载，故仅在真正用到编辑器时才付出代价
 window.MonacoEnvironment = {
   getWorker(_workerId, label) {
     if (label === 'json') {
@@ -251,7 +251,7 @@ async function handleCopy() {
   width: 100%;
   overflow: hidden;
   border: 1px solid hsl(var(--border));
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
 }
 
 .xh-editor__body {
@@ -261,16 +261,17 @@ async function handleCopy() {
 
 .xh-editor__copy {
   position: absolute;
-  top: 6px;
-  right: 18px;
+  top: var(--xh-space-2);
+  /* 让开纵向滚动条 */
+  right: var(--xh-space-5);
   z-index: 2;
-  padding: 2px 8px;
-  font-size: 12px;
+  padding: 2px var(--xh-space-2);
+  font-size: var(--xh-font-size-xs);
   color: var(--text-secondary);
   cursor: pointer;
   background: hsl(var(--background) / 0.85);
   border: 1px solid hsl(var(--border));
-  border-radius: 4px;
+  border-radius: var(--xh-shape-inset);
   opacity: 0;
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }

@@ -1,8 +1,8 @@
 /**
- * 分屏对照 Store（split-view）单元测试。
+ * 分屏对照 Store（split-view）单元测试
  * 职责边界：分屏开启/关闭、锚定与副标签的互斥约束、宽度占比夹取、视觉反转与路径互换、
- * SessionStorage 持久化往返，以及「小屏禁用分屏」这条硬约束。
- * useIsMobile 被替换为可控 ref —— jsdom 的 matchMedia 替身恒为 false，无法驱动断点。
+ * SessionStorage 持久化往返，以及「小屏禁用分屏」这条硬约束
+ * useIsMobile 被替换为可控 ref —— jsdom 的 matchMedia 替身恒为 false，无法驱动断点
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -18,7 +18,9 @@ vi.mock('~/composables/useIsMobile', async () => {
   mobileRef.current = isMobileRef
   return {
     MOBILE_BREAKPOINT: 768,
-    useIsMobile: () => ({ isMobile: vue.readonly(isMobileRef) }),
+    useIsMobile: () => ({
+      isMobile: vue.readonly(isMobileRef),
+    }),
   }
 })
 
@@ -32,7 +34,9 @@ function setMobile(value: boolean): void {
 
 function readPersisted(): Record<string, unknown> | null {
   const raw = sessionStorage.getItem(SPLIT_VIEW_KEY)
-  return raw ? (JSON.parse(raw) as Record<string, unknown>) : null
+  return raw
+    ? (JSON.parse(raw) as Record<string, unknown>)
+    : null
 }
 
 beforeEach(() => {
@@ -327,7 +331,13 @@ describe('关闭与持久化', () => {
     expect(store.leftPath).toBe('')
     expect(store.rightPath).toBe('')
     expect(store.reversed).toBe(false)
-    expect(readPersisted()).toEqual({ active: false, left: '', right: '', ratio: 0.5, reversed: false })
+    expect(readPersisted()).toEqual({
+      active: false,
+      left: '',
+      right: '',
+      ratio: 0.5,
+      reversed: false,
+    })
   })
 
   it('close 不重置宽度占比 —— 下次开启沿用用户拖出来的分割线位置', () => {
@@ -345,7 +355,13 @@ describe('关闭与持久化', () => {
 
     store.open('/a', '/b')
 
-    expect(readPersisted()).toEqual({ active: true, left: '/a', right: '/b', ratio: 0.5, reversed: false })
+    expect(readPersisted()).toEqual({
+      active: true,
+      left: '/a',
+      right: '/b',
+      ratio: 0.5,
+      reversed: false,
+    })
   })
 })
 
@@ -385,8 +401,8 @@ describe('小屏收敛', () => {
     setActivePinia(createPinia())
     // 先前用例创建的 store 实例并不会随 setActivePinia 销毁（createPinia 用的是 detached
     // effect scope），它们的 watcher 仍挂在本文件共享的 mobileRef 上，上一行的 setMobile(true)
-    // 会让这些遗留实例各写一次 sessionStorage。清掉它们的写入，本用例才只测新建 store 的行为。
-    // 不清的话用例通过与否取决于此前跑过哪些用例 —— 乱序执行时会随机失败。
+    // 会让这些遗留实例各写一次 sessionStorage。清掉它们的写入，本用例才只测新建 store 的行为
+    // 不清的话用例通过与否取决于此前跑过哪些用例 —— 乱序执行时会随机失败
     sessionStorage.removeItem(SPLIT_VIEW_KEY)
 
     useSplitViewStore()

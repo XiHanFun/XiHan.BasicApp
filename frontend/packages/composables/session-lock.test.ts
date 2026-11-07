@@ -1,7 +1,7 @@
 /**
- * session-lock 会话锁定状态读写单元测试。
+ * session-lock 会话锁定状态读写单元测试
  * 职责：锁定「只接管已知锁定原因」「同标签页必须靠自定义事件广播」这两条注释里写明的坑，
- * 以及标记读写、清除的完整性。这一层与 Vue 无关，仅操作 localStorage 与 window 事件。
+ * 以及标记读写、清除的完整性。这一层与 Vue 无关，仅操作 localStorage 与 window 事件
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LOCK_REASON_KEY, LOCK_STATE_KEY } from '~/constants'

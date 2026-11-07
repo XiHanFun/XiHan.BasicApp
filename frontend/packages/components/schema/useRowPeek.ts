@@ -2,11 +2,11 @@ import type { Ref } from 'vue'
 import { onBeforeUnmount, ref } from 'vue'
 
 /**
- * 行悬停速览（Peek & Pop）的悬停意图管理。
+ * 行悬停速览（Peek & Pop）的悬停意图管理
  *
  * - 悬停某行约 delay 毫秒后显示速览（防误触）；
  * - 已显示时移到相邻行即时切换内容（不重新等待）；
- * - 离行短暂宽限（行间缝隙不闪烁），滚动 / 按下 / 键盘即时隐藏。
+ * - 离行短暂宽限（行间缝隙不闪烁），滚动 / 按下 / 键盘即时隐藏
  */
 export interface RowPeekState<TRow> {
   visible: Ref<boolean>
@@ -57,7 +57,9 @@ export function useRowPeek<TRow extends object>(options?: {
   }
 
   function enabled(): boolean {
-    return options?.enabled ? options.enabled() : true
+    return options?.enabled
+      ? options.enabled()
+      : true
   }
 
   function onRowEnter(target: TRow, e: MouseEvent): void {
