@@ -16,47 +16,47 @@ public static class AuditingPages
     /// <summary>
     /// 日志链路追踪
     /// </summary>
-    public static PageDescriptor Traces { get; } = new("auditing.traces", "/auditing/traces", "auditing.traces.title", "lucide:route", 500, AuditingPermissions.TracesRead);
+    public static PageDescriptor Traces { get; } = new("auditing.traces", "/auditing/traces", "auditing.traces.title", "lucide:route", 580, AuditingPermissions.TracesRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 操作日志
     /// </summary>
-    public static PageDescriptor OperationLogs { get; } = new("auditing.operation-logs", "/auditing/operation-logs", "auditing.operation_logs.title", "lucide:clipboard-list", 510, AuditingPermissions.OperationLogsRead);
+    public static PageDescriptor OperationLogs { get; } = new("auditing.operation-logs", "/auditing/operation-logs", "auditing.operation_logs.title", "lucide:clipboard-list", 520, AuditingPermissions.OperationLogsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 登录日志
     /// </summary>
-    public static PageDescriptor LoginLogs { get; } = new("auditing.login-logs", "/auditing/login-logs", "auditing.login_logs.title", "lucide:log-in", 520, AuditingPermissions.LoginLogsRead);
+    public static PageDescriptor LoginLogs { get; } = new("auditing.login-logs", "/auditing/login-logs", "auditing.login_logs.title", "lucide:log-in", 500, AuditingPermissions.LoginLogsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 访问日志
     /// </summary>
-    public static PageDescriptor AccessLogs { get; } = new("auditing.access-logs", "/auditing/access-logs", "auditing.access_logs.title", "lucide:globe", 530, AuditingPermissions.AccessLogsRead);
+    public static PageDescriptor AccessLogs { get; } = new("auditing.access-logs", "/auditing/access-logs", "auditing.access_logs.title", "lucide:globe", 510, AuditingPermissions.AccessLogsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 异常日志
     /// </summary>
-    public static PageDescriptor ExceptionLogs { get; } = new("auditing.exception-logs", "/auditing/exception-logs", "auditing.exception_logs.title", "lucide:bug", 540, AuditingPermissions.ExceptionLogsRead);
+    public static PageDescriptor ExceptionLogs { get; } = new("auditing.exception-logs", "/auditing/exception-logs", "auditing.exception_logs.title", "lucide:bug", 540, AuditingPermissions.ExceptionLogsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 数据变更日志
     /// </summary>
-    public static PageDescriptor DiffLogs { get; } = new("auditing.diff-logs", "/auditing/diff-logs", "auditing.diff_logs.title", "lucide:git-compare", 550, AuditingPermissions.DiffLogsRead);
+    public static PageDescriptor DiffLogs { get; } = new("auditing.diff-logs", "/auditing/diff-logs", "auditing.diff_logs.title", "lucide:git-compare", 550, AuditingPermissions.DiffLogsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 权限变更日志
     /// </summary>
-    public static PageDescriptor PermissionChangeLogs { get; } = new("auditing.permission-change-logs", "/auditing/permission-change-logs", "auditing.permission_change_logs.title", "lucide:key-round", 560, AuditingPermissions.PermissionChangeLogsRead);
+    public static PageDescriptor PermissionChangeLogs { get; } = new("auditing.permission-change-logs", "/auditing/permission-change-logs", "auditing.permission_change_logs.title", "lucide:key-round", 560, AuditingPermissions.PermissionChangeLogsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 条件命中
     /// </summary>
-    public static PageDescriptor ConditionHits { get; } = new("auditing.condition-hits", "/auditing/condition-hits", "auditing.condition_hits.title", "lucide:filter", 570, AuditingPermissions.ConditionHitsRead);
+    public static PageDescriptor ConditionHits { get; } = new("auditing.condition-hits", "/auditing/condition-hits", "auditing.condition_hits.title", "lucide:filter", 570, AuditingPermissions.ConditionHitsRead, directory: MenuDirectories.SystemLogs);
 
     /// <summary>
     /// 开放接口日志
     /// </summary>
-    public static PageDescriptor OpenApiLogs { get; } = new("auditing.open-api-logs", "/auditing/open-api-logs", "auditing.open_api_logs.title", "lucide:plug", 580, AuditingPermissions.OpenApiLogsRead);
+    public static PageDescriptor OpenApiLogs { get; } = new("auditing.open-api-logs", "/auditing/open-api-logs", "auditing.open_api_logs.title", "lucide:plug", 610, AuditingPermissions.OpenApiLogsRead, directory: MenuDirectories.OpenApi);
 
     /// <summary>
     /// 全部顶层页面

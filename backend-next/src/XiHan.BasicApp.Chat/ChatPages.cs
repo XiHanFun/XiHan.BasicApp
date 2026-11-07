@@ -16,12 +16,12 @@ public static class ChatPages
     /// <summary>
     /// 在线聊天页
     /// </summary>
-    public static PageDescriptor Conversations { get; } = new("chat.conversations", "/chat/conversations", "chat.conversations.title", "lucide:messages-square", 710, ChatPermissions.ChatConversationsRead);
+    public static PageDescriptor Conversations { get; } = new("chat.conversations", "/chat/conversations", "chat.conversations.title", "lucide:messages-square", 710, ChatPermissions.ChatConversationsRead, directory: MenuDirectories.MessageCenter);
 
     /// <summary>
     /// 聊天审计页
     /// </summary>
-    public static PageDescriptor Audit { get; } = new("chat.audit", "/chat/audit", "chat.audit.title", "lucide:shield-check", 720, ChatPermissions.ChatAuditRead);
+    public static PageDescriptor Audit { get; } = new("chat.audit", "/chat/audit", "chat.audit.title", "lucide:shield-check", 720, ChatPermissions.ChatAuditRead, directory: MenuDirectories.MessageCenter);
 
     /// <summary>
     /// 全部顶层页面

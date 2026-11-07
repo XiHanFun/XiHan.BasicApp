@@ -2,7 +2,7 @@
 export default {
   tenancy: {
     tenants: {
-      title: '租户',
+      title: '租户列表',
       search: '搜索',
       keyword_placeholder: '租户 ID 或名称',
       fields: {
@@ -153,7 +153,7 @@ export default {
       },
     },
     editions: {
-      title: '套餐',
+      title: '套餐管理',
       fields: {
         code: '编码',
         name: '名称',

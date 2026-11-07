@@ -194,7 +194,7 @@ public sealed class CodeGenerationTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.Contains("codegeneration.code-gen", permissionsBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
         Assert.Contains(CodeGenerationPermissions.DatasourcesUpdate, permissionsBody.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()));
-        var page = permissionsBody.GetProperty("menus").EnumerateArray().Single(static m => m.GetProperty("code").GetString() == "codegeneration.code-gen");
+        var page = MenuTrees.Find(permissionsBody.GetProperty("menus"), "codegeneration.code-gen");
         Assert.Equal("/codegeneration/code-gen", page.GetProperty("route").GetString());
         Assert.Equal("codegeneration/code-gen/index", page.GetProperty("component").GetString());
     }

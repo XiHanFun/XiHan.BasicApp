@@ -17,7 +17,7 @@ public static class CodeGenerationPages
     /// <summary>
     /// 代码生成页
     /// </summary>
-    public static PageDescriptor CodeGen { get; } = new("codegeneration.code-gen", "/codegeneration/code-gen", "codegeneration.code_gen.title", "lucide:code-xml", 810, CodeGenerationPermissions.TablesRead);
+    public static PageDescriptor CodeGen { get; } = new("codegeneration.code-gen", "/codegeneration/code-gen", "codegeneration.code_gen.title", "lucide:code-xml", 810, CodeGenerationPermissions.TablesRead, directory: MenuDirectories.OnlineDev);
 
     /// <summary>
     /// 全部顶层页面

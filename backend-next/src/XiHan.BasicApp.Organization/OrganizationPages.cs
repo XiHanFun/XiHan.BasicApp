@@ -16,12 +16,12 @@ public static class OrganizationPages
     /// <summary>
     /// 部门页（树、详情、成员）
     /// </summary>
-    public static PageDescriptor Departments { get; } = new("organization.departments", "/organization/departments", "organization.departments.title", "lucide:network", 110, OrganizationPermissions.DepartmentsRead);
+    public static PageDescriptor Departments { get; } = new("organization.departments", "/organization/departments", "organization.departments.title", "lucide:network", 100, OrganizationPermissions.DepartmentsRead, directory: MenuDirectories.SystemPermission);
 
     /// <summary>
     /// 岗位页
     /// </summary>
-    public static PageDescriptor Positions { get; } = new("organization.positions", "/organization/positions", "organization.positions.title", "lucide:briefcase", 120, OrganizationPermissions.PositionsRead);
+    public static PageDescriptor Positions { get; } = new("organization.positions", "/organization/positions", "organization.positions.title", "lucide:briefcase", 110, OrganizationPermissions.PositionsRead, directory: MenuDirectories.SystemPermission);
 
     /// <summary>
     /// 全部顶层页面

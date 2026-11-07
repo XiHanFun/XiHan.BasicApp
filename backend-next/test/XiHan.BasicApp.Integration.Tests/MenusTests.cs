@@ -32,14 +32,34 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        // 整棵树：两侧的页面节点都在（含租户侧的部门、岗位），工作台排在最前
+        // 整棵树：两侧的页面节点都在（含租户侧的部门、岗位、我的订阅），工作台排在最前，其余页面按登记挂在内置目录下（三层：系统管理 › 系统权限 › 页面）
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
-        Assert.Equal(["workbench.dashboard", "identity.users", "organization.departments", "organization.positions", "identity.online-users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "tenancy.subscription", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "openplatform.oauth-apps", "maintenance.jobs", "maintenance.caches", "maintenance.server", "maintenance.versions", "maintenance.migrations", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "codegeneration.code-gen", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "ai.providers", "custom.about"], Codes(listBody.GetProperty("items")));
-        var roles = Node(listBody.GetProperty("items"), "access.roles");
+        Assert.Equal(
+            "workbench.dashboard, "
+            + "custom.ai-center[ai.providers, ai.assistants, ai.prompts, ai.knowledge-documents], "
+            + "custom.workflow-center[workflow.approvals, workflow.definitions, workflow.instances], "
+            + "custom.integration-center[notification.email-configs, notification.sms-configs, custom.push-service[notification.bot-configs, notification.telegram-bots], custom.open-api[openplatform.oauth-apps, auditing.open-api-logs]], "
+            + "custom.system-management["
+            + "custom.system-permission[organization.departments, organization.positions, identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security, access.menus], "
+            + "custom.tenant-management[tenancy.tenants, tenancy.editions, tenancy.subscription], "
+            + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
+            + "custom.system-services[maintenance.jobs, maintenance.caches, maintenance.versions, maintenance.migrations], "
+            + "custom.system-monitor[maintenance.server, identity.online-users], "
+            + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
+            + "custom.file-services[files.library, files.storage-configs, files.export-center], "
+            + "custom.online-dev[codegeneration.code-gen, printing.print-templates], "
+            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit]], "
+            + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
+            MenuTrees.Outline(listBody.GetProperty("items")));
+        var roles = MenuTrees.Find(listBody.GetProperty("items"), "access.roles");
         var rolesId = roles.GetProperty("id").GetString()!;
-        var usersId = Node(listBody.GetProperty("items"), "identity.users").GetProperty("id").GetString()!;
+        var usersId = MenuTrees.Find(listBody.GetProperty("items"), "identity.users").GetProperty("id").GetString()!;
         Assert.False(roles.GetProperty("isCustomized").GetBoolean());
+        var permissionDirectory = MenuTrees.Find(listBody.GetProperty("items"), "custom.system-permission");
+        Assert.Equal("custom", permissionDirectory.GetProperty("package").GetString());
+        Assert.Equal("menu.system_permission", permissionDirectory.GetProperty("titleKey").GetString());
+        Assert.Equal(permissionDirectory.GetProperty("id").GetString(), roles.GetProperty("parentId").GetString());
 
         // 新建目录：编码存为 custom.<名>、重复冲突；上级须是目录（挂到页面下即拒绝）；页面不能新建
         var (directory, directoryBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"system","title":"System","icon":"lucide:settings","order":150}""", superadmin));
@@ -82,8 +102,10 @@ public sealed class MenusTests : IDisposable
         var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         var menus = permissionsBody.GetProperty("menus");
-        Assert.Equal(["workbench.dashboard", "identity.users", "custom.system", "identity.online-users", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "openplatform.oauth-apps", "maintenance.jobs", "maintenance.caches", "maintenance.server", "maintenance.versions", "maintenance.migrations", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "codegeneration.code-gen", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "ai.providers", "custom.about"], Codes(menus));
-        Assert.True(Node(menus, "identity.users").GetProperty("hidden").GetBoolean());
+        // 顶层按排序：工作台 0、AI 中心 100、没写上级的用户页 100（同序按编码）、运营建的 custom.system 150、流程中心 200 …
+        Assert.Equal(["workbench.dashboard", "custom.ai-center", "identity.users", "custom.system", "custom.workflow-center", "custom.integration-center", "custom.system-management", "custom.about"], Codes(menus));
+        Assert.True(MenuTrees.Find(menus, "identity.users").GetProperty("hidden").GetBoolean());
+        Assert.Equal(["access.permissions", "access.delegations", "access.policies", "access.constraint-rules", "access.field-security", "access.menus"], Codes(MenuTrees.Find(menus, "custom.system-permission").GetProperty("children")));
         var system = Node(menus, "custom.system");
         Assert.Equal("Directory", system.GetProperty("kind").GetString());
         Assert.Equal("System", system.GetProperty("title").GetString());
@@ -122,7 +144,7 @@ public sealed class MenusTests : IDisposable
         var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{rolesId}:reset", "{}", superadmin));
         Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
         Assert.False(resetBody.GetProperty("isCustomized").GetBoolean());
-        Assert.Equal(JsonValueKind.Null, resetBody.GetProperty("parentId").ValueKind);
+        Assert.Equal(permissionDirectory.GetProperty("id").GetString(), resetBody.GetProperty("parentId").GetString());
         Assert.Equal(JsonValueKind.Null, resetBody.GetProperty("title").ValueKind);
         Assert.Equal("lucide:shield", resetBody.GetProperty("icon").GetString());
         Assert.Equal(200, resetBody.GetProperty("order").GetInt32());
@@ -154,7 +176,7 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
-        var rolesId = Node(listBody.GetProperty("items"), "access.roles").GetProperty("id").GetString()!;
+        var rolesId = MenuTrees.Find(listBody.GetProperty("items"), "access.roles").GetProperty("id").GetString()!;
 
         // 三层目录一层套一层，页面挂在最里层，外链挂在第二层
         var (outer, outerBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"outer","title":"Outer","order":150}""", superadmin));
@@ -355,7 +377,7 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
-        var roles = Node(listBody.GetProperty("items"), "access.roles");
+        var roles = MenuTrees.Find(listBody.GetProperty("items"), "access.roles");
         var rolesId = roles.GetProperty("id").GetString()!;
         Assert.Equal("Active", roles.GetProperty("status").GetString());
 
@@ -365,10 +387,10 @@ public sealed class MenusTests : IDisposable
         Assert.Equal("Disabled", disabledBody.GetProperty("status").GetString());
         Assert.True(disabledBody.GetProperty("isCustomized").GetBoolean());
         var (_, afterDisable) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
-        Assert.DoesNotContain("access.roles", Codes(afterDisable.GetProperty("menus")));
+        Assert.DoesNotContain("access.roles", Codes(MenuTrees.Find(afterDisable.GetProperty("menus"), "custom.system-permission").GetProperty("children")));
         Assert.DoesNotContain("access.roles", afterDisable.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
         var (_, stillListed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
-        Assert.Equal("Disabled", Node(stillListed.GetProperty("items"), "access.roles").GetProperty("status").GetString());
+        Assert.Equal("Disabled", MenuTrees.Find(stillListed.GetProperty("items"), "access.roles").GetProperty("status").GetString());
 
         // 种子再跑不覆盖运营的停用
         await server.RunSeedersAsync();
@@ -381,7 +403,7 @@ public sealed class MenusTests : IDisposable
         Assert.Equal("Active", resetBody.GetProperty("status").GetString());
         Assert.False(resetBody.GetProperty("isCustomized").GetBoolean());
         var (_, afterReset) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
-        Assert.Contains("access.roles", Codes(afterReset.GetProperty("menus")));
+        Assert.Contains("access.roles", Codes(MenuTrees.Find(afterReset.GetProperty("menus"), "custom.system-permission").GetProperty("children")));
 
         // 新建时可直接停用；停用的目录连同子树不下发，启用即恢复；状态没变不算定制
         var (directory, directoryBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"ops","title":"Ops","status":"Disabled"}""", superadmin));
@@ -416,7 +438,7 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
-        var roles = Node(listBody.GetProperty("items"), "access.roles");
+        var roles = MenuTrees.Find(listBody.GetProperty("items"), "access.roles");
         var rolesId = roles.GetProperty("id").GetString()!;
         Assert.Equal(JsonValueKind.Null, roles.GetProperty("badge").ValueKind);
         Assert.False(roles.GetProperty("badgeDot").GetBoolean());
@@ -428,7 +450,7 @@ public sealed class MenusTests : IDisposable
         Assert.Equal("success", updatedBody.GetProperty("badgeType").GetString());
         Assert.True(updatedBody.GetProperty("isCustomized").GetBoolean());
         var (_, delivered) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
-        var deliveredRoles = Node(delivered.GetProperty("menus"), "access.roles");
+        var deliveredRoles = MenuTrees.Find(delivered.GetProperty("menus"), "access.roles");
         Assert.Equal("New", deliveredRoles.GetProperty("badge").GetString());
         Assert.Equal("success", deliveredRoles.GetProperty("badgeType").GetString());
         Assert.False(deliveredRoles.GetProperty("badgeDot").GetBoolean());
@@ -471,7 +493,8 @@ public sealed class MenusTests : IDisposable
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
-        Assert.Equal("identity.users", Codes(permissionsBody.GetProperty("menus"))[0]);
+        Assert.Equal("custom.ai-center", Codes(permissionsBody.GetProperty("menus"))[0]);
+        Assert.Equal("ai.providers", permissionsBody.GetProperty("pages")[0].GetString());
         Assert.DoesNotContain("workbench.dashboard", permissionsBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
 
         await Assert.ThrowsAsync<ArgumentException>(() => BasicAppTestServer.StartAsync(_database.ConnectionString, settings: [new("BasicApp:Modules:Workbench:Enabled", "maybe")]));

@@ -2,7 +2,7 @@
 export default {
   identity: {
     users: {
-      title: '用户',
+      title: '用户管理',
       search: '关键字',
       keyword_placeholder: '搜索用户名、显示名…',
       status_placeholder: '全部状态',

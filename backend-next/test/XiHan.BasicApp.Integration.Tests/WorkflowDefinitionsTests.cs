@@ -252,7 +252,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         var superadmin = (await AuthFlowTests.LoginAsync(on, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (_, body) = await on.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(["workflow.approvals", "workflow.definitions", "workflow.instances"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()!).Where(static p => p.StartsWith("workflow.", StringComparison.Ordinal)).Order(StringComparer.Ordinal).ToList());
-        var page = body.GetProperty("menus").EnumerateArray().Single(static m => m.GetProperty("code").GetString() == "workflow.definitions");
+        var page = MenuTrees.Find(body.GetProperty("menus"), "workflow.definitions");
         Assert.Equal(("/workflow/definitions", "workflow/definitions/index"), (page.GetProperty("route").GetString(), page.GetProperty("component").GetString()));
     }
 

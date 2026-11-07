@@ -351,7 +351,7 @@ public sealed class PrintingTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.Contains("printing.print-templates", permissionsBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
         Assert.Contains(PrintingPermissions.PrintTemplatesGlobalManage, permissionsBody.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()));
-        var page = permissionsBody.GetProperty("menus").EnumerateArray().Single(static m => m.GetProperty("code").GetString() == "printing.print-templates");
+        var page = MenuTrees.Find(permissionsBody.GetProperty("menus"), "printing.print-templates");
         Assert.Equal("/printing/print-templates", page.GetProperty("route").GetString());
         Assert.Equal("printing/print-templates/index", page.GetProperty("component").GetString());
     }

@@ -303,7 +303,7 @@ public sealed class AIProvidersTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.Contains("ai.providers", permissionsBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
         Assert.Contains(AIPermissions.AiProvidersExecute, permissionsBody.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()));
-        var page = permissionsBody.GetProperty("menus").EnumerateArray().Single(static m => m.GetProperty("code").GetString() == "ai.providers");
+        var page = MenuTrees.Find(permissionsBody.GetProperty("menus"), "ai.providers");
         Assert.Equal("/ai/providers", page.GetProperty("route").GetString());
         Assert.Equal("ai/providers/index", page.GetProperty("component").GetString());
     }

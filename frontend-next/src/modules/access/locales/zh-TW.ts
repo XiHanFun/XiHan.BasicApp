@@ -2,7 +2,7 @@
 export default {
   access: {
     roles: {
-      title: '角色',
+      title: '角色管理',
       search: '關鍵字',
       keyword_placeholder: '搜尋角色名稱 / 角色碼',
       name_placeholder: '請輸入角色名稱',
@@ -156,7 +156,7 @@ export default {
       perm_denied_by: '被上級拒絕：{names}',
     },
     menus: {
-      title: '選單',
+      title: '選單管理',
       search: '關鍵字',
       keyword_placeholder: '搜尋標題 / 編碼 / 路由',
       fields: {

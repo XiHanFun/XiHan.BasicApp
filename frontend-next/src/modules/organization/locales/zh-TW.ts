@@ -2,7 +2,7 @@
 export default {
   organization: {
     departments: {
-      title: '部門',
+      title: '部門管理',
       keyword: '關鍵字',
       keyword_placeholder: '搜尋部門名稱/編碼',
       fields: {
@@ -90,7 +90,7 @@ export default {
       primary_set: '已設為主要部門',
     },
     positions: {
-      title: '崗位',
+      title: '崗位管理',
       keyword: '關鍵字',
       keyword_placeholder: '搜尋崗位名稱/編碼',
       fields: {

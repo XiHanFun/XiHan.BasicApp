@@ -86,7 +86,23 @@ public sealed class TenantsTests : IDisposable
         Assert.Contains("identity.users.create", codes);
         Assert.Contains("access.roles.grant", codes);
         Assert.DoesNotContain("tenancy.tenants.read", codes);
-        Assert.Equal(["workbench.dashboard", "identity.users", "organization.departments", "organization.positions", "identity.online-users", "access.roles", "access.permissions", "access.delegations", "access.field-security", "access.policies", "access.constraint-rules", "tenancy.subscription", "settings.configs", "settings.dicts", "settings.numbering-rules", "files.library", "files.storage-configs", "files.export-center", "notification.notifications", "notification.messages", "notification.templates", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.inbox", "auditing.traces", "auditing.operation-logs", "auditing.login-logs", "auditing.access-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.open-api-logs", "printing.print-templates", "chat.conversations", "chat.audit", "workflow.approvals", "workflow.definitions", "workflow.instances", "ai.knowledge-documents", "custom.about"], permissionsBody.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
+        // 租户侧的树：平台专属的页面（租户、套餐、菜单、运维、代码生成、Telegram、应用管理、AI 的提供商 / 助手 / 提示词）不在，装不下页面的目录（系统服务）也不下发
+        Assert.Equal(
+            "workbench.dashboard, "
+            + "custom.ai-center[ai.knowledge-documents], "
+            + "custom.workflow-center[workflow.approvals, workflow.definitions, workflow.instances], "
+            + "custom.integration-center[notification.email-configs, notification.sms-configs, custom.push-service[notification.bot-configs], custom.open-api[auditing.open-api-logs]], "
+            + "custom.system-management["
+            + "custom.system-permission[organization.departments, organization.positions, identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security], "
+            + "custom.tenant-management[tenancy.subscription], "
+            + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
+            + "custom.system-monitor[identity.online-users], "
+            + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
+            + "custom.file-services[files.library, files.storage-configs, files.export-center], "
+            + "custom.online-dev[printing.print-templates], "
+            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit]], "
+            + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
+            MenuTrees.Outline(permissionsBody.GetProperty("menus")));
 
         // 在本租户内工作：只看到本租户的用户；平台专属权限不在任何套餐白名单里，持有 * 也在授权阶段被收窄
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", tenantAdmin));

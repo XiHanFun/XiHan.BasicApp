@@ -16,17 +16,17 @@ public static class SettingsPages
     /// <summary>
     /// 参数页
     /// </summary>
-    public static PageDescriptor Configs { get; } = new("settings.configs", "/settings/configs", "settings.configs.title", "lucide:sliders-horizontal", 400, SettingsPermissions.ConfigsRead);
+    public static PageDescriptor Configs { get; } = new("settings.configs", "/settings/configs", "settings.configs.title", "lucide:sliders-horizontal", 400, SettingsPermissions.ConfigsRead, directory: MenuDirectories.SystemSettings);
 
     /// <summary>
     /// 字典页（字典与字典项）
     /// </summary>
-    public static PageDescriptor Dicts { get; } = new("settings.dicts", "/settings/dicts", "settings.dicts.title", "lucide:book-open", 410, SettingsPermissions.DictsRead);
+    public static PageDescriptor Dicts { get; } = new("settings.dicts", "/settings/dicts", "settings.dicts.title", "lucide:book-open", 410, SettingsPermissions.DictsRead, directory: MenuDirectories.SystemSettings);
 
     /// <summary>
     /// 业务编号页
     /// </summary>
-    public static PageDescriptor NumberingRules { get; } = new("settings.numbering-rules", "/settings/numbering-rules", "settings.numbering_rules.title", "lucide:hash", 420, SettingsPermissions.NumberingRulesRead);
+    public static PageDescriptor NumberingRules { get; } = new("settings.numbering-rules", "/settings/numbering-rules", "settings.numbering_rules.title", "lucide:hash", 420, SettingsPermissions.NumberingRulesRead, directory: MenuDirectories.SystemSettings);
 
     /// <summary>
     /// 全部顶层页面

@@ -16,37 +16,37 @@ public static class NotificationPages
     /// <summary>
     /// 通知公告页
     /// </summary>
-    public static PageDescriptor Notifications { get; } = new("notification.notifications", "/notification/notifications", "notification.notifications.title", "lucide:megaphone", 480, NotificationPermissions.NotificationsRead);
+    public static PageDescriptor Notifications { get; } = new("notification.notifications", "/notification/notifications", "notification.notifications.title", "lucide:megaphone", 481, NotificationPermissions.NotificationsRead, directory: MenuDirectories.MessageCenter);
 
     /// <summary>
     /// 邮件短信记录页
     /// </summary>
-    public static PageDescriptor Messages { get; } = new("notification.messages", "/notification/messages", "notification.messages.title", "lucide:send", 482, NotificationPermissions.EmailsRead);
+    public static PageDescriptor Messages { get; } = new("notification.messages", "/notification/messages", "notification.messages.title", "lucide:send", 483, NotificationPermissions.EmailsRead, directory: MenuDirectories.MessageCenter);
 
     /// <summary>
     /// 消息模板页
     /// </summary>
-    public static PageDescriptor Templates { get; } = new("notification.templates", "/notification/templates", "notification.templates.title", "lucide:file-code-2", 484, NotificationPermissions.TemplatesRead);
+    public static PageDescriptor Templates { get; } = new("notification.templates", "/notification/templates", "notification.templates.title", "lucide:file-code-2", 482, NotificationPermissions.TemplatesRead, directory: MenuDirectories.MessageCenter);
 
     /// <summary>
     /// 邮件配置页
     /// </summary>
-    public static PageDescriptor EmailConfigs { get; } = new("notification.email-configs", "/notification/email-configs", "notification.email_configs.title", "lucide:mail-plus", 486, NotificationPermissions.EmailConfigsRead);
+    public static PageDescriptor EmailConfigs { get; } = new("notification.email-configs", "/notification/email-configs", "notification.email_configs.title", "lucide:mail-plus", 486, NotificationPermissions.EmailConfigsRead, directory: MenuDirectories.IntegrationCenter);
 
     /// <summary>
     /// 短信配置页
     /// </summary>
-    public static PageDescriptor SmsConfigs { get; } = new("notification.sms-configs", "/notification/sms-configs", "notification.sms_configs.title", "lucide:message-square-code", 488, NotificationPermissions.SmsConfigsRead);
+    public static PageDescriptor SmsConfigs { get; } = new("notification.sms-configs", "/notification/sms-configs", "notification.sms_configs.title", "lucide:message-square-code", 488, NotificationPermissions.SmsConfigsRead, directory: MenuDirectories.IntegrationCenter);
 
     /// <summary>
     /// 机器人配置页
     /// </summary>
-    public static PageDescriptor BotConfigs { get; } = new("notification.bot-configs", "/notification/bot-configs", "notification.bot_configs.title", "lucide:bot", 489, NotificationPermissions.BotConfigsRead);
+    public static PageDescriptor BotConfigs { get; } = new("notification.bot-configs", "/notification/bot-configs", "notification.bot_configs.title", "lucide:bot", 489, NotificationPermissions.BotConfigsRead, directory: MenuDirectories.PushService);
 
     /// <summary>
     /// Telegram 机器人页（平台）
     /// </summary>
-    public static PageDescriptor TelegramBots { get; } = new("notification.telegram-bots", "/notification/telegram-bots", "notification.telegram_bots.title", "lucide:bot-message-square", 490, NotificationPermissions.TelegramBotsRead);
+    public static PageDescriptor TelegramBots { get; } = new("notification.telegram-bots", "/notification/telegram-bots", "notification.telegram_bots.title", "lucide:bot-message-square", 490, NotificationPermissions.TelegramBotsRead, directory: MenuDirectories.PushService);
 
     /// <summary>
     /// 我的消息页（本人的收件箱）
@@ -54,7 +54,7 @@ public static class NotificationPages
     /// <remarks>
     /// 登录即可；4.x 同不设权限
     /// </remarks>
-    public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 495);
+    public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 480, directory: MenuDirectories.MessageCenter);
 
     /// <summary>
     /// 本包全部页面

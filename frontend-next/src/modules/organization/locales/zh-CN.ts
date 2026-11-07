@@ -2,7 +2,7 @@
 export default {
   organization: {
     departments: {
-      title: '部门',
+      title: '部门管理',
       keyword: '关键词',
       keyword_placeholder: '搜索部门名称/编码',
       fields: {
@@ -90,7 +90,7 @@ export default {
       primary_set: '已设为主部门',
     },
     positions: {
-      title: '岗位',
+      title: '岗位管理',
       keyword: '关键词',
       keyword_placeholder: '搜索岗位名称/编码',
       fields: {

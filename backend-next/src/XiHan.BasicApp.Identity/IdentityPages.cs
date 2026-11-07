@@ -16,12 +16,12 @@ public static class IdentityPages
     /// <summary>
     /// 用户管理页
     /// </summary>
-    public static PageDescriptor Users { get; } = new("identity.users", "/identity/users", "identity.users.title", "lucide:users", 100, IdentityPermissions.UsersRead);
+    public static PageDescriptor Users { get; } = new("identity.users", "/identity/users", "identity.users.title", "lucide:users", 120, IdentityPermissions.UsersRead, directory: MenuDirectories.SystemPermission);
 
     /// <summary>
     /// 在线用户页
     /// </summary>
-    public static PageDescriptor OnlineUsers { get; } = new("identity.online-users", "/identity/online-users", "identity.online_users.title", "lucide:radio", 170, IdentityPermissions.SessionsRead);
+    public static PageDescriptor OnlineUsers { get; } = new("identity.online-users", "/identity/online-users", "identity.online_users.title", "lucide:radio", 670, IdentityPermissions.SessionsRead, directory: MenuDirectories.SystemMonitor);
 
     /// <summary>
     /// 本包全部页面

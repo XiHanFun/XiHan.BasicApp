@@ -17,22 +17,22 @@ public static class AIPages
     /// <summary>
     /// 助手页
     /// </summary>
-    public static PageDescriptor Assistants { get; } = new("ai.assistants", "/ai/assistants", "ai.assistants.title", "lucide:bot", 910, AIPermissions.AiAssistantsRead);
+    public static PageDescriptor Assistants { get; } = new("ai.assistants", "/ai/assistants", "ai.assistants.title", "lucide:bot", 920, AIPermissions.AiAssistantsRead, directory: MenuDirectories.AiCenter);
 
     /// <summary>
     /// 提示词页
     /// </summary>
-    public static PageDescriptor Prompts { get; } = new("ai.prompts", "/ai/prompts", "ai.prompts.title", "lucide:file-text", 920, AIPermissions.AiPromptsRead);
+    public static PageDescriptor Prompts { get; } = new("ai.prompts", "/ai/prompts", "ai.prompts.title", "lucide:file-text", 930, AIPermissions.AiPromptsRead, directory: MenuDirectories.AiCenter);
 
     /// <summary>
     /// 知识库页：平台与租户各自维护（方案 A2）
     /// </summary>
-    public static PageDescriptor KnowledgeDocuments { get; } = new("ai.knowledge-documents", "/ai/knowledge-documents", "ai.knowledge_documents.title", "lucide:book-open", 930, AIPermissions.KnowledgeDocumentsRead);
+    public static PageDescriptor KnowledgeDocuments { get; } = new("ai.knowledge-documents", "/ai/knowledge-documents", "ai.knowledge_documents.title", "lucide:book-open", 940, AIPermissions.KnowledgeDocumentsRead, directory: MenuDirectories.AiCenter);
 
     /// <summary>
     /// 提供商页
     /// </summary>
-    public static PageDescriptor Providers { get; } = new("ai.providers", "/ai/providers", "ai.providers.title", "lucide:sparkles", 940, AIPermissions.AiProvidersRead);
+    public static PageDescriptor Providers { get; } = new("ai.providers", "/ai/providers", "ai.providers.title", "lucide:sparkles", 910, AIPermissions.AiProvidersRead, directory: MenuDirectories.AiCenter);
 
     /// <summary>
     /// 全部顶层页面

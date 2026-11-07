@@ -44,7 +44,7 @@ export default {
       open_trace: '按{label}「{value}」查看链路追踪',
     },
     traces: {
-      title: '日志链路追踪',
+      title: '链路追踪',
       dimension: '追踪维度',
       value: '追踪值',
       time_range: '时间范围',
@@ -164,7 +164,7 @@ export default {
       app_version: '应用版本',
     },
     diff_logs: {
-      title: '数据变更日志',
+      title: '变更日志',
       detail_title: '数据变更详情',
       keyword_placeholder: '搜索实体、表或主键',
       kind: '变更种类',
@@ -182,7 +182,7 @@ export default {
       after: '变更后',
     },
     permission_change_logs: {
-      title: '权限变更日志',
+      title: '权限日志',
       detail_title: '权限变更详情',
       keyword_placeholder: '搜索角色、用户、套餐或权限码',
       change_type: '变更类型',

@@ -44,7 +44,7 @@ export default {
       open_trace: '依{label}「{value}」檢視追蹤',
     },
     traces: {
-      title: '日誌追蹤',
+      title: '鏈路追蹤',
       dimension: '追蹤維度',
       value: '追蹤值',
       time_range: '時間範圍',
@@ -164,7 +164,7 @@ export default {
       app_version: '應用程式版本',
     },
     diff_logs: {
-      title: '資料變更日誌',
+      title: '變更日誌',
       detail_title: '資料變更詳情',
       keyword_placeholder: '搜尋實體、資料表或主鍵',
       kind: '變更種類',
@@ -182,7 +182,7 @@ export default {
       after: '變更後',
     },
     permission_change_logs: {
-      title: '權限變更日誌',
+      title: '權限日誌',
       detail_title: '權限變更詳情',
       keyword_placeholder: '搜尋角色、使用者、套餐或權限碼',
       change_type: '變更類型',

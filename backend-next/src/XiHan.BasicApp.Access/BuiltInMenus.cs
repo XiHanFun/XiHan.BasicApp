@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Access.Domain.Entities;
+using XiHan.BasicApp.Contracts.Pages;
 
 namespace XiHan.BasicApp.Access;
 
@@ -18,26 +19,36 @@ namespace XiHan.BasicApp.Access;
 public sealed record BuiltInMenu(string Code, MenuKind Kind, string TitleKey, string Icon, int Order, string? ParentCode = null, string? ExternalUrl = null);
 
 /// <summary>
-/// 内置的运营节点：帮助中心目录与三个外链
+/// 内置的运营节点：各包页面登记指到的目录（见 <see cref="MenuDirectories"/>）与帮助中心的三个外链
 /// </summary>
 /// <remarks>
-/// 种类与运营建的一样（可改、可停用、可删），种子 <c>access.menus</c> 只首写：写过一次之后不再碰，删掉的也不补
+/// 种类与运营建的一样（可改、可停用、可删），种子 <c>access.menus</c> 只首写：写过一次之后不再碰，删掉的也不补。上级目录排在它的下级之前，种子按顺序写才找得到上级
 /// </remarks>
 public static class BuiltInMenus
 {
-    /// <summary>
-    /// 帮助中心目录的节点编码
-    /// </summary>
-    public const string AboutDirectoryCode = "custom.about";
-
     /// <summary>
     /// 全部内置节点（目录排在它的外链之前）
     /// </summary>
     public static IReadOnlyList<BuiltInMenu> All { get; } =
     [
-        new(AboutDirectoryCode, MenuKind.Directory, "menu.about", "lucide:info", 1100),
-        new("custom.about-docs", MenuKind.Link, "menu.about_docs", "lucide:book-open-text", 1120, AboutDirectoryCode, "https://docs.xihanfun.com"),
-        new("custom.about-github", MenuKind.Link, "menu.about_github", "lucide:github", 1130, AboutDirectoryCode, "https://github.com/XiHanFun/XiHan.BasicApp"),
-        new("custom.about-gitee", MenuKind.Link, "menu.about_gitee", "lucide:git-branch", 1140, AboutDirectoryCode, "https://gitee.com/XiHanFun/XiHan.BasicApp"),
+        new(MenuDirectories.AiCenter, MenuKind.Directory, "menu.ai_center", "lucide:brain-circuit", 100),
+        new(MenuDirectories.WorkflowCenter, MenuKind.Directory, "menu.workflow_center", "lucide:workflow", 200),
+        new(MenuDirectories.IntegrationCenter, MenuKind.Directory, "menu.integration_center", "lucide:plug-zap", 300),
+        new(MenuDirectories.PushService, MenuKind.Directory, "menu.push_service", "lucide:bell-ring", 600, MenuDirectories.IntegrationCenter),
+        new(MenuDirectories.OpenApi, MenuKind.Directory, "menu.open_api", "lucide:plug", 610, MenuDirectories.IntegrationCenter),
+        new(MenuDirectories.SystemManagement, MenuKind.Directory, "menu.system_management", "lucide:settings", 400),
+        new(MenuDirectories.SystemPermission, MenuKind.Directory, "menu.system_permission", "lucide:shield-check", 100, MenuDirectories.SystemManagement),
+        new(MenuDirectories.TenantManagement, MenuKind.Directory, "menu.tenant_management", "lucide:building-2", 200, MenuDirectories.SystemManagement),
+        new(MenuDirectories.SystemSettings, MenuKind.Directory, "menu.system_settings", "lucide:sliders-horizontal", 300, MenuDirectories.SystemManagement),
+        new(MenuDirectories.SystemServices, MenuKind.Directory, "menu.system_services", "lucide:server-cog", 400, MenuDirectories.SystemManagement),
+        new(MenuDirectories.SystemMonitor, MenuKind.Directory, "menu.system_monitor", "lucide:activity", 500, MenuDirectories.SystemManagement),
+        new(MenuDirectories.SystemLogs, MenuKind.Directory, "menu.system_logs", "lucide:scroll-text", 600, MenuDirectories.SystemManagement),
+        new(MenuDirectories.FileServices, MenuKind.Directory, "menu.file_services", "lucide:folder-cog", 700, MenuDirectories.SystemManagement),
+        new(MenuDirectories.OnlineDev, MenuKind.Directory, "menu.online_dev", "lucide:code", 800, MenuDirectories.SystemManagement),
+        new(MenuDirectories.MessageCenter, MenuKind.Directory, "menu.message_center", "lucide:mails", 900, MenuDirectories.SystemManagement),
+        new(MenuDirectories.About, MenuKind.Directory, "menu.about", "lucide:info", 1100),
+        new("custom.about-docs", MenuKind.Link, "menu.about_docs", "lucide:book-open-text", 1120, MenuDirectories.About, "https://docs.xihanfun.com"),
+        new("custom.about-github", MenuKind.Link, "menu.about_github", "lucide:github", 1130, MenuDirectories.About, "https://github.com/XiHanFun/XiHan.BasicApp"),
+        new("custom.about-gitee", MenuKind.Link, "menu.about_gitee", "lucide:git-branch", 1140, MenuDirectories.About, "https://gitee.com/XiHanFun/XiHan.BasicApp"),
     ];
 }

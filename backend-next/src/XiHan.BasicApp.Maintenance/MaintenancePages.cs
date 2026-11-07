@@ -13,27 +13,27 @@ public static class MaintenancePages
     /// <summary>
     /// 任务调度
     /// </summary>
-    public static PageDescriptor Jobs { get; } = new("maintenance.jobs", "/maintenance/jobs", "maintenance.jobs.title", "lucide:timer", 640, MaintenancePermissions.JobsRead);
+    public static PageDescriptor Jobs { get; } = new("maintenance.jobs", "/maintenance/jobs", "maintenance.jobs.title", "lucide:timer", 640, MaintenancePermissions.JobsRead, directory: MenuDirectories.SystemServices);
 
     /// <summary>
     /// 缓存管理
     /// </summary>
-    public static PageDescriptor Caches { get; } = new("maintenance.caches", "/maintenance/caches", "maintenance.caches.title", "lucide:database", 650, MaintenancePermissions.CachesRead);
+    public static PageDescriptor Caches { get; } = new("maintenance.caches", "/maintenance/caches", "maintenance.caches.title", "lucide:database", 650, MaintenancePermissions.CachesRead, directory: MenuDirectories.SystemServices);
 
     /// <summary>
     /// 服务监控
     /// </summary>
-    public static PageDescriptor Server { get; } = new("maintenance.server", "/maintenance/server", "maintenance.server.title", "lucide:server", 660, MaintenancePermissions.ServerRead);
+    public static PageDescriptor Server { get; } = new("maintenance.server", "/maintenance/server", "maintenance.server.title", "lucide:server", 660, MaintenancePermissions.ServerRead, directory: MenuDirectories.SystemMonitor);
 
     /// <summary>
     /// 版本管理
     /// </summary>
-    public static PageDescriptor Versions { get; } = new("maintenance.versions", "/maintenance/versions", "maintenance.versions.title", "lucide:git-branch", 670, MaintenancePermissions.VersionsRead);
+    public static PageDescriptor Versions { get; } = new("maintenance.versions", "/maintenance/versions", "maintenance.versions.title", "lucide:git-branch", 670, MaintenancePermissions.VersionsRead, directory: MenuDirectories.SystemServices);
 
     /// <summary>
     /// 升级记录
     /// </summary>
-    public static PageDescriptor Migrations { get; } = new("maintenance.migrations", "/maintenance/migrations", "maintenance.migrations.title", "lucide:database-zap", 680, MaintenancePermissions.MigrationsRead);
+    public static PageDescriptor Migrations { get; } = new("maintenance.migrations", "/maintenance/migrations", "maintenance.migrations.title", "lucide:database-zap", 680, MaintenancePermissions.MigrationsRead, directory: MenuDirectories.SystemServices);
 
     /// <summary>
     /// 本包全部页面
