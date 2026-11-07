@@ -788,6 +788,7 @@ export default {
       preview: 'Next {count} runs',
       preview_none: 'Cannot compute (invalid expression or no upcoming match)',
       week_names: 'Sun,Mon,Tue,Wed,Thu,Fri,Sat',
+      presets_label: 'Presets',
       preset_per_minute: 'Every minute',
       preset_per_5min: 'Every 5 min',
       preset_hourly: 'Hourly',

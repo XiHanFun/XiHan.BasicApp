@@ -788,6 +788,7 @@ export default {
       preview: '{count} prochaines exécutions',
       preview_none: 'Calcul impossible (expression invalide ou aucune occurrence proche)',
       week_names: 'Dim,Lun,Mar,Mer,Jeu,Ven,Sam',
+      presets_label: 'Préréglages',
       preset_per_minute: 'Chaque minute',
       preset_per_5min: 'Toutes les 5 min',
       preset_hourly: 'Toutes les heures',

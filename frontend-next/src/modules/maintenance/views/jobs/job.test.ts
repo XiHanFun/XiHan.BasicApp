@@ -38,7 +38,6 @@ import {
   runStatusTone,
   runTriggerLabel,
   scheduleFormOf,
-  schedulePresets,
   sourceLabel,
   sourceOptions,
   sourceTone,
@@ -591,17 +590,6 @@ describe('任务调度：修改计划', () => {
     expect(first.pathname).toBe('/api/jobs:validate-schedule')
     expect(Object.fromEntries(first.searchParams)).toEqual({ expression: '0 0 3 * * ?', timeZone: 'Asia/Shanghai', count: '5' })
     expect(Object.fromEntries(new URL(calls[1]!.url, 'http://host').searchParams)).toEqual({ expression: 'every 00:05:00', count: '5' })
-  })
-
-  it('常用预设沿用 4.x 的六个（周按 Unix 约定，1 是周一）', () => {
-    expect(schedulePresets(t).map(preset => preset.value)).toEqual([
-      '0 * * * * ?',
-      '0 0/5 * * * ?',
-      '0 0 * * * ?',
-      '0 0 0 * * ?',
-      '0 0 0 ? * 1',
-      '0 0 0 1 * ?',
-    ])
   })
 })
 

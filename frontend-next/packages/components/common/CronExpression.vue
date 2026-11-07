@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabsNode } from '@xihan-ui/headless'
-import { useFieldControl, XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -492,9 +492,18 @@ const presets = computed(() => [
     value: '0 0 0 1 * ?',
   },
 ])
+/** 与当前表达式相同的那个预设（关掉秒时按去掉秒段比）；手工改过字段就没有一个匹配 */
+const activePreset = computed(() => presets.value.find(p => p.value === expression.value || p.value.split(' ').slice(1).join(' ') === expression.value)?.value ?? null)
+
 function applyPreset(v: string): void {
   applyExpression(v)
   emit('update:value', v)
+}
+
+/** 切换按钮组不许清空：再点当前预设不会发 null，这里只接新值 */
+function onPresetChange(v: string | null): void {
+  if (v && v !== activePreset.value)
+    applyPreset(v)
 }
 </script>
 
@@ -526,21 +535,19 @@ function applyPreset(v: string): void {
       <div class="cron-editor">
         <!-- 预设 + 秒开关 -->
         <div class="cron-toolbar">
-          <div class="cron-presets">
-            <button
-              v-for="p in presets"
-              :key="p.value"
-              type="button"
-              class="cron-preset"
-              @click="applyPreset(p.value)"
-            >
-              <XhTagRoot variant="subtle" size="sm" tone="neutral">
-                <XhTagLabel>
-                  {{ p.label }}
-                </XhTagLabel>
-              </XhTagRoot>
-            </button>
-          </div>
+          <!-- 预设是切换按钮组：与当前表达式相同的那个高亮，点别的即套用；手工改过字段就没有高亮 -->
+          <XhToggleGroupRoot
+            size="sm"
+            class="cron-presets"
+            :value="activePreset"
+            disallow-empty
+            :aria-label="t('component.cron.presets_label')"
+            @update:value="onPresetChange"
+          >
+            <XhToggleGroupItem v-for="p in presets" :key="p.value" :value="p.value">
+              {{ p.label }}
+            </XhToggleGroupItem>
+          </XhToggleGroupRoot>
           <label class="cron-seconds">
             <span :id="secondsLabelId">{{ t('component.cron.with_seconds') }}</span>
             <XhSwitch v-model:checked="hasSeconds" size="sm" :aria-labelledby="secondsLabelId" />
@@ -702,21 +709,6 @@ function applyPreset(v: string): void {
   align-items: center;
   justify-content: space-between;
   gap: var(--xh-space-3);
-}
-
-.cron-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--xh-space-1_5);
-}
-
-.cron-preset {
-  cursor: pointer;
-  background: hsl(var(--accent));
-}
-
-.cron-preset:hover {
-  color: hsl(var(--primary));
 }
 
 .cron-seconds {

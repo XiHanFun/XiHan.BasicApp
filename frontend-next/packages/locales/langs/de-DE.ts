@@ -788,6 +788,7 @@ export default {
       preview: 'Nächste {count} Ausführungen',
       preview_none: 'Kann nicht berechnet werden (ungültiger Ausdruck oder keine bevorstehende Übereinstimmung)',
       week_names: 'So,Mo,Di,Mi,Do,Fr,Sa',
+      presets_label: 'Voreinstellungen',
       preset_per_minute: 'Jede Minute',
       preset_per_5min: 'Alle 5 Minuten',
       preset_hourly: 'Stündlich',

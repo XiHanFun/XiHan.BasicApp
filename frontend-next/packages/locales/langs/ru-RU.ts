@@ -788,6 +788,7 @@ export default {
       preview: 'Ближайшие запуски: {count}',
       preview_none: 'Не удалось вычислить (неверное выражение или нет ближайших совпадений)',
       week_names: 'Вс,Пн,Вт,Ср,Чт,Пт,Сб',
+      presets_label: 'Шаблоны',
       preset_per_minute: 'Каждую минуту',
       preset_per_5min: 'Каждые 5 мин',
       preset_hourly: 'Каждый час',

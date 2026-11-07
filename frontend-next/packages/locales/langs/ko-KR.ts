@@ -788,6 +788,7 @@ export default {
       preview: '다음 {count}회 실행',
       preview_none: '계산할 수 없어요(표현식이 유효하지 않거나 가까운 시점에 일치하는 시간이 없어요)',
       week_names: '일,월,화,수,목,금,토',
+      presets_label: '프리셋',
       preset_per_minute: '매 분',
       preset_per_5min: '5분마다',
       preset_hourly: '매 시간',

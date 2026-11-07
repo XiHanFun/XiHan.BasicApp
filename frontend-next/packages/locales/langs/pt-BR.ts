@@ -788,6 +788,7 @@ export default {
       preview: 'Próximas {count} execuções',
       preview_none: 'Não é possível calcular (expressão inválida ou sem correspondência próxima)',
       week_names: 'Dom,Seg,Ter,Qua,Qui,Sex,Sáb',
+      presets_label: 'Predefinições',
       preset_per_minute: 'A cada minuto',
       preset_per_5min: 'A cada 5 min',
       preset_hourly: 'A cada hora',

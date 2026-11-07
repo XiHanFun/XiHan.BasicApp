@@ -788,6 +788,7 @@ export default {
       preview: 'Próximas {count} ejecuciones',
       preview_none: 'No se puede calcular (expresión no válida o sin coincidencias próximas)',
       week_names: 'Dom,Lun,Mar,Mié,Jue,Vie,Sáb',
+      presets_label: 'Preajustes',
       preset_per_minute: 'Cada minuto',
       preset_per_5min: 'Cada 5 min',
       preset_hourly: 'Cada hora',

@@ -788,6 +788,7 @@ export default {
       preview: '最近 {count} 次执行',
       preview_none: '无法计算（表达式无效或近期无匹配）',
       week_names: '周日,周一,周二,周三,周四,周五,周六',
+      presets_label: '常用预设',
       preset_per_minute: '每分钟',
       preset_per_5min: '每5分钟',
       preset_hourly: '每小时',

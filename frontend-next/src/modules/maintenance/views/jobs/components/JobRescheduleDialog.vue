@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { JobRow, RescheduleForm, RetryForm, ScheduleForm, SchedulePreview } from '../job'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhFieldControl, XhFieldErrorText, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhFieldControl, XhFieldErrorText, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XCombobox, XEditModal, XFieldLabel } from '~/components'
 import { toast, useTimezoneOptions } from '~/composables'
 import { ApiError } from '~/request'
 import { formatDate } from '~/utils'
-import { blankRetry, errorText, kindLabel, previewSchedule, rescheduleJob, retryFormOf, retryIncomplete, SCHEDULE_PREVIEW_COUNT, scheduleFormOf, schedulePresets } from '../job'
+import { blankRetry, errorText, kindLabel, previewSchedule, rescheduleJob, retryFormOf, retryIncomplete, SCHEDULE_PREVIEW_COUNT, scheduleFormOf } from '../job'
 import JobRetryFields from './JobRetryFields.vue'
 import JobScheduleEditor from './JobScheduleEditor.vue'
 
@@ -55,7 +55,6 @@ function keyOf(value: ScheduleForm): string {
 
 const title = computed(() => t('maintenance.jobs.reschedule_title', { name: props.job?.title ?? '' }))
 const currentTrigger = computed(() => props.job?.triggers[0] ?? null)
-const presets = computed(() => schedulePresets(t))
 const timeZoneOptions = computed(() => timeZones.withCurrent(form.timeZone).map(zone => ({ label: zone.label, value: zone.value })))
 const expressionError = computed(() => fieldErrors.value.expression?.[0])
 const timeZoneError = computed(() => fieldErrors.value.timeZone?.[0])
@@ -142,10 +141,6 @@ function onTimeZone(value: unknown) {
   form.timeZone = value === null || value === undefined
     ? ''
     : String(value)
-}
-
-function applyPreset(value: string) {
-  form.expression = value
 }
 
 function close() {
@@ -244,21 +239,6 @@ async function submit() {
         </XhFieldErrorText>
       </XhFieldRoot>
 
-      <!-- 常用预设（4.x Cron 构建器的六个）：点一下填进计划框 -->
-      <div class="xh-span-2 job-reschedule__presets" role="group" :aria-label="t('maintenance.jobs.presets_label')">
-        <XhButton
-          v-for="preset in presets"
-          :key="preset.value"
-          type="button"
-          variant="outline"
-          size="sm"
-          :title="preset.value"
-          @click="applyPreset(preset.value)"
-        >
-          {{ preset.label }}
-        </XhButton>
-      </div>
-
       <XhFieldRoot class="xh-span-2" :invalid="!!timeZoneError">
         <XFieldLabel :help="t('maintenance.jobs.time_zone_hint')">
           {{ t('maintenance.jobs.time_zone') }}
@@ -333,12 +313,6 @@ async function submit() {
   font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-default);
   word-break: break-all;
-}
-
-.job-reschedule__presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--xh-space-1);
 }
 
 .job-reschedule__preview-schedule {

@@ -563,36 +563,6 @@ export function canDelete(job: Pick<JobResponse, 'source'>): boolean {
   return job.source === 'Runtime'
 }
 
-/** 修改计划的常用预设（沿用 4.x Cron 构建器的六个；周按 Unix 约定，1 是周一） */
-export function schedulePresets(t: Translate): { label: string, value: string }[] {
-  return [
-    {
-      label: t('maintenance.jobs.presets.per_minute'),
-      value: '0 * * * * ?',
-    },
-    {
-      label: t('maintenance.jobs.presets.per_5min'),
-      value: '0 0/5 * * * ?',
-    },
-    {
-      label: t('maintenance.jobs.presets.hourly'),
-      value: '0 0 * * * ?',
-    },
-    {
-      label: t('maintenance.jobs.presets.daily'),
-      value: '0 0 0 * * ?',
-    },
-    {
-      label: t('maintenance.jobs.presets.weekly'),
-      value: '0 0 0 ? * 1',
-    },
-    {
-      label: t('maintenance.jobs.presets.monthly'),
-      value: '0 0 0 1 * ?',
-    },
-  ]
-}
-
 /** 执行日志「是否出错」的选项：后端按 `failed eq true / false`（有无错误码）筛 */
 export function runFailedOptions(t: Translate): { label: string, value: string }[] {
   return [

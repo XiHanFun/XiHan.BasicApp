@@ -788,6 +788,7 @@ export default {
       preview: '次の {count} 回の実行',
       preview_none: '計算できません（式が無効か、直近に一致する時刻がありません）',
       week_names: '日,月,火,水,木,金,土',
+      presets_label: 'プリセット',
       preset_per_minute: '毎分',
       preset_per_5min: '5 分ごと',
       preset_hourly: '毎時',
