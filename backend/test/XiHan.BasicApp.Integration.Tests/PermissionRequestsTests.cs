@@ -143,13 +143,13 @@ public sealed class PermissionRequestsTests : IDisposable
         Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_056"), Code(await SendAsync(server, HttpMethod.Put, $"/api/permission-requests/{requestId}", Json(new { roleId = auditors, permissionCode = "access.delegations.read", reason = "Both" }), alice)));
         Assert.Equal((HttpStatusCode.BadRequest, "ACCESS_VALIDATION_051"), Code(await SendAsync(server, HttpMethod.Put, $"/api/permission-requests/{requestId}", Json(new { reason = "Neither" }), alice)));
 
-        // 关键字照 4.x 也匹配申请人：登录名、显示名（经用户目录），以及申请原因与备注
+        // 关键字也匹配申请人：登录名、显示名（经用户目录），以及申请原因与备注
         Assert.Single(await ListAsync(server, "permission-requests", carol, """{"keyword":"alice"}"""));
         Assert.Single(await ListAsync(server, "permission-requests", carol, """{"keyword":"Liddell"}"""));
         Assert.Single(await ListAsync(server, "permission-requests", carol, """{"keyword":"audit users"}"""));
         Assert.Empty(await ListAsync(server, "permission-requests", carol, """{"keyword":"carol"}"""));
 
-        // 模仿会话里对授权申请的写操作一律 409（6.0 新加，4.x 没有）：申请方的提交、修改重提、撤回与审批中心撤回
+        // 模仿会话里对授权申请的写操作一律 409：申请方的提交、修改重提、撤回与审批中心撤回
         var asAlice = await ImpersonateAsync(server, ids["alice"]);
         Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { permissionCode = "access.delegations.read", reason = "As someone else" }), asAlice)));
         Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_016"), Code(await SendAsync(server, HttpMethod.Put, $"/api/permission-requests/{requestId}", Json(new { roleId = auditors, reason = "Changed" }), asAlice)));

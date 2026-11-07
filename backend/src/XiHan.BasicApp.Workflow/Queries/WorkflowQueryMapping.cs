@@ -17,10 +17,10 @@ namespace XiHan.BasicApp.Workflow.Queries;
 /// </summary>
 /// <remarks>
 /// 过滤、排序、分页与计数都由框架在存储里做（框架第八批 G1、G2，ADR-0096；第十一至十三批的排序，ADR-0102～ADR-0104）；这里只把分页请求换成框架的查询，
-/// 筛选与排序字段是白名单，越界即 <see cref="WorkflowErrors.QueryUnsupported"/>。定义与实例照 4.x 多列排序：请求的排序项按顺序映射，第一项是主排序，
+/// 筛选与排序字段是白名单，越界即 <see cref="WorkflowErrors.QueryUnsupported"/>。定义与实例多列排序：请求的排序项按顺序映射，第一项是主排序，
 /// 之后是次级排序，同值由框架补的次序键定；列名照响应的字段名，同一列给两次或超过可排序列数由框架报 <c>WORKFLOW_VALIDATION_002</c>
-/// 没给排序时是框架的缺省（定义按名字升序、版本降序，实例按创建时间降序）。状态按生命周期的先后排（同 4.x）。我发起的与待办顺序固定
-/// 关键字照框架的口径（与 4.x 同）：定义匹配名字、显示名与说明，实例匹配标题与关联 ID，按字面匹配（<c>%</c>、<c>_</c> 不是通配符）
+/// 没给排序时是框架的缺省（定义按名字升序、版本降序，实例按创建时间降序）。状态按生命周期的先后排。我发起的与待办顺序固定
+/// 关键字照框架的口径：定义匹配名字、显示名与说明，实例匹配标题与关联 ID，按字面匹配（<c>%</c>、<c>_</c> 不是通配符）
 /// </remarks>
 public static class WorkflowQueryMapping
 {
@@ -48,7 +48,7 @@ public static class WorkflowQueryMapping
     /// </summary>
     /// <remarks>
     /// 筛选：<c>name</c>、<c>category</c>、<c>status</c>（都是 <c>eq</c>）、<c>createdAt</c>（<c>ge</c> / <c>le</c>，按时刻含两端）
-    /// 排序：<c>status</c>、<c>name</c>、<c>displayName</c>、<c>version</c>、<c>createdAt</c>、<c>publishedAt</c>（4.x 可排序的六列）
+    /// 排序：<c>status</c>、<c>name</c>、<c>displayName</c>、<c>version</c>、<c>createdAt</c>、<c>publishedAt</c>
     /// </remarks>
     /// <param name="request">分页请求</param>
     /// <returns>框架查询</returns>
@@ -112,7 +112,7 @@ public static class WorkflowQueryMapping
     /// <remarks>
     /// 筛选：<c>status</c>（<c>eq</c> / <c>in</c>，逗号连接）、<c>definitionName</c>（<c>eq</c>）、<c>correlationId</c>（<c>eq</c> / <c>in</c>）、
     /// <c>starterId</c>（<c>eq</c>）、<c>createdAt</c>（<c>ge</c> / <c>le</c>，按时刻含两端）
-    /// 排序：<c>status</c>、<c>definitionName</c>、<c>title</c>、<c>createdAt</c>、<c>endedAt</c>（4.x 可排序的五列）
+    /// 排序：<c>status</c>、<c>definitionName</c>、<c>title</c>、<c>createdAt</c>、<c>endedAt</c>
     /// </remarks>
     /// <param name="request">分页请求</param>
     /// <returns>框架查询</returns>
@@ -163,7 +163,7 @@ public static class WorkflowQueryMapping
     /// 我发起的
     /// </summary>
     /// <remarks>
-    /// 照 4.x：发起人锁定为调用方、只取顶层实例；关键字（标题或关联 ID），筛选只有 <c>status</c>（<c>eq</c> / <c>in</c>）
+    /// 发起人锁定为调用方、只取顶层实例；关键字（标题或关联 ID），筛选只有 <c>status</c>（<c>eq</c> / <c>in</c>）
     /// </remarks>
     /// <param name="request">分页请求</param>
     /// <param name="starter">调用方（引擎用户 ID）</param>
@@ -195,7 +195,7 @@ public static class WorkflowQueryMapping
     /// 我的待办
     /// </summary>
     /// <remarks>
-    /// 受理人锁定为调用方；关键字匹配任务标题、实例标题、定义名与关联 ID（与 4.x 同），按创建时间降序，没有筛选
+    /// 受理人锁定为调用方；关键字匹配任务标题、实例标题、定义名与关联 ID，按创建时间降序，没有筛选
     /// </remarks>
     /// <param name="request">分页请求</param>
     /// <param name="assignee">调用方（引擎用户 ID）</param>

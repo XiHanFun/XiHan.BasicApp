@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 通知公告（租户库实体，平台一侧租户为 <c>platform</c>）
 /// </summary>
 /// <remarks>
-/// 4.x 在平台库。先存草稿，发布时按目标解析出接收人、写进各自的收件箱并实时推送；发布后不能再改
+/// 先存草稿，发布时按目标解析出接收人、写进各自的收件箱并实时推送；发布后不能再改
 /// </remarks>
 [SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 public sealed class SysNotification : TenantScopedAuditedEntity
@@ -191,9 +191,6 @@ public enum MessageChannels
 /// <summary>
 /// 通知类型
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum NotificationType
 {
     /// <summary>
@@ -225,9 +222,6 @@ public enum NotificationType
 /// <summary>
 /// 优先级
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum NotificationPriority
 {
     /// <summary>
@@ -255,7 +249,7 @@ public enum NotificationPriority
 /// 正文格式
 /// </summary>
 /// <remarks>
-/// 4.x 同。HTML 正文由前端按白名单清洗后渲染
+/// HTML 正文由前端按白名单清洗后渲染
 /// </remarks>
 public enum NotificationContentFormat
 {
@@ -278,9 +272,6 @@ public enum NotificationContentFormat
 /// <summary>
 /// 投递目标
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum NotificationTargetType
 {
     /// <summary>

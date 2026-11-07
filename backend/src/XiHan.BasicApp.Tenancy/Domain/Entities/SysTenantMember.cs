@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 注册地不在该租户的用户以成员身份进入它（切换租户、在其中被模仿）
-/// 一个用户在一个租户里至多一行；注册地在该租户的用户天然可进入，不记成员行。成员关系只在生效期内有效（照 4.x）
+/// 一个用户在一个租户里至多一行；注册地在该租户的用户天然可进入，不记成员行。成员关系只在生效期内有效
 /// </remarks>
 [ActiveUniqueIndex(nameof(TenantId), nameof(UserId))]
 [SugarIndex("ix_{table}_user_id", nameof(UserId), OrderByType.Asc)]
@@ -74,8 +74,8 @@ public enum TenantMemberType
     /// 运维支持成员
     /// </summary>
     /// <remarks>
-    /// 对应 4.x 的 <c>PlatformAdmin</c>（平台运营方跨租户进入做运维、客服与风控）：只能是平台账号，平台账号也只能以这种身份加入；
-    /// 能切换进去，但不占席位、不能成为所有者，也不算租户内的用户（不进模仿候选、不收租户的群发、不在聊天目录）；用户管理列表带标记列出、账号只读、能配角色（4.x 同）
+    /// 平台运营方跨租户进入做运维、客服与风控：只能是平台账号，平台账号也只能以这种身份加入；
+    /// 能切换进去，但不占席位、不能成为所有者，也不算租户内的用户（不进模仿候选、不收租户的群发、不在聊天目录）；用户管理列表带标记列出、账号只读、能配角色
     /// </remarks>
     Support = 1,
 }

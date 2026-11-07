@@ -1,6 +1,6 @@
 import { defineAsyncComponent } from 'vue'
 
-// 重型编辑器（monaco、md-editor-v3）与通知正文渲染异步懒加载，不进首屏依赖图（4.x 同）
+// 重型编辑器（monaco、md-editor-v3）与通知正文渲染异步懒加载，不进首屏依赖图
 export const XCodeEditor = defineAsyncComponent(() => import('./CodeEditor.vue'))
 export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
 export const NotificationContent = defineAsyncComponent(() => import('./NotificationContent.vue'))

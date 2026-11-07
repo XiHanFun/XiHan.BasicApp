@@ -335,7 +335,7 @@ function onSearchTargets(keyword: string) {
   editor.searchTargets(keyword).catch((error: unknown) => toast.danger((error as Error).message || t('access.field_security.msg_load_target_failed')))
 }
 
-/** 4.x 的提交前校验：缺什么先提示，不发请求 */
+/** 提交前校验：缺什么先提示，不发请求 */
 function validate(): boolean {
   const form = editor.form
   if (!form.targetId) {

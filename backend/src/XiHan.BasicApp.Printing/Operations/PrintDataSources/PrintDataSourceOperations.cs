@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Printing.Operations.PrintDataSources;
 /// </summary>
 /// <remarks>
 /// <c>GET /api/print-data-sources</c>。全部已登记的数据源（含字段与样例 JSON），按编码排序；设计器的数据源下拉、字段素材与样例数据都取这一份
-/// 持有模板的读取或使用权限其一即可（<see cref="PrintingPolicies.DataSourceCatalog"/>，照 4.x）
+/// 持有模板的读取或使用权限其一即可（<see cref="PrintingPolicies.DataSourceCatalog"/>）
 /// </remarks>
 /// <param name="registry">数据源注册表</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = PrintingPolicies.DataSourceCatalog)]

@@ -48,9 +48,6 @@ public enum SmsProvider
 /// <summary>
 /// 邮件与短信发送记录的状态
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum MessageSendStatus
 {
     /// <summary>

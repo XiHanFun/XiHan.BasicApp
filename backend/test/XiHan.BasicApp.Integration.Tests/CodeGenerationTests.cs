@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证代码生成模块的数据源与模块开关
 /// </summary>
 /// <remarks>
-/// 数据源照 4.x：名称唯一、口令与连接串加密存储且不回显、留空即不改、缺省最多一个、启停与修改带并发戳；按 C2 修的缺陷：被表配置引用的拒绝删除、
+/// 数据源：名称唯一、口令与连接串加密存储且不回显、留空即不改、缺省最多一个、启停与修改带并发戳；方案 C2：被表配置引用的拒绝删除、
 /// 测试连接要修改权限、解不开的密钥报错不当明文；只在平台一侧；关掉模块宿主照常启动、页面不下发
 /// </remarks>
 public sealed class CodeGenerationTests : IDisposable
@@ -110,7 +110,7 @@ public sealed class CodeGenerationTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, disabled.StatusCode);
         Assert.Equal("Disabled", disabledBody.GetProperty("status").GetString());
 
-        // 删除：被表配置引用的逐项拒绝（4.x 不查引用），不存在的逐项报不存在
+        // 删除：被表配置引用的逐项拒绝，不存在的逐项报不存在
         var referenced = await server.InvokeAsync(async ctx => await ctx.Services.GetRequiredService<IRepository<SysCodeGenTable, Guid>>().AddAsync(new SysCodeGenTable { Id = Guid.NewGuid(), TableName = "orders", ClassName = "Order", DataSourceId = Guid.Parse(erp) }, ctx.CancellationToken));
         Assert.True(referenced.IsSuccess);
         var missing = Guid.NewGuid();
@@ -136,7 +136,7 @@ public sealed class CodeGenerationTests : IDisposable
         var (_, local) = await CreateSqliteAsync(server, admin, "local");
         var id = local.GetProperty("id").GetString()!;
 
-        // 4.x 只要读权限却写库：6.0 要修改权限
+        // 测试连接会写库，要修改权限
         var (denied, _) = await SendAsync(server, HttpMethod.Post, $"/api/codegen-datasources/{id}:test-connection", null, reader);
         Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
 
@@ -158,7 +158,7 @@ public sealed class CodeGenerationTests : IDisposable
         var (_, recorded) = await SendAsync(server, HttpMethod.Get, $"/api/codegen-datasources/{nowhere}", null, admin);
         Assert.False(recorded.GetProperty("lastTestResult").GetBoolean());
 
-        // 解不开的密钥报错，不当明文用（4.x 的静默兜底）
+        // 解不开的密钥报错，不当明文用
         var tampered = await server.InvokeAsync(async ctx =>
         {
             var repository = ctx.Services.GetRequiredService<IRepository<SysCodeGenDataSource, Guid>>();

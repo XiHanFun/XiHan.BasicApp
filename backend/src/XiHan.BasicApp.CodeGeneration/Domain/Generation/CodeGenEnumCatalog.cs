@@ -20,8 +20,11 @@ public sealed record CodeGenEnumFacts(string ShortName, string Namespace, string
     public string DefaultMember => Members.Count > 0 ? Members[0] : string.Empty;
 
     /// <summary>
-    /// 是否启停枚举：有 <c>Active</c> 与 <c>Disabled</c> 两个成员（6.0 各包状态枚举的写法）
+    /// 是否启停枚举
     /// </summary>
+    /// <remarks>
+    /// 有 <c>Active</c> 与 <c>Disabled</c> 两个成员
+    /// </remarks>
     public bool IsActiveDisabled => Members.Contains("Active", StringComparer.Ordinal) && Members.Contains("Disabled", StringComparer.Ordinal);
 
     /// <summary>
@@ -34,7 +37,7 @@ public sealed record CodeGenEnumFacts(string ShortName, string Namespace, string
 /// 已装载的 XiHan 程序集里的公开枚举
 /// </summary>
 /// <remarks>
-/// 照 4.x：列配置的枚举类型按全名或短名解析；短名重复时优先 <c>XiHan.BasicApp.</c> 下的，仍并列即只能按全名解析
+/// 列配置的枚举类型按全名或短名解析；短名重复时优先 <c>XiHan.BasicApp.</c> 下的，仍并列即只能按全名解析
 /// </remarks>
 public sealed class CodeGenEnumCatalog
 {

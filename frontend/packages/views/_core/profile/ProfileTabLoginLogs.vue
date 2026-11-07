@@ -24,8 +24,8 @@ const page = ref(1)
 const loading = ref(false)
 
 /**
- * 登录结果随认证审计事件增长（模仿登录、角色激活等）：4.x 取后端 LoginResult 枚举元数据，
- * 6.0 没有枚举元数据，标签用本地文案（键静态写出以便 i18n 门禁核对），前端只管配色与图标
+ * 登录结果随认证审计事件增长（模仿登录、角色激活等）：后端没有枚举元数据，
+ * 标签用本地文案（键静态写出以便 i18n 门禁核对），前端只管配色与图标
  */
 const RESULT_LABELS: Record<LoginAuditResult, () => string> = {
   AccountDisabled: () => t('component.profile.login_logs.results.account_disabled'),

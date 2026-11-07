@@ -261,7 +261,7 @@ public sealed class DeleteAccessPolicies(AccessPolicyService service) : IOperati
 /// 列出访问策略可用的条件属性
 /// </summary>
 /// <remarks>
-/// <c>GET /api/policies:attributes</c>。与 <c>permission-conditions.attributes</c> 同一份目录，按访问策略的权限给出（4.x 同）
+/// <c>GET /api/policies:attributes</c>。与 <c>permission-conditions.attributes</c> 同一份目录，按访问策略的权限给出
 /// </remarks>
 /// <param name="registry">条件属性登记表</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]

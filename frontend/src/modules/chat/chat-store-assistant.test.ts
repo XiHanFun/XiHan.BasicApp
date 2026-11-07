@@ -87,7 +87,7 @@ function createApi(overrides: Partial<ChatApiContract> = {}): ChatApiContract {
   }) as ChatApiContract
 }
 
-/** 登录为指定用户：6.0 的 userInfo 是 auth 会话的投影，测试直接写会话（不落本地存储） */
+/** 登录为指定用户：userInfo 是 auth 会话的投影，测试直接写会话（不落本地存储） */
 function signIn(userId: string, displayName = userId) {
   useAuthStore().session = {
     accessToken: 'a-1',

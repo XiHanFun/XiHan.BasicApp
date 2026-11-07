@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "열 '{column}'의 상수 선택 항목은 비어 있지 않은 배열이어야 하며 각 항목에 텍스트 label과 텍스트나 숫자 value가 있어야 합니다: {value}",
   "codegeneration.generate.const_options_type_mismatch": "열 '{column}'의 형식은 {type}이지만 상수 선택 항목 값은 {valueType}입니다.",
   "openapi.tags.codegen_templates.name": "코드 생성 템플릿",
-  "openapi.tags.codegen_templates.description": "테이블 설정으로 6.0 패키지와 프런트엔드 모듈을 만드는 Scriban 템플릿입니다. 내장 템플릿은 앱 버전을 따르고 사용자 템플릿을 추가할 수 있습니다.",
+  "openapi.tags.codegen_templates.description": "테이블 설정으로 백엔드 패키지와 프런트엔드 모듈을 만드는 Scriban 템플릿입니다. 내장 템플릿은 앱 버전을 따르고 사용자 템플릿을 추가할 수 있습니다.",
   "permissions.codegeneration.codegen_templates.read.name": "코드 생성 템플릿 보기",
   "permissions.codegeneration.codegen_templates.read.description": "코드 생성 템플릿을 보고 구문을 검사합니다.",
   "permissions.codegeneration.codegen_templates.create.name": "코드 생성 템플릿 만들기",

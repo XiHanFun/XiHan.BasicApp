@@ -33,7 +33,7 @@ function scopeTone(scope: PermissionScope): 'brand' | 'info' | 'neutral' {
   }
 }
 
-// 权限目录是各包在代码里登记的，只读：没有新建、编辑、启停与删除（4.x 平台侧可维护的那几个钮在 6.0 没有对应操作）
+// 权限目录是各包在代码里登记的，只读：没有新建、编辑、启停与删除
 const fields = computed<ListFieldSchema[]>(() => [
   {
     key: 'keyword',
@@ -164,7 +164,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-/** 条件试算与盘点两个抽屉（4.x 同挂在权限页） */
+/** 条件试算与盘点两个抽屉 */
 const trialVisible = ref(false)
 const inventoryVisible = ref(false)
 

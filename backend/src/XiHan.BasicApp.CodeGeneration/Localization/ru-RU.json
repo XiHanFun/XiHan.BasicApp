@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "Постоянные варианты столбца «{column}» должны быть непустым массивом объектов с текстовым label и текстовым или числовым value: {value}",
   "codegeneration.generate.const_options_type_mismatch": "Столбец «{column}» имеет тип {type}, а значения вариантов — {valueType}.",
   "openapi.tags.codegen_templates.name": "Шаблоны генерации кода",
-  "openapi.tags.codegen_templates.description": "Шаблоны Scriban, создающие из конфигураций таблиц пакет 6.0 и модуль фронтенда; встроенные следуют версии, можно добавлять свои.",
+  "openapi.tags.codegen_templates.description": "Шаблоны Scriban, создающие из конфигураций таблиц пакет бэкенда и модуль фронтенда; встроенные следуют версии, можно добавлять свои.",
   "permissions.codegeneration.codegen_templates.read.name": "Просмотр шаблонов генерации кода",
   "permissions.codegeneration.codegen_templates.read.description": "Просмотр шаблонов и проверка их синтаксиса.",
   "permissions.codegeneration.codegen_templates.create.name": "Создание шаблонов генерации кода",

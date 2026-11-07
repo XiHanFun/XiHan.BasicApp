@@ -171,7 +171,7 @@ describe('路由路径常量', () => {
     expect(OAUTH_CALLBACK_PATH).toBe(`${AUTH_PATH}/oauth-callback`)
   })
 
-  it('首页兜底路径取 .env 的 VITE_HOME_PATH，没配即根路径（6.0 的首页由守卫落到第一个菜单）', () => {
+  it('首页兜底路径取 .env 的 VITE_HOME_PATH，没配即根路径（首页由守卫落到第一个菜单）', () => {
     expect(HOME_PATH).toBe(import.meta.env.VITE_HOME_PATH || '/')
   })
 

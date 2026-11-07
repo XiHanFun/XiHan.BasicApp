@@ -300,7 +300,7 @@ describe('useDepartmentEditor', () => {
     editor.startCreate('d-1')
     expect(editor.mode.value).toBe('create')
     expect(editor.form.parentId).toBe('d-1')
-    // 类型缺省是部门（4.x 同）
+    // 类型缺省是部门
     expect(editor.form.departmentType).toBe('Department')
     Object.assign(editor.form, {
       code: ' ops ',

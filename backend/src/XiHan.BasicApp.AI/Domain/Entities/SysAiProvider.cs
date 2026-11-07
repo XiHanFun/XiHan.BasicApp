@@ -10,10 +10,9 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 模型提供商
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，租户经助手用到平台配置的提供商（照 4.x）。只有 OpenAI 兼容一种协议，改端点接各家（照 4.x）
-/// 编码即框架 Provider 目录里的名字，建后不可改；API 密钥经 <c>ISecretProtector</c> 加密存储、响应里不回显（照 4.x）
-/// 4.x 的 <c>MaxOutputTokens</c>、<c>Temperature</c>、<c>TimeoutSeconds</c> 存了从没用到，6.0 超时接框架的 Provider 超时，最大输出与温度随每次聊天调用带上；
-/// <c>ExtraJson</c> 没有去处、去掉（方案 N4 D2）
+/// 平台库实体、只在平台一侧，租户经助手用到平台配置的提供商。只有 OpenAI 兼容一种协议，改端点接各家
+/// 编码即框架 Provider 目录里的名字，建后不可改；API 密钥经 <c>ISecretProtector</c> 加密存储、响应里不回显
+/// 超时接框架的 Provider 超时，最大输出与温度随每次聊天调用带上（方案 N4 D2）
 /// </remarks>
 [ActiveUniqueIndex(nameof(Code))]
 public sealed class SysAiProvider : AppAuditedEntity

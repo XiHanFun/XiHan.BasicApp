@@ -13,7 +13,7 @@ namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
 /// {{ DisplayName | xml_doc }}树
 /// </summary>
 /// <remarks>
-/// <c>GET /api/{{ Resource }}:tree</c>。取当前租户的全部行在内存里组树（照 4.x，不按关键字裁，裁了会截断上级链）；上级不在的当作顶层，不丢行
+/// <c>GET /api/{{ Resource }}:tree</c>。取当前租户的全部行在内存里组树（不按关键字裁，裁了会截断上级链）；上级不在的当作顶层，不丢行
 /// </remarks>
 /// <param name="queries">列表查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = {{ ModuleName }}Permissions.{{ ResourcePascal }}Read)]

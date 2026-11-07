@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Settings</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 设置能力包（Tier 2）：系统参数（平台值与租户覆盖、加密值）、字典与树形字典项、业务编号规则与永久发号记录。</Description>
+    <Description>XiHan.BasicApp 设置能力包（Tier 2）：系统参数（平台值与租户覆盖、加密值）、字典与树形字典项、业务编号规则与永久发号记录。</Description>
   </PropertyGroup>
 
   <ItemGroup>

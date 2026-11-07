@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.CodeGeneration</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 代码生成模块（Tier 3，可选，BasicApp:Modules:CodeGeneration:Enabled，只在平台一侧）：数据源（口令与连接串加密存储，外部库经框架的运行时数据源连接）、表与列配置（经框架读库结构导入）、Scriban 模板、生成历史与零代码只读运行时。</Description>
+    <Description>XiHan.BasicApp 代码生成模块（Tier 3，可选，BasicApp:Modules:CodeGeneration:Enabled，只在平台一侧）：数据源（口令与连接串加密存储，外部库经框架的运行时数据源连接）、表与列配置（经框架读库结构导入）、Scriban 模板、生成历史与零代码只读运行时。</Description>
   </PropertyGroup>
 
   <ItemGroup>

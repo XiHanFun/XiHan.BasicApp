@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Auditing.Domain.Services;
 /// 把 SqlSugar 差异日志转成数据变更日志
 /// </summary>
 /// <remarks>
-/// 一条事件可带一批行：每行一条，修改按主键配对前后值，软删除列 <c>is_deleted</c> 由真变假的记为恢复（4.x 同）
+/// 一条事件可带一批行：每行一条，修改按主键配对前后值，软删除列 <c>is_deleted</c> 由真变假的记为恢复
 /// 列名含 password / hash / secret / token / salt 的值一律打码；修改里只动了时间戳、操作人、并发戳这类随写入就变的列的，不算数据变更、不记
 /// 前后值手写成 JSON 对象（按值的类型分支，不走反射序列化）
 /// </remarks>

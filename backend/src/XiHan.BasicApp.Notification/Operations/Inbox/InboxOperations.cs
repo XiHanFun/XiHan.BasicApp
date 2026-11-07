@@ -214,7 +214,7 @@ public sealed class MarkInboxPopupShown(InboxService service) : IOperation<Inbox
 /// 从本人收件箱里删除
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/inbox?ids=</c>（方案 5.11 拍板补上的 <c>inbox.delete</c>，4.x 没有）
+/// <c>DELETE /api/inbox?ids=</c>（方案 5.11）
 /// </remarks>
 /// <param name="service">收件箱服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]

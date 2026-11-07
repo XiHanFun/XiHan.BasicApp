@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Host;
 /// 跨域 <c>BasicApp:Cors</c>
 /// </summary>
 /// <remarks>
-/// 前端与后端不同源部署时打开（照 4.x 的 <c>Api:Cors</c>）：<c>AllowedOrigins</c> 列出来源（协议 + 主机 + 端口，不带路径），或 <c>AllowAnyOrigin</c> 放开全部来源
+/// 前端与后端不同源部署时打开：<c>AllowedOrigins</c> 列出来源（协议 + 主机 + 端口，不带路径），或 <c>AllowAnyOrigin</c> 放开全部来源
 /// 两样都没写即不启用跨域，只能同源访问。方法与请求头缺省放开；携带凭据缺省开，与任意来源互斥（同时写启动即报错，不悄悄丢掉其一）
 /// </remarks>
 public sealed record CorsSettings

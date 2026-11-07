@@ -16,10 +16,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 代码生成的管线：建上下文 → 选模板 → 渲染 → 产出
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>CodeGenerationEngine</c>：
 /// 选模板时显式给了编码就用那几个，否则取启用的通用模板与本类型的模板；按生成范围裁（分组含 backend / frontend）；沿用已有实体时不出实体
-/// 一份模板渲染失败即整次失败，原因带模板编码（4.x 同）
-/// 与 4.x 不同（6.0 的两种目标）：目标是「加入已有包」时去掉包级模板（分组 <c>*-package</c>）；
+/// 一份模板渲染失败即整次失败，原因带模板编码
+/// 目标是「加入已有包」时去掉包级模板（分组 <c>*-package</c>）；
 /// 引擎另外拼出「新建包」的 <c>Localization/&lt;区域&gt;.json</c> 与两种目标都有的 <c>_registration/&lt;资源&gt;.md</c>；
 /// 一份模板渲染出空白即不产出这个文件（按勾选的操作一份模板一个文件）
 /// </remarks>
@@ -104,7 +103,7 @@ public sealed class CodeGenEngine(CodeGenContextBuilder builder, IRepository<Sys
         return artifacts;
     }
 
-    // 按范围与目标裁；沿用已有实体时不出实体（否则与它重复定义，照 4.x）
+    // 按范围与目标裁；沿用已有实体时不出实体（否则与它重复定义）
     private static List<SysCodeGenTemplate> Filter(IEnumerable<SysCodeGenTemplate> candidates, CodeGenContext context)
         => [.. candidates.Where(t => context.Table.Scope switch
             {
@@ -150,7 +149,7 @@ public sealed class CodeGenEngine(CodeGenContextBuilder builder, IRepository<Sys
             return Error.Validation(CodeGenerationErrors.TemplateRenderFailed, CodeGenerationMessages.GenerateRenderFailed, MessageArguments.Of(("template", template.TemplateCode), ("reason", exception.Message)));
         }
 
-        // 文件名没给按类名 + 扩展名（照 4.x）
+        // 文件名没给按类名 + 扩展名
         if (fileName.Length == 0)
         {
             var extension = CodeGenDataSourceService.Trimmed(template.FileExtension) ?? ".cs";

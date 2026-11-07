@@ -157,7 +157,7 @@ describe('通知公告的表单', () => {
     }))).toBe('user_required')
     expect(findNotificationProblem(form({ targetType: 'Role', targetIds: [] }))).toBe('role_required')
     expect(findNotificationProblem(form({ targetType: 'Department', targetIds: [] }))).toBe('department_required')
-    // 4.x 的正整数 ID 在 6.0 不再合法
+    // 正整数 ID 不合法
     expect(findNotificationProblem(form({
       targetType: 'User',
       targetIds: ['10086'],

@@ -24,7 +24,7 @@ public sealed record ConstraintViolation(ConstraintRuleView Rule, int? GroupNo, 
 /// 约束规则的求值
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 ConstraintRuleEnforcementDomainService，补齐非 SSD 类型
+/// 按类型判定
 /// <list type="bullet">
 /// <item>静态职责分离：用户持有的角色（没过期的指派与没过期的角色委托，按继承展开上级）里，同一组超过上限即违规；</item>
 /// <item>动态职责分离：会话激活的角色（同样按继承展开）同理；</item>
@@ -32,7 +32,7 @@ public sealed record ConstraintViolation(ConstraintRuleView Rule, int? GroupNo, 
 /// <item>基数：规则项里的角色成员数、或规则项里的用户持有的角色数超过上限即违规；</item>
 /// <item>条件：指派规则项里的角色时，按条件引擎判定被指派的用户（主体）与发起这次指派的请求（环境），不成立即违规</item>
 /// </list>
-/// 只报这次变更带进来的违规（变更之前已有的不拦，4.x 是整组重判）；静态的判定不看角色启停，按结构判定（4.x 同）
+/// 只报这次变更带进来的违规（变更之前已有的不拦）；静态的判定不看角色启停，按结构判定
 /// 违规按规则的处理方式落地（<see cref="Settle"/>）：拒绝与需审批的拦下变更，警告与只记录的放行并记权限变更日志
 /// </remarks>
 /// <param name="rules">规则缓存</param>

@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// <remarks>
 /// 平台一侧是注册在平台的账号，租户一侧是注册在该租户的账号与生效中的普通成员（外部成员，运维支持成员不算，见 <see cref="ITenantMembershipResolver"/>）
 /// 给本租户配部门、数据范围与直授都按它认人；账号本身（资料、密码、状态、删除）只有注册地能动，那些操作仍按注册地判定
-/// 用户管理的查询与配角色另走 <see cref="FindWithSupportAsync"/>、<see cref="FindManyWithSupportAsync"/>，运维支持成员也算（4.x 同）
+/// 用户管理的查询与配角色另走 <see cref="FindWithSupportAsync"/>、<see cref="FindManyWithSupportAsync"/>，运维支持成员也算
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="memberships">成员关系（没装 Tenancy 即没有外部成员）</param>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Workflow</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 工作流模块（Tier 3，可选，BasicApp:Modules:Workflow:Enabled）：流程定义与实例的管理、组织类受理人（角色、部门、部门负责人、岗位、发起人主管与主管链）、审批业务接入（各包经 Contracts 的 AddWorkflowBusiness 登记）；引擎与存储是框架的数据库工作流（宿主恒装）。</Description>
+    <Description>XiHan.BasicApp 工作流模块（Tier 3，可选，BasicApp:Modules:Workflow:Enabled）：流程定义与实例的管理、组织类受理人（角色、部门、部门负责人、岗位、发起人主管与主管链）、审批业务接入（各包经 Contracts 的 AddWorkflowBusiness 登记）；引擎与存储是框架的数据库工作流（宿主恒装）。</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
-    <!-- 演示数据：4.x 的四个演示流程，按 5.0 WorkflowJson 写；用户 ID 在种子里按登录名换进去 -->
+    <!-- 演示数据：四个演示流程，按 5.0 WorkflowJson 写；用户 ID 在种子里按登录名换进去 -->
     <EmbeddedResource Include="Seeds/Demo/*.json" LogicalName="Demo/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

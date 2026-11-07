@@ -16,7 +16,7 @@ public sealed record SessionSpan(Guid SessionId, DateTimeOffset StartedAt, DateT
 /// 用户的会话时段（Identity 实现）
 /// </summary>
 /// <remarks>
-/// 个人中心按它算在线时长（4.x 同口径）。模仿会话不算本人的
+/// 个人中心按它算在线时长。模仿会话不算本人的
 /// </remarks>
 public interface ISessionHistory
 {

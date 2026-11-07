@@ -35,7 +35,7 @@ const passwordReset = usePasswordReset()
 const detail = useUserDetail()
 const roleAssign = useUserRoles()
 const departments = useUserDepartments()
-// 直接授权与成员数据范围（4.x 用户页的「直接授权」「数据范围」，后端在 Access）
+// 直接授权与成员数据范围（后端在 Access）
 const grants = useUserGrants(() => t('identity.users.grants.group_outside'))
 const dataScope = useUserDataScope()
 /** 授权条件抽屉 */
@@ -55,7 +55,7 @@ function reload() {
 const isPlatformCaller = () => auth.tenantId === null
 /** 用户是不是调用方这一侧的：注册在这一侧，或本租户的外部成员；角色只能指派给同一侧的用户 */
 const isOwnSide = (row: UserRow) => row.isExternalMember || row.homeTenantId === (auth.tenantId ?? PLATFORM_TENANT_ID)
-/** 账号级操作（锁定、启停、重置、下线、删除）只对注册在这一侧的账号，外部成员由其注册地维护（4.x 同） */
+/** 账号级操作（锁定、启停、重置、下线、删除）只对注册在这一侧的账号，外部成员由其注册地维护 */
 const isHomeAccount = (row: UserRow) => !row.isExternalMember
 /** 运维支持成员只能配角色：部门、数据范围、直授与模仿，后端都不算他们 */
 const isTenantUser = (row: UserRow) => !row.isSupportMember
@@ -113,7 +113,7 @@ const genderOptions = computed<SelectOption[]>(() => USER_GENDERS.map(gender => 
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as UserRow
 
-/** 用户信息列：显示名加粗在上，@用户名在下（与 4.x 用户页同一副两行单元格） */
+/** 用户信息列：显示名加粗在上，@用户名在下 */
 function renderUserInfo(row: UserRow) {
   return h('div', { class: 'min-w-0 leading-snug' }, [
     h('div', { class: 'flex items-center gap-1' }, [
@@ -131,7 +131,7 @@ function renderUserInfo(row: UserRow) {
   ])
 }
 
-/** 没有值的单元格：淡色的横线（4.x 同） */
+/** 没有值的单元格：淡色的横线 */
 function renderEmptyCell() {
   return h('span', { class: 'text-fg-muted' }, '-')
 }
@@ -143,7 +143,7 @@ function renderRoles(row: UserRow) {
     : h('div', { class: 'flex flex-wrap gap-1' }, row.roleNames.map(name => renderTag(name, 'info')))
 }
 
-/** 安全列：锁定与双因素，都没有即正常（4.x 同） */
+/** 安全列：锁定与双因素，都没有即正常 */
 function renderSecurity(row: UserRow) {
   const tags = [
     row.isLocked
@@ -506,7 +506,7 @@ const schema = computed<PageSchema>(() => ({
       visible: row => isHomeAccount(asRow(row)) && !asRow(row).isSystemAccount,
       permission: 'identity.users.reset-password',
     },
-    // 列表带了双因素标记：没开的人不出这个入口（4.x 同）
+    // 列表带了双因素标记：没开的人不出这个入口
     {
       key: 'resetTwoFactor',
       title: t('identity.users.actions.reset_two_factor'),
@@ -785,7 +785,7 @@ function formatNullable(value: null | string | undefined): string {
     : value
 }
 
-/** 双因素方式的文案（4.x 同：认证器写 TOTP） */
+/** 双因素方式的文案（认证器写 TOTP） */
 function twoFactorMethodLabel(method: TwoFactorMethod): string {
   switch (method) {
     case 'Email': return t('identity.users.two_factor_email')
@@ -794,7 +794,7 @@ function twoFactorMethodLabel(method: TwoFactorMethod): string {
   }
 }
 
-/** 详情的徽标（4.x 同）：验证状态、双因素、锁定、失败次数与外部成员；外部成员没有账号安全一节，只有身份那一枚 */
+/** 详情的徽标：验证状态、双因素、锁定、失败次数与外部成员；外部成员没有账号安全一节，只有身份那一枚 */
 const detailBadges = computed<{ label: string, tone: Tone, icon: string }[]>(() => {
   const current = detail.detail.value
   if (!current)
@@ -1246,7 +1246,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
                     <XhTagLabel>{{ role.name }}</XhTagLabel>
                   </XhTagRoot>
                 </div>
-                <!-- 读不了角色时退回列表带的角色名（只要读用户的权限，4.x 同） -->
+                <!-- 读不了角色时退回列表带的角色名（只要读用户的权限） -->
                 <div v-else-if="!detail.sections.value.roles && detail.user.value.roleNames.length" class="flex flex-wrap gap-1">
                   <XhTagRoot v-for="name in detail.user.value.roleNames" :key="name" variant="subtle" size="sm" tone="info">
                     <XhTagLabel>{{ name }}</XhTagLabel>
@@ -1421,7 +1421,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 直接授权抽屉（4.x 原样）：授予与拒绝两个页签，用户上的拒绝压过一切授予 -->
+    <!-- 直接授权抽屉：授予与拒绝两个页签，用户上的拒绝压过一切授予 -->
     <XhDrawerRoot v-model:open="grants.open.value" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerHeader>
@@ -1503,7 +1503,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 成员数据范围抽屉（4.x 原样，租户侧）：「跟随角色」即不覆盖 -->
+    <!-- 成员数据范围抽屉（租户侧）：「跟随角色」即不覆盖 -->
     <XhDrawerRoot v-model:open="dataScope.open.value" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
         <XhDrawerHeader>
@@ -1541,7 +1541,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 </template>
 
 <style scoped>
-/* 详情（4.x 同一副）：徽标一行、四格今日统计、一行当前会话 */
+/* 详情：徽标一行、四格今日统计、一行当前会话 */
 .det-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1606,7 +1606,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
   font-size: var(--xh-text-caption-size);
 }
 
-/* 成员数据范围抽屉：编辑区撑满剩余高度，保存/取消落在底部；部门多时在这里滚动（4.x 原样） */
+/* 成员数据范围抽屉：编辑区撑满剩余高度，保存/取消落在底部；部门多时在这里滚动 */
 .scope-stage {
   flex: 1;
   min-block-size: 0;

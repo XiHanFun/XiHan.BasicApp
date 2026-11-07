@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// </summary>
 /// <remarks>
 /// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>
-/// 模仿会话只换令牌不顺延：到期时间在发起时定死，新令牌也不超过它（4.x 干脆不许刷新，6.0 的时长可以比访问令牌长，所以让刷新，但续不了期）
+/// 模仿会话只换令牌不顺延：到期时间在发起时定死，新令牌也不超过它（模仿时长可以比访问令牌长，所以让刷新，但续不了期）
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
 /// <param name="users">用户仓储</param>

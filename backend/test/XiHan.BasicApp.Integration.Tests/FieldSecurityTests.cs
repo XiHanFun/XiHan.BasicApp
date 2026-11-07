@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证字段安全规则的命中、打码与写入保护
 /// </summary>
 /// <remarks>
-/// 方案 5.9，语义沿用 4.x
+/// 方案 5.9
 /// 规则按角色、用户、部门（含下级部门）命中，只在所属一侧生效；用户目录在投影时打码，按受保护字段筛选排序被拒、关键字不再覆盖它们；
 /// 修改时交回脱敏值或空值即保留原值，改只读字段被拒，只写字段可填新值；多条规则取最严；写规则的校验与冲突；删角色连同删规则；变更进权限变更日志
 /// </remarks>
@@ -60,7 +60,7 @@ public sealed class FieldSecurityTests : IDisposable
         // 实体目录
         var (_, entities) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/field-security:entities", token: admin));
         var users = Assert.Single(entities.GetProperty("items").EnumerateArray(), static e => e.GetProperty("code").GetString() == "identity.users");
-        // 字段由响应类型生成（4.x 同：实体的全部字段，主键与框架列除外）；会话等其余包的实体也都在
+        // 字段由响应类型生成（实体的全部字段，主键与框架列除外）；会话等其余包的实体也都在
         Assert.Equal(["userName", "displayName", "email", "phoneNumber", "homeTenantId", "status", "lastLoginAt", "createdAt", "createdBy", "avatarFileId", "isSystemAccount", "realName", "gender", "birthday", "country", "remark", "lastLoginIp", "isExternalMember", "isSupportMember"], users.GetProperty("fields").EnumerateArray().Select(static f => f.GetProperty("name").GetString()));
         Assert.Equal(("identity.users.fields.phone", true, true), (users.GetProperty("fields")[3].GetProperty("titleKey").GetString(), users.GetProperty("fields")[3].GetProperty("isText").GetBoolean(), users.GetProperty("fields")[3].GetProperty("isNullable").GetBoolean()));
         Assert.False(users.GetProperty("fields")[1].GetProperty("isNullable").GetBoolean());

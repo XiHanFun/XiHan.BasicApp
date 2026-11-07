@@ -79,7 +79,7 @@ export function toEmailConfigForm(row: EmailConfigRow): EmailConfigForm {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验；6.0 的发件人名称可空，空时用发件地址）；都好为空 */
+/** 表单的第一处问题（提交前校验；发件人名称可空，空时用发件地址）；都好为空 */
 export type EmailConfigProblem = 'code' | 'from_email' | 'name' | 'smtp_host' | 'smtp_port'
 
 export function findEmailConfigProblem(form: EmailConfigForm): EmailConfigProblem | null {
@@ -110,7 +110,7 @@ function blankToNull(value: string): null | string {
   return value.trim() || null
 }
 
-/** 新建与修改共用的内容；空白写 null（密码为空即不认证 / 保留原值，4.x 同） */
+/** 新建与修改共用的内容；空白写 null（密码为空即不认证 / 保留原值） */
 function draft(form: EmailConfigForm) {
   return {
     name: form.name.trim(),
@@ -145,7 +145,7 @@ export function toUpdateBody(form: EmailConfigForm & { id: string }): RequestOf<
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（密码不带即保留）；
+ * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改（密码不带即保留）；
  * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
 export function emailConfigResource(): SchemaResource<EmailConfigRow> {

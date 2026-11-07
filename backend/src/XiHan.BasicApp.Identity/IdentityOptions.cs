@@ -127,7 +127,7 @@ public sealed record IdentityOptions
     /// 是否开放自助注册（<c>auth.register</c>）
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>SelfRegistrationEnabled</c>，缺省关：注册的是平台账号，部署方确认要开放再打开（4.x 没有开关、总是开放）
+    /// 配置键 <c>SelfRegistrationEnabled</c>，缺省关：注册的是平台账号，部署方确认要开放再打开
     /// </remarks>
     public bool SelfRegistrationEnabled { get; init; }
 
@@ -135,7 +135,7 @@ public sealed record IdentityOptions
     /// 邮件 / 短信验证码的有效期
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeMinutes</c>，缺省 10 分钟（4.x 同）
+    /// 配置键 <c>VerificationCodeMinutes</c>，缺省 10 分钟
     /// </remarks>
     public TimeSpan VerificationCodeLifetime { get; init; } = TimeSpan.FromMinutes(10);
 
@@ -143,7 +143,7 @@ public sealed record IdentityOptions
     /// 同一用途、同一目标两次发码的最短间隔
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeIntervalSeconds</c>，缺省 60 秒（4.x 同）
+    /// 配置键 <c>VerificationCodeIntervalSeconds</c>，缺省 60 秒
     /// </remarks>
     public TimeSpan VerificationCodeInterval { get; init; } = TimeSpan.FromSeconds(60);
 
@@ -151,7 +151,7 @@ public sealed record IdentityOptions
     /// 一个邮箱 / 手机号每天（UTC）最多收几次验证码
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeDailyPerTarget</c>，缺省 10（4.x 同），不分用途
+    /// 配置键 <c>VerificationCodeDailyPerTarget</c>，缺省 10，不分用途
     /// </remarks>
     public int VerificationCodeDailyPerTarget { get; init; } = 10;
 
@@ -159,7 +159,7 @@ public sealed record IdentityOptions
     /// 一个客户端地址每天（UTC）最多发几次验证码
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeDailyPerAddress</c>，缺省 50（4.x 同），不分用途
+    /// 配置键 <c>VerificationCodeDailyPerAddress</c>，缺省 50，不分用途
     /// </remarks>
     public int VerificationCodeDailyPerAddress { get; init; } = 50;
 
@@ -167,7 +167,7 @@ public sealed record IdentityOptions
     /// 一个验证码允许输错的次数
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeMaxFailures</c>，缺省 5（4.x 同）；用完即作废并锁定 <see cref="VerificationCodeLockout"/>
+    /// 配置键 <c>VerificationCodeMaxFailures</c>，缺省 5；用完即作废并锁定 <see cref="VerificationCodeLockout"/>
     /// </remarks>
     public int VerificationCodeMaxFailures { get; init; } = 5;
 
@@ -175,7 +175,7 @@ public sealed record IdentityOptions
     /// 输错用完后同一用途、同一主体不能再发码与校验的时长
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>VerificationCodeLockoutMinutes</c>，缺省 10 分钟（4.x 同）
+    /// 配置键 <c>VerificationCodeLockoutMinutes</c>，缺省 10 分钟
     /// </remarks>
     public TimeSpan VerificationCodeLockout { get; init; } = TimeSpan.FromMinutes(10);
 

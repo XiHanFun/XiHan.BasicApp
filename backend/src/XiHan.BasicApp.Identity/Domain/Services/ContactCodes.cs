@@ -29,7 +29,7 @@ public enum ContactChannel
 /// </summary>
 /// <remarks>
 /// 码由 <see cref="VerificationCodes"/> 签发并限频，经 Notification 的 <see cref="IMessageSender"/> 在本次调用的工作单元里入发件箱（调用失败即不发）；
-/// 邮件 / 短信配置与模板按调用所在的一侧取，租户没有自己启用的缺省配置时由平台代发（4.x 同，修订（五十二）拍板保留）
+/// 邮件 / 短信配置与模板按调用所在的一侧取，租户没有自己启用的缺省配置时由平台代发（修订（五十二）拍板）
 /// 没有可用的配置或模板（或没装 Notification）即 <c>IDENTITY_UNAVAILABLE_006</c>，不签发码
 /// </remarks>
 /// <param name="codes">验证码</param>

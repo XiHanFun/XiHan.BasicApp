@@ -9,8 +9,8 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 代码生成模块的权限码
 /// </summary>
 /// <remarks>
-/// 只在平台一侧（照 4.x）。4.x 是一组 <c>code_gen:{read,create,update,delete,import,execute}</c>，6.0 权限码的资源段要与操作一致，按资源拆开，
-/// 动作照 4.x 各方法要的那个码：启停与测试连接归 <c>update</c>（4.x 测试连接只要读权限却写库，方案 C2）
+/// 只在平台一侧。权限码的资源段与操作一致、按资源拆开，
+/// 启停与测试连接归 <c>update</c>（测试连接会写回结果，方案 C2）
 /// </remarks>
 public static class CodeGenerationPermissions
 {

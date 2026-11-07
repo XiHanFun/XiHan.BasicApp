@@ -81,7 +81,7 @@ export function toTelegramBotForm(row: TelegramBotRow): TelegramBotForm {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验，加上令牌文法、广播群与命令白名单）；都好为空 */
+/** 表单的第一处问题（提交前校验，含令牌文法、广播群与命令白名单）；都好为空 */
 export type TelegramBotProblem = 'admin_users' | 'broadcast_chat_ids' | 'commands' | 'group_chat_ids' | 'name' | 'token' | 'token_invalid'
 
 export function findTelegramBotProblem(form: TelegramBotForm): TelegramBotProblem | null {
@@ -152,7 +152,7 @@ export function toUpdateBody(form: TelegramBotForm & { id: string }): RequestOf<
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（令牌不带即保留）
+ * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改（令牌不带即保留）
  */
 export function telegramBotResource(): SchemaResource<TelegramBotRow> {
   return {

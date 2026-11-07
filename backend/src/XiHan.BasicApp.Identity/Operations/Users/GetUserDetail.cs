@@ -65,7 +65,7 @@ public sealed record UserSessionDetailResponse(string? Device, string? Browser, 
 /// 用户管理的详情
 /// </summary>
 /// <param name="User">用户资料</param>
-/// <param name="Security">账号安全；外部成员为空（账号域数据由其注册地维护，4.x 同）</param>
+/// <param name="Security">账号安全；外部成员为空（账号域数据由其注册地维护）</param>
 /// <param name="Today">今日统计（只算当前一侧）；用户不在当前一侧（平台看租户的用户）或没装日志包为空</param>
 /// <param name="CurrentSession">这一侧最近活动的会话（模仿会话不算）；没有有效会话为空</param>
 public sealed record UserDetailResponse(UserResponse User, UserSecurityDetailResponse? Security, UserTodayResponse? Today, UserSessionDetailResponse? CurrentSession);
@@ -74,8 +74,8 @@ public sealed record UserDetailResponse(UserResponse User, UserSecurityDetailRes
 /// 用户详情：资料、账号安全、今日统计与当前会话
 /// </summary>
 /// <remarks>
-/// <c>GET /api/users/{id}:detail</c>（4.x <c>UserManagementQuery/GetUserManagementDetail</c>，同样只要读用户的权限）。可见范围同 <c>users.get</c>：租户主体看本租户的用户与成员，受数据范围约束，范围外按不存在回答
-/// 统计与会话都只看调用所在的一侧：外部成员在别的租户的活动不算。与 4.x 不同：今日统计按原始日志现算（4.x 读定时任务写的统计快照），按请求的时区分天
+/// <c>GET /api/users/{id}:detail</c>（只要读用户的权限）。可见范围同 <c>users.get</c>：租户主体看本租户的用户与成员，受数据范围约束，范围外按不存在回答
+/// 统计与会话都只看调用所在的一侧：外部成员在别的租户的活动不算。今日统计按原始日志现算，按请求的时区分天
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="sideUsers">这一侧的用户</param>

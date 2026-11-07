@@ -46,9 +46,6 @@ public sealed class FilesOptions
     /// <summary>
     /// 签名下载地址的缺省有效期，缺省 30 分钟
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public TimeSpan LinkLifetime { get; init; } = TimeSpan.FromMinutes(30);
 
     /// <summary>

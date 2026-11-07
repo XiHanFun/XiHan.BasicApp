@@ -38,7 +38,7 @@ export interface TraceNavRow {
 export interface TraceFieldOptions {
   /** 额外的「列键 → 追踪维度」映射（页面特有列） */
   extraDimensions?: Record<string, string>
-  /** 行时间字段名，用于把追踪时间窗口居中到该行 ±1 天（6.0 各日志都是 occurredAt） */
+  /** 行时间字段名，用于把追踪时间窗口居中到该行 ±1 天（各日志都是 occurredAt） */
   timeField?: string
 }
 

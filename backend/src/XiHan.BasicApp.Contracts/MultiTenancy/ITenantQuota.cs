@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Contracts.MultiTenancy;
 /// 租户的席位与存储配额
 /// </summary>
 /// <remarks>
-/// Tenancy 实现，4.x 同：席位与存储空间的有效上限取租户自己的，没有取套餐的，都没有即不限
+/// Tenancy 实现：席位与存储空间的有效上限取租户自己的，没有取套餐的，都没有即不限
 /// 只约束租户一侧的调用：平台主体代租户办事（开通、建用户、加成员）不受限，已经超额的租户只报告不阻止既有数据
 /// </remarks>
 public interface ITenantQuota

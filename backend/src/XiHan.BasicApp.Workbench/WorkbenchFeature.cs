@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Workbench;
 /// <remarks>
 /// 登记工作台页面（不要求权限、排序 0），菜单种子据此生成登录后的落点；
 /// 汇总各包经 <c>IWorkbenchWidgetProvider</c> 登记的小组件，按调用方权限列出并取数（<c>workbench.*</c> 操作）
-/// 看板布局照 4.x 存在 Identity 的用户设置里（<c>workbench:widgets</c>），本包不建表
+/// 看板布局存在 Identity 的用户设置里（<c>workbench:widgets</c>），本包不建表
 /// 宿主按 <c>BasicApp:Modules:Workbench:Enabled</c> 决定是否装配；关掉后种子删掉工作台菜单，登录后落到第一个有权限的页面
 /// </remarks>
 public sealed class WorkbenchFeature : IFeature

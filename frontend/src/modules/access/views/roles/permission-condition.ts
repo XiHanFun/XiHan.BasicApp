@@ -10,7 +10,7 @@ export type ConditionValueKind = ConditionAttribute['kind']
 export type ConditionSubjectKind = PermissionConditionsResult['subjectKind']
 export type ConditionAction = ConditionBinding['action']
 
-/** 全部运算符（还没选属性时列出，4.x 同；选了属性只列它可用的） */
+/** 全部运算符（还没选属性时列出；选了属性只列它可用的） */
 export const CONDITION_OPERATORS: readonly ConditionOperator[] = [
   'Equals',
   'NotEquals',

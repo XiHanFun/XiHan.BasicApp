@@ -18,7 +18,7 @@ import { mapMenuToRoutes } from './dynamic'
 const WHITE_LIST = [FORBIDDEN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH]
 
 export function setupRouterGuard(router: Router) {
-  // 本次页面生命周期里由菜单装上的路由名：换账号后重新装载前先卸掉上一份（4.x 在注销时按核心 / 静态路由名单清理，结果相同）
+  // 本次页面生命周期里由菜单装上的路由名：换账号后重新装载前先卸掉上一份
   let installedNames: string[] = []
 
   const installDynamicRoutes = (routes: RouteRecordRaw[]) => {

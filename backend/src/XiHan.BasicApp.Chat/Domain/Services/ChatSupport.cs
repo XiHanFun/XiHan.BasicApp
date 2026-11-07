@@ -37,9 +37,6 @@ public sealed record ChatCaller(Guid UserId, string Side)
 /// <summary>
 /// 聊天的规则常量
 /// </summary>
-/// <remarks>
-/// 照 4.x 的 <c>ChatDomainService</c>
-/// </remarks>
 public static class ChatRules
 {
     /// <summary>
@@ -61,7 +58,7 @@ public static class ChatRules
     /// 助手回复的长度上限
     /// </summary>
     /// <remarks>
-    /// 超长截断（照 4.x）
+    /// 超长截断
     /// </remarks>
     public const int MaxAssistantContentLength = 20000;
 
@@ -103,9 +100,6 @@ public static class ChatRules
     /// <summary>
     /// 助手会话的唯一键：一个用户对一个助手只有一个会话
     /// </summary>
-    /// <remarks>
-    /// 照 4.x
-    /// </remarks>
     public static string AssistantPairKeyOf(Guid assistantId, Guid userId) => $"ai:{assistantId:N}:{userId:N}";
 
     /// <summary>
@@ -132,7 +126,7 @@ public static class ChatRules
 /// 写进库里的系统提示与会话预览文案（作用域）
 /// </summary>
 /// <remarks>
-/// 按发起调用的区域取消息目录里的文案（4.x 写死中文）；键都在 10 种区域里，取不到是缺陷，直接抛出
+/// 按发起调用的区域取消息目录里的文案；键都在 10 种区域里，取不到是缺陷，直接抛出
 /// </remarks>
 /// <param name="localizer">消息本地化</param>
 public sealed class ChatTexts(IMessageLocalizer localizer)
@@ -187,7 +181,7 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
 /// 聊天策略参数 <c>chat.policy</c> 的值
 /// </summary>
 /// <remarks>
-/// 照 4.x：保留天数只读平台值，敏感词租户可以覆盖（读参数时当前租户的同键参数优先）
+/// 保留天数只读平台值，敏感词租户可以覆盖（读参数时当前租户的同键参数优先）
 /// </remarks>
 public sealed record ChatPolicySettings
 {
@@ -207,7 +201,7 @@ public sealed record ChatPolicySettings
 /// </summary>
 /// <remarks>
 /// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[]}</c>），没建即用缺省值；建了而 JSON 不合法或保留天数不在 1 到 3650 之间即失败（不按错误的值删数据或放过敏感词）
-/// 敏感词照 4.x 管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名
+/// 敏感词管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名
 /// </remarks>
 /// <param name="readers">参数读取（Settings 实现）</param>
 public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)

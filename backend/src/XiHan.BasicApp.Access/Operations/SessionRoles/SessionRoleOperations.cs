@@ -37,7 +37,7 @@ public sealed record GetSessionRoleRequest([Required] Guid Id);
 /// 分页列出当前一侧的会话角色
 /// </summary>
 /// <remarks>
-/// <c>POST /api/session-roles:list</c>（4.x 的 SessionRoleQueryService，只读）。缺省按激活时间倒序
+/// <c>POST /api/session-roles:list</c>（只读）。缺省按激活时间倒序
 /// </remarks>
 /// <param name="queries">会话角色查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]

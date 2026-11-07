@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Maintenance</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 运维能力包（Tier 2）：作业与运行历史的管理面（架在框架调度之上，宿主接 Scheduling.Database），之后加缓存管理、服务监控、版本与升级记录；只在平台一侧。</Description>
+    <Description>XiHan.BasicApp 运维能力包（Tier 2）：作业与运行历史的管理面（架在框架调度之上，宿主接 Scheduling.Database），之后加缓存管理、服务监控、版本与升级记录；只在平台一侧。</Description>
   </PropertyGroup>
 
   <ItemGroup>

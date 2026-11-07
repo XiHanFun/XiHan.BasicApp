@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "Die konstanten Optionen der Spalte '{column}' müssen ein nicht leeres Array von Objekten mit Text-label und Text- oder Zahl-value sein: {value}",
   "codegeneration.generate.const_options_type_mismatch": "Spalte '{column}' ist {type}, die Werte der konstanten Optionen sind aber {valueType}.",
   "openapi.tags.codegen_templates.name": "Vorlagen der Codegenerierung",
-  "openapi.tags.codegen_templates.description": "Scriban-Vorlagen, die aus Tabellenkonfigurationen ein 6.0-Paket und ein Frontend-Modul erzeugen; eingebaute folgen der Version, eigene lassen sich ergänzen.",
+  "openapi.tags.codegen_templates.description": "Scriban-Vorlagen, die aus Tabellenkonfigurationen ein Backend-Paket und ein Frontend-Modul erzeugen; eingebaute folgen der Version, eigene lassen sich ergänzen.",
   "permissions.codegeneration.codegen_templates.read.name": "Vorlagen der Codegenerierung lesen",
   "permissions.codegeneration.codegen_templates.read.description": "Vorlagen der Codegenerierung ansehen und ihre Syntax prüfen.",
   "permissions.codegeneration.codegen_templates.create.name": "Vorlagen der Codegenerierung anlegen",

@@ -25,7 +25,7 @@ public sealed record RoleRelative(Guid RoleId, int Depth, IReadOnlyList<Guid> Pa
 /// 一侧的角色继承图
 /// </summary>
 /// <remarks>
-/// 直接边与边上角色的启停。祖先按广度优先展开，停用的上级不传下授予、也截断经过它的继承（4.x 同）
+/// 直接边与边上角色的启停。祖先按广度优先展开，停用的上级不传下授予、也截断经过它的继承
 /// </remarks>
 public sealed class RoleGraph
 {

@@ -44,17 +44,17 @@ export type TableAlign = 'left' | 'center' | 'right'
 /** 表格风格默认值：不打斑马纹、显示竖线 */
 const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, ruled: true }
 
-/** 旧版存的密度词（small / medium / large），读到时换成尺寸档 */
+/** 旧值里的密度词（small / medium / large），读到时换成尺寸档 */
 const LEGACY_DENSITY: Record<string, TableDensity> = { small: 'sm', medium: 'md', large: 'lg' }
 
-/** 读出持久化的密度：现行尺寸档原样，旧版密度词换算 */
+/** 读出持久化的密度：尺寸档原样，旧的密度词换算 */
 function readDensity(value: string | undefined): TableDensity {
   if (value === 'sm' || value === 'md' || value === 'lg')
     return value
   return (value && LEGACY_DENSITY[value]) || 'md'
 }
 
-/** 读出持久化的风格：旧版按 singleLine 存竖线（true 表示无竖线），换成 ruled */
+/** 读出持久化的风格：旧值按 singleLine 存竖线（true 表示无竖线），换成 ruled */
 function readStyle(value: PersistedTableSettings['style']): TableStyle {
   const { singleLine, ...rest } = value ?? {}
   return {
@@ -80,9 +80,9 @@ export interface TableDefaultSort {
 interface PersistedTableSettings {
   /** 按顺序的列设置（含每列默认排序方向 sort） */
   columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number, sort?: 'asc' | 'desc' }>
-  /** 密度；旧版存的是 small / medium / large，由 readDensity 换算 */
+  /** 密度；旧值是 small / medium / large，由 readDensity 换算 */
   density?: string
-  /** 表格风格；旧版存的是 singleLine，由 readStyle 换算 */
+  /** 表格风格；旧值是 singleLine，由 readStyle 换算 */
   style?: Partial<TableStyle> & { singleLine?: boolean }
   /** 表格对齐 */
   align?: TableAlign
@@ -90,9 +90,9 @@ interface PersistedTableSettings {
   selectable?: boolean
   /** 是否显示序号列 */
   showIndex?: boolean
-  /** @deprecated 旧版默认多字段排序，仅用于向后兼容迁移到列内 sort */
+  /** @deprecated 旧的默认多字段排序，只用于迁移到列内 sort */
   defaultSorts?: TableDefaultSort[]
-  /** @deprecated 旧版单字段默认排序，仅用于向后兼容迁移 */
+  /** @deprecated 旧的单字段默认排序，只用于迁移 */
   defaultSort?: TableDefaultSort | null
 }
 
@@ -141,7 +141,7 @@ export function useTableSettings(
   function applyPersisted(persisted: PersistedTableSettings) {
     const defaults = buildDefault()
     const defaultMap = new Map(defaults.map(c => [c.key, c]))
-    // 兼容旧版：默认排序曾独立存储（defaultSorts/defaultSort），迁移为各列内置 sort（按字段名匹配）
+    // 旧值里默认排序独立存储（defaultSorts/defaultSort），迁移为各列内置 sort（按字段名匹配）
     const legacySorts = persisted.defaultSorts ?? (persisted.defaultSort
       ? [persisted.defaultSort]
       : [])
@@ -158,7 +158,7 @@ export function useTableSettings(
           fixed: p.fixed,
           width: p.width ?? def.width,
           sortable: def.sortable,
-          // 列内 sort 优先；旧版独立默认排序按字段名迁移；仅可排序列保留
+          // 列内 sort 优先；旧的独立默认排序按字段名迁移；仅可排序列保留
           sort: def.sortable
             ? (p.sort ?? legacySortMap.get(p.key))
             : undefined,

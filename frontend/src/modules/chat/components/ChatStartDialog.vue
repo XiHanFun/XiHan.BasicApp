@@ -191,7 +191,7 @@ async function handleConfirm() {
     emit('started')
   }
   catch (error) {
-    // 6.0 的请求层不弹统一提示：后端的本地化正文由这里提示
+    // 请求层不弹统一提示：后端的本地化正文由这里提示
     toast.danger(chatErrorText(error) || t('common.messages.operation_failed'))
   }
   finally {

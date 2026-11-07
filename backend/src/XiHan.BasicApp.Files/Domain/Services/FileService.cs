@@ -36,7 +36,7 @@ public sealed record FileDetails(FileAccessLevel AccessLevel, bool IsTemporary, 
 /// </summary>
 /// <remarks>
 /// 上传（边写临时文件边算 SHA-256，同一侧已有相同内容就共用对象）、秒传、读取、访问级别、签名地址、归档、删除与副本管理
-/// 与 4.x 不同：相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容（4.x 只看存在与大小）
+/// 相同内容的上传与秒传各得一条新记录、不改写已有的记录；删到最后一条引用才删对象；副本校验按 SHA-256 比对内容
 /// 下载计数：按身份读整个内容或从头读的范围记一次，签发签名地址记一次（之后经地址的读取不经应用）
 /// </remarks>
 /// <param name="rows">文件与副本的读写</param>
@@ -184,7 +184,7 @@ public sealed partial class FileService(
             return Error.Validation(FilesErrors.FileTooLarge, FilesMessages.FileTooLarge, MessageArguments.Of(("max", options.MaxUploadBytes)));
         }
 
-        // 秒传也计入存储配额（4.x 不计）：用量按记录算，共用对象的文件各自占空间
+        // 秒传也计入存储配额：用量按记录算，共用对象的文件各自占空间
         var side = SideRows.SideOf(context);
         var allowed = await EnsureQuotaAsync(context, side, size).ConfigureAwait(false);
         if (allowed.IsFailure)
@@ -460,7 +460,7 @@ public sealed partial class FileService(
     /// 把一个副本设为主副本
     /// </summary>
     /// <remarks>
-    /// 目标须正常且校验过；损坏的文件随之恢复正常（4.x 同）
+    /// 目标须正常且校验过；损坏的文件随之恢复正常
     /// </remarks>
     /// <param name="file">文件</param>
     /// <param name="storage">副本</param>

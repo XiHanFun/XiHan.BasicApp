@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Files;
 /// 文件包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同三个实体：文件、文件的存储副本与存储配置。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
+/// 三个实体：文件、文件的存储副本与存储配置。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
 /// 返回文件的上传收尾与存储副本操作也套掩码
 /// </remarks>
 public static class FilesFieldSecurity

@@ -104,7 +104,7 @@ describe('assistantsResource', () => {
 })
 
 describe('useAssistantEditor', () => {
-  it('新建带编码与状态，空白的可选项发 null，缺省值照 4.x', async () => {
+  it('新建带编码与状态，空白的可选项发 null，带上缺省值', async () => {
     const calls = record(() => json(201, detail()))
     const editor = useAssistantEditor()
     editor.startCreate()

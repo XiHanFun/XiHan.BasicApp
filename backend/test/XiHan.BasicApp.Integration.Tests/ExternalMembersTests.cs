@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证外部成员：注册在别处、以普通成员身份加入本租户的账号
 /// </summary>
 /// <remarks>
-/// 租户的用户列表带出他们并标记，能配本租户的角色、部门、数据范围与直授，切进来即拿到这些权限（4.x 同）；
+/// 租户的用户列表带出他们并标记，能配本租户的角色、部门、数据范围与直授，切进来即拿到这些权限；
 /// 账号本身只有注册地能动：资料、密码、状态、双因素、登录策略与删除一律按不存在回答；不是本租户成员的人看不到也配不了
 /// </remarks>
 public sealed class ExternalMembersTests : IDisposable
@@ -271,7 +271,7 @@ public sealed class ExternalMembersTests : IDisposable
         var (_, assigned) = await SendAsync(scene.Server, HttpMethod.Post, $"/api/roles/{roleId}:assign", $$"""{"userIds":["{{scene.Alice}}"]}""", scene.Contoso);
         Assert.Equal(AccessErrors.MemberNotFound, FailureCode(assigned));
 
-        // 再加回来不带旧角色（4.x 同：成员身份撤销即解除角色）
+        // 再加回来不带旧角色（成员身份撤销即解除角色）
         await AddMemberAsync(scene.Server, scene.Platform, "contoso", scene.Alice);
         var (_, again) = await SendAsync(scene.Server, HttpMethod.Get, $"/api/roles/{roleId}:members", null, scene.Contoso);
         Assert.Equal(0, again.GetProperty("total").GetInt64());

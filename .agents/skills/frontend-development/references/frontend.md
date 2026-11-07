@@ -13,6 +13,7 @@ frontend/
 ```
 
 - `packages/` 不引用 `@/`；模块之间不互相引用，共用的东西放 `packages/`。
+- 注释简洁明了，只写代码表达不了的意图、约束与理由，不写铺垫、复述代码、版本对照或来源。
 - 注释（`//`、`/* */`、JSDoc、Vue 模板的 `<!-- -->` 与样式里的 `/* */`）句末不加「。」，一行里有多句时句间照常用「。」；与后端同一写法，前端没有门禁守它，靠评审。文案（`locales`、`t(...)` 的值）不是注释，照常带标点。
 - 模块的 `setup.ts` 登记本模块文案（`registerModuleLocales(import.meta.glob(...))`）；视图键全局唯一（`modules:check`）。可选模块的 `setup.ts` 另把要接进公共包的函数登记上（如打印的 `configurePrinting`），只登记函数、不发请求。壳层的顶栏按钮、浮层经 `registerShellExtension`，看板的列表型小组件经 `registerWorkbenchWidget`（挂在模块的一个页面上，后端不下发页面即隐藏，方案修订（一百））。
 - 设计器（Web Components）共用的接线在 `packages/designers`，各款设计器在自己的包或子路径（`packages/printing`、`~/printing/designer`）；依赖走 catalog，模板里 `xh-` 开头的标签是自定义元素（`vite.config.ts` 的 `isCustomElement`）。

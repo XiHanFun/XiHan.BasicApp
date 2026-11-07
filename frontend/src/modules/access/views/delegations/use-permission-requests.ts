@@ -22,7 +22,7 @@ export interface RequestOption {
   description?: string
 }
 
-/** 发起 / 修改重提的表单（4.x 的申请弹窗）：时间是日期选择器的毫秒时间戳 */
+/** 发起 / 修改重提的表单：时间是日期选择器的毫秒时间戳 */
 export interface PermissionRequestForm {
   targetKind: RequestTargetKind
   roleId: string
@@ -70,7 +70,7 @@ export function requestStatusLabel(t: Translate, status: PermissionRequestStatus
   }
 }
 
-/** 状态色调（4.x 同）：待审批黄、已批准绿、已驳回红、已撤回中性 */
+/** 状态色调：待审批黄、已批准绿、已驳回红、已撤回中性 */
 export const REQUEST_STATUS_TONE: Record<PermissionRequestStatus, Tone> = {
   Pending: 'warning',
   Approved: 'success',
@@ -78,7 +78,7 @@ export const REQUEST_STATUS_TONE: Record<PermissionRequestStatus, Tone> = {
   Withdrawn: 'neutral',
 }
 
-/** 4.x 的「{from} 至 {to}」：两头都可以不填 */
+/** 「{from} 至 {to}」：两头都可以不填 */
 export function expectedValidity(t: Translate, row: Pick<PermissionRequestRow, 'expectedEffectiveAt' | 'expectedExpiresAt'>): string {
   return t('access.permission_requests.validity_range', {
     from: row.expectedEffectiveAt
@@ -200,7 +200,7 @@ function captureError(error: unknown, fieldErrors: { value: Record<string, strin
 }
 
 /**
- * 发起申请与修改重提共用的弹窗（4.x 的申请弹窗）：申请对象二选一（启用的角色，或本侧权限目录），打开时各取一次候选
+ * 发起申请与修改重提共用的弹窗：申请对象二选一（启用的角色，或本侧权限目录），打开时各取一次候选
  * 字段级错误挂回对应字段；Workflow 关掉时提交返回 503 `ACCESS_UNAVAILABLE_002`，原因留在弹窗里
  */
 export function usePermissionRequestEditor() {
@@ -214,7 +214,7 @@ export function usePermissionRequestEditor() {
   const permissionOptions = ref<RequestOption[]>([])
   const targetLoading = ref(false)
 
-  /** 角色与权限候选打开弹窗时各取一次（4.x：启用的角色与本侧可用权限） */
+  /** 角色与权限候选打开弹窗时各取一次（启用的角色与本侧可用权限） */
   async function loadTargets() {
     targetLoading.value = true
     try {
@@ -293,7 +293,7 @@ export function usePermissionRequestEditor() {
 }
 
 /**
- * 手工驳回 / 撤回的弹窗（W2：4.x 后端有、前端没接）：选处理方式、填备注（也是流程的取消原因），批量接口传单个 ID
+ * 手工驳回 / 撤回的弹窗（W2）：选处理方式、填备注（也是流程的取消原因），批量接口传单个 ID
  */
 export function usePermissionRequestCloser() {
   const open = ref(false)

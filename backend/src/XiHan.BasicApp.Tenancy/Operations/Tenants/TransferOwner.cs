@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// 转移租户所有权
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tenants/{id}:transfer-owner</c>（平台侧）。所有者即 <see cref="SysTenant.AdminUserId"/>，每租户唯一，转移即改写它（照 4.x 的所有权转移）：
+/// <c>POST /api/tenants/{id}:transfer-owner</c>（平台侧）。所有者即 <see cref="SysTenant.AdminUserId"/>，每租户唯一，转移即改写它：
 /// 新所有者须是该租户注册地的用户或生效中的普通成员（运维支持成员不行），启用且未锁定；新所有者经 <see cref="ITenantInitializer"/> 拿到管理员身份，
 /// 原所有者保留已有角色（降为管理员），两人的授权缓存随即失效。转移记一条权限变更日志（含原 / 新所有者）
 /// </remarks>

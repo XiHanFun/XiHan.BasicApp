@@ -22,7 +22,7 @@ export interface EditionForm {
   name: string
   description: string
   isDefault: boolean
-  /** 状态：新建时可选；编辑时原样带回（启停走行操作，4.x 同） */
+  /** 状态：新建时可选；编辑时原样带回（启停走行操作） */
   status: EditionStatus
   order: number
   /** 席位上限；为空不限 */
@@ -194,7 +194,7 @@ function emptyForm(): EditionForm {
 
 /**
  * 新建 / 编辑弹窗。新建时白名单为空（什么都不放行），页面接着打开白名单抽屉；编码创建后不可改。字段级错误挂回对应字段
- * 免费与价格互斥（4.x 同）：打开免费即清空价格、价格框随之禁用；提交前再核对一次，标了价的免费套餐不发请求、错误挂在价格上
+ * 免费与价格互斥：打开免费即清空价格、价格框随之禁用；提交前再核对一次，标了价的免费套餐不发请求、错误挂在价格上
  */
 export function useEditionEditor(t: Translate) {
   const open = ref(false)
@@ -235,7 +235,7 @@ export function useEditionEditor(t: Translate) {
     open.value = true
   }
 
-  /** 随机编码（4.x 同款）：小写字母开头、只含小写字母与数字，合后端的编码格式；重复由后端唯一校验拒绝 */
+  /** 随机编码：小写字母开头、只含小写字母与数字，合后端的编码格式；重复由后端唯一校验拒绝 */
   function generateCode() {
     form.code = `${CODE_LETTERS.charAt(Math.floor(Math.random() * CODE_LETTERS.length))}${randomString(7).toLowerCase()}`
   }

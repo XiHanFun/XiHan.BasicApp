@@ -160,6 +160,13 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 - 新 worktree 没有还原结果、`node_modules` 和被 gitignore 的本地配置（如 `frontend/.env.local`）：后端先执行 `dotnet restore backend/XiHan.BasicApp.slnx`（同级没有框架检出时带 `-p:XiHanFrameworkSrc=<快照>`），前端在 `frontend/` 执行 `pnpm install --no-frozen-lockfile`。
 - worktree 分支的合并、推送、创建 PR 以及 worktree 和分支的删除，只在用户明确要求时执行。
 
+## 注释与文档
+
+- 注释简洁明了：只写代码表达不了的意图、约束与理由，不写铺垫、复述代码或多余的话。
+- 按全新仓库写：代码、注释、文档里不写旧版本对照与来源（旧版、照搬、搬入、重写前后），只写现在的事实；真实版本值（表结构目录 `6.0.0`、版本号）保留。
+- 文档正文不写产品与自有依赖的版本（版本在 `backend/Directory.Build.props`、`frontend/package.json`、`backend/Directory.Packages.props` 里）；运行环境要求与第三方镜像 tag 保留，更新日志例外。
+- C# XML 文档与前端注释的格式见后端、前端技能（`<summary>` 三行一句，注释句末不加「。」）。
+
 ## Git 与提交
 
 - 保留用户已有和无关改动；不要 reset、checkout 或清理它们。

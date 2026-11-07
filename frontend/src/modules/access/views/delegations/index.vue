@@ -7,7 +7,7 @@ import DelegationsTab from './components/DelegationsTab.vue'
 import PermissionRequestsTab from './components/PermissionRequestsTab.vue'
 
 /**
- * 授权申请页（照 4.x 一页两签，设计稿 D3）：页面码与路由仍是 access.delegations / /access/delegations，
+ * 授权申请页（一页两签，设计稿 D3）：页面码与路由仍是 access.delegations / /access/delegations，
  * 菜单权限是 access.permission-requests.read；「申请」页签在前，「委托」页签按 access.delegations.read 显示
  */
 defineOptions({ name: 'AccessDelegationsView' })
@@ -54,7 +54,7 @@ watch(showDelegations, (visible) => {
 }
 
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 定高表格卡片，分页贴底），
-   被标签页包裹时补全高度传递链，与根级 SchemaPage 页面布局一致（4.x 同） */
+   被标签页包裹时补全高度传递链，与根级 SchemaPage 页面布局一致 */
 .auth-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;

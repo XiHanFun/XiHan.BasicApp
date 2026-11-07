@@ -179,7 +179,7 @@ export async function loadDictItemTree(dictId: string): Promise<DictItemNode[]> 
 }
 
 /**
- * 右栏字典项的 SchemaPage 资源：分页列出当前字典的项（4.x 同），关键字匹配编码、名称与附加值，状态精确匹配
+ * 右栏字典项的 SchemaPage 资源：分页列出当前字典的项，关键字匹配编码、名称与附加值，状态精确匹配
  * `editable`（字典在调用方这一侧）时才带删除、启停与导入新建（导入的项都在顶层）；另一侧的字典只读，这些入口一概不出
  */
 export function dictItemsResource(dictId: string, editable: boolean): SchemaResource<DictItemRow> {

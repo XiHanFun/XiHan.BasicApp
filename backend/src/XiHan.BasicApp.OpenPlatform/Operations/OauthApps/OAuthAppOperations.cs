@@ -142,7 +142,7 @@ public sealed class ResetOAuthAppSecret(OAuthAppService service) : IOperation<OA
 /// 批量删除 OAuth 应用
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/oauth-apps?ids=</c>（软删除，发出的令牌随应用失效；4.x 有授权码或令牌就不让删，记录又没有清理，应用永远删不掉）
+/// <c>DELETE /api/oauth-apps?ids=</c>（软删除，发出的令牌随应用失效）
 /// </remarks>
 /// <param name="service">应用服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsDelete)]

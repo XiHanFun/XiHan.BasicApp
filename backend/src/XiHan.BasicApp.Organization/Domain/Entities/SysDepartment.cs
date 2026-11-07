@@ -84,7 +84,7 @@ public sealed class SysDepartment : TenantScopedAuditedEntity
 /// 部门类型
 /// </summary>
 /// <remarks>
-/// 名称与 4.x 相同。部门是缺省值、排在 0，加列时已有的行读出来就是它（报文按名称，数值只在库里）
+/// 部门是缺省值、排在 0，加列时已有的行读出来就是它（报文按名称，数值只在库里）
 /// </remarks>
 public enum DepartmentType
 {

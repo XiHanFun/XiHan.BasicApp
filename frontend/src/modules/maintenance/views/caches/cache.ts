@@ -13,7 +13,7 @@ export type CacheKeyItem = ResponseOf<'caches.keys'>['items'][number]
 /** 批量删除里没删成的一个键与原因码 */
 export type CacheDeleteFailure = ResponseOf<'caches.delete'>['failed'][number]
 
-/** 每页取多少个键（后端上限 1000）；4.x 一次取全部，6.0 按续页标记往下翻 */
+/** 每页取多少个键（后端上限 1000）；按续页标记往下翻 */
 export const KEY_PAGE_SIZE = 500
 
 /** 一次 caches.delete 最多几个键（后端上限 100），多选超出时分批发 */
@@ -75,7 +75,7 @@ export async function loadNamespaces(): Promise<CacheNamespace[]> {
 
 /**
  * 查询的完整前缀：命名空间前缀加上子前缀（去首尾空白）
- * 6.0 只认前缀、不认通配：4.x 的键模式 `basicapp:*` 在这里是选命名空间、再按需补一段子前缀
+ * 只认前缀、不认通配：选命名空间、再按需补一段子前缀
  */
 export function keyPrefix(namespacePrefix: string, subPrefix: string): string {
   return `${namespacePrefix}${subPrefix.trim()}`
@@ -88,7 +88,7 @@ export function toKeysRequest(prefix: string, continuation: null | string): Requ
     : { prefix, limit: KEY_PAGE_SIZE }
 }
 
-/** 并入下一页的键：Redis 的 SCAN 游标可能把同一个键排进两页，跨页去重后按序数排序（4.x 同样排序后建树） */
+/** 并入下一页的键：Redis 的 SCAN 游标可能把同一个键排进两页，跨页去重后按序数排序 */
 export function mergeKeys(existing: readonly string[], incoming: readonly string[]): string[] {
   return [
     ...new Set([
@@ -187,7 +187,7 @@ export function useCacheKeys() {
   }
 }
 
-// ── 键树（4.x 原样：按 : 分组） ─────────────────────────────────
+// ── 键树（按 : 分组） ─────────────────────────────────
 
 /** 分组节点的键前缀：选中回调据此只取叶子，避免多选时混入分组 */
 export const GROUP_PREFIX = '__group__'
@@ -260,7 +260,7 @@ export function leafKeys(selected: readonly string[]): string[] {
   return selected.filter(key => !key.startsWith(GROUP_PREFIX))
 }
 
-/** 不超过这么多键时整棵树展开（4.x 同为 100） */
+/** 不超过这么多键时整棵树展开 */
 export const EXPAND_ALL_LIMIT = 100
 
 // ── 缓存项 ──────────────────────────────────────────────────────
@@ -272,7 +272,7 @@ function seconds(value: null | number | undefined): null | number {
     : Number(value)
 }
 
-/** 字节大小（4.x 同）：不足 1 KB 按 B，不足 1 MB 按 KB 保留一位，否则按 MB 保留两位 */
+/** 字节大小：不足 1 KB 按 B，不足 1 MB 按 KB 保留一位，否则按 MB 保留两位 */
 export function formatSize(bytes: number): string {
   const size = Number(bytes)
   if (size < 1024)
@@ -345,7 +345,7 @@ export function canEditEntry(entry: Pick<CacheEntry, 'editable' | 'text'> | null
 
 /**
  * 不能改写的原因：对象缓存的值按 JSON 只读显示（object）、写不出 JSON 不能预览（unrenderable）；
- * 字节存储的值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only，4.x 同样禁止改写）
+ * 字节存储的值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only）
  * 能改写时为 null
  */
 export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'layer' | 'text'>): 'binary' | 'object' | 'read-only' | 'unrenderable' | null {
@@ -357,7 +357,7 @@ export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'layer' | 't
   return entry.editable ? null : 'read-only'
 }
 
-/** 值是不是 JSON 对象或数组（4.x 同：据此缺省切到 Json 视图） */
+/** 值是不是 JSON 对象或数组（据此缺省切到 Json 视图） */
 export function isJson(text: string): boolean {
   const trimmed = text.trim()
   if (!trimmed || (!trimmed.startsWith('{') && !trimmed.startsWith('[')))
@@ -521,7 +521,7 @@ export function singleDeleteToast(t: Translate, outcome: CacheDeleteOutcome): Ca
   }
 }
 
-/** 批量删除的提示（4.x 同口径）：全部不在了即成功（其中已过期的单独说一句）；有没删成的提示成功与失败各几个，并附原因 */
+/** 批量删除的提示：全部不在了即成功（其中已过期的单独说一句）；有没删成的提示成功与失败各几个，并附原因 */
 export function batchDeleteToast(t: Translate, outcome: CacheDeleteOutcome): CacheToast {
   if (outcome.failed.length > 0) {
     const reason = [

@@ -48,7 +48,7 @@ public sealed record OAuthIssuedTokens(string AccessToken, int ExpiresIn, string
 /// </summary>
 /// <remarks>
 /// 在一次平台调用里用：客户端认证、授权码兑换（PKCE、回调地址一致、原子消费，重放即吊销这次授权码发出的整族令牌）、刷新令牌轮换（作废的再被使用即整族吊销）、撤销与 userinfo
-/// 访问令牌与刷新令牌是不透明随机串、只存散列，只用于身份；id_token 为 RS256，受众是 ClientId，按范围带 profile / email / phone 声明（4.x 不按范围收窄）
+/// 访问令牌与刷新令牌是不透明随机串、只存散列，只用于身份；id_token 为 RS256，受众是 ClientId，按范围带 profile / email / phone 声明
 /// </remarks>
 /// <param name="apps">应用仓储</param>
 /// <param name="codes">授权码仓储</param>

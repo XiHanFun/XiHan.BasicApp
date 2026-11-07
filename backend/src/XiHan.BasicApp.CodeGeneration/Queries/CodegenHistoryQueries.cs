@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.CodeGeneration.Queries;
 /// 生成历史的列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配表名与批次号（照 4.x 的表名搜索）；筛选：表配置（<c>eq</c>）、结果与交付方式（<c>eq</c> / <c>in</c>，4.x 前端是多选）、生成时间（<c>ge</c> / <c>le</c>）；
+/// 关键字匹配表名与批次号；筛选：表配置（<c>eq</c>）、结果与交付方式（<c>eq</c> / <c>in</c>）、生成时间（<c>ge</c> / <c>le</c>）；
 /// 排序：表名、批次号、结果、交付方式、文件数、大小、耗时、操作人、生成时间，没给即生成时间降序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>

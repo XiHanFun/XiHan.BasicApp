@@ -9,8 +9,8 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 代码生成模块的页面登记
 /// </summary>
 /// <remarks>
-/// 只有代码生成一页、只在平台一侧，四个页签照 4.x（表配置、数据源、模板、生成历史），各页签按自己资源的读权限显示
-/// 4.x 挂在「开发中心」目录下（<c>/develop/codeGen</c>），6.0 的页面码与路由按包、目录按包，旧路由不保留
+/// 只有代码生成一页、只在平台一侧，四个页签（表配置、数据源、模板、生成历史）各按自己资源的读权限显示
+/// 页面码、路由与目录都按包
 /// </remarks>
 public static class CodeGenerationPages
 {

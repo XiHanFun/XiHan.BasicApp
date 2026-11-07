@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.Printing.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 单例：构造时收下各包经 <see cref="PrintDataSourceServiceCollectionExtensions.AddPrintDataSource"/> 投进来的全部登记并逐个校验，
-/// 编码重复或字段契约不合法即抛出（Feature 把构造登记为启动核对，应用在启动阶段就失败，照 4.x）
-/// 规则照 4.x：编码不超过 100 个字符、不含空白；样例是根为对象或数组的 JSON；至少一个字段、键不重复；
+/// 编码重复或字段契约不合法即抛出（Feature 把构造登记为启动核对，应用在启动阶段就失败）
+/// 规则：编码不超过 100 个字符、不含空白；样例是根为对象或数组的 JSON；至少一个字段、键不重复；
 /// 字段种类只有 text / image / barcode / qrcode / table，样例控件只有 boolean / date / datetime / number / text / textarea；明细表至少一列、列不重复，别的种类不能带列
 /// 设计器经 <c>print-data-sources.list</c> 读目录，模板写入时据此校验数据源编码；解析时不查（前端打印时数据源没登记即报错）
 /// </remarks>

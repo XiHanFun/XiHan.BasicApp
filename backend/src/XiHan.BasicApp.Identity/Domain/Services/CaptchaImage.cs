@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// 图形验证码的 SVG 画法
 /// </summary>
 /// <remarks>
-/// 120×44，与 4.x 同款。每个字符的抖动、旋转、颜色与高度由字符码与位置派生，另有两条干扰线与六个噪点；不引入随机源，同一个码画出同一张图
+/// 120×44。每个字符的抖动、旋转、颜色与高度由字符码与位置派生，另有两条干扰线与六个噪点；不引入随机源，同一个码画出同一张图
 /// </remarks>
 public static class CaptchaImage
 {

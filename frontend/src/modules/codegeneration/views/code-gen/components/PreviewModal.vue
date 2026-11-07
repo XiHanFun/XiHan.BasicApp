@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 预览产物（照 4.x preview-modal）：左边按路径组成的目录树，右边只读的代码编辑器
+  代码生成 / 预览产物：左边按路径组成的目录树，右边只读的代码编辑器
   接口取自后端契约（codegen-tables.preview）：只渲染、不打包、不记历史
-  与 4.x 不同：产物按后端给的归属分栏（4.x 按模板编码猜），多一栏登记片段；路径带 backend / frontend / _registration 前缀
+  产物按后端给的归属分栏，登记片段单独一栏；路径带 backend / frontend / _registration 前缀
 -->
 <script setup lang="ts">
 import type { Artifact, ArtifactSide, ArtifactTreeNode } from './use-templates'
@@ -87,7 +87,7 @@ function onSelect(keys: string[]) {
     activeIndex.value = Number(file.slice('file:'.length))
 }
 
-/** 目录图标随展开态开合，文件按扩展名取图标，只首次写的带「不覆盖」标记（照 4.x） */
+/** 目录图标随展开态开合，文件按扩展名取图标，只首次写的带「不覆盖」标记 */
 function renderLabel(node: Record<string, unknown>) {
   const item = node as unknown as ArtifactTreeNode
   const icon = item.children
@@ -194,7 +194,7 @@ async function load() {
 </template>
 
 <style scoped>
-/* 两栏的唯一高度真源：短屏改用视口高扣掉弹窗标题、页脚与内外边距的余量（照 4.x） */
+/* 两栏的唯一高度真源：短屏改用视口高扣掉弹窗标题、页脚与内外边距的余量 */
 .preview {
   display: flex;
   gap: var(--xh-space-3);

@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天模块的错误码
 /// </summary>
 /// <remarks>
-/// 格式为 <c>CHAT_&lt;KIND&gt;_&lt;NNN&gt;</c>，规则照 4.x 的 <c>ChatDomainService</c>（4.x 抛异常，6.0 返回失败）
+/// 格式为 <c>CHAT_&lt;KIND&gt;_&lt;NNN&gt;</c>，规则不满足即返回失败
 /// </remarks>
 public static class ChatErrors
 {

@@ -38,7 +38,7 @@ public sealed class SysUserSecurity : AppAuditedEntity
     /// 最近一次本人改用户名的时间
     /// </summary>
     /// <remarks>
-    /// 90 天一次，4.x 同
+    /// 90 天一次
     /// </remarks>
     public DateTimeOffset? UserNameChangedAt { get; set; }
 
@@ -73,7 +73,7 @@ public sealed class SysUserSecurity : AppAuditedEntity
     /// </summary>
     /// <remarks>
     /// 管理员创建或重置、开通租户管理员、种子写入时为真，本人改密或找回密码后清除
-    /// 只在系统参数 <c>identity.password</c> 的 <c>forceChange</c> 打开时生效：用密码登录后锁定到改密为止（4.x 同）
+    /// 只在系统参数 <c>identity.password</c> 的 <c>forceChange</c> 打开时生效：用密码登录后锁定到改密为止
     /// </remarks>
     public bool MustChangePassword { get; set; }
 

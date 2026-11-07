@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证 AI 模块的提供商与模块开关
 /// </summary>
 /// <remarks>
-/// 提供商照 4.x：编码唯一且不可改、API 密钥加密存储且不回显、留空即保留、缺省最多一个、停用的不能设缺省、测试连接探测聊天与嵌入；
+/// 提供商：编码唯一且不可改、API 密钥加密存储且不回显、留空即保留、缺省最多一个、停用的不能设缺省、测试连接探测聊天与嵌入；
 /// 落库的 Provider 目录在写入的调用提交之后重载，新的调用即用新配置；只在平台一侧；关掉模块宿主照常启动、页面不下发
 /// 模型端点是仿真的 OpenAI 兼容端点（照框架 OpenAI 一致性套件），不触网
 /// </remarks>
@@ -195,7 +195,7 @@ public sealed class AIProvidersTests : IDisposable
         Assert.Equal(FrameworkAIErrors.ProviderNotFound, catalog.ResolveChatClient("openai-main").Error?.Code);
         Assert.Equal(FrameworkAIErrors.ProviderNotFound, catalog.ResolveChatClient().Error?.Code);
 
-        // 解不开的密钥按未配置处理（照 4.x 的 fail-closed，不当明文用）
+        // 解不开的密钥按未配置处理（fail-closed，不当明文用）
         var (_, other) = await CreateAsync(server, admin, "other");
         var tampered = await server.InvokeAsync(async ctx =>
         {

@@ -82,7 +82,7 @@ export function enumKey(group: string, value: string): string {
   return `codegeneration.code_gen.enums.${group}.${value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()}`
 }
 
-/** 后端逗号分隔串 → 多选数组；空即缺省集合（照 4.x） */
+/** 后端逗号分隔串 → 多选数组；空即缺省集合 */
 export function parseEnabledActions(raw?: string | null): TableAction[] {
   if (!raw)
     return [...DEFAULT_ACTIONS]
@@ -90,7 +90,7 @@ export function parseEnabledActions(raw?: string | null): TableAction[] {
   return ALL_ACTIONS.filter(action => selected.includes(action))
 }
 
-/** 勾选恰为缺省集合（或一个都没勾）时提交空，与没配置同义（照 4.x） */
+/** 勾选恰为缺省集合（或一个都没勾）时提交空，与没配置同义 */
 export function serializeEnabledActions(actions: readonly TableAction[]): null | string {
   const isDefault = actions.length === 0 || (actions.length === DEFAULT_ACTIONS.length && DEFAULT_ACTIONS.every(action => actions.includes(action)))
   return isDefault

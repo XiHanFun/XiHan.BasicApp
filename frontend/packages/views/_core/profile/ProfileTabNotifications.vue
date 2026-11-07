@@ -15,7 +15,7 @@ const { t } = useI18n()
 
 const loading = ref(false)
 const saving = ref(false)
-/** 与后端没保存过时的缺省一致（全收）；4.x 的推送、机器人、审批、营销 6.0 没有效果，不显示也不存 */
+/** 与后端没保存过时的缺省一致（全收） */
 const pref = ref<NotificationPreference>({
   channelInApp: true,
   channelEmail: true,

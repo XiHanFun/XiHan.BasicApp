@@ -7,7 +7,7 @@ import { ApiError, throwOnFailed } from '~/request'
 export type PositionRow = ResponseOf<'positions.list'>['items'][number]
 export type PositionStatus = PositionRow['status']
 
-/** 弹窗表单：新建与编辑共用（编码只在新建时可改；6.0 新建不收状态，状态只在编辑时改） */
+/** 弹窗表单：新建与编辑共用（编码只在新建时可改；新建不收状态，状态只在编辑时改） */
 export interface PositionForm {
   code: string
   name: string

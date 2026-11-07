@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Workflow.Handlers;
 /// 通知处理器共用的去重与站内投递（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowNotificationDispatcher</c>：经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心；Notification 没装时不发，投递返回失败只记日志、不阻断流程（4.x 同）
+/// 经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心；Notification 没装时不发，投递返回失败只记日志、不阻断流程
 /// 去重照设计稿 D7：第一次处理一条消息时在同一个事务里写回执，再投递时看到回执即跳过
 /// 文案按收件人的界面语言出（<see cref="IUserLocales"/>，偏好里同步的语言），收件人按语言分组各投一条；没存语言的按这次调用的区域，
 /// 后台恢复流程时调用没有区域，落到缺省区域
@@ -120,9 +120,8 @@ public sealed partial class WorkflowNotifier(SideRows rows, IIdGenerator<Guid> i
 /// 用户任务创建：通知受理人与抄送人，写抄送记录
 /// </summary>
 /// <remarks>
-/// 订阅 <see cref="WorkflowTopics.TaskCreated"/>（竞争消费，信封带租户）。照 4.x 的 <c>WorkflowUserTaskCreatedNotificationHandler</c> 与 <c>WorkflowCarbonCopyRecordHandler</c>：
+/// 订阅 <see cref="WorkflowTopics.TaskCreated"/>（竞争消费，信封带租户）
 /// 受理人收「待办审批」，被抄送人收「抄送」并写一条抄送记录。依次审批每一轮、会签每个受理人的任务都带着同一串抄送人，同一实例同一节点对同一人只记一次、也只通知一次
-/// （4.x 每条任务都通知一遍）
 /// </remarks>
 /// <param name="notifier">去重与投递</param>
 /// <param name="records">审批记录</param>
@@ -179,7 +178,7 @@ public sealed class TaskCreatedHandler(WorkflowNotifier notifier, WorkflowTaskRe
 /// 转办：通知新受理人
 /// </summary>
 /// <remarks>
-/// 订阅 <see cref="WorkflowTopics.TaskTransferred"/>。照 4.x 的 <c>WorkflowUserTaskTransferredNotificationHandler</c>，带上转办意见
+/// 订阅 <see cref="WorkflowTopics.TaskTransferred"/>，带上转办意见
 /// </remarks>
 /// <param name="notifier">去重与投递</param>
 /// <param name="texts">文案</param>
@@ -220,7 +219,7 @@ public sealed class TaskTransferredHandler(WorkflowNotifier notifier, WorkflowTe
 /// 实例故障：通知发起人
 /// </summary>
 /// <remarks>
-/// 订阅 <see cref="WorkflowTopics.InstanceFaulted"/>。照 4.x 的 <c>WorkflowInstanceFaultedNotificationHandler</c>：只通知发起人，链接到「我发起的」
+/// 订阅 <see cref="WorkflowTopics.InstanceFaulted"/>。只通知发起人，链接到「我发起的」
 /// 故障原因是消息键与参数（框架 ADR-0105），在收件人的区域里装上消息作用域再本地化，与通知的其余文案同一种语言；升级前写入的故障没有键，照旧是原文
 /// </remarks>
 /// <param name="notifier">去重与投递</param>

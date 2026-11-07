@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// Update 的种类
 /// </summary>
 /// <remarks>
-/// Webhook 与长轮询都只订这几种，4.x 轮询同一份列表
+/// Webhook 与长轮询都只订这几种
 /// </remarks>
 public enum TelegramUpdateKind
 {
@@ -87,9 +87,6 @@ public sealed record TelegramUpdate
     /// <summary>
     /// 发送人的语言（缺省 <c>zh-CN</c>）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public string LanguageCode { get; init; } = "zh-CN";
 
     /// <summary>

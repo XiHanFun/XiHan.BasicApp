@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 批量停用用户
 /// </summary>
 /// <remarks>
-/// <c>POST /api/users:disable</c>（照 4.x 的启停）。状态置为 <c>Disabled</c>、吊销全部会话，之后登录给 <c>IDENTITY_DENIED_018</c>；
+/// <c>POST /api/users:disable</c>。状态置为 <c>Disabled</c>、吊销全部会话，之后登录给 <c>IDENTITY_DENIED_018</c>；
 /// 不能停用自己，租户的所有者要先转移所有权。锁定中的用户停用后也是停用（解锁不再适用，要启用）
 /// </remarks>
 /// <param name="users">用户仓储</param>

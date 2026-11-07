@@ -797,7 +797,7 @@ const previewKind = ref<PreviewKind | null>(null)
 const previewName = ref('')
 const previewUrl = ref('')
 const previewText = ref('')
-/** 预览的代码着色与 Markdown 解析（4.x 同：着色用组件库的 code-highlight，Markdown 一次给全、非流式） */
+/** 预览的代码着色与 Markdown 解析（着色用组件库的 code-highlight，Markdown 一次给全、非流式） */
 const highlighter = createHighlighter()
 const markdown = createStreamRenderer({ idPrefix: 'file-preview-' })
 const previewBlocks = computed(() => previewKind.value === 'markdown'

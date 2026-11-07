@@ -1,6 +1,6 @@
 <!--
-  代码生成 / 导入库表弹窗（照 4.x import-table-modal）
-  数据源为空即主库；数据库类型按来源取（主库的连接或数据源记录），不再让人选（4.x 让人选，选错了类型映射就错）
+  代码生成 / 导入库表弹窗
+  数据源为空即主库；数据库类型按来源取（主库的连接或数据源记录），不让人选（选错了类型映射就错）
   导入按表隔离：失败的表留在弹窗里列出原因，成功的已刷新到列表
 -->
 <script setup lang="ts">
@@ -86,7 +86,7 @@ async function loadDataSources() {
 async function loadTables() {
   tableLoading.value = true
   try {
-    // 照 4.x 一次列全：取一页最大的 500 张，关键字再收窄
+    // 一次列全：取一页最大的 500 张，关键字再收窄
     const page = await codegenTables.dbTables({
       dataSourceId: dataSourceId.value || null,
       keyword: queryKeyword.value.trim() || null,

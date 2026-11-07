@@ -37,7 +37,7 @@ public enum InboxShowcase
 /// 本人收件箱的查询
 /// </summary>
 /// <remarks>
-/// 只看当前一侧、通知已发布且未删除、此刻在可见期内（开始时间已到、未到期；4.x 不看开始时间）
+/// 只看当前一侧、通知已发布且未删除、此刻在可见期内（开始时间已到、未到期）
 /// 收件箱与通知在同一个租户库里，按通知 ID 联表
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
@@ -54,7 +54,7 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     /// </summary>
     public const int MaxShowcase = 100;
 
-    // 可空时间列与 OR 一起判空时 SqlSugar 会译丢条件，统一换成「为空取哨兵值」再比较（4.x 同）
+    // 可空时间列与 OR 一起判空时 SqlSugar 会译丢条件，统一换成「为空取哨兵值」再比较
     private static readonly DateTimeOffset _sentinel = DateTimeOffset.UnixEpoch;
 
     /// <summary>

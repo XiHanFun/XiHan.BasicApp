@@ -67,7 +67,7 @@ public sealed class GetCodegenTemplate(CodeGenTemplateService service) : IOperat
 /// 检查模板语法
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-templates:validate</c>。只解析不渲染，不写库；要读权限（照 4.x）。正文可能很长，走 POST（不声明只读，免得按 ADR-0041 改成 GET 放进查询串）
+/// <c>POST /api/codegen-templates:validate</c>。只解析不渲染，不写库；要读权限。正文可能很长，走 POST（不声明只读，免得按 ADR-0041 改成 GET 放进查询串）
 /// </remarks>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TemplatesRead)]
 public sealed class ValidateCodegenTemplate : IOperation<ValidateCodegenTemplateRequest, CodegenTemplateValidationResponse>
@@ -143,7 +143,7 @@ public sealed class CreateCodegenTemplate(IRepository<SysCodeGenTemplate, Guid> 
 /// 修改模板
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/codegen-templates/{id}</c>。内置模板不能改（<c>CODEGENERATION_CONFLICT_006</c>，照 4.x：启动时会按嵌入的文件对齐，改了也会被覆盖）；交回的并发戳与当前的不同即冲突
+/// <c>PUT /api/codegen-templates/{id}</c>。内置模板不能改（<c>CODEGENERATION_CONFLICT_006</c>，启动时会按嵌入的文件对齐，改了也会被覆盖）；交回的并发戳与当前的不同即冲突
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="service">模板规则</param>
@@ -194,7 +194,7 @@ public sealed class UpdateCodegenTemplate(IRepository<SysCodeGenTemplate, Guid> 
 /// 启用或停用模板
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-templates/{id}:set-status</c>。内置模板也能启停（照 4.x，种子对齐时不动启停）；给了备注即替换备注
+/// <c>POST /api/codegen-templates/{id}:set-status</c>。内置模板也能启停（种子对齐时不动启停）；给了备注即替换备注
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="service">模板规则</param>
@@ -229,7 +229,7 @@ public sealed class SetCodegenTemplateStatus(IRepository<SysCodeGenTemplate, Gui
 /// 批量删除模板
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/codegen-templates?ids=...</c>。逐项：不存在 <c>CODEGENERATION_NOTFOUND_003</c>，内置模板 <c>CODEGENERATION_CONFLICT_006</c>（照 4.x）
+/// <c>DELETE /api/codegen-templates?ids=...</c>。逐项：不存在 <c>CODEGENERATION_NOTFOUND_003</c>，内置模板 <c>CODEGENERATION_CONFLICT_006</c>
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.TemplatesDelete)]

@@ -145,7 +145,7 @@ const onAuthInvalid = useAuthFormInvalid()
       @submit="onSubmit"
     >
       <!-- 字段靠占位文案表意，标签只留给读屏
-           6.0 的账号属于注册地租户：租户账号填租户 ID，平台账号留空（同密码登录；4.x 先登录后选租户，没有这一栏） -->
+           账号属于注册地租户：租户账号填租户 ID，平台账号留空（同密码登录） -->
       <XhFormFieldGroup name="tenant" class="!mb-6">
         <XhFieldRoot>
           <XhFieldLabel class="sr-only">

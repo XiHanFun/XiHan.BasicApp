@@ -16,9 +16,9 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证代码生成的模板维护与预览
 /// </summary>
 /// <remarks>
-/// 照 4.x：内置模板随程序版本种下、不能改不能删、可以启停，自有模板可增删改；预览只渲染不写历史
-/// 6.0 的产物：新建包出包级文件与 10 个文案文件（后端 JSON、前端 TS 各一套），加入已有包只出资源的文件，两种目标都出登记片段；按勾选的操作一份模板一个文件
-/// 前端照 4.x 按生成模式出页面与 schema（生成部分、手写部分），取数走生成的契约客户端，文案按键写、键在包的 locales 里
+/// 内置模板随程序版本种下、不能改不能删、可以启停，自有模板可增删改；预览只渲染不写历史
+/// 产物：新建包出包级文件与 10 个文案文件（后端 JSON、前端 TS 各一套），加入已有包只出资源的文件，两种目标都出登记片段；按勾选的操作一份模板一个文件
+/// 前端按生成模式出页面与 schema（生成部分、手写部分），取数走生成的契约客户端，文案按键写、键在包的 locales 里
 /// </remarks>
 public sealed class CodeGenerationPreviewTests : IDisposable
 {
@@ -246,7 +246,7 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         using (var en = JsonDocument.Parse(files[Package + "Localization/en-US.json"]))
         {
             Assert.Equal("Create 商品", en.RootElement.GetProperty("products.create.title").GetString());
-            // 列没有注释时按属性名（照 4.x）
+            // 列没有注释时按属性名
             Assert.Equal("ProductCode '{value}' is already taken.", en.RootElement.GetProperty("shop.product.product_code_taken").GetString());
         }
 
@@ -300,12 +300,12 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         Assert.True(tree.ContainsKey(Package + "Operations/Categories/SetCategoryStatus.cs"));
         Assert.DoesNotContain("public enum", files[Package + "Domain/Entities/Product.Generated.cs"], StringComparison.Ordinal);
 
-        // 表注释与业务名句末带「。」（6.0 实体的注释来自文档注释，导入时业务名取表注释）：当名字用、拼进句子时去掉，不出「。。」
+        // 表注释与业务名句末带「。」（实体的注释来自文档注释，导入时业务名取表注释）：当名字用、拼进句子时去掉，不出「。。」
         Assert.Contains("title: '商品分类',", tree["frontend/src/modules/shop/locales/zh-CN.ts"], StringComparison.Ordinal);
         Assert.DoesNotContain(tree, static f => f.Value.Contains("。。", StringComparison.Ordinal));
         Assert.DoesNotContain(files, static f => f.Value.Contains("。。", StringComparison.Ordinal));
 
-        // 生成的代码照 6.0 的写法：注释句末不加「。」
+        // 生成的代码注释句末不加「。」
         var stopped = StoppedComments(tree.Concat(files));
         Assert.True(stopped.Count == 0, string.Join('\n', stopped));
     }
@@ -356,7 +356,7 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         var (status, statusBody) = await SendAsync(server, HttpMethod.Get, $"/api/codegen-tables/{id}:preview", null, admin);
         Assert.Equal((HttpStatusCode.BadRequest, CodeGenerationErrors.GenerationInvalid), (status.StatusCode, statusBody.GetProperty("code").GetString()));
 
-        // 选了枚举却解析不到（4.x 出禁用的占位选项，6.0 生成前拦下）
+        // 选了枚举却解析不到：生成前拦下
         node = await DetailOfAsync(server, admin, "demo_node");
         await UpdateTableAsync(server, admin, node, ("enabledActions", "create,update"));
         node = await DetailOfAsync(server, admin, "demo_node");

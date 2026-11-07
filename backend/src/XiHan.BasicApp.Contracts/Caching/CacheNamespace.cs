@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Contracts.Caching;
 /// </summary>
 /// <remarks>
 /// 缓存管理（Maintenance）只开放登记过的前缀下的键，框架自己的键（如分布式锁）不出现
-/// 鉴权相关的命名空间（授权、身份、开放平台签名、套餐门控）登记为不可改写（4.x 同样禁止改写），删除仍可（删了只是让缓存按需重建）
+/// 鉴权相关的命名空间（授权、身份、开放平台签名、套餐门控）登记为不可改写，删除仍可（删了只是让缓存按需重建）
 /// </remarks>
 /// <param name="Package">包名（小写）</param>
 /// <param name="Prefix">键前缀，以 <c>:</c> 结尾，如 <c>access:</c></param>

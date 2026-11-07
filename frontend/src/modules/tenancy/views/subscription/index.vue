@@ -66,7 +66,7 @@ const pricing = computed(() => (subscription.value
             <span class="tenant-subscription__plan-name">{{ subscription.editionName ?? t('tenancy.subscription.no_edition') }}</span>
             <span v-if="subscription.editionDescription" class="tenant-subscription__plan-desc">{{ subscription.editionDescription }}</span>
           </div>
-          <!-- 价格与计费周期只作展示：6.0 没有续费与付款流程 -->
+          <!-- 价格与计费周期只作展示：没有续费与付款流程 -->
           <div v-if="pricing" class="tenant-subscription__price">
             <span class="tenant-subscription__caption">{{ t('tenancy.subscription.price') }}</span>
             <span class="tenant-subscription__price-value">{{ pricing.value }}</span>

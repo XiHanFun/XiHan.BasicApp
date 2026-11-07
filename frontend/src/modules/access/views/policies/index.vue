@@ -485,7 +485,7 @@ async function openEdit(row: AccessPolicyRow) {
   }
 }
 
-/** 4.x 的提交前校验：缺什么先提示，不发请求 */
+/** 提交前校验：缺什么先提示，不发请求 */
 function validate(): boolean {
   const code = form.code.trim()
   if (!code) {

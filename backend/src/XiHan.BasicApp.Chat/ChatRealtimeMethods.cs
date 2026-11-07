@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天 Hub 的方法名
 /// </summary>
 /// <remarks>
-/// 照 4.x：服务端推 9 个方法（助手的两个随 N4 发出），客户端可调 3 个；<c>contracts export</c> 一并写进 <c>realtime.json</c>
+/// 服务端推 9 个方法（助手的两个随 N4 发出），客户端可调 3 个；<c>contracts export</c> 一并写进 <c>realtime.json</c>
 /// </remarks>
 public static class ChatRealtimeMethods
 {
@@ -97,9 +97,6 @@ public static class ChatRealtimeMethods
     /// <summary>
     /// 会话变更的种类
     /// </summary>
-    /// <remarks>
-    /// 照 4.x 的 11 种
-    /// </remarks>
     public static class ChangeTypes
     {
         /// <summary>

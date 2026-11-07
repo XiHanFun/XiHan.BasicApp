@@ -16,7 +16,7 @@ export interface UserGrantItem extends PermissionGrantItem {
 }
 
 /**
- * 某个动作的右栏变成 next：移出本栏的回到未设置，移入本栏的落为该动作。授予与拒绝互斥——原在另一栏的权限挪进来，就从另一栏移走（与 4.x 相同）
+ * 某个动作的右栏变成 next：移出本栏的回到未设置，移入本栏的落为该动作。授予与拒绝互斥——原在另一栏的权限挪进来，就从另一栏移走
  */
 export function applyPermissionTransfer(actions: ReadonlyMap<string, GrantAction>, action: GrantAction, next: readonly string[]): Map<string, GrantAction> {
   const keep = new Set(next)
@@ -89,7 +89,7 @@ function throwOnFailedPermissions(result: { failed: { permission: string, messag
 }
 
 /**
- * 用户直接授权抽屉（4.x 用户页的「直接授权」）：授予与拒绝两个页签共用一份草稿，保存时按差量调 `user-grants.grant / deny / revoke`
+ * 用户直接授权抽屉：授予与拒绝两个页签共用一份草稿，保存时按差量调 `user-grants.grant / deny / revoke`
  */
 export function useUserGrants(outsideGroup: () => string) {
   const open = ref(false)

@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Tenancy.Jobs;
 /// <remarks>
 /// 内建作业，每 5 分钟一次：把到期时间已过、仍生效的租户标为到期并同步租户目录（停用），带这个租户声明的调用随之被框架拒绝（<c>MULTITENANCY_DENIED_001</c>）
 /// 到期时间一过 Identity 就拒绝登录、刷新与切入（读目录属性），不等这个作业。一次一个平台工作单元，失败整批回滚、作业记失败
-/// 4.x 同（后台服务每分钟扫一次，不吊销会话、不发通知）；恢复要先延长到期时间（<c>tenants.resume</c>，否则 <see cref="TenancyErrors.TenantExpired"/>）
+/// 不吊销会话、不发通知；恢复要先延长到期时间（<c>tenants.resume</c>，否则 <see cref="TenancyErrors.TenantExpired"/>）
 /// </remarks>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="clock">时间源</param>

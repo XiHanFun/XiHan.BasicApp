@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.CodeGeneration.Operations.CodegenDatasources;
 /// 数据源的列表项
 /// </summary>
 /// <remarks>
-/// 不带账号、口令与连接串（照 4.x 的列表项）
+/// 不带账号、口令与连接串
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="SourceName">名称</param>
@@ -80,7 +80,7 @@ public sealed record CodegenDatasourceResponse(
 /// 数据源的详情
 /// </summary>
 /// <remarks>
-/// 口令与连接串不回显：只说有没有显式连接串（4.x 回 <c>******</c> 占位，编辑后原样提交会把占位当连接串存进去，按缺陷修，方案 C2）
+/// 口令与连接串不回显，只说有没有显式连接串（不给占位，免得编辑后原样提交把占位存进去，方案 C2）
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="SourceName">名称</param>
@@ -193,7 +193,7 @@ public sealed record ListCodegenDatasourceOptionsRequest;
 /// <c>codegen-datasources.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 口令与显式连接串加密存储；连接超时为 0 即 30 秒（照 4.x）。设为缺省时其余数据源取消缺省
+/// 口令与显式连接串加密存储；连接超时为 0 即 30 秒。设为缺省时其余数据源取消缺省
 /// </remarks>
 /// <param name="SourceName">名称（唯一）</param>
 /// <param name="DatabaseType">数据库类型</param>
@@ -231,7 +231,7 @@ public sealed record CreateCodegenDatasourceRequest(
 /// <c>codegen-datasources.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 口令与显式连接串留空即不改（照 4.x）；启停走 <c>set-status</c>。并发戳与当前的不同即冲突（框架仓储判定）
+/// 口令与显式连接串留空即不改；启停走 <c>set-status</c>。并发戳与当前的不同即冲突（框架仓储判定）
 /// </remarks>
 /// <param name="Id">数据源 ID</param>
 /// <param name="ConcurrencyStamp">读到的并发戳</param>

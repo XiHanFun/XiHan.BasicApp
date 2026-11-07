@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证运维支持成员
 /// </summary>
 /// <remarks>
-/// 照 4.x 列进租户用户列表，带标记、账号只读、能配角色；不占席位，不进模仿候选、群发收件人和聊天目录
+/// 列进租户用户列表，带标记、账号只读、能配角色；不占席位，不进模仿候选、群发收件人和聊天目录
 /// </remarks>
 public sealed class SupportMembersTests : IDisposable
 {

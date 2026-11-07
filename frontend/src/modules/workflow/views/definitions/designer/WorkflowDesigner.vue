@@ -24,7 +24,7 @@ import { paletteCategoryNames, restrictActivityTypes } from './workflow-palette'
  *
  * 菜单栏、画布、节点面板、属性面板、问题列表、撤销重做、缩放、对齐分布与自动布局都由设计器提供；
  * 这里只管装载与保存、引擎定义 JSON 的弹窗，以及经扩展接入的应用语义（见 workflow-extension.ts）；
- * 物料只放后端能跑的活动（见 workflow-palette.ts）。定义文档是框架 5 的 WorkflowJson，经 definition-codec.ts 互转
+ * 物料只放后端能跑的活动（见 workflow-palette.ts）。定义文档是框架 的 WorkflowJson，经 definition-codec.ts 互转
  * 保存走设计器内置的 save 命令（「文件」菜单与 Ctrl / ⌘ + S）；引擎定义 JSON 经宿主扩展挂进菜单栏
  * （见 workflow-host-extension.ts）；回列表用设计器自带的关闭钮（closable），保存中按了不理；
  * 流程名称与编码放在菜单栏正中，保存状态放在状态栏右端

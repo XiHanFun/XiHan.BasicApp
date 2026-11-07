@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的表配置
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧（照 4.x）。由导入表结构建出，一张库表一条（表名唯一，与数据源无关，照 4.x），删除时连带软删它的列配置
-/// 4.x 的父菜单不再需要：6.0 生成的页面登记在所属包的 <c>Pages.cs</c>、目录按包；另加生成目标（新建包或加入已有包）
+/// 平台库实体、只在平台一侧。由导入表结构建出，一张库表一条（表名唯一，与数据源无关），删除时连带软删它的列配置
+/// 生成的页面登记在所属包的 <c>Pages.cs</c>、目录按包；生成目标是新建包或加入已有包
 /// </remarks>
 [ActiveUniqueIndex(nameof(TableName))]
 [SugarIndex("ix_{table}_class_name", nameof(ClassName), OrderByType.Asc)]
@@ -101,7 +101,7 @@ public sealed class SysCodeGenTable : AppAuditedEntity
     /// 勾选的动作
     /// </summary>
     /// <remarks>
-    /// 逗号分隔，取自 <c>create,update,delete,export,import,status,print</c>；为空即缺省的新增、编辑、删除、导出与导入（照 4.x，启停与打印要显式勾选）
+    /// 逗号分隔，取自 <c>create,update,delete,export,import,status,print</c>；为空即缺省的新增、编辑、删除、导出与导入（启停与打印要显式勾选）
     /// </remarks>
     [StringLength(200)]
     public string? EnabledActions { get; set; }
@@ -174,7 +174,7 @@ public sealed class SysCodeGenTable : AppAuditedEntity
     /// 人工改过的字段
     /// </summary>
     /// <remarks>
-    /// 属性名的 JSON 数组：同步结构时不覆盖这些字段（照 4.x）
+    /// 属性名的 JSON 数组：同步结构时不覆盖这些字段
     /// </remarks>
     [StringLength(1000)]
     public string? UserModifiedFields { get; set; }

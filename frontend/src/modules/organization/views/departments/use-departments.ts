@@ -110,7 +110,7 @@ export function findDepartmentRow(rows: readonly DepartmentRow[], id: string): D
 
 /**
  * SchemaPage 的资源（树形模式）：部门树（departments.tree 一次取回、不分页）、删除与启停
- * 只接受关键字（4.x 同）：别的筛选与排序一出现即报错，而不是静默丢掉条件
+ * 只接受关键字：别的筛选与排序一出现即报错，而不是静默丢掉条件
  * onTree 拿到的总是整棵树（上级候选与详情的子部门都要全的），带关键字时另取一次
  */
 export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): SchemaResource<DepartmentRow> {
@@ -181,7 +181,7 @@ function emptyDepartmentForm(): DepartmentForm {
 
 /**
  * 部门的编辑弹窗：新建（顶层或某部门之下）、编辑
- * 6.0 的上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move
+ * 上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move
  * 负责人按关键字远程检索用户（users.list，要能查看用户）；编辑时先按用户详情把现任负责人放进候选，组合框才显示得出名字
  * 字段级错误挂回对应字段，其余错误给整条提示
  */

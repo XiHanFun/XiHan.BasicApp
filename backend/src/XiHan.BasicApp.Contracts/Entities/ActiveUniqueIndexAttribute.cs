@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Contracts.Entities;
 /// 软删除实体上未删除的行在这些列上唯一
 /// </summary>
 /// <remarks>
-/// 落成部分唯一索引 <c>ux_&lt;表&gt;_&lt;列&gt;… WHERE is_deleted = false</c>：已删除的行不受约束，同一个键删了再建、再删都不冲突（4.x 把 <c>is_deleted</c> 放进唯一列，同键第二次删除即撞约束）
+/// 落成部分唯一索引 <c>ux_&lt;表&gt;_&lt;列&gt;… WHERE is_deleted = false</c>：已删除的行不受约束，同一个键删了再建、再删都不冲突（把 <c>is_deleted</c> 放进唯一列的话，同键第二次删除即撞约束）
 /// SqlSugar 的 <c>[SugarIndex]</c> 写不出条件，由 <c>Runtime</c> 在建表之后补建，生产库随基线脚本建出；不软删除的实体照用 <c>[SugarIndex]</c> 的唯一索引
 /// 结构测试守护：只用于软删除实体，软删除实体不写唯一的 <c>[SugarIndex]</c>，列必须是实体的属性
 /// </remarks>

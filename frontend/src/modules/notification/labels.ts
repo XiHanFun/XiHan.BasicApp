@@ -1,6 +1,6 @@
 /**
  * 通知包各页（通知公告、发送记录、消息模板、邮件 / 短信 / 机器人配置、Telegram 机器人、我的消息）共用的枚举文案、语气与报错文案
- * 6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对
+ * 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对
  */
 import type { Tone } from '@xihan-ui/core'
 import type { BotProvider, DeliveryChannel, MessageSendStatus, NotificationContentFormat, NotificationPriority, NotificationTargetType, NotificationType, SmsProvider, TemplateChannel } from '~/contracts'
@@ -27,7 +27,7 @@ export function notificationTypeLabel(t: Translate, type: NotificationType): str
   }
 }
 
-/** 类型标签的语气（4.x 同）：系统 info、安全 warning、业务 success、待办 neutral、紧急 danger */
+/** 类型标签的语气：系统 info、安全 warning、业务 success、待办 neutral、紧急 danger */
 export function notificationTypeTone(type: NotificationType): Tone {
   switch (type) {
     case 'Security': return 'warning'
@@ -83,7 +83,7 @@ export function sendStatusLabel(t: Translate, status: MessageSendStatus): string
   }
 }
 
-/** 发送状态的语气（4.x 同）：排队中 info、发送中 warning、成功 success、失败 danger、已取消 neutral */
+/** 发送状态的语气：排队中 info、发送中 warning、成功 success、失败 danger、已取消 neutral */
 export function sendStatusTone(status: MessageSendStatus): Tone {
   switch (status) {
     case 'Sending': return 'warning'

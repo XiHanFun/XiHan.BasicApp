@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Contracts.Printing;
 /// 打印数据源的定义
 /// </summary>
 /// <remarks>
-/// 字段契约与静态样例数据，业务包在 <c>Configure</c> 里经 <see cref="PrintDataSourceServiceCollectionExtensions.AddPrintDataSource"/> 登记（照 4.x 的 <c>RegisterPrintDataSource</c>）
+/// 字段契约与静态样例数据，业务包在 <c>Configure</c> 里经 <see cref="PrintDataSourceServiceCollectionExtensions.AddPrintDataSource"/> 登记
 /// 只是元数据：后端不取业务数据，真实打印数据由前端调用方传给打印服务；模板的数据源编码引用它
 /// 编码、字段种类与样例控件类型由 Printing 包在启动时校验，非法或重复即启动失败；Printing 关掉时没有消费方，登记照样无害
 /// </remarks>

@@ -11,7 +11,7 @@ type Translate = (key: string, named?: Record<string, unknown>) => string
 
 /**
  * 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案
- * 6.0 的请求层不弹统一提示（4.x 的请求层会弹），用户操作的失败由聊天界面自己提示
+ * 请求层不弹统一提示，用户操作的失败由聊天界面自己提示
  */
 export function chatErrorText(error: unknown): string {
   if (error instanceof ApiError)

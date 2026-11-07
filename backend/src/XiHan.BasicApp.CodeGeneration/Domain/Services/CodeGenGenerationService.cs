@@ -25,9 +25,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 生成代码：打包或写进项目，并记生成历史
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>GenerateAsync</c>：渲染之后按交付方式分流，产物包存成 Files 的临时文件（7 天，同导出中心），写进项目经 <see cref="CodeGenProjectWriter"/>；
+/// 渲染之后按交付方式分流，产物包存成 Files 的临时文件（7 天，同导出中心），写进项目经 <see cref="CodeGenProjectWriter"/>；
 /// 每次生成不论成败都记一条历史，成功才回写表的生成状态与时间。失败的那条在独立的短事务里写（调用失败会回滚自己的写入）
-/// 与 4.x 不同：产物包不再以 Base64 放进响应，由历史的下载端点取（方案已定）
+/// 产物包不放进响应，由历史的下载端点取（方案已定）
 /// </remarks>
 /// <param name="engine">生成管线</param>
 /// <param name="tables">表配置服务</param>
@@ -127,7 +127,7 @@ public sealed class CodeGenGenerationService(
             : new CodegenGenerateResponse(history.Id, history.DeliveryType, history.FileCount, history.Duration, history.FileId, written.Written, written.Skipped, written.Roots);
     }
 
-    // 历史的公共部分：批次号、表配置快照与操作人（照 4.x）
+    // 历史的公共部分：批次号、表配置快照与操作人
     private SysCodeGenHistory Start(SysCodeGenTable table, CodeGenDeliveryType delivery, InvocationContext context)
     {
         var now = clock.GetUtcNow();

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.AI</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 AI 模块（Tier 3，可选，BasicApp:Modules:AI:Enabled）：模型提供商落库并作为框架的 Provider 目录、提示词、知识库与助手；助手经 Contracts 给聊天应答，不引用 Chat。</Description>
+    <Description>XiHan.BasicApp AI 模块（Tier 3，可选，BasicApp:Modules:AI:Enabled）：模型提供商落库并作为框架的 Provider 目录、提示词、知识库与助手；助手经 Contracts 给聊天应答，不引用 Chat。</Description>
   </PropertyGroup>
 
   <ItemGroup>

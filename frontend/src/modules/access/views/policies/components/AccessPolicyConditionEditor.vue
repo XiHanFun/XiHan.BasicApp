@@ -10,7 +10,7 @@ import { CONDITION_OPERATORS, requiresValue } from '../../roles/permission-condi
 import { emptyRow, newKey, phaseLabel, phaseOf } from '../access-policy'
 
 /**
- * 访问策略的条件编辑（4.x 同）：组内全部满足这组才满足，任一组满足策略就命中；时机按用到的属性推出
+ * 访问策略的条件编辑：组内全部满足这组才满足，任一组满足策略就命中；时机按用到的属性推出
  */
 defineOptions({ name: 'AccessPolicyConditionEditor' })
 

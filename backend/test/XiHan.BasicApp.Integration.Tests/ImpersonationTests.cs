@@ -283,7 +283,7 @@ public sealed class ImpersonationTests : IDisposable
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var demoAdminId = await DemoAdminIdAsync(server, superadmin);
 
-        // 平台主体模仿租户里的人：通知落在租户那一侧。被模仿者关了安全通知与站内信也照样收到（4.x 的账号通知不看偏好）；没存界面语言按发起调用的区域
+        // 平台主体模仿租户里的人：通知落在租户那一侧。被模仿者关了安全通知与站内信也照样收到（账号通知不看偏好）；没存界面语言按发起调用的区域
         var demoAdmin = (await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo")).GetProperty("accessToken").GetString()!;
         var (preference, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:update-notification-preference", """{"channelInApp":false,"channelEmail":false,"channelSms":false,"typeAnnouncement":false,"typeTask":false,"typeSecurity":false}""", demoAdmin));
         Assert.Equal(HttpStatusCode.OK, preference.StatusCode);

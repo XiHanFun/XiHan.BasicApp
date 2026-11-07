@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Printing.Queries;
 /// </summary>
 /// <remarks>
 /// 作用域筛选 <c>scope</c>（<c>eq</c>）：平台一侧只有全局模板（全部状态，<c>Tenant</c> 即 <c>PRINTING_VALIDATION_004</c>），租户一侧缺省本租户、<c>Global</c> 是启用且开放的全局模板；
-/// 作用域条件在客户端筛选之后追加，客户端改不动边界（4.x 同）。关键字匹配编码、名称、数据源与备注；
+/// 作用域条件在客户端筛选之后追加，客户端改不动边界。关键字匹配编码、名称、数据源与备注；
 /// 筛选 <c>templateCode</c>（<c>eq</c> / <c>contains</c>）、<c>templateName</c>（<c>contains</c>）、<c>dataSourceCode</c>（<c>eq</c> / <c>contains</c>）、<c>status</c>、<c>allowTenantUse</c>；
 /// 排序 <c>templateCode</c>、<c>templateName</c>、<c>dataSourceCode</c>、<c>status</c>、<c>order</c>、<c>createdAt</c>，缺省按排序号再按编码
 /// </remarks>

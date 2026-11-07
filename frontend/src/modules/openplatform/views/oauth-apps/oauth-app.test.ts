@@ -128,7 +128,7 @@ describe('应用管理：列表筛选', () => {
 })
 
 describe('应用管理：文案', () => {
-  it('枚举、启用、归属与有效期（4.x 的秒 / 分 / 时 / 天）', () => {
+  it('枚举、启用、归属与有效期（秒 / 分 / 时 / 天）', () => {
     expect(appTypeLabel(t, 'Service')).toBe('openplatform.oauth_apps.app_types.service')
     expect(appTypeLabel(t, 'Web')).toBe('openplatform.oauth_apps.app_types.web')
     expect(clientTypeLabel(t, 'Public')).toBe('openplatform.oauth_apps.client_types.public')

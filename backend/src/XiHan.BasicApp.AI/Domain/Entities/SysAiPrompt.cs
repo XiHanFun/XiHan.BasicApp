@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 提示词
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，助手引用它当系统提示词（照 4.x）。正文原样使用、没有变量渲染，版本只是标签、同一编码只有一行（方案 A4，照 4.x）
+/// 平台库实体、只在平台一侧，助手引用它当系统提示词。正文原样使用、没有变量渲染，版本只是标签、同一编码只有一行（方案 A4）
 /// 编码唯一，建后不可改；软删除后可以重建
 /// </remarks>
 [ActiveUniqueIndex(nameof(Code))]

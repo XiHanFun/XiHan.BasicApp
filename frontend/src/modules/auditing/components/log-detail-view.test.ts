@@ -71,7 +71,7 @@ describe('日志详情定义', () => {
     expect(SCHEMAS.operation!.header.meta).toContain('clientIp')
   })
 
-  it('数据变更的种类有恢复（4.x 同），带文案与语气', () => {
+  it('数据变更的种类有恢复，带文案与语气', () => {
     const kind = SCHEMAS.diff!.fields.find(field => field.key === 'kind')!
     expect(kind.options?.map(option => option.value)).toEqual([
       'Insert',
@@ -83,7 +83,7 @@ describe('日志详情定义', () => {
     expect(kind.tone?.('Restore')).toBe('warning')
   })
 
-  it('枚举字段带上契约字面量的选项（6.0 没有枚举元数据接口）', () => {
+  it('枚举字段带上契约字面量的选项（没有枚举元数据接口）', () => {
     const result = SCHEMAS.access!.fields.find(field => field.key === 'result')!
     expect(result.options?.map(option => option.value)).toEqual([
       'Success',

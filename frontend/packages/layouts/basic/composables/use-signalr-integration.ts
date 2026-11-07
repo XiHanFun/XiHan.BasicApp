@@ -18,7 +18,7 @@ const REALTIME_LOST_GRACE_MS = 12000
 const NOTIFICATION_RECEIVED_EVENT = 'xihan:notification-received'
 
 /**
- * 从 JWT payload 中提取会话 ID（6.0 的访问令牌声明为 sid）
+ * 从 JWT payload 中提取会话 ID（访问令牌声明为 sid）
  */
 function getSessionIdFromToken(token: string | null): string | null {
   if (!token)

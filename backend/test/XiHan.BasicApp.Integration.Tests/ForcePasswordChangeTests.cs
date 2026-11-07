@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证强制修改由他人设置的密码
 /// </summary>
 /// <remarks>
-/// 4.x 同：管理员创建或重置、开通租户管理员、种子写入都记下密码由他人设置，系统参数 <c>identity.password</c> 的 <c>forceChange</c> 决定要不要逼（缺省不逼）；
+/// 管理员创建或重置、开通租户管理员、种子写入都记下密码由他人设置，系统参数 <c>identity.password</c> 的 <c>forceChange</c> 决定要不要逼（缺省不逼）；
 /// 打开之后凭密码登录锁定到改密为止（只放行改密与注销，刷新照旧），改完解开并不再要求，同一账号的验证码与第三方登录不走这一步
 /// </remarks>
 public sealed class ForcePasswordChangeTests : IDisposable
@@ -155,7 +155,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
             Assert.True((await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("mustChangePassword").GetBoolean());
             Assert.False((await AuthFlowTests.LoginAsync(server, "changed", "Changed@654321")).GetProperty("mustChangePassword").GetBoolean());
 
-            // 早就在线的会话不受影响，下次凭密码登录才锁（4.x 同）；模仿打开的会话也不锁
+            // 早就在线的会话不受影响，下次凭密码登录才锁；模仿打开的会话也不锁
             var (stillOpen, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: superadmin));
             Assert.Equal(HttpStatusCode.OK, stillOpen.StatusCode);
             var demoAdminId = tenantAdmin.GetProperty("user").GetProperty("id").GetString()!;
@@ -198,7 +198,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, enabled.StatusCode);
         await ConfigureAsync(server, superadmin, """{"forceChange":true}""");
 
-        // 验证码登录没有当前密码可核对，不锁（4.x 同）
+        // 验证码登录没有当前密码可核对，不锁
         var (sent, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:send-login-code", """{"channel":"Email","target":"ann@example.com"}"""));
         Assert.Equal(HttpStatusCode.OK, sent.StatusCode);
         var (byCode, byCodeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login-by-code", $$"""{"channel":"Email","target":"ann@example.com","code":"{{code}}"}"""));

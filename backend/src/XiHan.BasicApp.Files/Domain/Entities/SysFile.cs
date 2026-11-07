@@ -117,9 +117,6 @@ public sealed class SysFile : TenantScopedAuditedEntity
 /// <summary>
 /// 文件大类
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum FileKind
 {
     /// <summary>
@@ -157,7 +154,7 @@ public enum FileKind
 /// 文件状态
 /// </summary>
 /// <remarks>
-/// 上传在一次请求里完成，内容写好才落记录，所以没有 4.x 的上传中、上传失败；删除即软删除
+/// 上传在一次请求里完成，内容写好才落记录，所以没有上传中、上传失败；删除即软删除
 /// </remarks>
 public enum FileStatus
 {
@@ -200,7 +197,7 @@ public enum FileAccessLevel
     /// </summary>
     /// <remarks>
     /// 匿名不行，签名地址照常限时
-    /// 4.x 同为头像这类跟着用户走的文件用；头像固定存平台侧
+    /// 为头像这类跟着用户走的文件用；头像固定存平台侧
     /// </remarks>
     Public = 3,
 }

@@ -115,14 +115,14 @@ function publishedTag(published: boolean) {
     : t('notification.notifications.unpublished'), published ? 'success' : 'neutral')
 }
 
-/** 投递渠道的勾选项：站内信始终投递，固定勾选、不可取消（4.x 同） */
+/** 投递渠道的勾选项：站内信始终投递，固定勾选、不可取消 */
 const deliveryChannelOptions = computed(() => DELIVERY_CHANNELS.map(channel => ({
   label: deliveryChannelLabel(t, channel),
   value: channel,
   disabled: channel === 'InApp',
 })))
 
-/** 列表里的渠道标签（4.x 同）：站内信 neutral，其余 info；h() 节点不带页面 scope，样式写 :deep() */
+/** 列表里的渠道标签：站内信 neutral，其余 info；h() 节点不带页面 scope，样式写 :deep() */
 function channelTags(channels: readonly DeliveryChannel[]) {
   return h('span', { class: 'notification-channels' }, normalizeChannels(channels).map(channel => renderTag(deliveryChannelLabel(t, channel), channel === 'InApp'
     ? 'neutral'
@@ -358,7 +358,7 @@ const modalVisible = ref(false)
 const submitting = ref(false)
 const submitError = ref<null | string>(null)
 const form = reactive<NotificationForm>(emptyNotificationForm())
-/** 正文按 Markdown 编辑（4.x 同：Markdown 用 md-editor-v3，其余格式用文本框） */
+/** 正文按 Markdown 编辑（Markdown 用 md-editor-v3，其余格式用文本框） */
 const isMarkdownContent = computed(() => form.contentFormat === 'Markdown')
 const modalTitle = computed(() => (form.id
   ? t('notification.notifications.edit_title')
@@ -933,7 +933,7 @@ async function exportUnread() {
                 {{ t('notification.notifications.stats_export') }}
               </button>
             </div>
-            <!-- 接收人员（4.x 只有未读人员一档） -->
+            <!-- 接收人员 -->
             <div class="notification-stats__section">
               <span class="notification-stats__section-title">{{ t('notification.notifications.stats_recipients') }}</span>
               <XSegmented :value="recipientFilter" :options="recipientFilterOptions" @update:value="changeRecipientFilter" />

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Contracts</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 的跨包契约：实体协议与应用基类、分页与批量结果、权限描述。</Description>
+    <Description>XiHan.BasicApp 的跨包契约：实体协议与应用基类、分页与批量结果、权限描述。</Description>
   </PropertyGroup>
 
   <ItemGroup>

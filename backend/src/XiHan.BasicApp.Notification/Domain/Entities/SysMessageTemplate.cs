@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 邮件、短信、站内通知与机器人的主题和正文，按 Scriban 语法渲染（双花括号包住变量名）
-/// 租户读得到平台的模板、只改自己的，建同编码的模板即覆盖平台的；取模板时先看当前一侧启用的同编码模板，没有再取平台的（4.x 同租户优先、平台兜底）
+/// 租户读得到平台的模板、只改自己的，建同编码的模板即覆盖平台的；取模板时先看当前一侧启用的同编码模板，没有再取平台的
 /// </remarks>
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Channel), nameof(Code))]
 public sealed class SysMessageTemplate : AppAuditedEntity, IOwnedByTenant
@@ -81,7 +81,7 @@ public sealed class SysMessageTemplate : AppAuditedEntity, IOwnedByTenant
 /// 消息模板的渠道
 /// </summary>
 /// <remarks>
-/// 4.x 同四种，与 <see cref="MessageChannels"/> 同值
+/// 与 <see cref="MessageChannels"/> 同值
 /// </remarks>
 public enum TemplateChannel
 {
@@ -89,7 +89,7 @@ public enum TemplateChannel
     /// 站内通知（主题即通知标题，正文是纯文本）
     /// </summary>
     /// <remarks>
-    /// 内置的发送都不用它（4.x 同）
+    /// 内置的发送都不用它
     /// </remarks>
     InApp = 1,
 

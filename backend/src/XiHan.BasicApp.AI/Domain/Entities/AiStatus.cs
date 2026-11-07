@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 提供商、提示词与助手的启停状态
 /// </summary>
 /// <remarks>
-/// 4.x 有 <c>IsEnabled</c> 与 <c>Status</c> 两个开关、解析时两个都要开，6.0 合成这一个（方案 N4）
+/// 启停只有这一个开关（方案 N4）
 /// </remarks>
 public enum AiStatus
 {

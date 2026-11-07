@@ -29,7 +29,7 @@ Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记�
 - `XiHan:Security:Jwt:Secret`：HS256 密钥，至少 32 字节；`appsettings.json` 留空，由环境配置或密钥存储提供。不提交真实密钥。
 - `BasicApp:ApiDocs:Enabled`：是否映射 `/openapi.json` 与 `/scalar`；没写时 Development 为真、其余为假。
 - `BasicApp:Auth`：访问令牌分钟数、刷新令牌天数、登录失败上限与锁定分钟数、密码最短长度与历史深度、会话门禁缓存秒数（缺省见 `appsettings.json`）。
-- `BasicApp:Seed`：`EnableDemoData`（演示数据，Development 打开）与 `SuperAdminPassword`（初始超级管理员密码；留空沿用 `SuperAdmin@123`，部署前改掉）。
+- `BasicApp:Seed`：`EnableDemoData`（演示数据，Development 打开）与 `SuperAdminPassword`（初始超级管理员密码，首次 `seed` 时必填，没配即失败）。
 
 ## 命令
 
@@ -49,6 +49,6 @@ dotnet run --project backend/src/XiHan.BasicApp.Host -- operations
 
 ## 初始账号
 
-`seed` 写入平台账号 `superadmin`（密码来自 `BasicApp:Seed:SuperAdminPassword`，缺省 `SuperAdmin@123`）与它的全局授予 `*`。用它登录（`POST /api/auth:login`，租户留空），再创建租户与租户用户。
+`seed` 写入平台账号 `superadmin`（密码来自 `BasicApp:Seed:SuperAdminPassword`，开发配置写的是 `SuperAdmin@123`）与它的全局授予 `*`。用它登录（`POST /api/auth:login`，租户留空），再创建租户与租户用户。
 
 Development 打开 `BasicApp:Seed:EnableDemoData` 时，`tenancy.demo` 种子另写演示租户 `demo`（管理员 `admin` / `Demo@123456`，首次登录须改密），`organization.demo` 再在该租户里写部门 `hq → rd / mkt`、岗位 `manager / engineer` 并把管理员放进总部；开通正式租户走 `POST /api/tenants` 再 `POST /api/tenants/{id}:initialize-admin`。

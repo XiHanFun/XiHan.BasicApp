@@ -1,6 +1,6 @@
 # 前端
 
-XiHan.BasicApp 前端（方案第 6 节）。Vue 3.5 + Vite + TypeScript + Pinia + vue-router + vue-i18n（10 种区域）+ Tailwind 4（CSS-first）+ XiHan.UI。Node 24+、pnpm 11+，没有锁文件。
+XiHan.BasicApp 前端（方案第 6 节）。Vue + Vite + TypeScript + Pinia + vue-router + vue-i18n（10 种区域）+ Tailwind CSS（CSS-first）+ XiHan.UI。Node 24+、pnpm 11+，没有锁文件。
 
 ## 结构
 

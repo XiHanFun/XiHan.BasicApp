@@ -22,7 +22,7 @@ public sealed record ChatAppended(SysChatMessage Message, SysChatConversation Co
 /// 消息（作用域）
 /// </summary>
 /// <remarks>
-/// 规则照 4.x 的 <c>ChatDomainService</c>：只有成员能发，禁言的不能发与编辑；文本必填不超过 4000，图片与文件至少一个附件，语音恰好一个附件、1 到 60 秒、没有正文；
+/// 只有成员能发，禁言的不能发与编辑；文本必填不超过 4000，图片与文件至少一个附件，语音恰好一个附件、1 到 60 秒、没有正文；
 /// 系统提示与助手回复只由服务端追加；提及最多 20 人且都是成员；回复只能回本会话未撤回的消息、存快照；撤回只本人 2 分钟内（清正文、留行与附件），编辑只本人的文本 5 分钟内；
 /// 置顶消息单聊双方都能、群与部门群只有群主与管理员、每会话最多 10 条。附件以会话为访问范围（方案 H2）：发送时核对附件是自己在聊天里上传的文件，文件名与大小以文件记录为准
 /// 转发（方案 H1）是服务端单条转发到一个或多个会话，原样复制类型、正文与附件、不带「转发自」，助手回复按文本转出
@@ -492,7 +492,7 @@ public sealed class ChatMessageService(
     /// 追加一条助手回复（刷新会话预览，不加未读）
     /// </summary>
     /// <remarks>
-    /// 助手不是成员：不核对成员、不算未读（照 4.x）；超长截断而不是拒绝：模型已经生成完，丢掉整条代价更大
+    /// 助手不是成员：不核对成员、不算未读；超长截断而不是拒绝：模型已经生成完，丢掉整条代价更大
     /// </remarks>
     public async Task<Result<ChatAppended>> AppendAssistantAsync(InvocationContext context, string side, Guid conversationId, Guid assistantId, string assistantName, string content)
     {
@@ -601,7 +601,7 @@ public sealed class ChatMessageService(
     /// 核对群头像
     /// </summary>
     /// <remarks>
-    /// 给的是文件主键时须是调用方自己在聊天里上传的（会话成员凭会话换得到它的地址），没变的照旧；直链与清空不核对（4.x 同为「文件主键或直链」）
+    /// 给的是文件主键时须是调用方自己在聊天里上传的（会话成员凭会话换得到它的地址），没变的照旧；直链与清空不核对
     /// </remarks>
     internal async Task<Result> EnsureAvatarAsync(InvocationContext context, ChatCaller caller, string? current, string? avatar)
     {

@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 定义的生命周期（建草稿、改、发布、新版本、停用、归档、删草稿）与发布前的业务校验；平台与租户两个分区互不可见；实例的发起、详情（节点历史与等待）
-/// 与控制；选人目录；组织类受理人在演示数据上按 4.x 的规则解析；四个演示流程只首写；模块开关
+/// 与控制；选人目录；组织类受理人在演示数据上的解析；四个演示流程只首写；模块开关
 /// </remarks>
 public sealed class WorkflowDefinitionsTests : IDisposable
 {
@@ -99,7 +99,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Single(await ListAsync(server, "workflow-definitions", platform, """{"keyword":"renamed","filters":[{"field":"status","operator":"eq","value":"Published"}]}"""));
         Assert.Equal("WORKFLOW_VALIDATION_104", (await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:list", """{"filters":[{"field":"version","operator":"eq","value":"1"}]}""", platform)).Body.GetProperty("code").GetString());
 
-        // 排序照 4.x 多列、方向照请求，创建时间区间含两端；不支持的列 WORKFLOW_VALIDATION_104，同一列给两次是框架的 WORKFLOW_VALIDATION_002
+        // 排序支持多列、方向照请求，创建时间区间含两端；不支持的列 WORKFLOW_VALIDATION_104，同一列给两次是框架的 WORKFLOW_VALIDATION_002
         var ascending = await ListAsync(server, "workflow-definitions", platform, """{"filters":[{"field":"name","operator":"eq","value":"tests-approval"}],"sorts":[{"field":"version"}]}""");
         Assert.Equal([1, 2], ascending.Select(static d => d.GetProperty("version").GetInt32()).ToList());
         var all = await ListAsync(server, "workflow-definitions", platform);
@@ -117,7 +117,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Empty((await SendAsync(server, HttpMethod.Post, "/api/workflow-definitions:archive", Json(new { ids = new[] { id } }), platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Equal("Archived", (await SendAsync(server, HttpMethod.Get, $"/api/workflow-definitions/{id}", null, platform)).Body.GetProperty("status").GetString());
 
-        // 状态按生命周期排（同 4.x）：草稿在前、已归档在后，按名字排正好相反
+        // 状态按生命周期排：草稿在前、已归档在后，按名字排正好相反
         var byStatus = await ListAsync(server, "workflow-definitions", platform, """{"page":{"index":1,"size":200},"sorts":[{"field":"status"}]}""");
         Assert.Equal(("Draft", "Archived"), (byStatus[0].GetProperty("status").GetString(), byStatus[^1].GetProperty("status").GetString()));
 
@@ -152,7 +152,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal(("approve", "UserTask", me), (wait.GetProperty("nodeId").GetString(), wait.GetProperty("kind").GetString(), wait.GetProperty("key").GetString()));
         Assert.Contains("tests-approval", detail.GetProperty("document").GetString(), StringComparison.Ordinal);
 
-        // 列表：关键字匹配实例标题与关联 ID（照 4.x，按字面，_ 不是通配符），关联 ID 筛选可多个
+        // 列表：关键字匹配实例标题与关联 ID（按字面，_ 不是通配符），关联 ID 筛选可多个
         Assert.Single(await ListAsync(server, "workflow-instances", platform, """{"keyword":"first"}"""));
         Assert.Single(await ListAsync(server, "workflow-instances", platform, """{"keyword":"doc-1"}"""));
         Assert.Empty(await ListAsync(server, "workflow-instances", platform, """{"keyword":"doc_1"}"""));
@@ -171,7 +171,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Empty(after.GetProperty("waits").EnumerateArray());
         Assert.Equal("WORKFLOW_NOTFOUND_102", (await SendAsync(server, HttpMethod.Get, $"/api/workflow-instances/{missing}", null, platform)).Body.GetProperty("code").GetString());
 
-        // 排序照 4.x 多列、方向照请求（不给即创建时间降序），状态按生命周期（运行中在已取消之前）；不支持的列 WORKFLOW_VALIDATION_104，同一列给两次是框架的 WORKFLOW_VALIDATION_002
+        // 排序支持多列、方向照请求（不给即创建时间降序），状态按生命周期（运行中在已取消之前）；不支持的列 WORKFLOW_VALIDATION_104，同一列给两次是框架的 WORKFLOW_VALIDATION_002
         await SendAsync(server, HttpMethod.Post, "/api/workflow-instances:start", Json(new { name = "tests-approval", displayName = "Second", correlationId = "doc-2" }), platform);
         Assert.Equal(["Second", "First"], Titles(await ListAsync(server, "workflow-instances", platform)));
         Assert.Equal(["First", "Second"], Titles(await ListAsync(server, "workflow-instances", platform, """{"sorts":[{"field":"createdAt"}]}""")));
@@ -208,7 +208,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.Equal(["gm", "manager", "engineer", "specialist"], (await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:positions", null, admin)).Body.GetProperty("items").EnumerateArray().Select(static p => p.GetProperty("code").GetString()).ToList());
         Assert.Equal(4, (await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:departments", null, admin)).Body.GetProperty("items").GetArrayLength());
 
-        // 受理人按 4.x 的规则解析：lead 发起报销 → 研发部负责人 manager；请假 → manager、admin 依次；采购 → 会签 admin + manager 与总部负责人 admin；入职 → 人事专员 hr
+        // 受理人解析：lead 发起报销 → 研发部负责人 manager；请假 → manager、admin 依次；采购 → 会签 admin + manager 与总部负责人 admin；入职 → 人事专员 hr
         var people = await SettingsTestHost.InvokeAsync(server, "demo", async ctx =>
             (await ctx.Services.GetRequiredService<XiHan.BasicApp.Contracts.Users.IUserDirectory>().SearchActiveInSideAsync("demo", null, 50, ctx.CancellationToken)).ToDictionary(static u => u.UserName, static u => u.Id.ToString()));
         async Task<List<string>> FirstTaskAssigneesAsync(string name, string starter, string variables)

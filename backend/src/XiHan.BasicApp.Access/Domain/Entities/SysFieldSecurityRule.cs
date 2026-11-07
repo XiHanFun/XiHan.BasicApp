@@ -22,17 +22,11 @@ public sealed class SysFieldSecurityRule : AppAuditedEntity, IOwnedByTenant
     /// <summary>
     /// 部分脱敏保留位数的上限
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const int MaxKeep = 32;
 
     /// <summary>
     /// 固定文本的长度上限
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const int MaxReplacementLength = 100;
 
     /// <inheritdoc />

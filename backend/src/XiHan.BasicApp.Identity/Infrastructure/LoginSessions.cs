@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// <remarks>
 /// 作用域服务。密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对
 /// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。开会话之前先过登录守卫（<see cref="ILoginGuard"/>，Access 按登录时机的访问策略判定），被拒绝时什么都不写
-/// 用密码登录、密码由他人设置且系统参数 <see cref="PasswordSettings.ConfigKey"/> 打开时，会话一开即锁定到改密为止并提醒本人（4.x 同；验证码与第三方登录不走这一步）
+/// 用密码登录、密码由他人设置且系统参数 <see cref="PasswordSettings.ConfigKey"/> 打开时，会话一开即锁定到改密为止并提醒本人（验证码与第三方登录不走这一步）
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
 /// <param name="users">用户仓储</param>

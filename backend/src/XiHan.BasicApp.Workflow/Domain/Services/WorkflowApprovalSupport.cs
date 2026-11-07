@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Workflow.Domain.Services;
 /// 发出去的通知与写进库里的文案（作用域）
 /// </summary>
 /// <remarks>
-/// 按区域取消息目录里的文案（4.x 写死中文）：写进库里的按这次调用的区域，发给人的通知按收件人的界面语言（见 <see cref="Handlers.WorkflowNotifier"/>）；
+/// 按区域取消息目录里的文案：写进库里的按这次调用的区域，发给人的通知按收件人的界面语言（见 <see cref="Handlers.WorkflowNotifier"/>）；
 /// 键都在 10 种区域里，取不到是缺陷，直接抛出
 /// </remarks>
 /// <param name="localizer">消息本地化</param>
@@ -63,7 +63,7 @@ public sealed class WorkflowTexts(IMessageLocalizer localizer)
 /// 一次调用里查人名与定义（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowUserNameResolver</c> 与 <c>WorkflowNodeNameCache</c>：人名取用户目录的显示名（已删除的照常有名字），
+/// 人名取用户目录的显示名（已删除的照常有名字），
 /// 定义按 ID 在本次调用里只取一次；节点名取节点的显示名，没有时是节点 ID
 /// </remarks>
 /// <param name="users">用户目录</param>
@@ -146,7 +146,7 @@ public sealed record WorkflowTaskSnapshot(Guid TaskId, Guid InstanceId, string D
 /// 审批记录的写入（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowTaskRecordWriter</c>：每个归属用户一行，名字按写入时取快照，过长的截断。写在调用方的事务里，与办理同进退
+/// 每个归属用户一行，名字按写入时取快照，过长的截断。写在调用方的事务里，与办理同进退
 /// </remarks>
 /// <param name="rows">按侧读写</param>
 /// <param name="ids">ID 生成</param>

@@ -33,7 +33,7 @@ export function canDelete(status: MessageSendStatus): boolean {
   return status !== 'Sending'
 }
 
-/** 尝试次数：已尝试 / 最多尝试（4.x 的「重试」列） */
+/** 尝试次数：已尝试 / 最多尝试 */
 export function formatAttempts(row: { attempts: number, maxAttempts: number }): string {
   return `${row.attempts}/${row.maxAttempts}`
 }

@@ -54,7 +54,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// 通知类型标签走壳层文案（6.0 不再为它调后端的枚举元数据接口）
+// 通知类型标签走壳层文案（不调后端的枚举元数据接口）
 function typeLabel(type: NotificationType): string {
   switch (type) {
     case NotificationType.System:

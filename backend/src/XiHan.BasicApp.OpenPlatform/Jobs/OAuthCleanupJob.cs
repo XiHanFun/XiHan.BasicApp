@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.OpenPlatform.Jobs;
 /// 清理过期的授权码与令牌（每天一次）
 /// </summary>
 /// <remarks>
-/// 4.x 没有清理，记录越积越多。授权码过期一天、令牌过期七天后物理删除（重放与吊销的判定只看没过期的）
+/// 授权码过期一天、令牌过期七天后物理删除（重放与吊销的判定只看没过期的）
 /// </remarks>
 /// <param name="clock">时间源</param>
 public sealed class OAuthCleanupJob(TimeProvider clock) : IJob

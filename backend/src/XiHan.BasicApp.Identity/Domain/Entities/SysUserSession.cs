@@ -132,7 +132,7 @@ public sealed class SysUserSession : AppAuditedEntity
     /// 锁定原因
     /// </summary>
     /// <remarks>
-    /// 为空即没锁，取值见 <see cref="SessionLockReasons"/>，4.x 同。锁定的会话只放行解锁与注销，强制改密锁另放行改密
+    /// 为空即没锁，取值见 <see cref="SessionLockReasons"/>。锁定的会话只放行解锁与注销，强制改密锁另放行改密
     /// </remarks>
     [StringLength(32)]
     public string? LockReason { get; set; }
@@ -188,8 +188,5 @@ public static class SessionLockReasons
     /// <summary>
     /// 锁屏连错几次即吊销会话
     /// </summary>
-    /// <remarks>
-    /// 4.x 同 5 次
-    /// </remarks>
     public const int MaxUnlockAttempts = 5;
 }

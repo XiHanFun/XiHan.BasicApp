@@ -166,7 +166,7 @@ public static class BasicAppHost
 
             if (modules.AI)
             {
-                // 模型提供商落库，经 OpenAI 兼容协议调用（照 4.x 只有这一种）；工具目录随 Full Profile 已在
+                // 模型提供商落库，只经 OpenAI 兼容协议调用；工具目录随 Full Profile 已在
                 xihan.UseFeature<AIFeature>().UseFeature<OpenAIFeature>();
                 if (QdrantSettings.FromConfiguration(builder.Configuration) is { } qdrant)
                 {

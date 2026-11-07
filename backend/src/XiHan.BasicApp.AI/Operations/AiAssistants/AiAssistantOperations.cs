@@ -70,7 +70,7 @@ public sealed class GetAiAssistant(AiAssistantService service) : IOperation<AiAs
 /// </summary>
 /// <remarks>
 /// <c>POST /api/ai-assistants</c>。编码已被占用 <c>AI_CONFLICT_105</c>（并发重复由部分唯一索引兜住）；引用不存在或已停用 <c>AI_VALIDATION_104</c> ～ <c>106</c>；
-/// 停用的不能设为缺省 <c>AI_CONFLICT_106</c>；设为缺省时别的助手取消缺省（照 4.x）
+/// 停用的不能设为缺省 <c>AI_CONFLICT_106</c>；设为缺省时别的助手取消缺省
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
 /// <param name="service">助手规则</param>
@@ -152,7 +152,7 @@ public sealed class CreateAiAssistant(IRepository<SysAiAssistant, Guid> assistan
 /// 修改助手
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/ai-assistants/{id}</c>。编码不可改；交回的并发戳与当前的不同即冲突；引用的核对同新建；设为缺省时别的助手取消缺省（照 4.x）
+/// <c>PUT /api/ai-assistants/{id}</c>。编码不可改；交回的并发戳与当前的不同即冲突；引用的核对同新建；设为缺省时别的助手取消缺省
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
 /// <param name="service">助手规则</param>
@@ -229,7 +229,7 @@ public sealed class UpdateAiAssistant(IRepository<SysAiAssistant, Guid> assistan
 /// 启用或停用助手
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-assistants/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（照 4.x）
+/// <c>POST /api/ai-assistants/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注
 /// 停用后不出现在聊天的可用助手里，已有会话不能再继续提问
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
@@ -265,7 +265,7 @@ public sealed class SetAiAssistantStatus(IRepository<SysAiAssistant, Guid> assis
 /// 设为缺省助手
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-assistants/{id}:set-default</c>。停用的不能设 <c>AI_CONFLICT_106</c>；别的助手取消缺省（照 4.x）
+/// <c>POST /api/ai-assistants/{id}:set-default</c>。停用的不能设 <c>AI_CONFLICT_106</c>；别的助手取消缺省
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
 /// <param name="service">助手规则</param>
@@ -317,7 +317,7 @@ public sealed class SetDefaultAiAssistant(IRepository<SysAiAssistant, Guid> assi
 /// 批量删除助手
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/ai-assistants?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_104</c>。软删除，同编码可以重建；已有会话不删，但不能再继续提问（照 4.x）
+/// <c>DELETE /api/ai-assistants?ids=...</c>。逐项：不存在 <c>AI_NOTFOUND_104</c>。软删除，同编码可以重建；已有会话不删，但不能再继续提问
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AIPermissions.AiAssistantsDelete)]

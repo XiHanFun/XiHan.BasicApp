@@ -22,13 +22,13 @@ beforeEach(() => {
 })
 
 describe('文件库的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV（4.x 同），不提交到导出中心', () => {
+  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('files.files.read')
     expect(schema.resource.export).toBeUndefined()
   })
 
-  it('字段对齐 4.x 的列；图标列没有值，不导出', () => {
+  it('字段对齐列表的列；图标列没有值，不导出', () => {
     expect(toExportFields(pageSchema(), () => true).map(field => field.key)).toEqual([
       'originalName',
       'name',

@@ -17,7 +17,7 @@ const withI18n = {
   plugins: [i18n],
 }
 
-// 段的铺法随区域的时钟制式变：6.0 缺省区域是 en-US（12 小时制多一段上下午），按 4.x 的中文 24 小时制断言
+// 段的铺法随区域的时钟制式变：缺省区域是 en-US（12 小时制多一段上下午），按中文 24 小时制断言
 beforeAll(async () => {
   await setLocale('zh-CN')
 })

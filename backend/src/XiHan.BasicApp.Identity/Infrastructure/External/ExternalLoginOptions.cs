@@ -9,8 +9,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure.External;
 /// 第三方登录的配置（<c>BasicApp:Auth:OAuth</c>）
 /// </summary>
 /// <remarks>
-/// 4.x 是 <c>XiHan:Authentication:OAuth</c>。不分租户、不存库。启用且填了 ClientId 的提供商才登记、才出现在登录页
-/// （4.x 登录页的按钮另在系统参数里列，与配置只靠名称对齐，占位凭据的照样展示、点了必然失败）
+/// 不分租户、不存库。启用且填了 ClientId 的提供商才登记、才出现在登录页
 /// </remarks>
 public sealed class ExternalLoginOptions
 {
@@ -166,9 +165,6 @@ public sealed class ExternalProviderConfig
 /// <summary>
 /// 登录方式
 /// </summary>
-/// <remarks>
-/// 4.x <c>OAuthLoginMode</c> 同值
-/// </remarks>
 public enum ExternalLoginMode
 {
     /// <summary>
@@ -186,7 +182,7 @@ public enum ExternalLoginMode
 /// 提供商类型与别名
 /// </summary>
 /// <remarks>
-/// 4.x 同：weixin = wechat、workweixin = wecom、feishu = lark
+/// weixin = wechat、workweixin = wecom、feishu = lark
 /// </remarks>
 public static class ExternalProviderTypes
 {

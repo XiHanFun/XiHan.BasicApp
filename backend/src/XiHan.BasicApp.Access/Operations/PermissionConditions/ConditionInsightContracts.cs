@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Access.Operations.PermissionConditions;
 /// <c>permission-conditions.trial</c> 的请求
 /// </summary>
 /// <remarks>
-/// 一个用户在一个权限码上、按给定的请求情形判定（4.x 的条件试算）。不填的情形即取不到
+/// 一个用户在一个权限码上、按给定的请求情形判定（条件试算）。不填的情形即取不到
 /// </remarks>
 /// <param name="UserId">用户：这一侧的用户，按他此刻的有效指派与委托</param>
 /// <param name="Permission">权限码</param>
@@ -97,7 +97,7 @@ public sealed record ConditionTrialResponse(ConditionVerdict Verdict, Guid UserI
 /// <c>permission-conditions.batch-trial</c> 的请求
 /// </summary>
 /// <remarks>
-/// 一个绑定影响到的人此刻各自的结论（4.x 的影响试算，最多列 200 人）
+/// 一个绑定影响到的人此刻各自的结论（影响试算，最多列 200 人）
 /// </remarks>
 /// <param name="SubjectKind">主体类别：角色即它及其下级角色的有效成员，用户即本人</param>
 /// <param name="SubjectId">主体 ID</param>
@@ -145,9 +145,6 @@ public sealed record ConditionInventoryRequest;
 /// <summary>
 /// 盘点诊断
 /// </summary>
-/// <remarks>
-/// 4.x 同，去掉 6.0 不会出现的「绑定不明」
-/// </remarks>
 public enum ConditionDiagnostic
 {
     /// <summary>

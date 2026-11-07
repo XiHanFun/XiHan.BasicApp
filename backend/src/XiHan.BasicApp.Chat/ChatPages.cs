@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天模块的页面登记
 /// </summary>
 /// <remarks>
-/// 在线聊天与聊天审计两页，两侧都有。4.x 是「聊天」目录下的 <c>/message/chat</c> 与 <c>/message/chat-audit</c>，6.0 的页面码与路由按包，旧路由不保留
+/// 在线聊天与聊天审计两页，两侧都有。页面码与路由按包
 /// </remarks>
 public static class ChatPages
 {

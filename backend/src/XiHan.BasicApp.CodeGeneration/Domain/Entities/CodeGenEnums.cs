@@ -6,9 +6,6 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// <summary>
 /// 数据源、表配置、列配置与模板的启停状态
 /// </summary>
-/// <remarks>
-/// 4.x 的模板有 <c>IsEnabled</c> 与 <c>Status</c> 两个开关，6.0 合成这一个（方案 C2）
-/// </remarks>
 public enum CodeGenStatus
 {
     /// <summary>
@@ -26,7 +23,7 @@ public enum CodeGenStatus
 /// 数据源的数据库类型
 /// </summary>
 /// <remarks>
-/// 照 4.x 的五种；建外部库连接时换成 SqlSugar 的数据库类型名（框架运行时数据源按它选驱动）
+/// 建外部库连接时换成 SqlSugar 的数据库类型名（框架运行时数据源按它选驱动）
 /// </remarks>
 public enum CodeGenDatabaseType
 {
@@ -60,14 +57,14 @@ public enum CodeGenDatabaseType
 /// 生成模式
 /// </summary>
 /// <remarks>
-/// 表配置取单表、树表、主从之一；通用只给模板用，表示适用于全部模式（照 4.x）
+/// 表配置取单表、树表、主从之一；通用只给模板用，表示适用于全部模式
 /// </remarks>
 public enum CodeGenTemplateType
 {
     /// <summary>
     /// 单表
     /// </summary>
-#pragma warning disable CA1720 // 照 4.x 的线上取值 Single（前端按名称取值）
+#pragma warning disable CA1720 // 线上取值 Single（前端按名称取值）
     Single = 0,
 #pragma warning restore CA1720
 

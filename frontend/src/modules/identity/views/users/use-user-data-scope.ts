@@ -19,7 +19,7 @@ function same(left: MemberDataScopeDraft, right: MemberDataScopeDraft): boolean 
 }
 
 /**
- * 成员数据范围抽屉（4.x 用户页的「数据范围」）：「跟随角色」即不覆盖；覆盖完全取代角色的数据范围。只在租户侧
+ * 成员数据范围抽屉：「跟随角色」即不覆盖；覆盖完全取代角色的数据范围。只在租户侧
  */
 export function useUserDataScope() {
   const open = ref(false)

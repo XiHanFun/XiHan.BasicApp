@@ -45,10 +45,10 @@ public sealed record AccessPolicyDefinition(string Code, string Name, string? De
 /// 访问策略的写入规则
 /// </summary>
 /// <remarks>
-/// 见方案 5.9，对应 4.x 的 AccessPolicyDomainService
+/// 见方案 5.9
 /// 编码同一侧唯一、不含空白；至少 1 条、最多 100 条条件与 20 个组，整组按条件引擎编译；
 /// 新建一律只记录、启用，动作与状态只经 <see cref="SetActionAsync"/> 与 <see cref="SetStatusAsync"/> 修改；改动之后仍是启用中、此刻有效的拒绝策略时，
-/// 按发起这次修改的请求求值，命中即拒绝保存（防自锁，4.x 同）。写入后这一侧的策略缓存失效
+/// 按发起这次修改的请求求值，命中即拒绝保存（防自锁）。写入后这一侧的策略缓存失效
 /// </remarks>
 /// <param name="policies">策略仓储</param>
 /// <param name="conditions">策略条件仓储</param>

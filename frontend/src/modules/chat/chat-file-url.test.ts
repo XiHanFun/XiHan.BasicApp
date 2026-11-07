@@ -1,5 +1,5 @@
 /**
- * composables/useChatFileUrl.ts：聊天附件按会话换签名地址（6.0 附件以会话为访问范围，4.x 借用头像的通用文件签名）
+ * composables/useChatFileUrl.ts：聊天附件按会话换签名地址（附件以会话为访问范围）
  * 锁定：同一会话的同一文件并发只换一次、到期前复用缓存、快到期了重新换；不同会话分开换；换不到地址时为空串
  */
 import type { ChatApiContract, ChatFileUrl } from './types'

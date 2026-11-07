@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Access.Operations.PermissionRequests;
 /// <param name="Reason">申请原因</param>
 /// <param name="ExpectedEffectiveAt">期望生效时间</param>
 /// <param name="ExpectedExpiresAt">期望失效时间</param>
-/// <param name="IsExpectedExpired">期望失效时间已过（照 4.x 算出的标记，不是状态）</param>
+/// <param name="IsExpectedExpired">期望失效时间已过（算出的标记，不是状态）</param>
 /// <param name="WorkflowInstanceId">当前的审批流程实例</param>
 /// <param name="Workflow">审批进度（没有发起过、审批未启用时为空）</param>
 /// <param name="ApprovalEnabled">审批是否启用（Workflow 模块关掉时为假，方案 W1）</param>

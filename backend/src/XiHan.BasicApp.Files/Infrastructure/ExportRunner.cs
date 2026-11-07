@@ -65,10 +65,10 @@ public sealed class ExportJobs
 /// 导出执行：以发起人的身份在后台逐页调列表操作并写出结果文件
 /// </summary>
 /// <remarks>
-/// 4.x 同至多并发 2。以发起人的凭据新开调用、经全管道逐页调列表操作（授权、租户、数据范围与字段安全都与发起人自己查询一致），
+/// 至多并发 2。以发起人的凭据新开调用、经全管道逐页调列表操作（授权、租户、数据范围与字段安全都与发起人自己查询一致），
 /// 行随到随写进临时文件，写完经 <see cref="FileService"/> 存成临时文件（7 天到期，访问级别「已登录」），任务记下结果文件
 /// 凭据过期或会话吊销即失败；失败与中断经独立的短事务记到任务上（那时发起人的凭据可能已经用不了）
-/// 进度经 <see cref="RealtimeMethods.TaskProgress"/> 推给发起人（4.x 同，每一千行或到 99% 推一次）：随写任务表的那次调用提交后发出，文案与错误按发起人提交时的区域翻译。没装 Realtime 即不推，任务表照常记
+/// 进度经 <see cref="RealtimeMethods.TaskProgress"/> 推给发起人（每一千行或到 99% 推一次）：随写任务表的那次调用提交后发出，文案与错误按发起人提交时的区域翻译。没装 Realtime 即不推，任务表照常记
 /// </remarks>
 /// <param name="queue">导出队列</param>
 /// <param name="scopes">作用域工厂</param>
@@ -85,9 +85,6 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     /// <summary>
     /// 一次导出至多多少行
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const long MaxRows = 1_000_000;
 
     /// <summary>
@@ -98,9 +95,6 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     /// <summary>
     /// 每写多少行推一次进度
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     private const long ProgressStep = 1000;
 
     /// <summary>

@@ -85,7 +85,7 @@ export function toStorageConfigForm(row: StorageConfigRow): StorageConfigForm {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验加上 6.0 的桶名与地址规则）；都好为空 */
+/** 表单的第一处问题（提交前校验，含桶名与地址规则）；都好为空 */
 export type StorageConfigProblem = 'access_key_id' | 'bucket' | 'code' | 'endpoint' | 'name' | 'secret'
 
 /**

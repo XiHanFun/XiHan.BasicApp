@@ -78,7 +78,7 @@ async function fetchData() {
   }
 }
 
-// 4.x 每 15 秒刷新一次；6.0 的页面缓存在标签里，切到别的标签即停、切回来先刷一次
+// 每 15 秒刷新一次；页面缓存在标签里，切到别的标签即停、切回来先刷一次
 const polling = createPolling(() => void fetchData())
 let deactivated = false
 onMounted(() => {
@@ -750,7 +750,7 @@ onBeforeUnmount(polling.stop)
   gap: var(--xh-space-4);
 }
 
-/* 环形仪表取组件库的 lg 直径（10rem，即 4.x 的 160px） */
+/* 环形仪表取组件库的 lg 直径（10rem） */
 .sv-gauge {
   display: flex;
   flex-shrink: 0;
@@ -786,7 +786,7 @@ onBeforeUnmount(polling.stop)
   color: var(--xh-fg-muted);
 }
 
-/* 使用率的字色与仪表的语气同族（4.x：低于 50 绿、低于 80 黄、否则红），读不到为次级色 */
+/* 使用率的字色与仪表的语气同族（低于 50 绿、低于 80 黄、否则红），读不到为次级色 */
 .sv-tone-success {
   color: var(--xh-fg-success);
 }
@@ -1104,7 +1104,7 @@ onBeforeUnmount(polling.stop)
   }
 }
 
-/* 两栏并排变窄时仪表缩一档（4.x 同为 140px） */
+/* 两栏并排变窄时仪表缩一档 */
 @media (max-width: 56.25rem) {
   .sv-overview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

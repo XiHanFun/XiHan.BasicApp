@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 授权申请（租户库实体）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>SysPermissionRequest</c>：用户为自己申请一个角色或一个权限码（二选一），提交即发起审批业务 <c>permission-request</c> 的流程，
-/// 审批通过即按期望的有效期指派或直授，驳回或中止即完结。平台一侧的申请租户为 <c>platform</c>。权限按码申请（6.0 没有权限实体），不加唯一约束，同一对象的待审批申请在服务里查重
+/// 用户为自己申请一个角色或一个权限码（二选一），提交即发起审批业务 <c>permission-request</c> 的流程，
+/// 审批通过即按期望的有效期指派或直授，驳回或中止即完结。平台一侧的申请租户为 <c>platform</c>。权限按码申请（没有权限实体），不加唯一约束，同一对象的待审批申请在服务里查重
 /// </remarks>
 [SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]
 [SugarIndex("ix_{table}_tenant_id_request_user_id", nameof(TenantId), OrderByType.Asc, nameof(RequestUserId), OrderByType.Asc)]
@@ -72,7 +72,7 @@ public sealed class SysPermissionRequest : TenantScopedAuditedEntity
 /// 授权申请的状态
 /// </summary>
 /// <remarks>
-/// 4.x 另有「已过期」，从来没有写入过（列表按期望失效时间算出标记），6.0 去掉这个值（设计稿 D6）
+/// 没有「已过期」：列表按期望失效时间算出标记（设计稿 D6）
 /// </remarks>
 public enum PermissionRequestStatus
 {

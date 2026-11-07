@@ -6,9 +6,9 @@ import { useAuthStore } from './auth'
 import { SetupStoreId } from './store-ids'
 
 /**
- * 当前用户（壳层视角）：auth 会话里的用户资料投影成 4.x 壳层认识的 UserInfo
+ * 当前用户（壳层视角）：auth 会话里的用户资料投影成壳层认识的 UserInfo
  * 角色与权限码来自 auth.permissions；当前上下文（平台 / 租户名）与模仿态来自会话（`tenantName`、`impersonatorUserName`）；
- * 头像是会话用户的 `avatarFileId`（文件主键，显示时经 useAvatarUrl 换签名地址，没有头像即首字母）；应用品牌字段 6.0 还没有，留空
+ * 头像是会话用户的 `avatarFileId`（文件主键，显示时经 useAvatarUrl 换签名地址，没有头像即首字母）；应用品牌字段留空
  */
 export const useUserStore = defineStore(SetupStoreId.User, () => {
   const auth = useAuthStore()

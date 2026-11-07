@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 用户列表的一行
 /// </summary>
 /// <remarks>
-/// <see cref="UserResponse"/> 的字段，加上列表的角色、部门与安全标记（4.x 同）：
+/// <see cref="UserResponse"/> 的字段，加上列表的角色、部门与安全标记：
 /// 角色与部门来自 Access 与 Organization（经 Contracts 按这一页的用户批量取），只算调用所在的一侧
 /// </remarks>
 /// <param name="Id">用户 ID</param>

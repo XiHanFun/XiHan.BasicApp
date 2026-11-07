@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Chat.Operations.ChatConversations;
 /// 我的会话
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:mine</c>（4.x <c>ChatQuery/MyConversations</c>）。置顶优先，再按最后消息时间倒序；单聊显示对端的用户名
+/// <c>GET /api/chat-conversations:mine</c>。置顶优先，再按最后消息时间倒序；单聊显示对端的用户名
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -37,7 +37,7 @@ public sealed class ListMyChatConversations(ChatQueries queries) : IOperation<Ch
 /// 会话成员
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:members?conversationId=</c>（4.x <c>ChatQuery/Members</c>）。只给成员看
+/// <c>GET /api/chat-conversations:members?conversationId=</c>。只给成员看
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -62,7 +62,7 @@ public sealed class ListChatConversationMembers(ChatQueries queries) : IOperatio
 /// 成员的已读位
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:read-positions?conversationId=</c>（4.x <c>ChatQuery/ReadPositions</c>）。群的已读回执与单聊的对端已读
+/// <c>GET /api/chat-conversations:read-positions?conversationId=</c>。群的已读回执与单聊的对端已读
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -87,7 +87,7 @@ public sealed class ListChatReadPositions(ChatQueries queries) : IOperation<Chat
 /// 发起部门群用的部门树
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:department-tree</c>（4.x <c>ChatQuery/DepartmentTree</c>）。当前一侧启用的部门，不用组织的部门读权限；平台没有部门
+/// <c>GET /api/chat-conversations:department-tree</c>。当前一侧启用的部门，不用组织的部门读权限；平台没有部门
 /// </remarks>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
 public sealed class ChatDepartmentTree : IOperation<ChatEmptyRequest, ChatDepartmentTreeResponse>
@@ -109,7 +109,7 @@ public sealed class ChatDepartmentTree : IOperation<ChatEmptyRequest, ChatDepart
 /// 发起聊天与加人用的选人
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:user-options?keyword=&amp;limit=</c>（4.x <c>ChatQuery/UserOptions</c>）。当前一侧的正常账号，不用身份的用户读权限
+/// <c>GET /api/chat-conversations:user-options?keyword=&amp;limit=</c>。当前一侧的正常账号，不用身份的用户读权限
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -134,7 +134,7 @@ public sealed class ChatUserOptions(ChatQueries queries) : IOperation<ChatUserOp
 /// 打开单聊
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:open-single</c>（4.x <c>Chat/OpenSingleConversation</c>）。同一对用户本侧只有一个单聊，没有即建；对端须属于当前一侧
+/// <c>POST /api/chat-conversations:open-single</c>。同一对用户本侧只有一个单聊，没有即建；对端须属于当前一侧
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -159,7 +159,7 @@ public sealed class OpenSingleChatConversation(ChatConversationService service) 
 /// 可用的助手
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:assistants</c>（4.x <c>ChatAssistant/Available</c>）。AI 关掉时 <c>CHAT_UNAVAILABLE_001</c>，前端据此隐藏助手入口
+/// <c>GET /api/chat-conversations:assistants</c>。AI 关掉时 <c>CHAT_UNAVAILABLE_001</c>，前端据此隐藏助手入口
 /// </remarks>
 /// <param name="service">助手服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -183,7 +183,7 @@ public sealed class ChatConversationAssistants(ChatAssistantService service) : I
 /// 打开与助手的会话
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:open-assistant</c>（4.x <c>ChatAssistant/OpenConversation</c>）。一个用户对一个助手只有一个会话，没有即建、发开场白；助手不存在或已停用照 AI 的错误码；AI 关掉时 <c>CHAT_UNAVAILABLE_001</c>
+/// <c>POST /api/chat-conversations:open-assistant</c>。一个用户对一个助手只有一个会话，没有即建、发开场白；助手不存在或已停用照 AI 的错误码；AI 关掉时 <c>CHAT_UNAVAILABLE_001</c>
 /// </remarks>
 /// <param name="service">助手服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -208,7 +208,7 @@ public sealed class OpenAssistantChatConversation(ChatAssistantService service) 
 /// 建群
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:create-group</c>（4.x <c>Chat/GroupConversation</c>）。含群主至少两人、发起人为群主，追加建群提示并推给成员
+/// <c>POST /api/chat-conversations:create-group</c>。含群主至少两人、发起人为群主，追加建群提示并推给成员
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -233,7 +233,7 @@ public sealed class CreateGroupChatConversation(ChatConversationService service)
 /// 打开部门群
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:open-department</c>（4.x <c>Chat/OpenDepartmentConversation</c>）。只有本部门的成员能进，没有即建，打开时把部门成员补进群；部门群没有群主与管理员
+/// <c>POST /api/chat-conversations:open-department</c>。只有本部门的成员能进，没有即建，打开时把部门成员补进群；部门群没有群主与管理员
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -258,7 +258,7 @@ public sealed class OpenDepartmentChatConversation(ChatConversationService servi
 /// 加群成员
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:add-members</c>（4.x <c>Chat/Members</c>）。只在群聊、群主或管理员；新成员须属于当前一侧，追加邀请提示
+/// <c>POST /api/chat-conversations:add-members</c>。只在群聊、群主或管理员；新成员须属于当前一侧，追加邀请提示
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -283,7 +283,7 @@ public sealed class AddChatConversationMembers(ChatConversationService service) 
 /// 移出群成员
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:remove-members</c>（4.x <c>Chat/Member</c> 单个）。只在群聊、群主或管理员；不是成员、群主与自己逐项失败
+/// <c>POST /api/chat-conversations:remove-members</c>。只在群聊、群主或管理员；不是成员、群主与自己逐项失败
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -308,7 +308,7 @@ public sealed class RemoveChatConversationMembers(ChatConversationService servic
 /// 退群
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:leave</c>（4.x <c>Chat/LeaveConversation</c>）。只在群聊，群主须先转让
+/// <c>POST /api/chat-conversations:leave</c>。只在群聊，群主须先转让
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -339,7 +339,7 @@ public sealed class LeaveChatConversation(ChatConversationService service) : IOp
 /// 改群信息
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:update-info</c>（4.x <c>Chat/ConversationInfo</c>）。群主或管理员；部门群不能改名，公告变了追加以操作人身份发出的公告
+/// <c>POST /api/chat-conversations:update-info</c>。群主或管理员；部门群不能改名，公告变了追加以操作人身份发出的公告
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -370,7 +370,7 @@ public sealed class UpdateChatConversationInfo(ChatConversationService service) 
 /// 转让群主
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:transfer-owner</c>（4.x <c>Chat/TransferOwner</c>）。只在群聊、只有群主，新群主须是成员
+/// <c>POST /api/chat-conversations:transfer-owner</c>。只在群聊、只有群主，新群主须是成员
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -401,7 +401,7 @@ public sealed class TransferChatConversationOwner(ChatConversationService servic
 /// 禁言或解除
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:silence-members</c>（4.x <c>Chat/SetMemberSilence</c> 单个）。群聊与部门群的群主或管理员；不是成员、群主与管理员逐项失败
+/// <c>POST /api/chat-conversations:silence-members</c>。群聊与部门群的群主或管理员；不是成员、群主与管理员逐项失败
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -426,7 +426,7 @@ public sealed class SilenceChatConversationMembers(ChatConversationService servi
 /// 设管理员或取消
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:set-member-role</c>（4.x <c>Chat/SetMemberRole</c>）。只在群聊、只有群主，在管理员与普通成员之间切换
+/// <c>POST /api/chat-conversations:set-member-role</c>。只在群聊、只有群主，在管理员与普通成员之间切换
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
@@ -451,7 +451,7 @@ public sealed class SetChatConversationMemberRole(ChatConversationService servic
 /// 会话置顶（个人设置）
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:pin</c>（4.x <c>Chat/TogglePinConversation</c> 是切换，6.0 请求带开关值）。只推本人的其他端
+/// <c>POST /api/chat-conversations:pin</c>。请求带开关值，只推本人的其他端
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -476,7 +476,7 @@ public sealed class PinChatConversation(ChatConversationService service) : IOper
 /// 会话免打扰（个人设置）
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:mute</c>（4.x <c>Chat/ToggleMuteConversation</c> 是切换，6.0 请求带开关值）。只推本人的其他端
+/// <c>POST /api/chat-conversations:mute</c>。请求带开关值，只推本人的其他端
 /// </remarks>
 /// <param name="service">会话服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -501,7 +501,7 @@ public sealed class MuteChatConversation(ChatConversationService service) : IOpe
 /// 标记已读
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-conversations:mark-read</c>（4.x <c>Chat/MarkRead</c>）。未读清零、已读位前移（不回退，没给即读到最新），已读位推给全体成员
+/// <c>POST /api/chat-conversations:mark-read</c>。未读清零、已读位前移（不回退，没给即读到最新），已读位推给全体成员
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]

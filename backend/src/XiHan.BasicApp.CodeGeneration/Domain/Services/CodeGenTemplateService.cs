@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 模板的规则
 /// </summary>
 /// <remarks>
-/// 照 4.x：编码唯一、建好后不能改；内置模板随程序版本走（启动时由种子按嵌入的文件对齐），不能修改也不能删除，只能启停，要定制就新建一份自有模板
+/// 编码唯一、建好后不能改；内置模板随程序版本走（启动时由种子按嵌入的文件对齐），不能修改也不能删除，只能启停，要定制就新建一份自有模板
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 public sealed class CodeGenTemplateService(IRepository<SysCodeGenTemplate, Guid> templates)

@@ -34,7 +34,7 @@ function toItem(role: Pick<RoleRow, 'code' | 'id' | 'name' | 'status'>): RoleGra
 
 /**
  * 分配角色抽屉：左栏是当前作用侧的角色目录、右栏是该用户已有的角色（`roles.by-user`），挪好后一次保存
- * 保存按差异逐个角色 `roles.assign` / `roles.unassign`（6.0 的指派接口以角色为主体）；逐项被拒的原因汇成一条抛出，
+ * 保存按差异逐个角色 `roles.assign` / `roles.unassign`（指派接口以角色为主体）；逐项被拒的原因汇成一条抛出，
  * 已落地的部分随后重取，草稿与服务端对齐。用户须与角色同一侧（注册地 = 角色所属侧），页面据此决定入口出不出现
  */
 export function useUserRoles() {

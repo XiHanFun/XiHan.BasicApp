@@ -24,7 +24,7 @@ export interface DelegationOption {
   description?: string
 }
 
-/** 新建委托的表单（4.x 的委托弹窗）：时间是日期选择器的毫秒时间戳 */
+/** 新建委托的表单：时间是日期选择器的毫秒时间戳 */
 export interface DelegationForm {
   delegatorId: string
   delegateeId: string
@@ -119,7 +119,7 @@ export function revokeDelegation(id: string): Promise<DelegationRow> {
 }
 
 /**
- * 新建委托的弹窗（4.x 的委托表单）：委托人与接收人远程检索本侧用户，委托对象二选一（启用的非内置角色，或本侧权限目录）
+ * 新建委托的弹窗：委托人与接收人远程检索本侧用户，委托对象二选一（启用的非内置角色，或本侧权限目录）
  * 字段级错误挂回对应字段
  */
 export function useDelegationEditor() {

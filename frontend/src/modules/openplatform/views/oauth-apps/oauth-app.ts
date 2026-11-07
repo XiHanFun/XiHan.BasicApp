@@ -99,7 +99,7 @@ export function ownerLabel(t: Translate, row: Pick<OAuthAppRow, 'ownerUserId' | 
   return row.ownerUserName || '-'
 }
 
-/** 有效期（秒）的显示（4.x 同）：不足一分钟按秒，不足一小时按分，不足一天按时，其余按天 */
+/** 有效期（秒）的显示：不足一分钟按秒，不足一小时按分，不足一天按时，其余按天 */
 export function formatSeconds(t: Translate, seconds: number): string {
   if (seconds < 60)
     return t('openplatform.oauth_apps.time_seconds', { value: seconds })
@@ -166,7 +166,7 @@ export interface OAuthAppForm {
   remark: string
 }
 
-/** 新建的缺省值：有效期同 4.x；授权类型与范围同个人应用的缺省（授权码 + 刷新令牌，openid / profile / email） */
+/** 新建的缺省值：授权类型与范围同个人应用的缺省（授权码 + 刷新令牌，openid / profile / email） */
 export function emptyOAuthAppForm(): OAuthAppForm {
   return {
     id: null,
@@ -212,7 +212,7 @@ export function toOAuthAppForm(row: OAuthAppRow): OAuthAppForm {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验，加上 6.0 的 Client ID 文法、回调地址必填与有效期范围）；都好为空 */
+/** 表单的第一处问题（提交前校验，含 Client ID 文法、回调地址必填与有效期范围）；都好为空 */
 export type OAuthAppProblem = 'app_name' | 'client_id' | 'lifetimes' | 'redirect_uris'
 
 function inRange(value: null | number, range: { min: number, max: number }): boolean {
@@ -294,7 +294,7 @@ export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oa
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改
+ * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改
  */
 export function oauthAppResource(): SchemaResource<OAuthAppRow> {
   return {

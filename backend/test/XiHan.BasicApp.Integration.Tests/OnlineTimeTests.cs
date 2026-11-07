@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证按会话算的在线时长
 /// </summary>
 /// <remarks>
-/// 4.x 同口径：登出或吊销的算到结束，仍有效的算到最后活动（刷新与最后一次访问取较晚的），不超过现在，重叠只算一次，按时区切天
+/// 登出或吊销的算到结束，仍有效的算到最后活动（刷新与最后一次访问取较晚的），不超过现在，重叠只算一次，按时区切天
 /// </remarks>
 public sealed class OnlineTimeTests
 {

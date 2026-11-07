@@ -107,7 +107,7 @@ public sealed record GrantSource(GrantSubjectKind Kind, Guid SubjectId, IReadOnl
 /// 一条角色链：一个角色与它此刻传得到授予的上级
 /// </summary>
 /// <remarks>
-/// 见方案 5.9 角色继承，4.x 同。链上任一角色的 Deny 只拿走这条链，不影响别的角色
+/// 见方案 5.9 角色继承。链上任一角色的 Deny 只拿走这条链，不影响别的角色
 /// </remarks>
 /// <param name="RoleId">链首的角色（持有或受委托的那个）</param>
 /// <param name="Members">链上的来源：首个是角色本身，其后是上级</param>
@@ -128,7 +128,7 @@ public sealed record RoleChain(Guid RoleId, IReadOnlyList<GrantSource> Members)
 /// </summary>
 /// <remarks>
 /// 用户本身、此刻算数的角色链（令牌声明 ∩ 有效指派）、受委托的权限码与角色链，以及判定所用的时间
-/// 合并次序沿用 4.x：用户 Deny &gt; 用户 Grant ≈ 委托的权限码 &gt; 角色链 Deny（只拿走本链）&gt; 角色链 Grant；不在有效期内的 Grant 与 Deny 都不算数
+/// 合并次序：用户 Deny &gt; 用户 Grant ≈ 委托的权限码 &gt; 角色链 Deny（只拿走本链）&gt; 角色链 Grant；不在有效期内的 Grant 与 Deny 都不算数
 /// 权限条件生效时这里是乐观的结论（有条件的授予算持有、有条件的拒绝不拿走），调用时由 <see cref="ConditionDecider"/> 按请求属性给出精确结论
 /// </remarks>
 /// <param name="Now">判定时间</param>

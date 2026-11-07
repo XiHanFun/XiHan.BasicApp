@@ -65,7 +65,7 @@ public static class ExportSinks
 /// CSV 写入端
 /// </summary>
 /// <remarks>
-/// 4.x 同：UTF-8 带 BOM（Excel 直接打开不乱码），CRLF 换行，含逗号、引号或换行的单元格加引号、引号成对转义
+/// UTF-8 带 BOM（Excel 直接打开不乱码），CRLF 换行，含逗号、引号或换行的单元格加引号、引号成对转义
 /// </remarks>
 /// <param name="output">输出流</param>
 internal sealed class CsvExportSink(Stream output) : IExportSink
@@ -121,7 +121,7 @@ internal sealed class CsvExportSink(Stream output) : IExportSink
 /// XLSX 写入端
 /// </summary>
 /// <remarks>
-/// 4.x 同：一个工作表、内联字符串，直接写 OOXML 的五个部件；工作表部件最后写，行随到随写
+/// 一个工作表、内联字符串，直接写 OOXML 的五个部件；工作表部件最后写，行随到随写
 /// </remarks>
 internal sealed class XlsxExportSink : IExportSink
 {

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Auditing</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 审计能力包（Tier 2）：按月分表的访问、异常、登录、数据变更、权限变更、条件命中、开放接口日志，操作日志的查询面（框架 Auditing.Database 落库），按链路聚合与保留清理。</Description>
+    <Description>XiHan.BasicApp 审计能力包（Tier 2）：按月分表的访问、异常、登录、数据变更、权限变更、条件命中、开放接口日志，操作日志的查询面（框架 Auditing.Database 落库），按链路聚合与保留清理。</Description>
   </PropertyGroup>
 
   <ItemGroup>

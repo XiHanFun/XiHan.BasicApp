@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 导入历史：一次导入结束后由前端记下的结果
 /// </summary>
 /// <remarks>
-/// 租户库只追加的记录，平台一侧租户为 <c>platform</c>；4.x 同
+/// 租户库只追加的记录，平台一侧租户为 <c>platform</c>
 /// 导入在前端逐行调资源的新建操作完成，结束后由前端记一条结果，导入弹窗列出本人最近几次
 /// </remarks>
 [SugarIndex("ix_{table}_tenant_id_user_id_page_code_created_at", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(PageCode), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]

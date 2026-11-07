@@ -9,7 +9,7 @@ export type DatasourceDetail = ResponseOf<'codegen-datasources.get'>
 export type DatabaseType = DatasourceRow['databaseType']
 export type DatasourceStatus = DatasourceRow['status']
 
-/** 数据库类型下拉（照 4.x 的五种与显示名） */
+/** 数据库类型下拉（五种与显示名） */
 export const DATABASE_TYPE_OPTIONS: { label: string, value: DatabaseType }[] = [
   { label: 'MySQL', value: 'MySql' },
   { label: 'SQL Server', value: 'SqlServer' },
@@ -79,7 +79,7 @@ export function datasourcesResource(): SchemaResource<DatasourceRow> {
 }
 
 /**
- * 数据源的编辑弹窗：新建与编辑（照 4.x：编辑时口令留空即不改，状态变了另调启停）
+ * 数据源的编辑弹窗：新建与编辑（编辑时口令留空即不改，状态变了另调启停）
  * 详情不回显口令与连接串，只说有没有显式连接串；字段级错误挂回对应字段
  */
 export function useDatasourceEditor() {
@@ -148,7 +148,7 @@ export function useDatasourceEditor() {
       }
       if (current) {
         const updated = await codegenDatasources.update({ id: current.id, concurrencyStamp: current.concurrencyStamp, ...common })
-        // 状态变了另调启停（照 4.x），带上刚写入的并发戳
+        // 状态变了另调启停，带上刚写入的并发戳
         if (updated.status !== form.status) {
           await codegenDatasources.setStatus({
             id: current.id,

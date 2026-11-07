@@ -28,7 +28,7 @@ public enum NotificationPreferenceChannel
 /// 用户能关掉的通知类别
 /// </summary>
 /// <remarks>
-/// 4.x 同：安全、待办各一类，其余都算公告
+/// 安全、待办各一类，其余都算公告
 /// </remarks>
 public enum NotificationPreferenceTopic
 {
@@ -52,7 +52,7 @@ public enum NotificationPreferenceTopic
 /// 用户的通知偏好（Identity 实现）
 /// </summary>
 /// <remarks>
-/// Notification 发布通知、按渠道扇出时据此过滤接收人；强制阅读与紧急通知由调用方跳过过滤（4.x 同）
+/// Notification 发布通知、按渠道扇出时据此过滤接收人；强制阅读与紧急通知由调用方跳过过滤
 /// 没有实现即不过滤
 /// </remarks>
 public interface INotificationPreferences

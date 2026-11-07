@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Files</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 文件能力包（Tier 2）：存储配置（本地与 S3 兼容存储，密钥加密）、文件与副本（秒传、签名下载地址、副本校验与切换主副本）；上传与下载的普通端点由宿主映射。</Description>
+    <Description>XiHan.BasicApp 文件能力包（Tier 2）：存储配置（本地与 S3 兼容存储，密钥加密）、文件与副本（秒传、签名下载地址、副本校验与切换主副本）；上传与下载的普通端点由宿主映射。</Description>
   </PropertyGroup>
 
   <ItemGroup>

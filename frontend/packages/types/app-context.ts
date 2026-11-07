@@ -22,7 +22,7 @@ import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangeEma
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`（Member 普通成员 / Support 运维支持）；
  * `isOwner` 是该租户的所有者（租户的 AdminUserId，与注册地、成员类型无关）；`isCurrent` 是当前会话所在的租户；
- * `joinedTime` 沿用 4.x 的字段名（后端 joinedAt）：成员是成为成员的时间，注册地是账号建立的时间
+ * `joinedTime` 即后端 joinedAt：成员是成为成员的时间，注册地是账号建立的时间
  */
 export interface AppTenantSwitcherItem {
   tenantId: string
@@ -147,7 +147,7 @@ export interface AppContextApis {
   updateProfileApi: (input: UpdateProfileParams) => Promise<UserProfile>
   /** 上传头像（JPEG / PNG，不超过 2 MB）：上传即换成本人的头像、回收旧的，返回新头像的文件主键（显示时再换签名地址） */
   uploadAvatarApi: (file: File, onProgress?: (percent: number) => void) => Promise<{ fileId: string }>
-  /** 去掉本人的头像（回收头像文件），返回保存后的资料（4.x 经 updateProfileApi 写空串） */
+  /** 去掉本人的头像（回收头像文件），返回保存后的资料 */
   removeAvatarApi: () => Promise<UserProfile>
   /** 邮箱验证码登录：发码（登录方式要在系统参数 identity.login-methods 里开放；账号不存在也回答已发送） */
   sendEmailLoginCodeApi: (email: string, tenant?: string) => Promise<VerificationCodeResult>
@@ -185,7 +185,7 @@ export interface AppContextApis {
   deleteAccountApi: (password: string) => Promise<unknown>
   /** 第三方账号绑定（个人中心「账号绑定」）：本人已绑定的第三方账号 */
   getLinkedAccountsApi: () => Promise<ExternalLoginItem[]>
-  /** 发起绑定（4.x 为 createOAuthBindTicketApi 换票据再自拼地址）：给当前登录的人领一个一次性的绑定意图，返回带着它的发起地址（相对于后端根；整页跳转见 auth store 的 startOAuthBind） */
+  /** 发起绑定：给当前登录的人领一个一次性的绑定意图，返回带着它的发起地址（相对于后端根；整页跳转见 auth store 的 startOAuthBind） */
   beginOAuthBindApi: (provider: string) => Promise<string>
   /** 确认绑定：凭回调页拿到的一次性票据，把第三方账号绑到当前登录的人（票据只认发起绑定的本人） */
   linkAccountApi: (ticket: string) => Promise<ExternalLoginItem>

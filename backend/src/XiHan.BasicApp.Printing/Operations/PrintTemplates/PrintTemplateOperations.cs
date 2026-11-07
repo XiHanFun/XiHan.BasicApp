@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Printing.Operations.PrintTemplates;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/print-templates:list</c>。作用域用筛选 <c>scope</c>（<c>eq</c>，<c>Tenant</c> / <c>Global</c>）：平台一侧只有全局模板（全部状态，用 <c>Tenant</c> 即 <c>PRINTING_VALIDATION_004</c>）；
-/// 租户一侧缺省看本租户的模板，<c>Global</c> 看启用且开放的全局模板（4.x 的「可用全局模板」）。筛选与排序见 <see cref="PrintTemplateQueries"/>
+/// 租户一侧缺省看本租户的模板，<c>Global</c> 看启用且开放的全局模板。筛选与排序见 <see cref="PrintTemplateQueries"/>
 /// </remarks>
 /// <param name="queries">模板查询</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = PrintingPermissions.PrintTemplatesRead)]
@@ -43,7 +43,7 @@ public sealed class ListPrintTemplates(PrintTemplateQueries queries) : IOperatio
 /// 打印模板详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/print-templates/{id}</c>。本侧的模板都能看；租户看全局模板须已启用且向租户开放，否则 <c>PRINTING_DENIED_002</c>（照 4.x）；别的租户的当作不存在
+/// <c>GET /api/print-templates/{id}</c>。本侧的模板都能看；租户看全局模板须已启用且向租户开放，否则 <c>PRINTING_DENIED_002</c>；别的租户的当作不存在
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = PrintingPermissions.PrintTemplatesRead)]
@@ -193,7 +193,7 @@ public sealed class CreatePrintTemplate(IRepository<SysPrintTemplate, Guid> temp
 /// </summary>
 /// <remarks>
 /// <c>PUT /api/print-templates/{id}</c>。只改本侧的模板（别的一侧的当作不存在），平台一侧还要全局管理权限；编码不可改
-/// 交回的并发戳与当前的不同即冲突（框架仓储判定，照 4.x 的行版本）；写入后失效解析缓存
+/// 交回的并发戳与当前的不同即冲突（框架仓储判定）；写入后失效解析缓存
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="service">模板规则</param>
@@ -259,7 +259,7 @@ public sealed class UpdatePrintTemplate(IRepository<SysPrintTemplate, Guid> temp
 /// </summary>
 /// <remarks>
 /// <c>POST /api/print-templates/{id}:set-status</c>。只改本侧的模板，平台一侧还要全局管理权限；交回的并发戳与当前的不同即冲突；
-/// 给了备注即替换备注（4.x 同）。写入后失效解析缓存
+/// 给了备注即替换备注。写入后失效解析缓存
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="service">模板规则</param>
@@ -308,7 +308,7 @@ public sealed class SetPrintTemplateStatus(IRepository<SysPrintTemplate, Guid> t
 /// </summary>
 /// <remarks>
 /// <c>DELETE /api/print-templates?ids=...</c>。平台一侧要全局管理权限（整批拒绝）；逐项：不是本侧的或不存在 <c>PRINTING_NOTFOUND_001</c>，
-/// 仍在启用 <c>PRINTING_CONFLICT_002</c>（须先停用，照 4.x）。软删除，同编码可以重建；删除后失效解析缓存
+/// 仍在启用 <c>PRINTING_CONFLICT_002</c>（须先停用）。软删除，同编码可以重建；删除后失效解析缓存
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="service">模板规则</param>

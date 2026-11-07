@@ -42,7 +42,7 @@ public sealed record LoginByCodeRequest(ContactChannel Channel, [Required, Strin
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:send-login-code</c>。这种登录方式要在系统参数里开放（<see cref="LoginMethods"/>），租户须存在且启用
 /// 账号在登录租户里按邮箱（不分大小写）或已验证的手机号找，恰好一个正常的才真发；
-/// 与 4.x 不同：账号不存在、不唯一或停用都照样回答「已发送」，签发并计入限频，只是不发（4.x 直接报「未注册」，能用来探测账号）
+/// 账号不存在、不唯一或停用都照样回答「已发送」，签发并计入限频，只是不发（免得被用来探测账号）
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
 /// <param name="contacts">发码</param>
@@ -96,7 +96,7 @@ public sealed class SendLoginCode(UserAccountService accounts, ContactCodes cont
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:login-by-code</c>。过登录节流，码对且发码之后联系方式没变才认账号，再看状态与锁定期；
 /// 码错计入节流与登录守卫的认证失败，码本身输错 5 次作废并锁定。登录日志记为登录、附注 <c>code:email</c> / <c>code:phone</c>
-/// 与 4.x 不同：账号开了双因素照样要第二步（返回挑战，与密码登录、第三方登录同一条路；4.x 验证码登录跳过双因素）
+/// 账号开了双因素照样要第二步（返回挑战，与密码登录、第三方登录同一条路）
 /// 第二步不能用这次收码的那种（邮箱收码登录的不能再用邮箱）；可用的只剩它时 <see cref="IdentityErrors.TwoFactorSameAsLogin"/>，须改用密码登录
 /// </remarks>
 /// <param name="users">用户仓储</param>

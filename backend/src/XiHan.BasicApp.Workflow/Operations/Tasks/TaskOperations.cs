@@ -21,8 +21,8 @@ namespace XiHan.BasicApp.Workflow.Operations.Tasks;
 /// 我的待办
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tasks:list</c>。照 4.x 只要登录，受理人锁定为调用方；关键字匹配任务标题、实例标题、定义名与关联 ID，按到达时间降序，
-/// 过滤与分页在存储里做（4.x 在内存里分页）。每条补上节点名、发起人与审批业务名
+/// <c>POST /api/tasks:list</c>。只要登录，受理人锁定为调用方；关键字匹配任务标题、实例标题、定义名与关联 ID，按到达时间降序，
+/// 过滤与分页在存储里做。每条补上节点名、发起人与审批业务名
 /// </remarks>
 /// <param name="tasks">任务服务</param>
 /// <param name="instanceStore">实例存储（一页的实例一次读完）</param>
@@ -97,7 +97,7 @@ public sealed class ListTasks(IWorkflowTaskService tasks, IWorkflowInstanceStore
 /// 办理待办
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tasks/{id}:complete</c>。照 4.x 只要登录、办理人锁定为调用方；审批业务的顶层实例先回调业务的办理前校验（如不能审批自己的申请），校验不过待办保持不变
+/// <c>POST /api/tasks/{id}:complete</c>。只要登录、办理人锁定为调用方；审批业务的顶层实例先回调业务的办理前校验（如不能审批自己的申请），校验不过待办保持不变
 /// 办理与审批记录、走到结束节点时业务的结论回写都在同一个事务里；办理后实例故障时照常返回，带上故障原因
 /// </remarks>
 /// <param name="own">调用方名下的待办</param>
@@ -155,7 +155,7 @@ public sealed class CompleteTask(WorkflowOwnTasks own, IWorkflowTaskService task
 /// 转办
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tasks/{id}:transfer</c>。照 4.x 只要登录；目标要是当前一侧可见的在用账号，已经是这个节点的受理人时 <c>WORKFLOW_CONFLICT_004</c>。审批业务的顶层实例先问业务的改动前校验。写一条转办记录
+/// <c>POST /api/tasks/{id}:transfer</c>。只要登录；目标要是当前一侧可见的在用账号，已经是这个节点的受理人时 <c>WORKFLOW_CONFLICT_004</c>。审批业务的顶层实例先问业务的改动前校验。写一条转办记录
 /// </remarks>
 /// <param name="own">调用方名下的待办</param>
 /// <param name="tasks">任务服务</param>
@@ -208,7 +208,7 @@ public sealed class TransferTask(WorkflowOwnTasks own, IWorkflowTaskService task
 /// 加签
 /// </summary>
 /// <remarks>
-/// <c>POST /api/tasks/{id}:add-assignees</c>。照 4.x 只要登录；加的人都要是当前一侧可见的在用账号，按节点的完成策略一起办（或签任一人、会签全部、依次排在后面）。审批业务的顶层实例先问业务的改动前校验。写一条加签记录
+/// <c>POST /api/tasks/{id}:add-assignees</c>。只要登录；加的人都要是当前一侧可见的在用账号，按节点的完成策略一起办（或签任一人、会签全部、依次排在后面）。审批业务的顶层实例先问业务的改动前校验。写一条加签记录
 /// </remarks>
 /// <param name="own">调用方名下的待办</param>
 /// <param name="tasks">任务服务</param>

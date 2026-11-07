@@ -28,7 +28,7 @@ public sealed record AccountClosedResponse(Guid UserId);
 /// 本人关闭账号的共同校验
 /// </summary>
 /// <remarks>
-/// 模仿会话不能做，要当前密码；系统内置账号不能自助关闭，还是租户所有者的要先转移所有权（4.x 同，所有者跨全部租户查）
+/// 模仿会话不能做，要当前密码；系统内置账号不能自助关闭，还是租户所有者的要先转移所有权（所有者跨全部租户查）
 /// </remarks>
 internal static class AccountClosure
 {
@@ -75,7 +75,7 @@ internal static class AccountClosure
 /// 停用本人的账号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:deactivate-account</c>（4.x <c>Profile/DeactivateAccount</c>）。状态置为停用、吊销全部会话，之后登录给 <c>IDENTITY_DENIED_018</c>，
+/// <c>POST /api/profile:deactivate-account</c>。状态置为停用、吊销全部会话，之后登录给 <c>IDENTITY_DENIED_018</c>，
 /// 可由管理员重新启用。校验见 <see cref="AccountClosure"/>
 /// </remarks>
 /// <param name="users">用户仓储</param>
@@ -125,7 +125,7 @@ public sealed class DeactivateAccount(IRepository<SysUser, Guid> users, IReposit
 /// 注销本人的账号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:delete-account</c>（4.x <c>Profile/DeleteAccount</c>）。账号与账号安全软删除、吊销全部会话，之后登录按账号不存在回答
+/// <c>POST /api/profile:delete-account</c>。账号与账号安全软删除、吊销全部会话，之后登录按账号不存在回答
 /// 带密码不走 <c>DELETE</c>。校验见 <see cref="AccountClosure"/>
 /// </remarks>
 /// <param name="users">用户仓储</param>

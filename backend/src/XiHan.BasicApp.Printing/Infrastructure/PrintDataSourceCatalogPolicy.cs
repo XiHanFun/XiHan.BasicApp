@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Printing.Infrastructure;
 /// 数据源目录的授权策略
 /// </summary>
 /// <remarks>
-/// 持有 <c>printing.print-templates.read</c> 或 <c>printing.print-templates.use</c> 其一即可（4.x 的数据源目录在方法里同样判定）：
+/// 持有 <c>printing.print-templates.read</c> 或 <c>printing.print-templates.use</c> 其一即可：
 /// 目录既服务模板管理也服务业务打印，不另造权限码。判定写法照框架的权限策略：匿名先按未认证拒绝，检查器失败原样返回、不当作没有权限
 /// </remarks>
 /// <param name="permissions">权限判定</param>

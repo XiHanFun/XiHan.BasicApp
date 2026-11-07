@@ -9,10 +9,10 @@ namespace XiHan.BasicApp.Printing;
 /// 打印模块的权限码
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 7 个码（<c>print-template:*</c>）：前六个两侧都有，全局管理只在平台一侧
-/// 平台一侧维护全局模板要同时持有对应的写权限与 <see cref="PrintTemplatesGlobalManage"/>，由操作判定（4.x 同）
+/// 7 个码：前六个两侧都有，全局管理只在平台一侧
+/// 平台一侧维护全局模板要同时持有对应的写权限与 <see cref="PrintTemplatesGlobalManage"/>，由操作判定
 /// 数据源目录（<c>print-data-sources.list</c>）不另设权限码，持有读取或使用其一即可（<see cref="PrintingPolicies.DataSourceCatalog"/>）
-/// 使用（解析）是只读操作，不进操作日志（4.x 记审计，6.0 读操作不标 <c>audited</c>）
+/// 使用（解析）是只读操作，不进操作日志（读操作不标 <c>audited</c>）
 /// </remarks>
 public static class PrintingPermissions
 {

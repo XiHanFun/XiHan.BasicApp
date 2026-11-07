@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// 模仿登录的参数
 /// </summary>
 /// <remarks>
-/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，按发起人所在的一侧取（租户建了同键参数即用租户的，4.x 同）；没建即缺省值
-/// 写错或超出范围即 <c>IDENTITY_VALIDATION_024</c>，不发起模仿（4.x 把越界的分钟数归到上下限，6.0 的参数写错一律让人看见）
+/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，按发起人所在的一侧取（租户建了同键参数即用租户的）；没建即缺省值
+/// 写错或超出范围即 <c>IDENTITY_VALIDATION_024</c>，不发起模仿（越界的分钟数不归到上下限，参数写错一律让人看见）
 /// </remarks>
 /// <param name="SessionMinutes">模仿会话存活分钟数（1–480）</param>
 /// <param name="NotifyTarget">是否向被模仿者投递安全通知</param>

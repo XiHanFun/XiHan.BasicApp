@@ -58,7 +58,7 @@ public sealed record LiftLoginBanResponse(string Ip);
 /// 取登录失败自动封禁的参数与当前封禁
 /// </summary>
 /// <remarks>
-/// <c>GET /api/login-bans</c>（只在平台，4.x 同）。参数在系统参数 <c>access.security.login-auto-ban</c>，缺省关
+/// <c>GET /api/login-bans</c>（只在平台）。参数在系统参数 <c>access.security.login-auto-ban</c>，缺省关
 /// </remarks>
 /// <param name="bans">封禁存储</param>
 /// <param name="clock">时间源</param>

@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Organization.Infrastructure;
 /// 按部门解析接收人（<see cref="RecipientKind.Department"/>）
 /// </summary>
 /// <remarks>
-/// 这些部门及其全部下级部门的成员（经闭包表展开，闭包表含部门自身；4.x 只取直属成员）
+/// 这些部门及其全部下级部门的成员（经闭包表展开，闭包表含部门自身）
 /// 部门是租户库实体，平台一侧的调用看不到任何部门，解析为空
 /// </remarks>
 public sealed class DepartmentRecipientSource : IRecipientSource

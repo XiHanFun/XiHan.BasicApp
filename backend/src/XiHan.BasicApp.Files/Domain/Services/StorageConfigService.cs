@@ -35,7 +35,7 @@ public sealed record StorageConfigDefinition(string Code, string Name, StorageTy
 /// 存储配置的维护与上传目标的选取
 /// </summary>
 /// <remarks>
-/// 4.x 同。编码同一侧唯一；S3 兼容存储要服务地址与访问密钥；每侧至多一条缺省配置，缺省的须启用、不能停用或删除；还有副本的配置不能删除
+/// 编码同一侧唯一；S3 兼容存储要服务地址与访问密钥；每侧至多一条缺省配置，缺省的须启用、不能停用或删除；还有副本的配置不能删除
 /// 上传时取当前一侧的缺省配置，租户没有就取平台的缺省配置
 /// </remarks>
 /// <param name="configs">存储配置仓储</param>
@@ -62,7 +62,7 @@ public sealed class StorageConfigService(IRepository<SysStorageConfig, Guid> con
     /// 按 ID 取这一侧能用的配置：本侧的，租户没有就取平台的
     /// </summary>
     /// <remarks>
-    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户没有自己的缺省配置时副本落在平台的配置上，照样能读写；别的租户的配置取不到
+    /// 租户没有自己的缺省配置时副本落在平台的配置上，照样能读写；别的租户的配置取不到
     /// </remarks>
     /// <param name="id">配置 ID</param>
     /// <param name="side">文件所在的侧</param>

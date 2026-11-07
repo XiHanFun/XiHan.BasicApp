@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 会话激活的角色（平台库实体）
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 SysSessionRole。会话 × 角色一行，随会话所在的一侧。令牌只带激活中的角色；
+/// 会话 × 角色一行，随会话所在的一侧。令牌只带激活中的角色；
 /// 激活前校验持有、激活时过动态职责分离（DSD）。切换租户、重新激活时旧行记停用，不再持有的记到期，留作查询
 /// </remarks>
 [SugarIndex("ux_{table}_session_id_owner_tenant_id_role_id", nameof(SessionId), OrderByType.Asc, nameof(OwnerTenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
@@ -65,9 +65,6 @@ public sealed class SysSessionRole : AppRecord, IOwnedByTenant
 /// <summary>
 /// 会话角色的状态
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum SessionRoleStatus
 {
     /// <summary>

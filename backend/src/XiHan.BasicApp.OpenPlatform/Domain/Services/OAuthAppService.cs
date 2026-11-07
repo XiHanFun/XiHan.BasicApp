@@ -54,7 +54,7 @@ public sealed record OAuthAppDraft(
 /// OAuth 应用的维护与规则校验
 /// </summary>
 /// <remarks>
-/// 授权类型只有授权码与刷新令牌（令牌只用于身份，没有用户的客户端凭证模式用不上，4.x 有）、授权范围只有身份类的 <c>openid profile email phone</c>（且须带 <c>openid</c>）；
+/// 授权类型只有授权码与刷新令牌（令牌只用于身份，没有用户的客户端凭证模式用不上）、授权范围只有身份类的 <c>openid profile email phone</c>（且须带 <c>openid</c>）；
 /// 回调地址须是绝对地址、不带片段，http 只认本机回环（原生应用的自定义协议照收，RFC 8252）；ClientId 全局唯一（新建不填即 32 位十六进制）；机密客户端的密钥是 64 位十六进制、只返回一次、只存 SHA-256
 /// </remarks>
 /// <param name="apps">应用仓储</param>
@@ -89,16 +89,13 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     /// <summary>
     /// 我的应用的固定授权类型
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public static IReadOnlyList<string> PersonalGrantTypes { get; } = [AuthorizationCode, RefreshToken];
 
     /// <summary>
     /// 我的应用的固定授权范围
     /// </summary>
     /// <remarks>
-    /// 4.x 是 <c>basicapp</c>，6.0 的令牌只用于身份
+    /// 令牌只用于身份
     /// </remarks>
     public static IReadOnlyList<string> PersonalScopes { get; } = ["openid", "profile", "email"];
 
@@ -208,7 +205,7 @@ public sealed partial class OAuthAppService(IRepository<SysOAuthApp, Guid> apps,
     /// 重置客户端密钥
     /// </summary>
     /// <remarks>
-    /// 旧密钥立即失效；公开客户端没有密钥即 <c>OPENPLATFORM_CONFLICT_003</c>（4.x 会把公开客户端重置成机密客户端）
+    /// 旧密钥立即失效；公开客户端没有密钥即 <c>OPENPLATFORM_CONFLICT_003</c>
     /// </remarks>
     /// <param name="app">应用</param>
     /// <param name="cancellationToken">取消令牌</param>

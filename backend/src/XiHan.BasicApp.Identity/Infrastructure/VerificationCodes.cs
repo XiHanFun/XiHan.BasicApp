@@ -14,11 +14,10 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// 邮件 / 短信验证码的签发、限频与校验
 /// </summary>
 /// <remarks>
-/// 单例服务，状态都在共享缓存里（多实例共用），4.x 的规则：6 位数字、有效期 <see cref="IdentityOptions.VerificationCodeLifetime"/>，
+/// 单例服务，状态都在共享缓存里（多实例共用）。规则：6 位数字、有效期 <see cref="IdentityOptions.VerificationCodeLifetime"/>，
 /// 同一用途同一主体再发即覆盖旧码；同一用途同一目标两次发码至少隔 <see cref="IdentityOptions.VerificationCodeInterval"/>，
 /// 一个目标（邮箱 / 手机号）与一个客户端地址每天（UTC）各有上限、不分用途；输错 <see cref="IdentityOptions.VerificationCodeMaxFailures"/> 次即作废，
 /// 这一用途这一主体锁定 <see cref="IdentityOptions.VerificationCodeLockout"/>。缓存里只存码的 SHA-256，校验成功即删（先删再算成功，并发的两次只有一次过）
-/// 与 4.x 不同：码不存明文；输错有次数而不是错一次即作废
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="options">身份配置</param>

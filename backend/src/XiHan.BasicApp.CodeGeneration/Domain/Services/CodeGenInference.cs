@@ -194,10 +194,10 @@ public sealed class CodeGenColumnSuggestion
 /// 按库表结构推断表与列配置
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>TableConfigInferenceEngine</c>：类名去掉表名前缀后转 PascalCase，业务名取表注释（去掉末尾的「表」），
+/// 类名去掉表名前缀后转 PascalCase，业务名取表注释（去掉末尾的「表」），
 /// 列的类型按库映射（<see cref="CodeGenTypeMapping"/>），字符类的列按列名语义推控件，含名称、编码、状态、类型、时间、日期的列缺省可查询，
-/// 有父级列与名称列即推为树表。基类的列（主键、租户、审计、软删与并发戳，取自 6.0 实体基类的属性）不进表单与列表
-/// 「沿用已有实体」按 6.0 登记的实体识别（框架的 <see cref="IEntityCatalog"/>，4.x 靠扫描 <c>[SugarTable]</c>）：只认主库的表，
+/// 有父级列与名称列即推为树表。基类的列（主键、租户、审计、软删与并发戳，取自实体基类的属性）不进表单与列表
+/// 「沿用已有实体」按登记的实体识别（框架的 <see cref="IEntityCatalog"/>）：只认主库的表，
 /// 类名、命名空间、包名与属性名取实体，枚举属性推为枚举选项
 /// </remarks>
 /// <param name="catalog">框架的实体目录</param>
@@ -218,7 +218,7 @@ public sealed class CodeGenInference(IEntityCatalog catalog, CodeGenerationOptio
     ];
 
     /// <summary>
-    /// 6.0 实体基类的列（去掉下划线、不分大小写）
+    /// 实体基类的列（去掉下划线、不分大小写）
     /// </summary>
     public static IReadOnlySet<string> BaseColumns { get; } = typeof(TenantScopedAuditedEntity)
         .GetProperties(BindingFlags.Public | BindingFlags.Instance)

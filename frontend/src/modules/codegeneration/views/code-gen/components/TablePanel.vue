@@ -1,5 +1,5 @@
 <!--
-  代码生成 / 表配置页签（照 4.x table-panel）
+  代码生成 / 表配置页签
   接口取自后端契约（codegen-tables.*、codegen-table-columns.*）：导入库表、编辑表配置、列配置、预览产物、同步表结构与删除；生成与运行时数据随后续几笔补上
 -->
 <script setup lang="ts">
@@ -37,7 +37,7 @@ const previewVisible = ref(false)
 const runtimeVisible = ref(false)
 const currentTableName = ref<string | undefined>()
 const currentTableId = ref<null | string>(null)
-/** 生成中不再接受第二次点击（照 4.x） */
+/** 生成中不再接受第二次点击 */
 const generating = ref(false)
 
 const asRow = (row: object) => row as TableRow
@@ -214,7 +214,7 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:eye',
       permission: 'codegeneration.codegen-tables.read',
     },
-    // 两个生成动作按表配置的交付方式二选一呈现（照 4.x），免得同时给两个入口让人猜
+    // 两个生成动作按表配置的交付方式二选一呈现，免得同时给两个入口让人猜
     {
       key: 'generate',
       title: t('codegeneration.code_gen.table.action_generate'),
@@ -247,7 +247,7 @@ const schema = computed<PageSchema>(() => ({
       confirmText: () => t('codegeneration.code_gen.table.sync_confirm'),
       permission: 'codegeneration.codegen-tables.import',
     },
-    // 只读查看表里的数据，不生成代码（照 4.x）；停用的表配置由后端拒绝
+    // 只读查看表里的数据，不生成代码；停用的表配置由后端拒绝
     {
       key: 'runtime',
       title: t('codegeneration.code_gen.table.action_runtime'),
@@ -321,7 +321,7 @@ function onAction(payload: SchemaActionPayload) {
   }
 }
 
-/** 生成并下载：生成之后从生成历史的下载端点取产物包（4.x 在响应里带 Base64） */
+/** 生成并下载：生成之后从生成历史的下载端点取产物包 */
 async function handleGenerate(row: TableRow) {
   if (generating.value)
     return

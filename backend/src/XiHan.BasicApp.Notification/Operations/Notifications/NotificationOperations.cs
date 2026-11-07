@@ -271,7 +271,7 @@ public sealed class GetNotificationReadStats(NotificationService service, Notifi
 /// 通知的接收人
 /// </summary>
 /// <remarks>
-/// <c>POST /api/notifications/{id}:recipients</c>。分页列出接收人与阅读、确认状态（4.x 的「未读用户」）；草稿 <c>NOTIFICATION_CONFLICT_002</c>
+/// <c>POST /api/notifications/{id}:recipients</c>。分页列出接收人与阅读、确认状态；草稿 <c>NOTIFICATION_CONFLICT_002</c>
 /// </remarks>
 /// <param name="service">通知服务</param>
 /// <param name="queries">通知查询</param>

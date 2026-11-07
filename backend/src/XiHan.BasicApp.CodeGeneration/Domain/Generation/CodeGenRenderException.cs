@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 模板过滤器在渲染时发现的配置问题
 /// </summary>
 /// <remarks>
-/// 带消息键与参数，引擎按调用方区域出文案（4.x 是写死的中文）
+/// 带消息键与参数，引擎按调用方区域出文案
 /// </remarks>
 public sealed class CodeGenRenderException : Exception
 {

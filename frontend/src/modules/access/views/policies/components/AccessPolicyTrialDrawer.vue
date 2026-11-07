@@ -12,7 +12,7 @@ import { outcomeLabel, outcomeTone } from '../../roles/condition-trial'
 import { phaseLabel } from '../access-policy'
 
 /**
- * 访问策略试运行（4.x 同）：已保存的策略或条件草稿，按模拟的请求情形求一次，看每组每个条件取到什么值、会不会拦下
+ * 访问策略试运行：已保存的策略或条件草稿，按模拟的请求情形求一次，看每组每个条件取到什么值、会不会拦下
  * 只求这一条，不看有效期和其他策略；不填的情形即取不到，时刻不填即现在，不选用户即按未登录
  */
 defineOptions({ name: 'AccessPolicyTrialDrawer' })

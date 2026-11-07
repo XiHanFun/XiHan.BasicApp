@@ -75,7 +75,7 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
 </script>
 
 <template>
-  <!-- 分隔符在组件库里是独立部件，摆在两项之间；旧版靠每项的 #separator 插槽给，语义相同 -->
+  <!-- 分隔符在组件库里是独立部件，摆在两项之间 -->
   <XhBreadcrumbRoot
     v-if="shouldShowBreadcrumb"
     class="flex min-w-0 items-center"

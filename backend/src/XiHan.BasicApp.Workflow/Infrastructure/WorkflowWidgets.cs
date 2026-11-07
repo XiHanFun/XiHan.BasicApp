@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Workflow.Infrastructure;
 /// 工作流的工作台小组件
 /// </summary>
 /// <remarks>
-/// 方案 W7（4.x 没有）：「我的待办」，值是调用方的待办数，条目是最近到达的几条，点开到审批中心直接办理。只要登录，Workflow 关掉时不登记
+/// 方案 W7：「我的待办」，值是调用方的待办数，条目是最近到达的几条，点开到审批中心直接办理。只要登录，Workflow 关掉时不登记
 /// </remarks>
 /// <param name="tasks">任务服务</param>
 public sealed class WorkflowWidgets(IWorkflowTaskService tasks) : IWorkbenchWidgetProvider

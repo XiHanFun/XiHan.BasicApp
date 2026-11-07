@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.AI.Operations.AiPrompts;
 /// 提示词的列表项
 /// </summary>
 /// <remarks>
-/// 不带正文（照 4.x 的列表项）
+/// 不带正文
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="Code">编码</param>
@@ -98,7 +98,7 @@ public sealed record AiPromptIdRequest(Guid Id);
 /// <c>ai-prompts.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 编码唯一，建后不可改（照 4.x）
+/// 编码唯一，建后不可改
 /// </remarks>
 /// <param name="Code">编码（唯一）</param>
 /// <param name="Name">名称</param>

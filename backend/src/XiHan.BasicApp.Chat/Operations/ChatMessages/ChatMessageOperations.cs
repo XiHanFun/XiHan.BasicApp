@@ -20,7 +20,7 @@ public sealed record ChatMessageIdResponse(Guid MessageId);
 /// 消息历史
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-messages:history?conversationId=&amp;beforeMessageId=&amp;aroundMessageId=&amp;take=</c>（4.x <c>ChatQuery/MessageHistory</c>）。只给成员看，带表情回应
+/// <c>GET /api/chat-messages:history?conversationId=&amp;beforeMessageId=&amp;aroundMessageId=&amp;take=</c>。只给成员看，带表情回应
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesRead)]
@@ -45,7 +45,7 @@ public sealed class ChatMessageHistory(ChatQueries queries) : IOperation<ChatMes
 /// 会话内搜索
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-messages:search?conversationId=&amp;keyword=&amp;beforeMessageId=&amp;take=</c>（4.x <c>ChatQuery/MessageSearch</c>）。匹配正文与附件、不含已撤回的，按时间倒序、不带回应
+/// <c>GET /api/chat-messages:search?conversationId=&amp;keyword=&amp;beforeMessageId=&amp;take=</c>。匹配正文与附件、不含已撤回的，按时间倒序、不带回应
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesRead)]
@@ -70,7 +70,7 @@ public sealed class SearchChatMessages(ChatQueries queries) : IOperation<ChatMes
 /// 会话里置顶的消息
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-messages:pinned?conversationId=</c>（4.x <c>ChatQuery/PinnedMessages</c>）。最近置顶的在前
+/// <c>GET /api/chat-messages:pinned?conversationId=</c>。最近置顶的在前
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesRead)]
@@ -95,7 +95,7 @@ public sealed class ListPinnedChatMessages(ChatQueries queries) : IOperation<Cha
 /// 发消息
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:send</c>（4.x <c>Chat/SendMessage</c>）。敏感词、类型与附件、提及、回复照 4.x 核对，落库后推给全体成员（含发送人的其他端）；附件须是自己在聊天里上传的文件
+/// <c>POST /api/chat-messages:send</c>。核对敏感词、类型与附件、提及与回复，落库后推给全体成员（含发送人的其他端）；附件须是自己在聊天里上传的文件
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -120,7 +120,7 @@ public sealed class SendChatMessage(ChatMessageService service) : IOperation<Sen
 /// 撤回
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:recall</c>（4.x <c>Chat/RecallMessage</c>）。本人、发出 2 分钟内；清空正文、保留行与附件
+/// <c>POST /api/chat-messages:recall</c>。本人、发出 2 分钟内；清空正文、保留行与附件
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -151,7 +151,7 @@ public sealed class RecallChatMessage(ChatMessageService service) : IOperation<C
 /// 编辑
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:edit</c>（4.x <c>Chat/Message</c>）。本人的文本、发出 5 分钟内、没被禁言
+/// <c>POST /api/chat-messages:edit</c>。本人的文本、发出 5 分钟内、没被禁言
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -176,7 +176,7 @@ public sealed class EditChatMessage(ChatMessageService service) : IOperation<Edi
 /// 表情回应的开关
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:react</c>（4.x <c>Chat/ToggleReaction</c>）。同一消息、同一用户、同一表情再点即取消
+/// <c>POST /api/chat-messages:react</c>。同一消息、同一用户、同一表情再点即取消
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -201,7 +201,7 @@ public sealed class ReactChatMessage(ChatMessageService service) : IOperation<Re
 /// 置顶消息
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:pin</c>（4.x <c>Chat/PinMessage</c>）。单聊双方都能，群与部门群只有群主与管理员，每会话最多 10 条
+/// <c>POST /api/chat-messages:pin</c>。单聊双方都能，群与部门群只有群主与管理员，每会话最多 10 条
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -232,7 +232,7 @@ public sealed class PinChatMessage(ChatMessageService service) : IOperation<Chat
 /// 取消置顶消息
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:unpin</c>（4.x <c>Chat/UnpinMessage</c>）。权限同置顶
+/// <c>POST /api/chat-messages:unpin</c>。权限同置顶
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -263,7 +263,7 @@ public sealed class UnpinChatMessage(ChatMessageService service) : IOperation<Ch
 /// 转发
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:forward</c>（4.x 只在前端原样重发，6.0 改为服务端操作，方案 H1）。单条转发到一个或多个会话，原样复制类型、正文与附件，不带「转发自」，助手回复按文本转出；
+/// <c>POST /api/chat-messages:forward</c>（方案 H1）。单条转发到一个或多个会话，原样复制类型、正文与附件，不带「转发自」，助手回复按文本转出；
 /// 逐个会话成功或失败
 /// </remarks>
 /// <param name="service">消息服务</param>
@@ -289,7 +289,7 @@ public sealed class ForwardChatMessage(ChatMessageService service) : IOperation<
 /// 秒传聊天附件
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:fast-upload</c>（4.x 走通用文件的秒传，要文件的新建权限）。同一侧已有内容相同的正常文件时直接得到一个附件，没命中返回空，前端再走普通上传
+/// <c>POST /api/chat-messages:fast-upload</c>。同一侧已有内容相同的正常文件时直接得到一个附件，没命中返回空，前端再走普通上传
 /// （<c>POST /api/chat-messages/attachments</c>）。只要聊天的发送权限（方案 H2）
 /// </remarks>
 /// <param name="service">消息服务</param>
@@ -314,7 +314,7 @@ public sealed class FastUploadChatAttachment(ChatMessageService service) : IOper
 /// 凭会话换附件的下载地址
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-messages:presign?conversationId=&amp;fileId=&amp;download=</c>（4.x 走通用文件的签名，要文件的读权限）。须是会话成员，附件须出现在这个会话的消息里，
+/// <c>GET /api/chat-messages:presign?conversationId=&amp;fileId=&amp;download=</c>。须是会话成员，附件须出现在这个会话的消息里，
 /// 或是自己在聊天里上传、还没发出的文件（方案 H2）。地址原样使用、不能再拼参数
 /// </remarks>
 /// <param name="service">消息服务</param>
@@ -340,7 +340,7 @@ public sealed class PresignChatAttachment(ChatMessageService service) : IOperati
 /// 请求助手回复
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:reply-assistant</c>（4.x <c>ChatAssistant/Reply</c>）。回复会话里最近一条用户提问：生成期间增量推给本人（<c>ChatAssistantDelta</c>），结束落库为一条助手消息、照常推送，再推 <c>ChatAssistantCompleted</c>
+/// <c>POST /api/chat-messages:reply-assistant</c>。回复会话里最近一条用户提问：生成期间增量推给本人（<c>ChatAssistantDelta</c>），结束落库为一条助手消息、照常推送，再推 <c>ChatAssistantCompleted</c>
 /// 失败以 Problem Details 结束，同时立即推 <c>ChatAssistantCompleted</c> 带错误（方案 D13）；不是助手会话 <c>CHAT_VALIDATION_026</c>，没有提问 <c>CHAT_VALIDATION_027</c>，AI 关掉 <c>CHAT_UNAVAILABLE_001</c>，生成失败 <c>CHAT_UNAVAILABLE_002</c>，空输出 <c>CHAT_UNAVAILABLE_003</c>，命中敏感词 <c>CHAT_VALIDATION_023</c>
 /// 这次调用在写库之前不开事务，增量才能立即推（方案 D10）；工具以调用方身份执行，没有权限时模型收到拒绝、回复本身不失败
 /// </remarks>

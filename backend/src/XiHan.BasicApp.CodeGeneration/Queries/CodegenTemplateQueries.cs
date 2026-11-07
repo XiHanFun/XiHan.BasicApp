@@ -15,8 +15,8 @@ namespace XiHan.BasicApp.CodeGeneration.Queries;
 /// 模板的列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配编码、名称与描述（照 4.x）；筛选：分组（<c>eq</c>）、生成模式、写入方式与状态（<c>eq</c> / <c>in</c>）、是否内置（<c>eq</c>）；
-/// 排序：编码、名称、分组、生成模式、状态、排序号、创建时间，没给即排序号再编码升序（照 4.x）。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
+/// 关键字匹配编码、名称与描述；筛选：分组（<c>eq</c>）、生成模式、写入方式与状态（<c>eq</c> / <c>in</c>）、是否内置（<c>eq</c>）；
+/// 排序：编码、名称、分组、生成模式、状态、排序号、创建时间，没给即排序号再编码升序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
 public sealed class CodegenTemplateQueries(SqlSugarUnitOfWork unitOfWork)

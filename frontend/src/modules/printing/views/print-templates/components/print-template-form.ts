@@ -5,7 +5,7 @@ import type { PrintTemplateCreateInput, PrintTemplateDetail, PrintTemplateFormMo
 
 /**
  * 保存时由页面决定的上下文：是否在维护全局模板（只有全局模板能开放给租户）
- * 写入的一侧由登录上下文决定（平台即全局模板），6.0 不再随请求传作用域
+ * 写入的一侧由登录上下文决定（平台即全局模板），不随请求传作用域
  */
 export interface PrintTemplateSaveContext {
   globalMode: boolean

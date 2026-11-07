@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.CodeGeneration.Operations.CodegenRuntime;
 /// 零代码运行时的表结构
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-runtime/{id}:get-schema</c>。按列配置给出列名、数据行里的键、显示名与控件（照 4.x）；表配置停用即 <c>CODEGENERATION_CONFLICT_007</c>
+/// <c>GET /api/codegen-runtime/{id}:get-schema</c>。按列配置给出列名、数据行里的键、显示名与控件；表配置停用即 <c>CODEGENERATION_CONFLICT_007</c>
 /// </remarks>
 /// <param name="service">零代码运行时</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.RuntimeRead)]
@@ -38,7 +38,7 @@ public sealed class GetCodegenRuntimeSchema(CodeGenRuntimeService service) : IOp
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-runtime:list</c>。只读，按表配置的数据源查，每页最多 500 条；数据行的键是列配置的属性名
-/// 主库的表有租户列的只看调用方这一侧的行，有软删列的不看已删的（照 4.x）；库里读不出即 <c>CODEGENERATION_UNAVAILABLE_003</c>
+/// 主库的表有租户列的只看调用方这一侧的行，有软删列的不看已删的；库里读不出即 <c>CODEGENERATION_UNAVAILABLE_003</c>
 /// </remarks>
 /// <param name="service">零代码运行时</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = CodeGenerationPermissions.RuntimeRead)]

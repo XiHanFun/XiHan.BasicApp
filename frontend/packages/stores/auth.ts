@@ -47,7 +47,7 @@ function clearSessionStorage(): void {
 /** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`） */
 export type Session = ResponseOf<'auth.refresh'>
 
-/** 双因素方式：契约是 `Totp` / `Email` / `Phone`，4.x 登录页按小写标识 `totp` / `email` / `phone` 认 */
+/** 双因素方式：契约是 `Totp` / `Email` / `Phone`，登录页按小写标识 `totp` / `email` / `phone` 认 */
 const PAGE_METHODS: Record<TwoFactorMethod, string> = { Totp: 'totp', Email: 'email', Phone: 'phone' }
 
 function contractMethodOf(method: string | undefined): TwoFactorMethod {
@@ -59,7 +59,7 @@ function contractMethodOf(method: string | undefined): TwoFactorMethod {
 
 type TwoFactorChallenge = NonNullable<ResponseOf<'auth.login'>['twoFactor']>
 
-/** 双因素挑战（`auth.login` 与 `auth.external-login` 同一形态）→ 4.x 登录页认的响应 */
+/** 双因素挑战（`auth.login` 与 `auth.external-login` 同一形态）→ 登录页认的响应 */
 function toPageChallenge(twoFactor: TwoFactorChallenge): LoginResponse {
   return {
     requiresTwoFactor: true,
@@ -90,7 +90,7 @@ export type OAuthMode = 'bind' | 'login'
 /**
  * 本标签页发起的第三方流程：整页跳走前记进 sessionStorage，回调页取走并核对用途与提供方
  * 回调地址上的一次性票据谁拿到谁能用，只认这个标签页自己发起的流程带回来的：别人发来的回调链接（带着他的票据）
- * 不会让当前登录的人确认绑上他的第三方账号，也不会把未登录的人登进他的账号。登录页的回跳地址随记录带回来（4.x 回调后一律落首页）
+ * 不会让当前登录的人确认绑上他的第三方账号，也不会把未登录的人登进他的账号。登录页的回跳地址随记录带回来
  */
 export interface OAuthPending {
   mode: OAuthMode
@@ -206,7 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false)
 
   /**
-   * 密码登录（4.x 登录页的入口，同一个函数走两步验证的每一段）：
+   * 密码登录（登录页的入口，同一个函数走两步验证的每一段）：
    * - 不带票据是首段：账号、密码与图形验证码交给 `auth.login`；账号开了双因素即返回挑战（票据、可用方式），不存会话；
    * - 带票据与验证码是第二段：`auth.verify-two-factor` 换令牌；
    * 拿到令牌就存会话并跳到回跳地址，返回 null。页面上的点击、Enter、验证码输满自动提交都汇到这里，`loginLoading` 同步置位守住重入
@@ -259,7 +259,7 @@ export const useAuthStore = defineStore('auth', () => {
     await router.replace(safeRedirect(redirect))
   }
 
-  /** 第三方登录（4.x 同为整页跳去发起）：带上登录页填的注册地租户（平台账号留空）；登录页的回跳地址随发起记录带回来 */
+  /** 第三方登录（整页跳去发起）：带上登录页填的注册地租户（平台账号留空）；登录页的回跳地址随发起记录带回来 */
   function startOAuthLogin(provider: OAuthProviderItem, options: { tenant?: string, redirect?: string } = {}): void {
     writeOAuthPending({
       mode: 'login',
@@ -272,7 +272,7 @@ export const useAuthStore = defineStore('auth', () => {
     window.location.assign(oauthChallengeUrl(provider.name, options.tenant))
   }
 
-  /** 绑定第三方账号（个人中心发起，4.x 同为先换绑定票据再跳）：先领本人的绑定意图、拿到后端给的发起地址再整页跳去，回调页由本人调 `profile.link-external` 确认 */
+  /** 绑定第三方账号（个人中心发起）：先领本人的绑定意图、拿到后端给的发起地址再整页跳去，回调页由本人调 `profile.link-external` 确认 */
   async function startOAuthBind(provider: string): Promise<void> {
     const url = await useAppContext().apis.beginOAuthBindApi(provider)
     writeOAuthPending({
@@ -287,7 +287,7 @@ export const useAuthStore = defineStore('auth', () => {
   const pendingTwoFactor = ref<LoginResponse | null>(null)
 
   /**
-   * 第三方登录回调（4.x 回调把令牌放在地址片段里直接落地；6.0 是一次性票据，经 `auth.external-login` 换）：
+   * 第三方登录回调（回调带一次性票据，经 `auth.external-login` 换令牌）：
    * 拿到令牌即与密码登录同样存会话、跳回跳地址；账号开了双因素即返回挑战——记下挑战、带着回跳地址回登录页，
    * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）
    */
@@ -296,8 +296,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 验证码登录（4.x 同名；6.0 走 `auth.login-by-code`，带注册地租户）：与第三方登录同样，拿到令牌即落地，
-   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走（4.x 的验证码登录跳过双因素）
+   * 验证码登录（走 `auth.login-by-code`，带注册地租户）：与第三方登录同样，拿到令牌即落地，
+   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走
    */
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
     await finishOrChallenge(() => authApi.loginByCode({
@@ -387,7 +387,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * 退出时清掉属于这个人的本地状态，下一个登录的人不该看到：
    * 会话与权限、标签栏、分屏、会话级存储、锁屏标记与偏好回写通道
-   * 菜单路由不在这里卸：守卫下次装载前先卸掉上一份（4.x 是在这里按静态路由反选）
+   * 菜单路由不在这里卸：守卫下次装载前先卸掉上一份
    */
   function clearLocalState(): void {
     useAccessStore().$reset()

@@ -7,7 +7,7 @@ import { XFieldLabel, XNumberInput, XSelect } from '~/components'
 import { backoffOptions, MAX_RETRIES, MAX_RETRY_SECONDS } from '../job'
 
 /**
- * 重试与执行时限（照 4.x 的超时时间与最大重试次数；6.0 另有重试间隔、等待方式与指数退避的上限）
+ * 重试与执行时限：超时时间、最大重试次数、重试间隔、等待方式与指数退避的上限
  * 新建与修改计划共用；时限与重试次数留空即不限时、不重试，设了重试次数才显示间隔与等待方式
  * 放在父表单的两列网格里，按字段排开
  */

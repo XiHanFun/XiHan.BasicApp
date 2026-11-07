@@ -1,9 +1,9 @@
 /**
- * WorkflowJson ↔ 预设 4.x 引擎定义映射层（flow-workflow-json.ts）的单元测试
+ * WorkflowJson ↔ 预设定义映射层（flow-workflow-json.ts）的单元测试
  *
  * 锁定：两个方向的字段换算（名字与显示名、节点超时与重试的 TimeSpan、设计器画面数据的对象与 JSON 字符串、
- * 延时 / 遍历 / 子流程里预设沿用 4.x 叫法的属性键）、
- * 缺 id 补合法 id、去掉 4.x 才有的字段、往返稳定；经预设打开时坐标照存的还原，没有画面数据的定义按连线自动排布
+ * 延时 / 遍历 / 子流程里预设与框架叫法不同的属性键）、
+ * 缺 id 补合法 id、去掉预设才有的字段、往返稳定；经预设打开时坐标照存的还原，没有画面数据的定义按连线自动排布
  */
 import type { WorkflowJsonDefinition } from './flow-workflow-json'
 import { fromWorkflowDefinition, toWorkflowDefinition } from '@xihan-flow/core/presets/xihan-workflow'
@@ -104,7 +104,7 @@ describe('timeSpan 与秒数', () => {
   })
 })
 
-describe('fromWorkflowJson：WorkflowJson → 预设的 4.x 定义', () => {
+describe('fromWorkflowJson：WorkflowJson → 预设的定义', () => {
   it('名字成编码、显示名成名称，节点超时与重试换成秒，画面数据进 extraProperties 的 JSON 字符串', () => {
     const legacy = fromWorkflowJson(stored)
 
@@ -159,7 +159,7 @@ describe('fromWorkflowJson：WorkflowJson → 预设的 4.x 定义', () => {
   })
 })
 
-describe('toWorkflowJson：预设的 4.x 定义 → WorkflowJson', () => {
+describe('toWorkflowJson：预设的定义 → WorkflowJson', () => {
   it('编码成名字、名称成显示名，秒数换成 TimeSpan，extraProperties 的画面数据解析回 properties 的对象', () => {
     const json = toWorkflowJson({
       code: 'expense',
@@ -219,7 +219,7 @@ describe('toWorkflowJson：预设的 4.x 定义 → WorkflowJson', () => {
     })
   })
 
-  it('去掉 4.x 才有的 creationTime、publishTime 与数字租户，框架的字符串租户留着', () => {
+  it('去掉预设才有的 creationTime、publishTime 与数字租户，框架的字符串租户留着', () => {
     const legacy = toWorkflowJson({
       code: 'a',
       name: 'A',

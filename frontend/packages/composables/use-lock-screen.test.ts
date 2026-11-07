@@ -28,7 +28,7 @@ let logoutSpy = vi.fn()
 
 const wrappers: Array<{ unmount: () => void }> = []
 
-/** 6.0 的令牌在 auth 会话里：给一份只带令牌与最少资料的会话 */
+/** 令牌在 auth 会话里：给一份只带令牌与最少资料的会话 */
 function signIn(accessToken: string) {
   useAuthStore().session = {
     accessToken,

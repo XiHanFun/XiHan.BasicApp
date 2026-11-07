@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Access;
 /// 授权包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同四个实体：角色、权限目录、约束规则与访问策略。字段由响应类型生成，规则由本包的字段安全中间件在读、建、改处统一套用
+/// 四个实体：角色、权限目录、约束规则与访问策略。字段由响应类型生成，规则由本包的字段安全中间件在读、建、改处统一套用
 /// </remarks>
 public static class AccessFieldSecurity
 {

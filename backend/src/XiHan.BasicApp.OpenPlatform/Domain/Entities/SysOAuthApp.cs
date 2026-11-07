@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// OAuth 应用：接入本系统单点登录的第三方应用
 /// </summary>
 /// <remarks>
-/// 平台库实体。平台在「应用管理」里建的没有归属人；用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到（4.x 平台页看不到租户用户建的应用，ClientId 查重也只查平台的）
-/// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）。机密客户端的密钥只存 SHA-256（密钥是 256 位随机数，不需要慢散列；4.x 用 60 万次 PBKDF2，令牌端点可被当成耗 CPU 的入口）；公开客户端没有密钥、授权码必须带 PKCE
+/// 平台库实体。平台在「应用管理」里建的没有归属人；用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到
+/// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）。机密客户端的密钥只存 SHA-256（密钥是 256 位随机数，不需要慢散列，慢散列会让令牌端点成为耗 CPU 的入口）；公开客户端没有密钥、授权码必须带 PKCE
 /// </remarks>
 [ActiveUniqueIndex(nameof(ClientId))]
 [SugarIndex("ix_{table}_owner_user_id", nameof(OwnerUserId), OrderByType.Asc)]
@@ -53,9 +53,6 @@ public sealed class SysOAuthApp : AppAuditedEntity
     /// <summary>
     /// 应用类型（只用于展示）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public OAuthAppType AppType { get; set; } = OAuthAppType.Web;
 
     /// <summary>
@@ -153,9 +150,6 @@ public enum OAuthClientType
 /// <summary>
 /// OAuth 应用类型（只用于展示）
 /// </summary>
-/// <remarks>
-/// 4.x 同值
-/// </remarks>
 public enum OAuthAppType
 {
     /// <summary>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Access</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 授权能力包（Tier 1）：角色与成员、角色授予（写框架 PermissionGrantRecord）、权限目录、菜单种子、auth.permissions。</Description>
+    <Description>XiHan.BasicApp 授权能力包（Tier 1）：角色与成员、角色授予（写框架 PermissionGrantRecord）、权限目录、菜单种子、auth.permissions。</Description>
   </PropertyGroup>
 
   <ItemGroup>

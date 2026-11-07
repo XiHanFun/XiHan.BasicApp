@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 把产物打成 Zip 产物包
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ZipArtifactPackager</c> 按写入方式分目录：每次覆盖的进 <c>_generated/</c>（可整体覆盖到工程），只首次写的进 <c>_manual/</c>（目标不存在时才拷过去），
-/// 包根附 <c>README.txt</c> 说明两者的区别。6.0 的产物路径带归属（<c>backend/</c>、<c>frontend/</c>），登记片段放在包根的 <c>_registration/</c>
+/// 按写入方式分目录：每次覆盖的进 <c>_generated/</c>（可整体覆盖到工程），只首次写的进 <c>_manual/</c>（目标不存在时才拷过去），
+/// 包根附 <c>README.txt</c> 说明两者的区别。产物路径带归属（<c>backend/</c>、<c>frontend/</c>），登记片段放在包根的 <c>_registration/</c>
 /// </remarks>
 public static class CodeGenPackager
 {

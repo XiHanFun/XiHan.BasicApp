@@ -18,12 +18,12 @@ export function isEmailChannel(channel: TemplateChannel): boolean {
   return channel === 'Email'
 }
 
-/** 主题是邮件主题与站内通知的标题（4.x 同）：短信与机器人不带主题 */
+/** 主题是邮件主题与站内通知的标题：短信与机器人不带主题 */
 export function hasSubject(channel: TemplateChannel): boolean {
   return channel === 'Email' || channel === 'InApp'
 }
 
-/** 这行模板是否属于调用方这一侧：只有本侧的能改、启停与删除（租户看得到平台的，4.x 同） */
+/** 这行模板是否属于调用方这一侧：只有本侧的能改、启停与删除（租户看得到平台的） */
 export function isOwnTemplate(row: Pick<TemplateRow, 'isPlatform'>, platformCaller: boolean): boolean {
   return row.isPlatform === platformCaller
 }
@@ -89,7 +89,7 @@ export function toOverrideForm(row: TemplateRow): TemplateForm {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验，编码另按后端文法核对）；都好为空 */
+/** 表单的第一处问题（提交前校验，编码另按后端文法核对）；都好为空 */
 export type TemplateProblem = 'code' | 'content' | 'name'
 
 export function findTemplateProblem(form: TemplateForm): TemplateProblem | null {
@@ -146,7 +146,7 @@ export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'me
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改
+ * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改
  */
 export function templateResource(): SchemaResource<TemplateRow> {
   return {

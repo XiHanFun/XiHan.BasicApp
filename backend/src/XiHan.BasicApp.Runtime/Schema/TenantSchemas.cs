@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// 租户独立库的建库、建表与升级
 /// </summary>
 /// <remarks>
-/// 与 4.x 同语义（方案 5.10、5.14）：库隔离租户的独立库只建落租户库的实体（<see cref="EntityTypeCatalog.TenantScoped"/>），按当前实体建表即是最新结构，
+/// 方案 5.10、5.14：库隔离租户的独立库只建落租户库的实体（<see cref="EntityTypeCatalog.TenantScoped"/>），按当前实体建表即是最新结构，
 /// 随即在该库自己的台账（<see cref="SysVersion"/>）登记当前结构版本；之后升级只跑比台账新的 <c>Schema/&lt;版本&gt;/tenant/*.sql</c>，没有租户脚本的版本只推进台账
 /// 都在该租户的分片连接上做：自建服务作用域、先经框架的 <see cref="TenantShardScope"/> 按租户目录绑定分片（不经管道，不看应用状态与租户是否启用），再取持久化客户端
 /// </remarks>

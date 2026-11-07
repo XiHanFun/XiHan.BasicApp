@@ -9,19 +9,19 @@ export interface ScopeDepartment {
   includeChildren: boolean
 }
 
-/** 编辑中的数据范围：档位与自定义部门（角色的档位恒有值，6.0 没有「跟随角色」） */
+/** 编辑中的数据范围：档位与自定义部门（角色的档位恒有值，没有「跟随角色」） */
 export interface DataScopeDraft {
   dataScope: DataScopeValue
   departments: ScopeDepartment[]
 }
 
-/** 成员（用户级覆盖）的数据范围草稿：档位为空即「跟随角色」（4.x 的成员覆盖） */
+/** 成员（用户级覆盖）的数据范围草稿：档位为空即「跟随角色」 */
 export interface MemberDataScopeDraft {
   dataScope: DataScopeValue | null
   departments: ScopeDepartment[]
 }
 
-/** 档位的展示顺序：从宽到窄，自定义垫底（与 4.x 一致） */
+/** 档位的展示顺序：从宽到窄，自定义垫底 */
 export const DATA_SCOPE_LEVELS: readonly DataScopeValue[] = [
   'All',
   'DepartmentAndChildren',

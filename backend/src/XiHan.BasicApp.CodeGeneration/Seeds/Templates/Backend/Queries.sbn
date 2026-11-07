@@ -28,7 +28,7 @@ namespace {{ Namespace }}.Queries;
 /// {{ DisplayName | xml_doc }}的列表查询（SqlSugar 直查，租户库）
 /// </summary>
 /// <remarks>
-/// 按白名单接受筛选与排序，别的是 <c>{{ ErrorPrefix }}_VALIDATION</c>；没给排序即创建时间倒序，创建时间可按区间筛选（照 4.x）
+/// 按白名单接受筛选与排序，别的是 <c>{{ ErrorPrefix }}_VALIDATION</c>；没给排序即创建时间倒序，创建时间可按区间筛选
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
 public sealed partial class {{ ClassName }}Queries(SqlSugarUnitOfWork unitOfWork)

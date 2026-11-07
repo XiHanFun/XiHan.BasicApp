@@ -22,7 +22,7 @@ public sealed record WorkflowOwnTask(WorkflowCaller Caller, UserTask Task, Workf
 /// 办理、转办与加签共用的取待办与目标核对（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>LoadOwnTaskAsync</c>：只在调用方自己的待办里找，不存在、已办理与不归调用方合成一个 <see cref="WorkflowErrors.TaskNotFound"/>（不透露别人的待办是否存在）
+/// 只在调用方自己的待办里找，不存在、已办理与不归调用方合成一个 <see cref="WorkflowErrors.TaskNotFound"/>（不透露别人的待办是否存在）
 /// </remarks>
 /// <param name="tasks">任务服务</param>
 /// <param name="engine">引擎</param>

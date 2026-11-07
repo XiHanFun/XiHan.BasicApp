@@ -44,7 +44,7 @@ public sealed record CreateJobRequest(
 /// 新建运行时作业
 /// </summary>
 /// <remarks>
-/// <c>POST /api/jobs</c>（平台侧，照 4.x 的新建任务，替代 4.x 的 DynamicJobWorker）。经框架 <c>ScheduleAsync</c> 运行时登记：
+/// <c>POST /api/jobs</c>（平台侧）。经框架 <c>ScheduleAsync</c> 运行时登记：
 /// 类型须在作业类型登记里（否则 <c>MAINTENANCE_CONFLICT_001</c>），同名作业已存在 <c>MAINTENANCE_CONFLICT_003</c>，
 /// 作业名不合规 <c>MAINTENANCE_VALIDATION_004</c>，参数不是 JSON 对象 <c>MAINTENANCE_VALIDATION_005</c>，计划写得不对 <c>MAINTENANCE_VALIDATION_002</c>
 /// </remarks>

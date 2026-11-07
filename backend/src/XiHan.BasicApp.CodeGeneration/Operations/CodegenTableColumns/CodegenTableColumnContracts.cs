@@ -147,7 +147,7 @@ public sealed record ListCodegenTableColumnsRequest(Guid TableId);
 /// 保存一列的人工配置
 /// </summary>
 /// <remarks>
-/// 结构字段（列名、类型、主键、可空、长度）以库为准，不在这里改。选项来源只留当前来源要的那个字段（照 4.x）
+/// 结构字段（列名、类型、主键、可空、长度）以库为准，不在这里改。选项来源只留当前来源要的那个字段
 /// </remarks>
 /// <param name="Id">列配置 ID</param>
 /// <param name="ConcurrencyStamp">读到的并发戳</param>

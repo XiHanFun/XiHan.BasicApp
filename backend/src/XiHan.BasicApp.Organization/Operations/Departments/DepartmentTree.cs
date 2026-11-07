@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// </summary>
 /// <remarks>
 /// <c>GET /api/departments:tree</c>（声明只读，请求没有嵌套对象，按 ADR-0041 走 GET）。只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。一次取出当前租户全部部门与归属行，在内存里组树并数直接成员（一个租户的部门数以百计，不分页）
-/// 带关键字时只留命中的部门（不分大小写，匹配编码、名称、电话、邮箱、地址与说明）：上级没命中的当作顶层，不补上它的祖先（4.x 同）
+/// 带关键字时只留命中的部门（不分大小写，匹配编码、名称、电话、邮箱、地址与说明）：上级没命中的当作顶层，不补上它的祖先
 /// </remarks>
 /// <param name="departments">部门仓储</param>
 /// <param name="memberships">归属仓储</param>

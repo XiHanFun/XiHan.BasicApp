@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "列「{column}」の定数の選択肢は空でない配列で、各項目に文字列の label と文字列か数値の value が必要です：{value}",
   "codegeneration.generate.const_options_type_mismatch": "列「{column}」の型は {type} ですが、定数の選択肢の値は {valueType} です。",
   "openapi.tags.codegen_templates.name": "コード生成テンプレート",
-  "openapi.tags.codegen_templates.description": "テーブル設定から 6.0 のパッケージとフロントエンドモジュールを作る Scriban テンプレート。組み込みはアプリのバージョンに従い、独自テンプレートを追加できます。",
+  "openapi.tags.codegen_templates.description": "テーブル設定からバックエンドパッケージとフロントエンドモジュールを作る Scriban テンプレート。組み込みはアプリのバージョンに従い、独自テンプレートを追加できます。",
   "permissions.codegeneration.codegen_templates.read.name": "コード生成のテンプレートを閲覧",
   "permissions.codegeneration.codegen_templates.read.description": "コード生成のテンプレートを閲覧し、構文をチェックします。",
   "permissions.codegeneration.codegen_templates.create.name": "コード生成のテンプレートを作成",

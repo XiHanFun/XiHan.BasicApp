@@ -11,9 +11,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 登记片段：<c>_registration/&lt;资源&gt;.md</c>
 /// </summary>
 /// <remarks>
-/// 用户已定：片段由引擎拼出、不做成模板（照 4.x 的接线产物也是 C# 拼的）
+/// 用户已定：片段由引擎拼出、不做成模板
 /// 「加入已有包」按文件列出要人工合入的行（错误码序号写成待填 <c>NNN</c>）；「新建包」写明加进解决方案、宿主与架构测试的 Tier 表（按 Tier 3 登记）
-/// 操作 ID 已被别的包占用时在开头告警（照 4.x 生成前的权限码预检，只提示、不拦）
+/// 操作 ID 已被别的包占用时在开头告警（只提示、不拦）
 /// </remarks>
 public static class CodeGenRegistration
 {

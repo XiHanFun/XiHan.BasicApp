@@ -426,7 +426,7 @@ function remove(row: PrintTemplateRow): void {
         return false
       actionLoading.value = true
       try {
-        // 6.0 的删除是批量形态：逐项结果里没有成功即报失败（启用中的模板后端逐项拒绝）
+        // 删除是批量形态：逐项结果里没有成功即报失败（启用中的模板后端逐项拒绝）
         const result = await printTemplates.delete({
           ids: [row.id],
         })

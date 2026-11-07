@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 系统参数 <see cref="ConfigKey"/>：逗号分隔的方式名（<c>password</c>、<c>email</c>、<c>phone</c>），只认平台的（登录在进入租户之前）；
-/// 没建即只有密码登录（4.x 的缺省同）。密码登录总是开着，写不写都一样；邮箱 / 手机验证码登录列出才开，服务端照此拦（4.x 只拦手机）
+/// 没建即只有密码登录。密码登录总是开着，写不写都一样；邮箱 / 手机验证码登录列出才开，服务端照此拦
 /// 有认不出的方式名即 <c>IDENTITY_VALIDATION_021</c>：参数写错要让人看见，不悄悄当作没开
 /// </remarks>
 public static class LoginMethods

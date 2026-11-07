@@ -4,7 +4,7 @@ import { AUTH_PATH, FORBIDDEN_PATH, LOGIN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PAT
 /**
  * 核心路由（认证 + 错误页）——唯一定义源
  * src/router/routes.ts 直接展开使用，不再重复声明
- * 认证子页照 4.x：登录、验证码登录、找回密码、注册与第三方登录回调（扫码登录 6.0 不做）；找回密码 6.0 发验证码，没有 4.x 的重置链接页
+ * 认证子页：登录、验证码登录、找回密码、注册与第三方登录回调（不做扫码登录）；找回密码发验证码，没有重置链接页
  */
 export const coreRoutes: RouteRecordRaw[] = [
   {

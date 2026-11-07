@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 平台一侧：办理、转办、加签与审批记录，我已审批 / 抄送我的 / 我发起的，详情按参与关系鉴权与审批轨迹，撤回与中止回写，通知与按消息去重，工作台的「我的待办」，审批业务服务；
-/// 演示租户：四个演示流程照 4.x 的走向跑到结论（采购另走一遍节点超时）
+/// 演示租户：四个演示流程跑到结论（采购另走一遍节点超时）
 /// </remarks>
 public sealed class WorkflowApprovalsTests : IDisposable
 {
@@ -419,7 +419,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
         Assert.StartsWith("ワークフロー障害：", notice.GetProperty("title").GetString(), StringComparison.Ordinal);
         Assert.EndsWith("：ユーザータスク 'approve' の担当者を解決できませんでした。", notice.GetProperty("content").GetString(), StringComparison.Ordinal);
 
-        // 发起人能撤回故障的实例（4.x 同）：实例取消，审批业务收到中止回写，单据不会一直停在审批中
+        // 发起人能撤回故障的实例：实例取消，审批业务收到中止回写，单据不会一直停在审批中
         var faultedId = instance.GetProperty("id").GetString()!;
         var (withdrawn, after) = await SendAsync(server, HttpMethod.Post, $"/api/approvals/{faultedId}:withdraw", "{}", platform);
         Assert.Equal((HttpStatusCode.OK, "Canceled"), (withdrawn, after.GetProperty("status").GetString()));

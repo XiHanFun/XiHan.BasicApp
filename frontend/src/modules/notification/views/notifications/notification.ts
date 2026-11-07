@@ -18,14 +18,14 @@ export const NOTIFICATION_QUERY: PageQueryMapping = {
   filters: { isPublished: 'eq' },
 }
 
-/** 运营数据抽屉里接收人列表的页大小（4.x 同） */
+/** 运营数据抽屉里接收人列表的页大小 */
 export const RECIPIENT_PAGE_SIZE = 10
-/** 导出未读至多多少人（4.x 同） */
+/** 导出未读至多多少人 */
 export const EXPORT_LIMIT = 1000
 /** 后端 `PageInfo.MaxSize`：导出与目标候选一次取的上限 */
 const PAGE_MAX_SIZE = 500
 
-/** 角色、部门与用户目标的 ID 是 GUID（4.x 是正整数） */
+/** 角色、部门与用户目标的 ID 是 GUID */
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** 投递目标要不要选具体对象：全员不要，角色、部门、用户至少一个 */
@@ -63,7 +63,7 @@ export interface NotificationForm {
   isMandatory: boolean
   isBanner: boolean
   isPopup: boolean
-  // 表单不暴露、编辑时原样带回（4.x 同），免得整体覆盖时丢掉
+  // 表单不暴露、编辑时原样带回，免得整体覆盖时丢掉
   businessType: null | string
   businessId: null | string
   remark: null | string
@@ -103,7 +103,7 @@ function toTimestamp(value: null | string | undefined): null | number {
     : time
 }
 
-/** 草稿回填表单：6.0 的详情带投递目标，编辑时原目标一并回填（4.x 要重新填写） */
+/** 草稿回填表单：详情带投递目标，编辑时原目标一并回填 */
 export function toNotificationForm(detail: NotificationDetail): NotificationForm {
   return {
     id: detail.id,
@@ -131,7 +131,7 @@ export function toNotificationForm(detail: NotificationDetail): NotificationForm
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验；用户 ID 由正整数改为 GUID）；都好为空 */
+/** 表单的第一处问题（提交前校验；用户 ID 是 GUID）；都好为空 */
 export type NotificationFormProblem = 'department_required' | 'role_required' | 'title' | 'user_id_invalid' | 'user_required'
 
 export function findNotificationProblem(form: NotificationForm): NotificationFormProblem | null {
@@ -202,7 +202,7 @@ function commonBody(form: NotificationForm) {
   }
 }
 
-/** 新建只存草稿，在列表里再发布（4.x 同） */
+/** 新建只存草稿，在列表里再发布 */
 export function toCreateBody(form: NotificationForm): RequestOf<'notifications.create'> {
   return {
     ...commonBody(form),
@@ -254,7 +254,7 @@ export function recipientFilterLabel(t: Translate, filter: NotificationRecipient
   }
 }
 
-/** 一页接收人（运营数据抽屉；4.x 只有未读人员一档） */
+/** 一页接收人（运营数据抽屉） */
 export function loadRecipients(id: string, filter: NotificationRecipientFilter, page: number): Promise<RecipientPage> {
   return notificationsApi.recipients({
     id,
@@ -288,7 +288,7 @@ function csvCell(value: string): string {
   return `"${csvNeutralize(value).replaceAll('"', '""')}"`
 }
 
-/** 未读人员 CSV（4.x 同：带 BOM 防中文乱码、CRLF 换行、每格加引号）：用户名、显示名、收到时间 */
+/** 未读人员 CSV（带 BOM 防中文乱码、CRLF 换行、每格加引号）：用户名、显示名、收到时间 */
 export function unreadCsv(header: readonly [string, string, string], rows: readonly RecipientRow[], formatTime: (value: string) => string): string {
   const lines = [
     header,
@@ -302,7 +302,7 @@ export function unreadCsv(header: readonly [string, string, string], rows: reado
   return `${String.fromCharCode(0xFEFF)}${lines.join('\r\n')}`
 }
 
-/** 角色目标的候选：本侧启用的角色（4.x 同） */
+/** 角色目标的候选：本侧启用的角色 */
 export async function loadRoleOptions(): Promise<{ label: string, value: string }[]> {
   const result = await rolesApi.list({
     page: { index: 1, size: PAGE_MAX_SIZE },

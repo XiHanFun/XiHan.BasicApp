@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证 AI 模块的提示词
 /// </summary>
 /// <remarks>
-/// 照 4.x：编码唯一且不可改、正文原样保存、版本只是标签（同一编码只有一行）、列表不带正文；只在平台一侧
+/// 编码唯一且不可改、正文原样保存、版本只是标签（同一编码只有一行）、列表不带正文；只在平台一侧
 /// </remarks>
 public sealed class AIPromptsTests : IDisposable
 {
@@ -47,7 +47,7 @@ public sealed class AIPromptsTests : IDisposable
         var admin = TestTokens.Issue("root", null, Admin);
         const string content = "  You are a helpful assistant.\n  Answer in {language}.\n";
 
-        // 新建：正文原样保存（首尾空白与占位符都不动，照 4.x 没有变量渲染）
+        // 新建：正文原样保存（首尾空白与占位符都不动，没有变量渲染）
         var (created, body) = await SendAsync(server, HttpMethod.Post, "/api/ai-prompts", Json(new { code = "rag-answer", name = "RAG", content, category = "RAG", version = "v1", order = 5 }), admin);
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         Assert.Equal(content, body.GetProperty("content").GetString());

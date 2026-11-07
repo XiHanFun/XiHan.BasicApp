@@ -97,7 +97,7 @@ public sealed record ChatAssistantCompletedPayload(Guid ConversationId, string R
 /// 聊天的推送（作用域）
 /// </summary>
 /// <remarks>
-/// 经 <see cref="RealtimeHubs.Chat"/> 按成员点发（受众是会话这一侧的这些用户，同一个人切到别的租户时收不到），调用提交之后才发出（4.x 在提交前推送）
+/// 经 <see cref="RealtimeHubs.Chat"/> 按成员点发（受众是会话这一侧的这些用户，同一个人切到别的租户时收不到），调用提交之后才发出
 /// </remarks>
 /// <param name="push">实时推送</param>
 public sealed class ChatPush(IRealtimePush push)

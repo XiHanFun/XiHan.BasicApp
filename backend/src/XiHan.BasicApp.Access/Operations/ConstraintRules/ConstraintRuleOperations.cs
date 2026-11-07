@@ -68,7 +68,7 @@ public sealed class GetConstraintRule(ConstraintRuleService service, ConstraintR
 /// 在当前一侧新建约束规则
 /// </summary>
 /// <remarks>
-/// <c>POST /api/constraint-rules</c>。之后的指派、授予、继承、委托与会话激活按它判定（已有的不回头检查，4.x 同）
+/// <c>POST /api/constraint-rules</c>。之后的指派、授予、继承、委托与会话激活按它判定（已有的不回头检查）
 /// </remarks>
 /// <param name="service">规则服务</param>
 /// <param name="projection">规则投影</param>

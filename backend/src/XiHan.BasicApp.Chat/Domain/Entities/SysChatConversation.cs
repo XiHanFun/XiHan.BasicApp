@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// <remarks>
 /// 单聊、群聊、部门群与助手会话，随租户库隔离（平台一侧租户为 <c>platform</c>）。单聊以 <see cref="PairKey"/>（两个用户 ID 小者在前）在本侧唯一，
 /// 助手会话借同一唯一约束承载「一个用户对一个助手只有一个会话」（<c>ai:&lt;助手&gt;:&lt;用户&gt;</c>）
-/// 每发一条消息都更新最后消息与序号，所以不进差异日志。会话没有删除入口（照 4.x）
+/// 每发一条消息都更新最后消息与序号，所以不进差异日志。会话没有删除入口
 /// </remarks>
 [ActiveUniqueIndex(nameof(TenantId), nameof(PairKey))]
 [SugarIndex("ix_{table}_tenant_id_department_id", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
@@ -112,7 +112,7 @@ public enum ChatConversationType
     /// <summary>
     /// 单聊
     /// </summary>
-#pragma warning disable CA1720 // 照 4.x 的线上取值 Single（前端按名称取值）
+#pragma warning disable CA1720 // 线上取值是 Single（前端按名称取值）
     Single = 1,
 #pragma warning restore CA1720
 

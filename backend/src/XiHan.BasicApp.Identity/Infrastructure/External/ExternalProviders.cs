@@ -23,7 +23,7 @@ public sealed record ExternalIdentity(string ProviderKey, string? DisplayName, s
 /// 一家第三方登录的协议
 /// </summary>
 /// <remarks>
-/// 照 4.x 的处理器逐家重写，不经 ASP.NET Core 的认证处理器。拼授权地址、用授权码换令牌、取用户资料
+/// 逐家实现，不经 ASP.NET Core 的认证处理器。拼授权地址、用授权码换令牌、取用户资料
 /// </remarks>
 public interface IExternalLoginProvider
 {
@@ -36,7 +36,7 @@ public interface IExternalLoginProvider
     /// 是否用 PKCE
     /// </summary>
     /// <remarks>
-    /// 只有 Google，4.x 同
+    /// 只有 Google
     /// </remarks>
     bool UsesPkce => false;
 
@@ -374,7 +374,7 @@ internal sealed class QqProvider : IExternalLoginProvider
 /// 微信登录
 /// </summary>
 /// <remarks>
-/// 扫码 qrconnect / snsapi_login，账号走公众号网页授权 / snsapi_userinfo；参数按序、末尾 <c>#wechat_redirect</c>；state 是短随机串，不需要 4.x 的短 state 绕法；key unionid ?? openid
+/// 扫码 qrconnect / snsapi_login，账号走公众号网页授权 / snsapi_userinfo；参数按序、末尾 <c>#wechat_redirect</c>；state 是短随机串，无需另做缩短；key unionid ?? openid
 /// </remarks>
 internal sealed class WeChatProvider : IExternalLoginProvider
 {

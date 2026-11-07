@@ -182,7 +182,7 @@ describe('任务调度：运行状态', () => {
     expect(isRunning(job())).toBe(false)
   })
 
-  it('文案与语气沿用 4.x：成功绿、失败红、运行中黄、暂停中性、待执行蓝；搜索只给后端筛得了的两项', () => {
+  it('文案与语气：成功绿、失败红、运行中黄、暂停中性、待执行蓝；搜索只给后端筛得了的两项', () => {
     expect(runStatusLabel(t, 'Running')).toBe('maintenance.jobs.run_running')
     expect(runStatusLabel(t, 'Pending')).toBe('maintenance.jobs.run_pending')
     expect([
@@ -222,7 +222,7 @@ describe('任务调度：列表行', () => {
     expect(jobGroup('.hidden')).toBeNull()
   })
 
-  it('触发类型沿用 4.x 的四个文案：手动即立即执行、一次性即定时执行、间隔即循环执行', () => {
+  it('触发类型的四个文案：手动即立即执行、一次性即定时执行、间隔即循环执行', () => {
     expect(kindOptions(t)).toEqual([
       { label: 'maintenance.jobs.trigger_immediate', value: 'Manual' },
       { label: 'maintenance.jobs.trigger_schedule', value: 'Once' },
@@ -753,7 +753,7 @@ describe('任务调度：执行日志', () => {
     keyword: '',
   } as const
 
-  it('按作业过滤，状态单选，关键字（替 4.x 的批次号）去空白，留空不下发', () => {
+  it('按作业过滤，状态单选，关键字去空白，留空不下发', () => {
     expect(toJobRunsRequest({
       ...NO_FILTERS,
       job: 'auditing.retention',
@@ -851,7 +851,7 @@ describe('任务调度：执行日志', () => {
     })
   })
 
-  it('耗时同 4.x：不足一秒按毫秒、否则按秒两位，还在运行为 -；运行状态、触发方式与触发器状态的文案和语气', () => {
+  it('耗时：不足一秒按毫秒、否则按秒两位，还在运行为 -；运行状态、触发方式与触发器状态的文案和语气', () => {
     expect(formatDuration(999)).toBe('999 ms')
     expect(formatDuration(1500)).toBe('1.50 s')
     expect(formatDuration(null)).toBe('-')

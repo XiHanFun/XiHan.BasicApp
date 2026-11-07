@@ -917,7 +917,7 @@ function handleDeleteAccount() {
       </div>
     </section>
 
-    <!-- 账号管理：停用与注销账号随个人中心批次（N2 第六批）接入 6.0，之前不显示 -->
+    <!-- 账号管理：停用与注销账号 -->
     <section class="pf-section">
       <div class="pf-section__head">
         <div class="pf-section__heading">

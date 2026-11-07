@@ -28,8 +28,8 @@ import {
 import { workflowProgressText, workflowProgressTone } from '../workflow-progress'
 
 /**
- * 授权申请页的「申请」页签（照 4.x）：为自己申请角色或权限，提交即进入审批流；审批在审批中心办理，这里看进度、跳过去看轨迹
- * 另补上 4.x 后端有、前端没接的「修改重提」与「手工驳回 / 撤回」（W2）
+ * 授权申请页的「申请」页签：为自己申请角色或权限，提交即进入审批流；审批在审批中心办理，这里看进度、跳过去看轨迹
+ * 另有「修改重提」与「手工驳回 / 撤回」（W2）
  */
 defineOptions({ name: 'AccessPermissionRequestsTab' })
 
@@ -82,7 +82,7 @@ const closeStatusOptions = computed(() => [
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的） ──
 const asRow = (row: object) => row as PermissionRequestRow
 
-/** 审批进度：有流程时出标签，没有流程或审批未启用时出文字（4.x 同） */
+/** 审批进度：有流程时出标签，没有流程或审批未启用时出文字 */
 function progressCell(row: PermissionRequestRow) {
   const text = workflowProgressText(t, row.workflow, row.approvalEnabled)
   return row.approvalEnabled && row.workflow
@@ -260,7 +260,7 @@ async function withdraw(row: PermissionRequestRow) {
   }
 }
 
-/** 4.x 的提交前校验：缺什么先提示，不发请求 */
+/** 提交前校验：缺什么先提示，不发请求 */
 function validate(): boolean {
   const form = editor.form
   if (form.targetKind === 'role' && !form.roleId) {

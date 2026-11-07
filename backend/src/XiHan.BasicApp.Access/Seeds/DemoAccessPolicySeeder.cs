@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Access.Seeds;
 /// </summary>
 /// <remarks>
 /// 号段 900 + 模块偏移 20 + 6（排在演示角色之后），<c>BasicApp:Seed:EnableDemoData</c> 打开才写
-/// 照 4.x，在演示租户 <c>demo</c> 里写两条只记录的策略（非工作时间、境外访问），内容取同名模板，让命中记录页有数据
+/// 在演示租户 <c>demo</c> 里写两条只记录的策略（非工作时间、境外访问），内容取同名模板，让命中记录页有数据
 /// 按编码只首写：写过一次（含已删除的）就不再碰
 /// </remarks>
 /// <param name="service">策略服务</param>

@@ -149,7 +149,7 @@ function databaseTag(row: TenantRow) {
     : tag
 }
 
-// ── 配额：用量单元格（4.x 同：超限标红、到 80% 标黄，其余普通文本），弹窗里上限留空时沿用套餐的值 ──
+// ── 配额：用量单元格（超限标红、到 80% 标黄，其余普通文本），弹窗里上限留空时沿用套餐的值 ──
 function seatCell(quota: TenantQuota | undefined): UsageCell | null {
   return quota
     ? seatUsage(quota, t('tenancy.tenants.quota.unlimited'))
@@ -336,7 +336,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 100,
     order: 5,
   },
-  // 共库即「共库」，独立库按状态（4.x 的配置状态）；失败原因悬停可看
+  // 共库即「共库」，独立库按配置状态；失败原因悬停可看
   {
     key: 'databaseStatus',
     title: t('tenancy.tenants.fields.database'),
@@ -552,7 +552,7 @@ async function onSubmit() {
   reload()
   if (!creating)
     return
-  // 开通三步（与 4.x 相同）：独立库先初始化数据库、就绪后再初始化管理员，共库直接接着初始化管理员；都可以稍后从行操作进
+  // 开通三步：独立库先初始化数据库、就绪后再初始化管理员，共库直接接着初始化管理员；都可以稍后从行操作进
   if (saved.isolationMode === 'Database') {
     if (auth.can('tenancy.tenants.initialize-database'))
       void confirmInitializeDatabase(saved, t('tenancy.tenants.database.init_after_create', { name: saved.name }), true)
@@ -630,7 +630,7 @@ function startAddMember() {
     memberEditor.start(tenant.tenantId)
 }
 
-/** 用户一栏随成员类型换说法：运维支持只在平台账号里挑（4.x「支持人员入驻」的写法） */
+/** 用户一栏随成员类型换说法：运维支持只在平台账号里挑 */
 const memberUserLabel = computed(() => (memberEditor.form.memberType === 'Support'
   ? t('tenancy.tenants.members.platform_user')
   : t('tenancy.tenants.members.user')))
@@ -769,7 +769,7 @@ function formatNullableDate(value: null | string | undefined): string {
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.edition') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ editionLabel(detail.detail.value.tenant.editionId) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
-                  <!-- 独立库（4.x 的隔离模式、数据库类型与配置状态）：连接串从不返回；初始化失败的原因写在状态下面 -->
+                  <!-- 独立库（隔离模式、数据库类型与配置状态）：连接串从不返回；初始化失败的原因写在状态下面 -->
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.isolation_mode') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ isolationLabel(detail.detail.value.tenant.isolationMode) }}</XhDescriptionsValue>
@@ -914,7 +914,7 @@ function formatNullableDate(value: null | string | undefined): string {
                         </td>
                         <td v-if="showMemberActions">
                           <div class="flex flex-wrap items-center gap-1">
-                            <!-- 4.x 同：能接任的成员行上「设为所有者」，打开转移弹窗并预选该成员 -->
+                            <!-- 能接任的成员行上「设为所有者」，打开转移弹窗并预选该成员 -->
                             <XhButton v-if="canTransferOwner && isOwnerCandidate(member, ownerId)" variant="subtle" size="sm" @click="startOwnerTransfer(member.userId)">
                               {{ t('tenancy.tenants.owner.set_owner') }}
                             </XhButton>
@@ -935,7 +935,7 @@ function formatNullableDate(value: null | string | undefined): string {
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 配额核对（4.x 同）：只列超出席位或存储上限的租户；配额只拦新增，已超额的不回收 -->
+    <!-- 配额核对：只列超出席位或存储上限的租户；配额只拦新增，已超额的不回收 -->
     <XhDrawerRoot v-model:open="audit.open.value" side="right">
       <XhDrawerContent style="--xh-drawer-size: 760px">
         <XhDrawerHeader>
@@ -1029,7 +1029,7 @@ function formatNullableDate(value: null | string | undefined): string {
             {{ editor.fieldError('expiresAt') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <!-- 租户自己的上限覆盖套餐的；留空即沿用套餐，占位写出沿用的值（4.x 同） -->
+        <!-- 租户自己的上限覆盖套餐的；留空即沿用套餐，占位写出沿用的值 -->
         <XhFieldRoot :invalid="!!editor.fieldError('userLimit')">
           <XhFieldLabel>{{ t('tenancy.tenants.fields.user_limit') }}</XhFieldLabel>
           <XhFieldControl>
@@ -1057,7 +1057,7 @@ function formatNullableDate(value: null | string | undefined): string {
             {{ editor.fieldError('order') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <!-- 隔离方式与独立库的连接（4.x 同一组字段）：存好资料后另走 configure-database；独立库就绪后只读 -->
+        <!-- 隔离方式与独立库的连接：存好资料后另走 configure-database；独立库就绪后只读 -->
         <template v-if="canConfigureDatabase">
           <XhFieldRoot :invalid="!!editor.fieldError('isolationMode')" :disabled="editor.databaseLocked.value">
             <XFieldLabel :help="editor.databaseLocked.value ? t('tenancy.tenants.database.locked_hint') : t('tenancy.tenants.database.isolation_hint')">
@@ -1107,7 +1107,7 @@ function formatNullableDate(value: null | string | undefined): string {
             {{ editor.fieldError('description') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <!-- 开通三步：独立库先初始化数据库，再初始化管理员（4.x 同） -->
+        <!-- 开通三步：独立库先初始化数据库，再初始化管理员 -->
         <p v-if="!editor.isEdit.value && choosesDatabase" class="xh-span-2 text-caption text-fg-muted">
           {{ t('tenancy.tenants.database.admin_hint') }}
         </p>

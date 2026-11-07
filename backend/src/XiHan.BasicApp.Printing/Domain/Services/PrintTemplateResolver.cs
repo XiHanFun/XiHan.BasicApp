@@ -18,9 +18,9 @@ namespace XiHan.BasicApp.Printing.Domain.Services;
 /// 按编码与作用域解析可打印的模板
 /// </summary>
 /// <remarks>
-/// 解析顺序照 4.x（见 <see cref="PrintTemplateScope"/>）：平台一侧只取启用的全局模板、不要求开放；租户一侧的 <c>Auto</c> 先取本租户启用的、没有再取启用且开放的全局模板，
+/// 解析顺序（见 <see cref="PrintTemplateScope"/>）：平台一侧只取启用的全局模板、不要求开放；租户一侧的 <c>Auto</c> 先取本租户启用的、没有再取启用且开放的全局模板，
 /// <c>Tenant</c> 与 <c>Global</c> 不回退。各侧「某编码的启用模板」进共享缓存（键 <c>printing:templates:&lt;侧&gt;:&lt;编码&gt;</c>，30 分钟，「没有」也缓存），
-/// 解析时按请求一侧合成；模板写入后按所属一侧与编码失效（推到工作单元之后，Access 各缓存同一写法）。4.x 按请求租户与作用域缓存解析结果、写入后按模式全删，6.0 分侧缓存，解析结果不变
+/// 解析时按请求一侧合成；模板写入后按所属一侧与编码失效（推到工作单元之后，Access 各缓存同一写法）
 /// 缓存的是模板元数据与设计 JSON，不缓存打印数据
 /// </remarks>
 /// <param name="templates">模板仓储</param>

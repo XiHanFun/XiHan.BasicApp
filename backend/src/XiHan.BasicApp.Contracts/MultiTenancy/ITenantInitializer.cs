@@ -34,7 +34,7 @@ public interface ITenantInitializer
     /// 成员被移出 <paramref name="tenantId"/> 之后的处理
     /// </summary>
     /// <remarks>
-    /// 解除他在这个租户的角色（4.x 同），授权缓存随即失效：再被加回来也不带旧角色
+    /// 解除他在这个租户的角色，授权缓存随即失效：再被加回来也不带旧角色
     /// </remarks>
     Task<Result> RemoveMemberAsync(string tenantId, Guid userId, InvocationContext context);
 }

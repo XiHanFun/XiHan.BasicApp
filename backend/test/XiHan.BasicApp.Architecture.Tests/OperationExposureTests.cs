@@ -42,7 +42,7 @@ public sealed class OperationExposureTests
         ["dicts.list"] = DirectoryRead,
         ["dicts.get"] = DirectoryRead,
         ["dicts.options"] = DirectoryRead,
-        // 知识检索取代 4.x 的 knowledge_retrieve 技能与 MCP 工具：以调用方身份、只在调用方一侧
+        // 知识检索：以调用方身份、只在调用方一侧
         ["knowledge-documents.search"] = DirectoryRead,
         ["dict-items.list"] = DirectoryRead,
         ["dict-items.tree"] = DirectoryRead,

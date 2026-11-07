@@ -24,7 +24,7 @@ beforeEach(() => {
 })
 
 describe('版本管理的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV（4.x 同），不提交到导出中心', () => {
+  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('maintenance.versions.read')
     expect(schema.resource.export).toBeUndefined()

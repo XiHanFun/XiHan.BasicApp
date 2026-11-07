@@ -32,7 +32,7 @@ export interface TargetOption {
   description?: string
 }
 
-/** 弹窗表单（新建与编辑共用；4.x 的缺省值：隐藏、前 3 后 4） */
+/** 弹窗表单（新建与编辑共用；缺省隐藏、前 3 后 4） */
 export interface FieldRuleForm {
   targetKind: FieldTargetKind
   targetId: string
@@ -63,7 +63,7 @@ function emptyForm(): FieldRuleForm {
   }
 }
 
-/** 只提交当前读取方式用得到的参数（4.x 的 buildDefinition）；明文规则一律只读 */
+/** 只提交当前读取方式用得到的参数；明文规则一律只读 */
 export function toDefinition(form: FieldRuleForm): Omit<RequestOf<'field-security.create'>, 'status'> {
   const partial = form.strategy === 'PartialMask'
   return {
@@ -222,7 +222,7 @@ export function useFieldSecurityEntities() {
 }
 
 /**
- * 字段规则的编辑弹窗（4.x 的字段安全表单）：目标按类型远程检索，实体与字段从目录选；
+ * 字段规则的编辑弹窗：目标按类型远程检索，实体与字段从目录选；
  * 非文本字段只能明文或隐藏、不可空的字段不能隐藏，明文规则只能只读。字段级错误挂回对应字段
  */
 export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEntity | undefined) {

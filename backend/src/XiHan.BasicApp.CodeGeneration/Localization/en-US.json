@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "The constant options of column '{column}' must be a non-empty array of objects, each with a text label and a text or number value: {value}",
   "codegeneration.generate.const_options_type_mismatch": "Column '{column}' is {type} but its constant option values are {valueType}.",
   "openapi.tags.codegen_templates.name": "Code generation templates",
-  "openapi.tags.codegen_templates.description": "Scriban templates that turn table configurations into a 6.0 package and frontend module: built-in templates follow the application version, custom ones can be added.",
+  "openapi.tags.codegen_templates.description": "Scriban templates that turn table configurations into a backend package and frontend module: built-in templates follow the application version, custom ones can be added.",
   "permissions.codegeneration.codegen_templates.read.name": "Read code generation templates",
   "permissions.codegeneration.codegen_templates.read.description": "View the code generation templates and check their syntax.",
   "permissions.codegeneration.codegen_templates.create.name": "Create code generation templates",

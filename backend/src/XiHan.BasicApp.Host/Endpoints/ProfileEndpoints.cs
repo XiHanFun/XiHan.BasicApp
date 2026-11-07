@@ -18,8 +18,8 @@ namespace XiHan.BasicApp.Host.Endpoints;
 /// 个人中心的头像上传端点
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile/avatar</c>（multipart，字段 <c>file</c>）。只要求登录，不要 Files 的上传权限；模仿会话不拒绝（4.x 同，资料不拦）
-/// 按文件头认 JPEG / PNG（不信扩展名与上传方给的内容类型），不超过 2 MB；存平台侧、公开级别（6.0 的用户跨租户，头像跟着用户走、不属于某个租户，所以不计入租户的存储配额），
+/// <c>POST /api/profile/avatar</c>（multipart，字段 <c>file</c>）。只要求登录，不要 Files 的上传权限；模仿会话不拒绝（资料不拦）
+/// 按文件头认 JPEG / PNG（不信扩展名与上传方给的内容类型），不超过 2 MB；存平台侧、公开级别（用户跨租户，头像跟着用户走、不属于某个租户，所以不计入租户的存储配额），
 /// 随即换成本人的头像并回收旧的头像文件，回本人的资料。去掉头像走 <c>profile.remove-avatar</c>
 /// </remarks>
 internal static class ProfileEndpoints
@@ -27,9 +27,6 @@ internal static class ProfileEndpoints
     /// <summary>
     /// 头像的大小上限
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const long MaxAvatarBytes = 2 * 1024 * 1024;
 
     private const long FormOverhead = 64 * 1024;

@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// 一个运行中的 Telegram 机器人
 /// </summary>
 /// <remarks>
-/// 从 <see cref="Domain.Entities.SysTelegramBot"/> 规整而来：令牌已解密、名称与令牌去空格、管理员只取 &gt; 0、群组只取 ≠ 0、命令规整去重，4.x 同
+/// 从 <see cref="Domain.Entities.SysTelegramBot"/> 规整而来：令牌已解密、名称与令牌去空格、管理员只取 &gt; 0、群组只取 ≠ 0、命令规整去重
 /// </remarks>
 /// <param name="Id">机器人 ID</param>
 /// <param name="Name">名称（Webhook 路由段，不分大小写）</param>
@@ -44,7 +44,7 @@ public sealed record TelegramBot(Guid Id, string Name, string Token, IReadOnlyLi
     /// 群组或频道是否允许
     /// </summary>
     /// <remarks>
-    /// fail-closed：白名单为空、chat ID 为 0 一律拒收，4.x 同
+    /// fail-closed：白名单为空、chat ID 为 0 一律拒收
     /// </remarks>
     /// <param name="chatId">会话 ID</param>
     /// <returns>是否</returns>
@@ -54,7 +54,7 @@ public sealed record TelegramBot(Guid Id, string Name, string Token, IReadOnlyLi
     /// 配置是否与另一份一致
     /// </summary>
     /// <remarks>
-    /// 比较名称、令牌、ID、管理员、群组、命令、兜底；4.x 同一组字段，变了即重启这个机器人
+    /// 比较名称、令牌、ID、管理员、群组、命令、兜底，变了即重启这个机器人
     /// </remarks>
     /// <param name="other">另一份</param>
     /// <returns>是否一致</returns>
@@ -100,7 +100,7 @@ public sealed class TelegramRuntime
     /// 按名称找运行中的机器人
     /// </summary>
     /// <remarks>
-    /// 不分大小写、先去空格，4.x 同
+    /// 不分大小写、先去空格
     /// </remarks>
     /// <param name="name">名称</param>
     /// <returns>机器人；没有为 <see langword="null"/></returns>

@@ -234,7 +234,7 @@ export function useEditionOptions() {
 }
 
 /**
- * 弹窗下拉能选的套餐：停用的不能再分配（4.x 同），只有租户当前绑着的那个还留在下拉里，否则选中值显示不出名字
+ * 弹窗下拉能选的套餐：停用的不能再分配，只有租户当前绑着的那个还留在下拉里，否则选中值显示不出名字
  */
 export function selectableEditions(editions: readonly EditionOption[], currentId: null | string | undefined): EditionOption[] {
   return editions.filter(e => e.status === 'Active' || e.id === currentId)
@@ -305,7 +305,7 @@ export function useTenantQuotas(onError?: (message: string) => void) {
 }
 
 /**
- * 配额核对抽屉（4.x 同）：只列超出席位或存储上限的租户（`tenants.quotas?overOnly=true`）
+ * 配额核对抽屉：只列超出席位或存储上限的租户（`tenants.quotas?overOnly=true`）
  * 配额只拦截租户自己新增用户与上传文件，已经超额的不回收，在这里报告
  */
 export function useQuotaAudit() {
@@ -431,7 +431,7 @@ function emptyForm(): TenantForm {
 
 /**
  * 开通 / 编辑弹窗。编辑时套餐与资料分属两个操作（`tenants.update` 不含套餐，换套餐走 `tenants.change-edition`）：
- * 先存资料，套餐变了再换，与 4.x 编辑弹窗里改状态的做法相同。字段级错误挂回对应字段
+ * 先存资料，套餐变了再换。字段级错误挂回对应字段
  * 隔离方式与独立库的连接同样另走 `tenants.configure-database`（canConfigureDatabase 为真、且相对租户现状有变化时，在开通或更新之后）
  * 开通成功而配库失败时弹窗转为编辑这个已开通的租户：再保存走更新与配库，不会重复开通
  */
@@ -734,7 +734,7 @@ function emptyMemberForm(): MemberForm {
 }
 
 /**
- * 添加成员弹窗（4.x「支持人员入驻」与加成员合在这一处）：先选成员类型，用户按类型远程检索（`users.list` 关键字匹配登录名与显示名）——
+ * 添加成员弹窗：先选成员类型，用户按类型远程检索（`users.list` 关键字匹配登录名与显示名）——
  * 运维支持只在平台账号里挑（homeTenantId eq platform），普通成员只在租户用户里挑（homeTenantId ne platform，注册地就是本租户的也去掉）；
  * 换类型即清掉已选的用户、按空关键字重新检索。生效与到期时间可选，按 ISO 发出、留空发 null
  * 已有成员（TENANCY_CONFLICT_005）、类型与账号不符（TENANCY_VALIDATION_006）、到期不晚于生效（TENANCY_VALIDATION_007）由后端拒绝
@@ -888,7 +888,7 @@ export function isOwnerCandidate(member: TenantMember, ownerId: null | string | 
 }
 
 /**
- * 转移所有权弹窗（`tenants.transfer-owner`，平台侧；4.x 是成员行上的「设为所有者」）：新所有者从候选里挑——
+ * 转移所有权弹窗（`tenants.transfer-owner`，平台侧）：新所有者从候选里挑——
  * 注册地是该租户的启用用户（`users.list` 按 homeTenantId eq 与 status eq Active 远程检索）与生效中的普通成员（详情抽屉已取的成员）
  * 新所有者获得管理员角色，原所有者保留已有的角色。还没有所有者（TENANCY_CONFLICT_010）、已是所有者（TENANCY_CONFLICT_011）、
  * 不合格（TENANCY_VALIDATION_005：停用、锁定、不在有效期或是运维支持）由后端拒绝，给整条提示

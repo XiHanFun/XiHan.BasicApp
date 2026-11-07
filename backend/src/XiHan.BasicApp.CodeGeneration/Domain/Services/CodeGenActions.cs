@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 表配置「包含操作」的规范集合与组合规则
 /// </summary>
 /// <remarks>
-/// 照 4.x：列表与详情始终生成，不在可裁剪之列；保存表配置与生成代码共用这里的归一化与组合校验
+/// 列表与详情始终生成，不在可裁剪之列；保存表配置与生成代码共用这里的归一化与组合校验
 /// </remarks>
 public static class CodeGenActions
 {
@@ -58,7 +58,7 @@ public static class CodeGenActions
     /// 没配置时的缺省集合
     /// </summary>
     /// <remarks>
-    /// 启停要表里有状态列，打印要接入打印模块，都不缺省开启（照 4.x）
+    /// 启停要表里有状态列，打印要接入打印模块，都不缺省开启
     /// </remarks>
     public static IReadOnlyList<string> Defaults { get; } = [Create, Update, Delete, Export, Import];
 
@@ -82,7 +82,7 @@ public static class CodeGenActions
     /// 组合是否合规
     /// </summary>
     /// <remarks>
-    /// 导入逐行调新建：只勾导入会产出一个指向不存在操作的按钮（照 4.x）
+    /// 导入逐行调新建：只勾导入会产出一个指向不存在操作的按钮
     /// </remarks>
     /// <param name="actions">归一化之后的操作</param>
     public static bool IsValid(IReadOnlyCollection<string> actions)

@@ -12,7 +12,6 @@ namespace XiHan.BasicApp.OpenPlatform.Infrastructure;
 /// 签名开放接口的协议
 /// </summary>
 /// <remarks>
-/// 沿用 4.x 的请求头与规范串，接入方不用改：
 /// 规范串为「方法大写 \n 路径 \n 规范查询串 \n 内容签名 \n X-Timestamp 原文 \n X-Nonce」，用凭证密钥（UTF-8）做 HMAC，签名写十六进制或 Base64
 /// 规范查询串：键按序数排序、同键的值也排序，键与值都做 <see cref="Uri.EscapeDataString(string)"/>，<c>&amp;</c> 连接，没有值写 <c>key=</c>
 /// 内容签名是请求体明文（加密的先解密）的 SHA256 / SHA512 小写十六进制，空体即空串的散列，GET 也要带

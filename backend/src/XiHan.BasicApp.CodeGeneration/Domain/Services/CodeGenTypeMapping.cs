@@ -22,7 +22,7 @@ public sealed record CodeGenColumnType(string CSharpType, string TsType, CodeGen
 /// 按各库的数据库类型名映射（框架读库结构的口径，修订（八十三））：Oracle 的 <c>NUMBER</c> 按精度与小数位分整数与定点数，
 /// 有小数位是 <c>decimal</c>，否则精度不超过 9 是 <c>int</c>、不超过 18 是 <c>long</c>，没写精度或更大是 <c>decimal</c>；Oracle 的 <c>DATE</c> 带时分秒，按日期时间；
 /// SQL Server 的 <c>timestamp</c> 是行版本，按二进制
-/// 其余照 4.x 的映射，不认得的类型按字符串；只有 <c>long</c> 不同：6.0 的报文里 long 是数字（4.x 由全局转换器写成字符串），TypeScript 是 number、控件是数字框
+/// 其余按常规映射，不认得的类型按字符串；<c>long</c> 在报文里是数字，TypeScript 是 number、控件是数字框
 /// </remarks>
 public static class CodeGenTypeMapping
 {

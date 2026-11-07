@@ -1,7 +1,7 @@
 <!--
-  AI / 助手（照 4.x develop/ai-assistant）
-  接口取自后端契约（ai-assistants.*）：编码建后不可改、缺省最多一个；启停走行内操作（4.x 启用开关与状态是两个字段，这里只有状态）
-  与 4.x 不同的是工具勾选（方案 A3）与没有向量库时的提示（方案 D7b）；提供商与提示词照 4.x 填编码，保存时后端核对
+  AI / 助手
+  接口取自后端契约（ai-assistants.*）：编码建后不可改、缺省最多一个；启停走行内操作（只有状态一个字段）
+  工具从后端目录勾选（方案 A3），没有向量库时给出提示（方案 D7b）；提供商与提示词填编码，保存时后端核对
 -->
 <script setup lang="ts">
 import type { AssistantRow, AssistantStatus } from './use-assistants'

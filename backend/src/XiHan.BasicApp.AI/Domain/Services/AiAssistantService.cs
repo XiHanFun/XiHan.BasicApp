@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.AI.Domain.Services;
 /// 助手的规则
 /// </summary>
 /// <remarks>
-/// 编码唯一、建后不可改，缺省最多一个（照 4.x）；保存时核对引用的提示词与提供商存在且启用、工具在目录里，配错当场报，不等到回复时才失败
+/// 编码唯一、建后不可改，缺省最多一个；保存时核对引用的提示词与提供商存在且启用、工具在目录里，配错当场报，不等到回复时才失败
 /// </remarks>
 /// <param name="assistants">助手仓储</param>
 /// <param name="prompts">提示词仓储</param>
@@ -113,7 +113,7 @@ public sealed class AiAssistantService(IRepository<SysAiAssistant, Guid> assista
     /// 取消别的助手的缺省标记
     /// </summary>
     /// <remarks>
-    /// 缺省助手最多一个（照 4.x）
+    /// 缺省助手最多一个
     /// </remarks>
     /// <param name="except">保留缺省的助手</param>
     /// <param name="cancellationToken">取消令牌</param>

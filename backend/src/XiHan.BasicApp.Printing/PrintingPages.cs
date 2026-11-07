@@ -10,7 +10,6 @@ namespace XiHan.BasicApp.Printing;
 /// </summary>
 /// <remarks>
 /// 只有打印模板一页，两侧都有：平台管全局模板，租户管本租户模板并能看可用的全局模板
-/// 4.x 挂在系统管理目录下（<c>/setting/print-template</c>），6.0 的页面码与路由按包，旧路由不保留
 /// </remarks>
 public static class PrintingPages
 {

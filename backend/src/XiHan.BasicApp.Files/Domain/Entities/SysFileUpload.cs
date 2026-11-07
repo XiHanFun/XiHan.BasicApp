@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 分片上传：大文件分段直传存储的一次上传
 /// </summary>
 /// <remarks>
-/// 租户库实体，平台一侧租户为 <c>platform</c>；4.x 没有分片上传
+/// 租户库实体，平台一侧租户为 <c>platform</c>
 /// 发起时选好上传目标配置、对象键并在存储里开一次分片上传（<c>IBlobMultipartStore</c>），各分片经签名地址直传存储；
 /// 完成时由应用按存储列出的分片拼成对象，回读算 SHA-256，再落文件记录（内容与同一侧已有的相同即共用已有的对象）
 /// 只有发起人能续传、完成或放弃；过了 <see cref="ExpiresAt"/> 记为过期并放弃存储里的分片

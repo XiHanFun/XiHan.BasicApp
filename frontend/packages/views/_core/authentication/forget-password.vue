@@ -24,7 +24,7 @@ import { OTP_CODE_LENGTH } from '../shared/pin-code'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 /**
- * 找回密码：4.x 只按邮箱发一次性重置链接，6.0 发验证码（auth.request-password-reset），
+ * 找回密码：发验证码（auth.request-password-reset），
  * 同一页填码与新密码（auth.reset-password），设好后这个账号的全部会话失效，回登录页用新密码登录
  */
 defineOptions({ name: 'ForgetPasswordPage' })
@@ -166,7 +166,7 @@ const onAuthInvalid = useAuthFormInvalid()
       @invalid="onAuthInvalid"
       @submit="onSubmit"
     >
-      <!-- 6.0 的账号属于注册地租户：租户账号填租户 ID，平台账号留空（同验证码登录） -->
+      <!-- 账号属于注册地租户：租户账号填租户 ID，平台账号留空（同验证码登录） -->
       <XhFormFieldGroup name="tenant" class="!mb-6">
         <XhFieldRoot>
           <XhFieldLabel class="sr-only">

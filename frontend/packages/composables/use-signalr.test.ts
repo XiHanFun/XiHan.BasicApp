@@ -121,7 +121,7 @@ vi.mock('@microsoft/signalr', () => {
   }
 })
 
-/** 令牌与刷新来自 auth store（6.0）：整个 store 替身掉，用例只摆令牌、数刷新 */
+/** 令牌与刷新来自 auth store：整个 store 替身掉，用例只摆令牌、数刷新 */
 const refreshSessionToken = vi.hoisted(() => vi.fn<() => Promise<null | string>>())
 const auth = vi.hoisted(() => ({ token: null as null | string }))
 vi.mock('~/stores', () => ({

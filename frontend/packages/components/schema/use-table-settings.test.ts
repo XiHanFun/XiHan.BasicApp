@@ -1,6 +1,6 @@
 /**
  * 表格设置的对齐：数据列一起换，缺省靠起始边；随「保存」落地、随「恢复默认」回到靠左
- * 密度与竖线：直接存组件库的尺寸档与 ruled，旧版存的 small / medium / large 与 singleLine 读到时换算
+ * 密度与竖线：直接存组件库的尺寸档与 ruled，旧值 small / medium / large 与 singleLine 读到时换算
  * 跨端同步换成替身：这里只看本地状态与本地存储
  */
 import type { ListFieldSchema } from './types'
@@ -71,7 +71,7 @@ describe('useTableSettings 对齐', () => {
     stop()
   })
 
-  it('旧版本存下的设置没有对齐这一项时按靠左读', () => {
+  it('存下的旧设置没有对齐这一项时按靠左读', () => {
     storage.set('xh:table-settings:align-test', {
       columns: [
         { key: 'name', visible: true },
@@ -106,7 +106,7 @@ describe('useTableSettings 密度与竖线', () => {
     second.stop()
   })
 
-  it('旧版存的 small / large 换成 sm / lg', () => {
+  it('旧值 small / large 换成 sm / lg', () => {
     storage.set('xh:table-settings:density-small', {
       columns: [
         { key: 'name', visible: true },
@@ -127,7 +127,7 @@ describe('useTableSettings 密度与竖线', () => {
     large.stop()
   })
 
-  it('旧版存的 singleLine 反过来读成竖线开关', () => {
+  it('旧值 singleLine 反过来读成竖线开关', () => {
     storage.set('xh:table-settings:ruled-off', {
       columns: [
         { key: 'name', visible: true },

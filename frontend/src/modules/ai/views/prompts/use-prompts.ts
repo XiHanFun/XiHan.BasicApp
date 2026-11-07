@@ -60,7 +60,7 @@ export function promptsResource(): SchemaResource<PromptRow> {
 }
 
 /**
- * 提示词的编辑弹窗：新建与编辑（照 4.x：编码只在新建时填，状态只在新建时选，之后走行内启停）
+ * 提示词的编辑弹窗：新建与编辑（编码只在新建时填，状态只在新建时选，之后走行内启停）
  * 列表不带正文，编辑先取详情；字段级错误挂回对应字段
  */
 export function usePromptEditor() {

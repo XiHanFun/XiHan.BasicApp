@@ -1,6 +1,6 @@
 /**
  * 通用偏好切片（app/preferences）单元测试
- * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐与位置（含旧版开关迁移）、
+ * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐与位置（含旧开关键迁移）、
  * 快捷键、页脚版权等偏好的默认值、本地还原与落地；以及
  * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点
  */
@@ -38,12 +38,12 @@ beforeEach(() => {
   i18n.global.locale.value = DEFAULT_LOCALE as typeof i18n.global.locale.value
 })
 
-describe('旧版工具开关迁移为位置', () => {
+describe('旧的工具开关键迁移为位置', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  it('旧版关掉的工具迁成隐藏，开着的迁成自动；迁移后旧键删除、新键落地', () => {
+  it('旧键里关掉的工具迁成隐藏，开着的迁成自动；迁移后旧键删除、新键落地', () => {
     localStorage.setItem(LEGACY_SEARCH_ENABLED_KEY, 'false')
     localStorage.setItem(LEGACY_WIDGET_THEME_TOGGLE_KEY, 'true')
     localStorage.setItem(LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY, 'false')
@@ -116,7 +116,7 @@ describe('默认值', () => {
     expect(store.checkUpdatesInterval).toBe(30)
   })
 
-  it('widget 缺省显示（通知与锁屏也开着，与 4.x 相同），五个工具与偏好入口的位置默认 auto', () => {
+  it('widget 缺省显示（通知与锁屏也开着），五个工具与偏好入口的位置默认 auto', () => {
     const store = freshStore()
 
     expect(store.widgetSearchPlacement).toBe('auto')

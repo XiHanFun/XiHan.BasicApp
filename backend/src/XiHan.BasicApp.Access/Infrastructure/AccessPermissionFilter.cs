@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// ADR-0039 的 <see cref="IPermissionFilter"/>，单例
 /// 框架的授予命中之后，按本包的合并次序重新判一次——
 /// 用户与角色的 Deny、授予与指派的有效期、令牌里已不算数的角色都在这里拿掉。与 <see cref="EffectivePermissions"/> 同源（<see cref="GrantEvaluator"/>）
-/// 作用侧在这里统一拦：租户主体持 <c>*</c> 也调不到只属于平台的权限码，反过来同样（4.x 同）。这一条与模仿态的拒绝清单（<see cref="ImpersonationLimits"/>）对任何主体都生效
+/// 作用侧在这里统一拦：租户主体持 <c>*</c> 也调不到只属于平台的权限码，反过来同样。这一条与模仿态的拒绝清单（<see cref="ImpersonationLimits"/>）对任何主体都生效
 /// 不是本应用用户的主体（外部签发的令牌）不做授予上的收窄
 /// </remarks>
 /// <param name="evaluator">授予全貌</param>

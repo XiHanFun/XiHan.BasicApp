@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 代码生成的选项
 /// </summary>
 /// <remarks>
-/// 配置节 <c>BasicApp:CodeGeneration</c>（4.x 的 <c>CodeGeneration</c>）：写进项目的开关与前后端根目录、导入时去掉的表名前缀
+/// 配置节 <c>BasicApp:CodeGeneration</c>：写进项目的开关与前后端根目录、导入时去掉的表名前缀
 /// 写进项目只在 Development 且开关打开时可用（方案 C1）
 /// </remarks>
 public sealed class CodeGenerationOptions
@@ -55,7 +55,7 @@ public sealed class CodeGenerationOptions
     /// 导入时去掉的表名前缀
     /// </summary>
     /// <remarks>
-    /// 逗号分隔，缺省 <c>sys_</c>（6.0 的表名是 snake_case；4.x 缺省 <c>Sys_,Saas_</c>）。推断类名时去掉最长的匹配前缀
+    /// 逗号分隔，缺省 <c>sys_</c>（表名是 snake_case）。推断类名时去掉最长的匹配前缀
     /// </remarks>
     public IReadOnlyList<string> TablePrefixes { get; init; } = ["sys_"];
 

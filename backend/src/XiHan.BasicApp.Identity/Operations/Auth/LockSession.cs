@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <summary>
 /// <c>auth.lock</c> 的请求
 /// </summary>
-/// <param name="Password">锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了，4.x 同）</param>
+/// <param name="Password">锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了）</param>
 public sealed record LockRequest([StringLength(128)] string? Password);
 
 /// <summary>
@@ -45,7 +45,7 @@ public sealed record UnlockResponse(bool Unlocked);
 /// 锁屏当前会话
 /// </summary>
 /// <remarks>
-/// 服务端强制，4.x 同。给当前令牌的 <c>sid</c> 会话记下锁定原因与锁屏密码的哈希，之后这个会话的请求除解锁与注销外都以 <c>IDENTITY_DENIED_002</c> 拒绝，
+/// 服务端强制。给当前令牌的 <c>sid</c> 会话记下锁定原因与锁屏密码的哈希，之后这个会话的请求除解锁与注销外都以 <c>IDENTITY_DENIED_002</c> 拒绝，
 /// 只作用于这一个会话、不影响同一用户的其他端。只要求已认证
 /// </remarks>
 /// <param name="sessions">会话仓储</param>
@@ -95,7 +95,7 @@ public sealed class LockSession(IRepository<SysUserSession, Guid> sessions, Sess
 /// 用锁屏密码解锁
 /// </summary>
 /// <remarks>
-/// 4.x 同。本来没锁即无事；锁定原因不是锁屏即 <c>IDENTITY_CONFLICT_006</c>（别的锁定不能用锁屏密码开）；
+/// 本来没锁即无事；锁定原因不是锁屏即 <c>IDENTITY_CONFLICT_006</c>（别的锁定不能用锁屏密码开）；
 /// 密码不对计一次失败（<c>IDENTITY_DENIED_013</c>，带剩余次数），连错 5 次吊销会话（<c>IDENTITY_DENIED_014</c>）；锁屏密码的哈希缺了也直接吊销
 /// 失败的调用会回滚，所以计数与吊销在调用之外的独立事务里写。锁定中的会话也能调用（门禁放行）。只要求已认证
 /// </remarks>

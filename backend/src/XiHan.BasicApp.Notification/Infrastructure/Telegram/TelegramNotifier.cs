@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// Telegram 的出站
 /// </summary>
 /// <remarks>
-/// 4.x TelegramNotifier 同一套。发消息、发图片 / 文件、改消息与改按钮会重试并审计——429、5xx 与网络错误按退避重试
+/// 发消息、发图片 / 文件、改消息与改按钮会重试并审计——429、5xx 与网络错误按退避重试
 /// （429 等 <c>retry_after</c>，超过 <see cref="TelegramRetryOptions.MaxRetryAfterSeconds"/> 即按失败处理），成功或最终失败各记一条 <see cref="SysTelegramMessage"/>，
 /// 最终失败再私发每个管理员一条告警（告警本身不再告警）；回调应答、内联查询应答与管理调用（getMe、setWebhook 等）直接调用，不重试不审计
 /// </remarks>
@@ -147,7 +147,7 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
     /// 应答内联查询（缓存 300 秒）
     /// </summary>
     /// <remarks>
-    /// 4.x 同；不重试、不审计
+    /// 不重试、不审计
     /// </remarks>
     /// <param name="bot">机器人</param>
     /// <param name="inlineQueryId">内联查询 ID</param>
@@ -285,7 +285,7 @@ public sealed partial class TelegramNotifier(TelegramApi api, TelegramRuntime ru
                 return Result.Success();
             }, CancellationToken.None).ConfigureAwait(false);
         }
-#pragma warning disable CA1031 // 审计写不进去不影响发送结果（4.x 同吞掉）
+#pragma warning disable CA1031 // 审计写不进去不影响发送结果
         catch (Exception exception)
 #pragma warning restore CA1031
         {

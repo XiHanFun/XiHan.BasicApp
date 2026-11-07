@@ -15,9 +15,9 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <c>profile.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 整体覆盖，4.x 同。头像另走头像端点与 <c>profile.remove-avatar</c>
+/// 整体覆盖。头像另走头像端点与 <c>profile.remove-avatar</c>
 /// </remarks>
-/// <param name="DisplayName">显示名（4.x 的昵称）</param>
+/// <param name="DisplayName">显示名</param>
 /// <param name="RealName">真实姓名</param>
 /// <param name="Gender">性别</param>
 /// <param name="Birthday">生日</param>
@@ -44,7 +44,7 @@ public sealed record ChangeUserNameRequest(
 /// 本人改用户名的限制
 /// </summary>
 /// <remarks>
-/// 4.x 同：90 天一次
+/// 90 天一次
 /// </remarks>
 internal static class UserNameChange
 {
@@ -58,7 +58,7 @@ internal static class UserNameChange
 /// 保存本人的资料
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/profile</c>（4.x 同，整体覆盖）。空白当作没填。已登录即可，模仿会话不拒绝（4.x 同）
+/// <c>PUT /api/profile</c>（整体覆盖）。空白当作没填。已登录即可，模仿会话不拒绝
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
@@ -99,10 +99,10 @@ public sealed class UpdateProfile(IRepository<SysUser, Guid> users, UserAccountS
 /// 改本人的用户名
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:change-username</c>（4.x <c>Profile/ChangeUserName</c>）
+/// <c>POST /api/profile:change-username</c>
 /// 要当前密码（不对即 <c>IDENTITY_DENIED_003</c>），90 天一次（<c>IDENTITY_CONFLICT_009</c>），
-/// 与现在的相同即 <c>IDENTITY_VALIDATION_017</c>，同一注册地里已被占用即 <c>IDENTITY_CONFLICT_001</c>。模仿会话不能做（4.x 同）
-/// 规则与新建用户相同（4.x 是 3–30 位字母数字下划线）；已签发的令牌里的用户名到下次续签才换
+/// 与现在的相同即 <c>IDENTITY_VALIDATION_017</c>，同一注册地里已被占用即 <c>IDENTITY_CONFLICT_001</c>。模仿会话不能做
+/// 规则与新建用户相同；已签发的令牌里的用户名到下次续签才换
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
@@ -172,7 +172,7 @@ public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository
 /// 去掉本人的头像
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:remove-avatar</c>（4.x 把头像存空）。头像文件随之回收；本来没有即无事。已登录即可，模仿会话不拒绝（4.x 同）
+/// <c>POST /api/profile:remove-avatar</c>。头像文件随之回收；本来没有即无事。已登录即可，模仿会话不拒绝
 /// 上传新头像走宿主的头像端点 <c>POST /api/profile/avatar</c>
 /// </remarks>
 /// <param name="users">用户仓储</param>

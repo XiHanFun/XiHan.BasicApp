@@ -10,7 +10,7 @@ export type KnowledgeCitation = ResponseOf<'knowledge-documents.search'>['citati
 export type KnowledgeSourceType = KnowledgeRow['sourceType']
 export type KnowledgeIndexStatus = KnowledgeRow['status']
 
-/** 摄取弹窗能读的文件（照 4.x：前端读成文本提交，不限大小） */
+/** 摄取弹窗能读的文件（前端读成文本提交，不限大小） */
 export const INGEST_FILE_ACCEPT = '.txt,.md,.markdown,.cs,.ts,.vue,.js,.json,.py,.java,.go,.sql,.yml,.yaml,.html,.css'
 
 /** 摄取弹窗的表单 */
@@ -61,7 +61,7 @@ export function knowledgeDocumentsResource(): SchemaResource<KnowledgeRow> {
 }
 
 /**
- * 摄取弹窗（照 4.x）：粘贴文本或从文件读取，读到文件后来源记文件名、标题为空即取文件名
+ * 摄取弹窗：粘贴文本或从文件读取，读到文件后来源记文件名、标题为空即取文件名
  * 字段级错误挂回对应字段；索引失败文档照样保存并成功返回，页面按状态提示
  */
 export function useKnowledgeIngest() {
@@ -136,7 +136,7 @@ export function useKnowledgeIngest() {
 }
 
 /**
- * 检索试玩（照 4.x）：提问、召回数、提供商与是否生成答案；只在调用方一侧检索
+ * 检索试玩：提问、召回数、提供商与是否生成答案；只在调用方一侧检索
  * 引用的编号是片段在列表里的序号：答案里的 [n] 对应第 n 个片段
  */
 export function useKnowledgePlayground() {
@@ -185,7 +185,7 @@ export function useKnowledgePlayground() {
   }
 }
 
-/** 片段的显示名：标题，没有即来源，再没有即文档 ID（照 4.x） */
+/** 片段的显示名：标题，没有即来源，再没有即文档 ID */
 export function citationTitle(citation: KnowledgeCitation): string {
   return citation.title || citation.source || citation.documentId
 }

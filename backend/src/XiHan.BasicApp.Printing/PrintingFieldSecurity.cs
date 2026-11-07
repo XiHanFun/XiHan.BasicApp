@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Printing;
 /// 打印模块登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同一个实体（打印模板）：列表的查询门控、新建的只读字段与修改、启停的只读字段（4.x 的 <c>EnsureCreatableAsync</c> / <c>EnsureUpdatableAsync</c> / <c>GuardQueryAsync</c>），
+/// 一个实体（打印模板）：列表的查询门控、新建的只读字段与修改、启停的只读字段，
 /// 规则由 Access 的字段安全中间件统一套用。字段按详情响应生成（列表项是它去掉模板 JSON 的子集）
 /// </remarks>
 public static class PrintingFieldSecurity

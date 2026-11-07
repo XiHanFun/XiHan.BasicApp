@@ -20,7 +20,6 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证 Telegram 机器人的交互
 /// </summary>
 /// <remarks>
-/// 4.x 行为
 /// 平台参数打开后 Webhook 注册（带密钥与订阅种类）、<c>getMe</c> 回填用户名、同步命令菜单；Webhook 的密钥校验与 200；
 /// 内置 <c>/start</c> <c>/help</c> <c>/myid</c>、去重、群组白名单（fail-closed，常驻命令例外）、命令白名单、只给管理员的命令与回调、回调总会应答、内联查询、会话状态、兜底回复；
 /// 出站重试与审计、最终失败告警管理员；Telegram 广播走同一出站；关掉总开关删 Webhook；长轮询

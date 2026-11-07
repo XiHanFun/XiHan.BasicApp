@@ -11,7 +11,7 @@ import JobRetryFields from './JobRetryFields.vue'
 import JobScheduleEditor from './JobScheduleEditor.vue'
 
 /**
- * 新建作业（照 4.x 的新建任务，替代 4.x 的 DynamicJobWorker）：按已登记的作业类型运行时登记，
+ * 新建作业：按已登记的作业类型运行时登记，
  * 填作业名、类型、计划（Cron 构建器或间隔秒数）与时区、参数（JSON 对象）、重试与执行时限、是否允许并发与说明
  * 保存走 jobs.create；作业名重复、类型不认识、参数不是 JSON 对象等按字段落位，其余弹提示
  */

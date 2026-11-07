@@ -33,8 +33,8 @@ namespace XiHan.BasicApp.AI;
 /// </summary>
 /// <remarks>
 /// 宿主按 <c>BasicApp:Modules:AI:Enabled</c> 装配（缺省开），同时装框架的 OpenAI 兼容 Provider；架在框架的 AI 子系统之上：
-/// 模型提供商落库（方案 A1，照 4.x），以 <see cref="AiProviderCatalog"/> 取代框架按配置建的 Provider 目录，宿主启动时装载、提供商写入的调用提交之后重载
-/// 提供商、提示词与助手的配置只在平台一侧（照 4.x）；知识文档平台与租户各自维护（方案 A2），向量库由宿主按配置装，没配即知识库不可用
+/// 模型提供商落库（方案 A1），以 <see cref="AiProviderCatalog"/> 取代框架按配置建的 Provider 目录，宿主启动时装载、提供商写入的调用提交之后重载
+/// 提供商、提示词与助手的配置只在平台一侧；知识文档平台与租户各自维护（方案 A2），向量库由宿主按配置装，没配即知识库不可用
 /// 助手经 Contracts 的 <see cref="IChatAssistants"/> 给聊天应答，聊天不引用本包
 /// </remarks>
 public sealed class AIFeature : IHostedFeature
@@ -94,7 +94,7 @@ public sealed class AIFeature : IHostedFeature
         context.Services.AddCacheNamespace("ai", editable: false);
 
         context.Services.AddPermissionCatalog("ai", AIPermissions.All);
-        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用（照 4.x 的登记范围）
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         AIFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("ai", AIPages.All);
         foreach (var permission in AIPermissions.All)

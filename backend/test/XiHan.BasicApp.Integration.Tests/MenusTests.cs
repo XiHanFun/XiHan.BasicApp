@@ -265,7 +265,7 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        // 目录、关于页与三个外链照 4.x：目录与外链是运营节点（标题走文案键），关于页不要权限
+        // 目录、关于页与三个外链：目录与外链是运营节点（标题走文案键），关于页不要权限
         var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         var directory = Node(listBody.GetProperty("items"), "custom.about");
         var directoryId = directory.GetProperty("id").GetString()!;

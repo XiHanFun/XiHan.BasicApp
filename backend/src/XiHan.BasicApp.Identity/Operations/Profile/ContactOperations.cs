@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// 发验证码到本人当前的邮箱或手机号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:send-verification-code</c>。自助操作，只要求已认证（4.x 同，不要密码）；没有绑定即 <c>IDENTITY_VALIDATION_019</c>
+/// <c>POST /api/profile:send-verification-code</c>。自助操作，只要求已认证（不要密码）；没有绑定即 <c>IDENTITY_VALIDATION_019</c>
 /// 码 6 位、10 分钟有效，限频与每日上限见 <see cref="VerificationCodes"/>；收到后 <c>profile.verify-contact</c> 确认
 /// </remarks>
 /// <param name="users">用户仓储</param>
@@ -63,7 +63,7 @@ public sealed class SendVerificationCode(IRepository<SysUser, Guid> users, UserA
 /// 用收到的验证码确认本人当前的邮箱或手机号
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:verify-contact</c>。码对且发码之后联系方式没变即记为已验证（4.x 同）；码错计次，5 次锁定 10 分钟
+/// <c>POST /api/profile:verify-contact</c>。码对且发码之后联系方式没变即记为已验证；码错计次，5 次锁定 10 分钟
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
@@ -110,9 +110,9 @@ public sealed class VerifyContact(IRepository<SysUser, Guid> users, UserAccountS
 /// 换绑邮箱或手机号的第一步：验密码，发验证码到新的
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:send-change-contact-code</c>。模仿会话不能用（4.x 同）。新的要合格式、与现在的不同，
+/// <c>POST /api/profile:send-change-contact-code</c>。模仿会话不能用。新的要合格式、与现在的不同，
 /// 同一注册地租户里不能已被别人使用（<c>IDENTITY_CONFLICT_010</c>）；收到后 <c>profile.change-contact</c> 确认
-/// 与 4.x 不同：手机号也查重（4.x 不查，手机号登录时再要求恰好一个），查重按注册地租户（6.0 的账号属于注册地租户，4.x 的邮箱全局唯一）
+/// 手机号也查重，查重按注册地租户（账号属于注册地租户）
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
@@ -158,7 +158,7 @@ public sealed class SendChangeContactCode(IRepository<SysUser, Guid> users, User
 /// 换绑邮箱或手机号的第二步：用新的收到的码确认
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:change-contact</c>。码对即换成第一步给的新值、记为已验证（4.x 同）；确认时再查一次重。模仿会话不能用
+/// <c>POST /api/profile:change-contact</c>。码对即换成第一步给的新值、记为已验证；确认时再查一次重。模仿会话不能用
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>

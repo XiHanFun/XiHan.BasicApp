@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.OpenPlatform.Operations.OauthConsents;
 /// 授权请求
 /// </summary>
 /// <remarks>
-/// 同意页把 <c>/api/oauth2/authorize</c> 的查询参数原样上送；4.x 漏了 nonce，id_token 里永远没有它
+/// 同意页把 <c>/api/oauth2/authorize</c> 的查询参数原样上送（含 nonce）
 /// </remarks>
 /// <param name="ResponseType">response_type</param>
 /// <param name="ClientId">client_id</param>
@@ -110,7 +110,7 @@ public sealed record RevokeOAuthConsentResponse(bool Revoked);
 /// 同意页的预览
 /// </summary>
 /// <remarks>
-/// <c>GET /api/oauth-consents:resolve</c>（4.x <c>OAuthConnect/ResolveAuthorization</c>）。已登录即可，模仿会话不能授权第三方应用（4.x 同）
+/// <c>GET /api/oauth-consents:resolve</c>。已登录即可，模仿会话不能授权第三方应用
 /// </remarks>
 /// <param name="authorizer">授权端点的规则</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -143,7 +143,7 @@ public sealed class ResolveOAuthConsent(OAuthAuthorizer authorizer) : IOperation
 /// 同意授权
 /// </summary>
 /// <remarks>
-/// <c>POST /api/oauth-consents:approve</c>（4.x <c>OAuthConnect/Authorize</c>）。发授权码、记下同意，返回带 code 与 state 的回调地址；请求不对即 <c>OPENPLATFORM_VALIDATION_014</c>。模仿会话不能做
+/// <c>POST /api/oauth-consents:approve</c>。发授权码、记下同意，返回带 code 与 state 的回调地址；请求不对即 <c>OPENPLATFORM_VALIDATION_014</c>。模仿会话不能做
 /// </remarks>
 /// <param name="authorizer">授权端点的规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
@@ -181,7 +181,7 @@ public sealed class ApproveOAuthConsent(OAuthAuthorizer authorizer) : IOperation
 /// 拒绝授权
 /// </summary>
 /// <remarks>
-/// <c>POST /api/oauth-consents:deny</c>。客户端与回调地址都对上了才返回 <c>error=access_denied</c> 的回调地址（4.x 在页面上自己拼，没校验过的地址也会跳）；对不上即 <c>OPENPLATFORM_VALIDATION_014</c>
+/// <c>POST /api/oauth-consents:deny</c>。客户端与回调地址都对上了才返回 <c>error=access_denied</c> 的回调地址；对不上即 <c>OPENPLATFORM_VALIDATION_014</c>
 /// </remarks>
 /// <param name="authorizer">授权端点的规则</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]

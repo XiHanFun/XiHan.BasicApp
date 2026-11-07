@@ -79,7 +79,7 @@ public static class NotificationChannelSet
     /// 把按位组合换成渠道列表
     /// </summary>
     /// <remarks>
-    /// 4.x 的老数据为 0 时按只有站内信
+    /// 为 0 时按只有站内信
     /// </remarks>
     /// <param name="channels">按位组合</param>
     /// <returns>渠道</returns>
@@ -171,17 +171,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// <summary>
     /// 通知邮件的模板编码
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const string EmailTemplate = "notification-email";
 
     /// <summary>
     /// 通知短信的模板编码
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const string SmsTemplate = "notification-sms";
 
     /// <summary>
@@ -354,7 +348,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             return Error.Unavailable(NotificationErrors.ChannelUnavailable, NotificationMessages.ChannelUnavailable, MessageArguments.Of(("kind", "Bot")));
         }
 
-        // 通知偏好（4.x 同）：站内信只发给愿意收站内信的人，邮件与短信在扇出时各按自己的渠道筛；强制阅读与紧急通知不筛
+        // 通知偏好：站内信只发给愿意收站内信的人，邮件与短信在扇出时各按自己的渠道筛；强制阅读与紧急通知不筛
         var side = SideRows.SideOf(context);
         var readers = ignorePreferences ? recipients : await AcceptingAsync(notification, recipients, NotificationPreferenceChannel.InApp, context.CancellationToken).ConfigureAwait(false);
         var inbox = readers.Select(userId => new SysUserNotification { Id = ids.NewId(), TenantId = side, NotificationId = notification.Id, UserId = userId }).ToList();
@@ -551,7 +545,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// 机器人消息的模板参数
     /// </summary>
     /// <remarks>
-    /// 标题、正文与链接（4.x 发标题与正文）；空白的正文与链接给空值，模板里按有无分段
+    /// 标题、正文与链接；空白的正文与链接给空值，模板里按有无分段
     /// </remarks>
     /// <param name="notification">通知</param>
     /// <returns>参数</returns>

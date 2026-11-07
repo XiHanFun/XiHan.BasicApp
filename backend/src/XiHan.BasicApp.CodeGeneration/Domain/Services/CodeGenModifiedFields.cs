@@ -10,8 +10,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 人工改过的字段集合
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>UserModifiedFieldSet</c>：表与列配置保存时把值变了的被跟踪字段并入集合（JSON 数组），同步结构时这些字段保留人工值、其余跟随新的推断
-/// 解析不了的旧值按空集合处理，等于全部跟随推断（4.x 同）
+/// 表与列配置保存时把值变了的被跟踪字段并入集合（JSON 数组），同步结构时这些字段保留人工值、其余跟随新的推断
+/// 解析不了的旧值按空集合处理，等于全部跟随推断
 /// </remarks>
 public static class CodeGenModifiedFields
 {
@@ -39,7 +39,7 @@ public static class CodeGenModifiedFields
         }
         catch (JsonException)
         {
-            // 照 4.x：脏数据当作空集合，退化为全部跟随重新推断
+            // 脏数据当作空集合，退化为全部跟随重新推断
         }
 
         return set;

@@ -1,6 +1,6 @@
 /**
- * 个人中心「登录日志」（ProfileTabLoginLogs.vue，4.x 原样搬入）：
- * 结果标签用本地文案（6.0 没有枚举元数据，4.x 取后端 LoginResult），认证失败类用危险配色；
+ * 个人中心「登录日志」（ProfileTabLoginLogs.vue）：
+ * 结果标签用本地文案（后端没有枚举元数据），认证失败类用危险配色；
  * 说明行拼 IP（没有即「未知 IP」）、浏览器与系统；超过一页才出分页，翻页按页码重取；加载失败提示后端文案并显示空态
  */
 import type { AppContextApis, LoginAuditResult, LoginLogItem } from '~/types'
@@ -111,7 +111,7 @@ describe('登录日志页签', () => {
     expect(wrapper.findComponent(SchemaPagination).exists()).toBe(false)
   })
 
-  it('每种结果都有自己的文案（含 6.0 新增的切换角色）', async () => {
+  it('每种结果都有自己的文案（含切换角色）', async () => {
     apis.getLoginLogsApi.mockResolvedValue(page(RESULTS.map(loginResult => ({ loginTime: '2026-10-30T00:00:00Z', loginResult }))))
     const wrapper = await render()
     const labels = wrapper.findAll('.pf-log-row .pf-list-title').map(title => title.text())

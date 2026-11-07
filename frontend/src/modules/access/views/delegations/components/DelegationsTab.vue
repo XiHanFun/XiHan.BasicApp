@@ -11,7 +11,7 @@ import { formatDate } from '~/utils'
 import { usePermissionNames } from '../../permissions/permission-names'
 import { canRevoke, DELEGATION_STATUSES, delegationName, delegationsResource, delegationTarget, revokeDelegation, useDelegationEditor } from '../use-delegations'
 
-/** 授权申请页的「委托」页签：原委托页原样搬入，页签按 access.delegations.read 显示 */
+/** 授权申请页的「委托」页签，按 access.delegations.read 显示 */
 defineOptions({ name: 'AccessDelegationsTab' })
 
 const { t } = useI18n()
@@ -44,7 +44,7 @@ const STATUS_TONE: Record<DelegationStatus, 'danger' | 'neutral' | 'success' | '
   Revoked: 'danger',
 }
 
-/** 4.x 的「{from} 至 {to}」：没有生效时间即创建即生效 */
+/** 「{from} 至 {to}」：没有生效时间即创建即生效 */
 function validityRange(row: DelegationRow): string {
   return t('access.delegations.validity_range', {
     from: row.effectiveAt
@@ -233,7 +233,7 @@ async function removeRow(row: DelegationRow) {
   }
 }
 
-/** 4.x 的提交前校验：缺什么先提示，不发请求 */
+/** 提交前校验：缺什么先提示，不发请求 */
 function validate(): boolean {
   const form = editor.form
   if (!form.delegatorId) {

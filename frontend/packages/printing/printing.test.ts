@@ -759,7 +759,7 @@ let originalLocalStorageDescriptor: PropertyDescriptor | undefined
  * 替身实现完整的 Storage 接口；覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例
  */
 function installBrowserPreferenceContext(): void {
-  // 6.0 的用户态是 auth 会话的投影：会话先写进替身存储，再建 pinia，auth store 创建时读出
+  // 用户态是 auth 会话的投影：会话先写进替身存储，再建 pinia，auth store 创建时读出
   const values = new Map<string, string>([
     [
       'xihan.next.session',

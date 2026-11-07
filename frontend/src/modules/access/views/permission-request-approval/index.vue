@@ -7,7 +7,7 @@ import { formatDate } from '~/utils'
 import { expectedValidity, requestStatusLabel } from '../delegations/use-permission-requests'
 
 /**
- * 授权申请单据（照 4.x，设计稿 D4）：审批中心按审批业务 permission-request 登记的组件路径 access/permission-request-approval/index 加载，
+ * 授权申请单据（设计稿 D4）：审批中心按审批业务 permission-request 登记的组件路径 access/permission-request-approval/index 加载，
  * data 是与 permission-requests.get 同一形态的响应。只读展示申请人、申请对象、理由与期望有效期；审批人没有补填字段，不暴露 getVariables
  */
 defineOptions({ name: 'AccessPermissionRequestApproval' })
@@ -31,7 +31,7 @@ function nameWithCode(name?: null | string, code?: null | string): string {
   ].filter(Boolean).join(' ') || '-'
 }
 
-/** 申请的对象：6.0 可以同时申请角色与权限，各占一行 */
+/** 申请的对象：可以同时申请角色与权限，各占一行 */
 const targets = computed(() => {
   const items: { kind: string, name: string, description?: null | string }[] = []
   if (props.data.roleId) {
@@ -66,7 +66,7 @@ const targets = computed(() => {
     <XhDescriptionsItem :span="2">
       <XhDescriptionsLabel>{{ t('access.permission_requests.fields.target') }}</XhDescriptionsLabel>
       <XhDescriptionsValue>
-        <!-- 对象下面是它的说明（照 4.x） -->
+        <!-- 对象下面是它的说明 -->
         <div v-for="target in targets" :key="target.kind">
           <span class="flex flex-wrap items-center gap-1">
             <XhTagRoot variant="subtle" tone="neutral" size="sm">

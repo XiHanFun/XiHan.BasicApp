@@ -18,8 +18,8 @@ namespace XiHan.BasicApp.Workflow.Domain.Services;
 /// 审批业务服务（<see cref="IWorkflowBusinessService"/> 的实现）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowBusinessService</c>：业务码即流程定义名，单据 ID 写进实例的关联 ID；同一单据同一时刻只许一个进行中的实例（框架的 <see cref="WorkflowReusePolicy.RejectActive"/>，
-/// 已有时 <c>WORKFLOW_CONFLICT_005</c>）。引擎写入加入调用方的工作单元：发起与业务写入一起提交或回滚；发起即故障时返回失败，调用方随之回滚，不留半截审批（4.x 在没有事务时另行终止）
+/// 业务码即流程定义名，单据 ID 写进实例的关联 ID；同一单据同一时刻只许一个进行中的实例（框架的 <see cref="WorkflowReusePolicy.RejectActive"/>，
+/// 已有时 <c>WORKFLOW_CONFLICT_005</c>）。引擎写入加入调用方的工作单元：发起与业务写入一起提交或回滚；发起即故障时返回失败，调用方随之回滚，不留半截审批
 /// 当前分区一个这个名字的定义都没有时，按业务描述的缺省定义建并发布（每个分区一份，平台与租户互不可见）
 /// </remarks>
 /// <param name="registry">审批业务登记表</param>
@@ -272,7 +272,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
 /// 结论回写（结束节点 → 审批业务）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowBusinessOutcomeHandler</c>：只分发登记过的业务的顶层实例；结论不在业务允许的范围里、实例没有单据 ID 即返回失败，结束节点随之故障、实例停在故障态，修好后重试再分发
+/// 只分发登记过的业务的顶层实例；结论不在业务允许的范围里、实例没有单据 ID 即返回失败，结束节点随之故障、实例停在故障态，修好后重试再分发
 /// 在实例锁内、与引擎同一个调用和事务里执行（框架 <see cref="IWorkflowOutcomeHandler"/>），业务的写入与实例完成一起提交
 /// </remarks>
 /// <param name="registry">审批业务登记表</param>
@@ -381,8 +381,8 @@ public sealed class WorkflowBusinessChanges(WorkflowBusinessRegistry registry, I
 /// 中止回写（管理员取消、终止，发起人撤回之后通知业务）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>WorkflowBusinessAbortNotifier</c>：只对登记过的业务、有单据 ID、已取消或已终止的顶层实例回调；业务自己经 <see cref="IWorkflowBusinessService.WithdrawAsync"/> 撤回的不经过这里
-/// 回写在操作的同一个事务里：批量取消、终止时回写失败记为那一项失败（实例照样已中止，同 4.x）；发起人撤回是单条，回写失败即整个撤回回滚
+/// 只对登记过的业务、有单据 ID、已取消或已终止的顶层实例回调；业务自己经 <see cref="IWorkflowBusinessService.WithdrawAsync"/> 撤回的不经过这里
+/// 回写在操作的同一个事务里：批量取消、终止时回写失败记为那一项失败（实例照样已中止）；发起人撤回是单条，回写失败即整个撤回回滚
 /// </remarks>
 /// <param name="registry">审批业务登记表</param>
 public sealed class WorkflowBusinessAborts(WorkflowBusinessRegistry registry)

@@ -78,7 +78,7 @@ function handleStartSelect(key: string | number) {
   emit('start', String(key) as 'assistant' | 'department' | 'group' | 'single')
 }
 
-/** 用户操作的失败由界面提示（6.0 的请求层不弹统一提示） */
+/** 用户操作的失败由界面提示（请求层不弹统一提示） */
 function notifyFailure(error: unknown) {
   toast.danger(chatErrorText(error) || t('common.messages.operation_failed'))
 }

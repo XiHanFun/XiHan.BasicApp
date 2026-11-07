@@ -18,8 +18,8 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// 个人的开放接口凭证服务
 /// </summary>
 /// <remarks>
-/// 对应 4.x 个人中心「开放接口」。每人最多 5 个；AppKey 为 <c>ak_</c> + 24 位、密钥为 <c>sk_</c> + 43 位字母数字，密钥加密存、只在创建与滚动时返回一次
-/// 签名算法与 IP 白名单在账号安全上，作用于本人全部凭证（4.x 页面上的「调用安全设置」存进了用户设置、验签不读，这里改为真正生效）
+/// 用于个人中心「开放接口」。每人最多 5 个；AppKey 为 <c>ak_</c> + 24 位、密钥为 <c>sk_</c> + 43 位字母数字，密钥加密存、只在创建与滚动时返回一次
+/// 签名算法与 IP 白名单在账号安全上，作用于本人全部凭证
 /// </remarks>
 /// <param name="credentials">凭证仓储</param>
 /// <param name="secrets">密钥保护</param>
@@ -29,9 +29,6 @@ public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid>
     /// <summary>
     /// 每人的凭证上限
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const int Limit = 5;
 
     /// <summary>
@@ -216,7 +213,7 @@ public sealed class ApiCredentialService(IRepository<SysUserApiCredential, Guid>
 
     private async Task<string> NewAppKeyAsync(CancellationToken cancellationToken)
     {
-        // 24 位字母数字约 142 比特，撞上的概率可以忽略；仍按 4.x 查一次、最多重试 3 次
+        // 24 位字母数字约 142 比特，撞上的概率可以忽略；仍查一次重、最多重试 3 次
         for (var attempt = 0; attempt < 3; attempt++)
         {
             var appKey = "ak_" + RandomNumberGenerator.GetString(Alphabet, 24);

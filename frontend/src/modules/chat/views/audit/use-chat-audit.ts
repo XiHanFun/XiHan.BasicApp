@@ -38,7 +38,7 @@ export const CHAT_AUDIT_QUERY: PageQueryMapping = {
   },
 }
 
-/** SchemaPage 的资源：只读分页（4.x 同，没有导出） */
+/** SchemaPage 的资源：只读分页（没有导出） */
 export function chatAuditResource(): SchemaResource<ChatAuditRow> {
   return {
     page: async params => toSchemaPageResult(await chatAudit.list(toPageRequest(params, CHAT_AUDIT_QUERY)), params),

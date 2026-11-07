@@ -14,9 +14,9 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// 一条 Update 的处理
 /// </summary>
 /// <remarks>
-/// 4.x TelegramUpdateDispatcher 同一个顺序：群组白名单（去重之前）→ 去重 → 内联查询 → 会话状态 → 回调 → <c>/start</c> 深链 → 命令 → 回复 → 普通消息 → 兜底
+/// 顺序：群组白名单（去重之前）→ 去重 → 内联查询 → 会话状态 → 回调 → <c>/start</c> 深链 → 命令 → 回复 → 普通消息 → 兜底
 /// 处理在一次平台调用里进行（处理器能读写业务数据）；被取消即撤销去重标记，其他异常回一条出错提示（不撤销标记）
-/// 与 4.x 不同：回调 action 没登记也应答（4.x 不应答，客户端一直转圈）；<c>/cmd@别的机器人</c> 不处理（4.x 不校验）
+/// 回调 action 没登记也应答（不应答客户端会一直转圈）；<c>/cmd@别的机器人</c> 不处理
 /// </remarks>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="app">内核（开平台调用）</param>
@@ -152,7 +152,7 @@ public sealed partial class TelegramDispatcher(IServiceScopeFactory scopes, App 
 
         var arguments = TelegramCommands.Arguments(update.Text);
 
-        // 7. /start 深链（在白名单与管理员检查之前，4.x 同）
+        // 7. /start 深链（在白名单与管理员检查之前）
         if (command == "/start" && arguments.Count > 0 && arguments[0].Length > 0)
         {
             foreach (var handler in catalog.StartPayloads)
@@ -259,7 +259,7 @@ public sealed partial class TelegramDispatcher(IServiceScopeFactory scopes, App 
 
             if (handler.AdminOnly && !context.IsAdmin)
             {
-                // 以消息回提示，回调应答不带文字（4.x 同）
+                // 以消息回提示，回调应答不带文字
                 await context.ReplyAsync(options.Texts.CallbackAdminOnlyReply).ConfigureAwait(false);
                 return;
             }

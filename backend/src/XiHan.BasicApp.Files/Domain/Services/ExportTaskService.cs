@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Files.Domain.Services;
 /// 一次导出提交的内容
 /// </summary>
 /// <param name="BusinessType">要导出的列表操作 ID</param>
-/// <param name="TaskName">任务名称；为空按「操作 ID_时间」起名（4.x 同）</param>
+/// <param name="TaskName">任务名称；为空按「操作 ID_时间」起名</param>
 /// <param name="Scope">范围</param>
 /// <param name="Format">格式</param>
 /// <param name="QuerySnapshot">查询快照（分页请求 JSON）</param>
@@ -30,8 +30,8 @@ public sealed record ExportSubmission(string BusinessType, string? TaskName, Exp
 /// 导出任务的提交、读取、取消与删除
 /// </summary>
 /// <remarks>
-/// 4.x 同。提交写一条排队中的任务并入队，执行由 <see cref="ExportRunner"/> 在后台以发起人的身份完成；每人只看得到自己的任务
-/// 与 4.x 不同：要导出的是某个 <c>.list</c> 操作本身（不另写导出提供方），权限、数据范围与字段安全由那个操作照常判定；删除任务连同结果文件
+/// 提交写一条排队中的任务并入队，执行由 <see cref="ExportRunner"/> 在后台以发起人的身份完成；每人只看得到自己的任务
+/// 要导出的是某个 <c>.list</c> 操作本身（不另写导出提供方），权限、数据范围与字段安全由那个操作照常判定；删除任务连同结果文件
 /// </remarks>
 /// <param name="rows">任务读写</param>
 /// <param name="files">文件服务（删除结果文件）</param>
@@ -127,9 +127,6 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
     /// <summary>
     /// 取消：只在排队中，记为失败并写明已取消
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     /// <param name="context">调用上下文</param>
     /// <param name="task">任务</param>
     /// <returns>结果</returns>

@@ -26,7 +26,7 @@ export interface OrganizationDirectory {
   departments: DirectoryOption[]
 }
 
-/** 用户 ID 是 GUID；规则里别的取值（如从 4.x 搬来的数字 ID）不是 6.0 的用户，不拿去回显 */
+/** 用户 ID 是 GUID；规则里别的取值（如数字 ID）不是用户，不拿去回显 */
 const USER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 let organizationPromise: Promise<OrganizationDirectory> | null = null

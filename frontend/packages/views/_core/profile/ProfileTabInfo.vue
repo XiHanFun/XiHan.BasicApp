@@ -123,10 +123,9 @@ const genderOptions = computed(() => [
 ])
 
 // ==================== 头像上传 / 删除 ====================
-// 与 4.x 不同：4.x 先把文件传进文件库、再经 updateProfileApi 把 fileId 写进资料（去掉头像写空串）；
-// 6.0 的头像端点上传即换成本人的头像并回收旧的，去掉头像走 removeAvatarApi（profile.remove-avatar），资料保存不再带头像
+// 头像端点上传即换成本人的头像并回收旧的，去掉头像走 removeAvatarApi（profile.remove-avatar），资料保存不带头像
 // 会话里的用户由壳层换成后端回的那份（userStore 是会话的投影，顶栏与侧栏头像随之刷新），这里只重拉资料
-// 选好图片先进裁剪弹窗（4.x 没有这一步），传上去的是裁好的正方形；格式与大小仍按选中的原图认
+// 选好图片先进裁剪弹窗，传上去的是裁好的正方形；格式与大小仍按选中的原图认
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
 const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
@@ -247,7 +246,7 @@ watch(() => props.profile, syncProfileForm, { immediate: true })
 async function saveProfile() {
   profileSaving.value = true
   try {
-    // 整体覆盖（6.0 的 profile.update 不收头像）；显示名进顶栏由壳层刷新会话里的用户（4.x 在这里改 userStore）
+    // 整体覆盖（profile.update 不收头像）；显示名进顶栏由壳层刷新会话里的用户
     await apis.updateProfileApi({
       ...profileForm.value,
       birthday: profileForm.value.birthday
@@ -529,7 +528,7 @@ function cancelChange() {
                 </div>
               </div>
 
-              <!-- 显示名称（6.0 必填，1–64 字） -->
+              <!-- 显示名称（必填，1–64 字） -->
               <div class="pf-setting-row">
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
@@ -672,7 +671,7 @@ function cancelChange() {
       </div>
     </section>
 
-    <!-- 个人信息（长度上限与 6.0 的 profile.update 一致：真实姓名、国家或地区 50，简介 500） -->
+    <!-- 个人信息（长度上限与 profile.update 一致：真实姓名、国家或地区 50，简介 500） -->
     <section class="pf-section">
       <div class="pf-section__head">
         <div class="pf-section__heading">

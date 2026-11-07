@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Printing.Domain.Services;
 /// 打印模块自带的数据源
 /// </summary>
 /// <remarks>
-/// 不论演示开关都登记（4.x 同），字段与样例照 4.x 原样
+/// 不论演示开关都登记
 /// </remarks>
 public static class BuiltInPrintDataSources
 {

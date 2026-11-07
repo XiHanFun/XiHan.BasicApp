@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证 SignalR 参数的配置节
 /// </summary>
 /// <remarks>
-/// 没写即 4.x 的缺省值，写了的进 Hub 选项，写错启动即失败
+/// 没写即缺省值，写了的进 Hub 选项，写错启动即失败
 /// </remarks>
 public sealed class RealtimeSignalROptionsTests : IDisposable
 {

@@ -1,18 +1,18 @@
 import type { XihanWorkflowDefinition } from '@xihan-flow/core/presets/xihan-workflow'
 
 /**
- * 框架 5 的 WorkflowJson ↔ XiHan 工作流引擎预设（@xihan-flow rc.2）认的 4.x 引擎定义
+ * 框架 的 WorkflowJson ↔ XiHan 工作流引擎预设（@xihan-flow rc.2）的定义
  *
- * 预设只认 4.x 引擎的定义格式，6.0 后端收发的是框架 5 的 WorkflowJson（camelCase），两边逐项换算：
- * - 定义：WorkflowJson 的 name（定义名，即 4.x 的编码）↔ code，displayName ↔ name；
+ * 后端收发的是框架 的 WorkflowJson（camelCase），预设有自己的定义格式，两边逐项换算：
+ * - 定义：WorkflowJson 的 name（定义名，即预设的编码）↔ code，displayName ↔ name；
  * - 节点与连线：displayName ↔ name；节点的 timeout（TimeSpan 文本 d.hh:mm:ss / hh:mm:ss）↔ timeoutSeconds（秒），
  *   重试策略的 firstDelay ↔ firstDelaySeconds；
  * - 设计器的画面数据：WorkflowJson 的 properties.designerLayout / designerEdges / designerExtensions（对象）
- *   ↔ 4.x 的 extraProperties 里同名的 JSON 字符串；properties 里别的键原样搬进定义的 properties，预设不认、原样往返；
- * - 节点属性里预设沿用 4.x 引擎、框架 5 改了名的四个键：DurationSeconds ↔ Duration（延时）、ItemsExpression ↔ Items、
+ *   ↔ 预设的 extraProperties 里同名的 JSON 字符串；properties 里别的键原样搬进定义的 properties，预设不认、原样往返；
+ * - 节点属性里预设与框架 叫法不同的四个键：DurationSeconds ↔ Duration（延时）、ItemsExpression ↔ Items、
  *   ItemVariableName ↔ ItemVariable（遍历）、DefinitionCode ↔ DefinitionName（子流程与遍历）；
  * - 缺 id 的节点与连线补上合法的元素 id（框架的 [A-Za-z0-9][A-Za-z0-9._-]{0,63}），不交给预设补出含 -> 与 # 的 id；
- * - 回写时去掉 4.x 才有、框架不认的 creationTime、publishTime 与数字形式的 tenantId
+ * - 回写时去掉预设才有、框架不认的 creationTime、publishTime 与数字形式的 tenantId
  *
  * 没列出的字段原样往返，值为 null 的字段去掉（WorkflowJson 不写 null，二者同义）；往返两次的结果一致
  */
@@ -50,7 +50,7 @@ export interface WorkflowJsonTransition {
   readonly [key: string]: unknown
 }
 
-/** 框架 5 的流程定义（WorkflowJson）；没列出的字段原样往返 */
+/** 框架 的流程定义（WorkflowJson）；没列出的字段原样往返 */
 export interface WorkflowJsonDefinition {
   readonly id?: string
   /** 定义名（同名的各版本共用；关联审批业务时即业务码） */
@@ -71,10 +71,10 @@ export interface WorkflowJsonDefinition {
 
 type JsonRecord = Record<string, unknown>
 
-/** 设计器画面数据的键：WorkflowJson 的 properties 下是对象，4.x 的 extraProperties 下是 JSON 字符串 */
+/** 设计器画面数据的键：WorkflowJson 的 properties 下是对象，预设的 extraProperties 下是 JSON 字符串 */
 const DESIGNER_KEYS: ReadonlySet<string> = new Set(['designerLayout', 'designerEdges', 'designerExtensions'])
 
-/** 4.x 才有、框架不认的定义字段 */
+/** 预设才有、框架不认的定义字段 */
 const LEGACY_ONLY_KEYS: ReadonlySet<string> = new Set(['creationTime', 'publishTime'])
 
 /** 回写 WorkflowJson 时排在前面的字段，其余按原顺序跟在后面 */
@@ -234,9 +234,9 @@ export function secondsToTimeSpan(seconds: number): string {
     : ''}`
 }
 
-// ── WorkflowJson → 4.x 引擎定义 ─────────────────────────────────
+// ── WorkflowJson → 预设定义 ─────────────────────────────────
 
-/** 预设（4.x 引擎）与框架 5 叫法不同的节点属性：前者是预设的键，后者是 WorkflowJson 的键 */
+/** 预设与框架 叫法不同的节点属性：前者是预设的键，后者是 WorkflowJson 的键 */
 const PROPERTY_RENAMES: readonly (readonly [string, string])[] = [
   ['DurationSeconds', 'Duration'],
   ['ItemsExpression', 'Items'],
@@ -312,7 +312,7 @@ function transitionFromJson(transition: unknown): unknown {
 }
 
 /**
- * WorkflowJson 换成预设认的 4.x 引擎定义，交给 fromWorkflowDefinition 打开
+ * WorkflowJson 换成预设的定义，交给 fromWorkflowDefinition 打开
  * 结构不对（不是对象、nodes / transitions 不是数组、TimeSpan 文本不合法）时抛 TypeError
  */
 export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflowDefinition {
@@ -355,7 +355,7 @@ export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflo
   return definition as XihanWorkflowDefinition
 }
 
-// ── 4.x 引擎定义 → WorkflowJson ─────────────────────────────────
+// ── 预设定义 → WorkflowJson ─────────────────────────────────
 
 /** 设计器写进 extraProperties 的 JSON 字符串解析回对象；解析不出时原样留着字符串（交给后端报错，不吞掉） */
 function parseDesignerValue(value: string): unknown {
@@ -419,7 +419,7 @@ function transitionToJson(transition: unknown): unknown {
 }
 
 /**
- * 预设写出的 4.x 引擎定义（toWorkflowDefinition 的结果）换成 WorkflowJson，交给后端保存
+ * 预设写出的定义（toWorkflowDefinition 的结果）换成 WorkflowJson，交给后端保存
  */
 export function toWorkflowJson(definition: XihanWorkflowDefinition): WorkflowJsonDefinition {
   if (!isRecord(definition))
@@ -440,7 +440,7 @@ export function toWorkflowJson(definition: XihanWorkflowDefinition): WorkflowJso
   const kept = Object.fromEntries(Object.entries(rest).filter(([key]) => !LEGACY_ONLY_KEYS.has(key)))
   return ordered({
     ...kept,
-    // 框架的租户是字符串；4.x 的数字租户 id 框架不认
+    // 框架的租户是字符串；预设的数字租户 id 框架不认
     ...(typeof tenantId === 'string'
       ? { tenantId }
       : {}),

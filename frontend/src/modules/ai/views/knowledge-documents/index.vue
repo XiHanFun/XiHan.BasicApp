@@ -1,5 +1,5 @@
 <!--
-  AI / 知识库（照 4.x develop/knowledge）：文档与检索试玩两个页签
+  AI / 知识库：文档与检索试玩两个页签
   接口取自后端契约（knowledge-documents.*）；平台与租户各自维护，只看调用方一侧。没有编辑，只有摄取、重建索引与删除
 -->
 <script setup lang="ts">

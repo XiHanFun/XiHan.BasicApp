@@ -27,7 +27,7 @@ public static class FilesPages
     /// 导出中心页
     /// </summary>
     /// <remarks>
-    /// 只看自己的导出，登录即可；4.x 同不设权限
+    /// 只看自己的导出，登录即可、不设权限
     /// </remarks>
     public static PageDescriptor ExportCenter { get; } = new("files.export-center", "/files/export-center", "files.export_center.title", "lucide:file-down", 470, directory: MenuDirectories.FileServices);
 

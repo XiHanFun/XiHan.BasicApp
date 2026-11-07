@@ -9,7 +9,7 @@ export type ProviderDetail = ResponseOf<'ai-providers.get'>
 export type ProviderStatus = ProviderRow['status']
 export type ProviderTestResult = ResponseOf<'ai-providers.test'>
 
-/** 厂商建议项的值（照 4.x：只用于分组展示，都走 OpenAI 兼容协议，可自填） */
+/** 厂商建议项的值（只用于分组展示，都走 OpenAI 兼容协议，可自填） */
 export const VENDOR_VALUES = [
   'OpenAI',
   'DeepSeek',
@@ -115,7 +115,7 @@ export interface ProbeLine {
   dimensions: null | number
 }
 
-/** 测试连接的结果拆成逐行（照 4.x 的通知正文：会话一行、嵌入一行，没配嵌入模型时嵌入一行说明不能用于知识库） */
+/** 测试连接的结果拆成逐行（会话一行、嵌入一行，没配嵌入模型时嵌入一行说明不能用于知识库） */
 export function probeLines(result: ProviderTestResult): { lines: ProbeLine[], embeddingAbsent: boolean } {
   const lines: ProbeLine[] = [
     {
@@ -139,7 +139,7 @@ export function probeLines(result: ProviderTestResult): { lines: ProbeLine[], em
 }
 
 /**
- * 提供商的编辑弹窗：新建与编辑（照 4.x：编码只在新建时填、编辑时 API 密钥留空即保留，状态只在新建时选，之后走行内启停）
+ * 提供商的编辑弹窗：新建与编辑（编码只在新建时填、编辑时 API 密钥留空即保留，状态只在新建时选，之后走行内启停）
  * 详情不回显 API 密钥，只说有没有；字段级错误挂回对应字段
  */
 export function useProviderEditor() {

@@ -42,7 +42,7 @@ public sealed class ListCodegenDatasources(CodegenDatasourceQueries queries) : I
 /// 数据源下拉选项
 /// </summary>
 /// <remarks>
-/// <c>GET /api/codegen-datasources:options</c>。全部数据源（含停用的，照 4.x），按排序号与名称
+/// <c>GET /api/codegen-datasources:options</c>。全部数据源（含停用的），按排序号与名称
 /// </remarks>
 /// <param name="queries">数据源查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = CodeGenerationPermissions.DatasourcesRead)]
@@ -92,7 +92,7 @@ public sealed class GetCodegenDatasource(CodeGenDataSourceService service) : IOp
 /// </summary>
 /// <remarks>
 /// <c>POST /api/codegen-datasources</c>。名称已被占用 <c>CODEGENERATION_CONFLICT_001</c>（并发重复由部分唯一索引兜住）；口令与显式连接串加密存储；
-/// 设为缺省时其余数据源取消缺省（照 4.x）
+/// 设为缺省时其余数据源取消缺省
 /// </remarks>
 /// <param name="dataSources">数据源仓储</param>
 /// <param name="service">数据源规则</param>
@@ -153,7 +153,7 @@ public sealed class CreateCodegenDatasource(IRepository<SysCodeGenDataSource, Gu
 /// 修改数据源
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/codegen-datasources/{id}</c>。口令与显式连接串留空即不改（照 4.x）；交回的并发戳与当前的不同即冲突
+/// <c>PUT /api/codegen-datasources/{id}</c>。口令与显式连接串留空即不改；交回的并发戳与当前的不同即冲突
 /// 写入后注销这个数据源的连接，下次使用按新定义重建
 /// </remarks>
 /// <param name="dataSources">数据源仓储</param>
@@ -229,7 +229,7 @@ public sealed class UpdateCodegenDatasource(IRepository<SysCodeGenDataSource, Gu
 /// 启用或停用数据源
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-datasources/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（4.x 同）。写入后注销这个数据源的连接
+/// <c>POST /api/codegen-datasources/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注。写入后注销这个数据源的连接
 /// </remarks>
 /// <param name="dataSources">数据源仓储</param>
 /// <param name="service">数据源规则</param>
@@ -270,7 +270,7 @@ public sealed class SetCodegenDatasourceStatus(IRepository<SysCodeGenDataSource,
 /// 批量删除数据源
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/codegen-datasources?ids=...</c>。逐项：不存在 <c>CODEGENERATION_NOTFOUND_001</c>，仍被表配置引用 <c>CODEGENERATION_CONFLICT_002</c>（4.x 不查引用，方案 C2）
+/// <c>DELETE /api/codegen-datasources?ids=...</c>。逐项：不存在 <c>CODEGENERATION_NOTFOUND_001</c>，仍被表配置引用 <c>CODEGENERATION_CONFLICT_002</c>（方案 C2）
 /// 软删除，同名可以重建；删除后注销连接
 /// </remarks>
 /// <param name="dataSources">数据源仓储</param>
@@ -323,8 +323,8 @@ public sealed class DeleteCodegenDatasources(IRepository<SysCodeGenDataSource, G
 /// 测试数据源的连接
 /// </summary>
 /// <remarks>
-/// <c>POST /api/codegen-datasources/{id}:test-connection</c>。按当前定义临时连一次（停用的也能测，照 4.x），把结果写回最近一次测试的时间、结果与说明；
-/// 连不上不是失败的调用，结果里 <c>success</c> 为否、说明是框架给的原因（脱敏）。要修改权限：4.x 只要读权限却写库（方案 C2）
+/// <c>POST /api/codegen-datasources/{id}:test-connection</c>。按当前定义临时连一次（停用的也能测），把结果写回最近一次测试的时间、结果与说明；
+/// 连不上不是失败的调用，结果里 <c>success</c> 为否、说明是框架给的原因（脱敏）。要修改权限：结果写回库（方案 C2）
 /// 口令或连接串解不开即 <c>CODEGENERATION_UNAVAILABLE_001</c>
 /// </remarks>
 /// <param name="dataSources">数据源仓储</param>

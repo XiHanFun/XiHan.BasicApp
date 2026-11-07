@@ -22,7 +22,7 @@ export const EXPORT_TASK_STATUSES: readonly ExportTaskStatus[] = [
 export const EXPORT_FORMATS: readonly ExportFormat[] = ['Csv', 'Xlsx']
 
 /**
- * 认得的业务类型：4.x 有服务端导出的七个列表。6.0 的业务类型就是列表操作 ID，后端能导任何列表操作，
+ * 认得的业务类型（列表操作 ID）：后端能导任何列表操作，
  * 不在这里的照原样显示
  */
 export const KNOWN_BUSINESS_TYPES = [
@@ -38,7 +38,7 @@ export const KNOWN_BUSINESS_TYPES = [
 /** 重启打断的任务，后端在失败原因里记的字面量 */
 export const INTERRUPTED_MESSAGE = 'interrupted'
 
-/** 自动刷新间隔（只在标签页可见时刷新，4.x 同） */
+/** 自动刷新间隔（只在标签页可见时刷新） */
 export const REFRESH_INTERVAL_MS = 5_000
 
 /**
@@ -144,7 +144,7 @@ export function scopeLabel(t: Translate, scope: ExportScope): string {
   }
 }
 
-/** 格式名不翻译（4.x 同） */
+/** 格式名不翻译 */
 export function formatLabel(format: ExportFormat): string {
   return format === 'Xlsx'
     ? 'Excel'

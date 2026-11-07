@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Printing.Domain.Services;
 /// 打印模板的两侧规则与写入校验
 /// </summary>
 /// <remarks>
-/// 照 4.x 的领域服务与命令服务的作用域收口：写只写调用方这一侧（平台一侧即全局模板，还要 <c>printing.print-templates.global-manage</c>）；
+/// 作用域收口：写只写调用方这一侧（平台一侧即全局模板，还要 <c>printing.print-templates.global-manage</c>）；
 /// 别的一侧的模板当作不存在；数据源编码非空即须已登记；模板 JSON 只做最小结构校验（根是对象、<c>schemaVersion</c> 是数字 1、<c>pages</c> 是非空的对象数组），其余原样保存
 /// </remarks>
 /// <param name="templates">模板仓储</param>

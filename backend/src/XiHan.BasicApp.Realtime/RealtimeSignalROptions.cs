@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Realtime;
 /// SignalR 的 Hub 参数（配置节 <c>BasicApp:Realtime:SignalR</c>）
 /// </summary>
 /// <remarks>
-/// 键、语义与缺省照 4.x 的 <c>XiHan:Web:RealTime:SignalR</c>，缺省值也就是 ASP.NET Core 的缺省值。对全部 Hub 生效。4.x 还有一个 <c>EnableConnectionMetrics</c>，没有任何消费方，没有搬
+/// 缺省值即 ASP.NET Core 的缺省值。对全部 Hub 生效
 /// 时长写 <c>hh:mm:ss</c>（可带天数 <c>d.hh:mm:ss</c>）
 /// </remarks>
 public sealed record RealtimeSignalROptions

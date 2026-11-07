@@ -4,7 +4,7 @@ import { registerModuleLocales } from '~/locales'
 import { configurePrinting } from '~/printing'
 
 /**
- * 打印模块的启动钩子：登记本模块文案，把后端的模板解析与数据源目录接进公共打印包（照 4.x 的 configurePrinting）
+ * 打印模块的启动钩子：登记本模块文案，把后端的模板解析与数据源目录接进公共打印包
  * 数据源目录以后端注册表为单一事实源（含 system.print-demo），惰性拉取；打印运行时与设计器在首次打印或打开设计器时才加载
  * 页面由后端菜单下发（BasicApp:Modules:Printing:Enabled 关掉即不下发），这里登记的只是函数，模块关着也无副作用
  */
@@ -13,7 +13,7 @@ export default function setup(): void {
   configurePrinting({
     resolveTemplate: async (templateCode, scope): Promise<ResolvedPrintTemplate> => {
       const resolved = await printTemplates.resolve({ templateCode, scope })
-      // 打印包沿用 4.x 的字段名：主键叫 basicId，并发戳叫 rowVersion（样例表单据它判断模板有没有变）
+      // 打印包的字段名：主键叫 basicId，并发戳叫 rowVersion（样例表单据它判断模板有没有变）
       return {
         basicId: resolved.id,
         rowVersion: resolved.concurrencyStamp,

@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Printing.Operations.PrintTemplates;
 /// 打印模板的列表项
 /// </summary>
 /// <remarks>
-/// 不带模板 JSON（列表只要元数据，照 4.x）
+/// 不带模板 JSON（列表只要元数据）
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="IsGlobal">是否为平台全局模板</param>
@@ -142,7 +142,7 @@ public sealed record ResolvedPrintTemplateResponse(
 /// 模板编码与数据源编码的文法
 /// </summary>
 /// <remarks>
-/// 不含空白，不超过 100 个字符（照 4.x）
+/// 不含空白，不超过 100 个字符
 /// </remarks>
 public static class PrintTemplateCodes
 {
@@ -171,7 +171,7 @@ public sealed record ResolvePrintTemplateRequest(
 /// <c>print-templates.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 写在调用方这一侧（平台即全局模板）；4.x 的写入作用域参数只用来与当前上下文核对，6.0 由一侧决定、不再传
+/// 写在调用方这一侧（平台即全局模板），不传作用域
 /// </remarks>
 /// <param name="TemplateCode">模板编码（本侧唯一、创建后不可改）</param>
 /// <param name="TemplateName">模板名称</param>

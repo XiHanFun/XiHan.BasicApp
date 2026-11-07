@@ -1,5 +1,5 @@
 /**
- * 关于页（壳层从 4.x 搬入，文案按 6.0 重写）：页面人人可进，后端依赖清单要服务监控的读权限，没有权限不发请求、也不出那张卡片；
+ * 关于页：页面人人可进，后端依赖清单要服务监控的读权限，没有权限不发请求、也不出那张卡片；
  * 一句话介绍与核心能力按语言取，前端依赖来自构建期注入，关键词来自 package.json；有权限却加载失败才提示后端文案
  */
 import { flushPromises, mount } from '@vue/test-utils'
@@ -76,7 +76,7 @@ describe('关于页', () => {
     expect(backend.find('.ab-pkg-count').text()).toBe('2')
   })
 
-  it('没有权限不发请求、不出后端依赖卡片，其余照常；介绍、能力与特性按 6.0 文案', async () => {
+  it('没有权限不发请求、不出后端依赖卡片，其余照常；介绍、能力与特性照文案显示', async () => {
     const calls = record(() => json(200, { items: [] }))
     const wrapper = await render([])
     expect(calls).toEqual([])

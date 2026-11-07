@@ -69,7 +69,7 @@ function isLocalMessage(message: ChatMessageItem): boolean {
 /**
  * 按会话内序号把一条已落库消息插进列表：排在第一条序号比它大的已落库消息之前；
  * 比现有的都新时排在最后一条已落库消息之后，本地占位与发送失败的条目留在最下方
- * 4.x 按雪花 ID 的长度与字典序比先后，6.0 的主键是 GUID，先后只看 seq
+ * 主键是 GUID，先后只看 seq
  */
 function insertBySeq(list: ChatLocalMessage[], item: ChatLocalMessage): void {
   const before = list.findIndex(m => !isLocalMessage(m) && m.seq > item.seq)
@@ -629,7 +629,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 会话置顶开关（个人维度）。6.0 的接口传新值而不是切换：新值取列表里的当前值取反，
+   * 会话置顶开关（个人维度）。接口传新值而不是切换：新值取列表里的当前值取反，
    * 不在列表里的会话不知道当前值，不发请求
    */
   async function togglePinConversation(conversationId: string) {
@@ -676,7 +676,7 @@ export const useChatStore = defineStore('chat', () => {
 
   /**
    * 群聊某条自己消息的已读人数（不含自己）；单聊则表示对端是否已读
-   * 按会话内序号比较：成员的已读序号不小于这条的 seq 即已读（4.x 按雪花 ID 的长度与字典序比）；还没落库的占位（seq 0）不算
+   * 按会话内序号比较：成员的已读序号不小于这条的 seq 即已读；还没落库的占位（seq 0）不算
    */
   function readCountFor(conversationId: string, seq: number): number {
     const positions = readPositions.value[conversationId]

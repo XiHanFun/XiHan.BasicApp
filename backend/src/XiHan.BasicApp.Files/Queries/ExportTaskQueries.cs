@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Files.Queries;
 /// 自己的导出任务列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配任务名称与列表操作 ID；按状态、格式多选，按列表操作筛选；缺省按提交时间倒序（4.x 同只看自己的）
+/// 关键字匹配任务名称与列表操作 ID；按状态、格式多选，按列表操作筛选；缺省按提交时间倒序
 /// </remarks>
 /// <param name="rows">任务读写</param>
 public sealed class ExportTaskQueries(SideRows rows)

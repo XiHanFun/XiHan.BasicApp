@@ -63,9 +63,6 @@ public sealed record ApiCredentialRecord(
 /// <summary>
 /// 开放接口的签名算法
 /// </summary>
-/// <remarks>
-/// 4.x 个人中心的取值
-/// </remarks>
 public static class ApiSignatureAlgorithms
 {
     /// <summary>
@@ -87,7 +84,7 @@ public static class ApiSignatureAlgorithms
     /// 把算法名规整成标准写法
     /// </summary>
     /// <remarks>
-    /// 不区分大小写，也认 4.x 请求头的 <c>HMACSHA256</c>
+    /// 不区分大小写，请求头写 <c>HMACSHA256</c> 也认
     /// </remarks>
     /// <param name="value">算法名</param>
     /// <returns>标准写法；不认识的为 <see langword="null"/></returns>

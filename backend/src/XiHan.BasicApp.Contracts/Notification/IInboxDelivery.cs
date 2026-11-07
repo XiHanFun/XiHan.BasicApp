@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Contracts.Notification;
 /// </summary>
 /// <remarks>
 /// 别的包给一组用户发一条站内信（带链接，提交之后实时推送）：<see cref="InboxMessageKind.Todo"/> 用于审批待办、抄送、流程故障这类提醒，按收件人的站内偏好过滤；
-/// <see cref="InboxMessageKind.Security"/> 用于账号安全提醒，不看偏好（4.x 同）。投在调用所在的一侧，不经发件人权限判定。没有实现（Notification 没装）时调用方自己决定怎么处理
+/// <see cref="InboxMessageKind.Security"/> 用于账号安全提醒，不看偏好。投在调用所在的一侧，不经发件人权限判定。没有实现（Notification 没装）时调用方自己决定怎么处理
 /// </remarks>
 public interface IInboxDelivery
 {

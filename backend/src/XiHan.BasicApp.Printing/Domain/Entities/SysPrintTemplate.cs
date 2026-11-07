@@ -10,9 +10,9 @@ namespace XiHan.BasicApp.Printing.Domain.Entities;
 /// 打印模板（平台库实体，不实现 <c>IMultiTenant</c>）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台全局模板，否则是该租户的私有模板（4.x 以 <c>TenantId = 0</c> 表示全局）
-/// 独立库的租户也读写平台库里的这张表，与 4.x 的 <c>[PlatformDataSource]</c> 同。编码在所属一侧唯一、创建后不可改；
-/// 数据源编码可空（自由模板），只提供字段契约、设计素材与缺省样例。并发戳参与修改与启停的乐观并发（4.x 的行版本）
+/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台全局模板，否则是该租户的私有模板
+/// 独立库的租户也读写平台库里的这张表。编码在所属一侧唯一、创建后不可改；
+/// 数据源编码可空（自由模板），只提供字段契约、设计素材与缺省样例。并发戳参与修改与启停的乐观并发
 /// </remarks>
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(TemplateCode))]
 public sealed class SysPrintTemplate : AppAuditedEntity, IOwnedByTenant

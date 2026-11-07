@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// 消息模板的渲染（Scriban）
 /// </summary>
 /// <remarks>
-/// 方案 5.11。变量写成双花括号包住的变量名，4.x 的写法照样可用
+/// 方案 5.11。变量写成双花括号包住的变量名
 /// 不给模板加载器（不能引入别的文件），循环与递归设上限，语法树限深（<see cref="TemplateLimits"/>），一次渲染最多 5 秒；HTML 模板里的参数值先做 HTML 编码，参数里的尖括号不会变成标签
 /// </remarks>
 internal static class TemplateRenderer

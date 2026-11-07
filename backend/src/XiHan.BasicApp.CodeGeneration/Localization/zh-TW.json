@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "欄位「{column}」的常數選項要是非空陣列，每項有文字的 label 與文字或數字的 value：{value}",
   "codegeneration.generate.const_options_type_mismatch": "欄位「{column}」的型別是 {type}，常數選項的值卻是 {valueType}。",
   "openapi.tags.codegen_templates.name": "程式碼產生範本",
-  "openapi.tags.codegen_templates.description": "把資料表設定產生 6.0 套件與前端模組的 Scriban 範本：內建範本隨程式版本走，可以另加自有範本。",
+  "openapi.tags.codegen_templates.description": "把資料表設定產生後端套件與前端模組的 Scriban 範本：內建範本隨程式版本走，可以另加自有範本。",
   "permissions.codegeneration.codegen_templates.read.name": "檢視程式碼產生範本",
   "permissions.codegeneration.codegen_templates.read.description": "檢視程式碼產生範本、檢查範本語法。",
   "permissions.codegeneration.codegen_templates.create.name": "新增程式碼產生範本",

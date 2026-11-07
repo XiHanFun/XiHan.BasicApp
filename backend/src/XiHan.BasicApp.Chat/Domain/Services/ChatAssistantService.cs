@@ -17,8 +17,8 @@ namespace XiHan.BasicApp.Chat.Domain.Services;
 /// 聊天里的助手
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ChatAssistantAppService</c>：回复是前端发出用户消息后单独发起的调用，生成期间增量推给本人，结束才落库为一条助手消息并按普通消息推送；助手输出与用户输入过同一套敏感词
-/// 与 4.x 不同：AI 关掉时没有 <see cref="IChatAssistants"/> 的实现，助手操作明确返回 <c>CHAT_UNAVAILABLE_001</c>；失败以 Problem Details 结束，同时立即推 <c>ChatAssistantCompleted</c> 带错误（方案 D13），不返回伪成功
+/// 回复是前端发出用户消息后单独发起的调用，生成期间增量推给本人，结束才落库为一条助手消息并按普通消息推送；助手输出与用户输入过同一套敏感词
+/// AI 关掉时没有 <see cref="IChatAssistants"/> 的实现，助手操作明确返回 <c>CHAT_UNAVAILABLE_001</c>；失败以 Problem Details 结束，同时立即推 <c>ChatAssistantCompleted</c> 带错误（方案 D13），不返回伪成功
 /// 写库都在生成结束之后：生成期间这次调用没有开事务，增量才能立即推（方案 D10）
 /// </remarks>
 /// <param name="assistants">助手应答（AI 实现）</param>
@@ -60,7 +60,7 @@ public sealed partial class ChatAssistantService(
     /// 打开与助手的会话，没有即建
     /// </summary>
     /// <remarks>
-    /// 新建时发开场白（照 4.x）
+    /// 新建时发开场白
     /// </remarks>
     public async Task<Result<ChatAssistantOpenResponse>> OpenAsync(InvocationContext context, ChatCaller caller, Guid assistantId)
     {

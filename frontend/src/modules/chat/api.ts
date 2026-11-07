@@ -40,8 +40,8 @@ async function sha256Hex(file: File): Promise<string> {
 }
 
 /**
- * 用生成的操作客户端组装聊天 API 契约（4.x 由 src/modules/chat/api/chat.ts 的 Dynamic API 客户端承担）
- * 与 4.x 的不同：移出与禁言是批量操作、逐项失败的抛出；置顶与免打扰传新值；转发走服务端；
+ * 用生成的操作客户端组装聊天 API 契约
+ * 移出与禁言是批量操作、逐项失败的抛出；置顶与免打扰传新值；转发走服务端；
  * 附件只走聊天自己的上传、秒传与签名（方案 H2：附件以会话为访问范围，不再要通用文件权限）
  */
 export function createChatApi(): ChatApiContract {
@@ -95,7 +95,7 @@ export function createChatApi(): ChatApiContract {
     members: async conversationId => (await chatConversations.members({ conversationId })).items,
     readPositions: async conversationId => (await chatConversations.readPositions({ conversationId })).items,
     pinnedMessages: async conversationId => (await chatMessages.pinned({ conversationId })).items,
-    // 聊天专属选人端点（只要会话读权限）；显示名放进 4.x 的 nickName 槽位，头像是文件主键
+    // 聊天专属选人端点（只要会话读权限）；显示名放进 nickName 槽位，头像是文件主键
     selectUsers: async (keyword, limit = 20) => (await chatConversations.userOptions({ keyword: keyword.trim() || null, limit })).items.map(user => ({
       userId: user.userId,
       userName: user.userName,
@@ -120,7 +120,7 @@ export function createChatApi(): ChatApiContract {
           }
         }
         catch {
-          // 秒传只是探测（4.x 同）：探测失败不阻断，照常走普通上传，普通上传的失败照常抛出
+          // 秒传只是探测：探测失败不阻断，照常走普通上传，普通上传的失败照常抛出
         }
       }
       const form = new FormData()

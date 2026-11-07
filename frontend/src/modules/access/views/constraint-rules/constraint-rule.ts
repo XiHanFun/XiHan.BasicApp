@@ -85,7 +85,7 @@ export function toItemInputs(items: readonly ConstraintItemModel[]): ConstraintI
   return items.map(item => ({ targetId: item.targetId, groupNo: item.groupNo, remark: item.remark.trim() || null }))
 }
 
-/** 规则项的第一处问题（4.x 的提交前校验）；都好为空 */
+/** 规则项的第一处问题（提交前校验）；都好为空 */
 export type ItemProblem = 'duplicate' | 'no_target' | 'too_few'
 
 export function findItemProblem(type: ConstraintType, items: readonly ConstraintItemModel[]): { problem: ItemProblem, index: number } | null {

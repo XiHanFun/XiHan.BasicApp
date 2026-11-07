@@ -87,7 +87,7 @@ export interface FileDetailsForm {
   remark: string
 }
 
-/** 临时文件缺省保留 7 天（4.x 的保留天数缺省值） */
+/** 临时文件缺省保留 7 天 */
 export const DEFAULT_RETENTION_DAYS = 7
 
 export function defaultExpiry(now = Date.now()): number {
@@ -131,7 +131,7 @@ export function toFileDetails(form: FileDetailsForm) {
 
 // ── 预览 ────────────────────────────────────────────────────────
 
-/** 浏览器直接渲染得了的几类（4.x 同） */
+/** 浏览器直接渲染得了的几类 */
 export type PreviewKind = 'audio' | 'csv' | 'image' | 'markdown' | 'text' | 'video'
 
 /** 文本类预览上限 2MB，超出只提示下载，避免大文件拖垮浏览器 */

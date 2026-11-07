@@ -20,9 +20,9 @@ namespace XiHan.BasicApp.Chat.Jobs;
 /// 聊天消息的保留清理
 /// </summary>
 /// <remarks>
-/// 内建作业（照 4.x 的 <c>chat-retention-cleanup</c>，每天 4 点）。保留天数读平台的 <c>chat.policy</c>（没建即 365 天，不合法直接失败、不按错误的保留期删数据）；
+/// 内建作业（每天 4 点）。保留天数读平台的 <c>chat.policy</c>（没建即 365 天，不合法直接失败、不按错误的保留期删数据）；
 /// 平台与目录里的每个租户逐个作用域删除（独立库的租户先绑定分片，清的是它自己的库）：先删所属消息已过期的表情回应，再删过期的消息；
-/// 不删会话、成员，也不删附件文件（照 4.x）。一个作用域失败只记日志、计入失败，不影响其他
+/// 不删会话、成员，也不删附件文件。一个作用域失败只记日志、计入失败，不影响其他
 /// </remarks>
 /// <param name="policy">聊天策略</param>
 /// <param name="sides">要清理的各侧</param>
@@ -39,9 +39,6 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, TenantSides side
     /// <summary>
     /// 调度：每天 4 点
     /// </summary>
-    /// <remarks>
-    /// 照 4.x 的 Cron <c>0 4 * * *</c>
-    /// </remarks>
     public static JobSchedule Schedule { get; } = JobSchedule.FromCron("0 4 * * *");
 
     /// <inheritdoc />
@@ -82,7 +79,7 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, TenantSides side
     /// 一个作用域的清理：在独立作用域、带租户的工作单元里先删回应再删消息
     /// </summary>
     /// <remarks>
-    /// 回应没有自己的保留期，按「所属消息已过期」删（照 4.x：按回应自己的时间删会漏掉「老消息 + 新回应」，顺序反过来就再也筛不出这些回应）
+    /// 回应没有自己的保留期，按「所属消息已过期」删（按回应自己的时间删会漏掉「老消息 + 新回应」，顺序反过来就再也筛不出这些回应）
     /// </remarks>
     private async Task<(int Reactions, int Messages)> PurgeAsync(string side, DateTimeOffset cutoff, CancellationToken cancellationToken)
     {

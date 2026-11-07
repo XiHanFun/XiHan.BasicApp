@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 助手
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，两侧的聊天都能用（照 4.x）：提示词、提供商与知识范围的一份配置，另加可用的工具（方案 A3）
+/// 平台库实体、只在平台一侧，两侧的聊天都能用：提示词、提供商与知识范围的一份配置，另加可用的工具（方案 A3）
 /// 编码唯一，建后不可改（会话按助手 ID 绑定）；缺省最多一个；软删除后可以重建
 /// </remarks>
 [ActiveUniqueIndex(nameof(Code))]

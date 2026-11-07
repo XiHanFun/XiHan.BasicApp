@@ -2,7 +2,7 @@
 export default {
   notification: {
     notifications: {
-      // 正文的编辑弹窗（4.x 同）
+      // 正文的编辑弹窗
       form_content_drawer_title: '공지 내용 편집',
       form_content_edit: '내용 편집',
       form_content_count: '{count}자',

@@ -1,6 +1,6 @@
 <!--
-  AI / 提示词（照 4.x develop/ai-prompt）
-  接口取自后端契约（ai-prompts.*）：列表不带正文，编辑先取详情；启停走行内操作（4.x 只在新建时能选状态，方案 N4 D4）
+  AI / 提示词
+  接口取自后端契约（ai-prompts.*）：列表不带正文，编辑先取详情；启停走行内操作（方案 N4 D4）
 -->
 <script setup lang="ts">
 import type { PromptRow, PromptStatus } from './use-prompts'
@@ -321,7 +321,7 @@ async function onSubmit() {
 </template>
 
 <style scoped>
-/* 正文等宽（照 4.x 的 .prompt-content-input），字号随令牌 */
+/* 正文等宽，字号随令牌 */
 .prompt-content :deep(textarea) {
   font-family: var(--xh-font-family-mono);
   font-size: var(--xh-font-size-sm);

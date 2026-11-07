@@ -22,7 +22,7 @@ export interface MemberForm {
   positionId: null | string
 }
 
-/** 部门树展平成下拉选项，层级用全角空格缩进（与 4.x 用户页的部门候选同一写法） */
+/** 部门树展平成下拉选项，层级用全角空格缩进 */
 export function flattenDepartments(nodes: DepartmentNode[], depth = 0, out: SelectOption[] = []): SelectOption[] {
   for (const node of nodes) {
     out.push({ label: `${'　'.repeat(depth)}${node.department.name}`, value: node.department.id })

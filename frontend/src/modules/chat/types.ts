@@ -2,8 +2,8 @@ import type { ChatConversationType, ChatMemberRole, components, RequestOf, Respo
 
 /**
  * 在线聊天的类型：网络契约一律取生成的 `~/contracts`（后端 DTO 是真源），这里只起聊天侧的别名；
- * 推送载荷（后端 ChatPush.cs）不在 openapi.json 里，按后端记录逐字段写出；助手扩展点的类型随 AI 模块（N4）定，暂按 4.x 保留
- * 主键都是 GUID 字符串；消息在会话内的先后看 `seq`（会话内序号），不再按 4.x 雪花 ID 的长度与字典序比较
+ * 推送载荷（后端 ChatPush.cs）不在 openapi.json 里，按后端记录逐字段写出；助手扩展点的类型随 AI 模块（N4）定
+ * 主键都是 GUID 字符串；消息在会话内的先后看 `seq`（会话内序号）
  */
 type Schemas = components['schemas']
 
@@ -43,7 +43,7 @@ export type ChatMessageHistoryQuery = RequestOf<'chat-messages.history'>
 /** 会话内消息搜索查询 */
 export type ChatMessageSearchQuery = RequestOf<'chat-messages.search'>
 
-/** 选人（发起单聊 / 建群）轻量条目；4.x 的 nickName 槽位放 6.0 的显示名 */
+/** 选人（发起单聊 / 建群）轻量条目；nickName 槽位放显示名 */
 export interface ChatUserPickerItem {
   userId: string
   userName: string
@@ -160,7 +160,7 @@ export const CHAT_MAX_MENTION_COUNT = 20
 
 /**
  * 聊天 API 契约：本模块的 api.ts 用生成的操作客户端实现并经 setChatApi 注册，聊天 store 与组件只依赖这份契约
- * 与 4.x 的不同：置顶与免打扰传新值（6.0 不是切换）；转发是服务端操作；附件地址按会话签出
+ * 置顶与免打扰传新值（不是切换）；转发是服务端操作；附件地址按会话签出
  */
 export interface ChatApiContract {
   openSingleConversation: (peerUserId: string) => Promise<ChatConversationOpenResult>

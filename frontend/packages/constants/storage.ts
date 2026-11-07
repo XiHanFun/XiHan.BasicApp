@@ -85,7 +85,7 @@ export const WIDGET_THEME_PLACEMENT_KEY = `${STORAGE_PREFIX}widget_theme_placeme
 export const WIDGET_LANGUAGE_PLACEMENT_KEY = `${STORAGE_PREFIX}widget_language_placement`
 export const WIDGET_TIMEZONE_PLACEMENT_KEY = `${STORAGE_PREFIX}widget_timezone_placement`
 export const WIDGET_FULLSCREEN_PLACEMENT_KEY = `${STORAGE_PREFIX}widget_fullscreen_placement`
-// 旧版的显示开关：只在首次读取时迁移到上面的位置（开 → 自动，关 → 隐藏），迁移后即删除
+// 旧的显示开关键：只在首次读取时迁移到上面的位置（开 → 自动，关 → 隐藏），迁移后即删除
 export const LEGACY_SEARCH_ENABLED_KEY = `${STORAGE_PREFIX}search_enabled`
 export const LEGACY_WIDGET_THEME_TOGGLE_KEY = `${STORAGE_PREFIX}widget_theme_toggle`
 export const LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY = `${STORAGE_PREFIX}widget_language_toggle`

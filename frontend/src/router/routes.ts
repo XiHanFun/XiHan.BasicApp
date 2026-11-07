@@ -15,7 +15,7 @@ export const staticRoutes: RouteRecordRaw[] = [
     redirect: HOME_PATH,
     children: [
       {
-        // 个人中心（4.x 原样搬入，目前只接了账号安全页签）：顶栏用户菜单的「个人中心」指向这里，人人可进，不进菜单
+        // 个人中心（目前只接了账号安全页签）：顶栏用户菜单的「个人中心」指向这里，人人可进，不进菜单
         path: '/profile',
         name: 'Profile',
         component: ProfilePage,

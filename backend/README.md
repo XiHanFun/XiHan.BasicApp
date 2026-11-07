@@ -1,6 +1,6 @@
 # 后端
 
-XiHan.BasicApp 后端（方案第 4、5 节）：基于 XiHan.Framework 5，能力包 + 操作契约，一份契约同时服务 HTTP / gRPC / MCP。
+XiHan.BasicApp 后端（方案第 4、5 节）：基于 XiHan.Framework，能力包 + 操作契约，一份契约同时服务 HTTP / gRPC / MCP。
 
 ## 布局
 
@@ -12,10 +12,12 @@ backend/
 ├─ Directory.Build.targets          XiHanFrameworkReference / XiHanFrameworkAnalyzer 项 → ProjectReference 或 PackageReference
 ├─ props/framework.props            缺省 ProjectReference ../../XiHan.Framework/next/src，锁定提交 XiHanFrameworkCommit；UseXiHanFrameworkSource=false 切 NuGet 包
 ├─ src/
-│  ├─ XiHan.BasicApp.Contracts      Tier 0：实体协议与基类、分页 / 批量结果、权限描述
-│  ├─ XiHan.BasicApp.Runtime        Tier 0：SqlSugar 回调（库类型、连接串、操作人、snake_case）、租户作用域查询、操作人中间件
-│  ├─ XiHan.BasicApp.Identity       Tier 1：N0 最小切片（SysUser、SysUserStatistics；users.create / get / list）
-│  └─ XiHan.BasicApp.Host           Full Profile + SqlSugar + JWT + 三个数据库 Provider + 发件箱；HTTP / OpenAPI / Scalar / MCP / gRPC
+│  ├─ XiHan.BasicApp.Contracts      Tier 0：跨包接口、实体基类、分页 / 批量结果、权限描述
+│  ├─ XiHan.BasicApp.Runtime        Tier 0：SqlSugar 回调、租户作用域查询、种子、表结构升级、数据保护、多租户
+│  ├─ Identity / Tenancy / Organization / Access                  Tier 1：身份、租户、组织、授权
+│  ├─ Settings / Notification / Files / Auditing / Maintenance / OpenPlatform / Realtime   Tier 2：平台能力
+│  ├─ Workbench / Workflow / Printing / CodeGeneration / Chat / AI   Tier 3：可选模块（BasicApp:Modules 开关）
+│  └─ XiHan.BasicApp.Host           宿主：装配、配置、表结构脚本、普通端点；HTTP / OpenAPI / Scalar / MCP / gRPC
 └─ test/
    ├─ XiHan.BasicApp.Architecture.Tests   层级依赖、Expose 显式、权限码文法、匿名白名单、目录与文案、框架提交锁定
    └─ XiHan.BasicApp.Integration.Tests    TestServer + SQLite：HTTP / MCP / gRPC 契约、事务；Smoke/ 是方案 9.1 的四项冒烟（两库冒烟需 XIHAN_TEST_POSTGRES）

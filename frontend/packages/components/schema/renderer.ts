@@ -20,7 +20,7 @@ function toMutableOptions(
 }
 
 /**
- * 行值 → 选项值：6.0 的布尔筛选项是后端接受的 'true' / 'false'，行里的值却是布尔，严格比较匹配不上
+ * 行值 → 选项值：布尔筛选项是后端接受的 'true' / 'false'，行里的值却是布尔，严格比较匹配不上
  */
 function toOptionValue(raw: unknown): string | number {
   return typeof raw === 'boolean'

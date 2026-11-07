@@ -23,13 +23,13 @@ beforeEach(() => {
 })
 
 describe('任务调度的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV（4.x 同），不提交到导出中心', () => {
+  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('maintenance.jobs.read')
     expect(schema.resource.export).toBeUndefined()
   })
 
-  it('字段对齐 4.x 的列（重试次数、优先级在 6.0 不是作业的字段），枚举与启停写文案', () => {
+  it('字段对齐列表的列，枚举与启停写文案', () => {
     const row = {
       title: '审计日志清理',
       name: 'auditing.retention',

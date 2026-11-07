@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Files.Infrastructure;
 /// 导出的一列：字段、表头与原值到文字的映射
 /// </summary>
 /// <remarks>
-/// 4.x 同，来自页面字段：取行里的哪个字段、表头文字，以及把原值换成文字的映射（枚举、开关的显示名）
+/// 来自页面字段：取行里的哪个字段、表头文字，以及把原值换成文字的映射（枚举、开关的显示名）
 /// </remarks>
 /// <param name="Key">字段名（响应 JSON 里的属性名）</param>
 /// <param name="Title">表头</param>

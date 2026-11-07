@@ -134,7 +134,7 @@ const oauthProviderIcons: Record<string, string> = {
   wechat: 'mdi:wechat',
   dingtalk: 'tabler:brand-dingtalk',
   wecom: 'mdi:briefcase-account',
-  // 按后端给的规范类型取（6.0 飞书的规范名是 lark，配置里的名称可能是别名 feishu 或自定义名）
+  // 按后端给的规范类型取（飞书的规范名是 lark，配置里的名称可能是别名 feishu 或自定义名）
   lark: 'lucide:send',
 }
 
@@ -633,7 +633,7 @@ const onAuthInvalid = useAuthFormInvalid()
           @submit="onSubmit"
         >
           <!-- 字段靠占位文案表意，标签只留给读屏
-               6.0 的用户名在注册地租户内唯一：租户账号填租户 ID，平台账号留空（4.x 先登录后选租户，没有这一栏） -->
+               用户名在注册地租户内唯一：租户账号填租户 ID，平台账号留空 -->
           <XhFormFieldGroup name="tenant" class="!mb-6">
             <XhFieldRoot>
               <XhFieldLabel class="sr-only">

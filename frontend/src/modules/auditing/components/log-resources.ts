@@ -49,7 +49,7 @@ function mapping(extra: PageQueryMapping): PageQueryMapping {
   }
 }
 
-/** 耗时上下限（4.x 高级搜索的最小、最大耗时）：两个输入框落到后端 durationMs 的 ge / le */
+/** 耗时上下限（高级搜索的最小、最大耗时）：两个输入框落到后端 durationMs 的 ge / le */
 const DURATION_BOUNDS = {
   minDurationMs: { field: 'durationMs', operator: 'ge' },
   maxDurationMs: { field: 'durationMs', operator: 'le' },
@@ -65,7 +65,7 @@ function readonly<TRow>(list: ListOperation<TRow>, query: PageQueryMapping): Sch
 }
 
 /**
- * 另能提交到导出中心的只读列表（4.x 有服务端导出的那几种日志）：业务类型就是列表操作 ID，
+ * 另能提交到导出中心的只读列表：业务类型就是列表操作 ID，
  * 后台以发起人的身份逐页调它，查询快照与列表用同一份分页请求（同一份筛选登记）
  */
 function exportable<TRow>(businessType: Extract<OperationId, `${string}.list`>, list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
@@ -158,7 +158,7 @@ export const accessLogsResource = () => exportable<AccessLogRow>('access-logs.li
 export const exceptionLogsResource = () => exportable<ExceptionLogRow>('exception-logs.list', request => exceptionLogs.list(request), EXCEPTION_LOG_QUERY)
 export const loginLogsResource = () => exportable<LoginLogRow>('login-logs.list', request => loginLogs.list(request), LOGIN_LOG_QUERY)
 export const diffLogsResource = () => exportable<DiffLogRow>('diff-logs.list', request => diffLogs.list(request), DIFF_LOG_QUERY)
-// 权限变更日志与条件命中在 4.x 没有服务端导出，只留本地导出
+// 权限变更日志与条件命中只留本地导出
 export const permissionChangeLogsResource = () => readonly<PermissionChangeLogRow>(request => permissionChangeLogs.list(request), PERMISSION_CHANGE_LOG_QUERY)
 export const conditionHitsResource = () => readonly<ConditionHitRow>(request => conditionHits.list(request), CONDITION_HIT_QUERY)
 export const openApiLogsResource = () => exportable<OpenApiLogRow>('open-api-logs.list', request => openApiLogs.list(request), OPEN_API_LOG_QUERY)

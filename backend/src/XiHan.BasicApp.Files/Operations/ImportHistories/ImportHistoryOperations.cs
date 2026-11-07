@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Files.Operations.ImportHistories;
 /// <c>import-histories.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 4.x 同，计数不小于 0，错误摘要截到 8000 个字符
+/// 计数不小于 0，错误摘要截到 8000 个字符
 /// </remarks>
 /// <param name="PageCode">页面码</param>
 /// <param name="FileName">导入的文件名</param>
@@ -77,7 +77,7 @@ public sealed record ImportHistoriesResponse(IReadOnlyList<ImportHistoryResponse
 /// 记一次导入的结果
 /// </summary>
 /// <remarks>
-/// <c>POST /api/import-histories</c>（4.x 同只要求登录；导入本身由前端逐行调资源的新建操作完成）
+/// <c>POST /api/import-histories</c>（只要求登录；导入本身由前端逐行调资源的新建操作完成）
 /// </remarks>
 /// <param name="rows">记录读写</param>
 /// <param name="ids">ID 生成器</param>
@@ -122,7 +122,7 @@ public sealed class CreateImportHistory(SideRows rows, IIdGenerator<Guid> ids) :
 /// 列出本人在某页最近的导入
 /// </summary>
 /// <remarks>
-/// <c>GET /api/import-histories:recent?pageCode=&amp;count=</c>（4.x 同）
+/// <c>GET /api/import-histories:recent?pageCode=&amp;count=</c>
 /// </remarks>
 /// <param name="rows">记录读写</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]

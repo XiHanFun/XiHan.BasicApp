@@ -2,7 +2,7 @@
 export default {
   notification: {
     notifications: {
-      // 正文的编辑弹窗（4.x 同）
+      // 正文的编辑弹窗
       form_content_drawer_title: 'Modifier le contenu de l’annonce',
       form_content_edit: 'Modifier le contenu',
       form_content_count: '{count} caractères',

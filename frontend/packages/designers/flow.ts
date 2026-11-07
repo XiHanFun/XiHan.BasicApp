@@ -24,7 +24,7 @@ import '@xihan-flow/runtime/style.css'
  * 只看流程图的页面不带上设计器的代码与样式
  */
 
-// 6.0：后端收发框架 5 的 WorkflowJson，预设只认 4.x 引擎定义，经映射层互转
+// 后端收发框架 的 WorkflowJson，预设有自己的定义格式，经映射层互转
 export { fromWorkflowJson, secondsToTimeSpan, timeSpanToSeconds, toWorkflowJson } from './flow-workflow-json'
 export type { WorkflowJsonDefinition, WorkflowJsonNode, WorkflowJsonRetryPolicy, WorkflowJsonTransition } from './flow-workflow-json'
 export type { FlowDocument, FlowEdge, FlowNode } from '@xihan-flow/core'

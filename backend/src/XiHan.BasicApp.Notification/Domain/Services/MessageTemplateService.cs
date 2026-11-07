@@ -34,7 +34,7 @@ public sealed record TemplateDraft(string Name, string? Subject, string Content,
 /// </summary>
 /// <remarks>
 /// 编码在同一侧、同一渠道内唯一，编码与渠道建好不改；主题与正文保存前做语法检查，主题只留给邮件与站内通知、HTML 只对邮件；
-/// 租户读得到平台的模板、只改自己的（4.x 同），建同编码的即覆盖；取模板时当前一侧启用的优先，没有取平台启用的
+/// 租户读得到平台的模板、只改自己的，建同编码的即覆盖；取模板时当前一侧启用的优先，没有取平台启用的
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="ids">标识生成器</param>
@@ -213,7 +213,7 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
 
     private static void Apply(SysMessageTemplate template, TemplateDraft draft)
     {
-        // 主题是邮件主题与站内通知的标题，短信与机器人不用；HTML 只对邮件（4.x 同）
+        // 主题是邮件主题与站内通知的标题，短信与机器人不用；HTML 只对邮件
         var titled = template.Channel is TemplateChannel.Email or TemplateChannel.InApp;
         template.Name = draft.Name.Trim();
         template.Subject = !titled || string.IsNullOrWhiteSpace(draft.Subject) ? null : draft.Subject;

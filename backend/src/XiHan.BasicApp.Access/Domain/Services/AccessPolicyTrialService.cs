@@ -20,7 +20,6 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 访问策略的试运行
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 AccessPolicyTrialService
 /// 已有策略或草稿条件，按给定的请求情形只求这一条、不看有效期，逐组逐条件说明；
 /// 给了用户即按他此刻的有效指派取角色（不看令牌），没给即按未登录。编译不过的条件写进 <c>errors</c>，不求值
 /// </remarks>

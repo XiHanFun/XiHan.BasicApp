@@ -47,7 +47,7 @@ public sealed class SysUser : AppAuditedEntity
     /// 邮箱是否已验证
     /// </summary>
     /// <remarks>
-    /// 本人收码验证或换绑后为真；管理员改了邮箱即复位（4.x 同）
+    /// 本人收码验证或换绑后为真；管理员改了邮箱即复位
     /// </remarks>
     public bool EmailVerified { get; set; }
 
@@ -55,7 +55,7 @@ public sealed class SysUser : AppAuditedEntity
     /// 手机号是否已验证
     /// </summary>
     /// <remarks>
-    /// 本人收码验证或换绑后为真；管理员改了手机号即复位（4.x 同）
+    /// 本人收码验证或换绑后为真；管理员改了手机号即复位
     /// </remarks>
     public bool PhoneVerified { get; set; }
 
@@ -76,7 +76,7 @@ public sealed class SysUser : AppAuditedEntity
     /// 是否系统内置账号
     /// </summary>
     /// <remarks>
-    /// 初始超级管理员与租户开通时的管理员（4.x 同）。不能停用、删除、锁定或由管理员重置密码，本人也不能改用户名或关闭账号
+    /// 初始超级管理员与租户开通时的管理员。不能停用、删除、锁定或由管理员重置密码，本人也不能改用户名或关闭账号
     /// </remarks>
     public bool IsSystemAccount { get; set; }
 
@@ -89,7 +89,7 @@ public sealed class SysUser : AppAuditedEntity
     /// 最近一次登录成功的 IP
     /// </summary>
     /// <remarks>
-    /// 4.x 同，用户列表的一列。不遮掩（在线用户页的会话 IP 是遮掩的）
+    /// 用户列表的一列。不遮掩（在线用户页的会话 IP 是遮掩的）
     /// </remarks>
     public string? LastLoginIp { get; set; }
 
@@ -97,7 +97,7 @@ public sealed class SysUser : AppAuditedEntity
     /// 真实姓名
     /// </summary>
     /// <remarks>
-    /// 个人资料，4.x 同
+    /// 个人资料
     /// </remarks>
     [StringLength(50)]
     public string? RealName { get; set; }
@@ -122,7 +122,7 @@ public sealed class SysUser : AppAuditedEntity
     /// 备注
     /// </summary>
     /// <remarks>
-    /// 4.x 同一列：管理员在用户表单里叫备注，本人在个人中心叫个人简介
+    /// 一列两用：管理员在用户表单里叫备注，本人在个人中心叫个人简介
     /// </remarks>
     [StringLength(500)]
     public string? Remark { get; set; }
@@ -140,7 +140,7 @@ public sealed class SysUser : AppAuditedEntity
 /// 性别
 /// </summary>
 /// <remarks>
-/// 个人资料，4.x 同。JSON 上是字符串枚举
+/// 个人资料。JSON 上是字符串枚举
 /// </remarks>
 public enum UserGender
 {

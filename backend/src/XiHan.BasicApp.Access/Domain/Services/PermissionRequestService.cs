@@ -20,9 +20,9 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 授权申请的提交、重新提交、撤回、手工处理与查询（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>PermissionRequestAppService</c> 与查询服务：提交即在同一个事务里经审批业务服务发起 <see cref="PermissionRequestStore.BusinessCode"/> 的流程；
+/// 提交即在同一个事务里经审批业务服务发起 <see cref="PermissionRequestStore.BusinessCode"/> 的流程；
 /// 修改后重新提交撤回旧流程、按新内容重新发起；申请人撤回与管理员手工驳回 / 撤回都同时撤回进行中的流程（业务自己撤回，不回调中止）
-/// Workflow 模块关掉时没有审批业务服务：列表照常、进度为空并标「审批未启用」，提交与重新提交即 <see cref="AccessErrors.ApprovalUnavailable"/>（方案 W1，4.x 是列表直接报错）
+/// Workflow 模块关掉时没有审批业务服务：列表照常、进度为空并标「审批未启用」，提交与重新提交即 <see cref="AccessErrors.ApprovalUnavailable"/>（方案 W1）
 /// </remarks>
 /// <param name="store">读写与校验</param>
 /// <param name="ids">ID 生成</param>
@@ -148,7 +148,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
         row.Remark = Optional(request.Remark);
         await store.Rows.UpdateAsync(row, context.CancellationToken).ConfigureAwait(false);
 
-        // 申请内容变了，审批人此前看到的不再是同一份申请：撤回旧流程、按新内容重新发起（4.x 同）
+        // 申请内容变了，审批人此前看到的不再是同一份申请：撤回旧流程、按新内容重新发起
         var withdrawn = await workflow.WithdrawAsync(PermissionRequestStore.BusinessCode, row.Id.ToString(), context.Localize(AccessMessages.PermissionRequestResubmitted), context).ConfigureAwait(false);
         if (withdrawn.IsFailure)
         {
@@ -212,7 +212,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     /// 分页列出这一侧的申请
     /// </summary>
     /// <remarks>
-    /// 照 4.x：持有查看权限即看这一侧全部的申请；关键字匹配申请人（经用户目录按登录名与显示名，见 <see cref="PermissionRequestStore.RequestersMatchingAsync"/>）、申请原因与备注，
+    /// 持有查看权限即看这一侧全部的申请；关键字匹配申请人（经用户目录按登录名与显示名，见 <see cref="PermissionRequestStore.RequestersMatchingAsync"/>）、申请原因与备注，
     /// 筛选申请人、角色、权限码与状态，缺省按提交时间降序
     /// </remarks>
     public async Task<Result<PageResult<PermissionRequestResponse>>> ListAsync(PageRequest request, InvocationContext context)

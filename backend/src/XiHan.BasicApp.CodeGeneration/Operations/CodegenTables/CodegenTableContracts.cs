@@ -208,7 +208,7 @@ public sealed record ImportCodegenTablesRequest(
 /// <c>codegen-tables.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 照 4.x 整体修改；值变了的被跟踪字段记为人工改过，同步结构时保留。生成模式不能是通用；勾了导入必须勾新建
+/// 整体修改；值变了的被跟踪字段记为人工改过，同步结构时保留。生成模式不能是通用；勾了导入必须勾新建
 /// </remarks>
 /// <param name="Id">表配置 ID</param>
 /// <param name="ConcurrencyStamp">读到的并发戳</param>

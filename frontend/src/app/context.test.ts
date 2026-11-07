@@ -91,7 +91,7 @@ function sessionOf() {
   }
 }
 
-describe('应用上下文：壳层接口接到 6.0 操作', () => {
+describe('应用上下文：壳层接口接到契约操作', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     registerApplicationContext({} as Router)
@@ -288,7 +288,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     ])
   })
 
-  it('开放接口凭证：my-api-credentials.* 投影成 4.x 的凭证条目与一次性密钥；启停换成 isEnabled，删除传 ids，调用安全设置换字段名', async () => {
+  it('开放接口凭证：my-api-credentials.* 投影成壳层的凭证条目与一次性密钥；启停换成 isEnabled，删除传 ids，调用安全设置换字段名', async () => {
     const calls: Call[] = []
     const credential = {
       id: 'c-1',
@@ -361,7 +361,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     })
   })
 
-  it('我的 OAuth 应用：my-oauth-apps.* 投影成 4.x 的条目与一次性密钥；回调地址文本拆成列表，修改与启停取最新一份整体替换，删除被拒即报错', async () => {
+  it('我的 OAuth 应用：my-oauth-apps.* 投影成壳层的条目与一次性密钥；回调地址文本拆成列表，修改与启停取最新一份整体替换，删除被拒即报错', async () => {
     const calls: Call[] = []
     const app = {
       id: 'o-1',
@@ -618,7 +618,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     })
   })
 
-  it('账号绑定：发起返回 profile.begin-external-bind 给的地址；profile.external-logins / link-external / unlink-external 投影成 4.x 的条目（账号显示名进 providerDisplayName、最近登录换成 lastLoginTime，没有的字段不给）', async () => {
+  it('账号绑定：发起返回 profile.begin-external-bind 给的地址；profile.external-logins / link-external / unlink-external 投影成壳层的条目（账号显示名进 providerDisplayName、最近登录换成 lastLoginTime，没有的字段不给）', async () => {
     const calls: Call[] = []
     const github = {
       provider: 'github',
@@ -684,7 +684,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     })
   })
 
-  it('登录设备：profile.sessions 投影成 4.x 的条目（设备类别换成图标表编号，机器人与没识别的是 1，系统与时间换字段名，没有的字段不给）；下线一个传 sessionId、下线其他传空', async () => {
+  it('登录设备：profile.sessions 投影成壳层的条目（设备类别换成图标表编号，机器人与没识别的是 1，系统与时间换字段名，没有的字段不给）；下线一个传 sessionId、下线其他传空', async () => {
     const calls: Call[] = []
     const session = (id: string, device: null | string, extra: object = {}) => ({
       id,
@@ -769,7 +769,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[2]).toEqual({ method: 'POST', url: '/api/profile:revoke-other-sessions', body: {} })
   })
 
-  it('登录日志：my-login-logs.list 按页码与条数取（回请求的那一页），事件、成败与错误码推成 4.x 的结果，时间与 IP 换字段名、失败原因进 message，没有的字段不给', async () => {
+  it('登录日志：my-login-logs.list 按页码与条数取（回请求的那一页），事件、成败与错误码推成壳层的结果，时间与 IP 换字段名、失败原因进 message，没有的字段不给', async () => {
     const calls: Call[] = []
     const events: Array<[string, boolean, null | string, string]> = [
       ['Login', true, null, 'Success'],
@@ -913,7 +913,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(result.items.slice(1).map(item => item.loginResult)).toEqual(events.map(([, , , expected]) => expected))
   })
 
-  it('通知偏好：profile.notification-preference 给六个同名开关；保存逐项交给 update-notification-preference（4.x 的推送、机器人、审批、营销不上送），回保存后的偏好', async () => {
+  it('通知偏好：profile.notification-preference 给六个同名开关；保存逐项交给 update-notification-preference（壳层的推送、机器人、审批、营销不上送），回保存后的偏好', async () => {
     const calls: Call[] = []
     const preference = {
       channelInApp: true,
@@ -938,7 +938,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[1]).toEqual({ method: 'POST', url: '/api/profile:update-notification-preference', body: preference })
   })
 
-  it('活跃度：my-activity.summary 带应用时区（显示时间用的那个，不看浏览器）；次数、在线时长与时间换成 4.x 的 *Count / onlineTime / *Time，没有的最近时间不给，趋势换字段名', async () => {
+  it('活跃度：my-activity.summary 带应用时区（显示时间用的那个，不看浏览器）；次数、在线时长与时间换成壳层的 *Count / onlineTime / *Time，没有的最近时间不给，趋势换字段名', async () => {
     const calls: Call[] = []
     setDisplayTimeZone('Asia/Tokyo')
     onTestFinished(() => setDisplayTimeZone(''))
@@ -1020,7 +1020,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     ])
   })
 
-  it('个人资料：profile.get 投影成 4.x 的资料——显示名进 nickName、头像是文件主键、性别换成数字、上次改名换成 *Time，下次可改时间没到即不能改，没有的字段不给', async () => {
+  it('个人资料：profile.get 投影成壳层的资料——显示名进 nickName、头像是文件主键、性别换成数字、上次改名换成 *Time，下次可改时间没到即不能改，没有的字段不给', async () => {
     const calls: Call[] = []
     const later = new Date(Date.now() + 10 * DAY).toISOString()
     let response: object = {

@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Auditing;
 /// 审计包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同七类日志：访问、开放接口、操作、登录、异常、数据变更与条件命中（本人的「我的登录日志」与活跃度不套用）
+/// 七类日志：访问、开放接口、操作、登录、异常、数据变更与条件命中（本人的「我的登录日志」与活跃度不套用）
 /// 字段取详情的响应类型（列表项是它的子集），规则由 Access 的字段安全中间件在列表与详情上统一套用；日志只读，没有写入
 /// </remarks>
 public static class AuditingFieldSecurity

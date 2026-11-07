@@ -30,7 +30,7 @@ public sealed record MyOAuthAppsResponse(IReadOnlyList<OAuthAppResponse> Items);
 /// <c>my-oauth-apps.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 4.x 同：授权类型、范围与有效期固定，不跳过同意页
+/// 授权类型、范围与有效期固定，不跳过同意页
 /// </remarks>
 /// <param name="AppName">应用名称</param>
 /// <param name="ClientType">客户端类型（新建后不能改）</param>
@@ -50,7 +50,7 @@ public sealed record CreateMyOAuthAppRequest(
 /// <c>my-oauth-apps.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 只能改名称、主页、描述、回调地址、Logo 与启停，4.x 同
+/// 只能改名称、主页、描述、回调地址、Logo 与启停
 /// </remarks>
 /// <param name="Id">应用 ID</param>
 /// <param name="AppName">应用名称</param>
@@ -72,7 +72,7 @@ public sealed record UpdateMyOAuthAppRequest(
 /// 我的应用的主体：当前令牌的用户
 /// </summary>
 /// <remarks>
-/// 写操作模仿会话一律拒绝（<c>IDENTITY_CONFLICT_003</c>，4.x 同）
+/// 写操作模仿会话一律拒绝（<c>IDENTITY_CONFLICT_003</c>）
 /// </remarks>
 internal static class MyOAuthAppSubject
 {
@@ -92,9 +92,6 @@ internal static class MyOAuthAppSubject
     /// <summary>
     /// 我的应用的固定内容
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public static OAuthAppDraft Draft(string appName, string? homepage, string? description, IReadOnlyList<string> redirectUris, string? logo, bool isEnabled)
         => new(appName, description, OAuthAppType.Web, OAuthAppService.PersonalGrantTypes, redirectUris, OAuthAppService.PersonalScopes, 3600, 2592000, 300, logo, homepage, SkipConsent: false, isEnabled, Remark: null);
 }

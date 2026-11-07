@@ -60,7 +60,7 @@ const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as 
   value: status,
 })))
 
-// 部门类型的文案键静态写出以便 i18n 门禁核对；下拉的先后照 4.x，部门是缺省值但排在中间
+// 部门类型的文案键静态写出以便 i18n 门禁核对；部门是缺省值但排在中间
 const departmentTypeLabels = computed<Record<DepartmentKind, string>>(() => ({
   Corporation: t('organization.departments.types.corporation'),
   Headquarters: t('organization.departments.types.headquarters'),

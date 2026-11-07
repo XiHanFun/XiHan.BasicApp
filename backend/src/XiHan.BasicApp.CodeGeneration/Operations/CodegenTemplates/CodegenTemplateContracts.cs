@@ -97,7 +97,7 @@ public sealed record CodegenTemplateIdRequest(Guid Id);
 /// <summary>
 /// <c>codegen-templates.create</c> 的请求
 /// </summary>
-/// <param name="TemplateCode">编码：唯一、不含空白，建好后不能改（照 4.x）</param>
+/// <param name="TemplateCode">编码：唯一、不含空白，建好后不能改</param>
 /// <param name="TemplateName">名称</param>
 /// <param name="TemplateType">适用的生成模式</param>
 /// <param name="TemplateEngine">模板引擎（只有 Scriban）</param>

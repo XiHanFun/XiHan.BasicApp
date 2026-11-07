@@ -1,6 +1,6 @@
 <!--
   代码生成 / 代码生成页（只在平台一侧）
-  照 4.x 一页四签：表配置、数据源、模板、生成历史；各页签按自己资源的读权限显示（菜单按表配置的读权限下发）
+  一页四签：表配置、数据源、模板、生成历史；各页签按自己资源的读权限显示（菜单按表配置的读权限下发）
 -->
 <script setup lang="ts">
 import { XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'

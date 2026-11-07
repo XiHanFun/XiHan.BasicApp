@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 聊天消息（租户库实体）
 /// </summary>
 /// <remarks>
-/// 不软删除，按保留期由清理作业物理删除（照 4.x）。会话内按 <see cref="Seq"/> 排序（4.x 靠雪花主键，6.0 主键是 GUIDv7、同一毫秒内无序）
+/// 不软删除，按保留期由清理作业物理删除。会话内按 <see cref="Seq"/> 排序（主键是 GUIDv7、同一毫秒内无序）
 /// 撤回清空正文、保留行与附件；编辑直接覆盖正文、记编辑时间（审计不另留原文，方案 H4）
 /// </remarks>
 [SugarIndex("ux_{table}_tenant_id_conversation_id_seq", nameof(TenantId), OrderByType.Asc, nameof(ConversationId), OrderByType.Asc, nameof(Seq), OrderByType.Asc, true)]

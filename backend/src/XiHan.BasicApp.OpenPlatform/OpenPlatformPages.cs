@@ -13,9 +13,6 @@ public static class OpenPlatformPages
     /// <summary>
     /// 应用管理页（平台）
     /// </summary>
-    /// <remarks>
-    /// 4.x「开放平台 &gt; 应用管理」
-    /// </remarks>
     public static PageDescriptor OAuthApps { get; } = new("openplatform.oauth-apps", "/openplatform/oauth-apps", "openplatform.oauth_apps.title", "lucide:blocks", 600, OpenPlatformPermissions.OAuthAppsRead, directory: MenuDirectories.OpenApi);
 
     /// <summary>

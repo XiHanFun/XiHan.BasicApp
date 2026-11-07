@@ -199,7 +199,7 @@ describe('服务监控：读不到与为零', () => {
     expect(formatCount(1234567)).toBe((1234567).toLocaleString())
   })
 
-  it('字节按 1024 进位（4.x 同），读不到为 -、0 写作 0 B；速率加 /s', () => {
+  it('字节按 1024 进位，读不到为 -、0 写作 0 B；速率加 /s', () => {
     expect([
       formatBytes(null),
       formatBytes(undefined),
@@ -262,7 +262,7 @@ describe('服务监控：百分比与使用率', () => {
     ]).toEqual(['-', '0%', '12.3%'])
   })
 
-  it('语气同 4.x：低于 50 绿、低于 80 黄、否则红；读不到为中性', () => {
+  it('语气：低于 50 绿、低于 80 黄、否则红；读不到为中性', () => {
     expect([
       usageTone(null),
       usageTone(0),
@@ -333,7 +333,7 @@ describe('服务监控：运行时长', () => {
     ]).toEqual([null, null, null])
   })
 
-  it('满一天带天数、时分秒补两位（4.x 同）；读不到为 -，写法不认得时原样', () => {
+  it('满一天带天数、时分秒补两位；读不到为 -，写法不认得时原样', () => {
     expect(formatUptime(t, '3.04:05:06.7890000')).toBe('maintenance.server.uptime_with_day:{"day":3,"hour":"04","minute":"05","second":"06"}')
     expect(formatUptime(t, '01:02:03.4560000')).toBe('maintenance.server.uptime:{"hour":"01","minute":"02","second":"03"}')
     expect(formatUptime(t, null)).toBe('-')
@@ -461,7 +461,7 @@ describe('服务监控：磁盘、显卡与网卡', () => {
     ]).toEqual(['8086', null])
   })
 
-  it('活跃网卡同 4.x：已连通且不是虚拟过滤网卡；地址组只列有地址的，速率未采样为 -', () => {
+  it('活跃网卡：已连通且不是虚拟过滤网卡；地址组只列有地址的，速率未采样为 -', () => {
     const list = [
       nic(),
       nic({ id: 'down', status: 'Down' }),
@@ -623,7 +623,7 @@ describe('服务监控：取数与自动刷新', () => {
     expect([state.loading.value, state.initialized.value]).toEqual([false, true])
   })
 
-  it('定时刷新按 15 秒（4.x 同）；重复 start 不叠加，stop 之后不再触发', () => {
+  it('定时刷新按 15 秒；重复 start 不叠加，stop 之后不再触发', () => {
     vi.useFakeTimers()
     const tick = vi.fn()
     const polling = createPolling(tick)

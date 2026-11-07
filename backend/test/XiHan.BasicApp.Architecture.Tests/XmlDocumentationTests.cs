@@ -11,9 +11,9 @@ namespace XiHan.BasicApp.Architecture.Tests;
 /// </summary>
 /// <remarks>
 /// 与框架 <c>SourceHygieneTests.XmlSummaries_AreOneConciseSentence</c> 同一套判定（框架 716db6db）：<c>&lt;summary&gt;</c> 三行写法、正文一行、
-/// 显示宽度不超过 40（中日韩字符与全角标点算 1，其余算 0.5，向上取整）、只一句（没有「；」与「。」）；BasicApp 另外不许在 summary 里写与 4.x 的对照
-/// 注释（文档注释与行注释）句末一律不加「。」，一行里有多句时句间照常用「。」
-/// 规则、错误码、路由、4.x 差异与方案出处写进 <c>&lt;remarks&gt;</c>，参数、返回值与异常写进 <c>&lt;param&gt;</c>、<c>&lt;returns&gt;</c>、<c>&lt;exception&gt;</c>：
+/// 显示宽度不超过 40（中日韩字符与全角标点算 1，其余算 0.5，向上取整）、只一句（没有「；」与「。」）
+/// 注释（文档注释与行注释）句末一律不加「。」，一行里有多句时句间照常用「。」；注释里不写旧版本对照
+/// 规则、错误码、路由与方案出处写进 <c>&lt;remarks&gt;</c>，参数、返回值与异常写进 <c>&lt;param&gt;</c>、<c>&lt;returns&gt;</c>、<c>&lt;exception&gt;</c>：
 /// 生成的 OpenAPI 与 Scalar 拿 summary 当标题与字段说明，长段说明会把页面挤乱。src 与 test 下的源码都查，不分访问级别
 /// </remarks>
 public sealed partial class XmlDocumentationTests
@@ -65,10 +65,6 @@ public sealed partial class XmlDocumentationTests
                 {
                     failures.Add($"{where}:{i + 1} summary 须一句简明说明（宽度 {width}，上限 {MaxSummaryWidth}，不出现「；」与「。」），细节挪进 remarks：{text}");
                 }
-                else if (text.Contains("4.x", StringComparison.Ordinal))
-                {
-                    failures.Add($"{where}:{i + 1} 与 4.x 的对照写进 remarks：{text}");
-                }
             }
         }
 
@@ -94,6 +90,27 @@ public sealed partial class XmlDocumentationTests
         }
 
         Assert.True(failures.Count == 0, $"{failures.Count} 处注释句末带「。」（结束标签之前的也算）：\n" + string.Join('\n', failures));
+    }
+
+    [Fact]
+    public void Comments_DoNotCompareWithOldVersions()
+    {
+        var failures = new List<string>();
+        foreach (var file in SourceFiles())
+        {
+            var lines = File.ReadAllLines(file);
+            var where = Path.GetRelativePath(Packages.Root, file);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var trimmed = lines[i].TrimStart();
+                if (trimmed.StartsWith(LineComment, StringComparison.Ordinal) && OldVersion().IsMatch(trimmed))
+                {
+                    failures.Add($"{where}:{i + 1} {trimmed}");
+                }
+            }
+        }
+
+        Assert.True(failures.Count == 0, $"{failures.Count} 处注释写了旧版本对照，只写现在的事实：\n" + string.Join('\n', failures));
     }
 
     private static string LineComment { get; } = new('/', 2);
@@ -179,4 +196,13 @@ public sealed partial class XmlDocumentationTests
     /// </summary>
     [GeneratedRegex(@"。(?:\s*</[A-Za-z][\w:.-]*>)*\s*$")]
     private static partial Regex TrailingStop();
+
+    /// <summary>
+    /// 旧版本号：4 或 5 后跟「.x」
+    /// </summary>
+    /// <remarks>
+    /// 前后不连字母数字，文件名 ip2region_v4.xdb 不算
+    /// </remarks>
+    [GeneratedRegex(@"(?<![\w.])[45]\.x(?!\w)")]
+    private static partial Regex OldVersion();
 }

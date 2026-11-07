@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Tenancy.Seeds;
 /// 套餐种子（阶段 <see cref="SeedOrders.Editions"/>）
 /// </summary>
 /// <remarks>
-/// 沿用 4.x 的四档：免费版（新租户缺省）、基础版、专业版、企业版及各自的白名单
+/// 四档：免费版（新租户缺省）、基础版、专业版、企业版及各自的白名单
 /// 运营数据只首写：编码已存在的套餐（含运营改过或自建的同码套餐）整个跳过，之后新增的权限进哪些套餐由运营在套餐页授予
 /// 白名单按规则从租户能生效的权限目录里取（Tenancy 不引用后面的包，不能写它们的权限常量）：
 /// 免费版只读（动作 <c>read</c>）；基础版再加身份、组织与设置三包的管理（不含模仿登录）；专业版再加授权包；企业版是创建时的全部
@@ -60,7 +60,7 @@ public sealed class EditionSeeder(IRepository<SysEdition, Guid> editions, Editio
         bool IsBasic(PermissionDescriptor p) => IsRead(p) || ((p.Package is "identity" or "organization" or "settings" or "files") && !string.Equals(p.Resource, "impersonation", StringComparison.Ordinal));
         bool IsPro(PermissionDescriptor p) => IsBasic(p) || string.Equals(p.Package, "access", StringComparison.Ordinal);
 
-        // 价格、周期与配额同 4.x 的四档（存储按 MB）；企业版不限
+        // 四档的价格、周期与配额（存储按 MB）；企业版不限
         (string Code, string Name, string Description, bool IsDefault, int Order, Func<PermissionDescriptor, bool> Includes, int? Users, long? StorageMb, decimal? Price, int? Months, bool IsFree)[] seeds =
         [
             (Free, "Free", "Read-only access to members, organization and roles.", true, 10, IsRead, 5, 1024, 0m, 1, true),

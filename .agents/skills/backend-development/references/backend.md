@@ -70,7 +70,9 @@ src/XiHan.BasicApp.<包>/
 
 ## XML 文档
 
-`<summary>` 三行写法、正文一句、显示宽度不超过 40、不出现「；」与「。」，不写版本对照；细节进 `<remarks>` / `<param>` / `<returns>`。DTO 的注释会成为 OpenAPI 字段说明。
+注释简洁明了：只写代码表达不了的意图、约束与理由，不写铺垫、复述代码、版本对照或来源。
+
+`<summary>` 三行写法、正文一句、显示宽度不超过 40、不出现「；」与「。」；细节进 `<remarks>` / `<param>` / `<returns>`。DTO 的注释会成为 OpenAPI 字段说明。
 
 所有注释（`///`、`//`、`/* */`）句末不加「。」，结束标签之前的也不加（`…</param>`）；一行里有多句时句间照常用「。」。`XmlDocumentationTests.Comments_DoNotEndWithAFullStop` 守护 src 与 test。生成的代码同样：代码生成的模板（`Seeds/Templates/**/*.sbn`，`CodeGenerationPreviewTests` 核对产物）、渲染器拼进注释的文案（用 `CodeGenItems.PhraseOf` 去掉消息文案的句号）与前端 `gen-contracts.mjs` 写出的注释都不带。消息目录、本地化文案与异常信息不是注释，照常带标点。提交前：
 
@@ -107,7 +109,7 @@ artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integr
 
 ## 代码生成的模板
 
-CodeGeneration 的内置模板（`Seeds/Templates/**/*.sbn`，每次启动对齐到模板表）按当前包的写法生成后端包与前端模块：Feature、Permissions、Pages、Errors、Messages、JsonContext、操作、Queries、SchemaPage 页面与 10 种区域文案。改了这些写法（新的架构规则、基类、登记方式、页面组件）要同时改模板，再跑退出验证：
+CodeGeneration 的内置模板（`Seeds/Templates/**/*.sbn`，执行 `seed` 时对齐到模板表）按当前包的写法生成后端包与前端模块：Feature、Permissions、Pages、Errors、Messages、JsonContext、操作、Queries、SchemaPage 页面与 10 种区域文案。改了这些写法（新的架构规则、基类、登记方式、页面组件）要同时改模板，再跑退出验证：
 
 ```bash
 XIHAN_TEST_CODEGEN_COMPILE=<框架 src 目录> artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe -class XiHan.BasicApp.Integration.Tests.CodeGenerationCompileTests

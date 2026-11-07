@@ -143,7 +143,7 @@ describe('我的消息的计数与顶栏同步', () => {
     expect(items.map(needsAttention)).toEqual([true, true, true, false])
   })
 
-  it('收件箱条目换成顶栏通知中心的条目（4.x 字段名，空值去掉）', () => {
+  it('收件箱条目换成顶栏通知中心的条目（壳层字段名，空值去掉）', () => {
     expect(toHeaderItem(item({
       status: 'Read',
       readAt: '2026-10-29T09:00:00Z',

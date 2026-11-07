@@ -98,7 +98,7 @@ export function isRuleComplete(rule: AssigneeRule): boolean {
 }
 
 /**
- * 把旧版受理人写法并入规则：Assignees（主键列表）→ User 规则、AssigneesExpression → Expression 规则、
+ * 把受理人的旧写法并入规则：Assignees（主键列表）→ User 规则、AssigneesExpression → Expression 规则、
  * CcUserIds → 抄送 User 规则。设计器只编辑规则，打开旧定义时就地改写，保存即落为新写法（已发布版本不受影响）
  * 返回是否发生了改写
  */

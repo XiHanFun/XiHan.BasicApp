@@ -97,7 +97,7 @@ export interface LoginConfig {
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
 export interface LoginParams {
-  /** 注册地租户（6.0：用户名在租户内唯一，租户账号须填；平台账号留空） */
+  /** 注册地租户（用户名在租户内唯一，租户账号须填；平台账号留空） */
   tenant?: string
   /** 登录账号（邮箱，全平台唯一；平台账号也可用用户名） */
   username: string
@@ -130,7 +130,7 @@ export interface RegisterParams {
 }
 
 export interface PhoneLoginParams {
-  /** 注册地租户 ID；平台账号不填（6.0 的账号属于注册地租户，4.x 没有这一项） */
+  /** 注册地租户 ID；平台账号不填（账号属于注册地租户） */
   tenant?: string
   phone: string
   code: string

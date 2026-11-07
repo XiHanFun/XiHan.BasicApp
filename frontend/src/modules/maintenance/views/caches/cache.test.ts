@@ -233,7 +233,7 @@ describe('缓存管理：键列表请求', () => {
   })
 })
 
-describe('缓存管理：键树（4.x 同）', () => {
+describe('缓存管理：键树', () => {
   it('按 : 分组，分组带叶子数；同一路径既是键又是更深键的前缀时两者都在', () => {
     const tree = buildKeyTree(['a:b', 'a:b:c', 'a:d', 'solo'])
     expect(tree).toEqual([
@@ -262,7 +262,7 @@ describe('缓存管理：键树（4.x 同）', () => {
 })
 
 describe('缓存管理：缓存项', () => {
-  it('大小按 B / KB / MB（4.x 同），秒数取最大单位再带下一级', () => {
+  it('大小按 B / KB / MB，秒数取最大单位再带下一级', () => {
     expect(formatSize(512)).toBe('512 B')
     expect(formatSize(1536)).toBe('1.5 KB')
     expect(formatSize(3 * 1024 * 1024)).toBe('3.00 MB')

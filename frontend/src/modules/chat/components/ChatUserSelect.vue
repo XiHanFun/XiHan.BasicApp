@@ -46,7 +46,7 @@ async function handleSearch(keyword: string) {
     options.value = items
       .filter(item => !excluded.value.has(item.userId))
       .map((item: ChatUserPickerItem) => ({
-        // 6.0 的显示名总有值：与用户名相同时不重复括注
+        // 显示名总有值：与用户名相同时不重复括注
         label: item.nickName && item.nickName !== item.userName
           ? `${item.nickName}（${item.userName}）`
           : item.userName,

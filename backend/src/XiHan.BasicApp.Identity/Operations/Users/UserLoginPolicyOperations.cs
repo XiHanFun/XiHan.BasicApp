@@ -75,8 +75,8 @@ public sealed class GetUserLoginPolicy(IRepository<SysUser, Guid> users, UserAcc
 /// 设置用户的登录策略
 /// </summary>
 /// <remarks>
-/// <c>POST /api/users/{id}:set-login-policy</c>（4.x <c>UserSecurity/UpdateUserLoginPolicy</c>）。下次登录生效，已有的会话不动
-/// 4.x 只存不执行，6.0 在登录时执行（<see cref="UserAccountService.EnforceLoginPolicyAsync"/>）
+/// <c>POST /api/users/{id}:set-login-policy</c>。下次登录生效，已有的会话不动
+/// 在登录时执行（<see cref="UserAccountService.EnforceLoginPolicyAsync"/>）
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>

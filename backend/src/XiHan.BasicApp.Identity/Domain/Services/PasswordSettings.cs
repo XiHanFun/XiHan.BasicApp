@@ -12,9 +12,9 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// 密码设置
 /// </summary>
 /// <remarks>
-/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，只认平台的（登录在进入租户之前）；没建即缺省值，缺省关，4.x 同
-/// 打开之后，密码由他人设置（<see cref="Entities.SysUserSecurity.MustChangePassword"/>）的账号用密码登录时锁定到改密为止；关着只是留着标记，打开即对已有的账号生效，4.x 同
-/// 写错即 <c>IDENTITY_VALIDATION_025</c>，只影响有标记的账号的密码登录（4.x 同样报错，只在有标记时才读）
+/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，只认平台的（登录在进入租户之前）；没建即缺省值，缺省关
+/// 打开之后，密码由他人设置（<see cref="Entities.SysUserSecurity.MustChangePassword"/>）的账号用密码登录时锁定到改密为止；关着只是留着标记，打开即对已有的账号生效
+/// 写错即 <c>IDENTITY_VALIDATION_025</c>，只影响有标记的账号的密码登录（只在有标记时才读）
 /// </remarks>
 /// <param name="ForceChange">是否强制修改由他人设置的密码</param>
 public sealed record PasswordSettings(bool ForceChange = false)

@@ -1,6 +1,6 @@
 <!--
-  AI / 提供商（照 4.x develop/ai-provider）
-  接口取自后端契约（ai-providers.*）：测试连接要执行权限；API 密钥不回显、编辑时留空即保留；启停走行内操作（4.x 只在新建时能选状态，方案 N4 D4）
+  AI / 提供商
+  接口取自后端契约（ai-providers.*）：测试连接要执行权限；API 密钥不回显、编辑时留空即保留；启停走行内操作（方案 N4 D4）
 -->
 <script setup lang="ts">
 import type { ProviderRow, ProviderStatus, ProviderTestResult } from './use-providers'
@@ -228,7 +228,7 @@ function onAction(payload: SchemaActionPayload) {
   }
 }
 
-/** 测试连接的通知正文：每个探测一行（照 4.x） */
+/** 测试连接的通知正文：每个探测一行 */
 function probeText(result: ProviderTestResult): string {
   const { lines, embeddingAbsent } = probeLines(result)
   const text = lines.map((line) => {
@@ -253,7 +253,7 @@ async function handleTest(row: ProviderRow) {
   try {
     const result = await aiProviders.test({ id: row.id })
     loading.destroy()
-    // 成功 5 秒后自动关闭，失败常驻待看完（照 4.x）
+    // 成功 5 秒后自动关闭，失败常驻待看完
     if (result.success) {
       notification.success(t('ai.providers.test_success'), {
         description: probeText(result),

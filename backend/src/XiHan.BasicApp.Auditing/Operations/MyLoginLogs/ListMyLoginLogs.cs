@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Auditing.Operations.MyLoginLogs;
 /// <c>my-login-logs.list</c> 的请求
 /// </summary>
 /// <param name="Page">页码，从 1 起</param>
-/// <param name="PageSize">页大小（1–50，缺省 10；4.x 同）</param>
+/// <param name="PageSize">页大小（1–50，缺省 10）</param>
 public sealed record MyLoginLogsRequest([Range(1, 10000)] int Page = 1, [Range(1, 50)] int PageSize = 10);
 
 /// <summary>
@@ -44,8 +44,8 @@ public sealed record MyLoginLogResponse(Guid Id, DateTimeOffset OccurredAt, Logi
 /// 本人的登录日志
 /// </summary>
 /// <remarks>
-/// <c>GET /api/my-login-logs</c>（4.x <c>Profile/LoginLogs</c>）。只按本人（不分平台与租户一侧、扫全部月表），按发生时间倒序；已登录即可
-/// 模仿会话里看到的是被模仿的人的日志（4.x 同）
+/// <c>GET /api/my-login-logs</c>。只按本人（不分平台与租户一侧、扫全部月表），按发生时间倒序；已登录即可
+/// 模仿会话里看到的是被模仿的人的日志
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]

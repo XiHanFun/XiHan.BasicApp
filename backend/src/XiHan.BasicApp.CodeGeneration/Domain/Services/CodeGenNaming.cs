@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 代码生成的命名约定
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>NamingConventions</c>：类名、属性名、kebab、snake 与 camel 之间换算
+/// 类名、属性名、kebab、snake 与 camel 之间换算
 /// </remarks>
 public static partial class CodeGenNaming
 {
@@ -62,7 +62,7 @@ public static partial class CodeGenNaming
     /// 去掉表名前缀
     /// </summary>
     /// <remarks>
-    /// 取最长的匹配前缀，不分大小写；去掉之后为空就不去（照 4.x）
+    /// 取最长的匹配前缀，不分大小写；去掉之后为空就不去
     /// </remarks>
     /// <param name="tableName">表名</param>
     /// <param name="prefixes">前缀</param>

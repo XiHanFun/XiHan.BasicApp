@@ -408,7 +408,7 @@ public sealed class DeleteCacheEntries(ISharedCache cache, IEnumerable<CacheName
 /// 按前缀删除缓存项
 /// </summary>
 /// <remarks>
-/// <c>POST /api/caches:delete-by-prefix</c>（平台侧）。前缀须落在开放的命名空间里（4.x 按模式删，6.0 按前缀，不支持通配）；对象缓存与字节存储里的都删，删除数是两层之和
+/// <c>POST /api/caches:delete-by-prefix</c>（平台侧）。前缀须落在开放的命名空间里（只按前缀，不支持通配）；对象缓存与字节存储里的都删，删除数是两层之和
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>

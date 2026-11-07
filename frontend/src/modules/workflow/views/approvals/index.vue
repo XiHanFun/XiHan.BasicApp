@@ -16,7 +16,7 @@ import { instanceStatusLabel, outcomeLabel, recordActionLabel } from './approval
 import ApprovalDetailDrawer from './ApprovalDetailDrawer.vue'
 
 /**
- * 审批中心：待我审批 / 我已审批 / 我发起的 / 抄送我的（照 4.x）
+ * 审批中心：待我审批 / 我已审批 / 我发起的 / 抄送我的
  * 主体由服务端锁定为当前用户；办理、转办、加签与撤回都在详情抽屉里完成
  * 路由参数 tab 选中页签，instanceId 直接打开该流程的详情（业务页「查看审批」、通知与工作台待办跳转过来），taskId 指明办哪一条待办
  */
@@ -497,7 +497,7 @@ function onStartedAction(payload: SchemaActionPayload) {
 }
 
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 定高表格卡片，分页贴底），
-   被标签页包裹时补全高度传递链，与根级 SchemaPage 页面布局一致（4.x 同） */
+   被标签页包裹时补全高度传递链，与根级 SchemaPage 页面布局一致 */
 .approval-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;

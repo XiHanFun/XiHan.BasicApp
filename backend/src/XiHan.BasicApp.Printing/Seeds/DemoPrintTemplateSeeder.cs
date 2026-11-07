@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Printing.Seeds;
 /// 打印演示模板的种子
 /// </summary>
 /// <remarks>
-/// 号段 900 + 50（照 4.x 的 <c>Demo + 50</c>），<c>BasicApp:Seed:EnableDemoData</c> 打开才写：六张平台全局模板，向租户开放、启用，排序 10～60
+/// 号段 900 + 50，<c>BasicApp:Seed:EnableDemoData</c> 打开才写：六张平台全局模板，向租户开放、启用，排序 10～60
 /// 按编码先查后写（含已删除的行）：已有的不改，删掉的不补回（只首写）。模板内容见 <see cref="PrintingDemoCatalog"/>
 /// </remarks>
 /// <param name="templates">模板仓储</param>

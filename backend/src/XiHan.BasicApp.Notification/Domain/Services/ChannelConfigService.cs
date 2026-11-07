@@ -106,7 +106,7 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     /// 发送用的邮件配置：当前一侧启用的缺省配置，没有取平台的
     /// </summary>
     /// <remarks>
-    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）
+    /// 租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）
     /// </remarks>
     /// <param name="owner">侧</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -122,7 +122,7 @@ public sealed class ChannelConfigService(IRepository<SysEmailConfig, Guid> email
     /// 发送用的短信配置：当前一侧启用的缺省配置，没有取平台的
     /// </summary>
     /// <remarks>
-    /// 4.x 同（<c>CurrentThenPlatformAsync</c>）：租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）
+    /// 租户自配的缺省优先，没有时由平台代发（用户拍板保留回落）
     /// </remarks>
     /// <param name="owner">侧</param>
     /// <param name="cancellationToken">取消令牌</param>

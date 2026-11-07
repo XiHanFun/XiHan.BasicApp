@@ -34,7 +34,7 @@ defineOptions({ name: 'NotificationTemplatesView' })
 const { t } = useI18n()
 const resource = templateResource()
 const auth = useAuthStore()
-/** 平台一侧：平台的模板是自己的；租户一侧看得到平台的、只能覆盖（4.x 同） */
+/** 平台一侧：平台的模板是自己的；租户一侧看得到平台的、只能覆盖 */
 const isPlatformCaller = () => auth.tenantId === null
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
@@ -511,7 +511,7 @@ async function removeRow(row: TemplateRow) {
   color: var(--xh-fg-subtle);
 }
 
-/* 模板正文按源码显示（4.x 同）：保留换行、限高滚动 */
+/* 模板正文按源码显示：保留换行、限高滚动 */
 .template-detail__content {
   max-height: 20rem;
   margin: 0;

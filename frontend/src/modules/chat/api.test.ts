@@ -1,7 +1,7 @@
 /**
  * api.ts：聊天 API 契约到生成的操作客户端的映射
  *
- * 职责边界：锁定 6.0 与 4.x 不同的那几处——批量操作的逐项失败要抛出（不当成功吞掉）、置顶与免打扰传新值、
+ * 职责边界：锁定这几处——批量操作的逐项失败要抛出（不当成功吞掉）、置顶与免打扰传新值、
  * 转发走服务端、选人与部门树的字段换算、附件先秒传再普通上传、附件地址按会话签出且原样使用
  * 网络层用 configureRequest 换掉 fetch，普通上传（XMLHttpRequest）替身掉 uploadForm
  */
@@ -140,7 +140,7 @@ describe('批量操作的逐项失败', () => {
 })
 
 describe('个人开关与查询', () => {
-  it('置顶与免打扰传新值（6.0 不是切换），返回生效后的状态', async () => {
+  it('置顶与免打扰传新值（不是切换），返回生效后的状态', async () => {
     const calls = record(call => json(200, { isOn: (call.body as { isPinned?: boolean, isMuted?: boolean }).isPinned ?? (call.body as { isMuted: boolean }).isMuted }))
     const api = createChatApi()
 

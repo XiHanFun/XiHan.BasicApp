@@ -109,7 +109,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddSingleton(ExternalLoginOptions.FromConfiguration(context.Configuration));
         context.Services.AddHttpClient(ExternalLoginFlow.HttpClientName, static client =>
         {
-            // GitHub 不带 User-Agent 即 403（4.x 用 ASP.NET 认证处理器的缺省 UA）
+            // GitHub 不带 User-Agent 即 403
             client.DefaultRequestHeaders.UserAgent.ParseAdd("XiHan.BasicApp");
             client.Timeout = TimeSpan.FromSeconds(15);
         }).UseSocketsHttpHandler(static (handler, services) => services.GetRequiredService<OutboundAddressPolicy>().Apply(handler));

@@ -53,7 +53,7 @@ import { bindPersist, save } from '../helpers'
 const WIDGET_PLACEMENTS: readonly WidgetPlacement[] = ['auto', 'header', 'floating', 'hidden']
 
 /**
- * 读一个顶栏工具的位置：已存的位置优先；没有时从旧版显示开关迁移（开或没设过 → 自动，关 → 隐藏），
+ * 读一个顶栏工具的位置：已存的位置优先；没有时从旧的显示开关键迁移（开或没设过 → 自动，关 → 隐藏），
  * 迁移结果当场写入新键、删掉旧键，旧键不再进偏好快照
  */
 function readWidgetPlacement(key: string, legacyKey: string): WidgetPlacement {
@@ -75,7 +75,7 @@ export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
-  // 偏好、收藏、SchemaPage 的搜索 / 表格设置与看板布局都已接 Identity 的 user-settings，缺省开（与 4.x 相同）
+  // 偏好、收藏、SchemaPage 的搜索 / 表格设置与看板布局都已接 Identity 的 user-settings，缺省开
   const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? true)
   const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
   const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? true)
@@ -84,7 +84,7 @@ export function createPreferencesSlice() {
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
   // 应用时区（IANA，如 Asia/Shanghai），默认北京时间，空串表示跟随浏览器：后端一律返回 UTC，界面上的时间按它显示（formatDate），
-  // 个人统计与工作台按它切「今天」；存下的值运行时认不出（旧版本或手改的存储）时回到默认
+  // 个人统计与工作台按它切「今天」；存下的值运行时认不出（旧值或手改的存储）时回到默认
   const storedTimezone = LocalStorage.get<string>(APP_TIMEZONE_KEY)
   const appTimezone = ref<string>(storedTimezone === '' || (storedTimezone && isTimeZone(storedTimezone))
     ? storedTimezone

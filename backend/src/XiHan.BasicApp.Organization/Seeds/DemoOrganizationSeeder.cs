@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Organization.Seeds;
 /// </summary>
 /// <remarks>
 /// 号段 900 + 模块偏移 20，<c>BasicApp:Seed:EnableDemoData</c> 打开才写
-/// 在演示租户 <c>demo</c> 里建「总部 → 研发部 / 市场部 / 人事部」、岗位「总经理 / 经理 / 工程师 / 专员」与负责人，并给演示成员排主部门任职（照 4.x 示例企业里流程演示要用的那几位）：
+/// 在演示租户 <c>demo</c> 里建「总部 → 研发部 / 市场部 / 人事部」、岗位「总经理 / 经理 / 工程师 / 专员」与负责人，并给流程演示要用的成员排主部门任职：
 /// 管理员 <c>admin</c> 是总经理、总部负责人；<c>manager</c> 是研发部经理、研发部负责人；<c>lead</c> 是研发部工程师；<c>hr</c> 是人事部专员
 /// 部门是租户库实体，种子调用本身没有租户，所以经 <see cref="ITenantScopeRunner"/> 以 <c>demo</c> 另起一次调用写入；租户里已有部门即跳过（只首写）
 /// </remarks>

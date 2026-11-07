@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Notification.Middleware;
 /// 把通知发布的开始与失败推给发布人
 /// </summary>
 /// <remarks>
-/// 4.x 同：发布时灵动岛先显示「正在发布」，失败时收尾并写明原因。成功带着接收人数，由 <see cref="PublishNotification"/> 随提交发出
+/// 发布时灵动岛先显示「正在发布」，失败时收尾并写明原因。成功带着接收人数，由 <see cref="PublishNotification"/> 随提交发出
 /// 排在 Transaction 阶段开头、工作单元之外：这两条不随事务生效，要在事务开始前、回滚之后立即发出，提交失败与异常也要让那一条收尾。排在授权之后，没有发布权限的调用什么也收不到
 /// </remarks>
 public sealed class PublishProgressMiddleware : IPipelineMiddleware

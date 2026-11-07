@@ -79,7 +79,7 @@ public sealed class UserAccountService
     /// 按注册地租户与联系方式找能用验证码登录的用户
     /// </summary>
     /// <remarks>
-    /// 邮箱不分大小写；手机号要已验证（4.x 同）。只取正常状态的，至多两个：调用方据此判断「恰好一个」
+    /// 邮箱不分大小写；手机号要已验证。只取正常状态的，至多两个：调用方据此判断「恰好一个」
     /// </remarks>
     /// <param name="homeTenantId">注册地租户</param>
     /// <param name="channel">渠道</param>
@@ -100,7 +100,7 @@ public sealed class UserAccountService
     /// </summary>
     /// <remarks>
     /// 没有即建一行空的（没有密码、不能登录）。只读调用里不建（框架拒绝只读工作单元里的写入）：
-    /// 安全行在建用户、注册、种子与登录这些写入里建（4.x 在建用户时建），只读调用读到缺行按缺省值给出一行不落库的
+    /// 安全行在建用户、注册、种子与登录这些写入里建，只读调用读到缺行按缺省值给出一行不落库的
     /// </remarks>
     public async Task<Result<SysUserSecurity>> SecurityOfAsync(Guid userId, CancellationToken cancellationToken)
     {

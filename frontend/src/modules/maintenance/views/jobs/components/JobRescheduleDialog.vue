@@ -12,8 +12,8 @@ import JobRetryFields from './JobRetryFields.vue'
 import JobScheduleEditor from './JobScheduleEditor.vue'
 
 /**
- * 修改计划：换作业唯一触发器的计划（照 4.x 分 Cron 与间隔，Cron 用 4.x 的构建器），连同重试与执行时限（按表单整体替换），其余登记与暂停状态不变
- * 计划与时区改动后停顿片刻即经 jobs.validate-schedule 校验并预览接下来的执行时间（4.x Cron 构建器的预览位置）；
+ * 修改计划：换作业唯一触发器的计划（分 Cron 与间隔，Cron 用构建器），连同重试与执行时限（按表单整体替换），其余登记与暂停状态不变
+ * 计划与时区改动后停顿片刻即经 jobs.validate-schedule 校验并预览接下来的执行时间；
  * 保存走 jobs.reschedule，代码登记的作业改过即标为「已改计划」
  */
 defineOptions({ name: 'JobRescheduleDialog' })

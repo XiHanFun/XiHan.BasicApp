@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Notification;
 /// 通知包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同八个实体：通知公告、消息模板、邮件与短信的发送记录、邮件 / 短信 / 机器人配置与 Telegram 机器人（收件箱是本人自己的，不套用）
+/// 八个实体：通知公告、消息模板、邮件与短信的发送记录、邮件 / 短信 / 机器人配置与 Telegram 机器人（收件箱是本人自己的，不套用）
 /// 字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用
 /// </remarks>
 public static class NotificationFieldSecurity

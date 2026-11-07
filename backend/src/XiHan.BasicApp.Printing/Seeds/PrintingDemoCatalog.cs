@@ -20,9 +20,9 @@ public sealed record PrintingDemoTemplate(string Code, string Name, string DataS
 /// 打印演示目录：五个演示数据源与六张演示模板
 /// </summary>
 /// <remarks>
-/// 数据源（字段与样例）与模板（打印设计器的模板 JSON）是嵌入的 <c>Seeds/Demo/DataSources</c>、<c>Seeds/Demo/Templates</c>，与 4.x 同一批文件原样搬入；
+/// 数据源（字段与样例）与模板（打印设计器的模板 JSON）是嵌入的 <c>Seeds/Demo/DataSources</c>、<c>Seeds/Demo/Templates</c>；
 /// 前端用例读同一批文件核对每张模板能通过设计器的完整校验、按样例排版不出错误级诊断。五张模板对应打印设计器文档站的示例，「元素总览」摆出全部元素种类、绑内置数据源 <c>system.print-demo</c>
-/// 演示数据源只在演示开关打开时登记（4.x 同），演示模板由 <see cref="DemoPrintTemplateSeeder"/> 写入
+/// 演示数据源只在演示开关打开时登记，演示模板由 <see cref="DemoPrintTemplateSeeder"/> 写入
 /// </remarks>
 public static class PrintingDemoCatalog
 {

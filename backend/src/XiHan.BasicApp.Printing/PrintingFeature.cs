@@ -28,9 +28,9 @@ namespace XiHan.BasicApp.Printing;
 /// 打印模块（Tier 3，可选）
 /// </summary>
 /// <remarks>
-/// 打印模板（平台库实体，平台全局模板与租户私有模板）的维护与按编码解析，打印数据源的注册表与目录；设计、样例数据、预览与打印都在浏览器里完成，本包没有作业与普通端点（照 4.x）
+/// 打印模板（平台库实体，平台全局模板与租户私有模板）的维护与按编码解析，打印数据源的注册表与目录；设计、样例数据、预览与打印都在浏览器里完成，本包没有作业与普通端点
 /// 数据源由各包经 Contracts 的 <see cref="PrintDataSourceServiceCollectionExtensions.AddPrintDataSource"/> 登记，注册表的构造登记为启动核对：编码重复或字段契约不合法即启动失败
-/// 内置数据源 <c>system.print-demo</c> 总会登记，五个演示数据源只在演示开关打开时登记（4.x 同）
+/// 内置数据源 <c>system.print-demo</c> 总会登记，五个演示数据源只在演示开关打开时登记
 /// 宿主按 <c>BasicApp:Modules:Printing:Enabled</c> 决定是否装配；关掉后权限目录与页面登记都不在，菜单种子删掉打印模板页，前端模块随菜单不再出现
 /// </remarks>
 public sealed class PrintingFeature : IFeature
@@ -75,7 +75,7 @@ public sealed class PrintingFeature : IFeature
             }
         }
 
-        // 构造一次注册表：编码重复或字段契约不合法在启动阶段就失败，而不是等到第一个请求（照 4.x 的应用初始化）
+        // 构造一次注册表：编码重复或字段契约不合法在启动阶段就失败，而不是等到第一个请求
         context.AddStartupCheck(static services => _ = services.GetRequiredService<PrintDataSourceRegistry>());
         context.Services.AddScoped<PrintTemplateService>();
         context.Services.AddScoped<PrintTemplateResolver>();

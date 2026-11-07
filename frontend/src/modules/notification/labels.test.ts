@@ -21,7 +21,7 @@ function flatten(value: Messages, prefix = ''): string[] {
 }
 
 describe('发送记录、模板与配置共用的文案', () => {
-  it('发送状态的文案与语气（4.x 同）', () => {
+  it('发送状态的文案与语气', () => {
     expect(sendStatusLabel(t, 'Pending')).toBe('notification.messaging.statuses.pending')
     expect(sendStatusLabel(t, 'Cancelled')).toBe('notification.messaging.statuses.cancelled')
     expect(sendStatusTone('Pending')).toBe('info')

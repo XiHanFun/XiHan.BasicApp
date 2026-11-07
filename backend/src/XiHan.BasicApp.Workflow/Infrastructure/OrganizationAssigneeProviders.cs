@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Workflow.Infrastructure;
 /// 组织类受理人规则的类型名
 /// </summary>
 /// <remarks>
-/// 与 4.x 同名（设计器预设的规则编辑器按这些名字），框架内置的是 <c>User</c>、<c>Starter</c>、<c>Expression</c>
+/// 设计器预设的规则编辑器按这些名字；框架内置的是 <c>User</c>、<c>Starter</c>、<c>Expression</c>
 /// </remarks>
 public static class OrganizationAssigneeRuleTypes
 {
@@ -60,7 +60,7 @@ public static class OrganizationAssigneeRuleTypes
 /// 组织类受理人的公共部分
 /// </summary>
 /// <remarks>
-/// 照 4.x：一切候选人最后与「实例所在一侧可见的在用账号」求交（平台是平台账号，租户是注册在该租户的账号与普通成员，运维支持成员不算），
+/// 一切候选人最后与「实例所在一侧可见的在用账号」求交（平台是平台账号，租户是注册在该租户的账号与普通成员，运维支持成员不算），
 /// 停用的账号、离开租户的成员收不到待办；保持候选的顺序、去重。解析在实例所属分区的调用里执行（组织数据按调用的租户读）
 /// </remarks>
 /// <param name="users">用户目录</param>
@@ -190,7 +190,7 @@ public sealed class PositionAssigneeProvider(IOrganizationDirectory organization
 /// 发起人主管类规则的公共部分
 /// </summary>
 /// <remarks>
-/// 照 4.x 的主管链：从发起人的主部门起逐级上溯，跳过停用的部门、没设负责人的、发起人自己负责的、已经数过的负责人与当前一侧不可见的账号，最多数到要的层级
+/// 主管链：从发起人的主部门起逐级上溯，跳过停用的部门、没设负责人的、发起人自己负责的、已经数过的负责人与当前一侧不可见的账号，最多数到要的层级
 /// </remarks>
 /// <param name="organization">组织目录</param>
 /// <param name="users">用户目录</param>

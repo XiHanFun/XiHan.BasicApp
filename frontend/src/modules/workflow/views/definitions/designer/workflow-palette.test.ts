@@ -1,7 +1,7 @@
 /**
  * 设计器物料收窄（workflow-palette.ts）的单元测试
  *
- * 锁定：框架 5 没有的 Script 恒不放；后端活动类型目录到了只留目录里有的；预设别的部分原样
+ * 锁定：框架 没有的 Script 恒不放；后端活动类型目录到了只留目录里有的；预设别的部分原样
  */
 import { describe, expect, it } from 'vitest'
 import { createXihanWorkflow } from '~/designers/flow'

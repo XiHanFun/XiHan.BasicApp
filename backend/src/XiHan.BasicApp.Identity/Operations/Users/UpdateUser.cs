@@ -74,7 +74,7 @@ public sealed class UpdateUser(IRepository<SysUser, Guid> users, IPermissionChec
         }
 
         user.DisplayName = displayName;
-        // 管理员改了邮箱 / 手机号即复位验证状态（4.x 同），本人要重新收码验证
+        // 管理员改了邮箱 / 手机号即复位验证状态，本人要重新收码验证
         user.EmailVerified &= string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase);
         user.PhoneVerified &= string.Equals(user.PhoneNumber, phone, StringComparison.Ordinal);
         user.Email = email;

@@ -20,7 +20,7 @@ namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
 /// 批量删除{{ DisplayName | xml_doc }}
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/{{ Resource }}?ids=...</c>。逐项：不存在即 <c>{{ ModuleName }}Errors.{{ ClassName }}NotFound</c>{{ if IsTree }}，还有下级即 <c>{{ ModuleName }}Errors.{{ ClassName }}HasChildren</c>（删了上级，下级会整枝挪成顶层，照 4.x）{{ end }}
+/// <c>DELETE /api/{{ Resource }}?ids=...</c>。逐项：不存在即 <c>{{ ModuleName }}Errors.{{ ClassName }}NotFound</c>{{ if IsTree }}，还有下级即 <c>{{ ModuleName }}Errors.{{ ClassName }}HasChildren</c>（删了上级，下级会整枝挪成顶层）{{ end }}
 /// </remarks>
 /// <param name="repository">仓储</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = {{ ModuleName }}Permissions.{{ ResourcePascal }}Delete)]

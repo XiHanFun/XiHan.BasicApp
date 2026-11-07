@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 列配置弹窗（照 4.x column-config-modal）
+  代码生成 / 列配置弹窗
   整体保存一张表的列配置：基类的列（主键、租户、审计、软删与并发戳）不可编辑；选项来源切换时清掉别的来源的配置
-  列注释取自库结构（同步结构以库为准），只显示不编辑：4.x 这里能改却不保存（按缺陷修）
+  列注释取自库结构（同步结构以库为准），只显示不编辑
 -->
 <script setup lang="ts">
 import type { ColumnRow, DictSelectorType, HtmlType, QueryType, TableRow } from './use-tables'
@@ -458,7 +458,7 @@ async function handleSubmit() {
         constValues: row.constValues ?? null,
         relationTableId: row.relationTableId ?? null,
         relationLabelColumn: row.relationLabelColumn ?? null,
-        // 界面没有这几项的入口，原样交回（4.x 每次保存把缺省值、正则与校验提示写成空）
+        // 界面没有这几项的入口，原样交回，免得保存时把缺省值、正则与校验提示写成空
         defaultValue: row.defaultValue ?? null,
         minValue: row.minValue ?? null,
         maxValue: row.maxValue ?? null,

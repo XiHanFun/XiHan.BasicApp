@@ -22,10 +22,10 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 零代码运行时：按表配置只读查看数据
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>DynamicRuntimeAppService</c>：表名只取已配置且启用的表配置（不接受请求给的表名，没有注入面），按列配置给出表结构，按表名分页只读，不生成也不编译代码
-/// 主库的表照 4.x 补上与实体读同口径的条件：有租户列的只看调用方这一侧的行，有软删列的不看已删的
-/// 与 4.x 不同（按缺陷修，方案 C2）：按表配置的数据源查（4.x 一律查主库）；外部库的表不套这两个条件（租户与软删是 BasicApp 表的约定）；
-/// 只按列配置逐列取（4.x 取 *），数据行按属性名（camelCase）给键（4.x 按库里的列名给键，前端按属性名取，取不到）；列配置里有、库里已没有的列读不出，先同步结构
+/// 表名只取已配置且启用的表配置（不接受请求给的表名，没有注入面），按列配置给出表结构，按表名分页只读，不生成也不编译代码
+/// 主库的表补上与实体读同口径的条件：有租户列的只看调用方这一侧的行，有软删列的不看已删的
+/// 按表配置的数据源查（方案 C2）；外部库的表不套这两个条件（租户与软删是 BasicApp 表的约定）；
+/// 只按列配置逐列取，数据行按属性名（camelCase）给键（前端按属性名取）；列配置里有、库里已没有的列读不出，先同步结构
 /// </remarks>
 /// <param name="tables">表配置服务</param>
 /// <param name="dataSources">数据源服务</param>
@@ -131,7 +131,7 @@ public sealed partial class CodeGenRuntimeService(CodeGenTableService tables, Co
         query = query.Select(string.Join(", ", columns.Select(c => builder.GetTranslationColumnName(c.ColumnName))));
         if (table.DataSourceId is null)
         {
-            // 原始表不经实体读的过滤：租户与软删的条件按实体读同口径显式补上（照 4.x）
+            // 原始表不经实体读的过滤：租户与软删的条件按实体读同口径显式补上
             if (Find(columns, "tenant_id", "tenantid") is { } tenant)
             {
                 query = query.Where($"{builder.GetTranslationColumnName(tenant)} = @tenantId", new { tenantId = SideRows.SideOf(context) });
@@ -175,7 +175,7 @@ public sealed partial class CodeGenRuntimeService(CodeGenTableService tables, Co
         return new PageResult<IReadOnlyDictionary<string, JsonElement>>(rows, total.Value, request.Page);
     }
 
-    // 已配置且启用的表配置（照 4.x，停用的不能访问）
+    // 已配置且启用的表配置（停用的不能访问）
     private async Task<Result<SysCodeGenTable>> EnabledAsync(Guid id, CancellationToken cancellationToken)
     {
         var found = await tables.FindAsync(id, cancellationToken).ConfigureAwait(false);

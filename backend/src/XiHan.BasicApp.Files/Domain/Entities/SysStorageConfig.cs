@@ -106,9 +106,6 @@ public sealed class SysStorageConfig : AppAuditedEntity, IOwnedByTenant
 /// <summary>
 /// 存储类型：本地目录，或经 S3 协议访问的对象存储
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum StorageType
 {
     /// <summary>

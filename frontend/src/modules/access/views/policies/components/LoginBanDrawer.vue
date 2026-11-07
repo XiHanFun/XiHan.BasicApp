@@ -9,7 +9,7 @@ import { loginBans as loginBansApi } from '~/contracts'
 import { formatDate } from '~/utils'
 
 /**
- * 登录失败自动封禁（只在平台，4.x 同）：此刻生效的参数（在参数配置里改，缺省关）与当前封禁的地址，可解封
+ * 登录失败自动封禁（只在平台）：此刻生效的参数（在参数配置里改，缺省关）与当前封禁的地址，可解封
  */
 defineOptions({ name: 'LoginBanDrawer' })
 

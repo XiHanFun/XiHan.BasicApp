@@ -8,7 +8,7 @@ namespace XiHan.BasicApp.Contracts.Realtime;
 /// </summary>
 /// <remarks>
 /// 客户端方法 <see cref="RealtimeMethods.TaskProgress"/>，只推给发起人。前端灵动岛按 <paramref name="TaskId"/> 复用同一条，进行中常驻，成功或失败后自动收起
-/// 字段与状态值照 4.x，也就是前端 <c>ServerTaskProgressPayload</c> 认的那几个；文案由服务端按发起人的区域翻好
+/// 字段与状态值即前端 <c>ServerTaskProgressPayload</c> 认的那几个；文案由服务端按发起人的区域翻好
 /// </remarks>
 /// <param name="TaskId">任务标识</param>
 /// <param name="Label">给人看的文案</param>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Identity</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 身份能力包（Tier 1）。N0 只含用户的最小切片：users.create / users.get / users.list。</Description>
+    <Description>XiHan.BasicApp 身份能力包（Tier 1）。N0 只含用户的最小切片：users.create / users.get / users.list。</Description>
   </PropertyGroup>
 
   <ItemGroup>

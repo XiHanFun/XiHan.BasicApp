@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 代码生成模块（Tier 3，可选）
 /// </summary>
 /// <remarks>
-/// 只在平台一侧（照 4.x）：外部数据源、表与列配置（经框架读库结构导入）、Scriban 模板、按 6.0 写法生成包与前端模块、生成历史与零代码只读运行时
+/// 只在平台一侧：外部数据源、表与列配置（经框架读库结构导入）、Scriban 模板、生成包与前端模块、生成历史与零代码只读运行时
 /// 外部库经框架的运行时数据源连接（<c>DataSourceRegistry</c>），口令与连接串经 <c>ISecretProtector</c> 加密存储
 /// 宿主按 <c>BasicApp:Modules:CodeGeneration:Enabled</c> 决定是否装配；关掉后权限目录与页面登记都不在，菜单种子删掉代码生成页，前端模块随菜单不再出现
 /// </remarks>
@@ -79,7 +79,7 @@ public sealed class CodeGenerationFeature : IFeature
         context.Services.AddScoped<CodeGenRuntimeService>();
         context.Services.AddSeeder<CodeGenTemplateSeeder>();
         context.Services.AddPermissionCatalog("codegeneration", CodeGenerationPermissions.All);
-        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用（照 4.x 的登记范围）
+        // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         CodeGenerationFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("codegeneration", CodeGenerationPages.All);
         foreach (var permission in CodeGenerationPermissions.All)

@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.AI.Domain.Services;
 /// 提示词的规则
 /// </summary>
 /// <remarks>
-/// 编码唯一、建后不可改（照 4.x）
+/// 编码唯一、建后不可改
 /// </remarks>
 /// <param name="prompts">提示词仓储</param>
 public sealed class AiPromptService(IRepository<SysAiPrompt, Guid> prompts)

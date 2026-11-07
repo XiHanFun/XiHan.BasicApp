@@ -127,7 +127,7 @@ public sealed class SysTenant : AppAuditedEntity
 /// 租户独立库的状态
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的配置状态：配好连接即待初始化，<c>tenants.initialize-database</c> 成功即就绪、失败记原因可再试
+/// 配好连接即待初始化，<c>tenants.initialize-database</c> 成功即就绪、失败记原因可再试
 /// </remarks>
 public enum TenantDatabaseStatus
 {
@@ -156,7 +156,7 @@ public enum TenantDatabaseStatus
 /// 租户数据的隔离方式
 /// </summary>
 /// <remarks>
-/// 方案 5.10：Field（共库、按租户列过滤，缺省）与 Database（落租户库的实体在租户自己的库里）；4.x 的 Schema 隔离未实装，6.0 不保留
+/// 方案 5.10：Field（共库、按租户列过滤，缺省）与 Database（落租户库的实体在租户自己的库里）
 /// </remarks>
 public enum TenantIsolationMode
 {

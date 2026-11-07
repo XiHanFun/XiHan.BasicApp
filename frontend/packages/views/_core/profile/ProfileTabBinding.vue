@@ -116,7 +116,7 @@ function handleAvatarError(name: string) {
   avatarErrors.value = next
 }
 
-/** 发起绑定（4.x 同为先换一次性凭据再整页跳去第三方）：领本人的绑定意图后跳去后端给的地址，回到回调页由本人确认 */
+/** 发起绑定：领本人的绑定意图后跳去后端给的地址，回到回调页由本人确认 */
 async function handleStartBind(provider: string) {
   try {
     await authStore.startOAuthBind(provider)

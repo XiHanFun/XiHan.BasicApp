@@ -67,8 +67,8 @@ public sealed class GetKnowledgeDocument(KnowledgeDocumentService service) : IOp
 /// 摄入知识文档
 /// </summary>
 /// <remarks>
-/// <c>POST /api/knowledge-documents:ingest</c>。只收文本、请求内同步（方案 A5，照 4.x）；指定的嵌入提供商不存在或已停用 <c>AI_VALIDATION_102</c>
-/// 索引失败（没配向量库、模型不可达、维度不符）照 4.x 以 <c>Failed</c> 保存并成功返回，原因记在文档上，可以重建
+/// <c>POST /api/knowledge-documents:ingest</c>。只收文本、请求内同步（方案 A5）；指定的嵌入提供商不存在或已停用 <c>AI_VALIDATION_102</c>
+/// 索引失败（没配向量库、模型不可达、维度不符）以 <c>Failed</c> 保存并成功返回，原因记在文档上，可以重建
 /// </remarks>
 /// <param name="service">知识文档服务</param>
 /// <param name="catalog">提供商目录</param>
@@ -197,7 +197,7 @@ public sealed class DeleteKnowledgeDocuments(KnowledgeDocumentService service, S
 /// 知识问答
 /// </summary>
 /// <remarks>
-/// <c>GET /api/knowledge-documents:query</c>。只在调用方一侧检索；要答案且有命中时生成带引用编号的答案，<c>[n]</c> 对应第 n 个片段（照 4.x）
+/// <c>GET /api/knowledge-documents:query</c>。只在调用方一侧检索；要答案且有命中时生成带引用编号的答案，<c>[n]</c> 对应第 n 个片段
 /// 没配向量库 <c>AI_UNAVAILABLE_002</c>，提供商未配置 <c>AI_NOTFOUND_001</c>，原样返回框架的错误
 /// </remarks>
 /// <param name="service">知识文档服务</param>
@@ -237,7 +237,7 @@ public sealed class QueryKnowledgeDocuments(KnowledgeDocumentService service) : 
 /// 检索知识库
 /// </summary>
 /// <remarks>
-/// <c>GET /api/knowledge-documents:search</c>。只检索、返回片段，也发布为 MCP 与 AI 工具（取代 4.x 的 <c>knowledge_retrieve</c> 技能），以调用方身份在调用方一侧执行
+/// <c>GET /api/knowledge-documents:search</c>。只检索、返回片段，也发布为 MCP 与 AI 工具，以调用方身份在调用方一侧执行
 /// </remarks>
 /// <param name="service">知识文档服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = AIPermissions.KnowledgeDocumentsExecute)]

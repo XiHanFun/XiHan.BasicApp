@@ -27,7 +27,7 @@ public sealed class ProfileAvatars(IRepository<SysUser, Guid> users, UserAccount
     /// 取调用方本人与账号安全
     /// </summary>
     /// <remarks>
-    /// 头像端点上传之前先认人。模仿会话不拒绝，4.x 同
+    /// 头像端点上传之前先认人。模仿会话不拒绝
     /// </remarks>
     /// <param name="context">调用上下文</param>
     public Task<Result<(SysUser User, SysUserSecurity Security)>> CallerAsync(InvocationContext context)

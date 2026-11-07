@@ -91,7 +91,7 @@ public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader re
 /// <remarks>
 /// <c>POST /api/roles:set-parents</c>。本角色的持有人随即拿到上级（及其上级）的授予，上级的拒绝同样作用于本角色；
 /// 只在同一侧的角色之间，内置角色不参与，停用的角色不能新设为上级，不能成环，直接上级之间不能互为祖先
-/// 新加的上级会让持有本角色及其下级的用户多持有角色：按静态职责分离重查，拦截类违规即整体不做（<c>ACCESS_CONFLICT_012</c>，4.x 同）
+/// 新加的上级会让持有本角色及其下级的用户多持有角色：按静态职责分离重查，拦截类违规即整体不做（<c>ACCESS_CONFLICT_012</c>）
 /// </remarks>
 /// <param name="service">角色查找</param>
 /// <param name="hierarchy">继承写入</param>

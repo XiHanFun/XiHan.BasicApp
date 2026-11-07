@@ -1,7 +1,7 @@
 /**
  * 审批中心的状态、结果与动作展示规则（纯函数，页面、抽屉与步骤条共用）
  *
- * 照 4.x 的 approval-labels；6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对
+ * 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对
  * 实例状态与标准结果的文案、色调与流程实例页同一处（workflow.instances 下、instance-labels），这里不另起一套
  */
 import type { WorkflowInstanceStatus, WorkflowTaskRecordAction } from '~/contracts'

@@ -91,7 +91,7 @@ export function isValidTemplateMap(value: string): boolean {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验；地域在 6.0 可空，缺省阿里云 cn-hangzhou、腾讯云 ap-guangzhou）；都好为空 */
+/** 表单的第一处问题（提交前校验；地域可空，缺省阿里云 cn-hangzhou、腾讯云 ap-guangzhou）；都好为空 */
 export type SmsConfigProblem = 'access_key_id' | 'access_key_secret' | 'code' | 'name' | 'sdk_app_id' | 'sign_name' | 'template_map'
 
 /**
@@ -168,7 +168,7 @@ export function toUpdateBody(form: SmsConfigForm & { id: string }): RequestOf<'s
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（访问密钥不带即保留）；
+ * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改（访问密钥不带即保留）；
  * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
 export function smsConfigResource(): SchemaResource<SmsConfigRow> {

@@ -51,7 +51,7 @@ public sealed record CodeGenArtifact(CodeGenSide Side, string RelativePath, stri
 /// 关联选择器的目标
 /// </summary>
 /// <remarks>
-/// 照 4.x「不焊外键」：没有导航属性也不联表，本表出一个选项操作，按目标实体查主键与显示列（关联树另带父级列）
+/// 不焊外键：没有导航属性也不联表，本表出一个选项操作，按目标实体查主键与显示列（关联树另带父级列）
 /// </remarks>
 public sealed class CodeGenRelation
 {
@@ -105,7 +105,7 @@ public sealed class CodeGenRelation
 /// 一列的生成模型
 /// </summary>
 /// <remarks>
-/// 由列配置与类型映射合成（照 4.x 的 <c>ColumnSchema</c>），模板只读它
+/// 由列配置与类型映射合成，模板只读它
 /// </remarks>
 public sealed class CodeGenColumnModel
 {

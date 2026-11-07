@@ -33,7 +33,7 @@ public sealed record RoleMemberWindowRequest(Guid Id, [Required] Guid UserId, Da
 /// </summary>
 /// <remarks>
 /// <c>POST /api/roles/{id}:update-member</c>。到期或改到未来生效的指派立即从判定里拿掉（令牌里的角色声明由权限过滤器按指派求交）；
-/// 改成此刻有效的要等下次刷新令牌才进令牌。已到期的指派改回有效等于重新持有这个角色：过静态职责分离、基数与条件（4.x 的单条指派生效同样判定）
+/// 改成此刻有效的要等下次刷新令牌才进令牌。已到期的指派改回有效等于重新持有这个角色：过静态职责分离、基数与条件
 /// </remarks>
 /// <param name="service">角色域服务</param>
 /// <param name="members">指派仓储</param>

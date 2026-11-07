@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Tenancy.Seeds;
 /// <remarks>
 /// 号段 900 + 模块偏移 10，<c>BasicApp:Seed:EnableDemoData</c> 打开才写。写入：
 /// 租户 <c>demo</c>、它的管理员 <c>admin</c>（密码 <c>Demo@123456</c>，首次登录须改密），
-/// 平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿），以及流程演示要用的三个成员账号 <see cref="DemoStaff"/>（密码同管理员、首次登录须改密，照 4.x 的部门主管、项目负责人与人事专员）
+/// 平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿），以及流程演示要用的三个成员账号 <see cref="DemoStaff"/>（部门主管、项目负责人与人事专员，密码同管理员、首次登录须改密）
 /// 新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写，成员账号按登录名只首写、删掉的不补
 /// </remarks>
 /// <param name="tenants">租户仓储</param>

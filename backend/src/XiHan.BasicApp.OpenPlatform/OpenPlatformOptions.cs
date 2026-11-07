@@ -19,16 +19,13 @@ public sealed class OpenPlatformOptions
     /// 请求时间戳与服务端时间的最大偏差（秒）
     /// </summary>
     /// <remarks>
-    /// 缺省 300，4.x 同。随机串的保留时间是它的两倍，时间窗内重放必被识别
+    /// 缺省 300。随机串的保留时间是它的两倍，时间窗内重放必被识别
     /// </remarks>
     public int TimestampToleranceSeconds { get; init; } = 300;
 
     /// <summary>
     /// 请求体上限（字节，缺省 2 MB）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public int MaxRequestBodyBytes { get; init; } = 2 * 1024 * 1024;
 
     /// <summary>
@@ -50,9 +47,6 @@ public sealed class OpenPlatformOptions
     /// <summary>
     /// id_token 有效期（秒，缺省 600）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public int IdTokenLifetimeSeconds { get; init; } = 600;
 
     /// <summary>

@@ -227,7 +227,7 @@ public sealed partial class AuditLogWriter : IDisposable
     /// 在同一批里合并条件命中的计数
     /// </summary>
     /// <remarks>
-    /// 合并键同 4.x（来源、策略、动作、时机、是否拦截、地址、方法、路径、用户、UTC 分钟），保留每组第一条的时间与链路
+    /// 合并键：来源、策略、动作、时机、是否拦截、地址、方法、路径、用户、UTC 分钟。保留每组第一条的时间与链路
     /// </remarks>
     private static List<AuditLogRecord> MergeHits(IEnumerable<AuditLogRecord> records)
     {

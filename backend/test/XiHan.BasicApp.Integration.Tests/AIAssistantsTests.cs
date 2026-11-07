@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证 AI 模块的助手配置
 /// </summary>
 /// <remarks>
-/// 照 4.x：编码唯一且不可改、缺省最多一个、停用的不能设缺省；只在平台一侧。方案补的：保存时核对引用（提示词、提供商、工具），被助手引用的提示词与提供商不能删（方案 D5）
+/// 编码唯一且不可改、缺省最多一个、停用的不能设缺省；只在平台一侧。保存时核对引用（提示词、提供商、工具），被助手引用的提示词与提供商不能删（方案 D5）
 /// </remarks>
 public sealed class AIAssistantsTests : IDisposable
 {
@@ -77,7 +77,7 @@ public sealed class AIAssistantsTests : IDisposable
         Assert.Empty(token.GetProperty("tools").EnumerateArray());
         var first = token.GetProperty("id").GetString()!;
 
-        // 编码唯一、不含空白；范围照 4.x
+        // 编码唯一、不含空白；数值字段有范围
         await ExpectAsync(server, new { code = "doc-helper", name = "Other" }, HttpStatusCode.Conflict, AIErrors.AssistantCodeTaken);
         var (spaced, _) = await SendAsync(server, HttpMethod.Post, "/api/ai-assistants", new { code = "has space", name = "X" });
         Assert.Equal(HttpStatusCode.BadRequest, spaced.StatusCode);
@@ -116,7 +116,7 @@ public sealed class AIAssistantsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         Assert.Equal("second", Assert.Single(listBody.GetProperty("items").EnumerateArray()).GetProperty("code").GetString());
 
-        // 关键字也匹配简介（照 4.x）；按挂知识库与缺省排序（4.x 的两列都能排）
+        // 关键字也匹配简介；按挂知识库与缺省排序
         var (byDescription, byDescriptionBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-assistants:list", new { page = new { index = 1, size = 10 }, keyword = "Docs" });
         Assert.Equal(HttpStatusCode.OK, byDescription.StatusCode);
         Assert.Equal("doc-helper", Assert.Single(byDescriptionBody.GetProperty("items").EnumerateArray()).GetProperty("code").GetString());

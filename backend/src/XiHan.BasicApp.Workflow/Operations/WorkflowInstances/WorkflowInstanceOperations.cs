@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Workflow.Operations.WorkflowInstances;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-instances:list</c>。当前一侧的实例（含子流程），框架在存储里按关键字（标题、关联 ID）、状态、定义名、关联 ID、发起人与创建区间过滤、
-/// 按多列排序（照 4.x）并分页，缺省创建时间降序；筛选与排序见 <see cref="WorkflowQueryMapping.Instances"/>
+/// 按多列排序并分页，缺省创建时间降序；筛选与排序见 <see cref="WorkflowQueryMapping.Instances"/>
 /// </remarks>
 /// <param name="engine">引擎</param>
 /// <param name="users">用户目录（发起人显示名）</param>
@@ -173,7 +173,7 @@ public sealed class StartWorkflowInstance(IWorkflowEngine engine, IUserDirectory
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-instances:cancel</c>。批量；运行中、挂起与故障的实例可取消（启用了补偿的逆序补偿），已结束的算成功
-/// 审批业务的顶层实例取消前先问业务的改动前校验，不过的那一项记失败、不取消；取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消，同 4.x）
+/// 审批业务的顶层实例取消前先问业务的改动前校验，不过的那一项记失败、不取消；取消后回调业务的中止回写，回写失败记为那一项失败（实例照样已取消）
 /// </remarks>
 /// <param name="engine">引擎</param>
 /// <param name="aborts">中止回写</param>

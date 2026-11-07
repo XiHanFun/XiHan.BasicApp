@@ -35,7 +35,7 @@ public sealed record TelegramNetwork
     /// 请求超时秒数
     /// </summary>
     /// <remarks>
-    /// ≤ 0 即 100，4.x 同
+    /// ≤ 0 即 100
     /// </remarks>
     public int TimeoutSeconds { get; init; } = 100;
 
@@ -54,7 +54,7 @@ public sealed record TelegramNetwork
 /// Telegram 的平台设置
 /// </summary>
 /// <remarks>
-/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值（只认平台的），Webhook 密钥另存加密参数 <see cref="SecretConfigKey"/>（4.x 同两个参数，键改到 notification 下）
+/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值（只认平台的），Webhook 密钥另存加密参数 <see cref="SecretConfigKey"/>
 /// 没建参数即缺省值（总开关关）；运行中改参数，下一个刷新周期生效
 /// </remarks>
 public sealed record TelegramSettings
@@ -73,7 +73,7 @@ public sealed record TelegramSettings
     /// Webhook 的路由前缀
     /// </summary>
     /// <remarks>
-    /// 4.x 可配，6.0 固定：端点在宿主启动时映射
+    /// 不可配，端点在宿主启动时映射
     /// </remarks>
     public const string RoutePrefix = "/api/telegram-bot/webhook";
 
@@ -85,9 +85,6 @@ public sealed record TelegramSettings
     /// <summary>
     /// 总开关（缺省关）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public bool Enabled { get; init; }
 
     /// <summary>
@@ -207,7 +204,7 @@ public sealed record TelegramSettings
 /// Telegram 机器人的回复文案
 /// </summary>
 /// <remarks>
-/// 配置节 <c>BasicApp:Notification:Telegram:Texts</c>，缺省即 4.x 的中文文案；为空即不发
+/// 配置节 <c>BasicApp:Notification:Telegram:Texts</c>，缺省是中文文案；为空即不发
 /// </remarks>
 public sealed record TelegramTexts
 {
@@ -276,7 +273,7 @@ public sealed record TelegramTexts
 /// Telegram 出站的重试
 /// </summary>
 /// <remarks>
-/// 配置节 <c>BasicApp:Notification:Telegram:Retry</c>，缺省同 4.x
+/// 配置节 <c>BasicApp:Notification:Telegram:Retry</c>
 /// </remarks>
 public sealed record TelegramRetryOptions
 {
@@ -299,7 +296,7 @@ public sealed record TelegramRetryOptions
     /// 429 的 <c>retry_after</c> 最多等多少秒
     /// </summary>
     /// <remarks>
-    /// 4.x 不设上限，6.0 超过即按失败处理，免得占住分发
+    /// 超过即按失败处理，免得占住分发
     /// </remarks>
     public int MaxRetryAfterSeconds { get; init; } = 60;
 
@@ -335,17 +332,11 @@ public sealed record TelegramOptions
     /// <summary>
     /// 全部机器人共用的同时处理上限
     /// </summary>
-    /// <remarks>
-    /// 4.x 同 16
-    /// </remarks>
     public int MaxDispatchConcurrency { get; init; } = 16;
 
     /// <summary>
     /// 去重标记的保留时长
     /// </summary>
-    /// <remarks>
-    /// 4.x 同 30 分钟
-    /// </remarks>
     public TimeSpan DedupLifetime { get; init; } = TimeSpan.FromMinutes(30);
 
     /// <summary>

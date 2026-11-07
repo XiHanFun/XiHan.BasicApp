@@ -7,15 +7,15 @@ import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 import { getDisplayTimeZone } from '~/utils'
 
-/** 壳层导出菜单的范围编号（4.x：0 当前页、1 搜索结果、2 全部）对应的契约名称 */
+/** 壳层导出菜单的范围编号（0 当前页、1 搜索结果、2 全部）对应的契约名称 */
 const EXPORT_SCOPES: Record<number, 'All' | 'CurrentPage' | 'SearchResult'> = { 0: 'CurrentPage', 1: 'SearchResult', 2: 'All' }
 
-/** 顶栏通知中心一次取的条数（4.x 同至多 100 条） */
+/** 顶栏通知中心一次取的条数 */
 const INBOX_PANEL_SIZE = 100
 
 type InboxItem = ResponseOf<'inbox.list'>['items'][number]
 
-/** 6.0 的收件箱条目 → 壳层的通知条目：时间字段换成 4.x 的名字，枚举名称与壳层的字符串枚举同值 */
+/** 收件箱条目 → 壳层的通知条目：时间字段换成壳层的名字，枚举名称与壳层的字符串枚举同值 */
 function toShellInboxItem(item: InboxItem): AppUserInboxItem {
   return {
     basicId: item.id,
@@ -50,14 +50,14 @@ function toShellDisplayItem(item: InboxItem): AppUserInboxDisplayItem {
 const PAGE_MAX_SIZE = 500
 
 /**
- * 壳层类型里有、但 6.0 后端没有也用不到的接口（用户信息与权限走 auth.permissions，枚举元数据走契约的值集）：显式拒绝而不是回空
+ * 壳层类型里有、但后端没有也用不到的接口（用户信息与权限走 auth.permissions，枚举元数据走契约的值集）：显式拒绝而不是回空
  * 有人调到就是接线错了，看到这条错误，而不是一个看似工作的空件
  */
 function notAvailable(name: string): never {
-  throw new Error(`${name} 尚未接入 6.0 后端`)
+  throw new Error(`${name} 尚未接入后端`)
 }
 
-/** 壳层的用户设置场景是 4.x 的枚举数值（UserSettingScene），契约是字面量 */
+/** 壳层的用户设置场景是枚举数值（UserSettingScene），契约是字面量 */
 function sceneOf(scene: number): 'Page' | 'Preference' {
   if (scene === 0)
     return 'Preference'
@@ -76,7 +76,7 @@ function toShellSetting(setting: ResponseOf<'user-settings.get'>) {
   }
 }
 
-/** 双因素方式：壳层（4.x 个人中心）按位标志 1 = 认证器、2 = 邮箱、4 = 手机传，契约是字面量 */
+/** 双因素方式：壳层按位标志 1 = 认证器、2 = 邮箱、4 = 手机传，契约是字面量 */
 const TWO_FACTOR_FLAGS: Record<TwoFactorMethod, number> = { Totp: 1, Email: 2, Phone: 4 }
 
 function twoFactorMethodOf(flag: number | string): TwoFactorMethod {
@@ -86,7 +86,7 @@ function twoFactorMethodOf(flag: number | string): TwoFactorMethod {
   return found
 }
 
-/** 性别：壳层（4.x 个人中心）按数字传，0 未设置、1 男、2 女，契约是字面量 */
+/** 性别：壳层按数字传，0 未设置、1 男、2 女，契约是字面量 */
 const GENDER_CODES: Record<UserGender, number> = { Unknown: 0, Male: 1, Female: 2 }
 
 function genderOf(code: number): UserGender {
@@ -100,7 +100,7 @@ function genderOf(code: number): UserGender {
 type ProfileResponse = components['schemas']['ProfileResponse']
 
 /**
- * 本人资料 → 4.x 个人中心的 UserProfile：显示名沿用 nickName，头像是用户的头像文件主键，性别换成壳层的数字，没有的字段不给；
+ * 本人资料 → 个人中心的 UserProfile：显示名沿用 nickName，头像是用户的头像文件主键，性别换成壳层的数字，没有的字段不给；
  * 上次改用户名的时间沿用 *Time 命名，现在能不能改看后端给的下次可改时间（没改过即为空、现在就能改）
  * 邮箱 / 手机还没有验证（发码随邮件短信能力接入），按「未验证」给、页签不显示；
  * 锁定取账号状态与登录失败锁定期
@@ -170,7 +170,7 @@ function applyProfile(profile: ProfileResponse): UserProfile {
   return toShellProfile(profile)
 }
 
-/** `profile.external-logins` / `link-external` / `unlink-external` → 4.x 个人中心「账号绑定」的条目：第三方账号的显示名沿用 providerDisplayName，最近登录换成 *Time 命名，没有的字段不给 */
+/** `profile.external-logins` / `link-external` / `unlink-external` → 个人中心「账号绑定」的条目：第三方账号的显示名沿用 providerDisplayName，最近登录换成 *Time 命名，没有的字段不给 */
 function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): ExternalLoginItem {
   return {
     provider: login.provider,
@@ -189,10 +189,10 @@ function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): Exter
   }
 }
 
-/** 4.x 个人中心「登录设备」图标表的设备类型编号：2 手机、3 桌面、4 平板；机器人与没识别出来的是 1（地球） */
+/** 个人中心「登录设备」图标表的设备类型编号：2 手机、3 桌面、4 平板；机器人与没识别出来的是 1（地球） */
 const SESSION_DEVICE_TYPES: Record<string, number> = { Mobile: 2, Desktop: 3, Tablet: 4 }
 
-/** `profile.sessions` / `revoke-session` / `revoke-other-sessions` → 4.x 个人中心「登录设备」的条目：设备类别换成图标表的编号，系统与时间换成 4.x 的字段名，没有的字段不给（6.0 不给设备名） */
+/** `profile.sessions` / `revoke-session` / `revoke-other-sessions` → 个人中心「登录设备」的条目：设备类别换成图标表的编号，系统与时间换成壳层的字段名，没有的字段不给（后端不给设备名） */
 function toShellSession(session: ResponseOf<'profile.sessions'>['items'][number]): UserSessionItem {
   return {
     sessionId: session.id,
@@ -215,7 +215,7 @@ function toShellSession(session: ResponseOf<'profile.sessions'>['items'][number]
   }
 }
 
-/** 登录以外的认证事件 → 4.x 的登录结果（成功时）；这些事件失败一律是 Failed */
+/** 登录以外的认证事件 → 壳层的登录结果（成功时）；这些事件失败一律是 Failed */
 const LOGIN_EVENT_RESULTS: Record<Exclude<LoginEvent, 'Login'>, LoginAuditResult> = {
   Refresh: 'TokenRefreshed',
   Logout: 'Logout',
@@ -230,7 +230,7 @@ const LOGIN_EVENT_RESULTS: Record<Exclude<LoginEvent, 'Login'>, LoginAuditResult
   RoleActivation: 'RolesActivated',
 }
 
-/** 登录失败按错误码细分成 4.x 的结果：账号或密码不对、双因素验证码不对，其余是 Failed */
+/** 登录失败按错误码细分成壳层的结果：账号或密码不对、双因素验证码不对，其余是 Failed */
 const LOGIN_FAILURE_RESULTS: Record<string, LoginAuditResult> = {
   IDENTITY_DENIED_003: 'InvalidCredentials',
   IDENTITY_DENIED_009: 'TwoFactorFailed',
@@ -247,7 +247,7 @@ function loginResultOf(log: MyLoginLog): LoginAuditResult {
   return log.succeeded ? LOGIN_EVENT_RESULTS[log.event] : 'Failed'
 }
 
-/** `my-login-logs.list` → 4.x 个人中心「登录日志」的条目：结果由事件、成败与错误码推出，时间与 IP 换成 4.x 的字段名，失败原因进 message，没有的字段不给（6.0 不记登录地点） */
+/** `my-login-logs.list` → 个人中心「登录日志」的条目：结果由事件、成败与错误码推出，时间与 IP 换成壳层的字段名，失败原因进 message，没有的字段不给（后端不记登录地点） */
 function toShellLoginLog(log: MyLoginLog): LoginLogItem {
   return {
     loginTime: log.occurredAt,
@@ -267,7 +267,7 @@ function toShellLoginLog(log: MyLoginLog): LoginLogItem {
   }
 }
 
-/** `profile.notification-preference` / `update-notification-preference` → 4.x 个人中心「通知」的偏好：六个开关与 4.x 同名，逐项给（4.x 的推送、机器人、审批、营销 6.0 没有） */
+/** `profile.notification-preference` / `update-notification-preference` → 个人中心「通知」的偏好：六个开关与壳层同名，逐项给（壳层的推送、机器人、审批、营销后端没有） */
 function toShellNotificationPreference(preference: ResponseOf<'profile.notification-preference'>): NotificationPreference {
   return {
     channelInApp: preference.channelInApp,
@@ -290,7 +290,7 @@ function toShellActivityPeriod(counts: MyActivity['today']): UserActivityPeriod 
   }
 }
 
-/** `my-activity.summary` → 4.x 个人中心「统计」的活跃度：次数、在线时长与时间换成 4.x 的 *Count / onlineTime / *Time 字段名，没有的最近时间不给 */
+/** `my-activity.summary` → 个人中心「统计」的活跃度：次数、在线时长与时间换成壳层的 *Count / onlineTime / *Time 字段名，没有的最近时间不给 */
 function toShellActivity(activity: MyActivity): UserActivity {
   return {
     today: toShellActivityPeriod(activity.today),
@@ -314,7 +314,7 @@ function toShellActivity(activity: MyActivity): UserActivity {
   }
 }
 
-/** `my-api-credentials.*` → 4.x 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
+/** `my-api-credentials.*` → 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
 function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
   return {
     basicId: credential.id,
@@ -338,7 +338,7 @@ function toShellCallSettings(settings: ResponseOf<'my-api-credentials.settings'>
   }
 }
 
-/** `my-oauth-apps.*` → 4.x 个人中心「OAuth 应用」的条目：主键沿用 basicId，启停换成状态字面量，授权类型与范围用逗号、回调地址按行拼成 4.x 的字符串 */
+/** `my-oauth-apps.*` → 个人中心「OAuth 应用」的条目：主键沿用 basicId，启停换成状态字面量，授权类型与范围用逗号、回调地址按行拼成壳层的字符串 */
 function toShellOAuthApp(app: ResponseOf<'my-oauth-apps.get'>): MyOAuthAppItem {
   return {
     basicId: app.id,
@@ -378,7 +378,7 @@ function toShellOAuthConsent(consent: ResponseOf<'oauth-consents.list'>['items']
   }
 }
 
-/** 4.x 的回调地址是一段文本（换行或逗号分隔）：拆成 6.0 的地址列表，去掉空项 */
+/** 壳层的回调地址是一段文本（换行或逗号分隔）：拆成契约的地址列表，去掉空项 */
 function splitRedirectUris(value: string): string[] {
   return value.split(/[\n,]/).map(uri => uri.trim()).filter(Boolean)
 }
@@ -435,7 +435,7 @@ export function registerApplicationContext(router: Router): void {
       }, { anonymous: true })
       return { userName: registered.userName }
     },
-    // 找回密码（auth.request-password-reset / auth.reset-password，匿名）：4.x 发一次性链接，6.0 发验证码到邮箱；租户留空即平台
+    // 找回密码（auth.request-password-reset / auth.reset-password，匿名）：发验证码到邮箱；租户留空即平台
     requestPasswordResetApi: input => authOps.requestPasswordReset({
       channel: 'Email',
       target: input.email.trim(),
@@ -517,7 +517,7 @@ export function registerApplicationContext(router: Router): void {
       await profileOps.deleteAccount({ password })
     },
     // 第三方账号绑定（Identity 的 profile.external-logins / begin-external-bind / link-external / unlink-external，只要求已登录，模仿会话发起、确认与解绑被拒）：
-    // 发起先领本人的绑定意图（4.x 先换绑定票据），整页跳去它给的地址（auth store 的 startOAuthBind），回调页凭票据确认——票据只认发起的本人
+    // 发起先领本人的绑定意图，整页跳去它给的地址（auth store 的 startOAuthBind），回调页凭票据确认——票据只认发起的本人
     getLinkedAccountsApi: async () => (await profileOps.externalLogins({})).items.map(toShellExternalLogin),
     beginOAuthBindApi: async provider => (await profileOps.beginExternalBind({ provider })).url,
     linkAccountApi: async ticket => toShellExternalLogin(await profileOps.linkExternal({ ticket })),
@@ -527,7 +527,7 @@ export function registerApplicationContext(router: Router): void {
     getSessionsApi: async () => (await profileOps.sessions({})).items.map(toShellSession),
     revokeSessionApi: sessionId => profileOps.revokeSession({ sessionId }),
     revokeOtherSessionsApi: () => profileOps.revokeOtherSessions({}),
-    // 登录日志（Auditing 的 my-login-logs.list，只要求已登录、只看本人的认证事件，pageSize 1–50）：页码与条数照 4.x 回请求的那一页
+    // 登录日志（Auditing 的 my-login-logs.list，只要求已登录、只看本人的认证事件，pageSize 1–50）：按页码与条数回请求的那一页
     getLoginLogsApi: async (page, pageSize) => {
       const result = await myLoginLogOps.list({ page, pageSize })
       return {
@@ -547,7 +547,7 @@ export function registerApplicationContext(router: Router): void {
       typeTask: input.typeTask,
       typeSecurity: input.typeSecurity,
     })),
-    // 活跃度（Auditing 的 my-activity.summary，只要求已登录、只按本人）：按应用时区分天（与界面上的时间一致；4.x 按 UTC），本周从周一算
+    // 活跃度（Auditing 的 my-activity.summary，只要求已登录、只按本人）：按应用时区分天（与界面上的时间一致），本周从周一算
     getActivityApi: async () => toShellActivity(await myActivityOps.summary({
       timeZone: getDisplayTimeZone(),
     })),
@@ -568,7 +568,7 @@ export function registerApplicationContext(router: Router): void {
         origin: input.origin ?? null,
       })),
     },
-    // 收件箱（Notification 的 inbox.*，只看本人在当前一侧的）：壳层传的用户与租户参数是 4.x 的遗留，后端按令牌认人与侧
+    // 收件箱（Notification 的 inbox.*，只看本人在当前一侧的）：壳层传的用户与租户参数不用，后端按令牌认人与侧
     userInboxApi: {
       banner: async () => (await inboxOps.banners({})).items.map(toShellDisplayItem),
       confirm: id => inboxOps.confirm({ id }),
@@ -636,7 +636,7 @@ export function registerApplicationContext(router: Router): void {
     },
     getFileApi: async fileId => ({ originalName: (await fileOps.get({ id: fileId })).originalName }),
     timeZoneApi: { options: timeZoneOptions },
-    // 导入历史：import-histories.create / recent（只看自己的）；壳层沿用 4.x 的 basicId / createdTime 字段名
+    // 导入历史：import-histories.create / recent（只看自己的）；壳层用 basicId / createdTime 字段名
     importHistoryApi: {
       create: input => importHistoryOps.create({ ...input, resourceCode: input.resourceCode ?? null, errorSummary: input.errorSummary ?? null }),
       recent: async (pageCode, count) => (await importHistoryOps.recent({ pageCode, count: count ?? 5 })).items.map(item => ({
@@ -651,7 +651,7 @@ export function registerApplicationContext(router: Router): void {
         createdTime: item.createdAt,
       })),
     },
-    // 导出中心：export-tasks.submit，后台以发起人的身份逐页调页面声明的列表操作；壳层的范围与格式是 4.x 的数字，换成契约的名称
+    // 导出中心：export-tasks.submit，后台以发起人的身份逐页调页面声明的列表操作；壳层的范围与格式是数字，换成契约的名称
     exportTaskApi: {
       submit: input => exportTaskOps.submit({
         businessType: input.businessType,
@@ -752,7 +752,7 @@ export function registerApplicationContext(router: Router): void {
   registerAppContext({
     apis,
     getRouter: () => Promise.resolve(router),
-    // 个人中心与控制中心的视图都在 packages（4.x 原样搬入），路径由这里登记（顶栏的用户菜单与上下文按钮据此显示并跳转）
+    // 个人中心与控制中心的视图都在 packages，路径由这里登记（顶栏的用户菜单与上下文按钮据此显示并跳转）
     shellRoutes: { profile: '/profile', controlCenter: '/control-center', inbox: '/notification/inbox' },
   })
 }

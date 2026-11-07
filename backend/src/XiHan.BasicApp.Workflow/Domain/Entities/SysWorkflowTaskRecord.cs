@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 /// 审批记录（租户库实体）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>SysWorkflowTaskRecord</c>：办理、转办、加签各写一行（归办理人），抄送每个被抄送人一行；只追加不改
+/// 办理、转办、加签各写一行（归办理人），抄送每个被抄送人一行；只追加不改
 /// 「我已审批」「抄送我的」与审批轨迹都读它，引擎表里没有这些动作的历史。平台一侧的记录租户为 <c>platform</c>
 /// 任务、节点与实例的名字按写入时的快照存，定义改了、实例清理了也照常显示
 /// </remarks>

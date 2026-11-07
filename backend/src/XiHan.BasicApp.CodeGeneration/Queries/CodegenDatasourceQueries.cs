@@ -15,8 +15,8 @@ namespace XiHan.BasicApp.CodeGeneration.Queries;
 /// 数据源的列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配名称、描述、主机与库名（照 4.x 页面的搜索提示；4.x 后端只匹配名称与描述）；筛选：数据库类型、状态（<c>eq</c> / <c>in</c>，4.x 前端是多选）、是否缺省（<c>eq</c>）、名称（<c>contains</c>）；
-/// 排序：名称、数据库类型、主机、库名、连接结果、状态、排序号、创建时间，没给即排序号再名称升序（照 4.x）。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
+/// 关键字匹配名称、描述、主机与库名；筛选：数据库类型、状态（<c>eq</c> / <c>in</c>）、是否缺省（<c>eq</c>）、名称（<c>contains</c>）；
+/// 排序：名称、数据库类型、主机、库名、连接结果、状态、排序号、创建时间，没给即排序号再名称升序。别的筛选与排序是 <c>CODEGENERATION_VALIDATION_001</c>
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
 public sealed class CodegenDatasourceQueries(SqlSugarUnitOfWork unitOfWork)

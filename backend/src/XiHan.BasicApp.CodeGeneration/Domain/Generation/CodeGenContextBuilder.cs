@@ -18,9 +18,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 由表配置与列配置建出生成的上下文
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>BuildContextAsync</c>：树表、主从与关联的结构字段在这里解析成列模型，解析不出来即报错、不静默降级（否则模板渲染出引用了不存在属性的代码，要到编译时才暴露）
-/// 与 4.x 不同（6.0 的写法）：主键是 Guid，树表的父级列与关联列要 <c>Guid</c>（4.x 要 long）；状态切换要一列启停枚举（有 <c>Active</c> 与 <c>Disabled</c>，4.x 是全局的 <c>EnableStatus</c>），新建实体时属性名为 <c>Status</c>、没选枚举的整数列由生成器在实体里出 <c>&lt;类&gt;Status</c>；
-/// 包名、资源名、权限码与页面码由包的命名空间与类名推出；父菜单去掉（页面登记在包的 <c>Pages</c> 里）
+/// 树表、主从与关联的结构字段在这里解析成列模型，解析不出来即报错、不静默降级（否则模板渲染出引用了不存在属性的代码，要到编译时才暴露）
+/// 主键是 Guid，树表的父级列与关联列要 <c>Guid</c>；状态切换要一列启停枚举（有 <c>Active</c> 与 <c>Disabled</c>），新建实体时属性名为 <c>Status</c>、没选枚举的整数列由生成器在实体里出 <c>&lt;类&gt;Status</c>；
+/// 包名、资源名、权限码与页面码由包的命名空间与类名推出，页面登记在包的 <c>Pages</c> 里
 /// </remarks>
 /// <param name="tableService">表配置服务</param>
 /// <param name="tables">表配置仓储</param>
@@ -50,7 +50,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         var mappings = await entities.ListAsync(cancellationToken).ConfigureAwait(false);
         var columns = (await tableService.ColumnsOfAsync(table.Id, cancellationToken).ConfigureAwait(false)).Select(Model).ToList();
 
-        // 表由手写实体建出：沿用它，类名要一致（照 4.x）
+        // 表由手写实体建出：沿用它，类名要一致
         var existing = HandWrittenEntity(table, mappings);
         if (existing is not null && !string.Equals(existing.Name, table.ClassName, StringComparison.Ordinal))
         {
@@ -105,7 +105,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
             context.MasterTable = masterTable;
         }
 
-        // 以本表为主表的明细表：与本表自己的生成模式无关；外键没配好的跳过（主表照常生成，照 4.x）
+        // 以本表为主表的明细表：与本表自己的生成模式无关；外键没配好的跳过（主表照常生成）
         context.DetailTables = await DetailTablesAsync(table, cancellationToken).ConfigureAwait(false);
         context.ReferencedPackages = columns
             .Where(static c => c.IsBusiness)
@@ -134,7 +134,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
     /// 界面上的业务对象名
     /// </summary>
     /// <remarks>
-    /// 业务名，没有即表注释，再没有即类名（照 4.x）；都去掉句末标点（<see cref="CodeGenItems.PhraseOf"/>，导入时业务名取的就是表注释）
+    /// 业务名，没有即表注释，再没有即类名；都去掉句末标点（<see cref="CodeGenItems.PhraseOf"/>，导入时业务名取的就是表注释）
     /// </remarks>
     /// <param name="table">表配置</param>
     public static string DisplayNameOf(SysCodeGenTable table)
@@ -185,7 +185,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
             : word + "s";
     }
 
-    // 主库的表登记过实体、且不是生成器自己产出的（带 GeneratedCode 的照常重新生成，照 4.x）
+    // 主库的表登记过实体、且不是生成器自己产出的（带 GeneratedCode 的照常重新生成）
     private static Type? HandWrittenEntity(SysCodeGenTable table, IReadOnlyList<EntityMapping> mappings)
     {
         if (table.DataSourceId is not null)
@@ -229,7 +229,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
             IsBaseColumn = CodeGenInference.IsBaseColumn(column.ColumnName),
         };
 
-        // 照 4.x：C# 类型等于解析出的枚举短名才接上（旧配置还是 int 的不被动改，重新同步之后才变）
+        // C# 类型等于解析出的枚举短名才接上（旧配置还是 int 的不被动改，重新同步之后才变）
         if (model.DictSelectorType == CodeGenDictSelectorType.EnumSelector
             && enums.TryResolve(model.EnumTypeName, out var facts)
             && string.Equals(model.CSharpType.TrimEnd('?'), facts.ShortName, StringComparison.Ordinal))
@@ -240,8 +240,8 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         return model;
     }
 
-    // 系统字典按字典项编码存储，列要是文本、要有字典码（照 4.x）；选了枚举的要解析得到、C# 类型就是它
-    // （4.x 出一个禁用的占位选项再告警，6.0 生成前就拦下：没有告警的通道，占位选项要到页面上才看得出）
+    // 系统字典按字典项编码存储，列要是文本、要有字典码；选了枚举的要解析得到、C# 类型就是它
+    // 解析不到即在生成前拦下（占位选项要到页面上才看得出）
     private static Error? ValidateSelectors(IReadOnlyList<CodeGenColumnModel> columns)
     {
         var unresolved = columns.FirstOrDefault(static c => c.IsBusiness && c.DictSelectorType == CodeGenDictSelectorType.EnumSelector && c.Enum is null);
@@ -300,7 +300,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
                 parentProperty = parent.CSharpProperty;
             }
 
-            // 关联树的显示列缺省取目标树表的名称列（照 4.x）
+            // 关联树的显示列缺省取目标树表的名称列
             var labelName = CodeGenDataSourceService.Trimmed(column.RelationLabelColumn) ?? (isTree ? target.TreeNameColumn : null);
             var label = Find(targetColumns, labelName);
             if (label is null || label.CSharpType.TrimEnd('?') != "string")
@@ -333,7 +333,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         return null;
     }
 
-    // 二进制与布尔列做不了唯一校验（照 4.x）
+    // 二进制与布尔列做不了唯一校验
     private static Error? ValidateUnique(IReadOnlyList<CodeGenColumnModel> columns)
     {
         var column = columns.FirstOrDefault(static c => c.IsBusiness && c.IsUnique && (c.CSharpType.TrimEnd('?') is "bool" or "byte[]"));
@@ -371,7 +371,7 @@ public sealed partial class CodeGenContextBuilder(CodeGenTableService tableServi
         return null;
     }
 
-    // 树表：父级列要 Guid；名称列承载展开箭头、要进列表（照 4.x）
+    // 树表：父级列要 Guid；名称列承载展开箭头、要进列表
     private static Error? ResolveTree(SysCodeGenTable table, CodeGenContext context)
     {
         var parent = Find(context.Columns, table.TreeParentColumn);

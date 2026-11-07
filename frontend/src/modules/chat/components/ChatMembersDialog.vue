@@ -88,7 +88,7 @@ function roleTagType(role: ChatMemberRole): 'neutral' | 'info' | 'warning' {
   }
 }
 
-/** 用户操作的失败由界面提示（6.0 的请求层不弹统一提示） */
+/** 用户操作的失败由界面提示（请求层不弹统一提示） */
 function notifyFailure(error: unknown) {
   toast.danger(chatErrorText(error) || t('common.messages.operation_failed'))
 }
@@ -128,7 +128,7 @@ watch(show, (visible) => {
   }
 })
 
-/** 群头像上传：复用聊天附件链路（含秒传），存文件主键（照 4.x）；显示时凭会话换签名地址（ChatConversationAvatar） */
+/** 群头像上传：复用聊天附件链路（含秒传），存文件主键；显示时凭会话换签名地址（ChatConversationAvatar） */
 async function handleAvatarPicked(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]

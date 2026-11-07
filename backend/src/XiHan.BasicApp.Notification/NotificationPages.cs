@@ -52,7 +52,7 @@ public static class NotificationPages
     /// 我的消息页（本人的收件箱）
     /// </summary>
     /// <remarks>
-    /// 登录即可；4.x 同不设权限
+    /// 登录即可，不设权限
     /// </remarks>
     public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 480, directory: MenuDirectories.MessageCenter);
 

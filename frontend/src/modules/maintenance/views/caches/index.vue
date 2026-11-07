@@ -54,7 +54,7 @@ const cardContentStyle = {
   overflow: 'hidden',
 } as const
 
-// ── 命名空间与前缀（4.x 的键模式：6.0 只认前缀，先选命名空间、再按需补子前缀） ──
+// ── 命名空间与前缀（只认前缀，先选命名空间、再按需补子前缀） ──
 const namespaces = ref<CacheNamespace[]>([])
 const loadingNamespaces = ref(false)
 const namespacePrefix = ref<null | string>(null)
@@ -270,7 +270,7 @@ function cancelEdit() {
   editing.value = false
 }
 
-/** 保存：过期设置沿用原项，以返回的缓存项刷新详情（4.x 保存后重新取值） */
+/** 保存：过期设置沿用原项，以返回的缓存项刷新详情 */
 async function handleSave() {
   if (!detailKey.value || !draft.value) {
     return
@@ -298,7 +298,7 @@ function showToast(result: CacheToast) {
 
 /**
  * 删掉之后：列表里拿掉这些键（续页标记不动，已加载的后几页不丢），选中与详情里的一并清掉
- * 4.x 删完整表重查；6.0 按续页分页，重查会丢掉已加载的后几页
+ * 不整表重查：按续页分页，重查会丢掉已加载的后几页
  */
 function afterDelete(gone: readonly string[]) {
   const set = new Set(gone)
@@ -411,7 +411,7 @@ onMounted(async () => {
           </div>
         </XhCardHeader>
         <XhCardContent :style="cardContentStyle">
-          <!-- 命名空间独占一行（选项文本带包名与只读标记，并排会被截断）；下一行是 4.x 的输入 + 搜索，输入框前缀处写出所选命名空间 -->
+          <!-- 命名空间独占一行（选项文本带包名与只读标记，并排会被截断）；下一行是输入 + 搜索，输入框前缀处写出所选命名空间 -->
           <div class="cache-tree-toolbar">
             <XSelect
               class="cache-namespace-select"

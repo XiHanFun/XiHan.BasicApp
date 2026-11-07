@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Host;
 /// 反向代理转发头 <c>BasicApp:ForwardedHeaders</c>
 /// </summary>
 /// <remarks>
-/// 宿主在管道最前面还原 <c>X-Forwarded-For</c> / <c>-Proto</c> / <c>-Host</c>：访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址与地区条件拿到的是客户端地址，而不是代理的地址（照 4.x 的 <c>Api:ForwardedHeaders</c>）
+/// 宿主在管道最前面还原 <c>X-Forwarded-For</c> / <c>-Proto</c> / <c>-Host</c>：访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址与地区条件拿到的是客户端地址，而不是代理的地址
 /// 只信本机回环与这里列出的代理（<c>KnownProxies</c>，单个地址）和网段（<c>KnownNetworks</c>，CIDR 且主机位为 0）；<c>ForwardLimit</c> 是从右往左认几层转发，缺省 1。配置写错启动即报错
 /// </remarks>
 public sealed record ForwardedHeadersSettings

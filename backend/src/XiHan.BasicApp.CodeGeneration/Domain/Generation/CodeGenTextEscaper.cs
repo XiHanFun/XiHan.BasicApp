@@ -10,8 +10,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 模板的转义过滤器
 /// </summary>
 /// <remarks>
-/// 照 4.x：表注释、列注释是自由文本，直插产物会破坏宿主语法，模板按插值点所在的上下文选用（如 <c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>）
-/// 常量选项的形状不对时抛 <see cref="CodeGenRenderException"/>，按调用方区域出文案（4.x 是写死的中文）
+/// 表注释、列注释是自由文本，直插产物会破坏宿主语法，模板按插值点所在的上下文选用（如 <c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>）
+/// 常量选项的形状不对时抛 <see cref="CodeGenRenderException"/>，按调用方区域出文案
 /// </remarks>
 public static class CodeGenTextEscaper
 {
@@ -169,7 +169,7 @@ public static class CodeGenTextEscaper
     /// 常量选项 → JavaScript 数组字面量
     /// </summary>
     /// <remarks>
-    /// 照 4.x 在生成时拦下形状不对的选项（不是数组、不是 <c>{ label, value }</c>、重复键、空数组、值的类型与列不符），不产出编译不过的代码
+    /// 在生成时拦下形状不对的选项（不是数组、不是 <c>{ label, value }</c>、重复键、空数组、值的类型与列不符），不产出编译不过的代码
     /// </remarks>
     /// <param name="json">常量选项 JSON</param>
     /// <param name="columnLabel">列的显示名（报错用）</param>

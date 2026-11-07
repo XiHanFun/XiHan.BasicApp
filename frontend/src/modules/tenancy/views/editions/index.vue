@@ -34,7 +34,7 @@ function reload() {
 // SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
 const asRow = (row: object) => row as EditionRow
 
-/** 名称下带一行说明（与 4.x 相同）；渲染函数节点不带页面 scope，用全局工具类 */
+/** 名称下带一行说明；渲染函数节点不带页面 scope，用全局工具类 */
 function renderName(row: EditionRow) {
   return h('div', { class: 'flex min-w-0 flex-col' }, [
     h('span', { class: 'font-medium' }, row.name),
@@ -44,7 +44,7 @@ function renderName(row: EditionRow) {
   ])
 }
 
-/** 价格（4.x 同）：免费出标签，没标价为 -，其余带人民币符号与两位小数 */
+/** 价格：免费出标签，没标价为 -，其余带人民币符号与两位小数 */
 function renderPrice(row: EditionRow) {
   if (row.isFree)
     return renderTag(t('tenancy.editions.free'), 'success')
@@ -436,7 +436,7 @@ async function saveWhitelist() {
             {{ editor.fieldError('name') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <!-- 免费套餐不能标价（4.x 同）：打开免费即清空价格、价格框禁用 -->
+        <!-- 免费套餐不能标价：打开免费即清空价格、价格框禁用 -->
         <XhFieldRoot :invalid="!!editor.fieldError('price')">
           <XFieldLabel :help="editor.form.isFree ? t('tenancy.editions.price_free_hint') : undefined">
             {{ t('tenancy.editions.fields.price') }}
@@ -487,7 +487,7 @@ async function saveWhitelist() {
             <XhSwitch v-model:checked="editor.form.isDefault" name="isDefault" />
           </XhFieldControl>
         </XhFieldRoot>
-        <!-- 状态只在新建时选（4.x 同），之后走行操作的启用 / 停用 -->
+        <!-- 状态只在新建时选，之后走行操作的启用 / 停用 -->
         <XhFieldRoot v-if="!editor.isEdit.value" :invalid="!!editor.fieldError('status')">
           <XhFieldLabel>{{ t('tenancy.editions.fields.status') }}</XhFieldLabel>
           <XhFieldControl>

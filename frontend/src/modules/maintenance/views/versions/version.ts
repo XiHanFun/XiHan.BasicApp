@@ -31,7 +31,7 @@ export function upgradingLabel(t: Translate, upgrading: boolean): string {
     : t('maintenance.versions.normal')
 }
 
-/** 升级状态的语气（4.x 同）：升级中黄、正常绿 */
+/** 升级状态的语气：升级中黄、正常绿 */
 export function upgradingTone(upgrading: boolean): Tone {
   return upgrading ? 'warning' : 'success'
 }

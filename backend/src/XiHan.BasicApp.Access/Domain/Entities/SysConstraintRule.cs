@@ -73,9 +73,6 @@ public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
     /// <summary>
     /// 优先级（越大越先求值）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public int Priority { get; set; }
 
     /// <summary>
@@ -153,7 +150,7 @@ public sealed class SysConstraintRuleItem : AppRecord, IOwnedByTenant
 /// 约束类型
 /// </summary>
 /// <remarks>
-/// 4.x 的先决条件、时间、位置与自定义没有求值，6.0 不保留；时间与位置用条件类表达
+/// 时间与位置用条件类表达
 /// </remarks>
 public enum ConstraintType
 {
@@ -207,9 +204,6 @@ public enum ConstraintTargetType
 /// <summary>
 /// 违规处理方式
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum ConstraintViolationAction
 {
     /// <summary>
@@ -231,7 +225,7 @@ public enum ConstraintViolationAction
     /// 需要审批
     /// </summary>
     /// <remarks>
-    /// 审批流程未接入，按拒绝处理（4.x 同）
+    /// 审批流程未接入，按拒绝处理
     /// </remarks>
     RequireApproval = 3,
 }

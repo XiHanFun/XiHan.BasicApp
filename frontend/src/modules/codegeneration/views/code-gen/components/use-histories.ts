@@ -8,7 +8,7 @@ export type HistoryRow = ResponseOf<'codegen-histories.list'>['items'][number]
 export type HistoryDetail = ResponseOf<'codegen-histories.get'>
 
 /**
- * 生成历史的资源：分页（关键字匹配表名与批次号，结果多选，生成时间按区间；照 4.x 只看不改）
+ * 生成历史的资源：分页（关键字匹配表名与批次号，结果多选，生成时间按区间；只看不改）
  */
 export function historiesResource(): SchemaResource<HistoryRow> {
   return {
@@ -22,14 +22,14 @@ export function historiesResource(): SchemaResource<HistoryRow> {
   }
 }
 
-/** 耗时：满一秒按秒、两位小数，否则按毫秒（照 4.x） */
+/** 耗时：满一秒按秒、两位小数，否则按毫秒 */
 export function formatDuration(ms: number): string {
   return ms >= 1000
     ? `${(ms / 1000).toFixed(2)}s`
     : `${ms}ms`
 }
 
-/** 大小：按 B / KB / MB（照 4.x） */
+/** 大小：按 B / KB / MB */
 export function formatSize(bytes: number): string {
   if (bytes >= 1024 * 1024)
     return `${(bytes / 1024 / 1024).toFixed(2)} MB`

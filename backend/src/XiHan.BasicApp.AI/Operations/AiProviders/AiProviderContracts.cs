@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.AI.Operations.AiProviders;
 /// 提供商
 /// </summary>
 /// <remarks>
-/// API 密钥不回显，只说有没有（照 4.x 的 <c>HasApiKey</c>）
+/// API 密钥不回显，只说有没有
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="Code">编码</param>
@@ -93,7 +93,7 @@ public sealed record AiProviderTestResponse(bool Success, AiProviderProbe Chat, 
 /// 一次探测的结果
 /// </summary>
 /// <param name="Success">是否通</param>
-/// <param name="Message">成功时是聊天的结束原因，失败时是提供商给的原因（照 4.x）</param>
+/// <param name="Message">成功时是聊天的结束原因，失败时是提供商给的原因</param>
 /// <param name="ElapsedMilliseconds">耗时（毫秒）</param>
 /// <param name="Model">探测的模型</param>
 /// <param name="Dimensions">嵌入向量的维度；聊天探测为空</param>
@@ -109,7 +109,7 @@ public sealed record AiProviderIdRequest(Guid Id);
 /// <c>ai-providers.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// API 密钥加密存储；设为缺省时别的提供商取消缺省（照 4.x）。编码按框架 Provider 名的文法（方案 N4 D1），建后不可改
+/// API 密钥加密存储；设为缺省时别的提供商取消缺省。编码按框架 Provider 名的文法（方案 N4 D1），建后不可改
 /// </remarks>
 /// <param name="Code">编码（唯一）</param>
 /// <param name="Name">名称</param>
@@ -168,7 +168,7 @@ public sealed record CreateAiProviderRequest(
 /// <c>ai-providers.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 编码不可改；API 密钥留空即保留原密钥（照 4.x）；启停走 <c>set-status</c>。并发戳与当前的不同即冲突（框架仓储判定）
+/// 编码不可改；API 密钥留空即保留原密钥；启停走 <c>set-status</c>。并发戳与当前的不同即冲突（框架仓储判定）
 /// </remarks>
 /// <param name="Id">提供商 ID</param>
 /// <param name="ConcurrencyStamp">读到的并发戳</param>

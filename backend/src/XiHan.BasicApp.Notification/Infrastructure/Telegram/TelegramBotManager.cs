@@ -22,11 +22,11 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// Telegram 机器人的托管
 /// </summary>
 /// <remarks>
-/// 4.x TelegramBotManager 同一套。每个刷新周期在平台调用里读设置与启用的机器人，对照运行中的：新增的启动、配置变了的重启、
+/// 每个刷新周期在平台调用里读设置与启用的机器人，对照运行中的：新增的启动、配置变了的重启、
 /// 换了令牌的先删旧 Webhook、删除或停用的删 Webhook 后移除；Webhook 根地址、密钥或网络变了即全部重建。启动 = <c>getMe</c> 回填用户名，
 /// Webhook 模式 <c>setWebhook</c>（带密钥与订阅种类；没配密钥即不注册），长轮询模式先 <c>deleteWebhook</c> 再循环 <c>getUpdates</c>，再同步命令菜单
 /// 收到的 Update 交给 <see cref="TelegramDispatcher"/>，全部机器人共用一个并发上限
-/// 与 4.x 不同：总开关关掉时删各机器人的 Webhook（4.x 不删，Telegram 继续推送、Update 丢失）；Webhook 也声明订阅种类（4.x 只轮询声明）
+/// 总开关关掉时删各机器人的 Webhook（不删的话 Telegram 继续推送、Update 丢失）；Webhook 与长轮询都声明订阅种类
 /// </remarks>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="app">内核</param>
@@ -51,7 +51,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
     /// 循环刷新，直到停止
     /// </summary>
     /// <remarks>
-    /// 每个周期刷新一次；第一次加载失败且没有刷新周期时 30 秒后重试（4.x 同）
+    /// 每个周期刷新一次；第一次加载失败且没有刷新周期时 30 秒后重试
     /// </remarks>
     /// <param name="stopping">停止信号</param>
     /// <returns>循环</returns>
@@ -170,7 +170,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
     /// 把一条 Update 放到后台处理
     /// </summary>
     /// <remarks>
-    /// 没在运行即丢弃，4.x 同；占满并发上限时排队等
+    /// 没在运行即丢弃；占满并发上限时排队等
     /// </remarks>
     /// <param name="bot">机器人</param>
     /// <param name="update">Update</param>
@@ -269,7 +269,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
                     .ListAsync(EntityQuery.All<SysTelegramBot>().Where(new Specification<SysTelegramBot>(static b => b.IsEnabled)), invocation.CancellationToken).ConfigureAwait(false);
                 var secrets = invocation.Services.GetRequiredService<ISecretProtector>();
 
-                // 重名（不分大小写）只留第一个（4.x 同）
+                // 重名（不分大小写）只留第一个
                 bots = rows.OrderBy(static b => b.Order).ThenBy(static b => b.CreatedAt)
                     .Select(r => Normalize(r, secrets)).OfType<TelegramBot>()
                     .DistinctBy(static b => b.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -312,7 +312,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
         {
             if (string.IsNullOrEmpty(settings.SecretToken))
             {
-                // fail-closed：没配密钥不注册 Webhook（4.x 同）
+                // fail-closed：没配密钥不注册 Webhook
                 LogSecretMissing(logger, bot.Name);
             }
             else
@@ -383,7 +383,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
             {
                 if (result.ErrorCode == 409)
                 {
-                    // 别的实例在轮询或设了 Webhook：停掉本实例的轮询，下个周期当作已停止再启动（4.x 同）
+                    // 别的实例在轮询或设了 Webhook：停掉本实例的轮询，下个周期当作已停止再启动
                     LogPollingConflict(logger, bot.Name);
                     if (_running.TryGetValue(bot.Name, out var running))
                     {

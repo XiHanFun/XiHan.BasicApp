@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 前端模板用的列判据
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ScribanTemplateRenderer</c>：控件种类、表单取值五件套、数字框小数位、文本框字数上限、字段数据类型与导入取值收在这一处，几份前端模板共用，不各写一套
-/// 与 4.x 不同（6.0 的报文）：long 是数字（4.x 按字符串承载）；日期是 <c>DateTimeOffset</c>，回填按 ISO 解析、提交 <c>toISOString()</c>（4.x 发本地时间文本）；
+/// 控件种类、表单取值五件套、数字框小数位、文本框字数上限、字段数据类型与导入取值收在这一处，几份前端模板共用，不各写一套
+/// long 是数字；日期是 <c>DateTimeOffset</c>，回填按 ISO 解析、提交 <c>toISOString()</c>；
 /// 枚举是成员名字面量；树表的上级为空即根节点（可空列发 null，非空列发空 Guid）
 /// </remarks>
 internal static class CodeGenFrontendFacts
@@ -150,7 +150,7 @@ internal static class CodeGenFrontendFacts
     /// </summary>
     /// <remarks>
     /// 取值 binary / switch / date / datetime / time / image / file / treeselect / select / number / textarea / text
-    /// 照 4.x，判定次序即「类型优先于配置」：布尔只能是开关、日期只能是日期控件；数字与文本都能被下拉承载，故下拉排在这两者之前
+    /// 判定次序即「类型优先于配置」：布尔只能是开关、日期只能是日期控件；数字与文本都能被下拉承载，故下拉排在这两者之前
     /// </remarks>
     private static string ControlKindOf(CodeGenColumnModel column, string type, string tsType)
     {
@@ -200,7 +200,7 @@ internal static class CodeGenFrontendFacts
     /// 表单取值口径
     /// </summary>
     /// <remarks>
-    /// 照 4.x：报文的可空性跟请求类型走（即 C# 类型可不可空），「必填」只管表单校验，二者不混用
+    /// 报文的可空性跟请求类型走（即 C# 类型可不可空），「必填」只管表单校验，二者不混用
     /// 非空列留空时报文要有一个能落库的值：文本给空串、数字给 0、开关恒有值；下拉、日期、时间、二进制与 Guid 没有说得通的缺省值，非空时一律按必填校验
     /// 可空的文本类控件清空后是空串，按 null 发
     /// </remarks>

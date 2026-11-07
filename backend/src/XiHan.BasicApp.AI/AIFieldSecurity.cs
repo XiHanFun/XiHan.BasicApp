@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.AI;
 /// AI 模块的字段安全登记
 /// </summary>
 /// <remarks>
-/// 照 4.x（<c>AddAIFieldSecurityEntities</c>）：提供商、提示词、助手（新建、修改、启停）与知识文档（摄入，没有修改）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
+/// 提供商、提示词、助手（新建、修改、启停）与知识文档（摄入，没有修改）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
 /// </remarks>
 public static class AIFieldSecurity
 {

@@ -74,7 +74,7 @@ public sealed record AiAssistantIdRequest(Guid Id);
 /// <c>ai-assistants.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 编码唯一、不含空白，建后不可改（照 4.x）；引用的提示词与提供商须存在且启用，工具须在目录里
+/// 编码唯一、不含空白，建后不可改；引用的提示词与提供商须存在且启用，工具须在目录里
 /// </remarks>
 /// <param name="Code">编码（唯一）</param>
 /// <param name="Name">名称</param>

@@ -219,7 +219,7 @@ const providerLocked = computed(() => Boolean(form.id) && editingIsDefault.value
 const secretPlaceholder = computed(() => (form.id && editingHasSecret.value
   ? t('notification.bot_configs.form.secret_configured')
   : t('notification.bot_configs.form.secret_placeholder')))
-/** Webhook 的占位与提示随服务商（4.x 同）：只认官方 https 地址 */
+/** Webhook 的占位与提示随服务商：只认官方 https 地址 */
 const webhookPlaceholder = computed(() => {
   switch (form.provider) {
     case 'Lark': return t('notification.bot_configs.form.webhook_url_placeholder_lark')

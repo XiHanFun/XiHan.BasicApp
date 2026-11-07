@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// </summary>
 /// <remarks>
 /// <c>tenant-members.create</c>（平台侧）。租户须存在，用户须存在且注册地不是该租户；同一用户在同一租户只有一行
-/// 平台账号只能以运维支持加入、运维支持只能是平台账号（对应 4.x 的支持人员入驻）；到期须晚于生效
+/// 平台账号只能以运维支持加入、运维支持只能是平台账号；到期须晚于生效
 /// </remarks>
 /// <param name="members">成员仓储</param>
 /// <param name="users">用户仓储</param>

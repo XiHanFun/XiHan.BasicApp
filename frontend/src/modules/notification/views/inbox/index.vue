@@ -172,7 +172,7 @@ async function handleMarkAllRead() {
   }
 }
 
-/** 6.0 新增：从本人收件箱删除一条（通知本身不受影响） */
+/** 从本人收件箱删除一条（通知本身不受影响） */
 function handleDelete(item: InboxItem) {
   void confirmDanger({
     title: t('notification.inbox.delete'),

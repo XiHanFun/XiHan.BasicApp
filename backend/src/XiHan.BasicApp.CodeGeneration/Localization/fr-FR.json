@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "Les options constantes de la colonne « {column} » doivent être un tableau non vide d’objets avec un label texte et une value texte ou nombre : {value}",
   "codegeneration.generate.const_options_type_mismatch": "La colonne « {column} » est {type} mais ses valeurs d’options sont {valueType}.",
   "openapi.tags.codegen_templates.name": "Modèles de génération de code",
-  "openapi.tags.codegen_templates.description": "Modèles Scriban qui produisent un paquet 6.0 et un module frontend à partir des tables ; les intégrés suivent la version, on peut en ajouter.",
+  "openapi.tags.codegen_templates.description": "Modèles Scriban qui produisent un paquet backend et un module frontend à partir des tables ; les intégrés suivent la version, on peut en ajouter.",
   "permissions.codegeneration.codegen_templates.read.name": "Consulter les modèles de la génération de code",
   "permissions.codegeneration.codegen_templates.read.description": "Consulter les modèles et vérifier leur syntaxe.",
   "permissions.codegeneration.codegen_templates.create.name": "Créer des modèles de la génération de code",

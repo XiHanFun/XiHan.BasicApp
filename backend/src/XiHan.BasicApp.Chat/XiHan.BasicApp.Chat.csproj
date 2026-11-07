@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Chat</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 在线聊天模块（Tier 3，可选，BasicApp:Modules:Chat:Enabled）：单聊、群聊、部门群与助手会话（租户库），消息、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub（/hubs/chat）与提交后推送，附件以会话为访问范围，部门群随组织的部门归属事件同步，敏感词与保留清理作业，聊天审计。</Description>
+    <Description>XiHan.BasicApp 在线聊天模块（Tier 3，可选，BasicApp:Modules:Chat:Enabled）：单聊、群聊、部门群与助手会话（租户库），消息、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub（/hubs/chat）与提交后推送，附件以会话为访问范围，部门群随组织的部门归属事件同步，敏感词与保留清理作业，聊天审计。</Description>
   </PropertyGroup>
 
   <ItemGroup>

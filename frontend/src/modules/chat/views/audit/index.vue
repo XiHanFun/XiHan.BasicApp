@@ -25,7 +25,7 @@ defineOptions({ name: 'ChatAuditView' })
 const { t } = useI18n()
 const resource = chatAuditResource()
 
-// 4.x 只有消息列表；6.0 补上消息详情与会话成员（方案 H4）
+// 消息列表之外有消息详情与会话成员（方案 H4）
 const detail = useAuditLoader((id: string) => chatAudit.get({ id }))
 const members = useAuditLoader((conversationId: string) => chatAudit.members({ conversationId }))
 

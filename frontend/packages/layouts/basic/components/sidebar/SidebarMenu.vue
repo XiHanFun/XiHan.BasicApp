@@ -95,8 +95,7 @@ watch(
   --xh-side-nav-collapsed-w: 100%;
 
   /* 行的几何与各态配色走组件库的公开槽：悬停 / 按下 / 当前 / 展开路径的面由
-     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color
-     行高与配色对齐旧版侧栏 */
+     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color */
   --xh-side-nav-link-h: 38px;
   --xh-side-nav-link-px: 12px;
   --xh-side-nav-link-gap: 8px;

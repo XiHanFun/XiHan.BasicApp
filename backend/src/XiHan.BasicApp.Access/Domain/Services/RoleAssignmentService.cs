@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// <remarks>
 /// 「给角色指派成员」的规则（同侧、约束规则、权限变更日志、指派缓存失效）集中在这里：
 /// <c>roles.assign</c> 与审批通过后的授予（授权申请）都经它，规则只有一份
-/// 同侧指注册在这一侧的用户，或这个租户的外部成员（4.x 同）
+/// 同侧指注册在这一侧的用户，或这个租户的外部成员
 /// </remarks>
 /// <param name="service">角色域服务</param>
 /// <param name="users">这一侧的用户</param>

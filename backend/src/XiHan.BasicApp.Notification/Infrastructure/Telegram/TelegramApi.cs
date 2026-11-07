@@ -30,7 +30,7 @@ public interface ITelegramHttp
 /// <see cref="ITelegramHttp"/> 的缺省实现
 /// </summary>
 /// <remarks>
-/// 每套「代理 + 超时」一个长命客户端（不随请求释放，4.x 每个机器人实例一个）
+/// 每套「代理 + 超时」一个长命客户端（不随请求释放）
 /// 没配代理时连接过出站地址策略（接口地址可以改）。配了代理就连代理，策略管不到代理之后的地址，也不查代理本身：Telegram 机器人只有平台管理员能配
 /// </remarks>
 /// <param name="outbound">出站地址策略</param>
@@ -93,7 +93,7 @@ public sealed record TelegramApiResult(bool Ok, JsonElement Result, int? ErrorCo
     /// 是否值得重试
     /// </summary>
     /// <remarks>
-    /// 429、5xx 与网络错误（4.x 同）
+    /// 429、5xx 与网络错误
     /// </remarks>
     public bool Transient => !Ok && (ErrorCode is null or 429 or >= 500);
 

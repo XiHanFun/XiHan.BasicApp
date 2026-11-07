@@ -2,7 +2,7 @@
  * store.ts 的消息流维度行为
  *
  * 职责边界：历史分页与合并去重、乐观上屏与回执收敛、失败重发、撤回/编辑/表情回应/已读位回灌、
- * 搜索定位造成的「视口分离态」、语音已听本地记录、群已读人数计算（按会话内序号 seq，6.0 的主键是 GUID）
+ * 搜索定位造成的「视口分离态」、语音已听本地记录、群已读人数计算（按会话内序号 seq，主键是 GUID）
  * 会话列表相关在 chat-store-conversations，助手流在 chat-store-assistant
  */
 import type { ChatApiContract, ChatConversationListItem, ChatMessageItem } from './types'
@@ -81,7 +81,7 @@ function createApi(overrides: Partial<ChatApiContract> = {}): ChatApiContract {
   }) as ChatApiContract
 }
 
-/** 登录为指定用户：6.0 的 userInfo 是 auth 会话的投影，测试直接写会话（不落本地存储） */
+/** 登录为指定用户：userInfo 是 auth 会话的投影，测试直接写会话（不落本地存储） */
 function signIn(userId: string, displayName = userId) {
   useAuthStore().session = {
     accessToken: 'a-1',

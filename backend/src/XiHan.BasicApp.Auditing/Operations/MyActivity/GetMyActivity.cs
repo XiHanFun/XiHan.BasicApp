@@ -50,7 +50,7 @@ public sealed record ActivityDayResponse(DateOnly Date, int Operations, int Acce
 /// <param name="LastLoginAt">最后登录（近一年内）</param>
 /// <param name="LastAccessAt">最后访问（近一年内）</param>
 /// <param name="LastOperationAt">最后操作（近一年内）</param>
-/// <param name="Trend">近 371 天里有活动的日子（稀疏，按日期正序；4.x 同）</param>
+/// <param name="Trend">近 371 天里有活动的日子（稀疏，按日期正序）</param>
 public sealed record MyActivityResponse(
     ActivityCountsResponse Today,
     ActivityCountsResponse ThisWeek,
@@ -64,9 +64,8 @@ public sealed record MyActivityResponse(
 /// 本人的活跃度
 /// </summary>
 /// <remarks>
-/// <c>GET /api/my-activity:summary</c>（4.x <c>Profile/Activity</c>）。今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；
-/// 次数直接按原始日志算，在线时长按会话算（<see cref="OnlineTime"/>，4.x 同口径；4.x 的周期摘要来自定时任务写的统计快照）。只按本人、不分平台与租户一侧；已登录即可
-/// 与 4.x 不同：按请求的时区分天（4.x 按 UTC）
+/// <c>GET /api/my-activity:summary</c>。今天、本周、本月的登录 / 访问 / 操作次数，最近一次的时间，与近 371 天按天的操作与访问；
+/// 次数直接按原始日志算，在线时长按会话算（<see cref="OnlineTime"/>），按请求的时区分天。只按本人、不分平台与租户一侧；已登录即可
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
 /// <param name="clock">时钟</param>
@@ -82,9 +81,6 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
     /// <summary>
     /// 趋势覆盖的天数（含今天）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const int TrendDays = 371;
 
     /// <inheritdoc />
@@ -139,7 +135,7 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
                 .ToListAsync(ct).ConfigureAwait(false))
             .Select(static r => r.Timestamp).ToList();
 
-        // 在线时长：会话的起止与本人在每个会话里最后一次访问，切成逐日秒数（4.x 同口径）
+        // 在线时长：会话的起止与本人在每个会话里最后一次访问，切成逐日秒数
         var spans = !impersonating && sessions.FirstOrDefault() is { } history ? await history.ListAsync(userId, since, ct).ConfigureAwait(false) : [];
         var lastAccess = accessRows.Where(static e => e.SessionId.HasValue)
             .GroupBy(static e => e.SessionId!.Value)
@@ -152,7 +148,7 @@ public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider cl
         ActivityCountsResponse CountFrom(DateOnly first)
             => new(loginDays.Count(d => d >= first), accessDays.Count(d => d >= first), operationDays.Count(d => d >= first), onlineByDay.Where(p => p.Key >= first).Sum(static p => p.Value));
 
-        // 趋势里在线不满一分钟的天不单列（4.x 按分钟取整）
+        // 趋势里在线按分钟取整，不满一分钟的天不单列
         var accessByDay = accessDays.GroupBy(static d => d).ToDictionary(static g => g.Key, static g => g.Count());
         var operationByDay = operationDays.GroupBy(static d => d).ToDictionary(static g => g.Key, static g => g.Count());
         var trend = accessByDay.Keys.Union(operationByDay.Keys).Union(onlineByDay.Where(static p => p.Value >= 60).Select(static p => p.Key)).Order()

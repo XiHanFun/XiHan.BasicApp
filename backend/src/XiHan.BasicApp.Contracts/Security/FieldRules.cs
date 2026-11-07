@@ -119,7 +119,7 @@ public sealed class FieldRules
     /// 同一字段多条规则合并
     /// </summary>
     /// <remarks>
-    /// 沿用 4.x：读取方式取最严，部分脱敏的保留位数取各条最少，固定文本取第一条，任一只读即只读
+    /// 读取方式取最严，部分脱敏的保留位数取各条最少，固定文本取第一条，任一只读即只读
     /// </remarks>
     /// <param name="rules">命中的规则，按创建先后排好</param>
     public static FieldRules Merge(IEnumerable<FieldRule> rules)

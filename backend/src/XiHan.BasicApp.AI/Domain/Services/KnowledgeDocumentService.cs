@@ -20,8 +20,8 @@ namespace XiHan.BasicApp.AI.Domain.Services;
 /// 知识文档的索引与检索
 /// </summary>
 /// <remarks>
-/// 摄入与重建有网络 I/O（嵌入与向量库），照 4.x 不放在调用的事务里：行的写入各自在独立的工作单元提交，索引在两次写入之间做；
-/// 进程在途中中断即停在 <see cref="KnowledgeIndexStatus.Pending"/>，可以重建。回写失败时补偿删除刚写入的向量（照 4.x），库与向量库不留孤儿
+/// 摄入与重建有网络 I/O（嵌入与向量库），不放在调用的事务里：行的写入各自在独立的工作单元提交，索引在两次写入之间做；
+/// 进程在途中中断即停在 <see cref="KnowledgeIndexStatus.Pending"/>，可以重建。回写失败时补偿删除刚写入的向量，库与向量库不留孤儿
 /// 集合按侧分（平台 <c>knowledge.platform</c>，租户 <c>knowledge.&lt;租户 ID&gt;</c>），检索只在调用方一侧的集合里做：框架的元数据过滤在进程内完成，不能当隔离边界
 /// 提供商的编码为空即目录的缺省提供商（框架问目录要缺省名）
 /// </remarks>
@@ -67,7 +67,7 @@ public sealed partial class KnowledgeDocumentService(
     /// 保存一篇新文档并索引
     /// </summary>
     /// <remarks>
-    /// 先落一行 <see cref="KnowledgeIndexStatus.Pending"/>；索引失败照 4.x 以 <see cref="KnowledgeIndexStatus.Failed"/> 保存并成功返回，可以重建
+    /// 先落一行 <see cref="KnowledgeIndexStatus.Pending"/>；索引失败以 <see cref="KnowledgeIndexStatus.Failed"/> 保存并成功返回，可以重建
     /// </remarks>
     /// <param name="document">文档（已填 ID 与所在一侧）</param>
     /// <param name="context">调用上下文</param>

@@ -41,7 +41,7 @@ public sealed record ConditionBinding(GrantSubjectKind Kind, Guid SubjectId, str
 /// 权限条件的写入规则
 /// </summary>
 /// <remarks>
-/// 见方案 5.9，对应 4.x 的 PermissionConditionDomainService
+/// 见方案 5.9
 /// 只挂在这一侧确实存在的授权绑定上（授予看框架授予存储，拒绝看规则行）；
 /// 角色须启用且不是内置角色；每个绑定最多 5 组、每组最多 10 条；子句按条件引擎编译，编译不过返回引擎的错误（<c>SECURITY_VALIDATION_002</c>）
 /// 停用的子句不校验结构以外的规则，启用时重新校验
@@ -234,7 +234,7 @@ public sealed class PermissionConditionService(
             return compiled.Errors[0].Error;
         }
 
-        // 同一绑定的组数与每组条数（不含自己；停用的也占名额，4.x 同）
+        // 同一绑定的组数与每组条数（不含自己；停用的也占名额）
         var siblings = (await ListAsync(condition.OwnerTenantId, condition.SubjectKind, condition.SubjectId, cancellationToken).ConfigureAwait(false))
             .Where(c => c.Id != condition.Id && c.Action == condition.Action && string.Equals(c.Permission, condition.Permission, StringComparison.Ordinal))
             .ToList();

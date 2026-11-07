@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Realtime</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 实时能力包（Tier 2）：SignalR Hub 的登记与映射（通知 Hub 与各包登记的 Hub，绕过内核管道，经框架的认证方案 XiHan 认证）、连接登记与在线状态、按 Hub 与会话 / 用户 / 侧推送（调用成功提交之后才发出，另有事务之外的立即推送）；配了 Redis 时接 SignalR 背板、在线状态存共享缓存、断开连接经消息广播，跨实例生效。</Description>
+    <Description>XiHan.BasicApp 实时能力包（Tier 2）：SignalR Hub 的登记与映射（通知 Hub 与各包登记的 Hub，绕过内核管道，经框架的认证方案 XiHan 认证）、连接登记与在线状态、按 Hub 与会话 / 用户 / 侧推送（调用成功提交之后才发出，另有事务之外的立即推送）；配了 Redis 时接 SignalR 背板、在线状态存共享缓存、断开连接经消息广播，跨实例生效。</Description>
   </PropertyGroup>
 
   <ItemGroup>

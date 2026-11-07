@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 消息的表情回应（租户库实体）
 /// </summary>
 /// <remarks>
-/// 同一消息、同一用户、同一表情只有一条，再点即取消（物理删除）；存活期随所属消息，保留清理先删回应再删消息（照 4.x）
+/// 同一消息、同一用户、同一表情只有一条，再点即取消（物理删除）；存活期随所属消息，保留清理先删回应再删消息
 /// </remarks>
 [SugarIndex("ux_{table}_message_user_emoji", nameof(TenantId), OrderByType.Asc, nameof(MessageId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(Emoji), OrderByType.Asc, true)]
 [SugarIndex("ix_{table}_tenant_id_conversation_id", nameof(TenantId), OrderByType.Asc, nameof(ConversationId), OrderByType.Asc)]

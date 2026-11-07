@@ -9,8 +9,8 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 条件属性目录（权限条件与访问策略共用）
 /// </summary>
 /// <remarks>
-/// 见方案 5.9。4.x 的主体、资源、环境三族，名称不区分大小写，旧写法登记为别名
-/// 6.0 新增 <c>resource.operation</c>（操作 ID）替代 4.x 的 <c>resource.service</c> / <c>resource.action</c>；
+/// 见方案 5.9。主体、资源、环境三族，名称不区分大小写，旧写法登记为别名
+/// <c>resource.operation</c> 是操作 ID；
 /// 不登记路由值与查询串两族（调用来源不带它们）、开放接口的应用 ID（等 OpenPlatform）、成员类型（Access 不引用 Tenancy）、旧写法 <c>environment.location</c> 与数据行属性
 /// </remarks>
 public static class AccessConditionAttributes

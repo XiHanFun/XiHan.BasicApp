@@ -11,9 +11,9 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// OAuth 授权码：只存散列，用一次即作废
 /// </summary>
 /// <remarks>
-/// 平台库实体；4.x 写进租户库，库隔离的租户在匿名的令牌端点上查不到
+/// 平台库实体（放租户库的话，库隔离的租户在匿名的令牌端点上查不到）
 /// 作废经条件更新抢占，抢输的按重放处理
-/// PKCE 的 challenge 按 RFC 7636 最长 128 字符（4.x 截到 100，plain 的长 verifier 必然校验失败）
+/// PKCE 的 challenge 按 RFC 7636 最长 128 字符
 /// </remarks>
 [ActiveUniqueIndex(nameof(CodeHash))]
 [SugarIndex("ix_{table}_expires_at", nameof(ExpiresAt), OrderByType.Asc)]

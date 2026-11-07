@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 导出任务：把某个列表操作的查询结果导成 CSV 或 XLSX 文件
 /// </summary>
 /// <remarks>
-/// 租户库实体，平台一侧租户为 <c>platform</c>；4.x 同
+/// 租户库实体，平台一侧租户为 <c>platform</c>
 /// 按发起人的身份导出，结果存成临时文件
 /// </remarks>
 [SugarIndex("ix_{table}_tenant_id_requester_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(RequesterId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
@@ -114,9 +114,6 @@ public sealed class SysExportTask : TenantScopedAuditedEntity
 /// <summary>
 /// 导出范围
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum ExportScope
 {
     /// <summary>
@@ -138,9 +135,6 @@ public enum ExportScope
 /// <summary>
 /// 导出格式
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum ExportFormat
 {
     /// <summary>
@@ -158,7 +152,7 @@ public enum ExportFormat
 /// 导出任务状态
 /// </summary>
 /// <remarks>
-/// 4.x 同；取消记为失败并写明已取消
+/// 取消记为失败并写明已取消
 /// </remarks>
 public enum ExportTaskStatus
 {

@@ -1,11 +1,11 @@
 <Project>
   <!--
-    曦寒框架 5（XiHan.Framework next 工作区）的引用方式。
+    XiHan.Framework 的引用方式。
 
-    5.0 尚未发布到 nuget.org，缺省走 ProjectReference：同级检出 ../../XiHan.Framework/next/src 的源码，
+    缺省走 ProjectReference：同级检出 ../../XiHan.Framework/next/src 的源码，
     并锁定在 XiHanFrameworkCommit 指定的提交（Architecture.Tests 核对检出的 HEAD）。升级框架时改这一处并集中处理公开面变化。
 
-        dotnet build -p:UseXiHanFrameworkSource=false                     NuGet 包 5.0.0-preview.*（本地源 next/artifacts/packages 或将来的 nuget.org）
+        dotnet build -p:UseXiHanFrameworkSource=false                     NuGet 包（版本见 XiHanFrameworkPackageVersion）
         dotnet build -p:XiHanFrameworkSrc=<检出>/next/src/                  框架源码不在同级目录时显式指路
 
     工程文件里只写 <XiHanFrameworkReference Include="XiHan.Framework.Xxx" />，由 Directory.Build.targets 翻译成对应引用。

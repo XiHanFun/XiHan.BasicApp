@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// </summary>
 /// <remarks>
 /// 自助操作，只要求已认证。<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话
-/// 当前会话处于强制改密锁定时一并解开（门禁单独放行本操作），4.x 同
+/// 当前会话处于强制改密锁定时一并解开（门禁单独放行本操作）
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="sessions">会话仓储</param>

@@ -34,7 +34,7 @@ public sealed class MembershipService(
     /// 查找 <paramref name="tenantId"/> 这个租户的用户
     /// </summary>
     /// <remarks>
-    /// 注册在这个租户，或这个租户的外部成员（4.x 同）；别的租户或平台的用户视为不存在
+    /// 注册在这个租户，或这个租户的外部成员；别的租户或平台的用户视为不存在
     /// </remarks>
     public Task<Maybe<SysUser>> FindUserInTenantAsync(Guid userId, string tenantId, CancellationToken cancellationToken)
         => sideUsers.FindAsync(userId, tenantId, cancellationToken);

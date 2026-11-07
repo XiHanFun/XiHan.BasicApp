@@ -19,10 +19,10 @@ public sealed record CodeGenWriteResult(int Written, IReadOnlyList<string> Skipp
 /// 把产物写进项目
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ProjectArtifactWriter</c>：只在 Development 且打开 <c>BasicApp:CodeGeneration:EnableGenerateToProject</c> 时可用（方案 C1）；位置按配置的前后端根目录，不接受表配置给的任意路径；
+/// 只在 Development 且打开 <c>BasicApp:CodeGeneration:EnableGenerateToProject</c> 时可用（方案 C1）；位置按配置的前后端根目录，不接受表配置给的任意路径；
 /// 全部产物定好位置、都落在所属根目录之内才动磁盘，有一项不合即整体拒绝；每次覆盖的直接覆盖，只首次写的已存在即跳过；
 /// 只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写代码，整体拒绝（否则重复定义编译不过）
-/// 6.0 的产物路径相对前后端根目录（4.x 相对按命名空间找到的项目目录）；「加入已有包」要求包已在 <c>src/&lt;命名空间&gt;</c>；登记片段写在那一侧根目录的 <c>_registration/</c>
+/// 产物路径相对前后端根目录；「加入已有包」要求包已在 <c>src/&lt;命名空间&gt;</c>；登记片段写在那一侧根目录的 <c>_registration/</c>
 /// </remarks>
 /// <param name="options">代码生成的选项</param>
 /// <param name="environment">宿主环境</param>

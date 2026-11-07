@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Workflow.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 汇总各包经 Contracts 的 <c>AddWorkflowBusiness</c> 登记的处理器，按业务码（即流程定义名）索引；同一业务码登记两次即抛出，
-/// Workflow 在启动时构造一次（启动核对），照 4.x 的「同编码多个即抛错」但提前到装配阶段
+/// Workflow 在启动时构造一次（启动核对）
 /// </remarks>
 public sealed class WorkflowBusinessRegistry
 {
@@ -76,7 +76,7 @@ public sealed class WorkflowBusinessRegistry
 /// 发布前的业务校验
 /// </summary>
 /// <remarks>
-/// 照 4.x：关联了审批业务（定义名等于业务码）的定义，每个结束节点都要写结论、结论要在业务允许的范围里，且不许有终止节点
+/// 关联了审批业务（定义名等于业务码）的定义，每个结束节点都要写结论、结论要在业务允许的范围里，且不许有终止节点
 /// （业务的结论回写只在带结论的结束节点上发生，终止不回写）。先过这一步，再过框架的结构校验
 /// </remarks>
 public static class WorkflowDefinitionGuard

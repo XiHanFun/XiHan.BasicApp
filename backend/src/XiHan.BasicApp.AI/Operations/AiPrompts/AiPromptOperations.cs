@@ -153,7 +153,7 @@ public sealed class UpdateAiPrompt(IRepository<SysAiPrompt, Guid> prompts, AiPro
 /// 启用或停用提示词
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-prompts/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（照 4.x）
+/// <c>POST /api/ai-prompts/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注
 /// </remarks>
 /// <param name="prompts">提示词仓储</param>
 /// <param name="service">提示词规则</param>

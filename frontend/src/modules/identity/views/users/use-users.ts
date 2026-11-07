@@ -81,7 +81,7 @@ export const USER_QUERY: PageQueryMapping = {
 /**
  * SchemaPage 的资源：分页、删除（批量删除由 SchemaPage 逐行调用）与提交到导出中心
  * 导出中心的业务类型就是列表操作 ID，后台以发起人的身份逐页调 users.list：查询快照与列表用同一份分页请求
- * 启停照 4.x 走批量启用 / 停用（users.enable / users.disable，锁定另有解锁）；建用户可带初始密码、导入没有安全的映射，所以不提供 create
+ * 启停走批量启用 / 停用（users.enable / users.disable，锁定另有解锁）；建用户可带初始密码、导入没有安全的映射，所以不提供 create
  */
 export function usersResource(): SchemaResource<UserRow> {
   const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
@@ -213,7 +213,7 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
 /**
  * 用户页的编辑弹窗：新建（用户名、显示名、邮箱、手机号、个人资料与可选的初始密码）与编辑资料
  * 建在调用方当前所在的一侧（平台主体建平台账号，租户主体建本租户用户）。字段级错误挂回对应字段
- * 外部成员的账号由其注册地维护（4.x 同）：打开即全部只读，提交不发请求，也不读登录策略
+ * 外部成员的账号由其注册地维护：打开即全部只读，提交不发请求，也不读登录策略
  */
 export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
   const open = ref(false)

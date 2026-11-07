@@ -60,7 +60,6 @@ public sealed record ConstraintRuleDefinition(
 /// 约束规则的写入规则
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 ConstraintRuleDomainService
 /// 编码同一侧唯一、不含空白；目标类型须是约束类型用得了的
 /// （职责分离与条件只约束角色，互斥只约束权限码，基数约束角色或用户）；至少一个规则项，职责分离与互斥至少两个，目标不能重复，
 /// 且须是这一侧可用的（启用中的角色、目录里作用侧相符的权限码、这一侧的用户）；条件类的条件按条件引擎编译。写入后这一侧的规则缓存失效
@@ -171,7 +170,7 @@ public sealed class ConstraintRuleService(
     /// 启用或停用约束规则
     /// </summary>
     /// <remarks>
-    /// 启用时重新校验规则项（目标可能已停用或删除，4.x 同）
+    /// 启用时重新校验规则项（目标可能已停用或删除）
     /// </remarks>
     public async Task<Result> SetStatusAsync(SysConstraintRule rule, ConstraintRuleStatus status, CancellationToken cancellationToken)
     {

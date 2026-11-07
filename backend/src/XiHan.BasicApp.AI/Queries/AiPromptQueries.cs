@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.AI.Queries;
 /// 提示词的列表查询
 /// </summary>
 /// <remarks>
-/// 关键字匹配编码与名称（照 4.x）；筛选：状态（<c>eq</c> / <c>in</c>）、分类（<c>eq</c>）；
+/// 关键字匹配编码与名称；筛选：状态（<c>eq</c> / <c>in</c>）、分类（<c>eq</c>）；
 /// 排序：名称、编码、分类、状态、排序号、创建时间，没给即排序号再名称升序。别的筛选与排序是 <c>AI_VALIDATION_101</c>
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>

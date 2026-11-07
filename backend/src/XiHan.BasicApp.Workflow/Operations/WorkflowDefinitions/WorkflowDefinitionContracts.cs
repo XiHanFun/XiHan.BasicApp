@@ -229,7 +229,7 @@ public static class WorkflowDefinitionLimits
     /// 设计器能放的活动类型
     /// </summary>
     /// <remarks>
-    /// 照 4.x（W4、W5）：4.x 的 17 种去掉 Script（框架 5 没有、不回灌）；框架 5 新增的事件网关、补偿与外部任务不放
+    /// 不含事件网关、补偿与外部任务（W4、W5）
     /// </remarks>
     public static IReadOnlySet<string> ActivityTypes { get; } = new HashSet<string>(StringComparer.Ordinal)
     {

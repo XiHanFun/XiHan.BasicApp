@@ -24,7 +24,7 @@ const { visible: detailVisible, loading: detailLoading, record: detailRecord, op
 
 const asRow = (row: object) => row as OperationLogRow
 
-// 操作日志是框架的操作审计：只记标了审计的业务操作（读操作在访问日志里）；描述是操作的本地化标题，客户端地址、浏览器与系统、归属地在写入时记下（4.x 同）
+// 操作日志是框架的操作审计：只记标了审计的业务操作（读操作在访问日志里）；描述是操作的本地化标题，客户端地址、浏览器与系统、归属地在写入时记下
 const fields = computed<ListFieldSchema[]>(() => [
   {
     key: 'keyword',

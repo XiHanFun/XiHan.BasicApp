@@ -69,7 +69,7 @@ public sealed class GetAiProvider(AiProviderService service) : IOperation<AiProv
 /// 新建提供商
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-providers</c>。编码已被占用 <c>AI_CONFLICT_101</c>（并发重复由部分唯一索引兜住）；API 密钥加密存储；设为缺省时别的提供商取消缺省（照 4.x）
+/// <c>POST /api/ai-providers</c>。编码已被占用 <c>AI_CONFLICT_101</c>（并发重复由部分唯一索引兜住）；API 密钥加密存储；设为缺省时别的提供商取消缺省
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
 /// <param name="service">提供商规则</param>
@@ -135,8 +135,8 @@ public sealed class CreateAiProvider(IRepository<SysAiProvider, Guid> providers,
 /// 修改提供商
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/ai-providers/{id}</c>。编码不可改；API 密钥留空即保留（照 4.x）；交回的并发戳与当前的不同即冲突
-/// 设为缺省时别的提供商取消缺省（照 4.x）。提交之后重载 Provider 目录，新的调用即用新配置
+/// <c>PUT /api/ai-providers/{id}</c>。编码不可改；API 密钥留空即保留；交回的并发戳与当前的不同即冲突
+/// 设为缺省时别的提供商取消缺省。提交之后重载 Provider 目录，新的调用即用新配置
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
 /// <param name="service">提供商规则</param>
@@ -203,7 +203,7 @@ public sealed class UpdateAiProvider(IRepository<SysAiProvider, Guid> providers,
 /// 启用或停用提供商
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-providers/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注（照 4.x）
+/// <c>POST /api/ai-providers/{id}:set-status</c>。交回的并发戳与当前的不同即冲突；给了备注即替换备注
 /// 停用的提供商不进 Provider 目录，用到它的调用即 <c>AI_NOTFOUND_001</c>
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
@@ -245,7 +245,7 @@ public sealed class SetAiProviderStatus(IRepository<SysAiProvider, Guid> provide
 /// 设为缺省提供商
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-providers/{id}:set-default</c>。停用的不能设 <c>AI_CONFLICT_102</c>；别的提供商取消缺省（照 4.x）
+/// <c>POST /api/ai-providers/{id}:set-default</c>。停用的不能设 <c>AI_CONFLICT_102</c>；别的提供商取消缺省
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
 /// <param name="service">提供商规则</param>
@@ -361,7 +361,7 @@ public sealed class DeleteAiProviders(IRepository<SysAiProvider, Guid> providers
 /// 测试提供商的连接
 /// </summary>
 /// <remarks>
-/// <c>POST /api/ai-providers/{id}:test</c>。照 4.x：按当前配置临时建一次客户端（停用的也能测，用完即释放），聊天发一句 <c>ping</c>（最大输出 16 个令牌），
+/// <c>POST /api/ai-providers/{id}:test</c>。按当前配置临时建一次客户端（停用的也能测，用完即释放），聊天发一句 <c>ping</c>（最大输出 16 个令牌），
 /// 配了嵌入模型再嵌入一次并回报维度；不通不是失败的调用，结果里给提供商的原因。超时取提供商的设置，不落库
 /// API 密钥解不开即 <c>AI_UNAVAILABLE_101</c>
 /// </remarks>
@@ -380,17 +380,11 @@ public sealed class TestAiProvider(AiProviderService service, IEnumerable<IChatC
     /// <summary>
     /// 聊天探测的最大输出令牌数
     /// </summary>
-    /// <remarks>
-    /// 照 4.x
-    /// </remarks>
     private const int ProbeOutputTokens = 16;
 
     /// <summary>
     /// 探测发的文本
     /// </summary>
-    /// <remarks>
-    /// 照 4.x
-    /// </remarks>
     private const string ProbeText = "ping";
 
     /// <inheritdoc />

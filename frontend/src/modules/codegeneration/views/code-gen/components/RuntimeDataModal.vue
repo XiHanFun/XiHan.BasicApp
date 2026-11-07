@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 运行时数据（照 4.x runtime-data-modal）：按表配置只读查看表里的数据，不生成代码
+  代码生成 / 运行时数据：按表配置只读查看表里的数据，不生成代码
   接口取自后端契约（codegen-runtime.get-schema / list）：列取列配置，数据行的键是列配置的属性名
-  与 4.x 不同：按表配置的数据源读（4.x 一律查主库）；行键按页内序号给（4.x 落到缺省的 basicId，行里没有这一列）
+  按表配置的数据源读；行键按页内序号给（行里没有 basicId 这一列）
 -->
 <script setup lang="ts">
 import type { XDataTableColumn } from '~/components'

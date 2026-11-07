@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Workbench</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 工作台模块（Tier 3，可选，BasicApp:Modules:Workbench:Enabled）：登记工作台页面（登录后的落点），汇总各包经 IWorkbenchWidgetProvider 登记的小组件并按权限取数（workbench.*）；看板布局照 4.x 存在 Identity 的用户设置里，不建表。</Description>
+    <Description>XiHan.BasicApp 工作台模块（Tier 3，可选，BasicApp:Modules:Workbench:Enabled）：登记工作台页面（登录后的落点），汇总各包经 IWorkbenchWidgetProvider 登记的小组件并按权限取数（workbench.*）；看板布局存在 Identity 的用户设置里，不建表。</Description>
   </PropertyGroup>
 
   <ItemGroup>

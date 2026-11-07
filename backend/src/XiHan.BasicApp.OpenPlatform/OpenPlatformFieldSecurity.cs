@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.OpenPlatform;
 /// 开放平台包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同：OAuth 应用（管理面，本人的「我的应用」不套用）。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用
+/// OAuth 应用（管理面，本人的「我的应用」不套用）。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用
 /// </remarks>
 public static class OpenPlatformFieldSecurity
 {

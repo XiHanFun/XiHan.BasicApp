@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.AI.Operations.KnowledgeDocuments;
 /// 知识文档的列表项
 /// </summary>
 /// <remarks>
-/// 不带原文（照 4.x 的列表项）
+/// 不带原文
 /// </remarks>
 /// <param name="Id">主键</param>
 /// <param name="Title">标题</param>
@@ -107,7 +107,7 @@ public sealed record KnowledgeDocumentIdRequest(Guid Id);
 /// <c>knowledge-documents.ingest</c> 的请求
 /// </summary>
 /// <remarks>
-/// 只收文本（方案 A5，照 4.x）：文件由前端读成文本提交，请求内同步摄入
+/// 只收文本（方案 A5）：文件由前端读成文本提交，请求内同步摄入
 /// </remarks>
 /// <param name="Title">标题</param>
 /// <param name="Text">文本</param>

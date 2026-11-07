@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的模板
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧。内置模板由种子每次启动对齐正文与路径、不能修改与删除，启停归运营（照 4.x）；自定义模板随意维护
-/// 4.x 的 <c>IsEnabled</c> 与 <c>Status</c> 合成一个启停（方案 C2）。编码唯一，软删除后可以重建
+/// 平台库实体、只在平台一侧。内置模板由种子每次启动对齐正文与路径、不能修改与删除，启停归运营；自定义模板随意维护
+/// 编码唯一，软删除后可以重建
 /// </remarks>
 [ActiveUniqueIndex(nameof(TemplateCode))]
 [SugarIndex("ix_{table}_template_group", nameof(TemplateGroup), OrderByType.Asc)]
@@ -117,7 +117,7 @@ public sealed class SysCodeGenTemplate : AppAuditedEntity
 /// 模板引擎
 /// </summary>
 /// <remarks>
-/// 4.x 另有 T4，选了即抛不支持，6.0 去掉（方案 C2），字段保留给以后扩展
+/// 目前只有 Scriban，字段保留给以后扩展
 /// </remarks>
 public enum CodeGenTemplateEngine
 {
@@ -131,7 +131,7 @@ public enum CodeGenTemplateEngine
 /// 产物的写入方式
 /// </summary>
 /// <remarks>
-/// 自动文件由表结构推导、重新生成时覆盖；手写文件只在第一次生成时创建，此后不再碰（照 4.x「重新生成不覆盖手改」）
+/// 自动文件由表结构推导、重新生成时覆盖；手写文件只在第一次生成时创建，此后不再碰
 /// </remarks>
 public enum CodeGenWriteMode
 {

@@ -75,9 +75,8 @@ public sealed record PasswordResetResponse(string UserName);
 /// </summary>
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:register</c>。要在配置里打开（<c>BasicApp:Auth:SelfRegistrationEnabled</c>，缺省关），否则 <see cref="IdentityErrors.RegistrationClosed"/>；
-/// 开了图形验证码时与密码登录一样要先过验证码。注册的是平台账号、立即可用、不带任何角色（4.x 同，权限由管理员之后授予），要进租户由租户加为成员
+/// 开了图形验证码时与密码登录一样要先过验证码。注册的是平台账号、立即可用、不带任何角色（权限由管理员之后授予），要进租户由租户加为成员
 /// 登录名在平台一侧唯一，邮箱不能与平台一侧的正常账号重复（找回密码按它找人）。配好邮件且有 <c>auth-welcome</c> 模板时随工作单元入发件箱一封欢迎邮件，没有就不发、不影响注册
-/// 与 4.x 不同：4.x 没有开关、总是开放，并且注册进固定的缺省租户
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
@@ -163,7 +162,7 @@ public sealed class Register(
             return set.Error!;
         }
 
-        // 欢迎邮件（4.x 同）：发不了就不发，注册照常
+        // 欢迎邮件：发不了就不发，注册照常
         if (senders.FirstOrDefault() is { } sender && await sender.CanSendAsync(context, MessageKind.Email, MessageTemplateCodes.Welcome).ConfigureAwait(false))
         {
             var queued = await sender.EnqueueAsync(context, new OutgoingMessage(MessageKind.Email, address, MessageTemplateCodes.Welcome, [new("user_name", user.DisplayName)], user.Id, WelcomeBusinessType, null)).ConfigureAwait(false);
@@ -183,7 +182,7 @@ public sealed class Register(
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:request-password-reset</c>。租户须存在、启用且没到期；
 /// 账号在租户里按邮箱（不分大小写）或已验证的手机号找，恰好一个正常的才真发，否则照样回答「已发送」、签发并计入限频，只是不发（与验证码登录同一套，不让人探测账号）
-/// 与 4.x 不同：4.x 只按邮箱发一次性链接，6.0 发验证码（邮箱或手机，限频与输错作废同验证码登录），不依赖前端地址配置；用的是验证类模板，标题「重置密码」
+/// 发验证码（邮箱或手机，限频与输错作废同验证码登录），不发链接、不依赖前端地址配置；用的是验证类模板，标题「重置密码」
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
 /// <param name="contacts">发码</param>
@@ -229,7 +228,7 @@ public sealed class RequestPasswordReset(UserAccountService accounts, ContactCod
 /// </summary>
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:reset-password</c>。码对、发码之后联系方式没变、账号正常才认，码输错 5 次作废并锁定；
-/// 新密码先按密码策略校验（不合格不消费验证码），设的时候再核对历史；设好后清掉登录失败锁定、不要求再改，并吊销这个账号的全部会话（4.x 只换安全戳）。停用的账号 <see cref="IdentityErrors.AccountDisabled"/>，被锁定的账号 <see cref="IdentityErrors.AccountUnavailable"/>
+/// 新密码先按密码策略校验（不合格不消费验证码），设的时候再核对历史；设好后清掉登录失败锁定、不要求再改，并吊销这个账号的全部会话。停用的账号 <see cref="IdentityErrors.AccountDisabled"/>，被锁定的账号 <see cref="IdentityErrors.AccountUnavailable"/>
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>

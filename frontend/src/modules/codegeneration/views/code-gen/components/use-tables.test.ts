@@ -3,7 +3,7 @@ import { configureRequest } from '~/request'
 import { actionsConflict, enumKey, parseEnabledActions, serializeEnabledActions, tablesResource } from './use-tables'
 
 describe('包含操作', () => {
-  it('空即缺省集合，恰为缺省集合时提交空（照 4.x）', () => {
+  it('空即缺省集合，恰为缺省集合时提交空', () => {
     expect(parseEnabledActions(null)).toEqual([
       'create',
       'update',

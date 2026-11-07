@@ -11,16 +11,13 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// 命令名的规整与常驻命令
 /// </summary>
 /// <remarks>
-/// 4.x TelegramCommandGuards 同。规整：去掉 <c>@机器人名</c>、补斜杠、转小写
+/// 规整：去掉 <c>@机器人名</c>、补斜杠、转小写
 /// </remarks>
 public static class TelegramCommands
 {
     /// <summary>
     /// 不受群组白名单限制的常驻命令
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public static IReadOnlySet<string> AlwaysAvailable { get; } = new HashSet<string>(["/start", "/myid", "/id", "/help", "/h"], StringComparer.Ordinal);
 
     /// <summary>
@@ -99,7 +96,7 @@ public sealed record TelegramCommandRoute(TelegramCommand Command, ITelegramComm
     /// 主命令或任一别名在白名单里
     /// </summary>
     /// <remarks>
-    /// 白名单为空即放行，4.x 同
+    /// 白名单为空即放行
     /// </remarks>
     /// <param name="allowed">白名单（规整后）</param>
     /// <returns>是否放行</returns>
@@ -114,7 +111,7 @@ public sealed record TelegramCommandRoute(TelegramCommand Command, ITelegramComm
 /// 一次处理用的处理器目录
 /// </summary>
 /// <remarks>
-/// 从作用域里的处理器建，登记有误即抛出：命令或别名重复、action 重复、正则写错，4.x 同在构建时报错
+/// 从作用域里的处理器建，登记有误即抛出：命令或别名重复、action 重复、正则写错
 /// </remarks>
 public sealed class TelegramCatalog
 {
@@ -146,7 +143,7 @@ public sealed class TelegramCatalog
         var seen = new HashSet<Type>();
         foreach (var handler in commands)
         {
-            // 同一个处理器登记两次只算一次（4.x 同）
+            // 同一个处理器登记两次只算一次
             if (!seen.Add(handler.GetType()))
             {
                 continue;
@@ -263,7 +260,7 @@ public sealed class TelegramCatalog
     /// <c>/help</c> 的列表
     /// </summary>
     /// <remarks>
-    /// 按命令白名单过滤、非管理员不列只给管理员的、按登记顺序、不列别名（4.x 同）
+    /// 按命令白名单过滤、非管理员不列只给管理员的、按登记顺序、不列别名
     /// </remarks>
     /// <param name="bot">机器人</param>
     /// <param name="isAdmin">是否管理员</param>
@@ -281,10 +278,10 @@ public sealed class TelegramCatalog
     /// 命令菜单（<c>setMyCommands</c>）
     /// </summary>
     /// <remarks>
-    /// 不含只给管理员的、按白名单过滤；命令名去掉斜杠，说明为空用命令名、不足 3 个字补成「说明 / 命令」（4.x 同）
+    /// 不含只给管理员的、按白名单过滤；命令名去掉斜杠，说明为空用命令名、不足 3 个字补成「说明 / 命令」
     /// </remarks>
     /// <param name="bot">机器人</param>
-    /// <param name="preferAlias">群组菜单用第一个别名（4.x 同）</param>
+    /// <param name="preferAlias">群组菜单用第一个别名</param>
     /// <returns>菜单</returns>
     public JsonArray Menu(TelegramBot bot, bool preferAlias)
     {
@@ -311,7 +308,7 @@ public sealed class TelegramCatalog
 /// 内置 <c>/start</c>：欢迎语
 /// </summary>
 /// <remarks>
-/// 没有用户名用机器人名称，忽略深链参数，4.x 同
+/// 没有用户名用机器人名称，忽略深链参数
 /// </remarks>
 /// <param name="options">选项</param>
 public sealed class StartCommandHandler(TelegramOptions options) : ITelegramCommandHandler
@@ -332,7 +329,7 @@ public sealed class StartCommandHandler(TelegramOptions options) : ITelegramComm
 /// 内置 <c>/help</c>（别名 <c>/h</c>）
 /// </summary>
 /// <remarks>
-/// 「可用命令：」加每行一条；列表为空即不发（4.x 同）
+/// 「可用命令：」加每行一条；列表为空即不发
 /// </remarks>
 /// <param name="options">选项</param>
 public sealed class HelpCommandHandler(TelegramOptions options) : ITelegramCommandHandler
@@ -358,7 +355,7 @@ public sealed class HelpCommandHandler(TelegramOptions options) : ITelegramComma
 /// 内置 <c>/myid</c>（别名 <c>/id</c>）：会话与用户 ID
 /// </summary>
 /// <remarks>
-/// 不带千分位，4.x 同
+/// 不带千分位
 /// </remarks>
 /// <param name="options">选项</param>
 public sealed class MyIdCommandHandler(TelegramOptions options) : ITelegramCommandHandler

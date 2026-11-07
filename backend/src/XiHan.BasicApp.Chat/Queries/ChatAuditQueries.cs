@@ -16,10 +16,10 @@ namespace XiHan.BasicApp.Chat.Queries;
 /// 聊天审计的查询（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>ChatAuditQueryService</c>：持有审计权限即看当前一侧全部会话的消息，不要求是成员。关键字匹配正文、发送人名与附件；
+/// 持有审计权限即看当前一侧全部会话的消息，不要求是成员。关键字匹配正文、发送人名与附件；
 /// 筛选 <c>conversationId</c>、<c>senderUserId</c>（<c>eq</c>）、<c>messageType</c>（<c>eq</c> / <c>in</c>）、<c>createdAt</c>（<c>ge</c> / <c>le</c>）、<c>isRecalled</c>（<c>eq</c>）；
-/// 没给 <c>isRecalled</c> 时缺省不含已撤回的（4.x 的「是否含撤回」缺省不含），给 <c>includeRecalled</c> 为 <c>true</c> 即都看
-/// 排序 <c>createdAt</c>、<c>messageType</c>，缺省按发送时间倒序。另补 4.x 没有的消息详情与会话成员（方案 H4）
+/// 没给 <c>isRecalled</c> 时缺省不含已撤回的，给 <c>includeRecalled</c> 为 <c>true</c> 即都看
+/// 排序 <c>createdAt</c>、<c>messageType</c>，缺省按发送时间倒序。另有消息详情与会话成员（方案 H4）
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
 /// <param name="chats">聊天的查询（成员条目）</param>

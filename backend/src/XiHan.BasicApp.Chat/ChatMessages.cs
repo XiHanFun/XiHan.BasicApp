@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Chat;
 /// </summary>
 /// <remarks>
 /// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（资源段与动词的 <c>-</c> 换成 <c>_</c>）
-/// 系统提示与会话预览按发起调用的区域写进库里（4.x 写死中文）
+/// 系统提示与会话预览按发起调用的区域写进库里
 /// </remarks>
 public static class ChatMessages
 {

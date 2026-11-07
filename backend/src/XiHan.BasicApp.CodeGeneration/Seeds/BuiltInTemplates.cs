@@ -23,10 +23,10 @@ public sealed record BuiltInTemplate(string Code, string Name, string Group, str
 /// 内置模板的目录
 /// </summary>
 /// <remarks>
-/// 用户已定的写入方式（照 4.x 成对）：每次覆盖的是实体的生成部分、请求与响应和映射、查询白名单；只首次写的是实体的手写部分、各个操作与查询的手写部分
+/// 用户已定的写入方式：每次覆盖的是实体的生成部分、请求与响应和映射、查询白名单；只首次写的是实体的手写部分、各个操作与查询的手写部分
 /// 分组 <c>backend-crud</c> / <c>frontend-crud</c> 两种目标都出，<c>backend-package</c> / <c>frontend-package</c> 只在新建包时出（包级文件只首次）
 /// 路径相对那一侧的根目录（<c>backend</c> 或 <c>frontend</c>）；按勾选的操作一份模板一个文件，没勾的渲染为空、不产出
-/// 前端照 4.x 按生成模式分单表、主从与树表三组（单表与主从共用一份模板），页面与 schema 的手写部分只首次、schema 的生成部分每次覆盖
+/// 前端按生成模式分单表、主从与树表三组（单表与主从共用一份模板），页面与 schema 的手写部分只首次、schema 的生成部分每次覆盖
 /// </remarks>
 public static class BuiltInTemplates
 {

@@ -64,7 +64,7 @@ public sealed class UserManagementDetailTests : IDisposable
         var (tooLong, _) = await SendAsync(server, HttpMethod.Put, $"/api/users/{id}", JsonSerializer.Serialize(new { displayName = "Erin", country = new string('x', 51) }), tenant);
         Assert.Equal(HttpStatusCode.BadRequest, tooLong);
 
-        // 备注与本人的个人简介是同一列（4.x 同）
+        // 备注与本人的个人简介是同一列
         var own = (await AuthFlowTests.LoginAsync(server, "erin", Password, "contoso")).GetProperty("accessToken").GetString()!;
         var (_, profile) = await SendAsync(server, HttpMethod.Get, "/api/profile", null, own);
         Assert.Equal("换了部门", profile.GetProperty("user").GetProperty("remark").GetString());
@@ -267,7 +267,7 @@ public sealed class UserManagementDetailTests : IDisposable
         var (denied, _) = await SendAsync(server, HttpMethod.Get, $"/api/users/{erinId}:detail", null, bare);
         Assert.Equal(HttpStatusCode.Forbidden, denied);
 
-        // 只有读用户的权限就够（4.x 同）；字段安全同样套到详情的资料上
+        // 只有读用户的权限就够；字段安全同样套到详情的资料上
         var (_, role) = await SendAsync(server, HttpMethod.Post, "/api/roles", """{"code":"reader","name":"Reader","dataScope":"All"}""", tenant);
         var roleId = role.GetProperty("id").GetString()!;
         await SendAsync(server, HttpMethod.Post, $"/api/roles/{roleId}:grant", """{"permissions":["identity.users.read"]}""", tenant);

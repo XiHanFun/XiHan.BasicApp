@@ -13,9 +13,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Generation;
 /// 模板的渲染（Scriban）
 /// </summary>
 /// <remarks>
-/// 照 4.x：变量以 PascalCase 原名注入（关掉 Scriban 缺省的 snake_case 改名），模板写 <c>{{ ClassName }}</c>、<c>{{ for col in Columns }}{{ col.CSharpProperty }}{{ end }}</c>；
+/// 变量以 PascalCase 原名注入（关掉 Scriban 缺省的 snake_case 改名），模板写 <c>{{ ClassName }}</c>、<c>{{ for col in Columns }}{{ col.CSharpProperty }}{{ end }}</c>；
 /// 注册 10 个转义过滤器（<c>cs_string</c>、<c>xml_doc</c>、<c>ts_string</c>、<c>html_attr</c>、<c>html_text</c>、<c>block_comment</c>、<c>html_comment</c>、<c>i18n_message</c>、<c>js_literal</c>、<c>select_options</c>）
-/// 6.0 加的限制（同 Notification 的消息模板）：不给模板加载器（不能 <c>include</c> 别的文件），循环与递归设上限
+/// 限制同 Notification 的消息模板：不给模板加载器（不能 <c>include</c> 别的文件），循环与递归设上限
 /// </remarks>
 public static class CodeGenRenderer
 {
@@ -257,7 +257,7 @@ public static class CodeGenRenderer
         ["ForeignKeyField"] = CodeGenNaming.Camelize(table.ForeignKeyProperty),
     });
 
-    // 列 → 模板变量。判据收在这里，几份模板共用，不各写一套（照 4.x）
+    // 列 → 模板变量。判据收在这里，几份模板共用，不各写一套
     private static ScriptObject Column(CodeGenColumnModel column, bool isTreeParent = false)
     {
         var type = Base(column);
@@ -308,7 +308,7 @@ public static class CodeGenRenderer
             ["InUpdate"] = column.IsBusiness && column.IsEdit,
             ["InForm"] = column.IsBusiness && (column.IsInsert || column.IsEdit),
             ["IsQueryable"] = queryable,
-            // 后端筛选白名单的运算符：日期一律按区间（照 4.x），模糊查询是 contains，其余按查询方式
+            // 后端筛选白名单的运算符：日期一律按区间，模糊查询是 contains，其余按查询方式
             ["FilterOperators"] = queryable ? Operators(column) : new List<string>(),
             // 筛选值的解析：生成 Parse<属性>(string text, out T value) 的方法体
             ["Parser"] = Parser(column, qualified),
@@ -377,7 +377,7 @@ public static class CodeGenRenderer
             _ => "eq",
         };
 
-        // 选项列另收多选（照 4.x 的搜索下拉）
+        // 选项列另收多选
         return single == "eq" && column.DictSelectorType is not null && type != "bool" ? ["eq", "in"] : [single];
     }
 
@@ -398,7 +398,7 @@ public static class CodeGenRenderer
     {
         var attributes = new List<string>();
 
-        // 文本只在勾了必填时要求非空（非空列留空发空串，照 4.x）；可空的值类型勾了必填即不能为空
+        // 文本只在勾了必填时要求非空（非空列留空发空串）；可空的值类型勾了必填即不能为空
         if (column.IsRequired && (type == "string" || nullable))
         {
             attributes.Add("Required");
@@ -436,7 +436,7 @@ public static class CodeGenRenderer
 
     private static bool IsNumber(string type) => type is "int" or "long" or "short" or "byte" or "decimal" or "double" or "float";
 
-    // 打印数据源的样例（设计器预览与样例表单的初值）：选项、布尔与日期按显示文本给（打印时已换成文本），照 4.x
+    // 打印数据源的样例（设计器预览与样例表单的初值）：选项、布尔与日期按显示文本给（打印时已换成文本）
     private static string PrintSample(CodeGenContext context)
     {
         using var buffer = new MemoryStream();

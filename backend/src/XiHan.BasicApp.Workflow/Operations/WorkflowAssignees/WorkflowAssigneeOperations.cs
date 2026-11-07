@@ -72,7 +72,7 @@ public sealed record AssigneeDepartment(Guid Id, Guid? ParentId, string Code, st
 /// 选用户
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-assignees:users</c>。照 4.x 只要登录（转办、加签也要选人），只返回 ID、登录名与显示名，不带联系方式
+/// <c>GET /api/workflow-assignees:users</c>。只要登录（转办、加签也要选人），只返回 ID、登录名与显示名，不带联系方式
 /// 按关键字搜的是当前一侧可见的在用账号（运维支持成员不算），缺省 50 个、至多 200 个；按 ID 回显的是这一侧可见的账号，含停用的（已经选过的人照样念得出名字）
 /// </remarks>
 /// <param name="users">用户目录</param>

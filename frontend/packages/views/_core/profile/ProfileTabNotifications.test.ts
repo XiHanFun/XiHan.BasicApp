@@ -1,6 +1,6 @@
 /**
- * 个人中心「通知」（ProfileTabNotifications.vue，4.x 原样搬入）：
- * 接收渠道只有站内信、邮件、短信，通知类型只有公告、待办、安全（4.x 的推送、机器人、审批、营销 6.0 没有效果，不显示）；
+ * 个人中心「通知」（ProfileTabNotifications.vue）：
+ * 接收渠道只有站内信、邮件、短信，通知类型只有公告、待办、安全；
  * 开关照后端的偏好打开；保存把六项整体交给壳层、换成保存后的偏好并提示，重置即重新取；加载与保存被拒即提示后端文案
  */
 import type { AppContextApis, NotificationPreference } from '~/types'

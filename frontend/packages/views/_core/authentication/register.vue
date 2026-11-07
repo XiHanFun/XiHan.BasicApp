@@ -62,7 +62,7 @@ onMounted(async () => {
   }
 })
 
-// ==================== 密码强度（照 4.x 的四档） ====================
+// ==================== 密码强度（四档） ====================
 
 const passwordStrength = computed(() => {
   const pwd = formData.value.password

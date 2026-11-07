@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Workflow.Operations.WorkflowDefinitions;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/workflow-definitions:list</c>。当前一侧的定义（平台只看平台的，租户只看本租户的），框架在存储里按关键字（名字、显示名、说明）、名字、分类、状态与创建时间过滤、
-/// 按多列排序（照 4.x）并分页，缺省名字升序、版本降序；筛选与排序见 <see cref="WorkflowQueryMapping.Definitions"/>
+/// 按多列排序并分页，缺省名字升序、版本降序；筛选与排序见 <see cref="WorkflowQueryMapping.Definitions"/>
 /// </remarks>
 /// <param name="catalog">定义目录</param>
 /// <param name="business">审批业务登记表</param>
@@ -150,7 +150,7 @@ public sealed class UpdateWorkflowDefinition(IWorkflowDefinitionCatalog catalog,
 /// 发布流程定义
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-definitions/{id}:publish</c>。单条（照 4.x，设计稿 D10）：关联了审批业务（名字等于业务码）的定义先过业务校验
+/// <c>POST /api/workflow-definitions/{id}:publish</c>。单条（设计稿 D10）：关联了审批业务（名字等于业务码）的定义先过业务校验
 /// （每个结束节点的结论在业务允许的范围里、没有终止节点），再由框架做结构校验，不合法即 <c>WORKFLOW_VALIDATION_001</c>，问题列表在 <c>details.errors</c>
 /// </remarks>
 /// <param name="catalog">定义目录</param>
@@ -192,7 +192,7 @@ public sealed class PublishWorkflowDefinition(IWorkflowDefinitionCatalog catalog
 /// 按名字开新版本
 /// </summary>
 /// <remarks>
-/// <c>POST /api/workflow-definitions:new-version</c>。以这个名字的最新版本为底复制出新草稿（照 4.x 归新建权限）
+/// <c>POST /api/workflow-definitions:new-version</c>。以这个名字的最新版本为底复制出新草稿（归新建权限）
 /// </remarks>
 /// <param name="catalog">定义目录</param>
 /// <param name="business">审批业务登记表</param>
@@ -328,7 +328,7 @@ public sealed class ListWorkflowBusinessTypes(WorkflowBusinessRegistry business)
 /// 活动类型目录
 /// </summary>
 /// <remarks>
-/// <c>GET /api/workflow-definitions:activity-types</c>。框架登记的活动里设计器能放的那些（照 4.x 的节点，不含 Script 与框架 5 新增的事件网关、补偿、外部任务，W4、W5）
+/// <c>GET /api/workflow-definitions:activity-types</c>。框架登记的活动里设计器能放的那些（不含事件网关、补偿与外部任务，W4、W5）
 /// </remarks>
 /// <param name="catalog">定义目录</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, ReadOnly = true, Permission = WorkflowPermissions.DefinitionsRead)]

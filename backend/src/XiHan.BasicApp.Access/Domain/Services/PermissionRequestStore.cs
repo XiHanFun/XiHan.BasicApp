@@ -30,8 +30,8 @@ public sealed record PermissionRequestTarget(SysRole? Role, PermissionDescriptor
 /// 授权申请的读写与校验（作用域）
 /// </summary>
 /// <remarks>
-/// 照 4.x 的 <c>PermissionRequestDomainService</c>：有效期合法且失效时间晚于现在、角色存在且启用、权限码在这一侧的目录里，同一申请人同一对象只能有一条待审批；
-/// 对象照 4.x 的界面二选一（4.x 的接口两者都给也收，用户已定接口同样二选一）。模仿会话里对申请的写操作一律拒绝（6.0 新加，4.x 没有）
+/// 有效期合法且失效时间晚于现在、角色存在且启用、权限码在这一侧的目录里，同一申请人同一对象只能有一条待审批；
+/// 对象二选一（用户已定）。模仿会话里对申请的写操作一律拒绝
 /// 操作与审批业务处理器共用；它不依赖审批业务服务（处理器被审批业务服务构造时不成环）
 /// </remarks>
 /// <param name="rows">按侧读写</param>
@@ -198,7 +198,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     /// 处理人能否授出申请的对象
     /// </summary>
     /// <remarks>
-    /// 4.x 另查模仿登录的提权防护与超管保护，6.0 没有这两样；照 6.0 的授出口径：角色要能指派（<c>access.roles.assign</c>），权限要能直授（<c>access.user-grants.grant</c>）
+    /// 角色要能指派（<c>access.roles.assign</c>），权限要能直授（<c>access.user-grants.grant</c>）
     /// </remarks>
     public async Task<Result> CanGrantAsync(SysPermissionRequest request, InvocationContext context)
     {
@@ -236,7 +236,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     /// 审批流程的标题
     /// </summary>
     /// <remarks>
-    /// 只写申请对象：申请人就是发起人，待办与审批中心另有发起人一栏（照 4.x）
+    /// 只写申请对象：申请人就是发起人，待办与审批中心另有发起人一栏
     /// </remarks>
     public static string TitleOf(PermissionRequestTarget target, InvocationContext context)
     {

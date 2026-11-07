@@ -59,7 +59,7 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork, IEnumerable<IReci
         IReadOnlySet<Guid> support = new HashSet<Guid>();
         if (tenantId is not null)
         {
-            // 外部成员（4.x 同）：别处注册、生效中的普通成员也算这一侧的用户；运维支持成员也列出来（4.x 同），带标记、账号只读
+            // 外部成员：别处注册、生效中的普通成员也算这一侧的用户；运维支持成员也列出来，带标记、账号只读
             support = await sideUsers.SupportMembersOfAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
             var members = (await sideUsers.MembersOfAsync(tenantId, context.CancellationToken).ConfigureAwait(false)).Concat(support).ToList();
             query = members.Count == 0

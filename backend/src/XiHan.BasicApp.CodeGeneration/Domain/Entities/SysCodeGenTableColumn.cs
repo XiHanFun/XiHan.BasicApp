@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的列配置
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧。同一张表的列名唯一（4.x 只在服务里保证，6.0 加部分唯一索引，方案 C2）；
-/// 导入与同步结构时按库结构推断类型、控件与查询方式，人工改过的字段在同步时保留（照 4.x）
+/// 平台库实体、只在平台一侧。同一张表的列名唯一（部分唯一索引，方案 C2）；
+/// 导入与同步结构时按库结构推断类型、控件与查询方式，人工改过的字段在同步时保留
 /// </remarks>
 [ActiveUniqueIndex(nameof(TableId), nameof(ColumnName))]
 public sealed class SysCodeGenTableColumn : AppAuditedEntity
@@ -202,7 +202,7 @@ public sealed class SysCodeGenTableColumn : AppAuditedEntity
     /// 人工改过的字段
     /// </summary>
     /// <remarks>
-    /// 属性名的 JSON 数组：同步结构时不覆盖这些字段（照 4.x）
+    /// 属性名的 JSON 数组：同步结构时不覆盖这些字段
     /// </remarks>
     [StringLength(500)]
     public string? UserModifiedFields { get; set; }

@@ -10,8 +10,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的外部数据源
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧（照 4.x）。导入表结构与零代码运行时经它连外部库，表配置的数据源为空即主库
-/// 口令与连接串经 <c>ISecretProtector</c> 加密存储、响应里不回显（4.x 是写死密钥的 AES，解不开还把原值当明文，方案 C2）；
+/// 平台库实体、只在平台一侧。导入表结构与零代码运行时经它连外部库，表配置的数据源为空即主库
+/// 口令与连接串经 <c>ISecretProtector</c> 加密存储、响应里不回显（方案 C2）；
 /// 显式连接串优先，没有就按主机、端口、库名、账号拼出。名称唯一，软删除后可以重建
 /// </remarks>
 [ActiveUniqueIndex(nameof(SourceName))]

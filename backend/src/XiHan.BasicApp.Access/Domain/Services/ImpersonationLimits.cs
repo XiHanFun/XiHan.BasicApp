@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 模仿态拒绝的权限码
 /// </summary>
 /// <remarks>
-/// 接管账号、变更授权、销毁数据与外带凭证（4.x 同）：模仿是有硬期限的临时身份，不能借它把权限固化下来
+/// 接管账号、变更授权、销毁数据与外带凭证：模仿是有硬期限的临时身份，不能借它把权限固化下来
 /// 在授予命中之后判，所以 <c>*</c> 也拦；再次发起模仿由 <c>impersonation.start</c> 自己拒绝
 /// </remarks>
 public static class ImpersonationLimits

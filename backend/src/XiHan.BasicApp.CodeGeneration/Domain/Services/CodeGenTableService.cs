@@ -35,8 +35,8 @@ public sealed record CodeGenSyncResult(IReadOnlyList<string> Added, int Updated,
 /// </summary>
 /// <remarks>
 /// 读库结构经框架的 <see cref="ISchemaReader"/>（主库传空，外部库传数据源的连接定义），表名照返回的原名、不自己转大小写（修订（八十三））
-/// 导入照 4.x 按表隔离：一张表读不到、已导入或没有列就记一条失败，其余照常导入；同步结构照 4.x 三路合并：结构字段以库为准，
-/// 推断字段只覆盖没被人工改过的，库里已删的列删掉列配置（6.0 软删除）
+/// 导入按表隔离：一张表读不到、已导入或没有列就记一条失败，其余照常导入；同步结构三路合并：结构字段以库为准，
+/// 推断字段只覆盖没被人工改过的，库里已删的列软删列配置
 /// </remarks>
 /// <param name="tables">表配置仓储</param>
 /// <param name="columns">列配置仓储</param>
@@ -58,7 +58,7 @@ public sealed class CodeGenTableService(
     /// 被跟踪的表字段
     /// </summary>
     /// <remarks>
-    /// 照 4.x：保存时值变了即记为人工改过，同步结构时不覆盖
+    /// 保存时值变了即记为人工改过，同步结构时不覆盖
     /// </remarks>
     public static IReadOnlyList<string> TrackedTableFields { get; } =
     [
@@ -326,7 +326,7 @@ public sealed class CodeGenTableService(
             return Error.Conflict(CodeGenerationErrors.TableAlreadyImported, CodeGenerationMessages.TableAlreadyImported, MessageArguments.Of(("table", schema.Table.Name)));
         }
 
-        // 先判空再落库：没有列的表配置生成不出东西（照 4.x）
+        // 先判空再落库：没有列的表配置生成不出东西
         if (schema.Columns.Count == 0)
         {
             return Error.Validation(CodeGenerationErrors.TableHasNoColumn, CodeGenerationMessages.TableHasNoColumn, MessageArguments.Of(("table", tableName)));
@@ -351,7 +351,7 @@ public sealed class CodeGenTableService(
             TemplateType = suggestion.TemplateType,
             TreeParentColumn = suggestion.TreeParentColumn,
             TreeNameColumn = suggestion.TreeNameColumn,
-            // 沿用已有实体时生成到它所在的包（照 4.x），否则缺省新建包
+            // 沿用已有实体时生成到它所在的包，否则缺省新建包
             Target = suggestion.FromRegisteredEntity ? CodeGenTarget.ExistingPackage : CodeGenTarget.NewPackage,
         };
         var added = await tables.AddAsync(table, cancellationToken).ConfigureAwait(false);
@@ -365,7 +365,7 @@ public sealed class CodeGenTableService(
         {
             if (result.IsFailure)
             {
-                // 按表隔离、整批同一事务：列写不进就把这张表的配置删掉，免得留下没有列的表配置（照 4.x）
+                // 按表隔离、整批同一事务：列写不进就把这张表的配置删掉，免得留下没有列的表配置
                 _ = await tables.RemoveAsync(table, cancellationToken).ConfigureAwait(false);
                 return result;
             }
@@ -433,7 +433,7 @@ public sealed class CodeGenTableService(
         changed |= Set(current.ColumnLength, inferred.Length, v => current.ColumnLength = v);
         changed |= Set(current.DecimalDigits, inferred.DecimalDigits, v => current.DecimalDigits = v);
 
-        // 推断字段：没被人工改过才覆盖（照 4.x 的四个）
+        // 推断字段：没被人工改过才覆盖
         changed |= !modified.Contains(nameof(SysCodeGenTableColumn.CSharpType)) && Set(current.CSharpType, inferred.CSharpType, v => current.CSharpType = v);
         changed |= !modified.Contains(nameof(SysCodeGenTableColumn.TsType)) && Set(current.TsType, inferred.TsType, v => current.TsType = v);
         changed |= !modified.Contains(nameof(SysCodeGenTableColumn.HtmlType)) && Set(current.HtmlType, inferred.HtmlType, v => current.HtmlType = v);

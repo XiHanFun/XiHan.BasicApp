@@ -18,9 +18,6 @@ public sealed record SeedOptions
     /// <summary>
     /// 初始超级管理员的登录名
     /// </summary>
-    /// <remarks>
-    /// 沿用 4.x
-    /// </remarks>
     public const string SuperAdminUserName = "superadmin";
 
     /// <summary>

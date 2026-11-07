@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Workflow.Operations.Approvals;
 /// 我已审批
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals:list-done</c>。照 4.x 只要登录、主体锁定为调用方：办理、转办、加签的记录；关键字匹配任务标题、实例标题与关联 ID，按时间降序。每条带上实例现在的状态与结论
+/// <c>POST /api/approvals:list-done</c>。只要登录、主体锁定为调用方：办理、转办、加签的记录；关键字匹配任务标题、实例标题与关联 ID，按时间降序。每条带上实例现在的状态与结论
 /// </remarks>
 /// <param name="queries">审批记录的分页</param>
 /// <param name="approvals">审批中心共用的补全</param>
@@ -53,7 +53,7 @@ public sealed class ListDoneApprovals(WorkflowRecordQueries queries, WorkflowApp
 /// 抄送我的
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals:list-cc</c>。照 4.x 只要登录、主体锁定为调用方：抄送给调用方的记录（同一实例同一节点对同一人只记一次）；关键字与顺序同我已审批
+/// <c>POST /api/approvals:list-cc</c>。只要登录、主体锁定为调用方：抄送给调用方的记录（同一实例同一节点对同一人只记一次）；关键字与顺序同我已审批
 /// </remarks>
 /// <param name="queries">审批记录的分页</param>
 /// <param name="approvals">审批中心共用的补全</param>
@@ -79,7 +79,7 @@ public sealed class ListCcApprovals(WorkflowRecordQueries queries, WorkflowAppro
 /// 我发起的
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals:list-started</c>。照 4.x 只要登录、发起人锁定为调用方、只取顶层实例；关键字匹配标题与关联 ID，筛选 <c>status</c>，按发起时间降序。运行中的带等着办的节点与人
+/// <c>POST /api/approvals:list-started</c>。只要登录、发起人锁定为调用方、只取顶层实例；关键字匹配标题与关联 ID，筛选 <c>status</c>，按发起时间降序。运行中的带等着办的节点与人
 /// </remarks>
 /// <param name="engine">引擎</param>
 /// <param name="tasks">任务服务</param>
@@ -168,7 +168,7 @@ public sealed class ListStartedApprovals(IWorkflowEngine engine, IWorkflowTaskSe
 /// 审批详情
 /// </summary>
 /// <remarks>
-/// <c>GET /api/approvals/{id}</c>。照 4.x 只要登录、按参与关系鉴权：发起人、当前受理人、办理过或被抄送过的人，或持有 <c>workflow.workflow-instances.read</c>，其余 403（详情带着业务单据）
+/// <c>GET /api/approvals/{id}</c>。只要登录、按参与关系鉴权：发起人、当前受理人、办理过或被抄送过的人，或持有 <c>workflow.workflow-instances.read</c>，其余 403（详情带着业务单据）
 /// 返回概要、审批业务的单据（单据组件与数据）、调用方在这个实例里的待办（允许的结论取定义节点的 <c>AllowedOutcomes</c>）与审批轨迹
 /// </remarks>
 /// <param name="engine">引擎</param>
@@ -294,7 +294,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
     /// 调用方在这个实例里的待办
     /// </summary>
     /// <remarks>
-    /// 给了任务 ID 取那一条，否则取第一条（照 4.x，从任何列表打开都能直接办）
+    /// 给了任务 ID 取那一条，否则取第一条（从任何列表打开都能直接办）
     /// </remarks>
     private async Task<WorkflowApprovalTaskResponse?> TaskAsync(Guid? taskId, string? me, IReadOnlyList<UserTask> pending, Maybe<WorkflowDefinition> definition, WorkflowInstance instance, InvocationContext context)
     {
@@ -320,7 +320,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
     /// </summary>
     /// <remarks>
     /// 发起 → 办理 / 转办 / 加签 / 抄送与无人时的自动处理（按时间）→ 结束或当前待办
-    /// 找不到人时按策略自动通过或驳回：框架 5 不给这种节点写办理历史（4.x 写一条没有办理人的），以「已完成、没有历史的用户任务节点」认出，结论取节点的 <c>EmptyAssigneeStrategy</c>；
+    /// 找不到人时按策略自动通过或驳回：框架不给这种节点写办理历史，以「已完成、没有历史的用户任务节点」认出，结论取节点的 <c>EmptyAssigneeStrategy</c>；
     /// 超时完成的历史项没有办理人，同样算自动处理（结论 <c>timeout</c>）
     /// </remarks>
     private async Task<IReadOnlyList<WorkflowApprovalTimelineItem>> TimelineAsync(
@@ -400,8 +400,8 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
 /// 撤回
 /// </summary>
 /// <remarks>
-/// <c>POST /api/approvals/{id}:withdraw</c>。照 4.x 只要登录：只有发起人能撤回自己运行中、挂起或故障的顶层实例（子流程随父流程结束），即取消实例，之后回调审批业务的中止回写；
-/// 回写在同一个事务里，失败即整个撤回回滚、实例照旧（4.x 的实例已取消、只报回写失败）。撤回之前先问审批业务的改动前校验
+/// <c>POST /api/approvals/{id}:withdraw</c>。只要登录：只有发起人能撤回自己运行中、挂起或故障的顶层实例（子流程随父流程结束），即取消实例，之后回调审批业务的中止回写；
+/// 回写在同一个事务里，失败即整个撤回回滚、实例照旧。撤回之前先问审批业务的改动前校验
 /// </remarks>
 /// <param name="engine">引擎</param>
 /// <param name="aborts">中止回写</param>

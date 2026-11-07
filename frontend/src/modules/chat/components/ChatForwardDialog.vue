@@ -48,10 +48,10 @@ async function handleForward(conversationId: string) {
   }
   sendingTo.value = conversationId
   try {
-    // 6.0 转发是服务端操作（方案 H1）：附件须是发送人自己上传的，前端原样重发转不了别人的附件；
+    // 转发是服务端操作（方案 H1）：附件须是发送人自己上传的，前端原样重发转不了别人的附件；
     // 转出的消息经推送回到各会话（含本人的其他端）
     await getChatApi().forwardMessage(target.messageId, [conversationId])
-    // 4.x 转发即发送，发出去了响一声；6.0 照旧
+    // 转发即发送，发出去了响一声
     playNotificationSound('send')
     show.value = false
     toast.success(t('chat.forward.sent'))

@@ -37,7 +37,7 @@ export function onlineSeconds(row: Pick<OnlineSessionRow, 'loginAt'>, now: numbe
   return Math.max(0, Math.floor((now - new Date(row.loginAt).getTime()) / 1000))
 }
 
-/** 时长文案：不足一分钟按秒、不足一小时按分、不足一天按时分、其余按天时（与 4.x 相同） */
+/** 时长文案：不足一分钟按秒、不足一小时按分、不足一天按时分、其余按天时 */
 export function formatDuration(seconds: number, t: (key: string, values?: Record<string, unknown>) => string): string {
   if (seconds < 60)
     return t('identity.online_users.duration_seconds', { n: seconds })

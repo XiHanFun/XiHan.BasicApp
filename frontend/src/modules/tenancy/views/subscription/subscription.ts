@@ -11,9 +11,9 @@ type Translate = (key: string, values?: Record<string, unknown>) => string
 
 /** 存储上限以 MB 表达、已用量以字节统计（1 MB = 1024²，与后端一致） */
 export const BYTES_PER_MB = 1024 * 1024
-/** 用量到这一比例就提示，免得毫无预兆地被拒（4.x 同；平台租户列表与本页同一水位） */
+/** 用量到这一比例就提示，免得毫无预兆地被拒（平台租户列表与本页同一水位） */
 export const QUOTA_WARNING_RATIO = 0.8
-/** 离到期不足这么多天就提示（4.x 同） */
+/** 离到期不足这么多天就提示 */
 export const EXPIRY_WARNING_DAYS = 30
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
@@ -28,7 +28,7 @@ export interface QuotaLevel {
 }
 
 /**
- * 配额水位（4.x 同）：不限时没有比例；上限为 0 视同已满；到上限即超限，到 80% 即吃紧
+ * 配额水位：不限时没有比例；上限为 0 视同已满；到上限即超限，到 80% 即吃紧
  */
 export function quotaLevel(used: number, limit: number | null | undefined): QuotaLevel {
   if (limit === null || limit === undefined)
@@ -65,7 +65,7 @@ export function usageText(used: number, limit: number | null, format: (value: nu
     : format(limit)}`
 }
 
-/** 价格：人民币、两位小数（4.x 列表同一符号；后端按两位小数存） */
+/** 价格：人民币、两位小数（后端按两位小数存） */
 export function formatPrice(price: number): string {
   return `¥ ${price.toFixed(2)}`
 }
@@ -116,7 +116,7 @@ function toQuotaView(t: Translate, key: QuotaView['key'], icon: string, label: s
   }
 }
 
-/** 席位与存储两项（4.x 同）：已用 / 上限、占用比例、剩余或超限提示 */
+/** 席位与存储两项：已用 / 上限、占用比例、剩余或超限提示 */
 export function subscriptionQuotas(t: Translate, value: Subscription): QuotaView[] {
   return [
     toQuotaView(t, 'seats', 'lucide:users', t('tenancy.subscription.seats'), value.usedSeats, value.userLimit ?? null, formatSeats),
@@ -131,7 +131,7 @@ export interface ExpiryView {
   tone: HintTone
 }
 
-/** 到期（4.x 同）：没有到期时间即长期有效；已到期标红；不足 30 天标黄，剩余天数向上取整 */
+/** 到期：没有到期时间即长期有效；已到期标红；不足 30 天标黄，剩余天数向上取整 */
 export function subscriptionExpiry(t: Translate, value: Pick<Subscription, 'expiresAt' | 'isExpired'>, now = Date.now()): ExpiryView {
   if (!value.expiresAt) {
     return {
@@ -166,7 +166,7 @@ export interface PricingView {
 }
 
 /**
- * 价格与计费周期（4.x 的订阅页不显示，6.0 随订阅一起返回）：免费套餐只标免费；
+ * 价格与计费周期（随订阅一起返回）：免费套餐只标免费；
  * 有价格标价格、有周期标周期，都没有为 null（不显示）
  */
 export function subscriptionPricing(t: Translate, value: Pick<Subscription, 'billingPeriodMonths' | 'isFree' | 'price'>): null | PricingView {

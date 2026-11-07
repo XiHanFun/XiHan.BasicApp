@@ -21,7 +21,7 @@ let loadingBarInstance: LoadingBarService | null = null
 
 /**
  * 轻提示服务：通知服务取 toast 预设，一行操作结果、同位叠成一摞
- * 预设缺省落底部居中、最多 3 条；这里写回顶部居中、5 条，与旧版轻提示的落位一致
+ * 预设缺省落底部居中、最多 3 条；这里改成顶部居中、5 条
  * 落位是整个服务的口径，不逐条各去一处
  */
 function toastService(): NotificationService {
@@ -75,7 +75,7 @@ function loadingBarService(): LoadingBarService {
 }
 
 /**
- * 轻提示。用法与位置同旧版：`toast.success('保存成功')`
+ * 轻提示，用法 `toast.success('保存成功')`
  * loading 返回 id，收尾用 `toast.update(id, { loading: false, tone: 'success', title: '完成' })`
  * 失败语气叫 danger，与 XiHan.UI 的 tone 轴同名
  */

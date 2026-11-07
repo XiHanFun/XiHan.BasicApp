@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.AI.Domain.Services;
 /// 提供商的规则
 /// </summary>
 /// <remarks>
-/// 编码唯一、缺省最多一个（照 4.x）；API 密钥经 <see cref="ISecretProtector"/> 加解密，解不开按未配置处理（照 4.x 的 fail-closed，不当明文用）
+/// 编码唯一、缺省最多一个；API 密钥经 <see cref="ISecretProtector"/> 加解密，解不开按未配置处理（fail-closed，不当明文用）
 /// 写入之后经 <see cref="AiProviderChanges"/> 记下，工作单元提交之后重载 Provider 目录（<c>AiProviderCatalogMiddleware</c>）
 /// </remarks>
 /// <param name="providers">提供商仓储</param>
@@ -33,7 +33,7 @@ public sealed class AiProviderService(IRepository<SysAiProvider, Guid> providers
     /// 协议种类
     /// </summary>
     /// <remarks>
-    /// 只有 OpenAI 兼容一种（照 4.x）
+    /// 只有 OpenAI 兼容一种
     /// </remarks>
     public const string Kind = OpenAIChatClientFactory.KindName;
 
@@ -133,7 +133,7 @@ public sealed class AiProviderService(IRepository<SysAiProvider, Guid> providers
     /// 取消别的提供商的缺省标记
     /// </summary>
     /// <remarks>
-    /// 缺省提供商最多一个（照 4.x）
+    /// 缺省提供商最多一个
     /// </remarks>
     /// <param name="except">保留缺省的提供商</param>
     /// <param name="cancellationToken">取消令牌</param>

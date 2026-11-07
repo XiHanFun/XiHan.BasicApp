@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.CodeGeneration;
 /// 代码生成模块的字段安全登记
 /// </summary>
 /// <remarks>
-/// 照 4.x：数据源（新建、修改、启停）、表配置（修改、启停）与模板（新建、修改、启停）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
+/// 数据源（新建、修改、启停）、表配置（修改、启停）与模板（新建、修改、启停）登记字段安全，规则由 Access 的中间件与响应过滤器统一套用
 /// </remarks>
 public static class CodeGenerationFieldSecurity
 {

@@ -598,7 +598,7 @@ public static class AccessErrors
     /// 角色与权限同时申请
     /// </summary>
     /// <remarks>
-    /// 照 4.x 的界面二选一，提交与修改重提都校验
+    /// 二选一，提交与修改重提都校验
     /// </remarks>
     public const string PermissionRequestTargetExclusive = "ACCESS_VALIDATION_056";
 
@@ -627,7 +627,7 @@ public static class AccessErrors
     /// 模仿会话里不能对授权申请做写操作
     /// </summary>
     /// <remarks>
-    /// 提交、修改重提、撤回、手工处理，以及授权申请审批单上的办理、转办、加签、撤回、取消、终止、重试、挂起与恢复（6.0 新加，4.x 没有）
+    /// 提交、修改重提、撤回、手工处理，以及授权申请审批单上的办理、转办、加签、撤回、取消、终止、重试、挂起与恢复
     /// </remarks>
     public const string PermissionRequestImpersonating = "ACCESS_CONFLICT_016";
 

@@ -8,9 +8,6 @@ namespace XiHan.BasicApp.Access;
 /// <summary>
 /// 权限条件的生效模式
 /// </summary>
-/// <remarks>
-/// 4.x 同
-/// </remarks>
 public enum PermissionConditionMode
 {
     /// <summary>
@@ -42,9 +39,6 @@ public sealed record AccessOptions
     /// <summary>
     /// 缺省的条件时区
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public const string DefaultTimeZoneId = "Asia/Shanghai";
 
     /// <summary>
@@ -59,7 +53,7 @@ public sealed record AccessOptions
     /// 访问策略是否判定
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>AccessPolicyEnabled</c>，缺省开；4.x 的总开关，策略把自己锁在外面时由运维在配置里关掉
+    /// 配置键 <c>AccessPolicyEnabled</c>，缺省开；总开关，策略把自己锁在外面时由运维在配置里关掉
     /// </remarks>
     public bool AccessPolicyEnabled { get; init; } = true;
 

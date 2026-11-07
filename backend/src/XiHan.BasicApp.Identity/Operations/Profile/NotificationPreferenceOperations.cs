@@ -44,7 +44,7 @@ public sealed record NotificationPreferenceResponse(bool ChannelInApp, bool Chan
 /// 保存通知偏好的请求
 /// </summary>
 /// <remarks>
-/// <c>profile.update-notification-preference</c> 的请求，整体覆盖，4.x 同
+/// <c>profile.update-notification-preference</c> 的请求，整体覆盖
 /// </remarks>
 /// <param name="ChannelInApp">收站内信</param>
 /// <param name="ChannelEmail">收邮件</param>
@@ -58,7 +58,7 @@ public sealed record UpdateNotificationPreferenceRequest(bool ChannelInApp, bool
 /// 读本人的通知偏好
 /// </summary>
 /// <remarks>
-/// <c>GET /api/profile:notification-preference</c>（4.x <c>Profile/NotificationPreference</c>）。已登录即可
+/// <c>GET /api/profile:notification-preference</c>。已登录即可
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
@@ -90,8 +90,8 @@ public sealed class GetNotificationPreference(IRepository<SysUser, Guid> users, 
 /// 保存本人的通知偏好
 /// </summary>
 /// <remarks>
-/// <c>POST /api/profile:update-notification-preference</c>（4.x 同，整体覆盖，第一次保存时建行）
-/// 已登录即可；模仿会话不拒绝（4.x 同）
+/// <c>POST /api/profile:update-notification-preference</c>（整体覆盖，第一次保存时建行）
+/// 已登录即可；模仿会话不拒绝
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>

@@ -129,7 +129,6 @@ public sealed record AccessPolicyLayer(IReadOnlyList<AccessPolicyHit> Hits, bool
 /// 访问策略的求值（单例）
 /// </summary>
 /// <remarks>
-/// 对应 4.x 的 AccessPolicyEvaluator
 /// 逐条求值一层里此刻有效的策略，命中全部记下；同层有放行命中即不拒绝，否则第一条命中的拒绝拦下
 /// 编译结果按条件内容记住（策略改了内容就是新的一份）；编译不过的策略不命中
 /// </remarks>

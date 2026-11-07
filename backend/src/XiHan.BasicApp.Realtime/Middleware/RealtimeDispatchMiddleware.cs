@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Realtime.Middleware;
 /// Transaction 阶段开头的中间件，调用成功之后才发出推送
 /// </summary>
 /// <remarks>
-/// 排在工作单元之外。调用里的推送先暂存，工作单元提交、调用成功之后才发出，失败、回滚或异常即丢弃（4.x 在提交前推送，回滚了客户端也已收到）
+/// 排在工作单元之外。调用里的推送先暂存，工作单元提交、调用成功之后才发出，失败、回滚或异常即丢弃
 /// </remarks>
 public sealed class RealtimeDispatchMiddleware : IPipelineMiddleware
 {

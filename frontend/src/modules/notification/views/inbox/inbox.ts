@@ -11,7 +11,7 @@ export type InboxScope = 'all' | 'pending'
 
 /** 一页多少条 */
 export const INBOX_PAGE_SIZE = 20
-/** 计数与顶栏同步取最近多少条待处理的（与顶栏通知中心、4.x 收件箱同为 100 条） */
+/** 计数与顶栏同步取最近多少条待处理的（与顶栏通知中心同为 100 条） */
 export const PENDING_SAMPLE_SIZE = 100
 
 export interface InboxQuery {
@@ -53,7 +53,7 @@ export function isUnconfirmed(item: Pick<InboxItem, 'confirmedAt' | 'needConfirm
   return item.needConfirm && !item.confirmedAt
 }
 
-/** 需要关注：未读，或需要确认而还没确认（4.x 同） */
+/** 需要关注：未读，或需要确认而还没确认 */
 export function needsAttention(item: Pick<InboxItem, 'confirmedAt' | 'needConfirm' | 'status'>): boolean {
   return isUnread(item) || isUnconfirmed(item)
 }
@@ -62,7 +62,7 @@ export function inboxCounts(items: readonly InboxItem[]): { unread: number, conf
   return { unread: items.filter(isUnread).length, confirm: items.filter(isUnconfirmed).length }
 }
 
-/** 收件箱条目 → 顶栏通知中心的条目（字段名是 4.x 的；枚举名称与壳层的字符串枚举同值） */
+/** 收件箱条目 → 顶栏通知中心的条目（字段名是壳层的；枚举名称与壳层的字符串枚举同值） */
 export function toHeaderItem(item: InboxItem): NotificationItem {
   return {
     basicId: item.id,
@@ -110,7 +110,7 @@ export function clampPage(page: number, total: number, size: number = INBOX_PAGE
 }
 
 /**
- * 通知链接的去向：`/` 开头的站内路由走路由跳转，http(s) 地址在新窗口打开（4.x 同）；
+ * 通知链接的去向：`/` 开头的站内路由走路由跳转，http(s) 地址在新窗口打开；
  * 其它协议（javascript: 之类）不当链接，按钮不出
  */
 export function resolveLink(link: null | string | undefined): { kind: 'external', url: string } | { kind: 'route', path: string } | null {
@@ -130,7 +130,7 @@ export function resolveLink(link: null | string | undefined): { kind: 'external'
   }
 }
 
-/** 按通知类型给图标着色：语气与类型标签一致；待办的标签是 neutral，图标保留紫色好与系统类区分（4.x 同） */
+/** 按通知类型给图标着色：语气与类型标签一致；待办的标签是 neutral，图标保留紫色好与系统类区分 */
 export function typeColor(type: NotificationType): string {
   switch (type) {
     case 'Security': return 'var(--xh-color-warning-600)'

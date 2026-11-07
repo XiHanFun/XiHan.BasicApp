@@ -11,8 +11,8 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// Telegram 的出站审计（平台库实体）
 /// </summary>
 /// <remarks>
-/// 发消息、改消息这几种调用在成功或最终失败时各记一条（不按每次重试记），4.x 同字段
-/// 4.x 按月分表；6.0 是普通表，没有页面与操作（4.x 也没有）
+/// 发消息、改消息这几种调用在成功或最终失败时各记一条（不按每次重试记）
+/// 普通表，没有页面与操作
 /// </remarks>
 [DiffLogIgnored]
 public sealed class SysTelegramMessage : AppAuditedEntity

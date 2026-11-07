@@ -44,14 +44,14 @@ export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
 
 /**
  * 访问态（壳层视角）：令牌、菜单路由、权限码都是 auth store 的投影，这里不另存一份
- * 4.x 由登录流程写入这些字段；6.0 的真源是 auth.login / auth.permissions（见 auth.ts），壳层只读
+ * 真源是 auth.login / auth.permissions（见 auth.ts），壳层只读
  */
 export const useAccessStore = defineStore(SetupStoreId.Access, () => {
   const auth = useAuthStore()
   const accessToken = computed(() => auth.accessToken)
   const accessRoutes = computed<MenuRoute[]>(() => toMenuRoutes(auth.menus))
   const accessCodes = computed<string[]>(() => auth.permissions?.permissions ?? [])
-  /** 6.0 没有单独的按钮码：按钮门控直接用操作的权限码 */
+  /** 没有单独的按钮码：按钮门控直接用操作的权限码 */
   const accessButtons = computed<string[]>(() => [])
   const isRoutesLoaded = computed(() => auth.permissions !== null)
   const loginExpired = ref(false)

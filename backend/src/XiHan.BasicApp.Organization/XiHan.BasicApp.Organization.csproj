@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Organization</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 组织能力包（Tier 1）：部门树（闭包表）、岗位、用户部门归属；全部是租户库实体，只在租户侧管理。</Description>
+    <Description>XiHan.BasicApp 组织能力包（Tier 1）：部门树（闭包表）、岗位、用户部门归属；全部是租户库实体，只在租户侧管理。</Description>
   </PropertyGroup>
 
   <ItemGroup>

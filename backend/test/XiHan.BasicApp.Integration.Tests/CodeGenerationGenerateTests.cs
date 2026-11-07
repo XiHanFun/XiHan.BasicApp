@@ -16,8 +16,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证代码生成的生成、生成历史与产物包下载
 /// </summary>
 /// <remarks>
-/// 照 4.x：每次生成不论成败都记一条历史，成功才回写表的生成状态；打包的产物分 <c>_generated/</c>、<c>_manual/</c> 与 <c>README.txt</c>，
-/// 6.0 存成 7 天的临时文件、从历史的下载端点取；写进项目只在开发环境且打开开关时，只首次写的文件已存在即跳过，项目里有同名的手写文件即整体拒绝
+/// 每次生成不论成败都记一条历史，成功才回写表的生成状态；打包的产物分 <c>_generated/</c>、<c>_manual/</c> 与 <c>README.txt</c>，
+/// 存成 7 天的临时文件、从历史的下载端点取；写进项目只在开发环境且打开开关时，只首次写的文件已存在即跳过，项目里有同名的手写文件即整体拒绝
 /// </remarks>
 public sealed class CodeGenerationGenerateTests : IDisposable
 {

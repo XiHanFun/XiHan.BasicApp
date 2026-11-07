@@ -133,7 +133,7 @@ export function useLockScreen() {
     try {
       await ctx.apis.unlockSessionApi({ password: unlockPwd.value })
       releaseLock()
-      // 锁定中整页刷新过：权限与菜单在锁定期间拿不到（守卫放行挂壳），解锁后在当前地址重走一次守卫装载；同一地址要 force（4.x 漏了这步，停在 404）
+      // 锁定中整页刷新过：权限与菜单在锁定期间拿不到（守卫放行挂壳），解锁后在当前地址重走一次守卫装载；同一地址要 force（不然停在 404）
       if (!accessStore.isRoutesLoaded) {
         const router = await ctx.getRouter()
         const { path, query, hash } = router.currentRoute.value

@@ -1,9 +1,9 @@
 /**
- * 后端定义文档（框架 5 的 WorkflowJson）↔ 流程设计器的流程定义
+ * 后端定义文档（框架 的 WorkflowJson）↔ 流程设计器的流程定义
  *
- * 预设只认 4.x 引擎的定义格式：先经映射层（~/designers/flow 的 fromWorkflowJson / toWorkflowJson）换成 4.x 的写法，
+ * 预设只认它自己的定义格式：先经映射层（~/designers/flow 的 fromWorkflowJson / toWorkflowJson）换成预设的写法，
  * 再交给工作流引擎预设互转。坐标存 properties.designerLayout（{nodeId: {x,y}}），没列出的字段原样往返
- * 打开时把人工任务的旧版受理人写法（Assignees / AssigneesExpression / CcUserIds）并入受理人规则，保存即落为新写法
+ * 打开时把人工任务受理人的旧写法（Assignees / AssigneesExpression / CcUserIds）并入受理人规则，保存即落为新写法
  */
 
 import type { FlowDocument, WorkflowJsonDefinition, XihanWorkflowDefinition } from '~/designers/flow'
@@ -14,7 +14,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/** 人工任务节点的属性副本里并入旧版受理人写法；别的节点原样返回 */
+/** 人工任务节点的属性副本里并入受理人的旧写法；别的节点原样返回 */
 function migrateNode(node: unknown): unknown {
   if (!isRecord(node) || node.activityType !== 'UserTask' || !isRecord(node.properties))
     return node

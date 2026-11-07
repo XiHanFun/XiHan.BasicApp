@@ -17,9 +17,9 @@ namespace XiHan.BasicApp.Chat.Domain.Services;
 /// 会话与群治理（作用域）
 /// </summary>
 /// <remarks>
-/// 规则照 4.x 的 <c>ChatDomainService</c>：单聊按两人唯一；建群含群主至少两人、发起人为群主；部门群只有本部门的成员能进、打开时补齐部门成员，没有群主与管理员（方案 H3，与 4.x 同）；
+/// 单聊按两人唯一；建群含群主至少两人、发起人为群主；部门群只有本部门的成员能进、打开时补齐部门成员，没有群主与管理员（方案 H3）；
 /// 群治理（加人、移出、改信息、转让群主、禁言、设管理员）只在群聊，群主不能退群或被移出，没有解散。治理产生的系统提示与会话变更在提交之后推给成员
-/// 平台没有部门（6.0 的部门是租户库实体），部门群只在租户一侧
+/// 平台没有部门（部门是租户库实体），部门群只在租户一侧
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
 /// <param name="departments">部门仓储</param>
@@ -70,7 +70,7 @@ public sealed class ChatConversationService(
     /// 打开与助手的会话，没有即建
     /// </summary>
     /// <remarks>
-    /// 只有本人一个成员（照 4.x）
+    /// 只有本人一个成员
     /// </remarks>
     /// <returns>会话与是否新建</returns>
     public async Task<Result<(SysChatConversation Conversation, bool Created)>> OpenAssistantAsync(InvocationContext context, ChatCaller caller, ChatAssistantInfo assistant)
@@ -124,7 +124,7 @@ public sealed class ChatConversationService(
     /// 打开部门群，没有即建，并把部门现有的成员补进群
     /// </summary>
     /// <remarks>
-    /// 只有本部门的成员能进（照 4.x）；离开部门的成员保留会话历史、不在这里移除（移除随部门归属事件）
+    /// 只有本部门的成员能进；离开部门的成员保留会话历史、不在这里移除（移除随部门归属事件）
     /// </remarks>
     public async Task<Result<ChatConversationOpenResponse>> OpenDepartmentAsync(InvocationContext context, ChatCaller caller, Guid departmentId)
     {

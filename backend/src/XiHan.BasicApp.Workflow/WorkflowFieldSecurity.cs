@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Workflow;
 /// 工作流的字段安全登记
 /// </summary>
 /// <remarks>
-/// 照 4.x 登记定义与实例，但只登记读的部分（设计稿 D9）：定义与实例存在框架的引擎表里，6.0 没有应用实体，写入的原值取不到；
+/// 定义与实例只登记读的部分（设计稿 D9）：它们存在框架的引擎表里，没有应用实体，写入的原值取不到；
 /// 读的打码与关键字门控照常由 Access 统一套用
 /// </remarks>
 public static class WorkflowFieldSecurity

@@ -16,7 +16,7 @@ export type GpuInfo = ServerInfo['gpus'][number]
 export type BoardInfo = ServerInfo['board']
 export type HealthItem = ServerInfo['health'][number]
 
-/** 自动刷新间隔（4.x 同为 15 秒） */
+/** 自动刷新间隔 */
 export const REFRESH_INTERVAL_MS = 15_000
 
 /** 读不到的字段：后端给 null（与 0 区分），页面一律显示 - */
@@ -57,7 +57,7 @@ export function countText(value: MaybeNumber): string {
     : String(number)
 }
 
-/** 大计数（包数等）按千分位写出（4.x 同用 toLocaleString） */
+/** 大计数（包数等）按千分位写出 */
 export function formatCount(value: MaybeNumber): string {
   const number = knownNumber(value)
   return number === null
@@ -67,7 +67,7 @@ export function formatCount(value: MaybeNumber): string {
 
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const
 
-/** 字节（4.x 同）：按 1024 进位，B 取整、其余保留两位；读不到为 -，0 写作 0 B（4.x 把 0 也写成 -） */
+/** 字节：按 1024 进位，B 取整、其余保留两位；读不到为 -，0 写作 0 B */
 export function formatBytes(value: MaybeNumber): string {
   const bytes = knownNumber(value)
   if (bytes === null || bytes < 0)
@@ -101,7 +101,7 @@ export function formatBitRate(value: MaybeNumber): string {
   return `${Number.parseFloat((bits / 1000 ** index).toFixed(2))} ${BIT_UNITS[index]}`
 }
 
-/** 标称频率（MHz）：满 1000 按 GHz 保留两位（4.x 的基础频率写作 GHz），否则按 MHz 取整 */
+/** 标称频率（MHz）：满 1000 按 GHz 保留两位，否则按 MHz 取整 */
 export function formatFrequency(mhz: MaybeNumber): string {
   const value = knownNumber(mhz)
   if (value === null || value <= 0)
@@ -133,7 +133,7 @@ export function formatDurationMs(ms: MaybeNumber): string {
 
 // ── 百分比与使用率 ──────────────────────────────────────────────
 
-/** 百分比保留一位（4.x 磁盘同） */
+/** 百分比保留一位 */
 export function roundPercent(value: MaybeNumber): null | number {
   const number = knownNumber(value)
   return number === null
@@ -158,7 +158,7 @@ export function formatPercent(value: MaybeNumber): string {
     : `${percent}%`
 }
 
-/** 使用率的语气（4.x 同：低于 50 为绿、低于 80 为黄、否则为红）；读不到为中性 */
+/** 使用率的语气（低于 50 为绿、低于 80 为黄、否则为红）；读不到为中性 */
 export function usageTone(percent: MaybeNumber): Tone {
   const value = knownNumber(percent)
   if (value === null)
@@ -223,7 +223,7 @@ function pad(value: number): string {
   return String(value).padStart(2, '0')
 }
 
-/** 运行时长（4.x 同）：满一天带天数，时分秒补足两位；读不到为 -，写法不认得时原样 */
+/** 运行时长：满一天带天数，时分秒补足两位；读不到为 -，写法不认得时原样 */
 export function formatUptime(t: Translate, raw: MaybeText): string {
   const parts = parseDuration(raw)
   if (!parts)
@@ -238,7 +238,7 @@ export function formatUptime(t: Translate, raw: MaybeText): string {
     : t('maintenance.server.uptime', values)
 }
 
-// ── 卡片内容（4.x 各区块的行，字段换成 6.0 的） ──────────────────
+// ── 卡片内容 ──────────────────
 
 export interface OverviewItem {
   icon: string
@@ -304,7 +304,7 @@ export function overviewItems(t: Translate, info: ServerInfo | null): OverviewIt
   ]
 }
 
-/** CPU 明细：4.x 的五行加上本进程的 CPU 占用 */
+/** CPU 明细（含本进程的 CPU 占用） */
 export function cpuDetails(t: Translate, info: ServerInfo | null): DetailRow[] {
   const processor = info?.processor
   return [
@@ -335,7 +335,7 @@ export function cpuDetails(t: Translate, info: ServerInfo | null): DetailRow[] {
   ]
 }
 
-/** 内存明细：4.x 的四行加上空闲与文件缓存（读不到的平台为 -） */
+/** 内存明细（含空闲与文件缓存，读不到的平台为 -） */
 export function memoryDetails(t: Translate, memory: MemoryInfo | null | undefined): DetailRow[] {
   return [
     {
@@ -365,7 +365,7 @@ export function memoryDetails(t: Translate, memory: MemoryInfo | null | undefine
   ]
 }
 
-/** 主板信息：4.x 的厂商、型号、版本、序列号，加上整机与 BIOS */
+/** 主板信息：厂商、型号、版本、序列号、整机与 BIOS */
 export function boardDetails(t: Translate, board: BoardInfo | null | undefined): IconDetailRow[] {
   return [
     {
@@ -416,7 +416,7 @@ export function boardDetails(t: Translate, board: BoardInfo | null | undefined):
   ]
 }
 
-/** 系统信息：4.x 的十二项，加上平台、运行时标识、进程架构、私有内存、托管堆、线程、句柄与 GC 次数 */
+/** 系统信息（含平台、运行时标识、进程架构、私有内存、托管堆、线程、句柄与 GC 次数） */
 export function systemDetails(t: Translate, runtime: RuntimeInfo | null | undefined): IconDetailRow[] {
   const gc = runtime
     ? `${runtime.gen0Collections} / ${runtime.gen1Collections} / ${runtime.gen2Collections}`
@@ -554,7 +554,7 @@ export function diskTag(t: Translate, disk: Pick<DiskInfo, 'format' | 'type'>): 
     : type
 }
 
-/** 一格磁盘：4.x 的名称、类型、使用率、进度与已用 / 总量 / 可用 */
+/** 一格磁盘：名称、类型、使用率、进度与已用 / 总量 / 可用 */
 export interface DiskCard {
   key: string
   name: string
@@ -594,7 +594,7 @@ export function pciId(gpu: Pick<GpuInfo, 'deviceId' | 'vendorId'>): null | strin
   return gpu.vendorId || gpu.deviceId || null
 }
 
-/** 显卡明细：只列读得到的项（4.x 同样按有无显示）；读不到的平台差异（如 NVIDIA 的显存与温度）不占行 */
+/** 显卡明细：只列读得到的项；读不到的平台差异（如 NVIDIA 的显存与温度）不占行 */
 export function gpuDetails(t: Translate, gpu: GpuInfo): DetailRow[] {
   const rows: DetailRow[] = []
   if (knownNumber(gpu.memoryBytes) !== null) {
@@ -639,10 +639,10 @@ export function gpuDetails(t: Translate, gpu: GpuInfo): DetailRow[] {
 
 // ── 网卡 ────────────────────────────────────────────────────────
 
-/** 4.x 不列的虚拟过滤网卡（Windows 的 WFP / QoS / 筛选器与 Hyper-V 交换机） */
+/** 不列的虚拟过滤网卡（Windows 的 WFP / QoS / 筛选器与 Hyper-V 交换机） */
 const VIRTUAL_ADAPTER_MARKS = ['WFP', 'QoS', 'Filter', 'vSwitch'] as const
 
-/** 活跃网卡（4.x 同）：已连通、且不是虚拟过滤网卡 */
+/** 活跃网卡：已连通、且不是虚拟过滤网卡 */
 export function activeNetworkInterfaces(list: readonly NetworkInterfaceInfo[]): NetworkInterfaceInfo[] {
   return list.filter(nic => nic.status === 'Up' && !VIRTUAL_ADAPTER_MARKS.some(mark => nic.name.includes(mark)))
 }
@@ -742,7 +742,7 @@ export interface HealthSummary {
 }
 
 /**
- * 概览角标：取最差的健康项。全部就绪（或没有健康项）为「运行正常」（4.x 恒为运行正常），
+ * 概览角标：取最差的健康项。全部就绪（或没有健康项）为「运行正常」，
  * 有故障、有降级、有未就绪的分别写出
  */
 export function healthSummary(t: Translate, items: readonly Pick<HealthItem, 'state'>[]): HealthSummary {

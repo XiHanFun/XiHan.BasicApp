@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 钉钉、飞书或企业微信的 Webhook 地址、签名密钥与安全关键词
-/// 每个服务商在一侧有一个缺省机器人，通知按机器人渠道发到本侧每个服务商的缺省机器人；租户没有就不发（不借平台的机器人，4.x 同）
+/// 每个服务商在一侧有一个缺省机器人，通知按机器人渠道发到本侧每个服务商的缺省机器人；租户没有就不发（不借平台的机器人）
 /// Webhook 地址与签名密钥加密存储，响应里不回显（地址只给主机）
 /// </remarks>
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code))]

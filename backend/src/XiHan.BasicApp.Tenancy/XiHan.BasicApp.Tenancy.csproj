@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Tenancy</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 租户能力包（Tier 1）：租户业务实体与开通、启停、租户管理员初始化；租户目录同步写框架 MultiTenancy.Database 的 TenantRecord。</Description>
+    <Description>XiHan.BasicApp 租户能力包（Tier 1）：租户业务实体与开通、启停、租户管理员初始化；租户目录同步写框架 MultiTenancy.Database 的 TenantRecord。</Description>
   </PropertyGroup>
 
   <ItemGroup>

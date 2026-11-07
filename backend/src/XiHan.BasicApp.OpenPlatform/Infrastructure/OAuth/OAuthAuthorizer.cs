@@ -58,9 +58,9 @@ public sealed record OAuthAuthorizeCheck(SysOAuthApp? App, IReadOnlyList<string>
 /// OAuth 授权端点：校验授权请求，同意后发授权码
 /// </summary>
 /// <remarks>
-/// 授权端点的规则（4.x 的校验顺序）：client_id 缺失、客户端不存在或停用、回调地址没登记（逐字匹配）都不跳回应用；
+/// 授权端点的规则（按顺序校验）：client_id 缺失、客户端不存在或停用、回调地址没登记（逐字匹配）都不跳回应用；
 /// response_type 只认 <c>code</c>、应用须开着授权码模式、公开客户端须带 PKCE、PKCE 方法只认 <c>S256</c> / <c>plain</c>（不写即 plain）、范围取请求与登记的交集（请求为空即全部登记的）且须含 <c>openid</c>，这些错带着错误跳回应用
-/// 同意即发授权码（256 位随机数、只存散列）并累积同意记录；同意过的范围覆盖本次请求的就不再弹同意页（4.x 不记同意，除了跳过同意页的应用每次都要确认）
+/// 同意即发授权码（256 位随机数、只存散列）并累积同意记录；同意过的范围覆盖本次请求的就不再弹同意页
 /// </remarks>
 /// <param name="apps">应用仓储</param>
 /// <param name="codes">授权码仓储</param>

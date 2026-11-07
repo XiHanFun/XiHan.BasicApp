@@ -91,7 +91,7 @@ function inheritMode(depth: number): string {
     : t('access.roles.inherit_indirect', { depth })
 }
 
-/** 4.x 的「{from} 至 {to}」：两端都没有即不限 */
+/** 「{from} 至 {to}」：两端都没有即不限 */
 function validityRange(from?: null | string, to?: null | string): string {
   if (!from && !to)
     return t('access.roles.validity_unlimited')
@@ -439,7 +439,7 @@ const memberGroups = computed(() => [
   { key: 'members', name: '', items: memberEditor.items.value },
 ])
 
-/** 外部成员、运维支持成员的标记（4.x 同）；运维支持成员注册在别处，先看它 */
+/** 外部成员、运维支持成员的标记；运维支持成员注册在别处，先看它 */
 function memberMark(item: { isExternalMember: boolean, isSupportMember: boolean }): null | string {
   if (item.isSupportMember)
     return t('access.roles.member_support')

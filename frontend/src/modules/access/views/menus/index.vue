@@ -51,7 +51,7 @@ function kindLabel(kind: MenuKind): string {
     : t('access.menus.kinds.page')
 }
 
-/** 种类标签配色：按层级递减强调，目录最显眼（与 4.x 的菜单类型同一口径），外链最安静 */
+/** 种类标签配色：按层级递减强调，目录最显眼，外链最安静 */
 function kindTone(kind: MenuKind): Tone {
   if (kind === 'Directory')
     return 'warning'

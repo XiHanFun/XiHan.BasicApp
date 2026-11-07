@@ -10,7 +10,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   // 每次新建：ensureTab 会就地改写已有标签（name、keepAlive 等）
   const createDefaultTab = (): TabItem => ({
     key: HOME_PATH,
-    // 首页标签的标题键：6.0 的首页跳到第一个菜单页，标签本身叫「首页」
+    // 首页标签的标题键：首页跳到第一个菜单页，标签本身叫「首页」
     title: 'common.actions.home',
     path: HOME_PATH,
     pinned: true,

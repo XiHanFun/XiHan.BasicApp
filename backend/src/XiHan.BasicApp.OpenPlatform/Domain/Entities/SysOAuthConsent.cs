@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 用户对某个应用的授权同意
 /// </summary>
 /// <remarks>
-/// 平台库实体；4.x 不落库，每次都要确认
+/// 平台库实体
 /// 同意过的范围覆盖本次请求的就不再弹同意页；用户在个人中心撤销即删掉它并吊销这个应用的全部令牌
 /// </remarks>
 [ActiveUniqueIndex(nameof(UserId), nameof(ClientId))]

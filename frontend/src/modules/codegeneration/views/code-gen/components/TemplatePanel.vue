@@ -1,7 +1,7 @@
 <!--
-  代码生成 / 模板页签（照 4.x template-panel）
+  代码生成 / 模板页签
   接口取自后端契约（codegen-templates.*）：内置模板随程序版本走，不能编辑、不能删除、可以启停；自有模板可增删改；正文在大编辑器里写，可先检查语法
-  与 4.x 不同：「是否启用」与状态合成一个启停（编辑时一起提交）；引擎只有 Scriban（去掉选了即报错的 T4）
+  状态即启停（编辑时一起提交）；引擎只有 Scriban
 -->
 <script setup lang="ts">
 import type { TemplateEngine, TemplateRow, WriteMode } from './use-templates'
@@ -159,7 +159,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'boolean',
     width: 90,
     order: 7,
-    // 内置模板随程序版本对齐、不能编辑删除，单列呈现比挂在名称后更容易扫读（照 4.x）
+    // 内置模板随程序版本对齐、不能编辑删除，单列呈现比挂在名称后更容易扫读
     render: row => renderTag(asRow(row).isBuiltIn
       ? t('codegeneration.code_gen.template.built_in')
       : t('codegeneration.code_gen.template.custom'), asRow(row).isBuiltIn
@@ -208,7 +208,7 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:plus',
       permission: 'codegeneration.codegen-templates.create',
     },
-    // 内置模板启动时会按程序带的文件对齐，改了也会被覆盖，故与删除一样禁用（照 4.x）
+    // 内置模板启动时会按程序带的文件对齐，改了也会被覆盖，故与删除一样禁用
     {
       key: 'edit',
       title: t('common.actions.edit'),
@@ -303,7 +303,7 @@ const modalTitle = computed(() => (isEdit.value
   ? t('codegeneration.code_gen.template.modal_edit_title')
   : t('codegeneration.code_gen.template.modal_add_title')))
 
-/** 编辑器按目标文件的扩展名高亮模板里字面代码的部分（照 4.x） */
+/** 编辑器按目标文件的扩展名高亮模板里字面代码的部分 */
 const editorFileName = computed(() => {
   const extension = form.fileExtension.trim()
   if (!extension)
@@ -321,7 +321,7 @@ function emptyForm(): TemplateForm {
     templateName: '',
     templateDescription: '',
     templateGroup: '',
-    // 缺省是通用模板：适用于单表、树表、主从全部模式（照 4.x）
+    // 缺省是通用模板：适用于单表、树表、主从全部模式
     templateType: 'Universal',
     templateEngine: 'Scriban',
     writeMode: 'AlwaysOverwrite',
@@ -385,7 +385,7 @@ async function startEdit(row: TemplateRow) {
   }
 }
 
-/** 检查的是大编辑器里正在写的草稿，不是已回写表单的值（照 4.x） */
+/** 检查的是大编辑器里正在写的草稿，不是已回写表单的值 */
 async function validateSyntax(content: string) {
   if (!content.trim()) {
     toast.warning(t('codegeneration.code_gen.template.validate_content_required'))

@@ -10166,7 +10166,7 @@ export interface components {
         AiProviderProbe: {
             /** @description 是否通 */
             success: boolean;
-            /** @description 成功时是聊天的结束原因，失败时是提供商给的原因（照 4.x） */
+            /** @description 成功时是聊天的结束原因，失败时是提供商给的原因 */
             message?: string | null;
             /**
              * Format: int64
@@ -14243,7 +14243,7 @@ export interface components {
              * @description 期望失效时间
              */
             expectedExpiresAt?: string | null;
-            /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态） */
+            /** @description 期望失效时间已过（算出的标记，不是状态） */
             isExpectedExpired: boolean;
             /**
              * Format: uuid
@@ -14518,7 +14518,7 @@ export interface components {
              * @description 到期时间（不含）；为空即长期有效
              */
             expiresAt?: string | null;
-            /** @description 是否外部成员：注册在别处、以成员身份加入本租户（4.x 同） */
+            /** @description 是否外部成员：注册在别处、以成员身份加入本租户 */
             isExternalMember: boolean;
             /** @description 是否运维支持成员：平台账号以运维支持身份进入本租户（这时 IsExternalMember 也为真） */
             isSupportMember: boolean;
@@ -18320,7 +18320,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description 锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了，4.x 同） */
+                    /** @description 锁屏密码（本会话一次性；不能为空，否则谁拿到令牌调一次解锁就开了） */
                     password?: string | null;
                 };
             };
@@ -23347,7 +23347,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description 编码：唯一、不含空白，建好后不能改（照 4.x） */
+                    /** @description 编码：唯一、不含空白，建好后不能改 */
                     templateCode: string;
                     /** @description 名称 */
                     templateName: string;
@@ -32934,7 +32934,7 @@ export interface operations {
                          * @description 最后操作（近一年内）
                          */
                         lastOperationAt?: string | null;
-                        /** @description 近 371 天里有活动的日子（稀疏，按日期正序；4.x 同） */
+                        /** @description 近 371 天里有活动的日子（稀疏，按日期正序） */
                         trend: components["schemas"]["ActivityDayResponse"][];
                     };
                 };
@@ -33271,7 +33271,7 @@ export interface operations {
             query?: {
                 /** @description 页码，从 1 起 */
                 page?: number;
-                /** @description 页大小（1–50，缺省 10；4.x 同） */
+                /** @description 页大小（1–50，缺省 10） */
                 pageSize?: number;
             };
             header?: never;
@@ -36937,7 +36937,7 @@ export interface operations {
                          * @description 期望失效时间
                          */
                         expectedExpiresAt?: string | null;
-                        /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态） */
+                        /** @description 期望失效时间已过（算出的标记，不是状态） */
                         isExpectedExpired: boolean;
                         /**
                          * Format: uuid
@@ -37036,7 +37036,7 @@ export interface operations {
                          * @description 期望失效时间
                          */
                         expectedExpiresAt?: string | null;
-                        /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态） */
+                        /** @description 期望失效时间已过（算出的标记，不是状态） */
                         isExpectedExpired: boolean;
                         /**
                          * Format: uuid
@@ -37167,7 +37167,7 @@ export interface operations {
                          * @description 期望失效时间
                          */
                         expectedExpiresAt?: string | null;
-                        /** @description 期望失效时间已过（照 4.x 算出的标记，不是状态） */
+                        /** @description 期望失效时间已过（算出的标记，不是状态） */
                         isExpectedExpired: boolean;
                         /**
                          * Format: uuid
@@ -38992,7 +38992,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description 显示名（4.x 的昵称） */
+                    /** @description 显示名 */
                     displayName: string;
                     /** @description 真实姓名 */
                     realName?: string | null;
@@ -41000,7 +41000,7 @@ export interface operations {
                          * @description 到期时间（不含）；为空即长期有效
                          */
                         expiresAt?: string | null;
-                        /** @description 是否外部成员：注册在别处、以成员身份加入本租户（4.x 同） */
+                        /** @description 是否外部成员：注册在别处、以成员身份加入本租户 */
                         isExternalMember: boolean;
                         /** @description 是否运维支持成员：平台账号以运维支持身份进入本租户（这时 IsExternalMember 也为真） */
                         isSupportMember: boolean;
@@ -45367,7 +45367,7 @@ export interface operations {
                     "application/json": {
                         /** @description 用户资料 */
                         user: components["schemas"]["UserResponse"];
-                        /** @description 账号安全；外部成员为空（账号域数据由其注册地维护，4.x 同） */
+                        /** @description 账号安全；外部成员为空（账号域数据由其注册地维护） */
                         security?: components["schemas"]["UserSecurityDetailResponse"] | null;
                         /** @description 今日统计（只算当前一侧）；用户不在当前一侧（平台看租户的用户）或没装日志包为空 */
                         today?: components["schemas"]["UserTodayResponse"] | null;

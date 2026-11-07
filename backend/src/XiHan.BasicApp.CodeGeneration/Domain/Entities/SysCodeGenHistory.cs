@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的历史记录
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，只增不改。每次生成（成功、失败）记一条，预览不记（照 4.x）
-/// 产物包存成 Files 的临时文件、这里记文件 ID（4.x 的 <c>DownloadPath</c> 从没写过，方案 C2）
+/// 平台库实体、只在平台一侧，只增不改。每次生成（成功、失败）记一条，预览不记
+/// 产物包存成 Files 的临时文件、这里记文件 ID（方案 C2）
 /// </remarks>
 [SugarIndex("ix_{table}_generated_at", nameof(GeneratedAt), OrderByType.Desc)]
 [SugarIndex("ix_{table}_table_id", nameof(TableId), OrderByType.Asc)]

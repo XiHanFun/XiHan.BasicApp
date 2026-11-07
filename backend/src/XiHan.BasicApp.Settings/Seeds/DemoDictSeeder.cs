@@ -37,7 +37,7 @@ public sealed record DemoDict(string Code, string Name, string Scenario, IReadOn
 /// 演示字典种子
 /// </summary>
 /// <remarks>
-/// 号段 900 + 2（4.x 同），<c>BasicApp:Seed:EnableDemoData</c> 打开才写
+/// 号段 900 + 2，<c>BasicApp:Seed:EnableDemoData</c> 打开才写
 /// 平台字典（租户可见可用、改不了），演示缺省项、停用项与树形字典项；系统不依赖任何内置字典，这里只是示例
 /// 按字典编码只首写：平台写过一次（含已删除的）或别的一侧已有同码（字典不覆盖）就不再碰
 /// </remarks>

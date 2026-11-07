@@ -46,7 +46,7 @@ public sealed class ListDelegations(DelegationQueries queries) : IOperation<Page
 /// </summary>
 /// <remarks>
 /// <c>POST /api/delegations:create</c>。委托人此刻须持有所委托的权限码或角色；被委托人在有效期内按无条件授予拿到权限码，或按角色的继承链拿到授予（不拿数据范围与字段安全）
-/// 委托角色等于被委托人多持有一个角色：过静态职责分离、基数与条件（4.x 的权限申请通过时同样判定）
+/// 委托角色等于被委托人多持有一个角色：过静态职责分离、基数与条件
 /// 代他人委托时操作者自己也要持有（或持 <c>*</c>）：不然持有委托权限的人能把所有者的权限委托给自己
 /// </remarks>
 /// <param name="service">委托服务</param>

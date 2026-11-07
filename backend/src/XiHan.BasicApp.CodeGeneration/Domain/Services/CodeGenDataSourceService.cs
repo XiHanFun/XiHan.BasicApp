@@ -20,9 +20,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Services;
 /// 数据源的规则与外部库连接
 /// </summary>
 /// <remarks>
-/// 口令与连接串经 <see cref="ISecretProtector"/> 加解密，解不开即 <c>CODEGENERATION_UNAVAILABLE_001</c>（4.x 把原值当明文返回，方案 C2）
+/// 口令与连接串经 <see cref="ISecretProtector"/> 加解密，解不开即 <c>CODEGENERATION_UNAVAILABLE_001</c>，不当明文用（方案 C2）
 /// 外部库经框架的运行时数据源连接（<see cref="DataSourceRegistry"/>，名字 <c>codegen-&lt;ID&gt;</c>，每个数据源一条健康项）：首次使用时登记，
-/// 修改、启停与删除之后注销，下次使用按新定义重建（照 4.x 的动态连接）。连接串优先用显式的，没有就按主机、端口、库名、账号拼出（照 4.x），附加参数追加在拼出的连接串之后
+/// 修改、启停与删除之后注销，下次使用按新定义重建。连接串优先用显式的，没有就按主机、端口、库名、账号拼出，附加参数追加在拼出的连接串之后
 /// </remarks>
 /// <param name="dataSources">数据源仓储</param>
 /// <param name="tables">表配置仓储</param>
@@ -128,7 +128,7 @@ public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, G
     /// 取消别的数据源的缺省标记
     /// </summary>
     /// <remarks>
-    /// 缺省数据源最多一个（照 4.x）
+    /// 缺省数据源最多一个
     /// </remarks>
     /// <param name="except">保留缺省的数据源</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -263,7 +263,7 @@ public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, G
     /// 按定义连上数据源
     /// </summary>
     /// <remarks>
-    /// 停用的数据源不能用（照 4.x，不回落到主库）；连接按定义在框架的运行时数据源里登记一次、之后复用
+    /// 停用的数据源不能用（不回落到主库）；连接按定义在框架的运行时数据源里登记一次、之后复用
     /// </remarks>
     /// <param name="id">数据源 ID</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -294,7 +294,7 @@ public sealed class CodeGenDataSourceService(IRepository<SysCodeGenDataSource, G
     /// 测试一次连接
     /// </summary>
     /// <remarks>
-    /// 按当前定义临时建一个连接、开一次再关（不登记、不复用），停用的数据源也能测（照 4.x）
+    /// 按当前定义临时建一个连接、开一次再关（不登记、不复用），停用的数据源也能测
     /// </remarks>
     /// <param name="definition">连接定义</param>
     /// <param name="cancellationToken">取消令牌</param>

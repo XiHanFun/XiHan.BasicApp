@@ -174,7 +174,7 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:pencil',
       permission: 'files.storage-configs.update',
     },
-    // 缺省配置不能停用也不能删除（后端拒绝），4.x 同样不给入口
+    // 缺省配置不能停用也不能删除（后端拒绝），不给入口
     {
       key: 'toggle',
       title: t('files.storage_configs.actions.toggle'),
@@ -282,7 +282,7 @@ function changeType(value: unknown) {
   form.type = value as StorageType
 }
 
-/** 停用的配置不能设为缺省（4.x 同）：关掉启用即一并取消缺省 */
+/** 停用的配置不能设为缺省：关掉启用即一并取消缺省 */
 function changeEnabled(enabled: boolean) {
   form.status = enabled ? 'Active' : 'Disabled'
   if (!enabled)

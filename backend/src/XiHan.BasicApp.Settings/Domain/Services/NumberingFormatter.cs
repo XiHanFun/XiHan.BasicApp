@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Settings.Domain.Services;
 /// 编号的格式、周期与容量计算
 /// </summary>
 /// <remarks>
-/// 纯函数，与 4.x 的 <c>NumberingFormatter</c> 同规则：号码是「前缀、日期段、补零流水」里非空的段用分隔符连起来
+/// 纯函数：号码是「前缀、日期段、补零流水」里非空的段用分隔符连起来
 /// 日期与周期都按规则时区的当地时间；周期序号单调递增，供「只前进」的翻转判断
 /// </remarks>
 public static class NumberingFormatter

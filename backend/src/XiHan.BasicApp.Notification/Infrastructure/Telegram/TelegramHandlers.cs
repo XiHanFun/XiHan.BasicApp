@@ -186,7 +186,7 @@ public sealed record TelegramConversationState(string? Step, IReadOnlyDictionary
 /// 会话状态的存放（共享缓存）
 /// </summary>
 /// <remarks>
-/// 键为「机器人:会话:用户」，缺省 10 分钟，4.x 同
+/// 键为「机器人:会话:用户」，缺省 10 分钟
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 public sealed class TelegramConversationStore(ISharedCache cache)

@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Identity;
 /// 身份包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 见方案 5.9，4.x 同两个实体：用户目录与在线会话。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
+/// 见方案 5.9，两个实体：用户目录与在线会话。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
 /// 用户目录的关键字只匹配没受保护的登录名与显示名（本包收窄），登录、刷新、个人中心等本人自己的资料不套用
 /// </remarks>
 public static class IdentityFieldSecurity

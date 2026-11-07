@@ -35,7 +35,7 @@ export function isOfficialWebhook(provider: BotProvider, value: string): boolean
   return url.protocol === 'https:' && url.port === '' && BOT_WEBHOOK_HOSTS[provider].includes(url.hostname.toLowerCase())
 }
 
-/** 签名密钥与安全关键词只有钉钉、飞书有；企业微信的 key 在 Webhook 地址里，没有签名（4.x 同） */
+/** 签名密钥与安全关键词只有钉钉、飞书有；企业微信的 key 在 Webhook 地址里，没有签名 */
 export function supportsSigning(provider: BotProvider): boolean {
   return provider !== 'WeCom'
 }
@@ -86,7 +86,7 @@ export function toBotConfigForm(row: BotConfigRow): BotConfigForm {
   }
 }
 
-/** 表单的第一处问题（4.x 的提交前校验，加上官方地址核对）；都好为空 */
+/** 表单的第一处问题（提交前校验，含官方地址核对）；都好为空 */
 export type BotConfigProblem = 'code' | 'name' | 'webhook_url' | 'webhook_url_invalid'
 
 export function findBotConfigProblem(form: BotConfigForm): BotConfigProblem | null {
@@ -114,7 +114,7 @@ function blankToNull(value: string): null | string {
   return value.trim() || null
 }
 
-/** 新建与修改共用的内容；企业微信不带签名密钥与关键词（4.x 同），空白写 null */
+/** 新建与修改共用的内容；企业微信不带签名密钥与关键词，空白写 null */
 function draft(form: BotConfigForm) {
   const signing = supportsSigning(form.provider)
   return {
@@ -150,7 +150,7 @@ export function toUpdateBody(form: BotConfigForm & { id: string }): RequestOf<'b
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。6.0 没有单独的启停操作，启停是取最新一份再整体修改（签名密钥不带即保留）；
+ * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改（签名密钥不带即保留）；
  * 默认机器人不能删除、不能停用、不能换服务商（NOTIFICATION_CONFLICT_005）
  */
 export function botConfigResource(): SchemaResource<BotConfigRow> {

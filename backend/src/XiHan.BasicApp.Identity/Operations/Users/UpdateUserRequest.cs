@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <c>users.update</c> 的请求：修改资料
 /// </summary>
 /// <remarks>
-/// 整体覆盖（4.x 同）。登录名与注册地不可改。标识由路由值 <c>{id}</c> 绑定
+/// 整体覆盖。登录名与注册地不可改。标识由路由值 <c>{id}</c> 绑定
 /// </remarks>
 /// <param name="Id">用户 ID</param>
 /// <param name="DisplayName">显示名</param>

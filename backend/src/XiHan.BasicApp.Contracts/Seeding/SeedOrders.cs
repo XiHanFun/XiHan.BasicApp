@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Contracts.Seeding;
 /// 种子的阶段号段
 /// </summary>
 /// <remarks>
-/// 方案 5.14，沿用 4.x：各包在本阶段号段内取 <c>+1</c>、<c>+2</c>…，可选模块按 <see cref="ModuleOffset"/> 偏移
+/// 方案 5.14：各包在本阶段号段内取 <c>+1</c>、<c>+2</c>…，可选模块按 <see cref="ModuleOffset"/> 偏移
 /// </remarks>
 public static class SeedOrders
 {

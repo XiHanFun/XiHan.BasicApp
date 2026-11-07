@@ -21,7 +21,7 @@ export type { DataScopeValue, DepartmentNode }
 
 export const ROLE_STATUSES: readonly RoleStatus[] = ['Active', 'Disabled']
 
-/** 候选用户一次取的上限（后端 PageInfo 的页大小上限，与 4.x 的成员目录同为 500） */
+/** 候选用户一次取的上限（后端 PageInfo 的页大小上限 500） */
 const CANDIDATE_LIMIT = 500
 
 function blankToNull(value: string): null | string {
@@ -389,7 +389,7 @@ export function mergeMemberCandidates(users: readonly UserOption[], members: rea
   return items
 }
 
-/** 草稿与现有成员比出差量：新加入的指派、移出的撤销（6.0 两边都按用户主键） */
+/** 草稿与现有成员比出差量：新加入的指派、移出的撤销（两边都按用户主键） */
 export function diffMembers(draft: readonly string[], members: readonly RoleMember[]): { assign: string[], unassign: string[] } {
   const current = new Set(members.map(member => member.userId))
   const next = new Set(draft)
@@ -581,7 +581,7 @@ export function useRoleDataScopeEditor() {
 
 export type PermissionRule = RoleDetail['rules'][number]
 
-/** 详情里的一条权限分配（4.x 的「动作 / 有效期」两列）：显示名取当前界面语言的权限目录，不在目录里的原样显示权限码 */
+/** 详情里的一条权限分配（「动作 / 有效期」两列）：显示名取当前界面语言的权限目录，不在目录里的原样显示权限码 */
 export interface RolePermissionEntry {
   code: string
   displayName: string

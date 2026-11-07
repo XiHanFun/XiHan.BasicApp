@@ -24,10 +24,10 @@ namespace XiHan.BasicApp.AI.Infrastructure;
 /// 落库的 Provider 目录
 /// </summary>
 /// <remarks>
-/// 取代框架按配置建的目录（方案 A1，照 4.x 落库）：启用中的提供商按编码映射成框架的 Provider 配置，聊天、嵌入与知识库都经它解析客户端
+/// 取代框架按配置建的目录（方案 A1，提供商落库）：启用中的提供商按编码映射成框架的 Provider 配置，聊天、嵌入与知识库都经它解析客户端
 /// 框架的目录接口是同步的，所以持一份内存快照：宿主启动时装载，提供商写入的调用提交之后重载（<c>AiProviderCatalogMiddleware</c>）；
 /// 配了 Redis 时写入方另写一个戳键，别的实例经共享缓存的变更通知重载，没配是单实例。重载只丢掉配置变了或没了的提供商缓存的客户端
-/// 解不开 API 密钥的提供商记 Warning 后不进快照，按未配置处理（照 4.x 的 fail-closed，不当明文用）
+/// 解不开 API 密钥的提供商记 Warning 后不进快照，按未配置处理（fail-closed，不当明文用）
 /// </remarks>
 public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
 {
@@ -83,13 +83,13 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
 
     /// <inheritdoc />
     /// <remarks>
-    /// 启用中且标为缺省的那一个；没有为 <see langword="null"/>（照 4.x，不在只有一个时自动取它）
+    /// 启用中且标为缺省的那一个；没有为 <see langword="null"/>（不在只有一个时自动取它）
     /// </remarks>
     public string? DefaultProvider => Volatile.Read(ref _snapshot).Default;
 
     /// <inheritdoc />
     /// <remarks>
-    /// 照 4.x 只有一个缺省：与 <see cref="DefaultProvider"/> 是同一个提供商
+    /// 只有一个缺省：与 <see cref="DefaultProvider"/> 是同一个提供商
     /// </remarks>
     public string? DefaultEmbeddingProvider => DefaultProvider;
 

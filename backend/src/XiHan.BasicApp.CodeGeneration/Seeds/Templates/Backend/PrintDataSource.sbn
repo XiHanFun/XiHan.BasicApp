@@ -14,7 +14,7 @@ namespace {{ Namespace }}.Operations.{{ ResourcePascal }};
 /// {{ DisplayName | xml_doc }}的打印数据源
 /// </summary>
 /// <remarks>
-/// 在包的 Feature 里经 <c>AddPrintDataSource</c> 登记；打印时前端把详情交给打印服务，选项、日期与布尔先换成显示文本（照 4.x）
+/// 在包的 Feature 里经 <c>AddPrintDataSource</c> 登记；打印时前端把详情交给打印服务，选项、日期与布尔先换成显示文本
 /// </remarks>
 public static class {{ ClassName }}PrintDataSource
 {

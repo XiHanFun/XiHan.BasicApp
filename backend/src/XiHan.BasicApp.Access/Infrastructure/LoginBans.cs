@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// 登录失败自动封禁的参数
 /// </summary>
 /// <remarks>
-/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，只认平台的；没建即缺省值，缺省关，4.x 同
+/// 系统参数 <see cref="ConfigKey"/> 的 JSON 值，只认平台的；没建即缺省值，缺省关
 /// </remarks>
 /// <param name="IsEnabled">是否启用</param>
 /// <param name="WindowMinutes">计数的固定窗口（分钟，1–1440）</param>
@@ -48,7 +48,7 @@ public sealed record LoginBanEntry(string Ip, DateTimeOffset Until);
 /// 登录失败自动封禁的存储（单例，共享缓存）
 /// </summary>
 /// <remarks>
-/// 同一地址跨账号、按固定窗口数失败，达到上限即封；24 小时内再犯，时长在上次的基础上翻倍到上限（4.x 同）
+/// 同一地址跨账号、按固定窗口数失败，达到上限即封；24 小时内再犯，时长在上次的基础上翻倍到上限
 /// 封禁带到期时间，到点自动解封；另存一份封禁名单供查看（先读后写，不是原子的，与登录节流一样只当减速，不当安全边界）
 /// </remarks>
 /// <param name="cache">共享缓存</param>
@@ -125,7 +125,7 @@ public sealed class LoginBans(ISharedCache cache, TimeProvider clock)
     /// 解封一个地址，连同它这一窗口的失败计数
     /// </summary>
     /// <remarks>
-    /// 4.x 同；封禁历史保留，24 小时内再犯照样翻倍
+    /// 封禁历史保留，24 小时内再犯照样翻倍
     /// </remarks>
     /// <returns>没封着返回 <see langword="false"/></returns>
     public async Task<bool> LiftAsync(string ip, LoginAutoBanSettings settings, CancellationToken cancellationToken)

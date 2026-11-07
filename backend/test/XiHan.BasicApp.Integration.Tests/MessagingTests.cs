@@ -101,14 +101,14 @@ public sealed class MessagingTests : IDisposable
         });
         await using var running = server;
 
-        // 模板：平台种子 9 个（4.x 的 8 个加通知的机器人消息）；语法错误与同渠道同编码拒绝
+        // 模板：平台种子 9 个；语法错误与同渠道同编码拒绝
         Assert.Equal(9, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
         Assert.Equal("NOTIFICATION_VALIDATION_007", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "broken", channel = "Email", name = "Broken", content = "{{ if }}" }, platform));
         // 语法没错、求值时撑爆线程栈的模板：保存时就拒绝
         Assert.Equal("NOTIFICATION_VALIDATION_007", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "deep", channel = "Email", name = "Deep", content = "{{ a" + string.Concat(Enumerable.Repeat(".a", 20000)) + " }}" }, platform));
         Assert.Equal("NOTIFICATION_CONFLICT_003", await CodeAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "notification-email", channel = "Email", name = "Again", content = "x" }, platform));
 
-        // 渠道四种（4.x 同）：主题只留给邮件与站内通知（通知标题），HTML 只对邮件
+        // 渠道四种：主题只留给邮件与站内通知（通知标题），HTML 只对邮件
         var (_, inApp) = await SendAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "welcome-note", channel = "InApp", name = "Welcome", subject = "Hi {{name}}", content = "Welcome", isHtml = true }, platform);
         Assert.Equal(("InApp", "Hi {{name}}", false, true), (inApp.GetProperty("channel").GetString(), inApp.GetProperty("subject").GetString(), inApp.GetProperty("isHtml").GetBoolean(), inApp.GetProperty("isPlatform").GetBoolean()));
         var (_, bot) = await SendAsync(server, HttpMethod.Post, "/api/message-templates", new { code = "welcome-note", channel = "Bot", name = "Welcome", subject = "ignored", content = "Welcome", isHtml = true }, platform);
@@ -198,7 +198,7 @@ public sealed class MessagingTests : IDisposable
         Assert.Empty((await SendAsync(server, HttpMethod.Delete, $"/api/emails?ids={waiting}", null, platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Equal(3, (await RecordsAsync(server, platform, "emails")).Count);
 
-        // 租户一侧：平台的模板看得到、改不了（4.x 同），同编码模板覆盖平台的，没有自己的配置即用平台缺省；记录只看本侧
+        // 租户一侧：平台的模板看得到、改不了，同编码模板覆盖平台的，没有自己的配置即用平台缺省；记录只看本侧
         var shared = (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", """{"page":{"index":1,"size":50}}""", tenant)).Body;
         Assert.Equal(11, shared.GetProperty("total").GetInt32());
         Assert.All(shared.GetProperty("items").EnumerateArray(), static t => Assert.True(t.GetProperty("isPlatform").GetBoolean()));

@@ -29,8 +29,8 @@ public sealed record ExternalLoginRequest([Required, StringLength(128)] string T
 /// </summary>
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。凭回调发的一次性票据，在登录页选的注册地里按（提供商, 第三方标识）找绑定的账号
-/// 没绑定即 <c>IDENTITY_DENIED_015</c>（拍板：不自动建号，先用账号密码登录、到个人中心绑定；4.x 在租户 1 自动建号，建出的账号没有可用的密码与邮箱）；
-/// 之后与密码登录同样过租户、账号状态、锁定期与双因素（4.x 第三方登录全跳过），开会话前过登录守卫，并刷新绑定上的显示名、邮箱、头像与最近登录时间
+/// 没绑定即 <c>IDENTITY_DENIED_015</c>（拍板：不自动建号，先用账号密码登录、到个人中心绑定）；
+/// 之后与密码登录同样过租户、账号状态、锁定期与双因素，开会话前过登录守卫，并刷新绑定上的显示名、邮箱、头像与最近登录时间
 /// </remarks>
 /// <param name="cache">共享缓存（票据）</param>
 /// <param name="bindings">第三方绑定仓储</param>
@@ -124,7 +124,7 @@ public sealed class ExternalLogin(
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.LockedOut, MessageArguments.Of(("seconds", (int)Math.Ceiling((lockoutEnd - now).TotalSeconds))));
         }
 
-        // 第三方给的资料每次登录都刷新（4.x 只在建绑定时写一次）
+        // 第三方给的资料每次登录都刷新
         binding.DisplayName = Clip(ticket.Identity.DisplayName, 200);
         binding.Email = Clip(ticket.Identity.Email, 200);
         binding.AvatarUrl = Clip(ticket.Identity.AvatarUrl, 500);

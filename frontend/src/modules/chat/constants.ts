@@ -22,7 +22,7 @@ export const CHAT_VOICE_PLAYED_STORAGE_KEY = 'chat-voice-played'
 export const CHAT_VOICE_PLAYED_CAP = 500
 
 /**
- * 聊天界面用到的权限码（后端 ChatPermissions；4.x 的 chat:read / send / manage 拆成三段码）：
+ * 聊天界面用到的权限码（后端 ChatPermissions）：
  * 会话读管打开会话、退群、置顶、免打扰与已读，消息发送管发、撤回、编辑、回应、置顶消息与转发，会话管理管建群与群治理
  * 只做显隐，安全边界在后端；类型保证每个码都在生成的权限表里
  */

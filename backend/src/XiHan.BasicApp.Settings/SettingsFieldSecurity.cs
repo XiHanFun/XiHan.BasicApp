@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Settings;
 /// 设置包登记的字段安全实体
 /// </summary>
 /// <remarks>
-/// 4.x 同五个实体：参数、字典、字典项、业务编号规则与编号分配记录。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
+/// 五个实体：参数、字典、字典项、业务编号规则与编号分配记录。字段由响应类型生成，规则由 Access 的字段安全中间件在读、建、改处统一套用；
 /// 字典项的修改按字典项本身比对（层级深度不参与）
 /// </remarks>
 public static class SettingsFieldSecurity

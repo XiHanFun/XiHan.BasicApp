@@ -14,8 +14,8 @@ namespace XiHan.BasicApp.AI.Queries;
 /// 知识文档的列表查询
 /// </summary>
 /// <remarks>
-/// 只看调用方一侧。关键字匹配标题与来源（照 4.x）；筛选：来源类型、状态（<c>eq</c> / <c>in</c>）；
-/// 排序：标题、块数、状态、排序号、创建时间，没给即排序号升序再创建时间降序（照 4.x）。别的筛选与排序是 <c>AI_VALIDATION_101</c>；列表不取原文
+/// 只看调用方一侧。关键字匹配标题与来源；筛选：来源类型、状态（<c>eq</c> / <c>in</c>）；
+/// 排序：标题、块数、状态、排序号、创建时间，没给即排序号升序再创建时间降序。别的筛选与排序是 <c>AI_VALIDATION_101</c>；列表不取原文
 /// </remarks>
 /// <param name="rows">按侧读写</param>
 public sealed class KnowledgeDocumentQueries(SideRows rows)

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <RootNamespace>XiHan.BasicApp.Host</RootNamespace>
-    <Description>XiHan.BasicApp 6.0 宿主：Full Profile + SqlSugar + JWT + 数据库 Provider + 发件箱，配了连接时装 Redis 与 RabbitMQ，映射 HTTP / OpenAPI / Scalar / MCP / gRPC / CloudEvents 端点。</Description>
+    <Description>XiHan.BasicApp 宿主：Full Profile + SqlSugar + JWT + 数据库 Provider + 发件箱，配了连接时装 Redis 与 RabbitMQ，映射 HTTP / OpenAPI / Scalar / MCP / gRPC / CloudEvents 端点。</Description>
     <!-- 最小 API 的端点委托在编译期生成，去掉反射绑定 -->
     <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
     <UserSecretsId>xihan-basicapp-next</UserSecretsId>

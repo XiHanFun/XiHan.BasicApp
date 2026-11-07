@@ -33,16 +33,13 @@ public sealed class NotificationOptions
     /// 失败后重试的基础间隔（缺省 30 秒）
     /// </summary>
     /// <remarks>
-    /// 第 n 次失败后等 n 倍，4.x 同
+    /// 第 n 次失败后等 n 倍
     /// </remarks>
     public TimeSpan RetryDelay { get; init; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// 每条记录最多尝试的次数（缺省 3）
     /// </summary>
-    /// <remarks>
-    /// 4.x 同
-    /// </remarks>
     public int MaxAttempts { get; init; } = 3;
 
     /// <summary>

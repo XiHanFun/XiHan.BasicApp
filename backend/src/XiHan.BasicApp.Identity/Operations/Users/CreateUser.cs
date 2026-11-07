@@ -70,7 +70,7 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<Sys
             Remark = string.IsNullOrWhiteSpace(request.Remark) ? null : request.Remark.Trim(),
         };
 
-        // 席位配额（4.x 同）：只约束租户主体的调用，平台代租户建用户不受限
+        // 席位配额：只约束租户主体的调用，平台代租户建用户不受限
         foreach (var quota in quotas)
         {
             var seat = await quota.EnsureSeatsAsync(context, homeTenant, 1).ConfigureAwait(false);
@@ -95,7 +95,7 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<Sys
 
         if (request.Password is { Length: > 0 })
         {
-            // 密码由管理员定的：记下来，系统参数 identity.password 打开时登录要先改（4.x 同）
+            // 密码由管理员定的：记下来，系统参数 identity.password 打开时登录要先改
             var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: true, context.CancellationToken).ConfigureAwait(false);
             if (set.IsFailure)
             {

@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "列「{column}」的常量选项要是非空数组，每项有文本的 label 与文本或数字的 value：{value}",
   "codegeneration.generate.const_options_type_mismatch": "列「{column}」的类型是 {type}，常量选项的值却是 {valueType}。",
   "openapi.tags.codegen_templates.name": "代码生成模板",
-  "openapi.tags.codegen_templates.description": "把表配置生成 6.0 包与前端模块的 Scriban 模板：内置模板随程序版本走，可以另加自有模板。",
+  "openapi.tags.codegen_templates.description": "把表配置生成后端包与前端模块的 Scriban 模板：内置模板随程序版本走，可以另加自有模板。",
   "permissions.codegeneration.codegen_templates.read.name": "查看代码生成模板",
   "permissions.codegeneration.codegen_templates.read.description": "查看代码生成模板、检查模板语法。",
   "permissions.codegeneration.codegen_templates.create.name": "新建代码生成模板",

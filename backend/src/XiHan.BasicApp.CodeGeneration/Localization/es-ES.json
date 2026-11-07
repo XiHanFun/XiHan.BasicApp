@@ -128,7 +128,7 @@
   "codegeneration.generate.const_options_invalid": "Las opciones constantes de la columna '{column}' deben ser un arreglo no vacío de objetos con label de texto y value de texto o número: {value}",
   "codegeneration.generate.const_options_type_mismatch": "La columna '{column}' es {type} pero los valores de sus opciones son {valueType}.",
   "openapi.tags.codegen_templates.name": "Plantillas de generación de código",
-  "openapi.tags.codegen_templates.description": "Plantillas Scriban que convierten tablas en un paquete 6.0 y un módulo frontend; las integradas siguen la versión y se pueden añadir propias.",
+  "openapi.tags.codegen_templates.description": "Plantillas Scriban que convierten tablas en un paquete backend y un módulo frontend; las integradas siguen la versión y se pueden añadir propias.",
   "permissions.codegeneration.codegen_templates.read.name": "Ver plantillas de la generación de código",
   "permissions.codegeneration.codegen_templates.read.description": "Ver las plantillas y comprobar su sintaxis.",
   "permissions.codegeneration.codegen_templates.create.name": "Crear plantillas de la generación de código",

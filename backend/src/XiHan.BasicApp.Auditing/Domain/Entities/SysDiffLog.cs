@@ -93,7 +93,7 @@ public enum DiffKind
     /// 恢复（软删除的数据 IsDeleted 由真变假）
     /// </summary>
     /// <remarks>
-    /// 4.x 同，从修改里区分出来
+    /// 从修改里区分出来
     /// </remarks>
     Restore = 3,
 }

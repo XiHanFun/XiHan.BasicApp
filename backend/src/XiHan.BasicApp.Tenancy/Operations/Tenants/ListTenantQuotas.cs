@@ -63,7 +63,7 @@ public sealed record TenantQuotasResponse(IReadOnlyList<TenantQuotaResponse> Ite
 /// 各租户的有效配额与用量
 /// </summary>
 /// <remarks>
-/// <c>GET /api/tenants:quotas</c>（4.x 的租户列表用量列与配额审计）。只在平台侧
+/// <c>GET /api/tenants:quotas</c>（租户列表的用量列与配额审计）。只在平台侧
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="quotas">租户配额</param>

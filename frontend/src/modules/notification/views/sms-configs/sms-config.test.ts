@@ -100,7 +100,7 @@ describe('短信配置的模板映射', () => {
     expect(isValidTemplateMap('[]')).toBe(false)
     expect(isValidTemplateMap('null')).toBe(false)
     expect(isValidTemplateMap('"SMS_1"')).toBe(false)
-    // 4.x 的嵌套写法在 6.0 不再合法
+    // 嵌套写法不合法
     expect(isValidTemplateMap('{"auth-sms-login-code":{"templateCode":"SMS_1","paramOrder":["code"]}}')).toBe(false)
     expect(isValidTemplateMap('{"a": 1}')).toBe(false)
     expect(isValidTemplateMap('{a:1}')).toBe(false)

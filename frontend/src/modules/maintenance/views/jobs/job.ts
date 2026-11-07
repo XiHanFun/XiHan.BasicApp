@@ -15,11 +15,11 @@ export type JobRunRow = ResponseOf<'job-runs.list'>['items'][number]
 export type SchedulePreview = ResponseOf<'jobs.validate-schedule'>
 type PageFilter = PageRequest['filters'][number]
 
-/** 任务的运行状态（4.x 的 RunTaskStatus 去掉「已停止」）：6.0 没有这一列，由运行中次数、暂停与上次结果推出来 */
+/** 任务的运行状态：后端没有这一列，由运行中次数、暂停与上次结果推出来 */
 export type JobRunStatus = 'Running' | 'Paused' | 'Failed' | 'Success' | 'Pending'
 
 /**
- * 列表行：作业本身加上 4.x 列表直接给、6.0 要推出来的几列
+ * 列表行：作业本身加上要推出来的几列
  * 分组取作业名第一段（登记它的包），触发类型取第一个触发器，已执行是各触发器触发次数之和，上次执行取上次结果的开始时间
  */
 export type JobRow = JobResponse & {
@@ -60,14 +60,14 @@ export function toJobRow(job: JobResponse): JobRow {
   }
 }
 
-/** 正在运行：不能再立即执行、也不能改启停（4.x 同；暂停的作业仍可立即执行） */
+/** 正在运行：不能再立即执行、也不能改启停（暂停的作业仍可立即执行） */
 export function isRunning(job: Pick<JobResponse, 'runningCount'>): boolean {
   return job.runningCount > 0
 }
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 
-/** 触发类型（计划的种类）沿用 4.x 的四个文案：手动即立即执行、一次性即定时执行、间隔即循环执行 */
+/** 触发类型（计划的种类）的四个文案：手动即立即执行、一次性即定时执行、间隔即循环执行 */
 export function kindLabel(t: Translate, kind: JobScheduleKind | null | undefined): string {
   switch (kind) {
     case 'Manual': return t('maintenance.jobs.trigger_immediate')
@@ -78,7 +78,7 @@ export function kindLabel(t: Translate, kind: JobScheduleKind | null | undefined
   }
 }
 
-/** 触发类型的搜索选项（4.x 的顺序）：后端按 `kind eq` 匹配任一触发器 */
+/** 触发类型的搜索选项：后端按 `kind eq` 匹配任一触发器 */
 export function kindOptions(t: Translate): { label: string, value: JobScheduleKind }[] {
   return (['Manual', 'Once', 'Interval', 'Cron'] as const).map(kind => ({
     label: kindLabel(t, kind),
@@ -96,7 +96,7 @@ export function runStatusLabel(t: Translate, status: JobRunStatus): string {
   }
 }
 
-/** 运行状态的语气（4.x 同）：成功绿、失败红、运行中黄、暂停中性、待执行蓝 */
+/** 运行状态的语气：成功绿、失败红、运行中黄、暂停中性、待执行蓝 */
 export function runStatusTone(status: JobRunStatus): Tone {
   switch (status) {
     case 'Success': return 'success'
@@ -131,7 +131,7 @@ export function runStatusFilters(value: unknown): PageFilter[] {
   }
 }
 
-/** 启停：6.0 的启停即恢复 / 暂停，停用的作业不再按计划触发 */
+/** 启停即恢复 / 暂停，停用的作业不再按计划触发 */
 export function enabledLabel(t: Translate, paused: boolean): string {
   return paused
     ? t('common.statuses.disabled')
@@ -252,7 +252,7 @@ export function triggerStateTone(state: TriggerState): Tone {
   }
 }
 
-/** 耗时（4.x 同）：不足一秒按毫秒，否则按秒保留两位；还在运行（null）为 - */
+/** 耗时：不足一秒按毫秒，否则按秒保留两位；还在运行（null）为 - */
 export function formatDuration(ms: null | number | undefined): string {
   if (ms === null || ms === undefined || !Number.isFinite(ms))
     return '-'
@@ -377,7 +377,7 @@ export async function rescheduleJob(name: string, form: RescheduleForm): Promise
   return toJobRow(await jobsApi.reschedule(toRescheduleRequest(name, form)))
 }
 
-/** 预览列出的下次运行个数（4.x 的 Cron 构建器同为 5 次） */
+/** 预览列出的下次运行个数 */
 export const SCHEDULE_PREVIEW_COUNT = 5
 
 /** 校验计划并列出接下来的运行时间（不改任何作业）；写错即 MAINTENANCE_VALIDATION_002 */
@@ -415,7 +415,7 @@ export function intervalSecondsOf(expression: string): number | null {
   return Number(days ?? 0) * 86400 + Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds)
 }
 
-// ── 重试与执行时限（4.x 的最大重试次数与超时时间，6.0 另有重试间隔与退避） ─────────
+// ── 重试与执行时限 ─────────
 
 /** 重试次数上限（与框架一致） */
 export const MAX_RETRIES = 100
@@ -579,7 +579,7 @@ export function runFailedOptions(t: Translate): { label: string, value: string }
 
 /**
  * 执行日志抽屉的查询：按作业过滤，状态单选，是否出错（有无错误码）、触发器名与节点精确匹配，
- * 关键字匹配触发器名、节点与错误（替 4.x 的批次号）；后端按计划时间倒序，总数为真实总数
+ * 关键字匹配触发器名、节点与错误；后端按计划时间倒序，总数为真实总数
  */
 export interface JobRunsQuery {
   job: string

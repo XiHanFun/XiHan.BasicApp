@@ -241,9 +241,9 @@ const schema = computed<PageSchema>(() => ({
   rowKey: 'name',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
-  // 修改计划排在 4.x「编辑」的位置；恢复代码计划只对已改计划的作业出现
+  // 修改计划占「编辑」的位置；恢复代码计划只对已改计划的作业出现
   actions: [
-    // 新建运行时作业（照 4.x 的新建任务）；只有运行时登记的作业能删
+    // 新建运行时作业；只有运行时登记的作业能删
     {
       key: 'create',
       title: t('maintenance.jobs.create'),

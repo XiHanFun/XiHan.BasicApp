@@ -38,7 +38,7 @@ export interface UserProfile {
 
 /**
  * 保存本人资料（后端 `profile.update`，整体覆盖；nickName 即显示名、必填，gender 是壳层的数字 0 未设置 / 1 男 / 2 女，空白当作没填）
- * 4.x 的 avatar、timeZone、language 不在 6.0 的资料里：头像走上传端点与 `profile.remove-avatar`（uploadAvatarApi / removeAvatarApi），时区与语言是偏好
+ * 资料里没有头像、时区与语言：头像走上传端点与 `profile.remove-avatar`（uploadAvatarApi / removeAvatarApi），时区与语言是偏好
  */
 export interface UpdateProfileParams {
   nickName: string
@@ -65,8 +65,8 @@ export interface ChangePhoneParams {
 }
 
 /**
- * 个人中心「登录日志」的结果（4.x 后端 LoginResult 枚举的序列化值，含认证审计事件）：
- * 6.0 记的是认证事件 + 成败 + 错误码，由壳层（src/app/context.ts）按事件换成这里的结果；RolesActivated 对应 6.0 新增的会话角色激活
+ * 个人中心「登录日志」的结果（含认证审计事件）：
+ * 后端记的是认证事件 + 成败 + 错误码，由壳层（src/app/context.ts）按事件换成这里的结果；RolesActivated 对应会话角色激活
  */
 export type LoginAuditResult
   = | 'AccountDisabled'
@@ -128,8 +128,7 @@ export interface TwoFactorSetupResult {
 
 /**
  * 用户通知偏好（渠道 × 类型；与后端 `profile.notification-preference` 同名同义，整体覆盖保存，没保存过即全收）
- * 强制阅读与紧急通知不受偏好影响。4.x 的推送、机器人两个渠道与审批、营销两种类型 6.0 没有效果（没有推送渠道、机器人是群广播不分人、
- * 审批随后续的流程模块、没有营销类通知），不显示也不存
+ * 强制阅读与紧急通知不受偏好影响
  */
 export interface NotificationPreference {
   channelInApp: boolean
@@ -143,7 +142,7 @@ export interface NotificationPreference {
 /**
  * 绑定的第三方账号（个人中心「账号绑定」；后端 `ExternalLoginResponse` 的投影）：
  * provider 是规范的提供方类型（github / gitee / google / qq / wechat / wecom / lark / dingtalk），登录配置里的名称可能是自定义的；
- * providerDisplayName 是第三方账号自己的显示名（4.x 同义），最近一次用它登录的时间沿用 *Time 命名
+ * providerDisplayName 是第三方账号自己的显示名
  */
 export interface ExternalLoginItem {
   provider: string
@@ -153,7 +152,7 @@ export interface ExternalLoginItem {
   lastLoginTime?: string
 }
 
-/** 一段时间里的次数与在线时长（个人中心「统计」；后端 `my-activity.summary` 的 logins / accesses / operations / onlineSeconds，沿用 4.x 的 *Count 与 onlineTime 命名） */
+/** 一段时间里的次数与在线时长（个人中心「统计」；对应后端 `my-activity.summary` 的 logins / accesses / operations / onlineSeconds） */
 export interface UserActivityPeriod {
   loginCount: number
   accessCount: number

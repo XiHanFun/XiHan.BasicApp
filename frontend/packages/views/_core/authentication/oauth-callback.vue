@@ -37,7 +37,7 @@ const ERROR_TEXT: Record<string, string> = {
 /**
  * 读取回跳参数：后端把票据（或错误码）、用途与提供方放在回调页地址的查询串里——
  * 哈希路由下形如 `#/auth/oauth-callback?ticket=x`，history 路由下形如 `/auth/oauth-callback?ticket=x`，都由 route.query 给出
- * 4.x 把令牌放在地址片段里、另从 location.hash 解析；6.0 回来的只是一张一次性票据，不再有令牌进地址
+ * 回来的只是一张一次性票据，令牌不进地址
  */
 function readCallbackParams(): Record<string, string> {
   const params: Record<string, string> = {}
