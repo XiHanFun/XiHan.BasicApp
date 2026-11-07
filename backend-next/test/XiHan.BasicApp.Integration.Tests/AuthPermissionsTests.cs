@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 public sealed class AuthPermissionsTests : IDisposable
 {
     // 只有 identity.users.read 的主体看到的树：登录即可见的页面（工作台、审批中心、导出中心、我的消息、关于）加用户页，空了的目录不下发
-    private const string PrunedOutline = "workbench.dashboard, custom.workflow-center[workflow.approvals], custom.system-management[custom.system-permission[identity.users], custom.file-services[files.export-center], custom.message-center[notification.inbox]], custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]";
+    private const string PrunedOutline = "workbench.dashboard, custom.workflow-center[workflow.approvals], custom.message-center[notification.inbox], custom.system-management[custom.system-permission[identity.users], custom.file-services[files.export-center]], custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]";
 
     private readonly SqliteDatabase _database = new();
 
@@ -55,16 +55,16 @@ public sealed class AuthPermissionsTests : IDisposable
             + "custom.ai-center[ai.providers, ai.assistants, ai.prompts, ai.knowledge-documents], "
             + "custom.workflow-center[workflow.approvals, workflow.definitions, workflow.instances], "
             + "custom.integration-center[notification.email-configs, notification.sms-configs, custom.push-service[notification.bot-configs, notification.telegram-bots], custom.open-api[openplatform.oauth-apps, auditing.open-api-logs]], "
+            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit], "
+            + "custom.tenant-management[tenancy.tenants, tenancy.editions], "
             + "custom.system-management["
             + "custom.system-permission[identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security, access.menus], "
-            + "custom.tenant-management[tenancy.tenants, tenancy.editions], "
             + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
             + "custom.system-services[maintenance.jobs, maintenance.caches, maintenance.versions, maintenance.migrations], "
             + "custom.system-monitor[maintenance.server, identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
-            + "custom.online-dev[codegeneration.code-gen, printing.print-templates], "
-            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit]], "
+            + "custom.online-dev[codegeneration.code-gen, printing.print-templates]], "
             + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
             MenuTrees.Outline(menus));
         var dashboard = menus[0];
@@ -76,7 +76,7 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal("access.roles.read", roles.GetProperty("permission").GetString());
         Assert.Equal("Directory", MenuTrees.Find(menus, "custom.system-permission").GetProperty("kind").GetString());
         // 页面码按树深度优先
-        Assert.Equal(["workbench.dashboard", "ai.providers", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "workflow.approvals", "workflow.definitions", "workflow.instances", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "openplatform.oauth-apps", "auditing.open-api-logs", "identity.users", "access.roles", "access.permissions", "access.delegations", "access.policies", "access.constraint-rules", "access.field-security", "access.menus", "tenancy.tenants", "tenancy.editions", "settings.configs", "settings.dicts", "settings.numbering-rules", "maintenance.jobs", "maintenance.caches", "maintenance.versions", "maintenance.migrations", "maintenance.server", "identity.online-users", "auditing.login-logs", "auditing.access-logs", "auditing.operation-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.traces", "files.library", "files.storage-configs", "files.export-center", "codegeneration.code-gen", "printing.print-templates", "notification.inbox", "notification.notifications", "notification.templates", "notification.messages", "chat.conversations", "chat.audit", "about.project"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "ai.providers", "ai.assistants", "ai.prompts", "ai.knowledge-documents", "workflow.approvals", "workflow.definitions", "workflow.instances", "notification.email-configs", "notification.sms-configs", "notification.bot-configs", "notification.telegram-bots", "openplatform.oauth-apps", "auditing.open-api-logs", "notification.inbox", "notification.notifications", "notification.templates", "notification.messages", "chat.conversations", "chat.audit", "tenancy.tenants", "tenancy.editions", "identity.users", "access.roles", "access.permissions", "access.delegations", "access.policies", "access.constraint-rules", "access.field-security", "access.menus", "settings.configs", "settings.dicts", "settings.numbering-rules", "maintenance.jobs", "maintenance.caches", "maintenance.versions", "maintenance.migrations", "maintenance.server", "identity.online-users", "auditing.login-logs", "auditing.access-logs", "auditing.operation-logs", "auditing.exception-logs", "auditing.diff-logs", "auditing.permission-change-logs", "auditing.condition-hits", "auditing.traces", "files.library", "files.storage-configs", "files.export-center", "codegeneration.code-gen", "printing.print-templates", "about.project"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: admin));
         Assert.Equal(HttpStatusCode.OK, catalog.StatusCode);
@@ -114,7 +114,7 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal(["viewer"], body.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
         // 裁剪后空了的目录不下发：只剩装着可见页面的那几个
         Assert.Equal(PrunedOutline, MenuTrees.Outline(body.GetProperty("menus")));
-        Assert.Equal(["workbench.dashboard", "workflow.approvals", "identity.users", "files.export-center", "notification.inbox", "about.project"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "workflow.approvals", "notification.inbox", "identity.users", "files.export-center", "about.project"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         // 没有 access.permissions.read 的主体看不到权限目录
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: token));

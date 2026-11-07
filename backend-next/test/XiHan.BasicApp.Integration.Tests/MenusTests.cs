@@ -40,16 +40,16 @@ public sealed class MenusTests : IDisposable
             + "custom.ai-center[ai.providers, ai.assistants, ai.prompts, ai.knowledge-documents], "
             + "custom.workflow-center[workflow.approvals, workflow.definitions, workflow.instances], "
             + "custom.integration-center[notification.email-configs, notification.sms-configs, custom.push-service[notification.bot-configs, notification.telegram-bots], custom.open-api[openplatform.oauth-apps, auditing.open-api-logs]], "
+            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit], "
+            + "custom.tenant-management[tenancy.tenants, tenancy.editions, tenancy.subscription], "
             + "custom.system-management["
             + "custom.system-permission[organization.departments, organization.positions, identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security, access.menus], "
-            + "custom.tenant-management[tenancy.tenants, tenancy.editions, tenancy.subscription], "
             + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
             + "custom.system-services[maintenance.jobs, maintenance.caches, maintenance.versions, maintenance.migrations], "
             + "custom.system-monitor[maintenance.server, identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
-            + "custom.online-dev[codegeneration.code-gen, printing.print-templates], "
-            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit]], "
+            + "custom.online-dev[codegeneration.code-gen, printing.print-templates]], "
             + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
             MenuTrees.Outline(listBody.GetProperty("items")));
         var roles = MenuTrees.Find(listBody.GetProperty("items"), "access.roles");
@@ -103,7 +103,7 @@ public sealed class MenusTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         var menus = permissionsBody.GetProperty("menus");
         // 顶层按排序：工作台 0、AI 中心 100、没写上级的用户页 100（同序按编码）、运营建的 custom.system 150、流程中心 200 …
-        Assert.Equal(["workbench.dashboard", "custom.ai-center", "identity.users", "custom.system", "custom.workflow-center", "custom.integration-center", "custom.system-management", "custom.about"], Codes(menus));
+        Assert.Equal(["workbench.dashboard", "custom.ai-center", "identity.users", "custom.system", "custom.workflow-center", "custom.integration-center", "custom.message-center", "custom.tenant-management", "custom.system-management", "custom.about"], Codes(menus));
         Assert.True(MenuTrees.Find(menus, "identity.users").GetProperty("hidden").GetBoolean());
         Assert.Equal(["access.permissions", "access.delegations", "access.policies", "access.constraint-rules", "access.field-security", "access.menus"], Codes(MenuTrees.Find(menus, "custom.system-permission").GetProperty("children")));
         var system = Node(menus, "custom.system");

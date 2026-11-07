@@ -8,7 +8,7 @@ namespace XiHan.BasicApp.Contracts.Pages;
 /// </summary>
 /// <remarks>
 /// 各包的页面登记用 <see cref="PageDescriptor.Directory"/> 指到这里的目录，目录节点本身由 Access 的内置节点种子首写，之后与运营建的一样可改可删，删了的目录下的页面留在顶层
-/// 顶层是 AI 中心、流程中心、集成中心、系统管理、帮助中心五个目录，集成中心下再分推送服务与开放接口，系统管理下分权限、租户、设置、服务、监控、日志、文件、开发、消息九个二级目录
+/// 顶层是 AI 中心、流程中心、集成中心、消息中心、租户管理、系统管理、帮助中心七个目录，集成中心下再分推送服务与开放接口，系统管理下分权限、设置、服务、监控、日志、文件、开发七个二级目录
 /// </remarks>
 public static class MenuDirectories
 {
@@ -48,7 +48,7 @@ public static class MenuDirectories
     public const string SystemPermission = "custom.system-permission";
 
     /// <summary>
-    /// 系统管理 › 租户管理
+    /// 租户管理
     /// </summary>
     public const string TenantManagement = "custom.tenant-management";
 
@@ -83,7 +83,7 @@ public static class MenuDirectories
     public const string OnlineDev = "custom.online-dev";
 
     /// <summary>
-    /// 系统管理 › 消息中心
+    /// 消息中心
     /// </summary>
     public const string MessageCenter = "custom.message-center";
 

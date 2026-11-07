@@ -92,15 +92,15 @@ public sealed class TenantsTests : IDisposable
             + "custom.ai-center[ai.knowledge-documents], "
             + "custom.workflow-center[workflow.approvals, workflow.definitions, workflow.instances], "
             + "custom.integration-center[notification.email-configs, notification.sms-configs, custom.push-service[notification.bot-configs], custom.open-api[auditing.open-api-logs]], "
+            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit], "
+            + "custom.tenant-management[tenancy.subscription], "
             + "custom.system-management["
             + "custom.system-permission[organization.departments, organization.positions, identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security], "
-            + "custom.tenant-management[tenancy.subscription], "
             + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
             + "custom.system-monitor[identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
-            + "custom.online-dev[printing.print-templates], "
-            + "custom.message-center[notification.inbox, notification.notifications, notification.templates, notification.messages, chat.conversations, chat.audit]], "
+            + "custom.online-dev[printing.print-templates]], "
             + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
             MenuTrees.Outline(permissionsBody.GetProperty("menus")));
 
