@@ -29,6 +29,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <!-- 框架引用方式（ProjectReference 指向同级 XiHan.Framework/next/src，或 NuGet 包）由 props/framework.props 决定 -->
+  <!-- 框架引用方式（ProjectReference 指向同级 XiHan.Framework/framework/src，或 NuGet 包）由 props/framework.props 决定 -->
   <Import Project="$(MSBuildThisFileDirectory)props/framework.props" />
 </Project>

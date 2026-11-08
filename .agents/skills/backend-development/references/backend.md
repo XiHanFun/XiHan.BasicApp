@@ -93,9 +93,9 @@ dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 同级检出前进了（别的会话在框架上提交）就按锁定提交做快照，产物放在 `backend/artifacts/pin`（已 gitignore；放别处时基线测试与架构测试找不到 `XiHan.BasicApp.slnx`）：
 
 ```bash
-git -C <XiHan.Framework> archive <锁定提交> global.json next/src next/Directory.Build.props next/Directory.Packages.props next/.editorconfig next/spec | tar -x -C <scratchpad>/fw-<短号>
+git -C <XiHan.Framework> archive <锁定提交> global.json framework/src framework/Directory.Build.props framework/Directory.Packages.props framework/.editorconfig framework/spec | tar -x -C <scratchpad>/fw-<短号>
 cd backend
-dotnet build XiHan.BasicApp.slnx -c Release -p:XiHanFrameworkSrc=<快照>\next\src\ --artifacts-path artifacts/pin
+dotnet build XiHan.BasicApp.slnx -c Release -p:XiHanFrameworkSrc=<快照>\framework\src\ --artifacts-path artifacts/pin
 artifacts/pin/bin/XiHan.BasicApp.Architecture.Tests/release/XiHan.BasicApp.Architecture.Tests.exe
 artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe -maxThreads 4
 ```

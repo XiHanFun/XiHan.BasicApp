@@ -24,7 +24,7 @@ public sealed class FrameworkPinTests
 
         // 与 framework.props 的缺省相对路径一致：backend/../../XiHan.Framework
         var framework = Path.GetFullPath(Path.Combine(Packages.Root, "..", "..", "XiHan.Framework"));
-        Assert.True(Directory.Exists(Path.Combine(framework, "next", "src")), $"Framework source is expected at {framework} (ProjectReference mode); package mode is not used yet.");
+        Assert.True(Directory.Exists(Path.Combine(framework, "framework", "src")), $"Framework source is expected at {framework} (ProjectReference mode); package mode is not used yet.");
 
         var head = Git(framework, "rev-parse", "HEAD");
         Assert.True(head.StartsWith(pinned, StringComparison.Ordinal), $"XiHan.Framework HEAD is {head} but props/framework.props pins {pinned}; check out the pinned commit or update the pin deliberately.");

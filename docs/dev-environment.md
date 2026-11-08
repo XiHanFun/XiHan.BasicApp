@@ -16,7 +16,7 @@
 
 ## 框架检出
 
-后端缺省以 ProjectReference 引用框架源码，路径是与 BasicApp 同级的 `XiHan.Framework/next/src`：
+后端缺省以 ProjectReference 引用框架源码，路径是与 BasicApp 同级的 `XiHan.Framework/framework/src`：
 
 ```text
 <工作目录>/
@@ -24,7 +24,7 @@
 │  ├─ backend/
 │  └─ frontend/
 └─ XiHan.Framework/         # 检出 backend/props/framework.props 锁定的提交
-   └─ next/src/
+   └─ framework/src/
 ```
 
 ```bash
@@ -38,11 +38,11 @@ git -C XiHan.Framework checkout "$commit"
 
 | 属性 | 作用 |
 | --- | --- |
-| `XiHanFrameworkCommit` | 锁定的框架提交；架构测试 `FrameworkPinTests` 要求同级检出存在 `next/src` 且 HEAD 以它开头 |
-| `XiHanFrameworkSrc` | 框架源码目录，缺省同级的 `XiHan.Framework/next/src/`；框架在别处时用 `-p:XiHanFrameworkSrc=<检出>/next/src/` 指路 |
+| `XiHanFrameworkCommit` | 锁定的框架提交；架构测试 `FrameworkPinTests` 要求同级检出存在 `framework/src` 且 HEAD 以它开头 |
+| `XiHanFrameworkSrc` | 框架源码目录，缺省同级的 `XiHan.Framework/framework/src/`；框架在别处时用 `-p:XiHanFrameworkSrc=<检出>/framework/src/` 指路 |
 | `UseXiHanFrameworkSource` | 缺省按 `XiHanFrameworkSrc` 下有没有框架源码自动判定；`-p:UseXiHanFrameworkSource=false` 改用 NuGet 包（版本取 `XiHanFrameworkPackageVersion`） |
 
-找不到源码时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致，`FrameworkPinTests` 也会失败；日常开发与 CI 都走锁定提交的源码。同级检出停在别的提交、又不想切换时，可以用 `git archive` 把锁定提交导出成快照，再以 `-p:XiHanFrameworkSrc=<快照>/next/src/` 构建（做法见后端技能 `.agents/skills/backend-development/references/backend.md`），快照下只有 `FrameworkPinTests` 失败属预期。
+找不到源码时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致，`FrameworkPinTests` 也会失败；日常开发与 CI 都走锁定提交的源码。同级检出停在别的提交、又不想切换时，可以用 `git archive` 把锁定提交导出成快照，再以 `-p:XiHanFrameworkSrc=<快照>/framework/src/` 构建（做法见后端技能 `.agents/skills/backend-development/references/backend.md`），快照下只有 `FrameworkPinTests` 失败属预期。
 
 ## PostgreSQL
 
@@ -119,7 +119,7 @@ XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=<密码
 
 ## 工作区解决方案
 
-同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（文件名自定），登记 `backend` 全部工程与框架 `next/src` 的工程。它不入任何仓库，新增工程时自己补进去，否则 IDE 沿用旧的 `obj`。
+同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（文件名自定），登记 `backend` 全部工程与框架 `framework/src` 的工程。它不入任何仓库，新增工程时自己补进去，否则 IDE 沿用旧的 `obj`。
 
 ## 下一步
 

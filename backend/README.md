@@ -10,7 +10,7 @@ backend/
 ├─ Directory.Build.props            版本 6.0.0-preview.1、Nullable、警告即错误、文档文件
 ├─ Directory.Packages.props         中央包版本
 ├─ Directory.Build.targets          XiHanFrameworkReference / XiHanFrameworkAnalyzer 项 → ProjectReference 或 PackageReference
-├─ props/framework.props            缺省 ProjectReference ../../XiHan.Framework/next/src，锁定提交 XiHanFrameworkCommit；UseXiHanFrameworkSource=false 切 NuGet 包
+├─ props/framework.props            缺省 ProjectReference ../../XiHan.Framework/framework/src，锁定提交 XiHanFrameworkCommit；UseXiHanFrameworkSource=false 切 NuGet 包
 ├─ src/
 │  ├─ XiHan.BasicApp.Contracts      Tier 0：跨包接口、实体基类、分页 / 批量结果、权限描述
 │  ├─ XiHan.BasicApp.Runtime        Tier 0：SqlSugar 回调、租户作用域查询、种子、表结构升级、数据保护、多租户
@@ -33,7 +33,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
 ```
 
-框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `E:\Repository\XiHanFun\XiHanFun.Next.Local.slnx` 登记本目录全部工程与框架 `next/src`。
+框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `E:\Repository\XiHanFun\XiHanFun.Next.Local.slnx` 登记本目录全部工程与框架 `framework/src`。
 
 ## 规则
 

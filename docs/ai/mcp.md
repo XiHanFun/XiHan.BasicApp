@@ -71,7 +71,7 @@ curl -X POST http://localhost:9710/mcp \
 
 | 服务端 | 用途 | 接入 |
 | --- | --- | --- |
-| `xihan-framework`（`XiHan.Framework.Cli` 的 `mcp` 命令） | 以 stdio 提供框架的离线知识库：包与特性清单、配置键与缺省值、文档检索 | 见[框架文档的 MCP Server](https://framework.docs.xihanfun.com/ai/mcp)；后端以源码引用锁定提交，对照时以同级检出的 `next/src` 为准 |
+| `xihan-framework`（`XiHan.Framework.Cli` 的 `mcp` 命令） | 以 stdio 提供框架的离线知识库：包与特性清单、配置键与缺省值、文档检索 | 见[框架文档的 MCP Server](https://framework.docs.xihanfun.com/ai/mcp)；后端以源码引用锁定提交，对照时以同级检出的 `framework/src` 为准 |
 | `xihan-ui`（npm `@xihan-ui/cli`） | 组件 API、部件、示例与设计令牌 | 见 [XiHan.UI 的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp)；版本取 `frontend/pnpm-workspace.yaml` catalog 里的 `@xihan-ui/vue` |
 
 ## 相关

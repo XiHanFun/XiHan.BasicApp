@@ -16,7 +16,7 @@ commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/
 git -C XiHan.Framework checkout "$commit"
 ```
 
-两个目录必须并排放在同一个上级目录下：后端按相对路径 `../../XiHan.Framework/next/src`（相对 `backend/`）找框架源码，见[框架检出](./dev-environment#框架检出)。
+两个目录必须并排放在同一个上级目录下：后端按相对路径 `../../XiHan.Framework/framework/src`（相对 `backend/`）找框架源码，见[框架检出](./dev-environment#框架检出)。
 
 ## 二、准备数据库
 

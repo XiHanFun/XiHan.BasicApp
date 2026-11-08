@@ -10,11 +10,11 @@
 
 ### 构建或测试报框架相关的错
 
-后端以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/next/src`，相对 `backend/`），并锁定在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`。同级找不到 `next/src` 时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致。把框架检出到锁定提交；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/next/src/`。见[开发环境](./dev-environment#框架检出)。
+后端以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/framework/src`，相对 `backend/`），并锁定在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`。同级找不到 `framework/src` 时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致。把框架检出到锁定提交；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/framework/src/`。见[开发环境](./dev-environment#框架检出)。
 
 ### `FrameworkPinTests` 失败
 
-同级框架检出没有 `next/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
+同级框架检出没有 `framework/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
 
 ### 宿主启动后立即退出
 
