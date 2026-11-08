@@ -389,7 +389,7 @@ const recentTimes = computed(() => {
 }
 
 .pf-stat-card__value {
-  font-size: 18px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 700;
   line-height: 1.2;
   color: var(--xh-fg-default);
@@ -397,7 +397,7 @@ const recentTimes = computed(() => {
 }
 
 .pf-stat-card__label {
-  font-size: 12.5px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   margin-top: 2px;
 }
@@ -410,7 +410,7 @@ const recentTimes = computed(() => {
 }
 
 .pf-heat__foot {
-  font-size: 12.5px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
 }
 
@@ -430,7 +430,7 @@ const recentTimes = computed(() => {
 }
 
 .pf-period__title {
-  font-size: 12.5px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   color: var(--xh-fg-brand);
   margin-bottom: 6px;
@@ -441,7 +441,7 @@ const recentTimes = computed(() => {
   align-items: center;
   justify-content: space-between;
   gap: var(--xh-space-3);
-  font-size: 12.5px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   padding: var(--xh-space-0_5) 0;
 }

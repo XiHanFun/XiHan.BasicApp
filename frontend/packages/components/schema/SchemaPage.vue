@@ -999,7 +999,7 @@ const skeletonColumns = computed(() => {
 }
 
 .xh-batch-bar__count {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-default);
   white-space: nowrap;
 }

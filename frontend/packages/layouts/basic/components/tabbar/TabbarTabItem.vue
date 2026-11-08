@@ -142,13 +142,13 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
         <div
           class="chrome-tab__main relative z-[2] mx-[12px] flex h-full min-w-[60px] items-center gap-1 pr-1"
         >
-          <span v-if="showIcon && item.meta?.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: 13px">
+          <span v-if="showIcon && item.meta?.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
             <Icon :icon="resolveIcon(item.meta.icon as string)" />
           </span>
           <span class="chrome-tab__title">{{ item.displayTitle }}</span>
           <template v-if="item.splitRight">
             <span class="split-tab-sep">|</span>
-            <span v-if="showIcon && item.splitRight.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: 13px">
+            <span v-if="showIcon && item.splitRight.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
               <Icon :icon="resolveIcon(item.splitRight.icon)" />
             </span>
             <span class="chrome-tab__title">{{ item.splitRight.title }}</span>
@@ -189,13 +189,13 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
     <!-- ======== Plain / Card / Brisk 风格内容 ======== -->
     <template v-else>
       <div class="flat-tab__inner relative flex h-full items-center gap-1 px-4">
-        <span v-if="showIcon && item.meta?.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: 13px">
+        <span v-if="showIcon && item.meta?.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
           <Icon :icon="resolveIcon(item.meta.icon as string)" />
         </span>
         <span class="flat-tab__title">{{ item.displayTitle }}</span>
         <template v-if="item.splitRight">
           <span class="split-tab-sep">|</span>
-          <span v-if="showIcon && item.splitRight.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: 13px">
+          <span v-if="showIcon && item.splitRight.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
             <Icon :icon="resolveIcon(item.splitRight.icon)" />
           </span>
           <span class="flat-tab__title">{{ item.splitRight.title }}</span>
@@ -238,7 +238,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 /* ============ Chrome 风格 ============ */
 /* 标签文字与侧栏、面包屑同取 medium：Windows 的中文字体没有这一档会落到常规，semibold 又落到粗体、太重 */
 .chrome-tab {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: var(--xh-font-weight-medium);
   transition: color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
@@ -384,7 +384,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 /* ============ Flat 通用基础 ============ */
 .flat-tab {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: var(--xh-font-weight-medium);
   cursor: default;
   color: var(--xh-fg-muted);

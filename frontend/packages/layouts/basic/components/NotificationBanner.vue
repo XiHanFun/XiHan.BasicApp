@@ -194,14 +194,14 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 .notif-banner__title {
   flex-shrink: 0;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
 }
 
 .notif-banner__text {
   overflow: hidden;
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   opacity: 0.75;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -243,7 +243,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   border-radius: var(--xh-shape-control);
   background: transparent;
   color: currentcolor;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);

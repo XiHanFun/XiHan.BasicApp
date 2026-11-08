@@ -366,7 +366,7 @@ function onKeydown(e: KeyboardEvent): void {
   display: inline-flex;
   align-items: center;
   gap: var(--xh-space-2);
-  font-size: 17px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 600;
   color: var(--tab-ov-ink);
   text-shadow: 0 1px 8px var(--xh-bg-media-chrome);
@@ -378,7 +378,7 @@ function onKeydown(e: KeyboardEvent): void {
   padding: var(--xh-space-0_5) var(--xh-space-1_5);
   border-radius: var(--xh-shape-pill);
   background: color-mix(in oklab, var(--tab-ov-ink) 18%, transparent);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   text-align: center;
 }
@@ -404,7 +404,7 @@ function onKeydown(e: KeyboardEvent): void {
   outline: none;
   background: transparent;
   color: var(--xh-fg-default);
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
 }
 
 .tab-ov__close-btn {
@@ -475,7 +475,7 @@ function onKeydown(e: KeyboardEvent): void {
 }
 
 .tab-ov-card__title {
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   font-weight: 600;
   color: var(--xh-fg-default);
   overflow: hidden;
@@ -484,7 +484,7 @@ function onKeydown(e: KeyboardEvent): void {
 }
 
 .tab-ov-card__path {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -550,7 +550,7 @@ function onKeydown(e: KeyboardEvent): void {
   display: flex;
   gap: var(--xh-space-4);
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in oklab, var(--tab-ov-ink) 65%, transparent);
 }
 
@@ -560,7 +560,7 @@ function onKeydown(e: KeyboardEvent): void {
   border-radius: var(--xh-shape-inset);
   background: color-mix(in oklab, var(--tab-ov-ink) 16%, transparent);
   font-family: var(--xh-font-family-mono);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
 }
 
 /* 进出场 */

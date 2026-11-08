@@ -646,7 +646,7 @@ const loaderItems = computed(() =>
 
 /* 模式文字标签 */
 .mode-label {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   text-align: center;
   line-height: 1.2;
@@ -666,7 +666,7 @@ const loaderItems = computed(() =>
 
 /* 色系名标签 */
 .color-group-label {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 700;
   color: var(--xh-fg-muted);
   line-height: 1;
@@ -771,7 +771,7 @@ const loaderItems = computed(() =>
 }
 
 .theme-color-label {
-  font-size: 10px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   line-height: 1;
   white-space: nowrap;
@@ -807,7 +807,7 @@ const loaderItems = computed(() =>
   border-radius: var(--xh-shape-control);
   background: var(--xh-bg-surface);
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
@@ -885,7 +885,7 @@ const loaderItems = computed(() =>
 }
 
 .item-label {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1.3;
   color: var(--xh-fg-muted);
   text-align: center;

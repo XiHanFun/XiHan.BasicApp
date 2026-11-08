@@ -108,13 +108,13 @@ watch(
 }
 
 .row-peek__label {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   white-space: nowrap;
 }
 
 .row-peek__value {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-default);
   word-break: break-all;
   line-height: 1.45;

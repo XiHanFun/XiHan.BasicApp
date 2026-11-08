@@ -997,7 +997,7 @@ function handlePaste(event: ClipboardEvent) {
 }
 
 .chat-voice-panel__hint {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-muted);
   font-variant-numeric: tabular-nums;
 }

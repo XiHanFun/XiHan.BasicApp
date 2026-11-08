@@ -457,7 +457,7 @@ async function handleDownload(fileId: string) {
   background: transparent;
   border: 1px dashed var(--xh-border-default);
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-style: italic;
 }
 
@@ -467,7 +467,7 @@ async function handleDownload(fileId: string) {
   border-left: 2px solid color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
   border-radius: var(--xh-shape-inset);
   background: color-mix(in srgb, var(--xh-bg-muted) 50%, transparent);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   overflow: hidden;
   display: -webkit-box;
@@ -526,7 +526,7 @@ async function handleDownload(fileId: string) {
 
 .chat-voice__time {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-variant-numeric: tabular-nums;
   opacity: 0.75;
 }
@@ -571,7 +571,7 @@ async function handleDownload(fileId: string) {
   border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-pill);
   background: var(--xh-bg-surface);
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   line-height: 1.4;
   cursor: pointer;
   transition:
@@ -595,7 +595,7 @@ async function handleDownload(fileId: string) {
   border: none;
   background: transparent;
   color: var(--xh-fg-brand);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   cursor: pointer;
 }
 

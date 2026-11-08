@@ -75,7 +75,7 @@ const emit = defineEmits<{ select: [key: string] }>()
   background: transparent;
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   text-align: start;
   cursor: pointer;
   white-space: nowrap;

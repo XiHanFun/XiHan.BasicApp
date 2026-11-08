@@ -278,7 +278,7 @@ onMounted(loadTenants)
 }
 
 .cc-brand__title {
-  font-size: 16px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 600;
   color: var(--xh-fg-default);
 }
@@ -313,14 +313,14 @@ onMounted(loadTenants)
 
 .cc-title {
   margin: 0 0 6px;
-  font-size: 26px;
+  font-size: var(--xh-font-size-2xl);
   font-weight: 700;
   color: var(--xh-fg-default);
 }
 
 .cc-subtitle {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   color: var(--xh-fg-muted);
 }
 
@@ -346,14 +346,14 @@ onMounted(loadTenants)
   display: flex;
   gap: var(--xh-space-2);
   align-items: center;
-  font-size: 15px;
+  font-size: var(--xh-font-size-md);
   font-weight: 600;
   color: var(--xh-fg-default);
 }
 
 .cc-group-label {
   margin-bottom: 8px;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   color: var(--xh-fg-muted);
   text-transform: uppercase;
@@ -416,7 +416,7 @@ onMounted(loadTenants)
   width: 40px;
   height: 40px;
   overflow: hidden;
-  font-size: 15px;
+  font-size: var(--xh-font-size-md);
   font-weight: 600;
   color: var(--xh-fg-brand);
   background: color-mix(in srgb, var(--xh-fg-brand) 12%, transparent);
@@ -432,7 +432,7 @@ onMounted(loadTenants)
   display: flex;
   gap: var(--xh-space-2);
   align-items: center;
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   font-weight: 600;
   color: var(--xh-fg-default);
 }
@@ -445,7 +445,7 @@ onMounted(loadTenants)
 }
 
 .cc-tenant__code {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
 }
 
@@ -459,7 +459,7 @@ onMounted(loadTenants)
 }
 
 .cc-empty__hint {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
 }
 
@@ -470,7 +470,7 @@ onMounted(loadTenants)
   }
 
   .cc-brand__title {
-    font-size: 14px;
+    font-size: var(--xh-font-size-md);
   }
 
   .cc-main {
@@ -478,11 +478,11 @@ onMounted(loadTenants)
   }
 
   .cc-title {
-    font-size: 20px;
+    font-size: var(--xh-font-size-xl);
   }
 
   .cc-subtitle {
-    font-size: 13px;
+    font-size: var(--xh-font-size-sm);
   }
 
   .cc-card {

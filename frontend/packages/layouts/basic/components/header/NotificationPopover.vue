@@ -390,7 +390,7 @@ function handleItemClick(item: NotificationItem) {
 }
 
 .notification-panel-title {
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   font-weight: 600;
   color: var(--xh-fg-default);
 }
@@ -485,7 +485,7 @@ function handleItemClick(item: NotificationItem) {
 .notification-item-title {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 500;
   color: var(--xh-fg-default);
   line-height: 1.45;
@@ -502,7 +502,7 @@ function handleItemClick(item: NotificationItem) {
   margin-top: 4px;
   max-height: 96px;
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -518,7 +518,7 @@ function handleItemClick(item: NotificationItem) {
 }
 
 .notification-item-time {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-muted) 70%, transparent);
 }
 

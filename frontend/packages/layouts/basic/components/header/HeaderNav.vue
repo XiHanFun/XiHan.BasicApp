@@ -174,7 +174,7 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
   gap: var(--xh-space-1);
   padding: var(--xh-space-0_5) var(--xh-space-2);
   border-radius: var(--xh-shape-inset);
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   line-height: 20px;
   white-space: nowrap;
   transition:

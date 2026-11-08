@@ -24,7 +24,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | 聚焦环 | 与组件库同一道：`outline: var(--xh-ring-width) solid var(--xh-ring-focus); outline-offset: var(--xh-ring-offset)`，2px 画在元素自己的盒内，外沿与边框外沿重合，裁切容器不必为它留位。面是实心或任意颜色时内侧衬一道底色间隔线：`box-shadow: inset 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-gap-width)) var(--xh-ring-gap)`（有边框时扣掉边框宽） |
 | 浮层 | 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊），禁止 glass |
 | 取值 | 颜色、间距、圆角、阴影、层级、动效只用语义令牌，不写裸色值 |
-| CSS 写法 | `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量，组件局部变量的取值也一样；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；原生滚动条只在 `scrollbar.css` 里给 |
+| CSS 写法 | `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量，组件局部变量的取值也一样；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；字号取 `--xh-font-size-*` / `--xh-text-*-size`、图标尺寸取 `--xh-glyph-size-*`，不写 px、rem；原生滚动条只在 `scrollbar.css` 里给 |
 | 裸 px | `pnpm px:check`：`.css` 与 `.vue` 的 `<style>` 里的裸 px 按文件计数（`scripts/px-allowlist.json`），只许减不许增，新文件不进白名单；`0px`、`1px` / `2px`（描边与发丝线）、`9999px` 不计 |
 | 令牌 | 引用的 `--xh-*` 必须存在于已安装的组件库里（`pnpm token:check`） |
 | 修补 | 不用页面 CSS 修补组件库的通用缺陷，回 XiHan.UI 修；令牌桥只映射品牌与布局语义，不改组件结构 |

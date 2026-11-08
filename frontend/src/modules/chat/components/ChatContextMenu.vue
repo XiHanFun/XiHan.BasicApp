@@ -142,7 +142,7 @@ function handleReact(emoji: string) {
   border: none;
   border-radius: var(--xh-shape-control);
   background: transparent;
-  font-size: 18px;
+  font-size: var(--xh-font-size-lg);
   cursor: pointer;
   transition:
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
@@ -169,7 +169,7 @@ function handleReact(emoji: string) {
   border-radius: var(--xh-shape-control);
   background: transparent;
   color: var(--xh-fg-default);
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   line-height: 1.2;
   text-align: left;
   cursor: pointer;

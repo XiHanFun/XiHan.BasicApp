@@ -279,7 +279,7 @@ function handleItemAction(key: string) {
   background: var(--xh-color-danger-600);
   /* 实心语气底上的字恒是白的，与组件库徽标同取 */
   color: var(--xh-color-neutral-0);
-  font-size: 10px;
+  font-size: var(--xh-font-size-xs);
   line-height: 16px;
   text-align: center;
 }

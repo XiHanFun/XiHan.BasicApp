@@ -383,7 +383,7 @@ onMounted(() => {
 .pf-secret-label {
   flex-shrink: 0;
   width: 52px;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-family: var(--xh-font-family-mono);
   opacity: 0.75;
 }
@@ -406,7 +406,7 @@ onMounted(() => {
 }
 
 .pf-credential__key code {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-family: var(--xh-font-family-mono);
   opacity: 0.85;
 }
@@ -420,7 +420,7 @@ onMounted(() => {
 
 .pf-create-form__tip {
   margin-bottom: 8px;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   opacity: 0.7;
 }
 </style>

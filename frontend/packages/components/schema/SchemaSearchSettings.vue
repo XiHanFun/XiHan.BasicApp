@@ -153,7 +153,7 @@ function onSort(details: { from: number, to: number }) {
 /* 表头 */
 .xh-set-head {
   padding: var(--xh-space-0_5) var(--xh-space-1_5) var(--xh-space-1_5);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-subtle);
   border-bottom: 1px solid rgb(var(--primary) / 0.08);
 }
@@ -185,7 +185,7 @@ function onSort(details: { from: number, to: number }) {
 
 /* 行标题钉死 14px，与列设置行标题字号一致 */
 .xh-set-row__label {
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   cursor: pointer;
   min-width: 0;
 }

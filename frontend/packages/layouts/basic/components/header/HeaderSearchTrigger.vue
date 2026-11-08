@@ -30,7 +30,7 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
     <!-- 宽屏铺开完整的命令面板入口；收紧时（compact）只留图标钮，把宽度让给横向菜单 -->
     <div v-if="!props.compact" class="hidden sm:block">
       <button type="button" class="search-trigger" @click="layoutBridgeStore.requestOpenGlobalSearch()">
-        <span class="shrink-0 text-[hsl(var(--muted-foreground))]" style="display: inline-flex; font-size: 14px">
+        <span class="shrink-0 text-[hsl(var(--muted-foreground))]" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
           <Icon icon="lucide:search" />
         </span>
         <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
@@ -67,7 +67,7 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
 }
 
 .search-trigger-text {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-muted);
   white-space: nowrap;
   user-select: none;

@@ -344,7 +344,7 @@ watch(visible, (open, was) => {
 /* 皮肤给角落关闭钮让出的标题右内衬：关闭钮在头部行内，撤掉免得把同步徽标推远 */
 .drawer-title {
   padding-inline-end: 0;
-  font-size: 16px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 600;
   color: var(--xh-fg-default);
 }

@@ -1084,7 +1084,7 @@ function handleDeleteAccount() {
   border-radius: var(--xh-shape-control);
   background: var(--xh-bg-muted);
   font-family: var(--xh-font-family-mono);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
 }
 
 .pf-otp-row {

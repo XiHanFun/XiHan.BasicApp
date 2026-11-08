@@ -144,7 +144,7 @@ function toggleExpand() {
 
 /* 搜索标题：小字号、常规字重、紧靠控件 */
 .xh-search__label {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 400;
   line-height: 1.4;
   color: var(--xh-fg-subtle);

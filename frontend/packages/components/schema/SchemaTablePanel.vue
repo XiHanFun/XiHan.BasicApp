@@ -617,7 +617,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
 }
 
 .xh-table__count {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-default);
   white-space: nowrap;
 }

@@ -508,14 +508,14 @@ onMounted(() => {
 .pf-secret-label {
   flex-shrink: 0;
   width: 68px;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-family: var(--xh-font-family-mono);
   opacity: 0.75;
 }
 
 .pf-secret-public-hint {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   opacity: 0.75;
 }
 
@@ -537,7 +537,7 @@ onMounted(() => {
 }
 
 .pf-credential__key code {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-family: var(--xh-font-family-mono);
   opacity: 0.85;
 }

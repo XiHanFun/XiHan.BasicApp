@@ -167,7 +167,7 @@ onBeforeUnmount(() => clearTimeout(timer))
           class="flex justify-center items-center w-16 h-16 rounded-full"
           :class="isDark ? 'bg-red-500/10' : 'bg-red-50'"
         >
-          <span class="text-red-500" style="display: inline-flex; font-size: 32px"><Icon icon="lucide:x-circle" /></span>
+          <span class="text-red-500" style="display: inline-flex; font-size: var(--xh-glyph-size-xl)"><Icon icon="lucide:x-circle" /></span>
         </div>
         <p class="text-base font-medium text-red-500">
           {{ errorMsg }}

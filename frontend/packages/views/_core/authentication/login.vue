@@ -454,7 +454,7 @@ const onAuthInvalid = useAuthFormInvalid()
               class="flex justify-center items-center w-11 h-11 rounded-xl"
               :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
             >
-              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon :icon="methodIcons[selectedMethod] || 'lucide:shield-check'" /></span>
+              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: var(--xh-glyph-size-lg)"><Icon :icon="methodIcons[selectedMethod] || 'lucide:shield-check'" /></span>
             </div>
             <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
               {{ t('page.auth.two_factor_title') }}
@@ -542,7 +542,7 @@ const onAuthInvalid = useAuthFormInvalid()
               class="flex justify-center items-center w-11 h-11 rounded-xl"
               :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
             >
-              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon icon="lucide:shield-check" /></span>
+              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: var(--xh-glyph-size-lg)"><Icon icon="lucide:shield-check" /></span>
             </div>
             <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
               {{ t('page.auth.two_factor_select_title') }}
@@ -570,7 +570,7 @@ const onAuthInvalid = useAuthFormInvalid()
             <span
               :class="selectedMethod === m
                 ? 'text-[hsl(var(--primary))]'
-                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'" style="display: inline-flex; font-size: 20px"
+                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'" style="display: inline-flex; font-size: var(--xh-glyph-size-lg)"
             ><Icon :icon="methodIcons[m] || 'lucide:shield-check'" /></span>
             <span class="auth-body">{{ methodLabels[m] || m }}</span>
           </button>
@@ -717,7 +717,7 @@ const onAuthInvalid = useAuthFormInvalid()
                     class="select-none"
                     draggable="false"
                   >
-                  <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
+                  <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: var(--xh-glyph-size-md)"><Icon icon="lucide:loader-2" /></span>
                 </div>
               </div>
             </XhFieldRoot>

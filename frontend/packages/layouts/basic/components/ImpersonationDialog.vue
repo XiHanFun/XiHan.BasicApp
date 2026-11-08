@@ -251,14 +251,14 @@ onBeforeUnmount(() => {
 <style scoped>
 .impersonation-hint {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1.5;
   color: var(--xh-fg-muted);
 }
 
 .impersonation-error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-danger);
 }
 
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: var(--xh-space-2);
   padding: var(--xh-space-1_5) var(--xh-space-3);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   line-height: normal;
   color: var(--xh-fg-default);
   text-align: left;

@@ -315,7 +315,7 @@ const onAuthInvalid = useAuthFormInvalid()
               class="select-none"
               draggable="false"
             >
-            <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
+            <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: var(--xh-glyph-size-md)"><Icon icon="lucide:loader-2" /></span>
           </div>
         </div>
       </div>

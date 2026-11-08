@@ -681,7 +681,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   align-items: center;
   justify-content: center;
   gap: var(--xh-space-0_5);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   text-align: center;
   line-height: 1.2;
@@ -730,7 +730,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
 /* 折叠/固定按钮的多选 toggle */
 .btn-toggle {
   padding: var(--xh-space-0_5) var(--xh-space-2_5);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   border-radius: var(--xh-shape-control);
   border: 1.5px solid var(--xh-border-default);
   background: var(--xh-bg-surface);

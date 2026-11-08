@@ -4,6 +4,7 @@
 // ③ 圆角、内距与间隙的长度只取令牌（--xh-shape-* / --xh-space-*），直角写 0、撑满写百分比
 // ④ 过渡逐个列出要动的属性，不写 all
 // ⑤ 原生滚动条只在 packages/design/scrollbar.css 里给
+// ⑥ 字号取 --xh-font-size-* / --xh-text-*-size，不写 px、rem 这类绝对单位（em、百分比与容器单位照常）
 // 令牌定义（variables.css、xihan-ui.css、Tailwind 主题）本身就在映射配色，不受颜色一条约束
 
 /** 圆角、内距、间隙三族属性：长度只能来自令牌 */
@@ -20,6 +21,9 @@ const LENGTH_VALUE = new RegExp(String.raw`^${LENGTH_PART}(?:\s+${LENGTH_PART})*
 
 /** 颜色属性 */
 const COLOR_PROP = /^(?:color|background-color|border-color|outline-color|fill|stroke)$/
+
+/** 字号里的绝对单位 */
+const ABSOLUTE_FONT_SIZE = /(?<![\w-])\.?\d[\d.]*(?:px|rem|pt|pc|cm|mm|q|in)(?![\w-])/i
 
 /** 字面色值与应用配色变量（color-mix() 里同样不许） */
 const RAW_COLOR = /#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(|var\(\s*--(?:background|foreground|card|popover|muted|primary|secondary|accent|heavy|border|input|ring|overlay|sidebar|header|destructive|success|warning|info)(?:-[a-z]+)*\s*[,)]/i
@@ -47,6 +51,8 @@ function disallowedListMessage(property, value) {
     return `自定义属性 ${property} 的取值 "${value}" 里有字面色值或应用配色变量：改用 --xh-* 语义令牌`
   if (COLOR_PROP.test(property))
     return `${property} 的取值 "${value}" 里有字面色值或应用配色变量：改用 --xh-* 语义令牌`
+  if (property === 'font-size')
+    return `font-size 的取值 "${value}" 写了绝对单位：改用 var(--xh-font-size-…) 或 var(--xh-text-…-size)，随偏好里的字号走`
   if (property.startsWith('scrollbar'))
     return `${property} 的取值 "${value}"：原生滚动条只在 packages/design/scrollbar.css 里给，藏条写 scrollbar-width: none`
   return `${property} 是物理方向属性：改用逻辑属性`
@@ -59,6 +65,7 @@ const DISALLOWED = {
   [asKey(LENGTH_PROP)]: [RAW_LENGTH, /var\(\s*--radius(?:-card)?\s*[,)]/],
   [asKey(COLOR_PROP)]: [RAW_COLOR],
   '/^--/': [RAW_COLOR],
+  'font-size': [ABSOLUTE_FONT_SIZE],
 }
 
 const SCROLLBAR_DISALLOWED = {

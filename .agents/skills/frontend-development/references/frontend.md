@@ -48,7 +48,7 @@ frontend/
 ## 视觉
 
 - 颜色、间距、圆角、阴影、层级与动效只用 XiHan.UI 语义令牌，不写裸色值。不新增裸 px：`scripts/px-allowlist.json` 是按文件计数的白名单，只许减不许增（`node scripts/check-px.mjs --update` 收紧）；引用的 `--xh-*` 令牌要在当前组件库版本里存在（`token:check`）。
-- `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量（组件局部变量的取值也一样）；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；原生滚动条只在 `packages/design/scrollbar.css`。注释用块注释写意图，不写分隔横线。
+- `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量（组件局部变量的取值也一样）；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；字号取 `--xh-font-size-*` / `--xh-text-*-size`、图标尺寸取 `--xh-glyph-size-*`，不写 px、rem（行内 style 也查）；原生滚动条只在 `packages/design/scrollbar.css`。注释用块注释写意图，不写分隔横线。
 - 圆角由一颗种子派生：偏好设置的圆角接到组件库的 `--xh-radius-seed`，组件按形状角色取值；自写样式只写形状角色 `--xh-shape-*`，不写 `--xh-radius-*` 档位。
 
 | 形状角色 | 取值 | 用于 |

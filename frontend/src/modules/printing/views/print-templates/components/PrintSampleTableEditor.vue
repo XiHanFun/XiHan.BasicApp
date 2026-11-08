@@ -216,7 +216,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   gap: var(--xh-space-3);
   margin-bottom: 10px;
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
 }
 
 .sample-table-scroll {
@@ -242,7 +242,7 @@ td {
 th {
   background: var(--xh-bg-subtle-active);
   color: var(--xh-fg-default);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 650;
 }
 

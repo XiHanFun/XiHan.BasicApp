@@ -298,7 +298,7 @@ onMounted(loadProfile)
 }
 
 .pc__identity-name {
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   font-weight: 700;
   color: var(--xh-fg-default);
   overflow: hidden;
@@ -307,7 +307,7 @@ onMounted(loadProfile)
 }
 
 .pc__identity-sub {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -333,7 +333,7 @@ onMounted(loadProfile)
 
 .pc__nav-group-title {
   padding: var(--xh-space-0_5) var(--xh-space-2_5) var(--xh-space-1_5);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   color: var(--xh-fg-muted);
 }
@@ -349,7 +349,7 @@ onMounted(loadProfile)
   border-radius: var(--xh-shape-control);
   background: transparent;
   color: var(--xh-fg-default);
-  font-size: 13.5px;
+  font-size: var(--xh-font-size-sm);
   text-align: left;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);

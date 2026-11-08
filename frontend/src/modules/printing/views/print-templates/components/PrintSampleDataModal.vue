@@ -425,7 +425,7 @@ function clearSession(): void {
 .sample-data-intro p {
   margin: 4px 0 0;
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
 }
 
 .sample-records {
@@ -437,7 +437,7 @@ function clearSession(): void {
 .sample-records-heading {
   margin-bottom: 10px;
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
 }
 
 /* 标签页根只为把标签带与面板接上线，不另起一层盒：记录区与面板仍按正文的列间距排 */
@@ -465,7 +465,7 @@ function clearSession(): void {
 
 .sample-data-footer-tip {
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
 }
 
 @media (max-width: 720px) {

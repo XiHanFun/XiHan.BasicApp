@@ -95,7 +95,7 @@ function openAnnouncement(item: Announcement) {
             :style="slideStyle(item)"
             @click="openAnnouncement(item)"
           >
-            <span class="slide-deco" :style="{ color: metaOf(item.kind).accent }" style="display: inline-flex; font-size: 150px"><Icon icon="lucide:megaphone" /></span>
+            <span class="slide-deco" :style="{ color: metaOf(item.kind).accent }" style="display: inline-flex; font-size: calc(var(--xh-glyph-size-xl) * 4.5)"><Icon icon="lucide:megaphone" /></span>
             <!-- 类型与发布时间同在顶上一行：下沿整条留给指示点与翻页钮，窄屏也不会压到文字上 -->
             <div class="slide-meta">
               <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.kind).label }}</span>

@@ -142,7 +142,7 @@ onMounted(async () => {
 
 <style scoped>
 .notif-gate-body {
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
 }
 

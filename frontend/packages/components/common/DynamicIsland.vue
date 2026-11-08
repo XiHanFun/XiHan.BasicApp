@@ -797,7 +797,7 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   color: inherit;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
@@ -941,7 +941,7 @@ onBeforeUnmount(() => {
 }
 
 .di-pct {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--xh-fg-brand) 50%, var(--xh-fg-on-media-chrome));
@@ -956,7 +956,7 @@ onBeforeUnmount(() => {
   padding: 0 var(--xh-space-1);
   border-radius: var(--xh-shape-pill);
   background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 16%, transparent);
-  font-size: 10px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
 }
 
@@ -978,7 +978,7 @@ onBeforeUnmount(() => {
 }
 
 .di-panel__title {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -1031,7 +1031,7 @@ onBeforeUnmount(() => {
 }
 
 .di-item__label {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1039,14 +1039,14 @@ onBeforeUnmount(() => {
 
 .di-item__detail {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 55%, transparent);
   line-height: 1.45;
 }
 
 .di-item__meta {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 40%, transparent);
 }
@@ -1109,7 +1109,7 @@ onBeforeUnmount(() => {
 }
 
 .di-progress__pct {
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 70%, transparent);
 }
@@ -1130,7 +1130,7 @@ onBeforeUnmount(() => {
   padding: 0 var(--xh-space-2_5);
   border: 0;
   border-radius: var(--xh-shape-control);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 500;
   cursor: pointer;
   background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
@@ -1172,7 +1172,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   padding: var(--xh-space-1) var(--xh-space-2);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
 }
 
@@ -1180,7 +1180,7 @@ onBeforeUnmount(() => {
   border: 0;
   background: transparent;
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   cursor: pointer;
 }
 
@@ -1193,7 +1193,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: var(--xh-space-2);
   padding: var(--xh-space-1) var(--xh-space-2);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 65%, transparent);
 }
 
@@ -1213,14 +1213,14 @@ onBeforeUnmount(() => {
 
 .di-history-item__time {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 35%, transparent);
 }
 
 .di-empty {
   padding: var(--xh-space-4);
   text-align: center;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
 }
 
@@ -1315,7 +1315,7 @@ onBeforeUnmount(() => {
 }
 
 .di-card__title {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 600;
   color: var(--xh-fg-on-media-chrome);
   overflow: hidden;
@@ -1325,7 +1325,7 @@ onBeforeUnmount(() => {
 
 /* 正文最多两行：再多就该去内容态看，卡片只负责一眼可读 */
 .di-card__detail {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1.45;
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 72%, transparent);
   display: -webkit-box;

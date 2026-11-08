@@ -59,7 +59,7 @@ interface AppBrandProps {
 }
 
 .app-brand-title {
-  font-size: 16px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1.2;

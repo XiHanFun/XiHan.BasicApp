@@ -702,7 +702,7 @@ const sidebarEnableState = computed(
 /* 左/右分组小标签 */
 .split-tools__label {
   padding: var(--xh-space-0_5) 0;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1;
   color: var(--xh-fg-muted);
   user-select: none;

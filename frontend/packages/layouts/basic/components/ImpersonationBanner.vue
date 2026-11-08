@@ -57,7 +57,7 @@ async function stop() {
   gap: var(--xh-space-2);
   align-items: center;
   padding: var(--xh-space-2) var(--xh-space-4);
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   /* 与通知横幅、组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60%，深浅两态都读得清 */
   color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-fg-default));
   background: color-mix(in oklab, var(--xh-color-warning-600) 12%, var(--xh-bg-surface));

@@ -476,7 +476,7 @@ watch(
         <div class="cmdk-panel" role="dialog" aria-modal="true" @click.stop>
           <!-- 输入框 -->
           <div class="cmdk-input">
-            <span class="cmdk-input__icon" style="display: inline-flex; font-size: 17px">
+            <span class="cmdk-input__icon" style="display: inline-flex; font-size: var(--xh-glyph-size-sm)">
               <Icon icon="lucide:search" />
             </span>
             <input
@@ -523,7 +523,7 @@ watch(
             </template>
 
             <div v-if="!flat.length" class="cmdk-empty">
-              <span class="opacity-40" style="display: inline-flex; font-size: 22px">
+              <span class="opacity-40" style="display: inline-flex; font-size: var(--xh-glyph-size-lg)">
                 <Icon icon="lucide:search-x" />
               </span>
               <span>{{ t('header.search.empty') }}</span>
@@ -590,7 +590,7 @@ watch(
   outline: none;
   background: transparent;
   color: var(--xh-fg-default);
-  font-size: 15px;
+  font-size: var(--xh-font-size-md);
 }
 
 .cmdk-input__field::placeholder {
@@ -599,7 +599,7 @@ watch(
 
 .cmdk-esc {
   padding: var(--xh-space-0_5) var(--xh-space-1_5);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-family: var(--xh-font-family-mono);
   color: var(--xh-fg-muted);
   background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
@@ -615,7 +615,7 @@ watch(
 
 .cmdk-group {
   padding: var(--xh-space-2) var(--xh-space-2) var(--xh-space-1);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--xh-fg-muted);
@@ -652,7 +652,7 @@ watch(
 .cmdk-item__title {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   color: var(--xh-fg-default);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -667,7 +667,7 @@ watch(
 .cmdk-item__path {
   flex-shrink: 0;
   max-width: 45%;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -677,7 +677,7 @@ watch(
 .cmdk-item__tag {
   flex-shrink: 0;
   padding: var(--xh-space-0_5) var(--xh-space-1_5);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
   border-radius: var(--xh-shape-pill);
@@ -689,7 +689,7 @@ watch(
   align-items: center;
   gap: var(--xh-space-2);
   padding: calc(var(--xh-space-5) * 2) 0;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-muted);
 }
 
@@ -697,7 +697,7 @@ watch(
   display: flex;
   gap: var(--xh-space-4);
   padding: var(--xh-space-2) var(--xh-space-3);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   flex-shrink: 0;
 }
@@ -710,7 +710,7 @@ watch(
   padding: var(--xh-space-0_5) var(--xh-space-1);
   margin-inline-end: 2px;
   font-family: var(--xh-font-family-mono);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
   border-radius: var(--xh-shape-inset);
 }

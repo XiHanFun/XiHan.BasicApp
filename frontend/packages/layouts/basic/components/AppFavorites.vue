@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
   border-radius: var(--xh-shape-pill);
   background: var(--xh-bg-muted);
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   line-height: 20px;
   cursor: pointer;
   user-select: none;

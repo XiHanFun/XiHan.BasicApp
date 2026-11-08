@@ -964,7 +964,7 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   color: var(--xh-fg-brand);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   cursor: pointer;
 }
 

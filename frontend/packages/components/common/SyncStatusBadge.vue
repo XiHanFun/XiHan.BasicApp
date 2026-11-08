@@ -47,7 +47,7 @@ const { t } = useI18n()
   block-size: 18px;
   padding-inline: var(--xh-space-1_5);
   border-radius: var(--xh-radius-full);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1;
   white-space: nowrap;
   vertical-align: middle;

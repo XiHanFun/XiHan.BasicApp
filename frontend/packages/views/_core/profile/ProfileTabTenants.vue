@@ -180,7 +180,7 @@ onMounted(loadTenants)
 <style scoped>
 .pf-tenant-logo {
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 600;
 }
 

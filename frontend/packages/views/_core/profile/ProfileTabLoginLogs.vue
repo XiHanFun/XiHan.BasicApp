@@ -209,14 +209,14 @@ onMounted(() => loadLogs())
 
 .pf-log-message {
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
 }
 
 .pf-log-time {
   flex-shrink: 0;
   align-self: center;
   color: var(--xh-fg-muted);
-  font-size: 12.5px;
+  font-size: var(--xh-font-size-xs);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

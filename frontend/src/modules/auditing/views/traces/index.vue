@@ -657,14 +657,14 @@ watch(tracePreset, (preset) => {
 }
 
 .trace-panel__title {
-  font-size: 15px;
+  font-size: var(--xh-font-size-md);
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--xh-fg-default);
 }
 
 .trace-panel__count {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-subtle);
 }
 
@@ -681,7 +681,7 @@ watch(tracePreset, (preset) => {
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-subtle);
   font-family: var(--trace-mono);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
 }
 
 .trace-chip i {
@@ -704,7 +704,7 @@ watch(tracePreset, (preset) => {
   align-items: center;
   gap: var(--xh-space-1_5);
   margin-top: 9px;
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-color-warning-600);
 }
 
@@ -741,7 +741,7 @@ watch(tracePreset, (preset) => {
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-subtle);
   font-family: var(--trace-mono);
-  font-size: 10.5px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 400;
   letter-spacing: normal;
   line-height: 1.5;
@@ -819,7 +819,7 @@ watch(tracePreset, (preset) => {
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-subtle);
   font-family: var(--trace-mono);
-  font-size: 10.5px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.3;
@@ -870,7 +870,7 @@ watch(tracePreset, (preset) => {
 .trace-card__time {
   flex: none;
   font-family: var(--trace-mono);
-  font-size: 11.5px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-subtle);
 }
 
@@ -884,7 +884,7 @@ watch(tracePreset, (preset) => {
   padding: var(--xh-space-0_5) var(--xh-space-2);
   border-radius: var(--xh-shape-pill);
   font-family: var(--trace-mono);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 600;
   color: color-mix(in srgb, var(--k) 45%, var(--t-text));
   background: color-mix(in srgb, var(--k) 16%, var(--t-card));
@@ -893,7 +893,7 @@ watch(tracePreset, (preset) => {
 /* 路径：完整展示、允许换行（不截断） */
 .trace-card__path {
   font-family: var(--trace-mono);
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.45;
@@ -902,7 +902,7 @@ watch(tracePreset, (preset) => {
 }
 
 .trace-card__summary {
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1.45;
   color: var(--xh-fg-muted);
   word-break: break-word;
@@ -951,7 +951,7 @@ watch(tracePreset, (preset) => {
   min-width: 46px;
   text-align: right;
   font-family: var(--trace-mono);
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   /* 以 ink 为主、耗时色为辅：既清晰可读又带快慢暗示 */
   color: color-mix(in srgb, var(--d) 32%, var(--t-text));
 }
@@ -970,7 +970,7 @@ watch(tracePreset, (preset) => {
   display: flex;
   gap: var(--xh-space-2);
   font-family: var(--trace-mono);
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   line-height: 1.4;
 }
 

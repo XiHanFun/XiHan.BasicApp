@@ -420,7 +420,7 @@ function handleClose(): void {
 }
 
 .xh-import-dragger__icon {
-  font-size: 32px;
+  font-size: var(--xh-font-size-4xl);
 }
 
 /* 说明与下载模板钮一行排开，挤不下时折行 */
@@ -438,13 +438,13 @@ function handleClose(): void {
   gap: var(--xh-space-2);
   align-items: center;
   padding: var(--xh-space-3) 0;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-muted);
 }
 
 .xh-import-recent__title {
   margin-bottom: 4px;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   font-weight: 600;
   color: var(--xh-fg-default);
 }
@@ -454,7 +454,7 @@ function handleClose(): void {
   gap: var(--xh-space-2);
   align-items: center;
   padding: var(--xh-space-0_5) 0;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
 }
 

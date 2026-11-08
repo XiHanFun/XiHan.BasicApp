@@ -760,7 +760,7 @@ watch(
 
 .extra-brand-title {
   color: var(--xh-fg-default);
-  font-size: 16px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1.2;

@@ -166,7 +166,7 @@ onMounted(async () => {
           class="flex justify-center items-center w-16 h-16 rounded-full"
           :class="isDark ? 'bg-red-500/10' : 'bg-red-50'"
         >
-          <span class="text-red-500" style="display: inline-flex; font-size: 32px"><Icon icon="lucide:shield-alert" /></span>
+          <span class="text-red-500" style="display: inline-flex; font-size: var(--xh-glyph-size-xl)"><Icon icon="lucide:shield-alert" /></span>
         </div>
         <p class="mt-5 text-base font-medium text-[hsl(var(--foreground))]">
           {{ errorMsg }}
@@ -214,14 +214,14 @@ onMounted(async () => {
               :key="scope"
               class="flex gap-2.5 items-center text-sm text-[hsl(var(--foreground))]"
             >
-              <span class="text-emerald-500 shrink-0" style="display: inline-flex; font-size: 16px"><Icon icon="lucide:check" /></span>
+              <span class="text-emerald-500 shrink-0" style="display: inline-flex; font-size: var(--xh-glyph-size-sm)"><Icon icon="lucide:check" /></span>
               <span class="break-all">{{ scope }}</span>
             </li>
             <li
               v-if="scopes.length === 0"
               class="flex gap-2.5 items-center text-sm text-[hsl(var(--foreground))]"
             >
-              <span class="text-emerald-500 shrink-0" style="display: inline-flex; font-size: 16px"><Icon icon="lucide:check" /></span>
+              <span class="text-emerald-500 shrink-0" style="display: inline-flex; font-size: var(--xh-glyph-size-sm)"><Icon icon="lucide:check" /></span>
               <span>{{ t('page.oauth.no_scopes') }}</span>
             </li>
           </ul>

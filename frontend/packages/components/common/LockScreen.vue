@@ -356,14 +356,14 @@ usePageScrollLock(() => lockMode.value !== 'off')
 }
 
 .lock-screen-name {
-  font-size: 18px;
+  font-size: var(--xh-font-size-lg);
   font-weight: 600;
   color: var(--xh-fg-default);
   line-height: 1.3;
 }
 
 .lock-screen-hint {
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-muted);
   margin-bottom: 4px;
 }
@@ -376,7 +376,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
 
 .lock-screen-error {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-danger);
   text-align: left;
 }
@@ -387,7 +387,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   border-radius: var(--xh-shape-sheet);
   background: var(--xh-color-brand-600);
   color: var(--xh-fg-on-brand);
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
   font-weight: 500;
   cursor: pointer;
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
@@ -410,7 +410,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   padding: var(--xh-space-1);
   background: transparent;
   border: none;
-  font-size: 13px;
+  font-size: var(--xh-font-size-sm);
   color: var(--xh-fg-muted);
   cursor: pointer;
   transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);

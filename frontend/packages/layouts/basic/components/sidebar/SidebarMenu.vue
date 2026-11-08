@@ -108,7 +108,7 @@ watch(
   --xh-side-nav-row-bg-in-path: transparent;
 
   background: transparent;
-  font-size: 14px;
+  font-size: var(--xh-font-size-md);
 }
 
 .sidebar-menu--no-top-padding {
@@ -223,7 +223,7 @@ watch(
 }
 
 .sidebar-menu--collapsed-titled :deep(.sidebar-menu__icon) {
-  font-size: 20px;
+  font-size: var(--xh-font-size-xl);
 }
 
 /* 皮肤在折叠态把行文字裁成读屏专用（absolute + 1px + clip-path inset(50%)，过程中还淡到 opacity 0），
@@ -237,7 +237,7 @@ watch(
   clip-path: none;
   opacity: 1;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--xh-font-size-xs);
   font-weight: 400;
   line-height: 1.4;
   white-space: normal;
