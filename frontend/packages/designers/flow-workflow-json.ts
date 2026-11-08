@@ -1,7 +1,7 @@
 import type { XihanWorkflowDefinition } from '@xihan-flow/core/presets/xihan-workflow'
 
 /**
- * 框架 的 WorkflowJson ↔ XiHan 工作流引擎预设（@xihan-flow rc.2）的定义
+ * 框架 的 WorkflowJson ↔ XiHan 工作流引擎预设（@xihan-flow）的定义
  *
  * 后端收发的是框架 的 WorkflowJson（camelCase），预设有自己的定义格式，两边逐项换算：
  * - 定义：WorkflowJson 的 name（定义名，即预设的编码）↔ code，displayName ↔ name；
