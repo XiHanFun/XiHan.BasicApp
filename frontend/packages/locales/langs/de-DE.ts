@@ -1154,6 +1154,12 @@ export default {
       register_btn: 'Registrieren',
       register_success: 'Konto erstellt. Bitte melden Sie sich an',
       already_have_account: 'Bereits ein Konto?',
+      agree_text: 'Ich stimme den folgenden Bedingungen zu:',
+      privacy_policy: 'Datenschutzrichtlinie',
+      and: 'und',
+      terms_of_service: 'Nutzungsbedingungen',
+      agree_required: 'Bitte stimmen Sie der Datenschutzrichtlinie und den Nutzungsbedingungen zu',
+      legal_load_failed: 'Laden fehlgeschlagen. Bitte versuchen Sie es später erneut.',
     },
     signalr: {
       force_logout_title: 'Sitzung abgelaufen',

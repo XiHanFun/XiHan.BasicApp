@@ -1154,6 +1154,12 @@ export default {
       register_btn: '立即注册',
       register_success: '注册成功，请登录',
       already_have_account: '已有账号?',
+      agree_text: '我已阅读并同意',
+      privacy_policy: '隐私政策',
+      and: '和',
+      terms_of_service: '服务条款',
+      agree_required: '请先同意隐私政策和服务条款',
+      legal_load_failed: '加载失败，请稍后重试',
     },
     signalr: {
       force_logout_title: '会话已失效',

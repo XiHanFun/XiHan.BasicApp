@@ -1154,6 +1154,12 @@ export default {
       register_btn: '登録する',
       register_success: '登録しました。ログインしてください',
       already_have_account: 'アカウントをお持ちの方',
+      agree_text: '以下の内容に同意します：',
+      privacy_policy: 'プライバシーポリシー',
+      and: 'および',
+      terms_of_service: '利用規約',
+      agree_required: 'プライバシーポリシーと利用規約に同意してください',
+      legal_load_failed: '読み込みに失敗しました。しばらくしてからもう一度お試しください',
     },
     signalr: {
       force_logout_title: 'セッションが無効になりました',

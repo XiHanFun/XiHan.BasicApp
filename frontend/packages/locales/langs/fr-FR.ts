@@ -1154,6 +1154,12 @@ export default {
       register_btn: 'S’inscrire',
       register_success: 'Compte créé. Veuillez vous connecter',
       already_have_account: 'Vous avez déjà un compte ?',
+      agree_text: 'J’accepte la',
+      privacy_policy: 'Politique de confidentialité',
+      and: 'et les',
+      terms_of_service: 'Conditions d’utilisation',
+      agree_required: 'Veuillez accepter la Politique de confidentialité et les Conditions d’utilisation',
+      legal_load_failed: 'Échec du chargement. Veuillez réessayer plus tard.',
     },
     signalr: {
       force_logout_title: 'Session expirée',

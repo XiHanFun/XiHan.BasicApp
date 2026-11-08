@@ -1154,6 +1154,12 @@ export default {
       register_btn: 'Registrarse',
       register_success: 'Cuenta creada. Inicie sesión',
       already_have_account: '¿Ya tiene una cuenta?',
+      agree_text: 'Acepto la',
+      privacy_policy: 'Política de privacidad',
+      and: 'y los',
+      terms_of_service: 'Términos del servicio',
+      agree_required: 'Acepte la Política de privacidad y los Términos del servicio',
+      legal_load_failed: 'No se pudo cargar. Inténtelo de nuevo más tarde.',
     },
     signalr: {
       force_logout_title: 'Sesión caducada',

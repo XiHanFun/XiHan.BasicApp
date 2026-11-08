@@ -1154,6 +1154,12 @@ export default {
       register_btn: 'Зарегистрироваться',
       register_success: 'Учётная запись создана. Войдите',
       already_have_account: 'Уже есть учётная запись?',
+      agree_text: 'Я соглашаюсь со следующими документами:',
+      privacy_policy: 'Политика конфиденциальности',
+      and: 'и',
+      terms_of_service: 'Условия использования',
+      agree_required: 'Примите Политику конфиденциальности и Условия использования',
+      legal_load_failed: 'Не удалось загрузить. Повторите попытку позже.',
     },
     signalr: {
       force_logout_title: 'Сеанс завершён',

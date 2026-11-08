@@ -1154,6 +1154,12 @@ export default {
       register_btn: '立即註冊',
       register_success: '註冊成功，請登入',
       already_have_account: '已有帳號?',
+      agree_text: '我已閱讀並同意',
+      privacy_policy: '隱私權政策',
+      and: '與',
+      terms_of_service: '服務條款',
+      agree_required: '請先同意隱私權政策與服務條款',
+      legal_load_failed: '載入失敗，請稍後再試',
     },
     signalr: {
       force_logout_title: '工作階段已失效',

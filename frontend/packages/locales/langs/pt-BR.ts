@@ -1154,6 +1154,12 @@ export default {
       register_btn: 'Cadastrar',
       register_success: 'Conta criada. Faça login',
       already_have_account: 'Já tem uma conta?',
+      agree_text: 'Li e concordo com a',
+      privacy_policy: 'Política de Privacidade',
+      and: 'e os',
+      terms_of_service: 'Termos de Serviço',
+      agree_required: 'Aceite a Política de Privacidade e os Termos de Serviço',
+      legal_load_failed: 'Falha ao carregar. Tente novamente mais tarde.',
     },
     signalr: {
       force_logout_title: 'Sessão expirada',

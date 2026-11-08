@@ -5,10 +5,11 @@
 
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
+import type { LegalDocumentKind } from './legal'
 import type { CaptchaChallenge } from '~/types'
 import { Icon } from '@iconify/vue'
-import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot } from '@xihan-ui/vue'
-import { computed, onMounted, ref } from 'vue'
+import { XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot } from '@xihan-ui/vue'
+import { computed, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { XInput } from '~/components'
@@ -17,6 +18,7 @@ import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { useAppContext } from '~/stores'
 import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
+import LegalDocumentDialog from './LegalDocumentDialog.vue'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'RegisterPage' })
@@ -32,6 +34,19 @@ const formData = ref({
   password: '',
   confirmPassword: '',
 })
+
+const agreePolicy = ref(false)
+/** 同意条款的文案里夹着两颗文书按钮，放不进复选框的标签插槽，复选框经 aria-labelledby 取它作名字 */
+const agreeLabelId = useId()
+
+/** 正在查看的文书；弹窗关掉后保留上一份，关闭动画里标题不会跳成另一份 */
+const legalKind = ref<LegalDocumentKind>('privacy-policy')
+const legalOpen = ref(false)
+
+function openLegal(kind: LegalDocumentKind) {
+  legalKind.value = kind
+  legalOpen.value = true
+}
 
 // ==================== 图形验证码（登录配置要求时与密码登录同一套） ====================
 
@@ -169,6 +184,10 @@ const rules = computed<FormRules<typeof formData.value>>(() => ({
 
 // 返回的 Promise 交给表单：落定前提交钮报在途、再按不重复提交，失败在这里自己接住
 async function onSubmit() {
+  if (!agreePolicy.value) {
+    toast.warning(t('page.auth.agree_required'))
+    return
+  }
   if (captchaEnabled.value && (!captcha.value || captchaCodeStr.value.length < CAPTCHA_CODE_LENGTH)) {
     toast.warning(t('page.login.captcha_required'))
     return
@@ -325,10 +344,30 @@ const onAuthInvalid = useAuthFormInvalid()
         </div>
       </div>
 
+      <!-- 文案里夹着按钮，不能塞进复选框的标签插槽（label 里不能套可聚焦元素）：并排放一段，复选框经 aria-labelledby 指向它 -->
+      <div class="agree-row auth-body mb-6">
+        <span class="agree-row__box">
+          <XhCheckbox v-model:checked="agreePolicy" :aria-labelledby="agreeLabelId" />
+        </span>
+        <span :id="agreeLabelId">
+          {{ t('page.auth.agree_text') }}
+          <!-- 打开弹窗而不是跳页：哈希路由下 href="#" 会把人带回首页 -->
+          <button type="button" class="link-primary legal-link" @click="openLegal('privacy-policy')">
+            {{ t('page.auth.privacy_policy') }}
+          </button>
+          {{ t('page.auth.and') }}
+          <button type="button" class="link-primary legal-link" @click="openLegal('terms-of-service')">
+            {{ t('page.auth.terms_of_service') }}
+          </button>
+        </span>
+      </div>
+
       <XhFormSubmitTrigger class="auth-submit">
         {{ t('page.auth.register_btn') }}
       </XhFormSubmitTrigger>
     </XhFormRoot>
+
+    <LegalDocumentDialog v-model:open="legalOpen" :kind="legalKind" />
 
     <p
       class="mt-6 auth-helper text-center"
@@ -349,5 +388,33 @@ const onAuthInvalid = useAuthFormInvalid()
 
 .link-primary:hover {
   text-decoration: underline;
+}
+
+.agree-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--xh-space-2);
+}
+
+/* 方框对齐首行：盒高取一行文字的行高，文案折行时方框不落到几行中间 */
+.agree-row__box {
+  display: flex;
+  flex: none;
+  align-items: center;
+  block-size: 1lh;
+}
+
+/* 文书入口是按钮（打开弹窗），外观仍是行内链接 */
+.legal-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.legal-link:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 </style>

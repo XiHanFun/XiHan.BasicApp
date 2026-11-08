@@ -1154,6 +1154,12 @@ export default {
       register_btn: '가입하기',
       register_success: '가입했어요. 로그인하세요',
       already_have_account: '이미 계정이 있나요?',
+      agree_text: '다음 내용에 동의해요:',
+      privacy_policy: '개인정보 처리방침',
+      and: '및',
+      terms_of_service: '서비스 이용약관',
+      agree_required: '개인정보 처리방침과 서비스 이용약관에 먼저 동의해 주세요',
+      legal_load_failed: '불러오지 못했어요. 잠시 후 다시 시도해 주세요',
     },
     signalr: {
       force_logout_title: '세션이 만료됐어요',

@@ -1154,6 +1154,12 @@ export default {
       register_btn: 'Sign up',
       register_success: 'Account created. Please sign in',
       already_have_account: 'Already have an account?',
+      agree_text: 'I agree to the',
+      privacy_policy: 'Privacy Policy',
+      and: 'and',
+      terms_of_service: 'Terms of Service',
+      agree_required: 'Please agree to the Privacy Policy and Terms of Service',
+      legal_load_failed: 'Failed to load. Please try again later.',
     },
     signalr: {
       force_logout_title: 'Session Expired',
