@@ -85,6 +85,20 @@
     'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
+/* ---------------------------------------------------------------------------
+ * 页面用到的 XiHan.UI 语义令牌工具类（text-caption、text-fg-muted、text-fg-danger…）
+ * inline：工具类直接写 var(--xh-*)，在使用处解析，嵌套 .dark 与 [data-theme] 容器随之切换
+ * 名字不与上面的 HSL 主题重叠；只列页面实际用到的项
+ * ------------------------------------------------------------------------- */
+@theme inline {
+  --color-fg: var(--xh-fg-default);
+  --color-fg-muted: var(--xh-fg-muted);
+  --color-fg-danger: var(--xh-fg-danger);
+
+  --text-caption: var(--xh-text-caption-size);
+  --text-body: var(--xh-text-body-size);
+}
+
 /* 暗色模式：class 策略（取代 darkMode: 'class'），匹配 .dark 容器内的元素 */
 @custom-variant dark (&:where(.dark, .dark *));
 
