@@ -79,7 +79,7 @@ const appName = __APP_NAME__
       class="relative z-[1] mx-auto flex min-h-screen w-full max-w-[1420px] items-center px-4 py-20 sm:px-8 sm:py-14"
     >
       <div
-        class="auth-card relative w-full overflow-hidden rounded-[30px] border border-[hsl(var(--border))] shadow-[0_32px_80px_hsl(var(--foreground)/0.12)]"
+        class="app-glass relative w-full overflow-hidden rounded-[30px]"
       >
         <div
           class="grid relative grid-cols-1 w-full"
@@ -199,12 +199,6 @@ const appName = __APP_NAME__
 </template>
 
 <style scoped>
-.auth-card {
-  background: color-mix(in srgb, var(--xh-bg-surface) 72%, transparent);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
 .slogan-tag {
   transition:
     background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter),

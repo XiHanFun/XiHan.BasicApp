@@ -61,7 +61,7 @@ frontend/
 
 - 按钮按下只换面、不缩放（随组件库缺省，不改写 `--xh-motion-scale-press`）；减弱动效下去掉非必要的位移。
 - 自写的可聚焦元素用与组件库同一道聚焦环：`outline: var(--xh-ring-width) solid var(--xh-ring-focus); outline-offset: var(--xh-ring-offset)`，2px 画在元素自己的盒内，外沿与边框外沿重合。面是实心或任意颜色时内侧衬一道底色间隔线：`box-shadow: inset 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-gap-width)) var(--xh-ring-gap)`（有边框时扣掉边框宽）。环不出盒，裁切容器不必为它留位。
-- 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊），禁止 glass 材质与兼容别名；透景只作主题档，减少透明度时不透明。
+- 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊），不用组件库的 glass 材质与兼容别名。玻璃拟态只用在命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览遮罩、控制中心面板、页面切换的加载遮罩：面板加 `packages/design/ui.css` 的 `.app-glass`，自带底色的（灵动岛、遮罩）只取 `--app-glass-backdrop`，整块罩层（加载遮罩）取 `--app-glass-bg` 与 `--app-glass-backdrop`，组件里不另写半透明底与模糊；减少透明度、提高对比度时退回实心、不模糊。
 - 前端紧凑、清晰、任务导向，不在控制台页面用营销式大标题、装饰性 Hero、夸张渐变或装饰留白。
 - 只有图标的操作要有可访问名称或提示，键盘焦点可见。
 - 组件选择：先找 XiHan.UI 与 `packages/components`；业务组合留在 BasicApp，通用能力回 XiHan.UI 实现；不用页面 CSS 修补组件库的通用缺陷；主题桥只映射应用品牌与布局语义，不重写组件结构。

@@ -63,7 +63,7 @@ function onAlignChange(align: LoginFormAlign) {
 </script>
 
 <template>
-  <div class="login-toolbar">
+  <div class="login-toolbar app-glass">
     <!-- 颜色 -->
     <XhPopoverRoot v-model:open="showColorPicker" placement="bottom-end">
       <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
@@ -140,10 +140,6 @@ function onAlignChange(align: LoginFormAlign) {
   gap: var(--xh-space-0_5);
   padding: var(--xh-space-1) var(--xh-space-2);
   border-radius: var(--xh-shape-pill);
-  background: color-mix(in srgb, var(--xh-bg-surface) 65%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid color-mix(in srgb, var(--xh-border-default) 50%, transparent);
 }
 
 .toolbar-btn {

@@ -66,7 +66,7 @@ const schema = computed<PageSchema>(() => ({
 ## 四、样式
 
 - 只用 XiHan.UI 组件与语义令牌；不新增裸 px（`pnpm px:check` 按文件计数，只许减不许增）；
-- 自写样式的圆角只写形状角色 `--xh-shape-control / surface / overlay / inset / sheet`，不写 `--xh-radius-*` 档位；按下只换面、不缩放；浮层只用 frosted，不用 glass；
+- 自写样式的圆角只写形状角色 `--xh-shape-control / surface / overlay / inset / sheet`，不写 `--xh-radius-*` 档位；按下只换面、不缩放；浮层只用 frosted，玻璃拟态只在指定几处用 `.app-glass`（见主题）；
 - 列 `render` 用 `h()` 生成的节点不带页面 scope，样式写 `:deep()`；
 - 前端保持紧凑，不加营销式大标题。
 

@@ -471,3 +471,39 @@
   font-size: var(--xh-text-caption-size);
   line-height: var(--xh-leading-normal);
 }
+
+/*
+ * 玻璃拟态（Glassmorphism）：命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览的遮罩、控制中心面板、页面切换的加载遮罩
+ * 只在这里定义，用的地方直接取，不在组件里另写半透明底与模糊：
+ * - 面板加 .app-glass（半透明底、玻璃描边、顶部高光、投影、背景模糊）
+ * - 自带底色的（灵动岛恒为深色、遮罩是压暗层）只取 --app-glass-backdrop；整块罩层（加载遮罩）取 --app-glass-bg 与 --app-glass-backdrop，不要描边与投影
+ * 底色取组件库液态材质的半透明底；模糊取 md 一档：再轻，身后的字会和面板上的字叠在一起，再重或底色再实就看不出透明
+ * 减少透明度、提高对比度时底色随液态令牌退回实心，模糊也撤掉
+ */
+:root {
+  --app-glass-bg: var(--xh-material-liquid-bg);
+  --app-glass-border: var(--xh-material-liquid-border);
+  --app-glass-shadow:
+    inset 0 var(--xh-stroke-thin) 0 0 var(--xh-material-liquid-highlight), var(--xh-material-liquid-shadow);
+  --app-glass-backdrop: blur(var(--xh-blur-md)) saturate(160%);
+}
+
+/* 不写 :where()：零特指度压不过上面的 :root，根元素自己带着这两个属性时撤不掉模糊 */
+[data-transparency='reduce'],
+[data-contrast='more'] {
+  --app-glass-backdrop: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --app-glass-backdrop: none;
+  }
+}
+
+.app-glass {
+  background: var(--app-glass-bg);
+  border: var(--xh-stroke-thin) solid var(--app-glass-border);
+  box-shadow: var(--app-glass-shadow);
+  -webkit-backdrop-filter: var(--app-glass-backdrop);
+  backdrop-filter: var(--app-glass-backdrop);
+}

@@ -705,7 +705,9 @@ onBeforeUnmount(() => {
   pointer-events: none;
   background: color-mix(in srgb, var(--xh-color-neutral-950) 94%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-on-media-chrome) 7%, transparent);
-  backdrop-filter: blur(14px);
+  /* 底色恒为深色、与明暗主题解耦，只取统一的玻璃模糊（ui.css 的 --app-glass-backdrop） */
+  -webkit-backdrop-filter: var(--app-glass-backdrop);
+  backdrop-filter: var(--app-glass-backdrop);
   transition:
     width var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
     height var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
@@ -761,7 +763,8 @@ onBeforeUnmount(() => {
   box-shadow:
     0 10px 30px color-mix(in srgb, var(--xh-color-neutral-950) 30%, transparent),
     inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-on-media-chrome) 8%, transparent);
-  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: var(--app-glass-backdrop);
+  backdrop-filter: var(--app-glass-backdrop);
   overflow: hidden;
   /* 宽/高/圆角统一缓动：展开收起为同一容器的形变，不再上下抖动 */
   transition:

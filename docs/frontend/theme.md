@@ -22,7 +22,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | 圆角 | 偏好设置的 `--radius` 接到组件库的圆角种子 `--xh-radius-seed`：控件、承载面与浮层同一档（卡片取 `--radius-card`），内嵌件（菜单与下拉的行、方框、已选标签）取一半，对话框与抽屉朝页面的两角、通知卡片取 1.25 倍；自写样式只写形状角色 `--xh-shape-control / surface / overlay / inset / sheet`，不写 `--xh-radius-*` 档位；`pill` 只用于明确的胶囊语义，正方盒取 `circle` |
 | 按压 | 按钮按下只换面、不缩放（随组件库缺省，不改写 `--xh-motion-scale-press`）；减弱动效下去掉非必要的位移 |
 | 聚焦环 | 与组件库同一道：`outline: var(--xh-ring-width) solid var(--xh-ring-focus); outline-offset: var(--xh-ring-offset)`，2px 画在元素自己的盒内，外沿与边框外沿重合，裁切容器不必为它留位。面是实心或任意颜色时内侧衬一道底色间隔线：`box-shadow: inset 0 0 0 calc(var(--xh-ring-width) + var(--xh-ring-gap-width)) var(--xh-ring-gap)`（有边框时扣掉边框宽） |
-| 浮层 | 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊），禁止 glass |
+| 浮层 | 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊）；玻璃拟态只用在命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览遮罩、控制中心面板、页面切换的加载遮罩，统一取 `packages/design/ui.css` 的 `.app-glass` / `--app-glass-*` |
 | 取值 | 颜色、间距、圆角、阴影、层级、动效只用语义令牌，不写裸色值 |
 | CSS 写法 | `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量，组件局部变量的取值也一样；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；字号取 `--xh-font-size-*` / `--xh-text-*-size`、图标尺寸取 `--xh-glyph-size-*`，不写 px、rem；原生滚动条只在 `scrollbar.css` 里给 |
 | 裸 px | `pnpm px:check`：`.css` 与 `.vue` 的 `<style>` 里的裸 px 按文件计数（`scripts/px-allowlist.json`），只许减不许增，新文件不进白名单；`0px`、`1px` / `2px`（描边与发丝线）、`9999px` 不计 |

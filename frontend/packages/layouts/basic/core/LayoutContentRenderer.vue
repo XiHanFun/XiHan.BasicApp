@@ -84,8 +84,10 @@ const appStore = useAppStore()
   z-index: 6;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--xh-bg-surface) 55%, transparent);
-  backdrop-filter: blur(1px);
+  /* 整块罩层不要描边与投影，只取统一的玻璃底色与模糊（ui.css 的 --app-glass-*） */
+  background: var(--app-glass-bg);
+  -webkit-backdrop-filter: var(--app-glass-backdrop);
+  backdrop-filter: var(--app-glass-backdrop);
 }
 
 .xh-loading-fade-enter-active,

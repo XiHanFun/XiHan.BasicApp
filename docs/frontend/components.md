@@ -59,7 +59,7 @@
 
 - 应用自有组件显式 import（`import { XEditModal } from '~/components'`），只有 XiHan.UI 的 `Xh*` 可由插件自动解析；
 - 模板里 `xh-` 开头的小写标签是设计器的 Web Components（`vite.config.ts` 的 `isCustomElement`），组件库部件一律写 PascalCase；
-- 弹窗、抽屉、浮层只用 frosted，不用 glass；
+- 弹窗、抽屉、浮层只用 frosted；玻璃拟态只给命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览遮罩、控制中心面板、页面切换的加载遮罩，统一用 `packages/design/ui.css` 的 `.app-glass` / `--app-glass-*`；
 - 颜色、间距、圆角只用令牌，不写裸 px。
 
 ## 下一步

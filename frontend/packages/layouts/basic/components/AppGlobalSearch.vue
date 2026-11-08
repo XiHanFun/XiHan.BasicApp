@@ -478,7 +478,7 @@ watch(
   <Teleport to="body">
     <Transition name="cmdk">
       <div v-if="visible" class="cmdk-mask" @click="close">
-        <div class="cmdk-panel" role="dialog" aria-modal="true" @click.stop>
+        <div class="cmdk-panel app-glass" role="dialog" aria-modal="true" @click.stop>
           <!-- 输入框 -->
           <div class="cmdk-input">
             <span class="cmdk-input__icon" style="display: inline-flex; font-size: var(--xh-glyph-size-sm)">
@@ -556,9 +556,9 @@ watch(
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  /* 遮罩与组件库对话框同一层：令牌自带 alpha，直接用，不要再叠一次透明度 */
-  background: var(--xh-bg-overlay);
-  backdrop-filter: blur(2px);
+  /* 面板是玻璃（.app-glass），遮罩只轻压一层（对话框遮罩的四成），压得太暗玻璃会发灰；
+     遮罩本身不模糊，面板外的页面保持清晰，模糊只出现在面板身后，玻璃感才看得出来 */
+  background: color-mix(in srgb, var(--xh-bg-overlay) 40%, transparent);
 }
 
 .cmdk-panel {
@@ -569,9 +569,6 @@ watch(
   flex-direction: column;
   border-radius: var(--xh-shape-sheet);
   overflow: hidden;
-  background: var(--xh-bg-surface);
-  border: 1px solid var(--xh-border-default);
-  box-shadow: var(--xh-elevation-sheet);
 }
 
 .cmdk-input {
@@ -581,6 +578,7 @@ watch(
   padding: 0 var(--xh-space-3);
   height: 52px;
   flex-shrink: 0;
+  border-block-end: calc(var(--xh-stroke-thin) * 1.5) solid var(--xh-border-default);
 }
 
 .cmdk-input__icon {

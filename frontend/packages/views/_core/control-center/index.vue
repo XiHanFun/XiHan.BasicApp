@@ -142,7 +142,7 @@ onMounted(loadTenants)
           </p>
         </div>
 
-        <section class="cc-card">
+        <section class="cc-card app-glass">
           <div class="cc-card__head">
             <div class="cc-card__title">
               <Icon icon="lucide:layout-grid" width="16" />
@@ -333,11 +333,7 @@ onMounted(loadTenants)
   padding: var(--xh-space-5);
   margin-bottom: 16px;
   color: var(--xh-fg-default);
-  background: color-mix(in srgb, var(--xh-bg-surface) 88%, transparent);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--xh-border-default);
   border-radius: calc(var(--xh-shape-control) * 2);
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--xh-fg-default) 5%, transparent);
 }
 
 .cc-card__head {

@@ -349,7 +349,9 @@ function onKeydown(e: KeyboardEvent): void {
   --tab-ov-ink: var(--xh-fg-on-media-chrome);
 
   background: var(--xh-bg-overlay);
-  backdrop-filter: blur(8px);
+  /* 压暗层自带底色，只取统一的玻璃模糊（ui.css 的 --app-glass-backdrop） */
+  -webkit-backdrop-filter: var(--app-glass-backdrop);
+  backdrop-filter: var(--app-glass-backdrop);
   overflow-y: auto;
 }
 
