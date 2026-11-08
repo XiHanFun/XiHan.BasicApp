@@ -1,7 +1,7 @@
 /**
  * packages/constants/app.ts 契约测试
  *
- * 职责边界：主题模式取值、默认配置字面量、主题色预设分组（色值/文案 key 的唯一性与格式）、
+ * 职责边界：主题模式取值、默认配置字面量、主题色预设（色值/文案 key 的唯一性与格式）、
  * ALL_THEME_COLORS 的派生规则，以及页脚底座项目清单
  * 这些值同时被持久化 key 与后端用户设置引用，改动即破坏历史数据的可读性
  */
@@ -18,7 +18,7 @@ import {
   DEFAULT_UI_RADIUS,
   FOUNDATION_PROJECTS,
   THEME_AUTO,
-  THEME_COLOR_GROUPS,
+  THEME_COLOR_PRESETS,
   THEME_DARK,
   THEME_LIGHT,
   TOKEN_EXPIRES_IN,
@@ -27,7 +27,7 @@ import {
   UI_DENSITY_COMPACT,
 } from '~/constants/app'
 
-const allPresets = THEME_COLOR_GROUPS.flatMap(group => group.items)
+const allPresets = THEME_COLOR_PRESETS
 
 describe('主题模式取值', () => {
   it('三种模式取值固定为 dark / light / auto', () => {
@@ -80,14 +80,17 @@ describe('默认配置', () => {
   })
 })
 
-describe('主题色预设分组', () => {
+describe('主题色预设', () => {
   it('默认主题色是合法的 6 位十六进制色值', () => {
     expect(DEFAULT_THEME_COLOR).toMatch(/^#[0-9a-f]{6}$/i)
   })
 
-  it('共七个色系分组，每组三个预设色', () => {
-    expect(THEME_COLOR_GROUPS).toHaveLength(7)
-    expect(THEME_COLOR_GROUPS.map(group => group.items.length)).toEqual([3, 3, 3, 3, 3, 3, 3])
+  it('默认色之外共七个预设，不分色系', () => {
+    expect(THEME_COLOR_PRESETS).toHaveLength(7)
+  })
+
+  it('预设不与默认色重复', () => {
+    expect(allPresets.map(item => item.color.toLowerCase())).not.toContain(DEFAULT_THEME_COLOR.toLowerCase())
   })
 
   it('每个预设色都是合法的 6 位十六进制色值', () => {
@@ -105,23 +108,10 @@ describe('主题色预设分组', () => {
     expect(new Set(nameKeys).size).toBe(nameKeys.length)
   })
 
-  it('分组文案 key 全局唯一', () => {
-    const familyKeys = THEME_COLOR_GROUPS.map(group => group.familyKey)
-    expect(new Set(familyKeys).size).toBe(familyKeys.length)
-  })
-
-  it('全部文案 key 落在 preference.appearance.color 命名空间下，供 i18n 统一维护', () => {
-    const wrong = [
-      ...THEME_COLOR_GROUPS.map(group => group.familyKey),
-      ...allPresets.map(item => item.nameKey),
-    ].filter(key => !key.startsWith('preference.appearance.color.'))
+  it('文案 key 都在 preference.appearance.color.preset 命名空间下，供 i18n 统一维护', () => {
+    const wrong = allPresets.map(item => item.nameKey).filter(key => !key.startsWith('preference.appearance.color.preset.'))
 
     expect(wrong).toEqual([])
-  })
-
-  it('分组 key 与预设 key 使用不同的子命名空间，避免层级互相覆盖', () => {
-    expect(THEME_COLOR_GROUPS.every(group => group.familyKey.includes('.family.'))).toBe(true)
-    expect(allPresets.every(item => item.nameKey.includes('.preset.'))).toBe(true)
   })
 })
 
@@ -130,12 +120,12 @@ describe('全部主题色清单的派生', () => {
     expect(ALL_THEME_COLORS[0]).toBe(DEFAULT_THEME_COLOR)
   })
 
-  it('长度等于默认色加上全部分组预设色', () => {
+  it('长度等于默认色加上全部预设色', () => {
     expect(ALL_THEME_COLORS).toHaveLength(1 + allPresets.length)
-    expect(ALL_THEME_COLORS).toHaveLength(22)
+    expect(ALL_THEME_COLORS).toHaveLength(8)
   })
 
-  it('展开后的顺序与分组内顺序一致', () => {
+  it('默认色之后按预设顺序排列', () => {
     expect(ALL_THEME_COLORS.slice(1)).toEqual(allPresets.map(item => item.color))
   })
 

@@ -9,7 +9,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LayoutAlignSwitcher from '~/components/common/LayoutAlignSwitcher.vue'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
-import { DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
+import { DEFAULT_THEME_COLOR, THEME_COLOR_PRESETS } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
@@ -33,13 +33,11 @@ const colorPresets = computed(() => {
       label: t('preference.appearance.color.default'),
     },
   ]
-  for (const group of THEME_COLOR_GROUPS) {
-    for (const item of group.items) {
-      presets.push({
-        color: item.color,
-        label: t(item.nameKey),
-      })
-    }
+  for (const item of THEME_COLOR_PRESETS) {
+    presets.push({
+      color: item.color,
+      label: t(item.nameKey),
+    })
   }
   return presets
 })
@@ -151,9 +149,10 @@ function onAlignChange(align: LoginFormAlign) {
 }
 
 /* 颜色色板 */
+/* 默认色加七个预设，排成两行四个 */
 .color-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--xh-space-1_5);
   padding: var(--xh-space-1);
 }

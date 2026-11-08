@@ -12,7 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { XHelpTip as PrefTip, XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
-import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
+import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_PRESETS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 
@@ -55,7 +55,7 @@ const themeModes = [
   { value: 'auto', labelKey: 'preference.appearance.mode.auto', icon: 'lucide:monitor' },
 ] as const
 
-const themeColorGroups = THEME_COLOR_GROUPS
+const themeColorPresets = THEME_COLOR_PRESETS
 const allPresetColors = ALL_THEME_COLORS
 
 const localizedModes = computed(() => themeModes.map(m => ({
@@ -233,63 +233,49 @@ const loaderItems = computed(() =>
       <div class="section-title">
         {{ t('preference.appearance.color.title') }}
       </div>
-      <div class="space-y-1.5">
-        <!-- 默认或自定义 -->
-        <div class="color-group-row">
-          <span class="color-group-label">
-            {{ t('preference.appearance.color.default_or_custom') }}
-          </span>
-          <div class="w-full color-group-swatches">
-            <div class="color-item">
-              <button
-                type="button"
-                class="theme-color-card"
-                :class="{ 'is-active': appStore.themeColor === DEFAULT_THEME_COLOR }"
-                :title="t('preference.appearance.color.default')"
-                @click="appStore.setThemeColor(DEFAULT_THEME_COLOR)"
-              >
-                <div class="theme-color-dot" :style="{ backgroundColor: DEFAULT_THEME_COLOR }" />
-              </button>
-              <span class="theme-color-label">{{ t('preference.appearance.color.default') }}</span>
-            </div>
-            <div class="color-item">
-              <div
-                class="theme-color-card custom-color-card"
-                :class="{ 'is-active': !allPresetColors.includes(appStore.themeColor) }"
-              >
-                <div class="theme-color-dot custom-dot">
-                  <Icon icon="lucide:pipette" />
-                </div>
-                <!-- 透明取色器整张铺在卡片上，点卡片任意处都打开取色面板 -->
-                <div class="custom-color-overlay">
-                  <XColorPicker
-                    :value="appStore.themeColor"
-                    @update:value="(value) => appStore.setThemeColor(value)"
-                  />
-                </div>
-              </div>
-              <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
-            </div>
-          </div>
+      <!-- 默认色、预设色与自定义排成一张 3 列网格，不分色系 -->
+      <div class="theme-color-grid">
+        <div class="color-item">
+          <button
+            type="button"
+            class="theme-color-card"
+            :class="{ 'is-active': appStore.themeColor === DEFAULT_THEME_COLOR }"
+            :title="t('preference.appearance.color.default')"
+            @click="appStore.setThemeColor(DEFAULT_THEME_COLOR)"
+          >
+            <div class="theme-color-dot" :style="{ backgroundColor: DEFAULT_THEME_COLOR }" />
+          </button>
+          <span class="theme-color-label">{{ t('preference.appearance.color.default') }}</span>
         </div>
-
-        <!-- 每行一个色系 + 三个色块 -->
-        <div v-for="group in themeColorGroups" :key="group.familyKey" class="color-group-row">
-          <span class="color-group-label">{{ t(group.familyKey) }}</span>
-          <div class="w-full color-group-swatches">
-            <div v-for="item in group.items" :key="item.color" class="color-item">
-              <button
-                type="button"
-                class="theme-color-card"
-                :class="{ 'is-active': appStore.themeColor === item.color }"
-                :title="t(item.nameKey)"
-                @click="appStore.setThemeColor(item.color)"
-              >
-                <div class="theme-color-dot" :style="{ backgroundColor: item.color }" />
-              </button>
-              <span class="theme-color-label">{{ t(item.nameKey) }}</span>
+        <div v-for="item in themeColorPresets" :key="item.color" class="color-item">
+          <button
+            type="button"
+            class="theme-color-card"
+            :class="{ 'is-active': appStore.themeColor === item.color }"
+            :title="t(item.nameKey)"
+            @click="appStore.setThemeColor(item.color)"
+          >
+            <div class="theme-color-dot" :style="{ backgroundColor: item.color }" />
+          </button>
+          <span class="theme-color-label">{{ t(item.nameKey) }}</span>
+        </div>
+        <div class="color-item">
+          <div
+            class="theme-color-card custom-color-card"
+            :class="{ 'is-active': !allPresetColors.includes(appStore.themeColor) }"
+          >
+            <div class="theme-color-dot custom-dot">
+              <Icon icon="lucide:pipette" />
+            </div>
+            <!-- 透明取色器整张铺在卡片上，点卡片任意处都打开取色面板 -->
+            <div class="custom-color-overlay">
+              <XColorPicker
+                :value="appStore.themeColor"
+                @update:value="(value) => appStore.setThemeColor(value)"
+              />
             </div>
           </div>
+          <span class="theme-color-label">{{ t('preference.appearance.color.custom') }}</span>
         </div>
       </div>
       <div class="pref-row mt-2">
@@ -651,23 +637,8 @@ const loaderItems = computed(() =>
   color: var(--xh-fg-default);
 }
 
-/* 色系分组行 */
-.color-group-row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--xh-space-1);
-}
-
-/* 色系名标签 */
-.color-group-label {
-  font-size: var(--xh-font-size-xs);
-  font-weight: 700;
-  color: var(--xh-fg-muted);
-  line-height: 1;
-}
-
 /* 一行三个色块 */
-.color-group-swatches {
+.theme-color-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--xh-space-1_5);
