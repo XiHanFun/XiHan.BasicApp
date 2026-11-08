@@ -7,7 +7,6 @@
 import type { FormRules } from '@xihan-ui/headless'
 import type { LegalDocumentKind } from './legal'
 import type { CaptchaChallenge } from '~/types'
-import { Icon } from '@iconify/vue'
 import { XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,6 +15,7 @@ import { XInput } from '~/components'
 import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
 import LegalDocumentDialog from './LegalDocumentDialog.vue'
@@ -248,7 +248,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.auth.username_placeholder')"
               autocomplete="username"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:user" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -264,7 +268,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="`${t('page.auth.email_placeholder')}（${t('page.auth.register_email_tip')}）`"
               autocomplete="email"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:mail" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -282,7 +290,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.login.password_placeholder')"
               autocomplete="new-password"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:lock-keyhole" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -299,7 +311,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.auth.confirm_password_placeholder')"
               autocomplete="new-password"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:lock-keyhole" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>

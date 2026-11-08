@@ -23,6 +23,7 @@ import { XInput } from '~/components'
 import { toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import { OTP_CODE_LENGTH } from '../shared/pin-code'
@@ -183,7 +184,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.login.tenant_placeholder')"
               autocomplete="organization"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:building-2" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -200,7 +205,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               placeholder="example@example.com"
               autocomplete="email"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:mail" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -254,7 +263,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.auth.reset_new_password_placeholder')"
               autocomplete="new-password"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:lock-keyhole" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -271,7 +284,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.auth.confirm_password_placeholder')"
               autocomplete="new-password"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:lock-keyhole" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>

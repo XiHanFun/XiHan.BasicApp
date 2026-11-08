@@ -11,6 +11,7 @@ import { useI18n } from 'vue-i18n'
 import { XInput } from '~/components'
 import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
 import { useAppContext, useAuthStore } from '~/stores'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import { OTP_CODE_LENGTH, splitPinCode } from '../shared/pin-code'
@@ -150,7 +151,11 @@ const onAuthInvalid = useAuthFormInvalid()
               size="lg"
               :placeholder="t('page.login.tenant_placeholder')"
               autocomplete="organization"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:building-2" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
@@ -166,7 +171,11 @@ const onAuthInvalid = useAuthFormInvalid()
               :placeholder="t('page.auth.phone_placeholder')"
               :max-length="11"
               @update:value="setValue"
-            />
+            >
+              <template #prefix>
+                <Icon icon="lucide:smartphone" />
+              </template>
+            </XInput>
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>

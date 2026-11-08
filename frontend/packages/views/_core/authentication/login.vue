@@ -653,7 +653,11 @@ const onAuthInvalid = useAuthFormInvalid()
                   size="lg"
                   :placeholder="t('page.login.tenant_placeholder')"
                   autocomplete="organization"
-                />
+                >
+                  <template #prefix>
+                    <Icon icon="lucide:building-2" />
+                  </template>
+                </XInput>
               </XhFieldControl>
             </XhFieldRoot>
           </XhFormFieldGroup>
@@ -668,7 +672,11 @@ const onAuthInvalid = useAuthFormInvalid()
                   size="lg"
                   :placeholder="t('page.login.username_placeholder')"
                   autocomplete="username"
-                />
+                >
+                  <template #prefix>
+                    <Icon icon="lucide:user" />
+                  </template>
+                </XInput>
               </XhFieldControl>
             </XhFieldRoot>
           </XhFormFieldGroup>
@@ -684,7 +692,11 @@ const onAuthInvalid = useAuthFormInvalid()
                   size="lg"
                   :placeholder="t('page.login.password_placeholder')"
                   autocomplete="current-password"
-                />
+                >
+                  <template #prefix>
+                    <Icon icon="lucide:lock-keyhole" />
+                  </template>
+                </XInput>
               </XhFieldControl>
             </XhFieldRoot>
           </XhFormFieldGroup>
