@@ -126,7 +126,7 @@ export function createPreferencesSlice() {
     LocalStorage.get<boolean>(FOOTER_SHOW_DEV_INFO_KEY) ?? true,
   )
   const copyrightEnable = ref<boolean>(LocalStorage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
-  const copyrightName = ref<string>(LocalStorage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHan')
+  const copyrightName = ref<string>(LocalStorage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHanFun')
   const copyrightSite = ref<string>(
     LocalStorage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://www.xihanfun.com',
   )
@@ -174,7 +174,7 @@ export function createPreferencesSlice() {
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)
   bindPersist(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, true)
   bindPersist(COPYRIGHT_ENABLE_KEY, copyrightEnable, true)
-  bindPersist(COPYRIGHT_NAME_KEY, copyrightName, 'XiHan')
+  bindPersist(COPYRIGHT_NAME_KEY, copyrightName, 'XiHanFun')
   bindPersist(COPYRIGHT_SITE_KEY, copyrightSite, 'https://www.xihanfun.com')
   bindPersist(COPYRIGHT_DATE_KEY, copyrightDate, '2016')
   bindPersist(COPYRIGHT_ICP_KEY, copyrightIcp, '')

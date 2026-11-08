@@ -134,14 +134,14 @@ describe('默认值', () => {
     expect(store.widgetPreferencePosition).toBe('auto')
   })
 
-  it('页脚与版权默认：全部开启，署名 XiHan / 2016 起，ICP 为空', () => {
+  it('页脚与版权默认：全部开启，署名 XiHanFun / 2016 起，ICP 为空', () => {
     const store = freshStore()
 
     expect(store.footerEnable).toBe(true)
     expect(store.footerFixed).toBe(true)
     expect(store.footerShowDevInfo).toBe(true)
     expect(store.copyrightEnable).toBe(true)
-    expect(store.copyrightName).toBe('XiHan')
+    expect(store.copyrightName).toBe('XiHanFun')
     expect(store.copyrightSite).toBe('https://www.xihanfun.com')
     expect(store.copyrightDate).toBe('2016')
     expect(store.copyrightIcp).toBe('')

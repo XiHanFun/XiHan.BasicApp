@@ -181,11 +181,9 @@ const appName = __APP_NAME__
             :href="appStore.copyrightSite"
             target="_blank"
             class="hover:underline"
-          >
-            {{ appStore.copyrightName }}
-          </a>
-          <span v-else>{{ appStore.copyrightName }}</span>
-          . All Rights Reserved.
+          >{{ appStore.copyrightName }}</a>
+          <span v-else>{{ appStore.copyrightName }}</span>.
+          All Rights Reserved.
         </span>
         <a
           v-if="appStore.copyrightIcp"
