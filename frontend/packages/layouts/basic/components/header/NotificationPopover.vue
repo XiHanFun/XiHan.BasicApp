@@ -220,9 +220,11 @@ function handleItemClick(item: NotificationItem) {
           </div>
 
           <div class="notification-stage">
-            <div v-if="props.loading" class="notification-loading">
-              <XhSpinner :label="t('header.notification.title')" />
-            </div>
+            <Transition name="app-fade">
+              <div v-if="props.loading" class="notification-loading">
+                <XhSpinner :label="t('header.notification.title')" />
+              </div>
+            </Transition>
             <XhTabsRoot v-model:value="activeTab" variant="line" size="sm" class="notification-tabs">
               <XhTabsList>
                 <XhTabsTrigger value="inbox">

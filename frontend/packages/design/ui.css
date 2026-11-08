@@ -82,7 +82,7 @@
  * 加载罩层：组件库的旋转标记不带遮罩，罩层由这里补上
  *
  * 容器给定位上下文，罩层半透明盖住内容，读数期间旧数据可见但点不到
- * 罩层常驻 DOM、由容器上的 is-loading 决定显隐：留着节点才能做进出场过渡，也省得各处写 v-if
+ * 罩层常驻 DOM、由容器上的 is-loading 决定显隐：留着节点才能做进场过渡，也省得各处写 v-if
  */
 .xh-loading-stage {
   position: relative;
@@ -90,6 +90,10 @@
 
 .xh-loading-stage:not(.is-loading) > .xh-loading-stage__veil {
   display: none;
+}
+
+.xh-loading-stage.is-loading > .xh-loading-stage__veil {
+  animation: xh-fade-in var(--xh-motion-duration-enter) var(--xh-motion-ease-enter) backwards;
 }
 
 .xh-loading-stage__veil {
@@ -506,4 +510,16 @@
   box-shadow: var(--app-glass-shadow);
   -webkit-backdrop-filter: var(--app-glass-backdrop);
   backdrop-filter: var(--app-glass-backdrop);
+}
+
+/*
+ * 布局外壳的几何联动：侧栏收放、顶栏隐现、内容最大化时，侧栏、顶栏、正文与页脚走同一段时长、同一条曲线，
+ * 与组件库侧导航的收放一致；减少动态效果时时长随令牌压到 1ms
+ * 行内样式写 transition: none 的那一刻（如内容最大化）照旧瞬切
+ */
+.layout-motion {
+  transition-duration: var(--xh-motion-duration-move);
+  transition-timing-function: var(--xh-motion-ease-continuous);
+  transition-property:
+    flex-basis, inline-size, width, min-width, max-width, margin-left, margin-top, left, top, transform;
 }

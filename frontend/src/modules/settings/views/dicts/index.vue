@@ -643,9 +643,9 @@ function formatBoolean(value: boolean): string {
 </script>
 
 <template>
-  <!-- 主从两栏：左字典、右字典项，各自是一整套 SchemaPage（搜索设置 / 列设置 / 批量操作全部照旧）；
-       宽屏并排各占一半、整页不滚，窄屏上下堆叠、每栏定高、整页滚动 -->
   <div class="dict-mgmt flex min-h-full flex-col lg:h-full lg:flex-row lg:overflow-hidden">
+    <!-- 主从两栏：左字典、右字典项，各自是一整套 SchemaPage（搜索设置 / 列设置 / 批量操作全部照旧）；
+         宽屏并排各占一半、整页不滚，窄屏上下堆叠、每栏定高、整页滚动 -->
     <div class="h-[70vh] min-w-0 flex-none lg:h-auto lg:flex-1">
       <!-- 每栏是一整套 SchemaPage：它自带 p-3 内衬，两栏之间只把相邻侧收窄一档，不另加间距 -->
       <SchemaPage

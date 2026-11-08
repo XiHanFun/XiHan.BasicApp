@@ -11,8 +11,8 @@ defineOptions({ name: 'ChatConversationsView' })
 </script>
 
 <template>
-  <!-- 布局内容区已是 definite 高度，直接 h-full 填满、ChatPanel 内部滚动，无需 JS 定高 -->
   <div class="h-full overflow-hidden p-2 sm:p-4">
+    <!-- 布局内容区已是 definite 高度，直接 h-full 填满、ChatPanel 内部滚动，无需 JS 定高 -->
     <ChatPanel mode="page" />
   </div>
 </template>

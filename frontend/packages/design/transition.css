@@ -83,3 +83,19 @@ html:active-view-transition *::after {
   rotate: 90deg;
   scale: 0.5;
 }
+
+/*
+ * 应用自己的成块内容到达（数据回来后出现的面板、看板、浮条）：淡入并上移一点落定
+ * .app-arrive 挂载时播一次；<Transition name="app-arrive"> 进场时播、离场即撤；.app-fade 只淡入不位移
+ * 关键帧取组件库的共享关键帧（family/motion.css），节奏与组件库空态入场一致；位移幅度令牌在减弱动效下归零
+ * 组件库部件自带的动画（空态、对话框、浮层等）不再叠加
+ */
+.app-arrive,
+.app-arrive-enter-active {
+  animation: xh-rise-in var(--xh-motion-duration-enter) var(--xh-motion-ease-enter-strong) backwards;
+}
+
+.app-fade,
+.app-fade-enter-active {
+  animation: xh-fade-in var(--xh-motion-duration-enter) var(--xh-motion-ease-enter) backwards;
+}

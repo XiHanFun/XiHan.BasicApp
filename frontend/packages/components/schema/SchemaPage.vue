@@ -702,33 +702,35 @@ const skeletonColumns = computed(() => {
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
     <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉
          开着搜索设置同步时等后端那份回来再出，免得先按本地旧的常用 / 高级划分摆出来再换 -->
-    <XhCardRoot
-      v-if="searchSettings.ready.value && (searchFields.length || advancedFields.length)"
-      class="xh-schema-card"
-      variant="outline"
-      style="overflow: visible"
-    >
-      <XhCardContent>
-        <SchemaSearchPanel
-          :advanced-fields="advancedFields"
-          :common-fields="searchFields"
-          :model="filters"
-          @reset="reset"
-          @search="search"
-        >
-          <template #settings>
-            <SchemaSearchSettings
-              :settings="searchSettings.settings.value"
-              @move="searchSettings.move"
-              @reset="searchSettings.resetDefault"
-              @toggle-pin="searchSettings.togglePin"
-              @toggle-visible="searchSettings.toggleVisible"
-              @save="onSaveSearchSettings"
-            />
-          </template>
-        </SchemaSearchPanel>
-      </XhCardContent>
-    </XhCardRoot>
+    <Transition name="app-arrive">
+      <XhCardRoot
+        v-if="searchSettings.ready.value && (searchFields.length || advancedFields.length)"
+        class="xh-schema-card"
+        variant="outline"
+        style="overflow: visible"
+      >
+        <XhCardContent>
+          <SchemaSearchPanel
+            :advanced-fields="advancedFields"
+            :common-fields="searchFields"
+            :model="filters"
+            @reset="reset"
+            @search="search"
+          >
+            <template #settings>
+              <SchemaSearchSettings
+                :settings="searchSettings.settings.value"
+                @move="searchSettings.move"
+                @reset="searchSettings.resetDefault"
+                @toggle-pin="searchSettings.togglePin"
+                @toggle-visible="searchSettings.toggleVisible"
+                @save="onSaveSearchSettings"
+              />
+            </template>
+          </SchemaSearchPanel>
+        </XhCardContent>
+      </XhCardRoot>
+    </Transition>
 
     <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/导入/导出/列设置/全屏） -->
     <XhCardRoot class="xh-schema-card xh-schema-card--toolbar" variant="outline" style="overflow: visible">
@@ -811,37 +813,39 @@ const skeletonColumns = computed(() => {
       <XhCardContent class="xh-schema-card__body--table">
         <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据
              开着表格设置同步时也等后端那份回来，免得先按本地旧的列顺序、显隐与宽度摆出表格再换 -->
-        <XhSkeletonRoot v-if="!firstLoaded || !settings.ready.value" class="xh-table-skeleton" aria-hidden="true">
-          <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
-            <div
-              v-for="col in skeletonColumns"
-              :key="`h-${col.key}`"
-              class="xh-skel-cell"
-              :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
-            >
-              <XhSkeletonItem v-if="!col.control" class="xh-skel-bar" style="inline-size: 52%; block-size: 13px" />
+        <!-- 骨架即撤、表格淡入 -->
+        <Transition name="app-fade">
+          <XhSkeletonRoot v-if="!firstLoaded || !settings.ready.value" class="xh-table-skeleton" aria-hidden="true">
+            <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
+              <div
+                v-for="col in skeletonColumns"
+                :key="`h-${col.key}`"
+                class="xh-skel-cell"
+                :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+              >
+                <XhSkeletonItem v-if="!col.control" class="xh-skel-bar" style="inline-size: 52%; block-size: 13px" />
+              </div>
             </div>
-          </div>
-          <div
-            v-for="row in SKELETON_ROWS"
-            :key="row"
-            class="xh-skel-row"
-            :style="{ height: `${skeletonRowHeight}px` }"
-          >
             <div
-              v-for="col in skeletonColumns"
-              :key="`r${row}-${col.key}`"
-              class="xh-skel-cell"
-              :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+              v-for="row in SKELETON_ROWS"
+              :key="row"
+              class="xh-skel-row"
+              :style="{ height: `${skeletonRowHeight}px` }"
             >
-              <XhSkeletonItem v-if="col.control" class="xh-skel-bar xh-skel-bar--square" style="inline-size: 16px; block-size: 16px" />
-              <XhSkeletonItem v-else class="xh-skel-bar" :style="{ inlineSize: col.fill, blockSize: '15px' }" />
+              <div
+                v-for="col in skeletonColumns"
+                :key="`r${row}-${col.key}`"
+                class="xh-skel-cell"
+                :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
+              >
+                <XhSkeletonItem v-if="col.control" class="xh-skel-bar xh-skel-bar--square" style="inline-size: 16px; block-size: 16px" />
+                <XhSkeletonItem v-else class="xh-skel-bar" :style="{ inlineSize: col.fill, blockSize: '15px' }" />
+              </div>
             </div>
-          </div>
-        </XhSkeletonRoot>
-        <template v-else>
+          </XhSkeletonRoot>
           <!-- 表格：列表/树形两种模式（树形不分页、按 childrenKey 展开） -->
           <SchemaTablePanel
+            v-else
             v-model:checked-keys="checkedKeys"
             :columns="columns"
             :data="rows"
@@ -872,7 +876,7 @@ const skeletonColumns = computed(() => {
           >
             <!-- 批量浮条：放在页脚，选中后不挤压表格空间 -->
             <template v-if="checkedKeys.length" #footer-actions>
-              <div class="xh-batch-bar">
+              <div class="xh-batch-bar app-arrive">
                 <span class="xh-batch-bar__count">{{ t('component.schema_page.selected_count_prefix') }} <strong>{{ checkedKeys.length }}</strong> {{ t('component.schema_page.selected_count_suffix') }}</span>
                 <XhButton variant="ghost" size="sm" @click="clearSelection">
                   {{ t('component.schema_page.clear_selection') }}
@@ -923,7 +927,7 @@ const skeletonColumns = computed(() => {
               </div>
             </template>
           </SchemaTablePanel>
-        </template>
+        </Transition>
       </XhCardContent>
     </XhCardRoot>
 

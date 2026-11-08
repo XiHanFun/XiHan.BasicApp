@@ -19,7 +19,7 @@ import WidgetCard from './WidgetCard.vue'
  */
 defineOptions({ name: 'StatsWidget' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const formatters = useFormatters()
 
 /** 认得的指标给图标与颜色（颜色只为彼此区分、不表语义，取组件库的色相色阶）；其余用通用图标 */
@@ -70,9 +70,7 @@ const statCards = computed(() => metrics.value.map(({ key, data }) => {
   return {
     key,
     label: labelOf(key),
-    value: value == null
-      ? '-'
-      : formatters.value.number(value),
+    value,
     hint: value == null || previous == null
       ? undefined
       : t('workbench.charts.vs_yesterday_count', {
@@ -89,11 +87,11 @@ const statCards = computed(() => metrics.value.map(({ key, data }) => {
     <div v-if="loading" class="stats-placeholder" role="status">
       {{ t('common.loading') }}
     </div>
-    <div v-else-if="error || !statCards.length" class="stats-placeholder">
+    <div v-else-if="error || !statCards.length" class="stats-placeholder app-fade">
       {{ error ? t('common.messages.load_failed') : t('common.no_data') }}
     </div>
     <!-- 按小组件自身宽度排布：极窄单列横排；中等两列、图标在上；宽到每格放得下横排时再横排，足够宽四列一行 -->
-    <div v-else class="grid grid-cols-1 gap-2 @[14rem]:grid-cols-2 @2xl:grid-cols-4 @2xl:gap-3">
+    <div v-else class="app-fade grid grid-cols-1 gap-2 @[14rem]:grid-cols-2 @2xl:grid-cols-4 @2xl:gap-3">
       <div
         v-for="stat in statCards"
         :key="stat.key"
@@ -107,7 +105,17 @@ const statCards = computed(() => metrics.value.map(({ key, data }) => {
           <Icon :icon="stat.icon" width="20" height="20" :style="{ color: stat.color }" />
         </div>
         <div class="flex min-w-0 max-w-full flex-col gap-0.5">
-          <span class="text-xl font-bold leading-tight text-foreground tabular-nums">{{ stat.value }}</span>
+          <!-- 数字到了用组件库的数值动画滚出来：首次进视口才滚，减弱动效下直接落到终值，与 Intl 同样分组 -->
+          <span class="text-xl font-bold leading-tight text-foreground tabular-nums">
+            <XhNumberAnimation
+              v-if="stat.value != null"
+              :to="stat.value"
+              :precision="Number.isInteger(stat.value) ? 0 : 2"
+              :locale="locale"
+              :format-options="{ useGrouping: true }"
+            />
+            <template v-else>-</template>
+          </span>
           <span class="truncate text-xs text-muted-foreground">{{ stat.label }}</span>
         </div>
       </div>

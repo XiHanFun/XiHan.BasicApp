@@ -283,6 +283,9 @@ function handleMiddleClose(path: string) {
 const TAB_ENTER = 'var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong)'
 const TAB_LEAVE = 'var(--xh-motion-duration-exit) var(--xh-motion-ease-exit)'
 const TAB_SHIFT = 'translateX(calc(-1 * var(--xh-motion-distance-lg)))'
+// 离场同时把宽度收到 0，右边的标签跟着平移过去，不在淡出结束时一下跳位；几何走 move，减弱动效下 1ms
+// chrome 风格靠负的右外边距叠放，它也一起收到 0，否则移除那一刻右邻会弹回这段叠放量
+const TAB_COLLAPSE = 'var(--xh-motion-duration-move) var(--xh-motion-ease-continuous)'
 const TAB_ENTER_DURATION = 320
 const TAB_LEAVE_DURATION = 200
 
@@ -291,18 +294,27 @@ function setTabStyle(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
 }
 
 function clearTabTransition(el: HTMLElement) {
-  setTabStyle(el, { transition: '', opacity: '', transform: '' })
+  setTabStyle(el, {
+    transition: '',
+    opacity: '',
+    transform: '',
+    width: '',
+    minWidth: '',
+    marginRight: '',
+    overflow: '',
+  })
 }
 
 /**
- * 等这枚标签自己的淡变走完再收尾，超时兜底只收一次
- * 子元素的过渡结束也会冒泡，只认本元素的 opacity：减弱动效下位移 1ms 就结束，淡变还在走
+ * 等这枚标签自己列出的几项过渡都走完再收尾，超时兜底只收一次
+ * 子元素的过渡结束也会冒泡，只认本元素：减弱动效下位移与宽度 1ms 就结束，淡变还在走
  */
-function afterOwnFade(el: HTMLElement, timeoutMs: number, finish: () => void) {
+function afterOwnTransitions(el: HTMLElement, properties: string[], timeoutMs: number, finish: () => void) {
   const listening = new AbortController()
   const timer = setTimeout(settle, timeoutMs)
+  const pending = new Set(properties)
   el.addEventListener('transitionend', (event) => {
-    if (event.target === el && event.propertyName === 'opacity') {
+    if (event.target === el && pending.delete(event.propertyName) && pending.size === 0) {
       settle()
     }
   }, { signal: listening.signal })
@@ -330,7 +342,7 @@ function onTabEnter(el: Element, done: () => void) {
     clearTabTransition(htmlEl)
     done()
   }
-  afterOwnFade(htmlEl, TAB_ENTER_DURATION + 40, cleanup)
+  afterOwnTransitions(htmlEl, ['opacity'], TAB_ENTER_DURATION + 40, cleanup)
 }
 
 function onTabBeforeLeave(el: Element) {
@@ -339,13 +351,16 @@ function onTabBeforeLeave(el: Element) {
 
 function onTabLeave(el: Element, done: () => void) {
   const htmlEl = el as HTMLElement
+  setTabStyle(htmlEl, { width: `${htmlEl.getBoundingClientRect().width}px`, minWidth: '0', overflow: 'hidden' })
   void htmlEl.offsetHeight
   setTabStyle(htmlEl, {
-    transition: `opacity ${TAB_LEAVE}, transform ${TAB_LEAVE}`,
+    transition: `opacity ${TAB_LEAVE}, transform ${TAB_LEAVE}, width ${TAB_COLLAPSE}, margin-right ${TAB_COLLAPSE}`,
     opacity: '0',
     transform: TAB_SHIFT,
+    width: '0px',
+    marginRight: '0px',
   })
-  afterOwnFade(htmlEl, TAB_LEAVE_DURATION + 40, done)
+  afterOwnTransitions(htmlEl, ['opacity', 'width'], TAB_LEAVE_DURATION + 40, done)
 }
 
 function onTabEnterCancelled(el: Element) {

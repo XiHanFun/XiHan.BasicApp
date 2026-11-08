@@ -57,7 +57,7 @@ function open(link?: string | null) {
         {{ error }}
       </XhEmptyStateDescription>
     </XhEmptyStateRoot>
-    <ul v-else class="flex flex-col gap-0.5">
+    <ul v-else class="app-fade flex flex-col gap-0.5">
       <li v-for="item in items" :key="item.id">
         <button
           type="button"

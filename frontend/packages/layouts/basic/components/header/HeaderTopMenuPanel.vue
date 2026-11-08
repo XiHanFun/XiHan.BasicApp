@@ -84,6 +84,9 @@ const emit = defineEmits<{ select: [key: string] }>()
   text-align: start;
   cursor: pointer;
   white-space: nowrap;
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .top-menu-panel__item:hover:not(:disabled) {

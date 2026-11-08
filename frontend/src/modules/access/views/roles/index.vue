@@ -509,7 +509,7 @@ async function saveScope() {
             <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('access.roles.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
-          <div v-else-if="detailView.detail.value" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+          <div v-else-if="detailView.detail.value" class="xh-scroll-area app-fade" style="max-height: calc(100vh - 120px)">
             <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
             <XhTabsRoot default-value="overview" variant="line">
               <XhTabsList>

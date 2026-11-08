@@ -237,4 +237,9 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
 .crumb-leave-active {
   display: none;
 }
+
+/* 留下的层级位置变了（前面有一级被换掉）就平移过去；Vue 的位移补偿写在 transform 上 */
+.crumb-move {
+  transition: transform var(--xh-motion-duration-move) var(--xh-motion-ease-continuous);
+}
 </style>

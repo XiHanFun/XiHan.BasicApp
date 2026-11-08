@@ -99,12 +99,6 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 </script>
 
 <template>
-  <!--
-    单一根 <div>，内容通过 <template v-if> 区分 chrome 与 flat 风格
-    TransitionGroup 始终看到同一 DOM 节点类型，切换风格时只做原地 patch，
-    不触发 leave/enter 动画，彻底消除切换闪烁
-    data-tab-item：标签栏按它数标签、找右键目标，钉在自己的根上，不靠调用方透传
-  -->
   <XhSortableItem
     :item-id="item.path"
     :disabled="!draggable"
@@ -120,6 +114,13 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
     @contextmenu.prevent="emit('contextmenu', $event, item)"
     @keydown.enter.prevent="emit('jump', item.path)"
   >
+    <!--
+      单一根 <div>，内容通过 <template v-if> 区分 chrome 与 flat 风格
+      TransitionGroup 始终看到同一 DOM 节点类型，切换风格时只做原地 patch，
+      不触发 leave/enter 动画，彻底消除切换闪烁
+      data-tab-item：标签栏按它数标签、找右键目标，钉在自己的根上，不靠调用方透传
+      这段注释写在根内：写在根外，开发模式保留注释会让组件根变成 Fragment，卸载时不走离场钩子
+    -->
     <!-- ======== Chrome 风格内容 ======== -->
     <template v-if="styleType === 'chrome'">
       <div class="relative size-full px-1">
@@ -242,10 +243,13 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 <style scoped>
 /* ============ Chrome 风格 ============ */
 /* 标签文字与侧栏、面包屑同取 medium：Windows 的中文字体没有这一档会落到常规，semibold 又落到粗体、太重 */
+/*
+ * 标签根是排序项：拖动时邻项的让位靠组件库皮肤给项根的 translate 过渡，根上再写 transition 会把它盖掉、让位变成瞬移
+ * 所以各风格的根都不写 transition，底色、描边与它们的过渡落在内层（chrome 的 __background / __main，平铺的 __inner）
+ */
 .chrome-tab {
   font-size: var(--xh-font-size-sm);
   font-weight: var(--xh-font-weight-medium);
-  transition: color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab:not(.chrome-tab--dragging) {
@@ -395,6 +399,13 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   color: var(--xh-fg-muted);
 }
 
+.flat-tab__inner {
+  transition:
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
 .flat-tab__title {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -455,9 +466,6 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 /* ---- Plain 风格 ---- */
 .flat-tab--plain {
   height: 100%;
-  transition:
-    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab--plain.has-left-divider {
@@ -469,13 +477,19 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab--plain:hover:not(.is-active) {
-  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
   color: var(--xh-fg-default);
 }
 
+.flat-tab--plain:hover:not(.is-active) > .flat-tab__inner {
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
+}
+
 .flat-tab--plain.is-active {
-  background: var(--tab-active-bg);
   color: var(--tab-active-color);
+}
+
+.flat-tab--plain.is-active > .flat-tab__inner {
+  background: var(--tab-active-bg);
 }
 
 /* ---- Card 风格 ---- */
@@ -483,23 +497,28 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   height: calc(100% - 4px);
   margin-top: 2px;
   margin-inline-start: 6px;
+}
+
+.flat-tab--card > .flat-tab__inner {
   border-radius: var(--xh-shape-control);
   border: 1px solid var(--xh-border-default);
-  transition:
-    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab--card:hover:not(.is-active) {
-  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
   color: var(--xh-fg-default);
+}
+
+.flat-tab--card:hover:not(.is-active) > .flat-tab__inner {
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
   border-color: color-mix(in srgb, var(--xh-fg-brand) 30%, transparent);
 }
 
 .flat-tab--card.is-active {
-  background: var(--tab-active-bg);
   color: var(--tab-active-color);
+}
+
+.flat-tab--card.is-active > .flat-tab__inner {
+  background: var(--tab-active-bg);
   border-color: color-mix(in srgb, var(--tab-active-color) 50%, transparent);
 }
 
@@ -507,9 +526,6 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 .flat-tab--brisk {
   height: 100%;
   position: relative;
-  transition:
-    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab--brisk.has-left-divider {
@@ -539,8 +555,11 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab--brisk:hover:not(.is-active) {
-  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
   color: var(--xh-fg-default);
+}
+
+.flat-tab--brisk:hover:not(.is-active) > .flat-tab__inner {
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
 }
 
 .flat-tab--brisk.is-active {
@@ -549,9 +568,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 /* 拖拽中的标签（sortable 在被拖那一项上写 data-dragging） */
 .tab-item[data-dragging] {
+  --xh-sortable-item-opacity-dragging: 0.6;
+
   z-index: 3;
   cursor: grabbing;
-  opacity: 0.6;
 }
 
 /* 分屏合并标签的左右分隔符 */

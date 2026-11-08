@@ -576,7 +576,7 @@ watch(
       v-if="!isMobile"
       :class="sidebarTheme"
       :style="placeholderStyle"
-      class="h-full transition-all duration-150"
+      class="layout-motion h-full"
     />
 
     <!-- Fixed sidebar aside -->
@@ -584,7 +584,7 @@ watch(
       ref="asideRef"
       :inert="stowed || undefined"
       :style="asideStyle"
-      class="fixed left-0 top-0 h-full transition-all duration-150"
+      class="layout-motion fixed left-0 top-0 h-full"
       @mouseenter="onAsideMouseEnter"
       @mouseleave="onAsideMouseLeave"
     >
@@ -715,7 +715,7 @@ watch(
         :class="[sidebarSubTheme, { 'border-l': extraVisible }]"
         :data-theme="extraMenuTheme"
         :style="extraStyle"
-        class="fixed top-0 h-full overflow-hidden border-r border-border bg-sidebar transition-all duration-200"
+        class="layout-motion fixed top-0 h-full overflow-hidden border-r border-border bg-sidebar"
       >
         <div class="h-full">
           <SidebarCollapseButton

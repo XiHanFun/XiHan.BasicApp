@@ -931,7 +931,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 输入中提示 -->
-    <div v-if="chatStore.activeTyping" class="px-4 pb-1 text-[11px] text-muted-foreground">
+    <div v-if="chatStore.activeTyping" class="app-fade px-4 pb-1 text-[11px] text-muted-foreground">
       {{ t('chat.thread.typing', { name: chatStore.activeTyping.userName ?? '' }) }}
     </div>
 

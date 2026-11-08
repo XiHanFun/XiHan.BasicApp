@@ -36,17 +36,28 @@ interface AppBrandProps {
           :style="{ width: `${props.logoSize}px`, height: `${props.logoSize}px` }"
         >
       </span>
-      <span
-        v-if="!props.collapsed"
-        class="app-brand-title min-w-0 flex-1 truncate"
-      >
-        {{ props.appTitle }}
-      </span>
+      <!-- 展开时随侧栏变宽淡入；收起即撤，不等淡出 -->
+      <Transition name="app-brand-title">
+        <span
+          v-if="!props.collapsed"
+          class="app-brand-title min-w-0 flex-1 truncate"
+        >
+          {{ props.appTitle }}
+        </span>
+      </Transition>
     </div>
   </div>
 </template>
 
 <style scoped>
+.app-brand-title-enter-active {
+  transition: opacity var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
+}
+
+.app-brand-title-enter-from {
+  opacity: 0;
+}
+
 .app-brand-logo-wrap {
   display: inline-flex;
   height: 32px;

@@ -143,7 +143,10 @@ watch(
   flex: none;
   align-items: center;
   color: color-mix(in srgb, var(--xh-fg-default) 72%, transparent);
-  transition: transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
+  /* 选中时图标换色与行底色同步渐变 */
+  transition:
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .sidebar-menu

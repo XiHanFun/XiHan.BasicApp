@@ -186,6 +186,7 @@ function onSort(details: { from: number, to: number }) {
 .xh-set-row {
   padding: var(--xh-space-1) var(--xh-space-1_5);
   border-radius: var(--xh-shape-control);
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 行标题钉死 14px，与列设置行标题字号一致 */
@@ -196,7 +197,7 @@ function onSort(details: { from: number, to: number }) {
 }
 
 .xh-set-row:hover {
-  background: rgb(var(--primary) / 0.06);
+  background: color-mix(in srgb, var(--xh-fg-brand) 6%, transparent);
 }
 
 .xh-set-drag-handle:active {

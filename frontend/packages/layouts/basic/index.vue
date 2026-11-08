@@ -331,9 +331,9 @@ const sidebarEnableState = computed(
     </div>
 
     <!-- ==================== Main Content ==================== -->
-    <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
-      <!-- Header + Tabbar wrapper -->
-      <div :style="shell.headerWrapperStyle.value">
+    <div class="flex flex-1 flex-col overflow-hidden">
+      <!-- Header + Tabbar wrapper：固定顶栏的位置与宽度随侧栏收放同步过渡 -->
+      <div class="layout-motion" :style="shell.headerWrapperStyle.value">
         <!-- Header -->
         <!-- 内容最大化时顶栏带着标签栏用负 margin-top 滑出画面（200ms），滑出后打 inert
              退出键盘与读屏；不用 v-show，否则只能一帧消失 -->
@@ -347,7 +347,7 @@ const sidebarEnableState = computed(
             right: !shell.isSideMode.value ? 0 : undefined,
             marginTop: shell.contentMaximized.value ? `-${shell.headerHeight.value}px` : '0',
           }"
-          class="top-0 flex w-full flex-[0_0_auto] items-center border-b border-border bg-header pl-2 transition-[margin-top] duration-200"
+          class="layout-motion top-0 flex w-full flex-[0_0_auto] items-center border-b border-border bg-header pl-2"
         >
           <!-- Logo in header (for header-nav / mixed-nav / mobile) -->
           <div
@@ -409,7 +409,7 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-[margin-top] duration-200" :style="shell.contentStyle.value">
+      <div class="layout-motion flex min-h-0 flex-1 flex-col overflow-hidden" :style="shell.contentStyle.value">
         <!-- 通知横幅：置于正文容器内（容器已按固定顶栏做 margin-top 让位），
              紧贴标签栏下方、块级推下页面内容；放容器外会被固定顶栏遮住并顶出空白条 -->
         <ImpersonationBanner />
@@ -585,7 +585,7 @@ const sidebarEnableState = computed(
           width: shell.footerWidth.value,
           zIndex: shell.appStore.footerFixed ? 199 : undefined,
         }"
-        class="footer-bar bottom-0 flex w-full border-t border-border bg-background text-xs text-muted-foreground transition-all duration-200"
+        class="footer-bar layout-motion bottom-0 flex w-full border-t border-border bg-background text-xs text-muted-foreground"
         :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-0.5 px-3 py-1' : 'flex-row items-center px-4'"
       >
         <!-- Left: Dev version info -->

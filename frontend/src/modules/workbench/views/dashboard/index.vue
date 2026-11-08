@@ -341,7 +341,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
       </div>
     </div>
 
-    <div v-if="ready && !board.length" class="py-20">
+    <div v-if="ready && !board.length" class="app-arrive py-20">
       <XhEmptyStateRoot>
         <XhEmptyStateIndicator>
           <Icon icon="lucide:inbox" width="28" />
@@ -362,7 +362,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
       :ids="ids"
       orientation="both"
       :disabled="!customizing"
-      class="grid grid-cols-1 gap-4 md:grid-cols-12"
+      class="app-arrive grid grid-cols-1 gap-4 md:grid-cols-12"
       style="--xh-sortable-gap: 0"
       @sort="onSort"
     >
