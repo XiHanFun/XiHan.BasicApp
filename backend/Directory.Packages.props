@@ -6,29 +6,29 @@
 
   <!-- 与框架 next/Directory.Packages.props 对齐的基础包版本 -->
   <ItemGroup Label="Microsoft.Extensions">
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
     <!-- SqlSugarCore 的传递依赖下限过低（Pkcs 8.0.1 有漏洞），经中央传递固定抬到当前版本，与框架 next 一致 -->
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
 
   <!-- 宿主 -->
   <ItemGroup Label="Host">
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.18.3" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.19.0" />
   </ItemGroup>
 
   <!-- 实时：Hub 绕过内核管道，用 ASP.NET Core 的 JWT Bearer 认证（与 Security.Jwt 同一密钥） -->
   <ItemGroup Label="Realtime">
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
     <!-- 配了 Redis 时 SignalR 的背板（跨实例的推送与组管理），连接配置与键前缀取宿主的 Redis 缓存配置 -->
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.14" />
   </ItemGroup>
 
   <!-- 通知：邮件走 SMTP（MailKit），模板按 Scriban 渲染（框架不包装，方案 5.11） -->
   <ItemGroup Label="Notification">
-    <PackageVersion Include="MailKit" Version="4.18.1" />
-    <PackageVersion Include="Scriban" Version="7.5.1" />
+    <PackageVersion Include="MailKit" Version="4.18.2" />
+    <PackageVersion Include="Scriban" Version="7.6.1" />
   </ItemGroup>
 
   <!-- AI：配了 BasicApp:AI:Qdrant 才登记的向量库连接器（框架包不依赖具体连接器） -->
@@ -39,9 +39,9 @@
   <!-- 测试 -->
   <ItemGroup Label="Test">
     <PackageVersion Include="CommunityToolkit.VectorData.InMemory" Version="1.0.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.13" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.14" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
