@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import type { CacheNamespace, CacheToast, CacheTreeOption } from './cache'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhCardContent, XhCardHeader, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'

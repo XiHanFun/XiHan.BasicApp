@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import { XhAccordionContent, XhAccordionHeader, XhAccordionIndicator, XhAccordionItem, XhAccordionRoot, XhAccordionTrigger, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhProgress, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onActivated, onBeforeUnmount, onDeactivated, onMounted, useId } from 'vue'

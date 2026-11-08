@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 /**
  * 整屏页面外壳：头部固定（吸顶）、内容区内部滚动

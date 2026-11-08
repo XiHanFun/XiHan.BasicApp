@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 前端基础契约类型底层（API 原始类型 + 分页/查询结构 + Basic DTO）
  *

@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <!-- Markdown 编辑器封装模块：统一编辑、预览、主题以及图片上传交互 -->
 <script setup lang="ts">
 import type { ToolbarNames } from 'md-editor-v3'

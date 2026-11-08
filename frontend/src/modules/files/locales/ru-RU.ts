@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // Файл текстов: набор ключей должен в точности совпадать с en-US.ts (проверяет scripts/check-i18n.mjs).
 export default {
   files: {

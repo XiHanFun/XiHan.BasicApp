@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 日志枚举的文案与选项（列表、搜索、详情、链路共用）。没有枚举元数据接口，取值是契约字面量，
  * 文案键按字面量逐个静态写出，供 i18n 门禁核对

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 export const LAYOUT_EVENT_TOGGLE_SIDEBAR_REQUEST = 'xihan-toggle-sidebar-request'
 export const LAYOUT_EVENT_OPEN_PREFERENCE_DRAWER = 'xihan-open-preference-drawer'
 export const LAYOUT_EVENT_OPEN_GLOBAL_SEARCH = 'xihan-open-global-search'

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // 契约层入口：五个文件由 scripts/gen-contracts.mjs 从 contracts/openapi.json 与 contracts/realtime.json 生成并入库，CI 以「重新生成后 diff 为空」做漂移门禁；
 // paging.ts 是手写的 SchemaPage 查询 / 分页适配（4.x 由 @/api 的 createPageRequest 承担）
 export * from './enums'

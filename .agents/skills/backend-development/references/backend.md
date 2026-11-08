@@ -115,7 +115,7 @@ CodeGeneration 的内置模板（`Seeds/Templates/**/*.sbn`，执行 `seed` 时�
 XIHAN_TEST_CODEGEN_COMPILE=<框架 src 目录> artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe -class XiHan.BasicApp.Integration.Tests.CodeGenerationCompileTests
 ```
 
-它把当前提交导出到临时目录，四个演示新包按「生成到项目」写进去、照生成的登记片段登记，宿主 Release 构建不许有警告，导出契约之后前端 `pnpm check` 九项通过；前端要先在本检出装好依赖。不设变量即跳过，不进缺省 CI。
+它把当前提交导出到临时目录，四个演示新包按「生成到项目」写进去、照生成的登记片段登记，宿主 Release 构建不许有警告，导出契约之后前端 `pnpm check` 十项通过；前端要先在本检出装好依赖。不设变量即跳过，不进缺省 CI。
 
 ## 命令
 

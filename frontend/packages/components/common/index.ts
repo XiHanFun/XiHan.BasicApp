@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { defineAsyncComponent } from 'vue'
 
 // 重型编辑器（monaco、md-editor-v3）与通知正文渲染异步懒加载，不进首屏依赖图

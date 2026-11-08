@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { PropertyEditor, PropertyEditorContext } from '@xihan-ui/designer-kit/properties'
 import type { AppContext, VNode } from 'vue'
 import { defineComponent, h, render, shallowRef } from 'vue'

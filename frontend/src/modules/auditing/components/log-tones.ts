@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 各日志的结果、类型配色（列表单元格与详情抬头共用，同一个值在两处颜色一致）
  */

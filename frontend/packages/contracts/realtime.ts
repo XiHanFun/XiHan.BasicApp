@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // 由 scripts/gen-contracts.mjs 从 contracts/realtime.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts
 
 /** 实时 Hub 的路径（后端 RealtimeHubs） */

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * @deprecated The basic layout adapter is no longer needed.
  * The new architecture handles theme/dark mode directly in BasicLayout.

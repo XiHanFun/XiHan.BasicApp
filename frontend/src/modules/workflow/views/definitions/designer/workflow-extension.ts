@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 流程设计器上 BasicApp 的设计器扩展：只放应用语义，节点类型与属性都来自工作流引擎预设
  *

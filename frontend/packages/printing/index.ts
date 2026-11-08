@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * XiHan 前端打印公共包入口
  * 职责：集中导出运行配置、数据源注册、字段树、浏览器打印、本机客户端直打与打印机偏好

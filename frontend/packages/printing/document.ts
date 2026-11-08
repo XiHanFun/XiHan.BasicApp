@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印模板 JSON 的读入
  * 职责：在交给打印设计器、预览与客户端之前确认它是当前格式的打印模板（schemaVersion 1、至少一张页面模板）；

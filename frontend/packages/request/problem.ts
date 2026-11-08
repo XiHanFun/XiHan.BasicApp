@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * RFC 9457 Problem Details（后端失败响应的唯一形态）解包成 `ApiError`
  * 客户端只依赖 `code` 与 `errors`：`detail` 已按 Accept-Language 本地化，直接展示；`errors` 是字段键 → 文案数组，交给表单按字段显示

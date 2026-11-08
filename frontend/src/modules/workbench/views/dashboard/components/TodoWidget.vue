@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import { XhButton, XhCheckbox } from '@xihan-ui/vue'
 import { computed, onMounted, ref, watch } from 'vue'

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { MenuNode } from '~/stores'
 
 /** 登录后的落点：第一个在导航里显示的页面（深度优先），都隐藏时取第一个页面；没有页面即 null */

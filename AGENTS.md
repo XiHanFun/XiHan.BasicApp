@@ -72,7 +72,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 | 安装 | `pnpm install --no-frozen-lockfile` |
 | 开发 | `pnpm dev`（9100，`/api`、`/blobs`、`/hubs` 代理到后端 9710） |
 | 生成契约层 | `pnpm gen:contracts` |
-| 综合门禁 | `pnpm check`（type-check → lint → px → token → i18n → modules → tests → contracts → permissions） |
+| 综合门禁 | `pnpm check`（type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions） |
 | 单测 | `pnpm test` |
 | 生产构建 | `pnpm build` |
 
@@ -165,6 +165,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 - 注释简洁明了：只写代码表达不了的意图、约束与理由，不写铺垫、复述代码或多余的话。
 - 按全新仓库写：代码、注释、文档里不写旧版本对照与来源（旧版、照搬、搬入、重写前后），只写现在的事实；真实版本值（表结构目录 `6.0.0`、版本号）保留。
 - 文档正文不写产品与自有依赖的版本（版本在 `backend/Directory.Build.props`、`frontend/package.json`、`backend/Directory.Packages.props` 里）；运行环境要求与第三方镜像 tag 保留，更新日志例外。
+- 源码文件以版权头开头：后端 C# 两行 `//`，前端 `.ts` / `.css` 用 `/* */`、`.vue` 用 `<!-- -->`（与 XiHan.UI 同款，测试不加）。
 - C# XML 文档与前端注释的格式见后端、前端技能（`<summary>` 三行一句，注释句末不加「。」）。
 
 ## Git 与提交

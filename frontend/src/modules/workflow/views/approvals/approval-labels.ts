@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 审批中心的状态、结果与动作展示规则（纯函数，页面、抽屉与步骤条共用）
  *

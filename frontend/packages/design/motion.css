@@ -1,4 +1,9 @@
 /*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+/*
  * 动效令牌桥
  *
  * 时长与曲线由组件库定：应用侧的速度名指向 --xh-motion-* 语义令牌，不另持一套

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 流程定义的元数据：编码、名称、分类、描述。列表页的新建、编辑弹窗读写定义文档（框架 的 WorkflowJson）里的这几项，别的字段原样留着；
  * 节点、连线、启动变量与执行设置在设计器里改

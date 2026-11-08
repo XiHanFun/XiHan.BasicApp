@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // ==================== 存储 Key 常量 ====================
 
 export const STORAGE_PREFIX = 'xihan_'

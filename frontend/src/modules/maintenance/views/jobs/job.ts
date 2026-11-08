@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource, SchemaSelectOption } from '~/components'
 import type { JobRetryBackoff, JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, RequestOf, ResponseOf, TriggerState } from '~/contracts'

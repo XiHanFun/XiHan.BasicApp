@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 页面侧 useI18n 的 t；确认文案在点击时才生成，拿页面的 t 即可跟随当前语言 */
 type Translate = (key: string, params?: Record<string, unknown>) => string
 

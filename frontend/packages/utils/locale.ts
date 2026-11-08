@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { DEFAULT_LOCALE, FALLBACK_LOCALE, LOCALE_KEY, SUPPORTED_LOCALES } from '~/constants'
 import { LocalStorage } from './storage'
 

@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   打印 / 打印模板页面
   职责：按租户或平台作用域管理模板、切换可用全局模板，并从统一公共 API 发起样例预览与 FIFO 直打
   接口取自后端契约（print-templates.*）：租户的「可用全局模板」是列表加作用域筛选 Global；写入的一侧由登录上下文决定

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import { computed, ref, toValue, watch } from 'vue'
 import { i18n } from '~/locales'

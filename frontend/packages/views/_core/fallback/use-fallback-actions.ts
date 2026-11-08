@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { Router } from 'vue-router'
 import { HOME_PATH } from '~/constants'
 import { useAccessStore } from '~/stores'

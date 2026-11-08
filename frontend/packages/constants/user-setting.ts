@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // ==================== 用户设置（全场景跨端同步） ====================
 // 与后端 XiHan.BasicApp.Saas 的 UserSettingScene 枚举对齐：
 // 一条用户设置记录由 (scene, settingKey) 唯一定位，覆盖偏好设置 / 页面设置等全部场景

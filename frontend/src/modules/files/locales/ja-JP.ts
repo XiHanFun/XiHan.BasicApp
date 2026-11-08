@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // 文言ファイル：キー集合は en-US.ts と完全に一致させること（scripts/check-i18n.mjs で検査）
 export default {
   files: {

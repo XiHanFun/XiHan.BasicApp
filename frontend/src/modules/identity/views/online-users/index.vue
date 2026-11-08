@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import type { OnlineSessionRow, SessionSummary } from './use-online-users'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { PreferenceEntryPlacement, WidgetPlacement } from '~/types'
 import { ref, watch } from 'vue'
 import {

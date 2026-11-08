@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 表配置页签
   接口取自后端契约（codegen-tables.*、codegen-table-columns.*）：导入库表、编辑表配置、列配置、预览产物、同步表结构与删除；生成与运行时数据随后续几笔补上
 -->

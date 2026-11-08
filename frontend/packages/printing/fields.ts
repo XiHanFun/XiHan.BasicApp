@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 数据源字段 → 打印设计器的字段树，以及模板引用的字段与数据源的比对
  * 职责：把代码数据源的字段目录换成设计器 fields 认的 DataField 树，物料面板的「字段」一组与属性面板绑定字段都从这棵树里来；

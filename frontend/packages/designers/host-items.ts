@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 宿主放进设计器外框的两样：菜单栏正中的标题、状态栏右端的一样。关闭钮用设计器自带的（closable）
  *

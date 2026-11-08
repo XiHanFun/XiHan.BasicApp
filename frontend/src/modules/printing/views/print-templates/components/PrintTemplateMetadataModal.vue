@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   打印模板的新增、编辑弹窗：只改元数据（名称、编码、数据源、状态、开放给租户、排序、备注），版面在设计器里改
   新增时建一份空白版面的模板；编辑时沿用详情里的版面与并发戳
 -->

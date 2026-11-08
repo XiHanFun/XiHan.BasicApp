@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { AlertOptions, ConfirmOptions, DialogService, LoadingBarService, NotificationMessageOptions, NotificationService } from '@xihan-ui/vue'
 import { createDialogService, createLoadingBarService, createNotificationService } from '@xihan-ui/vue'
 import { $t } from '~/locales'

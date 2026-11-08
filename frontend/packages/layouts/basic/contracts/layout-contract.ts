@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { RouteRecordRaw } from 'vue-router'
 import type { LayoutEventName } from '~/constants'
 import type { useAppStore, useUserStore } from '~/stores'

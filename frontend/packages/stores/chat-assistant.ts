@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 聊天助手登记点
  * 职责：助手能力（可用助手、开会话、触发回复）由 AI 模块登记进来，聊天壳层按登记与否显隐助手入口——

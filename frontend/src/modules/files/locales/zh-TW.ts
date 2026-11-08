@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // 文案檔：鍵集須與 en-US.ts 完全對稱（scripts/check-i18n.mjs 守護）
 export default {
   files: {

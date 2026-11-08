@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   AI / 知识库：文档与检索试玩两个页签
   接口取自后端契约（knowledge-documents.*）；平台与租户各自维护，只看调用方一侧。没有编辑，只有摄取、重建索引与删除
 -->

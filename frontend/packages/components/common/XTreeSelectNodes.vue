@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script lang="ts" setup>
 import type { TreeSelectOption } from '~/types'
 import { XhTreeSelectBranch, XhTreeSelectBranchContent, XhTreeSelectBranchControl, XhTreeSelectBranchText, XhTreeSelectBranchTrigger, XhTreeSelectItem, XhTreeSelectItemIndicator, XhTreeSelectItemText } from '@xihan-ui/vue'

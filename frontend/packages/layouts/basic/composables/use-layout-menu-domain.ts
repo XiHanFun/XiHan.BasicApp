@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { VNodeChild } from 'vue'
 import type { LayoutRouteMeta, LayoutRouteRecord } from '../contracts'
 import type { AppMenuOption, MenuRoute } from '~/types'

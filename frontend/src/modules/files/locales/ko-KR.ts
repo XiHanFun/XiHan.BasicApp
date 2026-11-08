@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // 문구 파일: 키 집합은 en-US.ts와 완전히 같아야 해요(scripts/check-i18n.mjs가 검사).
 export default {
   files: {

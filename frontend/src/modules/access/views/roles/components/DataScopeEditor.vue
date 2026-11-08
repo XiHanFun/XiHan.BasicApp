@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts" generic="TDraft extends DataScopeDraft | MemberDataScopeDraft">
 import type { DataScopeDraft, DataScopeValue, DepartmentNode, MemberDataScopeDraft } from '../data-scope'
 import { XhButton, XhRadioGroupItem, XhRadioGroupItemDescription, XhRadioGroupItemText, XhRadioGroupLabel, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'

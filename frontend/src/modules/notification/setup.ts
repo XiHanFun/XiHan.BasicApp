@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { registerModuleLocales } from '~/locales'
 
 /** 通知包的启动钩子：登记本包文案（顶栏通知中心与横幅 / 弹窗 / 强制阅读在壳层，经 AppContext 接 inbox.*） */

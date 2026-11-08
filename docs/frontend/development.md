@@ -75,7 +75,7 @@ const schema = computed<PageSchema>(() => ({
 ## 五、门禁与测试
 
 ```bash
-pnpm check   # type-check → lint → px → token → i18n → modules → tests → contracts → permissions
+pnpm check   # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
 pnpm test    # Vitest + jsdom
 pnpm build
 ```
@@ -89,6 +89,7 @@ pnpm build
 | `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
 | `modules:check` | 模块名是后端能力包名；有 `setup.ts`、`locales/`、`views/`；视图路径是 kebab-case 且全局唯一 |
 | `tests:check` | 测试只在所属包或模块的 `tests/` 目录里，命名 `*.spec.ts` |
+| `headers:check` | `src`、`packages` 下的 `.ts`、`.vue`、`.css` 以版权头开头（测试不加）；`node scripts/check-headers.mjs --write` 补齐 |
 | `contracts:check` | 按 `contracts/*` 重新生成契约层，与入库文件一致 |
 | `permissions:check` | `permission:`、`permissions:`、`can('…')`、`hasPermission('…')` 里的权限码都存在于 `permissions.ts` |
 

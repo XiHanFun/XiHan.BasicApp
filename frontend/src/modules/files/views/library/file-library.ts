@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { files as filesApi, toPageRequest, toSchemaPageResult } from '~/contracts'

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ImageCropperRect } from '@xihan-ui/headless'
 import { cropToCanvas } from '@xihan-ui/headless'
 

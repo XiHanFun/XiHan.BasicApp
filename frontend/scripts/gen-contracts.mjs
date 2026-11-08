@@ -11,12 +11,13 @@ import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
+import { renderHeader } from './check-headers.mjs'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SOURCE = join(ROOT, 'contracts', 'openapi.json')
 const REALTIME_SOURCE = join(ROOT, 'contracts', 'realtime.json')
 const OUT_DIR = join(ROOT, 'packages', 'contracts')
-const HEADER = '// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts\n'
+const HEADER = `${renderHeader(false, '\n')}\n\n// 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts\n`
 
 const check = process.argv.includes('--check')
 const document = JSON.parse(await readFile(SOURCE, 'utf8'))

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 公共打印服务
  * 职责：按编码解析模板、按需校验可选代码数据源、调起浏览器打印，以及通过当前会话 FIFO 队列交给本地打印客户端直打

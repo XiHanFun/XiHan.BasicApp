@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 会话图片组：同一会话里的图片按消息先后、附件先后串成一组，看片浮层里左右翻得到
  *

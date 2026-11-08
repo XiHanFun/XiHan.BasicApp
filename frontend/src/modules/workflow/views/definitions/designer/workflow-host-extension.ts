@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 流程定义设计器挂进菜单栏的宿主操作：引擎定义 JSON 写成一个扩展的命令，落在「文件」菜单；回列表用设计器自带的关闭钮（closable）
  * 引擎定义 JSON 编辑的是保存进库的那份，设计器「编辑」菜单里自带的「编辑 JSON」编辑的是设计器格式；

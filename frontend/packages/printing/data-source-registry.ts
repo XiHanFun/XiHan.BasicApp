@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印数据源注册表
  * 职责：维护代码注册的数据源与字段目录，并在重复编码或无效字段进入设计器前立即失败

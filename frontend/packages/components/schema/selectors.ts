@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ListFieldSchema, PageSchema, SchemaColumn } from './types'
 import type { QueryFilter } from '~/types/contracts'
 import { QueryOperator } from '~/types/contracts'

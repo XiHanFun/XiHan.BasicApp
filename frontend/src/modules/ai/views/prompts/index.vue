@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   AI / 提示词
   接口取自后端契约（ai-prompts.*）：列表不带正文，编辑先取详情；启停走行内操作（方案 N4 D4）
 -->

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // ==================== 通用类型 ====================
 //
 // 这里只放**当前真有消费者**的通用类型

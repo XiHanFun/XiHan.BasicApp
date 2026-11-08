@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 编辑表配置弹窗
   没有父菜单（生成的页面登记在所属包的 Pages.cs、目录按包）；生成目标是新建包或加入已有包；状态随整体修改一起提交
 -->

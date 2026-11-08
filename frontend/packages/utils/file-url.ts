@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 后端文件 URL 解析：把本地存储返回的「后端根相对路径」解析为可直链访问的绝对 URL
  *

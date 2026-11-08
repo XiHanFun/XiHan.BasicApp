@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   系统设置 / 业务编号页面
   职责：两侧都有——平台看平台规则，租户看自己的规则与供租户使用的平台规则（另一侧的只读）；规则管理、格式预览、安全重置和永久发号记录；页面不提供真实发号入口
 -->

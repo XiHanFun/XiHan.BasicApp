@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { components } from './types'
 import type { SchemaQueryParams } from '~/components/schema/types'
 import type { PageResult } from '~/types/contracts'

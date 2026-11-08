@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ComponentPublicInstance, CSSProperties } from 'vue'
 import type { HeaderMode } from '../contracts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'

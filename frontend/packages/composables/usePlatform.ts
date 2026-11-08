@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 平台相关：Mac 检测 + 快捷键标签格式化（供命令面板、偏好快捷键等复用）
  *

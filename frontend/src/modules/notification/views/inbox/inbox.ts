@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { NotificationType, RequestOf, ResponseOf } from '~/contracts'
 import type { NotificationItem } from '~/stores'
 import type { NotificationContentFormat as ShellContentFormat, NotificationStatus as ShellStatus, NotificationType as ShellType } from '~/types/enums'

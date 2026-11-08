@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { MenuNodeMeta } from '@xihan-ui/headless'
 import type { VNode } from 'vue'
 import type { ActionSchema } from './types'

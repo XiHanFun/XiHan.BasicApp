@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 设计器物料里能放的节点类型：工作流引擎预设列了 17 种活动，后端跑的是框架 的引擎
  *

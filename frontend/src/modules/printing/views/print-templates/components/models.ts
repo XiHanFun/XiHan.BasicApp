@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印模板管理页内部表单模型与契约投影
  * 职责：在列表页的新增、编辑弹窗与元数据表单之间共享强类型状态；行、详情与入参都取自后端契约（~/contracts），这里不另写字段

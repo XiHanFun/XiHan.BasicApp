@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 人工任务受理人规则（AssigneeRules / CcRules / FallbackAssigneeRules）的前端模型
  *

@@ -1,4 +1,9 @@
 /*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+/*
  * 样式总入口，只由 main.ts 导入，@tailwindcss/vite 处理整张依赖图
  *
  * 层序在这里一次定死：CSS 层序按首次出现排定，@xihan-ui/styles 与 Tailwind 各自再声明的层只是复述

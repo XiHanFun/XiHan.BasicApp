@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { nextTick, ref, watch } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
 import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, THEME_ANIMATION_ENABLED_KEY, THEME_AUTO, THEME_MODE_KEY, USER_SETTING_CLIENT_ID, UserSettingScene, WIDGETS_SYNC_KEY } from '~/constants'

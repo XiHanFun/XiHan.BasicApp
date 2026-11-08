@@ -1,4 +1,9 @@
 /*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+/*
  * 原生滚动条：细条、透明轨道，滑块取令牌桥里的 --xh-fg-scrollbar-thumb，与组件库自绘的同色
  *
  * 本文件是应用里唯一写 scrollbar-width / scrollbar-color 的地方

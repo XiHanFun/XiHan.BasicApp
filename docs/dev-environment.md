@@ -96,7 +96,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "
 pnpm install --no-frozen-lockfile
 pnpm dev
 pnpm gen:contracts   # 由 contracts/openapi.json 生成 packages/contracts/*
-pnpm check           # type-check → lint → px → token → i18n → modules → tests → contracts → permissions
+pnpm check           # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
 pnpm test
 pnpm build
 ```

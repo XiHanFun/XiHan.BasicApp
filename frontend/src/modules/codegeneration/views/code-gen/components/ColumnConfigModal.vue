@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 列配置弹窗
   整体保存一张表的列配置：基类的列（主键、租户、审计、软删与并发戳）不可编辑；选项来源切换时清掉别的来源的配置
   列注释取自库结构（同步结构以库为准），只显示不编辑

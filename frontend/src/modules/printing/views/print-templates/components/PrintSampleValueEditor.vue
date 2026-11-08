@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   模拟打印数据单值编辑器
   职责：根据注册字段类型或当前样例值选择输入控件，并保持打印数据的字符串、数值和布尔类型
   开关与日期没有占位文字可作名字：字段里由字段标签起名（aria-labelledby 优先），明细表单元格里靠 aria-label 取列名

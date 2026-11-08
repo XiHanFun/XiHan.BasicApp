@@ -1,4 +1,9 @@
 /*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+/*
  * 宿主页面的基线与全局类
  *
  * 组件库的 reset 只作用于 [data-scope] 节点，页面自己的元素在这里补齐

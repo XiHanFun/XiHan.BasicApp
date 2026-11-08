@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 授权申请的审批进度展示
  * 进度来自 Workflow 模块：模块关掉时 approvalEnabled 为假、进度为空，标「审批未启用」（方案 W1）；

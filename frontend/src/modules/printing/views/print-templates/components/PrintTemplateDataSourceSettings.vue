@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   打印模板的数据源：可选的数据源、它的用途说明、切换为自由模板与字段清单
 -->
 <script setup lang="ts">

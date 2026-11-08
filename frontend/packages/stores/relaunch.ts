@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { clearLockState } from '~/composables/session-lock'
 import { destroyAllSignalRConnections } from '~/composables/useSignalR'
 import { TABS_LIST_KEY } from '~/constants'

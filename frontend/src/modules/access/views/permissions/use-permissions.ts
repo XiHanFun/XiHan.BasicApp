@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { permissions as permissionsApi, toSchemaPageResult } from '~/contracts'

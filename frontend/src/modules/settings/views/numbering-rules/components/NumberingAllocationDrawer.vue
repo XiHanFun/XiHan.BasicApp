@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   业务编号发号记录抽屉
   职责：按规则远程分页、对关键词输入防抖，展示每次发号的首尾编号与业务关联；记录只读，不允许修改或删除
 -->

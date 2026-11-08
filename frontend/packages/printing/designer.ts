@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印设计器（@xihan-print/designer）的注册、样式与新建模板
  * 职责：编辑页用到时才引入设计器代码与它的样式；设计器跟随应用语言；新建模板是一张 A4 纵向的空白页面模板

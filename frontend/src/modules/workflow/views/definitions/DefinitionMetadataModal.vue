@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   流程定义的新建、编辑弹窗：只改元数据（审批业务与编码、名称、分类、描述），节点与连线在设计器里改
   新建时建一份空白流程的草稿；编辑时只改定义文档（WorkflowJson）里的名称、分类、描述，编码（定义名）创建后不可改
 -->

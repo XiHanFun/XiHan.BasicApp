@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   聊天审计的消息详情（方案 H4）：消息摘要、所在会话、附件、提及、回复快照、撤回与置顶时间、表情回应
   撤回清空的正文与编辑前的正文后端不另留，这里也就不显示
 -->

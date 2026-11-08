@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { SyncedSettingBinding, SyncedSettingTarget } from '~/composables/useSyncedSetting'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
 import { bindSyncedSetting } from '~/composables/useSyncedSetting'

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { onMounted, onUnmounted } from 'vue'
 import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'

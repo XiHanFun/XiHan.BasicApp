@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // ==================== 路由路径常量（唯一定义，全局引用） ====================
 //
 // 下面这些都是 **packages 自己的核心路由**（定义在 ~/router/routes/core.ts），

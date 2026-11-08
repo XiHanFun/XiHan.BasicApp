@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 聊天壳层扩展：顶栏按钮 + 全局浮动面板 + 实时集成钩子，经 registerShellExtension 挂进布局
  */

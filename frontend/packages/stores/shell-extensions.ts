@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 壳层扩展注册点
  * 职责：可选功能模块把顶栏按钮、布局级浮层与布局集成钩子注册进来，

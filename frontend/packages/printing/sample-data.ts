@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 模拟打印数据模型
  * 职责：按模板引用的字段与代码数据源的字段目录生成模拟数据表单结构，并安全归一、克隆和读写仅存于浏览器内存的模拟数据

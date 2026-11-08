@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印模板编辑器挂进打印设计器的宿主操作：样例预览、直接打印与打印机写成一个扩展的命令，
  * 落在菜单栏的「文件」菜单里，常用的同时上工具栏；保存用设计器内置的 save 命令（Ctrl / ⌘ + S），

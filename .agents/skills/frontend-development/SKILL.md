@@ -22,7 +22,7 @@ description: 实现、重构、审查或测试 XiHan.BasicApp 前端（frontend/
 ```bash
 cd frontend
 pnpm install --no-frozen-lockfile
-pnpm check   # type-check → lint → px → token → i18n → modules → tests → contracts → permissions
+pnpm check   # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
 pnpm test
 pnpm build
 ```

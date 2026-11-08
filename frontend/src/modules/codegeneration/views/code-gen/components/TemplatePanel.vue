@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 模板页签
   接口取自后端契约（codegen-templates.*）：内置模板随程序版本走，不能编辑、不能删除、可以启停；自有模板可增删改；正文在大编辑器里写，可先检查语法
   状态即启停（编辑时一起提交）；引擎只有 Scriban

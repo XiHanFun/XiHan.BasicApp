@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { HubConnection } from '@microsoft/signalr'
 import type { Ref, ShallowRef } from 'vue'
 import {

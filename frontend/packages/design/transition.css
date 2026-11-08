@@ -1,4 +1,9 @@
 /*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+/*
  * 页面自绘的过渡
  *
  * 路由切换动画不走 CSS 类：类式过渡要在页面根上增删 class，会惊动页内浮层的 Portal 视觉环境桥，

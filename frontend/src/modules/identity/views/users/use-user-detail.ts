@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { UserRow } from './use-users'
 import type { ResponseOf } from '~/contracts'
 import { ref } from 'vue'

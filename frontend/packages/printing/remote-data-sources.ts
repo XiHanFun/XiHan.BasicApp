@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 后端数据源目录加载
  * 职责：经注入的 listDataSources 拉取后端注册表并并入本地数据源注册表，

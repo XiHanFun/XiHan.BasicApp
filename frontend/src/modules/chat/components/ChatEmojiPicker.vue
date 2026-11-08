@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import i18nEn from '@emoji-mart/data/i18n/en.json'
 import i18nZh from '@emoji-mart/data/i18n/zh.json'

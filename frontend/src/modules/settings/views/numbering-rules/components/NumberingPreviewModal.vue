@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   业务编号规则预览面板
   职责：按已保存规则的格式执行不消耗流水的单个或连续批量预览，批量数量限制为 1～50，并展示周期、日期段和示例流水区间
 -->

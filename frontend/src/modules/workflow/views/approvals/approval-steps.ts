@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 审批流程步骤条的步骤模型（纯函数，抽屉与测试共用）
  * 把审批轨迹归并成步骤：每次办理、转办、加签、自动处理各占一步；同一节点的待办人合成「当前步」，

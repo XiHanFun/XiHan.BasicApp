@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /// <reference types="vite/client" />
 
 /** 构建期由 vite.config 注入的应用版本（package.json 的 version） */

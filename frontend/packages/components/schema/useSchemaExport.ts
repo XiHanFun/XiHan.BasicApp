@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ListFieldSchema } from './types'
 import { ref } from 'vue'
 import { islandStart } from '~/composables/useDynamicIsland'

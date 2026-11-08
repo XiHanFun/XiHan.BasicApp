@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script lang="ts" setup>
 import type { LoginFormAlign } from './LoginToolbar.vue'
 import { computed, onMounted, ref } from 'vue'

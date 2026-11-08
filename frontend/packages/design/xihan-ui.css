@@ -1,4 +1,9 @@
 /*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
+/*
  * XiHan.UI 令牌桥
  *
  * 组件库只认 --xh-* 令牌，应用的视觉真源是 variables.css 的分量令牌，并由 useTheme 按所选主色、圆角、明暗在运行期改写

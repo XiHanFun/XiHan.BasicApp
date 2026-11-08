@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // ==================== 数学曲线加载器 ====================
 // 粒子拖尾沿参数曲线运动，叠加整体旋转与「呼吸」细节缩放（detailScale）
 

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // Arquivo de textos: o conjunto de chaves deve coincidir exatamente com en-US.ts (verificado por scripts/check-i18n.mjs).
 export default {
   files: {

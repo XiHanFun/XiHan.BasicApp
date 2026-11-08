@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { MessageSendStatus, PageQueryMapping, ResponseOf } from '~/contracts'
 import { emails as emailsApi, sms as smsApi, toPageRequest, toSchemaPageResult } from '~/contracts'

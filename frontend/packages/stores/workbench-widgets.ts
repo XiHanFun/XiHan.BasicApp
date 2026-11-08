@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 工作台小组件登记点
  * 职责：可选功能模块把自己的看板小组件登记进来，工作台看板与内置小组件一起列出——

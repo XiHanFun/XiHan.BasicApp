@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 批量操作里有逐项失败就抛错，不当成功吞掉
  * `message` 已按请求语言本地化，可直接显示，相同的原因只留一条；要按原因分支的看 `code`

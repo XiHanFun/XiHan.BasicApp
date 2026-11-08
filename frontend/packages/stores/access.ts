@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { MenuNode } from './auth'
 import type { MenuRoute } from '~/types'
 import { defineStore } from 'pinia'

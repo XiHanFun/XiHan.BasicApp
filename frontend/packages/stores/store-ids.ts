@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 统一管理所有 Pinia Store ID，避免字符串散落 */
 export enum SetupStoreId {
   App = 'app',

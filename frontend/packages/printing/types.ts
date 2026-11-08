@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印公共能力类型契约
  * 职责：描述代码数据源、模板解析、浏览器打印与本机客户端直打的边界

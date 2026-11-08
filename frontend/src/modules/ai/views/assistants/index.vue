@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   AI / 助手
   接口取自后端契约（ai-assistants.*）：编码建后不可改、缺省最多一个；启停走行内操作（只有状态一个字段）
   工具从后端目录勾选（方案 A3），没有向量库时给出提示（方案 D7b）；提供商与提示词填编码，保存时后端核对

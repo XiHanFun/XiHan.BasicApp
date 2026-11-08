@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 授权穿梭框条目最小契约：主键即穿梭框的值 */
 export interface GrantTransferItem {
   basicId: number | string

@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   模拟打印明细表编辑器
   职责：按数据源列定义编辑明细行，提供稳定行标识，并确保内部 UUID 不进入最终打印数据
 -->

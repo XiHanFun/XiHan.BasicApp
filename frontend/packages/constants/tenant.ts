@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 平台在租户目录里的 ID（后端 `TenantIds.Platform`）：平台账号的注册地租户
  * 会话与切换请求里的 `tenantId` 为空即平台；这个值只用来判断「注册地是否平台」

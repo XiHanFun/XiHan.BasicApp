@@ -13,6 +13,7 @@ frontend/
 ```
 
 - `packages/` 不引用 `@/`；模块之间不互相引用，共用的东西放 `packages/`。
+- 源码（`src`、`packages` 下的 `.ts`、`.vue`、`.css`，测试除外）以与 XiHan.UI 同款的版权头开头：`.vue` 用 `<!-- -->`，其余用 `/* */`；`headers:check` 守护，`node scripts/check-headers.mjs --write` 补齐，契约生成物由生成器写出。
 - 注释简洁明了，只写代码表达不了的意图、约束与理由，不写铺垫、复述代码、版本对照或来源。
 - 注释（`//`、`/* */`、JSDoc、Vue 模板的 `<!-- -->` 与样式里的 `/* */`）句末不加「。」，一行里有多句时句间照常用「。」；与后端同一写法，前端没有门禁守它，靠评审。文案（`locales`、`t(...)` 的值）不是注释，照常带标点。
 - 模块的 `setup.ts` 登记本模块文案（`registerModuleLocales(import.meta.glob(...))`）；视图键全局唯一（`modules:check`）。可选模块的 `setup.ts` 另把要接进公共包的函数登记上（如打印的 `configurePrinting`），只登记函数、不发请求。壳层的顶栏按钮、浮层经 `registerShellExtension`，看板的列表型小组件经 `registerWorkbenchWidget`（挂在模块的一个页面上，后端不下发页面即隐藏，方案修订（一百））。
@@ -69,6 +70,6 @@ frontend/
 ## 测试与验证
 
 - Vitest + jsdom；测试放所属包或模块的 `tests/`（`packages/<包>/tests/`、`src/modules/<模块>/tests/`），按被测文件的子路径摆放，命名 `*.spec.ts`，导入写别名（`tests:check` 守护）；`scripts/vitest-setup.ts` 固定 `navigator.languages = ['zh-CN']` 并预装十区域文案，`vi.resetModules()` 之后要自己重装区域。
-- 门禁：`pnpm check`（九项）、`pnpm test`、`pnpm build`。改共享组件、路由、请求、权限或主题时三者都跑。
+- 门禁：`pnpm check`（十项）、`pnpm test`、`pnpm build`。改共享组件、路由、请求、权限或主题时三者都跑。
 - 浏览器验证：开发服务器 9100，`/api`、`/blobs`、`/hubs` 代理到后端 9710；用正式账号登录（验证码请用户输入），看亮 / 暗色、窄视口、键盘与焦点、减少动态效果。
 - XiHan.UI 联调：`pnpm-workspace.yaml` 临时加 `overrides` 指向同级 XiHan.UI 源码，不提交；组件库缺陷在 XiHan.UI 修。

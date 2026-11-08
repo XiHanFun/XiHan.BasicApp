@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 数据源页签
   接口取自后端契约（codegen-datasources.*）：测试连接要修改权限；删除逐项拒绝仍被表配置引用的数据源；口令与连接串不回显，编辑时留空即不改
 -->

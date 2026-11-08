@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import { XhImageFallback, XhImageImage, XhImageRoot, XhSpinner } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'

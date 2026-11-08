@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ResponseOf } from '~/contracts'
 import { files as filesOps } from '~/contracts'
 import { endpointUrl, parseProblem, uploadForm } from '~/request'

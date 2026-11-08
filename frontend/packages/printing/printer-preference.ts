@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印机本地偏好存储
  * 职责：按当前用户、租户和模板编码隔离浏览器本地打印机选择，不上传到服务端

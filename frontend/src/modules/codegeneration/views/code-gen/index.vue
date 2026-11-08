@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 代码生成页（只在平台一侧）
   一页四签：表配置、数据源、模板、生成历史；各页签按自己资源的读权限显示（菜单按表配置的读权限下发）
 -->

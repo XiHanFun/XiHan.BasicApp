@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { ComputedRef, Ref } from 'vue'
 import { usePreferredDark } from '@vueuse/core'
 import { deriveBrandScale, ON_COLOR_CROSSOVER, relativeLuminance } from '@xihan-ui/tokens'

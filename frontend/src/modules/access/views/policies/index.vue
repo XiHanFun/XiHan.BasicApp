@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script lang="ts" setup>
 import type { ConditionAttribute } from '../roles/permission-condition'
 import type { AccessPolicyAction, AccessPolicyConditionInput, AccessPolicyRow, AccessPolicyTemplate, ConditionGroupModel } from './access-policy'

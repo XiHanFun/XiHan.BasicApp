@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 运行时数据：按表配置只读查看表里的数据，不生成代码
   接口取自后端契约（codegen-runtime.get-schema / list）：列取列配置，数据行的键是列配置的属性名
   按表配置的数据源读；行键按页内序号给（行里没有 basicId 这一列）

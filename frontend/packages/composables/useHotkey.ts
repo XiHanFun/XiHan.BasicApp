@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { KbdResolvedPlatform } from '@xihan-ui/core/hotkey'
 import { detectKbdPlatform, formatHotkey, matchesHotkey } from '@xihan-ui/core/hotkey'
 import { isTypingTarget } from '@xihan-ui/headless'

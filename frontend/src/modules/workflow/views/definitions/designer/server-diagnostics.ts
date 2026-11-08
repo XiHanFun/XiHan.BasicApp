@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 发布失败时后端给的逐条问题：Problem Details 的字段级 errors，键是定义 JSON（WorkflowJson）里去掉 `$.` 的路径，
  * 如 `nodes[2].properties.Cron`、`transitions[0].condition`，定义级的问题是 `nodes`；值是已按界面语言翻译的文案

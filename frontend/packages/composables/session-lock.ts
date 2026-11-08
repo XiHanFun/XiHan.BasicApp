@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // 与 useLockScreen 分开：这里是与 Vue 无关的纯锁定状态读写，
 // 供请求层（423 拦截）和入口（main.ts）调用；useLockScreen 才是绑定组件生命周期的那一层
 import { LOCK_REASON_KEY, LOCK_STATE_KEY } from '~/constants'

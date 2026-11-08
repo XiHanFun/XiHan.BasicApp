@@ -193,7 +193,7 @@ jobs:
       - name: 安装依赖
         run: pnpm install --no-frozen-lockfile
 
-      # type-check → lint → px → token → i18n → modules → tests → contracts → permissions
+      # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
       - name: 门禁
         run: pnpm run check
 

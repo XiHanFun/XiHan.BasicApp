@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts" generic="TRow extends object">
 import type { TableColumnDef, TableRowDef, TableSelection, TableSortDescriptor } from '@xihan-ui/headless'
 import type { VNodeChild } from 'vue'

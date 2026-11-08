@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * Iconify 离线图标集
  * 启动时预载常用的四个图标集，其余图标集在首次渲染到它的图标时（或图标选择器切到它时）再装

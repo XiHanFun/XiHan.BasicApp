@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印包运行配置
  * 职责：由应用启动层注入后端模板解析与数据源目录函数，打印服务与目录加载经这里取用

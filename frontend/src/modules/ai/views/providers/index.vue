@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   AI / 提供商
   接口取自后端契约（ai-providers.*）：测试连接要执行权限；API 密钥不回显、编辑时留空即保留；启停走行内操作（方案 N4 D4）
 -->

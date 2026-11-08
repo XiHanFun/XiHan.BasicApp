@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 权限授予条目最小契约：权限目录项与各类已授予项都满足 */
 export interface PermissionGrantItem {
   basicId: number | string

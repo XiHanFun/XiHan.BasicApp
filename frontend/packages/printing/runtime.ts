@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印运行时（@xihan-print/runtime 与本地打印客户端 SDK）的按需加载
  * 职责：首次打印时才加载排版与客户端代码，不进首屏；一份数据直接交给运行时，多份数据各自分页后接成一份一次打印

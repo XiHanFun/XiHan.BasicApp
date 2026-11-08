@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 聊天 API 注入缝
  * 职责：本模块的 setup 用生成的操作客户端组装 ChatApiContract 后注册进来，store 与组件经 getChatApi 消费；

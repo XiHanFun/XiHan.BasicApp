@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   打印模板的元数据表单：名称、编码（创建后不可修改）、数据源、新建时的初始状态、
   全局模板是否允许租户使用、排序与备注。放在列表页的新增、编辑弹窗里
 -->

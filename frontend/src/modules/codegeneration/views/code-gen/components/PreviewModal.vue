@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   代码生成 / 预览产物：左边按路径组成的目录树，右边只读的代码编辑器
   接口取自后端契约（codegen-tables.preview）：只渲染、不打包、不记历史
   产物按后端给的归属分栏，登记片段单独一栏；路径带 backend / frontend / _registration 前缀

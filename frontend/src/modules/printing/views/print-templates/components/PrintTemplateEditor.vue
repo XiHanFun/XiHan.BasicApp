@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   打印模板全屏编辑器
   职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好
   编辑器的操作（样例预览、直接打印、打印机）挂进设计器的菜单栏，保存走设计器的 save 命令，回列表用设计器自带的关闭钮；

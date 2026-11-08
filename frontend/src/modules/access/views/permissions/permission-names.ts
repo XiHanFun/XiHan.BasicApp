@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import { ref } from 'vue'
 import { permissions as permissionsApi } from '~/contracts'
 import { useAppStore, useAuthStore } from '~/stores'

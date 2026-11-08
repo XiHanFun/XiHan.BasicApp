@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 菜单标签的语气：存库取值就是组件库的 tone 词，后端只接受这六个 */
 export const MENU_BADGE_TONES = [
   'neutral',

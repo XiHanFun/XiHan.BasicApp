@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { XhLocale } from '@xihan-ui/vue/locale'
 import { deDE, enUS, esES, frFR, jaJP, koKR, ptBR, ruRU, zhCN, zhTW } from '@xihan-ui/vue/locale'
 

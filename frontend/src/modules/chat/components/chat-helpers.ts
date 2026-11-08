@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 聊天展示辅助：时间与文件大小格式化、报错文案（纯函数，i18n 由调用方注入） */
 
 import type {

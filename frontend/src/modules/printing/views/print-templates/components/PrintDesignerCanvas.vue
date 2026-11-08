@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   打印设计器工作区
   职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），装上宿主的扩展（编辑器的操作挂进菜单栏），
   宿主的标题（菜单栏正中）与所绑数据源、保存状态（状态栏右端）经默认插槽放进设计器；画布、物料、页面模板、标尺、属性、问题列表、JSON 编辑与菜单栏都由设计器提供

@@ -1,4 +1,9 @@
 <!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
+<!--
   模拟打印数据填写弹窗
   职责：根据当前模板实际字段绑定生成表单，管理单对象/对象数组样例，并仅在内存中向预览入口提交纯打印数据
 -->

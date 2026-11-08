@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 打印模板元数据表单与保存入参：列表页的新增、编辑弹窗与设计器的保存共用
  */

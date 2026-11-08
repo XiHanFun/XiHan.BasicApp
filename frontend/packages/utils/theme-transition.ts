@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /** 扩散动画的起点（通常取点击位置；缺省时从视口中心扩散） */
 export interface ThemeTransitionOrigin {
   clientX: number

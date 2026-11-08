@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { Router } from 'vue-router'
 import type { components, LoginEvent, ResponseOf, TwoFactorMethod, UserGender } from '~/contracts'
 import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'

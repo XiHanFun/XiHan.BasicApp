@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 跨端同步设置的通用接法：本地即时恢复 + 后端为准 + 推送实时应用 + 回写本地
  *

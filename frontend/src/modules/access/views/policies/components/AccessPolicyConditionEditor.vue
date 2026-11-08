@@ -1,3 +1,8 @@
+<!--
+  Copyright (c) 2021-Present XiHanFun and contributors.
+  Licensed under the MIT License. See LICENSE in the project root for license information.
+-->
+
 <script setup lang="ts">
 import type { ConditionAttribute, ConditionOperator } from '../../roles/permission-condition'
 import type { ConditionGroupModel, ConditionRowModel } from '../access-policy'

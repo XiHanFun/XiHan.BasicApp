@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 import type { PermissionNameOf } from '../permissions/permission-names'
 import type { DataScopeDraft, DataScopeValue, DepartmentNode } from './data-scope'
 import type { InheritedPermission, InheritedPermissionSources, RoleHierarchy } from './role-parents'

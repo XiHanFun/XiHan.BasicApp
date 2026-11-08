@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 // Message file: its key set must match the other locales exactly (guarded by scripts/check-i18n.mjs).
 export default {
   files: {

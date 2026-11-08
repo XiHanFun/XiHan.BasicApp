@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2021-Present XiHanFun and contributors.
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+
 /**
  * 通用文件下载器：底层封装「拿到数据后触发浏览器下载」，业务处直接调用
  * 不负责发请求（与 api 层解耦）——业务先经 api 取 Blob，再交给这里触发下载
