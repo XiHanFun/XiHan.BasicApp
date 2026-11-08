@@ -98,7 +98,7 @@ XiHan.BasicApp.Identity/
 
 ```text
 frontend/
-├─ package.json  pnpm-workspace.yaml  vite.config.ts  vitest.config.ts  eslint.config.mjs
+├─ package.json  pnpm-workspace.yaml  vite.config.ts  vitest.config.ts  eslint.config.mjs  stylelint.config.mjs
 ├─ .env  .env.example           # VITE_PORT、VITE_DEV_PROXY_TARGET、VITE_HOME_PATH、VITE_REALTIME_HUB …
 ├─ Dockerfile  nginx.conf       # 前端镜像：Nginx 托管产物并同源反代后端
 ├─ contracts/                   # 后端导出的 openapi.json、realtime.json（入库，CI 比对）
@@ -112,7 +112,7 @@ frontend/
 │  ├─ components/               # common（XDataTable、EditModal、PageShell…）与 schema（SchemaPage）
 │  ├─ designers/  printing/     # 流程设计器与打印设计器的接入
 │  ├─ composables/  hooks/  utils/  constants/  types/  iconify/
-│  ├─ design/                   # 令牌（variables.css）与 XiHan.UI 令牌桥（xihan-ui.css）
+│  ├─ design/                   # 令牌（variables.css）、XiHan.UI 令牌桥（xihan-ui.css）与全局样式
 │  ├─ locales/                  # 壳层文案 × 10 区域
 │  ├─ views/_core/              # 认证页、控制中心、个人中心、OAuth 同意页、关于页、403 / 404 / 500
 │  └─ <包>/tests/               # 该包的单测（*.spec.ts），按被测文件的子路径摆放

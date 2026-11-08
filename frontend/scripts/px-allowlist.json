@@ -13,9 +13,9 @@
   "packages/components/schema/SchemaSearchSettings.vue": 13,
   "packages/components/schema/SchemaTablePanel.vue": 7,
   "packages/components/schema/SchemaTableSettings.vue": 19,
-  "packages/design/global.css": 6,
-  "packages/design/ui.css": 16,
-  "packages/design/variables.css": 7,
+  "packages/design/global.css": 2,
+  "packages/design/ui.css": 4,
+  "packages/design/variables.css": 1,
   "packages/layouts/basic/components/AppBrand.vue": 4,
   "packages/layouts/basic/components/AppFavorites.vue": 14,
   "packages/layouts/basic/components/AppGlobalSearch.vue": 33,
@@ -48,10 +48,10 @@
   "packages/views/_core/profile/ProfileTabLoginLogs.vue": 6,
   "packages/views/_core/profile/ProfileTabOAuth.vue": 11,
   "packages/views/_core/profile/ProfileTabSecurity.vue": 22,
-  "packages/views/_core/profile/ProfileTabStats.vue": 24,
+  "packages/views/_core/profile/ProfileTabStats.vue": 23,
   "packages/views/_core/profile/ProfileTabTenants.vue": 2,
   "packages/views/_core/profile/index.vue": 34,
-  "packages/views/_core/profile/profile-shared.css": 85,
+  "packages/views/_core/profile/profile-shared.css": 11,
   "src/modules/auditing/views/traces/index.vue": 58,
   "src/modules/chat/components/ChatComposer.vue": 40,
   "src/modules/chat/components/ChatContextMenu.vue": 22,
@@ -63,5 +63,5 @@
   "src/modules/printing/views/print-templates/components/PrintSampleDataModal.vue": 14,
   "src/modules/printing/views/print-templates/components/PrintSampleTableEditor.vue": 11,
   "src/modules/workbench/views/dashboard/index.vue": 1,
-  "src/styles/admin-page.css": 8
+  "src/styles/admin-page.css": 5
 }

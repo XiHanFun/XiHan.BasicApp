@@ -897,7 +897,7 @@ function handleDeleteAccount() {
           </div>
           <div class="pf-info-card">
             <span class="pf-info-card__label">{{ t('component.profile.security.label_failed_logins') }}</span>
-            <span class="pf-info-card__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--color-warning)' : ''">
+            <span class="pf-info-card__value" :style="(profile?.failedLoginAttempts ?? 0) > 0 ? 'color:var(--xh-color-warning-500)' : ''">
               {{ t('component.profile.security.failed_logins_count', { count: profile?.failedLoginAttempts ?? 0 }) }}
             </span>
           </div>
@@ -953,7 +953,7 @@ function handleDeleteAccount() {
               <Icon icon="lucide:trash-2" width="16" />
             </div>
             <div class="pf-list-body">
-              <div class="pf-list-title" style="color: var(--color-error)">
+              <div class="pf-list-title" style="color: var(--xh-fg-danger)">
                 {{ t('component.profile.security.delete_title') }}
               </div>
               <div class="pf-list-desc">
@@ -995,7 +995,7 @@ function handleDeleteAccount() {
   flex-shrink: 0;
   border-radius: 10px;
   background: hsl(var(--muted));
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
   transition:
     background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
     color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
@@ -1060,7 +1060,7 @@ function handleDeleteAccount() {
   border-radius: 8px;
   /* 二维码功能性白底，非主题色 */
   background: #fff;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--xh-border-default);
   flex-shrink: 0;
   width: fit-content;
 }

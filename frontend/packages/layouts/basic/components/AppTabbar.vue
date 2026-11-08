@@ -504,7 +504,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
   <div
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
-    class="tabbar-root flex items-center bg-[var(--tabbar-bg)] px-2"
+    class="tabbar-root flex items-center bg-header px-2"
     :class="appStore.tabbarStyle === 'chrome' ? 'h-10 pt-[4px] pb-0' : 'h-[38px] py-0'"
   >
     <!-- 左侧滚动箭头 -->

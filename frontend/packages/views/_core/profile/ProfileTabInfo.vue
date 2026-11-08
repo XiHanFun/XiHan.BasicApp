@@ -831,6 +831,6 @@ function cancelChange() {
 .pf-change-hint {
   margin: 0;
   font-size: var(--xh-font-size-sm);
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
 }
 </style>

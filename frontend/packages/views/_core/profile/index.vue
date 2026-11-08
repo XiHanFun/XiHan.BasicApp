@@ -261,7 +261,7 @@ onMounted(loadProfile)
   min-height: 100%;
   padding: 24px 20px;
   /* GitHub 式纯净背景：亮色为白、暗色随主题，不再用灰色底 */
-  background: var(--bg-surface);
+  background: var(--xh-bg-surface);
 }
 
 /* GitHub 式居中容器：侧边栏 + 内容整体限宽水平居中 */
@@ -300,7 +300,7 @@ onMounted(loadProfile)
 .pc__identity-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--xh-fg-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -308,7 +308,7 @@ onMounted(loadProfile)
 
 .pc__identity-sub {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -335,7 +335,7 @@ onMounted(loadProfile)
   padding: 2px 10px 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
 }
 
 .pc__nav-item {
@@ -348,7 +348,7 @@ onMounted(loadProfile)
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--text-primary);
+  color: var(--xh-fg-default);
   font-size: 13.5px;
   text-align: left;
   cursor: pointer;
@@ -379,7 +379,7 @@ onMounted(loadProfile)
 
 .pc__nav-icon {
   flex-shrink: 0;
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
 }
 
 .pc__nav-item.is-active .pc__nav-icon {

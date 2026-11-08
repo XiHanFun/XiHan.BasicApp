@@ -392,13 +392,13 @@ const recentTimes = computed(() => {
   font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--text-primary);
+  color: var(--xh-fg-default);
   font-variant-numeric: tabular-nums;
 }
 
 .pf-stat-card__label {
   font-size: 12.5px;
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
   margin-top: 2px;
 }
 
@@ -411,7 +411,7 @@ const recentTimes = computed(() => {
 
 .pf-heat__foot {
   font-size: 12.5px;
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
 }
 
 /* 活跃概要（今日 / 本周 / 最近活动，按宽度自适应列数） */
@@ -425,7 +425,7 @@ const recentTimes = computed(() => {
 .pf-period {
   padding: 12px 14px;
   border: 1px solid hsl(var(--border) / 70%);
-  border-radius: var(--radius-sm, 8px);
+  border-radius: var(--xh-shape-inset);
   background: transparent;
 }
 
@@ -442,19 +442,19 @@ const recentTimes = computed(() => {
   justify-content: space-between;
   gap: 12px;
   font-size: 12.5px;
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
   padding: 3px 0;
 }
 
 .pf-period__row b {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--xh-fg-default);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .pf-period__row b {
-  color: var(--text-primary);
+  color: var(--xh-fg-default);
   font-weight: 600;
 }
 

@@ -267,7 +267,7 @@ async function handleCopy() {
   z-index: 2;
   padding: 2px var(--xh-space-2);
   font-size: var(--xh-font-size-xs);
-  color: var(--text-secondary);
+  color: var(--xh-fg-muted);
   cursor: pointer;
   background: hsl(var(--background) / 0.85);
   border: 1px solid hsl(var(--border));

@@ -83,7 +83,7 @@ pnpm build
 | 门禁 | 检查 |
 | --- | --- |
 | `type-check` | `vue-tsc --noEmit` |
-| `lint` | oxlint + eslint（`@antfu/eslint-config`）；`packages/` 不得引用 `@/` |
+| `lint` | oxlint + eslint（`@antfu/eslint-config`）+ stylelint（`.css`）；`packages/` 不得引用 `@/` |
 | `px:check` | 样式里的裸 px 按文件计数（`scripts/px-allowlist.json`，`--update` 收紧） |
 | `token:check` | 引用的 `--xh-*` 令牌在已安装的组件库里存在 |
 | `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
