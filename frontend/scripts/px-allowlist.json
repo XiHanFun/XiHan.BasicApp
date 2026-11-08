@@ -4,7 +4,7 @@
   "packages/components/common/SyncStatusBadge.vue": 1,
   "packages/components/schema/SchemaImportDialog.vue": 2,
   "packages/components/schema/SchemaPagination.vue": 1,
-  "packages/components/schema/SchemaRowPeek.vue": 4,
+  "packages/components/schema/SchemaRowPeek.vue": 2,
   "packages/components/schema/SchemaSearchPanel.vue": 8,
   "packages/components/schema/SchemaSearchSettings.vue": 6,
   "packages/components/schema/SchemaTablePanel.vue": 3,

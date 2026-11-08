@@ -101,7 +101,7 @@ watch(
   border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface-raised);
   border: 1px solid var(--xh-border-default);
-  box-shadow: 0 16px 48px color-mix(in srgb, var(--xh-fg-default) 18%, transparent);
+  box-shadow: var(--xh-elevation-floating);
   pointer-events: none;
 }
 
