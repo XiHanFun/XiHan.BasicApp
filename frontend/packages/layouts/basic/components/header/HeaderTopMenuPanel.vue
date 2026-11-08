@@ -60,20 +60,20 @@ const emit = defineEmits<{ select: [key: string] }>()
 }
 
 .top-menu-panel--nested {
-  padding-inline-start: 12px;
+  padding-inline-start: var(--xh-space-3);
 }
 
 .top-menu-panel__item {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   inline-size: 100%;
   min-block-size: 32px;
-  padding-inline: 10px;
+  padding-inline: var(--xh-space-2_5);
   border: 0;
   border-radius: var(--xh-shape-control);
   background: transparent;
-  color: hsl(var(--foreground) / 85%);
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
   font: inherit;
   font-size: 13px;
   text-align: start;
@@ -82,13 +82,13 @@ const emit = defineEmits<{ select: [key: string] }>()
 }
 
 .top-menu-panel__item:hover:not(:disabled) {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
 }
 
 .top-menu-panel__item--active {
-  background: hsl(var(--primary) / 15%);
-  color: hsl(var(--primary));
+  background: color-mix(in srgb, var(--xh-fg-brand) 15%, transparent);
+  color: var(--xh-fg-brand);
 }
 
 .top-menu-panel__item:disabled {

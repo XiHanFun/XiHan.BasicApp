@@ -197,7 +197,7 @@ const appName = __APP_NAME__
 
 <style scoped>
 .auth-card {
-  background: hsl(var(--card) / 0.72);
+  background: color-mix(in srgb, var(--xh-bg-surface) 72%, transparent);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -215,19 +215,19 @@ const appName = __APP_NAME__
 }
 
 .auth-blob--1 {
-  left: -8%;
+  inset-inline-start: -8%;
   top: -12%;
   animation: blob-flow-1 16s var(--xh-motion-ease-sweep) infinite;
 }
 
 .auth-blob--2 {
-  right: 10%;
+  inset-inline-end: 10%;
   top: -6%;
   animation: blob-flow-2 20s var(--xh-motion-ease-sweep) infinite;
 }
 
 .auth-blob--3 {
-  left: 20%;
+  inset-inline-start: 20%;
   bottom: -16%;
   animation: blob-flow-3 18s var(--xh-motion-ease-sweep) infinite;
 }

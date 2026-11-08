@@ -100,10 +100,10 @@ watch(
   --xh-side-nav-link-px: 12px;
   --xh-side-nav-link-gap: 8px;
   --xh-side-nav-link-font-size: 14px;
-  --xh-side-nav-row-fg: hsl(var(--foreground) / 80%);
-  --xh-side-nav-row-bg-hover: hsl(var(--accent));
-  --xh-side-nav-row-bg-active: hsl(var(--primary) / 15%);
-  --xh-side-nav-row-fg-active: hsl(var(--primary));
+  --xh-side-nav-row-fg: color-mix(in srgb, var(--xh-fg-default) 80%, transparent);
+  --xh-side-nav-row-bg-hover: var(--xh-bg-subtle-hover);
+  --xh-side-nav-row-bg-active: color-mix(in srgb, var(--xh-fg-brand) 15%, transparent);
+  --xh-side-nav-row-fg-active: var(--xh-fg-brand);
   /* 只有当前叶子高亮，展开中的父级分支不着色 */
   --xh-side-nav-row-bg-in-path: transparent;
 
@@ -138,7 +138,7 @@ watch(
   display: inline-flex;
   flex: none;
   align-items: center;
-  color: hsl(var(--foreground) / 72%);
+  color: color-mix(in srgb, var(--xh-fg-default) 72%, transparent);
   transition: transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
 }
 
@@ -148,7 +148,7 @@ watch(
 }
 
 .sidebar-menu :deep([data-part='link'][data-current] .sidebar-menu__icon) {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 
 .sidebar-menu :deep(.sidebar-menu__label) {
@@ -161,7 +161,7 @@ watch(
 
 .sidebar-menu :deep(.sidebar-menu__arrow) {
   flex: none;
-  color: hsl(var(--foreground) / 55%);
+  color: color-mix(in srgb, var(--xh-fg-default) 55%, transparent);
 }
 
 /* —— 圆角档 / 直角档：圆角走行的 radius 槽 —— */
@@ -188,7 +188,7 @@ watch(
 
 .sidebar-menu--collapsed-icon :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   justify-content: center;
-  padding-block: 12px;
+  padding-block: var(--xh-space-3);
   margin-inline: 6px;
 }
 
@@ -217,7 +217,7 @@ watch(
 .sidebar-menu--collapsed-titled :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   flex-direction: column;
   justify-content: center;
-  padding-block: 8px;
+  padding-block: var(--xh-space-2);
   margin-inline: 6px;
   line-height: normal;
 }

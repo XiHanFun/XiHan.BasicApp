@@ -399,12 +399,12 @@ watch(() => props.activeKey, () => {
   --xh-navigation-menu-trigger-h: var(--xh-control-h-lg);
   --xh-navigation-menu-trigger-px: 10px;
   --xh-navigation-menu-trigger-radius: 6px;
-  --xh-navigation-menu-trigger-bg-active: hsl(var(--primary) / 15%);
+  --xh-navigation-menu-trigger-bg-active: color-mix(in srgb, var(--xh-fg-brand) 15%, transparent);
   --xh-navigation-menu-link-font-size: var(--xh-navigation-menu-font-size);
   --xh-navigation-menu-link-px: var(--xh-navigation-menu-trigger-px);
   --xh-navigation-menu-link-py: 0;
   --xh-navigation-menu-link-radius: var(--xh-navigation-menu-trigger-radius);
-  --xh-navigation-menu-link-fg-current: hsl(var(--primary));
+  --xh-navigation-menu-link-fg-current: var(--xh-fg-brand);
 
   /* 根是箭头 + 滚动区一行排开；它同时是共享面板外壳的定位参照系（皮肤已给 relative） */
   display: flex;
@@ -452,7 +452,7 @@ watch(() => props.activeKey, () => {
 /* 共享面板外壳：皮肤把它钉在根的内联起点，这里改接上面算好的偏移 */
 .header-top-menu__panel-shell {
   inset-inline-start: var(--panel-inset-start, 0);
-  padding: 6px;
+  padding: var(--xh-space-1_5);
 }
 
 .header-top-menu__panel {
@@ -467,7 +467,7 @@ watch(() => props.activeKey, () => {
 
 .header-top-menu__entry {
   display: inline-flex;
-  gap: 4px;
+  gap: var(--xh-space-1);
   align-items: center;
   min-inline-size: 0;
 }

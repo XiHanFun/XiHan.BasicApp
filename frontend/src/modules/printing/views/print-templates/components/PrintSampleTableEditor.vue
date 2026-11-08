@@ -203,9 +203,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 <style scoped>
 .sample-table-editor {
-  padding: 12px;
+  padding: var(--xh-space-3);
   border: 1px solid var(--xh-border-default);
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
   background: var(--xh-bg-subtle);
 }
 
@@ -213,7 +213,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--xh-space-3);
   margin-bottom: 10px;
   color: var(--xh-fg-muted);
   font-size: 12px;
@@ -232,7 +232,7 @@ table {
 th,
 td {
   min-width: 150px;
-  padding: 7px;
+  padding: var(--xh-space-1_5);
   border: 1px solid var(--xh-border-subtle);
   text-align: left;
   vertical-align: middle;

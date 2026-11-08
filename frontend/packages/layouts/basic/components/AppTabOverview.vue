@@ -338,7 +338,7 @@ function onKeydown(e: KeyboardEvent): void {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 8vh 24px 24px;
+  padding: 0 var(--xh-space-6) var(--xh-space-6);
   /* 遮罩与组件库对话框同一层（自带 alpha，深浅两态都是暗的）；落在遮罩上的字、钮与键帽一律取「暗色衬底上的前景」，
      半透明的那几块按它兑透明 */
   --tab-ov-ink: var(--xh-fg-on-media-chrome);
@@ -350,21 +350,22 @@ function onKeydown(e: KeyboardEvent): void {
 
 .tab-ov__panel {
   width: min(96vw, 1080px);
+  margin-block-start: 8vh;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--xh-space-4);
 }
 
 .tab-ov__head {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--xh-space-3);
 }
 
 .tab-ov__title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
   font-size: 17px;
   font-weight: 600;
   color: var(--tab-ov-ink);
@@ -374,8 +375,8 @@ function onKeydown(e: KeyboardEvent): void {
 
 .tab-ov__count {
   min-width: 22px;
-  padding: 1px 7px;
-  border-radius: 9999px;
+  padding: var(--xh-space-0_5) var(--xh-space-1_5);
+  border-radius: var(--xh-shape-pill);
   background: color-mix(in oklab, var(--tab-ov-ink) 18%, transparent);
   font-size: 12px;
   font-weight: 600;
@@ -385,14 +386,14 @@ function onKeydown(e: KeyboardEvent): void {
 .tab-ov__search {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
   flex: 1;
   max-width: 360px;
   height: 36px;
-  padding: 0 12px;
-  border-radius: 9999px;
-  background: hsl(var(--background) / 0.92);
-  border: 1px solid hsl(var(--border));
+  padding: 0 var(--xh-space-3);
+  border-radius: var(--xh-shape-pill);
+  background: color-mix(in srgb, var(--xh-bg-surface) 92%, transparent);
+  border: 1px solid var(--xh-border-default);
 }
 
 .tab-ov__input {
@@ -402,7 +403,7 @@ function onKeydown(e: KeyboardEvent): void {
   border: none;
   outline: none;
   background: transparent;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   font-size: 14px;
 }
 
@@ -412,9 +413,9 @@ function onKeydown(e: KeyboardEvent): void {
   justify-content: center;
   width: 34px;
   height: 34px;
-  margin-left: auto;
+  margin-inline-start: auto;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--xh-shape-pill);
   background: color-mix(in oklab, var(--tab-ov-ink) 14%, transparent);
   color: var(--tab-ov-ink);
   cursor: pointer;
@@ -428,7 +429,7 @@ function onKeydown(e: KeyboardEvent): void {
 .tab-ov__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 14px;
+  gap: var(--xh-space-3);
 }
 
 /* 卡片 */
@@ -436,11 +437,11 @@ function onKeydown(e: KeyboardEvent): void {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 16px 14px 12px;
-  border-radius: 14px;
-  background: hsl(var(--card));
-  border: 1.5px solid hsl(var(--border));
+  gap: var(--xh-space-1_5);
+  padding: var(--xh-space-4) var(--xh-space-3) var(--xh-space-3);
+  border-radius: calc(var(--xh-shape-control) * 2);
+  background: var(--xh-bg-surface);
+  border: 1.5px solid var(--xh-border-default);
   cursor: pointer;
   user-select: none;
   transition:
@@ -453,13 +454,13 @@ function onKeydown(e: KeyboardEvent): void {
 .tab-ov-card:hover,
 .tab-ov-card.is-focused {
   transform: translateY(-3px);
-  border-color: hsl(var(--primary) / 55%);
-  box-shadow: 0 10px 28px hsl(var(--foreground) / 14%);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 55%, transparent);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--xh-fg-default) 14%, transparent);
 }
 
 .tab-ov-card.is-active {
-  border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 2px hsl(var(--primary) / 25%);
+  border-color: var(--xh-fg-brand);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--xh-fg-brand) 25%, transparent);
 }
 
 .tab-ov-card__icon {
@@ -468,15 +469,15 @@ function onKeydown(e: KeyboardEvent): void {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 11px;
-  background: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
+  border-radius: var(--xh-shape-sheet);
+  background: color-mix(in srgb, var(--xh-fg-brand) 10%, transparent);
+  color: var(--xh-fg-brand);
 }
 
 .tab-ov-card__title {
   font-size: 14px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -484,7 +485,7 @@ function onKeydown(e: KeyboardEvent): void {
 
 .tab-ov-card__path {
   font-size: 11px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -493,23 +494,23 @@ function onKeydown(e: KeyboardEvent): void {
 .tab-ov-card__pin {
   position: absolute;
   top: 10px;
-  right: 12px;
-  color: hsl(var(--muted-foreground));
+  inset-inline-end: 12px;
+  color: var(--xh-fg-muted);
 }
 
 .tab-ov-card__close {
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 22px;
   height: 22px;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--xh-shape-pill);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
   opacity: 0;
   transition:
@@ -524,8 +525,8 @@ function onKeydown(e: KeyboardEvent): void {
 }
 
 .tab-ov-card__close:hover {
-  background: hsl(var(--destructive) / 12%);
-  color: hsl(var(--destructive));
+  background: color-mix(in srgb, var(--xh-fg-danger) 12%, transparent);
+  color: var(--xh-fg-danger);
 }
 
 /* 拖拽中 */
@@ -538,7 +539,7 @@ function onKeydown(e: KeyboardEvent): void {
 /* 空态整行占满网格；文字与图标改亮色，落在暗色遮罩上保持可读 */
 .tab-ov__empty {
   grid-column: 1 / -1;
-  padding: 24px 0;
+  padding: var(--xh-space-6) 0;
 
   --xh-empty-state-title-fg: var(--tab-ov-ink);
   --xh-empty-state-description-fg: color-mix(in oklab, var(--tab-ov-ink) 70%, transparent);
@@ -547,16 +548,16 @@ function onKeydown(e: KeyboardEvent): void {
 
 .tab-ov__footer {
   display: flex;
-  gap: 18px;
+  gap: var(--xh-space-4);
   justify-content: center;
   font-size: 12px;
   color: color-mix(in oklab, var(--tab-ov-ink) 65%, transparent);
 }
 
 .tab-ov__footer kbd {
-  padding: 1px 5px;
-  margin-right: 3px;
-  border-radius: 4px;
+  padding: var(--xh-space-0_5) var(--xh-space-1);
+  margin-inline-end: 3px;
+  border-radius: var(--xh-shape-inset);
   background: color-mix(in oklab, var(--tab-ov-ink) 16%, transparent);
   font-family: var(--xh-font-family-mono);
   font-size: 11px;

@@ -609,7 +609,7 @@ const loaderItems = computed(() =>
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: var(--xh-space-1);
   cursor: pointer;
 }
 
@@ -618,53 +618,57 @@ const loaderItems = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 6px;
+  padding: var(--xh-space-2_5) var(--xh-space-1_5);
   width: 100%;
-  border: 1.5px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background: hsl(var(--card));
-  color: hsl(var(--muted-foreground));
-  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  border: 1.5px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-muted);
+  transition:
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .mode-item:hover .theme-mode-card {
-  border-color: hsl(var(--primary) / 0.5);
-  color: hsl(var(--foreground));
-  background: hsl(var(--accent));
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
+  color: var(--xh-fg-default);
+  background: var(--xh-bg-subtle-hover);
 }
 
 .theme-mode-card.is-active {
-  border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.08);
-  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+  border-color: var(--xh-fg-brand);
+  color: var(--xh-fg-brand);
+  background: color-mix(in srgb, var(--xh-fg-brand) 8%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--xh-fg-brand) 20%, transparent);
 }
 
 /* 模式文字标签 */
 .mode-label {
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   text-align: center;
   line-height: 1.2;
   transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .mode-item:hover .mode-label {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 /* 色系分组行 */
 .color-group-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--xh-space-1);
 }
 
 /* 色系名标签 */
 .color-group-label {
   font-size: 11px;
   font-weight: 700;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   line-height: 1;
 }
 
@@ -672,7 +676,7 @@ const loaderItems = computed(() =>
 .color-group-swatches {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: var(--xh-space-1_5);
 }
 
 /* 每个色块 + 标签的包裹层 */
@@ -680,7 +684,7 @@ const loaderItems = computed(() =>
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: var(--xh-space-1);
 }
 
 /* 内置主题颜色卡片 */
@@ -692,20 +696,23 @@ const loaderItems = computed(() =>
   width: 100%;
   min-height: 42px;
   overflow: hidden;
-  border: 1.5px solid hsl(var(--border));
-  border-radius: var(--radius-card);
-  background: hsl(var(--card));
+  border: 1.5px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-surface);
+  background: var(--xh-bg-surface);
   cursor: pointer;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    outline-offset var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .theme-color-card:hover {
-  border-color: hsl(var(--primary) / 0.55);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 55%, transparent);
 }
 
 .theme-color-card.is-active {
-  border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.22);
+  border-color: var(--xh-fg-brand);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--xh-fg-brand) 22%, transparent);
 }
 
 /* 键盘聚焦给与组件库同一道环：2px 画在卡片盒内。自定义卡片上的取色器是透明铺满的一层，
@@ -759,13 +766,13 @@ const loaderItems = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
-  background: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
+  background: var(--xh-bg-muted);
+  color: var(--xh-fg-muted);
 }
 
 .theme-color-label {
   font-size: 10px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   line-height: 1;
   white-space: nowrap;
 }
@@ -795,26 +802,29 @@ const loaderItems = computed(() =>
 
 /* 圆角按钮 */
 .radius-btn {
-  padding: 6px 4px;
-  border: 1.5px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background: hsl(var(--card));
-  color: hsl(var(--muted-foreground));
+  padding: var(--xh-space-1_5) var(--xh-space-1);
+  border: 1.5px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-muted);
   font-size: 12px;
   cursor: pointer;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   text-align: center;
 }
 
 .radius-btn:hover {
-  border-color: hsl(var(--primary) / 0.5);
-  color: hsl(var(--foreground));
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
+  color: var(--xh-fg-default);
 }
 
 .radius-btn.is-active {
-  border-color: hsl(var(--primary));
-  background: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
+  border-color: var(--xh-fg-brand);
+  background: color-mix(in srgb, var(--xh-fg-brand) 10%, transparent);
+  color: var(--xh-fg-brand);
   font-weight: 600;
 }
 
@@ -839,7 +849,7 @@ const loaderItems = computed(() =>
   display: grid;
   /* minmax(0,1fr) 允许列收缩，避免长标签（如加载动画英文名）撑破栅格导致横向溢出 */
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--xh-space-2);
   margin-top: 4px;
 }
 
@@ -847,16 +857,16 @@ const loaderItems = computed(() =>
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: var(--xh-space-1);
   cursor: pointer;
 }
 
 .transition-preview {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: var(--radius);
-  border: 2px solid hsl(var(--border));
-  background: hsl(var(--muted));
+  border-radius: var(--xh-shape-control);
+  border: 2px solid var(--xh-border-default);
+  background: var(--xh-bg-muted);
   /* clip-path 只在视觉上裁，元素照样算进祖先的可滚动区：预览块滑到 115% 时看不见，
      却把抽屉撑出一条横向滚动条。overflow: clip 才真正把它移出滚动区，
      clip-margin 与 clip-path 的 -7px 外扩对齐，观感不变 */
@@ -871,13 +881,13 @@ const loaderItems = computed(() =>
 }
 
 .transition-item.is-active .transition-preview {
-  border-color: hsl(var(--primary));
+  border-color: var(--xh-fg-brand);
 }
 
 .item-label {
   font-size: 11px;
   line-height: 1.3;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   text-align: center;
   /* 长名换行并最多 2 行截断，保证卡片宽度统一、不溢出 */
   display: -webkit-box;
@@ -888,15 +898,15 @@ const loaderItems = computed(() =>
 }
 
 .transition-item.is-active .item-label {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   font-weight: 500;
 }
 
 .preview-block {
   position: absolute;
   inset: 5px;
-  border-radius: calc(var(--radius) - 1px);
-  background: hsl(var(--primary) / 0.72);
+  border-radius: var(--xh-shape-inset);
+  background: color-mix(in srgb, var(--xh-fg-brand) 72%, transparent);
 }
 
 /* 下面是过渡选项的预览循环：一次循环里含进场、停留、退场三段，时长按预览节奏写，

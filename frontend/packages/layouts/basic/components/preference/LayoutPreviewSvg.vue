@@ -241,41 +241,41 @@ svg {
 }
 
 .svg-bg {
-  fill: hsl(var(--muted) / 0.4);
-  stroke: hsl(var(--border));
+  fill: color-mix(in srgb, var(--xh-bg-muted) 40%, transparent);
+  stroke: var(--xh-border-default);
   stroke-width: 0.5;
 }
 
 .svg-sidebar {
-  fill: hsl(var(--primary) / 0.6);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 60%, transparent);
 }
 
 .svg-sidebar-strong {
-  fill: hsl(var(--primary));
+  fill: var(--xh-fg-brand);
 }
 
 .svg-header {
-  fill: hsl(var(--primary) / 0.3);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 30%, transparent);
 }
 
 .svg-header-strong {
-  fill: hsl(var(--primary) / 0.9);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 90%, transparent);
 }
 
 .svg-sub-header {
-  fill: hsl(var(--primary) / 0.38);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 38%, transparent);
 }
 
 .svg-row {
-  fill: hsl(var(--primary) / 0.28);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
 }
 
 .svg-block {
-  fill: hsl(var(--primary) / 0.2);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 20%, transparent);
 }
 
 .svg-block-faint {
-  fill: hsl(var(--primary) / 0.12);
+  fill: color-mix(in srgb, var(--xh-fg-brand) 12%, transparent);
 }
 
 /* 徽标块压在品牌色的侧栏 / 顶栏上，取品牌底上的前景 */
@@ -284,14 +284,14 @@ svg {
 }
 
 .svg-chip {
-  fill: hsl(var(--foreground) / 0.45);
+  fill: color-mix(in srgb, var(--xh-fg-default) 45%, transparent);
 }
 
 .svg-on-dark {
-  fill: hsl(var(--background) / 0.95);
+  fill: color-mix(in srgb, var(--xh-bg-surface) 95%, transparent);
 }
 
 .svg-on-dark-soft {
-  fill: hsl(var(--background) / 0.72);
+  fill: color-mix(in srgb, var(--xh-bg-surface) 72%, transparent);
 }
 </style>

@@ -250,17 +250,17 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 .chrome-tab.is-active {
   z-index: 2;
   margin-bottom: -1px;
-  padding-bottom: 1px;
+  padding-bottom: var(--xh-space-0_5);
 }
 
 .chrome-tab__divider {
-  background: hsl(var(--border));
+  background: var(--xh-border-default);
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab__background-content {
   background: transparent;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep);
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep);
 }
 
 .chrome-tab__background-before,
@@ -270,8 +270,8 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .chrome-tab__main {
-  color: hsl(var(--muted-foreground));
-  border-radius: 6px;
+  color: var(--xh-fg-muted);
+  border-radius: var(--xh-shape-control);
   transition:
     color var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep),
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep),
@@ -286,7 +286,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .chrome-tab__action {
-  margin-left: 8px;
+  margin-inline-start: 8px;
 }
 
 .chrome-tab__close {
@@ -297,7 +297,11 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   opacity: 0.72;
   transform: scale(1);
   cursor: pointer;
-  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab__pin,
@@ -309,7 +313,11 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   opacity: 0.72;
   transform: scale(1);
   cursor: default;
-  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .tab-item.chrome-tab:hover .chrome-tab__close,
@@ -331,15 +339,15 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 .chrome-tab__close:hover,
 .chrome-tab__pin:hover {
   opacity: 1 !important;
-  background: color-mix(in srgb, hsl(var(--primary)) 20%, hsl(var(--background)));
-  color: hsl(var(--foreground));
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 28%);
+  background: color-mix(in srgb, var(--xh-bg-brand) 20%, var(--xh-bg-surface));
+  color: var(--xh-fg-default);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
 }
 
 .tab-item.chrome-tab:hover:not(.is-active) {
   z-index: 2;
   margin-bottom: -1px;
-  padding-bottom: 1px;
+  padding-bottom: var(--xh-space-0_5);
 }
 
 .tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__divider {
@@ -361,12 +369,12 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-content {
-  background: color-mix(in srgb, hsl(var(--primary)) 8%, hsl(var(--accent)));
+  background: color-mix(in srgb, var(--xh-bg-brand) 8%, var(--xh-bg-subtle-hover));
 }
 
 .tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-before,
 .tab-item.chrome-tab:hover:not(.is-active) .chrome-tab__background-after {
-  fill: color-mix(in srgb, hsl(var(--primary)) 8%, hsl(var(--accent)));
+  fill: color-mix(in srgb, var(--xh-fg-brand) 8%, var(--xh-bg-subtle-hover));
 }
 
 .tab-item.chrome-tab.is-active + .tab-item.chrome-tab .chrome-tab__divider,
@@ -379,7 +387,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   font-size: 13px;
   font-weight: var(--xh-font-weight-medium);
   cursor: default;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .flat-tab__title {
@@ -390,7 +398,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab__action {
-  margin-left: 8px;
+  margin-inline-start: 8px;
 }
 
 .flat-tab__close,
@@ -404,7 +412,11 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   transform: scale(1);
   cursor: default;
   flex-shrink: 0;
-  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab__close {
@@ -422,17 +434,17 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab__close:hover {
-  background: color-mix(in srgb, hsl(var(--primary)) 20%, hsl(var(--background)));
-  color: hsl(var(--foreground));
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 28%);
+  background: color-mix(in srgb, var(--xh-bg-brand) 20%, var(--xh-bg-surface));
+  color: var(--xh-fg-default);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
   opacity: 1 !important;
 }
 
 .flat-tab__pin:hover {
   opacity: 1 !important;
-  background: color-mix(in srgb, hsl(var(--primary)) 20%, hsl(var(--background)));
-  color: hsl(var(--foreground));
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 28%);
+  background: color-mix(in srgb, var(--xh-bg-brand) 20%, var(--xh-bg-surface));
+  color: var(--xh-fg-default);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
 }
 
 /* ---- Plain 风格 ---- */
@@ -444,16 +456,16 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab--plain.has-left-divider {
-  border-left: 1px solid hsl(var(--border));
+  border-left: 1px solid var(--xh-border-default);
 }
 
 .flat-tab--plain.is-last {
-  border-right: 1px solid hsl(var(--border));
+  border-right: 1px solid var(--xh-border-default);
 }
 
 .flat-tab--plain:hover:not(.is-active) {
-  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--accent)));
-  color: hsl(var(--foreground));
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
+  color: var(--xh-fg-default);
 }
 
 .flat-tab--plain.is-active {
@@ -465,9 +477,9 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 .flat-tab--card {
   height: calc(100% - 4px);
   margin-top: 2px;
-  margin-left: 6px;
-  border-radius: 6px;
-  border: 1px solid hsl(var(--border));
+  margin-inline-start: 6px;
+  border-radius: var(--xh-shape-control);
+  border: 1px solid var(--xh-border-default);
   transition:
     color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
     background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
@@ -475,9 +487,9 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab--card:hover:not(.is-active) {
-  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--accent)));
-  color: hsl(var(--foreground));
-  border-color: hsl(var(--primary) / 30%);
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
+  color: var(--xh-fg-default);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 30%, transparent);
 }
 
 .flat-tab--card.is-active {
@@ -496,18 +508,18 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab--brisk.has-left-divider {
-  border-left: 1px solid hsl(var(--border));
+  border-left: 1px solid var(--xh-border-default);
 }
 
 .flat-tab--brisk.is-last {
-  border-right: 1px solid hsl(var(--border));
+  border-right: 1px solid var(--xh-border-default);
 }
 
 .flat-tab--brisk::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   height: 2px;
   background: var(--tab-active-color);
@@ -522,8 +534,8 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 }
 
 .flat-tab--brisk:hover:not(.is-active) {
-  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--accent)));
-  color: hsl(var(--foreground));
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-subtle-hover));
+  color: var(--xh-fg-default);
 }
 
 .flat-tab--brisk.is-active {

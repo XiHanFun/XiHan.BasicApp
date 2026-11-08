@@ -163,11 +163,11 @@ onBeforeUnmount(stop)
 
 <style scoped>
 .xh-page-loader {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   overflow: visible;
 }
 /* 固定颜色：前景色随主题取明/暗，但不跟随主题色 */
 .xh-page-loader.is-fixed-color {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 </style>

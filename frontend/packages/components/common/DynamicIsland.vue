@@ -683,7 +683,7 @@ onBeforeUnmount(() => {
 .di-root {
   position: fixed;
   top: 10px;
-  left: 50%;
+  inset-inline-start: 50%;
   z-index: 3000;
   transform: translateX(-50%);
   pointer-events: none;
@@ -697,10 +697,10 @@ onBeforeUnmount(() => {
 .di-stack {
   position: absolute;
   top: 0;
-  left: 50%;
+  inset-inline-start: 50%;
   pointer-events: none;
-  background: rgb(18 18 20 / 94%);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 7%);
+  background: color-mix(in srgb, var(--xh-color-neutral-950) 94%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-on-media-chrome) 7%, transparent);
   backdrop-filter: blur(14px);
   transition:
     width var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
@@ -752,11 +752,11 @@ onBeforeUnmount(() => {
 .di-shell {
   position: relative;
   pointer-events: auto;
-  color: rgb(255 255 255 / 95%);
-  background: rgb(18 18 20 / 94%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 95%, transparent);
+  background: color-mix(in srgb, var(--xh-color-neutral-950) 94%, transparent);
   box-shadow:
-    0 10px 30px rgb(0 0 0 / 30%),
-    inset 0 0 0 1px rgb(255 255 255 / 8%);
+    0 10px 30px color-mix(in srgb, var(--xh-color-neutral-950) 30%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-on-media-chrome) 8%, transparent);
   backdrop-filter: blur(14px);
   overflow: hidden;
   /* 宽/高/圆角统一缓动：展开收起为同一容器的形变，不再上下抖动 */
@@ -770,7 +770,7 @@ onBeforeUnmount(() => {
 .di-layer {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
@@ -808,10 +808,10 @@ onBeforeUnmount(() => {
 .di-pill__inner {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
   width: 100%;
   height: 100%;
-  padding: 0 12px 0 14px;
+  padding: 0 var(--xh-space-3) 0 var(--xh-space-3);
 }
 
 .di-label {
@@ -825,9 +825,9 @@ onBeforeUnmount(() => {
 .di-trailing {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   flex-shrink: 0;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .di-indicator {
@@ -838,22 +838,22 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
-  color: rgb(255 255 255 / 85%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 85%, transparent);
 }
 
 .is-success .di-indicator,
 .di-item.is-success .di-indicator {
-  color: #34d399;
+  color: color-mix(in srgb, var(--xh-fg-success) 75%, var(--xh-fg-on-media-chrome));
 }
 
 .is-error .di-indicator,
 .di-item.is-error .di-indicator {
-  color: #f87171;
+  color: color-mix(in srgb, var(--xh-fg-danger) 85%, var(--xh-fg-on-media-chrome));
 }
 
 .is-info .di-indicator,
 .di-item.is-info .di-indicator {
-  color: #60a5fa;
+  color: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
 }
 
 /* ============ 终态：折叠态指示器用状态色实心圆底 + 深色图标 ============ */
@@ -863,8 +863,8 @@ onBeforeUnmount(() => {
 .di-shell.is-info .di-pill__inner .di-indicator {
   width: 18px;
   height: 18px;
-  border-radius: 9999px;
-  color: rgb(12 16 22 / 92%);
+  border-radius: var(--xh-shape-pill);
+  color: color-mix(in srgb, var(--xh-color-neutral-950) 92%, transparent);
   /* 完成反馈：状态图标弹现，呼应 iOS 灵动岛完成态的图标弹入 */
   animation: di-badge-pop var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }
@@ -886,15 +886,15 @@ onBeforeUnmount(() => {
 }
 
 .di-shell.is-success .di-pill__inner .di-indicator {
-  background: #34d399;
+  background: color-mix(in srgb, var(--xh-fg-success) 75%, var(--xh-fg-on-media-chrome));
 }
 
 .di-shell.is-error .di-pill__inner .di-indicator {
-  background: #f87171;
+  background: color-mix(in srgb, var(--xh-fg-danger) 85%, var(--xh-fg-on-media-chrome));
 }
 
 .di-shell.is-info .di-pill__inner .di-indicator {
-  background: #60a5fa;
+  background: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
 }
 
 /* ============ 进度环 ============ */
@@ -906,13 +906,13 @@ onBeforeUnmount(() => {
 
 .di-ring__track {
   fill: none;
-  stroke: rgb(255 255 255 / 16%);
+  stroke: color-mix(in srgb, var(--xh-fg-on-media-chrome) 16%, transparent);
   stroke-width: 2.5;
 }
 
 .di-ring__bar {
   fill: none;
-  stroke: #60a5fa;
+  stroke: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
   stroke-width: 2.5;
   stroke-linecap: round;
   transition: stroke-dashoffset var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
@@ -937,14 +937,14 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   margin: auto;
-  color: rgb(255 255 255 / 80%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 80%, transparent);
 }
 
 .di-pct {
   font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #93c5fd;
+  color: color-mix(in srgb, var(--xh-fg-brand) 50%, var(--xh-fg-on-media-chrome));
 }
 
 .di-count {
@@ -953,9 +953,9 @@ onBeforeUnmount(() => {
   justify-content: center;
   min-width: 16px;
   height: 16px;
-  padding: 0 4px;
-  border-radius: 9999px;
-  background: rgb(255 255 255 / 16%);
+  padding: 0 var(--xh-space-1);
+  border-radius: var(--xh-shape-pill);
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 16%, transparent);
   font-size: 10px;
   font-weight: 600;
 }
@@ -974,7 +974,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px 6px 16px;
+  padding: var(--xh-space-2_5) var(--xh-space-3) var(--xh-space-1_5) var(--xh-space-4);
 }
 
 .di-panel__title {
@@ -985,22 +985,22 @@ onBeforeUnmount(() => {
 
 .di-panel__close {
   display: inline-flex;
-  padding: 2px;
+  padding: var(--xh-space-0_5);
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: rgb(255 255 255 / 60%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 60%, transparent);
   cursor: pointer;
 }
 
 .di-panel__close:hover {
-  background: rgb(255 255 255 / 10%);
-  color: rgb(255 255 255 / 95%);
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 10%, transparent);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 95%, transparent);
 }
 
 .di-panel__body {
   max-height: min(60vh, 460px);
-  padding: 4px 8px 10px;
+  padding: var(--xh-space-1) var(--xh-space-2) var(--xh-space-2_5);
   overflow-y: auto;
 }
 
@@ -1008,9 +1008,9 @@ onBeforeUnmount(() => {
 .di-item {
   position: relative;
   display: flex;
-  gap: 10px;
-  padding: 8px 26px 8px 8px;
-  border-radius: 10px;
+  gap: var(--xh-space-2_5);
+  padding: var(--xh-space-2) var(--xh-space-6) var(--xh-space-2) var(--xh-space-2);
+  border-radius: var(--xh-shape-sheet);
 }
 
 .di-item.is-clickable {
@@ -1018,7 +1018,7 @@ onBeforeUnmount(() => {
 }
 
 .di-item.is-clickable:hover {
-  background: rgb(255 255 255 / 6%);
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 6%, transparent);
 }
 
 .di-item .di-indicator {
@@ -1040,7 +1040,7 @@ onBeforeUnmount(() => {
 .di-item__detail {
   margin-top: 2px;
   font-size: 12px;
-  color: rgb(255 255 255 / 55%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 55%, transparent);
   line-height: 1.45;
 }
 
@@ -1048,19 +1048,19 @@ onBeforeUnmount(() => {
   margin-top: 4px;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
-  color: rgb(255 255 255 / 40%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 40%, transparent);
 }
 
 .di-item__dismiss {
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   display: inline-flex;
-  padding: 2px;
+  padding: var(--xh-space-0_5);
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: rgb(255 255 255 / 35%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 35%, transparent);
   cursor: pointer;
   opacity: 0;
   transition:
@@ -1073,15 +1073,15 @@ onBeforeUnmount(() => {
 }
 
 .di-item__dismiss:hover {
-  color: rgb(255 255 255 / 85%);
-  background: rgb(255 255 255 / 10%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 85%, transparent);
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 10%, transparent);
 }
 
 /* 进度条（面板内与环互补，长文案下更易读） */
 .di-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
   margin-top: 7px;
 }
 
@@ -1089,53 +1089,57 @@ onBeforeUnmount(() => {
   position: relative;
   flex: 1;
   height: 5px;
-  background: rgb(255 255 255 / 12%);
-  border-radius: 9999px;
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
+  border-radius: var(--xh-shape-pill);
   overflow: hidden;
 }
 
 .di-progress__bar {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   height: 100%;
-  background: linear-gradient(90deg, #60a5fa, #818cf8);
-  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome)),
+    color-mix(in srgb, var(--xh-color-info-500) 60%, var(--xh-fg-on-media-chrome))
+  );
+  border-radius: var(--xh-shape-pill);
   transition: width var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
 }
 
 .di-progress__pct {
   font-size: 11px;
   font-variant-numeric: tabular-nums;
-  color: rgb(255 255 255 / 70%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 70%, transparent);
 }
 
 /* 操作按钮 */
 .di-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   margin-top: 9px;
 }
 
 .di-action {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--xh-space-1);
   height: 26px;
-  padding: 0 10px;
+  padding: 0 var(--xh-space-2_5);
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--xh-shape-control);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  background: rgb(255 255 255 / 12%);
-  color: rgb(255 255 255 / 92%);
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 92%, transparent);
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .di-action:hover {
-  background: rgb(255 255 255 / 20%);
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 20%, transparent);
 }
 
 .di-action.tone-brand {
@@ -1148,49 +1152,49 @@ onBeforeUnmount(() => {
 }
 
 .di-action.tone-danger {
-  background: rgb(248 113 113 / 22%);
-  color: #fca5a5;
+  background: color-mix(in srgb, var(--xh-fg-danger) 22%, transparent);
+  color: color-mix(in srgb, var(--xh-fg-danger) 55%, var(--xh-fg-on-media-chrome));
 }
 
 .di-action.tone-danger:hover {
-  background: rgb(248 113 113 / 32%);
+  background: color-mix(in srgb, var(--xh-fg-danger) 32%, transparent);
 }
 
 /* 历史 */
 .di-history {
   margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px solid rgb(255 255 255 / 8%);
+  padding-top: var(--xh-space-1_5);
+  border-top: 1px solid color-mix(in srgb, var(--xh-fg-on-media-chrome) 8%, transparent);
 }
 
 .di-history__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px;
+  padding: var(--xh-space-1) var(--xh-space-2);
   font-size: 11px;
-  color: rgb(255 255 255 / 45%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
 }
 
 .di-history__clear {
   border: 0;
   background: transparent;
-  color: rgb(255 255 255 / 45%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
   font-size: 11px;
   cursor: pointer;
 }
 
 .di-history__clear:hover {
-  color: rgb(255 255 255 / 80%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 80%, transparent);
 }
 
 .di-history-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
+  gap: var(--xh-space-2);
+  padding: var(--xh-space-1) var(--xh-space-2);
   font-size: 12px;
-  color: rgb(255 255 255 / 65%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 65%, transparent);
 }
 
 .di-history-item .di-indicator {
@@ -1210,14 +1214,14 @@ onBeforeUnmount(() => {
 .di-history-item__time {
   flex-shrink: 0;
   font-size: 11px;
-  color: rgb(255 255 255 / 35%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 35%, transparent);
 }
 
 .di-empty {
-  padding: 16px;
+  padding: var(--xh-space-4);
   text-align: center;
   font-size: 12px;
-  color: rgb(255 255 255 / 45%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
 }
 
 /* ============ 壳体出现/消失过渡：从视口顶缘弹出 / 收回 ============ */
@@ -1281,9 +1285,9 @@ onBeforeUnmount(() => {
 .di-card {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--xh-space-3) var(--xh-space-4);
   text-align: left;
   background: transparent;
   border: 0;
@@ -1298,14 +1302,14 @@ onBeforeUnmount(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 12%);
-  color: #fff;
+  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
+  color: var(--xh-fg-on-media-chrome);
 }
 
 .di-card__body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--xh-space-0_5);
   min-width: 0;
   flex: 1;
 }
@@ -1313,7 +1317,7 @@ onBeforeUnmount(() => {
 .di-card__title {
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--xh-fg-on-media-chrome);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1323,7 +1327,7 @@ onBeforeUnmount(() => {
 .di-card__detail {
   font-size: 12px;
   line-height: 1.45;
-  color: rgb(255 255 255 / 72%);
+  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 72%, transparent);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

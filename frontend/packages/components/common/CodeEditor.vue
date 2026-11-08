@@ -250,7 +250,7 @@ async function handleCopy() {
   position: relative;
   width: 100%;
   overflow: hidden;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-control);
 }
 
@@ -263,14 +263,14 @@ async function handleCopy() {
   position: absolute;
   top: var(--xh-space-2);
   /* 让开纵向滚动条 */
-  right: var(--xh-space-5);
+  inset-inline-end: var(--xh-space-5);
   z-index: 2;
-  padding: 2px var(--xh-space-2);
+  padding: var(--xh-space-0_5) var(--xh-space-2);
   font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
   cursor: pointer;
-  background: hsl(var(--background) / 0.85);
-  border: 1px solid hsl(var(--border));
+  background: color-mix(in srgb, var(--xh-bg-surface) 85%, transparent);
+  border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-inset);
   opacity: 0;
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
@@ -282,6 +282,6 @@ async function handleCopy() {
 }
 
 .xh-editor__copy:hover {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 </style>

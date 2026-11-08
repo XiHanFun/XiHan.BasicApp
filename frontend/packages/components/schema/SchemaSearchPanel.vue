@@ -129,7 +129,7 @@ function toggleExpand() {
 .xh-search__bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px var(--xh-search-gap-x);
+  gap: var(--xh-space-2_5) var(--xh-search-gap-x);
   align-items: flex-end;
 }
 
@@ -138,7 +138,7 @@ function toggleExpand() {
 .xh-search__item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--xh-space-0_5);
   inline-size: var(--xh-search-item-w);
 }
 
@@ -154,8 +154,8 @@ function toggleExpand() {
 .xh-search__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-left: auto;
+  gap: var(--xh-space-2);
+  margin-inline-start: auto;
 }
 
 /* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表）
@@ -164,14 +164,14 @@ function toggleExpand() {
 .xh-search__advanced {
   position: absolute;
   top: 100%;
-  right: -16px;
-  left: -16px;
+  inset-inline-end: -16px;
+  inset-inline-start: -16px;
   z-index: var(--z-page-overlay);
   display: flex;
   flex-wrap: wrap;
-  gap: 10px var(--xh-search-gap-x);
+  gap: var(--xh-space-2_5) var(--xh-search-gap-x);
   margin-top: 12px;
-  padding: 14px 16px;
+  padding: var(--xh-space-3) var(--xh-space-4);
   border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-surface);
   background: var(--xh-bg-surface);
@@ -205,7 +205,7 @@ function toggleExpand() {
 
   /* 按钮组保持紧凑右对齐：margin-left:auto 推到右侧，按钮维持圆形不被拉伸 */
   .xh-search__actions {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   /* 移动端字段纵向堆叠极易过高：浮层最多占 60% 屏高并内部滚动，下方列表仍可见 */

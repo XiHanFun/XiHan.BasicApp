@@ -42,10 +42,10 @@ const { t } = useI18n()
 <style scoped>
 .sync-badge {
   display: inline-flex;
-  gap: 3px;
+  gap: var(--xh-space-0_5);
   align-items: center;
   block-size: 18px;
-  padding-inline: 7px;
+  padding-inline: var(--xh-space-1_5);
   border-radius: var(--xh-radius-full);
   font-size: 11px;
   line-height: 1;

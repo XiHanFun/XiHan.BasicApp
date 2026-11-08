@@ -551,7 +551,6 @@ watch(
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 14vh;
   /* 遮罩与组件库对话框同一层：令牌自带 alpha，直接用，不要再叠一次透明度 */
   background: var(--xh-bg-overlay);
   backdrop-filter: blur(2px);
@@ -559,27 +558,28 @@ watch(
 
 .cmdk-panel {
   width: min(92vw, 600px);
+  margin-block-start: 14vh;
   max-height: 70vh;
   display: flex;
   flex-direction: column;
   border-radius: var(--xh-shape-sheet);
   overflow: hidden;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
   box-shadow: var(--xh-elevation-sheet);
 }
 
 .cmdk-input {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 14px;
+  gap: var(--xh-space-2_5);
+  padding: 0 var(--xh-space-3);
   height: 52px;
   flex-shrink: 0;
 }
 
 .cmdk-input__icon {
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   flex-shrink: 0;
 }
 
@@ -589,47 +589,46 @@ watch(
   border: none;
   outline: none;
   background: transparent;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   font-size: 15px;
 }
 
 .cmdk-input__field::placeholder {
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cmdk-esc {
-  padding: 2px 7px;
+  padding: var(--xh-space-0_5) var(--xh-space-1_5);
   font-size: 11px;
   font-family: var(--xh-font-family-mono);
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 0.6);
-  border-radius: 5px;
+  color: var(--xh-fg-muted);
+  background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
+  border-radius: var(--xh-shape-control);
   flex-shrink: 0;
 }
 
 .cmdk-list {
   flex: 1;
   overflow-y: auto;
-  padding: 6px;
-  scrollbar-width: thin;
+  padding: var(--xh-space-1_5);
 }
 
 .cmdk-group {
-  padding: 8px 8px 4px;
+  padding: var(--xh-space-2) var(--xh-space-2) var(--xh-space-1);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cmdk-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   width: 100%;
-  padding: 9px 10px;
+  padding: var(--xh-space-2) var(--xh-space-2_5);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   text-align: left;
   cursor: pointer;
@@ -637,31 +636,31 @@ watch(
 }
 
 .cmdk-item.is-active {
-  background: hsl(var(--primary) / 0.12);
+  background: color-mix(in srgb, var(--xh-fg-brand) 12%, transparent);
 }
 
 .cmdk-item__icon {
   display: inline-flex;
   flex-shrink: 0;
-  color: hsl(var(--foreground) / 0.7);
+  color: color-mix(in srgb, var(--xh-fg-default) 70%, transparent);
 }
 
 .cmdk-item.is-active .cmdk-item__icon {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 
 .cmdk-item__title {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .cmdk-hl {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   font-weight: 600;
 }
 
@@ -669,7 +668,7 @@ watch(
   flex-shrink: 0;
   max-width: 45%;
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -677,29 +676,29 @@ watch(
 
 .cmdk-item__tag {
   flex-shrink: 0;
-  padding: 1px 7px;
+  padding: var(--xh-space-0_5) var(--xh-space-1_5);
   font-size: 11px;
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / 0.6);
-  border-radius: 9999px;
+  color: var(--xh-fg-muted);
+  background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
+  border-radius: var(--xh-shape-pill);
 }
 
 .cmdk-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 40px 0;
+  gap: var(--xh-space-2);
+  padding: calc(var(--xh-space-5) * 2) 0;
   font-size: 13px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cmdk-footer {
   display: flex;
-  gap: 16px;
-  padding: 8px 14px;
+  gap: var(--xh-space-4);
+  padding: var(--xh-space-2) var(--xh-space-3);
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   flex-shrink: 0;
 }
 
@@ -708,12 +707,12 @@ watch(
   align-items: center;
   justify-content: center;
   min-width: 16px;
-  padding: 1px 4px;
-  margin-right: 2px;
+  padding: var(--xh-space-0_5) var(--xh-space-1);
+  margin-inline-end: 2px;
   font-family: var(--xh-font-family-mono);
   font-size: 11px;
-  background: hsl(var(--muted) / 0.6);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
+  border-radius: var(--xh-shape-inset);
 }
 
 /* 过渡 */

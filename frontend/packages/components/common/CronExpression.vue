@@ -717,7 +717,7 @@ function onPresetChange(v: string | null): void {
   gap: var(--xh-space-1_5);
   flex-shrink: 0;
   font-size: var(--xh-font-size-sm);
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cron-modes {
@@ -740,7 +740,7 @@ function onPresetChange(v: string | null): void {
   align-items: center;
   gap: var(--xh-space-1_5);
   font-size: var(--xh-font-size-sm);
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
@@ -755,15 +755,15 @@ function onPresetChange(v: string | null): void {
 }
 
 .cron-preview {
-  border-radius: var(--radius);
-  background: hsl(var(--muted) / 0.4);
+  border-radius: var(--xh-shape-control);
+  background: color-mix(in srgb, var(--xh-bg-muted) 40%, transparent);
   padding: var(--xh-space-2) var(--xh-space-3);
 }
 
 .cron-preview-title {
   font-size: var(--xh-font-size-xs);
   font-weight: 600;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   margin-bottom: var(--xh-space-1);
 }
 
@@ -779,12 +779,12 @@ function onPresetChange(v: string | null): void {
 .cron-preview-list li {
   font-size: var(--xh-font-size-xs);
   font-family: var(--xh-font-family-mono);
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .cron-preview-empty {
   font-size: var(--xh-font-size-xs);
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cron-footer {
@@ -797,6 +797,6 @@ function onPresetChange(v: string | null): void {
 .cron-footer-expr {
   font-family: var(--xh-font-family-mono);
   font-size: var(--xh-font-size-sm);
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 </style>

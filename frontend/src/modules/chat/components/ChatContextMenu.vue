@@ -113,23 +113,23 @@ function handleReact(emoji: string) {
   z-index: 3000;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   align-items: flex-start;
 }
 
 .chat-ctx-card {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: 10px;
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-sheet);
   box-shadow:
-    0 8px 30px hsl(var(--foreground) / 10%),
-    0 2px 8px hsl(var(--foreground) / 5%);
+    0 8px 30px color-mix(in srgb, var(--xh-fg-default) 10%, transparent),
+    0 2px 8px color-mix(in srgb, var(--xh-fg-default) 5%, transparent);
 }
 
 .chat-ctx-reactions {
   display: flex;
-  gap: 2px;
-  padding: 6px 8px;
+  gap: var(--xh-space-0_5);
+  padding: var(--xh-space-1_5) var(--xh-space-2);
 }
 
 .chat-ctx-react-btn {
@@ -140,7 +140,7 @@ function handleReact(emoji: string) {
   height: 32px;
   padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   font-size: 18px;
   cursor: pointer;
@@ -150,25 +150,25 @@ function handleReact(emoji: string) {
 }
 
 .chat-ctx-react-btn:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
   transform: scale(1.15);
 }
 
 .chat-ctx-menu {
   min-width: 148px;
-  padding: 5px;
+  padding: var(--xh-space-1);
 }
 
 .chat-ctx-item {
   display: flex;
-  gap: 9px;
+  gap: var(--xh-space-2);
   align-items: center;
   width: 100%;
-  padding: 7px 28px 7px 10px;
+  padding: var(--xh-space-1_5) var(--xh-space-7) var(--xh-space-1_5) var(--xh-space-2_5);
   border: none;
-  border-radius: 7px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   font-size: 13px;
   line-height: 1.2;
   text-align: left;
@@ -177,17 +177,17 @@ function handleReact(emoji: string) {
 }
 
 .chat-ctx-item:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 .chat-ctx-item--danger {
-  color: hsl(var(--destructive, 0 84% 60%));
+  color: var(--xh-fg-danger);
 }
 
 .chat-ctx-divider {
   height: 1px;
   margin: 4px 8px;
-  background: hsl(var(--border));
+  background: var(--xh-border-default);
 }
 
 .chat-ctx-fade-enter-active {

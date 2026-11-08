@@ -386,19 +386,19 @@ function handleItemClick(item: NotificationItem) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px 6px;
+  padding: var(--xh-space-3) var(--xh-space-4) var(--xh-space-1_5);
 }
 
 .notification-panel-title {
   font-size: 14px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .notification-panel-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .notification-header-btn {
@@ -409,38 +409,40 @@ function handleItemClick(item: NotificationItem) {
   height: 26px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .notification-header-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
 }
 
 .notification-tabs {
-  padding: 0 4px;
+  padding: 0 var(--xh-space-1);
 }
 
 .notification-tabs :deep([data-scope='tabs'][data-part='list']) {
-  padding: 0 12px;
+  padding: 0 var(--xh-space-3);
 }
 
 .notification-empty {
-  padding: 32px 0;
+  padding: var(--xh-space-8) 0;
 }
 
 .notification-item {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: flex-start;
-  padding: 10px 16px;
+  padding: var(--xh-space-2_5) var(--xh-space-4);
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-  border-bottom: 1px solid hsl(var(--border) / 50%);
+  border-bottom: 1px solid color-mix(in srgb, var(--xh-border-default) 50%, transparent);
 }
 
 .notification-item:last-child {
@@ -448,11 +450,11 @@ function handleItemClick(item: NotificationItem) {
 }
 
 .notification-item:hover {
-  background: hsl(var(--accent) / 60%);
+  background: color-mix(in srgb, var(--xh-bg-subtle-hover) 60%, transparent);
 }
 
 .notification-item--unread {
-  background: hsl(var(--primary) / 4%);
+  background: color-mix(in srgb, var(--xh-fg-brand) 4%, transparent);
 }
 
 .notification-item-dot {
@@ -465,7 +467,7 @@ function handleItemClick(item: NotificationItem) {
 }
 
 .notification-item-dot--active {
-  background: hsl(var(--primary));
+  background: var(--xh-bg-brand);
 }
 
 .notification-item-body {
@@ -477,7 +479,7 @@ function handleItemClick(item: NotificationItem) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .notification-item-title {
@@ -485,7 +487,7 @@ function handleItemClick(item: NotificationItem) {
   min-width: 0;
   font-size: 13px;
   font-weight: 500;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   line-height: 1.45;
   white-space: normal;
   word-break: break-word;
@@ -501,7 +503,7 @@ function handleItemClick(item: NotificationItem) {
   max-height: 96px;
   overflow: hidden;
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -512,20 +514,20 @@ function handleItemClick(item: NotificationItem) {
   align-items: center;
   justify-content: space-between;
   margin-top: 4px;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .notification-item-time {
   font-size: 11px;
-  color: hsl(var(--muted-foreground) / 70%);
+  color: color-mix(in srgb, var(--xh-fg-muted) 70%, transparent);
 }
 
 .notification-panel-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  background: hsl(var(--muted) / 25%);
-  border-top: 1px solid hsl(var(--border));
+  padding: var(--xh-space-2);
+  background: color-mix(in srgb, var(--xh-bg-muted) 25%, transparent);
+  border-top: 1px solid var(--xh-border-default);
 }
 </style>

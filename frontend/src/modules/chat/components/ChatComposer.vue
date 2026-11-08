@@ -907,17 +907,20 @@ function handlePaste(event: ClipboardEvent) {
   height: 30px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-composer-btn:hover:not(:disabled) {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
 }
 
 /* ── 语音输入面板 ───────────────────────────────────────────────── */
@@ -926,8 +929,8 @@ function handlePaste(event: ClipboardEvent) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  padding: 28px 16px 24px;
+  gap: var(--xh-space-4);
+  padding: var(--xh-space-7) var(--xh-space-4) var(--xh-space-6);
 }
 
 /* 大圆按钮：常态实心带光晕，录音时放大并持续呼吸 */
@@ -939,12 +942,16 @@ function handlePaste(event: ClipboardEvent) {
   height: 72px;
   border: none;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, hsl(var(--primary) / 92%), hsl(var(--primary)));
-  color: hsl(var(--primary-foreground));
+  background: radial-gradient(
+    circle at 50% 35%,
+    color-mix(in srgb, var(--xh-fg-brand) 92%, transparent),
+    var(--xh-bg-brand)
+  );
+  color: var(--xh-fg-on-brand);
   cursor: pointer;
   box-shadow:
-    0 0 0 10px hsl(var(--primary) / 10%),
-    0 8px 24px hsl(var(--primary) / 35%);
+    0 0 0 10px color-mix(in srgb, var(--xh-fg-brand) 10%, transparent),
+    0 8px 24px color-mix(in srgb, var(--xh-fg-brand) 35%, transparent);
   transition:
     transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
     box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
@@ -971,14 +978,14 @@ function handlePaste(event: ClipboardEvent) {
   0%,
   100% {
     box-shadow:
-      0 0 0 10px hsl(var(--primary) / 12%),
-      0 8px 24px hsl(var(--primary) / 35%);
+      0 0 0 10px color-mix(in srgb, var(--xh-fg-brand) 12%, transparent),
+      0 8px 24px color-mix(in srgb, var(--xh-fg-brand) 35%, transparent);
   }
 
   50% {
     box-shadow:
-      0 0 0 20px hsl(var(--primary) / 6%),
-      0 8px 28px hsl(var(--primary) / 45%);
+      0 0 0 20px color-mix(in srgb, var(--xh-fg-brand) 6%, transparent),
+      0 8px 28px color-mix(in srgb, var(--xh-fg-brand) 45%, transparent);
   }
 }
 
@@ -991,7 +998,7 @@ function handlePaste(event: ClipboardEvent) {
 
 .chat-voice-panel__hint {
   font-size: 13px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -999,7 +1006,7 @@ function handlePaste(event: ClipboardEvent) {
   border: none;
   background: transparent;
   padding: 0;
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   cursor: pointer;
 }
 
@@ -1020,31 +1027,31 @@ function handlePaste(event: ClipboardEvent) {
   height: 20px;
   padding: 0;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--xh-shape-inset);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .chat-composer-inline-btn:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 .chat-mention-item {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
-  padding: 5px 8px;
+  padding: var(--xh-space-1) var(--xh-space-2);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-mention-item:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 /* 待发附件条目：图片显示缩略图，文件显示图标+名称，右上角浮动移除按钮 */
@@ -1052,11 +1059,11 @@ function handlePaste(event: ClipboardEvent) {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 6px;
-  background: hsl(var(--muted) / 40%);
+  gap: var(--xh-space-1_5);
+  padding: var(--xh-space-1) var(--xh-space-1_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+  background: color-mix(in srgb, var(--xh-bg-muted) 40%, transparent);
 }
 
 .chat-attach-thumb {
@@ -1064,13 +1071,13 @@ function handlePaste(event: ClipboardEvent) {
   width: 48px;
   height: 48px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--xh-shape-inset);
 }
 
 .chat-attach-remove {
   position: absolute;
   top: -6px;
-  right: -6px;
+  inset-inline-end: -6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1078,14 +1085,14 @@ function handlePaste(event: ClipboardEvent) {
   height: 16px;
   padding: 0;
   border: none;
-  border-radius: 9999px;
-  background: hsl(var(--foreground) / 70%);
-  color: hsl(var(--background));
+  border-radius: var(--xh-shape-pill);
+  background: color-mix(in srgb, var(--xh-fg-default) 70%, transparent);
+  color: var(--xh-bg-surface);
   cursor: pointer;
 }
 
 .chat-attach-remove:hover {
-  background: hsl(var(--destructive));
+  background: var(--xh-fg-danger);
 }
 
 /* 发送分体按钮：主按钮 + 模式箭头拼接（QQ 式） */
@@ -1101,9 +1108,9 @@ function handlePaste(event: ClipboardEvent) {
 }
 
 .chat-send-group .chat-send-arrow {
-  padding: 0 6px;
+  padding: 0 var(--xh-space-1_5);
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  border-left: 1px solid hsl(var(--primary-foreground, 0 0% 100%) / 30%);
+  border-left: 1px solid color-mix(in srgb, var(--xh-fg-on-brand) 30%, transparent);
 }
 </style>

@@ -595,7 +595,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: var(--xh-space-2) var(--xh-space-3);
   align-items: center;
   justify-content: space-between;
   padding-top: var(--xh-space-2);
@@ -604,7 +604,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
 /* 左侧：统计 + 批量浮条 */
 .xh-table-panel__footer-left {
   display: flex;
-  gap: 12px;
+  gap: var(--xh-space-3);
   align-items: center;
   min-width: 0;
 }

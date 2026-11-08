@@ -253,19 +253,19 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .impersonation-error {
   margin: 0;
   font-size: 12px;
-  color: hsl(var(--destructive));
+  color: var(--xh-fg-danger);
 }
 
 .impersonation-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--xh-space-0_5);
   max-height: 260px;
   overflow-y: auto;
 }
@@ -273,28 +273,28 @@ onBeforeUnmount(() => {
 .impersonation-loading {
   display: flex;
   justify-content: center;
-  padding: 16px 0;
+  padding: var(--xh-space-4) 0;
 }
 
 .impersonation-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: var(--xh-space-2);
+  padding: var(--xh-space-1_5) var(--xh-space-3);
   font-size: 12px;
   line-height: normal;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   text-align: left;
   cursor: pointer;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .impersonation-item:hover:not(:disabled) {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 .impersonation-item:disabled {
@@ -303,10 +303,10 @@ onBeforeUnmount(() => {
 }
 
 .impersonation-item-account {
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .impersonation-empty {
-  padding: 12px 0;
+  padding: var(--xh-space-3) 0;
 }
 </style>

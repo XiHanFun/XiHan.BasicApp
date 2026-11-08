@@ -158,8 +158,8 @@ const height = computed(() => Math.round((props.size * 2) / 3))
   display: inline-block;
   overflow: hidden;
   line-height: 0;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px hsl(var(--border));
+  border-radius: var(--xh-shape-inset);
+  box-shadow: 0 0 0 1px var(--xh-border-default);
   vertical-align: middle;
 }
 

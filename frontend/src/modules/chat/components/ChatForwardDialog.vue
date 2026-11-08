@@ -121,19 +121,19 @@ async function handleForward(conversationId: string) {
 <style scoped>
 .chat-forward-item {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: center;
   width: 100%;
-  padding: 7px 8px;
+  padding: var(--xh-space-1_5) var(--xh-space-2);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-forward-item:hover:not(:disabled) {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 .chat-forward-item:disabled {

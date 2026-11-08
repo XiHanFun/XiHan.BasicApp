@@ -815,11 +815,11 @@ const onAuthInvalid = useAuthFormInvalid()
 .oauth-more-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .link-primary {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 
 .link-primary:hover {
@@ -828,7 +828,9 @@ const onAuthInvalid = useAuthFormInvalid()
 
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all var(--xh-motion-duration-slide) var(--xh-motion-ease-slide);
+  transition:
+    opacity var(--xh-motion-duration-slide) var(--xh-motion-ease-slide),
+    transform var(--xh-motion-duration-slide) var(--xh-motion-ease-slide);
 }
 
 .fade-slide-enter-from {

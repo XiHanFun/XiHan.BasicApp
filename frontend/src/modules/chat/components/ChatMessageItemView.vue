@@ -410,25 +410,25 @@ async function handleDownload(fileId: string) {
 
 <style scoped>
 .chat-bubble {
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: var(--xh-space-2) var(--xh-space-3);
+  border-radius: var(--xh-shape-sheet);
   word-break: break-word;
 }
 
 .chat-bubble--other {
-  background: hsl(var(--muted) / 60%);
-  color: hsl(var(--foreground));
-  border-top-left-radius: 2px;
+  background: color-mix(in srgb, var(--xh-bg-muted) 60%, transparent);
+  color: var(--xh-fg-default);
+  border-top-left-radius: var(--xh-shape-inset);
 }
 
 .chat-bubble--self {
-  background: hsl(var(--primary) / 12%);
-  color: hsl(var(--foreground));
-  border-top-right-radius: 2px;
+  background: color-mix(in srgb, var(--xh-fg-brand) 12%, transparent);
+  color: var(--xh-fg-default);
+  border-top-right-radius: var(--xh-shape-inset);
 }
 
 .chat-bubble--mention {
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 45%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 45%, transparent);
 }
 
 .chat-bubble--highlight {
@@ -438,11 +438,11 @@ async function handleDownload(fileId: string) {
 @keyframes chat-highlight-pulse {
   0%,
   60% {
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 60%);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--xh-fg-brand) 60%, transparent);
   }
 
   100% {
-    box-shadow: 0 0 0 0 hsl(var(--primary) / 0%);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--xh-fg-brand) 0%, transparent);
   }
 }
 
@@ -455,20 +455,20 @@ async function handleDownload(fileId: string) {
 
 .chat-bubble--recalled {
   background: transparent;
-  border: 1px dashed hsl(var(--border));
-  color: hsl(var(--muted-foreground));
+  border: 1px dashed var(--xh-border-default);
+  color: var(--xh-fg-muted);
   font-size: 12px;
   font-style: italic;
 }
 
 .chat-reply-quote {
   margin-bottom: 6px;
-  padding: 4px 8px;
-  border-left: 2px solid hsl(var(--primary) / 50%);
-  border-radius: 4px;
-  background: hsl(var(--muted) / 50%);
+  padding: var(--xh-space-1) var(--xh-space-2);
+  border-left: 2px solid color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
+  border-radius: var(--xh-shape-inset);
+  background: color-mix(in srgb, var(--xh-bg-muted) 50%, transparent);
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -477,7 +477,7 @@ async function handleDownload(fileId: string) {
 
 .chat-image-grid {
   display: grid;
-  gap: 4px;
+  gap: var(--xh-space-1);
 }
 
 .chat-image-grid--2 {
@@ -492,35 +492,35 @@ async function handleDownload(fileId: string) {
 .chat-voice {
   position: relative;
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
-  padding: 7px 10px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 999px;
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
+  padding: var(--xh-space-1_5) var(--xh-space-2_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-pill);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-default);
   cursor: pointer;
   transition: border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-voice:hover {
-  border-color: hsl(var(--primary) / 50%);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
 }
 
 .chat-voice__track {
   position: relative;
   flex: 1;
   height: 4px;
-  border-radius: 999px;
-  background: hsl(var(--muted-foreground) / 30%);
+  border-radius: var(--xh-shape-pill);
+  background: color-mix(in srgb, var(--xh-fg-muted) 30%, transparent);
   overflow: hidden;
 }
 
 .chat-voice__bar {
   position: absolute;
   inset: 0 auto 0 0;
-  border-radius: 999px;
-  background: hsl(var(--primary));
+  border-radius: var(--xh-shape-pill);
+  background: var(--xh-bg-brand);
   transition: width var(--xh-motion-duration-nudge) var(--xh-motion-ease-continuous);
 }
 
@@ -536,54 +536,56 @@ async function handleDownload(fileId: string) {
   content: '';
   position: absolute;
   top: -2px;
-  right: -2px;
+  inset-inline-end: -2px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: hsl(var(--destructive));
-  box-shadow: 0 0 0 2px hsl(var(--background));
+  background: var(--xh-fg-danger);
+  box-shadow: 0 0 0 2px var(--xh-bg-surface);
 }
 
 .chat-file-card {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: center;
   min-width: 200px;
   max-width: 280px;
-  padding: 8px 10px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
+  padding: var(--xh-space-2) var(--xh-space-2_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-default);
   cursor: pointer;
   transition: border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-file-card:hover {
-  border-color: hsl(var(--primary) / 50%);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
 }
 
 .chat-reaction-chip {
   display: inline-flex;
-  gap: 3px;
+  gap: var(--xh-space-0_5);
   align-items: center;
-  padding: 1px 7px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 9999px;
-  background: hsl(var(--card));
+  padding: var(--xh-space-0_5) var(--xh-space-1_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-pill);
+  background: var(--xh-bg-surface);
   font-size: 13px;
   line-height: 1.4;
   cursor: pointer;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-reaction-chip:hover {
-  border-color: hsl(var(--primary) / 50%);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
 }
 
 .chat-reaction-chip--mine {
-  border-color: hsl(var(--primary) / 60%);
-  background: hsl(var(--primary) / 10%);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 60%, transparent);
+  background: color-mix(in srgb, var(--xh-fg-brand) 10%, transparent);
 }
 
 .chat-meta-action {
@@ -592,7 +594,7 @@ async function handleDownload(fileId: string) {
   padding: 0;
   border: none;
   background: transparent;
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   font-size: 11px;
   cursor: pointer;
 }

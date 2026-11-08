@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
 
   35% {
     transform: scale(1.32);
-    color: hsl(var(--primary));
+    color: var(--xh-fg-brand);
   }
 
   60% {
@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
   flex: 1;
   flex-direction: column;
   justify-content: center;
-  padding: 24px 0;
+  padding: var(--xh-space-6) 0;
 }
 
 /* 页脚（分割线 + 提示语）：钉在弹层底部 */
@@ -238,12 +238,12 @@ onBeforeUnmount(() => {
 .fav-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   max-width: 100%;
-  padding: 4px 6px 4px 10px;
-  border-radius: 9999px;
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground) / 85%);
+  padding: var(--xh-space-1) var(--xh-space-1_5) var(--xh-space-1) var(--xh-space-2_5);
+  border-radius: var(--xh-shape-pill);
+  background: var(--xh-bg-muted);
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
   font-size: 13px;
   line-height: 20px;
   cursor: pointer;
@@ -255,14 +255,14 @@ onBeforeUnmount(() => {
 }
 
 .fav-chip:hover {
-  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--muted)));
-  color: hsl(var(--foreground));
+  background: color-mix(in srgb, var(--xh-bg-brand) 14%, var(--xh-bg-muted));
+  color: var(--xh-fg-default);
 }
 
 .fav-chip--current {
-  background: color-mix(in srgb, hsl(var(--primary)) 18%, hsl(var(--background)));
-  color: hsl(var(--primary));
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 30%);
+  background: color-mix(in srgb, var(--xh-bg-brand) 18%, var(--xh-bg-surface));
+  color: var(--xh-fg-brand);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 30%, transparent);
 }
 
 .fav-chip__label {
@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
   height: 16px;
   border: 0;
   padding: 0;
-  border-radius: 9999px;
+  border-radius: var(--xh-shape-pill);
   background: transparent;
   color: currentcolor;
   opacity: 0.55;
@@ -292,13 +292,13 @@ onBeforeUnmount(() => {
 
 .fav-chip__close:hover {
   opacity: 1;
-  background: hsl(var(--primary) / 20%);
+  background: color-mix(in srgb, var(--xh-fg-brand) 20%, transparent);
 }
 
 /* 拖拽中的药丸（sortable 在被拖那一项上写 data-dragging） */
 .fav-chip[data-dragging] {
   opacity: 0.5;
-  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 40%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 40%, transparent);
   cursor: grabbing;
 }
 </style>

@@ -49,12 +49,12 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
 .search-trigger {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   height: 32px;
-  padding: 0 10px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 9999px;
-  background: hsl(var(--muted) / 0.4);
+  padding: 0 var(--xh-space-2_5);
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-pill);
+  background: color-mix(in srgb, var(--xh-bg-muted) 40%, transparent);
   cursor: pointer;
   transition:
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
@@ -63,12 +63,12 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
 }
 
 .search-trigger:hover {
-  background: hsl(var(--muted) / 0.8);
+  background: color-mix(in srgb, var(--xh-bg-muted) 80%, transparent);
 }
 
 .search-trigger-text {
   font-size: 13px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   white-space: nowrap;
   user-select: none;
 }
@@ -88,12 +88,12 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
   border-radius: 50%;
   background: transparent;
   cursor: pointer;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   outline: none;
 }
 
 .search-trigger-icon:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 </style>

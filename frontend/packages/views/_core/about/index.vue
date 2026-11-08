@@ -410,7 +410,7 @@ onMounted(() => {
 
 .ab-banner-glow {
   position: absolute;
-  right: calc(var(--xh-space-8) * -2);
+  inset-inline-end: calc(var(--xh-space-8) * -2);
   top: calc(var(--xh-space-8) * -2);
   width: calc(var(--xh-space-8) * 6);
   height: calc(var(--xh-space-8) * 6);
@@ -680,7 +680,7 @@ onMounted(() => {
 }
 
 .ab-pkg-count {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-variant-numeric: tabular-nums;
 }
 

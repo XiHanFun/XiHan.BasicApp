@@ -78,7 +78,7 @@ function choose(key: string) {
 <style scoped>
 .align-item {
   display: inline-flex;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   align-items: center;
 }
 

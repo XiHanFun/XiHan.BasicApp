@@ -295,7 +295,7 @@ function handleClear() {
 .icon-picker-loading {
   padding: var(--xh-space-8);
   text-align: center;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .icon-picker-grid {
@@ -348,7 +348,7 @@ function handleClear() {
 
 .icon-picker-name {
   font-size: var(--xh-font-size-xs);
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -356,11 +356,11 @@ function handleClear() {
 }
 
 .icon-picker-item:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 .icon-picker-item.is-selected {
-  background: hsl(var(--primary) / 0.15);
-  color: hsl(var(--primary));
+  background: color-mix(in srgb, var(--xh-fg-brand) 15%, transparent);
+  color: var(--xh-fg-brand);
 }
 </style>

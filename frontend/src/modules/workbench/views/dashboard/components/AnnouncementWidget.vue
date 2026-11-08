@@ -155,9 +155,9 @@ function openAnnouncement(item: Announcement) {
   --announce-control-size: var(--xh-space-8);
 
   block-size: calc(var(--xh-space-8) * 6);
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-surface);
-  background: hsl(var(--card));
+  background: var(--xh-bg-surface);
   overflow: hidden;
 }
 
@@ -166,9 +166,9 @@ function openAnnouncement(item: Announcement) {
   align-items: center;
   justify-content: center;
   block-size: calc(var(--xh-space-8) * 6);
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-surface);
-  background: hsl(var(--card));
+  background: var(--xh-bg-surface);
   color: var(--xh-fg-muted);
 }
 
@@ -188,7 +188,7 @@ function openAnnouncement(item: Announcement) {
   height: 100%;
   padding: var(--xh-space-5) var(--xh-space-7);
   box-sizing: border-box;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   cursor: pointer;
   user-select: none;
   overflow: hidden;
@@ -211,7 +211,7 @@ function openAnnouncement(item: Announcement) {
 /* 右侧装饰大图标：填充空白、点缀但不抢内容 */
 .slide-deco {
   position: absolute;
-  right: calc(var(--xh-space-8) + var(--xh-space-2));
+  inset-inline-end: calc(var(--xh-space-8) + var(--xh-space-2));
   top: 50%;
   transform: translateY(-50%) rotate(-8deg);
   opacity: 0.1;
@@ -231,7 +231,7 @@ function openAnnouncement(item: Announcement) {
   font-size: var(--xh-font-size-2xl);
   font-weight: var(--xh-font-weight-bold);
   letter-spacing: -0.01em;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -243,13 +243,13 @@ function openAnnouncement(item: Announcement) {
   align-items: center;
   gap: var(--xh-space-1);
   font-size: var(--xh-font-size-xs);
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 /* 自定义箭头：右下角 */
 .carousel-arrows {
   position: absolute;
-  right: var(--xh-space-4);
+  inset-inline-end: var(--xh-space-4);
   bottom: var(--xh-space-4);
   display: flex;
   gap: var(--xh-space-2);
@@ -267,15 +267,15 @@ function openAnnouncement(item: Announcement) {
   width: var(--announce-control-size);
   min-inline-size: 0;
   height: var(--announce-control-size);
-  color: hsl(var(--foreground));
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  color: var(--xh-fg-default);
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
   border-radius: var(--xh-shape-control);
   cursor: pointer;
 }
 
 .carousel-arrow:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 /* 指示点挪到左下角，与右下角的钮同一行、竖直居中，左边对齐正文（组件库缺省是下沿居中，那条 -50% 位移一并撤掉） */

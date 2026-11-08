@@ -1000,7 +1000,7 @@ function formatBoolean(value: boolean): string {
 
 /* 主表当前行：淡淡的品牌底 + 名称转品牌色，与勾选态（品牌淡底）拉开一档 */
 .dict-mgmt :deep(.dict-row--active) {
-  --xh-collection-bg-rest: color-mix(in srgb, hsl(var(--primary)) 6%, hsl(var(--card)));
+  --xh-collection-bg-rest: color-mix(in srgb, var(--xh-fg-brand) 6%, var(--xh-bg-surface));
   --xh-collection-fg-rest: var(--xh-fg-brand);
 }
 

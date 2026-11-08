@@ -944,24 +944,26 @@ onBeforeUnmount(() => {
   height: 28px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-thread-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
 }
 
 .chat-meta-unpin {
   padding: 0;
   border: none;
   background: transparent;
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   font-size: 11px;
   cursor: pointer;
 }
@@ -973,15 +975,15 @@ onBeforeUnmount(() => {
 .chat-search-hit {
   display: block;
   width: 100%;
-  padding: 5px 8px;
+  padding: var(--xh-space-1) var(--xh-space-2);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-search-hit:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 </style>

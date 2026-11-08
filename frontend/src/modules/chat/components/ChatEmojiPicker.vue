@@ -79,7 +79,7 @@ onBeforeUnmount(() => {
 .chat-emoji-picker {
   width: fit-content;
   max-width: calc(100vw - 24px);
-  padding: 4px;
+  padding: var(--xh-space-1);
 }
 
 .chat-emoji-picker__host :deep(em-emoji-picker) {

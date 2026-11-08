@@ -59,7 +59,7 @@ const byKey = computed(() => indexDropdownOptions(props.options))
 <style scoped>
 .x-dropdown__item {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   min-inline-size: 0;
 }

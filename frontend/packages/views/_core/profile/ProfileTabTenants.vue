@@ -187,7 +187,7 @@ onMounted(loadTenants)
 .pf-tenant-actions {
   display: flex;
   flex-shrink: 0;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
 }
 </style>

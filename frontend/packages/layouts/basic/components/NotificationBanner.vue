@@ -112,7 +112,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 .notif-banner-wrap {
   flex: 0 0 auto;
   overflow: hidden;
-  padding: 6px 12px 0;
+  padding: var(--xh-space-1_5) var(--xh-space-3) 0;
 }
 
 /* 出现/关闭：slideDown / slideUp */
@@ -147,11 +147,11 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 .notif-banner {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
   width: 100%;
   height: 36px;
-  padding: 0 10px;
-  border-radius: 8px;
+  padding: 0 var(--xh-space-2_5);
+  border-radius: var(--xh-shape-control);
   /* 配色与组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60%，深浅两态都跟着主题走 */
   border: var(--xh-stroke-thin) solid color-mix(in oklab, var(--notif-banner-tone) 40%, var(--xh-bg-surface));
   background: color-mix(in oklab, var(--notif-banner-tone) 12%, var(--xh-bg-surface));
@@ -188,7 +188,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   min-width: 0;
   flex: 1;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .notif-banner__title {
@@ -211,7 +211,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 5px;
+  gap: var(--xh-space-1);
 }
 
 .notif-banner__dot {
@@ -219,7 +219,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   height: 6px;
   padding: 0;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--xh-shape-pill);
   background: currentcolor;
   opacity: 0.25;
   cursor: pointer;
@@ -237,10 +237,10 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
+  gap: var(--xh-space-0_5);
+  padding: var(--xh-space-0_5) var(--xh-space-2);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   color: currentcolor;
   font-size: 12px;
@@ -250,7 +250,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 }
 
 .notif-banner__action:hover {
-  background: hsl(var(--foreground) / 8%);
+  background: color-mix(in srgb, var(--xh-fg-default) 8%, transparent);
 }
 
 .notif-banner__close {
@@ -262,7 +262,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   height: 22px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   color: currentcolor;
   opacity: 0.6;
@@ -274,6 +274,6 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 
 .notif-banner__close:hover {
   opacity: 1;
-  background: hsl(var(--foreground) / 8%);
+  background: color-mix(in srgb, var(--xh-fg-default) 8%, transparent);
 }
 </style>

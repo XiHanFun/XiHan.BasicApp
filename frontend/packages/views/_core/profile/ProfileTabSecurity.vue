@@ -975,11 +975,11 @@ function handleDeleteAccount() {
 <style scoped>
 /* 两步验证：每种方式独立描边盒（GitHub 式，无底色） */
 .pf-2fa-method {
-  gap: 14px;
-  padding: 16px;
+  gap: var(--xh-space-3);
+  padding: var(--xh-space-4);
   margin-bottom: 10px;
-  border: 1px solid hsl(var(--border) / 70%);
-  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--xh-border-default) 70%, transparent);
+  border-radius: var(--xh-shape-control);
   background: transparent;
   transition:
     background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
@@ -993,8 +993,8 @@ function handleDeleteAccount() {
   width: 38px;
   height: 38px;
   flex-shrink: 0;
-  border-radius: 10px;
-  background: hsl(var(--muted));
+  border-radius: var(--xh-shape-sheet);
+  background: var(--xh-bg-muted);
   color: var(--xh-fg-muted);
   transition:
     background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
@@ -1002,21 +1002,21 @@ function handleDeleteAccount() {
 }
 
 .pf-2fa-method.is-on {
-  border-color: hsl(var(--primary) / 45%);
-  background: hsl(var(--primary) / 4%);
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 45%, transparent);
+  background: color-mix(in srgb, var(--xh-fg-brand) 4%, transparent);
 }
 
 .pf-2fa-method.is-on .pf-2fa-icon {
-  background: hsl(var(--primary) / 14%);
-  color: hsl(var(--primary));
+  background: color-mix(in srgb, var(--xh-fg-brand) 14%, transparent);
+  color: var(--xh-fg-brand);
 }
 
 /* 覆盖 .pf-setting-row 的底边线与首尾 padding 特例 */
 .pf-2fa-method,
 .pf-2fa-method:first-child,
 .pf-2fa-method:last-child {
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding-top: var(--xh-space-4);
+  padding-bottom: var(--xh-space-4);
 }
 
 .pf-2fa-method:last-child {
@@ -1024,7 +1024,7 @@ function handleDeleteAccount() {
 }
 
 .pf-2fa-method:hover {
-  background: hsl(var(--muted) / 42%);
+  background: color-mix(in srgb, var(--xh-bg-muted) 42%, transparent);
 }
 
 /* 修改密码 */
@@ -1047,7 +1047,7 @@ function handleDeleteAccount() {
 
 .pf-2fa-setup {
   display: flex;
-  gap: 16px;
+  gap: var(--xh-space-4);
   align-items: flex-start;
 }
 
@@ -1055,9 +1055,9 @@ function handleDeleteAccount() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 8px;
+  gap: var(--xh-space-1_5);
+  padding: var(--xh-space-4);
+  border-radius: var(--xh-shape-control);
   /* 二维码功能性白底，非主题色 */
   background: #fff;
   border: 1px solid var(--xh-border-default);
@@ -1073,16 +1073,16 @@ function handleDeleteAccount() {
 .pf-secret-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   margin-top: 6px;
 }
 
 .pf-secret {
   flex: 1;
   word-break: break-all;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: hsl(var(--muted));
+  padding: var(--xh-space-1_5) var(--xh-space-2_5);
+  border-radius: var(--xh-shape-control);
+  background: var(--xh-bg-muted);
   font-family: var(--xh-font-family-mono);
   font-size: 12px;
 }
@@ -1091,7 +1091,7 @@ function handleDeleteAccount() {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 @media (max-width: 900px) {
@@ -1100,7 +1100,7 @@ function handleDeleteAccount() {
   }
 
   .pf-pwd {
-    gap: 18px;
+    gap: var(--xh-space-4);
   }
 }
 </style>

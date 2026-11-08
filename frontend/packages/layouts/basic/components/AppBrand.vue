@@ -49,7 +49,7 @@ interface AppBrandProps {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
 }
 
 .app-brand-logo {
@@ -63,7 +63,7 @@ interface AppBrandProps {
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1.2;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   max-width: 100%;
 }
 </style>

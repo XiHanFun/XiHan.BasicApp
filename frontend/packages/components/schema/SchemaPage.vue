@@ -981,7 +981,7 @@ const skeletonColumns = computed(() => {
 .xh-skel-cell {
   box-sizing: border-box;
   min-width: 0;
-  padding: 0 12px;
+  padding: 0 var(--xh-space-3);
 }
 
 .xh-skel-bar {
@@ -994,7 +994,7 @@ const skeletonColumns = computed(() => {
 
 .xh-batch-bar {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
 }
 
@@ -1012,7 +1012,7 @@ const skeletonColumns = computed(() => {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  color: var(--xh-fg-default);
+  background: var(--xh-bg-surface);
 }
 </style>

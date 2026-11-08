@@ -91,6 +91,7 @@ catalog:
   papaparse: ^5.7.0
   pinia: ^4.1.0
   pinyin-pro: ^3.29.5
+  postcss-html: ^2.0.0
   prettier: ^3.9.10
   stylelint: ^16.26.1
   tailwindcss: ^4.3.4

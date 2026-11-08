@@ -359,16 +359,16 @@ const recentTimes = computed(() => {
 .pf-stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
+  gap: var(--xh-space-2_5);
 }
 
 .pf-stat-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid hsl(var(--border) / 70%);
-  border-radius: var(--radius);
+  gap: var(--xh-space-3);
+  padding: var(--xh-space-3) var(--xh-space-3);
+  border: 1px solid color-mix(in srgb, var(--xh-border-default) 70%, transparent);
+  border-radius: var(--xh-shape-control);
   background: transparent;
 }
 
@@ -379,9 +379,9 @@ const recentTimes = computed(() => {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 9px;
-  background: hsl(var(--primary) / 10%);
-  color: hsl(var(--primary));
+  border-radius: var(--xh-shape-sheet);
+  background: color-mix(in srgb, var(--xh-fg-brand) 10%, transparent);
+  color: var(--xh-fg-brand);
 }
 
 .pf-stat-card__body {
@@ -406,7 +406,7 @@ const recentTimes = computed(() => {
 .pf-heat {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--xh-space-3);
 }
 
 .pf-heat__foot {
@@ -418,13 +418,13 @@ const recentTimes = computed(() => {
 .pf-summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  gap: var(--xh-space-3);
 }
 
 /* 周期概要 */
 .pf-period {
-  padding: 12px 14px;
-  border: 1px solid hsl(var(--border) / 70%);
+  padding: var(--xh-space-3) var(--xh-space-3);
+  border: 1px solid color-mix(in srgb, var(--xh-border-default) 70%, transparent);
   border-radius: var(--xh-shape-inset);
   background: transparent;
 }
@@ -432,7 +432,7 @@ const recentTimes = computed(() => {
 .pf-period__title {
   font-size: 12.5px;
   font-weight: 600;
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
   margin-bottom: 6px;
 }
 
@@ -440,10 +440,10 @@ const recentTimes = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--xh-space-3);
   font-size: 12.5px;
   color: var(--xh-fg-muted);
-  padding: 3px 0;
+  padding: var(--xh-space-0_5) 0;
 }
 
 .pf-period__row b {

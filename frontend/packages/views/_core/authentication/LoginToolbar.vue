@@ -128,33 +128,33 @@ function onAlignChange(align: LoginFormAlign) {
 .login-toolbar {
   position: absolute;
   top: 16px;
-  right: 16px;
+  inset-inline-end: 16px;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: hsl(var(--background) / 0.65);
+  gap: var(--xh-space-0_5);
+  padding: var(--xh-space-1) var(--xh-space-2);
+  border-radius: var(--xh-shape-pill);
+  background: color-mix(in srgb, var(--xh-bg-surface) 65%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid hsl(var(--border) / 0.5);
+  border: 1px solid color-mix(in srgb, var(--xh-border-default) 50%, transparent);
 }
 
 .toolbar-btn {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .toolbar-btn:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 /* 颜色色板 */
 .color-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  padding: 4px;
+  gap: var(--xh-space-1_5);
+  padding: var(--xh-space-1);
 }
 
 .color-dot {
@@ -175,7 +175,7 @@ function onAlignChange(align: LoginFormAlign) {
 }
 
 .color-dot.is-active {
-  border-color: hsl(var(--background));
+  border-color: var(--xh-bg-surface);
   box-shadow:
     0 0 0 2px currentColor,
     0 2px 6px hsl(0 0% 0% / 0.2);

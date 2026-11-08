@@ -274,8 +274,8 @@ function handleItemAction(key: string) {
   inset-block-start: -2px;
   inset-inline-end: -2px;
   min-inline-size: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
+  padding: 0 var(--xh-space-1);
+  border-radius: var(--xh-shape-pill);
   background: var(--xh-color-danger-600);
   /* 实心语气底上的字恒是白的，与组件库徽标同取 */
   color: var(--xh-color-neutral-0);
@@ -292,41 +292,43 @@ function handleItemAction(key: string) {
   height: 28px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-icon-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
 }
 
 .chat-conv-item {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: center;
-  padding: 9px 12px;
+  padding: var(--xh-space-2) var(--xh-space-3);
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-conv-item:hover {
-  background: hsl(var(--accent) / 60%);
+  background: color-mix(in srgb, var(--xh-bg-subtle-hover) 60%, transparent);
 }
 
 .chat-conv-item--active {
-  background: hsl(var(--primary) / 8%);
+  background: color-mix(in srgb, var(--xh-fg-brand) 8%, transparent);
 }
 
 .chat-conv-item--pinned {
-  background: hsl(var(--muted) / 40%);
+  background: color-mix(in srgb, var(--xh-bg-muted) 40%, transparent);
 }
 
 .chat-conv-item--pinned.chat-conv-item--active {
-  background: hsl(var(--primary) / 8%);
+  background: color-mix(in srgb, var(--xh-fg-brand) 8%, transparent);
 }
 </style>

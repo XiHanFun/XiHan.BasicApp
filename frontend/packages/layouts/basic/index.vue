@@ -656,9 +656,9 @@ const sidebarEnableState = computed(
 
 /* 分屏分隔条：配色经组件库皮肤的自定义属性接入本站主题色 */
 .split-divider {
-  --xh-splitter-trigger-bg: hsl(var(--border));
-  --xh-splitter-trigger-bg-hover: hsl(var(--primary) / 50%);
-  --xh-splitter-trigger-bg-dragging: hsl(var(--primary) / 50%);
+  --xh-splitter-trigger-bg: var(--xh-border-default);
+  --xh-splitter-trigger-bg-hover: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
+  --xh-splitter-trigger-bg-dragging: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
 }
 
 /* 工具组的锚点：零宽的一列，紧跟分隔条，再往回拉半条分隔条宽——正好落在分隔条中线上
@@ -675,17 +675,17 @@ const sidebarEnableState = computed(
 .split-tools {
   position: absolute;
   top: 50%;
-  left: 0;
+  inset-inline-start: 0;
   z-index: 21;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 9px 5px;
-  border-radius: 9999px;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 6px 22px hsl(var(--foreground) / 12%);
+  gap: var(--xh-space-0_5);
+  padding: var(--xh-space-2) var(--xh-space-1);
+  border-radius: var(--xh-shape-pill);
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--xh-fg-default) 12%, transparent);
   transform: translate(-50%, -50%);
   cursor: col-resize;
   opacity: 0;
@@ -701,10 +701,10 @@ const sidebarEnableState = computed(
 
 /* 左/右分组小标签 */
 .split-tools__label {
-  padding: 2px 0;
+  padding: var(--xh-space-0_5) 0;
   font-size: 12px;
   line-height: 1;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   user-select: none;
 }
 
@@ -713,14 +713,14 @@ const sidebarEnableState = computed(
   width: 20px;
   height: 1px;
   margin: 4px 0;
-  background: hsl(var(--border));
+  background: var(--xh-border-default);
 }
 
 /* 拖拽手柄：按下由工具组转交给分隔条，工具组里也能拖 */
 .split-tools__grip {
   display: inline-flex;
-  padding: 2px 0;
-  color: hsl(var(--muted-foreground));
+  padding: var(--xh-space-0_5) 0;
+  color: var(--xh-fg-muted);
   cursor: col-resize;
 }
 
@@ -731,9 +731,9 @@ const sidebarEnableState = computed(
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--xh-shape-pill);
   background: transparent;
-  color: hsl(var(--foreground) / 65%);
+  color: color-mix(in srgb, var(--xh-fg-default) 65%, transparent);
   cursor: pointer;
   transition:
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
@@ -741,13 +741,13 @@ const sidebarEnableState = computed(
 }
 
 .split-tools__btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
 }
 
 .split-tools__btn--close:hover {
-  background: hsl(var(--destructive) / 12%);
-  color: hsl(var(--destructive));
+  background: color-mix(in srgb, var(--xh-fg-danger) 12%, transparent);
+  color: var(--xh-fg-danger);
 }
 
 /* 拖拽遮罩：覆盖整个分屏行，拖拽期间接管指针避免卡顿 */
@@ -778,7 +778,7 @@ const sidebarEnableState = computed(
    内层卡片（__card）负责弹入/消散动画——分层避免 animation 覆盖 transform 定位 */
 .swap-icon {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   top: 0;
   z-index: 22;
   pointer-events: none;
@@ -795,11 +795,11 @@ const sidebarEnableState = computed(
   justify-content: center;
   width: 64px;
   height: 64px;
-  border-radius: 16px;
-  background: hsl(var(--background));
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 12px 32px hsl(var(--foreground) / 15%);
-  color: hsl(var(--primary));
+  border-radius: calc(var(--xh-shape-control) * 2);
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--xh-fg-default) 15%, transparent);
+  color: var(--xh-fg-brand);
 }
 
 .swap-icon__card.is-in {
@@ -839,11 +839,11 @@ const sidebarEnableState = computed(
 }
 
 .footer-bar {
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .footer-bar.flex-col {
-  gap: 4px;
+  gap: var(--xh-space-1);
 }
 
 .footer-section-left {
@@ -865,7 +865,7 @@ const sidebarEnableState = computed(
 }
 
 .footer-bar :deep(a) {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   text-decoration: none;
 }
 </style>

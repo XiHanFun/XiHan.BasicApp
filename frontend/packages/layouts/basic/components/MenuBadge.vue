@@ -140,18 +140,18 @@ const badgeTone = resolveMenuBadgeTone(props.badge.type)
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-inline-start: 6px;
 }
 
 /* 水平菜单里紧跟文字 */
 .menu-badge-dot--inline {
-  margin-left: 2px;
+  margin-inline-start: 2px;
 }
 
 /* 标签就是组件库的 sm 档，这里只管它在条目里的位置 */
 .menu-badge-tag {
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-inline-start: 6px;
 }
 
 /* ---- 折叠 + 显示标题时：竖向堆叠（侧栏菜单在这一档挂 .sidebar-menu--collapsed-titled）---- */
@@ -159,7 +159,7 @@ const badgeTone = resolveMenuBadgeTone(props.badge.type)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: var(--xh-space-0_5);
 }
 
 .sidebar-menu--collapsed-titled .menu-badge-text {
@@ -170,10 +170,10 @@ const badgeTone = resolveMenuBadgeTone(props.badge.type)
 }
 
 .sidebar-menu--collapsed-titled .menu-badge-dot {
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 
 .sidebar-menu--collapsed-titled .menu-badge-tag {
-  margin-left: 0;
+  margin-inline-start: 0;
 }
 </style>

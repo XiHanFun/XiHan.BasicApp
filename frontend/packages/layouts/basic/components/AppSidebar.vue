@@ -665,7 +665,7 @@ watch(
           <div
             v-if="isSideMode && !isMixedNav"
             :style="logoAreaStyle"
-            :class="{ 'sidebar-logo-align-with-header': !effectiveCollapsed }"
+            :class="{ 'ps-2': !effectiveCollapsed }"
           >
             <SidebarBrand
               :collapsed="effectiveCollapsed"
@@ -759,19 +759,10 @@ watch(
  */
 
 .extra-brand-title {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1.2;
 }
-
-.sidebar-logo-align-with-header {
-  /* Header logo has an extra pl-2 container offset; keep side mode aligned with it. */
-  padding-left: 0.5rem;
-}
-</style>
-
-<style>
-
 </style>

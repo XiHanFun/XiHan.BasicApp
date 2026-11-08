@@ -217,7 +217,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   justify-content: center;
   overflow: hidden;
   /* 完全不透明：锁屏就该真的挡住内容，不能靠模糊糊弄过去 */
-  background: hsl(var(--background-deep));
+  background: var(--xh-bg-canvas);
   animation: lock-screen-fade var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
@@ -235,31 +235,31 @@ usePageScrollLock(() => lockMode.value !== 'off')
 }
 
 .lock-blob--1 {
-  left: -10%;
+  inset-inline-start: -10%;
   top: -14%;
   width: 620px;
   height: 620px;
-  background: hsl(var(--primary) / 0.22);
+  background: color-mix(in srgb, var(--xh-fg-brand) 22%, transparent);
   filter: blur(100px);
   animation: lock-blob-1 18s var(--xh-motion-ease-sweep) infinite;
 }
 
 .lock-blob--2 {
-  right: 6%;
+  inset-inline-end: 6%;
   top: -8%;
   width: 520px;
   height: 520px;
-  background: hsl(var(--info) / 0.18);
+  background: color-mix(in srgb, var(--xh-color-info-500) 18%, transparent);
   filter: blur(120px);
   animation: lock-blob-2 22s var(--xh-motion-ease-sweep) infinite;
 }
 
 .lock-blob--3 {
-  left: 18%;
+  inset-inline-start: 18%;
   bottom: -18%;
   width: 580px;
   height: 580px;
-  background: hsl(var(--success) / 0.14);
+  background: color-mix(in srgb, var(--xh-fg-success) 14%, transparent);
   filter: blur(100px);
   animation: lock-blob-3 20s var(--xh-motion-ease-sweep) infinite;
 }
@@ -337,11 +337,11 @@ usePageScrollLock(() => lockMode.value !== 'off')
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 40px 48px;
-  border-radius: 20px;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  gap: var(--xh-space-3);
+  padding: calc(var(--xh-space-5) * 2) calc(var(--xh-space-6) * 2);
+  border-radius: calc(var(--xh-shape-control) * 3);
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
   text-align: center;
   box-shadow: 0 24px 80px hsl(0 0% 0% / 0.4);
   min-width: 300px;
@@ -351,20 +351,20 @@ usePageScrollLock(() => lockMode.value !== 'off')
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  border: 3px solid hsl(var(--border));
+  border: 3px solid var(--xh-border-default);
   object-fit: cover;
 }
 
 .lock-screen-name {
   font-size: 18px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   line-height: 1.3;
 }
 
 .lock-screen-hint {
   font-size: 13px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   margin-bottom: 4px;
 }
 
@@ -377,16 +377,16 @@ usePageScrollLock(() => lockMode.value !== 'off')
 .lock-screen-error {
   margin-top: 6px;
   font-size: 12px;
-  color: hsl(var(--destructive));
+  color: var(--xh-fg-danger);
   text-align: left;
 }
 
 .unlock-btn {
   margin-top: 12px;
-  padding: 9px 32px;
-  border-radius: 10px;
+  padding: var(--xh-space-2) var(--xh-space-8);
+  border-radius: var(--xh-shape-sheet);
   background: var(--xh-color-brand-600);
-  color: hsl(var(--primary-foreground));
+  color: var(--xh-fg-on-brand);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -407,17 +407,17 @@ usePageScrollLock(() => lockMode.value !== 'off')
 
 .lock-text-btn {
   margin-top: 10px;
-  padding: 4px;
+  padding: var(--xh-space-1);
   background: transparent;
   border: none;
   font-size: 13px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   cursor: pointer;
   transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .lock-text-btn:hover {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .lock-text-btn:disabled {

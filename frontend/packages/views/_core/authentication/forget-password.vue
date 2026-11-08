@@ -289,7 +289,7 @@ const onAuthInvalid = useAuthFormInvalid()
 
 <style scoped>
 .link-primary {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 
 .link-primary:hover {

@@ -110,7 +110,7 @@ function onSizeChange(value: string[]): void {
 <style scoped>
 .schema-pagination {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
 }
 

@@ -129,7 +129,7 @@ watch(
 /* 子菜单触发器里没有撑满宽度的 item-text，箭头自己顶到条目末端 */
 .tabbar-context-arrow {
   margin-inline-start: auto;
-  padding-inline-start: 12px;
+  padding-inline-start: var(--xh-space-3);
   color: var(--xh-fg-muted);
 }
 </style>

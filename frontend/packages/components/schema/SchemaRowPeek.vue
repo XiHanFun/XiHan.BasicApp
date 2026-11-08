@@ -91,31 +91,31 @@ watch(
   width: 400px;
   max-width: 90vw;
   max-height: 64vh;
-  padding: 14px 16px;
+  padding: var(--xh-space-3) var(--xh-space-4);
   overflow: hidden;
-  border-radius: var(--radius-card, 10px);
-  background: hsl(var(--popover));
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 16px 48px hsl(var(--foreground) / 18%);
+  border-radius: var(--xh-shape-surface);
+  background: var(--xh-bg-surface-raised);
+  border: 1px solid var(--xh-border-default);
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--xh-fg-default) 18%, transparent);
   pointer-events: none;
 }
 
 .row-peek__grid {
   display: grid;
   grid-template-columns: max-content 1fr;
-  gap: 7px 14px;
+  gap: var(--xh-space-1_5) var(--xh-space-3);
   align-items: baseline;
 }
 
 .row-peek__label {
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   white-space: nowrap;
 }
 
 .row-peek__value {
   font-size: 13px;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   word-break: break-all;
   line-height: 1.45;
 }

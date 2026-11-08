@@ -387,7 +387,7 @@ onDeactivated(() => {
 .inbox-search__item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--xh-space-0_5);
   inline-size: var(--xh-control-min-w);
 }
 

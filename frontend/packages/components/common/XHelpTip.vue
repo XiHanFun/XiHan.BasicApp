@@ -38,7 +38,7 @@ defineProps<{ content: string }>()
   background: transparent;
   display: inline-flex;
   align-items: center;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   opacity: 0.6;
   flex-shrink: 0;
   cursor: help;

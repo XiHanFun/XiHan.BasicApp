@@ -361,7 +361,7 @@ function orDash(value: null | string | undefined): string {
 }
 
 .history-detail__files {
-  padding-left: var(--xh-space-6);
+  padding-inline-start: var(--xh-space-6);
   line-height: var(--xh-leading-relaxed);
 }
 

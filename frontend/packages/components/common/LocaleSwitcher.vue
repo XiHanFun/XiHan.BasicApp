@@ -170,7 +170,7 @@ function choose(key: string) {
 <style scoped>
 .locale-item {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
 }
 

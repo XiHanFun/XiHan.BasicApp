@@ -813,7 +813,7 @@ function cancelChange() {
 .pf-avatar-section {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--xh-space-3);
   min-width: 0;
   flex: 1;
 }

@@ -586,10 +586,10 @@ watch(tracePreset, (preset) => {
 .trace-page {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--xh-space-2);
   box-sizing: border-box;
   height: 100%;
-  padding: 12px;
+  padding: var(--xh-space-3);
   overflow: hidden;
 }
 
@@ -630,7 +630,7 @@ watch(tracePreset, (preset) => {
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: 14px 20px 12px;
+  padding: var(--xh-space-3) var(--xh-space-5) var(--xh-space-3);
   background: var(--xh-bg-surface);
   border-bottom: 1px solid var(--xh-border-subtle);
 }
@@ -640,7 +640,7 @@ watch(tracePreset, (preset) => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
+  gap: var(--xh-space-2) var(--xh-space-2_5);
 }
 
 .trace-panel__heading {
@@ -675,9 +675,9 @@ watch(tracePreset, (preset) => {
 .trace-chip {
   display: inline-flex;
   align-items: baseline;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 5px;
+  gap: var(--xh-space-1);
+  padding: var(--xh-space-0_5) var(--xh-space-2);
+  border-radius: var(--xh-shape-control);
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-subtle);
   font-family: var(--trace-mono);
@@ -702,7 +702,7 @@ watch(tracePreset, (preset) => {
 .trace-panel__warn {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--xh-space-1_5);
   margin-top: 9px;
   font-size: 11px;
   color: var(--xh-color-warning-600);
@@ -722,22 +722,22 @@ watch(tracePreset, (preset) => {
   --xh-timeline-time-font-size: 12px;
   --xh-timeline-time-fg: var(--xh-fg-default);
 
-  padding: 12px 20px 16px;
+  padding: var(--xh-space-3) var(--xh-space-5) var(--xh-space-4);
 }
 
 /* 分钟标题行：时刻 + 该分钟内条数 */
 .trace-grp__minute {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--xh-space-2);
   font-family: var(--trace-mono);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 
 .trace-grp__count {
-  padding: 1px 6px;
-  border-radius: 8px;
+  padding: var(--xh-space-0_5) var(--xh-space-1_5);
+  border-radius: var(--xh-shape-control);
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-subtle);
   font-family: var(--trace-mono);
@@ -752,7 +752,7 @@ watch(tracePreset, (preset) => {
   margin-top: 4px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: start;
 }
 
@@ -762,10 +762,10 @@ watch(tracePreset, (preset) => {
 
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 11px 13px 12px;
+  gap: var(--xh-space-1_5);
+  padding: var(--xh-space-2_5) var(--xh-space-3) var(--xh-space-3);
   border: 1px solid color-mix(in srgb, var(--k) 20%, var(--t-border));
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
   /* 浅色渐变背景：状态色微染 → 卡片底色 */
   background: linear-gradient(135deg, color-mix(in srgb, var(--k) 9%, var(--t-card)) 0%, var(--t-card) 62%);
   cursor: pointer;
@@ -806,15 +806,15 @@ watch(tracePreset, (preset) => {
 .trace-card__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .trace-card__chip {
   --m: var(--t-info); /* 请求方式色，由 m-* 覆盖 */
 
   flex: none;
-  padding: 2px 7px;
-  border-radius: 5px;
+  padding: var(--xh-space-0_5) var(--xh-space-1_5);
+  border-radius: var(--xh-shape-control);
   border: 1px solid var(--xh-border-default);
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-subtle);
@@ -881,8 +881,8 @@ watch(tracePreset, (preset) => {
 /* 状态标签：状态色文字(向 ink 混以保证对比度) + 浅色底，统一「200 / 成功」视觉 */
 .trace-card__status {
   flex: none;
-  padding: 1px 8px;
-  border-radius: 999px;
+  padding: var(--xh-space-0_5) var(--xh-space-2);
+  border-radius: var(--xh-shape-pill);
   font-family: var(--trace-mono);
   font-size: 11px;
   font-weight: 600;
@@ -914,7 +914,7 @@ watch(tracePreset, (preset) => {
 
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--xh-space-2);
 }
 
 .trace-card__dur.dur-fast {
@@ -932,7 +932,7 @@ watch(tracePreset, (preset) => {
 .trace-card__bar {
   flex: 1;
   height: 5px;
-  border-radius: 3px;
+  border-radius: var(--xh-shape-inset);
   /* 轨道混入不透明卡片底色（避免暗色主题下 actionColor 半透明导致轨道消隐） */
   background: color-mix(in srgb, var(--d) 10%, var(--t-card));
   overflow: hidden;
@@ -942,7 +942,7 @@ watch(tracePreset, (preset) => {
 .trace-card__barfill {
   display: block;
   height: 100%;
-  border-radius: 3px;
+  border-radius: var(--xh-shape-inset);
   background: color-mix(in srgb, var(--d) 66%, var(--t-card));
 }
 
@@ -960,15 +960,15 @@ watch(tracePreset, (preset) => {
 .trace-card__meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--xh-space-1);
   margin-top: 2px;
-  padding-top: 9px;
+  padding-top: var(--xh-space-2);
   border-top: 1px dashed var(--xh-border-subtle);
 }
 
 .trace-card__metarow {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   font-family: var(--trace-mono);
   font-size: 11px;
   line-height: 1.4;
@@ -986,6 +986,6 @@ watch(tracePreset, (preset) => {
 }
 
 .trace-empty {
-  padding: 48px 0;
+  padding: calc(var(--xh-space-6) * 2) 0;
 }
 </style>

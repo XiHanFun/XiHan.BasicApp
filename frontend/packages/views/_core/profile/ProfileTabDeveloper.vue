@@ -376,7 +376,7 @@ onMounted(() => {
 .pf-secret-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   margin-top: 8px;
 }
 
@@ -395,13 +395,13 @@ onMounted(() => {
 .pf-credential__name {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 .pf-credential__key {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--xh-space-1);
   margin: 2px 0;
 }
 
@@ -414,7 +414,7 @@ onMounted(() => {
 .pf-credential__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--xh-space-2);
   flex-shrink: 0;
 }
 

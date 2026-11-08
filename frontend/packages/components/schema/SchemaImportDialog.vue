@@ -398,12 +398,12 @@ function handleClose(): void {
 .xh-import-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--xh-space-3);
 }
 
 .xh-import-summary {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -426,7 +426,7 @@ function handleClose(): void {
 /* 说明与下载模板钮一行排开，挤不下时折行 */
 .xh-import-tip {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -435,9 +435,9 @@ function handleClose(): void {
 .xh-import-dragger {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
-  padding: 12px 0;
+  padding: var(--xh-space-3) 0;
   font-size: 13px;
   color: var(--xh-fg-muted);
 }
@@ -451,9 +451,9 @@ function handleClose(): void {
 
 .xh-import-recent__row {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
-  padding: 2px 0;
+  padding: var(--xh-space-0_5) 0;
   font-size: 12px;
   color: var(--xh-fg-muted);
 }

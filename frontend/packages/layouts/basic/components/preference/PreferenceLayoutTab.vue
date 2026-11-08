@@ -671,7 +671,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: var(--xh-space-1_5);
   cursor: pointer;
 }
 
@@ -680,23 +680,23 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: var(--xh-space-0_5);
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   text-align: center;
   line-height: 1.2;
   transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .preset-item:hover .preset-label {
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .layout-preset-card {
-  border: 1.5px solid hsl(var(--border));
-  border-radius: var(--radius-card);
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
+  border: 1.5px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-surface);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-default);
   padding: 0;
   width: 100%;
   overflow: hidden;
@@ -709,12 +709,12 @@ watch(() => appStore.sidebarCollapsed, (val) => {
 
 .layout-preset-card:hover {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, hsl(var(--primary)) 45%, hsl(var(--border)));
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 45%, var(--xh-border-default));
 }
 
 .layout-preset-card.is-active {
-  border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 2px color-mix(in srgb, hsl(var(--primary)) 30%, transparent);
+  border-color: var(--xh-fg-brand);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--xh-fg-brand) 30%, transparent);
 }
 
 .layout-preset-preview {
@@ -724,30 +724,33 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: hsl(var(--background));
+  background: var(--xh-bg-surface);
 }
 
 /* 折叠/固定按钮的多选 toggle */
 .btn-toggle {
-  padding: 3px 10px;
+  padding: var(--xh-space-0_5) var(--xh-space-2_5);
   font-size: 12px;
-  border-radius: var(--radius);
-  border: 1.5px solid hsl(var(--border));
-  background: hsl(var(--card));
-  color: hsl(var(--muted-foreground));
+  border-radius: var(--xh-shape-control);
+  border: 1.5px solid var(--xh-border-default);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-muted);
   cursor: pointer;
-  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .btn-toggle:hover {
-  border-color: hsl(var(--primary) / 0.5);
-  color: hsl(var(--foreground));
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
+  color: var(--xh-fg-default);
 }
 
 .btn-toggle.is-active {
   border-color: var(--xh-color-brand-600);
   background: var(--xh-color-brand-600);
-  color: hsl(var(--primary-foreground));
+  color: var(--xh-fg-on-brand);
   font-weight: 500;
 }
 

@@ -1237,7 +1237,7 @@ function handleRestore(row: JobRow) {
 }
 
 .xh-trigger-expand {
-  padding: var(--xh-space-1) 2px;
+  padding: var(--xh-space-1) var(--xh-space-0_5);
 }
 
 .xh-trigger-expand code,
@@ -1293,7 +1293,7 @@ function handleRestore(row: JobRow) {
 }
 
 .xh-task-log-tip {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
 }

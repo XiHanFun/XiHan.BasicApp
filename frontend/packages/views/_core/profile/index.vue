@@ -259,7 +259,7 @@ onMounted(loadProfile)
 <style scoped>
 .pc {
   min-height: 100%;
-  padding: 24px 20px;
+  padding: var(--xh-space-6) var(--xh-space-5);
   /* GitHub 式纯净背景：亮色为白、暗色随主题，不再用灰色底 */
   background: var(--xh-bg-surface);
 }
@@ -267,7 +267,7 @@ onMounted(loadProfile)
 /* GitHub 式居中容器：侧边栏 + 内容整体限宽水平居中 */
 .pc__container {
   display: flex;
-  gap: 24px;
+  gap: var(--xh-space-6);
   align-items: flex-start;
   width: 100%;
   max-width: 1336px;
@@ -282,14 +282,14 @@ onMounted(loadProfile)
   width: 232px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--xh-space-3);
 }
 
 .pc__identity {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 2px 4px;
+  gap: var(--xh-space-2_5);
+  padding: var(--xh-space-0_5) var(--xh-space-1);
   min-width: 0;
 }
 
@@ -322,17 +322,17 @@ onMounted(loadProfile)
 .pc__nav-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--xh-space-1);
 }
 
 .pc__nav-group + .pc__nav-group {
   margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid hsl(var(--border) / 70%);
+  padding-top: var(--xh-space-2_5);
+  border-top: 1px solid color-mix(in srgb, var(--xh-border-default) 70%, transparent);
 }
 
 .pc__nav-group-title {
-  padding: 2px 10px 6px;
+  padding: var(--xh-space-0_5) var(--xh-space-2_5) var(--xh-space-1_5);
   font-size: 12px;
   font-weight: 600;
   color: var(--xh-fg-muted);
@@ -342,11 +342,11 @@ onMounted(loadProfile)
   position: relative;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--xh-space-2);
   width: 100%;
-  padding: 7px 10px;
+  padding: var(--xh-space-1_5) var(--xh-space-2_5);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
   background: transparent;
   color: var(--xh-fg-default);
   font-size: 13.5px;
@@ -356,11 +356,11 @@ onMounted(loadProfile)
 }
 
 .pc__nav-item:hover {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
 }
 
 .pc__nav-item.is-active {
-  background: hsl(var(--accent));
+  background: var(--xh-bg-subtle-hover);
   font-weight: 600;
 }
 
@@ -368,13 +368,13 @@ onMounted(loadProfile)
 .pc__nav-item.is-active::before {
   content: '';
   position: absolute;
-  left: -8px;
+  inset-inline-start: -8px;
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
   height: 60%;
-  border-radius: 2px;
-  background: hsl(var(--primary));
+  border-radius: var(--xh-shape-inset);
+  background: var(--xh-bg-brand);
 }
 
 .pc__nav-icon {
@@ -383,7 +383,7 @@ onMounted(loadProfile)
 }
 
 .pc__nav-item.is-active .pc__nav-icon {
-  color: hsl(var(--primary));
+  color: var(--xh-fg-brand);
 }
 
 .pc__nav-label {
@@ -402,33 +402,33 @@ onMounted(loadProfile)
 /* ===== 窄屏：导航横向滑动条 ===== */
 @media (max-width: 900px) {
   .pc {
-    padding: 12px;
+    padding: var(--xh-space-3);
   }
 
   .pc__container {
     flex-direction: column;
     /* 纵向布局时横轴改为拉伸：flex-start 会让内容按固有宽度靠左，右侧留白 */
     align-items: stretch;
-    gap: 12px;
+    gap: var(--xh-space-3);
   }
 
   .pc__sidebar {
     position: static;
     width: 100%;
-    gap: 10px;
+    gap: var(--xh-space-2_5);
   }
 
   .pc__nav {
     flex-direction: row;
-    gap: 6px;
+    gap: var(--xh-space-1_5);
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    padding-bottom: 4px;
+    padding-bottom: var(--xh-space-1);
   }
 
   .pc__nav-group {
     flex-direction: row;
-    gap: 6px;
+    gap: var(--xh-space-1_5);
   }
 
   .pc__nav-group + .pc__nav-group {
@@ -444,12 +444,12 @@ onMounted(loadProfile)
   .pc__nav-item {
     flex: 0 0 auto;
     width: auto;
-    padding: 7px 12px;
-    background: hsl(var(--accent) / 72%);
+    padding: var(--xh-space-1_5) var(--xh-space-3);
+    background: color-mix(in srgb, var(--xh-bg-subtle-hover) 72%, transparent);
   }
 
   .pc__nav-item.is-active {
-    color: hsl(var(--primary));
+    color: var(--xh-fg-brand);
   }
 
   .pc__nav-item.is-active::before {

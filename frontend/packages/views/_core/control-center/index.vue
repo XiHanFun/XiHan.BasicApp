@@ -248,22 +248,23 @@ onMounted(loadTenants)
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
   background:
-    radial-gradient(1200px 500px at 80% -10%, hsl(var(--primary) / 10%), transparent 60%),
-    radial-gradient(900px 420px at -10% 110%, hsl(var(--primary) / 6%), transparent 55%), hsl(var(--background));
+    radial-gradient(1200px 500px at 80% -10%, color-mix(in srgb, var(--xh-fg-brand) 10%, transparent), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, color-mix(in srgb, var(--xh-fg-brand) 6%, transparent), transparent 55%),
+    var(--xh-bg-surface);
 }
 
 .cc-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 28px;
+  padding: var(--xh-space-3) var(--xh-space-7);
 }
 
 .cc-brand {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: center;
 }
 
@@ -272,19 +273,19 @@ onMounted(loadTenants)
   width: 32px;
   height: 32px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: var(--xh-shape-control);
   object-fit: cover;
 }
 
 .cc-brand__title {
   font-size: 16px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .cc-user {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: center;
 }
 
@@ -292,7 +293,7 @@ onMounted(loadTenants)
   display: flex;
   flex: 1;
   justify-content: center;
-  padding: 32px 24px 64px;
+  padding: var(--xh-space-8) var(--xh-space-6) calc(var(--xh-space-8) * 2);
 }
 
 .cc-container {
@@ -307,31 +308,31 @@ onMounted(loadTenants)
 
 .cc-avatar {
   margin-bottom: 12px;
-  box-shadow: 0 4px 16px hsl(var(--primary) / 18%);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--xh-fg-brand) 18%, transparent);
 }
 
 .cc-title {
   margin: 0 0 6px;
   font-size: 26px;
   font-weight: 700;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .cc-subtitle {
   margin: 0;
   font-size: 14px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cc-card {
-  padding: 20px;
+  padding: var(--xh-space-5);
   margin-bottom: 16px;
-  color: hsl(var(--card-foreground));
-  background: hsl(var(--card) / 88%);
+  color: var(--xh-fg-default);
+  background: color-mix(in srgb, var(--xh-bg-surface) 88%, transparent);
   backdrop-filter: blur(8px);
-  border: 1px solid hsl(var(--border));
-  border-radius: 16px;
-  box-shadow: 0 8px 28px hsl(var(--foreground) / 5%);
+  border: 1px solid var(--xh-border-default);
+  border-radius: calc(var(--xh-shape-control) * 2);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--xh-fg-default) 5%, transparent);
 }
 
 .cc-card__head {
@@ -343,18 +344,18 @@ onMounted(loadTenants)
 
 .cc-card__title {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   font-size: 15px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .cc-group-label {
   margin-bottom: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -364,28 +365,28 @@ onMounted(loadTenants)
 }
 
 .cc-tenant__logo--platform {
-  color: hsl(var(--primary));
-  background: hsl(var(--primary) / 12%);
+  color: var(--xh-fg-brand);
+  background: color-mix(in srgb, var(--xh-fg-brand) 12%, transparent);
 }
 
 .cc-tenant-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
 }
 
 .cc-tenant {
   display: flex;
-  gap: 12px;
+  gap: var(--xh-space-3);
   align-items: center;
   width: 100%;
-  padding: 14px;
-  color: hsl(var(--foreground));
+  padding: var(--xh-space-3);
+  color: var(--xh-fg-default);
   text-align: left;
   cursor: pointer;
   background: transparent;
-  border: 1px solid hsl(var(--border));
-  border-radius: 12px;
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-sheet);
   transition:
     border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
@@ -393,8 +394,8 @@ onMounted(loadTenants)
 }
 
 .cc-tenant:hover:not(:disabled) {
-  background: hsl(var(--accent));
-  border-color: hsl(var(--primary));
+  background: var(--xh-bg-subtle-hover);
+  border-color: var(--xh-fg-brand);
   transform: translateY(-1px);
 }
 
@@ -404,7 +405,7 @@ onMounted(loadTenants)
 }
 
 .cc-tenant--current {
-  border-color: hsl(var(--success));
+  border-color: var(--xh-fg-success);
 }
 
 .cc-tenant__logo {
@@ -417,9 +418,9 @@ onMounted(loadTenants)
   overflow: hidden;
   font-size: 15px;
   font-weight: 600;
-  color: hsl(var(--primary));
-  background: hsl(var(--primary) / 12%);
-  border-radius: 10px;
+  color: var(--xh-fg-brand);
+  background: color-mix(in srgb, var(--xh-fg-brand) 12%, transparent);
+  border-radius: var(--xh-shape-sheet);
 }
 
 .cc-tenant__body {
@@ -429,43 +430,43 @@ onMounted(loadTenants)
 
 .cc-tenant__name {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   font-size: 14px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 .cc-tenant__meta {
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   align-items: center;
   margin-top: 4px;
 }
 
 .cc-tenant__code {
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cc-tenant__arrow {
   flex-shrink: 0;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 .cc-empty {
-  padding: 24px 0;
+  padding: var(--xh-space-6) 0;
 }
 
 .cc-empty__hint {
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  color: var(--xh-fg-muted);
 }
 
 /* 小屏适配：收紧间距 */
 @media (max-width: 480px) {
   .cc-topbar {
-    padding: 10px 16px;
+    padding: var(--xh-space-2_5) var(--xh-space-4);
   }
 
   .cc-brand__title {
@@ -473,7 +474,7 @@ onMounted(loadTenants)
   }
 
   .cc-main {
-    padding: 20px 16px 48px;
+    padding: var(--xh-space-5) var(--xh-space-4) calc(var(--xh-space-6) * 2);
   }
 
   .cc-title {
@@ -485,7 +486,7 @@ onMounted(loadTenants)
   }
 
   .cc-card {
-    padding: 16px;
+    padding: var(--xh-space-4);
   }
 }
 </style>

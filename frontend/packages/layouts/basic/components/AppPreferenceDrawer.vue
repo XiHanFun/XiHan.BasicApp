@@ -292,7 +292,7 @@ watch(visible, (open, was) => {
 
 .drawer-footer {
   display: flex;
-  gap: 10px;
+  gap: var(--xh-space-2_5);
   align-items: center;
   justify-content: space-between;
   width: 100%;
@@ -320,7 +320,7 @@ watch(visible, (open, was) => {
 }
 
 .preference-scrollbar [data-scope='scroll-area'][data-part='content'] {
-  padding: 0 16px 16px;
+  padding: 0 var(--xh-space-4) var(--xh-space-4);
 }
 
 /* 标签行在滚动区之外，左右缩进自己写，与面板内容的 16px 对齐 */
@@ -346,7 +346,7 @@ watch(visible, (open, was) => {
   padding-inline-end: 0;
   font-size: 16px;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--xh-fg-default);
 }
 
 /* 关闭钮留在头部行尾、与标题同行居中，不走皮肤的角落绝对定位 */

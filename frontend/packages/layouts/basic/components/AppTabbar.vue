@@ -656,7 +656,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
 
 <style scoped>
 .tabbar-root {
-  border-bottom: 1px solid hsl(var(--border));
+  border-bottom: 1px solid var(--xh-border-default);
 }
 
 /* 按钮间竖杠分隔线 */
@@ -666,7 +666,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
   width: 1px;
   height: 16px;
   margin: 0 2px;
-  background: hsl(var(--border));
+  background: var(--xh-border-default);
   vertical-align: middle;
 }
 

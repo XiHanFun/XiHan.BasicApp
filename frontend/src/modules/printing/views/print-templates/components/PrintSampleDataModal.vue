@@ -411,7 +411,7 @@ function clearSession(): void {
   display: flex;
   min-height: 220px;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--xh-space-3);
 }
 
 .sample-data-intro,
@@ -419,7 +419,7 @@ function clearSession(): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--xh-space-4);
 }
 
 .sample-data-intro p {
@@ -429,9 +429,9 @@ function clearSession(): void {
 }
 
 .sample-records {
-  padding: 12px 12px 0;
+  padding: var(--xh-space-3) var(--xh-space-3) 0;
   border: 1px solid var(--xh-border-default);
-  border-radius: 8px;
+  border-radius: var(--xh-shape-control);
 }
 
 .sample-records-heading {
@@ -452,7 +452,7 @@ function clearSession(): void {
 .sample-fields-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 18px;
+  gap: 0 var(--xh-space-4);
 }
 
 .sample-field--table {

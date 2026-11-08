@@ -79,7 +79,7 @@ const appStore = useAppStore()
   z-index: 6;
   display: grid;
   place-items: center;
-  background: hsl(var(--background) / 0.55);
+  background: color-mix(in srgb, var(--xh-bg-surface) 55%, transparent);
   backdrop-filter: blur(1px);
 }
 

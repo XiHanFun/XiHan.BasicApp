@@ -199,12 +199,12 @@ onMounted(() => loadLogs())
 .pf-log-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--xh-space-2);
 }
 
 /* 紧凑两行条目：左图标 + 中间（状态/消息 + 设备信息）+ 右侧时间 */
 .pf-log-row {
-  padding: 9px 14px;
+  padding: var(--xh-space-2) var(--xh-space-3);
 }
 
 .pf-log-message {
