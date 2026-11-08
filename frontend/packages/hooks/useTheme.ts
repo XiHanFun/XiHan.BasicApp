@@ -10,47 +10,13 @@ import { computed, effectScope, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
 import { runThemeTransition } from '~/utils'
+import { deriveMaterialPalette, hexToHsl, MATERIAL_PALETTE_KEYS } from './material-palette'
 
 /**
  * 主题扩散动画起点：鼠标事件，或调用方自算的视口坐标
  * （如 change 事件本身无坐标，由控件矩形中心换算）
  */
 export type ThemeTransitionOrigin = MouseEvent | { clientX: number, clientY: number }
-
-/** 将 hex 颜色解析为 HSL 数值三元组 [h(0-360), s(0-100), l(0-100)] */
-function hexToHsl(hex: string): [number, number, number] {
-  const r = Number.parseInt(hex.slice(1, 3), 16) / 255
-  const g = Number.parseInt(hex.slice(3, 5), 16) / 255
-  const b = Number.parseInt(hex.slice(5, 7), 16) / 255
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  let h = 0
-  let s = 0
-  const l = (max + min) / 2
-  if (max !== min) {
-    const d = max - min
-    s = l > 0.5
-      ? d / (2 - max - min)
-      : d / (max + min)
-    switch (max) {
-      case r:
-        h = ((g - b) / d + (g < b
-          ? 6
-          : 0)) / 6
-        break
-      case g:
-        h = ((b - r) / d + 2) / 6
-        break
-      default:
-        h = ((r - g) / d + 4) / 6
-    }
-  }
-  return [
-    Math.round(h * 360),
-    Math.round(s * 100),
-    Math.round(l * 100),
-  ]
-}
 
 /** 将 HSL 数值转换为 hex 字符串 */
 function hslToHex(h: number, s: number, l: number): string {
@@ -107,37 +73,6 @@ function onSolidFor(color: string): string {
     : '0 0% 100%'
 }
 
-/**
- * 从品牌色推导整套 Material You 色阶，明暗自适应
- * `--primary` 保持所选原色，辅色、容器、前景、聚焦环与中性色围绕同色相派生
- * 返回变量名 → "H S% L%"；内联写到根元素会盖过 :root / .dark，明暗变了须重算
- */
-function deriveMaterialPalette(hex: string, dark: boolean): Record<string, string> {
-  const [h, s, l] = hexToHsl(hex)
-  const cs = (v: number) => Math.max(0, Math.min(100, Math.round(v)))
-
-  if (dark) {
-    return {
-      '--ring': `${h} ${cs(Math.min(s, 80))}% ${cs(Math.max(l, 60))}%`,
-      '--accent': `${h} ${cs(Math.min(s * 0.4, 40))}% 22%`,
-      '--accent-foreground': `${h} 22% 90%`,
-      '--secondary': `${h} ${cs(Math.min(s * 0.3, 28))}% 18%`,
-      '--secondary-foreground': `${h} 16% 92%`,
-      '--muted': `${h} ${cs(Math.min(s * 0.2, 8))}% 16%`,
-      '--border': `${h} ${cs(Math.min(s * 0.22, 12))}% 24%`,
-    }
-  }
-  return {
-    '--ring': `${h} ${cs(Math.min(s, 85))}% ${cs(Math.max(Math.min(l, 55), 40))}%`,
-    '--accent': `${h} ${cs(Math.min(s * 0.5, 45))}% 93%`,
-    '--accent-foreground': `${h} ${cs(Math.min(s, 45))}% 24%`,
-    '--secondary': `${h} ${cs(Math.min(s * 0.35, 30))}% 95%`,
-    '--secondary-foreground': `${h} ${cs(Math.min(s, 35))}% 22%`,
-    '--muted': `${h} ${cs(Math.min(s * 0.15, 8))}% 96%`,
-    '--border': `${h} ${cs(Math.min(s * 0.18, 10))}% 90%`,
-  }
-}
-
 /** 计算圆角像素值（写入 --radius / --radius-card，组件库经令牌桥读它） */
 function calcRadius(r: number) {
   return {
@@ -178,15 +113,16 @@ function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
   el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
   el.style.setProperty('--primary-active', hexToHslVars(scale.active))
   el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
-  // 派生色阶：开启 Material You 时写入；关闭则移除内联覆盖，回退到 :root/.dark 静态 token
+  // 派生色调：开启 Material You 时写入；关掉或这一档不写的变量撤掉内联值，回退到 :root / .dark 的静态配色
   const palette = deriveMaterialPalette(hex, dark)
-  for (const name of Object.keys(palette)) {
-    if (dynamic) {
-      el.style.setProperty(name, palette[name]!)
-    }
-    else {
+  for (const name of MATERIAL_PALETTE_KEYS) {
+    const value = dynamic
+      ? palette[name]
+      : undefined
+    if (value)
+      el.style.setProperty(name, value)
+    else
       el.style.removeProperty(name)
-    }
   }
 }
 
