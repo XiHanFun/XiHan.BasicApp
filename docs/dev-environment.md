@@ -63,7 +63,16 @@ Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已�
 
 ## 可选服务
 
-邮件、短信、对象存储、群机器人与 Telegram 都在后台页面里配置（邮件配置、短信配置、存储配置、机器人配置、Telegram 机器人），开发环境不需要预装服务。第三方登录的客户端 ID 与密钥写在 `BasicApp:Auth:OAuth:Providers`；知识库要 Qdrant，在 `appsettings.Development.json` 打开 `BasicApp:AI:Qdrant` 的注释。见[配置参考](./configuration)。
+邮件、短信、对象存储、群机器人与 Telegram 都在后台页面里配置（邮件配置、短信配置、存储配置、机器人配置、Telegram 机器人），开发环境不需要预装服务。知识库要 Qdrant，在 `appsettings.Development.json` 打开 `BasicApp:AI:Qdrant` 的注释。见[配置参考](./configuration)。
+
+开发配置打开了自助注册，登录页有「立即注册」入口，注册的是不带角色的平台账号。第三方登录的回调经前端开发服务器（`BasicApp:Auth:OAuth:CallbackBaseUrl` 是 `http://localhost:9100`），在第三方后台登记的回调地址是 `http://localhost:9100/api/oauth/<Name>/callback`。客户端 ID 与密钥用用户机密写进 `BasicApp:Auth:OAuth:Providers`，不要写进配置文件；配好重启后端，登录页就出现对应按钮：
+
+```bash
+cd backend/src/XiHan.BasicApp.Host
+dotnet user-secrets set "BasicApp:Auth:OAuth:Providers:0:Name" "github"
+dotnet user-secrets set "BasicApp:Auth:OAuth:Providers:0:ClientId" "<客户端 ID>"
+dotnet user-secrets set "BasicApp:Auth:OAuth:Providers:0:ClientSecret" "<客户端密钥>"
+```
 
 开发配置放行了回环地址（`XiHan:Security:Outbound:AllowLoopback`），本机的模型端点、MinIO 与 Webhook 调试服务可以直接连。
 
