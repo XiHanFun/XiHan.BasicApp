@@ -13,7 +13,10 @@ import { ApiError } from '~/request'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
 
-/** 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案 */
+/**
+ * 报错文案：问题详情取正文（已本地化），其余取消息
+ * 都没有时为空串，由调用点补兜底文案
+ */
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
@@ -88,7 +91,7 @@ export function sendStatusLabel(t: Translate, status: MessageSendStatus): string
   }
 }
 
-/** 发送状态的语气：排队中 info、发送中 warning、成功 success、失败 danger、已取消 neutral */
+/** 发送状态的语气 */
 export function sendStatusTone(status: MessageSendStatus): Tone {
   switch (status) {
     case 'Sending': return 'warning'

@@ -254,9 +254,8 @@ function widthOf(column: SchemaColumn<TRow>): number | undefined {
 }
 
 /**
- * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
- * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐
- * minWidth 在这里坍缩成初始宽，容器的余量仍由 flex-grow 均摊，每行摊法一致
+ * 给组件库的确定列宽：minWidth 坍缩成初始宽，余量由 flex-grow 每行一致均摊
+ * 组件库只认 width：缺省时 flex-basis 取单元格内容宽，而表头与各数据行各成 flex 容器，逐行分宽会让列边界对不齐
  */
 function declaredWidthOf(column: SchemaColumn<TRow>): number {
   return widthOf(column) ?? column.minWidth ?? 120

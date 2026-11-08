@@ -78,9 +78,8 @@ const NODE_STATUS_MAP: Record<WorkflowNodeInstanceStatus, FlowNodeStatus> = {
 }
 
 /**
- * 定义节点 id → 运行态：取该节点最近一次执行的状态（执行历史按开始时间排），还在等待的补 waiting
- * @param nodes 节点执行历史
- * @param waits 待恢复的等待
+ * 节点 id 到运行态：取最近一次执行的状态，还在等待的补 waiting
+ * @param nodes 节点执行历史，按开始时间排
  */
 export function graphStatuses(
   nodes: readonly { nodeId: string, status: WorkflowNodeInstanceStatus }[],
@@ -97,8 +96,8 @@ export function graphStatuses(
 }
 
 /**
- * 定义文档（WorkflowJson）里节点 id → 显示名：执行历史只带节点 id，名字从实例所用的定义里取；文档读不出来时为空表
- * @param document 实例所用的定义文档
+ * 从定义文档（WorkflowJson）取节点 id 到显示名，读不出来时为空表
+ * 执行历史只带节点 id，名字要从实例所用的定义里取
  */
 export function nodeTitles(document: string | null | undefined): Record<string, string> {
   if (!document)

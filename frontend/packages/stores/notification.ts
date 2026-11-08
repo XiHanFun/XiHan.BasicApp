@@ -24,10 +24,7 @@ export interface NotificationItem {
   link?: string
 }
 
-/**
- * 判断某条通知是否"需要关注"：
- * 未读 或 需要确认但尚未确认
- */
+/** 通知是否需要关注：未读，或需要确认但尚未确认 */
 function needsAttention(n: NotificationItem): boolean {
   if (n.notificationStatus === NotificationStatusEnum.Unread)
     return true

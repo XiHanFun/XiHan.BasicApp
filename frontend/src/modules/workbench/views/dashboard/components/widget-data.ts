@@ -15,7 +15,10 @@ export type WidgetData = ResponseOf<'workbench.widget-data'>
 /** 调用方看得到的小组件（键与取数形态） */
 export type WidgetEntry = ResponseOf<'workbench.widgets'>['items'][number]
 
-/** 应用时区（界面显示时间用的那个）此刻相对 UTC 的分钟数（东八区为 480）：后端据此算「今天」与按日分桶 */
+/**
+ * 应用时区此刻相对 UTC 的分钟数（东八区为 480）
+ * 后端据此算「今天」与按日分桶
+ */
 export function viewerOffset(date: Date = new Date()): number {
   return utcOffsetMinutes(getDisplayTimeZone(), date)
 }

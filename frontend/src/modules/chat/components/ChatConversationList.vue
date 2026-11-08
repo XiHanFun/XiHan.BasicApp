@@ -72,7 +72,10 @@ const startOptions = computed<AppDropdownOption[]>(() => {
   return options
 })
 
-/** 首次展开「新建」菜单时问一次可用助手：只有「助手不可用」才隐藏入口，别的错误照常报 */
+/**
+ * 首次展开「新建」菜单时探测可用助手
+ * 只有「助手不可用」才隐藏入口，别的错误照常报
+ */
 function handleStartMenuOpen(details: { open: boolean }) {
   if (details.open) {
     chatStore.probeAssistants().catch(notifyFailure)

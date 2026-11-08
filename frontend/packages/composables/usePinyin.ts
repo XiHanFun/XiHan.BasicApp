@@ -50,8 +50,8 @@ export function ensurePinyin(): Promise<void> {
 }
 
 /**
- * 取文本的拼音索引；词典未就绪 / 文本不含汉字时返回 null
- * 逐字符建索引以保证 全拼下标 → 原字符下标 的精确映射（结果按文本缓存）
+ * 取文本的拼音索引，词典未就绪或不含汉字时为 null
+ * 逐字符建索引，保证全拼下标到原字符下标的精确映射；结果按文本缓存
  */
 export function getPinyinIndex(text: string): PinyinIndex | null {
   if (!pinyinFn || !HAN_RE.test(text)) {

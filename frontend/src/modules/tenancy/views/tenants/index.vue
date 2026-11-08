@@ -568,8 +568,8 @@ async function onSubmit() {
 }
 
 /**
- * 初始化独立库：确认后发起，建库与建表期间确认钮转圈；初始化失败也是正常响应，按返回的状态提示，改正连接后可再试
- * 开通后接着来的（thenAdmin）在就绪后接着初始化管理员，等确认框收起再开
+ * 确认后初始化独立库，失败也是正常响应：按返回的状态提示，改正连接后可再试
+ * thenAdmin：开通后接着来的，就绪后接着初始化管理员，等确认框收起再开
  */
 async function confirmInitializeDatabase(row: TenantRow, content: string, thenAdmin = false) {
   // 在 onOk 里写入：声明处不让类型收窄成 null
@@ -661,7 +661,10 @@ function memberExpiry(member: TenantMember): string {
 }
 
 // ── 所有权 ──
-/** 概览里「转移所有权」不预选；成员行「设为所有者」预选该成员。候选里的成员取详情抽屉已取的（读不了成员即只在本租户用户里挑） */
+/**
+ * 打开转移所有权弹窗，成员行「设为所有者」时预选该成员
+ * 候选成员取详情抽屉已取的；读不了成员即只在本租户用户里挑
+ */
 function startOwnerTransfer(preset: null | string = null) {
   const current = detail.detail.value
   if (current) {

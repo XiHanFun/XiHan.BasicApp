@@ -77,7 +77,10 @@ export function isDefinitionMetadataComplete(metadata: WorkflowDefinitionMetadat
   return Boolean(isWorkflowName(metadata.code) && metadata.name.trim())
 }
 
-/** 选了审批业务：编码换成业务编码（流程编码即业务编码），名称空着时带上业务名（businessName 是已翻译的显示名） */
+/**
+ * 绑定审批业务：流程编码即业务编码，名称空着时带上业务名
+ * businessName 是已翻译的显示名
+ */
 export function bindDefinitionBusiness(metadata: WorkflowDefinitionMetadata, business: WorkflowBusinessType, businessName: string): WorkflowDefinitionMetadata {
   return {
     ...metadata,
@@ -89,11 +92,9 @@ export function bindDefinitionBusiness(metadata: WorkflowDefinitionMetadata, bus
 }
 
 /**
- * 新建：一份没有节点与连线的空白流程；编码是某个审批业务时带上它声明的变量，与设计器里绑定业务时一样
- * ID 与版本由后端定（建草稿按同名最大版本加一）
- * @param metadata 弹窗里填的元数据
- * @param businessTypes 已登记的审批业务
- * @param translate 把业务变量的显示名文案键翻成当前语言，写进变量说明
+ * 新建一份没有节点与连线的空白流程，ID 与版本由后端定
+ * 编码是某个审批业务时带上它声明的变量，与设计器里绑定业务时一样
+ * translate 把业务变量的显示名文案键翻成当前语言，写进变量说明
  */
 export function createDefinitionJson(metadata: WorkflowDefinitionMetadata, businessTypes: readonly WorkflowBusinessType[], translate: (key: string) => string): string {
   const code = metadata.code.trim()

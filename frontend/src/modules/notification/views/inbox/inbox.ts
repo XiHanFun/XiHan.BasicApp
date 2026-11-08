@@ -67,7 +67,7 @@ export function inboxCounts(items: readonly InboxItem[]): { unread: number, conf
   return { unread: items.filter(isUnread).length, confirm: items.filter(isUnconfirmed).length }
 }
 
-/** 收件箱条目 → 顶栏通知中心的条目（字段名是壳层的；枚举名称与壳层的字符串枚举同值） */
+/** 收件箱条目转成顶栏通知中心的条目，枚举与壳层的字符串枚举同值 */
 export function toHeaderItem(item: InboxItem): NotificationItem {
   return {
     basicId: item.id,
@@ -115,7 +115,7 @@ export function clampPage(page: number, total: number, size: number = INBOX_PAGE
 }
 
 /**
- * 通知链接的去向：`/` 开头的站内路由走路由跳转，http(s) 地址在新窗口打开；
+ * 通知链接的去向：`/` 开头走路由跳转，http(s) 在新窗口打开
  * 其它协议（javascript: 之类）不当链接，按钮不出
  */
 export function resolveLink(link: null | string | undefined): { kind: 'external', url: string } | { kind: 'route', path: string } | null {
@@ -135,7 +135,10 @@ export function resolveLink(link: null | string | undefined): { kind: 'external'
   }
 }
 
-/** 按通知类型给图标着色：语气与类型标签一致；待办的标签是 neutral，图标保留紫色好与系统类区分 */
+/**
+ * 通知类型的图标颜色，语气与类型标签一致
+ * 待办的标签是 neutral，图标保留紫色好与系统类区分
+ */
 export function typeColor(type: NotificationType): string {
   switch (type) {
     case 'Security': return 'var(--xh-color-warning-600)'

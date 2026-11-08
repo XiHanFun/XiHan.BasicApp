@@ -201,7 +201,10 @@ function onExport(event: Event) {
 }
 
 // ── 引擎定义 JSON ──────────────────────────────────────────────
-/** 打开弹窗编辑保存进库的那份引擎定义；设计器自带的「编辑 JSON」编辑的是设计器格式，两者并存 */
+/**
+ * 打开弹窗编辑存库的引擎定义
+ * 设计器自带的「编辑 JSON」改的是设计器格式，两者并存
+ */
 function openEngineJson() {
   if (!designerRef.value)
     return

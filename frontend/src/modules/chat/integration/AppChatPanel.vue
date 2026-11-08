@@ -74,8 +74,8 @@ function placeUnder(anchor: HTMLElement): void {
 }
 
 /**
- * 再次打开时收回视口：组件不夹取位置，窗口缩小或面板被拖到屏外后，
- * 再点按钮也要让标题栏够得着（受控写回是组件库给的做法）
+ * 再次打开时把面板收回视口，让标题栏够得着
+ * 组件不夹取位置，窗口缩小或拖到屏外后要受控写回（组件库给的做法）
  */
 function keepInViewport(): void {
   const { width, height } = dimensions.value

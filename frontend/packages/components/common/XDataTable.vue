@@ -118,8 +118,8 @@ const SELECT_COL = '__select__'
 const SELECT_COL_W = 48
 
 /**
- * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
- * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐
+ * 给组件库的确定列宽
+ * 组件库只认 width：缺省时 flex-basis 取单元格内容宽，而表头与各数据行各成 flex 容器，逐行分宽会让列边界对不齐
  */
 function declaredWidth(column: XDataTableColumn<T>): number | string {
   return column.width ?? column.minWidth ?? 120

@@ -25,7 +25,10 @@ interface SignalRInstanceState {
 // 按 hubPath 各持一条连接，不同 Hub 的订阅与重连互不干扰
 const instances = new Map<string, SignalRInstanceState>()
 
-/** negotiate 阶段的 401（token 过期/失效）：signalr 的 HttpError 带 statusCode，包装错误只剩 message */
+/**
+ * 是否 negotiate 阶段的 401（token 过期/失效）
+ * signalr 的 HttpError 带 statusCode，包装过的错误只剩 message
+ */
 function isUnauthorizedError(error: unknown): boolean {
   if ((error as { statusCode?: number } | null)?.statusCode === 401) {
     return true
@@ -49,10 +52,7 @@ function getInstanceState(hubPath: string): SignalRInstanceState {
   return state
 }
 
-/**
- * SignalR 连接管理（按 hubPath 的全局单例注册表）
- * Hub 路径默认 /hubs/notification，认证时自动携带 JWT
- */
+/** SignalR 连接管理：按 hubPath 全局单例，认证时自动携带 JWT */
 export function useSignalR(hubPath = '/hubs/notification') {
   const normalizedHubPath = hubPath.startsWith('/')
     ? hubPath

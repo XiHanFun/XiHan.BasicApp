@@ -73,7 +73,10 @@ export function configureRequest(next: RequestConfig): void {
   }
 }
 
-/** 32 位 trace-id + 16 位 span-id 的 W3C traceparent；排障时以它为准，失败响应的 traceId 由 Problem Details 携带 */
+/**
+ * 生成 W3C traceparent（32 位 trace-id + 16 位 span-id）
+ * 排障以它为准，失败响应的 traceId 由 Problem Details 携带
+ */
 export function newTraceparent(): string {
   return `00-${hex(16)}-${hex(8)}-01`
 }
@@ -194,7 +197,10 @@ async function readBody<T>(response: Response): Promise<T> {
 export { ApiError }
 export type { ProblemDetails } from './problem'
 
-/** 普通端点（上传、下载等不在路由表里的端点）的完整地址：接口前缀 + 路径；后端签发的相对地址（如签名下载地址）也经这里补前缀 */
+/**
+ * 普通端点（不在路由表里的）补上接口前缀
+ * 后端签发的相对地址（如签名下载地址）也经这里补
+ */
 export function endpointUrl(path: string): string {
   return /^https?:\/\//i.test(path)
     ? path
@@ -208,8 +214,9 @@ export interface UploadOptions {
 }
 
 /**
- * 以 multipart 表单上传到普通端点：带令牌、区域与 traceparent，未认证时与 `invoke` 一样先换令牌重放一次；
- * 用 XMLHttpRequest 是为了拿上传进度（fetch 没有）。成功返回响应 JSON，失败抛 `ApiError`
+ * 以 multipart 表单上传到普通端点，失败抛 `ApiError`
+ * 带令牌、区域与 traceparent，未认证时同 `invoke` 先换令牌重放一次
+ * 用 XMLHttpRequest 是为拿上传进度（fetch 没有）
  */
 export async function uploadForm<TResponse>(path: string, form: FormData, options: UploadOptions = {}): Promise<TResponse> {
   const traceparent = newTraceparent()
@@ -260,7 +267,7 @@ export interface DownloadedFile {
   fileName: string | null
 }
 
-/** Content-Disposition 里的文件名：优先 RFC 5987 的 filename*（UTF-8），否则 filename */
+/** Content-Disposition 的文件名：优先 filename*（RFC 5987），否则 filename */
 function fileNameOf(disposition: string | null): string | null {
   if (!disposition)
     return null
@@ -278,8 +285,8 @@ function fileNameOf(disposition: string | null): string | null {
 }
 
 /**
- * 从普通端点（不在路由表里、返回文件内容的端点，如代码生成的产物包）下载：带令牌、区域与 traceparent，
- * 未认证时与 `invoke` 一样先换令牌重放一次；成功返回内容与文件名，失败抛 `ApiError`
+ * 从普通端点下载文件，失败抛 `ApiError`
+ * 带令牌、区域与 traceparent，未认证时同 `invoke` 先换令牌重放一次
  */
 export async function downloadEndpoint(path: string, options: { signal?: AbortSignal } = {}): Promise<DownloadedFile> {
   const traceparent = newTraceparent()

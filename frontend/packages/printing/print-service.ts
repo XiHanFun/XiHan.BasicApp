@@ -243,7 +243,7 @@ async function executeDirectPrint<T>(
   }
 }
 
-/** 按显式指定、本地偏好、客户端默认的固定优先级选择打印机；空字符串交给客户端的默认打印机 */
+/** 按显式指定 → 本地偏好 → 客户端默认选打印机；空串即客户端默认 */
 function choosePrinter(
   templateCode: string,
   printers: PrintDevice[],
@@ -263,7 +263,7 @@ function choosePrinter(
   return printers.find(printer => printer.isDefault)?.name ?? ''
 }
 
-/** 解析后端模板；绑定了数据源的模板确认数据源已注册，自由模板直接按模板里的字段接收数据 */
+/** 解析后端模板；绑了数据源的先确认已注册，自由模板按其字段收数据 */
 async function resolveTemplate(
   templateCode: string,
   scope: PrintTemplateScope,

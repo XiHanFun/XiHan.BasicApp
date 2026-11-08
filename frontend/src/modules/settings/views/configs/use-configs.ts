@@ -61,8 +61,8 @@ function emptyForm(): ConfigForm {
 }
 
 /**
- * SchemaPage 的资源：分页（读共享：平台参数 + 本侧参数）、删除、启停与导入新建
- * 搜索字段按后端白名单下发：分组 / 数据类型 / 所属 / 状态 / 是否加密精确匹配，关键字匹配键与名称
+ * SchemaPage 的资源：分页、删除、启停与导入新建
+ * 读共享：列出平台参数与本侧参数；关键字匹配键与名称
  */
 export function configsResource(): SchemaResource<ConfigRow> {
   return {
@@ -121,8 +121,9 @@ export function configsResource(): SchemaResource<ConfigRow> {
 }
 
 /**
- * 参数页的编辑弹窗（两侧都有）：新建（租户同键即覆盖平台参数）、编辑本侧参数、按平台参数预填覆盖
- * 另一侧的参数只读；加密参数不回显值，编辑时值留空即保留原值。字段级错误挂回对应字段
+ * 参数的新建、编辑与覆盖弹窗，两侧都有
+ * 租户新建同键即覆盖平台参数，也可按平台参数预填覆盖；另一侧的参数只读
+ * 加密参数不回显值，编辑时值留空即保留原值
  */
 export function useConfigEditor(isPlatformCaller: () => boolean) {
   const open = ref(false)

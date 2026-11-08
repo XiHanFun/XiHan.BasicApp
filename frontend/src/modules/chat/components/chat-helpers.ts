@@ -15,7 +15,8 @@ import { formatDateTime, getDisplayTimeZone } from '~/utils'
 type Translate = (key: string, named?: Record<string, unknown>) => string
 
 /**
- * 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案
+ * 报错文案：问题详情取正文（已本地化），其余取消息
+ * 都没有时为空串，由调用点补兜底文案
  * 请求层不弹统一提示，用户操作的失败由聊天界面自己提示
  */
 export function chatErrorText(error: unknown): string {
@@ -26,14 +27,14 @@ export function chatErrorText(error: unknown): string {
     : ''
 }
 
-/** 这类会话显示不显示已读回执：助手不读消息，助手会话不显示（否则永远是「未读」），其余照常 */
+/** 是否显示已读回执：助手不读消息，助手会话显示了会永远「未读」 */
 export function hasReadReceipt(conversationType: ChatConversationType | undefined): boolean {
   return conversationType !== 'Assistant'
 }
 
 /**
- * 助手回复交给 Markdown 渲染前去掉图片语法：回复内容受知识库片段与工具结果影响，
- * 自动加载的图片地址能把对话内容带到外部，所以只留成要点一下的链接
+ * 助手回复渲染前把图片语法降成链接
+ * 回复受知识库片段与工具结果影响，自动加载的图片地址能把对话内容带到外部
  */
 export function assistantMarkdownSource(text: string): string {
   return text.replace(/!\[/g, '[')
@@ -96,7 +97,10 @@ function previousDay(day: string): string {
   return new Date(Date.UTC(year!, month! - 1, date! - 1)).toISOString().slice(0, 10)
 }
 
-/** 会话列表时间：今天 HH:mm；昨天；同年 M/D；跨年 YYYY/M/D（按应用时区，同审计页的 formatDate） */
+/**
+ * 会话列表时间：今天 HH:mm、昨天、同年 M/D、跨年 YYYY/M/D
+ * 按应用时区，与审计页的 formatDate 一致
+ */
 export function formatConversationTime(t: Translate, time?: null | string): string {
   const zone = getDisplayTimeZone()
   const day = time

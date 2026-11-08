@@ -37,7 +37,7 @@ export const CONSTRAINT_ACTIONS: readonly ConstraintViolationAction[] = [
 ]
 export const CONSTRAINT_STATUSES: readonly ConstraintRuleStatus[] = ['Active', 'Disabled']
 
-/** 约束类型用得了哪些目标类型（与后端一致）：职责分离与条件只约束角色，互斥只约束权限，基数约束角色或用户 */
+/** 约束类型可用的目标类型（与后端一致） */
 export function targetTypesOf(type: ConstraintType): readonly ConstraintTargetType[] {
   switch (type) {
     case 'MutualExclusion': return ['Permission']
@@ -130,8 +130,8 @@ export function toListRow(row: ConstraintRuleRow): ConstraintRuleListRow {
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台，缺省按求值顺序）、删除、启停
- * 搜索按后端白名单：关键字匹配编码、名称、说明与备注；类型、目标类型、处理方式、状态多选（合成 in）
+ * 约束规则的 SchemaPage 资源
+ * 作用侧为当前租户或平台，缺省按求值顺序；关键字匹配编码、名称、说明与备注
  */
 export function constraintRuleResource(): SchemaResource<ConstraintRuleListRow> {
   return {

@@ -76,7 +76,7 @@ const stepTones = computed(() => {
   return tones
 })
 
-/** 单据组件：按页面登记表解析组件路径；登记表里没有（前端没装对应模块）时为空，以原始数据展示 */
+/** 按页面登记表解析单据组件，没装对应模块时为 null，以原始数据展示 */
 function resolveForm(path: string): Component | null {
   try {
     return defineAsyncComponent(resolveView(path))

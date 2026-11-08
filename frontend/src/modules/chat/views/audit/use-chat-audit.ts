@@ -106,8 +106,8 @@ export function memberRoleTone(role: ChatMemberRole): Tone {
 }
 
 /**
- * 一次只看一条的按需加载（详情、成员两个弹窗共用）：打开即清掉上一条，换来的结果只认最后一次打开的那条，
- * 关掉或连点别的行时，慢回来的旧结果不回写。失败抛给调用方提示
+ * 一次只看一条的按需加载，详情、成员两个弹窗共用
+ * 只认最后一次打开的那条，慢回来的旧结果不回写；失败抛给调用方提示
  */
 export function useAuditLoader<TKey, TValue>(load: (key: TKey) => Promise<TValue>) {
   const open = ref(false)

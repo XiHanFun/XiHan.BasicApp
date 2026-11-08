@@ -152,7 +152,10 @@ function relationLabelOptionsFor(row: ColumnRow): SelectOption[] {
   ]
 }
 
-/** 本列可选的字典：已填的编码不在列表里（字典被删或写错）时也列出来并标明，免得下拉显示成空 */
+/**
+ * 本列可选的字典
+ * 已填的编码不在列表里（字典被删或写错）时也列出并标明，免得下拉显示成空
+ */
 function dictOptionsFor(row: ColumnRow): SelectOption[] {
   const current = row.dictCode?.trim()
   if (!current || dictOptions.value.some(option => option.value === current))
@@ -197,7 +200,10 @@ const BOOLEAN_TITLES: Record<BooleanField, string> = {
   isQuery: 'codegeneration.code_gen.column.col_query',
 }
 
-/** 基类的列不进任何产物，放开编辑只会让人以为配置生效了（判定由后端给出，与模板同源） */
+/**
+ * 基类的列不可编辑
+ * 它们不进任何产物，放开编辑只会让人以为配置生效了；判定由后端给出，与模板同源
+ */
 function isLocked(row: ColumnRow): boolean {
   return row.isBase
 }
@@ -213,7 +219,10 @@ function renderCheckbox(row: ColumnRow, field: BooleanField) {
   })
 }
 
-/** 选项配置：按来源渲染字典码、枚举全名、常量 JSON 或关联表（互斥，只编辑生效的那个） */
+/**
+ * 按选项来源渲染字典码、枚举全名、常量 JSON 或关联表
+ * 几种来源互斥，只编辑生效的那个
+ */
 function renderSelectorValue(row: ColumnRow) {
   if (row.dictSelectorType === 'DictSelector') {
     return h(XSelect, {

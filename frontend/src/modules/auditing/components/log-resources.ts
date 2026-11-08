@@ -70,8 +70,8 @@ function readonly<TRow>(list: ListOperation<TRow>, query: PageQueryMapping): Sch
 }
 
 /**
- * 另能提交到导出中心的只读列表：业务类型就是列表操作 ID，
- * 后台以发起人的身份逐页调它，查询快照与列表用同一份分页请求（同一份筛选登记）
+ * 可提交到导出中心的只读列表，业务类型即列表操作 ID
+ * 后台以发起人身份逐页调它，查询快照与列表共用分页请求与筛选登记
  */
 function exportable<TRow>(businessType: Extract<OperationId, `${string}.list`>, list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
   return {

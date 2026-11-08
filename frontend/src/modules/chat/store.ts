@@ -72,9 +72,8 @@ function isLocalMessage(message: ChatMessageItem): boolean {
 }
 
 /**
- * 按会话内序号把一条已落库消息插进列表：排在第一条序号比它大的已落库消息之前；
- * 比现有的都新时排在最后一条已落库消息之后，本地占位与发送失败的条目留在最下方
- * 主键是 GUID，先后只看 seq
+ * 按会话内序号把已落库消息插进列表
+ * 本地占位与发送失败的条目始终留在最下方；主键是 GUID，先后只看 seq
  */
 function insertBySeq(list: ChatLocalMessage[], item: ChatLocalMessage): void {
   const before = list.findIndex(m => !isLocalMessage(m) && m.seq > item.seq)
@@ -385,8 +384,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * REST 回执 / 推送到达后收敛：clientMessageId 匹配的乐观占位换成正式消息，messageId 已在的不重复插入
-   * （保留已有那条：历史里带的表情回应推送不带）；正式消息按 seq 落位，推送乱序到达也排得对
+   * 回执或推送到达后收敛：乐观占位换成正式消息，按 seq 落位
+   * messageId 已在的不重复插入，保留已有那条（历史里带的表情回应推送不带）
    */
   function reconcileSaved(saved: ChatMessageItem) {
     const list = messages.value[saved.conversationId]
@@ -634,8 +633,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 会话置顶开关（个人维度）。接口传新值而不是切换：新值取列表里的当前值取反，
-   * 不在列表里的会话不知道当前值，不发请求
+   * 切换会话置顶（个人维度）
+   * 接口传新值，取列表里的当前值取反；不在列表里的会话不发请求
    */
   async function togglePinConversation(conversationId: string) {
     const current = findConversation(conversationId)
@@ -680,8 +679,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 群聊某条自己消息的已读人数（不含自己）；单聊则表示对端是否已读
-   * 按会话内序号比较：成员的已读序号不小于这条的 seq 即已读；还没落库的占位（seq 0）不算
+   * 自己某条消息的已读人数（不含自己），单聊即对端是否已读
+   * 成员已读序号不小于这条的 seq 即已读；未落库的占位（seq 0）不算
    */
   function readCountFor(conversationId: string, seq: number): number {
     const positions = readPositions.value[conversationId]
@@ -909,7 +908,10 @@ export const useChatStore = defineStore('chat', () => {
     return conversations.value.find(c => c.conversationId === conversationId)?.conversationType ?? null
   }
 
-  /** 请求助手回复本轮提问；增量由 applyAssistantDelta 回灌，落库消息经普通推送到达。提供方未注册时空转 */
+  /**
+   * 请求助手回复本轮提问，提供方未注册时空转
+   * 增量由 applyAssistantDelta 回灌，落库消息经普通推送到达
+   */
   async function requestAssistantReply(conversationId: string) {
     const provider = getChatAssistantProvider()
     if (!provider)

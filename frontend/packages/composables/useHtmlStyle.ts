@@ -11,10 +11,7 @@ import { useAppStore } from '~/stores'
 /** 换算根字号百分比时的参照基准：CSS 规范里浏览器默认的根字号（px） */
 const ROOT_FONT_SIZE_BASELINE = 16
 
-/**
- * 将主题 / 密度 / 图表配色 / 灰度 / 色弱 / 字号 / 磨砂等偏好实时同步到 <html> 元素
- * 在 App 根组件中调用一次即可
- */
+/** 把主题、密度、字号等偏好实时同步到 <html>，在 App 根组件调用一次 */
 export function useHtmlStyle() {
   const appStore = useAppStore()
   const { isDark } = useTheme()

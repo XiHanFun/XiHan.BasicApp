@@ -60,7 +60,10 @@ export function normalizeExtension(value: unknown): unknown {
     : `.${extension}`
 }
 
-/** SchemaPage 的资源：分页（缺省按上传时间倒序）与删除（内容不再被别的文件用到时随之从存储里删除） */
+/**
+ * SchemaPage 的资源：分页（缺省按上传时间倒序）与删除
+ * 内容不再被别的文件用到时，随之从存储里删除
+ */
 export function fileResource(): SchemaResource<FileRow> {
   return {
     page: async (params: SchemaQueryParams) => {
@@ -246,7 +249,8 @@ export function canSetPrimary(storage: FileStorageRow): boolean {
 }
 
 /**
- * 启停副本的目标状态：正常 ↔ 停用；主副本不能停用，校验失败的要重新校验，这两种为空
+ * 启停副本的目标状态：正常 ↔ 停用
+ * 主副本不能停用、校验失败的要重新校验，这两种为 null
  */
 export function storageToggleTarget(storage: FileStorageRow): 'Normal' | 'Unavailable' | null {
   if (storage.status === 'Normal')

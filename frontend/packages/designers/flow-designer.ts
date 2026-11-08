@@ -16,7 +16,7 @@ import '@xihan-flow/designer/style.css'
 
 export { FLOW_SETTING_KEYS } from '@xihan-flow/designer'
 
-/** 注册 <xh-flow-designer>（含它用到的零件与 UI 元素），并让它跟随应用语言；可重复调用 */
+/** 注册 <xh-flow-designer>（连同零件与 UI 元素）并跟随应用语言；可重复调用 */
 export function ensureFlowDesigner(): void {
   defineFlowDesigner()
   registerXhElementsLocale(flowLocale)

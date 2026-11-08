@@ -27,9 +27,9 @@ import { useChatStore } from '../store'
 const CHAT_RECONNECT_INTERVAL_MS = 15000
 
 /**
- * 在 BasicLayout 中初始化聊天实时链路（RealtimeHubs.Chat 独立连接）：
- * 订阅聊天的九个推送方法（方法名取 ~/contracts 的 RealtimeMethods）回灌 chat store，并预取会话列表供顶栏未读角标
- * 没有会话读权限（chat.chat-conversations.read）的用户整条链路静默关闭
+ * 在 BasicLayout 中初始化聊天实时链路（RealtimeHubs.Chat 独立连接）
+ * 推送回灌 chat store，并预取会话列表供顶栏未读角标
+ * 没有会话读权限（chat.chat-conversations.read）时整条链路静默关闭
  */
 export function useChatIntegration() {
   const accessStore = useAccessStore()
@@ -40,10 +40,9 @@ export function useChatIntegration() {
   const { t } = useI18n()
 
   /**
-   * 他人发来的消息的提醒。岛提示与提示音的静音条件不同，分开判断：
-   * - 岛提示：只要在聊天页就不弹，消息就在眼前，再弹一次是噪音
-   * - 提示音：只有「正开着这条会话且窗口在前台」才不响。在聊天页但开着别的会话、
-   *   或窗口切到后台，都还是要出声，否则会漏掉
+   * 提醒他人发来的消息，岛提示与提示音分开判断静音
+   * 岛提示：在聊天页就不弹，消息就在眼前
+   * 提示音：只有正开着这条会话且窗口在前台才不响，否则会漏掉
    */
   function notifyIncomingMessage(payload: ChatMessagePushPayload) {
     const { message, conversation } = payload

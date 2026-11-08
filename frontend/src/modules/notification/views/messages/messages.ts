@@ -23,7 +23,7 @@ export const RECORD_QUERY: PageQueryMapping = {
   filters: { templateCode: 'eq', businessType: 'eq' },
 }
 
-/** 重发：排队中与发送中的不行（后端 NOTIFICATION_CONFLICT_006）；成功、失败与已取消的都可以重新排队 */
+/** 能否重发：排队中与发送中的不行（后端 NOTIFICATION_CONFLICT_006） */
 export function canResend(status: MessageSendStatus): boolean {
   return status !== 'Pending' && status !== 'Sending'
 }

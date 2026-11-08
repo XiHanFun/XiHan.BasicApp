@@ -36,12 +36,7 @@ export interface PersonalView {
 
 const STORAGE_PREFIX = 'xh:views:'
 
-/**
- * 视图管理状态机：个人视图的增删改查与默认设置，按 pageCode 持久化到 localStorage
- * S3 后端 SysPageView 端点就绪后可扩展系统/租户/团队视图（scope）
- *
- * @param pageCode 页面唯一码（存储维度）
- */
+/** 视图管理状态机：个人视图的增删改查与默认设置，按 pageCode 持久化 */
 export function useViewManager(pageCode: string) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
   const sync = useUserSettingSync(pageCode)

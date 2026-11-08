@@ -8,11 +8,7 @@ import type { QueryFilter } from '~/types/contracts'
 import { QueryOperator } from '~/types/contracts'
 import { renderFieldCell } from './renderer'
 
-/**
- * 字段是否对当前用户可见（权限过滤）
- * @param field 字段
- * @param can 权限判定函数（来自 usePermission().hasPermission）
- */
+/** 字段是否对当前用户可见，can 取 usePermission().hasPermission */
 function isFieldPermitted(field: { permission?: string }, can: (code: string) => boolean): boolean {
   return !field.permission || can(field.permission)
 }
@@ -65,9 +61,9 @@ export function toImportFields<TRow extends object>(
 }
 
 /**
- * 派生：由 searchRange/searchMultiple 字段的当前值生成后端通用过滤 conditions.filters
- * 区间 → Between（值为 ISO 字符串；date 粒度末值补到当天 23:59:59.999 以含整日）；多选 → In
- * 其余字段不在此处理（仍由各页 buildXxxQuery 映射为 DTO 顶层字段）
+ * 区间与多选字段的值 → 后端通用过滤 conditions.filters
+ * 区间为 Between（ISO 串，date 粒度末值补到当天 23:59:59.999 以含整日），多选为 In
+ * 其余字段由各页 buildXxxQuery 映射为 DTO 顶层字段
  */
 export function queryFiltersFromSchema<TRow extends object>(
   fields: ReadonlyArray<ListFieldSchema<TRow>>,
@@ -109,11 +105,8 @@ function endOfDayTimestamp(timestamp: number): number {
 }
 
 /**
- * 派生：表格列（visible=true 且有权限），可叠加视图/列设置的列可见、顺序与固定
- * @param options.visibleKeys 覆盖的可见列；未提供则用 schema 默认
- * @param options.columnOrder 覆盖的列顺序
- * @param options.fixedMap 覆盖的列固定方向（key → left/right/undefined）
- * @param options.widthMap 覆盖的列宽（key → px；undefined 表示沿用 schema 宽度）
+ * 派生表格列（visible 为 true 且有权限）
+ * options 叠加视图与列设置的可见列、顺序、固定方向与列宽（px），没给的项沿用 schema
  */
 export function toColumns<TRow extends object>(
   schema: PageSchema<TRow>,

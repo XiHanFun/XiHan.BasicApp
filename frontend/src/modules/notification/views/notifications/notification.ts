@@ -39,8 +39,8 @@ export function needsTargets(type: NotificationTargetType): boolean {
 }
 
 /**
- * 勾选的渠道 → 提交与展示用的渠道：并入站内信、去重、按契约顺序排
- * 站内信始终投递（后端拒绝不含站内信的 NOTIFICATION_VALIDATION_010），邮件、短信与机器人可叠加
+ * 勾选的渠道规整成提交与展示用的：并入站内信、去重、按契约顺序排
+ * 站内信始终投递，后端拒绝不含站内信的（NOTIFICATION_VALIDATION_010）
  */
 export function normalizeChannels(channels: readonly string[] | null | undefined): DeliveryChannel[] {
   const picked = new Set<string>(channels ?? [])
@@ -268,7 +268,10 @@ export function loadRecipients(id: string, filter: NotificationRecipientFilter, 
   })
 }
 
-/** 导出用的未读人员：按后端页上限逐页取，至多 {@link EXPORT_LIMIT} 人；`truncated` 表示还有没取到的 */
+/**
+ * 按后端页上限逐页取导出用的未读人员，至多 {@link EXPORT_LIMIT} 人
+ * `truncated` 表示还有没取到的
+ */
 export async function loadUnreadForExport(id: string): Promise<{ rows: RecipientRow[], truncated: boolean }> {
   const rows: RecipientRow[] = []
   let total = 0
@@ -293,7 +296,7 @@ function csvCell(value: string): string {
   return `"${csvNeutralize(value).replaceAll('"', '""')}"`
 }
 
-/** 未读人员 CSV（带 BOM 防中文乱码、CRLF 换行、每格加引号）：用户名、显示名、收到时间 */
+/** 未读人员 CSV：带 BOM 防中文乱码，CRLF 换行，每格加引号 */
 export function unreadCsv(header: readonly [string, string, string], rows: readonly RecipientRow[], formatTime: (value: string) => string): string {
   const lines = [
     header,

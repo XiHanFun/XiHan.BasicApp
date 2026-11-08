@@ -23,9 +23,9 @@ export function menuAncestors(nodes: readonly AppMenuOption[], key: string, trai
 }
 
 /**
- * 当前页换了之后的展开集合：通往当前页的各级分支都要开着
- * 手风琴（同层只开一枝）下直接换成这条路径；否则在已展开的基础上补上这条路径
- * 当前页在顶层（路径为空）时原样留着，不去收用户自己点开的分支
+ * 当前页变化后的展开集合，通往当前页的分支都开着
+ * 手风琴下直接换成这条路径，否则在已展开的基础上补上
+ * 路径为空（当前页在顶层）时原样留着，不收用户点开的分支
  */
 export function revealExpanded(expanded: readonly string[], path: readonly string[], accordion: boolean): string[] {
   if (path.length === 0)

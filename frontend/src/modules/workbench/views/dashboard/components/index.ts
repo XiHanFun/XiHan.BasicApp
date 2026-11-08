@@ -76,7 +76,7 @@ export const WIDGETS: WidgetDef[] = [
   widget('deliveries', 'deliveries', 'lucide:send', 4, DeliveriesWidget, 'notification.emails.read'),
 ]
 
-/** 模块登记的列表型小组件（registerWorkbenchWidget）：同一个列表外观，排在内置小组件之后 */
+/** registerWorkbenchWidget 登记的列表型小组件，排在内置小组件之后 */
 function registered(widget: WorkbenchListWidget): WidgetDef {
   return {
     key: widget.key,
@@ -97,11 +97,8 @@ function registered(widget: WorkbenchListWidget): WidgetDef {
 WIDGETS.push(...useWorkbenchWidgets().map(registered))
 
 /**
- * 小组件对当前用户是否可见：声明了权限码按权限码门控，声明了所属页面按调用方可见的页面门控，都没声明人人可见
- * @param widget 小组件定义
- * @param hasPermission 权限判定
- * @param pages 调用方可见的页面编码
- * @returns 是否可见
+ * 小组件对当前用户是否可见，按声明的权限码与所属页面门控
+ * pages 是调用方可见的页面编码
  */
 export function canShowWidget(widget: WidgetDef | undefined, hasPermission: (code: string) => boolean, pages: ReadonlySet<string>): boolean {
   return !!widget && (!widget.permission || hasPermission(widget.permission)) && (!widget.page || pages.has(widget.page))

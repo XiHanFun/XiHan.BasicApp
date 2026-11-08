@@ -63,8 +63,8 @@ export interface ChatGalleryItem {
 }
 
 /**
- * 在消息流里提供会话图片组：整个会话一个看片浮层，按消息先后串起所有图片
- * 返回浮层要绑的列表、开合与下标；往上翻出更早的历史、新图片进来时列表会变，按正在看的那张把下标对回去
+ * 提供会话图片组：整个会话一个看片浮层，按消息先后串起所有图片
+ * 翻出更早历史或新图片进来时列表会变，按正在看的那张把下标对回去
  */
 export function provideChatImageGallery(messages: MaybeRefOrGetter<readonly ChatMessageItem[]>): {
   items: ComputedRef<ChatGalleryItem[]>

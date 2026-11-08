@@ -53,10 +53,7 @@ export function defaultStep(precision?: number): number | undefined {
     : Number(`1e-${precision}`)
 }
 
-/**
- * 原始输入串 → 上抛的值
- * 空串为 null；'-'、'1e' 这类还不成数的中间态为 undefined，表示这一次不上抛
- */
+/** 输入串 → 上抛的值：空串为 null，'-'、'1e' 这类中间态为 undefined 即不上抛 */
 export function toModelValue(text: string, precision?: number): number | null | undefined {
   if (text.trim() === '')
     return null
@@ -73,10 +70,8 @@ export interface NumberDraft {
 }
 
 /**
- * 框里该显示的串
- *
- * 草稿仍对应当前值时沿用草稿：'-0'、'1.'、'1.50' 这类输入中途的写法按值格式化会被改掉，
- * 光标也跟着跳；值被外部改成别的数时草稿作废，按值格式化
+ * 框里该显示的串：草稿仍对应当前值时沿用草稿，否则按值格式化
+ * '-0'、'1.'、'1.50' 这类输入中途的写法按值格式化会被改掉，光标也跟着跳
  */
 export function resolveDisplayText(value: number | null, draft: NumberDraft | null, precision?: number): string {
   if (draft && draft.value === value)

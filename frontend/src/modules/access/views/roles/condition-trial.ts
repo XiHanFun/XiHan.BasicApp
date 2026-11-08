@@ -139,7 +139,7 @@ export function conclusionLabel(t: Translate, conclusion: ConditionGroupConclusi
   }
 }
 
-/** 盘点明细导出成 CSV：表头与诊断、结论都用调用方给的文案；带 BOM，表格软件按 UTF-8 打开中文不乱码 */
+/** 盘点明细导出成 CSV；带 BOM，表格软件按 UTF-8 打开中文不乱码 */
 export function inventoryToCsv(items: readonly ConditionInventoryItem[], headers: readonly string[], describe: (item: ConditionInventoryItem) => readonly string[]): string {
   const lines = [
     headers,

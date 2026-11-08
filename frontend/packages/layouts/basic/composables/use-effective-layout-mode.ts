@@ -8,13 +8,9 @@ import { useIsMobile } from '~/composables/useIsMobile'
 import { useAppStore } from '~/stores'
 
 /**
- * 生效布局模式：小屏一律按 side（垂直）渲染
- *
- * top / mix / header-mix / side-mixed / full 都依赖横向空间或双列，窄屏下会挤成不可用的形态
- * 此处只改渲染，不动用户存的偏好，回到大屏即恢复原选择
- *
- * 布局相关组件一律读本值，不要直接读 `appStore.layoutMode`：直接读会绕过这条强制，
- * 出现外壳已按 side 计算、而头部或侧栏仍在渲染多列形态的错位
+ * 生效的布局模式：小屏一律按 side 渲染，不改用户偏好
+ * 其余模式依赖横向空间或双列，窄屏下不可用
+ * 布局组件一律读本值而非 `appStore.layoutMode`，否则外壳与头部、侧栏形态错位
  */
 export function useEffectiveLayoutMode() {
   const appStore = useAppStore()

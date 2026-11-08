@@ -199,8 +199,8 @@ function reset() {
 type StatusKind = 'success' | 'error' | 'warning' | 'info'
 
 /**
- * 状态归一：以后端归并的 item.status 为权威来源（访问结果、成败、是否拦下等已折算成同一口径）
- * 不按原始 HTTP 码判色；HTTP 码仅用于状态标签文案（statusText）
+ * 按后端归并的 item.status 定状态色
+ * 访问结果、成败、是否拦下已折算成同一口径；HTTP 码只用于标签文案（statusText）
  */
 function statusKind(item: TraceItem): StatusKind {
   switch (item.status) {
@@ -244,7 +244,10 @@ function statusText(item: TraceItem): string {
     : resultLabel(item.status)
 }
 
-/** 路径 / 标题（method + path 为主，没有路径显标题，如操作 ID、异常类型）；登录事件与权限变更类型是契约字面量，换成文案 */
+/**
+ * 条目主文：有路径显路径，否则显标题（如操作 ID、异常类型）
+ * 登录事件与权限变更类型是契约字面量，换成文案
+ */
 function pathOf(item: TraceItem): string {
   if (item.path)
     return item.path

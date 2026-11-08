@@ -46,7 +46,7 @@ function reducedMotion(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-/** 反解元素的「布局矩形」：消除进行中的 scale 变换（按 transform 矩阵与 origin 还原） */
+/** 元素的布局矩形：按 transform 矩阵与 origin 消去进行中的 scale */
 function layoutRect(el: HTMLElement): DOMRect {
   const rect = el.getBoundingClientRect()
   const style = getComputedStyle(el)
@@ -129,11 +129,9 @@ function noop(): void {}
 let teardown: (() => void) | null = null
 
 /**
- * 安装容器变形转场（幂等，应用内调用一次）
- * options.enabled 为动态开关（如跟随「页面切换动画」偏好）
- *
- * @returns 卸载函数：摘掉 pointerdown 监听、断开 MutationObserver 并释放点击源矩形
- *   在 effect 作用域（组件 setup）内调用时会自动随作用域销毁，无需手动调用
+ * 安装容器变形转场（幂等，应用内调用一次），返回卸载函数
+ * options.enabled 是动态开关（如跟随「页面切换动画」偏好）
+ * 在 effect 作用域（组件 setup）内调用时随作用域自动卸载
  */
 export function setupContainerTransform(options?: { enabled?: () => boolean }): () => void {
   if (typeof document === 'undefined') {

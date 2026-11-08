@@ -37,8 +37,8 @@ function isBlank(value: unknown): boolean {
 }
 
 /**
- * SchemaPage 的归一化查询参数 → 6.0 的 `PageRequest`（4.x 由 `@/api` 的 createPageRequest 承担）
- * 区间与多选（conditionFilters：Between / In）只接页面登记过的字段；没登记的出现即抛错，而不是静默丢掉条件
+ * SchemaPage 的查询参数转成 `PageRequest`
+ * 区间与多选（conditionFilters 的 Between / In）只接登记过的字段，没登记的即抛错，不静默丢条件
  */
 export function toPageRequest(params: SchemaQueryParams, mapping: PageQueryMapping = {}): PageRequest {
   const keywordField = mapping.keyword ?? 'keyword'
@@ -94,7 +94,7 @@ export function toPageRequest(params: SchemaQueryParams, mapping: PageQueryMappi
   }
 }
 
-/** 6.0 的分页结果（`items / total / page`）→ SchemaPage 读的分页结果（4.x 的 `PageResult`） */
+/** 后端分页结果转成 SchemaPage 读的 `PageResult` */
 export function toSchemaPageResult<T>(result: { items: T[], total: number | string, page: { index?: number, size?: number } }, requested: SchemaQueryParams): PageResult<T> {
   const totalCount = Number(result.total)
   const pageIndex = result.page.index ?? requested.page

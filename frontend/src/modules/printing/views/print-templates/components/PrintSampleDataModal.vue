@@ -91,9 +91,9 @@ onBeforeUnmount(() => {
 })
 
 /**
- * 初始化样例字段结构：字段取模板引用的那些；绑定数据源时样例用它的工厂，自由模板是一条按字段生成的空白记录
- * @returns 初始化完成信号
- * @throws 所有异常都会转换为弹窗内错误，不向事件循环泄漏
+ * 初始化样例字段结构，字段取模板引用的那些
+ * 绑定数据源时样例用它的工厂，自由模板是一条按字段生成的空白记录
+ * 异常都转成弹窗内错误，不向事件循环泄漏
  */
 async function initialize(): Promise<void> {
   const requestVersion = ++initializationVersion

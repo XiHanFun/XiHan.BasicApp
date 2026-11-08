@@ -127,7 +127,10 @@ const deliveryChannelOptions = computed(() => DELIVERY_CHANNELS.map(channel => (
   disabled: channel === 'InApp',
 })))
 
-/** 列表里的渠道标签：站内信 neutral，其余 info；h() 节点不带页面 scope，样式写 :deep() */
+/**
+ * 列表里的渠道标签
+ * h() 节点不带页面 scope，样式写 :deep()
+ */
 function channelTags(channels: readonly DeliveryChannel[]) {
   return h('span', { class: 'notification-channels' }, normalizeChannels(channels).map(channel => renderTag(deliveryChannelLabel(t, channel), channel === 'InApp'
     ? 'neutral'

@@ -6,15 +6,7 @@
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, ref, toValue } from 'vue'
 
-/**
- * 数组分页工具函数
- *
- * 接受响应式或普通数组，自动计算分页数据
- * 适用于前端本地分页（数据量较小且一次性加载的场景）
- *
- * @param list 源数组（支持 ref / computed / 普通数组）
- * @param initialPageSize 初始每页条数，默认 10
- */
+/** 前端本地分页，数据量小且一次性加载时用 */
 export function usePagination<T>(list: MaybeRefOrGetter<T[]>, initialPageSize = 10) {
   // 原始页码：只存用户意图，对外读取一律经 clampPage 夹取到当前有效范围
   const rawPage = ref(1)

@@ -50,9 +50,7 @@ function commonPrefix(names: string[]): string {
 
 /**
  * 按资源分组：组码优先用后端 groupCode，缺省回退资源段推导
- *
- * 角色、用户直授与版本权限的穿梭框共用这一份口径——各推一遍的话，同一批权限在几个界面里会分出
- * 不同的段，换用另一个界面时看起来像数据变了
+ * 角色、用户直授与版本权限的穿梭框共用这份口径，各推一遍会让同一批权限在几个界面分组不同，像数据变了
  */
 export function groupPermissions<T extends PermissionGrantItem>(
   items: readonly T[],

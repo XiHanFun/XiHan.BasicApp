@@ -23,11 +23,7 @@ export interface ShellExtension {
 
 const extensions = shallowReactive<ShellExtension[]>([])
 
-/**
- * 注册壳层扩展；模块 setup 钩子（app.mount 之前）调用
- * @param extension 扩展定义
- * @returns 无返回值
- */
+/** 注册壳层扩展，在模块 setup 钩子（app.mount 之前）调用 */
 export function registerShellExtension(extension: ShellExtension): void {
   extensions.push(extension)
 }

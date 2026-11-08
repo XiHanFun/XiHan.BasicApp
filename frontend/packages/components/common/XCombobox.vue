@@ -137,7 +137,7 @@ const selected = computed<string[]>(() => {
       ]
 })
 
-/** 选中项文字：当前选项优先，其次见过的，都没有退回值本身（与 XSelect 的值文本同一口径） */
+/** 选中项文字：依次取当前选项、见过的，都没有用值本身（同 XSelect） */
 function labelOf(key: string): string {
   return currentByKey.value.get(key)?.label ?? known.get(key)?.label ?? key
 }

@@ -64,8 +64,8 @@ const localizedModes = computed(() => themeModes.map(m => ({
 })))
 
 /**
- * 模式切换：change 事件不带坐标，取被点中的模式卡片矩形中心作为扩散起点，
- * 否则 useTheme 会回退到视口中心，动画看起来「从上方扩散」而非从点击处
+ * 切换明暗模式，以被点中卡片的中心为扩散起点
+ * change 事件不带坐标，不给起点 useTheme 会从视口中心扩散
  */
 function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
   const card = (event.currentTarget as HTMLElement | null)

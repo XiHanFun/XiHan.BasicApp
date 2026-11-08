@@ -38,11 +38,7 @@ let draftSnapshot: Map<string, unknown> | null = null
 /** 草稿模式下是否存在未保存变更（响应式，供「保存」按钮启用判定） */
 export const preferenceDraftDirty = ref(false)
 
-/**
- * BUILD_TIME 缓存失效：
- * 当 `__APP_BUILD_TIME__` 变化时清除所有带前缀的偏好缓存，
- * 强制使用新默认值，解决"用户本地偏好锁死新功能"的问题
- */
+/** `__APP_BUILD_TIME__` 变了就清掉带前缀的偏好缓存，免得本地偏好锁死新功能 */
 export function invalidateCacheIfBuildTimeChanged() {
   const currentBuildTime = typeof __APP_BUILD_TIME__ === 'string'
     ? __APP_BUILD_TIME__
@@ -96,10 +92,7 @@ function readLocalPreference<T>(key: string): T | undefined {
     : (LocalStorage.get<T>(key) ?? undefined)
 }
 
-/**
- * 把发起端携带的视口百分比起点还原为本端坐标
- * 各端视口尺寸不同，按百分比换算才能落在「相对位置相同」的点上
- */
+/** 发起端的视口百分比起点 → 本端坐标，各端视口不同，按百分比才落在同一相对位置 */
 function parseTransitionOrigin(origin?: null | string): { clientX: number, clientY: number } | undefined {
   if (!origin) {
     return undefined
@@ -137,7 +130,7 @@ function resolveRemoteEffectiveDark(remote: Record<string, unknown>): boolean | 
   return mode === 'dark'
 }
 
-/** 偏好后端同步是否启用（用户开关，默认开启=上行后端并实时推送多端）。读自注册表中的同步开关偏好 */
+/** 偏好后端同步是否启用：开启即上行后端并实时推送多端，缺省开启 */
 export function isPreferenceSyncEnabled(): boolean {
   return registry.get(PREFERENCE_SYNC_KEY)?.value === true
 }
@@ -217,8 +210,8 @@ function scheduleBackendSync() {
 }
 
 /**
- * 监听 ref 变化并自动写入 localStorage；同时登记进偏好注册表，
- * 任一偏好变化触发整份快照防抖上行后端（开启回写后）
+ * ref 变化时写入 localStorage，并登记进偏好注册表
+ * 任一偏好变化都触发整份快照防抖上行后端（开启回写后）
  */
 export function bindPersist<T>(key: string, source: { value: T }, defaultValue?: T) {
   registry.set(key, source as { value: unknown })
@@ -237,9 +230,9 @@ export function bindPersist<T>(key: string, source: { value: T }, defaultValue?:
 }
 
 /**
- * 重置所有「偏好设置」为默认值
- * 仅作用于经 bindPersist 登记了默认值的偏好（恰为偏好设置全集），不含 token / 用户信息 / 收藏夹 / 标签
- * 直接改写内存 ref → 经各自 watch 同步落地 localStorage 并防抖上行后端；不触发整页刷新，因此不会影响登录态
+ * 把「偏好设置」全部重置为默认值
+ * 只动经 bindPersist 登记了默认值的偏好（即偏好设置全集），不含 token / 用户信息 / 收藏夹 / 标签
+ * 改写内存 ref，由各自 watch 落地并防抖上行；不刷新整页，不影响登录态
  */
 export function resetRegisteredPreferences(): void {
   registry.forEach((source, key) => {
@@ -249,10 +242,7 @@ export function resetRegisteredPreferences(): void {
   })
 }
 
-/**
- * 进入偏好草稿模式（偏好设置抽屉打开时调用）
- * 暂停落地（变更仅内存预览），并快照当前已保存值作为「取消」还原的基线
- */
+/** 偏好抽屉打开时进入草稿模式：暂停落地只做预览，快照已保存值作还原基线 */
 export function beginPreferenceDraft(): void {
   draftSnapshot = new Map()
   registry.forEach((source, key) => draftSnapshot!.set(key, source.value))
@@ -260,10 +250,7 @@ export function beginPreferenceDraft(): void {
   persistSuspended = true
 }
 
-/**
- * 保存草稿（点击「保存」时调用）
- * 将当前内存值落地 localStorage，并立即按开关上行后端；更新还原基线，dirty 复位
- */
+/** 保存偏好草稿：落地本地并立即按开关上行，同时更新还原基线 */
 export function commitPreferenceDraft(): void {
   if (!draftSnapshot) {
     return
@@ -277,9 +264,8 @@ export function commitPreferenceDraft(): void {
 }
 
 /**
- * 放弃草稿（关闭抽屉时调用）
- * 还原到基线（最近一次保存或打开时的值），结束草稿模式恢复正常落地
- * 由于 commit 会更新基线，已保存的变更不会被还原
+ * 关闭抽屉时放弃草稿：还原到最近一次保存或打开时的值，恢复正常落地
+ * commit 会更新基线，已保存的变更不会被还原
  */
 export function discardPreferenceDraft(): void {
   const snapshot = draftSnapshot
@@ -312,7 +298,7 @@ export function discardPreferenceDraft(): void {
   }
 }
 
-/** 立即更新 ref 并写入 localStorage（ref 变化亦会经 bindPersist 的 watch 触发后端同步） */
+/** 立即更新 ref 并写入 localStorage，后端同步由 bindPersist 的 watch 触发 */
 export function save<T>(key: string, target: { value: T }, value: T) {
   target.value = value
   // 草稿模式：仅预览（dirty 由 bindPersist 的 watch 标记），不落地
@@ -323,10 +309,9 @@ export function save<T>(key: string, target: { value: T }, value: T) {
 }
 
 /**
- * 登录 / 刷新恢复会话后：拉取后端偏好并覆盖本地（应用到已注册的偏好 ref）
- * - localStorage 仍是即时事实源，后端为跨端覆盖层；端点未就绪 / 无记录时静默保留本地
- * - 一次会话仅执行一次；退出登录后由 resetPreferenceBackendSync 重置
- * - 后端无记录时以当前本地偏好播种后端（首端首次登录即落库）
+ * 登录或恢复会话后拉取后端偏好覆盖本地，每次会话只跑一次
+ * localStorage 仍是即时事实源、后端是跨端覆盖层，端点未就绪或无记录时保留本地；退出后由 resetPreferenceBackendSync 重置
+ * 后端无记录时以本地偏好播种（首端首次登录即落库）
  */
 export async function hydratePreferencesFromBackend(options?: { showIsland?: boolean }): Promise<void> {
   if (hydrated)
@@ -383,10 +368,9 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
 }
 
 /**
- * 应用来自其它在线设备的偏好变更推送（SignalR UserSettingChanged，scene=Preference / settingKey=global）
- * 仅在已开启偏好同步、非草稿编辑中、会话回写已就绪（已水合）时应用；
- * 应用期间暂停回写：watch 照常落地 localStorage，但不把远端值回环上行
- * 草稿模式（偏好抽屉打开）期间忽略远端推送，避免编辑中界面跳变——按「最后保存者赢」收敛
+ * 应用其它设备推来的偏好快照：本地照常落地，期间暂停回写、不回环上行
+ * 只在开了偏好同步、已水合时应用；草稿模式（抽屉打开）忽略推送免得编辑中界面跳变，按「最后保存者赢」收敛
+ * 推送是 SignalR UserSettingChanged，scene=Preference / settingKey=global
  */
 export async function applyRemotePreferenceSnapshot(settingValue?: null | string, origin?: null | string): Promise<void> {
   if (!settingValue || !isPreferenceSyncEnabled() || persistSuspended || !backendSyncEnabled) {

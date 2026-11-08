@@ -36,11 +36,9 @@ const squeezeLevel = ref(0)
 const squeezedCount = computed(() => Math.max(0, squeezeLevel.value - 1))
 
 /**
- * 顶栏工具与偏好设置入口的落位，顶栏与悬浮组（AppFloatToolbar）共用这一处判定，二者互斥：
- * - hidden：不显示；floating：进悬浮组
- * - header：放顶栏；但顶栏不显示、或小屏（< 768）顶栏放不下时回落悬浮，免得挤掉右上角的账号入口
- * - auto：内容最大化 / 顶栏隐藏 / 全屏内容布局时悬浮；否则放顶栏，顶栏挤不下时从左往右依次让到悬浮组
- *   （挤压程度由 AppHeader 里的 useHeaderSqueeze 量；命令面板在让出之前先收成图标钮，见 searchSqueezed）
+ * 顶栏工具与偏好入口落在顶栏还是悬浮组，二者共用此判定且互斥
+ * header：顶栏不显示或小屏（< 768）时回落悬浮，免得挤掉右上角的账号入口
+ * auto：内容最大化、顶栏隐藏、全屏内容布局时悬浮，否则放顶栏，挤不下时从左往右让到悬浮组（见 useHeaderSqueeze）
  */
 export function useWidgetPlacement() {
   const appStore = useAppStore()
@@ -122,16 +120,12 @@ export function useWidgetPlacement() {
 
 /**
  * 顶栏挤压的测量端，只在 AppHeader 挂一份
- * 顶栏这一行挤（内容溢出，或面包屑被截断）时逐档加挤：先把命令面板收成图标钮，再把「自动」的工具从左往右
- * 一个个让到悬浮组，每一档记下它从工具区腾出的宽度；这一行的空档（中间弹性区的宽度）够放回上一档腾出的宽度时
- * 逐档放回，放回后又挤（工具自身宽度变了）就退回并改记
- * 腾出的宽度只取决于那颗工具自己，与面包屑长短、面包屑是否显示、行宽都无关，路由与断点怎么变都不会记过时
- * 加挤与放回都在同一轮微任务里做完，浏览器只画最后排定的那一版，不会一档档闪
- *
- * @param row 顶栏这一行：溢出按它的 scrollWidth 与 clientWidth 比
- * @param toolbar 右侧工具区：腾出的宽度按它的宽度差量；账号名、租户名变宽也会挤，要盯它的尺寸
- * @param breadcrumb 面包屑：能压缩、会截断，截掉的宽度也算挤；它排在最后让
- * @param spacer 中间的弹性区：放得下时多出来的宽度都在它身上，就是这一行的空档
+ * 挤时（溢出或面包屑截断）逐档加挤：先收命令面板，再把「自动」工具从左往右让到悬浮组，记下每档腾出的宽度；空档够放回上一档时放回，放回又挤就退回改记
+ * 腾出宽度只看工具自身，路由与断点变化不会记过时；加挤与放回在同一轮微任务里完成，不会逐档闪
+ * @param row 溢出按它的 scrollWidth 与 clientWidth 比
+ * @param toolbar 腾出的宽度按它的宽度差量；账号名、租户名变宽也会挤，要盯它的尺寸
+ * @param breadcrumb 能压缩、会截断，截掉的宽度也算挤；它排在最后让
+ * @param spacer 中间的弹性区，放得下时多出来的宽度都在它身上，就是这一行的空档
  */
 export function useHeaderSqueeze(
   row: Readonly<Ref<HTMLElement | null | undefined>>,
@@ -146,7 +140,7 @@ export function useHeaderSqueeze(
   let settling = false
   const maxLevel = computed(() => 1 + squeezable.value.length)
 
-  /** 面包屑被截掉的宽度：各段文字自己裁切（overflow 非 visible），截掉多少就是它们的 scrollWidth 超出多少 */
+  /** 面包屑被截掉的宽度：各段自行裁切的文字超出可视宽的总和 */
   function truncated() {
     const el = breadcrumb.value
     if (!el) {
@@ -206,7 +200,10 @@ export function useHeaderSqueeze(
     }
   }
 
-  /** 从头量：参与挤压的工具换了一批（改了位置设置、切了布局），或工具自身宽度变了（换语言），旧的挤压档与宽度都不作数 */
+  /**
+   * 清掉挤压档与记下的宽度，从头量
+   * 参与挤压的工具换了（改位置设置、切布局）或自身宽度变了（换语言）时调用
+   */
   async function remeasure() {
     squeezeLevel.value = 0
     freed.length = 0

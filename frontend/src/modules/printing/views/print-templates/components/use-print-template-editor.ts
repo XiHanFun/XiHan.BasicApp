@@ -105,7 +105,10 @@ export function usePrintTemplateEditor(
     samplePreviewVisible.value = false
   })
 
-  /** 重置本次编辑会话并重新装载设计器；只打开已有模板，新模板先在列表页的新增弹窗里建好 */
+  /**
+   * 重置编辑会话并重新装载设计器
+   * 只打开已有模板，新模板先在列表页的新增弹窗里建好
+   */
   async function resetEditor(): Promise<void> {
     designerReady.value = false
     abortController.abort()
@@ -165,8 +168,8 @@ export function usePrintTemplateEditor(
   }
 
   /**
-   * 保存设计；loading 锁阻止重复提交，并发戳用于拒绝覆盖并行编辑，模板有错误级问题时拦下。元数据沿用详情里的那份
-   * @returns 保存后的模板详情；校验失败、并发提交或接口失败时返回 null
+   * 保存设计，元数据沿用详情里的那份
+   * 并发戳拒绝覆盖并行编辑；有错误级问题、重复提交或接口失败时返回 null
    */
   async function save(): Promise<PrintTemplateDetail | null> {
     const detail = currentDetail.value

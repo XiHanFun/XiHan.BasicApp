@@ -78,7 +78,7 @@ function formatBoolean(value?: boolean | null) {
     : t('common.statuses.no')
 }
 
-/** 首个触发器（列表的触发类型、行展开的 Cron 与间隔都看它；多个触发器在详情里逐个列出） */
+/** 首个触发器：列表的触发类型与行展开都看它，多个触发器在详情里逐个列出 */
 function primaryTrigger(row: JobRow) {
   return row.triggers[0]
 }

@@ -67,7 +67,7 @@ const {
 
 const canvasRef = shallowRef<InstanceType<typeof DesignerCanvas> | null>(null)
 
-/** 画布实例交给编辑会话（保存、预览要读设计），这里另留一份用来刷新菜单栏上的宿主命令 */
+/** 画布实例交给编辑会话（保存、预览要读设计），另留一份刷新宿主命令 */
 function bindCanvas(instance: unknown): void {
   setDesignerRef(instance)
   canvasRef.value = instance as InstanceType<typeof DesignerCanvas> | null
@@ -90,7 +90,10 @@ const hostExtension = createPrintHostExtension({
   refreshPrinters: () => void loadPrinters(true),
 })
 
-/** 按了设计器自带的关闭钮：保存、直打进行中不理；有未保存的修改先确认（与 Esc 关弹窗同一条路） */
+/**
+ * 设计器自带的关闭钮，与 Esc 关弹窗同一条路
+ * 保存、直打进行中不理；有未保存的修改先确认
+ */
 function handleClose(): void {
   if (saveLoading.value || directLoading.value)
     return

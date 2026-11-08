@@ -108,8 +108,8 @@ async function approve() {
 }
 
 /**
- * 拒绝授权：后端确认 client_id 与 redirect_uri 已注册后给出 redirect_uri?error=access_denied&state=...，整页跳回第三方
- * 跳转地址只认后端返回的，不在前端拼
+ * 拒绝授权，整页跳回第三方
+ * 跳转地址（带 error=access_denied）由后端确认 client_id 与 redirect_uri 已注册后给出，不在前端拼
  */
 async function deny() {
   if (submitting.value || denying.value) {

@@ -62,7 +62,7 @@ export function createRule(type: string): AssigneeRule {
 
 /**
  * 把节点属性里的规则值归一成 `{ type, values }[]`
- * 后端经 JSON 往返后是驼峰（type/values），手写 JSON 也可能是帕斯卡（Type/Values），两种都认；无法识别的项丢弃
+ * 驼峰（后端经 JSON 往返）与帕斯卡（手写 JSON）都认，无法识别的项丢弃
  */
 export function readRules(value: unknown): AssigneeRule[] {
   if (!Array.isArray(value))
@@ -103,9 +103,8 @@ export function isRuleComplete(rule: AssigneeRule): boolean {
 }
 
 /**
- * 把受理人的旧写法并入规则：Assignees（主键列表）→ User 规则、AssigneesExpression → Expression 规则、
- * CcUserIds → 抄送 User 规则。设计器只编辑规则，打开旧定义时就地改写，保存即落为新写法（已发布版本不受影响）
- * 返回是否发生了改写
+ * 把 Assignees、AssigneesExpression、CcUserIds 并入规则，返回是否改写
+ * 设计器只编辑规则：打开时就地改写，保存即落为规则写法，已发布版本不受影响
  */
 export function migrateLegacyAssignees(properties: Record<string, unknown>): boolean {
   let changed = false

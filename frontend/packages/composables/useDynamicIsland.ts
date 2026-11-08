@@ -391,8 +391,8 @@ let enabledResolver: (() => boolean) | null = null
 let messageSink: IslandMessageSink | null = null
 
 /**
- * 注入灵动岛启用判定与「关闭时」的消息兜底
- * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由轻提示接管
+ * 注入灵动岛启用判定与关闭时的消息兜底
+ * 关闭时进行中态静默，终态（成功/失败/信息）改由轻提示接管
  */
 export function configureDynamicIsland(options: { isEnabled: () => boolean, message: IslandMessageSink }): void {
   enabledResolver = options.isEnabled
@@ -468,8 +468,8 @@ export function islandStart(id: string, label: string, init: IslandTaskInit = {}
 }
 
 /**
- * 常驻状态指示（不自动消失，用于网络/实时连接/后台运行等）
- * 通过返回句柄的 success/info/dismiss 收尾
+ * 常驻状态指示（网络、实时连接、后台运行等），不自动消失
+ * 经句柄的 success / info / dismiss 收尾
  */
 export function islandStatus(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
   // 灵动岛关闭：常驻状态整体静默（不弹消息）
@@ -482,8 +482,8 @@ export function islandStatus(id: string, label: string, init: IslandTaskInit = {
 }
 
 /**
- * 服务端后台任务进度入口（SignalR TaskProgress 事件 → 灵动岛）
- * 同 taskId 复用同一条；进行中任务参与会话级持久化（刷新后恢复，等待服务端续推）
+ * 服务端后台任务进度（SignalR TaskProgress）→ 灵动岛
+ * 同 taskId 复用同一条；进行中的任务参与会话级持久化，刷新后恢复并等服务端续推
  */
 export function applyServerTaskProgress(payload: ServerTaskProgressPayload): void {
   if (!payload?.taskId || !payload.label) {

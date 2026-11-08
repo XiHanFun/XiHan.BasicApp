@@ -38,7 +38,10 @@ function compareOrdinal(a: string, b: string): number {
 
 // ── 命名空间 ────────────────────────────────────────────────────
 
-/** 包名的显示文本：本应用登记了命名空间的包写出文案（键静态写出以便 i18n 门禁核对），其余原样显示包名 */
+/**
+ * 包名的显示文本：登记了命名空间的包写出文案，其余原样显示
+ * 文案键静态写出，i18n 门禁才核对得到
+ */
 export function packageLabel(t: Translate, name: string): string {
   switch (name) {
     case 'access': return t('maintenance.caches.packages.access')
@@ -50,7 +53,7 @@ export function packageLabel(t: Translate, name: string): string {
   }
 }
 
-/** 命名空间下拉的选项：值是前缀，文本是「前缀 · 包名」，鉴权相关（不可改写）的标上只读 */
+/** 命名空间下拉的选项：值是前缀，鉴权相关（不可改写）的标上只读 */
 export function namespaceOptions(t: Translate, namespaces: readonly CacheNamespace[]): { label: string, value: string }[] {
   return namespaces.map((namespace) => {
     const values = {
@@ -66,7 +69,7 @@ export function namespaceOptions(t: Translate, namespaces: readonly CacheNamespa
   })
 }
 
-/** 键或前缀所在的命名空间（与后端同口径：以命名空间前缀开头）；不在任何开放命名空间里为 null */
+/** 键或前缀所在的命名空间（与后端同口径），不在开放命名空间里为 null */
 export function namespaceOf(namespaces: readonly CacheNamespace[], keyOrPrefix: string): CacheNamespace | null {
   return namespaces.find(namespace => keyOrPrefix.startsWith(namespace.prefix)) ?? null
 }
@@ -78,10 +81,7 @@ export async function loadNamespaces(): Promise<CacheNamespace[]> {
 
 // ── 键列表 ──────────────────────────────────────────────────────
 
-/**
- * 查询的完整前缀：命名空间前缀加上子前缀（去首尾空白）
- * 只认前缀、不认通配：选命名空间、再按需补一段子前缀
- */
+/** 命名空间前缀加子前缀拼成查询前缀；只认前缀、不认通配 */
 export function keyPrefix(namespacePrefix: string, subPrefix: string): string {
   return `${namespacePrefix}${subPrefix.trim()}`
 }
@@ -112,9 +112,9 @@ export function mergeObjectKeys(existing: ReadonlySet<string>, incoming: readonl
 }
 
 /**
- * 键列表的状态：按前缀取第一页、再按续页标记往下翻，跨页去重
- * 后端把对象缓存与字节存储两层合起来列，对象缓存的键另记一份
- * 换前缀或重查时作废在途的上一笔，晚到的旧响应不覆盖新结果，也不报错
+ * 键列表的状态：按前缀取第一页、再按续页标记翻页
+ * 对象缓存与字节存储两层由后端合起来列，对象缓存的键另记一份
+ * 换前缀或重查时作废在途的上一笔，晚到的旧响应不覆盖新结果、也不报错
  */
 export function useCacheKeys() {
   const keys = ref<string[]>([])
@@ -206,8 +206,8 @@ export interface CacheTreeOption {
 }
 
 /**
- * 扁平键 → 树（按 : 分组）。叶子与分组分槽存储：
- * 同一路径既是某键又是更深键前缀（如 a:b 与 a:b:c 并存）时不互相覆盖、不丢键
+ * 扁平键按 : 分组成树
+ * 叶子与分组分槽存储：a:b 与 a:b:c 并存时不互相覆盖、不丢键
  */
 export function buildKeyTree(keys: readonly string[]): CacheTreeOption[] {
   const root: CacheTreeOption[] = []
@@ -287,7 +287,7 @@ export function formatSize(bytes: number): string {
   return `${(size / 1024 / 1024).toFixed(2)} MB`
 }
 
-/** 秒数的可读写法：取最大的非零单位，再带上紧接的下一级（为零则不带），如「1 小时 5 分」「2 天」「45 秒」 */
+/** 秒数的可读写法：最大的非零单位带上下一级，如「1 小时 5 分」「2 天」 */
 export function formatSeconds(t: Translate, value: number): string {
   const total = Math.max(0, Math.round(value))
   const units = [
@@ -349,9 +349,9 @@ export function canEditEntry(entry: Pick<CacheEntry, 'editable' | 'text'> | null
 }
 
 /**
- * 不能改写的原因：对象缓存的值按 JSON 只读显示（object）、写不出 JSON 不能预览（unrenderable）；
- * 字节存储的值不是 UTF-8 文本（binary，不能预览也不能改）；或命名空间鉴权相关只许删（read-only）
- * 能改写时为 null
+ * 不能改写的原因，能改写时为 null
+ * object：对象缓存按 JSON 只读显示；unrenderable：写不出 JSON 不能预览
+ * binary：字节存储的值不是 UTF-8 文本；read-only：命名空间鉴权相关只许删
  */
 export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'layer' | 'text'>): 'binary' | 'object' | 'read-only' | 'unrenderable' | null {
   const hasText = entry.text !== null && entry.text !== undefined
@@ -387,9 +387,8 @@ export function prettyJson(text: string): string {
 }
 
 /**
- * 当前查看的缓存项
- * 键不存在或已过期（MAINTENANCE_NOTFOUND_003）不算错误，只把 entry 置空、由页面显示「键不存在」；其余错误抛给调用方
- * 连点几个键时只认最后一次，晚到的旧响应丢弃
+ * 当前查看的缓存项；连点几个键时只认最后一次
+ * 键不存在或已过期（MAINTENANCE_NOTFOUND_003）不算错误，entry 置空、页面显示「键不存在」
  */
 export function useCacheEntry() {
   const key = ref<null | string>(null)
@@ -526,7 +525,7 @@ export function singleDeleteToast(t: Translate, outcome: CacheDeleteOutcome): Ca
   }
 }
 
-/** 批量删除的提示：全部不在了即成功（其中已过期的单独说一句）；有没删成的提示成功与失败各几个，并附原因 */
+/** 批量删除的提示：全部不在了即成功，已过期的单独说；有失败时给成败个数与原因 */
 export function batchDeleteToast(t: Translate, outcome: CacheDeleteOutcome): CacheToast {
   if (outcome.failed.length > 0) {
     const reason = [

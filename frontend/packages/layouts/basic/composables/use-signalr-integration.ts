@@ -16,7 +16,10 @@ import { RealtimeMethods } from '~/contracts'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
 import { notificationSummary } from '~/utils'
 
-/** 实时 Hub 路径（.env 的 VITE_REALTIME_HUB，仓库缺省为后端的 /hubs/notification）；为空即不建连接、不起重连定时器 */
+/**
+ * 实时 Hub 路径，取 VITE_REALTIME_HUB（仓库缺省 /hubs/notification）
+ * 为空即不建连接、不起重连定时器
+ */
 const REALTIME_HUB_PATH = (import.meta.env.VITE_REALTIME_HUB ?? '').trim()
 const SIGNALR_RECONNECT_INTERVAL_MS = 15000
 // 断开提示宽限期：持续断开超过此时长仍未恢复才弹横幅，避免自动重连期间的瞬断噪音（频繁显示）
@@ -41,10 +44,7 @@ function getSessionIdFromToken(token: string | null): string | null {
   }
 }
 
-/**
- * 在 BasicLayout 中初始化 SignalR，处理实时通知和踢下线
- * 需在 NDialogProvider / NNotificationProvider 内使用
- */
+/** 在 BasicLayout 中初始化 SignalR，处理实时通知与踢下线 */
 export function useSignalRIntegration() {
   if (!REALTIME_HUB_PATH)
     return
@@ -138,8 +138,8 @@ export function useSignalRIntegration() {
   }
 
   /**
-   * 同账号其它设备保存设置后的实时推送：按场景分发应用
-   * 发起端自身的回显（sourceClientId 等于本端标识）直接忽略——本端已是最新值
+   * 应用同账号其它设备推送的设置变更，按场景分发
+   * 本端自己的回显（sourceClientId 是本端标识）忽略，本端已是最新值
    */
   function handleUserSettingChanged(payload: UserSettingChangedPayload) {
     if (!payload || payload.sourceClientId === USER_SETTING_CLIENT_ID) {

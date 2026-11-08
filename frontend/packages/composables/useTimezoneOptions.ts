@@ -79,9 +79,7 @@ async function load(): Promise<void> {
 
 /**
  * 时区选项的单一来源：顶栏、个人中心、编号规则共用
- *
- * 目录取自后端，因为它筛掉了服务端无法解析的时区——前端自己用
- * `Intl.supportedValuesOf` 枚举出来的 ID 未必能在服务端保存成功
+ * 目录取自后端：它筛掉了服务端无法解析的时区，前端 `Intl.supportedValuesOf` 枚举的 ID 未必能在服务端保存
  */
 export function useTimezoneOptions() {
   /** 常用时区（顶栏下拉用），按 COMMON_TIMEZONE_IDS 的顺序取 */
@@ -93,9 +91,8 @@ export function useTimezoneOptions() {
   })
 
   /**
-   * 在完整目录基础上补上一个当前值
-   * 历史数据可能来自另一操作系统，其 ID 不在本机目录内；补进去只为无损展示，
-   * 提交时仍由后端再次校验
+   * 完整目录补上当前值
+   * 历史数据可能来自另一操作系统、ID 不在本机目录内，补进去只为无损展示，提交时仍由后端校验
    */
   function withCurrent(current?: null | string): TimezoneOption[] {
     const id = current?.trim()

@@ -106,8 +106,8 @@ function updateRequest(row: FieldRuleRow, status: FieldRuleStatus): RequestOf<'f
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停
- * 搜索按后端白名单：关键字匹配字段名与备注；实体、目标类型、读取方式、状态多选（合成 in）
+ * 字段安全规则的 SchemaPage 资源
+ * 作用侧为当前租户或平台；关键字匹配字段名与备注
  */
 export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
   return {
@@ -136,7 +136,7 @@ export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
   }
 }
 
-/** 部门树展平成候选：副文本是从根到它的路径；停用的部门不能做目标，不列出（下级照常列） */
+/** 部门树展平成目标候选；停用的部门不能做目标，不列出（下级照常列） */
 export function flattenDepartments(nodes: readonly DepartmentNode[], path: string[] = []): TargetOption[] {
   return nodes.flatMap((node) => {
     const trail = [...path, node.department.name]
@@ -177,10 +177,7 @@ function snakeOf(name: string): string {
   return name.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
 }
 
-/**
- * 字段显示名的文案键：登记的键 → 同一页面命名空间（键的前两段）里末段是字段名（或 col_ / detail_ / form_ 加字段名）的键
- * → 通用字段词表 → 没有（显示字段名）。字段名是接口的 camelCase，文案键末段是 snake_case
- */
+/** 字段显示名的文案键：登记的键 → 同页同名键 → 通用字段词表，都没有为 null */
 export function fieldTitleKey(titleKey: string, name: string, keys: readonly string[]): string | null {
   const known = new Set(keys)
   if (known.has(titleKey))
@@ -226,10 +223,7 @@ export function useFieldSecurityEntities() {
   return { entities, loading, load, find }
 }
 
-/**
- * 字段规则的编辑弹窗：目标按类型远程检索，实体与字段从目录选；
- * 非文本字段只能明文或隐藏、不可空的字段不能隐藏，明文规则只能只读。字段级错误挂回对应字段
- */
+/** 字段规则的编辑弹窗：目标按类型远程检索，实体与字段从目录选 */
 export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEntity | undefined) {
   const open = ref(false)
   const editing = ref<FieldRuleRow | null>(null)

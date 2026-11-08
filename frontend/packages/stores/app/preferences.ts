@@ -58,7 +58,7 @@ import { bindPersist, save } from '../helpers'
 const WIDGET_PLACEMENTS: readonly WidgetPlacement[] = ['auto', 'header', 'floating', 'hidden']
 
 /**
- * 读一个顶栏工具的位置：已存的位置优先；没有时从旧的显示开关键迁移（开或没设过 → 自动，关 → 隐藏），
+ * 读顶栏工具的位置：已存的优先，没有时从旧的显示开关键迁移
  * 迁移结果当场写入新键、删掉旧键，旧键不再进偏好快照
  */
 function readWidgetPlacement(key: string, legacyKey: string): WidgetPlacement {

@@ -450,8 +450,8 @@ async function handleStart() {
 
 // ── 生命周期操作 ───────────────────────────────────────────────
 /**
- * 发布被定义校验拒绝时（Problem Details 带字段级 errors，键是节点与连线的路径）：打开这份草稿的设计器，问题标在对应的节点与连线上
- * @returns 是否已经这样处理
+ * 发布被定义校验拒绝时打开草稿的设计器，把问题标在节点与连线上
+ * errors 的键是节点与连线的路径；返回是否已这样处理
  */
 async function openPublishProblems(row: WorkflowDefinitionRow, error: unknown): Promise<boolean> {
   if (!(error instanceof ApiError) || !error.errors || Object.keys(error.errors).length === 0)

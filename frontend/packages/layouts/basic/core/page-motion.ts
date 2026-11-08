@@ -96,7 +96,7 @@ const PAGE_MOTIONS: Record<string, PageMotion> = {
   },
 }
 
-/** 终止帧：起始帧改过哪几路就把哪几路归位，别的属性不写进关键帧，免得压住页面自己的样式 */
+/** 终止帧只归位起始帧改过的属性，免得压住页面自己的样式 */
 function restFrameOf(from: Keyframe): Keyframe {
   const rest: Keyframe = {}
   if ('opacity' in from) {
@@ -127,11 +127,9 @@ function durationOf(styles: CSSStyleDeclaration, token: string): number {
 }
 
 /**
- * 播一次进场动画，播完（或不该播）调 done
- *
- * 不认得的动画名、动画关掉时传来的空名、「减少动态效果」下被令牌层压到 1ms 的时长，以及
- * 页面在后台（不出帧，finished 未必结算），都直接收工：Vue 在 css=false 下等的就是这个回调，
- * 不调它页面会一直挂在离场队列里
+ * 播一次进场动画，播完或不该播都调 done
+ * 未知动画名、空名、减弱动效下 1ms 的时长、页面在后台（finished 未必结算）都直接收工
+ * Vue 在 css=false 下等这个回调，不调页面会一直挂在离场队列里
  */
 export function playPageEnter(el: Element, name: string, done: () => void): void {
   cancelPageLeave(el)
@@ -181,12 +179,9 @@ function pin(el: HTMLElement): () => void {
 }
 
 /**
- * 播一次离场：旧页原地淡出，新页同时在它底下进场，切换不再是「旧页一帧消失、空一拍、新页才出来」
- *
- * 只淡不移：方向感由新页的进场给，两层都在动会互相打架。时长取退场档，比进场短，
- * 新页进场的前半程旧页就已经让开。减弱动态效果下退场档仍保留淡变，照样播
- * 旧页是 KeepAlive 缓存页时，离场结束 Vue 把它搬进缓存容器，钉住的样式必须在那之前还原，
- * 否则下次激活它还是绝对定位、透明的
+ * 播一次离场：旧页原地淡出，新页同时在底下进场
+ * 只淡不移，方向感由进场给；时长取更短的退场档，减弱动效下仍淡变
+ * KeepAlive 缓存页在离场结束时被搬进缓存容器，钉住的样式须先还原，否则再激活仍是绝对定位、透明的
  */
 export function playPageLeave(el: Element, name: string, done: () => void): void {
   // 后台标签页不出帧，动画的 finished 可能一直不结算，旧页就一直钉在新页上面：直接收尾
@@ -223,9 +218,8 @@ export function playPageLeave(el: Element, name: string, done: () => void): void
 }
 
 /**
- * 离场还没播完，同一页又被切回来（来回点两个标签）：同 key 的缓存页 Vue 走「提前收掉离场」
- * （after-leave），别的情形走 leave-cancelled，进场开头也再兜一次。撤掉淡出、还原钉住的样式，
- * 进场从完整的页面开始；离场已正常播完的这里什么都不做
+ * 离场没播完又被切回时撤掉淡出、还原钉住的样式；已播完的不处理
+ * 同 key 缓存页由 Vue 经 after-leave 提前收掉离场，其余走 leave-cancelled，进场开头再兜一次
  */
 export function cancelPageLeave(el: Element): void {
   const entry = leaving.get(el)

@@ -25,7 +25,10 @@ const containerRef = ref<HTMLDivElement>()
 
 let picker: HTMLElement | null = null
 
-/** emoji-mart Picker 是一次性配置的自定义元素：主题/语言变化时整体重建（皮肤固定 native 系统渲染） */
+/**
+ * 构建表情选择器，主题或语言变化时整体重建
+ * emoji-mart Picker 是一次性配置的自定义元素；皮肤固定 native（系统渲染）
+ */
 function buildPicker() {
   const host = containerRef.value
   if (!host) {

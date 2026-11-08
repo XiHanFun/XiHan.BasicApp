@@ -23,10 +23,7 @@ function dotStyle(type?: string) {
   }
 }
 
-/**
- * 侧边栏菜单 badge 渲染器
- * 用于 buildMenuOptionsFromRoutes 的 badgeLabelRenderer 参数
- */
+/** 侧边栏菜单 badge，作 buildMenuOptionsFromRoutes 的 badgeLabelRenderer */
 export function renderSidebarBadgeLabel(
   text: string,
   badge: BadgeInfo,
@@ -53,10 +50,7 @@ export function renderSidebarBadgeLabel(
     ])
 }
 
-/**
- * 水平菜单 badge 渲染器
- * 用于 buildMenuOptionsFromRoutes 的 badgeLabelRenderer 参数
- */
+/** 水平菜单 badge，作 buildMenuOptionsFromRoutes 的 badgeLabelRenderer */
 export function renderHorizontalBadgeLabel(
   text: string,
   badge: BadgeInfo,

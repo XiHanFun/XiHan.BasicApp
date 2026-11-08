@@ -161,8 +161,8 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
   }
 
   /**
-   * 从后端拉取并覆盖本地（尽力而为；端点未就绪 / 离线 / 无记录时静默保留本地）
-   * 以 in-flight 去重，允许布局重新挂载（如切换用户）时重新水合
+   * 从后端拉取并覆盖本地，在途去重，布局重新挂载（如切换用户）时可重新水合
+   * 尽力而为：端点未就绪、离线或无记录时静默保留本地
    */
   function hydrate(): Promise<void> {
     if (inflight) {
@@ -191,8 +191,8 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
   }
 
   /**
-   * 应用来自其它在线设备的收藏夹变更推送（SignalR UserSettingChanged，scene=Preference / settingKey=favorites）
-   * 直接覆盖内存与本地，不再回环上行
+   * 应用其它设备推来的收藏夹变更，直接覆盖内存与本地、不回环上行
+   * 推送是 SignalR UserSettingChanged，scene=Preference / settingKey=favorites
    */
   function applyRemote(settingValue?: null | string): void {
     if (!settingValue || !isFavoritesSyncEnabled()) {

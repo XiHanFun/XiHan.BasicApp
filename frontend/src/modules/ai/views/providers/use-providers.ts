@@ -91,10 +91,7 @@ function blankToNull(value: string): null | string {
     : value.trim()
 }
 
-/**
- * SchemaPage 的资源：分页与删除
- * 搜索字段按后端白名单下发：状态多选，关键字匹配编码、名称与聊天模型
- */
+/** SchemaPage 的资源：分页与删除，关键字匹配编码、名称与聊天模型 */
 export function providersResource(): SchemaResource<ProviderRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
@@ -120,7 +117,10 @@ export interface ProbeLine {
   dimensions: null | number
 }
 
-/** 测试连接的结果拆成逐行（会话一行、嵌入一行，没配嵌入模型时嵌入一行说明不能用于知识库） */
+/**
+ * 测试连接的结果拆成会话、嵌入两行
+ * 没配嵌入模型时，嵌入一行说明不能用于知识库
+ */
 export function probeLines(result: ProviderTestResult): { lines: ProbeLine[], embeddingAbsent: boolean } {
   const lines: ProbeLine[] = [
     {
@@ -144,8 +144,9 @@ export function probeLines(result: ProviderTestResult): { lines: ProbeLine[], em
 }
 
 /**
- * 提供商的编辑弹窗：新建与编辑（编码只在新建时填、编辑时 API 密钥留空即保留，状态只在新建时选，之后走行内启停）
- * 详情不回显 API 密钥，只说有没有；字段级错误挂回对应字段
+ * 提供商的新建与编辑弹窗
+ * 编码、状态只在新建时填，之后走行内启停；编辑时 API 密钥留空即保留
+ * 详情不回显 API 密钥，只说有没有
  */
 export function useProviderEditor() {
   const open = ref(false)

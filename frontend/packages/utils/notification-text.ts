@@ -6,8 +6,8 @@
 import { NotificationContentFormat } from '~/types/enums'
 
 /**
- * 通知正文的一句话摘要：实时弹出的通知卡片、顶部横幅只出纯文本，
- * 把 Markdown / HTML 的标记去掉、空白压成一格，再按字数截断。完整正文仍在消息中心按原格式渲染
+ * 通知正文的纯文本摘要，给通知卡片与顶部横幅用
+ * 去掉 Markdown / HTML 标记、压缩空白后按字数截断；完整正文在消息中心按原格式渲染
  */
 export function notificationSummary(
   content: null | string | undefined,

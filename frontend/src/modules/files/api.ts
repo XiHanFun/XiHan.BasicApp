@@ -32,8 +32,9 @@ const PART_CONCURRENCY = 3
 const SIGN_BATCH = 100
 
 /**
- * 上传一个文件，返回新文件：小文件走普通端点 `POST /api/files/upload`（multipart 字段 `file`），
- * 超过 {@link MULTIPART_THRESHOLD} 的走分片上传（各分片经签名地址直传存储，后端拼好后回读校验）
+ * 上传一个文件，返回新文件
+ * 小文件走普通端点 `POST /api/files/upload`（multipart 字段 `file`）
+ * 超过 {@link MULTIPART_THRESHOLD} 的分片直传存储，后端拼好后回读校验
  */
 export function uploadFile(file: File, options: UploadFileOptions = {}): Promise<FileRow> {
   return file.size > MULTIPART_THRESHOLD
@@ -58,8 +59,8 @@ function uploadInOneRequest(file: File, options: UploadFileOptions): Promise<Fil
 }
 
 /**
- * 分片上传：发起 → 按批签出分片地址 → 并发 PUT 各分片（不带令牌，地址即授权）→ 完成
- * 进度按已发出的字节算，完成前停在 99；失败或中止时放弃这次上传，丢弃已上传的分片
+ * 分片上传，各分片 PUT 到签名地址时不带令牌（地址即授权）
+ * 进度按已发出的字节算，完成前停在 99；失败或中止时放弃上传、丢弃已传分片
  */
 async function uploadInParts(file: File, options: UploadFileOptions): Promise<FileRow> {
   const signal = options.signal
@@ -117,7 +118,10 @@ async function eachWithConcurrency<T>(items: readonly T[], limit: number, worker
   await Promise.all(lanes)
 }
 
-/** PUT 一个分片到签名地址；用 XMLHttpRequest 是为了拿上传进度。失败抛 `ApiError`（签名端点回 Problem Details） */
+/**
+ * PUT 一个分片到签名地址，用 XMLHttpRequest 是为了拿上传进度
+ * 失败抛 `ApiError`（签名端点回 Problem Details）
+ */
 function putPart(url: string, chunk: Blob, onProgress: (loaded: number) => void, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
@@ -148,8 +152,8 @@ function putPart(url: string, chunk: Blob, onProgress: (loaded: number) => void,
 }
 
 /**
- * 换取签名下载地址（完整地址，给图片、链接与新窗口用；有效期内不再校验身份）
- * 地址由对象存储签出、带签名参数，原样使用：本地存储是后端宿主的 `/blobs/…`，S3 兼容存储直连存储
+ * 换取完整的签名下载地址，给图片、链接与新窗口用
+ * 有效期内不再校验身份；地址带签名参数须原样使用（本地存储是宿主的 `/blobs/…`，S3 兼容存储直连）
  * `download` 为真时以附件下载（带原始文件名），否则按内容类型内联显示
  */
 export async function fileLink(id: string, download = false): Promise<string> {

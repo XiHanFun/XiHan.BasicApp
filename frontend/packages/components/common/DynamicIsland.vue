@@ -371,9 +371,8 @@ const stackTasks = computed(() => (expanded.value
   : pendingTasks.value.slice(0, STACK_MAX_LAYERS)))
 
 /**
- * 叠层几何：与最前一条等大，逐层向下挪并缩小，从下缘露出边
- * 位移与缩放的量级取自 Sonner（每层 14px、缩 0.05），方向朝下——
- * 岛在屏幕顶部，堆叠一律朝屏幕内侧延伸
+ * 叠层几何：与最前一条等大，逐层下移并缩小，从下缘露边
+ * 朝下叠：岛在屏幕顶部，堆叠一律朝屏幕内侧延伸
  */
 function layerStyle(depth: number): Record<string, string> {
   const isCard = mode.value === 'card'

@@ -66,7 +66,7 @@ export function isIconSetLoaded(prefix: string): boolean {
 
 /**
  * 按 prefix 装入图标集，同一图标集只装一次
- * 未收录的 prefix 返回 null；加载失败也返回 null，且不记住失败，下次调用再试
+ * 未收录或加载失败返回 null；失败不记住，下次调用再试
  */
 export function loadIconSet(prefix: string): Promise<IconifyJSON | null> {
   const packageName = findPackage(prefix)

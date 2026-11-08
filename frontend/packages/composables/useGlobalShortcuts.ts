@@ -19,10 +19,7 @@ export const GLOBAL_HOTKEYS = {
   logout: ['Alt', 'Q'],
 } as const
 
-/**
- * 注册全局快捷键（搜索 / 标签总览 / 锁屏 / 退出）及锁屏自定义事件监听
- * 在 App 根组件中调用一次即可
- */
+/** 注册全局快捷键与锁屏事件监听，在 App 根组件调用一次 */
 export function useGlobalShortcuts() {
   const appStore = useAppStore()
   const authStore = useAuthStore()

@@ -147,7 +147,7 @@ function onFeatureChange(value: string | string[] | null) {
     emit('setShowIndex', next.has(FEATURE_INDEX))
 }
 
-/** 排序图标（无 → 升 → 降，与「固定」同款单图标循环切换；优先级由列在列表中的顺序决定） */
+/** 排序态的图标，与「固定」同款单图标循环切换 */
 function sortIcon(sort?: 'asc' | 'desc'): string {
   if (sort === 'asc') {
     return 'lucide:arrow-up-narrow-wide'

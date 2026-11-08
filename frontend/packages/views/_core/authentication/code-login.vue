@@ -71,9 +71,8 @@ const rules = computed<FormRules<typeof formData.value>>(() => ({
 }))
 
 /**
- * 发验证码只关手机号这一个字段，而表单的公开 API 没有「单字段校验」这一项
- * （逐字段校验是 blur / change 模式下的内部动作）。这里就地判一次格式，
- * 提交那一路仍走表单自己的整表校验
+ * 发验证码，先就地校验手机号格式
+ * 表单没有公开的单字段校验，提交仍走整表校验
  */
 function handleSendCode() {
   if (!/^\d{11}$/.test(formData.value.phone)) {
@@ -97,8 +96,8 @@ function handleSendCode() {
 }
 
 /**
- * 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显
- * 返回的 Promise 交给表单：落定前提交钮自己报在途、再按不重复提交，失败在这里接住
+ * 表单校验通过后提交；被拦下走 invalid
+ * 返回的 Promise 交给表单：落定前提交钮报在途、不重复提交；失败在这里接住
  */
 async function onSubmit() {
   try {

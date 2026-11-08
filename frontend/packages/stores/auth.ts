@@ -36,8 +36,8 @@ export function takeIdentitySwitchedMarker(): boolean {
 }
 
 /**
- * 退出时清掉会话级存储（标签、分屏、灵动岛、第三方登录的发起记录等），只留身份切换标记：
- * 它等重建后的守卫取走，模仿之后权限没装载成就回了登录页时还在，下一个登录的人照样不拿上一身份的偏好播种
+ * 退出时清掉会话级存储，只留身份切换标记
+ * 标记等重建后的守卫取走；模仿后权限没装载成就回了登录页时它还在，下一个登录的人照样不拿上一身份的偏好播种
  */
 function clearSessionStorage(): void {
   try {
@@ -139,8 +139,8 @@ export function takeOAuthPending(): OAuthPending | null {
 }
 
 /**
- * 第三方登录的发起地址：普通端点 `/api/oauth/{名称}/challenge`（整页跳转，不经请求层、不带令牌），带注册地租户（登录页那一栏；平台账号留空即不带）
- * 绑定的发起地址由后端给（`profile.begin-external-bind`，带着本人的绑定意图）
+ * 第三方登录的发起地址：普通端点，整页跳转、不经请求层、不带令牌
+ * 带注册地租户（登录页那一栏，平台账号留空即不带）；绑定的发起地址由后端给（`profile.begin-external-bind`，带着本人的绑定意图）
  */
 export function oauthChallengeUrl(provider: string, tenant?: string): string {
   const query = new URLSearchParams({ mode: 'login' })
@@ -211,10 +211,9 @@ export const useAuthStore = defineStore('auth', () => {
   const loginLoading = ref(false)
 
   /**
-   * 密码登录（登录页的入口，同一个函数走两步验证的每一段）：
-   * - 不带票据是首段：账号、密码与图形验证码交给 `auth.login`；账号开了双因素即返回挑战（票据、可用方式），不存会话；
-   * - 带票据与验证码是第二段：`auth.verify-two-factor` 换令牌；
-   * 拿到令牌就存会话并跳到回跳地址，返回 null。页面上的点击、Enter、验证码输满自动提交都汇到这里，`loginLoading` 同步置位守住重入
+   * 密码登录（两步验证各段共用）：拿到令牌即存会话、跳回跳地址并返回 null
+   * 不带票据是首段（`auth.login`），开了双因素即返回挑战、不存会话；带票据与验证码是第二段（`auth.verify-two-factor`）
+   * 点击、Enter、验证码输满自动提交都汇到此，`loginLoading` 同步置位守住重入
    */
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
     if (loginLoading.value)
@@ -264,7 +263,7 @@ export const useAuthStore = defineStore('auth', () => {
     await router.replace(safeRedirect(redirect))
   }
 
-  /** 第三方登录（整页跳去发起）：带上登录页填的注册地租户（平台账号留空）；登录页的回跳地址随发起记录带回来 */
+  /** 第三方登录：整页跳去发起，带注册地租户；回跳地址随发起记录带回 */
   function startOAuthLogin(provider: OAuthProviderItem, options: { tenant?: string, redirect?: string } = {}): void {
     writeOAuthPending({
       mode: 'login',
@@ -277,7 +276,10 @@ export const useAuthStore = defineStore('auth', () => {
     window.location.assign(oauthChallengeUrl(provider.name, options.tenant))
   }
 
-  /** 绑定第三方账号（个人中心发起）：先领本人的绑定意图、拿到后端给的发起地址再整页跳去，回调页由本人调 `profile.link-external` 确认 */
+  /**
+   * 绑定第三方账号（个人中心发起）：领到本人绑定意图的发起地址后整页跳去
+   * 回调页由本人调 `profile.link-external` 确认
+   */
   async function startOAuthBind(provider: string): Promise<void> {
     const url = await useAppContext().apis.beginOAuthBindApi(provider)
     writeOAuthPending({
@@ -292,17 +294,16 @@ export const useAuthStore = defineStore('auth', () => {
   const pendingTwoFactor = ref<LoginResponse | null>(null)
 
   /**
-   * 第三方登录回调（回调带一次性票据，经 `auth.external-login` 换令牌）：
-   * 拿到令牌即与密码登录同样存会话、跳回跳地址；账号开了双因素即返回挑战——记下挑战、带着回跳地址回登录页，
-   * 由登录页的两步验证阶段接着走（与密码登录首段返回挑战之后同一条路，第二段凭挑战票据走 `auth.verify-two-factor`）
+   * 第三方登录回调：一次性票据经 `auth.external-login` 换令牌
+   * 拿到令牌即同密码登录存会话、跳回跳地址；开了双因素即记下挑战、带回跳地址回登录页，由两步验证阶段凭挑战票据走 `auth.verify-two-factor`
    */
   async function handleOAuthCallback(ticket: string, redirect?: string): Promise<void> {
     await finishOrChallenge(() => authApi.externalLogin({ ticket }, { anonymous: true }), redirect)
   }
 
   /**
-   * 验证码登录（走 `auth.login-by-code`，带注册地租户）：与第三方登录同样，拿到令牌即落地，
-   * 账号开了双因素即记下挑战、回登录页由两步验证阶段接着走
+   * 验证码登录（`auth.login-by-code`，带注册地租户）
+   * 同第三方登录：拿到令牌即落地，开了双因素即记下挑战、回登录页由两步验证阶段接着走
    */
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
     await finishOrChallenge(() => authApi.loginByCode({
@@ -323,7 +324,7 @@ export const useAuthStore = defineStore('auth', () => {
     }, { anonymous: true }), redirect)
   }
 
-  /** 第三方登录与验证码登录的共同收尾：有令牌即存会话、跳回跳地址；是双因素挑战即记下挑战、带着回跳地址回登录页 */
+  /** 第三方登录与验证码登录的共同收尾：落地会话，或记下双因素挑战回登录页 */
   async function finishOrChallenge(signIn: () => Promise<ResponseOf<'auth.external-login'>>, redirect?: string): Promise<void> {
     if (loginLoading.value)
       return
@@ -360,7 +361,7 @@ export const useAuthStore = defineStore('auth', () => {
     return pending
   }
 
-  /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null */
+  /** 用刷新令牌换新会话，返回新访问令牌；失败（吊销 / 过期）清掉会话返回 null */
   function refresh(): Promise<string | null> {
     const current = session.value
     if (!current)
@@ -390,8 +391,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 退出时清掉属于这个人的本地状态，下一个登录的人不该看到：
-   * 会话与权限、标签栏、分屏、会话级存储、锁屏标记与偏好回写通道
+   * 退出时清掉属于这个人的本地状态，下一个登录的人不该看到
    * 菜单路由不在这里卸：守卫下次装载前先卸掉上一份
    */
   function clearLocalState(): void {
@@ -407,8 +407,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 注销：先断开实时连接，再请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳）
-   * 没有会话也要清：刷新失败已清掉会话之后，从锁屏退出还是走这里
+   * 注销：断开实时连接、请求后端吊销会话，再清本地并回登录页
+   * 吊销失败也照常清，会话本就不可用；没有会话也要清，刷新失败后从锁屏退出还是走这里
+   * 回登录页由 store 自己跳，壳层各退出入口都指望这一点
    */
   async function logout(): Promise<void> {
     // 全部 Hub 一起销毁，不逐个枚举；各集成在令牌清空后的收尾照旧（销毁可重入）
@@ -452,7 +453,7 @@ export const useAuthStore = defineStore('auth', () => {
       store({ ...session.value, mustChangePassword: false })
   }
 
-  /** 本人改了资料（显示名、用户名、头像）后：会话里的用户换成后端回的那份（令牌不变），顶栏、用户菜单与个人中心侧栏随之刷新 */
+  /** 本人改资料后换上后端回的用户（令牌不变），顶栏、用户菜单与个人中心随之刷新 */
   function applyUser(nextUser: Session['user']): void {
     if (session.value)
       store({ ...session.value, user: nextUser })
@@ -463,9 +464,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 切换上下文：进入某个租户，或（平台账号）回到平台（`tenantId` 为 null）
-   * 后端在目标上下文续接同一会话、签发新令牌（旧令牌随即失效）；本地存下新会话后整页重建，
-   * 由守卫按新上下文重取权限、重装菜单路由（标签栏等壳层状态都属于上一上下文）
+   * 切换上下文：进入某个租户，或平台账号回到平台（`tenantId` 为 null）
+   * 后端在目标上下文续接同一会话、签发新令牌（旧令牌随即失效）；存下后整页重建（壳层状态属于上一上下文），由守卫重取权限、重装菜单路由
    */
   async function switchTenant(tenantId: null | string): Promise<void> {
     store(await useAppContext().apis.tenantApi.switchTenant({ tenantId }))
@@ -477,7 +477,7 @@ export const useAuthStore = defineStore('auth', () => {
     return useAppContext().apis.sessionRoleApi.list()
   }
 
-  /** 换本会话激活的角色：后端续接同一会话、签发新令牌；本地存下后整页重建（与切换租户同一条路） */
+  /** 换本会话激活的角色：后端续接会话并签发新令牌，存下后整页重建（同切换租户） */
   async function activateRoles(roleIds: string[]): Promise<void> {
     store(await useAppContext().apis.sessionRoleApi.activate(roleIds))
     relaunchApp()
@@ -494,7 +494,10 @@ export const useAuthStore = defineStore('auth', () => {
     return useAppContext().apis.impersonationApi.tenants()
   }
 
-  /** 模仿 / 退出模仿都拿回一份新会话：换掉当前会话后整页重建（与切换租户同一条路）；失败时放开加载态、把错误抛给调用方提示 */
+  /**
+   * 模仿 / 退出模仿：换上拿回的新会话后整页重建（同切换租户）
+   * 失败时放开加载态，把错误抛给调用方提示
+   */
   async function applyImpersonation(run: () => Promise<Session>): Promise<void> {
     if (impersonationLoading.value)
       return

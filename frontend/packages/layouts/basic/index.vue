@@ -178,8 +178,8 @@ function onSideOpen(side: 'left' | 'right'): void {
 }
 
 /**
- * 工具组不在分隔条里，按下冒泡不到它：手柄、标签与留白处按下时把这一下原样转交给分隔条，照旧能拖
- * 按钮自己拦了 pointerdown，点按钮不会顺带拖动
+ * 工具组上的按下转交给分隔条，照旧能拖
+ * 工具组不在分隔条里，冒泡不到它；按钮自己拦了 pointerdown，点按钮不会顺带拖动
  */
 function forwardSplitDrag(event: PointerEvent): void {
   const divider = splitRowRef.value?.querySelector<HTMLElement>('[data-scope="splitter"][data-part="resize-trigger"]')
@@ -223,7 +223,7 @@ function paneCenter(selector: string): { x: number, y: number } {
   return { x: rect.left - rowRect.left + rect.width / 2, y: rect.top - rowRect.top + rect.height / 2 }
 }
 
-/** 图标位置：shrink 停在本侧中心，fly/expand 飞到对侧中心（transition 负责插值飞行） */
+/** 图标位置：shrink 停在本侧中心，fly / expand 飞到对侧中心 */
 function swapIconTransform(side: 'left' | 'right'): string {
   const own = swapCenters.value[side]
   const other = swapCenters.value[side === 'left'

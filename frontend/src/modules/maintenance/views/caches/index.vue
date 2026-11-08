@@ -184,8 +184,8 @@ async function loadNamespaceList() {
 }
 
 /**
- * 选择变化：级联收敛后 keys 仅含叶子，分组键（若有）在此滤掉
- * 本次只新增一个键时把它加载到右侧详情；勾目录一次进来一批，右侧不动
+ * 勾选变化：滤掉分组键，只新增一个键时把它加载到右侧详情
+ * 勾目录一次进来一批，右侧不动
  */
 function handleSelect(keys: string[]) {
   const leaves = leafKeys(keys)
@@ -302,7 +302,7 @@ function showToast(result: CacheToast) {
 }
 
 /**
- * 删掉之后：列表里拿掉这些键（续页标记不动，已加载的后几页不丢），选中与详情里的一并清掉
+ * 删掉之后：列表里拿掉这些键，选中与详情一并清掉
  * 不整表重查：按续页分页，重查会丢掉已加载的后几页
  */
 function afterDelete(gone: readonly string[]) {

@@ -8,7 +8,8 @@ import { toast } from '~/composables'
 import { ApiError } from '~/request'
 
 /**
- * 日志详情抽屉的状态：先用列表行垫上（抽屉立即有内容），再取详情（多出堆栈、前后值、正文摘要等）；取不到就留着列表行并提示
+ * 日志详情抽屉：先用列表行垫上，再取详情补全
+ * 垫上是为了抽屉立即有内容；取不到详情就留着列表行并提示
  */
 export function useLogDetail<TRow extends { id: string }>(fetch: (id: string) => Promise<object>, failedMessage: () => string) {
   const visible = ref(false)

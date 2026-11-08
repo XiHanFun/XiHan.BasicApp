@@ -26,8 +26,7 @@ let loadingBarInstance: LoadingBarService | null = null
 
 /**
  * 轻提示服务：通知服务取 toast 预设，一行操作结果、同位叠成一摞
- * 预设缺省落底部居中、最多 3 条；这里改成顶部居中、5 条
- * 落位是整个服务的口径，不逐条各去一处
+ * 落位改为顶部居中、最多 5 条（预设是底部居中、3 条），整个服务一个口径，不逐条各设
  */
 function toastService(): NotificationService {
   toastInstance ??= createNotificationService({
@@ -52,11 +51,9 @@ function notificationService(): NotificationService {
 }
 
 /**
- * 确认框服务；确定/取消的兜底文案按当前语言取，调用点显式给了就以调用点为准
- *
- * onOk 抛错或 Promise 拒绝不再被吞成 false：服务把它记进 actionError、弹窗保持打开，
- * 并在正文下方用 actionErrorText 给一句可见提示。这句兜底文案也按当前语言取，
- * 调用点在 onOk 里自己 toast 过的场景仍然会看到这条，属于服务的固定行为
+ * 确认框服务：确定 / 取消的兜底文案按当前语言取，调用点给了以调用点为准
+ * onOk 抛错或拒绝时服务记进 actionError、弹窗保持打开，正文下方给一句 actionErrorText（同样按当前语言）
+ * 调用点在 onOk 里自己 toast 过仍会看到这条，属于服务的固定行为
  */
 export function dialogService(): DialogService {
   dialogInstance ??= createDialogService({
@@ -69,10 +66,8 @@ export function dialogService(): DialogService {
 }
 
 /**
- * 顶部进度条服务。条子自带宿主应用挂到 body，位置是 fixed，与业务组件树无关
- *
- * 在途计数由服务自己管：路由守卫的重定向链会连开好几笔，
- * 布尔开关下第一笔收尾就把条子收了
+ * 顶部进度条服务：自带宿主应用挂到 body（fixed），与业务组件树无关
+ * 在途计数由服务自己管：路由守卫的重定向链会连开好几笔，用布尔开关的话第一笔收尾就收了条子
  */
 function loadingBarService(): LoadingBarService {
   loadingBarInstance ??= createLoadingBarService({ config: xhConfigValue })

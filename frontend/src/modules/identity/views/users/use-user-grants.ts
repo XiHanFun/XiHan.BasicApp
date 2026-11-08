@@ -21,7 +21,8 @@ export interface UserGrantItem extends PermissionGrantItem {
 }
 
 /**
- * 某个动作的右栏变成 next：移出本栏的回到未设置，移入本栏的落为该动作。授予与拒绝互斥——原在另一栏的权限挪进来，就从另一栏移走
+ * 某个动作的右栏变成 next：移出的回到未设置，移入的落为该动作
+ * 授予与拒绝互斥，从另一栏挪进来的就从另一栏移走
  */
 export function applyPermissionTransfer(actions: ReadonlyMap<string, GrantAction>, action: GrantAction, next: readonly string[]): Map<string, GrantAction> {
   const keep = new Set(next)
@@ -36,7 +37,8 @@ export function applyPermissionTransfer(actions: ReadonlyMap<string, GrantAction
 }
 
 /**
- * 直接授权的差量：新增或改了动作的分别交给授予 / 拒绝，草稿里已没有的当前项撤销；动作没变的不重复提交
+ * 直接授权的差量，动作没变的不重复提交
+ * 新增或改了动作的分别授予或拒绝，草稿里已没有的当前项撤销
  */
 export function diffPermissionGrants(actions: ReadonlyMap<string, GrantAction>, current: ReadonlyMap<string, GrantAction>): { grant: string[], deny: string[], revoke: string[] } {
   const grant: string[] = []
@@ -93,9 +95,7 @@ function throwOnFailedPermissions(result: { failed: { permission: string, messag
     throw new Error(result.failed.map(f => `${f.permission}: ${f.message}`).join('; '))
 }
 
-/**
- * 用户直接授权抽屉：授予与拒绝两个页签共用一份草稿，保存时按差量调 `user-grants.grant / deny / revoke`
- */
+/** 直接授权抽屉：授予与拒绝两个页签共用一份草稿，保存时按差量提交 */
 export function useUserGrants(outsideGroup: () => string) {
   const open = ref(false)
   const user = ref<UserRow | null>(null)

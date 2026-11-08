@@ -19,10 +19,8 @@ type WorkflowPreset = ReturnType<typeof createXihanWorkflow>
 export const UNSUPPORTED_ACTIVITY_TYPES: ReadonlySet<string> = new Set(['Script'])
 
 /**
- * 物料分组的展示名：后端活动类型目录里的分类展示名（CategoryName，已按界面语言翻译），键是分类标识的小写，
- * 与预设的分组标识一致；目录里没有的分组（如预设的 event）沿用预设的文案
- * @param items 后端活动类型目录
- * @returns 分组标识 → 展示名
+ * 物料分组的展示名，取自后端活动类型目录（已按界面语言翻译）
+ * 键是分类标识的小写，与预设的分组标识一致；目录里没有的分组（如 event）沿用预设文案
  */
 export function paletteCategoryNames(items: readonly { category?: string | null, categoryName?: string | null }[]): Record<string, string> {
   const names: Record<string, string> = {}

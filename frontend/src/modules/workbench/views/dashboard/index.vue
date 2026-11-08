@@ -184,7 +184,10 @@ function setSpan(item: BoardItem, span: number) {
   item.span = span
   dirty.value = true
 }
-/** 清空看板：与其它编辑一样只在内存预览，点「完成」才落地；点错了可「恢复默认」或不点完成直接刷新 */
+/**
+ * 清空看板，与其它编辑一样点「完成」才落地
+ * 点错了可「恢复默认」，或不点完成直接刷新
+ */
 function clearBoard() {
   board.value = []
   dirty.value = true

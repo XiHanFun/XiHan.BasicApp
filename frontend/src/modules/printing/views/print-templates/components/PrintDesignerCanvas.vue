@@ -96,8 +96,8 @@ let importedFields: PrintDesignerEventMap['fields-change']['detail']['fields'] |
 let importedSample: unknown
 
 /**
- * 字段树交给物料面板与属性面板，样例数据交给画布与设计器的预览态
- * 绑了数据源的模板用数据源的字段与缺省样例，字段由后端元数据定、不许在设计器里导入；自由模板用这次导入的
+ * 把字段树与样例数据交给设计器
+ * 绑了数据源的用数据源的字段与缺省样例，字段由后端元数据定、不许导入；自由模板用这次导入的
  */
 async function applyDataSource(): Promise<void> {
   const designer = designerRef.value
@@ -184,7 +184,7 @@ async function preview(data: Record<string, unknown> | Record<string, unknown>[]
   await previewPrintDocument(designer.schema, data)
 }
 
-/** 宿主的状态变了（如保存中、打印机列表到了）：让设计器重算菜单栏与工具栏上宿主命令的可用与勾选 */
+/** 宿主状态变了（如保存中）时让设计器重算宿主命令的可用与勾选 */
 function refreshCommands(): void {
   designerRef.value?.requestUpdate()
 }

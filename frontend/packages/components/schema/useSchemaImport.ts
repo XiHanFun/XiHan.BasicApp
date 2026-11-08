@@ -58,9 +58,7 @@ function csvCell(value: string): string {
     : value
 }
 
-/**
- * 解析 CSV 文本为单元格矩阵：支持双引号包裹、内嵌逗号/换行、"" 转义，兼容 CRLF/LF，剥离 BOM
- */
+/** CSV 文本 → 单元格矩阵：支持引号包裹、内嵌逗号与换行、"" 转义、CRLF，剥离 BOM */
 export function parseCsv(text: string): string[][] {
   const source = text.replace(/^\uFEFF/, '')
   const rows: string[][] = []
@@ -155,9 +153,7 @@ function fieldHint(field: ListFieldSchema): string {
   }
 }
 
-/**
- * 生成导入模板 CSV：表头行（字段标题）+ 以 # 开头的说明行（必填/取值提示，导入时自动跳过）
- */
+/** 生成导入模板 CSV：字段标题表头 + # 开头的说明行（导入时跳过） */
 export function buildImportTemplate(fields: ListFieldSchema[]): string {
   const header = fields.map(f => csvCell(f.title)).join(',')
   const hints = fields

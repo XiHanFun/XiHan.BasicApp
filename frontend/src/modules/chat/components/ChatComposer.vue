@@ -313,9 +313,9 @@ async function loadMentionMembers() {
 }
 
 /**
- * 插入「@名字 」：打 @ 唤起的替换从那个 @ 到光标这一段，点 @ 钮唤起的直接插在光标处
- * 先把焦点交给正文框再改正文：浮层看到焦点移到了外面，按「已交出」收起、不把焦点还给 @ 钮；
- * 反过来先收浮层，它会把焦点还给触发器，正文框就接不着往下打字了
+ * 插入「@名字 」，打 @ 唤起时替换从 @ 到光标的一段
+ * 先把焦点交给正文框再改正文：浮层见焦点已交出，就不还给 @ 钮
+ * 先收浮层的话焦点会回到触发器，正文框就接不着往下打字
  */
 function insertMention(member: ChatMemberItem) {
   const textarea = textInputRef.value?.el
@@ -586,7 +586,7 @@ function clearPendingAttachments() {
   pendingAttachments.value = []
 }
 
-/** 暂存到待发列表（QQ 语义：先进输入区，发送时才上传）；不传 forcedType 时按 MIME 归类 */
+/** 暂存到待发列表，发送时才上传 */
 function addAttachments(files: File[], forcedType?: ChatMessageType) {
   for (const file of files) {
     const messageType = forcedType ?? (file.type.startsWith('image/')
@@ -621,7 +621,7 @@ function handlePickedFile(event: Event, messageType: ChatMessageType) {
   addAttachments([file], messageType)
 }
 
-/** 粘贴：剪贴板含文件（截图/复制的文件）时拦截默认粘贴，暂存待发列表；纯文本走默认粘贴 */
+/** 剪贴板带文件（截图、复制的文件）时暂存待发，纯文本走默认粘贴 */
 function handlePaste(event: ClipboardEvent) {
   if (isEditing.value) {
     return

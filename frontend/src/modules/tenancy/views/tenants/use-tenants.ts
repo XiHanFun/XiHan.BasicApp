@@ -142,7 +142,7 @@ function describe(error: unknown): string {
     : String(error)
 }
 
-/** 成员是否在有效期里：生效时间为空或已到、到期时间为空或还没到（与后端 IsInEffect 同口径） */
+/** 成员是否在有效期里，与后端 IsInEffect 同口径 */
 export function isMemberInEffect(member: Pick<TenantMember, 'effectiveAt' | 'expiresAt'>, now = Date.now()): boolean {
   const from = toTimestamp(member.effectiveAt)
   const until = toTimestamp(member.expiresAt)
@@ -155,7 +155,10 @@ export function isMemberExpired(member: Pick<TenantMember, 'expiresAt'>, now = D
   return until !== null && until <= now
 }
 
-/** 成员候选的用户范围（users.list 的 homeTenantId 筛选）：运维支持只能是平台账号，普通成员只能是租户用户（注册地就是本租户的另由调用方去掉） */
+/**
+ * 成员候选的用户范围：运维支持只能是平台账号，普通成员只能是租户用户
+ * 注册地就是本租户的另由调用方去掉
+ */
 export function memberUserFilters(memberType: TenantMemberType): { field: string, operator: 'eq' | 'ne', value: string }[] {
   return [
     {
@@ -181,9 +184,9 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停（启用即恢复、停用即停用；都是集合操作，逐项拒绝以错误码抛出）
- * 搜索字段按后端白名单下发：关键字匹配租户 ID 与名称，状态精确匹配；排序只放后端接受的租户 ID / 名称 / 排序 / 到期 / 创建时间
- * 给了用量就随每次取页（含刷新）并行取一次全部租户的配额与用量，列表的用量列按租户 ID 对上
+ * 租户的 SchemaPage 资源；启停与删除是集合操作，逐项拒绝以错误码抛出
+ * 关键字匹配租户 ID 与名称；排序只放租户 ID / 名称 / 排序 / 到期 / 创建时间
+ * 给了 quotas 就随每次取页并行取全部租户的配额与用量，用量列按租户 ID 对上
  */
 export function tenantsResource(quotas?: { load: () => Promise<void> }): SchemaResource<TenantRow> {
   return {
@@ -211,7 +214,8 @@ export function tenantsResource(quotas?: { load: () => Promise<void> }): SchemaR
 }
 
 /**
- * 套餐选项（需要 tenancy.editions.read；页面按权限决定是否加载）：开通 / 编辑弹窗的下拉与列表里的套餐名
+ * 开通 / 编辑弹窗的套餐下拉与列表里的套餐名
+ * 需要 tenancy.editions.read，页面按权限决定是否加载
  */
 export function useEditionOptions() {
   const editions = ref<EditionOption[]>([])
@@ -228,7 +232,7 @@ export function useEditionOptions() {
     }
   }
 
-  /** 套餐名：没绑定即不受限（返回 null），绑定的不在选项里（没有读套餐的权限）就显示主键 */
+  /** 套餐名：没绑定为 null（不受限），不在选项里（没有读套餐的权限）显示主键 */
   function editionName(id: null | string | undefined): null | string {
     if (!id)
       return null
@@ -239,14 +243,15 @@ export function useEditionOptions() {
 }
 
 /**
- * 弹窗下拉能选的套餐：停用的不能再分配，只有租户当前绑着的那个还留在下拉里，否则选中值显示不出名字
+ * 弹窗下拉能选的套餐：停用的不能再分配
+ * 租户当前绑着的停用套餐仍留在下拉里，否则选中值显示不出名字
  */
 export function selectableEditions(editions: readonly EditionOption[], currentId: null | string | undefined): EditionOption[] {
   return editions.filter(e => e.status === 'Active' || e.id === currentId)
 }
 
 /**
- * 弹窗里上限留空时沿用的套餐：选了即所选；开通时没选即缺省套餐，编辑时没选即没有套餐（null，不限）
+ * 上限留空时沿用的套餐：选了即所选，没选时开通取缺省套餐、编辑为 null（不限）
  * 所选不在选项里、或开通时没有缺省套餐为 undefined（说不出沿用多少）
  */
 export function inheritedEdition(editions: readonly EditionOption[], editionId: null | string, creating: boolean): EditionOption | null | undefined {
@@ -282,7 +287,8 @@ export function storageUsage(quota: Pick<TenantQuota, 'storageLimitMb' | 'usedSt
 }
 
 /**
- * 列表的用量列（`tenants.quotas`，有效上限 = 租户自己的 → 套餐的 → 不限）：按租户 ID 存一份，随每次取页重取
+ * 列表用量列的数据，按租户 ID 存、随每次取页重取
+ * 有效上限 = 租户自己的 → 套餐的 → 不限
  * 取不到时清空（用量列显示 -）并把原因交给 onError，不拖垮列表本身
  */
 export function useTenantQuotas(onError?: (message: string) => void) {
@@ -310,7 +316,7 @@ export function useTenantQuotas(onError?: (message: string) => void) {
 }
 
 /**
- * 配额核对抽屉：只列超出席位或存储上限的租户（`tenants.quotas?overOnly=true`）
+ * 配额核对抽屉：只列超出席位或存储上限的租户
  * 配额只拦截租户自己新增用户与上传文件，已经超额的不回收，在这里报告
  */
 export function useQuotaAudit() {
@@ -352,9 +358,9 @@ export function useQuotaAudit() {
 // ── 独立库（开通三步：开通 →（独立库）初始化数据库 → 初始化管理员） ──
 
 /**
- * 弹窗里的隔离设置相对租户现状要不要另走 `tenants.configure-database`（开通与更新都不带这几项）：
- * 独立库已就绪即不能再改（TENANCY_CONFLICT_013），不发；改回共库只发隔离方式（后端清掉连接）；
- * 独立库在换了隔离方式、填了新连接串或换了库类型时才发，连接串留空发 null（已配过的沿用，没配过的由后端拒绝 TENANCY_VALIDATION_008）
+ * 隔离设置相对现状的变更，开通与更新都不带，另走 `tenants.configure-database`
+ * 独立库已就绪即不能再改（TENANCY_CONFLICT_013）；改回共库只发隔离方式，后端清掉连接
+ * 连接串留空发 null：已配过的沿用，没配过的由后端拒绝（TENANCY_VALIDATION_008）
  */
 export function databaseConfiguration(
   form: Pick<TenantForm, 'connectionString' | 'databaseProvider' | 'isolationMode'>,
@@ -374,12 +380,12 @@ export function databaseConfiguration(
   return { isolationMode: 'Database', connectionString, databaseProvider }
 }
 
-/** 能初始化独立库：独立库且还没就绪（待初始化或上次失败；已就绪的后端拒绝 TENANCY_CONFLICT_013） */
+/** 能否初始化独立库：还没就绪即可，已就绪的后端拒绝 TENANCY_CONFLICT_013 */
 export function canInitializeDatabase(row: Pick<TenantRow, 'databaseStatus' | 'isolationMode'>): boolean {
   return row.isolationMode === 'Database' && row.databaseStatus !== 'Ready'
 }
 
-/** 能初始化管理员：还没有管理员，且是共库或独立库已就绪（独立库没就绪时后端拒绝 TENANCY_CONFLICT_014） */
+/** 能否初始化管理员；独立库没就绪时后端拒绝 TENANCY_CONFLICT_014 */
 export function canInitializeAdmin(row: Pick<TenantRow, 'adminUserId' | 'databaseStatus' | 'isolationMode'>): boolean {
   return !row.adminUserId && (row.isolationMode === 'Field' || row.databaseStatus === 'Ready')
 }
@@ -394,8 +400,8 @@ export interface DatabaseInitOutcome {
 }
 
 /**
- * 初始化独立库（`tenants.initialize-database`，平台侧）：建库、建表并登记结构版本
- * 初始化失败不是请求失败——响应照常返回、databaseStatus 为 Failed 并带 databaseError，改正连接后可以再试
+ * 初始化独立库：建库、建表并登记结构版本
+ * 初始化失败不是请求失败：照常返回 Failed 状态与 databaseError，改正连接后可再试
  */
 export async function initializeTenantDatabase(row: Pick<TenantRow, 'id'>): Promise<DatabaseInitOutcome> {
   try {
@@ -435,10 +441,9 @@ function emptyForm(): TenantForm {
 }
 
 /**
- * 开通 / 编辑弹窗。编辑时套餐与资料分属两个操作（`tenants.update` 不含套餐，换套餐走 `tenants.change-edition`）：
- * 先存资料，套餐变了再换。字段级错误挂回对应字段
- * 隔离方式与独立库的连接同样另走 `tenants.configure-database`（canConfigureDatabase 为真、且相对租户现状有变化时，在开通或更新之后）
- * 开通成功而配库失败时弹窗转为编辑这个已开通的租户：再保存走更新与配库，不会重复开通
+ * 开通 / 编辑租户的弹窗：先存资料，套餐变了再走 `tenants.change-edition`
+ * 隔离方式与连接在开通或更新之后另走 `tenants.configure-database`（canConfigureDatabase 为真且有变化时）
+ * 开通成功而配库失败时转为编辑这个已开通的租户，再保存不会重复开通
  */
 export function useTenantEditor(canConfigureDatabase: () => boolean) {
   const open = ref(false)
@@ -490,7 +495,10 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
     return fieldErrors.value[field]?.[0]
   }
 
-  /** 开通成功、后面一步失败：转为编辑这个已开通的租户，套餐按建好的回填（开通时留空即缺省套餐，回填后再存不会误换成不受限） */
+  /**
+   * 开通成功、后面一步失败：转为编辑这个已开通的租户，套餐按建好的回填
+   * 开通时留空即缺省套餐，回填后再存不会误换成不受限
+   */
   function adopt(created: TenantRow) {
     mode.value = 'edit'
     editing.value = created
@@ -499,8 +507,9 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
   }
 
   /**
-   * 保存成功返回保存后的租户（开通时页面据此接着初始化数据库或管理员），失败返回 null、弹窗保持打开
-   * 开通成功而配库失败时也返回 null，此时 isEdit 已转为真（页面据此刷新列表）
+   * 保存，成功返回保存后的租户，失败返回 null、弹窗保持打开
+   * 开通时页面据此接着初始化数据库或管理员
+   * 开通成功而配库失败也返回 null，此时 isEdit 已为真，页面据此刷新列表
    */
   async function submit(): Promise<null | TenantRow> {
     submitting.value = true
@@ -584,7 +593,8 @@ function emptyAdminForm(): AdminForm {
 }
 
 /**
- * 初始化管理员弹窗：每个租户一次（后端拒绝重复初始化）；建的用户持有租户侧全部权限、首次登录须改密
+ * 初始化管理员的弹窗，每个租户一次（后端拒绝重复初始化）
+ * 建的用户持有租户侧全部权限，首次登录须改密
  */
 export function useAdminInitializer() {
   const open = ref(false)
@@ -646,7 +656,7 @@ export function useAdminInitializer() {
 }
 
 /**
- * 详情抽屉：概览（`tenants.get` 带管理员登录名、用户数与配额用量）与成员（`tenant-members.list`，一次全列，按加入时间排）
+ * 详情抽屉：概览与成员，成员一次全列、按加入时间排
  * 成员按 tenancy.tenant-members.read 门控，没有权限就不取
  */
 export function useTenantDetail(canReadMembers: () => boolean) {
@@ -696,7 +706,7 @@ export function useTenantDetail(canReadMembers: () => boolean) {
       await loadMembers()
   }
 
-  /** 原地重取详情与成员（转移所有权之后）：不清空已显示的内容，读失败原样抛出、由调用方提示 */
+  /** 转移所有权后原地重取详情与成员：不清空已显示的内容，读失败原样抛出 */
   async function refresh() {
     const current = detail.value
     if (!current)
@@ -706,7 +716,10 @@ export function useTenantDetail(canReadMembers: () => boolean) {
       await loadMembers()
   }
 
-  /** 移除成员：成员行不存在（TENANCY_NOTFOUND_002）、是租户所有者（TENANCY_CONFLICT_012）由后端逐项拒绝，以错误码抛出；成功后重取成员 */
+  /**
+   * 移除成员，成功后重取成员
+   * 成员行不存在（TENANCY_NOTFOUND_002）、是租户所有者（TENANCY_CONFLICT_012）由后端逐项拒绝
+   */
   async function removeMember(member: TenantMember) {
     throwOnFailed(await tenantMembersApi.delete({
       ids: [member.id],
@@ -739,10 +752,9 @@ function emptyMemberForm(): MemberForm {
 }
 
 /**
- * 添加成员弹窗：先选成员类型，用户按类型远程检索（`users.list` 关键字匹配登录名与显示名）——
- * 运维支持只在平台账号里挑（homeTenantId eq platform），普通成员只在租户用户里挑（homeTenantId ne platform，注册地就是本租户的也去掉）；
- * 换类型即清掉已选的用户、按空关键字重新检索。生效与到期时间可选，按 ISO 发出、留空发 null
- * 已有成员（TENANCY_CONFLICT_005）、类型与账号不符（TENANCY_VALIDATION_006）、到期不晚于生效（TENANCY_VALIDATION_007）由后端拒绝
+ * 添加成员弹窗：先选成员类型，用户按类型远程检索，换类型即清掉已选用户
+ * 已有成员（TENANCY_CONFLICT_005）、类型与账号不符（TENANCY_VALIDATION_006）、
+ * 到期不晚于生效（TENANCY_VALIDATION_007）由后端拒绝
  */
 export function useMemberEditor() {
   const open = ref(false)
@@ -757,7 +769,7 @@ export function useMemberEditor() {
   const submitting = ref(false)
   let searchSeq = 0
 
-  /** 只认最后一次检索的结果（连续打字、换类型时慢请求不盖掉新结果）；当前选中的用户始终留在候选里 */
+  /** 只认最后一次检索的结果，慢请求不盖掉新结果；当前选中的用户始终留在候选里 */
   async function searchUsers(keyword: string) {
     const seq = ++searchSeq
     const home = tenantId.value
@@ -861,8 +873,9 @@ export function useMemberEditor() {
 }
 
 /**
- * 所有权候选：注册地是该租户的用户（users.list 已按注册地与启用状态筛过）在前，生效中的普通成员在后（成员已全量取回，按关键字在本地匹配登录名与显示名）；
- * 去掉现任所有者，同一用户只出一次。运维支持与不在有效期里的成员不能接任，不进候选（与后端 tenants.transfer-owner 的校验同口径）
+ * 所有权候选：注册地是该租户的用户在前，生效中的普通成员在后，去掉现任所有者
+ * users 已按注册地与启用状态筛过；成员已全量取回，在本地按关键字匹配
+ * 运维支持与不在有效期里的成员不能接任（与后端 tenants.transfer-owner 同口径）
  */
 export function ownerCandidates(users: readonly UserRow[], members: readonly TenantMember[], keyword: string, ownerId: null | string | undefined, now = Date.now()): UserOption[] {
   const term = keyword.trim().toLowerCase()
@@ -893,10 +906,9 @@ export function isOwnerCandidate(member: TenantMember, ownerId: null | string | 
 }
 
 /**
- * 转移所有权弹窗（`tenants.transfer-owner`，平台侧）：新所有者从候选里挑——
- * 注册地是该租户的启用用户（`users.list` 按 homeTenantId eq 与 status eq Active 远程检索）与生效中的普通成员（详情抽屉已取的成员）
- * 新所有者获得管理员角色，原所有者保留已有的角色。还没有所有者（TENANCY_CONFLICT_010）、已是所有者（TENANCY_CONFLICT_011）、
- * 不合格（TENANCY_VALIDATION_005：停用、锁定、不在有效期或是运维支持）由后端拒绝，给整条提示
+ * 转移所有权弹窗（平台侧）：新所有者获得管理员角色，原所有者保留已有的角色
+ * 还没有所有者（TENANCY_CONFLICT_010）、已是所有者（TENANCY_CONFLICT_011）、
+ * 不合格（TENANCY_VALIDATION_005：停用、锁定、不在有效期或是运维支持）由后端拒绝
  */
 export function useOwnerTransfer() {
   const open = ref(false)
@@ -949,8 +961,8 @@ export function useOwnerTransfer() {
   }
 
   /**
-   * members：详情抽屉已取的成员（读不了成员时传空，只在本租户的用户里挑）；
-   * preset：从成员行「设为所有者」进来时预选的用户（须是能接任的成员）
+   * 打开弹窗；members 是详情抽屉已取的成员，读不了成员时传空、只在本租户用户里挑
+   * preset 是成员行「设为所有者」预选的用户，须是能接任的成员
    */
   function start(target: TenantRow, members: readonly TenantMember[], preset: null | string = null) {
     tenant.value = target
@@ -973,7 +985,7 @@ export function useOwnerTransfer() {
     return fieldErrors.value[field]?.[0]
   }
 
-  /** 成功返回转移后的租户（adminUserId 已是新所有者）并关掉弹窗；失败返回 null、弹窗保持打开 */
+  /** 转移所有权，成功返回转移后的租户并关掉弹窗，失败返回 null、弹窗保持打开 */
   async function submit(): Promise<null | TenantRow> {
     const current = tenant.value
     if (!current || !userId.value)

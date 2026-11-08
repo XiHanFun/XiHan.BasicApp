@@ -8,14 +8,9 @@ import { HOME_PATH } from '~/constants'
 import { useAccessStore } from '~/stores'
 
 /**
- * 错误页（404/403/500）的「返回首页」
- *
- * 不能直接 `router.replace('/')`：守卫会把 `/` 重定向到首页路径，而首页是一条**动态路由**——
- * 菜单没拉到、或当前账号根本没有这个菜单的权限时它压根没注册，守卫解析不出来又把你打回 404，
- * 表现就是"点了返回首页还在 404"
- *
- * 所以先解析一次目标：解析不出真实路由，说明动态路由表本身没建起来，
- * 此时整页重载才是唯一出路（重载后守卫会重新拉一次菜单并注册路由）
+ * 错误页的「返回首页」
+ * 首页是动态路由，没注册时 `router.replace('/')` 会被守卫打回 404
+ * 故先解析目标，解析不出说明路由表没建起来，整页重载让守卫重新拉菜单
  */
 export function goHome(router: Router) {
   const accessStore = useAccessStore()

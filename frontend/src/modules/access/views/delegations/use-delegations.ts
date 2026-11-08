@@ -75,7 +75,7 @@ export function canRevoke(row: Pick<DelegationRow, 'status'>): boolean {
   return row.status === 'Pending' || row.status === 'Active'
 }
 
-/** 表单 → 新建请求：只带当前委托类型的对象，时间换成 ISO（到期时间由提交前校验保证有值） */
+/** 表单 → 新建请求；到期时间由提交前校验保证有值 */
 export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.create'> {
   return {
     delegatorId: form.delegatorId,
@@ -95,9 +95,9 @@ export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.cr
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）与删除
- * 搜索按后端白名单：关键字匹配权限码与原因，状态多选（合成 in）；排序只放生效、到期与创建时间
- * 委托对象里的权限按当前界面语言显示：权限目录随列表一起取（`loadNames`，同一语言只取一次）
+ * 委托的 SchemaPage 资源
+ * 作用侧为当前租户或平台；关键字匹配权限码与原因，排序只放生效、到期与创建时间
+ * 权限目录随列表一起取，委托对象里的权限按当前界面语言显示
  */
 export function delegationsResource(loadNames: () => Promise<void>): SchemaResource<DelegationRow> {
   return {
@@ -124,8 +124,8 @@ export function revokeDelegation(id: string): Promise<DelegationRow> {
 }
 
 /**
- * 新建委托的弹窗：委托人与接收人远程检索本侧用户，委托对象二选一（启用的非内置角色，或本侧权限目录）
- * 字段级错误挂回对应字段
+ * 新建委托的弹窗
+ * 委托人与接收人检索本侧用户；委托对象二选一：启用的非内置角色，或本侧权限目录
  */
 export function useDelegationEditor() {
   const open = ref(false)
@@ -140,7 +140,10 @@ export function useDelegationEditor() {
   const targetLoading = ref(false)
   let userSeq = 0
 
-  /** 只认最后一次检索的结果，免得慢请求把新结果盖掉（已选中的名字由组合框记住，不必留在候选里） */
+  /**
+   * 检索用户候选：只认最后一次，免得慢请求盖掉新结果
+   * 已选中的名字由组合框记住，不必留在候选里
+   */
   async function searchUsers(keyword: string) {
     const seq = ++userSeq
     userLoading.value = true

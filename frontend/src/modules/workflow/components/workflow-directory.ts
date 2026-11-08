@@ -38,8 +38,8 @@ let organizationPromise: Promise<OrganizationDirectory> | null = null
 const userCache = new Map<string, AssigneeUser>()
 
 /**
- * 部门平铺清单按上级 ID 排成树序再拍平：label 带上级路径，description 为编码
- * 上级不在清单里的部门当作顶层；兄弟之间保持后端给的顺序
+ * 部门清单按上级排成树序再拍平，label 带上级路径
+ * 上级不在清单里的当作顶层；兄弟之间保持后端给的顺序
  */
 export function flattenDepartments(items: readonly AssigneeDepartment[]): DirectoryOption[] {
   const ids = new Set(items.map(item => item.id))
@@ -120,7 +120,10 @@ export async function searchUsers(keyword: string): Promise<AssigneeUser[]> {
   return items
 }
 
-/** 按 ID 取用户（缓存命中的不再请求；查不到的与不是用户 ID 的取值不返回；一次最多回显 200 个） */
+/**
+ * 按 ID 取用户，命中缓存的不再请求，一次最多回显 200 个
+ * 查不到的与不是用户 ID 的取值不返回
+ */
 export async function resolveUsers(ids: string[]): Promise<AssigneeUser[]> {
   const unique = [
     ...new Set(ids.filter(id => USER_ID.test(id))),

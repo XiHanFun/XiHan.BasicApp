@@ -24,9 +24,8 @@ const MAC_KEYS: Record<string, string> = {
 }
 
 /**
- * 把 "Ctrl+K" 这类组合按平台格式化：
- * - Mac：用符号（⌘/⌥/⇧）且去掉 `+` 分隔（如 `⌘K`、`⌥L`），符合 Mac 习惯；
- * - 其它平台：原样返回（如 `Ctrl+K`）
+ * 按平台格式化 "Ctrl+K" 这类组合
+ * Mac 换成符号（⌘/⌥/⇧）并去掉 `+`（如 `⌘K`），其它平台原样返回
  */
 function formatShortcut(combo: string): string {
   if (!isMac) {

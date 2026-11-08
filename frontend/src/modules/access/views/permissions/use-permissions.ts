@@ -17,8 +17,8 @@ function isBlank(value: unknown): boolean {
 }
 
 /**
- * 权限目录是各包在代码里登记的（只读，没有增删改）：`permissions.list` 一次给全调用方这一侧的目录，筛选、排序与分页都在前端做
- * 页面登记的字段之外的条件直接报错，不静默丢掉（与 toPageRequest 同一口径）
+ * 权限目录的 SchemaPage 资源：一次取全本侧目录，筛选、排序与分页在前端做
+ * 目录由各包在代码里登记，只读；页面登记以外的条件直接报错，不静默丢掉
  */
 export function permissionsResource(): SchemaResource<PermissionRow> {
   return {

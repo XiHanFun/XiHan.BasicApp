@@ -58,9 +58,15 @@ function reload() {
 }
 
 const isPlatformCaller = () => auth.tenantId === null
-/** 用户是不是调用方这一侧的：注册在这一侧，或本租户的外部成员；角色只能指派给同一侧的用户 */
+/**
+ * 用户是否属于调用方这一侧：注册在这一侧，或本租户的外部成员
+ * 角色只能指派给同一侧的用户
+ */
 const isOwnSide = (row: UserRow) => row.isExternalMember || row.homeTenantId === (auth.tenantId ?? PLATFORM_TENANT_ID)
-/** 账号级操作（锁定、启停、重置、下线、删除）只对注册在这一侧的账号，外部成员由其注册地维护 */
+/**
+ * 账号级操作（锁定、启停、重置、下线、删除）只对注册在这一侧的账号
+ * 外部成员由其注册地维护
+ */
 const isHomeAccount = (row: UserRow) => !row.isExternalMember
 /** 运维支持成员只能配角色：部门、数据范围、直授与模仿，后端都不算他们 */
 const isTenantUser = (row: UserRow) => !row.isSupportMember
@@ -726,7 +732,10 @@ async function removeRow(row: UserRow) {
   }
 }
 
-/** 平台里模仿进目标的注册地（平台账号即平台）；租户里不传，沿用当前租户。成功后整页重建 */
+/**
+ * 模仿登录，成功后整页重建
+ * 平台里模仿进目标的注册地（平台账号即平台）；租户里不传，沿用当前租户
+ */
 async function impersonate(row: UserRow) {
   try {
     await auth.startImpersonation({

@@ -46,7 +46,7 @@ export interface GrantConditionTarget {
   conditionCount: number
 }
 
-/** 主体的绑定转成条件抽屉的条目（按权限码排，同码先授予后拒绝），带上每条绑定上的子句数 */
+/** 主体的绑定转成条件抽屉的条目（按权限码排，同码先授予后拒绝） */
 export function toGrantConditionTargets(result: PermissionConditionsResult, nameOf: PermissionNameOf): GrantConditionTarget[] {
   const counts = new Map<string, number>()
   for (const condition of result.conditions) {

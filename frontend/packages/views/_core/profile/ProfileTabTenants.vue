@@ -22,9 +22,9 @@ const authStore = useAuthStore()
 const { t } = useI18n()
 
 /**
- * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地（没有成员类型）、运维支持、普通成员
- * 后端没有枚举元数据，成员类型只有 Member / Support、所有者单独由 isOwner 给出，
- * 与控制中心同口径用本地文案（键静态写出以便 i18n 门禁核对）
+ * 身份标签：所有者、注册地、运维支持、普通成员
+ * 所有者由 isOwner 给出、先于注册地；注册地没有成员类型，其余只有 Member / Support
+ * 后端没有枚举元数据，同控制中心用本地文案，键静态写出供 i18n 门禁核对
  */
 function memberTypeLabel(tenant: AppTenantSwitcherItem) {
   if (tenant.isOwner) {
@@ -64,7 +64,7 @@ async function loadTenants() {
   }
 }
 
-/** 切换租户（与控制中心同一个入口）：服务端在目标租户续接会话，本地按新上下文整页重建 */
+/** 切换租户，同控制中心：服务端续接会话后整页重建 */
 async function switchTo(tenantId: string) {
   if (switching.value) {
     return

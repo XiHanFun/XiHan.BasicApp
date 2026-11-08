@@ -265,10 +265,7 @@ export function useLockScreen() {
     }
   }
 
-  /**
-   * storage 事件只在**其他**标签页触发，正是跨标签页同步所需：
-   * 一处锁屏，所有已打开的标签页立即跟着锁；一处解锁，其余一起解开
-   */
+  /** 跨标签页同步锁定态：storage 事件只在其他标签页触发，一处锁或解锁，其余跟着变 */
   function handleStorage(e: StorageEvent) {
     if (e.key === null || e.key === LOCK_STATE_KEY) {
       syncFromStorage()
@@ -276,8 +273,8 @@ export function useLockScreen() {
   }
 
   /**
-   * 本标签页内锁定态变更：423 被拦下置位、或强制登出清位，都从这里回到 UI
-   * （同标签页的 localStorage 改动不触发 storage 事件，必须靠这条自定义事件。）
+   * 本标签页内锁定态变更回到 UI：423 被拦下置位、强制登出清位
+   * 同标签页的 localStorage 改动不触发 storage 事件，只能靠这条自定义事件
    */
   function handleLockChanged() {
     syncFromStorage()

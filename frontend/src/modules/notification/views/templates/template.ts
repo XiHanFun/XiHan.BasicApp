@@ -119,7 +119,10 @@ function blankToNull(value: string): null | string {
   return value.trim() || null
 }
 
-/** 新建与修改共用的内容；正文原样（Scriban 的空白有意义），短信与机器人不带主题，只有邮件按 HTML 渲染 */
+/**
+ * 新建与修改共用的内容，正文不裁剪：Scriban 的空白有意义
+ * 短信与机器人不带主题，只有邮件按 HTML 渲染
+ */
 function draft(form: TemplateForm) {
   return {
     name: form.name.trim(),
@@ -151,7 +154,8 @@ export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'me
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改
+ * SchemaPage 的资源：分页、删除与启停
+ * 没有单独的启停操作，取最新一份再整体修改
  */
 export function templateResource(): SchemaResource<TemplateRow> {
   return {

@@ -33,9 +33,8 @@ function enabled(): boolean {
 }
 
 /**
- * 注入是否发声的判定（由全局挂载的组件在 setup 时接上偏好），顺带挂上首次手势解锁：
- * 浏览器要求页面上发生过点击或按键后音频才能出声，而消息推送不是手势，
- * 借用户的第一下操作把音频上下文解锁，之后推来的消息才响得出来
+ * 注入是否发声的判定，顺带挂上首次手势解锁
+ * 浏览器要求页面上发生过点击或按键后音频才能出声，消息推送不是手势，只能借用户第一下操作解锁音频上下文
  */
 export function configureNotificationSound(isEnabled: () => boolean): void {
   enabledResolver = isEnabled

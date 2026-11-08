@@ -6,10 +6,8 @@
 import type { PiniaPlugin } from 'pinia'
 
 /**
- * Setup Store 的 $reset 插件
- * 由于 Setup Store 不自带 $reset，此插件在 store 初始化时
- * 深拷贝一份初始快照，为未自定义 $reset 的 store 提供快照回退
- * 若 store 已自定义 $reset（如需清理 localStorage），则优先调用自定义实现
+ * 给 Setup Store 补上 $reset，回退到初始化时深拷贝的状态快照
+ * store 自定义了 $reset（如要清 localStorage）时优先调用它
  */
 export function resetSetupStorePlugin(): PiniaPlugin {
   return ({ store }) => {

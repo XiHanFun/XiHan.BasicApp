@@ -113,7 +113,10 @@ async function loadTables() {
   }
 }
 
-/** 关键字是筛选条件：回车只查表，不隐式提交外层的导入表单；输入法组合中的回车原样放行 */
+/**
+ * 关键字框回车只查表，不隐式提交外层的导入表单
+ * 输入法组合中的回车原样放行
+ */
 function blockImplicitSubmit(event: KeyboardEvent) {
   if (!isComposingEvent(event))
     event.preventDefault()

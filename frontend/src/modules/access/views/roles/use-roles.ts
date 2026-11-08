@@ -47,8 +47,8 @@ function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停
- * 搜索按后端白名单：关键字匹配角色码与名称，状态精确匹配；排序只放角色码、名称、排序与创建时间
+ * 角色的 SchemaPage 资源
+ * 作用侧为当前租户或平台；关键字匹配角色码与名称，排序只放角色码、名称、排序与创建时间
  */
 export function rolesResource(): SchemaResource<RoleRow> {
   return {
@@ -100,8 +100,8 @@ function emptyForm(): RoleForm {
 }
 
 /**
- * 角色的编辑弹窗：新建（数据范围按侧取缺省，另在「数据范围」里改）、编辑名称 / 说明 / 排序 / 状态
- * 字段级错误挂回对应字段，其余错误给整条提示
+ * 角色的编辑弹窗：新建、编辑名称 / 说明 / 排序 / 状态
+ * 新建时数据范围按侧取缺省，另在「数据范围」里改
  */
 export function useRoleEditor() {
   const open = ref(false)
@@ -214,8 +214,9 @@ function groupOf(code: string): string {
 }
 
 /**
- * 权限目录 → 穿梭框条目（按「包.资源」分段，显示名是目录按当前界面语言给的）。已授予却不在目录里的（例如套餐收窄后目录不再列出）补进来、原样显示权限码：
- * 穿梭框只认条目里有的键，不补进来，一动穿梭框这些授权就从草稿里掉出去，保存时被当成收回
+ * 权限目录 → 穿梭框条目，按「包.资源」分段
+ * 已授予却不在目录里的（如套餐收窄后不再列出）补进来，原样显示权限码
+ * 穿梭框只认条目里的键，不补进来，一动穿梭框它们就被当成收回
  */
 export function toPermissionItems(catalog: readonly PermissionItem[], granted: readonly string[]): RolePermissionItem[] {
   const items: RolePermissionItem[] = catalog.map(item => ({
@@ -368,8 +369,8 @@ export interface MemberCandidate {
 }
 
 /**
- * 候选人（本侧用户，含本租户的外部成员）并上现有成员：候选有上限，也可能读不到用户目录，已在角色里的人不在候选里就会在穿梭框里「消失」，
- * 保存时被当成移出
+ * 候选人（本侧用户，含本租户的外部成员）并上现有成员
+ * 候选有上限、也可能读不到用户目录，不并上现有成员，他们会在穿梭框里「消失」、保存时被当成移出
  */
 export function mergeMemberCandidates(users: readonly UserOption[], members: readonly RoleMember[]): MemberCandidate[] {
   const items: MemberCandidate[] = users.map(user => ({
@@ -498,8 +499,8 @@ export function useRoleMemberEditor() {
 // ── 数据范围 ──
 
 /**
- * 数据范围抽屉（只在租户侧：平台角色固定为全部）：档位与自定义部门一次保存
- * 保存走 roles.update，名称 / 说明 / 排序 / 状态按打开时取到的详情原样回传，自定义部门整体替换
+ * 数据范围抽屉：档位与自定义部门一次保存，只在租户侧（平台角色固定为全部）
+ * 保存走 roles.update，其余字段按打开时的详情原样回传，自定义部门整体替换
  */
 export function useRoleDataScopeEditor() {
   const open = ref(false)
@@ -597,8 +598,9 @@ export interface RolePermissionEntry {
 }
 
 /**
- * 授予取 `permissions`（带有效期或原因的另有同码的 Grant 规则补上这两项），拒绝只在 `rules` 里；
- * 两者按权限码互斥（后端写拒绝即撤掉同码授予），先列授予再列拒绝
+ * 角色的授予与拒绝条目，先列授予再列拒绝
+ * 授予取 `permissions`，有效期与原因由同码的 Grant 规则补上；拒绝只在 `rules` 里
+ * 两者按权限码互斥：后端写拒绝即撤掉同码授予
  */
 export function rolePermissionEntries(permissions: readonly string[], rules: readonly PermissionRule[], nameOf: PermissionNameOf): RolePermissionEntry[] {
   const grantRules = new Map(rules.filter(rule => rule.action === 'Grant').map(rule => [rule.permission, rule] as const))

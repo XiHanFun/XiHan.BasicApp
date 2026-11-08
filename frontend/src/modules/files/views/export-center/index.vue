@@ -76,7 +76,10 @@ const businessTypeOptions = computed<SelectOption[]>(() => KNOWN_BUSINESS_TYPES.
   value: businessType,
 })))
 
-/** 进度列：执行中画进度条（进行中铺流动条纹，减弱动效下静止）并在旁边写百分比；成功写导出行数；其余为空 */
+/**
+ * 进度列：执行中画进度条和百分比，成功写导出行数，其余为空
+ * 进度条铺流动条纹，减弱动效下静止
+ */
 function renderProgress(row: ExportTaskRow) {
   if (row.status === 'Processing') {
     const percent = progressPercent(row)

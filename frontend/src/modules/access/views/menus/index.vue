@@ -83,7 +83,10 @@ function formatNullable(value: unknown): string {
     : String(value)
 }
 
-/** 图标 + 文字的单元格；没有图标的行留出同宽空位，标题列的文字才对得齐（render 的节点不带页面 scope，样式用工具类） */
+/**
+ * 图标 + 文字的单元格；没有图标的行留同宽空位，标题列才对得齐
+ * render 的节点不带页面 scope，样式用工具类
+ */
 function renderIconCell(node: MenuRow, text: string) {
   return h('span', { class: 'inline-flex items-center gap-1.5' }, [
     node.icon

@@ -27,12 +27,18 @@ export function splitList(value: string): string[] {
   return value.split(',').map(item => item.trim()).filter(Boolean)
 }
 
-/** 管理员、群组白名单与广播群：每项都是 64 位整数（群组的 chat ID 为负数）；空即不填。后端不合规即 NOTIFICATION_VALIDATION_013 */
+/**
+ * 管理员、群组白名单与广播群：每项都是 64 位整数，空即不填
+ * 群组的 chat ID 为负数；后端不合规即 NOTIFICATION_VALIDATION_013
+ */
 export function isIdList(value: string): boolean {
   return splitList(value).every(item => /^[+-]?\d+$/.test(item) && BigInt(item) >= LONG_MIN && BigInt(item) <= LONG_MAX)
 }
 
-/** 命令白名单：每项去掉开头的 / 并转小写后只含小写字母、数字与下划线，最长 32；空即不限。后端不合规即 NOTIFICATION_VALIDATION_014 */
+/**
+ * 命令白名单：每项去掉开头的 / 后只含字母、数字与下划线，最长 32
+ * 空即不限；后端不合规即 NOTIFICATION_VALIDATION_014
+ */
 export function isCommandList(value: string): boolean {
   return splitList(value).every(item => /^[a-z0-9_]{1,32}$/.test(item.replace(/^\/+/, '').toLowerCase()))
 }
@@ -124,7 +130,7 @@ function blankToNull(value: string): null | string {
   return value.trim() || null
 }
 
-/** 新建与修改共用的内容；清单原样交后端规整（去重、命令去掉 / 并转小写），空白写 null */
+/** 新建与修改共用的内容，清单原样交后端规整（去重、命令去 / 转小写） */
 function draft(form: TelegramBotForm) {
   return {
     name: form.name.trim(),
@@ -157,7 +163,8 @@ export function toUpdateBody(form: TelegramBotForm & { id: string }): RequestOf<
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改（令牌不带即保留）
+ * SchemaPage 的资源：分页、删除与启停
+ * 没有单独的启停操作，取最新一份再整体修改（令牌不带即保留）
  */
 export function telegramBotResource(): SchemaResource<TelegramBotRow> {
   return {

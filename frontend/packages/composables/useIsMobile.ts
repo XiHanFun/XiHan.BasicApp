@@ -24,10 +24,7 @@ mql?.addEventListener('change', (e) => {
   isMobileRef.value = e.matches
 })
 
-/**
- * 检测当前视口是否为移动端/小屏尺寸（全站统一判定）
- * 使用 MediaQueryList 监听，避免 resize 事件的性能开销
- */
+/** 当前视口是否移动端/小屏（全站统一判定），走 MediaQueryList 免去 resize 开销 */
 export function useIsMobile() {
   return {
     isMobile: readonly(isMobileRef),

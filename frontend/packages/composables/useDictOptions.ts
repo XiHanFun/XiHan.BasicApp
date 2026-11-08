@@ -35,10 +35,8 @@ function reasonOf(error: unknown): string {
 }
 
 /**
- * 取字典选项（带缓存与并发去重）
- *
- * 失败时就地提示一次再抛出：字典编码写错或字典被删时，空下拉会让问题无声无息
- * 失败不进缓存，下次调用会重取
+ * 取字典选项（缓存、并发去重）
+ * 失败就地提示一次再抛出，免得字典编码写错或被删时空下拉无声无息；失败不进缓存，下次重取
  */
 export function ensureDictOptions(dictCode: string): Promise<DictOption[]> {
   const code = dictCode.trim()
@@ -84,10 +82,7 @@ export function getDictOptions(dictCode: string): DictOption[] {
   return cache.value[dictCode.trim()] ?? []
 }
 
-/**
- * 响应式字典选项：字典编码变化时自动加载，供表单下拉直接绑定
- * 加载失败已在 ensureDictOptions 里提示，这里只防止未处理的 Promise 拒绝
- */
+/** 响应式字典选项：编码变化时自动加载；失败已提示，只兜住 Promise 拒绝 */
 export function useDictOptions(dictCode: MaybeRefOrGetter<string>): ComputedRef<DictOption[]> {
   watch(
     () => toValue(dictCode),

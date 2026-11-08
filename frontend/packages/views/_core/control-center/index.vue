@@ -50,7 +50,7 @@ async function loadTenants() {
   }
 }
 
-/** 进入租户：后端在目标租户续接会话，本地按新上下文整页重建（允许再次进入当前租户以刷新） */
+/** 进入租户：后端在目标租户续接会话后整页重建；可再进当前租户以刷新 */
 async function enterTenant(tenant: AppTenantSwitcherItem) {
   if (switching.value) {
     return
@@ -85,8 +85,8 @@ async function handleLogout() {
 }
 
 /**
- * 身份标签：所有者（租户的 AdminUserId，先于注册地判定）、注册地、运维支持、普通成员
- * （文案键静态写出以便 i18n 门禁核对；与个人中心「我的租户」同口径）
+ * 身份标签：所有者、注册地、运维支持、普通成员
+ * 所有者看租户的 AdminUserId，先于注册地判定；文案键静态写出供 i18n 门禁核对，同个人中心「我的租户」
  */
 function membershipLabel(tenant: AppTenantSwitcherItem): string {
   if (tenant.isOwner) {

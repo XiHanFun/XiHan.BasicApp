@@ -84,9 +84,9 @@ export const USER_QUERY: PageQueryMapping = {
 }
 
 /**
- * SchemaPage 的资源：分页、删除（批量删除由 SchemaPage 逐行调用）与提交到导出中心
- * 导出中心的业务类型就是列表操作 ID，后台以发起人的身份逐页调 users.list：查询快照与列表用同一份分页请求
- * 启停走批量启用 / 停用（users.enable / users.disable，锁定另有解锁）；建用户可带初始密码、导入没有安全的映射，所以不提供 create
+ * SchemaPage 的资源：分页、删除、启停与提交到导出中心
+ * 导出时后台以发起人身份逐页调 users.list，查询快照与列表共用分页请求
+ * 不提供 create：建用户可带初始密码，导入没有安全的映射
  */
 export function usersResource(): SchemaResource<UserRow> {
   const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
@@ -112,7 +112,7 @@ export function usersResource(): SchemaResource<UserRow> {
   }
 }
 
-/** 锁定（状态置为 Locked、会话下线）或解锁一个用户；被后端逐项拒绝时带着原因抛出 */
+/** 锁定（会话下线）或解锁一个用户，被拒时带着原因抛出 */
 export async function setUserLocked(id: string, locked: boolean): Promise<void> {
   throwOnFailed(locked
     ? await usersApi.lock({
@@ -124,8 +124,9 @@ export async function setUserLocked(id: string, locked: boolean): Promise<void> 
 }
 
 /**
- * 按人强制下线：取此人在当前一侧的有效会话，一次交给 sessions.revoke（与在线用户页同一套语义与审计）；
- * 返回下线的会话数，没有会话为 0，全部被拒时带着原因抛出
+ * 按人强制下线，返回下线的会话数
+ * 取此人在当前一侧的有效会话交给 sessions.revoke，与在线用户页同一套语义与审计
+ * 全部被拒时带着原因抛出
  */
 export async function forceSignOut(userId: string, reason: string): Promise<number> {
   const page = await sessionsApi.list({
@@ -159,7 +160,7 @@ export async function loadDepartmentOptions(): Promise<SelectOption[]> {
   return flattenDepartments((await departmentsApi.tree({})).items)
 }
 
-/** 停用（状态置为 Disabled、会话下线、不能登录）或启用一个用户；被后端逐项拒绝时带着原因抛出 */
+/** 停用（会话下线、不能登录）或启用一个用户，被拒时带着原因抛出 */
 export async function setUserDisabled(id: string, disabled: boolean): Promise<void> {
   throwOnFailed(disabled
     ? await usersApi.disable({
@@ -170,14 +171,20 @@ export async function setUserDisabled(id: string, disabled: boolean): Promise<vo
       }))
 }
 
-/** 重置一个用户的双因素（清掉全部方式与认证器密钥，下次只凭密码登录）；被后端逐项拒绝时带着原因抛出 */
+/**
+ * 重置双因素，被拒时带着原因抛出
+ * 清掉全部方式与认证器密钥，下次只凭密码登录
+ */
 export async function resetUserTwoFactor(id: string): Promise<void> {
   throwOnFailed(await usersApi.resetTwoFactor({
     ids: [id],
   }))
 }
 
-/** 生成临时密码：大小写 + 数字 + 符号各至少一个，规避易混淆字符（0O1lI），满足后端「至少 8 位、含字母与数字」的策略 */
+/**
+ * 生成临时密码：大小写、数字、符号各至少一个，不含易混淆字符（0O1lI）
+ * 须满足后端「至少 8 位、含字母与数字」的策略
+ */
 export function generateTempPassword(length = 12): string {
   const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ'
   const lower = 'abcdefghjkmnpqrstuvwxyz'
@@ -216,9 +223,9 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
 }
 
 /**
- * 用户页的编辑弹窗：新建（用户名、显示名、邮箱、手机号、个人资料与可选的初始密码）与编辑资料
- * 建在调用方当前所在的一侧（平台主体建平台账号，租户主体建本租户用户）。字段级错误挂回对应字段
- * 外部成员的账号由其注册地维护：打开即全部只读，提交不发请求，也不读登录策略
+ * 用户的新建与编辑弹窗，新建可带初始密码
+ * 建在调用方当前所在的一侧（平台主体建平台账号，租户主体建本租户用户）
+ * 外部成员由其注册地维护：打开即全部只读，提交不发请求，也不读登录策略
  */
 export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
   const open = ref(false)
@@ -361,8 +368,8 @@ export function useUserEditor(canSetLoginPolicy: () => boolean = () => false) {
 }
 
 /**
- * 重置密码弹窗：打开时预填一份随机临时密码（可改、可重新生成），提交后用户下次登录须改密、全部会话下线
- * 成功返回设下的密码，页面据此出一次性的复制框；字段级错误挂回字段
+ * 重置密码弹窗，预填可改、可重新生成的随机临时密码
+ * 提交后用户下次登录须改密、全部会话下线；成功返回设下的密码，供一次性复制
  */
 export function usePasswordReset() {
   const open = ref(false)

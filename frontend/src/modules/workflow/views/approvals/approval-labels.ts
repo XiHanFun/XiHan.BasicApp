@@ -52,8 +52,8 @@ export function isActiveInstance(status: WorkflowInstanceStatus): boolean {
 }
 
 /**
- * 待办可选的办理结果：未配置白名单时为同意/驳回；配置了白名单按白名单（去掉超时，超时只由引擎产生）
- * @param allowedOutcomes 节点允许的结果（后端 task.allowedOutcomes）
+ * 待办可选的办理结果，没配白名单时为同意与驳回
+ * 白名单去掉超时：超时只由引擎产生
  */
 export function handleOutcomes(allowedOutcomes: readonly string[]): string[] {
   const outcomes = allowedOutcomes.filter(outcome => outcome.trim() !== '' && outcome !== 'timeout')

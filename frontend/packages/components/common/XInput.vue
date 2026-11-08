@@ -133,8 +133,8 @@ function isEscapeClear(event: KeyboardEvent): boolean {
 }
 
 /**
- * 文本档：Escape 清空由组件库接管（它的监听排在前面），这里只在它确实清了时补报 clear；
- * canClear 取自本次按键前那一帧的根状态，已含字段继承来的禁用与只读
+ * 文本档：Escape 清空归组件库，只在它确实清了时补报 clear
+ * 组件库的监听在前；canClear 取自按键前一帧的根状态，已含字段继承的禁用与只读
  */
 function onTextKeydown(event: KeyboardEvent, canClear: boolean) {
   if (isEscapeClear(event)) {
@@ -146,7 +146,10 @@ function onTextKeydown(event: KeyboardEvent, canClear: boolean) {
     emit('enter')
 }
 
-/** 密码档没有清除钮部件，Escape 清空这条自己补，与文本档一致；禁用与只读看输入框上已落定的状态 */
+/**
+ * 密码档：没有清除钮部件，Escape 清空自己补，与文本档一致
+ * 禁用与只读看输入框上已落定的状态
+ */
 function onPasswordKeydown(event: KeyboardEvent) {
   if (isEnterSubmit(event)) {
     emit('enter')

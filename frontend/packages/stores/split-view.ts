@@ -92,8 +92,8 @@ export const useSplitViewStore = defineStore(SetupStoreId.SplitView, () => {
   }
 
   /**
-   * 左右互换：翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新
-   * ratio（视觉左侧占比）保持不变 → 分割线位置固定，互换前后左侧始终一样宽
+   * 左右互换：只翻转 CSS order，两侧组件实例原地保留，不导航、不重挂载
+   * ratio（视觉左侧占比）不变，分割线位置固定，互换前后左侧一样宽
    */
   function toggleReversed(): void {
     if (!active.value) {

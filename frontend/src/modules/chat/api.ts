@@ -46,8 +46,8 @@ async function sha256Hex(file: File): Promise<string> {
 
 /**
  * 用生成的操作客户端组装聊天 API 契约
- * 移出与禁言是批量操作、逐项失败的抛出；置顶与免打扰传新值；转发走服务端；
- * 附件只走聊天自己的上传、秒传与签名（方案 H2：附件以会话为访问范围，不再要通用文件权限）
+ * 移出与禁言是批量操作，逐项失败的抛出
+ * 附件只走聊天自己的上传、秒传与签名（方案 H2：附件以会话为访问范围，不要通用文件权限）
  */
 export function createChatApi(): ChatApiContract {
   return {

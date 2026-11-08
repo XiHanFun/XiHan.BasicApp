@@ -22,9 +22,7 @@ export interface ThemeTransitionOptions {
 
 /**
  * 明暗切换的圆形扩散动画
- *
- * 本机点击切换与其它设备推送来的偏好变更共用同一实现：远端推送没有点击位置，
- * 省略 origin 即从视口中心扩散，观感与本机一致
+ * 本机点击与远端推送的偏好变更共用；远端没有点击位置，省略 origin 即从视口中心扩散
  */
 export async function runThemeTransition(options: ThemeTransitionOptions): Promise<void> {
   const { toDark, commit, origin, enabled = true } = options

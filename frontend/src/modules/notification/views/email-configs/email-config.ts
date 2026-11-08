@@ -17,7 +17,10 @@ export const EMAIL_CONFIG_QUERY: PageQueryMapping = {
   filters: { isEnabled: 'eq' },
 }
 
-/** 发件地址：恰好一个 @，前有本地部分、后是带点的域名，不含空白与尖括号（后端另以 MimeKit 核对，不认显示名） */
+/**
+ * 粗校验发件地址：一个 @、带点的域名、不含空白与尖括号
+ * 后端另以 MimeKit 核对，不认显示名
+ */
 export function isEmailAddress(value: string): boolean {
   const at = value.indexOf('@')
   if (at <= 0 || at !== value.lastIndexOf('@') || /[\s<>]/.test(value))
@@ -150,7 +153,8 @@ export function toUpdateBody(form: EmailConfigForm & { id: string }): RequestOf<
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改（密码不带即保留）；
+ * SchemaPage 的资源：分页、删除与启停
+ * 没有单独的启停操作，取最新一份再整体修改（密码不带即保留）
  * 缺省配置不能删除、不能停用（NOTIFICATION_CONFLICT_005）
  */
 export function emailConfigResource(): SchemaResource<EmailConfigRow> {

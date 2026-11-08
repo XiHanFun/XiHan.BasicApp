@@ -399,9 +399,9 @@ const nextRuns = ref<Date[]>([])
 let previewTimer: ReturnType<typeof setTimeout> | null = null
 
 /**
- * 计算最近 N 次执行。性能要点：
- * 1) 任一字段为空集 → 永不匹配，立即返回，避免空转；
- * 2) 按「分钟」推进、命中分钟内再扫秒（镜像后端），避免 6 段逐秒数千万次循环
+ * 计算最近 N 次执行
+ * 任一字段为空集即永不匹配，直接返回，避免空转
+ * 按分钟推进、命中后再扫秒（同后端），避免 6 段逐秒数千万次循环
  */
 function computeNextRuns(): Date[] {
   const sec = hasSeconds.value

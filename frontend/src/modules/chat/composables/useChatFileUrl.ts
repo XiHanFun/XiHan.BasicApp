@@ -78,8 +78,8 @@ export function clearChatFileUrlCache(): void {
 }
 
 /**
- * 一组附件的响应式可显示地址，与入参逐项对应；某项换取中或失败时为 ''
- * 入参变了（往上翻出历史、换会话）只换新出现的那几项，已缓存的同步给出
+ * 一组附件的可显示地址，与入参逐项对应
+ * 换取中或失败的项为 ''；入参变了只换新出现的项，已缓存的同步给出
  */
 export function useChatFileUrls(source: MaybeRefOrGetter<readonly ChatFileRef[]>): Ref<string[]> {
   const urls = ref<string[]>([])

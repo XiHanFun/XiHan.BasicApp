@@ -30,8 +30,8 @@ function isDirectUrl(value: string): boolean {
 }
 
 /**
- * 将 avatar 原始值解析为可直接用于 <img src> 的 URL
- * 空值返回 ''；直链原样返回；fileId 经预签名端点换取（带内存缓存与并发去重）
+ * 把 avatar 原始值解析成 <img src> 可用的 URL
+ * 空值为 ''，直链原样返回，fileId 经预签名端点换取（内存缓存、并发去重）
  */
 export async function resolveAvatarUrl(avatar: null | string | undefined): Promise<string> {
   const raw = (avatar ?? '').trim()
@@ -75,8 +75,8 @@ export async function resolveAvatarUrl(avatar: null | string | undefined): Promi
 }
 
 /**
- * 能同步得出的 URL：空值为 ''，直链与已缓存的预签名地址直接给出；还要异步换取的返回 null
- * 同步给出可以避免无谓的闪烁与请求
+ * 同步可得的 URL，还要异步换取时为 null
+ * 空值为 ''，直链与已缓存的预签名地址直接给出，免得无谓的闪烁与请求
  */
 function peekAvatarUrl(trimmed: string): null | string {
   if (!trimmed) {
@@ -88,10 +88,7 @@ function peekAvatarUrl(trimmed: string): null | string {
   return presignedCache.get(trimmed) ?? null
 }
 
-/**
- * 响应式头像 URL。传入 avatar 原始值（ref / getter / 普通值），
- * 内部解析为可显示 URL；解析中或失败时为 ''（组件用 fallback-src 兜底）
- */
+/** 响应式头像 URL：解析中或失败时为 ''，由组件的 fallback-src 兜底 */
 export function useAvatarUrl(source: MaybeRefOrGetter<null | string | undefined>): Ref<string> {
   const url = ref('')
 
@@ -116,8 +113,8 @@ export function useAvatarUrl(source: MaybeRefOrGetter<null | string | undefined>
 }
 
 /**
- * 一组文件引用（fileId 或直链）的响应式可显示 URL，与入参逐项对应；某项解析中或失败时为 ''
- * 与 useAvatarUrl 共用预签名缓存与并发去重，适合相册这类要一次拿到全部地址的场景
+ * 一组文件引用（fileId 或直链）的响应式 URL，与入参逐项对应
+ * 解析中或失败的项为 ''；与 useAvatarUrl 共用预签名缓存与并发去重，适合相册这类要一次拿全部地址的场景
  */
 export function useAvatarUrls(source: MaybeRefOrGetter<readonly (null | string | undefined)[]>): Ref<string[]> {
   const urls = ref<string[]>([])

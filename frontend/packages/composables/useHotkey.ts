@@ -26,17 +26,9 @@ export interface UseHotkeyOptions {
 }
 
 /**
- * 注册一组按键组合，只注册、不铺键帽
- *
- * XiHan.UI 只保留 XhKbd 一件（展示键帽，`register` 打开才顺带监听），文档明说
- * 「只注册、不需要可见提示的全局命令放应用自己的命令系统」；本应用的全局快捷键
- * 与画布内的全选都是这一类，这里拿 core 的 matchesHotkey 与 headless 的 isTypingTarget
- * 自装监听，键位解析与 XhKbd 铺出来的键帽同一套规则
- *
- * 判据与 XhKbd 一致：输入法合成期间不响应；没有命令修饰键（Ctrl / ⌘ / Alt）的组合
- * 落在正在打字的地方（输入框、文本域、可编辑区）时不响应
- *
- * 一次调用管一组组合，注册四条就调四次。返回提前解绑的句柄，作用域销毁时自动解绑
+ * 注册一个按键组合，只注册、不铺键帽；返回提前解绑的句柄，作用域销毁时自动解绑
+ * 组件库只有展示键帽的 XhKbd，不需可见提示的命令由应用用 matchesHotkey 与 isTypingTarget 自装监听，键位解析与 XhKbd 同一套
+ * 判据同 XhKbd：输入法合成期间不响应；没有命令修饰键（Ctrl / ⌘ / Alt）的组合落在输入框、文本域、可编辑区时不响应
  */
 export function useHotkey(options: UseHotkeyOptions | (() => UseHotkeyOptions)): () => void {
   // 平台要等挂载后才测得出来：落定前 'Mod' 会解析成 Control，Mac 上 ⌘K 按不出来

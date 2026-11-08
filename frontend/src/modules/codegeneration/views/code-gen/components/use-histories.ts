@@ -12,9 +12,7 @@ import { downloadBlob } from '~/utils'
 export type HistoryRow = ResponseOf<'codegen-histories.list'>['items'][number]
 export type HistoryDetail = ResponseOf<'codegen-histories.get'>
 
-/**
- * 生成历史的资源：分页（关键字匹配表名与批次号，结果多选，生成时间按区间；只看不改）
- */
+/** 生成历史的资源：只读分页，关键字匹配表名与批次号 */
 export function historiesResource(): SchemaResource<HistoryRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(

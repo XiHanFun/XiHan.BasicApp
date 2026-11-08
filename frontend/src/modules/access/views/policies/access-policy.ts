@@ -140,7 +140,7 @@ export function findIncomplete(groups: readonly ConditionGroupModel[], catalog: 
   return null
 }
 
-/** 时机：平台策略只用到认证前取得到的属性即认证前，否则认证后；租户策略一律认证后（与后端一致） */
+/** 策略的生效时机（与后端一致）：平台策略只用认证前属性即认证前，其余认证后 */
 export function phaseOf(groups: readonly ConditionGroupModel[], catalog: readonly ConditionAttribute[], platform: boolean): AccessPolicyPhase {
   if (!platform)
     return 'AfterAuthentication'
@@ -170,8 +170,8 @@ export function actionTone(action: AccessPolicyAction): AccessPolicyTone {
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台，缺省按求值顺序）、删除、启停
- * 搜索按后端白名单：关键字匹配编码、名称与说明；动作、状态多选（合成 in）
+ * 访问策略的 SchemaPage 资源
+ * 作用侧为当前租户或平台，缺省按求值顺序；关键字匹配编码、名称与说明
  */
 export function accessPolicyResource(): SchemaResource<AccessPolicyRow> {
   return {

@@ -14,9 +14,9 @@ const SCROLL_OVERLAP = 120
 const WHEEL_FACTOR = 3
 
 /**
- * 一行排不下的横条（图标集的页签带）：滚动条藏起来，交给两端的箭头与滚轮
- * 与顶栏水平菜单、标签栏同一套手感：箭头一次翻一屏（留一段重叠），滚轮把纵向滚动折成横向，到头的那一侧箭头置灰
- * viewport 是 overflow-x: auto 的那个盒；它挂上来才开始量，换了或卸了即解绑
+ * 横条排不下时藏起滚动条，改用两端箭头与滚轮
+ * 手感同顶栏水平菜单与标签栏：箭头翻一屏留重叠，滚轮纵转横，到头一侧箭头置灰
+ * viewport 是 overflow-x: auto 的盒；挂上才开始量，换了或卸了即解绑
  */
 export function useScrollStrip(viewport: Ref<HTMLElement | null>) {
   const overflowing = ref(false)

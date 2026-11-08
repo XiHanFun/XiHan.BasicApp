@@ -220,7 +220,8 @@ export function timeSpanToSeconds(value: string): number {
 }
 
 /**
- * 秒数换成 TimeSpan 文本，与框架序列化的写法相同：不满一天写 hh:mm:ss，满一天写 d.hh:mm:ss，有小数时带七位小数
+ * 秒数换成 TimeSpan 文本，写法同框架序列化
+ * 不满一天写 hh:mm:ss，满一天写 d.hh:mm:ss，有小数时带七位小数
  * @param seconds 非负的秒数
  */
 export function secondsToTimeSpan(seconds: number): string {
@@ -249,7 +250,10 @@ const PROPERTY_RENAMES: readonly (readonly [string, string])[] = [
   ['DefinitionCode', 'DefinitionName'],
 ]
 
-/** 按对照表改节点属性的键（direction 0：预设 → WorkflowJson，1：WorkflowJson → 预设），别的键与顺序不变 */
+/**
+ * 按对照表改节点属性的键，别的键与顺序不变
+ * direction 0：预设 → WorkflowJson，1：WorkflowJson → 预设
+ */
 function renameProperties(properties: unknown, direction: 0 | 1): unknown {
   if (!isRecord(properties))
     return properties
@@ -362,7 +366,10 @@ export function fromWorkflowJson(document: WorkflowJsonDefinition): XihanWorkflo
 
 // ── 预设定义 → WorkflowJson ─────────────────────────────────
 
-/** 设计器写进 extraProperties 的 JSON 字符串解析回对象；解析不出时原样留着字符串（交给后端报错，不吞掉） */
+/**
+ * extraProperties 里的 JSON 串解析回对象
+ * 解析不出时原样留着字符串，交给后端报错，不吞掉
+ */
 function parseDesignerValue(value: string): unknown {
   try {
     return JSON.parse(value) as unknown

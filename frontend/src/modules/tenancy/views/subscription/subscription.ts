@@ -170,10 +170,7 @@ export interface PricingView {
   period: null | string
 }
 
-/**
- * 价格与计费周期（随订阅一起返回）：免费套餐只标免费；
- * 有价格标价格、有周期标周期，都没有为 null（不显示）
- */
+/** 订阅的价格与计费周期：免费只标免费，价格与周期都没有为 null（不显示） */
 export function subscriptionPricing(t: Translate, value: Pick<Subscription, 'billingPeriodMonths' | 'isFree' | 'price'>): null | PricingView {
   if (value.isFree) {
     return {
@@ -204,9 +201,7 @@ export function statusTone(status: SubscriptionStatus): 'danger' | 'success' | '
     : 'warning'
 }
 
-/**
- * 本租户的订阅（`subscription.get`，只在租户侧）：加载失败给出原因（平台一侧调用即 TENANCY_DENIED_002）
- */
+/** 本租户的订阅，只在租户侧；平台一侧调用即 TENANCY_DENIED_002 */
 export function useSubscription() {
   const subscription = ref<null | Subscription>(null)
   const loading = ref(false)

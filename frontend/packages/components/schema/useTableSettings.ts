@@ -104,11 +104,8 @@ interface PersistedTableSettings {
 const STORAGE_PREFIX = 'xh:table-settings:'
 
 /**
- * 表格列设置状态机：显隐 / 排序 / 固定 / 密度，按 pageCode 持久化到 localStorage
- * 作为用户偏好的子集；后端偏好端点就绪后（S3）可替换存储后端
- *
- * @param pageCode 页面唯一码（存储维度）
- * @param fields 列字段（schema 的可见字段，提供默认顺序与标题）
+ * 表格列设置状态机：显隐、排序、固定与密度，按 pageCode 持久化
+ * fields 取 schema 的可见字段，提供默认顺序与标题
  */
 export function useTableSettings(
   pageCode: string,
@@ -278,7 +275,7 @@ export function useTableSettings(
     showIndex.value = value
   }
 
-  /** 循环切换某列的默认排序方向：无 → 升 → 降 → 无（仅可排序列生效；优先级由列顺序决定） */
+  /** 循环切换列的默认排序（无 → 升 → 降），多列时优先级按列顺序 */
   function cycleSort(key: string) {
     const target = columns.value.find(c => c.key === key)
     if (!target?.sortable) {

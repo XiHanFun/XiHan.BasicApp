@@ -46,8 +46,8 @@ function blankToNull(value: string): null | string {
 }
 
 /**
- * SchemaPage 的资源：分页与删除
- * 搜索字段按后端白名单下发：来源类型与状态多选，关键字匹配标题与来源；只看调用方一侧
+ * SchemaPage 的资源：分页与删除，关键字匹配标题与来源
+ * 只看调用方一侧
  */
 export function knowledgeDocumentsResource(): SchemaResource<KnowledgeRow> {
   return {
@@ -66,8 +66,9 @@ export function knowledgeDocumentsResource(): SchemaResource<KnowledgeRow> {
 }
 
 /**
- * 摄取弹窗：粘贴文本或从文件读取，读到文件后来源记文件名、标题为空即取文件名
- * 字段级错误挂回对应字段；索引失败文档照样保存并成功返回，页面按状态提示
+ * 摄取弹窗：粘贴文本或从文件读取
+ * 读到文件后来源记文件名，标题为空即取文件名
+ * 索引失败时文档照样保存并成功返回，页面按状态提示
  */
 export function useKnowledgeIngest() {
   const open = ref(false)
@@ -141,8 +142,8 @@ export function useKnowledgeIngest() {
 }
 
 /**
- * 检索试玩：提问、召回数、提供商与是否生成答案；只在调用方一侧检索
- * 引用的编号是片段在列表里的序号：答案里的 [n] 对应第 n 个片段
+ * 检索试玩，只在调用方一侧检索
+ * 答案里的 [n] 对应列表里第 n 个片段
  */
 export function useKnowledgePlayground() {
   const question = ref('')

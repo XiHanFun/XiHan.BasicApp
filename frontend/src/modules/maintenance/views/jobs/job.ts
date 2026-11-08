@@ -35,7 +35,7 @@ export type JobRow = JobResponse & {
   lastRunAt: null | string
 }
 
-/** 运行状态的推法：正在运行优先；否则暂停即「已暂停」；再看上次结果，没运行过为「待执行」 */
+/** 由运行中、暂停与上次结果推出列上的运行状态 */
 export function deriveRunStatus(job: Pick<JobResponse, 'last' | 'paused' | 'runningCount'>): JobRunStatus {
   if (job.runningCount > 0)
     return 'Running'
@@ -46,7 +46,7 @@ export function deriveRunStatus(job: Pick<JobResponse, 'last' | 'paused' | 'runn
   return job.last.succeeded ? 'Success' : 'Failed'
 }
 
-/** 任务分组：作业名的第一段（如 auditing.retention 归 auditing）；没有点分即没有分组 */
+/** 任务分组：作业名的第一段，如 auditing.retention 归 auditing */
 export function jobGroup(name: string): null | string {
   const dot = name.indexOf('.')
   return dot > 0
@@ -72,7 +72,7 @@ export function isRunning(job: Pick<JobResponse, 'runningCount'>): boolean {
 
 // 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
 
-/** 触发类型（计划的种类）的四个文案：手动即立即执行、一次性即定时执行、间隔即循环执行 */
+/** 触发类型的文案：手动即立即执行、一次性即定时执行、间隔即循环执行 */
 export function kindLabel(t: Translate, kind: JobScheduleKind | null | undefined): string {
   switch (kind) {
     case 'Manual': return t('maintenance.jobs.trigger_immediate')
@@ -112,7 +112,7 @@ export function runStatusTone(status: JobRunStatus): Tone {
   }
 }
 
-/** 运行状态的搜索选项：后端只能按「正在运行」与「暂停」筛，成功 / 失败 / 待执行筛不了，不给选 */
+/** 运行状态的搜索选项：后端只能按运行中与暂停筛，其余不给选 */
 export function runStatusOptions(t: Translate): { label: string, value: JobRunStatus }[] {
   return (['Running', 'Paused'] as const).map(status => ({
     label: runStatusLabel(t, status),
@@ -120,7 +120,7 @@ export function runStatusOptions(t: Translate): { label: string, value: JobRunSt
   }))
 }
 
-/** 运行状态的筛选：运行中即 `running eq true`；已暂停即暂停且不在运行（与列上推出的「已暂停」一致） */
+/** 运行状态的后端筛选；已暂停即暂停且不在运行，与列上推出的一致 */
 export function runStatusFilters(value: unknown): PageFilter[] {
   if (value === undefined || value === null || value === '')
     return []
@@ -157,7 +157,10 @@ export function statusOptions(t: Translate): { label: string, value: string }[] 
   ]
 }
 
-/** 登记来源：代码登记、运行时登记，或代码登记后在运行时改过计划（重启后代码定义没变就保留这次修改） */
+/**
+ * 登记来源的文案
+ * 已改计划即代码登记后在运行时改过计划，重启后代码定义没变就保留这次修改
+ */
 export function sourceLabel(t: Translate, source: JobSource): string {
   switch (source) {
     case 'Runtime': return t('maintenance.jobs.sources.runtime')
@@ -166,7 +169,7 @@ export function sourceLabel(t: Translate, source: JobSource): string {
   }
 }
 
-/** 登记来源的语气：代码登记中性、运行时登记蓝、已改计划黄（与代码定义不一致，提醒可恢复） */
+/** 登记来源的语气：已改计划标黄，提醒与代码定义不一致、可恢复 */
 export function sourceTone(source: JobSource): Tone {
   switch (source) {
     case 'Runtime': return 'info'
@@ -183,7 +186,7 @@ export function sourceOptions(t: Translate): { label: string, value: JobSource }
   }))
 }
 
-/** 作业类型的搜索选项：取自 jobs.types（已登记的类型键，按序数排序），键即显示文本；多选时后端按 `jobType in` 匹配 */
+/** 作业类型的搜索选项：jobs.types 已按序数排好，键即显示文本 */
 export async function loadJobTypeOptions(): Promise<SchemaSelectOption<string>[]> {
   const { items } = await jobsApi.types({})
   return items.map(type => ({ label: type, value: type }))
@@ -266,7 +269,7 @@ export function formatDuration(ms: null | number | undefined): string {
     : `${ms} ms`
 }
 
-/** 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案 */
+/** 报错文案：问题详情只取已本地化的正文；都没有为空串，由调用点补兜底文案 */
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
@@ -292,7 +295,7 @@ export function toJobsRequest(params: SchemaQueryParams): PageRequest {
   return request
 }
 
-/** SchemaPage 的资源：分页与启停（启用即恢复、停用即暂停；没有新增、编辑与删除——作业在代码里登记） */
+/** 作业的 SchemaPage 资源：分页与启停；作业在代码里登记，没有增删改 */
 export function jobResource(): SchemaResource<JobRow> {
   return {
     page: async (params: SchemaQueryParams) => {
@@ -320,22 +323,31 @@ export async function getJob(name: string): Promise<JobRow> {
   return toJobRow(await jobsApi.get({ id: name }))
 }
 
-/** 立即执行：排进一个一次性的手动触发器，由任一节点执行、不等结果；返回的触发器名即运行历史里的触发器名 */
+/**
+ * 立即执行：排进一次性的手动触发器，由任一节点执行、不等结果
+ * 返回的触发器名即运行历史里的触发器名
+ */
 export async function triggerJob(name: string): Promise<string> {
   return (await jobsApi.trigger({ id: name })).trigger
 }
 
-/** 计划触发器的个数：框架为立即执行（manual-）与故障恢复（recovery-）排进的临时触发器不算，改计划时后端也保留它们 */
+/**
+ * 计划触发器的个数
+ * 立即执行（manual-）与故障恢复（recovery-）的临时触发器不算，改计划时后端也保留它们
+ */
 export function activeTriggerCount(job: Pick<JobResponse, 'triggers'>): number {
   return job.triggers.filter(trigger => !trigger.name.startsWith('manual-') && !trigger.name.startsWith('recovery-')).length
 }
 
-/** 能否修改计划：后端只换唯一一个计划触发器的计划，多个即 MAINTENANCE_CONFLICT_002（没有触发器的按缺省名登记一个） */
+/**
+ * 能否修改计划：后端只换唯一一个计划触发器的计划
+ * 多个即 MAINTENANCE_CONFLICT_002；没有触发器的按缺省名登记一个
+ */
 export function canReschedule(job: Pick<JobResponse, 'triggers'>): boolean {
   return activeTriggerCount(job) <= 1
 }
 
-/** 能否恢复代码计划：只有代码登记后在运行时改过计划的作业（已改计划）有可恢复的代码定义 */
+/** 能否恢复代码计划：只有已改计划的作业有可恢复的代码定义 */
 export function canRestore(job: Pick<JobResponse, 'source'>): boolean {
   return job.source === 'Overridden'
 }
@@ -346,7 +358,7 @@ export interface ScheduleForm {
   timeZone: string
 }
 
-/** 弹窗的初值：Cron 触发器拆成表达式与时区，其余取计划的文本写法（every … / once … / manual），没有触发器为空 */
+/** 修改计划弹窗的初值：Cron 拆成表达式与时区，其余取计划的文本写法 */
 export function scheduleFormOf(job: Pick<JobResponse, 'triggers'>): ScheduleForm {
   const trigger = job.triggers[0]
   if (!trigger)
@@ -385,7 +397,7 @@ export async function rescheduleJob(name: string, form: RescheduleForm): Promise
 /** 预览列出的下次运行个数 */
 export const SCHEDULE_PREVIEW_COUNT = 5
 
-/** 校验计划并列出接下来的运行时间（不改任何作业）；写错即 MAINTENANCE_VALIDATION_002 */
+/** 校验计划并列出接下来的运行时间，不改作业；写错即 MAINTENANCE_VALIDATION_002 */
 export async function previewSchedule(form: ScheduleForm): Promise<SchedulePreview> {
   return jobsApi.validateSchedule({
     ...scheduleParts(form),
@@ -393,14 +405,17 @@ export async function previewSchedule(form: ScheduleForm): Promise<SchedulePrevi
   })
 }
 
-/** 恢复代码计划（按作业名批量）：丢弃运行时改过的计划、按代码定义重新登记，暂停状态保留；逐项失败翻成文案抛出 */
+/**
+ * 按作业名批量恢复代码计划，暂停状态保留
+ * 丢弃运行时改过的计划、按代码定义重新登记；逐项失败翻成文案抛出
+ */
 export async function restoreJobs(names: readonly string[]): Promise<void> {
   throwOnFailed(await jobsApi.restore({
     ids: [...names],
   }))
 }
 
-/** 间隔秒数写成计划的文本写法：`every [d.]hh:mm:ss`（后端按 TimeSpan 的 c 格式解析） */
+/** 间隔秒数写成 `every [d.]hh:mm:ss`，后端按 TimeSpan 的 c 格式解析 */
 export function intervalExpression(seconds: number): string {
   const total = Math.max(1, Math.floor(seconds))
   const days = Math.floor(total / 86400)
@@ -451,7 +466,7 @@ export function blankRetry(): RetryForm {
   }
 }
 
-/** 修改弹窗的初值：作业现在的重试与时限（int64 统一按 Number 读）；不重试时间隔取缺省，便于勾上重试 */
+/** 修改弹窗的初值：int64 统一按 Number 读；不重试时间隔取缺省，便于勾上重试 */
 export function retryFormOf(job: Pick<JobResponse, 'retry' | 'timeoutSeconds'>): RetryForm {
   const retry = job.retry
   const seconds = (value: null | number | undefined) => (value === null || value === undefined
@@ -473,7 +488,7 @@ export function retryIncomplete(form: RetryForm): boolean {
   return form.maxRetries !== null && form.retryDelaySeconds === null
 }
 
-/** 请求里的重试与时限：不重试时只发时限与空的次数；等待上限只对指数退避有意义，固定间隔不发 */
+/** 请求里的重试与时限：不重试只发时限；等待上限只对指数退避有意义 */
 function retryParts(form: RetryForm): Pick<RequestOf<'jobs.create'>, 'maxRetries' | 'retryBackoff' | 'retryDelaySeconds' | 'retryMaxDelaySeconds' | 'timeoutSeconds'> {
   if (form.maxRetries === null || form.retryDelaySeconds === null)
     return { timeoutSeconds: form.timeoutSeconds, maxRetries: null }
@@ -503,7 +518,7 @@ export function backoffOptions(t: Translate): { label: string, value: JobRetryBa
   }))
 }
 
-/** 详情里的重试策略：不重试；最多几次、每次等多久；或最多几次、从多久起翻倍（有上限时带上） */
+/** 详情里的重试策略文案 */
 export function retryText(t: Translate, job: Pick<JobResponse, 'retry'>): string {
   const retry = job.retry
   if (!retry)

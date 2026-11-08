@@ -40,9 +40,8 @@ const ERROR_TEXT: Record<string, string> = {
 }
 
 /**
- * 读取回跳参数：后端把票据（或错误码）、用途与提供方放在回调页地址的查询串里——
- * 哈希路由下形如 `#/auth/oauth-callback?ticket=x`，history 路由下形如 `/auth/oauth-callback?ticket=x`，都由 route.query 给出
- * 回来的只是一张一次性票据，令牌不进地址
+ * 读取回跳查询串里的票据（或错误码）、用途与提供方
+ * 哈希与 history 路由都由 route.query 给出；回来的只是一次性票据，令牌不进地址
  */
 function readCallbackParams(): Record<string, string> {
   const params: Record<string, string> = {}
@@ -57,7 +56,10 @@ function readCallbackParams(): Record<string, string> {
   return params
 }
 
-/** 服务端错误取本地化后的 detail（不带错误码前缀，未绑定、票据过期、账号停用或锁定都在这里说清），其余用兜底文案 */
+/**
+ * 服务端错误取本地化的 detail，其余用 fallback
+ * detail 不带错误码前缀，未绑定、票据过期、账号停用或锁定都在这里说清
+ */
 function failureText(error: unknown, fallback: string): string {
   return error instanceof ApiError && error.detail
     ? error.detail

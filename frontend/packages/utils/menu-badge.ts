@@ -16,7 +16,8 @@ export const MENU_BADGE_TONES = [
 export type MenuBadgeTone = (typeof MENU_BADGE_TONES)[number]
 
 /**
- * 菜单标签的语气。没配标签类型时，文字标签走 neutral、圆点走 danger——圆点本身就是「这里有新东西」的提醒
+ * 菜单标签的语气
+ * 没配类型时文字走 neutral、圆点走 danger，圆点本身就是「有新东西」的提醒
  */
 export function resolveMenuBadgeTone(badgeType: string | null | undefined, dot = false): MenuBadgeTone {
   return MENU_BADGE_TONES.find(tone => tone === badgeType) ?? (dot ? 'danger' : 'neutral')

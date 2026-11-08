@@ -32,7 +32,7 @@ export const MIGRATION_QUERY: PageQueryMapping = {
   },
 }
 
-/** 执行时间的区间 → `ge 起点` 与 `lt 终点后 1 毫秒`：区间选择器给的终点是含在内的那一刻 */
+/** 执行时间区间转成 `ge 起点` 与 `lt 终点后 1 毫秒`：选择器给的终点含在内 */
 export function executedAtFilters(condition: QueryFilter): PageFilter[] {
   const [start, end] = (condition.values ?? []).map(value => String(value))
   const endAt = end
@@ -98,10 +98,7 @@ export function getMigration(id: string): Promise<MigrationRow> {
   return migrationsApi.get({ id })
 }
 
-/**
- * 详情抽屉的定义（与审计包的日志详情同一套写法）：抬头是版本 · 脚本、执行结果与耗时，副信息是执行时间与节点；
- * 记录 ID 可复制，失败原因排在最后
- */
+/** 升级记录详情抽屉的定义，与审计包的日志详情同一套写法 */
 export function migrationDetailSchema(t: Translate): LogDetailSchema {
   return {
     header: {

@@ -82,7 +82,7 @@ export const DICT_SELECTOR_TYPES: readonly DictSelectorType[] = [
   'TreeSelector',
 ]
 
-/** 枚举值的文案键：值是契约字面量，键按 snake_case 落在 codegeneration.code_gen.enums 下 */
+/** 枚举值的文案键，值是契约字面量 */
 export function enumKey(group: string, value: string): string {
   return `codegeneration.code_gen.enums.${group}.${value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()}`
 }
@@ -108,10 +108,7 @@ export function actionsConflict(actions: readonly TableAction[]): boolean {
   return actions.includes('import') && !actions.includes('create')
 }
 
-/**
- * SchemaPage 的资源：分页与删除
- * 生成模式、交付方式、生成结果与状态多选合成 in；关键字匹配表名、类名与表注释
- */
+/** SchemaPage 的资源：分页与删除，关键字匹配表名、类名与表注释 */
 export function tablesResource(): SchemaResource<TableRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(

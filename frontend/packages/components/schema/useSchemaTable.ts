@@ -24,8 +24,8 @@ export interface UseSchemaTableOptions {
 }
 
 /**
- * Schema 列表数据状态机：分页 / 搜索 / 排序 / 删除 / loading 统一封装
- * 服务端模式：所有分页、排序、筛选均下发后端，前端不做本地处理
+ * Schema 列表数据状态机：分页、搜索、排序、删除与 loading
+ * 分页、排序、筛选全部下发后端，前端不做本地处理
  */
 export function useSchemaTable<TRow extends object>(
   schema: PageSchema<TRow>,

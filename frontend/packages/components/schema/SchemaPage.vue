@@ -124,7 +124,7 @@ watch(() => settings.defaultSorts.value, (ds) => {
   }
 })
 
-/** 列内排序图标循环（无→升→降）：更新列设置并立即应用到当前表格（优先级=列顺序，重新取数） */
+/** 列内排序图标循环（无 → 升 → 降）并立即重新取数，优先级按列顺序 */
 function onCycleSort(key: string) {
   settings.cycleSort(key)
   changeSort([...settings.defaultSorts.value])
@@ -163,12 +163,12 @@ function onResetTableSettings() {
   remountTable()
 }
 
-/** 表格设置：调整即时生效，点击「保存」才落库（本地 + 后端）；同步反馈由灵动岛统一展示 */
+/** 表格设置落库（本地 + 后端），调整本身即时生效；同步反馈归灵动岛 */
 function onSaveTableSettings() {
   settings.save()
 }
 
-/** 搜索设置：调整即时生效，点击「保存」才落库（本地 + 后端）；同步反馈由灵动岛统一展示 */
+/** 搜索设置落库（本地 + 后端），调整本身即时生效；同步反馈归灵动岛 */
 function onSaveSearchSettings() {
   searchSettings.save()
 }
@@ -304,10 +304,7 @@ function renderRowActions(row: Row) {
   )
 }
 
-/**
- * 派发操作：声明了 confirm 的先弹二次确认，确认后才上抛给页面
- * 确认在此统一处理，页面侧只管收到事件后执行，不必各自写 dialog
- */
+/** 派发操作：声明了 confirm 的先二次确认再上抛，页面不必各自写确认框 */
 function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
   const action = (props.schema.actions ?? []).find(item => item.key === key && item.scope === payload.scope)
   if (!action?.confirm) {
@@ -609,8 +606,8 @@ onMounted(async () => {
 })
 
 /**
- * 按字段把一行格式化成显示文本：选项列（枚举、字典、异步选项）取名称、日期按格式、布尔为是/否，空值为空串
- * 供打印这类要「显示值」而非原始值的场景用；隐藏字段（只供搜索或导入）同样格式化
+ * 按字段把一行格式化成显示文本，供打印这类要显示值的场景
+ * 选项列取名称、日期按格式、布尔为是/否，空值为空串；隐藏字段（只供搜索或导入）同样格式化
  */
 function formatRow(row: object): Record<string, string> {
   const result: Record<string, string> = {}

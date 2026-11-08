@@ -12,11 +12,7 @@ type DeviceNavigator = Navigator & {
   getBattery?: () => Promise<unknown>
 }
 
-/**
- * 设备指纹生成工具
- * 基于多维度浏览器/硬件特征生成稳定的设备唯一标识
- * 无外部依赖，通过 Canvas/WebGL/Audio/硬件参数等综合判定
- */
+/** 设备指纹：综合 Canvas、WebGL、Audio 与硬件参数生成稳定标识，无外部依赖 */
 
 async function getCanvasFingerprint(): Promise<string> {
   try {
@@ -66,13 +62,9 @@ function getWebGLFingerprint(): string {
 }
 
 /**
- * 音频指纹：离线渲染一段固定波形，取样本能量作为特征
- *
- * 必须用 OfflineAudioContext 而非实时 AudioContext：登录页在 onMounted 即取指纹，
- * 此时没有用户手势，自动播放策略会把实时上下文挂起，onaudioprocess 永不触发，只能等超时拿空串；
- * 而退出登录后客户端跳转过来的登录页已有手势，同一段代码又能拿到真实值——
- * 同一台设备算出两种指纹，会被判成新设备而反复触发设备变更通知
- * 离线渲染不受手势限制，结果只取决于硬件与浏览器实现，因而稳定
+ * 音频指纹：离线渲染一段固定波形，取样本能量作特征
+ * 须用 OfflineAudioContext：登录页挂载即取指纹，没有手势时实时上下文被挂起只能拿空串，有手势时又拿到真实值
+ * 同一设备两种指纹会被判成新设备、反复触发设备变更通知；离线渲染不受手势限制，结果稳定
  */
 function getAudioFingerprint(): Promise<string> {
   return new Promise((resolve) => {
@@ -232,9 +224,8 @@ function djb2Hash(str: string): string {
 }
 
 /**
- * 生成设备指纹
- * 综合 Canvas/WebGL/Audio/Navigator/Screen/Timezone/Plugins/Fonts 多维特征
- * @returns 稳定的设备标识字符串（格式 dfp_xxxxxxxx_xxxxxxxx）
+ * 综合多维浏览器与硬件特征生成设备指纹
+ * @returns 稳定的设备标识，格式 dfp_xxxxxxxx_xxxxxxxx
  */
 export async function generateDeviceFingerprint(): Promise<string> {
   const [canvasFp, audioFp] = await Promise.all([

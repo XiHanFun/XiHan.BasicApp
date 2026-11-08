@@ -26,10 +26,9 @@ withDefaults(defineProps<{
 const slots = useSlots()
 
 /**
- * 插槽里还有没有东西可挂触发器：唯一的子节点被 v-if 收掉时插槽只剩注释占位，
- * asChild 拿到 0 个节点会直接抛错，这时连说明一起不装
- * 口径与 asChild 相同（注释、空白文本、片段外壳不算），非空文本仍算一个，交给 asChild 报错
- * 在渲染里调用插槽，插槽内的依赖记在本组件名下，v-if 翻转时这里跟着重判
+ * 插槽里有没有可挂触发器的节点，口径同 asChild
+ * 子节点被 v-if 收掉时只剩注释占位，asChild 拿到 0 个节点会抛错，此时连说明一起不装；非空文本算一个，交给 asChild 报错
+ * 在渲染里调插槽，插槽内的依赖记在本组件名下，v-if 翻转时跟着重判
  */
 function hasMountableChild(nodes: VNodeArrayChildren | VNodeChild | undefined): boolean {
   if (nodes == null || typeof nodes === 'boolean')

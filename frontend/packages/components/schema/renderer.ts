@@ -23,9 +23,7 @@ function toMutableOptions(
   return options as Array<{ label: string, value: string | number }>
 }
 
-/**
- * 行值 → 选项值：布尔筛选项是后端接受的 'true' / 'false'，行里的值却是布尔，严格比较匹配不上
- */
+/** 行值 → 选项值：布尔筛选项是后端认的 'true' / 'false'，行里是布尔，严格比较对不上 */
 function toOptionValue(raw: unknown): string | number {
   return typeof raw === 'boolean'
     ? String(raw)
@@ -93,10 +91,7 @@ export function formatFieldText<TRow extends object>(
   }
 }
 
-/**
- * 渲染单元格 VNode（表格列 render 使用）
- * 自定义 field.render 优先级最高；其次按 dataType 走内置渲染；兜底为格式化文本
- */
+/** 渲染表格单元格：field.render 优先，其次按 dataType 内置渲染 */
 export function renderFieldCell<TRow extends object>(
   field: ListFieldSchema<TRow>,
   row: TRow,

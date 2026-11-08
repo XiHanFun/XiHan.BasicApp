@@ -7,11 +7,8 @@ import { useRoute } from 'vue-router'
 import { useTabbarStore } from '~/stores'
 
 /**
- * 刷新当前页面的组合式函数
- *
- * 通过递增 tabbarStore 中对应路径的 refreshSeed，
- * BasicLayout 中监听该值并销毁/重建页面组件，实现无刷新重载
- *
+ * 不整页刷新地重建当前页面组件
+ * 递增 tabbarStore 里该路径的 refreshSeed，由 BasicLayout 监听重建
  */
 export function useRefresh() {
   const route = useRoute()

@@ -23,9 +23,8 @@ const props = defineProps<SidebarMenuPropsContract & {
 const emit = defineEmits<{ menuUpdate: [key: string] }>()
 
 /**
- * 喂给组件库的 collection：条目身份、层级与禁用的事实源
- * 标签在这里给纯文本兜底（读屏与连打检索取它），真正的显示由标记里的部件渲染——
- * 菜单标签可能带角标或外链图标，塞不进一个字符串
+ * 组件库的 collection：条目身份、层级与禁用的事实源
+ * 标签只给纯文本供读屏与连打检索；显示由标记里的部件渲染，因为可能带角标或外链图标
  */
 function toCollection(nodes: AppMenuOption[]): SideNavNode[] {
   return nodes.map<SideNavNode>(node => ({

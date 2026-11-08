@@ -19,8 +19,8 @@ export type MenuLinkTarget = { to: RouteLocationRaw, href?: undefined } | { href
 export type MenuLinkResolver = (key: string) => MenuLinkTarget
 
 /**
- * 菜单键 → 外链地址。与菜单域里点击开外链那张表同一口径：按全路径索引后端下发的菜单树
- * 要的是不带副作用的查询（渲染 href 用），菜单域只给了查到即打开的那一个入口
+ * 菜单键 → 外链地址，无副作用（渲染 href 用）
+ * 口径同菜单域开外链那张表；菜单域只给了查到即打开的入口
  */
 export function useMenuExternalLinks(): (key: string) => string | undefined {
   const accessStore = useAccessStore()

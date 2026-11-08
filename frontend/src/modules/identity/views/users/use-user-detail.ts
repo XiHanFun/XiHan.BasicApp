@@ -35,8 +35,9 @@ export async function loadMemberships(userId: string): Promise<MembershipRow[]> 
 }
 
 /**
- * 查看详情：账号资料先用列表行顶上，账号安全、今日统计与当前会话取 users.detail（只要读用户的权限）；
- * 角色与部门归属按区块另取，区块没开的保持 null（页面退回列表行的角色与主部门）；取数失败把错误文案留在 error 上
+ * 用户详情：先用列表行顶上，再取 users.detail（只要读用户的权限）
+ * 角色与部门归属按区块另取，区块没开的保持 null，页面退回列表行的角色与主部门
+ * 取数失败把错误文案留在 error 上
  */
 export function useUserDetail() {
   const open = ref(false)

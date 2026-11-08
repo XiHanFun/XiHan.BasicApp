@@ -29,10 +29,9 @@ export const BACKEND_ORIGIN = (() => {
 })()
 
 /**
- * 将后端根相对路径（/uploads/...）解析为可直链访问的绝对 URL
- * - 绝对 URL（http/https）、data:、blob: 原样返回；
- * - 以 / 开头的后端根相对路径：拼接后端源（无后端源配置的开发环境保持相对，走代理）；
- * - 空值返回空字符串
+ * 后端根相对路径（/uploads/...）转成可直链的绝对 URL
+ * 绝对 URL、data:、blob: 原样返回，空值返回空串
+ * 没配后端源的开发环境保持相对路径，走代理
  */
 export function toAbsoluteFileUrl(value: string | null | undefined): string {
   const raw = (value ?? '').trim()

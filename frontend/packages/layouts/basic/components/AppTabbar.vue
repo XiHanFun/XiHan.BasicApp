@@ -296,7 +296,7 @@ function clearTabTransition(el: HTMLElement) {
 
 /**
  * 等这枚标签自己的淡变走完再收尾，超时兜底只收一次
- * 子元素的过渡结束事件也会冒泡上来，只认本元素的 opacity：减弱动效下位移 1ms 就结束，淡变还在走
+ * 子元素的过渡结束也会冒泡，只认本元素的 opacity：减弱动效下位移 1ms 就结束，淡变还在走
  */
 function afterOwnFade(el: HTMLElement, timeoutMs: number, finish: () => void) {
   const listening = new AbortController()

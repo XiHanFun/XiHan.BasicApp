@@ -38,11 +38,8 @@ export function settingSyncIsland(id: string, name: string): SettingSyncIslandTa
 }
 
 /**
- * 远端推送已应用（下行）：瞬时提示「{name}已从其他设备同步」
+ * 下行推送已应用：瞬时提示「{name}已从其他设备同步」
  * 在变更实际落地本端后调用
- *
- * @param id 灵动岛任务标识
- * @param name 设置名称
  */
 export function settingSyncRemoteApplied(id: string, name: string): void {
   islandStart(id, i18n.global.t('island.sync.remote_applying', { name }))

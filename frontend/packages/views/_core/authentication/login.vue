@@ -169,7 +169,10 @@ function getOauthProviderIcon(type: string) {
   return oauthProviderIcons[type] ?? 'lucide:link-2'
 }
 
-/** 第三方登录：带上「租户」一栏（用户名在注册地租户内唯一，第三方账号也按注册地找绑定；平台账号留空）与回跳地址 */
+/**
+ * 第三方登录，带上「租户」一栏与回跳地址
+ * 第三方账号也按注册地租户找绑定；平台账号租户留空
+ */
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
   showMoreOauth.value = false
   authStore.startOAuthLogin(provider, { tenant: formData.value.tenant, redirect: redirect.value })
@@ -259,8 +262,8 @@ function rememberTwoFactorTicket(result: LoginResponse | null) {
 }
 
 /**
- * 票据失效（不存在 / 过期 / 用户不匹配）：服务端要求重新登录，回到凭据阶段并换一枚新图形码
- * 返回是否已按票据失效处理，调用方据此跳过通用错误分支
+ * 票据失效时回到凭据阶段并换新图形码，返回是否已处理
+ * 失效指不存在、过期或用户不匹配；已处理时调用方跳过通用错误分支
  */
 function handleTicketExpired(error: unknown) {
   if (!(error instanceof ApiError) || error.code !== TWO_FACTOR_TICKET_INVALID) {
@@ -279,8 +282,8 @@ function handleTicketExpired(error: unknown) {
 }
 
 /**
- * 服务端返回需要 2FA（密码登录的首段，或第三方登录回调换票据时）：先记票据，再决定下一阶段——
- * 唯一方式时会立刻发起第二段请求，届时必须已持票
+ * 服务端要求 2FA 时先记票据，再决定下一阶段
+ * 只有一种方式时会立刻发第二段请求，届时必须已持票
  */
 async function applyTwoFactorChallenge(result: LoginResponse) {
   rememberTwoFactorTicket(result)
@@ -307,9 +310,9 @@ async function applyTwoFactorChallenge(result: LoginResponse) {
 }
 
 /**
- * 三个阶段的提交都汇到这里：credentials 的表单提交、code-input 的验证码输满自动提交 / Enter / 「验证并登录」
- * 入口先同步看 loginLoading：XhButton 的 loading 拦截读的是渲染期状态，首个 click 到重渲染之间的
- * 第二次 click 仍能穿过，自动提交与 Enter 更不经过按钮；store 一进 login 就同步置位，这里读到即在途
+ * 三个阶段的提交都汇到这里（表单提交、验证码输满、Enter、「验证并登录」）
+ * 入口先同步看 loginLoading：按钮的 loading 读渲染期状态，拦不住重渲染前的第二次 click，自动提交与 Enter 也不经过按钮
+ * store 一进 login 就同步置位，这里读到即在途
  */
 async function onSubmit() {
   if (authStore.loginLoading)

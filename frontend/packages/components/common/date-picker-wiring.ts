@@ -23,8 +23,7 @@ const END_GROUP_WIRING = [
 
 /**
  * 单日选择与区间起点那组的接线
- * keepOwnName 为真时，名字链末尾接上组自己的 id：组自带的 aria-label（区间的「开始日期」）
- * 跟在字段标签后面一起读，而不是被字段标签整个顶掉
+ * keepOwnName 为真时名字链末尾接上组自己的 id，组自带的 aria-label（区间的「开始日期」）跟在字段标签后一起读，不被顶掉
  */
 export function segmentGroupWiring(controlAttrs: Readonly<Record<string, unknown>>, keepOwnName = false): Record<string, unknown> {
   const wiring: Record<string, unknown> = {}
@@ -42,8 +41,8 @@ export function segmentGroupWiring(controlAttrs: Readonly<Record<string, unknown
 }
 
 /**
- * 区间终点那组的接线：id 由起点那份派生（字段只发一个 id），名字链同样接上组自己的「结束日期」，
- * 说明与校验状态照抄。不在字段里、也没有外来 id 时什么都不挂，组件库自己的那份原样生效
+ * 区间终点那组的接线：id 由起点派生（字段只发一个 id）
+ * 名字链同样接上组自己的「结束日期」，说明与校验状态照抄；没有外来 id（不在字段里）时什么都不挂，组件库自己的那份生效
  */
 export function endSegmentGroupWiring(controlAttrs: Readonly<Record<string, unknown>>): Record<string, unknown> {
   const id = controlAttrs.id

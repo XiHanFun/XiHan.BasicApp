@@ -40,7 +40,7 @@ function printLocale(locale: string): XhConfig | undefined {
   return PRINT_LOCALES[locale]
 }
 
-/** 注册 <xh-print-designer>（含它用到的预览、零件与 UI 元素），并让它跟随应用语言；可重复调用 */
+/** 注册 <xh-print-designer>（连同预览、零件与 UI 元素）并跟随应用语言；可重复调用 */
 export function ensurePrintDesigner(): void {
   definePrintDesigner()
   registerXhElementsLocale(printLocale)

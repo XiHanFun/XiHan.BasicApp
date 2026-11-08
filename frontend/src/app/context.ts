@@ -20,7 +20,7 @@ const INBOX_PANEL_SIZE = 100
 
 type InboxItem = ResponseOf<'inbox.list'>['items'][number]
 
-/** 收件箱条目 → 壳层的通知条目：时间字段换成壳层的名字，枚举名称与壳层的字符串枚举同值 */
+/** 收件箱条目 → 壳层的通知条目；枚举名与壳层的字符串枚举同值 */
 function toShellInboxItem(item: InboxItem): AppUserInboxItem {
   return {
     basicId: item.id,
@@ -55,8 +55,8 @@ function toShellDisplayItem(item: InboxItem): AppUserInboxDisplayItem {
 const PAGE_MAX_SIZE = 500
 
 /**
- * 壳层类型里有、但后端没有也用不到的接口（用户信息与权限走 auth.permissions）：显式拒绝而不是回空
- * 有人调到就是接线错了，看到这条错误，而不是一个看似工作的空件
+ * 壳层有、后端用不到的接口：显式拒绝而不是回空
+ * 用户信息与权限走 auth.permissions；调到即接线错了，报错比看似可用的空件好查
  */
 function notAvailable(name: string): never {
   throw new Error(`${name} 尚未接入后端`)
@@ -104,12 +104,7 @@ function genderOf(code: number): UserGender {
 /** 本人资料（`profile.get` / `update` / `change-username` / `remove-avatar` 与头像上传端点回的都是这一份） */
 type ProfileResponse = components['schemas']['ProfileResponse']
 
-/**
- * 本人资料 → 个人中心的 UserProfile：显示名沿用 nickName，头像是用户的头像文件主键，性别换成壳层的数字，没有的字段不给；
- * 上次改用户名的时间沿用 *Time 命名，现在能不能改看后端给的下次可改时间（没改过即为空、现在就能改）
- * 邮箱 / 手机还没有验证（发码随邮件短信能力接入），按「未验证」给、页签不显示；
- * 锁定取账号状态与登录失败锁定期
- */
+/** 本人资料 → 个人中心的 UserProfile */
 function toShellProfile(profile: ProfileResponse): UserProfile {
   const lockedUntil = profile.lockoutEndAt && Date.parse(profile.lockoutEndAt) > Date.now()
     ? profile.lockoutEndAt
@@ -169,13 +164,16 @@ function toShellProfile(profile: ProfileResponse): UserProfile {
   }
 }
 
-/** 本人改了资料（显示名、用户名、头像）：会话里的用户换成回来的那份（顶栏、用户菜单与个人中心侧栏的名字和头像随之刷新），再投影成壳层的资料 */
+/**
+ * 本人改了资料：更新会话用户，再投影成壳层的资料
+ * 顶栏、用户菜单与个人中心侧栏的名字和头像随会话用户刷新
+ */
 function applyProfile(profile: ProfileResponse): UserProfile {
   useAuthStore().applyUser(profile.user)
   return toShellProfile(profile)
 }
 
-/** `profile.external-logins` / `link-external` / `unlink-external` → 个人中心「账号绑定」的条目：第三方账号的显示名沿用 providerDisplayName，最近登录换成 *Time 命名，没有的字段不给 */
+/** 第三方账号绑定 → 个人中心「账号绑定」的条目 */
 function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): ExternalLoginItem {
   return {
     provider: login.provider,
@@ -197,7 +195,7 @@ function toShellExternalLogin(login: ResponseOf<'profile.link-external'>): Exter
 /** 个人中心「登录设备」图标表的设备类型编号：2 手机、3 桌面、4 平板；机器人与没识别出来的是 1（地球） */
 const SESSION_DEVICE_TYPES: Record<string, number> = { Mobile: 2, Desktop: 3, Tablet: 4 }
 
-/** `profile.sessions` / `revoke-session` / `revoke-other-sessions` → 个人中心「登录设备」的条目：设备类别换成图标表的编号，系统与时间换成壳层的字段名，没有的字段不给（后端不给设备名） */
+/** 登录会话 → 个人中心「登录设备」的条目（后端不给设备名） */
 function toShellSession(session: ResponseOf<'profile.sessions'>['items'][number]): UserSessionItem {
   return {
     sessionId: session.id,
@@ -252,7 +250,7 @@ function loginResultOf(log: MyLoginLog): LoginAuditResult {
   return log.succeeded ? LOGIN_EVENT_RESULTS[log.event] : 'Failed'
 }
 
-/** `my-login-logs.list` → 个人中心「登录日志」的条目：结果由事件、成败与错误码推出，时间与 IP 换成壳层的字段名，失败原因进 message，没有的字段不给（后端不记登录地点） */
+/** 登录日志 → 个人中心「登录日志」的条目（后端不记登录地点） */
 function toShellLoginLog(log: MyLoginLog): LoginLogItem {
   return {
     loginTime: log.occurredAt,
@@ -272,7 +270,7 @@ function toShellLoginLog(log: MyLoginLog): LoginLogItem {
   }
 }
 
-/** `profile.notification-preference` / `update-notification-preference` → 个人中心「通知」的偏好：六个开关与壳层同名，逐项给（壳层的推送、机器人、审批、营销后端没有） */
+/** 通知偏好 → 个人中心「通知」的偏好（推送、机器人、审批、营销后端没有） */
 function toShellNotificationPreference(preference: ResponseOf<'profile.notification-preference'>): NotificationPreference {
   return {
     channelInApp: preference.channelInApp,
@@ -295,7 +293,7 @@ function toShellActivityPeriod(counts: MyActivity['today']): UserActivityPeriod 
   }
 }
 
-/** `my-activity.summary` → 个人中心「统计」的活跃度：次数、在线时长与时间换成壳层的 *Count / onlineTime / *Time 字段名，没有的最近时间不给 */
+/** 活跃度汇总 → 个人中心「统计」的活跃度 */
 function toShellActivity(activity: MyActivity): UserActivity {
   return {
     today: toShellActivityPeriod(activity.today),
@@ -319,7 +317,7 @@ function toShellActivity(activity: MyActivity): UserActivity {
   }
 }
 
-/** `my-api-credentials.*` → 个人中心「开放接口」的凭证条目（状态是启停字面量，主键沿用 basicId） */
+/** 开放接口凭证 → 个人中心「开放接口」的凭证条目 */
 function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
   return {
     basicId: credential.id,
@@ -343,7 +341,7 @@ function toShellCallSettings(settings: ResponseOf<'my-api-credentials.settings'>
   }
 }
 
-/** `my-oauth-apps.*` → 个人中心「OAuth 应用」的条目：主键沿用 basicId，启停换成状态字面量，授权类型与范围用逗号、回调地址按行拼成壳层的字符串 */
+/** OAuth 应用 → 个人中心「OAuth 应用」的条目 */
 function toShellOAuthApp(app: ResponseOf<'my-oauth-apps.get'>): MyOAuthAppItem {
   return {
     basicId: app.id,
@@ -371,7 +369,7 @@ function toShellOAuthSecret(secret: ResponseOf<'my-oauth-apps.create'>): MyOAuth
   }
 }
 
-/** `oauth-consents.list` → 个人中心「已授权的应用」条目：授权时间换成壳层的 *Time 命名，范围保持列表（按标签显示） */
+/** OAuth 授权 → 个人中心「已授权的应用」条目；范围保持列表、按标签显示 */
 function toShellOAuthConsent(consent: ResponseOf<'oauth-consents.list'>['items'][number]): OAuthConsentItem {
   return {
     clientId: consent.clientId,
@@ -413,8 +411,8 @@ function timeZoneOptions() {
 }
 
 /**
- * 应用上下文（壳层 ← 应用）：packages 不直接依赖 src，由这里注入接口实现、路由实例与壳层要跳的应用路由
- * 登录配置来自 `auth.login-config`（开放的登录方式、后端配置启用的第三方登录提供方、是否要图形验证码与是否开放注册）
+ * 注入壳层的应用上下文：接口实现、路由实例与要跳的应用路由
+ * packages 不直接依赖 src，由这里注入
  */
 export function registerApplicationContext(router: Router): void {
   const apis: AppContextApis = {

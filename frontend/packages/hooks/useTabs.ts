@@ -8,13 +8,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { HOME_PATH } from '~/constants'
 import { useTabbarStore } from '~/stores'
 
-/**
- * Tab 管理组合式函数
- *
- * 封装 tabbarStore 的全部操作，并自动关联当前路由，
- * 页面组件中直接调用即可，无需手动操作 store 和 router
- *
- */
+/** 标签页操作：封装 tabbarStore 并关联当前路由 */
 export function useTabs() {
   const route = useRoute()
   const router = useRouter()
@@ -97,10 +91,8 @@ export function useTabs() {
   }
 
   /**
-   * 用掉一次性的路由参数（深链里「打开某条详情」「切到某个页签」这类意图）
-   * 标签按完整地址区分：参数留在地址里，标签就一直记着它，切回来或刷新会再触发一次；
-   * 这里把地址换成去掉这些参数的地址，带参数的那个标签并入目标标签
-   * @param keys 要用掉的参数名
+   * 用掉一次性的路由参数（深链里打开详情、切页签这类意图）
+   * 标签按完整地址区分，参数留着会在切回或刷新时再触发；故换成去掉参数的地址，带参标签并入目标标签
    */
   async function consumeQuery(keys: readonly string[]) {
     const from = route.fullPath

@@ -41,7 +41,7 @@ export function isLocale(value: string | null | undefined): value is Locale {
   return LOCALES.includes(value as Locale)
 }
 
-/** 能力包在 setup.ts 里登记自己的文案加载器（`import.meta.glob('./locales/*.ts')` 的结果） */
+/** 登记能力包的文案加载器（`import.meta.glob('./locales/*.ts')` 的结果） */
 export function registerModuleLocales(loaders: Record<string, Loader>): void {
   for (const [path, loader] of Object.entries(loaders)) {
     const locale = path.match(/([a-z]{2}-[A-Z]{2})\.ts$/)?.[1]

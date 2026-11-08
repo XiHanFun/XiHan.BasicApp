@@ -56,8 +56,9 @@ function matchesBoolean(value: unknown, actual: boolean): boolean {
 }
 
 /**
- * 按搜索条件筛整棵菜单树：节点自身命中、或有命中的后代就留下（保留祖先链看得出层级），留下节点的子级只留命中的
- * 关键字匹配显示标题、编码、路由与外链地址；种类、状态、显示、已定制精确匹配。没登记的字段、区间 / 多选出现即报错，不静默丢条件
+ * 按搜索条件在本地筛整棵菜单树
+ * 命中的节点连同祖先链留下，看得出层级；关键字匹配显示标题、编码、路由与外链地址
+ * 没登记的字段、区间 / 多选出现即报错，不静默丢条件
  */
 export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQueryParams, 'conditionFilters' | 'filters'>, titleOf: (node: MenuRow) => string): MenuRow[] {
   if (params.conditionFilters?.length)
@@ -102,8 +103,9 @@ export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQue
 }
 
 /**
- * SchemaPage 的资源（树形模式）：整棵树（含隐藏与运营节点）在本地筛选后交给表格；删除只对运营节点生效
- * 取回的整树另交给 onLoaded（上级目录的候选与子页面判定按整树算，不受搜索影响）
+ * 菜单的 SchemaPage 资源（树形模式），整树含隐藏与运营节点、在本地筛选
+ * 删除只对运营节点生效
+ * 整树另交给 onLoaded：上级目录候选与子页面判定按整树算，不受搜索影响
  */
 export function menusResource(titleOf: (node: MenuRow) => string, onLoaded: (nodes: MenuRow[]) => void = () => {}): SchemaResource<MenuRow> {
   return {
@@ -174,9 +176,9 @@ function emptyForm(): MenuForm {
 }
 
 /**
- * 菜单的编辑弹窗（平台侧）：新建目录或外链（都可在顶层或某个目录下，目录可以一层层套）、编辑节点
- * 页面节点只改展示（标题覆盖、图标、排序、所属目录、显示、缓存、固定标签、徽标），改过即定制；路由、组件与权限来自页面登记，不送
- * 子页面钉在登记的父页面下，所属目录不能改。字段级错误挂回对应字段
+ * 菜单的编辑弹窗（平台侧）：新建目录或外链、编辑节点
+ * 页面节点只改展示，改过即定制；路由、组件与权限来自页面登记，不送
+ * 子页面钉在登记的父页面下，所属目录不能改
  */
 export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
   const open = ref(false)
@@ -328,10 +330,7 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
   }
 }
 
-/**
- * 整棵菜单树（不受搜索影响）：所属目录的候选、子页面判定
- * 页面节点的上级若也是页面，就是登记里的子页面
- */
+/** 不受搜索影响的整棵菜单树，给所属目录候选与子页面判定 */
 export function useMenuTree() {
   const nodes = ref<MenuRow[]>([])
   const flat = computed(() => flattenMenus(nodes.value))
@@ -347,8 +346,8 @@ export function useMenuTree() {
   }
 
   /**
-   * 所属目录的候选：只留目录，照原样一层套一层
-   * 给了 excludeId（正在编辑的目录）就连它的子树一起去掉：目录不能挂到自己或自己的下级目录下
+   * 所属目录的候选树，只留目录
+   * excludeId（正在编辑的目录）连子树一起去掉：目录不能挂到自己或下级目录下
    */
   function directoryOptions(titleOf: (node: MenuRow) => string, excludeId: null | string = null): TreeSelectOption[] {
     const build = (items: readonly MenuRow[]): TreeSelectOption[] => items

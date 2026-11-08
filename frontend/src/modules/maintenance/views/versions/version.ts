@@ -74,7 +74,10 @@ export function versionResource(t: Translate): SchemaResource<VersionListRow> {
   }
 }
 
-/** 详情：按库名（platform 或租户 ID）取最新一份；每个库的台账行 ID 相同，列表的行键也用库名 */
+/**
+ * 按库名（platform 或租户 ID）取最新的版本详情
+ * 每个库的台账行 ID 相同，列表的行键也用库名
+ */
 export function getVersion(database: string): Promise<VersionRow> {
   return versionsApi.get({ id: database })
 }

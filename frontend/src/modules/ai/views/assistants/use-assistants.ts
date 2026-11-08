@@ -61,10 +61,7 @@ function blankToNull(value: string): null | string {
     : value.trim()
 }
 
-/**
- * SchemaPage 的资源：分页与删除
- * 搜索字段按后端白名单下发：状态多选，关键字匹配编码、名称与简介
- */
+/** SchemaPage 的资源：分页与删除，关键字匹配编码、名称与简介 */
 export function assistantsResource(): SchemaResource<AssistantRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
@@ -82,8 +79,9 @@ export function assistantsResource(): SchemaResource<AssistantRow> {
 }
 
 /**
- * 助手的编辑弹窗：新建与编辑（编码只在新建时填，状态只在新建时选，之后走行内启停）
- * 提供商与提示词填编码；可用的工具从后端目录勾选（方案 A3），没有向量库时给出提示（方案 D7b）
+ * 助手的新建与编辑弹窗
+ * 编码、状态只在新建时填，之后走行内启停；提供商与提示词填编码
+ * 工具从后端目录勾选（方案 A3），没有向量库时给出提示（方案 D7b）
  */
 export function useAssistantEditor() {
   const open = ref(false)

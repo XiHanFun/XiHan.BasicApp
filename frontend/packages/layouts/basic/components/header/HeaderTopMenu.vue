@@ -61,8 +61,8 @@ const router = useRouter()
 const externalLinkOf = useMenuExternalLinks()
 
 /**
- * 无子级入口的真实地址：外链菜单就是外链本身，站内取路由解析出的地址
- * 有了真地址，中键、Ctrl+点击与「在新标签页打开」才落得到对的页面
+ * 无子级入口的真实地址：外链取外链本身，站内取路由解析的地址
+ * 中键、Ctrl+点击与「在新标签页打开」靠它落到对的页面
  */
 function entryHref(key: string): string {
   return externalLinkOf(key) ?? router.resolve(key).href
@@ -108,9 +108,9 @@ const listJustify = computed(() => (props.align === 'center'
 const panelOptions = computed(() => props.options.filter(option => option.children?.length))
 
 /**
- * 普通左键点无子级入口：拦下整页跳转，交给上层走路由（外链、分栏模式的首个子页都由上层判断）
- * 拦在滚动区而不是链接本身：作者在链接上 preventDefault 会让组件库跳过它自己的 click（收起已展开的面板），
- * 冒泡到这里时那一步已经做完。带修饰键或非主键的点击原样交给浏览器，按链接的真实地址开新标签
+ * 左键点无子级入口时拦下整页跳转，交给上层走路由
+ * 拦在滚动区：在链接上 preventDefault 会让组件库跳过自己的 click（收起已展开面板），冒泡到这里时它已做完
+ * 带修饰键或非主键的点击交给浏览器，按真实地址开新标签
  */
 function onEntryClick(event: MouseEvent): void {
   const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[data-top-menu-key]')
@@ -134,8 +134,8 @@ function scrollBehavior(): ScrollBehavior {
 }
 
 /**
- * 入口一行摆开要多宽。不能用 scrollWidth：列表带 min-width:100%（排得下时铺满滚动区好让对齐生效），
- * 装得下时 scrollWidth 恒等于可视宽，富余多少就看不出来了，顶栏那边也就判不出还能不能放回命令面板
+ * 入口排成一行所需的宽度
+ * 不用 scrollWidth：列表带 min-width:100%，装得下时它恒等于可视宽，看不出富余，顶栏判不出能否放回命令面板
  */
 function measureContentWidth(list: HTMLElement): number {
   const items = [...list.children] as HTMLElement[]
@@ -223,10 +223,7 @@ function rootElement(): HTMLElement | null {
   return scrollViewportRef.value?.closest<HTMLElement>('[data-scope="navigation-menu"][data-part="root"]') ?? null
 }
 
-/**
- * 把共享外壳挪到当前入口下方：量的是入口与根的内联起点之差，
- * 再按视口右缘回拉，贴边的入口不会把面板顶出屏幕
- */
+/** 共享外壳挪到当前入口下方，按视口右缘回拉免得顶出屏幕 */
 async function syncPanelInset() {
   const value = openValue.value
   const root = rootElement()

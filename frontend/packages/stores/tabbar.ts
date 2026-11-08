@@ -113,9 +113,8 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   /**
-   * 批量关闭后若激活标签已被移除，把激活位收敛到本次操作的目标标签（它必然被保留），
-   * 目标也不在时回落首页。与 removeTab / closeOthers / closeAll 的兜底口径一致，
-   * 避免标签栏无高亮项而内容区仍停在已关闭页
+   * 激活标签被批量关掉时收敛到本次操作的目标标签，目标也不在则回落首页
+   * 与 removeTab / closeOthers / closeAll 的兜底同一口径，免得没有高亮项而内容区仍停在已关闭页
    */
   function ensureActiveTabAlive(fallbackKey: string) {
     if (tabs.value.some(tab => tab.key === activeTab.value)) {

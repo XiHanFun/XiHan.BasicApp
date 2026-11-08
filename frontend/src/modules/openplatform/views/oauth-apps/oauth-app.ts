@@ -123,7 +123,10 @@ export function formatSeconds(t: Translate, seconds: number): string {
   })
 }
 
-/** 报错文案：后端的问题详情只取正文（已按请求语言本地化），其余取消息；都没有时为空串，由调用点补上兜底文案 */
+/**
+ * 报错文案：问题详情取正文（已本地化），其余取消息
+ * 都没有时为空串，由调用点补兜底文案
+ */
 export function errorText(error: unknown): string {
   if (error instanceof ApiError)
     return error.detail
@@ -171,7 +174,7 @@ export interface OAuthAppForm {
   remark: string
 }
 
-/** 新建的缺省值：授权类型与范围同个人应用的缺省（授权码 + 刷新令牌，openid / profile / email） */
+/** 新建的缺省值，授权类型与范围同个人应用 */
 export function emptyOAuthAppForm(): OAuthAppForm {
   return {
     id: null,
@@ -254,14 +257,14 @@ function blankToNull(value: string): null | string {
   return value.trim() || null
 }
 
-/** 有效期已由 findOAuthAppProblem 校验过；没校验就提交是调用方的错，直接报错而不是补个缺省值 */
+/** 有效期须已经 findOAuthAppProblem 校验，未填即抛错而不补缺省值 */
 function lifetime(value: null | number): number {
   if (value === null)
     throw new Error('有效期未填写：提交前须先经 findOAuthAppProblem 校验')
   return value
 }
 
-/** 新建与修改共用的内容：授权类型与范围按后端认的规整，回调地址拆成列表，空白写 null */
+/** 新建与修改共用的内容，授权类型与范围按后端认的规整 */
 function draft(form: OAuthAppForm) {
   return {
     appName: form.appName.trim(),
@@ -299,7 +302,8 @@ export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oa
 }
 
 /**
- * SchemaPage 的资源：分页、删除与启停。没有单独的启停操作，启停是取最新一份再整体修改
+ * SchemaPage 的资源：分页、删除与启停
+ * 没有单独的启停操作，取最新一份再整体修改
  */
 export function oauthAppResource(): SchemaResource<OAuthAppRow> {
   return {

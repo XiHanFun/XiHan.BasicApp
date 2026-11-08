@@ -15,7 +15,7 @@ const coreViews: Record<string, ViewLoader> = {
   'about/project/index': () => import('~/views/_core/about/index.vue'),
 }
 
-/** 把组件路径（如 `identity/users/index`）解析成页面加载器；找不到即抛错，而不是静默回退到空页 */
+/** 组件路径解析成页面加载器；找不到即抛错，不静默回退到空页 */
 export function resolveView(component: string): ViewLoader {
   const core = coreViews[component]
   if (core)

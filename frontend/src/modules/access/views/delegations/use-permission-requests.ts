@@ -172,8 +172,8 @@ export function toForm(row: PermissionRequestRow): PermissionRequestForm {
 }
 
 /**
- * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）
- * 搜索按后端白名单：关键字匹配申请原因与备注，状态多选（合成 in）；排序只放提交时间
+ * 权限申请的 SchemaPage 资源
+ * 作用侧为当前租户或平台；关键字匹配申请原因与备注，排序只放提交时间
  */
 export function permissionRequestsResource(): SchemaResource<PermissionRequestRow> {
   return {
@@ -205,8 +205,9 @@ function captureError(error: unknown, fieldErrors: { value: Record<string, strin
 }
 
 /**
- * 发起申请与修改重提共用的弹窗：申请对象二选一（启用的角色，或本侧权限目录），打开时各取一次候选
- * 字段级错误挂回对应字段；Workflow 关掉时提交返回 503 `ACCESS_UNAVAILABLE_002`，原因留在弹窗里
+ * 发起申请与修改重提共用的弹窗
+ * 申请对象二选一：启用的角色，或本侧权限目录
+ * Workflow 关掉时提交返回 503 `ACCESS_UNAVAILABLE_002`，原因留在弹窗里
  */
 export function usePermissionRequestEditor() {
   const open = ref(false)
@@ -297,9 +298,7 @@ export function usePermissionRequestEditor() {
   }
 }
 
-/**
- * 手工驳回 / 撤回的弹窗（W2）：选处理方式、填备注（也是流程的取消原因），批量接口传单个 ID
- */
+/** 手工驳回 / 撤回的弹窗；备注也是流程的取消原因 */
 export function usePermissionRequestCloser() {
   const open = ref(false)
   const target = ref<null | PermissionRequestRow>(null)

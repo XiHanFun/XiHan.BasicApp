@@ -41,7 +41,7 @@ function emptyForm(): PositionForm {
 
 /**
  * SchemaPage 的资源：分页、删除、启停与导入新建
- * 搜索字段按后端白名单下发：关键字匹配编码与名称，状态精确匹配；可排序列是编码、名称、排序与创建时间
+ * 关键字匹配编码与名称；可排序列是编码、名称、排序与创建时间
  */
 export function positionsResource(): SchemaResource<PositionRow> {
   return {

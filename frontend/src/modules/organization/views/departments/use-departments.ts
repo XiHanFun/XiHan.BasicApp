@@ -91,7 +91,10 @@ export function toDepartmentRows(nodes: DepartmentNode[]): DepartmentRow[] {
   }))
 }
 
-/** 上级部门的候选树：编辑时去掉部门自己连同整棵子树（后端也拒绝循环，这里只是少给错误的选项） */
+/**
+ * 上级部门的候选树，编辑时去掉部门自己连同整棵子树
+ * 后端也拒绝循环，前端只是少给错误的选项
+ */
 export function toParentOptions(rows: DepartmentRow[], excludeId?: string): TreeSelectOption[] {
   return rows.filter(row => row.id !== excludeId).map((row) => {
     const children = toParentOptions(row.children, excludeId)
@@ -114,9 +117,9 @@ export function findDepartmentRow(rows: readonly DepartmentRow[], id: string): D
 }
 
 /**
- * SchemaPage 的资源（树形模式）：部门树（departments.tree 一次取回、不分页）、删除与启停
- * 只接受关键字：别的筛选与排序一出现即报错，而不是静默丢掉条件
- * onTree 拿到的总是整棵树（上级候选与详情的子部门都要全的），带关键字时另取一次
+ * SchemaPage 的树形资源：部门树（一次取回、不分页）、删除与启停
+ * 只接受关键字，别的筛选与排序一出现即报错，不静默丢掉条件
+ * onTree 总拿整棵树（上级候选与子部门都要全的），带关键字时另取一次
  */
 export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): SchemaResource<DepartmentRow> {
   return {
@@ -185,10 +188,9 @@ function emptyDepartmentForm(): DepartmentForm {
 }
 
 /**
- * 部门的编辑弹窗：新建（顶层或某部门之下）、编辑
+ * 部门的新建（顶层或某部门之下）与编辑弹窗
  * 上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move
- * 负责人按关键字远程检索用户（users.list，要能查看用户）；编辑时先按用户详情把现任负责人放进候选，组合框才显示得出名字
- * 字段级错误挂回对应字段，其余错误给整条提示
+ * 负责人按关键字远程检索用户（users.list，要能查看用户）
  */
 export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
   const open = ref(false)
@@ -269,7 +271,7 @@ export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
       void seedLeader(row.id, row.leaderUserId)
   }
 
-  /** 现任负责人可能不在第一页候选里：按用户详情放进候选，与检索结果同样显示显示名与登录名 */
+  /** 把现任负责人补进候选：他可能不在第一页，不补就显示不出名字 */
   async function seedLeader(departmentId: string, userId: string) {
     try {
       const user = await usersApi.get({ id: userId })
@@ -378,7 +380,8 @@ function listMembers(departmentId: string) {
 }
 
 /**
- * 部门详情对话框：详情（祖先链、负责人、子部门数、成员数）与成员列表（能读归属的主体才取）；子部门取自树里这一行的子行
+ * 部门详情对话框：详情与成员列表
+ * 成员列表只在能读归属时才取；子部门取自树里这一行的子行
  */
 export function useDepartmentDetail(canReadMembers: () => boolean) {
   const open = ref(false)
@@ -476,8 +479,9 @@ export interface MembershipOptionScope {
 }
 
 /**
- * 任职弹窗：添加成员（选用户、岗位、工号、职级、入职日期、排序、备注、是否主部门）与编辑任职（用户与主部门不在这里改）
- * 候选用户与启用中的岗位在打开时取（各前 100 条）；编辑时原岗位已停用也补进候选，免得选中值显示为空
+ * 任职弹窗：添加成员与编辑任职，用户与主部门不在编辑里改
+ * 候选用户与启用中的岗位在打开时取（各前 100 条）
+ * 编辑时原岗位已停用也补进候选，免得选中值显示为空
  */
 export function useMembershipEditor() {
   const open = ref(false)

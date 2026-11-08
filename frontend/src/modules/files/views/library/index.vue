@@ -510,7 +510,10 @@ async function setFileStatus(row: FileRow, status: 'Archived' | 'Normal', succes
   }
 }
 
-/** 彻底删除：记录与副本一并删掉，内容不再被别的文件用到时随之从存储里删除，不可恢复，强二次确认 */
+/**
+ * 彻底删除前强二次确认：记录与副本一并删掉，不可恢复
+ * 内容不再被别的文件用到时随之从存储里删除
+ */
 function confirmDelete(row: FileRow) {
   void confirmDanger({
     title: t('files.library.messages.delete_title'),
@@ -612,7 +615,7 @@ async function loadStorages() {
   }
 }
 
-/** 副本操作会改文件状态（损坏的文件换了主副本即恢复、主副本校验不过即损坏），列表一并刷新 */
+/** 副本变动后列表一并刷新：换主副本、校验都会改文件状态 */
 async function afterStorageChange() {
   await loadStorages()
   reload()
