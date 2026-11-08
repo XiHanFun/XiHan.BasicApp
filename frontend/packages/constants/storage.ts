@@ -116,7 +116,6 @@ export const SHORTCUT_TAB_OVERVIEW_KEY = `${STORAGE_PREFIX}shortcut_tab_overview
 export const TRANSITION_ENABLE_KEY = `${STORAGE_PREFIX}transition_enable`
 export const TRANSITION_NAME_KEY = `${STORAGE_PREFIX}transition_name`
 export const LOADING_NAME_KEY = `${STORAGE_PREFIX}loading_name`
-export const LOADING_FIXED_COLOR_KEY = `${STORAGE_PREFIX}loading_fixed_color`
 export const TRANSITION_PROGRESS_KEY = `${STORAGE_PREFIX}transition_progress`
 export const TRANSITION_LOADING_KEY = `${STORAGE_PREFIX}transition_loading`
 export const HEADER_SHOW_KEY = `${STORAGE_PREFIX}header_show`

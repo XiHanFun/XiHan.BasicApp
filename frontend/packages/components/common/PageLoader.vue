@@ -17,13 +17,10 @@ const props = withDefaults(defineProps<{
   size?: number
   /** 预览态：选择器中同时渲染多个，降配以保证流畅 */
   preview?: boolean
-  /** 固定颜色：用前景色（暗色主题亮、亮色主题暗），不跟随主题色 */
-  fixedColor?: boolean
 }>(), {
   name: 'lissajous-drift',
   size: 44,
   preview: false,
-  fixedColor: false,
 })
 
 const config = computed(() => getLoaderConfig(props.name))
@@ -141,7 +138,6 @@ onBeforeUnmount(stop)
   <svg
     ref="svgEl"
     class="xh-page-loader"
-    :class="{ 'is-fixed-color': fixedColor }"
     :style="{ width: `${size}px`, height: `${size}px` }"
     viewBox="0 0 100 100"
     fill="none"
@@ -170,9 +166,5 @@ onBeforeUnmount(stop)
 .xh-page-loader {
   color: var(--xh-fg-brand);
   overflow: visible;
-}
-/* 固定颜色：前景色随主题取明/暗，但不跟随主题色 */
-.xh-page-loader.is-fixed-color {
-  color: var(--xh-fg-default);
 }
 </style>

@@ -19,7 +19,6 @@ import {
   FROSTED_GLASS_ENABLED_KEY,
   FROSTED_GLASS_INTENSITY_KEY,
   GRAYSCALE_ENABLED_KEY,
-  LOADING_FIXED_COLOR_KEY,
   LOADING_NAME_KEY,
   THEME_ANIMATION_ENABLED_KEY,
   THEME_AUTO,
@@ -62,8 +61,6 @@ export function createThemeSlice() {
   const transitionName = ref<string>(LocalStorage.get<string>(TRANSITION_NAME_KEY) ?? 'scale-up')
   // 页面加载动画（数学曲线加载器）
   const loadingName = ref<string>(LocalStorage.get<string>(LOADING_NAME_KEY) ?? 'lissajous-drift')
-  // 加载动画固定颜色：开启后用前景色（暗色主题亮、亮色主题暗），不跟随主题色
-  const loadingFixedColor = ref<boolean>(LocalStorage.get<boolean>(LOADING_FIXED_COLOR_KEY) ?? false)
   const transitionProgress = ref<boolean>(
     LocalStorage.get<boolean>(TRANSITION_PROGRESS_KEY) ?? true,
   )
@@ -95,7 +92,6 @@ export function createThemeSlice() {
   bindPersist(TRANSITION_ENABLE_KEY, transitionEnable, true)
   bindPersist(TRANSITION_NAME_KEY, transitionName, 'scale-up')
   bindPersist(LOADING_NAME_KEY, loadingName, 'lissajous-drift')
-  bindPersist(LOADING_FIXED_COLOR_KEY, loadingFixedColor, false)
   bindPersist(TRANSITION_PROGRESS_KEY, transitionProgress, true)
   bindPersist(TRANSITION_LOADING_KEY, transitionLoading, true)
   bindPersist(FROSTED_GLASS_ENABLED_KEY, frostedGlassEnabled, false)
@@ -149,9 +145,6 @@ export function createThemeSlice() {
   function setLoadingName(v: string) {
     save(LOADING_NAME_KEY, loadingName, v)
   }
-  function setLoadingFixedColor(v: boolean) {
-    save(LOADING_FIXED_COLOR_KEY, loadingFixedColor, v)
-  }
   function setTransitionProgress(v: boolean) {
     save(TRANSITION_PROGRESS_KEY, transitionProgress, v)
   }
@@ -191,7 +184,6 @@ export function createThemeSlice() {
     transitionEnable,
     transitionName,
     loadingName,
-    loadingFixedColor,
     transitionProgress,
     transitionLoading,
     frostedGlassEnabled,
@@ -214,7 +206,6 @@ export function createThemeSlice() {
     setTransitionEnable,
     setTransitionName,
     setLoadingName,
-    setLoadingFixedColor,
     setTransitionProgress,
     setTransitionLoading,
     setFrostedGlassEnabled,

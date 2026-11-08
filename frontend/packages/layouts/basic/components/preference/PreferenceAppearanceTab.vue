@@ -428,21 +428,10 @@ const loaderItems = computed(() =>
           @click="appStore.transitionLoading && (appStore.loadingName = item.value)"
         >
           <div class="transition-preview">
-            <PageLoader v-if="loaderPreviewsReady" :name="item.value" :size="40" preview :fixed-color="appStore.loadingFixedColor" />
+            <PageLoader v-if="loaderPreviewsReady" :name="item.value" :size="40" preview />
           </div>
           <span class="item-label" :title="item.label">{{ item.label }}</span>
         </div>
-      </div>
-      <div class="pref-row">
-        <div class="flex gap-1 items-center">
-          <span>{{ t('preference.general.animation.loading_fixed_color') }}</span>
-          <PrefTip :content="t('preference.general.animation.loading_fixed_color_tip')" />
-        </div>
-        <XhSwitch
-          v-model:checked="appStore.loadingFixedColor"
-          :disabled="!appStore.transitionLoading"
-          :aria-label="t('preference.general.animation.loading_fixed_color')"
-        />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">

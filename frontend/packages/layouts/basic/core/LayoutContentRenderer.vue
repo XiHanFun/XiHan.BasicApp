@@ -62,7 +62,7 @@ const appStore = useAppStore()
     <!-- 页面切换 Loading：开启后导航期间在内容区居中展示所选加载动画 -->
     <Transition name="xh-loading-fade">
       <div v-if="appStore.transitionLoading && appStore.pageLoading" class="content-loading">
-        <PageLoader :name="appStore.loadingName" :size="76" :fixed-color="appStore.loadingFixedColor" />
+        <PageLoader :name="appStore.loadingName" :size="76" />
       </div>
     </Transition>
   </div>

@@ -72,7 +72,6 @@ describe('默认值', () => {
 
     expect(store.transitionName).toBe('scale-up')
     expect(store.loadingName).toBe('lissajous-drift')
-    expect(store.loadingFixedColor).toBe(false)
     expect(store.frostedGlassIntensity).toBe(10)
     expect(store.watermarkText).toBe('XiHan BasicApp')
   })
@@ -282,14 +281,12 @@ describe('开关型偏好逐个可写', () => {
     store.setTransitionEnable(false)
     store.setTransitionProgress(false)
     store.setTransitionLoading(false)
-    store.setLoadingFixedColor(true)
 
     expect(store.themeDynamicColor).toBe(false)
     expect(store.themeAnimationEnabled).toBe(false)
     expect(store.transitionEnable).toBe(false)
     expect(store.transitionProgress).toBe(false)
     expect(store.transitionLoading).toBe(false)
-    expect(store.loadingFixedColor).toBe(true)
   })
 
   it('无障碍与水印类开关写入后回读一致', () => {
