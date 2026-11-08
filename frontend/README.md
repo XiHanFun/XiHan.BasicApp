@@ -25,7 +25,7 @@ frontend/
 | 安装 | `pnpm install --no-frozen-lockfile` |
 | 开发 | `pnpm dev`（9100，`/api` 等代理到后端 9710） |
 | 生成契约层 | `pnpm gen:contracts`（读 `contracts/openapi.json`） |
-| 综合检查 | `pnpm check`（type-check → lint → px → token → i18n → modules → contracts → permissions） |
+| 综合检查 | `pnpm check`（type-check → lint → px → token → i18n → modules → tests → contracts → permissions） |
 | 单测 / 构建 | `pnpm test`、`pnpm build` |
 
 ## 契约层

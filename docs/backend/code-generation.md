@@ -153,7 +153,7 @@ XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
 
 - 变量是框架源码的 `src/` 目录（同 `-p:XiHanFrameworkSrc`），没设即跳过；前端要先在本检出的 `frontend` 装好依赖。
 - 把当前提交的 `backend` 与 `frontend` 导出到临时目录，四张演示表各配成新建包：树表 Catalog（带生成的启停枚举）、单表 Shop（关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数）、主从 Sales / SalesItems，按「生成到项目」写进去。
-- 照生成的登记片段登记进宿主（工程引用、`UseFeature`、OpenAPI 分组）与前端模块门禁，宿主连同四个新包 Release 构建、警告即失败；导出契约、`pnpm gen:contracts` 之后前端 `pnpm check` 八项通过。
+- 照生成的登记片段登记进宿主（工程引用、`UseFeature`、OpenAPI 分组）与前端模块门禁，宿主连同四个新包 Release 构建、警告即失败；导出契约、`pnpm gen:contracts` 之后前端 `pnpm check` 九项通过。
 
 ## 模块开关
 

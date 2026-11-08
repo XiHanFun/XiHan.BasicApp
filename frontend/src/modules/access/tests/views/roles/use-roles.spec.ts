@@ -1,0 +1,798 @@
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { findCoveredDepartments, isDataScopeDirty, syncPickedDepartments } from '@/modules/access/views/roles/data-scope'
+import { diffGrants, mergeMemberCandidates, rolePermissionEntries, rolesResource, toPermissionItems, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from '@/modules/access/views/roles/use-roles'
+import { configureRequest } from '~/request'
+import { useAppStore, useAuthStore } from '~/stores'
+
+function json(status: number, body: object, contentType = 'application/json'): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': contentType },
+  })
+}
+
+function role(id: string, code: string, extra: Record<string, unknown> = {}) {
+  return {
+    id,
+    ownerTenantId: 'acme',
+    code,
+    name: code,
+    description: null,
+    order: 0,
+    isBuiltIn: false,
+    status: 'Active',
+    dataScope: 'SelfOnly',
+    createdAt: '2026-10-28T00:00:00Z',
+    ...extra,
+  }
+}
+
+function permission(code: string, displayName: string) {
+  const [pkg, resource, action] = code.split('.')
+  return {
+    code,
+    displayName,
+    description: null,
+    package: pkg,
+    resource,
+    action,
+    scope: 'Both',
+    audited: false,
+  }
+}
+
+function member(userId: string, userName: string) {
+  return {
+    userId,
+    userName,
+    displayName: userName.toUpperCase(),
+    status: 'Active',
+    assignedAt: '2026-10-28T00:00:00Z',
+  }
+}
+
+function relative(roleId: string, name: string, depth: number, extra: Record<string, unknown> = {}) {
+  return {
+    roleId,
+    code: name.toLowerCase(),
+    name,
+    status: 'Active',
+    depth,
+    path: [name, 'Auditor'],
+    isEffective: true,
+    ...extra,
+  }
+}
+
+function department(id: string, name: string, children: unknown[] = []) {
+  return {
+    department: { id, name },
+    memberCount: 0,
+    children,
+  }
+}
+
+interface Call { method: string, url: string, body: unknown }
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+})
+
+/** 当前主体持有的权限码（只用于前端可见性判定） */
+function grant(permissions: string[]) {
+  useAuthStore().permissions = {
+    permissions,
+    roles: [],
+    menus: [],
+    pages: [],
+    isPlatform: true,
+  } as never
+}
+
+function record(respond: (call: Call) => Response): Call[] {
+  const calls: Call[] = []
+  configureRequest({
+    baseUrl: '',
+    getToken: () => 't',
+    fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+      const call = {
+        method: init?.method ?? 'GET',
+        url: String(url),
+        body: init?.body
+          ? JSON.parse(String(init.body))
+          : undefined,
+      }
+      calls.push(call)
+      return respond(call)
+    }) as unknown as typeof fetch,
+  })
+  return calls
+}
+
+describe('rolesResource', () => {
+  it('把 SchemaPage 的查询换成 roles.list 的分页请求（关键字 + 状态精确匹配），结果换回 SchemaPage 的分页结构', async () => {
+    const calls = record(() => json(200, {
+      items: [
+        role('r-1', 'auditor'),
+      ],
+      total: 1,
+      page: { index: 2, size: 10 },
+    }))
+    const result = await rolesResource().page!({
+      page: 2,
+      pageSize: 10,
+      filters: { keyword: ' aud ', status: 'Disabled' },
+      sorts: [
+        { field: 'createdAt', order: 'desc' },
+      ],
+    })
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/roles:list' })
+    expect(calls[0]!.body).toEqual({
+      page: { index: 2, size: 10 },
+      keyword: 'aud',
+      filters: [
+        { field: 'status', operator: 'eq', value: 'Disabled' },
+      ],
+      sorts: [
+        { field: 'createdAt', descending: true },
+      ],
+    })
+    expect(result.items.map(r => r.code)).toEqual(['auditor'])
+    expect(result.page).toMatchObject({ pageIndex: 2, totalCount: 1, startRecord: 11 })
+  })
+
+  it('后端不接受的筛选（数据范围）不登记：出现即报错，不静默丢条件', async () => {
+    const calls = record(() => json(200, {
+      items: [],
+      total: 0,
+      page: { index: 1, size: 20 },
+    }))
+    await expect(rolesResource().page!({
+      page: 1,
+      pageSize: 20,
+      filters: { dataScope: 'All' },
+    })).rejects.toThrow('dataScope')
+    expect(calls).toHaveLength(0)
+  })
+
+  it('删除被后端逐项拒绝（内建角色）时带着原因抛出；启停先取详情再整体回传，数据范围不传即保留', async () => {
+    const calls = record((call) => {
+      if (call.method === 'DELETE') {
+        return json(200, {
+          succeeded: [],
+          failed: [
+            { id: 'r-admin', code: 'ACCESS_CONFLICT_002', message: 'ACCESS_CONFLICT_002 的原因' },
+          ],
+        })
+      }
+      if (call.method === 'GET') {
+        return json(200, {
+          role: role('r-2', 'auditor', {
+            name: 'Auditor',
+            description: 'Reads logs',
+            order: 5,
+            dataScope: 'Custom',
+          }),
+          permissions: [],
+          memberCount: 0,
+          customDepartments: [
+            { departmentId: 'd-1', includeChildren: true },
+          ],
+        })
+      }
+      return json(200, role('r-2', 'auditor', { status: 'Disabled' }))
+    })
+    const resource = rolesResource()
+    await expect(resource.remove!('r-admin')).rejects.toThrow('ACCESS_CONFLICT_002 的原因')
+    expect(calls[0]!.url).toBe('/api/roles?ids=r-admin')
+    await resource.updateStatus!('r-2', false)
+    const put = calls.find(c => c.method === 'PUT')
+    expect(put?.url).toBe('/api/roles/r-2')
+    expect(put?.body).toEqual({
+      name: 'Auditor',
+      description: 'Reads logs',
+      order: 5,
+      status: 'Disabled',
+    })
+  })
+})
+
+describe('useRoleEditor', () => {
+  it('新建只送角色码、名称、说明与排序；编辑角色码只读、送名称 / 说明 / 排序 / 状态，保存成功关掉弹窗', async () => {
+    const calls = record(call => json(call.method === 'POST'
+      ? 201
+      : 200, role('r-9', 'support')))
+    const editor = useRoleEditor()
+    editor.startCreate()
+    expect(editor.mode.value).toBe('create')
+    Object.assign(editor.form, {
+      code: ' support ',
+      name: ' Support ',
+      description: '  ',
+      order: 3,
+    })
+    expect(await editor.submit()).toBe(true)
+    expect(editor.open.value).toBe(false)
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/roles',
+      body: {
+        code: 'support',
+        name: 'Support',
+        description: null,
+        order: 3,
+      },
+    })
+
+    editor.startEdit(role('r-9', 'support', { name: 'Support', description: 'Helpdesk', order: 3 }) as never)
+    expect(editor.isEdit.value).toBe(true)
+    expect(editor.form).toMatchObject({
+      code: 'support',
+      name: 'Support',
+      description: 'Helpdesk',
+      order: 3,
+      status: 'Active',
+    })
+    editor.form.status = 'Disabled'
+    expect(await editor.submit()).toBe(true)
+    expect(calls[1]).toMatchObject({
+      method: 'PUT',
+      url: '/api/roles/r-9',
+      body: {
+        name: 'Support',
+        description: 'Helpdesk',
+        order: 3,
+        status: 'Disabled',
+      },
+    })
+  })
+
+  it('字段级错误挂回字段，其余错误给整条提示，弹窗保持打开', async () => {
+    record(() => json(400, {
+      code: 'KERNEL_VALIDATION_003',
+      status: 400,
+      detail: 'invalid',
+      traceId: 'x',
+      errors: {
+        code: ['pattern'],
+      },
+    }, 'application/problem+json'))
+    const editor = useRoleEditor()
+    editor.startCreate()
+    Object.assign(editor.form, { code: 'Bad Code', name: 'x' })
+    expect(await editor.submit()).toBe(false)
+    expect(editor.open.value).toBe(true)
+    expect(editor.fieldError('code')).toBe('pattern')
+    expect(editor.submitError.value).toBeNull()
+
+    record(() => json(409, {
+      code: 'ACCESS_CONFLICT_001',
+      status: 409,
+      detail: 'code taken',
+      traceId: 'x',
+    }, 'application/problem+json'))
+    expect(await editor.submit()).toBe(false)
+    expect(editor.submitError.value).toBe('code taken')
+  })
+})
+
+describe('useRolePermissionEditor', () => {
+  it('目录按「包.资源」分段，目录外的已授权限补进条目；保存按差量授予 / 撤销，逐项失败带权限码返回，同一界面语言目录只取一次', async () => {
+    let granted = ['identity.users.read', 'tenancy.tenants.read']
+    const calls = record((call) => {
+      if (call.url === '/api/permissions') {
+        return json(200, {
+          items: [
+            permission('identity.users.read', 'Read users'),
+            permission('identity.users.create', 'Create users'),
+            permission('access.roles.read', 'Read roles'),
+          ],
+        })
+      }
+      if (call.url === '/api/roles/r-1') {
+        return json(200, {
+          role: role('r-1', 'auditor'),
+          permissions: granted,
+          memberCount: 0,
+          customDepartments: [],
+        })
+      }
+      if (call.url === '/api/roles/r-1:hierarchy') {
+        return json(200, {
+          roleId: 'r-1',
+          ancestors: [],
+          descendants: [],
+          inherited: [
+            {
+              permission: 'identity.users.read',
+              action: 'Grant',
+              sourceRoleId: 'r-0',
+              sourceRoleName: 'Base',
+              depth: 1,
+            },
+            {
+              permission: 'identity.users.read',
+              action: 'Grant',
+              sourceRoleId: 'r-9',
+              sourceRoleName: 'Root',
+              depth: 2,
+            },
+            {
+              permission: 'access.roles.read',
+              action: 'Deny',
+              sourceRoleId: 'r-0',
+              sourceRoleName: 'Base',
+              depth: 1,
+            },
+          ],
+        })
+      }
+      if (call.url.endsWith(':grant')) {
+        granted = [...granted, 'identity.users.create']
+        return json(200, {
+          succeeded: ['identity.users.create'],
+          failed: [
+            { permission: 'access.roles.read', code: 'ACCESS_VALIDATION_002', message: 'ACCESS_VALIDATION_002 的原因' },
+          ],
+        })
+      }
+      if (call.url.endsWith(':revoke')) {
+        granted = granted.filter(code => code !== 'identity.users.read')
+        return json(200, {
+          succeeded: ['identity.users.read'],
+          failed: [],
+        })
+      }
+      return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
+    })
+    const editor = useRolePermissionEditor()
+    await editor.start(role('r-1', 'auditor') as never)
+    expect(editor.open.value).toBe(true)
+    expect(editor.items.value.map(item => [item.basicId, item.groupCode])).toEqual([
+      ['identity.users.read', 'identity.users'],
+      ['identity.users.create', 'identity.users'],
+      ['access.roles.read', 'access.roles'],
+      ['tenancy.tenants.read', 'tenancy.tenants'],
+    ])
+    // 目录外的没有当前界面语言的显示名：原样显示权限码
+    expect(editor.items.value[3]!.permissionName).toBe('tenancy.tenants.read')
+    // 继承来的授予与拒绝按权限码汇总来源上级：穿梭框据此标「继承」与「上级拒绝」
+    expect(editor.inherited.value.get('identity.users.read')).toEqual({
+      grantedBy: ['Base', 'Root'],
+      deniedBy: [],
+    })
+    expect(editor.inherited.value.get('access.roles.read')).toEqual({
+      grantedBy: [],
+      deniedBy: ['Base'],
+    })
+    expect(editor.dirty.value).toBe(false)
+    expect(await editor.save()).toBeNull()
+
+    editor.draft.value = ['tenancy.tenants.read', 'identity.users.create', 'access.roles.read']
+    expect(editor.dirty.value).toBe(true)
+    const outcome = await editor.save()
+    expect(calls.find(c => c.url.endsWith(':grant'))?.body).toEqual({
+      permissions: ['identity.users.create', 'access.roles.read'],
+    })
+    expect(calls.find(c => c.url.endsWith(':revoke'))?.body).toEqual({
+      permissions: ['identity.users.read'],
+    })
+    expect(outcome).toEqual({
+      added: 1,
+      removed: 1,
+      failures: ['access.roles.read: ACCESS_VALIDATION_002 的原因'],
+    })
+    expect(editor.draft.value).toEqual(['tenancy.tenants.read', 'identity.users.create'])
+
+    await editor.start(role('r-1', 'auditor') as never)
+    expect(calls.filter(c => c.url === '/api/permissions')).toHaveLength(1)
+    // 换了界面语言：显示名跟着变，目录再取一次
+    useAppStore().locale = useAppStore().locale === 'en-US'
+      ? 'zh-CN'
+      : 'en-US'
+    await editor.start(role('r-1', 'auditor') as never)
+    expect(calls.filter(c => c.url === '/api/permissions')).toHaveLength(2)
+  })
+
+  it('差量只比集合：顺序不同不算改动', () => {
+    expect(diffGrants(['b', 'a'], ['a', 'b'])).toEqual({ grant: [], revoke: [] })
+    expect(toPermissionItems([], ['custom.thing'])[0]).toMatchObject({ basicId: 'custom.thing', permissionName: 'custom.thing', groupCode: 'custom.thing' })
+  })
+})
+
+describe('useRoleMemberEditor', () => {
+  it('候选是本侧用户并上现有成员；挪好后一次提交加入与移出（都按用户主键）', async () => {
+    let current = [
+      member('u-1', 'bob'),
+      member('u-2', 'carol'),
+    ]
+    const calls = record((call) => {
+      if (call.url === '/api/users:list') {
+        return json(200, {
+          items: [
+            {
+              id: 'u-1',
+              userName: 'bob',
+              displayName: 'Bob',
+              homeTenantId: 'acme',
+              status: 'Active',
+              createdAt: '2026-10-28T00:00:00Z',
+            },
+            {
+              id: 'u-3',
+              userName: 'dave',
+              displayName: 'Dave',
+              homeTenantId: 'acme',
+              status: 'Active',
+              createdAt: '2026-10-28T00:00:00Z',
+            },
+          ],
+          total: 2,
+          page: { index: 1, size: 500 },
+        })
+      }
+      if (call.url === '/api/roles/r-1:members')
+        return json(200, { items: current, total: current.length })
+      if (call.url.endsWith(':assign')) {
+        current = [
+          ...current,
+          member('u-3', 'dave'),
+        ]
+        return json(200, {
+          succeeded: ['u-3'],
+          failed: [],
+        })
+      }
+      if (call.url.endsWith(':unassign')) {
+        current = current.filter(m => m.userId !== 'u-2')
+        return json(200, {
+          succeeded: ['u-2'],
+          failed: [],
+        })
+      }
+      return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
+    })
+    const editor = useRoleMemberEditor()
+    await editor.start(role('r-1', 'auditor') as never, true)
+    expect(calls.find(c => c.url === '/api/users:list')?.body).toMatchObject({
+      page: { index: 1, size: 500 },
+    })
+    expect(editor.items.value.map(item => item.basicId)).toEqual(['u-1', 'u-3', 'u-2'])
+    expect(editor.draft.value).toEqual(['u-1', 'u-2'])
+
+    editor.draft.value = ['u-1', 'u-3']
+    const outcome = await editor.save()
+    expect(calls.find(c => c.url.endsWith(':assign'))?.body).toEqual({
+      userIds: ['u-3'],
+    })
+    expect(calls.find(c => c.url.endsWith(':unassign'))?.body).toEqual({
+      userIds: ['u-2'],
+    })
+    expect(outcome).toEqual({ added: 1, removed: 1, failures: [] })
+    expect(editor.dirty.value).toBe(false)
+  })
+
+  it('读不到用户目录时不取候选，现有成员仍在条目里（只能移出）', async () => {
+    const calls = record(() => json(200, {
+      items: [
+        member('u-2', 'carol'),
+      ],
+      total: 1,
+    }))
+    const editor = useRoleMemberEditor()
+    await editor.start(role('r-1', 'auditor') as never, false)
+    expect(calls.map(c => c.url)).toEqual(['/api/roles/r-1:members'])
+    expect(editor.items.value).toEqual([
+      { basicId: 'u-2', displayName: 'CAROL', userName: 'carol' },
+    ])
+    expect(mergeMemberCandidates([], [])).toEqual([])
+  })
+
+  it('运维支持成员在候选与现有成员里都带标记', () => {
+    const items = mergeMemberCandidates(
+      [
+        {
+          id: 'u-1',
+          displayName: 'Ops',
+          userName: 'ops',
+          isExternalMember: true,
+          isSupportMember: true,
+        },
+      ] as never,
+      [
+        {
+          ...member('u-2', 'ops2'),
+          isExternalMember: true,
+          isSupportMember: true,
+        },
+        {
+          ...member('u-3', 'carol'),
+          isExternalMember: true,
+          isSupportMember: false,
+        },
+      ] as never,
+    )
+    expect(items.map(item => [item.basicId, item.isSupportMember])).toEqual([
+      ['u-1', true],
+      ['u-2', true],
+      ['u-3', false],
+    ])
+  })
+
+  it('外部成员在候选与现有成员里都带标记', () => {
+    const items = mergeMemberCandidates(
+      [
+        {
+          id: 'u-1',
+          displayName: 'Alice',
+          userName: 'alice',
+          isExternalMember: true,
+        },
+        {
+          id: 'u-2',
+          displayName: 'Bob',
+          userName: 'bob',
+          isExternalMember: false,
+        },
+      ] as never,
+      [
+        {
+          ...member('u-3', 'carol'),
+          isExternalMember: true,
+        },
+      ] as never,
+    )
+    expect(items.map(item => [item.basicId, item.isExternalMember])).toEqual([
+      ['u-1', true],
+      ['u-2', false],
+      ['u-3', true],
+    ])
+  })
+})
+
+describe('useRoleDataScopeEditor', () => {
+  it('打开时取详情与部门树，自定义部门进草稿；保存整体回传名称等字段并替换自定义部门', async () => {
+    const calls = record((call) => {
+      if (call.url === '/api/roles/r-1' && call.method === 'GET') {
+        return json(200, {
+          role: role('r-1', 'auditor', { name: 'Auditor', order: 2, dataScope: 'Custom' }),
+          permissions: [],
+          memberCount: 0,
+          customDepartments: [
+            { departmentId: 'd-1', includeChildren: true },
+          ],
+        })
+      }
+      if (call.url === '/api/departments:tree') {
+        return json(200, {
+          items: [
+            department('d-1', 'HQ', [
+              department('d-2', 'Sales'),
+            ]),
+          ],
+        })
+      }
+      return json(200, role('r-1', 'auditor'))
+    })
+    const editor = useRoleDataScopeEditor()
+    await editor.start(role('r-1', 'auditor', { dataScope: 'Custom' }) as never, true)
+    expect(editor.tree.value).toHaveLength(1)
+    expect(editor.draft.value).toEqual({
+      dataScope: 'Custom',
+      departments: [
+        { departmentId: 'd-1', includeChildren: true },
+      ],
+    })
+    expect(editor.dirty.value).toBe(false)
+
+    editor.draft.value = { dataScope: 'Custom', departments: [] }
+    expect(editor.complete.value).toBe(false)
+    expect(await editor.save()).toBe(false)
+    expect(calls.some(c => c.method === 'PUT')).toBe(false)
+
+    editor.draft.value = {
+      dataScope: 'Custom',
+      departments: [
+        { departmentId: 'd-2', includeChildren: false },
+      ],
+    }
+    expect(await editor.save()).toBe(true)
+    expect(editor.open.value).toBe(false)
+    expect(calls.find(c => c.method === 'PUT')?.body).toEqual({
+      name: 'Auditor',
+      description: null,
+      order: 2,
+      status: 'Active',
+      dataScope: 'Custom',
+      customDepartments: [
+        { departmentId: 'd-2', includeChildren: false },
+      ],
+    })
+  })
+
+  it('换到非自定义档位时清空自定义部门；读不到部门时不取部门树', async () => {
+    const calls = record((call) => {
+      if (call.method === 'GET') {
+        return json(200, {
+          role: role('r-1', 'auditor'),
+          permissions: [],
+          memberCount: 0,
+          customDepartments: [],
+        })
+      }
+      return json(200, role('r-1', 'auditor'))
+    })
+    const editor = useRoleDataScopeEditor()
+    await editor.start(role('r-1', 'auditor') as never, false)
+    expect(calls.some(c => c.url === '/api/departments:tree')).toBe(false)
+    editor.draft.value = {
+      dataScope: 'DepartmentAndChildren',
+      departments: [
+        { departmentId: 'd-1', includeChildren: true },
+      ],
+    }
+    expect(await editor.save()).toBe(true)
+    expect(calls.find(c => c.method === 'PUT')?.body).toMatchObject({ dataScope: 'DepartmentAndChildren', customDepartments: [] })
+  })
+
+  it('部门勾选：新勾的缺省含下级，已有的保留设置；被上级含下级覆盖的标出来；脏态与顺序无关', () => {
+    expect(syncPickedDepartments([
+      { departmentId: 'd-1', includeChildren: false },
+    ], ['d-1', 'd-2'])).toEqual([
+      { departmentId: 'd-1', includeChildren: false },
+      { departmentId: 'd-2', includeChildren: true },
+    ])
+    const parents = new Map<string, null | string>([
+      ['d-1', null],
+      ['d-2', 'd-1'],
+      ['d-3', 'd-2'],
+    ])
+    expect(findCoveredDepartments([
+      { departmentId: 'd-1', includeChildren: true },
+      { departmentId: 'd-3', includeChildren: false },
+    ], parents)).toEqual(new Map([
+      ['d-3', 'd-1'],
+    ]))
+    const a = {
+      dataScope: 'Custom' as const,
+      departments: [
+        { departmentId: 'd-1', includeChildren: true },
+        { departmentId: 'd-2', includeChildren: false },
+      ],
+    }
+    expect(isDataScopeDirty({
+      ...a,
+      departments: [...a.departments].reverse(),
+    }, a)).toBe(false)
+    expect(isDataScopeDirty({ dataScope: 'All', departments: a.departments }, { dataScope: 'All', departments: [] })).toBe(false)
+  })
+})
+
+describe('useRoleDetail', () => {
+  it('详情带成员与上下级；已授与继承来的权限取当前界面语言的显示名（目录里没有的原样显示权限码）；自定义部门按部门树取名称', async () => {
+    grant(['access.permissions.read'])
+    record((call) => {
+      if (call.url === '/api/permissions') {
+        return json(200, {
+          items: [
+            permission('identity.users.read', '读取用户'),
+            permission('identity.users.update', '修改用户'),
+          ],
+        })
+      }
+      if (call.url === '/api/roles/r-1') {
+        return json(200, {
+          role: role('r-1', 'auditor', { dataScope: 'Custom' }),
+          permissions: ['identity.users.read', 'custom.unknown'],
+          rules: [],
+          memberCount: 1,
+          customDepartments: [
+            { departmentId: 'd-2', includeChildren: false },
+          ],
+        })
+      }
+      if (call.url === '/api/roles/r-1:members') {
+        return json(200, {
+          items: [
+            member('u-1', 'bob'),
+          ],
+          total: 1,
+        })
+      }
+      if (call.url === '/api/roles/r-1:hierarchy') {
+        return json(200, {
+          roleId: 'r-1',
+          ancestors: [
+            relative('r-0', 'Base', 1),
+            relative('r-9', 'Root', 2, { isEffective: false }),
+          ],
+          descendants: [
+            relative('r-2', 'Junior', 1),
+          ],
+          inherited: [
+            {
+              permission: 'identity.users.update',
+              action: 'Grant',
+              sourceRoleId: 'r-0',
+              sourceRoleName: 'Base',
+              depth: 1,
+            },
+          ],
+        })
+      }
+      return json(200, {
+        items: [
+          department('d-1', 'HQ', [
+            department('d-2', 'Sales'),
+          ]),
+        ],
+      })
+    })
+    const detail = useRoleDetail()
+    await detail.start(role('r-1', 'auditor', { dataScope: 'Custom' }) as never, true)
+    expect(detail.open.value).toBe(true)
+    expect(detail.permissions.value.map(p => p.displayName)).toEqual(['读取用户', 'custom.unknown'])
+    expect(detail.members.value.map(m => m.userName)).toEqual(['bob'])
+    expect(detail.ancestors.value.map(a => [a.name, a.depth, a.isEffective])).toEqual([
+      ['Base', 1, true],
+      ['Root', 2, false],
+    ])
+    expect(detail.descendants.value.map(d => d.name)).toEqual(['Junior'])
+    expect(detail.inherited.value.map(i => [i.displayName, i.sourceRoleName])).toEqual([
+      ['修改用户', 'Base'],
+    ])
+    expect(detail.departmentName('d-2')).toBe('Sales')
+    expect(detail.departmentName('d-9')).toBe('d-9')
+  })
+})
+
+describe('rolePermissionEntries', () => {
+  it('授予带上同码 Grant 规则的有效期与原因，拒绝只来自规则，先列授予再列拒绝', () => {
+    const entries = rolePermissionEntries(['identity.users.read', 'identity.users.update'], [
+      {
+        permission: 'identity.users.update',
+        action: 'Grant',
+        effectiveAt: null,
+        expiresAt: '2026-11-01T00:00:00Z',
+        reason: 'on call',
+      },
+      {
+        permission: 'identity.users.delete',
+        action: 'Deny',
+        effectiveAt: null,
+        expiresAt: null,
+        reason: 'freeze',
+      },
+    ], code => code.toUpperCase())
+    expect(entries.map(e => [
+      e.code,
+      e.displayName,
+      e.action,
+      e.expiresAt,
+      e.reason,
+    ])).toEqual([
+      [
+        'identity.users.read',
+        'IDENTITY.USERS.READ',
+        'Grant',
+        null,
+        null,
+      ],
+      [
+        'identity.users.update',
+        'IDENTITY.USERS.UPDATE',
+        'Grant',
+        '2026-11-01T00:00:00Z',
+        'on call',
+      ],
+      [
+        'identity.users.delete',
+        'IDENTITY.USERS.DELETE',
+        'Deny',
+        null,
+        'freeze',
+      ],
+    ])
+  })
+})

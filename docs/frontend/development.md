@@ -75,7 +75,7 @@ const schema = computed<PageSchema>(() => ({
 ## 五、门禁与测试
 
 ```bash
-pnpm check   # type-check → lint → px → token → i18n → modules → contracts → permissions
+pnpm check   # type-check → lint → px → token → i18n → modules → tests → contracts → permissions
 pnpm test    # Vitest + jsdom
 pnpm build
 ```
@@ -88,10 +88,11 @@ pnpm build
 | `token:check` | 引用的 `--xh-*` 令牌在已安装的组件库里存在 |
 | `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
 | `modules:check` | 模块名是后端能力包名；有 `setup.ts`、`locales/`、`views/`；视图路径是 kebab-case 且全局唯一 |
+| `tests:check` | 测试只在所属包或模块的 `tests/` 目录里，命名 `*.spec.ts` |
 | `contracts:check` | 按 `contracts/*` 重新生成契约层，与入库文件一致 |
 | `permissions:check` | `permission:`、`permissions:`、`can('…')`、`hasPermission('…')` 里的权限码都存在于 `permissions.ts` |
 
-- 单测放在被测文件旁边（`*.test.ts`）；`scripts/vitest-setup.ts` 把 `navigator.languages` 固定为 `zh-CN` 并预装十种区域的文案，`vi.resetModules()` 之后要自己重装。
+- 单测放在所属包或模块的 `tests/` 目录（`packages/<包>/tests/`、`src/modules/<模块>/tests/`），按被测文件的子路径摆放，命名 `*.spec.ts`，导入写 `~/`、`@/` 别名；`scripts/vitest-setup.ts` 把 `navigator.languages` 固定为 `zh-CN` 并预装十种区域的文案，`vi.resetModules()` 之后要自己重装。
 - 新增 `views/**/index.vue` 后 Vitest 可能看不到它（`node_modules/.vitest-cache` 缓存了 `import.meta.glob` 的结果），先删缓存再跑。
 - 修改共享组件、路由、请求、权限或主题时三项都跑。视觉与交互改动还要在真实浏览器里看亮 / 暗色、窄视口、键盘与焦点、减少动态效果。
 

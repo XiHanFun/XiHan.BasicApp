@@ -102,7 +102,7 @@ frontend/
 ├─ .env  .env.example           # VITE_PORT、VITE_DEV_PROXY_TARGET、VITE_HOME_PATH、VITE_REALTIME_HUB …
 ├─ Dockerfile  nginx.conf       # 前端镜像：Nginx 托管产物并同源反代后端
 ├─ contracts/                   # 后端导出的 openapi.json、realtime.json（入库，CI 比对）
-├─ scripts/                     # gen-contracts 与 px / token / i18n / modules / permissions 门禁
+├─ scripts/                     # gen-contracts 与 px / token / i18n / modules / tests / permissions 门禁
 ├─ packages/                    # 别名 ~，壳层与通用能力；禁止反向引用 @/
 │  ├─ contracts/                # 生成物：types.ts、operations.ts、permissions.ts、enums.ts、realtime.ts；手写的 paging.ts
 │  ├─ request/                  # 运行时客户端：拼路由、放头、Problem Details → ApiError、刷新与钩子
@@ -114,12 +114,14 @@ frontend/
 │  ├─ composables/  hooks/  utils/  constants/  types/  iconify/
 │  ├─ design/                   # 令牌（variables.css）与 XiHan.UI 令牌桥（xihan-ui.css）
 │  ├─ locales/                  # 壳层文案 × 10 区域
-│  └─ views/_core/              # 认证页、控制中心、个人中心、OAuth 同意页、关于页、403 / 404 / 500
+│  ├─ views/_core/              # 认证页、控制中心、个人中心、OAuth 同意页、关于页、403 / 404 / 500
+│  └─ <包>/tests/               # 该包的单测（*.spec.ts），按被测文件的子路径摆放
 └─ src/                         # 别名 @，应用侧
    ├─ main.ts  App.vue  app/context.ts  router/  styles/
    └─ modules/<包>/             # 与后端能力包一一对应
       ├─ views/<页面>/index.vue
       ├─ locales/<区域>.ts × 10
+      ├─ tests/                 # 该模块的单测（*.spec.ts）
       └─ setup.ts
 ```
 

@@ -41,7 +41,8 @@
     "token:check": "node scripts/check-tokens.mjs",
     "i18n:check": "node scripts/check-i18n.mjs",
     "modules:check": "node scripts/check-modules.mjs",
-    "check": "pnpm run type-check && pnpm run lint && pnpm run px:check && pnpm run token:check && pnpm run i18n:check && pnpm run modules:check && pnpm run contracts:check && pnpm run permissions:check"
+    "tests:check": "node scripts/check-tests.mjs",
+    "check": "pnpm run type-check && pnpm run lint && pnpm run px:check && pnpm run token:check && pnpm run i18n:check && pnpm run modules:check && pnpm run tests:check && pnpm run contracts:check && pnpm run permissions:check"
   },
   "dependencies": {
     "@emoji-mart/data": "catalog:",

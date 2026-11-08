@@ -72,7 +72,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 | 安装 | `pnpm install --no-frozen-lockfile` |
 | 开发 | `pnpm dev`（9100，`/api`、`/blobs`、`/hubs` 代理到后端 9710） |
 | 生成契约层 | `pnpm gen:contracts` |
-| 综合门禁 | `pnpm check`（type-check → lint → px → token → i18n → modules → contracts → permissions） |
+| 综合门禁 | `pnpm check`（type-check → lint → px → token → i18n → modules → tests → contracts → permissions） |
 | 单测 | `pnpm test` |
 | 生产构建 | `pnpm build` |
 
@@ -136,7 +136,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 
 - 后端修改先跑相关的集成测试类，再跑解决方案构建与全量测试；Release 构建 0 警告。
 - 架构测试守护层级、`Expose`、权限码文法、匿名白名单、目录结构、文案键集、DTO 写法与 XML 文档格式；集成测试经 `BasicAppTestServer` 走真实 HTTP，验证权限、租户隔离、事务、取消与错误码。
-- 前端逻辑使用 Vitest；视觉与交互改动还要在真实浏览器检查亮 / 暗色、窄视口、键盘、焦点和 reduced motion。
+- 前端逻辑使用 Vitest，测试放所属包或模块的 `tests/` 目录、按被测文件的子路径摆放、命名 `*.spec.ts`；视觉与交互改动还要在真实浏览器检查亮 / 暗色、窄视口、键盘、焦点和 reduced motion。
 - 修改共享组件、路由、请求、权限或主题时，运行 `pnpm check`、`pnpm test` 和 `pnpm build`。
 - 不删除断言、忽略失败、扩大 allowlist 或降低门禁来制造绿色结果。
 

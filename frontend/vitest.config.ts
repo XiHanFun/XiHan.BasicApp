@@ -16,7 +16,8 @@ export default defineConfig(async (env) => {
       setupFiles: [
         fileURLToPath(new URL('./scripts/vitest-setup.ts', import.meta.url)),
       ],
-      include: ['src/**/*.{test,spec}.ts', 'packages/**/*.{test,spec}.ts', 'scripts/**/*.{test,spec}.ts'],
+      // 测试只放各包与模块的 tests/，命名 *.spec.ts；放错位置的由 check-tests 报出来
+      include: ['{src,packages}/**/tests/**/*.spec.ts'],
       exclude: ['**/node_modules/**', '**/dist/**'],
       server: {
         deps: {
