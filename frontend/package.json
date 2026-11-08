@@ -3,7 +3,7 @@
   "type": "module",
   "version": "6.0.0-preview.1",
   "private": true,
-  "packageManager": "pnpm@11.22.0",
+  "packageManager": "pnpm@11.28.11",
   "description": "XiHan BasicApp - An enterprise multi-tenant admin kernel built on XiHan.Framework and XiHan.UI",
   "keyword": [
     "XiHan",
