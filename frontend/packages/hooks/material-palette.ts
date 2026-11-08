@@ -61,7 +61,7 @@ export type MaterialPaletteKey = (typeof MATERIAL_PALETTE_KEYS)[number]
 /**
  * 从品牌色推导 Material You 色调，明暗自适应
  * 页面底、卡片、浮层、侧栏、顶栏、文字、边框与淡底都带品牌色相；彩度随品牌色的饱和度走、各有上限，灰色品牌色派生出的仍是灰
- * 明度贴着静态配色，字与底的对比不变；暗色不写 --input，静态的半透明白叠在任何底上都成立
+ * 明度贴着静态配色，字与底的对比不变；亮暗两套写同一组变量，少写的那个会被另一套的取值顶上
  * 返回变量名 → "H S% L%"
  */
 export function deriveMaterialPalette(hex: string, dark: boolean): Partial<Record<MaterialPaletteKey, string>> {
@@ -84,6 +84,7 @@ export function deriveMaterialPalette(hex: string, dark: boolean): Partial<Recor
       '--accent': tone(0.45, 38, 20),
       '--heavy': tone(0.45, 34, 25),
       '--border': tone(0.35, 26, 23),
+      '--input': tone(0.35, 26, 23),
       '--ring': `${h} ${clamp(Math.min(s, 80))}% ${clamp(Math.max(l, 60))}%`,
     }
   }

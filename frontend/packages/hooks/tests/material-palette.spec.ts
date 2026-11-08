@@ -16,9 +16,9 @@ function parts(value: string | undefined) {
 }
 
 describe('派生色调', () => {
-  it('亮色写满清单，暗色只少 --input', () => {
+  it('亮暗两套都写满清单：根元素同时匹配两条规则，少写一个就会漏进另一套的取值', () => {
     expect(Object.keys(deriveMaterialPalette('#5887f7', false)).sort()).toEqual([...MATERIAL_PALETTE_KEYS].sort())
-    expect(Object.keys(deriveMaterialPalette('#5887f7', true)).sort()).toEqual(MATERIAL_PALETTE_KEYS.filter(k => k !== '--input').sort())
+    expect(Object.keys(deriveMaterialPalette('#5887f7', true)).sort()).toEqual([...MATERIAL_PALETTE_KEYS].sort())
   })
 
   it.each([
@@ -72,7 +72,7 @@ describe('样式规则', () => {
     expect(light).toBeGreaterThanOrEqual(0)
     expect(dark).toBeGreaterThan(light)
     expect(css.slice(dark)).toContain(`--sidebar: ${deriveMaterialPalette('#5887f7', true)['--sidebar']};`)
-    expect(css.slice(dark)).not.toContain('--input')
+    expect(css.slice(dark)).toContain(`--input: ${deriveMaterialPalette('#5887f7', true)['--input']};`)
   })
 })
 
