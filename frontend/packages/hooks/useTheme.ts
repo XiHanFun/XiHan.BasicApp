@@ -10,7 +10,7 @@ import { computed, effectScope, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
 import { runThemeTransition } from '~/utils'
-import { deriveMaterialPalette, hexToHsl, MATERIAL_PALETTE_KEYS } from './material-palette'
+import { hexToHsl, materialPaletteCss } from './material-palette'
 
 /**
  * 主题扩散动画起点：鼠标事件，或调用方自算的视口坐标
@@ -91,11 +91,13 @@ function syncRadiusCssVars(r: number) {
   el.style.setProperty('--radius-card', cardRadius)
 }
 
+/** Material You 色调所在的 style 元素 */
+const MATERIAL_PALETTE_STYLE_ID = 'xh-material-palette'
+
 /**
- * 主色色阶与派生色阶写到 CSS 变量
- * 内联样式盖过 :root / .dark，明暗切换时也要重写
+ * 主色色阶写到根元素内联，Material You 派生色调写成样式规则
  */
-function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
+function applyThemePalette(hex: string, dynamic: boolean) {
   if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
     return
   const scale = generatePrimaryScale(hex)
@@ -113,17 +115,18 @@ function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
   el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
   el.style.setProperty('--primary-active', hexToHslVars(scale.active))
   el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
-  // 派生色调：开启 Material You 时写入；关掉或这一档不写的变量撤掉内联值，回退到 :root / .dark 的静态配色
-  const palette = deriveMaterialPalette(hex, dark)
-  for (const name of MATERIAL_PALETTE_KEYS) {
-    const value = dynamic
-      ? palette[name]
-      : undefined
-    if (value)
-      el.style.setProperty(name, value)
-    else
-      el.style.removeProperty(name)
+  // 派生色调：开启 Material You 时写入样式规则，关掉即撤掉，回退到 variables.css 的静态配色
+  let style = document.getElementById(MATERIAL_PALETTE_STYLE_ID) as HTMLStyleElement | null
+  if (!dynamic) {
+    style?.remove()
+    return
   }
+  if (!style) {
+    style = document.createElement('style')
+    style.id = MATERIAL_PALETTE_STYLE_ID
+    document.head.append(style)
+  }
+  style.textContent = materialPaletteCss(hex)
 }
 
 interface SharedTheme {
@@ -150,14 +153,13 @@ function sharedThemeOf(appStore: ReturnType<typeof useAppStore>): SharedTheme {
       return appStore.themeMode === 'dark'
     })
     watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
-    // 主色 / 明暗 / 动态取色开关 变化都需重算派生色阶（Material You 明暗自适应）
+    // 主色、动态取色开关变化时重算；亮暗两套色调都在样式规则里，换明暗不用重算
     watch(
       [
         () => appStore.themeColor,
-        isDark,
         () => appStore.themeDynamicColor,
       ],
-      ([hex, dark, dynamic]) => applyThemePalette(hex, dark, dynamic),
+      ([hex, dynamic]) => applyThemePalette(hex, dynamic),
       { immediate: true },
     )
     return { isDark, prefersDark }

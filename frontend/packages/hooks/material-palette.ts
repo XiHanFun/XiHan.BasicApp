@@ -38,7 +38,7 @@ export function hexToHsl(hex: string): [number, number, number] {
   ]
 }
 
-/** Material You 会写到根元素的应用配色变量；关掉开关或换明暗时按这份清单撤掉内联值 */
+/** Material You 改写的应用配色变量 */
 export const MATERIAL_PALETTE_KEYS = [
   '--background-deep',
   '--background',
@@ -103,4 +103,20 @@ export function deriveMaterialPalette(hex: string, dark: boolean): Partial<Recor
     '--input': tone(0.32, 28, 88),
     '--ring': `${h} ${clamp(Math.min(s, 85))}% ${clamp(Math.max(Math.min(l, 55), 40))}%`,
   }
+}
+
+/**
+ * 亮暗两套色调写成样式规则：:root 取亮色、.dark 取暗色
+ * 不写根元素内联：侧栏、顶栏等带 .dark 类的区域会在自己身上重声明配色变量，根上的内联值传不进去
+ * 选择器叠写一次抬高特指度，压过 variables.css 的 :root / .dark；根元素同时是 .dark 时靠暗色规则在后取胜
+ */
+export function materialPaletteCss(hex: string): string {
+  const block = (selector: string, palette: Partial<Record<MaterialPaletteKey, string>>) => {
+    const lines = Object.entries(palette).map(([name, value]) => `  ${name}: ${value};`)
+    return `${selector} {\n${lines.join('\n')}\n}`
+  }
+  return [
+    block(':root:root', deriveMaterialPalette(hex, false)),
+    block('.dark.dark', deriveMaterialPalette(hex, true)),
+  ].join('\n')
 }

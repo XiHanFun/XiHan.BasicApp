@@ -1,13 +1,13 @@
 /**
  * Material You 动态取色：
  * 派生色调覆盖页面底、卡片、侧栏、顶栏、文字、边框与淡底，色相跟品牌色、彩度有上限、灰色品牌色仍派生出灰，明度贴着静态配色；
- * 根元素上开关、换明暗时按清单写入或撤掉内联值，不留上一档的残值
+ * 亮暗两套写成样式规则（带 .dark 类的侧栏、顶栏也取得到），开着写入、换主题色重算、关掉撤掉
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { effectScope, nextTick } from 'vue'
 import { useTheme } from '~/hooks'
-import { deriveMaterialPalette, MATERIAL_PALETTE_KEYS } from '~/hooks/material-palette'
+import { deriveMaterialPalette, MATERIAL_PALETTE_KEYS, materialPaletteCss } from '~/hooks/material-palette'
 import { useAppStore } from '~/stores'
 
 function parts(value: string | undefined) {
@@ -63,29 +63,43 @@ describe('派生色调', () => {
   })
 })
 
-describe('根元素上的写入与撤掉', () => {
+describe('样式规则', () => {
+  it('亮色规则在前、暗色规则在后，选择器都叠写一次以压过静态配色', () => {
+    const css = materialPaletteCss('#5887f7')
+    const light = css.indexOf(':root:root {')
+    const dark = css.indexOf('.dark.dark {')
+
+    expect(light).toBeGreaterThanOrEqual(0)
+    expect(dark).toBeGreaterThan(light)
+    expect(css.slice(dark)).toContain(`--sidebar: ${deriveMaterialPalette('#5887f7', true)['--sidebar']};`)
+    expect(css.slice(dark)).not.toContain('--input')
+  })
+})
+
+describe('写入与撤掉', () => {
+  const styleOf = () => document.getElementById('xh-material-palette')
+
   beforeEach(() => {
     localStorage.clear()
     document.documentElement.removeAttribute('style')
+    styleOf()?.remove()
     setActivePinia(createPinia())
   })
 
-  it('开着写入；换到暗色撤掉 --input；关掉撤掉全部', async () => {
+  it('开着写成样式规则、不写根元素内联；换主题色跟着重算；关掉撤掉', async () => {
     const store = useAppStore()
     effectScope(true).run(() => useTheme())
-    const root = document.documentElement.style
     await nextTick()
+    expect(styleOf()?.textContent).toBe(materialPaletteCss(store.themeColor))
     for (const key of MATERIAL_PALETTE_KEYS)
-      expect(root.getPropertyValue(key)).not.toBe('')
+      expect(document.documentElement.style.getPropertyValue(key)).toBe('')
 
-    store.setTheme('dark')
+    store.setThemeColor('#22c55e')
     await nextTick()
-    expect(root.getPropertyValue('--input')).toBe('')
-    expect(root.getPropertyValue('--card')).not.toBe('')
+    expect(styleOf()?.textContent).toBe(materialPaletteCss('#22c55e'))
 
     store.setThemeDynamicColor(false)
     await nextTick()
-    for (const key of MATERIAL_PALETTE_KEYS)
-      expect(root.getPropertyValue(key)).toBe('')
+    expect(styleOf()).toBeNull()
   })
 })
