@@ -8,7 +8,6 @@
 
 ::: warning 预览须知
 - 这是预览版，正式版前接口、配置与表结构仍可能调整。
-- 文档以仓库里的 `docs/` 为准；文档站在正式版发布之前仍是 5.x 的内容。
 - 后端依赖 XiHan.Framework 5.0.0-preview.2（同级检出了框架时按 `backend/props/framework.props` 锁定的提交以源码构建，代码与这个包相同），前端依赖 XiHan.UI 5.5.1。
 - 新部署要新建库：启动宿主（或先执行 `schema upgrade`）建表并写版本台账，再执行一次 `seed`。
 - **首次执行 `seed` 必须配 `BasicApp:Seed:SuperAdminPassword`**，没有公开的缺省密码（`appsettings.Development.json` 里的值只用于开发）。
