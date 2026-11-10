@@ -4,6 +4,7 @@
 -->
 
 <script lang="ts" setup>
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { useLockScreen, usePageScrollLock } from '~/composables'
 import { Icon } from '~/iconify'
@@ -96,14 +97,15 @@ usePageScrollLock(() => lockMode.value !== 'off')
             <div v-if="lockPwdError" class="lock-screen-error">
               {{ lockPwdError }}
             </div>
-            <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="lockLoading">
-              <Icon icon="lucide:lock" />
-              {{ t('component.lock_screen.confirm_lock_btn') }}
-            </button>
+            <XhButton type="submit" variant="solid" tone="brand" size="lg" full-width class="lock-screen-submit" :loading="lockLoading">
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:lock" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('component.lock_screen.confirm_lock_btn') }}</XhButtonLabel>
+            </XhButton>
             <!-- 此刻还没真正锁上，允许直接退出这个设置框，免得误点锁屏后无路可走 -->
-            <button type="button" class="lock-text-btn" @click="cancelLock">
-              {{ t('component.lock_screen.cancel_btn') }}
-            </button>
+            <XhButton type="button" variant="ghost" size="sm" class="lock-screen-text-action" @click="cancelLock">
+              <XhButtonLabel>{{ t('component.lock_screen.cancel_btn') }}</XhButtonLabel>
+            </XhButton>
           </form>
         </template>
 
@@ -128,20 +130,17 @@ usePageScrollLock(() => lockMode.value !== 'off')
             <div v-if="unlockError" class="lock-screen-error">
               {{ unlockError }}
             </div>
-            <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="unlockLoading">
-              <Icon icon="lucide:lock-open" />
-              {{ t('component.lock_screen.unlock_btn') }}
-            </button>
+            <XhButton type="submit" variant="solid" tone="brand" size="lg" full-width class="lock-screen-submit" :loading="unlockLoading">
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:lock-open" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('component.lock_screen.unlock_btn') }}</XhButtonLabel>
+            </XhButton>
             <!-- 忘了锁屏口令时的出口：结束会话回登录页，而不是把用户永远困在遮罩里 -->
-            <button
-              type="button"
-              class="lock-text-btn"
-              :disabled="logoutLoading"
-              @click="logoutAndRelogin"
-            >
-              <Icon icon="lucide:log-out" />
-              {{ t('component.lock_screen.logout_btn') }}
-            </button>
+            <XhButton type="button" variant="ghost" size="sm" class="lock-screen-text-action" :loading="logoutLoading" @click="logoutAndRelogin">
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:log-out" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('component.lock_screen.logout_btn') }}</XhButtonLabel>
+            </XhButton>
           </form>
         </template>
 
@@ -191,20 +190,17 @@ usePageScrollLock(() => lockMode.value !== 'off')
             <div v-if="changePwdError" class="lock-screen-error">
               {{ changePwdError }}
             </div>
-            <button type="submit" class="unlock-btn" style="margin-top: 12px" :disabled="changePwdLoading">
-              <Icon icon="lucide:shield-check" />
-              {{ t('component.lock_screen.change_password_btn') }}
-            </button>
+            <XhButton type="submit" variant="solid" tone="brand" size="lg" full-width class="lock-screen-submit" :loading="changePwdLoading">
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:shield-check" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('component.lock_screen.change_password_btn') }}</XhButtonLabel>
+            </XhButton>
             <!-- 不想改密的出口：结束会话回登录页（下次登录仍会被锁定，直到改密为止） -->
-            <button
-              type="button"
-              class="lock-text-btn"
-              :disabled="logoutLoading"
-              @click="logoutAndRelogin"
-            >
-              <Icon icon="lucide:log-out" />
-              {{ t('component.lock_screen.logout_btn') }}
-            </button>
+            <XhButton type="button" variant="ghost" size="sm" class="lock-screen-text-action" :loading="logoutLoading" @click="logoutAndRelogin">
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:log-out" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('component.lock_screen.logout_btn') }}</XhButtonLabel>
+            </XhButton>
           </form>
         </template>
       </div>
@@ -386,47 +382,13 @@ usePageScrollLock(() => lockMode.value !== 'off')
   text-align: left;
 }
 
-.unlock-btn {
-  margin-top: 12px;
-  padding: var(--xh-space-2) var(--xh-space-8);
-  border-radius: var(--xh-shape-sheet);
-  background: var(--xh-color-brand-600);
-  color: var(--xh-fg-on-brand);
-  font-size: var(--xh-font-size-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-  border: none;
-  display: inline-flex;
-  align-items: center;
+.lock-screen-submit {
+  margin-block-start: var(--xh-space-3);
 }
 
-.unlock-btn:hover {
-  opacity: 0.88;
-}
-
-.unlock-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.lock-text-btn {
-  margin-top: 10px;
-  padding: var(--xh-space-1);
-  background: transparent;
-  border: none;
-  font-size: var(--xh-font-size-sm);
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.lock-text-btn:hover {
-  color: var(--xh-fg-default);
-}
-
-.lock-text-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* 取消、退出登录这类次要出口：按内容收宽、居中，不随表单撑满 */
+.lock-screen-text-action {
+  align-self: center;
+  margin-block-start: var(--xh-space-2);
 }
 </style>
