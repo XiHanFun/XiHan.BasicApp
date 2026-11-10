@@ -49,7 +49,7 @@ git -C XiHan.Framework checkout "$commit"
 
 ## PostgreSQL
 
-`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp` 库，账号为开发用占位值。先建库：
+`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp` 库，账号为开发用占位值，并打开了 `BasicApp:Schema:CreateDatabase`：库不存在时启动先建库。账号没有建库权限时先手工建：
 
 ```bash
 createdb -h 127.0.0.1 -U postgres xihan_basicapp

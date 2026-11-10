@@ -16,11 +16,13 @@ git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
 
 ## 二、准备数据库
 
+只要本机 PostgreSQL 在跑。`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向 `xihan_basicapp` 库（账号为开发用占位值），并打开了 `BasicApp:Schema:CreateDatabase`：库不存在时启动先建库，连接账号要有建库权限。账号没有建库权限时先手工建：
+
 ```bash
 createdb -h 127.0.0.1 -U postgres xihan_basicapp
 ```
 
-`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向这个库（账号为开发用占位值）。本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。
+本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。
 
 ## 三、启动后端
 

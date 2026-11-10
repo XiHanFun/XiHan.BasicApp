@@ -84,6 +84,32 @@ public sealed class SchemaBaselineTests
     }
 
     [Fact]
+    public async Task UpgradeCommand_CreatesAMissingDatabase_WhenCreateDatabaseIsOn()
+    {
+        await using var database = PostgresDatabase.Reserve(PostgresDatabase.RequireServer(), "xihan_basicapp_test_schema_create");
+        IEnumerable<KeyValuePair<string, string?>> settings =
+        [
+            new("XiHan:Persistence:SqlSugar:InitTables", "false"),
+            new(SchemaOptions.ConfigurationSection + ":Directory", Path.Combine(RepositoryRoot(), "src", "XiHan.BasicApp.Host", "Schema")),
+            new(SchemaOptions.ConfigurationSection + ":CreateDatabase", "true"),
+        ];
+        await using var app = BasicAppHost.Create([], builder =>
+        {
+            builder.WebHost.UseTestServer();
+            builder.Services.AddBasicAppCommands();
+            builder.Configuration.AddInMemoryCollection(BasicAppTestServer.Settings(database.ConnectionString, DatabaseProviders.PostgreSql));
+            builder.Configuration.AddInMemoryCollection(settings);
+        });
+
+        // 库不存在：先建库，再从基线升起
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var exitCode = await SchemaCommand.UpgradeBeforeStartAsync(app.Services, output, error, TestContext.Current.CancellationToken);
+        Assert.True(exitCode == CommandLineExitCodes.Success, error.ToString());
+        Assert.Equal($"{BaselineVersion}/{BaselineScript}", Assert.Single(JsonDocument.Parse(output.ToString()).RootElement.GetProperty("applied").EnumerateArray()).GetString());
+    }
+
+    [Fact]
     public async Task Baseline_BuildsTheSameTablesAsInitTables_AndRunsOnce()
     {
         var server = PostgresDatabase.RequireServer();

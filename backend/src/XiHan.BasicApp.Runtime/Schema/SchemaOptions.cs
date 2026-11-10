@@ -28,6 +28,14 @@ public sealed record SchemaOptions
     public bool AutoUpgrade { get; init; } = true;
 
     /// <summary>
+    /// 升级前平台库不存在时是否先建库
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>CreateDatabase</c>，缺省关：库名写错时不悄悄建一个空库。开发环境打开，克隆下来不用先手工建库；建库经维护库 <c>postgres</c>，连接账号要有建库权限
+    /// </remarks>
+    public bool CreateDatabase { get; init; }
+
+    /// <summary>
     /// 脚本目录
     /// </summary>
     /// <remarks>
@@ -59,12 +67,11 @@ public sealed record SchemaOptions
         ArgumentNullException.ThrowIfNull(configuration);
         var options = new SchemaOptions();
         var section = configuration.GetSection(ConfigurationSection);
-        if (section["AutoUpgrade"] is { Length: > 0 } auto)
+        options = options with
         {
-            options = bool.TryParse(auto, out var enabled)
-                ? options with { AutoUpgrade = enabled }
-                : throw new ArgumentException($"'{ConfigurationSection}:AutoUpgrade' must be 'true' or 'false', but was '{auto}'.");
-        }
+            AutoUpgrade = Flag(section, "AutoUpgrade", options.AutoUpgrade),
+            CreateDatabase = Flag(section, "CreateDatabase", options.CreateDatabase),
+        };
 
         if (section["Directory"] is { Length: > 0 } directory)
         {
@@ -78,6 +85,13 @@ public sealed record SchemaOptions
         };
         return options;
     }
+
+    private static bool Flag(IConfigurationSection section, string key, bool fallback)
+        => section[key] is not { Length: > 0 } text
+            ? fallback
+            : bool.TryParse(text, out var enabled)
+                ? enabled
+                : throw new ArgumentException($"'{ConfigurationSection}:{key}' must be 'true' or 'false', but was '{text}'.");
 
     private static TimeSpan Minutes(IConfigurationSection section, string key, TimeSpan fallback)
         => section[key] is not { Length: > 0 } text

@@ -60,6 +60,15 @@ public sealed class PostgresDatabase : IAsyncDisposable
         return new PostgresDatabase(server, name);
     }
 
+    /// <summary>
+    /// 取一个名字唯一、还没建的库
+    /// </summary>
+    /// <remarks>
+    /// 由被测代码去建；释放时照样删除，没建出来即跳过
+    /// </remarks>
+    public static PostgresDatabase Reserve(string server, string prefix)
+        => new(server, $"{prefix}_{Guid.NewGuid():N}");
+
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {

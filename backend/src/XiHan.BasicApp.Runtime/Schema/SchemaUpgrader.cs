@@ -60,6 +60,12 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
 
         try
         {
+            var database = EnsureDatabase(client);
+            if (database.IsFailure)
+            {
+                return database.Error!;
+            }
+
             var ledger = await EnsureLedgerAsync(client, cancellationToken).ConfigureAwait(false);
             if (ledger.IsFailure)
             {
@@ -95,6 +101,25 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
         catch (Exception exception) when (exception is DbException or SqlSugarException)
         {
             return Error.Literal(RuntimeErrors.SchemaUpgradeFailed, $"Schema upgrade failed: {exception.Message}");
+        }
+    }
+
+    private Result EnsureDatabase(ISqlSugarClient client)
+    {
+        if (!options.CreateDatabase)
+        {
+            return Result.Success();
+        }
+
+        try
+        {
+            // 库已存在时什么都不做；不存在时经维护库 postgres 建库
+            client.DbMaintenance.CreateDatabase();
+            return Result.Success();
+        }
+        catch (Exception exception) when (exception is DbException or SqlSugarException || exception.GetType() == typeof(Exception))
+        {
+            return Error.Literal(RuntimeErrors.SchemaUpgradeFailed, $"Schema upgrade failed: creating the database failed: {exception.Message}");
         }
     }
 
