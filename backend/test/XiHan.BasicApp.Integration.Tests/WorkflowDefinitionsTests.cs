@@ -200,9 +200,11 @@ public sealed class WorkflowDefinitionsTests : IDisposable
         Assert.All(definitions, static d => Assert.Equal(("Published", 1), (d.GetProperty("status").GetString(), d.GetProperty("version").GetInt32())));
 
         // 选人：本租户的在用账号、角色、岗位与部门
-        var users = (await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:users?keyword=Demo", null, admin)).Body.GetProperty("items").EnumerateArray().Select(static u => u.GetProperty("userName").GetString()).ToList();
+        // 关键字匹配登录名或显示名：演示账号的显示名都以「演示」开头
+        var demo = Uri.EscapeDataString("演示");
+        var users = (await SendAsync(server, HttpMethod.Get, $"/api/workflow-assignees:users?keyword={demo}", null, admin)).Body.GetProperty("items").EnumerateArray().Select(static u => u.GetProperty("userName").GetString()).ToList();
         Assert.Equal(["admin", "hr", "lead", "manager"], users);
-        Assert.Equal(2, (await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:users?keyword=Demo&limit=2", null, admin)).Body.GetProperty("items").GetArrayLength());
+        Assert.Equal(2, (await SendAsync(server, HttpMethod.Get, $"/api/workflow-assignees:users?keyword={demo}&limit=2", null, admin)).Body.GetProperty("items").GetArrayLength());
         Assert.Equal(HttpStatusCode.BadRequest, (await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:users?limit=201", null, admin)).Status);
         Assert.Contains((await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:roles", null, admin)).Body.GetProperty("items").EnumerateArray(), static r => r.GetProperty("code").GetString() == "hr_specialist");
         Assert.Equal(["gm", "manager", "engineer", "specialist"], (await SendAsync(server, HttpMethod.Get, "/api/workflow-assignees:positions", null, admin)).Body.GetProperty("items").EnumerateArray().Select(static p => p.GetProperty("code").GetString()).ToList());

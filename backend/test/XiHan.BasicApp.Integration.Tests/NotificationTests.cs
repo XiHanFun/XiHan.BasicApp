@@ -116,7 +116,7 @@ public sealed class NotificationTests : IDisposable
         var stats = (await SendAsync(server, HttpMethod.Get, $"/api/notifications/{all}:read-stats", null, platform)).Body;
         Assert.Equal((3, 1, 2), (stats.GetProperty("recipientCount").GetInt32(), stats.GetProperty("readCount").GetInt32(), stats.GetProperty("unreadCount").GetInt32()));
         var unread = (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{all}:recipients", """{"filter":"Unread"}""", platform)).Body;
-        Assert.Equal(["BOB", "Super Admin"], unread.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("displayName").GetString()).Order(StringComparer.Ordinal).ToList());
+        Assert.Equal(["BOB", "超级管理员"], unread.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("displayName").GetString()).Order(StringComparer.Ordinal).ToList());
         Assert.Equal(2, (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{all}:remind", "{}", platform)).Body.GetProperty("recipientCount").GetInt32());
         var draft = await DraftAsync(server, platform, new { title = "Draft" });
         Assert.Equal("NOTIFICATION_CONFLICT_002", (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{draft}:remind", "{}", platform)).Body.GetProperty("code").GetString());

@@ -146,7 +146,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
 
         // 我的待办：受理人锁定为调用方，带节点、发起人与审批业务；关键字也匹配关联 ID
         var todo = Assert.Single(await ListAsync(server, "tasks", tokens["alice"]));
-        Assert.Equal((first, "Manager review", "Review request", "Super Admin", RecordingBusiness.NameKey), (todo.GetProperty("instanceId").GetString(), todo.GetProperty("nodeName").GetString(), todo.GetProperty("title").GetString(), todo.GetProperty("starterName").GetString(), todo.GetProperty("businessNameKey").GetString()));
+        Assert.Equal((first, "Manager review", "Review request", "超级管理员", RecordingBusiness.NameKey), (todo.GetProperty("instanceId").GetString(), todo.GetProperty("nodeName").GetString(), todo.GetProperty("title").GetString(), todo.GetProperty("starterName").GetString(), todo.GetProperty("businessNameKey").GetString()));
         Assert.Single(await ListAsync(server, "tasks", tokens["alice"], """{"keyword":"doc-1"}"""));
         Assert.Empty(await ListAsync(server, "tasks", tokens["bob"]));
         var taskId = todo.GetProperty("id").GetString()!;

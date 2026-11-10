@@ -38,7 +38,7 @@ public sealed class StorageConfigSeeder(StorageConfigService service) : ISeeder
             return Result.Success();
         }
 
-        var created = await service.CreateAsync(TenantIds.Platform, new StorageConfigDefinition(LocalDefault, "Local storage", StorageType.Local, null, null, "files", null, null, 10, null), isDefault: true, StorageConfigStatus.Active, context.CancellationToken).ConfigureAwait(false);
+        var created = await service.CreateAsync(TenantIds.Platform, new StorageConfigDefinition(LocalDefault, "本地存储", StorageType.Local, null, null, "files", null, null, 10, null), isDefault: true, StorageConfigStatus.Active, context.CancellationToken).ConfigureAwait(false);
         return created.IsFailure ? created.Error! : Result.Success();
     }
 }

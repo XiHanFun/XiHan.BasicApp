@@ -60,7 +60,7 @@ public sealed class PlatformIdentitySeeder(
         }
         else
         {
-            admin = new SysUser { Id = ids.NewId(), UserName = SeedOptions.SuperAdminUserName, DisplayName = "Super Admin", IsSystemAccount = true, HomeTenantId = TenantIds.Platform, Status = UserStatus.Active };
+            admin = new SysUser { Id = ids.NewId(), UserName = SeedOptions.SuperAdminUserName, DisplayName = "超级管理员", IsSystemAccount = true, HomeTenantId = TenantIds.Platform, Status = UserStatus.Active };
             var added = await users.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
             {

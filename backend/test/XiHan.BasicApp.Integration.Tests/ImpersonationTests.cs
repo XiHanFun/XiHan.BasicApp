@@ -120,7 +120,7 @@ public sealed class ImpersonationTests : IDisposable
         var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: impersonating));
         Assert.Equal(HttpStatusCode.OK, me.StatusCode);
         Assert.Equal("superadmin", meBody.GetProperty("impersonatorUserName").GetString());
-        Assert.Equal("Demo Tenant", meBody.GetProperty("tenantName").GetString());
+        Assert.Equal("演示租户", meBody.GetProperty("tenantName").GetString());
         var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: impersonating));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.False(permissionsBody.GetProperty("isPlatform").GetBoolean());

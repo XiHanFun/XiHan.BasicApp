@@ -49,7 +49,7 @@ public sealed class PermissionRequestsTests : IDisposable
         Assert.Equal(HttpStatusCode.Created, created1);
         var requestId = request.GetProperty("id").GetString()!;
         Assert.Equal(("Pending", "auditors", true), (request.GetProperty("status").GetString(), request.GetProperty("roleCode").GetString(), request.GetProperty("approvalEnabled").GetBoolean()));
-        Assert.Equal(["Carol", "Super Admin"], request.GetProperty("workflow").GetProperty("pendingAssignees").EnumerateArray().Select(static a => a.GetProperty("displayName").GetString()).Order(StringComparer.Ordinal).ToList());
+        Assert.Equal(["Carol", "超级管理员"], request.GetProperty("workflow").GetProperty("pendingAssignees").EnumerateArray().Select(static a => a.GetProperty("displayName").GetString()).Order(StringComparer.Ordinal).ToList());
         Assert.Single(await ListAsync(server, "workflow-definitions", platform, """{"filters":[{"field":"name","operator":"eq","value":"permission-request"}]}"""));
         Assert.Equal((HttpStatusCode.Conflict, "ACCESS_CONFLICT_013"), Code(await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { roleId = auditors, reason = "Again" }), alice)));
 

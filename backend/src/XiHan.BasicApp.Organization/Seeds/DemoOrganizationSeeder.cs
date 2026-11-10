@@ -68,10 +68,10 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
             .ToDictionary(static u => u.UserName, static u => u.Id, StringComparer.Ordinal);
         Guid? UserOf(string userName) => found.TryGetValue(userName, out var id) ? id : null;
 
-        var headquarters = new SysDepartment { Id = ids.NewId(), Code = "hq", Name = "Headquarters", DepartmentType = DepartmentType.Company, Order = 0, LeaderUserId = UserOf(DemoTenantSeeder.DemoAdminUserName), Description = "Seeded when BasicApp:Seed:EnableDemoData is on." };
-        var engineering = new SysDepartment { Id = ids.NewId(), Code = "rd", Name = "Research & Development", DepartmentType = DepartmentType.Center, ParentId = headquarters.Id, Order = 10, LeaderUserId = UserOf("manager") };
-        var marketing = new SysDepartment { Id = ids.NewId(), Code = "mkt", Name = "Marketing", ParentId = headquarters.Id, Order = 20 };
-        var humanResources = new SysDepartment { Id = ids.NewId(), Code = "hr", Name = "Human Resources", ParentId = headquarters.Id, Order = 30 };
+        var headquarters = new SysDepartment { Id = ids.NewId(), Code = "hq", Name = "总部", DepartmentType = DepartmentType.Company, Order = 0, LeaderUserId = UserOf(DemoTenantSeeder.DemoAdminUserName), Description = "打开 BasicApp:Seed:EnableDemoData 时写入的演示数据。" };
+        var engineering = new SysDepartment { Id = ids.NewId(), Code = "rd", Name = "研发中心", DepartmentType = DepartmentType.Center, ParentId = headquarters.Id, Order = 10, LeaderUserId = UserOf("manager") };
+        var marketing = new SysDepartment { Id = ids.NewId(), Code = "mkt", Name = "市场部", ParentId = headquarters.Id, Order = 20 };
+        var humanResources = new SysDepartment { Id = ids.NewId(), Code = "hr", Name = "人力资源部", ParentId = headquarters.Id, Order = 30 };
         foreach (var department in new[] { headquarters, engineering, marketing, humanResources })
         {
             var added = await departments.AddAsync(department, context.CancellationToken).ConfigureAwait(false);
@@ -87,10 +87,10 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
             }
         }
 
-        var generalManager = new SysPosition { Id = ids.NewId(), Code = "gm", Name = "General Manager", Order = 0 };
-        var manager = new SysPosition { Id = ids.NewId(), Code = "manager", Name = "Manager", Order = 10 };
-        var engineer = new SysPosition { Id = ids.NewId(), Code = "engineer", Name = "Engineer", Order = 20 };
-        var specialist = new SysPosition { Id = ids.NewId(), Code = "specialist", Name = "Specialist", Order = 30 };
+        var generalManager = new SysPosition { Id = ids.NewId(), Code = "gm", Name = "总经理", Order = 0 };
+        var manager = new SysPosition { Id = ids.NewId(), Code = "manager", Name = "经理", Order = 10 };
+        var engineer = new SysPosition { Id = ids.NewId(), Code = "engineer", Name = "工程师", Order = 20 };
+        var specialist = new SysPosition { Id = ids.NewId(), Code = "specialist", Name = "专员", Order = 30 };
         foreach (var outcome in await positions.AddRangeAsync([generalManager, manager, engineer, specialist], context.CancellationToken).ConfigureAwait(false))
         {
             if (outcome.IsFailure)

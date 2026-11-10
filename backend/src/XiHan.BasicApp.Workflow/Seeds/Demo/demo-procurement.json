@@ -1,57 +1,57 @@
 {
   "id": "demo-procurement",
   "name": "demo-procurement",
-  "displayName": "Procurement",
-  "category": "Demo",
-  "description": "Demo: a countersign by named users runs in parallel with the headquarters leader's review, then the general manager approves; after 120 seconds without a decision it closes as timed out.",
+  "displayName": "采购申请",
+  "category": "演示",
+  "description": "演示：指定人员会签与总部负责人审核并行进行，之后总经理审批；120 秒内没有处理即按超时关闭。",
   "variables": [
-    { "name": "itemName", "required": false, "defaultValue": "Office equipment", "description": "Item to purchase." },
-    { "name": "amount", "required": false, "defaultValue": 5000, "description": "Purchase amount." }
+    { "name": "itemName", "required": false, "defaultValue": "办公设备", "description": "采购物品。" },
+    { "name": "amount", "required": false, "defaultValue": 5000, "description": "采购金额。" }
   ],
   "nodes": [
-    { "id": "start", "activityType": "Start", "displayName": "Start" },
-    { "id": "parallel-review", "activityType": "Parallel", "displayName": "Parallel review" },
+    { "id": "start", "activityType": "Start", "displayName": "开始" },
+    { "id": "parallel-review", "activityType": "Parallel", "displayName": "并行审核" },
     {
       "id": "countersign",
       "activityType": "UserTask",
-      "displayName": "Finance countersign",
+      "displayName": "财务会签",
       "properties": {
         "AssigneeRules": [{ "type": "User", "values": ["$user:admin$", "$user:manager$"] }],
         "CompletionPolicy": "All",
-        "Title": "Countersign purchase: {{ itemName }} ({{ amount }})"
+        "Title": "会签采购：{{ itemName }}（{{ amount }}）"
       }
     },
     {
       "id": "hq-review",
       "activityType": "UserTask",
-      "displayName": "Headquarters leader review",
+      "displayName": "总部负责人审核",
       "properties": {
         "AssigneeRules": [{ "type": "DepartmentLeader", "values": ["hq"] }],
         "CompletionPolicy": "Any",
-        "Title": "Review purchase: {{ itemName }} ({{ amount }})"
+        "Title": "审核采购：{{ itemName }}（{{ amount }}）"
       }
     },
-    { "id": "join-review", "activityType": "Join", "displayName": "Join", "properties": { "Mode": "WaitAll" } },
+    { "id": "join-review", "activityType": "Join", "displayName": "汇合", "properties": { "Mode": "WaitAll" } },
     {
       "id": "gm-approve",
       "activityType": "UserTask",
-      "displayName": "General manager approval",
+      "displayName": "总经理审批",
       "timeout": "00:02:00",
       "properties": {
         "AssigneeRules": [{ "type": "Position", "values": ["gm"] }],
         "CompletionPolicy": "Any",
-        "Title": "Final purchase approval: {{ itemName }} ({{ amount }})"
+        "Title": "采购终审：{{ itemName }}（{{ amount }}）"
       }
     },
     {
       "id": "log-timeout",
       "activityType": "Log",
-      "displayName": "Log timeout",
-      "properties": { "Message": "Purchase \"{{ itemName }}\" was not approved by the general manager in time and closed.", "Level": "Warning" }
+      "displayName": "记录超时",
+      "properties": { "Message": "采购「{{ itemName }}」总经理未按时审批，已关闭。", "Level": "Warning" }
     },
-    { "id": "end-approved", "activityType": "End", "displayName": "Approved", "properties": { "Outcome": "approved" } },
-    { "id": "end-rejected", "activityType": "End", "displayName": "Rejected", "properties": { "Outcome": "rejected" } },
-    { "id": "end-timeout", "activityType": "End", "displayName": "Timed out", "properties": { "Outcome": "timeout" } }
+    { "id": "end-approved", "activityType": "End", "displayName": "已通过", "properties": { "Outcome": "approved" } },
+    { "id": "end-rejected", "activityType": "End", "displayName": "已驳回", "properties": { "Outcome": "rejected" } },
+    { "id": "end-timeout", "activityType": "End", "displayName": "已超时", "properties": { "Outcome": "timeout" } }
   ],
   "transitions": [
     { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "parallel-review" },

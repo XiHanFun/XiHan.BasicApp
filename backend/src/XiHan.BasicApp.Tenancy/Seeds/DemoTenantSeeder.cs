@@ -67,7 +67,7 @@ public sealed class DemoTenantSeeder(
     /// <remarks>
     /// 登录名与显示名；部门、岗位与负责人由 Organization 的演示种子写，角色由 Access 的演示种子写
     /// </remarks>
-    public static IReadOnlyList<(string UserName, string DisplayName)> DemoStaff { get; } = [("manager", "Demo Manager"), ("lead", "Demo Lead"), ("hr", "Demo HR")];
+    public static IReadOnlyList<(string UserName, string DisplayName)> DemoStaff { get; } = [("manager", "演示经理"), ("lead", "演示主管"), ("hr", "演示人事")];
 
     /// <inheritdoc />
     public string Name => "tenancy.demo";
@@ -96,8 +96,8 @@ public sealed class DemoTenantSeeder(
             {
                 Id = ids.NewId(),
                 TenantId = DemoTenantId,
-                Name = "Demo Tenant",
-                Description = "Seeded when BasicApp:Seed:EnableDemoData is on.",
+                Name = "演示租户",
+                Description = "打开 BasicApp:Seed:EnableDemoData 时写入的演示数据。",
                 Order = 900,
                 EditionId = enterprise.TryGetValue(out var edition) ? edition.Id : null,
             };
@@ -143,7 +143,7 @@ public sealed class DemoTenantSeeder(
             return Result.Success();
         }
 
-        var admin = new SysUser { Id = ids.NewId(), UserName = DemoAdminUserName, DisplayName = "Demo Admin", IsSystemAccount = true, HomeTenantId = DemoTenantId, Status = UserStatus.Active };
+        var admin = new SysUser { Id = ids.NewId(), UserName = DemoAdminUserName, DisplayName = "演示管理员", IsSystemAccount = true, HomeTenantId = DemoTenantId, Status = UserStatus.Active };
         var userAdded = await users.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
         if (userAdded.IsFailure)
         {

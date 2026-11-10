@@ -1,19 +1,19 @@
 {
   "id": "demo-leave",
   "name": "demo-leave",
-  "displayName": "Leave request",
-  "category": "Demo",
-  "description": "Demo: two levels of managers approve in sequence (falls back to the administrators when nobody is found) with HR copied; more than 3 days also needs the HR department.",
+  "displayName": "请假申请",
+  "category": "演示",
+  "description": "演示：两级上级依次审批（找不到人时转给管理员），抄送人事；超过 3 天还要人力资源部审批。",
   "variables": [
-    { "name": "days", "required": true, "description": "Days of leave; more than 3 also need the HR department." },
-    { "name": "reason", "required": false, "defaultValue": "Personal", "description": "Reason for the leave." }
+    { "name": "days", "required": true, "description": "请假天数；超过 3 天还要人力资源部审批。" },
+    { "name": "reason", "required": false, "defaultValue": "事假", "description": "请假事由。" }
   ],
   "nodes": [
-    { "id": "start", "activityType": "Start", "displayName": "Start" },
+    { "id": "start", "activityType": "Start", "displayName": "开始" },
     {
       "id": "leader-chain",
       "activityType": "UserTask",
-      "displayName": "Managers in sequence",
+      "displayName": "上级依次审批",
       "properties": {
         "AssigneeRules": [{ "type": "StarterLeaderChain", "values": ["2"] }],
         "CompletionPolicy": "Sequential",
@@ -21,29 +21,29 @@
         "EmptyAssigneeStrategy": "Fallback",
         "FallbackAssigneeRules": [{ "type": "Role", "values": ["admin"] }],
         "CcRules": [{ "type": "Role", "values": ["hr_specialist"] }],
-        "Title": "Leave {{ days }} days: {{ reason }}"
+        "Title": "请假 {{ days }} 天：{{ reason }}"
       }
     },
-    { "id": "days-check", "activityType": "Decision", "displayName": "Days check" },
+    { "id": "days-check", "activityType": "Decision", "displayName": "天数判断" },
     {
       "id": "hr-approve",
       "activityType": "UserTask",
-      "displayName": "HR department approval",
+      "displayName": "人力资源部审批",
       "properties": {
         "AssigneeRules": [{ "type": "Department", "values": ["hr"] }],
         "CompletionPolicy": "Any",
-        "Title": "Long leave {{ days }} days: {{ reason }}"
+        "Title": "长假 {{ days }} 天：{{ reason }}"
       }
     },
-    { "id": "end-approved", "activityType": "End", "displayName": "Approved", "properties": { "Outcome": "approved" } },
-    { "id": "end-rejected", "activityType": "End", "displayName": "Rejected", "properties": { "Outcome": "rejected" } }
+    { "id": "end-approved", "activityType": "End", "displayName": "已通过", "properties": { "Outcome": "approved" } },
+    { "id": "end-rejected", "activityType": "End", "displayName": "已驳回", "properties": { "Outcome": "rejected" } }
   ],
   "transitions": [
     { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "leader-chain" },
     { "id": "t-chain-approved", "sourceNodeId": "leader-chain", "targetNodeId": "days-check", "condition": "outcome == 'approved'" },
     { "id": "t-chain-rejected", "sourceNodeId": "leader-chain", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" },
-    { "id": "t-long", "sourceNodeId": "days-check", "targetNodeId": "hr-approve", "condition": "days > 3", "priority": 1, "displayName": "More than 3 days" },
-    { "id": "t-short", "sourceNodeId": "days-check", "targetNodeId": "end-approved", "isDefault": true, "displayName": "Up to 3 days" },
+    { "id": "t-long", "sourceNodeId": "days-check", "targetNodeId": "hr-approve", "condition": "days > 3", "priority": 1, "displayName": "超过 3 天" },
+    { "id": "t-short", "sourceNodeId": "days-check", "targetNodeId": "end-approved", "isDefault": true, "displayName": "不超过 3 天" },
     { "id": "t-hr-approved", "sourceNodeId": "hr-approve", "targetNodeId": "end-approved", "condition": "outcome == 'approved'" },
     { "id": "t-hr-rejected", "sourceNodeId": "hr-approve", "targetNodeId": "end-rejected", "condition": "outcome == 'rejected'" }
   ]

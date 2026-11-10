@@ -82,7 +82,7 @@ public sealed class DemoAccessSeeder(
             .ToDictionary(static u => u.UserName, static u => u.Id, StringComparer.Ordinal);
 
         var employee = await EnsureRoleAsync(
-            new SysRole { Id = ids.NewId(), OwnerTenantId = tenant, Code = EmployeeRoleCode, Name = "Employee", Description = "Sees only their own data; views and starts workflows, chats.", DataScope = DataScope.SelfOnly, Order = 20 },
+            new SysRole { Id = ids.NewId(), OwnerTenantId = tenant, Code = EmployeeRoleCode, Name = "普通员工", Description = "只看本人数据；可查看与发起流程、使用聊天。", DataScope = DataScope.SelfOnly, Order = 20 },
             ["workflow.workflow-definitions.read", "workflow.workflow-instances.read", "workflow.workflow-instances.execute", "chat.chat-conversations.read", "chat.chat-messages.read", "chat.chat-messages.send"],
             [.. staff.Where(found.ContainsKey).Select(name => found[name])],
             [],
@@ -99,7 +99,7 @@ public sealed class DemoAccessSeeder(
         }
 
         return await EnsureRoleAsync(
-            new SysRole { Id = ids.NewId(), OwnerTenantId = tenant, Code = HrSpecialistRoleCode, Name = "HR Specialist", Description = "Custom data scope: R&D and Marketing; maintains members and department assignments.", DataScope = DataScope.Custom, Order = 40 },
+            new SysRole { Id = ids.NewId(), OwnerTenantId = tenant, Code = HrSpecialistRoleCode, Name = "人事专员", Description = "自定义数据范围：研发中心与市场部；维护成员与部门归属。", DataScope = DataScope.Custom, Order = 40 },
             [IdentityPermissions.UsersRead, IdentityPermissions.UsersCreate, IdentityPermissions.UsersUpdate, OrganizationPermissions.DepartmentsRead, OrganizationPermissions.PositionsRead, OrganizationPermissions.MembershipsRead, OrganizationPermissions.MembershipsCreate, OrganizationPermissions.MembershipsUpdate, TenancyPermissions.TenantMembersRead],
             found.TryGetValue("hr", out var hr) ? [hr] : [],
             custom,
