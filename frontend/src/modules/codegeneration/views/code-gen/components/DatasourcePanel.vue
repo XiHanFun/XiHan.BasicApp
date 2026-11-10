@@ -8,7 +8,7 @@
   接口取自后端契约（codegen-datasources.*）：测试连接要修改权限；删除逐项拒绝仍被表配置引用的数据源；口令与连接串不回显，编辑时留空即不改
 -->
 <script setup lang="ts">
-import type { DatasourceRow, DatasourceStatus } from './use-datasources'
+import type { DatabaseType, DatasourceRow, DatasourceStatus } from './use-datasources'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
 import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -292,7 +292,7 @@ async function onSubmit() {
         <XhFieldRoot :invalid="!!editor.fieldError('databaseType')">
           <XhFieldLabel>{{ t('codegeneration.code_gen.datasource.form_database_type') }}</XhFieldLabel>
           <XhFieldControl>
-            <XSelect v-model:value="editor.form.databaseType" name="databaseType" :options="databaseTypeOptions" />
+            <XSelect :value="editor.form.databaseType" name="databaseType" :options="databaseTypeOptions" @update:value="value => editor.changeDatabaseType(value as DatabaseType)" />
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('databaseType')">
             {{ editor.fieldError('databaseType') }}

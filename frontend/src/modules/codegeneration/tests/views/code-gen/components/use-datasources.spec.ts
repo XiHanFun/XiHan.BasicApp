@@ -132,4 +132,24 @@ describe('useDatasourceEditor', () => {
     expect(editor.open.value).toBe(true)
     expect(editor.fieldError('host')).toBe('required')
   })
+
+  it('换数据库类型时缺省端口跟着换，SQLite 不走端口', () => {
+    const editor = useDatasourceEditor()
+    editor.startCreate()
+    expect(editor.form.port).toBe(3306)
+    editor.changeDatabaseType('PostgreSql')
+    expect(editor.form).toMatchObject({ databaseType: 'PostgreSql', port: 5432 })
+    editor.changeDatabaseType('Sqlite')
+    expect(editor.form.port).toBe(0)
+    editor.changeDatabaseType('SqlServer')
+    expect(editor.form.port).toBe(1433)
+  })
+
+  it('手填的端口换类型时保留', async () => {
+    record(() => json(200, detail({ port: 15432 })))
+    const editor = useDatasourceEditor()
+    await editor.startEdit('ds-1')
+    editor.changeDatabaseType('MySql')
+    expect(editor.form).toMatchObject({ databaseType: 'MySql', port: 15432 })
+  })
 })

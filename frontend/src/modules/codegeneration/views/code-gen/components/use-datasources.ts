@@ -23,6 +23,15 @@ export const DATABASE_TYPE_OPTIONS: { label: string, value: DatabaseType }[] = [
   { label: 'SQLite', value: 'Sqlite' },
 ]
 
+/** 各数据库的缺省端口；SQLite 是文件库，不走端口 */
+export const DEFAULT_DATABASE_PORTS: Record<DatabaseType, number> = {
+  MySql: 3306,
+  SqlServer: 1433,
+  PostgreSql: 5432,
+  Oracle: 1521,
+  Sqlite: 0,
+}
+
 export function databaseTypeLabel(type: DatabaseType): string {
   return DATABASE_TYPE_OPTIONS.find(option => option.value === type)?.label ?? type
 }
@@ -50,7 +59,7 @@ export function emptyDatasourceForm(): DatasourceForm {
     sourceDescription: '',
     databaseType: 'MySql',
     host: '',
-    port: 3306,
+    port: DEFAULT_DATABASE_PORTS.MySql,
     databaseName: '',
     userName: '',
     password: '',
@@ -125,6 +134,13 @@ export function useDatasourceEditor() {
     open.value = true
   }
 
+  /** 换数据库类型：端口没填或还是原类型的缺省值时换成新类型的缺省端口，手填的端口保留 */
+  function changeDatabaseType(next: DatabaseType) {
+    if (form.port == null || form.port === DEFAULT_DATABASE_PORTS[form.databaseType])
+      form.port = DEFAULT_DATABASE_PORTS[next]
+    form.databaseType = next
+  }
+
   function fieldError(field: keyof DatasourceForm): string | undefined {
     return fieldErrors.value[field]?.[0]
   }
@@ -188,6 +204,7 @@ export function useDatasourceEditor() {
     editing,
     isEdit,
     form,
+    changeDatabaseType,
     fieldError,
     submitError,
     submitting,
