@@ -1558,7 +1558,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | 能力 | 说明 |
 | --- | --- |
 | 租户管理 | 开通三步（创建、可选初始化独立库、初始化管理员）、停用恢复、换套餐、配额、到期生效、成员与运维支持成员、所有权转移 |
-| 版本套餐 | 价格、计费周期、用户与存储配额、权限白名单（套餐门控）、启停；种子写入 Free（缺省）/ Basic / Professional / Enterprise |
+| 版本套餐 | 价格、计费周期、用户与存储配额、权限白名单（套餐门控）、启停；种子写入免费版（缺省）/ 基础版 / 专业版 / 企业版 |
 | 我的订阅 | 当前套餐、期限、用户与存储用量 |
 | 通知公告 | 定向投递（全部 / 角色 / 部门 / 用户）、横幅与弹窗、强制阅读、提醒、阅读统计与接收人；正文用 Markdown 编辑器，HTML 渲染前净化 |
 | 我的消息 | 收件箱：已读、全部已读、确认、删除、横幅、弹窗、强制阅读 |
@@ -1681,7 +1681,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | `identity.platform` | 平台账号 `superadmin` |
 | `access.platform` | 平台内置角色 `admin`（全局授予 `*`），并把 `superadmin` 指派进去 |
 | `access.menus` | 从各包页面登记对齐菜单 |
-| `tenancy.editions` | 套餐 Free（缺省）/ Basic / Professional / Enterprise |
+| `tenancy.editions` | 套餐免费版（缺省）/ 基础版 / 专业版 / 企业版 |
 | `files.storage-configs` | 平台本地存储配置 |
 | `notification.templates` | 平台消息模板 |
 | `access.policies` | 访问策略的平台缺省 |
@@ -4979,10 +4979,10 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 
 | 编码 / 名称 | 白名单 | 席位 | 存储 | 价格 |
 | --- | --- | --- | --- | --- |
-| `free` / Free（缺省） | 租户侧全部 `read` 权限 | 5 | 1 GB | 免费 |
-| `basic` / Basic | Free + Identity、Organization、Settings、Files 的管理权限（不含模仿登录） | 20 | 10 GB | 99 / 月 |
-| `pro` / Professional | Basic + Access 的全部权限 | 100 | 100 GB | 299 / 月 |
-| `enterprise` / Enterprise | 创建时的全部租户侧权限 | 不限 | 不限 | 按年 |
+| `free` / 免费版（缺省） | 租户侧全部 `read` 权限 | 5 | 1 GB | 免费 |
+| `basic` / 基础版 | 免费版 + Identity、Organization、Settings、Files 的管理权限（不含模仿登录） | 20 | 10 GB | 99 / 月 |
+| `pro` / 专业版 | 基础版 + Access 的全部权限 | 100 | 100 GB | 299 / 月 |
+| `enterprise` / 企业版 | 创建时的全部租户侧权限 | 不限 | 不限 | 按年 |
 
 配额经 `Contracts` 的 `ITenantQuota` 约束租户一侧的建用户、上传与秒传（平台主体代租户办事不受限，已超额的只报告不阻止既有数据）；头像不计入租户存储。`subscription.get`（`tenancy.subscription.read`，租户侧）给租户看自己的套餐、期限与用量（「我的订阅」页）。
 

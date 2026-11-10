@@ -103,10 +103,10 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 
 | 编码 / 名称 | 白名单 | 席位 | 存储 | 价格 |
 | --- | --- | --- | --- | --- |
-| `free` / Free（缺省） | 租户侧全部 `read` 权限 | 5 | 1 GB | 免费 |
-| `basic` / Basic | Free + Identity、Organization、Settings、Files 的管理权限（不含模仿登录） | 20 | 10 GB | 99 / 月 |
-| `pro` / Professional | Basic + Access 的全部权限 | 100 | 100 GB | 299 / 月 |
-| `enterprise` / Enterprise | 创建时的全部租户侧权限 | 不限 | 不限 | 按年 |
+| `free` / 免费版（缺省） | 租户侧全部 `read` 权限 | 5 | 1 GB | 免费 |
+| `basic` / 基础版 | 免费版 + Identity、Organization、Settings、Files 的管理权限（不含模仿登录） | 20 | 10 GB | 99 / 月 |
+| `pro` / 专业版 | 基础版 + Access 的全部权限 | 100 | 100 GB | 299 / 月 |
+| `enterprise` / 企业版 | 创建时的全部租户侧权限 | 不限 | 不限 | 按年 |
 
 配额经 `Contracts` 的 `ITenantQuota` 约束租户一侧的建用户、上传与秒传（平台主体代租户办事不受限，已超额的只报告不阻止既有数据）；头像不计入租户存储。`subscription.get`（`tenancy.subscription.read`，租户侧）给租户看自己的套餐、期限与用量（「我的订阅」页）。
 
