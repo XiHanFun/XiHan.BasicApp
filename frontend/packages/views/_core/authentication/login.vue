@@ -747,9 +747,9 @@ const onAuthInvalid = useAuthFormInvalid()
               {{ t('page.login.remember_me') }}
             </XhCheckbox>
             <!-- 路由没登记就不给入口 -->
-            <span v-if="router.hasRoute('ForgetPassword')" class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
+            <XhButton v-if="router.hasRoute('ForgetPassword')" variant="link" size="sm" class="xh-link-button xh-link-button--inline" @click="goTo('/auth/forget-password')">
               {{ t('page.login.forgot_password') }}?
-            </span>
+            </XhButton>
           </div>
 
           <!-- 在途由表单自己报：onSubmit 返回的 Promise 落定前提交钮带 data-loading、再按不重复提交 -->
@@ -765,9 +765,9 @@ const onAuthInvalid = useAuthFormInvalid()
           :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
         >
           {{ t('page.auth.no_account') }}
-          <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
+          <XhButton variant="link" size="sm" class="xh-link-button xh-link-button--inline" @click="goTo('/auth/register')">
             {{ t('page.login.register') }}
-          </span>
+          </XhButton>
         </p>
 
         <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线，颜色取库缺省的描边令牌，深浅两态都跟着走
@@ -836,14 +836,6 @@ const onAuthInvalid = useAuthFormInvalid()
   display: grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
   gap: var(--xh-space-2);
-}
-
-.link-primary {
-  color: var(--xh-fg-brand);
-}
-
-.link-primary:hover {
-  text-decoration: underline;
 }
 
 .fade-slide-enter-active,

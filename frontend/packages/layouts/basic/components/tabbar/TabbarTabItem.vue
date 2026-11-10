@@ -5,7 +5,7 @@
 
 <script lang="ts" setup>
 import type { TabItem } from '~/types'
-import { XhSortableItem } from '@xihan-ui/vue'
+import { XhButton, XhSortableItem } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
@@ -159,26 +159,30 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
             </span>
             <span class="chrome-tab__title">{{ item.splitRight.title }}</span>
           </template>
-          <button
+          <XhButton
             v-if="item.closable && !item.pinned"
-            class="chrome-tab__close chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
-            type="button"
+            variant="ghost"
+            size="sm"
+            icon-only
+            class="tab-action-btn chrome-tab__action"
             :aria-label="t('tabbar.close_tab')"
             :title="t('tabbar.close_tab')"
             @click.stop="emit('close', item.path, $event)"
           >
-            <Icon width="12" height="12" icon="lucide:x" />
-          </button>
-          <button
+            <Icon icon="lucide:x" />
+          </XhButton>
+          <XhButton
             v-else-if="item.pinned && item.path !== HOME_PATH"
-            class="chrome-tab__pin chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
-            type="button"
+            variant="ghost"
+            size="sm"
+            icon-only
+            class="tab-action-btn chrome-tab__action"
             :aria-label="t('tabbar.unpin')"
             :title="t('tabbar.unpin')"
             @click.stop="emit('togglePin', item.path)"
           >
-            <Icon width="12" height="12" icon="lucide:pin" />
-          </button>
+            <Icon icon="lucide:pin" />
+          </XhButton>
           <!-- 首页固定标签：只读锁图标（强制固定、不可取消，纯展示不触发 togglePin） -->
           <span
             v-else-if="item.pinned && item.path === HOME_PATH"
@@ -206,26 +210,30 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
           </span>
           <span class="flat-tab__title">{{ item.splitRight.title }}</span>
         </template>
-        <button
+        <XhButton
           v-if="item.closable && !item.pinned"
-          class="flat-tab__close flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
-          type="button"
+          variant="ghost"
+          size="sm"
+          icon-only
+          class="tab-action-btn flat-tab__action"
           :aria-label="t('tabbar.close_tab')"
           :title="t('tabbar.close_tab')"
           @click.stop="emit('close', item.path, $event)"
         >
-          <Icon width="12" height="12" icon="lucide:x" />
-        </button>
-        <button
+          <Icon icon="lucide:x" />
+        </XhButton>
+        <XhButton
           v-else-if="item.pinned && item.path !== HOME_PATH"
-          class="flat-tab__pin flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
-          type="button"
+          variant="ghost"
+          size="sm"
+          icon-only
+          class="tab-action-btn flat-tab__action"
           :aria-label="t('tabbar.unpin')"
           :title="t('tabbar.unpin')"
           @click.stop="emit('togglePin', item.path)"
         >
-          <Icon width="12" height="12" icon="lucide:pin" />
-        </button>
+          <Icon icon="lucide:pin" />
+        </XhButton>
         <!-- 首页固定标签：只读锁图标（强制固定、不可取消，纯展示不触发 togglePin） -->
         <span
           v-else-if="item.pinned && item.path === HOME_PATH"
@@ -298,22 +306,6 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   margin-inline-start: 8px;
 }
 
-.chrome-tab__close {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  color: currentcolor;
-  opacity: 0.72;
-  transform: scale(1);
-  cursor: pointer;
-  transition:
-    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
-}
-
-.chrome-tab__pin,
 .chrome-tab__lock {
   border: 0;
   background: transparent;
@@ -329,28 +321,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
     transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
-.tab-item.chrome-tab:hover .chrome-tab__close,
-.tab-item.chrome-tab:hover .chrome-tab__pin,
 .tab-item.chrome-tab:hover .chrome-tab__lock,
-.tab-item.chrome-tab.is-active .chrome-tab__close,
-.tab-item.chrome-tab.is-active .chrome-tab__pin,
 .tab-item.chrome-tab.is-active .chrome-tab__lock {
   opacity: 0.92;
   transform: scale(1);
-}
-
-/* 键盘聚焦给与组件库同一道环：2px 画在钮盒内。不写的话落回浏览器缺省环，画在盒外、被页签条的 overflow 裁掉 */
-.chrome-tab__close:focus-visible {
-  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
-  outline-offset: var(--xh-ring-offset);
-}
-
-.chrome-tab__close:hover,
-.chrome-tab__pin:hover {
-  opacity: 1 !important;
-  background: color-mix(in srgb, var(--xh-bg-brand) 20%, var(--xh-bg-surface));
-  color: var(--xh-fg-default);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
 }
 
 .tab-item.chrome-tab:hover:not(.is-active) {
@@ -417,8 +391,6 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   margin-inline-start: 8px;
 }
 
-.flat-tab__close,
-.flat-tab__pin,
 .flat-tab__lock {
   border: 0;
   background: transparent;
@@ -435,32 +407,10 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
     transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
-.flat-tab__close {
-  cursor: pointer;
-}
-
-.tab-item.flat-tab:hover .flat-tab__close,
-.tab-item.flat-tab:hover .flat-tab__pin,
 .tab-item.flat-tab:hover .flat-tab__lock,
-.tab-item.flat-tab.is-active .flat-tab__close,
-.tab-item.flat-tab.is-active .flat-tab__pin,
 .tab-item.flat-tab.is-active .flat-tab__lock {
   opacity: 0.92;
   transform: scale(1);
-}
-
-.flat-tab__close:hover {
-  background: color-mix(in srgb, var(--xh-bg-brand) 20%, var(--xh-bg-surface));
-  color: var(--xh-fg-default);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
-  opacity: 1 !important;
-}
-
-.flat-tab__pin:hover {
-  opacity: 1 !important;
-  background: color-mix(in srgb, var(--xh-bg-brand) 20%, var(--xh-bg-surface));
-  color: var(--xh-fg-default);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 28%, transparent);
 }
 
 /* ---- Plain 风格 ---- */
@@ -580,5 +530,16 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   margin: 0 2px;
   opacity: 0.4;
   font-weight: 400;
+}
+
+/* 标签上的关闭与取消固定：组件库纯图标钮压到 lg 字形档的小圆，前景随标签字色；
+   悬停、按下、聚焦环与过渡都由组件库给，这里不在按钮根上写过渡 */
+.tab-action-btn {
+  --xh-button-h: var(--xh-glyph-size-lg);
+  --xh-button-icon-size: var(--xh-glyph-size-xs);
+  --xh-button-radius: var(--xh-shape-circle);
+  --xh-button-fg: currentcolor;
+
+  flex-shrink: 0;
 }
 </style>

@@ -275,6 +275,8 @@ export default {
       sort_tip: 'Al hacer clic en el icono de orden se alterna Sin ordenar / Ascendente / Descendente y la ordenación pasa a ser solo por esta columna. Con Mayús + clic se añade como orden secundario; el número pequeño junto al nombre es su prioridad.',
       total_prefix: 'Total',
       total_suffix: 'elementos',
+      tree_collapse: 'Contraer filas secundarias',
+      tree_expand: 'Expandir filas secundarias',
     },
     schema_table_settings: {
       align_center: 'Centro',

@@ -416,15 +416,17 @@ async function saveWhitelist() {
             <XInput v-model:value="editor.form.code" name="code" clearable autocomplete="off" :disabled="editor.isEdit.value" :placeholder="t('tenancy.editions.code_placeholder')">
               <!-- 随机生成只在新建时出现；type="button" 防止把整表提交掉 -->
               <template v-if="!editor.isEdit.value" #suffix>
-                <button
-                  type="button"
+                <XhButton
+                  variant="ghost"
+                  size="sm"
+                  icon-only
                   class="edition-code-random"
                   :aria-label="t('tenancy.editions.code_random')"
                   :title="t('tenancy.editions.code_random')"
                   @click="editor.generateCode()"
                 >
-                  <Icon width="14" height="14" icon="lucide:dices" />
-                </button>
+                  <Icon icon="lucide:dices" />
+                </XhButton>
               </template>
             </XInput>
           </XhFieldControl>
@@ -597,19 +599,12 @@ async function saveWhitelist() {
 }
 
 /* 编码随机生成触发器：排在输入框盒内，与清除钮同段；焦点环交给浏览器默认样式 */
-.edition-code-random {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-}
 
-.edition-code-random:hover {
-  color: var(--xh-fg-default);
+/* 输入框尾部的随机生成：组件库纯图标钮压到 lg 字形档，不把输入框撑高 */
+.edition-code-random {
+  --xh-button-h: var(--xh-glyph-size-lg);
+  --xh-button-icon-size: var(--xh-glyph-size-sm);
+
+  flex: none;
 }
 </style>

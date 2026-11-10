@@ -8,6 +8,7 @@ import type { TableColumnDef, TableRowDef, TableSelection, TableSortDescriptor }
 import type { VNodeChild } from 'vue'
 import type { ListFieldSchema, SchemaColumn, SchemaSortRule } from './types'
 import {
+  XhButton,
   XhTableBody,
   XhTableCell,
   XhTableColumnHeader,
@@ -456,15 +457,18 @@ function rowAttrs(row: TRow, rowIndex: number) {
               <!-- 树形列：缩进 + 展开箭头，其余列照常渲染 -->
               <template v-if="tree && column.tree">
                 <span class="xh-table-panel__indent" :style="{ inlineSize: `${item.level * 16}px` }" />
-                <button
+                <XhButton
                   v-if="item.branch"
-                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon-only
                   class="xh-table-panel__tree-toggle"
                   :aria-expanded="isTreeOpen(item.key)"
+                  :aria-label="isTreeOpen(item.key) ? t('component.schema_table.tree_collapse') : t('component.schema_table.tree_expand')"
                   @click="toggleTreeRow(item.key)"
                 >
-                  <Icon :icon="isTreeOpen(item.key) ? 'lucide:chevron-down' : 'lucide:chevron-right'" width="14" height="14" />
-                </button>
+                  <Icon :icon="isTreeOpen(item.key) ? 'lucide:chevron-down' : 'lucide:chevron-right'" />
+                </XhButton>
                 <span v-else class="xh-table-panel__tree-toggle xh-table-panel__tree-toggle--leaf" />
               </template>
               <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
@@ -578,20 +582,15 @@ function rowAttrs(row: TRow, rowIndex: number) {
   flex: none;
 }
 
+/* 树形列的展开钮：组件库纯图标钮压到 sm 字形档，与叶子行的占位同宽，缩进对得齐 */
 .xh-table-panel__tree-toggle {
-  flex: none;
-  inline-size: 16px;
-  block-size: 16px;
-  margin-inline-end: 4px;
-  border: 0;
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  line-height: 1;
-}
+  --xh-button-h: var(--xh-glyph-size-sm);
+  --xh-button-icon-size: var(--xh-glyph-size-sm);
 
-.xh-table-panel__tree-toggle--leaf {
-  cursor: default;
+  flex: none;
+  inline-size: var(--xh-glyph-size-sm);
+  block-size: var(--xh-glyph-size-sm);
+  margin-inline-end: var(--xh-space-1);
 }
 
 /* 底部统计 + 分页：固定在底，不随表格滚动 */

@@ -8,6 +8,7 @@ import type { BoardItem } from './components'
 import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XIconButton } from '~/components'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { useUserSettingSync } from '~/components/schema'
 import { usePermission } from '~/hooks'
@@ -327,14 +328,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
                 <Icon icon="lucide:layout-grid" />
                 {{ t('workbench.widgets.customize') }}
               </XhButton>
-              <button
-                type="button"
-                :title="t('workbench.widgets.collapse')"
-                class="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                @click="panelOpen = false"
-              >
-                <Icon icon="lucide:chevron-right" width="16" />
-              </button>
+              <XIconButton icon="lucide:chevron-right" :label="t('workbench.widgets.collapse')" @click="panelOpen = false" />
             </template>
           </div>
         </Transition>
@@ -427,14 +421,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
                 </XhPopoverContent>
               </XhPopoverPositioner>
             </XhPopoverRoot>
-            <button
-              type="button"
-              class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]"
-              :aria-label="t('workbench.widgets.remove')"
-              @click="removeWidget(item.key)"
-            >
-              <Icon icon="lucide:x" width="15" />
-            </button>
+            <XIconButton icon="lucide:x" :label="t('workbench.widgets.remove')" @click="removeWidget(item.key)" />
           </div>
         </div>
       </XhSortableItem>

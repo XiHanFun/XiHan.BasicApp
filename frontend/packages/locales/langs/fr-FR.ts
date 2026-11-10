@@ -275,6 +275,8 @@ export default {
       sort_tip: 'Un clic sur l\'icône de tri fait défiler Non trié / Croissant / Décroissant et remplace tout le tri par cette colonne. Maj + clic ajoute cette colonne comme tri secondaire ; le petit nombre à côté du nom indique sa priorité.',
       total_prefix: 'Total',
       total_suffix: 'éléments',
+      tree_collapse: 'Réduire les lignes enfants',
+      tree_expand: 'Développer les lignes enfants',
     },
     schema_table_settings: {
       align_center: 'Centre',

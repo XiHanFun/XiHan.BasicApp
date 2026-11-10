@@ -5,6 +5,7 @@
 
 <script setup lang="ts">
 import type * as Monaco from 'monaco-editor'
+import { XhButton } from '@xihan-ui/vue'
 import * as monaco from 'monaco-editor'
 import EditorWorker from 'monaco-editor/editor/editor.worker?worker'
 import CssWorker from 'monaco-editor/language/css/css.worker?worker'
@@ -243,9 +244,12 @@ async function handleCopy() {
 
 <template>
   <div class="xh-editor" :style="{ height }">
-    <button v-if="copyable" type="button" class="xh-editor__copy" @click="handleCopy">
-      {{ copied ? t('component.code_editor.copy_success') : t('component.code_editor.copy') }}
-    </button>
+    <!-- 悬停才露出：显隐与定位落在外层，不在组件库按钮的根上写过渡 -->
+    <span v-if="copyable" class="xh-editor__copy">
+      <XhButton variant="outline" size="sm" @click="handleCopy">
+        {{ copied ? t('component.code_editor.copy_success') : t('component.code_editor.copy') }}
+      </XhButton>
+    </span>
     <div ref="container" class="xh-editor__body" />
   </div>
 </template>
@@ -270,23 +274,14 @@ async function handleCopy() {
   /* 让开纵向滚动条 */
   inset-inline-end: var(--xh-space-5);
   z-index: 2;
-  padding: var(--xh-space-0_5) var(--xh-space-2);
-  font-size: var(--xh-font-size-xs);
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  background: color-mix(in srgb, var(--xh-bg-surface) 85%, transparent);
-  border: 1px solid var(--xh-border-default);
-  border-radius: var(--xh-shape-inset);
+  display: inline-flex;
   opacity: 0;
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 默认隐藏、hover 编辑器时才浮现：避免常驻遮挡首行内容与右侧滚动条 */
-.xh-editor:hover .xh-editor__copy {
+.xh-editor:hover .xh-editor__copy,
+.xh-editor__copy:focus-within {
   opacity: 1;
-}
-
-.xh-editor__copy:hover {
-  color: var(--xh-fg-brand);
 }
 </style>

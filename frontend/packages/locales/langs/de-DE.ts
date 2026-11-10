@@ -275,6 +275,8 @@ export default {
       sort_tip: 'Ein Klick auf das Sortiersymbol schaltet zwischen Unsortiert / Aufsteigend / Absteigend um und ersetzt die gesamte Sortierung durch diese Spalte. Umschalt+Klick fügt diese Spalte als sekundäre Sortierung hinzu; die kleine Zahl neben dem Namen zeigt ihre Priorität.',
       total_prefix: 'Gesamt',
       total_suffix: 'Einträge',
+      tree_collapse: 'Untergeordnete Zeilen ausblenden',
+      tree_expand: 'Untergeordnete Zeilen einblenden',
     },
     schema_table_settings: {
       align_center: 'Mitte',

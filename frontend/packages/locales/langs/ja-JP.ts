@@ -275,6 +275,8 @@ export default {
       sort_tip: '並び替えアイコンをクリックすると「並び替えなし / 昇順 / 降順」を順に切り替え、並び順全体をこの列に置き換えます。Shift を押しながらクリックするとこの列を第 2 の並び順として追加し、列名の横の小さな数字がその優先度です。',
       total_prefix: '全',
       total_suffix: '件',
+      tree_collapse: '子行を折りたたむ',
+      tree_expand: '子行を展開',
     },
     schema_table_settings: {
       align_center: '中央',

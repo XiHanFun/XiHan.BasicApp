@@ -14,7 +14,7 @@ import type { SelectOption } from '~/types'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
@@ -662,16 +662,9 @@ function formatBoolean(value: boolean): string {
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot v-if="isPlatformCaller()">
-          <XhFieldLabel>
-            <span class="inline-flex items-center gap-1">
-              <span>{{ t('settings.numbering_rules.fields.allow_tenant_use') }}</span>
-              <XTooltip :content="t('settings.numbering_rules.allow_tenant_use_tip')">
-                <button type="button" class="inline-flex cursor-help items-center text-fg-muted" :aria-label="t('settings.numbering_rules.allow_tenant_use_tip')">
-                  <Icon icon="lucide:circle-help" width="14" height="14" />
-                </button>
-              </XTooltip>
-            </span>
-          </XhFieldLabel>
+          <XFieldLabel :help="t('settings.numbering_rules.allow_tenant_use_tip')">
+            {{ t('settings.numbering_rules.fields.allow_tenant_use') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XhSwitch v-model:checked="editor.form.allowTenantUse" name="allowTenantUse" />
           </XhFieldControl>

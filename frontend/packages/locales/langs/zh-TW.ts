@@ -275,6 +275,8 @@ export default {
       sort_tip: '點選排序圖示會依「未排序 / 遞增 / 遞減」循環，並把整條排序換成這一欄；按住 Shift 點選則是把這一欄追加為次級排序，欄名旁的角標數字就是它的優先順序。',
       total_prefix: '總共',
       total_suffix: '筆',
+      tree_collapse: '收合子列',
+      tree_expand: '展開子列',
     },
     schema_table_settings: {
       align_center: '置中',

@@ -275,6 +275,8 @@ export default {
       sort_tip: '点击排序图标按「不排序 / 升序 / 降序」循环，并把整条排序换成这一列；按住 Shift 点击是把这一列追加为次级排序，列名旁的角标数字就是它的优先级。',
       total_prefix: '共',
       total_suffix: '条',
+      tree_collapse: '收起子行',
+      tree_expand: '展开子行',
     },
     schema_table_settings: {
       align_center: '居中',

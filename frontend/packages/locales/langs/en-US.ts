@@ -275,6 +275,8 @@ export default {
       sort_tip: 'Clicking the sort icon cycles Unsorted / Ascending / Descending and replaces the whole sort with this column. Shift-clicking appends this column as a secondary sort, and the small number next to the name is its priority.',
       total_prefix: 'Total',
       total_suffix: 'items',
+      tree_collapse: 'Collapse child rows',
+      tree_expand: 'Expand child rows',
     },
     schema_table_settings: {
       align_center: 'Center',

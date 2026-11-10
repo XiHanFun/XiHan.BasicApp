@@ -7,7 +7,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 import type { LegalDocumentKind } from './legal'
 import type { CaptchaChallenge } from '~/types'
-import { XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -368,13 +368,13 @@ const onAuthInvalid = useAuthFormInvalid()
         <span :id="agreeLabelId">
           {{ t('page.auth.agree_text') }}
           <!-- 打开弹窗而不是跳页：哈希路由下 href="#" 会把人带回首页 -->
-          <button type="button" class="link-primary legal-link" @click="openLegal('privacy-policy')">
+          <XhButton variant="link" size="sm" class="xh-link-button xh-link-button--inline" @click="openLegal('privacy-policy')">
             {{ t('page.auth.privacy_policy') }}
-          </button>
+          </XhButton>
           {{ t('page.auth.and') }}
-          <button type="button" class="link-primary legal-link" @click="openLegal('terms-of-service')">
+          <XhButton variant="link" size="sm" class="xh-link-button xh-link-button--inline" @click="openLegal('terms-of-service')">
             {{ t('page.auth.terms_of_service') }}
-          </button>
+          </XhButton>
         </span>
       </div>
 
@@ -390,22 +390,14 @@ const onAuthInvalid = useAuthFormInvalid()
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.already_have_account') }}
-      <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
+      <XhButton variant="link" size="sm" class="xh-link-button xh-link-button--inline" @click="router.push(LOGIN_PATH)">
         {{ t('page.auth.back_to_login') }}
-      </span>
+      </XhButton>
     </p>
   </div>
 </template>
 
 <style scoped>
-.link-primary {
-  color: var(--xh-fg-brand);
-}
-
-.link-primary:hover {
-  text-decoration: underline;
-}
-
 .agree-row {
   display: flex;
   align-items: flex-start;
@@ -418,19 +410,5 @@ const onAuthInvalid = useAuthFormInvalid()
   flex: none;
   align-items: center;
   block-size: 1lh;
-}
-
-/* 文书入口是按钮（打开弹窗），外观仍是行内链接 */
-.legal-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-}
-
-.legal-link:focus-visible {
-  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
-  outline-offset: var(--xh-ring-offset);
 }
 </style>

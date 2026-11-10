@@ -64,9 +64,11 @@ function onAlignChange(align: LoginFormAlign) {
   <div class="login-toolbar app-glass">
     <!-- 颜色 -->
     <XhPopoverRoot v-model:open="showColorPicker" placement="bottom-end">
-      <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
-      <XhPopoverTrigger class="toolbar-btn xh-icon-btn" :aria-label="t('preference.appearance.color.title')">
-        <Icon width="16" height="16" icon="lucide:palette" />
+      <!-- 触发器合到纯图标钮上（as-child），与同排另外三颗同款 -->
+      <XhPopoverTrigger as-child>
+        <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('preference.appearance.color.title')">
+          <Icon width="16" height="16" icon="lucide:palette" />
+        </XhButton>
       </XhPopoverTrigger>
       <XhPopoverPositioner>
         <XhPopoverContent :aria-label="t('preference.appearance.color.title')">
@@ -95,7 +97,7 @@ function onAlignChange(align: LoginFormAlign) {
 
     <!-- 布局位置（封装组件，当前项高亮） -->
     <LayoutAlignSwitcher :value="currentAlign" placement="bottom-end" @change="onAlignChange">
-      <XhButton variant="ghost" size="sm" icon-only class="toolbar-btn xh-icon-btn" :aria-label="t('preference.layout.title')">
+      <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('preference.layout.title')">
         <Icon width="16" height="16" :icon="getLayoutIcon(currentAlign)" />
       </XhButton>
     </LayoutAlignSwitcher>
@@ -107,7 +109,7 @@ function onAlignChange(align: LoginFormAlign) {
       apply
       placement="bottom-end"
     >
-      <XhButton variant="ghost" size="sm" icon-only class="toolbar-btn xh-icon-btn" :aria-label="t('header.toolbar.switch_language')">
+      <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('header.toolbar.switch_language')">
         <Icon width="16" height="16" icon="lucide:languages" />
       </XhButton>
     </LocaleSwitcher>
@@ -118,7 +120,7 @@ function onAlignChange(align: LoginFormAlign) {
       variant="ghost"
       size="sm"
       icon-only
-      class="toolbar-btn"
+      class="x-icon-btn"
       :aria-label="isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
       @click="(e: MouseEvent) => toggleThemeWithTransition(e)"
     >
@@ -138,14 +140,6 @@ function onAlignChange(align: LoginFormAlign) {
   gap: var(--xh-space-0_5);
   padding: var(--xh-space-1) var(--xh-space-2);
   border-radius: var(--xh-shape-pill);
-}
-
-.toolbar-btn {
-  color: var(--xh-fg-default);
-}
-
-.toolbar-btn:hover {
-  background: var(--xh-bg-subtle-hover);
 }
 
 /* 颜色色板 */

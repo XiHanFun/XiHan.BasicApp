@@ -275,6 +275,8 @@ export default {
       sort_tip: 'Clicar no ícone de ordenação alterna Sem ordenação / Crescente / Decrescente e substitui toda a ordenação por esta coluna. Shift + clique acrescenta esta coluna como ordenação secundária; o número pequeno ao lado do nome é a prioridade.',
       total_prefix: 'Total de',
       total_suffix: 'itens',
+      tree_collapse: 'Recolher linhas filhas',
+      tree_expand: 'Expandir linhas filhas',
     },
     schema_table_settings: {
       align_center: 'Centro',

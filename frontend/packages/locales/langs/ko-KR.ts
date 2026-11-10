@@ -275,6 +275,8 @@ export default {
       sort_tip: '정렬 아이콘을 클릭하면 「정렬 안 함 / 오름차순 / 내림차순」 순으로 바뀌고, 전체 정렬이 이 열로 교체돼요. Shift를 누른 채 클릭하면 이 열이 보조 정렬로 추가되고, 열 이름 옆의 작은 숫자가 우선순위예요.',
       total_prefix: '총',
       total_suffix: '건',
+      tree_collapse: '하위 행 접기',
+      tree_expand: '하위 행 펼치기',
     },
     schema_table_settings: {
       align_center: '가운데',

@@ -302,19 +302,13 @@ const onAuthInvalid = useAuthFormInvalid()
       class="mt-6 auth-helper text-center"
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
-      <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
+      <XhButton variant="link" size="sm" class="xh-link-button xh-link-button--inline" @click="router.push(LOGIN_PATH)">
         {{ t('page.auth.back_to_login') }}
-      </span>
+      </XhButton>
     </p>
   </div>
 </template>
 
 <style scoped>
-.link-primary {
-  color: var(--xh-fg-brand);
-}
 
-.link-primary:hover {
-  text-decoration: underline;
-}
 </style>
