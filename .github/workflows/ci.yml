@@ -1,15 +1,15 @@
 name: CI
 
-# 后端（backend）与前端（frontend）的构建、测试与门禁。框架尚未发包，按 backend/props/framework.props 锁定的提交检出同级 XiHan.Framework 源码。
+# 后端（backend）与前端（frontend）的构建、测试与门禁。按 backend/props/framework.props 锁定的提交检出同级 XiHan.Framework 源码。
 on:
   push:
-    branches: [main, dev, next, preview]
+    branches: [main, dev, preview]
     paths:
       - "backend/**"
       - "frontend/**"
       - ".github/workflows/ci.yml"
   pull_request:
-    branches: [main, dev, next, preview]
+    branches: [main, dev, preview]
     paths:
       - "backend/**"
       - "frontend/**"

@@ -20,7 +20,7 @@
 
 ```text
 <工作目录>/
-├─ XiHan.BasicApp/          # next 分支
+├─ XiHan.BasicApp/          # dev 分支
 │  ├─ backend/
 │  └─ frontend/
 └─ XiHan.Framework/         # 检出 backend/props/framework.props 锁定的提交
@@ -28,7 +28,7 @@
 ```
 
 ```bash
-git clone -b next https://github.com/XiHanFun/XiHan.BasicApp.git
+git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
 git clone https://github.com/XiHanFun/XiHan.Framework.git
 commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
 git -C XiHan.Framework checkout "$commit"

@@ -9,7 +9,7 @@
 ## 一、克隆代码
 
 ```bash
-git clone -b next https://github.com/XiHanFun/XiHan.BasicApp.git
+git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
 git clone https://github.com/XiHanFun/XiHan.Framework.git
 # 把框架检出到 backend/props/framework.props 里 XiHanFrameworkCommit 锁定的提交
 commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
