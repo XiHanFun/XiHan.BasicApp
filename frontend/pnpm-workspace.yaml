@@ -7,23 +7,23 @@ minimumReleaseAgeExclude:
   - '@xihan-print/core@1.0.0'
   - '@xihan-print/designer@1.0.0'
   - '@xihan-print/runtime@1.0.0'
-  - '@xihan-ui/code-highlight@5.5.0'
-  - '@xihan-ui/core@5.5.0'
-  - '@xihan-ui/designer-kit@5.5.0'
-  - '@xihan-ui/designer-shell@5.5.0'
-  - '@xihan-ui/expression@5.5.0'
-  - '@xihan-ui/headless@5.5.0'
-  - '@xihan-ui/icons@5.5.0'
-  - '@xihan-ui/markdown@5.5.0'
-  - '@xihan-ui/motion@5.5.0'
-  - '@xihan-ui/pointer@5.5.0'
-  - '@xihan-ui/position@5.5.0'
-  - '@xihan-ui/sound@5.5.0'
-  - '@xihan-ui/styles@5.5.0'
-  - '@xihan-ui/tokens@5.5.0'
-  - '@xihan-ui/viz@5.5.0'
-  - '@xihan-ui/vue@5.5.0'
-  - '@xihan-ui/web-components@5.5.0'
+  - '@xihan-ui/code-highlight@5.5.1'
+  - '@xihan-ui/core@5.5.1'
+  - '@xihan-ui/designer-kit@5.5.1'
+  - '@xihan-ui/designer-shell@5.5.1'
+  - '@xihan-ui/expression@5.5.1'
+  - '@xihan-ui/headless@5.5.1'
+  - '@xihan-ui/icons@5.5.1'
+  - '@xihan-ui/markdown@5.5.1'
+  - '@xihan-ui/motion@5.5.1'
+  - '@xihan-ui/pointer@5.5.1'
+  - '@xihan-ui/position@5.5.1'
+  - '@xihan-ui/sound@5.5.1'
+  - '@xihan-ui/styles@5.5.1'
+  - '@xihan-ui/tokens@5.5.1'
+  - '@xihan-ui/viz@5.5.1'
+  - '@xihan-ui/vue@5.5.1'
+  - '@xihan-ui/web-components@5.5.1'
 
 trustPolicy: no-downgrade
 shellEmulator: true
@@ -64,19 +64,19 @@ catalog:
   '@xihan-print/core': ^1.0.0
   '@xihan-print/designer': ^1.0.0
   '@xihan-print/runtime': ^1.0.0
-  '@xihan-ui/code-highlight': ^5.5.0
-  '@xihan-ui/core': ^5.5.0
-  '@xihan-ui/designer-kit': ^5.5.0
-  '@xihan-ui/designer-shell': ^5.5.0
-  '@xihan-ui/headless': ^5.5.0
-  '@xihan-ui/icons': ^5.5.0
-  '@xihan-ui/markdown': ^5.5.0
-  '@xihan-ui/motion': ^5.5.0
-  '@xihan-ui/sound': ^5.5.0
-  '@xihan-ui/styles': ^5.5.0
-  '@xihan-ui/tokens': ^5.5.0
-  '@xihan-ui/vue': ^5.5.0
-  '@xihan-ui/web-components': ^5.5.0
+  '@xihan-ui/code-highlight': ^5.5.1
+  '@xihan-ui/core': ^5.5.1
+  '@xihan-ui/designer-kit': ^5.5.1
+  '@xihan-ui/designer-shell': ^5.5.1
+  '@xihan-ui/headless': ^5.5.1
+  '@xihan-ui/icons': ^5.5.1
+  '@xihan-ui/markdown': ^5.5.1
+  '@xihan-ui/motion': ^5.5.1
+  '@xihan-ui/sound': ^5.5.1
+  '@xihan-ui/styles': ^5.5.1
+  '@xihan-ui/tokens': ^5.5.1
+  '@xihan-ui/vue': ^5.5.1
+  '@xihan-ui/web-components': ^5.5.1
   cross-env: ^10.1.0
   dayjs: ^1.11.23
   dompurify: ^3.4.17
