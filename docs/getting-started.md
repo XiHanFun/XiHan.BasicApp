@@ -21,7 +21,7 @@ git -C XiHan.Framework checkout "$commit"
 ## 二、准备数据库
 
 ```bash
-createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
+createdb -h 127.0.0.1 -U postgres xihan_basicapp
 ```
 
 `backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向这个库（账号为开发用占位值）。本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。

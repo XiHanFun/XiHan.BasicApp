@@ -16,7 +16,7 @@
 
 ```bash
 # 需要本地 PostgreSQL（appsettings.Development.json：127.0.0.1:5432，postgres/postgres）并先建库
-createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
+createdb -h 127.0.0.1 -U postgres xihan_basicapp
 dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development
 ```
 

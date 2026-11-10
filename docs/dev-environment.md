@@ -46,17 +46,17 @@ git -C XiHan.Framework checkout "$commit"
 
 ## PostgreSQL
 
-`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp_next` 库，账号为开发用占位值。先建库：
+`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp` 库，账号为开发用占位值。先建库：
 
 ```bash
-createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
+createdb -h 127.0.0.1 -U postgres xihan_basicapp
 ```
 
 连接串写在 `XiHan:Bindings:db:value`，库类型写在同一节的 `provider`（缺省 `postgresql`）。本机账号不同时用环境变量或用户机密覆盖，不要改 `appsettings.Development.json`，也不要提交真实密码：
 
 ```bash
 # 环境变量覆盖（节名以双下划线分隔）
-export XiHan__Bindings__db__value="Host=127.0.0.1;Port=5432;Database=xihan_basicapp_next;Username=<用户>;Password=<密码>"
+export XiHan__Bindings__db__value="Host=127.0.0.1;Port=5432;Database=xihan_basicapp;Username=<用户>;Password=<密码>"
 ```
 
 Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已登记的实体建缺表、加缺列，改了实体重启即生效。正式环境由 `Schema/<版本>/*.sql` 管理表结构，见[表结构升级](./backend/upgrade)。
