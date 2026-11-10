@@ -72,7 +72,6 @@ export default {
       empty: 'メッセージはまだありません。何か送ってみましょう',
       load_more: '以前のメッセージを読み込む',
       typing: '{name} が入力中…',
-      assistant_thinking: '生成中…',
       assistant_dismiss: '閉じる',
       voice_unplayed: '未再生',
       view_image: '画像を表示',

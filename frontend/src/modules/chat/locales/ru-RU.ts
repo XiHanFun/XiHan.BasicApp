@@ -72,7 +72,6 @@ export default {
       empty: 'Сообщений пока нет. Напишите что-нибудь!',
       load_more: 'Загрузить более ранние сообщения',
       typing: '{name} печатает…',
-      assistant_thinking: 'Генерация…',
       assistant_dismiss: 'Закрыть',
       voice_unplayed: 'Не прослушано',
       view_image: 'Просмотреть изображение',

@@ -72,7 +72,6 @@ export default {
       empty: '暂无消息，来说点什么吧',
       load_more: '加载更早消息',
       typing: '{name} 正在输入…',
-      assistant_thinking: '正在生成…',
       assistant_dismiss: '知道了',
       voice_unplayed: '未听',
       view_image: '查看图片',

@@ -72,7 +72,6 @@ export default {
       empty: '아직 메시지가 없어요. 먼저 말을 걸어보세요',
       load_more: '이전 메시지 불러오기',
       typing: '{name} 님이 입력 중…',
-      assistant_thinking: '생성 중…',
       assistant_dismiss: '확인했어요',
       voice_unplayed: '미재생',
       view_image: '이미지 보기',

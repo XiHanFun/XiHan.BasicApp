@@ -72,7 +72,6 @@ export default {
       empty: 'No messages yet. Say something!',
       load_more: 'Load earlier messages',
       typing: '{name} is typing…',
-      assistant_thinking: 'Generating…',
       assistant_dismiss: 'Dismiss',
       voice_unplayed: 'Unplayed',
       view_image: 'View image',

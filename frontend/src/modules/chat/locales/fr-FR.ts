@@ -72,7 +72,6 @@ export default {
       empty: 'Aucun message pour le moment. Dites quelque chose !',
       load_more: 'Charger les messages précédents',
       typing: '{name} est en train d\'écrire…',
-      assistant_thinking: 'Génération en cours…',
       assistant_dismiss: 'Fermer',
       voice_unplayed: 'Non écouté',
       view_image: 'Voir l\'image',

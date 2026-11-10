@@ -866,7 +866,6 @@ onBeforeUnmount(() => {
               </template>
               <template v-else>
                 <ChatAssistantMarkdown :text="assistantStream.text" :streaming="assistantStream.streaming" />
-                <span v-if="assistantStream.streaming" class="ml-1 text-muted-foreground">{{ t('chat.thread.assistant_thinking') }}</span>
               </template>
             </div>
           </div>

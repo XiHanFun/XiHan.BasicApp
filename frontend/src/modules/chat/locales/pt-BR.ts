@@ -72,7 +72,6 @@ export default {
       empty: 'Ainda não há mensagens. Diga alguma coisa!',
       load_more: 'Carregar mensagens anteriores',
       typing: '{name} está digitando…',
-      assistant_thinking: 'Gerando…',
       assistant_dismiss: 'Dispensar',
       voice_unplayed: 'Não ouvida',
       view_image: 'Ver imagem',

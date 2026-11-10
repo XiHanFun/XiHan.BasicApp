@@ -72,7 +72,6 @@ export default {
       empty: '暫無訊息，來說點什麼吧',
       load_more: '載入更早的訊息',
       typing: '{name} 正在輸入…',
-      assistant_thinking: '正在產生…',
       assistant_dismiss: '我知道了',
       voice_unplayed: '未聽',
       view_image: '查看圖片',

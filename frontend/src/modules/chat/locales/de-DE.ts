@@ -72,7 +72,6 @@ export default {
       empty: 'Noch keine Nachrichten. Schreiben Sie etwas!',
       load_more: 'Frühere Nachrichten laden',
       typing: '{name} schreibt…',
-      assistant_thinking: 'Wird generiert…',
       assistant_dismiss: 'Verwerfen',
       voice_unplayed: 'Nicht abgespielt',
       view_image: 'Bild ansehen',
