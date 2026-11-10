@@ -25,7 +25,6 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocale } from '~/hooks'
 import { useAppStore } from '~/stores'
-import LocaleFlag from './LocaleFlag.vue'
 
 /**
  * 语言切换组件（统一封装：选项 + 国旗 + 切换逻辑）
@@ -65,7 +64,7 @@ const appStore = useAppStore()
 const { setLocale } = useLocale()
 const { t } = useI18n()
 
-// 已上架语言。新增语言时此处、LocaleFlag 的国旗、locales/xihan-ui 的 xhLocales（组件库有该语言包时）三处需同步
+// 已上架语言。新增语言时此处与 locales/xihan-ui 的 xhLocales（组件库有该语言包时）两处需同步
 const LOCALES = [
   { value: 'zh-CN', labelKey: 'header.locale.zh_cn' },
   { value: 'zh-TW', labelKey: 'header.locale.zh_tw' },
@@ -126,12 +125,9 @@ function choose(key: string) {
     </XhSelectLabel>
     <XhSelectControl>
       <XhSelectTrigger>
-        <!-- 选中态自绘：旗 + 文案，填进值文本部件，触发器 aria-labelledby 才指得到它 -->
+        <!-- 选中的语言名填进值文本部件，触发器 aria-labelledby 才指得到它 -->
         <XhSelectValueText>
-          <span class="locale-item">
-            <LocaleFlag :locale="current" :size="16" />
-            <span>{{ options.find(o => o.value === current)?.label }}</span>
-          </span>
+          {{ options.find(o => o.value === current)?.label }}
         </XhSelectValueText>
         <XhSelectIndicator />
       </XhSelectTrigger>
@@ -141,10 +137,7 @@ function choose(key: string) {
         <XhSelectList>
           <XhSelectItem v-for="node in options" :key="node.value" :value="node.value">
             <XhSelectItemText>
-              <span class="locale-item">
-                <LocaleFlag :locale="node.value" />
-                <span>{{ node.label }}</span>
-              </span>
+              {{ node.label }}
             </XhSelectItemText>
             <XhSelectItemIndicator />
           </XhSelectItem>
@@ -164,21 +157,14 @@ function choose(key: string) {
       <slot />
     </template>
     <template #item="node">
-      <span class="locale-item" :class="{ 'locale-item--active': node.value === current }">
-        <LocaleFlag :locale="node.value" />
-        <span>{{ node.label }}</span>
+      <span :class="{ 'locale-item--active': node.value === current }">
+        {{ node.label }}
       </span>
     </template>
   </XhMenuRoot>
 </template>
 
 <style scoped>
-.locale-item {
-  display: inline-flex;
-  gap: var(--xh-space-2);
-  align-items: center;
-}
-
 /* 当前项高亮：主色 + 加粗 */
 .locale-item--active {
   color: var(--xh-fg-brand);
