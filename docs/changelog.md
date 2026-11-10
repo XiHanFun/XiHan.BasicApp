@@ -6,6 +6,7 @@
 
 - **调整** 后端以 NuGet 包引用 XiHan.Framework（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
 - **新增** `BasicApp:Schema:CreateDatabase`：升级前平台库不存在时先建库，缺省关，开发环境打开，首次运行不用先手工建库
+- **新增** `BasicApp:Seed:RunOnStartup`：应用启动后执行一遍种子，缺省关，开发环境打开，首次运行即可用 `superadmin` 登录
 
 ## v6.0.0-preview.1 (2026-11-10)
 

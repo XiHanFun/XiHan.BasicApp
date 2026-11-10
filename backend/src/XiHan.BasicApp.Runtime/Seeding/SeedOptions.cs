@@ -34,6 +34,14 @@ public sealed record SeedOptions
     public string? SuperAdminPassword { get; init; }
 
     /// <summary>
+    /// 启动时是否执行种子
+    /// </summary>
+    /// <remarks>
+    /// 配置键 <c>RunOnStartup</c>，缺省关，由 <c>seed</c> 命令或部署流程执行。开发环境打开，首次运行即写好超级管理员与各目录；种子可重复执行，每次启动跑一遍
+    /// </remarks>
+    public bool RunOnStartup { get; init; }
+
+    /// <summary>
     /// 从配置读取
     /// </summary>
     public static SeedOptions FromConfiguration(IConfiguration configuration)
@@ -46,6 +54,14 @@ public sealed record SeedOptions
             options = bool.TryParse(demo, out var enabled)
                 ? options with { EnableDemoData = enabled }
                 : throw new ArgumentException($"'{ConfigurationSection}:EnableDemoData' must be 'true' or 'false', but was '{demo}'.");
+        }
+
+        var startup = configuration[$"{ConfigurationSection}:RunOnStartup"];
+        if (!string.IsNullOrEmpty(startup))
+        {
+            options = bool.TryParse(startup, out var enabled)
+                ? options with { RunOnStartup = enabled }
+                : throw new ArgumentException($"'{ConfigurationSection}:RunOnStartup' must be 'true' or 'false', but was '{startup}'.");
         }
 
         var password = configuration[$"{ConfigurationSection}:SuperAdminPassword"];

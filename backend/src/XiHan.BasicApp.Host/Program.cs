@@ -22,11 +22,19 @@ if (CommandLineMode.IsCommand(args))
         : await commandApp.RunXiHanCommandLineAsync(args);
 }
 
-var app = BasicAppHost.Create(args);
+await using var app = BasicAppHost.Create(args);
 if (!await SchemaStartup.UpgradeAsync(app))
 {
     return 1;
 }
 
-app.Run();
+// 种子要求应用处于服务状态：先启动，再按配置执行
+await app.StartAsync();
+if (!await SeedStartup.RunAsync(app))
+{
+    await app.StopAsync();
+    return 1;
+}
+
+await app.WaitForShutdownAsync();
 return 0;

@@ -47,6 +47,22 @@ public sealed class SeedTests : IDisposable
     }
 
     [Fact]
+    public async Task SeedStartup_RunsTheSeeders_OnlyWhenRunOnStartupIsOn()
+    {
+        // 缺省关：启动不写种子，还没有超级管理员
+        await using (var off = await BasicAppTestServer.StartAsync(_database.ConnectionString))
+        {
+            Assert.True(await SeedStartup.RunAsync(off.App));
+            var (login, _) = await off.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"superadmin","password":"SuperAdmin@123"}"""));
+            Assert.Equal(HttpStatusCode.Forbidden, login.StatusCode);
+        }
+
+        await using var on = await BasicAppTestServer.StartAsync(_database.ConnectionString, settings: [new("BasicApp:Seed:RunOnStartup", "true")]);
+        Assert.True(await SeedStartup.RunAsync(on.App));
+        await AuthFlowTests.LoginAsync(on, "superadmin", "SuperAdmin@123");
+    }
+
+    [Fact]
     public async Task SeedCommand_ListsRunsAndRejectsUnknownSeeders()
     {
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, configure: static builder => builder.Services.AddBasicAppCommands());
