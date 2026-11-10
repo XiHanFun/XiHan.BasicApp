@@ -25,7 +25,7 @@ docker compose up -d --build
 ```
 
 - 前端在 `http://localhost:${FRONTEND_PORT}`（缺省 8080），后端直连端口 `${BACKEND_PORT}`（缺省 9710）；用 `superadmin` 与 `.env` 里的 `SUPERADMIN_PASSWORD` 登录，登录后立即修改密码。
-- 后端镜像（`backend/Dockerfile`）构建时按 `props/framework.props` 锁定的提交克隆 XiHan.Framework 源码，与 CI 同一做法，需要能访问 GitHub；框架仓库在别处时用构建参数 `XIHAN_FRAMEWORK_REPO` 改指。
+- 后端镜像（`backend/Dockerfile`）构建时按 `props/framework.props` 的版本从 NuGet 还原 XiHan.Framework，与 CI 同一做法，需要能访问 nuget.org（或在构建环境里配好 NuGet 镜像源）。
 - `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行，每次 `up` 都会跑一遍），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射，演示数据按 `.env` 的 `ENABLE_DEMO_DATA`（缺省 `false`）。
 - 可写的数据都在后端容器的 `/app/data` 卷：文件存储、数据保护密钥与框架缺省的文件系统存储。`init` 与后端共用这个卷，种子加密写入的值才解得开。
 - 编排网络固定为 `172.30.0.0/24`，后端只信这个网段里的 Nginx 转发头（`BasicApp__ForwardedHeaders__KnownNetworks__0`）。
@@ -33,7 +33,7 @@ docker compose up -d --build
 
 ## 后端：发布
 
-源码引用模式下，发布机上同样要有锁定提交的 XiHan.Framework 检出（与 BasicApp 并排，见[开发环境](./dev-environment#框架检出)）：
+直接发布宿主工程用框架的 NuGet 包，发布机上不需要框架源码（见[框架引用](./dev-environment#框架引用)）：
 
 ```bash
 dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp

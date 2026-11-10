@@ -379,16 +379,18 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `AutoUpgrade` | `true` | 启动时自动升级，失败即中断启动；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
+| `CreateDatabase` | `false` | 升级前平台库不存在时先建库（经维护库 `postgres`，连接账号要有建库权限）；缺省关，库名写错时不悄悄建一个空库，开发环境打开 |
 | `Directory` | 程序目录下的 `Schema` | 脚本目录；相对路径按程序目录（不是当前目录）解析 |
 | `LockExpiryMinutes` | `30` | 升级锁的失效时间（1–1440）：持锁节点中途退出时，过了这么久别的节点才能接手 |
 | `LockWaitMinutes` | `10` | 等别的节点升级完的最长时间（1–1440）；等不到即升级失败、中断启动 |
 
 ## `BasicApp:Seed`
 
-种子在执行 `seed` 命令时写入，不随启动执行。
+种子在执行 `seed` 命令时写入；打开 `RunOnStartup` 时也随启动执行。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
+| `RunOnStartup` | `false`（Development 为 `true`） | 应用启动后执行一遍全部种子（种子可重复执行），失败即中断启动；关着时由 `seed` 命令或部署流程执行 |
 | `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知，演示流程与打印模板 |
 | `SuperAdminPassword` | 空（Development 为 `SuperAdmin@123`） | `superadmin` 的初始密码，只在账号不存在、首次写入时用；首次执行 `seed` 时没配即失败（`IDENTITY_VALIDATION_026`） |
 

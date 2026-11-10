@@ -272,6 +272,12 @@ OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-
 
 本页记录各版本中使用者与运维可感知的变化，每条标注 **新增 / 修复 / 优化 / 调整** 类别，适用于评估与升级版本的读者；仓库自身的 CI、测试与构建脚本不列入。
 
+## 未发布
+
+- **调整** 后端以 NuGet 包引用 XiHan.Framework（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
+- **新增** `BasicApp:Schema:CreateDatabase`：升级前平台库不存在时先建库，缺省关，开发环境打开，首次运行不用先手工建库
+- **新增** `BasicApp:Seed:RunOnStartup`：应用启动后执行一遍种子，缺省关，开发环境打开，首次运行即可用 `superadmin` 登录
+
 ## v6.0.0-preview.1 (2026-11-10)
 
 ::: warning 预览须知
@@ -775,16 +781,18 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `AutoUpgrade` | `true` | 启动时自动升级，失败即中断启动；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
+| `CreateDatabase` | `false` | 升级前平台库不存在时先建库（经维护库 `postgres`，连接账号要有建库权限）；缺省关，库名写错时不悄悄建一个空库，开发环境打开 |
 | `Directory` | 程序目录下的 `Schema` | 脚本目录；相对路径按程序目录（不是当前目录）解析 |
 | `LockExpiryMinutes` | `30` | 升级锁的失效时间（1–1440）：持锁节点中途退出时，过了这么久别的节点才能接手 |
 | `LockWaitMinutes` | `10` | 等别的节点升级完的最长时间（1–1440）；等不到即升级失败、中断启动 |
 
 ## `BasicApp:Seed`
 
-种子在执行 `seed` 命令时写入，不随启动执行。
+种子在执行 `seed` 命令时写入；打开 `RunOnStartup` 时也随启动执行。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
+| `RunOnStartup` | `false`（Development 为 `true`） | 应用启动后执行一遍全部种子（种子可重复执行），失败即中断启动；关着时由 `seed` 命令或部署流程执行 |
 | `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知，演示流程与打印模板 |
 | `SuperAdminPassword` | 空（Development 为 `SuperAdmin@123`） | `superadmin` 的初始密码，只在账号不存在、首次写入时用；首次执行 `seed` 时没配即失败（`IDENTITY_VALIDATION_026`） |
 
@@ -1070,7 +1078,7 @@ docker compose up -d --build
 ```
 
 - 前端在 `http://localhost:${FRONTEND_PORT}`（缺省 8080），后端直连端口 `${BACKEND_PORT}`（缺省 9710）；用 `superadmin` 与 `.env` 里的 `SUPERADMIN_PASSWORD` 登录，登录后立即修改密码。
-- 后端镜像（`backend/Dockerfile`）构建时按 `props/framework.props` 锁定的提交克隆 XiHan.Framework 源码，与 CI 同一做法，需要能访问 GitHub；框架仓库在别处时用构建参数 `XIHAN_FRAMEWORK_REPO` 改指。
+- 后端镜像（`backend/Dockerfile`）构建时按 `props/framework.props` 的版本从 NuGet 还原 XiHan.Framework，与 CI 同一做法，需要能访问 nuget.org（或在构建环境里配好 NuGet 镜像源）。
 - `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行，每次 `up` 都会跑一遍），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射，演示数据按 `.env` 的 `ENABLE_DEMO_DATA`（缺省 `false`）。
 - 可写的数据都在后端容器的 `/app/data` 卷：文件存储、数据保护密钥与框架缺省的文件系统存储。`init` 与后端共用这个卷，种子加密写入的值才解得开。
 - 编排网络固定为 `172.30.0.0/24`，后端只信这个网段里的 Nginx 转发头（`BasicApp__ForwardedHeaders__KnownNetworks__0`）。
@@ -1078,7 +1086,7 @@ docker compose up -d --build
 
 ## 后端：发布
 
-源码引用模式下，发布机上同样要有锁定提交的 XiHan.Framework 检出（与 BasicApp 并排，见[开发环境](./dev-environment#框架检出)）：
+直接发布宿主工程用框架的 NuGet 包，发布机上不需要框架源码（见[框架引用](./dev-environment#框架引用)）：
 
 ```bash
 dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
@@ -1260,7 +1268,7 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 
 # 开发环境
 
-本页说明本机开发所需的工具、框架检出、数据库准备、端口与常用命令，适用于参与后端或前端开发的开发者。
+本页说明本机开发所需的工具、框架引用、数据库准备、端口与常用命令，适用于参与后端或前端开发的开发者。
 
 ## 前置条件
 
@@ -1269,54 +1277,57 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 | .NET SDK | 10.x | 后端构建、测试与运行（目标框架 `net10.0`） |
 | Node.js | 24+ | 前端与文档站 |
 | pnpm | 11+ | 前端包管理（`frontend` 没有锁文件，安装用 `--no-frozen-lockfile`） |
-| Git | 任意近期版本 | 检出 BasicApp 与 XiHan.Framework 两个仓库 |
+| Git | 任意近期版本 | 检出 BasicApp；以源码联调框架时再检出 XiHan.Framework |
 | PostgreSQL | 14+（CI 用 `postgres:17-alpine`） | 平台库；独立库租户另建库 |
 
 开发只要求 PostgreSQL。Redis、RabbitMQ、对象存储都不是必需：不配连接时缓存与消息走框架的进程内实现，文件落本地目录 `App_Data/files`。要在本机联调 Redis / RabbitMQ，在 `appsettings.Development.json` 打开绑定 `cache` / `queue` 的注释即可（见[配置参考](./configuration#分布式缓存与消息)）。
 
-## 框架检出
+## 框架引用
 
-后端缺省以 ProjectReference 引用框架源码，路径是与 BasicApp 同级的 `XiHan.Framework/framework/src`：
+后端以哪种方式引用 XiHan.Framework，由打开或构建的解决方案决定（`backend/props/framework.props`）：
+
+| 解决方案 | 引用方式 | 用途 |
+| --- | --- | --- |
+| `backend/XiHan.BasicApp.slnx` | NuGet 包，版本取 `XiHanFrameworkPackageVersion` | 日常开发、CI 与镜像；克隆本仓库即可还原与构建 |
+| `backend/XiHanFun.Local.slnx` | 同级 `XiHan.Framework/framework/src` 的源码（ProjectReference） | 连框架源码一起调试；解决方案里另登记了框架的工程 |
+
+不经解决方案直接构建单个工程（如 `dotnet run --project backend/src/XiHan.BasicApp.Host`）时同样用 NuGet 包。要用源码，把框架检出到与 BasicApp 同级、锁定的提交上：
 
 ```text
 <工作目录>/
-├─ XiHan.BasicApp/          # dev 分支
-│  ├─ backend/
-│  └─ frontend/
+├─ XiHan.BasicApp/          # dev 分支，打开 backend/XiHanFun.Local.slnx
 └─ XiHan.Framework/         # 检出 backend/props/framework.props 锁定的提交
    └─ framework/src/
 ```
 
 ```bash
-git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
 git clone https://github.com/XiHanFun/XiHan.Framework.git
 commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
 git -C XiHan.Framework checkout "$commit"
 ```
 
-`backend/props/framework.props` 决定引用方式：
-
 | 属性 | 作用 |
 | --- | --- |
-| `XiHanFrameworkCommit` | 锁定的框架提交；架构测试 `FrameworkPinTests` 要求同级检出存在 `framework/src` 且 HEAD 以它开头 |
-| `XiHanFrameworkSrc` | 框架源码目录，缺省同级的 `XiHan.Framework/framework/src/`；框架在别处时用 `-p:XiHanFrameworkSrc=<检出>/framework/src/` 指路 |
-| `UseXiHanFrameworkSource` | 缺省按 `XiHanFrameworkSrc` 下有没有框架源码自动判定；`-p:UseXiHanFrameworkSource=false` 改用 NuGet 包（版本取 `XiHanFrameworkPackageVersion`） |
+| `XiHanFrameworkPackageVersion` | 框架 NuGet 包的确切版本；与锁定提交是同一份框架代码，升级框架时两处一起改 |
+| `XiHanFrameworkCommit` | 源码模式锁定的框架提交；以源码构建时，架构测试 `FrameworkPinTests` 要求同级检出的 HEAD 以它开头 |
+| `XiHanFrameworkSrc` | 框架源码目录，缺省同级的 `XiHan.Framework/framework/src/`；显式指定 `-p:XiHanFrameworkSrc=<检出>/framework/src/` 时也改用源码 |
+| `UseXiHanFrameworkSource` | 缺省按解决方案判定：名字以 `XiHanFun` 开头且同级有框架源码才用源码；`-p:UseXiHanFrameworkSource=true` / `false` 强制指定 |
 
-找不到源码时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致，`FrameworkPinTests` 也会失败；日常开发与 CI 都走锁定提交的源码。同级检出停在别的提交、又不想切换时，可以用 `git archive` 把锁定提交导出成快照，再以 `-p:XiHanFrameworkSrc=<快照>/framework/src/` 构建（做法见后端技能 `.agents/skills/backend-development/references/backend.md`），快照下只有 `FrameworkPinTests` 失败属预期。
+源码模式下被引用的框架工程必须在解决方案里，否则 Visual Studio 还原报 NU1105，所以框架工程只登记在 `XiHanFun.Local.slnx`。BasicApp 新建包时两份解决方案都要登记，框架新增的包补进 `XiHanFun.Local.slnx`，否则 IDE 不还原它、沿用旧的 `obj`。同级检出停在别的提交、又不想切换时，可以用 `git archive` 把锁定提交导出成快照，再以 `-p:XiHanFrameworkSrc=<快照>/framework/src/` 构建（做法见后端技能 `.agents/skills/backend-development/references/backend.md`），快照下只有 `FrameworkPinTests` 失败属预期。
 
 ## PostgreSQL
 
-`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp_next` 库，账号为开发用占位值。先建库：
+`appsettings.Development.json` 指向本机 `127.0.0.1:5432` 的 `xihan_basicapp` 库，账号为开发用占位值，并打开了 `BasicApp:Schema:CreateDatabase`：库不存在时启动先建库。账号没有建库权限时先手工建：
 
 ```bash
-createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
+createdb -h 127.0.0.1 -U postgres xihan_basicapp
 ```
 
 连接串写在 `XiHan:Bindings:db:value`，库类型写在同一节的 `provider`（缺省 `postgresql`）。本机账号不同时用环境变量或用户机密覆盖，不要改 `appsettings.Development.json`，也不要提交真实密码：
 
 ```bash
 # 环境变量覆盖（节名以双下划线分隔）
-export XiHan__Bindings__db__value="Host=127.0.0.1;Port=5432;Database=xihan_basicapp_next;Username=<用户>;Password=<密码>"
+export XiHan__Bindings__db__value="Host=127.0.0.1;Port=5432;Database=xihan_basicapp;Username=<用户>;Password=<密码>"
 ```
 
 Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已登记的实体建缺表、加缺列，改了实体重启即生效。正式环境由 `Schema/<版本>/*.sql` 管理表结构，见[表结构升级](./backend/upgrade)。
@@ -1386,10 +1397,6 @@ XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=<密码
   dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
-## 工作区解决方案
-
-同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（文件名自定），登记 `backend` 全部工程与框架 `framework/src` 的工程。它不入任何仓库，新增工程时自己补进去，否则 IDE 沿用旧的 `obj`。
-
 ## 下一步
 
 - [快速开始](./getting-started) · [目录结构](./project-structure) · [配置参考](./configuration)
@@ -1410,11 +1417,11 @@ XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=<密码
 
 ### 构建或测试报框架相关的错
 
-后端以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/framework/src`，相对 `backend/`），并锁定在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`。同级找不到 `framework/src` 时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致。把框架检出到锁定提交；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/framework/src/`。见[开发环境](./dev-environment#框架检出)。
+`backend/XiHan.BasicApp.slnx` 用 NuGet 包（版本是 `backend/props/framework.props` 的 `XiHanFrameworkPackageVersion`），还原失败先检查能否访问 nuget.org。`backend/XiHanFun.Local.slnx` 以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/framework/src`，相对 `backend/`），检出要在 `XiHanFrameworkCommit` 锁定的提交上；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/framework/src/`。见[框架引用](./dev-environment#框架引用)。
 
 ### `FrameworkPinTests` 失败
 
-同级框架检出没有 `framework/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
+只在以源码构建（`XiHanFun.Local.slnx` 或显式 `-p:XiHanFrameworkSrc`）时核对：同级框架检出没有 `framework/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；用 NuGet 包构建时这条跳过。
 
 ### 宿主启动后立即退出
 
@@ -1622,27 +1629,25 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ## 环境要求
 
-.NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+，以及与 BasicApp 并排检出的 XiHan.Framework。逐项说明见[开发环境](./dev-environment)。
+.NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+。后端以 NuGet 包引用 XiHan.Framework，不需要检出框架源码。逐项说明见[开发环境](./dev-environment)。
 
 ## 一、克隆代码
 
 ```bash
 git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
-git clone https://github.com/XiHanFun/XiHan.Framework.git
-# 把框架检出到 backend/props/framework.props 里 XiHanFrameworkCommit 锁定的提交
-commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
-git -C XiHan.Framework checkout "$commit"
 ```
 
-两个目录必须并排放在同一个上级目录下：后端按相对路径 `../../XiHan.Framework/framework/src`（相对 `backend/`）找框架源码，见[框架检出](./dev-environment#框架检出)。
+要连框架源码一起调试，见[框架引用](./dev-environment#框架引用)。
 
 ## 二、准备数据库
 
+只要本机 PostgreSQL 在跑。`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向 `xihan_basicapp` 库（账号为开发用占位值），并打开了 `BasicApp:Schema:CreateDatabase`：库不存在时启动先建库，连接账号要有建库权限。账号没有建库权限时先手工建：
+
 ```bash
-createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
+createdb -h 127.0.0.1 -U postgres xihan_basicapp
 ```
 
-`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向这个库（账号为开发用占位值）。本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。
+本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。
 
 ## 三、启动后端
 
@@ -1657,12 +1662,13 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 1. 装配全部能力包；数据库绑定缺失即以 `RUNTIME_VALIDATION_001` 中断启动。
 2. Development 打开了 `InitTables`，按已登记的实体建缺表、加缺列。
-3. 表结构升级器执行 `Schema/6.0.0/*.sql` 并写版本台账，失败即中断启动（`BasicApp:Schema:AutoUpgrade`，缺省开）。
-4. 监听 `http://localhost:9710`（HTTP）与 `http://127.0.0.1:9711`（gRPC），浏览器打开 `/scalar` 接口文档。
+3. 表结构升级器执行 `Schema/6.0.0/*.sql` 并写版本台账，失败即中断启动（`BasicApp:Schema:AutoUpgrade`，缺省开）；库不存在时先建库（`BasicApp:Schema:CreateDatabase`，Development 打开）。
+4. 执行一遍种子，失败即中断启动（`BasicApp:Seed:RunOnStartup`，Development 打开），见下一节。
+5. 监听 `http://localhost:9710`（HTTP）与 `http://127.0.0.1:9711`（gRPC），浏览器打开 `/scalar` 接口文档。
 
 ## 四、写入种子
 
-种子不随启动执行。另开一个终端运行 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
+Development 每次启动都执行一遍种子（`BasicApp:Seed:RunOnStartup`），首次运行后即可登录。别的环境缺省不随启动执行，用 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
 
 ```bash
 dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
@@ -1758,8 +1764,8 @@ curl -X POST http://localhost:9710/api/users:list \
 ## 常见问题
 
 - 启动即退出，日志里有 `RUNTIME_VALIDATION_001`：没有数据库连接串，检查 `XiHan:Bindings:db:value`。
-- 构建或 `FrameworkPinTests` 报框架相关的错：同级 XiHan.Framework 没有检出在锁定提交上，见[开发环境](./dev-environment#框架检出)。
-- 登录提示账号或密码错误：还没执行 `seed`。
+- 用 `XiHanFun.Local.slnx` 构建时 `FrameworkPinTests` 失败或报框架工程找不到：同级 XiHan.Framework 没有检出在锁定提交上，见[框架引用](./dev-environment#框架引用)。
+- 登录提示账号或密码错误：种子还没执行（非 Development 要先跑 `seed`）。
 - 前端页面空白、控制台 404：后端没起来，或 `VITE_DEV_PROXY_TARGET` 与后端地址不一致。
 
 更多见[常见问题](./faq)。
@@ -1914,7 +1920,7 @@ XiHan.BasicApp 是曦寒生态的企业级中后台应用。后端基于 XiHan.F
 
 框架只提供通用能力与 Provider：令牌校验、策略判定、仓储、工作单元、租户目录、授予存储、操作审计、调度、工作流引擎、对象存储、本地化。BasicApp 在其上实现业务：签发令牌与会话、角色与授权规则、租户开通、菜单、日志查询、通知渠道等。框架没有、或属于应用的能力（SignalR Hub、OAuth 服务端、模板引擎、第三方登录），都是 BasicApp 自己的能力包。
 
-后端缺省以 ProjectReference 引用同级检出的 XiHan.Framework 源码，锁定的框架提交写在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`，架构测试 `FrameworkPinTests` 核对检出的 HEAD。`-p:UseXiHanFrameworkSource=false` 改用 NuGet 包引用。细节见[开发环境](./dev-environment#框架检出)。
+后端以 NuGet 包引用 XiHan.Framework，版本写在 `backend/props/framework.props`，克隆本仓库即可构建；连框架源码调试时打开 `backend/XiHanFun.Local.slnx`，以 ProjectReference 引用同级检出、锁定在 `XiHanFrameworkCommit` 的框架源码。细节见[框架引用](./dev-environment#框架引用)。
 
 ---
 
@@ -2000,7 +2006,7 @@ Host              XiHan.BasicApp.Host
 | 项 | 选型 |
 | --- | --- |
 | 运行时 | .NET 10（`net10.0`，警告即错误、Nullable、代码风格在构建期执行） |
-| 框架 | XiHan.Framework（`Profiles.Full`，ProjectReference 锁定提交） |
+| 框架 | XiHan.Framework（`Profiles.Full`，NuGet 包；联调时以源码引用锁定提交） |
 | 数据 | SqlSugar（框架 `Persistence.SqlSugar`），PostgreSQL 为缺省与 CI 口径 |
 | 认证 | 框架 `Security.Jwt` 校验 HS256；签发、刷新、会话由 Identity 负责 |
 | 实时 | ASP.NET Core SignalR（`/hubs/notification`、`/hubs/chat`） |
@@ -2144,12 +2150,13 @@ XiHan.BasicApp/
 
 ```text
 backend/
-├─ XiHan.BasicApp.slnx
+├─ XiHan.BasicApp.slnx         # 用框架的 NuGet 包
+├─ XiHanFun.Local.slnx          # 另含同级框架的源码工程，联调框架用
 ├─ Directory.Build.props        # net10.0、版本号、警告即错误、生成文档文件
 ├─ Directory.Packages.props     # 中央包版本
 ├─ Directory.Build.targets      # XiHanFrameworkReference → ProjectReference 或 PackageReference
-├─ props/framework.props        # 框架引用方式与锁定提交 XiHanFrameworkCommit
-├─ Dockerfile                   # 后端镜像（按锁定提交克隆框架源码）
+├─ props/framework.props        # 框架引用方式：包版本与源码的锁定提交
+├─ Dockerfile                   # 后端镜像（框架从 NuGet 还原）
 ├─ src/
 │  ├─ XiHan.BasicApp.Contracts      Tier 0  实体基类、分页 / 批量、权限描述、页面登记、跨包接口、消息主题、种子号段
 │  ├─ XiHan.BasicApp.Runtime        Tier 0  SqlSugar 回调、TenantScopedQuery、操作人、数据保护、表结构升级、种子执行
@@ -2406,7 +2413,7 @@ XiHan.Framework 的应用写法是能力包（`IFeature` + 清单）、操作契
 
 ## 框架与组件库的资料
 
-- XiHan.Framework：以锁定提交的源码为准（同级检出的 `framework/src`，规范在 `framework/spec`，各包带 `README.md`）；文档站 [framework.docs.xihanfun.com](https://framework.docs.xihanfun.com)，框架的离线知识库 MCP 见 [MCP Server](./mcp#开发用的-mcp-服务端)；
+- XiHan.Framework：以 `backend/props/framework.props` 锁定的版本为准（包版本与源码提交是同一份代码；源码在框架仓库的 `framework/src`，规范在 `framework/spec`，各包带 `README.md`）；文档站 [framework.docs.xihanfun.com](https://framework.docs.xihanfun.com)，框架的离线知识库 MCP 见 [MCP Server](./mcp#开发用的-mcp-服务端)；
 - XiHan.UI：[ui.docs.xihanfun.com](https://ui.docs.xihanfun.com)；
 - 本站的机读文档见 [LLMs.txt](./llms)。
 
@@ -5792,7 +5799,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 ### 执行顺序
 
-1. 台账两张表先按实体建好；
+1. 打开 `BasicApp:Schema:CreateDatabase`（开发环境打开，缺省关）时，平台库不存在即先建库；台账两张表再按实体建好；
 2. 经台账行的条件更新抢升级锁（时间按库的 `now()`，各节点时钟不必对齐）；锁过了 `BasicApp:Schema:LockExpiryMinutes`（缺省 30 分钟）即视为持锁节点已退出，别的节点可以接手；等别的节点升级最多 `LockWaitMinutes`（缺省 10 分钟），等不到即升级失败；
 3. 新库从基线建起，之后每个版本一个目录，只执行比台账新的；每个脚本一个事务，成功与失败都记进升级记录，失败即停；库的结构版本比应用带的脚本还新即 `RUNTIME_VALIDATION_004`（不能用旧版本的应用连新库）；
 4. 平台库升完后，在同一把锁里逐个升级已就绪的租户独立库：只跑 `Schema/<版本>/tenant/*.sql`，台账在各自的库里，停用的租户也升；没有租户脚本的版本只推进台账。

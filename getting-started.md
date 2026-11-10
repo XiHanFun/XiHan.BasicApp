@@ -6,27 +6,25 @@
 
 ## 环境要求
 
-.NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+，以及与 BasicApp 并排检出的 XiHan.Framework。逐项说明见[开发环境](./dev-environment)。
+.NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+。后端以 NuGet 包引用 XiHan.Framework，不需要检出框架源码。逐项说明见[开发环境](./dev-environment)。
 
 ## 一、克隆代码
 
 ```bash
 git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
-git clone https://github.com/XiHanFun/XiHan.Framework.git
-# 把框架检出到 backend/props/framework.props 里 XiHanFrameworkCommit 锁定的提交
-commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
-git -C XiHan.Framework checkout "$commit"
 ```
 
-两个目录必须并排放在同一个上级目录下：后端按相对路径 `../../XiHan.Framework/framework/src`（相对 `backend/`）找框架源码，见[框架检出](./dev-environment#框架检出)。
+要连框架源码一起调试，见[框架引用](./dev-environment#框架引用)。
 
 ## 二、准备数据库
 
+只要本机 PostgreSQL 在跑。`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向 `xihan_basicapp` 库（账号为开发用占位值），并打开了 `BasicApp:Schema:CreateDatabase`：库不存在时启动先建库，连接账号要有建库权限。账号没有建库权限时先手工建：
+
 ```bash
-createdb -h 127.0.0.1 -U postgres xihan_basicapp_next
+createdb -h 127.0.0.1 -U postgres xihan_basicapp
 ```
 
-`backend/src/XiHan.BasicApp.Host/appsettings.Development.json` 已把 `XiHan:Bindings:db` 指向这个库（账号为开发用占位值）。本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。
+本机账号不同时，用环境变量 `XiHan__Bindings__db__value` 或用户机密覆盖连接串，不要把真实密码写进仓库。
 
 ## 三、启动后端
 
@@ -41,12 +39,13 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 1. 装配全部能力包；数据库绑定缺失即以 `RUNTIME_VALIDATION_001` 中断启动。
 2. Development 打开了 `InitTables`，按已登记的实体建缺表、加缺列。
-3. 表结构升级器执行 `Schema/6.0.0/*.sql` 并写版本台账，失败即中断启动（`BasicApp:Schema:AutoUpgrade`，缺省开）。
-4. 监听 `http://localhost:9710`（HTTP）与 `http://127.0.0.1:9711`（gRPC），浏览器打开 `/scalar` 接口文档。
+3. 表结构升级器执行 `Schema/6.0.0/*.sql` 并写版本台账，失败即中断启动（`BasicApp:Schema:AutoUpgrade`，缺省开）；库不存在时先建库（`BasicApp:Schema:CreateDatabase`，Development 打开）。
+4. 执行一遍种子，失败即中断启动（`BasicApp:Seed:RunOnStartup`，Development 打开），见下一节。
+5. 监听 `http://localhost:9710`（HTTP）与 `http://127.0.0.1:9711`（gRPC），浏览器打开 `/scalar` 接口文档。
 
 ## 四、写入种子
 
-种子不随启动执行。另开一个终端运行 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
+Development 每次启动都执行一遍种子（`BasicApp:Seed:RunOnStartup`），首次运行后即可登录。别的环境缺省不随启动执行，用 `seed` 命令（命令模式用同一套装配，但不监听端口，可以与正在运行的宿主并存）：
 
 ```bash
 dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
@@ -142,8 +141,8 @@ curl -X POST http://localhost:9710/api/users:list \
 ## 常见问题
 
 - 启动即退出，日志里有 `RUNTIME_VALIDATION_001`：没有数据库连接串，检查 `XiHan:Bindings:db:value`。
-- 构建或 `FrameworkPinTests` 报框架相关的错：同级 XiHan.Framework 没有检出在锁定提交上，见[开发环境](./dev-environment#框架检出)。
-- 登录提示账号或密码错误：还没执行 `seed`。
+- 用 `XiHanFun.Local.slnx` 构建时 `FrameworkPinTests` 失败或报框架工程找不到：同级 XiHan.Framework 没有检出在锁定提交上，见[框架引用](./dev-environment#框架引用)。
+- 登录提示账号或密码错误：种子还没执行（非 Development 要先跑 `seed`）。
 - 前端页面空白、控制台 404：后端没起来，或 `VITE_DEV_PROXY_TARGET` 与后端地址不一致。
 
 更多见[常见问题](./faq)。

@@ -53,7 +53,7 @@
 
 ## 框架与组件库的资料
 
-- XiHan.Framework：以锁定提交的源码为准（同级检出的 `framework/src`，规范在 `framework/spec`，各包带 `README.md`）；文档站 [framework.docs.xihanfun.com](https://framework.docs.xihanfun.com)，框架的离线知识库 MCP 见 [MCP Server](./mcp#开发用的-mcp-服务端)；
+- XiHan.Framework：以 `backend/props/framework.props` 锁定的版本为准（包版本与源码提交是同一份代码；源码在框架仓库的 `framework/src`，规范在 `framework/spec`，各包带 `README.md`）；文档站 [framework.docs.xihanfun.com](https://framework.docs.xihanfun.com)，框架的离线知识库 MCP 见 [MCP Server](./mcp#开发用的-mcp-服务端)；
 - XiHan.UI：[ui.docs.xihanfun.com](https://ui.docs.xihanfun.com)；
 - 本站的机读文档见 [LLMs.txt](./llms)。
 

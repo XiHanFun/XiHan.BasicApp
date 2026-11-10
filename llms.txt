@@ -17,7 +17,7 @@
 - [更新日志](https://basicapp.docs.xihanfun.com/changelog): 本页记录各版本中使用者与运维可感知的变化，每条标注 新增 / 修复 / 优化 / 调整 类别，适用于评估与升级版本的读者；仓库自身的 CI、测试与构建脚本不列入。
 - [配置参考](https://basicapp.docs.xihanfun.com/configuration): 本页说明宿主与前端的全部配置项、缺省值与含义，适用于开发、部署与运维时查阅。
 - [部署](https://basicapp.docs.xihanfun.com/deployment): 本页说明后端与前端的发布、首次初始化、反向代理、读写分离、备份还原与多实例部署，适用于部署人员。
-- [开发环境](https://basicapp.docs.xihanfun.com/dev-environment): 本页说明本机开发所需的工具、框架检出、数据库准备、端口与常用命令，适用于参与后端或前端开发的开发者。
+- [开发环境](https://basicapp.docs.xihanfun.com/dev-environment): 本页说明本机开发所需的工具、框架引用、数据库准备、端口与常用命令，适用于参与后端或前端开发的开发者。
 - [常见问题](https://basicapp.docs.xihanfun.com/faq): 本页说明运行、认证、权限与接口联调中的常见问题，适用于开发与运维排查。
 - [功能清单](https://basicapp.docs.xihanfun.com/features): 本页按功能分区列出现有功能，适用于评估功能覆盖。
 - [快速开始](https://basicapp.docs.xihanfun.com/getting-started): 本页说明如何在本机运行：后端连接本地 PostgreSQL，前端开发服务器代理到后端，再以初始超级管理员登录。
