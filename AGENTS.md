@@ -10,7 +10,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 
 | 区域 | 技术 | 要求 |
 | --- | --- | --- |
-| 后端 | .NET 10、XiHan.Framework、SqlSugar | 以 `backend/` 当前工程与 `props/framework.props` 锁定的框架提交为准 |
+| 后端 | .NET 10、XiHan.Framework、SqlSugar | 以 `backend/` 当前工程与 `props/framework.props` 指定的框架版本为准 |
 | 接口 | 操作（`[Operation]`）、OpenAPI、Scalar | 业务接口一律是操作，按 `Expose` 发布到 HTTP / gRPC / MCP |
 | 前端 | Vue 3、Vite、TypeScript、Pinia、Vue Router、vue-i18n | Node 24+、pnpm 11+，没有锁文件 |
 | UI | XiHan.UI、Tailwind CSS | XiHan.UI 是组件与样式契约真源 |
@@ -33,8 +33,9 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 ├─ CLAUDE.md -> AGENTS.md
 ├─ .agents/skills/                      # 仓库技能（.claude/skills 链接到这里）
 ├─ backend/
-│  ├─ XiHan.BasicApp.slnx
-│  ├─ props/framework.props             # 框架引用方式与锁定提交 XiHanFrameworkCommit
+│  ├─ XiHan.BasicApp.slnx               # 用框架的 NuGet 包，克隆即可构建
+│  ├─ XiHanFun.Local.slnx               # 另含同级框架源码工程，联调框架用
+│  ├─ props/framework.props             # 框架引用方式：包版本与源码的锁定提交
 │  ├─ src/XiHan.BasicApp.<包>/          # 能力包；Host 是宿主（配置、表结构脚本、普通端点）
 │  └─ test/                             # Architecture.Tests、Integration.Tests
 ├─ frontend/
@@ -63,7 +64,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 
 测试走 Microsoft.Testing.Platform（仓库根 `global.json`）：解决方案必须由 `--solution` 传入；要报告时用 `-- --report-xunit-trx`。连真实 PostgreSQL、Redis、RabbitMQ 的用例读 `XIHAN_TEST_*` 环境变量，没设即跳过。
 
-后端以源码引用 XiHan.Framework 的锁定提交（`backend/props/framework.props` 的 `XiHanFrameworkCommit`，`FrameworkPinTests` 核对同级检出的 HEAD）。同级检出不在锁定提交上时，按后端技能 `references/backend.md` 的快照做法构建（`-p:XiHanFrameworkSrc=<快照> --artifacts-path artifacts/pin`），不要根据磁盘目录自行猜测引用模式。
+框架引用方式由解决方案决定（`backend/props/framework.props`）：`backend/XiHan.BasicApp.slnx` 与 CI、镜像都用 NuGet 包（`XiHanFrameworkPackageVersion`），单独克隆即可构建；`backend/XiHanFun.Local.slnx`（另登记同级 `XiHan.Framework/framework/src` 的工程，新建包时 BasicApp 与框架两边都要补进去）以源码引用，同级检出要在锁定提交 `XiHanFrameworkCommit` 上，源码模式下 `FrameworkPinTests` 核对 HEAD。升级框架时包版本与锁定提交一起改，BasicApp 只依赖已发包的框架；联调框架未发包的改动时用 `XiHanFun.Local.slnx`，或按后端技能 `references/backend.md` 的快照做法构建（`-p:XiHanFrameworkSrc=<快照> --artifacts-path artifacts/pin`）。
 
 ### 前端（`frontend/`）
 
@@ -157,7 +158,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 - 发布分支：预览版（带预发布后缀的版本）从 `preview` 分支发，正式版从 `main` 发，都由 `dev` 快进（`git fetch . dev:preview`、`git fetch . dev:main`，不是快进就停下查）。这两个分支只接收发版，日常改动不提交到这里，worktree 也不以它们为基线；修复先进开发分支，再快进过来。`ci.yml` 在开发分支与发布分支上都跑；仓库没有发包工作流，打标签与建 GitHub Release 按 `version-release` 技能手工做。
 - 基线默认是当前开发分支；热修复以对应 `hotfix/v<主版本>` 为基线，用户指定 `release/*` 时以其为准。工具从 `main` 或 `origin/main` 切出且还没有提交时，用 `git merge --ff-only <开发分支>` 对齐；不能快进就停下说明，不 reset。
 - 一个 worktree 只承载一项任务、一条分支。并行任务会改到同一操作或 DTO、权限码、页面登记种子或同一版本的 `Schema/<版本>` 脚本时，先说明冲突风险再动手。
-- 新 worktree 没有还原结果、`node_modules` 和被 gitignore 的本地配置（如 `frontend/.env.local`）：后端先执行 `dotnet restore backend/XiHan.BasicApp.slnx`（同级没有框架检出时带 `-p:XiHanFrameworkSrc=<快照>`），前端在 `frontend/` 执行 `pnpm install --no-frozen-lockfile`。
+- 新 worktree 没有还原结果、`node_modules` 和被 gitignore 的本地配置（如 `frontend/.env.local`）：后端先执行 `dotnet restore backend/XiHan.BasicApp.slnx`（用 NuGet 包，不需要框架检出），前端在 `frontend/` 执行 `pnpm install --no-frozen-lockfile`。
 - worktree 分支的合并、推送、创建 PR 以及 worktree 和分支的删除，只在用户明确要求时执行。
 
 ## 注释与文档

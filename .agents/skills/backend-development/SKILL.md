@@ -23,4 +23,4 @@ description: 实现、重构、审查或测试 XiHan.BasicApp 后端（backend/�
 
 改了操作、DTO、权限码、页面登记或推送方法，同时加载 `../fullstack-contracts/SKILL.md`，契约导出与前端生成物同一提交。
 
-构建与测试对着框架锁定提交（`backend/props/framework.props` 的 `XiHanFrameworkCommit`）；同级框架检出前进了就按 `references/backend.md` 的快照做法。提交前：Release 构建 0 警告、架构测试与集成测试全过（快照构建下只有 `FrameworkPinTests` 失败属预期）、`git diff --check`、单行 summary 计数为 0。
+`XiHan.BasicApp.slnx` 用框架的 NuGet 包（`backend/props/framework.props` 的 `XiHanFrameworkPackageVersion`）；以源码联调框架用 `XiHanFun.Local.slnx`，同级检出要在锁定提交 `XiHanFrameworkCommit` 上，检出前进了就按 `references/backend.md` 的快照做法。提交前：Release 构建 0 警告、架构测试与集成测试全过（快照构建下只有 `FrameworkPinTests` 失败属预期）、`git diff --check`、单行 summary 计数为 0。

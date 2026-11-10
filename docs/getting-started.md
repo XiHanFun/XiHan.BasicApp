@@ -4,19 +4,15 @@
 
 ## 环境要求
 
-.NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+，以及与 BasicApp 并排检出的 XiHan.Framework。逐项说明见[开发环境](./dev-environment)。
+.NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+。后端以 NuGet 包引用 XiHan.Framework，不需要检出框架源码。逐项说明见[开发环境](./dev-environment)。
 
 ## 一、克隆代码
 
 ```bash
 git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
-git clone https://github.com/XiHanFun/XiHan.Framework.git
-# 把框架检出到 backend/props/framework.props 里 XiHanFrameworkCommit 锁定的提交
-commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
-git -C XiHan.Framework checkout "$commit"
 ```
 
-两个目录必须并排放在同一个上级目录下：后端按相对路径 `../../XiHan.Framework/framework/src`（相对 `backend/`）找框架源码，见[框架检出](./dev-environment#框架检出)。
+要连框架源码一起调试，见[框架引用](./dev-environment#框架引用)。
 
 ## 二、准备数据库
 
@@ -140,7 +136,7 @@ curl -X POST http://localhost:9710/api/users:list \
 ## 常见问题
 
 - 启动即退出，日志里有 `RUNTIME_VALIDATION_001`：没有数据库连接串，检查 `XiHan:Bindings:db:value`。
-- 构建或 `FrameworkPinTests` 报框架相关的错：同级 XiHan.Framework 没有检出在锁定提交上，见[开发环境](./dev-environment#框架检出)。
+- 用 `XiHanFun.Local.slnx` 构建时 `FrameworkPinTests` 失败或报框架工程找不到：同级 XiHan.Framework 没有检出在锁定提交上，见[框架引用](./dev-environment#框架引用)。
 - 登录提示账号或密码错误：还没执行 `seed`。
 - 前端页面空白、控制台 404：后端没起来，或 `VITE_DEV_PROXY_TARGET` 与后端地址不一致。
 

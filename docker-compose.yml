@@ -1,7 +1,7 @@
 # XiHan.BasicApp 一键启动：PostgreSQL + 后端 + 前端（Nginx 托管并同源反代后端）
 #
 # 用法：cp .env.example .env，按需改密码与密钥，然后 docker compose up -d --build
-# - 首次构建后端镜像时按 backend/props/framework.props 锁定的提交克隆 XiHan.Framework 源码，需要能访问 GitHub
+# - 构建后端镜像时按 backend/props/framework.props 的版本从 NuGet 还原 XiHan.Framework，需要能访问 nuget.org
 # - init 服务先执行表结构升级与种子（可重复执行，每次 up 都会跑一遍），完成后后端才启动
 # - 前端 http://localhost:${FRONTEND_PORT}，用 superadmin 与 .env 里的 SUPERADMIN_PASSWORD 登录，登录后立即修改密码
 # - 单实例零外部依赖：缓存与消息走进程内实现；要 Redis、RabbitMQ、Qdrant 时打开文末注释掉的服务

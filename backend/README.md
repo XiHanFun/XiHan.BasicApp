@@ -6,11 +6,12 @@ XiHan.BasicApp 后端（方案第 4、5 节）：基于 XiHan.Framework，能力
 
 ```text
 backend/
+├─ XiHanFun.Local.slnx              另登记同级 XiHan.Framework/framework/src 的工程，以源码联调框架
 ├─ XiHan.BasicApp.slnx
 ├─ Directory.Build.props            版本 6.0.0-preview.1、Nullable、警告即错误、文档文件
 ├─ Directory.Packages.props         中央包版本
 ├─ Directory.Build.targets          XiHanFrameworkReference / XiHanFrameworkAnalyzer 项 → ProjectReference 或 PackageReference
-├─ props/framework.props            缺省 ProjectReference ../../XiHan.Framework/framework/src，锁定提交 XiHanFrameworkCommit；UseXiHanFrameworkSource=false 切 NuGet 包
+├─ props/framework.props            XiHan.BasicApp.slnx 用 NuGet 包（XiHanFrameworkPackageVersion），XiHanFun.Local.slnx 用同级源码（锁定 XiHanFrameworkCommit）
 ├─ src/
 │  ├─ XiHan.BasicApp.Contracts      Tier 0：跨包接口、实体基类、分页 / 批量结果、权限描述
 │  ├─ XiHan.BasicApp.Runtime        Tier 0：SqlSugar 回调、租户作用域查询、种子、表结构升级、数据保护、多租户
@@ -33,7 +34,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
 ```
 
-框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `XiHanFun.Local.slnx` 登记本目录全部工程与同级框架的 `framework/src`；Visual Studio 打开它，只开 `XiHan.BasicApp.slnx` 时框架工程不在解决方案里，还原报 NU1105。
+框架引用：`XiHan.BasicApp.slnx` 用 NuGet 包，克隆即可构建。要连框架源码调试，把 `XiHan.Framework` 检出到与 BasicApp 同级、`props/framework.props` 锁定的提交上，打开 `XiHanFun.Local.slnx` 即以源码引用（`Architecture.Tests` 核对 HEAD）；新建包时两份解决方案都要登记。
 
 ## 规则
 

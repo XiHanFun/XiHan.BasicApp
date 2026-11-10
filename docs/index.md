@@ -50,7 +50,7 @@ features:
     linkText: "查看接口对接指南"
 
   - title: 结构约束由测试保证
-    details: 包间层级、Expose 显式、权限码文法、匿名白名单、十种语言键集、XML 文档与框架锁定提交都由架构测试检查。
+    details: 包间层级、Expose 显式、权限码文法、匿名白名单、十种语言键集、XML 文档与框架版本锁定都由架构测试检查。
     link: /backend/development
     linkText: "了解开发流程"
 ---

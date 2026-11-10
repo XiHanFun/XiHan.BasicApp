@@ -10,11 +10,11 @@
 
 ### 构建或测试报框架相关的错
 
-后端以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/framework/src`，相对 `backend/`），并锁定在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`。同级找不到 `framework/src` 时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致。把框架检出到锁定提交；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/framework/src/`。见[开发环境](./dev-environment#框架检出)。
+`backend/XiHan.BasicApp.slnx` 用 NuGet 包（版本是 `backend/props/framework.props` 的 `XiHanFrameworkPackageVersion`），还原失败先检查能否访问 nuget.org。`backend/XiHanFun.Local.slnx` 以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/framework/src`，相对 `backend/`），检出要在 `XiHanFrameworkCommit` 锁定的提交上；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/framework/src/`。见[框架引用](./dev-environment#框架引用)。
 
 ### `FrameworkPinTests` 失败
 
-同级框架检出没有 `framework/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
+只在以源码构建（`XiHanFun.Local.slnx` 或显式 `-p:XiHanFrameworkSrc`）时核对：同级框架检出没有 `framework/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；用 NuGet 包构建时这条跳过。
 
 ### 宿主启动后立即退出
 

@@ -66,9 +66,9 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-The first backend image build clones [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) at the pinned commit, so it needs access to GitHub; on startup the schema upgrade and seed run before the backend starts. The frontend runs at `http://localhost:8080` and the backend API at `http://localhost:9710`. The initial account is `superadmin` with the `SUPERADMIN_PASSWORD` from `.env` (default `SuperAdmin@123`); change it at first sign-in. Replace every password and secret in `.env` with random values before deploying; see [Deployment](https://basicapp.docs.xihanfun.com/deployment) for the rest.
+The backend image restores the [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) packages from NuGet; on startup the schema upgrade and seed run before the backend starts. The frontend runs at `http://localhost:8080` and the backend API at `http://localhost:9710`. The initial account is `superadmin` with the `SUPERADMIN_PASSWORD` from `.env` (default `SuperAdmin@123`); change it at first sign-in. Replace every password and secret in `.env` with random values before deploying; see [Deployment](https://basicapp.docs.xihanfun.com/deployment) for the rest.
 
-Local development needs the .NET 10 SDK, Node.js 24+, pnpm 11+, PostgreSQL 14+ and XiHan.Framework checked out side by side at the pinned commit. See [Getting Started](https://basicapp.docs.xihanfun.com/getting-started) and the [backend](./backend/README.md) and [frontend](./frontend/README.md) engineering notes.
+Local development needs the .NET 10 SDK, Node.js 24+, pnpm 11+ and PostgreSQL 14+; the backend references XiHan.Framework as NuGet packages, so a fresh clone builds on its own. See [Getting Started](https://basicapp.docs.xihanfun.com/getting-started) and the [backend](./backend/README.md) and [frontend](./frontend/README.md) engineering notes.
 
 ## Architecture
 

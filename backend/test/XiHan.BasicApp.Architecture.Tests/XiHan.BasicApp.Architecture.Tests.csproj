@@ -34,4 +34,9 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
   </ItemGroup>
+
+  <!-- FrameworkPinTests 按这次构建的引用方式决定核对什么 -->
+  <ItemGroup>
+    <AssemblyMetadata Include="XiHanFrameworkSource" Value="$(UseXiHanFrameworkSource)" />
+  </ItemGroup>
 </Project>

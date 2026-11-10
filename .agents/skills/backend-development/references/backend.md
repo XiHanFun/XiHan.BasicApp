@@ -82,7 +82,7 @@ grep -rn --include=*.cs '/// <summary>.*</summary>' backend | grep -v /obj/   # 
 
 ## 构建与测试
 
-同级 `XiHan.Framework` 停在锁定提交时，直接：
+`XiHan.BasicApp.slnx` 用框架的 NuGet 包，不需要框架检出：
 
 ```bash
 dotnet restore backend/XiHan.BasicApp.slnx
@@ -90,7 +90,7 @@ dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
 dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
-同级检出前进了（别的会话在框架上提交）就按锁定提交做快照，产物放在 `backend/artifacts/pin`（已 gitignore；放别处时基线测试与架构测试找不到 `XiHan.BasicApp.slnx`）：
+以源码联调框架时打开 `XiHanFun.Local.slnx`（同级 `XiHan.Framework` 要停在锁定提交）。同级检出前进了（别的会话在框架上提交）又要以源码验证，就按锁定提交做快照，产物放在 `backend/artifacts/pin`（已 gitignore；放别处时基线测试与架构测试找不到 `XiHan.BasicApp.slnx`）：
 
 ```bash
 git -C <XiHan.Framework> archive <锁定提交> global.json framework/src framework/Directory.Build.props framework/Directory.Packages.props framework/.editorconfig framework/spec | tar -x -C <scratchpad>/fw-<短号>
@@ -100,9 +100,9 @@ artifacts/pin/bin/XiHan.BasicApp.Architecture.Tests/release/XiHan.BasicApp.Archi
 artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe -maxThreads 4
 ```
 
-- 新 worktree 里同级没有框架检出，`restore` 也要带 `-p:XiHanFrameworkSrc=…`。
+- 新 worktree 直接 `dotnet restore backend/XiHan.BasicApp.slnx`，用包、不需要框架检出。
 - 测试 exe 是 xUnit v3 进程内运行器：`-class <全名>`、`-method <全名>`；`dotnet test` 走 MTP，单类过滤是 `--filter-class`（一次一个类）。
-- `FrameworkPinTests` 读同级检出的 HEAD，快照构建下失败属预期；其余必须全过。
+- `FrameworkPinTests` 在用包构建时只核对包版本是确切版本；以源码构建（`XiHanFun.Local.slnx` 或 `-p:XiHanFrameworkSrc`）时读同级检出的 HEAD，快照构建下失败属预期；其余必须全过。
 - 外部服务用例读环境变量，没设即跳过：`XIHAN_TEST_POSTGRES`（如 `Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres`）、`XIHAN_TEST_REDIS`、`XIHAN_TEST_RABBITMQ`、`XIHAN_TEST_S3`，代码生成读外部库另有 `XIHAN_TEST_MYSQL`、`XIHAN_TEST_SQLSERVER`、`XIHAN_TEST_ORACLE`。
 - 集成测试经 `BasicAppTestServer.StartAsync(connectionString, settings: [...], configure: ..., configureApp: ..., args: ...)` 起宿主（SQLite 临时库）；要开发环境的行为传 `args: ["--environment", Environments.Development]`（建好宿主再改环境名不生效），开发配置把框架日志开到 Debug，用例里配 `Logging:LogLevel:XiHan=Warning` 压回去；演示数据要 `BasicApp:Seed:EnableDemoData=true`；可选模块用 `BasicApp:Modules:<名>:Enabled=false` 关；拨钟用 `ManualClock`，只对进程内调用有效（JWT 用真实时间）。
 - 后端全量测试别与前端门禁并行跑，负载高时宿主启动会超时。

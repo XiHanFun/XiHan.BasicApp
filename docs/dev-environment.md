@@ -1,6 +1,6 @@
 # 开发环境
 
-本页说明本机开发所需的工具、框架检出、数据库准备、端口与常用命令，适用于参与后端或前端开发的开发者。
+本页说明本机开发所需的工具、框架引用、数据库准备、端口与常用命令，适用于参与后端或前端开发的开发者。
 
 ## 前置条件
 
@@ -9,40 +9,43 @@
 | .NET SDK | 10.x | 后端构建、测试与运行（目标框架 `net10.0`） |
 | Node.js | 24+ | 前端与文档站 |
 | pnpm | 11+ | 前端包管理（`frontend` 没有锁文件，安装用 `--no-frozen-lockfile`） |
-| Git | 任意近期版本 | 检出 BasicApp 与 XiHan.Framework 两个仓库 |
+| Git | 任意近期版本 | 检出 BasicApp；以源码联调框架时再检出 XiHan.Framework |
 | PostgreSQL | 14+（CI 用 `postgres:17-alpine`） | 平台库；独立库租户另建库 |
 
 开发只要求 PostgreSQL。Redis、RabbitMQ、对象存储都不是必需：不配连接时缓存与消息走框架的进程内实现，文件落本地目录 `App_Data/files`。要在本机联调 Redis / RabbitMQ，在 `appsettings.Development.json` 打开绑定 `cache` / `queue` 的注释即可（见[配置参考](./configuration#分布式缓存与消息)）。
 
-## 框架检出
+## 框架引用
 
-后端缺省以 ProjectReference 引用框架源码，路径是与 BasicApp 同级的 `XiHan.Framework/framework/src`：
+后端以哪种方式引用 XiHan.Framework，由打开或构建的解决方案决定（`backend/props/framework.props`）：
+
+| 解决方案 | 引用方式 | 用途 |
+| --- | --- | --- |
+| `backend/XiHan.BasicApp.slnx` | NuGet 包，版本取 `XiHanFrameworkPackageVersion` | 日常开发、CI 与镜像；克隆本仓库即可还原与构建 |
+| `backend/XiHanFun.Local.slnx` | 同级 `XiHan.Framework/framework/src` 的源码（ProjectReference） | 连框架源码一起调试；解决方案里另登记了框架的工程 |
+
+不经解决方案直接构建单个工程（如 `dotnet run --project backend/src/XiHan.BasicApp.Host`）时同样用 NuGet 包。要用源码，把框架检出到与 BasicApp 同级、锁定的提交上：
 
 ```text
 <工作目录>/
-├─ XiHan.BasicApp/          # dev 分支
-│  ├─ backend/
-│  └─ frontend/
+├─ XiHan.BasicApp/          # dev 分支，打开 backend/XiHanFun.Local.slnx
 └─ XiHan.Framework/         # 检出 backend/props/framework.props 锁定的提交
    └─ framework/src/
 ```
 
 ```bash
-git clone -b dev https://github.com/XiHanFun/XiHan.BasicApp.git
 git clone https://github.com/XiHanFun/XiHan.Framework.git
 commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
 git -C XiHan.Framework checkout "$commit"
 ```
 
-`backend/props/framework.props` 决定引用方式：
-
 | 属性 | 作用 |
 | --- | --- |
-| `XiHanFrameworkCommit` | 锁定的框架提交；架构测试 `FrameworkPinTests` 要求同级检出存在 `framework/src` 且 HEAD 以它开头 |
-| `XiHanFrameworkSrc` | 框架源码目录，缺省同级的 `XiHan.Framework/framework/src/`；框架在别处时用 `-p:XiHanFrameworkSrc=<检出>/framework/src/` 指路 |
-| `UseXiHanFrameworkSource` | 缺省按 `XiHanFrameworkSrc` 下有没有框架源码自动判定；`-p:UseXiHanFrameworkSource=false` 改用 NuGet 包（版本取 `XiHanFrameworkPackageVersion`） |
+| `XiHanFrameworkPackageVersion` | 框架 NuGet 包的确切版本；与锁定提交是同一份框架代码，升级框架时两处一起改 |
+| `XiHanFrameworkCommit` | 源码模式锁定的框架提交；以源码构建时，架构测试 `FrameworkPinTests` 要求同级检出的 HEAD 以它开头 |
+| `XiHanFrameworkSrc` | 框架源码目录，缺省同级的 `XiHan.Framework/framework/src/`；显式指定 `-p:XiHanFrameworkSrc=<检出>/framework/src/` 时也改用源码 |
+| `UseXiHanFrameworkSource` | 缺省按解决方案判定：名字以 `XiHanFun` 开头且同级有框架源码才用源码；`-p:UseXiHanFrameworkSource=true` / `false` 强制指定 |
 
-找不到源码时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致，`FrameworkPinTests` 也会失败；日常开发与 CI 都走锁定提交的源码。同级检出停在别的提交、又不想切换时，可以用 `git archive` 把锁定提交导出成快照，再以 `-p:XiHanFrameworkSrc=<快照>/framework/src/` 构建（做法见后端技能 `.agents/skills/backend-development/references/backend.md`），快照下只有 `FrameworkPinTests` 失败属预期。
+源码模式下被引用的框架工程必须在解决方案里，否则 Visual Studio 还原报 NU1105，所以框架工程只登记在 `XiHanFun.Local.slnx`。BasicApp 新建包时两份解决方案都要登记，框架新增的包补进 `XiHanFun.Local.slnx`，否则 IDE 不还原它、沿用旧的 `obj`。同级检出停在别的提交、又不想切换时，可以用 `git archive` 把锁定提交导出成快照，再以 `-p:XiHanFrameworkSrc=<快照>/framework/src/` 构建（做法见后端技能 `.agents/skills/backend-development/references/backend.md`），快照下只有 `FrameworkPinTests` 失败属预期。
 
 ## PostgreSQL
 
@@ -125,10 +128,6 @@ pnpm build
 XIHAN_TEST_POSTGRES='Host=127.0.0.1;Port=5432;Username=postgres;Password=<密码>' \
   dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
-
-## 工作区解决方案
-
-同时改 BasicApp 与框架时，可以在两个仓库的上级目录建一个工作区解决方案（文件名自定），登记 `backend` 全部工程与框架 `framework/src` 的工程。它不入任何仓库，新增工程时自己补进去，否则 IDE 沿用旧的 `obj`。
 
 ## 下一步
 

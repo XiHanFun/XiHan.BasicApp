@@ -1,20 +1,25 @@
 <Project>
   <!--
-    XiHan.Framework 的引用方式。
+    XiHan.Framework 的引用方式，由构建的解决方案决定：
 
-    缺省走 ProjectReference：同级检出 ../../XiHan.Framework/framework/src 的源码，
-    并锁定在 XiHanFrameworkCommit 指定的提交（Architecture.Tests 核对检出的 HEAD）。升级框架时改这一处并集中处理公开面变化。
+        backend/XiHan.BasicApp.slnx      NuGet 包（版本 XiHanFrameworkPackageVersion），单独克隆本仓库即可还原与构建
+        backend/XiHanFun.Local.slnx      同级 XiHan.Framework/framework/src 的源码（ProjectReference），检出锁定在 XiHanFrameworkCommit
 
-        dotnet build -p:UseXiHanFrameworkSource=false                     NuGet 包（版本见 XiHanFrameworkPackageVersion）
-        dotnet build -p:XiHanFrameworkSrc=<检出>/framework/src/             框架源码不在同级目录时显式指路
+    以解决方案为准、不探测磁盘：源码模式下被引用的框架工程必须在解决方案里，否则 Visual Studio 还原报 NU1105，
+    所以框架工程只登记在 XiHanFun.Local.slnx 里。直接构建单个工程（不经解决方案）时走包。
+
+        dotnet build -p:UseXiHanFrameworkSource=true|false            强制指定
+        dotnet build -p:XiHanFrameworkSrc=<检出>/framework/src/       用指定目录的框架源码（锁定提交的快照构建）
 
     工程文件里只写 <XiHanFrameworkReference Include="XiHan.Framework.Xxx" />，由 Directory.Build.targets 翻译成对应引用。
+    升级框架时包版本与锁定提交一起改，两者指向同一份框架代码。
   -->
   <PropertyGroup>
     <XiHanFrameworkCommit>53253917e</XiHanFrameworkCommit>
-    <XiHanFrameworkPackageVersion>5.0.0-preview.*</XiHanFrameworkPackageVersion>
+    <XiHanFrameworkPackageVersion>5.0.0-preview.2</XiHanFrameworkPackageVersion>
+    <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND '$(XiHanFrameworkSrc)' != ''">true</UseXiHanFrameworkSource>
     <XiHanFrameworkSrc Condition="'$(XiHanFrameworkSrc)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..\..\..\XiHan.Framework\framework\src'))</XiHanFrameworkSrc>
-    <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Kernel\XiHan.Framework.Kernel.csproj')">true</UseXiHanFrameworkSource>
+    <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND $(SolutionName.StartsWith('XiHanFun')) AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Kernel\XiHan.Framework.Kernel.csproj')">true</UseXiHanFrameworkSource>
     <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == ''">false</UseXiHanFrameworkSource>
   </PropertyGroup>
 </Project>

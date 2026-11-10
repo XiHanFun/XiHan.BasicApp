@@ -78,7 +78,7 @@ Host              XiHan.BasicApp.Host
 | 项 | 选型 |
 | --- | --- |
 | 运行时 | .NET 10（`net10.0`，警告即错误、Nullable、代码风格在构建期执行） |
-| 框架 | XiHan.Framework（`Profiles.Full`，ProjectReference 锁定提交） |
+| 框架 | XiHan.Framework（`Profiles.Full`，NuGet 包；联调时以源码引用锁定提交） |
 | 数据 | SqlSugar（框架 `Persistence.SqlSugar`），PostgreSQL 为缺省与 CI 口径 |
 | 认证 | 框架 `Security.Jwt` 校验 HS256；签发、刷新、会话由 Identity 负责 |
 | 实时 | ASP.NET Core SignalR（`/hubs/notification`、`/hubs/chat`） |

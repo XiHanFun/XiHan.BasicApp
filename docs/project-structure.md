@@ -20,12 +20,13 @@ XiHan.BasicApp/
 
 ```text
 backend/
-├─ XiHan.BasicApp.slnx
+├─ XiHan.BasicApp.slnx         # 用框架的 NuGet 包
+├─ XiHanFun.Local.slnx          # 另含同级框架的源码工程，联调框架用
 ├─ Directory.Build.props        # net10.0、版本号、警告即错误、生成文档文件
 ├─ Directory.Packages.props     # 中央包版本
 ├─ Directory.Build.targets      # XiHanFrameworkReference → ProjectReference 或 PackageReference
-├─ props/framework.props        # 框架引用方式与锁定提交 XiHanFrameworkCommit
-├─ Dockerfile                   # 后端镜像（按锁定提交克隆框架源码）
+├─ props/framework.props        # 框架引用方式：包版本与源码的锁定提交
+├─ Dockerfile                   # 后端镜像（框架从 NuGet 还原）
 ├─ src/
 │  ├─ XiHan.BasicApp.Contracts      Tier 0  实体基类、分页 / 批量、权限描述、页面登记、跨包接口、消息主题、种子号段
 │  ├─ XiHan.BasicApp.Runtime        Tier 0  SqlSugar 回调、TenantScopedQuery、操作人、数据保护、表结构升级、种子执行

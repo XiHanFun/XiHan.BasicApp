@@ -66,9 +66,9 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-首次构建后端镜像时会按锁定的提交克隆 [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) 源码，需要能访问 GitHub；启动时先执行表结构升级与种子，再启动后端。前端位于 `http://localhost:8080`，后端接口位于 `http://localhost:9710`。初始账号为 `superadmin`，密码是 `.env` 里的 `SUPERADMIN_PASSWORD`（缺省 `SuperAdmin@123`），首次登录后立即修改。部署前把 `.env` 里的密码与密钥都换成随机值，其余配置见[部署](https://basicapp.docs.xihanfun.com/deployment)。
+后端镜像从 NuGet 还原 [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) 的包；启动时先执行表结构升级与种子，再启动后端。前端位于 `http://localhost:8080`，后端接口位于 `http://localhost:9710`。初始账号为 `superadmin`，密码是 `.env` 里的 `SUPERADMIN_PASSWORD`（缺省 `SuperAdmin@123`），首次登录后立即修改。部署前把 `.env` 里的密码与密钥都换成随机值，其余配置见[部署](https://basicapp.docs.xihanfun.com/deployment)。
 
-本机开发需 .NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+，并把 XiHan.Framework 检出在同级目录的锁定提交上，步骤见[快速开始](https://basicapp.docs.xihanfun.com/getting-started)与[后端](./backend/README.md)、[前端](./frontend/README.md)工程说明。
+本机开发需 .NET 10 SDK、Node.js 24+、pnpm 11+、PostgreSQL 14+；后端以 NuGet 包引用 XiHan.Framework，克隆下来即可构建，步骤见[快速开始](https://basicapp.docs.xihanfun.com/getting-started)与[后端](./backend/README.md)、[前端](./frontend/README.md)工程说明。
 
 ## 架构
 

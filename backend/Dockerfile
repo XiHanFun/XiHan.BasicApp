@@ -1,19 +1,10 @@
 # 后端镜像，构建上下文是 backend/（docker compose 的 init / backend 服务已配好）
-# 后端以源码引用 XiHan.Framework：构建时按 props/framework.props 锁定的提交克隆框架，与 CI 同一做法，需要能访问 GitHub
-# 框架仓库在别处（如镜像站）时用 --build-arg XIHAN_FRAMEWORK_REPO=<地址> 改指
+# XiHan.Framework 按 props/framework.props 的版本从 NuGet 还原，不需要框架源码
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-ARG XIHAN_FRAMEWORK_REPO=https://github.com/XiHanFun/XiHan.Framework.git
 WORKDIR /src
-
-# 目录与本机开发一致：XiHan.BasicApp/backend 与 XiHan.Framework 并排，props/framework.props 的缺省相对路径即可找到框架源码
-COPY props/framework.props XiHan.BasicApp/backend/props/framework.props
-RUN commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props) \
-    && git clone --quiet --filter=blob:none --no-checkout "$XIHAN_FRAMEWORK_REPO" XiHan.Framework \
-    && git -C XiHan.Framework checkout --quiet "$commit"
-
-COPY . XiHan.BasicApp/backend/
-RUN dotnet publish XiHan.BasicApp/backend/src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj -c Release -o /app/publish
+COPY . .
+RUN dotnet publish src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app

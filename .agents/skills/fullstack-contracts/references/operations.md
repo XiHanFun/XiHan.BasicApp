@@ -2,11 +2,11 @@
 
 ## 框架引用与锁定
 
-- `backend/props/framework.props` 锁 `XiHanFrameworkCommit`；缺省以 ProjectReference 引用同级 `XiHan.Framework/framework/src`（锁定提交时框架源码的位置），`-p:XiHanFrameworkSrc=<检出>/framework/src/` 改指路径，`-p:UseXiHanFrameworkSource=false` 走 NuGet 包 `5.0.0-preview.*`。工程文件只写 `<XiHanFrameworkReference Include="…" />` / `<XiHanFrameworkAnalyzer … />`，由 `Directory.Build.targets` 翻译，不写路径与版本。
-- `FrameworkPinTests` 核对同级检出的 HEAD；别的会话在框架上提交、同级检出前进时，按锁定提交 `git archive` 出快照再构建（命令见后端技能的 `references/backend.md`），快照下这一条失败属预期。
-- 升锁定提交：改 `XiHanFrameworkCommit`，集中跟进公开面与行为变化（签名、校验、表结构），基线随之重生成，方案写一条修订；CI 按锁定提交检出框架（经 GitHub API 把短 SHA 换成完整 SHA），框架没推送前 CI 在检出步失败，推送要用户同意。
+- `backend/props/framework.props` 按解决方案决定引用方式：`XiHan.BasicApp.slnx`（CI、镜像、单独构建工程同此）走 NuGet 包 `XiHanFrameworkPackageVersion`（确切版本），克隆即可构建；`XiHanFun.Local.slnx` 以 ProjectReference 引用同级 `XiHan.Framework/framework/src`，检出锁定在 `XiHanFrameworkCommit`；`-p:XiHanFrameworkSrc=<检出>/framework/src/` 显式改用某份源码，`-p:UseXiHanFrameworkSource=true|false` 强制指定。工程文件只写 `<XiHanFrameworkReference Include="…" />` / `<XiHanFrameworkAnalyzer … />`，由 `Directory.Build.targets` 翻译，不写路径与版本。
+- `FrameworkPinTests` 核对包版本是确切版本，以源码构建时再核对同级检出的 HEAD；别的会话在框架上提交、同级检出前进时，按锁定提交 `git archive` 出快照再构建（命令见后端技能的 `references/backend.md`），快照下这一条失败属预期。
+- 升级框架：包版本与锁定提交一起改，两者指向同一份框架代码；集中跟进公开面与行为变化（签名、校验、表结构），基线随之重生成，方案写一条修订。CI 用包构建，所以 BasicApp 只能依赖已发包的框架；框架未发包的改动只在 `XiHanFun.Local.slnx` 或快照构建里联调，不提交依赖它的代码。
 - 框架缺陷在框架仓库修、BasicApp 只升锁定；需要回灌的事项登记在方案 9.4（N3、N4 的在 9.5）。
-- 本机 IDE 联调用工作区根的 `XiHanFun.Next.Local.slnx`（不在任何 git 里）；新建包要补进去，否则 IDE 沿用旧的 `obj`。
+- 本机 IDE 联调框架用 `backend/XiHanFun.Local.slnx`；BasicApp 新建包时两份解决方案都要登记，框架新增的包补进 `XiHanFun.Local.slnx`，否则 IDE 不还原它、沿用旧的 `obj`。
 
 ## 配置
 
@@ -34,7 +34,7 @@
 
 | 作业 | 内容 |
 | --- | --- |
-| 后端 | 按锁定提交检出框架；Release 构建（警告即错误）；`dotnet test --solution`，带 PostgreSQL、Redis、RabbitMQ 服务容器与 `XIHAN_TEST_*` 环境变量 |
+| 后端 | 用框架的 NuGet 包还原；Release 构建（警告即错误）；`dotnet test --solution`，带 PostgreSQL、Redis、RabbitMQ 服务容器与 `XIHAN_TEST_*` 环境变量 |
 | 契约漂移 | 重新 `contracts export` 比对 `contracts/*`，再 `pnpm contracts:check` 比对生成物 |
 | 前端 | `pnpm check`（十项）、`pnpm test`、`pnpm build` |
 

@@ -1,6 +1,6 @@
 name: CI
 
-# 后端（backend）与前端（frontend）的构建、测试与门禁。按 backend/props/framework.props 锁定的提交检出同级 XiHan.Framework 源码。
+# 后端（backend）与前端（frontend）的构建、测试与门禁。后端按 backend/props/framework.props 的版本还原 XiHan.Framework 的 NuGet 包，不检出框架源码。
 on:
   push:
     branches: [main, dev, preview]
@@ -66,24 +66,6 @@ jobs:
         with:
           path: XiHan.BasicApp
 
-      # props 锁的是短 SHA；actions/checkout 只把 40 位 SHA 当提交，短 SHA 会被当成分支名去取而失败，所以先经 GitHub API 换成完整 SHA（取不到即失败）
-      - name: 读取锁定的框架提交
-        id: framework
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          short=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
-          sha=$(gh api "repos/XiHanFun/XiHan.Framework/commits/$short" --jq .sha)
-          echo "commit=$sha" >> "$GITHUB_OUTPUT"
-
-      # 同级目录 XiHan.Framework：props/framework.props 的缺省 ProjectReference 路径；检出锁定的提交，Architecture.Tests 核对 HEAD
-      - name: 检出 XiHan.Framework（锁定提交）
-        uses: actions/checkout@v7
-        with:
-          repository: XiHanFun/XiHan.Framework
-          ref: ${{ steps.framework.outputs.commit }}
-          path: XiHan.Framework
-
       - name: 安装 .NET SDK
         uses: actions/setup-dotnet@v6
         with:
@@ -122,23 +104,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: XiHan.BasicApp
-
-      # props 锁的是短 SHA；actions/checkout 只把 40 位 SHA 当提交，短 SHA 会被当成分支名去取而失败，所以先经 GitHub API 换成完整 SHA（取不到即失败）
-      - name: 读取锁定的框架提交
-        id: framework
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          short=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend/props/framework.props)
-          sha=$(gh api "repos/XiHanFun/XiHan.Framework/commits/$short" --jq .sha)
-          echo "commit=$sha" >> "$GITHUB_OUTPUT"
-
-      - name: 检出 XiHan.Framework（锁定提交）
-        uses: actions/checkout@v7
-        with:
-          repository: XiHanFun/XiHan.Framework
-          ref: ${{ steps.framework.outputs.commit }}
-          path: XiHan.Framework
 
       - name: 安装 .NET SDK
         uses: actions/setup-dotnet@v6
