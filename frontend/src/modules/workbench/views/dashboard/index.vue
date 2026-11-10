@@ -405,8 +405,10 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
               <Icon icon="lucide:grip-vertical" width="15" />
             </XhSortableItemDragTrigger>
             <XhPopoverRoot placement="bottom-end">
-              <XhPopoverTrigger class="xh-linklike-trigger">
-                {{ spanLabel(item.span) }}
+              <XhPopoverTrigger as-child>
+                <XhButton variant="link" size="sm" class="xh-link-button">
+                  {{ spanLabel(item.span) }}
+                </XhButton>
               </XhPopoverTrigger>
               <XhPopoverPositioner>
                 <XhPopoverContent :aria-label="t('workbench.widgets.span')">

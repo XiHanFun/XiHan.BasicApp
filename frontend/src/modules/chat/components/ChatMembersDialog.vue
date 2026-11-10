@@ -471,8 +471,10 @@ async function handleLeave() {
               </div>
               <div class="flex shrink-0 items-center gap-0.5">
                 <XhPopconfirmRoot v-if="canTransferTo(member)" @confirm="handleTransferOwner(member)">
-                  <XhPopconfirmTrigger class="xh-linklike-trigger">
-                    {{ t('chat.members.transfer') }}
+                  <XhPopconfirmTrigger as-child>
+                    <XhButton variant="link" size="sm" class="xh-link-button">
+                      {{ t('chat.members.transfer') }}
+                    </XhButton>
                   </XhPopconfirmTrigger>
                   <XhPopconfirmPositioner>
                     <XhPopconfirmContent :aria-label="t('chat.members.transfer')">
@@ -486,8 +488,10 @@ async function handleLeave() {
                   {{ member.isSilenced ? t('chat.members.unsilence') : t('chat.members.silence') }}
                 </XhButton>
                 <XhPopconfirmRoot v-if="canRemove(member)" @confirm="handleRemove(member)">
-                  <XhPopconfirmTrigger class="xh-linklike-trigger">
-                    {{ t('chat.members.remove') }}
+                  <XhPopconfirmTrigger as-child>
+                    <XhButton variant="link" size="sm" class="xh-link-button">
+                      {{ t('chat.members.remove') }}
+                    </XhButton>
                   </XhPopconfirmTrigger>
                   <XhPopconfirmPositioner>
                     <XhPopconfirmContent :aria-label="t('chat.members.remove')">
@@ -505,8 +509,10 @@ async function handleLeave() {
 
       <XhDialogFooter v-if="canLeave">
         <XhPopconfirmRoot @confirm="handleLeave">
-          <XhPopconfirmTrigger class="xh-linklike-trigger">
-            {{ t('chat.members.leave') }}
+          <XhPopconfirmTrigger as-child>
+            <XhButton variant="link" size="sm" class="xh-link-button">
+              {{ t('chat.members.leave') }}
+            </XhButton>
           </XhPopconfirmTrigger>
           <XhPopconfirmPositioner>
             <XhPopconfirmContent :aria-label="t('chat.members.leave')">

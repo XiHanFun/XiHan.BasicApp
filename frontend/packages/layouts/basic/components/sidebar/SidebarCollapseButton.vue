@@ -4,6 +4,7 @@
 -->
 
 <script setup lang="ts">
+import { XhButton } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -26,9 +27,12 @@ function toggle() {
 </script>
 
 <template>
-  <button
-    type="button"
-    class="sidebar-collapse-button absolute bottom-2 left-3 z-10 flex cursor-pointer items-center justify-center rounded-sm bg-accent p-1 text-foreground/60 hover:bg-accent-hover hover:text-foreground"
+  <XhButton
+    variant="subtle"
+    tone="neutral"
+    size="sm"
+    icon-only
+    class="absolute bottom-2 left-3 z-10"
     :aria-label="label"
     :title="label"
     @click.stop="toggle"
@@ -42,19 +46,5 @@ function toggle() {
         />
       </Transition>
     </span>
-  </button>
+  </XhButton>
 </template>
-
-<style scoped>
-/* 换色与顶栏图标钮同一组令牌；按下只换色、不缩放 */
-.sidebar-collapse-button {
-  transition:
-    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.sidebar-collapse-button:focus-visible {
-  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
-  outline-offset: var(--xh-ring-offset);
-}
-</style>

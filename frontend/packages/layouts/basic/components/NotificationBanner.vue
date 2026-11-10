@@ -6,6 +6,7 @@
 <script setup lang="ts">
 import type { BannerTone } from '../composables/use-banner-notices'
 import type { AppUserInboxDisplayItem } from '~/types'
+import { XhButton, XhButtonLabel, XhButtonSuffix } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Icon } from '~/iconify'
@@ -89,24 +90,20 @@ function onDetail(item: AppUserInboxDisplayItem): void {
               @click="activeIndex = index"
             />
           </div>
-          <button
-            v-if="active.link"
-            type="button"
-            class="notif-banner__action"
-            @click="onDetail(active)"
-          >
-            {{ t('header.notification.gate.banner_detail') }}
-            <Icon icon="lucide:arrow-right" width="12" height="12" />
-          </button>
-          <button
-            type="button"
-            class="notif-banner__close"
-            :title="t('header.notification.gate.banner_close')"
+          <XhButton v-if="active.link" variant="ghost" size="sm" class="notif-banner__action" @click="onDetail(active)">
+            <XhButtonLabel>{{ t('header.notification.gate.banner_detail') }}</XhButtonLabel>
+            <XhButtonSuffix><Icon icon="lucide:arrow-right" /></XhButtonSuffix>
+          </XhButton>
+          <XhButton
+            variant="ghost"
+            size="sm"
+            icon-only
+            class="x-icon-btn notif-banner__close"
             :aria-label="t('header.notification.gate.banner_close')"
             @click="dismiss(active)"
           >
-            <Icon icon="lucide:x" width="14" height="14" />
-          </button>
+            <Icon icon="lucide:x" />
+          </XhButton>
         </div>
       </Transition>
     </div>
@@ -238,47 +235,18 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   transform: scale(1.25);
 }
 
+/* 横幅里的两颗钮是组件库的 ghost 钮，前景随横幅的语气字色，压到横幅的高度里 */
 .notif-banner__action {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: var(--xh-space-0_5);
-  padding: var(--xh-space-0_5) var(--xh-space-2);
-  border: none;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: currentcolor;
-  font-size: var(--xh-font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
+  --xh-button-fg: currentcolor;
+  --xh-button-font-size: var(--xh-font-size-xs);
 
-.notif-banner__action:hover {
-  background: color-mix(in srgb, var(--xh-fg-default) 8%, transparent);
+  flex-shrink: 0;
 }
 
 .notif-banner__close {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: currentcolor;
-  opacity: 0.6;
-  cursor: pointer;
-  transition:
-    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
+  --xh-button-h: var(--xh-glyph-size-lg);
+  --xh-button-fg: currentcolor;
 
-.notif-banner__close:hover {
-  opacity: 1;
-  background: color-mix(in srgb, var(--xh-fg-default) 8%, transparent);
+  flex-shrink: 0;
 }
 </style>

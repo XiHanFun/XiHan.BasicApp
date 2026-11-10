@@ -16,13 +16,13 @@ import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { NotificationStatus } from '~/types/enums'
 import { useEffectiveLayoutMode, useHeaderSqueeze, useLayoutMenuDomain, useWidgetPlacement } from '../composables'
+import AppIconButton from './AppIconButton.vue'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
 import HeaderTopMenu from './header/HeaderTopMenu.vue'
 import ImpersonationDialog from './ImpersonationDialog.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
 import SwitchRolesDialog from './SwitchRolesDialog.vue'
-import XihanIconButton from './XihanIconButton.vue'
 
 interface Props {
   theme?: string
@@ -534,33 +534,33 @@ watch(() => route.fullPath, () => {
 <template>
   <!-- Back / Forward buttons（小屏隐藏） -->
   <template v-if="appStore.breadcrumbNavButtons && !isMobile">
-    <XihanIconButton
+    <AppIconButton
       class="my-0 rounded-md"
       :tooltip="t('header.toolbar.nav_back')"
       :disabled="!canGoBack"
       @click="router.back()"
     >
       <Icon icon="lucide:arrow-left" class="size-4" />
-    </XihanIconButton>
-    <XihanIconButton
+    </AppIconButton>
+    <AppIconButton
       class="my-0 rounded-md"
       :tooltip="t('header.toolbar.nav_forward')"
       :disabled="!canGoForward"
       @click="router.forward()"
     >
       <Icon icon="lucide:arrow-right" class="size-4" />
-    </XihanIconButton>
+    </AppIconButton>
   </template>
 
   <!-- Refresh button (left widget) — 整页刷新，等效浏览器 F5 -->
-  <XihanIconButton
+  <AppIconButton
     v-if="appStore.widgetRefresh"
     class="my-0 mr-1 rounded-md"
     :tooltip="t('header.toolbar.refresh_page')"
     @click="handleReloadPage"
   >
     <Icon icon="lucide:refresh-cw" class="size-4" />
-  </XihanIconButton>
+  </AppIconButton>
 
   <!-- Breadcrumb：允许被压缩（min-w-0），但顶栏挤压时排在最后让：命令面板收成图标、「自动」的工具让到悬浮组之后，
        才由 HeaderNav 单行截断，不折成两行 -->

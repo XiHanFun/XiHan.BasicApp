@@ -4,7 +4,7 @@
 -->
 
 <script setup lang="ts">
-import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -12,6 +12,7 @@ import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { Icon } from '~/iconify'
 import { useAppStore, useFavoritesStore } from '~/stores'
 import { registerFavoritesAnchor, useFavoritesPulse } from '../composables/use-favorites-fly'
+import AppIconButton from './AppIconButton.vue'
 
 defineOptions({ name: 'AppFavorites' })
 
@@ -92,25 +93,26 @@ onBeforeUnmount(() => {
 
 <template>
   <XhPopoverRoot v-model:open="showPanel" placement="bottom-start">
-    <!-- 浮层触发器渲染成 button，不能再往里套一颗；星标钮的样式直接落在它身上
+    <!-- 触发器合到顶栏图标钮上（as-child），不往触发器渲染出的 button 里再套一颗
          anchorRef 仍留在外层 span 上——它是灵动岛的落位参照，不能跟着浮层开合动 -->
     <span ref="anchorRef" class="mr-1 inline-flex">
-      <XhPopoverTrigger
-        class="xihan-icon-btn fav-btn"
-        :class="{ 'xihan-icon-btn--active': showPanel, 'fav-btn--pulse': pulsing }"
-        :title="t('header.favorites.title')"
-        :aria-label="t('header.favorites.title')"
-      >
-        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算
-             开着收藏夹同步时等后端那份回来再出数：本地那份可能是别的设备改动之前的旧值 -->
-        <XhBadge
-          size="sm"
-          tone="brand"
-          :count="favoritesStore.ready ? favoritesStore.count : 0"
-          :label="t('header.favorites.count_label', { n: favoritesStore.count })"
+      <XhPopoverTrigger as-child>
+        <AppIconButton
+          :active="showPanel"
+          :class="{ 'fav-btn--pulse': pulsing }"
+          :tooltip="t('header.favorites.title')"
         >
-          <Icon icon="lucide:star" width="16" height="16" />
-        </XhBadge>
+          <!-- 数字、99+、「零则收起」与贴角定位都归组件库算
+             开着收藏夹同步时等后端那份回来再出数：本地那份可能是别的设备改动之前的旧值 -->
+          <XhBadge
+            size="sm"
+            tone="brand"
+            :count="favoritesStore.ready ? favoritesStore.count : 0"
+            :label="t('header.favorites.count_label', { n: favoritesStore.count })"
+          >
+            <Icon icon="lucide:star" width="16" height="16" />
+          </XhBadge>
+        </AppIconButton>
       </XhPopoverTrigger>
     </span>
 
@@ -162,15 +164,17 @@ onBeforeUnmount(() => {
             >
               <Icon :icon="resolveIcon(item.icon)" width="14" height="14" class="shrink-0 opacity-70" />
               <span class="fav-chip__label">{{ display(item.title) }}</span>
-              <button
-                type="button"
-                class="fav-chip__close"
+              <XhButton
+                variant="ghost"
+                size="sm"
+                icon-only
+                class="x-icon-btn fav-chip__close"
                 :aria-label="t('header.favorites.remove')"
-                @click="(e) => handleRemove(item.path, e)"
+                @click="(e: MouseEvent) => handleRemove(item.path, e)"
                 @keydown.enter.stop
               >
-                <Icon icon="lucide:x" width="12" height="12" />
-              </button>
+                <Icon icon="lucide:x" />
+              </XhButton>
             </XhSortableItem>
             <XhSortableLiveRegion />
           </XhSortableRoot>
@@ -277,33 +281,17 @@ onBeforeUnmount(() => {
   max-width: 140px;
 }
 
-.fav-chip__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border: 0;
-  padding: 0;
-  border-radius: var(--xh-shape-pill);
-  background: transparent;
-  color: currentcolor;
-  opacity: 0.55;
-  cursor: pointer;
-  transition:
-    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.fav-chip__close:hover {
-  opacity: 1;
-  background: color-mix(in srgb, var(--xh-fg-brand) 20%, transparent);
-}
-
 /* 拖拽中的药丸（sortable 在被拖那一项上写 data-dragging） */
 .fav-chip[data-dragging] {
   opacity: 0.5;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 40%, transparent);
   cursor: grabbing;
+}
+
+/* 标签上的移除钮：组件库纯图标钮压成 sm 字形档的小圆，前景随标签字色 */
+.fav-chip__close {
+  --xh-button-h: var(--xh-glyph-size-sm);
+  --xh-button-icon-size: var(--xh-glyph-size-xs);
+  --xh-button-fg: currentcolor;
 }
 </style>

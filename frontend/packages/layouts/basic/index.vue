@@ -6,6 +6,7 @@
 <script lang="ts" setup>
 import type { SplitterPanelProps, SplitterSizesChangeDetails } from '@xihan-ui/headless'
 import {
+  XhButton,
   XhScrollAreaContent,
   XhScrollAreaCorner,
   XhScrollAreaRoot,
@@ -17,16 +18,18 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { XDropdown } from '~/components'
+import { XDropdown, XIconButton } from '~/components'
 import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { FOUNDATION_PROJECTS } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useShellExtensions, useSplitViewStore, useTabbarStore } from '~/stores'
+import AppBackTop from './components/AppBackTop.vue'
 import AppFavorites from './components/AppFavorites.vue'
 import AppFloatToolbar from './components/AppFloatToolbar.vue'
 import AppGlobalSearch from './components/AppGlobalSearch.vue'
 import AppHeader from './components/AppHeader.vue'
+import AppIconButton from './components/AppIconButton.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
@@ -35,8 +38,6 @@ import ImpersonationBanner from './components/ImpersonationBanner.vue'
 import NotificationBanner from './components/NotificationBanner.vue'
 import NotificationGate from './components/NotificationGate.vue'
 import SplitPane from './components/SplitPane.vue'
-import XihanBackTop from './components/XihanBackTop.vue'
-import XihanIconButton from './components/XihanIconButton.vue'
 import { openTabInNewWindow, useLayoutShellAdapter } from './composables'
 import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
@@ -363,7 +364,7 @@ const sidebarEnableState = computed(
           </div>
 
           <!-- Toggle sidebar button -->
-          <XihanIconButton
+          <AppIconButton
             v-if="shell.showHeaderToggleButton.value"
             class="my-0 mr-1"
             :tooltip="shell.showSider.value ? t('header.toolbar.sidebar_collapse') : t('header.toolbar.sidebar_expand')"
@@ -379,7 +380,7 @@ const sidebarEnableState = computed(
                 />
               </Transition>
             </span>
-          </XihanIconButton>
+          </AppIconButton>
 
           <!-- 收藏夹（收藏常用菜单，跨端同步；可在偏好设置中开关） -->
           <AppFavorites v-if="shell.appStore.widgetFavorites" />
@@ -501,41 +502,29 @@ const sidebarEnableState = computed(
                 <div class="split-tools" @pointerdown="forwardSplitDrag">
                   <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
                   <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('left', key)">
-                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')" :aria-label="t('tabbar.split_switch_left')" @pointerdown.stop>
+                    <XhButton variant="ghost" size="sm" icon-only class="split-tools__btn" :aria-label="t('tabbar.split_switch_left')" @pointerdown.stop>
                       <Icon icon="lucide:replace" width="16" height="16" />
-                    </button>
+                    </XhButton>
                   </XDropdown>
-                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @pointerdown.stop @click="onSideReload('left')">
-                    <Icon icon="lucide:rotate-cw" width="16" height="16" />
-                  </button>
-                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_left')" @pointerdown.stop @click="onSideOpen('left')">
-                    <Icon icon="lucide:external-link" width="16" height="16" />
-                  </button>
+                  <XIconButton icon="lucide:rotate-cw" :label="t('tabbar.split_reload_left')" class="split-tools__btn" @pointerdown.stop @click="onSideReload('left')" />
+                  <XIconButton icon="lucide:external-link" :label="t('tabbar.split_open_left')" class="split-tools__btn" @pointerdown.stop @click="onSideOpen('left')" />
 
                   <span class="split-tools__sep" />
                   <span class="split-tools__grip">
                     <Icon icon="lucide:grip-vertical" width="16" height="16" />
                   </span>
-                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @pointerdown.stop @click="swapSplitPanes">
-                    <Icon icon="lucide:arrow-left-right" width="16" height="16" />
-                  </button>
-                  <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @pointerdown.stop @click="splitView.close()">
-                    <Icon icon="lucide:x" width="17" height="17" />
-                  </button>
+                  <XIconButton icon="lucide:arrow-left-right" :label="t('tabbar.split_swap')" class="split-tools__btn" @pointerdown.stop @click="swapSplitPanes" />
+                  <XIconButton icon="lucide:x" :label="t('tabbar.split_close')" class="split-tools__btn" @pointerdown.stop @click="splitView.close()" />
                   <span class="split-tools__sep" />
 
                   <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
                   <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('right', key)">
-                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')" :aria-label="t('tabbar.split_switch_right')" @pointerdown.stop>
+                    <XhButton variant="ghost" size="sm" icon-only class="split-tools__btn" :aria-label="t('tabbar.split_switch_right')" @pointerdown.stop>
                       <Icon icon="lucide:replace" width="16" height="16" />
-                    </button>
+                    </XhButton>
                   </XDropdown>
-                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @pointerdown.stop @click="onSideReload('right')">
-                    <Icon icon="lucide:rotate-cw" width="16" height="16" />
-                  </button>
-                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_right')" @pointerdown.stop @click="onSideOpen('right')">
-                    <Icon icon="lucide:external-link" width="16" height="16" />
-                  </button>
+                  <XIconButton icon="lucide:rotate-cw" :label="t('tabbar.split_reload_right')" class="split-tools__btn" @pointerdown.stop @click="onSideReload('right')" />
+                  <XIconButton icon="lucide:external-link" :label="t('tabbar.split_open_right')" class="split-tools__btn" @pointerdown.stop @click="onSideOpen('right')" />
                 </div>
               </div>
 
@@ -635,7 +624,7 @@ const sidebarEnableState = computed(
     <!-- 壳层扩展浮层（可选模块注册的抽屉/全局对话框） -->
     <component :is="overlay" v-for="(overlay, index) in shellOverlays" :key="index" />
     <AppTabOverview />
-    <XihanBackTop />
+    <AppBackTop />
 
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
@@ -729,30 +718,9 @@ const sidebarEnableState = computed(
   cursor: col-resize;
 }
 
+/* 工具组里的钮是组件库的纯图标 ghost 钮；正方盒排在竖直胶囊里取圆形，经按钮的公开槽给 */
 .split-tools__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: var(--xh-shape-pill);
-  background: transparent;
-  color: color-mix(in srgb, var(--xh-fg-default) 65%, transparent);
-  cursor: pointer;
-  transition:
-    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.split-tools__btn:hover {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
-}
-
-.split-tools__btn--close:hover {
-  background: color-mix(in srgb, var(--xh-fg-danger) 12%, transparent);
-  color: var(--xh-fg-danger);
+  --xh-button-radius: var(--xh-shape-circle);
 }
 
 /* 拖拽遮罩：覆盖整个分屏行，拖拽期间接管指针避免卡顿 */

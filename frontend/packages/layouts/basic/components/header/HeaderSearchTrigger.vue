@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n'
 import { GLOBAL_HOTKEYS } from '~/composables/useGlobalShortcuts'
 import { Icon } from '~/iconify'
 import { useAppStore, useLayoutBridgeStore } from '~/stores'
+import AppIconButton from '../AppIconButton.vue'
 
 /**
  * 顶栏的命令面板入口：只是一颗按钮，面板本身由布局层的 AppGlobalSearch 常驻承载，
@@ -43,9 +44,9 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
       </button>
     </div>
     <div :class="props.compact ? undefined : 'sm:hidden'">
-      <button type="button" class="search-trigger-icon" :aria-label="t('header.search.placeholder')" @click="layoutBridgeStore.requestOpenGlobalSearch()">
+      <AppIconButton :tooltip="t('header.search.placeholder')" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <Icon width="16" height="16" icon="lucide:search" />
-      </button>
+      </AppIconButton>
     </div>
   </div>
 </template>
@@ -81,24 +82,5 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
 /* 键帽画在触发按钮里，点它等于点按钮 */
 .search-kbd {
   pointer-events: none;
-}
-
-.search-trigger-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  color: var(--xh-fg-default);
-  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-  outline: none;
-}
-
-.search-trigger-icon:hover {
-  background: var(--xh-bg-subtle-hover);
 }
 </style>

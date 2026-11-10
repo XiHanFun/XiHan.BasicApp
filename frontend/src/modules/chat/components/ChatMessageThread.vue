@@ -14,6 +14,7 @@ import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicato
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
+import XIconButton from '~/components/common/XIconButton.vue'
 import XInput from '~/components/common/XInput.vue'
 import { dialog, toast, xhTranslationsOfCurrentLocale } from '~/composables'
 
@@ -669,9 +670,7 @@ onBeforeUnmount(() => {
   <div v-else class="flex h-full min-h-0 flex-col">
     <!-- 会话头（固定高度：单聊无副行时与群聊保持一致） -->
     <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
-      <button v-if="props.showBack" type="button" class="chat-thread-btn" :aria-label="t('header.toolbar.nav_back')" @click="emit('back')">
-        <Icon icon="lucide:arrow-left" width="16" height="16" />
-      </button>
+      <XIconButton v-if="props.showBack" icon="lucide:arrow-left" :label="t('header.toolbar.nav_back')" @click="emit('back')" />
       <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="32" />
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5">
@@ -686,12 +685,8 @@ onBeforeUnmount(() => {
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
         </div>
       </div>
-      <button type="button" class="chat-thread-btn" :title="t('chat.thread.search')" :aria-label="t('chat.thread.search')" @click="toggleSearch">
-        <Icon icon="lucide:search" width="16" height="16" />
-      </button>
-      <button v-if="isGroupLike" type="button" class="chat-thread-btn" :aria-label="t('chat.members.section_members', { n: conversation.memberCount })" @click="emit('members')">
-        <Icon icon="lucide:users" width="16" height="16" />
-      </button>
+      <XIconButton icon="lucide:search" :label="t('chat.thread.search')" @click="toggleSearch" />
+      <XIconButton v-if="isGroupLike" icon="lucide:users" :label="t('chat.members.section_members', { n: conversation.memberCount })" @click="emit('members')" />
     </div>
 
     <!-- 会话内搜索面板 -->
@@ -740,7 +735,8 @@ onBeforeUnmount(() => {
     <!-- 群公告横条（同置顶栏样式，点开看全文，换行经 pre-wrap 正确渲染） -->
     <div v-if="isGroupLike && conversation.announcement" class="border-b border-border bg-amber-500/5">
       <XhPopoverRoot placement="bottom">
-        <XhPopoverTrigger class="xh-linklike-trigger">
+        <!-- 整条横栏就是触发器：点哪都展开全文 -->
+        <XhPopoverTrigger class="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-start">
           <Icon icon="lucide:megaphone" width="13" height="13" class="shrink-0 text-amber-500" />
           <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
             {{ announcementFirstLine }}
@@ -771,9 +767,11 @@ onBeforeUnmount(() => {
         {{ pinnedList[0] ? messageBodyLabel(pinnedList[0]) : '' }}
       </span>
       <XhPopoverRoot placement="bottom-end">
-        <XhPopoverTrigger class="xh-linklike-trigger">
-          {{ pinnedList.length }}
-          <Icon icon="lucide:chevron-down" width="12" height="12" />
+        <XhPopoverTrigger as-child>
+          <XhButton variant="link" size="sm" class="xh-link-button">
+            {{ pinnedList.length }}
+            <Icon icon="lucide:chevron-down" width="12" height="12" />
+          </XhButton>
         </XhPopoverTrigger>
         <XhPopoverPositioner>
           <XhPopoverContent :aria-label="t('chat.thread.pinned_count', { n: pinnedList.length })">
@@ -791,14 +789,15 @@ onBeforeUnmount(() => {
                     {{ messageBodyLabel(pinnedItem) }}
                   </div>
                 </div>
-                <button
+                <XhButton
                   v-if="canPin"
-                  type="button"
-                  class="chat-meta-unpin shrink-0"
+                  variant="link"
+                  size="sm"
+                  class="xh-link-button chat-meta-link shrink-0"
                   @click="conversationId && chatStore.unpinMessage(conversationId, pinnedItem.messageId).catch(notifyFailure)"
                 >
                   {{ t('chat.thread.unpin') }}
-                </button>
+                </XhButton>
               </div>
             </div>
           </XhPopoverContent>
@@ -940,40 +939,9 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.chat-thread-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.chat-thread-btn:hover {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
-}
-
-.chat-meta-unpin {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--xh-fg-brand);
-  font-size: var(--xh-font-size-xs);
-  cursor: pointer;
-}
-
-.chat-meta-unpin:hover {
-  text-decoration: underline;
+/* 元信息行里的文字链：字号随这一行压到 xs，经按钮的公开槽给 */
+.chat-meta-link {
+  --xh-button-font-size: var(--xh-font-size-xs);
 }
 
 .chat-search-hit {

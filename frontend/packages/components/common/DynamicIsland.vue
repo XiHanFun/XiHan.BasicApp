@@ -6,6 +6,7 @@
 <script lang="ts" setup>
 import type { IslandAction, IslandState, IslandTask } from '~/composables/useDynamicIsland'
 import { useOnline } from '@vueuse/core'
+import { XhButton, XhButtonLabel, XhButtonPrefix } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -573,12 +574,13 @@ onBeforeUnmount(() => {
           </button>
 
           <!-- 展开层：活动面板 -->
-          <div ref="panelLayerRef" class="di-layer di-panel" :class="{ 'is-active': expanded }">
+          <!-- 面板底色恒深：data-xh-ink="light" 让里面组件库的按钮取深底上的那套令牌 -->
+          <div ref="panelLayerRef" class="di-layer di-panel" :class="{ 'is-active': expanded }" data-xh-ink="light">
             <div class="di-panel__head">
               <span class="di-panel__title">{{ t('island.title') }}</span>
-              <button type="button" class="di-panel__close" :aria-label="t('island.collapse')" :tabindex="expanded ? 0 : -1" @click.stop="collapse">
-                <Icon icon="lucide:chevron-up" width="16" height="16" />
-              </button>
+              <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('island.collapse')" :tabindex="expanded ? 0 : -1" @click.stop="collapse">
+                <Icon icon="lucide:chevron-up" />
+              </XhButton>
             </div>
 
             <div class="di-panel__body">
@@ -625,28 +627,28 @@ onBeforeUnmount(() => {
                       {{ elapsedText(task) }}
                     </div>
                     <div v-if="task.actions?.length" class="di-actions">
-                      <button
+                      <!-- 品牌档是主操作（实心），其余走淡底 -->
+                      <XhButton
                         v-for="action in task.actions"
                         :key="action.key"
-                        type="button"
-                        class="di-action"
-                        :class="`tone-${action.tone ?? 'neutral'}`"
+                        size="sm"
+                        :variant="action.tone === 'brand' ? 'solid' : 'subtle'"
+                        :tone="action.tone ?? 'neutral'"
                         @click.stop="onActionClick(task, action)"
                       >
-                        <Icon v-if="action.icon" :icon="action.icon" width="13" height="13" />
-                        {{ action.label }}
-                      </button>
+                        <XhButtonPrefix v-if="action.icon">
+                          <Icon :icon="action.icon" />
+                        </XhButtonPrefix>
+                        <XhButtonLabel>{{ action.label }}</XhButtonLabel>
+                      </XhButton>
                     </div>
                   </div>
-                  <button
-                    v-if="!task.persistent"
-                    type="button"
-                    class="di-item__dismiss"
-                    :aria-label="t('island.dismiss')"
-                    @click.stop="dismissTask(task.id)"
-                  >
-                    <Icon icon="lucide:x" width="12" height="12" />
-                  </button>
+                  <!-- 悬停才露出：显隐与定位落在外层，不在组件库按钮的根上写过渡 -->
+                  <span v-if="!task.persistent" class="di-item__dismiss">
+                    <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn di-item__dismiss-btn" :aria-label="t('island.dismiss')" @click.stop="dismissTask(task.id)">
+                      <Icon icon="lucide:x" />
+                    </XhButton>
+                  </span>
                 </div>
               </template>
 
@@ -654,9 +656,9 @@ onBeforeUnmount(() => {
               <div v-if="history.length" class="di-history">
                 <div class="di-history__head">
                   <span>{{ t('island.recent') }}</span>
-                  <button type="button" class="di-history__clear" @click="clearHistory">
+                  <XhButton variant="link" size="sm" class="xh-link-button" @click="clearHistory">
                     {{ t('island.clear') }}
-                  </button>
+                  </XhButton>
                 </div>
                 <div
                   v-for="item in history"
@@ -990,21 +992,6 @@ onBeforeUnmount(() => {
   letter-spacing: 0.02em;
 }
 
-.di-panel__close {
-  display: inline-flex;
-  padding: var(--xh-space-0_5);
-  border: 0;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 60%, transparent);
-  cursor: pointer;
-}
-
-.di-panel__close:hover {
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 10%, transparent);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 95%, transparent);
-}
-
 .di-panel__body {
   max-height: min(60vh, 460px);
   padding: var(--xh-space-1) var(--xh-space-2) var(--xh-space-2_5);
@@ -1058,30 +1045,26 @@ onBeforeUnmount(() => {
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 40%, transparent);
 }
 
+/* 关闭钮落在这一条右侧留出的 space-6 里，盒高与首行行高相当，竖向对齐首行文字 */
 .di-item__dismiss {
   position: absolute;
-  top: 8px;
-  inset-inline-end: 8px;
+  inset-block-start: var(--xh-space-2);
+  inset-inline-end: var(--xh-space-1);
   display: inline-flex;
-  padding: var(--xh-space-0_5);
-  border: 0;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 35%, transparent);
-  cursor: pointer;
   opacity: 0;
-  transition:
-    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
-.di-item:hover .di-item__dismiss {
+/* 组件库的纯图标钮压小：盒取 lg 字形档、字形取 xs 档，经按钮的公开槽给 */
+.di-item__dismiss-btn {
+  --xh-button-h: var(--xh-glyph-size-lg);
+  --xh-button-icon-size: var(--xh-glyph-size-xs);
+}
+
+/* 悬停这一条或键盘聚焦到关闭钮时露出 */
+.di-item:hover .di-item__dismiss,
+.di-item__dismiss:focus-within {
   opacity: 1;
-}
-
-.di-item__dismiss:hover {
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 85%, transparent);
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 10%, transparent);
 }
 
 /* 进度条（面板内与环互补，长文案下更易读） */
@@ -1129,44 +1112,6 @@ onBeforeUnmount(() => {
   margin-top: 9px;
 }
 
-.di-action {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--xh-space-1);
-  height: 26px;
-  padding: 0 var(--xh-space-2_5);
-  border: 0;
-  border-radius: var(--xh-shape-control);
-  font-size: var(--xh-font-size-xs);
-  font-weight: 500;
-  cursor: pointer;
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 92%, transparent);
-  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.di-action:hover {
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 20%, transparent);
-}
-
-.di-action.tone-brand {
-  background: var(--xh-bg-brand);
-  color: var(--xh-fg-on-brand);
-}
-
-.di-action.tone-brand:hover {
-  background: var(--xh-bg-brand-hover);
-}
-
-.di-action.tone-danger {
-  background: color-mix(in srgb, var(--xh-fg-danger) 22%, transparent);
-  color: color-mix(in srgb, var(--xh-fg-danger) 55%, var(--xh-fg-on-media-chrome));
-}
-
-.di-action.tone-danger:hover {
-  background: color-mix(in srgb, var(--xh-fg-danger) 32%, transparent);
-}
-
 /* 历史 */
 .di-history {
   margin-top: 4px;
@@ -1181,18 +1126,6 @@ onBeforeUnmount(() => {
   padding: var(--xh-space-1) var(--xh-space-2);
   font-size: var(--xh-font-size-xs);
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
-}
-
-.di-history__clear {
-  border: 0;
-  background: transparent;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
-  font-size: var(--xh-font-size-xs);
-  cursor: pointer;
-}
-
-.di-history__clear:hover {
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 80%, transparent);
 }
 
 .di-history-item {

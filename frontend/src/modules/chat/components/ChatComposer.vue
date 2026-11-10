@@ -15,8 +15,8 @@ import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, useI
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XDropdown from '~/components/common/XDropdown.vue'
+import XIconButton from '~/components/common/XIconButton.vue'
 import XInput from '~/components/common/XInput.vue'
-import XTooltip from '~/components/common/XTooltip.vue'
 
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
@@ -669,9 +669,9 @@ function handlePaste(event: ClipboardEvent) {
         </template>
         <template v-else>
           {{ t('chat.composer.voice_hold_tip') }}
-          <button type="button" class="chat-voice-panel__exit" @click="exitVoiceMode">
+          <XhButton variant="link" size="sm" class="xh-link-button" @click="exitVoiceMode">
             {{ t('chat.composer.voice_exit') }}
-          </button>
+          </XhButton>
         </template>
       </div>
     </div>
@@ -681,9 +681,9 @@ function handlePaste(event: ClipboardEvent) {
       <div v-if="isEditing" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-primary/8 px-2 py-1">
         <Icon icon="lucide:pencil" width="12" height="12" class="shrink-0 text-primary" />
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{ t('chat.composer.editing') }}</span>
-        <button type="button" class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelEdit">
-          <Icon icon="lucide:x" width="12" height="12" />
-        </button>
+        <XhButton variant="ghost" size="sm" icon-only class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelEdit">
+          <Icon icon="lucide:x" />
+        </XhButton>
       </div>
 
       <!-- 回复引用条 -->
@@ -692,9 +692,9 @@ function handlePaste(event: ClipboardEvent) {
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           {{ t('chat.composer.reply_to', { name: replyTarget.senderUserName ?? '' }) }}：{{ messageBodyLabel(replyTarget) }}
         </span>
-        <button type="button" class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelReply">
-          <Icon icon="lucide:x" width="12" height="12" />
-        </button>
+        <XhButton variant="ghost" size="sm" icon-only class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelReply">
+          <Icon icon="lucide:x" />
+        </XhButton>
       </div>
 
       <!-- 附件上传进度 -->
@@ -714,11 +714,11 @@ function handlePaste(event: ClipboardEvent) {
       <!-- 工具条（QQ 式：表情/图片/文件在输入区上方一排） -->
       <div class="flex items-center gap-0.5 px-2 pt-1.5">
         <XhPopoverRoot v-model:open="showEmojiPicker" placement="top-start">
-          <!-- as-child：触发器缺省渲染成 button，这里借用作者自己的按钮，好与同排另外三个图标钮同款 -->
+          <!-- as-child：触发器合到纯图标钮上，与同排的图标钮同款 -->
           <XhPopoverTrigger as-child>
-            <button type="button" class="chat-composer-btn" :aria-label="t('chat.composer.emoji')">
-              <Icon icon="lucide:smile" width="18" height="18" />
-            </button>
+            <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('chat.composer.emoji')">
+              <Icon icon="lucide:smile" />
+            </XhButton>
           </XhPopoverTrigger>
           <XhPopoverPositioner>
             <!-- 表情面板自带完整卡片相，浮层这层只当容器：去掉内边距、放开高度上限 -->
@@ -731,14 +731,9 @@ function handlePaste(event: ClipboardEvent) {
              浮层触发器按组件库契约是一颗按钮，不能拿输入框的外层当锚点 -->
         <XhPopoverRoot v-if="isGroupLike" v-model:open="showMentionPicker" placement="top-start">
           <XhPopoverTrigger as-child>
-            <button
-              type="button"
-              class="chat-composer-btn"
-              :aria-label="t('chat.composer.mention')"
-              :disabled="isEditing"
-            >
-              <Icon icon="lucide:at-sign" width="18" height="18" />
-            </button>
+            <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('chat.composer.mention')" :disabled="isEditing">
+              <Icon icon="lucide:at-sign" />
+            </XhButton>
           </XhPopoverTrigger>
           <XhPopoverPositioner>
             <XhPopoverContent :aria-label="t('chat.composer.mention')">
@@ -763,40 +758,15 @@ function handlePaste(event: ClipboardEvent) {
             </XhPopoverContent>
           </XhPopoverPositioner>
         </XhPopoverRoot>
-        <XTooltip :content="t('chat.composer.image')">
-          <button
-            type="button"
-            class="chat-composer-btn"
-            :aria-label="t('chat.composer.image')"
-            :disabled="uploadingPercent != null || isEditing"
-            @click="imageInputRef?.click()"
-          >
-            <Icon icon="lucide:image" width="18" height="18" />
-          </button>
-        </XTooltip>
-        <XTooltip :content="t('chat.composer.file')">
-          <button
-            type="button"
-            class="chat-composer-btn"
-            :aria-label="t('chat.composer.file')"
-            :disabled="uploadingPercent != null || isEditing"
-            @click="fileInputRef?.click()"
-          >
-            <Icon icon="lucide:paperclip" width="18" height="18" />
-          </button>
-        </XTooltip>
-        <XTooltip :content="t('chat.composer.voice')">
-          <button
-            v-if="voice.supported.value"
-            type="button"
-            class="chat-composer-btn"
-            :aria-label="t('chat.composer.voice')"
-            :disabled="uploadingPercent != null || isEditing || sending"
-            @click="enterVoiceMode"
-          >
-            <Icon icon="lucide:mic" width="18" height="18" />
-          </button>
-        </XTooltip>
+        <XIconButton icon="lucide:image" :label="t('chat.composer.image')" :disabled="uploadingPercent != null || isEditing" @click="imageInputRef?.click()" />
+        <XIconButton icon="lucide:paperclip" :label="t('chat.composer.file')" :disabled="uploadingPercent != null || isEditing" @click="fileInputRef?.click()" />
+        <XIconButton
+          v-if="voice.supported.value"
+          icon="lucide:mic"
+          :label="t('chat.composer.voice')"
+          :disabled="uploadingPercent != null || isEditing || sending"
+          @click="enterVoiceMode"
+        />
         <input
           ref="imageInputRef"
           type="file"
@@ -825,9 +795,9 @@ function handlePaste(event: ClipboardEvent) {
             <Icon icon="lucide:file" width="14" height="14" class="shrink-0 text-muted-foreground" />
             <span class="max-w-40 truncate text-xs">{{ attachment.file.name }}</span>
           </template>
-          <button type="button" class="chat-attach-remove" :aria-label="t('chat.thread.remove')" @click="removeAttachment(attachment.id)">
-            <Icon icon="lucide:x" width="10" height="10" />
-          </button>
+          <XhButton variant="solid" tone="neutral" size="sm" icon-only class="chat-attach-remove" :aria-label="t('chat.thread.remove')" @click="removeAttachment(attachment.id)">
+            <Icon icon="lucide:x" />
+          </XhButton>
         </div>
       </div>
 
@@ -902,30 +872,6 @@ function handlePaste(event: ClipboardEvent) {
 
   /* 面板内部是自定义元素、自带方角背景，浮层不裁就会从圆角处顶出来 */
   overflow: hidden;
-}
-
-.chat-composer-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: none;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.chat-composer-btn:hover:not(:disabled) {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
 }
 
 /* ── 语音输入面板 ───────────────────────────────────────────────── */
@@ -1007,42 +953,6 @@ function handlePaste(event: ClipboardEvent) {
   font-variant-numeric: tabular-nums;
 }
 
-.chat-voice-panel__exit {
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: var(--xh-fg-brand);
-  cursor: pointer;
-}
-
-.chat-voice-panel__exit:hover {
-  text-decoration: underline;
-}
-
-.chat-composer-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.chat-composer-inline-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  border-radius: var(--xh-shape-inset);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.chat-composer-inline-btn:hover {
-  background: var(--xh-bg-subtle-hover);
-}
-
 .chat-mention-item {
   display: flex;
   gap: var(--xh-space-2);
@@ -1079,27 +989,6 @@ function handlePaste(event: ClipboardEvent) {
   border-radius: var(--xh-shape-inset);
 }
 
-.chat-attach-remove {
-  position: absolute;
-  top: -6px;
-  inset-inline-end: -6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: var(--xh-shape-pill);
-  background: color-mix(in srgb, var(--xh-fg-default) 70%, transparent);
-  color: var(--xh-bg-surface);
-  cursor: pointer;
-}
-
-.chat-attach-remove:hover {
-  background: var(--xh-fg-danger);
-}
-
 /* 发送分体按钮：主按钮 + 模式箭头拼接（QQ 式） */
 .chat-send-group {
   display: inline-flex;
@@ -1117,5 +1006,24 @@ function handlePaste(event: ClipboardEvent) {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-left: 1px solid color-mix(in srgb, var(--xh-fg-on-brand) 30%, transparent);
+}
+
+/* 编辑、回复横条上的关闭钮：组件库的纯图标钮压小一档，盒取 lg 字形档、字形取 xs 档，经按钮的公开槽给 */
+.chat-composer-inline-btn {
+  --xh-button-h: var(--xh-glyph-size-lg);
+  --xh-button-icon-size: var(--xh-glyph-size-xs);
+
+  flex-shrink: 0;
+}
+
+/* 附件角上的移除钮：组件库的实心纯图标钮，压成 sm 字形档的小圆，贴在附件右上角 */
+.chat-attach-remove {
+  --xh-button-h: var(--xh-glyph-size-sm);
+  --xh-button-icon-size: var(--xh-glyph-size-xs);
+  --xh-button-radius: var(--xh-shape-circle);
+
+  position: absolute;
+  top: -6px;
+  inset-inline-end: -6px;
 }
 </style>

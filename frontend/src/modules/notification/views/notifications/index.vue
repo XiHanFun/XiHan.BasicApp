@@ -10,6 +10,7 @@ import type { DeliveryChannel, NotificationRecipientFilter, NotificationTargetTy
 import type { SelectOption } from '~/types'
 import type { NotificationContentFormat as ShellContentFormat } from '~/types/enums'
 import {
+  XhButton,
   XhCheckboxGroupIndicator,
   XhCheckboxGroupItem,
   XhCheckboxGroupItemText,
@@ -932,14 +933,14 @@ async function exportUnread() {
             <div class="notification-stats__ops">
               <XPopconfirm v-if="canRemind" :description="t('notification.notifications.stats_remind_confirm', { count: readStats.unreadCount })" @confirm="confirmRemind">
                 <template #trigger>
-                  <button type="button" class="xh-linklike-trigger" :disabled="remindLoading">
+                  <XhButton variant="link" size="sm" class="xh-link-button" :loading="remindLoading">
                     {{ t('notification.notifications.stats_remind') }}
-                  </button>
+                  </XhButton>
                 </template>
               </XPopconfirm>
-              <button type="button" class="xh-linklike-trigger" :disabled="exportLoading" @click="exportUnread">
+              <XhButton variant="link" size="sm" class="xh-link-button" :loading="exportLoading" @click="exportUnread">
                 {{ t('notification.notifications.stats_export') }}
-              </button>
+              </XhButton>
             </div>
             <!-- 接收人员 -->
             <div class="notification-stats__section">

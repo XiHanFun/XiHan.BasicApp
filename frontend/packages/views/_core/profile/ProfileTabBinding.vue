@@ -197,9 +197,11 @@ onMounted(() => {
                 </div>
               </div>
               <XhPopconfirmRoot v-if="provider.linked" @confirm="handleUnlinkAccount(provider.linked.provider)">
-                <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
-                <XhPopconfirmTrigger class="xh-linklike-trigger">
-                  {{ t('component.profile.binding.btn_unbind') }}
+                <!-- 触发器合到按钮上（as-child），不往触发器渲染出的 button 里再套一颗 -->
+                <XhPopconfirmTrigger as-child>
+                  <XhButton variant="link" size="sm" class="xh-link-button">
+                    {{ t('component.profile.binding.btn_unbind') }}
+                  </XhButton>
                 </XhPopconfirmTrigger>
                 <XhPopconfirmPositioner>
                   <XhPopconfirmContent>

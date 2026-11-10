@@ -6,6 +6,7 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
 import type { ChatConversationType } from '~/contracts'
+import { XhButton } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -392,12 +393,12 @@ async function handleDownload(fileId: string) {
         <template v-if="message.failed">
           <Icon icon="lucide:circle-alert" width="12" height="12" class="text-destructive" />
           <span class="text-destructive">{{ t('chat.thread.send_failed') }}</span>
-          <button type="button" class="chat-meta-action" @click="emit('retry')">
+          <XhButton variant="link" size="sm" class="xh-link-button chat-meta-link" @click="emit('retry')">
             {{ t('chat.thread.resend') }}
-          </button>
-          <button type="button" class="chat-meta-action" @click="emit('remove')">
+          </XhButton>
+          <XhButton variant="link" size="sm" class="xh-link-button chat-meta-link" @click="emit('remove')">
             {{ t('chat.thread.remove') }}
-          </button>
+          </XhButton>
         </template>
         <template v-else-if="message.pending">
           <Icon icon="lucide:loader-circle" width="12" height="12" class="animate-spin" />
@@ -593,18 +594,8 @@ async function handleDownload(fileId: string) {
   background: color-mix(in srgb, var(--xh-fg-brand) 10%, transparent);
 }
 
-.chat-meta-action {
-  display: inline-flex;
-  align-items: center;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--xh-fg-brand);
-  font-size: var(--xh-font-size-xs);
-  cursor: pointer;
-}
-
-.chat-meta-action:hover {
-  text-decoration: underline;
+/* 元信息行里的文字链：字号随这一行压到 xs，经按钮的公开槽给 */
+.chat-meta-link {
+  --xh-button-font-size: var(--xh-font-size-xs);
 }
 </style>

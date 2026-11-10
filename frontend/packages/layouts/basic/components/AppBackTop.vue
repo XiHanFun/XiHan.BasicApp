@@ -8,7 +8,7 @@ import { ref, shallowRef, watch } from 'vue'
 import { scrollRootRef } from '~/composables/useScrollRoot'
 import { Icon } from '~/iconify'
 
-defineOptions({ name: 'XihanBackTop' })
+defineOptions({ name: 'AppBackTop' })
 
 // 真正在滚的那个容器由布局登记，交给组件库当滚动源
 const target = shallowRef<HTMLElement | null>(scrollRootRef.value)

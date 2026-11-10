@@ -4,10 +4,11 @@
 -->
 
 <script lang="ts" setup>
-import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import XIconButton from '~/components/common/XIconButton.vue'
 import { ensurePinyin, getPinyinIndex, usePinyinReady } from '~/composables/usePinyin'
 import { usePageScrollLock } from '~/composables/useScrollLock'
 import { Icon } from '~/iconify'
@@ -262,9 +263,7 @@ function onKeydown(e: KeyboardEvent): void {
                 @keydown="onKeydown"
               >
             </div>
-            <button type="button" class="tab-ov__close-btn" :aria-label="t('tabbar.close')" @click="close">
-              <Icon icon="lucide:x" width="17" height="17" />
-            </button>
+            <XIconButton icon="lucide:x" :label="t('tabbar.close')" class="tab-ov__close-btn" @click="close" />
           </div>
 
           <!-- 卡片网格 -->
@@ -301,15 +300,12 @@ function onKeydown(e: KeyboardEvent): void {
               <span v-if="card.pinned" class="tab-ov-card__pin">
                 <Icon icon="lucide:pin" width="11" height="11" />
               </span>
-              <button
-                v-if="card.closable"
-                type="button"
-                class="tab-ov-card__close"
-                :aria-label="t('tabbar.close')"
-                @click="(e) => closeTab(card, e)"
-              >
-                <Icon icon="lucide:x" width="13" height="13" />
-              </button>
+              <!-- 悬停或聚焦卡片才露出：显隐与定位落在外层，不在组件库按钮的根上写过渡 -->
+              <span v-if="card.closable" class="tab-ov-card__close">
+                <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn tab-ov-card__close-btn" :aria-label="t('tabbar.close')" @click="(e: MouseEvent) => closeTab(card, e)">
+                  <Icon icon="lucide:x" />
+                </XhButton>
+              </span>
             </XhSortableItem>
 
             <XhEmptyStateRoot v-if="!filteredCards.length" class="tab-ov__empty">
@@ -414,25 +410,6 @@ function onKeydown(e: KeyboardEvent): void {
   font-size: var(--xh-font-size-md);
 }
 
-.tab-ov__close-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin-inline-start: auto;
-  border: none;
-  border-radius: var(--xh-shape-pill);
-  background: color-mix(in oklab, var(--tab-ov-ink) 14%, transparent);
-  color: var(--tab-ov-ink);
-  cursor: pointer;
-  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.tab-ov__close-btn:hover {
-  background: color-mix(in oklab, var(--tab-ov-ink) 26%, transparent);
-}
-
 .tab-ov__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -505,35 +482,10 @@ function onKeydown(e: KeyboardEvent): void {
   color: var(--xh-fg-muted);
 }
 
-.tab-ov-card__close {
-  position: absolute;
-  top: 8px;
-  inset-inline-end: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: none;
-  border-radius: var(--xh-shape-pill);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
 .tab-ov-card:hover .tab-ov-card__close,
-.tab-ov-card.is-focused .tab-ov-card__close {
+.tab-ov-card.is-focused .tab-ov-card__close,
+.tab-ov-card__close:focus-within {
   opacity: 1;
-}
-
-.tab-ov-card__close:hover {
-  background: color-mix(in srgb, var(--xh-fg-danger) 12%, transparent);
-  color: var(--xh-fg-danger);
 }
 
 /* 拖拽中 */
@@ -589,5 +541,26 @@ function onKeydown(e: KeyboardEvent): void {
     opacity: 0;
     transform: translateY(14px) scale(0.94);
   }
+}
+
+/* 总览右上角的关闭钮：组件库纯图标钮，推到这一行末尾 */
+.tab-ov__close-btn {
+  margin-inline-start: auto;
+}
+
+/* 卡片角上的关闭：外层定位、悬停露出 */
+.tab-ov-card__close {
+  position: absolute;
+  inset-block-start: var(--xh-space-2);
+  inset-inline-end: var(--xh-space-2);
+  display: inline-flex;
+  opacity: 0;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+/* 组件库纯图标钮压小一档：盒取 lg 字形档、字形取 xs 档，经按钮的公开槽给 */
+.tab-ov-card__close-btn {
+  --xh-button-h: var(--xh-glyph-size-lg);
+  --xh-button-icon-size: var(--xh-glyph-size-xs);
 }
 </style>

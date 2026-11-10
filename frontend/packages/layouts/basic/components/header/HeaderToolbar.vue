@@ -15,7 +15,7 @@ import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { Icon } from '~/iconify'
 import { useShellExtensions } from '~/stores'
 import { useWidgetPlacement } from '../../composables'
-import XihanIconButton from '../XihanIconButton.vue'
+import AppIconButton from '../AppIconButton.vue'
 import HeaderSearchTrigger from './HeaderSearchTrigger.vue'
 import NotificationPopover from './NotificationPopover.vue'
 
@@ -63,9 +63,9 @@ const placement = useWidgetPlacement()
       variant="dropdown"
       apply
     >
-      <XihanIconButton class="mr-1" :tooltip="t('header.toolbar.switch_language')">
+      <AppIconButton class="mr-1" :tooltip="t('header.toolbar.switch_language')">
         <Icon icon="lucide:languages" width="16" height="16" />
-      </XihanIconButton>
+      </AppIconButton>
     </LocaleSwitcher>
 
     <!-- 时区切换 -->
@@ -74,13 +74,13 @@ const placement = useWidgetPlacement()
       variant="dropdown"
       apply
     >
-      <XihanIconButton class="mr-1" :tooltip="t('header.toolbar.switch_timezone')">
+      <AppIconButton class="mr-1" :tooltip="t('header.toolbar.switch_timezone')">
         <Icon icon="lucide:clock-3" width="16" height="16" />
-      </XihanIconButton>
+      </AppIconButton>
     </TimezoneSwitcher>
 
     <!-- 主题切换 -->
-    <XihanIconButton
+    <AppIconButton
       v-if="placement.theme.value === 'header'"
       class="mr-1"
       :tooltip="props.isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
@@ -97,10 +97,10 @@ const placement = useWidgetPlacement()
           />
         </Transition>
       </span>
-    </XihanIconButton>
+    </AppIconButton>
 
     <!-- 全屏 -->
-    <XihanIconButton
+    <AppIconButton
       v-if="placement.fullscreen.value === 'header'"
       class="mr-1"
       :tooltip="props.isFullscreen ? t('header.toolbar.fullscreen_exit') : t('header.toolbar.fullscreen_enter')"
@@ -116,10 +116,10 @@ const placement = useWidgetPlacement()
           />
         </Transition>
       </span>
-    </XihanIconButton>
+    </AppIconButton>
 
     <!-- 偏好设置 -->
-    <XihanIconButton
+    <AppIconButton
       v-if="props.showPreferencesInHeader !== false"
       class="mr-1"
       :tooltip="t('header.toolbar.preferences')"
@@ -127,7 +127,7 @@ const placement = useWidgetPlacement()
       @click="emit('preferencesOpen')"
     >
       <Icon icon="lucide:settings-2" width="16" height="16" />
-    </XihanIconButton>
+    </AppIconButton>
 
     <!-- 分割线 -->
     <div class="mx-1 h-4 w-px bg-border" />
@@ -152,21 +152,22 @@ const placement = useWidgetPlacement()
     />
 
     <!-- 当前上下文：平台或租户名，点击进控制中心切换。皮肤与其它顶栏图标钮同一套，只是带上文字 -->
-    <XihanIconButton
+    <AppIconButton
       v-if="props.contextLabel"
-      class="xihan-icon-btn--labeled mr-1"
+      labeled
+      class="mr-1"
       :tooltip="t('header.context.switch', { name: props.contextLabel })"
       @click="emit('userAction', 'control-center')"
     >
       <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
       <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
       <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
-    </XihanIconButton>
+    </AppIconButton>
 
     <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致
          窄屏只剩头像，名字经 tooltip 进 aria-label：菜单触发钮任何宽度下都有名字 -->
     <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
-      <XihanIconButton class="xihan-icon-btn--labeled ml-1" :tooltip="props.userStore.nickname || props.userStore.username">
+      <AppIconButton labeled class="ml-1" :tooltip="props.userStore.nickname || props.userStore.username">
         <XUserAvatar
           :size="24"
           :avatar="props.userStore.avatar"
@@ -176,7 +177,7 @@ const placement = useWidgetPlacement()
           {{ props.userStore.nickname || props.userStore.username }}
         </span>
         <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
-      </XihanIconButton>
+      </AppIconButton>
     </XDropdown>
   </div>
 </template>

@@ -37,6 +37,7 @@ import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
 import { Icon } from '~/iconify'
 import { NotificationStatus, NotificationType } from '~/types/enums'
+import AppIconButton from '../AppIconButton.vue'
 
 defineOptions({ name: 'NotificationPopover' })
 
@@ -168,16 +169,18 @@ function handleItemClick(item: NotificationItem) {
       <XhTooltipRoot>
         <XhTooltipTrigger as-child>
           <!-- 气泡只是描述，图标钮的名字自己给；未读数随名字一起念 -->
-          <XhPopoverTrigger class="xihan-icon-btn notification-btn mr-1" :aria-label="bellLabel">
-            <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
-            <XhBadge
-              size="sm"
-              tone="danger"
-              :count="props.unreadCount"
-              :label="t('header.notification.unread_label', { n: props.unreadCount })"
-            >
-              <Icon icon="lucide:bell" width="16" height="16" />
-            </XhBadge>
+          <XhPopoverTrigger as-child>
+            <AppIconButton class="mr-1" :aria-label="bellLabel">
+              <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
+              <XhBadge
+                size="sm"
+                tone="danger"
+                :count="props.unreadCount"
+                :label="t('header.notification.unread_label', { n: props.unreadCount })"
+              >
+                <Icon icon="lucide:bell" width="16" height="16" />
+              </XhBadge>
+            </AppIconButton>
           </XhPopoverTrigger>
         </XhTooltipTrigger>
         <XhTooltipPositioner>

@@ -9,6 +9,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XTooltip from '~/components/common/XTooltip.vue'
 import { Icon } from '~/iconify'
+import AppIconButton from '~/layouts/basic/components/AppIconButton.vue'
 import { useUserStore } from '~/stores'
 import { CHAT_PERMISSIONS } from '../constants'
 import { useChatStore } from '../store'
@@ -31,10 +32,9 @@ const buttonLabel = computed(() =>
 
 <template>
   <XTooltip :content="t('chat.bell')">
-    <button
+    <AppIconButton
       v-if="visible"
-      type="button"
-      class="xihan-icon-btn chat-header-btn mr-1"
+      class="chat-header-btn mr-1"
       :aria-label="buttonLabel"
       @click="(event: MouseEvent) => chatStore.requestOpenChatPanel(event.currentTarget as HTMLElement)"
     >
@@ -48,12 +48,12 @@ const buttonLabel = computed(() =>
       >
         <Icon icon="lucide:messages-square" width="16" height="16" />
       </XhBadge>
-    </button>
+    </AppIconButton>
   </XTooltip>
 </template>
 
 <style scoped>
-/* 皮肤走全局 .xihan-icon-btn；角标的定位与尺寸归组件库的 Badge，这里不再另画一套 */
+/* 顶栏图标钮（AppIconButton）；角标的定位与尺寸归组件库的 Badge，这里不再另画一套 */
 .chat-header-btn {
   position: relative;
 }

@@ -161,9 +161,11 @@ onMounted(loadSessions)
                 </XhTagLabel>
               </XhTagRoot>
               <XhPopconfirmRoot v-else @confirm="handleRevokeSession(s.sessionId)">
-                <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
-                <XhPopconfirmTrigger class="xh-linklike-trigger xh-linklike-trigger--danger">
-                  {{ t('component.profile.devices.btn_kick') }}
+                <!-- 触发器合到按钮上（as-child），不往触发器渲染出的 button 里再套一颗 -->
+                <XhPopconfirmTrigger as-child>
+                  <XhButton variant="link" tone="danger" size="sm" class="xh-link-button">
+                    {{ t('component.profile.devices.btn_kick') }}
+                  </XhButton>
                 </XhPopconfirmTrigger>
                 <XhPopconfirmPositioner>
                   <XhPopconfirmContent>

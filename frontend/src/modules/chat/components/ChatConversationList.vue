@@ -6,12 +6,12 @@
 <script setup lang="ts">
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { AppDropdownOption } from '~/types'
-import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XDropdown from '~/components/common/XDropdown.vue'
+import XIconButton from '~/components/common/XIconButton.vue'
 import XInput from '~/components/common/XInput.vue'
-import XTooltip from '~/components/common/XTooltip.vue'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { getChatAssistantProvider, useUserStore } from '~/stores'
@@ -170,16 +170,12 @@ function handleItemAction(key: string) {
           <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
         </template>
       </XInput>
-      <XTooltip :content="t('chat.list.refresh')">
-        <button type="button" class="chat-icon-btn" :aria-label="t('chat.list.refresh')" @click="handleRefresh">
-          <Icon icon="lucide:refresh-cw" width="15" height="15" />
-        </button>
-      </XTooltip>
-      <!-- 下拉与气泡叠在同一颗按钮上：菜单触发器借用它，说明文字走原生 title -->
+      <XIconButton icon="lucide:refresh-cw" :label="t('chat.list.refresh')" @click="handleRefresh" />
+      <!-- 菜单触发器合到纯图标钮上；名字由 aria-label 给，菜单本身已说明这颗钮做什么 -->
       <XDropdown :options="startOptions" @select="handleStartSelect" @open-change="handleStartMenuOpen">
-        <button type="button" class="chat-icon-btn" :title="t('chat.start.button')" :aria-label="t('chat.start.button')">
-          <Icon icon="lucide:message-square-plus" width="15" height="15" />
-        </button>
+        <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('chat.start.button')">
+          <Icon icon="lucide:message-square-plus" />
+        </XhButton>
       </XDropdown>
     </div>
 
@@ -290,29 +286,6 @@ function handleItemAction(key: string) {
   font-size: var(--xh-font-size-xs);
   line-height: 16px;
   text-align: center;
-}
-
-.chat-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: var(--xh-shape-control);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.chat-icon-btn:hover {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
 }
 
 .chat-conv-item {
