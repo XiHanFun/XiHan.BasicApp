@@ -105,8 +105,7 @@ AI 问答：[Zread](https://zread.ai/XiHanFun/XiHan.BasicApp) · [DeepWiki](http
 
 | 项目 | 借鉴 |
 | --- | --- |
-| [Blog.Core](https://github.com/anjoy8/Blog.Core) | 后端启蒙项目，部分架构与功能的灵感来源 |
-| [VbenAdmin](https://github.com/vbenjs/vue-vben-admin) | 前端启蒙项目，部分架构与视觉的灵感来源 |
+| [VbenAdmin](https://github.com/vbenjs/vue-vben-admin) | 部分架构与视觉的灵感来源 |
 | [SoybeanAdmin](https://github.com/soybeanjs/soybean-admin)、[LitheAdmin](https://github.com/tenianon/lithe-admin) | 部分前端视觉的灵感来源 |
 | [Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore)、[YuebonCore](https://gitee.com/yuebon/YuebonNetCore) | 部分后端功能的灵感来源 |
 | [NaiveUI](https://github.com/tusen-ai/naive-ui) | 早期前端视图组件 |

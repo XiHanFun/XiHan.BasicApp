@@ -105,7 +105,6 @@ Ask an AI: [Zread](https://zread.ai/XiHanFun/XiHan.BasicApp) · [DeepWiki](https
 
 | Project | Influence |
 | --- | --- |
-| [Blog.Core](https://github.com/anjoy8/Blog.Core) | The backend project that started it all, inspiring parts of the architecture and features |
 | [VbenAdmin](https://github.com/vbenjs/vue-vben-admin) | The frontend project that started it all, inspiring parts of the architecture and visuals |
 | [SoybeanAdmin](https://github.com/soybeanjs/soybean-admin), [LitheAdmin](https://github.com/tenianon/lithe-admin) | Inspiration for parts of the frontend visuals |
 | [Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore), [YuebonCore](https://gitee.com/yuebon/YuebonNetCore) | Inspiration for parts of the backend features |
