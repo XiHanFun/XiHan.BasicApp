@@ -2,69 +2,100 @@
 
 # 打印模板
 
-打印能力由独立模块 `modules/XiHan.BasicApp.Printing` 承载（后端）与 `frontend/src/modules/printing` + `@xihan/printing` 功能包承载（前端）：可视化设计打印模板、按编码解析、浏览器预览打印与本机静默直打。不需要此能力的部署可整体卸载模块（见仓库 README「卸载可选模块」）。
+本页说明打印模板的作用域、数据源登记、操作与权限、演示数据和模块开关，适用于接入单据打印的后端与前端开发者。
 
-## 能力与边界
+Printing 是 Tier 3 的可选模块（`BasicApp:Modules:Printing:Enabled`，缺省开）：后端只存模板的设计 JSON、按编码解析模板、提供数据源目录；设计、样例数据、预览与打印都在浏览器里完成，本包没有作业与普通端点。
 
-| 能力 | 依赖 | 说明 |
-| --- | --- | --- |
-| 模板设计器 | 仅浏览器 | [XiHan 打印设计器](https://print.docs.xihanfun.com) 可视化设计，模板 JSON（`schemaVersion` 为 1 的打印模板）存 `Sys_Print_Template` |
-| 浏览器打印 | 仅浏览器 | `previewPrintByCode` 在看不见的 iframe 里排好输出页再调起浏览器打印对话框，任何部署形态可用；传对象数组时各自分页后一次打印 |
-| 打印机列表 / 静默直打 | **XiHan 打印客户端** | `listPrinters` / `refreshPrinters` / `directPrintByCode` 要求每台操作机安装并运行 [打印客户端](https://print.docs.xihanfun.com/guide/client)，前端经本机 WebSocket 连接；连不上、未授权或打印机出错时这三条路径按错误码明确报错，不退回浏览器打印 |
+## 作用域
 
-::: warning 部署前提
-静默直打是**企业内网桌面场景**的能力：纯 Web 部署（用户不装桌面客户端）只有设计器与浏览器打印可用。网站第一次连接时，客户端在桌面上弹出授权窗口，允许后才能打印。生产站点要用 HTTPS；Chrome / Edge 访问本机应用要先过浏览器的本机网络访问授权，嵌在 iframe 里时每层都要允许 `loopback-network`。
-:::
+模板 `SysPrintTemplate` 是平台库实体（实现 `IOwnedByTenant`）：`ownerTenantId` 为 `platform` 的是平台全局模板，否则是该租户的私有模板。独立库的租户也读写平台库里的这张表。
 
-## 作用域模型
+| 规则 | 说明 |
+| --- | --- |
+| 编码 | 不含空白、不超过 100 个字符，所属一侧内唯一（部分唯一索引，删了可以重建），创建后不可改 |
+| 数据源 | 可空：空即自由模板；非空时必须已登记（`PRINTING_VALIDATION_003`） |
+| 模板 JSON | 只做最小结构校验：根是对象、`schemaVersion` 是数字 1、`pages` 是非空的对象数组（`PRINTING_VALIDATION_002`），其余原样保存；完整校验由设计器做 |
+| 开放给租户 | 只对全局模板有意义，租户模板恒为否 |
+| 删除 | 只能删已停用的（`PRINTING_CONFLICT_002`），软删除 |
+| 并发 | 修改与启停要交回读到的 `concurrencyStamp`，与当前的不同即 409 `PERSISTENCE_CONFLICT_*` |
 
-模板分两种作用域，解析顺序由 `PrintTemplateScope` 控制（`Application/Services/PrintTemplateResolver.cs`）：
+按编码解析（`print-templates.resolve`）的作用域：
 
-- **Tenant**：租户私有模板，`TenantId` = 当前租户；
-- **Global**：平台全局模板（`TenantId = 0`），`AllowTenantUse = true` 时对业务租户开放解析；
-- **Auto**（默认）：先找租户私有，未命中回退开放的全局模板。
-
-同租户内启用模板的 `TemplateCode` 唯一；解析结果带分布式缓存（30 分钟，写路径经事务感知失效器整体清除）。
-
-## 权限码
-
-前缀 `print-template:`（`Domain/Permissions/PrintingPermissionCodes.cs`）：`read` / `create` / `update` / `status` / `delete` / `use` 两侧生效、可授予租户（租户角色与套餐白名单由运营授予；演示数据里的租户管理员角色取租户能生效的全部权限）；`global-manage` 作用侧为平台（管理全局模板与租户开放状态；由权限种子声明，只在平台生效、进不了套餐白名单）。
-
-## 数据源目录
-
-模板可绑定「代码注册数据源」获得字段素材与样例数据：字段列在设计器物料面板的「字段」一组，拖上画布就是绑好的元素（图片、条码、二维码字段生成对应元素，明细表生成表格）。目录以**后端注册表为单一事实源**（`Domain/DataSources/IPrintDataSourceRegistry`）：
-
-- **注册**：业务模块在自己的 `ConfigureServices` 中调 `services.RegisterPrintDataSource(definition)` 登记定义（字段契约 + 静态样例 JSON）；打印模块内置示例数据源 `system.print-demo` 随模块自注册。
-- **启动期校验**：应用启动即收纳全部登记项，重复编码、非法字段契约（未知类型/重复字段/空列明细/非法控件类型）、坏样例 JSON（不可解析或根节点不是对象/数组）都会让启动直接失败。
-- **查询**：`GET /PrintDataSourceQuery/List` 输出目录，持 `print-template:read` 或 `print-template:use` 任一权限即可访问（分别服务模板管理与业务打印两条路径）。
-- **写路径 fail-closed**：创建/更新模板时绑定未注册的 `DataSourceCode` 直接被拒；解析读路径不校验（既有模板宽限，前端打印使用点仍会按未注册报错）。
-- **前端惰性拉取**：设计器与打印路径首次用到目录时经上面的查询端点拉取并并入本地注册表（自由模板打印不依赖目录）；`registerPrintDataSource` 仍可用于纯前端数据源；单个坏目录项只跳过自身、不影响其余数据源。
-
-由此推出的两条约束：
-
-- 数据源随后端代码发版，删除/改名会使既有模板的绑定失效（打印时报「数据源未注册」）；
-- 不绑数据源的「自由模板」不受上述影响：直打按空记录打印，样例预览的表单按模板引用的字段生成。
-
-绑定了数据源时，模板引用了、数据源却没登记的字段在模板设置里提示数量（不阻断保存与打印，调用方要传这些字段），样例预览的表单也为它们单独列出输入项。
-
-模板 JSON 的服务端校验只做最小结构检查（JSON 对象、`schemaVersion` 为 1、`pages` 是非空的对象数组），完整校验在前端保存前由设计器做。库里存着旧格式内容的模板，打印时明确报格式错误；在打印模板页打开时换成空白模板并提示，重新设计保存后覆盖。
-
-## 演示模板
-
-配置 `Saas:Seed:EnableDemoData` 为 `true` 时，打印模块多注册五个演示数据源，并写入六张平台全局模板（`TenantId = 0`、对租户开放、启用）；开关关着时数据源目录里没有它们，库里也不写这些模板。种子按模板编码先查后写，重复启动不重复插入，已有的模板不改、删掉的不补回。
-
-| 模板编码 | 名称 | 所绑数据源 | 演示什么 |
+| 请求一侧 | `Auto` | `Tenant` | `Global` |
 | --- | --- | --- | --- |
-| `demo.pickup-receipt` | 取件凭条 | `demo.pickup-receipt` | 最小模板：模板文字、放不下时缩小字号 |
-| `demo.delivery-note` | 送货单 | `demo.delivery-note` | 页眉标题、页码、日期格式、明细表跨页、序号列与合计行 |
-| `demo.formats` | 格式示例 | `demo.formats` | 数字、百分比、日期、人民币大写、中文数字、值映射、表达式、空值与占位模板 |
-| `demo.inspection` | 设备巡检记录 | `demo.inspection` | 首页页眉、长文本、表头每页重复、本页计数、带数据占位的水印 |
-| `demo.outage-notice` | 停电检修通知 | `demo.outage-notice` | 静态富文本与行内字段，数据里的 HTML 排成富文本（样例故意带的脚本被丢弃） |
-| `demo.element-overview` | 打印元素总览 | `system.print-demo` | 全部元素种类；七种条码与四种二维码；直线、矩形、椭圆；表格里的条码列与补空行；首页、奇偶、末页的页眉页脚；两个页面模板接续页码；水印与只在预览中显示的元素 |
+| 平台 | 启用的全局模板，不要求开放 | 400 `PRINTING_VALIDATION_004` | 同 `Auto` |
+| 租户 | 先取本租户启用的，没有（或已停用）再取启用且开放的全局模板 | 只取本租户启用的，不回退 | 只取启用且开放的全局模板 |
 
-前五张对应[打印设计器文档站](https://print.docs.xihanfun.com)的模板示例，数据源的样例数据就是示例里的数据。模板与数据源放在 `Infrastructure/Seeders/Demo/` 下随程序集发布；前端 `packages/printing/demo-templates.test.ts` 读同一批文件，核对每张模板通过设计器的完整校验、按样例数据排版不出错误级诊断（条码与二维码取值不合法、图片地址不安全、表达式出错，在预览里都是报错占位）、引用的字段都在所绑数据源里登记。
+解析不到即 404 `PRINTING_NOTFOUND_002`。各侧「某编码的启用模板」进共享缓存（键 `printing:templates:<侧>:<编码>`，30 分钟，「没有」也缓存），模板写入后在事务提交之后失效对应的那一项。
 
-## 已知限制
+## 数据源
 
-- `previewPrintByCode` 的完成信号仅表示打印对话框已调起，无法得知用户在系统对话框中点了打印还是取消；
-- 直打依赖的打印机名单来自客户端所在机器，跨机器无共享；打印机偏好存浏览器 `localStorage`（按 用户×租户×模板 隔离，不上传服务端）。
+数据源只是元数据：字段契约与静态样例，后端不取业务数据，真实打印数据由前端调用方传给打印服务。业务包在自己的 `Configure` 里经 `Contracts` 登记：
+
+```csharp
+context.Services.AddPrintDataSource(new PrintDataSourceDefinition(
+    "sales.order",
+    "销售订单",
+    [
+        new("orderNo", "订单号"),
+        new("qr", "订单二维码", PrintFieldKinds.QrCode),
+        new("items", "明细", PrintFieldKinds.Table, [new("sku", "物料"), new("quantity", "数量", 60, "number")]),
+    ],
+    """{ "orderNo": "SO-0001", "qr": "SO-0001", "items": [] }"""));
+```
+
+Printing 的注册表在启动时收下全部登记并校验，编码重复或契约不合法即启动失败：
+
+| 项 | 规则 |
+| --- | --- |
+| 编码 / 字段键 | 不超过 100 个字符、不含空白，字段键在本数据源里唯一 |
+| 样例 | 根是对象或数组的 JSON |
+| 字段种类 | `text`、`image`、`barcode`、`qrcode`、`table`；只有 `table` 能带列，且至少一列、列不重复 |
+| 样例控件 | `boolean`、`date`、`datetime`、`number`、`text`、`textarea`，不写即按样例值推断 |
+
+内置数据源 `system.print-demo`（全部字段种类的样板）总会登记。Printing 关掉时登记照样无害，没有消费方。
+
+## 操作与权限
+
+| 操作 | 路由 | 权限 |
+| --- | --- | --- |
+| `print-templates.list` | `POST /api/print-templates:list` | `read` |
+| `print-templates.get` | `GET /api/print-templates/{id}` | `read` |
+| `print-templates.resolve` | `GET /api/print-templates:resolve?templateCode=&scope=` | `use` |
+| `print-templates.create` | `POST /api/print-templates` | `create` |
+| `print-templates.update` | `PUT /api/print-templates/{id}` | `update` |
+| `print-templates.set-status` | `POST /api/print-templates/{id}:set-status` | `status` |
+| `print-templates.delete` | `DELETE /api/print-templates?ids=` | `delete` |
+| `print-data-sources.list` | `GET /api/print-data-sources` | `read` 或 `use` 其一（策略 `printing.data-source-catalog`） |
+
+权限码 `printing.print-templates.{read,create,update,status,delete,use}` 两侧都有，`printing.print-templates.global-manage` 只在平台一侧：平台维护全局模板要同时持有对应的写权限与全局管理（`PRINTING_DENIED_001`）。写入一律写在调用方这一侧。
+
+列表的作用域用筛选 `scope`（`eq`）：平台只有全局模板（全部状态）；租户缺省看本租户的，`Global` 看启用且开放的全局模板。租户读不开放或已停用的全局模板详情即 403 `PRINTING_DENIED_002`，别的租户的模板当作不存在。可筛选 `templateCode`、`templateName`、`dataSourceCode`、`status`、`allowTenantUse`，排序 `templateCode`、`templateName`、`dataSourceCode`、`status`、`order`、`createdAt`。模板实体登记了字段安全。
+
+## 演示数据
+
+`BasicApp:Seed:EnableDemoData` 打开时：
+
+- 登记 5 个演示数据源：`demo.pickup-receipt`、`demo.delivery-note`、`demo.formats`、`demo.inspection`、`demo.outage-notice`；
+- 种子 `printing.demo`（号段 950）写 6 张平台全局模板，向租户开放、启用：上面 5 个各一张，外加绑 `system.print-demo` 的「打印元素总览」。按编码先查后写（含已删除的），已有的不改、删掉的不补回。
+
+演示数据源与模板是嵌入的 `Seeds/Demo/DataSources`、`Seeds/Demo/Templates`，五张模板对应打印设计器文档站的示例；前端单测读同一批文件，核对每张模板都能通过设计器的完整校验、按样例排版不出错误级诊断。
+
+## 前端
+
+- 页面 `printing.print-templates`（路由 `/printing/print-templates`）在 `src/modules/printing`：平台管全局模板，租户在「本租户模板」与「可用全局模板」之间切换；新增与编辑元数据在弹窗里，版面在全屏设计器里改，另有样例数据预览与直打。
+- `setup.ts` 调 `configurePrinting`：`resolveTemplate` 接 `print-templates.resolve`，`listDataSources` 接 `print-data-sources.list`。业务页面打印单据用 `~/printing` 的 `previewPrintByCode(code, data)` 或 `directPrintByCode`。
+- 设计器 `@xihan-print/*`（文档见 [print.docs.xihanfun.com](https://print.docs.xihanfun.com)）经 `packages/printing` 接入，设计器共用的接线（跟随应用语言、属性编辑器、宿主命令图标、菜单栏标题与状态栏）在 `packages/designers`，流程设计器随 Workflow 接到同一处。
+- 静默直打依赖每台操作机装 XiHan 打印客户端（本机 WebSocket），连不上时不退回浏览器打印；预览只代表打印对话框已打开，不知道用户最终是打印还是取消。
+
+## 开关
+
+```json
+{ "BasicApp": { "Modules": { "Printing": { "Enabled": false } } } }
+```
+
+关掉后宿主不装 Printing：权限目录、页面登记与操作都不在，菜单种子删掉打印模板页，前端模块随菜单不再出现；其他包登记的数据源没有消费方。
+
+## 下一步
+
+- [架构总览](./introduction) · [功能清单](../features) · [配置参考](../configuration#basicapp-modules)

@@ -2,282 +2,119 @@
 
 # 常见问题
 
-按「**现象 → 原因 → 解决**」组织的高频故障速查表。每条都对照仓库源码核实过，看到相同现象直接照做。
-
-
----
+本页说明运行、认证、权限与接口联调中的常见问题，适用于开发与运维排查。
 
 ## 启动与环境
 
-### 后端和前端各自跑在哪个端口？
+### 后端与前端使用哪些端口？
 
-| 进程 | 端口 | 备注 |
-| --- | --- | --- |
-| 后端 Development | `9708` | API 文档 `http://127.0.0.1:9708/scalar` |
-| 后端 Production | `9709`（launch profile；Docker 镜像内为 `9708`） | 实际以 `Hosting:Urls` 为准，也可由容器端口映射覆盖 |
-| 前端 dev server | `9800` | `VITE_PORT` |
+后端 HTTP `9710`、gRPC `9711`（只监听本机），前端开发服务器 `9100`。以 `appsettings.json` 的 `Kestrel:Endpoints` 与 `frontend/.env` 的 `VITE_PORT` 为准。
 
-开发态前端**不直连后端**：`VITE_API_BASE_URL` 留空，请求打到自己的 dev server，再由 Vite 代理转发到 `VITE_DEV_PROXY_TARGET`（默认 `http://localhost:9708`）——同源转发，天然没有 CORS 问题。
+### 构建或测试报框架相关的错
 
-::: tip 改后端端口后前端连不上
-改的是 `Hosting:Urls` 或 launch profile，别忘了同步改 `frontend/.env.development` 的 `VITE_DEV_PROXY_TARGET`。
-:::
+后端以源码引用同级检出的 XiHan.Framework（`../../XiHan.Framework/framework/src`，相对 `backend/`），并锁定在 `backend/props/framework.props` 的 `XiHanFrameworkCommit`。同级找不到 `framework/src` 时构建会自动改用 NuGet 包，公开面可能与锁定提交不一致。把框架检出到锁定提交；框架在别处时加 `-p:XiHanFrameworkSrc=<检出>/framework/src/`。见[开发环境](./dev-environment#框架检出)。
 
-### 前端报跨域（CORS）
+### `FrameworkPinTests` 失败
 
-生产部署前后端**不同源**时才会遇到。三条路，选一条：
+同级框架检出没有 `framework/src`，或 HEAD 不在锁定提交上。把框架检出到 `XiHanFrameworkCommit` 指定的提交；其他测试不受影响。
 
-1. 前端与 API 同域，由 Nginx 反向代理 `/api`（推荐，仓库自带 `frontend/nginx.conf`）。
-2. 配后端网关的 `Gateway.AllowedOrigins` 放行前端源。
-3. 开发期保持走 Vite 代理，别把 `VITE_API_BASE_URL` 填成后端绝对地址。
+### 宿主启动后立即退出
 
-### 启动报 Redis `WRONGPASS`
+- 日志有 `RUNTIME_VALIDATION_001`：没有配置 `XiHan:Bindings:db`。
+- 日志有 `Startup aborted: schema upgrade failed`：表结构升级脚本执行失败，看后面的错误码与信息；修好后重启即可，台账里记着执行到哪。
+- JWT 密钥或签名地址密钥缺失、不足 32 字节：非 Development 环境必须配 `XiHan:Security:Jwt:Secret` 与 `XiHan:ObjectStorage:SignedUrls:Secret`。
+- 框架节写了空的 `[]` / `{}`：整项删掉，见[配置参考](./configuration#文件与优先级)。
 
-仓库默认连接串用的是 **ACL 用户** `user=redis,password=redis`，而官方 `redis` 镜像默认既无密码也没有名为 `redis` 的用户。按 [开发环境](./dev-environment#redis-6-生产多实例必需) 里的 `docker run` 命令建好同名 ACL 用户即可；本地图省事也可以把 `XiHan:Caching:Redis:IsEnabled` 设为 `false` 退化成进程内内存缓存（会失去分布式缓存/锁/队列）。
+### 表已创建，但无法以 `superadmin` 登录
 
-### 表没建好 / 首次启动就登录不了
+种子不随启动执行，要单独运行一次：
 
-全新数据库首次启动会**自动建表 + 播种子数据**。初始化中途失败时，可在确认没有业务数据后删库重试；存量数据库不要直接删除，应先核对 `UpdateScripts` 与实际迁移入口，见[下文](#部署后接口报-42703-column-does-not-exist)。
+```bash
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
+```
 
-### 初始超管账号是什么？
+### 前端提示跨域错误
 
-| 字段 | 值 |
-| --- | --- |
-| 账号 | `superadmin` |
-| 密码 | `SuperAdmin@123` |
+开发时前端经 Vite 代理访问后端，与后端同源，不应出现跨域。出现了说明 `VITE_API_BASE_URL` 被设成了别的源，留空即可。部署推荐同源；前端放在别的源时，在 `BasicApp:Cors:AllowedOrigins` 列出它，见[部署](./deployment#前端-构建与部署)。
 
-初始密码写在种子里，不走配置；账号标记为需要本人改密，参数「密码设置」（`saas.auth.password`）的 `forceChange` 开启后首次登录即要求修改。**生产首次登录后立即修改。**
+### 是否需要 Redis？
 
-### 演示数据怎么开关
-
-种子分两类：**基础数据**（超管、权限目录、菜单、套餐、参数等，始终播种，是系统运行所需）与**演示数据**（覆盖各种情况的演示租户、组织、角色、账号）。`Saas:Seed:EnableDemoData` 为 `true` 才写演示数据，**缺省或 `false` 都不写**；仓库的开发环境配置开启、生产环境关闭。演示账号密码都是 `Demo@123`，清单见 [框架简介：种子数据](./backend/introduction#演示数据)。
-
----
+不需要。不配连接时缓存与消息走框架的进程内实现，开发与单实例部署零外部依赖。多实例部署时配上 Redis（与 RabbitMQ），宿主自动装上对应 Provider，缓存与消息跨实例共享，实时推送也跨实例，见[部署](./deployment#多实例部署)。
 
 ## 认证与令牌
 
-### 怎么获取 token？
+### 初始超级管理员账号是什么？
 
-`POST /api/Auth/Login`，body 传 `username`（**邮箱**）+ `password`，成功后从 `data.token.accessToken` 取。完整流程（含 2FA 分支、验证码登录、刷新、切租户）与可直接照抄的 curl 见 [接口对接指南 · 怎么获取 token](./api-guide#怎么获取-token-完整实操)。
+开发环境是 `superadmin` / `SuperAdmin@123`，由 `seed` 写入，密码写在 `appsettings.Development.json` 的 `BasicApp:Seed:SuperAdminPassword`。别的环境必须配这一项，否则 `seed` 失败（`IDENTITY_VALIDATION_026`）。首次登录后请修改密码。
 
-### 登录一直提示账号或密码错误
+### 命令行调用登录接口时如何处理验证码？
 
-`username` 字段要传**邮箱**——邮箱是全平台唯一登录标识；只有平台账号（`TenantId=0`，如超管）才可以用用户名登录。
+图形验证码缺省开启（`BasicApp:Auth:CaptchaEnabled`）。先调 `POST /api/auth:captcha` 取 `captchaId` 与图片，或在本机配置里临时关掉。
 
-### 接口一直 401，甚至陷入「刷新 → 401 → 刷新」
+### 登录提示尝试过于频繁
 
-按这个顺序查：
+登录节流：同一账号同一地址每分钟 5 次失败、同一地址跨账号 30 次（`BasicApp:Auth:LoginThrottle*`），超限返回 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`。连续失败达到 `MaxFailedAccessAttempts` 还会锁定账号。
 
-1. 请求头写全了吗：`Authorization: Bearer <accessToken>`，`Bearer` 后有一个空格。
-2. Access Token 默认 60 分钟就过期了，要用 `POST /api/Auth/RefreshToken` 换新，**必须同时提交旧 `accessToken` 与 `refreshToken`**，缺一即失败。
-3. Refresh Token 默认 7 天，过期只能重新登录。
-4. 会话被撤销（管理员踢下线、删除用户、超出最大设备数被顶）后，令牌即便没过期也不再有效。
+### 接口返回 403，`code` 是 `IDENTITY_DENIED_002`
 
-前端 `RequestClient` 已内建自动刷新与并发排队，刷新请求自身带 `_isRefresh` 标记不会再次触发刷新，不存在死循环；如果你在裸调接口，自己实现时也要加这个标记。
+会话被锁定，`details.reason` 说明原因：`ScreenLock` 是锁屏，前端进锁屏界面，调 `auth.unlock` 解锁；`PasswordChangeRequired` 是强制改密（系统参数 `identity.password`），调 `profile.change-password` 改完即解开。
 
-### 接口返回 423，前端弹回了登录页
+### 授予权限后是否需要重新登录？
 
-**423 不是 401**。它表示会话被锁屏——用户身份**仍然有效**，只是当前会话锁住了。正确处理是弹出解锁遮罩、调 `POST /api/Auth/UnlockSession`，**不要**清 token 跳登录页。
+- 授予、Deny、委托：判定时实时查（规则缓存 60 秒、写入方即时失效），不用重新登录。
+- 角色指派：判定用的角色取「令牌里的角色」与「有效指派」的交集，解除立即生效；新增的角色要等下一次刷新令牌才进令牌。
+- 前端菜单与按钮：刷新令牌后会重新取 `auth.permissions`。
 
-### 给用户加了权限，需要重新登录才生效吗？
+### 切换租户是否会结束原来的会话？
 
-**不需要**。权限码不冻结进 JWT（超管例外，只放一个通配 `*` 作快路径），鉴权走服务端**授权快照**实时判定，授予/回收立刻生效。
-
-### 切换租户会不会把我原来的登录顶掉？
-
-不会。切租户是**复用当前会话轮换令牌**：不发登录事件、不新增设备记录。调 `POST /api/Auth/SwitchTenant`，`tenantId` 传 `null` 即回到平台运维态。
-
----
+不会。`auth.switch-tenant` 续用同一个会话，只换令牌；前端换完令牌整页重建。
 
 ## 权限与菜单
 
-### 新加的菜单在前端不显示
+### 新增页面未出现在菜单中
 
-菜单种子是 **fail-closed** 的：`SaasMenuSeeder` 先按 `PermissionCode` 去查 `SysPermission`，**查不到直接报错、启动失败**（错误里写明缺的是哪个权限码）。所以：
+1. 页面要登记在包的 `<包>Pages.cs` 里，并重新执行 `seed`（`access.menus` 种子从页面登记对齐菜单）。
+2. 当前主体要有页面登记里的权限码；租户主体还要被套餐白名单放行。
+3. 页面的作用侧要和当前主体一致（平台 / 租户）。
+4. 页面属于可选模块时，模块要开着（`BasicApp:Modules:<名>:Enabled`）。
 
-1. 权限码得先在 `SaasPermissionCodes` 里定义，并追加进 `All`；
-2. 权限**定义**要加进 `SaasPermissionDefinitions.Groups`（这才是落库的那份），权限目录阶段天然排在菜单阶段之前；
-3. `PageRegistry` 里父目录要排在子项之前（种子按顺序解析 `ParentId`）；
-4. 新增独立的平台模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典；业务模块不写种子，实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 交给 SaaS 的汇总种子（代码生成产出的就是这两个登记类）。
+### 菜单可见但页面显示 404
 
-改完重建库或重跑种子。详见 [二次开发 · 接线点检查清单](./backend/development#接线点检查清单)。
+前端按组件路径精确解析：页面路由 `/identity/users` 的组件是 `identity/users/index`，对应 `src/modules/identity/views/users/index.vue`。文件不在这个位置就落 404 兜底，控制台报错。`pnpm modules:check` 会检查撞键。
 
-### 菜单出来了，但点进去 404 / 白屏
+### 已授予权限码但接口仍返回 403
 
-后端 `PageDescriptor.Component` 决定前端视图落点：约定 `Component` = `Path` 去掉前导斜杠 + `/index`，对应 `frontend/src/views/**/index.vue`，由 `import.meta.glob` 匹配。
+按顺序查：
 
-例外是 `_core` 页面（个人中心、仪表盘、关于页等，落在 `packages/views/_core`）：`Component` 写 `_core/xxx/index`，**必须同时在 `packages/router/dynamic.ts` 的 `coreComponentMap` 里登记**，否则匹配不到组件、回退 not-found。
+1. 有没有 Deny（角色或用户直授上的拒绝压过授予）；
+2. 授予或指派是不是过期了、还没生效；
+3. 租户套餐白名单有没有这个码（套餐门控）；
+4. 权限码的作用侧与当前主体是否一致；
+5. 有没有挂权限条件（ABAC）且这次请求不满足：查「条件命中」日志；
+6. 访问策略是否拦截：查「条件命中」与登录日志。
 
-### 我有这个权限码，接口还是 403
+### 列表字段为空或显示为星号
 
-依次排查：
-
-1. **租户版本（Edition）门控**：租户所属版本的权限白名单没放行该权限码，运行时会被拦掉。
-2. **作用侧**：该权限码不在当前上下文生效（平台侧权限进不了业务租户，反之亦然）。
-3. **模仿登录**：模仿态下禁用清单里的权限码一律拒绝。
-4. **用户直授 Deny**：直授的拒绝优先于任何角色授予。
-5. **权限委托已到期**或被撤销。
-
-数据范围不会导致 403：它目前只收窄用户列表，表现是「有权限但查不到数据」。约束规则也不参与请求期判定，只在分配角色等授权写入时拦截。
-
-完整判定链见 [权限模型](./backend/permission)。
-
-### 列表少了几列 / 排序点了没反应
-
-**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardQueryAsync` 门控，**只有能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
-
----
+字段安全规则命中了：读取方式为隐藏的字段不返回值，部分脱敏的字段打码；受保护的字段也不能筛选和排序。见[数据权限与字段安全](./backend/data-permission)。
 
 ## 接口与联调
 
-### 新加的分页方法收不到请求体
+### 如何确定操作的 HTTP 路由
 
-分页方法**必须显式标 `[HttpPost]`**。方法名以 `Get` 开头会被动态 API 约定推导成 GET，body 自然绑不上。
+路由完全由操作 ID 与请求形状推导：请求带 `id` 即实例级（`/{id}`），带分页对象这类嵌套对象的 `list` 走 POST，`get` 与声明了 `ReadOnly` 且没有嵌套对象的查询动词走 GET。以 `/openapi.json` 为准，见[接口对接指南](./api-guide#路由推导)。
 
-```csharp
-[PermissionAuthorize(SaasPermissionCodes.Position.Read)]
-[HttpPost]  // ← 别漏
-public async Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(
-    PositionPageQueryDto input, CancellationToken cancellationToken = default) { … }
-```
+### 批量删除如何传递 ID
 
-### 生成的路由和我预期的不一样
+批量删除是 `DELETE /api/<资源>?ids=<id1>&ids=<id2>`，响应是逐项结果 `{ succeeded, failed }`。
 
-动态 API 按方法名推导路由，三条容易忘的规则：
+### 时间显示相差若干小时
 
-1. **动词前缀被剥离**：`GetUserPageAsync` → 动作名 `UserPage`（不是 `GetUserPage`）。
-2. **无匹配动词前缀时默认 POST**：`SwitchTenantAsync` → `POST /api/Auth/SwitchTenant`。
-3. **路由段只由显式 `[FromRoute]` 参数产生**。普通参数一律走查询串或 body，**不会**变成 `/{id}` 路径段。想要 `/api/User/User/{id}` 必须给参数标 `[FromRoute]`。
+接口一律 UTC（带 `Z`），服务端不做时区换算，换算是客户端的事。前端按偏好设置里的应用时区显示（缺省 `Asia/Shanghai`，顶栏的时区切换器可改），不看浏览器所在的时区，见[国际化与时区](./frontend/i18n#时区)。自己对接时不要把带 `Z` 的时间当本地时间解析。
 
-前缀匹配要求词边界（前缀后必须是大写字母或下划线），所以 `AddressBook` 不会被 `Add` 命中。完整推导表见 [接口对接指南](./api-guide#动态-api-路由推导规则)。
+### 修改后端 DTO 后前端类型未更新
 
-### 返回的 ID 变成了字符串
+前端契约是生成物：后端导出 `openapi.json`，前端 `pnpm gen:contracts` 重新生成，两者同一提交。CI 会重新生成并比对，不一致即失败。见[契约与请求](./frontend/request)。
 
-框架把 **`long` 统一序列化为 JSON 字符串**，避免 JavaScript Number 精度溢出（雪花 ID 会溢出 53 位安全整数）。前端类型标成 `string`，需要运算时显式 `Number()`。反序列化时数字与字符串都接受。
+## 下一步
 
-### 响应里某个字段整个不见了
-
-服务端 `DefaultIgnoreCondition = WhenWritingNull`：**值为 null 的字段直接不输出**。客户端把字段按可选处理，别用「字段存在与否」判断成功——判定成功请读 `isSuccess`。
-
-### `oAuthProviders` 还是 `oauthProviders`？
-
-`oAuthProviders`。camelCase 命名策略只把**首字母**变小写，`OAuthProviders` → `oAuthProviders`。同类还有 `oAuthApps` 等，抄字段名时留意。
-
-### 时间显示差了几个小时
-
-后端**存储恒为 UTC**，输出时按请求头 `X-Timezone`（IANA 标识，如 `Asia/Shanghai`）换算。不发这个头就按服务端默认时区输出。前端已在请求拦截器里自动带上（用户已选时区优先，否则跟随浏览器 `Intl`）。
-
-### 枚举值到底发数字还是发字符串？
-
-- **响应**：枚举输出为**成员名字符串**（如 `"Enabled"`）。唯一例外是 `ApiResponse.code`，恒为 int。
-- **请求**：数字和成员名都接受。前端契约层统一发数字（`QueryOperator.Between` = `4000` 等）。
-
----
-
-## 后端开发
-
-### 运行期 DI 解析不到我的领域服务
-
-**领域服务必须手写注册**。领域服务接口不带 `IScopedDependency` / `IDomainService` 之类的 DI 标记接口，框架的约定注册扫不到它，得在 `Extensions/ServiceCollectionExtensions.cs` 的 `AddSaasDomainServices`（或模块自己的对应方法）里显式登记：
-
-```csharp
-services.AddScoped<IPositionDomainService, PositionDomainService>();
-```
-
-对比之下：**仓储**（继承 `SaasRepository` → `IScopedDependency`）和**应用服务 / 查询服务**（实现 `IApplicationService`）都由约定自动注册，不用手写。这是纵切片最常见的漏接线点。
-
-### 我覆盖了框架的默认实现，但跑起来还是默认的
-
-框架模块用 **`TryAdd`** 先注册默认实现（`IPermissionChecker`、`IUserStore`、`IJobStore`、`IAiProviderConfigStore`、各 Bot `*ConfigStore` 等），你**再 `TryAdd` 会被静默忽略**。覆盖必须用 `Replace`：
-
-```csharp
-services.Replace(ServiceDescriptor.Singleton<IAiProviderConfigStore, SaasAiProviderConfigStore>());
-```
-
-### 事件处理器不触发
-
-本地事件总线只自动发现「**以接口为服务类型**」的注册，裸 `services.AddTransient<具体处理器>()` **不会被订阅、静默失败**。处理器必须显式加入 `XiHanLocalEventBusOptions.Handlers`——Saas 封装了 `AddSaasLocalEventHandler<T>()`（内部 `AddTransient` + `Configure<XiHanLocalEventBusOptions>(o => o.Handlers.AddIfNotContains(typeof(T)))`），在 `AddSaasEventHandlers` 里登记即可。
-
-### 匿名 Minimal API 端点调应用服务时永久挂起
-
-匿名端点没有工作单元中间件，而应用服务被 Castle 代理包着，拦截器会急切开事务从而死锁。解法是**绕开代理**：注入真正的依赖直连，或用 `ProxyHelper.UnProxy` 取出真实目标实例再调。仓库里的 OAuth 回调端点就是这么处理的（`ExternalLoginAsync` 标 `[DynamicApi(IsEnabled = false)]` 不对外暴露，只由回调端点经未代理实例调用）。
-
-### 数据变更日志（Diff）一条都没有
-
-需要两个条件同时成立：
-
-1. 配置 **`XiHan:Data:SqlSugarCore:EnableDiffLog` 设为 `true`**（**默认是 `false`**，不开则 AOP 不挂载、差异被直接丢弃）；
-2. 写操作走仓储并显式调用了 `.EnableDiffLogEvent(businessData)`。
-
-生产环境的 `appsettings` 常被 gitignore，容易漏配，记得在服务器上单独补。另外只有走仓储的写才会被覆盖到。
-
-### 部署后接口报 `42703 column does not exist`
-
-`DbInitializer` **表存在就跳过创建**（日志里是「表已存在，跳过创建」），它**从不为已有表补列**。所以给既有实体加字段后部署必炸。
-
-不要依赖 CodeFirst 给已有表补列。正式版本应在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 中加入前向迁移，启动时升级引擎会按版本执行并记录到 `SysMigrationHistory`（`XiHan:Upgrade:EnableAutoCheckOnStartup` 关掉时不执行）；临时环境也可重建库或手工 `ALTER TABLE`。
-
-### 本地 `dotnet build` 报文件被占用
-
-运行中的应用会锁住 DLL。停掉正在运行的实例再构建。后端由部署流程在服务器上构建/发布，本地改动需部署后才生效，线上诊断以加日志为主。
-
----
-
-## 前端
-
-### 页面整片白屏，控制台报 `Invalid linked format`
-
-语言包文案里出现了**裸 `@`**（如 `联系 @admin`）。vue-i18n 会把 `@` 当作 linked message 语法解析并抛错。必须转义成 `{'@'}`：
-
-```ts
-// ❌ 白屏
-contact: '联系 @admin'
-// ✅
-contact: "联系 {'@'}admin"
-```
-
-新增文案前先扫一遍裸 `@`。
-
-### 图标显示成空白
-
-图标走 Iconify **离线模式**，运行期只保证 **`lucide` / `tabler` / `mdi` / `simple-icons`** 这四个已预加载的图标集能直接渲染。用了未预加载的集（carbon / ep / heroicons 等）会渲染为空——离线 `Icon` 对已挂载组件不会因后加载而重渲染。品牌图标优先用 `simple-icons:*` 或 `tabler:brand-*`。
-
-### 上传的文件在线上打不开（404）
-
-本地存储返回的是**根相对路径** `/uploads/...`。前后端同源没问题，**线上前后端不同源时必须拼上 `VITE_API_BASE_URL` 的 origin**。仓库里的 `toAbsoluteFileUrl` / `useAvatarUrl` 已经处理了这件事，自己拼 URL 时别忘了。
-
-### 跑 lint 把不相干的文件改坏了
-
-`pnpm run lint:fix` 展开是 `oxlint --fix && eslint . --fix`，会扫全仓并改动与你无关的文件。**只对本次改动的文件跑**：
-
-```bash
-npx eslint src/views/identity/position/index.vue --fix
-```
-
-误跑了就 `git checkout HEAD -- <非本次任务的文件>` 还原。
-
----
-
-## 部署与运维
-
-### 升级版本要写数据迁移吗？
-
-**要写前向 SQL 迁移。** 首次部署由 CodeFirst 建库建表；已有数据库的变更放入 `WebHost/UpdateScripts/<版本>/<版本>.sql`。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true`（缺省值）时，应用启动会逐库执行待执行脚本、记台账，失败即中断启动；关掉它则要在发布流程里先完成迁移。当前脚本为 PostgreSQL 方言，切换数据库时需提供对应实现。详见[升级与迁移](./backend/upgrade)。
-
-### 启用 AI 知识库（RAG）前要准备什么？
-
-需要先部署 **Qdrant 向量库**并配好 `XiHan:AI:Rag` 连接参数。全新数据库会自动创建 RAG 表并执行种子；存量库应随版本升级脚本迁移。见 [AI 能力](./backend/ai) 与 [开发环境 · Qdrant](./dev-environment#向量数据库-qdrant-可选-ai-知识库用)。
-
-### 怎么定位一次线上请求？
-
-每个响应都带 `traceId`（信封字段）与 `X-Trace-Id` 响应头。拿它去日志、审计日志、链路时间线里检索，就能串起这一次请求的访问 / API / 操作 / 异常 / 实体变更全部记录。启用 OpenTelemetry（`XiHan:Observability`，**默认关闭**）后该值就是 W3C 的 32-hex TraceId，可直接在 Jaeger / Tempo 里查。
-
----
-
-## 还没解决？
-
-- [接口对接指南](./api-guide)：响应信封、业务码、请求头、分页协议的完整规范
-- [二次开发](./backend/development)：新增功能的完整接线清单（漏哪一步会怎样）
-- [权限模型](./backend/permission)：403 / 查不到数据的判定链
-- [框架常见问题](https://framework.docs.xihanfun.com/guide/faq)：模块装配、DI、事务、拦截器层面的坑
-- 仍未解决可到 [GitHub Issues](https://github.com/XiHanFun/XiHan.BasicApp/issues) 提问，附上 `traceId` 与复现步骤
+- [快速开始](./getting-started) · [接口对接指南](./api-guide) · [配置参考](./configuration)

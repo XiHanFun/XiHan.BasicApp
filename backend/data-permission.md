@@ -1,180 +1,170 @@
 来源：https://basicapp.docs.xihanfun.com/backend/data-permission
 
-# 数据权限
+# 数据权限与字段安全
 
-权限码回答「**能不能做**这个操作」，数据权限回答「**能对哪些行做**」「**能看到哪些字段**」。两者是独立的维度——有权限码但查不到数据、能查到但某些列被打码，都是数据权限在起作用。
+本页说明数据范围与字段安全的规则、登记方式与管理操作，适用于后端开发者与权限配置人员。
 
-权限码本身见 [权限管理](./permission)。
+权限码决定能否调用某个操作，数据范围决定能看到哪些行，字段安全决定行里哪些字段可读、可写。两者都在 Access 包实现：
 
-## 两个维度
+- 数据范围由各包在查询与按 ID 取单条处经 `Runtime` 的 `DataScopeQuery` 显式套用；
+- 字段安全由各包登记「哪些操作读、建、改哪个实体」，Access 的中间件与响应过滤器统一套用，操作本身不写字段安全代码。
 
-```text
-一次请求要过的门：
+## 数据范围
 
-  权限码        能不能调这个接口          → 不过：403
-     ↓
-  数据范围      能看到哪些行              → 不过：查不到（不是 403；目前只作用于用户列表）
-     ↓
-  字段级安全    能看哪些列、能改哪些列    → 不过：值被置空或被打码
-```
+### 五种范围
 
-::: warning 「有权限但列表是空的」不是 bug
-返回 `200` 且 `items` 为空、而不是 `403`——这是数据范围在起作用。排查方向是数据范围配置，不是权限码。
-:::
+| 值 | 含义 |
+| --- | --- |
+| `SelfOnly` | 只看自己（新建租户角色的缺省） |
+| `DepartmentOnly` | 本人所在的部门 |
+| `DepartmentAndChildren` | 本人所在的部门及其全部下级 |
+| `All` | 不受限 |
+| `Custom` | 指定的部门（每个部门可选含下级） |
 
-## 数据范围（行级）
+### 来源与合并
 
-范围枚举是 `DataPermissionScope`：角色的档位写在 `SysRole.DataScope`；成员的覆盖写在成员关系 `SysTenantUser.DataScopeOverride`（null 表示跟随角色），同一个人在不同租户各自设置。
+- 角色经 `roles.create` / `update` 设置 `dataScope` 与自定义部门（`SysRoleDataScope`）。平台角色只能是 `All`（`ACCESS_VALIDATION_004`）；`Custom` 至少一个部门（`ACCESS_VALIDATION_005`）。
+- 用户级覆盖（`SysUserDataScope`）设置后整体取代该用户各角色的数据范围，不取并集；没有覆盖时按角色取并集，任一为 `All` 即不受限。
+- 角色只认令牌里的角色（本会话激活的、本租户启用的），不展开继承，也不看委托。
+- 受限时把部门集合展开成用户集合，总含本人。
+- 平台主体与没有装配 Access 的宿主不受数据范围限制。
 
-| 范围 | 含义 | 依赖 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `SelfOnly` | 仅本人数据 | — |
-| `DepartmentOnly` | 本部门 | `SysUserDepartment` 的**全部有效部门归属** |
-| `DepartmentAndChildren` | 本部门及下级 | 部门**闭包表** |
-| `All` | 全部数据（仍受租户过滤器约束） | — |
-| `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
+| `user-data-scopes.get` | `access.user-data-scopes.read` | 一个用户的覆盖 |
+| `user-data-scopes.set` | `access.user-data-scopes.update` | 覆盖为一种范围（`Custom` 要列出部门），不带范围即清除覆盖 |
 
-解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前只由用户分页查询（`UserQueryService.GetUserPageAsync`）调用，用户导出复用这条查询；用户详情、选择项，以及其它资源的查询和写操作都不施加数据范围。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
+两个权限码只在租户侧，用户须注册在当前租户或是它的外部成员。
 
-### 合并规则
+### 在查询中套用
 
-```text
-成员有覆盖            →  只按覆盖；Custom 时取 Sys_User_Data_Scope 里本成员的部门
-        否则
-启用角色的数据范围    →  多角色取并集；任一角色为 All 即放行全部；
-                         Custom 角色并入 Sys_Role_Data_Scope 的部门
-        ↓
-一个部门都没命中      →  退回仅本人
+列表以 `DataScopeQuery.ResolveAsync(context)` 取判定，按「归属人列」或再加「部门列」生成 `owner IN (...) [OR department IN (...)]`：
+
+```csharp
+// Organization 的部门成员列表：归属人列是成员的用户 ID，部门列是所在部门
+var query = TenantScopedQuery.For<SysUserDepartment>(unitOfWork.ConnectionFor(typeof(SysUserDepartment)), context)
+    .ApplyDataScope(await DataScopeQuery.ResolveAsync(context), static m => m.UserId, static m => m.DepartmentId);
 ```
 
-成员覆盖用于「这个人比较特殊」的场景（如 CEO 挂的是部门经理角色、但要看全部），不要拿它当常规手段——角色才是可维护的授权单位。
+没有归属人列的实体用 `ApplyDataScopeByCreator`，按审计列 `CreatedBy`（创建人的用户 ID）生成 `created_by IN (...)`；没有创建人的行（系统写入）受限时看不到：
 
-档位与部门一次设置：角色在角色页的「数据范围」、成员在用户页的「数据范围」，先选档位，自定义时在部门树里勾部门、逐项设「含下级」。被上级「含下级」覆盖的部门会给出提示。全局角色只在平台设档位、不能自定义；支持成员（平台人员入驻）同样由所在租户设置。
-
-### 依赖组织架构
-
-`DepartmentOnly` 与 `DepartmentAndChildren` 完全依赖 [组织架构](./organization)：
-
-- `DepartmentOnly` 取用户在当前租户下**全部状态有效的部门归属**（`SysUserDepartment`，不区分 `IsMain`）；
-- `DepartmentAndChildren` 在此基础上靠**部门闭包表**一次展开整棵子树。
-
-::: danger 闭包表失真 = 数据范围算错
-闭包表是查询加速镜像，**所有写入必须由 `SysDepartment` 变更触发**。绕过服务层直改部门表会让闭包表失真，表现是某些下级部门的数据看不到、或看到了本不该看到的。
-
-修复要重建该子树的闭包，不要手工补行。
-:::
-
-### 组织变更的连锁影响
-
-| 变更 | 影响 |
-| --- | --- |
-| 移动部门 | 闭包表重建 → 该子树下所有人的 `DepartmentAndChildren` 范围变化 |
-| 改用户部门归属 | 该用户的 `DepartmentOnly` / `DepartmentAndChildren` 范围变化 |
-| 改角色数据范围 | 该角色下所有用户的可见范围变化 |
-
-数据范围每次请求实时从库解析，不进授权快照；角色写入路径会失效授权快照（`InvalidateAuthorizationAsync`），部门写入路径失效组织缓存（`InvalidateOrganizationAsync`）。
-
-## 字段级安全（列级）
-
-`SysFieldLevelSecurity` 按「**实体 × 字段 × 目标**」定义规则：限制某个角色 / 用户 / 部门对某个实体某个字段的读取方式与修改能力。规则**只收紧、不放宽**——没有规则就是明文可改。
-
-| 字段 | 说明 |
-| --- | --- |
-| `targetType` / `targetId` | 目标：角色（当前用户生效且启用的角色）、用户（本人）、部门（该部门**及其下级部门**的有效成员；停用部门跳过但继续向上找） |
-| `entityName` | 实体类名，如 `SysUser`；只能从实体目录里选 |
-| `fieldName` | 实体属性名，如 `Phone`（区分大小写）；只能从该实体的字段里选 |
-| `maskStrategy` | 读取方式：明文、部分脱敏、哈希、全部星号、固定文本、隐藏 |
-| `maskKeepHead` / `maskKeepTail` | 部分脱敏保留前几位、后几位（仅部分脱敏，0–32，不能都为 0） |
-| `maskReplacement` | 固定文本方式显示的文字（仅固定文本） |
-| `isEditable` | 能否修改。明文规则必须只读（否则什么都没限制）；脱敏且可编辑为「只写」：看不到原值，但能填新值覆盖（如更换密钥） |
-
-::: tip 实体目录
-可配置的实体由各模块在服务注册里登记（`AddSaasFieldSecurityEntities`、`AddAIFieldSecurityEntities` 等，底层是 `FieldSecurityEntityOptions.Add<TEntity>()`）。实体显示名取表说明（`SugarTable.TableDescription`），字段显示名取列说明；主键、租户、并发版本、软删除等框架列不在字段列表里。配置页经 `FieldLevelSecurityQuery/FieldSecurityEntities` 取目录，实体与字段都是下拉选择，不手输。
-
-**登记即承诺**：该实体的查询服务要门控查询条件，应用服务新建、修改（含状态）前要做写校验，响应里要能认出它的 DTO。`FieldSecurityEntityWiringTests` 从各模块的登记方法取登记表，核对这几处都已落地（门控与写校验扫源码，DTO 看映射器），缺一处就失败；代码里按未登记的实体调用字段安全，运行时直接报错。
-:::
-
-非文本字段只能「明文只读」或「隐藏」（隐藏后返回类型默认值）。同一字段命中多条规则时取**最严**的读取方式，严格程度按泄露的信息量排：
-
-```text
-明文 < 部分脱敏（泄露片段）< 哈希（泄露是否相等）< 全部星号（泄露长度）< 固定文本（只泄露有没有值）< 隐藏
+```csharp
+// Files 的文件库列表：按上传人
+var query = rows.Query<SysFile>(SideRows.SideOf(context))
+    .ApplyDataScopeByCreator(await DataScopeQuery.ResolveAsync(context), static f => f.CreatedBy);
 ```
 
-部分脱敏多条时保留位数取最少；任一命中规则只读即只读。
+按 ID 取单条或批量处理时用判定的 `Allows(userId)`，不在范围内按找不到处理。
 
-**平台规则**（`TenantId = 0`）对所有租户生效，只能在平台维护；租户看得见、改不了（列表里标「平台」）。全局角色与系统角色的规则同样只能在平台维护。
+目前套用的地方：
 
-### 脱敏在服务端完成
+| 包 | 位置 |
+| --- | --- |
+| Identity | 用户列表、`users.get`、`users.detail`、修改、重置密码，以及删除、停用、锁定、解锁、重置双因素、登录策略等批量操作；在线会话列表 |
+| Organization | 部门成员列表 |
+| Files | 文件库列表（按上传人；下载与签名地址按文件的访问级别） |
+| Notification | 通知管理列表（按创建人；收件箱不受影响） |
 
-::: danger 后端返回的就是打码后的值
-如 `138****5678`。**前端不做二次打码**，绕过前端直接调接口也拿不到明文。
-:::
+导出中心只列本人提交的任务，不再套数据范围。
 
-打码在**输出边界**统一做，不逐个接口接线：`FieldSecurityResponseFilter` 在每个接口返回前沿响应的对象图（集合、分页、聚合详情里嵌套的 DTO、字典的值）找出属于登记实体的 DTO，按该实体的规则就地打码。列表、详情、下拉选项、聚合详情（如用户编辑表单取的 `UserManagementDetail`）、新建与修改后回传的详情都经过这一道口子，新接口不会因为漏接而漏出明文。
+## 字段安全
 
-- **DTO 属于哪个实体**：由应用层映射器认定——`public static XxxDto ToXxx(SysEntity entity, …)` 即认定 `XxxDto` 属于 `SysEntity`（`IFieldSecurityDtoCatalog`）。所以 DTO 必须经映射器从实体生成；一个 DTO 由两个登记实体映射出来时启动即报错。
-- **改名的属性**：DTO 属性与实体字段不同名时（如 `UserSessionId` → `SessionId`），在 DTO 属性上加 `[FieldSecuritySource(nameof(SysAccessLog.UserSessionId))]`，否则按名字打不到码；测试扫描映射器，未声明的改名直接失败。
-- **多来源 DTO**：由多个实体映射出来的 DTO（如链路时间线 `TraceTimelineItemDto`）实现 `IFieldSecurityMultiSourceDto`，按每条自己的来源实体与字段对应打码。
-- **与响应缓存**：过滤器排在框架缓存过滤器**外层**，缓存里存原值，每次命中按当次用户打码；`HybridCache` 对可变类型每次命中给新实例，就地打码不污染缓存。
-- **进程内直调**不经过 HTTP 过滤器：导出任务按发起人身份调用查询服务，导出基类每取一页先 `MaskAsync` 再写出，导出文件与在线列表同一口径。进程内的业务逻辑直调查询服务拿到的是原值（需要真实值做计算）。
+### 规则
 
-读全局数据要切到平台上下文的查询（打印模板、编号规则），查询门控放在切换**之外**：字段规则按请求方在所属租户的角色、部门判定；打码在响应过滤器里做，本就在请求方上下文。
+`SysFieldSecurityRule`：侧 × 目标 × 实体 × 字段，同一侧同一目标同一字段只有一条（`ACCESS_CONFLICT_006`）。规则只在所属一侧生效。
 
-### 查询条件也受门控
+| 维度 | 取值 |
+| --- | --- |
+| 目标类型 | `Role`（此刻直接持有该角色的用户）、`User`（本人）、`Department`（该部门及其下级的成员，只在租户侧） |
+| 读取方式（`FieldMaskStrategy`） | `None` 明文、`Hidden` 返回空值、`FullMask` 按原长替换成 `*`、`PartialMask` 保留前后几位、`Hash` SHA-256 前 16 位小写十六进制、`Redact` 有值时显示固定文本 |
+| 能否改写 | 只读，或可改；读受保护且可改即「只写」：看不到原值但能填新值 |
 
-构建完查询条件后调用 `_fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysUser), ct)`，剔除**读受保护字段**（非明文）上的排序、过滤与关键字搜索字段——否则可按结果顺序或筛选命中反推原值。字段名大小写不敏感（前端列键多为 camelCase）。
+### 命中与合并
 
-::: warning 强制约束放在门控之后
-数据范围、超管隐藏、租户边界这类服务端强制条件，一律在 `GuardQueryAsync` **之后**追加；否则有人把相关字段设成受保护，强制条件会被一起剔掉。
-:::
+- 用户规则认本人；角色规则认此刻持有的角色（令牌里的角色与有效指派的交集、角色启用，只认直接持有，不看继承）；部门规则认所在部门及其上级（停用的部门不算）。
+- 同一字段多条命中：读取方式取最严（从宽到严依次是 `None`、`PartialMask`、`Hash`、`FullMask`、`Redact`、`Hidden`），部分脱敏的保留位数取最少，固定文本取第一条，任一只读即只读。
+- 启用的规则按（侧、实体）缓存 60 秒，写入在提交之后失效。
 
-::: warning 「排序点了没反应」优先查字段安全
-被剔掉时后端**不会报错**，只是安静地不生效。「按某字段搜索没效果」也可能是这个原因。
-:::
+### 套用
 
-### 写校验
+规则由 Access 统一套用，HTTP、gRPC、MCP 与内部调用（导出、AI 工具）拿到的都是套过的结果：
 
-应用服务新建前调用 `EnsureCreatableAsync(typeof(X), input, ct)`，修改与改状态前调用 `EnsureUpdatableAsync(typeof(X), input.BasicId, input, ct)`：
+| 环节 | 位置 | 行为 |
+| --- | --- | --- |
+| 查询门控 | `FieldSecurityMiddleware`（Handle 阶段） | 按读受保护的字段筛选或排序即 `ACCESS_DENIED_006`；登记的关键字字段里有读受保护的，关键字搜索同样拒绝 |
+| 写入 | `FieldSecurityMiddleware` | 新建时填了只读字段、修改时改了只读字段即 `ACCESS_DENIED_007`；修改时交回原值、脱敏值或空值即保留库里的原值 |
+| 响应 | `FieldSecurityResponseFilter`（框架的 `IOperationResponseFilter`，操作成功、编码之前） | 读、建、改的响应里的记录按读取方式打码 |
 
-- 新建：只读字段不能填写（与入参类型默认值相同视为没填，空串与 null 同义）
-- 修改：只读字段改了值即拒绝；表单把拿到的**脱敏值或空值原样交回**视为没改，并**还原成库里的原值**——整体保存不会让 `138****5678` 覆盖真实号码
-- 只写字段：交回脱敏值视为没改，填了新值照常保存
+没有规则的调用原样放行。登录、刷新、个人中心这类本人自己的资料没有登记，不套用。用户目录的关键字搜索由 Identity 自己收窄：只搜没受保护的登录名与显示名，两个都受保护时返回空页。
 
-没有只读或脱敏规则时不读库，零开销。同一请求内按「用户 + 实体」缓存解析结果，门控与打码共用一次查询。
+### 登记实体与操作
 
-个人中心改本人资料不经过字段安全（本人资料的读取也不打码）。
+各包在 `Configure` 里用 Contracts 的 `AddFieldSecurity` 登记：
 
-## 写路径的租户边界
-
-除了行级与列级，还有一条容易忽略的边界：**读共享 ≠ 写共享**。
-
-```text
-读：全局过滤器放行 TenantId IN (0, 当前租户)   ← 租户能读到平台全局数据；平台只读 0
-写：只能改写/删除当前作用域的行               ← 租户不能改全局行，平台也不能改租户行
+```csharp
+services.AddFieldSecurity("organization", OrganizationJsonContext.Default, fields => fields
+    .Entity<PositionResponse>("organization.positions", "organization.positions.title", "organization.positions.fields.")
+        .Reads(ListPositions.Id, GetPosition.Id)
+        .Creates(CreatePosition.Id)
+        .Updates<UpdatePositionRequest>(UpdatePosition.Id, static (request, context) => FieldSecurityOriginal.FindAsync<SysPosition>(context, request.Id, PositionResponse.From))
+        .Keyword("code", "name"));
 ```
 
-实现方式：预读守卫校验取回行的 `TenantId`，条件写自动追加当前作用域的 `Where`。
+- 实体码是 `<包>.<资源>`；字段由响应类型的 JSON 元数据生成，与接口字段同名，可空性取自注解。主键、租户、并发戳、软删除等框架列以及嵌套对象与集合不进目录。
+- 字段显示名的文案键是前缀加 snake_case 的字段名，前端没有这个键时显示字段名。
+- 记录不在响应根上时用 `ReadsAt(操作, "属性")`；修改操作要给出取改动前记录的委托（`Runtime` 的 `FieldSecurityOriginal.FindAsync`）。
+- 两个包登记同一实体码即装配失败。
 
-平台就是 0 号租户：全局数据在平台作用域维护，某个租户的数据切入该租户（`ICurrentTenant.Change(tenantId)`）维护；跨租户读取只能显式清过滤（`...IgnoreTenantAsync` / `.ClearTenantFilter()`）。
+目前登记的实体：
 
-**账号域数据**。账号、安全记录、个人设置、通知偏好、接口凭证、三方绑定、密码历史是严格隔离的账号域数据，`TenantId` 固定为注册地（平台账号为 0）；一个人可以同时是多个租户的成员，切进别的租户后这些行经全局过滤不可见。个人中心的这些数据因此一律按 `UserId` 跨租户读（仓储上的 `...IgnoreTenantAsync` 与按用户唯一键的读法）；新增经 `IAccountScope` 切回注册地写，更新自己已有的行用 `TenantWriteGuard.Suppress()` 包裹（只放宽更新与删除，契约是只写当前用户自己的行）。会话与登录日志属于运行数据，按发生时所在的租户切分。
-
-## 排查
-
-| 现象 | 查什么 |
+| 包 | 实体码 |
 | --- | --- |
-| 有权限但列表为空 | 用户部门归属对不对 → 角色数据范围设成了什么 → 闭包表是否完整 |
-| 某些行改不动 | 是否跨租户写（读得到不等于写得动） |
-| 列变成 null / 空 | 字段安全规则为「隐藏」，服务端已把值置空 |
-| 列显示成 `***` | 字段安全的脱敏方式生效，服务端已打码 |
-| 排序 / 搜索不生效 | 该字段读受保护，被剔出查询条件 |
-| 改了数据范围不生效 | 该列表是否接了数据范围过滤；成员是否有覆盖（有覆盖时角色的范围不再生效）；角色是否停用、档位是否为自定义 |
-| 配了规则不生效 | 实体、字段在规则列表里标「已失效」（代码已移除）；规则是否启用；目标是否命中（角色或部门停用、成员关系失效） |
-| 保存时报「无修改权限」 | 当前用户对该字段只读，改动了它的值 |
+| Identity | `identity.users`、`identity.sessions` |
+| Tenancy | `tenancy.tenants`、`tenancy.editions` |
+| Organization | `organization.positions` |
+| Access | `access.roles`、`access.permissions`、`access.constraint-rules`、`access.policies` |
+| Settings | `settings.configs`、`settings.dicts`、`settings.dict-items`、`settings.numbering-rules`、`settings.numbering-allocations` |
+| Notification | `notification.notifications`、`notification.message-templates`、`notification.emails`、`notification.sms`、`notification.email-configs`、`notification.sms-configs`、`notification.bot-configs`、`notification.telegram-bots` |
+| Files | `files.files`、`files.file-storages`、`files.storage-configs` |
+| Auditing | `auditing.access-logs`、`auditing.open-api-logs`、`auditing.operation-logs`、`auditing.login-logs`、`auditing.exception-logs`、`auditing.diff-logs`、`auditing.condition-hits` |
+| OpenPlatform | `openplatform.oauth-apps` |
+| Maintenance | `maintenance.versions`、`maintenance.migrations` |
+| Printing | `printing.print-templates` |
+| Workflow | `workflow.workflow-definitions`、`workflow.workflow-instances` |
+| CodeGeneration | `codegeneration.codegen-datasources`、`codegeneration.codegen-tables`、`codegeneration.codegen-templates` |
+| AI | `ai.ai-providers`、`ai.ai-prompts`、`ai.ai-assistants`、`ai.knowledge-documents` |
 
-## 相关页面
+可选模块关掉时，它登记的实体不进目录。
 
-- [权限管理](./permission)：权限码、RBAC 继承、ABAC、判定链
-- [组织架构](./organization)：部门树与闭包表
-- [多租户 SaaS](./multi-tenancy)：租户隔离与写路径边界
-- [前端手册 · 权限与脱敏](../frontend/permission)：前端侧怎么接
+### 管理操作
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `field-security.entities` | `access.field-security.read` | 已登记的实体与可配置字段 |
+| `field-security.list` / `get` | `access.field-security.read` | |
+| `field-security.create` / `update` | `access.field-security.create` / `update` | |
+| `field-security.delete` | `access.field-security.delete` | 批量，逐项结果 |
+
+权限码两侧都有。页面 `access.field-security`（`/access/field-security`）。
+
+校验错误：
+
+| 错误码 | 情形 |
+| --- | --- |
+| `ACCESS_VALIDATION_014` / `015` | 实体或字段不在目录 |
+| `ACCESS_VALIDATION_016` | 读取方式不适用：非文本字段只能明文或隐藏，响应里不可空的字段不能隐藏 |
+| `ACCESS_VALIDATION_017` | 明文且可改，什么都没限制 |
+| `ACCESS_VALIDATION_018` | 部分脱敏的保留位数不在 0–32，或前后都是 0 |
+| `ACCESS_VALIDATION_019` | 固定文本缺失或超过 100 个字符 |
+| `ACCESS_VALIDATION_020` | 部门目标只在租户侧 |
+| `ACCESS_VALIDATION_021` | 目标角色或部门已停用 |
+
+目标不在这一侧时按找不到报（`ACCESS_NOTFOUND_001` / `002` / `003`）。删除角色时连带删除以它为目标的规则；新建、修改、删除记权限变更日志（`FieldSecurity`）。
+
+## 前端
+
+前端不实现安全边界，只改善可用性：受保护的列显示后端给的打码值，只读字段在表单里置灰。见[前端权限与脱敏](../frontend/permission)。
+
+## 下一步
+
+- [权限管理](./permission) · [访问策略与权限条件](./access-policy) · [组织架构](./organization)

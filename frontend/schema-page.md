@@ -2,255 +2,127 @@
 
 # Schema 驱动页面
 
-BasicApp 的列表页几乎都不手写表格。**一份字段声明（`ListFieldSchema[]`）同时派生出搜索表单、表格列、导出字段、导入模板与详情展示**，整页交给 `<SchemaPage>` 渲染。本页是写这类页面的完整手册。
+本页说明列表页引擎 SchemaPage 的页面定义、资源适配器与导入导出，适用于编写列表页的前端开发者。
 
-组件源码在 `packages/components/schema/`。
+`SchemaPage`（`~/components`）用一份字段定义（`ListFieldSchema[]`）同时派生搜索、列、导出与导入；列设置、多列排序、密度、个人视图、树表、行速览、批量删除与批量启停都已内置。资源适配器把它的查询参数转成后端的 `PageRequest`。
 
-## 心智模型
+用户、角色、菜单、租户、套餐、部门、岗位、参数、字典、业务编号、文件、各日志页等列表页都用它。样板见 `src/modules/settings/views/configs`。
 
-```text
-ListFieldSchema[]  ← 字段单一事实源（禁止重复定义）
-      │
-      ├──► 搜索表单（searchable / advancedSearch / searchRange / searchMultiple / searchFilterable）
-      ├──► 表格列（visible / width / fixed / render / sortable）
-      ├──► 导出字段（exportable）
-      ├──► 导入模板（importable）
-      └──► 表单编辑（editable）
-
-PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权限码）
-      │
-      └──► <SchemaPage :schema @action>
-```
-
-**页面代码只做三件事**：声明字段、把归一化查询参数映射成后端 DTO、处理操作事件。表格、分页、列设置、偏好同步这些都不用管。
-
-## 内置能力
-
-`SchemaPage` 开箱提供：
-
-- **搜索**：常用搜索 + 高级搜索浮层；时间区间（→ `Between`）、枚举/标签多选（→ `In`）
-- **表格**：列设置（显隐/顺序/固定/列宽）、密度切换、斑马纹/边框风格、多选、序号列、行悬停速览、树形模式
-- **列宽拖拽**：拖表头右边框调宽，值写入列设置可保存
-- **多字段排序**：点多个列头累加，数组顺序即优先级
-- **导出**：本地 CSV，或提交到[导出中心](../backend/file#导出中心-file-export-center)异步导出
-- **导入**：模板下载、CSV 解析、预校验、批量创建对话框
-- **批量操作**：批量删除、批量启停、页面自定义批量动作
-- **个人视图/搜索方案**：保存当前筛选 + 排序为命名方案（经组件实例方法 `saveView` / `applyView` 暴露，无内置 UI 入口）
-- **行显示文本**：实例方法 `formatRow(row)` 按字段的解析结果把一行换成显示文本（选项列出名称、日期与布尔按显示格式，空值为空串），供打印等要「所见即所得」数据的场景使用；页面用 `ref<SchemaPageInstance | null>` 取实例
-- **偏好云端同步**：列设置与搜索设置按 `pageCode` 同步后端，多端一致
-
-## 字段 Schema：`ListFieldSchema`
-
-完整定义以 `~/components/schema/types.ts` 为准。
-
-| 属性 | 作用 |
-| --- | --- |
-| `key` | 字段键，对应行数据的属性名 |
-| `title` | 列标题（**建议传 i18n key 的翻译结果**） |
-| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` / `file` 等，决定默认渲染器与搜索控件；`image` / `file` 的值是文件主键（兼容直链），单元格分别出缩略图与打开入口 |
-| `visible` | 是否作为表格列。**`false` = 仅搜索用，不出现在表格** |
-| `searchable` / `advancedSearch` | 进入常用搜索 / 高级搜索浮层 |
-| `searchRange` | 时间字段：渲染区间选择器 + 便捷预设，下发 `Between` |
-| `searchMultiple` | 枚举/标签字段：渲染多选下拉，下发 `In` |
-| `searchFilterable` | 单选的枚举/标签字段：渲染可输入筛选的下拉（XCombobox），在已取回的选项里筛；选项多时用，如关联表 |
-| `sortable` | 服务端排序（列头出现排序箭头） |
-| `exportable` / `importable` / `editable` | 参与导出 / 导入模板 / 表单编辑 |
-| **`permission`** | **字段级权限码**：无此权限时该列与该搜索项**整个不渲染** |
-| `dictionaryCode` | 后端枚举类型名，运行时经枚举元数据拉取本地化选项注入 `options` |
-| `dictCode` | 系统字典编码（字典管理里的字典），运行时经字典选项接口拉取注入 `options`，选项值为字典项编码；与 `dictionaryCode` 二选一 |
-| `optionsLoader` | 异步选项加载器（如代码生成的外键选项接口），挂载时调用并注入 `options`；与页面表单下拉在途时共用一次请求 |
-| `options` | 静态选项（`dictionaryCode` / `dictCode` / `optionsLoader` 解析为空时兜底，**保证绝不出现空下拉**） |
-| `render` | 自定义单元格渲染（最高优先级，返回 `VNodeChild`） |
-| `treeColumn` | 树形模式下承载展开箭头的列（应有且仅有一个） |
-| `order` | 排序值，越小越靠前 |
-| `width` / `minWidth` / `fixed` | 列宽 / 最小列宽 / 固定方向 |
-
-## 页面 Schema：`PageSchema`
-
-| 属性 | 作用 |
-| --- | --- |
-| `pageCode` | 页面唯一码，取该页面在后端页面登记表（各模块 `PageRegistry`）里的页面码，一页有多张表时用「页面码.子表」（如 `log.access`、`message.record.email`）；**偏好、视图与导入历史按此维度存储**，`src/views/view-page-code.test.ts` 校验对应关系 |
-| `pageName` | 页面名 |
-| `resourceCode` | 后端资源码，用于匹配字段脱敏（FLS）规则；**缺省则不拉取脱敏规则** |
-| `resource` | 数据资源适配器：`page` / `tree` / `remove` / `updateStatus` / `create` / `export` |
-| `fields` | 字段单一事实源 |
-| `actions` | 操作集合（`page` 工具栏 / `row` 行菜单 / `batch` 批量浮条） |
-| `rowKey` | 行主键，默认 `basicId` |
-| `exportPermission` | 导出按钮权限码。**精准门控：声明后仅有权用户可见；未声明则该页不显示导出** |
-| `importPermission` / `removePermission` / `statusPermission` | 导入 / 批量删除 / 批量启停的权限码 |
-| `batchRemovable` | 启用内置批量删除（依赖 `resource.remove`） |
-| `tree` | 存在即启用树形模式（走 `resource.tree`、不分页、按 `childrenKey` 展开） |
-| `scrollX` / `pageSize` | 表格横向滚动宽度 / 默认每页数量 |
-
-## 完整骨架
-
-以「访问日志」页（`src/views/log/access/index.vue`）为规范范例：
-
-```vue
-<script setup lang="ts">
-import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { createPageRequest, logManagementApi, querySortsFromSchema } from '@/api'
-import { SchemaPage } from '~/components'
-
-const { t } = useI18n()
-
-// ① 字段单一事实源（列 + 常用搜索 + 高级搜索，全在这里声明一次）
-const fields = computed<ListFieldSchema[]>(() => [
-  // 仅搜索、不作为列
-  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string',
-    visible: false, searchable: true, order: 0 },
-
-  // 枚举多选搜索 + 自定义标签渲染
-  {
-    key: 'accessResult', title: t('log.access.access_result'), dataType: 'enum',
-    searchable: true, searchMultiple: true, sortable: true,
-    options: accessResultOptions.value, order: 18,
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: accessResultTone(row.accessResult) }, () => h(XhTagLabel, () => /* label */)),
-  },
-
-  // 时间区间搜索
-  { key: 'accessTime', title: t('log.access.access_time'), dataType: 'datetime',
-    sortable: true, searchable: true, searchRange: true, advancedSearch: true, order: 26 },
-])
-
-// ② 查询构建：归一化参数 → 后端分页 DTO（resource.page 与导出复用同一个函数）
-function buildAccessQuery(params: SchemaQueryParams) {
-  return {
-    ...createPageRequest({
-      page: { pageIndex: params.page, pageSize: params.pageSize },
-      conditions: {
-        sorts: querySortsFromSchema(params.sorts),      // 多字段排序
-        filters: params.conditionFilters ?? [],          // 区间/多选（框架已算好）
-      },
-    }),
-    keyword: (params.filters.keyword as string)?.trim() || undefined,
-    // …其余顶层查询字段
-  }
-}
-
-// ③ 页面 Schema
-const schema = computed<PageSchema>(() => ({
-  pageCode: 'log.access',
-  pageName: t('log.access.page_name'),
-  exportPermission: 'saas:access-log:export',   // 权限码常量见后端 SaasPermissionCodes（登记在 SaasPermissionDefinitions）
-  rowKey: 'basicId',
-  scrollX: 2200,
-  fields: fields.value,
-  resource: {
-    page: params => logManagementApi.access.page(buildAccessQuery(params)),
-    export: { businessType: 'log.access', buildQuery: buildAccessQuery },
-  },
-  actions: [
-    { key: 'view', title: t('common.actions.view_detail'), scope: 'row', icon: 'lucide:eye' },
-  ],
-}))
-
-// 操作事件统一上抛，页面自己处理业务
-function onAction(payload: SchemaActionPayload) {
-  if (payload.key === 'view' && payload.row) { /* 打开详情抽屉 */ }
-}
-</script>
-
-<template>
-  <SchemaPage :schema="schema" @action="onAction">
-    <!-- 默认插槽：承载页面自有弹窗/抽屉 -->
-    <LogDetailDrawer v-model:show="detailVisible" :record="detailData" />
-  </SchemaPage>
-</template>
-```
-
-三条要点：
-
-1. **操作不在 Schema 里实现逻辑**，只声明 `key` / `scope` / `icon` / `permission`；点击时经 `@action` 上抛 `{ key, scope, row?, rows? }`，由页面处理。
-2. `resource.page` 收到框架**归一化**的 `SchemaQueryParams`（`page` / `pageSize` / `sorts` / `filters` / `conditionFilters`），映射成后端 DTO 的适配器**是页面自己写的**——框架只依赖归一化契约，不关心你的 DTO 长什么样。
-3. **导出复用同一个 `buildQuery`**，保证导出内容与当前筛选一致。
-
-### 插槽
-
-| 插槽 | 用途 |
-| --- | --- |
-| 默认 | 页面自有弹窗/抽屉 |
-| `#toolbar` | 追加工具栏项 |
-| `#expand` | 行展开内容（如任务调度展开触发器信息） |
-
-## 多字段排序
-
-排序**前端驱动、后端应用**：
-
-- 列头点击累加为 `sorts: SchemaSortRule[]`，**数组顺序即优先级**（下标 0 为主排序）。
-- `querySortsFromSchema(params.sorts)` 转成后端 `conditions.sorts`，每条带 `priority = 下标`。
-- 后端 `ApplySorts` 应用排序，并受 **FLS 门控**：只有「可读且未脱敏」的字段才允许作为排序键，其余被静默剔除；剔完没有有效排序时回退该接口的默认排序。
-- 列设置里可为每列设默认排序（单图标循环 无→升→降），优先级按列顺序。树表/子表不参与。
-
-::: warning 点了排序没反应
-先查该字段的字段级权限与脱敏规则——被 FLS 剔掉时后端不会报错，只是排序不生效。见 [权限与脱敏](./permission)。
-:::
-
-## 搜索：区间与多选
-
-`searchRange` / `searchMultiple` 字段的当前值由框架的 `queryFiltersFromSchema` 派生成后端通用过滤 `conditions.filters`：
-
-| 声明 | 下发的操作符 | 细节 |
-| --- | --- | --- |
-| `searchRange` | `Between`（`4000`） | 值为 ISO 字符串；`date` 粒度末值补到当天 `23:59:59.999` 以含整日 |
-| `searchMultiple` | `In`（`3000`） | 值走 `values` 数组 |
-
-这些统一放进 `params.conditionFilters`，页面适配器并入 `conditions.filters` 即可。其余普通搜索字段仍由页面的 `buildXxxQuery` 映射为 DTO 顶层字段。
-
-相关封装组件：`SchemaSearchField` / `SchemaSearchDateRange` / `SchemaSearchMultiSelect`。
-
-## 树形模式
-
-`PageSchema.tree` 存在即启用：走 `resource.tree`、**不分页**、按 `childrenKey` 展开。字段里要指定**有且仅有一个** `treeColumn`（承载展开箭头的列）。
-
-组织机构、菜单管理这类天然层级的页面用它。
-
-## 导入导出
-
-### 导出
+## 页面定义
 
 ```ts
-resource: {
-  export: { businessType: 'log.access', buildQuery: buildAccessQuery },
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'settings.configs', // 列设置、搜索设置、个人视图、导入历史按它存
+  pageName: t('settings.configs.title'),
+  rowKey: 'id', // 缺省 basicId，契约的行主键是 id
+  fields: fields.value,
+  resource: resource as unknown as PageSchema['resource'], // 资源适配器
+  exportPermission: 'settings.configs.read',
+  importPermission: 'settings.configs.create',
+  batchRemovable: true,
+  removePermission: 'settings.configs.delete',
+  statusPermission: 'settings.configs.update',
+  actions: [/* 页面级、行级与批量操作 */],
+}))
+```
+
+`PageSchema` 不带泛型，回调里用 `asRow(row)` 转成本页的行类型。其他项：`pageSize`（缺省 20）、`tree`（`{ childrenKey?, defaultExpandAll? }`，存在即树表）。页面经模板 ref（`SchemaPageInstance`）调用 `reload()` 重新取数，`@action` 接收操作事件。
+
+### 字段
+
+```ts
+{ key: 'name', title: t('…'), dataType: 'string', sortable: true, exportable: true, importable: true, required: true, minWidth: 160, order: 1 }
+```
+
+| 分组 | 项 |
+| --- | --- |
+| 基础 | `key`、`title`、`dataType`（`string` / `text` / `number` / `boolean` / `enum` / `date` / `datetime` / `money` / `percent` / `tag` / `json` / `image` / `file` / `avatar` / `email` / `phone` / `url`）、`order` |
+| 列 | `visible`、`width` / `minWidth`、`fixed`、`ellipsis`、`render`、`formatter`（`maskPhone` / `maskEmail` / `maskIdCard`）、`treeColumn` |
+| 搜索 | `searchable`（常用搜索）、`advancedSearch`（高级搜索）、`searchRange`（日期区间）、`searchMultiple`（多选）、`searchFilterable`（可输入筛选的单选下拉）、`searchPlaceholder` |
+| 选项 | `options`、`optionsLoader`（异步加载，同一加载器只请求一次）、`dictCode`（系统字典） |
+| 排序 | `sortable`（服务端排序，可多列） |
+| 导入导出 | `exportable`、`importable`、`required`（导入必填） |
+| 权限 | `permission`：没有该权限时字段隐藏 |
+
+- 只放进搜索、不当列的字段写 `visible: false`；
+- 可搜索、可排序的只放后端 `Queries/` 白名单里的字段，否则请求会被后端以 VALIDATION 拒绝；
+- `tag` / `enum` 字段按选项出中性标签；要按状态着色的列用 `render` + `renderTag(label, tone)`；
+- `render` 用 `h()` 生成的节点不带页面 scope，样式写 `:deep()`。
+
+### 操作
+
+```ts
+{ key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil',
+  visible: row => editor.isOwn(asRow(row)), permission: 'settings.configs.update' }
+```
+
+- `scope: 'page' | 'row' | 'batch'`：工具栏、行操作菜单、勾选后的批量浮条；
+- `tone`（组件库语气，如 `brand`、`danger`、`warning`）、`confirm` 与 `confirmText`（行级可传函数，写明操作对象）、`disabled`；
+- `permission` 直接填操作的权限码，没有权限的按钮不显示；
+- `visible` 处理业务上的可见性（例如租户看到平台参数只能「覆盖此参数」，不能编辑）。
+
+## 资源适配器
+
+```ts
+import type { SchemaQueryParams, SchemaResource } from '~/components'
+import { configs as configsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { throwOnFailed } from '~/request'
+
+export function configsResource(): SchemaResource<ConfigRow> {
+  return {
+    page: async (params: SchemaQueryParams) => toSchemaPageResult(
+      await configsApi.list(toPageRequest(params, {
+        filters: { group: 'eq', dataType: 'eq', owner: 'eq', status: 'eq', isEncrypted: 'eq' },
+      })),
+      params,
+    ),
+    remove: async id => throwOnFailed(await configsApi.delete({ ids: [String(id)] })),
+    updateStatus: async (id, enabled) => { /* 先取后改：update 是整体覆盖 */ },
+    create: record => configsApi.create({ /* 导入：importable 字段组装的记录 → 新建请求 */ }),
+  }
 }
 ```
 
-声明后走[导出中心](../backend/file#导出中心-file-export-center)的异步链路（提交任务 → 队列 → 后台生成 → 下载）；未声明则退化为本地 CSV。
-
-**按钮显隐由 `exportPermission` 精准门控**——未声明该字段的页面不显示导出按钮。
-
-### 导入
-
-`SchemaImportDialog` 内置：模板下载 → 选文件 → CSV 解析 → 预校验 → 批量创建。模板字段由 `importable: true` 的字段派生，**不需要单独维护模板文件**。
-
-## 偏好与视图
-
-| 能力 | 说明 |
+| 资源方法 | 用途 |
 | --- | --- |
-| **列设置 / 搜索设置** | 按 `pageCode` 同步后端（`useUserSettingSync`），多端一致 |
-| **个人视图 / 搜索方案** | 保存当前筛选 + 排序 + 每页数量为命名方案（`useViewManager`）；无内置 UI，经模板 ref 调用 `saveView` / `applyView` |
+| `page` | 分页查询（列表模式） |
+| `tree` | 树表一次取整棵（不分页） |
+| `remove` | 删除单条；行删除与批量删除都调它 |
+| `updateStatus(id, enabled)` | 启停单条；批量启停调它 |
+| `create(record)` | 导入时逐行新建 |
+| `export` | `{ businessType, buildQuery? }`：接入导出中心 |
 
-同步策略：**localStorage 仍是事实源**，后端加载成功则覆盖本地，保存失败静默忽略（尽力而为）。其它设备保存后经 SignalR `UserSettingChanged` 实时推送并应用到已打开的页面。
+`toPageRequest(params, mapping)`：
 
-::: tip `pageCode` 要稳定
-偏好、视图、列设置与导入历史全按 `pageCode` 存储。**只改 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它；确需改名时，随升级脚本把 `sys_user_setting`（`scene = 1`）与 `sys_import_history` 里的旧码改成新码（参考 `UpdateScripts/5.4.0/5.4.0-page-codes.sql`）。
-:::
-
-## 加一个列表页的清单
-
-| 步骤 | 做什么 |
+| 映射项 | 作用 |
 | --- | --- |
-| 1 | 后端 `PageRegistry` 登记页面与按钮（**建菜单即绑权限**） |
-| 2 | 后端加分页查询方法，**记得标 `[HttpPost]`** |
-| 3 | 前端 `src/api/modules/{域}/xxx.ts` 加 API（标准 CRUD 直接用 `defineResource`） |
-| 4 | 前端 `src/views/{域}/{页}/index.vue` 按上面的骨架写 |
-| 5 | `packages/locales/langs/{zh-CN,en-US}/` 补文案 |
+| `keyword` | 落到 `PageRequest.keyword` 的搜索字段（缺省 `keyword`） |
+| `filters` | 其余搜索字段的运算符：`{ 字段: 'eq' \| 'contains' \| 'ge' \| 'le' }` |
+| `ranges` | `searchRange` 的字段：区间拆成后端的 `ge` 与 `le` 两条 |
+| `multiples` | `searchMultiple` 的字段：选中值合成 `in`（逗号分隔） |
+| `bounds` | 上下限的两个输入框落到同一个后端字段：`{ 搜索键: { field, operator: 'ge' \| 'le' } }`（如日志的最小、最大耗时） |
 
-后端侧的完整接线见 [二次开发](../backend/development)。
+只接登记过的字段：出现没登记的搜索字段、区间或多选条件即抛错，不静默丢掉条件。区间与多选要后端同样接受。`toSchemaPageResult(result, params)` 把 `{ items, total, page }` 转成 SchemaPage 读的分页结果。
 
-## 相关页面
+套餐、菜单这类后端不分页的列表，资源在前端切片或本地筛选整棵树；出现后端不支持的条件同样报错。
 
-- [权限与脱敏](./permission)：字段级权限与 FLS 如何影响渲染
-- [路由与菜单](./routing)：页面怎么被路由到
-- [主题与国际化](./theme)：枚举标签、文案、时区
-- [接口对接指南](../api-guide#分页与查询协议)：`conditions` / `page` 的完整协议
+## 导出与导入
+
+页面声明了 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段，没有标的就导出当前可见列；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
+
+- 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
+- 资源还实现了 `export`：导出菜单多出当前页、搜索结果、全部三项，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成 CSV 或 XLSX 文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
+
+有 `importable` 字段且资源实现了 `create` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入时下载按 `importable` 字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填，再以并发 4 逐行调用 `create`，失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`，记下 `pageCode` 与页面声明的 `resourceCode`），对话框里显示最近几次。
+
+## 个人设置
+
+列设置、搜索设置与个人视图按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到；其他设备上改了，已打开的页面经实时推送（`UserSettingChanged`）即时应用。
+
+## 已知限制
+
+- 树表的批量操作只认勾选的顶层行。
+
+## 下一步
+
+- [契约与请求](./request) · [常用组件](./components) · [权限与脱敏](./permission)

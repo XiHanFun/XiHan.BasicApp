@@ -2,471 +2,258 @@
 
 # 接口对接指南
 
-本页是**前后端分离对接的唯一参考**：接口基址、统一响应信封、请求头、**怎么拿到 token**、分页与查询协议、动态 API 路由推导、错误处理、开放接口签名调用。所有字段、路由与取值都对照仓库源码核实，可直接照抄。
-
-> 想先跑起来看接口，见 [快速开始](./getting-started)；想知道认证体系的设计（会话、2FA、密码哈希），见 [身份与认证](./backend/authentication)。
+本页说明如何通过 HTTP 调用后端接口，适用于前端以外的对接方与集成开发者。接口全部来自后端登记的操作（`[Operation("<资源>.<动词>")]`），一个操作同时是 HTTP 端点，并可按需发布为 gRPC 方法与 MCP 工具。编写操作见[后端开发流程](./backend/development)。
 
 ## 基址与在线文档
 
-| 环境 | 监听端口 | API 基址 | 在线文档（Scalar） |
-| --- | --- | --- | --- |
-| Development | `9708` | `http://127.0.0.1:9708/api` | `http://127.0.0.1:9708/scalar` |
-| Production | `9709`（launch profile；Docker 镜像内为 `9708`） | 由部署域名决定 | 生产建议关闭 |
+| 地址 | 内容 |
+| --- | --- |
+| `/api/` | 全部操作，前缀由 `XiHan:Protocols:Http:RoutePrefix` 决定 |
+| `/openapi.json` | OpenAPI 3.1 全量文档，带 `x-tagGroups`（Development 缺省打开，见 `BasicApp:ApiDocs:Enabled`） |
+| `/openapi/<组名>.json` | 按包分组的文档：`identity`、`access`、`tenancy`、`organization`、`settings`、`files`、`notification`、`auditing`、`maintenance`、`openplatform`、`printing`、`chat`、`workflow`、`codegeneration`、`ai` |
+| `/scalar` | 交互式文档，下拉切换全量与各组 |
+| `/operations.proto` | 由同一份操作 Schema 生成的 gRPC 定义（只含 `Expose.Grpc` 的操作） |
+| `/mcp` | MCP 端点，见 [MCP Server](./ai/mcp) |
+| `/` | 应用名、版本与运行环境 |
 
-- 所有动态 API 都挂在 **`/api`** 前缀下。前端通过两个环境变量拼装：`VITE_API_BASE_URL`（协议+主机，开发态通常为空走 Vite 代理）与 `VITE_API_PREFIX`（默认 `/api`）。
-- 实际监听以 `Hosting:Urls` 为准；该配置会覆盖 launch profile 的 `applicationUrl`。
+文档的摘要与说明按 `Accept-Language` 本地化，每个操作带它要求的权限码（`x-xihan-permission`）或策略（`x-xihan-policy`）。全部操作可以用 `dotnet run --project backend/src/XiHan.BasicApp.Host -- operations` 列出。
 
-## 统一响应信封
+## 路由推导
 
-**所有接口**（无论成功失败）都返回同一个 JSON 信封 `ApiResponse` / `ApiResponse<T>`：
+路由由操作 ID 推导：
 
-| 字段 | 类型 | 说明 |
+| 操作 | HTTP | 说明 |
 | --- | --- | --- |
-| `code` | `int` | 业务码，**恒为数字**（`ApiResponse.Code` 属性上标了 `NumericEnumConverter`，属性级优先级最高，不受全局枚举转字符串影响） |
-| `message` | `string` | 面向用户的提示，默认取业务码的描述文案（如「请求成功」） |
-| `data` | `any` | 成功时是业务数据；失败时承载错误明细字符串 |
-| `traceId` | `string?` | 请求追踪 ID，跨日志/链路定位一次请求 |
-| `timestamp` | `string` | 服务端时间（UTC） |
-| `isSuccess` | `bool` | `code` 落在 `[200, 300)` 视为成功 |
+| `users.create` | `POST /api/users` | 成功 201 |
+| `users.get` | `GET /api/users/{id}` | 请求带 `id` 即实例级 |
+| `users.update` | `PUT /api/users/{id}` | 单例资源（请求不带 `id`）是 `PUT /api/<资源>` |
+| `users.delete` | `DELETE /api/users?ids=…&ids=…` | 批量，ID 在查询串 |
+| `users.list` | `POST /api/users:list` | 带分页对象（嵌套）即 POST；没有分页对象的 `list` 是 `GET /api/<资源>` |
+| `users.lock` | `POST /api/users:lock` | 集合级动词，请求体 `{ "ids": [...] }` |
+| `users.reset-password` | `POST /api/users/{id}:reset-password` | 实例级动词 |
+| `departments.tree` | `GET /api/departments:tree` | 声明只读、没有嵌套对象即 GET，字段走查询串 |
+| `profile.get` | `GET /api/profile` | 单例资源 |
 
-成功：
+请求载荷 = 路由值 ∪ JSON 请求体 ∪ 查询串，合并成一个对象；同名时路由值优先。不确定时以 `/openapi.json` 或前端生成的 `packages/contracts/operations.ts` 为准。
 
-```json
+## 响应
+
+### 成功响应
+
+正文就是响应 DTO（`application/json`）。`create` 返回 201，其余 200。
+
+- 主键是 UUID v7 字符串；租户 ID 是字符串（文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`）。
+- 时间一律 UTC，ISO 8601 带 `Z`；按用户时区显示是客户端的事。
+- 枚举序列化为字符串（如 `"Active"`）。
+- 属性名 camelCase。
+
+### 失败响应（RFC 9457）
+
+```http
+HTTP/1.1 409 Conflict
+Content-Type: application/problem+json
+Content-Language: zh-CN
+
 {
-  "code": 200,
-  "message": "请求成功",
-  "data": { "userName": "superadmin" },
-  "traceId": "8f2b1c0d4e5a6b7c8d9e0f1a2b3c4d5e",
-  "timestamp": "2026-08-04T02:11:33.4821567+00:00",
-  "isSuccess": true
+  "type": "urn:xihan:error:SETTINGS_CONFLICT_001",
+  "title": "CONFLICT",
+  "status": 409,
+  "code": "SETTINGS_CONFLICT_001",
+  "detail": "参数键 site.name 已存在。",
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "details": { "key": "site.name" }
 }
 ```
 
-失败（**具体错因在 `data`，`message` 只是业务码的通用描述**）：
+错误码文法 `<包>_<KIND>_<NNN>`，KIND 决定状态码：
 
-```json
-{
-  "code": 400,
-  "message": "请求错误",
-  "data": "用户名或密码错误",
-  "timestamp": "2026-08-04T02:11:33.4821567+00:00",
-  "isSuccess": false
-}
-```
-
-::: tip 客户端解包顺序
-判定成功优先读 **`isSuccess`**（非空布尔、信封必写），不要靠「有没有 `data` 字段」——服务端 `WhenWritingNull` 会把 `data: null` 整个省略。错误提示优先读 **`data`**，其次 `message`。前端 `RequestClient.request` 就是这么实现的。
-:::
-
-### 业务码全表
-
-`code` 分两段：**协议段（100–599）与 HTTP 状态码同值同名**；**业务段（10000+）**表达更细的语义。
-
-| 段 | 码 | 名称 | 含义 |
-| --- | --- | --- | --- |
-| 1xx | `100` | Continue | 继续请求 |
-| | `101` | SwitchingProtocols | 切换协议 |
-| 2xx | `200` | Success | 请求成功 |
-| | `201` | Created | 资源创建成功 |
-| | `202` | Accepted | 请求已接受（异步任务提交，如导出） |
-| | `204` | NoContent | 无内容 |
-| 3xx | `300` / `301` / `302` / `304` | — | 多种响应可选 / 永久重定向 / 临时重定向 / 资源未修改 |
-| 4xx | `400` | BadRequest | 参数错误、格式错误或缺少必要参数 |
-| | `401` | Unauthorized | 未通过身份认证，需重新登录或提供有效凭据 |
-| | `403` | Forbidden | 已认证但无权访问该资源 |
-| | `404` | NotFound | 资源不存在或已删除 |
-| | `405` | MethodNotAllowed | 请求方法不允许 |
-| | `408` | RequestTimeout | 请求超时 |
-| | `409` | Conflict | 请求冲突（重复创建、乐观锁版本冲突、防重放失败） |
-| | `410` | Gone | 资源已永久删除 |
-| | `415` | UnsupportedMediaType | 媒体类型不支持 |
-| | `422` | UnprocessableEntity | 参数格式正确但业务语义校验未通过 |
-| | **`423`** | **Locked** | **会话已锁定** —— 身份仍有效，应引导解锁而**不是**跳登录页 |
-| | `429` | TooManyRequests | 请求过于频繁（限流/防刷） |
-| 5xx | `500` | InternalServerError | 服务器内部错误 |
-| | `501` / `502` / `503` / `504` | — | 功能未实现 / 网关错误 / 服务不可用 / 网关超时 |
-| 认证授权 | `10001` | LoginExpired | 登录已过期（区别于 401：曾经登录、现已过期） |
-| | `10002` | TokenInvalid | 令牌无效（格式错误、签名不合法或已吊销） |
-| | `10003` | TokenExpired | 令牌已过期，可用刷新令牌换新 |
-| | `10004` | PermissionDenied | 缺少所需权限码（面向按钮/字段级细粒度） |
-| 数据校验 | `11000` | ValidationFailed | 数据校验失败，明细逐项置于 `data` |
-| 业务处理 | `12000` | BusinessFailed | 业务规则不满足、状态机不允许当前操作 |
-| 数据访问 | `13000` | DatabaseError | 数据库访问异常 |
-| 外部依赖 | `14000` | ThirdPartyServiceError | 第三方服务调用异常 |
-
-### JSON 序列化约定
-
-对接时最容易踩坑的几条（均由框架 `XiHanWebCoreMvcOptions.ConfigureJsonOptionsDefault` 统一设定）：
-
-| 约定 | 表现 | 注意 |
+| KIND | HTTP | 典型场景 |
 | --- | --- | --- |
-| **camelCase 命名** | `UserName` → `userName` | `OAuthProviders` → **`oAuthProviders`**（首字母小写只作用于第一个字符，别写成 `oauthProviders`） |
-| **null 省略** | `DefaultIgnoreCondition = WhenWritingNull` | 字段可能整个不出现，客户端类型要按可选处理 |
-| **`long` 序列化为字符串** | `12345` → `"12345"` | 避免 JavaScript Number 精度溢出；雪花 ID、耗时、字节数都是字符串，需要运算时显式转数字。反序列化时数字与字符串都接受 |
-| **枚举序列化为成员名** | `Status.Enabled` → `"Enabled"` | 唯一例外是 `ApiResponse.code`，恒为 int。请求侧枚举既可发数字也可发成员名 |
-| **`DateTime` / `DateTimeOffset` 按 `X-Timezone` 换算输出** | 存储恒 UTC，输出按请求头时区 | 不发头就按服务端默认；`DateTimeOffset` 走 ISO 8601 带偏移 |
-| **忽略循环引用** | `ReferenceHandler.IgnoreCycles` | — |
+| `VALIDATION` | 400 | 请求不合法；带字段级 `errors` |
+| `DENIED` | 403（`SECURITY_DENIED_001` / `003` 为 401） | 无权限、锁屏、账号停用；未认证 / 令牌无效 |
+| `NOTFOUND` | 404 | 找不到 |
+| `CONFLICT` | 409 | 重复、状态不允许 |
+| `UNAVAILABLE` | 503 | 节流、维护、外部服务不可用（可能带 `details.retryAfter`） |
+| `TIMEOUT` / `CANCELLED` | 504 / 408 | 截止时间到、调用取消 |
+| 其他 | 500 | 未预期 |
 
-## 请求头约定
-
-| 请求头 | 必填 | 值 | 作用 |
-| --- | --- | --- | --- |
-| `Authorization` | 受保护接口必填 | `Bearer <accessToken>` | 身份认证 |
-| `Content-Type` | 有 body 时 | `application/json` | 上传文件时用 `multipart/form-data`（此时**不要**手工设 Content-Type） |
-| `X-Language` | 否 | `zh-CN` / `en-US` | 后端据此本地化 `message` 与业务文案、枚举标签 |
-| `X-Timezone` | 否 | IANA 时区，如 `Asia/Shanghai` | 后端把 UTC 时间换算为该时区后输出 |
-| `X-Trace-Id` | 否 | 任意串 | 入站链路 ID；未启用 OpenTelemetry 时作为 TraceId 回退来源。响应头必回该字段 |
-
-> 前端另会带一个 `X-Request-Id`（前端自生成，用于本地请求日志面板），后端不消费它。
-
-## 怎么获取 token（完整实操）
-
-认证入口是 `AuthAppService`，类级 `[DynamicApi(RouteTemplate = "api/Auth")]`，因此全部端点都在 **`/api/Auth/*`** 下。核心设计是**先登录后选租户**：登录时不选租户，认证通过后由服务端按成员关系决定落点。
-
-### 端点总表
-
-| 端点 | 方法 | 匿名 | 说明 |
-| --- | --- | --- | --- |
-| `/api/Auth/LoginConfig` | GET | ✅ | 查可用登录方式与 OAuth 提供商 |
-| `/api/Auth/Login` | POST | ✅ | 账号密码登录（可能返回 2FA 挑战） |
-| `/api/Auth/EmailLoginCode` | POST | ✅ | 下发邮箱登录验证码 |
-| `/api/Auth/EmailLogin` | POST | ✅ | 邮箱验证码登录 |
-| `/api/Auth/PhoneLoginCode` | POST | ✅ | 下发短信登录验证码 |
-| `/api/Auth/PhoneLogin` | POST | ✅ | 短信验证码登录 |
-| `/api/Auth/RefreshToken` | POST | ✅ | 用旧 Access + Refresh 换新令牌 |
-| `/api/Auth/Register` | POST | ✅ | 注册 |
-| `/api/Auth/PasswordResetRequest` | POST | ✅ | 申请找回密码（防枚举，恒返回「已受理」） |
-| `/api/Auth/ConsumePasswordResetToken` | POST | ✅ | 消费重置令牌设新密码 |
-| `/api/Auth/UserInfo` | GET | ❌ | 当前用户资料 + 角色 + 权限码 |
-| `/api/Auth/Permissions` | GET | ❌ | 权限码 + 角色 + **菜单路由**（前端动态路由数据源） |
-| `/api/Auth/SwitchTenant` | POST | ❌ | 切换租户 / 进入平台运维态，换发令牌 |
-| `/api/Auth/Logout` | POST | ❌ | 登出，撤销会话 |
-| `/api/Auth/LockSession` | POST | ❌ | 锁屏（此后接口返回 `423`） |
-| `/api/Auth/UnlockSession` | POST | ❌ | 解锁 |
-| `/api/Auth/OAuthBindTicket` | POST | ❌ | 生成三方账号绑定一次性票据 |
-
-> 路由名是方法名**剥离动词前缀并去掉 `Async` 后缀**的结果：`GetLoginConfigAsync` → `LoginConfig`、`CreateOAuthBindTicketAsync` → `OAuthBindTicket`。规则见[下文](#动态-api-路由推导规则)。
-
-### 第 1 步：登录换令牌
-
-```bash
-curl -X POST http://127.0.0.1:9708/api/Auth/Login \
-  -H "Content-Type: application/json" \
-  -H "X-Language: zh-CN" \
-  -d '{
-    "username": "superadmin",
-    "password": "SuperAdmin@123"
-  }'
-```
-
-请求体 `LoginRequestDto`：
-
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `username` | `string` | ✅ | **邮箱**（全平台唯一登录标识）；平台账号也可用用户名 |
-| `password` | `string` | ✅ | 明文密码（走 HTTPS） |
-| `captchaId` / `captchaCode` | `string?` | 配置要求时 | 图形验证码（`LoginConfig.captchaEnabled` 为真时首段必填；一次性消费，读取即销毁） |
-| `twoFactorCode` | `string?` | — | 开启 2FA 时的验证码 |
-| `twoFactorMethod` | `string?` | — | `totp` / `email` / `phone` |
-| `twoFactorTicket` | `string?` | 2FA 后续阶段 | 首段挑战响应签发的两步验证票据；后续阶段带票即免图形验证码 |
-| `deviceId` | `string?` | — | 设备指纹，用于多端会话管理 |
-
-成功响应（`data` 是 `LoginResponseDto`）：
+字段级错误：
 
 ```json
 {
-  "code": 200,
-  "message": "请求成功",
-  "data": {
-    "requiresTwoFactor": false,
-    "token": {
-      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....",
-      "refreshToken": "b7c1f0e9a2d34c5f8e6b0a1d2c3e4f5a",
-      "tokenType": "Bearer",
-      "expiresIn": 3600,
-      "issuedAt": "2026-08-04 10:11:33",
-      "expiresAt": "2026-08-04 11:11:33"
-    }
-  },
-  "isSuccess": true
+  "code": "KERNEL_VALIDATION_003",
+  "status": 400,
+  "errors": {
+    "userName": ["长度必须在 1 到 64 之间。"],
+    "lines[0].sku": ["不能为空。"]
+  }
 }
 ```
 
-**需要两步验证时**不签发令牌，而是返回挑战（此时 email/phone 方式已自动下发验证码，TOTP 由认证器本地生成）：
+客户端只依赖 `code` 与 `errors`：`detail` 已按 `Accept-Language` 本地化，可以直接展示，但不要拿它做分支。
 
-```json
-{
-  "code": 200,
-  "data": {
-    "requiresTwoFactor": true,
-    "availableTwoFactorMethods": ["totp", "email"],
-    "twoFactorMethod": "totp",
-    "codeSent": false,
-    "twoFactorTicket": "S2m4…（不透明随机串）",
-    "token": null
-  },
-  "isSuccess": true
-}
-```
+## 请求头
 
-带上验证码与票据重新请求同一端点即可完成登录。两步验证是无状态三段式（凭据 → 选方式 / 下发码 → 提交码），每段都重新提交凭据；图形验证码只在首段消费，后续阶段改带 `twoFactorTicket`（10 分钟有效，可多次出示，登录完成后作废）。票据不存在 / 过期 / 不属于本次认证用户时返回「两步验证已过期，请重新登录。」，客户端应回到凭据阶段并刷新图形验证码：
+| 头 | 说明 |
+| --- | --- |
+| `Authorization: Bearer <访问令牌>` | 匿名操作（登录、验证码、刷新等）不带 |
+| `Accept-Language` | 错误文案与文档的区域，如 `zh-CN` |
+| `traceparent` | W3C Trace Context，建议每个请求生成；失败响应的 `traceId` 与它对应 |
+| `xihan-deadline` | 可选，RFC 3339 UTC 截止时间 |
 
-```bash
-curl -X POST http://127.0.0.1:9708/api/Auth/Login \
-  -H "Content-Type: application/json" \
-  -d '{ "username": "a@b.com", "password": "***", "twoFactorMethod": "totp", "twoFactorCode": "123456", "twoFactorTicket": "S2m4…" }'
-```
+租户不能由客户端自报：没有 `X-Tenant-Id` 头，也不认查询串或 `baggage` 头，租户来自令牌的 `tenant` 声明。
 
-::: tip 免密码的两条路
-邮箱验证码登录是两步：先 `POST /api/Auth/EmailLoginCode`（body `{"email":"a@b.com"}`，返回 `expiresInSeconds`，**开发环境**才回显 `debugCode`），再 `POST /api/Auth/EmailLogin`（body `{"email":"a@b.com","code":"123456"}`）直接拿到 `LoginTokenDto`。短信同理走 `PhoneLoginCode` / `PhoneLogin`（body 字段是 `phone`），前提是参数 `saas.auth.login` 的 `methods` 里有 `phone`、手机号已在账号上验证、短信网关已配置并启用且模板映射里有 `auth-sms-login-code`，否则发码接口直接报错。验证码 6 位、10 分钟、**一次性消费**（读取即销毁，无论成败）。
-:::
+## 获取令牌
 
-### 第 2 步：带令牌调接口
+### 端点
 
-把 `accessToken` 放进 `Authorization` 头：
+| 操作 | HTTP | 认证 |
+| --- | --- | --- |
+| `auth.login-config` | `GET /api/auth:login-config` | 匿名：登录方式、第三方提供方、是否要验证码 |
+| `auth.captcha` | `POST /api/auth:captcha` | 匿名：SVG 图形验证码 |
+| `auth.login` | `POST /api/auth:login` | 匿名：密码登录 |
+| `auth.send-login-code` / `auth.login-by-code` | `POST /api/auth:send-login-code` / `:login-by-code` | 匿名：邮箱 / 手机验证码登录 |
+| `auth.verify-two-factor` / `auth.send-two-factor-code` | `POST /api/auth:verify-two-factor` / `:send-two-factor-code` | 匿名：双因素第二步 |
+| `auth.refresh` | `POST /api/auth:refresh` | 匿名：刷新令牌轮换 |
+| `auth.me` / `auth.permissions` | `GET /api/auth:me` / `:permissions` | 登录：当前用户 / 权限码、角色、菜单树、页面码 |
+| `auth.switch-tenant` | `POST /api/auth:switch-tenant` | 登录：换到成员租户或平台 |
+| `auth.lock` / `auth.unlock` | `POST /api/auth:lock` / `:unlock` | 登录：锁屏 |
+| `auth.logout` | `POST /api/auth:logout` | 登录：吊销当前会话 |
 
-```bash
-curl http://127.0.0.1:9708/api/Auth/UserInfo \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...." \
-  -H "X-Timezone: Asia/Shanghai"
-```
+另有 `auth.register`（自助注册，缺省关）、`auth.request-password-reset` / `auth.reset-password`（找回密码）、`auth.external-login`（第三方登录换令牌）、`auth.session-roles` / `auth.activate-roles`（会话角色激活）。
 
-`/api/Auth/UserInfo` 返回 `UserInfoDto`：`basicId`、`userName`、`nickName`、`avatar`、`email`、`phone`、`tenantId`、`isPlatform`（当前是否平台运维态）、`canAccessPlatform`、`roles[]`、`permissions[]`，外加站点品牌字段 `appTitle` / `appSubtitle` / `appLogo`。
-
-`/api/Auth/Permissions` 返回 `PermissionInfoDto`：`roles[]`、`permissions[]`、**`menus[]`**（菜单路由树，前端据此 `addRoute` 生成动态路由）。
-
-::: warning 权限码不在令牌里
-Access Token 的 Claim 只有 `sub`/`jti`/`UserId`/`UserName`/`SessionId`/`TenantId`/`DeviceFingerprint` 与多个 `Role`；**具体权限码不冻结进令牌**（超管例外，放一个通配 `*` 作快路径）。鉴权一律走服务端**授权快照**实时判定——所以授予/回收权限**无需重新登录**即时生效，也避免权限清单随令牌泄露。
-:::
-
-### 第 3 步：令牌过期怎么办
-
-Access Token 默认 60 分钟、Refresh Token 默认 7 天（以 `XiHan:Authentication:Jwt` 配置为准）。过期后用**旧 AccessToken + RefreshToken** 换新：
+### 第 1 步：登录
 
 ```bash
-curl -X POST http://127.0.0.1:9708/api/Auth/RefreshToken \
-  -H "Content-Type: application/json" \
-  -d '{ "accessToken": "<旧的 accessToken>", "refreshToken": "<refreshToken>" }'
+curl -X POST http://localhost:9710/api/auth:login \
+  -H 'Content-Type: application/json' -H 'Accept-Language: zh-CN' \
+  -d '{"userName":"superadmin","password":"<密码>","captchaId":"<标识>","captchaCode":"<码>"}'
 ```
 
-返回新的 `LoginTokenDto`。注意两点：
+- 平台账号不填 `tenant`；租户账号填注册地租户 ID。
+- 开了双因素的账号返回 `{"token": null, "twoFactor": {"ticket": "…", "methods": [...], …}}`，再用 `auth.verify-two-factor` 凭票据与码换令牌。
+- 成功返回 `token`：`accessToken`（HS256 JWT，缺省 120 分钟）、`refreshToken`（不透明，缺省 7 天）、`sessionId`、`tenantId`（平台账号为 `null`）、`mustChangePassword` 与用户资料。
 
-- 该端点是**匿名**的（否则过期令牌进不来），两个令牌都必须带上、缺一即失败。
-- 前端 `RequestClient` 已内建自动刷新：任一请求收到 `401` 就尝试刷一次并重放原请求；刷新期间的并发请求排队等待同一次刷新结果；刷新失败即清空本地令牌、跳登录页。刷新请求自身失败不会再次触发刷新（`_isRefresh` 标记，防死循环）。
+### 第 2 步：携带令牌调用
+
+```bash
+curl -X POST http://localhost:9710/api/roles:list \
+  -H 'Authorization: Bearer <访问令牌>' -H 'Content-Type: application/json' \
+  -d '{"page":{"index":1,"size":20},"keyword":"admin"}'
+```
+
+访问令牌的声明：`sub` = 用户 ID、`tenant` = 当前租户（平台主体没有）、`sid` = 会话 ID、`role` = 本会话激活的角色 ID、模仿会话另有 `act`。
+
+### 第 3 步：令牌过期
+
+| `code` | 含义 | 处理 |
+| --- | --- | --- |
+| `SECURITY_DENIED_001`（401） | 未认证 | 用刷新令牌调 `auth.refresh` 一次并重放；刷新也失败即回登录 |
+| `SECURITY_DENIED_003`（401） | 令牌过期、签名不符、格式错 | 同上 |
+| `IDENTITY_DENIED_001` | 会话已吊销（注销、改密、锁定、被强制下线） | 直接回登录，不要刷新 |
+| `IDENTITY_DENIED_002` | 会话已锁定（`details.reason`：`ScreenLock` 锁屏、`PasswordChangeRequired` 强制改密） | 锁屏用 `auth.unlock` 解锁；强制改密用 `profile.change-password` 改完即解开 |
+
+刷新令牌每次轮换，旧的立即失效；并发请求要串行化刷新。
 
 ### 第 4 步：切换租户
 
-登录后可随时切换到某个租户或回到平台运维态，**换发一套新令牌**（复用当前会话轮换令牌，不产生新的登录事件、不新增设备）：
+`auth.switch-tenant` 续用同一个会话（`sid` 不变）、轮换刷新令牌、按新租户重算角色，返回新的令牌对。客户端换令牌后整页重载，不要在旧页面状态上继续操作。只能切到注册地租户、生效中的成员租户（含运维支持）或平台；模仿态的会话不能切换。
 
-```bash
-curl -X POST http://127.0.0.1:9708/api/Auth/SwitchTenant \
-  -H "Authorization: Bearer <accessToken>" \
-  -H "Content-Type: application/json" \
-  -d '{ "tenantId": "1001" }'      # tenantId 传 null 表示切到平台运维态
-```
+## 分页、筛选与批量
 
-可切换的租户列表来自 `GET /api/TenantQuery/MyAvailableTenants`。
-
-### 登出与锁屏
-
-- `POST /api/Auth/Logout`：撤销会话、吊销关联令牌。
-- `POST /api/Auth/LockSession`（body `{"password":"***"}`）后，后续接口返回 **`423 Locked`**。这**不是** 401：用户身份仍然有效，客户端应弹解锁遮罩而不是跳登录页；`POST /api/Auth/UnlockSession` 解锁。
-
-### 认证相关的失败排查
-
-| 现象 | 多半是 |
-| --- | --- |
-| `401` 且 `data` 提示令牌无效/过期 | 没带 `Authorization`、`Bearer ` 前缀漏了、或令牌已过期未刷新 |
-| 登录返回 400 且提示账号或密码错误 | `username` 要传**邮箱**（平台账号才可用用户名） |
-| `403` | 认证通过但缺权限码，或租户版本（Edition）白名单未放行该权限 |
-| `423` | 会话被锁屏，先解锁 |
-| 刷新令牌一直失败并被登出 | `accessToken` 与 `refreshToken` 必须成对提交，且 refresh 未过期（默认 7 天） |
-
-## 分页与查询协议
-
-### 分页统一走 POST
-
-框架的动态 API 会把 `GetXxxAsync` 推导成 GET，但**分页方法一律显式标 `[HttpPost]`**，把整个查询对象作为 JSON body 发送——GET 查询串装不下嵌套的过滤/排序数组。
-
-```bash
-curl -X POST http://127.0.0.1:9708/api/UserQuery/UserPage \
-  -H "Authorization: Bearer <accessToken>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "conditions": {
-      "keyword": { "value": "张", "fields": ["userName", "nickName"] },
-      "filters": [
-        { "field": "status", "operator": 1000, "value": "Enabled" },
-        { "field": "createdTime", "operator": 4000, "values": ["2026-01-01T00:00:00", "2026-08-04T23:59:59.999"] }
-      ],
-      "sorts": [
-        { "field": "createdTime", "direction": 1001, "priority": 0 }
-      ]
-    },
-    "page": { "pageIndex": 1, "pageSize": 20 }
-  }'
-```
-
-请求体结构（后端 `PageRequestDtoBase`，业务分页 DTO 继承它并追加自己的顶层字段）：
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `conditions.keyword` | `{ value, fields[], matchMode }` | 关键字跨字段搜索，`matchMode` 默认 `Contains` |
-| `conditions.filters` | `QueryFilter[]` | 通用过滤：`{ field, operator, value }`；`In` / `Between` 用 `values` 数组 |
-| `conditions.sorts` | `QuerySort[]` | 多字段排序：`{ field, direction, priority }`，**`priority` 越小越优先**（前端以数组下标填充） |
-| `page.pageIndex` | `int` | 页码，**从 1 开始**；小于 1 自动纠正为 1 |
-| `page.pageSize` | `int` | 每页条数，默认 `20`，**上限 `500`**（超出自动截断，小于 1 回退默认值） |
-
-`QueryOperator` 取值：
-
-| 值 | 名称 | 值 | 名称 |
-| --- | --- | --- | --- |
-| `1000` | Equal | `2000` | Contains |
-| `1001` | NotEqual | `2001` | StartsWith |
-| `1002` | GreaterThan | `2002` | EndsWith |
-| `1003` | GreaterThanOrEqual | `3000` | In |
-| `1004` | LessThan | `3001` | NotIn |
-| `1005` | LessThanOrEqual | `4000` | Between |
-| | | `5000` / `5001` | IsNull / IsNotNull |
-
-`SortDirection`：`1000` = 升序，`1001` = 降序。
-
-> 枚举请求侧既接受数字也接受成员名（`"Between"`）；前端契约层统一发数字。
-
-### 分页响应
+### 分页查询
 
 ```json
 {
-  "code": 200,
-  "data": {
-    "items": [ /* ... */ ],
-    "page": {
-      "pageIndex": 1, "pageSize": 20, "totalCount": 137, "totalPages": 7,
-      "currentPageCount": 20, "startRecord": 1, "endRecord": 20,
-      "hasPrevious": false, "hasNext": true,
-      "isFirstPage": true, "isLastPage": false
-    },
-    "extendDatas": null
-  },
-  "isSuccess": true
+  "page": { "index": 1, "size": 20 },
+  "filters": [
+    { "field": "status", "operator": "in", "value": "Active,Locked" },
+    { "field": "createdAt", "operator": "ge", "value": "2026-10-01T00:00:00Z" }
+  ],
+  "keyword": "zhang",
+  "sorts": [{ "field": "createdAt", "descending": true }]
 }
 ```
 
-::: warning 排序/过滤受字段级安全门控
-读侧会经 `IFieldSecurityService.GuardQueryAsync` 门控：**只有当前用户能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退到该接口的默认排序。所以「排序没生效」优先查字段安全，见 [数据权限](./backend/data-permission#字段级安全-列级)。
-:::
+- `page.index` 1–100000，`size` 1–500；越界是 400 `KERNEL_VALIDATION_003`，字段错误（`errors["page.index"]`）按 `Accept-Language` 给文案。`filters` 最多 32 条、`sorts` 最多 8 条。
+- 运算符只有 `eq`、`ne`、`contains`、`gt`、`ge`、`lt`、`le`、`in`；每个操作只接受白名单里的字段与运算符，其余给 VALIDATION 错误。
+- 受字段安全保护的字段不能筛选或排序（如 `IDENTITY_DENIED_011`）。
 
-## 动态 API 路由推导规则
+响应：
 
-BasicApp 没有 Controller——应用服务打上 `[DynamicApi]` 就是 REST 接口（机制见[动态 API](https://framework.docs.xihanfun.com/guide/dynamic-api)）。对接时只需记住这套推导：
+```json
+{ "items": [ … ], "total": 128, "page": { "index": 1, "size": 20 } }
+```
 
-**路由 = `/api` + 控制器名 + 动作名**，控制器名取服务类名去掉 `AppService` / `QueryService` 等后缀，或由类级 `RouteTemplate` 直接钉死（如 `AuthAppService` 钉在 `api/Auth`）。
+### 批量写操作
 
-动作名 = 方法名**去掉 `Async` 后缀**再**剥离动词前缀**；HTTP 谓词由同一个动词前缀推导：
+删除、启停、锁定、撤销一类按标识的写操作只有批量形态，单条是一元集合。删除的 ID 走查询串 `ids`，其余批量动词是 POST、请求体 `{ "ids": [...] }`（不接受顶层数组）。响应是逐项结果：
 
-| 方法名前缀 | HTTP 谓词 | 方法名前缀 | HTTP 谓词 |
-| --- | --- | --- | --- |
-| `Get` / `Retrieve` / `Fetch` / `Find` / `Query` / `List` / `Search` | `GET` | `Update` / `Edit` / `Modify` | `PUT` |
-| `Create` / `Add` / `Insert` | `POST` | `Delete` / `Remove` / `Destroy` | `DELETE` |
-| `Patch` / `PartialUpdate` | `PATCH` | **无匹配前缀** | **`POST`（默认）** |
+```json
+{ "succeeded": ["0193…"], "failed": [{ "id": "0193…", "code": "IDENTITY_CONFLICT_002", "message": "不能对自己的账号执行该操作。" }] }
+```
 
-细节：
+部分失败时 HTTP 仍是 200，逐项看 `failed`。`message` 已按 `Accept-Language` 本地化，可直接显示；程序分支看 `code`。
 
-- **前缀匹配要求词边界**（前缀后必须是大写字母或下划线），所以 `AddressBook` 不会被 `Add` 命中、`EditorTemplate` 不会被 `Edit` 命中。
-- 方法上显式标注的 `[HttpGet]` / `[HttpPost]` 等**优先于**前缀推导。
-- 前缀被剥离：`GetUserPageAsync` → 动作名 `UserPage`；`SwitchTenantAsync`（无动词前缀）→ 动作名 `SwitchTenant`，谓词落默认 `POST`。
+## 文件上传与下载
 
-举例：
+只有 JSON 能进操作；文件走宿主的普通端点，它们同样在 `openapi.json` 里：
 
-| C# 方法 | 实际端点 |
+| 端点 | 说明 |
 | --- | --- |
-| `UserQueryService.GetUserDetailAsync(long id)` | `GET /api/UserQuery/UserDetail?id=...` |
-| `UserQueryService.GetUserPageAsync(dto)` + `[HttpPost]` | `POST /api/UserQuery/UserPage` |
-| `UserAppService.CreateUserAsync(dto)` | `POST /api/User/User` |
-| `UserAppService.UpdateUserStatusAsync(dto)` | `PUT /api/User/UserStatus` |
-| `AuthAppService.SwitchTenantAsync(dto)` | `POST /api/Auth/SwitchTenant` |
-
-## 错误处理约定
-
-- **HTTP 状态码与 `code` 通常一致**，但请以信封里的 `code` 为准做业务判定。
-- `401` → 尝试刷新令牌并重放；再失败即登出。
-- `423` → 弹解锁，**不要**登出。
-- `429` → 退避重试。
-- 校验失败（`400` / `422` / `11000`）时明细在 `data`，直接展示即可。
-- 排障时把响应头 `X-Trace-Id`（或信封里的 `traceId`）交给后端，可在日志与审计里定位到这一次请求的完整轨迹。
+| `POST /api/files/upload` | `multipart/form-data` 上传，返回与 `files.get` 相同的响应 |
+| `GET /api/files/{id}/content` | 按身份读取内容，支持 `Range` |
+| `POST /api/profile/avatar` | 上传头像（只要求登录，JPEG / PNG，≤ 2 MB） |
+| `POST /api/chat-messages/attachments` | 聊天附件上传（聊天模块开着时） |
+| `GET /api/codegen-histories/{id}/package` | 代码生成产物包下载（代码生成模块开着时） |
+| `files.presign` | `GET /api/files/{id}:presign`，换限时签名地址（本地存储走 `/blobs`，S3 兼容存储直连） |
+| `files.start-upload` → `sign-upload-parts` → `complete-upload` | 大文件分片直传 |
 
 ## 开放接口：签名调用（无 JWT）
 
-面向**服务端到服务端**的第三方调用，走 HMAC 签名而非 JWT。用户在[个人中心](./backend/authentication#个人中心)自助申请凭证：`AppKey`（`ak_` 前缀）+ `AppSecret`（`sk_` 前缀，**明文仅在创建/滚动时返回一次**，服务端只存哈希），每人最多 5 个。
-
-由框架中间件 `XiHanOpenApiSecurityMiddleware` 统一验签，配置节 `XiHan:Web:Api:OpenApiSecurity`：
-
-| 配置 | 默认值 | 说明 |
-| --- | --- | --- |
-| `IsEnabled` | `false` | 总开关 |
-| `ProtectedPathPrefixes` | **`["/api"]`** | 受保护的路径前缀。框架默认值是 `/api`，**必须覆盖**，否则开启后整站接口都要验签；BasicApp 已在 `appsettings.json` 里改成 `["/api/openapi"]` |
-| `IgnoredPathPrefixes` | — | 豁免前缀，BasicApp 配 `["/openapi", "/swagger", "/health", "/connect"]` |
-| `AllowUnsignedRequests` | `false` | 灰度开关：允许未带安全头的请求直接放行（BasicApp 默认打开，便于灰度上线） |
-| `RequireContentSignature` | `true` | 是否强制校验内容签名 |
-| `EnableReplayProtection` | `true` | 防重放（Nonce 去重） |
-| `TimestampToleranceSeconds` | `300` | 时间戳允许误差 |
-| `NonceExpireSeconds` | `300` | Nonce 存活期 |
-| `DefaultSignatureAlgorithm` | `HMACSHA256` | 也支持 `HMACSHA512` / `RSASHA256` / `SM2`；`HMACSHA1` 需显式放开 `AllowLegacySignatureAlgorithms` |
-| `DefaultContentSignatureAlgorithm` | `SHA256` | 也支持 `SHA512`；`MD5` 需显式放开 |
-| `MaxRequestBodySize` | `2 MiB` | 允许读取的最大请求体 |
+服务端到服务端的调用走签名开放接口（`open.*` 操作），凭证在个人中心「开放接口凭证」里申请。
 
 ### 请求头
 
-| 请求头 | 说明 |
-| --- | --- |
-| `X-Access-Key` | 凭证 AppKey |
-| `X-Timestamp` | Unix 秒 |
-| `X-Nonce` | 一次性随机串（防重放） |
-| `X-Signature` | 请求签名（Hex 或 Base64 均接受，HMAC 场景大小写不敏感） |
-| `X-Content-Sign` | 请求体内容签名 |
-| `X-Sign-Algorithm` / `X-Content-Sign-Algorithm` | 覆盖默认算法（可选） |
-| `X-Encrypt-Algorithm` | 请求体加密算法；**不加密时必须显式发 `NONE`** |
-| `X-Encrypt-Iv` | 请求体加密 IV（Base64，加密时用） |
-| `X-Encrypt-Response` | 要求响应加密 |
+| 头 | 必需 | 说明 |
+| --- | --- | --- |
+| `X-Access-Key` | 是 | AppKey |
+| `X-Timestamp` | 是 | Unix 秒，与服务端相差不超过 `BasicApp:OpenPlatform:TimestampToleranceSeconds`（缺省 300） |
+| `X-Nonce` | 是 | 随机串，防重放 |
+| `X-Content-Sign` | 是 | 请求体明文的 SHA256（或 SHA512）小写十六进制；空体即空串的散列，GET 也要带 |
+| `X-Signature` | 是 | 请求签名（十六进制或 Base64） |
+| `X-Sign-Algorithm` | 否 | 须与凭证设置一致（HMAC-SHA256 / HMAC-SHA512） |
+| `X-Content-Sign-Algorithm` | 否 | `SHA256`（缺省）或 `SHA512` |
+| `X-Encrypt-Algorithm` / `X-Encrypt-Iv` | 否 | 请求体加密 `AES-CBC`，明文不必带 |
+| `X-Encrypt-Response` | 否 | 要求加密响应 |
 
-### 签名怎么算
+### 签名算法
 
-1. **内容签名**：`contentSign = lowerhex(SHA256(请求体原文))`，无 body 时对空串求。
-2. **规范化查询串**：查询参数按 key 序（Ordinal）升序、同 key 值再升序，`Uri.EscapeDataString` 转义后以 `key=value` 用 `&` 连接；无查询参数则为空串。
-3. **待签名串**：以 **`\n`** 连接六段，顺序固定——
+```text
+规范串 = 方法大写 \n 路径 \n 规范查询串 \n 内容签名 \n X-Timestamp 原文 \n X-Nonce
+签名   = HMAC(凭证密钥的 UTF-8 字节, 规范串)
+```
 
-   ```text
-   {HTTP方法大写}\n{请求路径}\n{规范化查询串}\n{contentSign}\n{X-Timestamp}\n{X-Nonce}
-   ```
-
-4. **签名**：`X-Signature = HMACSHA256(AppSecret, 待签名串)`，输出 Hex 或 Base64 均可。
+规范查询串：键按序数排序、同键的值也排序，键与值都做百分号编码，用 `&` 连接，没有值写 `key=`。加密为 AES-CBC + PKCS7，密钥是凭证密钥的 UTF-8 字节（正好 16 / 24 / 32 字节直接用，否则取 SHA256）。验签失败按类别返回 400 / 403 / 409，每次调用都记开放接口日志。
 
 ### 自测端点
 
-Saas 模块内置两个只做回显的自测端点（`[AllowAnonymous]`，身份完全由签名确立），验签通过后回显调用方 AppKey，用来确认链路打通：
-
-| 端点 | 方法 | 说明 |
+| 操作 | HTTP | 说明 |
 | --- | --- | --- |
-| `/api/openapi/Ping` | GET | 返回 `ok` / `accessKey` / `ownerUserId` / `serverTimeUtc` |
-| `/api/openapi/Echo` | POST | 原样回显请求体 |
+| `open.ping` | `GET /api/open:ping` | 验签自检，返回 AppKey、归属人与服务端时间（可用来对时） |
+| `open.echo` | `POST /api/open:echo` | 原样回显请求体，检查加解密 |
 
-::: warning 两个高频坑
-1. `ProtectedPathPrefixes` 别用框架默认的 `/api`——那会让登录、前端调用等全部接口都要求签名。只钉开放接口专属前缀。
-2. 不加密请求体时**必须显式发 `X-Encrypt-Algorithm: NONE`**，否则会走加密解析分支而失败。
-:::
+OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-api)。
 
 ## 实时通信（SignalR）
 
-两条 Hub：通知 `/hubs/notification`、聊天 `/hubs/chat`。鉴权用同一个 JWT，经 `accessTokenFactory` 传递（浏览器 WebSocket 不能自定义头，SignalR 会把令牌放到查询串 `access_token`）。传输回退顺序 WebSockets → SSE → LongPolling。
+| Hub | 服务端推送的方法 |
+| --- | --- |
+| `/hubs/notification` | `ForceLogout`（会话被吊销，客户端回登录）、`ReceiveNotification`（新的站内通知）、`TaskProgress`（导出等后台任务进度）、`UserSettingChanged`（个人设置在其他设备上改了） |
+| `/hubs/chat` | `ReceiveChatMessage`、`ChatMessageEdited`、`ChatMessageRecalled`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatTyping`、`ChatConversationChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`；客户端可调 `JoinConversation`、`LeaveConversation`、`Typing` |
 
-::: warning 载荷需手动投影
-Hub 侧**没有** `long → string` 与枚举的自动转换器（那是 MVC JSON 管道的配置，不作用于 SignalR）。服务端推送前须应用侧手动投影，Hub 方法参数用 `string` 接收 ID。
-:::
+令牌放查询串 `access_token`（只在 `/hubs` 下读）。方法清单由 `contracts export` 一并导出为 `realtime.json`。详见[实时推送](./backend/realtime)。
 
 ## 下一步
 
-- [常见问题](./faq)：401/403、菜单不出、时间差 8 小时等高频故障速查
-- [身份与认证](./backend/authentication)：会话、2FA、OAuth、密码安全的完整设计
-- [权限模型](./backend/permission)：权限码、数据范围、字段级脱敏（决定你能查到什么字段）
-- [二次开发](./backend/development)：怎么新增一个接口
-- [动态 API 概念](https://framework.docs.xihanfun.com/guide/dynamic-api)：框架层的路由推导实现
+- [前端契约与请求](./frontend/request) · [统一认证](./backend/authentication) · [请求生命周期](./backend/request-lifecycle)

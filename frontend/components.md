@@ -2,82 +2,68 @@
 
 # 常用组件
 
-除 [Schema 页面引擎](./schema-page) 之外的公共组件与全局挂件，按用途分组速查。组件源码在 `packages/components/`、`packages/layouts/` 与 `packages/iconify/`。
+本页列出前端常用的组件及其用途，适用于前端开发者。
 
-## 编辑器
+组件统一来自 XiHan.UI（`@xihan-ui/vue` 等）。它是解剖式组件库：模板里的 `Xh*` 部件（如 `XhButton`、`XhDialogRoot`）由 Vite 插件 `XiHanUIResolver` 按需解析到具名导出，可以不写 import，摇树不受影响。组件 API、部件与令牌见 [XiHan.UI 文档](https://ui.docs.xihanfun.com)。
 
-| 组件 | 底层 | 用途 |
-| --- | --- | --- |
-| `RichTextEditor.vue` | Tiptap | 富文本。含 Link / Image / Highlight / TextAlign / Underline 等扩展 |
-| `MdEditor.vue` | md-editor-v3 | Markdown |
-| `JsonEditor.vue` | vue3-ts-jsoneditor | JSON 编辑与查看 |
+`packages/components`（`~/components`）是应用侧的薄封装：在 XiHan.UI 之上统一表单控件的尺寸、状态与文案，并提供列表引擎 SchemaPage。不引入其他组件库，也不复制第三方组件运行时；组件库的缺陷回 XiHan.UI 修。
 
-通知公告正文用 Markdown 编辑器（文件库的 Markdown 预览也复用它）；富文本与 JSON 编辑器目前只在编辑器演示页 `packages/views/_core/editor-demo/` 使用。三者都以 `defineAsyncComponent` 懒加载，不进主依赖图。
-
-## 表单增强
+## 列表与页面
 
 | 组件 | 用途 |
 | --- | --- |
-| `CronExpression.vue` | Cron 表达式：输入框 + 可视化弹窗，不必手写表达式。[任务调度](../backend/scheduling)页在用 |
-| `XEditModal` + `xh-edit-form-grid` | **统一的新增/编辑弹窗外壳**：两列布局、10px 间距、11px 标签、无反馈占位，跨列用 `xh-span-2` |
-| `IconPicker` | 图标选择器，可按需懒加载图标集 |
-| `XLogoUpload`（`src/components/LogoUpload.vue`） / `XUserAvatar` | 图片上传与头像展示（内置 URL 解析与首字母兜底） |
+| `SchemaPage` | Schema 驱动的列表页引擎，见 [Schema 驱动页面](./schema-page) |
+| `XDataTable` | 不走 Schema 的次级表格（抽屉、弹窗、面板里）：缺省 `md` 尺寸 + 列分隔线，传 `pagination` 出与列表页同款的分页底栏；`rowKey` 缺省 `basicId`，契约行用 `id` 时要显式传 |
+| `XPageShell` | 整屏页面外壳：头部吸顶、内容区内部滚动 |
+| `XEditModal` | 新增 / 编辑弹窗：给 `form-id` 后保存钮成为表单的提交钮，校验通过才走表单的 `@submit`；打开时焦点落到第一个控件 |
+| `XFieldLabel` | 字段名，可带 `help`：弹出层里针对单个字段的说明收进字段名后面的问号提示 |
+| `XHelpTip` | 问号提示本体（偏好设置各项、`XFieldLabel` 都用它） |
+| `renderTag(label, tone)` | 状态列等的标签渲染 |
 
-::: danger 新增/编辑弹窗一律用 `XEditModal`
-全仓已统一，**不要再用 `XhDialog*` 部件手拼外壳**。统一外壳保证了弹窗尺寸、间距、标签宽度、按钮位置在所有页面一致，也让后续调整只改一处。
-:::
+字段级错误不由弹窗自动处理：页面把 `ApiError.errors` 存起来，用 `XhFieldRoot :invalid` + `XhFieldErrorText` 显示在对应字段下。
 
-## 消息中心 UI
+## 表单控件
 
-三个层次（`~/layouts/basic/` 与 `src/views/message/`）：
+`XInput`、`XNumberInput`、`XSelect`、`XCombobox`、`XCascader`、`XTreeSelect`、`XDatePicker`、`XDateRangePicker`、`XTagsInput`、`XSlider`、`XSegmented`、`XColorPicker`：统一尺寸、校验状态与占位文案。日期控件收发浏览器本地时区的时间戳（毫秒）。
 
-| 层 | 组件 | 行为 |
-| --- | --- | --- |
-| **顶部横幅** | `NotificationBanner.vue` + `use-banner-notices.ts` | 数据由服务端按有效期、角色/部门定向过滤后下发；按严重度 + 优先级取前 3 条轮播（5s，悬停暂停）。关闭记忆按公告 id 存 localStorage（30 天清理），后台重发即新 id、自然重现 |
-| **强制阅读 + 登录弹窗** | `NotificationGate.vue` | 未读必读公告以遮罩拦截、逐条「我已阅读」（最高优先级）；清空后再逐条弹出普通登录后公告 |
-| **通知中心页** | `src/views/message/notification/` | 发布、定向、统计等运营闭环 |
+## 授权与选择
 
-业务设计见 [后端手册 · 消息通知](../backend/messaging)。
-
-## 全局挂件
-
-挂在 `App.vue` 上、全应用生效：
-
-| 组件 | 说明 |
+| 组件 | 用途 |
 | --- | --- |
-| `LockScreen.vue` | 锁屏遮罩。后端返回 **`423`** 时拉起——身份仍有效，解锁而非重新登录 |
-| `AppWatermark.vue` | 水印 |
-| `DynamicIsland.vue` | 灵动岛：全局操作反馈（进行中/成功/失败、进度环、岛内按钮、服务端任务进度） |
+| `XPermissionTransfer` / `XGrantTransfer` | 权限分配穿梭框（角色、用户直授、套餐）：条目来自权限目录 `permissions.list`，按 `groupPermissions` 分组 |
+| `XTree` | 树（数据范围里的部门、缓存键、生成代码的文件） |
+| `XUserAvatar` | 用户头像：值是文件 ID 时换签名地址，没有头像时显示首字母 |
+| `XFileRefUpload` | 业务表单里的文件引用上传：上传到文件库，字段只存文件 ID |
 
-全局搜索（`AppGlobalSearch.vue`）挂在布局顶栏工具条上，`Ctrl/Cmd + K` 唤起。
+## 其他组件
 
-## 文件与图片
-
-| 工具 | 说明 |
+| 组件 | 用途 |
 | --- | --- |
-| `useAvatarUrl` | 头像 URL 解析（fileId → 预签名 URL，直链原样；空值/失败返回空串，由 `XUserAvatar` 首字母兜底） |
-| `toAbsoluteFileUrl` | 文件 URL 绝对化 |
-| `SchemaImportDialog` | CSV 导入对话框：模板下载 → 解析 → 预校验 → 逐行创建 |
+| `Icon`、`IconPicker` | 图标与图标选择器，见[字体图标](./icon) |
+| `XCodeEditor` | 代码编辑器（monaco，异步加载）：只读预览与模板编辑 |
+| `XMdEditor` / `XContentEditorField` | Markdown 编辑器（md-editor-v3，异步加载）与带摘要、字数的正文编辑字段（通知公告正文） |
+| `XJsonBlock` | JSON 只读查看 |
+| `XChartInView` | 进入视口才挂载的图表壳（工作台） |
+| `XPopconfirm`、`XTooltip`、`XDropdown`、`XIconButton` | 交互小件 |
 
-::: warning 本地存储的 URL 是根相对路径
-本地存储返回 `/uploads/...`。前后端同源没问题，**线上不同源时必须拼上 `VITE_API_BASE_URL` 的 origin**，否则浏览器拿前端域名去请求而 404。上面两个工具已处理，自己拼 URL 时别忘了。
-:::
+公共组件里没有富文本编辑器与 JSON 编辑器：正文用 Markdown 编辑器，代码与模板用 `XCodeEditor`。
 
-## 设计器
+以下组件不从 `~/components` 导出，按文件路径引用（`~/components/common/<文件>.vue`）：
 
-`packages/designers` 接入曦寒的设计器（原生 Web Components）：流程设计器与查看器（`@xihan-flow/*`，工作流的流程定义与实例轨迹在用）。应用侧经 `~/designers/flow` 取用，不直接依赖 `@xihan-flow/*`；设计器的语言跟随应用语言，设计器属性面板里要查应用数据的编辑器用 `createVuePropertyEditor` 把 Vue 组件挂进去。模板里的 `xh-` 开头标签交给浏览器（`vite.config.ts` 的 `isCustomElement`），应用里的组件库组件一律写 PascalCase 的 `Xh*`。
+| 组件 | 用途 |
+| --- | --- |
+| `CronExpression` | Cron 构建器（作业的新建与改计划），配合 `jobs.validate-schedule` 预览执行时间 |
+| `LocaleSwitcher`、`TimezoneSwitcher` | 区域与时区切换（顶栏、悬浮工具栏、偏好设置） |
+| `LockScreen`、`DynamicIsland`、`AppWatermark` | 锁屏、灵动岛、水印，挂在 `App.vue` |
+| `SyncStatusBadge`、`PageLoader` | 设置同步状态、页面加载占位 |
 
-## 布局
+## 写法约定
 
-`packages/layouts/` 提供整套布局外壳：侧边栏、顶栏、标签页、内容区、页脚。
+- 应用自有组件显式 import（`import { XEditModal } from '~/components'`），只有 XiHan.UI 的 `Xh*` 可由插件自动解析；
+- 模板里 `xh-` 开头的小写标签是设计器的 Web Components（`vite.config.ts` 的 `isCustomElement`），组件库部件一律写 PascalCase；
+- 弹窗、抽屉、浮层只用 frosted；玻璃拟态只给命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览遮罩、控制中心面板、页面切换的加载遮罩，统一用 `packages/design/ui.css` 的 `.app-glass` / `--app-glass-*`；
+- 颜色、间距、圆角只用令牌，不写裸 px。
 
-::: tip 整屏页用 `h-full` 或 `XPageShell`
-布局根是定高的、内容容器内部滚动（滚动源不是 `window`）。需要吸顶/吸底的整屏页直接用 `h-full` 或 `XPageShell` 即可，**不要再写 per-page 的 JS 定高 hack**。
-:::
+## 下一步
 
-## 相关页面
-
-- [Schema 驱动页面](./schema-page)：列表页引擎
-- [布局与主题](./theme)：布局配置与主题定制
-- [实时通信](./realtime)：消息中心的推送通道
-- [字体图标](./icon)：图标用法与离线模式限制
+- [Schema 驱动页面](./schema-page) · [布局与主题](./theme) · [字体图标](./icon)

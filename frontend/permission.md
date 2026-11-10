@@ -1,128 +1,75 @@
 来源：https://basicapp.docs.xihanfun.com/frontend/permission
 
-# 权限与脱敏（前端）
+# 权限与脱敏
 
-前端在**页面 / 字段 / 操作**三个层级按权限码过滤，并在服务端脱敏的基础上做只读与标识提示。本页讲前端这一侧怎么写；判定规则本身（权限码、数据范围、ABAC、约束规则）见 [权限模型](../backend/permission)。
+本页说明前端如何使用后端下发的权限与字段安全结果，适用于前端开发者。
 
-## 前提：前端过滤是体验，不是安全边界
+安全边界在后端。前端只决定显示哪些内容：没有权限的入口不显示，受保护的字段按后端给出的值显示。隐藏按钮不能代替后端授权。
 
-::: danger 服务端才是安全边界
-前端隐藏按钮只是**不让用户看到无效入口**。真正的门控在服务端：`[PermissionAuthorize]` 特性 + 授权快照判定。
+## 权限数据
 
-绕过前端直接调接口一定会被后端拒绝——所以**不要因为前端已经隐藏了按钮就省掉后端的权限标注**。
-:::
+登录后守卫首次进入时调 `auth.permissions`，一次取得：
 
-## 权限码
+| 项 | 用途 |
+| --- | --- |
+| `permissions` | 有效权限码（`*` 已展开为本侧目录的全部码），按钮与页面门控 |
+| `roles` | 本侧生效的角色，展示用 |
+| `menus` | 按权限裁剪的菜单树，生成侧栏与动态路由 |
+| `pages` | 可访问的页面码 |
+| `isPlatform` | 是否平台侧 |
 
-以 `:` 分段，多数是 `module:resource:action`（如 `saas:user:read`、`saas:tenant-edition-permission:grant`），也有两段的 `module:action`（如 `workflow:execute`）。超管在服务端用**字面通配 `*`**（不是段级 `*:*:*`）。
+结果存在 `~/stores` 的 auth store。刷新令牌后权限清空，下一次导航重取，角色指派的变化随之生效；切换租户、切换激活角色、开始或结束模仿后整页重建（`relaunchApp`）。
 
-前端**不把 `*` 当通配**，只按下发的权限码与按钮码精确匹配：服务端下发时已把超管的 `*` 展开成当前上下文生效的全部码，作用侧不含当前上下文的码（如平台态里的部门、数据范围等租户侧权限）不下发、鉴权时 `*` 也不放行。前端再拿 `*` 短路，就会在平台态露出服务端必拒的操作。
+## 按钮即操作
 
-**真源在后端** `SaasPermissionDefinitions`（Saas 模块）与各模块自己的权限码类。前端只是消费者——写权限码字符串时去后端对一下，别凭记忆写。
-
-用户的权限码集合来自登录后的 `GET /api/Auth/Permissions`。
-
-::: tip 权限码不在 JWT 里
-Access Token 里没有具体权限码（超管例外，只放一个 `*` 作快路径）。这带来一个好性质：**管理员改了授权，用户不用重新登录就生效**——前端下次拉取权限或后端下次判定时就是新的。
-:::
-
-## 三级过滤
-
-### 一、页面级
-
-由路由守卫按 `meta.roles` / `meta.permissions` 校验，无权跳 403。数据来自后端 `PageDescriptor.PermissionCode`。
-
-`PermissionCode` 为空的页面是**纯展示菜单**，不做门控。
-
-### 二、字段级
-
-Schema 页里字段声明 `permission`，**无权时该列与该搜索项整个不渲染**（`selectors.ts` 的 `isFieldPermitted`）：
+一个写动作对应一个操作，门控直接用该操作的权限码，没有另一套按钮码：
 
 ```ts
-{ key: 'phone', title: t('identity.org.col_phone'), dataType: 'string',
-  permission: 'saas:department:read' }
-```
-
-注意这是「**不渲染**」而不是「渲染成空」——用户看不到这一列存在。
-
-### 三、操作级
-
-- Schema 页的 `actions[].permission`：无权时按钮不出现。
-- `PageSchema` 上的 `exportPermission` / `importPermission` / `removePermission`（批量删除）/ `statusPermission`（批量启停）：门控对应的内置按钮。其中只有 `exportPermission` 是**严格门控**（未声明就不显示导出），另外三个未声明时不做限制。
-
-::: warning `exportPermission` 未声明 = 不显示导出
-这是刻意的默认值选择：宁可漏显示，不可错显示。要导出按钮就必须声明权限码。
-:::
-
-### 页面里手写门控
-
-没有包裹式权限组件——页面按钮/区块级门控统一是「`usePermission()` 派生 computed + 模板 `v-if`」这一种写法：
-
-```ts
-const { hasPermission } = usePermission()
-const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:grant'))
+const auth = useAuthStore()
+auth.can('identity.users.create') // 精确匹配，不认通配
 ```
 
 ```vue
-<XhButton v-if="canGrant">分配权限</XhButton>
+<XhButton v-if="auth.can('settings.configs.create')">新建</XhButton>
 ```
 
-`usePermission()`（`~/hooks/usePermission.ts`）提供：
+SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`、`exportPermission`、`importPermission` 直接填权限码。也可以用 `~/hooks` 的 `usePermission()`：`hasPermission(code | codes)`（数组是「或」，单个空串表示不限制）。
 
-| 方法 | 说明 |
+权限码都来自生成的 `~/contracts`（`permissions.ts`）：`pnpm permissions:check` 扫描 `permission:`、`permissions:`、`can('…')`、`hasPermission('…')` 里的三段点分字面量，不在契约里即失败。后端改名或删除权限码时，前端引用处在 CI 中报错。
+
+### 组合判断
+
+有的入口要同时看两个权限，例如用户页的「分配角色」：
+
+```ts
+{ key: 'assignRoles', permission: 'access.roles.assign', visible: row => isOwnSide(asRow(row)) && auth.can('access.roles.read') }
+```
+
+另一侧的数据（平台看到的租户数据、租户看到的平台数据）通常只读，用 `visible` 表达。
+
+## 权限名称
+
+`permissionDefinitions` 是导出契约时生成的权限码表（码与英文的显示名、说明），只用来核对权限码，不用来显示。界面上的权限名与说明一律取权限目录 `permissions.list`：后端按请求的 `Accept-Language` 从各包语言文件取文案。
+
+授权界面（角色的权限分配、用户直授、套餐白名单、委托与约束规则的候选）直接用目录生成条目，不手写权限树。只拿到权限码的地方（角色详情里的已授与继承权限、委托列表、授权条件）用 access 模块的 `usePermissionNames()` 换名字（同一界面语言只取一次目录）；不在本侧目录里的码，或没有 `access.permissions.read` 时，原样显示权限码。
+
+## 字段安全与脱敏
+
+后端在投影时已按字段安全规则处理，前端收到的就是处理后的值：
+
+| 情况 | 前端表现 |
 | --- | --- |
-| `hasPermission(code \| code[])` | 是否有权限码（传数组时任一命中即通过） |
-| `hasRole(role \| role[])` | 是否有角色（传数组时任一命中即通过） |
-| `hasAnyPermission(codes[])` | 任一命中即通过 |
+| 隐藏 | 字段为空，列显示占位；非文本字段只能隐藏 |
+| 星号 / 部分脱敏 / 哈希 / 固定文本 | 原样显示后端给的值 |
+| 按受保护字段筛选、排序或关键字搜索 | 后端拒绝（`ACCESS_DENIED_006`），页面提示 `detail` |
+| 修改受保护字段 | 交回原值、脱敏值或空值视为没改，后端保留原值；改了只读字段即拒绝（`ACCESS_DENIED_007`），新建时填写只读字段同样拒绝 |
 
-::: tip 统一用这一种写法
-不要另造包裹组件或指令。全仓统一「computed + `v-if`」的好处是：审计权限点时一个 grep 就能找全，也不会出现「指令生效时机与渲染时机不一致」的坑。
-:::
+前端不复制字段安全的判定逻辑，也不尝试「还原」打码值。规则在 `/access/field-security` 管理，见[数据权限与字段安全](../backend/data-permission)。
 
-## 字段级脱敏（FLS）
+## 数据范围
 
-### 脱敏在服务端完成
+数据范围同样只在后端生效：列表、详情与批量操作按数据范围收窄，前端收到的是收窄后的结果。
 
-**后端返回的敏感字段已经是打码后的值**（如 `138****5678`），前端**不再二次打码**，页面也不需要为字段安全写任何代码：
+## 下一步
 
-- 读：列表、详情、导出拿到的就是打码后的值；
-- 写：表单把拿到的脱敏值或空值原样交回，后端视为没改并还原原值——**不会用 `138****5678` 覆盖真实号码**；改动了只读字段，后端返回「字段「…」当前用户无修改权限」。
-
-规则在「字段安全」页按实体、字段下拉配置，模型见 [数据权限 · 字段级安全](../backend/data-permission#字段级安全-列级)。
-
-### 字段安全也门控查询条件
-
-服务端会剔除**读受保护**字段上的排序、过滤与关键字搜索字段，剔完没有有效排序时回退默认排序。
-
-所以「排序点了没反应」「按某字段搜索没效果」优先怀疑字段安全，而不是前端 bug。
-
-## 多租户
-
-数据按 `TenantId` 隔离，全局数据约定 `TenantId=0`。**前端不需要手动处理租户过滤**——它由后端在请求管道里完成，前端只按拿到的权限码集合渲染。
-
-前端要处理的只有两件事：
-
-| 事情 | 说明 |
-| --- | --- |
-| 切换上下文 | 走 `authStore.switchContext(tenantId)`（`null` 回平台，仅平台账号）：服务端在目标上下文续接会话、签发新令牌、旧令牌失效；前端清掉用户信息与标签页后整页重建，**不产生新登录/新设备** |
-| 上下文判断 | `UserInfo.isPlatform`（当前是否在平台）、`tenantName`（当前租户名）、`canAccessPlatform`（是否平台账号）；页头的上下文标识据此显示并进入控制中心 |
-
-整页加载时路由守卫把用户信息与权限、菜单一起重取——租户不同，可用的功能也不同（受[租户版本门控](../backend/multi-tenancy)影响），本地缓存的用户信息不作为上下文依据。
-
-## 排查
-
-| 现象 | 原因 |
-| --- | --- |
-| 按钮不显示 | 权限码写错（去后端 `SaasPermissionDefinitions` 对）；或用户确实没这个权限 |
-| 导出按钮不显示 | `PageSchema.exportPermission` 没声明 |
-| 列不显示 | 字段 `permission` 无权；或 `visible: false` |
-| 保存时报「无修改权限」 | 字段安全规则让该字段对当前用户只读，而表单改了它的值 |
-| 前端能点、后端 403 | 正常——前端过滤是体验层，以后端为准。检查该接口的 `[PermissionAuthorize]` 是否与前端用的码一致 |
-| 改了授权前端还是旧的 | 重新拉 `/api/Auth/Permissions`；后端侧检查是否调了 `InvalidateAuthorizationAsync` |
-
-## 相关页面
-
-- [权限模型](../backend/permission)：权限码、RBAC 继承、数据范围、ABAC、约束规则
-- [Schema 驱动页面](./schema-page)：字段与操作的权限声明位置
-- [路由与菜单](./routing)：页面级门控
-- [多租户与版本](../backend/multi-tenancy)：版本门控与租户切换
+- [菜单与路由](./routing) · [后端权限管理](../backend/permission)

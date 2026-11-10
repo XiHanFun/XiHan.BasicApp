@@ -2,369 +2,645 @@
 
 # 配置参考
 
-`appsettings` 的全量配置节说明。所有键名与默认值对照仓库里的 `appsettings.Development.json` 与各 Options 类核实。
+本页说明宿主与前端的全部配置项、缺省值与含义，适用于开发、部署与运维时查阅。键与缺省值以 `backend/src/XiHan.BasicApp.Host/appsettings.json` 为准。
 
 ## 文件与优先级
 
-```text
-backend/src/main/XiHan.BasicApp.WebHost/
-├── appsettings.json                 # 基础（Logging / AllowedHosts / CodeGeneration）
-├── appsettings.Development.json     # 开发环境（完整示例，带逐项注释）
-└── appsettings.Production.json      # 生产环境（被 .gitignore 忽略，仓库里没有，部署处自建）
+宿主是标准 ASP.NET Core 应用，配置按顺序叠加，后者覆盖前者：`appsettings.json` → `appsettings.{环境}.json` → 用户机密（只在 Development）→ 环境变量 → 命令行参数。环境由 `ASPNETCORE_ENVIRONMENT` 决定：本机开发是 `Development`（`launchSettings.json` 已设），部署时缺省是 `Production`。
+
+环境变量用双下划线分节，如 `XiHan__Security__Jwt__Secret`；数组写下标，如 `BasicApp__Cors__AllowedOrigins__0`。
+
+配置分两组：
+
+- 框架节 `XiHan:*`：由 XiHan.Framework 的各个 Feature 读取。写了就校验，类型、范围或枚举值不合法时启动即失败。列表与字典（如 `Exclude`、`Routes`、`AllowedHosts`）没有内容时整项不写：空的 `[]` / `{}` 会被读成空字符串而启动失败。
+- 应用节 `BasicApp:*`：由各能力包的 Options 直接绑定。除特别注明的几节外，写错同样启动即失败，不会退回缺省值。
+
+`appsettings.json` 写出了全部配置项，每项带注释：写出来的值就是缺省值（个别是 BasicApp 的推荐值，注释里写明），注释掉的是可选项，去掉 `//`、填上真实值即生效。只在开发环境生效的值写在 `appsettings.Development.json`。
+
+::: danger 不提交密钥
+`appsettings.json` 里的 JWT 密钥、签名地址密钥都留空，也不写数据库连接；`appsettings.Development.json` 里的值只用于本机开发。部署时由环境变量或密钥存储提供，下文示例一律用占位符。
+:::
+
+## ASP.NET Core
+
+### `Kestrel`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Kestrel:Endpoints:Http:Url` | `http://localhost:9710` | 操作接口、OpenAPI、MCP、SignalR Hub 与文件端点。容器或对外部署改成 `http://0.0.0.0:9710`，HTTPS 由反向代理终止 |
+| `Kestrel:Endpoints:Grpc:Url` | `http://127.0.0.1:9711` | gRPC（`Protocols: Http2`），只供内部服务调用，只监听内网地址 |
+
+### `Logging` 与 `AllowedHosts`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Logging:LogLevel:Default` | `Information` | 键是日志类别前缀（取最长匹配） |
+| `Logging:LogLevel:Microsoft.AspNetCore` | `Warning` | ASP.NET Core 的请求日志只记警告以上 |
+| `Logging:LogLevel:XiHan` | 不写（Development 为 `Debug`） | 框架日志 |
+| `AllowedHosts` | `*` | 允许的 `Host` 请求头，分号分隔 |
+
+日志同时经 OpenTelemetry 导出，见 [`XiHan:Observability`](#xihan-observability)。
+
+## `XiHan:Kernel`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `StartTimeoutSeconds` | `60` | 单个特性的启动超时；框架缺省 30，BasicApp 取 60，因为表结构升级与开发环境建表都在启动阶段 |
+| `StopTimeoutSeconds` | `30` | 单个特性的停止超时 |
+| `FailurePolicy` | `TerminateStartup` | 特性启动失败时终止启动；`IsolateFeature` 隔离该特性继续启动 |
+| `UseBuiltInMiddleware` | `true` | 内核内置的观测、截止时间、韧性与输入校验中间件；不要关 |
+
+### `XiHan:Kernel:Resilience`
+
+按操作 ID 的固定窗口限流、并发上限与熔断。根上的键是全部操作的缺省策略，`Operations:<操作 ID>` 按操作覆盖（子键相同，不写的沿用缺省策略）。缺省不限流、不限并发、不熔断。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `PermitLimit` | 不写（不限流） | 固定窗口内允许的调用数 |
+| `WindowSeconds` | `1` | 限流窗口 |
+| `QueueLimit` | `0` | 窗口用尽时排队的调用数，0 为直接拒绝 |
+| `ConcurrencyLimit` | 不写（不限） | 同时执行的调用数上限 |
+| `ConcurrencyQueueLimit` | `0` | 并发用尽时排队的调用数 |
+| `FailureThreshold` | 不写（不熔断） | 连续失败多少次后熔断 |
+| `BreakSeconds` | `30` | 熔断后拒绝调用的时长，到期放一次试探 |
+
+```json
+{
+  "XiHan": {
+    "Kernel": {
+      "Resilience": {
+        "Operations": { "auth.login": { "PermitLimit": 20, "WindowSeconds": 1 } }
+      }
+    }
+  }
+}
 ```
 
-优先级（后者覆盖前者）：`appsettings.json` → `appsettings.{Environment}.json` → 环境变量 → 命令行。
+操作 ID 用 `dotnet run --project backend/src/XiHan.BasicApp.Host -- operations` 列出。
 
-::: tip 环境变量写法
-配置层级用**双下划线**表示：`XiHan:Authentication:Jwt:SecretKey` → `XiHan__Authentication__Jwt__SecretKey`。
+## `XiHan:Bindings:db`
 
-**生产的密钥类配置一律走环境变量或密钥库，不要提交明文。** 生产 `appsettings` 通常被 gitignore，需要在服务器上单独维护——这也是几个开关（如 `EnableDiffLog`）最容易漏配的原因。
-:::
+平台库连接，启动硬要求：缺失即 `RUNTIME_VALIDATION_001` 中断启动，不退回内存实现；`provider` 不写即 `postgresql`。
 
-## `Hosting`
+框架先读 `SERVICE_BINDING_ROOT` 目录（Kubernetes Service Binding），再读配置节；配置节里的同名绑定会整个盖掉目录里挂进来的（值为空也一样），所以 `appsettings.json` 不写任何绑定。本机开发写在 `appsettings.Development.json`，部署用环境变量 `XiHan__Bindings__db__value` 或 Service Binding（`db` 目录下放 `type`、`uri`，可选 `provider`）。绑定名与属性名一律小写。
 
-| 键 | 说明 | 示例 |
+```json
+{
+  "XiHan": {
+    "Bindings": {
+      "db": {
+        "type": "connection:relational",
+        "value": "Host=<主机>;Port=5432;Database=<库名>;Username=<用户>;Password=<密码>",
+        "provider": "postgresql"
+      }
+    }
+  }
+}
+```
+
+独立库租户的连接串不写在配置里：由 `tenants.configure-database` 写进租户目录，以 `ISecretProtector` 密文存放。
+
+## 分布式缓存与消息
+
+不配即单机：缓存与消息走框架的进程内实现，零外部依赖。配了连接，宿主就装上对应的 Provider，多个实例共享缓存与消息；配了而连不上，启动即失败，不退回内存实现。
+
+| 连接（任选一处） | 装上的 Provider | 健康项 |
 | --- | --- | --- |
-| `Urls` | 监听地址与端口，多个用分号分隔 | `http://127.0.0.1:9708` |
+| 绑定 `XiHan:Bindings:cache`（类型 `cache:distributed`）或 `XiHan:Caching:Redis:Configuration` | `Caching.Redis`：`ISharedCache`、字节存储、分布式锁与幂等去重；`Caching.Hybrid`：`ICache` 成为本机 L1 + Redis L2，写入经 Redis 频道失效各实例的 L1 | `caching.redis.connection` |
+| 绑定 `XiHan:Bindings:queue`（类型 `queue`）或 `XiHan:Messaging:RabbitMQ:Configuration` | `Messaging.RabbitMQ`：发件箱派发、CloudEvents 发布模式与广播订阅经它，各实例按主题竞争消费 | `messaging.rabbitmq.connection` |
 
-`appsettings.Development.json` 与 Development launch profile 都是 `9708`；Production launch profile 的 `applicationUrl` 为 `9709`，仓库不含 `appsettings.Production.json`，部署处写入 `Hosting:Urls` 后以它为准。Docker 镜像通过环境变量 `Hosting__Urls` 在容器内监听 `9708`，宿主机端口可由 Compose 的 `BACKEND_PORT` 覆盖。开发环境改端口后要同步修改前端的 `VITE_DEV_PROXY_TARGET`。
+```json
+{
+  "XiHan": {
+    "Bindings": {
+      "cache": { "type": "cache:distributed", "value": "<主机>:6379", "password": "<密码>" },
+      "queue": { "type": "queue", "value": "amqp://<主机>:5672", "username": "<用户>", "password": "<密码>" }
+    }
+  }
+}
+```
 
-## `XiHan:Observability`
+部署时用环境变量 `XiHan__Bindings__cache__value`、`XiHan__Bindings__queue__value` 或 Service Binding（`SERVICE_BINDING_ROOT` 下的 `cache` / `queue` 目录）提供。绑定与 `Configuration` 键都配了时绑定优先，绑定的值为空才读 `Configuration`。口令可以写进连接串，也可以放在绑定的 `username` / `password` 属性里（Service Binding 目录里的同名文件），各自覆盖连接串里的用户名与密码。
 
-链路追踪（OpenTelemetry）。
+### `XiHan:Caching`
 
-| 键 | 默认 | 说明 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Enabled` | `false` | **总开关**。开启后每请求产生 W3C Activity，TraceId 变 32-hex，日志/审计/事件总线统一同源；关则退回 Kestrel `TraceIdentifier` |
-| `ServiceName` | — | 写入 OTel Resource 的 `service.name` |
-| `SamplingRatio` | — | 采样率 0~1，开发可设 `1.0` 全采 |
-| `ConsoleExporter` | `false` | 控制台打印 span（调试用） |
-| `OtlpEndpoint` | `""` | OTLP 导出端点（如 `http://localhost:4317`）。为空则只在本地产生 TraceId，不外发到 Jaeger/Tempo |
+| `InMemory:MaxEntries` | `10000` | 进程内缓存每张表（字节存储、对象缓存各一张）的条目上限；没配 Redis 时生效 |
+| `InMemory:DefaultTimeToLiveSeconds` | `300` | 进程内缓存未指定过期时的存活时间 |
+| `Idempotency:TimeToLiveSeconds` | `86400` | 幂等去重：已完成结果的保留时间 |
+| `Idempotency:InProgressTimeToLiveSeconds` | `60` | 处理中标记的保留时间，即处理器崩溃时的最长封锁 |
+| `Redis:Configuration` | 不写 | StackExchange.Redis 连接串；绑定 `cache` 优先 |
+| `Redis:KeyPrefix` | `xihan:` | 键前缀；同一个 Redis 给几套环境用时各取一个 |
+| `Redis:PublishChanges` | `true` | 写入与删除后向频道 `<前缀>__changes` 发通知，各实例据此失效 L1 |
+| `Redis:DefaultTimeToLiveSeconds` | `300` | 未指定过期时的存活时间 |
+| `Redis:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔与单次探测超时 |
+| `Hybrid:LocalCapacity` / `Hybrid:LocalTimeToLiveSeconds` | `10000` / `30` | 本机 L1 的条目上限与存活上限；收不到变更通知时，别的实例的写入最迟这么久后可见 |
 
-## `XiHan:DistributedIds:SnowflakeId`
+`Redis:*` 与 `Hybrid:*` 只在配了 Redis 时生效。
 
-雪花 ID 生成器。
+### `XiHan:Messaging`
 
-| 键 | 说明 |
-| --- | --- |
-| `WorkerId` | **同一集群内每个节点必须唯一**，否则生成重复 ID。多节点部署务必逐节点改 |
-| `DataCenterId` | 多机房区分，单机房固定即可 |
-| `BaseTime` | 起始纪元，**一经上线不可更改**（改动会导致 ID 回退甚至冲突） |
-| `WorkerIdBitLength` | 机器码位长，与序列号位长之和不超过 22。6 位 → WorkerId 上限 0-63 |
-| `SeqBitLength` | 序列号位长，决定同毫秒并发上限，**一经上线不可更改** |
-| `SnowflakeIdType` | `SnowFlakeMethod`（漂移算法，抗时钟回拨、吞吐更高）/ `ClassicSnowFlakeMethod` |
-
-::: danger 多节点必改 WorkerId
-这是最容易忽略、后果最严重的一项：两个节点同 `WorkerId` 会生成重复主键，且不会立刻报错，等到唯一约束冲突时数据已经乱了。
-:::
-
-## `XiHan:Authentication`
-
-### `PasswordHasher`（PBKDF2）
-
-| 键 | 默认 | 说明 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Version` | `1` | 哈希方案版本，用于将来平滑升级算法（老密码按旧版本校验） |
-| `Iterations` | `600000` | 迭代次数，OWASP 对 PBKDF2-SHA256 的推荐量级 |
-| `SaltSize` / `HashSize` | `32` / `32` | 盐与输出长度（字节） |
-| `HashAlgorithm` | `SHA256` | — |
+| `MaxAttempts` | `3` | 消息代理把一条消息投递给处理器的最多次数（含首次），超过进入死信 |
+| `DeadLetterSuffix` | `.dlq` | 死信主题后缀 |
+| `InstanceId` | 每次启动随机 | 本实例在消息代理上的标识：1–64 个字母、数字或 `._-`，字母或数字开头。配了就必须每个实例各不相同（多副本可设成 Pod 名）；不配即可 |
+| `InMemory:MaxQueuedMessages` | `10000` | 进程内消息每个主题（含死信）的条目上限；没配 RabbitMQ 时生效 |
+| `Outbox:PollIntervalSeconds` | `1` | 发件箱轮询间隔 |
+| `Outbox:BatchSize` | `100` | 每轮最多投递的条数（1–1000），也是每轮最多清理的已投递行数 |
+| `Outbox:MaxAttempts` | `10` | 发件箱投递到消息代理的最多次数（含首次），用尽进死信；与上面的 `MaxAttempts` 是两层 |
+| `Outbox:RetryDelaySeconds` / `Outbox:MaxRetryDelaySeconds` | `5` / `300` | 首次失败后的重试间隔（之后每次翻倍）与上限 |
+| `Outbox:DispatchedRetentionSeconds` | `86400` | 投递成功的行保留多久，0 为成功即删除；死信行不自动删 |
+| `RabbitMQ:Configuration` | 不写 | AMQP URI（`amqp://` 或 `amqps://`）；绑定 `queue` 优先 |
+| `RabbitMQ:Exchange` | `xihan` | 发布用的持久 direct 交换机；不能为空、不能以 `amq.` 开头，已有同名但不是持久 direct 的交换机即启动失败 |
+| `RabbitMQ:QueuePrefix` | `xihan.` | 订阅方声明持久队列 `<前缀><主题>`；没人订阅的主题发布即丢弃，不堆积 |
+| `RabbitMQ:PrefetchCount` | `16` | 每个消费者的预取数（1–65535） |
+| `RabbitMQ:HealthProbeIntervalSeconds` | `15` | 健康项的重探间隔与单次探测超时 |
 
-### `Jwt`
+目前的消息处理器：Realtime 的断开连接（广播订阅，RabbitMQ 上按 `InstanceId` 给每个实例建自己的队列）、Chat 订阅 Organization 的部门归属变更（领域事件，见[实体基类](./backend/entity#领域事件)），以及 Workflow 订阅引擎的任务创建、转办与实例故障（发待办与故障通知）。邮件、短信与机器人消息的发送记录是应用表，不经消息代理。
 
-| 键 | 默认 | 说明 |
+## `XiHan:Persistence:SqlSugar`
+
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `SecretKey` | — | **签名密钥，生产务必改为高强度随机值并保密**（走环境变量/密钥库） |
-| `Issuer` / `Audience` | — | 签发者 / 受众 |
-| `AccessTokenExpirationMinutes` | `60`（框架默认） | 访问令牌有效期 |
-| `RefreshTokenExpirationDays` | `7` | 刷新令牌有效期 |
-| `ClockSkewMinutes` | `5` | 允许的时钟偏差，容忍多节点时间误差 |
+| `InitTables` | `false`（Development 为 `true`） | 启动时按实体建缺表、加缺列；只用于开发，正式环境由 `Schema/` 脚本管理 |
+| `CommandTimeoutSeconds` | `300` | 语句超时，正整数 |
+| `HealthProbeIntervalSeconds` | `15` | 健康项 `persistence.sqlsugar.database` 的重探间隔与单次探测超时 |
+| `Connections:<名>` | 不写 | 命名连接，值是连接串；名字合 `^[a-z0-9][a-z0-9-]{0,63}$`，不能是 `default` 或 `shard`。目前只有 SQLite 上的工作流租约表需要 |
+| `Replicas:DefaultHitRate` | `10` | 没写权重的从库的读权重 |
+| `Replicas:HealthCheck` | `true` | 周期探测从库：连不上的自动摘除、恢复后加回；关掉后宕机的从库照常接读流量 |
+| `Replicas:HealthCheckIntervalSeconds` | `30` | 探测间隔 |
+| `Replicas:FailureCooldownSeconds` | `120` | 从库最后一次失败后，过了这么久并且探通才恢复读流量 |
 
-> 仓库的 Development 配置把 `AccessTokenExpirationMinutes` 设为 `120`，以实际配置为准。
+从库本身在 [`BasicApp:Database`](#basicapp-database) 配，健康快照看 `persistence.sqlsugar.replicas`。
 
-### `OAuth`（第三方登录）
+### `XiHan:Persistence:DataSources`
 
-| 键 | 说明 |
-| --- | --- |
-| `Enabled` | 总开关 |
-| `FrontendCallbackUrl` | 登录成功后跳回的前端回调页 |
-| `Providers[]` | 各提供商：`Name`（**内部标识，勿改**）、`DisplayName`、`Enabled`、`ClientId`、`ClientSecret`、`Scopes[]` |
+运行时数据源，即代码生成登记的外部数据库。
 
-内建 github / gitee / google / qq，需到对应平台申请后替换 `ClientId` / `ClientSecret`。
-
-## `XiHan:Data:SqlSugarCore`
-
-### 连接
-
-`ConnectionConfigs[]` 每项：
-
-| 键 | 说明 |
-| --- | --- |
-| `ConfigId` | 连接唯一标识（多库/多租户路由用），字符串 |
-| `ConnectionString` | 主库连接串 |
-| `DbType` | `PostgreSQL` / `MySql` / `SqlServer` / `Sqlite` / `Oracle` / `Dm` / `Kdbndp` 等；独立库租户与升级脚本的支持范围见[数据库配置](./backend/database#支持的数据库) |
-| `IsAutoCloseConnection` | 是否自动关闭连接 |
-| `SlaveConnectionConfigs[]` | 从库（读写分离）；空数组=单库 |
-
-配了从库后 SELECT 自动走从库、写与事务走主库，业务无感知。
-
-::: warning `HitRate` 配不上
-`HitRate`（读权重）是 SqlSugar 的**字段**、绑不上 `appsettings`，写了也无效、恒为 0。框架会把权重为 0 的从库归一化为 `DefaultSlaveHitRate`（默认 10），所以不写也能等权分担读。
-
-需要差异化权重、挂 `ConfigureExternalServices` 或自写探活，用代码钩子 `XiHanSqlSugarCoreOptions.ConfigureConnectionConfigs`。
-:::
-
-### 日志与诊断
-
-| 键 | 默认 | 说明 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `EnableSqlLog` | `false` | 打印所有 SQL（**生产建议关闭**，日志会爆量） |
-| `EnableSqlErrorLog` | `true` | 记录 SQL 异常 |
-| `EnableSlowSqlLog` | `true` | 记录慢 SQL |
-| `SlowSqlThresholdMilliseconds` | — | 慢 SQL 阈值，纯观测用途、不影响语句执行 |
-| `CommandTimeoutSeconds` | `300` | ADO 命令超时，0/负值不覆盖；**须明显大于慢 SQL 阈值** |
-
-### 初始化
-
-| 键 | 说明 |
-| --- | --- |
-| `EnableDbInitialization` | 启动时自动建库（库不存在则创建） |
-| `EnableTableInitialization` | 启动时 CodeFirst 建表 |
-| `EnableDataSeeding` | 启动时写入种子数据 |
-
-::: danger 建表只建不改
-`DbInitializer` **表存在就跳过、从不为已有表补列**。给既有实体加字段后，存量库必须通过前向 `UpdateScripts`（或部署流程中的等价迁移步骤）执行 `ALTER TABLE`。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true` 时启动会自动执行这些脚本（开着数据库初始化时排在建表之后、播种之前），见[升级与迁移](./backend/upgrade)。
-:::
-
-### `EnableDiffLog`
-
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `EnableDiffLog` | **`false`** | 实体差异日志（`SysDiffLog`）**总开关** |
-
-::: danger 数据变更日志页恒空的头号原因
-默认是 `false`——不开则 Diff AOP 根本不挂载，收集到的差异被直接丢弃。生产 `appsettings` 常被 gitignore，最容易漏配的就是这一项。
-
-代价：开启后 update/delete 会先查一次旧值算差异，**每个写操作多一次 SELECT**。且只覆盖走仓储的写，绕过仓储直接用 DbClient 的写（如 `UpdateColumns`）不产生差异日志。
-:::
-
-### 从库健康探针
-
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `DefaultSlaveHitRate` | `10` | 从库权重归一化默认值 |
-| `EnableSlaveHealthCheck` | `false` | 周期探活，不可用从库自动摘除读权重 |
-| `SlaveHealthCheckIntervalSeconds` | `30` | 探测周期 |
-| `SlaveFailureCooldownSeconds` | `120` | 故障冷却窗口，恢复后先冷却再回填权重避免抖动 |
-
-## `XiHan:Caching:Redis`
-
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `IsEnabled` | — | **关闭则退化为进程内内存缓存**（失去分布式缓存/锁/队列） |
-| `Configuration` | — | 连接串 `host:port,user=,password=,defaultDatabase=` |
-| `InstanceName` | `XiHan:` | 缓存 Key 统一前缀（隔离不同应用/环境） |
-| `ConnectTimeout` / `SyncTimeout` / `AsyncTimeout` | `5000` | 各类超时（毫秒） |
-| `AllowAdmin` | `false` | 允许管理类命令（FLUSHDB/CONFIG），**生产慎开** |
-| `UseSsl` | `false` | — |
-| `AbortOnConnectFail` | `false` | `false` = 后台持续重连，更适合生产 |
-
-::: warning 关掉 Redis 的连锁反应
-`IsEnabled=false` 时分布式锁退化为进程内锁——**多实例部署会各跑各的**：定时任务重复执行、后台 Worker 不再单活、工作流定时器多实例并发。单机开发无所谓，生产必须开。
-:::
-
-## `XiHan:Web`
-
-### `Core:ClientInfo`
-
-| 键 | 说明 |
-| --- | --- |
-| `EnableIpRegion` | 是否启用 IP 归属地解析 |
-| `Ip2RegionDbPath` | IPv4 的 ip2region 离线库路径 |
-| `Ip2RegionV6DbPath` | IPv6 的 ip2region 离线库路径；文件不存在时 IPv6 地址不解析归属地 |
-
-### `Api:ForwardedHeaders`
-
-受信反向代理：转发头（`X-Forwarded-For` / `Proto` / `Host`）只在请求来自这些代理时才被采信，其余来源带的一律忽略。本机回环始终受信，这里配的是追加项。
-
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `KnownProxies` | `[]` | 受信代理的地址，如 `10.0.0.5` |
-| `KnownNetworks` | `[]` | 受信代理所在网段（CIDR，主机位须为 0），如 `172.18.0.0/16` |
-| `ForwardLimit` | `1` | 最多从 `X-Forwarded-For` 右端剥几层受信代理，多级代理按层数调大 |
-
-地址或网段写错、`ForwardLimit` 小于 1 时启动失败。代理不在本机时必须配置，否则日志、会话、访问策略与自动封禁看到的客户端 IP 都是代理的地址。
-
-### `Api:Auth`
-
-| 键 | 说明 |
-| --- | --- |
-| `RequireAuthenticatedUser` | 全局要求已认证（匿名接口需 `[AllowAnonymous]` 显式放行） |
-| `SignalRHubPathPrefix` | SignalR Hub 路由前缀，默认 `/hubs` |
-
-### `Api:Cors`
-
-| 键 | 说明 |
-| --- | --- |
-| `AllowedOrigins[]` | 允许的来源。**携带凭证时不能用 `*`，必须显式列出** |
-| `AllowAnyOrigin` | 与 `AllowCredentials` **互斥** |
-| `AllowAnyMethod` / `AllowAnyHeader` | — |
-| `AllowCredentials` | 是否允许携带 Cookie/Authorization |
-| `ExposedHeaders[]` | 额外暴露给前端 JS 读取的响应头 |
-| `PreflightMaxAgeSeconds` | 预检结果缓存秒数 |
-
-### `Api:OpenApiSecurity`
-
-开放接口签名/防重放/加密，完整说明见 [接口对接指南](./api-guide#开放接口-签名调用-无-jwt)。
-
-| 键 | 框架默认 | 说明 |
-| --- | --- | --- |
-| `IsEnabled` | `false` | 总开关 |
-| **`ProtectedPathPrefixes`** | **`["/api"]`** | **必须覆盖**，否则开启后整站接口都要验签。BasicApp 配 `["/api/openapi"]` |
-| `IgnoredPathPrefixes` | — | 豁免前缀（文档/健康检查等） |
-| `AllowUnsignedRequests` | `false` | 灰度开关：允许未带安全头的请求放行 |
-| `RequireContentSignature` | `true` | 强制校验内容签名 |
-| `EnableReplayProtection` | `true` | 防重放（Nonce 去重） |
-| `TimestampToleranceSeconds` / `NonceExpireSeconds` | `300` | 时间戳容差 / Nonce 存活期 |
-| `MaxRequestBodySize` | 2 MiB | 最大请求体 |
-| `EnableResponseEncryption` | `true` | 启用响应加密 |
-| `DefaultSignatureAlgorithm` | `HMACSHA256` | 也支持 `HMACSHA512` / `RSASHA256` / `SM2` |
-| `DefaultContentSignatureAlgorithm` | `SHA256` | 也支持 `SHA512` |
-| `Clients[]` | — | 配置文件里的静态客户端（`AccessKey` / `SecretKey` / `EncryptKey` / `IpWhitelist` 等）。**密钥敏感，生产走环境变量** |
-
-### `RealTime:SignalR`
-
-| 键 | 说明 |
-| --- | --- |
-| `EnableDetailedErrors` | 详细错误（**生产设 `false`**） |
-| `KeepAliveInterval` / `ClientTimeoutInterval` / `HandshakeTimeout` | 心跳与超时（`hh:mm:ss`） |
-| `MaximumReceiveMessageSize` | 最大接收消息大小（字节） |
-| `StreamBufferCapacity` | 流缓冲容量 |
-| `MaximumParallelInvocationsPerClient` | 每客户端最大并行调用数 |
-| `EnableConnectionMetrics` | 连接指标 |
-
-### `Gateway` / `GrayRouting`
-
-| 键 | 说明 |
-| --- | --- |
-| `Gateway.EnableGrayRouting` / `EnableRequestTracing` / `EnableRateLimiting` / `EnableCircuitBreaker` | 各能力开关 |
-| `Gateway.RequestTimeoutSeconds` | 网关请求超时 |
-| `Gateway.AllowedOrigins[]` / `GlobalHeaders` | 允许来源 / 统一注入的响应头 |
-| `GrayRouting.Rules[]` | 灰度规则：`RuleType`（**1=按百分比 2=用户白名单 3=租户 4=请求头**）、`Priority`（**越大越优先**）、`TargetVersion`、`Configuration`（JSON 字符串参数）、`IsEnabled` |
-
-## `XiHan:Upgrade`
-
-| 键 | 说明 |
-| --- | --- |
-| `MinSupportVersion` / `AppVersion` | 最低来源版本 / 当前版本（留空则运行时探测程序集版本） |
-| `MigrationsRootPath` | 迁移脚本根目录 |
-| `LockResourceKey` / `LockExpirySeconds` | 分布式锁（防多节点并发升级） |
-| `EnableAutoCheckOnStartup` | 启动时自动执行待执行的升级脚本（缺省 `true`）；失败即中断启动。关掉后启动不改库，须先在发布流程中完成迁移 |
-| `NodeName` / `PrimaryNodeName` | 当前节点 / **仅主节点执行迁移，其余等待** |
-| `EnableMultiTenantIsolation` | 是否按租户逐库执行 |
-| `ConnectionConfigId` | 升级使用的连接 |
-| `EnableMaintenanceMode` | 升级期间进入维护模式 |
-| `EnableFileUpdate` / `EnableRollingRestart` | 文件更新 / 滚动重启 |
-
-版本状态与执行历史分别保存在 `SysVersion`、`SysMigrationHistory`，不使用 `version.txt`。引擎按 `UpdateScripts/<版本>/` 的版本顺序处理平台库及配置为独立库的租户，锁租约避免多节点并发；启动时由数据库初始化的升级段（`SaasSchemaUpgrader`）与升级模块的初始化后钩子调用，完整边界见[升级与迁移](./backend/upgrade)。当前仓库脚本使用 PostgreSQL SQL，切换数据库提供程序时需要维护对应方言的脚本。
-
-## `XiHan:Localization`
-
-| 键 | 说明 |
-| --- | --- |
-| `ResourcesPath` | 资源文件目录 |
-| `DefaultResourceName` | 默认资源名 |
-| `DefaultCulture` | 默认文化，如 `zh-CN` |
-| `EnumResourceName` | **枚举文案资源名**（枚举标签的单一事实源，如 `Enums`） |
-| `EnableDynamicJsonReload` | 资源 JSON 热重载 |
+| `MaxCount` | `64` | 登记数上限（1–1024）；满了再登记新名字即失败，不淘汰已有的 |
+| `HealthProbeIntervalSeconds` | `15` | 健康项 `persistence.datasource.<名>` 的重探间隔，也是连接测试的单次上限 |
 
 ## `XiHan:ObjectStorage`
 
-| 键 | 默认 | 说明 |
+BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页面维护，本地根目录见 [`BasicApp:Files`](#basicapp-files)。框架的 `XiHan:ObjectStorage:S3` 节不读取，不用写。
+
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Local.RootPath` | `wwwroot/uploads` | 文件落盘根目录；这是 BasicApp 的显式配置，不是 Framework `LocalStorageOptions` 的默认值（`wwwroot/Uploads`） |
-| `Local.UrlPrefix` | `/uploads` | 对外访问 URL 前缀（**根相对路径**，跨源时前端拼 API origin） |
+| `StoreHealthProbeIntervalSeconds` | `15` | 各存储实例健康项 `objectstorage.store.<名>` 的探测间隔 |
+| `SignedUrls:Secret` | 空 | 本地存储签名下载地址（宿主 `/blobs` 端点）的 HMAC-SHA256 密钥，UTF-8 至少 32 字节，多实例必须一致；缺失或太短启动即失败。S3 兼容存储由存储自己签名，不用它 |
+| `SignedUrls:BaseUrl` | `/blobs` | 地址前缀：以 `/` 开头的路径，或不带查询串的绝对 http(s) 地址 |
+| `FileSystem:RootPath` | 程序目录下的 `blobs` | 框架缺省的文件系统存储；业务不用它，只是启动时会建出这个目录 |
+| `FileSystem:MaxTotalBytes` / `MaxBlobBytes` / `MultipartExpiryHours` | 1 GiB / 256 MiB / `168` | 同上，总字节、单个对象字节与未完成分片的保留时长 |
+| `Stores:<名>` | 不写 | 命名存储实例（`filesystem` 或 `s3`）；业务不按名取用，不要用 `local` 与 `storage-*` 这两类名字 |
 
-对象存储的其余后端（S3/OSS/COS/MinIO）**配置落库**在 `SysStorageConfig`，不写 `appsettings`。见 [文件与存储](./backend/file#存储配置-file-storage)。
+## `XiHan:Security`
 
-## `XiHan:VirtualFileSystem`
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `RequireAuthentication` | `false` | 为 `true` 时匿名调用一律拒绝；BasicApp 由各操作的权限与策略决定，保持 `false` |
+| `RoleClaim` | `role` | 令牌里承载角色的声明 |
+| `Jwt:Secret` | 空 | HS256 对称密钥，UTF-8 至少 32 字节，缺失或太短启动即失败；Identity 签发与框架校验共用，Hub 的认证也用它；多实例必须一致 |
+| `Jwt:Issuer` / `Jwt:Audience` | `xihan.basicapp` | 写了就按它校验，整项不写才不校验；写成空串不等于不写 |
+| `Jwt:ClockSkewSeconds` | `60` | 校验有效期时允许的时钟偏移 |
+| `Jwt:NameClaim` | `sub` | 作为主体 ID 的声明 |
+| `Database:CacheSize` | `10000` | 授予缓存条目上限（每个主体与租户组合一条），满时整体清空 |
+| `Database:CacheTimeToLiveSeconds` | `30` | 授予缓存的存活时间，0 为不过期 |
+| `Ip2Region:V4Database` / `V6Database` | `IpDatabases/ip2region_v4.xdb` / `IpDatabases/ip2region_v6.xdb` | IP 归属地离线库（随发布目录分发），相对路径按程序目录；文件缺失不影响启动，首次查询记一条警告，之后该类地址没有归属地；写成空白启动即失败 |
 
-| 键 | 说明 |
-| --- | --- |
-| `IncludeCurrentDirectory` / `IncludeAppBaseDirectory` | 是否挂载当前工作目录 / 应用基目录 |
+## `XiHan:Security:Outbound`
+
+出站地址策略：向用户填的地址发请求时能连哪些 IP。缺省只能连公网地址，回环、私网、链路本地和云元数据地址都拒绝。检查放在建立连接时，按解析出的实际 IP 判，重定向也一样，DNS 重绑定绕不过去。
+
+受这道策略约束的：工作流 `Http` 活动、群机器人 Webhook、SMTP 服务器、AI 提供商地址、第三方登录、S3 兼容存储、代码生成的外部数据源、CloudEvents 出站 Webhook、Telegram（配了代理时不受约束，代理地址只有平台管理员能配）。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `AllowLoopback` | `false`（Development 为 `true`） | 放行回环地址（`127.0.0.0/8`、`::1`）；生产环境不要打开 |
+| `AllowPrivateNetwork` | `false` | 放行私网地址（`10/8`、`172.16/12`、`192.168/16`、`fc00::/7`），不含链路本地与云元数据地址 |
+| `AllowedNetworks` | 不写 | 放行的网段（CIDR，主机位为 0），优先于全部拒绝规则 |
+| `AllowedHosts` | 不写 | 放行的主机名（整名相等、不区分大小写、不带协议和端口） |
+
+自建 MinIO、内网 Webhook、内网 SMTP 中继、内网业务库、流程调内网服务、本机模型端点都要在这里放行，否则连接被拒。
+
+## `XiHan:MultiTenancy`
+
+租户只从令牌声明解析，不支持查询串与 `X-Tenant-Id` 头。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `RequireTenant` | `false` | 调用必须带租户；平台主体没有租户声明，必须为 `false` |
+| `ValidateAgainstStore` | `true` | 解析出的租户必须在租户目录里存在且启用；关掉后只校验格式 |
+| `TenantClaim` | `tenant` | 令牌里承载租户 ID 的声明 |
+| `ShardCacheSize` | `10000` | 租户分库解析的缓存容量（租户数），满时整体清空 |
+| `DefaultTenant` | 不写 | BasicApp 不用：配了会把平台调用落到这个租户上 |
+| `Database:CacheSize` / `Database:CacheTimeToLiveSeconds` | `10000` / `30` | 租户目录缓存的容量与存活时间 |
+| `Database:MaxListedTenants` | `10000` | 列出租户时返回的上限，超出不返回并记警告 |
+
+## `XiHan:Localization`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Locales` | `en-US,zh-CN,zh-TW,ja-JP,ko-KR,de-DE,es-ES,fr-FR,pt-BR,ru-RU` | 启用的区域，逗号分隔、按优先级排列；是一个字符串，写成数组会被当成没写 |
+| `DefaultLocale` | `en-US` | 协商不到时用的区域，必须在 `Locales` 里 |
+| `Database:RefreshIntervalSeconds` | `300` | 数据库译文快照的刷新间隔，0 只在启动时加载 |
+| `Database:MaxTranslations` | `100000` | 快照最多加载的译文条数，超出记警告 |
+
+请求按 `Accept-Language` 在启用的区域里协商。文案有两个来源：
+
+- 各包与框架嵌在程序集里的语言文件，即消息目录。同名目录合并为一份：区域与键取并集，同一键同一区域的模板不同即启动失败（`LOCALIZATION_CONFLICT_001`）。
+- 平台库表 `message_translation`（键、区域、模板）是运营覆盖的译文：同键同区域时数据库优先，没有的键照旧走嵌入目录与回退链。快照在宿主进入服务状态后加载，按刷新间隔重载，多实例各自刷新；健康项 `localization.database.translations`，加载失败为 Degraded 并保留上一份快照。这张表没有后台维护页面。
+
+## `XiHan:Auditing`
+
+框架的操作审计，与 [`BasicApp:Auditing`](#basicapp-auditing) 的应用日志分开。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Selection` | `None` | 没有显式动作时记哪些操作（`Protected`、`All`、`None`）；BasicApp 由 Auditing 包按「是否标了审计」显式声明，保持 `None` |
+| `IncludeSuccesses` | `true` | 成功的调用也记；`false` 只记失败 |
+| `Exclude` | 不写 | 按操作排除：操作 ID，或以 `*` 结尾的前缀 |
+| `Database:QueueCapacity` | `10000` | 等待落库的事件数上限，满了丢弃新事件并计数 |
+| `Database:BatchSize` / `Database:FlushIntervalSeconds` | `100` / `1` | 每批落库的事件数与刷写间隔 |
+| `Database:LogEvents` | `true` | 每条事件同时写进日志（Information 级） |
+
+## `XiHan:Scheduling`
+
+后台作业调度的数据库实现，多节点选主。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `PollIntervalSeconds` | `1` | 引擎轮询周期 |
+| `MaxConcurrentRuns` | `32` | 本节点同时运行的作业上限 |
+| `AcquireBatchSize` | `16` | 一个轮询周期最多抢占的触发器数 |
+| `MisfireThresholdSeconds` | `60` | 到期时刻落后超过它才算 misfire |
+| `LeaseResource` / `LeaseTimeToLiveSeconds` | `scheduling.jobs` / `30` | 领导租约的资源名与存活时间 |
+| `NodeTimeoutSeconds` | `90` | 节点心跳超过它即视为失联 |
+| `HousekeepingIntervalSeconds` | `60` | 领导者维护（失联恢复、历史清理）的周期 |
+| `HistoryRetentionDays` | `7` | 运行历史保留天数（可带小数），0 为不删 |
+| `NodeId` | 机器名:进程 ID:随机串 | 本节点 ID |
+| `Database:HealthProbeIntervalSeconds` | `15` | 健康项 `scheduling.database.leader` 的重探间隔 |
 
 ## `XiHan:Workflow`
 
-工作流引擎，见 [框架 · Workflow](https://framework.docs.xihanfun.com/packages/workflow#配置)。要点：`MaxNodeExecutionsPerBurst`（默认 1000）、`MaxSubWorkflowDepth`（默认 16）、`Worker:IsTimerEnabled`（**关掉后延时/重试/超时书签不会被自动恢复**）。
+宿主恒装框架的数据库工作流（Workflow 模块关掉也装）：定义、实例、节点实例与书签按分区落表（租户四张随租户分库、平台四张在平台库），另有一张租约表做实例锁与轮询领导权。
 
-## `Saas:Seed`
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `MaxNodeExecutionsPerBurst` | `1000` | 一个波次最多执行的节点数，超过即实例故障（防死循环） |
+| `MaxSubWorkflowDepth` | `16` | 子流程最大深度 |
+| `LockTimeoutSeconds` | `10` | 等实例锁的上限，超过即 `WORKFLOW_TIMEOUT_001` |
+| `NotResumableBackoffSeconds` | `300` | 到期书签因实例不在运行中而不能恢复时，到期时间后推的秒数 |
+| `ExpressionCacheSize` | `10000` | 表达式缓存上限 |
+| `RetentionDays` | `0` | 已结束实例的保留天数（可带小数），0 为不自动清理 |
+| `HousekeepingIntervalSeconds` | `3600` | 按保留期清理的周期 |
+| `HttpTimeoutSeconds` | `30` | `Http` 活动的缺省超时 |
+| `Database:PollIntervalSeconds` | `1` | 到期书签（延时、超时、重试）的轮询周期 |
+| `Database:BatchSize` | `100` | 每次轮询最多恢复的书签数 |
+| `Database:LockLeaseSeconds` | `60` | 实例锁与轮询领导权的租约时长，每三分之一续约一次 |
+| `Database:HealthProbeIntervalSeconds` | `15` | 健康项 `workflow.database.poller` 的重探间隔 |
+| `Database:HolderId` | 机器名:进程 ID:随机串 | 本节点写进租约行的标识 |
+| `Database:LockConnection` | 不写（租约表在平台库） | 租约表所在的命名连接。**SQLite 必须配**：在 `XiHan:Persistence:SqlSugar:Connections:<名>` 声明另一个库文件，再把这里写成 `<名>`，否则业务事务与租约互相等到 `WORKFLOW_TIMEOUT_001`；PostgreSQL 不用配 |
 
-注意这一节**不在 `XiHan:` 命名空间下**。
+## `XiHan:AI`
 
-| 键 | 说明 |
+框架的工具目录常装，这一节总会被读取校验：写错时关了 AI 模块也启动失败。模型提供商在后台「AI 提供商」页面维护，框架的 `Providers`、`DefaultProvider`、`DefaultEmbeddingProvider` 在 BasicApp 里不生效，不要写。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Knowledge:EmbeddingProvider` | 不写（标为缺省的提供商） | 嵌入用的提供商（后台「AI 提供商」里的名称） |
+| `Knowledge:PromptName` | 不写（内置模板） | 检索增强的提示词模板名，只能引用 `Prompts` 里的模板；模板只能用 `{context}`、`{question}`，找不到或用了别的占位符启动即失败 |
+| `Knowledge:Dimensions` | `1536` | 嵌入维度，要与嵌入模型一致 |
+| `Knowledge:ChunkSize` / `Knowledge:ChunkOverlap` | `1000` / `100` | 切块大小与相邻块重叠（字符） |
+| `Knowledge:Top` | `5` | 缺省检索条数 |
+| `Knowledge:Collection` | `knowledge` | 缺省集合名，合 `^[a-z0-9][a-z0-9._-]{0,63}$` |
+| `Guardrails:Enabled` | `false` | 是否登记内置关键词护栏 |
+| `Guardrails:UseBuiltInInjectionHeuristics` | `true` | 启用内置的中英文提示注入模式 |
+| `Guardrails:BlockedKeywords` / `Guardrails:InjectionPatterns` | 不写 | 禁止的关键词（不区分大小写的子串）与提示注入正则 |
+| `Tools:<操作 ID>` | 不写 | 操作暴露成 AI 工具时的名字覆盖（字母、数字、`_`、`-`，1–64 个字符） |
+| `Prompts:<名>` | 不写 | 配置里的提示词模板（给 `Knowledge:PromptName` 用），值是模板文本或 `{ "Template": …, "Description": … }`；后台「提示词」页面的模板不在这里 |
+| `VectorData:HealthProbeIntervalSeconds` | `15` | 健康项 `ai.vectordata.store` 的重探间隔；配了 [`BasicApp:AI:Qdrant`](#basicapp-ai-qdrant) 才有 |
+
+## `XiHan:Observability`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Host:SampleIntervalSeconds` | `5` | 主机运行信息（CPU、内存、网卡）的采样间隔，最大 3600 |
+| `OpenTelemetry:ServiceName` / `ServiceVersion` | 入口程序集的名称与版本 | 资源属性 `service.name` / `service.version` |
+| `OpenTelemetry:Tracing` / `Metrics` / `Logging` | `true` | 是否导出追踪、指标与日志 |
+| `OpenTelemetry:Console` | `false` | 同时写到控制台导出器（排查用） |
+| `OpenTelemetry:SamplingRatio` | `1` | 根 Span 的采样比例（0–1），有上游决定的沿用上游 |
+| `OpenTelemetry:Sources` / `Meters` | 不写 | 额外订阅的 Activity 源与 Meter，逗号分隔的字符串 |
+| `OpenTelemetry:Otlp:Endpoint` | 不写 | OTLP 端点；配了端点（或标准环境变量 `OTEL_EXPORTER_OTLP_ENDPOINT`）即启用导出 |
+| `OpenTelemetry:Otlp:Protocol` | `Grpc` | `Grpc` 或 `HttpProtobuf`，须与 `Endpoint` 同时配置 |
+
+## `XiHan:Protocols`
+
+同一个操作按 `Expose` 发布到 HTTP、gRPC、MCP 与 CloudEvents。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Http:RoutePrefix` | `/api` | 操作路由前缀；前端与开放接口都按它调用，不要改 |
+| `Http:Routes:<操作 ID>` | 不写 | 覆盖推导出的路由（`METHOD /模板`）；前端按约定路由调用，改了要同步 |
+| `Grpc:Package` | `xihan.basicapp` | protobuf 包名，也是服务路径前缀（`/xihan.basicapp.Users/Get`） |
+| `Grpc:Methods:<操作 ID>` | 不写 | 覆盖 gRPC 方法名（`Service/Method`） |
+| `Mcp:ServerName` | `XiHan.BasicApp` | MCP `initialize` 答复里的服务端名 |
+| `Mcp:ServerVersion` / `Mcp:Instructions` | 不写 | 服务端版本（缺省框架版本）与给客户端模型的使用说明 |
+| `Mcp:Tools:<操作 ID>` | 不写 | 覆盖 MCP 工具名 |
+| `CloudEvents:Inbound` | `Dispatch` | `Dispatch` 在请求内派发给主题的处理器、处理器的结果即响应；`Publish` 发布到消息代理后立即 202 |
+| `CloudEvents:Outbound` | `Binary` | 出站 Webhook 的内容模式：`Binary` 或 `Structured` |
+| `CloudEvents:PropagateTraceContext` | `false` | 出站 Webhook 是否在 HTTP 头里写追踪上下文 |
+| `CloudEvents:Topics:<事件类型>` | 不写 | 入站事件类型到主题的映射；没写时事件类型本身须是合法主题 |
+| `CloudEvents:Webhooks:<主题>` | 不写 | 主题对应的出站 Webhook 地址 |
+
+入站端点是否映射由 [`BasicApp:CloudEvents`](#basicapp-cloudevents) 决定。
+
+## `BasicApp:Database`
+
+平台库的从库（读写分离）与 SQL 诊断日志。主库连接在 [`XiHan:Bindings:db`](#xihan-bindings-db)。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Replicas` | 空（单库） | 从库列表，每项 `ConnectionString` 必填，`HitRate` 是读权重（正整数，不写取 `XiHan:Persistence:SqlSugar:Replicas:DefaultHitRate`） |
+| `LogSql` | `false` | 记录每条 SQL（只记语句，不记参数值）；日志量大，只在排查时打开 |
+| `LogSqlErrors` | `true` | 记录执行出错的 SQL |
+| `LogSlowSql` | `true` | 记录慢 SQL |
+| `SlowSqlThresholdMilliseconds` | `1000` | 慢 SQL 的阈值，正整数；只影响记录，不影响语句执行 |
+
+配了从库之后，只读工作单元的读走从库，会写的工作单元走主库。从库只给平台库，独立库租户读写都走它自己的主库。要注意的见[部署](./deployment#读写分离)。
+
+## `BasicApp:Schema`
+
+表结构升级：按 `Schema/<版本>/*.sql` 与版本台账升级平台库与各独立库租户。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `AutoUpgrade` | `true` | 启动时自动升级，失败即中断启动；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
+| `Directory` | 程序目录下的 `Schema` | 脚本目录；相对路径按程序目录（不是当前目录）解析 |
+| `LockExpiryMinutes` | `30` | 升级锁的失效时间（1–1440）：持锁节点中途退出时，过了这么久别的节点才能接手 |
+| `LockWaitMinutes` | `10` | 等别的节点升级完的最长时间（1–1440）；等不到即升级失败、中断启动 |
+
+## `BasicApp:Seed`
+
+种子在执行 `seed` 命令时写入，不随启动执行。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知，演示流程与打印模板 |
+| `SuperAdminPassword` | 空（Development 为 `SuperAdmin@123`） | `superadmin` 的初始密码，只在账号不存在、首次写入时用；首次执行 `seed` 时没配即失败（`IDENTITY_VALIDATION_026`） |
+
+## `BasicApp:Modules`
+
+可选模块开关 `BasicApp:Modules:<名>:Enabled`：没写即开启，写了必须是 `true` / `false`。关掉的模块宿主不装配：它的页面与权限码不下发，前端模块随菜单不再出现，操作返回 404。
+
+| 名 | 模块 | 关掉之后 |
+| --- | --- | --- |
+| `Workbench` | 工作台 | 登录后落到第一个有权限的页面，前端把 `VITE_HOME_PATH` 留空 |
+| `Printing` | 打印模板 | 其他包登记的打印数据源没有消费方，见[打印模板](./backend/printing#开关) |
+| `Chat` | 在线聊天与聊天审计 | 聊天 Hub 与附件上传端点不映射，Organization 的部门归属事件没有订阅方，见[在线聊天](./backend/chat#开关) |
+| `Workflow` | 流程定义、流程实例与审批中心 | 引擎与它的表照旧（宿主恒装数据库工作流）；其他包登记的审批业务没有消费方，见[工作流](./backend/workflow#模块开关) |
+| `CodeGeneration` | 代码生成（只在平台一侧） | 表照样建，已登记的外部数据源连接不再建立，产物包下载端点不映射，见[代码生成](./backend/code-generation#模块开关) |
+| `AI` | AI 提供商、提示词、知识库与助手 | 表照样建；框架的工具目录与 MCP 工具照常，聊天照常、助手入口隐藏，见[AI 能力](./backend/ai#模块开关) |
+
+## `BasicApp:ApiDocs`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Enabled` | 不写时 Development 为 `true`、其余为 `false` | 是否映射 `/openapi.json`、`/openapi/<组>.json` 与 `/scalar`（不鉴权）；生产环境确需开放时显式写 `true` |
+
+## `BasicApp:ForwardedHeaders`
+
+反向代理的转发头：宿主在管道最前面还原 `X-Forwarded-For` / `-Proto` / `-Host`，访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址与地区条件拿到的是客户端地址。只信本机回环与下面列出的代理。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `KnownProxies` | `[]` | 受信代理的单个地址，如 `10.0.0.5` |
+| `KnownNetworks` | `[]` | 受信代理的网段（CIDR，主机位必须为 0，如 `10.0.0.0/8`） |
+| `ForwardLimit` | `1` | 从右往左认几层转发（正整数） |
+
+## `BasicApp:Cors`
+
+前端与后端不同源部署时打开。`AllowedOrigins` 与 `AllowAnyOrigin` 都没写即不启用跨域，只能同源访问。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `AllowedOrigins` | `[]` | 允许的来源：协议 + 主机 + 可选端口，不带路径与结尾斜杠 |
+| `AllowAnyOrigin` | `false` | 放开全部来源；不能与 `AllowedOrigins` 同时写，也不能与 `AllowCredentials: true` 同时用 |
+| `AllowAnyMethod` / `AllowedMethods` | `true` / `[]` | 为 `false` 时必须写 `AllowedMethods` |
+| `AllowAnyHeader` / `AllowedHeaders` | `true` / `[]` | 为 `false` 时必须写 `AllowedHeaders` |
+| `AllowCredentials` | `true` | 是否允许携带凭据（Cookie、`Authorization` 头） |
+| `ExposedHeaders` | `[]` | 暴露给前端脚本读取的响应头，如 `Content-Disposition` |
+| `PreflightMaxAgeSeconds` | `0` | 预检结果的缓存秒数，0 为不设置 |
+
+## `BasicApp:CloudEvents`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Enabled` | `false` | 是否映射 CloudEvents 入站端点 `POST /events`，供内部服务投递事件 |
+
+端点只收持有权限码 `runtime.cloud-events.deliver`（「投递 CloudEvents 事件」，只在平台一侧）的调用方，认证用同一套 JWT。这个码只授给平台的服务账号或服务角色：在角色管理里给平台侧的服务角色授予它，再把服务账号指派进去；普通用户投递即 403 `SECURITY_DENIED_004`，持 `*` 的租户管理员也调不了。端点与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。
+
+登记了处理器的主题都是应用内部事件（断开连接、部门归属变更、工作流的任务与故障），其余主题在派发模式下是 404 `PROTOCOLS_NOTFOUND_003`。主题映射、入站方式与出站 Webhook 见 [`XiHan:Protocols`](#xihan-protocols) 的 `CloudEvents:*`。
+
+## `BasicApp:DataProtection`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `KeysDirectory` | 不写（ASP.NET Core 的缺省位置） | 数据保护密钥环目录 |
+
+`ISecretProtector`（加密参数、存储密钥、租户连接串、认证器密钥、通道密钥与机器人 Webhook 地址）用 ASP.NET Core Data Protection 加密。单机开发用缺省位置即可；多实例部署必须指向各实例都能读写的同一个目录，否则各实例互相解不开密文。
+
+## `BasicApp:Auth`
+
+身份认证：令牌、登录失败锁定、密码策略、图形验证码、登录节流、双因素、验证码与自助注册。数字须为正数（`PasswordHistoryDepth` 可为 0）。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `AccessTokenMinutes` | `120` | 访问令牌有效期（分钟） |
+| `RefreshTokenDays` | `7` | 刷新令牌（会话）有效期（天） |
+| `MaxFailedAccessAttempts` / `LockoutMinutes` | `5` / `15` | 连续登录失败多少次锁定账号、锁定多久 |
+| `PasswordMinLength` | `8` | 密码最短长度 |
+| `PasswordHistoryDepth` | `3` | 不得与最近多少个历史密码相同；0 不检查，最多 1000，配得更大启动即失败 |
+| `SessionCacheSeconds` | `30` | 会话门禁的缓存秒数；吊销会话最迟在这么久后对其他实例生效 |
+| `CaptchaEnabled` / `CaptchaSeconds` | `true` / `300` | 密码登录是否要求图形验证码、验证码有效期 |
+| `LoginThrottleWindowSeconds` | `60` | 登录节流的固定窗口 |
+| `LoginThrottleAccountLimit` / `LoginThrottleIpLimit` | `5` / `30` | 每个窗口同一账号在同一地址、同一地址跨账号累计的失败上限 |
+| `TwoFactorTicketMinutes` | `10` | 两步验证票据有效期，从签发起算、不顺延 |
+| `TwoFactorTicketMaxFailures` | `5` | 一张票据允许输错的次数，用完即作废、须重新登录 |
+| `TotpIssuer` | `XiHan BasicApp` | 认证器 App 里显示的签发方 |
+| `SelfRegistrationEnabled` | `false` | 开放自助注册（`auth.register`，注册的是平台账号） |
+| `VerificationCodeMinutes` | `10` | 邮件 / 短信验证码有效期 |
+| `VerificationCodeIntervalSeconds` | `60` | 同一用途、同一目标两次发码的最短间隔 |
+| `VerificationCodeDailyPerTarget` / `VerificationCodeDailyPerAddress` | `10` / `50` | 一个邮箱或手机号、一个客户端地址每天（UTC）最多收发几次，不分用途 |
+| `VerificationCodeMaxFailures` / `VerificationCodeLockoutMinutes` | `5` / `10` | 一个验证码允许输错的次数；用完后同一用途、同一主体不能再发码与校验的时长 |
+
+登录页开放哪些方式不在这里，而是系统参数 `identity.login-methods`（`password`、`email`、`phone`），见[系统设置](./backend/settings)。
+
+### `BasicApp:Auth:OAuth`（第三方登录）
+
+第三方登录不分租户、不存库；启用且填了 `ClientId` 的提供方才出现在登录页。第三方账号要先在个人中心绑定本地账号才能登录，不自动建号。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Enabled` | `true` | 总开关；没有可用的提供方时等于关 |
+| `FrontendCallbackUrl` | `/#/auth/oauth-callback` | 回调后带着一次性票据跳去的前端页面 |
+| `CallbackBaseUrl` | 不写（取请求的来源） | 回调地址的来源（协议 + 主机 + 端口）；经反向代理时要么写它，要么保证转发头配置正确 |
+| `Providers` | `[]` | 提供方列表，按顺序显示，同名只取第一个 |
+
+在第三方后台登记的回调地址是 `<CallbackBaseUrl>/api/oauth/<Name>/callback`。
+
+```json
+{
+  "BasicApp": {
+    "Auth": {
+      "OAuth": {
+        "CallbackBaseUrl": "https://<后端对外地址>",
+        "Providers": [
+          { "Name": "github", "ClientId": "<客户端 ID>", "ClientSecret": "<客户端密钥>" },
+          { "Name": "wecom", "ClientId": "<corpid>", "ClientSecret": "<应用 secret>", "AgentId": "<AgentId>", "Mode": "QrCode", "LoadMemberProfile": true }
+        ]
+      }
+    }
+  }
+}
+```
+
+提供方的字段：
+
+| 字段 | 说明 |
 | --- | --- |
-| `EnableDemoData` | 演示数据开关：`true` 才写演示租户与账号，**缺省或 `false` 都不写**，不是布尔值直接启动失败。开发环境配置开启，生产环境在 `appsettings.Production.json` 里设置 |
+| `Name` | 路由与登录页用的名称（小写） |
+| `Provider` | 类型，不写即按 `Name` 判定：`github`、`gitee`、`google`、`qq`、`wechat`（别名 `weixin`）、`wecom`（别名 `workweixin`）、`lark`（别名 `feishu`）、`dingtalk` |
+| `ClientId` / `ClientSecret` | 应用凭据（微信为 appid / secret，企业微信为 corpid / 应用的 corpsecret） |
+| `Enabled` / `DisplayName` | 缺省 `true`；登录页上的显示名，缺省同 `Name` |
+| `Mode` | `QrCode`（扫码，缺省）或 `Account`（账号授权：微信公众号网页授权、企业微信网页授权、飞书、钉钉账号登录） |
+| `AgentId` / `CorpId` / `LoadMemberProfile` | 企业微信的应用 AgentId；钉钉限定组织；企业微信再取成员资料（姓名通常只在这里有） |
+| `Scopes` / `AuthorizationEndpoint` | 额外的授权范围（微信、企业微信整体替换缺省，其余追加）；授权页地址覆盖 |
 
-超管初始密码写在种子里（`superadmin` / `SuperAdmin@123`），不走配置；账号标记为需要本人改密，生产首次登录后立即修改，并建议在参数「密码设置」里开启强制改密。演示账号与各阶段种子见 [框架简介：种子数据](./backend/introduction#种子数据)。
+## `BasicApp:Access`
 
-## `Saas:Conditions`
-
-条件求值用的设置，同样不在 `XiHan:` 命名空间下。
-
-| 键 | 默认 | 说明 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `TimeZone` | `Asia/Shanghai` | 时间类条件属性（`environment.time`、`environment.hour`、`environment.weekday`、`environment.date`）按这个时区计算，不带时区的日期时间条件值也按它解释。IANA 或 Windows 时区标识都认，本机找不到时启动失败。客户端带的 `X-Timezone` 请求头可以伪造，不参与条件 |
+| `PermissionConditionMode` | `Enforce` | 权限条件的生效模式：`Enforce`（判定）、`LogOnly`（只记日志不拦截）、`Disabled`（不判定） |
+| `AccessPolicyEnabled` | `true` | 访问策略总开关；策略把自己锁在外面时由运维在这里关掉 |
+| `ConditionTimeZone` | `Asia/Shanghai` | 条件里时刻、小时、星期与日期所按的时区（IANA 或 Windows 写法） |
 
-## `Saas:PermissionConditions`
+## `BasicApp:Auditing`
 
-权限条件（[权限模型 · 权限条件](./backend/permission#权限条件-syspermissioncondition)）的生效模式，改了热生效。
+BasicApp 自己的访问、异常、登录与变更日志，按月分表。
 
-| 键 | 默认 | 说明 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Mode` | `Enforce` | `Enforce`：条件不满足即拒绝，返回 403「当前条件下不允许此操作」；`LogOnly`：照常求值但不拦截，本该拒绝的请求记进条件命中记录；`Disabled`：不求值，有条件的授予按授予、有条件的禁止按禁止处理，只作应急 |
+| `QueueCapacity` | `10000` | 等待落库的日志条数上限；满了新到的丢弃并计数，不阻塞调用 |
+| `BatchSize` / `FlushIntervalSeconds` | `200` / `1` | 每批落库的条数与刷写间隔（秒，可带小数） |
+| `AccessLog:Enabled` | `true` | 是否记访问日志 |
+| `AccessLog:Exclude` | `[]` | 不记访问日志的操作 ID，如 `auth.me`；异常、登录与变更日志不受影响 |
+| `DefaultRetentionDays` | `180` | 系统参数 `auditing.retention-days` 没建时的保留天数 |
+| `RetentionCron` | `0 3 * * *` | 保留清理作业的计划（cron，按 UTC） |
 
-## `Saas:AccessPolicy`
+## `BasicApp:Files`
 
-访问策略的运行设置，改了热生效。
+上传、分片与签名下载地址；存储本身在后台「存储配置」里维护。这一节写错不报错：不合法或不是正数的值按缺省值处理。
 
-| 键 | 默认 | 说明 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Enabled` | `true` | 总开关。关掉时认证前、认证后、登录时的访问策略与自动封禁都不拦截，登录失败照常计数；用于误封自己后解围，见[部署 · 误封了自己](./deployment#误封了自己) |
-| `VersionCheckSeconds` | `5` | 每个节点最多隔多少秒检查一次策略是否改过，策略改动最多这么久后在所有节点生效 |
-| `BanCheckCacheSeconds` | `5` | 「这个 IP 没被封」在本机缓存的秒数，自动封禁最多这么久后在所有节点生效 |
-| `HitBufferCapacity` | `10000` | 命中记录在内存里按分钟合并时最多的合并键数，超出的命中只计数并告警 |
+| `LocalRootPath` | `App_Data/files` | 本地存储根目录，相对路径按内容根目录；各本地存储配置的桶是它下面的子目录 |
+| `MaxUploadBytes` | `104857600`（100 MiB） | 单个文件的大小上限 |
+| `UploadPartBytes` | `8388608`（8 MiB） | 分片上传每片的大小，不小于存储要求的最小分片 5 MiB |
+| `UploadLifetime` | `1.00:00:00` | 分片上传从发起到完成的时限 |
+| `LinkLifetime` / `MaxLinkLifetime` | `00:30:00` / `7.00:00:00` | 签名下载地址的缺省与最长有效期 |
 
-## `CodeGeneration`
+## `BasicApp:Notification`
 
-只在 `appsettings.Development.json` 里配置，`appsettings.json` 与生产配置都不放：不配置即不能生成到项目，只能生成并下载。
+邮件、短信、机器人发件箱与 Telegram 交互；通道与机器人在后台页面配置。这一节写错不报错：不合法的值按缺省值处理。
 
-| 键 | 默认 | 开发环境配置 | 说明 |
-| --- | --- | --- | --- |
-| `EnableGenerateToProject` | `false` | `true` | 是否允许「生成到项目」 |
-| `BackendRootPath` | — | `../..` | 后端源码根（相对 WebHost 项目目录），在其下分组目录里找与命名空间同名的项目 |
-| `FrontendRootPath` | — | `../../../../frontend` | 前端工程根（相对 WebHost 项目目录），须含 `package.json` |
-| `TablePrefixes` | `Sys_,Saas_` | `Sys_,Saas_` | 由表名推导类名时去掉的前缀 |
-
-::: warning 生产不要开 `EnableGenerateToProject`
-开启后代码生成器会往服务器上的源码目录写文件。位置虽由配置推导、不接受任意路径，生产环境也没有源码可写，保持关闭，用生成并下载。
-:::
-
-## 数据库里的配置
-
-有几类配置**刻意不放 `appsettings`**，而是落库以便按租户隔离与运行期热切换：
-
-| 内容 | 表 | 页面 |
+| 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| 业务参数与功能开关 | `SysConfig` | `/setting/config` |
-| 存储后端 | `SysStorageConfig` | `/file/storage` |
-| 邮件 / 短信网关 | `SysEmailConfig` / `SysSmsConfig` | `/setting/email-config`、`/setting/sms-config` |
-| 机器人 | `SysBotConfig` / `SysTelegramBot` | `/setting/bot-config`、`/setting/telegram-bot` |
-| AI Provider / 提示词 | `SysAiProvider` / `SysAiPrompt` | `/develop/ai-provider`、`/develop/ai-prompt` |
+| `Brand` | 不写（应用名） | 邮件与短信模板变量 `brand` 的缺省值 |
+| `DispatchInterval` | `00:00:05` | 发送循环的轮询间隔；有新记录时提前唤醒 |
+| `RetryDelay` | `00:00:30` | 失败后重试的基础间隔，第 n 次失败后等 n 倍 |
+| `MaxAttempts` | `3` | 每条记录最多尝试的次数 |
+| `StuckAfter` | `00:10:00` | 发送中超过这么久没有结果即视为进程中断，改回排队中 |
+| `Telegram:MaxDispatchConcurrency` | `16` | 全部机器人共用的同时处理上限 |
+| `Telegram:DedupLifetime` | `00:30:00` | 消息去重标记的保留时长 |
+| `Telegram:PollingTimeoutSeconds` | `50` | 长轮询每次等待的秒数（不配 Webhook 时用长轮询） |
+| `Telegram:Texts:*` | 见 `appsettings.json` | 回复文案；写成空串即不发该条回复，`{botUsername}`、`{chatId}`、`{userId}` 会被替换 |
+| `Telegram:Retry:MaxRetries` | `3` | 出站调用 Bot API 失败后最多再试的次数 |
+| `Telegram:Retry:BaseDelayMs` / `MaxDelayMs` | `500` / `10000` | 退避：第 n 次等 min(`MaxDelayMs`, `BaseDelayMs` × 2^(n-1)) |
+| `Telegram:Retry:MaxRetryAfterSeconds` | `60` | 429 的 `retry_after` 最多等多少秒，超过即按失败处理 |
+| `Telegram:Retry:NotifyAdminOnFinalFailure` | `true` | 最终失败时私发管理员告警 |
 
-它们通过 `services.Replace(...)` 覆盖框架默认的配置源实现。判断标准见 [系统设置](./backend/settings#参数配置-setting-config)。
+机器人、Webhook 与代理在系统参数 `notification.telegram` 里配。
 
-## 相关页面
+## `BasicApp:Realtime:SignalR`
 
-- [开发环境](./dev-environment)：Docker 起依赖并对齐连接串
-- [部署](./deployment)：生产部署与环境变量注入
-- [常见问题](./faq)：配置类故障速查
-- [系统设置](./backend/settings)：落库配置的管理页面
+SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省值，不配即可。配置写错启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `EnableDetailedErrors` | `false` | 把详细错误发给客户端，生产环境不要打开 |
+| `KeepAliveInterval` | `00:00:15` | 服务端发保活消息的间隔 |
+| `ClientTimeoutInterval` | `00:00:30` | 多久没收到客户端的消息算断开，一般设成客户端保活间隔的两倍 |
+| `HandshakeTimeout` | `00:00:15` | 握手的超时 |
+| `MaximumReceiveMessageSize` | `32768` | 单条入站消息的大小上限（字节） |
+| `StreamBufferCapacity` | `10` | 流式调用的缓冲容量 |
+| `MaximumParallelInvocationsPerClient` | `1` | 每个客户端的最大并行调用数 |
+
+时长写 `hh:mm:ss`（可带天数 `d.hh:mm:ss`），必须大于零；只写 `15` 或 `00:15` 都算写错。数字必须是正整数。前端用 SignalR 客户端的缺省超时（30 秒没收到服务端消息即断开），把 `KeepAliveInterval` 调到 30 秒以上会让浏览器不断掉线重连。
+
+## `BasicApp:OpenPlatform`
+
+签名开放接口与 OAuth 2.0 / OIDC 授权服务。这一节写错不报错：数字超出范围时夹到范围内。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `TimestampToleranceSeconds` | `300` | 签名请求的时间戳与服务端时间的最大偏差（30–3600）；随机串保留它的两倍 |
+| `MaxRequestBodyBytes` | `2097152`（2 MiB） | 开放接口请求体上限（1 KiB–64 MiB） |
+| `Issuer` | 不写（请求来源 + `/api/oauth2`） | OIDC 签发者，不带结尾斜杠；经反向代理时要显式写 |
+| `ConsentPageUrl` | `/#/oauth/authorize` | 授权同意页（前端路由），授权端点把查询串原样带过去 |
+| `IdTokenLifetimeSeconds` | `600` | `id_token` 有效期（60–3600） |
+
+## `BasicApp:CodeGeneration`
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `TablePrefixes` | `sys_` | 导入表时推断类名去掉的表名前缀，逗号分隔（是一个字符串，不是数组），取最长的匹配 |
+| `EnableGenerateToProject` | `false`（Development 为 `true`） | 允许「生成到项目」（直接写进后端与前端源码目录）；打开了也只在 Development 生效 |
+| `AllowSqliteDataSource` | `false`（Development 为 `true`） | 是否开放 SQLite 数据源；SQLite 的地址是服务器上的文件路径，开放等于能读进程够得着的任意数据库文件 |
+| `BackendRootPath` | 不写（Development 为 `../..`） | 生成到项目时后端的根目录（含 `src/` 的 `backend`），相对宿主的内容根目录 |
+| `FrontendRootPath` | 不写（Development 为 `../../../frontend`） | 生成到项目时前端的根目录（含 `package.json` 的 `frontend`），相对宿主的内容根目录 |
+
+## `BasicApp:AI:Qdrant`
+
+知识库的向量库。写了 `Host` 宿主才登记 Qdrant 连接器并装框架的知识库 Provider，健康检查随之多一项 `ai.vectordata.store`；没写即知识库不可用，见[AI 能力](./backend/ai#知识库)。地址、密钥写错启动不报错，连不上时健康项是 Degraded，摄入的文档以失败保存。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Host` | 不写 | 主机名；空白即没配 |
+| `Port` | `6334` | gRPC 端口（1–65535）；`6333` 是 REST 端口，连接器不用 |
+| `Https` | `false` | 是否走 HTTPS，写了必须是 `true` / `false` |
+| `ApiKey` | 不写 | API 密钥，不要提交到仓库 |
+
+向量维度、检索条数与切块参数在 [`XiHan:AI`](#xihan-ai) 的 `Knowledge:*`。
+
+## 前端 `.env`
+
+`frontend/.env` 是仓库缺省配置，各项说明见 `frontend/.env.example`。本机改动写 `.env.local`，不提交。
+
+| 变量 | 缺省 | 说明 |
+| --- | --- | --- |
+| `VITE_PORT` | `9100` | 开发服务器端口 |
+| `VITE_DEV_PROXY_TARGET` | `http://localhost:9710` | 开发代理目标，即后端的 `Kestrel:Endpoints:Http` |
+| `VITE_API_BASE_URL` | 空（同源） | 构建期 API 源 |
+| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页（固定首页标签、守卫兜底）；关掉工作台模块时留空，登录后落到第一个有权限的页面 |
+| `VITE_ROUTER_HISTORY` | `hash` | `history` 需要静态托管把未知路径回退到 `index.html` |
+| `VITE_BASE` | `/` | 部署子路径 |
+| `VITE_REALTIME_HUB` | `/hubs/notification` | 通知 Hub 路径；留空即不建实时连接（强制下线、站内通知、跨端设置同步都不再实时） |
+| `VITE_APP_TITLE` / `VITE_APP_SUBTITLE` / `VITE_APP_DESCRIPTION` / `VITE_APP_LOGO` | 空 | 登录页品牌区；留空取应用名文案与 `/favicon.png` |
+
+## 下一步
+
+- [部署](./deployment) · [数据库配置](./backend/database) · [统一认证](./backend/authentication)

@@ -1,185 +1,80 @@
 来源：https://basicapp.docs.xihanfun.com/backend/upgrade
 
-# 升级与迁移
+# 表结构升级
 
-BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com/guide/upgrade) 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true` 时，**应用启动会自动执行待执行的脚本**，失败即中断启动。
+本页说明正式库的表结构如何建立与升级、升级脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
 
-## 当前结论
+开发库与正式库建表的方式不同：
 
-| 能力 | 当前状态 |
+| 库 | 建表方式 |
 | --- | --- |
-| Framework Upgrade 模块与引擎 | 已注册 |
-| `SysVersion` 版本状态 | 已落库，每个数据库各自维护 |
-| `SysMigrationHistory` 台账存储与查询页 | 已接线；每执行一个脚本记一条 |
-| 文件系统脚本发现 | 已接入，目录为 `UpdateScripts/<版本>/` |
-| 平台库 + 独立租户库分发 | 已实现 |
-| 数据库租约锁 | 已实现 |
-| 维护模式中间件 | 已实现 |
-| 启动时自动执行 SQL | **`EnableAutoCheckOnStartup=true` 时执行**；框架缺省为 `true`，开发配置也写的是 `true` |
-| 新建库登记基线 | 本次启动从零建出的平台库、`InitializeDatabase` 新建的独立库，建好即登记为最新脚本版本，不补跑历史脚本 |
+| 开发库 | Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动时按实体建缺表、加缺列（另补软删除实体的部分唯一索引） |
+| 正式库 | 只认 `Schema/<版本>/*.sql` 与版本台账，由 `SchemaUpgrader` 执行；`InitTables` 保持关闭 |
 
-::: danger 启动即迁移，失败即中断
-启动时有两个执行点，都调用 `IUpgradeEngine.ExecuteAsync()`、都以 `EnableAutoCheckOnStartup` 为开关：
+## 机制
 
-1. **数据库初始化的升级段**：`SaasSchemaUpgrader` 实现框架的 `IDbSchemaUpgrader`，`DbInitializer` 按「建库建表 → 升级脚本 → 播种」三段执行，让存量表的新列在种子读写之前补齐。这一段只在 `EnableDbInitialization` 与 `EnableTableInitialization` 都开启时运行。
-2. **应用初始化之后**：`XiHanUpgradeModule.OnPostApplicationInitializationAsync` 先确保版本行存在，再执行一次引擎。数据库初始化关闭时由这里执行；第 1 段已经升级过时这里版本已是最新，直接空转。
+| 项 | 说明 |
+| --- | --- |
+| 脚本 | `backend/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`：每个子目录是一个版本（`主.次.修订`，目录名不是版本号即报错），PostgreSQL 方言、`CREATE TABLE IF NOT EXISTS` 风格、可重复执行；目录里的 `.sql` 按文件名顺序执行。目录可用 `BasicApp:Schema:Directory` 改（相对路径按程序目录解析） |
+| 基线 | 最低的版本目录：`Schema/6.0.0/0001-baseline.sql`，由 `SchemaBaselineTests` 按 InitTables 建出的结构生成，包含应用实体与框架 Provider 的表（`tenant_record`、`permission_grant_record`、`audit_record`、`message_translation`、`outbox_message`、调度五张表、工作流九张表） |
+| 台账 | 每个库自己的 `sys_version`（结构版本、应用版本、是否升级中、升级节点与开始时间）与 `sys_migration_history`（每个脚本的执行记录：版本、脚本、节点、成败、耗时、错误） |
+| 执行器 | Runtime 的 `SchemaUpgrader`，租户独立库由 `TenantSchemas` 升级 |
 
-两处在引擎返回失败时都抛出「数据库升级失败，已中断启动」，应用不会带着半套表结构对外服务。不希望应用启动时改库，就把 `EnableAutoCheckOnStartup` 设为 `false`，由发布流程先执行脚本再启动应用。
+### 执行顺序
+
+1. 台账两张表先按实体建好；
+2. 经台账行的条件更新抢升级锁（时间按库的 `now()`，各节点时钟不必对齐）；锁过了 `BasicApp:Schema:LockExpiryMinutes`（缺省 30 分钟）即视为持锁节点已退出，别的节点可以接手；等别的节点升级最多 `LockWaitMinutes`（缺省 10 分钟），等不到即升级失败；
+3. 新库从基线建起，之后每个版本一个目录，只执行比台账新的；每个脚本一个事务，成功与失败都记进升级记录，失败即停；库的结构版本比应用带的脚本还新即 `RUNTIME_VALIDATION_004`（不能用旧版本的应用连新库）；
+4. 平台库升完后，在同一把锁里逐个升级已就绪的租户独立库：只跑 `Schema/<版本>/tenant/*.sql`，台账在各自的库里，停用的租户也升；没有租户脚本的版本只推进台账。
+
+升级期间，已在运行的其他节点每 10 秒读一次台账，看到有节点持着没过期的锁即进入维护模式：除 `/health` 与 `/.well-known/` 外一律 503（`RUNTIME_UNAVAILABLE_003`，带 `Retry-After`）。
+
+只支持 PostgreSQL：别的库（测试用的 SQLite）跳过脚本，由 InitTables 建表。
+
+### 执行时机
+
+| 方式 | 说明 |
+| --- | --- |
+| 启动时 | `BasicApp:Schema:AutoUpgrade`（缺省 `true`）：开始监听之前执行，升完前这个节点不接请求；失败即以日志 `Startup aborted: schema upgrade failed` 中断启动 |
+| 命令 | `XiHan.BasicApp.Host schema upgrade`：不启动应用（Feature 一启动就要读写自己的表，新库上升级要排在它们之前），执行后以 JSON 输出报告（`from`、`to`、`applied`），失败即非零退出；关掉 `AutoUpgrade` 时由运维先跑它再启动 |
+
+```bash
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
+```
+
+新库按「`schema upgrade`（或带 `AutoUpgrade` 启动一次）→ `seed [--only <名,...>] [--list]`」初始化，见[部署](../deployment#首次初始化)。脚本由执行器按台账执行，不要手工对库跑。
+
+### 租户独立库
+
+`tenants.initialize-database` 在租户的分片上建库、只建租户库实体的表（按当前实体建即是最新结构），并在该库的台账登记当前结构版本；之后随平台的升级只跑 `tenant/` 下的脚本。见[多租户 SaaS](./multi-tenancy#开通三步)。
+
+## 写升级脚本
+
+改了实体（加表、加列、改长度）时：
+
+1. 首个正式版发布之前，直接重生成基线：设 `XIHAN_TEST_POSTGRES`（服务器连接串，不带库名）与 `XIHAN_UPDATE_SCHEMA_BASELINE=1` 跑 `SchemaBaselineTests.Baseline_BuildsTheSameTablesAsInitTables_AndRunsOnce`，测试自建临时库、按 InitTables 写回 `0001-baseline.sql`，再校验基线建出的库与 InitTables 一致；只提交基线里属于本次改动的变化。
+2. 正式版发布之后，每个版本一个新目录（`Schema/<新版本>/`），新增脚本、文件名带序号：
+   - 写成可重复执行（`CREATE TABLE IF NOT EXISTS`、`ADD COLUMN IF NOT EXISTS` …），只用 PostgreSQL 方言；
+   - 影响租户库实体的，另在 `Schema/<新版本>/tenant/` 写一份。
+3. 开发库由 InitTables 自动对齐，但正式环境只执行脚本，两者必须一致，`SchemaBaselineTests` 守着基线与实体的一致性。
+
+::: tip 给已有行的表加列
+开发库的 InitTables 只能给已有行的表加可空列，或数值 / 枚举 / 布尔 / `Guid` 这类能按 CLR 缺省值回填的非可空列；非可空的字符串与日期时间列在实体里声明成可空，或者重建开发库。
 :::
 
-## 代码落点
-
-| 职责 | 位置 / 类型 |
-| --- | --- |
-| 框架模块 | `XiHanBasicAppCoreModule` 依赖 `XiHanUpgradeModule` |
-| 版本与台账存储 | `SaasUpgradeVersionStore` |
-| 数据库租约锁 | `SaasUpgradeLockProvider` |
-| 多租户列表 | `SaasUpgradeTenantProvider` |
-| SQL 执行 | `SaasUpgradeMigrationExecutor` |
-| 初始化升级段 | `SaasSchemaUpgrader`（`IDbSchemaUpgrader`：登记新库基线，按开关执行引擎） |
-| 维护模式 | `BasicAppUpgradeMaintenanceModeManager` + `MaintenanceModeMiddleware`（经 `MaintenanceModeStartupFilter` 挂在请求管线最前，认证与租户解析之前就拦下） |
-| 脚本目录 | `backend/src/main/XiHan.BasicApp.WebHost/UpdateScripts` |
-| 版本页面 | `/setting/version` |
-| 升级记录页面 | `/log/migration` |
-
-BasicApp 在 `AddSaasDomainServices()` 中注册四个数据库适配器，使单服务解析优先使用业务实现：版本与台账写入业务库，SQL 由当前租户上下文解析出的 SqlSugar 客户端执行。
-
-## 全新数据库与存量数据库
-
-两条路径职责不同：
-
-| 场景 | 机制 | 负责内容 |
-| --- | --- | --- |
-| 全新数据库 | SqlSugar CodeFirst + Seeder | 建库、建表、基础数据（演示数据按开关） |
-| 存量数据库 | Upgrade + `UpdateScripts` | 增删列、索引变化、数据修复与版本推进 |
-
-`DbInitializer` 对已存在的表不会自动补列。实体结构变更如果只改 C#、不写前向 SQL，存量库会在查询时出现 `column does not exist` 一类错误。
-
-## 脚本约定
-
-目录结构是**一个版本一个子目录**（框架的 `FileSystemUpgradeScriptProvider` 只扫子目录），当前形如：
-
-```text
-UpdateScripts/
-├── 3.10.0/3.10.0.sql
-├── 3.10.1/3.10.1.sql
-├── …
-├── 5.4.0/
-│   ├── 5.4.0-page-codes.sql
-│   └── 5.4.0.sql
-├── 5.6.0/5.6.0.sql
-└── README.md
-```
-
-规则：
-
-1. 目录名即版本号，如 `UpdateScripts/5.6.1/5.6.1.sql`。只有高于库中 `DbVersion` 的版本会执行，与程序版本 `backend/props/version.props` 无关。
-2. 当前脚本使用 **PostgreSQL 方言**；文档中的 MySQL / MariaDB 支持主要指 ORM 与首次 CodeFirst，不代表现有升级脚本可直接跨库运行。引擎不区分方言，会把脚本原样交给当前库执行：非 PostgreSQL 的存量库开着 `EnableAutoCheckOnStartup` 升级时，`DO $$ … $$` 这类 PostgreSQL 专有语法会执行失败并中断启动，需要自备对应方言的脚本，或关掉自动升级另行处理。
-3. PostgreSQL 标识符使用小写且不加引号，匹配 SqlSugar 实际创建的表列名。
-4. 尽量用 `IF EXISTS` / `IF NOT EXISTS` 写成可重试脚本。
-5. 一个版本内若存在多个脚本，引擎按脚本名排序；版本之间按语义版本升序执行。
-6. 先在生产数据副本验证脚本、备份与回滚方案，再发布应用。
-
-示例：
-
-```sql
--- 5.6.1/5.6.1.sql
-ALTER TABLE sys_example
-    ADD COLUMN IF NOT EXISTS remark varchar(500);
-
-CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
-    ON sys_example (tenant_id);
-```
-
-## 引擎执行流程
-
-启动时的两个执行点调用的是同一台 `UpgradeEngine`，它对每个目标数据库执行：
-
-```text
-解析应用版本与脚本
-  → 读取/创建 SysVersion
-  → 比较 DbVersion 与最新脚本版本
-  → 获取数据库租约锁
-  → 标记 IsUpgrading
-  → 进入维护模式
-  → 按版本和脚本名执行未成功记录过的脚本
-  → 写 SysMigrationHistory 并推进 DbVersion
-  → 更新 AppVersion
-  → 退出维护模式并释放锁
-```
-
-`HasMigrationHistoryAsync(version, scriptName)` 只跳过已有**成功**记录的脚本；失败记录不会阻止下一次重试。
-
-### 多租户
-
-`EnableMultiTenantIsolation=true` 时，目标顺序是：
-
-1. 平台库；
-2. `IsolationMode=Database` 且 `ConfigStatus=Configured` 的租户独立库。
-
-字段隔离租户与平台共库，不重复执行。每个独立库都有自己的 `SysVersion` 与 `SysMigrationHistory`，数据库版本可以独立追踪。
-
-新建的库不补跑历史脚本：本次启动从零建出全部实体表的平台库（`SaasSchemaUpgrader` 按 `DbSchemaUpgradeContext.IsFresh` 判定）与 `InitializeDatabase` 新建的独立库，建好即通过 `IUpgradeEngine.BaselineAsync` 登记为最新脚本版本。独立库里只有租户库实体的表，脚本改平台库表（`[PlatformDataSource]` 实体）的语句要先判表存在，见 `UpdateScripts/README.md`。
-
-### 租约锁
-
-`SaasUpgradeLockProvider` 通过条件更新 `SysVersion.IsUpgrading` 抢占执行权，并用 `UpgradeStartTime + LockExpirySeconds` 回收崩溃节点遗留的锁。它不是 Redis 锁，也不是 PostgreSQL 会话级建议锁。
-
-`PrimaryNodeName` 非空时，只有节点名完全匹配的实例会执行；留空时所有节点均可竞争数据库租约。`NodeName` 留空则由机器名与应用实例 ID 组合生成。
-
-非主节点、以及没抢到租约的节点**不会等待**：引擎直接返回「等待升级 / 锁已被占用」，这不算失败，该节点照常完成启动。多副本同时发布时，要靠发布编排保证升级节点完成之前其它副本不接流量。
-
-### 维护模式
-
-引擎进入维护模式后，本节点的大部分请求返回：
-
-```json
-{
-  "code": 503,
-  "message": "系统正在升级维护，请稍后重试。"
-}
-```
-
-响应带 `Retry-After: 30`。`/health` 与 `/.well-known/` 被放行，保证编排探针和 OIDC 发现/JWKS 可继续访问。
-
-::: warning 维护状态只在当前进程内生效
-`MaintenanceModeState` 是进程内单例。多副本部署时，执行迁移的节点进入维护模式，不会自动让其它节点一起停流。若迁移与旧版本不兼容，应在网关或发布编排层统一摘流，不能只依赖该中间件。
+::: tip 新的唯一索引建不出来
+实体或框架的表多了唯一索引时，开发库里已有重复数据会让 InitTables 建不出索引，宿主启动即失败。开发库重建后重新 `seed`，或按报错的表去掉重复行再启动。
 :::
 
-## 执行方式怎么选
+## 版本与升级记录
 
-当前默认是第一种；要换成别的方式，先关掉 `EnableAutoCheckOnStartup`：
+Maintenance 包提供只读的管理面（平台侧，页面在「系统管理 › 系统服务」下）：
 
-| 方式 | 适用场景 | 注意 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| 启动时自动执行（当前默认，`EnableAutoCheckOnStartup=true`） | 单体或单副本先行的发布 | 失败即中断启动；多副本时非主节点和抢不到租约的节点不等待，需编排层控制放流 |
-| 发布流水线独立迁移步骤（`EnableAutoCheckOnStartup=false`） | 多副本生产 | 迁移成功后再放应用流量，边界最清晰；仓库没有现成的独立迁移命令，需要自建 |
-| 管理端调用 `IUpgradeCoordinator.StartAsync()` | 人工触发 | BasicApp 没有接这个入口；协调器后台运行且只记日志，不能形成启动失败门禁 |
+| `versions.list` / `get` | `maintenance.versions.read` | 每个库一行（平台库为 `platform`，另加各独立库租户，按库名取）：应用版本、结构版本、是否升级中、升级节点；读不到的库带错误说明 |
+| `migrations.list` / `get` | `maintenance.migrations.read` | 脚本执行台账：版本、脚本、节点、成败、耗时 |
 
-不要在多个位置同时触发。无论选择哪种方式，都要保证只有一个可审计入口，并测试多节点竞争、脚本失败、进程中断和重复执行。
+## 下一步
 
-## 页面与权限
-
-- `/setting/version`：查看 `SysVersion`，只读；写端点已移除。
-- `/log/migration`：查看脚本版本、脚本名、成功状态、执行时间、节点与错误信息。
-- 两页读取都要求 `saas:version:read`；版本列表导出使用 `saas:version:export`。
-
-页面展示的是当前租户上下文解析到的数据库状态。排查独立租户库时要先确认当前租户，不能只看平台库记录。
-
-## 发布检查清单
-
-1. 抬高应用版本，并新增同版本或更低的必要 SQL 脚本。
-2. 确认脚本为 PostgreSQL 小写无引号标识符，且可安全重试。
-3. 在生产副本依次验证升级、重复执行和失败恢复。
-4. 备份平台库与全部数据库隔离租户库。
-5. 确认生产环境的 `EnableAutoCheckOnStartup`：缺省为 `true`，新版本启动即执行脚本；关掉时要在启动前由发布流程完成迁移。
-6. 多节点发布时确认 `NodeName` / `PrimaryNodeName`、租约时长与统一摘流方案。
-7. 升级后检查 `/setting/version`、`/log/migration`、应用日志与关键业务查询。
-
-## 相关页面
-
-- [数据库配置](./database)：CodeFirst、连接与存量结构变更
-- [健康检查与可观测性](./health-observability)：维护窗口仍放行的 `/health`
-- [配置参考](../configuration#xihan-upgrade)：`XiHan:Upgrade` 字段
-- [部署](../deployment)：发布、进程守护与生产配置
-- [Framework 升级与迁移](https://framework.docs.xihanfun.com/guide/upgrade)：引擎抽象与通用流程
+- [数据库配置](./database) · [部署](../deployment) · [健康与可观测性](./health-observability)

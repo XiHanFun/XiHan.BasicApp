@@ -1,0 +1,1 @@
+import{_t as e,it as t,n,rt as r}from"./chunks/framework.uM88Qy9F.js";var i=JSON.parse(`{"title":"设计取舍","description":"","frontmatter":{},"headers":[],"relativePath":"why.md","filePath":"why.md","lastUpdated":1794049926000}`),a={name:`why.md`};function o(n,i,a,o,s,c){return e(),r(`div`,null,[...i[0]||=[t("",19)]])}var s=n(a,[[`render`,o]]);export{i as __pageData,s as default};

@@ -2,90 +2,104 @@
 
 # 系统概述
 
-XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)。它把中后台系统里"每个项目都要重做一遍"的部分——身份、权限、租户、审计、代码生成、实时通信——一次性做好，让你专注在真正的业务上。
+本页说明部署形态、分层、请求路径与技术栈，适用于需要建立全局认识的开发者与架构评审者。
 
-## 定位
+## 部署形态
 
-- **面向生产的中后台起点**：提供 RBAC + 数据范围 + 字段脱敏、多租户与审计等基础能力，上线前仍需完成安全配置、容量验证与业务适配
-- **全栈实践参考**：一套规范的 .NET + Vue 前后端分离工程，从契约到 UI 数据流都可借鉴
-- **框架用法样板**：XiHan.Framework 各能力在真实业务里怎么用，这里有活的例子
+单体部署、按能力包模块化：一个宿主进程（`XiHan.BasicApp.Host`）装配全部能力包，对外提供 HTTP API、内部 gRPC、MCP 与 SignalR Hub；前端是独立部署的单页应用。多租户、权限与审计贯穿所有包，不是某个模块的附属功能。
 
-## 架构风格
+## 分层
 
-系统采用**前后端分离**：
+宿主与框架按环层组织，外层依赖内层：
 
-- **后端**遵循 DDD 分层与 CQRS，应用服务经**动态 API** 直接暴露为 REST 接口——不写 Controller，接口即服务方法
-- **前端**使用 Vue + TypeScript + XiHan.UI，列表页由 **Schema 驱动**，搜索/表格/导出按配置生成，并对权限、租户、个人偏好三重感知
+```text
+Ring 6  XiHan.BasicApp.Host             装配：Full Profile + 显式 Provider + 能力包；普通端点（文件、OAuth、Hub、Webhook）
+        XiHan.BasicApp.<能力包>          Tier 0–3
+Ring 5  Protocols.Http / Grpc / Mcp      一份操作登记，三种协议
+Ring 4  Hosting.AspNetCore + Hosting.CommandLine（seed / schema upgrade / operations 等命令）
+Ring 3  Persistence.SqlSugar、Security.Jwt、MultiTenancy.Database、Security.Database、
+        Auditing.Database、Scheduling.Database、Workflow.Database、Localization.Database …
+Ring 1  Kernel（操作、管道、Result / Error、消息目录）    Ring 0  Primitives
+```
 
-详见 [系统架构](./backend/introduction)。
+能力包分四层，只能向下依赖、同层不互相引用；跨包协作经 `Contracts` 里的接口（如 `IWorkbenchWidgetProvider`、`ITenantQuota`、`IRealtimePush`）与消息主题：
 
-## 能力全景
+```text
+Tier 0 基座       Contracts → Runtime
+Tier 1 身份租户    Identity → Tenancy → Organization → Access
+Tier 2 平台能力    Settings | Notification | Files | Auditing | Maintenance | OpenPlatform | Realtime
+Tier 3 可选模块    Workbench | Workflow | Printing | CodeGeneration | Chat | AI
+Host              XiHan.BasicApp.Host
+```
 
-| 领域 | 关键能力 |
-| --- | --- |
-| [身份与认证](./backend/authentication) | 用户/角色/菜单；JWT 双令牌；账号密码、邮箱/短信验证码、OAuth2（GitHub/Gitee/Google/QQ）、2FA |
-| [权限](./backend/permission) | RBAC；权限码冒号分段（Saas 三段如 `saas:user:read`，可选模块两段如 `workflow:execute`）；数据范围（目前接入用户列表）；字段级脱敏；ABAC 权限条件按请求求值，可盘点、试算；[访问策略](./backend/access-policy)按 IP、地区、时段等放行或拒绝请求，登录失败自动封禁 |
-| [组织架构](./backend/organization) | 部门树 + 闭包表、岗位字典、用户多部门归属（数据范围的底座） |
-| [多租户](./backend/multi-tenancy) | 字段级隔离，邮箱全局唯一登录，租户版本（Edition）权限白名单门控 |
-| [消息中心](./backend/messaging) | 五类消息 + 优先级 + 强制阅读；模板；四渠道扇出；SignalR 通知与在线聊天 |
-| [工作流](./backend/workflow) | 图执行引擎、17 个内置活动、人工任务（或签/会签/依次）、组织架构受理人规则、审批业务接入与审批中心、落库可恢复 |
-| [审批与约束](./backend/approval) | 审批中心（工作流承载）；约束规则（可维护八类，当前在授权写入时执行静态职责分离 SSD） |
-| [文件与存储](./backend/file) | 元数据与存储位置分离、多后端（本地/S3/OSS/COS/MinIO）、异步导出中心 |
-| [任务调度](./backend/scheduling) | Cron/间隔/一次性触发、并发控制、多租户上下文、按月分表日志 |
-| [系统设置](./backend/settings) | 菜单、字典、参数、业务编号、缓存、服务监控、版本、通道配置 |
-| [健康与可观测性](./backend/health-observability) | 数据库/Redis/Qdrant 健康检查，TraceId，OpenTelemetry 链路与指标导出 |
-| [升级与迁移](./backend/upgrade) | 前向 SQL、版本/迁移台账、租约锁、多租户升级与维护模式；执行入口状态说明 |
-| [开放能力](./backend/open-api) | OAuth2/OIDC 服务端、开放接口签名调用、个人 API 凭证 |
-| [审计日志](./backend/logging) | 访问/API/操作/异常/登录/实体变更等多类日志，落库前自动脱敏 |
-| [代码生成](./backend/code-generation) | 单表/树形/主从三模式，实体→DTO→API→前端页一键生成，Scriban 模板 |
-| [AI 能力](./backend/ai) | Provider 库化管理（热切换）、RAG 知识库（Qdrant）、Agent / MCP |
-| [前端体验](./frontend/introduction) | Schema 驱动列表、命令面板、多标签、消息中心、偏好中心、富文本、时区切换 |
+层级由 `XiHan.BasicApp.Architecture.Tests` 的 `TierDependencyTests` 守护。Tier 3 由 `BasicApp:Modules:<名>:Enabled` 开关，见[配置参考](./configuration#basicapp-modules)。
 
-完整清单见 [功能清单](./features)。
+## 请求路径
+
+```text
+浏览器 ──HTTP──> Kestrel ──> 转发头 / 安全响应头 / 跨域 / 维护模式 / 认证 / 开放接口原文缓冲 ──> UseXiHan()
+                                                                    │
+            内核管道：Ingress → Observe → Resilience → Authenticate → Tenant → Authorize
+                      → Validate → Idempotency → Transaction → Handle → Egress
+                                                                    │
+                                        [Operation] HandleAsync → Result<TResponse>
+                                                                    │
+            成功：200 / 201 + 响应 DTO        失败：application/problem+json（code、detail、traceId、errors）
+```
+
+各阶段里 BasicApp 贡献了哪些中间件（会话门禁、访问策略、权限条件、操作人、审计日志），见[请求生命周期](./backend/request-lifecycle)。
+
+## 能力包一览
+
+| 包 | Tier | 主要内容 |
+| --- | --- | --- |
+| `Contracts` | 0 | 实体基类与审计协议、分页 / 批量结果、权限描述、页面登记、跨包接口、消息主题、种子号段 |
+| `Runtime` | 0 | SqlSugar 回调、`TenantScopedQuery`、操作人、数据保护、表结构升级器、种子执行器、维护模式 |
+| `Identity` | 1 | 登录（密码、验证码、第三方、双因素）、令牌与会话、锁屏、用户管理、在线用户、个人中心、模仿登录、用户设置 |
+| `Tenancy` | 1 | 租户开通三步、独立库、套餐与配额、成员与所有权转移、我的订阅、切换租户 |
+| `Organization` | 1 | 部门（闭包表）、岗位、部门成员 |
+| `Access` | 1 | 角色与授权、Deny、继承、委托、数据范围、字段安全、权限条件、访问策略、约束规则、菜单 |
+| `Settings` | 2 | 参数配置、字典、业务编号 |
+| `Files` | 2 | 存储配置、文件与副本、秒传、分片上传、签名地址、导出中心、导入历史 |
+| `Notification` | 2 | 通知公告、收件箱、消息模板、邮件 / 短信、群机器人、Telegram 机器人 |
+| `Auditing` | 2 | 八类日志与链路追踪的查询面、日志写入队列、保留清理 |
+| `Maintenance` | 2 | 任务调度、缓存管理、服务监控、版本与升级记录 |
+| `OpenPlatform` | 2 | 签名开放接口、OAuth 2.0 / OIDC 服务端、OAuth 应用、我的应用、授权同意 |
+| `Realtime` | 2 | 通知 Hub、连接与在线状态、按受众推送 |
+| `Workbench` | 3 | 工作台小组件汇总（各包登记的指标、图表与列表） |
+| `Workflow` | 3 | 流程定义与实例、审批中心、审批业务接入 |
+| `Printing` | 3 | 打印模板（平台全局与租户）、按编码解析、打印数据源目录 |
+| `CodeGeneration` | 3 | 数据源、表结构导入、模板、代码生成、零代码只读运行时 |
+| `Chat` | 3 | 单聊、群聊、部门群与助手会话、聊天 Hub、聊天审计、保留清理 |
+| `AI` | 3 | AI 提供商、提示词、知识库、助手 |
 
 ## 技术栈
 
 ### 后端
 
-| 技术 | 说明 |
+| 项 | 选型 |
 | --- | --- |
-| .NET / C# | 运行时与语言 |
-| XiHan.Framework | 自研模块化应用框架 |
-| SqlSugar | ORM，支持 PostgreSQL / MySQL / MariaDB |
-| Redis | 分布式缓存与分布式锁 |
-| SignalR | 实时通信 |
-| Serilog | 结构化日志 |
-| Scalar | API 文档 |
+| 运行时 | .NET 10（`net10.0`，警告即错误、Nullable、代码风格在构建期执行） |
+| 框架 | XiHan.Framework（`Profiles.Full`，ProjectReference 锁定提交） |
+| 数据 | SqlSugar（框架 `Persistence.SqlSugar`），PostgreSQL 为缺省与 CI 口径 |
+| 认证 | 框架 `Security.Jwt` 校验 HS256；签发、刷新、会话由 Identity 负责 |
+| 实时 | ASP.NET Core SignalR（`/hubs/notification`、`/hubs/chat`） |
+| 邮件 / 模板 | MailKit、Scriban |
+| 接口文档 | 框架 OpenAPI 生成器 + Scalar |
+| 测试 | xUnit（Microsoft.Testing.Platform）、TestServer + SQLite / PostgreSQL |
 
 ### 前端
 
-| 技术 | 说明 |
+| 项 | 选型 |
 | --- | --- |
-| Vue | UI 框架 |
-| TypeScript | 类型系统 |
-| Vite | 构建工具 |
-| XiHan.UI | 组件库 |
-| Pinia | 状态管理 |
-| Tailwind CSS | 原子化 CSS |
-| Tiptap | 富文本编辑器 |
-| vue-i18n | 国际化 |
-
-## 文档怎么读
-
-按角色挑一条线走：
-
-| 你是 | 推荐路线 |
-| --- | --- |
-| **第一次接触** | [开发环境](./dev-environment) → [快速开始](./getting-started) → [目录结构与代码地图](./project-structure) |
-| **后端开发** | [架构总览](./backend/introduction) → [后端架构](./backend/introduction) → [请求生命周期](./backend/request-lifecycle) → [数据模型](./backend/data-model) → [二次开发](./backend/development) |
-| **前端开发** | [前端架构](./frontend/introduction) → [前端开发指南](./frontend/introduction) → [Schema 驱动页面](./frontend/schema-page) |
-| **对接接口** | [接口对接指南](./api-guide)（含**怎么获取 token**） |
-| **运维部署** | [配置参考](./configuration) → [部署](./deployment) |
-| **排查问题** | [常见问题](./faq) → [请求生命周期](./backend/request-lifecycle#按现象定位) |
+| 基础 | Vue、Vite、TypeScript、Pinia、Vue Router（缺省 hash 模式）、vue-i18n |
+| UI | XiHan.UI（`@xihan-ui/vue`、`headless`、`core`、`styles`、`tokens`、`icons` 等）、Tailwind CSS |
+| 契约 | `scripts/gen-contracts.mjs` 生成 `packages/contracts/*` |
+| 实时 | `@microsoft/signalr` |
+| 时间 | dayjs（utc + timezone，按用户时区显示） |
+| 工具链 | oxlint + eslint、Vitest + jsdom；Node.js 24+、pnpm 11+，没有锁文件 |
 
 ## 下一步
 
-- [开发环境](./dev-environment)：用 Docker 命令行准备数据库与 Redis 等本地依赖
-- [快速开始](./getting-started)：在本地把系统跑起来
-- [架构总览](./backend/introduction)：全景与五个架构分册的索引
-- [权限模型](./backend/permission)：RBAC、数据范围、字段脱敏与多租户隔离
+- 先按[快速开始](./getting-started)在本机运行，再读[目录结构](./project-structure)。
+- 后端从[架构总览](./backend/introduction)与[开发流程](./backend/development)开始，前端从[框架简介](./frontend/introduction)开始。

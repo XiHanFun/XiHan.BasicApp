@@ -1,238 +1,186 @@
 来源：https://basicapp.docs.xihanfun.com/backend/authentication
 
-# 身份与认证
+# 统一认证
 
-XiHan.BasicApp 的身份体系围绕**统一身份**设计：一个自然人对应一个 `SysUser` 账号，用**邮箱**作为全平台唯一登录标识；同一账号可通过成员关系在多个租户里办事。本页讲清楚**主体模型**（用户/角色/部门/菜单/岗位）、**登录方式**、**令牌与会话**、**密码安全**、**登录落点**与**个人中心**。
+本页说明账号模型、令牌与会话、登录方式、锁屏与模仿登录，适用于后端开发者与接口对接方。
 
-> 权限如何判定（权限码、数据范围、字段脱敏、ABAC）见 [权限模型](./permission)；租户隔离、成员关系、版本门控见 [多租户](./multi-tenancy)。本页只做交叉链接，不重复。
+分工：框架只校验令牌（`Security.Jwt`，HS256）与判定策略；签发、刷新、会话、双因素、第三方登录、模仿与锁屏都是 Identity 包的操作与中间件。认证相关的配置都在 `BasicApp:Auth`，见[配置参考](../configuration)。
 
-## 主体模型
+## 账号模型
 
-RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `snake_case` 表、软删、带 `TenantId`：
+账号是平台库实体 `SysUser`，不实现 `IMultiTenant`，以 `HomeTenantId` 记注册地租户（平台账号为 `platform`）。同一个登录名可以在不同租户各有一个账号；登录时填的 `tenant` 即注册地租户 ID，平台账号不填。账号还可以是别的租户的成员（`SysTenantMember`，含运维支持成员），登录后经切换租户进入。
 
-| 实体 | 表 | 职责 |
-| --- | --- | --- |
-| `SysUser` | `Sys_User` | 身份主体（Subject）：用户名/邮箱/手机/资料。`Email` 全平台唯一（`UX_Em`），是登录标识 |
-| `SysUserSecurity` | `Sys_User_Security` | 与 `SysUser` 一对一的**安全扩展**：密码哈希、锁定、MFA、失败计数、多端策略 |
-| `SysRole` | `Sys_Role` | 角色：一组权限的分配单元，支持层级继承与数据范围 |
-| `SysDepartment` | `Sys_Department` | 组织架构树节点（单父严格树），是数据范围 `DepartmentOnly` / `DepartmentAndChildren` 的基础 |
-| `SysDepartmentHierarchy` | `Sys_Department_Hierarchy` | 部门层级**闭包表**：预计算祖先-后代对，支持 O(1) 展开 |
-| `SysMenu` | `Sys_Menu` | 纯 UI 结构（导航/路由/展示），通过 `PermissionId` 绑定一个权限点 |
-| `SysPosition` | `Sys_Position` | 扁平岗位字典（职务/职位），供人员任用引用 |
-| `SysExternalLogin` | `Sys_External_Login` | 本地用户与第三方身份（github/google/qq…）的绑定关系 |
-| `SysUserSession` | `Sys_User_Session` | 会话中心：登录状态、多端控制、设备信息、撤销 |
-| `SysLoginLog` | `Sys_Login_Log_{按月分表}` | 登录/认证审计（含成功与失败），按月分表 |
+| 状态 | 含义 |
+| --- | --- |
+| `Active` | 正常 |
+| `Locked` | 管理员锁定（`users.lock`），由 `users.unlock` 解除；登录返回 `IDENTITY_DENIED_004` |
+| `Disabled` | 管理员停用或本人停用，所有登录方式返回 `IDENTITY_DENIED_018` |
 
-关系（关联表）：
+连续登录失败另有锁定期（`SysUserSecurity.LockoutEndAt`），不改账号状态，到期自动解除，期间登录返回 `IDENTITY_DENIED_004` 并带剩余秒数。
 
-- 用户 ↔ 角色：`SysUserRole`（`Sys_User_Role`），多对多、支持带生效期的临时授权（`EffectiveTime`/`ExpirationTime`）。
-- 用户 ↔ 部门：`SysUserDepartment`（`Sys_User_Department`），多部门归属，`IsMain` 标识主部门，可挂 `PositionId`（岗位）、工号、职级、入职日期。
-- 角色 ↔ 权限、角色继承、数据范围等归权限模型，见 [权限模型](./permission)。
+**系统内置账号**（`isSystemAccount`）：初始超级管理员与租户开通时的管理员。不能被停用、删除、锁定或由管理员重置密码，管理员也不能改它的邮箱与手机号；本人不能改用户名或关闭账号。一律返回 `IDENTITY_CONFLICT_014`。
 
-### 用户（SysUser）
+**本人关闭账号**：`profile.deactivate-account`（停用，管理员可以重新启用）与 `profile.delete-account`（注销，账号软删除）。都要当前密码，模仿会话不能做，租户所有者要先转移所有权（`IDENTITY_CONFLICT_011`），成功后吊销本人全部会话。
 
-一条重要语义澄清：`SysUser.TenantId` 是用户的**主账号归属租户**（注册地），**不等同于**"能进入哪个租户"——后者由多租户的成员关系（`SysTenantUser`）承载。因此：
-
-- `TenantId + UserName` 在主归属租户内唯一；`Email` **全平台唯一**（可空，有值必唯一）。
-- `Status`（启用/禁用）与 `IsActive`（是否激活，邮箱/手机验证）**正交**：未激活或被禁用都不可登录。
-- `IsSystemAccount=true` 的内置账号禁止改用户名、禁止软删。
-- 平台账号约定 `TenantId=0`（如超管），恒落平台运维态。
-- 成员在某个租户的数据范围可用成员关系上的 `DataScopeOverride` 覆盖角色（按租户各自设置，细节见权限模型）。
-
-敏感安全字段刻意拆到一对一的 `SysUserSecurity`（`Password`/`TwoFactorSecret`/`SecurityStamp` 均 `[JsonIgnore]`，不出接口），避免污染用户主表、便于单独脱敏与访问控制。
-
-### 部门与闭包表
-
-部门是严格单父树。为了高效回答"某部门的全部下级/祖先"（数据范围 `DepartmentAndChildren` 要用），系统用**闭包表** `SysDepartmentHierarchy` 把所有"祖先-后代对"预计算出来（含 `Depth=0` 的自环），并冗余 `Path`/`PathName` 便于面包屑。
-
-闭包表是"查询加速镜像"，不是独立业务数据——所有写入必须由 `SysDepartment` 变更触发，服务层在**增/删/移**部门时统一重建：
-
-```text
-新增部门 N 挂在父 P 下：
-  INSERT SELECT AncestorId, N, Depth+1 FROM 闭包 WHERE DescendantId = P
-  再补 (N, N, 0)
-移动子树：先删旧闭包，再按新父重建
-删除部门 N：DELETE WHERE DescendantId = N OR AncestorId = N
-```
-
-### 菜单
-
-`SysMenu` 只描述 UI 层级（目录/菜单/按钮/外链），**后端鉴权永远基于 Permission，不依赖菜单存在性**。菜单通过可空的 `PermissionId` 反向绑定一个权限点：空=纯展示菜单；有值=按该权限码门控可见性。若一个菜单需要多个权限，约定**建组合权限点**再绑定，而非引多对多。
-
-> 运行时的菜单/路由/组件路径/权限码/国际化键由后端 `PageRegistry` 作为单一事实源统一注册（见 [框架简介](./introduction)）；`SysMenu` 表是其落库形态。`TenantId=0` 为平台全局菜单，所有租户共享读取，租户可叠加私有菜单。
-
-## 登录方式
-
-登录入口是 `AuthAppService`（`[DynamicApi(RouteTemplate = "api/Auth")]`）。核心设计是**先登录后选租户**：登录页不选租户，统一在**平台态**（`TenantId=null`）完成身份认证，认证通过后再按成员关系决定落点（见下文"登录落点"）。
-
-前端先调 `GET /api/Auth/LoginConfig` 拿到 `LoginConfigDto`（`loginMethods` + `oAuthProviders`），据此决定展示哪些登录按钮——**支持的方式以该配置为准**。
-
-`loginMethods` 取自参数 `saas.auth.login` 的 `methods`，编码是 `password`（账号密码）、`phone`（手机号验证码）、`email`（邮箱验证码）、`qrcode`（扫码）。登录页的切换栏只列开放的方式，按这个固定顺序排；只开放一种时切换栏也照常显示（只有这一个入口）；停在没开放的方式上会换到第一个开放的入口。缺省只开放 `password`，要用别的方式先到参数配置里加上。
-
-::: warning 登录页的「扫码」入口只是占位
-登录页切换栏里的「扫码」（`/auth/qrcode-login`）在前端用固定种子画一张示意图案，后端没有对应的扫码登录接口、轮询或确认流程，扫了也登录不了。可用的扫码方式只有下文第三方登录里微信、企业微信、飞书、钉钉的 `QrCode` 模式，它跳到对方平台的授权页扫码。
-:::
-
-> 路由是方法名 `GetLoginConfigAsync` **剥离动词前缀 `Get` 并去掉 `Async`** 后的结果。全部认证端点的方法与 URL 对照表见 [接口对接指南](../api-guide#端点总表)。
-
-### 账号密码
-
-`POST /api/Auth/Login`（`LoginRequestDto`）。`Username` 传邮箱（全平台唯一定位）；平台账号也可用用户名。流程：
-
-1. 平台态定位账号 → `IAuthenticationDomainService.AuthenticatePasswordLoginAsync`：校验存在性、`IsActive`、密码哈希、账户锁定/失败计数，并判定是否需要二次验证。
-2. 同一域服务内的账号可用性校验：`Status` 是否启用、（带租户时）成员关系与生效/过期、密码是否过期。
-3. 若 `RequiresTwoFactor` → 返回 2FA 挑战（不签发令牌，见下）。
-4. 通过 → 决定落点租户 → 按[访问策略](./access-policy#求值时机)做登录时检查（被拒绝记登录结果 `AccessDenied`）→ 签发双令牌、落地会话、发布登录成功领域事件。
-
-失败会发布 `AuthLoginFailedDomainEvent`（落 `SysLoginLog`），并抛出友好错误。邮箱、手机号、第三方登录与切换租户同样做登录时检查。
-
-### 邮箱验证码
-
-两步，均匿名：
-
-1. `POST /api/Auth/EmailLoginCode`（`EmailLoginCodeRequestDto`）：邮箱+IP 频率限制（60s 窗口）→ 复用邮箱登录的账号可用性校验 → 下发验证码。
-2. `POST /api/Auth/EmailLogin`（`EmailLoginRequestDto`）：一次性消费验证码 → 校验账号 → 签发令牌并落点。
-
-验证码为 **6 位数字、有效期 10 分钟（600s）、一次性消费**（读取即销毁，无论成败），由框架 `IOneTimeCodeService` 存分布式缓存承载。开发环境会在结果里回显 `DebugCode` 便于联调，生产绝不回显。
-
-### 手机号验证码
-
-两步，均匿名，写法与邮箱验证码一致：
-
-1. `POST /api/Auth/PhoneLoginCode`（`PhoneLoginCodeRequestDto`）：手机号+IP 频率限制（60s 窗口）→ 复用手机号登录的账号可用性校验 → 经短信下发验证码。
-2. `POST /api/Auth/PhoneLogin`（`PhoneLoginRequestDto`）：一次性消费验证码 → 校验账号 → 签发令牌并落点。
-
-与邮箱验证码不同的几点：
-
-- `saas.auth.login` 的 `methods` 里没有 `phone` 时，两个接口都直接拒绝（「未开放手机号登录」），不只是登录页不显示入口。
-- 只认账号持有人**验证过**的手机号（`SysUserSecurity.PhoneVerified`）。手机号不要求唯一，管理员录入的号码也未必属于本人；同一手机号在多个账号上都验证过时不替用户选，提示改用账号密码登录。
-- 短信走短信配置里平台默认且启用的网关，用登录验证码短信模板（`auth-sms-login-code`），由发件箱异步发送。阿里云、腾讯云只按服务商模板发送，网关配置的模板映射（`TemplateMap`）里要有 `auth-sms-login-code` 到服务商模板码的映射。网关没配、停用或缺这条映射时，发码接口直接报错，不生成验证码，也不假装已发送。
-- 验证码规格（6 位、10 分钟、一次性消费）、开发环境回显 `DebugCode`、失败发布 `AuthLoginFailedDomainEvent` 都与邮箱验证码相同。
-
-### 第三方登录（OAuth2）
-
-内建支持 **GitHub / Google / Gitee / QQ / 微信 / 企业微信 / 飞书 / 钉钉**，由框架 `XiHan.Framework.Authentication.OAuth` 提供（八家处理器均为框架自研，不依赖第三方 provider 包），配置节 `XiHan:Authentication:OAuth`（`OAuthOptions`：`Enabled`/`FrontendCallbackUrl`/`Providers[]`）。
-
-::: warning 两份清单必须对齐
-**能不能登**由 `XiHan:Authentication:OAuth:Providers` 决定（它注册出 AuthenticationScheme）；
-**登录页画几个按钮**由参数 `saas.auth.login` 的 `oauthProviders`（存库）决定。
-两边的 `Name` / `name` 对不上就会点出一个不存在的方案，回跳 `error=challenge_failed`。
-:::
-
-微信、企业微信、飞书、钉钉各支持两种登录方式，由 `Mode` 选择（`QrCode` 默认 / `Account`）；同一家要同时开两种，就写两条配置：`Name` 不同、`Provider` 相同。仓库内 `appsettings.Development.json` 给的是四家的扫码配置，账号授权的写法见其中注释。几个易漏项：企业微信必须填 `AgentId`；钉钉的 `CorpId` 要配合 `Scopes` 里的 `corpid` 才拿得到用户选定的组织；飞书两种方式的授权、令牌、用户信息三个接口成套不同，只改 `AuthorizationEndpoint` 换不过去。
-
-OAuth 走**独立的 Web 端点**（不是动态 API），落在 `Infrastructure/OAuth/OAuthEndpoints.cs`：
-
-```text
-① 前端跳转：GET /api/OAuth/ExternalLogin?provider=github[&bindTicket=xxx]
-      端点校验 provider（绑定意图则一次性消费 bindTicket 得到 userId）
-      → ChallengeAsync(provider) → 302 到三方授权页
-② 用户在三方授权
-③ 三方回跳：GET /api/OAuth/Callback?code=...&state=...
-      端点 AuthenticateAsync(ExternalCookie) 读出三方 Claim：
-        NameIdentifier → providerKey、Email、Name → displayName、统一头像 Claim → avatar
-      → 调 IAuthAppService.ExternalLoginAsync(...)   （见下方"注意"）
-      → 302 回 FrontendCallbackUrl，成功时带 accessToken/refreshToken/expiresIn
-```
-
-回跳参数**一律拼在 URL 片段（`#` 之后）**，不进查询串：片段不会被浏览器发给服务端，因此不进 Web 服务器访问日志，也不随回调页上任何外部资源作为 Referer 外发——令牌走这条路回传才不会泄露。前端 `oauth-callback.vue` 先读 `route.query`（哈希路由下 vue-router 已解析），取不到再从 `location.hash` 解析（history 路由下参数就在那儿）。
-
-`ExternalLoginAsync` 被标 `[DynamicApi(IsEnabled = false)]`（不对外暴露），只由回调端点内部调用；且调用时用 `ProxyHelper.UnProxy` 取真实目标实例——因为匿名端点没有 UoW 中间件，走 Castle 代理会让拦截器急切开事务而死锁。
-
-登录/建号规则（`LoginByExternalAsync`）：
-
-- 按 `(Provider, ProviderKey, TenantId)` **精确**定位用户（唯一约束 `UX_Pr_PrKe_TeId`）。
-- 未绑定则**首登自动建号**：用户名 `{provider}_{随机hex}`、随机强密码、不分配角色；三方邮箱**仅在未被占用时**采用，否则用占位邮箱 `{username}@external.local`——**绝不按邮箱并入既有账号**（防冒用）。
-- `SysExternalLogin` 只存身份关联（Provider/ProviderKey/邮箱/头像），**不存三方 Access/Refresh Token**。
-
-**账号绑定**（把三方账号绑到已登录用户）：已登录用户先 `POST /api/Auth/OAuthBindTicket`（方法 `CreateOAuthBindTicketAsync`，动词前缀 `Create` 被剥离）拿一次性票据（`oauth:bind-ticket:{ticket}`，缓存 5 分钟），带 `bindTicket` 走同一发起端点；回调时以 `IsBind=true` 走 `BindExternalLoginAsync`，已被他人绑定则拒绝（`conflict`）。
-
-> 具体支持哪些 provider、scope、回调地址以仓库配置为准。
-
-### 两步验证（2FA / MFA）
-
-`SysUserSecurity.TwoFactorMethod` 是 `[Flags]` 枚举，可同时启用多种：
-
-| 方式 | 值 | 说明 |
-| --- | --- | --- |
-| `None` | 0 | 未启用 |
-| `Totp` | 1 | 认证器 App（Google/Microsoft Authenticator 等） |
-| `Email` | 2 | 邮箱验证码 |
-| `Phone` | 4 | 短信验证码（要求已绑定且已验证手机号，否则不对外公布） |
-
-当密码/邮箱登录判定 `RequiresTwoFactor`：
-
-1. 未提交验证码 → 返回 `LoginResponseDto { RequiresTwoFactor=true, AvailableTwoFactorMethods, TwoFactorMethod, CodeSent, TwoFactorTicket }`；对 email/phone 方式会**先下发验证码**（TOTP 由认证器本地生成，无需下发）。`TwoFactorTicket` 由 `ITwoFactorTicketService` 签发（分布式缓存、绑定用户主键与首段规范化后的登录名、10 分钟），代表「本次登录已通过图形验证码」：后续阶段带票即跳过图形验证码（图形码一次性消费，第二段起无法重校验），票据先于密码认证查存在性并比对签发时的登录名（去空白、不区分大小写），认证后再与认证用户主键比对；不存在 / 过期 / 登录名或用户不匹配一律抛「两步验证已过期，请重新登录。」，不匹配的票据同时作废，持自己合法票据的人也不能借免图形码去试探他人账号的密码；不带票的后续阶段仍照旧消费图形验证码。
-2. 提交验证码 → 按方式校验：`totp` 走 `IOtpService.VerifyTotpCode`；`email` 走一次性验证码消费；`phone` 走个人中心验证服务消费。校验失败发布失败事件并抛错。
-3. 通过 → 继续签发令牌，并作废本次的两步验证票据。
-
-TOTP 遵循 RFC 6238：HMAC-SHA1、Base32 密钥、6 位、30 秒步长、±1 窗口容差；provisioning URI 形如 `otpauth://totp/{issuer}:{account}?secret=...&period=30&digits=6`。用户在[个人中心](#个人中心)开启/关闭各方式。
+**密码**：PBKDF2-SHA256 散列；至少 `PasswordMinLength`（8）位、同时含字母与数字；不能与最近 `PasswordHistoryDepth`（3）个密码相同。
 
 ## 令牌与会话
 
-### JWT 双令牌
-
-登录成功签发 `LoginTokenDto`：**Access Token**（JWT，HMAC-SHA256 签名）+ **Refresh Token**（不透明随机串）。配置节 `XiHan:Authentication:Jwt`（`JwtOptions`），默认 Access 60 分钟、Refresh 7 天、时钟偏移容差 5 分钟（**以仓库配置为准**）。
-
-Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`SessionId`、`TenantId`（有则带）、`Email`/`Phone`/`Picture`、`DeviceFingerprint`、多个 `Role`，OAuth 应用代用户换来的令牌另带 `client_id`。**具体权限码不冻结进令牌**——只在超管时放一个通配 `*` 作快路径；其余权限一律由服务端**实时快照**判定，避免授予/回收后令牌失效不及时，也避免权限清单泄露（与 [权限模型](./permission) 的实时校验一致）。
-
-刷新：`POST /api/Auth/RefreshToken`（`RefreshTokenRequestDto` 带旧 AccessToken + RefreshToken）→ 校验后签发新令牌，并落一条 `TokenRefreshed` 审计。
-
-### 会话与多端登录
-
-每次登录写一条 `SysUserSession`（会话中心）：记录 `UserSessionId`（业务会话号）、`CurrentAccessTokenJti`（只存 JTI 不存完整 Token，便于黑名单/撤销）、设备类型/名称/指纹、浏览器/OS/IP/位置、登录与最后活动时间、`ExpirationTime`。会话状态 `SessionStatus`：
-
-| 状态 | 值 | 含义 |
-| --- | --- | --- |
-| `Active` | 0 | 活跃（鉴权"会话有效"= `Active` 且未软删） |
-| `Offline` | 1 | 离线（未被强制撤销，可按策略重新激活） |
-| `Revoked` | 2 | 登出/强制下线/安全撤销 |
-| `Expired` | 3 | 超过绝对过期时间 |
-
-多端策略由 `SysUserSecurity` 控制：`AllowMultiLogin`（是否允许多端，默认 true）与 `MaxLoginDevices`（最大设备数，0=不限）。切换租户复用**同一条会话记录**：会话行的 `TenantId` 迁移到目标上下文（平台态戳 `0`），不新建会话。
-
-登出 `POST /api/Auth/Logout`：按 `userId + SessionId` 撤销会话、吊销关联令牌，并发布登出领域事件。用户自助的"我的设备/会话"管理、踢其他端，见[个人中心](#个人中心)；管理员侧撤销走 `UserSessionAppService`（需 `SaasPermissionCodes.UserSession.Revoke` 权限）。删除用户时会吊销其全部会话并实时 `ForceLogout` 踢出在线连接。
-
-## 密码安全
-
-- **哈希算法：PBKDF2**（框架 `XiHan.Framework.Security.Password.PasswordHasher`，配置节 `XiHan:Authentication:PasswordHasher`）。默认 **HMAC-SHA256、迭代 600,000 次（OWASP 建议）、32 字节随机盐、32 字节输出**；存储格式为自描述串 `version:iterations:algorithm:base64(salt):base64(hash)`，校验用定长比较（抗时序攻击），参数变更时 `NeedsRehash` 支持透明升级。密码**严禁明文落库**（`SysUserSecurity.Password`，`[JsonIgnore]`）。
-
-- **验证码一次性消费**：邮箱登录码、2FA 邮箱/短信码、找回密码链接均**用后即焚**——读取即从缓存删除，防重放/爆破。邮箱码 6 位、10 分钟；找回密码令牌 30 分钟。
-- **找回密码**（匿名，防用户枚举）：`POST /api/Auth/PasswordResetRequest` 无论邮箱是否存在都返回"已受理"；存在则签发一次性重置令牌（`auth:pwd-reset:{token}`，缓存 30 分钟，仅记录 token→userId，**不立即改密**）并邮件带链接。用户点链接后 `POST /api/Auth/ConsumePasswordResetToken` 设新密码（8-128 位），成功即失效令牌并落 `PasswordReset` 审计。
-- **锁定与风控**：`SysUserSecurity` 记 `FailedLoginAttempts`/`LockoutEndTime` 等；`SysLoginLog` 记录每次尝试（含 `IsRiskLogin` 异地/新设备标记），按月分表，供暴力破解检测与合规审计。
-- **自动封禁**：同一 IP 跨账号登录失败过多可整体封禁一段时间（参数 `saas.security.login-auto-ban`，缺省关），见[访问策略 · 登录失败自动封禁](./access-policy#登录失败自动封禁)。
-- **注册**（`POST /api/Auth/Register`，匿名）：邮箱必填（全平台唯一登录标识），统一落默认注册租户、成为普通成员、**不分配角色**（权限由管理员后续授权）；欢迎邮件尽力而为、失败不阻断。
-
-## 登录落点
-
-"先登录后选租户"下，认证通过后由 `ResolveLoginLandingAsync` 决定进入哪里（进入后可随时 `POST /api/Auth/SwitchTenant` 切换）：
-
-| 归属情况 | 落点 |
+| 项 | 说明 |
 | --- | --- |
-| 平台账号（`TenantId=0`）或超管角色 | **平台态**（控制中心：管理租户/用户/系统，或选租户进入） |
-| 恰好一个可用租户成员 | **直接进入该租户**（免选择） |
-| 零个或多个可用租户 | **平台态**（前端展示选择/原因） |
+| 访问令牌 | HS256 JWT，缺省 120 分钟（`AccessTokenMinutes`）；声明 `sub` 用户 ID、`tenant` 当前租户（平台没有）、`sid` 会话 ID、`role` 本会话激活的角色、模仿时 `act` |
+| 刷新令牌 | 32 字节随机数，库里只存 SHA-256 散列，缺省 7 天（`RefreshTokenDays`）；每次刷新轮换、旧的立即失效，并顺延会话有效期；模仿会话的到期时间不顺延 |
+| 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型、IP 与登录地点（IP 归属地） |
+| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期或用户不正常即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
 
-签发的令牌是否带 `TenantId` claim 随落点而定（平台态不带）。`GetUserInfo` 返回的 `UserInfoDto` 带 `IsPlatform`/`CanAccessPlatform` 供前端判断。切换到具体租户时会校验成员身份（超管可进任意租户）并在目标上下文重建授权快照。落点/切换与多租户强相关，成员关系、平台运维态、版本门控详见 [多租户](./multi-tenancy)。
+吊销会话的场景：注销、改密、管理员重置密码、找回密码、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
 
-## 个人中心
+## 登录方式
 
-`ProfileAppService`（`[Authorize]`，按动态 API 约定推导出路由前缀 `api/Profile`）覆盖当前登录用户的自助管理，拆成多个 partial：
+开放哪些方式由系统参数 `identity.login-methods` 决定（逗号分隔的 `password`、`email`、`phone`，只认平台的）：没建即只有密码登录，密码登录总是开着；写了认不出的方式名即 `IDENTITY_VALIDATION_021`。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
-- **资料**：`GetProfile` / `UpdateProfile`（昵称、头像、性别、时区、语言等）；改用户名 `ChangeUserName`（内置账号禁改，改后通知）。
-- **安全 · 密码**：`ChangePassword`（域服务校验旧密码，改后落 `PasswordChanged` 审计并通知）。
-- **安全 · 2FA**：TOTP 用 `Setup2FA`（返回 `SharedKey` + `AuthenticatorUri` 供扫码）→ `Enable2FA`（提交验证码激活）；`Disable2FA` 关闭；email/phone 方式用 `Send2FASetupCode` 先下发再 `Enable2FA`。绑定/解绑落 `MfaBound`/`MfaUnbound` 审计。
-- **联系方式换绑/验证**：换邮箱/手机走"发码→确认"两步（`ProfileVerificationPurpose` 区分用途：`ChangeEmail`/`ChangePhone`/`VerifyEmail`/`VerifyPhone`/`TwoFactorEmail`/`TwoFactorPhone`），需密码确认、校验唯一性。
-- **会话/设备**：`GetSessions` 列出本人在线会话（标出当前会话）；`RevokeSession` 撤销指定设备；`RevokeOtherSessions` 一键踢掉其他所有端；`GetLoginLogs` 查本人登录历史。
-- **第三方账号**：`GetLinkedAccounts` 列出已绑定的三方账号；`UnlinkAccount` 解绑（解绑前防止失去唯一登录方式）。
-- **开发者 · API 凭证**（`SysUserApiCredential`）：`GetApiCredentials` 列出本人凭证；`CreateApiCredential`/`RotateApiCredentialSecret` 生成/滚动 `AppKey`（`ak_` 前缀，全局唯一）+ `AppSecret`（`sk_` 前缀，与账号密码同栈 `IPasswordHasher` 只存哈希，明文仅创建/滚动时返回一次）；`UpdateApiCredentialStatus`/`DeleteApiCredential` 启停/删除；每用户最多 5 个凭证，供服务端签名调用 OpenAPI，变更均触发安全通知。
-- **偏好**：通知偏好 `GetNotificationPreference`/`UpdateNotificationPreference`（渠道 × 类型开关）；UI 偏好走 `UserSettingAppService` 按场景（Scene）+ key 存取，保存后经 SignalR 广播实现**多端同步**（服务端不解释 value，仅作跨端状态载体）。
-- **账号注销**：`DeactivateAccount`（停用）/`DeleteAccount`（软删，`[HttpPost]` 显式锁定），均需密码确认并撤销全部会话。
+### 密码登录 `auth.login`
 
-## 相关页面
+依次过三关：
 
-- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 条件与约束规则、实时校验。
-- [多租户](./multi-tenancy)：成员关系、平台运维态、租户切换、版本门控。
-- [框架 · 认证模块](https://framework.docs.xihanfun.com/packages/authentication)：JWT / OAuth2 / TOTP / PBKDF2 的底层实现。
-- [请求生命周期](./request-lifecycle)：认证/租户解析/会话闸门/授权在请求管道中的位置。
-- [框架简介](./introduction)：后端驱动菜单的单一事实源 `PageRegistry`。
+1. 登录节流（`LoginThrottle`）：固定窗口只数失败，同一账号同一地址每个窗口 `LoginThrottleAccountLimit`（5）次、同一地址跨账号 `LoginThrottleIpLimit`（30）次，窗口 `LoginThrottleWindowSeconds`（60 秒）；超限 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`。
+2. 图形验证码（`CaptchaEnabled`，缺省开）：`auth.captcha` 发一张 4 位数字的 SVG，共享缓存里只存散列，`CaptchaSeconds`（300 秒）内用一次即作废，错了是 `IDENTITY_VALIDATION_007`。
+3. 账号与密码：租户账号先核对租户存在、启用且没到期；连续失败达到 `MaxFailedAccessAttempts`（5）次锁定 `LockoutMinutes`（15）分钟。用户名错还是密码错不区分，都是 `IDENTITY_DENIED_003`。
+
+账号开了双因素即返回挑战（见[双因素](#双因素)）；否则先过登录守卫（Access 实现：访问策略的登录时机、登录失败自动封禁），再开会话、签令牌对。
+
+### 强制修改由他人设置的密码
+
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，没建即关）的 `forceChange` 决定要不要逼：
+
+| 状态 | 效果 |
+| --- | --- |
+| 关（缺省） | 只留着标记，直接放行 |
+| 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（令牌响应 `mustChangePassword` 为 `true`，锁定原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
+
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
+
+### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
+
+方式要在 `identity.login-methods` 里开放。按邮箱（不分大小写）或已验证的手机号在登录租户里找账号；账号不存在、不唯一或停用时同样回答「已发送」，签发并计入限频，只是不发，不给探测账号的机会。
+
+| 限制 | 配置键（缺省） |
+| --- | --- |
+| 码的有效期 | `VerificationCodeMinutes`（10 分钟） |
+| 同一用途、同一目标两次发码的间隔 | `VerificationCodeIntervalSeconds`（60 秒） |
+| 每个目标每天（UTC） | `VerificationCodeDailyPerTarget`（10 次） |
+| 每个客户端地址每天（UTC） | `VerificationCodeDailyPerAddress`（50 次） |
+| 输错即作废 | `VerificationCodeMaxFailures`（5 次），之后锁定 `VerificationCodeLockoutMinutes`（10 分钟） |
+
+这组限制对找回密码、个人中心验证联系方式与双因素的邮件 / 短信码同样适用。码对、发码之后联系方式没变才认账号，再核对状态与锁定期；账号开了双因素照样要第二步。
+
+### 第三方登录
+
+GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置在 `BasicApp:Auth:OAuth:Providers`，不分租户、不存库，启用且填了 `ClientId` 的才出现在登录页（见[配置参考](../configuration)）。
+
+```text
+浏览器 → GET /api/oauth/{provider}/challenge  → 提供方授权页
+       ← GET /api/oauth/{provider}/callback   回调不发令牌，只发一次性票据（5 分钟），重定向到前端回调页
+前端回调页 → POST /api/auth:external-login（票据 + 注册地）→ 令牌
+```
+
+- 两个端点是普通端点、不经内核管道；发起时生成随机 `state` 存进共享缓存，同时种一枚 HttpOnly Cookie，回调时两者都对上才认（Google 另用 PKCE）。
+- 只认已绑定的账号，不自动建号：没绑定即 `IDENTITY_DENIED_015`。先用账号密码登录，到个人中心「第三方绑定」由本人领绑定意图（`profile.begin-external-bind`，10 分钟、用一次），回调之后再由本人确认（`profile.link-external`）；`profile.external-logins` 列出、`profile.unlink-external` 解绑。
+- 第三方登录同样过租户、账号状态、锁定期、登录守卫与双因素。
+
+### 双因素
+
+方式有认证器（`Totp`）、邮箱（`Email`）与短信（`Phone`）。启用双因素的账号在第一步只得到挑战：
+
+```json
+{ "token": null, "twoFactor": { "ticket": "…", "methods": ["Totp", "Email"], "method": null, "codeSent": false, "expiresAt": "…" } }
+```
+
+- `method` 只在唯一可用的方式是认证器时预先选定，否则为 `null`，由用户选。
+- `auth.send-two-factor-code` 凭票据把码发到账号已验证的邮箱或手机号（认证器不发码），`auth.verify-two-factor` 凭票据与码换令牌；第二步重新核对账号状态、锁定期与租户。
+- 票据有效期 `TwoFactorTicketMinutes`（10 分钟，从签发起算、不顺延），输错 `TwoFactorTicketMaxFailures`（5）次即作废、须重新登录（`IDENTITY_DENIED_008`）；码错同时计入账号的失败计数与登录节流。认证器的码按时间步防重放。
+- 验证码登录的第二步不能用同一种渠道（`IDENTITY_DENIED_017`）。
+
+个人中心：`profile.setup-totp`（新密钥先加密暂存共享缓存 10 分钟）→ `profile.enable-two-factor`（用认证器的码确认才落库；邮箱与短信用 `profile.send-two-factor-code` 发的码确认）；`profile.disable-two-factor`（认证器要当前码，邮箱与短信要发到本人的码）。这几项模仿会话都不能做。不提供恢复码：丢了认证器由管理员 `users.reset-two-factor` 清掉（不能重置自己）。
+
+## 刷新、注销、切换
+
+| 操作 | 说明 |
+| --- | --- |
+| `auth.refresh` | 匿名，凭刷新令牌换新令牌对，刷新令牌轮换；会话已吊销或过期即 `IDENTITY_DENIED_001`，成员租户里的成员关系被移除或到期即 `IDENTITY_DENIED_006` |
+| `auth.logout` | 吊销当前会话；模仿会话的发起人注销时一并吊销模仿会话 |
+| `auth.switch-tenant` | 换到注册地租户、生效中的成员租户（含运维支持），平台账号还可回到平台：会话续用（同一 `sid`）、刷新令牌轮换、按新租户重算角色；先过目标一侧的登录守卫；模仿态不能切换 |
+| `auth.activate-roles` / `auth.session-roles` | 换 / 查本会话激活的角色（动态职责分离，见[约束规则与审批](./approval)）；`auth.session-roles` 在 Access 包 |
+| `auth.me` | 当前用户、租户（含显示名）、会话、角色与模仿发起人 |
+| `auth.permissions` | Access 包：有效权限码、角色、按权限裁剪的菜单树与页面码 |
+
+## 自助注册与找回密码
+
+| 操作 | 说明 |
+| --- | --- |
+| `auth.register` | 匿名，注册平台账号：要在配置里打开（`SelfRegistrationEnabled`，缺省关，否则 `IDENTITY_DENIED_020`）；开了图形验证码时同样先过验证码；登录名在平台一侧唯一，邮箱不能与平台一侧的正常账号重复（`IDENTITY_CONFLICT_013`）；注册后立即可用、不带任何角色，配好邮件且有 `auth-welcome` 模板时发一封欢迎邮件 |
+| `auth.request-password-reset` | 匿名，租户须存在、启用且没到期；按邮箱或已验证的手机号发验证码（验证类模板，标题「重置密码」）；账号不存在、不唯一也回答已发送，签发并计入限频，只是不发 |
+| `auth.reset-password` | 匿名，凭验证码设新密码：密码先按策略校验（不合格不消费验证码），码对、联系方式没变、账号正常才认；设好后清掉登录失败锁定，并吊销这个账号的全部会话 |
+
+`auth.login-config` 带 `registrationEnabled`，登录页据此决定出不出注册入口；注册页要先勾选同意隐私政策与服务条款才提交，两份文书按界面语言放在前端 `packages/views/_core/authentication/legal/<语言>/`，部署方改主体、联系方式或条款时直接改对应语言的 Markdown；找回密码入口总在。要进租户的人先注册平台账号，再由租户加为成员。找回密码发验证码、不发链接，不依赖前端地址配置；平台模板里的 `auth-password-reset`（链接式）目前没有用到。
+
+## 锁屏
+
+`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码](#强制修改由他人设置的密码)；锁屏的会话也不能靠改密解开。
+
+## 模仿登录
+
+| 操作 | 说明 |
+| --- | --- |
+| `impersonation.candidates` | 可模仿的用户，分页（`pageIndex` 从 1 起、`pageSize` 1–100），关键字匹配登录名与显示名 |
+| `impersonation.start` | 以目标身份另开会话并签发令牌（`sub` 是目标、`act` 是发起人），不写目标的登录痕迹；发起人会话保留 |
+| `impersonation.stop` | 自助操作：吊销模仿会话，在发起人原会话上轮换刷新令牌、签回本人的令牌；原会话已失效即要重新登录 |
+
+范围不填即发起人当前所在的上下文；租户主体只能在自己的租户里模仿；平台主体可指定租户（目标须是该租户的注册地用户或成员）或平台。不能模仿自己，不能在模仿态里再模仿；一条原会话同时只挂一条模仿会话，还没结束时再发起是 `IDENTITY_CONFLICT_015`（先 `impersonation.stop`，或等它到期）。权限码 `identity.impersonation.start`，开始与结束都进登录日志。
+
+**权限上限**：不能模仿超级管理员；除平台侧持 `*` 的超级管理员外，发起人不能模仿持 `*` 的账号，目标在目标上下文持有的权限码都要在发起人手里。
+
+**模仿态拒绝的权限码**：接管账号（重置密码、重置双因素、锁定、登录策略）、变更授权（角色的修改、授予、指派、继承，用户直授，用户数据范围，委托的新建、撤销与删除）、销毁数据（删除用户、角色、租户，初始化独立库）、OAuth 应用的修改（含重置客户端密钥）。持 `*` 也拦，`auth.permissions` 也不返回这些。
+
+系统参数 `identity.impersonation`（JSON，没建即缺省，按发起人所在的一侧取，写错或越界即 `IDENTITY_VALIDATION_027`、不发起）：
+
+| 字段 | 缺省 | 说明 |
+| --- | --- | --- |
+| `sessionMinutes` | `30` | 模仿会话存活分钟数，1 到 480。从发起算起的硬期限：`auth.refresh` 只换令牌不顺延，访问令牌也不超过它；到期后 `IDENTITY_DENIED_001`，要接着用就重新发起 |
+| `notifyTarget` | `true` | 发起时给被模仿者发一条安全站内信（落在模仿会话所在的一侧，按被模仿者的界面语言，不看通知偏好）；投递失败只记日志，不挡模仿 |
+
+## 登录策略
+
+每个账号可以单独限制同时登录：`users.login-policy` 查看（`identity.users.read`），`users.set-login-policy` 设置（`identity.users.login-policy`），下次登录生效，已有会话不动。
+
+| 设置 | 登录时的效果 |
+| --- | --- |
+| 不允许多端登录（`allowMultiLogin` 为 `false`） | 只保留新会话，其余吊销 |
+| 允许多端、`maxLoginDevices` 为 1 到 99 | 保留新会话和最近的几个，超过的吊销最早的 |
+| 允许多端、`maxLoginDevices` 为 0（缺省） | 不限 |
+
+模仿会话不算设备。被吊销的会话收到 `ForceLogout`。
+
+## 用户详情
+
+`users.detail`（`GET /api/users/{id}:detail`，`identity.users.read`，可带 `timeZone` 按时区分天，缺省 UTC）给管理员看一个人的账号与活动，可见范围同 `users.get`：
+
+| 字段 | 内容 |
+| --- | --- |
+| `user` | 资料（字段安全同样套用） |
+| `security` | 邮箱与手机验证状态、双因素、是否锁定（管理员锁定或登录失败锁定期内）、锁定截止时间、连续失败次数；[外部成员](./multi-tenancy#外部成员)为空，账号由其注册地维护 |
+| `today` | 今日登录次数、访问次数、在线时长，只算当前一侧；平台看租户的用户时为空 |
+| `currentSession` | 这一侧最近活动的会话（IP 遮掩，模仿会话不算）；没有有效会话时为空 |
+
+## 在线用户与会话管理
+
+| 操作 | 权限 | 说明 |
+| --- | --- | --- |
+| `sessions.list` | `identity.sessions.read` | 一行一个有效会话：只看当前一侧，租户一侧按数据范围收窄，IP 遮掩，标出是否持有实时连接 |
+| `sessions.summary` | `identity.sessions.read` | 有效会话数、有会话的用户数（同样按数据范围收窄）与持有实时连接的用户数 |
+| `sessions.revoke` | `identity.sessions.revoke` | 批量吊销，可带给被下线用户看的原因；看不到的会话逐项 `IDENTITY_NOTFOUND_002`，调用方自己当前的会话逐项 `IDENTITY_CONFLICT_005` |
+| `profile.sessions` / `profile.revoke-session` / `profile.revoke-other-sessions` | 登录即可 | 个人中心的「登录设备」：只按本人，不分侧、不套数据范围 |
+
+## 下一步
+
+- [权限管理](./permission) · [访问策略与权限条件](./access-policy) · [实时推送](./realtime)

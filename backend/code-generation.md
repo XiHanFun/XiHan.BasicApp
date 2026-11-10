@@ -2,296 +2,165 @@
 
 # 代码生成
 
-`XiHan.BasicApp.CodeGeneration` 是一等独立模块，做**数据库优先（DbFirst）的全栈代码生成**：扫描一张已有数据库表的结构 → 落成可编辑的表/列配置 → 用 Scriban 模板渲染出**后端实体到前端页面**的整套 CRUD 代码 → 预览、打 Zip 下载或受控落盘。目标是把"加一张表就要抄一遍八个后端文件 + 三个前端文件"的重复劳动一键铺开。
+本页说明代码生成的数据源、表与列配置、模板与生成的代码、交付、零代码运行时和退出验证，适用于用它生成业务包的开发者与维护模板的人。
 
-## 模块全景
+CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Enabled`，缺省开），只在平台一侧：管理外部数据源，按库表结构导入表与列配置，用 Scriban 模板生成一个后端包与前端模块，记生成历史，另有零代码只读运行时。
 
-生成链路由几个协作角色组成，职责单一、可替换：
+## 页面与权限
 
-| 角色 | 类型 | 职责 |
-| --- | --- | --- |
-| 编排应用服务 | `CodeGenerationAppService` | 对外入口：权限、事务、DTO 转换、历史留痕；导入 → 预览 → 生成 → 下载 |
-| 结构导入器 | `IDatabaseSchemaImporter` / `DatabaseSchemaImporter` | DbFirst 扫描库表元信息（列名/类型/可空/主键） |
-| 类型映射器 | `ITypeMappingProvider` / `DefaultTypeMappingProvider` | DB 列类型 → C# 类型 / TS 类型 + 默认表单控件 / 查询方式 |
-| 生成引擎 | `ICodeGenerationEngine` / `CodeGenerationEngine` | 管线编排：建模 → 选模板 → 渲染 → 产出 |
-| 模板渲染器 | `ITemplateRenderer` / `ScribanTemplateRenderer` | 用**原生 Scriban** 渲染模板（见下文约定） |
-| 渲染器解析器 | `ITemplateRendererResolver` | 按 `TemplateEngine` 选渲染器；当前仅 Scriban |
-| 打包器 | `IGeneratedArtifactPackager` / `ZipArtifactPackager` | 产物清单 → Zip 字节流 |
-| 生成到项目 | `IGeneratedArtifactWriter` / `ProjectArtifactWriter` | 写进本仓库的后端模块项目与前端工程（位置由配置推导，默认关闭，路径越界拒绝） |
+页面 `codegeneration.code-gen`（路由 `/codegeneration/code-gen`，在「系统管理 › 在线开发」目录下，菜单按 `codegeneration.codegen-tables.read` 下发），一页四签：表配置、数据源、模板、生成历史，各页签按自己资源的读权限显示。
 
-四张配置实体（均 `BasicAppFullAuditedEntity`，软删、多租户、审计俱全）：
+权限码只在平台一侧，资源段与操作一致：
 
-| 实体 | 表 | 作用 |
-| --- | --- | --- |
-| `SysCodeGenDataSource` | `Sys_CodeGen_DataSource` | 外部数据库连接凭证 + 连通性自检 + DbFirst 扫描，`SourceName` 全局唯一 |
-| `SysCodeGenTable` | `Sys_CodeGen_Table` | 一张目标表的生成主配置，`TableName` 全局唯一 |
-| `SysCodeGenTableColumn` | `Sys_CodeGen_TableColumn` | 列级配置（类型映射、表单控件、查询方式、字典三分） |
-| `SysCodeGenTemplate` | `Sys_CodeGen_Template` | 模板（Scriban 正文 + 文件名/路径表达式），`TemplateCode` 全局唯一 |
-
-生成历史另存 `SysCodeGenHistory`：每次执行生成——无论成败——都写一条留痕（批次号、耗时、文件数、总字节、操作人、失败原因）。
-
-## 三种生成模式
-
-由 `SysCodeGenTable.TemplateType`（枚举 `TemplateType`）决定，也是模板筛选的分组维度：
-
-| 模式 | 枚举 | 适用场景 | 关键配置字段 |
-| --- | --- | --- | --- |
-| 单表 | `Single` | 扁平 CRUD（如岗位、字典项、普通业务表） | 主键列 |
-| 树形 | `Tree` | 自引用层级（如菜单、部门、地区） | `TreeParentColumn`（父级字段）、`TreeNameColumn`（名称字段） |
-| 主从 | `MasterDetail` | 一主多从（如订单 + 订单明细） | `MasterTableId`（主表配置）、`MasterForeignKey`（子表外键列） |
-
-无显式指定模板编码时，引擎按表的 `TemplateType` 取该类型下的启用模板集（`GetEnabledByTypeAsync`）。模板**不按业务模块过滤**——CRUD 模板对所有模块通用，只按模板类型分组。
-
-> 树形/主从的结构字段（父级列、名称列、主表、外键）通过 `CodeGenerationContext.Options` 透出给模板（键为 `TreeParentColumn` / `MasterForeignKey` 等），模板按 `TemplateType` 消费。当前内置模板套件以单表为主，树/主从的上下文已就绪，模板可自行扩展。
-
-## 全栈生成：从实体到前端页面
-
-一次生成铺开**后端 16 件 + 前端 7 件**的整套 CRUD，均为内置模板（`IsBuiltIn=true`，分组 `backend-crud` / `frontend-crud`）。
-
-除页面 `index.vue` 外，每个产物都成对登记：**自动侧**重新生成时整体覆盖，**手动侧**仅首次创建、此后永不触碰。二者在语言层面拼接——C# 数据类经 `partial` 合并，行为类经抽象基类与派生类继承，前端经 re-export / transform 组合。所以改表结构重新生成不会冲掉手写实现。
-
-| 模板编码 | 自动侧（每次覆盖） | 手动侧（仅首次创建） |
-| --- | --- | --- |
-| `backend.entity` | `{{ ClassName }}.Generated.cs` | `{{ ClassName }}.cs` |
-| `backend.dtos` | `{{ ClassName }}Dtos.Generated.cs` | `{{ ClassName }}Dtos.cs` |
-| `backend.irepository` | `I{{ ClassName }}Repository.Generated.cs` | `I{{ ClassName }}Repository.cs` |
-| `backend.repository` | `{{ ClassName }}Repository.Generated.cs` | `{{ ClassName }}Repository.cs` |
-| `backend.contracts` | `I{{ ClassName }}Contracts.Generated.cs` | `I{{ ClassName }}Contracts.cs` |
-| `backend.mapper` | `{{ ClassName }}ApplicationMapper.Generated.cs` | `{{ ClassName }}ApplicationMapper.cs` |
-| `backend.appservice` | `{{ ClassName }}AppServiceBase.Generated.cs` | `{{ ClassName }}AppService.cs` |
-| `backend.queryservice` | `{{ ClassName }}QueryServiceBase.Generated.cs` | `{{ ClassName }}QueryService.cs` |
-| `frontend.types` | `{{ ClassNameKebab }}.types.generated.ts` | `{{ ClassNameKebab }}.types.ts` |
-| `frontend.api` | `{{ ClassNameKebab }}.generated.ts` | `{{ ClassNameKebab }}.ts` |
-| `frontend.schema` | `{{ ClassNameKebab }}.schema.generated.ts` | `{{ ClassNameKebab }}.schema.ts` |
-| `frontend.page` | —— | `index.vue` |
-
-页面与 schema 按 `TemplateType` 分化，各自另有一套登记：单表 `frontend.schema` / `frontend.page`，主子表 `frontend.schema.masterdetail` / `frontend.page.masterdetail`，树表 `frontend.schema.tree` / `frontend.page.tree`。产物文件名相同，一张表只会命中其中一套。
-
-前端产物落到 `src/api/modules/<module>/` 与 `src/views/<module>/<class-kebab>/`（路径表达式里 `ModuleName` 会 `string.downcase`）。生成的页面与手写页面同构：`SchemaPage` 驱动列表与搜索，`XEditModal` + `XhFormRoot` 承载表单弹窗，控件取 `~/components` 的 `XInput` / `XSelect` / `XNumberInput` / `XTreeSelect`，提示走 `~/composables` 的 `toast`，枚举下拉走 `useEnumOptions`。文案为中文字面量，接 i18n 需自行替换。
-
-除模板产物外，引擎每次还追加**二阶产物**（后端接线，路径相对后端模块项目根）：
-
-- `Domain/Permissions/{{ClassName}}PermissionCodes.cs`——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
-- `Domain/Permissions/{{ClassName}}PermissionDefinitions.cs`——权限定义片段。
-- `Infrastructure/Seeders/{{ClassName}}PermissionCatalog.cs` 与 `Infrastructure/Seeders/{{ClassName}}MenuPages.cs`——权限目录登记与菜单登记（总是覆盖，随包含操作、父菜单推导）。它们实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 并按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后统一写入：不需要 `AddDataSeeder`，也没有种子顺序号。页面挂在表配置所选的「父菜单」下（只能选平台目录，按菜单码挂靠），未选即顶级菜单。
-- `_GeneratedMenuPermission/{{ClassName}}PageRegistry.snippet.txt`——`PageDescriptor` / `ButtonDescriptor` 粘贴片段（并进模块自己的页面登记表时用，与菜单登记二选一）。
-- `_GeneratedMenuPermission/README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格与生效步骤（重启后端即由启动播种写入）。
-
-::: tip 从旧版本升级
-前端模板此前产出的是 naive-ui 页面，现已整体迁到 XiHan.UI。已生成过代码的工程重新生成时：
-
-- `{kebab}.generated.ts` 的导出由 `xxxBaseManagementApi` 改名为 `xxxBaseApi`，而 `{kebab}.ts` 与 `index.vue` 是仅首次创建的手动文件、不会被覆盖，需手工把这两处的 `xxxManagementApi` / `xxxBaseManagementApi` 改成 `xxxApi` / `xxxBaseApi`。
-- 旧 `index.vue` 引用的 `naive-ui` 与旧 schema 里的 `scrollX` 在当前前端都已不存在，那些文件本来就编译不过，建议删掉后重新生成。
-- bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/5.1.0` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
-:::
-
-::: warning 按钮码必须先落到 PageRegistry
-生成页面的行/页面操作用 `permission: '{页面码}.{按钮键}'` 门控，这是服务端下发的**按钮码**。
-把 `{{ClassName}}PageRegistry.snippet.txt` 里的 `ButtonDescriptor` 条目粘进 `PageRegistry.Buttons` 之前，
-这些按钮不会显示，前端 `view-permission-hygiene` 门禁也会逐条列出未登记的码并判红。
-:::
-
-> 二阶产物是**待并入源码的代码片段，不是运行时写库**。这符合 BasicApp 的单一事实源 + 菜单即绑约定：把片段并入源码后，全新库由 Seeder 初始化；存量库还要把必要的数据变化纳入同版本 `UpdateScripts`。
-
-### 表单控件的取值口径
-
-- 纯日期列（`date`）用 `XDatePicker`，按本地年月日（`yyyy-MM-dd`）提交，不会因时区换算退掉一天。
-- 日期时间列（`datetime` / `timestamp` / `datetimeoffset`）用带时刻的 `XDatePicker show-time`，精确到分，按本地时间文本（`yyyy-MM-dd HH:mm:ss`）提交，与后端下发、导入的口径一致。
-- 数字列用 `XNumberInput`：整数列 `:precision="0"`，输入的小数直接回舍，不会因 1.5 让整单 400；`decimal` 列按列定义的小数位；浮点列不限。
-- 文本列带上列定义的长度 `:max-length`，文本域同时显示字数；DTO 不校验长度，超长原本要到落库才报错。
-- 关联表列的候选随目标表增长：表单用可输入筛选的 `XCombobox`，搜索区的字段标 `searchFilterable` 同样可输入筛选，都在取回的全量选项里本地筛；字典、枚举、常量下拉仍是 `XSelect`，关联树仍是树形下拉。已生成的页面重新生成后搜索区随 `schema.generated.ts` 自动换上，表单在 `index.vue` 里，想要可自行把该列的 `XSelect` 换成 `XCombobox`。
-- 时间列（`time`）没有对应的选择器，仍是文本框 + `HH:mm(:ss)` 校验；二进制列用文本框承载 Base64，接真实上传需自行替换成上传组件。
-
-::: warning 5.4.2 及更早版本生成的页面
-`{kebab}.schema.generated.ts` 每次覆盖，`index.vue` 只首次创建。含日期时间列的表重新生成后，表单模型里该字段变为 `number | null`（时间戳），而旧 `index.vue` 仍用文本框承载，类型检查会报错。按新模板手工迁移旧 `index.vue`：
-
-- 控件换成 `<XDatePicker v-model:value="form.xxx" clearable show-time />`；
-- 回填改为 `xxx: src.xxx ? new Date(String(src.xxx).replace(' ', 'T')).getTime() : null`；
-- 提交改为 `toDateTime(form.value.xxx)`（可空列 `form.value.xxx == null ? null : toDateTime(form.value.xxx)`），`toDateTime` 照抄新模板；
-- 删掉 `DATE_TIME_PATTERN` 及其校验；整数列的 `Number.isInteger` 校验可换成数字框的 `:precision="0"`。
-
-不含日期时间列的表不受影响。
-:::
-
-## 数据源与表结构
-
-### 数据源
-
-`SysCodeGenDataSource` 管理外部数据库连接（主机/端口/库名/账号/加密密码或连接串），同时直接参与表结构扫描：
-
-- `DatabaseType` 标注连接方言，支持 `MySql` / `SqlServer` / `PostgreSql` / `Oracle` / `Sqlite`。
-- 密码/连接串经 `AesHelper` 固定口令**对称加密**存储（`CodeGenDataSourceDomainService` 的 `EncryptSecret`/`DecryptSecret`）；`TestConnectionAsync` 用一个独立探测用的 `SqlSugarClient` 开关一次连接，回写 `LastTestTime` / `LastTestResult` / `LastTestMessage`。
-- 保存（`CreateAsync` / `UpdateAsync`）**不强制**先测试连接通过；删除（`DeleteAsync`）当前**未校验**是否仍有 `SysCodeGenTable` 引用，删除前应先检查表配置引用。
-- 导入弹窗调用 `codeGenDataSourceApi.options()` 加载数据源下拉；空值代表本系统主库，选择项的值是 `SysCodeGenDataSource.BasicId`。
-- `DatabaseSchemaImporter` 首次使用外部数据源时解密连接信息，经 `IDynamicConnectionRegistrar` 按 `DataSourceId` 动态注册 SqlSugar 连接，再调用框架 `IDatabaseMetadataProvider` 扫描。
-- 数据源不存在或停用时直接失败，**不会静默回退主库**；已注册连接会复用。
-
-导入后的 `SysCodeGenTable.DataSourceId` 会保留来源数据源，后续“同步表结构”和重新生成仍能定位同一外部库。数据源配置支持 `MySql` / `SqlServer` / `PostgreSql` / `Oracle` / `Sqlite`；这表示元数据扫描支持这些方言，不代表 BasicApp 自身的发布升级 SQL 已跨方言适配。
-
-### 表结构导入
-
-导入是"逆向工程"的入口，由 `CodeGenerationAppService.ImportTableAsync` 闭环完成：
-
-1. **去重**——同一目标表禁止重复配置（`TableName` 全局唯一）。
-2. **扫描结构**——`DatabaseSchemaImporter` 接通框架 `IDatabaseMetadataProvider`，只产出数据库层结构（列名/类型/可空/主键/自增/长度/小数位）。
-3. **建表配置**——类名默认由表名 `Pascalize`（`sys_user` → `SysUser`），可覆盖命名空间/模块/业务名/作者。
-4. **建列配置**——每列经 `ITypeMappingProvider.Map` 预填 C#/TS 类型、默认表单控件（`HtmlType`）与查询方式（`QueryType`），并写默认开关（`IsList=true` / `IsInsert=true` / `IsEdit=true` / `IsQuery=false`）。
-
-导入器有两处贴合本仓约定的健壮处理：
-
-- **大小写还原**：部分库（如 MySQL `lower_case_table_names=1`）返回全小写名，丢失驼峰。导入器反射已注册的 `[SugarTable]` 实体建名称目录，把 `syscodegendatasource` 还原为 `SysCodeGenDataSource`；未注册的外部表保持原样。
-- **分表折叠**：带 `[SplitTable]` 的日志类实体物理表按时间分片（如 `sysdifflog_20260601`）。列表时把同实体的所有分片折叠为基础逻辑名（`SysDiffLog`）去重；导入基础名时自动扫最近一个分片取列结构。
-
-### 字段配置
-
-`SysCodeGenTableColumn` 是列级精细控制面，模板据此渲染。常用字段：
-
-| 字段 | 含义 |
+| 资源 | 权限码 |
 | --- | --- |
-| `CSharpType` / `CSharpProperty` / `TsType` | 类型与属性名映射（导入预填、可手改） |
-| `HtmlType` | 表单控件：`Input` / `Textarea` / `Select` / `Switch` / `DatePicker` / `InputNumber` / `TreeSelect` … |
-| `QueryType` | 查询方式：`Equal` / `Like` / `Between` / `In` … |
-| `IsList` / `IsInsert` / `IsEdit` / `IsQuery` | 列表显示 / 新增 / 编辑 / 查询开关 |
-| `IsRequired` / `ColumnLength` / `MinValue` / `MaxValue` / `RegexPattern` | 表单校验约束 |
+| 数据源 `codegen-datasources` | `read`、`create`、`update`（修改、启停、测试连接）、`delete` |
+| 表配置 `codegen-tables` | `read`（也是页面读权限，含列出库表与预览）、`update`（修改、启停）、`delete`、`import`（导入、同步结构）、`execute`（生成代码） |
+| 列配置 `codegen-table-columns` | `read`、`update`（整体保存） |
+| 模板 `codegen-templates` | `read`（查看、检查语法）、`create`、`update`（修改、启停）、`delete` |
+| 生成历史 `codegen-histories` | `read`（查看、下载产物包） |
+| 零代码运行时 `codegen-runtime` | `read`（查看表结构与数据） |
 
-**字典三分**（选项列的可选项来源，由 `DictSelectorType` 决定生效字段）：
+完整码是 `codegeneration.<资源>.<动作>`，如 `codegeneration.codegen-tables.execute`；写操作进操作日志。字段安全登记了数据源、表配置与模板。
 
-| `DictSelectorType` | 生效字段 | 含义 |
-| --- | --- | --- |
-| `DictSelector` | `DictCode` | 关联系统字典类型编码 |
-| `EnumSelector` | `EnumTypeName` | 关联枚举全名 |
-| `ConstSelector` | `ConstValues` | 内联常量项 JSON |
+## 数据源
 
-> **字典三分是纯表单渲染信息，不入生成的领域代码**——它只让前端页把某列渲染成对应下拉/选项，不产生任何跨表关联或外键。
+外部库的连接信息，导入表结构与零代码运行时经它连库；表配置的数据源为空即主库。
 
-## 模板：基于 Scriban，可自定义
+| 操作 | 说明 |
+| --- | --- |
+| `codegen-datasources.list` | 分页；关键字匹配名称、描述、主机与库名，数据库类型与状态可多选 |
+| `codegen-datasources.options` | 全部数据源（含停用的），给下拉用 |
+| `codegen-datasources.get` | 详情；口令与连接串不回显，只说有没有显式连接串 |
+| `codegen-datasources.create` / `update` | 名称唯一（`CODEGENERATION_CONFLICT_001`）；口令与显式连接串加密存储，编辑时留空即不改，但改了库类型、主机或端口必须重新填写口令（`CODEGENERATION_VALIDATION_014`）；设为缺省时其余的取消缺省 |
+| `codegen-datasources.set-status` | 启停；停用的不能用于读库结构与查询（`CODEGENERATION_CONFLICT_003`） |
+| `codegen-datasources.delete` | 批量；仍被表配置引用的逐项拒绝（`CODEGENERATION_CONFLICT_002`） |
+| `codegen-datasources.test-connection` | 按当前设置临时连一次（停用的也能测），记下时间、结果与说明；连不上写在结果里，不是失败的调用 |
 
-模板存在 `SysCodeGenTemplate.TemplateContent`（BigString）。内置模板由 `SysCodeGenTemplateSeeder` 把 `Templates/Backend/*.sbn`、`Templates/Frontend/*.sbn`（编译为嵌入资源）种入库、标 `IsBuiltIn=true`；用户可新增自定义模板或改动非内置模板。
+- 支持 MySQL、SQL Server、PostgreSQL、Oracle、SQLite。显式连接串优先，没有就按主机、端口、库名、账号拼出，附加参数追加在拼出的连接串之后；SQLite 的库名是库文件路径。
+- SQLite 数据源要打开 `BasicApp:CodeGeneration:AllowSqliteDataSource`（缺省关，Development 开），否则 `CODEGENERATION_VALIDATION_013`：它的地址是服务器上的文件路径，开放等于能读进程够得着的任意数据库文件。
+- 连接串里的主机过出站地址策略（`XiHan:Security:Outbound`），缺省只能连公网；内网数据库要在那里放行，否则 `CODEGENERATION_VALIDATION_012`，见[配置参考](../configuration#xihan-security-outbound)。
+- 口令与连接串经 `ISecretProtector`（数据保护）加密，解不开即 503 `CODEGENERATION_UNAVAILABLE_001`，要重新填写（数据保护密钥变了时会这样）。
+- 连接经框架的运行时数据源（`DataSourceRegistry`）：首次使用时按定义登记一个连接（名字 `codegen-<ID>`，每个数据源一条健康项 `persistence.datasource.codegen-<ID>`），修改、启停与删除之后注销，下次使用按新设置重建。登记数上限是 `XiHan:Persistence:DataSources:MaxCount`（缺省 64）。连不上、连接串不合格式由框架报 `PERSISTENCE_*`，原样返回。
 
-### 模板变量
+## 表配置与列配置
 
-引擎把 `CodeGenerationContext` 投影成 PascalCase 键的 Scriban 变量。顶层常用：
+| 操作 | 说明 |
+| --- | --- |
+| `codegen-tables.db-tables` | 分页列出主库或某个启用的数据源里的表；关键字匹配表名与注释，分表折叠成逻辑名，页码换算成跳过与取的条数交给框架 |
+| `codegen-tables.import` | 导入一批表（1 到 100 张），按表隔离：读不到、已导入（`CODEGENERATION_CONFLICT_004`）、没有列（`CODEGENERATION_VALIDATION_002`）的各记一条失败 |
+| `codegen-tables.sync-schema` | 按最新库结构同步：结构字段以库为准，推断字段没被人工改过才跟随新的推断，新列补进来、库里已删的列删掉列配置 |
+| `codegen-tables.list` / `get` / `options` / `update` / `set-status` / `delete` | 表配置的增改删查；修改时值变了的被跟踪字段记为人工改过，表名不能改（`CODEGENERATION_VALIDATION_011`），生成模式不能是通用（`VALIDATION_003`），勾了导入须勾新建（`VALIDATION_004`）；删除连带列配置 |
+| `codegen-table-columns.list` / `save` | 一张表的列配置；整体保存，任一列不过即整次不写，选项来源（字典、枚举、常量、关联表、关联树）只留它要的那个配置 |
 
-```text
-ClassName          实体类名（如 SysProduct）
-ClassNameCamel     camelCase（sysProduct）— 前端标识/API 对象名
-ClassNameKebab     kebab-case（sys-product）— 前端文件名/路由
-TableName          数据库表名
-TableComment       表注释
-Namespace / ModuleName / BusinessName / FunctionName / Author
-TemplateType       枚举以名称字符串透出（"Single"/"Tree"/"MasterDetail"）
-PrimaryKey         主键列（字典）
-Columns            列集合（字典列表）
-Options            扩展键（树/主从结构字段、ParentMenuId 等）
+- 读库结构用框架的 `ISchemaReader`（主库传空，外部库传数据源的连接定义），表名与列名照返回的原名，不自己转大小写。
+- 类型按「库 + 类型名」映射：长度只给字符与二进制类型；Oracle 的 `NUMBER` 按精度与小数位分整数与定点数、`DATE` 带时分秒；SQL Server 的 `timestamp` 是行版本，按二进制；不认得的类型按字符串。`long` 在报文里是数字，TypeScript 是 `number`、控件是数字框。PostgreSQL、MySQL、SQL Server、Oracle 在真实库上实测（`CodeGenerationSchemaTests`，读 `XIHAN_TEST_POSTGRES` / `XIHAN_TEST_MYSQL` / `XIHAN_TEST_SQLSERVER` / `XIHAN_TEST_ORACLE`）。
+- 推断：类名去掉表名前缀（`BasicApp:CodeGeneration:TablePrefixes`，逗号分隔的字符串，缺省 `sys_`，取最长的匹配）转 PascalCase，业务名取表注释；字符列按列名语义推控件（图片、文件、备注……），名称、编码、状态、类型、时间、日期类的列缺省可查询；有父级列与名称列即树表。实体基类的列（主键、租户、审计、软删与并发戳）不进表单与列表。
+- 「沿用已有实体」：主库里已登记实体的表（框架的 `IEntityCatalog`），类名、命名空间、包名与属性名取实体，枚举属性推为枚举选项，生成目标缺省「加入已有包」。外部库的同名表不算。
+- 数据库类型按来源取：主库取主库的连接，外部库取数据源记录。
+
+## 模板与预览
+
+| 操作 | 说明 |
+| --- | --- |
+| `codegen-templates.list` / `get` | 分页（不带正文；分组、生成模式、写入方式、状态可筛选，关键字匹配编码、名称与描述）与详情（带正文与路径表达式） |
+| `codegen-templates.validate` | 只解析不渲染，返回带行列的语法错误；正文可能很长，走 POST |
+| `codegen-templates.create` / `update` / `set-status` / `delete` | 自有模板可增删改；编码唯一（`CODEGENERATION_CONFLICT_005`）、不含空白、建好后不能改；内置模板不能改、不能删（`CODEGENERATION_CONFLICT_006`），可以启停 |
+| `codegen-tables.preview` | 按表配置渲染，返回全部文件，不打包、不记历史；配置检查不过 `CODEGENERATION_VALIDATION_007`，模板渲染失败或产物越出根目录 `VALIDATION_008`（带模板编码），没有可用模板 `VALIDATION_009` |
+
+- 内置模板随程序版本走：包里带的 `Seeds/Templates/**/*.sbn` 由种子 `codegeneration.templates` 在每次执行 `seed` 时对齐到模板表（正文、名称、分组、生成模式、扩展名、路径表达式、写入方式与排序），启停归运维、不动；要定制就新建一份自有模板。
+- 选模板：显式给了编码就用那几个，否则取启用的通用模板与表的生成模式的模板；按生成范围裁（分组含 `backend` / `frontend`）；目标是「加入已有包」时不出包级模板（分组 `*-package`）；沿用已有实体时不出实体。一份模板渲染出空白即不产出这个文件（按勾选的操作一份模板一个文件）。
+- 渲染用 Scriban：变量以 PascalCase 原名注入（`{{ ClassName }}`、`{{ for col in Columns }}`），带转义过滤器（`cs_string`、`xml_doc`、`ts_string`、`html_attr`、`html_text`、`block_comment`、`html_comment`、`i18n_message`、`js_literal`、`select_options`）与 `kebab` / `snake` / `camel` / `sort_names`；不能引入别的文件，循环（10000 次）与递归（50 层）有上限。
+- 生成前的检查不过即整次失败：模块名与命名空间要合规；表已有手写实体时类名要与它一致；系统字典列要是文本、有字典码；选了枚举的列要解析得到、C# 类型就是它；关联列要是 `Guid`，关联的表要在、显示列要是文本，关联树的目标要是配好父级列的树表；唯一列不能是布尔或二进制；树表的父级列要是 `Guid`、名称列要进列表；主从的明细表要配好主表与外键列；勾了状态切换要有一列启停枚举（有 `Active` 与 `Disabled` 成员）且进列表；新建实体时，属性名为 `Status`、没选枚举的整数列也可以，生成器在实体里出 `<类>Status`（`Active` 0、`Disabled` 1）。
+
+### 生成的后端代码
+
+一张表生成一个资源：资源名是类名的 kebab 复数（`SalesOrder` → `sales-orders`），操作 `<资源>.list / get / create / update / delete / set-status / tree / <属性>-options`，权限码 `<包>.<资源>.read / create / update / delete`（只在租户侧，写操作记审计），页面 `<包>.<资源>`（路由 `/<包>/<资源>`）。实体是租户库实体（`TenantScopedAuditedEntity`），表名或列名与按约定换算的不同时才写 `[SugarTable]` / `[SugarColumn]`，唯一列是部分唯一索引。
+
+文件落在 `src/<命名空间>/` 下：
+
+| 文件 | 写入方式 |
+| --- | --- |
+| `Domain/Entities/<类>.Generated.cs` | 每次覆盖 |
+| `Domain/Entities/<类>.cs` | 只首次（partial，写计算属性与领域方法） |
+| `Operations/<资源>/<类>Contracts.Generated.cs` | 每次覆盖：响应、请求与映射 |
+| `Operations/<资源>/<类>Contracts.cs` | 只首次（partial） |
+| `Operations/<资源>/<动作>.cs` | 只首次，按勾选的操作（`List<资源>`、`Get<类>`、`Create<类>` ……）；树表另有 `Get<类>Tree`，关联列另有 `<类>OptionOperations` |
+| `Queries/<类>Queries.Generated.cs` | 每次覆盖：分页、筛选与排序的白名单（模糊查询进关键字，日期与创建时间按区间，选项列可多选） |
+| `Queries/<类>Queries.cs` | 只首次：`Customize` 里写缺省条件 |
+| `Operations/<资源>/<类>PrintDataSource.Generated.cs` | 每次覆盖，勾了打印才有 |
+
+两种目标：
+
+- **新建包**另出包级文件（工程文件、Feature、Capabilities、Permissions、Pages、Errors、Messages、JsonContext、README，都只首次）与 `Localization/<区域>.json` 共 10 种区域。按 Tier 3 登记，只依赖 Contracts 与 Runtime（用到别的包的枚举或关联实体时另加引用）。
+- **加入已有包**只出资源的文件，错误码序号留成 `NNN` 待填。
+
+两种目标都出 `_registration/<资源>.md`：新建包写明加进解决方案、宿主（`UseFeature`、OpenAPI 分组）与架构测试 Tier 表的行；加入已有包按文件列出要合入的权限码、页面、错误码、消息键、JSON 序列化类型、Feature 登记与 10 种区域的文案。操作 ID 已被别的包占用时在开头提示。
+
+生成的文案：固定用语（「新建」「删除」「查看」……）按 10 种区域内置，表注释与列注释在 10 种区域里原样使用（不机器翻译），生成之后按需改写。业务名、表注释与列注释当名字用或拼进句子时去掉句末的标点，表配置里存的照原样。
+
+### 生成的前端代码
+
+按生成模式出三组模板（单表与主从共用一份，树表另一份），落在 `frontend/src/modules/<包>/views/<资源>/`：
+
+| 文件 | 写入方式 |
+| --- | --- |
+| `index.vue` | 只首次：SchemaPage 列表页与新建 / 编辑弹窗（每个字段有可见标签），主表行展开出明细表 |
+| `<资源>.schema.generated.ts` | 每次覆盖：字段、按钮、表单模型与缺省值、表单与请求的换算、导入换算、搜索字段到后端筛选的登记、SchemaPage 的资源 |
+| `<资源>.schema.ts` | 只首次：在上面的 base* 之上做 transform，页面只从这里导入 |
+
+- 取数走生成的契约客户端（`~/contracts` 的 `<资源 camel>`，类型取 `ResponseOf` / `RequestOf`），不生成手写的接口与类型文件；契约在后端登记之后导出、`pnpm gen:contracts` 生成。
+- 控件由列的类型与配置单点决定（开关、日期、时间、上传、关联下拉、关联树、选项下拉、数字框、文本框），表单模型、缺省值、回填、提交与导入共用同一组判据。日期按 `DateTimeOffset` 收发；上传控件是公共组件 `XFileRefUpload`，存文件库的文件 ID。
+- 必填在提交前校验并挂到字段上，后端的字段错误也挂回字段；按钮按权限码门控：导出用读、导入用新建、启停用修改。
+- 文案一律写键，键在 `<包>.<资源>` 下：页面标题（也是菜单标题键）、字段名、按钮、弹窗标题、必填提示与枚举选项（选项静态写出，`Active` / `Disabled` 用固定用语，其余成员名原样）。
+- 新建包另出 `setup.ts`（登记文案）与 `locales/<区域>.ts` 共 10 种区域；登记片段写明把模块名加进 `scripts/check-modules.mjs` 的 `KNOWN`，视图键 `<资源>/index` 要全局唯一。加入已有包时，登记片段按区域列出要合进 `locales` 的文案块。
+
+## 生成与生成历史
+
+| 操作 / 端点 | 说明 |
+| --- | --- |
+| `codegen-tables.generate` | 按表配置生成，交付方式缺省取表配置的（也可在请求里指定）；不论成败都记一条生成历史，成功才回写表的生成状态与时间 |
+| `codegen-histories.list` / `get` | 生成历史：关键字匹配表名与批次号，结果可多选、生成时间按区间；详情带产物文件、用到的模板、表配置快照与失败原因 |
+| `GET /api/codegen-histories/{id}/package` | 普通端点，以附件下载这次的产物包（Zip），要 `codegeneration.codegen-histories.read` |
+
+- **打包下载**：每次覆盖的文件进 `_generated/`、只首次写的进 `_manual/`（各自下面再分 `backend/` 与 `frontend/`），登记片段在 `_registration/`，包根有 `README.txt`。产物包经 Files 的临时文件契约 `ITemporaryFiles`（Contracts）存成 7 天的临时文件（同导出中心），从上面的端点下载，不放进生成的响应；写进项目、生成失败或已到期的历史没有产物包（`CODEGENERATION_NOTFOUND_005`）。
+- **写进项目**只在 Development、且打开 `BasicApp:CodeGeneration:EnableGenerateToProject` 时可用，其余环境 `CODEGENERATION_VALIDATION_010`。位置取配置的 `BackendRootPath`（含 `src/` 的 `backend`）与 `FrontendRootPath`（含 `package.json` 的 `frontend`），相对宿主的内容根目录、不接受表配置给的任意路径；没配或指得不对同样 `VALIDATION_010`。全部产物定好位置、都落在所属根目录之内才动磁盘。每次覆盖的直接覆盖，只首次写的已存在即跳过（响应列出跳过的文件）；只首次写的文件已在、对应的生成部分却没有，说明是项目里原有的手写文件，整体拒绝。「加入已有包」要求 `src/<命名空间>` 下已有这个包。登记片段写在那一侧根目录的 `_registration/`。
+- 宿主的 `appsettings.Development.json` 打开了写盘并指向本仓库的两个工程（`BackendRootPath` 为 `../..`、`FrontendRootPath` 为 `../../../frontend`）；`appsettings.json` 里两个根目录不写，开关关着。
+- 失败的那条历史在独立的短事务里写（调用失败会回滚自己的写入），失败原因记错误码与调用方语言的文案。
+
+## 零代码运行时
+
+表配置的「运行时数据」按表配置只读查看表里的数据，不生成也不编译代码。
+
+| 操作 | 说明 |
+| --- | --- |
+| `codegen-runtime.get-schema` | 表结构：按列配置给出列名、数据行里的键（属性名的 camelCase）、显示名（列注释）与控件 |
+| `codegen-runtime.list` | 分页只读数据，每页最多 500 条；只带配置过的列，键是属性名 |
+
+- 表名只取已配置且启用的表配置，不接受请求给的表名；停用的表配置 409 `CODEGENERATION_CONFLICT_007`。
+- 主库里属于应用自己的表（已登记实体的表，含按月分表的日志）不读，表名带不合规字符的也不读：`CODEGENERATION_VALIDATION_015`。
+- 按表配置的数据源读：主库的其他表补上与实体读同口径的条件（有租户列的只看调用方这一侧的行，有软删列的不看已删的）；外部库的表不是 BasicApp 的表，照原样读。
+- 按列配置逐列取、列名照原样加引号，不取 `*`，大小写混合的表名与列名照原样查到；列配置里有、库里已没有的列读不出（503 `CODEGENERATION_UNAVAILABLE_003`，带表名与库的报错），先同步结构。数字、布尔按原类型，时间与 Guid 按文本，二进制按 Base64。PostgreSQL、MySQL、SQL Server、Oracle 在真实库上实测（`CodeGenerationSchemaTests`）。
+
+## 退出验证
+
+生成的代码要跟得上各包的写法：改了 Feature、权限、页面登记、错误与消息目录、操作或 SchemaPage 的写法，要同时改内置模板（`Seeds/Templates/**/*.sbn`），再跑一次退出验证。前端产物照 lint 的换行规则出（含调用的对象一个属性一行、带嵌套的数组一项一行、含调用的三元式拆三行），前端的 lint 规则变了同样要对齐模板。它是手动触发的集成测试，不进缺省 CI：
+
+```bash
+cd backend
+XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
+  artifacts/pin/bin/XiHan.BasicApp.Integration.Tests/release/XiHan.BasicApp.Integration.Tests.exe \
+  -class XiHan.BasicApp.Integration.Tests.CodeGenerationCompileTests
 ```
 
-每个 `Columns` 项（字典）常用键：`ColumnName` / `ColumnComment` / `CSharpType` / `CSharpProperty` / `TsProperty`（camelCase，对应后端 camelCase JSON）/ `TsType` / `IsPrimaryKey` / `IsNullable` / `IsRequired` / `HtmlType` / `QueryType` / `DictSelectorType` / `DictCode`，以及关键的 **`IsBaseColumn`**。
+- 变量是框架源码的 `src/` 目录（同 `-p:XiHanFrameworkSrc`），没设即跳过；前端要先在本检出的 `frontend` 装好依赖。
+- 把当前提交的 `backend` 与 `frontend` 导出到临时目录，四张演示表各配成新建包：树表 Catalog（带生成的启停枚举）、单表 Shop（关联树、常量下拉、系统字典、图片上传、时间、布尔、日期时间与定点数）、主从 Sales / SalesItems，按「生成到项目」写进去。
+- 照生成的登记片段登记进宿主（工程引用、`UseFeature`、OpenAPI 分组）与前端模块门禁，宿主连同四个新包 Release 构建、警告即失败；导出契约、`pnpm gen:contracts` 之后前端 `pnpm check` 十项通过。
 
-> `IsBaseColumn` 标记基类 `BasicAppFullAuditedEntity` 托管的列（`BasicId` / `TenantId` / `IsDeleted` / 审计四段 / 软删三段）。模板据它跳过这些列，只生成业务属性——否则会重复声明基类已有成员。内置 `Entity.sbn` 里可见 `{{~ if !col.IsBaseColumn ~}}` 的用法。
+## 模块开关
 
-### 文件名 / 路径表达式
-
-模板另有两个表达式字段（本身也走 Scriban 渲染）：
-
-- `FileNameExpression`——输出文件名，如 `{{ ClassName }}Dtos.cs`；渲染失败或为空时回退 `ClassName` + `FileExtension`。
-- `FilePathExpression`——输出目录（相对路径），拼在文件名前；渲染失败回退无目录输出。
-
-### 约定 ①：生成代码不焊外键关联
-
-**生成的代码不建立任何物理/对象层外键关联**——没有 SqlSugar `Navigate` 导航属性、没有 LEFT JOIN、没有物理外键、没有跨表"显示属性"。跨表关联一律由业务层手写。上文的字典三分（`DictSelector` / `EnumSelector` / `ConstSelector`）保留，但它只是**表单选项来源**，同样不入生成代码。这与代码生成器的既定方向一致：生成物保持自包含、无隐式耦合，关联关系交给人显式表达。
-
-### 约定 ②：用原生 Scriban，而非框架 `ITemplateService`
-
-渲染由 `ScribanTemplateRenderer` 直接用**原生 Scriban** 完成：`Template.Parse(...)` 解析、`ScriptObject` 注入变量、`TemplateContext` 渲染，并关闭成员重命名（`MemberRenamer = member => member.Name`），使模板以确定的 PascalCase 访问变量。
-
-它**刻意不走**框架的 `ITemplateService`——后者对 `string` 的默认引擎是**简单替换引擎，不解析 Scriban 语法**（`{{ }}`、`for`、`if`），会把模板原样输出。要真正跑 Scriban 语法就必须绕开它、用原生 Scriban。这一点在 `ScribanTemplateRenderer` 的注释里有明确说明。渲染前可用 `Validate` 做语法校验（`Template.Parse` 报错即返回 `TemplateRenderValidation.Invalid`）。
-
-> 枚举移除了 Razor（需运行时编译、框架不支持，避免"选了报错"的伪能力）；`T4` 在枚举中保留占位，但解析器目前只注册了 Scriban，选其它引擎会抛 `NotSupportedException`。
-
-## 生成流程
-
-对外方法（`CodeGenerationAppService`，经 `[DynamicApi]` 暴露，分组 `BasicApp.CodeGen`）与权限：
-
-| 步骤 | 方法 | 权限码 |
-| --- | --- | --- |
-| 列库表 | `ListDatabaseTablesAsync` | `code_gen:read` |
-| 导入表结构 | `ImportTableAsync` | `code_gen:import` |
-| 预览 | `PreviewAsync` | `code_gen:read` |
-| 执行生成 | `GenerateAsync` | `code_gen:execute` |
-
-端到端流程：
-
-```text
-填写 ConnectionConfigId（框架已注册连接，留空用主库）
-  → 列出库表、导入目标表         [ImportTableAsync]
-      · 扫结构 + 类型映射 → 落表/列配置
-  → 调整表配置（模板类型/命名空间/模块）与列配置（控件/查询/字典三分）
-  → 预览                          [PreviewAsync → GenType.Preview]
-      · 建 CodeGenerationContext → 逐模板渲染 → 返回产物清单（含内容）
-  → 执行生成                      [GenerateAsync]
-      · 同渲染核心，再按 GenType 分流产出
-      · 无论成败写一条 SysCodeGenHistory 留痕
-```
-
-生成方式由 `GenType` 决定：
-
-| `GenType` | 行为 |
-| --- | --- |
-| `Zip` | 生成并下载：打成 Zip，包体以 **Base64** 随 `CodeGenResultDto.PackageBase64` 返回，前端触发下载 |
-| `Project` | 生成到项目：后端产物写进与表配置**命名空间**同名的模块项目，前端产物写进前端工程 |
-
-预览走独立入口（`PreviewAsync`），只返回产物清单（含文件内容），不打包不落盘。
-
-### 生成到项目的位置
-
-写入位置不由表配置随意指定，而是按宿主内容根（WebHost 项目目录）推导本仓库的目录：
-
-- **后端**：在 `BackendRootPath`（缺省配置 `../..`，即 `backend/src`）下的分组目录里找 `<命名空间>/<命名空间>.csproj`，如命名空间 `XiHan.BasicApp.Sample` 写进 `backend/src/business/XiHan.BasicApp.Sample/`。模板的路径表达式（`Domain/Entities`、`Application/Dtos`…）与接线产物都相对这个项目目录。
-- **前端**：写进 `FrontendRootPath`（缺省配置 `../../../../frontend`）指向的前端工程，模板路径 `src/api/modules/<module>/`、`src/views/<module>/<class-kebab>/` 相对它。
-- 产物按模板分组归属：`backend-*` 进后端项目，`frontend-*` 进前端工程；生成范围只选后端时不碰前端配置。
-
-由 `ProjectArtifactWriter` 写入，绑定配置节 `CodeGeneration`（`CodeGenerationOptions`），**默认关闭**，任一条件不满足即整体拒绝、一个文件都不写：
-
-- `EnableGenerateToProject` 未开启（缺省）→ 拒绝。配置只放在 `appsettings.Development.json`，其他环境只能生成并下载。
-- 命名空间为空、不是以点分隔的标识符，或在源码根下找不到 / 找到多个同名项目 → 拒绝，不替你新建项目。
-- 前端工程目录下没有 `package.json` → 拒绝。
-- 模板分组既不是后端也不是前端 → 拒绝（不知道写进哪个项目）。
-- 产物相对路径是绝对路径 / 带盘符 / 拼接后越界（`..` 逃逸）→ 拒绝。
-
-全部产物定好位置才动磁盘；手动文件已存在时跳过，生成历史记下写入的项目目录。
-
-### 沿用已有实体
-
-本仓库的表一般由实体自动建出：先写实体，启动时框架按实体建表，再把表导入代码生成。这种表在代码里已经有实体，生成时沿用它：
-
-- 引擎经实体元数据目录按表名找到实体类型；它没有生成器标记（`[GeneratedCode("XiHan.CodeGen", …)]`）即视为手写实体，不再生成 `backend.entity` 与 `backend.entity.manual`。
-- 仓储、映射、查询服务等按实体所在命名空间引用它（模板变量 `EntityNamespace`）；表配置的类名须与实体类名一致，否则生成直接失败并给出正确类名。
-- 关联目标表已有实体时，选项查询直接用它的真实类型。
-- 外部库的表没有实体，照常生成实体；生成的实体带生成器标记，下次照常覆盖。
-- 唯一列的索引由实体负责：沿用已有实体时要自己在实体上加 `SugarIndex`。
-- 生成到项目时，若项目里已有手写的同名文件（如手写仓储）而没有对应的自动文件，整体拒绝、一个文件都不写：先移走它，自定义代码写进生成后的手动文件。
-
-## 零代码运行时（只读）
-
-`DynamicRuntimeAppService` 提供一条与"生成代码"平行的轻量路径：给定一张**已配置且启用**的 `SysCodeGenTable`，不生成/不编译任何实体代码，直接按其列配置解释执行：
-
-| 方法 | 行为 | 权限码 |
-| --- | --- | --- |
-| `GetSchemaAsync` | 按 `SysCodeGenTableColumn` 投影字段 schema（属性名、标签、`TsType`/`HtmlType`/`QueryType`、列表/查询/必填开关） | `code_gen:read` |
-| `GetPageAsync` | 用 `ISqlSugarClientResolver.GetCurrentClient()` 对表名做动态分页查询（`Queryable<Dictionary<string, object>>().AS(tableName)`） | `code_gen:read` |
-
-表名只取自已配置且启用（`Status = Enabled`）的 `SysCodeGenTable` 记录，从不直接拼接用户传入的表名字符串，因此没有 SQL 注入面；未启用的表配置访问会抛友好异常。当前只做 schema + 列表（只读），写入/DDL 未开放。前端"查看运行时数据"弹窗（表格行操作）即消费这两个接口，适合在正式生成代码前先验证列配置是否符合预期。
-
-## 扩展与二次开发
-
-- **加一种数据库方言**：扩展 `ITypeMappingProvider` 的映射；扫描能力依赖框架 `IDatabaseMetadataProvider`。
-- **加/改模板**：新增 `SysCodeGenTemplate`（自定义编码、Scriban 正文、文件名/路径表达式），或改动非内置模板；用模板变量表与 `IsBaseColumn` 约定编写。
-- **换渲染引擎**：实现 `ITemplateRenderer`（`Engine` 返回对应 `TemplateEngine`）并注册，`TemplateRendererResolver` 后注册覆盖先注册。
-- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 确认权限码常量与两个登记类落位，重启后端即由汇总种子写入权限与菜单（不需要登记种子）；旧版本生成的 `XxxPermissionSeeder` / `XxxMenuSeeder` 及其 `AddDataSeeder` 登记要删掉。
+`BasicApp:Modules:CodeGeneration:Enabled` 设为 `false` 时宿主不装配 CodeGeneration：权限码与页面不下发、操作 404，产物包下载端点不映射，已登记的外部数据源连接不再建立；`sys_code_gen_data_source`、`sys_code_gen_table`、`sys_code_gen_table_column`、`sys_code_gen_template` 与 `sys_code_gen_history` 五张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
 
 ## 下一步
 
-- [框架 · 模板模块](https://framework.docs.xihanfun.com/packages/templating)：框架 `ITemplateService` 的定位与简单替换引擎（为何代码生成绕开它用原生 Scriban）。
-- [框架 · 动态 API](https://framework.docs.xihanfun.com/guide/dynamic-api)：`[DynamicApi]` 如何把 `CodeGenerationAppService` 暴露为 REST。
-- [权限模型](./permission)：`code_gen:*` 权限码、菜单即绑与二阶产物落地的背景。
-- [系统架构](./introduction)：模块在启动聚合中的装配位置。
+- [开发流程](./development) · [文件与存储](./file) · [配置参考](../configuration#basicapp-codegeneration)

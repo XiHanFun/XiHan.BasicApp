@@ -2,196 +2,73 @@
 
 # 请求生命周期
 
-一个请求从进入进程到返回 JSON，中间经过哪些环节、每个环节能改变什么、出问题该往哪一段看——这页把整条链路摊开。**排查 401 / 403 / 423 / 租户串数据 / 时间不对 / 事务没提交，都从这张图开始定位。**
+本页说明一次调用从进入宿主到返回响应所经过的各个阶段，以及 BasicApp 在各阶段贡献的中间件，适用于排查认证、权限与审计问题的后端开发者。
 
-## 全景
+一个 HTTP 请求先经过宿主的 ASP.NET Core 中间件，再进入 XiHan 内核管道；内核管道分 11 个阶段，每个阶段里有框架内置与各能力包贡献的中间件。gRPC、MCP 与 CloudEvents 的调用从各自的协议适配器进入同一条内核管道，所以租户、权限、事务、审计的行为各协议一致。
 
-```text
-浏览器 / 客户端
-   │  Authorization: Bearer …   X-Language: zh-CN   X-Timezone: Asia/Shanghai
-   ▼
-┌─ ASP.NET Core 中间件管道（由框架 XiHanWebApiModule 编排，顺序经过设计） ──────────┐
-│                                                                                  │
-│  ★ BasicApp 最前：访问策略认证前一段与自动封禁（启动过滤器挂入，403 / 429）         │
-│  ① UseForwardedHeaders          还原反向代理转发头（scheme/host/客户端 IP）        │
-│  ② XiHanTraceIdMiddleware       分配/透传 TraceId，写入响应头 X-Trace-Id          │
-│  ③ UseXiHanRequestCulture       按 X-Language 设置请求文化                        │
-│  ④ XiHanRequestContextMiddleware 建立请求上下文                                   │
-│  ⑤ XiHanExceptionLoggingMiddleware 异常日志                                      │
-│  ⑥ XiHanRequestLoggingMiddleware   请求日志                                      │
-│  ⑦ UseRouting                   路由匹配                                          │
-│  ⑧ UseRateLimiter               限流（配置开关，默认关）                           │
-│  ⑨ XiHanCircuitBreakingMiddleware 熔断（配置开关，默认关）                         │
-│  ⑩ UseCors                      跨域                                              │
-│  ⑪ 本地对象存储静态文件           /uploads/** 匿名直链（在鉴权之前）                │
-│  ⑫ XiHanApiLoggingMiddleware    API 日志                                          │
-│  ⑬ XiHanOpenApiSecurityMiddleware 开放接口签名/防重放/加解密                       │
-│  ⑭ UseAuthentication            JWT 认证 → 填充 ClaimsPrincipal                   │
-│  ⑮ XiHanTenantResolveMiddleware 租户解析 → 建立 ICurrentTenant                    │
-│  ⑯ XiHanRequestAccessMiddleware 请求访问闸门：访问策略认证后一段→403                │
-│  ⑰ XiHanSessionStateMiddleware  会话闸门：失效→401，锁屏→423                       │
-│  ⑱ UseAuthorization             授权（权限码判定）                                 │
-│  ⑲ UseEndpoints                 命中动态 API 生成的 Controller Action              │
-│                                                                                  │
-│  ★ BasicApp 追加：Telegram Webhook 中间件（鉴权之前，强校验 secret_token）          │
-└──────────────────────────────────────────────────────────────────────────────────┘
-   ▼
-┌─ 应用层 ─────────────────────────────────────────────────────────────────────────┐
-│  写侧 *AppService（[UnitOfWork] + [PermissionAuthorize]）                          │
-│      └→ 领域服务（业务规则） → 仓储（SqlSugar，自动挂租户/软删过滤） → 数据库        │
-│  读侧 *QueryService                                                               │
-│      └→ 分布式缓存命中？ → 命中直接返回 / 未命中查库回填                            │
-└──────────────────────────────────────────────────────────────────────────────────┘
-   ▼
-┌─ 收尾 ───────────────────────────────────────────────────────────────────────────┐
-│  UoW 提交 → 本地事件（提交前）/ 分布式事件（提交后）→ 精准失效缓存 → 队列入队       │
-│  响应过滤器包 ApiResponse 信封；本地化覆盖 Data；时间按 X-Timezone 换算            │
-└──────────────────────────────────────────────────────────────────────────────────┘
-```
+## 一、ASP.NET Core 段
 
-## 逐段说明
+`BasicAppHost.Map` 的顺序：
 
-### ① 转发头还原必须在最前
-
-`UseForwardedHeaders` 先于一切读取 scheme / host / 客户端 IP 的中间件（路由、鉴权、CORS、重定向生成）。放错位置的表现是：反向代理后面拿到的客户端 IP 全是网关 IP、生成的重定向 URL 是 `http://` 而不是 `https://`。
-
-### ★ 访问策略认证前一段在转发头之前
-
-平台级、只看请求本身属性（IP、地区、时段、UA、路径、方法）的访问策略，以及登录失败自动封禁，在管线最前求值：拒绝返回 403，封禁中返回 429 并带 `Retry-After`，接口、实时通道、`/uploads` 静态文件与接口文档都在它后面。这一步早于 ①，客户端地址按 ① 同一份转发头配置在请求副本上还原，不改动请求本身。求值出错时放行并记错误日志。总开关与误封自己后的恢复见[部署 · 访问策略与真实 IP](../deployment#访问策略与真实-ip)。
-
-### ② TraceId
-
-优先取 W3C `Activity.TraceId`（启用 OpenTelemetry 后是 32-hex），否则回退入站 `X-Trace-Id` 头，再回退 Kestrel 的 `TraceIdentifier`。结果同时写进 `HttpContext.Items` 和**响应头 `X-Trace-Id`**，并进入 `ApiResponse.traceId`。
-
-日志、审计、事件总线共用这一个值——排查线上问题时拿它去检索即可串起全链路。
-
-### ③ 请求文化
-
-紧跟 TraceId、**先于路由与 MVC**，这样后续管线（请求上下文、控制器、响应过滤器）全都在正确的文化下执行。文化来源是请求头 `X-Language`。
-
-### ⑧⑨ 限流与熔断
-
-两者都在**路由之后、鉴权之前**——尽早拒绝超额请求、过载时快速失败，不浪费鉴权与数据库资源。默认都关闭，由 `XiHan:Web:RateLimiting:IsEnabled` / `XiHan:Web:CircuitBreaking:IsEnabled` 打开。
-
-### ⑪ 本地存储静态文件在鉴权之前
-
-本地对象存储的公开资源（头像等）要能匿名直链访问，所以静态文件中间件挂在 `UseAuthentication` 之前。路径与 `XiHan:ObjectStorage:Local` 约定一致（默认 `wwwroot/uploads` ↔ `/uploads`）。
-
-::: warning 线上跨源要拼 origin
-本地存储返回的是**根相对路径** `/uploads/...`。前后端不同源时前端必须拼上 `VITE_API_BASE_URL` 的 origin，仓库里的 `toAbsoluteFileUrl` / `useAvatarUrl` 已处理。
-:::
-
-### ⑬ 开放接口签名
-
-只对配置里 `ProtectedPathPrefixes` 命中的路径生效（BasicApp 配的是 `/api/openapi`）。它在**认证之前**——开放接口的身份由 HMAC 签名确立，没有 JWT。详见 [接口对接指南](../api-guide#开放接口-签名调用-无-jwt)。
-
-### ⑮ 租户解析
-
-在认证之后（要读令牌里的 `TenantId` claim），建立 `ICurrentTenant`。**这一步之后**，仓储上的全局查询过滤器才知道当前租户是谁。
-
-租户上下文决定了两件事：读什么（过滤器放行 `TenantId IN (0, 当前租户)`）、写哪里（写路径禁止改非本租户行）。见 [多租户与版本](./multi-tenancy)。
-
-### ⑯ 请求访问闸门：访问策略认证后一段
-
-框架在认证、租户解析与路由之后、会话闸门与授权之前，依次询问应用注册的请求访问闸门。BasicApp 在这里求两层访问策略：平台级要用到用户、角色、部门、客户端类型或端点权限码的策略，加上已登录请求所在租户的策略；同一层里放行压过拒绝，平台的拒绝租户放行不了。匿名接口、Minimal API 与实时通道的协商请求同样经过。被拒返回 403「访问被安全策略拒绝。」，命中记录里能按 TraceId 查到是哪条策略。
-
-### ⑰ 会话闸门（401 与 423 的分水岭）
-
-`XiHanSessionStateMiddleware` 的位置是精心安排的：
-
-- **在认证之后**——要读 `session_id` claim；
-- **在租户解析之后**——会话表是多租户实体，租户上下文没解析会被全局过滤器挡掉；
-- **在授权之前**——`423` / `401` 要先于权限评估短路，不能和 `403` 混淆。
-
-判定逻辑委托给应用侧的 `ISessionStateGate`（框架默认实现一律放行）。BasicApp 用 `services.Replace(...)` 换成 `SaasSessionStateGate`，据此产出两种结果：
-
-| 结果 | 语义 | 客户端该怎么做 |
+| 顺序 | 中间件 | 作用 |
 | --- | --- | --- |
-| `401` | 会话已失效（登出 / 被踢 / 撤销 / 过期） | 尝试刷新令牌，失败则跳登录页 |
-| **`423`** | **会话被锁屏，身份仍然有效** | **弹解锁遮罩，绝不能跳登录页** |
+| 1 | `UseForwardedHeaders` | 还原代理转发的客户端地址、协议与主机（`BasicApp:ForwardedHeaders`，缺省只信本机回环）；之后的日志、会话、节流与访问策略拿到的都是还原后的地址 |
+| 2 | `ResponseSecurityHeadersMiddleware` | 一律加 `X-Content-Type-Options: nosniff` |
+| 3 | `UseCors` | 只在 `BasicApp:Cors` 配了来源时启用；维护期间的 503 也带跨域头 |
+| 4 | `MaintenanceModeMiddleware` | 别的节点升级共享库期间返回 503（`RUNTIME_UNAVAILABLE_003`，带 `Retry-After`）；放行 `/health` 与 `/.well-known/` |
+| 5 | `UseAuthentication` / `UseAuthorization` | 只服务绕过内核管道的端点（实时 Hub）：XiHan 方案按 `Security.Jwt` 的同一套参数校验，令牌只在 `/hubs` 下从查询串读 |
+| 6 | `UseOpenApiRequestBuffer` | 为签名开放接口留下请求体原文（验签要原文，加密的要先解密） |
+| 7 | `UseXiHan()` | 进入内核管道 |
 
-### ⑱ 授权：读授权快照，不读令牌
+绕过内核管道的端点（`BypassXiHanPipeline()`）：Scalar 页面、根路径自述、实时 Hub、OAuth 2.0 / OIDC 端点、第三方登录的跳转与回调、Telegram Webhook。它们没有调用上下文，自己处理认证与错误。
 
-框架的 `UseAuthorization` 会调 `IPermissionChecker`。BasicApp 用 `services.Replace(IPermissionChecker → SaasPermissionChecker)` 把判定改为读 **Redis 里的授权快照**（`SaasAuthorizationSnapshotCacheItem`）。
-
-由此得到一个重要性质：**授权变更即时生效，无需重新登录**。权限码不冻结进 JWT（超管例外，只放一个字面通配 `*` 作快路径）。
-
-这一步先看授权快照：会话仍有效 → 权限码（角色继承、直授、委托合并后）→ 作用侧与模仿登录禁用清单 → 租户版本（Edition）白名单，任何一环不过都是 403「权限不足」。快照里有条件授予（或有条件禁止）的权限码再按当前请求求权限条件，不满足返回 403「当前条件下不允许此操作」，含数据行属性的条件在模型绑定之后补算。数据范围不在这一步，它由查询服务追加条件（目前只有用户列表），不过时表现为查不到而不是 403；约束规则不参与请求期判定。见 [权限模型](./permission#判定链)。
-
-### ⑲ 端点：动态 API
-
-没有手写 Controller——应用服务打 `[DynamicApi]` 由框架在启动时生成 Controller 并注册路由。路由推导规则（动词前缀剥离、默认 POST、路由段只由 `[FromRoute]` 产生）见 [接口对接指南](../api-guide#动态-api-路由推导规则)。
-
-## 应用层内部
-
-### 写侧
-
-```csharp
-[UnitOfWork(true)]                                          // ← 开事务
-[PermissionAuthorize(SaasPermissionCodes.Position.Create)]  // ← 细粒度权限
-public async Task<PositionDetailDto> CreatePositionAsync(PositionCreateDto input, CancellationToken cancellationToken = default)
-{
-    var command = PositionApplicationMapper.ToCreateCommand(input);
-    var result = await _positionDomainService.CreatePositionAsync(command, cancellationToken);  // 业务规则在领域服务
-    return PositionApplicationMapper.ToDetailDto(result.Position);
-}
-```
-
-影响缓存的写方法在领域服务返回后调 `ISaasCacheInvalidator` 的对应方法（如 `OperationAppService` 调 `InvalidateOperationDefinitionAsync`），失效以 `considerUow: true` 排队，UoW 提交后才真正执行。
-
-::: danger 没标 `[UnitOfWork]` 就没有事务
-框架判定「要不要被工作单元拦截」看的是类/方法上有没有 `[UnitOfWork]`（或实现 `IUnitOfWorkEnabled`，而它在框架里无人实现）。**没有中间件会替你开环境工作单元。** 多步写操作漏标注 = 没有原子性。
-:::
-
-### 读侧
-
-`*QueryService` 直接投影，多数带分布式缓存。读路径还会经 `IFieldSecurityService.GuardQueryAsync` 做字段级门控——只有能看明文的字段允许参与排序、过滤与关键字搜索；接口返回前由 `FieldSecurityResponseFilter` 统一按实体打码（排在响应缓存外层）。
-
-## 收尾顺序（最容易踩的时序）
-
-工作单元完成时的动作是**有先后的**：
+## 二、内核管道
 
 ```text
-1. 本地事件发布        ← 提交之前（处理器可能继续写库，必须落在同一事务里）
-2. 提交事务
-3. 分布式事件发布      ← 提交成功之后（避免「事务回滚了事件照发」的幽灵事件）
-4. 缓存失效执行        ← RemoveByPatternAsync(..., considerUow: true) 排队到提交后
-5. 队列入队 / 后台作业
+Ingress → Observe → Resilience → Authenticate → Tenant → Authorize → Validate → Idempotency → Transaction → Handle → Egress
 ```
 
-几条推论：
+| 阶段 | 框架内置 | BasicApp 贡献 |
+| --- | --- | --- |
+| Ingress | 协议归一化、大小限制、构造调用上下文与调用来源（协议、目标、远端地址、User-Agent） | — |
+| Observe | 链路、日志、指标；Full Profile 的 `AuditMiddleware`（`XiHan:Auditing:Selection = None`，由 Auditing 显式声明要审计的操作） | `AuditLogMiddleware`（Auditing，排在框架审计之内）：标了 `audited` 的操作声明审计动作并补耗时、登录名、会话、客户端信息；按结果写访问、异常日志，以及调用里登记的登录、开放接口、条件命中日志，权限变更日志与数据变更只在成功时写 |
+| Resilience | 截止时间（`xihan-deadline`）、按操作 ID 的限流、并发上限与熔断（`XiHan:Kernel:Resilience`） | — |
+| Authenticate | JWT 校验（HS256） | `SessionGateMiddleware`（Identity，排在 JWT 之后）：令牌带 `sid` 时核对会话有效，已吊销、已过期或用户不正常 → `IDENTITY_DENIED_001`；锁定的会话只放行 `auth.unlock` 与 `auth.logout`（强制改密锁另放行 `profile.change-password`），其余 `IDENTITY_DENIED_002`<br>`RequestSigningMiddleware`（OpenPlatform，只对 `open.*`）：验签、防重放、解密，并登记开放接口日志 |
+| Tenant | 从令牌 `tenant` 声明（及内部调用的 Baggage）解析租户 | `AccessPolicyMiddleware`（Access，排在租户解析之后，只管 HTTP、gRPC、MCP 入站）：先看登录失败自动封禁（503 `ACCESS_UNAVAILABLE_001`），再求平台层、租户层访问策略，拒绝 → 403 `ACCESS_DENIED_004`，命中都记条件命中；判定本身出错时放行并记警告 |
+| Authorize | 按操作声明的权限码 / 策略判定；`PermissionChecker` 查授予存储与 `IPermissionGrantSource`，再经各 `IPermissionFilter` 收窄 | Access 登记的 `AccessGrantSource`（继承、委托）、`AccessPermissionFilter`（Deny、有效期、作用侧）、`EditionPermissionFilter`（套餐门控）<br>`PermissionConditionMiddleware`（排在框架授权之后）：持有的权限码挂了条件时按请求属性精确判定 |
+| Validate | 按操作请求的 JSON Schema 校验载荷，再执行 `IValidatableObject`；失败带字段级 `errors` | — |
+| Idempotency | 幂等键去重（`XiHan:Caching:Idempotency`） | — |
+| Transaction | 工作单元：成功提交、失败回滚；提交前把领域事件写进发件箱 | 阶段开头、工作单元之外：`CacheInvalidationMiddleware`（Runtime，调用里记下的缓存失效在提交或回滚之后才删键）、`RealtimeDispatchMiddleware`（Realtime，调用里的推送先暂存，提交且成功后才发出）、`PublishProgressMiddleware`（Notification，通知发布的开始与失败立即推给发布人）、`AiProviderCatalogMiddleware`（AI，提供商写入提交后重载目录）<br>`AuditorStampMiddleware`（Runtime）：把当前主体 ID 放进异步本地值，SqlSugar 回调据此填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
+| Handle | 调用操作的 `HandleAsync` | `FieldSecurityMiddleware`（Access，工作单元之内）：对绑定了字段安全的操作，受保护的字段不能筛选、排序（`ACCESS_DENIED_006`），只读字段不能填、不能改（`ACCESS_DENIED_007`）；成功响应编码前再由响应过滤器打码。数据范围在各包的查询处显式套用 |
+| Egress | 结果与错误翻译：错误码 → 状态码，消息键按调用方区域翻译成 `detail` | — |
 
-- **缓存失效必须 `considerUow: true`**，否则会在事务提交前就清缓存，并发读会把未提交的旧值重新灌回去。
-- **分布式事件在提交后才发**，因此提交成功但投递失败会丢事件。要强投递保证得自己接持久化发件箱。
-- **内层 `RollbackAsync` 之后外层再提交会抛 `XiHanException`**——父子共用同一物理事务，内层回滚即整体终止。
+用 `dotnet run --project backend/src/XiHan.BasicApp.Host -- pipeline` 可以打印实际的中间件次序。同阶段的中间件按清单 ID 排序，跨包的先后由 `context.Pipeline.After<,>()` / `Before<,>()` 显式声明。
 
-## 响应
+## 三、典型路径
 
-统一 `ApiResponse` / `ApiResponse<T>` 信封：
+### 未认证与会话失效
 
-- 国际化时响应过滤器会**覆盖 `Data`**，所以前端优先读 `data`。
-- 时间列按 `X-Timezone` 换算输出（存储恒 UTC）。
-- `long` 序列化为字符串；枚举序列化为成员名；`null` 字段整个省略。
+| 情况 | 阶段 | 错误码 | 客户端动作 |
+| --- | --- | --- | --- |
+| 未携带令牌 | Authorize | `SECURITY_DENIED_001`（401） | 刷新一次，失败则返回登录页 |
+| 令牌过期 / 签名不符 | Authenticate | `SECURITY_DENIED_003`（401） | 刷新一次并重放 |
+| 会话被吊销 | Authenticate（会话门禁） | `IDENTITY_DENIED_001` | 返回登录页 |
+| 已锁定 | Authenticate（会话门禁） | `IDENTITY_DENIED_002` | 按 `details.reason` 显示锁屏或强制改密 |
+| 没有权限码 / 被 Deny / 套餐不含 | Authorize | `SECURITY_DENIED_004`（403） | 提示无权限 |
+| 共享库升级中 | ASP.NET Core（维护模式） | `RUNTIME_UNAVAILABLE_003`（503） | 提示稍后重试 |
 
-字段表、业务码全表与客户端解包顺序见 [接口对接指南](../api-guide#统一响应信封)。
+### 失败调用的副作用
 
-## 按现象定位
+调用失败时，事务回滚，仓储写入随之撤销；调用中暂存的实时推送与缓存失效按回滚处理（推送丢弃，缓存失效照常执行）。访问日志与异常日志照常记录，标注了审计的操作在操作日志中记录失败；权限变更日志与数据变更只在调用成功时记录。登录相关的事件（密码错误、验证码错误、节流拒绝、第二步验证码错误）无论成败都记入登录日志。
 
-| 现象 | 先看哪一段 |
-| --- | --- |
-| 401 且刷新也救不回来 | ⑰ 会话闸门：会话是否被撤销/过期 |
-| 423 | ⑰ 锁屏，不是认证问题 |
-| 403 但权限码明明有 | ⑱ 版本门控 / 作用侧 / 模仿登录禁用清单 / 用户直授 Deny |
-| 查得到别的租户数据 | ⑮ 租户解析是否成功；实体是否漏了多租户基类 |
-| 时间差几小时 | 请求有没有带 `X-Timezone`；存储侧是否为 UTC |
-| 客户端 IP 全是网关 IP | ① 转发头配置 |
-| 接口返回 200 但库里没数据 | 写方法漏了 `[UnitOfWork]`，或内层回滚过 |
-| 改了数据但页面还是旧值 | 收尾第 4 步：失效方法没调，或没走 `considerUow` |
+### 日志写入
 
-## 相关页面
+所有日志只进有界队列（`BasicApp:Auditing:QueueCapacity`），由后台批量落库，写日志不改变调用结果。
 
-- [后端架构](./introduction)：模块装配与分层
-- [缓存与异步](./caching)：缓存条目、失效器、队列
-- [接口对接指南](../api-guide)：信封、业务码、请求头
-- [权限模型](./permission)：授权判定链
-- [常见问题](../faq)：具体故障的处置步骤
+## 四、普通端点
+
+上传、下载、头像等普通端点不属于操作，但仍通过 `RequireXiHanPermission(...)` / `RequireXiHanAuthentication()` 经过内核的认证与授权；宿主的端点过滤器在端点执行时登记端点身份与实际状态码，访问日志与数据变更按 `files.upload` 这类名字记录，写入类端点另进操作日志。
+
+## 下一步
+
+- [统一认证](./authentication) · [权限管理](./permission) · [访问策略与权限条件](./access-policy) · [日志审计](./logging)

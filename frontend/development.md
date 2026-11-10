@@ -2,126 +2,107 @@
 
 # 开发流程
 
-从零加一个前端页面的完整流程。**前端页面的事实源在后端**——菜单、路由、组件路径、权限码、i18n 键都在后端 `PageRegistry` 登记，前端只补落盘文件。所以流程是「后端先行、前端跟进」。
+本页以 Settings 模块的参数页为例，说明前端新增页面的步骤，适用于前端开发者。阅读前建议先了解[框架简介](./introduction)。
 
-## 五步
+## 一、确定后端契约
 
-```text
-① 后端 PageRegistry 登记页面与按钮（建菜单即绑权限）
-② 后端加分页/详情/写入接口（分页记得标 [HttpPost]）
-③ 前端加 API 模块（src/api/modules/{域}/）
-④ 前端加视图文件（src/views/{域}/{页}/index.vue）
-⑤ 补 i18n 文案（menu.ts + 模块文案）
+前端不手写接口：操作、请求 / 响应、权限码与页面登记都在后端（见[后端开发流程](../backend/development)）。后端改完先导出契约，再生成契约层：
+
+```bash
+# 仓库根；dotnet run 以工程目录为工作目录，--out 要给绝对路径
+dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
+cd frontend && pnpm gen:contracts
 ```
 
-前两步属于后端，见 [后端手册 · 二次开发](../backend/development)。下面只讲前端三步。
+`contracts/*` 与 `packages/contracts/*` 都入库，和后端改动、页面改动放在同一个提交。写调用前先看生成的 `operations.ts`（路由表与调用函数）和 `types.ts`。契约不对就回后端改，不在前端补字段或写 `as any`。
 
-## ③ API 模块
+## 二、创建页面
 
-按域建两个文件：
+页面路径由后端页面登记决定：路由 `/settings/configs` → 组件路径 `settings/configs/index` → 文件 `src/modules/settings/views/configs/index.vue`。
 
-```text
-src/api/modules/organization/
-├── position.ts          # API 定义
-└── position.types.ts    # DTO 类型
+```vue
+<script lang="ts" setup>
+import type { ListFieldSchema, PageSchema } from '~/components'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { SchemaPage } from '~/components'
+import { configsResource } from './use-configs'
+
+defineOptions({ name: 'SettingsConfigsView' })
+const { t } = useI18n()
+const resource = configsResource()
+
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('settings.configs.search'), dataType: 'string', visible: false, searchable: true },
+  { key: 'name', title: t('settings.configs.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 160 },
+  // …
+])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'settings.configs',
+  pageName: t('settings.configs.title'),
+  rowKey: 'id',
+  fields: fields.value,
+  resource: resource as unknown as PageSchema['resource'],
+  actions: [
+    { key: 'create', title: t('settings.configs.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'settings.configs.create' },
+  ],
+}))
+</script>
+
+<template>
+  <SchemaPage :schema="schema" />
+</template>
 ```
 
-标准 CRUD 用资源工厂：
+- 列表页一律用 [SchemaPage](./schema-page)。资源适配器 `use-<页面>.ts` 调生成的操作客户端（`import { configs } from '~/contracts'`），经 `toPageRequest` / `toSchemaPageResult` 对接分页。
+- 新增 / 编辑用 `XEditModal` + `XhFormRoot`：每个字段都有可见标签；单个字段的说明写在 `XFieldLabel` 的 `help` 上（字段名后面的问号提示），不放在字段下方；字段错误用 `XhFieldRoot :invalid` + `XhFieldErrorText` 显示 `ApiError.errors`。
+- 按钮的 `permission` 直接填操作的权限码，门禁核对它存在于生成的 `permissions.ts`。
+- 大页面拆成 `index.vue` + `use-*.ts` 组合式函数；样板见 `src/modules/settings/views/configs`。
+- 新模块要有 `setup.ts`（至少登记文案）、`locales/` 与 `views/`，模块名与后端能力包一致。
 
-```ts
-import { defineResource } from '../../factory'
+## 三、文案
 
-export const positionApi = defineResource<
-  PositionListItemDto, PositionDetailDto,
-  PositionCreateDto, PositionUpdateDto, PositionPageQueryDto
->({
-  query: 'PositionQuery',
-  command: 'Position',
-})
+在 `src/modules/settings/locales/<区域>.ts` 加键，10 种区域都要有、键集完全对称。菜单标题的键来自后端页面登记（如 `settings.configs.title`）；枚举文案在前端按契约字面量静态写出。见[国际化与时区](./i18n)。
+
+## 四、样式
+
+- 只用 XiHan.UI 组件与语义令牌；不新增裸 px（`pnpm px:check` 按文件计数，只许减不许增）；
+- 自写样式的圆角只写形状角色 `--xh-shape-control / surface / overlay / inset / sheet`，不写 `--xh-radius-*` 档位；按下只换面、不缩放；浮层只用 frosted，玻璃拟态只在指定几处用 `.app-glass`（见主题）；
+- 列 `render` 用 `h()` 生成的节点不带页面 scope，样式写 `:deep()`；
+- 前端保持紧凑，不加营销式大标题。
+
+细则见[布局与主题](./theme)。
+
+## 五、门禁与测试
+
+```bash
+pnpm check   # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
+pnpm test    # Vitest + jsdom
+pnpm build
 ```
 
-有自定义动作时改用低层客户端逐个拼（`position.ts` 就是这种写法）：
-
-```ts
-// position.ts
-import { createDynamicApiClient, createReadApi } from '../../base'
-
-const positionQueryApi = createDynamicApiClient('PositionQuery')
-const positionCommandApi = createDynamicApiClient('Position')
-const positionReadApi = createReadApi<PositionListItemDto, PositionDetailDto, PositionPageQueryDto>(
-  'PositionQuery',
-  'Position',
-)
-
-export const positionApi = {
-  detail: (id: ApiId) => positionReadApi.detail(id),
-  page: (input: PositionPageQueryDto) => positionQueryApi.post('PositionPage', input),
-  updateStatus: (input: PositionStatusUpdateDto) => positionCommandApi.put('PositionStatus', input),
-}
-```
-
-别忘了在该域的 `index.ts` 里导出。动作名推导规则与分页协议见 [服务端交互](./request)。
-
-## ④ 视图文件
-
-**路径由后端 `PageDescriptor.Component` 决定**，约定是 `Path` 去前导斜杠 + `/index`：
-
-| 后端 `Path` | 后端 `Component` | 前端文件 |
-| --- | --- | --- |
-| `/identity/position` | `identity/position/index` | `src/views/identity/position/index.vue` |
-
-列表页直接照 [Schema 驱动页面](./schema-page) 的骨架写，三段：字段声明 → 查询构建 → 页面 Schema。
-
-::: warning `_core` 页面要额外登记
-不落在 `src/views` 的页面（个人中心、关于页等，源码在 `packages/views/_core/`），`Component` 写 `_core/xxx/index`，**必须同时在 `packages/router/dynamic.ts` 的 `coreComponentMap` 登记**，否则菜单有、点进去 404。
-:::
-
-## ⑤ i18n 文案
-
-两处：
-
-| 文件 | 键 | 说明 |
-| --- | --- | --- |
-| `packages/locales/langs/{zh-CN,en-US}/menu.ts` | `identity_position` | 菜单标题。键 = 后端 `I18nKey` 去掉 `menu.` 前缀 |
-| `src/locales/langs/{zh-CN,en-US}/{模块}.ts` | `identity.position.position_name` 等 | 页面内文案，约定 `模块.实体.字段或动作`。新增模块文件要在同级 `zh-CN.ts` / `en-US.ts` 里 import 并导出 |
-
-::: danger 裸 `@` 会白屏
-文案里出现裸 `@`（如 `联系 @admin`）会触发 vue-i18n 的 linked message 语法而抛错、整页白屏。必须转义成 `{'@'}`。见 [国际化](./i18n)。
-:::
-
-## 自检清单
-
-写完对照一遍，漏哪项就是哪种表现：
-
-| 项 | 漏了会怎样 |
+| 门禁 | 检查 |
 | --- | --- |
-| 后端 `PageRegistry` 登记 | 侧边栏没有这个菜单 |
-| 后端权限定义落库 | 菜单种子 fail-closed 跳过，菜单还是不出现 |
-| 后端分页方法标 `[HttpPost]` | 前端发的 body 后端收不到 |
-| 视图文件路径与 `Component` 一致 | 菜单有、点进去 404 |
-| `_core` 页面登记 `coreComponentMap` | 同上 |
-| `menu.ts` 文案 | 侧边栏显示 `menu.xxx` 原文 |
-| 字段 `permission` / `exportPermission` | 无权用户也看得到列/按钮（**服务端仍会拦，但体验差**） |
+| `type-check` | `vue-tsc --noEmit` |
+| `lint` | oxlint + eslint（`@antfu/eslint-config`）+ stylelint（`.css` 与 `.vue` 的 `<style>`，后者经 postcss-html 解析）；`packages/` 不得引用 `@/` |
+| `px:check` | 样式里的裸 px 按文件计数（`scripts/px-allowlist.json`，`--update` 收紧） |
+| `token:check` | 引用的 `--xh-*` 令牌在已安装的组件库里存在 |
+| `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
+| `modules:check` | 模块名是后端能力包名；有 `setup.ts`、`locales/`、`views/`；视图路径是 kebab-case 且全局唯一 |
+| `tests:check` | 测试只在所属包或模块的 `tests/` 目录里，命名 `*.spec.ts` |
+| `headers:check` | `src`、`packages` 下的 `.ts`、`.vue`、`.css` 以版权头开头（测试不加）；`node scripts/check-headers.mjs --write` 补齐 |
+| `contracts:check` | 按 `contracts/*` 重新生成契约层，与入库文件一致 |
+| `permissions:check` | `permission:`、`permissions:`、`can('…')`、`hasPermission('…')` 里的权限码都存在于 `permissions.ts` |
 
-## 质量门禁
+- 单测放在所属包或模块的 `tests/` 目录（`packages/<包>/tests/`、`src/modules/<模块>/tests/`），按被测文件的子路径摆放，命名 `*.spec.ts`，导入写 `~/`、`@/` 别名；`scripts/vitest-setup.ts` 把 `navigator.languages` 固定为 `zh-CN` 并预装十种区域的文案，`vi.resetModules()` 之后要自己重装。
+- 新增 `views/**/index.vue` 后 Vitest 可能看不到它（`node_modules/.vitest-cache` 缓存了 `import.meta.glob` 的结果），先删缓存再跑。
+- 修改共享组件、路由、请求、权限或主题时三项都跑。视觉与交互改动还要在真实浏览器里看亮 / 暗色、窄视口、键盘与焦点、减少动态效果。
 
-```bash
-pnpm type-check
-```
+## 六、XiHan.UI 本地联调
 
-```bash
-npx eslint src/views/identity/position/index.vue --fix
-```
+常规开发与 CI 用 `catalog` 里的发布版。联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides`，把 `@xihan-ui/*` 指到同级源码（`link:../../XiHan.UI/ui/packages/<分组>/<包>`），overrides 不提交。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
 
-::: warning 别跑全仓 lint
-`pnpm run lint:fix` 展开是 `cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix`，会扫全仓并改动与你无关的文件。**只对本次改动的文件跑**；误跑了用 `git checkout HEAD -- <非本次任务的文件>` 还原。
-:::
+## 下一步
 
-前端改动由开发者自行在浏览器验证，不走自动化预览。
-
-## 相关页面
-
-- [后端手册 · 二次开发](../backend/development)：后端纵切片的完整接线清单
-- [路由与菜单](./routing)：路由怎么从后端菜单生成
-- [Schema 驱动页面](./schema-page)：列表页开发手册
-- [目录结构与代码地图](../project-structure#前端)：我要改 X 去哪个文件
+- [菜单与路由](./routing) · [契约与请求](./request) · [Schema 驱动页面](./schema-page)

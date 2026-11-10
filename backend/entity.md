@@ -2,151 +2,112 @@
 
 # 实体基类
 
-新增实体前先读这页：基类怎么选、有哪些列是自动来的、多租户列是什么语义、软删与唯一索引怎么配合、命名和索引有哪些强制规范。选错基类的返工成本很高。
+本页说明应用的实体基类、字段约定、平台数据的建模规则与领域事件，适用于新增实体的后端开发者。
 
-全部数据表的清单见 [数据模型](./data-model)。
+框架只提供实体协议接口（`IEntity<TKey>`、`IHasConcurrencyStamp`、`IHasCreationTime`、`IHasModificationTime`、`ISoftDeletable`、`IMultiTenant`、`IAggregateRoot<TKey>` 等），不提供基类。BasicApp 在 `XiHan.BasicApp.Contracts/Entities/` 里用这些接口组合出一组应用基类，并补上框架没有的「操作人」字段（`IHasCreator`、`IHasModifier`、`IHasDeleter`）。
 
-## 先选对基类
+## 基类一览
 
-所有 BasicApp 实体都继承 `XiHan.BasicApp.Core.Entities` 下的基类，它们各自对应框架的 `SugarMultiTenant*` 系列——**都自带 `TenantId` 列**。
+| 基类 | 组合 | 字段 | 用途 |
+| --- | --- | --- | --- |
+| `AppEntity` | `IEntity<Guid>`、`IHasConcurrencyStamp` | `Id`、`ConcurrencyStamp` | 关联表、无审计 |
+| `AppRecord` | `AppEntity` + `IHasCreationTime` + `IHasCreator` | `CreatedAt`、`CreatedBy` | 只增的记录：日志、流水、投递记录、授予规则行 |
+| `AppAuditedEntity` | `AppRecord` + `IHasModificationTime` + `IHasModifier` + `ISoftDeletable` + `IHasDeleter` | `ModifiedAt`、`ModifiedBy`、`IsDeleted`、`DeletedAt`、`DeletedBy` | 缺省选择 |
+| `AppAggregateRoot` | `AppAuditedEntity` + `IAggregateRoot<Guid>` | `DomainEvents` | 有行为、要发领域事件的聚合 |
+| `TenantScopedEntity` / `TenantScopedRecord` / `TenantScopedAuditedEntity` / `TenantScopedAggregateRoot` | 上面四个 + `IMultiTenant` | `TenantId` | 只用于租户库实体 |
 
-| 基类 | 主键 | 审计列 | 软删 | 用在哪 |
-| --- | --- | --- | --- | --- |
-| `BasicAppEntity` | 雪花 `long` | 无 | 否 | 极简实体、纯关联表 |
-| `BasicAppEntityWithIdentity` | 数据库自增 `long` | 无 | 否 | 需要自增序号的场景 |
-| `BasicAppCreationEntity` | 雪花 `long` | 创建三列 | 否 | **日志 / 流水**等只增不改的表 |
-| `BasicAppModificationEntity` | 雪花 `long` | 仅修改三列 | 否 | 会改但不删的配置类 |
-| `BasicAppDeletionEntity` | 雪花 `long` | 仅删除四列 | 是 | 少见 |
-| **`BasicAppFullAuditedEntity`** | 雪花 `long` | 创建 + 修改 + 删除 | **是** | **绝大多数业务实体的默认选择** |
-| `BasicAppAggregateRoot` | 雪花 `long` | 全套 | 是 | 聚合根（带领域事件能力） |
+叫 `TenantScoped*` 是为了不与框架 `MultiTenancy.Database` 的租户目录实体 `TenantRecord` 重名。哪些实体用哪组基类见[数据模型](./data-model)。
 
-选择准则：
+## 字段约定
 
-- **拿不准就用 `BasicAppFullAuditedEntity`**——业务表几乎都需要「谁建的、谁改的、软删可恢复」。
-- **日志、流水、审计类用 `BasicAppCreationEntity`**：只增不改不删，带上修改/删除列纯属浪费，而且这类表通常还要**按月分表**。
-- 纯多对多关联表（如 `SysUserRole`）通常也是创建型（硬删）。
-
-## 自动来的列
-
-### 主键与并发
-
-| 列 | 类型 | 说明 |
+| 字段 | 类型 | 谁维护 |
 | --- | --- | --- |
-| `Basic_Id` | `bigint` | **主键**。注意列名是 `Basic_Id` 不是 `Id`——手写 SQL / 排查时别找错。默认**非自增**，由应用侧雪花算法生成 |
-| `Row_Version` | `bigint` | 乐观并发标识，SqlSugar 的 `IsEnableUpdateVersionValidation` 生效 |
+| `Id` | `Guid`，UUID v7（经 `IIdGenerator<Guid>` 取） | 操作里 `ids.NewId()` |
+| `ConcurrencyStamp` | 32 位字符串 | 框架仓储，更新时比对 |
+| `CreatedAt` / `ModifiedAt` / `DeletedAt` | `DateTimeOffset`，库内 UTC | 框架仓储 |
+| `CreatedBy` / `ModifiedBy` / `DeletedBy` | `string?`，值为主体 ID | Runtime 的 SqlSugar 回调（见下） |
+| `IsDeleted` | `bool` | 框架仓储：删除即置位，查询自动排除 |
+| `TenantId` | `string` | 框架仓储按当前租户写入并严格过滤 |
 
-雪花参数在配置节 `XiHan:DistributedIds:SnowflakeId`。
+### 操作人字段的填充
 
-::: danger 多节点必须逐节点改 `WorkerId`
-两个节点同 `WorkerId` 会生成**重复主键**，且不会立刻报错——等到唯一约束冲突时数据已经乱了。`BaseTime` 与位长一经上线不可更改。
-:::
+框架没有操作人字段。Runtime 的 `AuditorStampMiddleware` 在管道 Transaction 阶段把当前已认证主体的 ID 放进异步本地值（`AuditorStamp`），SqlSugar 的 `AopEvents.DataExecuting` 回调据此在插入、更新、软删除时填 `CreatedBy` / `ModifiedBy` / `DeletedBy`。
 
-::: warning 主键在 API 里是字符串
-`long` 经框架的 `LongJsonConverter` 统一序列化成 JSON **字符串**（避免 JavaScript Number 精度溢出）。前端契约里主键类型是 `string`，DTO 字段名是 `basicId`。
-:::
+不经依赖注入，是因为方式一的连接配置在装配时只建一份，回调里拿不到作用域服务，异步本地值是能读到当前主体的方式。作业与种子里的写入没有主体，操作人字段为空；要以某个主体写入时用 `AuditorStamp.Enter(主体 ID)` 开一段范围。
 
-### 审计三件套
+## 平台数据：不实现 `IMultiTenant`
 
-| 阶段 | 列 | 备注 |
+框架仓储对实现了 `IMultiTenant` 的实体做严格相等过滤：没有租户上下文时看不到任何行。平台管理员的调用没有租户上下文，所以平台库实体不能靠租户列区分平台与租户。
+
+平台库实体（用户、会话、租户、套餐、角色与授权、菜单、参数、字典、模板、各类配置等）不实现 `IMultiTenant`。需要区分数据属于平台还是某个租户时，实体实现 `IOwnedByTenant`，以显式列 `OwnerTenantId` 记录属主，平台的值固定为 `platform`（`TenantIds.Platform`）。账号 `SysUser` 用 `HomeTenantId`（注册地，平台账号为 `platform`），会话 `SysUserSession` 用 `ActiveTenantId`（会话当前所在的租户，平台为空）；登录等还没有租户上下文的操作按这些列显式查询。
+
+Runtime 的 `TenantScopedQuery` 为 `IOwnedByTenant` 提供两个查询扩展：
+
+| 扩展 | 语义 | 用在 |
 | --- | --- | --- |
-| 创建 | `Created_Time` / `Created_Id` / `Created_By` | `Created_Time` 非空；三列都是 `IsOnlyIgnoreUpdate`（更新时不覆盖） |
-| 修改 | `Modified_Time` / `Modified_Id` / `Modified_By` | 可空 |
-| 删除 | `Is_Deleted` / `Deleted_Time` / `Deleted_Id` / `Deleted_By` | `Is_Deleted` 非空、默认 `false` |
+| `OwnedByCurrentTenantOrPlatform(context)` | 读共享：当前租户的加平台的；没有租户时只有平台的 | 读参数、字典、模板，租户覆盖平台 |
+| `OwnedByCurrentTenant(context)` | 写不共享：只认当前一侧 | 修改、删除 |
 
-时间列都是 `DateTimeOffset`，**存储恒为 UTC**，输出时按请求头 `X-Timezone` 换算。
-
-::: tip 这些列由 AOP 自动注入
-走的是 SqlSugar 的 `DataExecuting` AOP，**业务代码不要手动赋值**——修改三列会被 AOP 无条件覆盖；创建列只在值为默认值时才填充，手动赋值会留下与实际操作人不符的审计信息。
-:::
-
-::: warning 别对时间列做单列标量投影
-`DateTimeOffset` 列不要用 `Select(x => x.CreatedTime)` 这种单列标量投影——值类型的 `ChangeType` 路径会在 `DateTime` → DTO 转换时崩。要整行取实体、走属性绑定。
-:::
-
-### 多租户列
-
-`Tenant_Id`（`bigint`，`IsOnlyIgnoreUpdate`）每个实体都有，语义**不是可空的**：
-
-- **平台级/全局记录统一 `TenantId = 0`**（「平台租户」占位），**不得使用 NULL**。
-- 业务租户 Id 从 1 开始，0 号由平台保留。
-- 判定全局记录一律用 `TenantId == 0`；需要 `IsGlobal` 语义时在实体 `Expand` 里做**派生只读属性** `IsGlobal => TenantId == 0`，**不落库**（避免与 `TenantId` 漂移）。
-- 合并查询全局 + 私有：`WHERE TenantId IN (0, {currentTenantId})`。
-- `TenantId` 由租户上下文自动注入，**禁止业务代码直接操纵**。
-
-::: danger 读写口径不对称
-**读共享、写不共享**——全局过滤器放行 `TenantId=0` 的行让租户能读到平台数据，但每个作用域只能改写/删除本作用域的行：租户态不能动全局行，平台（0 号租户，无租户上下文与 `Change(0)` 同义）也不能动租户行。全局数据在平台作用域维护，某个租户的数据切入该租户（`ICurrentTenant.Change(tenantId)`）维护。
-
-详见 [多租户 SaaS](./multi-tenancy)。
-:::
-
-## 软删与唯一索引
-
-支持软删的实体，其**唯一索引（`UX_*`）末列统一附加 `IsDeleted`**，使唯一性只约束未删除行——软删后可以再建同编码记录。
-
-代价要知道：**同一编码至多保留一条软删行**。要第二次软删同编码记录，服务层得先物理清理旧的软删行。
-
-纯创建型（`Creation`）的关联表与日志表是**硬删**、无 `IsDeleted`，唯一索引保持原样。
-
-## 命名与索引规范
-
-| 对象 | 规范 | 示例 |
-| --- | --- | --- |
-| 表名 | `snake_case`，`Sys_{名}` | `Sys_User_Department` |
-| 列名 | `snake_case` | `Created_Time`、`Tenant_Id` |
-| `[SugarTable]` 命名参数 | **无空格** | `SugarTable(TableName = "...", TableDescription = "...")` |
-| `[SugarColumn]` 命名参数 | **有空格** | `SugarColumn(ColumnName = "...", ColumnDescription = "...")` |
-| 时间字段 | 一律 `XxxTime`；过期统一 `ExpirationTime` | `CreatedTime` / `ExpirationTime` |
-| 排序字段 | `Sort` | — |
-| 缩写 | `OAuth` / `CSharp` 等整体保留 | `SysOAuthApp` |
-
-**审计三件套索引**（强制）：
-
-- 所有具体实体：`IX_{table}_TeId_CrTi`、`IX_{table}_CrId`
-- `FullAudited` / `AggregateRoot` 额外：`IX_{table}_TeId_IsDe`
-- 日志类分表实体把 `{table}` 换成 `{split_table}`
-
-## 按月分表
-
-日志与流水类实体用 SqlSugar 的分表能力：
+## 实体示例
 
 ```csharp
-[SugarTable(TableName = "Sys_Access_Log_{year}{month}{day}", TableDescription = "系统访问日志表"),
- SplitTable(SplitType.Month)]
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key))]
+public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
+{
+    public string OwnerTenantId { get; set; } = string.Empty;
+    public string Key { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Group { get; set; }
+
+    [LongText]
+    public string? Value { get; set; }
+
+    [LongText]
+    public string? DefaultValue { get; set; }
+
+    public ConfigDataType DataType { get; set; } = ConfigDataType.Text;
+    public bool IsEncrypted { get; set; }
+    public bool IsBuiltIn { get; set; }
+    public bool AllowTenantOverride { get; set; }
+    public SettingStatus Status { get; set; } = SettingStatus.Active;
+    public int Order { get; set; }
+    public string? Description { get; set; }
+}
+
+public enum ConfigDataType
+{
+    Text = 0,
+    Number = 1,
+    Boolean = 2,
+    Json = 3,
+    Array = 4,
+}
 ```
 
-物理表名形如 `Sys_Access_Log_20260801`。查询分表数据要走 SqlSugar 的分表 API（按时间范围定位物理表），**不能当普通表直接查**。
+- 类名以 `Sys` 开头，表名、列名由命名约定转成 snake_case（`SysConfig` → `sys_config`，`OwnerTenantId` → `owner_tenant_id`）。
+- 没写长度的字符串列缺省 `varchar(512)`；长文本标 `[LongText]`，固定长度用 `[StringLength]` / `[MaxLength]`（`PersistenceMappingTests` 守护）。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
+- 软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 枚举在库里存整数，JSON 里是字符串（各包 `JsonContext` 按字符串序列化）。只被一个实体用到的枚举写在那个实体的文件里（实体类之后，同一命名空间），两个以上实体共用的才单独成文件（如 `SettingStatus.cs`）。
+- 写入极频繁或只存密文与计数的实体（会话、用户设置、账号安全、OAuth 授权码与令牌、邮件短信的发送记录、聊天会话与成员等）在类上标 `[DiffLogIgnored]`，不进数据变更日志；其余全审计实体缺省都记前后值。
 
-哪些表分了表见 [数据模型](./data-model#日志-均按月分表)。
+## 领域事件
 
-## 实体分文件约定
+`AppAggregateRoot` 带事件缓冲，派发流程：
 
-一个实体通常拆成三个文件（`partial`）：
+1. 聚合在方法里 `Raise(事件)`。
+2. 每种事件在发出方的 `Configure` 里 `AddDomainEvent(topic, type, jsonTypeInfo, subject)` 显式登记，主题格式 `basicapp.<包>.<事件>`。
+3. 工作单元在提交前经发件箱把事件打成 CloudEvents 信封，与业务写入同事务（宿主已装 `OutboxFeature`），再由后台投递。
+4. 聚合记了没登记的事件，提交时调用失败（`MESSAGING_VALIDATION_003`）。
 
-| 文件 | 内容 |
-| --- | --- |
-| `Domain/Entities/SysXxx.cs` | 主体：`[SugarTable]` + `[SugarIndex]` + 落库字段 |
-| `Domain/Entities/Expands/SysXxx.Expand.cs` | **不落库**的派生属性（`[SugarColumn(IsIgnore = true)]`），如 `IsGlobal`、显示名 |
-| `Domain/Entities/Aggregates/SysXxx.Aggregate.cs` | 聚合行为（少数实体才有，如 `SysTenant` / `SysConstraintRule`） |
+主题常量集中在 Contracts 的 `Topics`，事件记录放在 Contracts 里发出方的目录（订阅方不引用发出方的包）。目前登记的领域事件：
 
-枚举放 `Domain/Entities/Enums/SysXxx.Enum.cs`。
+| 主题 | 发出 | 订阅 |
+| --- | --- | --- |
+| `basicapp.organization.membership-changed` | Organization：加入或移出部门（`SysUserDepartment` 是聚合根） | Chat：同步部门群成员（见[在线聊天](./chat#部门群同步)） |
 
-::: tip 生成的代码不焊外键
-代码生成器不产出 `Navigate` / `LEFT JOIN` / 显示属性 / 物理外键，跨表关联一律由业务层手写。见 [代码生成](./code-generation)。
-:::
+订阅方在自己的 `Configure` 里 `AddMessageHandler<THandler>(topic)` 登记。投递至少一次、可能乱序，处理器要按处理时的当前状态核对，重复处理无副作用。其余跨包协作走 Contracts 里的接口（如经 `IMessageSender` 排队邮件与短信），推送走 `IRealtimePush`。
 
-## 加一个实体的清单
+## 下一步
 
-| 步骤 | 做什么 |
-| --- | --- |
-| 1 | 选基类（默认 `BasicAppFullAuditedEntity`） |
-| 2 | 写 `[SugarTable]` + 字段 + `[SugarIndex]`（含审计三件套索引） |
-| 3 | 派生属性放 `Expands/`，枚举放 `Enums/` |
-| 4 | 加仓储接口与实现（继承 `SaasRepository`，自动注册） |
-| 5 | 全新库由 CodeFirst 建表；存量库在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 补建表/列/索引脚本 |
-
-## 相关页面
-
-- [数据库配置](./database)：连接、初始化开关、主从、分表查询
-- [数据模型](./data-model)：全部数据表清单
-- [开发流程](./development)：加一个完整功能纵切片
-- [框架 · Data 包](https://framework.docs.xihanfun.com/packages/data)：仓储、查询过滤器、AOP 的框架实现
+- [数据模型](./data-model)：哪些实体在平台库、哪些在租户库
+- [数据库配置](./database) · [多租户 SaaS](./multi-tenancy)

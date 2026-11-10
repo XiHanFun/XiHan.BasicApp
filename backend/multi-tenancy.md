@@ -1,284 +1,130 @@
 来源：https://basicapp.docs.xihanfun.com/backend/multi-tenancy
 
-# 多租户与版本
+# 多租户 SaaS
 
-XiHan.BasicApp 是一套 **企业级通用中后台内核**：一份代码、一套部署，同时承载多个互不可见的租户（企业客户），并以**版本（Edition）**作为订阅售卖与功能门控的单元。本页讲清楚隔离怎么落地、登录后落到哪里、超级管理员如何跨租户运维、版本白名单如何在运行时门控权限，以及请求如何解析到租户上下文。
+本页说明租户的标识与上下文、租户目录、开通流程、成员、套餐与配额，适用于后端开发者与平台运维人员。
 
-权限码、数据范围、字段脱敏等细节见 [权限模型](./permission)；框架层的租户上下文、解析链与存储见 [XiHan.Framework.MultiTenancy](https://framework.docs.xihanfun.com/packages/multitenancy)。本页聚焦 BasicApp 应用层的租户与版本机制。
+多租户是三件事的组合：框架解析租户上下文并严格过滤租户库实体；Tenancy 包管租户的业务（开通、套餐、成员、配额、所有权）；Runtime 把租户连接与分片接到 SqlSugar 上。
 
-## 隔离模型：字段级隔离 + `TenantId=0` 约定
+## 标识与上下文
 
-BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `BasicApp*` 实体基类族（`BasicAppEntity` / `BasicAppCreationEntity` / `BasicAppFullAuditedEntity` / `BasicAppAggregateRoot` 等，底层是框架的 `SugarMultiTenant*<long>`），带一个 `TenantId` 列，查询按当前租户上下文自动过滤，无需业务代码手动拼条件。
-
-隔离模式由 `SysTenant.IsolationMode`（`TenantIsolationMode`）声明，支持三种，`SysTenant` 还预留了独立库连接串等字段：
-
-| 模式 | 含义 |
+| 项 | 说明 |
 | --- | --- |
-| `Field`（默认） | 同库同表，靠 `TenantId` 列区分租户数据 |
-| `Database` | 每租户独立数据库（`ConnectionString` 加密存储；`DatabaseType` 可选 `SqlServer` / `MySql` / `PostgreSql` / `SQLite` / `Oracle`，升级脚本只有 PostgreSQL 方言；先 `InitializeDatabase` 建库建表，再 `InitializeTenantAdmin` 开通管理员，见下文「库隔离：平台库是目录库」） |
-| `Schema` | 同库不同 Schema（尚未实装：创建时拒绝；`SaasTenantConnectionProvider` 解析到该模式直接抛异常 fail-closed，拒绝退化为行隔离） |
+| 租户 ID | 字符串，文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`，创建后不可改；`platform` 是保留 ID |
+| 平台 | 不是一个租户：平台主体的令牌没有 `tenant` 声明；平台库实体不实现 `IMultiTenant`，要区分「平台的还是某租户的」用 `OwnerTenantId`（平台为 `platform`） |
+| 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`（只来自内部调用：作业、消息处理、工作流）；不支持查询串与 `X-Tenant-Id` 头。HTTP、gRPC、MCP 入站丢掉调用方写的 `xihan.tenant`、`xihan.principal`：平台令牌带 `baggage` 头也还在平台一侧，进租户走 `auth.switch-tenant`。CloudEvents 入站的 `xihantenant` 能选租户，这是协议的设计，所以 `/events` 缺省关闭，打开后要 `runtime.cloud-events.deliver`，这个权限只在平台一侧，只授给平台的服务账号 |
+| 隔离方式 | `Field`（缺省，共库、按 `tenant_id` 过滤）与 `Database`（独立库） |
 
-隔离模式创建时定下、之后不能修改（不在更新契约里）：数据按创建时的模式落库，改模式等于迁移数据，不是改一个字段。
+框架仓储对实现 `IMultiTenant` 的实体做严格相等过滤，没有租户上下文时看不到任何行；`XiHan:MultiTenancy:RequireTenant` 为 `false`，平台主体可以调用平台侧操作。
 
-### 框架层 `long?`/null 与应用层 `TenantId=0` 的关系
+## 租户目录与业务实体
 
-这是理解本系统隔离的关键，两层用**不同的空值语义**表达"全局/无租户"：
+租户目录是框架 `MultiTenancy.Database` 的 `tenant_record`：租户 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，带有界缓存（`XiHan:MultiTenancy:Database`）。`SysTenant` 是 Tenancy 的业务实体：套餐、到期时间、席位与存储上限、管理员（所有者）、隔离方式与独立库状态。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入；目录里的连接串是密文，由 Runtime 的分片解析器解密。
 
-- **框架层**：`ICurrentTenant.Id` 是 `long?`。`null` 与 `0` 同义，都表示**平台，也就是 0 号租户**。平台和任何一个租户一样只看、只写自己的数据：读只看 `TenantId=0` 的行，写只落 / 只改 `TenantId=0` 的行——不存在「没有租户上下文就看全部、写全部」的口径。
-- **BasicApp 应用层落库约定**（见 `BasicAppEntity` 注释）：平台级/全局记录统一落 **`TenantId=0`**（"平台租户"占位），**不得用 NULL**；业务租户 Id 从 1 开始分配，0 号租户由平台保留。
+租户停用（`tenants.suspend`）后，目录将其标记为禁用，带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录同样被拒绝。
 
-二者衔接的规则：
+租户有到期时间（`expiresAt`，为空即不限），它随目录属性同步：
 
-- 平台判定统一以 `currentTenant.IsPlatformOperation()` 为准，其实现就是 `Id is null or 0`（见 `CurrentTenantPlatformExtensions`）。
-- 查询"全局 + 私有"合并时用 `WHERE TenantId IN (0, {currentTenantId})`。授权快照构建即按此规则：绑定行按 `TenantId == 当前租户 || TenantId == 0` 生效，平台态（无上下文）则仅 `TenantId=0` 的全局绑定生效，防止多租户成员在平台态聚合出跨租户权限。
-- 如需 `IsGlobal` 语义，实体在 Expand 里以只读派生属性 `IsGlobal => TenantId == 0` 暴露，**不落库**（避免与 `TenantId` 漂移）。
-- 只有平台才允许维护 `TenantId=0` 的全局模板（菜单/权限/角色/版本等）；租户态（`Id>0`）对全局模板一律拒绝写入，避免某租户改动波及所有租户。平台同样不能直接改写租户的行。
-- 平台与租户各自独有的运行数据（会话、令牌、授权码、导出任务、邮件短信、导入记录、任务调度与各类日志）与租户业务数据（部门、岗位、部门归属、文件、审批、权限申请，以及代码生成器产出的业务实体）实现 `IStrictMultiTenantEntity`：租户态只看本租户行，不读共享平台行。
+- 到期时间一过，登录（各种方式）、刷新令牌、切换租户与模仿登录即被拒绝（`IDENTITY_DENIED_019`），不等作业。
+- 内建作业 `tenancy.tenants.expire` 每 5 分钟把过了到期时间、仍生效的租户标为到期（`Expired`）并停用目录，之后带该租户声明的调用也被拒绝。不吊销会话、不发通知。
+- 续期：先改到期时间（`tenants.update`），再恢复（`tenants.resume`）；没延长就恢复，逐项失败 `TENANCY_CONFLICT_015`。
 
-> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。跨租户只走显式通道：跨租户读取用仓储的 `...IgnoreTenantAsync`（内部 `CreateNoTenantQueryable()`）或查询上的 `.ClearTenantFilter()`；写某个租户的数据用 `ICurrentTenant.Change(tenantId)` 切入该租户，`using` 作用域结束自动恢复；账号域数据写在账号注册地——新增经 `IAccountScope.EnterAsync(userId)` 切入注册地，个人中心更新自己已有的行可用 `TenantWriteGuard.Suppress()`（只放宽更新与删除，不放宽新增）。后台逐租户维护用 `ITenantDataScopeRunner` 依次切入平台与每个数据可达的租户。
+## 开通三步
 
-## 登录与落点：邮箱全局唯一，先登录后选租户
+```text
+tenants.create                        写 SysTenant + 登记租户目录（启用），绑定套餐（不填即缺省套餐）
+  └─（独立库时）tenants.configure-database → tenants.initialize-database
+tenants.initialize-admin              建租户管理员（系统参数 identity.password 打开时首次登录必须改密），成为所有者，并建租户内置角色 admin
+```
 
-BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统一在平台（`_currentTenant.Change(null)`）完成身份认证，成功后由服务端决定落点——登录后总是落在一个上下文里（平台，或一个租户）。
-
-- **邮箱是全平台唯一的登录身份标识**。注册、开通租户管理员、找回密码都强制校验邮箱且全局唯一（`ExistsEmailGloballyAsync`）。平台账号也可用用户名登录。
-- 支持密码登录、手机号验证码登录、邮箱验证码登录、第三方（OAuth）登录，均在平台态定位用户后走统一落点逻辑（`IssueLoginTokenWithLandingAsync`）。
-
-### 落点策略
-
-平台是 0 号租户，只对**平台账号**（`SysUser.TenantId=0`）开放。落点由 `ResolveLoginLandingAsync` 决定：
-
-| 账号 | 落点 |
-| --- | --- |
-| 平台账号 | 平台 |
-| 租户账号 | 最近进入过的可进入租户 → 归属租户 → 第一个可进入的租户（`LoginLandingPolicy`） |
-| 租户账号且一个可进入的租户都没有 | 拒绝登录，并说明是没有有效成员关系，还是所在租户均不可进入 |
-
-**可进入的租户**只有一个口径（`IAuthContextQueryService.GetAccessibleTenantsAsync`）：有效成员关系（已接受、有效、在生效期内）∩ 可进入的租户（`AvailableTenantSpecification`：正常、已完成初始化、未删除、未过期）。登录落点、切换租户、控制中心的可切换列表都用它。成员关系的最近进入时间（`LastActiveTime`）在登录与切换时回写，决定下次登录落点。
-
-签发的令牌只在进入租户时带 `TenantId` claim，平台不带。
-
-### 随时切换租户
-
-登录后通过页头的上下文标识进控制中心，经 `SwitchTenantAsync`（`api/Auth`）切换（类似 GitHub 切换 Org）：
-
-- 目标 `TenantId` 归一：`null` 或 `<=0` 表示平台。
-- 进入租户：必须在"可进入的租户"里，**超管也不例外**——平台账号要进某个租户，同样须先成为它的成员（如支持人员入驻）。
-- 进入平台：只有平台账号可以。
-- **切换即换会话**：会话属于它所在的上下文（`SysUserSession.TenantId` 只插入不更新）。切换时吊销当前会话、在目标上下文新建一条续接会话（沿用设备与登录时间，不是新登录、不发登录通知），旧访问令牌与刷新令牌经会话闸门随即失效；会话标识因此全局唯一（`UX_{table}_UsSeId`）。
-- 在目标上下文内**重建授权快照并签发新令牌**，权限随目标上下文实时重算。
-- 结束模仿登录回到发起人的原会话，只在原会话上重签令牌（原会话本就在发起时的上下文里）。
-
-前端切换后整页重建：清掉本地用户信息与标签页、断开 SignalR；路由守卫在整页加载时把用户信息与权限一起重取，平台 / 租户标识不会沿用切换前的旧值。可切换的租户列表由 `GetMyAvailableTenantsAsync` 提供，与切换同一口径；前端用 `TenantSwitcherDto` 渲染。
-
-## 成员关系：`SysTenantUser`
-
-"谁能进入哪个租户"由 `SysTenantUser`（`Sys_Tenant_User`）承载——它是 用户 × 租户 的多对多成员表，是跨租户协作与平台运维统一建模的入口。语义上区分：
-
-- `SysUser.TenantId` = 用户主账号的归属租户（注册地）
-- `SysTenantUser.TenantId` = 用户拥有成员身份的租户（含主租户 + 外部协作租户）
-
-所有租户访问（含主属）都统一走本表，鉴权路径一致。成员关系是**严格租户隔离**实体：租户里只看得到本租户的成员行，跨租户读取（如登录时取用户的全部成员关系）走显式通道。关键字段：
-
-- `MemberType`（`TenantMemberType`）：`Owner` / `Admin` / `Member` / `External` / `Guest` / `Consultant` / `PlatformAdmin`。
-  - 注意：`MemberType` 表达"成员身份类型"而非"权限级别"，**服务层禁止用它直接鉴权**（如 `if MemberType==Admin`），必须走 RBAC 权限链；它只用于成员列表分类、邀请流程控制、`PlatformAdmin` 创建校验。
-- `InviteStatus`（`TenantMemberInviteStatus`）：`Pending → Accepted / Rejected / Revoked / Expired`。仅 `Accepted` 且 `Status=Valid` 且当前时间在生效/失效区间内的成员关系才可用于鉴权。
-- `EffectiveTime` / `ExpirationTime`：外部协作者/访客常用的时效控制。
-- **成员关系上的授权由所在租户维护**：角色、直授权限、部门、数据范围（成员覆盖 `DataScopeOverride` 挂在成员关系上）、ABAC 条件、字段级安全、约束、委托、申请都作用于「本租户的成员」；支持成员（`PlatformAdmin`，平台人员入驻）也一样——平台看不到也写不了租户的授权数据，他们在租户里能做什么由这个租户决定。
-
-## 账号域：注册地租户戳 + 严格隔离
-
-账号是身份层数据，不是某个租户的业务数据。`SysUser`、`SysUserSecurity`、`SysUserSetting`、`SysUserNotificationPreference`、`SysUserApiCredential`、`SysExternalLogin`、`SysPasswordHistory` 实现 `IStrictMultiTenantEntity`，`TenantId` 固定为注册地（平台账号为 0）：
-
-- **按主键跨租户读**：账号、安全记录、个人设置等按用户主键走 `...IgnoreTenantAsync` / `CreateNoTenantQueryable()` 读取，展示别人的名字、取当前用户自己的资料都不依赖当前上下文。
-- **写在注册地**：外部成员在别的租户里改设置、建凭据、改密码，行照样落回注册地（`IAccountScope`、密码历史切入 `user.TenantId` 写入）。
-- **看得见谁由上下文决定**（`IUserDirectory`）：平台里是平台账号；租户里是本租户已接受的成员，含注册在别处的外部成员与入驻的平台人员。用户列表、详情、选择项、聊天候选人、"全员"通知都走同一个目录，列表项带 `IsExternalMember`。
-- **身份类操作只对本地账号**：资料、状态、锁定、密码、双因素、登录策略、下线全部会话、删除只对注册在当前上下文的账号开放；外部成员给出明确原因（"由其注册地租户维护"），在这里只能管理它在本租户的角色、权限、部门与数据范围。前端对外部成员隐藏账号级操作，编辑弹窗只提交角色与部门。
-- **平台建的是平台账号**：平台里建账号不写成员关系、不占席位；租户里建账号占一个席位并成为本租户已接受的成员。
-- **删除 / 停用是账号级操作**：账号是任何一个租户的有效所有者都不能直接删除或停用；删除时逐租户切入，作废它在每个租户的成员关系。
-
-## 租户所有者：一名、始终有效、由平台移交
-
-每个租户有且只有一名所有者，是开通管理员时产生的那位（`MemberType=Owner`，持有本租户的 `tenant_owner` 系统角色）：
-
-- **权限随套餐**：`tenant_owner` 是租户里唯一的系统角色（`RoleType.System`、`TenantId=本租户`），不写授权行。授权快照让持有者拿到租户生效的全部权限，再经套餐门控收窄到白名单——套餐升降、新增权限码都即时反映，不用回头同步。它的数据范围是全部，所有者的成员关系上也不设覆盖。
-- **租户里改不动**：系统角色的定义与成员只由系统流程维护——租户里不能编辑、停用、删除它，不能把它授给别人，也不能撤销或停用所有者手里那条绑定；角色选择项里不出现；`super_admin`、`tenant_owner` 两个编码保留，手工建不了同码角色。
-- **所有者关系始终有效**：不能由租户指派（添加、邀请、改成员类型都不接受 `Owner`），不能撤销、停用、过期或退回未接受，也不能设生效期限；所有者账号不能被锁定、重置密码、停用或删除。
-- **所有权转移走平台**：`TransferTenantOwner`（权限 `saas:tenant:transfer-owner`，平台侧）把所有者身份转给该租户的另一名成员——接任者须是已接受、有效、在生效期内的非支持成员；接任者成为所有者、拿到 `tenant_owner` 绑定、期限清空，原所有者改为管理员、这条绑定失效，其它角色原样保留。两人的授权快照随即失效。管理页在租户详情的「成员」页签里对可接任的成员给出「设为所有者」。
-
-## 租户看自己的订阅
-
-租户注册表与版本是平台数据，租户看不到租户列表；看自己的订阅走专门的只读接口 `TenantQuery/MySubscription`（权限 `saas:tenant-subscription:read`，租户侧，免费版起都在白名单里）：版本名称与说明、租户状态、到期时间，以及席位、存储的生效上限与已用量——与平台租户列表同一口径（`ITenantQuotaDomainService.GetQuotaSnapshotsAsync`）。管理端页面是「租户管理 → 我的订阅」，平台上下文里不出现。
-
-## 超级管理员：只在平台成立
-
-超级管理员（平台上的 `super_admin` 角色）是平台运营方账号，超管身份只在平台（0 号租户）成立：
-
-- **平台里通配**：授权快照带 `*`，外加平台生效的全部权限；平台不受套餐门控。
-- **进了业务租户就只是那个租户的成员**：平台的超管绑定不带进任何租户，快照按目标租户里的角色、直授与委托重建，再经套餐门控；在租户里没有角色就没有权限。`ISuperAdminProtector.IsCurrentUserSuperAdmin` 同口径——业务租户里恒为 `false`，各处"超管豁免"只在平台生效。
-- 替租户排查问题走**模仿登录**（以目标租户成员身份操作、全程留痕），不靠超管身份直接改租户数据。平台里发起时先选范围：平台账号，或某个租户（再从该租户的成员里选人）；租户里只能选本租户成员。成员检索同时匹配成员显示名与账号的用户名 / 昵称 / 姓名 / 邮箱。
-
-## 权限作用侧：平台 / 租户 / 两侧
-
-权限目录的每条权限都声明**作用侧**（`SysPermission.Side`，`PermissionSide` 标志枚举）：
-
-| 作用侧 | 值 | 在哪生效 | 典型权限 |
-| --- | --- | --- | --- |
-| `Platform` | 1 | 只在平台 | 租户目录、套餐、权限/资源/菜单目录维护、缓存、服务器、任务调度、AI（模型提供方、提示词、助手、知识库）、代码生成、Telegram 机器人、全局编号/打印模板管理、跨租户模仿 |
-| `Tenant` | 2 | 只在业务租户 | 租户成员维护、部门、岗位、成员数据范围、审批、工作流 |
-| `Both` | 3 | 两侧都生效 | 用户、角色、授权、角色数据范围（平台只设全局角色模板的档位）、日志、配置、字典、消息等 |
-
-- **声明在代码里**：Saas 权限由 `SaasPermissionDefinitions` 的分组声明（条目可单独覆盖），其它模块由各自的权限种子声明；种子每次启动把作用侧同步到库里。后台新建权限必须选作用侧，未声明（0）的权限在任何上下文都不生效。
-- **生效 = 当前上下文的授权绑定 ∩ 作用侧 ∩ 套餐白名单（仅业务租户）**。作用侧不含当前上下文的权限码随授权快照下发（`ContextDeniedCodes`），鉴权、菜单与按钮先于通配判定拒绝它们——平台超管的 `*` 也放不出租户侧权限。
-- **授权绑定只在所属上下文生效**：`SysUserRole` / `SysUserPermission` / `SysPermissionDelegation` / `SysUserDepartment` / `SysUserDataScope` 是严格租户隔离实体，平台的绑定不进租户，租户的绑定也不进平台。
-- **授权界面按上下文列可授权限**：业务租户里只列、也只允许授出租户能生效的权限（租户侧与两侧），写路径同口径拒绝；平台列全部，授权穿梭框标出单侧权限。分配角色不按作用侧拦（角色上的平台侧权限在租户里本就不生效）。
-
-## 全局模板：平台下发，租户只读或覆盖
-
-`TenantId=0` 的模板行（全局角色、参数配置、字典等）读共享：租户看得见、改不了，改写与删除只在平台。按能否被租户覆盖分两种：
-
-| 类型 | 实体 | 租户能做什么 | 判重 |
-| --- | --- | --- | --- |
-| 可覆盖型 | 参数配置、消息模板、编号规则、打印模板 | 建同键的自己的行，读取时租户优先 | 只在本上下文内判重 |
-| 不可覆盖型 | 全局角色、字典 | 引用或分配；要改就新建自己的角色 / 字典 | 字典编码在「全局 + 本租户」里唯一 |
-
-- **全局角色**：可以分配给本租户成员、被本租户角色继承；但它的授权、授权条件、数据范围、继承关系、启停与删除只在平台维护，租户不能往上叠加自己的授权。
-- **字典**：字典项与所属字典同在一个上下文，全局字典的项只在平台维护；租户需要自己的选项就新建字典。平台建全局字典时要看所有租户，某个租户已用了这个编码就不能再建（否则会在那个租户里重名）。
-- **AI**：模型提供方、提示词、助手只在平台维护；提示词与助手是平台下发的目录，租户里可用不可改（运行时按编码读提示词、按聊天权限用助手）；知识库是平台私有数据，严格隔离。
-- **工作流**：租户侧功能，定义、实例、节点、书签严格隔离；定时器跨租户取到期书签后逐租户切入执行。
-- **平台删除全局行看所有租户**：全局角色被租户成员持有或被租户角色继承、全局字典还有字典项时不能删除——这些行平台自己看不见，要跨租户检查（`ISaasRepository.AnyIgnoreTenantAsync`）。
-
-## 带密钥的配置：严格隔离，平台服务显式回退
-
-存储、邮件、短信、机器人配置与 Telegram 机器人都带着密钥或凭证，实现 `IStrictMultiTenantEntity`：租户只看得见、只用得上自己的，平台的行对租户不可见。
-
-| 配置 | 租户未自配时 |
-| --- | --- |
-| 邮件、短信 | 由平台默认代发（`CurrentThenPlatformAsync` 显式切到平台取默认） |
-| 对象存储 | 上传用平台默认；文件记下所用的存储配置（`SysFileStorage.StorageConfigId`），之后下载、删除、预签名都按它取凭证，换默认不影响既有文件 |
-| 钉钉 / 飞书 / 企微机器人 | 不回退：租户的通知不能发进平台的群 |
-| Telegram | 机器人由平台托管，只在平台维护与运行；机器人通知广播里的 Telegram 通道也只在平台生效 |
-
-平台删除存储配置时跨租户检查文件记录：平台默认存储可能被未自配的租户用着。文件记录在各租户自己的数据里，库隔离租户的在它自己的库里，检查逐库进行（见下文）。
-
-## 库隔离：平台库是目录库
-
-库隔离（`Database`）租户有自己的独立库，但不是所有数据都搬过去。平台库是**目录库**，实体标 `[PlatformDataSource]`（框架 `XiHan.Framework.Data.SqlSugar.Routing`）后固定落在这里——不管当前租户是否独立库，读写都按实体解析到平台库，建表也只在平台库建；行级租户过滤照常生效：
-
-| 落点 | 实体 | 为什么 |
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| 平台库 | 租户目录与套餐、权限/资源/操作/菜单目录、OAuth 应用 | 平台目录，所有租户共用 |
-| 平台库 | 账号域、成员关系、会话、会话角色、OAuth 授权码与令牌 | 登录、令牌兑换、会话闸门在拿到租户之前就要定位；一个账号可以加入多个租户 |
-| 平台库 | 访问策略与条件（平台级与各租户的） | 认证前与登录时就要求值，各节点按一份全量快照判定 |
-| 平台库 | 角色、角色授权/继承/数据范围、用户角色/直授/数据范围、权限委托、授权条件、约束规则、字段安全 | 全局角色是读共享模板；平台跨租户检查引用、按全局角色找受影响的账号 |
-| 平台库 | 参数配置、字典、消息模板、编号规则与分配、通知与收件箱 | 读共享（含租户自己的覆盖行）：租户要看得见平台的行 |
-| 平台库 | 任务调度、Telegram、AI 维护（模型提供方、提示词、助手、知识库）、代码生成、打印模板 | 平台专属或平台下发 |
-| 租户库 | 部门、岗位、部门归属、文件、审批、权限申请、各类日志、邮件短信、导出导入、带密钥的配置、用户统计、聊天、工作流、业务实体 | 租户自己的业务与运行数据，严格隔离 |
-| 每个库各一份 | 版本与迁移台账（`SysVersion` / `SysMigrationHistory`） | 记录的是这个库自己的结构版本 |
+| `tenants.create` / `update` / `get` / `list` | `tenancy.tenants.create` / `update` / `read` | 平台侧；套餐不存在 `TENANCY_NOTFOUND_004`，已停用 `TENANCY_CONFLICT_016` |
+| `tenants.delete` | `tenancy.tenants.delete` | 还有用户的租户不能删（`TENANCY_CONFLICT_003`） |
+| `tenants.suspend` / `resume` | `tenancy.tenants.suspend` | 批量启停；停用与到期的都能恢复，要没过到期时间（`TENANCY_CONFLICT_015`） |
+| `tenants.change-edition` | `tenancy.tenants.update` | 换套餐，进权限变更日志 |
+| `tenants.configure-database` | `tenancy.tenants.configure-database` | 设隔离方式与独立库连接（`ISecretProtector` 加密）；独立库就绪后不能再改（`TENANCY_CONFLICT_013`） |
+| `tenants.initialize-database` | `tenancy.tenants.initialize-database` | 建库、只建租户库实体的表、在该库登记结构版本；幂等，失败记原因，改连接后可重试 |
+| `tenants.initialize-admin` | `tenancy.tenants.initialize-admin` | 每个租户只能一次；独立库要先初始化数据库（`TENANCY_CONFLICT_014`） |
+| `tenants.transfer-owner` | `tenancy.tenants.transfer-owner` | 所有权转移给注册地用户或生效中的普通成员；新所有者进 `admin` 角色，原所有者保留已有角色 |
+| `tenants.quotas` | `tenancy.tenants.read` | 各租户的用量与配额（平台侧） |
+| `tenants.mine` | 登录即可 | 我能进入的租户（控制中心、个人中心「我的租户」） |
 
-两条规则由结构测试守着（`EntityPlacementTests`、`UniqueIndexTenantScopeTests`）：
+独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构脚本只为 PostgreSQL 编写，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
 
-- **租户库里只有严格隔离的数据。** 读共享要让租户看见 `TenantId=0` 的平台行，平台行只在平台库；留在租户库的读共享实体在字段隔离与库隔离的租户里会看到不同的数据。
-- **全局唯一的实体在平台库。** 唯一约束只在一个库里成立，邮箱、会话标识、令牌 JTI、`client_id` 这类全局唯一的东西分散到各库就管不住重复。
+## 成员与切换
 
-使用上的约定：
+| 成员类型 | 说明 |
+| --- | --- |
+| 注册地用户 | `SysUser.HomeTenantId` 为该租户，可直接进入 |
+| 普通成员（`Member`） | 别处注册的账号加入该租户，带生效 / 到期 |
+| 运维支持（`Support`） | 只能是平台账号，平台运维进入租户排障用 |
 
-- **访问实体按实体取连接。** 仓储本来就这样；绕过仓储直接用客户端时写 `ISqlSugarClientResolver.GetClientForEntity<T>()`（种子里是 `DbClientFor<T>()`），`GetCurrentClient()` 只用于当前租户主库上的租户库实体和库级操作（健康检查、升级脚本）。
-- **平台跨租户扫租户库里的数据要逐库走**：`ITenantDataScopeRunner.RunPerDatabaseAsync` / `AnyPerDatabaseAsync` 先在平台库（覆盖平台与全部字段隔离租户）清掉租户过滤查一次，再逐个切入已建库的库隔离租户查它自己的库。工作流到期书签、平台存储配置的引用检查、租户列表的存储用量都这样取。平台库里的实体（账号、会话、角色绑定）跨租户查一次即可。
-- **一个工作单元同时写平台库与独立库时不是原子的**：每个连接各开一个本地事务，框架不提供跨库分布式事务。例如在库隔离租户里新建成员，账号与成员关系写平台库，部门归属写它自己的库。
-- **种子只播平台库**（`[DataSeeding(Target = DbInitializationTarget.Platform)]`）：本应用的种子写的都是平台库实体，独立库初始化只建表。
-- **升级脚本在每个库上各跑一遍**，独立库建好即登记为最新版本；改平台库表的语句要先判表存在，见 `UpdateScripts/README.md`。
+`tenant-members.list / create / delete`（`tenancy.tenant-members.read / create / delete`，平台侧）。登录后用 `auth.switch-tenant` 在注册地、生效中的成员租户与平台之间切换：会话续用、令牌重签、前端整页重建。
 
-5.2.0 及更早版本开出来的库隔离租户，数据按旧口径整套落在独立库里（角色、授权、会话等也在）。升级到本版本后这些数据要搬到平台库，没有自动迁移——跨库搬数据不是一段 SQL 能完成的，需要按上表人工迁移后再启用。
+### 外部成员
 
-## 租户版本（Edition）：权限白名单 + 运行时门控
+生效中的普通成员在这个租户里叫外部成员，算租户内的用户（运维支持成员不算）：
 
-版本是**订阅售卖单元 + 功能门控单元**。三张表分工明确：
+- `users.list`、`users.get`、`users.detail` 带出他们，响应标 `isExternalMember`；不是本租户成员的账号查不到，也搜不到。
+- 能配本租户的角色（`roles.assign`）、部门（`memberships.create`、部门负责人）、数据范围（`user-data-scopes.set`）与直授（`user-grants.*`、权限条件），也能作为委托人、字段安全目标与约束规则目标。切进租户后这些权限才算数，回到注册地不带过去。
+- 账号本身只有注册地（或平台）能动：`users.update`、`users.reset-password`、`users.lock`、`users.disable`、`users.delete`、`users.reset-two-factor`、`users.set-login-policy` 在成员租户里一律按不存在回答。`users.detail` 不给账号安全一节，今日统计与当前会话只算这个租户里的。
+- 被移出租户时（`tenant-members.delete`）解除他在这个租户的角色，再加回来不带旧角色；部门归属与直授留着，人不在这一侧就用不上。成员关系到期不解除，只是看不到、用不上。
 
-| 实体 | 表 | 职责 |
+### 运维支持成员
+
+生效中的运维支持成员不算租户内的用户，只进用户管理：
+
+- `users.list`、`users.get`、`users.detail` 带出他们，响应标 `isSupportMember`（注册在平台，`isExternalMember` 也为真）。别的选人入口用 `users.list` 的 `isSupportMember eq false` 筛掉他们。
+- 账号只读，与外部成员相同，由平台维护。最近登录时间与 IP 是平台账号的全局信息，租户一侧不下发。
+- 能配本租户的角色（`roles.assign`、`roles.update-member`），切进租户后按角色使用；权限条件与访问策略的试算认他们。到期或被移出之后切不进去，留在里面的会话续签被拒（`IDENTITY_DENIED_006`）；被移出时解除角色，再加回来不带旧角色。
+- 不能配部门、数据范围与直授，也不能作为委托人、字段安全目标与约束规则目标。
+- 不占席位，不进模仿候选、群发收件人、工作流受理人与聊天目录。
+
+## 套餐与配额
+
+`SysEdition` / `SysEditionGrant`：
+
+| 字段 | 说明 |
+| --- | --- |
+| 白名单 | 租户能生效的权限码（作用侧 Tenant / Both），至多 500 个；与有效权限求交（套餐门控，见[权限管理](./permission#套餐门控)） |
+| 席位上限 / 存储上限（MB） | 为空不限；租户自己的上限优先于套餐的 |
+| 价格 / 计费周期 / 是否免费 | 展示与订阅用，免费套餐不能标价 |
+| 缺省套餐 | 新租户不指定时绑定它；必须启用（`TENANCY_CONFLICT_017`），要停用先把别的启用套餐设为缺省 |
+| 状态 | 启用 / 停用，启停并入 `editions.update`。停用后不能再分配给租户（开通或换套餐到它即 `TENANCY_CONFLICT_016`，下拉也不列）；已绑定的租户不受影响，白名单与配额照旧 |
+
+| 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `SysTenantEdition` | `Sys_Tenant_Edition` | 版本能做什么、卖多少（`EditionCode`/`Price`/`BillingPeriodMonths`/`UserLimit`/`StorageLimit`/`IsDefault`） |
-| `SysTenantEditionPermission` | `Sys_Tenant_Edition_Permission` | 版本 → 权限**白名单**映射（`EditionId` × `PermissionId`，唯一） |
-| `SysTenant.EditionId` | `Sys_Tenant` | 某租户订阅了哪个版本（`null` 时取 `IsDefault=true` 的默认版本） |
+| `editions.list` / `get` | `tenancy.editions.read` | 平台侧 |
+| `editions.create` / `update` / `delete` | `tenancy.editions.create` / `update` / `delete` | 还有租户绑定的不能删（`TENANCY_CONFLICT_007`） |
+| `editions.set-permissions` | `tenancy.editions.update` | 整体替换白名单，绑定的租户立即跟随，进权限变更日志 |
 
-内置版本种子（`SaasEditionSeeder`）：`free`（免费/默认，只读+基础成员）、`basic`（+组织/用户/角色管理）、`pro`（+高级权限/审计/安全）、`enterprise`（租户能生效的全部权限、不限配额）。种子排在全部模块的权限目录之后，只在版本首次创建时连同白名单写入，之后由平台运营维护（改过的不覆盖、删掉的不补回）；后来新增的权限要进哪些版本，由运营授予或由对应版本的升级脚本写入。手写白名单里混进平台侧或不存在的权限码，种子直接报错。版本记录本身是平台级（`TenantId=0`）。
+种子 `tenancy.editions` 写四个套餐，只首写（编码已存在即跳过）：
 
-关键约束（见 `SysTenantEdition` 与领域服务）：
+| 编码 / 名称 | 白名单 | 席位 | 存储 | 价格 |
+| --- | --- | --- | --- | --- |
+| `free` / Free（缺省） | 租户侧全部 `read` 权限 | 5 | 1 GB | 免费 |
+| `basic` / Basic | Free + Identity、Organization、Settings、Files 的管理权限（不含模仿登录） | 20 | 10 GB | 99 / 月 |
+| `pro` / Professional | Basic + Access 的全部权限 | 100 | 100 GB | 299 / 月 |
+| `enterprise` / Enterprise | 创建时的全部租户侧权限 | 不限 | 不限 | 按年 |
 
-- `EditionCode` 全局唯一，如 `free`/`basic`/`pro`/`enterprise`。
-- 同一时刻仅一个 `IsDefault=true`；设默认时先清其它默认（`ClearDefaultEditionsAsync`），且默认版本必须处于启用状态、不能被直接取消或禁用。
-- 版本白名单只能绑定**平台级全局权限**（`permission.IsGlobal`，即 `TenantId=0`），权限须启用，且作用侧必须含租户——平台侧权限进不了租户，绑到套餐上会被拒绝。
+配额经 `Contracts` 的 `ITenantQuota` 约束租户一侧的建用户、上传与秒传（平台主体代租户办事不受限，已超额的只报告不阻止既有数据）；头像不计入租户存储。`subscription.get`（`tenancy.subscription.read`，租户侧）给租户看自己的套餐、期限与用量（「我的订阅」页）。
 
-### 运行时门控：越白名单的权限被拒
+## 平台扫租户库
 
-门控在 `AuthorizationSnapshotQueryService` 构建授权快照时叠加（`ApplyEditionGatingAsync`）——用户在某租户能生效的权限，被该租户所属版本的白名单**收窄取交集**：越出白名单的权限即便被授予，也不进入生效权限集，等同被拒。
+日志写入与清理、独立库的初始化与升级这类后台工作，在自建作用域里经框架 `TenantShardScope.BindTenantAsync` 按租户目录绑定分片，再开工作单元；不在同一个上下文里切换租户。要以某个租户的身份发起一次完整调用（种子、后台写入）用 `Contracts` 的 `ITenantScopeRunner`。
 
-门控**失败即拒绝**：
+## 演示租户
 
-- 只有平台（0 号租户）不门控；业务租户一律门控，超管身份在租户里不成立，没有例外。
-- 租户未绑定版本、或版本白名单为空时，生效权限为空。
-- 门控缓存不可用时直接查库，不因缓存故障放行。
+`BasicApp:Seed:EnableDemoData` 打开时：
 
-性能上，门控白名单走**独立的版本门控缓存**（`SaasEditionGateCacheItem`，缓存名 `SaasCacheNames.EditionGate` = `basicapp:saas:tenancy:edition-gate`，10 分钟 TTL），在 per-user 授权快照缓存**之外**按当前租户上下文叠加，避免切换租户后缓存串味，鉴权热路径不必每请求查库。版本白名单/租户换版的写路径会调 `InvalidateEditionGateAsync` 失效缓存（事务提交后生效）。
+- 种子 `tenancy.demo` 写演示租户 `demo`（绑定企业版）、其管理员 `admin`、平台超级管理员在 `demo` 的成员身份（演示切换租户与模仿），以及流程演示要用的成员账号 `manager`、`lead`、`hr`（密码同管理员，初始密码见 `DemoTenantSeeder`；系统参数 `identity.password` 打开时首次登录都须改密）。
+- 种子 `access.demo` 在 `demo` 里建角色 `employee`（只看本人数据，工作流的查看与发起、聊天的查看与发送，指派给三个成员）与 `hr_specialist`（自定义数据范围研发部与市场部，指派给 `hr`），可选模块的权限码只授出已登记的。
+- 种子 `access.demo-policies` 在 `demo` 里写两条只记录的访问策略（`demo.off-hours`、`demo.overseas`，内容取同名模板），让命中记录页有数据。
+- 种子 `settings.demo` 写两个平台字典（`demo_customer_level` 带缺省项与停用项，`demo_region` 是树形）；`notification.demo` 写三条草稿通知（平台的上手指南，`demo` 里一条按部门、一条按角色定向），发布之后才展开收件人。
 
-### 开通：先建租户，再初始化管理员
-
-任何隔离模式都分步开通，建租户不带管理员：
-
-1. **建租户**：`CreateTenant` 写租户注册表；版本未指定则取默认版本（没有默认版本时保持未绑定，门控按未启用处理）。字段隔离租户建好即 `Configured`，库隔离租户是 `Pending`；
-2. **初始化数据库（仅库隔离）**：`InitializeDatabase` 建库、建表、登记升级基线，成功后 `Configured`（建库是 DDL，不能包在事务型工作单元里，所以是独立一步，可重复执行）；
-3. **初始化管理员**：`InitializeTenantAdmin` 一站式开通（`TenantProvisionDomainService.ProvisionTenantAdminAsync`）。只有已配置、还没有所有者的租户可以调用；列表与详情的 `HasOwner` 标出是否已开通。
-
-开通写的都是新租户的数据，切入该租户（`ICurrentTenant.Change(tenantId)`）写入，行的 `TenantId` 由作用域决定，不预置：
-
-1. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
-2. **建所有者角色**：`SysRole.CreateTenantOwnerRole()`——系统角色 `tenant_owner`、数据范围 `All`、成员上限 1，不写授权行；
-3. **绑定**：把管理员挂到所有者角色（`SysUserRole`）。
-
-于是开通管理员后即"能登录、是所有者、拥有套餐范围内的全部权限"，无需人工逐项授权；之后换套餐也不用补授权（见「租户所有者」）。管理页上字段隔离租户建好会接着弹出开通管理员；库隔离租户要先初始化数据库——开通时连带写的租户数据（日志等）在它自己的库里，库得先在，账号、成员关系、角色与授权本身在平台库。
-
-#### 库隔离租户的库
-
-`InitializeDatabase` 建的是这个租户**一整套**布局：主库，加上它按约定自带的模块库。主连接下配了 `ModuleDataSourceConfigs` 的模块（如 `Erp`），租户也会有一个对应的库，库名由租户主库名派生成 `{租户库名}_{模块名}`——租户库叫 `qqq`，就还会建一个 `qqq_Erp`。主连接那条模块连接串留空（该模块不分库）时租户同样不分，模块表落它自己的主库。
-
-这条约定由框架实现（`XiHan:Data:SqlSugarCore:EnableTenantModuleDatabaseConvention`，默认开），应用侧不写代码、不加配置。含义是：**租户声明了库隔离，它的数据就都在它自己的库里**，不会有一部分悄悄落回公共模块库。要把某个租户的模块库指到别的机器上，在 `ISqlSugarTenantConnectionProvider` 里显式给出 `ModuleDataSourceConfigs` 即可，显式的优先。
-
-账号定位是跨租户的身份层操作：登录在平台作用域按全局唯一邮箱显式跨租户定位账号（`GetByEmailGloballyAsync`），账号的安全信息在账号归属租户内读写（见上文「登录与落点」）；`ExistsEmailGloballyAsync` / `ExistsUserNameInTenantAsync` 自身切到平台作用域、显式跨租户执行，租户范围由入参显式落进 `WHERE`，不依赖当前上下文。
-
-### 降级自动回收越权授权
-
-当版本白名单**收窄**（撤销/停用某条版本权限映射），系统会**自动回收该版本下各租户存量的越权授权**（`ReconcileEditionTenantsAuthorizationAsync` → `ReconcileTenantAuthorizationWithEditionAsync`）：
-
-- 触发点：`RevokeTenantEditionPermissionAsync`（撤销）、`UpdateTenantEditionPermissionStatusAsync`（映射被置为非 `Valid`）。恢复为有效则无需回收。
-- 回收动作：把该租户下**超出白名单**的 `SysRolePermission` / `SysUserPermission` 存量行置为 `Invalid` 并记 `ExpirationTime` 与回收原因（"套餐变更回收：超出当前版本权限白名单"）。
-- 边界：只回收该租户**自有**绑定行（`TenantId=本租户`）；全局行（`TenantId=0`）属平台运维资产，不在回收范围。白名单为空时运行时已一律拒绝，存量绑定保留不回收，白名单恢复后随之恢复。
-
-> 运行时门控（快照收窄）+ 降级回收（存量清理）是两道并行防线：前者保证越权权限当下不生效，后者把已落库的越权授权行物理失效，避免日后升级/门控放开后旧越权授权"复活"。
-
-## 租户解析：请求如何落到租户上下文
-
-一次请求进入后，框架在 HTTP 管线里执行**租户解析链**（`XiHanTenantResolveMiddleware`，在 `XiHan.Framework.Web.Api`），把解析结果写入 `ICurrentTenant`。解析贡献者按顺序命中即止（`Handled=true` 短路）：
-
-| 顺序 | 贡献者 | 来源 | 说明 |
-| --- | --- | --- | --- |
-| 1 | `CurrentUserTenantResolveContributor` | 已登录用户的 `TenantId`（来自 JWT claim） | 首位插入，是主路径；已认证且带租户则据此解析 |
-| 2 | `HeaderTenantResolveContributor` | 请求头 `X-Tenant-Id`（默认键含 `X-Tenant-Id`/`x-tenant-id`/`TenantId`） | `EnableHeaderResolve` 默认开 |
-| 3 | `QueryStringTenantResolveContributor` | 查询串 `tenantId` / `tenant` | `EnableQueryStringResolve` 默认开 |
-
-配置节 `XiHan:MultiTenancy:Resolve`（`XiHanTenantResolveOptions`）可调头/查询串键名、开关与 `FallbackTenant`。
-
-对 BasicApp 而言，**主路径是令牌里的 `TenantId`**：先登录后选租户，登录时按落点决定令牌是否带 `TenantId` claim（平台态不带），之后每次请求由 `CurrentUserTenantResolveContributor` 据此还原上下文；换租户则重新签发令牌。解析链的完整机制见 [XiHan.Framework.MultiTenancy](https://framework.docs.xihanfun.com/packages/multitenancy)。
-
-## 与权限的交叉点
-
-版本门控是租户维度对权限的**再收窄**，在授权快照里与权限码一起判定。完整判定链（认证 → 租户解析 → 权限码与版本门控 → 数据范围 → 字段脱敏）与权限码/数据范围/FLS 细节见 [权限模型](./permission#判定链)。要点回顾：
-
-- 授权快照只取当前上下文的绑定行（严格租户隔离），按作用侧裁掉不在当前上下文生效的权限，业务租户里再与版本白名单取交集。
-- 只有平台不受版本门控；超管的 `*` 只在平台成立。
-- 版本白名单只挂平台级全局权限，且作用侧必须含租户。
+组织与流程的演示数据见[组织架构](./organization#演示数据)与[工作流](./workflow#演示流程)。这几个种子都只首写：写过一次（含已删除的）就不再碰。
 
 ## 下一步
 
-- [权限模型](./permission)：RBAC、权限码、数据范围、字段脱敏
-- [系统架构](./introduction)：租户解析在请求管道中的位置
-- [XiHan.Framework.MultiTenancy](https://framework.docs.xihanfun.com/packages/multitenancy)：框架层租户上下文、解析链与存储
+- [组织架构](./organization) · [权限管理](./permission) · [数据模型](./data-model)

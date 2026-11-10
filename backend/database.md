@@ -2,221 +2,109 @@
 
 # 数据库配置
 
-连接怎么配、支持哪些库、读写分离怎么开、启动时的建库建表播种、分表怎么查，以及**为什么加字段后部署会炸**。
+本页说明数据库连接、从库与 SQL 日志、多库落点、数据访问方式与建表策略，适用于后端开发者与部署人员。
 
-配置节 `XiHan:Data:SqlSugarCore`。
+数据层是 SqlSugar（框架 `Persistence.SqlSugar` 的「方式一」：应用提供连接配置回调）。PostgreSQL 14+ 是缺省库，表结构脚本只为它写，CI 对它跑真实库用例；集成测试另用 SQLite 跑快速用例。不引入 EF Core 作为平行的业务数据层。
 
-## 支持的数据库
+## 平台库连接
 
-ORM 是 SqlSugar，`DbType` 取它的枚举值。「能连上、能首次建表」与「能当独立库租户、有升级脚本」是两回事，下表分开列：
-
-| 数据库 | `DbType` | 独立库租户可选 | 升级脚本 | 说明 |
-| --- | --- | --- | --- | --- |
-| **PostgreSQL** | `PostgreSQL` | ✅ | ✅ | **默认与推荐**，唯一提供 `UpdateScripts` 的方言 |
-| MySQL / MariaDB | `MySql` | ✅ | — | MariaDB 协议兼容，同用 `MySql` |
-| SQL Server | `SqlServer` | ✅ | — | — |
-| SQLite | `Sqlite` | ✅ | — | 仓库测试用它跑建表与仓储用例 |
-| Oracle | `Oracle` | ✅ | — | 支持但不建议 |
-| 达梦 / 人大金仓 | `Dm` / `Kdbndp` | — | — | 只在 ORM 层可用：驱动随 `SqlSugarCore` 一并安装，可作主库 `DbType`；仓库未针对它们验证 |
-
-- **独立库租户**的数据库类型是 `TenantDatabaseType`，只有 `SqlServer` / `MySql` / `PostgreSql` / `SQLite` / `Oracle` 五个值，选不到达梦与人大金仓。
-- **升级脚本**只提供 PostgreSQL 方言。主库或独立库用其它数据库时，全新库由 CodeFirst 建表并登记为最新版本，之后版本的结构变化要自行准备对应方言的脚本，否则开着自动升级时 PostgreSQL 脚本会在该库上执行失败并中断启动（见[升级与迁移](./upgrade)）。
-
-本地用 Docker 起库见 [开发环境](../dev-environment)。
-
-## 连接配置
+连接写在框架的服务绑定 `XiHan:Bindings:db`：
 
 ```json
 {
   "XiHan": {
-    "Data": {
-      "SqlSugarCore": {
-        "ConnectionConfigs": [
-          {
-            "ConfigId": "Default",
-            "ConnectionString": "Server=127.0.0.1;Database=XiHanBasicApp;Username=postgres;Password=***;TrustServerCertificate=true;",
-            "DbType": "PostgreSQL",
-            "IsAutoCloseConnection": true,
-            "SlaveConnectionConfigs": []
-          }
-        ]
+    "Bindings": {
+      "db": {
+        "type": "connection:relational",
+        "value": "Host=<主机>;Port=5432;Database=<库名>;Username=<用户>;Password=<密码>",
+        "provider": "postgresql"
       }
     }
   }
 }
 ```
 
-| 键 | 说明 |
+- 数据库是启动硬要求：绑定缺失或为空即 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
+- `provider` 不写即 `postgresql`（也认 `postgres` / `pgsql` / `npgsql`），另认 `sqlite`、`mysql`、`sqlserver`（`mssql`）；写了别的即 `RUNTIME_VALIDATION_002`。
+- 不提交真实连接串：`appsettings.json` 不写绑定，本机开发写在 `appsettings.Development.json`，部署用环境变量 `XiHan__Bindings__db__value` 或 Kubernetes Service Binding。
+- 语句超时 `XiHan:Persistence:SqlSugar:CommandTimeoutSeconds`（缺省 300 秒）。
+
+## 从库与 SQL 日志
+
+`BasicApp:Database` 只管平台库：
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Replicas` | 不配 | 平台库的从库列表，每项 `ConnectionString` 必填、`HitRate` 是读权重。配了之后只读工作单元读从库，会写的工作单元读写都走主库 |
+| `LogSql` | `false` | 记录每条 SQL（只记语句，不记参数值），只在排查时打开 |
+| `LogSqlErrors` | `true` | 记录执行出错的 SQL |
+| `LogSlowSql` | `true` | 记录慢 SQL |
+| `SlowSqlThresholdMilliseconds` | `1000` | 慢 SQL 阈值 |
+
+从库只给平台库，独立库租户读写都走它自己的库。从库的缺省权重、健康探测、摘除与恢复在 `XiHan:Persistence:SqlSugar:Replicas`。决定授权的读取（会话门禁、角色指派、权限规则、访问策略等）经 `StoreScope.ReadPrimaryAsync` 钉在主库，不读落后的从库。SQL 日志的类别是 `XiHan.BasicApp.Sql`。
+
+## 方式一回调：`SqlSugarRuntime`
+
+宿主以 `new SqlSugarPersistenceFeature(SqlSugarRuntime.ConfigureWith(configuration)) { DiffLog = DiffLogBuffer.IsLogged }` 装配持久化。回调对默认连接调用一次，带分片的调用再对 `shard` 连接调用一次：
+
+| 项 | 内容 |
 | --- | --- |
-| `ConfigId` | 连接唯一标识（多库 / 多租户路由用），**字符串** |
-| `ConnectionString` | 主库连接串 |
-| `DbType` | 见上表 |
-| `IsAutoCloseConnection` | 自动关闭连接 |
-| `SlaveConnectionConfigs[]` | 从库；空数组 = 单库不分离 |
+| 库类型与连接串 | 读绑定 `db`（分片连接由框架按租户目录推出） |
+| 命名约定 | 表名、列名 snake_case（`SysUserRole` → `sys_user_role`）；显式写了 `[SugarTable]` / `[SugarColumn]` 名字的不改 |
+| 操作人 | `AopEvents.DataExecuting` 填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
+| 字符串缺省长度 | 没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)` |
+| 差异日志 | 全审计实体的写入带差异事件，供数据变更日志使用；标了 `[DiffLogIgnored]` 的实体除外 |
+| 从库与 SQL 日志 | 按 `BasicApp:Database` 挂上 |
 
-::: warning 生产密码走环境变量
-`XiHan__Data__SqlSugarCore__ConnectionConfigs__0__ConnectionString`。生产 `appsettings` 通常被 gitignore，需在服务器单独维护。
+框架随后施加协议约定：主键、并发戳（长度 32）、软删除、租户列、`DateTimeOffset` 按 UTC 往返、可空列。
+
+## 多库：默认连接与租户分片
+
+作用域客户端带两个连接：`default`（平台库）与 `shard`（带分片的租户调用才有）。框架按顺序决定实体落点：
+
+1. 实体带 `[Tenant(configId)]` 的，落指定的连接；
+2. 实现 `IMultiTenant` 且调用有 `shard` 连接的，落分片连接；
+3. 其余落默认连接。
+
+共库（字段隔离）的租户调用没有 `shard` 连接，租户库实体与平台库同库、靠 `tenant_id` 过滤。独立库租户的连接串存在租户目录（`TenantRecord` 的 `ConnectionString` / `DatabaseProvider` 属性），以 `ISecretProtector` 密文保存；框架按租户目录建分片连接，Runtime 的 `ProtectedTenantShardResolver` 解密，解不开即 `RUNTIME_UNAVAILABLE_004`，不降级为共库。
+
+::: warning 跨库事务不是两阶段提交
+工作单元在第一次写入时开事务，之后首次取用的连接再补开；提交与回滚逐连接进行，是顺序提交：第二个连接提交失败时第一个已经提交。需要严格原子的写入放在同一个库里。租户开通只写平台库（租户与框架租户目录同一个工作单元）；独立库的建库建表是单独的操作 `tenants.initialize-database`，结果写回租户，失败可改连接后重试。
 :::
 
-## 读写分离
+## 数据访问
 
-填了从库后 **SELECT 自动走从库、写与事务走主库**，业务代码无感知：
-
-```json
-"SlaveConnectionConfigs": [
-  { "ConnectionString": "Server=从库1;Database=XiHanBasicApp;Username=postgres;Password=***;" },
-  { "ConnectionString": "Server=从库2;Database=XiHanBasicApp;Username=postgres;Password=***;" }
-]
-```
-
-::: danger `HitRate` 配不上，别写
-`HitRate`（读权重）是 SqlSugar 的**字段**、绑不上 `appsettings`——写了也无效、恒为 0。
-
-框架会把权重为 0 的从库归一化为 `DefaultSlaveHitRate`（默认 `10`），所以**不写 `HitRate` 也能等权分担读**。
-
-需要差异化权重、挂 `ConfigureExternalServices` 或自写探活，用代码钩子 `XiHanSqlSugarCoreOptions.ConfigureConnectionConfigs`。
-:::
-
-### 从库健康探针
-
-| 键 | 默认 | 说明 |
+| 场景 | 用什么 | 约束 |
 | --- | --- | --- |
-| `EnableSlaveHealthCheck` | `false` | 周期探活，不可用从库自动摘除读权重 |
-| `SlaveHealthCheckIntervalSeconds` | `30` | 探测周期 |
-| `SlaveFailureCooldownSeconds` | `120` | 故障冷却窗口，恢复后先冷却再回填权重避免抖动 |
-| `DefaultSlaveHitRate` | `10` | 权重归一化默认值 |
+| 按 ID 取、按规约列、计数、增删改、批量 | `IRepository<TEntity, Guid>`（Feature 里 `AddGeneratedRepositories()` 登记） | 自动处理租户、软删除、并发戳、时间；`EntityQuery` 的 `Take` 只收 1–1000 |
+| 分页、投影、联表、聚合 | 包内 `Queries/`，用 `ISqlSugarClient` | 必须以 `TenantScopedQuery.For<T>(context)` 或 `For<T>(client, context)` 起手（按落点取连接，补软删除与租户条件）；平台库里分侧的实体再接 `OwnedByCurrentTenantOrPlatform(context)` 或 `OwnedByCurrentTenant(context)` |
+| 平台一侧的租户库实体 | Runtime 的 `SideRows` | 框架仓储要求调用带租户；平台一侧的行（`platform`）经它按侧读写，写之前开事务 |
+| 按月分表的日志 | 仓储按 `[SplitTable(SplitType.Month)]` 自动走分表入口，`EntityQuery<T>.Within(from, to)` 限定扫描的表；`Queries/` 里用 `.SplitTable(from, to)` | 不给时间范围即扫全部分表 |
+| 独立于调用事务的读写 | `Runtime.Persistence.StoreScope.ReadAsync` / `ReadPrimaryAsync` / `WriteAsync` | 失败计数、会话门禁、读穿缓存的加载 |
+| 后台对租户库的工作 | 框架 `TenantShardScope` 或 Contracts 的 `ITenantScopeRunner` | 在自建作用域里按租户绑定分片 |
 
-## 启动初始化
+框架没有全局查询过滤器：直接用 `ISqlSugarClient` 而不经 `TenantScopedQuery` 起手，就会漏掉租户与软删除条件。直接用客户端写入（`Insertable` 等）之前要先调 `SqlSugarUnitOfWork.EnsureTransactionAsync`，写入才在本次调用的事务里。
 
-| 键 | 说明 |
+只读操作（动词 `get` / `list` 或声明 `ReadOnly = true`）跑在只读工作单元里，写入即 500 `PERSISTENCE_UNEXPECTED_001`；要补建的行放到写操作里建，读路径缺行按缺省值读。
+
+## 建表策略
+
+| 环境 | 方式 |
 | --- | --- |
-| `EnableDbInitialization` | 启动时自动建库（库不存在则创建）；同时是整个初始化流程的总开关，关掉则建表与播种一并跳过 |
-| `EnableTableInitialization` | 启动时 CodeFirst 建表 |
-| `EnableDataSeeding` | 启动时写入种子数据 |
-| `TableInitialization` | 建哪些表（不填=全部） |
-| `DataSeeding` | 跑哪些种子（不填=全部） |
+| 开发 | `XiHan:Persistence:SqlSugar:InitTables` 为 `true`（`appsettings.Development.json` 已打开）：启动时按已登记的实体建缺表、加缺列，再补建部分唯一索引 |
+| 正式 | `Host/Schema/<版本>/*.sql` 与版本台账，由表结构升级器在启动时执行，见[表结构升级](./upgrade) |
 
-三个开关都开时，**首次启动一条龙**：建库 → 建表 → 播种。这也是「拿到代码配好连接串就能跑」的原因。
+`InitTables` 只建缺表、加缺列。给已有行的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持，应在实体里声明成可空，或重建开发库。
 
-### 挑表挑种子
+## 测试库
 
-开关只管开不开，范围由 `TableInitialization` / `DataSeeding` 决定，默认全量。三种用法：
-
-```jsonc
-"TableInitialization": {
-  // All（默认）：扫到的实体都建；OptIn：只建显式标了 [TableInitialization] 的实体
-  "Mode": "All",
-  // 支持 * ? 通配，按实体类名/实体全名/表名任一匹配
-  "ExcludedTables": [ "sys_diff_log" ]
-},
-"DataSeeding": {
-  // 按种子名称 / 类名 / 全名排除；演示数据的开关是 Saas:Seed:EnableDemoData，不靠这里
-  "ExcludedSeeders": [ "[Chat]内建定时任务" ]
-}
-```
-
-实体侧还能直接标注：`[TableInitialization(false)]` 表示这张表由自己维护（框架不建）、
-`[TableInitialization(Target = DbInitializationTarget.Platform)]` 表示只建在平台库、独立库租户不建。
-本应用的平台目录、账号与授权、读共享模板等实体标的是 `[PlatformDataSource]`：不只建表只在平台库，运行期读写也固定走平台库，见 [多租户：库隔离](./multi-tenancy#库隔离-平台库是目录库)。
-要整套自己实现就 `Replace` 掉 `IDbEntityTypeProvider` / `IDataSeederSelector`，
-细节见 [Framework 数据访问](https://framework.docs.xihanfun.com/packages/data#选择初始化范围)。
-
-### 建表只建不改
-
-::: danger 加了字段部署后必报「列不存在」
-`DbInitializer` **表存在就跳过创建**（日志里是「表已存在，跳过创建」），它**从不为已有表补列**。
-
-给既有实体加字段后部署，运行到该表的查询就会报 `42703 column does not exist`（PG）或等价错误。
-
-三条路：
-- 正式版本在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 编写前向迁移（推荐），启动时由升级引擎执行；
-- 可丢弃数据的本地环境重建数据库；
-- 紧急修复时手工 `ALTER TABLE`，随后仍要补入版本脚本。
-
-CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Upgrade 引擎执行。
-:::
-
-::: tip 升级状态不是本地文件
-升级引擎用 `SysVersion` 和 `SysMigrationHistory` 记录每个数据库的版本与脚本结果，不使用 `version.txt`；独立数据库租户逐库升级。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true`（缺省即为 `true`）时启动会自动执行待执行脚本，失败即中断启动，详见[升级与迁移](./upgrade)。
-:::
-
-## 种子数据
-
-分两类：
-
-| 类别 | 开关 | 内容 |
-| --- | --- | --- |
-| **基础数据** | 始终播种 | 超级管理员、操作字典、各模块的权限目录与菜单、套餐、参数、默认存储、消息模板、内建 OAuth 应用、内建定时任务、代码生成内置模板——系统运行所需，不建任何租户 |
-| **演示数据** | `Saas:Seed:EnableDemoData` | 覆盖各种情况的演示租户、组织、角色、账号，以及演示通知与字典 |
-
-`EnableDemoData` 为 `true` 才写演示数据，**缺省或 `false` 都不写**，写错（不是布尔值）直接启动失败。各环境在自己的配置文件里写明：仓库的开发环境配置开启，生产环境在部署处的 `appsettings.Production.json`（不入库）里设置。
-
-初始超级管理员 `superadmin` / `SuperAdmin@123`，密码由种子写入并标记为需要本人改密，**生产首次登录后立即修改**，并建议在参数「密码设置」里开启强制改密。
-
-执行阶段、写入口径（哪些每次对齐、哪些只写一次）、演示租户与账号清单见 [框架简介：种子数据](./introduction#种子数据)。
-
-## 分表查询
-
-按月分表的实体（日志类）物理表名形如 `Sys_Access_Log_20260801`。
-
-::: warning 分表不能当普通表查
-读写都必须显式挂 SqlSugar 的分表 API，否则表名里的 `{year}{month}{day}` 占位符不会被替换：
-
-- 查询、插入：`.SplitTable()`；
-- 条件删除：`.SplitTable(tabs => tabs)`——无参重载只支持按实体集合删除，条件删除会在运行时抛异常。
-:::
-
-## SQL 日志与诊断
-
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `EnableSqlLog` | `false` | 打印所有 SQL。**生产建议关闭**，日志会爆量 |
-| `EnableSqlErrorLog` | `true` | 记录 SQL 异常 |
-| `EnableSlowSqlLog` | `true` | 记录慢 SQL |
-| `SlowSqlThresholdMilliseconds` | `10000` | 慢 SQL 阈值（毫秒），**纯观测用途、不影响语句执行** |
-| `CommandTimeoutSeconds` | `300` | ADO 命令超时；0/负值不覆盖；**须明显大于慢 SQL 阈值** |
-
-排查性能问题的顺序：先看慢 SQL 日志找出目标语句 → 临时开 `EnableSqlLog` 看完整 SQL 与参数 → 定位后关掉。
-
-## 数据变更日志
-
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `EnableDiffLog` | **`false`** | 实体差异日志（`SysDiffLog`）总开关 |
-
-::: danger 数据变更日志页恒空的头号原因
-默认 `false`——不开则 Diff AOP 根本不挂载，收集到的差异被直接丢弃。**生产 `appsettings` 常被 gitignore，最容易漏配的就是这一项。**
-
-代价：开启后 update/delete 会先查一次旧值算差异，**每个写操作多一次 SELECT**。
-
-覆盖范围：只覆盖走仓储的写。绕过仓储直接用 `DbClient` 的写（如 `UpdateColumns`）不产生差异日志。
-:::
-
-## 一个仓储层的强制约定
-
-::: danger 仓储里禁止显式调用 `.EnableQueryFilter()`
-框架默认 `EnableAutoUpdateQueryFilter` / `EnableAutoDeleteQueryFilter` 均为 `true`，SqlSugar 的 `Updateable<T>()` / `Deleteable<T>()` 工厂内部**已经自动挂了一次**租户/软删过滤。
-
-再显式挂一次 → 同一份过滤烘进 WHERE 两遍 → 生成同名参数 `@constant1001` → 一旦叠加 Diff 的 `GetDiffTable` 重查旧值就崩（MySQL 驱动直接抛，PG 容忍重名故不崩，但仍是冗余死条件）。
-
-`.EnableDiffLogEvent()` 保留，它单独用是安全的。
-:::
-
-## 排查
-
-| 现象 | 原因 |
+| 用例 | 库 |
 | --- | --- |
-| 启动连不上库 | 连接串、防火墙、库是否已启动 |
-| 部署后报「列不存在」 | 版本升级脚本缺少对应 `ALTER TABLE` 或未成功执行，见上 |
-| 数据变更日志空 | `EnableDiffLog` 没开 |
-| 写操作报参数重名 | 仓储里显式调了 `.EnableQueryFilter()` |
-| 从库没分担读 | 确认 `SlaveConnectionConfigs` 填了；`HitRate` 写了也无效 |
-| 日志查不到数据 | 分表查询没挂 `.SplitTable()` |
-| 多节点主键冲突 | `WorkerId` 没逐节点改，见 [实体基类](./entity#主键与并发) |
+| 绝大多数集成测试 | SQLite 临时库，经 `BasicAppTestServer` 走完整管道 |
+| PostgreSQL 用例（两库冒烟、从库读主库、并发发号、Provider 一致性、表结构基线等） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），测试自建临时库；没设置即跳过 |
 
-## 相关页面
+CI（`.github/workflows/ci.yml`）起一个 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`。
 
-- [实体基类](./entity)：列约定、软删、分表声明
-- [数据模型](./data-model)：全部数据表清单
-- [开发环境](../dev-environment)：Docker 起库与连接串对齐
-- [配置参考](../configuration#xihan-data-sqlsugarcore)：全量配置项
+## 下一步
+
+- [数据模型](./data-model) · [表结构升级](./upgrade) · [多租户 SaaS](./multi-tenancy)
