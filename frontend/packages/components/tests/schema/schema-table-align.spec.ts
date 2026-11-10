@@ -1,6 +1,6 @@
 /**
  * 列表页表格的对齐落到组件库的列契约上：表格设置选居中、居右时数据列一起换，
- * 靠左是库的缺省，不写出来；勾选、序号这些前缀列不跟着换
+ * 靠左是库的缺省，不写出来；勾选、序号这些前缀列与数据列同一个方向
  */
 import type { TableColumnDef } from '@xihan-ui/headless'
 import type { SchemaColumn } from '~/components/schema/types'
@@ -46,21 +46,21 @@ function columnDefs(props: Record<string, unknown> = {}): TableColumnDef[] {
 }
 
 describe('schemaTablePanel 的对齐', () => {
-  it('缺省靠左：数据列不写对齐，交给库的起始边', () => {
+  it('缺省靠左：所有列都不写对齐，交给库的起始边', () => {
     const defs = columnDefs()
-    expect(defs.find(def => def.id === 'name')).not.toHaveProperty('align')
-    expect(defs.find(def => def.id === 'path')).not.toHaveProperty('align')
+    expect(defs.length).toBeGreaterThan(2)
+    expect(defs.every(def => !('align' in def))).toBe(true)
   })
 
   it.each([
     ['center', 'center'],
     ['right', 'end'],
-  ] as const)('选 %s 时数据列都按 %s 排，前缀列不跟着换', (align, expected) => {
+  ] as const)('选 %s 时勾选、序号与数据列都按 %s 排', (align, expected) => {
     const defs = columnDefs({ align })
     expect(defs.find(def => def.id === 'name')).toMatchObject({ align: expected })
     expect(defs.find(def => def.id === 'path')).toMatchObject({ align: expected })
     const prefix = defs.filter(def => def.id !== 'name' && def.id !== 'path')
     expect(prefix.length).toBeGreaterThan(0)
-    expect(prefix.every(def => !('align' in def))).toBe(true)
+    expect(prefix.every(def => def.align === expected)).toBe(true)
   })
 })

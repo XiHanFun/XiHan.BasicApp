@@ -276,12 +276,17 @@ const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
 const tableColumns = computed<TableColumnDef[]>(() => {
   // 有业务列左固定时，前面的勾选/序号/展开列也钉在行首侧，业务列的偏移才接得上
   const pinPrefix = props.columns.some(column => column.fixed === 'left')
+  // 表格对齐作用到每一列：前缀列（展开 / 勾选 / 序号）与业务列同一个对齐方向
+  const alignment = props.align === 'left'
+    ? {}
+    : { align: COLUMN_ALIGN[props.align] }
   return [
     ...prefixColumns.value.map<TableColumnDef>(c => ({
       id: c.id,
       width: c.width,
       minWidth: c.width,
       maxWidth: c.width,
+      ...alignment,
       ...(pinPrefix
         ? { sticky: 'start' }
         : {}),
@@ -303,9 +308,7 @@ const tableColumns = computed<TableColumnDef[]>(() => {
             }
           : {}),
         // 对齐交给库落到列头与数据格上（data-align），起始边是库的缺省，不必写出来
-        ...(props.align === 'left'
-          ? {}
-          : { align: COLUMN_ALIGN[props.align] }),
+        ...alignment,
         width,
         minWidth: column.minWidth ?? width,
         // 操作列不给拖：它的宽度跟着按钮走，拖窄了按钮会被挤掉
