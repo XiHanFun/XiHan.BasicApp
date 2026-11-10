@@ -33,7 +33,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 dotnet run --project backend/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend/contracts"
 ```
 
-框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `E:\Repository\XiHanFun\XiHanFun.Next.Local.slnx` 登记本目录全部工程与框架 `framework/src`。
+框架以源码引用：同级目录需要 `XiHan.Framework` 检出在 `props/framework.props` 锁定的提交（`Architecture.Tests` 核对 HEAD）。工作区解决方案 `XiHanFun.Local.slnx` 登记本目录全部工程与同级框架的 `framework/src`；Visual Studio 打开它，只开 `XiHan.BasicApp.slnx` 时框架工程不在解决方案里，还原报 NU1105。
 
 ## 规则
 
