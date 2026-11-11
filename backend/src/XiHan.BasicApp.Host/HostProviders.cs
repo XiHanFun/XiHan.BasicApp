@@ -4,14 +4,15 @@
 using XiHan.Framework.Caching.Redis;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Messaging.RabbitMQ;
+using XiHan.Framework.Security.WebAuthn;
 
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 按配置装配的分布式 Provider
+/// 按配置装配的 Provider
 /// </summary>
 /// <remarks>
-/// 方案 5.13：配了连接才装 Redis（连同两级缓存）与 RabbitMQ，没配即 Full Profile 的内存实现，单机零外部依赖
+/// 方案 5.13：配了连接才装 Redis（连同两级缓存）与 RabbitMQ，没配即 Full Profile 的内存实现，单机零外部依赖；配了依赖方 ID 才装 WebAuthn（通行密钥）
 /// 连接的来源与框架 Provider 读取时同一套：显式的 <c>XiHan:Caching:Redis:Configuration</c> / <c>XiHan:Messaging:RabbitMQ:Configuration</c>，
 /// 或绑定 <c>cache</c> / <c>queue</c>（<c>XiHan:Bindings</c> 与 <c>SERVICE_BINDING_ROOT</c> 目录）；值为空白即没配
 /// 配了而连不上时由 Provider 在启动时报错中断，不退回内存实现
@@ -29,6 +30,14 @@ public sealed record HostProviders
     public bool RabbitMQ { get; init; }
 
     /// <summary>
+    /// 是否装配 WebAuthn（通行密钥）
+    /// </summary>
+    /// <remarks>
+    /// <c>XiHan:Security:WebAuthn:RelyingPartyId</c> 不是空白即算配了；配了而来源等写错时由框架在启动时报错
+    /// </remarks>
+    public bool WebAuthn { get; init; }
+
+    /// <summary>
     /// 从配置与绑定判定要装配哪些分布式 Provider
     /// </summary>
     /// <param name="configuration">宿主配置（调用方改完配置之后）</param>
@@ -41,6 +50,7 @@ public sealed record HostProviders
         {
             Redis = Configured(configuration, RedisCachingOptions.ConfigurationSection, bindings, RedisCachingFeature.ConnectionBinding),
             RabbitMQ = Configured(configuration, RabbitMQMessagingOptions.ConfigurationSection, bindings, RabbitMQMessagingFeature.ConnectionBinding),
+            WebAuthn = !string.IsNullOrWhiteSpace(configuration[$"{WebAuthnOptions.ConfigurationSection}:RelyingPartyId"]),
         };
     }
 

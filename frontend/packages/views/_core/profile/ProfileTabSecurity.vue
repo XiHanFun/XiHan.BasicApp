@@ -18,6 +18,7 @@ import { ApiError } from '~/request'
 import { useAccessStore, useAppContext, useUserStore } from '~/stores'
 import { copyToClipboard, formatDate } from '~/utils'
 import CodeCountdown from '../shared/CodeCountdown.vue'
+import ProfilePasskeys from './ProfilePasskeys.vue'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ updated: [] }>()
@@ -872,6 +873,8 @@ function handleDeleteAccount() {
         </div>
       </div>
     </section>
+
+    <ProfilePasskeys />
 
     <!-- 安全状态 -->
     <section class="pf-section">

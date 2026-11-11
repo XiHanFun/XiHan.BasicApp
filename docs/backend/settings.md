@@ -26,7 +26,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 | 键 | 谁读 | 含义 |
 | --- | --- | --- |
-| `identity.login-methods` | Identity | 登录页开放的方式（逗号分隔，只认平台的）：`password`、`email`、`phone`；没建即只有密码登录，写错即登录配置报错 |
+| `identity.login-methods` | Identity | 登录页开放的方式（逗号分隔，只认平台的）：`password`、`email`、`phone`、`passkey`（还要宿主配了 `XiHan:Security:WebAuthn`）；没建即只有密码登录，写错即登录配置报错 |
 | `identity.password` | Identity | 密码设置（JSON，只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
 | `identity.impersonation` | Identity | 模仿登录（JSON）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
 | `auditing.retention-days` | Auditing | 日志保留天数（1–3650），没建即 180 天 |

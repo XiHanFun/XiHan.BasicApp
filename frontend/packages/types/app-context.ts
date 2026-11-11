@@ -22,7 +22,7 @@ import type {
   VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangeEmailParams, ChangePasswordParams, ChangePhoneParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, ChangeEmailParams, ChangePasswordParams, ChangePhoneParams, ChangeUserNameParams, ExternalLoginItem, LoginLogPage, MyOAuthAppCreateInput, MyOAuthAppItem, MyOAuthAppSecret, MyOAuthAppUpdateInput, NotificationPreference, OAuthConsentItem, PasskeyItem, TwoFactorSetupResult, UpdateProfileParams, UserActivity, UserProfile, UserSessionItem } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片，个人中心「我的租户」按它列表
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`（Member 普通成员 / Support 运维支持）；
@@ -154,6 +154,14 @@ export interface AppContextApis {
   linkAccountApi: (ticket: string) => Promise<ExternalLoginItem>
   /** 解绑本人的一个第三方账号（按提供方类型），返回剩下的绑定 */
   unlinkAccountApi: (provider: string) => Promise<ExternalLoginItem[]>
+  /** 通行密钥（个人中心「账号安全」，登录方式开放了才出现）：本人登记的通行密钥，按登记时间排 */
+  getPasskeysApi: () => Promise<PasskeyItem[]>
+  /** 添加通行密钥：凭当前密码领创建选项，弹出浏览器创建，再交回后端登记；本人在浏览器里取消时抛 NotAllowedError */
+  addPasskeyApi: (input: { password: string, name?: string }) => Promise<PasskeyItem>
+  /** 改本人一个通行密钥的名字 */
+  renamePasskeyApi: (id: string, name: string) => Promise<PasskeyItem>
+  /** 删除本人的一个通行密钥，删除后立即不能用它登录 */
+  deletePasskeyApi: (id: string) => Promise<unknown>
   /** 登录设备（个人中心「登录设备」）：本人全部在线的会话（平台与各租户），当前会话在最前 */
   getSessionsApi: () => Promise<UserSessionItem[]>
   /** 下线本人的一个会话（当前会话不能这样下线，要走注销） */

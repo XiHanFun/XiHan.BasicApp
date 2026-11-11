@@ -975,6 +975,95 @@ public static class IdentityMessages
     /// </summary>
     public const string CodeTitleResetPasswordPhone = "identity.code.title.reset_password_phone";
 
+    /// <summary>
+    /// 操作 <c>auth.begin-passkey-login</c> 的说明
+    /// </summary>
+    public const string BeginPasskeyLoginDescription = "auth.begin_passkey_login.description";
+
+    /// <summary>
+    /// 操作 <c>auth.login-by-passkey</c> 的说明
+    /// </summary>
+    public const string LoginByPasskeyDescription = "auth.login_by_passkey.description";
+
+    /// <summary>
+    /// 操作 <c>my-passkeys.list</c> 的说明
+    /// </summary>
+    public const string MyPasskeysListDescription = "my_passkeys.list.description";
+
+    /// <summary>
+    /// 操作 <c>my-passkeys.begin-create</c> 的说明
+    /// </summary>
+    public const string MyPasskeysBeginCreateDescription = "my_passkeys.begin_create.description";
+
+    /// <summary>
+    /// 操作 <c>my-passkeys.create</c> 的说明
+    /// </summary>
+    public const string MyPasskeysCreateDescription = "my_passkeys.create.description";
+
+    /// <summary>
+    /// 操作 <c>my-passkeys.update</c> 的说明
+    /// </summary>
+    public const string MyPasskeysUpdateDescription = "my_passkeys.update.description";
+
+    /// <summary>
+    /// 操作 <c>my-passkeys.delete</c> 的说明
+    /// </summary>
+    public const string MyPasskeysDeleteDescription = "my_passkeys.delete.description";
+
+    /// <summary>
+    /// 宿主没有配通行密钥
+    /// </summary>
+    public const string PasskeysNotConfigured = "identity.passkey.not_configured";
+
+    /// <summary>
+    /// 通行密钥的票据无效
+    /// </summary>
+    public const string PasskeyTicketInvalid = "identity.passkey.ticket_invalid";
+
+    /// <summary>
+    /// 这个通行密钥没有登记或已删除
+    /// </summary>
+    public const string PasskeyNotRegistered = "identity.passkey.not_registered";
+
+    /// <summary>
+    /// 本人没有这个通行密钥
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>
+    /// </remarks>
+    public const string PasskeyNotFound = "identity.passkey.not_found";
+
+    /// <summary>
+    /// 通行密钥到了上限
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>
+    /// </remarks>
+    public const string PasskeyLimitReached = "identity.passkey.limit_reached";
+
+    /// <summary>
+    /// 这个通行密钥已经登记过
+    /// </summary>
+    public const string PasskeyTaken = "identity.passkey.taken";
+
+    /// <summary>
+    /// 没起名字时通行密钥的缺省名
+    /// </summary>
+    public const string PasskeyDefaultName = "identity.passkey.default_name";
+
+    /// <summary>
+    /// 添加通行密钥的安全通知标题
+    /// </summary>
+    public const string PasskeyAddedNoticeTitle = "identity.passkey.notice_title";
+
+    /// <summary>
+    /// 添加通行密钥的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>（通行密钥的名字）
+    /// </remarks>
+    public const string PasskeyAddedNoticeContent = "identity.passkey.notice_content";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

@@ -39,6 +39,11 @@ public sealed partial class SecurityNotices(IEnumerable<IInboxDelivery> deliveri
     public const string PasswordChangeBusinessType = "auth.password-change-required";
 
     /// <summary>
+    /// 添加通行密钥通知的业务类型
+    /// </summary>
+    public const string PasskeyAddedBusinessType = "auth.passkey-added";
+
+    /// <summary>
     /// 个人中心的前端路由
     /// </summary>
     public const string ProfileLink = "/profile";
@@ -74,6 +79,23 @@ public sealed partial class SecurityNotices(IEnumerable<IInboxDelivery> deliveri
     {
         ArgumentNullException.ThrowIfNull(user);
         return DeliverAsync(user.Id, tenant, IdentityMessages.PasswordChangeNoticeTitle, IdentityMessages.PasswordChangeNoticeContent, [], ProfileLink, PasswordChangeBusinessType, user.Id, context);
+    }
+
+    /// <summary>
+    /// 告诉账号本人添加了一个通行密钥
+    /// </summary>
+    /// <remarks>
+    /// 本人在当前上下文里添加，通知落在同一侧、随调用的事务提交
+    /// </remarks>
+    /// <param name="user">账号</param>
+    /// <param name="passkey">添加的通行密钥</param>
+    /// <param name="context">调用上下文</param>
+    public Task PasskeyAddedAsync(SysUser user, SysUserPasskey passkey, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(passkey);
+        ArgumentNullException.ThrowIfNull(context);
+        return DeliverAsync(user.Id, context.GetSecurity().Tenant?.Id, IdentityMessages.PasskeyAddedNoticeTitle, IdentityMessages.PasskeyAddedNoticeContent, [("name", passkey.Name)], ProfileLink, PasskeyAddedBusinessType, passkey.Id, context);
     }
 
     private async Task DeliverAsync(Guid userId, string? tenant, string titleKey, string contentKey, (string Name, object? Value)[] arguments, string? link, string businessType, Guid businessId, InvocationContext context)

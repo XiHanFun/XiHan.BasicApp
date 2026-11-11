@@ -8,6 +8,7 @@ using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Operations.Auth;
 using XiHan.BasicApp.Identity.Operations.Impersonation;
 using XiHan.BasicApp.Identity.Operations.MyApiCredentials;
+using XiHan.BasicApp.Identity.Operations.MyPasskeys;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Profile;
 using XiHan.BasicApp.Identity.Operations.Sessions;
@@ -92,6 +93,9 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(CodeSentResponse))]
 [JsonSerializable(typeof(SendLoginCodeRequest))]
 [JsonSerializable(typeof(LoginByCodeRequest))]
+[JsonSerializable(typeof(BeginPasskeyLoginRequest))]
+[JsonSerializable(typeof(BeginPasskeyLoginResponse))]
+[JsonSerializable(typeof(LoginByPasskeyRequest))]
 [JsonSerializable(typeof(RegisterRequest))]
 [JsonSerializable(typeof(RegisterResponse))]
 [JsonSerializable(typeof(RequestPasswordResetRequest))]
@@ -115,6 +119,14 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(UpdateProfileRequest))]
 [JsonSerializable(typeof(ChangeUserNameRequest))]
 [JsonSerializable(typeof(UnlinkExternalLoginRequest))]
+[JsonSerializable(typeof(MyPasskeysRequest))]
+[JsonSerializable(typeof(MyPasskeyResponse))]
+[JsonSerializable(typeof(MyPasskeysResponse))]
+[JsonSerializable(typeof(BeginCreateMyPasskeyRequest))]
+[JsonSerializable(typeof(BeginCreateMyPasskeyResponse))]
+[JsonSerializable(typeof(CreateMyPasskeyRequest))]
+[JsonSerializable(typeof(UpdateMyPasskeyRequest))]
+[JsonSerializable(typeof(MyPasskeyIdsRequest))]
 [JsonSerializable(typeof(MyApiCredentialsRequest))]
 [JsonSerializable(typeof(MyApiCredentialResponse))]
 [JsonSerializable(typeof(MyApiCredentialsResponse))]

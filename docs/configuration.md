@@ -224,6 +224,20 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 自建 MinIO、内网 Webhook、内网 SMTP 中继、内网业务库、流程调内网服务、本机模型端点都要在这里放行，否则连接被拒。
 
+## `XiHan:Security:WebAuthn`
+
+通行密钥（见[统一认证](./backend/authentication#通行密钥-auth-begin-passkey-login-→-auth-login-by-passkey)）。`RelyingPartyId` 不是空白才装框架的 WebAuthn，之后还要在系统参数 `identity.login-methods` 列出 `passkey`。通行密钥绑定在依赖方 ID 上，换了域名已登记的全部失效。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `RelyingPartyId` | 空（Development 为 `localhost`） | 依赖方 ID：前端页面所在的可注册域名，不带协议、端口与路径；留空即不启用。IP 地址用不了通行密钥 |
+| `Origins` | 不写（Development 为 9100 与 9130 的 `http://localhost`） | 允许的来源 `scheme://host[:port]`，即前端页面的地址，启用时至少一个；主机须等于依赖方 ID 或是它的子域，https 之外只允许 localhost 的 http；写错启动即失败 |
+| `RelyingPartyName` | `XiHan BasicApp` | 认证器上显示的名称；不写即同依赖方 ID |
+| `UserVerification` | `Required` | 用户验证（指纹、面容或设备密码）：`Required`、`Preferred` 或 `Discouraged`；做了用户验证的通行密钥登录顶替双因素 |
+| `ResidentKey` | `Required` | 可发现凭据：`Required` 时登录页不用填账号 |
+| `TimeoutSeconds` | `300` | 一次登记或登录的超时，票据随它过期 |
+| `ChallengeSize` | `32` | 挑战的字节数（16 至 64） |
+
 ## `XiHan:MultiTenancy`
 
 租户只从令牌声明解析，不支持查询串与 `X-Tenant-Id` 头。

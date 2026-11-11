@@ -9,7 +9,7 @@ import type { ComponentPublicInstance } from 'vue'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 
 import { useElementSize } from '@vueuse/core'
-import { XhAlertAction, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhAlertAction, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -19,6 +19,7 @@ import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
 import { useAppContext, useAuthStore } from '~/stores'
+import { isPasskeyCancelled, passkeysSupported } from '~/utils'
 import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
@@ -447,6 +448,35 @@ function goTo(path: string) {
   router.push(path)
 }
 
+// ==================== 通行密钥 ====================
+
+/** 登录方式开放、浏览器也支持才给入口；账号与注册地由通行密钥定，不看表单 */
+const passkeyAvailable = computed(() => loginConfig.value.loginMethods.includes('passkey') && passkeysSupported())
+const passkeyPending = ref(false)
+
+/**
+ * 通行密钥登录：拿到令牌即落地；账号开了双因素而认证器没做用户验证时挑战经 store 带回，
+ * 页面没有重建，这里直接接着走两步验证。本人在浏览器的弹窗里取消不提示
+ */
+async function handlePasskeyLogin() {
+  if (authStore.loginLoading)
+    return
+  passkeyPending.value = true
+  try {
+    await authStore.loginByPasskey(redirect.value)
+    const challenge = authStore.takePendingTwoFactor()
+    if (challenge)
+      await applyTwoFactorChallenge(challenge)
+  }
+  catch (error: unknown) {
+    if (!isPasskeyCancelled(error))
+      toast.danger(messageOf(error) || t('page.login.passkey_failed'))
+  }
+  finally {
+    passkeyPending.value = false
+  }
+}
+
 onMounted(prepareLogin)
 const onAuthInvalid = useAuthFormInvalid()
 </script>
@@ -758,6 +788,21 @@ const onAuthInvalid = useAuthFormInvalid()
             {{ t('page.login.login_btn') }}
           </XhFormSubmitTrigger>
         </XhFormRoot>
+
+        <!-- 通行密钥不用填表：提交钮下一颗同宽的次要钮 -->
+        <XhButton
+          v-if="passkeyAvailable"
+          variant="outline"
+          size="lg"
+          full-width
+          class="auth-submit mt-3"
+          :loading="passkeyPending"
+          @click="handlePasskeyLogin"
+        >
+          <XhButtonIndicator />
+          <XhButtonPrefix><Icon icon="lucide:fingerprint" /></XhButtonPrefix>
+          <XhButtonLabel>{{ t('page.login.passkey_login') }}</XhButtonLabel>
+        </XhButton>
 
         <p
           v-if="router.hasRoute('Register') && loginConfig.registrationEnabled"

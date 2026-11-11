@@ -41,11 +41,13 @@ export const routes = {
   'approvals.list-started': { method: 'POST', template: '/api/approvals:list-started', path: [], query: [], success: 200 },
   'approvals.withdraw': { method: 'POST', template: '/api/approvals/{id}:withdraw', path: ['id'], query: [], success: 200 },
   'auth.activate-roles': { method: 'POST', template: '/api/auth:activate-roles', path: [], query: [], success: 200 },
+  'auth.begin-passkey-login': { method: 'POST', template: '/api/auth:begin-passkey-login', path: [], query: [], success: 200 },
   'auth.captcha': { method: 'POST', template: '/api/auth:captcha', path: [], query: [], success: 200 },
   'auth.external-login': { method: 'POST', template: '/api/auth:external-login', path: [], query: [], success: 200 },
   'auth.lock': { method: 'POST', template: '/api/auth:lock', path: [], query: [], success: 200 },
   'auth.login': { method: 'POST', template: '/api/auth:login', path: [], query: [], success: 200 },
   'auth.login-by-code': { method: 'POST', template: '/api/auth:login-by-code', path: [], query: [], success: 200 },
+  'auth.login-by-passkey': { method: 'POST', template: '/api/auth:login-by-passkey', path: [], query: [], success: 200 },
   'auth.login-config': { method: 'GET', template: '/api/auth:login-config', path: [], query: [], success: 200 },
   'auth.logout': { method: 'POST', template: '/api/auth:logout', path: [], query: [], success: 200 },
   'auth.me': { method: 'GET', template: '/api/auth:me', path: [], query: [], success: 200 },
@@ -293,6 +295,11 @@ export const routes = {
   'my-oauth-apps.list': { method: 'GET', template: '/api/my-oauth-apps', path: [], query: [], success: 200 },
   'my-oauth-apps.reset-secret': { method: 'POST', template: '/api/my-oauth-apps/{id}:reset-secret', path: ['id'], query: [], success: 200 },
   'my-oauth-apps.update': { method: 'PUT', template: '/api/my-oauth-apps/{id}', path: ['id'], query: [], success: 200 },
+  'my-passkeys.begin-create': { method: 'POST', template: '/api/my-passkeys:begin-create', path: [], query: [], success: 200 },
+  'my-passkeys.create': { method: 'POST', template: '/api/my-passkeys', path: [], query: [], success: 201 },
+  'my-passkeys.delete': { method: 'DELETE', template: '/api/my-passkeys', path: [], query: ['ids'], success: 200 },
+  'my-passkeys.list': { method: 'GET', template: '/api/my-passkeys', path: [], query: [], success: 200 },
+  'my-passkeys.update': { method: 'PUT', template: '/api/my-passkeys/{id}', path: ['id'], query: [], success: 200 },
   'notifications.create': { method: 'POST', template: '/api/notifications', path: [], query: [], success: 201 },
   'notifications.delete': { method: 'DELETE', template: '/api/notifications', path: [], query: ['ids'], success: 200 },
   'notifications.get': { method: 'GET', template: '/api/notifications/{id}', path: ['id'], query: [], success: 200 },
@@ -577,11 +584,13 @@ export const approvals = {
 /** 资源 `auth` 的操作 */
 export const auth = {
   activateRoles: (request: RequestOf<'auth.activate-roles'>, options?: CallOptions) => invoke<RequestOf<'auth.activate-roles'>, ResponseOf<'auth.activate-roles'>>('auth.activate-roles', routes['auth.activate-roles'], request, options),
+  beginPasskeyLogin: (request: RequestOf<'auth.begin-passkey-login'>, options?: CallOptions) => invoke<RequestOf<'auth.begin-passkey-login'>, ResponseOf<'auth.begin-passkey-login'>>('auth.begin-passkey-login', routes['auth.begin-passkey-login'], request, options),
   captcha: (request: RequestOf<'auth.captcha'>, options?: CallOptions) => invoke<RequestOf<'auth.captcha'>, ResponseOf<'auth.captcha'>>('auth.captcha', routes['auth.captcha'], request, options),
   externalLogin: (request: RequestOf<'auth.external-login'>, options?: CallOptions) => invoke<RequestOf<'auth.external-login'>, ResponseOf<'auth.external-login'>>('auth.external-login', routes['auth.external-login'], request, options),
   lock: (request: RequestOf<'auth.lock'>, options?: CallOptions) => invoke<RequestOf<'auth.lock'>, ResponseOf<'auth.lock'>>('auth.lock', routes['auth.lock'], request, options),
   login: (request: RequestOf<'auth.login'>, options?: CallOptions) => invoke<RequestOf<'auth.login'>, ResponseOf<'auth.login'>>('auth.login', routes['auth.login'], request, options),
   loginByCode: (request: RequestOf<'auth.login-by-code'>, options?: CallOptions) => invoke<RequestOf<'auth.login-by-code'>, ResponseOf<'auth.login-by-code'>>('auth.login-by-code', routes['auth.login-by-code'], request, options),
+  loginByPasskey: (request: RequestOf<'auth.login-by-passkey'>, options?: CallOptions) => invoke<RequestOf<'auth.login-by-passkey'>, ResponseOf<'auth.login-by-passkey'>>('auth.login-by-passkey', routes['auth.login-by-passkey'], request, options),
   loginConfig: (request: RequestOf<'auth.login-config'>, options?: CallOptions) => invoke<RequestOf<'auth.login-config'>, ResponseOf<'auth.login-config'>>('auth.login-config', routes['auth.login-config'], request, options),
   logout: (request: RequestOf<'auth.logout'>, options?: CallOptions) => invoke<RequestOf<'auth.logout'>, ResponseOf<'auth.logout'>>('auth.logout', routes['auth.logout'], request, options),
   me: (request: RequestOf<'auth.me'>, options?: CallOptions) => invoke<RequestOf<'auth.me'>, ResponseOf<'auth.me'>>('auth.me', routes['auth.me'], request, options),
@@ -997,6 +1006,15 @@ export const myOauthApps = {
   list: (request: RequestOf<'my-oauth-apps.list'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.list'>, ResponseOf<'my-oauth-apps.list'>>('my-oauth-apps.list', routes['my-oauth-apps.list'], request, options),
   resetSecret: (request: RequestOf<'my-oauth-apps.reset-secret'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.reset-secret'>, ResponseOf<'my-oauth-apps.reset-secret'>>('my-oauth-apps.reset-secret', routes['my-oauth-apps.reset-secret'], request, options),
   update: (request: RequestOf<'my-oauth-apps.update'>, options?: CallOptions) => invoke<RequestOf<'my-oauth-apps.update'>, ResponseOf<'my-oauth-apps.update'>>('my-oauth-apps.update', routes['my-oauth-apps.update'], request, options),
+}
+
+/** 资源 `my-passkeys` 的操作 */
+export const myPasskeys = {
+  beginCreate: (request: RequestOf<'my-passkeys.begin-create'>, options?: CallOptions) => invoke<RequestOf<'my-passkeys.begin-create'>, ResponseOf<'my-passkeys.begin-create'>>('my-passkeys.begin-create', routes['my-passkeys.begin-create'], request, options),
+  create: (request: RequestOf<'my-passkeys.create'>, options?: CallOptions) => invoke<RequestOf<'my-passkeys.create'>, ResponseOf<'my-passkeys.create'>>('my-passkeys.create', routes['my-passkeys.create'], request, options),
+  delete: (request: RequestOf<'my-passkeys.delete'>, options?: CallOptions) => invoke<RequestOf<'my-passkeys.delete'>, ResponseOf<'my-passkeys.delete'>>('my-passkeys.delete', routes['my-passkeys.delete'], request, options),
+  list: (request: RequestOf<'my-passkeys.list'>, options?: CallOptions) => invoke<RequestOf<'my-passkeys.list'>, ResponseOf<'my-passkeys.list'>>('my-passkeys.list', routes['my-passkeys.list'], request, options),
+  update: (request: RequestOf<'my-passkeys.update'>, options?: CallOptions) => invoke<RequestOf<'my-passkeys.update'>, ResponseOf<'my-passkeys.update'>>('my-passkeys.update', routes['my-passkeys.update'], request, options),
 }
 
 /** 资源 `notifications` 的操作 */

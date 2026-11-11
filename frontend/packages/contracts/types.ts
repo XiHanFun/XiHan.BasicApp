@@ -570,6 +570,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:begin-passkey-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Begin passkey sign-in
+         * @description Begin a passkey sign-in: returns the request options for the browser and a one-time ticket, with no account entered first. Requires passkeys to be configured on the host and passkey listed in the system parameter identity.login-methods.
+         */
+        post: operations["auth.begin-passkey-login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:captcha": {
         parameters: {
             query?: never;
@@ -666,6 +686,26 @@ export interface paths {
          * @description Sign in with the code received by email or phone; accounts with two-factor still need the second step.
          */
         post: operations["auth.login-by-code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:login-by-passkey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in with a passkey
+         * @description Sign in with a passkey assertion to the account's home: throttling, tenant, account status and lockout apply as with password sign-in; when the authenticator verified the user, two-factor is not asked again.
+         */
+        post: operations["auth.login-by-passkey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5540,6 +5580,84 @@ export interface paths {
          *     Requires sign-in.
          */
         post: operations["my-oauth-apps.reset-secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-passkeys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My passkeys
+         * @description List your registered passkeys.
+         *
+         *     Requires sign-in.
+         */
+        get: operations["my-passkeys.list"];
+        put?: never;
+        /**
+         * Register passkey
+         * @description Verify the credential the browser created, register it and send you a security notice. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["my-passkeys.create"];
+        /**
+         * Delete passkeys
+         * @description Delete your passkeys; they can no longer be used to sign in. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
+        delete: operations["my-passkeys.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-passkeys/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rename passkey
+         * @description Rename one of your passkeys. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
+        put: operations["my-passkeys.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/my-passkeys:begin-create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Begin passkey registration
+         * @description Check your current password, then return the creation options and a one-time ticket; up to 10 per person. Not available in impersonation sessions.
+         *
+         *     Requires sign-in.
+         */
+        post: operations["my-passkeys.begin-create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13549,6 +13667,32 @@ export interface components {
             /** @description 是否别人模仿本人时记下的 */
             impersonated: boolean;
         };
+        /** @description 本人的一个通行密钥 */
+        MyPasskeyResponse: {
+            /**
+             * Format: uuid
+             * @description 通行密钥 ID
+             */
+            id: string;
+            /** @description 名字 */
+            name: string;
+            /** @description 能否在设备之间同步 */
+            backupEligible: boolean;
+            /** @description 是否已同步备份 */
+            backedUp: boolean;
+            /** @description 认证器支持的传输方式 */
+            transports: string[];
+            /**
+             * Format: date-time
+             * @description 登记时间
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 最近一次用它登录的时间
+             */
+            lastUsedAt?: string | null;
+        };
         /** @description 本人的一台登录设备（一个有效会话） */
         MySessionResponse: {
             /**
@@ -15610,6 +15754,72 @@ export interface components {
              * @description 在线时长（秒）
              */
             onlineSeconds: number;
+        };
+        WebAuthnAssertionResponse: {
+            clientDataJSON: string;
+            authenticatorData: string;
+            signature: string;
+            userHandle?: string | null;
+        };
+        WebAuthnAttestationResponse: {
+            clientDataJSON: string;
+            attestationObject: string;
+            transports?: string[] | null;
+        };
+        WebAuthnAuthenticationResponse: {
+            id: string;
+            rawId: string;
+            type: string;
+            response: components["schemas"]["WebAuthnAssertionResponse"];
+        };
+        WebAuthnAuthenticatorSelection: {
+            residentKey: string;
+            requireResidentKey: boolean;
+            userVerification: string;
+        };
+        WebAuthnCreationOptions: {
+            rp: components["schemas"]["WebAuthnRelyingParty"];
+            user: components["schemas"]["WebAuthnUserEntity"];
+            challenge: string;
+            pubKeyCredParams: components["schemas"]["WebAuthnCredentialParameter"][];
+            /** Format: int64 */
+            timeout: number;
+            excludeCredentials: components["schemas"]["WebAuthnCredentialDescriptor"][];
+            authenticatorSelection: components["schemas"]["WebAuthnAuthenticatorSelection"];
+            attestation: string;
+        };
+        WebAuthnCredentialDescriptor: {
+            type: string;
+            id: string;
+            transports?: string[] | null;
+        };
+        WebAuthnCredentialParameter: {
+            type: string;
+            /** Format: int32 */
+            alg: number;
+        };
+        WebAuthnRegistrationResponse: {
+            id: string;
+            rawId: string;
+            type: string;
+            response: components["schemas"]["WebAuthnAttestationResponse"];
+        };
+        WebAuthnRelyingParty: {
+            id: string;
+            name: string;
+        };
+        WebAuthnRequestOptions: {
+            challenge: string;
+            /** Format: int64 */
+            timeout: number;
+            rpId: string;
+            allowCredentials: components["schemas"]["WebAuthnCredentialDescriptor"][];
+            userVerification: string;
+        };
+        WebAuthnUserEntity: {
+            id: string;
+            name: string;
+            displayName: string;
         };
         WorkbenchItem: {
             id: string;
@@ -18346,6 +18556,45 @@ export interface operations {
             };
         };
     };
+    "auth.begin-passkey-login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description auth.begin-passkey-login 的请求 */
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description 通行密钥登录的请求选项 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 一次性票据，登录时带回 */
+                        ticket: string;
+                        /** @description 交给浏览器 navigator.credentials.get 的选项（WebAuthn JSON 形态） */
+                        options: components["schemas"]["WebAuthnRequestOptions"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "auth.captcha": {
         parameters: {
             query?: never;
@@ -18546,6 +18795,50 @@ export interface operations {
                     code: string;
                     /** @description 注册地租户；平台账号留空 */
                     tenant?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description auth.login 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 令牌对与会话；需要第二步时为 null */
+                        token?: components["schemas"]["TokenResponse"] | null;
+                        /** @description 第二步的挑战；不需要时为 null */
+                        twoFactor?: components["schemas"]["TwoFactorChallengeResponse"] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.login-by-passkey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description auth.login-by-passkey 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 发起登录时给的票据 */
+                    ticket: string;
+                    /** @description 浏览器给的断言（PublicKeyCredential.toJSON()） */
+                    credential: components["schemas"]["WebAuthnAuthenticationResponse"];
                 };
             };
         };
@@ -33810,6 +34103,249 @@ export interface operations {
                         clientType: components["schemas"]["OAuthClientType"];
                         /** @description 密钥明文 */
                         clientSecret?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-passkeys.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 本人的全部通行密钥 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 通行密钥 */
+                        items: components["schemas"]["MyPasskeyResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-passkeys.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description my-passkeys.create 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 发起登记时给的票据 */
+                    ticket: string;
+                    /** @description 名字；留空即缺省名 */
+                    name?: string | null;
+                    /** @description 浏览器创建的凭据（PublicKeyCredential.toJSON()） */
+                    credential: components["schemas"]["WebAuthnRegistrationResponse"];
+                };
+            };
+        };
+        responses: {
+            /** @description 本人的一个通行密钥 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通行密钥 ID
+                         */
+                        id: string;
+                        /** @description 名字 */
+                        name: string;
+                        /** @description 能否在设备之间同步 */
+                        backupEligible: boolean;
+                        /** @description 是否已同步备份 */
+                        backedUp: boolean;
+                        /** @description 认证器支持的传输方式 */
+                        transports: string[];
+                        /**
+                         * Format: date-time
+                         * @description 登记时间
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次用它登录的时间
+                         */
+                        lastUsedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-passkeys.delete": {
+        parameters: {
+            query: {
+                /** @description 通行密钥 ID */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-passkeys.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 通行密钥 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description my-passkeys.update 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 通行密钥 ID
+                     */
+                    id: string;
+                    /** @description 新名字 */
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 本人的一个通行密钥 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通行密钥 ID
+                         */
+                        id: string;
+                        /** @description 名字 */
+                        name: string;
+                        /** @description 能否在设备之间同步 */
+                        backupEligible: boolean;
+                        /** @description 是否已同步备份 */
+                        backedUp: boolean;
+                        /** @description 认证器支持的传输方式 */
+                        transports: string[];
+                        /**
+                         * Format: date-time
+                         * @description 登记时间
+                         */
+                        createdAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次用它登录的时间
+                         */
+                        lastUsedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "my-passkeys.begin-create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description my-passkeys.begin-create 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 当前密码 */
+                    currentPassword: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 登记通行密钥的创建选项 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 一次性票据，确认登记时带回 */
+                        ticket: string;
+                        /** @description 交给浏览器 navigator.credentials.create 的选项（WebAuthn JSON 形态） */
+                        options: components["schemas"]["WebAuthnCreationOptions"];
                     };
                 };
             };

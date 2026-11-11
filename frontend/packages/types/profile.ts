@@ -157,6 +157,16 @@ export interface ExternalLoginItem {
   lastLoginTime?: string
 }
 
+/** 本人的一个通行密钥（个人中心「账号安全」；对应后端 `my-passkeys.list` 的一项） */
+export interface PasskeyItem {
+  id: string
+  name: string
+  /** 能在设备之间同步（同步的通行密钥换了设备照样能用） */
+  backupEligible: boolean
+  createdTime: string
+  lastUsedTime?: string
+}
+
 /** 一段时间里的次数与在线时长（个人中心「统计」；对应后端 `my-activity.summary` 的 logins / accesses / operations / onlineSeconds） */
 export interface UserActivityPeriod {
   loginCount: number

@@ -35,7 +35,7 @@
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（逗号分隔的 `password`、`email`、`phone`，只认平台的）：没建即只有密码登录，密码登录总是开着；写了认不出的方式名即 `IDENTITY_VALIDATION_021`。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
+开放哪些方式由系统参数 `identity.login-methods` 决定（逗号分隔的 `password`、`email`、`phone`、`passkey`，只认平台的）：没建即只有密码登录，密码登录总是开着；写了认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
 ### 密码登录 `auth.login`
 
@@ -56,7 +56,7 @@
 | 关（缺省） | 只留着标记，直接放行 |
 | 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（令牌响应 `mustChangePassword` 为 `true`，锁定原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
 
-锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
@@ -85,6 +85,22 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 - 两个端点是普通端点、不经内核管道；发起时生成随机 `state` 存进共享缓存，同时种一枚 HttpOnly Cookie，回调时两者都对上才认（Google 另用 PKCE）。
 - 只认已绑定的账号，不自动建号：没绑定即 `IDENTITY_DENIED_015`。先用账号密码登录，到个人中心「第三方绑定」由本人领绑定意图（`profile.begin-external-bind`，10 分钟、用一次），回调之后再由本人确认（`profile.link-external`）；`profile.external-logins` 列出、`profile.unlink-external` 解绑。
 - 第三方登录同样过租户、账号状态、锁定期、登录守卫与双因素。
+
+### 通行密钥 `auth.begin-passkey-login` → `auth.login-by-passkey`
+
+用指纹、面容或设备密码代替密码登录。选项生成与响应核对用框架的 `Security.WebAuthn`：宿主在 `XiHan:Security:WebAuthn` 配了依赖方 ID（前端页面所在的域名，本地开发用 `localhost`）与来源（前端页面的地址）才装，再在 `identity.login-methods` 列出 `passkey` 才开放；没配即 `IDENTITY_UNAVAILABLE_007`，没开放即 `IDENTITY_DENIED_016`。通行密钥绑定在依赖方 ID 上，换了域名已登记的全部失效。
+
+```text
+登录页 → POST /api/auth:begin-passkey-login           请求选项 + 一次性票据（不列允许的凭据，由认证器列出本站的通行密钥）
+浏览器 navigator.credentials.get                     本人在设备上验证
+登录页 → POST /api/auth:login-by-passkey（票据 + 断言）→ 令牌
+```
+
+- 不用填账号与注册地：按凭据 ID 找到登记的通行密钥，登录进它的注册地；没登记或已删除即 `IDENTITY_DENIED_022`。票据随选项的超时（缺省 300 秒）过期、只能用一次（`IDENTITY_VALIDATION_028`）。
+- 框架核对来源、挑战、依赖方、用户在场与用户验证、签名和签名计数，失败是 `SECURITY_DENIED_005`（签名计数回退是 `SECURITY_DENIED_006`，可能是克隆的认证器），同时计入登录节流与登录守卫的认证失败。
+- 同样过租户、账号状态、锁定期与登录守卫。认证器做了用户验证即顶替双因素；依赖方把 `UserVerification` 放宽到 `Preferred` 时，没做用户验证而账号开了双因素照样要第二步。
+- 个人中心「安全设置」登记：`my-passkeys.begin-create` 先核对当前密码（错即 `IDENTITY_DENIED_003`），给创建选项与票据（列出已登记的凭据，同一认证器不重复登记）；浏览器创建之后 `my-passkeys.create` 连票据交回登记（票据只认发起的本人），成功后给本人发一条安全站内信。每人最多 10 个（`IDENTITY_CONFLICT_017`）。`my-passkeys.list` 列出、`my-passkeys.update` 改名、`my-passkeys.delete` 删除（删除后立即不能登录，设备上的那份要本人在设备上删）。登记、改名与删除模仿会话都不能做。
+- 平台库只存公钥、签名计数、认证器型号与能否同步，不要求证明（`none`），私钥不离开认证器；用户句柄是用户 ID 的 16 个字节，不含个人信息。
 
 ### 双因素
 

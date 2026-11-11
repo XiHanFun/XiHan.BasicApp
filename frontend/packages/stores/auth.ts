@@ -12,6 +12,7 @@ import { destroyAllSignalRConnections } from '~/composables/useSignalR'
 import { LOGIN_PATH } from '~/constants'
 import { auth as authApi } from '~/contracts'
 import { endpointUrl } from '~/request'
+import { getPasskey } from '~/utils'
 import { useAccessStore } from './access'
 import { useAppContext } from './app-context'
 import { resetPreferenceBackendSync } from './helpers'
@@ -324,7 +325,19 @@ export const useAuthStore = defineStore('auth', () => {
     }, { anonymous: true }), redirect)
   }
 
-  /** 第三方登录与验证码登录的共同收尾：落地会话，或记下双因素挑战回登录页 */
+  /**
+   * 通行密钥登录（`auth.begin-passkey-login` → 浏览器选通行密钥 → `auth.login-by-passkey`）
+   * 不填账号与租户，由通行密钥找到账号与注册地；本人取消选择时抛 NotAllowedError，由登录页静默收下
+   */
+  async function loginByPasskey(redirect?: string): Promise<void> {
+    await finishOrChallenge(async () => {
+      const begun = await authApi.beginPasskeyLogin({}, { anonymous: true })
+      const credential = await getPasskey(begun.options)
+      return authApi.loginByPasskey({ ticket: begun.ticket, credential }, { anonymous: true })
+    }, redirect)
+  }
+
+  /** 第三方登录、验证码登录与通行密钥登录的共同收尾：落地会话，或记下双因素挑战回登录页 */
   async function finishOrChallenge(signIn: () => Promise<ResponseOf<'auth.external-login'>>, redirect?: string): Promise<void> {
     if (loginLoading.value)
       return
@@ -543,6 +556,7 @@ export const useAuthStore = defineStore('auth', () => {
     handleOAuthCallback,
     loginByPhoneCode,
     loginByEmailCode,
+    loginByPasskey,
     takePendingTwoFactor,
     refresh,
     loadPermissions,

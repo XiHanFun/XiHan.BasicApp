@@ -359,7 +359,7 @@ public static class IdentityErrors
     /// 没有开放这种登录方式
     /// </summary>
     /// <remarks>
-    /// 参数 <c>method</c>（<c>email</c> 或 <c>phone</c>）
+    /// 参数 <c>method</c>（<c>email</c>、<c>phone</c> 或 <c>passkey</c>）
     /// </remarks>
     public const string LoginMethodDisabled = "IDENTITY_DENIED_016";
 
@@ -491,4 +491,43 @@ public static class IdentityErrors
     /// 参数 <c>key</c>（系统参数的键）
     /// </remarks>
     public const string PasswordSettingsInvalid = "IDENTITY_VALIDATION_025";
+
+    /// <summary>
+    /// 宿主没有配通行密钥
+    /// </summary>
+    /// <remarks>
+    /// 要在 <c>XiHan:Security:WebAuthn</c> 配上依赖方 ID 与来源
+    /// </remarks>
+    public const string PasskeysNotConfigured = "IDENTITY_UNAVAILABLE_007";
+
+    /// <summary>
+    /// 通行密钥的票据不存在、过期、已用过或不是本人发起的
+    /// </summary>
+    public const string PasskeyTicketInvalid = "IDENTITY_VALIDATION_028";
+
+    /// <summary>
+    /// 这个通行密钥没有登记，或已经删除
+    /// </summary>
+    public const string PasskeyNotRegistered = "IDENTITY_DENIED_022";
+
+    /// <summary>
+    /// 本人没有这个通行密钥
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>
+    /// </remarks>
+    public const string PasskeyNotFound = "IDENTITY_NOTFOUND_006";
+
+    /// <summary>
+    /// 通行密钥到了上限
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>
+    /// </remarks>
+    public const string PasskeyLimitReached = "IDENTITY_CONFLICT_017";
+
+    /// <summary>
+    /// 这个通行密钥已经登记过
+    /// </summary>
+    public const string PasskeyTaken = "IDENTITY_CONFLICT_018";
 }

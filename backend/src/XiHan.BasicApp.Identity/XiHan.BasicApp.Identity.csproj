@@ -21,6 +21,8 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
     <!-- 签发访问令牌与框架的 JWT 校验共用 XiHan:Security:Jwt 的 JwtOptions -->
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
+    <!-- 通行密钥的选项生成与响应核对；宿主配了 XiHan:Security:WebAuthn 才装它的特性 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.WebAuthn" />
     <!-- 超级管理员种子直接写框架的授予表；角色与授权快照随 Access 包落地 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />

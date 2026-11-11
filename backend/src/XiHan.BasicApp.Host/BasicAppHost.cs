@@ -53,6 +53,7 @@ using XiHan.Framework.Workflow.Database;
 using XiHan.Framework.Security.Database;
 using XiHan.Framework.Security.Ip2Region;
 using XiHan.Framework.Security.Jwt;
+using XiHan.Framework.Security.WebAuthn;
 
 namespace XiHan.BasicApp.Host;
 
@@ -131,6 +132,12 @@ public static class BasicAppHost
             {
                 // 显式 Provider 顶替 Full Profile 的内存缓存：ISharedCache、字节存储与分布式锁走 Redis，ICache 是本机 L1 + Redis L2，写入经 Redis 频道失效各实例的 L1
                 xihan.UseFeature<RedisCachingFeature>().UseFeature<HybridCachingFeature>();
+            }
+
+            if (providers.WebAuthn)
+            {
+                // 配了依赖方即开放通行密钥：框架生成选项、核对响应，Identity 登记凭据并登录（还要系统参数 identity.login-methods 列出 passkey）
+                xihan.UseFeature<WebAuthnSecurityFeature>();
             }
 
             if (providers.RabbitMQ)

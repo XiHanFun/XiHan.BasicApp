@@ -106,6 +106,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<INotificationPreferences, NotificationPreferences>();
         context.Services.AddScoped<ApiCredentialService>();
         context.Services.AddScoped<ProfileAvatars>();
+        context.Services.AddScoped<PasskeyCeremonies>();
         context.Services.AddSingleton(ExternalLoginOptions.FromConfiguration(context.Configuration));
         context.Services.AddHttpClient(ExternalLoginFlow.HttpClientName, static client =>
         {

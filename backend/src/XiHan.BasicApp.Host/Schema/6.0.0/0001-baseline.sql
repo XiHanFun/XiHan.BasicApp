@@ -1973,6 +1973,32 @@ CREATE TABLE IF NOT EXISTS "sys_user_notification_preference" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_notification_preference_user_id ON public.sys_user_notification_preference USING btree (user_id) WHERE (is_deleted = false);
 
+CREATE TABLE IF NOT EXISTS "sys_user_passkey" (
+    "id" uuid NOT NULL,
+    "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "home_tenant_id" character varying(64) NOT NULL,
+    "name" character varying(64) NOT NULL,
+    "credential_id" character varying(1400) NOT NULL,
+    "public_key" character varying(2048) NOT NULL,
+    "algorithm" integer DEFAULT 0 NOT NULL,
+    "sign_count" bigint DEFAULT '0'::bigint NOT NULL,
+    "aaguid" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
+    "backup_eligible" boolean DEFAULT false NOT NULL,
+    "backed_up" boolean DEFAULT false NOT NULL,
+    "transports" character varying(200) DEFAULT NULL::character varying NULL,
+    "last_used_at" timestamp with time zone NULL,
+    "modified_at" timestamp with time zone NULL,
+    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
+    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "created_at" timestamp with time zone NOT NULL,
+    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
+    "concurrency_stamp" character varying(32) NOT NULL,
+    CONSTRAINT "sys_user_passkey_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_passkey_credential_id ON public.sys_user_passkey USING btree (credential_id) WHERE (is_deleted = false);
+
 CREATE TABLE IF NOT EXISTS "sys_user_role" (
     "id" uuid NOT NULL,
     "owner_tenant_id" character varying(512) NOT NULL,

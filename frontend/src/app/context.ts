@@ -5,12 +5,12 @@
 
 import type { Router } from 'vue-router'
 import type { components, LoginEvent, ResponseOf, TwoFactorMethod, UserGender } from '~/contracts'
-import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'
+import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, PasskeyItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
-import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, myPasskeys as myPasskeyOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
-import { getDisplayTimeZone } from '~/utils'
+import { createPasskey, getDisplayTimeZone } from '~/utils'
 
 /** 壳层导出菜单的范围编号（0 当前页、1 搜索结果、2 全部）对应的契约名称 */
 const EXPORT_SCOPES: Record<number, 'All' | 'CurrentPage' | 'SearchResult'> = { 0: 'CurrentPage', 1: 'SearchResult', 2: 'All' }
@@ -318,6 +318,18 @@ function toShellActivity(activity: MyActivity): UserActivity {
 }
 
 /** 开放接口凭证 → 个人中心「开放接口」的凭证条目 */
+function toShellPasskey(passkey: ResponseOf<'my-passkeys.update'>): PasskeyItem {
+  return {
+    id: passkey.id,
+    name: passkey.name,
+    backupEligible: passkey.backupEligible,
+    createdTime: passkey.createdAt,
+    ...(passkey.lastUsedAt
+      ? { lastUsedTime: passkey.lastUsedAt }
+      : {}),
+  }
+}
+
 function toShellCredential(credential: ResponseOf<'my-api-credentials.update'>): ApiCredentialItem {
   return {
     basicId: credential.id,
@@ -525,6 +537,22 @@ export function registerApplicationContext(router: Router): void {
     beginOAuthBindApi: async provider => (await profileOps.beginExternalBind({ provider })).url,
     linkAccountApi: async ticket => toShellExternalLogin(await profileOps.linkExternal({ ticket })),
     unlinkAccountApi: async provider => (await profileOps.unlinkExternal({ provider })).items.map(toShellExternalLogin),
+    // 通行密钥（Identity 的 my-passkeys.*，只要求已登录，模仿会话添加、改名与删除被拒）：添加先凭当前密码领创建选项与票据，
+    // 浏览器创建之后连票据交回登记（票据只认发起的本人、只能用一次）
+    getPasskeysApi: async () => (await myPasskeyOps.list({})).items.map(toShellPasskey),
+    addPasskeyApi: async (input) => {
+      const begun = await myPasskeyOps.beginCreate({ currentPassword: input.password })
+      const credential = await createPasskey(begun.options)
+      return toShellPasskey(await myPasskeyOps.create({ ticket: begun.ticket, name: input.name ?? null, credential }))
+    },
+    renamePasskeyApi: async (id, name) => toShellPasskey(await myPasskeyOps.update({ id, name })),
+    deletePasskeyApi: async (id) => {
+      const result = await myPasskeyOps.delete({
+        ids: [id],
+      })
+      throwOnFailed(result)
+      return result
+    },
     // 登录设备（Identity 的 profile.sessions / revoke-session / revoke-other-sessions，只要求已登录）：本人全部在线的会话、当前的在最前，IP 不遮掩；
     // 下线当前会话是 IDENTITY_CONFLICT_005、不是本人的会话是 IDENTITY_NOTFOUND_002；下线后页签重新拉列表
     getSessionsApi: async () => (await profileOps.sessions({})).items.map(toShellSession),

@@ -101,6 +101,7 @@
     <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Security.Ip2Region/XiHan.Framework.Security.Ip2Region.csproj" />
     <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Security.Jwt/XiHan.Framework.Security.Jwt.csproj" />
     <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Security.OpenIdConnect/XiHan.Framework.Security.OpenIdConnect.csproj" />
+    <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Security.WebAuthn/XiHan.Framework.Security.WebAuthn.csproj" />
     <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Testing/XiHan.Framework.Testing.csproj" />
     <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Workflow.Abstractions/XiHan.Framework.Workflow.Abstractions.csproj" />
     <Project Path="../../XiHan.Framework/framework/src/XiHan.Framework.Workflow.Conformance/XiHan.Framework.Workflow.Conformance.csproj" />
