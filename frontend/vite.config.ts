@@ -139,8 +139,9 @@ export default defineConfig(({ mode }) => {
       ],
     },
     optimizeDeps: {
-      // 打印设计器与应用共用 @xihan-ui/web-components 的全局配置（语言、滚动源）：预构建会把 web-components 打进 @xihan-print 自己的块，
-      // 链到同级 XiHan.UI 源码联调时应用写的是另一份，设计器只看得见英文缺省；不预构建即按源码引用同一份（生产构建按真实路径去重，不受影响）
+      // 设计器与应用必须只有一份 @xihan-ui/web-components：全局配置（语言、滚动源）与元素注册都按模块实例走。
+      // 预构建会把 web-components 打进各个入口自己的块，没预构建的设计器又直接引它的源码，同版本的元素类就有两份，
+      // 组合元素按依赖递归注册时互相认不出来、成环即栈溢出；这一组都不预构建（生产构建按真实路径去重，不受影响）
       exclude: [
         '@xihan-flow/core',
         '@xihan-flow/designer',
@@ -148,6 +149,9 @@ export default defineConfig(({ mode }) => {
         '@xihan-print/core',
         '@xihan-print/designer',
         '@xihan-print/runtime',
+        '@xihan-ui/designer-kit',
+        '@xihan-ui/designer-shell',
+        '@xihan-ui/web-components',
       ],
     },
     server: {
