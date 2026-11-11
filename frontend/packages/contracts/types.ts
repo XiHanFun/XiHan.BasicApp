@@ -9158,6 +9158,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import users
+         * @description Create users on the current side in bulk with a shared initial password marked for change; each row is checked by the create-user rules and may also join a department and get roles. Rows with problems fail; the rest are imported.
+         *
+         *     Requires permission identity.users.create (Create users).
+         */
+        post: operations["users.import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users:list": {
         parameters: {
             query?: never;
@@ -12700,6 +12722,61 @@ export interface components {
              * @description 导入时间
              */
             createdAt: string;
+        };
+        /** @description 不能导入的一行 */
+        ImportUserFailure: {
+            /**
+             * Format: int32
+             * @description 行在请求里的序号（从 0 开始）
+             */
+            index: number;
+            /** @description 出问题的字段（行里的字段名）；整行的问题为空 */
+            field?: string | null;
+            /** @description 错误码 */
+            code: string;
+            /** @description 按请求语言本地化的说明 */
+            message: string;
+        };
+        /** @description 导入的一行 */
+        ImportUserRow: {
+            /** @description 登录名 */
+            userName?: string | null;
+            /** @description 显示名 */
+            displayName?: string | null;
+            /** @description 邮箱，可空 */
+            email?: string | null;
+            /** @description 手机号，可空 */
+            phoneNumber?: string | null;
+            /** @description 真实姓名，可空 */
+            realName?: string | null;
+            /** @description 性别；不填即未设置 */
+            gender?: components["schemas"]["UserGender"] | null;
+            /**
+             * Format: date-time
+             * @description 生日，可空
+             */
+            birthday?: string | null;
+            /** @description 国家或地区，可空 */
+            country?: string | null;
+            /** @description 备注，可空 */
+            remark?: string | null;
+            /** @description 要加入的部门编码，成为主部门；部门只在租户侧，导入人要有加入部门的权限 */
+            departmentCode?: string | null;
+            /** @description 要指派的角色码；导入人要有指派角色的权限，新成员照常过约束规则 */
+            roleCodes?: string[] | null;
+        };
+        /** @description 导入成功的一行 */
+        ImportedUser: {
+            /**
+             * Format: int32
+             * @description 行在请求里的序号（从 0 开始）
+             */
+            index: number;
+            /**
+             * Format: uuid
+             * @description 新用户的 ID
+             */
+            id: string;
         };
         /** @description 收件箱的一条（本人的，带通知的展示字段） */
         InboxItemResponse: {
@@ -45699,6 +45776,50 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description users.import 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 要导入的用户，一次至多 200 行 */
+                    rows: components["schemas"]["ImportUserRow"][];
+                    /** @description 这批用户共用的初始密码，账号标记为须改密 */
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description users.import 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 导入成功的行 */
+                        succeeded: components["schemas"]["ImportedUser"][];
+                        /** @description 不能导入的行与原因，按行序；同一行可能有多条 */
+                        failed: components["schemas"]["ImportUserFailure"][];
                     };
                 };
             };

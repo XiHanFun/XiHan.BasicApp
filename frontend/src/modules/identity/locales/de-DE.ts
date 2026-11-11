@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: 'Benutzername oder Anzeigename suchen…',
       status_placeholder: 'Alle Status',
       password_placeholder: 'Leer lassen: Das Konto kann sich erst nach einem Passwort-Reset anmelden',
+      import: {
+        password_help: 'Das gemeinsame Initialpasswort dieses Stapels; nach dem Import an die Benutzer weitergeben. Die Konten müssen es ändern: Ist forceChange in der Einstellung identity.password aktiv, ist das bei der ersten Anmeldung mit Passwort Pflicht.',
+        user_name_hint: '3 bis 64 Zeichen, beginnt mit einem Kleinbuchstaben; nur Kleinbuchstaben, Ziffern und . _ -',
+        department_code: 'Abteilungscode',
+        department_code_hint: 'Abteilungscode, wird zur Hauptabteilung',
+        role_codes: 'Rollencodes',
+        role_codes_hint: 'Rollencodes, mehrere durch Kommas trennen',
+      },
       fields: {
         user_info: 'Benutzerinfo',
         user_name: 'Benutzername',

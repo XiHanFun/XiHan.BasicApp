@@ -1,6 +1,8 @@
 {
   "users.create.title": "사용자 생성",
   "users.create.description": "사용자를 생성합니다. 테넌트 주체는 자기 테넌트에 생성하고, 플랫폼 주체는 소속 테넌트를 지정하거나 지정하지 않으면 플랫폼 계정을 생성합니다.",
+  "users.import.title": "사용자 일괄 가져오기",
+  "users.import.description": "현재 측의 사용자를 일괄 생성하고 공통 초기 비밀번호를 설정해 변경 필요로 표시합니다. 각 행은 사용자 생성 규칙으로 검증되며 부서 가입과 역할 지정도 함께 할 수 있습니다. 문제가 있는 행은 실패로 기록되고 나머지는 그대로 가져옵니다.",
   "users.get.title": "사용자 조회",
   "users.get.description": "ID로 사용자를 조회합니다. 테넌트 주체는 자기 테넌트의 사용자와 외부 멤버만 볼 수 있습니다.",
   "users.list.title": "사용자 목록",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "본인의 설정을 장면과 설정 키로 통째로 덮어씁니다(없으면 생성, 값이 비면 지움).",
   "identity.user.not_found": "사용자 '{id}'이(가) 존재하지 않습니다.",
   "identity.user.name_taken": "사용자 이름 '{userName}'은(는) 테넌트 '{tenant}'에서 이미 사용 중입니다.",
+  "identity.user.name_duplicated": "사용자 이름 '{userName}'이(가) 이번 가져오기에서 중복되었습니다. 처음 나온 행만 가져옵니다.",
   "identity.user.tenant_mismatch": "소속 테넌트 '{requested}'이(가) 현재 테넌트 '{current}'과(와) 일치하지 않습니다.",
   "identity.user.self_operation": "자기 자신의 계정에는 이 작업을 수행할 수 없습니다.",
   "identity.user.locked": "사용자 '{name}'이(가) 잠겨 있습니다. 먼저 잠금을 해제하세요.",

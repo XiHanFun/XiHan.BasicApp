@@ -201,6 +201,7 @@
   "access.activation.not_held": "角色 {id} 此刻不持有，不能啟用。",
   "access.constraint.code_taken": "約束規則編碼 {code} 已存在。",
   "access.constraint.violated": "違反約束規則「{name}」（{code}），這次變更沒有執行。",
+  "access.role.import_failed": "匯入時沒能把角色 '{role}' 指派給使用者 '{userName}'：{reason} 這批匯入沒有寫入，請重試。",
   "access.constraint.not_found": "約束規則 {id} 不存在。",
   "access.session_role.not_found": "工作階段角色記錄 {id} 不存在。",
   "constraint_rules.list.title": "查詢約束規則",

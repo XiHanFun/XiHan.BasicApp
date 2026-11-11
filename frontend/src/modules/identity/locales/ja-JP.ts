@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: 'ユーザー名、表示名を検索…',
       status_placeholder: 'すべてのステータス',
       password_placeholder: '空欄の場合、パスワードをリセットするまでサインインできません',
+      import: {
+        password_help: 'このバッチで共通の初期パスワードです。インポート後に各ユーザーへ伝えてください。アカウントは変更必須になり、システムパラメーター identity.password の forceChange が有効なら、最初のパスワードサインイン時に変更が必要です。',
+        user_name_hint: '3〜64 文字、小文字で始まり、小文字・数字・. _ - のみ',
+        department_code: '部署コード',
+        department_code_hint: '部署コード（主所属になります）',
+        role_codes: 'ロールコード',
+        role_codes_hint: 'ロールコード（複数はカンマ区切り）',
+      },
       fields: {
         user_info: 'ユーザー情報',
         user_name: 'ユーザー名',

@@ -584,12 +584,14 @@ function onExportSelect(key: string) {
 
 /** 导出按钮权限门控（严格）：仅在页面声明了 exportPermission 且当前用户拥有该权限时才显示导出 */
 const canExportPermitted = computed(() => !!props.schema.exportPermission && hasPermission(props.schema.exportPermission))
-/** 导入按钮权限门控：声明了 importPermission 则需有权限才显示（导入仅在 resource.create + importable 时存在） */
+/** 导入按钮权限门控：声明了 importPermission 则需有权限才显示（导入仅在有导入字段、resource.create 或 importMany 时存在） */
 const canImportPermitted = computed(() => !props.schema.importPermission || hasPermission(props.schema.importPermission))
 
-/** 导入：字段含 importable 且 resource.create 存在 + 导入权限通过时，工具栏出现内置导入按钮 */
+/** 导入：有导入字段（显式的 importFields 或 importable 字段）、resource.create 或 importMany 存在、导入权限通过时，工具栏出现内置导入按钮 */
 const importFields = computed(() => toImportFields(resolvedSchema.value, hasPermission))
-const canImport = computed(() => importFields.value.length > 0 && !!props.schema.resource.create && canImportPermitted.value)
+const canImport = computed(() => importFields.value.length > 0
+  && (!!props.schema.resource.create || !!props.schema.resource.importMany)
+  && canImportPermitted.value)
 const importVisible = ref(false)
 
 /** 导入完毕：有成功行则刷新列表 */
@@ -935,12 +937,18 @@ const skeletonColumns = computed(() => {
     <SchemaImportDialog
       v-if="canImport"
       v-model:show="importVisible"
-      :create="schema.resource.create!"
+      :create="schema.resource.create"
+      :import-many="schema.resource.importMany"
+      :ready="schema.importReady"
       :fields="importFields"
       :page-code="schema.pageCode"
       :resource-code="schema.resourceCode"
       @finished="onImportFinished"
-    />
+    >
+      <template v-if="$slots['import-options']" #options>
+        <slot name="import-options" />
+      </template>
+    </SchemaImportDialog>
 
     <!-- 默认插槽：承载页面自有弹窗/抽屉 -->
     <slot :reload="reload" />

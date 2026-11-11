@@ -29,6 +29,8 @@ namespace XiHan.BasicApp.Identity;
     NumberHandling = JsonNumberHandling.AllowReadingFromString,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(CreateUserRequest))]
+[JsonSerializable(typeof(ImportUsersRequest))]
+[JsonSerializable(typeof(ImportUsersResponse))]
 [JsonSerializable(typeof(GetUserRequest))]
 [JsonSerializable(typeof(UpdateUserRequest))]
 [JsonSerializable(typeof(UserIdsRequest))]

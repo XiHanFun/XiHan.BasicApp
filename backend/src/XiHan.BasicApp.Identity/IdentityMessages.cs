@@ -25,6 +25,11 @@ public static class IdentityMessages
     public const string CreateUserDescription = "users.create.description";
 
     /// <summary>
+    /// 操作 <c>users.import</c> 的说明
+    /// </summary>
+    public const string ImportUsersDescription = "users.import.description";
+
+    /// <summary>
     /// 操作 <c>users.get</c> 的说明
     /// </summary>
     public const string GetUserDescription = "users.get.description";
@@ -147,6 +152,14 @@ public static class IdentityMessages
     /// 参数 <c>userName</c>、<c>tenant</c>
     /// </remarks>
     public const string UserNameTaken = "identity.user.name_taken";
+
+    /// <summary>
+    /// 同一次导入里有重复的用户名
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>userName</c>
+    /// </remarks>
+    public const string UserNameDuplicated = "identity.user.name_duplicated";
 
     /// <summary>
     /// 请求的注册地租户与当前租户不一致

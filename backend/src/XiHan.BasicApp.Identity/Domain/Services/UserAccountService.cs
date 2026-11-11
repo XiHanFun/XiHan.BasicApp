@@ -76,6 +76,21 @@ public sealed class UserAccountService
     }
 
     /// <summary>
+    /// 一批登录名里在注册地租户已被占用的（不含已删除）
+    /// </summary>
+    public async Task<IReadOnlySet<string>> TakenNamesAsync(string homeTenantId, IReadOnlyCollection<string> userNames, CancellationToken cancellationToken)
+    {
+        if (userNames.Count == 0)
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+
+        var names = userNames.ToList();
+        var rows = await _users.ListAsync(EntityQuery.All<SysUser>().Where(new Specification<SysUser>(u => u.HomeTenantId == homeTenantId && names.Contains(u.UserName))), cancellationToken).ConfigureAwait(false);
+        return rows.Select(static u => u.UserName).ToHashSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>
     /// 按注册地租户与联系方式找能用验证码登录的用户
     /// </summary>
     /// <remarks>
@@ -159,6 +174,44 @@ public sealed class UserAccountService
         }
 
         return await _histories.AddAsync(new SysPasswordHistory { Id = _ids.NewId(), UserId = security.UserId, PasswordHash = security.PasswordHash }, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 按密码策略校验
+    /// </summary>
+    public Result CheckPassword(string password) => PasswordPolicy.Validate(password, _options);
+
+    /// <summary>
+    /// 给一批刚建的用户设同一个初始密码
+    /// </summary>
+    /// <remarks>
+    /// 建安全行并追加密码历史，调用方先用 <see cref="CheckPassword"/> 过策略。散列只算一次、各行共用：同一个密码分别加盐，破解出一个也就知道了其余的，
+    /// 分开算只会让导入慢上百倍（每次散列 60 万轮）
+    /// </remarks>
+    public async Task<Result> AddInitialPasswordsAsync(IReadOnlyList<Guid> userIds, string password, bool mustChange, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(userIds);
+        var hash = PasswordHasher.Hash(password);
+        var now = _clock.GetUtcNow();
+        var securities = userIds.Select(id => new SysUserSecurity { Id = _ids.NewId(), UserId = id, SecurityStamp = NewStamp(), PasswordHash = hash, PasswordChangedAt = now, MustChangePassword = mustChange }).ToList();
+        foreach (var outcome in await _securities.AddRangeAsync(securities, cancellationToken).ConfigureAwait(false))
+        {
+            if (outcome.IsFailure)
+            {
+                return outcome;
+            }
+        }
+
+        var histories = userIds.Select(id => new SysPasswordHistory { Id = _ids.NewId(), UserId = id, PasswordHash = hash }).ToList();
+        foreach (var outcome in await _histories.AddRangeAsync(histories, cancellationToken).ConfigureAwait(false))
+        {
+            if (outcome.IsFailure)
+            {
+                return outcome;
+            }
+        }
+
+        return Result.Success();
     }
 
     /// <summary>

@@ -47,9 +47,9 @@ export async function openPage(page: Page, path: string) {
   await expect(page.getByRole('grid').first()).toBeVisible()
 }
 
-/** 列表页按关键字查询，返回命中的行 */
-export async function search(page: Page, keyword: string) {
-  await page.getByRole('textbox', { name: '搜索', exact: true }).fill(keyword)
+/** 列表页按关键字查询，返回命中的行；field 是关键字搜索框的标签，各页不同 */
+export async function search(page: Page, keyword: string, field = '搜索') {
+  await page.getByRole('textbox', { name: field, exact: true }).fill(keyword)
   await page.getByRole('button', { name: '查询', exact: true }).click()
   return page.getByRole('row').filter({ hasText: keyword })
 }

@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: 'Rechercher un nom d’utilisateur ou d’affichage…',
       status_placeholder: 'Tous les statuts',
       password_placeholder: 'Laisser vide : le compte ne pourra se connecter qu’après une réinitialisation du mot de passe',
+      import: {
+        password_help: 'Le mot de passe initial commun à ce lot ; transmettez-le après l’import. Les comptes sont marqués pour le changer : si forceChange est activé dans le paramètre identity.password, ils devront le changer à leur première connexion par mot de passe.',
+        user_name_hint: '3 à 64 caractères, commençant par une minuscule ; uniquement minuscules, chiffres et . _ -',
+        department_code: 'Code du département',
+        department_code_hint: 'Code du département, devient le département principal',
+        role_codes: 'Codes de rôle',
+        role_codes_hint: 'Codes de rôle, séparez-en plusieurs par des virgules',
+      },
       fields: {
         user_info: 'Informations utilisateur',
         user_name: 'Nom d’utilisateur',

@@ -469,6 +469,14 @@ public static class IdentityErrors
     public const string ImpersonationRunning = "IDENTITY_CONFLICT_015";
 
     /// <summary>
+    /// 同一次导入里有重复的用户名
+    /// </summary>
+    /// <remarks>
+    /// 第一次出现的那一行照常导入，后面重复的记为失败
+    /// </remarks>
+    public const string UserNameDuplicated = "IDENTITY_CONFLICT_016";
+
+    /// <summary>
     /// 系统参数里的模仿登录设置写得不对
     /// </summary>
     /// <remarks>

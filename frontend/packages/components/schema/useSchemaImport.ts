@@ -4,7 +4,7 @@
  */
 
 import type { ComputedRef, Ref } from 'vue'
-import type { ListFieldSchema } from './types'
+import type { ImportManyFailure, ListFieldSchema } from './types'
 import { computed, ref } from 'vue'
 import { i18n } from '~/locales'
 import { downloadText } from './useSchemaExport'
@@ -17,8 +17,8 @@ function t(key: string, named?: Record<string, unknown>): string {
 }
 
 /**
- * Schema 同步导入（CSV → 预校验 → 逐行 create）
- * 模板列、解析校验均由 importable 字段派生（toImportFields），页面零额外配置
+ * Schema 同步导入（CSV → 预校验 → 逐行 create，或按批交给 importMany）
+ * 模板列、解析校验均由导入字段派生，页面零额外配置
  */
 
 /** 行级错误（row 为数据行号，从 1 开始，不含表头/说明行） */
@@ -130,6 +130,9 @@ export function parseCsv(text: string): string[][] {
 
 /** 字段的取值提示（模板说明行 / 校验错误提示共用） */
 function fieldHint(field: ListFieldSchema): string {
+  if (field.importHint) {
+    return field.importHint
+  }
   if (field.options?.length) {
     return t('component.schema_import.hint_options', {
       values: field.options.map(o => o.label).join('/'),
@@ -263,10 +266,14 @@ export interface UseSchemaImportOptions {
   fields: () => ListFieldSchema[]
   /** 模板/失败行文件名前缀（通常为 pageCode） */
   fileName: () => string
-  /** 创建单条（来自 resource.create） */
-  create: (record: Record<string, unknown>) => Promise<unknown>
-  /** 并发创建数（默认 4） */
+  /** 创建单条（来自 resource.create）；与 importMany 二选一 */
+  create?: (record: Record<string, unknown>) => Promise<unknown>
+  /** 按批导入（来自 resource.importMany）：返回这一批里不能导入的记录，没列出的即成功；抛错算整批失败 */
+  importMany?: (records: Record<string, unknown>[]) => Promise<ImportManyFailure[]>
+  /** 并发创建数（默认 4，只用于 create） */
   concurrency?: number
+  /** 每批的记录数（默认 100，只用于 importMany；一批接一批地提交） */
+  batchSize?: number
 }
 
 export interface UseSchemaImport {
@@ -384,10 +391,8 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     phase.value = 'ready'
   }
 
-  async function run(): Promise<ImportSummary> {
-    const targets = validRows.value
-    phase.value = 'importing'
-    progress.value = 0
+  /** 逐行 create，并发若干条 */
+  async function createEach(targets: ImportParsedRow[], create: (record: Record<string, unknown>) => Promise<unknown>): Promise<number> {
     let success = 0
     const queue = [...targets]
     const concurrency = Math.max(1, options.concurrency ?? 4)
@@ -395,7 +400,7 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
       while (queue.length > 0) {
         const row = queue.shift()!
         try {
-          await options.create(row.record!)
+          await create(row.record!)
           success += 1
         }
         catch (error) {
@@ -410,6 +415,48 @@ export function useSchemaImport(options: UseSchemaImportOptions): UseSchemaImpor
     await Promise.all(Array.from({
       length: Math.min(concurrency, queue.length || 1),
     }, () => worker()))
+    return success
+  }
+
+  /** 按批 importMany，一批接一批：后一批要看到前一批写入的结果（如登录名是否已被占用） */
+  async function importInBatches(targets: ImportParsedRow[], importMany: (records: Record<string, unknown>[]) => Promise<ImportManyFailure[]>): Promise<number> {
+    let success = 0
+    const size = Math.max(1, options.batchSize ?? 100)
+    const titleOf = (key?: string) => key
+      ? (options.fields().find(f => f.key === key)?.title ?? key)
+      : undefined
+    for (let start = 0; start < targets.length; start += size) {
+      const batch = targets.slice(start, start + size)
+      try {
+        const failures = await importMany(batch.map(row => row.record!))
+        batch.forEach((row, index) => {
+          const own = failures.filter(f => f.index === index)
+          row.errors.push(...own.map(f => ({
+            row: row.row,
+            field: titleOf(f.field),
+            message: f.message,
+          })))
+          if (own.length === 0) {
+            success += 1
+          }
+        })
+      }
+      catch (error) {
+        const message = errorMessage(error)
+        batch.forEach(row => row.errors.push({ row: row.row, message }))
+      }
+      progress.value += batch.length
+    }
+    return success
+  }
+
+  async function run(): Promise<ImportSummary> {
+    const targets = validRows.value
+    phase.value = 'importing'
+    progress.value = 0
+    const success = options.importMany
+      ? await importInBatches(targets, options.importMany)
+      : await createEach(targets, options.create!)
     const result: ImportSummary = {
       total: rows.value.length,
       success,

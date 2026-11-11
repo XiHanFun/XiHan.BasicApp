@@ -23,6 +23,7 @@ export {
 } from './selectors'
 export type {
   ActionSchema,
+  ImportManyFailure,
   ListFieldSchema,
   PageSchema,
   SchemaActionPayload,

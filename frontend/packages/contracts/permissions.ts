@@ -607,6 +607,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'users.disable': 'identity.users.disable',
   'users.enable': 'identity.users.disable',
   'users.get': 'identity.users.read',
+  'users.import': 'identity.users.create',
   'users.list': 'identity.users.read',
   'users.lock': 'identity.users.lock',
   'users.login-policy': 'identity.users.read',

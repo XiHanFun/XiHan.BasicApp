@@ -201,6 +201,7 @@
   "access.activation.not_held": "역할 {id}을(를) 지금 보유하지 않아 활성화할 수 없습니다.",
   "access.constraint.code_taken": "제약 규칙 코드 {code}이(가) 이미 있습니다.",
   "access.constraint.violated": "제약 규칙 「{name}」({code})을(를) 위반하여 이번 변경을 하지 않았습니다.",
+  "access.role.import_failed": "가져오는 중에 역할 '{role}'을(를) 사용자 '{userName}'에게 지정하지 못했습니다: {reason} 이 묶음은 기록되지 않았습니다. 다시 시도하세요.",
   "access.constraint.not_found": "제약 규칙 {id}이(가) 없습니다.",
   "access.session_role.not_found": "세션 역할 기록 {id}이(가) 없습니다.",
   "constraint_rules.list.title": "제약 규칙 목록 조회",

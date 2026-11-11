@@ -78,6 +78,7 @@ public sealed class OrganizationFeature : IFeature
         // 通知按部门找人（含下级部门）
         context.Services.AddScoped<IRecipientSource, DepartmentRecipientSource>();
         context.Services.AddScoped<IOrganizationDirectory, OrganizationDirectory>();
+        context.Services.AddScoped<IUserImportExtension, DepartmentUserImport>();
         context.Services.AddSeeder<DemoOrganizationSeeder>();
         context.Services.AddPermissionCatalog("organization", OrganizationPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用

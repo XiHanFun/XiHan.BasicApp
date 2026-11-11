@@ -76,6 +76,20 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
+    /// 作用侧内按角色码批量找角色
+    /// </summary>
+    public async Task<IReadOnlyList<SysRole>> FindByCodesAsync(string owner, IReadOnlyCollection<string> codes, CancellationToken cancellationToken)
+    {
+        if (codes.Count == 0)
+        {
+            return [];
+        }
+
+        var wanted = codes.ToList();
+        return await roles.ListAsync(EntityQuery.All<SysRole>().Where(new Specification<SysRole>(r => r.OwnerTenantId == owner && wanted.Contains(r.Code))), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 作用侧内按 ID 批量取角色（只取本侧的）
     /// </summary>
     public async Task<IReadOnlyList<SysRole>> FindManyAsync(IReadOnlyList<Guid> ids, string owner, CancellationToken cancellationToken)

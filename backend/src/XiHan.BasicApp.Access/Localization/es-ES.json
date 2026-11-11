@@ -201,6 +201,7 @@
   "access.activation.not_held": "El rol {id} no se tiene ahora y no se puede activar.",
   "access.constraint.code_taken": "El código de regla de restricción {code} ya existe.",
   "access.constraint.violated": "Se infringe la regla de restricción «{name}» ({code}); el cambio no se hizo.",
+  "access.role.import_failed": "No se pudo asignar el rol '{role}' al usuario '{userName}' durante la importación: {reason} No se escribió nada de este lote; inténtalo de nuevo.",
   "access.constraint.not_found": "La regla de restricción {id} no existe.",
   "access.session_role.not_found": "El registro de rol de sesión {id} no existe.",
   "constraint_rules.list.title": "Listar reglas de restricción",

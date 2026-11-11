@@ -1,6 +1,8 @@
 {
   "users.create.title": "Criar usuário",
   "users.create.description": "Cria um usuário: um principal de locatário o cria no próprio locatário; um principal de plataforma pode indicar o locatário de origem ou criar uma conta de plataforma.",
+  "users.import.title": "Importar usuários",
+  "users.import.description": "Cria usuários do lado atual em lote com uma senha inicial comum marcada para troca; cada linha é validada pelas regras de criação de usuário e pode também entrar em um departamento e receber funções. Linhas com problemas falham; as demais são importadas.",
   "users.get.title": "Obter usuário",
   "users.get.description": "Obtém um usuário por ID; principais de locatário veem apenas os usuários e membros externos do próprio locatário.",
   "users.list.title": "Listar usuários",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "Grava uma de suas configurações por cena e chave, substituindo-a inteira ou criando-a; um valor vazio a limpa.",
   "identity.user.not_found": "O usuário '{id}' não existe.",
   "identity.user.name_taken": "O nome de usuário '{userName}' já está em uso no locatário '{tenant}'.",
+  "identity.user.name_duplicated": "O nome de usuário '{userName}' aparece mais de uma vez nesta importação; só a primeira linha é importada.",
   "identity.user.tenant_mismatch": "O locatário de origem '{requested}' difere do locatário atual '{current}'.",
   "identity.user.self_operation": "Você não pode executar esta operação na própria conta.",
   "identity.user.locked": "O usuário '{name}' está bloqueado. Desbloqueie-o primeiro.",

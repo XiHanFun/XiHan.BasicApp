@@ -632,6 +632,14 @@ public static class AccessErrors
     public const string PermissionRequestImpersonating = "ACCESS_CONFLICT_016";
 
     /// <summary>
+    /// 导入用户时没能给新用户指派角色
+    /// </summary>
+    /// <remarks>
+    /// 校验之后、写入之前角色或约束规则变了；整批导入回滚
+    /// </remarks>
+    public const string RoleImportFailed = "ACCESS_CONFLICT_017";
+
+    /// <summary>
     /// 只能维护自己的申请
     /// </summary>
     public const string PermissionRequestNotOwner = "ACCESS_DENIED_008";

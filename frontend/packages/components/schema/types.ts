@@ -66,6 +66,8 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   exportable?: boolean
   /** 是否可导入 */
   importable?: boolean
+  /** 导入模板说明行里的取值提示（缺省按数据类型或选项生成） */
+  importHint?: string
   /** 是否必填 */
   required?: boolean
   /** 字段级权限码；当前用户无此权限时该字段隐藏 */
@@ -169,6 +171,13 @@ export interface SchemaQueryParams {
   conditionFilters?: QueryFilter[]
 }
 
+/** 按批导入里不能导入的一条：index 是这一批记录里的序号，field 是导入字段的 key（整条的问题不带） */
+export interface ImportManyFailure {
+  index: number
+  field?: string
+  message: string
+}
+
 /**
  * 资源契约 —— 框架仅依赖归一化的 page / remove
  * 与 defineResource 产出兼容（页面侧用适配器包装），亦可手工提供
@@ -193,6 +202,11 @@ export interface SchemaResource<TRow> {
    * 页面适配器负责映射为后端 CreateDto（补默认值/裁剪字段）
    */
   create?: (record: Record<string, unknown>) => Promise<unknown>
+  /**
+   * 按批导入（导入闭环依赖，与 create 二选一）—— 一次交一批按导入字段组装的记录，返回其中不能导入的记录与原因（index 为这一批里的序号）；
+   * 后端有批量导入操作时用它：校验与写入在后端一次完成
+   */
+  importMany?: (records: Record<string, unknown>[]) => Promise<ImportManyFailure[]>
   /**
    * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口
    * businessType 须匹配后端 IExportProvider.BusinessType（即导出按钮所属的后端页面码，与本页 pageCode 一致）；buildQuery 复用页面适配器的查询构建，
@@ -228,6 +242,13 @@ export interface PageSchema<TRow = Record<string, unknown>> {
   exportPermission?: string
   /** 导入按钮所需权限码（声明后导入按钮仅在用户拥有该权限时显示；缺省则不限制） */
   importPermission?: string
+  /**
+   * 导入列（缺省取 importable 字段）—— 导入模板与列表列对不上时显式给出：列表一列合并显示了几个字段，或导入要的字段列表里没有；
+   * 同样按字段权限过滤、按 order 排序；选项要直接给 options（不经 dictCode / optionsLoader 解析）
+   */
+  importFields?: ListFieldSchema<TRow>[]
+  /** 导入前页面自己的条件是否满足（如导入弹窗 import-options 插槽里的必填项）；缺省即满足 */
+  importReady?: () => boolean
   /** 数据资源 */
   resource: SchemaResource<TRow>
   /** 字段单一事实源 */

@@ -7,6 +7,8 @@
 - **调整** 后端以 NuGet 包引用 XiHan.Framework（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
 - **新增** `BasicApp:Schema:CreateDatabase`：升级前平台库不存在时先建库，缺省关，开发环境打开，首次运行不用先手工建库
 - **新增** `BasicApp:Seed:RunOnStartup`：应用启动后执行一遍种子，缺省关，开发环境打开，首次运行即可用 `superadmin` 登录
+- **新增** 用户批量导入（`users.import`，用新建用户的权限）：用户页导入 CSV，这批用户共用导入弹窗里的初始密码并标记为须改密；每行按新建用户的规则校验，可一并加入部门（租户侧，要有加入部门的权限）、指派角色（要有指派角色的权限，照常过约束规则），有问题的行列出原因、其余照常导入
+- **修复** 导入弹窗错误明细表的列与表头对不齐
 - **修复** 只有授权申请权限的用户打开「发起申请」时角色与权限候选为空、提交不了：候选改由新操作 `permission-requests.candidates` 给出，持有提交或重新提交授权申请的权限其一即可
 
 ## v6.0.0-preview.1 (2026-11-10)

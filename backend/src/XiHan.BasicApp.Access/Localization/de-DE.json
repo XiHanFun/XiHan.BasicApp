@@ -201,6 +201,7 @@
   "access.activation.not_held": "Die Rolle {id} wird derzeit nicht gehalten und kann nicht aktiviert werden.",
   "access.constraint.code_taken": "Der Code {code} einer Einschränkungsregel existiert bereits.",
   "access.constraint.violated": "Die Einschränkungsregel „{name}“ ({code}) wird verletzt; die Änderung wurde nicht ausgeführt.",
+  "access.role.import_failed": "Die Rolle '{role}' konnte dem Benutzer '{userName}' beim Import nicht zugewiesen werden: {reason} Von diesem Stapel wurde nichts geschrieben; bitte erneut versuchen.",
   "access.constraint.not_found": "Die Einschränkungsregel {id} existiert nicht.",
   "access.session_role.not_found": "Der Sitzungsrollen-Eintrag {id} existiert nicht.",
   "constraint_rules.list.title": "Einschränkungsregeln auflisten",

@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: 'Pesquisar nome de usuário ou nome de exibição…',
       status_placeholder: 'Todos os status',
       password_placeholder: 'Se ficar em branco, a conta só poderá entrar depois de redefinir a senha',
+      import: {
+        password_help: 'A senha inicial comum deste lote; repasse-a aos usuários após a importação. As contas ficam marcadas para trocá-la: com forceChange ativo no parâmetro identity.password, eles precisam trocá-la no primeiro acesso com senha.',
+        user_name_hint: 'De 3 a 64 caracteres, começando por letra minúscula; apenas minúsculas, dígitos e . _ -',
+        department_code: 'Código do departamento',
+        department_code_hint: 'Código do departamento; vira o departamento principal',
+        role_codes: 'Códigos de função',
+        role_codes_hint: 'Códigos de função, separe vários com vírgulas',
+      },
       fields: {
         user_info: 'Informações do usuário',
         user_name: 'Nome de usuário',

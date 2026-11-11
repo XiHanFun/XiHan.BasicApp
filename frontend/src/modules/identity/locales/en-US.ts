@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: 'Search user name or display name…',
       status_placeholder: 'All statuses',
       password_placeholder: 'Leave blank: the account cannot sign in until its password is reset',
+      import: {
+        password_help: 'The initial password shared by this batch; hand it to them after the import. The accounts are marked to change it: when forceChange is on in the identity.password setting, they must change it at their first password sign-in.',
+        user_name_hint: '3 to 64 characters, starting with a lowercase letter; lowercase letters, digits and . _ - only',
+        department_code: 'Department code',
+        department_code_hint: 'Department code, becomes the primary department',
+        role_codes: 'Role codes',
+        role_codes_hint: 'Role codes, separate several with commas',
+      },
       fields: {
         user_info: 'User info',
         user_name: 'User name',

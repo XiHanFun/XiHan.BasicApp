@@ -201,6 +201,7 @@
   "access.activation.not_held": "角色 {id} 此刻不持有，不能激活。",
   "access.constraint.code_taken": "约束规则编码 {code} 已存在。",
   "access.constraint.violated": "违反约束规则「{name}」（{code}），这次变更没有执行。",
+  "access.role.import_failed": "导入时没能把角色 '{role}' 指派给用户 '{userName}'：{reason} 这批导入没有写入，请重试。",
   "access.constraint.not_found": "约束规则 {id} 不存在。",
   "access.session_role.not_found": "会话角色记录 {id} 不存在。",
   "constraint_rules.list.title": "查询约束规则",

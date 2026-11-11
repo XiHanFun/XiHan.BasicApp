@@ -1,6 +1,8 @@
 {
   "users.create.title": "Créer un utilisateur",
   "users.create.description": "Crée un utilisateur : un principal de locataire le crée dans son propre locataire ; un principal de plateforme peut indiquer le locataire d'origine ou créer un compte de plateforme.",
+  "users.import.title": "Importer des utilisateurs",
+  "users.import.description": "Crée en lot des utilisateurs du côté courant avec un mot de passe initial commun à changer ; chaque ligne est vérifiée selon les règles de création et peut aussi rejoindre un département et recevoir des rôles. Les lignes en erreur échouent, les autres sont importées.",
   "users.get.title": "Lire un utilisateur",
   "users.get.description": "Lit un utilisateur par ID ; les principaux de locataire ne voient que les utilisateurs et membres externes de leur propre locataire.",
   "users.list.title": "Lister les utilisateurs",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "Écrire un de vos réglages par scène et clé, en le remplaçant entièrement ou en le créant ; une valeur vide l’efface.",
   "identity.user.not_found": "L'utilisateur '{id}' n'existe pas.",
   "identity.user.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans le locataire '{tenant}'.",
+  "identity.user.name_duplicated": "Le nom d'utilisateur '{userName}' apparaît plusieurs fois dans cet import ; seule sa première ligne est importée.",
   "identity.user.tenant_mismatch": "Le locataire d'origine '{requested}' diffère du locataire courant '{current}'.",
   "identity.user.self_operation": "Vous ne pouvez pas effectuer cette opération sur votre propre compte.",
   "identity.user.locked": "L'utilisateur '{name}' est verrouillé. Déverrouillez-le d'abord.",

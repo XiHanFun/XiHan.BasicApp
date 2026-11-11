@@ -318,9 +318,9 @@ public sealed class ConstraintEnforcer(
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(violations);
-        if (violations.FirstOrDefault(static v => v.Rule.IsBlocking) is { } blocking)
+        if (Blocking(violations) is { } blocked)
         {
-            return Error.Conflict(AccessErrors.ConstraintViolated, AccessMessages.ConstraintViolated, MessageArguments.Of(("code", blocking.Rule.Code), ("name", blocking.Rule.Name)));
+            return blocked;
         }
 
         foreach (var violation in violations)
@@ -329,6 +329,21 @@ public sealed class ConstraintEnforcer(
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 违规里第一条拦截类的，作为错误
+    /// </summary>
+    /// <remarks>
+    /// 只判定、不记日志：用于变更之前的预检，真正变更时仍经 <see cref="Settle"/> 落地
+    /// </remarks>
+    /// <returns>没有拦截类的违规时为空</returns>
+    public static Error? Blocking(IReadOnlyList<ConstraintViolation> violations)
+    {
+        ArgumentNullException.ThrowIfNull(violations);
+        return violations.FirstOrDefault(static v => v.Rule.IsBlocking) is { } blocking
+            ? Error.Conflict(AccessErrors.ConstraintViolated, AccessMessages.ConstraintViolated, MessageArguments.Of(("code", blocking.Rule.Code), ("name", blocking.Rule.Name)))
+            : null;
     }
 
     /// <summary>

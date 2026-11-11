@@ -1,6 +1,8 @@
 {
   "users.create.title": "新建用户",
   "users.create.description": "创建用户：租户主体在本租户创建；平台主体可指定注册地租户，不指定即平台账号。",
+  "users.import.title": "批量导入用户",
+  "users.import.description": "批量创建当前一侧的用户，共用一个初始密码并标记为须改密；每行按新建用户的规则校验，可一并加入部门、指派角色。有问题的行记为失败，其余照常导入。",
   "users.get.title": "获取用户",
   "users.get.description": "按 ID 取用户；租户主体只能看本租户的用户与外部成员。",
   "users.list.title": "查询用户",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "写本人的一条设置（按场景与设置键整体覆盖，无则新建；值为空即清空）。",
   "identity.user.not_found": "用户 '{id}' 不存在。",
   "identity.user.name_taken": "用户名 '{userName}' 在租户 '{tenant}' 内已被占用。",
+  "identity.user.name_duplicated": "用户名 '{userName}' 在这次导入里重复出现，只导入第一次出现的那一行。",
   "identity.user.tenant_mismatch": "注册地租户 '{requested}' 与当前租户 '{current}' 不一致。",
   "identity.user.self_operation": "不能对自己的账号执行该操作。",
   "identity.user.locked": "用户 '{name}' 处于锁定状态，要先解锁。",

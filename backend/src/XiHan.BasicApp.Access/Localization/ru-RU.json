@@ -201,6 +201,7 @@
   "access.activation.not_held": "Роли {id} сейчас нет у пользователя, её нельзя активировать.",
   "access.constraint.code_taken": "Код правила ограничения {code} уже существует.",
   "access.constraint.violated": "Нарушено правило ограничения «{name}» ({code}); изменение не выполнено.",
+  "access.role.import_failed": "Не удалось назначить роль '{role}' пользователю '{userName}' при импорте: {reason} Из этого пакета ничего не записано; повторите попытку.",
   "access.constraint.not_found": "Правило ограничения {id} не существует.",
   "access.session_role.not_found": "Запись роли сеанса {id} не существует.",
   "constraint_rules.list.title": "Список правил ограничения",

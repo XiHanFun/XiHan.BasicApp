@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: '搜尋使用者名稱、顯示名稱…',
       status_placeholder: '全部狀態',
       password_placeholder: '留空則帳號在重設密碼前無法登入',
+      import: {
+        password_help: '這批使用者共用的初始密碼，匯入後請轉交給他們。帳號標記為須改密：系統參數 identity.password 開啟 forceChange 時，首次用密碼登入要先修改。',
+        user_name_hint: '3 到 64 位，小寫字母開頭，只含小寫字母、數字和 . _ -',
+        department_code: '部門編碼',
+        department_code_hint: '部門編碼，作為主部門',
+        role_codes: '角色碼',
+        role_codes_hint: '角色碼，多個用逗號分隔',
+      },
       fields: {
         user_info: '使用者資訊',
         user_name: '使用者名稱',

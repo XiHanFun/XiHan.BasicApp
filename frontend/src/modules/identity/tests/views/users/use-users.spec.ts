@@ -37,6 +37,9 @@ function user(id: string, userName: string, extra: Record<string, unknown> = {})
   }
 }
 
+/** 这些用例不导入 */
+const noImportPassword = () => ''
+
 interface Call { method: string, url: string, body: unknown }
 
 function record(respond: (call: Call) => Response): Call[] {
@@ -68,7 +71,7 @@ describe('usersResource', () => {
       total: 21,
       page: { index: 2, size: 20 },
     }))
-    const result = await usersResource().page!({
+    const result = await usersResource(noImportPassword).page!({
       page: 2,
       pageSize: 20,
       filters: {
@@ -127,7 +130,7 @@ describe('usersResource', () => {
       total: 0,
       page: { index: 3, size: 50 },
     }))
-    const resource = usersResource()
+    const resource = usersResource(noImportPassword)
     const params = {
       page: 3,
       pageSize: 50,
@@ -147,7 +150,7 @@ describe('usersResource', () => {
       total: 0,
       page: { index: 1, size: 20 },
     }))
-    await expect(usersResource().page!({
+    await expect(usersResource(noImportPassword).page!({
       page: 1,
       pageSize: 20,
       filters: { homeTenantId: 'acme' },
@@ -161,8 +164,92 @@ describe('usersResource', () => {
         { id: 'u-1', code: 'IDENTITY_VALIDATION_009', message: 'IDENTITY_VALIDATION_009 的原因' },
       ],
     }))
-    await expect(usersResource().remove!('u-1')).rejects.toThrow('IDENTITY_VALIDATION_009 的原因')
+    await expect(usersResource(noImportPassword).remove!('u-1')).rejects.toThrow('IDENTITY_VALIDATION_009 的原因')
     expect(calls[0]).toMatchObject({ method: 'DELETE', url: '/api/users?ids=u-1' })
+  })
+})
+
+describe('usersResource 的批量导入', () => {
+  it('记录换成 users.import 的行（没填的为 null、角色码拆开去重、生日按本地日历日），带上导入弹窗的初始密码；失败按批内序号与字段交回', async () => {
+    const calls = record(() => json(200, {
+      succeeded: [
+        { index: 0, id: 'u-1' },
+      ],
+      failed: [
+        {
+          index: 1,
+          field: 'userName',
+          code: 'IDENTITY_CONFLICT_001',
+          message: '用户名已被占用',
+        },
+        {
+          index: 1,
+          field: null,
+          code: 'KERNEL_VALIDATION_004',
+          message: '整行的问题',
+        },
+      ],
+    }))
+    const failures = await usersResource(() => 'Init@2026').importMany!([
+      {
+        userName: 'carol',
+        displayName: 'Carol',
+        gender: 'Female',
+        birthday: '1990/5/1',
+        departmentCode: 'rd',
+        roleCodes: 'auditor， viewer;auditor',
+      },
+      { userName: 'bob', displayName: 'Bob' },
+    ])
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/users:import' })
+    expect(calls[0]!.body).toEqual({
+      password: 'Init@2026',
+      rows: [
+        {
+          userName: 'carol',
+          displayName: 'Carol',
+          email: null,
+          phoneNumber: null,
+          realName: null,
+          gender: 'Female',
+          birthday: new Date(1990, 4, 1).toISOString(),
+          country: null,
+          remark: null,
+          departmentCode: 'rd',
+          roleCodes: ['auditor', 'viewer'],
+        },
+        {
+          userName: 'bob',
+          displayName: 'Bob',
+          email: null,
+          phoneNumber: null,
+          realName: null,
+          gender: null,
+          birthday: null,
+          country: null,
+          remark: null,
+          departmentCode: null,
+          roleCodes: [],
+        },
+      ],
+    })
+    expect(failures).toEqual([
+      { index: 1, field: 'userName', message: '用户名已被占用' },
+      { index: 1, field: undefined, message: '整行的问题' },
+    ])
+  })
+
+  it('整批被拒（如缺少指派角色的权限）时带着后端的说明抛出', async () => {
+    record(() => json(403, {
+      code: 'SECURITY_DENIED_004',
+      status: 403,
+      detail: '缺少权限 access.roles.assign',
+      traceId: 'x',
+    }, 'application/problem+json'))
+    await expect(usersResource(() => 'Init@2026').importMany!([
+      { userName: 'carol', displayName: 'Carol', roleCodes: 'auditor' },
+    ])).rejects.toThrow('缺少权限 access.roles.assign')
   })
 })
 
@@ -205,7 +292,7 @@ describe('setUserDisabled 与批量启停', () => {
       failed: [],
     }))
     await setUserDisabled('u-1', true)
-    await usersResource().updateStatus!('u-2', true)
+    await usersResource(noImportPassword).updateStatus!('u-2', true)
     expect(calls.map(c => [c.url, c.body])).toEqual([
       [
         '/api/users:disable',

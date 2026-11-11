@@ -51,13 +51,14 @@ export function toExportFields<TRow extends object>(
 }
 
 /**
- * 派生：导入字段（importable=true 且有权限）—— 导入模板列与解析校验的事实源
+ * 派生：导入字段（显式的 importFields，缺省为 importable=true 的字段；都要有权限）—— 导入模板列与解析校验的事实源
  */
 export function toImportFields<TRow extends object>(
   schema: PageSchema<TRow>,
   can: (code: string) => boolean,
 ): ListFieldSchema<TRow>[] {
-  return byOrder(schema.fields.filter(f => f.importable && isFieldPermitted(f, can)))
+  const source = schema.importFields ?? schema.fields.filter(f => f.importable)
+  return byOrder(source.filter(f => isFieldPermitted(f, can)))
 }
 
 /**

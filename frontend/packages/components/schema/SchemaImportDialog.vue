@@ -4,8 +4,9 @@
 -->
 
 <script setup lang="ts">
-import type { FileUploadFileRejectDetails, TableColumnDef } from '@xihan-ui/headless'
-import type { ListFieldSchema } from './types'
+import type { FileUploadFileRejectDetails } from '@xihan-ui/headless'
+import type { XDataTableColumn } from '../common/XDataTable.vue'
+import type { ImportManyFailure, ListFieldSchema } from './types'
 import type { ImportSummary } from './useSchemaImport'
 import {
   XhAlertContent,
@@ -26,13 +27,6 @@ import {
   XhFileUploadHiddenInput,
   XhFileUploadRoot,
   XhProgress,
-  XhTableBody,
-  XhTableCell,
-  XhTableColumnHeader,
-  XhTableColumnLabel,
-  XhTableHeader,
-  XhTableRoot,
-  XhTableRow,
   XhTagLabel,
   XhTagRoot,
 } from '@xihan-ui/vue'
@@ -41,6 +35,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
+import XDataTable from '../common/XDataTable.vue'
 import { useSchemaImport } from './useSchemaImport'
 
 defineOptions({ name: 'SchemaImportDialog' })
@@ -52,13 +47,22 @@ const props = defineProps<{
   pageCode: string
   /** 后端资源码（留痕用，可空） */
   resourceCode?: string
-  /** 创建单条（来自 resource.create） */
-  create: (record: Record<string, unknown>) => Promise<unknown>
+  /** 创建单条（来自 resource.create）；与 importMany 二选一 */
+  create?: (record: Record<string, unknown>) => Promise<unknown>
+  /** 按批导入（来自 resource.importMany） */
+  importMany?: (records: Record<string, unknown>[]) => Promise<ImportManyFailure[]>
+  /** 页面自己的导入条件是否满足（options 插槽里的必填项）；缺省即满足 */
+  ready?: () => boolean
 }>()
 
 const emit = defineEmits<{
   /** 导入执行完毕（无论成败），页面可据此刷新/留痕 */
   finished: [summary: ImportSummary]
+}>()
+
+defineSlots<{
+  /** 导入选项：放在说明与选择文件之间，导入中与完成后不显示 */
+  options?: () => unknown
 }>()
 
 const show = defineModel<boolean>('show', { default: false })
@@ -69,7 +73,8 @@ const importHistoryApi = useAppContext().apis.importHistoryApi
 const importer = useSchemaImport({
   fields: () => props.fields,
   fileName: () => props.pageCode,
-  create: record => props.create(record),
+  create: props.create && (record => props.create!(record)),
+  importMany: props.importMany && (records => props.importMany!(records)),
 })
 const { phase, rows, fileErrors, validRows, errorRows, progress, summary } = importer
 
@@ -149,8 +154,15 @@ const fileProblems = computed(() => [
   ...fileErrors.value,
 ])
 
+interface ErrorItem {
+  key: string
+  row: number
+  field: string
+  message: string
+}
+
 /** 校验/创建错误平铺为表格行 */
-const errorItems = computed(() =>
+const errorItems = computed<ErrorItem[]>(() =>
   errorRows.value.flatMap(row =>
     row.errors.map((error, index) => ({
       key: `${row.row}-${index}`,
@@ -161,25 +173,24 @@ const errorItems = computed(() =>
   ),
 )
 
-const errorColumns = computed<TableColumnDef[]>(() => [
+/** 每列都给确定宽度：表头与各行各自排版，缺了宽度的列按各行内容分宽，列边界就对不齐 */
+const errorColumns = computed<XDataTableColumn<ErrorItem>[]>(() => [
   {
-    id: 'row',
-    label: t('component.schema_import.col_row'),
+    key: 'row',
+    title: t('component.schema_import.col_row'),
     width: 70,
   },
   {
-    id: 'field',
-    label: t('component.schema_import.col_field'),
+    key: 'field',
+    title: t('component.schema_import.col_field'),
     width: 120,
   },
   {
-    id: 'message',
-    label: t('component.schema_import.col_problem'),
+    key: 'message',
+    title: t('component.schema_import.col_problem'),
+    minWidth: 240,
   },
 ])
-
-/** 行号与行序的事实源；这张表不排序不选中，只报身份 */
-const errorRowDefs = computed(() => errorItems.value.map(item => ({ id: item.key })))
 
 const importPercent = computed(() =>
   validRows.value.length === 0
@@ -187,7 +198,7 @@ const importPercent = computed(() =>
     : Math.round((progress.value / validRows.value.length) * 100),
 )
 
-const canRun = computed(() => phase.value === 'ready' && fileErrors.value.length === 0 && validRows.value.length > 0)
+const canRun = computed(() => phase.value === 'ready' && fileErrors.value.length === 0 && validRows.value.length > 0 && (props.ready?.() ?? true))
 
 async function handleRun(): Promise<void> {
   if (!canRun.value) {
@@ -235,6 +246,9 @@ function handleClose(): void {
               </XhAlertDescription>
             </XhAlertContent>
           </XhAlertRoot>
+
+          <!-- 页面自己的导入选项 -->
+          <slot v-if="phase === 'idle' || phase === 'ready'" name="options" />
 
           <!-- 选择文件（idle / ready 可重选） -->
           <XhFileUploadRoot
@@ -292,38 +306,15 @@ function handleClose(): void {
             </XhTagRoot>
           </div>
 
-          <!-- 错误明细：限高的类名放在外层 div 上。表格根渲染成片段，带不上本组件的 scoped 标记，
-             类名写在它身上样式永远命中不了；限高槽是继承的自定义属性，外层给即可 -->
-          <div v-if="errorItems.length > 0" class="xh-import-errors">
-            <XhTableRoot
-              ruled
-              size="md"
-              sticky-header
-              :columns="errorColumns"
-              :rows="errorRowDefs"
-            >
-              <XhTableHeader>
-                <XhTableRow>
-                  <XhTableColumnHeader v-for="col in errorColumns" :key="col.id" :value="col.id">
-                    <XhTableColumnLabel>{{ col.label }}</XhTableColumnLabel>
-                  </XhTableColumnHeader>
-                </XhTableRow>
-              </XhTableHeader>
-              <XhTableBody>
-                <XhTableRow v-for="item in errorItems" :key="item.key" :value="item.key">
-                  <XhTableCell value="row">
-                    {{ item.row }}
-                  </XhTableCell>
-                  <XhTableCell value="field">
-                    {{ item.field }}
-                  </XhTableCell>
-                  <XhTableCell value="message" :title="item.message">
-                    {{ item.message }}
-                  </XhTableCell>
-                </XhTableRow>
-              </XhTableBody>
-            </XhTableRoot>
-          </div>
+          <!-- 错误明细：限高，超出在表格内滚动 -->
+          <XDataTable
+            v-if="errorItems.length > 0"
+            :columns="errorColumns"
+            :data="errorItems"
+            row-key="key"
+            sticky-header
+            max-height="var(--xh-viewport-h-md)"
+          />
 
           <!-- 导入进度 -->
           <XhProgress v-if="phase === 'importing'" :value="importPercent" :aria-label="t('component.schema_import.title')" />
@@ -411,11 +402,6 @@ function handleClose(): void {
   gap: var(--xh-space-2);
   align-items: center;
   flex-wrap: wrap;
-}
-
-/* 错误明细表：限高，超出内部滚动（槽由表格根继承） */
-.xh-import-errors {
-  --xh-table-max-h: var(--xh-viewport-h-md);
 }
 
 .xh-import-problems {

@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: '사용자명, 표시 이름 검색…',
       status_placeholder: '전체 상태',
       password_placeholder: '비워 두면 비밀번호를 초기화하기 전까지 로그인할 수 없어요',
+      import: {
+        password_help: '이 묶음이 함께 쓰는 초기 비밀번호예요. 가져온 뒤 사용자에게 전달하세요. 계정은 변경 필요로 표시되며, 시스템 매개변수 identity.password의 forceChange가 켜져 있으면 처음 비밀번호로 로그인할 때 바꿔야 해요.',
+        user_name_hint: '3~64자, 소문자로 시작하고 소문자·숫자·. _ -만 사용',
+        department_code: '부서 코드',
+        department_code_hint: '부서 코드, 주 부서가 됩니다',
+        role_codes: '역할 코드',
+        role_codes_hint: '역할 코드, 여러 개는 쉼표로 구분',
+      },
       fields: {
         user_info: '사용자 정보',
         user_name: '사용자명',

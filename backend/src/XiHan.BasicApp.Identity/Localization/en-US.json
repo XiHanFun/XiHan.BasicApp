@@ -1,6 +1,8 @@
 {
   "users.create.title": "Create user",
   "users.create.description": "Create a user: a tenant principal creates one in its own tenant; a platform principal may name the home tenant or create a platform account.",
+  "users.import.title": "Import users",
+  "users.import.description": "Create users on the current side in bulk with a shared initial password marked for change; each row is checked by the create-user rules and may also join a department and get roles. Rows with problems fail; the rest are imported.",
   "users.get.title": "Get user",
   "users.get.description": "Get a user by ID; tenant principals only see users and external members of their own tenant.",
   "users.list.title": "List users",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "Write one of your own settings by scene and key, replacing it whole or creating it; an empty value clears it.",
   "identity.user.not_found": "User '{id}' does not exist.",
   "identity.user.name_taken": "User name '{userName}' is already taken in tenant '{tenant}'.",
+  "identity.user.name_duplicated": "User name '{userName}' appears more than once in this import; only its first row is imported.",
   "identity.user.tenant_mismatch": "The home tenant '{requested}' differs from the current tenant '{current}'.",
   "identity.user.self_operation": "You cannot perform this operation on your own account.",
   "identity.user.locked": "User '{name}' is locked. Unlock it first.",

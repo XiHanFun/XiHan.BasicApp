@@ -201,6 +201,7 @@
   "access.activation.not_held": "Role {id} is not held right now and cannot be activated.",
   "access.constraint.code_taken": "Constraint rule code {code} already exists.",
   "access.constraint.violated": "Constraint rule \"{name}\" ({code}) is violated; the change was not made.",
+  "access.role.import_failed": "Could not assign role '{role}' to user '{userName}' during the import: {reason} Nothing in this batch was written; try again.",
   "access.constraint.not_found": "Constraint rule {id} does not exist.",
   "access.session_role.not_found": "Session role record {id} does not exist.",
   "constraint_rules.list.title": "List constraint rules",

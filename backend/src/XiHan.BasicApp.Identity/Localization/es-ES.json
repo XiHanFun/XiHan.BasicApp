@@ -1,6 +1,8 @@
 {
   "users.create.title": "Crear usuario",
   "users.create.description": "Crea un usuario: un principal de inquilino lo crea en su propio inquilino; un principal de plataforma puede indicar el inquilino de origen o crear una cuenta de plataforma.",
+  "users.import.title": "Importar usuarios",
+  "users.import.description": "Crea usuarios del lado actual en lote con una contraseña inicial común que debe cambiarse; cada fila se valida con las reglas de creación de usuarios y puede además unirse a un departamento y recibir roles. Las filas con problemas fallan; el resto se importa.",
   "users.get.title": "Obtener usuario",
   "users.get.description": "Obtiene un usuario por ID; los principales de inquilino solo ven los usuarios y miembros externos de su propio inquilino.",
   "users.list.title": "Listar usuarios",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "Escribe uno de tus ajustes por escena y clave, reemplazándolo entero o creándolo; un valor vacío lo borra.",
   "identity.user.not_found": "El usuario '{id}' no existe.",
   "identity.user.name_taken": "El nombre de usuario '{userName}' ya está en uso en el inquilino '{tenant}'.",
+  "identity.user.name_duplicated": "El nombre de usuario '{userName}' aparece más de una vez en esta importación; solo se importa su primera fila.",
   "identity.user.tenant_mismatch": "El inquilino de origen '{requested}' difiere del inquilino actual '{current}'.",
   "identity.user.self_operation": "No puede realizar esta operación sobre su propia cuenta.",
   "identity.user.locked": "El usuario '{name}' está bloqueado. Desbloquéelo primero.",

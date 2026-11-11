@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: 'Buscar nombre de usuario o nombre para mostrar…',
       status_placeholder: 'Todos los estados',
       password_placeholder: 'Si se deja vacío, la cuenta no podrá iniciar sesión hasta restablecer la contraseña',
+      import: {
+        password_help: 'La contraseña inicial común de este lote; entrégasela tras la importación. Las cuentas quedan marcadas para cambiarla: si forceChange está activo en el ajuste identity.password, deberán cambiarla en su primer inicio de sesión con contraseña.',
+        user_name_hint: 'De 3 a 64 caracteres, empieza por una minúscula; solo minúsculas, dígitos y . _ -',
+        department_code: 'Código de departamento',
+        department_code_hint: 'Código de departamento; pasa a ser el departamento principal',
+        role_codes: 'Códigos de rol',
+        role_codes_hint: 'Códigos de rol, separa varios con comas',
+      },
       fields: {
         user_info: 'Información del usuario',
         user_name: 'Nombre de usuario',

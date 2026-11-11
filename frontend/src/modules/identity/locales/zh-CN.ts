@@ -12,6 +12,14 @@ export default {
       keyword_placeholder: '搜索用户名、显示名…',
       status_placeholder: '全部状态',
       password_placeholder: '留空则账号在重置密码前不能登录',
+      import: {
+        password_help: '这批用户共用的初始密码，导入后请转交给他们。账号标记为须改密：系统参数 identity.password 打开 forceChange 时，首次用密码登录要先修改。',
+        user_name_hint: '3 到 64 位，小写字母开头，只含小写字母、数字和 . _ -',
+        department_code: '部门编码',
+        department_code_hint: '部门编码，作为主部门',
+        role_codes: '角色码',
+        role_codes_hint: '角色码，多个用逗号分隔',
+      },
       fields: {
         user_info: '用户信息',
         user_name: '用户名',

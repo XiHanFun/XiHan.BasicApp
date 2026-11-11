@@ -201,6 +201,7 @@
   "access.activation.not_held": "ロール {id} は現在保有していないため、有効にできません。",
   "access.constraint.code_taken": "制約ルールのコード {code} は既に存在します。",
   "access.constraint.violated": "制約ルール「{name}」（{code}）に違反するため、この変更は行われませんでした。",
+  "access.role.import_failed": "インポート中にロール '{role}' をユーザー '{userName}' に割り当てられませんでした：{reason} このバッチは書き込まれていません。もう一度お試しください。",
   "access.constraint.not_found": "制約ルール {id} は存在しません。",
   "access.session_role.not_found": "セッションロールの記録 {id} は存在しません。",
   "constraint_rules.list.title": "制約ルールを一覧表示",

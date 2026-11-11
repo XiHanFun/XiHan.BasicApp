@@ -201,6 +201,7 @@
   "access.activation.not_held": "Le rôle {id} n’est pas détenu actuellement et ne peut pas être activé.",
   "access.constraint.code_taken": "Le code de règle de contrainte {code} existe déjà.",
   "access.constraint.violated": "La règle de contrainte « {name} » ({code}) est enfreinte ; la modification n’a pas été faite.",
+  "access.role.import_failed": "Impossible d'attribuer le rôle '{role}' à l'utilisateur '{userName}' pendant l'import : {reason} Rien de ce lot n'a été écrit ; réessayez.",
   "access.constraint.not_found": "La règle de contrainte {id} n’existe pas.",
   "access.session_role.not_found": "L’enregistrement de rôle de session {id} n’existe pas.",
   "constraint_rules.list.title": "Lister les règles de contrainte",

@@ -1,6 +1,8 @@
 {
   "users.create.title": "ユーザーの作成",
   "users.create.description": "ユーザーを作成します。テナント主体は自テナントに作成し、プラットフォーム主体は所属テナントを指定するか、指定しなければプラットフォームアカウントを作成します。",
+  "users.import.title": "ユーザーの一括インポート",
+  "users.import.description": "現在の側のユーザーを一括作成し、共通の初期パスワードを設定して変更必須にします。各行はユーザー作成と同じ規則で検証され、部署への所属とロールの割り当ても同時に行えます。問題のある行は失敗となり、残りはそのままインポートされます。",
   "users.get.title": "ユーザーの取得",
   "users.get.description": "ID でユーザーを取得します。テナント主体は自テナントのユーザーと外部メンバーのみ参照できます。",
   "users.list.title": "ユーザーの一覧",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "自分の設定を場面と設定キーで丸ごと上書きします（なければ作成、値が空ならクリア）。",
   "identity.user.not_found": "ユーザー '{id}' は存在しません。",
   "identity.user.name_taken": "ユーザー名 '{userName}' はテナント '{tenant}' で既に使用されています。",
+  "identity.user.name_duplicated": "ユーザー名 '{userName}' がこのインポート内で重複しています。最初の行だけがインポートされます。",
   "identity.user.tenant_mismatch": "所属テナント '{requested}' が現在のテナント '{current}' と一致しません。",
   "identity.user.self_operation": "自分自身のアカウントに対してこの操作は実行できません。",
   "identity.user.locked": "ユーザー '{name}' はロックされています。先にロックを解除してください。",

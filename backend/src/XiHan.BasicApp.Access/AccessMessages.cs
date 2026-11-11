@@ -866,6 +866,14 @@ public static class AccessMessages
     public const string ConstraintViolated = "access.constraint.violated";
 
     /// <summary>
+    /// 导入用户时没能给新用户指派角色
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>role</c>（角色码）、<c>userName</c>、<c>reason</c>（已本地化的原因）
+    /// </remarks>
+    public const string RoleImportFailed = "access.role.import_failed";
+
+    /// <summary>
     /// 约束规则不存在
     /// </summary>
     /// <remarks>

@@ -201,6 +201,7 @@
   "access.activation.not_held": "A função {id} não é mantida agora e não pode ser ativada.",
   "access.constraint.code_taken": "O código de regra de restrição {code} já existe.",
   "access.constraint.violated": "A regra de restrição \"{name}\" ({code}) é violada; a alteração não foi feita.",
+  "access.role.import_failed": "Não foi possível atribuir a função '{role}' ao usuário '{userName}' durante a importação: {reason} Nada deste lote foi gravado; tente novamente.",
   "access.constraint.not_found": "A regra de restrição {id} não existe.",
   "access.session_role.not_found": "O registro de função de sessão {id} não existe.",
   "constraint_rules.list.title": "Listar regras de restrição",

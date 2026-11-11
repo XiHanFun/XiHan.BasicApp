@@ -152,6 +152,7 @@ public sealed class AccessFeature : IFeature
         // 通知按角色找人（此刻有效的直接指派）
         context.Services.AddScoped<IRecipientSource, RoleRecipientSource>();
         context.Services.AddScoped<IRoleMemberDirectory, RoleMemberDirectory>();
+        context.Services.AddScoped<IUserImportExtension, RoleUserImport>();
         context.Services.AddScoped<ITenantInitializer, TenantRoleInitializer>();
         context.Services.AddSeeder<PlatformRoleSeeder>();
         context.Services.AddSeeder<MenuSeeder>();

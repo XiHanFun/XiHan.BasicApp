@@ -27,14 +27,16 @@ import { useUserDepartments } from './use-user-departments'
 import { useUserDetail } from './use-user-detail'
 import { useUserGrants } from './use-user-grants'
 import { useUserRoles } from './use-user-roles'
-import { displayNameOf, forceSignOut, loadDepartmentOptions, loadRoleOptions, resetUserTwoFactor, setUserDisabled, setUserLocked, usePasswordReset, USER_GENDERS, USER_STATUSES, usersResource, useUserEditor } from './use-users'
+import { displayNameOf, forceSignOut, generateTempPassword, loadDepartmentOptions, loadRoleOptions, resetUserTwoFactor, setUserDisabled, setUserLocked, usePasswordReset, USER_GENDERS, USER_STATUSES, usersResource, useUserEditor } from './use-users'
 
 defineOptions({ name: 'IdentityUsersView' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const userStore = useUserStore()
-const resource = usersResource()
+/** 导入的这批用户共用的初始密码：先给一个随机的，导入弹窗里可改；要明文显示，导入后由管理员转交 */
+const importPassword = ref(generateTempPassword())
+const resource = usersResource(() => importPassword.value)
 const editor = useUserEditor(() => auth.can('identity.users.login-policy'))
 const passwordReset = usePasswordReset()
 const detail = useUserDetail()
@@ -369,10 +371,99 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
 ])
 
+/**
+ * 导入列：key 与 users.import 的行字段同名
+ * 列表的「用户信息」一列合并了头像、显示名与用户名，部门与角色列显示名称而导入要编码，所以单独列出
+ */
+const importFields = computed<ListFieldSchema[]>(() => [
+  {
+    key: 'userName',
+    title: t('identity.users.fields.user_name'),
+    dataType: 'string',
+    required: true,
+    importHint: t('identity.users.import.user_name_hint'),
+    order: 1,
+  },
+  {
+    key: 'displayName',
+    title: t('identity.users.fields.display_name'),
+    dataType: 'string',
+    required: true,
+    order: 2,
+  },
+  {
+    key: 'email',
+    title: t('identity.users.fields.email'),
+    dataType: 'email',
+    order: 3,
+  },
+  {
+    key: 'phoneNumber',
+    title: t('identity.users.fields.phone'),
+    dataType: 'phone',
+    order: 4,
+  },
+  {
+    key: 'realName',
+    title: t('identity.users.fields.real_name'),
+    dataType: 'string',
+    order: 5,
+  },
+  {
+    key: 'gender',
+    title: t('identity.users.fields.gender'),
+    dataType: 'enum',
+    options: genderOptions.value,
+    order: 6,
+  },
+  {
+    key: 'birthday',
+    title: t('identity.users.fields.birthday'),
+    dataType: 'date',
+    order: 7,
+  },
+  {
+    key: 'country',
+    title: t('identity.users.fields.country'),
+    dataType: 'string',
+    order: 8,
+  },
+  // 部门只在租户侧
+  ...(isPlatformCaller()
+    ? []
+    : [
+        {
+          key: 'departmentCode',
+          title: t('identity.users.import.department_code'),
+          dataType: 'string' as const,
+          permission: 'organization.memberships.create',
+          importHint: t('identity.users.import.department_code_hint'),
+          order: 9,
+        },
+      ]),
+  {
+    key: 'roleCodes',
+    title: t('identity.users.import.role_codes'),
+    dataType: 'string',
+    permission: 'access.roles.assign',
+    importHint: t('identity.users.import.role_codes_hint'),
+    order: 10,
+  },
+  {
+    key: 'remark',
+    title: t('identity.users.fields.remark'),
+    dataType: 'string',
+    order: 11,
+  },
+])
+
 const schema = computed<PageSchema>(() => ({
   pageCode: 'identity.users',
   pageName: t('identity.users.title'),
   exportPermission: 'identity.users.read',
+  importPermission: 'identity.users.create',
+  importFields: importFields.value,
+  importReady: () => importPassword.value !== '',
   batchRemovable: true,
   removePermission: 'identity.users.delete',
   statusPermission: 'identity.users.disable',
@@ -1006,6 +1097,24 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
     :schema="schema"
     @action="onAction"
   >
+    <!-- 导入：这批用户共用的初始密码 -->
+    <template #import-options>
+      <XhFieldRoot required :invalid="importPassword === ''">
+        <XFieldLabel :help="t('identity.users.import.password_help')">
+          {{ t('identity.users.fields.password') }}
+        </XFieldLabel>
+        <div class="flex items-center gap-2">
+          <XhFieldControl class="min-w-0 flex-1">
+            <XInput v-model:value="importPassword" name="importPassword" autocomplete="off" />
+          </XhFieldControl>
+          <XhButton type="button" variant="subtle" size="sm" @click="importPassword = generateTempPassword()">
+            <Icon icon="lucide:refresh-cw" width="14" height="14" />
+            {{ t('identity.users.actions.generate_password') }}
+          </XhButton>
+        </div>
+      </XhFieldRoot>
+    </template>
+
     <!-- 新建 / 编辑 -->
     <XEditModal
       v-model:show="editor.open.value"

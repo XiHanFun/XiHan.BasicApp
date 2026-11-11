@@ -3,8 +3,8 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { PageQueryMapping, ResponseOf } from '~/contracts'
+import type { ImportManyFailure, SchemaQueryParams, SchemaResource } from '~/components'
+import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import type { SelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, roles as rolesApi, sessions as sessionsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
@@ -83,14 +83,74 @@ export const USER_QUERY: PageQueryMapping = {
   multiples: ['status'],
 }
 
+/** users.import 的一行：导入字段的 key 与行字段同名 */
+export type UserImportRow = RequestOf<'users.import'>['rows'][number]
+
+/** 一格里的多个编码：逗号、分号、顿号或空白分开（全角半角都认） */
+export function splitCodes(value: unknown): string[] {
+  return typeof value === 'string'
+    ? [
+        ...new Set(value.split(/[\s,;，；、]+/).filter(code => code !== '')),
+      ]
+    : []
+}
+
+/** 一格日期按本地日历日解析，与编辑弹窗的日期选择器同一口径（本地零点） */
+export function localDateIso(text: string): string {
+  const parts = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/.exec(text.trim())
+  return parts
+    ? new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])).toISOString()
+    : new Date(text).toISOString()
+}
+
+/** 导入记录（导入字段 key → 解析后的值，没填的不在记录里）→ users.import 的一行 */
+export function toUserImportRow(record: Record<string, unknown>): UserImportRow {
+  const text = (key: string) => typeof record[key] === 'string' && record[key] !== ''
+    ? record[key]
+    : null
+  const birthday = text('birthday')
+  return {
+    userName: text('userName'),
+    displayName: text('displayName'),
+    email: text('email'),
+    phoneNumber: text('phoneNumber'),
+    realName: text('realName'),
+    gender: (record.gender as UserGender | undefined) ?? null,
+    birthday: birthday === null
+      ? null
+      : localDateIso(birthday),
+    country: text('country'),
+    remark: text('remark'),
+    departmentCode: text('departmentCode'),
+    roleCodes: splitCodes(record.roleCodes),
+  }
+}
+
 /**
- * SchemaPage 的资源：分页、删除、启停与提交到导出中心
- * 导出时后台以发起人身份逐页调 users.list，查询快照与列表共用分页请求
- * 不提供 create：建用户可带初始密码，导入没有安全的映射
+ * 交一批导入记录给 users.import，返回不能导入的记录
+ * 后端逐行按新建用户的规则校验，部门与角色在同一事务里写好；整批被拒（缺少入部门或配角色的权限、密码不合策略）时抛出
  */
-export function usersResource(): SchemaResource<UserRow> {
+export async function importUsers(records: Record<string, unknown>[], password: string): Promise<ImportManyFailure[]> {
+  const result = await usersApi.import({
+    rows: records.map(toUserImportRow),
+    password,
+  })
+  return result.failed.map(failure => ({
+    index: failure.index,
+    field: failure.field ?? undefined,
+    message: failure.message,
+  }))
+}
+
+/**
+ * SchemaPage 的资源：分页、删除、启停、批量导入与提交到导出中心
+ * 导出时后台以发起人身份逐页调 users.list，查询快照与列表共用分页请求
+ * 不提供逐条的 create：导入走 users.import，这批用户共用导入弹窗里填的初始密码
+ */
+export function usersResource(importPassword: () => string): SchemaResource<UserRow> {
   const toRequest = (params: SchemaQueryParams) => toPageRequest(params, USER_QUERY)
   return {
+    importMany: records => importUsers(records, importPassword()),
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await usersApi.list(toRequest(params)), params),
     remove: async id => throwOnFailed(await usersApi.delete({
       ids: [

@@ -1,6 +1,8 @@
 {
   "users.create.title": "Benutzer anlegen",
   "users.create.description": "Legt einen Benutzer an: Ein Mandantenprinzipal legt ihn im eigenen Mandanten an; ein Plattformprinzipal kann den Heimatmandanten angeben oder ein Plattformkonto anlegen.",
+  "users.import.title": "Benutzer importieren",
+  "users.import.description": "Legt Benutzer der aktuellen Seite gesammelt an, mit einem gemeinsamen Initialpasswort, das geändert werden muss; jede Zeile wird nach den Regeln für das Anlegen geprüft und kann zugleich einer Abteilung beitreten und Rollen erhalten. Fehlerhafte Zeilen schlagen fehl, die übrigen werden importiert.",
   "users.get.title": "Benutzer abrufen",
   "users.get.description": "Liest einen Benutzer anhand der ID; Mandantenprinzipale sehen nur Benutzer und externe Mitglieder des eigenen Mandanten.",
   "users.list.title": "Benutzer auflisten",
@@ -31,6 +33,7 @@
   "user_settings.update.description": "Eine eigene Einstellung nach Bereich und Schlüssel vollständig schreiben oder anlegen; ein leerer Wert löscht sie.",
   "identity.user.not_found": "Der Benutzer '{id}' existiert nicht.",
   "identity.user.name_taken": "Der Benutzername '{userName}' ist im Mandanten '{tenant}' bereits vergeben.",
+  "identity.user.name_duplicated": "Der Benutzername '{userName}' kommt in diesem Import mehrfach vor; nur die erste Zeile wird importiert.",
   "identity.user.tenant_mismatch": "Der Heimatmandant '{requested}' weicht vom aktuellen Mandanten '{current}' ab.",
   "identity.user.self_operation": "Dieser Vorgang kann nicht auf das eigene Konto angewendet werden.",
   "identity.user.locked": "Der Benutzer '{name}' ist gesperrt. Entsperren Sie ihn zuerst.",
