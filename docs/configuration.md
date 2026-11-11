@@ -388,7 +388,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `RunOnStartup` | `false`（Development 为 `true`） | 应用启动后执行一遍全部种子（种子可重复执行），失败即中断启动；关着时由 `seed` 命令或部署流程执行 |
+| `RunOnStartup` | `false`（Development 为 `true`） | 应用启动后执行一遍全部种子（种子可重复执行），失败即中断启动，跑完记一条 `Startup seeding completed.` 日志；关着时由 `seed` 命令或部署流程执行 |
 | `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知，演示流程与打印模板 |
 | `SuperAdminPassword` | 空（Development 为 `SuperAdmin@123`） | `superadmin` 的初始密码，只在账号不存在、首次写入时用；首次执行 `seed` 时没配即失败（`IDENTITY_VALIDATION_026`） |
 

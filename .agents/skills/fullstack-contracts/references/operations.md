@@ -37,5 +37,6 @@
 | 后端 | 用框架的 NuGet 包还原；Release 构建（警告即错误）；`dotnet test --solution`，带 PostgreSQL、Redis、RabbitMQ 服务容器与 `XIHAN_TEST_*` 环境变量 |
 | 契约漂移 | 重新 `contracts export` 比对 `contracts/*`，再 `pnpm contracts:check` 比对生成物 |
 | 前端 | `pnpm check`（十项）、`pnpm test`、`pnpm build` |
+| 端到端冒烟 | 带 PostgreSQL 服务容器构建宿主，`pnpm e2e` 自起后端与前端预览跑 `frontend/e2e/`，失败时上传报告与轨迹 |
 
 文档：行为或配置变了同步 `docs/` 对应页与更新日志、`plans/下一代总体方案.md` 写修订（编号接在最后一条之后，正文与第 8 节状态行一致）。代码、文档与提交信息里不写参考项目名。

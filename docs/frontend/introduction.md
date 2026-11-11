@@ -80,6 +80,7 @@ frontend/
 | 综合检查 | `pnpm check` |
 | 单测 | `pnpm test` |
 | 构建 | `pnpm build` |
+| 端到端冒烟 | `pnpm e2e`（见[开发流程](./development#端到端冒烟)） |
 
 环境变量见 `frontend/.env.example`；本机改动写 `.env.local`，不提交。
 

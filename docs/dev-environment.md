@@ -111,6 +111,7 @@ pnpm gen:contracts   # 由 contracts/openapi.json 生成 packages/contracts/*
 pnpm check           # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
 pnpm test
 pnpm build
+pnpm e2e             # 端到端冒烟：自起后端与前端，要本机 PostgreSQL；首次先 pnpm exec playwright install chromium
 ```
 
 `dotnet run` 以工程目录为工作目录，路径参数（如 `--out`）一律给绝对路径。

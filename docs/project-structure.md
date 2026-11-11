@@ -13,7 +13,7 @@ XiHan.BasicApp/
 ├─ docs/                        # 本文档站
 ├─ plans/                       # 总体方案、对齐矩阵与方案脚本
 ├─ docker-compose.yml  .env.example   # 单实例容器编排，见部署
-└─ .github/workflows/ci.yml     # CI：后端构建测试、契约漂移、前端门禁
+└─ .github/workflows/ci.yml     # CI：后端构建测试、契约漂移、前端门禁、端到端冒烟
 ```
 
 ## 后端

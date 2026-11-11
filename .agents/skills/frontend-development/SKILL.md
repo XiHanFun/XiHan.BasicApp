@@ -25,6 +25,7 @@ pnpm install --no-frozen-lockfile
 pnpm check   # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
 pnpm test
 pnpm build
+pnpm e2e     # 端到端冒烟（自起后端 9730 与前端 9130，要本机 PostgreSQL）
 ```
 
 视觉与交互改动在真实浏览器里看亮 / 暗色、窄视口、键盘与焦点、减少动态效果，用正式账号登录（验证码请用户输入）。没有锁文件，不加 `--frozen-lockfile`。

@@ -167,3 +167,66 @@ jobs:
 
       - name: 生产构建
         run: pnpm run build
+
+  e2e:
+    name: 端到端冒烟
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # 宿主以 Development 环境启动：建库 xihan_basicapp_e2e、建表、播种，凭据与 e2e/env.ts 的缺省连接串一致
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+
+      - name: 安装 Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: 安装依赖
+        run: pnpm install --no-frozen-lockfile
+
+      - name: 安装 Chromium
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+
+      # 用例里 dotnet run 只做增量检查，先在这里构建好宿主
+      - name: 构建宿主
+        run: dotnet build ../backend/src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj -c Release
+
+      # playwright.config.ts 自起后端（9730）与前端生产构建的预览（9130），种子跑完才开始
+      - name: 端到端用例
+        run: pnpm run e2e
+
+      - name: 上传报告
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-report
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          if-no-files-found: ignore

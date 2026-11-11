@@ -34,6 +34,7 @@
     "lint:fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix && stylelint \"{src,packages}/**/*.{css,vue}\" --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "playwright test",
     "gen:contracts": "node scripts/gen-contracts.mjs",
     "contracts:check": "node scripts/gen-contracts.mjs --check",
     "permissions:check": "node scripts/check-permissions.mjs",
@@ -71,6 +72,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
+    "@playwright/test": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@types/node": "catalog:",
     "@vitejs/plugin-vue": "catalog:",

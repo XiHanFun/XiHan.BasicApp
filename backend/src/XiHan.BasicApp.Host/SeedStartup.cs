@@ -32,9 +32,14 @@ public static partial class SeedStartup
             return false;
         }
 
+        // 端点先于种子开始服务：等着登录的一方（端到端用例）以这一行为就绪
+        LogCompleted(app.Logger);
         return true;
     }
 
     [LoggerMessage(Level = LogLevel.Critical, Message = "Startup aborted: seeding failed ({Code}): {Message}")]
     private static partial void LogFailed(ILogger logger, string code, string message);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Startup seeding completed.")]
+    private static partial void LogCompleted(ILogger logger);
 }

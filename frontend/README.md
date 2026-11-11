@@ -27,6 +27,7 @@ frontend/
 | 生成契约层 | `pnpm gen:contracts`（读 `contracts/openapi.json`） |
 | 综合检查 | `pnpm check`（type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions） |
 | 单测 / 构建 | `pnpm test`、`pnpm build` |
+| 端到端冒烟 | `pnpm e2e`（Playwright，自起后端 9730 与前端 9130，要本机 PostgreSQL；首次先 `pnpm exec playwright install chromium`） |
 
 ## 契约层
 

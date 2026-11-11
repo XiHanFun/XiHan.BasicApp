@@ -71,5 +71,7 @@ frontend/
 
 - Vitest + jsdom；测试放所属包或模块的 `tests/`（`packages/<包>/tests/`、`src/modules/<模块>/tests/`），按被测文件的子路径摆放，命名 `*.spec.ts`，导入写别名（`tests:check` 守护）；`scripts/vitest-setup.ts` 固定 `navigator.languages = ['zh-CN']` 并预装十区域文案，`vi.resetModules()` 之后要自己重装区域。
 - 门禁：`pnpm check`（十项）、`pnpm test`、`pnpm build`。改共享组件、路由、请求、权限或主题时三者都跑。
+- 端到端冒烟：Playwright 用例在 `e2e/`（`*.spec.ts`，不进 Vitest），`pnpm e2e` 按 `playwright.config.ts` 以 Development 环境自起后端（9730、库 `xihan_basicapp_e2e`、关掉图形验证码、超管密码取 `e2e/env.ts`，等到「Startup seeding completed.」才开始）与前端生产构建的预览（9130），本机已有这两个端口的服务就复用。主干一条串行描述，后一步用前一步开通的租户与账号；库在本机保留，租户与账号靠运行后缀不重名。选择器按可访问名称取（角色 + 名称、占位文案），失败时 `test-results/*/error-context.md` 有页面结构快照。
+- Playwright 的 `getByRole(..., { name })` 是子串匹配，按钮与菜单项会撞名时加 `exact: true`；路由是 hash 模式，导航写 `/#/<路径>`；列表的角色是 `grid`。
 - 浏览器验证：开发服务器 9100，`/api`、`/blobs`、`/hubs` 代理到后端 9710；用正式账号登录（验证码请用户输入），看亮 / 暗色、窄视口、键盘与焦点、减少动态效果。
 - XiHan.UI 联调：`pnpm-workspace.yaml` 临时加 `overrides` 指向同级 XiHan.UI 源码，不提交；组件库缺陷在 XiHan.UI 修。

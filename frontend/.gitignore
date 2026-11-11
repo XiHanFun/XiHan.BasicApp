@@ -2,6 +2,9 @@
 node_modules/
 dist/
 coverage/
+# 端到端用例的结果与报告
+test-results/
+playwright-report/
 
 # 本地环境
 .env.local
