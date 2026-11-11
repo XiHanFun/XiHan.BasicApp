@@ -248,7 +248,7 @@ public sealed class PrintingTests : IDisposable
             var items = source.GetProperty("fields").EnumerateArray().Single(static f => f.GetProperty("key").GetString() == "items");
             Assert.Equal("table", items.GetProperty("kind").GetString());
             Assert.Equal(4, items.GetProperty("columns").GetArrayLength());
-            Assert.Equal(JsonValueKind.Object, JsonDocument.Parse(source.GetProperty("sampleDataJson").GetString()!).RootElement.ValueKind);
+            Assert.Equal(JsonValueKind.Object, JsonElement.Parse(source.GetProperty("sampleDataJson").GetString()!).ValueKind);
         }
 
         var (guest, guestBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/print-data-sources", token: TestTokens.Issue("ivy", "acme", "guest")));

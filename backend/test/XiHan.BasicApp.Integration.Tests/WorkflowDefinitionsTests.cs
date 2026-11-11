@@ -146,7 +146,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
 
         // 详情：变量、节点历史、等着用户任务的等待、所用的定义
         var detail = (await SendAsync(server, HttpMethod.Get, $"/api/workflow-instances/{id}", null, platform)).Body;
-        Assert.Equal(42, JsonDocument.Parse(detail.GetProperty("variables").GetString()!).RootElement.GetProperty("amount").GetInt32());
+        Assert.Equal(42, JsonElement.Parse(detail.GetProperty("variables").GetString()!).GetProperty("amount").GetInt32());
         Assert.Contains(detail.GetProperty("nodes").EnumerateArray(), n => n.GetProperty("nodeId").GetString() == "approve");
         var wait = Assert.Single(detail.GetProperty("waits").EnumerateArray());
         Assert.Equal(("approve", "UserTask", me), (wait.GetProperty("nodeId").GetString(), wait.GetProperty("kind").GetString(), wait.GetProperty("key").GetString()));

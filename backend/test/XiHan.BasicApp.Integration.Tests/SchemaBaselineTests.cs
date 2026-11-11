@@ -52,7 +52,7 @@ public sealed class SchemaBaselineTests
         using var error = new StringWriter();
         var exitCode = await SchemaCommand.UpgradeBeforeStartAsync(app.Services, output, error, TestContext.Current.CancellationToken);
         Assert.True(exitCode == CommandLineExitCodes.Success, error.ToString());
-        var report = JsonDocument.Parse(output.ToString()).RootElement;
+        var report = JsonElement.Parse(output.ToString());
         Assert.Equal(BaselineVersion, report.GetProperty("to").GetString());
         Assert.Equal($"{BaselineVersion}/{BaselineScript}", Assert.Single(report.GetProperty("applied").EnumerateArray()).GetString());
 
@@ -80,7 +80,7 @@ public sealed class SchemaBaselineTests
 
         Assert.NotEqual(CommandLineExitCodes.Success, exitCode);
         Assert.Empty(output.ToString());
-        Assert.Equal("RUNTIME_UNAVAILABLE_001", JsonDocument.Parse(error.ToString()).RootElement.GetProperty("code").GetString());
+        Assert.Equal("RUNTIME_UNAVAILABLE_001", JsonElement.Parse(error.ToString()).GetProperty("code").GetString());
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public sealed class SchemaBaselineTests
         using var error = new StringWriter();
         var exitCode = await SchemaCommand.UpgradeBeforeStartAsync(app.Services, output, error, TestContext.Current.CancellationToken);
         Assert.True(exitCode == CommandLineExitCodes.Success, error.ToString());
-        Assert.Equal($"{BaselineVersion}/{BaselineScript}", Assert.Single(JsonDocument.Parse(output.ToString()).RootElement.GetProperty("applied").EnumerateArray()).GetString());
+        Assert.Equal($"{BaselineVersion}/{BaselineScript}", Assert.Single(JsonElement.Parse(output.ToString()).GetProperty("applied").EnumerateArray()).GetString());
     }
 
     [Fact]

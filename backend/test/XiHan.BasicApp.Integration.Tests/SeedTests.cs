@@ -70,7 +70,7 @@ public sealed class SeedTests : IDisposable
 
         var (listed, listedOut, _) = await RunAsync(runner, ["seed", "--list"]);
         Assert.Equal(CommandLineExitCodes.Success, listed);
-        var report = JsonDocument.Parse(listedOut).RootElement;
+        var report = JsonElement.Parse(listedOut);
         Assert.Equal("listed", report.GetProperty("status").GetString());
         Assert.Contains(report.GetProperty("seeders").EnumerateArray(), static s => s.GetProperty("name").GetString() == "identity.platform" && s.GetProperty("order").GetInt32() == 100);
 
@@ -80,11 +80,11 @@ public sealed class SeedTests : IDisposable
 
         var (unknown, _, unknownErr) = await RunAsync(runner, ["seed", "--only", "identity.platform,nope"]);
         Assert.Equal(CommandLineExitCodes.Usage, unknown);
-        Assert.Equal("HOST_VALIDATION_001", JsonDocument.Parse(unknownErr).RootElement.GetProperty("code").GetString());
+        Assert.Equal("HOST_VALIDATION_001", JsonElement.Parse(unknownErr).GetProperty("code").GetString());
 
         var (ran, ranOut, _) = await RunAsync(runner, ["seed", "--only", "identity.platform"]);
         Assert.Equal(CommandLineExitCodes.Success, ran);
-        Assert.Equal("completed", JsonDocument.Parse(ranOut).RootElement.GetProperty("status").GetString());
+        Assert.Equal("completed", JsonElement.Parse(ranOut).GetProperty("status").GetString());
         await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123");
 
         // 框架的 help 列出本应用的命令，说明按当前消息作用域翻译（目录由命令模式登记）

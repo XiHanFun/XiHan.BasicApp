@@ -57,7 +57,7 @@ public sealed class PermissionRequestsTests : IDisposable
         var task = Assert.Single(await ListAsync(server, "tasks", carol));
         var (_, detail) = await SendAsync(server, HttpMethod.Get, $"/api/approvals/{task.GetProperty("instanceId").GetString()}", null, carol);
         Assert.Equal("access/permission-request-approval/index", detail.GetProperty("business").GetProperty("formComponent").GetString());
-        Assert.Equal(requestId, JsonDocument.Parse(detail.GetProperty("business").GetProperty("data").GetString()!).RootElement.GetProperty("id").GetString());
+        Assert.Equal(requestId, JsonElement.Parse(detail.GetProperty("business").GetProperty("data").GetString()!).GetProperty("id").GetString());
 
         // 同意：申请人成了角色成员，重新登录即带上角色的权限
         Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/tasks/{task.GetProperty("id").GetString()}:complete", """{"outcome":"approved"}""", carol)).Status);

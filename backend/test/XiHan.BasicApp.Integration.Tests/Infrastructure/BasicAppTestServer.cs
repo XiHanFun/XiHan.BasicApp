@@ -239,7 +239,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     {
         var response = await Client.SendAsync(request);
         var text = await response.Content.ReadAsStringAsync();
-        var body = text.Length == 0 ? default : JsonDocument.Parse(text).RootElement.Clone();
+        var body = text.Length == 0 ? default : JsonElement.Parse(text);
         return (response, body);
     }
 

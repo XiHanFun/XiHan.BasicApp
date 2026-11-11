@@ -167,8 +167,8 @@ public sealed class AuditingTests : IDisposable
         Assert.Contains("value", diffs[1].GetProperty("changedFields").GetString()!.Split(','));
         var (detail, detailBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/diff-logs/{diffs[1].GetProperty("id").GetString()}", token: platform));
         Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
-        Assert.Equal("10", JsonDocument.Parse(detailBody.GetProperty("before").GetString()!).RootElement.GetProperty("value").GetString());
-        Assert.Equal("20", JsonDocument.Parse(detailBody.GetProperty("after").GetString()!).RootElement.GetProperty("value").GetString());
+        Assert.Equal("10", JsonElement.Parse(detailBody.GetProperty("before").GetString()!).GetProperty("value").GetString());
+        Assert.Equal("20", JsonElement.Parse(detailBody.GetProperty("after").GetString()!).GetProperty("value").GetString());
         Assert.Equal("configs.update", diffs[1].GetProperty("operationId").GetString());
 
         // 登录只改了最后登录时间（随写入就变的列）：不算数据变更；会话与账号安全标了不记，开通管理员新建的用户照记
