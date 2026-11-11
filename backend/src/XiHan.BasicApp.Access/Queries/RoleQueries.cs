@@ -79,6 +79,22 @@ public sealed class RoleQueries(SqlSugarUnitOfWork unitOfWork)
         return new PageResult<RoleResponse>(rows.Select(RoleResponse.From).ToList(), total.Value, request.Page);
     }
 
+    /// <summary>
+    /// 当前作用侧启用的角色
+    /// </summary>
+    /// <remarks>
+    /// 按排序号、角色码升序，不分页：一侧的角色由管理员维护，数量有限
+    /// </remarks>
+    public async Task<IReadOnlyList<SysRole>> ActiveAsync(InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return await TenantScopedQuery.For<SysRole>(unitOfWork.ConnectionFor(typeof(SysRole)), context).OwnedByCurrentTenant(context)
+            .Where(r => r.Status == RoleStatus.Active)
+            .OrderBy(r => r.Order, OrderByType.Asc)
+            .OrderBy(r => r.Code, OrderByType.Asc)
+            .ToListAsync(context.CancellationToken).ConfigureAwait(false);
+    }
+
     private static Result<ISugarQueryable<SysRole>> Apply(ISugarQueryable<SysRole> query, PageFilter filter)
     {
         var value = filter.Value ?? string.Empty;

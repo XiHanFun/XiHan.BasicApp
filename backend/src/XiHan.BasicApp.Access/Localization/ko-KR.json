@@ -343,6 +343,8 @@
   "permission_requests.list.description": "호출한 쪽의 권한 신청을 페이지 단위로 조회합니다. 키워드(신청자, 신청 사유, 비고), 신청자, 역할, 권한 코드, 상태로 필터링하고 결재 진행을 함께 반환합니다. 결재가 비활성이면 진행이 비어 있습니다.",
   "permission_requests.get.title": "권한 신청 조회(단건)",
   "permission_requests.get.description": "권한 신청과 결재 진행을 읽습니다.",
+  "permission_requests.candidates.title": "권한 신청 후보 목록",
+  "permission_requests.candidates.description": "신청 대화상자에서 고를 수 있는 대상(호출자 쪽의 활성 역할과 부여 가능한 권한, 테넌트 쪽은 에디션으로 좁힘)을 나열합니다. 신청 제출 또는 재제출 권한 중 하나만 있으면 되며 역할이나 권한 목록 읽기 권한은 필요 없습니다.",
   "permission_requests.create.title": "권한 신청 제출",
   "permission_requests.create.description": "자신의 역할이나 권한 코드(둘 다 가능)를 신청하고 같은 트랜잭션에서 결재를 시작합니다. 결재가 비활성이면 제출할 수 없습니다.",
   "permission_requests.update.title": "권한 신청 재제출",

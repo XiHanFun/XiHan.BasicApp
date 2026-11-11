@@ -696,6 +696,7 @@ export const operationPolicy: Partial<Record<OperationId, string>> = {
   'oauth-consents.list': 'authenticated',
   'oauth-consents.resolve': 'authenticated',
   'oauth-consents.revoke': 'authenticated',
+  'permission-requests.candidates': 'access.permission-request-candidates',
   'print-data-sources.list': 'printing.data-source-catalog',
   'profile.begin-external-bind': 'authenticated',
   'profile.change-contact': 'authenticated',

@@ -2,9 +2,12 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Access.Operations.PermissionRequests;
@@ -50,6 +53,37 @@ public sealed class GetPermissionRequest(PermissionRequestService service) : IOp
     {
         ArgumentNullException.ThrowIfNull(request);
         return await service.GetAsync(request.Id, context).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// 授权申请的候选
+/// </summary>
+/// <remarks>
+/// <c>GET /api/permission-requests:candidates</c>。申请弹窗里可选的对象：这一侧启用的角色，与这一侧可授予的权限（租户侧按套餐收窄，与 <c>permissions.list</c> 同一口径）；
+/// 申请人不必能读角色列表与权限目录，持有提交或重新提交其一即可（<see cref="AccessAuthorizationPolicies.PermissionRequestCandidates"/>）。提交时仍以 <c>permission-requests.create</c> 的校验为准
+/// </remarks>
+/// <param name="roles">角色查询</param>
+/// <param name="effective">有效权限（一侧的目录与套餐收窄）</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = AccessAuthorizationPolicies.PermissionRequestCandidates)]
+public sealed class ListPermissionRequestCandidates(RoleQueries roles, EffectivePermissions effective) : IOperation<PermissionRequestCandidatesRequest, PermissionRequestCandidatesResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "permission-requests.candidates";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<PermissionRequestCandidatesResponse>> HandleAsync(PermissionRequestCandidatesRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var tenant = context.GetSecurity().Tenant?.Id;
+        var active = await roles.ActiveAsync(context).ConfigureAwait(false);
+        var permissions = await effective.CatalogAsync(platformSide: tenant is null, tenant, context.CancellationToken).ConfigureAwait(false);
+        return new PermissionRequestCandidatesResponse(
+            active.Select(static r => new PermissionRequestRoleCandidate(r.Id, r.Code, r.Name)).ToList(),
+            permissions.Select(p => new PermissionRequestPermissionCandidate(p.Code, PermissionTexts.NameOf(p, context))).ToList());
     }
 }
 

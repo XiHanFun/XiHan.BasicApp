@@ -68,6 +68,7 @@
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
 | `permission-requests.list` / `get` | `access.permission-requests.read` | 这一侧全部的申请，带审批进度。关键字匹配申请人（经用户目录在这一侧按登录名与显示名搜，含停用的账号，取前 200 个）、申请原因与备注；可按申请人、角色、权限码与状态筛选，缺省按提交时间降序 |
+| `permission-requests.candidates` | `access.permission-requests.create` 或 `.update` 其一（策略 `access.permission-request-candidates`） | 只读；申请弹窗的候选：这一侧启用的角色与可授予的权限（租户侧按套餐收窄，与 `permissions.list` 同一口径）。申请人不必能读角色列表与权限目录 |
 | `permission-requests.create` | `access.permission-requests.create` | 申请人要是这一侧的在用账号；角色存在且启用、权限码在这一侧的目录里，期望失效时间晚于现在；同一对象只能有一条待审批的申请（`ACCESS_CONFLICT_013`） |
 | `permission-requests.update` | `access.permission-requests.update` | 修改自己待审批的申请并重新提交：撤回旧流程、按新内容重新发起，已有的审批意见作废 |
 | `permission-requests.withdraw` | `access.permission-requests.withdraw` | 批量；撤回自己待审批的申请，同时撤回流程 |

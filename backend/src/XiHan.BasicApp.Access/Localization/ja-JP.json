@@ -343,6 +343,8 @@
   "permission_requests.list.description": "呼び出し側の権限申請をページ単位で一覧します。キーワード（申請者、申請理由、備考）、申請者、ロール、権限コード、状態で絞り込み、承認状況を付けます。承認が無効なときは承認状況が空です。",
   "permission_requests.get.title": "権限申請を取得",
   "permission_requests.get.description": "権限申請とその承認状況を読み取ります。",
+  "permission_requests.candidates.title": "権限申請の候補を一覧",
+  "permission_requests.candidates.description": "申請ダイアログで選べる対象（呼び出し元の側で有効なロールと付与可能な権限、テナント側はエディションで絞り込み）を一覧します。申請の提出または再提出の権限のどちらかがあればよく、ロールや権限カタログの閲覧権限は不要です。",
   "permission_requests.create.title": "権限申請を提出",
   "permission_requests.create.description": "自分のロールまたは権限コード（両方も可）を申請し、同じトランザクションで承認を開始します。承認が無効なときは提出できません。",
   "permission_requests.update.title": "権限申請を再提出",

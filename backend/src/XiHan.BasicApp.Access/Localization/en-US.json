@@ -343,6 +343,8 @@
   "permission_requests.list.description": "Page through the permission requests of the caller's side, filtered by keyword (requester, reason, remark), requester, role, permission code and status, with their approval progress; the progress is empty when approval is not enabled.",
   "permission_requests.get.title": "Get a permission request",
   "permission_requests.get.description": "Read a permission request with its approval progress.",
+  "permission_requests.candidates.title": "List permission request candidates",
+  "permission_requests.candidates.description": "List what can be requested in the request dialog: the active roles and the grantable permissions of the caller's side (narrowed by the edition on the tenant side); holding the permission to submit or to resubmit requests is enough, reading roles or the permission catalog is not required.",
   "permission_requests.create.title": "Submit a permission request",
   "permission_requests.create.description": "Request a role or a permission code (or both) for yourself and start its approval in the same transaction; not available when approval is not enabled.",
   "permission_requests.update.title": "Resubmit a permission request",

@@ -139,6 +139,8 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(PermissionRequestResponse))]
 [JsonSerializable(typeof(PageResult<PermissionRequestResponse>))]
 [JsonSerializable(typeof(GetPermissionRequestRequest))]
+[JsonSerializable(typeof(PermissionRequestCandidatesRequest))]
+[JsonSerializable(typeof(PermissionRequestCandidatesResponse))]
 [JsonSerializable(typeof(CreatePermissionRequestRequest))]
 [JsonSerializable(typeof(UpdatePermissionRequestRequest))]
 [JsonSerializable(typeof(PermissionRequestIdsRequest))]

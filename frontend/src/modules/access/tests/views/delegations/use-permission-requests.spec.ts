@@ -202,43 +202,16 @@ describe('申请表单与请求', () => {
 })
 
 describe('usePermissionRequestEditor', () => {
-  it('打开即取启用的角色与权限目录；发起走 create，审批未启用的 503 留在弹窗里', async () => {
+  it('打开即取申请候选（不调角色列表与权限目录）；发起走 create，审批未启用的 503 留在弹窗里', async () => {
     const calls = record((call) => {
-      if (call.url === '/api/roles:list') {
+      if (call.url === '/api/permission-requests:candidates') {
         return json(200, {
-          items: [
-            {
-              id: 'r-1',
-              code: 'approver',
-              name: 'Approver',
-              isBuiltIn: false,
-              status: 'Active',
-            },
-            {
-              id: 'r-0',
-              code: 'admin',
-              name: 'Admin',
-              isBuiltIn: true,
-              status: 'Active',
-            },
+          roles: [
+            { id: 'r-1', code: 'approver', name: 'Approver' },
+            { id: 'r-0', code: 'admin', name: 'Admin' },
           ],
-          total: 2,
-          page: { index: 1, size: 500 },
-        })
-      }
-      if (call.url === '/api/permissions') {
-        return json(200, {
-          items: [
-            {
-              code: 'identity.users.read',
-              displayName: 'Read users',
-              description: null,
-              package: 'identity',
-              resource: 'users',
-              action: 'read',
-              scope: 'Both',
-              audited: false,
-            },
+          permissions: [
+            { code: 'identity.users.read', displayName: 'Read users' },
           ],
         })
       }
@@ -257,11 +230,8 @@ describe('usePermissionRequestEditor', () => {
     expect(editor.permissionOptions.value).toEqual([
       { value: 'identity.users.read', label: 'Read users', description: 'identity.users.read' },
     ])
-    expect(calls.find(c => c.url === '/api/roles:list')?.body).toMatchObject({
-      filters: [
-        { field: 'status', operator: 'eq', value: 'Active' },
-      ],
-    })
+    expect(calls.find(c => c.url === '/api/permission-requests:candidates')?.method).toBe('GET')
+    expect(calls.some(c => c.url === '/api/roles:list' || c.url === '/api/permissions')).toBe(false)
 
     Object.assign(editor.form, { roleId: 'r-1', reason: '月底结账' })
     expect(await editor.submit()).toBe(false)
@@ -272,15 +242,8 @@ describe('usePermissionRequestEditor', () => {
 
   it('带申请打开即修改重提：回填并走 update，字段错误挂回字段', async () => {
     const calls = record((call) => {
-      if (call.url === '/api/roles:list') {
-        return json(200, {
-          items: [],
-          total: 0,
-          page: { index: 1, size: 500 },
-        })
-      }
-      if (call.url === '/api/permissions')
-        return json(200, { items: [] })
+      if (call.url === '/api/permission-requests:candidates')
+        return json(200, { roles: [], permissions: [] })
       return json(400, {
         code: 'ACCESS_VALIDATION_001',
         status: 400,

@@ -987,6 +987,11 @@ public static class AccessMessages
     public const string GetPermissionRequestDescription = "permission_requests.get.description";
 
     /// <summary>
+    /// 操作 <c>permission-requests.candidates</c> 的说明
+    /// </summary>
+    public const string ListPermissionRequestCandidatesDescription = "permission_requests.candidates.description";
+
+    /// <summary>
     /// 操作 <c>permission-requests.create</c> 的说明
     /// </summary>
     public const string CreatePermissionRequestDescription = "permission_requests.create.description";

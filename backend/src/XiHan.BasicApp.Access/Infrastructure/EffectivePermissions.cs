@@ -69,6 +69,27 @@ public sealed class EffectivePermissions(IPermissionGrantStore store, Permission
     }
 
     /// <summary>
+    /// 某一侧可授予的权限目录
+    /// </summary>
+    /// <remarks>
+    /// 平台侧是 Platform / Both，租户侧是 Tenant / Both；调用方在租户里时再按该租户的套餐白名单收窄（授予了也不会生效的不列出）
+    /// </remarks>
+    /// <param name="platformSide">是否平台侧</param>
+    /// <param name="tenantId">调用方所在租户；在平台上下文时为空，不收窄</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<IReadOnlyList<PermissionDescriptor>> CatalogAsync(bool platformSide, string? tenantId, CancellationToken cancellationToken)
+    {
+        var items = catalog.ForSide(platformSide);
+        if (tenantId is null)
+        {
+            return items;
+        }
+
+        var allowed = await NarrowAsync(items.Select(static p => p.Code).ToHashSet(StringComparer.Ordinal), tenantId, cancellationToken).ConfigureAwait(false);
+        return items.Where(p => allowed.Contains(p.Code)).ToList();
+    }
+
+    /// <summary>
     /// 按租户的套餐白名单收窄一组权限码（平台侧不调用）
     /// </summary>
     public async Task<HashSet<string>> NarrowAsync(HashSet<string> codes, string tenantId, CancellationToken cancellationToken)

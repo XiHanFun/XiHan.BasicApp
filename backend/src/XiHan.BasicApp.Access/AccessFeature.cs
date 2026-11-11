@@ -23,6 +23,7 @@ using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions.Resolution;
@@ -89,6 +90,7 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<PermissionConditionService>();
         context.Services.AddScoped<ConditionInsightService>();
         context.Services.AddSingleton<AccessPolicies>();
+        context.Services.AddSingleton<IPolicy, PermissionRequestCandidatesPolicy>();
         context.Services.AddSingleton<AccessPolicyEvaluator>();
         context.Services.AddScoped<AccessPolicyService>();
         context.Services.AddScoped<AccessPolicyTrialService>();

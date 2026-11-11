@@ -343,6 +343,8 @@
   "permission_requests.list.description": "分页列出当前一侧的授权申请，可按关键字（申请人、申请原因、备注）、申请人、角色、权限码与状态过滤，带审批进度；审批未启用时进度为空。",
   "permission_requests.get.title": "获取授权申请",
   "permission_requests.get.description": "读取一条授权申请及其审批进度。",
+  "permission_requests.candidates.title": "列出授权申请的候选",
+  "permission_requests.candidates.description": "列出申请弹窗里可选的对象：当前一侧启用的角色与可授予的权限（租户侧按套餐收窄）；持有提交或重新提交授权申请的权限其一即可，不必能读角色与权限目录。",
   "permission_requests.create.title": "提交授权申请",
   "permission_requests.create.description": "为自己申请一个角色或权限码（也可以都申请）并在同一事务里发起审批；审批未启用时不可提交。",
   "permission_requests.update.title": "重新提交授权申请",

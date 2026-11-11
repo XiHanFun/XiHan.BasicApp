@@ -214,6 +214,53 @@ public sealed class PermissionRequestsTests : IDisposable
         Assert.Equal((HttpStatusCode.ServiceUnavailable, "ACCESS_UNAVAILABLE_002"), Code(await SendAsync(off, HttpMethod.Post, "/api/permission-requests", Json(new { roleId = roleBody.GetProperty("id").GetString(), reason = "No approval" }), token)));
     }
 
+    [Fact]
+    public async Task Candidates_NeedOnlySubmitOrResubmit_AndListTheCallersSide()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        var ids = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var name in new[] { "dave", "erin", "frank" })
+        {
+            var (created, user) = await SendAsync(server, HttpMethod.Post, "/api/users", $$"""{"userName":"{{name}}","displayName":"{{name}}","password":"Pass@123456"}""", platform);
+            Assert.Equal(HttpStatusCode.Created, created);
+            ids[name] = user.GetProperty("id").GetString()!;
+        }
+
+        var submitters = await RoleAsync(server, platform, "submitters", ["access.permission-requests.create"]);
+        var resubmitters = await RoleAsync(server, platform, "resubmitters", ["access.permission-requests.update"]);
+        var readers = await RoleAsync(server, platform, "readers", ["access.permission-requests.read"]);
+        var retired = await RoleAsync(server, platform, "retired", []);
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/roles/{retired}", """{"name":"retired","status":"Disabled"}""", platform)).Status);
+        await SendAsync(server, HttpMethod.Post, $"/api/roles/{submitters}:assign", Json(new { userIds = new[] { ids["dave"] } }), platform);
+        await SendAsync(server, HttpMethod.Post, $"/api/roles/{resubmitters}:assign", Json(new { userIds = new[] { ids["erin"] } }), platform);
+        await SendAsync(server, HttpMethod.Post, $"/api/roles/{readers}:assign", Json(new { userIds = new[] { ids["frank"] } }), platform);
+        var dave = await LoginAsync(server, "dave");
+
+        // 只能提交：读不了角色列表与权限目录，候选照样拿得到
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendAsync(server, HttpMethod.Post, "/api/roles:list", """{"page":{"index":1,"size":10}}""", dave)).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendAsync(server, HttpMethod.Get, "/api/permissions", null, dave)).Status);
+        var (status, candidates) = await SendAsync(server, HttpMethod.Get, "/api/permission-requests:candidates", null, dave);
+        Assert.Equal(HttpStatusCode.OK, status);
+
+        // 这一侧启用的角色（停用的不列），平台侧的权限带显示名
+        var roleCodes = candidates.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()!).ToList();
+        Assert.Contains("admin", roleCodes);
+        Assert.Contains("submitters", roleCodes);
+        Assert.DoesNotContain("retired", roleCodes);
+        var permissions = candidates.GetProperty("permissions").EnumerateArray().ToDictionary(static p => p.GetProperty("code").GetString()!, static p => p.GetProperty("displayName").GetString()!, StringComparer.Ordinal);
+        Assert.Contains("tenancy.tenants.create", permissions.Keys);
+        Assert.All(permissions.Values, static name => Assert.False(string.IsNullOrWhiteSpace(name)));
+
+        // 候选里的角色能直接提交
+        var picked = candidates.GetProperty("roles").EnumerateArray().Single(static r => r.GetProperty("code").GetString() == "readers").GetProperty("id").GetString();
+        Assert.Equal(HttpStatusCode.Created, (await SendAsync(server, HttpMethod.Post, "/api/permission-requests", Json(new { roleId = picked, reason = "From candidates" }), dave)).Status);
+
+        // 只能重新提交也可以；只能查看申请不行
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Get, "/api/permission-requests:candidates", null, await LoginAsync(server, "erin"))).Status);
+        Assert.Equal((HttpStatusCode.Forbidden, "SECURITY_DENIED_004"), Code(await SendAsync(server, HttpMethod.Get, "/api/permission-requests:candidates", null, await LoginAsync(server, "frank"))));
+    }
+
     private static async Task<string> RoleAsync(BasicAppTestServer server, string token, string code, string[] permissions)
     {
         var (created, role) = await SendAsync(server, HttpMethod.Post, "/api/roles", Json(new { code, name = code }), token);

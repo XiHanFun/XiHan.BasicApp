@@ -338,6 +338,7 @@ export const routes = {
   'permission-conditions.list': { method: 'GET', template: '/api/permission-conditions', path: [], query: ['subjectKind', 'subjectId'], success: 200 },
   'permission-conditions.trial': { method: 'GET', template: '/api/permission-conditions:trial', path: [], query: ['userId', 'permission', 'ip', 'time', 'userAgent', 'path', 'method', 'isImpersonating'], success: 200 },
   'permission-conditions.update': { method: 'PUT', template: '/api/permission-conditions/{id}', path: ['id'], query: [], success: 200 },
+  'permission-requests.candidates': { method: 'GET', template: '/api/permission-requests:candidates', path: [], query: [], success: 200 },
   'permission-requests.create': { method: 'POST', template: '/api/permission-requests', path: [], query: [], success: 201 },
   'permission-requests.get': { method: 'GET', template: '/api/permission-requests/{id}', path: ['id'], query: [], success: 200 },
   'permission-requests.list': { method: 'POST', template: '/api/permission-requests:list', path: [], query: [], success: 200 },
@@ -1080,6 +1081,7 @@ export const permissionConditions = {
 
 /** 资源 `permission-requests` 的操作 */
 export const permissionRequests = {
+  candidates: (request: RequestOf<'permission-requests.candidates'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.candidates'>, ResponseOf<'permission-requests.candidates'>>('permission-requests.candidates', routes['permission-requests.candidates'], request, options),
   create: (request: RequestOf<'permission-requests.create'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.create'>, ResponseOf<'permission-requests.create'>>('permission-requests.create', routes['permission-requests.create'], request, options),
   get: (request: RequestOf<'permission-requests.get'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.get'>, ResponseOf<'permission-requests.get'>>('permission-requests.get', routes['permission-requests.get'], request, options),
   list: (request: RequestOf<'permission-requests.list'>, options?: CallOptions) => invoke<RequestOf<'permission-requests.list'>, ResponseOf<'permission-requests.list'>>('permission-requests.list', routes['permission-requests.list'], request, options),

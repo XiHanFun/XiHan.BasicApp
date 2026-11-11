@@ -343,6 +343,8 @@
   "permission_requests.list.description": "Lister par page les demandes d'autorisation du côté de l'appelant, filtrées par mot-clé (demandeur, motif, remarque), demandeur, rôle, code d'autorisation et statut, avec leur avancement ; vide si l'approbation n'est pas activée.",
   "permission_requests.get.title": "Obtenir une demande d'autorisation",
   "permission_requests.get.description": "Lire une demande d'autorisation avec son avancement.",
+  "permission_requests.candidates.title": "Lister les candidats aux demandes d'autorisation",
+  "permission_requests.candidates.description": "Liste ce qui peut être demandé dans la boîte de dialogue : les rôles actifs et les autorisations attribuables du côté de l'appelant (restreintes par l'édition côté locataire) ; il suffit de pouvoir soumettre ou resoumettre des demandes, sans lire les rôles ni le catalogue des autorisations.",
   "permission_requests.create.title": "Soumettre une demande d'autorisation",
   "permission_requests.create.description": "Demander un rôle ou un code d'autorisation (ou les deux) pour soi-même et lancer l'approbation dans la même transaction ; indisponible si l'approbation n'est pas activée.",
   "permission_requests.update.title": "Resoumettre une demande d'autorisation",

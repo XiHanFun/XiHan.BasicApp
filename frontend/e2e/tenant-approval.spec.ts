@@ -15,12 +15,10 @@ const member = {
   password: INITIAL_PASSWORD,
 }
 const requestedRole = { code: 'auditor', name: 'E2E 审计员' }
-// 申请弹窗的候选取自 roles.list 与 permissions.list，申请人还要能读角色与权限目录
+// 成员只拿申请自己的两个权限：申请弹窗的候选不要求能读角色与权限目录
 const memberGrants = [
   'access.permission-requests.read',
   'access.permission-requests.create',
-  'access.roles.read',
-  'access.permissions.read',
 ]
 
 test('超管开通企业版租户并初始化管理员', async ({ page }) => {

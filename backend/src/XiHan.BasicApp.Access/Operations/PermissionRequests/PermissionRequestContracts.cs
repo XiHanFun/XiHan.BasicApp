@@ -89,6 +89,36 @@ public sealed record PermissionRequestAssignee(Guid UserId, string DisplayName);
 public sealed record GetPermissionRequestRequest(Guid Id);
 
 /// <summary>
+/// 取授权申请的候选
+/// </summary>
+/// <remarks>
+/// 没有参数：候选按调用方所在的一侧给出
+/// </remarks>
+public sealed record PermissionRequestCandidatesRequest;
+
+/// <summary>
+/// 授权申请可选的对象
+/// </summary>
+/// <param name="Roles">这一侧启用的角色</param>
+/// <param name="Permissions">这一侧可授予的权限（租户侧按套餐收窄）</param>
+public sealed record PermissionRequestCandidatesResponse(IReadOnlyList<PermissionRequestRoleCandidate> Roles, IReadOnlyList<PermissionRequestPermissionCandidate> Permissions);
+
+/// <summary>
+/// 可申请的角色
+/// </summary>
+/// <param name="Id">角色 ID</param>
+/// <param name="Code">角色码</param>
+/// <param name="Name">角色名</param>
+public sealed record PermissionRequestRoleCandidate(Guid Id, string Code, string Name);
+
+/// <summary>
+/// 可申请的权限
+/// </summary>
+/// <param name="Code">权限码</param>
+/// <param name="DisplayName">显示名（按调用方区域）</param>
+public sealed record PermissionRequestPermissionCandidate(string Code, string DisplayName);
+
+/// <summary>
 /// 提交授权申请
 /// </summary>
 /// <param name="RoleId">申请的角色（与权限码二选一）</param>

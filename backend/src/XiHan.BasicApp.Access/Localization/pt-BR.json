@@ -343,6 +343,8 @@
   "permission_requests.list.description": "Listar por página as solicitações de permissão do lado de quem chama, filtradas por palavra-chave (solicitante, motivo, observação), solicitante, função, código de permissão e status, com o andamento da aprovação; vazio quando a aprovação não está habilitada.",
   "permission_requests.get.title": "Obter uma solicitação de permissão",
   "permission_requests.get.description": "Ler uma solicitação de permissão com o andamento da aprovação.",
+  "permission_requests.candidates.title": "Listar candidatos a solicitações de permissão",
+  "permission_requests.candidates.description": "Lista o que pode ser solicitado na caixa de diálogo: as funções ativas e as permissões concedíveis do lado do chamador (restringidas pela edição no lado do inquilino); basta poder enviar ou reenviar solicitações, sem precisar ler funções nem o catálogo de permissões.",
   "permission_requests.create.title": "Enviar uma solicitação de permissão",
   "permission_requests.create.description": "Solicitar uma função ou um código de permissão (ou ambos) para si e iniciar a aprovação na mesma transação; indisponível quando a aprovação não está habilitada.",
   "permission_requests.update.title": "Reenviar uma solicitação de permissão",

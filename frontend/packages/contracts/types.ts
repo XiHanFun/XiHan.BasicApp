@@ -6454,6 +6454,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/permission-requests:candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List permission request candidates
+         * @description List what can be requested in the request dialog: the active roles and the grantable permissions of the caller's side (narrowed by the edition on the tenant side); holding the permission to submit or to resubmit requests is enough, reading roles or the permission catalog is not required.
+         *
+         *     Requires policy access.permission-request-candidates.
+         */
+        get: operations["permission-requests.candidates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permission-requests:list": {
         parameters: {
             query?: never;
@@ -14175,6 +14197,13 @@ export interface components {
             /** @description 显示名 */
             displayName: string;
         };
+        /** @description 可申请的权限 */
+        PermissionRequestPermissionCandidate: {
+            /** @description 权限码 */
+            code: string;
+            /** @description 显示名（按调用方区域） */
+            displayName: string;
+        };
         /** @description 授权申请的审批进度 */
         PermissionRequestProgress: {
             /**
@@ -14271,6 +14300,18 @@ export interface components {
              * @description 最后修改时间
              */
             modifiedAt?: string | null;
+        };
+        /** @description 可申请的角色 */
+        PermissionRequestRoleCandidate: {
+            /**
+             * Format: uuid
+             * @description 角色 ID
+             */
+            id: string;
+            /** @description 角色码 */
+            code: string;
+            /** @description 角色名 */
+            name: string;
         };
         /**
          * @description 授权申请的状态
@@ -37195,6 +37236,40 @@ export interface operations {
                          * @description 最后修改时间
                          */
                         modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-requests.candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 授权申请可选的对象 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 这一侧启用的角色 */
+                        roles: components["schemas"]["PermissionRequestRoleCandidate"][];
+                        /** @description 这一侧可授予的权限（租户侧按套餐收窄） */
+                        permissions: components["schemas"]["PermissionRequestPermissionCandidate"][];
                     };
                 };
             };

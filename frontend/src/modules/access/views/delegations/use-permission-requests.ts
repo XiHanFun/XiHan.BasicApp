@@ -7,7 +7,7 @@ import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { components, RequestOf } from '~/contracts'
 import { reactive, ref } from 'vue'
-import { permissions as permissionsApi, permissionRequests as requestsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { permissionRequests as requestsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { formatDate } from '~/utils'
 
@@ -49,9 +49,6 @@ function emptyForm(): PermissionRequestForm {
     remark: '',
   }
 }
-
-/** 候选一次取的上限（后端页大小上限） */
-const CANDIDATE_LIMIT = 500
 
 function toMillis(value?: null | string): null | number {
   return value
@@ -220,25 +217,16 @@ export function usePermissionRequestEditor() {
   const permissionOptions = ref<RequestOption[]>([])
   const targetLoading = ref(false)
 
-  /** 角色与权限候选打开弹窗时各取一次（启用的角色与本侧可用权限） */
+  /**
+   * 打开弹窗时取一次候选：本侧启用的角色与可授予的权限
+   * 走申请自己的候选操作，申请人不必能读角色列表与权限目录
+   */
   async function loadTargets() {
     targetLoading.value = true
     try {
-      const [roles, catalog] = await Promise.all([
-        rolesApi.list({
-          page: { index: 1, size: CANDIDATE_LIMIT },
-          filters: [
-            { field: 'status', operator: 'eq', value: 'Active' },
-          ],
-          sorts: [
-            { field: 'order', descending: false },
-          ],
-          keyword: null,
-        }),
-        permissionsApi.list({}),
-      ])
-      roleOptions.value = roles.items.map(role => ({ value: role.id, label: role.name, description: role.code }))
-      permissionOptions.value = catalog.items.map(item => ({ value: item.code, label: item.displayName, description: item.code }))
+      const candidates = await requestsApi.candidates({})
+      roleOptions.value = candidates.roles.map(role => ({ value: role.id, label: role.name, description: role.code }))
+      permissionOptions.value = candidates.permissions.map(item => ({ value: item.code, label: item.displayName, description: item.code }))
     }
     finally {
       targetLoading.value = false
