@@ -34,8 +34,9 @@ public sealed class UserGrants(PermissionGrantRecordStore store)
     public async Task<IReadOnlyList<string>> ListAsync(Guid userId, string owner, CancellationToken cancellationToken)
     {
         var rows = await store.ListAsync(SubjectOf(userId), TenantOf(owner), skip: 0, take: EntityQuery.DefaultMaxTake, cancellationToken).ConfigureAwait(false);
+        // 全局授予在列里存空字符串、契约里是 null：经 ToGrant 换算后再比，平台一侧才认得出自己的授予
         var tenant = TenantOf(owner);
-        return rows.Where(r => string.Equals(r.TenantId, tenant, StringComparison.Ordinal)).Select(static r => r.Permission).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        return rows.Select(static r => r.ToGrant()).Where(g => string.Equals(g.TenantId, tenant, StringComparison.Ordinal)).Select(static g => g.Permission).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
     }
 
     /// <summary>

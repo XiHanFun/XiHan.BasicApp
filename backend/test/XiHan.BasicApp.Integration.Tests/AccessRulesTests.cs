@@ -92,6 +92,11 @@ public sealed class AccessRulesTests : IDisposable
 
         Assert.True(await HoldsAsync("identity.users.update"));
 
+        // 平台一侧的直接授予列得出来：全局授予在授予表里存空字符串，按契约的 null 比对
+        var (_, listedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/user-grants?userId={danaId}", token: admin));
+        var listed = Assert.Single(listedBody.GetProperty("grants").EnumerateArray(), static g => g.GetProperty("permission").GetString() == "identity.users.update");
+        Assert.Equal("Grant", listed.GetProperty("action").GetString());
+
         // 指派到期：令牌里的角色声明还在，判定立即把它拿掉
         var (window, windowBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:update-member", $$"""{"userId":"{{danaId}}","expiresAt":"{{clock.GetUtcNow().AddMinutes(30):O}}"}""", admin));
         Assert.Equal(HttpStatusCode.OK, window.StatusCode);
