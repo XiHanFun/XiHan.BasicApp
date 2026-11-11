@@ -102,7 +102,7 @@ public static class WorkflowQueryMapping
             CreatedTo = createdTo,
             Sorts = sorts,
             Skip = request.Page.Skip,
-            Limit = request.Page.Size,
+            Take = request.Page.Size,
         };
     }
 
@@ -125,7 +125,7 @@ public static class WorkflowQueryMapping
             return sorted.Error!;
         }
 
-        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, Sorts = sorts, Skip = request.Page.Skip, Limit = request.Page.Size };
+        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, Sorts = sorts, Skip = request.Page.Skip, Take = request.Page.Size };
 
         foreach (var filter in request.Filters)
         {
@@ -177,7 +177,7 @@ public static class WorkflowQueryMapping
             return sorted.Error!;
         }
 
-        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, StarterId = starter, TopLevelOnly = true, Skip = request.Page.Skip, Limit = request.Page.Size };
+        var query = new WorkflowInstanceQuery { Keyword = request.Keyword, StarterId = starter, TopLevelOnly = true, Skip = request.Page.Skip, Take = request.Page.Size };
         foreach (var filter in request.Filters)
         {
             if (filter is not { Field: "status", Operator: "eq" or "in" } || !TryParseStatuses(filter.Value ?? string.Empty, out var statuses))
@@ -214,7 +214,7 @@ public static class WorkflowQueryMapping
             return Unsupported(request.Filters[0]);
         }
 
-        return new UserTaskQuery { AssigneeId = assignee, Keyword = request.Keyword, Descending = true, Skip = request.Page.Skip, Limit = request.Page.Size };
+        return new UserTaskQuery { AssigneeId = assignee, Keyword = request.Keyword, Sorts = [new UserTaskSort(UserTaskSortField.CreatedAt, Descending: true)], Skip = request.Page.Skip, Take = request.Page.Size };
     }
 
     private static Result<List<TSort>> SortsOf<TField, TSort>(PageRequest request, Dictionary<string, TField> fields, Func<TField, bool, TSort> create)

@@ -38,7 +38,12 @@ public sealed class GetRole(RoleService service, RoleGrants grants, IRepository<
             return Error.NotFound(AccessErrors.RoleNotFound, AccessMessages.RoleNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        var permissions = await grants.ListAsync(role, context.CancellationToken).ConfigureAwait(false);
+        var listed = await grants.ListAsync(role, context.CancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var permissions))
+        {
+            return listed.Error!;
+        }
+
         var roleId = role.Id;
         var count = await members.CountAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), context.CancellationToken).ConfigureAwait(false);
         var custom = role.DataScope == DataScope.Custom

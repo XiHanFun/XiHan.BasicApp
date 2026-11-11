@@ -217,7 +217,7 @@ public sealed class WorkflowDefinitionsTests : IDisposable
             => await SettingsTestHost.InvokeAsync(server, "demo", async ctx =>
             {
                 var instance = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = new WorkflowName(name), StarterId = people[starter], Variables = System.Text.Json.Nodes.JsonNode.Parse(variables)!.AsObject() }, ctx.CancellationToken)).ValueOrThrow();
-                var pending = (await ctx.Services.GetRequiredService<IWorkflowTaskService>().PendingByInstanceAsync(instance.Id, ctx.CancellationToken)).ValueOrThrow();
+                var pending = (await ctx.Services.GetRequiredService<IWorkflowTaskService>().QueryAsync(new UserTaskQuery { InstanceId = instance.Id, Take = UserTaskQuery.MaxTake }, ctx.CancellationToken)).ValueOrThrow().Items;
                 return pending.Select(t => people.First(p => p.Value == t.AssigneeId).Key).Distinct().Order(StringComparer.Ordinal).ToList();
             });
 

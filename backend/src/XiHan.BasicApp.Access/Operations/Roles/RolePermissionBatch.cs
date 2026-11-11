@@ -3,9 +3,9 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
@@ -26,7 +26,7 @@ internal static class RolePermissionBatch
         RoleService service,
         PermissionCatalog catalog,
         PermissionChangeType change,
-        Func<SysRole, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply,
+        Func<SysRole, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionOutcome>>> apply,
         Func<SysRole, IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<(string Permission, Error Reason)>>>? screen = null)
     {
         var owner = RoleService.OwnerOf(context);

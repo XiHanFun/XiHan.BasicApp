@@ -51,7 +51,7 @@ public sealed class SessionGateMiddleware : IPipelineMiddleware
 
     private static bool AllowedWhileLocked(Error error, InvocationContext context)
     {
-        if (!string.Equals(error.Code, IdentityErrors.SessionLocked, StringComparison.Ordinal) || !context.GetOperation().TryGetValue(out var operation))
+        if (!string.Equals(error.Code, IdentityErrors.SessionLocked, StringComparison.Ordinal) || !context.FindOperation().TryGetValue(out var operation))
         {
             return false;
         }

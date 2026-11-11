@@ -41,7 +41,12 @@ public sealed class CurrentUser(IRepository<SysUser, Guid> users, ITenantStore t
         }
 
         var sid = security.Principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
-        var tenantName = await TenantNames.ResolveAsync(tenants, security.Tenant?.Id, context.CancellationToken).ConfigureAwait(false);
+        var resolvedName = await TenantNames.ResolveAsync(tenants, security.Tenant?.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!resolvedName.TryGetValue(out var tenantName))
+        {
+            return resolvedName.Error!;
+        }
+
         string? impersonator = null;
         if (security.Principal.ClaimValues(IdentityClaims.Actor).FirstOrDefault() is { } act && Guid.TryParse(act, out var actorId) && (await users.FindAsync(actorId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var actor))
         {
@@ -53,7 +58,7 @@ public sealed class CurrentUser(IRepository<SysUser, Guid> users, ITenantStore t
             security.Tenant?.Id,
             sid is not null && Guid.TryParse(sid, out var sessionId) ? sessionId : null,
             security.Principal.ClaimValues(IdentityClaims.Role).ToList(),
-            tenantName,
+            tenantName.TryGetValue(out var displayName) ? displayName : null,
             impersonator);
     }
 }

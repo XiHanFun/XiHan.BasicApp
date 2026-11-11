@@ -34,7 +34,7 @@ public sealed class AiProviderCatalogMiddleware : IPipelineMiddleware
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(nextStep);
         await nextStep(context).ConfigureAwait(false);
-        if (context.Services.GetService<AiProviderChanges>() is not { Changed: true } || context.GetOutcome().Match(static r => r.IsFailure, static () => false))
+        if (context.Services.GetService<AiProviderChanges>() is not { Changed: true } || context.FindOutcome().Match(static r => r.IsFailure, static () => false))
         {
             return;
         }

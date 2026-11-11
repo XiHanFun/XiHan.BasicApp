@@ -193,7 +193,7 @@ public sealed class SessionRoleActivator(IRepository<SysSessionRole, Guid> rows,
         => [.. roleIds.Select(static v => Guid.TryParse(v, out var id) ? id : (Guid?)null).OfType<Guid>().Distinct()];
 
     private static string ReasonOf(InvocationContext context)
-        => context.GetOperation().TryGetValue(out var operation) ? operation.Id : "internal";
+        => context.FindOperation().TryGetValue(out var operation) ? operation.Id : "internal";
 
     private void Activate(List<SysSessionRole> existing, List<SysSessionRole> added, Guid sessionId, Guid userId, string tenantId, Guid roleId, string reason, DateTimeOffset now)
     {

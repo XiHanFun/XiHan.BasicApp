@@ -59,7 +59,7 @@ public sealed class RuntimeFeature : IHostedFeature
         {
             Pipeline =
             [
-                new PipelineContribution(typeof(CacheInvalidationMiddleware).FullName!, PipelineStage.Transaction, Before: [typeof(UnitOfWorkMiddleware).FullName!]),
+                new PipelineContribution(typeof(CacheInvalidationMiddleware).FullName!, PipelineStage.Transaction) { Before = [typeof(UnitOfWorkMiddleware).FullName!] },
                 new PipelineContribution(typeof(AuditorStampMiddleware).FullName!, PipelineStage.Transaction),
             ],
             Permissions = RuntimePermissions.All.Select(static p => p.Code).ToList(),

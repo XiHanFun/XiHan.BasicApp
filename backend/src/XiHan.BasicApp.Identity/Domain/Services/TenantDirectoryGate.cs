@@ -27,7 +27,12 @@ internal static class TenantDirectoryGate
     public static async ValueTask<Result<TenantInfo>> CheckAsync(ITenantStore tenants, string tenantId, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var directory = await tenants.FindAsync(tenantId, cancellationToken).ConfigureAwait(false);
-        if (!directory.TryGetValue(out var info))
+        if (!directory.TryGetValue(out var found))
+        {
+            return directory.Error!;
+        }
+
+        if (!found.TryGetValue(out var info))
         {
             return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenantId)));
         }

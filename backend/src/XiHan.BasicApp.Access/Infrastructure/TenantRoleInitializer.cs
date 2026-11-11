@@ -124,7 +124,12 @@ public sealed class TenantRoleInitializer(
             }
         }
 
-        var current = await grants.ListAsync(admin, context.CancellationToken).ConfigureAwait(false);
+        var listed = await grants.ListAsync(admin, context.CancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var current))
+        {
+            return listed.Error!;
+        }
+
         if (!current.Contains(PermissionGrant.All, StringComparer.Ordinal))
         {
             foreach (var outcome in await grants.GrantAsync(admin, [PermissionGrant.All], context.CancellationToken).ConfigureAwait(false))

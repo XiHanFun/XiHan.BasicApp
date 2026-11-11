@@ -90,7 +90,7 @@ internal sealed partial class ChatHub(RealtimeHubServices realtime, App app, ISe
         var baggage = string.Equals(connection.Side, TenantIds.Platform, StringComparison.Ordinal)
             ? null
             : new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Tenant] = connection.Side };
-        var context = App.CreateContext(scope.ServiceProvider, Context.ConnectionAborted, baggage: baggage);
+        var context = App.CreateContext(scope.ServiceProvider, new InvocationContextOptions { Baggage = baggage }, Context.ConnectionAborted);
         var outcome = await app.InvokeAsync(context, async ctx =>
         {
             var store = ctx.Services.GetRequiredService<ChatStore>();

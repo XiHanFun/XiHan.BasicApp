@@ -81,7 +81,7 @@ public sealed class ExportTaskService(SideRows rows, FileService files, ExportJo
             return Error.Validation(FilesErrors.ExportColumnsRequired, FilesMessages.ExportColumnsRequired);
         }
 
-        if (!context.GetCredential().TryGetValue(out var credential) || RequesterOf(context) is not { } requester)
+        if (!context.FindCredential().TryGetValue(out var credential) || RequesterOf(context) is not { } requester)
         {
             return Error.Unavailable(FilesErrors.ExportCredentialMissing, FilesMessages.ExportCredentialMissing);
         }

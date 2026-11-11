@@ -23,12 +23,16 @@ public sealed class TenantSides(ITenantStore tenants)
     /// 列出要遍历的各侧
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>平台在最前，其后是租户 ID</returns>
-    public async Task<IReadOnlyList<string>> ListAsync(CancellationToken cancellationToken)
+    /// <returns>平台在最前，其后是租户 ID；租户目录读不到即失败</returns>
+    public async Task<Result<IReadOnlyList<string>>> ListAsync(CancellationToken cancellationToken)
     {
-        var sides = new List<string> { TenantIds.Platform };
-        sides.AddRange((await tenants.ListAsync(cancellationToken).ConfigureAwait(false)).Where(IsReachable).Select(static t => t.Id));
-        return sides;
+        var listed = await tenants.ListAllAsync(cancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var all))
+        {
+            return listed.Error!;
+        }
+
+        return new List<string>([TenantIds.Platform, .. all.Where(IsReachable).Select(static t => t.Id)]);
     }
 
     /// <summary>

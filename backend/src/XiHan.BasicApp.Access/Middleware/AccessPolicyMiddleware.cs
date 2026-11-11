@@ -92,7 +92,7 @@ public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, Acce
     }
 
     private static bool IsExternal(InvocationContext context)
-        => context.GetOrigin().TryGetValue(out var origin) && origin.Protocol is InvocationProtocols.Http or InvocationProtocols.Grpc or InvocationProtocols.Mcp;
+        => context.FindOrigin().TryGetValue(out var origin) && origin.Protocol is InvocationProtocols.Http or InvocationProtocols.Grpc or InvocationProtocols.Mcp;
 
     private async Task<AccessPolicyView?> DecideAsync(InvocationContext context)
     {
@@ -139,7 +139,7 @@ public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, Acce
     // 来源地址封禁中时还剩几秒；内部调用没有地址，不查。查不了（缓存故障）时放行并记警告
     private async Task<int?> BannedSecondsAsync(InvocationContext context)
     {
-        if (!context.GetOrigin().TryGetValue(out var origin) || string.IsNullOrWhiteSpace(origin.RemoteAddress))
+        if (!context.FindOrigin().TryGetValue(out var origin) || string.IsNullOrWhiteSpace(origin.RemoteAddress))
         {
             return null;
         }

@@ -44,8 +44,14 @@ public sealed class EffectivePermissions(IPermissionGrantStore store, Permission
             return Result.Success<IReadOnlySet<string>>(tenant is null ? held : await NarrowAsync(held, tenant, cancellationToken).ConfigureAwait(false));
         }
 
+        // 匿名主体没有授予
+        if (security.Principal.Id is not { } principalId)
+        {
+            return Result.Success<IReadOnlySet<string>>(new HashSet<string>(StringComparer.Ordinal));
+        }
+
         // 授予存储读不到时把失败原样返回，不当作没有授予
-        var own = await store.GetGrantsAsync(GrantSubject.ForUser(security.Principal.Id), tenant, cancellationToken).ConfigureAwait(false);
+        var own = await store.GetGrantsAsync(GrantSubject.ForUser(principalId), tenant, cancellationToken).ConfigureAwait(false);
         if (!own.TryGetValue(out var granted))
         {
             return own.Error!;

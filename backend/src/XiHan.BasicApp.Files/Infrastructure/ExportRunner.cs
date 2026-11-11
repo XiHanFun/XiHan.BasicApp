@@ -442,7 +442,7 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     /// 开一个带发起人区域的调用上下文
     /// </summary>
     private static InvocationContext ContextOf(IServiceProvider services, ExportJob job, CancellationToken cancellationToken)
-        => App.CreateContext(services, cancellationToken, baggage: job.Locale is null ? null : new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Locale] = job.Locale });
+        => App.CreateContext(services, new InvocationContextOptions { Baggage = job.Locale is null ? null : new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Locale] = job.Locale } }, cancellationToken);
 
     /// <summary>
     /// 把进度推给发起人在这一侧的连接

@@ -11,6 +11,7 @@ using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Abstractions.Handlers;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Events;
@@ -45,8 +46,8 @@ public sealed class WorkflowHostingTests : IDisposable
         {
             started[partition] = await SettingsTestHost.InvokeAsync(server, partition == "platform" ? null : partition, async ctx =>
             {
-                await PublishAsync(ctx, WorkflowDefinitionBuilder.Create("hosting-delay").AddStart().AddDelay("wait", TimeSpan.FromMinutes(1)).AddEnd().AddTransition("start", "wait").AddTransition("wait", "end").Build());
-                var instance = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = "hosting-delay" }, ctx.CancellationToken)).ValueOrThrow();
+                await PublishAsync(ctx, WorkflowDefinitionBuilder.Create(new WorkflowName("hosting-delay")).AddStart().AddDelay("wait", TimeSpan.FromMinutes(1)).AddEnd().AddTransition("start", "wait").AddTransition("wait", "end").Build());
+                var instance = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = new WorkflowName("hosting-delay") }, ctx.CancellationToken)).ValueOrThrow();
                 Assert.Equal(WorkflowInstanceStatus.Running, instance.Status);
                 return instance.Id;
             });
@@ -98,7 +99,7 @@ public sealed class WorkflowHostingTests : IDisposable
             configure: builder => builder.Services.AddSingleton(received).AddMessageHandler<RecordingHandler>(WorkflowTopics.InstanceCompleted));
         (await server.InvokeAsync(async ctx =>
         {
-            await PublishAsync(ctx, WorkflowDefinitionBuilder.Create("hosting-instant").AddStart().AddEnd().AddTransition("start", "end").Build());
+            await PublishAsync(ctx, WorkflowDefinitionBuilder.Create(new WorkflowName("hosting-instant")).AddStart().AddEnd().AddTransition("start", "end").Build());
             return Result.Success();
         })).ThrowIfFailure();
 
@@ -107,12 +108,12 @@ public sealed class WorkflowHostingTests : IDisposable
         string? rolledBack = null;
         (await server.InvokeAsync(async ctx =>
         {
-            committed = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = "hosting-instant" }, ctx.CancellationToken)).ValueOrThrow().Id;
+            committed = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = new WorkflowName("hosting-instant") }, ctx.CancellationToken)).ValueOrThrow().Id;
             return Result.Success();
         })).ThrowIfFailure();
         var failed = await server.InvokeAsync(async ctx =>
         {
-            rolledBack = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = "hosting-instant" }, ctx.CancellationToken)).ValueOrThrow().Id;
+            rolledBack = (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = new WorkflowName("hosting-instant") }, ctx.CancellationToken)).ValueOrThrow().Id;
             // 业务在流程操作之后失败：整个调用回滚
             return Error.Validation("IDENTITY_VALIDATION_001", "identity.user.tenant_required");
         });

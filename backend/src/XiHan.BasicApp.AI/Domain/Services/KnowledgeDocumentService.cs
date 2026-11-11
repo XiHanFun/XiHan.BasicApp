@@ -236,7 +236,7 @@ public sealed partial class KnowledgeDocumentService(
         await using var scope = scopes.CreateAsyncScope();
         (await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(side, cancellationToken).ConfigureAwait(false)).ToResult().ThrowIfFailure();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: side), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = side }, cancellationToken).ConfigureAwait(false);
         try
         {
             await write(scope.ServiceProvider.GetRequiredService<SideRows>(), cancellationToken).ConfigureAwait(false);

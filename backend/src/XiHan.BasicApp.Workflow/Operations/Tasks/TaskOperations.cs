@@ -140,7 +140,7 @@ public sealed class CompleteTask(WorkflowOwnTasks own, IWorkflowTaskService task
             }
         }
 
-        var completed = await tasks.CompleteAsync([new UserTaskCompletion(task.Task.Id, task.Caller.EngineUser!, outcome, request.Comment, values.TryGetValue(out var given) ? given : null)], context.CancellationToken).ConfigureAwait(false);
+        var completed = await tasks.CompleteAsync([new UserTaskCompletion(task.Task.Id, task.Caller.EngineUser!) { Outcome = outcome, Comment = request.Comment, Variables = values.TryGetValue(out var given) ? given : null }], context.CancellationToken).ConfigureAwait(false);
         if (!completed[0].TryGetValue(out var after))
         {
             return completed[0].Error!;
@@ -193,7 +193,7 @@ public sealed class TransferTask(WorkflowOwnTasks own, IWorkflowTaskService task
             return assignable.Error!;
         }
 
-        var transferred = await tasks.TransferAsync([new UserTaskTransfer(task.Task.Id, task.Caller.EngineUser!, WorkflowIds.ToEngineUser(request.TargetUserId), request.Comment)], context.CancellationToken).ConfigureAwait(false);
+        var transferred = await tasks.TransferAsync([new UserTaskTransfer(task.Task.Id, task.Caller.EngineUser!) { TargetAssigneeId = WorkflowIds.ToEngineUser(request.TargetUserId), Comment = request.Comment }], context.CancellationToken).ConfigureAwait(false);
         if (transferred[0].IsFailure)
         {
             return transferred[0].Error!;
@@ -247,7 +247,7 @@ public sealed class AddTaskAssignees(WorkflowOwnTasks own, IWorkflowTaskService 
             return assignable.Error!;
         }
 
-        var added = await tasks.AddAssigneesAsync([new UserTaskAddition(task.Task.Id, task.Caller.EngineUser!, targets.Select(WorkflowIds.ToEngineUser).ToList(), request.Comment)], context.CancellationToken).ConfigureAwait(false);
+        var added = await tasks.AddAssigneesAsync([new UserTaskAddition(task.Task.Id, task.Caller.EngineUser!) { AssigneeIds = targets.Select(WorkflowIds.ToEngineUser).ToList(), Comment = request.Comment }], context.CancellationToken).ConfigureAwait(false);
         if (added[0].IsFailure)
         {
             return added[0].Error!;

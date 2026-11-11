@@ -27,7 +27,7 @@ public sealed class RealtimeDispatchMiddleware : IPipelineMiddleware
         try
         {
             await nextStep(context).ConfigureAwait(false);
-            succeeded = !context.GetOutcome().Match(static r => r.IsFailure, static () => false);
+            succeeded = !context.FindOutcome().Match(static r => r.IsFailure, static () => false);
         }
         finally
         {

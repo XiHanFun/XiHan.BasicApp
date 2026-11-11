@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
@@ -169,17 +170,24 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
     /// </remarks>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>租户 ID</returns>
-    public async Task<IReadOnlyList<string>> ReadyTenantsAsync(CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<string>>> ReadyTenantsAsync(CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
         if (scope.ServiceProvider.GetService<ITenantStore>() is not { } store)
         {
-            return [];
+            return Array.Empty<string>();
         }
 
-        return [.. (await store.ListAsync(cancellationToken).ConfigureAwait(false))
+        var listed = await store.ListAllAsync(cancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var tenants))
+        {
+            return listed.Error!;
+        }
+
+        return tenants
             .Where(static t => t.Properties.TryGetValue(ReadyProperty, out var ready) && string.Equals(ready, "true", StringComparison.Ordinal))
-            .Select(static t => t.Id)];
+            .Select(static t => t.Id)
+            .ToList();
     }
 
     /// <summary>

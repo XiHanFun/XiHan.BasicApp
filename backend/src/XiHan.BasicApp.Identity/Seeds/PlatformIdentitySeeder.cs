@@ -86,19 +86,24 @@ public sealed class PlatformIdentitySeeder(
             }
         }
 
-        // 全局授予 *：平台主体没有租户，授予行的租户列为空串
+        // 全局授予 *：平台主体没有租户
         var subject = GrantSubject.ForUser(admin.Id.ToString("D"));
-        var current = await grants.ListAsync(subject, tenantId: null, skip: 0, take: 10, context.CancellationToken).ConfigureAwait(false);
-        if (current.Any(static g => string.Equals(g.Permission, PermissionGrant.All, StringComparison.Ordinal)))
+        var listed = await grants.ListAsync(new PermissionGrantQuery { Subject = subject, Tenant = GrantTenantFilter.Global, Take = 10 }, context.CancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var current))
+        {
+            return listed.Error!;
+        }
+
+        if (current.Items.Any(static g => string.Equals(g.Permission, PermissionGrant.All, StringComparison.Ordinal)))
         {
             return Result.Success();
         }
 
         foreach (var outcome in await grants.GrantAsync([new PermissionGrant(subject, PermissionGrant.All)], context.CancellationToken).ConfigureAwait(false))
         {
-            if (outcome.Outcome.IsFailure)
+            if (outcome.IsFailure)
             {
-                return outcome.Outcome;
+                return outcome;
             }
         }
 

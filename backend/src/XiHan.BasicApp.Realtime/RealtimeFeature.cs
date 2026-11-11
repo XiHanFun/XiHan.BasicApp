@@ -118,7 +118,7 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
             context.Services.AddOptions<RedisOptions>().Configure<RedisCachingOptions>(static (options, redis) =>
             {
                 var configuration = ConfigurationOptions.Parse(redis.Configuration);
-                configuration.User = redis.User ?? configuration.User;
+                configuration.User = redis.UserName ?? configuration.User;
                 configuration.Password = redis.Password ?? configuration.Password;
                 configuration.ChannelPrefix = RedisChannel.Literal(redis.KeyPrefix + "realtime:");
                 options.Configuration = configuration;

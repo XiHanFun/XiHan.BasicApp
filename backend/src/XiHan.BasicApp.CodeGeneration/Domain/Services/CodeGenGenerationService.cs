@@ -145,7 +145,7 @@ public sealed class CodeGenGenerationService(
                 CodeGenerationJsonContext.Default.CodegenTableSnapshot),
             OperatorId = Clip(principal.Id, 64),
             OperatorName = Clip(principal.ClaimValues(IdentityClaims.UserName).FirstOrDefault(), 100),
-            OperatorIp = context.GetOrigin().TryGetValue(out var origin) ? Clip(origin.RemoteAddress, 64) : null,
+            OperatorIp = context.FindOrigin().TryGetValue(out var origin) ? Clip(origin.RemoteAddress, 64) : null,
         };
     }
 

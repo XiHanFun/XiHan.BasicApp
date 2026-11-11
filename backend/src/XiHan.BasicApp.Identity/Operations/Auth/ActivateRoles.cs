@@ -113,7 +113,12 @@ public sealed class ActivateRoles(
         }
 
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active);
-        var tenantName = await TenantNames.ResolveAsync(tenants, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, session.IsPasswordChangeRequired(), UserResponse.From(user), tenantName);
+        var resolvedName = await TenantNames.ResolveAsync(tenants, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
+        if (!resolvedName.TryGetValue(out var tenantName))
+        {
+            return resolvedName.Error!;
+        }
+
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, session.IsPasswordChangeRequired(), UserResponse.From(user), tenantName.TryGetValue(out var displayName) ? displayName : null);
     }
 }

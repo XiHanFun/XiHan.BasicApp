@@ -22,6 +22,7 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Scheduling.Abstractions;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Security.Abstractions;
 using FrameworkAuditing = XiHan.Framework.Auditing.Abstractions.AuditingCapabilities;
 
@@ -63,7 +64,7 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         ],
         Contributes = new Contributions
         {
-            Pipeline = [new PipelineContribution(typeof(AuditLogMiddleware).FullName!, PipelineStage.Observe, After: [typeof(AuditMiddleware).FullName!])],
+            Pipeline = [new PipelineContribution(typeof(AuditLogMiddleware).FullName!, PipelineStage.Observe) { After = [typeof(AuditMiddleware).FullName!] }],
             Permissions = AuditingPermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(AuditingFeature).FullName,
@@ -103,7 +104,7 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         // 排在框架审计中间件里面：本中间件返回时补上的细节，框架随后写进操作审计
         context.AddMiddleware<AuditLogMiddleware>(PipelineStage.Observe);
         context.Pipeline.After<AuditLogMiddleware, AuditMiddleware>();
-        context.Services.AddJob<AuditRetentionJob>(AuditRetentionJob.Name, options.RetentionSchedule);
+        context.Services.AddJob<AuditRetentionJob>(new JobName(AuditRetentionJob.Name), options.RetentionSchedule);
         context.AddGeneratedOperations();
     }
 

@@ -25,7 +25,7 @@ public static class StoreScope
         ArgumentNullException.ThrowIfNull(read);
         await using var scope = scopes.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(IsReadOnly: true), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { IsReadOnly = true }, cancellationToken).ConfigureAwait(false);
         try
         {
             var result = await read(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);
@@ -62,7 +62,7 @@ public static class StoreScope
         ArgumentNullException.ThrowIfNull(read);
         await using var scope = scopes.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(IsReadOnly: true) { ReadsPrimary = true }, cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { IsReadOnly = true, ReadsPrimary = true }, cancellationToken).ConfigureAwait(false);
         try
         {
             var result = await read(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);

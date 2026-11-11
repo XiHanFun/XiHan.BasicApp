@@ -158,7 +158,7 @@ public sealed class RoleHierarchyReader(RoleHierarchyService hierarchy, RoleServ
     /// <summary>
     /// 读一个角色的继承关系
     /// </summary>
-    public async Task<RoleHierarchyResponse> ReadAsync(SysRole role, CancellationToken cancellationToken)
+    public async Task<Result<RoleHierarchyResponse>> ReadAsync(SysRole role, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);
         var graph = await hierarchy.GraphOfAsync(role.OwnerTenantId, cancellationToken).ConfigureAwait(false);
@@ -176,7 +176,13 @@ public sealed class RoleHierarchyReader(RoleHierarchyService hierarchy, RoleServ
                 continue;
             }
 
-            foreach (var permission in await grants.ListAsync(ancestor, cancellationToken).ConfigureAwait(false))
+            var listed = await grants.ListAsync(ancestor, cancellationToken).ConfigureAwait(false);
+            if (!listed.TryGetValue(out var permissions))
+            {
+                return listed.Error!;
+            }
+
+            foreach (var permission in permissions)
             {
                 inherited.Add(new InheritedPermissionResponse(permission, PermissionAction.Grant, ancestor.Id, ancestor.Name, depth));
             }

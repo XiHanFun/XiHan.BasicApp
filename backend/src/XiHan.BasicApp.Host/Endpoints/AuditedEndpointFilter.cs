@@ -25,7 +25,7 @@ internal sealed class AuditedEndpointFilter(string id, bool audited) : IEndpoint
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
         var http = context.HttpContext;
-        if (http.GetXiHanContext().TryGetValue(out var invocation))
+        if (http.FindXiHanContext().TryGetValue(out var invocation))
         {
             invocation.SetAuditedEndpoint(id);
             if (audited)

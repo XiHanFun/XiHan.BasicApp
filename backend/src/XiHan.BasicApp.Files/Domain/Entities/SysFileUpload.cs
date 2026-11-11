@@ -61,6 +61,14 @@ public sealed class SysFileUpload : TenantScopedAuditedEntity
     public string UploadId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 发起时是否允许覆盖已有对象
+    /// </summary>
+    /// <remarks>
+    /// 完成、列分片与中止都要带同一个值（存储按它决定合成时是否条件写入）
+    /// </remarks>
+    public bool Overwrite { get; set; }
+
+    /// <summary>
     /// 原始文件名
     /// </summary>
     [StringLength(255)]

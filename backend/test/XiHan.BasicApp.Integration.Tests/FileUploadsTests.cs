@@ -173,7 +173,7 @@ public sealed class FileUploadsTests : IDisposable
         var ran = await SettingsTestHost.InvokeAsync(server, null, async ctx =>
         {
             var job = ctx.Services.GetRequiredService<FileUploadExpiryJob>();
-            return await job.RunAsync(JobRun.Create(FileUploadExpiryJob.Name, DateTimeOffset.UtcNow, JobTrigger.Manual), ctx, ctx.CancellationToken);
+            return await job.RunAsync(JobRun.Create(new JobName(FileUploadExpiryJob.Name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx);
         });
         Assert.True(ran.IsSuccess);
         var (_, expired) = await SessionAsync(server, platform, uploadId);

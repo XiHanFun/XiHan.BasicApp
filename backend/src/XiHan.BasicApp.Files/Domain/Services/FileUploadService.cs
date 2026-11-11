@@ -6,6 +6,7 @@ using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.ObjectStorage.Abstractions.Blobs;
+using XiHan.Framework.ObjectStorage.Abstractions.Keys;
 using XiHan.Framework.ObjectStorage.Abstractions.Multipart;
 using XiHan.Framework.ObjectStorage.Abstractions.Signing;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -126,7 +127,7 @@ public sealed partial class FileUploadService(
             Metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["file-id"] = fileId.ToString("N") },
             Overwrite = StorageInstances.UploadOverwrites(config),
         };
-        var started = await multipart.StartAsync(config.Bucket, key, put, cancellationToken).ConfigureAwait(false);
+        var started = await multipart.StartAsync(new ContainerName(config.Bucket), new BlobKey(key), put, cancellationToken).ConfigureAwait(false);
         if (!started.TryGetValue(out var opened))
         {
             return started.Error!;
@@ -145,6 +146,7 @@ public sealed partial class FileUploadService(
             Bucket = config.Bucket,
             Key = key,
             UploadId = opened.UploadId,
+            Overwrite = opened.Overwrite,
             OriginalName = name,
             ContentType = string.IsNullOrWhiteSpace(definition.ContentType) ? null : definition.ContentType.Trim(),
             Size = definition.Size,
@@ -251,7 +253,7 @@ public sealed partial class FileUploadService(
         var signed = new List<SignedPart>(numbers.Count);
         foreach (var number in numbers)
         {
-            var url = await signer.SignAsync(upload.Bucket, upload.Key, BlobUrlRequest.ForPart(multipart, number, options.LinkLifetime), cancellationToken).ConfigureAwait(false);
+            var url = await signer.SignAsync(new ContainerName(upload.Bucket), new BlobKey(upload.Key), BlobUrlRequest.ForPart(multipart, number, options.LinkLifetime), cancellationToken).ConfigureAwait(false);
             if (!url.TryGetValue(out var link))
             {
                 return url.Error!;
@@ -323,7 +325,7 @@ public sealed partial class FileUploadService(
             return completed.Error!;
         }
 
-        var opened = await target.Store.GetAsync(upload.Bucket, upload.Key, cancellationToken).ConfigureAwait(false);
+        var opened = await target.Store.GetAsync(new ContainerName(upload.Bucket), new BlobKey(upload.Key), cancellationToken).ConfigureAwait(false);
         if (!opened.TryGetValue(out var blob))
         {
             return opened.Error!;
@@ -339,7 +341,7 @@ public sealed partial class FileUploadService(
         if (length != upload.Size)
         {
             // 存储报的分片长度与拼出的不一致：对象不留，这次上传在存储里已经结束，只能重新发起
-            await target.Store.DeleteAsync(upload.Bucket, upload.Key, cancellationToken).ConfigureAwait(false);
+            await target.Store.DeleteAsync(new ContainerName(upload.Bucket), new BlobKey(upload.Key), cancellationToken).ConfigureAwait(false);
             return Error.Conflict(FilesErrors.UploadSizeMismatch, FilesMessages.UploadSizeMismatch, MessageArguments.Of(("actual", length), ("expected", upload.Size)));
         }
 
@@ -432,7 +434,7 @@ public sealed partial class FileUploadService(
         upload.EndedAt = clock.GetUtcNow();
     }
 
-    private static BlobMultipartUpload MultipartOf(SysFileUpload upload) => new(upload.Bucket, upload.Key, upload.UploadId);
+    private static BlobMultipartUpload MultipartOf(SysFileUpload upload) => new(new ContainerName(upload.Bucket), new BlobKey(upload.Key), upload.UploadId) { Overwrite = upload.Overwrite };
 
     /// <summary>
     /// 上传的存储配置、对象存储与它的分片上传接口

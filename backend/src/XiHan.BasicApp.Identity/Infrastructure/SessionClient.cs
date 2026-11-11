@@ -30,7 +30,7 @@ public static class SessionClient
     public static string? AddressOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.GetOrigin().TryGetValue(out var origin) ? Clip(origin.RemoteAddress) : null;
+        return context.FindOrigin().TryGetValue(out var origin) ? Clip(origin.RemoteAddress) : null;
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public static class SessionClient
     public static string? AgentOf(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.GetOrigin().TryGetValue(out var origin) ? Clip(origin.UserAgent) : null;
+        return context.FindOrigin().TryGetValue(out var origin) ? Clip(origin.UserAgent) : null;
     }
 
     /// <summary>

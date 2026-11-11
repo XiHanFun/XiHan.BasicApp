@@ -186,7 +186,7 @@ public sealed class ConditionAttributeSource : IConditionAttributeSource
     {
         await using var scope = _scopes.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenantId, IsReadOnly: true) { ReadsPrimary = true }, cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = tenantId, IsReadOnly = true, ReadsPrimary = true }, cancellationToken).ConfigureAwait(false);
         try
         {
             var result = await read(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);

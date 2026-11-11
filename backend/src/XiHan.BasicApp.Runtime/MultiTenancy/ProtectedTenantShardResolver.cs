@@ -41,5 +41,8 @@ public sealed class ProtectedTenantShardResolver(TenantStoreShardResolver inner,
     }
 
     /// <inheritdoc />
-    public void Invalidate(string? tenantId = null) => inner.Invalidate(tenantId);
+    public void Invalidate(IReadOnlyList<string> tenantIds) => inner.Invalidate(tenantIds);
+
+    /// <inheritdoc />
+    public void InvalidateAll() => inner.InvalidateAll();
 }

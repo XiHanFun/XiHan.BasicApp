@@ -2,12 +2,12 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Access.Operations.UserGrants;
 
@@ -36,7 +36,7 @@ internal static class UserGrantBatch
         SideUsers users,
         PermissionCatalog catalog,
         PermissionChangeType change,
-        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply,
+        Func<SysUser, string, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionOutcome>>> apply,
         Func<SysUser, string, IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<(string Permission, Error Reason)>>>? screen = null)
     {
         var owner = RoleService.OwnerOf(context);

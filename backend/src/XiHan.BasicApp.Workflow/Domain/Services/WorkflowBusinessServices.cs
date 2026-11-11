@@ -96,7 +96,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
                 CorrelationIds = [businessId.Trim()],
                 TopLevelOnly = true,
                 Statuses = [WorkflowInstanceStatus.Running, WorkflowInstanceStatus.Suspended, WorkflowInstanceStatus.Faulted],
-                Limit = WorkflowInstanceQuery.MaxLimit,
+                Take = WorkflowInstanceQuery.MaxTake,
             },
             context.CancellationToken).ConfigureAwait(false);
         if (!listed.TryGetValue(out var active))
@@ -146,10 +146,10 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
 
         // 框架按创建时间降序给：每张单据取第一个见到的（最近一次的顶层实例）
         var latest = new Dictionary<string, WorkflowInstance>(StringComparer.Ordinal);
-        for (var skip = 0; ; skip += WorkflowInstanceQuery.MaxLimit)
+        for (var skip = 0; ; skip += WorkflowInstanceQuery.MaxTake)
         {
             var listed = await engine.ListInstancesAsync(
-                new WorkflowInstanceQuery { DefinitionName = new WorkflowName(handler.Descriptor.Code), CorrelationIds = ids, TopLevelOnly = true, Skip = skip, Limit = WorkflowInstanceQuery.MaxLimit },
+                new WorkflowInstanceQuery { DefinitionName = new WorkflowName(handler.Descriptor.Code), CorrelationIds = ids, TopLevelOnly = true, Skip = skip, Take = WorkflowInstanceQuery.MaxTake },
                 context.CancellationToken).ConfigureAwait(false);
             if (!listed.TryGetValue(out var page))
             {
@@ -161,7 +161,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
                 latest.TryAdd(instance.CorrelationId!, instance);
             }
 
-            if (page.Count < WorkflowInstanceQuery.MaxLimit)
+            if (page.Count < WorkflowInstanceQuery.MaxTake)
             {
                 break;
             }
@@ -171,7 +171,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
         var pending = new Dictionary<string, IReadOnlyList<UserTask>>(StringComparer.Ordinal);
         foreach (var instance in latest.Values.Where(static i => i.Status == WorkflowInstanceStatus.Running))
         {
-            var waiting = await tasks.PendingByInstanceAsync(instance.Id, context.CancellationToken).ConfigureAwait(false);
+            var waiting = await PendingTasks.OfInstanceAsync(tasks, instance.Id, context.CancellationToken).ConfigureAwait(false);
             if (!waiting.TryGetValue(out var list))
             {
                 return waiting.Error!;
@@ -229,7 +229,7 @@ public sealed class WorkflowBusinessService(WorkflowBusinessRegistry registry, I
             return Result.Success();
         }
 
-        var existing = await catalog.QueryAsync(new WorkflowDefinitionQuery { Name = new WorkflowName(descriptor.Code), Limit = 1 }, cancellationToken).ConfigureAwait(false);
+        var existing = await catalog.QueryAsync(new WorkflowDefinitionQuery { Name = new WorkflowName(descriptor.Code), Take = 1 }, cancellationToken).ConfigureAwait(false);
         if (!existing.TryGetValue(out var page))
         {
             return existing.Error!;

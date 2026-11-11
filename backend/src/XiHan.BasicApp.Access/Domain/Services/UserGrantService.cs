@@ -53,7 +53,7 @@ public sealed class UserGrantService(SideUsers users, PermissionCatalog catalog,
             return outcomes;
         }, async (user, owner, accepted, ct) =>
         {
-            var blocked = await enforcer.ScreenPermissionsAsync(owner, [.. await grants.ListAsync(user.Id, owner, ct).ConfigureAwait(false)], accepted, context, userId: user.Id, approvedBy: approvedBy).ConfigureAwait(false);
+            var blocked = await enforcer.ScreenPermissionsAsync(owner, [.. (await grants.ListAsync(user.Id, owner, ct).ConfigureAwait(false)).ValueOrThrow()], accepted, context, userId: user.Id, approvedBy: approvedBy).ConfigureAwait(false);
             needApproval.AddRange(blocked.Where(static b => b.Reason.Code == AccessErrors.ConstraintApprovalRequired).Select(b => new ApprovalNeeded(user.Id, b.Permission, b.Reason)));
             return blocked;
         }).ConfigureAwait(false);

@@ -70,7 +70,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         ],
         Contributes = new Contributions
         {
-            Pipeline = [new PipelineContribution(typeof(PublishProgressMiddleware).FullName!, PipelineStage.Transaction, Before: [typeof(UnitOfWorkMiddleware).FullName!])],
+            Pipeline = [new PipelineContribution(typeof(PublishProgressMiddleware).FullName!, PipelineStage.Transaction) { Before = [typeof(UnitOfWorkMiddleware).FullName!] }],
             Permissions = NotificationPermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(NotificationFeature).FullName,

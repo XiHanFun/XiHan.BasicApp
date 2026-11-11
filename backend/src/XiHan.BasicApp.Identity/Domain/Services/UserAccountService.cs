@@ -126,7 +126,7 @@ public sealed class UserAccountService
         }
 
         var security = new SysUserSecurity { Id = _ids.NewId(), UserId = userId, SecurityStamp = NewStamp() };
-        if (_unitOfWork.IsReadOnly)
+        if (_unitOfWork.Options.IsReadOnly)
         {
             return security;
         }

@@ -49,7 +49,7 @@ public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(nextStep);
-        if (!context.GetOperation().TryGetValue(out var operation) || !OpenApiOperations.IsOpen(operation.Id))
+        if (!context.FindOperation().TryGetValue(out var operation) || !OpenApiOperations.IsOpen(operation.Id))
         {
             await nextStep(context).ConfigureAwait(false);
             return;
@@ -80,7 +80,7 @@ public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials
 
         var plain = captured.ToArray();
         log.ResponseBody = Summary(plain);
-        var succeeded = !context.GetOutcome().TryGetValue(out var outcome) || outcome.IsSuccess;
+        var succeeded = !context.FindOutcome().TryGetValue(out var outcome) || outcome.IsSuccess;
         if (encryptResponse && succeeded && plain.Length > 0 && !httpContext.Response.HasStarted)
         {
             var envelope = Envelope(state.Secret, plain);
@@ -162,7 +162,7 @@ public sealed class RequestSigningMiddleware(IApiCredentialDirectory credentials
             return Error.Denied(OpenPlatformErrors.AccessKeyInvalid, OpenPlatformMessages.AccessKeyInvalid);
         }
 
-        var remote = context.GetOrigin().TryGetValue(out var origin) ? origin.RemoteAddress : null;
+        var remote = context.FindOrigin().TryGetValue(out var origin) ? origin.RemoteAddress : null;
         if (!ApiIpAllowList.Allows(credential.IpAllowList, remote))
         {
             return Error.Denied(OpenPlatformErrors.IpNotAllowed, OpenPlatformMessages.IpNotAllowed, MessageArguments.Of(("ip", remote ?? string.Empty)));

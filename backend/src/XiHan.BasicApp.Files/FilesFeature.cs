@@ -28,6 +28,7 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Security.Abstractions;
 
 namespace XiHan.BasicApp.Files;
@@ -89,8 +90,8 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<StorageConfigService>();
         context.Services.AddScoped<FileService>();
         context.Services.AddScoped<FileUploadService>();
-        context.Services.AddJob<FileUploadExpiryJob>(FileUploadExpiryJob.Name, FileUploadExpiryJob.Schedule);
-        context.Services.AddJob<TemporaryFilePurgeJob>(TemporaryFilePurgeJob.Name, TemporaryFilePurgeJob.Schedule);
+        context.Services.AddJob<FileUploadExpiryJob>(new JobName(FileUploadExpiryJob.Name), FileUploadExpiryJob.Schedule);
+        context.Services.AddJob<TemporaryFilePurgeJob>(new JobName(TemporaryFilePurgeJob.Name), TemporaryFilePurgeJob.Schedule);
         context.Services.AddScoped<FileQueries>();
         context.Services.AddScoped<IWorkbenchWidgetProvider, FilesWidgets>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();

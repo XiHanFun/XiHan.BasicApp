@@ -35,7 +35,13 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas t
         var ct = context.CancellationToken;
         var rows = new List<SchemaVersionResponse>();
         rows.AddRange((await unitOfWork.ConnectionFor(typeof(SysVersion)).Queryable<SysVersion>().ToListAsync(ct).ConfigureAwait(false)).Select(static r => SchemaVersionResponse.From(r)));
-        foreach (var tenantId in await tenantSchemas.ReadyTenantsAsync(ct).ConfigureAwait(false))
+        var ready = await tenantSchemas.ReadyTenantsAsync(ct).ConfigureAwait(false);
+        if (!ready.TryGetValue(out var tenantIds))
+        {
+            return ready.Error!;
+        }
+
+        foreach (var tenantId in tenantIds)
         {
             rows.Add(await TenantVersionAsync(tenantId, ct).ConfigureAwait(false));
         }
@@ -184,7 +190,13 @@ public sealed class SchemaQueries(SqlSugarUnitOfWork unitOfWork, TenantSchemas t
             return row is null ? NotFound(database) : SchemaVersionResponse.From(row);
         }
 
-        return (await tenantSchemas.ReadyTenantsAsync(ct).ConfigureAwait(false)).Contains(database, StringComparer.Ordinal)
+        var ready = await tenantSchemas.ReadyTenantsAsync(ct).ConfigureAwait(false);
+        if (!ready.TryGetValue(out var tenantIds))
+        {
+            return ready.Error!;
+        }
+
+        return tenantIds.Contains(database, StringComparer.Ordinal)
             ? await TenantVersionAsync(database, ct).ConfigureAwait(false)
             : NotFound(database);
     }

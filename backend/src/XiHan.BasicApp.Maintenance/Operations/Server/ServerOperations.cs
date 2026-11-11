@@ -79,18 +79,18 @@ public sealed class GetServerInfo(IServiceProvider services) : IOperation<Server
     public const string Id = "server.get";
 
     /// <inheritdoc />
-    public ValueTask<Result<ServerInfoResponse>> HandleAsync(ServerInfoRequest request, InvocationContext context)
+    public async ValueTask<Result<ServerInfoResponse>> HandleAsync(ServerInfoRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         if (JobViews.RequirePlatform(context) is { } denied)
         {
-            return ValueTask.FromResult(Result.Failure<ServerInfoResponse>(denied));
+            return denied;
         }
 
         if (services.GetService<IHostMonitor>() is not { } monitor)
         {
-            return ValueTask.FromResult(Result.Failure<ServerInfoResponse>(Error.Unavailable(MaintenanceErrors.HostMonitorUnavailable, MaintenanceMessages.HostMonitorUnavailable)));
+            return Error.Unavailable(MaintenanceErrors.HostMonitorUnavailable, MaintenanceMessages.HostMonitorUnavailable);
         }
 
         var health = services.GetServices<IHealthContributor>()
@@ -106,8 +106,16 @@ public sealed class GetServerInfo(IServiceProvider services) : IOperation<Server
                 status.Duration?.TotalMilliseconds,
                 status.Data.ToDictionary(static d => d.Key, static d => d.Value is null ? null : Convert.ToString(d.Value, CultureInfo.InvariantCulture), StringComparer.Ordinal)))
             .ToList();
-        var response = new ServerInfoResponse(monitor.ReadRuntime(), monitor.ReadProcessor(), monitor.ReadMemory(), monitor.ReadDisks(), monitor.ReadNetworkInterfaces(), monitor.ReadGpus(), monitor.ReadBoard(), health);
-        return ValueTask.FromResult(Result.Success(response));
+        var ct = context.CancellationToken;
+        return new ServerInfoResponse(
+            await monitor.ReadRuntimeAsync(ct).ConfigureAwait(false),
+            await monitor.ReadProcessorAsync(ct).ConfigureAwait(false),
+            await monitor.ReadMemoryAsync(ct).ConfigureAwait(false),
+            await monitor.ReadDisksAsync(ct).ConfigureAwait(false),
+            await monitor.ReadNetworkInterfacesAsync(ct).ConfigureAwait(false),
+            await monitor.ReadGpusAsync(ct).ConfigureAwait(false),
+            await monitor.ReadBoardAsync(ct).ConfigureAwait(false),
+            health);
     }
 }
 

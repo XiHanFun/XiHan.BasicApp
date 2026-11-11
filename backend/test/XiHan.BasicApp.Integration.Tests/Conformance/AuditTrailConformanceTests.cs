@@ -35,7 +35,9 @@ internal sealed class HostAuditTrailFixture(DatabaseAuditTrail trail) : AuditTra
         public async ValueTask WriteAsync(AuditEvent auditEvent, CancellationToken cancellationToken)
         {
             await trail.WriteAsync(auditEvent, cancellationToken);
-            await trail.FlushAsync(cancellationToken);
+
+            // 刷写是夹具为「写完即可读」补的一步，不属于接收器契约，不跟调用方的取消
+            await trail.FlushAsync(CancellationToken.None);
         }
     }
 }

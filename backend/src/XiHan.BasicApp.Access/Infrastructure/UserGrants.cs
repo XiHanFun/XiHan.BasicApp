@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
-using XiHan.Framework.Persistence.Abstractions.Queries;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Permissions;
 using XiHan.Framework.Security.Database.Grants;
 
@@ -31,25 +31,36 @@ public sealed class UserGrants(PermissionGrantRecordStore store)
     /// <summary>
     /// 用户在这一侧的直接授予
     /// </summary>
-    public async Task<IReadOnlyList<string>> ListAsync(Guid userId, string owner, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<string>>> ListAsync(Guid userId, string owner, CancellationToken cancellationToken)
     {
-        var rows = await store.ListAsync(SubjectOf(userId), TenantOf(owner), skip: 0, take: EntityQuery.DefaultMaxTake, cancellationToken).ConfigureAwait(false);
-        // 全局授予在列里存空字符串、契约里是 null：经 ToGrant 换算后再比，平台一侧才认得出自己的授予
-        var tenant = TenantOf(owner);
-        return rows.Select(static r => r.ToGrant()).Where(g => string.Equals(g.TenantId, tenant, StringComparison.Ordinal)).Select(static g => g.Permission).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        // 只要这一侧的授予：平台一侧是全局授予（租户为空）
+        var tenant = TenantOf(owner) is { } id ? GrantTenantFilter.Of(id) : GrantTenantFilter.Global;
+        var listed = await store.ListAsync(new PermissionGrantQuery { Subject = SubjectOf(userId), Tenant = tenant, Take = PermissionGrantQuery.MaxTake }, cancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var page))
+        {
+            return listed.Error!;
+        }
+
+        return page.Items.Select(static g => g.Permission).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
     }
 
     /// <summary>
     /// 给用户授予权限
     /// </summary>
     /// <returns>逐项结果与入参同序</returns>
-    public ValueTask<IReadOnlyList<PermissionGrantResult>> GrantAsync(Guid userId, string owner, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
-        => store.GrantAsync(permissions.Select(p => new PermissionGrant(SubjectOf(userId), p, TenantOf(owner))).ToList(), cancellationToken);
+    public async ValueTask<IReadOnlyList<PermissionOutcome>> GrantAsync(Guid userId, string owner, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
+    {
+        var grants = permissions.Select(p => new PermissionGrant(SubjectOf(userId), p, TenantOf(owner))).ToList();
+        return PermissionOutcome.Zip(grants, await store.GrantAsync(grants, cancellationToken).ConfigureAwait(false));
+    }
 
     /// <summary>
     /// 撤销用户的权限
     /// </summary>
     /// <returns>逐项结果与入参同序（没有的授予是 NotFound）</returns>
-    public ValueTask<IReadOnlyList<PermissionGrantResult>> RevokeAsync(Guid userId, string owner, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
-        => store.RevokeAsync(permissions.Select(p => new PermissionGrant(SubjectOf(userId), p, TenantOf(owner))).ToList(), cancellationToken);
+    public async ValueTask<IReadOnlyList<PermissionOutcome>> RevokeAsync(Guid userId, string owner, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
+    {
+        var grants = permissions.Select(p => new PermissionGrant(SubjectOf(userId), p, TenantOf(owner))).ToList();
+        return PermissionOutcome.Zip(grants, await store.RevokeAsync(grants, cancellationToken).ConfigureAwait(false));
+    }
 }

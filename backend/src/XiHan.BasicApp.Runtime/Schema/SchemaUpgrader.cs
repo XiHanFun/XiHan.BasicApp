@@ -268,7 +268,13 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
     private async Task<Result<IReadOnlyList<string>>> UpgradeTenantsAsync(string node, CancellationToken cancellationToken)
     {
         var applied = new List<string>();
-        foreach (var tenantId in await tenantSchemas.ReadyTenantsAsync(cancellationToken).ConfigureAwait(false))
+        var ready = await tenantSchemas.ReadyTenantsAsync(cancellationToken).ConfigureAwait(false);
+        if (!ready.TryGetValue(out var tenantIds))
+        {
+            return ready.Error!;
+        }
+
+        foreach (var tenantId in tenantIds)
         {
             var upgraded = await tenantSchemas.UpgradeAsync(tenantId, node, cancellationToken).ConfigureAwait(false);
             if (!upgraded.TryGetValue(out var report))

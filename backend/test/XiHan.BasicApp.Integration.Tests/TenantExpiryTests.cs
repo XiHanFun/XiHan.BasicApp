@@ -52,7 +52,7 @@ public sealed class TenantExpiryTests : IDisposable
         async Task<Result> RunJobAsync() => await SettingsTestHost.InvokeAsync(server, null, async ctx =>
         {
             var job = ctx.Services.GetRequiredService<TenantExpiryJob>();
-            return await job.RunAsync(JobRun.Create(TenantExpiryJob.Name, DateTimeOffset.UtcNow, JobTrigger.Manual), ctx, ctx.CancellationToken);
+            return await job.RunAsync(JobRun.Create(new JobName(TenantExpiryJob.Name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx);
         });
 
         // 开通时带上一天后的到期时间，初始化管理员后可以登录

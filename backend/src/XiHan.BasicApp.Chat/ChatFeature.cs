@@ -22,6 +22,7 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Scheduling.Abstractions;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Security.Abstractions;
 
 namespace XiHan.BasicApp.Chat;
@@ -83,7 +84,7 @@ public sealed class ChatFeature : IFeature
         context.Services.AddRealtimeHub<ChatHub>(RealtimeHubs.Chat);
         // 部门群同步：订阅 Organization 的部门归属事件（竞争消费，按处理时的归属核对）
         context.Services.AddMessageHandler<MembershipChangedHandler>(Topics.OrganizationMembershipChanged);
-        context.Services.AddJob<ChatRetentionJob>(ChatRetentionJob.Name, ChatRetentionJob.Schedule);
+        context.Services.AddJob<ChatRetentionJob>(new JobName(ChatRetentionJob.Name), ChatRetentionJob.Schedule);
         context.Services.AddPermissionCatalog("chat", ChatPermissions.All);
         context.Services.AddPageCatalog("chat", ChatPages.All);
         foreach (var permission in ChatPermissions.All)

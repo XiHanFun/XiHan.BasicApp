@@ -59,7 +59,7 @@ public sealed class DistributedProvidersTests : IDisposable
         // 显式清空两个绑定：跑全量时环境变量里配了 Redis / RabbitMQ 也不影响这一例
         await using var server = await BasicAppTestServer.StartAsync(_first.ConnectionString, settings: [new(CacheBinding, ""), new(QueueBinding, "")]);
         Assert.Null(server.Services.GetService<RedisCacheStore>());
-        Assert.Null(server.Services.GetService<HybridCache>());
+        Assert.Null(server.Services.GetService<HybridObjectCache>());
         Assert.IsType<InMemoryMessageBroker>(server.Services.GetRequiredService<IMessageBroker>());
         Assert.IsType<DatabaseMessageLocalizer>(server.Services.GetRequiredService<IMessageLocalizer>());
 
@@ -83,7 +83,7 @@ public sealed class DistributedProvidersTests : IDisposable
         var written = await server.InvokeAsync(async ctx =>
         {
             var results = await ctx.Services.GetRequiredService<MessageTranslationStore>().UpsertAsync([new MessageTranslationEntry(IdentityMessages.InvalidCredentials, "zh-CN", "账号或密码有误，请重试。")], ctx.CancellationToken);
-            return Assert.Single(results).Outcome;
+            return Assert.Single(results);
         });
         written.ThrowIfFailure();
         (await server.Services.GetRequiredService<MessageTranslationLoader>().ReloadAsync(TestContext.Current.CancellationToken)).ThrowIfFailure();
@@ -130,7 +130,7 @@ public sealed class DistributedProvidersTests : IDisposable
         foreach (var server in new[] { first, second })
         {
             Assert.NotNull(server.Services.GetService<RedisCacheStore>());
-            Assert.IsType<HybridCache>(server.Services.GetRequiredService<ICache>());
+            Assert.IsType<HybridObjectCache>(server.Services.GetRequiredService<ICache>());
             await EventuallyAsync(async () => (await HealthAsync(server)).GetValueOrDefault(RedisCachingFeature.HealthName) == "Ready");
         }
 

@@ -43,7 +43,7 @@ public sealed class GrantRole(RoleService service, PermissionCatalog catalog, Ro
         }
 
         var result = await RolePermissionBatch.RunAsync(request, context, service, catalog, PermissionChangeType.RoleGrant, grants.GrantAsync, async (role, accepted, ct) =>
-            await enforcer.ScreenPermissionsAsync(role.OwnerTenantId, [.. await grants.ListAsync(role, ct).ConfigureAwait(false)], accepted, context, roleId: role.Id).ConfigureAwait(false)).ConfigureAwait(false);
+            await enforcer.ScreenPermissionsAsync(role.OwnerTenantId, [.. (await grants.ListAsync(role, ct).ConfigureAwait(false)).ValueOrThrow()], accepted, context, roleId: role.Id).ConfigureAwait(false)).ConfigureAwait(false);
         if (!result.TryGetValue(out var batch))
         {
             return result;

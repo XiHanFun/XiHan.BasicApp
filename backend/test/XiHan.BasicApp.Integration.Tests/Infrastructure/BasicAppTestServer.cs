@@ -13,6 +13,7 @@ using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Runtime.MultiTenancy;
 using XiHan.BasicApp.Runtime.Security;
 using XiHan.BasicApp.Runtime.Seeding;
+using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
@@ -143,7 +144,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     public async Task<Result> InvokeAsync(Func<InvocationContext, Task<Result>> action, string? token = null, IReadOnlyDictionary<string, string>? baggage = null)
     {
         await using var scope = Services.CreateAsyncScope();
-        var context = XiHanApp.CreateContext(scope.ServiceProvider, CancellationToken.None, baggage: baggage);
+        var context = XiHanApp.CreateContext(scope.ServiceProvider, new InvocationContextOptions { Baggage = baggage }, CancellationToken.None);
         if (token is not null)
         {
             context.SetCredential(new AuthenticationCredential("Bearer", token));
@@ -171,7 +172,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
                     : tenant).ToList();
                 foreach (var outcome in await ctx.Services.GetRequiredService<TenantRecordStore>().UpsertAsync(stored, ctx.CancellationToken))
                 {
-                    outcome.Outcome.ThrowIfFailure();
+                    outcome.ThrowIfFailure();
                 }
             }
 
@@ -179,7 +180,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
             {
                 foreach (var outcome in await ctx.Services.GetRequiredService<PermissionGrantRecordStore>().GrantAsync(grants, ctx.CancellationToken))
                 {
-                    outcome.Outcome.ThrowIfFailure();
+                    outcome.ThrowIfFailure();
                 }
             }
 

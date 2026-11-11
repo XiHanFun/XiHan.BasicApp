@@ -270,7 +270,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
             });
             var envelope = new MessageEnvelope { Id = created.MessageId, Source = WorkflowTopics.Source, Type = WorkflowTopics.TaskCreated, Data = data };
             var handler = ActivatorUtilities.CreateInstance<TaskCreatedHandler>(ctx.Services);
-            return await handler.HandleAsync(new MessageDelivery(WorkflowTopics.TaskCreated, envelope, 2, SubscriptionMode.Competing), ctx, ctx.CancellationToken);
+            return await handler.HandleAsync(new MessageDelivery { Topic = WorkflowTopics.TaskCreated, Envelope = envelope, Attempt = 2, Mode = SubscriptionMode.Competing }, ctx, ctx.CancellationToken);
         });
         Assert.True(replayed.IsSuccess);
         Assert.Equal(inbox, (await InboxAsync(server, platform)).Count);
@@ -309,7 +309,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
                     var tasks = ctx.Services.GetRequiredService<IWorkflowTaskService>();
                     foreach (var (name, user) in people)
                     {
-                        foreach (var task in (await tasks.PendingAsync(user, ctx.CancellationToken)).ValueOrThrow())
+                        foreach (var task in (await tasks.QueryAsync(new UserTaskQuery { AssigneeId = user, Take = UserTaskQuery.MaxTake }, ctx.CancellationToken)).ValueOrThrow().Items)
                         {
                             if (decide(task) is { } decision)
                             {
@@ -323,7 +323,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
                 if (next.Task is not null)
                 {
                     await SettingsTestHost.InvokeAsync(server, "demo", async ctx =>
-                        (await ctx.Services.GetRequiredService<IWorkflowTaskService>().CompleteAsync([new UserTaskCompletion(next.Task.Id, next.User, next.Decision)], ctx.CancellationToken))[0].ValueOrThrow());
+                        (await ctx.Services.GetRequiredService<IWorkflowTaskService>().CompleteAsync([new UserTaskCompletion(next.Task.Id, next.User) { Outcome = next.Decision }], ctx.CancellationToken))[0].ValueOrThrow());
                     handled.Add($"{next.Task.NodeId}:{next.Name}");
                     continue;
                 }

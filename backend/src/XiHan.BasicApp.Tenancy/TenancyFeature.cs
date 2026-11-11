@@ -23,6 +23,7 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Scheduling.Abstractions;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Security.Abstractions;
 
 namespace XiHan.BasicApp.Tenancy;
@@ -80,7 +81,7 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddSingleton<IEditionGate>(static sp => sp.GetRequiredService<EditionGate>());
         context.Services.AddSeeder<EditionSeeder>();
         context.Services.AddSeeder<DemoTenantSeeder>();
-        context.Services.AddJob<TenantExpiryJob>(TenantExpiryJob.Name, TenantExpiryJob.Schedule);
+        context.Services.AddJob<TenantExpiryJob>(new JobName(TenantExpiryJob.Name), TenantExpiryJob.Schedule);
         context.Services.AddPermissionCatalog("tenancy", TenancyPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         TenancyFieldSecurity.Register(context.Services);

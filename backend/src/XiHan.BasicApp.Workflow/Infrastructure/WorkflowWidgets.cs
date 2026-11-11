@@ -45,7 +45,7 @@ public sealed class WorkflowWidgets(IWorkflowTaskService tasks) : IWorkbenchWidg
             return new WorkbenchWidgetData(Value: 0, Items: []);
         }
 
-        var queried = await tasks.QueryAsync(new UserTaskQuery { AssigneeId = me, Descending = true, Limit = TodoLimit }, context.CancellationToken).ConfigureAwait(false);
+        var queried = await tasks.QueryAsync(new UserTaskQuery { AssigneeId = me, Sorts = [new UserTaskSort(UserTaskSortField.CreatedAt, Descending: true)], Take = TodoLimit }, context.CancellationToken).ConfigureAwait(false);
         if (!queried.TryGetValue(out var page))
         {
             return queried.Error!;

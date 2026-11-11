@@ -66,10 +66,11 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
     ];
 
     /// <inheritdoc />
-    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context, CancellationToken cancellationToken)
+    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
         var days = await RetentionDaysAsync(context).ConfigureAwait(false);
         if (!days.TryGetValue(out var retention))
         {
@@ -79,7 +80,13 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
         var cutoff = clock.GetUtcNow().AddDays(-retention);
         var removed = 0L;
         var failures = 0;
-        foreach (var tenant in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
+        var listedSides = await sides.ListAsync(cancellationToken).ConfigureAwait(false);
+        if (!listedSides.TryGetValue(out var sideIds))
+        {
+            return listedSides.Error!;
+        }
+
+        foreach (var tenant in sideIds)
         {
             foreach (var purge in _purges)
             {
@@ -207,7 +214,7 @@ public sealed partial class AuditRetentionJob(IConfigValueReader configs, AuditL
         }
 
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenant), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = tenant }, cancellationToken).ConfigureAwait(false);
         try
         {
             var count = await work(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);

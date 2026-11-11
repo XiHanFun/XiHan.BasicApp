@@ -40,14 +40,15 @@ public sealed partial class TenantExpiryJob(IServiceScopeFactory scopes, TimePro
     public static JobSchedule Schedule { get; } = JobSchedule.FromCron("*/5 * * * *");
 
     /// <inheritdoc />
-    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context, CancellationToken cancellationToken)
+    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
         var now = clock.GetUtcNow();
         await using var scope = scopes.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: TenantIds.Platform), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = TenantIds.Platform }, cancellationToken).ConfigureAwait(false);
         try
         {
             var tenants = scope.ServiceProvider.GetRequiredService<IRepository<SysTenant, Guid>>();

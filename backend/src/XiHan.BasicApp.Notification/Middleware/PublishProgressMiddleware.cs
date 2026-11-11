@@ -27,7 +27,7 @@ public sealed class PublishProgressMiddleware : IPipelineMiddleware
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(nextStep);
-        if (!context.GetOperation().TryGetValue(out var operation)
+        if (!context.FindOperation().TryGetValue(out var operation)
             || !string.Equals(operation.Id, PublishNotification.Id, StringComparison.Ordinal)
             || NotificationService.CallerOf(context) is not { } publisher)
         {
@@ -43,7 +43,7 @@ public sealed class PublishProgressMiddleware : IPipelineMiddleware
         try
         {
             await nextStep(context).ConfigureAwait(false);
-            var failed = context.GetOutcome().TryGetValue(out var outcome) && outcome.IsFailure;
+            var failed = context.FindOutcome().TryGetValue(out var outcome) && outcome.IsFailure;
             reason = failed ? context.Localize(outcome.Error!) : null;
             finished = !failed;
         }

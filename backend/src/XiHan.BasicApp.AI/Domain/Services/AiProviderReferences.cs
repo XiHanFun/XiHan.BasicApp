@@ -51,7 +51,13 @@ public sealed partial class AiProviderReferences(IRepository<SysAiAssistant, Gui
             referenced.UnionWith(new[] { assistant.ProviderCode, assistant.KnowledgeProviderCode }.OfType<string>().Where(codes.Contains));
         }
 
-        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
+        var listedSides = await sides.ListAsync(cancellationToken).ConfigureAwait(false);
+        if (!listedSides.TryGetValue(out var sideIds))
+        {
+            return listedSides.Error!;
+        }
+
+        foreach (var side in sideIds)
         {
             var found = await FindInAsync(side, codes, cancellationToken).ConfigureAwait(false);
             if (!found.TryGetValue(out var items))
@@ -75,7 +81,7 @@ public sealed partial class AiProviderReferences(IRepository<SysAiAssistant, Gui
         }
 
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(IsReadOnly: true, TenantId: side), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { IsReadOnly = true, TenantId = side }, cancellationToken).ConfigureAwait(false);
         try
         {
             var found = await scope.ServiceProvider.GetRequiredService<SideRows>().Query<SysKnowledgeDocument>(side)

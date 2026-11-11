@@ -193,19 +193,13 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     }
 
     /// <inheritdoc />
-    public void Invalidate(string? name = null)
+    public void Invalidate(IReadOnlyList<string> names)
     {
+        ArgumentNullException.ThrowIfNull(names);
         List<IDisposable> disposables = [];
         lock (_lock)
         {
-            if (name is null)
-            {
-                disposables.AddRange(_chatClients.Values.OfType<IDisposable>());
-                disposables.AddRange(_generators.Values.OfType<IDisposable>());
-                _chatClients.Clear();
-                _generators.Clear();
-            }
-            else
+            foreach (var name in names)
             {
                 if (_chatClients.Remove(name, out var client) && client is IDisposable disposableClient)
                 {
@@ -219,7 +213,32 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
             }
         }
 
-        // 释放放在锁外：释放可能阻塞或抛出，不拖住别的解析
+        Release(disposables);
+    }
+
+    /// <inheritdoc />
+    public void InvalidateAll()
+    {
+        List<IDisposable> disposables = [];
+        lock (_lock)
+        {
+            disposables.AddRange(_chatClients.Values.OfType<IDisposable>());
+            disposables.AddRange(_generators.Values.OfType<IDisposable>());
+            _chatClients.Clear();
+            _generators.Clear();
+        }
+
+        Release(disposables);
+    }
+
+    /// <summary>
+    /// 释放丢掉的客户端
+    /// </summary>
+    /// <remarks>
+    /// 放在锁外：释放可能阻塞或抛出，不拖住别的解析
+    /// </remarks>
+    private static void Release(List<IDisposable> disposables)
+    {
         foreach (var disposable in disposables)
         {
             disposable.Dispose();
@@ -267,13 +286,7 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
             }
 
             var previous = Interlocked.Exchange(ref _snapshot, new Snapshot(options, tunings, fallback));
-            foreach (var (name, before) in previous.Options)
-            {
-                if (!options.TryGetValue(name, out var now) || !Same(before, now))
-                {
-                    Invalidate(name);
-                }
-            }
+            Invalidate([.. previous.Options.Where(p => !options.TryGetValue(p.Key, out var now) || !Same(p.Value, now)).Select(static p => p.Key)]);
         }
         finally
         {
@@ -285,7 +298,7 @@ public sealed partial class AiProviderCatalog : IAIProviderCatalog, IDisposable
     public void Dispose()
     {
         _changes?.Dispose();
-        Invalidate();
+        InvalidateAll();
         _reloading.Dispose();
     }
 

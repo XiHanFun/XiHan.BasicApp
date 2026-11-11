@@ -59,10 +59,10 @@ public sealed class MaintenanceWidgets(IJobScheduler scheduler, TimeProvider clo
         var days = Enumerable.Range(0, query.Days).Select(offset => first.AddDays(offset).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToList();
         var succeeded = new long[days.Count];
         var failed = new long[days.Count];
-        var runs = new JobRunQuery { From = first, To = now, States = [JobRunState.Succeeded, JobRunState.Failed, JobRunState.Lost], Limit = JobRunQuery.MaxLimit };
+        var runs = new JobRunQuery { From = first, To = now, States = [JobRunState.Succeeded, JobRunState.Failed, JobRunState.Lost], Take = JobRunQuery.MaxTake };
         for (var page = 0; page < MaxPages; page++)
         {
-            var batch = await scheduler.RunsAsync(runs with { Skip = page * JobRunQuery.MaxLimit }, context.CancellationToken).ConfigureAwait(false);
+            var batch = await scheduler.RunsAsync(runs with { Skip = page * JobRunQuery.MaxTake }, context.CancellationToken).ConfigureAwait(false);
             if (!batch.TryGetValue(out var records))
             {
                 return batch.Error!;
@@ -86,7 +86,7 @@ public sealed class MaintenanceWidgets(IJobScheduler scheduler, TimeProvider clo
                 }
             }
 
-            if (records.Count < JobRunQuery.MaxLimit)
+            if (records.Count < JobRunQuery.MaxTake)
             {
                 break;
             }

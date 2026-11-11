@@ -79,9 +79,9 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
         var info = new TenantInfo { Id = tenant.TenantId, DisplayName = tenant.Name, IsEnabled = tenant.Status == TenantStatus.Active, Properties = properties };
         foreach (var outcome in await directory.UpsertAsync([info], cancellationToken).ConfigureAwait(false))
         {
-            if (outcome.Outcome.IsFailure)
+            if (outcome.IsFailure)
             {
-                return outcome.Outcome;
+                return outcome.Error!;
             }
         }
 
@@ -98,9 +98,9 @@ public sealed class TenantService(IRepository<SysTenant, Guid> tenants, TenantRe
     {
         foreach (var outcome in await directory.RemoveAsync([tenantId], cancellationToken).ConfigureAwait(false))
         {
-            if (outcome.Outcome.IsFailure && !string.Equals(outcome.Outcome.Error!.Kind, "NOTFOUND", StringComparison.Ordinal))
+            if (outcome.IsFailure && !string.Equals(outcome.Error!.Kind, "NOTFOUND", StringComparison.Ordinal))
             {
-                return outcome.Outcome;
+                return outcome;
             }
         }
 

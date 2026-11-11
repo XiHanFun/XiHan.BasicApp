@@ -31,7 +31,7 @@ public sealed class FieldSecurityMiddleware(FieldSecurityBindings bindings) : IP
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(nextStep);
-        if (!context.GetOperation().TryGetValue(out var operation) || bindings.Find(operation.Id) is not { } binding || context.Services.GetService<IFieldSecurity>() is not { } security)
+        if (!context.FindOperation().TryGetValue(out var operation) || bindings.Find(operation.Id) is not { } binding || context.Services.GetService<IFieldSecurity>() is not { } security)
         {
             await nextStep(context).ConfigureAwait(false);
             return;
@@ -55,7 +55,7 @@ public sealed class FieldSecurityMiddleware(FieldSecurityBindings bindings) : IP
 
     private static async ValueTask<Error?> GuardAsync(InvocationContext context, OperationDescriptor operation, FieldSecurityBinding binding, FieldRules rules)
     {
-        if (!context.GetOperationRequest().TryGetValue(out var request))
+        if (!context.FindOperationRequest().TryGetValue(out var request))
         {
             return null;
         }

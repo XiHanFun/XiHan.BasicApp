@@ -294,14 +294,14 @@ public sealed class AuditingTests : IDisposable
         var writer = server.Services.GetRequiredService<AuditLogWriter>();
         Assert.True(writer.Enqueue(new SysLoginLog { Id = Guid.CreateVersion7(), TenantId = TenantIds.Platform, OccurredAt = old.UtcDateTime, TraceId = "old-trace", Event = LoginEvent.Login, Succeeded = true, UserName = "ghost" }));
         Assert.True(writer.Enqueue(new SysLoginLog { Id = Guid.CreateVersion7(), TenantId = "contoso", OccurredAt = old.UtcDateTime, TraceId = "old-trace", Event = LoginEvent.Logout, Succeeded = true, UserName = "ghost" }));
-        await server.Services.GetRequiredService<DatabaseAuditTrail>().WriteAsync(new AuditEvent(old, "tenants.update", Result.Success(), "old-trace"), CancellationToken.None);
+        await server.Services.GetRequiredService<DatabaseAuditTrail>().WriteAsync(new AuditEvent { Timestamp = old, Action = "tenants.update", Outcome = Result.Success(), TraceId = "old-trace" }, CancellationToken.None);
         await FlushAsync(server);
         Assert.Contains(await ListAsync(server, "login-logs", platform), l => l.GetProperty("userName").GetString() == "ghost");
 
         async Task<Result> RunAsync() => await SettingsTestHost.InvokeAsync(server, null, async ctx =>
         {
             var job = ctx.Services.GetRequiredService<AuditRetentionJob>();
-            return await job.RunAsync(JobRun.Create(AuditRetentionJob.Name, DateTimeOffset.UtcNow, JobTrigger.Manual), ctx, ctx.CancellationToken);
+            return await job.RunAsync(JobRun.Create(new JobName(AuditRetentionJob.Name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx);
         });
 
         // 缺省保留 180 天：一年多以前的分表日志（平台与租户两侧）与操作审计都被删，近期的留着
@@ -338,7 +338,7 @@ public sealed class AuditingTests : IDisposable
         ];
 
         // SqlSugar 分表插入的各组复用同一个模型：第一组回调之后，模型的行与值都会被下一组改掉
-        var model = new DiffLogModel { DiffType = DiffType.insert, BusinessData = new SqlSugarDiffLogData(typeof(SysUser), scope.ServiceProvider), AfterData = Row("1", "alice") };
+        var model = new DiffLogModel { DiffType = DiffType.insert, BusinessData = new SqlSugarDiffLogData { EntityType = typeof(SysUser), Services = scope.ServiceProvider }, AfterData = Row("1", "alice") };
         DiffLogBuffer.OnDiffLog(model);
         model.AfterData[0].Columns[1].Value = "mallory";
         model.AfterData = Row("2", "bob");

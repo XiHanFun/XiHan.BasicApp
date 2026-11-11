@@ -10,6 +10,7 @@ using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Instances;
@@ -168,9 +169,9 @@ public sealed class AccessPolicyProtocolsTests : IDisposable
         var id = await SettingsTestHost.InvokeAsync(server, null, async ctx =>
         {
             var catalog = ctx.Services.GetRequiredService<IWorkflowDefinitionCatalog>();
-            var definition = (await catalog.CreateAsync(WorkflowDefinitionBuilder.Create("protocols-delay").AddStart().AddDelay("wait", TimeSpan.FromMinutes(1)).AddEnd().AddTransition("start", "wait").AddTransition("wait", "end").Build(), ctx.CancellationToken)).ValueOrThrow();
+            var definition = (await catalog.CreateAsync(WorkflowDefinitionBuilder.Create(new WorkflowName("protocols-delay")).AddStart().AddDelay("wait", TimeSpan.FromMinutes(1)).AddEnd().AddTransition("start", "wait").AddTransition("wait", "end").Build(), ctx.CancellationToken)).ValueOrThrow();
             (await catalog.PublishAsync(definition.Id, ctx.CancellationToken)).ValueOrThrow();
-            return (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = "protocols-delay" }, ctx.CancellationToken)).ValueOrThrow().Id;
+            return (await ctx.Services.GetRequiredService<IWorkflowEngine>().StartAsync(new WorkflowStartRequest { Name = new WorkflowName("protocols-delay") }, ctx.CancellationToken)).ValueOrThrow().Id;
         });
         await DenyAllButTheTestClientAsync(server, platform);
 

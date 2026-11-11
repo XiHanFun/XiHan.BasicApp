@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS "audit_record" (
     "details_json" text NULL,
     CONSTRAINT "audit_record_pkey" PRIMARY KEY (id)
 );
+CREATE INDEX IF NOT EXISTS ix_audit_record_re_se ON public.audit_record USING btree (resource, sequence);
 CREATE INDEX IF NOT EXISTS ix_audit_record_se ON public.audit_record USING btree (sequence);
 CREATE INDEX IF NOT EXISTS ix_audit_record_teid_se ON public.audit_record USING btree (tenant_id, sequence);
 CREATE INDEX IF NOT EXISTS ix_audit_record_ti ON public.audit_record USING btree ("timestamp");
@@ -1032,6 +1033,7 @@ CREATE TABLE IF NOT EXISTS "sys_file_upload" (
     "bucket" character varying(63) NOT NULL,
     "key" character varying(1024) NOT NULL,
     "upload_id" character varying(1024) NOT NULL,
+    "overwrite" boolean DEFAULT false NOT NULL,
     "original_name" character varying(255) NOT NULL,
     "content_type" character varying(100) DEFAULT NULL::character varying NULL,
     "size" bigint DEFAULT '0'::bigint NOT NULL,

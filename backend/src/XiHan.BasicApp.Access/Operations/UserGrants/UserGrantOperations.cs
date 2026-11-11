@@ -9,7 +9,6 @@ using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Access.Operations.UserGrants;
 
@@ -42,7 +41,12 @@ public sealed class ListUserGrants(SideUsers users, Infrastructure.UserGrants gr
             return found.Error!;
         }
 
-        var granted = await grants.ListAsync(user.Id, owner, context.CancellationToken).ConfigureAwait(false);
+        var listed = await grants.ListAsync(user.Id, owner, context.CancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var granted))
+        {
+            return listed.Error!;
+        }
+
         var ruleRows = (await rules.ListAsync(owner, GrantSubjectKind.User, user.Id, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static r => r.Permission, StringComparer.Ordinal);
         var items = granted
             .Select(p => ruleRows.TryGetValue(p, out var rule) && rule.Action == PermissionAction.Grant
@@ -116,7 +120,7 @@ public sealed class DenyUser(SideUsers users, PermissionCatalog catalog, Infrast
             await grants.RevokeAsync(user.Id, owner, permissions, ct).ConfigureAwait(false);
             (await rules.SetAsync(owner, GrantSubjectKind.User, user.Id, permissions, PermissionAction.Deny, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
             (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, permissions, PermissionAction.Grant, ct).ConfigureAwait(false)).ThrowIfFailure();
-            return permissions.Select(p => new PermissionGrantResult(new XiHan.Framework.Security.Abstractions.Permissions.PermissionGrant(Infrastructure.UserGrants.SubjectOf(user.Id), p, Infrastructure.UserGrants.TenantOf(owner)), Result.Success())).ToList();
+            return permissions.Select(p => new PermissionOutcome(new XiHan.Framework.Security.Abstractions.Permissions.PermissionGrant(Infrastructure.UserGrants.SubjectOf(user.Id), p, Infrastructure.UserGrants.TenantOf(owner)), Result.Success())).ToList();
         }).ConfigureAwait(false);
     }
 }

@@ -70,8 +70,8 @@ public sealed class AccessFeature : IFeature
         {
             Pipeline =
             [
-                new PipelineContribution(typeof(AccessPolicyMiddleware).FullName!, PipelineStage.Tenant, After: [typeof(TenantResolutionMiddleware).FullName!]),
-                new PipelineContribution(typeof(PermissionConditionMiddleware).FullName!, PipelineStage.Authorize, After: [typeof(AuthorizationMiddleware).FullName!]),
+                new PipelineContribution(typeof(AccessPolicyMiddleware).FullName!, PipelineStage.Tenant) { After = [typeof(TenantResolutionMiddleware).FullName!] },
+                new PipelineContribution(typeof(PermissionConditionMiddleware).FullName!, PipelineStage.Authorize) { After = [typeof(AuthorizationMiddleware).FullName!] },
             ],
             Permissions = AccessPermissions.All.Select(static p => p.Code).ToList(),
         },

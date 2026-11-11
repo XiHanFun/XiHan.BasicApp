@@ -65,7 +65,7 @@ public static class AccessRequests
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(attempt);
         var (origin, method, path) = TargetOf(context);
-        var operation = context.GetOperation().TryGetValue(out var found) ? found : null;
+        var operation = context.FindOperation().TryGetValue(out var found) ? found : null;
         return new ConditionRequest(
             attempt.TenantId,
             attempt.UserId,
@@ -99,7 +99,7 @@ public static class AccessRequests
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(roleIds);
         var (origin, method, path) = TargetOf(context);
-        var operation = context.GetOperation().TryGetValue(out var found) ? found : null;
+        var operation = context.FindOperation().TryGetValue(out var found) ? found : null;
         return new ConditionRequest(owner, userId, userName, false, [.. roleIds], [], path, method, operation?.Id, origin?.RemoteAddress, origin?.UserAgent, origin?.Protocol, now);
     }
 
@@ -112,14 +112,14 @@ public static class AccessRequests
     public static ConditionRequest Current(InvocationContext context, SecurityOptions options, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(context);
-        var operation = context.GetOperation().TryGetValue(out var found) ? found : null;
+        var operation = context.FindOperation().TryGetValue(out var found) ? found : null;
         return From(context, ClaimedRoles(context, options), operation?.Contract.Permission is { } permission ? [permission] : [], operation?.Id, now);
     }
 
     // HTTP 的请求目标是「方法 路径」，其他协议只有目标
     private static (InvocationOrigin? Origin, string? Method, string? Path) TargetOf(InvocationContext context)
     {
-        var origin = context.GetOrigin().TryGetValue(out var found) ? found : null;
+        var origin = context.FindOrigin().TryGetValue(out var found) ? found : null;
         if (origin is not null && origin.Protocol == InvocationProtocols.Http && origin.Target.IndexOf(' ', StringComparison.Ordinal) is var space and > 0)
         {
             return (origin, origin.Target[..space], origin.Target[(space + 1)..]);

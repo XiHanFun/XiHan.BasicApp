@@ -253,7 +253,7 @@ public sealed partial class AuditLogWriter : IDisposable
         }
 
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: tenantId), CancellationToken.None).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = tenantId }, CancellationToken.None).ConfigureAwait(false);
         try
         {
             var results = await AddAsync(type, scope.ServiceProvider, records).ConfigureAwait(false);

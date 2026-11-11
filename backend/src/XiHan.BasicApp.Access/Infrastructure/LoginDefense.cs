@@ -59,7 +59,7 @@ public sealed partial class LoginDefense(AccessPolicies policies, AccessPolicyEv
     {
         ArgumentNullException.ThrowIfNull(context);
         if (context.Items.ContainsKey(AccessPolicyMiddleware.PlatformAllowedKey)
-            || !context.GetOrigin().TryGetValue(out var origin)
+            || !context.FindOrigin().TryGetValue(out var origin)
             || string.IsNullOrWhiteSpace(origin.RemoteAddress))
         {
             return;

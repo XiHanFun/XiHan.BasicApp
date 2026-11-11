@@ -24,10 +24,11 @@ public sealed class OAuthCleanupJob(TimeProvider clock) : IJob
     public const string Name = "openplatform.oauth-cleanup";
 
     /// <inheritdoc />
-    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context, CancellationToken cancellationToken)
+    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
         var now = clock.GetUtcNow();
         var codesBefore = now.AddDays(-1);
         var tokensBefore = now.AddDays(-7);

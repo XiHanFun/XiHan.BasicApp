@@ -365,7 +365,7 @@ public sealed class ChatTests : IDisposable
             var past = DateTimeOffset.UtcNow.AddDays(-31);
             return await unitOfWork.ConnectionFor(typeof(SysChatMessage)).Updateable<SysChatMessage>().SetColumns(m => new SysChatMessage { CreatedAt = past }).Where(m => m.Id == oldId).ExecuteCommandAsync(ctx.CancellationToken);
         });
-        var ran = await SettingsTestHost.InvokeAsync(server, null, async ctx => await ctx.Services.GetRequiredService<ChatRetentionJob>().RunAsync(JobRun.Create(ChatRetentionJob.Name, DateTimeOffset.UtcNow, JobTrigger.Manual), ctx, ctx.CancellationToken));
+        var ran = await SettingsTestHost.InvokeAsync(server, null, async ctx => await ctx.Services.GetRequiredService<ChatRetentionJob>().RunAsync(JobRun.Create(new JobName(ChatRetentionJob.Name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx));
         Assert.True(ran.IsSuccess, ran.Error?.Code);
         var remaining = await HistoryAsync(server, alice, conversation);
         Assert.Equal("a recent message", Assert.Single(remaining).GetProperty("content").GetString());

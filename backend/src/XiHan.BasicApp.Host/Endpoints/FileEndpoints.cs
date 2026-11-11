@@ -220,7 +220,7 @@ internal static class FileEndpoints
     /// 端点的调用上下文（端点都在框架管道里执行，一定有）
     /// </summary>
     internal static InvocationContext ContextOf(HttpContext http)
-        => http.GetXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The file endpoints must run inside the XiHan pipeline.");
+        => http.FindXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The file endpoints must run inside the XiHan pipeline.");
 
     private static string? Clip(string? value, int length)
     {

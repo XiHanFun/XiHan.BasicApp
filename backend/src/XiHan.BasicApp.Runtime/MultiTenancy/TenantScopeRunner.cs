@@ -26,7 +26,7 @@ public sealed class TenantScopeRunner(App app, IServiceScopeFactory scopes) : IT
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentNullException.ThrowIfNull(action);
         await using var scope = scopes.CreateAsyncScope();
-        var context = App.CreateContext(scope.ServiceProvider, cancellationToken, baggage: new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Tenant] = tenantId });
+        var context = App.CreateContext(scope.ServiceProvider, new InvocationContextOptions { Baggage = new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Tenant] = tenantId } }, cancellationToken);
         return await app.InvokeAsync(context, async ctx => ctx.SetOutcome(await action(ctx).ConfigureAwait(false))).ConfigureAwait(false);
     }
 }

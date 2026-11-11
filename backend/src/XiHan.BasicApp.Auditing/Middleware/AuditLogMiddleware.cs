@@ -53,7 +53,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(nextStep);
-        var operation = context.GetOperation().TryGetValue(out var descriptor) ? descriptor : null;
+        var operation = context.FindOperation().TryGetValue(out var descriptor) ? descriptor : null;
         if (operation is not null && audited.IsAudited(operation))
         {
             context.SetAuditAction(operation.Id);
@@ -82,7 +82,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         var occurredAt = clock.GetUtcNow().UtcDateTime;
         var outcome = OutcomeOf(context, thrown);
         var caller = AuditCaller.From(context);
-        var origin = context.GetOrigin().TryGetValue(out var source) ? source : null;
+        var origin = context.FindOrigin().TryGetValue(out var source) ? source : null;
         var (method, path) = TargetOf(origin);
         var agent = UserAgentInfo.Parse(origin?.UserAgent);
         // 普通端点没有操作描述：身份取框架带进上下文的端点名（ADR-0048），授权阶段就被拒的调用也认得出；执行到了的由宿主的端点过滤器补记实际状态码，
@@ -92,7 +92,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         var target = operation?.Id ?? endpoint?.Id ?? named;
 
         // 操作审计的细节：框架的审计中间件在本中间件返回之后才写事件
-        if (context.GetAuditAction().HasValue)
+        if (context.FindAuditAction().HasValue)
         {
             context.AddAuditDetail("durationMs", durationMs);
             context.AddAuditDetail("userName", caller.UserName);
@@ -282,7 +282,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
     /// </remarks>
     private static Result OutcomeOf(InvocationContext context, Exception? thrown)
     {
-        if (context.GetOutcome().TryGetValue(out var written))
+        if (context.FindOutcome().TryGetValue(out var written))
         {
             return written;
         }

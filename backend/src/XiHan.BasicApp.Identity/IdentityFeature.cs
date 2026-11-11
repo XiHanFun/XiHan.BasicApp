@@ -63,7 +63,7 @@ public sealed class IdentityFeature : IFeature
         ],
         Contributes = new Contributions
         {
-            Pipeline = [new PipelineContribution(typeof(SessionGateMiddleware).FullName!, PipelineStage.Authenticate, After: [typeof(AuthenticationMiddleware).FullName!])],
+            Pipeline = [new PipelineContribution(typeof(SessionGateMiddleware).FullName!, PipelineStage.Authenticate) { After = [typeof(AuthenticationMiddleware).FullName!] }],
             Permissions = IdentityPermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(IdentityFeature).FullName,

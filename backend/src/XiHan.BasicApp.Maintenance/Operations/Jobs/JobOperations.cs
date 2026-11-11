@@ -37,7 +37,7 @@ public sealed class ListJobs(IJobScheduler scheduler) : IOperation<PageRequest, 
             return denied;
         }
 
-        var statuses = await scheduler.StatusesAsync(context.CancellationToken).ConfigureAwait(false);
+        var statuses = await JobViews.AllStatusesAsync(scheduler, context.CancellationToken).ConfigureAwait(false);
         if (!statuses.TryGetValue(out var all))
         {
             return statuses.Error!;
@@ -290,7 +290,7 @@ internal static class JobBatches
             return denied;
         }
 
-        var statuses = await scheduler.StatusesAsync(context.CancellationToken).ConfigureAwait(false);
+        var statuses = await JobViews.AllStatusesAsync(scheduler, context.CancellationToken).ConfigureAwait(false);
         if (!statuses.TryGetValue(out var all))
         {
             return statuses.Error!;

@@ -22,6 +22,7 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Scheduling.Abstractions;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Scheduling.Abstractions.Schedules;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Security.Abstractions.Authentication;
@@ -61,7 +62,7 @@ public sealed class OpenPlatformFeature : IFeature
         Contributes = new Contributions
         {
             Permissions = OpenPlatformPermissions.All.Select(static p => p.Code).ToList(),
-            Pipeline = [new PipelineContribution(typeof(RequestSigningMiddleware).FullName!, PipelineStage.Authenticate, After: [typeof(AuthenticationMiddleware).FullName!])],
+            Pipeline = [new PipelineContribution(typeof(RequestSigningMiddleware).FullName!, PipelineStage.Authenticate) { After = [typeof(AuthenticationMiddleware).FullName!] }],
         },
         Entry = typeof(OpenPlatformFeature).FullName,
     };
@@ -79,7 +80,7 @@ public sealed class OpenPlatformFeature : IFeature
         context.Services.AddScoped<OAuthAuthorizer>();
         context.Services.AddScoped<OAuthTokenService>();
         context.Services.AddSingleton<OAuthSigningKeys>();
-        context.Services.AddJob<OAuthCleanupJob>(OAuthCleanupJob.Name, JobSchedule.FromCron("30 3 * * *"));
+        context.Services.AddJob<OAuthCleanupJob>(new JobName(OAuthCleanupJob.Name), JobSchedule.FromCron("30 3 * * *"));
         context.Services.AddPermissionCatalog("openplatform", OpenPlatformPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         OpenPlatformFieldSecurity.Register(context.Services);

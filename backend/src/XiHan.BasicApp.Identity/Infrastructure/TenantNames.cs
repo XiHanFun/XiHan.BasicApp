@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
@@ -16,16 +17,21 @@ public static class TenantNames
     /// <summary>
     /// 取 <paramref name="tenantId"/> 的显示名
     /// </summary>
-    /// <returns>显示名；平台（<see langword="null"/>）或目录里没有即 <see langword="null"/></returns>
-    public static async ValueTask<string?> ResolveAsync(ITenantStore tenants, string? tenantId, CancellationToken cancellationToken)
+    /// <returns>显示名；平台（<see langword="null"/>）、目录里没有或没起显示名即无值，目录读不到即失败</returns>
+    public static async ValueTask<Result<Maybe<string>>> ResolveAsync(ITenantStore tenants, string? tenantId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(tenants);
         if (tenantId is null)
         {
-            return null;
+            return Maybe.None<string>();
         }
 
         var found = await tenants.FindAsync(tenantId, cancellationToken).ConfigureAwait(false);
-        return found.TryGetValue(out var info) ? info.DisplayName : null;
+        if (!found.TryGetValue(out var info))
+        {
+            return found.Error!;
+        }
+
+        return info.TryGetValue(out var tenant) ? Maybe.From(tenant.DisplayName) : Maybe.None<string>();
     }
 }

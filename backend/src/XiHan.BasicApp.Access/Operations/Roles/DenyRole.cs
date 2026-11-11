@@ -8,7 +8,6 @@ using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Permissions;
-using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
@@ -50,7 +49,7 @@ public sealed class DenyRole(RoleService service, PermissionCatalog catalog, Rol
             await grants.RevokeAsync(role, permissions, ct).ConfigureAwait(false);
             (await rules.SetAsync(owner, GrantSubjectKind.Role, role.Id, permissions, PermissionAction.Deny, request.EffectiveAt, request.ExpiresAt, request.Reason, ct).ConfigureAwait(false)).ThrowIfFailure();
             (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.Role, role.Id, permissions, PermissionAction.Grant, ct).ConfigureAwait(false)).ThrowIfFailure();
-            return permissions.Select(p => new PermissionGrantResult(new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role)), Result.Success())).ToList();
+            return permissions.Select(p => new PermissionOutcome(new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role)), Result.Success())).ToList();
         }).ConfigureAwait(false);
     }
 }

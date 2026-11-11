@@ -141,7 +141,7 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
     /// </summary>
     /// <remarks>
     /// Redis 的列键是 SCAN：每次只扫一段、页大小只是提示值，前缀稀疏时一次可能一个都没有。本页没满且这一层还有续页就接着列，
-    /// 提示值取还差的个数、扫空一段就加倍（上限 <see cref="CacheKeyQuery.MaxLimit"/>），直到攒满、列完或往返次数到 <see cref="MaxRounds"/>
+    /// 提示值取还差的个数、扫空一段就加倍（上限 <see cref="CacheKeyQuery.MaxPageSize"/>），直到攒满、列完或往返次数到 <see cref="MaxRounds"/>
     /// （到了仍没满就带着续页标记返回，标记的写法不变）；进程内的存储一次就按页大小给满
     /// 同一批不拆开，所以 Redis 下一页仍可能比请求的多几个；同一页内按键与层去重。列键失败（如每页上限越界 <c>CACHING_VALIDATION_003</c>）原样返回，已攒的不作数
     /// </remarks>
@@ -195,14 +195,14 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
             {
                 _rounds++;
                 hint = Math.Max(limit - _items.Count, hint);
-                var listed = await list(new CacheKeyQuery { Prefix = prefix, Limit = hint, Continuation = Continuation }, cancellationToken).ConfigureAwait(false);
+                var listed = await list(new CacheKeyQuery { Prefix = prefix, PageSize = hint, ContinuationToken = Continuation }, cancellationToken).ConfigureAwait(false);
                 if (!listed.TryGetValue(out var page))
                 {
                     return Result.Failure(listed.Error!);
                 }
 
                 var added = 0;
-                foreach (var key in page.Keys)
+                foreach (var key in page.Items)
                 {
                     var item = new CacheKeyItem(key.Value, layer);
                     if (_seen.Add(item))
@@ -215,10 +215,10 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
                 // 前缀稀疏时 SCAN 一段可能一个都没有：扫空了下一段加倍；键在散列表里分布均匀，加倍后一段的命中数仍是个位数
                 if (added == 0)
                 {
-                    hint = Math.Min(hint * 2, CacheKeyQuery.MaxLimit);
+                    hint = Math.Min(hint * 2, CacheKeyQuery.MaxPageSize);
                 }
 
-                Continuation = page.Continuation;
+                Continuation = page.ContinuationToken;
                 if (Continuation is null)
                 {
                     break;
@@ -434,12 +434,24 @@ public sealed class DeleteCacheByPrefix(ISharedCache cache, IEnumerable<CacheNam
         var removed = 0L;
         if (scope.Objects is { } objects)
         {
-            removed += await objects.RemoveByPrefixAsync(request.Prefix, context.CancellationToken).ConfigureAwait(false);
+            var objectsRemoved = await objects.RemoveByPrefixAsync(request.Prefix, context.CancellationToken).ConfigureAwait(false);
+            if (!objectsRemoved.TryGetValue(out var count))
+            {
+                return objectsRemoved.Error!;
+            }
+
+            removed += count;
         }
 
         if (scope.Store is { } store)
         {
-            removed += await store.RemoveByPrefixAsync(request.Prefix, context.CancellationToken).ConfigureAwait(false);
+            var storeRemoved = await store.RemoveByPrefixAsync(request.Prefix, context.CancellationToken).ConfigureAwait(false);
+            if (!storeRemoved.TryGetValue(out var count))
+            {
+                return storeRemoved.Error!;
+            }
+
+            removed += count;
         }
 
         return new CachePrefixDeleteResult(removed);

@@ -77,7 +77,7 @@ public sealed class WorkflowDemoSeeder(ITenantScopeRunner runner, SeedOptions op
         var ids = users.ToDictionary(static u => u.UserName, static u => WorkflowIds.ToEngineUser(u.Id), StringComparer.Ordinal);
         foreach (var name in Names)
         {
-            var existing = await catalog.QueryAsync(new WorkflowDefinitionQuery { Name = new WorkflowName(name), Limit = 1 }, context.CancellationToken).ConfigureAwait(false);
+            var existing = await catalog.QueryAsync(new WorkflowDefinitionQuery { Name = new WorkflowName(name), Take = 1 }, context.CancellationToken).ConfigureAwait(false);
             if (!existing.TryGetValue(out var page))
             {
                 return existing.ToResult();

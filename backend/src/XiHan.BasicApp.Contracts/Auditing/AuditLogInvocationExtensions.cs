@@ -27,7 +27,7 @@ public static class AuditLogInvocationExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(entry);
-        if (!context.Get(_entriesKey).TryGetValue(out var entries))
+        if (!context.Find(_entriesKey).TryGetValue(out var entries))
         {
             entries = [];
             context.Set(_entriesKey, entries);
@@ -43,6 +43,6 @@ public static class AuditLogInvocationExtensions
     public static IReadOnlyList<AuditLogEntry> GetAuditLogs(this InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.Get(_entriesKey).TryGetValue(out var entries) ? entries : [];
+        return context.Find(_entriesKey).TryGetValue(out var entries) ? entries : [];
     }
 }

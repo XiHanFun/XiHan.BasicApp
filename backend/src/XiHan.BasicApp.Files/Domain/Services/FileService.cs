@@ -13,6 +13,7 @@ using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.ObjectStorage.Abstractions;
 using XiHan.Framework.ObjectStorage.Abstractions.Blobs;
+using XiHan.Framework.ObjectStorage.Abstractions.Keys;
 using XiHan.Framework.ObjectStorage.Abstractions.Signing;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.SqlSugar;
@@ -250,7 +251,7 @@ public sealed partial class FileService(
         }
 
         var request = BlobUrlRequest.ForDownload(span, download || !FileKinds.IsInlineSafe(file.ContentType) ? file.OriginalName : null);
-        var signed = await stores.SignerOf(target.Config, target.Store).SignAsync(target.Storage.Bucket, target.Storage.Key, request, cancellationToken).ConfigureAwait(false);
+        var signed = await stores.SignerOf(target.Config, target.Store).SignAsync(new ContainerName(target.Storage.Bucket), new BlobKey(target.Storage.Key), request, cancellationToken).ConfigureAwait(false);
         if (!signed.TryGetValue(out var url))
         {
             return signed.Error!;
@@ -281,8 +282,8 @@ public sealed partial class FileService(
         }
 
         var opened = range is null
-            ? await target.Store.GetAsync(target.Storage.Bucket, target.Storage.Key, cancellationToken).ConfigureAwait(false)
-            : await target.Store.GetAsync(target.Storage.Bucket, target.Storage.Key, range, cancellationToken).ConfigureAwait(false);
+            ? await target.Store.GetAsync(new ContainerName(target.Storage.Bucket), new BlobKey(target.Storage.Key), cancellationToken).ConfigureAwait(false)
+            : await target.Store.GetAsync(new ContainerName(target.Storage.Bucket), new BlobKey(target.Storage.Key), range, cancellationToken).ConfigureAwait(false);
         if (opened.IsFailure)
         {
             return opened.Error!;
@@ -517,7 +518,7 @@ public sealed partial class FileService(
         }
 
         string? problem;
-        var opened = await blobs.GetAsync(storage.Bucket, storage.Key, cancellationToken).ConfigureAwait(false);
+        var opened = await blobs.GetAsync(new ContainerName(storage.Bucket), new BlobKey(storage.Key), cancellationToken).ConfigureAwait(false);
         if (opened.TryGetValue(out var blob))
         {
             await using (blob.ConfigureAwait(false))
@@ -670,7 +671,7 @@ public sealed partial class FileService(
         var reused = await ReuseAsync(upload.TenantId, hash, upload.Size, upload.OriginalName, upload.ContentType, details, SourceUpload, cancellationToken).ConfigureAwait(false);
         if (reused.TryGetValue(out var copy))
         {
-            var removed = await store.DeleteAsync(upload.Bucket, upload.Key, cancellationToken).ConfigureAwait(false);
+            var removed = await store.DeleteAsync(new ContainerName(upload.Bucket), new BlobKey(upload.Key), cancellationToken).ConfigureAwait(false);
             if (removed.Error is { } error)
             {
                 LogDuplicateNotRemoved(logger, upload.Id, upload.Bucket, upload.Key, error.Code);
@@ -887,7 +888,7 @@ public sealed partial class FileService(
         var source = new FileStream(temp, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
         await using (source.ConfigureAwait(false))
         {
-            var written = await blobs.PutAsync(config.Bucket, key, source, put, cancellationToken).ConfigureAwait(false);
+            var written = await blobs.PutAsync(new ContainerName(config.Bucket), new BlobKey(key), source, put, cancellationToken).ConfigureAwait(false);
             if (written.IsFailure)
             {
                 return written.Error!;
@@ -956,7 +957,7 @@ public sealed partial class FileService(
         var error = store.Error;
         if (store.TryGetValue(out var blobs))
         {
-            var removed = await blobs.DeleteAsync(copy.Bucket, copy.Key, cancellationToken).ConfigureAwait(false);
+            var removed = await blobs.DeleteAsync(new ContainerName(copy.Bucket), new BlobKey(copy.Key), cancellationToken).ConfigureAwait(false);
             error = removed.Error;
         }
 

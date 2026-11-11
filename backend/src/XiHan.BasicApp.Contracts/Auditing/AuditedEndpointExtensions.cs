@@ -37,7 +37,7 @@ public static class AuditedEndpointExtensions
     public static void SetAuditedEndpointStatus(this InvocationContext context, int statusCode)
     {
         ArgumentNullException.ThrowIfNull(context);
-        if (context.Get(_endpointKey).TryGetValue(out var endpoint))
+        if (context.Find(_endpointKey).TryGetValue(out var endpoint))
         {
             endpoint.StatusCode = statusCode;
         }
@@ -51,7 +51,7 @@ public static class AuditedEndpointExtensions
     public static Maybe<AuditedEndpoint> GetAuditedEndpoint(this InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return context.Get(_endpointKey);
+        return context.Find(_endpointKey);
     }
 }
 

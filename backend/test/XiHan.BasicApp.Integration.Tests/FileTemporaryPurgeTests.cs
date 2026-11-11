@@ -66,7 +66,7 @@ public sealed class FileTemporaryPurgeTests : IDisposable
         => SettingsTestHost.InvokeAsync(server, null, async ctx =>
         {
             var job = ctx.Services.GetRequiredService<TemporaryFilePurgeJob>();
-            return await job.RunAsync(JobRun.Create(TemporaryFilePurgeJob.Name, DateTimeOffset.UtcNow, JobTrigger.Manual), ctx, ctx.CancellationToken);
+            return await job.RunAsync(JobRun.Create(new JobName(TemporaryFilePurgeJob.Name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx);
         });
 
     private static async Task<HttpStatusCode> StatusOfAsync(BasicAppTestServer server, string token, Guid id)

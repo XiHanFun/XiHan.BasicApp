@@ -43,14 +43,21 @@ public sealed partial class TemporaryFilePurgeJob(TenantSides sides, IServiceSco
     public static JobSchedule Schedule { get; } = JobSchedule.FromCron("45 * * * *");
 
     /// <inheritdoc />
-    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context, CancellationToken cancellationToken)
+    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
         var purged = 0;
         var failures = 0;
         var deferred = 0;
-        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
+        var listedSides = await sides.ListAsync(cancellationToken).ConfigureAwait(false);
+        if (!listedSides.TryGetValue(out var sideIds))
+        {
+            return listedSides.Error!;
+        }
+
+        foreach (var side in sideIds)
         {
             try
             {
@@ -92,7 +99,7 @@ public sealed partial class TemporaryFilePurgeJob(TenantSides sides, IServiceSco
         // 独立库的租户：先按租户目录绑定分片，处理的是它自己的库
         (await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(side, cancellationToken).ConfigureAwait(false)).ToResult().ThrowIfFailure();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: side), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = side }, cancellationToken).ConfigureAwait(false);
         try
         {
             var count = await scope.ServiceProvider.GetRequiredService<FileService>().PurgeExpiredAsync(side, cancellationToken).ConfigureAwait(false);

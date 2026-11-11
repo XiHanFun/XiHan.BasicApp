@@ -108,7 +108,12 @@ public sealed class StopImpersonation(
         var roles = await accounts.RolesOfAsync(actor.Id, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var active = await activators.RefreshAsync(origin.Id, actor.Id, origin.ActiveTenantId, roles, context).ConfigureAwait(false);
         var access = issuer.Issue(actor, origin.Id, origin.ActiveTenantId, active);
-        var tenantName = await TenantNames.ResolveAsync(tenants, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, origin.RefreshExpiresAt, origin.Id, origin.ActiveTenantId, origin.IsPasswordChangeRequired(), UserResponse.From(actor), tenantName);
+        var resolvedName = await TenantNames.ResolveAsync(tenants, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
+        if (!resolvedName.TryGetValue(out var tenantName))
+        {
+            return resolvedName.Error!;
+        }
+
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, origin.RefreshExpiresAt, origin.Id, origin.ActiveTenantId, origin.IsPasswordChangeRequired(), UserResponse.From(actor), tenantName.TryGetValue(out var displayName) ? displayName : null);
     }
 }

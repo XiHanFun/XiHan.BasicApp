@@ -44,7 +44,7 @@ public sealed class WorkflowOwnTasks(IWorkflowTaskService tasks, IWorkflowEngine
             return notFound;
         }
 
-        var pending = await tasks.PendingAsync(me, context.CancellationToken).ConfigureAwait(false);
+        var pending = await PendingTasks.OfAssigneeAsync(tasks, me, context.CancellationToken).ConfigureAwait(false);
         if (!pending.TryGetValue(out var mine))
         {
             return pending.Error!;

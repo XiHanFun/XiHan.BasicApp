@@ -42,10 +42,11 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, TenantSides side
     public static JobSchedule Schedule { get; } = JobSchedule.FromCron("0 4 * * *");
 
     /// <inheritdoc />
-    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context, CancellationToken cancellationToken)
+    public async ValueTask<Result> RunAsync(JobRun run, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
         var settings = await policy.ReadAsync(context).ConfigureAwait(false);
         if (!settings.TryGetValue(out var configured))
         {
@@ -56,7 +57,13 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, TenantSides side
         var removedMessages = 0L;
         var removedReactions = 0L;
         var failures = 0;
-        foreach (var side in await sides.ListAsync(cancellationToken).ConfigureAwait(false))
+        var listedSides = await sides.ListAsync(cancellationToken).ConfigureAwait(false);
+        if (!listedSides.TryGetValue(out var sideIds))
+        {
+            return listedSides.Error!;
+        }
+
+        foreach (var side in sideIds)
         {
             try
             {
@@ -86,7 +93,7 @@ public sealed partial class ChatRetentionJob(ChatPolicy policy, TenantSides side
         await using var scope = scopes.CreateAsyncScope();
         (await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(side, cancellationToken).ConfigureAwait(false)).ToResult().ThrowIfFailure();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<SqlSugarUnitOfWork>();
-        await unitOfWork.BeginAsync(new UnitOfWorkOptions(TenantId: side), cancellationToken).ConfigureAwait(false);
+        await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = side }, cancellationToken).ConfigureAwait(false);
         try
         {
             var client = unitOfWork.ConnectionFor(typeof(SysChatMessage));

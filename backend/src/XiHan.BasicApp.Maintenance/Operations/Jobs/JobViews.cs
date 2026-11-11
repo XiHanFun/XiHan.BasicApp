@@ -7,6 +7,7 @@ using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Scheduling.Abstractions.Jobs;
+using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 using XiHan.Framework.Scheduling.Abstractions.Schedules;
 
 namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
@@ -34,6 +35,30 @@ internal static class JobViews
         => context.GetSecurity().Tenant is null ? null : Error.Denied(MaintenanceErrors.PlatformOnly, MaintenanceMessages.PlatformOnly);
 
     /// <summary>
+    /// 逐页读完全部作业的状态
+    /// </summary>
+    public static async ValueTask<Result<IReadOnlyList<JobStatus>>> AllStatusesAsync(IJobScheduler scheduler, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(scheduler);
+        var statuses = new List<JobStatus>();
+        string? token = null;
+        do
+        {
+            var page = await scheduler.ListStatusesAsync(new JobStatusQuery { PageSize = JobStatusQuery.MaxPageSize, ContinuationToken = token }, cancellationToken).ConfigureAwait(false);
+            if (!page.TryGetValue(out var value))
+            {
+                return page.Error!;
+            }
+
+            statuses.AddRange(value.Items);
+            token = value.ContinuationToken;
+        }
+        while (token is not null);
+
+        return statuses;
+    }
+
+    /// <summary>
     /// 作业不存在的错误
     /// </summary>
     public static Error NotFound(string name)
@@ -55,7 +80,7 @@ internal static class JobViews
             t.Schedule.ToString(),
             t.Schedule.Kind,
             t.Schedule.Cron?.ToString(),
-            t.Schedule.Kind == JobScheduleKind.Interval ? (long)t.Schedule.Interval.TotalSeconds : null,
+            t.Schedule.Interval is { } interval ? (long)interval.TotalSeconds : null,
             t.Schedule.TimeZoneId,
             t.State,
             t.NextFireAt,

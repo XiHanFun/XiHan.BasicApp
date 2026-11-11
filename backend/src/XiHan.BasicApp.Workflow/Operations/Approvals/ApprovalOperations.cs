@@ -124,7 +124,7 @@ public sealed class ListStartedApprovals(IWorkflowEngine engine, IWorkflowTaskSe
         var pending = new Dictionary<string, IReadOnlyList<UserTask>>(StringComparer.Ordinal);
         foreach (var instance in instances.Where(static i => i.Status == WorkflowInstanceStatus.Running))
         {
-            var waiting = await tasks.PendingByInstanceAsync(instance.Id, context.CancellationToken).ConfigureAwait(false);
+            var waiting = await PendingTasks.OfInstanceAsync(tasks, instance.Id, context.CancellationToken).ConfigureAwait(false);
             if (!waiting.TryGetValue(out var list))
             {
                 return waiting.Error!;
@@ -197,7 +197,7 @@ public sealed class GetApproval(IWorkflowEngine engine, IWorkflowTaskService tas
             return found.Error!;
         }
 
-        var waiting = await tasks.PendingByInstanceAsync(instance.Id, context.CancellationToken).ConfigureAwait(false);
+        var waiting = await PendingTasks.OfInstanceAsync(tasks, instance.Id, context.CancellationToken).ConfigureAwait(false);
         if (!waiting.TryGetValue(out var pending))
         {
             return waiting.Error!;

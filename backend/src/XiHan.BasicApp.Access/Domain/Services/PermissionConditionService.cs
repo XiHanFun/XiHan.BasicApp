@@ -94,9 +94,13 @@ public sealed class PermissionConditionService(
             return subject.Error!;
         }
 
-        var granted = role.TryGetValue(out var found)
+        var listed = role.TryGetValue(out var found)
             ? await roleGrants.ListAsync(found, cancellationToken).ConfigureAwait(false)
             : await userGrants.ListAsync(subjectId, owner, cancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var granted))
+        {
+            return listed.Error!;
+        }
         var ruleRows = await rules.ListAsync(owner, kind, subjectId, cancellationToken).ConfigureAwait(false);
         var grantRules = ruleRows.Where(static r => r.Action == PermissionAction.Grant).ToDictionary(static r => r.Permission, StringComparer.Ordinal);
         IReadOnlyList<(string, PermissionAction, DateTimeOffset?, DateTimeOffset?)> bindings =

@@ -3,7 +3,6 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
-using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Abstractions.Permissions;
 using XiHan.Framework.Security.Database.Grants;
@@ -22,33 +21,40 @@ public sealed class RoleGrants(PermissionGrantRecordStore store)
     /// <summary>
     /// 角色当前的全部权限码
     /// </summary>
-    public async Task<IReadOnlyList<string>> ListAsync(SysRole role, CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<string>>> ListAsync(SysRole role, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);
-        var rows = await store.ListAsync(RoleService.SubjectOf(role), tenantId: null, skip: 0, take: EntityQuery.DefaultMaxTake, cancellationToken).ConfigureAwait(false);
-        return rows.Select(static r => r.Permission).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        var listed = await store.ListAsync(new PermissionGrantQuery { Subject = RoleService.SubjectOf(role), Take = PermissionGrantQuery.MaxTake }, cancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var page))
+        {
+            return listed.Error!;
+        }
+
+        return page.Items.Select(static g => g.Permission).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
     }
 
     /// <summary>
     /// 给角色授予权限
     /// </summary>
     /// <returns>逐项结果与入参同序</returns>
-    public ValueTask<IReadOnlyList<PermissionGrantResult>> GrantAsync(SysRole role, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyList<PermissionOutcome>> GrantAsync(SysRole role, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);
         ArgumentNullException.ThrowIfNull(permissions);
-        return store.GrantAsync(permissions.Select(p => new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role))).ToList(), cancellationToken);
+        var grants = permissions.Select(p => new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role))).ToList();
+        return PermissionOutcome.Zip(grants, await store.GrantAsync(grants, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
     /// 撤销角色的权限
     /// </summary>
     /// <returns>逐项结果与入参同序（没有的授予是 NotFound）</returns>
-    public ValueTask<IReadOnlyList<PermissionGrantResult>> RevokeAsync(SysRole role, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyList<PermissionOutcome>> RevokeAsync(SysRole role, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);
         ArgumentNullException.ThrowIfNull(permissions);
-        return store.RevokeAsync(permissions.Select(p => new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role))).ToList(), cancellationToken);
+        var grants = permissions.Select(p => new PermissionGrant(RoleService.SubjectOf(role), p, RoleService.GrantTenantOf(role))).ToList();
+        return PermissionOutcome.Zip(grants, await store.RevokeAsync(grants, cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
@@ -56,7 +62,12 @@ public sealed class RoleGrants(PermissionGrantRecordStore store)
     /// </summary>
     public async Task<Result> RevokeAllAsync(SysRole role, CancellationToken cancellationToken)
     {
-        var current = await ListAsync(role, cancellationToken).ConfigureAwait(false);
+        var listed = await ListAsync(role, cancellationToken).ConfigureAwait(false);
+        if (!listed.TryGetValue(out var current))
+        {
+            return listed.Error!;
+        }
+
         if (current.Count == 0)
         {
             return Result.Success();

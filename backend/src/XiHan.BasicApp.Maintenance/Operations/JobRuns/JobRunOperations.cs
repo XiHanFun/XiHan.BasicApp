@@ -49,7 +49,7 @@ public sealed record JobRunResponse(
     /// <summary>
     /// 从框架的运行记录投影
     /// </summary>
-    public static JobRunResponse From(JobRunRecord run)
+    public static JobRunResponse From(JobRunView run)
     {
         ArgumentNullException.ThrowIfNull(run);
         return new JobRunResponse(
@@ -64,8 +64,8 @@ public sealed record JobRunResponse(
             run.CompletedAt,
             run.CompletedAt is { } completed ? (long)(completed - run.StartedAt).TotalMilliseconds : null,
             run.State,
-            run.ErrorCode,
-            run.ErrorMessage,
+            run.Outcome?.Error?.Code,
+            run.Outcome?.Error?.Message,
             run.NodeId,
             run.CancelRequested);
     }
@@ -105,7 +105,7 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
         string? triggerName = null;
         string? node = null;
         bool? hasError = null;
-        var extra = new List<Func<JobRunRecord, bool>>();
+        var extra = new List<Func<JobRunView, bool>>();
         foreach (var filter in request.Filters)
         {
             var value = filter.Value ?? string.Empty;
@@ -137,11 +137,11 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
         {
             extra.Add(r => (r.TriggerName?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)
                 || r.NodeId.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                || (r.ErrorCode?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (r.ErrorMessage?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false));
+                || (r.Outcome?.Error?.Code.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (r.Outcome?.Error?.Message.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
-        var query = new JobRunQuery { Job = job, States = states, From = from, To = to, Trigger = triggerName, Node = node, HasError = hasError };
+        var query = new JobRunQuery { Job = job, States = states, From = from, To = to, TriggerName = triggerName, Node = node, HasError = hasError };
         var descending = request.Sorts.Count == 0 || request.Sorts[0].Descending;
         if (extra.Count == 0)
         {
@@ -159,7 +159,7 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
                 return new PageResult<JobRunResponse>([], total, request.Page);
             }
 
-            var page = await scheduler.RunsAsync(query with { Skip = (int)skip, Limit = Math.Min(take, JobRunQuery.MaxLimit) }, context.CancellationToken).ConfigureAwait(false);
+            var page = await scheduler.RunsAsync(query with { Skip = (int)skip, Take = Math.Min(take, JobRunQuery.MaxTake) }, context.CancellationToken).ConfigureAwait(false);
             if (!page.TryGetValue(out var rows))
             {
                 return page.Error!;
@@ -170,17 +170,17 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
         }
 
         // 还有框架不支持的条件（触发方式、关键字）：逐批取到底在这里筛，总数与分页都在这里算
-        var matched = new List<JobRunRecord>();
-        for (var offset = 0; ; offset += JobRunQuery.MaxLimit)
+        var matched = new List<JobRunView>();
+        for (var offset = 0; ; offset += JobRunQuery.MaxTake)
         {
-            var batch = await scheduler.RunsAsync(query with { Skip = offset, Limit = JobRunQuery.MaxLimit }, context.CancellationToken).ConfigureAwait(false);
+            var batch = await scheduler.RunsAsync(query with { Skip = offset, Take = JobRunQuery.MaxTake }, context.CancellationToken).ConfigureAwait(false);
             if (!batch.TryGetValue(out var runs))
             {
                 return batch.Error!;
             }
 
             matched.AddRange(runs.Where(r => extra.All(predicate => predicate(r))));
-            if (runs.Count < JobRunQuery.MaxLimit)
+            if (runs.Count < JobRunQuery.MaxTake)
             {
                 break;
             }
@@ -200,7 +200,7 @@ public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageReques
         return true;
     }
 
-    private static bool Add(List<Func<JobRunRecord, bool>> predicates, Func<JobRunRecord, bool> predicate)
+    private static bool Add(List<Func<JobRunView, bool>> predicates, Func<JobRunView, bool> predicate)
     {
         predicates.Add(predicate);
         return true;

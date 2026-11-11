@@ -144,7 +144,7 @@ public sealed class TenantSweepTests : IDisposable
 
     private static Task<Result> RunAsync<TJob>(BasicAppTestServer server, string name)
         where TJob : IJob
-        => SettingsTestHost.InvokeAsync(server, null, async ctx => await ctx.Services.GetRequiredService<TJob>().RunAsync(JobRun.Create(name, DateTimeOffset.UtcNow, JobTrigger.Manual), ctx, ctx.CancellationToken));
+        => SettingsTestHost.InvokeAsync(server, null, async ctx => await ctx.Services.GetRequiredService<TJob>().RunAsync(JobRun.Create(new JobName(name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx));
 
     private async Task SweepScenarioAsync(string platform, string dedicated, string uninitialized, string provider)
     {

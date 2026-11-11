@@ -33,7 +33,7 @@ public sealed class PermissionConditionMiddleware(GrantEvaluator evaluator, Cond
         var security = context.GetSecurity();
         if (options.PermissionConditionMode == PermissionConditionMode.Disabled
             || !security.Principal.IsAuthenticated
-            || !context.GetOperation().TryGetValue(out var operation)
+            || !context.FindOperation().TryGetValue(out var operation)
             || operation.Contract.Permission is not { } permission)
         {
             await nextStep(context).ConfigureAwait(false);

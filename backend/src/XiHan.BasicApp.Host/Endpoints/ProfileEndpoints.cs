@@ -149,5 +149,5 @@ internal static class ProfileEndpoints
     /// 端点的调用上下文（端点在框架管道里执行，一定有）
     /// </summary>
     private static InvocationContext ContextOf(HttpContext http)
-        => http.GetXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The profile endpoints must run inside the XiHan pipeline.");
+        => http.FindXiHanContext().TryGetValue(out var context) ? context : throw new InvalidOperationException("The profile endpoints must run inside the XiHan pipeline.");
 }
