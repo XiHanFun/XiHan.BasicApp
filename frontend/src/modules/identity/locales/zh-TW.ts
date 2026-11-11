@@ -112,7 +112,7 @@ export default {
       impersonate_content: '將以「{name}」的身分登入，用於排查對方遇到的問題。期間的操作會記入稽核。',
       impersonate_failed: '發起模擬登入失敗',
       reset_title: '重設密碼 · {name}',
-      reset_hint: '已產生一組隨機密碼，可直接使用或自行修改。重設後原密碼失效、該使用者的工作階段全部登出，下次登入須變更密碼。',
+      reset_hint: '已產生一組隨機密碼，可直接使用或自行修改。重設後原密碼失效、該使用者的工作階段全部登出；系統參數 identity.password 開啟 forceChange 時，下次用密碼登入要先變更。',
       reset_confirm: '確認重設',
       reset_done_title: '密碼已重設',
       reset_done_content: '使用者「{name}」的新密碼（僅本次顯示，請立即轉交並提醒使用者變更）：',

@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "Listar candidatos de solicitudes de permisos",
   "permission_requests.candidates.description": "Lista lo que se puede solicitar en el diálogo: los roles activos y los permisos concedibles del lado del llamante (restringidos por la edición en el lado del inquilino); basta con poder enviar o reenviar solicitudes, sin necesidad de leer roles ni el catálogo de permisos.",
   "permission_requests.create.title": "Enviar una solicitud de permisos",
-  "permission_requests.create.description": "Solicitar un rol o un código de permiso (o ambos) para uno mismo e iniciar su aprobación en la misma transacción; no disponible si la aprobación no está habilitada.",
+  "permission_requests.create.description": "Solicitar un rol o un código de permiso (no ambos) para uno mismo e iniciar su aprobación en la misma transacción; no disponible si la aprobación no está habilitada.",
   "permission_requests.update.title": "Reenviar una solicitud de permisos",
   "permission_requests.update.description": "Modificar la propia solicitud pendiente, retirar su aprobación e iniciar otra con el nuevo contenido.",
   "permission_requests.withdraw.title": "Retirar solicitudes de permisos",

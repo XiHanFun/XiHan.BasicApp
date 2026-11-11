@@ -112,7 +112,7 @@ export default {
       impersonate_content: '「{name}」 계정으로 로그인해 해당 사용자의 문제를 확인해요. 이 기간의 작업은 감사 로그에 기록돼요.',
       impersonate_failed: '대리 로그인을 시작하지 못했어요',
       reset_title: '비밀번호 초기화 · {name}',
-      reset_hint: '무작위 비밀번호를 생성했어요. 그대로 쓰거나 직접 바꿀 수 있어요. 초기화하면 기존 비밀번호는 무효가 되고 이 사용자의 세션은 모두 로그아웃되며, 다음 로그인 때 비밀번호를 바꿔야 해요.',
+      reset_hint: '무작위 비밀번호를 생성했어요. 그대로 쓰거나 직접 바꿀 수 있어요. 초기화하면 기존 비밀번호는 무효가 되고 이 사용자의 세션은 모두 로그아웃돼요. 시스템 파라미터 identity.password에서 forceChange를 켜 두면 다음 비밀번호 로그인 때 비밀번호를 바꿔야 해요.',
       reset_confirm: '초기화 확인',
       reset_done_title: '비밀번호를 초기화했어요',
       reset_done_content: '사용자 「{name}」의 새 비밀번호예요. 이번에만 표시되니 바로 전달하고 변경하도록 안내하세요:',

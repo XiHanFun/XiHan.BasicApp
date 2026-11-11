@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "Lister les candidats aux demandes d'autorisation",
   "permission_requests.candidates.description": "Liste ce qui peut être demandé dans la boîte de dialogue : les rôles actifs et les autorisations attribuables du côté de l'appelant (restreintes par l'édition côté locataire) ; il suffit de pouvoir soumettre ou resoumettre des demandes, sans lire les rôles ni le catalogue des autorisations.",
   "permission_requests.create.title": "Soumettre une demande d'autorisation",
-  "permission_requests.create.description": "Demander un rôle ou un code d'autorisation (ou les deux) pour soi-même et lancer l'approbation dans la même transaction ; indisponible si l'approbation n'est pas activée.",
+  "permission_requests.create.description": "Demander soit un rôle, soit un code d'autorisation (pas les deux) pour soi-même et lancer l'approbation dans la même transaction ; indisponible si l'approbation n'est pas activée.",
   "permission_requests.update.title": "Resoumettre une demande d'autorisation",
   "permission_requests.update.description": "Modifier sa propre demande en attente, retirer son approbation et en lancer une nouvelle avec le nouveau contenu.",
   "permission_requests.withdraw.title": "Retirer des demandes d'autorisation",

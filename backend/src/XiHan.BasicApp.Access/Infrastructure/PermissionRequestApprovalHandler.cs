@@ -40,14 +40,14 @@ public sealed class PermissionRequestApprovalHandler(PermissionRequestStore stor
     private const string DefaultDefinition = """
         {
           "name": "permission-request",
-          "displayName": "Permission request",
-          "description": "Default approval: an administrator other than the requester approves; add a new version to change it.",
-          "category": "Access",
+          "displayName": "授权申请",
+          "description": "缺省审批：由申请人以外的管理员审批；要调整就新建一个版本。",
+          "category": "授权",
           "nodes": [
-            { "id": "start", "activityType": "Start" },
-            { "id": "admin-approve", "activityType": "UserTask", "displayName": "Administrator approval", "properties": { "AssigneeRules": [{ "type": "Role", "values": ["admin"] }], "ExcludeStarter": true } },
-            { "id": "end-approved", "activityType": "End", "displayName": "Approved", "properties": { "Outcome": "approved" } },
-            { "id": "end-rejected", "activityType": "End", "displayName": "Rejected", "properties": { "Outcome": "rejected" } }
+            { "id": "start", "activityType": "Start", "displayName": "开始" },
+            { "id": "admin-approve", "activityType": "UserTask", "displayName": "管理员审批", "properties": { "AssigneeRules": [{ "type": "Role", "values": ["admin"] }], "ExcludeStarter": true } },
+            { "id": "end-approved", "activityType": "End", "displayName": "已通过", "properties": { "Outcome": "approved" } },
+            { "id": "end-rejected", "activityType": "End", "displayName": "已驳回", "properties": { "Outcome": "rejected" } }
           ],
           "transitions": [
             { "id": "t-start", "sourceNodeId": "start", "targetNodeId": "admin-approve" },

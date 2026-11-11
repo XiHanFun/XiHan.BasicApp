@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "권한 신청 후보 목록",
   "permission_requests.candidates.description": "신청 대화상자에서 고를 수 있는 대상(호출자 쪽의 활성 역할과 부여 가능한 권한, 테넌트 쪽은 에디션으로 좁힘)을 나열합니다. 신청 제출 또는 재제출 권한 중 하나만 있으면 되며 역할이나 권한 목록 읽기 권한은 필요 없습니다.",
   "permission_requests.create.title": "권한 신청 제출",
-  "permission_requests.create.description": "자신의 역할이나 권한 코드(둘 다 가능)를 신청하고 같은 트랜잭션에서 결재를 시작합니다. 결재가 비활성이면 제출할 수 없습니다.",
+  "permission_requests.create.description": "자신의 역할이나 권한 코드 중 하나만 신청하고 같은 트랜잭션에서 결재를 시작합니다. 결재가 비활성이면 제출할 수 없습니다.",
   "permission_requests.update.title": "권한 신청 재제출",
   "permission_requests.update.description": "자신의 결재 대기 신청을 수정하고 이전 결재를 회수한 뒤 새 내용으로 다시 시작합니다.",
   "permission_requests.withdraw.title": "권한 신청 회수",

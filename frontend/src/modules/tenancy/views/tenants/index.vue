@@ -1163,9 +1163,11 @@ function formatNullableDate(value: null | string | undefined): string {
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!admin.fieldError('password')" required>
-          <XhFieldLabel>{{ t('tenancy.tenants.admin_form.password') }}</XhFieldLabel>
+          <XFieldLabel :help="t('tenancy.tenants.admin_form.password_help')">
+            {{ t('tenancy.tenants.admin_form.password') }}
+          </XFieldLabel>
           <XhFieldControl>
-            <XInput v-model:value="admin.form.password" name="password" type="password" autocomplete="new-password" :placeholder="t('tenancy.tenants.admin_form.password_placeholder')" />
+            <XInput v-model:value="admin.form.password" name="password" type="password" autocomplete="new-password" />
           </XhFieldControl>
           <XhFieldErrorText v-if="admin.fieldError('password')">
             {{ admin.fieldError('password') }}

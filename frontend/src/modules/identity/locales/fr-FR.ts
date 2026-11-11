@@ -112,7 +112,7 @@ export default {
       impersonate_content: 'Vous allez vous connecter en tant que « {name} » pour analyser son problème. Les actions effectuées pendant ce temps sont auditées.',
       impersonate_failed: 'Impossible de se connecter en tant que cet utilisateur',
       reset_title: 'Réinitialiser le mot de passe · {name}',
-      reset_hint: 'Un mot de passe aléatoire a été généré ; utilisez-le tel quel ou modifiez-le. Après la réinitialisation, l’ancien mot de passe ne fonctionne plus, toutes les sessions de l’utilisateur sont fermées et le mot de passe devra être changé à la prochaine connexion.',
+      reset_hint: 'Un mot de passe aléatoire a été généré ; utilisez-le tel quel ou modifiez-le. Après la réinitialisation, l’ancien mot de passe ne fonctionne plus, toutes les sessions de l’utilisateur sont fermées ; si le paramètre système identity.password active forceChange, le mot de passe devra être changé à la prochaine connexion par mot de passe.',
       reset_confirm: 'Confirmer la réinitialisation',
       reset_done_title: 'Mot de passe réinitialisé',
       reset_done_content: 'Nouveau mot de passe de l’utilisateur « {name} » (affiché une seule fois ; transmettez-le immédiatement et demandez-lui de le changer) :',

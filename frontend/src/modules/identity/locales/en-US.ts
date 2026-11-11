@@ -112,7 +112,7 @@ export default {
       impersonate_content: 'You will sign in as "{name}" to troubleshoot their issue. Actions taken meanwhile are audited.',
       impersonate_failed: 'Failed to start impersonation',
       reset_title: 'Reset password · {name}',
-      reset_hint: 'A random password has been generated; use it as is or change it. After the reset the old password stops working, every session of this user is signed out, and the password must be changed at next sign-in.',
+      reset_hint: 'A random password has been generated; use it as is or change it. After the reset the old password stops working, every session of this user is signed out; when the system parameter identity.password turns on forceChange, the password must be changed at the next password sign-in.',
       reset_confirm: 'Confirm reset',
       reset_done_title: 'Password reset',
       reset_done_content: 'New password for user "{name}" (shown only once; hand it over now and remind the user to change it):',

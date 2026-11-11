@@ -112,7 +112,7 @@ export default {
       impersonate_content: 'Sie melden sich als „{name}“ an, um dessen Problem zu untersuchen. Aktionen in dieser Zeit werden protokolliert.',
       impersonate_failed: 'Identitätsübernahme konnte nicht gestartet werden',
       reset_title: 'Passwort zurücksetzen · {name}',
-      reset_hint: 'Ein zufälliges Passwort wurde erzeugt; Sie können es übernehmen oder ändern. Nach dem Zurücksetzen ist das alte Passwort ungültig, alle Sitzungen des Benutzers werden abgemeldet und das Passwort muss bei der nächsten Anmeldung geändert werden.',
+      reset_hint: 'Ein zufälliges Passwort wurde erzeugt; Sie können es übernehmen oder ändern. Nach dem Zurücksetzen ist das alte Passwort ungültig, alle Sitzungen des Benutzers werden abgemeldet; ist im Systemparameter identity.password forceChange aktiviert, muss das Passwort bei der nächsten Anmeldung mit Passwort geändert werden.',
       reset_confirm: 'Zurücksetzen bestätigen',
       reset_done_title: 'Passwort zurückgesetzt',
       reset_done_content: 'Neues Passwort für Benutzer „{name}“ (wird nur einmal angezeigt, bitte sofort übergeben und den Benutzer zur Änderung auffordern):',

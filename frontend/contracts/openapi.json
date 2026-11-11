@@ -41634,7 +41634,7 @@
           "permission-requests"
         ],
         "summary": "Submit a permission request",
-        "description": "Request a role or a permission code (or both) for yourself and start its approval in the same transaction; not available when approval is not enabled.\n\nRequires permission access.permission-requests.create (Submit permission requests).",
+        "description": "Request either a role or a permission code (not both) for yourself and start its approval in the same transaction; not available when approval is not enabled.\n\nRequires permission access.permission-requests.create (Submit permission requests).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.permission-requests.create",
         "parameters": [],

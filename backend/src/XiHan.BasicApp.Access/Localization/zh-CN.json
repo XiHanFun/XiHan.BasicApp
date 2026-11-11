@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "列出授权申请的候选",
   "permission_requests.candidates.description": "列出申请弹窗里可选的对象：当前一侧启用的角色与可授予的权限（租户侧按套餐收窄）；持有提交或重新提交授权申请的权限其一即可，不必能读角色与权限目录。",
   "permission_requests.create.title": "提交授权申请",
-  "permission_requests.create.description": "为自己申请一个角色或权限码（也可以都申请）并在同一事务里发起审批；审批未启用时不可提交。",
+  "permission_requests.create.description": "为自己申请一个角色或一个权限码（二选一），在同一事务里发起审批；审批未启用时不可提交。",
   "permission_requests.update.title": "重新提交授权申请",
   "permission_requests.update.description": "修改自己待审批的申请，撤回旧审批流程并按新内容重新发起。",
   "permission_requests.withdraw.title": "撤回授权申请",

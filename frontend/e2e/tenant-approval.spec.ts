@@ -104,6 +104,8 @@ test('租户管理员在审批中心同意申请', async ({ page }) => {
   await expect(page.getByRole('tab', { name: '待我审批' })).toHaveAttribute('aria-selected', 'true')
   const title = `授权申请：角色「${requestedRole.name}」`
   const task = page.getByRole('row').filter({ hasText: title }).filter({ hasText: member.displayName })
+  // 缺省流程按需建：节点名与界面同一语言
+  await expect(task).toContainText('管理员审批')
   await task.getByRole('button', { name: '更多' }).click()
   await page.getByRole('menuitem', { name: '办理' }).click()
 

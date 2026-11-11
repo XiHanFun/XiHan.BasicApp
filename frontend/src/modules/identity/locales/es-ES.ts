@@ -112,7 +112,7 @@ export default {
       impersonate_content: 'Iniciará sesión como «{name}» para investigar su problema. Las acciones realizadas durante ese tiempo quedan auditadas.',
       impersonate_failed: 'No se pudo iniciar la suplantación',
       reset_title: 'Restablecer contraseña · {name}',
-      reset_hint: 'Se ha generado una contraseña aleatoria; puede usarla tal cual o cambiarla. Tras el restablecimiento la contraseña anterior deja de valer, se cierran todas las sesiones del usuario y deberá cambiar la contraseña en su próximo inicio de sesión.',
+      reset_hint: 'Se ha generado una contraseña aleatoria; puede usarla tal cual o cambiarla. Tras el restablecimiento la contraseña anterior deja de valer, se cierran todas las sesiones del usuario; si el parámetro del sistema identity.password activa forceChange, deberá cambiar la contraseña en su próximo inicio de sesión con contraseña.',
       reset_confirm: 'Confirmar restablecimiento',
       reset_done_title: 'Contraseña restablecida',
       reset_done_content: 'Nueva contraseña del usuario «{name}» (solo se muestra esta vez; entréguela de inmediato y pida al usuario que la cambie):',

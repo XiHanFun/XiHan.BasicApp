@@ -112,7 +112,7 @@ export default {
       impersonate_content: 'Você entrará como “{name}” para investigar o problema dessa pessoa. As ações feitas nesse período são auditadas.',
       impersonate_failed: 'Não foi possível iniciar a personificação',
       reset_title: 'Redefinir senha · {name}',
-      reset_hint: 'Uma senha aleatória foi gerada; use-a como está ou altere-a. Após a redefinição, a senha anterior deixa de valer, todas as sessões do usuário são encerradas e a senha precisará ser trocada no próximo login.',
+      reset_hint: 'Uma senha aleatória foi gerada; use-a como está ou altere-a. Após a redefinição, a senha anterior deixa de valer, todas as sessões do usuário são encerradas; se o parâmetro do sistema identity.password ativar forceChange, a senha precisará ser trocada no próximo login com senha.',
       reset_confirm: 'Confirmar redefinição',
       reset_done_title: 'Senha redefinida',
       reset_done_content: 'Nova senha do usuário “{name}” (exibida só desta vez; entregue-a agora e peça que o usuário a troque):',

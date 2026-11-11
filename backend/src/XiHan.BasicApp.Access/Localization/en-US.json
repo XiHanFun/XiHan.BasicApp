@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "List permission request candidates",
   "permission_requests.candidates.description": "List what can be requested in the request dialog: the active roles and the grantable permissions of the caller's side (narrowed by the edition on the tenant side); holding the permission to submit or to resubmit requests is enough, reading roles or the permission catalog is not required.",
   "permission_requests.create.title": "Submit a permission request",
-  "permission_requests.create.description": "Request a role or a permission code (or both) for yourself and start its approval in the same transaction; not available when approval is not enabled.",
+  "permission_requests.create.description": "Request either a role or a permission code (not both) for yourself and start its approval in the same transaction; not available when approval is not enabled.",
   "permission_requests.update.title": "Resubmit a permission request",
   "permission_requests.update.description": "Change your own pending request, withdraw its approval and start a new one with the new content.",
   "permission_requests.withdraw.title": "Withdraw permission requests",

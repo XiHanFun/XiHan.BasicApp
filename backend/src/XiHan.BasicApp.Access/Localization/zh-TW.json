@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "列出授權申請的候選",
   "permission_requests.candidates.description": "列出申請彈窗裡可選的對象：目前一側啟用的角色與可授予的權限（租戶側按套餐收窄）；持有提交或重新提交授權申請的權限其一即可，不必能讀角色與權限目錄。",
   "permission_requests.create.title": "提交授權申請",
-  "permission_requests.create.description": "為自己申請一個角色或權限碼（也可以都申請）並在同一交易裡發起審批；審批未啟用時不可提交。",
+  "permission_requests.create.description": "為自己申請一個角色或一個權限碼（二選一），在同一交易裡發起審批；審批未啟用時不可提交。",
   "permission_requests.update.title": "重新提交授權申請",
   "permission_requests.update.description": "修改自己待審批的申請，撤回舊審批流程並依新內容重新發起。",
   "permission_requests.withdraw.title": "撤回授權申請",

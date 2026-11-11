@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "Kandidaten für Berechtigungsanträge auflisten",
   "permission_requests.candidates.description": "Listet auf, was im Antragsdialog beantragt werden kann: die aktiven Rollen und die vergebbaren Berechtigungen der Seite des Aufrufers (auf Mandantenseite durch die Edition eingeschränkt); die Berechtigung zum Einreichen oder erneuten Einreichen genügt, Rollen und Berechtigungskatalog müssen nicht lesbar sein.",
   "permission_requests.create.title": "Berechtigungsantrag stellen",
-  "permission_requests.create.description": "Eine Rolle oder einen Berechtigungscode (oder beides) für sich beantragen und die Genehmigung in derselben Transaktion starten; ohne aktivierte Genehmigung nicht möglich.",
+  "permission_requests.create.description": "Entweder eine Rolle oder einen Berechtigungscode (nicht beides) für sich beantragen und die Genehmigung in derselben Transaktion starten; ohne aktivierte Genehmigung nicht möglich.",
   "permission_requests.update.title": "Berechtigungsantrag neu einreichen",
   "permission_requests.update.description": "Den eigenen offenen Antrag ändern, die alte Genehmigung zurückziehen und mit dem neuen Inhalt neu starten.",
   "permission_requests.withdraw.title": "Berechtigungsanträge zurückziehen",

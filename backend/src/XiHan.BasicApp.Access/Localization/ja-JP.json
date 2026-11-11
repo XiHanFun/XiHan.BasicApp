@@ -346,7 +346,7 @@
   "permission_requests.candidates.title": "権限申請の候補を一覧",
   "permission_requests.candidates.description": "申請ダイアログで選べる対象（呼び出し元の側で有効なロールと付与可能な権限、テナント側はエディションで絞り込み）を一覧します。申請の提出または再提出の権限のどちらかがあればよく、ロールや権限カタログの閲覧権限は不要です。",
   "permission_requests.create.title": "権限申請を提出",
-  "permission_requests.create.description": "自分のロールまたは権限コード（両方も可）を申請し、同じトランザクションで承認を開始します。承認が無効なときは提出できません。",
+  "permission_requests.create.description": "自分のロールまたは権限コードのどちらか一方を申請し、同じトランザクションで承認を開始します。承認が無効なときは提出できません。",
   "permission_requests.update.title": "権限申請を再提出",
   "permission_requests.update.description": "自分の承認待ちの申請を変更し、古い承認を取り下げて新しい内容で開始し直します。",
   "permission_requests.withdraw.title": "権限申請を取り下げ",

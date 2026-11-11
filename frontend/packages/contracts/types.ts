@@ -6415,7 +6415,7 @@ export interface paths {
         put?: never;
         /**
          * Submit a permission request
-         * @description Request a role or a permission code (or both) for yourself and start its approval in the same transaction; not available when approval is not enabled.
+         * @description Request either a role or a permission code (not both) for yourself and start its approval in the same transaction; not available when approval is not enabled.
          *
          *     Requires permission access.permission-requests.create (Submit permission requests).
          */

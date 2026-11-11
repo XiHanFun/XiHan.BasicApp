@@ -112,7 +112,7 @@ export default {
       impersonate_content: '将以「{name}」的身份登录，用于排查其遇到的问题。期间的操作会记入审计。',
       impersonate_failed: '发起模仿登录失败',
       reset_title: '重置密码 · {name}',
-      reset_hint: '已生成一个随机密码，可直接使用或自行修改。重置后原密码作废、该用户的会话全部下线，下次登录须修改密码。',
+      reset_hint: '已生成一个随机密码，可直接使用或自行修改。重置后原密码作废、该用户的会话全部下线；系统参数 identity.password 打开 forceChange 时，下次用密码登录要先修改。',
       reset_confirm: '确认重置',
       reset_done_title: '密码已重置',
       reset_done_content: '用户「{name}」的新密码（仅本次显示，请立即转交并提醒用户修改）：',
