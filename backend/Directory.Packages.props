@@ -15,7 +15,7 @@
 
   <!-- 宿主 -->
   <ItemGroup Label="Host">
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.19.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.20.0" />
   </ItemGroup>
 
   <!-- 实时：Hub 绕过内核管道，用 ASP.NET Core 的 JWT Bearer 认证（与 Security.Jwt 同一密钥） -->
@@ -27,7 +27,7 @@
 
   <!-- 通知：邮件走 SMTP（MailKit），模板按 Scriban 渲染（框架不包装，方案 5.11） -->
   <ItemGroup Label="Notification">
-    <PackageVersion Include="MailKit" Version="4.18.2" />
+    <PackageVersion Include="MailKit" Version="5.0.0" />
     <PackageVersion Include="Scriban" Version="7.6.1" />
   </ItemGroup>
 
@@ -42,9 +42,9 @@
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.15" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.15" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.85.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
-    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
 </Project>
