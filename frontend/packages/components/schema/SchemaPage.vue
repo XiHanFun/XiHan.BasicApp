@@ -498,20 +498,35 @@ const appContext = useAppContext()
 const canSubmitExport = computed(() => !!props.schema.resource.export)
 const submittingExport = ref(false)
 
+/** 导出中心的文件格式（与 exportTaskApi 的 format 同值） */
+const EXPORT_FORMATS = [
+  { format: 0, group: 'csv', label: 'component.schema_page.export_group_csv' },
+  { format: 1, group: 'xlsx', label: 'component.schema_page.export_group_xlsx' },
+] as const
+
+/** 菜单值 center:<范围>:<格式>，范围 0 当前页 / 1 查询结果 / 2 全部 */
 const exportMenuOptions = computed<MenuNode[]>(() => [
-  {
-    value: 'center:1',
-    label: t('component.schema_page.export_results'),
-  },
-  {
-    value: 'center:0',
-    label: t('component.schema_page.export_current_page'),
-  },
-  {
-    value: 'center:2',
-    label: t('component.schema_page.export_all'),
-  },
-  // 本地 CSV 与三档「提交到导出中心」不是一类事，条前画一条分隔线
+  // 每种格式一组、组内三档范围，组与组之间画分隔线
+  ...EXPORT_FORMATS.flatMap(({ format, group, label }, index) => [
+    {
+      value: `center:1:${format}`,
+      label: t('component.schema_page.export_results'),
+      group,
+      groupLabel: t(label),
+      separatorBefore: index > 0,
+    },
+    {
+      value: `center:0:${format}`,
+      label: t('component.schema_page.export_current_page'),
+      group,
+    },
+    {
+      value: `center:2:${format}`,
+      label: t('component.schema_page.export_all'),
+      group,
+    },
+  ]),
+  // 本地 CSV 与提交到导出中心不是一类事，条前画一条分隔线
   {
     value: 'local',
     label: t('component.schema_page.export_csv_local'),
@@ -533,8 +548,8 @@ function buildExportColumns() {
   })
 }
 
-/** 提交导出任务到导出中心（scope：0 当前页 / 1 查询结果 / 2 全部） */
-async function submitExport(scope: number) {
+/** 提交导出任务到导出中心（scope：0 当前页 / 1 查询结果 / 2 全部；format：0 CSV / 1 XLSX） */
+async function submitExport(scope: number, format: number) {
   const cfg = props.schema.resource.export
   if (!cfg) {
     return
@@ -556,7 +571,7 @@ async function submitExport(scope: number) {
     await appContext.apis.exportTaskApi.submit({
       businessType: cfg.businessType,
       scope,
-      format: 0,
+      format,
       querySnapshot: JSON.stringify(query),
       columns: buildExportColumns(),
     })
@@ -578,7 +593,8 @@ function onExportSelect(key: string) {
     return
   }
   if (key.startsWith('center:')) {
-    void submitExport(Number(key.slice('center:'.length)))
+    const [, scope, format] = key.split(':')
+    void submitExport(Number(scope), Number(format))
   }
 }
 
@@ -759,14 +775,16 @@ const skeletonColumns = computed(() => {
             <!-- 导出按钮：仅在页面声明 exportPermission 且用户有该权限时显示（精准门控）；
                  已登记导出 Provider 的页面额外提供「提交到导出中心」异步入口，否则本地同步 CSV -->
             <template v-if="effectiveExportFields.length && canExportPermitted">
+              <!-- 两种格式各三档再加本地导出，超过组件库缺省的 20rem 上限：按落定那一侧的可用高度铺开 -->
               <XhMenuRoot
                 v-if="canSubmitExport"
                 trigger-as-child
+                fit-available-height
                 :collection="exportMenuOptions"
                 @item-select="(details: { value: string }) => onExportSelect(details.value)"
               >
                 <template #trigger>
-                  <XhButton class="x-icon-btn" variant="ghost" size="sm" icon-only :aria-label="t('component.schema_page.export_csv')">
+                  <XhButton class="x-icon-btn" variant="ghost" size="sm" icon-only :aria-label="t('component.schema_page.export_menu')">
                     <Icon icon="lucide:download" />
                   </XhButton>
                 </template>
