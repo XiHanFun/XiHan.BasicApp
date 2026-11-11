@@ -201,6 +201,11 @@
   "access.activation.not_held": "Role {id} is not held right now and cannot be activated.",
   "access.constraint.code_taken": "Constraint rule code {code} already exists.",
   "access.constraint.violated": "Constraint rule \"{name}\" ({code}) is violated; the change was not made.",
+  "access.constraint.approval_required": "Constraint rule \"{name}\" ({code}) requires approval, but this kind of change cannot go through approval; it was not made.",
+  "access.constraint.approval_import": "Constraint rule \"{name}\" ({code}) requires approval, so it cannot be assigned during an import; assign it on the user page afterwards to start the approval automatically.",
+  "access.constraint.approval_submitted": "Constraint rule \"{name}\" ({code}) requires approval: a permission request was started for this user and takes effect once approved.",
+  "access.constraint.approval_unavailable": "Constraint rule \"{name}\" ({code}) requires approval, but approval is not enabled; the change was not made.",
+  "access.constraint.approval_unsupported": "A dynamic separation-of-duties rule cannot use \"Requires approval\": activating session roles has no change to approve.",
   "access.role.import_failed": "Could not assign role '{role}' to user '{userName}' during the import: {reason} Nothing in this batch was written; try again.",
   "access.constraint.not_found": "Constraint rule {id} does not exist.",
   "access.session_role.not_found": "Session role record {id} does not exist.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "The requester is not an active account on this side.",
   "access.permission_request.approval_unavailable": "Approval is not enabled, so permission requests cannot be submitted.",
   "access.permission_request.workflow_title": "Permission request: {targets}",
+  "access.permission_request.workflow_title_for": "Permission request ({user}): {targets}",
   "access.permission_request.target_role": "role \"{name}\"",
   "access.permission_request.target_permission": "permission \"{name}\"",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "Resubmitted with changes by the requester",
   "access.permission_request.closed_by_admin": "Handled by an administrator",
   "access.permission_request.aborted": "The approval workflow was aborted",
-  "access.permission_request.grant_reason": "Granted automatically on approval of permission request {id}"
+  "access.permission_request.grant_reason": "Granted automatically on approval of permission request {id}",
+  "access.permission_request.constraint_role_reason": "Assigning the role triggered constraint rule \"{name}\" ({code}), which requires approval.",
+  "access.permission_request.constraint_permission_reason": "Granting the permission directly triggered constraint rule \"{name}\" ({code}), which requires approval."
 }

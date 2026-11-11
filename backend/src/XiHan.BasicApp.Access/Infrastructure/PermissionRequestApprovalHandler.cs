@@ -20,12 +20,13 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// <list type="bullet">
 /// <item>同意前校验审批人：不能审批自己的申请，且要能授出申请的对象；</item>
 /// <item>模仿会话里拒绝办理（同意、驳回都算）与转办、加签、撤回，以及管理员的取消、终止、重试、挂起与恢复；</item>
-/// <item>结论 <c>approved</c>：重核对象仍可用，按期望的有效期指派角色（经 <see cref="RoleAssignmentService"/>，过约束规则，拦截类违规即失败）与直授权限（经 <see cref="UserGrantService"/>），
+/// <item>结论 <c>approved</c>：重核对象仍可用，按期望的有效期指派角色（经 <see cref="RoleAssignmentService"/>，过约束规则：拒绝类违规即失败，需审批类由这条申请批准、放行并记下申请号）与直授权限（经 <see cref="UserGrantService"/>，同上），
 /// 再置为已批准；任一步失败即返回失败，结束节点故障、申请保持待审批，处理后重试流程；已批准时幂等；</item>
 /// <item>结论 <c>rejected</c> 置为已驳回；中止（管理员取消、终止，发起人在审批中心撤回）把待审批的置为已撤回；</item>
 /// <item>单据组件 <c>access/permission-request-approval/index</c>（设计稿 D4），数据是与 <c>permission-requests.get</c> 同一形态的响应</item>
 /// </list>
-/// 缺省定义（当前分区第一次提交时建并发布）：管理员角色 <c>admin</c> 审批，不含申请人自己（两侧都有的内建角色）
+/// 缺省定义（当前分区第一次提交时建并发布）：管理员角色 <c>admin</c> 审批，不含发起人（两侧都有的内建角色）；替别人发起的申请（约束规则要求审批时自动发起）
+/// 带流程变量 <c>constraintRule</c>（规则编码），新建定义版本可以据此把这类例外转给专门的审批人
 /// </remarks>
 /// <param name="store">授权申请的读写与校验</param>
 /// <param name="assignments">角色指派</param>
@@ -67,6 +68,7 @@ public sealed class PermissionRequestApprovalHandler(PermissionRequestStore stor
             new("roleId", "access.permission_requests.variable_role", "string"),
             new("roleCode", "access.permission_requests.variable_role_code", "string"),
             new("permissionCode", "access.permission_requests.variable_permission_code", "string"),
+            new("constraintRule", "access.permission_requests.variable_constraint_rule", "string"),
         ],
         [],
         DefaultDefinition);
@@ -192,30 +194,30 @@ public sealed class PermissionRequestApprovalHandler(PermissionRequestStore stor
 
         if (resolved.Role is { } role)
         {
-            var assigned = await assignments.AssignAsync(new RoleMembersRequest(role.Id, [request.RequestUserId], request.ExpectedEffectiveAt, request.ExpectedExpiresAt), context).ConfigureAwait(false);
-            if (!assigned.TryGetValue(out var batch))
+            var assigned = await assignments.AssignAsync(new RoleMembersRequest(role.Id, [request.RequestUserId], request.ExpectedEffectiveAt, request.ExpectedExpiresAt), context, approvedBy: request.Id).ConfigureAwait(false);
+            if (!assigned.TryGetValue(out var result))
             {
                 return assigned.Error!;
             }
 
-            if (batch.Failed.Count > 0)
+            if (result.Batch.Failed.Count > 0)
             {
-                return GrantFailed(batch.Failed[0].Code);
+                return GrantFailed(result.Batch.Failed[0].Code);
             }
         }
 
         if (resolved.Permission is { } permission)
         {
             var reason = context.Localize(AccessMessages.PermissionRequestGrantReason, MessageArguments.Of(("id", request.Id)));
-            var granted = await grants.GrantAsync(new UserPermissionsRequest(request.RequestUserId, [permission.Code], request.ExpectedEffectiveAt, request.ExpectedExpiresAt, Clip(reason, 512)), context).ConfigureAwait(false);
-            if (!granted.TryGetValue(out var batch))
+            var granted = await grants.GrantAsync(new UserPermissionsRequest(request.RequestUserId, [permission.Code], request.ExpectedEffectiveAt, request.ExpectedExpiresAt, Clip(reason, 512)), context, approvedBy: request.Id).ConfigureAwait(false);
+            if (!granted.TryGetValue(out var result))
             {
                 return granted.Error!;
             }
 
-            if (batch.Failed.Count > 0)
+            if (result.Batch.Failed.Count > 0)
             {
-                return GrantFailed(batch.Failed[0].Code);
+                return GrantFailed(result.Batch.Failed[0].Code);
             }
         }
 

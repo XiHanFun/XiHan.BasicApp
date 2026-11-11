@@ -603,6 +603,14 @@ public static class AccessErrors
     public const string PermissionRequestTargetExclusive = "ACCESS_VALIDATION_056";
 
     /// <summary>
+    /// 动态职责分离的规则选了「需审批」
+    /// </summary>
+    /// <remarks>
+    /// 动态职责分离在激活会话角色时判定，没有可审批的变更
+    /// </remarks>
+    public const string ConstraintApprovalUnsupported = "ACCESS_VALIDATION_057";
+
+    /// <summary>
     /// 同一对象已有待审批的申请
     /// </summary>
     public const string PermissionRequestDuplicate = "ACCESS_CONFLICT_013";
@@ -638,6 +646,22 @@ public static class AccessErrors
     /// 校验之后、写入之前角色或约束规则变了；整批导入回滚
     /// </remarks>
     public const string RoleImportFailed = "ACCESS_CONFLICT_017";
+
+    /// <summary>
+    /// 违反了要求审批的约束规则，这次变更没做
+    /// </summary>
+    /// <remarks>
+    /// 给用户指派角色与直授权限会转为授权申请（<see cref="ConstraintApprovalSubmitted"/>）；别的变更没有审批的载体，导入时也不转，即这个错误。参数 <c>code</c>、<c>name</c>
+    /// </remarks>
+    public const string ConstraintApprovalRequired = "ACCESS_CONFLICT_018";
+
+    /// <summary>
+    /// 违反了要求审批的约束规则，已替用户发起授权申请
+    /// </summary>
+    /// <remarks>
+    /// 批量结果里的一项：这一项此刻没有生效，审批通过后按原内容生效。参数 <c>code</c>、<c>name</c>、<c>requestId</c>
+    /// </remarks>
+    public const string ConstraintApprovalSubmitted = "ACCESS_CONFLICT_019";
 
     /// <summary>
     /// 只能维护自己的申请

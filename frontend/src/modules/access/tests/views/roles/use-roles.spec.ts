@@ -382,6 +382,7 @@ describe('useRolePermissionEditor', () => {
       added: 1,
       removed: 1,
       failures: ['access.roles.read: ACCESS_VALIDATION_002 的原因'],
+      submitted: [],
     })
     expect(editor.draft.value).toEqual(['tenancy.tenants.read', 'identity.users.create'])
 
@@ -469,7 +470,12 @@ describe('useRoleMemberEditor', () => {
     expect(calls.find(c => c.url.endsWith(':unassign'))?.body).toEqual({
       userIds: ['u-2'],
     })
-    expect(outcome).toEqual({ added: 1, removed: 1, failures: [] })
+    expect(outcome).toEqual({
+      added: 1,
+      removed: 1,
+      failures: [],
+      submitted: [],
+    })
     expect(editor.dirty.value).toBe(false)
   })
 

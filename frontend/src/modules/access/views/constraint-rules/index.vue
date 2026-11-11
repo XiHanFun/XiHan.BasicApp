@@ -23,6 +23,7 @@ import AccessPolicyConditionEditor from '../policies/components/AccessPolicyCond
 import { describeCondition } from '../roles/condition-labels'
 import {
   actionLabel,
+  actionsOf,
   actionTone,
   CONSTRAINT_ACTIONS,
   CONSTRAINT_STATUSES,
@@ -365,6 +366,7 @@ const modalTitle = computed(() => (form.id
   ? t('access.constraint_rules.edit_title')
   : t('access.constraint_rules.create_title')))
 const formTargetTypeOptions = computed(() => targetTypeOptions.value.filter(option => targetTypesOf(form.type).includes(option.value as ConstraintTargetType)))
+const formActionOptions = computed(() => actionOptions.value.filter(option => actionsOf(form.type).includes(option.value as ConstraintViolationAction)))
 
 async function ensureCatalog(): Promise<boolean> {
   if (catalog.value.length > 0)
@@ -431,11 +433,13 @@ async function openEdit(row: ConstraintRuleRow) {
   }
 }
 
-/** 换约束类型：目标类型不再适用即换成第一个可用的；换成条件类先取属性目录 */
+/** 换约束类型：目标类型、处理方式不再适用即换成第一个可用的；换成条件类先取属性目录 */
 async function changeType(value: unknown) {
   form.type = value as ConstraintType
   if (!targetTypesOf(form.type).includes(form.targetType))
     changeTargetType(targetTypesOf(form.type)[0]!)
+  if (!actionsOf(form.type).includes(form.violationAction))
+    form.violationAction = actionsOf(form.type)[0]!
   if (form.type === 'Condition')
     await ensureCatalog()
 }
@@ -731,9 +735,11 @@ async function removeRow(row: ConstraintRuleRow) {
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot>
-          <XhFieldLabel>{{ t('access.constraint_rules.fields.violation_action') }}</XhFieldLabel>
+          <XFieldLabel :help="t('access.constraint_rules.hint_violation_action')">
+            {{ t('access.constraint_rules.fields.violation_action') }}
+          </XFieldLabel>
           <XhFieldControl>
-            <XSelect v-model:value="form.violationAction" name="violationAction" :options="actionOptions" />
+            <XSelect v-model:value="form.violationAction" name="violationAction" :options="formActionOptions" />
           </XhFieldControl>
         </XhFieldRoot>
         <XhFieldRoot v-if="usesMaxAllowed(form.type)">

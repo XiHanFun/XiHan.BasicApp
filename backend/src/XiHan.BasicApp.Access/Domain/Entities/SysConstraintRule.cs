@@ -225,7 +225,7 @@ public enum ConstraintViolationAction
     /// 需要审批
     /// </summary>
     /// <remarks>
-    /// 审批流程未接入，按拒绝处理
+    /// 给用户指派角色与直授权限时替该用户发起授权申请、审批通过后生效；别的变更没有审批的载体，按拒绝处理；动态职责分离不能选
     /// </remarks>
     RequireApproval = 3,
 }

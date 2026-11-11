@@ -201,6 +201,11 @@
   "access.activation.not_held": "角色 {id} 此刻不持有，不能激活。",
   "access.constraint.code_taken": "约束规则编码 {code} 已存在。",
   "access.constraint.violated": "违反约束规则「{name}」（{code}），这次变更没有执行。",
+  "access.constraint.approval_required": "违反约束规则「{name}」（{code}）：这条规则要求审批，这类变更不能走审批，没有执行。",
+  "access.constraint.approval_import": "违反约束规则「{name}」（{code}）：这条规则要求审批，导入时不能指派；导入后在用户页单独指派会自动发起审批。",
+  "access.constraint.approval_submitted": "违反约束规则「{name}」（{code}），已转为审批：替该用户发起了授权申请，审批通过后生效。",
+  "access.constraint.approval_unavailable": "违反约束规则「{name}」（{code}）：这条规则要求审批，但审批未启用，没有执行。",
+  "access.constraint.approval_unsupported": "动态职责分离的规则不能选「需审批」：激活会话角色时没有可审批的变更。",
   "access.role.import_failed": "导入时没能把角色 '{role}' 指派给用户 '{userName}'：{reason} 这批导入没有写入，请重试。",
   "access.constraint.not_found": "约束规则 {id} 不存在。",
   "access.session_role.not_found": "会话角色记录 {id} 不存在。",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "申请人不是当前一侧的在用账号。",
   "access.permission_request.approval_unavailable": "审批未启用，暂时不能提交授权申请。",
   "access.permission_request.workflow_title": "授权申请：{targets}",
+  "access.permission_request.workflow_title_for": "授权申请（{user}）：{targets}",
   "access.permission_request.target_role": "角色「{name}」",
   "access.permission_request.target_permission": "权限「{name}」",
   "access.permission_request.target_separator": "、",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "申请人修改后重新提交",
   "access.permission_request.closed_by_admin": "管理员处理了申请",
   "access.permission_request.aborted": "审批流程已中止",
-  "access.permission_request.grant_reason": "授权申请 {id} 审批通过自动授予"
+  "access.permission_request.grant_reason": "授权申请 {id} 审批通过自动授予",
+  "access.permission_request.constraint_role_reason": "指派角色时触犯约束规则「{name}」（{code}），按规则转为审批。",
+  "access.permission_request.constraint_permission_reason": "直授权限时触犯约束规则「{name}」（{code}），按规则转为审批。"
 }

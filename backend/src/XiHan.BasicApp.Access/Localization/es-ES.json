@@ -201,6 +201,11 @@
   "access.activation.not_held": "El rol {id} no se tiene ahora y no se puede activar.",
   "access.constraint.code_taken": "El código de regla de restricción {code} ya existe.",
   "access.constraint.violated": "Se infringe la regla de restricción «{name}» ({code}); el cambio no se hizo.",
+  "access.constraint.approval_required": "La regla de restricción «{name}» ({code}) exige aprobación, pero este tipo de cambio no puede pasar por aprobación; no se hizo.",
+  "access.constraint.approval_import": "La regla de restricción «{name}» ({code}) exige aprobación, así que no se puede asignar al importar; asígnala después en la página de usuarios y la aprobación se iniciará sola.",
+  "access.constraint.approval_submitted": "La regla de restricción «{name}» ({code}) exige aprobación: se inició una solicitud de permisos para este usuario, que surtirá efecto al aprobarse.",
+  "access.constraint.approval_unavailable": "La regla de restricción «{name}» ({code}) exige aprobación, pero la aprobación no está habilitada; el cambio no se hizo.",
+  "access.constraint.approval_unsupported": "Una regla de separación dinámica de funciones no puede usar «Requiere aprobación»: al activar roles de sesión no hay ningún cambio que aprobar.",
   "access.role.import_failed": "No se pudo asignar el rol '{role}' al usuario '{userName}' durante la importación: {reason} No se escribió nada de este lote; inténtalo de nuevo.",
   "access.constraint.not_found": "La regla de restricción {id} no existe.",
   "access.session_role.not_found": "El registro de rol de sesión {id} no existe.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "El solicitante no es una cuenta activa de este lado.",
   "access.permission_request.approval_unavailable": "La aprobación no está habilitada; no se pueden enviar solicitudes de permisos.",
   "access.permission_request.workflow_title": "Solicitud de permisos: {targets}",
+  "access.permission_request.workflow_title_for": "Solicitud de permisos ({user}): {targets}",
   "access.permission_request.target_role": "rol «{name}»",
   "access.permission_request.target_permission": "permiso «{name}»",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "Modificada y reenviada por el solicitante",
   "access.permission_request.closed_by_admin": "Gestionada por un administrador",
   "access.permission_request.aborted": "El flujo de aprobación se interrumpió",
-  "access.permission_request.grant_reason": "Concedido automáticamente al aprobarse la solicitud de permisos {id}"
+  "access.permission_request.grant_reason": "Concedido automáticamente al aprobarse la solicitud de permisos {id}",
+  "access.permission_request.constraint_role_reason": "Asignar el rol activó la regla de restricción «{name}» ({code}), que exige aprobación.",
+  "access.permission_request.constraint_permission_reason": "Conceder el permiso directamente activó la regla de restricción «{name}» ({code}), que exige aprobación."
 }

@@ -92,6 +92,66 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     }
 
     /// <summary>
+    /// 替用户提交
+    /// </summary>
+    /// <remarks>
+    /// 给用户指派角色或直授权限触犯「需审批」的约束规则时由 <see cref="ConstraintApprovalRouter"/> 调用：申请人是这个用户、发起人是当前调用者（缺省流程不让发起人与申请人审批），
+    /// 原因写明触犯的规则，流程变量 <c>constraintRule</c> 带上规则编码，流程定义可以按它路由。对象、有效期与「同一对象只能有一条待审批」照本人提交的规则核对
+    /// </remarks>
+    /// <param name="userId">申请人</param>
+    /// <param name="roleId">要指派的角色（与权限码二选一）</param>
+    /// <param name="permissionCode">要直授的权限码</param>
+    /// <param name="effectiveAt">期望生效时间</param>
+    /// <param name="expiresAt">期望失效时间</param>
+    /// <param name="violation"><c>ACCESS_CONFLICT_018</c>，参数里是规则的编码与名称</param>
+    /// <param name="context">调用上下文</param>
+    /// <returns>新申请的 ID</returns>
+    public async Task<Result<Guid>> SubmitForAsync(Guid userId, Guid? roleId, string? permissionCode, DateTimeOffset? effectiveAt, DateTimeOffset? expiresAt, Error violation, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(violation);
+        ArgumentNullException.ThrowIfNull(context);
+        var impersonation = PermissionRequestStore.RejectImpersonation(context);
+        if (impersonation.IsFailure)
+        {
+            return impersonation.Error!;
+        }
+
+        if (Workflow is not { } workflow)
+        {
+            return Error.Unavailable(AccessErrors.ApprovalUnavailable, AccessMessages.ApprovalUnavailable);
+        }
+
+        var target = await store.ValidateAsync(roleId, permissionCode, effectiveAt, expiresAt, context).ConfigureAwait(false);
+        if (!target.TryGetValue(out var resolved))
+        {
+            return target.Error!;
+        }
+
+        var side = SideRows.SideOf(context);
+        var unique = await store.EnsureNoDuplicateAsync(side, userId, resolved, null, context.CancellationToken).ConfigureAwait(false);
+        if (unique.IsFailure)
+        {
+            return unique.Error!;
+        }
+
+        var row = new SysPermissionRequest
+        {
+            Id = ids.NewId(),
+            TenantId = side,
+            RequestUserId = userId,
+            RoleId = resolved.Role?.Id,
+            PermissionCode = resolved.Permission?.Code,
+            Reason = context.Localize(resolved.Role is null ? AccessMessages.PermissionRequestConstraintPermissionReason : AccessMessages.PermissionRequestConstraintRoleReason, violation.Details),
+            ExpectedEffectiveAt = effectiveAt,
+            ExpectedExpiresAt = expiresAt,
+        };
+        await store.Rows.InsertAsync(row, context.CancellationToken).ConfigureAwait(false);
+        var applicant = await store.DisplayNameAsync(userId, context.CancellationToken).ConfigureAwait(false);
+        var started = await StartAsync(workflow, row.Id, resolved, userId, context, violation.Details?["code"] as string, applicant).ConfigureAwait(false);
+        return started.IsSuccess ? row.Id : started.Error!;
+    }
+
+    /// <summary>
     /// 修改并重新提交
     /// </summary>
     public async Task<Result<PermissionRequestResponse>> UpdateAsync(UpdatePermissionRequestRequest request, InvocationContext context)
@@ -309,7 +369,7 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
     /// <remarks>
     /// 发起时可能就走完了（结论回写已改了状态）：先重读一遍再回填，免得盖掉
     /// </remarks>
-    private async Task<Result> StartAsync(IWorkflowBusinessService workflow, Guid id, PermissionRequestTarget target, Guid requester, InvocationContext context)
+    private async Task<Result> StartAsync(IWorkflowBusinessService workflow, Guid id, PermissionRequestTarget target, Guid requester, InvocationContext context, string? constraintRule = null, string? applicant = null)
     {
         var variables = new JsonObject
         {
@@ -317,8 +377,9 @@ public sealed class PermissionRequestService(PermissionRequestStore store, IIdGe
             ["roleId"] = target.Role?.Id.ToString(),
             ["roleCode"] = target.Role?.Code,
             ["permissionCode"] = target.Permission?.Code,
+            ["constraintRule"] = constraintRule,
         };
-        var started = await workflow.StartAsync(new WorkflowBusinessStartRequest(PermissionRequestStore.BusinessCode, id.ToString(), PermissionRequestStore.TitleOf(target, context), variables), context).ConfigureAwait(false);
+        var started = await workflow.StartAsync(new WorkflowBusinessStartRequest(PermissionRequestStore.BusinessCode, id.ToString(), PermissionRequestStore.TitleOf(target, context, applicant), variables), context).ConfigureAwait(false);
         if (!started.TryGetValue(out var instance))
         {
             return started.Error!;

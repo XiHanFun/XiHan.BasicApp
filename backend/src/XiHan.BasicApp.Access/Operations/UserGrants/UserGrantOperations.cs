@@ -60,10 +60,12 @@ public sealed class ListUserGrants(SideUsers users, Infrastructure.UserGrants gr
 /// </summary>
 /// <remarks>
 /// <c>POST /api/user-grants:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。带有效期或原因时写 Grant 规则（原来的 Deny 一并改成授予）
+/// 触犯「需审批」约束规则的权限码不授予，替该用户发起授权申请，在结果里记为 <c>ACCESS_CONFLICT_019</c>（已转审批）
 /// </remarks>
 /// <param name="grants">直授</param>
+/// <param name="approvals">转审批</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
-public sealed class GrantUser(UserGrantService grants) : IOperation<UserPermissionsRequest, PermissionBatchResult>
+public sealed class GrantUser(UserGrantService grants, ConstraintApprovalRouter approvals) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -72,7 +74,11 @@ public sealed class GrantUser(UserGrantService grants) : IOperation<UserPermissi
 
     /// <inheritdoc />
     public async ValueTask<Result<PermissionBatchResult>> HandleAsync(UserPermissionsRequest request, InvocationContext context)
-        => await grants.GrantAsync(request, context).ConfigureAwait(false);
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var granted = await grants.GrantAsync(request, context).ConfigureAwait(false);
+        return granted.TryGetValue(out var result) ? await approvals.RouteAsync(request, result, context).ConfigureAwait(false) : granted.Error!;
+    }
 }
 
 /// <summary>

@@ -116,7 +116,7 @@ describe('useUserRoles', () => {
     await roles.start(bob as never)
     roles.change(['r-2'])
     expect(roles.dirty.value).toBe(true)
-    expect(await roles.save()).toEqual({ assigned: 1, unassigned: 1 })
+    expect(await roles.save()).toEqual({ assigned: 1, unassigned: 1, submitted: [] })
     expect(calls.find(c => c.url.endsWith('/api/roles/r-2:assign'))).toMatchObject({
       method: 'POST',
       body: {
@@ -138,8 +138,21 @@ describe('useUserRoles', () => {
     const roles = useUserRoles()
     await roles.start(bob as never)
     const before = calls.length
-    expect(await roles.save()).toEqual({ assigned: 0, unassigned: 0 })
+    expect(await roles.save()).toEqual({ assigned: 0, unassigned: 0, submitted: [] })
     expect(calls).toHaveLength(before)
+  })
+
+  it('触犯需审批的约束规则转为授权申请：不算分配也不报错，说明单独交回', async () => {
+    backend(['r-1'], { 'r-2': 'ACCESS_CONFLICT_019' })
+    const roles = useUserRoles()
+    await roles.start(bob as never)
+    roles.change(['r-1', 'r-2'])
+    expect(await roles.save()).toEqual({
+      assigned: 0,
+      unassigned: 0,
+      submitted: ['ACCESS_CONFLICT_019 的原因'],
+    })
+    expect(roles.assigned.value).toEqual(['r-1'])
   })
 
   it('逐项被拒时带着原因抛出，已落地的部分照样重取', async () => {

@@ -201,6 +201,11 @@
   "access.activation.not_held": "Le rôle {id} n’est pas détenu actuellement et ne peut pas être activé.",
   "access.constraint.code_taken": "Le code de règle de contrainte {code} existe déjà.",
   "access.constraint.violated": "La règle de contrainte « {name} » ({code}) est enfreinte ; la modification n’a pas été faite.",
+  "access.constraint.approval_required": "La règle de contrainte « {name} » ({code}) exige une approbation, mais ce type de modification ne peut pas passer par une approbation ; elle n’a pas été faite.",
+  "access.constraint.approval_import": "La règle de contrainte « {name} » ({code}) exige une approbation, elle ne peut donc pas être attribuée pendant l’import ; attribuez-la ensuite depuis la page des utilisateurs pour lancer l’approbation automatiquement.",
+  "access.constraint.approval_submitted": "La règle de contrainte « {name} » ({code}) exige une approbation : une demande d’autorisation a été lancée pour cet utilisateur et prendra effet une fois approuvée.",
+  "access.constraint.approval_unavailable": "La règle de contrainte « {name} » ({code}) exige une approbation, mais l’approbation n’est pas activée ; la modification n’a pas été faite.",
+  "access.constraint.approval_unsupported": "Une règle de séparation dynamique des tâches ne peut pas utiliser « Approbation requise » : l’activation des rôles de session n’a pas de modification à approuver.",
   "access.role.import_failed": "Impossible d'attribuer le rôle '{role}' à l'utilisateur '{userName}' pendant l'import : {reason} Rien de ce lot n'a été écrit ; réessayez.",
   "access.constraint.not_found": "La règle de contrainte {id} n’existe pas.",
   "access.session_role.not_found": "L’enregistrement de rôle de session {id} n’existe pas.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "Le demandeur n'est pas un compte actif de ce côté.",
   "access.permission_request.approval_unavailable": "L'approbation n'est pas activée ; les demandes d'autorisation ne peuvent pas être soumises.",
   "access.permission_request.workflow_title": "Demande d'autorisation : {targets}",
+  "access.permission_request.workflow_title_for": "Demande d’autorisation ({user}) : {targets}",
   "access.permission_request.target_role": "rôle « {name} »",
   "access.permission_request.target_permission": "autorisation « {name} »",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "Modifiée et resoumise par le demandeur",
   "access.permission_request.closed_by_admin": "Traitée par un administrateur",
   "access.permission_request.aborted": "Le workflow d'approbation a été interrompu",
-  "access.permission_request.grant_reason": "Accordé automatiquement à l'approbation de la demande d'autorisation {id}"
+  "access.permission_request.grant_reason": "Accordé automatiquement à l'approbation de la demande d'autorisation {id}",
+  "access.permission_request.constraint_role_reason": "L’attribution du rôle a déclenché la règle de contrainte « {name} » ({code}), qui exige une approbation.",
+  "access.permission_request.constraint_permission_reason": "L’octroi direct de l’autorisation a déclenché la règle de contrainte « {name} » ({code}), qui exige une approbation."
 }

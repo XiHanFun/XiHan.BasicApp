@@ -874,6 +874,43 @@ public static class AccessMessages
     public const string RoleImportFailed = "access.role.import_failed";
 
     /// <summary>
+    /// 违反了要求审批的约束规则，这类变更不能走审批
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>
+    /// </remarks>
+    public const string ConstraintApprovalRequired = "access.constraint.approval_required";
+
+    /// <summary>
+    /// 导入时违反了要求审批的约束规则
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>
+    /// </remarks>
+    public const string ConstraintApprovalImport = "access.constraint.approval_import";
+
+    /// <summary>
+    /// 违反了要求审批的约束规则，已替用户发起授权申请
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>、<c>requestId</c>
+    /// </remarks>
+    public const string ConstraintApprovalSubmitted = "access.constraint.approval_submitted";
+
+    /// <summary>
+    /// 违反了要求审批的约束规则，但审批未启用
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>
+    /// </remarks>
+    public const string ConstraintApprovalUnavailable = "access.constraint.approval_unavailable";
+
+    /// <summary>
+    /// 动态职责分离的规则不能选「需审批」
+    /// </summary>
+    public const string ConstraintApprovalUnsupported = "access.constraint.approval_unsupported";
+
+    /// <summary>
     /// 约束规则不存在
     /// </summary>
     /// <remarks>
@@ -1132,6 +1169,30 @@ public static class AccessMessages
     /// 参数 <c>targets</c>（申请对象）
     /// </remarks>
     public const string PermissionRequestWorkflowTitle = "access.permission_request.workflow_title";
+
+    /// <summary>
+    /// 替别人发起的授权申请的审批流程标题
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>user</c>（申请人显示名）、<c>targets</c>
+    /// </remarks>
+    public const string PermissionRequestWorkflowTitleFor = "access.permission_request.workflow_title_for";
+
+    /// <summary>
+    /// 指派角色触犯要求审批的约束规则时，自动发起的授权申请的原因
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>
+    /// </remarks>
+    public const string PermissionRequestConstraintRoleReason = "access.permission_request.constraint_role_reason";
+
+    /// <summary>
+    /// 直授权限触犯要求审批的约束规则时，自动发起的授权申请的原因
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>
+    /// </remarks>
+    public const string PermissionRequestConstraintPermissionReason = "access.permission_request.constraint_permission_reason";
 
     /// <summary>
     /// 标题里的角色

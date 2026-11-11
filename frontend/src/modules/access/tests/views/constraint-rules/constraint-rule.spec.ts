@@ -1,6 +1,6 @@
 import type { ConstraintRuleItem } from '@/modules/access/views/constraint-rules/constraint-rule'
 import { describe, expect, it } from 'vitest'
-import { actionTone, emptyItem, findItemProblem, itemProblemMessage, minItemsOf, targetTypesOf, toItemInputs, toItemModels, usesMaxAllowed } from '@/modules/access/views/constraint-rules/constraint-rule'
+import { actionsOf, actionTone, emptyItem, findItemProblem, itemProblemMessage, minItemsOf, partitionApprovals, targetTypesOf, toItemInputs, toItemModels, usesMaxAllowed } from '@/modules/access/views/constraint-rules/constraint-rule'
 
 describe('约束规则的编辑', () => {
   it('约束类型决定可选的目标类型、最少规则项与是否用数量上限（与后端一致）', () => {
@@ -18,6 +18,27 @@ describe('约束规则的编辑', () => {
     ]).toEqual([2, 2, 2, 1, 1])
     expect(usesMaxAllowed('Cardinality')).toBe(true)
     expect(usesMaxAllowed('Condition')).toBe(false)
+  })
+
+  it('动态职责分离不能选需审批，其余类型四种处理方式都可选（与后端一致）', () => {
+    expect(actionsOf('Dsd')).toEqual(['Deny', 'Warning', 'Log'])
+    expect(actionsOf('Ssd')).toEqual([
+      'Deny',
+      'Warning',
+      'Log',
+      'RequireApproval',
+    ])
+  })
+
+  it('批量结果里已转审批的项单独分出，不算失败', () => {
+    const failed = [
+      { id: 'u-1', code: 'ACCESS_CONFLICT_019', message: '已转为审批' },
+      { id: 'u-2', code: 'ACCESS_CONFLICT_012', message: '违反约束规则' },
+    ]
+    expect(partitionApprovals(failed)).toEqual({
+      submitted: [failed[0]],
+      failed: [failed[1]],
+    })
   })
 
   it('已保存的规则项转成编辑行再转回，备注留空写成 null', () => {

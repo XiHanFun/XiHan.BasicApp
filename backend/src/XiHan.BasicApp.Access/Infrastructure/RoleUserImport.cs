@@ -17,8 +17,8 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// 导入用户时指派角色
 /// </summary>
 /// <remarks>
-/// 导入行的 <c>roleCodes</c>。导入人要有 <c>access.roles.assign</c>，缺了整批拒绝；有角色码在当前一侧不存在、或新成员会触犯拦截类约束规则（静态职责分离、基数与条件）的行记为失败
-/// 预检只判定不记日志，写入经 <see cref="RoleAssignmentService"/>，与「给角色指派成员」同一套规则、同样记权限变更日志
+/// 导入行的 <c>roleCodes</c>。导入人要有 <c>access.roles.assign</c>，缺了整批拒绝；有角色码在当前一侧不存在、或新成员会触犯拒绝类或需审批类约束规则（静态职责分离、基数与条件）的行记为失败，
+/// 需审批的不在导入里转申请，提示导入后到用户页单独指派。预检只判定不记日志，写入经 <see cref="RoleAssignmentService"/>，与「给角色指派成员」同一套规则、同样记权限变更日志
 /// </remarks>
 /// <param name="roles">角色域服务</param>
 /// <param name="assignments">角色指派</param>
@@ -77,9 +77,12 @@ public sealed class RoleUserImport(RoleService roles, RoleAssignmentService assi
                 members[roleId] = count;
             }
 
+            // 需审批的规则在导入里不转申请（用户还不存在、一批里逐个发起也不便审），提示导入后单独指派
             if (ConstraintEnforcer.Blocking(violations) is { } blocked)
             {
-                issues.Add(new UserImportIssue(line.Index, Field, blocked));
+                issues.Add(new UserImportIssue(line.Index, Field, blocked.Code == AccessErrors.ConstraintApprovalRequired
+                    ? Error.Conflict(AccessErrors.ConstraintApprovalRequired, AccessMessages.ConstraintApprovalImport, blocked.Details)
+                    : blocked));
                 continue;
             }
 
@@ -114,14 +117,15 @@ public sealed class RoleUserImport(RoleService roles, RoleAssignmentService assi
 
             var userIds = wanted.Where(l => l.RoleCodes.Contains(code)).Select(static l => l.UserId).ToList();
             var assigned = await assignments.AssignAsync(new RoleMembersRequest(role.Id, userIds, null, null), context).ConfigureAwait(false);
-            if (!assigned.TryGetValue(out var batch))
+            if (!assigned.TryGetValue(out var result))
             {
                 return assigned.Error!;
             }
 
-            if (batch.Failed.Count > 0)
+            if (result.Batch.Failed.Count > 0)
             {
-                return RoleImportFailed(code, names.GetValueOrDefault(batch.Failed[0].Id, batch.Failed[0].Id.ToString()), batch.Failed[0].Message);
+                var failure = result.Batch.Failed[0];
+                return RoleImportFailed(code, names.GetValueOrDefault(failure.Id, failure.Id.ToString()), failure.Message);
             }
         }
 

@@ -37,6 +37,24 @@ export const CONSTRAINT_ACTIONS: readonly ConstraintViolationAction[] = [
 ]
 export const CONSTRAINT_STATUSES: readonly ConstraintRuleStatus[] = ['Active', 'Disabled']
 
+/** 批量结果里「已转审批」的错误码：触犯需审批的约束规则，已替用户发起授权申请，审批通过后生效 */
+export const APPROVAL_SUBMITTED = 'ACCESS_CONFLICT_019'
+
+/** 把批量结果的失败项分成已转审批的与真正失败的：前者不是失败，单独提示 */
+export function partitionApprovals<T extends { code: string }>(failed: readonly T[]): { submitted: T[], failed: T[] } {
+  return {
+    submitted: failed.filter(item => item.code === APPROVAL_SUBMITTED),
+    failed: failed.filter(item => item.code !== APPROVAL_SUBMITTED),
+  }
+}
+
+/** 约束类型可用的处理方式（与后端一致）：动态职责分离在激活会话角色时判定，没有可审批的变更 */
+export function actionsOf(type: ConstraintType): readonly ConstraintViolationAction[] {
+  return type === 'Dsd'
+    ? CONSTRAINT_ACTIONS.filter(action => action !== 'RequireApproval')
+    : CONSTRAINT_ACTIONS
+}
+
 /** 约束类型可用的目标类型（与后端一致） */
 export function targetTypesOf(type: ConstraintType): readonly ConstraintTargetType[] {
   switch (type) {

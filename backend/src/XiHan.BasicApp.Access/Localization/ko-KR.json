@@ -201,6 +201,11 @@
   "access.activation.not_held": "역할 {id}을(를) 지금 보유하지 않아 활성화할 수 없습니다.",
   "access.constraint.code_taken": "제약 규칙 코드 {code}이(가) 이미 있습니다.",
   "access.constraint.violated": "제약 규칙 「{name}」({code})을(를) 위반하여 이번 변경을 하지 않았습니다.",
+  "access.constraint.approval_required": "제약 규칙 「{name}」({code})은(는) 결재가 필요하지만 이런 변경은 결재를 거칠 수 없어 하지 않았습니다.",
+  "access.constraint.approval_import": "제약 규칙 「{name}」({code})은(는) 결재가 필요해 가져오기 중에는 지정할 수 없습니다. 가져온 뒤 사용자 페이지에서 따로 지정하면 결재가 자동으로 시작됩니다.",
+  "access.constraint.approval_submitted": "제약 규칙 「{name}」({code})은(는) 결재가 필요해 이 사용자의 권한 신청을 대신 시작했습니다. 결재가 승인되면 적용됩니다.",
+  "access.constraint.approval_unavailable": "제약 규칙 「{name}」({code})은(는) 결재가 필요하지만 결재가 켜져 있지 않아 이번 변경을 하지 않았습니다.",
+  "access.constraint.approval_unsupported": "동적 직무 분리 규칙에는 「승인 필요」를 선택할 수 없습니다. 세션 역할 활성화에는 결재할 변경이 없습니다.",
   "access.role.import_failed": "가져오는 중에 역할 '{role}'을(를) 사용자 '{userName}'에게 지정하지 못했습니다: {reason} 이 묶음은 기록되지 않았습니다. 다시 시도하세요.",
   "access.constraint.not_found": "제약 규칙 {id}이(가) 없습니다.",
   "access.session_role.not_found": "세션 역할 기록 {id}이(가) 없습니다.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "신청자가 이쪽의 활성 계정이 아닙니다.",
   "access.permission_request.approval_unavailable": "결재가 비활성이라 권한 신청을 제출할 수 없습니다.",
   "access.permission_request.workflow_title": "권한 신청: {targets}",
+  "access.permission_request.workflow_title_for": "권한 신청({user}): {targets}",
   "access.permission_request.target_role": "역할 \"{name}\"",
   "access.permission_request.target_permission": "권한 \"{name}\"",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "신청자가 수정 후 재제출",
   "access.permission_request.closed_by_admin": "관리자가 신청을 처리함",
   "access.permission_request.aborted": "결재 워크플로가 중단됨",
-  "access.permission_request.grant_reason": "권한 신청 {id} 승인에 따른 자동 부여"
+  "access.permission_request.grant_reason": "권한 신청 {id} 승인에 따른 자동 부여",
+  "access.permission_request.constraint_role_reason": "역할 지정이 제약 규칙 「{name}」({code})에 걸려 규칙에 따라 결재로 넘깁니다.",
+  "access.permission_request.constraint_permission_reason": "권한 직접 부여가 제약 규칙 「{name}」({code})에 걸려 규칙에 따라 결재로 넘깁니다."
 }

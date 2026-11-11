@@ -6,6 +6,7 @@
 import type { PermissionGrantItem } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, ref } from 'vue'
+import { partitionApprovals } from '@/modules/access/views/constraint-rules/constraint-rule'
 import { permissions as permissionsApi, userGrants as userGrantsApi } from '~/contracts'
 import { ApiError } from '~/request'
 import { useAppStore } from '~/stores'
@@ -157,7 +158,8 @@ export function useUserGrants(outsideGroup: () => string) {
   }
 
   /** 保存：返回各动作提交了几项；没有变化返回 null */
-  async function save(): Promise<{ grant: number, deny: number, revoke: number } | null> {
+  /** 保存：返回各类的条数与转为审批的说明（触犯需审批的约束规则，已替用户发起授权申请，不算授予） */
+  async function save(): Promise<{ grant: number, deny: number, revoke: number, submitted: string[] } | null> {
     const target = user.value
     if (!target || loading.value)
       return null
@@ -170,12 +172,21 @@ export function useUserGrants(outsideGroup: () => string) {
     try {
       if (diff.revoke.length > 0)
         throwOnFailedPermissions(await userGrantsApi.revoke({ userId: target.id, permissions: diff.revoke }))
-      if (diff.grant.length > 0)
-        throwOnFailedPermissions(await userGrantsApi.grant({ userId: target.id, permissions: diff.grant }))
+      let submitted: string[] = []
+      if (diff.grant.length > 0) {
+        const granted = partitionApprovals((await userGrantsApi.grant({ userId: target.id, permissions: diff.grant })).failed)
+        throwOnFailedPermissions(granted)
+        submitted = granted.submitted.map(f => `${f.permission}: ${f.message}`)
+      }
       if (diff.deny.length > 0)
         throwOnFailedPermissions(await userGrantsApi.deny({ userId: target.id, permissions: diff.deny }))
       await reloadGrants(target.id)
-      return { grant: diff.grant.length, deny: diff.deny.length, revoke: diff.revoke.length }
+      return {
+        grant: diff.grant.length - submitted.length,
+        deny: diff.deny.length,
+        revoke: diff.revoke.length,
+        submitted,
+      }
     }
     finally {
       loading.value = false

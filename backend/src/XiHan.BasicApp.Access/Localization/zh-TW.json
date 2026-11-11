@@ -201,6 +201,11 @@
   "access.activation.not_held": "角色 {id} 此刻不持有，不能啟用。",
   "access.constraint.code_taken": "約束規則編碼 {code} 已存在。",
   "access.constraint.violated": "違反約束規則「{name}」（{code}），這次變更沒有執行。",
+  "access.constraint.approval_required": "違反約束規則「{name}」（{code}）：這條規則要求審批，這類變更不能走審批，沒有執行。",
+  "access.constraint.approval_import": "違反約束規則「{name}」（{code}）：這條規則要求審批，匯入時不能指派；匯入後在使用者頁單獨指派會自動發起審批。",
+  "access.constraint.approval_submitted": "違反約束規則「{name}」（{code}），已轉為審批：替該使用者發起了授權申請，審批通過後生效。",
+  "access.constraint.approval_unavailable": "違反約束規則「{name}」（{code}）：這條規則要求審批，但審批未啟用，沒有執行。",
+  "access.constraint.approval_unsupported": "動態職責分離的規則不能選「需審批」：啟用工作階段角色時沒有可審批的變更。",
   "access.role.import_failed": "匯入時沒能把角色 '{role}' 指派給使用者 '{userName}'：{reason} 這批匯入沒有寫入，請重試。",
   "access.constraint.not_found": "約束規則 {id} 不存在。",
   "access.session_role.not_found": "工作階段角色記錄 {id} 不存在。",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "申請人不是目前這一側的在用帳號。",
   "access.permission_request.approval_unavailable": "審批未啟用，暫時不能提交授權申請。",
   "access.permission_request.workflow_title": "授權申請：{targets}",
+  "access.permission_request.workflow_title_for": "授權申請（{user}）：{targets}",
   "access.permission_request.target_role": "角色「{name}」",
   "access.permission_request.target_permission": "權限「{name}」",
   "access.permission_request.target_separator": "、",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "申請人修改後重新提交",
   "access.permission_request.closed_by_admin": "管理員處理了申請",
   "access.permission_request.aborted": "審批流程已中止",
-  "access.permission_request.grant_reason": "授權申請 {id} 審批通過自動授予"
+  "access.permission_request.grant_reason": "授權申請 {id} 審批通過自動授予",
+  "access.permission_request.constraint_role_reason": "指派角色時觸犯約束規則「{name}」（{code}），按規則轉為審批。",
+  "access.permission_request.constraint_permission_reason": "直授權限時觸犯約束規則「{name}」（{code}），按規則轉為審批。"
 }

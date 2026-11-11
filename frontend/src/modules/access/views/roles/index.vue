@@ -411,7 +411,7 @@ async function toggleStatus(row: RoleRow) {
   }
 }
 
-/** 授予 / 指派的结果：逐项失败单独提示原因，其余按条数报成功 */
+/** 授予 / 指派的结果：逐项失败单独提示原因，其余按条数报成功；转为审批的另起一条提示 */
 function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, revoke: number) => string, noChange: string) {
   if (!outcome) {
     toast.info(noChange)
@@ -422,9 +422,11 @@ function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, rev
       failures: outcome.failures.join('; '),
     }))
   }
-  else {
+  else if (outcome.added + outcome.removed > 0 || outcome.submitted.length === 0) {
     toast.success(saved(outcome.added, outcome.removed))
   }
+  if (outcome.submitted.length > 0)
+    toast.info(outcome.submitted.join('; '))
 }
 
 // ── 权限分配 ──

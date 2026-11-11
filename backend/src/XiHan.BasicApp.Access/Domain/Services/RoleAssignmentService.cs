@@ -36,8 +36,9 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
     /// </summary>
     /// <param name="request">角色与成员、有效期</param>
     /// <param name="context">调用上下文</param>
-    /// <returns>逐个成员的结果；角色不存在或有效期不合法时整体失败</returns>
-    public async Task<Result<BatchResult>> AssignAsync(RoleMembersRequest request, InvocationContext context)
+    /// <param name="approvedBy">批准这次指派的授权申请（审批通过后执行时给出，需审批的约束规则随之放行）</param>
+    /// <returns>逐个成员的结果与其中要求审批的成员；角色不存在或有效期不合法时整体失败</returns>
+    public async Task<Result<RoleAssignmentResult>> AssignAsync(RoleMembersRequest request, InvocationContext context, Guid? approvedBy = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
@@ -58,6 +59,7 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
         var existing = (await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), context.CancellationToken).ConfigureAwait(false)).Select(static m => m.UserId).ToHashSet();
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
+        var needApproval = new List<ApprovalNeeded>();
         var additions = new List<SysUserRole>();
         var memberCount = await enforcer.MemberCountAsync(owner, roleId, context.CancellationToken).ConfigureAwait(false);
         foreach (var userId in request.UserIds.Distinct())
@@ -74,9 +76,14 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
                 held.Add(roleId);
                 var violations = new List<ConstraintViolation>(await enforcer.CheckUserRolesAsync(owner, userId, user.UserName, held, [roleId], context).ConfigureAwait(false));
                 violations.AddRange(await enforcer.CheckRoleMembersAsync(owner, roleId, memberCount + additions.Count + 1, context.CancellationToken).ConfigureAwait(false));
-                if (ConstraintEnforcer.Settle(context, violations, roleId, userId) is { } blocked)
+                if (ConstraintEnforcer.Settle(context, violations, roleId, userId, approvedBy) is { } blocked)
                 {
                     failed.Add(BatchFailure.From(userId, blocked));
+                    if (blocked.Code == AccessErrors.ConstraintApprovalRequired)
+                    {
+                        needApproval.Add(new ApprovalNeeded(userId, null, blocked));
+                    }
+
                     continue;
                 }
 
@@ -104,6 +111,6 @@ public sealed class RoleAssignmentService(RoleService service, SideUsers users, 
             context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleAssign) { RoleId = roleId, RoleName = role.Name, TargetUserId = addition.UserId, TargetUserName = found[addition.UserId].UserName });
         }
 
-        return new BatchResult(succeeded, failed);
+        return new RoleAssignmentResult(new BatchResult(succeeded, failed), needApproval);
     }
 }

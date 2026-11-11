@@ -12,6 +12,7 @@ import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { useAppStore } from '~/stores'
+import { partitionApprovals } from '../constraint-rules/constraint-rule'
 import { usePermissionNames } from '../permissions/permission-names'
 import { buildNameMap, isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from './data-scope'
 import { summarizeInheritedPermissions } from './role-parents'
@@ -251,11 +252,12 @@ export function diffGrants(draft: readonly string[], granted: readonly string[])
   }
 }
 
-/** 一次保存的结果：成功授予 / 撤销的条数，逐项失败的原因 */
+/** 一次保存的结果：成功授予 / 撤销的条数，逐项失败的原因，转为审批的说明（触犯需审批的约束规则，已替用户发起授权申请） */
 export interface ChangeOutcome {
   added: number
   removed: number
   failures: string[]
+  submitted: string[]
 }
 
 /** 权限分配抽屉：目录一次取全并缓存，草稿只改本地，保存时按差量授予 / 撤销 */
@@ -320,7 +322,12 @@ export function useRolePermissionEditor() {
       return null
     saving.value = true
     try {
-      const outcome: ChangeOutcome = { added: 0, removed: 0, failures: [] }
+      const outcome: ChangeOutcome = {
+        added: 0,
+        removed: 0,
+        failures: [],
+        submitted: [],
+      }
       if (grant.length > 0) {
         const result = await rolesApi.grant({ id: current.id, permissions: grant })
         outcome.added = result.succeeded.length
@@ -462,11 +469,18 @@ export function useRoleMemberEditor() {
       return null
     saving.value = true
     try {
-      const outcome: ChangeOutcome = { added: 0, removed: 0, failures: [] }
+      const outcome: ChangeOutcome = {
+        added: 0,
+        removed: 0,
+        failures: [],
+        submitted: [],
+      }
       if (assign.length > 0) {
         const result = await rolesApi.assign({ id: current.id, userIds: assign })
+        const { submitted, failed } = partitionApprovals(result.failed)
         outcome.added = result.succeeded.length
-        outcome.failures.push(...result.failed.map(f => f.message))
+        outcome.failures.push(...failed.map(f => f.message))
+        outcome.submitted.push(...submitted.map(f => f.message))
       }
       if (unassign.length > 0) {
         const result = await rolesApi.unassign({ id: current.id, userIds: unassign })

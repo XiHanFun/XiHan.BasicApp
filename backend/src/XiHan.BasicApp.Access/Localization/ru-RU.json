@@ -201,6 +201,11 @@
   "access.activation.not_held": "Роли {id} сейчас нет у пользователя, её нельзя активировать.",
   "access.constraint.code_taken": "Код правила ограничения {code} уже существует.",
   "access.constraint.violated": "Нарушено правило ограничения «{name}» ({code}); изменение не выполнено.",
+  "access.constraint.approval_required": "Правило ограничения «{name}» ({code}) требует согласования, но такое изменение нельзя провести через согласование; оно не выполнено.",
+  "access.constraint.approval_import": "Правило ограничения «{name}» ({code}) требует согласования, поэтому при импорте роль не назначается; назначьте её потом на странице пользователей — согласование запустится автоматически.",
+  "access.constraint.approval_submitted": "Правило ограничения «{name}» ({code}) требует согласования: для этого пользователя создана заявка на права, она вступит в силу после согласования.",
+  "access.constraint.approval_unavailable": "Правило ограничения «{name}» ({code}) требует согласования, но согласование не включено; изменение не выполнено.",
+  "access.constraint.approval_unsupported": "Правило динамического разделения обязанностей не может использовать «Нужно согласование»: при активации ролей сеанса нечего согласовывать.",
   "access.role.import_failed": "Не удалось назначить роль '{role}' пользователю '{userName}' при импорте: {reason} Из этого пакета ничего не записано; повторите попытку.",
   "access.constraint.not_found": "Правило ограничения {id} не существует.",
   "access.session_role.not_found": "Запись роли сеанса {id} не существует.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "Заявитель не является активной учётной записью на этой стороне.",
   "access.permission_request.approval_unavailable": "Согласование не включено, подать заявку на доступ нельзя.",
   "access.permission_request.workflow_title": "Заявка на доступ: {targets}",
+  "access.permission_request.workflow_title_for": "Заявка на права ({user}): {targets}",
   "access.permission_request.target_role": "роль «{name}»",
   "access.permission_request.target_permission": "разрешение «{name}»",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "Изменено и подано повторно заявителем",
   "access.permission_request.closed_by_admin": "Обработано администратором",
   "access.permission_request.aborted": "Процесс согласования прерван",
-  "access.permission_request.grant_reason": "Выдано автоматически по одобрению заявки на доступ {id}"
+  "access.permission_request.grant_reason": "Выдано автоматически по одобрению заявки на доступ {id}",
+  "access.permission_request.constraint_role_reason": "Назначение роли нарушило правило ограничения «{name}» ({code}), которое требует согласования.",
+  "access.permission_request.constraint_permission_reason": "Прямая выдача права нарушила правило ограничения «{name}» ({code}), которое требует согласования."
 }

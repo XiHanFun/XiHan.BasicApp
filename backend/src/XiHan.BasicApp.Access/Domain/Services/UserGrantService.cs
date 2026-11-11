@@ -31,8 +31,9 @@ public sealed class UserGrantService(SideUsers users, PermissionCatalog catalog,
     /// </summary>
     /// <param name="request">用户、权限码、有效期与理由</param>
     /// <param name="context">调用上下文</param>
-    /// <returns>逐个权限码的结果；用户不存在或有效期不合法时整体失败</returns>
-    public async Task<Result<PermissionBatchResult>> GrantAsync(UserPermissionsRequest request, InvocationContext context)
+    /// <param name="approvedBy">批准这次授予的授权申请（审批通过后执行时给出，需审批的约束规则随之放行）</param>
+    /// <returns>逐个权限码的结果与其中要求审批的权限码；用户不存在或有效期不合法时整体失败</returns>
+    public async Task<Result<UserGrantResult>> GrantAsync(UserPermissionsRequest request, InvocationContext context, Guid? approvedBy = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
@@ -42,7 +43,8 @@ public sealed class UserGrantService(SideUsers users, PermissionCatalog catalog,
             return window.Error!;
         }
 
-        return await UserGrantBatch.RunAsync(request, context, users, catalog, PermissionChangeType.UserGrant, async (user, owner, permissions, ct) =>
+        var needApproval = new List<ApprovalNeeded>();
+        var granted = await UserGrantBatch.RunAsync(request, context, users, catalog, PermissionChangeType.UserGrant, async (user, owner, permissions, ct) =>
         {
             var outcomes = await grants.GrantAsync(user.Id, owner, permissions, ct).ConfigureAwait(false);
             var ok = outcomes.Where(static o => o.Outcome.IsSuccess).Select(static o => o.Grant.Permission).ToList();
@@ -50,6 +52,11 @@ public sealed class UserGrantService(SideUsers users, PermissionCatalog catalog,
             (await conditions.RemoveBindingsAsync(owner, GrantSubjectKind.User, user.Id, ok, PermissionAction.Deny, ct).ConfigureAwait(false)).ThrowIfFailure();
             return outcomes;
         }, async (user, owner, accepted, ct) =>
-            await enforcer.ScreenPermissionsAsync(owner, [.. await grants.ListAsync(user.Id, owner, ct).ConfigureAwait(false)], accepted, context, userId: user.Id).ConfigureAwait(false)).ConfigureAwait(false);
+        {
+            var blocked = await enforcer.ScreenPermissionsAsync(owner, [.. await grants.ListAsync(user.Id, owner, ct).ConfigureAwait(false)], accepted, context, userId: user.Id, approvedBy: approvedBy).ConfigureAwait(false);
+            needApproval.AddRange(blocked.Where(static b => b.Reason.Code == AccessErrors.ConstraintApprovalRequired).Select(b => new ApprovalNeeded(user.Id, b.Permission, b.Reason)));
+            return blocked;
+        }).ConfigureAwait(false);
+        return granted.TryGetValue(out var batch) ? new UserGrantResult(batch, needApproval) : granted.Error!;
     }
 }

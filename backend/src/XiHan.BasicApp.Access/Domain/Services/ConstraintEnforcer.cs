@@ -33,7 +33,8 @@ public sealed record ConstraintViolation(ConstraintRuleView Rule, int? GroupNo, 
 /// <item>条件：指派规则项里的角色时，按条件引擎判定被指派的用户（主体）与发起这次指派的请求（环境），不成立即违规</item>
 /// </list>
 /// 只报这次变更带进来的违规（变更之前已有的不拦）；静态的判定不看角色启停，按结构判定
-/// 违规按规则的处理方式落地（<see cref="Settle"/>）：拒绝与需审批的拦下变更，警告与只记录的放行并记权限变更日志
+/// 违规按规则的处理方式落地（<see cref="Settle"/>）：拒绝的拦下变更；需审批的拦下、由调用方转为授权申请（给用户指派角色与直授权限），审批通过后执行时放行；
+/// 警告与只记录的放行并记权限变更日志
 /// </remarks>
 /// <param name="rules">规则缓存</param>
 /// <param name="hierarchy">继承图（按本次工作单元读，继承刚改过也看得到）</param>
@@ -183,8 +184,9 @@ public sealed class ConstraintEnforcer(
     /// <param name="context">调用上下文</param>
     /// <param name="roleId">主体是角色时的角色</param>
     /// <param name="userId">主体是用户时的用户</param>
+    /// <param name="approvedBy">批准这次授予的授权申请；不是审批通过后执行的为空</param>
     /// <returns>被拦下的权限码与原因</returns>
-    public async Task<IReadOnlyList<(string Permission, Error Reason)>> ScreenPermissionsAsync(string owner, IReadOnlyCollection<string> held, IReadOnlyList<string> candidates, InvocationContext context, Guid? roleId = null, Guid? userId = null)
+    public async Task<IReadOnlyList<(string Permission, Error Reason)>> ScreenPermissionsAsync(string owner, IReadOnlyCollection<string> held, IReadOnlyList<string> candidates, InvocationContext context, Guid? roleId = null, Guid? userId = null, Guid? approvedBy = null)
     {
         ArgumentNullException.ThrowIfNull(held);
         ArgumentNullException.ThrowIfNull(candidates);
@@ -199,7 +201,7 @@ public sealed class ConstraintEnforcer(
             }
 
             var violations = await CheckPermissionsAsync(owner, [.. current, code], [code], context.CancellationToken).ConfigureAwait(false);
-            if (Settle(context, violations, roleId, userId) is { } reason)
+            if (Settle(context, violations, roleId, userId, approvedBy) is { } reason)
             {
                 blocked.Add((code, reason));
                 continue;
@@ -308,57 +310,82 @@ public sealed class ConstraintEnforcer(
     /// 按处理方式落地违规
     /// </summary>
     /// <remarks>
-    /// 有拦截类的违规即返回错误（这次变更不做，警告也不记）；否则警告与只记录的各记一条权限变更日志
+    /// 有拒绝类的违规即返回 <c>ACCESS_CONFLICT_012</c>；有需审批类的、且这次变更不是审批通过后执行的，返回 <c>ACCESS_CONFLICT_018</c>（这次变更不做，什么都不记）
+    /// 否则每条违规记一条权限变更日志：警告与只记录的照常记，需审批的记下批准它的授权申请
     /// </remarks>
     /// <param name="context">调用上下文</param>
     /// <param name="violations">违规</param>
     /// <param name="roleId">变更涉及的角色</param>
     /// <param name="userId">变更涉及的用户</param>
-    public static Error? Settle(InvocationContext context, IReadOnlyList<ConstraintViolation> violations, Guid? roleId = null, Guid? userId = null)
+    /// <param name="approvedBy">批准这次变更的授权申请；不是审批通过后执行的为空</param>
+    public static Error? Settle(InvocationContext context, IReadOnlyList<ConstraintViolation> violations, Guid? roleId = null, Guid? userId = null, Guid? approvedBy = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(violations);
-        if (Blocking(violations) is { } blocked)
+        if (Blocking(violations, approvedBy is not null) is { } blocked)
         {
             return blocked;
         }
 
         foreach (var violation in violations)
         {
-            Record(context, violation, roleId, userId);
+            Record(context, violation, roleId, userId, approvedBy);
         }
 
         return null;
     }
 
     /// <summary>
-    /// 违规里第一条拦截类的，作为错误
+    /// 违规里拦下这次变更的那条，作为错误
     /// </summary>
     /// <remarks>
-    /// 只判定、不记日志：用于变更之前的预检，真正变更时仍经 <see cref="Settle"/> 落地
+    /// 拒绝类优先于需审批类。只判定、不记日志：用于变更之前的预检，真正变更时仍经 <see cref="Settle"/> 落地
     /// </remarks>
-    /// <returns>没有拦截类的违规时为空</returns>
-    public static Error? Blocking(IReadOnlyList<ConstraintViolation> violations)
+    /// <param name="violations">违规</param>
+    /// <param name="approved">这次变更已审批通过：需审批类不再拦</param>
+    /// <returns>没有拦下时为空</returns>
+    public static Error? Blocking(IReadOnlyList<ConstraintViolation> violations, bool approved = false)
     {
         ArgumentNullException.ThrowIfNull(violations);
-        return violations.FirstOrDefault(static v => v.Rule.IsBlocking) is { } blocking
-            ? Error.Conflict(AccessErrors.ConstraintViolated, AccessMessages.ConstraintViolated, MessageArguments.Of(("code", blocking.Rule.Code), ("name", blocking.Rule.Name)))
+        if (violations.FirstOrDefault(static v => v.Rule.Action == ConstraintViolationAction.Deny) is { } denied)
+        {
+            return Error.Conflict(AccessErrors.ConstraintViolated, AccessMessages.ConstraintViolated, RuleArguments(denied.Rule));
+        }
+
+        return !approved && violations.FirstOrDefault(static v => v.Rule.Action == ConstraintViolationAction.RequireApproval) is { } pending
+            ? Error.Conflict(AccessErrors.ConstraintApprovalRequired, AccessMessages.ConstraintApprovalRequired, RuleArguments(pending.Rule))
             : null;
     }
 
     /// <summary>
-    /// 记一条违规（警告与只记录类）
+    /// 消息参数：规则的编码与名称
     /// </summary>
-    public static void Record(InvocationContext context, ConstraintViolation violation, Guid? roleId = null, Guid? userId = null)
+    public static IReadOnlyDictionary<string, object?> RuleArguments(ConstraintRuleView rule)
+    {
+        ArgumentNullException.ThrowIfNull(rule);
+        return MessageArguments.Of(("code", rule.Code), ("name", rule.Name));
+    }
+
+    /// <summary>
+    /// 记一条放行了的违规
+    /// </summary>
+    /// <param name="context">调用上下文</param>
+    /// <param name="violation">违规</param>
+    /// <param name="roleId">变更涉及的角色</param>
+    /// <param name="userId">变更涉及的用户</param>
+    /// <param name="approvedBy">批准这次变更的授权申请</param>
+    public static void Record(InvocationContext context, ConstraintViolation violation, Guid? roleId = null, Guid? userId = null, Guid? approvedBy = null)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(violation);
+        var group = violation.GroupNo is { } number ? $" group:{number}" : string.Empty;
+        var request = approvedBy is { } id ? $" request:{id:D}" : string.Empty;
         context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.ConstraintViolation)
         {
             RoleId = roleId,
             TargetUserId = userId,
             PermissionCodes = violation.Rule.TargetType == ConstraintTargetType.Permission ? violation.Targets : [],
-            Detail = $"{violation.Rule.Code} {violation.Rule.Type} {violation.Rule.Action}{(violation.GroupNo is { } group ? $" group:{group}" : string.Empty)} targets:{string.Join(',', violation.Targets)}",
+            Detail = $"{violation.Rule.Code} {violation.Rule.Type} {violation.Rule.Action}{group} targets:{string.Join(',', violation.Targets)}{request}",
         });
     }
 

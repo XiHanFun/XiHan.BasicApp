@@ -45,7 +45,7 @@ public sealed record ConstraintRuleView(Guid Id, string Code, string Name, Const
     /// 违规是否拦下变更
     /// </summary>
     /// <remarks>
-    /// 拒绝与需审批即拦下；审批未接入，按拒绝
+    /// 拒绝与需审批即拦下；需审批的由调用方转为授权申请或审批通过后放行（<see cref="Domain.Services.ConstraintEnforcer.Settle"/>）
     /// </remarks>
     public bool IsBlocking => Action is ConstraintViolationAction.Deny or ConstraintViolationAction.RequireApproval;
 }

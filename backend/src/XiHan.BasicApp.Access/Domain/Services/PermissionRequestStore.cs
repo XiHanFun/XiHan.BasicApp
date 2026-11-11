@@ -236,9 +236,12 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
     /// 审批流程的标题
     /// </summary>
     /// <remarks>
-    /// 只写申请对象：申请人就是发起人，待办与审批中心另有发起人一栏
+    /// 本人提交时只写申请对象：申请人就是发起人，待办与审批中心另有发起人一栏；替别人发起时发起人不是申请人，标题里带上申请人
     /// </remarks>
-    public static string TitleOf(PermissionRequestTarget target, InvocationContext context)
+    /// <param name="target">申请的对象</param>
+    /// <param name="context">调用上下文</param>
+    /// <param name="applicant">替别人发起时写进标题的申请人显示名；本人提交为空</param>
+    public static string TitleOf(PermissionRequestTarget target, InvocationContext context, string? applicant = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(context);
@@ -253,7 +256,21 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
             parts.Add(context.Localize(AccessMessages.PermissionRequestTargetPermission, MessageArguments.Of(("name", PermissionTexts.NameOf(permission, context)))));
         }
 
-        return context.Localize(AccessMessages.PermissionRequestWorkflowTitle, MessageArguments.Of(("targets", string.Join(context.Localize(AccessMessages.PermissionRequestTargetSeparator), parts))));
+        var targets = string.Join(context.Localize(AccessMessages.PermissionRequestTargetSeparator), parts);
+        return applicant is null
+            ? context.Localize(AccessMessages.PermissionRequestWorkflowTitle, MessageArguments.Of(("targets", targets)))
+            : context.Localize(AccessMessages.PermissionRequestWorkflowTitleFor, MessageArguments.Of(("user", applicant), ("targets", targets)));
+    }
+
+    /// <summary>
+    /// 用户的显示名（没有显示名用登录名）
+    /// </summary>
+    public async Task<string> DisplayNameAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var found = await users.FindAsync([userId], cancellationToken).ConfigureAwait(false);
+        return found.TryGetValue(userId, out var user)
+            ? (string.IsNullOrWhiteSpace(user.DisplayName) ? user.UserName : user.DisplayName)
+            : userId.ToString("D");
     }
 
     /// <summary>

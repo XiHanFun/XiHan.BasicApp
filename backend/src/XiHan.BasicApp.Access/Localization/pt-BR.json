@@ -201,6 +201,11 @@
   "access.activation.not_held": "A função {id} não é mantida agora e não pode ser ativada.",
   "access.constraint.code_taken": "O código de regra de restrição {code} já existe.",
   "access.constraint.violated": "A regra de restrição \"{name}\" ({code}) é violada; a alteração não foi feita.",
+  "access.constraint.approval_required": "A regra de restrição \"{name}\" ({code}) exige aprovação, mas esse tipo de alteração não pode passar por aprovação; ela não foi feita.",
+  "access.constraint.approval_import": "A regra de restrição \"{name}\" ({code}) exige aprovação, então não pode ser atribuída na importação; atribua depois na página de usuários e a aprovação começa automaticamente.",
+  "access.constraint.approval_submitted": "A regra de restrição \"{name}\" ({code}) exige aprovação: foi iniciada uma solicitação de permissão para este usuário, que vale após a aprovação.",
+  "access.constraint.approval_unavailable": "A regra de restrição \"{name}\" ({code}) exige aprovação, mas a aprovação não está habilitada; a alteração não foi feita.",
+  "access.constraint.approval_unsupported": "Uma regra de segregação dinâmica de funções não pode usar \"Requer aprovação\": ativar funções da sessão não tem alteração a aprovar.",
   "access.role.import_failed": "Não foi possível atribuir a função '{role}' ao usuário '{userName}' durante a importação: {reason} Nada deste lote foi gravado; tente novamente.",
   "access.constraint.not_found": "A regra de restrição {id} não existe.",
   "access.session_role.not_found": "O registro de função de sessão {id} não existe.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "O solicitante não é uma conta ativa deste lado.",
   "access.permission_request.approval_unavailable": "A aprovação não está habilitada; não é possível enviar solicitações de permissão.",
   "access.permission_request.workflow_title": "Solicitação de permissão: {targets}",
+  "access.permission_request.workflow_title_for": "Solicitação de permissão ({user}): {targets}",
   "access.permission_request.target_role": "função \"{name}\"",
   "access.permission_request.target_permission": "permissão \"{name}\"",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "Alterada e reenviada pelo solicitante",
   "access.permission_request.closed_by_admin": "Tratada por um administrador",
   "access.permission_request.aborted": "O fluxo de aprovação foi interrompido",
-  "access.permission_request.grant_reason": "Concedido automaticamente na aprovação da solicitação de permissão {id}"
+  "access.permission_request.grant_reason": "Concedido automaticamente na aprovação da solicitação de permissão {id}",
+  "access.permission_request.constraint_role_reason": "Atribuir a função acionou a regra de restrição \"{name}\" ({code}), que exige aprovação.",
+  "access.permission_request.constraint_permission_reason": "Conceder a permissão diretamente acionou a regra de restrição \"{name}\" ({code}), que exige aprovação."
 }

@@ -270,6 +270,12 @@ public sealed class ConstraintRuleService(
             return Error.Validation(AccessErrors.PolicyWindowInvalid, AccessMessages.PolicyWindowInvalid);
         }
 
+        // 动态职责分离在激活会话角色时判定，没有可审批的变更
+        if (definition.Type == ConstraintType.Dsd && definition.ViolationAction == ConstraintViolationAction.RequireApproval)
+        {
+            return Error.Validation(AccessErrors.ConstraintApprovalUnsupported, AccessMessages.ConstraintApprovalUnsupported);
+        }
+
         string? conditions = null;
         if (definition.Type == ConstraintType.Condition)
         {

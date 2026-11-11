@@ -201,6 +201,11 @@
   "access.activation.not_held": "ロール {id} は現在保有していないため、有効にできません。",
   "access.constraint.code_taken": "制約ルールのコード {code} は既に存在します。",
   "access.constraint.violated": "制約ルール「{name}」（{code}）に違反するため、この変更は行われませんでした。",
+  "access.constraint.approval_required": "制約ルール「{name}」（{code}）は承認が必要ですが、この種類の変更は承認にかけられないため、行われませんでした。",
+  "access.constraint.approval_import": "制約ルール「{name}」（{code}）は承認が必要なため、インポート時には割り当てられません。インポート後にユーザーページで個別に割り当てると、承認が自動的に開始されます。",
+  "access.constraint.approval_submitted": "制約ルール「{name}」（{code}）は承認が必要なため、このユーザーの権限申請を開始しました。承認されると有効になります。",
+  "access.constraint.approval_unavailable": "制約ルール「{name}」（{code}）は承認が必要ですが、承認が有効になっていないため、この変更は行われませんでした。",
+  "access.constraint.approval_unsupported": "動的職務分離のルールでは「承認が必要」を選べません。セッションロールの有効化には承認する変更がありません。",
   "access.role.import_failed": "インポート中にロール '{role}' をユーザー '{userName}' に割り当てられませんでした：{reason} このバッチは書き込まれていません。もう一度お試しください。",
   "access.constraint.not_found": "制約ルール {id} は存在しません。",
   "access.session_role.not_found": "セッションロールの記録 {id} は存在しません。",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "申請者はこの側の有効なアカウントではありません。",
   "access.permission_request.approval_unavailable": "承認が無効のため、権限申請を提出できません。",
   "access.permission_request.workflow_title": "権限申請：{targets}",
+  "access.permission_request.workflow_title_for": "権限申請（{user}）：{targets}",
   "access.permission_request.target_role": "ロール「{name}」",
   "access.permission_request.target_permission": "権限「{name}」",
   "access.permission_request.target_separator": "、",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "申請者が変更して再提出",
   "access.permission_request.closed_by_admin": "管理者が申請を処理",
   "access.permission_request.aborted": "承認ワークフローが中止されました",
-  "access.permission_request.grant_reason": "権限申請 {id} の承認による自動付与"
+  "access.permission_request.grant_reason": "権限申請 {id} の承認による自動付与",
+  "access.permission_request.constraint_role_reason": "ロールの割り当てが制約ルール「{name}」（{code}）に該当したため、規則どおり承認にかけます。",
+  "access.permission_request.constraint_permission_reason": "権限の直接付与が制約ルール「{name}」（{code}）に該当したため、規則どおり承認にかけます。"
 }

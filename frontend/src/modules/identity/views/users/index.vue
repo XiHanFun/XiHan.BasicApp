@@ -790,10 +790,14 @@ const canEditDataScope = computed(() => auth.can('access.user-data-scopes.update
 async function saveGrants() {
   try {
     const saved = await grants.save()
-    if (saved)
-      toast.success(t('identity.users.grants.saved', saved))
-    else
+    if (!saved) {
       toast.info(t('identity.users.grants.no_change'))
+      return
+    }
+    if (saved.grant + saved.deny + saved.revoke > 0 || saved.submitted.length === 0)
+      toast.success(t('identity.users.grants.saved', saved))
+    if (saved.submitted.length > 0)
+      toast.info(saved.submitted.join('; '))
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.save_failed'))
@@ -1001,7 +1005,11 @@ async function saveRoles() {
   }
   try {
     const result = await roleAssign.save()
-    toast.success(t('identity.users.roles_saved', { assign: result.assigned, unassign: result.unassigned }))
+    // 全部转为审批时没有可报的保存，只给转审批的提示
+    if (result.assigned + result.unassigned > 0 || result.submitted.length === 0)
+      toast.success(t('identity.users.roles_saved', { assign: result.assigned, unassign: result.unassigned }))
+    if (result.submitted.length > 0)
+      toast.info(result.submitted.join('; '))
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.save_failed'))

@@ -7,6 +7,7 @@ import type { UserRow } from './use-users'
 import type { GrantTransferItem } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, ref } from 'vue'
+import { partitionApprovals } from '@/modules/access/views/constraint-rules/constraint-rule'
 import { roles as rolesApi } from '~/contracts'
 
 type RoleRow = ResponseOf<'roles.list'>['items'][number]
@@ -19,10 +20,11 @@ export interface RoleGrantItem extends GrantTransferItem {
   disabled: boolean
 }
 
-/** 一次保存的结果：新分配与移除的角色数 */
+/** 一次保存的结果：新分配与移除的角色数，转为审批的说明（触犯需审批的约束规则，已替用户发起授权申请） */
 export interface RoleSaveResult {
   assigned: number
   unassigned: number
+  submitted: string[]
 }
 
 /** 后端 `PageInfo.MaxSize`：角色目录一次取全 */
@@ -101,23 +103,26 @@ export function useUserRoles() {
   async function save(): Promise<RoleSaveResult> {
     const current = user.value
     if (!current)
-      return { assigned: 0, unassigned: 0 }
+      return { assigned: 0, unassigned: 0, submitted: [] }
     const before = new Set(assigned.value)
     const after = new Set(draft.value)
     const toAssign = draft.value.filter(id => !before.has(id))
     const toUnassign = assigned.value.filter(id => !after.has(id))
     if (toAssign.length === 0 && toUnassign.length === 0)
-      return { assigned: 0, unassigned: 0 }
+      return { assigned: 0, unassigned: 0, submitted: [] }
     loading.value = true
     try {
       const failed: string[] = []
+      const submitted: string[] = []
       let interrupted: unknown = null
       try {
         for (const roleId of toAssign) {
-          failed.push(...(await rolesApi.assign({
+          const result = partitionApprovals((await rolesApi.assign({
             id: roleId,
             userIds: [current.id],
-          })).failed.map(f => f.message))
+          })).failed)
+          failed.push(...result.failed.map(f => f.message))
+          submitted.push(...result.submitted.map(f => f.message))
         }
         for (const roleId of toUnassign) {
           failed.push(...(await rolesApi.unassign({
@@ -133,9 +138,13 @@ export function useUserRoles() {
       await load(current.id)
       if (interrupted)
         throw interrupted
-      if (failed.length > 0)
-        throw new Error(failed.join('; '))
-      return { assigned: toAssign.length, unassigned: toUnassign.length }
+      if (failed.length > 0) {
+        throw new Error([
+          ...failed,
+          ...submitted,
+        ].join('; '))
+      }
+      return { assigned: toAssign.length - submitted.length, unassigned: toUnassign.length, submitted }
     }
     finally {
       loading.value = false

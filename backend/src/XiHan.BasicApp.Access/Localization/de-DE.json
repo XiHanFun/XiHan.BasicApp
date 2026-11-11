@@ -201,6 +201,11 @@
   "access.activation.not_held": "Die Rolle {id} wird derzeit nicht gehalten und kann nicht aktiviert werden.",
   "access.constraint.code_taken": "Der Code {code} einer Einschränkungsregel existiert bereits.",
   "access.constraint.violated": "Die Einschränkungsregel „{name}“ ({code}) wird verletzt; die Änderung wurde nicht ausgeführt.",
+  "access.constraint.approval_required": "Die Einschränkungsregel „{name}“ ({code}) verlangt eine Genehmigung, diese Art von Änderung lässt sich aber nicht genehmigen; sie wurde nicht ausgeführt.",
+  "access.constraint.approval_import": "Die Einschränkungsregel „{name}“ ({code}) verlangt eine Genehmigung und kann beim Import nicht zugewiesen werden; weisen Sie sie danach auf der Benutzerseite zu, dann startet die Genehmigung automatisch.",
+  "access.constraint.approval_submitted": "Die Einschränkungsregel „{name}“ ({code}) verlangt eine Genehmigung: Für diesen Benutzer wurde ein Berechtigungsantrag gestartet, der nach der Genehmigung wirksam wird.",
+  "access.constraint.approval_unavailable": "Die Einschränkungsregel „{name}“ ({code}) verlangt eine Genehmigung, Genehmigungen sind aber nicht aktiviert; die Änderung wurde nicht ausgeführt.",
+  "access.constraint.approval_unsupported": "Eine Regel zur dynamischen Funktionstrennung kann „Genehmigung nötig“ nicht verwenden: Beim Aktivieren von Sitzungsrollen gibt es keine Änderung zu genehmigen.",
   "access.role.import_failed": "Die Rolle '{role}' konnte dem Benutzer '{userName}' beim Import nicht zugewiesen werden: {reason} Von diesem Stapel wurde nichts geschrieben; bitte erneut versuchen.",
   "access.constraint.not_found": "Die Einschränkungsregel {id} existiert nicht.",
   "access.session_role.not_found": "Der Sitzungsrollen-Eintrag {id} existiert nicht.",
@@ -373,6 +378,7 @@
   "access.permission_request.requester_inactive": "Der Antragsteller ist kein aktives Konto auf dieser Seite.",
   "access.permission_request.approval_unavailable": "Die Genehmigung ist nicht aktiviert, Berechtigungsanträge können nicht gestellt werden.",
   "access.permission_request.workflow_title": "Berechtigungsantrag: {targets}",
+  "access.permission_request.workflow_title_for": "Berechtigungsantrag ({user}): {targets}",
   "access.permission_request.target_role": "Rolle „{name}“",
   "access.permission_request.target_permission": "Berechtigung „{name}“",
   "access.permission_request.target_separator": ", ",
@@ -380,5 +386,7 @@
   "access.permission_request.resubmitted": "Vom Antragsteller geändert und neu eingereicht",
   "access.permission_request.closed_by_admin": "Von einem Administrator bearbeitet",
   "access.permission_request.aborted": "Der Genehmigungs-Workflow wurde abgebrochen",
-  "access.permission_request.grant_reason": "Automatisch vergeben nach Genehmigung des Berechtigungsantrags {id}"
+  "access.permission_request.grant_reason": "Automatisch vergeben nach Genehmigung des Berechtigungsantrags {id}",
+  "access.permission_request.constraint_role_reason": "Die Rollenzuweisung hat die Einschränkungsregel „{name}“ ({code}) ausgelöst, die eine Genehmigung verlangt.",
+  "access.permission_request.constraint_permission_reason": "Die direkte Berechtigungsvergabe hat die Einschränkungsregel „{name}“ ({code}) ausgelöst, die eine Genehmigung verlangt."
 }

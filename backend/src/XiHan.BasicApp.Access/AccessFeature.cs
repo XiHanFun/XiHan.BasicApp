@@ -139,6 +139,7 @@ public sealed class AccessFeature : IFeature
         // 授权申请：提交即经审批业务服务发起流程（Workflow 关掉时没有服务，列表照常、提交报审批未启用），结论与中止经审批业务处理器回写
         context.Services.AddScoped<PermissionRequestStore>();
         context.Services.AddScoped<PermissionRequestService>();
+        context.Services.AddScoped<ConstraintApprovalRouter>();
         context.Services.AddWorkflowBusiness<PermissionRequestApprovalHandler>();
         // 上级角色与委托给出的授予（存储没命中时框架来问），之后照常经下面的过滤器收窄
         context.Services.AddSingleton<IPermissionGrantSource, AccessGrantSource>();
