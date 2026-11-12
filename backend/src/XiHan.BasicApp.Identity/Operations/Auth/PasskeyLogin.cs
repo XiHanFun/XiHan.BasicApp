@@ -72,7 +72,7 @@ public sealed class BeginPasskeyLogin(PasskeyCeremonies passkeys) : IOperation<B
 /// </summary>
 /// <remarks>
 /// 匿名操作，登记在架构测试的匿名白名单。<c>POST /api/auth:login-by-passkey</c>。票据换出挑战（否则 <c>IDENTITY_VALIDATION_028</c>），按凭据 ID 找登记的通行密钥（没有即 <c>IDENTITY_DENIED_022</c>），
-/// 登录进它的注册地；过登录节流，由框架核对来源、挑战、签名与签名计数，核对失败计入节流与登录守卫的认证失败
+/// 登录进它的注册地；过登录节流，由框架核对来源、挑战、签名、签名计数与凭据归属（断言的用户句柄必须等于凭据的所属用户），核对失败计入节流与登录守卫的认证失败
 /// 之后与密码登录同样过租户、账号状态与锁定期，开会话前过登录守卫。认证器做了用户验证（指纹、面容或设备密码）即顶替双因素；没做而账号开了双因素照样要第二步
 /// 登录日志记为登录、附注 <c>passkey</c>
 /// </remarks>
@@ -155,7 +155,8 @@ public sealed class LoginByPasskey(
             log.TenantId = tenant;
         }
 
-        var verified = ceremonies.VerifyAuthentication(request.Credential, challenge, PasskeyCeremonies.StoredOf(passkey));
+        // 免用户名登录，登录前没认出任何人：不传期望用户，由框架要求断言的用户句柄等于凭据的所属用户
+        var verified = ceremonies.VerifyAuthentication(request.Credential, challenge, PasskeyCeremonies.StoredOf(passkey), expectedUserHandle: null);
         if (!verified.TryGetValue(out var assertion))
         {
             await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
