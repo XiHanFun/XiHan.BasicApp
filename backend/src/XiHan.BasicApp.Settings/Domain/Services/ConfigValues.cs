@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Runtime.Security;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.Framework.Primitives;

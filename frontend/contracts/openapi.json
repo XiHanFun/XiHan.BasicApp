@@ -66381,7 +66381,6 @@
         ]
       },
       "ConfigDataType": {
-        "description": "\u53C2\u6570\u503C\u7684\u6570\u636E\u7C7B\u578B\uFF1A\u4FDD\u5B58\u65F6\u6309\u5B83\u6821\u9A8C\u503C\u4E0E\u7F3A\u7701\u503C",
         "type": "string",
         "enum": [
           "Text",

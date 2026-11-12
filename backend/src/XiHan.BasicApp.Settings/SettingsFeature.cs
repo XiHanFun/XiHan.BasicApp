@@ -72,6 +72,7 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<DictItemQueries>();
         context.Services.AddScoped<NumberingRuleQueries>();
         context.Services.AddScoped<NumberingAllocationQueries>();
+        context.Services.AddSeeder<ConfigCatalogSeeder>();
         context.Services.AddSeeder<DemoDictSeeder>();
         context.Services.AddPermissionCatalog("settings", SettingsPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用

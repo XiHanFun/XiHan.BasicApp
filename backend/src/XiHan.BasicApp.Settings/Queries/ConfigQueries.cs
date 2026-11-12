@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Runtime.Queries;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Operations.Configs;

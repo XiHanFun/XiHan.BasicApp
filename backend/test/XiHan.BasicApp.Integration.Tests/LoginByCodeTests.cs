@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证邮箱 / 手机验证码登录
 /// </summary>
 /// <remarks>
-/// 登录方式由系统参数 <c>identity.login-methods</c> 开放（没建只有密码，写错即报错）；发码对账号不存在、不唯一一律回答已发送而不发，
+/// 登录方式由系统参数 <c>identity.login-methods</c> 开放（种子建的缺省只有密码，写错即报错）；发码对账号不存在、不唯一一律回答已发送而不发，
 /// 只有恰好一个正常账号（邮箱不分大小写、手机号要已验证）才真发；码对即登录，用过作废，码错计入节流；开了双因素的账号照样要第二步
 /// </remarks>
 public sealed class LoginByCodeTests : IDisposable
@@ -68,9 +68,9 @@ public sealed class LoginByCodeTests : IDisposable
         // 没开放：登录页只有密码登录，发码被拒；参数写错即报错
         Assert.Equal(["password"], await MethodsAsync(server));
         Assert.Equal("IDENTITY_DENIED_016", await CodeOfAsync(server, "/api/auth:send-login-code", new { channel = "Email", target = "ann@example.com" }));
-        var (_, config) = await SendAsync(server, HttpMethod.Post, "/api/configs", new { key = LoginMethods.ConfigKey, name = "Login methods", dataType = "Text", value = "email,fax" }, platform);
+        await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "email,fax");
         Assert.Equal("IDENTITY_VALIDATION_021", (await SendAsync(server, HttpMethod.Get, "/api/auth:login-config", null)).Body.GetProperty("code").GetString());
-        await SendAsync(server, HttpMethod.Put, $"/api/configs/{config.GetProperty("id").GetString()}", new { name = "Login methods", dataType = "Text", value = "email, phone" }, platform);
+        await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "email, phone");
         Assert.Equal(["password", "email", "phone"], await MethodsAsync(server));
 
         // 不存在与不唯一的账号：同样回答已发送，但不发；手机号没验证的也不发

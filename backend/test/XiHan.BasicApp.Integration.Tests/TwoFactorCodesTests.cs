@@ -116,7 +116,7 @@ public sealed class TwoFactorCodesTests : IDisposable
         Assert.Equal("IDENTITY_DENIED_008", await CodeOfAsync(server, "/api/auth:verify-two-factor", new { ticket, method = "Email", code = Code }));
 
         // 验证码登录：第二步不能再用邮箱，只剩它即拒绝；再开短信，第二步就只给短信
-        await SendAsync(server, HttpMethod.Post, "/api/configs", new { key = LoginMethods.ConfigKey, name = "Login methods", dataType = "Text", value = "email" }, platform);
+        await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "email");
         await SendAsync(server, HttpMethod.Post, "/api/auth:send-login-code", new { channel = "Email", target = "ann@example.com" });
         Assert.Equal("IDENTITY_DENIED_017", await CodeOfAsync(server, "/api/auth:login-by-code", new { channel = "Email", target = "ann@example.com", code = Code }));
         await SendAsync(server, HttpMethod.Post, "/api/profile:send-verification-code", new { channel = "Phone" }, token);

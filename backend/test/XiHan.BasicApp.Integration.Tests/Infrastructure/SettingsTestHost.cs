@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.MultiTenancy;
@@ -15,7 +16,7 @@ namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 /// 设置包用例的起手
 /// </summary>
 /// <remarks>
-/// 跑全部种子、超管登录、开通企业版租户 <c>contoso</c> 并初始化其管理员；另给进程内调用的入口（平台或指定租户）
+/// 跑全部种子、超管登录、开通企业版租户 <c>contoso</c> 并初始化其管理员；另给进程内调用的入口（平台或指定租户）与改内建参数值的入口
 /// </remarks>
 public static class SettingsTestHost
 {
@@ -36,6 +37,40 @@ public static class SettingsTestHost
         Assert.Equal(HttpStatusCode.OK, initialized.StatusCode);
         var tenant = (await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", "contoso")).GetProperty("accessToken").GetString()!;
         return (server, platform, tenant);
+    }
+
+    /// <summary>
+    /// 找到种子建好的平台内建参数
+    /// </summary>
+    public static async Task<JsonElement> BuiltInConfigAsync(BasicAppTestServer server, string token, string key)
+    {
+        var (listed, listedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs:list", $$"""{"page":{"index":1,"size":50},"filters":[{"field":"key","operator":"eq","value":"{{key}}"}]}""", token));
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+        var config = Assert.Single(listedBody.GetProperty("items").EnumerateArray(), static c => c.GetProperty("isPlatform").GetBoolean());
+        Assert.True(config.GetProperty("isBuiltIn").GetBoolean());
+        return config;
+    }
+
+    /// <summary>
+    /// 改平台内建参数的值，其余字段照原样交回（更新是整体替换）
+    /// </summary>
+    public static async Task<(HttpStatusCode Status, JsonElement Body)> SetBuiltInConfigAsync(BasicAppTestServer server, string token, string key, string? value)
+    {
+        var config = await BuiltInConfigAsync(server, token, key);
+        var body = JsonSerializer.Serialize(new
+        {
+            name = config.GetProperty("name"),
+            group = config.GetProperty("group"),
+            dataType = config.GetProperty("dataType"),
+            value,
+            defaultValue = config.GetProperty("defaultValue"),
+            allowTenantOverride = config.GetProperty("allowTenantOverride"),
+            order = config.GetProperty("order"),
+            description = config.GetProperty("description"),
+            status = config.GetProperty("status"),
+        });
+        var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{config.GetProperty("id").GetString()}", body, token));
+        return (updated.StatusCode, updatedBody);
     }
 
     /// <summary>

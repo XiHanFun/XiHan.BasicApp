@@ -8,6 +8,7 @@ using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -127,6 +128,8 @@ public sealed class IdentityFeature : IFeature
         // 缓存管理只开放登记过的命名空间；验证码、会话与两步验证的缓存，属鉴权数据，只许删、不许改写
         context.Services.AddCacheNamespace("identity", editable: false);
         context.Services.AddPageCatalog("identity", IdentityPages.All);
+        // 内建参数：Settings 据此写参数种子
+        context.Services.AddConfigCatalog("identity", [LoginMethods.Config]);
         IdentityFieldSecurity.Register(context.Services);
         // 权限码先登记，操作契约才能引用；未登记的权限码在装配时报错
         foreach (var permission in IdentityPermissions.All)

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
 

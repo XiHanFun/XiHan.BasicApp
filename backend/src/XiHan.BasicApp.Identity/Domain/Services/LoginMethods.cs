@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 系统参数 <see cref="ConfigKey"/>：逗号分隔的方式名（<c>password</c>、<c>email</c>、<c>phone</c>、<c>passkey</c>），只认平台的（登录在进入租户之前）；
-/// 没建即只有密码登录。密码登录总是开着，写不写都一样；邮箱 / 手机验证码登录与通行密钥列出才开，服务端照此拦
+/// 种子按 <see cref="Config"/> 建成内建参数（值留空、缺省值 <c>password</c>），没建或值与缺省值都空即只有密码登录。密码登录总是开着，写不写都一样；邮箱 / 手机验证码登录与通行密钥列出才开，服务端照此拦
 /// 通行密钥还要宿主配了 <c>XiHan:Security:WebAuthn</c>（装了框架的 WebAuthn）才算开放：没配时列出也不出现在结果里
 /// 有认不出的方式名即 <c>IDENTITY_VALIDATION_021</c>：参数写错要让人看见，不悄悄当作没开
 /// </remarks>
@@ -43,6 +43,20 @@ public static class LoginMethods
     /// 通行密钥登录
     /// </summary>
     public const string Passkey = "passkey";
+
+    /// <summary>
+    /// 内建参数的元数据
+    /// </summary>
+    /// <remarks>
+    /// 不许租户覆盖：登录在进入租户之前，租户的值登录页用不上
+    /// </remarks>
+    public static ConfigDescriptor Config { get; } = new(
+        ConfigKey,
+        "登录方式",
+        "身份认证",
+        ConfigDataType.Text,
+        Password,
+        "登录页开放的方式，逗号分隔：password（总是开着）、email、phone、passkey（还要宿主配了 XiHan:Security:WebAuthn）；写了认不出的方式名即登录配置报错");
 
     /// <summary>
     /// 渠道对应的方式名

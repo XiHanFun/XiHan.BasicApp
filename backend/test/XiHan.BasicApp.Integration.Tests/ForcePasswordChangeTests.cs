@@ -183,8 +183,8 @@ public sealed class ForcePasswordChangeTests : IDisposable
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (mailConfig, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/email-configs", JsonSerializer.Serialize(new { code = "primary", name = "Primary", smtpHost = "smtp.example.com", smtpPort = 465, fromEmail = "noreply@example.com", userName = "noreply", password = "s3cret-pass" }), superadmin));
         Assert.Equal(HttpStatusCode.Created, mailConfig.StatusCode);
-        var (methods, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = LoginMethods.ConfigKey, name = "Login methods", dataType = "Text", value = "email" }), superadmin));
-        Assert.Equal(HttpStatusCode.Created, methods.StatusCode);
+        var (methods, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, superadmin, LoginMethods.ConfigKey, "email");
+        Assert.Equal(HttpStatusCode.OK, methods);
         var (ann, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"ann","displayName":"Ann","password":"Pass@123456","email":"ann@example.com"}""", superadmin));
         Assert.Equal(HttpStatusCode.Created, ann.StatusCode);
         await CreateUserAsync(server, superadmin, "tess", "Tess@123456");

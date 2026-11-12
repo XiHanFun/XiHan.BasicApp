@@ -11722,10 +11722,7 @@ export interface components {
          * @enum {string}
          */
         ConditionVerdict: "NotGranted" | "Unconditional" | "Granted" | "Denied";
-        /**
-         * @description 参数值的数据类型：保存时按它校验值与缺省值
-         * @enum {string}
-         */
+        /** @enum {string} */
         ConfigDataType: "Text" | "Number" | "Boolean" | "Json" | "Array";
         /** @description 参数的网络契约 */
         ConfigResponse: {

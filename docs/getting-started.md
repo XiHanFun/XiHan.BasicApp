@@ -58,6 +58,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | `access.menus` | 从各包页面登记对齐菜单 |
 | `tenancy.editions` | 套餐免费版（缺省）/ 基础版 / 专业版 / 企业版 |
 | `files.storage-configs` | 平台本地存储配置 |
+| `settings.configs` | 各包登记的内建参数（如登录方式），元数据每次对齐，值归运营 |
 | `notification.templates` | 平台消息模板 |
 | `access.policies` | 访问策略的平台缺省 |
 | `codegeneration.templates` | 代码生成的内置模板（每次对齐） |

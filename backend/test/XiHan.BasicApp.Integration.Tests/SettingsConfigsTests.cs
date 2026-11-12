@@ -5,7 +5,9 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Settings;
+using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 
@@ -16,7 +18,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 平台参数与租户同键覆盖（不允许覆盖时被拒）、值按数据类型校验、加密值不回显也不明文落库、更新时加密的保留与开关、
-/// 读共享写不共享（另一侧的参数改不了也删不了）、生效值读取器（租户优先、停用即回落平台、空值回落缺省值）
+/// 读共享写不共享（另一侧的参数改不了也删不了）、生效值读取器（租户优先、停用即回落平台、空值回落缺省值）；
+/// 各包登记的内建参数由种子写入（元数据每次对齐、值归运营），先手建的同键参数值符合类型才收为内建
 /// </remarks>
 public sealed class SettingsConfigsTests : IDisposable
 {
@@ -84,7 +87,7 @@ public sealed class SettingsConfigsTests : IDisposable
         // 租户：读共享（看得见平台参数），写不共享（平台参数改不了、删不了），同键新建即覆盖
         var (tenantList, tenantListBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs:list", """{"page":{"index":1,"size":50}}""", tenant));
         Assert.Equal(HttpStatusCode.OK, tenantList.StatusCode);
-        Assert.Equal(3, tenantListBody.GetProperty("total").GetInt64());
+        Assert.Equal(3, tenantListBody.GetProperty("items").EnumerateArray().Count(static c => c.GetProperty("key").GetString()!.StartsWith("demo.", StringComparison.Ordinal)));
         var (foreign, foreignBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{greetingId}", """{"name":"Mine now"}""", tenant));
         Assert.Equal(HttpStatusCode.Forbidden, foreign.StatusCode);
         Assert.Equal("SETTINGS_DENIED_001", foreignBody.GetProperty("code").GetString());
@@ -123,5 +126,75 @@ public sealed class SettingsConfigsTests : IDisposable
         var (gone, goneBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/configs/{overrideId}", token: tenant));
         Assert.Equal(HttpStatusCode.NotFound, gone.StatusCode);
         Assert.Equal("SETTINGS_NOTFOUND_001", goneBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task BuiltInConfigs_AreSeededFromTheCatalog_AndKeepTheOperatorsValue()
+    {
+        var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+
+        // 种子按登记建成平台的内建参数：值留空，生效值是缺省值；不许租户覆盖
+        var seeded = await SettingsTestHost.BuiltInConfigAsync(server, platform, LoginMethods.ConfigKey);
+        var id = seeded.GetProperty("id").GetString()!;
+        Assert.Equal(LoginMethods.Config.Name, seeded.GetProperty("name").GetString());
+        Assert.Equal(JsonValueKind.Null, seeded.GetProperty("value").ValueKind);
+        Assert.Equal("password", seeded.GetProperty("defaultValue").GetString());
+        Assert.False(seeded.GetProperty("allowTenantOverride").GetBoolean());
+        Assert.Equal("password", await EffectiveAsync(server, null, LoginMethods.ConfigKey));
+        var (overridden, overriddenBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", $$"""{"key":"{{LoginMethods.ConfigKey}}","name":"Mine","value":"email"}""", tenant));
+        Assert.Equal(HttpStatusCode.Forbidden, overridden.StatusCode);
+        Assert.Equal("SETTINGS_DENIED_002", overriddenBody.GetProperty("code").GetString());
+
+        // 运营改了值，顺手改了名称、清了缺省值、放开了覆盖：再跑种子，值留着，元数据对齐回登记的
+        var (edited, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{id}", """{"name":"Renamed","value":"password,email","allowTenantOverride":true}""", platform));
+        Assert.Equal(HttpStatusCode.OK, edited.StatusCode);
+        await server.RunSeedersAsync();
+        var realigned = await SettingsTestHost.BuiltInConfigAsync(server, platform, LoginMethods.ConfigKey);
+        Assert.Equal(id, realigned.GetProperty("id").GetString());
+        Assert.Equal("password,email", realigned.GetProperty("value").GetString());
+        Assert.Equal(LoginMethods.Config.Name, realigned.GetProperty("name").GetString());
+        Assert.Equal("password", realigned.GetProperty("defaultValue").GetString());
+        Assert.False(realigned.GetProperty("allowTenantOverride").GetBoolean());
+
+        // 已对齐的不再写
+        await server.RunSeedersAsync();
+        Assert.Equal(realigned.GetProperty("modifiedAt").GetString(), (await SettingsTestHost.BuiltInConfigAsync(server, platform, LoginMethods.ConfigKey)).GetProperty("modifiedAt").GetString());
+
+        // 内建参数删不掉
+        var (deleted, deletedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/configs?ids={id}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
+        Assert.Equal("SETTINGS_CONFLICT_006", deletedBody.GetProperty("failed")[0].GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task ConfigCatalogSeeder_AdoptsAHandMadeParameter_OnlyWhenItsValueFitsTheType()
+    {
+        var limit = new ConfigDescriptor("demo.limit", "Limit", "demo", ConfigDataType.Number, "10", "Upper bound");
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, configure: builder => builder.Services.AddConfigCatalog("demo", [limit]));
+        var runner = server.Services.GetRequiredService<SeedRunner>();
+        var others = (await runner.DescribeAsync(CancellationToken.None)).Select(static s => s.Name).Where(static n => n != "settings.configs").ToList();
+        Assert.True((await runner.RunAsync(others, CancellationToken.None)).IsSuccess);
+        var platform = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+
+        // 种子之前手建了同键的文本参数，值不是数：种子报错，不改它
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"demo.limit","name":"Mine","value":"many"}""", platform));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = createdBody.GetProperty("id").GetString()!;
+        Assert.Equal("SETTINGS_VALIDATION_002", (await runner.RunAsync(["settings.configs"], CancellationToken.None)).Error?.Code);
+        var (kept, keptBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/configs/{id}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, kept.StatusCode);
+        Assert.False(keptBody.GetProperty("isBuiltIn").GetBoolean());
+
+        // 值改成数之后收为内建：类型与元数据按登记对齐，值留着
+        var (fixedValue, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{id}", """{"name":"Mine","value":"20"}""", platform));
+        Assert.Equal(HttpStatusCode.OK, fixedValue.StatusCode);
+        Assert.True((await runner.RunAsync(["settings.configs"], CancellationToken.None)).IsSuccess);
+        var adopted = await SettingsTestHost.BuiltInConfigAsync(server, platform, "demo.limit");
+        Assert.Equal(id, adopted.GetProperty("id").GetString());
+        Assert.Equal("Number", adopted.GetProperty("dataType").GetString());
+        Assert.Equal("Limit", adopted.GetProperty("name").GetString());
+        Assert.Equal("20", adopted.GetProperty("value").GetString());
+        Assert.Equal("10", adopted.GetProperty("defaultValue").GetString());
     }
 }
