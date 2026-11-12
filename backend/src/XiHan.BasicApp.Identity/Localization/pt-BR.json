@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "Entrar com código",
   "auth.login_by_code.description": "Entra com o código recebido por e-mail ou telefone; contas com dois fatores ainda precisam da segunda etapa.",
   "identity.login.method_disabled": "Este método de login não está habilitado.",
-  "identity.login.methods_invalid": "Os métodos de login do parâmetro do sistema {key} são inválidos; só são permitidos password, email e phone.",
+  "identity.login.methods_invalid": "Os métodos de login do parâmetro do sistema {key} são inválidos; use um array JSON de strings, cada uma password, email, phone ou passkey.",
   "identity.login.target_invalid": "O e-mail ou telefone tem formato inválido.",
   "auth.send_two_factor_code.title": "Enviar código de dois fatores",
   "auth.send_two_factor_code.description": "Segunda etapa da autenticação de dois fatores: envie um código ao e-mail ou telefone verificado da conta com o ticket de auth.login; o autenticador não precisa de código.",

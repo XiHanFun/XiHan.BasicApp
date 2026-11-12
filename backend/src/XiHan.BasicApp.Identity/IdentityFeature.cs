@@ -129,7 +129,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddCacheNamespace("identity", editable: false);
         context.Services.AddPageCatalog("identity", IdentityPages.All);
         // 内建参数：Settings 据此写参数种子
-        context.Services.AddConfigCatalog("identity", [LoginMethods.Config]);
+        context.Services.AddConfigCatalog("identity", [LoginMethods.Config, PasswordSettings.Config, ImpersonationSettings.Config]);
         IdentityFieldSecurity.Register(context.Services);
         // 权限码先登记，操作契约才能引用；未登记的权限码在装配时报错
         foreach (var permission in IdentityPermissions.All)

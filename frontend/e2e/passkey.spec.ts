@@ -21,8 +21,24 @@ async function useVirtualAuthenticator(page: Page) {
   })
 }
 
+interface ConfigItem {
+  id: string
+  key: string
+  isPlatform: boolean
+  name: string
+  group: null | string
+  dataType: string
+  value: null | string
+  defaultValue: null | string
+  isEncrypted: boolean
+  allowTenantOverride: boolean
+  order: number
+  description: null | string
+  status: string
+}
+
 /**
- * 系统参数 identity.login-methods 列出 passkey（库在本机保留，参数在即补上 passkey）
+ * 种子建好的内建参数 identity.login-methods（JSON 数组）补上 passkey，库在本机保留，已有即不动
  * 这一步只是准备，经接口做；要测的是个人中心与登录页
  */
 async function openPasskeys(page: Page) {
@@ -31,35 +47,33 @@ async function openPasskeys(page: Page) {
   const listed = await page.request.post('/api/configs:list', {
     headers,
     data: {
-      keyword: LOGIN_METHODS,
+      filters: [
+        { field: 'key', operator: 'eq', value: LOGIN_METHODS },
+      ],
       page: { index: 1, size: 20 },
     },
   })
   expect(listed.ok()).toBe(true)
-  const items = (await listed.json() as { items: { id: string, key: string, name: string, dataType: string, value?: null | string }[] }).items
-  const existing = items.find(item => item.key === LOGIN_METHODS)
-  if (!existing) {
-    const created = await page.request.post('/api/configs', {
-      headers,
-      data: {
-        key: LOGIN_METHODS,
-        name: '登录方式',
-        dataType: 'Text',
-        value: 'passkey',
-      },
-    })
-    expect(created.status()).toBe(201)
-    return
-  }
-  const methods = (existing.value ?? '').split(',').map(method => method.trim()).filter(Boolean)
+  const config = (await listed.json() as { items: ConfigItem[] }).items.find(item => item.key === LOGIN_METHODS && item.isPlatform)
+  expect(config).toBeDefined()
+  const { id, name, group, dataType, value, defaultValue, isEncrypted, allowTenantOverride, order, description, status } = config!
+  const methods = JSON.parse(value ?? defaultValue ?? '[]') as string[]
   if (methods.includes('passkey'))
     return
-  const updated = await page.request.put(`/api/configs/${existing.id}`, {
+  // 更新是整体替换：其余字段照原样交回，只改值
+  const updated = await page.request.put(`/api/configs/${id}`, {
     headers,
     data: {
-      name: existing.name,
-      dataType: existing.dataType,
-      value: [...methods, 'passkey'].join(','),
+      name,
+      group,
+      dataType,
+      value: JSON.stringify([...methods, 'passkey']),
+      defaultValue,
+      isEncrypted,
+      allowTenantOverride,
+      order,
+      description,
+      status,
     },
   })
   expect(updated.ok()).toBe(true)

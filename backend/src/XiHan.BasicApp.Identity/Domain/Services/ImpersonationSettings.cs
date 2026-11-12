@@ -40,6 +40,19 @@ public sealed record ImpersonationSettings(int SessionMinutes = 30, bool NotifyT
     public static ImpersonationSettings Default { get; } = new();
 
     /// <summary>
+    /// 内建参数的元数据
+    /// </summary>
+    public static ConfigDescriptor Config { get; } = new(
+        ConfigKey,
+        "模仿登录",
+        "身份认证",
+        ConfigDataType.Json,
+        """{"sessionMinutes":30,"notifyTarget":true}""",
+        "sessionMinutes：模仿会话存活分钟数（1–480）；notifyTarget：是否通知被模仿者。按发起人所在的一侧取，租户可建同键参数覆盖；写错即不能发起模仿",
+        AllowTenantOverride: true,
+        Order: 120);
+
+    /// <summary>
     /// 各项是否在范围内
     /// </summary>
     public bool IsValid => SessionMinutes is >= MinSessionMinutes and <= MaxSessionMinutes;

@@ -7,6 +7,7 @@ using XiHan.BasicApp.Chat.Handlers;
 using XiHan.BasicApp.Chat.Infrastructure;
 using XiHan.BasicApp.Chat.Jobs;
 using XiHan.BasicApp.Chat.Queries;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Realtime;
@@ -87,6 +88,7 @@ public sealed class ChatFeature : IFeature
         context.Services.AddJob<ChatRetentionJob>(new JobName(ChatRetentionJob.Name), ChatRetentionJob.Schedule);
         context.Services.AddPermissionCatalog("chat", ChatPermissions.All);
         context.Services.AddPageCatalog("chat", ChatPages.All);
+        context.Services.AddConfigCatalog("chat", [ChatPolicy.Config]);
         foreach (var permission in ChatPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

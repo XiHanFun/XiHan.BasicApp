@@ -35,7 +35,7 @@
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（逗号分隔的 `password`、`email`、`phone`、`passkey`，只认平台的）：没建即只有密码登录，密码登录总是开着；写了认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
+开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
 ### 密码登录 `auth.login`
 
@@ -49,7 +49,7 @@
 
 ### 强制修改由他人设置的密码
 
-密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，没建即关）的 `forceChange` 决定要不要逼：
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，缺省关）的 `forceChange` 决定要不要逼：
 
 | 状态 | 效果 |
 | --- | --- |
@@ -156,7 +156,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 **模仿态拒绝的权限码**：接管账号（重置密码、重置双因素、锁定、登录策略）、变更授权（角色的修改、授予、指派、继承，用户直授，用户数据范围，委托的新建、撤销与删除）、销毁数据（删除用户、角色、租户，初始化独立库）、OAuth 应用的修改（含重置客户端密钥）。持 `*` 也拦，`auth.permissions` 也不返回这些。
 
-系统参数 `identity.impersonation`（JSON，没建即缺省，按发起人所在的一侧取，写错或越界即 `IDENTITY_VALIDATION_027`、不发起）：
+系统参数 `identity.impersonation`（JSON，按发起人所在的一侧取，租户可建同键参数覆盖，写错或越界即 `IDENTITY_VALIDATION_027`、不发起）：
 
 | 字段 | 缺省 | 说明 |
 | --- | --- | --- |

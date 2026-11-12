@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "Se connecter avec un code",
   "auth.login_by_code.description": "Connexion avec le code reçu par e-mail ou téléphone ; les comptes à deux facteurs doivent toujours passer la seconde étape.",
   "identity.login.method_disabled": "Cette méthode de connexion n’est pas activée.",
-  "identity.login.methods_invalid": "Les méthodes de connexion du paramètre système {key} sont invalides ; seuls password, email et phone sont permis.",
+  "identity.login.methods_invalid": "Les méthodes de connexion du paramètre système {key} sont invalides ; utilisez un tableau JSON de chaînes, chacune parmi password, email, phone ou passkey.",
   "identity.login.target_invalid": "L’adresse e-mail ou le numéro de téléphone est mal formé.",
   "auth.send_two_factor_code.title": "Envoyer un code de double authentification",
   "auth.send_two_factor_code.description": "Seconde étape de la double authentification : envoyer un code à l'adresse e-mail ou au numéro vérifié du compte avec le ticket d'auth.login ; l'application d'authentification n'en a pas besoin.",

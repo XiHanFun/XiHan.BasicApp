@@ -109,7 +109,7 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 ## 策略与保留清理
 
-参数 `chat.policy`（JSON，类型选 Json），没建即用缺省值：
+参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词），缺省值：
 
 ```json
 { "retentionDays": 365, "sensitiveWords": [] }

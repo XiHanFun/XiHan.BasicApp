@@ -7,6 +7,7 @@ using XiHan.BasicApp.Auditing.Infrastructure;
 using XiHan.BasicApp.Auditing.Jobs;
 using XiHan.BasicApp.Auditing.Middleware;
 using XiHan.BasicApp.Auditing.Queries;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Pages;
@@ -96,6 +97,7 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         AuditingFieldSecurity.Register(context.Services);
         context.Services.AddPageCatalog("auditing", AuditingPages.All);
+        context.Services.AddConfigCatalog("auditing", [AuditLogOptions.RetentionDaysConfig]);
         foreach (var permission in AuditingPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

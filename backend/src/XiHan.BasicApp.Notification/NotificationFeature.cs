@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Notification;
@@ -134,6 +135,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         // 缓存管理只开放登记过的命名空间
         context.Services.AddCacheNamespace("notification", editable: true);
         context.Services.AddPageCatalog("notification", NotificationPages.All);
+        context.Services.AddConfigCatalog("notification", [TelegramSettings.Config, TelegramSettings.SecretConfig]);
         foreach (var permission in NotificationPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

@@ -4,9 +4,13 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Auditing;
+using XiHan.BasicApp.Chat.Domain.Services;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -139,22 +143,23 @@ public sealed class SettingsConfigsTests : IDisposable
         var id = seeded.GetProperty("id").GetString()!;
         Assert.Equal(LoginMethods.Config.Name, seeded.GetProperty("name").GetString());
         Assert.Equal(JsonValueKind.Null, seeded.GetProperty("value").ValueKind);
-        Assert.Equal("password", seeded.GetProperty("defaultValue").GetString());
+        Assert.Equal("Array", seeded.GetProperty("dataType").GetString());
+        Assert.Equal("""["password"]""", seeded.GetProperty("defaultValue").GetString());
         Assert.False(seeded.GetProperty("allowTenantOverride").GetBoolean());
-        Assert.Equal("password", await EffectiveAsync(server, null, LoginMethods.ConfigKey));
+        Assert.Equal("""["password"]""", await EffectiveAsync(server, null, LoginMethods.ConfigKey));
         var (overridden, overriddenBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", $$"""{"key":"{{LoginMethods.ConfigKey}}","name":"Mine","value":"email"}""", tenant));
         Assert.Equal(HttpStatusCode.Forbidden, overridden.StatusCode);
         Assert.Equal("SETTINGS_DENIED_002", overriddenBody.GetProperty("code").GetString());
 
         // 运营改了值，顺手改了名称、清了缺省值、放开了覆盖：再跑种子，值留着，元数据对齐回登记的
-        var (edited, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{id}", """{"name":"Renamed","value":"password,email","allowTenantOverride":true}""", platform));
+        var (edited, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{id}", """{"name":"Renamed","dataType":"Array","value":"[\"password\",\"email\"]","allowTenantOverride":true}""", platform));
         Assert.Equal(HttpStatusCode.OK, edited.StatusCode);
         await server.RunSeedersAsync();
         var realigned = await SettingsTestHost.BuiltInConfigAsync(server, platform, LoginMethods.ConfigKey);
         Assert.Equal(id, realigned.GetProperty("id").GetString());
-        Assert.Equal("password,email", realigned.GetProperty("value").GetString());
+        Assert.Equal("""["password","email"]""", realigned.GetProperty("value").GetString());
         Assert.Equal(LoginMethods.Config.Name, realigned.GetProperty("name").GetString());
-        Assert.Equal("password", realigned.GetProperty("defaultValue").GetString());
+        Assert.Equal("""["password"]""", realigned.GetProperty("defaultValue").GetString());
         Assert.False(realigned.GetProperty("allowTenantOverride").GetBoolean());
 
         // 已对齐的不再写
@@ -168,20 +173,65 @@ public sealed class SettingsConfigsTests : IDisposable
     }
 
     [Fact]
+    public async Task BuiltInConfigs_CoverEveryParameterTheCodeReads_AndTheirDefaultsReadLikeNoParameter()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+
+        // 每个代码读取的参数都登记了，种子建成内建参数、值留空
+        var registered = server.Services.GetServices<ConfigCatalogSection>().SelectMany(static s => s.Configs).ToList();
+        Assert.Equal(
+            ["access.security.login-auto-ban", "auditing.retention-days", "chat.policy", "identity.impersonation", "identity.login-methods", "identity.password", "notification.telegram", "notification.telegram.webhook-secret-token"],
+            registered.Select(static c => c.Key).Order(StringComparer.Ordinal));
+        foreach (var descriptor in registered)
+        {
+            var config = await SettingsTestHost.BuiltInConfigAsync(server, platform, descriptor.Key);
+            Assert.False(config.GetProperty("hasValue").GetBoolean(), descriptor.Key);
+            Assert.Equal(descriptor.IsEncrypted, config.GetProperty("isEncrypted").GetBoolean());
+            Assert.Equal(descriptor.AllowTenantOverride, config.GetProperty("allowTenantOverride").GetBoolean());
+        }
+
+        // 缺省值读出来与没建参数时一样
+        var read = await SettingsTestHost.InvokeAsync(server, null, async ctx => (
+            Methods: (await LoginMethods.ReadAsync(ctx)).ValueOrThrow(),
+            Password: (await PasswordSettings.ReadAsync(ctx)).ValueOrThrow(),
+            Impersonation: (await ImpersonationSettings.ReadAsync(ctx)).ValueOrThrow(),
+            Ban: (await LoginDefense.SettingsAsync(ctx)).ValueOrThrow(),
+            Telegram: (await TelegramSettings.LoadAsync(ctx)).ValueOrThrow(),
+            Chat: (await ctx.Services.GetRequiredService<ChatPolicy>().ReadAsync(ctx)).ValueOrThrow(),
+            Retention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(AuditLogOptions.RetentionDaysConfigKey, ctx)).ValueOrThrow()));
+        Assert.Equal([LoginMethods.Password], read.Methods);
+        Assert.Equal(PasswordSettings.Default, read.Password);
+        Assert.Equal(ImpersonationSettings.Default, read.Impersonation);
+        Assert.Equal(LoginAutoBanSettings.Default, read.Ban);
+        Assert.Equal(TelegramSettings.Default with { Network = new TelegramNetwork() }, read.Telegram);
+        Assert.Equal((ChatPolicy.DefaultRetentionDays, 0), (read.Chat.RetentionDays, read.Chat.SensitiveWords.Count));
+        Assert.False(read.Retention.HasValue);
+    }
+
+    [Fact]
     public async Task ConfigCatalogSeeder_AdoptsAHandMadeParameter_OnlyWhenItsValueFitsTheType()
     {
         var limit = new ConfigDescriptor("demo.limit", "Limit", "demo", ConfigDataType.Number, "10", "Upper bound");
-        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, configure: builder => builder.Services.AddConfigCatalog("demo", [limit]));
+        var secret = new ConfigDescriptor("demo.secret", "Secret", "demo", ConfigDataType.Text, null, "A secret", IsEncrypted: true);
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, configure: builder => builder.Services.AddConfigCatalog("demo", [limit, secret]));
         var runner = server.Services.GetRequiredService<SeedRunner>();
         var others = (await runner.DescribeAsync(CancellationToken.None)).Select(static s => s.Name).Where(static n => n != "settings.configs").ToList();
         Assert.True((await runner.RunAsync(others, CancellationToken.None)).IsSuccess);
         var platform = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        // 种子之前手建了同键的文本参数，值不是数：种子报错，不改它
+        // 种子之前手建了同键的参数：数值参数的值不是数，密钥是明文
         var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"demo.limit","name":"Mine","value":"many"}""", platform));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var id = createdBody.GetProperty("id").GetString()!;
-        Assert.Equal("SETTINGS_VALIDATION_002", (await runner.RunAsync(["settings.configs"], CancellationToken.None)).Error?.Code);
+        var (plain, plainBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"demo.secret","name":"Mine","value":"s3cr3t"}""", platform));
+        Assert.Equal(HttpStatusCode.Created, plain.StatusCode);
+        var secretId = plainBody.GetProperty("id").GetString()!;
+
+        // 值不符合类型：种子报错（消息带参数键），不改它
+        var refused = await runner.RunAsync(["settings.configs"], CancellationToken.None);
+        Assert.Equal("SETTINGS_VALIDATION_002", refused.Error?.Code);
+        Assert.Equal("demo.limit", refused.Error!.Details?["field"]);
         var (kept, keptBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/configs/{id}", token: platform));
         Assert.Equal(HttpStatusCode.OK, kept.StatusCode);
         Assert.False(keptBody.GetProperty("isBuiltIn").GetBoolean());
@@ -196,5 +246,14 @@ public sealed class SettingsConfigsTests : IDisposable
         Assert.Equal("Limit", adopted.GetProperty("name").GetString());
         Assert.Equal("20", adopted.GetProperty("value").GetString());
         Assert.Equal("10", adopted.GetProperty("defaultValue").GetString());
+
+        // 登记为加密的：收为内建时就地加密现值，读取照旧
+        var encrypted = await SettingsTestHost.BuiltInConfigAsync(server, platform, "demo.secret");
+        Assert.Equal(secretId, encrypted.GetProperty("id").GetString());
+        Assert.True(encrypted.GetProperty("isEncrypted").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, encrypted.GetProperty("value").ValueKind);
+        var stored = await SettingsTestHost.InvokeAsync(server, null, async ctx => (await ctx.Services.GetRequiredService<IRepository<SysConfig, Guid>>().FindAsync(Guid.Parse(secretId), ctx.CancellationToken)).ValueOrThrow().Value);
+        Assert.StartsWith("dp:", stored, StringComparison.Ordinal);
+        Assert.Equal("s3cr3t", await EffectiveAsync(server, null, "demo.secret"));
     }
 }

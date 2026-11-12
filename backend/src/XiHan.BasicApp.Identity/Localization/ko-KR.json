@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "코드로 로그인",
   "auth.login_by_code.description": "이메일이나 휴대폰으로 받은 코드로 로그인합니다. 2단계 인증을 켠 계정은 두 번째 단계가 필요합니다.",
   "identity.login.method_disabled": "이 로그인 방식은 열려 있지 않습니다.",
-  "identity.login.methods_invalid": "시스템 매개변수 {key}의 로그인 방식이 잘못되었습니다. password, email, phone 만 쓸 수 있습니다.",
+  "identity.login.methods_invalid": "시스템 매개변수 {key}의 로그인 방식이 잘못되었습니다. password, email, phone, passkey 중에서 고른 JSON 문자열 배열로 써야 합니다.",
   "identity.login.target_invalid": "이메일 또는 휴대폰 번호 형식이 잘못되었습니다.",
   "auth.send_two_factor_code.title": "2단계 인증 코드 발송",
   "auth.send_two_factor_code.description": "2단계 인증의 두 번째 단계 코드 발송: auth.login이 발급한 티켓으로 계정의 인증된 이메일 또는 휴대폰 번호에 코드를 보냅니다. 인증 앱은 코드를 보내지 않습니다.",

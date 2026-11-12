@@ -17,12 +17,12 @@
 
 | 作业 | 计划（UTC） | 作用 |
 | --- | --- | --- |
-| `auditing.retention` | `0 3 * * *`（`BasicApp:Auditing:RetentionCron`） | 按参数 `auditing.retention-days`（没建即 180 天）逐批删除平台与各租户的过期日志，再清操作审计表 |
+| `auditing.retention` | `0 3 * * *`（`BasicApp:Auditing:RetentionCron`） | 按参数 `auditing.retention-days`（为空即 180 天）逐批删除平台与各租户的过期日志，再清操作审计表 |
 | `openplatform.oauth-cleanup` | `30 3 * * *` | 授权码过期一天、令牌过期七天后物理删除 |
 | `files.uploads.expire` | `15 * * * *` | 过期的分片上传会话：中止存储上的分片并清理记录 |
 | `files.temporary.purge` | `45 * * * *` | 过了到期时间的临时文件（代码生成的产物包、导出中心的结果）：平台与各租户逐批（每批 100 条、一侧一次至多 20 批）删记录，存储里不再被引用的对象一起删 |
 | `tenancy.tenants.expire` | `*/5 * * * *` | 过了到期时间、仍生效的租户标为到期并停用目录（到期时间一过登录即被拒，不等作业） |
-| `chat.messages.cleanup` | `0 4 * * *` | Chat 模块开着才有：按平台参数 `chat.policy` 的保留天数（没建即 365 天）删平台与各租户的过期消息与表情回应，不删会话、成员与附件文件 |
+| `chat.messages.cleanup` | `0 4 * * *` | Chat 模块开着才有：按平台参数 `chat.policy` 的保留天数（缺省 365 天）删平台与各租户的过期消息与表情回应，不删会话、成员与附件文件 |
 
 作业的显示名与说明取包的文案 `jobs.<作业名>.title` / `.description`（作业名里的 `-` 换 `_`）。
 

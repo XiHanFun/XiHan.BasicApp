@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "驗證碼登入",
   "auth.login_by_code.description": "用郵箱或手機收到的驗證碼登入：帳號開了雙因素照樣要第二步。",
   "identity.login.method_disabled": "沒有開放這種登入方式。",
-  "identity.login.methods_invalid": "系統參數 {key} 裡的登入方式寫得不對，只能是 password、email、phone。",
+  "identity.login.methods_invalid": "系統參數 {key} 裡的登入方式寫得不對：要寫成 JSON 字串陣列，只能是 password、email、phone、passkey。",
   "identity.login.target_invalid": "郵箱或手機號格式不對。",
   "auth.send_two_factor_code.title": "寄送兩步驗證碼",
   "auth.send_two_factor_code.description": "兩步驗證第二步的寄碼：憑 auth.login 發的票據把驗證碼寄到帳號已驗證的郵箱或手機號；驗證器不寄碼。",

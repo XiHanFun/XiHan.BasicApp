@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.Framework.Scheduling.Abstractions.Schedules;
 
 namespace XiHan.BasicApp.Auditing;
@@ -27,6 +28,21 @@ public sealed record AuditLogOptions
     /// 没建这个参数即用 <see cref="DefaultRetentionDays"/>
     /// </remarks>
     public const string RetentionDaysConfigKey = "auditing.retention-days";
+
+    /// <summary>
+    /// 保留天数内建参数的元数据
+    /// </summary>
+    /// <remarks>
+    /// 不给缺省值：值为空时用配置项 <c>DefaultRetentionDays</c>
+    /// </remarks>
+    public static ConfigDescriptor RetentionDaysConfig { get; } = new(
+        RetentionDaysConfigKey,
+        "日志保留天数",
+        "审计日志",
+        ConfigDataType.Number,
+        null,
+        "各类日志保留的天数（1–3650 的整数），保留清理作业删掉更早的；留空即用配置 BasicApp:Auditing:DefaultRetentionDays（缺省 180）；只认平台的",
+        Order: 300);
 
     /// <summary>
     /// 等待落库的日志条数上限（<c>QueueCapacity</c>，缺省 10000）

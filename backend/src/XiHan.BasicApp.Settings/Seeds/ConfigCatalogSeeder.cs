@@ -18,8 +18,9 @@ namespace XiHan.BasicApp.Settings.Seeds;
 /// 按各包登记的 <see cref="ConfigCatalogSection"/> 写平台的内建参数
 /// </summary>
 /// <remarks>
-/// 目录类种子：名称、分组、数据类型、缺省值、是否允许租户覆盖与说明每次对齐，没变不写；值、状态与排序号只在首次写入，之后归运营
-/// 运营先手建了同键的平台参数即收为内建；它现有的值不符合登记的数据类型即 <c>SETTINGS_VALIDATION_002</c>，不改它
+/// 目录类种子：名称、分组、数据类型、缺省值、是否允许租户覆盖、是否加密与说明每次对齐，没变不写；值、状态与排序号只在首次写入，之后归运营
+/// 加密与否变了即就地加密或解密现值；运营先手建了同键的平台参数即收为内建
+/// 现有的值不符合登记的数据类型即 <c>SETTINGS_VALIDATION_002</c>（消息带参数键），不改它：值要由人改对
 /// </remarks>
 /// <param name="configs">参数仓储</param>
 /// <param name="values">参数值规则</param>
@@ -41,15 +42,14 @@ public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, Co
         foreach (var descriptor in sections.SelectMany(static s => s.Configs))
         {
             var key = descriptor.Key;
+            if (!ConfigValues.Matches(descriptor.DataType, descriptor.DefaultValue))
+            {
+                return Mismatch($"{key} defaultValue", descriptor.DataType);
+            }
+
             var found = await configs.ListAsync(EntityQuery.All<SysConfig>().Where(new Specification<SysConfig>(c => c.OwnerTenantId == platform && c.Key == key)).Page(0, 1), context.CancellationToken).ConfigureAwait(false);
             if (found.Count == 0)
             {
-                var valid = ConfigValues.Validate(descriptor.DataType, null, descriptor.DefaultValue);
-                if (valid.IsFailure)
-                {
-                    return valid.Error!;
-                }
-
                 var config = new SysConfig
                 {
                     Id = ids.NewId(),
@@ -57,6 +57,7 @@ public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, Co
                     Key = key,
                     Order = descriptor.Order,
                     IsBuiltIn = true,
+                    IsEncrypted = descriptor.IsEncrypted,
                 };
                 Align(config, descriptor);
                 var added = await configs.AddAsync(config, context.CancellationToken).ConfigureAwait(false);
@@ -75,18 +76,24 @@ public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, Co
                 return plaintext.Error!;
             }
 
-            var matched = ConfigValues.Validate(descriptor.DataType, value.TryGetValue(out var text) ? text : null, descriptor.DefaultValue);
-            if (matched.IsFailure)
+            var text = value.TryGetValue(out var stored) ? stored : null;
+            if (!ConfigValues.Matches(descriptor.DataType, text))
             {
-                return matched.Error!;
+                return Mismatch(key, descriptor.DataType);
             }
 
-            if (existing.IsBuiltIn && IsAligned(existing, descriptor))
+            if (existing.IsBuiltIn && existing.IsEncrypted == descriptor.IsEncrypted && IsAligned(existing, descriptor))
             {
                 continue;
             }
 
             existing.IsBuiltIn = true;
+            if (existing.IsEncrypted != descriptor.IsEncrypted)
+            {
+                existing.Value = descriptor.IsEncrypted ? values.Protect(text) : text;
+                existing.IsEncrypted = descriptor.IsEncrypted;
+            }
+
             Align(existing, descriptor);
             var updated = await configs.UpdateAsync(existing, context.CancellationToken).ConfigureAwait(false);
             if (updated.IsFailure)
@@ -97,6 +104,9 @@ public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, Co
 
         return Result.Success();
     }
+
+    private static Error Mismatch(string field, ConfigDataType type)
+        => Error.Validation(SettingsErrors.ValueTypeMismatch, SettingsMessages.ValueTypeMismatch, MessageArguments.Of(("field", field), ("type", type.ToString())));
 
     private static bool IsAligned(SysConfig config, ConfigDescriptor descriptor)
         => config.Name == descriptor.Name

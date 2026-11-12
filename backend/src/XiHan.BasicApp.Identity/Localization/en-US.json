@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "Sign in with code",
   "auth.login_by_code.description": "Sign in with the code received by email or phone; accounts with two-factor still need the second step.",
   "identity.login.method_disabled": "This sign-in method is not enabled.",
-  "identity.login.methods_invalid": "The sign-in methods in system parameter {key} are invalid; only password, email and phone are allowed.",
+  "identity.login.methods_invalid": "The sign-in methods in system parameter {key} are invalid; use a JSON array of strings, each one of password, email, phone or passkey.",
   "identity.login.target_invalid": "The email address or phone number is malformed.",
   "auth.send_two_factor_code.title": "Send two-factor code",
   "auth.send_two_factor_code.description": "Second step of two-factor sign-in: send a code to the account's verified email address or phone number using the ticket from auth.login; authenticators need no code.",

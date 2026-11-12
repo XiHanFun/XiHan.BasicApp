@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "コードでサインイン",
   "auth.login_by_code.description": "メールまたは電話に届いたコードでサインインします。二要素を有効にしたアカウントは第 2 段階が必要です。",
   "identity.login.method_disabled": "このサインイン方式は有効になっていません。",
-  "identity.login.methods_invalid": "システムパラメーター {key} のサインイン方式が正しくありません。password、email、phone のみ指定できます。",
+  "identity.login.methods_invalid": "システムパラメーター {key} のサインイン方式が正しくありません。password、email、phone、passkey のいずれかを並べた JSON 文字列配列で指定してください。",
   "identity.login.target_invalid": "メールアドレスまたは電話番号の形式が正しくありません。",
   "auth.send_two_factor_code.title": "二段階認証コードの送信",
   "auth.send_two_factor_code.description": "二段階認証の 2 段階目のコード送信：auth.login が発行したチケットで、アカウントの確認済みメールアドレスまたは電話番号にコードを送ります。認証アプリには送りません。",

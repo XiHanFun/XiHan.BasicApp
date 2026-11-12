@@ -319,8 +319,8 @@ public sealed class ChatAssistantsTests : IDisposable
         Assert.Equal(ChatErrors.AssistantReplyEmpty, emptyBody.GetProperty("code").GetString());
 
         // 敏感词
-        var (config, configBody) = await SendAsync(server, HttpMethod.Post, "/api/configs", new { key = "chat.policy", name = "Chat policy", dataType = "Json", value = """{"retentionDays":365,"sensitiveWords":["forbidden"]}""" }, await SuperAdminAsync(server));
-        Assert.True(config.StatusCode == HttpStatusCode.Created, configBody.GetRawText());
+        var (config, configBody) = await SettingsTestHost.SetBuiltInConfigAsync(server, await SuperAdminAsync(server), "chat.policy", """{"retentionDays":365,"sensitiveWords":["forbidden"]}""");
+        Assert.True(config == HttpStatusCode.OK, configBody.GetRawText());
         _model.Reply = "This is forbidden content.";
         var (blocked, blockedBody) = await ReplyAsync(server, conversation, token, replyId: "r-word");
         Assert.Equal(HttpStatusCode.BadRequest, blocked.StatusCode);

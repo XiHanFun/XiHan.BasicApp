@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "Iniciar sesión con código",
   "auth.login_by_code.description": "Inicia sesión con el código recibido por correo o teléfono; las cuentas con dos factores siguen necesitando el segundo paso.",
   "identity.login.method_disabled": "Este método de inicio de sesión no está habilitado.",
-  "identity.login.methods_invalid": "Los métodos de inicio de sesión del parámetro del sistema {key} no son válidos; solo se admiten password, email y phone.",
+  "identity.login.methods_invalid": "Los métodos de inicio de sesión del parámetro del sistema {key} no son válidos; use un arreglo JSON de cadenas, cada una password, email, phone o passkey.",
   "identity.login.target_invalid": "El correo o el teléfono no tiene un formato válido.",
   "auth.send_two_factor_code.title": "Enviar código de dos factores",
   "auth.send_two_factor_code.description": "Segundo paso de la autenticación de dos factores: enviar un código al correo o teléfono verificado de la cuenta con el ticket de auth.login; el autenticador no necesita código.",

@@ -45,11 +45,10 @@ public sealed class ForcePasswordChangeTests : IDisposable
         return (server, (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!);
     }
 
-    private static async Task<string> ConfigureAsync(BasicAppTestServer server, string superadmin, string value, string dataType = "Json")
+    private static async Task ConfigureAsync(BasicAppTestServer server, string superadmin, string value)
     {
-        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = PasswordSettings.ConfigKey, name = "Password", dataType, value }), superadmin));
-        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
-        return createdBody.GetProperty("id").GetString()!;
+        var (updated, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, superadmin, PasswordSettings.ConfigKey, value);
+        Assert.Equal(HttpStatusCode.OK, updated);
     }
 
     private static async Task<string> CreateUserAsync(BasicAppTestServer server, string superadmin, string userName, string password)
@@ -183,7 +182,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var (mailConfig, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/email-configs", JsonSerializer.Serialize(new { code = "primary", name = "Primary", smtpHost = "smtp.example.com", smtpPort = 465, fromEmail = "noreply@example.com", userName = "noreply", password = "s3cret-pass" }), superadmin));
         Assert.Equal(HttpStatusCode.Created, mailConfig.StatusCode);
-        var (methods, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, superadmin, LoginMethods.ConfigKey, "email");
+        var (methods, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, superadmin, LoginMethods.ConfigKey, """["email"]""");
         Assert.Equal(HttpStatusCode.OK, methods);
         var (ann, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"ann","displayName":"Ann","password":"Pass@123456","email":"ann@example.com"}""", superadmin));
         Assert.Equal(HttpStatusCode.Created, ann.StatusCode);
@@ -229,7 +228,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
             var (selfChanged, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:change-password", """{"currentPassword":"Changed@123456","newPassword":"Changed@654321"}""", changedToken));
             Assert.Equal(HttpStatusCode.OK, selfChanged.StatusCode);
             await CreateUserAsync(server, superadmin, "created", "Created@123456");
-            await ConfigureAsync(server, superadmin, "yes please", "Text");
+            await ConfigureAsync(server, superadmin, """{"forceChange":"yes please"}""");
             var (rejected, rejectedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"created","password":"Created@123456"}"""));
             Assert.Equal((HttpStatusCode.BadRequest, "IDENTITY_VALIDATION_025"), (rejected.StatusCode, rejectedBody.GetProperty("code").GetString()));
             await AuthFlowTests.LoginAsync(server, "changed", "Changed@654321");

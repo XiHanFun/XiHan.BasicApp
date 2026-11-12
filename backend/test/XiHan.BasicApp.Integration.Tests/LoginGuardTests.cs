@@ -108,8 +108,8 @@ public sealed class LoginGuardTests : IDisposable
 
         // 打开：同一地址两次认证失败即封（账号不存在、密码错都算），封禁中连正确的密码也 503
         var settings = JsonSerializer.Serialize(new { isEnabled = true, windowMinutes = 10, maxFailures = 2, banMinutes = 5, maxBanMinutes = 20 });
-        var (configured, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = "access.security.login-auto-ban", name = "Login auto-ban", dataType = "Json", value = settings }), admin));
-        Assert.Equal(HttpStatusCode.Created, configured.StatusCode);
+        var (configured, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, admin, "access.security.login-auto-ban", settings);
+        Assert.Equal(HttpStatusCode.OK, configured);
         Assert.Equal("IDENTITY_DENIED_003", await FailAsync());
         Assert.Equal("IDENTITY_DENIED_003", (await LoginFromAsync(server, attacker, "superadmin", "wrong")).Body.GetProperty("code").GetString());
         var (banned, bannedBody) = await LoginFromAsync(server, attacker, "superadmin", "SuperAdmin@123");

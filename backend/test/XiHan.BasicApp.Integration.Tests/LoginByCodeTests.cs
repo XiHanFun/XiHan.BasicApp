@@ -68,9 +68,15 @@ public sealed class LoginByCodeTests : IDisposable
         // 没开放：登录页只有密码登录，发码被拒；参数写错即报错
         Assert.Equal(["password"], await MethodsAsync(server));
         Assert.Equal("IDENTITY_DENIED_016", await CodeOfAsync(server, "/api/auth:send-login-code", new { channel = "Email", target = "ann@example.com" }));
-        await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "email,fax");
-        Assert.Equal("IDENTITY_VALIDATION_021", (await SendAsync(server, HttpMethod.Get, "/api/auth:login-config", null)).Body.GetProperty("code").GetString());
-        await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "email, phone");
+        foreach (var invalid in new[] { """["email","fax"]""", """["email",1]""" })
+        {
+            await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, invalid);
+            Assert.Equal("IDENTITY_VALIDATION_021", (await SendAsync(server, HttpMethod.Get, "/api/auth:login-config", null)).Body.GetProperty("code").GetString());
+        }
+
+        var (notArray, notArrayBody) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "email,phone");
+        Assert.Equal((HttpStatusCode.BadRequest, "SETTINGS_VALIDATION_002"), (notArray, notArrayBody.GetProperty("code").GetString()));
+        await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, """["email","phone"]""");
         Assert.Equal(["password", "email", "phone"], await MethodsAsync(server));
 
         // 不存在与不唯一的账号：同样回答已发送，但不发；手机号没验证的也不发

@@ -313,9 +313,9 @@ public sealed class AuditingTests : IDisposable
         var tenantRows = await SettingsTestHost.InvokeAsync(server, "contoso", async ctx => await ctx.Services.GetRequiredService<IRepository<SysLoginLog, Guid>>().ListAsync(EntityQuery.All<SysLoginLog>(), ctx.CancellationToken));
         Assert.DoesNotContain(tenantRows, l => l.UserName == "ghost");
 
-        // 参数建了却不合法：作业失败，不按错误的保留期删
-        var (config, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"auditing.retention-days","name":"Log retention","dataType":"Number","value":"0"}""", platform));
-        Assert.Equal(HttpStatusCode.Created, config.StatusCode);
+        // 参数写了不合法的值：作业失败，不按错误的保留期删
+        var (config, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, "auditing.retention-days", "0");
+        Assert.Equal(HttpStatusCode.OK, config);
         Assert.Equal("AUDITING_VALIDATION_004", (await RunAsync()).Error?.Code);
     }
 

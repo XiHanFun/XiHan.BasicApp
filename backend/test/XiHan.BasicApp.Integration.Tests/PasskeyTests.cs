@@ -48,7 +48,7 @@ public sealed class PasskeyTests : IDisposable
 
     private static async Task OpenPasskeysAsync(BasicAppTestServer server, string platform)
     {
-        var (updated, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, "passkey");
+        var (updated, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, LoginMethods.ConfigKey, """["passkey"]""");
         Assert.Equal(HttpStatusCode.OK, updated);
     }
 

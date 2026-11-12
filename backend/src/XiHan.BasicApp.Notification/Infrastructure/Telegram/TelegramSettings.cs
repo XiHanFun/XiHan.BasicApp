@@ -83,6 +83,31 @@ public sealed record TelegramSettings
     public static TelegramSettings Default { get; } = new();
 
     /// <summary>
+    /// 内建参数的元数据
+    /// </summary>
+    public static ConfigDescriptor Config { get; } = new(
+        ConfigKey,
+        "Telegram 设置",
+        "消息通知",
+        ConfigDataType.Json,
+        """{"enabled":false,"webhookBaseUrl":null,"managerRefreshSeconds":5,"enableFallbackReply":false,"network":{"proxyUrl":null,"baseUrl":null,"timeoutSeconds":100}}""",
+        "enabled 总开关；webhookBaseUrl 为空即长轮询；managerRefreshSeconds 刷新周期秒数（≤ 0 只在启动时加载）；enableFallbackReply 平台兜底回复；network 的代理、Bot API 根地址（主机要在 XiHan:Security:Outbound:AllowedHosts 放行）与超时秒数。只认平台的，写错即报错",
+        Order: 400);
+
+    /// <summary>
+    /// Webhook 密钥内建参数的元数据
+    /// </summary>
+    public static ConfigDescriptor SecretConfig { get; } = new(
+        SecretConfigKey,
+        "Telegram Webhook 密钥",
+        "消息通知",
+        ConfigDataType.Text,
+        null,
+        "注册 Webhook 时交给 Telegram、回调时核对的密钥；加密存放，只认平台的",
+        IsEncrypted: true,
+        Order: 410);
+
+    /// <summary>
     /// 总开关（缺省关）
     /// </summary>
     public bool Enabled { get; init; }

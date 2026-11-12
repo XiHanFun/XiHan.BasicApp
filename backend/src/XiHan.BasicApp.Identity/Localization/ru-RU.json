@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "Войти по коду",
   "auth.login_by_code.description": "Вход по коду, полученному на почту или телефон; учётным записям с двухфакторной защитой всё равно нужен второй шаг.",
   "identity.login.method_disabled": "Этот способ входа не включён.",
-  "identity.login.methods_invalid": "Способы входа в системном параметре {key} указаны неверно; допустимы только password, email и phone.",
+  "identity.login.methods_invalid": "Способы входа в системном параметре {key} указаны неверно; нужен JSON-массив строк, каждая из password, email, phone или passkey.",
   "identity.login.target_invalid": "Неверный формат адреса почты или номера телефона.",
   "auth.send_two_factor_code.title": "Отправить код двухфакторной проверки",
   "auth.send_two_factor_code.description": "Второй шаг двухфакторного входа: по билету из auth.login отправить код на подтверждённую почту или телефон учётной записи; для аутентификатора код не отправляется.",

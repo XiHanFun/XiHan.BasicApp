@@ -193,7 +193,7 @@
   "auth.login_by_code.title": "验证码登录",
   "auth.login_by_code.description": "用邮箱或手机收到的验证码登录：账号开了双因素照样要第二步。",
   "identity.login.method_disabled": "没有开放这种登录方式。",
-  "identity.login.methods_invalid": "系统参数 {key} 里的登录方式写得不对，只能是 password、email、phone。",
+  "identity.login.methods_invalid": "系统参数 {key} 里的登录方式写得不对：要写成 JSON 字符串数组，只能是 password、email、phone、passkey。",
   "identity.login.target_invalid": "邮箱或手机号格式不对。",
   "auth.send_two_factor_code.title": "发送两步验证码",
   "auth.send_two_factor_code.description": "两步验证第二步的发码：凭 auth.login 发的票据把验证码发到账号已验证的邮箱或手机号；认证器不发码。",

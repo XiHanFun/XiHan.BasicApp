@@ -61,7 +61,7 @@ public sealed class HostNetworkingTests : IDisposable
         await server.RunSeedersAsync();
         var admin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var settings = JsonSerializer.Serialize(new { isEnabled = true, windowMinutes = 10, maxFailures = 2, banMinutes = 5, maxBanMinutes = 20 });
-        await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = "access.security.login-auto-ban", name = "Login auto-ban", dataType = "Json", value = settings }), admin));
+        Assert.Equal(HttpStatusCode.OK, (await SettingsTestHost.SetBuiltInConfigAsync(server, admin, "access.security.login-auto-ban", settings)).Status);
 
         // 受信代理转来的：按转发头还原出客户端地址，封的是客户端
         Assert.Equal("IDENTITY_DENIED_003", await FailLoginAsync(server, Proxy, "203.0.113.7"));

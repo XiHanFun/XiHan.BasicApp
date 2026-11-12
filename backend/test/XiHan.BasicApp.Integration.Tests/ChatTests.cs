@@ -352,8 +352,8 @@ public sealed class ChatTests : IDisposable
         await SendTextAsync(server, bob, conversation, "a recent message");
 
         // 平台参数：敏感词对租户同样生效（租户没有覆盖时取平台值）
-        var (config, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = "chat.policy", name = "Chat policy", dataType = "Json", value = """{"retentionDays":30,"sensitiveWords":["Forbidden"]}""" }), platform));
-        Assert.Equal(HttpStatusCode.Created, config.StatusCode);
+        var (config, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, "chat.policy", """{"retentionDays":30,"sensitiveWords":["Forbidden"]}""");
+        Assert.Equal(HttpStatusCode.OK, config);
         Assert.Equal("CHAT_VALIDATION_023", (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId = conversation, messageType = "Text", content = "this is forbidden" }, alice)).Body.GetProperty("code").GetString());
 
         // 保留清理：把第一条消息拨到 31 天前，作业删它与它的回应，近期的留着

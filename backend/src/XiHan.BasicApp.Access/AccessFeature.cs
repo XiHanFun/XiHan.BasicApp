@@ -10,6 +10,7 @@ using XiHan.BasicApp.Access.Operations.Policies;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Access.Seeds;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Pages;
@@ -167,6 +168,7 @@ public sealed class AccessFeature : IFeature
         context.Services.AddCacheNamespace("access", editable: false);
         context.Services.AddPageCatalog("access", AccessPages.All);
         context.Services.AddPageCatalog(AccessPages.AboutPackage, AccessPages.About);
+        context.Services.AddConfigCatalog("access", [LoginAutoBanSettings.Config]);
         foreach (var permission in AccessPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

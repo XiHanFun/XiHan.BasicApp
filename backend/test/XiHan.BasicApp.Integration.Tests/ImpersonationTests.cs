@@ -51,11 +51,10 @@ public sealed class ImpersonationTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, stopped.StatusCode);
     }
 
-    private static async Task<string> ConfigureAsync(BasicAppTestServer server, string platform, string dataType, string value)
+    private static async Task ConfigureAsync(BasicAppTestServer server, string platform, string value)
     {
-        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", JsonSerializer.Serialize(new { key = ImpersonationSettings.ConfigKey, name = "Impersonation", dataType, value }), platform));
-        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
-        return createdBody.GetProperty("id").GetString()!;
+        var (updated, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, ImpersonationSettings.ConfigKey, value);
+        Assert.Equal(HttpStatusCode.OK, updated);
     }
 
     private static async Task<List<JsonElement>> SecurityNoticesAsync(BasicAppTestServer server, string token)
@@ -243,7 +242,7 @@ public sealed class ImpersonationTests : IDisposable
         var demoAdmin = (await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo")).GetProperty("accessToken").GetString()!;
 
         // 设了 5 分钟、不通知：时长照参数，被模仿者收不到；访问令牌与会话一起到期
-        var id = await ConfigureAsync(server, superadmin, "Json", """{"sessionMinutes":5,"notifyTarget":false}""");
+        await ConfigureAsync(server, superadmin, """{"sessionMinutes":5,"notifyTarget":false}""");
         var started = await StartImpersonationAsync(server, superadmin, demoAdminId, "demo");
         Assert.Equal(clock.GetUtcNow().AddMinutes(5), started.GetProperty("refreshExpiresAt").GetDateTimeOffset());
         Assert.Equal(clock.GetUtcNow().AddMinutes(5), started.GetProperty("accessExpiresAt").GetDateTimeOffset());
@@ -251,29 +250,26 @@ public sealed class ImpersonationTests : IDisposable
         await StopImpersonationAsync(server, started);
 
         // 只写一项，另一项取缺省：8 小时是上限，比访问令牌（120 分钟）长时访问令牌仍是自己的时长，要靠刷新续
-        await UpdateAsync("""{"sessionMinutes":480}""");
+        await ConfigureAsync(server, superadmin, """{"sessionMinutes":480}""");
         var longest = await StartImpersonationAsync(server, superadmin, demoAdminId, "demo");
         Assert.Equal(clock.GetUtcNow().AddMinutes(480), longest.GetProperty("refreshExpiresAt").GetDateTimeOffset());
         Assert.Equal(clock.GetUtcNow().AddMinutes(120), longest.GetProperty("accessExpiresAt").GetDateTimeOffset());
         Assert.Single(await SecurityNoticesAsync(server, demoAdmin));
         await StopImpersonationAsync(server, longest);
 
-        // 写错：超出范围、类型不对、不是 JSON，都不发起（看不懂的参数不当缺省用）
-        foreach (var (dataType, value) in new[] { ("Json", """{"sessionMinutes":481}"""), ("Json", """{"sessionMinutes":0}"""), ("Json", """{"notifyTarget":"yes"}"""), ("Text", "thirty") })
+        // 写错：超出范围、类型不对，都不发起（看不懂的参数不当缺省用）；不是 JSON 的值存不进去
+        foreach (var value in new[] { """{"sessionMinutes":481}""", """{"sessionMinutes":0}""", """{"notifyTarget":"yes"}""", """{"sessionMinutes":"thirty"}""" })
         {
-            await UpdateAsync(value, dataType);
+            await ConfigureAsync(server, superadmin, value);
             var (rejected, rejectedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{demoAdminId}}","tenantId":"demo"}""", superadmin));
             Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
             Assert.Equal("IDENTITY_VALIDATION_027", rejectedBody.GetProperty("code").GetString());
         }
 
-        Assert.Single(await SecurityNoticesAsync(server, demoAdmin));
+        var (notJson, notJsonBody) = await SettingsTestHost.SetBuiltInConfigAsync(server, superadmin, ImpersonationSettings.ConfigKey, "thirty");
+        Assert.Equal((HttpStatusCode.BadRequest, "SETTINGS_VALIDATION_002"), (notJson, notJsonBody.GetProperty("code").GetString()));
 
-        async Task UpdateAsync(string value, string dataType = "Json")
-        {
-            var (updated, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{id}", JsonSerializer.Serialize(new { name = "Impersonation", dataType, value }), superadmin));
-            Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
-        }
+        Assert.Single(await SecurityNoticesAsync(server, demoAdmin));
     }
 
     [Fact]

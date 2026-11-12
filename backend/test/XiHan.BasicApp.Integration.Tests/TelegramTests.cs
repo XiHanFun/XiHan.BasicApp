@@ -106,9 +106,11 @@ public sealed class TelegramTests : IDisposable
         var manager = server.Services.GetRequiredService<TelegramBotManager>();
 
         // 平台参数与机器人
-        var (settingsStatus, settingsBody) = await SendAsync(server, HttpMethod.Post, "/api/configs", new { key = TelegramSettings.ConfigKey, name = "Telegram", dataType = "Json", value = """{"enabled":true,"webhookBaseUrl":"https://bot.example.com/","managerRefreshSeconds":0}""" }, platform);
-        Assert.True(settingsStatus == HttpStatusCode.Created, settingsBody.ToString());
-        Assert.Equal(HttpStatusCode.Created, (await SendAsync(server, HttpMethod.Post, "/api/configs", new { key = TelegramSettings.SecretConfigKey, name = "Telegram secret", value = Secret, isEncrypted = true }, platform)).Status);
+        var (settingsStatus, settingsBody) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, TelegramSettings.ConfigKey, """{"enabled":true,"webhookBaseUrl":"https://bot.example.com/","managerRefreshSeconds":0}""");
+        Assert.True(settingsStatus == HttpStatusCode.OK, settingsBody.ToString());
+        var (secretStatus, secretBody) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, TelegramSettings.SecretConfigKey, Secret);
+        Assert.Equal(HttpStatusCode.OK, secretStatus);
+        Assert.True(secretBody.GetProperty("isEncrypted").GetBoolean());
         var (botStatus, bot) = await SendAsync(server, HttpMethod.Post, "/api/telegram-bots", new { name = "ops", token = Token, adminUsers = "1001", allowedGroupChatIds = "-100500", enableFallbackReply = true, broadcastChatIds = "-100777" }, platform);
         Assert.True(botStatus == HttpStatusCode.Created, bot.ToString());
         var botId = bot.GetProperty("id").GetString()!;
@@ -207,22 +209,20 @@ public sealed class TelegramTests : IDisposable
         Assert.Equal("Release\n\nv6", _api.Calls.Single(static c => c.Method == "sendMessage" && c.Payload["chat_id"]!.GetValue<long>() == -100777).Payload["text"]!.GetValue<string>());
 
         // 关掉总开关：删 Webhook，之后收到的 Update 不处理
-        var configs = (await SendAsync(server, HttpMethod.Post, "/api/configs:list", """{"page":{"index":1,"size":50}}""", platform)).Body.GetProperty("items").EnumerateArray().ToList();
-        var settingsId = configs.Single(static c => c.GetProperty("key").GetString() == TelegramSettings.ConfigKey).GetProperty("id").GetString()!;
         // 根地址是令牌的去向：只有改系统参数的权限，指不到没放行的主机
-        var (redirectStatus, _) = await SendAsync(server, HttpMethod.Put, $"/api/configs/{settingsId}", new { name = "Telegram", dataType = "Json", value = """{"enabled":true,"network":{"baseUrl":"https://attacker.example"},"webhookBaseUrl":"https://bot.example.com/","managerRefreshSeconds":0}""" }, platform);
+        var (redirectStatus, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, TelegramSettings.ConfigKey, """{"enabled":true,"network":{"baseUrl":"https://attacker.example"},"webhookBaseUrl":"https://bot.example.com/","managerRefreshSeconds":0}""");
         Assert.Equal(HttpStatusCode.OK, redirectStatus);
         var loaded = await SettingsTestHost.InvokeAsync(server, null, static context => TelegramSettings.LoadAsync(context));
         Assert.Equal("NOTIFICATION_VALIDATION_015", loaded.Error?.Code);
 
-        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/configs/{settingsId}", new { name = "Telegram", dataType = "Json", value = """{"enabled":false,"webhookBaseUrl":"https://bot.example.com"}""" }, platform)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await SettingsTestHost.SetBuiltInConfigAsync(server, platform, TelegramSettings.ConfigKey, """{"enabled":false,"webhookBaseUrl":"https://bot.example.com"}""")).Status);
         Assert.True(await manager.RefreshAsync(CancellationToken.None));
         Assert.Equal("deleteWebhook", _api.Calls.Last().Method);
         Assert.Empty(await DeliverAsync(server, Message(20, 1001, 1001, "/start")));
 
         // 长轮询：没有 Webhook 根地址即先删 Webhook 再拉 Update
         _api.Enqueue(JsonNode.Parse(Message(21, 4004, 4004, "/start"))!.AsObject());
-        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, $"/api/configs/{settingsId}", new { name = "Telegram", dataType = "Json", value = """{"enabled":true}""" }, platform)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await SettingsTestHost.SetBuiltInConfigAsync(server, platform, TelegramSettings.ConfigKey, """{"enabled":true}""")).Status);
         Assert.True(await manager.RefreshAsync(CancellationToken.None));
         // 假的 Bot API 在一次空轮询之后才记下 getUpdates：两样都等到再判（Release 下回复比第二次轮询快）
         for (var attempt = 0; attempt < 100 && !(Polled() && SentTo(4004)); attempt++)

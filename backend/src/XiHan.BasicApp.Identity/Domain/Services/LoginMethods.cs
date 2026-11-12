@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.Framework.Primitives;
@@ -12,10 +13,10 @@ namespace XiHan.BasicApp.Identity.Domain.Services;
 /// 开放的登录方式
 /// </summary>
 /// <remarks>
-/// 系统参数 <see cref="ConfigKey"/>：逗号分隔的方式名（<c>password</c>、<c>email</c>、<c>phone</c>、<c>passkey</c>），只认平台的（登录在进入租户之前）；
-/// 种子按 <see cref="Config"/> 建成内建参数（值留空、缺省值 <c>password</c>），没建或值与缺省值都空即只有密码登录。密码登录总是开着，写不写都一样；邮箱 / 手机验证码登录与通行密钥列出才开，服务端照此拦
+/// 系统参数 <see cref="ConfigKey"/>：方式名的 JSON 数组（<c>password</c>、<c>email</c>、<c>phone</c>、<c>passkey</c>），只认平台的（登录在进入租户之前）
+/// 种子按 <see cref="Config"/> 建成内建参数（值留空、缺省值 <c>["password"]</c>），没建或值与缺省值都空即只有密码登录。密码登录总是开着，写不写都一样；邮箱 / 手机验证码登录与通行密钥列出才开，服务端照此拦
 /// 通行密钥还要宿主配了 <c>XiHan:Security:WebAuthn</c>（装了框架的 WebAuthn）才算开放：没配时列出也不出现在结果里
-/// 有认不出的方式名即 <c>IDENTITY_VALIDATION_021</c>：参数写错要让人看见，不悄悄当作没开
+/// 不是字符串数组或有认不出的方式名即 <c>IDENTITY_VALIDATION_021</c>：参数写错要让人看见，不悄悄当作没开
 /// </remarks>
 public static class LoginMethods
 {
@@ -54,9 +55,10 @@ public static class LoginMethods
         ConfigKey,
         "登录方式",
         "身份认证",
-        ConfigDataType.Text,
-        Password,
-        "登录页开放的方式，逗号分隔：password（总是开着）、email、phone、passkey（还要宿主配了 XiHan:Security:WebAuthn）；写了认不出的方式名即登录配置报错");
+        ConfigDataType.Array,
+        """["password"]""",
+        "登录页开放的方式，如 [\"password\",\"passkey\"]：password（总是开着）、email、phone、passkey（还要宿主配了 XiHan:Security:WebAuthn）；有认不出的方式名即登录配置报错",
+        Order: 100);
 
     /// <summary>
     /// 渠道对应的方式名
@@ -87,13 +89,12 @@ public static class LoginMethods
             return configured.Error!;
         }
 
-        if (!value.TryGetValue(out var text))
+        if (!value.TryGetValue(out var json))
         {
             return Result.Success<IReadOnlyList<string>>([Password]);
         }
 
-        var listed = text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(static m => m.ToLowerInvariant()).ToHashSet(StringComparer.Ordinal);
-        if (listed.Any(static m => m is not (Password or Email or Phone or Passkey)))
+        if (Parse(json) is not { } listed)
         {
             return Error.Validation(IdentityErrors.LoginMethodsInvalid, IdentityMessages.LoginMethodsInvalid, MessageArguments.Of(("key", ConfigKey)));
         }
@@ -104,5 +105,44 @@ public static class LoginMethods
         }
 
         return Result.Success<IReadOnlyList<string>>([Password, .. new[] { Email, Phone, Passkey }.Where(listed.Contains)]);
+    }
+
+    /// <summary>
+    /// 解析方式名数组
+    /// </summary>
+    /// <returns>方式名；不是字符串数组或有认不出的方式名为 <see langword="null"/></returns>
+    private static HashSet<string>? Parse(string json)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                return null;
+            }
+
+            var listed = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var item in document.RootElement.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.String)
+                {
+                    return null;
+                }
+
+                var method = item.GetString()!.Trim().ToLowerInvariant();
+                if (method is not (Password or Email or Phone or Passkey))
+                {
+                    return null;
+                }
+
+                listed.Add(method);
+            }
+
+            return listed;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }

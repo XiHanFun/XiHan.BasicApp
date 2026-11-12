@@ -30,6 +30,18 @@ public sealed record PasswordSettings(bool ForceChange = false)
     public static PasswordSettings Default { get; } = new();
 
     /// <summary>
+    /// 内建参数的元数据
+    /// </summary>
+    public static ConfigDescriptor Config { get; } = new(
+        ConfigKey,
+        "密码设置",
+        "身份认证",
+        ConfigDataType.Json,
+        """{"forceChange":false}""",
+        "forceChange：打开后，密码由他人设置的账号用密码登录要先改密；只认平台的，写错即这些账号不能用密码登录",
+        Order: 110);
+
+    /// <summary>
     /// 读密码设置
     /// </summary>
     /// <remarks>

@@ -491,7 +491,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `VerificationCodeDailyPerTarget` / `VerificationCodeDailyPerAddress` | `10` / `50` | 一个邮箱或手机号、一个客户端地址每天（UTC）最多收发几次，不分用途 |
 | `VerificationCodeMaxFailures` / `VerificationCodeLockoutMinutes` | `5` / `10` | 一个验证码允许输错的次数；用完后同一用途、同一主体不能再发码与校验的时长 |
 
-登录页开放哪些方式不在这里，而是系统参数 `identity.login-methods`（`password`、`email`、`phone`），见[系统设置](./backend/settings)。
+登录页开放哪些方式不在这里，而是系统参数 `identity.login-methods`（JSON 数组：`password`、`email`、`phone`、`passkey`），见[系统设置](./backend/settings)。
 
 ### `BasicApp:Auth:OAuth`（第三方登录）
 
@@ -552,7 +552,7 @@ BasicApp 自己的访问、异常、登录与变更日志，按月分表。
 | `BatchSize` / `FlushIntervalSeconds` | `200` / `1` | 每批落库的条数与刷写间隔（秒，可带小数） |
 | `AccessLog:Enabled` | `true` | 是否记访问日志 |
 | `AccessLog:Exclude` | `[]` | 不记访问日志的操作 ID，如 `auth.me`；异常、登录与变更日志不受影响 |
-| `DefaultRetentionDays` | `180` | 系统参数 `auditing.retention-days` 没建时的保留天数 |
+| `DefaultRetentionDays` | `180` | 系统参数 `auditing.retention-days` 的值为空时的保留天数 |
 | `RetentionCron` | `0 3 * * *` | 保留清理作业的计划（cron，按 UTC） |
 
 ## `BasicApp:Files`

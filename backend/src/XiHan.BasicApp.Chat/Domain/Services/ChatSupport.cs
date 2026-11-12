@@ -222,6 +222,19 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
     public const int MaxRetentionDays = 3650;
 
     /// <summary>
+    /// 内建参数的元数据
+    /// </summary>
+    public static ConfigDescriptor Config { get; } = new(
+        ConfigKey,
+        "聊天策略",
+        "在线聊天",
+        ConfigDataType.Json,
+        """{"retentionDays":365,"sensitiveWords":[]}""",
+        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝，租户可建同键参数覆盖；写错即发送与清理都失败，不按错误的值删数据或放过敏感词",
+        AllowTenantOverride: true,
+        Order: 500);
+
+    /// <summary>
     /// 读当前上下文的策略
     /// </summary>
     public async ValueTask<Result<ChatPolicySettings>> ReadAsync(InvocationContext context)

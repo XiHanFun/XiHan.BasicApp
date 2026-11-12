@@ -64,6 +64,7 @@ public static class SettingsTestHost
             dataType = config.GetProperty("dataType"),
             value,
             defaultValue = config.GetProperty("defaultValue"),
+            isEncrypted = config.GetProperty("isEncrypted"),
             allowTenantOverride = config.GetProperty("allowTenantOverride"),
             order = config.GetProperty("order"),
             description = config.GetProperty("description"),

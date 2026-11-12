@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Caching.Abstractions.Stores;
 
@@ -30,6 +31,18 @@ public sealed record LoginAutoBanSettings(bool IsEnabled = false, int WindowMinu
     /// 缺省值（关）
     /// </summary>
     public static LoginAutoBanSettings Default { get; } = new();
+
+    /// <summary>
+    /// 内建参数的元数据
+    /// </summary>
+    public static ConfigDescriptor Config { get; } = new(
+        ConfigKey,
+        "登录失败自动封禁",
+        "访问安全",
+        ConfigDataType.Json,
+        """{"isEnabled":false,"windowMinutes":10,"maxFailures":20,"banMinutes":30,"maxBanMinutes":1440}""",
+        "isEnabled 开关；windowMinutes 分钟（1–1440）内同一地址失败 maxFailures 次（1–10000）即封禁 banMinutes 分钟（1–43200），24 小时内再犯时长翻倍到 maxBanMinutes（不小于首次、不超过 43200）为止；只认平台的，写错或超出范围即报错",
+        Order: 200);
 
     /// <summary>
     /// 各项是否在范围内
