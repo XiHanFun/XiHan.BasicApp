@@ -7,7 +7,7 @@ import type { MembershipRow } from './use-user-detail'
 import type { UserRow } from './use-users'
 import type { ResponseOf } from '~/contracts'
 import type { SelectOption } from '~/types'
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, memberships as membershipsApi, positions as positionsApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { loadMemberships } from './use-user-detail'
@@ -37,7 +37,7 @@ export function flattenDepartments(nodes: DepartmentNode[], depth = 0, out: Sele
 }
 
 /**
- * 所属部门抽屉：列出、加入（可带岗位）与移出用户的部门归属
+ * 所属部门抽屉：列出、加入（可带岗位）、设主部门与移出用户的部门归属
  * 部门与岗位是租户数据，平台侧不出这个入口；非字段错误抛给页面提示
  */
 export function useUserDepartments() {
@@ -50,6 +50,14 @@ export function useUserDepartments() {
   const positionOptions = ref<SelectOption[]>([])
   const form = reactive<MemberForm>({ departmentId: null, positionId: null })
   const fieldErrors = ref<Record<string, string[]>>({})
+
+  /** 加入部门的候选：已加入的部门不可再选 */
+  const departmentChoices = computed<SelectOption[]>(() => {
+    const joined = new Set(memberships.value.map(membership => membership.departmentId))
+    return departmentOptions.value.map(option => joined.has(String(option.value))
+      ? { ...option, disabled: true }
+      : option)
+  })
 
   function fieldError(field: keyof MemberForm): string | undefined {
     return fieldErrors.value[field]?.[0]
@@ -127,6 +135,33 @@ export function useUserDepartments() {
     }
   }
 
+  /**
+   * 设为主部门：同一用户原来的主部门随之取消
+   * `memberships.update` 按整条写入，岗位、工号等其余字段原样带回；成功后重取归属，失败抛给页面提示
+   */
+  async function setPrimary(membership: MembershipRow): Promise<void> {
+    const current = user.value
+    if (!current || membership.isPrimary)
+      return
+    working.value = true
+    try {
+      await membershipsApi.update({
+        id: membership.id,
+        positionId: membership.positionId,
+        isPrimary: true,
+        employeeNumber: membership.employeeNumber,
+        jobGrade: membership.jobGrade,
+        hiredAt: membership.hiredAt,
+        order: membership.order,
+        remark: membership.remark,
+      })
+      memberships.value = await loadMemberships(current.id)
+    }
+    finally {
+      working.value = false
+    }
+  }
+
   /** 移出部门：被后端拒绝时带着原因抛出；无论成败都按服务端重取归属 */
   async function remove(membershipId: string): Promise<void> {
     const current = user.value
@@ -152,11 +187,13 @@ export function useUserDepartments() {
     working,
     memberships,
     departmentOptions,
+    departmentChoices,
     positionOptions,
     form,
     fieldError,
     start,
     add,
+    setPrimary,
     remove,
   }
 }

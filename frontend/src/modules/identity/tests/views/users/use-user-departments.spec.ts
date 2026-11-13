@@ -56,13 +56,14 @@ function membership(id: string, departmentId: string, departmentName: string, ex
     hiredAt: null,
     order: 0,
     createdAt: '2026-10-28T00:00:00Z',
+    remark: null,
     ...extra,
   }
 }
 
 interface Call { method: string, url: string, body: Record<string, unknown> | undefined }
 
-/** 带状态的假后端：归属按请求增删；createError / deleteFailure 模拟被拒 */
+/** 带状态的假后端：归属按请求增删、设主；createError / deleteFailure 模拟被拒 */
 function backend(options: { createError?: Response, deleteFailure?: string } = {}) {
   const rows = [
     membership('m-1', 'd-1', 'HQ', { isPrimary: true }),
@@ -119,6 +120,14 @@ function backend(options: { createError?: Response, deleteFailure?: string } = {
           return options.createError
         rows.push(membership('m-2', body.departmentId, 'R&D', { positionId: body.positionId }))
         return json(201, rows.at(-1)!)
+      }
+      if (path.startsWith('/api/memberships/') && method === 'PUT') {
+        const id = path.slice('/api/memberships/'.length)
+        if (body.isPrimary) {
+          for (const row of rows)
+            row.isPrimary = row.id === id
+        }
+        return json(200, rows.find(row => row.id === id)!)
       }
       if (path.startsWith('/api/memberships?') && method === 'DELETE') {
         if (options.deleteFailure) {
@@ -222,6 +231,51 @@ describe('useUserDepartments', () => {
     })
     await expect(departments.add()).rejects.toThrow('already a member')
     expect(departments.working.value).toBe(false)
+  })
+
+  it('加入部门的候选里已加入的部门不可再选', async () => {
+    backend()
+    const departments = useUserDepartments()
+    await departments.start(bob as never, { departments: true, positions: false })
+    expect(departments.departmentChoices.value.map(o => [o.value, o.disabled ?? false])).toEqual([
+      ['d-1', true],
+      ['d-2', false],
+      ['d-3', false],
+    ])
+    departments.form.departmentId = 'd-2'
+    await departments.add()
+    expect(departments.departmentChoices.value.filter(o => o.disabled).map(o => o.value)).toEqual(['d-1', 'd-2'])
+  })
+
+  it('设为主部门走 memberships.update，岗位、工号等字段原样带回，随后重取归属；已是主部门的不提交', async () => {
+    const calls = backend()
+    const departments = useUserDepartments()
+    await departments.start(bob as never, { departments: true, positions: true })
+    departments.form.departmentId = 'd-2'
+    departments.form.positionId = 'p-1'
+    await departments.add()
+    const second = departments.memberships.value.find(m => m.id === 'm-2')!
+
+    await departments.setPrimary(second)
+    const update = calls.find(c => c.method === 'PUT')
+    expect(update?.url).toBe('/api/memberships/m-2')
+    expect(update?.body).toEqual({
+      positionId: 'p-1',
+      isPrimary: true,
+      employeeNumber: null,
+      jobGrade: null,
+      hiredAt: null,
+      order: 0,
+      remark: null,
+    })
+    expect(departments.memberships.value.map(m => [m.id, m.isPrimary])).toEqual([
+      ['m-1', false],
+      ['m-2', true],
+    ])
+    expect(departments.working.value).toBe(false)
+
+    await departments.setPrimary(departments.memberships.value[1]!)
+    expect(calls.filter(c => c.method === 'PUT')).toHaveLength(1)
   })
 
   it('移出部门走 memberships.delete；被拒时带着原因抛出，归属照样重取', async () => {

@@ -16,7 +16,7 @@ import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
 import GrantConditionsDrawer from '@/modules/access/views/roles/components/GrantConditionsDrawer.vue'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XFieldLabel, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
+import { deleteConfirmText, Icon, renderRowActionMenu, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XFieldLabel, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { useAuthStore, useUserStore } from '~/stores'
@@ -1018,6 +1018,7 @@ async function saveRoles() {
 
 // ── 所属部门抽屉 ──
 const canAddDepartment = computed(() => auth.can('organization.memberships.create') && auth.can('organization.departments.read'))
+const canSetPrimaryDepartment = computed(() => auth.can('organization.memberships.update'))
 const canRemoveDepartment = computed(() => auth.can('organization.memberships.delete'))
 const canPickPosition = computed(() => canAddDepartment.value && auth.can('organization.positions.read'))
 
@@ -1034,6 +1035,16 @@ async function onAddDepartment() {
   try {
     if (await departments.add())
       toast.success(t('identity.users.department_added'))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
+  }
+}
+
+async function onSetPrimaryDepartment(membership: MembershipRow) {
+  try {
+    await departments.setPrimary(membership)
+    toast.success(t('identity.users.primary_department_set', { name: membership.departmentName }))
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.save_failed'))
@@ -1080,19 +1091,41 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
       ? renderTag(t('common.statuses.yes'), 'brand')
       : '-',
   },
-  ...(canRemoveDepartment.value
+  ...(canSetPrimaryDepartment.value || canRemoveDepartment.value
     ? [
         {
           key: 'actions',
           title: t('component.schema_page.actions_column'),
           width: 90,
-          render: (membership: MembershipRow) => h(XhButton, {
-            size: 'sm',
-            variant: 'outline',
-            tone: 'danger',
-            disabled: departments.working.value,
-            onClick: () => confirmRemoveDepartment(membership),
-          }, () => t('identity.users.actions.remove_department')),
+          // 与列表页同一个「更多」菜单：主部门不必再设，要换主部门就给另一条设主
+          render: (membership: MembershipRow) => renderRowActionMenu([
+            ...(canSetPrimaryDepartment.value && !membership.isPrimary
+              ? [
+                  {
+                    key: 'set-primary',
+                    title: t('identity.users.actions.set_primary_department'),
+                    icon: 'lucide:star',
+                    disabled: departments.working.value,
+                  },
+                ]
+              : []),
+            ...(canRemoveDepartment.value
+              ? [
+                  {
+                    key: 'remove',
+                    title: t('identity.users.actions.remove_department'),
+                    icon: 'lucide:user-minus',
+                    tone: 'danger' as const,
+                    disabled: departments.working.value,
+                  },
+                ]
+              : []),
+          ], t('component.schema_page.more'), (key) => {
+            if (key === 'set-primary')
+              void onSetPrimaryDepartment(membership)
+            else
+              confirmRemoveDepartment(membership)
+          }),
         },
       ]
     : []),
@@ -1521,7 +1554,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
             <XhFieldRoot :invalid="!!departments.fieldError('departmentId')" required>
               <XhFieldLabel>{{ t('identity.users.member_form.department') }}</XhFieldLabel>
               <XhFieldControl>
-                <XSelect v-model:value="departments.form.departmentId" name="departmentId" :options="departments.departmentOptions.value" :loading="departments.loading.value" clearable />
+                <XSelect v-model:value="departments.form.departmentId" name="departmentId" :options="departments.departmentChoices.value" :loading="departments.loading.value" clearable />
               </XhFieldControl>
               <XhFieldErrorText v-if="departments.fieldError('departmentId')">
                 {{ departments.fieldError('departmentId') }}

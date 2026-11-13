@@ -9,7 +9,7 @@ import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, Sc
 import type { TableDensity } from './useTableSettings'
 import type { ApiId } from '~/types/contracts'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
-import { computed, h, onMounted, ref, useSlots, watch } from 'vue'
+import { computed, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { dialog, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
@@ -17,9 +17,8 @@ import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore } from '~/stores'
 import XIconButton from '../common/XIconButton.vue'
-import { actionMenuPrefix } from './action-menu'
-import { actionMenuTone } from './action-tone'
 import { formatFieldText } from './renderer'
+import { renderRowActionMenu } from './row-action-menu'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
@@ -264,44 +263,16 @@ function visibleRowActions(row: Row): ActionSchema<Row>[] {
 }
 
 function renderRowActions(row: Row) {
-  const actions = visibleRowActions(row)
-  const collection: MenuNode[] = actions.map(a => ({
-    value: a.key,
-    label: a.title,
+  const actions = visibleRowActions(row).map(a => ({
+    key: a.key,
+    title: a.title,
+    icon: a.icon,
+    tone: a.tone,
     disabled: a.disabled
       ? a.disabled(row)
       : false,
-    tone: actionMenuTone(a.tone),
   }))
-  if (collection.length === 0) {
-    return h('span', { class: 'text-foreground/30' }, '-')
-  }
-  const itemPrefix = actionMenuPrefix(actions)
-  return h(
-    XhMenuRoot,
-    {
-      collection,
-      // 借用下面那颗按钮当触发器。不借的话菜单根会自己包一颗裸 button，
-      // 而 menu 皮肤没有 trigger 这一部件，露出的是浏览器默认按钮样式
-      triggerAsChild: true,
-      // 按落定那一侧的可用高度铺开：组件库缺省的上限是 20rem，本应用根字号 14px 下只有 280px，八项就露不全
-      fitAvailableHeight: true,
-      onItemSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
-    },
-    {
-      trigger: () => h(
-        XhButton,
-        { variant: 'outline', size: 'sm' },
-        () => [
-          t('component.schema_page.more'),
-          h(Icon, { icon: 'lucide:chevron-down' }),
-        ],
-      ),
-      ...(itemPrefix
-        ? { 'item-prefix': itemPrefix }
-        : {}),
-    },
-  )
+  return renderRowActionMenu(actions, t('component.schema_page.more'), key => dispatchAction(key, { key, scope: 'row', row }))
 }
 
 /** 派发操作：声明了 confirm 的先二次确认再上抛，页面不必各自写确认框 */

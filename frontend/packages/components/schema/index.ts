@@ -5,6 +5,8 @@
 
 export { actionConfirmText, deleteConfirmText, statusConfirmText } from './confirm-text'
 export { formatFieldText, renderFieldCell } from './renderer'
+export { renderRowActionMenu } from './row-action-menu'
+export type { RowMenuAction } from './row-action-menu'
 export { default as SchemaActionPanel } from './SchemaActionPanel.vue'
 export { default as SchemaImportDialog } from './SchemaImportDialog.vue'
 export { default as SchemaPage } from './SchemaPage.vue'
