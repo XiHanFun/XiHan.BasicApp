@@ -1,0 +1,2340 @@
+{
+  "type": "object",
+  "properties": {
+    "XiHan": {
+      "type": "object",
+      "properties": {
+        "AI": {
+          "type": "object",
+          "properties": {
+            "Tools": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "description": "操作工具名覆盖：键为操作 ID，值为工具名"
+              },
+              "description": "操作暴露成 AI 工具时的名字覆盖：键为操作 ID，值为工具名（字母、数字、_、-，1–64 个字符）"
+            },
+            "Prompts": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "Template": {
+                    "type": "string",
+                    "description": "提示词模板，每个提示词必填；也可直接写成 Prompts:{prompt} 的值"
+                  },
+                  "Description": {
+                    "type": "string",
+                    "description": "提示词说明"
+                  }
+                }
+              },
+              "description": "配置里声明的提示词模板（给 Knowledge:PromptName 用）；后台「提示词」页面的模板不在这里；值可以直接写模板文本，也可以写成 { \"Template\": ..., \"Description\": ... }"
+            },
+            "Guardrails": {
+              "type": "object",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "是否登记内置关键词护栏"
+                },
+                "BlockedKeywords": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "被禁止的关键词（不区分大小写的子串），空白项忽略"
+                  },
+                  "description": "被禁止的关键词（不区分大小写的子串）"
+                },
+                "InjectionPatterns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "提示注入的正则模式（不区分大小写），空白项忽略"
+                  },
+                  "description": "提示注入的正则模式（不区分大小写）"
+                },
+                "UseBuiltInInjectionHeuristics": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "是否启用内置的中英文提示注入模式"
+                }
+              },
+              "description": "内置护栏"
+            },
+            "Knowledge": {
+              "type": "object",
+              "properties": {
+                "EmbeddingProvider": {
+                  "type": "string",
+                  "description": "嵌入用的提供商（后台「AI 提供商」里的名称）；不写即标为缺省的那一个"
+                },
+                "PromptName": {
+                  "type": "string",
+                  "description": "检索增强用的提示词模板名，只能引用 XiHan:AI:Prompts 里的模板；不写即内置模板；模板只能用 {context}、{question} 两个占位符，找不到或用了别的占位符启动即失败"
+                },
+                "Collection": {
+                  "type": "string",
+                  "default": "knowledge",
+                  "description": "默认集合名，须合 ^[a-z0-9][a-z0-9._-]{0,63}$"
+                },
+                "Dimensions": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1536,
+                  "description": "嵌入维度，要与嵌入模型一致"
+                },
+                "ChunkSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1000,
+                  "description": "切块大小（字符）"
+                },
+                "ChunkOverlap": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 100,
+                  "description": "相邻块的重叠（字符）"
+                },
+                "Top": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 5,
+                  "description": "默认检索条数"
+                }
+              },
+              "description": "知识库"
+            },
+            "VectorData": {
+              "type": "object",
+              "properties": {
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 ai.vectordata.store 的重探间隔与单次探测超时（秒）"
+                }
+              },
+              "description": "向量库（配了 BasicApp:AI:Qdrant:Host 才生效）"
+            }
+          },
+          "description": "AI：框架的工具目录常装，这一节总会被读取校验（写错时关了 AI 模块也会启动失败）；开了 AI 模块后，聊天、知识库与提示增强才真正用到它；模型提供商在后台「AI 提供商」页面维护：框架的 Providers、DefaultProvider、DefaultEmbeddingProvider 在 BasicApp 里不生效，不要写"
+        },
+        "Auditing": {
+          "type": "object",
+          "properties": {
+            "Selection": {
+              "type": "string",
+              "enum": [
+                "Protected",
+                "All",
+                "None"
+              ],
+              "default": "Protected",
+              "description": "没有显式动作时记哪些操作：Protected（声明了权限的）、All、None；BasicApp 由 Auditing 包按「是否标了审计」显式声明，框架自己不挑，保持 None"
+            },
+            "IncludeSuccesses": {
+              "type": "boolean",
+              "default": true,
+              "description": "成功的调用也记；为 false 时只记失败"
+            },
+            "Exclude": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "按操作排除：操作 ID，或以 * 结尾的前缀（profile.*、my-*）；按选择规则挑出的操作命中即不记，显式动作照记；须写成列表，某一项不合法或写成单个值时启动失败"
+              },
+              "description": "按操作排除：操作 ID，或以 * 结尾的前缀；必须写成非空列表"
+            },
+            "Database": {
+              "type": "object",
+              "properties": {
+                "QueueCapacity": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "default": 10000,
+                  "description": "等待落库的事件数上限，满了丢弃新事件并计数"
+                },
+                "BatchSize": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "default": 100,
+                  "description": "一批落库的事件数上限，攒够即刷写"
+                },
+                "FlushIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1,
+                  "description": "刷写间隔（秒）"
+                },
+                "LogEvents": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "是否把每条事件写进日志（Information 级）"
+                }
+              },
+              "description": "审计事件落库的队列"
+            }
+          },
+          "description": "框架的操作审计（与 BasicApp:Auditing 的应用日志分开）"
+        },
+        "Caching": {
+          "type": "object",
+          "properties": {
+            "Hybrid": {
+              "type": "object",
+              "properties": {
+                "LocalCapacity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 10000,
+                  "description": "L1 条目上限，满时淘汰最久未访问的"
+                },
+                "LocalTimeToLiveSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 30,
+                  "description": "L1 存活上限（秒）：收不到变更通知时，别的实例的写入最迟这么久后可见"
+                }
+              },
+              "description": "两级缓存（配了 Redis 才生效）：本机 L1 + Redis L2"
+            },
+            "Idempotency": {
+              "type": "object",
+              "properties": {
+                "TimeToLiveSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 86400,
+                  "description": "已完成结果的保留时间（秒），缺省 24 小时"
+                },
+                "InProgressTimeToLiveSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 60,
+                  "description": "处理中标记的保留时间（秒），即处理器崩溃时的最长封锁"
+                }
+              },
+              "description": "幂等去重：已完成结果与处理中标记的保留时间"
+            },
+            "InMemory": {
+              "type": "object",
+              "properties": {
+                "MaxEntries": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 10000,
+                  "description": "每张表（字节存储、对象缓存各一张）的条目上限"
+                },
+                "DefaultTimeToLiveSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 300,
+                  "description": "未指定过期时的存活时间（秒）"
+                }
+              },
+              "description": "进程内缓存（没配 Redis 时生效）"
+            },
+            "Redis": {
+              "type": "object",
+              "properties": {
+                "Configuration": {
+                  "type": "string",
+                  "description": "StackExchange.Redis 连接串；绑定 cache 的值优先，没有绑定或其值为空时读本键；这一节没有单独的用户名、密码键：口令写进连接串，或经绑定 cache 的 username / password 属性提供"
+                },
+                "KeyPrefix": {
+                  "type": "string",
+                  "default": "xihan:",
+                  "description": "键前缀；同一个 Redis 给几套环境用时各取一个"
+                },
+                "PublishChanges": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "写入与删除后向频道 <前缀>__changes 发通知，各实例据此失效本机 L1"
+                },
+                "DefaultTimeToLiveSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 300,
+                  "description": "未指定过期时的存活时间（秒）"
+                },
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 caching.redis.connection 的重探间隔与单次探测超时（秒）"
+                }
+              },
+              "description": "Redis（配了连接才生效）：ISharedCache、字节存储、分布式锁与幂等去重走 Redis"
+            }
+          },
+          "description": "缓存：不配 Redis 时用进程内缓存（单机）；配了绑定 cache 或 Redis:Configuration 即换成 Redis + 两级缓存"
+        },
+        "Kernel": {
+          "type": "object",
+          "properties": {
+            "StartTimeoutSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 30,
+              "description": "单个特性的启动超时（秒）；框架缺省 30，BasicApp 取 60：表结构升级与开发环境建表都在启动阶段完成"
+            },
+            "StopTimeoutSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 30,
+              "description": "单个特性的停止超时（秒）"
+            },
+            "FailurePolicy": {
+              "type": "string",
+              "enum": [
+                "TerminateStartup",
+                "IsolateFeature"
+              ],
+              "default": "TerminateStartup",
+              "description": "特性启动失败时：TerminateStartup 终止启动，IsolateFeature 隔离该特性继续启动"
+            },
+            "UseBuiltInMiddleware": {
+              "type": "boolean",
+              "default": true,
+              "description": "是否自动加入内核的内置中间件：观测、截止时间、韧性与输入校验；关掉后这四样连同 Resilience 的策略都不生效，不要关"
+            },
+            "Resilience": {
+              "type": "object",
+              "properties": {
+                "PermitLimit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "固定窗口内允许的调用数（正整数）；不写不限流"
+                },
+                "WindowSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1,
+                  "description": "限流窗口（秒）"
+                },
+                "QueueLimit": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 0,
+                  "description": "窗口用尽时最多排队等待的调用数；0 为直接拒绝"
+                },
+                "ConcurrencyLimit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "同时执行的调用数上限（正整数）；不写不限"
+                },
+                "ConcurrencyQueueLimit": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 0,
+                  "description": "并发用尽时最多排队等待的调用数；0 为直接拒绝"
+                },
+                "FailureThreshold": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "连续失败多少次后熔断（正整数）；不写不熔断"
+                },
+                "BreakSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 30,
+                  "description": "熔断后拒绝调用的时长（秒），到期放一次试探"
+                },
+                "Operations": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "PermitLimit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "按操作覆盖 PermitLimit，键为合法操作 ID；不写沿用默认策略"
+                      },
+                      "WindowSeconds": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "description": "按操作覆盖 WindowSeconds（秒）；不写沿用默认策略"
+                      },
+                      "QueueLimit": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "按操作覆盖 QueueLimit；不写沿用默认策略"
+                      },
+                      "ConcurrencyLimit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "按操作覆盖 ConcurrencyLimit；不写沿用默认策略"
+                      },
+                      "ConcurrencyQueueLimit": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "按操作覆盖 ConcurrencyQueueLimit；不写沿用默认策略"
+                      },
+                      "FailureThreshold": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "按操作覆盖 FailureThreshold；不写沿用默认策略"
+                      },
+                      "BreakSeconds": {
+                        "type": "number",
+                        "exclusiveMinimum": 0,
+                        "description": "按操作覆盖 BreakSeconds（秒）；不写沿用默认策略"
+                      }
+                    }
+                  },
+                  "description": "按操作覆盖，键为操作 ID（运行 `dotnet run ... -- operations` 列出全部），子键同上，不写的沿用默认策略"
+                }
+              },
+              "description": "韧性：按操作 ID 的固定窗口限流、并发上限与熔断；缺省不限流、不限并发、不熔断；根上的键是全部操作的默认策略，Operations:<操作 ID> 按操作覆盖"
+            }
+          },
+          "description": "内核：特性的启停时限与失败策略"
+        },
+        "Localization": {
+          "type": "object",
+          "properties": {
+            "Locales": {
+              "type": "string",
+              "default": "en-US,zh-CN,zh-TW,ja-JP,ko-KR,de-DE,es-ES,fr-FR,pt-BR,ru-RU",
+              "description": "启用的区域，逗号分隔、按优先级排列，至少一个；是一个字符串，写成数组会被当成没写"
+            },
+            "DefaultLocale": {
+              "type": "string",
+              "default": "en-US",
+              "description": "协商不到时使用的默认区域，必须在 Locales 里；改 Locales 去掉 en-US 时要一起改"
+            },
+            "Database": {
+              "type": "object",
+              "properties": {
+                "RefreshIntervalSeconds": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 300,
+                  "description": "快照刷新间隔（秒）；0 只在启动时加载"
+                },
+                "MaxTranslations": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "default": 100000,
+                  "description": "快照最多加载的译文条数，超出部分不加载并记警告"
+                }
+              },
+              "description": "运营覆盖的译文（平台库表 message_translation），同键同区域时优先于程序集内嵌的文案"
+            }
+          },
+          "description": "本地化：请求按 Accept-Language 在启用的区域里协商"
+        },
+        "Messaging": {
+          "type": "object",
+          "properties": {
+            "MaxAttempts": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 3,
+              "description": "消息代理把一条消息投递给处理器的最多次数（含首次），超过进入死信"
+            },
+            "DeadLetterSuffix": {
+              "type": "string",
+              "default": ".dlq",
+              "description": "死信主题后缀，不能为空白"
+            },
+            "InstanceId": {
+              "type": "string",
+              "description": "本实例在消息代理上的标识：1–64 个字母、数字或 ._-，字母或数字开头；不写时每次启动随机生成（推荐）；写了就必须每个同时在线的实例各不相同（多副本可设成 Pod 名）"
+            },
+            "InMemory": {
+              "type": "object",
+              "properties": {
+                "MaxQueuedMessages": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 10000,
+                  "description": "每个主题（含其死信列表）的条目上限"
+                }
+              },
+              "description": "进程内消息（没配 RabbitMQ 时生效）"
+            },
+            "Outbox": {
+              "type": "object",
+              "properties": {
+                "PollIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1,
+                  "description": "轮询间隔（秒）"
+                },
+                "BatchSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000,
+                  "default": 100,
+                  "description": "每轮最多投递条数（1–1000），也是每轮最多清理的已投递行数"
+                },
+                "MaxAttempts": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 10,
+                  "description": "发件箱投递到消息代理的最多尝试次数（含首次），用尽后进死信；与 XiHan:Messaging:MaxAttempts（代理投递给处理器）是两层"
+                },
+                "RetryDelaySeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 5,
+                  "description": "第一次失败后的重试间隔（秒），之后每次翻倍"
+                },
+                "MaxRetryDelaySeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 300,
+                  "description": "重试间隔的上限（秒）"
+                },
+                "DispatchedRetentionSeconds": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 86400,
+                  "description": "投递成功的行保留多久（秒）；0 为投递成功即删除，死信行不自动删"
+                },
+                "IncludeShards": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "是否也投递各租户分片库里的发件箱行；SqlSugar 把发件箱行留在平台库，BasicApp 关掉以省去每个独立库一轮的多余查询"
+                },
+                "ShardRefreshIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 60,
+                  "description": "分片库清单多久从租户目录重读一次（秒），IncludeShards 打开时才用到"
+                }
+              },
+              "description": "事务发件箱：要发布的消息（如领域事件）先随业务事务落表，再由后台投递到消息代理"
+            },
+            "RabbitMQ": {
+              "type": "object",
+              "properties": {
+                "Configuration": {
+                  "type": "string",
+                  "description": "AMQP URI（amqp:// 或 amqps://）；绑定 queue 的值优先，没有绑定或其值为空时读本键"
+                },
+                "QueuePrefix": {
+                  "type": "string",
+                  "default": "xihan.",
+                  "description": "队列名与路由键的前缀：订阅方声明持久队列 <前缀><主题>"
+                },
+                "Exchange": {
+                  "type": "string",
+                  "default": "xihan",
+                  "description": "发布用的持久 direct 交换机；不能为空、不能以 amq. 开头"
+                },
+                "PrefetchCount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535,
+                  "default": 16,
+                  "description": "每个消费者的预取数（1–65535）"
+                },
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 messaging.rabbitmq.connection 的重探间隔与单次探测超时（秒）"
+                }
+              },
+              "description": "RabbitMQ（配了连接才生效）"
+            }
+          },
+          "description": "消息：不配 RabbitMQ 时用进程内消息（单机）；配了绑定 queue 或 RabbitMQ:Configuration 即换成 RabbitMQ"
+        },
+        "MultiTenancy": {
+          "type": "object",
+          "properties": {
+            "DefaultTenant": {
+              "type": "string",
+              "description": "没解析到租户时用的默认租户 ID；BasicApp 不用：平台调用本来就没有租户，配了会把平台调用落到这个租户上"
+            },
+            "RequireTenant": {
+              "type": "boolean",
+              "default": false,
+              "description": "调用必须带租户；平台主体没有租户声明，BasicApp 必须为 false"
+            },
+            "ValidateAgainstStore": {
+              "type": "boolean",
+              "default": true,
+              "description": "解析出的租户必须在租户目录里存在且启用；关闭后只校验格式"
+            },
+            "TenantClaim": {
+              "type": "string",
+              "default": "tenant",
+              "description": "令牌里承载租户 ID 的声明类型"
+            },
+            "ShardCacheSize": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10000,
+              "description": "租户分库解析的缓存容量（租户数），满时整体清空"
+            },
+            "ShardCacheTimeToLiveSeconds": {
+              "type": "number",
+              "minimum": 0,
+              "default": 30,
+              "description": "租户分库解析缓存条目的存活时间（秒），别的实例改了独立库连接最迟这么久后本实例换用新库；0 为不过期"
+            },
+            "Database": {
+              "type": "object",
+              "properties": {
+                "CacheSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 10000,
+                  "description": "缓存容量（租户数，不存在的租户也占一条），满时整体清空"
+                },
+                "CacheTimeToLiveSeconds": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 30,
+                  "description": "缓存条目的存活时间（秒）；0 为不过期"
+                },
+                "MaxListedTenants": {
+                  "type": "integer",
+                  "description": "列出租户时返回的上限，超出部分不返回并记警告",
+                  "default": 10000
+                }
+              },
+              "description": "租户目录（数据库）的缓存"
+            }
+          },
+          "description": "多租户：租户只从令牌声明解析，不支持查询串与 X-Tenant-Id 头"
+        },
+        "ObjectStorage": {
+          "type": "object",
+          "properties": {
+            "FileSystem": {
+              "type": "object",
+              "properties": {
+                "RootPath": {
+                  "type": "string",
+                  "description": "根目录；不写即程序目录下的 blobs，相对路径按当前目录解析"
+                },
+                "MaxTotalBytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1073741824,
+                  "description": "全部对象的总字节上限，缺省 1 GiB"
+                },
+                "MaxBlobBytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 268435456,
+                  "description": "单个对象的字节上限，缺省 256 MiB"
+                },
+                "MultipartExpiryHours": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 168,
+                  "description": "未完成的分片上传保留多久（小时）；过期即拒绝再传分片与完成，启动时与运行期间清掉"
+                },
+                "MaxMultipartUploads": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1000,
+                  "description": "未完成的分片上传数上限；暂存的分片另计入总配额"
+                }
+              },
+              "description": "框架缺省的文件系统存储：BasicApp 的业务不用它，只是启动时会建出这个目录"
+            },
+            "SignedUrls": {
+              "type": "object",
+              "properties": {
+                "Secret": {
+                  "type": "string",
+                  "description": "HMAC-SHA256 密钥，UTF-8 至少 32 字节，多实例必须一致；缺失或太短启动即失败；不写进配置文件，部署时用环境变量 XiHan__ObjectStorage__SignedUrls__Secret 提供"
+                },
+                "BaseUrl": {
+                  "type": "string",
+                  "default": "/blobs",
+                  "description": "地址前缀：以 / 开头的路径或不带查询串的绝对 http(s) 地址"
+                }
+              },
+              "description": "本地存储的签名下载地址（宿主 /blobs 端点）；S3 兼容存储由存储自己签名，不用它"
+            },
+            "StoreHealthProbeIntervalSeconds": {
+              "type": "integer",
+              "description": "各存储实例健康项 objectstorage.store.<名> 的探测间隔与单次探测超时（秒）",
+              "default": 15
+            },
+            "Stores": {
+              "type": "object",
+              "description": "在配置里另行定义的命名存储实例：只有被显式按名取用时才会建出，BasicApp 的业务不按名取用这里的实例；名字合 ^[a-z0-9][a-z0-9-]{0,63}$，不要用 local 与 storage-* 这两类名字（Files 模块占用）；Provider 为 filesystem（RootPath 必填）或 s3（ServiceUrl、Region、AccessKey、SecretKey、ForcePathStyle、EnsureBuckets、HealthBucket、ConditionalWrites）",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "Provider": {
+                    "type": "string",
+                    "enum": [
+                      "filesystem",
+                      "s3"
+                    ],
+                    "description": "存储种类"
+                  },
+                  "RootPath": {
+                    "type": "string",
+                    "description": "filesystem 的根目录（必填）"
+                  },
+                  "ServiceUrl": {
+                    "type": "string",
+                    "description": "s3 的服务地址"
+                  },
+                  "Region": {
+                    "type": "string",
+                    "description": "s3 的区域"
+                  },
+                  "AccessKey": {
+                    "type": "string",
+                    "description": "s3 的访问密钥 ID"
+                  },
+                  "SecretKey": {
+                    "type": "string",
+                    "description": "s3 的访问密钥"
+                  },
+                  "ForcePathStyle": {
+                    "type": "boolean",
+                    "description": "s3 是否用路径风格寻址"
+                  },
+                  "EnsureBuckets": {
+                    "type": "boolean",
+                    "description": "s3 启动时是否建出缺失的桶"
+                  },
+                  "HealthBucket": {
+                    "type": "string",
+                    "description": "s3 健康探测用的桶"
+                  },
+                  "ConditionalWrites": {
+                    "type": "boolean",
+                    "description": "s3 是否支持条件写入"
+                  }
+                },
+                "required": [
+                  "Provider"
+                ]
+              }
+            }
+          },
+          "description": "对象存储；BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页面维护，本地根目录见 BasicApp:Files:LocalRootPath；框架的 XiHan:ObjectStorage:S3 节在 BasicApp 里不读取，不用写"
+        },
+        "Observability": {
+          "type": "object",
+          "properties": {
+            "Host": {
+              "type": "object",
+              "properties": {
+                "SampleIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 3600,
+                  "default": 5,
+                  "description": "采样间隔（秒，最大 3600）；CPU 使用率与网卡速率是相邻两次采样之差"
+                }
+              },
+              "description": "主机运行信息（CPU、内存、网卡）的采样"
+            },
+            "OpenTelemetry": {
+              "type": "object",
+              "properties": {
+                "ServiceName": {
+                  "type": "string",
+                  "description": "资源属性 service.name / service.version；不写即入口程序集的名称（XiHan.BasicApp.Host）与版本"
+                },
+                "ServiceVersion": {
+                  "type": "string",
+                  "description": "资源属性 service.version；缺省取入口程序集版本"
+                },
+                "Tracing": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "是否导出追踪、指标与日志"
+                },
+                "Metrics": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "是否导出指标"
+                },
+                "Logging": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "是否把 Microsoft.Extensions.Logging 的日志经 OpenTelemetry 导出"
+                },
+                "Console": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "是否同时写到控制台导出器（开发排查用）"
+                },
+                "SamplingRatio": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "default": 1,
+                  "description": "根 Span 的采样比例（0–1）；有上游决定的沿用上游"
+                },
+                "Otlp": {
+                  "type": "object",
+                  "properties": {
+                    "Enabled": {
+                      "type": "boolean",
+                      "description": "是否启用；不写即自动：配了端点（Endpoint 或标准环境变量 OTEL_EXPORTER_OTLP_ENDPOINT）就启用"
+                    },
+                    "Endpoint": {
+                      "type": "string",
+                      "description": "OTLP 端点（绝对 URI）"
+                    },
+                    "Protocol": {
+                      "type": "string",
+                      "description": "协议 Grpc（缺省）或 HttpProtobuf；须与 Endpoint 同时配置"
+                    }
+                  },
+                  "description": "OTLP 导出"
+                },
+                "Sources": {
+                  "type": "string",
+                  "description": "默认之外额外订阅的 Activity 源与 Meter：逗号分隔的字符串，写成数组会被忽略；默认已订阅 XiHan.Framework、Microsoft.AspNetCore、System.Net.Http 等"
+                },
+                "Meters": {
+                  "type": "string",
+                  "description": "默认之外额外订阅的 Meter，逗号分隔"
+                }
+              }
+            }
+          },
+          "description": "可观测性：OpenTelemetry 导出与主机运行信息"
+        },
+        "Persistence": {
+          "type": "object",
+          "properties": {
+            "DataSources": {
+              "type": "object",
+              "properties": {
+                "MaxCount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1024,
+                  "default": 64,
+                  "description": "运行时数据源的登记数上限（1–1024）；满了再登记新名字即失败，不淘汰已有的"
+                },
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 persistence.datasource.<名> 的重探间隔与单次探测超时（秒）"
+                }
+              },
+              "description": "运行时数据源（代码生成登记的外部数据库）"
+            },
+            "SqlSugar": {
+              "type": "object",
+              "properties": {
+                "InitTables": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "启动时按实体建缺表、加缺列（CodeFirst）；只用于开发，正式环境由 Schema/ 脚本管理"
+                },
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 persistence.sqlsugar.database 的重探间隔与单次探测超时（秒）"
+                },
+                "CommandTimeoutSeconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 300,
+                  "description": "语句超时（秒，正整数）"
+                },
+                "Connections": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "description": "方式一的命名连接：值是连接串，名字合 ^[a-z0-9][a-z0-9-]{0,63}$、不能是 default 或 shard；每个作用域的客户端都带上，回调按 ConfigId 区分；登记到命名连接的实体与绑定连接的工作单元使用"
+                  },
+                  "description": "命名连接：值是连接串，名字合 ^[a-z0-9][a-z0-9-]{0,63}$、不能是 default 或 shard；目前只有 SQLite 上的工作流租约表需要（见 XiHan:Workflow:Database:LockConnection）"
+                },
+                "Replicas": {
+                  "type": "object",
+                  "properties": {
+                    "DefaultHitRate": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "default": 10,
+                      "description": "没写权重的从库取的读权重（正整数）"
+                    },
+                    "HealthCheck": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "是否周期探测从库：连不上的自动摘除、恢复后加回；关掉后宕机的从库照常接读流量"
+                    },
+                    "HealthCheckIntervalSeconds": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "default": 30,
+                      "description": "探测间隔（秒）"
+                    },
+                    "FailureCooldownSeconds": {
+                      "type": "number",
+                      "minimum": 0,
+                      "default": 120,
+                      "description": "从库最后一次失败之后，过了这么久（秒）并且探通才恢复读流量"
+                    }
+                  },
+                  "description": "从库的权重与健康探测；从库本身在 BasicApp:Database:Replicas 配"
+                }
+              }
+            }
+          },
+          "description": "持久化（SqlSugar）"
+        },
+        "Protocols": {
+          "type": "object",
+          "properties": {
+            "CloudEvents": {
+              "type": "object",
+              "properties": {
+                "Topics": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "description": "事件类型映射到的主题，须是合法主题名；未映射的类型本身合法时直接作主题"
+                  },
+                  "description": "入站事件类型到主题的映射；AcceptUnmappedTypes 为 false 时，没映射的类型一律拒收"
+                },
+                "Webhooks": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "description": "主题（键须是合法主题名）对应的出站 Webhook 地址，须是绝对 http(s) URL"
+                  },
+                  "description": "主题对应的出站 Webhook 地址（绝对 http(s) URL）"
+                },
+                "Inbound": {
+                  "type": "string",
+                  "enum": [
+                    "Dispatch",
+                    "Publish"
+                  ],
+                  "default": "Dispatch",
+                  "description": "入站处理方式：Dispatch 在请求内派发给主题的处理器、处理器的结果即响应；Publish 发布到消息代理后立即 202"
+                },
+                "MaxRequestBodyBytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 1048576,
+                  "description": "入站请求体的字节上限，超过为 PROTOCOLS_VALIDATION_013，缺省 1 MiB"
+                },
+                "MaxBatchSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647,
+                  "default": 100,
+                  "description": "入站 batch 的事件数上限，超过为 PROTOCOLS_VALIDATION_014"
+                },
+                "Outbound": {
+                  "type": "string",
+                  "enum": [
+                    "Binary",
+                    "Structured"
+                  ],
+                  "default": "Binary",
+                  "description": "出站 Webhook 的内容模式：Binary 或 Structured"
+                },
+                "PropagateTraceContext": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "出站 Webhook 是否在 HTTP 头里写追踪上下文（traceparent、tracestate、baggage）"
+                },
+                "AcceptUnmappedTypes": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "入站是否接受没有在 Topics 映射的事件类型（以类型本身为主题）；缺省只收映射过的类型，发送方不能投进任意有订阅的主题"
+                }
+              },
+              "description": "CloudEvents：入站端点由 BasicApp:CloudEvents:Enabled 控制"
+            },
+            "Grpc": {
+              "type": "object",
+              "properties": {
+                "Methods": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "description": "操作 ID 对应的 gRPC 方法名，写作 Service/Method（protobuf 标识符），覆盖约定推导"
+                  },
+                  "description": "按操作 ID 覆盖 gRPC 方法名（Service/Method）"
+                },
+                "Package": {
+                  "type": "string",
+                  "description": "protobuf 包名，也是服务路径前缀（/xihan.basicapp.Users/Get）"
+                }
+              }
+            },
+            "Http": {
+              "type": "object",
+              "properties": {
+                "Routes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "description": "操作 ID 对应的路由 METHOD /template，方法限 GET/POST/PUT/PATCH/DELETE"
+                  },
+                  "description": "按操作 ID 覆盖约定推导出的路由（METHOD /模板），方法限 GET/POST/PUT/PATCH/DELETE；前端按约定路由调用，改了要同步"
+                },
+                "RoutePrefix": {
+                  "type": "string",
+                  "description": "所有操作路由的前缀，以 / 开头、不以 / 结尾；前端与开放接口都按它调用，不要改"
+                },
+                "MaxRequestBodyBytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 4194304,
+                  "description": "操作请求体的上限（字节），超过为 PROTOCOLS_VALIDATION_011，缺省 4 MiB；只管操作端点，文件上传等普通端点照 Kestrel 的限制"
+                }
+              }
+            },
+            "Mcp": {
+              "type": "object",
+              "properties": {
+                "Tools": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "description": "操作 ID 对应的 MCP tool 名（字母、数字、_、-，1–64 个字符），覆盖约定推导"
+                  },
+                  "description": "按操作 ID 覆盖 MCP 工具名（字母、数字、_、-，1–64 个字符）"
+                },
+                "ServerName": {
+                  "type": "string",
+                  "description": "initialize 答复里的服务端名"
+                },
+                "ServerVersion": {
+                  "type": "string",
+                  "description": "initialize 答复里的服务端版本；不写即框架版本"
+                },
+                "Instructions": {
+                  "type": "string",
+                  "description": "initialize 答复里给客户端模型的使用说明；不写即不给"
+                },
+                "AllowedOrigins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "HTTP 入口允许的浏览器源（scheme://host[:port]，http 或 https，没有路径）；请求带的 Origin 不在其中即 403"
+                  },
+                  "description": "HTTP 入口允许的浏览器源（scheme://host[:port]，没有路径）；请求带的 Origin 不在其中即 403，不带 Origin 的客户端不受影响"
+                },
+                "MaxRequestBodyBytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 4194304,
+                  "description": "HTTP 入口的请求体上限（字节），超过即 413，缺省 4 MiB"
+                }
+              }
+            }
+          },
+          "description": "协议适配器：同一个操作按 Expose 发布到 HTTP、gRPC、MCP 与 CloudEvents"
+        },
+        "Scheduling": {
+          "type": "object",
+          "properties": {
+            "PollIntervalSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 1,
+              "description": "引擎轮询周期（秒）"
+            },
+            "NodeId": {
+              "type": "string",
+              "description": "本节点 ID；不写即 机器名:进程 ID:随机串"
+            },
+            "MaxConcurrentRuns": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 32,
+              "description": "本节点同时运行的作业上限"
+            },
+            "AcquireBatchSize": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 16,
+              "description": "一个轮询周期最多抢占的触发器数"
+            },
+            "MisfireThresholdSeconds": {
+              "type": "number",
+              "minimum": 0,
+              "default": 60,
+              "description": "到期时刻落后当前时刻超过它（秒）才算 misfire"
+            },
+            "LeaseResource": {
+              "type": "string",
+              "default": "scheduling.jobs",
+              "description": "领导租约的资源名"
+            },
+            "LeaseTimeToLiveSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 30,
+              "description": "领导租约的存活时间（秒）"
+            },
+            "NodeTimeoutSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 90,
+              "description": "节点心跳超过它（秒）即视为失联"
+            },
+            "HousekeepingIntervalSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 60,
+              "description": "领导者维护（失联恢复、历史清理）的周期（秒）"
+            },
+            "HistoryRetentionDays": {
+              "type": "number",
+              "minimum": 0,
+              "default": 7,
+              "description": "运行历史保留期（天，可带小数）；0 为不删"
+            },
+            "Database": {
+              "type": "object",
+              "properties": {
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 scheduling.database.leader 的重探间隔与单次探测超时（秒）"
+                }
+              }
+            }
+          },
+          "description": "后台作业调度（数据库实现，多节点选主）"
+        },
+        "Security": {
+          "type": "object",
+          "properties": {
+            "RequireAuthentication": {
+              "type": "boolean",
+              "default": false,
+              "description": "为 true 时匿名调用一律拒绝；BasicApp 由各操作的权限与策略决定，保持 false"
+            },
+            "RoleClaim": {
+              "type": "string",
+              "default": "role",
+              "description": "令牌里承载角色的声明类型"
+            },
+            "Database": {
+              "type": "object",
+              "properties": {
+                "CacheSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 10000,
+                  "description": "授予缓存条目上限（每个主体与租户组合一条），满时整体清空"
+                },
+                "CacheTimeToLiveSeconds": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 30,
+                  "description": "授予缓存条目的存活时间（秒）；0 为不过期"
+                }
+              },
+              "description": "数据库授权：授予缓存"
+            },
+            "Ip2Region": {
+              "type": "object",
+              "properties": {
+                "V4Database": {
+                  "type": "string",
+                  "description": "IPv4 xdb 文件，相对路径按应用目录；缺省 IpDatabases/ip2region_v4.xdb，不存在不解析"
+                },
+                "V6Database": {
+                  "type": "string",
+                  "description": "IPv6 xdb 文件，相对路径按应用目录；缺省 IpDatabases/ip2region_v6.xdb，不存在不解析"
+                }
+              },
+              "description": "IP 归属地离线库（ip2region xdb，随发布目录的 IpDatabases/ 分发），相对路径按程序目录；文件缺失不影响启动：首次查询时记一条警告，之后该类地址都没有归属地；路径写成空白启动即失败"
+            },
+            "Jwt": {
+              "type": "object",
+              "properties": {
+                "Secret": {
+                  "type": "string",
+                  "description": "对称密钥，UTF-8 至少 32 字节，缺失或太短启动即失败；多实例必须一致；不写进配置文件，部署时用环境变量 XiHan__Security__Jwt__Secret 提供"
+                },
+                "Issuer": {
+                  "type": "string",
+                  "description": "签发者与受众：写了就按它校验，整项不写才不校验；写成空串不等于不写"
+                },
+                "Audience": {
+                  "type": "string",
+                  "description": "期望的受众；未配置时不校验"
+                },
+                "ClockSkewSeconds": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 60,
+                  "description": "校验有效期时允许的时钟偏移（秒）"
+                },
+                "NameClaim": {
+                  "type": "string",
+                  "default": "sub",
+                  "description": "作为主体 ID 的声明类型"
+                }
+              },
+              "description": "JWT（HS256）：Identity 签发与框架校验共用，Hub 的 JwtBearer 也用它"
+            },
+            "Outbound": {
+              "type": "object",
+              "properties": {
+                "AllowLoopback": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "放行回环地址（127.0.0.0/8、::1）；本地开发用，生产环境不要打开"
+                },
+                "AllowPrivateNetwork": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "放行私网地址（10/8、172.16/12、192.168/16、fc00::/7）；不含链路本地与云元数据地址"
+                },
+                "AllowedNetworks": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "放行的网段，CIDR 写法，主机位必须为零；优先于全部拒绝规则"
+                  },
+                  "description": "放行的网段（CIDR，主机位为 0）；优先于全部拒绝规则"
+                },
+                "AllowedHosts": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "放行的主机名，不区分大小写，整名相等，不带协议和端口；只看请求里写的名字，不再看它解析到哪里"
+                  },
+                  "description": "放行的主机名（整名相等、不区分大小写、不带协议和端口）"
+                }
+              },
+              "description": "出站地址策略：向用户填的地址（工作流 Http 活动、机器人 Webhook、AI 提供商、第三方登录、S3 兼容存储、CloudEvents 投递、Telegram）发请求时能连哪些 IP；缺省只能连公网，回环、私网、链路本地与云元数据地址都拒绝；按建立连接时解析出的 IP 判，重定向也一样；自建 MinIO、内网 Webhook、流程调内网服务、本机模型端点都要在这里放行"
+            },
+            "WebAuthn": {
+              "type": "object",
+              "properties": {
+                "RelyingPartyId": {
+                  "type": "string",
+                  "description": "依赖方 ID：前端页面所在的可注册域名（本地开发用 localhost），不带协议、端口与路径；留空即不启用"
+                },
+                "RelyingPartyName": {
+                  "type": "string",
+                  "description": "认证器上显示的名称；不写即同依赖方 ID"
+                },
+                "Origins": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "允许的来源 scheme://host[:port]，至少一个；主机须等于 RP ID 或是它的子域，https 之外只允许 localhost 的 http"
+                  },
+                  "description": "允许的来源 scheme://host[:port]，即前端页面的地址，启用时至少一个；主机须等于依赖方 ID 或是它的子域，https 之外只允许 localhost 的 http"
+                },
+                "UserVerification": {
+                  "type": "string",
+                  "enum": [
+                    "Required",
+                    "Preferred",
+                    "Discouraged"
+                  ],
+                  "default": "Required",
+                  "description": "用户验证（指纹、面容或设备密码）：Required、Preferred 或 Discouraged；做了用户验证的通行密钥登录顶替双因素"
+                },
+                "ResidentKey": {
+                  "type": "string",
+                  "enum": [
+                    "Required",
+                    "Preferred",
+                    "Discouraged"
+                  ],
+                  "default": "Required",
+                  "description": "可发现凭据：Required 时登录页不用填账号，由认证器列出本站的通行密钥"
+                },
+                "TimeoutSeconds": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "default": 300,
+                  "description": "一次登记或登录的超时（秒）"
+                },
+                "ChallengeSize": {
+                  "type": "integer",
+                  "minimum": 16,
+                  "maximum": 64,
+                  "default": 32,
+                  "description": "挑战的字节数（16 至 64）"
+                }
+              },
+              "description": "通行密钥（WebAuthn）：依赖方 ID 留空即不启用；启用后还要在系统参数 identity.login-methods 里列出 passkey；通行密钥绑定在依赖方 ID 上，换了域名已登记的全部失效，要重新登记"
+            }
+          },
+          "description": "安全"
+        },
+        "Workflow": {
+          "type": "object",
+          "properties": {
+            "MaxNodeExecutionsPerBurst": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1000,
+              "description": "一个波次最多执行的节点数，超过即实例故障（防死循环）"
+            },
+            "MaxSubWorkflowDepth": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 16,
+              "description": "子流程最大深度"
+            },
+            "LockTimeoutSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 10,
+              "description": "等实例锁的上限（秒），超过即 WORKFLOW_TIMEOUT_001"
+            },
+            "NotResumableBackoffSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 300,
+              "description": "到期书签因实例不在运行中而不能恢复时，到期时间后推的秒数"
+            },
+            "ExpressionCacheSize": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10000,
+              "description": "表达式缓存上限"
+            },
+            "RetentionDays": {
+              "type": "number",
+              "minimum": 0,
+              "default": 0,
+              "description": "已结束实例的保留期（天，可带小数）；0 为不自动清理"
+            },
+            "HousekeepingIntervalSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 3600,
+              "description": "按保留期清理的周期（秒）"
+            },
+            "HttpTimeoutSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 30,
+              "description": "Http 活动的默认超时（秒）"
+            },
+            "MaxHttpTimeoutSeconds": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "default": 300,
+              "description": "流程定义里 Http 活动 TimeoutSeconds 的上限（秒）"
+            },
+            "MaxForEachItems": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1000,
+              "description": "ForEach 一次最多处理的项数（每项一个子实例），超过即节点故障"
+            },
+            "MaxVariablesBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 8388608,
+              "description": "一个实例的变量序列化后的字节数上限，缺省 8 MiB"
+            },
+            "Database": {
+              "type": "object",
+              "properties": {
+                "PollIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 1,
+                  "description": "到期书签（延时、超时、重试）的轮询周期（秒）"
+                },
+                "BatchSize": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "default": 100,
+                  "description": "每次轮询最多恢复的书签数"
+                },
+                "LockLeaseSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 60,
+                  "description": "实例锁与轮询领导权的租约时长（秒），每三分之一续约一次"
+                },
+                "HolderId": {
+                  "type": "string",
+                  "description": "本节点写进租约行的标识；不写即 机器名:进程 ID:随机串"
+                },
+                "LockConnection": {
+                  "type": "string",
+                  "description": "租约表所在的命名连接；不写即平台库。SQLite 必须配到另一个库文件（在 XiHan:Persistence:SqlSugar:Connections 声明），否则业务事务与租约互相等到 WORKFLOW_TIMEOUT_001；PostgreSQL 不用配"
+                },
+                "HealthProbeIntervalSeconds": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "default": 15,
+                  "description": "健康项 workflow.database.poller 的重探间隔与单次探测超时（秒）"
+                }
+              }
+            }
+          },
+          "description": "工作流引擎（数据库实现）：定义、实例、节点实例与书签按分区落表，另有一张租约表"
+        },
+        "Bindings": {
+          "type": "object",
+          "description": "服务绑定：平台库 db（必需）、Redis 缓存 cache 与 RabbitMQ 消息 queue（可选）；框架先读 SERVICE_BINDING_ROOT 目录（Kubernetes Service Binding），再读这一节；这一节里的同名绑定会整个盖掉目录里挂进来的（值为空也一样），所以 appsettings.json 不写任何绑定：本机开发写在 appsettings.Development.json，部署用环境变量（XiHan__Bindings__db__value）或 Service Binding；绑定名与属性名区分大小写，一律小写：db、cache、queue、type、value、provider、username、password",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "绑定类型：connection:relational、cache:distributed、queue"
+              },
+              "value": {
+                "type": "string",
+                "description": "连接串或地址"
+              },
+              "provider": {
+                "type": "string",
+                "description": "数据库种类，不写即 postgresql"
+              },
+              "username": {
+                "type": "string",
+                "description": "用户名（覆盖连接串里的）"
+              },
+              "password": {
+                "type": "string",
+                "description": "密码（覆盖连接串里的）"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ]
+          },
+          "properties": {
+            "db": {
+              "$ref": "#/properties/XiHan/properties/Bindings/additionalProperties",
+              "description": "平台库，启动硬要求，缺失即 RUNTIME_VALIDATION_001 中断启动；provider 不写即 postgresql，口令写在连接串里"
+            },
+            "cache": {
+              "$ref": "#/properties/XiHan/properties/Bindings/additionalProperties",
+              "description": "Redis：配了即装 Redis 共享缓存 + 两级缓存（多实例共享），连不上启动即失败；不配即单机内存缓存；口令可以写进连接串，也可以单独放在 username / password 属性里（覆盖连接串里的）"
+            },
+            "queue": {
+              "$ref": "#/properties/XiHan/properties/Bindings/additionalProperties",
+              "description": "RabbitMQ：配了即装消息代理（发件箱派发、CloudEvents 发布、广播订阅经它）；不配即单机内存消息；口令规则同 cache"
+            }
+          }
+        }
+      },
+      "description": "XiHan.Framework 的配置，由框架的各个特性读取；类型、范围或枚举值不合法时启动即失败"
+    },
+    "BasicApp": {
+      "type": "object",
+      "description": "XiHan.BasicApp 的应用配置，由各能力包读取",
+      "properties": {
+        "Database": {
+          "type": "object",
+          "description": "平台库的从库（读写分离）与 SQL 诊断日志；主库连接在 XiHan:Bindings:db；从库只给平台库，独立库租户读写都走它自己的主库",
+          "properties": {
+            "Replicas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ConnectionString": {
+                    "type": "string",
+                    "description": "从库连接串"
+                  },
+                  "HitRate": {
+                    "type": "integer",
+                    "description": "读权重（正整数）；不写取 XiHan:Persistence:SqlSugar:Replicas:DefaultHitRate"
+                  }
+                },
+                "required": [
+                  "ConnectionString"
+                ]
+              },
+              "description": "平台库的从库列表；不写即单库。配了之后只读工作单元的读走从库、会写的工作单元走主库；每项 ConnectionString 必填；HitRate 是读权重（正整数），不写取 XiHan:Persistence:SqlSugar:Replicas:DefaultHitRate；从库的健康探测、摘除与恢复在 XiHan:Persistence:SqlSugar:Replicas"
+            },
+            "LogSql": {
+              "type": "boolean",
+              "description": "记录每条 SQL（只记语句，不记参数值）；日志量大，只在排查时打开",
+              "default": false
+            },
+            "LogSqlErrors": {
+              "type": "boolean",
+              "description": "记录执行出错的 SQL",
+              "default": true
+            },
+            "LogSlowSql": {
+              "type": "boolean",
+              "description": "记录慢 SQL",
+              "default": true
+            },
+            "SlowSqlThresholdMilliseconds": {
+              "type": "integer",
+              "description": "慢 SQL 的阈值（毫秒，正整数）；只影响记录，不影响语句执行",
+              "default": 1000
+            }
+          }
+        },
+        "Schema": {
+          "type": "object",
+          "description": "表结构升级：启动时按 Schema/<版本>/*.sql 与版本台账升级平台库与各租户库",
+          "properties": {
+            "AutoUpgrade": {
+              "type": "boolean",
+              "description": "启动时自动升级，失败即中断启动；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动",
+              "default": true
+            },
+            "CreateDatabase": {
+              "type": "boolean",
+              "description": "升级前平台库不存在时先建库（经维护库 postgres，连接账号要有建库权限）；缺省关，库名写错时不悄悄建空库，开发环境打开",
+              "default": false
+            },
+            "Directory": {
+              "type": "string",
+              "description": "脚本目录；不写即程序目录下的 Schema。相对路径按程序目录（不是当前目录）解析"
+            },
+            "LockExpiryMinutes": {
+              "type": "integer",
+              "description": "升级锁的失效时间（分钟，1–1440）：持锁节点中途退出时，过了这么久别的节点才能接手",
+              "default": 30
+            },
+            "LockWaitMinutes": {
+              "type": "integer",
+              "description": "等别的节点升级完的最长时间（分钟，1–1440）；等不到即升级失败、中断启动",
+              "default": 10
+            }
+          }
+        },
+        "Seed": {
+          "type": "object",
+          "description": "种子数据：执行 seed 命令时写入（dotnet run ... -- seed）；打开 RunOnStartup 时也随启动执行",
+          "properties": {
+            "RunOnStartup": {
+              "type": "boolean",
+              "description": "启动时执行一遍全部种子（可重复执行），失败即中断启动；缺省关，由 seed 命令或部署流程执行，开发环境打开",
+              "default": false
+            },
+            "EnableDemoData": {
+              "type": "boolean",
+              "description": "是否写演示数据：演示租户 demo 及其组织、角色与访问策略，平台演示字典，平台与 demo 的草稿通知",
+              "default": false
+            },
+            "SuperAdminPassword": {
+              "type": "string",
+              "description": "超级管理员 superadmin 的初始密码，只在账号不存在、首次写入时使用；首次执行种子时没配即失败（IDENTITY_VALIDATION_026），不会落一个公开的缺省密码；不要提交真实密码：部署时用环境变量 BasicApp__Seed__SuperAdminPassword 提供"
+            }
+          }
+        },
+        "Modules": {
+          "type": "object",
+          "description": "可选模块开关：<名>:Enabled 不写即开启，写了必须是 true / false；关掉的模块宿主不装配：它的页面与权限码不下发，前端随菜单不再出现，操作返回 404",
+          "properties": {
+            "Workbench": {
+              "type": "object",
+              "description": "工作台；关掉后登录落到第一个有权限的页面，前端把 VITE_HOME_PATH 留空",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            },
+            "Printing": {
+              "type": "object",
+              "description": "打印模板；关掉后其他包登记的打印数据源没有消费方",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            },
+            "Chat": {
+              "type": "object",
+              "description": "在线聊天与聊天审计；关掉后聊天 Hub 与附件上传端点不映射",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            },
+            "Workflow": {
+              "type": "object",
+              "description": "流程定义、流程实例与审批中心；引擎与它的表照旧（宿主恒装数据库工作流），关掉只关 BasicApp 的 Workflow 包",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            },
+            "CodeGeneration": {
+              "type": "object",
+              "description": "代码生成（只在平台一侧）；关掉后表照样建，已登记的外部数据源连接不再建立",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            },
+            "AI": {
+              "type": "object",
+              "description": "AI 提供商、提示词、知识库与助手；关掉后聊天照常、助手入口隐藏",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            }
+          }
+        },
+        "ApiDocs": {
+          "type": "object",
+          "description": "接口文档：/openapi.json、/openapi/<组>.json 与 /scalar（不鉴权）",
+          "properties": {
+            "Enabled": {
+              "type": "boolean",
+              "description": "不写时 Development 为 true、其余环境为 false；生产环境确需开放时再显式写 true"
+            }
+          }
+        },
+        "ForwardedHeaders": {
+          "type": "object",
+          "description": "反向代理转发头：在管道最前面还原 X-Forwarded-For / -Proto / -Host；访问日志、会话与登录地点、登录节流与自动封禁、访问策略的地址条件据此拿到客户端地址；只信本机回环与下面列出的代理",
+          "properties": {
+            "KnownProxies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "受信代理的单个地址，如 \"10.0.0.5\""
+            },
+            "KnownNetworks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "受信代理的网段（CIDR，主机位必须为 0），如 \"10.0.0.0/8\""
+            },
+            "ForwardLimit": {
+              "type": "integer",
+              "description": "从右往左认几层转发（正整数）",
+              "default": 1
+            }
+          }
+        },
+        "Cors": {
+          "type": "object",
+          "description": "跨域：前端与后端不同源部署时打开；AllowedOrigins 与 AllowAnyOrigin 都没写即不启用跨域，只能同源访问",
+          "properties": {
+            "AllowedOrigins": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "允许的来源：协议 + 主机 + 可选端口，不带路径与结尾斜杠，如 \"https://admin.example.com\""
+            },
+            "AllowAnyOrigin": {
+              "type": "boolean",
+              "description": "放开全部来源；不能与 AllowedOrigins 同时写，也不能与 AllowCredentials=true 同时用",
+              "default": false
+            },
+            "AllowAnyMethod": {
+              "type": "boolean",
+              "description": "是否允许任意方法；为 false 时必须写 AllowedMethods",
+              "default": true
+            },
+            "AllowedMethods": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "允许的方法，如 [\"GET\", \"POST\", \"PUT\", \"DELETE\"]；AllowAnyMethod 为 false 时才用"
+            },
+            "AllowAnyHeader": {
+              "type": "boolean",
+              "description": "是否允许任意请求头；为 false 时必须写 AllowedHeaders",
+              "default": true
+            },
+            "AllowedHeaders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "允许的请求头；AllowAnyHeader 为 false 时才用"
+            },
+            "AllowCredentials": {
+              "type": "boolean",
+              "description": "是否允许携带凭据（Cookie、Authorization 头）",
+              "default": true
+            },
+            "ExposedHeaders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "暴露给前端脚本读取的响应头，如 [\"Content-Disposition\"]"
+            },
+            "PreflightMaxAgeSeconds": {
+              "type": "integer",
+              "description": "预检结果的缓存秒数；0 为不设置",
+              "default": 0
+            }
+          }
+        },
+        "CloudEvents": {
+          "type": "object",
+          "description": "CloudEvents 入站端点 POST /events，供内部服务投递事件；调用方须持有权限码 runtime.cloud-events.deliver（只授给平台的服务账号或服务角色），没有即 403；只开放给内网，不要经反向代理暴露到公网；主题映射、入站方式与出站 Webhook 见 XiHan:Protocols:CloudEvents",
+          "properties": {
+            "Enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "是否映射 CloudEvents 入站端点 POST /events"
+            }
+          }
+        },
+        "DataProtection": {
+          "type": "object",
+          "description": "数据保护（ASP.NET Core Data Protection）：加密参数、存储密钥、租户连接串、认证器密钥、通道密钥与机器人 Webhook 地址都用它加密",
+          "properties": {
+            "KeysDirectory": {
+              "type": "string",
+              "description": "密钥环目录；不写即 ASP.NET Core 的缺省位置（单机开发够用）；多实例部署必须指向各实例都能读写的同一个目录，否则各实例互相解不开密文"
+            }
+          }
+        },
+        "Auth": {
+          "type": "object",
+          "description": "身份认证：令牌、登录失败锁定、密码策略、图形验证码、登录节流、双因素、验证码与自助注册；数字须为正数（PasswordHistoryDepth 可为 0）；登录页开放哪些方式在系统参数 identity.login-methods",
+          "properties": {
+            "AccessTokenMinutes": {
+              "type": "integer",
+              "description": "访问令牌有效期（分钟）",
+              "default": 120
+            },
+            "RefreshTokenDays": {
+              "type": "integer",
+              "description": "刷新令牌（会话）有效期（天）",
+              "default": 7
+            },
+            "MaxFailedAccessAttempts": {
+              "type": "integer",
+              "description": "连续登录失败多少次后锁定账号",
+              "default": 5
+            },
+            "LockoutMinutes": {
+              "type": "integer",
+              "description": "锁定时长（分钟）",
+              "default": 15
+            },
+            "PasswordMinLength": {
+              "type": "integer",
+              "description": "密码最短长度",
+              "default": 8
+            },
+            "PasswordHistoryDepth": {
+              "type": "integer",
+              "description": "不得与最近多少个历史密码相同；0 不检查，最多 1000",
+              "default": 3
+            },
+            "SessionCacheSeconds": {
+              "type": "integer",
+              "description": "会话门禁的缓存秒数；吊销会话最迟在这么久后对其他实例生效",
+              "default": 30
+            },
+            "CaptchaEnabled": {
+              "type": "boolean",
+              "description": "密码登录是否要求图形验证码",
+              "default": true
+            },
+            "CaptchaSeconds": {
+              "type": "integer",
+              "description": "图形验证码有效期（秒）",
+              "default": 300
+            },
+            "LoginThrottleWindowSeconds": {
+              "type": "integer",
+              "description": "登录节流的固定窗口（秒）",
+              "default": 60
+            },
+            "LoginThrottleAccountLimit": {
+              "type": "integer",
+              "description": "同一账号在同一地址上每个窗口允许的失败次数",
+              "default": 5
+            },
+            "LoginThrottleIpLimit": {
+              "type": "integer",
+              "description": "同一地址每个窗口允许的失败次数（跨账号累计）",
+              "default": 30
+            },
+            "TwoFactorTicketMinutes": {
+              "type": "integer",
+              "description": "两步验证票据有效期（分钟），从签发起算、不顺延",
+              "default": 10
+            },
+            "TwoFactorTicketMaxFailures": {
+              "type": "integer",
+              "description": "一张两步验证票据允许输错验证码的次数，用完即作废、须重新登录",
+              "default": 5
+            },
+            "TotpIssuer": {
+              "type": "string",
+              "description": "认证器（TOTP）App 里显示的签发方",
+              "default": "XiHan BasicApp"
+            },
+            "SelfRegistrationEnabled": {
+              "type": "boolean",
+              "description": "是否开放自助注册（auth.register，注册的是平台账号）；确认要开放再打开",
+              "default": false
+            },
+            "VerificationCodeMinutes": {
+              "type": "integer",
+              "description": "邮件 / 短信验证码的有效期（分钟）",
+              "default": 10
+            },
+            "VerificationCodeIntervalSeconds": {
+              "type": "integer",
+              "description": "同一用途、同一目标两次发码的最短间隔（秒）",
+              "default": 60
+            },
+            "VerificationCodeDailyPerTarget": {
+              "type": "integer",
+              "description": "一个邮箱 / 手机号每天（UTC）最多收几次验证码，不分用途",
+              "default": 10
+            },
+            "VerificationCodeDailyPerAddress": {
+              "type": "integer",
+              "description": "一个客户端地址每天（UTC）最多发几次验证码，不分用途",
+              "default": 50
+            },
+            "VerificationCodeMaxFailures": {
+              "type": "integer",
+              "description": "一个验证码允许输错的次数；用完即作废并锁定",
+              "default": 5
+            },
+            "VerificationCodeLockoutMinutes": {
+              "type": "integer",
+              "description": "输错用完后同一用途、同一主体不能再发码与校验的时长（分钟）",
+              "default": 10
+            },
+            "OAuth": {
+              "type": "object",
+              "description": "第三方登录：不分租户、不存库；启用且填了 ClientId 的提供方才出现在登录页；第三方账号要先在个人中心绑定本地账号才能登录（不自动建号）；在第三方后台登记的回调地址：<CallbackBaseUrl>/api/oauth/<Name>/callback",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "总开关；没有可用的提供方时等于关",
+                  "default": true
+                },
+                "FrontendCallbackUrl": {
+                  "type": "string",
+                  "description": "回调后带着一次性票据跳去的前端页面；前后端同源时用缺省即可",
+                  "default": "/#/auth/oauth-callback"
+                },
+                "CallbackBaseUrl": {
+                  "type": "string",
+                  "description": "回调地址的来源（协议 + 主机 + 端口），如 \"https://admin.example.com\"；不写即取请求的来源；经反向代理时要么写它，要么保证转发头配置正确"
+                },
+                "Providers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Name": {
+                        "type": "string",
+                        "description": "路由与登录页用的名称（小写）"
+                      },
+                      "Provider": {
+                        "type": "string",
+                        "enum": [
+                          "github",
+                          "gitee",
+                          "google",
+                          "qq",
+                          "wechat",
+                          "weixin",
+                          "wecom",
+                          "workweixin",
+                          "lark",
+                          "feishu",
+                          "dingtalk"
+                        ],
+                        "description": "提供方类型；不写即按 Name 判定"
+                      },
+                      "ClientId": {
+                        "type": "string",
+                        "description": "应用凭据 ID（微信为 appid，企业微信为 corpid）"
+                      },
+                      "ClientSecret": {
+                        "type": "string",
+                        "description": "应用凭据密钥（微信为 secret，企业微信为应用的 corpsecret）；不要提交真实密钥"
+                      },
+                      "Enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "是否启用"
+                      },
+                      "DisplayName": {
+                        "type": "string",
+                        "description": "登录页上的显示名；不写即同 Name"
+                      },
+                      "Mode": {
+                        "type": "string",
+                        "enum": [
+                          "QrCode",
+                          "Account"
+                        ],
+                        "default": "QrCode",
+                        "description": "QrCode 扫码；Account 账号授权（微信公众号网页授权、企业微信网页授权、飞书、钉钉账号登录）"
+                      },
+                      "AgentId": {
+                        "type": "string",
+                        "description": "企业微信的应用 AgentId"
+                      },
+                      "CorpId": {
+                        "type": "string",
+                        "description": "钉钉限定组织"
+                      },
+                      "LoadMemberProfile": {
+                        "type": "boolean",
+                        "description": "企业微信再取成员资料（姓名通常只在这里有）"
+                      },
+                      "Scopes": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "额外的授权范围：微信、企业微信整体替换缺省，其余追加"
+                      },
+                      "AuthorizationEndpoint": {
+                        "type": "string",
+                        "description": "授权页地址覆盖"
+                      }
+                    },
+                    "required": [
+                      "Name",
+                      "ClientId",
+                      "ClientSecret"
+                    ]
+                  },
+                  "description": "提供方列表（按顺序显示，同名只取第一个）；Name：路由与登录页用的名称（小写）；Provider：类型，不写即按 Name 判定；支持 github、gitee、google、qq、wechat（别名 weixin）、wecom（别名 workweixin）、lark（别名 feishu）、dingtalk；ClientId / ClientSecret：应用凭据（微信为 appid / secret，企业微信为 corpid / 应用的 corpsecret）；不要提交真实密钥；Enabled：缺省 true；DisplayName：登录页上的显示名，缺省同 Name；Mode：QrCode（扫码，缺省）或 Account（账号授权：微信公众号网页授权、企业微信网页授权、飞书、钉钉账号登录）；AgentId：企业微信的应用 AgentId；CorpId：钉钉限定组织；LoadMemberProfile：企业微信再取成员资料（姓名通常只在这里有）；Scopes：额外的授权范围（微信 / 企业微信整体替换缺省，其余追加）；AuthorizationEndpoint：授权页地址覆盖"
+                }
+              }
+            }
+          }
+        },
+        "Access": {
+          "type": "object",
+          "description": "授权：权限条件与访问策略",
+          "properties": {
+            "PermissionConditionMode": {
+              "type": "string",
+              "description": "权限条件的生效模式：Enforce（判定）、LogOnly（只记日志不拦截）、Disabled（不判定）",
+              "default": "Enforce",
+              "enum": [
+                "Enforce",
+                "LogOnly",
+                "Disabled"
+              ]
+            },
+            "AccessPolicyEnabled": {
+              "type": "boolean",
+              "description": "访问策略总开关；策略把自己锁在外面时由运维在这里关掉",
+              "default": true
+            },
+            "ConditionTimeZone": {
+              "type": "string",
+              "description": "条件里时刻、小时、星期与日期所按的时区（系统时区 ID，IANA 或 Windows 写法均可）",
+              "default": "Asia/Shanghai"
+            }
+          }
+        },
+        "Auditing": {
+          "type": "object",
+          "description": "审计日志（BasicApp 自己的访问、异常、登录与变更日志，按月分表）；与框架的 XiHan:Auditing（操作审计中间件）分开",
+          "properties": {
+            "QueueCapacity": {
+              "type": "integer",
+              "description": "等待落库的日志条数上限；满了新到的丢弃并计数，不阻塞调用",
+              "default": 10000
+            },
+            "BatchSize": {
+              "type": "integer",
+              "description": "一批落库的条数上限，攒够即刷写",
+              "default": 200
+            },
+            "FlushIntervalSeconds": {
+              "type": "number",
+              "description": "刷写间隔（秒，正数，可带小数）；不足一批也按此周期刷写",
+              "default": 1
+            },
+            "AccessLog": {
+              "type": "object",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否记访问日志",
+                  "default": true
+                },
+                "Exclude": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "不记访问日志的操作 ID，如 [\"auth.me\"]；异常、登录与变更日志不受影响"
+                }
+              }
+            },
+            "DefaultRetentionDays": {
+              "type": "integer",
+              "description": "系统参数 auditing.retention-days 没建时的保留天数",
+              "default": 180
+            },
+            "RetentionCron": {
+              "type": "string",
+              "description": "保留清理作业的计划（cron，按 UTC），缺省每天 03:00",
+              "default": "0 3 * * *"
+            }
+          }
+        },
+        "Files": {
+          "type": "object",
+          "description": "文件：上传、分片与签名下载地址（存储本身在后台「存储配置」里维护）；写错不报错：不合法或不是正数的值按缺省值处理",
+          "properties": {
+            "LocalRootPath": {
+              "type": "string",
+              "description": "本地存储的根目录，相对路径按内容根目录解析；各本地存储配置的桶是它下面的子目录",
+              "default": "App_Data/files"
+            },
+            "MaxUploadBytes": {
+              "type": "integer",
+              "description": "单个文件的大小上限（字节），缺省 100 MiB",
+              "default": 104857600
+            },
+            "UploadPartBytes": {
+              "type": "integer",
+              "description": "分片上传每片的大小（字节），缺省 8 MiB；不小于存储要求的最小分片 5 MiB",
+              "default": 8388608
+            },
+            "UploadLifetime": {
+              "type": "string",
+              "description": "分片上传从发起到完成的时限（d.hh:mm:ss）",
+              "default": "1.00:00:00"
+            },
+            "LinkLifetime": {
+              "type": "string",
+              "description": "签名下载地址的缺省有效期（hh:mm:ss）",
+              "default": "00:30:00"
+            },
+            "MaxLinkLifetime": {
+              "type": "string",
+              "description": "签名下载地址的最长有效期（d.hh:mm:ss）",
+              "default": "7.00:00:00"
+            }
+          }
+        },
+        "Notification": {
+          "type": "object",
+          "description": "通知：邮件、短信、机器人发件箱与 Telegram 交互（通道与机器人本身在后台页面配置）；写错不报错：不合法的值按缺省值处理",
+          "properties": {
+            "Brand": {
+              "type": "string",
+              "description": "邮件与短信模板变量 brand 的缺省值；不写即应用名"
+            },
+            "DispatchInterval": {
+              "type": "string",
+              "description": "发送循环的轮询间隔（hh:mm:ss）；有新记录时提前唤醒",
+              "default": "00:00:05"
+            },
+            "RetryDelay": {
+              "type": "string",
+              "description": "失败后重试的基础间隔（hh:mm:ss）；第 n 次失败后等 n 倍",
+              "default": "00:00:30"
+            },
+            "MaxAttempts": {
+              "type": "integer",
+              "description": "每条记录最多尝试的次数",
+              "default": 3
+            },
+            "StuckAfter": {
+              "type": "string",
+              "description": "发送中超过这么久还没结果即视为进程中断、改回排队中（hh:mm:ss）",
+              "default": "00:10:00"
+            },
+            "Telegram": {
+              "type": "object",
+              "description": "Telegram 机器人的进程内选项；机器人、Webhook 与代理在系统参数 notification.telegram 里配",
+              "properties": {
+                "MaxDispatchConcurrency": {
+                  "type": "integer",
+                  "description": "全部机器人共用的同时处理上限",
+                  "default": 16
+                },
+                "DedupLifetime": {
+                  "type": "string",
+                  "description": "消息去重标记的保留时长（hh:mm:ss）",
+                  "default": "00:30:00"
+                },
+                "PollingTimeoutSeconds": {
+                  "type": "integer",
+                  "description": "长轮询每次等待的秒数（不配 Webhook 时用长轮询）",
+                  "default": 50
+                },
+                "Texts": {
+                  "type": "object",
+                  "description": "回复文案；写成空串即不发该条回复。{botUsername}、{chatId}、{userId} 会被替换",
+                  "properties": {
+                    "StartReply": {
+                      "type": "string",
+                      "default": "你好，欢迎使用 {botUsername}！发送 /help 查看可用命令。",
+                      "description": "/start 的回复"
+                    },
+                    "HelpTitle": {
+                      "type": "string",
+                      "default": "可用命令：",
+                      "description": "/help 回复的标题"
+                    },
+                    "MyIdReply": {
+                      "type": "string",
+                      "default": "ChatId：{chatId}\nUserId：{userId}",
+                      "description": "/myid 的回复"
+                    },
+                    "CommandDisabledReply": {
+                      "type": "string",
+                      "default": "该命令未开启。",
+                      "description": "命令没开启时的回复"
+                    },
+                    "CommandAdminOnlyReply": {
+                      "type": "string",
+                      "default": "该命令仅管理员可用。",
+                      "description": "仅管理员可用的命令被他人调用时的回复"
+                    },
+                    "CallbackAdminOnlyReply": {
+                      "type": "string",
+                      "default": "该操作仅管理员可用。",
+                      "description": "仅管理员可用的按钮被他人点击时的回复"
+                    },
+                    "FallbackReply": {
+                      "type": "string",
+                      "default": "暂不支持处理该消息，发送 /help 查看可用命令。",
+                      "description": "不支持的消息的回复"
+                    },
+                    "InternalErrorReply": {
+                      "type": "string",
+                      "default": "处理消息时出错，请稍后再试。",
+                      "description": "处理出错时的回复"
+                    },
+                    "SendFailureAdminNotifyTitle": {
+                      "type": "string",
+                      "default": "消息发送失败告警",
+                      "description": "发送失败时私发管理员的告警标题"
+                    },
+                    "StartDescription": {
+                      "type": "string",
+                      "default": "开始使用机器人",
+                      "description": "命令菜单里 /start 的说明"
+                    },
+                    "HelpDescription": {
+                      "type": "string",
+                      "default": "查看帮助",
+                      "description": "命令菜单里 /help 的说明"
+                    },
+                    "MyIdDescription": {
+                      "type": "string",
+                      "default": "查看我的 Telegram Id",
+                      "description": "命令菜单里 /myid 的说明"
+                    }
+                  }
+                },
+                "Retry": {
+                  "type": "object",
+                  "description": "出站调用 Bot API 的重试",
+                  "properties": {
+                    "MaxRetries": {
+                      "type": "integer",
+                      "description": "失败后最多再试的次数（即最多 MaxRetries + 1 次）",
+                      "default": 3
+                    },
+                    "BaseDelayMs": {
+                      "type": "integer",
+                      "description": "退避的基础毫秒数：第 n 次等 min(MaxDelayMs, BaseDelayMs × 2^(n-1))",
+                      "default": 500
+                    },
+                    "MaxDelayMs": {
+                      "type": "integer",
+                      "description": "退避上限（毫秒）",
+                      "default": 10000
+                    },
+                    "MaxRetryAfterSeconds": {
+                      "type": "integer",
+                      "description": "429 的 retry_after 最多等多少秒，超过即按失败处理",
+                      "default": 60
+                    },
+                    "NotifyAdminOnFinalFailure": {
+                      "type": "boolean",
+                      "description": "最终失败时是否私发管理员告警",
+                      "default": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Realtime": {
+          "type": "object",
+          "description": "实时通信（SignalR）的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省值；时长写 hh:mm:ss（可带天数 d.hh:mm:ss）且大于零，只写 15 或 00:15 都算写错",
+          "properties": {
+            "SignalR": {
+              "type": "object",
+              "properties": {
+                "EnableDetailedErrors": {
+                  "type": "boolean",
+                  "description": "把详细错误发给客户端；生产环境不要打开",
+                  "default": false
+                },
+                "KeepAliveInterval": {
+                  "type": "string",
+                  "description": "服务端发保活消息的间隔；调到 30 秒以上会让浏览器（缺省 30 秒超时）不断掉线重连",
+                  "default": "00:00:15"
+                },
+                "ClientTimeoutInterval": {
+                  "type": "string",
+                  "description": "多久没收到客户端的消息算断开，一般设成客户端保活间隔的两倍",
+                  "default": "00:00:30"
+                },
+                "HandshakeTimeout": {
+                  "type": "string",
+                  "description": "握手的超时",
+                  "default": "00:00:15"
+                },
+                "MaximumReceiveMessageSize": {
+                  "type": "integer",
+                  "description": "单条入站消息的大小上限（字节）",
+                  "default": 32768
+                },
+                "StreamBufferCapacity": {
+                  "type": "integer",
+                  "description": "流式调用的缓冲容量",
+                  "default": 10
+                },
+                "MaximumParallelInvocationsPerClient": {
+                  "type": "integer",
+                  "description": "每个客户端的最大并行调用数",
+                  "default": 1
+                }
+              }
+            }
+          }
+        },
+        "OpenPlatform": {
+          "type": "object",
+          "description": "开放平台：签名接口与 OAuth2 / OIDC 授权服务（BasicApp 作为授权方）；写错不报错：数字超出范围时夹到范围内",
+          "properties": {
+            "TimestampToleranceSeconds": {
+              "type": "integer",
+              "description": "签名请求的时间戳与服务端时间的最大偏差（秒，30–3600）；随机串保留它的两倍",
+              "default": 300
+            },
+            "MaxRequestBodyBytes": {
+              "type": "integer",
+              "description": "开放接口请求体上限（字节，1 KiB–64 MiB），缺省 2 MiB",
+              "default": 2097152
+            },
+            "Issuer": {
+              "type": "string",
+              "description": "OIDC 签发者，不带结尾斜杠；不写即请求来源加 /api/oauth2，经反向代理时要显式写"
+            },
+            "ConsentPageUrl": {
+              "type": "string",
+              "description": "授权同意页（前端路由），授权端点把查询串原样带过去",
+              "default": "/#/oauth/authorize"
+            },
+            "IdTokenLifetimeSeconds": {
+              "type": "integer",
+              "description": "id_token 有效期（秒，60–3600）",
+              "default": 600
+            }
+          }
+        },
+        "CodeGeneration": {
+          "type": "object",
+          "description": "代码生成",
+          "properties": {
+            "TablePrefixes": {
+              "type": "string",
+              "description": "导入表时推断类名去掉的表名前缀，逗号分隔（是一个字符串，不是数组），取最长的匹配",
+              "default": "sys_"
+            },
+            "EnableGenerateToProject": {
+              "type": "boolean",
+              "description": "是否允许「生成到项目」（直接写进后端与前端源码目录）；打开了也只在 Development 生效",
+              "default": false
+            },
+            "AllowSqliteDataSource": {
+              "type": "boolean",
+              "description": "是否开放 SQLite 数据源；SQLite 的地址是服务器上的文件路径，开放等于能读进程够得着的任意数据库文件",
+              "default": false
+            },
+            "BackendRootPath": {
+              "type": "string",
+              "description": "生成到项目时后端的根目录（含 src/ 的 backend），相对宿主的内容根目录"
+            },
+            "FrontendRootPath": {
+              "type": "string",
+              "description": "生成到项目时前端的根目录（含 package.json 的 frontend），相对宿主的内容根目录"
+            }
+          }
+        },
+        "AI": {
+          "type": "object",
+          "description": "AI 知识库的向量库（Qdrant）；写了 Host 才登记 Qdrant 连接器并装知识库，健康检查多一项 ai.vectordata.store；不写即知识库不可用；地址、密钥写错启动不报错，连不上时健康项是 Degraded，摄入的文档以失败保存；向量维度、检索条数与切块参数在 XiHan:AI:Knowledge",
+          "properties": {
+            "Qdrant": {
+              "type": "object",
+              "properties": {
+                "Host": {
+                  "type": "string",
+                  "description": "主机名；空白即没配"
+                },
+                "Port": {
+                  "type": "integer",
+                  "description": "gRPC 端口（1–65535）；6333 是 REST 端口，连接器不用"
+                },
+                "Https": {
+                  "type": "boolean",
+                  "description": "是否走 HTTPS（true / false）"
+                },
+                "ApiKey": {
+                  "type": "string",
+                  "description": "API 密钥；不要提交真实密钥"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

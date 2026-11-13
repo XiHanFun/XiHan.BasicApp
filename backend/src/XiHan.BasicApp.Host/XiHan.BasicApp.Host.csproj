@@ -73,6 +73,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 配置的 JSON Schema：Visual Studio 把它并进 appsettings*.json 的补全、校验与悬停说明；只给编辑器用，不进输出 -->
+    <Content Remove="ConfigurationSchema.json" />
+    <None Include="ConfigurationSchema.json" />
+    <JsonSchemaSegment Include="ConfigurationSchema.json" FilePathPattern="appsettings\..*json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Schema\**\*.sql" CopyToOutputDirectory="PreserveNewest" />
     <None Update="IpDatabases\ip2region_v4.xdb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

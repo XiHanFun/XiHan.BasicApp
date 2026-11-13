@@ -2,6 +2,12 @@
 
 本页记录各版本中使用者与运维可感知的变化，每条标注 **新增 / 修复 / 优化 / 调整** 类别，适用于评估与升级版本的读者；仓库自身的 CI、测试与构建脚本不列入。
 
+## 未发布
+
+- **新增** 配置的 JSON Schema（宿主工程的 `ConfigurationSchema.json`）：描述 `XiHan` 与 `BasicApp` 两节每个键的类型、枚举、取值范围、缺省值与说明，Visual Studio 打开 `appsettings*.json` 即有补全、悬停说明与校验，VS Code 与 Rider 的映射见[配置参考](./configuration#json-schema)
+- **新增** 前端 `.env.development` 与 `.env.production`；后端正式环境的值写在不入库的 `appsettings.Production.json`
+- **优化** `appsettings.json` 与 `appsettings.Development.json` 的注释精简为一句话，配置参考补上配置节点总览
+
 ## v6.0.0-preview.2 (2026-11-13)
 
 ::: warning 预览须知
