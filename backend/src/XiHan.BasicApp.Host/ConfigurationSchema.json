@@ -13,7 +13,8 @@
                 "type": "string",
                 "description": "操作工具名覆盖：键为操作 ID，值为工具名"
               },
-              "description": "操作暴露成 AI 工具时的名字覆盖：键为操作 ID，值为工具名（字母、数字、_、-，1–64 个字符）"
+              "description": "操作暴露成 AI 工具时的名字覆盖：键为操作 ID，值为工具名（字母、数字、_、-，1–64 个字符）",
+              "minProperties": 1
             },
             "Prompts": {
               "type": "object",
@@ -30,7 +31,8 @@
                   }
                 }
               },
-              "description": "配置里声明的提示词模板（给 Knowledge:PromptName 用）；后台「提示词」页面的模板不在这里；值可以直接写模板文本，也可以写成 { \"Template\": ..., \"Description\": ... }"
+              "description": "配置里声明的提示词模板（给 Knowledge:PromptName 用）；后台「提示词」页面的模板不在这里；值可以直接写模板文本，也可以写成 { \"Template\": ..., \"Description\": ... }",
+              "minProperties": 1
             },
             "Guardrails": {
               "type": "object",
@@ -46,7 +48,8 @@
                     "type": "string",
                     "description": "被禁止的关键词（不区分大小写的子串），空白项忽略"
                   },
-                  "description": "被禁止的关键词（不区分大小写的子串）"
+                  "description": "被禁止的关键词（不区分大小写的子串）",
+                  "minItems": 1
                 },
                 "InjectionPatterns": {
                   "type": "array",
@@ -54,7 +57,8 @@
                     "type": "string",
                     "description": "提示注入的正则模式（不区分大小写），空白项忽略"
                   },
-                  "description": "提示注入的正则模式（不区分大小写）"
+                  "description": "提示注入的正则模式（不区分大小写）",
+                  "minItems": 1
                 },
                 "UseBuiltInInjectionHeuristics": {
                   "type": "boolean",
@@ -146,7 +150,8 @@
                 "type": "string",
                 "description": "按操作排除：操作 ID，或以 * 结尾的前缀（profile.*、my-*）；按选择规则挑出的操作命中即不记，显式动作照记；须写成列表，某一项不合法或写成单个值时启动失败"
               },
-              "description": "按操作排除：操作 ID，或以 * 结尾的前缀；必须写成非空列表"
+              "description": "按操作排除：操作 ID，或以 * 结尾的前缀；必须写成非空列表",
+              "minItems": 1
             },
             "Database": {
               "type": "object",
@@ -385,7 +390,8 @@
                       }
                     }
                   },
-                  "description": "按操作覆盖，键为操作 ID（运行 `dotnet run ... -- operations` 列出全部），子键同上，不写的沿用默认策略"
+                  "description": "按操作覆盖，键为操作 ID（运行 `dotnet run ... -- operations` 列出全部），子键同上，不写的沿用默认策略",
+                  "minProperties": 1
                 }
               },
               "description": "韧性：按操作 ID 的固定窗口限流、并发上限与熔断；缺省不限流、不限并发、不熔断；根上的键是全部操作的默认策略，Operations:<操作 ID> 按操作覆盖"
@@ -718,7 +724,8 @@
                 "required": [
                   "Provider"
                 ]
-              }
+              },
+              "minProperties": 1
             }
           },
           "description": "对象存储；BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页面维护，本地根目录见 BasicApp:Files:LocalRootPath；框架的 XiHan:ObjectStorage:S3 节在 BasicApp 里不读取，不用写"
@@ -856,7 +863,8 @@
                     "type": "string",
                     "description": "方式一的命名连接：值是连接串，名字合 ^[a-z0-9][a-z0-9-]{0,63}$、不能是 default 或 shard；每个作用域的客户端都带上，回调按 ConfigId 区分；登记到命名连接的实体与绑定连接的工作单元使用"
                   },
-                  "description": "命名连接：值是连接串，名字合 ^[a-z0-9][a-z0-9-]{0,63}$、不能是 default 或 shard；目前只有 SQLite 上的工作流租约表需要（见 XiHan:Workflow:Database:LockConnection）"
+                  "description": "命名连接：值是连接串，名字合 ^[a-z0-9][a-z0-9-]{0,63}$、不能是 default 或 shard；目前只有 SQLite 上的工作流租约表需要（见 XiHan:Workflow:Database:LockConnection）",
+                  "minProperties": 1
                 },
                 "Replicas": {
                   "type": "object",
@@ -904,7 +912,8 @@
                     "type": "string",
                     "description": "事件类型映射到的主题，须是合法主题名；未映射的类型本身合法时直接作主题"
                   },
-                  "description": "入站事件类型到主题的映射；AcceptUnmappedTypes 为 false 时，没映射的类型一律拒收"
+                  "description": "入站事件类型到主题的映射；AcceptUnmappedTypes 为 false 时，没映射的类型一律拒收",
+                  "minProperties": 1
                 },
                 "Webhooks": {
                   "type": "object",
@@ -912,7 +921,8 @@
                     "type": "string",
                     "description": "主题（键须是合法主题名）对应的出站 Webhook 地址，须是绝对 http(s) URL"
                   },
-                  "description": "主题对应的出站 Webhook 地址（绝对 http(s) URL）"
+                  "description": "主题对应的出站 Webhook 地址（绝对 http(s) URL）",
+                  "minProperties": 1
                 },
                 "Inbound": {
                   "type": "string",
@@ -967,7 +977,8 @@
                     "type": "string",
                     "description": "操作 ID 对应的 gRPC 方法名，写作 Service/Method（protobuf 标识符），覆盖约定推导"
                   },
-                  "description": "按操作 ID 覆盖 gRPC 方法名（Service/Method）"
+                  "description": "按操作 ID 覆盖 gRPC 方法名（Service/Method）",
+                  "minProperties": 1
                 },
                 "Package": {
                   "type": "string",
@@ -984,7 +995,8 @@
                     "type": "string",
                     "description": "操作 ID 对应的路由 METHOD /template，方法限 GET/POST/PUT/PATCH/DELETE"
                   },
-                  "description": "按操作 ID 覆盖约定推导出的路由（METHOD /模板），方法限 GET/POST/PUT/PATCH/DELETE；前端按约定路由调用，改了要同步"
+                  "description": "按操作 ID 覆盖约定推导出的路由（METHOD /模板），方法限 GET/POST/PUT/PATCH/DELETE；前端按约定路由调用，改了要同步",
+                  "minProperties": 1
                 },
                 "RoutePrefix": {
                   "type": "string",
@@ -1007,7 +1019,8 @@
                     "type": "string",
                     "description": "操作 ID 对应的 MCP tool 名（字母、数字、_、-，1–64 个字符），覆盖约定推导"
                   },
-                  "description": "按操作 ID 覆盖 MCP 工具名（字母、数字、_、-，1–64 个字符）"
+                  "description": "按操作 ID 覆盖 MCP 工具名（字母、数字、_、-，1–64 个字符）",
+                  "minProperties": 1
                 },
                 "ServerName": {
                   "type": "string",
@@ -1027,7 +1040,8 @@
                     "type": "string",
                     "description": "HTTP 入口允许的浏览器源（scheme://host[:port]，http 或 https，没有路径）；请求带的 Origin 不在其中即 403"
                   },
-                  "description": "HTTP 入口允许的浏览器源（scheme://host[:port]，没有路径）；请求带的 Origin 不在其中即 403，不带 Origin 的客户端不受影响"
+                  "description": "HTTP 入口允许的浏览器源（scheme://host[:port]，没有路径）；请求带的 Origin 不在其中即 403，不带 Origin 的客户端不受影响",
+                  "minItems": 1
                 },
                 "MaxRequestBodyBytes": {
                   "type": "integer",
@@ -1207,7 +1221,8 @@
                     "type": "string",
                     "description": "放行的网段，CIDR 写法，主机位必须为零；优先于全部拒绝规则"
                   },
-                  "description": "放行的网段（CIDR，主机位为 0）；优先于全部拒绝规则"
+                  "description": "放行的网段（CIDR，主机位为 0）；优先于全部拒绝规则",
+                  "minItems": 1
                 },
                 "AllowedHosts": {
                   "type": "array",
@@ -1215,7 +1230,8 @@
                     "type": "string",
                     "description": "放行的主机名，不区分大小写，整名相等，不带协议和端口；只看请求里写的名字，不再看它解析到哪里"
                   },
-                  "description": "放行的主机名（整名相等、不区分大小写、不带协议和端口）"
+                  "description": "放行的主机名（整名相等、不区分大小写、不带协议和端口）",
+                  "minItems": 1
                 }
               },
               "description": "出站地址策略：向用户填的地址（工作流 Http 活动、机器人 Webhook、AI 提供商、第三方登录、S3 兼容存储、CloudEvents 投递、Telegram）发请求时能连哪些 IP；缺省只能连公网，回环、私网、链路本地与云元数据地址都拒绝；按建立连接时解析出的 IP 判，重定向也一样；自建 MinIO、内网 Webhook、流程调内网服务、本机模型端点都要在这里放行"
@@ -1237,7 +1253,8 @@
                     "type": "string",
                     "description": "允许的来源 scheme://host[:port]，至少一个；主机须等于 RP ID 或是它的子域，https 之外只允许 localhost 的 http"
                   },
-                  "description": "允许的来源 scheme://host[:port]，即前端页面的地址，启用时至少一个；主机须等于依赖方 ID 或是它的子域，https 之外只允许 localhost 的 http"
+                  "description": "允许的来源 scheme://host[:port]，即前端页面的地址，启用时至少一个；主机须等于依赖方 ID 或是它的子域，https 之外只允许 localhost 的 http",
+                  "minItems": 1
                 },
                 "UserVerification": {
                   "type": "string",
@@ -1432,7 +1449,8 @@
               "$ref": "#/properties/XiHan/properties/Bindings/additionalProperties",
               "description": "RabbitMQ：配了即装消息代理（发件箱派发、CloudEvents 发布、广播订阅经它）；不配即单机内存消息；口令规则同 cache"
             }
-          }
+          },
+          "minProperties": 1
         }
       },
       "description": "XiHan.Framework 的配置，由框架的各个特性读取；类型、范围或枚举值不合法时启动即失败"

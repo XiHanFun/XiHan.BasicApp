@@ -10,10 +10,10 @@
 
 配置分两组：
 
-- 框架节 `XiHan:*`：由 XiHan.Framework 的各个 Feature 读取。写了就校验，类型、范围或枚举值不合法时启动即失败。列表与字典（如 `Exclude`、`Routes`、`AllowedHosts`）没有内容时整项不写：空的 `[]` / `{}` 会被读成空字符串而启动失败。
+- 框架节 `XiHan:*`：由 XiHan.Framework 的各个 Feature 读取。写了就校验，类型、范围或枚举值不合法时启动即失败。列表与字典（如 `Exclude`、`Routes`、`AllowedHosts`）没有内容时整项不写：空的 `[]` / `{}` 会被读成空字符串而启动失败，JSON Schema 会把它们标为错误。
 - 应用节 `BasicApp:*`：由各能力包的 Options 直接绑定。除特别注明的几节外，写错同样启动即失败，不会退回缺省值。
 
-`appsettings.json` 写出了全部配置项：写出来的值就是缺省值（个别是 BasicApp 的推荐值，下文写明），注释掉的是可选项，去掉 `//`、填上真实值即生效。文件里的注释只有一句话，每一项的完整说明在下文与 [JSON Schema](#json-schema)。
+`appsettings.json` 写出了全部配置项：写出来的值就是缺省值（个别是 BasicApp 的推荐值，下文写明），注释掉的是可选项，去掉 `//`、填上真实值即生效。文件里不逐项注释，每一项的说明在下文与 [JSON Schema](#json-schema)（编辑器里悬停可见）。
 
 | 文件 | 入库 | 用途 |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ appsettings.json
 
 ## JSON Schema
 
-`backend/src/XiHan.BasicApp.Host/ConfigurationSchema.json` 描述 `XiHan` 与 `BasicApp` 两节的每个键：类型、枚举值、取值范围、缺省值与说明（框架的键取自 XiHan.Framework 的配置索引）。`Kestrel`、`Logging` 等 ASP.NET Core 自带的键由编辑器内置的 appsettings Schema 描述。
+`backend/src/XiHan.BasicApp.Host/ConfigurationSchema.json` 描述 `XiHan` 与 `BasicApp` 两节的每个键：类型、枚举值、取值范围、缺省值与说明（框架的键取自 XiHan.Framework 的配置索引）；框架节的列表与字典要求非空，写成空的 `[]` / `{}` 即报错。`Kestrel`、`Logging` 等 ASP.NET Core 自带的键由编辑器内置的 appsettings Schema 描述。
 
 - **Visual Studio**：宿主工程把它登记为 `JsonSchemaSegment`，打开任一 `appsettings*.json` 即有补全、悬停说明与类型校验，不用另外配置。
 - **VS Code**：在 `.vscode/settings.json` 里映射（可以和 ASP.NET Core 的 Schema 一起用）：
