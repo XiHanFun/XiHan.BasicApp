@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@xihanfun/vitepress-theme": "^1.2.1",
-    "vue": "^3.5.43",
-    "vitepress": "2.0.0-alpha.20"
+    "vue": "^3.5.45",
+    "vitepress": "2.0.0-alpha.21"
   }
 }

@@ -15,7 +15,7 @@
 
   <!-- 宿主 -->
   <ItemGroup Label="Host">
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.20.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.21.0" />
   </ItemGroup>
 
   <!-- 实时：Hub 绕过内核管道，用 ASP.NET Core 的 JWT Bearer 认证（与 Security.Jwt 同一密钥） -->
