@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "你不能進入租戶 '{tenantId}'。",
   "identity.impersonation.active": "目前工作階段已處於模仿狀態。",
   "identity.impersonation.not_active": "目前工作階段不處於模仿狀態。",
-  "identity.impersonation.target_unavailable": "不能在這裡模仿使用者 '{id}'。",
+  "identity.impersonation.target_unavailable": "不能在這裡模仿這個使用者。",
   "identity.impersonation.settings_invalid": "系統參數 {key} 寫得不對：應為 JSON，sessionMinutes 介於 1 到 480，notifyTarget 為布林值。",
   "identity.impersonation.notice_title": "管理員以你的身分登入",
   "identity.impersonation.notice_content": "管理員 {actor} 已以你的帳號身分登入，用於排查問題，有效期 {minutes} 分鐘。期間的操作會記錄在登入日誌裡。",

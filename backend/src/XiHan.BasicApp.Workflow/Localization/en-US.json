@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "The assignee rule '{type}' needs at least one code.",
   "workflow.assignees.level_invalid": "The assignee rule '{type}' takes at most one level from 1 to {max}, but got '{value}'.",
   "workflow.tasks.not_found": "Task '{id}' does not exist, has been handled, or is not assigned to you.",
-  "workflow.assignees.unavailable": "User '{id}' does not exist or is not active, so cannot be an approver.",
+  "workflow.assignees.unavailable": "One of the selected approvers does not exist or is not active. Choose again.",
   "workflow.business.not_registered": "The approval business '{code}' is not registered.",
   "workflow.business.id_missing": "Workflow instance '{instance}' of an approval business has no business document ID to write the outcome back to.",
   "workflow.business.progress_too_many": "At most {max} business documents can be queried at once.",

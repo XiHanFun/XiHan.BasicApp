@@ -62,7 +62,7 @@ public sealed class AddTenantMember(IRepository<SysTenantMember, Guid> members, 
         var isPlatformAccount = string.Equals(user.HomeTenantId, TenantIds.Platform, StringComparison.Ordinal);
         if (isPlatformAccount != (request.MemberType == TenantMemberType.Support))
         {
-            return Error.Validation(TenancyErrors.MemberTypeMismatch, TenancyMessages.MemberTypeMismatch, MessageArguments.Of(("userId", user.Id), ("memberType", request.MemberType.ToString())));
+            return Error.Validation(TenancyErrors.MemberTypeMismatch, TenancyMessages.MemberTypeMismatch, MessageArguments.Of(("userId", user.Id), ("user", user.DisplayName), ("memberType", request.MemberType.ToString())));
         }
 
         var userId = user.Id;
@@ -70,7 +70,7 @@ public sealed class AddTenantMember(IRepository<SysTenantMember, Guid> members, 
             || await members.CountAsync(EntityQuery.All<SysTenantMember>().Where(new Specification<SysTenantMember>(m => m.TenantId == tenantId && m.UserId == userId)), context.CancellationToken).ConfigureAwait(false) > 0;
         if (exists)
         {
-            return Error.Conflict(TenancyErrors.MemberExists, TenancyMessages.MemberExists, MessageArguments.Of(("tenantId", tenantId), ("userId", userId)));
+            return Error.Conflict(TenancyErrors.MemberExists, TenancyMessages.MemberExists, MessageArguments.Of(("tenantId", tenantId), ("userId", userId), ("user", user.DisplayName)));
         }
 
         var member = new SysTenantMember { Id = ids.NewId(), TenantId = tenantId, UserId = userId, MemberType = request.MemberType, EffectiveAt = request.EffectiveAt, ExpiresAt = request.ExpiresAt };

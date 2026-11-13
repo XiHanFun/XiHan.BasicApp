@@ -47,14 +47,14 @@ public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items) : IOpe
 
             if (!SettingsScope.IsOwnedBy(item, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", item.Name))));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("name", item.Name))));
                 continue;
             }
 
             var itemId = item.Id;
             if (await items.CountAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.ParentId == itemId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.DictItemHasChildren, SettingsMessages.DictItemHasChildren.L(("id", item.Name))));
+                failed.Add(new BatchFailure(id, SettingsErrors.DictItemHasChildren, SettingsMessages.DictItemHasChildren.L(("name", item.Name))));
                 continue;
             }
 

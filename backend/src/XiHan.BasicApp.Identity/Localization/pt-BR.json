@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "Você não pode entrar no locatário '{tenantId}'.",
   "identity.impersonation.active": "A sessão atual já está personificando outro usuário.",
   "identity.impersonation.not_active": "A sessão atual não está personificando ninguém.",
-  "identity.impersonation.target_unavailable": "O usuário '{id}' não pode ser personificado aqui.",
+  "identity.impersonation.target_unavailable": "Este usuário não pode ser personificado aqui.",
   "identity.impersonation.settings_invalid": "O parâmetro de sistema '{key}' é inválido: deve ser JSON, com sessionMinutes entre 1 e 480 e notifyTarget booleano.",
   "identity.impersonation.notice_title": "Um administrador entrou como você",
   "identity.impersonation.notice_content": "O administrador {actor} entrou com a sua conta para investigar um problema; este acesso dura {minutes} minutos. As ações realizadas nesse período ficam registradas no log de login.",

@@ -78,7 +78,7 @@
   "chat.department.not_member": "Solo los miembros del departamento pueden entrar en su chat.",
   "chat.member.silence_protected": "No se puede silenciar al propietario ni a los administradores.",
   "chat.member.owner_role_locked": "No se puede cambiar el rol del propietario.",
-  "chat.attachment.not_owned": "El adjunto {id} no lo subió usted en el chat.",
+  "chat.attachment.not_owned": "El adjunto {name} no lo subió usted en el chat.",
   "chat.conversation.self": "No puede iniciar un chat individual consigo mismo.",
   "chat.group.too_small": "Un chat de grupo necesita al menos {min} miembros, incluido el propietario.",
   "chat.conversation.group_only": "Solo los chats de grupo admiten esta operación.",

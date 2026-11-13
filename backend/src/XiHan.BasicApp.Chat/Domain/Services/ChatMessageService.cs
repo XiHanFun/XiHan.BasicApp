@@ -732,7 +732,7 @@ public sealed class ChatMessageService(
 
             if (!IsOwnChatFile(file, caller))
             {
-                return Error.Denied(ChatErrors.AttachmentNotOwned, ChatMessages.AttachmentNotOwned, MessageArguments.Of(("id", attachment.FileId)));
+                return Error.Denied(ChatErrors.AttachmentNotOwned, ChatMessages.AttachmentNotOwned, MessageArguments.Of(("id", attachment.FileId), ("name", file.Name)));
             }
 
             checkedFiles.Add(new ChatMessageAttachment(file.Id, file.Name, file.Size, attachment.DurationSeconds));

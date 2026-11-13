@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "担当者ルール '{type}' には少なくとも 1 つのコードが必要です。",
   "workflow.assignees.level_invalid": "担当者ルール '{type}' に指定できる階層は 1～{max} のうち 1 つまでですが、'{value}' が指定されました。",
   "workflow.tasks.not_found": "タスク '{id}' は存在しないか、処理済みか、あなたの担当ではありません。",
-  "workflow.assignees.unavailable": "ユーザー '{id}' は存在しないか無効なため、承認者にできません。",
+  "workflow.assignees.unavailable": "選んだ承認者に、存在しないか無効なユーザーがいます。選び直してください。",
   "workflow.business.not_registered": "承認業務 '{code}' は登録されていません。",
   "workflow.business.id_missing": "承認業務のワークフローインスタンス '{instance}' に帳票 ID がなく、結論を書き戻せません。",
   "workflow.business.progress_too_many": "一度に照会できる帳票は最大 {max} 件です。",

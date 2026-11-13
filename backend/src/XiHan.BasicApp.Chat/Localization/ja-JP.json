@@ -78,7 +78,7 @@
   "chat.department.not_member": "部門グループに入れるのはその部門のメンバーだけです。",
   "chat.member.silence_protected": "オーナーや管理者の発言は禁止できません。",
   "chat.member.owner_role_locked": "オーナーのロールは変更できません。",
-  "chat.attachment.not_owned": "添付ファイル {id} はあなたがチャットでアップロードしたものではありません。",
+  "chat.attachment.not_owned": "添付ファイル {name} はあなたがチャットでアップロードしたものではありません。",
   "chat.conversation.self": "自分自身と個人チャットはできません。",
   "chat.group.too_small": "グループチャットにはオーナーを含めて {min} 人以上のメンバーが必要です。",
   "chat.conversation.group_only": "この操作はグループチャットでのみ利用できます。",

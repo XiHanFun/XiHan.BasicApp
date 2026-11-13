@@ -315,7 +315,7 @@ public static class NotificationMessages
     /// 通知已经发布，不能再改或重复发布
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>、<c>title</c>
     /// </remarks>
     public const string AlreadyPublished = "notification.notification.published";
 
@@ -323,7 +323,7 @@ public static class NotificationMessages
     /// 通知还没发布（提醒与接收人只对已发布的）
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>、<c>title</c>
     /// </remarks>
     public const string NotPublished = "notification.notification.not_published";
 
@@ -431,7 +431,7 @@ public static class NotificationMessages
     /// 平台的模板只能在平台维护
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>、<c>name</c>（模板名）
     /// </remarks>
     public const string TemplateOtherSide = "notification.template.other_side";
 

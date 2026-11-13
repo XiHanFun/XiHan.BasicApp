@@ -434,7 +434,7 @@ public static class AccessMessages
     /// 目标已停用
     /// </summary>
     /// <remarks>
-    /// 参数 <c>kind</c>、<c>id</c>
+    /// 参数 <c>kind</c>、<c>id</c>、<c>name</c>（目标的名称）
     /// </remarks>
     public const string FieldTargetDisabled = "access.field_security.target_disabled";
 
@@ -556,7 +556,7 @@ public static class AccessMessages
     /// 委托已撤销或已到期
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>（只随 details 返回，文案不显示）
     /// </remarks>
     public const string DelegationClosed = "access.delegation.closed";
 
@@ -845,7 +845,7 @@ public static class AccessMessages
     /// 要激活的角色此刻不持有
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>（只随 details 返回，文案不显示）
     /// </remarks>
     public const string ActivationRoleNotHeld = "access.activation.not_held";
 
@@ -1104,7 +1104,7 @@ public static class AccessMessages
     /// 角色已停用
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>、<c>name</c>（角色名）
     /// </remarks>
     public const string PermissionRequestRoleDisabled = "access.permission_request.role_disabled";
 
@@ -1117,7 +1117,7 @@ public static class AccessMessages
     /// 申请已经完结
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>、<c>status</c>
+    /// 参数 <c>id</c>、<c>status</c>（只随 details 返回，文案不显示）
     /// </remarks>
     public const string PermissionRequestNotPending = "access.permission_request.not_pending";
 

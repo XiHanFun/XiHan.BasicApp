@@ -106,6 +106,8 @@ public sealed class OrganizationTests : IDisposable
         var (m1Again, m1AgainBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/memberships", $$"""{"userId":"{{bob}}","departmentId":"{{hq}}"}""", acme));
         Assert.Equal(HttpStatusCode.Conflict, m1Again.StatusCode);
         Assert.Equal("ORGANIZATION_CONFLICT_005", m1AgainBody.GetProperty("code").GetString());
+        // 提示里是用户与部门的名称，不是 ID
+        Assert.Equal("User 'Bob' is already a member of department 'Headquarters'.", m1AgainBody.GetProperty("detail").GetString());
         var (foreign, foreignBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/memberships", $$"""{"userId":"{{Guid.NewGuid()}}","departmentId":"{{hq}}"}""", acme));
         Assert.Equal(HttpStatusCode.BadRequest, foreign.StatusCode);
         Assert.Equal("ORGANIZATION_VALIDATION_001", foreignBody.GetProperty("code").GetString());
@@ -145,6 +147,7 @@ public sealed class OrganizationTests : IDisposable
         var (cyclic, cyclicBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/departments/{hq}:move", $$"""{"parentId":"{{rd}}"}""", acme));
         Assert.Equal(HttpStatusCode.BadRequest, cyclic.StatusCode);
         Assert.Equal("ORGANIZATION_VALIDATION_002", cyclicBody.GetProperty("code").GetString());
+        Assert.Equal("Department 'Headquarters' cannot be moved under itself or one of its descendants.", cyclicBody.GetProperty("detail").GetString());
         var (toTop, toTopBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/departments/{rd}:move", "{}", acme));
         Assert.Equal(HttpStatusCode.OK, toTop.StatusCode);
         Assert.Equal(JsonValueKind.Null, toTopBody.GetProperty("parentId").ValueKind);

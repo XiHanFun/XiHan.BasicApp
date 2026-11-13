@@ -39,12 +39,12 @@ public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
 
         if (!SettingsScope.IsOwnedBy(config, owner))
         {
-            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id)));
+            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id), ("name", config.Key)));
         }
 
         if (config.IsBuiltIn && request.DataType != config.DataType)
         {
-            return Error.Conflict(SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected, MessageArguments.Of(("id", request.Id)));
+            return Error.Conflict(SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected, MessageArguments.Of(("id", request.Id), ("name", config.Key)));
         }
 
         var provided = string.IsNullOrEmpty(request.Value) ? null : request.Value;

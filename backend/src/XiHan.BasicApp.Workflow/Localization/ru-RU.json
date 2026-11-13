@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "Правилу назначения исполнителей '{type}' нужен хотя бы один код.",
   "workflow.assignees.level_invalid": "Правило назначения исполнителей '{type}' принимает не более одного уровня от 1 до {max}, а получено '{value}'.",
   "workflow.tasks.not_found": "Задача '{id}' не существует, уже обработана или не назначена вам.",
-  "workflow.assignees.unavailable": "Пользователь '{id}' не существует или неактивен и не может быть согласующим.",
+  "workflow.assignees.unavailable": "Среди выбранных согласующих есть несуществующий или неактивный пользователь. Выберите заново.",
   "workflow.business.not_registered": "Процесс согласования '{code}' не зарегистрирован.",
   "workflow.business.id_missing": "У экземпляра рабочего процесса '{instance}' процесса согласования нет ID документа, куда записать результат.",
   "workflow.business.progress_too_many": "За один раз можно запросить не более {max} документов.",

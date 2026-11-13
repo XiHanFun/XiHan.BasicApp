@@ -69,7 +69,7 @@ public sealed class DepartmentService(
         var subtreeIds = subtree.Select(static h => h.DescendantId).ToHashSet();
         if (newParentId is { } target && subtreeIds.Contains(target))
         {
-            return Error.Validation(OrganizationErrors.CyclicMove, OrganizationMessages.CyclicMove, MessageArguments.Of(("id", departmentId)));
+            return Error.Validation(OrganizationErrors.CyclicMove, OrganizationMessages.CyclicMove, MessageArguments.Of(("id", departmentId), ("name", department.Name)));
         }
 
         var subtreeList = subtreeIds.ToList();

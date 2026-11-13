@@ -44,13 +44,13 @@ public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs) : IOpera
 
             if (!SettingsScope.IsOwnedBy(config, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", config.Key))));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("name", config.Key))));
                 continue;
             }
 
             if (config.IsBuiltIn)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("id", config.Key))));
+                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("name", config.Key))));
                 continue;
             }
 

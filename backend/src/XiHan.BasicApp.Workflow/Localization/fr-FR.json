@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "La règle d'attribution '{type}' nécessite au moins un code.",
   "workflow.assignees.level_invalid": "La règle d'attribution '{type}' accepte au plus un niveau de 1 à {max}, mais a reçu '{value}'.",
   "workflow.tasks.not_found": "La tâche '{id}' n'existe pas, a déjà été traitée ou ne vous est pas assignée.",
-  "workflow.assignees.unavailable": "L'utilisateur '{id}' n'existe pas ou n'est pas actif et ne peut pas être approbateur.",
+  "workflow.assignees.unavailable": "L'un des approbateurs choisis n'existe pas ou n'est pas actif. Choisissez à nouveau.",
   "workflow.business.not_registered": "Le processus d'approbation '{code}' n'est pas enregistré.",
   "workflow.business.id_missing": "L'instance de workflow '{instance}' d'un processus d'approbation n'a pas d'ID de pièce où réécrire le résultat.",
   "workflow.business.progress_too_many": "On peut interroger au plus {max} pièces à la fois.",

@@ -38,7 +38,7 @@ public sealed class UpdateDict(IRepository<SysDict, Guid> dicts, DictService ser
 
         if (!SettingsScope.IsOwnedBy(dict, owner))
         {
-            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id)));
+            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id), ("name", dict.Name)));
         }
 
         dict.Name = request.Name.Trim();

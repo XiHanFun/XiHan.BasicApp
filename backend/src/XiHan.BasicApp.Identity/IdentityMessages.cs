@@ -390,7 +390,7 @@ public static class IdentityMessages
     /// 模仿目标不可用
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>（只随 details 返回，文案不显示）
     /// </remarks>
     public const string ImpersonationTargetUnavailable = "identity.impersonation.target_unavailable";
 

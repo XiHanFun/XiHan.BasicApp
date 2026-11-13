@@ -78,7 +78,7 @@
   "chat.department.not_member": "Войти в чат подразделения могут только его участники.",
   "chat.member.silence_protected": "Владельцу и администраторам нельзя запретить писать.",
   "chat.member.owner_role_locked": "Роль владельца изменить нельзя.",
-  "chat.attachment.not_owned": "Вложение {id} загружено в чат не вами.",
+  "chat.attachment.not_owned": "Вложение {name} загружено в чат не вами.",
   "chat.conversation.self": "Нельзя начать личный чат с самим собой.",
   "chat.group.too_small": "Минимальное число участников группового чата, включая владельца: {min}.",
   "chat.conversation.group_only": "Это поддерживают только групповые чаты.",

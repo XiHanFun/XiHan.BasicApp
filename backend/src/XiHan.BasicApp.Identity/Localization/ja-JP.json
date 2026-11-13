@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "テナント '{tenantId}' には入れません。",
   "identity.impersonation.active": "現在のセッションはすでに代行中です。",
   "identity.impersonation.not_active": "現在のセッションは代行中ではありません。",
-  "identity.impersonation.target_unavailable": "ユーザー '{id}' はここでは代行できません。",
+  "identity.impersonation.target_unavailable": "このユーザーはここでは代行できません。",
   "identity.impersonation.settings_invalid": "システムパラメーター {key} が正しくありません。JSON で、sessionMinutes は 1 から 480、notifyTarget は真偽値にしてください。",
   "identity.impersonation.notice_title": "管理者があなたとしてログインしました",
   "identity.impersonation.notice_content": "管理者 {actor} が問題調査のためあなたのアカウントでログインしました。有効期間は {minutes} 分です。この間の操作はログイン履歴に記録されます。",

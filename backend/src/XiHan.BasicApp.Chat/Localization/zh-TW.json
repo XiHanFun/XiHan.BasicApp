@@ -78,7 +78,7 @@
   "chat.department.not_member": "只有本部門的成員可以進入部門群組。",
   "chat.member.silence_protected": "不能禁言群組擁有者或管理員。",
   "chat.member.owner_role_locked": "不能修改群組擁有者的角色。",
-  "chat.attachment.not_owned": "附件 {id} 不是你在聊天中上傳的。",
+  "chat.attachment.not_owned": "附件 {name} 不是你在聊天中上傳的。",
   "chat.conversation.self": "不能和自己單聊。",
   "chat.group.too_small": "群組聊天至少要有 {min} 名成員（含群組擁有者）。",
   "chat.conversation.group_only": "只有群組聊天支援這個操作。",

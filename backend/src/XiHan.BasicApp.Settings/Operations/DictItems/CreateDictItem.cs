@@ -41,12 +41,12 @@ public sealed class CreateDictItem(IRepository<SysDictItem, Guid> items, DictSer
 
         if (!SettingsScope.IsOwnedBy(dict, owner))
         {
-            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", dict.Id)));
+            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", dict.Id), ("name", dict.Name)));
         }
 
         if (dict.Status != SettingStatus.Active)
         {
-            return Error.Conflict(SettingsErrors.DictDisabled, SettingsMessages.DictDisabled, MessageArguments.Of(("id", dict.Id)));
+            return Error.Conflict(SettingsErrors.DictDisabled, SettingsMessages.DictDisabled, MessageArguments.Of(("id", dict.Id), ("name", dict.Name)));
         }
 
         var code = request.Code.Trim();

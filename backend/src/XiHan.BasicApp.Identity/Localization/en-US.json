@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "You cannot enter tenant '{tenantId}'.",
   "identity.impersonation.active": "The current session is already impersonating another user.",
   "identity.impersonation.not_active": "The current session is not impersonating anyone.",
-  "identity.impersonation.target_unavailable": "User '{id}' cannot be impersonated here.",
+  "identity.impersonation.target_unavailable": "This user cannot be impersonated here.",
   "identity.impersonation.settings_invalid": "System parameter '{key}' is invalid: it must be JSON with sessionMinutes between 1 and 480 and notifyTarget as a boolean.",
   "identity.impersonation.notice_title": "An administrator signed in as you",
   "identity.impersonation.notice_content": "Administrator {actor} has signed in with your account to troubleshoot an issue; this access lasts {minutes} minutes. Actions taken during it are recorded in the login log.",

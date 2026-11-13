@@ -72,6 +72,7 @@ public sealed class TenantSwitchTests : IDisposable
         var (duplicate, duplicateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"contoso","userId":"{{operatorId}}","memberType":"Support"}""", superadmin));
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         Assert.Equal("TENANCY_CONFLICT_005", duplicateBody.GetProperty("code").GetString());
+        Assert.Equal("User 'Operator' is already a member of tenant 'contoso' (or it is their home tenant).", duplicateBody.GetProperty("detail").GetString());
         var (noTenant, noTenantBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenant-members", $$"""{"tenantId":"nope","userId":"{{operatorId}}","memberType":"Support"}""", superadmin));
         Assert.Equal(HttpStatusCode.NotFound, noTenant.StatusCode);
         Assert.Equal("TENANCY_NOTFOUND_001", noTenantBody.GetProperty("code").GetString());

@@ -78,7 +78,7 @@
   "chat.department.not_member": "Nur Mitglieder der Abteilung können ihre Abteilungsgruppe betreten.",
   "chat.member.silence_protected": "Inhaber und Administratoren können nicht stummgeschaltet werden.",
   "chat.member.owner_role_locked": "Die Rolle des Inhabers kann nicht geändert werden.",
-  "chat.attachment.not_owned": "Der Anhang {id} wurde nicht von Ihnen im Chat hochgeladen.",
+  "chat.attachment.not_owned": "Der Anhang {name} wurde nicht von Ihnen im Chat hochgeladen.",
   "chat.conversation.self": "Sie können keinen Direktchat mit sich selbst beginnen.",
   "chat.group.too_small": "Ein Gruppenchat braucht mindestens {min} Mitglieder einschließlich des Inhabers.",
   "chat.conversation.group_only": "Das wird nur in Gruppenchats unterstützt.",

@@ -78,7 +78,7 @@
   "chat.department.not_member": "Seuls les membres du service peuvent entrer dans sa discussion.",
   "chat.member.silence_protected": "Le propriétaire et les administrateurs ne peuvent pas être réduits au silence.",
   "chat.member.owner_role_locked": "Le rôle du propriétaire ne peut pas être modifié.",
-  "chat.attachment.not_owned": "La pièce jointe {id} n’a pas été téléversée par vous dans le chat.",
+  "chat.attachment.not_owned": "La pièce jointe {name} n’a pas été téléversée par vous dans le chat.",
   "chat.conversation.self": "Vous ne pouvez pas démarrer une discussion privée avec vous-même.",
   "chat.group.too_small": "Une discussion de groupe doit compter au moins {min} membres, propriétaire compris.",
   "chat.conversation.group_only": "Seules les discussions de groupe prennent en charge cette opération.",

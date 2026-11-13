@@ -78,7 +78,7 @@
   "chat.department.not_member": "Only members of the department can enter its chat.",
   "chat.member.silence_protected": "The owner and administrators cannot be silenced.",
   "chat.member.owner_role_locked": "The owner's role cannot be changed.",
-  "chat.attachment.not_owned": "Attachment {id} was not uploaded by you in chat.",
+  "chat.attachment.not_owned": "Attachment {name} was not uploaded by you in chat.",
   "chat.conversation.self": "You cannot start a single chat with yourself.",
   "chat.group.too_small": "A group chat needs at least {min} members, the owner included.",
   "chat.conversation.group_only": "Only group chats support this.",

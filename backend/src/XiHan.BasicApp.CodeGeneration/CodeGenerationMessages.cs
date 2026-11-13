@@ -344,7 +344,7 @@ public static class CodeGenerationMessages
     public const string HistoryNotFound = "codegeneration.history.not_found";
 
     /// <summary>
-    /// 生成历史没有产物包或已到期（参数 <c>id</c>）
+    /// 生成历史没有产物包或已到期（参数 <c>id</c>、<c>table</c>）
     /// </summary>
     public const string HistoryPackageNotFound = "codegeneration.history.package_not_found";
 

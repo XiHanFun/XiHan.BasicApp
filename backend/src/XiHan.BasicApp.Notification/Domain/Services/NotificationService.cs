@@ -271,7 +271,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         ArgumentNullException.ThrowIfNull(notification);
         if (notification.IsPublished)
         {
-            return Published(notification.Id);
+            return Published(notification);
         }
 
         var valid = Validate(context, draft);
@@ -313,7 +313,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         ArgumentNullException.ThrowIfNull(notification);
         if (notification.IsPublished)
         {
-            return Published(notification.Id);
+            return Published(notification);
         }
 
         var resolved = await RecipientsAsync(context, notification).ConfigureAwait(false);
@@ -414,7 +414,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         ArgumentNullException.ThrowIfNull(notification);
         if (!notification.IsPublished)
         {
-            return Error.Conflict(NotificationErrors.NotPublished, NotificationMessages.NotPublished, MessageArguments.Of(("id", notification.Id)));
+            return Error.Conflict(NotificationErrors.NotPublished, NotificationMessages.NotPublished, MessageArguments.Of(("id", notification.Id), ("title", notification.Title)));
         }
 
         var pending = await rows.Query<SysUserNotification>(SideRows.SideOf(context))
@@ -472,7 +472,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         return new BatchResult(succeeded, failed);
     }
 
-    private static Error Published(Guid id) => Error.Conflict(NotificationErrors.AlreadyPublished, NotificationMessages.AlreadyPublished, MessageArguments.Of(("id", id)));
+    private static Error Published(SysNotification notification) => Error.Conflict(NotificationErrors.AlreadyPublished, NotificationMessages.AlreadyPublished, MessageArguments.Of(("id", notification.Id), ("title", notification.Title)));
 
     private static void Apply(SysNotification notification, NotificationDraft draft)
     {

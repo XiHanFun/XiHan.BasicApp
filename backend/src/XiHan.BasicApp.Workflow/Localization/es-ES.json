@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "La regla de responsables '{type}' necesita al menos un código.",
   "workflow.assignees.level_invalid": "La regla de responsables '{type}' admite como máximo un nivel de 1 a {max}, pero recibió '{value}'.",
   "workflow.tasks.not_found": "La tarea '{id}' no existe, ya se gestionó o no está asignada a usted.",
-  "workflow.assignees.unavailable": "El usuario '{id}' no existe o no está activo, así que no puede ser aprobador.",
+  "workflow.assignees.unavailable": "Uno de los aprobadores elegidos no existe o no está activo. Vuelve a elegir.",
   "workflow.business.not_registered": "El proceso de aprobación '{code}' no está registrado.",
   "workflow.business.id_missing": "La instancia de flujo '{instance}' de un proceso de aprobación no tiene ID de documento donde escribir el resultado.",
   "workflow.business.progress_too_many": "Se pueden consultar como máximo {max} documentos a la vez.",

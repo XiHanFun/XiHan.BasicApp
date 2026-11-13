@@ -113,7 +113,7 @@ public static class OrganizationMessages
     /// 部门还有子部门或成员
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>name</c>（部门名）
     /// </remarks>
     public const string DepartmentInUse = "organization.department.in_use";
 
@@ -121,7 +121,7 @@ public static class OrganizationMessages
     /// 部门不能移到自己或子孙之下
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>、<c>name</c>（部门名）
     /// </remarks>
     public const string CyclicMove = "organization.department.cyclic_move";
 
@@ -145,7 +145,7 @@ public static class OrganizationMessages
     /// 岗位还被引用
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>、<c>count</c>
+    /// 参数 <c>name</c>（岗位名）
     /// </remarks>
     public const string PositionInUse = "organization.position.in_use";
 
@@ -161,7 +161,7 @@ public static class OrganizationMessages
     /// 用户已在该部门
     /// </summary>
     /// <remarks>
-    /// 参数 <c>userId</c>、<c>departmentId</c>
+    /// 参数 <c>user</c>（显示名）、<c>department</c>（部门名）
     /// </remarks>
     public const string MembershipExists = "organization.membership.exists";
 
@@ -169,7 +169,7 @@ public static class OrganizationMessages
     /// 用户不属于当前租户
     /// </summary>
     /// <remarks>
-    /// 参数 <c>userId</c>
+    /// 参数 <c>userId</c>（只随 details 返回，文案不显示）
     /// </remarks>
     public const string UserNotInTenant = "organization.membership.user_not_in_tenant";
 

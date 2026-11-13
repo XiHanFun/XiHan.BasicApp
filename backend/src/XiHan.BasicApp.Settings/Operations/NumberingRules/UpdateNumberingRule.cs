@@ -39,7 +39,7 @@ public sealed class UpdateNumberingRule(IRepository<SysNumberingRule, Guid> rule
 
         if (!SettingsScope.IsOwnedBy(rule, owner))
         {
-            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id)));
+            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id), ("name", rule.Code)));
         }
 
         var prefix = string.IsNullOrEmpty(request.Prefix) ? null : request.Prefix;

@@ -47,12 +47,12 @@ public sealed class CreateMembership(
             return OrganizationScope.RequireTenant(context).Error!;
         }
 
-        if (!(await service.FindUserInTenantAsync(request.UserId, tenantId, context.CancellationToken).ConfigureAwait(false)).HasValue)
+        if (!(await service.FindUserInTenantAsync(request.UserId, tenantId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
         {
             return Error.Validation(OrganizationErrors.UserNotInTenant, OrganizationMessages.UserNotInTenant, MessageArguments.Of(("userId", request.UserId)));
         }
 
-        if (!(await departments.FindAsync(request.DepartmentId, context.CancellationToken).ConfigureAwait(false)).HasValue)
+        if (!(await departments.FindAsync(request.DepartmentId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var department))
         {
             return Error.NotFound(OrganizationErrors.DepartmentNotFound, OrganizationMessages.DepartmentNotFound, MessageArguments.Of(("id", request.DepartmentId)));
         }
@@ -64,7 +64,7 @@ public sealed class CreateMembership(
 
         if ((await service.FindAsync(request.UserId, request.DepartmentId, context.CancellationToken).ConfigureAwait(false)).HasValue)
         {
-            return Error.Conflict(OrganizationErrors.MembershipExists, OrganizationMessages.MembershipExists, MessageArguments.Of(("userId", request.UserId), ("departmentId", request.DepartmentId)));
+            return Error.Conflict(OrganizationErrors.MembershipExists, OrganizationMessages.MembershipExists, MessageArguments.Of(("user", user.DisplayName), ("department", department.Name)));
         }
 
         var membership = new SysUserDepartment

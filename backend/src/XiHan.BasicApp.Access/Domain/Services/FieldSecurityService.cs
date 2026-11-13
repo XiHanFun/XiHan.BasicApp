@@ -285,7 +285,7 @@ public sealed class FieldSecurityService(
                     return Error.NotFound(AccessErrors.RoleNotFound, AccessMessages.RoleNotFound, MessageArguments.Of(("id", targetId)));
                 }
 
-                return role.Status == RoleStatus.Active ? Result.Success() : Disabled(kind, targetId);
+                return role.Status == RoleStatus.Active ? Result.Success() : Disabled(kind, targetId, role.Name);
             case FieldSecurityTargetKind.User:
                 if (!(await sideUsers.FindAsync(targetId, owner, cancellationToken).ConfigureAwait(false)).HasValue)
                 {
@@ -304,12 +304,12 @@ public sealed class FieldSecurityService(
                     return Error.NotFound(AccessErrors.DepartmentNotFound, AccessMessages.DepartmentNotFound, MessageArguments.Of(("id", targetId)));
                 }
 
-                return department.Status == OrganizationStatus.Active ? Result.Success() : Disabled(kind, targetId);
+                return department.Status == OrganizationStatus.Active ? Result.Success() : Disabled(kind, targetId, department.Name);
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown field security target kind.");
         }
     }
 
-    private static Error Disabled(FieldSecurityTargetKind kind, Guid targetId)
-        => Error.Validation(AccessErrors.FieldTargetDisabled, AccessMessages.FieldTargetDisabled, MessageArguments.Of(("kind", kind.ToString()), ("id", targetId)));
+    private static Error Disabled(FieldSecurityTargetKind kind, Guid targetId, string name)
+        => Error.Validation(AccessErrors.FieldTargetDisabled, AccessMessages.FieldTargetDisabled, MessageArguments.Of(("kind", kind.ToString()), ("id", targetId), ("name", name)));
 }

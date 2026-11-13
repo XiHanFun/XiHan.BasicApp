@@ -296,7 +296,7 @@ public sealed class ListNotificationRecipients(NotificationService service, Noti
 
         if (!notification.IsPublished)
         {
-            return Error.Conflict(NotificationErrors.NotPublished, NotificationMessages.NotPublished, MessageArguments.Of(("id", notification.Id)));
+            return Error.Conflict(NotificationErrors.NotPublished, NotificationMessages.NotPublished, MessageArguments.Of(("id", notification.Id), ("title", notification.Title)));
         }
 
         return await queries.RecipientsAsync(context, notification, request.Filter, request.Page ?? PageInfo.Default).ConfigureAwait(false);

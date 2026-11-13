@@ -142,7 +142,7 @@ public sealed class PermissionRequestStore(SideRows rows, RoleService roles, IRe
 
             if (found.Status != RoleStatus.Active)
             {
-                return Error.Validation(AccessErrors.PermissionRequestRoleDisabled, AccessMessages.PermissionRequestRoleDisabled, MessageArguments.Of(("id", id)));
+                return Error.Validation(AccessErrors.PermissionRequestRoleDisabled, AccessMessages.PermissionRequestRoleDisabled, MessageArguments.Of(("id", id), ("name", found.Name)));
             }
 
             role = found;

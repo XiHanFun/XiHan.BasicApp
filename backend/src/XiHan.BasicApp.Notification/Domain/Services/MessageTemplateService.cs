@@ -75,7 +75,7 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
 
         return string.Equals(template.OwnerTenantId, owner, StringComparison.Ordinal)
             ? template
-            : Error.Denied(NotificationErrors.TemplateOtherSide, NotificationMessages.TemplateOtherSide, MessageArguments.Of(("id", id)));
+            : Error.Denied(NotificationErrors.TemplateOtherSide, NotificationMessages.TemplateOtherSide, MessageArguments.Of(("id", id), ("name", template.Name)));
     }
 
     /// <summary>

@@ -78,7 +78,7 @@
   "chat.department.not_member": "해당 부서의 멤버만 부서 그룹에 들어갈 수 있습니다.",
   "chat.member.silence_protected": "방장이나 관리자는 채팅 금지할 수 없습니다.",
   "chat.member.owner_role_locked": "방장의 역할은 바꿀 수 없습니다.",
-  "chat.attachment.not_owned": "첨부 파일 {id}은(는) 내가 채팅에서 업로드한 파일이 아닙니다.",
+  "chat.attachment.not_owned": "첨부 파일 {name}은(는) 내가 채팅에서 업로드한 파일이 아닙니다.",
   "chat.conversation.self": "자기 자신과는 1:1 채팅을 할 수 없습니다.",
   "chat.group.too_small": "그룹 채팅에는 방장을 포함해 멤버가 {min}명 이상 있어야 합니다.",
   "chat.conversation.group_only": "그룹 채팅에서만 지원하는 작업입니다.",

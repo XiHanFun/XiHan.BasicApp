@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "你不能进入租户 '{tenantId}'。",
   "identity.impersonation.active": "当前会话已处于模仿态。",
   "identity.impersonation.not_active": "当前会话不处于模仿态。",
-  "identity.impersonation.target_unavailable": "不能在这里模仿用户 '{id}'。",
+  "identity.impersonation.target_unavailable": "不能在这里模仿这个用户。",
   "identity.impersonation.settings_invalid": "系统参数 {key} 写得不对：应是 JSON，sessionMinutes 在 1 到 480 之间，notifyTarget 是布尔值。",
   "identity.impersonation.notice_title": "管理员以你的身份登录",
   "identity.impersonation.notice_content": "管理员 {actor} 已以你的账号身份登录，用于排查问题，有效期 {minutes} 分钟。期间的操作会记录在登录日志里。",

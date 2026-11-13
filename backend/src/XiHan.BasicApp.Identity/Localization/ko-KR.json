@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "테넌트 '{tenantId}'에 들어갈 수 없습니다.",
   "identity.impersonation.active": "현재 세션은 이미 다른 사용자를 가장하고 있습니다.",
   "identity.impersonation.not_active": "현재 세션은 가장 상태가 아닙니다.",
-  "identity.impersonation.target_unavailable": "사용자 '{id}'는 여기서 가장할 수 없습니다.",
+  "identity.impersonation.target_unavailable": "이 사용자는 여기서 가장할 수 없습니다.",
   "identity.impersonation.settings_invalid": "시스템 매개변수 {key} 값이 잘못되었습니다. JSON이어야 하며 sessionMinutes는 1에서 480 사이, notifyTarget은 불리언이어야 합니다.",
   "identity.impersonation.notice_title": "관리자가 회원님으로 로그인했습니다",
   "identity.impersonation.notice_content": "관리자 {actor}님이 문제 해결을 위해 회원님의 계정으로 로그인했습니다. 유효 시간은 {minutes}분입니다. 그동안의 작업은 로그인 기록에 남습니다.",

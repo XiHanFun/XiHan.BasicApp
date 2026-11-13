@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "受理人規則 '{type}' 至少要一個編碼。",
   "workflow.assignees.level_invalid": "受理人規則 '{type}' 至多一個 1 到 {max} 的層級，實際是 '{value}'。",
   "workflow.tasks.not_found": "待辦 '{id}' 不存在、已辦理或不歸你辦理。",
-  "workflow.assignees.unavailable": "使用者 '{id}' 不存在或已停用，不能作為受理人。",
+  "workflow.assignees.unavailable": "所選受理人裡有不存在或已停用的使用者，請重新選擇。",
   "workflow.business.not_registered": "審批業務 '{code}' 沒有登記。",
   "workflow.business.id_missing": "審批業務的流程實例 '{instance}' 沒有單據 ID，無法回寫結論。",
   "workflow.business.progress_too_many": "一次最多查詢 {max} 張單據。",

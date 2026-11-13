@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "受理人规则 '{type}' 至少要一个编码。",
   "workflow.assignees.level_invalid": "受理人规则 '{type}' 至多一个 1 到 {max} 的层级，实际是 '{value}'。",
   "workflow.tasks.not_found": "待办 '{id}' 不存在、已办理或不归你办理。",
-  "workflow.assignees.unavailable": "用户 '{id}' 不存在或已停用，不能作为受理人。",
+  "workflow.assignees.unavailable": "所选受理人里有不存在或已停用的用户，请重新选择。",
   "workflow.business.not_registered": "审批业务 '{code}' 没有登记。",
   "workflow.business.id_missing": "审批业务的流程实例 '{instance}' 没有单据 ID，结论回写不了。",
   "workflow.business.progress_too_many": "一次最多查 {max} 张单据。",

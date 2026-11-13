@@ -47,7 +47,7 @@ internal static class CodeGenerationEndpoints
             return FileEndpoints.Fail(context, found.Error!);
         }
 
-        var missing = Error.NotFound(CodeGenerationErrors.PackageNotFound, CodeGenerationMessages.HistoryPackageNotFound, MessageArguments.Of(("id", id)));
+        var missing = Error.NotFound(CodeGenerationErrors.PackageNotFound, CodeGenerationMessages.HistoryPackageNotFound, MessageArguments.Of(("id", id), ("table", history.TableName)));
         if (history.FileId is not { } fileId)
         {
             return FileEndpoints.Fail(context, missing);

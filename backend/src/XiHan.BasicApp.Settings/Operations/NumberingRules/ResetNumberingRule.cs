@@ -42,7 +42,7 @@ public sealed class ResetNumberingRule(IRepository<SysNumberingRule, Guid> rules
 
         if (!SettingsScope.IsOwnedBy(rule, owner))
         {
-            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id)));
+            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id), ("name", rule.Code)));
         }
 
         if (SettingsScope.IsPlatform(rule.OwnerTenantId) && !string.Equals(request.ConfirmCode?.Trim(), rule.Code, StringComparison.Ordinal))

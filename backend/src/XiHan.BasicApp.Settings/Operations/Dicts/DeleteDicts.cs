@@ -48,20 +48,20 @@ public sealed class DeleteDicts(IRepository<SysDict, Guid> dicts, IRepository<Sy
 
             if (!SettingsScope.IsOwnedBy(dict, owner))
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("id", dict.Name))));
+                failed.Add(new BatchFailure(id, SettingsErrors.OtherSide, SettingsMessages.OtherSide.L(("name", dict.Name))));
                 continue;
             }
 
             if (dict.IsBuiltIn)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("id", dict.Name))));
+                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("name", dict.Name))));
                 continue;
             }
 
             var dictId = dict.Id;
             if (await items.CountAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.DictId == dictId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, SettingsErrors.DictHasItems, SettingsMessages.DictHasItems.L(("id", dict.Name))));
+                failed.Add(new BatchFailure(id, SettingsErrors.DictHasItems, SettingsMessages.DictHasItems.L(("name", dict.Name))));
                 continue;
             }
 

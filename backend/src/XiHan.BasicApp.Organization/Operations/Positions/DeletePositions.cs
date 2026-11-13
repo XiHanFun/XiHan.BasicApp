@@ -53,7 +53,7 @@ public sealed class DeletePositions(IRepository<SysPosition, Guid> positions, IR
             var positionId = position.Id;
             if (await memberships.CountAsync(EntityQuery.All<SysUserDepartment>().Where(new Specification<SysUserDepartment>(m => m.PositionId == positionId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
-                failed.Add(new BatchFailure(id, OrganizationErrors.PositionInUse, OrganizationMessages.PositionInUse.L(("id", position.Name))));
+                failed.Add(new BatchFailure(id, OrganizationErrors.PositionInUse, OrganizationMessages.PositionInUse.L(("name", position.Name))));
                 continue;
             }
 

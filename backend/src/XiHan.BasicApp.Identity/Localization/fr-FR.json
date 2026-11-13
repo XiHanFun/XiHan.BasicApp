@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "Vous ne pouvez pas entrer dans le locataire '{tenantId}'.",
   "identity.impersonation.active": "La session actuelle usurpe déjà un autre utilisateur.",
   "identity.impersonation.not_active": "La session actuelle n'usurpe personne.",
-  "identity.impersonation.target_unavailable": "L'utilisateur '{id}' ne peut pas être usurpé ici.",
+  "identity.impersonation.target_unavailable": "Cet utilisateur ne peut pas être usurpé ici.",
   "identity.impersonation.settings_invalid": "Le paramètre système « {key} » n’est pas valide : il doit être en JSON, avec sessionMinutes entre 1 et 480 et notifyTarget booléen.",
   "identity.impersonation.notice_title": "Un administrateur s’est connecté en votre nom",
   "identity.impersonation.notice_content": "L’administrateur {actor} s’est connecté avec votre compte pour diagnostiquer un problème ; cet accès dure {minutes} minutes. Les actions effectuées pendant cette période sont consignées dans le journal de connexion.",

@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "Вы не можете войти в арендатора '{tenantId}'.",
   "identity.impersonation.active": "Текущий сеанс уже выполняет имперсонацию другого пользователя.",
   "identity.impersonation.not_active": "Текущий сеанс не выполняет имперсонацию.",
-  "identity.impersonation.target_unavailable": "Пользователя '{id}' нельзя имперсонировать здесь.",
+  "identity.impersonation.target_unavailable": "Этого пользователя нельзя имперсонировать здесь.",
   "identity.impersonation.settings_invalid": "Системный параметр «{key}» задан неверно: это должен быть JSON, sessionMinutes от 1 до 480, notifyTarget — логическое значение.",
   "identity.impersonation.notice_title": "Администратор вошёл под вашей учётной записью",
   "identity.impersonation.notice_content": "Администратор {actor} вошёл под вашей учётной записью для диагностики проблемы; доступ действует {minutes} мин. Действия за это время записываются в журнал входов.",

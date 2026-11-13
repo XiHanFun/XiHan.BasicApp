@@ -62,7 +62,7 @@
   "identity.auth.tenant_not_accessible": "No puede entrar en el inquilino '{tenantId}'.",
   "identity.impersonation.active": "La sesión actual ya está suplantando a otro usuario.",
   "identity.impersonation.not_active": "La sesión actual no está suplantando a nadie.",
-  "identity.impersonation.target_unavailable": "El usuario '{id}' no puede suplantarse aquí.",
+  "identity.impersonation.target_unavailable": "Este usuario no puede suplantarse aquí.",
   "identity.impersonation.settings_invalid": "El parámetro del sistema '{key}' no es válido: debe ser JSON, con sessionMinutes entre 1 y 480 y notifyTarget booleano.",
   "identity.impersonation.notice_title": "Un administrador ha iniciado sesión como usted",
   "identity.impersonation.notice_content": "El administrador {actor} ha iniciado sesión con su cuenta para investigar un problema; este acceso dura {minutes} minutos. Las acciones realizadas durante este tiempo quedan en el registro de inicios de sesión.",

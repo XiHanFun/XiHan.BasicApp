@@ -267,7 +267,7 @@ public static class WorkflowMessages
     /// 目标不能作为受理人
     /// </summary>
     /// <remarks>
-    /// 参数 <c>id</c>
+    /// 参数 <c>id</c>（只随 details 返回，文案不显示）
     /// </remarks>
     public const string AssigneeUnavailable = "workflow.assignees.unavailable";
 

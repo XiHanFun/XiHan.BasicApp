@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "Die Bearbeiterregel '{type}' braucht mindestens einen Code.",
   "workflow.assignees.level_invalid": "Die Bearbeiterregel '{type}' nimmt höchstens eine Ebene von 1 bis {max}, erhielt aber '{value}'.",
   "workflow.tasks.not_found": "Die Aufgabe '{id}' existiert nicht, ist bereits erledigt oder ist Ihnen nicht zugewiesen.",
-  "workflow.assignees.unavailable": "Der Benutzer '{id}' existiert nicht oder ist nicht aktiv und kann kein Genehmiger sein.",
+  "workflow.assignees.unavailable": "Unter den gewählten Genehmigern ist ein Benutzer, der nicht existiert oder nicht aktiv ist. Bitte neu wählen.",
   "workflow.business.not_registered": "Der Genehmigungsvorgang '{code}' ist nicht registriert.",
   "workflow.business.id_missing": "Die Workflow-Instanz '{instance}' eines Genehmigungsvorgangs hat keine Beleg-ID, in die das Ergebnis zurückgeschrieben werden könnte.",
   "workflow.business.progress_too_many": "Es können höchstens {max} Belege auf einmal abgefragt werden.",

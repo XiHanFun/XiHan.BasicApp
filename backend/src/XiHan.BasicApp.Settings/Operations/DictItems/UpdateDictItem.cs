@@ -39,7 +39,7 @@ public sealed class UpdateDictItem(IRepository<SysDictItem, Guid> items, DictSer
 
         if (!SettingsScope.IsOwnedBy(item, owner))
         {
-            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id)));
+            return Error.Denied(SettingsErrors.OtherSide, SettingsMessages.OtherSide, MessageArguments.Of(("id", request.Id), ("name", item.Name)));
         }
 
         var all = await service.ItemsOfAsync(item.DictId, context.CancellationToken).ConfigureAwait(false);

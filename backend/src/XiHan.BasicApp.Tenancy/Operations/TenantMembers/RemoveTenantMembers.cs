@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.MultiTenancy;
+using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.BasicApp.Tenancy.Domain.Services;
 using XiHan.Framework.Domain.Specifications;
@@ -23,9 +24,10 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// </remarks>
 /// <param name="members">成员仓储</param>
 /// <param name="tenants">租户仓储（所有者不能移出）</param>
+/// <param name="users">用户仓储（拒绝时提示所有者的显示名）</param>
 /// <param name="initializers">上层包的扩展点（Access 解除角色）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersDelete)]
-public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> members, IRepository<SysTenant, Guid> tenants, IEnumerable<ITenantInitializer> initializers) : IOperation<TenantMemberIdsRequest, BatchResult>
+public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> members, IRepository<SysTenant, Guid> tenants, IRepository<SysUser, Guid> users, IEnumerable<ITenantInitializer> initializers) : IOperation<TenantMemberIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -47,6 +49,10 @@ public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> membe
         var tenantIds = found.Values.Select(static m => m.TenantId).Distinct().ToList();
         var owners = (await tenants.ListAsync(EntityQuery.All<SysTenant>().Where(new Specification<SysTenant>(t => tenantIds.Contains(t.TenantId))), context.CancellationToken).ConfigureAwait(false))
             .Where(static t => t.AdminUserId is not null).ToDictionary(static t => t.TenantId, static t => t.AdminUserId!.Value, StringComparer.Ordinal);
+        var ownerIds = found.Values.Where(m => owners.TryGetValue(m.TenantId, out var ownerId) && ownerId == m.UserId).Select(static m => m.UserId).Distinct().ToList();
+        var ownerNames = ownerIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : (await users.FindManyAsync(ownerIds, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id, static u => u.DisplayName);
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
         foreach (var id in request.Ids.Distinct())
@@ -59,7 +65,7 @@ public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> membe
 
             if (owners.TryGetValue(member.TenantId, out var ownerId) && ownerId == member.UserId)
             {
-                failed.Add(new BatchFailure(id, TenancyErrors.OwnerRemoval, TenancyMessages.OwnerRemoval.L(("userId", member.UserId), ("tenantId", member.TenantId))));
+                failed.Add(new BatchFailure(id, TenancyErrors.OwnerRemoval, TenancyMessages.OwnerRemoval.L(("user", ownerNames.GetValueOrDefault(member.UserId) ?? member.UserId.ToString("D")), ("tenantId", member.TenantId))));
                 continue;
             }
 

@@ -103,7 +103,7 @@
   "workflow.assignees.codes_required": "담당자 규칙 '{type}'에는 코드가 하나 이상 필요합니다.",
   "workflow.assignees.level_invalid": "담당자 규칙 '{type}'은(는) 1부터 {max}까지의 단계를 최대 하나만 받을 수 있지만 '{value}'을(를) 받았습니다.",
   "workflow.tasks.not_found": "작업 '{id}'이(가) 없거나 이미 처리되었거나 당신에게 배정되지 않았습니다.",
-  "workflow.assignees.unavailable": "사용자 '{id}'이(가) 없거나 비활성 상태라 결재자로 지정할 수 없습니다.",
+  "workflow.assignees.unavailable": "선택한 결재자 중 없거나 비활성 상태인 사용자가 있습니다. 다시 선택하세요.",
   "workflow.business.not_registered": "결재 업무 '{code}'이(가) 등록되어 있지 않습니다.",
   "workflow.business.id_missing": "결재 업무의 워크플로 인스턴스 '{instance}'에 문서 ID가 없어 결론을 반영할 수 없습니다.",
   "workflow.business.progress_too_many": "한 번에 최대 {max}건의 문서만 조회할 수 있습니다.",

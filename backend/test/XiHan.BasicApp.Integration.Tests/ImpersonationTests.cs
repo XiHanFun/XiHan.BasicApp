@@ -104,6 +104,9 @@ public sealed class ImpersonationTests : IDisposable
         var (wrongScope, wrongScopeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{helperId}}","tenantId":"demo"}""", superadmin));
         Assert.Equal(HttpStatusCode.Forbidden, wrongScope.StatusCode);
         Assert.Equal("IDENTITY_DENIED_007", wrongScopeBody.GetProperty("code").GetString());
+        // 提示不带用户 ID，ID 只随 details 返回
+        Assert.Equal("This user cannot be impersonated here.", wrongScopeBody.GetProperty("detail").GetString());
+        Assert.Equal(helperId, wrongScopeBody.GetProperty("details").GetProperty("id").GetString());
         var (self, selfBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:start", $$"""{"targetUserId":"{{superadminId}}"}""", superadmin));
         Assert.Equal(HttpStatusCode.Forbidden, self.StatusCode);
         Assert.Equal("IDENTITY_DENIED_007", selfBody.GetProperty("code").GetString());

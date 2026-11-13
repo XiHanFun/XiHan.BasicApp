@@ -201,7 +201,7 @@ public static class TenancyMessages
     /// 用户已是该租户的成员
     /// </summary>
     /// <remarks>
-    /// 参数 <c>tenantId</c>、<c>userId</c>
+    /// 参数 <c>tenantId</c>、<c>userId</c>、<c>user</c>（显示名）
     /// </remarks>
     public const string MemberExists = "tenancy.member.exists";
 
@@ -323,7 +323,7 @@ public static class TenancyMessages
     /// 已经是所有者
     /// </summary>
     /// <remarks>
-    /// 参数 <c>tenantId</c>、<c>userId</c>
+    /// 参数 <c>tenantId</c>、<c>userId</c>（<c>userId</c> 只随 details 返回）
     /// </remarks>
     public const string AlreadyOwner = "tenancy.owner.already";
 
@@ -331,7 +331,7 @@ public static class TenancyMessages
     /// 所有者不能移出成员
     /// </summary>
     /// <remarks>
-    /// 参数 <c>tenantId</c>、<c>userId</c>
+    /// 参数 <c>tenantId</c>、<c>user</c>（显示名）
     /// </remarks>
     public const string OwnerRemoval = "tenancy.owner.removal";
 
@@ -339,7 +339,7 @@ public static class TenancyMessages
     /// 新所有者不合格
     /// </summary>
     /// <remarks>
-    /// 参数 <c>tenantId</c>、<c>userId</c>
+    /// 参数 <c>tenantId</c>、<c>userId</c>（<c>userId</c> 只随 details 返回）
     /// </remarks>
     public const string OwnerIneligible = "tenancy.owner.ineligible";
 
@@ -347,7 +347,7 @@ public static class TenancyMessages
     /// 成员类型与账号不符
     /// </summary>
     /// <remarks>
-    /// 参数 <c>userId</c>、<c>memberType</c>
+    /// 参数 <c>userId</c>、<c>user</c>（显示名）、<c>memberType</c>
     /// </remarks>
     public const string MemberTypeMismatch = "tenancy.member.type_mismatch";
 
