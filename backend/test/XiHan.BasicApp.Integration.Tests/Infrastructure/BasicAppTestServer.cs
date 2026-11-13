@@ -193,7 +193,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     /// 执行各包登记的种子
     /// </summary>
     /// <remarks>
-    /// 包括超级管理员 <c>superadmin</c> 与它的全局授予等，与 <c>seed</c> 命令同一条路径
+    /// 包括超级管理员 <c>superadmin</c> 与它的平台授予等，与 <c>seed</c> 命令同一条路径
     /// </remarks>
     public async Task RunSeedersAsync(IReadOnlyCollection<string>? only = null)
         => (await Services.GetRequiredService<SeedRunner>().RunAsync(only, CancellationToken.None)).ThrowIfFailure();
@@ -202,7 +202,7 @@ public sealed class BasicAppTestServer : IAsyncDisposable
     /// 写入缺省的测试数据
     /// </summary>
     /// <remarks>
-    /// 租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 可读可建，<c>viewer</c> 只读
+    /// 租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 在平台与每个租户都可读可建，<c>viewer</c> 只读
     /// </remarks>
     public Task SeedDefaultsAsync(IReadOnlyDictionary<string, string>? acmeProperties = null) => SeedAsync(
         [
@@ -210,9 +210,9 @@ public sealed class BasicAppTestServer : IAsyncDisposable
             new TenantInfo { Id = "globex", DisplayName = "Globex" },
         ],
         [
-            new PermissionGrant(GrantSubject.ForRole("admin"), "identity.users.read"),
-            new PermissionGrant(GrantSubject.ForRole("admin"), "identity.users.create"),
-            new PermissionGrant(GrantSubject.ForRole("viewer"), "identity.users.read"),
+            .. TestGrants.BothSides(GrantSubject.ForRole("admin"), "identity.users.read"),
+            .. TestGrants.BothSides(GrantSubject.ForRole("admin"), "identity.users.create"),
+            .. TestGrants.BothSides(GrantSubject.ForRole("viewer"), "identity.users.read"),
         ]);
 
     public static HttpRequestMessage Request(HttpMethod method, string path, string? json = null, string? token = null, string? acceptLanguage = null)
@@ -243,6 +243,15 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         var body = text.Length == 0 ? default : JsonElement.Parse(text);
         return (response, body);
     }
+
+    /// <summary>
+    /// 各健康项的状态
+    /// </summary>
+    /// <remarks>
+    /// 探针端点只给总状态，健康项从内核的健康快照读
+    /// </remarks>
+    public Dictionary<string, string> HealthStates()
+        => Kernel.Health().Contributions.ToDictionary(static c => c.Name, static c => c.State.ToString(), StringComparer.Ordinal);
 
     public GrpcChannel CreateGrpcChannel() => GrpcChannel.ForAddress("http://localhost", new GrpcChannelOptions { HttpHandler = Server.CreateHandler() });
 

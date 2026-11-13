@@ -30,7 +30,7 @@ Authorize 阶段之后
 
 全部权限码可在权限目录页（`/access/permissions`，操作 `permissions.list`）按包、作用侧与审计筛选查看；可选模块关掉后它的权限码不在目录里。
 
-权限码没有通配匹配的语义：前端 `can('identity.users.create')` 精确匹配；后端只有全局授予 `*` 覆盖全部权限（内置角色 `admin` 持有），它同样会被 Deny、作用侧与套餐收窄。
+权限码没有通配匹配的语义：前端 `can('identity.users.create')` 精确匹配；后端只有通配授予 `*` 覆盖全部权限（内置角色 `admin` 持有），它同样会被 Deny、作用侧与套餐收窄。
 
 ## 角色
 
@@ -44,7 +44,7 @@ Authorize 阶段之后
 | `roles.members` / `roles.by-user` / `roles.hierarchy` | `access.roles.read` | 成员、某用户的角色、继承关系 |
 | `roles.set-parents` | `access.roles.set-parents` | 设置直接上级（最多 50 个），只存直接边，图上推导，拒绝成环 |
 
-内置角色 `admin` 持有全局授予 `*`、数据范围「全部」：平台一侧由种子 `access.platform` 建并指派 `superadmin`，每个租户在 `tenants.initialize-admin` 时建一份并指派租户管理员。
+内置角色 `admin` 持有通配授予 `*`、数据范围「全部」：平台一侧由种子 `access.platform` 建并指派 `superadmin`，每个租户在 `tenants.initialize-admin` 时建一份并指派租户管理员。
 
 ### 合并优先级
 
@@ -53,6 +53,7 @@ Authorize 阶段之后
 ```
 
 - Grant 行写框架的 `PermissionGrantRecord`；Deny 以及带有效期或原因的授予另有伴随行 `SysPermissionRule`（每个「侧 × 主体 × 权限码」一行）。
+- 授予按侧存放：平台侧的授予（租户列为空）只对平台调用生效，租户侧的只对该租户生效，两边互不渗透（框架 ADR-0197）；平台账号切换进租户后只按该租户的角色与授予判定，超级管理员的 `*` 也不带进租户。
 - 有效期在判定时按当前时间比较，到点即失效，不必重建缓存；规则、指派、继承图与委托在共享缓存里存 60 秒，写入方在工作单元结束后即时失效。
 - 判定用的角色取「令牌里激活的角色」与「有效指派」的交集：解除与到期立即生效；新指派的角色等下一次刷新令牌进令牌。
 - 授予存储读不到时把失败原样返回（框架给 503 `SECURITY_UNAVAILABLE_001`），不当作没有权限。

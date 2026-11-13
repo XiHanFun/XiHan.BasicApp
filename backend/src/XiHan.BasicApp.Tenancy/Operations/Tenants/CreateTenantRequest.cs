@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="UserLimit">租户自己的席位上限，覆盖套餐的；为空即沿用套餐</param>
 /// <param name="StorageLimitMb">租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐</param>
 public sealed record CreateTenantRequest(
-    [Required, StringLength(64, MinimumLength = 1), RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string TenantId,
+    [Required, StringLength(64, MinimumLength = 1), RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string TenantId,
     [Required, StringLength(128, MinimumLength = 1)] string Name,
     [StringLength(512)] string? Description = null,
     DateTimeOffset? ExpiresAt = null,

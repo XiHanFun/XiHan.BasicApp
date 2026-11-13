@@ -55,7 +55,7 @@ public sealed class ChatAssistantsTests : IDisposable
             });
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
-        await server.SeedAsync([], [.. AIPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole(Admin), p.Code))]);
+        await server.SeedAsync([], [.. AIPermissions.All.SelectMany(static p => TestGrants.BothSides(GrantSubject.ForRole(Admin), p.Code))]);
         return server;
     }
 
@@ -73,7 +73,7 @@ public sealed class ChatAssistantsTests : IDisposable
         var (created, user) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", JsonSerializer.Serialize(new { userName = name, displayName = name, password = Password }), creator));
         Assert.True(created.StatusCode == HttpStatusCode.Created, user.GetRawText());
         var id = user.GetProperty("id").GetString()!;
-        await server.SeedAsync([], [.. ChatPermissions.All.Select(static p => p.Code).Concat(extraPermissions).Select(code => new PermissionGrant(GrantSubject.ForUser(id), code))]);
+        await server.SeedAsync([], [.. ChatPermissions.All.Select(static p => p.Code).Concat(extraPermissions).Select(code => new PermissionGrant(GrantSubject.ForUser(id), code, tenant))]);
         return (id, TestTokens.Issue(id, tenant, Chatter));
     }
 

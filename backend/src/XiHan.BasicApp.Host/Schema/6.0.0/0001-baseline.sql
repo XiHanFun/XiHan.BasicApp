@@ -2174,6 +2174,8 @@ CREATE TABLE IF NOT EXISTS "tenant_record" (
     "created_at" timestamp with time zone NOT NULL,
     "modified_at" timestamp with time zone NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "deleted_at" timestamp with time zone NULL,
     CONSTRAINT "tenant_record_pkey" PRIMARY KEY (id)
 );
 

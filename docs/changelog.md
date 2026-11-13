@@ -4,6 +4,11 @@
 
 ## 未发布
 
+- **调整** 后端升到 XiHan.Framework 5.0.0-rc.1
+- **修复** 平台一侧的授予（含超级管理员的 `*`）不再在租户里生效：平台账号切换进租户后只按该租户的角色与授予判定
+- **调整** 租户 ID 只用小写字母、数字与 `._-`（`^[a-z0-9][a-z0-9._-]{0,63}$`），新建租户、登录、切换租户、成员与模仿登录里填大写的直接校验失败；删除的租户 ID 不能再新建（框架在租户目录里留下删除标记，`tenant_record` 加 `is_deleted`、`deleted_at` 两列，已含在 6.0.0 基线里，之前按预览版建的库要重建）
+- **调整** 健康探针 `/health/startup`、`/health/ready`、`/health/live` 只给总状态，不再列出各 Feature 与健康项；详情看服务监控（`maintenance.server.read`）
+- **调整** 操作请求体上限 4 MiB（`XiHan:Protocols:Http:MaxRequestBodyBytes`）；MCP 入口校验 `Origin`（浏览器里的客户端要配 `XiHan:Protocols:Mcp:AllowedOrigins`）、只收 `application/json`；CloudEvents 入站只收 `XiHan:Protocols:CloudEvents:Topics` 映射过的事件类型，请求体与 batch 条数有上限（见[配置参考](./configuration#xihan-protocols)）
 - **调整** 后端以 NuGet 包引用 XiHan.Framework（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
 - **新增** `BasicApp:Schema:CreateDatabase`：升级前平台库不存在时先建库，缺省关，开发环境打开，首次运行不用先手工建库
 - **新增** `BasicApp:Seed:RunOnStartup`：应用启动后执行一遍种子，缺省关，开发环境打开，首次运行即可用 `superadmin` 登录

@@ -13,7 +13,7 @@ Files 包（Tier 2）在框架对象存储（`IBlobStore`）之上管理存储�
 | `Local` | 框架 `ObjectStorage.FileSystem`，根目录 `BasicApp:Files:LocalRootPath`（缺省 `App_Data/files`，相对内容根目录），桶是根下的子目录；所有本地配置共用命名实例 `local` |
 | `S3` / `Oss` / `Cos` / `MinIO` | 框架 `ObjectStorage.S3`，按服务地址接 S3 兼容服务；每条配置一个命名实例 `storage-<配置 ID>`，配置改了即建新实例替换旧的 |
 
-存储配置在运行时译成框架对象存储注册表的命名实例（框架 ADR-0050），每个实例一条健康项 `objectstorage.store.<名>`，出现在 `/health/ready`。
+存储配置在运行时译成框架对象存储注册表的命名实例（框架 ADR-0050），每个实例一条健康项 `objectstorage.store.<名>`，出现在服务监控的健康项里。
 
 S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省开；本地存储恒为开）。实例在第一次用到（或配置改了之后）时建出：
 

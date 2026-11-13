@@ -150,6 +150,8 @@
 | `Outbox:MaxAttempts` | `10` | 发件箱投递到消息代理的最多次数（含首次），用尽进死信；与上面的 `MaxAttempts` 是两层 |
 | `Outbox:RetryDelaySeconds` / `Outbox:MaxRetryDelaySeconds` | `5` / `300` | 首次失败后的重试间隔（之后每次翻倍）与上限 |
 | `Outbox:DispatchedRetentionSeconds` | `86400` | 投递成功的行保留多久，0 为成功即删除；死信行不自动删 |
+| `Outbox:IncludeShards` | `false`（框架缺省 `true`） | 是否也逐个轮询租户独立库里的发件箱；SqlSugar 把发件箱行留在平台库，BasicApp 关掉以省去每个独立库一轮的多余查询 |
+| `Outbox:ShardRefreshIntervalSeconds` | `60` | 独立库清单多久从租户目录重读一次，`IncludeShards` 打开时才用到 |
 | `RabbitMQ:Configuration` | 不写 | AMQP URI（`amqp://` 或 `amqps://`）；绑定 `queue` 优先 |
 | `RabbitMQ:Exchange` | `xihan` | 发布用的持久 direct 交换机；不能为空、不能以 `amq.` 开头，已有同名但不是持久 direct 的交换机即启动失败 |
 | `RabbitMQ:QueuePrefix` | `xihan.` | 订阅方声明持久队列 `<前缀><主题>`；没人订阅的主题发布即丢弃，不堆积 |
@@ -192,7 +194,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `SignedUrls:Secret` | 空 | 本地存储签名下载地址（宿主 `/blobs` 端点）的 HMAC-SHA256 密钥，UTF-8 至少 32 字节，多实例必须一致；缺失或太短启动即失败。S3 兼容存储由存储自己签名，不用它 |
 | `SignedUrls:BaseUrl` | `/blobs` | 地址前缀：以 `/` 开头的路径，或不带查询串的绝对 http(s) 地址 |
 | `FileSystem:RootPath` | 程序目录下的 `blobs` | 框架缺省的文件系统存储；业务不用它，只是启动时会建出这个目录 |
-| `FileSystem:MaxTotalBytes` / `MaxBlobBytes` / `MultipartExpiryHours` | 1 GiB / 256 MiB / `168` | 同上，总字节、单个对象字节与未完成分片的保留时长 |
+| `FileSystem:MaxTotalBytes` / `MaxBlobBytes` / `MultipartExpiryHours` / `MaxMultipartUploads` | 1 GiB / 256 MiB / `168` / `1000` | 同上，总字节（暂存的分片也计入）、单个对象字节、未完成分片的保留时长（过期即拒绝）与未完成分片上传数的上限 |
 | `Stores:<名>` | 不写 | 命名存储实例（`filesystem` 或 `s3`）；业务不按名取用，不要用 `local` 与 `storage-*` 这两类名字 |
 
 ## `XiHan:Security`
@@ -248,6 +250,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `ValidateAgainstStore` | `true` | 解析出的租户必须在租户目录里存在且启用；关掉后只校验格式 |
 | `TenantClaim` | `tenant` | 令牌里承载租户 ID 的声明 |
 | `ShardCacheSize` | `10000` | 租户分库解析的缓存容量（租户数），满时整体清空 |
+| `ShardCacheTimeToLiveSeconds` | `30` | 租户分库解析缓存条目的存活时间，别的实例改了独立库连接最迟这么久后本实例换用新库；0 为不过期 |
 | `DefaultTenant` | 不写 | BasicApp 不用：配了会把平台调用落到这个租户上 |
 | `Database:CacheSize` / `Database:CacheTimeToLiveSeconds` | `10000` / `30` | 租户目录缓存的容量与存活时间 |
 | `Database:MaxListedTenants` | `10000` | 列出租户时返回的上限，超出不返回并记警告 |
@@ -310,6 +313,9 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `RetentionDays` | `0` | 已结束实例的保留天数（可带小数），0 为不自动清理 |
 | `HousekeepingIntervalSeconds` | `3600` | 按保留期清理的周期 |
 | `HttpTimeoutSeconds` | `30` | `Http` 活动的缺省超时 |
+| `MaxHttpTimeoutSeconds` | `300` | 流程定义里 `Http` 活动 `TimeoutSeconds` 的上限 |
+| `MaxForEachItems` | `1000` | `ForEach` 一次最多处理的项数（每项一个子实例），超过即节点故障 |
+| `MaxVariablesBytes` | `8388608`（8 MiB） | 一个实例的变量序列化后的字节数上限 |
 | `Database:PollIntervalSeconds` | `1` | 到期书签（延时、超时、重试）的轮询周期 |
 | `Database:BatchSize` | `100` | 每次轮询最多恢复的书签数 |
 | `Database:LockLeaseSeconds` | `60` | 实例锁与轮询领导权的租约时长，每三分之一续约一次 |
@@ -357,15 +363,20 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | --- | --- | --- |
 | `Http:RoutePrefix` | `/api` | 操作路由前缀；前端与开放接口都按它调用，不要改 |
 | `Http:Routes:<操作 ID>` | 不写 | 覆盖推导出的路由（`METHOD /模板`）；前端按约定路由调用，改了要同步 |
+| `Http:MaxRequestBodyBytes` | `4194304`（4 MiB） | 操作请求体的上限，超过为 `PROTOCOLS_VALIDATION_011`；只管操作端点，文件上传等普通端点照 Kestrel 的限制。开放接口同样受它限制，`BasicApp:OpenPlatform:MaxRequestBodyBytes` 调到 4 MiB 以上时这里要一起调 |
 | `Grpc:Package` | `xihan.basicapp` | protobuf 包名，也是服务路径前缀（`/xihan.basicapp.Users/Get`） |
 | `Grpc:Methods:<操作 ID>` | 不写 | 覆盖 gRPC 方法名（`Service/Method`） |
 | `Mcp:ServerName` | `XiHan.BasicApp` | MCP `initialize` 答复里的服务端名 |
 | `Mcp:ServerVersion` / `Mcp:Instructions` | 不写 | 服务端版本（缺省框架版本）与给客户端模型的使用说明 |
 | `Mcp:Tools:<操作 ID>` | 不写 | 覆盖 MCP 工具名 |
+| `Mcp:AllowedOrigins:<序号>` | 不写 | HTTP 入口允许的浏览器源（`scheme://host[:port]`）；请求带的 `Origin` 不在其中即 403 `PROTOCOLS_DENIED_001`，不带 `Origin` 的客户端不受影响，浏览器里的 MCP 客户端要把它的源配进来 |
+| `Mcp:MaxRequestBodyBytes` | `4194304`（4 MiB） | HTTP 入口的请求体上限，超过即 413；另外只收 `application/json`，否则 415 |
 | `CloudEvents:Inbound` | `Dispatch` | `Dispatch` 在请求内派发给主题的处理器、处理器的结果即响应；`Publish` 发布到消息代理后立即 202 |
 | `CloudEvents:Outbound` | `Binary` | 出站 Webhook 的内容模式：`Binary` 或 `Structured` |
 | `CloudEvents:PropagateTraceContext` | `false` | 出站 Webhook 是否在 HTTP 头里写追踪上下文 |
-| `CloudEvents:Topics:<事件类型>` | 不写 | 入站事件类型到主题的映射；没写时事件类型本身须是合法主题 |
+| `CloudEvents:Topics:<事件类型>` | 不写 | 入站事件类型到主题的映射；`AcceptUnmappedTypes` 为 `false` 时没映射的类型一律 400 `PROTOCOLS_VALIDATION_009` |
+| `CloudEvents:AcceptUnmappedTypes` | `false` | 入站是否接受没映射的事件类型（以类型本身为主题）；缺省只收映射过的，发送方不能投进任意有订阅的主题 |
+| `CloudEvents:MaxRequestBodyBytes` / `CloudEvents:MaxBatchSize` | `1048576`（1 MiB）/ `100` | 入站请求体的字节上限（`PROTOCOLS_VALIDATION_013`）与 batch 的事件数上限（`PROTOCOLS_VALIDATION_014`） |
 | `CloudEvents:Webhooks:<主题>` | 不写 | 主题对应的出站 Webhook 地址 |
 
 入站端点是否映射由 [`BasicApp:CloudEvents`](#basicapp-cloudevents) 决定。
@@ -457,7 +468,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 端点只收持有权限码 `runtime.cloud-events.deliver`（「投递 CloudEvents 事件」，只在平台一侧）的调用方，认证用同一套 JWT。这个码只授给平台的服务账号或服务角色：在角色管理里给平台侧的服务角色授予它，再把服务账号指派进去；普通用户投递即 403 `SECURITY_DENIED_004`，持 `*` 的租户管理员也调不了。端点与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。
 
-登记了处理器的主题都是应用内部事件（断开连接、部门归属变更、工作流的任务与故障），其余主题在派发模式下是 404 `PROTOCOLS_NOTFOUND_003`。主题映射、入站方式与出站 Webhook 见 [`XiHan:Protocols`](#xihan-protocols) 的 `CloudEvents:*`。
+入站只收在 `XiHan:Protocols:CloudEvents:Topics` 映射过的事件类型，没映射的是 400 `PROTOCOLS_VALIDATION_009`。登记了处理器的主题都是应用内部事件（断开连接、部门归属变更、工作流的任务与故障），映射到其余主题的事件在派发模式下是 404 `PROTOCOLS_NOTFOUND_003`。主题映射、入站方式与出站 Webhook 见 [`XiHan:Protocols`](#xihan-protocols) 的 `CloudEvents:*`。
 
 ## `BasicApp:DataProtection`
 

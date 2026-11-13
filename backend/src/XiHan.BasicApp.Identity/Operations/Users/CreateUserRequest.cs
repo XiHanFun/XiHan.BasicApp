@@ -31,7 +31,7 @@ public sealed record CreateUserRequest(
     [StringLength(256)] string? Email = null,
     [StringLength(32)] string? PhoneNumber = null,
     [StringLength(128, MinimumLength = 8)] string? Password = null,
-    [RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? HomeTenantId = null,
+    [RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string? HomeTenantId = null,
     [StringLength(50)] string? RealName = null,
     UserGender? Gender = null,
     DateTimeOffset? Birthday = null,

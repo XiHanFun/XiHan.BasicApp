@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="PageIndex">页码，1 到 100000</param>
 /// <param name="PageSize">页大小，1 到 100</param>
 public sealed record ImpersonationCandidatesRequest(
-    [RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? TenantId = null,
+    [RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string? TenantId = null,
     [StringLength(64)] string? Keyword = null,
     [Range(1, PageInfo.MaxIndex)] int PageIndex = 1,
     [Range(1, 100)] int PageSize = PageInfo.DefaultSize);

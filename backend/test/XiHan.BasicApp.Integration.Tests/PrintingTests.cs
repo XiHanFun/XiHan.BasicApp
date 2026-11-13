@@ -41,10 +41,10 @@ public sealed class PrintingTests : IDisposable
         var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, settings: settings);
         await server.SeedDefaultsAsync();
         await server.SeedAsync([], [
-            .. PrintingPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole(Admin), p.Code)),
-            .. PrintingPermissions.All.Where(static p => p.Code != PrintingPermissions.PrintTemplatesGlobalManage).Select(static p => new PermissionGrant(GrantSubject.ForRole(Writer), p.Code)),
-            new PermissionGrant(GrantSubject.ForRole(User), PrintingPermissions.PrintTemplatesUse),
-            new PermissionGrant(GrantSubject.ForRole(Reader), PrintingPermissions.PrintTemplatesRead),
+            .. PrintingPermissions.All.SelectMany(static p => TestGrants.BothSides(GrantSubject.ForRole(Admin), p.Code)),
+            .. PrintingPermissions.All.Where(static p => p.Code != PrintingPermissions.PrintTemplatesGlobalManage).SelectMany(static p => TestGrants.BothSides(GrantSubject.ForRole(Writer), p.Code)),
+            TestGrants.AnyTenant(GrantSubject.ForRole(User), PrintingPermissions.PrintTemplatesUse),
+            TestGrants.AnyTenant(GrantSubject.ForRole(Reader), PrintingPermissions.PrintTemplatesRead),
         ]);
         return server;
     }

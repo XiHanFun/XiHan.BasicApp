@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// <param name="EffectiveAt">生效时间（UTC）；为空即加入即生效</param>
 /// <param name="ExpiresAt">到期时间（UTC）；为空即不到期，须晚于生效时间</param>
 public sealed record AddTenantMemberRequest(
-    [Required, RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string TenantId,
+    [Required, RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string TenantId,
     Guid UserId,
     TenantMemberType MemberType = TenantMemberType.Member,
     DateTimeOffset? EffectiveAt = null,

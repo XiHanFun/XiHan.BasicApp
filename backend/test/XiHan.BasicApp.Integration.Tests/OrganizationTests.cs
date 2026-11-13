@@ -25,8 +25,8 @@ public sealed class OrganizationTests : IDisposable
     {
         var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
         await server.SeedDefaultsAsync();
-        // acme 的 admin 角色拿到组织全部权限；平台角色 root 拿到 *（用来验证「只在租户侧」是操作自己的第二道闸）
-        await server.SeedAsync([], [.. OrganizationPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole("admin"), p.Code)), new PermissionGrant(GrantSubject.ForRole("root"), PermissionGrant.All)]);
+        // 租户里的 admin 角色拿到组织全部权限；平台角色 root 拿到 *（用来验证「只在租户侧」是操作自己的第二道闸）
+        await server.SeedAsync([], [.. OrganizationPermissions.All.Select(static p => TestGrants.AnyTenant(GrantSubject.ForRole("admin"), p.Code)), new PermissionGrant(GrantSubject.ForRole("root"), PermissionGrant.All)]);
         return server;
     }
 

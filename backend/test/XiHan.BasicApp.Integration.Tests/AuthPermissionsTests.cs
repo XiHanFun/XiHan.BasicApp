@@ -126,7 +126,7 @@ public sealed class AuthPermissionsTests : IDisposable
     public async Task ExternalToken_IsResolvedByItsRoleClaims_WithinItsTenant()
     {
         await using var server = await StartAsync();
-        // 测试令牌的 role 声明是字符串角色名，与种子的全局授予（identity.users.read / create）对接
+        // 测试令牌的 role 声明是字符串角色名，与缺省测试数据里每个租户的授予（identity.users.read / create）对接
         var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: TestTokens.Issue("alice", "acme", "admin")));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.False(body.GetProperty("isPlatform").GetBoolean());

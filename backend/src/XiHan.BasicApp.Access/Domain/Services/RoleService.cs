@@ -46,7 +46,7 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 角色授予行的租户列：平台角色是全局行（<see langword="null"/>），租户角色是该租户
+    /// 角色授予行的租户列：平台角色是平台授予（<see langword="null"/>），租户角色是该租户
     /// </summary>
     public static string? GrantTenantOf(SysRole role)
     {

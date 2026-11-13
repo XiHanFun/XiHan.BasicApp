@@ -16,5 +16,5 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="Reason">事由，可空</param>
 public sealed record StartImpersonationRequest(
     Guid TargetUserId,
-    [RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? TenantId = null,
+    [RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string? TenantId = null,
     [StringLength(256)] string? Reason = null);

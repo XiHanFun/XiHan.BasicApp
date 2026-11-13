@@ -12,4 +12,4 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// 目标租户；为空即回到平台（只有平台账号可以）
 /// </remarks>
 /// <param name="TenantId">目标租户 ID；不填或填 <c>platform</c> 即平台</param>
-public sealed record SwitchTenantRequest([RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? TenantId = null);
+public sealed record SwitchTenantRequest([RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string? TenantId = null);

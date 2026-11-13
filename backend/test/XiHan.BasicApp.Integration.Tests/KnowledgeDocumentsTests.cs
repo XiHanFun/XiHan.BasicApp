@@ -57,8 +57,8 @@ public sealed class KnowledgeDocumentsTests : IDisposable
             });
         await server.SeedDefaultsAsync(acmeProperties);
         await server.SeedAsync([], [
-            .. AIPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole(Admin), p.Code)),
-            new PermissionGrant(GrantSubject.ForRole(Reader), AIPermissions.KnowledgeDocumentsRead),
+            .. AIPermissions.All.SelectMany(static p => TestGrants.BothSides(GrantSubject.ForRole(Admin), p.Code)),
+            TestGrants.AnyTenant(GrantSubject.ForRole(Reader), AIPermissions.KnowledgeDocumentsRead),
         ]);
         var (provider, body) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", Json(new { code = ProviderCode, name = "Embedder", vendor = "OpenAI", chatModel = "chat-a", embeddingModel = "embed-a", endpoint = FakeOpenAIHandler.Endpoint, apiKey = "test-key", isDefault = true, maxOutputTokens = 256, temperature = 0.25 }), Platform());
         Assert.True(provider.StatusCode == HttpStatusCode.Created, body.GetRawText());
@@ -88,12 +88,6 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         return [.. body.GetProperty("citations").EnumerateArray()];
     }
 
-    private static async Task<Dictionary<string, string>> HealthAsync(BasicAppTestServer server)
-    {
-        var (_, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/health/ready"));
-        return body.GetProperty("contributions").EnumerateArray().ToDictionary(static c => c.GetProperty("id").GetString()!, static c => c.GetProperty("state").GetString()!, StringComparer.Ordinal);
-    }
-
     private static async Task<List<string>> ListTitlesAsync(BasicAppTestServer server, string token)
     {
         var (response, body) = await SendAsync(server, HttpMethod.Post, "/api/knowledge-documents:list", """{"page":{"index":1,"size":100}}""", token);
@@ -108,7 +102,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         var token = Platform();
 
         // 装了向量库，框架的知识库 Provider 自带健康项
-        Assert.Contains("ai.vectordata.store", (await HealthAsync(server)).Keys);
+        Assert.Contains("ai.vectordata.store", server.HealthStates().Keys);
         var document = await IngestAsync(server, token, "  Handbook  ", "  The refund window is thirty days.  ", source: "handbook.md");
         var id = document.GetProperty("id").GetString()!;
         Assert.Equal("Indexed", document.GetProperty("status").GetString());
@@ -301,7 +295,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
     {
         await using var server = await StartAsync(vectorStore: false);
         var token = Platform();
-        Assert.DoesNotContain("ai.vectordata.store", (await HealthAsync(server)).Keys);
+        Assert.DoesNotContain("ai.vectordata.store", server.HealthStates().Keys);
         var document = await IngestAsync(server, token, "No store", "There is no vector store.");
         Assert.Equal("Failed", document.GetProperty("status").GetString());
         Assert.Equal("AI_UNAVAILABLE_002", document.GetProperty("errorCode").GetString());
@@ -404,7 +398,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
             new("BasicApp:AI:Qdrant:Https", (uri.Scheme == Uri.UriSchemeHttps).ToString()),
         ]);
 
-        Assert.Contains("ai.vectordata.store", (await HealthAsync(server)).Keys);
+        Assert.Contains("ai.vectordata.store", server.HealthStates().Keys);
 
         // 集合名是固定的：用一次性的标记区分这一轮的文档，结束时删掉
         var marker = Guid.CreateVersion7().ToString("N");

@@ -63,7 +63,7 @@ public sealed class DistributedProvidersTests : IDisposable
         Assert.IsType<InMemoryMessageBroker>(server.Services.GetRequiredService<IMessageBroker>());
         Assert.IsType<DatabaseMessageLocalizer>(server.Services.GetRequiredService<IMessageLocalizer>());
 
-        var health = await HealthAsync(server);
+        var health = server.HealthStates();
         Assert.DoesNotContain(RedisCachingFeature.HealthName, health.Keys);
         Assert.DoesNotContain(RabbitMQMessagingFeature.HealthName, health.Keys);
         Assert.Contains(DatabaseLocalizationFeature.HealthName, health.Keys);
@@ -98,7 +98,8 @@ public sealed class DistributedProvidersTests : IDisposable
         var received = new ConcurrentQueue<MessageDelivery>();
         await using var server = await BasicAppTestServer.StartAsync(
             _first.ConnectionString,
-            settings: [new($"{CloudEventsSettings.ConfigurationSection}:Enabled", "true")],
+            // 入站只收映射过的事件类型：事件类型映射到同名主题
+            settings: [new($"{CloudEventsSettings.ConfigurationSection}:Enabled", "true"), new($"XiHan:Protocols:CloudEvents:Topics:{Topic}", Topic)],
             configure: builder => builder.Services.AddSingleton(received).AddMessageHandler<RecordingHandler>(Topic));
 
         // 入站权限码只授给平台的服务角色
@@ -131,7 +132,7 @@ public sealed class DistributedProvidersTests : IDisposable
         {
             Assert.NotNull(server.Services.GetService<RedisCacheStore>());
             Assert.IsType<HybridObjectCache>(server.Services.GetRequiredService<ICache>());
-            await EventuallyAsync(async () => (await HealthAsync(server)).GetValueOrDefault(RedisCachingFeature.HealthName) == "Ready");
+            await EventuallyAsync(() => Task.FromResult(server.HealthStates().GetValueOrDefault(RedisCachingFeature.HealthName) == "Ready"));
         }
 
         // 一个实例写、另一个实例读，值落在 Redis 里（带键前缀）
@@ -165,7 +166,7 @@ public sealed class DistributedProvidersTests : IDisposable
         foreach (var server in new[] { publisher, consumer })
         {
             Assert.IsType<RabbitMQMessageBroker>(server.Services.GetRequiredService<IMessageBroker>());
-            await EventuallyAsync(async () => (await HealthAsync(server)).GetValueOrDefault(RabbitMQMessagingFeature.HealthName) == "Ready");
+            await EventuallyAsync(() => Task.FromResult(server.HealthStates().GetValueOrDefault(RabbitMQMessagingFeature.HealthName) == "Ready"));
         }
 
         // 调用里发布的先进发件箱、随调用提交，再由发件箱的后台循环经 RabbitMQ 发出；调用之外的直接发给代理
@@ -184,12 +185,6 @@ public sealed class DistributedProvidersTests : IDisposable
         var value = Environment.GetEnvironmentVariable(variable);
         Assert.SkipWhen(string.IsNullOrWhiteSpace(value), $"{variable} is not set; this case only runs against a real server.");
         return value!;
-    }
-
-    private static async Task<Dictionary<string, string>> HealthAsync(BasicAppTestServer server)
-    {
-        var (_, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/health/ready"));
-        return body.GetProperty("contributions").EnumerateArray().ToDictionary(static c => c.GetProperty("id").GetString()!, static c => c.GetProperty("state").GetString()!, StringComparer.Ordinal);
     }
 
     private static async Task<string> LoginFailureAsync(BasicAppTestServer server, string locale)

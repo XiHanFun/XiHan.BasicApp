@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 public sealed record LoginRequest(
     [Required, StringLength(64, MinimumLength = 1)] string UserName,
     [Required, StringLength(128, MinimumLength = 1)] string Password,
-    [RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string? Tenant = null,
+    [RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string? Tenant = null,
     [StringLength(64)] string? CaptchaId = null,
     [StringLength(16)] string? CaptchaCode = null);

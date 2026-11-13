@@ -158,7 +158,7 @@ public sealed class SecurityBoundaryTests : IDisposable
         var received = new ConcurrentQueue<string?>();
         await using var server = await BasicAppTestServer.StartAsync(
             _database.ConnectionString,
-            settings: [new($"{CloudEventsSettings.ConfigurationSection}:Enabled", "true")],
+            settings: [new($"{CloudEventsSettings.ConfigurationSection}:Enabled", "true"), new($"XiHan:Protocols:CloudEvents:Topics:{topic}", topic)],
             configure: builder => builder.Services.AddSingleton(received).AddMessageHandler<TenantRecordingHandler>(topic));
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();

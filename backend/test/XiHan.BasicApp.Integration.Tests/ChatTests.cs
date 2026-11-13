@@ -471,7 +471,7 @@ public sealed class ChatTests : IDisposable
     /// 起宿主并建好用户
     /// </summary>
     /// <remarks>
-    /// 租户 acme 与 globex，角色 chatter 持聊天的全部权限，organizer 持组织的部门与归属；acme 建 alice、bob、carol、dave，globex 建 erin，真实用户按用户授予聊天权限
+    /// 租户 acme 与 globex，角色 chatter 在平台与每个租户持聊天的全部权限，organizer 在每个租户持组织的部门与归属；acme 建 alice、bob、carol、dave，globex 建 erin，真实用户按用户授予聊天权限
     /// </remarks>
     private async Task<(BasicAppTestServer Server, Dictionary<string, string> Users)> StartAsync()
     {
@@ -479,11 +479,11 @@ public sealed class ChatTests : IDisposable
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
         await server.SeedAsync([], [
-            .. ChatPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole(Chatter), p.Code)),
-            new PermissionGrant(GrantSubject.ForRole(Chatter), "identity.users.create"),
-            new PermissionGrant(GrantSubject.ForRole(Organizer), OrganizationPermissions.DepartmentsCreate),
-            new PermissionGrant(GrantSubject.ForRole(Organizer), OrganizationPermissions.MembershipsCreate),
-            new PermissionGrant(GrantSubject.ForRole(Organizer), OrganizationPermissions.MembershipsDelete),
+            .. ChatPermissions.All.SelectMany(static p => TestGrants.BothSides(GrantSubject.ForRole(Chatter), p.Code)),
+            .. TestGrants.BothSides(GrantSubject.ForRole(Chatter), "identity.users.create"),
+            TestGrants.AnyTenant(GrantSubject.ForRole(Organizer), OrganizationPermissions.DepartmentsCreate),
+            TestGrants.AnyTenant(GrantSubject.ForRole(Organizer), OrganizationPermissions.MembershipsCreate),
+            TestGrants.AnyTenant(GrantSubject.ForRole(Organizer), OrganizationPermissions.MembershipsDelete),
         ]);
         var users = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (name, tenant) in new[] { ("alice", "acme"), ("bob", "acme"), ("carol", "acme"), ("dave", "acme"), ("erin", "globex") })
@@ -493,8 +493,8 @@ public sealed class ChatTests : IDisposable
             users[name] = user.GetProperty("id").GetString()!;
         }
 
-        // 真实用户按用户授予（令牌里的角色不替真实用户授权）
-        await server.SeedAsync([], [.. users.Values.SelectMany(static id => ChatPermissions.All.Select(p => new PermissionGrant(GrantSubject.ForUser(id), p.Code)))]);
+        // 真实用户按用户在所属租户授予（令牌里的角色不替真实用户授权）
+        await server.SeedAsync([], [.. users.Values.SelectMany(static id => ChatPermissions.All.Select(p => TestGrants.AnyTenant(GrantSubject.ForUser(id), p.Code)))]);
         return (server, users);
     }
 

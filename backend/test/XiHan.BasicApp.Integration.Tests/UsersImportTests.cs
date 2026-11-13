@@ -60,10 +60,10 @@ public sealed class UsersImportTests : IDisposable
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
         await server.SeedDefaultsAsync();
         await server.SeedAsync([], [
-            .. OrganizationPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole("admin"), p.Code)),
-            new PermissionGrant(GrantSubject.ForRole("admin"), "access.roles.read"),
-            new PermissionGrant(GrantSubject.ForRole("admin"), "access.roles.create"),
-            new PermissionGrant(GrantSubject.ForRole("admin"), "access.roles.assign"),
+            .. OrganizationPermissions.All.Select(static p => TestGrants.AnyTenant(GrantSubject.ForRole("admin"), p.Code)),
+            TestGrants.AnyTenant(GrantSubject.ForRole("admin"), "access.roles.read"),
+            TestGrants.AnyTenant(GrantSubject.ForRole("admin"), "access.roles.create"),
+            TestGrants.AnyTenant(GrantSubject.ForRole("admin"), "access.roles.assign"),
         ]);
         var acme = TestTokens.Issue("alice", "acme", "admin");
         var rd = await CreateAsync(server, acme, "/api/departments", new { code = "rd", name = "R&D" });
@@ -120,10 +120,10 @@ public sealed class UsersImportTests : IDisposable
     {
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
         await server.SeedDefaultsAsync();
-        await server.SeedAsync([], [.. OrganizationPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole("admin"), p.Code))]);
+        await server.SeedAsync([], [.. OrganizationPermissions.All.Select(static p => TestGrants.AnyTenant(GrantSubject.ForRole("admin"), p.Code))]);
         var admin = TestTokens.Issue("alice", "acme", "admin");
         await CreateAsync(server, admin, "/api/departments", new { code = "rd", name = "R&D" });
-        await server.SeedAsync([], [new PermissionGrant(GrantSubject.ForRole("creator"), "identity.users.create")]);
+        await server.SeedAsync([], [TestGrants.AnyTenant(GrantSubject.ForRole("creator"), "identity.users.create")]);
         var creator = TestTokens.Issue("ivan", "acme", "creator");
 
         var (department, departmentBody) = await ImportAsync(server, creator, [new { userName = "judy", displayName = "Judy" }, new { userName = "kim", displayName = "Kim", departmentCode = "rd" }]);

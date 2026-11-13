@@ -110,7 +110,7 @@ public sealed class UsersManagementTests : IDisposable
     public async Task TenantAdmin_OnlyManagesItsOwnTenant()
     {
         await using var server = await StartAsync();
-        await server.SeedAsync([], [new PermissionGrant(GrantSubject.ForRole("admin"), "identity.users.update"), new PermissionGrant(GrantSubject.ForRole("admin"), "identity.users.lock")]);
+        await server.SeedAsync([], [TestGrants.AnyTenant(GrantSubject.ForRole("admin"), "identity.users.update"), TestGrants.AnyTenant(GrantSubject.ForRole("admin"), "identity.users.lock")]);
         var acme = TestTokens.Issue("alice", "acme", "admin");
         var globex = TestTokens.Issue("carol", "globex", "admin");
         var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"dave","displayName":"Dave"}""", globex));

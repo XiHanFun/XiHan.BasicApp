@@ -5405,7 +5405,7 @@
                       "string",
                       "null"
                     ],
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
                   },
                   "captchaId": {
                     "description": "\u56FE\u5F62\u9A8C\u8BC1\u7801\u6807\u8BC6",
@@ -6628,7 +6628,7 @@
                       "string",
                       "null"
                     ],
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
                   }
                 }
               }
@@ -27090,7 +27090,7 @@
                 "string",
                 "null"
               ],
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
             }
           },
           {
@@ -27211,7 +27211,7 @@
                       "string",
                       "null"
                     ],
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
                   },
                   "reason": {
                     "description": "\u4E8B\u7531\uFF0C\u53EF\u7A7A",
@@ -54923,7 +54923,7 @@
               "description": "\u79DF\u6237 ID\uFF08\u76EE\u5F55\u952E\uFF09",
               "type": "string",
               "minLength": 1,
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
             }
           }
         ],
@@ -54988,7 +54988,7 @@
                     "description": "\u79DF\u6237 ID\uFF08\u76EE\u5F55\u952E\uFF09",
                     "type": "string",
                     "minLength": 1,
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
                   },
                   "userId": {
                     "description": "\u7528\u6237 ID\uFF1B\u6CE8\u518C\u5730\u4E0D\u80FD\u5C31\u662F\u8BE5\u79DF\u6237\uFF08\u6CE8\u518C\u5730\u7528\u6237\u5929\u7136\u53EF\u8FDB\u5165\uFF09",
@@ -55209,7 +55209,7 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 64,
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
                   },
                   "name": {
                     "description": "\u540D\u79F0\uFF1A1 \u5230 128 \u4E2A\u5B57\u7B26",
@@ -58148,7 +58148,7 @@
                       "string",
                       "null"
                     ],
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
                   },
                   "realName": {
                     "description": "\u771F\u5B9E\u59D3\u540D\uFF0C\u53EF\u7A7A",
