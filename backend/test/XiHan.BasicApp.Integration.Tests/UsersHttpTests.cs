@@ -3,6 +3,7 @@
 
 using System.Net;
 using System.Text.Json;
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -161,7 +162,8 @@ public sealed class UsersHttpTests : IDisposable
         await using var server = await StartAsync();
         var (response, document) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/openapi.json", acceptLanguage: "en-US"));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("6.0.0-preview.1", document.GetProperty("info").GetProperty("version").GetString());
+        // 文档版本是应用版本（Directory.Build.props 的 Version），不写死，发版改版本号时不用跟着改
+        Assert.Equal(AppInfo.Version, document.GetProperty("info").GetProperty("version").GetString());
         Assert.Equal("identity.users.create", document.GetProperty("paths").GetProperty("/api/users").GetProperty("post").GetProperty("x-xihan-permission").GetString());
         Assert.True(document.GetProperty("components").GetProperty("x-xihan-permissions").TryGetProperty("identity.users.read", out _));
         Assert.True(document.GetProperty("components").GetProperty("securitySchemes").TryGetProperty("bearer", out _));

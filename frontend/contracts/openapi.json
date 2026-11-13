@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "XiHan.BasicApp",
-    "version": "6.0.0-preview.1"
+    "version": "6.0.0-preview.2"
   },
   "tags": [
     {
