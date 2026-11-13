@@ -8,7 +8,7 @@ XiHan.BasicApp 后端（方案第 4、5 节）：基于 XiHan.Framework，能力
 backend/
 ├─ XiHanFun.Local.slnx              另登记同级 XiHan.Framework/framework/src 的工程，以源码联调框架
 ├─ XiHan.BasicApp.slnx
-├─ Directory.Build.props            版本 6.0.0-preview.1、Nullable、警告即错误、文档文件
+├─ Directory.Build.props            版本号、Nullable、警告即错误、文档文件
 ├─ Directory.Packages.props         中央包版本
 ├─ Directory.Build.targets          XiHanFrameworkReference / XiHanFrameworkAnalyzer 项 → ProjectReference 或 PackageReference
 ├─ props/framework.props            XiHan.BasicApp.slnx 用 NuGet 包（XiHanFrameworkPackageVersion），XiHanFun.Local.slnx 用同级源码（锁定 XiHanFrameworkCommit）

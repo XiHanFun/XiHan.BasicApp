@@ -2,22 +2,49 @@
 
 本页记录各版本中使用者与运维可感知的变化，每条标注 **新增 / 修复 / 优化 / 调整** 类别，适用于评估与升级版本的读者；仓库自身的 CI、测试与构建脚本不列入。
 
-## 未发布
+## v6.0.0-preview.2 (2026-11-13)
 
-- **调整** 后端升到 XiHan.Framework 5.0.0-rc.1
-- **修复** 平台一侧的授予（含超级管理员的 `*`）不再在租户里生效：平台账号切换进租户后只按该租户的角色与授予判定
-- **调整** 租户 ID 只用小写字母、数字与 `._-`（`^[a-z0-9][a-z0-9._-]{0,63}$`），新建租户、登录、切换租户、成员与模仿登录里填大写的直接校验失败；删除的租户 ID 不能再新建（框架在租户目录里留下删除标记，`tenant_record` 加 `is_deleted`、`deleted_at` 两列，已含在 6.0.0 基线里，之前按预览版建的库要重建）
-- **调整** 健康探针 `/health/startup`、`/health/ready`、`/health/live` 只给总状态，不再列出各 Feature 与健康项；详情看服务监控（`maintenance.server.read`）
-- **调整** 操作请求体上限 4 MiB（`XiHan:Protocols:Http:MaxRequestBodyBytes`）；MCP 入口校验 `Origin`（浏览器里的客户端要配 `XiHan:Protocols:Mcp:AllowedOrigins`）、只收 `application/json`；CloudEvents 入站只收 `XiHan:Protocols:CloudEvents:Topics` 映射过的事件类型，请求体与 batch 条数有上限（见[配置参考](./configuration#xihan-protocols)）
-- **调整** 后端以 NuGet 包引用 XiHan.Framework（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
+::: warning 预览须知
+- 这是预览版，正式版前接口、配置与表结构仍可能调整。
+- 后端依赖 XiHan.Framework 5.0.0-rc.1，前端依赖 XiHan.UI 5.5.2。
+- **按 preview.1 建的库要新建**：6.0.0 基线的 `tenant_record` 加了 `is_deleted`、`deleted_at` 两列，台账里已是 6.0.0 的库不会再执行基线，启动读租户目录时即失败。开发环境删掉库直接启动即可（自动建库、建表、播种）。
+- 系统参数 `identity.login-methods` 改为方式名的 JSON 数组（如 `["password","passkey"]`），原来逗号分隔的写法不再认。
+- 租户 ID 只收小写；不带租户的授予只对平台调用生效，平台账号切换进租户后不再带着平台的权限（超级管理员的 `*` 也一样）。
+:::
+
+### 新增
+
+- **新增** 通行密钥（Passkey）登录：个人中心「安全设置」先核对密码再登记，登录页不填账号即可用指纹、面容或设备密码登录；宿主配了 `XiHan:Security:WebAuthn` 的依赖方 ID 与来源、系统参数 `identity.login-methods` 列出 `passkey` 才开放（见[认证](./backend/authentication)）
+- **新增** 内建参数：各包代码读取的系统参数（登录方式、密码策略、模仿登录、聊天策略、日志保留天数等）都由种子 `settings.configs` 建成平台的内建参数，名称、分组、类型、缺省值与说明随版本对齐，值归运营；内建参数不能删、不能改数据类型（见[参数与字典](./backend/settings)）
+- **新增** 用户批量导入（`users.import`，用新建用户的权限）：用户页导入 CSV，这批用户共用导入弹窗里的初始密码并标记为须改密；每行按新建用户的规则校验，可一并加入部门（租户侧，要有加入部门的权限）、指派角色（要有指派角色的权限，照常过约束规则），有问题的行列出原因、其余照常导入
+- **新增** 约束规则的「需审批」接上审批：管理员给用户指派角色或直授权限触犯它时，替该用户发起授权申请（结果里提示「已转审批」），审批通过后按原内容生效并在权限变更日志里记下批准的申请；拒绝类照旧拦下；别的变更没有审批的载体，按拒绝处理；动态职责分离的规则不能选需审批。流程变量 `constraintRule` 带上规则编码，流程定义可以据此路由
+- **新增** 列表页提交到导出中心时可选 Excel（XLSX）：导出菜单分 CSV 与 Excel 两组，各有查询结果、当前页、全部三档
+- **新增** 用户的「所属部门」可直接设主部门（行操作「更多」菜单里的「设为主部门」，原主部门随之取消）；加入部门时已加入的部门不能再选（[#55](https://github.com/XiHanFun/XiHan.BasicApp/issues/55)）
 - **新增** `BasicApp:Schema:CreateDatabase`：升级前平台库不存在时先建库，缺省关，开发环境打开，首次运行不用先手工建库
 - **新增** `BasicApp:Seed:RunOnStartup`：应用启动后执行一遍种子，缺省关，开发环境打开，首次运行即可用 `superadmin` 登录
-- **新增** 用户批量导入（`users.import`，用新建用户的权限）：用户页导入 CSV，这批用户共用导入弹窗里的初始密码并标记为须改密；每行按新建用户的规则校验，可一并加入部门（租户侧，要有加入部门的权限）、指派角色（要有指派角色的权限，照常过约束规则），有问题的行列出原因、其余照常导入
-- **修复** 导入弹窗错误明细表的列与表头对不齐
-- **新增** 约束规则的「需审批」接上审批：管理员给用户指派角色或直授权限触犯它时，替该用户发起授权申请（结果里提示「已转审批」），审批通过后按原内容生效并在权限变更日志里记下批准的申请；拒绝类照旧拦下；别的变更没有审批的载体，按拒绝处理；动态职责分离的规则不能选需审批。流程变量 `constraintRule` 带上规则编码，流程定义可以据此路由
+
+### 调整
+
+- **调整** 后端升到 XiHan.Framework 5.0.0-rc.1，并以 NuGet 包引用（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
+- **调整** 系统参数 `identity.login-methods` 改为方式名的 JSON 数组（可写 `password`、`email`、`phone`、`passkey`），缺省 `["password"]`
+- **调整** 租户 ID 只用小写字母、数字与 `._-`（`^[a-z0-9][a-z0-9._-]{0,63}$`），新建租户、登录、切换租户、成员与模仿登录里填大写的直接校验失败；删除的租户 ID 不能再新建（框架在租户目录里留下删除标记）
+- **调整** 健康探针 `/health/startup`、`/health/ready`、`/health/live` 只给总状态，不再列出各 Feature 与健康项；详情看服务监控（`maintenance.server.read`）
+- **调整** 操作请求体上限 4 MiB（`XiHan:Protocols:Http:MaxRequestBodyBytes`）；MCP 入口校验 `Origin`（浏览器里的客户端要配 `XiHan:Protocols:Mcp:AllowedOrigins`）、只收 `application/json`；CloudEvents 入站只收 `XiHan:Protocols:CloudEvents:Topics` 映射过的事件类型，请求体与 batch 条数有上限（见[配置参考](./configuration#xihan-protocols)）
+- **调整** 种子写入的套餐、参数、字典、菜单与访问策略预置模板等的名称与说明改用中文
+- **调整** 开发配置的平台库名改为 `xihan_basicapp`
+- **调整** .NET 服务包升到 10.0.15，含 SignalR Redis 背板的安全修复
+
+### 优化
+
+- **优化** 提示里查得到的对象写名称而不是 ID：部门、岗位、字典与字典项、参数、编号规则、通知、消息模板、附件、角色与租户成员等；查不到的不再在文案里显示 ID（仍随错误的 `details` 返回）（[#55](https://github.com/XiHanFun/XiHan.BasicApp/issues/55)）
+
+### 修复
+
+- **修复** 平台一侧的授予（含超级管理员的 `*`）在租户里也生效：平台账号切换进租户后只按该租户的角色与授予判定
 - **修复** 平台一侧用户的直接授权列不出来，跨两次授予的权限互斥也判定不到：平台级授予在授予表里存空字符串，读取时按契约的 null 比对
-- **新增** 列表页提交到导出中心时可选 Excel（XLSX）：导出菜单分 CSV 与 Excel 两组，各有查询结果、当前页、全部三档
 - **修复** 只有授权申请权限的用户打开「发起申请」时角色与权限候选为空、提交不了：候选改由新操作 `permission-requests.candidates` 给出，持有提交或重新提交授权申请的权限其一即可
+- **修复** 重置密码与新建用户的初始密码提示、审批流的缺省节点名与授权申请接口的说明与实际行为不符
+- **修复** 开发模式（`pnpm dev`）下流程设计器打不开
 
 ## v6.0.0-preview.1 (2026-11-10)
 
