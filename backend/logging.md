@@ -55,7 +55,7 @@ Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志�
 
 ## 保留清理
 
-作业 `auditing.retention`（`BasicApp:Auditing:RetentionCron`，缺省每天 03:00 UTC）读平台的系统参数 `auditing.retention-days`（1–3650；没建即 `BasicApp:Auditing:DefaultRetentionDays`，180 天；不合法即失败，不按错误的保留期删数据）。七类分表日志按平台与每个租户逐批删除，再单独清一遍操作审计表；一处失败只记日志、计入失败，不影响其他。
+作业 `auditing.retention`（`BasicApp:Auditing:RetentionCron`，缺省每天 03:00 UTC）读平台的系统参数 `auditing.retention-days`（1–3650；值为空即 `BasicApp:Auditing:DefaultRetentionDays`，180 天；不合法即失败，不按错误的保留期删数据）。七类分表日志按平台与每个租户逐批删除，再单独清一遍操作审计表；一处失败只记日志、计入失败，不影响其他。
 
 ## 页面
 

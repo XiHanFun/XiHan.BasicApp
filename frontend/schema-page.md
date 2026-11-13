@@ -41,7 +41,7 @@ const schema = computed<PageSchema>(() => ({
 | 搜索 | `searchable`（常用搜索）、`advancedSearch`（高级搜索）、`searchRange`（日期区间）、`searchMultiple`（多选）、`searchFilterable`（可输入筛选的单选下拉）、`searchPlaceholder` |
 | 选项 | `options`、`optionsLoader`（异步加载，同一加载器只请求一次）、`dictCode`（系统字典） |
 | 排序 | `sortable`（服务端排序，可多列） |
-| 导入导出 | `exportable`、`importable`、`required`（导入必填） |
+| 导入导出 | `exportable`、`importable`、`required`（导入必填）、`importHint`（导入模板说明行里的取值提示） |
 | 权限 | `permission`：没有该权限时字段隐藏 |
 
 - 只放进搜索、不当列的字段写 `visible: false`；
@@ -90,6 +90,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 | `remove` | 删除单条；行删除与批量删除都调它 |
 | `updateStatus(id, enabled)` | 启停单条；批量启停调它 |
 | `create(record)` | 导入时逐行新建 |
+| `importMany(records)` | 导入时按批交给后端的批量导入操作，返回其中不能导入的记录（与 `create` 二选一） |
 | `export` | `{ businessType, buildQuery? }`：接入导出中心 |
 
 `toPageRequest(params, mapping)`：
@@ -111,9 +112,14 @@ export function configsResource(): SchemaResource<ConfigRow> {
 页面声明了 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段，没有标的就导出当前可见列；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
 
 - 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
-- 资源还实现了 `export`：导出菜单多出当前页、搜索结果、全部三项，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成 CSV 或 XLSX 文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
+- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
 
-有 `importable` 字段且资源实现了 `create` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入时下载按 `importable` 字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填，再以并发 4 逐行调用 `create`，失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`，记下 `pageCode` 与页面声明的 `resourceCode`），对话框里显示最近几次。
+有导入字段且资源实现了 `create` 或 `importMany` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入字段缺省是标了 `importable` 的字段；模板与列表列对不上时（列表一列合并显示了几个字段，或导入要的字段列表里没有）在页面上写 `importFields` 显式给出，选项直接写 `options`。导入时下载按导入字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填与取值，再交给资源：
+
+- `create`：并发 4 逐行新建；
+- `importMany`：每批 100 条、一批接一批地交给后端（后一批能看到前一批写入的结果），后端逐行校验，返回的失败按字段挂回各行；整批被拒（如缺少权限）时这一批每行都记为失败。
+
+导入前要页面自己补的输入（如用户导入共用的初始密码）放进 `#import-options` 插槽，`importReady` 返回是否已填好，没填好时「开始导入」不可点。失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`，记下 `pageCode` 与页面声明的 `resourceCode`），对话框里显示最近几次。
 
 ## 个人设置
 

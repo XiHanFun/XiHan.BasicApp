@@ -56,10 +56,11 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | 种子 | 写入 |
 | --- | --- |
 | `identity.platform` | 平台账号 `superadmin` |
-| `access.platform` | 平台内置角色 `admin`（全局授予 `*`），并把 `superadmin` 指派进去 |
+| `access.platform` | 平台内置角色 `admin`（通配授予 `*`），并把 `superadmin` 指派进去 |
 | `access.menus` | 从各包页面登记对齐菜单 |
 | `tenancy.editions` | 套餐免费版（缺省）/ 基础版 / 专业版 / 企业版 |
 | `files.storage-configs` | 平台本地存储配置 |
+| `settings.configs` | 各包登记的内建参数（如登录方式），元数据每次对齐，值归运营 |
 | `notification.templates` | 平台消息模板 |
 | `access.policies` | 访问策略的平台缺省 |
 | `codegeneration.templates` | 代码生成的内置模板（每次对齐） |

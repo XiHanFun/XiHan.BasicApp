@@ -82,7 +82,7 @@
 
 ### 登录失败自动封禁
 
-系统参数 `access.security.login-auto-ban`（JSON；没建即关闭；写错即 `ACCESS_VALIDATION_043`，不计数）：
+系统参数 `access.security.login-auto-ban`（JSON，种子建好的内建参数，缺省关闭；写错即 `ACCESS_VALIDATION_043`，不计数）：
 
 | 字段 | 缺省 | 范围 |
 | --- | --- | --- |

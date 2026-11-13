@@ -22,19 +22,24 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 租户覆盖 | 租户新建与平台参数同键的参数即覆盖它；平台参数 `allowTenantOverride = false` 时拒绝 |
 | 生效值 | `IConfigValueReader`：只看启用的参数 → 当前租户的同键参数优先、其次平台的 → 值为空回落缺省值 → 加密值解密后返回 |
 
-操作 `configs.create / get / list / update / delete`，权限 `settings.configs.*`（两侧）；内置参数不可删。
+操作 `configs.create / get / list / update / delete`，权限 `settings.configs.*`（两侧）；内置参数不可删，也不能改数据类型。
+
+### 内建参数
+
+读参数的包在 `Configure` 里 `AddConfigCatalog` 登记 `ConfigDescriptor`（键的首段是包名），种子 `settings.configs` 据此写成平台的内建参数：名称、分组、数据类型、缺省值、是否允许租户覆盖、是否加密与说明每次对齐（没变不写，加密与否变了即就地加密或解密现值），值、状态与排序号只首写、之后归运营；值留空，生效值即缺省值。运营先手建了同键的平台参数即收为内建，但它现有的值不符合登记的数据类型时种子报 `SETTINGS_VALIDATION_002`（消息带参数键）、不改它，要由人把值改对。下表的参数都由种子建好，在参数配置页直接改值；数据类型固定，JSON 与数组类型的值保存时即校验。
 
 ### 代码读取的参数
 
-| 键 | 谁读 | 含义 |
-| --- | --- | --- |
-| `identity.login-methods` | Identity | 登录页开放的方式（逗号分隔，只认平台的）：`password`、`email`、`phone`；没建即只有密码登录，写错即登录配置报错 |
-| `identity.password` | Identity | 密码设置（JSON，只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
-| `identity.impersonation` | Identity | 模仿登录（JSON）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
-| `auditing.retention-days` | Auditing | 日志保留天数（1–3650），没建即 180 天 |
-| `access.security.login-auto-ban` | Access | 登录失败自动封禁（JSON，只认平台的，缺省关闭） |
-| `notification.telegram`、`notification.telegram.webhook-secret-token` | Notification | Telegram 的总开关、Webhook 根地址与网络设置（JSON，只认平台的，缺省关）与 Webhook 密钥（加密参数） |
-| `chat.policy` | Chat | 聊天策略（JSON）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
+| 键 | 谁读 | 类型 | 含义 |
+| --- | --- | --- | --- |
+| `identity.login-methods` | Identity | 数组 | 登录页开放的方式（只认平台的，不许租户覆盖）：`password`、`email`、`phone`、`passkey`（还要宿主配了 `XiHan:Security:WebAuthn`）；缺省 `["password"]` 即只有密码登录，写错即登录配置报错 |
+| `identity.password` | Identity | JSON | 密码设置（只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
+| `identity.impersonation` | Identity | JSON | 模仿登录（租户可覆盖）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
+| `access.security.login-auto-ban` | Access | JSON | 登录失败自动封禁（只认平台的，缺省关闭），见[访问策略](./access-policy) |
+| `auditing.retention-days` | Auditing | 数字 | 日志保留天数（1–3650，只认平台的）；不给缺省值，为空即配置项 `BasicApp:Auditing:DefaultRetentionDays`（缺省 180） |
+| `notification.telegram` | Notification | JSON | Telegram 的总开关、Webhook 根地址、刷新周期、兜底回复与网络设置（只认平台的，缺省关） |
+| `notification.telegram.webhook-secret-token` | Notification | 文本（加密） | Telegram Webhook 密钥（只认平台的） |
+| `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
 
 ## 字典
 

@@ -6,7 +6,7 @@
 
 ## 健康检查
 
-宿主 `MapXiHanHealth()` 映射三个探针端点，直接对应框架的应用状态机。三者返回同一份正文（各 Feature 的状态与各健康项），只是判定不同：通过 200，否则 503。探针不经过内核管道。
+宿主 `MapXiHanHealth()` 映射三个探针端点，直接对应框架的应用状态机。三者只给总状态（`status`、`state`），只是判定不同：通过 200，否则 503。探针不经过内核管道、匿名可访问，所以不带各 Feature 与健康项的详情（框架 ADR-0209），详情见下文的[服务监控](#服务监控)。
 
 | 端点 | 用途 | 通过条件 |
 | --- | --- | --- |
@@ -30,7 +30,7 @@
 | `caching.redis.connection` / `messaging.rabbitmq.connection` | 配了 Redis / RabbitMQ 时：启动时连不上即启动失败，之后按 `HealthProbeIntervalSeconds`（15 秒）重探，断开时 Degraded、应用照常服务 |
 | `caching.inmemory.capacity` / `messaging.inmemory.capacity` | 没配 Redis / RabbitMQ 时的进程内实现的容量 |
 
-以 `/health/ready` 实际返回的为准。条目带 `description`、`checkedAt`、`durationMs` 与 `data`；多数健康项的重探间隔在各自配置节的 `HealthProbeIntervalSeconds`，见[配置参考](../configuration)。
+以服务监控里实际列出的为准。条目带 `description`、`checkedAt`、`durationMs` 与 `data`；多数健康项的重探间隔在各自配置节的 `HealthProbeIntervalSeconds`，见[配置参考](../configuration)。
 
 ## 维护模式
 

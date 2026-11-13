@@ -10,7 +10,7 @@
 
 | 项 | 说明 |
 | --- | --- |
-| 租户 ID | 字符串，文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`，创建后不可改；`platform` 是保留 ID |
+| 租户 ID | 字符串，文法 `^[a-z0-9][a-z0-9._-]{0,63}$`，创建后不可改；`platform` 是保留 ID |
 | 平台 | 不是一个租户：平台主体的令牌没有 `tenant` 声明；平台库实体不实现 `IMultiTenant`，要区分「平台的还是某租户的」用 `OwnerTenantId`（平台为 `platform`） |
 | 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`（只来自内部调用：作业、消息处理、工作流）；不支持查询串与 `X-Tenant-Id` 头。HTTP、gRPC、MCP 入站丢掉调用方写的 `xihan.tenant`、`xihan.principal`：平台令牌带 `baggage` 头也还在平台一侧，进租户走 `auth.switch-tenant`。CloudEvents 入站的 `xihantenant` 能选租户，这是协议的设计，所以 `/events` 缺省关闭，打开后要 `runtime.cloud-events.deliver`，这个权限只在平台一侧，只授给平台的服务账号 |
 | 隔离方式 | `Field`（缺省，共库、按 `tenant_id` 过滤）与 `Database`（独立库） |

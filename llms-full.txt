@@ -48,7 +48,7 @@
 
 正文就是响应 DTO（`application/json`）。`create` 返回 201，其余 200。
 
-- 主键是 UUID v7 字符串；租户 ID 是字符串（文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`）。
+- 主键是 UUID v7 字符串；租户 ID 是字符串（文法 `^[a-z0-9][a-z0-9._-]{0,63}$`）。
 - 时间一律 UTC，ISO 8601 带 `Z`；按用户时区显示是客户端的事。
 - 枚举序列化为字符串（如 `"Active"`）。
 - 属性名 camelCase。
@@ -272,11 +272,49 @@ OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-
 
 本页记录各版本中使用者与运维可感知的变化，每条标注 **新增 / 修复 / 优化 / 调整** 类别，适用于评估与升级版本的读者；仓库自身的 CI、测试与构建脚本不列入。
 
-## 未发布
+## v6.0.0-preview.2 (2026-11-13)
 
-- **调整** 后端以 NuGet 包引用 XiHan.Framework（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
+::: warning 预览须知
+- 这是预览版，正式版前接口、配置与表结构仍可能调整。
+- 后端依赖 XiHan.Framework 5.0.0-rc.1，前端依赖 XiHan.UI 5.5.2。
+- **按 preview.1 建的库要新建**：6.0.0 基线的 `tenant_record` 加了 `is_deleted`、`deleted_at` 两列，台账里已是 6.0.0 的库不会再执行基线，启动读租户目录时即失败。开发环境删掉库直接启动即可（自动建库、建表、播种）。
+- 系统参数 `identity.login-methods` 改为方式名的 JSON 数组（如 `["password","passkey"]`），原来逗号分隔的写法不再认。
+- 租户 ID 只收小写；不带租户的授予只对平台调用生效，平台账号切换进租户后不再带着平台的权限（超级管理员的 `*` 也一样）。
+:::
+
+### 新增
+
+- **新增** 通行密钥（Passkey）登录：个人中心「安全设置」先核对密码再登记，登录页不填账号即可用指纹、面容或设备密码登录；宿主配了 `XiHan:Security:WebAuthn` 的依赖方 ID 与来源、系统参数 `identity.login-methods` 列出 `passkey` 才开放（见[认证](./backend/authentication)）
+- **新增** 内建参数：各包代码读取的系统参数（登录方式、密码策略、模仿登录、聊天策略、日志保留天数等）都由种子 `settings.configs` 建成平台的内建参数，名称、分组、类型、缺省值与说明随版本对齐，值归运营；内建参数不能删、不能改数据类型（见[参数与字典](./backend/settings)）
+- **新增** 用户批量导入（`users.import`，用新建用户的权限）：用户页导入 CSV，这批用户共用导入弹窗里的初始密码并标记为须改密；每行按新建用户的规则校验，可一并加入部门（租户侧，要有加入部门的权限）、指派角色（要有指派角色的权限，照常过约束规则），有问题的行列出原因、其余照常导入
+- **新增** 约束规则的「需审批」接上审批：管理员给用户指派角色或直授权限触犯它时，替该用户发起授权申请（结果里提示「已转审批」），审批通过后按原内容生效并在权限变更日志里记下批准的申请；拒绝类照旧拦下；别的变更没有审批的载体，按拒绝处理；动态职责分离的规则不能选需审批。流程变量 `constraintRule` 带上规则编码，流程定义可以据此路由
+- **新增** 列表页提交到导出中心时可选 Excel（XLSX）：导出菜单分 CSV 与 Excel 两组，各有查询结果、当前页、全部三档
+- **新增** 用户的「所属部门」可直接设主部门（行操作「更多」菜单里的「设为主部门」，原主部门随之取消）；加入部门时已加入的部门不能再选（[#55](https://github.com/XiHanFun/XiHan.BasicApp/issues/55)）
 - **新增** `BasicApp:Schema:CreateDatabase`：升级前平台库不存在时先建库，缺省关，开发环境打开，首次运行不用先手工建库
 - **新增** `BasicApp:Seed:RunOnStartup`：应用启动后执行一遍种子，缺省关，开发环境打开，首次运行即可用 `superadmin` 登录
+
+### 调整
+
+- **调整** 后端升到 XiHan.Framework 5.0.0-rc.1，并以 NuGet 包引用（版本见 `backend/props/framework.props`），克隆本仓库即可构建；后端镜像不再克隆框架源码，构建时要能访问 nuget.org。连框架源码调试时打开 `backend/XiHanFun.Local.slnx`（见[框架引用](./dev-environment#框架引用)）
+- **调整** 系统参数 `identity.login-methods` 改为方式名的 JSON 数组（可写 `password`、`email`、`phone`、`passkey`），缺省 `["password"]`
+- **调整** 租户 ID 只用小写字母、数字与 `._-`（`^[a-z0-9][a-z0-9._-]{0,63}$`），新建租户、登录、切换租户、成员与模仿登录里填大写的直接校验失败；删除的租户 ID 不能再新建（框架在租户目录里留下删除标记）
+- **调整** 健康探针 `/health/startup`、`/health/ready`、`/health/live` 只给总状态，不再列出各 Feature 与健康项；详情看服务监控（`maintenance.server.read`）
+- **调整** 操作请求体上限 4 MiB（`XiHan:Protocols:Http:MaxRequestBodyBytes`）；MCP 入口校验 `Origin`（浏览器里的客户端要配 `XiHan:Protocols:Mcp:AllowedOrigins`）、只收 `application/json`；CloudEvents 入站只收 `XiHan:Protocols:CloudEvents:Topics` 映射过的事件类型，请求体与 batch 条数有上限（见[配置参考](./configuration#xihan-protocols)）
+- **调整** 种子写入的套餐、参数、字典、菜单与访问策略预置模板等的名称与说明改用中文
+- **调整** 开发配置的平台库名改为 `xihan_basicapp`
+- **调整** .NET 服务包升到 10.0.15，含 SignalR Redis 背板的安全修复
+
+### 优化
+
+- **优化** 提示里查得到的对象写名称而不是 ID：部门、岗位、字典与字典项、参数、编号规则、通知、消息模板、附件、角色与租户成员等；查不到的不再在文案里显示 ID（仍随错误的 `details` 返回）（[#55](https://github.com/XiHanFun/XiHan.BasicApp/issues/55)）
+
+### 修复
+
+- **修复** 平台一侧的授予（含超级管理员的 `*`）在租户里也生效：平台账号切换进租户后只按该租户的角色与授予判定
+- **修复** 平台一侧用户的直接授权列不出来，跨两次授予的权限互斥也判定不到：平台级授予在授予表里存空字符串，读取时按契约的 null 比对
+- **修复** 只有授权申请权限的用户打开「发起申请」时角色与权限候选为空、提交不了：候选改由新操作 `permission-requests.candidates` 给出，持有提交或重新提交授权申请的权限其一即可
+- **修复** 重置密码与新建用户的初始密码提示、审批流的缺省节点名与授权申请接口的说明与实际行为不符
+- **修复** 开发模式（`pnpm dev`）下流程设计器打不开
 
 ## v6.0.0-preview.1 (2026-11-10)
 
@@ -554,6 +592,8 @@ OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-
 | `Outbox:MaxAttempts` | `10` | 发件箱投递到消息代理的最多次数（含首次），用尽进死信；与上面的 `MaxAttempts` 是两层 |
 | `Outbox:RetryDelaySeconds` / `Outbox:MaxRetryDelaySeconds` | `5` / `300` | 首次失败后的重试间隔（之后每次翻倍）与上限 |
 | `Outbox:DispatchedRetentionSeconds` | `86400` | 投递成功的行保留多久，0 为成功即删除；死信行不自动删 |
+| `Outbox:IncludeShards` | `false`（框架缺省 `true`） | 是否也逐个轮询租户独立库里的发件箱；SqlSugar 把发件箱行留在平台库，BasicApp 关掉以省去每个独立库一轮的多余查询 |
+| `Outbox:ShardRefreshIntervalSeconds` | `60` | 独立库清单多久从租户目录重读一次，`IncludeShards` 打开时才用到 |
 | `RabbitMQ:Configuration` | 不写 | AMQP URI（`amqp://` 或 `amqps://`）；绑定 `queue` 优先 |
 | `RabbitMQ:Exchange` | `xihan` | 发布用的持久 direct 交换机；不能为空、不能以 `amq.` 开头，已有同名但不是持久 direct 的交换机即启动失败 |
 | `RabbitMQ:QueuePrefix` | `xihan.` | 订阅方声明持久队列 `<前缀><主题>`；没人订阅的主题发布即丢弃，不堆积 |
@@ -596,7 +636,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `SignedUrls:Secret` | 空 | 本地存储签名下载地址（宿主 `/blobs` 端点）的 HMAC-SHA256 密钥，UTF-8 至少 32 字节，多实例必须一致；缺失或太短启动即失败。S3 兼容存储由存储自己签名，不用它 |
 | `SignedUrls:BaseUrl` | `/blobs` | 地址前缀：以 `/` 开头的路径，或不带查询串的绝对 http(s) 地址 |
 | `FileSystem:RootPath` | 程序目录下的 `blobs` | 框架缺省的文件系统存储；业务不用它，只是启动时会建出这个目录 |
-| `FileSystem:MaxTotalBytes` / `MaxBlobBytes` / `MultipartExpiryHours` | 1 GiB / 256 MiB / `168` | 同上，总字节、单个对象字节与未完成分片的保留时长 |
+| `FileSystem:MaxTotalBytes` / `MaxBlobBytes` / `MultipartExpiryHours` / `MaxMultipartUploads` | 1 GiB / 256 MiB / `168` / `1000` | 同上，总字节（暂存的分片也计入）、单个对象字节、未完成分片的保留时长（过期即拒绝）与未完成分片上传数的上限 |
 | `Stores:<名>` | 不写 | 命名存储实例（`filesystem` 或 `s3`）；业务不按名取用，不要用 `local` 与 `storage-*` 这两类名字 |
 
 ## `XiHan:Security`
@@ -628,6 +668,20 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 自建 MinIO、内网 Webhook、内网 SMTP 中继、内网业务库、流程调内网服务、本机模型端点都要在这里放行，否则连接被拒。
 
+## `XiHan:Security:WebAuthn`
+
+通行密钥（见[统一认证](./backend/authentication#通行密钥-auth-begin-passkey-login-→-auth-login-by-passkey)）。`RelyingPartyId` 不是空白才装框架的 WebAuthn，之后还要在系统参数 `identity.login-methods` 列出 `passkey`。通行密钥绑定在依赖方 ID 上，换了域名已登记的全部失效。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `RelyingPartyId` | 空（Development 为 `localhost`） | 依赖方 ID：前端页面所在的可注册域名，不带协议、端口与路径；留空即不启用。IP 地址用不了通行密钥 |
+| `Origins` | 不写（Development 为 9100 与 9130 的 `http://localhost`） | 允许的来源 `scheme://host[:port]`，即前端页面的地址，启用时至少一个；主机须等于依赖方 ID 或是它的子域，https 之外只允许 localhost 的 http；写错启动即失败 |
+| `RelyingPartyName` | `XiHan BasicApp` | 认证器上显示的名称；不写即同依赖方 ID |
+| `UserVerification` | `Required` | 用户验证（指纹、面容或设备密码）：`Required`、`Preferred` 或 `Discouraged`；做了用户验证的通行密钥登录顶替双因素 |
+| `ResidentKey` | `Required` | 可发现凭据：`Required` 时登录页不用填账号 |
+| `TimeoutSeconds` | `300` | 一次登记或登录的超时，票据随它过期 |
+| `ChallengeSize` | `32` | 挑战的字节数（16 至 64） |
+
 ## `XiHan:MultiTenancy`
 
 租户只从令牌声明解析，不支持查询串与 `X-Tenant-Id` 头。
@@ -638,6 +692,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `ValidateAgainstStore` | `true` | 解析出的租户必须在租户目录里存在且启用；关掉后只校验格式 |
 | `TenantClaim` | `tenant` | 令牌里承载租户 ID 的声明 |
 | `ShardCacheSize` | `10000` | 租户分库解析的缓存容量（租户数），满时整体清空 |
+| `ShardCacheTimeToLiveSeconds` | `30` | 租户分库解析缓存条目的存活时间，别的实例改了独立库连接最迟这么久后本实例换用新库；0 为不过期 |
 | `DefaultTenant` | 不写 | BasicApp 不用：配了会把平台调用落到这个租户上 |
 | `Database:CacheSize` / `Database:CacheTimeToLiveSeconds` | `10000` / `30` | 租户目录缓存的容量与存活时间 |
 | `Database:MaxListedTenants` | `10000` | 列出租户时返回的上限，超出不返回并记警告 |
@@ -700,6 +755,9 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `RetentionDays` | `0` | 已结束实例的保留天数（可带小数），0 为不自动清理 |
 | `HousekeepingIntervalSeconds` | `3600` | 按保留期清理的周期 |
 | `HttpTimeoutSeconds` | `30` | `Http` 活动的缺省超时 |
+| `MaxHttpTimeoutSeconds` | `300` | 流程定义里 `Http` 活动 `TimeoutSeconds` 的上限 |
+| `MaxForEachItems` | `1000` | `ForEach` 一次最多处理的项数（每项一个子实例），超过即节点故障 |
+| `MaxVariablesBytes` | `8388608`（8 MiB） | 一个实例的变量序列化后的字节数上限 |
 | `Database:PollIntervalSeconds` | `1` | 到期书签（延时、超时、重试）的轮询周期 |
 | `Database:BatchSize` | `100` | 每次轮询最多恢复的书签数 |
 | `Database:LockLeaseSeconds` | `60` | 实例锁与轮询领导权的租约时长，每三分之一续约一次 |
@@ -747,15 +805,20 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | --- | --- | --- |
 | `Http:RoutePrefix` | `/api` | 操作路由前缀；前端与开放接口都按它调用，不要改 |
 | `Http:Routes:<操作 ID>` | 不写 | 覆盖推导出的路由（`METHOD /模板`）；前端按约定路由调用，改了要同步 |
+| `Http:MaxRequestBodyBytes` | `4194304`（4 MiB） | 操作请求体的上限，超过为 `PROTOCOLS_VALIDATION_011`；只管操作端点，文件上传等普通端点照 Kestrel 的限制。开放接口同样受它限制，`BasicApp:OpenPlatform:MaxRequestBodyBytes` 调到 4 MiB 以上时这里要一起调 |
 | `Grpc:Package` | `xihan.basicapp` | protobuf 包名，也是服务路径前缀（`/xihan.basicapp.Users/Get`） |
 | `Grpc:Methods:<操作 ID>` | 不写 | 覆盖 gRPC 方法名（`Service/Method`） |
 | `Mcp:ServerName` | `XiHan.BasicApp` | MCP `initialize` 答复里的服务端名 |
 | `Mcp:ServerVersion` / `Mcp:Instructions` | 不写 | 服务端版本（缺省框架版本）与给客户端模型的使用说明 |
 | `Mcp:Tools:<操作 ID>` | 不写 | 覆盖 MCP 工具名 |
+| `Mcp:AllowedOrigins:<序号>` | 不写 | HTTP 入口允许的浏览器源（`scheme://host[:port]`）；请求带的 `Origin` 不在其中即 403 `PROTOCOLS_DENIED_001`，不带 `Origin` 的客户端不受影响，浏览器里的 MCP 客户端要把它的源配进来 |
+| `Mcp:MaxRequestBodyBytes` | `4194304`（4 MiB） | HTTP 入口的请求体上限，超过即 413；另外只收 `application/json`，否则 415 |
 | `CloudEvents:Inbound` | `Dispatch` | `Dispatch` 在请求内派发给主题的处理器、处理器的结果即响应；`Publish` 发布到消息代理后立即 202 |
 | `CloudEvents:Outbound` | `Binary` | 出站 Webhook 的内容模式：`Binary` 或 `Structured` |
 | `CloudEvents:PropagateTraceContext` | `false` | 出站 Webhook 是否在 HTTP 头里写追踪上下文 |
-| `CloudEvents:Topics:<事件类型>` | 不写 | 入站事件类型到主题的映射；没写时事件类型本身须是合法主题 |
+| `CloudEvents:Topics:<事件类型>` | 不写 | 入站事件类型到主题的映射；`AcceptUnmappedTypes` 为 `false` 时没映射的类型一律 400 `PROTOCOLS_VALIDATION_009` |
+| `CloudEvents:AcceptUnmappedTypes` | `false` | 入站是否接受没映射的事件类型（以类型本身为主题）；缺省只收映射过的，发送方不能投进任意有订阅的主题 |
+| `CloudEvents:MaxRequestBodyBytes` / `CloudEvents:MaxBatchSize` | `1048576`（1 MiB）/ `100` | 入站请求体的字节上限（`PROTOCOLS_VALIDATION_013`）与 batch 的事件数上限（`PROTOCOLS_VALIDATION_014`） |
 | `CloudEvents:Webhooks:<主题>` | 不写 | 主题对应的出站 Webhook 地址 |
 
 入站端点是否映射由 [`BasicApp:CloudEvents`](#basicapp-cloudevents) 决定。
@@ -792,7 +855,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `RunOnStartup` | `false`（Development 为 `true`） | 应用启动后执行一遍全部种子（种子可重复执行），失败即中断启动；关着时由 `seed` 命令或部署流程执行 |
+| `RunOnStartup` | `false`（Development 为 `true`） | 应用启动后执行一遍全部种子（种子可重复执行），失败即中断启动，跑完记一条 `Startup seeding completed.` 日志；关着时由 `seed` 命令或部署流程执行 |
 | `EnableDemoData` | `false`（Development 为 `true`） | 是否写演示数据：演示租户 `demo` 及其组织、角色与访问策略，平台演示字典，平台与 `demo` 的草稿通知，演示流程与打印模板 |
 | `SuperAdminPassword` | 空（Development 为 `SuperAdmin@123`） | `superadmin` 的初始密码，只在账号不存在、首次写入时用；首次执行 `seed` 时没配即失败（`IDENTITY_VALIDATION_026`） |
 
@@ -847,7 +910,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 端点只收持有权限码 `runtime.cloud-events.deliver`（「投递 CloudEvents 事件」，只在平台一侧）的调用方，认证用同一套 JWT。这个码只授给平台的服务账号或服务角色：在角色管理里给平台侧的服务角色授予它，再把服务账号指派进去；普通用户投递即 403 `SECURITY_DENIED_004`，持 `*` 的租户管理员也调不了。端点与 gRPC 一样只开放给内网，不要经反向代理暴露到公网。
 
-登记了处理器的主题都是应用内部事件（断开连接、部门归属变更、工作流的任务与故障），其余主题在派发模式下是 404 `PROTOCOLS_NOTFOUND_003`。主题映射、入站方式与出站 Webhook 见 [`XiHan:Protocols`](#xihan-protocols) 的 `CloudEvents:*`。
+入站只收在 `XiHan:Protocols:CloudEvents:Topics` 映射过的事件类型，没映射的是 400 `PROTOCOLS_VALIDATION_009`。登记了处理器的主题都是应用内部事件（断开连接、部门归属变更、工作流的任务与故障），映射到其余主题的事件在派发模式下是 404 `PROTOCOLS_NOTFOUND_003`。主题映射、入站方式与出站 Webhook 见 [`XiHan:Protocols`](#xihan-protocols) 的 `CloudEvents:*`。
 
 ## `BasicApp:DataProtection`
 
@@ -881,7 +944,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `VerificationCodeDailyPerTarget` / `VerificationCodeDailyPerAddress` | `10` / `50` | 一个邮箱或手机号、一个客户端地址每天（UTC）最多收发几次，不分用途 |
 | `VerificationCodeMaxFailures` / `VerificationCodeLockoutMinutes` | `5` / `10` | 一个验证码允许输错的次数；用完后同一用途、同一主体不能再发码与校验的时长 |
 
-登录页开放哪些方式不在这里，而是系统参数 `identity.login-methods`（`password`、`email`、`phone`），见[系统设置](./backend/settings)。
+登录页开放哪些方式不在这里，而是系统参数 `identity.login-methods`（JSON 数组：`password`、`email`、`phone`、`passkey`），见[系统设置](./backend/settings)。
 
 ### `BasicApp:Auth:OAuth`（第三方登录）
 
@@ -942,7 +1005,7 @@ BasicApp 自己的访问、异常、登录与变更日志，按月分表。
 | `BatchSize` / `FlushIntervalSeconds` | `200` / `1` | 每批落库的条数与刷写间隔（秒，可带小数） |
 | `AccessLog:Enabled` | `true` | 是否记访问日志 |
 | `AccessLog:Exclude` | `[]` | 不记访问日志的操作 ID，如 `auth.me`；异常、登录与变更日志不受影响 |
-| `DefaultRetentionDays` | `180` | 系统参数 `auditing.retention-days` 没建时的保留天数 |
+| `DefaultRetentionDays` | `180` | 系统参数 `auditing.retention-days` 的值为空时的保留天数 |
 | `RetentionCron` | `0 3 * * *` | 保留清理作业的计划（cron，按 UTC） |
 
 ## `BasicApp:Files`
@@ -1379,6 +1442,7 @@ pnpm gen:contracts   # 由 contracts/openapi.json 生成 packages/contracts/*
 pnpm check           # type-check → lint → px → token → i18n → modules → tests → headers → contracts → permissions
 pnpm test
 pnpm build
+pnpm e2e             # 端到端冒烟：自起后端与前端，要本机 PostgreSQL；首次先 pnpm exec playwright install chromium
 ```
 
 `dotnet run` 以工程目录为工作目录，路径参数（如 `--out`）一律给绝对路径。
@@ -1538,9 +1602,9 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | --- | --- |
 | 工作台 | 各包经 `IWorkbenchWidgetProvider` 登记的指标、图表与列表：公告轮播、今日统计与访问概况、在线设备、登录趋势、存储占用、作业执行、我的待办等；看板布局经用户设置跨端同步 |
 | 控制中心 | 可进入的租户与平台，经 `auth.switch-tenant` 切换 |
-| 登录认证 | 密码、邮箱 / 手机验证码、第三方登录（GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉）、双因素（认证器 / 邮件 / 短信）、图形验证码、登录节流、账号锁定、登录失败自动封禁、锁屏、自助注册（缺省关）与找回密码 |
+| 登录认证 | 密码、邮箱 / 手机验证码、通行密钥、第三方登录（GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉）、双因素（认证器 / 邮件 / 短信）、图形验证码、登录节流、账号锁定、登录失败自动封禁、锁屏、自助注册（缺省关）与找回密码 |
 | 个人中心 | 资料与头像（裁剪后上传）、改用户名、改密、手机邮箱验证与换绑、双因素、第三方绑定、登录设备、登录日志、通知偏好、我的租户、使用统计（含在线时长）、开放接口凭证、我的 OAuth 应用与授权、停用或注销本人账号 |
-| 用户管理 | 高级搜索（手机号、性别、状态多选、创建时间、角色、部门）、启用停用、锁定解锁、重置密码、重置双因素、直接授权与 Deny、用户级数据范围、按人强制下线、模仿登录、同时登录限制 |
+| 用户管理 | 高级搜索（手机号、性别、状态多选、创建时间、角色、部门）、CSV 批量导入（共用初始密码，可一并入部门、配角色）、启用停用、锁定解锁、重置密码、重置双因素、直接授权与 Deny、用户级数据范围、按人强制下线、模仿登录、同时登录限制 |
 | 在线用户 | 活跃会话（浏览器、系统、设备、登录地点、实时在线标记）、按会话吊销并推送下线 |
 | 角色管理 | 角色 CRUD、授予 / Deny / 撤销（可带有效期与原因）、成员与指派有效期、上级角色（继承）、数据范围 |
 | 组织机构 | 部门树（闭包表）、移动、负责人、类型与联系方式、部门成员（岗位、工号、职级、入职） |
@@ -1550,7 +1614,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | 字段安全 | 各包登记可配置的实体与字段，按实体 × 字段 × 角色 / 用户 / 部门配置六种读取方式与只读 |
 | 授权申请与委托 | 「授权申请」页：申请（提交即发起审批，通过即自动授予；撤回、修改重提、管理员手工驳回 / 撤回）与限时委托两个页签；工作流关掉时申请照常列出、不能提交 |
 | 审批中心 | 待我审批、我已审批、我发起的、抄送我的；办理、转办、加签、撤回、审批轨迹 |
-| 约束规则 | SSD、DSD、权限互斥、基数、条件五类；违规处理有拒绝、警告、记录与需要审批四种（需要审批目前按拒绝处理）；会话角色激活 |
+| 约束规则 | SSD、DSD、权限互斥、基数、条件五类；违规处理有拒绝、警告、记录与需要审批四种（需要审批时，给用户指派角色与直授权限转为授权申请，审批通过后生效）；会话角色激活 |
 | 访问策略 | 平台 / 租户两层、认证前 / 认证后 / 登录三个时机、六个模板、试运行与命中记录、防自锁；只管外部协议（HTTP、gRPC、MCP） |
 
 ## 租户与消息协作
@@ -1679,10 +1743,11 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 | 种子 | 写入 |
 | --- | --- |
 | `identity.platform` | 平台账号 `superadmin` |
-| `access.platform` | 平台内置角色 `admin`（全局授予 `*`），并把 `superadmin` 指派进去 |
+| `access.platform` | 平台内置角色 `admin`（通配授予 `*`），并把 `superadmin` 指派进去 |
 | `access.menus` | 从各包页面登记对齐菜单 |
 | `tenancy.editions` | 套餐免费版（缺省）/ 基础版 / 专业版 / 企业版 |
 | `files.storage-configs` | 平台本地存储配置 |
+| `settings.configs` | 各包登记的内建参数（如登录方式），元数据每次对齐，值归运营 |
 | `notification.templates` | 平台消息模板 |
 | `access.policies` | 访问策略的平台缺省 |
 | `codegeneration.templates` | 代码生成的内置模板（每次对齐） |
@@ -2143,7 +2208,7 @@ XiHan.BasicApp/
 ├─ docs/                        # 本文档站
 ├─ plans/                       # 总体方案、对齐矩阵与方案脚本
 ├─ docker-compose.yml  .env.example   # 单实例容器编排，见部署
-└─ .github/workflows/ci.yml     # CI：后端构建测试、契约漂移、前端门禁
+└─ .github/workflows/ci.yml     # CI：后端构建测试、契约漂移、前端门禁、端到端冒烟
 ```
 
 ## 后端
@@ -2634,7 +2699,7 @@ curl -X POST http://localhost:9710/mcp \
 
 ### 登录失败自动封禁
 
-系统参数 `access.security.login-auto-ban`（JSON；没建即关闭；写错即 `ACCESS_VALIDATION_043`，不计数）：
+系统参数 `access.security.login-auto-ban`（JSON，种子建好的内建参数，缺省关闭；写错即 `ACCESS_VALIDATION_043`，不计数）：
 
 | 字段 | 缺省 | 范围 |
 | --- | --- | --- |
@@ -2921,11 +2986,19 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 | 方式 | 行为 |
 | --- | --- |
 | `Deny` | 拦下变更，`ACCESS_CONFLICT_012` |
-| `RequireApproval` | 拦下变更，等同拒绝，不发起审批 |
+| `RequireApproval` | 变更先不做，转为审批：给用户指派角色（`roles.assign`）与直授权限（`user-grants.grant`）时替该用户发起授权申请，审批通过后按原内容生效；别的变更没有审批的载体，拦下（`ACCESS_CONFLICT_018`） |
 | `Warning` | 照常执行，记一条权限变更日志（`ConstraintViolation`） |
 | `Log` | 照常执行，同样记日志，只是级别不同 |
 
-`ConstraintEnforcer` 只拦这次变更新带进来的违规，不因为已有数据已经违规而拒绝无关的变更。批量授予权限时逐个过权限互斥，被拦的那一项失败、其余照常。
+`ConstraintEnforcer` 只拦这次变更新带进来的违规，不因为已有数据已经违规而拒绝无关的变更。批量授予权限时逐个过权限互斥，被拦的那一项失败、其余照常。同时触犯拒绝类与需审批类时按拒绝。
+
+需审批的细节：
+
+- **转审批**：批量结果里那一项记为 `ACCESS_CONFLICT_019`（已转审批），说明里写着触犯的规则；前端把它当提示而不是失败。申请人是被变更的用户，发起人是做这次变更的管理员，原因写明触犯的规则，流程标题带上申请人。同一用户同一对象已有待审批的申请时那一项记 `ACCESS_CONFLICT_013`；Workflow 关掉时记 `ACCESS_UNAVAILABLE_002`，说明里写明是哪条规则要求审批。
+- **审批通过**：指派与直授由这条申请批准，需审批类的违规放行，权限变更日志里那条 `ConstraintViolation` 末尾记 `request:<申请 ID>`；拒绝类照旧拦。申请人自己提交的申请同样如此。
+- **流程路由**：替别人发起的申请带流程变量 `constraintRule`（规则编码），新建流程定义版本时可以按它把这类例外转给专门的审批人。
+- **拦下的变更**：给角色授权限、设上级角色、委托角色与改指派有效期没有审批的载体，触犯需审批类即 `ACCESS_CONFLICT_018`；导入用户时角色列触犯的行同样记为失败，提示导入后到用户页单独指派。
+- **动态职责分离**：在激活会话角色时判定，没有可审批的变更，规则不能选需审批（`ACCESS_VALIDATION_057`）。
 
 ### 操作
 
@@ -2955,13 +3028,14 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ## 授权申请
 
-用户为自己申请一个角色或一个权限码（二选一：都给是 `ACCESS_VALIDATION_056`，都不给是 `ACCESS_VALIDATION_051`），提交即在同一个事务里发起审批业务 `permission-request` 的流程；审批通过即按期望的有效期指派角色或直授权限，驳回或中止即完结。
+用户为自己申请一个角色或一个权限码（二选一：都给是 `ACCESS_VALIDATION_056`，都不给是 `ACCESS_VALIDATION_051`），提交即在同一个事务里发起审批业务 `permission-request` 的流程；审批通过即按期望的有效期指派角色或直授权限，驳回或中止即完结。管理员的指派与直授触犯需审批的约束规则时，也会替用户发起一条（见[违规处理](#违规处理)）。
 
 它是 Contracts 审批业务接入（`IWorkflowBusinessHandler`）的参照实现，见[工作流](./workflow#审批业务接入)。表 `sys_permission_request` 在租户库，平台一侧的申请租户为 `platform`。
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
 | `permission-requests.list` / `get` | `access.permission-requests.read` | 这一侧全部的申请，带审批进度。关键字匹配申请人（经用户目录在这一侧按登录名与显示名搜，含停用的账号，取前 200 个）、申请原因与备注；可按申请人、角色、权限码与状态筛选，缺省按提交时间降序 |
+| `permission-requests.candidates` | `access.permission-requests.create` 或 `.update` 其一（策略 `access.permission-request-candidates`） | 只读；申请弹窗的候选：这一侧启用的角色与可授予的权限（租户侧按套餐收窄，与 `permissions.list` 同一口径）。申请人不必能读角色列表与权限目录 |
 | `permission-requests.create` | `access.permission-requests.create` | 申请人要是这一侧的在用账号；角色存在且启用、权限码在这一侧的目录里，期望失效时间晚于现在；同一对象只能有一条待审批的申请（`ACCESS_CONFLICT_013`） |
 | `permission-requests.update` | `access.permission-requests.update` | 修改自己待审批的申请并重新提交：撤回旧流程、按新内容重新发起，已有的审批意见作废 |
 | `permission-requests.withdraw` | `access.permission-requests.withdraw` | 批量；撤回自己待审批的申请，同时撤回流程 |
@@ -2969,9 +3043,9 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 权限码两侧都有，写操作进操作日志。
 
-- **缺省流程**：当前分区第一次提交时建并发布「管理员审批」：角色 `admin` 审批，不含申请人自己。可在流程定义里新建版本调整。找不到审批人（如这一侧只有申请人一个管理员）即发起故障 `WORKFLOW_CONFLICT_101`，申请随之回滚。
+- **缺省流程**：当前分区第一次提交时建并发布「管理员审批」：角色 `admin` 审批，不含发起人（替别人发起的申请，申请人本人也不能审批）。可在流程定义里新建版本调整。找不到审批人（如这一侧只有申请人一个管理员）即发起故障 `WORKFLOW_CONFLICT_101`，申请随之回滚。
 - **审批与手工处理**：处理人不能处理自己的申请（`ACCESS_DENIED_009`），且要能授出申请的对象：角色要 `access.roles.assign`，权限要 `access.user-grants.grant`（`ACCESS_DENIED_010`）。
-- **通过**：重核对象仍可用，角色经指派写入（过约束规则，拦截类违规即失败）、权限经直授写入；任一步失败即结束节点故障、申请保持待审批（`ACCESS_CONFLICT_015`），处理后在流程实例里重试。直授的权限立即生效，角色在申请人下次换发令牌时生效。
+- **通过**：重核对象仍可用，角色经指派写入、权限经直授写入，都过约束规则（拒绝类违规即失败，需审批类由这条申请批准）；任一步失败即结束节点故障、申请保持待审批（`ACCESS_CONFLICT_015`），处理后在流程实例里重试。直授的权限立即生效，角色在申请人下次换发令牌时生效。
 - **中止**：管理员取消、终止流程或发起人在审批中心撤回时，待审批的申请置为已撤回。
 - **状态**：`Pending` 待审批、`Approved` 已批准、`Rejected` 已驳回、`Withdrawn` 已撤回。期望失效时间已过的另带 `isExpectedExpired` 标记，不是状态。
 - **模仿会话**：对授权申请的写操作一律 409 `ACCESS_CONFLICT_016`：提交、修改重提、撤回、手工处理，以及这张审批单上的同意 / 驳回、转办、加签、发起人撤回，管理员的取消、终止、重试、挂起与恢复（批量里那一项记失败、流程不动）。其他业务的流程不拦。
@@ -3023,7 +3097,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（逗号分隔的 `password`、`email`、`phone`，只认平台的）：没建即只有密码登录，密码登录总是开着；写了认不出的方式名即 `IDENTITY_VALIDATION_021`。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
+开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
 ### 密码登录 `auth.login`
 
@@ -3037,14 +3111,14 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ### 强制修改由他人设置的密码
 
-密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，没建即关）的 `forceChange` 决定要不要逼：
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，缺省关）的 `forceChange` 决定要不要逼：
 
 | 状态 | 效果 |
 | --- | --- |
 | 关（缺省） | 只留着标记，直接放行 |
 | 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（令牌响应 `mustChangePassword` 为 `true`，锁定原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
 
-锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
@@ -3073,6 +3147,22 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 - 两个端点是普通端点、不经内核管道；发起时生成随机 `state` 存进共享缓存，同时种一枚 HttpOnly Cookie，回调时两者都对上才认（Google 另用 PKCE）。
 - 只认已绑定的账号，不自动建号：没绑定即 `IDENTITY_DENIED_015`。先用账号密码登录，到个人中心「第三方绑定」由本人领绑定意图（`profile.begin-external-bind`，10 分钟、用一次），回调之后再由本人确认（`profile.link-external`）；`profile.external-logins` 列出、`profile.unlink-external` 解绑。
 - 第三方登录同样过租户、账号状态、锁定期、登录守卫与双因素。
+
+### 通行密钥 `auth.begin-passkey-login` → `auth.login-by-passkey`
+
+用指纹、面容或设备密码代替密码登录。选项生成与响应核对用框架的 `Security.WebAuthn`：宿主在 `XiHan:Security:WebAuthn` 配了依赖方 ID（前端页面所在的域名，本地开发用 `localhost`）与来源（前端页面的地址）才装，再在 `identity.login-methods` 列出 `passkey` 才开放；没配即 `IDENTITY_UNAVAILABLE_007`，没开放即 `IDENTITY_DENIED_016`。通行密钥绑定在依赖方 ID 上，换了域名已登记的全部失效。
+
+```text
+登录页 → POST /api/auth:begin-passkey-login           请求选项 + 一次性票据（不列允许的凭据，由认证器列出本站的通行密钥）
+浏览器 navigator.credentials.get                     本人在设备上验证
+登录页 → POST /api/auth:login-by-passkey（票据 + 断言）→ 令牌
+```
+
+- 不用填账号与注册地：按凭据 ID 找到登记的通行密钥，登录进它的注册地；没登记或已删除即 `IDENTITY_DENIED_022`。票据随选项的超时（缺省 300 秒）过期、只能用一次（`IDENTITY_VALIDATION_028`）。
+- 框架核对来源、挑战、依赖方、用户在场与用户验证、签名、签名计数与凭据归属（断言必须带用户句柄，且等于这把凭据登记时的所属用户），失败是 `SECURITY_DENIED_005`（签名计数回退是 `SECURITY_DENIED_006`，可能是克隆的认证器），同时计入登录节流与登录守卫的认证失败。
+- 同样过租户、账号状态、锁定期与登录守卫。认证器做了用户验证即顶替双因素；依赖方把 `UserVerification` 放宽到 `Preferred` 时，没做用户验证而账号开了双因素照样要第二步。
+- 个人中心「安全设置」登记：`my-passkeys.begin-create` 先核对当前密码（错即 `IDENTITY_DENIED_003`），给创建选项与票据（列出已登记的凭据，同一认证器不重复登记）；浏览器创建之后 `my-passkeys.create` 连票据交回登记（票据只认发起的本人），成功后给本人发一条安全站内信。每人最多 10 个（`IDENTITY_CONFLICT_017`）。`my-passkeys.list` 列出、`my-passkeys.update` 改名、`my-passkeys.delete` 删除（删除后立即不能登录，设备上的那份要本人在设备上删）。登记、改名与删除模仿会话都不能做。
+- 平台库只存公钥、签名计数、认证器型号与能否同步，不要求证明（`none`），私钥不离开认证器；用户句柄是用户 ID 的 16 个字节，不含个人信息。
 
 ### 双因素
 
@@ -3128,7 +3218,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 **模仿态拒绝的权限码**：接管账号（重置密码、重置双因素、锁定、登录策略）、变更授权（角色的修改、授予、指派、继承，用户直授，用户数据范围，委托的新建、撤销与删除）、销毁数据（删除用户、角色、租户，初始化独立库）、OAuth 应用的修改（含重置客户端密钥）。持 `*` 也拦，`auth.permissions` 也不返回这些。
 
-系统参数 `identity.impersonation`（JSON，没建即缺省，按发起人所在的一侧取，写错或越界即 `IDENTITY_VALIDATION_027`、不发起）：
+系统参数 `identity.impersonation`（JSON，按发起人所在的一侧取，租户可建同键参数覆盖，写错或越界即 `IDENTITY_VALIDATION_027`、不发起）：
 
 | 字段 | 缺省 | 说明 |
 | --- | --- | --- |
@@ -3396,7 +3486,7 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 ## 策略与保留清理
 
-参数 `chat.policy`（JSON，类型选 Json），没建即用缺省值：
+参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词），缺省值：
 
 ```json
 { "retentionDays": 365, "sensitiveWords": [] }
@@ -4335,7 +4425,7 @@ Files 包（Tier 2）在框架对象存储（`IBlobStore`）之上管理存储�
 | `Local` | 框架 `ObjectStorage.FileSystem`，根目录 `BasicApp:Files:LocalRootPath`（缺省 `App_Data/files`，相对内容根目录），桶是根下的子目录；所有本地配置共用命名实例 `local` |
 | `S3` / `Oss` / `Cos` / `MinIO` | 框架 `ObjectStorage.S3`，按服务地址接 S3 兼容服务；每条配置一个命名实例 `storage-<配置 ID>`，配置改了即建新实例替换旧的 |
 
-存储配置在运行时译成框架对象存储注册表的命名实例（框架 ADR-0050），每个实例一条健康项 `objectstorage.store.<名>`，出现在 `/health/ready`。
+存储配置在运行时译成框架对象存储注册表的命名实例（框架 ADR-0050），每个实例一条健康项 `objectstorage.store.<名>`，出现在服务监控的健康项里。
 
 S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省开；本地存储恒为开）。实例在第一次用到（或配置改了之后）时建出：
 
@@ -4461,7 +4551,7 @@ CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换�
 
 ## 健康检查
 
-宿主 `MapXiHanHealth()` 映射三个探针端点，直接对应框架的应用状态机。三者返回同一份正文（各 Feature 的状态与各健康项），只是判定不同：通过 200，否则 503。探针不经过内核管道。
+宿主 `MapXiHanHealth()` 映射三个探针端点，直接对应框架的应用状态机。三者只给总状态（`status`、`state`），只是判定不同：通过 200，否则 503。探针不经过内核管道、匿名可访问，所以不带各 Feature 与健康项的详情（框架 ADR-0209），详情见下文的[服务监控](#服务监控)。
 
 | 端点 | 用途 | 通过条件 |
 | --- | --- | --- |
@@ -4485,7 +4575,7 @@ CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换�
 | `caching.redis.connection` / `messaging.rabbitmq.connection` | 配了 Redis / RabbitMQ 时：启动时连不上即启动失败，之后按 `HealthProbeIntervalSeconds`（15 秒）重探，断开时 Degraded、应用照常服务 |
 | `caching.inmemory.capacity` / `messaging.inmemory.capacity` | 没配 Redis / RabbitMQ 时的进程内实现的容量 |
 
-以 `/health/ready` 实际返回的为准。条目带 `description`、`checkedAt`、`durationMs` 与 `data`；多数健康项的重探间隔在各自配置节的 `HealthProbeIntervalSeconds`，见[配置参考](../configuration)。
+以服务监控里实际列出的为准。条目带 `description`、`checkedAt`、`durationMs` 与 `data`；多数健康项的重探间隔在各自配置节的 `HealthProbeIntervalSeconds`，见[配置参考](../configuration)。
 
 ## 维护模式
 
@@ -4755,7 +4845,7 @@ Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志�
 
 ## 保留清理
 
-作业 `auditing.retention`（`BasicApp:Auditing:RetentionCron`，缺省每天 03:00 UTC）读平台的系统参数 `auditing.retention-days`（1–3650；没建即 `BasicApp:Auditing:DefaultRetentionDays`，180 天；不合法即失败，不按错误的保留期删数据）。七类分表日志按平台与每个租户逐批删除，再单独清一遍操作审计表；一处失败只记日志、计入失败，不影响其他。
+作业 `auditing.retention`（`BasicApp:Auditing:RetentionCron`，缺省每天 03:00 UTC）读平台的系统参数 `auditing.retention-days`（1–3650；值为空即 `BasicApp:Auditing:DefaultRetentionDays`，180 天；不合法即失败，不按错误的保留期删数据）。七类分表日志按平台与每个租户逐批删除，再单独清一遍操作审计表；一处失败只记日志、计入失败，不影响其他。
 
 ## 页面
 
@@ -4886,7 +4976,7 @@ Webhook 地址带凭据：经 `ISecretProtector` 加密存放，响应只给主�
 
 | 项 | 说明 |
 | --- | --- |
-| 租户 ID | 字符串，文法 `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`，创建后不可改；`platform` 是保留 ID |
+| 租户 ID | 字符串，文法 `^[a-z0-9][a-z0-9._-]{0,63}$`，创建后不可改；`platform` 是保留 ID |
 | 平台 | 不是一个租户：平台主体的令牌没有 `tenant` 声明；平台库实体不实现 `IMultiTenant`，要区分「平台的还是某租户的」用 `OwnerTenantId`（平台为 `platform`） |
 | 解析链 | 令牌 `tenant` 声明 → Baggage `xihan.tenant`（只来自内部调用：作业、消息处理、工作流）；不支持查询串与 `X-Tenant-Id` 头。HTTP、gRPC、MCP 入站丢掉调用方写的 `xihan.tenant`、`xihan.principal`：平台令牌带 `baggage` 头也还在平台一侧，进租户走 `auth.switch-tenant`。CloudEvents 入站的 `xihantenant` 能选租户，这是协议的设计，所以 `/events` 缺省关闭，打开后要 `runtime.cloud-events.deliver`，这个权限只在平台一侧，只授给平台的服务账号 |
 | 隔离方式 | `Field`（缺省，共库、按 `tenant_id` 过滤）与 `Database`（独立库） |
@@ -5223,7 +5313,7 @@ Authorize 阶段之后
 
 全部权限码可在权限目录页（`/access/permissions`，操作 `permissions.list`）按包、作用侧与审计筛选查看；可选模块关掉后它的权限码不在目录里。
 
-权限码没有通配匹配的语义：前端 `can('identity.users.create')` 精确匹配；后端只有全局授予 `*` 覆盖全部权限（内置角色 `admin` 持有），它同样会被 Deny、作用侧与套餐收窄。
+权限码没有通配匹配的语义：前端 `can('identity.users.create')` 精确匹配；后端只有通配授予 `*` 覆盖全部权限（内置角色 `admin` 持有），它同样会被 Deny、作用侧与套餐收窄。
 
 ## 角色
 
@@ -5237,7 +5327,7 @@ Authorize 阶段之后
 | `roles.members` / `roles.by-user` / `roles.hierarchy` | `access.roles.read` | 成员、某用户的角色、继承关系 |
 | `roles.set-parents` | `access.roles.set-parents` | 设置直接上级（最多 50 个），只存直接边，图上推导，拒绝成环 |
 
-内置角色 `admin` 持有全局授予 `*`、数据范围「全部」：平台一侧由种子 `access.platform` 建并指派 `superadmin`，每个租户在 `tenants.initialize-admin` 时建一份并指派租户管理员。
+内置角色 `admin` 持有通配授予 `*`、数据范围「全部」：平台一侧由种子 `access.platform` 建并指派 `superadmin`，每个租户在 `tenants.initialize-admin` 时建一份并指派租户管理员。
 
 ### 合并优先级
 
@@ -5246,6 +5336,7 @@ Authorize 阶段之后
 ```
 
 - Grant 行写框架的 `PermissionGrantRecord`；Deny 以及带有效期或原因的授予另有伴随行 `SysPermissionRule`（每个「侧 × 主体 × 权限码」一行）。
+- 授予按侧存放：平台侧的授予（租户列为空）只对平台调用生效，租户侧的只对该租户生效，两边互不渗透（框架 ADR-0197）；平台账号切换进租户后只按该租户的角色与授予判定，超级管理员的 `*` 也不带进租户。
 - 有效期在判定时按当前时间比较，到点即失效，不必重建缓存；规则、指派、继承图与委托在共享缓存里存 60 秒，写入方在工作单元结束后即时失效。
 - 判定用的角色取「令牌里激活的角色」与「有效指派」的交集：解除与到期立即生效；新指派的角色等下一次刷新令牌进令牌。
 - 授予存储读不到时把失败原样返回（框架给 503 `SECURITY_UNAVAILABLE_001`），不当作没有权限。
@@ -5623,12 +5714,12 @@ Ingress → Observe → Resilience → Authenticate → Tenant → Authorize →
 
 | 作业 | 计划（UTC） | 作用 |
 | --- | --- | --- |
-| `auditing.retention` | `0 3 * * *`（`BasicApp:Auditing:RetentionCron`） | 按参数 `auditing.retention-days`（没建即 180 天）逐批删除平台与各租户的过期日志，再清操作审计表 |
+| `auditing.retention` | `0 3 * * *`（`BasicApp:Auditing:RetentionCron`） | 按参数 `auditing.retention-days`（为空即 180 天）逐批删除平台与各租户的过期日志，再清操作审计表 |
 | `openplatform.oauth-cleanup` | `30 3 * * *` | 授权码过期一天、令牌过期七天后物理删除 |
 | `files.uploads.expire` | `15 * * * *` | 过期的分片上传会话：中止存储上的分片并清理记录 |
 | `files.temporary.purge` | `45 * * * *` | 过了到期时间的临时文件（代码生成的产物包、导出中心的结果）：平台与各租户逐批（每批 100 条、一侧一次至多 20 批）删记录，存储里不再被引用的对象一起删 |
 | `tenancy.tenants.expire` | `*/5 * * * *` | 过了到期时间、仍生效的租户标为到期并停用目录（到期时间一过登录即被拒，不等作业） |
-| `chat.messages.cleanup` | `0 4 * * *` | Chat 模块开着才有：按平台参数 `chat.policy` 的保留天数（没建即 365 天）删平台与各租户的过期消息与表情回应，不删会话、成员与附件文件 |
+| `chat.messages.cleanup` | `0 4 * * *` | Chat 模块开着才有：按平台参数 `chat.policy` 的保留天数（缺省 365 天）删平台与各租户的过期消息与表情回应，不删会话、成员与附件文件 |
 
 作业的显示名与说明取包的文案 `jobs.<作业名>.title` / `.description`（作业名里的 `-` 换 `_`）。
 
@@ -5710,19 +5801,24 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 租户覆盖 | 租户新建与平台参数同键的参数即覆盖它；平台参数 `allowTenantOverride = false` 时拒绝 |
 | 生效值 | `IConfigValueReader`：只看启用的参数 → 当前租户的同键参数优先、其次平台的 → 值为空回落缺省值 → 加密值解密后返回 |
 
-操作 `configs.create / get / list / update / delete`，权限 `settings.configs.*`（两侧）；内置参数不可删。
+操作 `configs.create / get / list / update / delete`，权限 `settings.configs.*`（两侧）；内置参数不可删，也不能改数据类型。
+
+### 内建参数
+
+读参数的包在 `Configure` 里 `AddConfigCatalog` 登记 `ConfigDescriptor`（键的首段是包名），种子 `settings.configs` 据此写成平台的内建参数：名称、分组、数据类型、缺省值、是否允许租户覆盖、是否加密与说明每次对齐（没变不写，加密与否变了即就地加密或解密现值），值、状态与排序号只首写、之后归运营；值留空，生效值即缺省值。运营先手建了同键的平台参数即收为内建，但它现有的值不符合登记的数据类型时种子报 `SETTINGS_VALIDATION_002`（消息带参数键）、不改它，要由人把值改对。下表的参数都由种子建好，在参数配置页直接改值；数据类型固定，JSON 与数组类型的值保存时即校验。
 
 ### 代码读取的参数
 
-| 键 | 谁读 | 含义 |
-| --- | --- | --- |
-| `identity.login-methods` | Identity | 登录页开放的方式（逗号分隔，只认平台的）：`password`、`email`、`phone`；没建即只有密码登录，写错即登录配置报错 |
-| `identity.password` | Identity | 密码设置（JSON，只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
-| `identity.impersonation` | Identity | 模仿登录（JSON）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
-| `auditing.retention-days` | Auditing | 日志保留天数（1–3650），没建即 180 天 |
-| `access.security.login-auto-ban` | Access | 登录失败自动封禁（JSON，只认平台的，缺省关闭） |
-| `notification.telegram`、`notification.telegram.webhook-secret-token` | Notification | Telegram 的总开关、Webhook 根地址与网络设置（JSON，只认平台的，缺省关）与 Webhook 密钥（加密参数） |
-| `chat.policy` | Chat | 聊天策略（JSON）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
+| 键 | 谁读 | 类型 | 含义 |
+| --- | --- | --- | --- |
+| `identity.login-methods` | Identity | 数组 | 登录页开放的方式（只认平台的，不许租户覆盖）：`password`、`email`、`phone`、`passkey`（还要宿主配了 `XiHan:Security:WebAuthn`）；缺省 `["password"]` 即只有密码登录，写错即登录配置报错 |
+| `identity.password` | Identity | JSON | 密码设置（只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
+| `identity.impersonation` | Identity | JSON | 模仿登录（租户可覆盖）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
+| `access.security.login-auto-ban` | Access | JSON | 登录失败自动封禁（只认平台的，缺省关闭），见[访问策略](./access-policy) |
+| `auditing.retention-days` | Auditing | 数字 | 日志保留天数（1–3650，只认平台的）；不给缺省值，为空即配置项 `BasicApp:Auditing:DefaultRetentionDays`（缺省 180） |
+| `notification.telegram` | Notification | JSON | Telegram 的总开关、Webhook 根地址、刷新周期、兜底回复与网络设置（只认平台的，缺省关） |
+| `notification.telegram.webhook-secret-token` | Notification | 文本（加密） | Telegram Webhook 密钥（只认平台的） |
+| `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
 
 ## 字典
 
@@ -6229,6 +6325,24 @@ pnpm build
 - 新增 `views/**/index.vue` 后 Vitest 可能看不到它（`node_modules/.vitest-cache` 缓存了 `import.meta.glob` 的结果），先删缓存再跑。
 - 修改共享组件、路由、请求、权限或主题时三项都跑。视觉与交互改动还要在真实浏览器里看亮 / 暗色、窄视口、键盘与焦点、减少动态效果。
 
+### 端到端冒烟
+
+`e2e/` 下是 Playwright 用例，按真实用户的操作走一条主干：超管登录与退出、开通企业版租户并初始化管理员、租户管理员以租户 ID 登录、建角色与成员并直授申请权限、成员提交角色申请、管理员在审批中心同意、成员看到已批准。
+
+```bash
+pnpm exec playwright install chromium   # 首次
+pnpm e2e
+```
+
+`playwright.config.ts` 自己起服务，不碰 9710 / 9100 上的开发服务：
+
+| 服务 | 做法 |
+| --- | --- |
+| 后端 | 在宿主目录 `dotnet run -c Release`，Development 环境；端口 9730（gRPC 9731），库 `xihan_basicapp_e2e`（启动时建库、建表、播种，`E2E_DATABASE` 可换连接串），关掉图形验证码，超管密码取 `e2e/env.ts`；日志出现 `Startup seeding completed.` 才算就绪 |
+| 前端 | `pnpm build` 之后 `vite preview`，端口 9130，代理到 9730 |
+
+本机这两个端口已有服务就直接复用。库在本机保留，每次开通的租户与账号带运行后缀，不会重名。失败时 `test-results/<用例>/` 里有截图、轨迹与页面结构快照（`error-context.md`），`playwright-report/` 是 HTML 报告。CI 的端到端作业带 PostgreSQL 服务容器跑同一套用例，失败时上传这两个目录。
+
 ## 六、XiHan.UI 本地联调
 
 常规开发与 CI 用 `catalog` 里的发布版。联调未发布的组件库改动时，在 `pnpm-workspace.yaml` 里临时加 `overrides`，把 `@xihan-ui/*` 指到同级源码（`link:../../XiHan.UI/ui/packages/<分组>/<包>`），overrides 不提交。组件库的缺陷回 XiHan.UI 修，BasicApp 不写兼容。
@@ -6456,6 +6570,7 @@ frontend/
 | 综合检查 | `pnpm check` |
 | 单测 | `pnpm test` |
 | 构建 | `pnpm build` |
+| 端到端冒烟 | `pnpm e2e`（见[开发流程](./development#端到端冒烟)） |
 
 环境变量见 `frontend/.env.example`；本机改动写 `.env.local`，不提交。
 
@@ -6874,7 +6989,7 @@ const schema = computed<PageSchema>(() => ({
 | 搜索 | `searchable`（常用搜索）、`advancedSearch`（高级搜索）、`searchRange`（日期区间）、`searchMultiple`（多选）、`searchFilterable`（可输入筛选的单选下拉）、`searchPlaceholder` |
 | 选项 | `options`、`optionsLoader`（异步加载，同一加载器只请求一次）、`dictCode`（系统字典） |
 | 排序 | `sortable`（服务端排序，可多列） |
-| 导入导出 | `exportable`、`importable`、`required`（导入必填） |
+| 导入导出 | `exportable`、`importable`、`required`（导入必填）、`importHint`（导入模板说明行里的取值提示） |
 | 权限 | `permission`：没有该权限时字段隐藏 |
 
 - 只放进搜索、不当列的字段写 `visible: false`；
@@ -6923,6 +7038,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 | `remove` | 删除单条；行删除与批量删除都调它 |
 | `updateStatus(id, enabled)` | 启停单条；批量启停调它 |
 | `create(record)` | 导入时逐行新建 |
+| `importMany(records)` | 导入时按批交给后端的批量导入操作，返回其中不能导入的记录（与 `create` 二选一） |
 | `export` | `{ businessType, buildQuery? }`：接入导出中心 |
 
 `toPageRequest(params, mapping)`：
@@ -6944,9 +7060,14 @@ export function configsResource(): SchemaResource<ConfigRow> {
 页面声明了 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段，没有标的就导出当前可见列；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
 
 - 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
-- 资源还实现了 `export`：导出菜单多出当前页、搜索结果、全部三项，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成 CSV 或 XLSX 文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
+- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
 
-有 `importable` 字段且资源实现了 `create` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入时下载按 `importable` 字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填，再以并发 4 逐行调用 `create`，失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`，记下 `pageCode` 与页面声明的 `resourceCode`），对话框里显示最近几次。
+有导入字段且资源实现了 `create` 或 `importMany` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入字段缺省是标了 `importable` 的字段；模板与列表列对不上时（列表一列合并显示了几个字段，或导入要的字段列表里没有）在页面上写 `importFields` 显式给出，选项直接写 `options`。导入时下载按导入字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填与取值，再交给资源：
+
+- `create`：并发 4 逐行新建；
+- `importMany`：每批 100 条、一批接一批地交给后端（后一批能看到前一批写入的结果），后端逐行校验，返回的失败按字段挂回各行；整批被拒（如缺少权限）时这一批每行都记为失败。
+
+导入前要页面自己补的输入（如用户导入共用的初始密码）放进 `#import-options` 插槽，`importReady` 返回是否已填好，没填好时「开始导入」不可点。失败行可下载错误明细；每次导入记一条导入历史（`import-histories.create`，记下 `pageCode` 与页面声明的 `resourceCode`），对话框里显示最近几次。
 
 ## 个人设置
 

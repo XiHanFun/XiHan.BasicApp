@@ -1,0 +1,1 @@
+import{at as e,it as t,n,vt as r}from"./chunks/framework.DdRMjwGS.js";var i=JSON.parse(`{"title":"常见问题","description":"","frontmatter":{},"headers":[],"relativePath":"faq.md","filePath":"faq.md","lastUpdated":1794296442000}`),a={name:`faq.md`};function o(n,i,a,o,s,c){return r(),t(`div`,null,[...i[0]||=[e("",52)]])}var s=n(a,[[`render`,o]]);export{i as __pageData,s as default};
