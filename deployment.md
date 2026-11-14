@@ -43,7 +43,7 @@ dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
 
 ### 生产配置清单
 
-用环境变量或密钥存储提供，不要写进镜像或仓库：
+用环境变量、密钥存储或部署目录下不入库的 `appsettings.Production.json` 提供，不要写进镜像或仓库：
 
 | 键 | 说明 |
 | --- | --- |

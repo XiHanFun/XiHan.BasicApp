@@ -67,6 +67,7 @@ XiHan.BasicApp.Host/
 ├─ Schema/6.0.0/0001-baseline.sql     # 表结构基线
 ├─ IpDatabases/                 # IP 归属地离线库
 ├─ appsettings.json  appsettings.Development.json
+├─ ConfigurationSchema.json     # 配置的 JSON Schema（编辑器补全与校验）
 └─ xihan.app.json               # 框架打包规范的应用清单
 ```
 

@@ -272,6 +272,12 @@ OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-
 
 本页记录各版本中使用者与运维可感知的变化，每条标注 **新增 / 修复 / 优化 / 调整** 类别，适用于评估与升级版本的读者；仓库自身的 CI、测试与构建脚本不列入。
 
+## 未发布
+
+- **新增** 配置的 JSON Schema（宿主工程的 `ConfigurationSchema.json`）：描述 `XiHan` 与 `BasicApp` 两节每个键的类型、枚举、取值范围、缺省值与说明，Visual Studio 打开 `appsettings*.json` 即有补全、悬停说明与校验，VS Code 与 Rider 的映射见[配置参考](./configuration#json-schema)
+- **新增** 前端 `.env.development` 与 `.env.production`；后端正式环境的值写在不入库的 `appsettings.Production.json`
+- **优化** `appsettings.json` 与 `appsettings.Development.json` 不再逐项注释，说明改由 JSON Schema 与配置参考提供；框架节的列表与字典写成空的 `[]` / `{}` 时编辑器直接报错；配置参考补上配置节点总览
+
 ## v6.0.0-preview.2 (2026-11-13)
 
 ::: warning 预览须知
@@ -452,14 +458,93 @@ OAuth 2.0 / OIDC 服务端（`/api/oauth2/*`）见[开放平台](./backend/open-
 
 配置分两组：
 
-- 框架节 `XiHan:*`：由 XiHan.Framework 的各个 Feature 读取。写了就校验，类型、范围或枚举值不合法时启动即失败。列表与字典（如 `Exclude`、`Routes`、`AllowedHosts`）没有内容时整项不写：空的 `[]` / `{}` 会被读成空字符串而启动失败。
+- 框架节 `XiHan:*`：由 XiHan.Framework 的各个 Feature 读取。写了就校验，类型、范围或枚举值不合法时启动即失败。列表与字典（如 `Exclude`、`Routes`、`AllowedHosts`）没有内容时整项不写：空的 `[]` / `{}` 会被读成空字符串而启动失败，JSON Schema 会把它们标为错误。
 - 应用节 `BasicApp:*`：由各能力包的 Options 直接绑定。除特别注明的几节外，写错同样启动即失败，不会退回缺省值。
 
-`appsettings.json` 写出了全部配置项，每项带注释：写出来的值就是缺省值（个别是 BasicApp 的推荐值，注释里写明），注释掉的是可选项，去掉 `//`、填上真实值即生效。只在开发环境生效的值写在 `appsettings.Development.json`。
+`appsettings.json` 写出了全部配置项：写出来的值就是缺省值（个别是 BasicApp 的推荐值，下文写明），注释掉的是可选项，去掉 `//`、填上真实值即生效。文件里不逐项注释，每一项的说明在下文与 [JSON Schema](#json-schema)（编辑器里悬停可见）。
+
+| 文件 | 入库 | 用途 |
+| --- | --- | --- |
+| `appsettings.json` | 是 | 全部配置项与缺省值，所有环境共用 |
+| `appsettings.Development.json` | 是 | 本机开发：开发库连接、开发用密钥，启动时建库、建表并执行种子 |
+| `appsettings.Production.json` | 否（`.gitignore`） | 正式环境的真实值：数据库、密钥、对外地址等；也可以全部改用环境变量 |
+| `ConfigurationSchema.json` | 是 | `XiHan` 与 `BasicApp` 两节的 JSON Schema，见 [JSON Schema](#json-schema) |
 
 ::: danger 不提交密钥
-`appsettings.json` 里的 JWT 密钥、签名地址密钥都留空，也不写数据库连接；`appsettings.Development.json` 里的值只用于本机开发。部署时由环境变量或密钥存储提供，下文示例一律用占位符。
+`appsettings.json` 里的 JWT 密钥、签名地址密钥都留空，也不写数据库连接；`appsettings.Development.json` 里的值只用于本机开发。部署时写进不入库的 `appsettings.Production.json`，或由环境变量、密钥存储提供，下文示例一律用占位符。
 :::
+
+## 配置节点总览
+
+```text
+appsettings.json
+├─ Kestrel                  监听地址：HTTP 9710、gRPC 9711
+├─ Logging                  日志级别
+├─ AllowedHosts             允许的 Host 请求头
+├─ XiHan                    框架配置
+│  ├─ Kernel                特性的启停时限与失败策略；Resilience 限流、并发与熔断
+│  ├─ Bindings              服务绑定：平台库 db、Redis cache、RabbitMQ queue
+│  ├─ Persistence           SqlSugar（建表、超时、从库探测）与运行时数据源
+│  ├─ Caching               进程内缓存、幂等去重；Redis 与两级缓存
+│  ├─ Messaging             消息投递与事务发件箱；RabbitMQ
+│  ├─ ObjectStorage         存储健康探测与签名下载地址
+│  ├─ Security              JWT、授予缓存、IP 归属地、通行密钥、出站地址策略
+│  ├─ MultiTenancy          租户解析与租户目录缓存
+│  ├─ Localization          启用的区域与数据库译文
+│  ├─ Auditing              框架的操作审计
+│  ├─ Scheduling            后台作业调度
+│  ├─ Workflow              工作流引擎
+│  ├─ AI                    知识库、护栏、工具名与提示词模板
+│  ├─ Observability         主机运行信息采样与 OpenTelemetry 导出
+│  └─ Protocols             HTTP、gRPC、MCP 与 CloudEvents 协议适配
+└─ BasicApp                 应用配置
+   ├─ Database              平台库的从库与 SQL 诊断日志
+   ├─ Schema                表结构升级
+   ├─ Seed                  种子与演示数据
+   ├─ Modules               可选模块开关
+   ├─ ApiDocs               接口文档
+   ├─ ForwardedHeaders      反向代理转发头
+   ├─ Cors                  跨域
+   ├─ CloudEvents           CloudEvents 入站端点
+   ├─ DataProtection        数据保护的密钥目录
+   ├─ Auth                  令牌、锁定、密码、验证码、双因素与自助注册；OAuth 第三方登录
+   ├─ Access                权限条件与访问策略
+   ├─ Auditing              应用日志与保留期
+   ├─ Files                 上传、分片与签名下载
+   ├─ Notification          通知发件箱与 Telegram
+   ├─ Realtime              SignalR Hub 参数
+   ├─ OpenPlatform          开放接口签名与 OAuth2 / OIDC 授权服务
+   ├─ CodeGeneration        代码生成
+   └─ AI                    知识库的向量库（Qdrant）
+```
+
+各节点的键、缺省值与说明见下文对应小节。
+
+## JSON Schema
+
+`backend/src/XiHan.BasicApp.Host/ConfigurationSchema.json` 描述 `XiHan` 与 `BasicApp` 两节的每个键：类型、枚举值、取值范围、缺省值与说明（框架的键取自 XiHan.Framework 的配置索引）；框架节的列表与字典要求非空，写成空的 `[]` / `{}` 即报错。`Kestrel`、`Logging` 等 ASP.NET Core 自带的键由编辑器内置的 appsettings Schema 描述。
+
+- **Visual Studio**：宿主工程把它登记为 `JsonSchemaSegment`，打开任一 `appsettings*.json` 即有补全、悬停说明与类型校验，不用另外配置。
+- **VS Code**：在 `.vscode/settings.json` 里映射（可以和 ASP.NET Core 的 Schema 一起用）：
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["backend/src/XiHan.BasicApp.Host/appsettings*.json"],
+      "url": "./backend/src/XiHan.BasicApp.Host/ConfigurationSchema.json"
+    },
+    {
+      "fileMatch": ["backend/src/XiHan.BasicApp.Host/appsettings*.json"],
+      "url": "https://json.schemastore.org/appsettings.json"
+    }
+  ]
+}
+```
+
+- **Rider**：在「JSON Schema Mappings」里把同样的文件指向 `ConfigurationSchema.json`。
+
+加配置项时同步补 Schema：架构测试 `ConfigurationSchemaTests` 核对 `appsettings.json` 与 `appsettings.Development.json` 里 `XiHan`、`BasicApp` 下写出的每个键都在 Schema 里，漏了即失败。
 
 ## ASP.NET Core
 
@@ -1095,7 +1180,17 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 
 ## 前端 `.env`
 
-`frontend/.env` 是仓库缺省配置，各项说明见 `frontend/.env.example`。本机改动写 `.env.local`，不提交。
+Vite 按模式叠加读取，后者覆盖前者：
+
+| 文件 | 入库 | 用途 |
+| --- | --- | --- |
+| `.env` | 是 | 各环境共用：首页与通知 Hub |
+| `.env.development` | 是 | `pnpm dev`：开发服务器端口与代理目标 |
+| `.env.production` | 是 | `pnpm build`：接口地址（缺省同源）、路由模式与部署子路径 |
+| `.env.local` / `.env.<模式>.local` | 否 | 本机改动 |
+| `.env.example` | 是 | 全部变量与说明 |
+
+前后端不同源部署时，在 `.env.production` 写后端地址（`VITE_API_BASE_URL`），并在后端 [`BasicApp:Cors`](#basicapp-cors) 的 `AllowedOrigins` 列出前端的来源。
 
 | 变量 | 缺省 | 说明 |
 | --- | --- | --- |
@@ -1159,7 +1254,7 @@ dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
 
 ### 生产配置清单
 
-用环境变量或密钥存储提供，不要写进镜像或仓库：
+用环境变量、密钥存储或部署目录下不入库的 `appsettings.Production.json` 提供，不要写进镜像或仓库：
 
 | 键 | 说明 |
 | --- | --- |
@@ -2260,6 +2355,7 @@ XiHan.BasicApp.Host/
 ├─ Schema/6.0.0/0001-baseline.sql     # 表结构基线
 ├─ IpDatabases/                 # IP 归属地离线库
 ├─ appsettings.json  appsettings.Development.json
+├─ ConfigurationSchema.json     # 配置的 JSON Schema（编辑器补全与校验）
 └─ xihan.app.json               # 框架打包规范的应用清单
 ```
 
