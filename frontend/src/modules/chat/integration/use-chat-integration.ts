@@ -157,14 +157,15 @@ export function useChatIntegration() {
     }
   }
 
-  // 连接断过又连上：断开期间的上下线没收到，把在线状态重取一遍（第一次连上不算，那时刚读过）
+  // 连接断过又连上：断开期间的上下线没收到，把在线状态重取一遍
+  // 第一次连上也可能要：会话列表若在连接建好之前就读了（或正在读），这之间的上下线同样没收到；还没开始读的不用，随后读到的就是连上之后的状态
   // 通话每次连上都与服务端对一遍：还在响的来电认回来，断线期间结束了的收场，刷新前占着的那一通替自己挂断
   let everConnected = false
   const stopConnectedWatch = watch(signalR.connected, (connected) => {
     if (!connected) {
       return
     }
-    if (everConnected) {
+    if (everConnected || chatStore.conversationsLoaded || chatStore.conversationsLoading) {
       chatStore.resyncPresence()
     }
     everConnected = true

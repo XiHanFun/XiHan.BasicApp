@@ -18,7 +18,8 @@ namespace XiHan.BasicApp.Realtime.Infrastructure;
 /// </summary>
 /// <remarks>
 /// 用户在某一侧的第一条连接到了、最后一条连接断了，各发一条 <see cref="Topics.RealtimePresenceChanged"/>（信封带侧），订阅的包据此把在线状态推给相关的人
-/// 离线留一段宽限（<see cref="RealtimePresenceOptions.OfflineGrace"/>）：宽限之内又连上的（刷新页面、断线重连）两头都不发，别人看到的一直是在线
+/// 离线留一段宽限（<see cref="RealtimePresenceOptions.OfflineGrace"/>）：宽限之内又连上的（刷新页面、断线重连）不发离线，别人看到的不闪
+/// 回来的那一下照发一条：没有连接的这段空档里读状态的人读到的是离线，靠它纠正；一直显示在线的人收到的还是在线
 /// 只看本实例的连接：同一个人还连着别的实例时这里照样发，消息不带「上线还是离线」、订阅方读当时的状态，多发一条也不会让状态出错
 /// 发布尽力而为：失败只记日志，各处读到的在线状态以 <see cref="IRealtimePresence"/> 为准；停机时还在宽限里的离线不再发
 /// </remarks>
@@ -29,7 +30,7 @@ namespace XiHan.BasicApp.Realtime.Infrastructure;
 /// <param name="logger">日志</param>
 internal sealed partial class PresenceAnnouncer(RealtimePresenceOptions options, RealtimeNode node, IServiceScopeFactory scopes, TimeProvider clock, ILogger<PresenceAnnouncer> logger)
 {
-    // 还在宽限里的离线：值是那一次离开的票号，回来即拿掉，宽限到了还在且票号没变才发
+    // 还在宽限里的离线：值是那一次离开的票号，回来即拿掉（那一次的离线不再发），宽限到了还在且票号没变才发
     private readonly ConcurrentDictionary<(string Side, Guid UserId), long> _leaving = new();
     private long _tickets;
 
@@ -37,7 +38,10 @@ internal sealed partial class PresenceAnnouncer(RealtimePresenceOptions options,
     /// 用户在这一侧的第一条连接到了
     /// </summary>
     public Task ArrivedAsync(string side, Guid userId)
-        => _leaving.TryRemove((side, userId), out _) ? Task.CompletedTask : PublishAsync(side, userId);
+    {
+        _leaving.TryRemove((side, userId), out _);
+        return PublishAsync(side, userId);
+    }
 
     /// <summary>
     /// 用户在这一侧的最后一条连接断了

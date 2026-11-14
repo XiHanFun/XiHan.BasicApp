@@ -671,6 +671,32 @@ describe('在线状态', () => {
     expect(store.conversationRevisions.a).toBe(before + 1)
   })
 
+  it('列表正在读时要补取在线状态：等这次读完再读一遍，不丢也不并发', async () => {
+    const releases: ((items: ReturnType<typeof conversation>[]) => void)[] = []
+    const store = setup({
+      myConversations: () => new Promise((resolve) => {
+        releases.push(resolve)
+      }),
+    })
+
+    const first = store.loadConversations()
+    store.resyncPresence()
+    expect(releases).toHaveLength(1)
+
+    // 路上的这次是连接建好之前拍的：对端还显示离线
+    releases[0]!([
+      conversation({ conversationId: 'a', peerUserId: 'u1', peerOnline: false }),
+    ])
+    await first
+    await vi.waitFor(() => expect(releases).toHaveLength(2))
+    releases[1]!([
+      conversation({ conversationId: 'a', peerUserId: 'u1', peerOnline: true }),
+    ])
+
+    await vi.waitFor(() => expect(store.isUserOnline('u1')).toBe(true))
+    expect(releases).toHaveLength(2)
+  })
+
   it('重置清掉在线状态：换账号后不带着上一个人看到的状态', () => {
     const store = setup()
     store.notePresence([

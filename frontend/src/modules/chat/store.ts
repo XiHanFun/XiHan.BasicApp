@@ -212,6 +212,9 @@ export const useChatStore = defineStore('chat', () => {
     })
   }
 
+  /** 列表正在读的时候又有人要补取在线状态：等这次读完再读一遍（路上的这次可能是实时连接建好之前拍下的） */
+  let reloadAfterLoad = false
+
   async function loadConversations() {
     if (conversationsLoading.value) {
       return
@@ -234,6 +237,10 @@ export const useChatStore = defineStore('chat', () => {
     }
     finally {
       conversationsLoading.value = false
+      if (reloadAfterLoad) {
+        reloadAfterLoad = false
+        loadConversations().catch(() => {})
+      }
     }
   }
 
@@ -810,11 +817,17 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /**
-   * 实时连接断过又连上：断开期间的上下线没收到
+   * 实时连接刚连上：没连着的时候上下线收不到（断线期间，或列表在连接建好之前就读了）
    * 会话列表重取一遍（带回单聊对端的状态），当前会话记一次变更、开着的成员列表随之重取
+   * 列表正在读时等它读完再读一遍：路上的这次可能是连上之前拍下的
    */
   function resyncPresence() {
-    loadConversations().catch(() => {})
+    if (conversationsLoading.value) {
+      reloadAfterLoad = true
+    }
+    else {
+      loadConversations().catch(() => {})
+    }
     const id = activeConversationId.value
     if (id) {
       conversationRevisions.value[id] = (conversationRevisions.value[id] ?? 0) + 1
@@ -1017,6 +1030,7 @@ export const useChatStore = defineStore('chat', () => {
     conversations.value = []
     conversationsLoading.value = false
     conversationsLoaded.value = false
+    reloadAfterLoad = false
     activeConversationId.value = null
     messages.value = {}
     hasMoreOlder.value = {}

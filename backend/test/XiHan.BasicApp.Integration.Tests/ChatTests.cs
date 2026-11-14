@@ -468,7 +468,7 @@ public sealed class ChatTests : IDisposable
     [Fact]
     public async Task Presence_RidesOnReads_AndIsPushedToPeersAndOpenGroups()
     {
-        // 离线宽限调到 1 秒：够验证「宽限内回来不推」，又不用干等缺省的 8 秒
+        // 离线宽限调到 1 秒：够验证「宽限内回来不推离线」，又不用干等缺省的 8 秒
         var (server, users) = await StartAsync([new("BasicApp:Realtime:Presence:OfflineGrace", "00:00:01")]);
         await using var running = server;
         var (alice, bob, carol) = (users["alice"], users["bob"], users["carol"]);
@@ -511,11 +511,13 @@ public sealed class ChatTests : IDisposable
         Assert.True(Assert.Single(options.GetProperty("items").EnumerateArray()).GetProperty("isOnline").GetBoolean());
         Assert.False(toDave.Task.IsCompleted);
 
-        // 宽限内断了又连上（刷新页面）：两头都不推
-        var flap = ExpectPresence(bobHub, alice);
+        // 宽限内断了又连上（刷新页面）：不推离线，回来时补一条在线（空档里读到离线的人靠它纠正）
+        var back = ExpectPresence(bobHub, alice);
         await aliceHub.DisposeAsync();
         aliceHub = Connect(server, aliceLogin);
         await aliceHub.StartAsync();
+        Assert.True(await back.Task.WaitAsync(_wait));
+        var flap = ExpectPresence(bobHub, alice);
         await Task.Delay(TimeSpan.FromSeconds(2));
         Assert.False(flap.Task.IsCompleted);
         Assert.True(await PeerOnlineAsync());

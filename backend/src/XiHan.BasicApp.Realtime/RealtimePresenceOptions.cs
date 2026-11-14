@@ -22,7 +22,7 @@ public sealed record RealtimePresenceOptions
     /// 最后一条连接断开之后多久才算离线
     /// </summary>
     /// <remarks>
-    /// 宽限之内又连上（刷新页面、断线重连）对别人来说一直在线，不发布变化
+    /// 宽限之内又连上（刷新页面、断线重连）不发布离线，只在回来时补一条让空档里读到离线的人纠正
     /// </remarks>
     public TimeSpan OfflineGrace { get; init; } = TimeSpan.FromSeconds(8);
 

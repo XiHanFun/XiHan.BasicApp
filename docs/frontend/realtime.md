@@ -46,7 +46,7 @@
 | 推送 | `ChatReadPositionChanged` | 已读位只前移，群消息的已读人数按序号比 |
 | 推送 | `ChatConversationChanged` | 按变更类型刷新会话列表、成员与群信息 |
 | 推送 | `ChatTyping` | 显示「正在输入」4 秒 |
-| 推送 | `ChatPresenceChanged` | 改写那个人的在线状态；头像的在线点、单聊的「在线 / 离线」与群成员的在线人数随之变。连接断过又连上时重取会话列表与当前会话的成员 |
+| 推送 | `ChatPresenceChanged` | 改写那个人的在线状态；头像的在线点、单聊的「在线 / 离线」与群成员的在线人数随之变。连接连上时（断线重连，或会话列表在连接建好之前就读了）重取会话列表与当前会话的成员 |
 | 推送 | `ChatAssistantDelta`、`ChatAssistantCompleted` | 助手流式回复：增量立即推给本人，结束或失败时收到完成，失败带 `errorCode` 与 `error` |
 | 推送 | `ChatCallChanged` | 通话此刻的样子：响铃的来电出卡片并响铃，接通了建媒体连接，结束了收场；在别处接听的只停铃 |
 | 推送 | `ChatCallSignal` | 对端转来的信令（会话描述、ICE 候选、麦克风与摄像头的开关）；只有占着这通电话的页签处理 |

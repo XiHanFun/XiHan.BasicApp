@@ -91,7 +91,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 用户在某一侧的第一条连接到了、最后一条连接断了，Realtime 各发一条消息 `basicapp.realtime.presence-changed`（载荷只有用户，信封带侧；直接发布、不经发件箱），订阅的包据此把变化推给相关的人。消息不带「上线还是离线」：投递至少一次、可能乱序，订阅方读处理时的状态。
 
-离线留一段宽限（配置 `BasicApp:Realtime:Presence:OfflineGrace`，缺省 8 秒，见[配置参考](../configuration#basicapp-realtime-presence)）：宽限之内又连上的（刷新页面、断线重连）两头都不发。发布只看本实例的连接、尽力而为：失败只记日志，停机时还在宽限里的离线不再发，各处读到的状态以接口为准。
+离线留一段宽限（配置 `BasicApp:Realtime:Presence:OfflineGrace`，缺省 8 秒，见[配置参考](../configuration#basicapp-realtime-presence)）：宽限之内又连上的（刷新页面、断线重连）不发离线，别人看到的不闪；回来的那一下照发一条，没有连接的这段空档里读到离线的人靠它纠正。发布只看本实例的连接、尽力而为：失败只记日志，停机时还在宽限里的离线不再发，各处读到的状态以接口为准。
 
 ## 跨实例
 
