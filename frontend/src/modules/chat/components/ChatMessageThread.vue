@@ -534,9 +534,9 @@ function handleAvatarClick(item: ChatLocalMessage) {
 
 // ===== 拖文件进来：整个消息流都是落点，松开即暂存到输入区待发 =====
 const composerRef = ref<InstanceType<typeof ChatComposer> | null>(null)
-/** 拖着文件悬在上面的层数：进子元素是先进后出，按层数算才不闪 */
-const dragDepth = ref(0)
-const dropActive = computed(() => dragDepth.value > 0 && (composerRef.value?.acceptsFiles ?? false))
+/** 正拖着文件悬在消息流上 */
+const draggingOver = ref(false)
+const dropActive = computed(() => draggingOver.value && (composerRef.value?.acceptsFiles ?? false))
 
 function draggingFiles(event: DragEvent): boolean {
   return event.dataTransfer?.types.includes('Files') ?? false
@@ -544,14 +544,21 @@ function draggingFiles(event: DragEvent): boolean {
 
 function handleDragEnter(event: DragEvent) {
   if (draggingFiles(event)) {
-    dragDepth.value += 1
+    draggingOver.value = true
   }
 }
 
+/**
+ * 在里面的子元素之间挪也会收到 dragleave：看它去了哪，还在消息流里就不算离开
+ * 不按进出次数计数：消息流重排时被换掉的元素不发 dragleave，数会对不上、提示层收不起来
+ */
 function handleDragLeave(event: DragEvent) {
-  if (draggingFiles(event)) {
-    dragDepth.value = Math.max(0, dragDepth.value - 1)
+  const root = event.currentTarget
+  const next = event.relatedTarget
+  if (root instanceof Node && next instanceof Node && root.contains(next)) {
+    return
   }
+  draggingOver.value = false
 }
 
 function handleDragOver(event: DragEvent) {
@@ -560,17 +567,18 @@ function handleDragOver(event: DragEvent) {
   }
   // 不拦下来浏览器会直接打开这个文件；这会儿收不了的显示成不可放
   event.preventDefault()
+  draggingOver.value = true
   event.dataTransfer.dropEffect = composerRef.value?.acceptsFiles
     ? 'copy'
     : 'none'
 }
 
 function handleDrop(event: DragEvent) {
+  draggingOver.value = false
   if (!draggingFiles(event)) {
     return
   }
   event.preventDefault()
-  dragDepth.value = 0
   composerRef.value?.addFiles(droppedFiles(event.dataTransfer))
 }
 
