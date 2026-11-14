@@ -182,6 +182,21 @@ public static class FilesErrors
     public const string UploadSizeMismatch = "FILES_CONFLICT_010";
 
     /// <summary>
+    /// 文件在目标存储配置里已经有副本
+    /// </summary>
+    public const string StorageCopyExists = "FILES_CONFLICT_011";
+
+    /// <summary>
+    /// 复制的目标存储配置已停用
+    /// </summary>
+    public const string CopyTargetDisabled = "FILES_CONFLICT_012";
+
+    /// <summary>
+    /// 主副本读出的内容与文件记录的不符
+    /// </summary>
+    public const string CopySourceMismatch = "FILES_CONFLICT_013";
+
+    /// <summary>
     /// 上传目标的存储不支持分片上传
     /// </summary>
     public const string MultipartUnsupported = "FILES_UNAVAILABLE_004";

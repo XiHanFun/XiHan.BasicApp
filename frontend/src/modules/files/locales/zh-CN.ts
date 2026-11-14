@@ -140,6 +140,16 @@ export default {
         load_failed: '加载存储副本失败',
         primary_tag: '主',
         confirm_toggle: '确认{action}该副本？',
+        copy: '复制到其他存储',
+        copy_dialog: {
+          title: '复制副本 - {name}',
+          target: '目标存储配置',
+          description: '从主副本读出内容、核对后写进选中的存储配置；之后把新副本设为主副本，即把文件迁到那条配置',
+          placeholder: '选择存储配置',
+          option: '{name}（{type}）',
+          empty: '没有可以复制到的存储配置：本侧启用的配置里都已有这个文件的副本',
+          confirm: '复制',
+        },
         columns: {
           storage_type: '存储类型',
           storage_config: '存储配置',
@@ -184,6 +194,9 @@ export default {
         verify_failed: '副本校验失败',
         storage_status_updated: '副本状态已更新',
         storage_status_failed: '更新副本状态失败',
+        copied: '已复制到 {name}',
+        copy_failed: '复制副本失败',
+        copy_options_failed: '加载存储配置失败',
       },
     },
     storage_configs: {

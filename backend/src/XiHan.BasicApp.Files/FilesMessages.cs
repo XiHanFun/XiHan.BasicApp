@@ -74,6 +74,11 @@ public static class FilesMessages
     public const string SetStorageStatusDescription = "files.set_storage_status.description";
 
     /// <summary>
+    /// 操作 <c>files.copy-storage</c> 的说明
+    /// </summary>
+    public const string CopyStorageDescription = "files.copy_storage.description";
+
+    /// <summary>
     /// 操作 <c>storage-configs.list</c> 的说明
     /// </summary>
     public const string ListStorageConfigsDescription = "storage_configs.list.description";
@@ -392,6 +397,21 @@ public static class FilesMessages
     /// 存储不支持分片上传（{code}）
     /// </summary>
     public const string MultipartUnsupported = "files.upload.multipart_unsupported";
+
+    /// <summary>
+    /// 文件在目标存储配置里已经有副本（{name}）
+    /// </summary>
+    public const string StorageCopyExists = "files.file_storage.copy_exists";
+
+    /// <summary>
+    /// 复制的目标存储配置已停用（{name}）
+    /// </summary>
+    public const string CopyTargetDisabled = "files.file_storage.copy_target_disabled";
+
+    /// <summary>
+    /// 主副本读出的内容与文件记录的不符
+    /// </summary>
+    public const string CopySourceMismatch = "files.file_storage.copy_source_mismatch";
 
     /// <summary>
     /// 作业 <c>files.uploads.expire</c> 的显示名

@@ -255,11 +255,7 @@ public sealed class ListFileStorages(FileService files, StorageConfigService con
 
         var copies = await files.StoragesOfAsync(file, context.CancellationToken).ConfigureAwait(false);
         var known = await configs.ManyAsync([.. copies.Select(static s => s.StorageConfigId).Distinct()], context.CancellationToken).ConfigureAwait(false);
-        return new FileStoragesResponse([.. copies.Select(s =>
-        {
-            var config = known.GetValueOrDefault(s.StorageConfigId);
-            return new FileStorageResponse(s.Id, s.StorageConfigId, config?.Code, config?.Name, s.StorageType, s.Bucket, s.Key, s.IsPrimary, s.Status, s.VerifiedAt, s.Remark, s.CreatedAt);
-        })]);
+        return new FileStoragesResponse([.. copies.Select(s => FileStorageResponse.From(s, known.GetValueOrDefault(s.StorageConfigId)))]);
     }
 }
 
@@ -303,6 +299,39 @@ public sealed class SetPrimaryStorage(FileService files) : IOperation<FileStorag
         }
 
         return FileResponse.From(file);
+    }
+}
+
+/// <summary>
+/// 把文件复制一份到另一条存储配置
+/// </summary>
+/// <remarks>
+/// <c>POST /api/files/{id}:copy-storage</c>。从主副本读出内容、核对后写进目标配置，得到一个正常、已校验的非主副本；
+/// 再把它设为主副本即完成迁移。同一配置里只放一份（<c>FILES_CONFLICT_011</c>），停用的配置不接收（<c>FILES_CONFLICT_012</c>）
+/// </remarks>
+/// <param name="files">文件服务</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+public sealed class CopyStorage(FileService files) : IOperation<CopyFileStorageRequest, FileStorageResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "files.copy-storage";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<FileStorageResponse>> HandleAsync(CopyFileStorageRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
+        var found = await files.FindAsync(SideRows.SideOf(context), request.Id, cancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var file))
+        {
+            return found.Error!;
+        }
+
+        var copied = await files.CopyAsync(file, request.StorageConfigId, cancellationToken).ConfigureAwait(false);
+        return copied.TryGetValue(out var copy) ? FileStorageResponse.From(copy.Storage, copy.Config) : copied.Error!;
     }
 }
 

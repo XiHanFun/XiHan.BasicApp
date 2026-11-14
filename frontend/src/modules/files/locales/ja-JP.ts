@@ -140,6 +140,16 @@ export default {
         load_failed: 'ストレージレプリカの読み込みに失敗しました',
         primary_tag: 'プライマリ',
         confirm_toggle: 'このレプリカを{action}しますか？',
+        copy: '別のストレージにコピー',
+        copy_dialog: {
+          title: 'レプリカをコピー - {name}',
+          target: 'コピー先のストレージ設定',
+          description: 'プライマリレプリカを読み出して照合し、選んだストレージ設定に書き込みます。その後新しいレプリカをプライマリにすると、ファイルはその設定に移ります',
+          placeholder: 'ストレージ設定を選択',
+          option: '{name}（{type}）',
+          empty: 'コピーできるストレージ設定がありません。有効な設定にはすべてこのファイルのレプリカがあります',
+          confirm: 'コピー',
+        },
         columns: {
           storage_type: 'ストレージ種別',
           storage_config: 'ストレージ設定',
@@ -184,6 +194,9 @@ export default {
         verify_failed: 'レプリカの検証に失敗しました',
         storage_status_updated: 'レプリカのステータスを更新しました',
         storage_status_failed: 'レプリカのステータス更新に失敗しました',
+        copied: '{name} にコピーしました',
+        copy_failed: 'レプリカのコピーに失敗しました',
+        copy_options_failed: 'ストレージ設定の読み込みに失敗しました',
       },
     },
     storage_configs: {

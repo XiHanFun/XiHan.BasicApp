@@ -140,6 +140,16 @@ export default {
         load_failed: '載入儲存副本失敗',
         primary_tag: '主',
         confirm_toggle: '確認{action}此副本？',
+        copy: '複製到其他儲存',
+        copy_dialog: {
+          title: '複製副本 - {name}',
+          target: '目標儲存設定',
+          description: '從主要副本讀出內容、核對後寫入選取的儲存設定；之後把新副本設為主要副本，即把檔案遷到那個設定',
+          placeholder: '選擇儲存設定',
+          option: '{name}（{type}）',
+          empty: '沒有可以複製到的儲存設定：本側啟用的設定裡都已有這個檔案的副本',
+          confirm: '複製',
+        },
         columns: {
           storage_type: '儲存類型',
           storage_config: '儲存設定',
@@ -184,6 +194,9 @@ export default {
         verify_failed: '副本校驗失敗',
         storage_status_updated: '副本狀態已更新',
         storage_status_failed: '更新副本狀態失敗',
+        copied: '已複製到 {name}',
+        copy_failed: '複製副本失敗',
+        copy_options_failed: '載入儲存設定失敗',
       },
     },
     storage_configs: {

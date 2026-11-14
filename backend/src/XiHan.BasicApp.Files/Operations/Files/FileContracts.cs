@@ -191,7 +191,19 @@ public sealed record FileStorageResponse(
     FileStorageStatus Status,
     DateTimeOffset? VerifiedAt,
     string? Remark,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt)
+{
+    /// <summary>
+    /// 从副本与它的存储配置投影
+    /// </summary>
+    /// <param name="storage">副本</param>
+    /// <param name="config">存储配置；已删为空</param>
+    public static FileStorageResponse From(SysFileStorage storage, SysStorageConfig? config)
+    {
+        ArgumentNullException.ThrowIfNull(storage);
+        return new FileStorageResponse(storage.Id, storage.StorageConfigId, config?.Code, config?.Name, storage.StorageType, storage.Bucket, storage.Key, storage.IsPrimary, storage.Status, storage.VerifiedAt, storage.Remark, storage.CreatedAt);
+    }
+}
 
 /// <summary>
 /// <c>files.storages</c> 的响应
@@ -216,3 +228,10 @@ public sealed record FileStorageRequest([Required] Guid Id, [Required] Guid Stor
 /// <param name="StorageId">副本 ID</param>
 /// <param name="Status">目标状态：<c>Normal</c> 或 <c>Unavailable</c></param>
 public sealed record SetFileStorageStatusRequest([Required] Guid Id, [Required] Guid StorageId, FileStorageStatus Status);
+
+/// <summary>
+/// <c>files.copy-storage</c> 的请求
+/// </summary>
+/// <param name="Id">文件 ID</param>
+/// <param name="StorageConfigId">目标存储配置 ID：这一侧或平台的启用配置</param>
+public sealed record CopyFileStorageRequest([Required] Guid Id, [Required] Guid StorageConfigId);

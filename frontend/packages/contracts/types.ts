@@ -3952,6 +3952,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/files/{id}:copy-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy to another storage
+         * @description Copy a file from its primary copy into another storage configuration after checking the content, giving a normal, verified non-primary copy; making it primary completes a move.
+         *
+         *     Requires permission files.files.update (Update files).
+         */
+        post: operations["files.copy-storage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/files/{id}:presign": {
         parameters: {
             query?: never;
@@ -29115,6 +29137,91 @@ export interface operations {
                 };
                 content: {
                     "application/octet-stream": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "files.copy-storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 文件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description files.copy-storage 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 文件 ID
+                     */
+                    id: string;
+                    /**
+                     * Format: uuid
+                     * @description 目标存储配置 ID：这一侧或平台的启用配置
+                     */
+                    storageConfigId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一个文件副本 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 副本 ID
+                         */
+                        id: string;
+                        /**
+                         * Format: uuid
+                         * @description 存储配置 ID
+                         */
+                        storageConfigId: string;
+                        /** @description 存储配置编码；配置已删为空 */
+                        storageConfigCode?: string | null;
+                        /** @description 存储配置名称 */
+                        storageConfigName?: string | null;
+                        /** @description 写入时的存储类型 */
+                        storageType: components["schemas"]["StorageType"];
+                        /** @description 桶名 */
+                        bucket: string;
+                        /** @description 对象键 */
+                        key: string;
+                        /** @description 是否主副本 */
+                        isPrimary: boolean;
+                        /** @description 状态 */
+                        status: components["schemas"]["FileStorageStatus"];
+                        /**
+                         * Format: date-time
+                         * @description 最近一次校验时间
+                         */
+                        verifiedAt?: string | null;
+                        /** @description 备注（校验失败的原因：missing 内容缺失、hash-mismatch 内容不符） */
+                        remark?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 写入时间
+                         */
+                        createdAt: string;
+                    };
                 };
             };
             /** @description Error */

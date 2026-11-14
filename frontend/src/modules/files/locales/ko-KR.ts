@@ -140,6 +140,16 @@ export default {
         load_failed: '스토리지 사본을 불러오지 못했어요',
         primary_tag: '주',
         confirm_toggle: '이 사본을 {action}할까요?',
+        copy: '다른 스토리지로 복사',
+        copy_dialog: {
+          title: '사본 복사 - {name}',
+          target: '대상 스토리지 설정',
+          description: '주 사본을 읽어 확인한 뒤 선택한 스토리지 설정에 기록해요. 이후 새 사본을 주 사본으로 설정하면 파일이 그 설정으로 옮겨져요',
+          placeholder: '스토리지 설정 선택',
+          option: '{name} ({type})',
+          empty: '복사할 수 있는 스토리지 설정이 없어요. 사용 중인 설정에 모두 이 파일의 사본이 있어요',
+          confirm: '복사',
+        },
         columns: {
           storage_type: '스토리지 유형',
           storage_config: '스토리지 설정',
@@ -184,6 +194,9 @@ export default {
         verify_failed: '사본 검증에 실패했어요',
         storage_status_updated: '사본 상태를 업데이트했어요',
         storage_status_failed: '사본 상태 업데이트에 실패했어요',
+        copied: '{name}에 복사했어요',
+        copy_failed: '사본 복사에 실패했어요',
+        copy_options_failed: '스토리지 설정을 불러오지 못했어요',
       },
     },
     storage_configs: {

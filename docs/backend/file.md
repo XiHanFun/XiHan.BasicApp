@@ -37,7 +37,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 
 ## 文件与副本
 
-`SysFile` / `SysFileStorage` 是租户库实体（平台一侧的租户为 `platform`）：一个文件可以有多个存储副本，其中一个是主副本，读写取主副本。同一侧内容相同（SHA-256 相同）的文件共用存储里的对象，各有各的记录，删到最后一条才删对象。
+`SysFile` / `SysFileStorage` 是租户库实体（平台一侧的租户为 `platform`）：一个文件可以有多个存储副本，其中一个是主副本，读写取主副本。上传只写主副本，`files.copy-storage` 把它复制到另一条存储配置，再设为主副本即把文件迁过去（文件库「存储副本」抽屉里的「复制到其他存储」）；副本不计入存储配额。同一侧内容相同（SHA-256 相同）的文件共用存储里的对象，各有各的记录，删到最后一条才删对象。
 
 | 访问级别（`FileAccessLevel`） | 谁能换取下载地址 |
 | --- | --- |
@@ -53,6 +53,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 | `files.delete` | `files.files.delete` | 批量；不再被别的文件用到的内容随之从存储删除 |
 | `files.fast-upload` | `files.files.create` | 秒传：同一侧已有相同内容的正常文件即直接建记录，没命中返回空，前端再走普通上传 |
 | `files.set-primary-storage` / `verify-storage` / `set-storage-status` | `files.files.update` | 换主副本（目标须正常且校验过）、按 SHA-256 校验、停用副本（主副本不能停用） |
+| `files.copy-storage` | `files.files.update` | 从主副本复制到另一条本侧或平台的启用配置，得到正常、已校验的非主副本；同一配置只放一份（`FILES_CONFLICT_011`），停用的配置不收（`FILES_CONFLICT_012`），主副本读出的内容与记录不符先校验（`FILES_CONFLICT_013`） |
 | `files.presign` | 登录即可，按访问级别判定 | 换限时签名地址；归档或损坏的文件换不到，换一次记一次下载 |
 
 ## 上传与下载

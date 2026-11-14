@@ -140,6 +140,16 @@ export default {
         load_failed: 'Failed to load storage copies',
         primary_tag: 'Primary',
         confirm_toggle: 'Confirm to {action} this copy?',
+        copy: 'Copy to Storage',
+        copy_dialog: {
+          title: 'Copy - {name}',
+          target: 'Target Storage Config',
+          description: 'The primary copy is read, checked and written to the storage config you choose. Set the new copy as primary afterwards to move the file there.',
+          placeholder: 'Select a storage config',
+          option: '{name} ({type})',
+          empty: 'No storage config to copy to: every enabled config on this side already has a copy of this file.',
+          confirm: 'Copy',
+        },
         columns: {
           storage_type: 'Storage Type',
           storage_config: 'Storage Config',
@@ -184,6 +194,9 @@ export default {
         verify_failed: 'Copy verification failed',
         storage_status_updated: 'Copy status updated',
         storage_status_failed: 'Failed to update copy status',
+        copied: 'Copied to {name}',
+        copy_failed: 'Failed to copy',
+        copy_options_failed: 'Failed to load storage configs',
       },
     },
     storage_configs: {

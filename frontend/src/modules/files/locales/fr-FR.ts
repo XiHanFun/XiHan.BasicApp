@@ -140,6 +140,16 @@ export default {
         load_failed: 'Échec du chargement des copies de stockage',
         primary_tag: 'Principale',
         confirm_toggle: 'Confirmer l’action « {action} » sur cette copie ?',
+        copy: 'Copier vers un stockage',
+        copy_dialog: {
+          title: 'Copier - {name}',
+          target: 'Configuration de destination',
+          description: 'La copie principale est lue, contrôlée puis écrite dans la configuration de stockage choisie. Définissez ensuite la nouvelle copie comme principale pour y déplacer le fichier.',
+          placeholder: 'Choisir une configuration de stockage',
+          option: '{name} ({type})',
+          empty: 'Aucune configuration de destination : chaque configuration active de ce côté a déjà une copie de ce fichier.',
+          confirm: 'Copier',
+        },
         columns: {
           storage_type: 'Type de stockage',
           storage_config: 'Configuration de stockage',
@@ -184,6 +194,9 @@ export default {
         verify_failed: 'Échec de la vérification de la copie',
         storage_status_updated: 'Statut de la copie mis à jour',
         storage_status_failed: 'Échec de la mise à jour du statut de la copie',
+        copied: 'Copié vers {name}',
+        copy_failed: 'Échec de la copie',
+        copy_options_failed: 'Échec du chargement des configurations de stockage',
       },
     },
     storage_configs: {

@@ -120,7 +120,7 @@ public sealed partial class FileService(
         var temp = Path.Combine(Path.GetTempPath(), "xihan-upload-" + Guid.NewGuid().ToString("N"));
         try
         {
-            var spooled = await SpoolAsync(content, temp, cancellationToken).ConfigureAwait(false);
+            var spooled = await SpoolAsync(content, temp, options.MaxUploadBytes, cancellationToken).ConfigureAwait(false);
             if (!spooled.TryGetValue(out var written))
             {
                 return spooled.Error!;
@@ -591,6 +591,110 @@ public sealed partial class FileService(
     }
 
     /// <summary>
+    /// 把文件复制一份到另一条存储配置
+    /// </summary>
+    /// <remarks>
+    /// 主副本的内容先落到临时文件、按 SHA-256 核对与文件记录一致，再以新的对象键写进目标配置，记为正常、已校验的非主副本；之后把它设为主副本即完成迁移
+    /// 目标要是这一侧或平台的启用配置，同一配置里只放一份；读出的内容与记录不符即拒绝，先校验主副本。副本不计入存储配额（配额按文件计）
+    /// </remarks>
+    /// <param name="file">文件</param>
+    /// <param name="storageConfigId">目标存储配置 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>新副本与它的配置</returns>
+    public async Task<Result<(SysFileStorage Storage, SysStorageConfig Config)>> CopyAsync(SysFile file, Guid storageConfigId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(file);
+        if (!(await configs.FindForSideAsync(storageConfigId, file.TenantId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var config))
+        {
+            return Error.NotFound(FilesErrors.StorageConfigNotFound, FilesMessages.StorageConfigNotFound, MessageArguments.Of(("id", storageConfigId)));
+        }
+
+        if (config.Status != StorageConfigStatus.Active)
+        {
+            return Error.Conflict(FilesErrors.CopyTargetDisabled, FilesMessages.CopyTargetDisabled, MessageArguments.Of(("name", config.Name)));
+        }
+
+        if ((await StoragesOfAsync(file, cancellationToken).ConfigureAwait(false)).Any(s => s.StorageConfigId == config.Id))
+        {
+            return Error.Conflict(FilesErrors.StorageCopyExists, FilesMessages.StorageCopyExists, MessageArguments.Of(("name", config.Name)));
+        }
+
+        var located = await LocateAsync(file, cancellationToken).ConfigureAwait(false);
+        if (!located.TryGetValue(out var source))
+        {
+            return located.Error!;
+        }
+
+        var store = await stores.GetAsync(config, cancellationToken).ConfigureAwait(false);
+        if (!store.TryGetValue(out var blobs))
+        {
+            return store.Error!;
+        }
+
+        var temp = Path.Combine(Path.GetTempPath(), "xihan-copy-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var opened = await source.Store.GetAsync(new ContainerName(source.Storage.Bucket), new BlobKey(source.Storage.Key), cancellationToken).ConfigureAwait(false);
+            if (!opened.TryGetValue(out var blob))
+            {
+                return opened.Error!;
+            }
+
+            Result<(long Size, string Hash)> spooled;
+            await using (blob.ConfigureAwait(false))
+            {
+                spooled = await SpoolAsync(blob.Content, temp, long.MaxValue, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (!spooled.TryGetValue(out var read) || read.Size != file.Size || !string.Equals(read.Hash, file.Hash, StringComparison.Ordinal))
+            {
+                return Error.Conflict(FilesErrors.CopySourceMismatch, FilesMessages.CopySourceMismatch);
+            }
+
+            var now = clock.GetUtcNow();
+            var key = $"{file.TenantId}/{now:yyyy}/{now:MM}/{now:dd}/{file.Id:N}{file.Extension}";
+            var put = new BlobPutOptions
+            {
+                ContentType = file.ContentType,
+                Metadata = new Dictionary<string, string>(StringComparer.Ordinal) { ["file-id"] = file.Id.ToString("N"), ["sha256"] = file.Hash },
+                Overwrite = StorageInstances.UploadOverwrites(config),
+            };
+            var content = new FileStream(temp, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            await using (content.ConfigureAwait(false))
+            {
+                var written = await blobs.PutAsync(new ContainerName(config.Bucket), new BlobKey(key), content, put, cancellationToken).ConfigureAwait(false);
+                if (written.IsFailure)
+                {
+                    return written.Error!;
+                }
+            }
+
+            var copy = new SysFileStorage
+            {
+                Id = ids.NewId(),
+                TenantId = file.TenantId,
+                FileId = file.Id,
+                StorageConfigId = config.Id,
+                StorageType = config.Type,
+                Bucket = config.Bucket,
+                Key = key,
+                IsPrimary = false,
+                Status = FileStorageStatus.Normal,
+                VerifiedAt = now,
+            };
+            await rows.InsertAsync(copy, cancellationToken).ConfigureAwait(false);
+            return (copy, config);
+        }
+        finally
+        {
+            if (File.Exists(temp))
+            {
+                File.Delete(temp);
+            }
+        }
+    }
+
+    /// <summary>
     /// 副本所在配置的对象存储
     /// </summary>
     /// <param name="storage">副本</param>
@@ -788,7 +892,7 @@ public sealed partial class FileService(
         return joined.Length == 0 ? null : joined;
     }
 
-    private async Task<Result<(long Size, string Hash)>> SpoolAsync(Stream content, string path, CancellationToken cancellationToken)
+    private static async Task<Result<(long Size, string Hash)>> SpoolAsync(Stream content, string path, long maxBytes, CancellationToken cancellationToken)
     {
         using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
@@ -802,9 +906,9 @@ public sealed partial class FileService(
                 while ((read = await content.ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken).ConfigureAwait(false)) > 0)
                 {
                     size += read;
-                    if (size > options.MaxUploadBytes)
+                    if (size > maxBytes)
                     {
-                        return Error.Validation(FilesErrors.FileTooLarge, FilesMessages.FileTooLarge, MessageArguments.Of(("max", options.MaxUploadBytes)));
+                        return Error.Validation(FilesErrors.FileTooLarge, FilesMessages.FileTooLarge, MessageArguments.Of(("max", maxBytes)));
                     }
 
                     hasher.AppendData(buffer, 0, read);

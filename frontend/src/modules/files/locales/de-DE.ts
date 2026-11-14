@@ -140,6 +140,16 @@ export default {
         load_failed: 'Speicherkopien konnten nicht geladen werden',
         primary_tag: 'Primär',
         confirm_toggle: 'Aktion „{action}“ für diese Kopie ausführen?',
+        copy: 'In Speicher kopieren',
+        copy_dialog: {
+          title: 'Kopie anlegen - {name}',
+          target: 'Ziel-Speicherkonfiguration',
+          description: 'Die primäre Kopie wird gelesen, geprüft und in die gewählte Speicherkonfiguration geschrieben. Wird die neue Kopie danach primär, liegt die Datei dort.',
+          placeholder: 'Speicherkonfiguration wählen',
+          option: '{name} ({type})',
+          empty: 'Keine Speicherkonfiguration als Ziel verfügbar: Jede aktive Konfiguration dieser Seite hat bereits eine Kopie dieser Datei.',
+          confirm: 'Kopieren',
+        },
         columns: {
           storage_type: 'Speichertyp',
           storage_config: 'Speicherkonfiguration',
@@ -184,6 +194,9 @@ export default {
         verify_failed: 'Prüfung der Kopie fehlgeschlagen',
         storage_status_updated: 'Status der Kopie aktualisiert',
         storage_status_failed: 'Status der Kopie konnte nicht aktualisiert werden',
+        copied: 'Nach {name} kopiert',
+        copy_failed: 'Kopieren fehlgeschlagen',
+        copy_options_failed: 'Speicherkonfigurationen konnten nicht geladen werden',
       },
     },
     storage_configs: {

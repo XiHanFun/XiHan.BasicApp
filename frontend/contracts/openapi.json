@@ -25506,6 +25506,160 @@
         }
       }
     },
+    "/api/files/{id}:copy-storage": {
+      "post": {
+        "operationId": "files.copy-storage",
+        "tags": [
+          "files"
+        ],
+        "summary": "Copy to another storage",
+        "description": "Copy a file from its primary copy into another storage configuration after checking the content, giving a normal, verified non-primary copy; making it primary completes a move.\n\nRequires permission files.files.update (Update files).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "files.files.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u6587\u4EF6 ID",
+            "required": true,
+            "schema": {
+              "description": "\u6587\u4EF6 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "files.copy-storage \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CopyFileStorageRequest",
+                "description": "files.copy-storage \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u6587\u4EF6 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "storageConfigId": {
+                    "description": "\u76EE\u6807\u5B58\u50A8\u914D\u7F6E ID\uFF1A\u8FD9\u4E00\u4FA7\u6216\u5E73\u53F0\u7684\u542F\u7528\u914D\u7F6E",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id",
+                  "storageConfigId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u6587\u4EF6\u526F\u672C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FileStorageResponse",
+                  "description": "\u4E00\u4E2A\u6587\u4EF6\u526F\u672C",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u526F\u672C ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "storageConfigId": {
+                      "description": "\u5B58\u50A8\u914D\u7F6E ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "storageConfigCode": {
+                      "description": "\u5B58\u50A8\u914D\u7F6E\u7F16\u7801\uFF1B\u914D\u7F6E\u5DF2\u5220\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "storageConfigName": {
+                      "description": "\u5B58\u50A8\u914D\u7F6E\u540D\u79F0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "storageType": {
+                      "description": "\u5199\u5165\u65F6\u7684\u5B58\u50A8\u7C7B\u578B",
+                      "$ref": "#/components/schemas/StorageType"
+                    },
+                    "bucket": {
+                      "description": "\u6876\u540D",
+                      "type": "string"
+                    },
+                    "key": {
+                      "description": "\u5BF9\u8C61\u952E",
+                      "type": "string"
+                    },
+                    "isPrimary": {
+                      "description": "\u662F\u5426\u4E3B\u526F\u672C",
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/FileStorageStatus"
+                    },
+                    "verifiedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u6821\u9A8C\u65F6\u95F4",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "remark": {
+                      "description": "\u5907\u6CE8\uFF08\u6821\u9A8C\u5931\u8D25\u7684\u539F\u56E0\uFF1Amissing \u5185\u5BB9\u7F3A\u5931\u3001hash-mismatch \u5185\u5BB9\u4E0D\u7B26\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "description": "\u5199\u5165\u65F6\u95F4",
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "storageConfigId",
+                    "storageType",
+                    "bucket",
+                    "key",
+                    "isPrimary",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/files/{id}:presign": {
       "get": {
         "operationId": "files.presign",

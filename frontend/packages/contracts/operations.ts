@@ -211,6 +211,7 @@ export const routes = {
   'field-security.update': { method: 'PUT', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
   'files.abort-upload': { method: 'POST', template: '/api/files:abort-upload', path: [], query: [], success: 200 },
   'files.complete-upload': { method: 'POST', template: '/api/files:complete-upload', path: [], query: [], success: 200 },
+  'files.copy-storage': { method: 'POST', template: '/api/files/{id}:copy-storage', path: ['id'], query: [], success: 200 },
   'files.delete': { method: 'DELETE', template: '/api/files', path: [], query: ['ids'], success: 200 },
   'files.fast-upload': { method: 'POST', template: '/api/files:fast-upload', path: [], query: [], success: 200 },
   'files.get': { method: 'GET', template: '/api/files/{id}', path: ['id'], query: [], success: 200 },
@@ -858,6 +859,7 @@ export const fieldSecurity = {
 export const files = {
   abortUpload: (request: RequestOf<'files.abort-upload'>, options?: CallOptions) => invoke<RequestOf<'files.abort-upload'>, ResponseOf<'files.abort-upload'>>('files.abort-upload', routes['files.abort-upload'], request, options),
   completeUpload: (request: RequestOf<'files.complete-upload'>, options?: CallOptions) => invoke<RequestOf<'files.complete-upload'>, ResponseOf<'files.complete-upload'>>('files.complete-upload', routes['files.complete-upload'], request, options),
+  copyStorage: (request: RequestOf<'files.copy-storage'>, options?: CallOptions) => invoke<RequestOf<'files.copy-storage'>, ResponseOf<'files.copy-storage'>>('files.copy-storage', routes['files.copy-storage'], request, options),
   delete: (request: RequestOf<'files.delete'>, options?: CallOptions) => invoke<RequestOf<'files.delete'>, ResponseOf<'files.delete'>>('files.delete', routes['files.delete'], request, options),
   fastUpload: (request: RequestOf<'files.fast-upload'>, options?: CallOptions) => invoke<RequestOf<'files.fast-upload'>, ResponseOf<'files.fast-upload'>>('files.fast-upload', routes['files.fast-upload'], request, options),
   get: (request: RequestOf<'files.get'>, options?: CallOptions) => invoke<RequestOf<'files.get'>, ResponseOf<'files.get'>>('files.get', routes['files.get'], request, options),

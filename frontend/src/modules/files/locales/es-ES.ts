@@ -140,6 +140,16 @@ export default {
         load_failed: 'No se pudieron cargar las copias de almacenamiento',
         primary_tag: 'Principal',
         confirm_toggle: '¿Confirmas la acción «{action}» en esta copia?',
+        copy: 'Copiar a almacenamiento',
+        copy_dialog: {
+          title: 'Copiar - {name}',
+          target: 'Configuración de destino',
+          description: 'Se lee la copia principal, se comprueba y se escribe en la configuración de almacenamiento elegida. Después, al establecer la nueva copia como principal, el archivo pasa allí.',
+          placeholder: 'Selecciona una configuración de almacenamiento',
+          option: '{name} ({type})',
+          empty: 'No hay ninguna configuración a la que copiar: todas las configuraciones activas de este lado ya tienen una copia del archivo.',
+          confirm: 'Copiar',
+        },
         columns: {
           storage_type: 'Tipo de almacenamiento',
           storage_config: 'Configuración de almacenamiento',
@@ -184,6 +194,9 @@ export default {
         verify_failed: 'Error al verificar la copia',
         storage_status_updated: 'Estado de la copia actualizado',
         storage_status_failed: 'No se pudo actualizar el estado de la copia',
+        copied: 'Copiado a {name}',
+        copy_failed: 'No se pudo copiar',
+        copy_options_failed: 'No se pudieron cargar las configuraciones de almacenamiento',
       },
     },
     storage_configs: {

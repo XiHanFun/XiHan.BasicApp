@@ -24,6 +24,8 @@ import {
   XhDialogBody,
   XhDialogCloseTrigger,
   XhDialogContent,
+  XhDialogDescription,
+  XhDialogFooter,
   XhDialogHeader,
   XhDialogRoot,
   XhDialogTitle,
@@ -48,7 +50,7 @@ import { computed, h, onBeforeUnmount, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { actionConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XIconButton, XInput, XSelect } from '~/components'
 import { confirmDanger, dialog, islandStart, toast } from '~/composables'
-import { files as filesApi } from '~/contracts'
+import { files as filesApi, storageConfigs as storageConfigsApi } from '~/contracts'
 import { usePermission } from '~/hooks'
 import { throwOnFailed } from '~/request'
 import { formatDate, formatFileSize } from '~/utils'
@@ -615,6 +617,66 @@ async function loadStorages() {
   }
 }
 
+// 复制到其他存储：目标是本侧启用、还没有这个文件副本的存储配置
+const copyVisible = ref(false)
+const copyLoading = ref(false)
+const copySaving = ref(false)
+const copyTarget = ref<string | null>(null)
+const copyOptions = ref<SelectOption[]>([])
+/** 选目标要列存储配置，所以还要能读存储配置 */
+const canCopyStorage = computed(() => canUpdateFile.value && hasPermission('files.storage-configs.read'))
+
+async function openCopy() {
+  copyTarget.value = null
+  copyOptions.value = []
+  copyVisible.value = true
+  copyLoading.value = true
+  try {
+    const page = await storageConfigsApi.list({
+      page: { index: 1, size: 100 },
+      filters: [
+        { field: 'status', operator: 'in', value: 'Active' },
+      ],
+    })
+    const used = new Set(storageRows.value.map(row => row.storageConfigId))
+    copyOptions.value = page.items
+      .filter(config => !used.has(config.id))
+      .map(config => ({
+        label: t('files.library.storage_list.copy_dialog.option', {
+          name: config.name,
+          type: storageTypeLabel(t, config.type),
+        }),
+        value: config.id,
+      }))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('files.library.messages.copy_options_failed'))
+  }
+  finally {
+    copyLoading.value = false
+  }
+}
+
+async function saveCopy() {
+  const file = storageFile.value
+  const target = copyTarget.value
+  if (!file || !target)
+    return
+  copySaving.value = true
+  try {
+    const copy = await filesApi.copyStorage({ id: file.id, storageConfigId: target })
+    toast.success(t('files.library.messages.copied', { name: copy.storageConfigName ?? copy.storageConfigCode ?? '' }))
+    copyVisible.value = false
+    await loadStorages()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('files.library.messages.copy_failed'))
+  }
+  finally {
+    copySaving.value = false
+  }
+}
+
 /** 副本变动后列表一并刷新：换主副本、校验都会改文件状态 */
 async function afterStorageChange() {
   await loadStorages()
@@ -1165,17 +1227,58 @@ async function copyPreviewText() {
         <XhDrawerBody class="xh-overlay-body">
           <div class="file-storages__head">
             <span class="file-muted">{{ t('files.library.storage_list.total', { count: storageRows.length }) }}</span>
-            <XhButton variant="subtle" size="sm" :loading="storagesLoading" @click="loadStorages">
-              <XhButtonIndicator>
-                <Icon icon="lucide:refresh-cw" width="14" />
-              </XhButtonIndicator>
-              <XhButtonLabel>{{ t('common.actions.refresh') }}</XhButtonLabel>
-            </XhButton>
+            <div class="file-storages__actions">
+              <XhButton v-if="canCopyStorage" variant="subtle" size="sm" tone="brand" :disabled="storagesLoading" @click="openCopy">
+                <XhButtonIndicator>
+                  <Icon icon="lucide:copy-plus" width="14" />
+                </XhButtonIndicator>
+                <XhButtonLabel>{{ t('files.library.storage_list.copy') }}</XhButtonLabel>
+              </XhButton>
+              <XhButton variant="subtle" size="sm" :loading="storagesLoading" @click="loadStorages">
+                <XhButtonIndicator>
+                  <Icon icon="lucide:refresh-cw" width="14" />
+                </XhButtonIndicator>
+                <XhButtonLabel>{{ t('common.actions.refresh') }}</XhButtonLabel>
+              </XhButton>
+            </div>
           </div>
           <XDataTable :columns="storageColumns" :data="storageRows" row-key="id" :loading="storagesLoading" />
         </XhDrawerBody>
       </XhDrawerContent>
     </XhDrawerRoot>
+
+    <!-- 复制到其他存储：说明这一步做什么，选一条本侧启用、还没有这份副本的配置 -->
+    <XhDialogRoot v-model:open="copyVisible">
+      <XhDialogContent>
+        <XhDialogHeader>
+          <XhDialogTitle>{{ t('files.library.storage_list.copy_dialog.title', { name: storageFile ? displayName(storageFile) : '' }) }}</XhDialogTitle>
+          <XhDialogDescription>{{ t('files.library.storage_list.copy_dialog.description') }}</XhDialogDescription>
+        </XhDialogHeader>
+        <XhDialogCloseTrigger />
+        <XhDialogBody>
+          <div class="file-copy">
+            <XhFieldRoot required>
+              <XhFieldLabel>{{ t('files.library.storage_list.copy_dialog.target') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect v-model:value="copyTarget" name="storageConfigId" :options="copyOptions" :loading="copyLoading" :placeholder="t('files.library.storage_list.copy_dialog.placeholder')" />
+              </XhFieldControl>
+            </XhFieldRoot>
+            <p v-if="!copyLoading && copyOptions.length === 0" class="file-muted">
+              {{ t('files.library.storage_list.copy_dialog.empty') }}
+            </p>
+          </div>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" :disabled="copySaving" @click="copyVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="copySaving" :disabled="!copyTarget" @click="saveCopy">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('files.library.storage_list.copy_dialog.confirm') }}</XhButtonLabel>
+          </XhButton>
+        </XhDialogFooter>
+      </XhDialogContent>
+    </XhDialogRoot>
 
     <!-- 预览：浏览器直接渲染得了的几类（图片、音视频、Markdown、文本与源码、CSV） -->
     <XhDialogRoot v-model:open="previewVisible">
@@ -1267,6 +1370,18 @@ async function copyPreviewText() {
   gap: var(--xh-space-2);
   align-items: center;
   justify-content: space-between;
+}
+
+.file-storages__actions {
+  display: flex;
+  gap: var(--xh-space-2);
+  align-items: center;
+}
+
+.file-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xh-space-3);
 }
 
 /* 副本表的状态列是列 render 出的节点，不带本页的 scope，样式要穿透 */

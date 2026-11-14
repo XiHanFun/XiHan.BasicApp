@@ -316,6 +316,58 @@ public sealed class FilesTests : IDisposable
     }
 
     [Fact]
+    public async Task Files_CopyToAnotherStorage_AndMoveByMakingTheCopyPrimary()
+    {
+        var (server, platform, tenant) = await StartAsync();
+        await using var running = server;
+        async Task<string> ConfigAsync(string code, string bucket)
+        {
+            var (status, body) = await SendAsync(server, HttpMethod.Post, "/api/storage-configs", JsonSerializer.Serialize(new { code, name = code, type = "Local", bucket }), platform);
+            Assert.Equal(HttpStatusCode.Created, status);
+            return body.GetProperty("id").GetString()!;
+        }
+
+        async Task<(HttpStatusCode Status, JsonElement Body)> CopyAsync(string fileId, string configId, string token)
+            => await SendAsync(server, HttpMethod.Post, $"/api/files/{fileId}:copy-storage", JsonSerializer.Serialize(new { storageConfigId = configId }), token);
+
+        var fileId = (await UploadAsync(server, platform, "hello.txt", Encoding.UTF8.GetBytes("hello"))).Body.GetProperty("id").GetString()!;
+        var original = Assert.Single(await StoragesAsync(server, platform, fileId));
+        var localDefault = original.GetProperty("storageConfigId").GetString()!;
+        var archive = await ConfigAsync("archive", "archive");
+        var cold = await ConfigAsync("cold", "cold");
+        await SendAsync(server, HttpMethod.Post, $"/api/storage-configs/{cold}:set-status", """{"status":"Disabled"}""", platform);
+
+        // 主副本读出的内容与记录不符即拒绝，不写副本
+        var blob = BlobPathOf(original.GetProperty("key").GetString()!);
+        await File.WriteAllTextAsync(blob, "HELLO");
+        Assert.Equal((HttpStatusCode.Conflict, "FILES_CONFLICT_013"), Code(await CopyAsync(fileId, archive, platform)));
+        await File.WriteAllTextAsync(blob, "hello");
+        Assert.Single(await StoragesAsync(server, platform, fileId));
+
+        // 复制：得到正常、已校验的非主副本；同一配置只放一份，停用的配置不收，看不见的配置与文件按不存在
+        var (copied, copy) = await CopyAsync(fileId, archive, platform);
+        Assert.Equal(HttpStatusCode.OK, copied);
+        Assert.Equal(("archive", false, "Normal", JsonValueKind.String), (copy.GetProperty("storageConfigCode").GetString(), copy.GetProperty("isPrimary").GetBoolean(), copy.GetProperty("status").GetString(), copy.GetProperty("verifiedAt").ValueKind));
+        Assert.StartsWith("platform/", copy.GetProperty("key").GetString(), StringComparison.Ordinal);
+        Assert.Equal(2, (await StoragesAsync(server, platform, fileId)).Count);
+        Assert.Equal((HttpStatusCode.Conflict, "FILES_CONFLICT_011"), Code(await CopyAsync(fileId, archive, platform)));
+        Assert.Equal((HttpStatusCode.Conflict, "FILES_CONFLICT_011"), Code(await CopyAsync(fileId, localDefault, platform)));
+        Assert.Equal((HttpStatusCode.Conflict, "FILES_CONFLICT_012"), Code(await CopyAsync(fileId, cold, platform)));
+        Assert.Equal((HttpStatusCode.NotFound, "FILES_NOTFOUND_002"), Code(await CopyAsync(fileId, Guid.NewGuid().ToString(), platform)));
+        Assert.Equal((HttpStatusCode.NotFound, "FILES_NOTFOUND_001"), Code(await CopyAsync(fileId, archive, tenant)));
+
+        // 设为主副本即完成迁移：内容从新的配置读出，原来的那份留作非主副本
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Post, $"/api/files/{fileId}:set-primary-storage", JsonSerializer.Serialize(new { storageId = copy.GetProperty("id").GetString() }), platform)).Status);
+        File.Delete(blob);
+        Assert.Equal((HttpStatusCode.OK, "hello"), ((await GetRawAsync(server, $"/api/files/{fileId}/content", platform)).Status, (await GetRawAsync(server, $"/api/files/{fileId}/content", platform)).Body));
+        var storages = await StoragesAsync(server, platform, fileId);
+        Assert.Equal(["archive", "local-default"], storages.Select(static s => s.GetProperty("storageConfigCode").GetString()).ToList());
+        Assert.Equal([true, false], storages.Select(static s => s.GetProperty("isPrimary").GetBoolean()).ToList());
+
+        static (HttpStatusCode, string?) Code((HttpStatusCode Status, JsonElement Body) result) => (result.Status, result.Body.GetProperty("code").GetString());
+    }
+
+    [Fact]
     public async Task StorageConfigs_ValidateAndGuardDefaults()
     {
         var (server, platform, tenant) = await StartAsync();

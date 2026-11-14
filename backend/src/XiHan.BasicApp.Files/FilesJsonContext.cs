@@ -36,6 +36,8 @@ namespace XiHan.BasicApp.Files;
 [JsonSerializable(typeof(FastUploadFileRequest))]
 [JsonSerializable(typeof(FastUploadFileResponse))]
 [JsonSerializable(typeof(FileStoragesResponse))]
+[JsonSerializable(typeof(FileStorageResponse))]
+[JsonSerializable(typeof(CopyFileStorageRequest))]
 [JsonSerializable(typeof(FileStorageRequest))]
 [JsonSerializable(typeof(SetFileStorageStatusRequest))]
 [JsonSerializable(typeof(StorageConfigResponse))]

@@ -409,6 +409,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'field-security.update': 'access.field-security.update',
   'files.abort-upload': 'files.files.create',
   'files.complete-upload': 'files.files.create',
+  'files.copy-storage': 'files.files.update',
   'files.delete': 'files.files.delete',
   'files.fast-upload': 'files.files.create',
   'files.get': 'files.files.read',
