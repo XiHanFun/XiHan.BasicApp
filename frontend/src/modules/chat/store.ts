@@ -626,6 +626,17 @@ export const useChatStore = defineStore('chat', () => {
     readPositions.value[conversationId] = map
   }
 
+  /** 高亮一条消息几秒：定位到它之后让人一眼认出来 */
+  function highlightMessage(messageId: string) {
+    highlightMessageId.value = messageId
+    if (highlightTimer) {
+      clearTimeout(highlightTimer)
+    }
+    highlightTimer = setTimeout(() => {
+      highlightMessageId.value = null
+    }, 3000)
+  }
+
   /** 搜索命中跳转：以目标消息为中心重载上下文并高亮（进入视口分离态） */
   async function jumpToMessage(conversationId: string, messageId: string) {
     const result = await api().messageHistory({
@@ -636,13 +647,7 @@ export const useChatStore = defineStore('chat', () => {
     messages.value[conversationId] = [...result.items]
     hasMoreOlder.value[conversationId] = result.hasMore
     detachedConversations.value[conversationId] = true
-    highlightMessageId.value = messageId
-    if (highlightTimer) {
-      clearTimeout(highlightTimer)
-    }
-    highlightTimer = setTimeout(() => {
-      highlightMessageId.value = null
-    }, 3000)
+    highlightMessage(messageId)
   }
 
   /** 回到最新：清 bucket 重载最新一页并解除分离态 */
@@ -1127,6 +1132,7 @@ export const useChatStore = defineStore('chat', () => {
     setDraft,
     readCountFor,
     jumpToMessage,
+    highlightMessage,
     reloadLatest,
     sendTyping,
     applyIncomingMessage,

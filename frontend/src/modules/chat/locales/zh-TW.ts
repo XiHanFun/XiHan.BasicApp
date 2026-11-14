@@ -112,6 +112,8 @@ export default {
       video_play: '播放影片 {name}',
       video_unplayable: '這部影片無法在瀏覽器中播放，可以下載後觀看',
       drop_hint: '放開，把檔案加入待傳送',
+      reply_jump: '跳到原訊息',
+      reply_gone: '原訊息已經不在了',
     },
     forward: {
       title: '轉發給…',

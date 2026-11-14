@@ -21,6 +21,7 @@ import XInput from '~/components/common/XInput.vue'
 import { dialog, toast, xhTranslationsOfCurrentLocale } from '~/composables'
 
 import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
 import { useUserStore } from '~/stores'
 import { getChatApi } from '../api-contract'
 import { callMediaFailureText, callParticipantName } from '../call/call-helpers'
@@ -845,6 +846,36 @@ async function handleLocate(item: ChatMessageItem) {
   }
 }
 
+/**
+ * 点引用块：跳到被回复的那条消息
+ * 它已经在眼前这一段里就直接滚过去，不在就以它为中心重载；被保留期清理掉了的说一声
+ */
+async function handleJumpToReply(item: ChatLocalMessage) {
+  const id = conversationId.value
+  const target = item.replyToMessageId
+  if (!id || !target) {
+    return
+  }
+  try {
+    if (chatStore.activeMessages.some(message => message.messageId === target)) {
+      chatStore.highlightMessage(target)
+    }
+    else {
+      await chatStore.jumpToMessage(id, target)
+    }
+    await nextTick()
+    document.getElementById(`chat-msg-${target}`)?.scrollIntoView({ block: 'center' })
+  }
+  catch (error) {
+    if (error instanceof ApiError && error.code === 'CHAT_NOTFOUND_002') {
+      toast.warning(t('chat.thread.reply_gone'))
+    }
+    else {
+      notifyFailure(error)
+    }
+  }
+}
+
 async function handleBackToLatest() {
   const id = conversationId.value
   if (!id) {
@@ -1187,6 +1218,7 @@ onBeforeUnmount(() => {
                 @react="emoji => handleReact(item, emoji)"
                 @call="media => handleStartCall(media)"
                 @record="handleOpenRecord"
+                @jump-reply="handleJumpToReply(item)"
                 @avatar-contextmenu="event => openMemberMenu(event, item)"
               />
             </div>

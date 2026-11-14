@@ -56,6 +56,8 @@ const emit = defineEmits<{
   avatarContextmenu: [event: MouseEvent]
   /** 点他人头像：看他的资料 */
   avatarClick: []
+  /** 点引用块：跳到被回复的那条消息 */
+  jumpReply: []
 }>()
 
 const { t } = useI18n()
@@ -340,9 +342,18 @@ async function handleDownload(fileId: string) {
           {{ t('chat.thread.pinned_flag') }}
         </div>
 
-        <!-- 回复引用块 -->
-        <div v-if="message.replyPreview" class="chat-reply-quote">
-          {{ message.replyPreview }}
+        <!-- 回复引用块：知道回复的是哪条就能点，跳到那条消息 -->
+        <button
+          v-if="message.replyPreview && message.replyToMessageId"
+          type="button"
+          class="chat-reply-quote chat-reply-quote--link"
+          :title="t('chat.thread.reply_jump')"
+          @click="emit('jumpReply')"
+        >
+          <span class="chat-reply-quote__text">{{ message.replyPreview }}</span>
+        </button>
+        <div v-else-if="message.replyPreview" class="chat-reply-quote">
+          <span class="chat-reply-quote__text">{{ message.replyPreview }}</span>
         </div>
 
         <!-- 图片（相册：点击预览可左右切换） -->
@@ -579,10 +590,35 @@ async function handleDownload(fileId: string) {
   background: color-mix(in srgb, var(--xh-bg-muted) 50%, transparent);
   font-size: var(--xh-font-size-xs);
   color: var(--xh-fg-muted);
-  overflow: hidden;
+}
+
+/* 最多两行：截断放在里面的文字上，外面的块可以是按钮 */
+.chat-reply-quote__text {
   display: -webkit-box;
+  overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+/* 能点的引用块：是个按钮，样子还是那块引用 */
+.chat-reply-quote--link {
+  display: block;
+  inline-size: 100%;
+  border-block: none;
+  border-inline-end: none;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.chat-reply-quote--link:hover {
+  background: var(--xh-bg-subtle-hover);
+}
+
+.chat-reply-quote--link:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .chat-image-grid {

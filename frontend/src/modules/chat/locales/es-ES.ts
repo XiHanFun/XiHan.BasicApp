@@ -112,6 +112,8 @@ export default {
       video_play: 'Reproducir el vídeo {name}',
       video_unplayable: 'Este vídeo no se puede reproducir en el navegador. Descárguelo para verlo.',
       drop_hint: 'Suelte para añadir los archivos al mensaje',
+      reply_jump: 'Ir al mensaje original',
+      reply_gone: 'El mensaje original ya no está disponible',
     },
     forward: {
       title: 'Reenviar a…',

@@ -112,6 +112,8 @@ export default {
       video_play: 'Play video {name}',
       video_unplayable: 'This video cannot be played in the browser. Download it to watch.',
       drop_hint: 'Drop to add the files to your message',
+      reply_jump: 'Go to the original message',
+      reply_gone: 'The original message is no longer available',
     },
     forward: {
       title: 'Forward to…',

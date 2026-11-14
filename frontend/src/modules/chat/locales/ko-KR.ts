@@ -112,6 +112,8 @@ export default {
       video_play: '동영상 {name} 재생',
       video_unplayable: '이 동영상은 브라우저에서 재생할 수 없습니다. 다운로드해서 보세요',
       drop_hint: '놓으면 파일이 보낼 목록에 추가됩니다',
+      reply_jump: '원본 메시지로 이동',
+      reply_gone: '원본 메시지가 더 이상 없습니다',
     },
     forward: {
       title: '전달할 대상…',

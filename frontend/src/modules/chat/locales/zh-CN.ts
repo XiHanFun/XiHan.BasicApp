@@ -112,6 +112,8 @@ export default {
       video_play: '播放视频 {name}',
       video_unplayable: '这个视频在浏览器里播放不了，可以下载后观看',
       drop_hint: '松开，把文件加到待发送',
+      reply_jump: '跳到原消息',
+      reply_gone: '原消息已经不在了',
     },
     forward: {
       title: '转发给…',

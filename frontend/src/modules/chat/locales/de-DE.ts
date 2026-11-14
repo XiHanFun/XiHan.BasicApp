@@ -112,6 +112,8 @@ export default {
       video_play: 'Video {name} abspielen',
       video_unplayable: 'Dieses Video kann im Browser nicht abgespielt werden. Laden Sie es zum Ansehen herunter.',
       drop_hint: 'Loslassen, um die Dateien zur Nachricht hinzuzufügen',
+      reply_jump: 'Zur ursprünglichen Nachricht',
+      reply_gone: 'Die ursprüngliche Nachricht ist nicht mehr vorhanden',
     },
     forward: {
       title: 'Weiterleiten an…',

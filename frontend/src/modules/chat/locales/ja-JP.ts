@@ -112,6 +112,8 @@ export default {
       video_play: '動画 {name} を再生',
       video_unplayable: 'この動画はブラウザーで再生できません。ダウンロードしてご覧ください',
       drop_hint: 'ドロップしてファイルを送信待ちに追加',
+      reply_jump: '元のメッセージへ移動',
+      reply_gone: '元のメッセージはもうありません',
     },
     forward: {
       title: '転送先…',

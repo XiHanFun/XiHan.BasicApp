@@ -112,6 +112,8 @@ export default {
       video_play: 'Lire la vidéo {name}',
       video_unplayable: 'Cette vidéo ne peut pas être lue dans le navigateur. Téléchargez-la pour la regarder.',
       drop_hint: 'Déposez pour ajouter les fichiers au message',
+      reply_jump: 'Aller au message d’origine',
+      reply_gone: 'Le message d’origine n’est plus disponible',
     },
     forward: {
       title: 'Transférer à…',

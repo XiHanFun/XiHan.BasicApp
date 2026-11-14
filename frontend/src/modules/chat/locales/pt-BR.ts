@@ -112,6 +112,8 @@ export default {
       video_play: 'Reproduzir o vídeo {name}',
       video_unplayable: 'Este vídeo não pode ser reproduzido no navegador. Baixe para assistir.',
       drop_hint: 'Solte para adicionar os arquivos à mensagem',
+      reply_jump: 'Ir para a mensagem original',
+      reply_gone: 'A mensagem original não está mais disponível',
     },
     forward: {
       title: 'Encaminhar para…',

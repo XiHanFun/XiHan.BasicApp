@@ -1036,6 +1036,32 @@ describe('搜索定位与视口分离态', () => {
     expect(store.highlightMessageId).toBeNull()
   })
 
+  it('只高亮不重载（点引用块、原消息就在眼前这一段里）：不动消息与分离态，3 秒后取消；再点一条从头计时', async () => {
+    vi.useFakeTimers()
+    let historyCalls = 0
+    const store = setup({
+      messageHistory: () => {
+        historyCalls += 1
+        return Promise.resolve({ items: [], hasMore: false })
+      },
+    })
+    store.messages.a = [
+      message({ messageId: '100' }),
+      message({ messageId: '200' }),
+    ]
+
+    store.highlightMessage('100')
+    expect(store.highlightMessageId).toBe('100')
+    expect([historyCalls, store.detachedConversations.a, store.messages.a.length]).toStrictEqual([0, undefined, 2])
+
+    await vi.advanceTimersByTimeAsync(2000)
+    store.highlightMessage('200')
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(store.highlightMessageId).toBe('200')
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(store.highlightMessageId).toBeNull()
+  })
+
   it('分离态下新到达的消息不追加进当前 bucket，避免历史与最新之间出现空洞', async () => {
     const store = setup({
       messageHistory: () => Promise.resolve({
