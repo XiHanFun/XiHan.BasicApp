@@ -14,6 +14,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 单聊、群聊、部门群与助手会话共用一张表、按类型区分；单聊与助手会话的「只有一个」都落在 <see cref="PairKey"/> 的部分唯一索引上：单聊是两个用户 ID 小者在前，助手会话是 <c>ai:&lt;助手&gt;:&lt;用户&gt;</c>
 /// 消息序号在会话行上分配：发消息时对 <see cref="LastSeq"/> 加一，行锁让同一会话的发送串行，序号不重不漏
 /// 最后消息、预览与成员数冗余在会话上，会话列表不用去数消息与成员；代价是每条消息都改会话行，所以不进差异日志
+/// 会话列表从本人的成员行出发、按 ID 取会话，在内存里按置顶与最后消息时间排，所以不给最后消息时间建索引：它随每条消息改，索引只会多一次写
 /// 部门群跟着部门走：每个部门打开的是同一个部门群，名称随部门、不能改，成员随 Organization 的部门归属事件同步；部门是租户库实体，所以部门群只在租户一侧
 /// 助手由 AI 包经 Contracts 的 <c>IChatAssistants</c> 提供，会话只记 <see cref="AssistantId"/> 与建会话时的名字和头像，本包不依赖 AI 包
 /// 没有删除入口，群也没有解散：消息历史与聊天审计都挂在会话上，保留清理只删消息
@@ -21,7 +22,6 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 [SugarTable(TableName = "sys_chat_conversation", TableDescription = "聊天会话（租户库实体）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(PairKey), Name = "ux_sys_chat_conversation_tenant_id_pair_key")]
 [SugarIndex("ix_sys_chat_conversation_tenant_id_department_id", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
-[SugarIndex("ix_sys_chat_conversation_tenant_id_last_message_at", nameof(TenantId), OrderByType.Asc, nameof(LastMessageAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysChatConversation : TenantScopedAuditedEntity
 {

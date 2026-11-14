@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
@@ -21,7 +22,7 @@ namespace XiHan.BasicApp.Integration.Tests.Smoke;
 /// </summary>
 /// <remarks>
 /// 方案 9.1 第三项
-/// 一次租户调用同时写默认连接（平台库 <c>sys_user</c>）与 <c>shard</c> 连接（租户库 <c>sys_user_statistics</c>），失败时一起回滚
+/// 一次租户调用同时写默认连接（平台库 <c>sys_user</c>）与 <c>shard</c> 连接（租户库 <c>sys_department</c>），失败时一起回滚
 /// 框架用例是 SQLite 双文件，这里用真实 PostgreSQL 两个库再跑一遍；需要环境变量 <c>XIHAN_TEST_POSTGRES</c>（服务器连接串，不含 Database），没有即跳过
 /// 结论：两边同一调用一起提交或一起回滚；顺序提交、非两阶段
 /// </remarks>
@@ -43,7 +44,7 @@ public sealed class MultiDatabaseSmokeTests
         // 分片库的表结构由应用管理：用同一套约定给租户库建租户实体的表
         using (var shard = new SqlSugarClient(SqlSugarConventions.Apply(Configure(databases.Tenant))))
         {
-            shard.CodeFirst.InitTables<SysUserStatistics>();
+            shard.CodeFirst.InitTables<SysDepartment>();
         }
 
         await using var server = await BasicAppTestServer.StartAsync(databases.Platform, DatabaseProviders.PostgreSql);
@@ -54,33 +55,46 @@ public sealed class MultiDatabaseSmokeTests
         });
         var acme = TestTokens.Issue("alice", "acme", "admin");
 
-        // 带分片的调用里：用户落默认连接，统计落 shard 连接
+        // 带分片的调用里：用户落默认连接，部门落 shard 连接
         string? userConnection = null;
-        string? statisticsConnection = null;
+        string? departmentConnection = null;
         (await server.InvokeAsync(ctx =>
         {
             var unitOfWork = ctx.Services.GetRequiredService<SqlSugarUnitOfWork>();
             userConnection = unitOfWork.ConnectionFor(typeof(SysUser)).CurrentConnectionConfig.ConnectionString;
-            statisticsConnection = unitOfWork.ConnectionFor(typeof(SysUserStatistics)).CurrentConnectionConfig.ConnectionString;
+            departmentConnection = unitOfWork.ConnectionFor(typeof(SysDepartment)).CurrentConnectionConfig.ConnectionString;
             return Task.FromResult(Result.Success());
         }, acme)).ThrowIfFailure();
         // 比库名：框架给 PostgreSQL 连接串追加启动参数（standard_conforming_strings，ADR-0100），连接串不再逐字相同
         Assert.Equal(DatabaseOf(databases.Platform), DatabaseOf(userConnection));
-        Assert.Equal(DatabaseOf(databases.Tenant), DatabaseOf(statisticsConnection));
+        Assert.Equal(DatabaseOf(databases.Tenant), DatabaseOf(departmentConnection));
 
         // 失败的调用：先写平台库再写租户库，以失败结束，两边都不能留下行
         var userId = Guid.CreateVersion7();
+        var departmentId = Guid.CreateVersion7();
         var failed = await server.InvokeAsync(async ctx =>
         {
             (await ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>().AddAsync(new SysUser { Id = userId, UserName = "rollback", DisplayName = "Rollback", HomeTenantId = "acme" }, ctx.CancellationToken)).ThrowIfFailure();
-            (await ctx.Services.GetRequiredService<IRepository<SysUserStatistics, Guid>>().AddAsync(new SysUserStatistics { Id = Guid.CreateVersion7(), UserId = userId }, ctx.CancellationToken)).ThrowIfFailure();
+            (await ctx.Services.GetRequiredService<IRepository<SysDepartment, Guid>>().AddAsync(new SysDepartment { Id = departmentId, Code = "rollback", Name = "Rollback" }, ctx.CancellationToken)).ThrowIfFailure();
             return Error.Conflict("IDENTITY_CONFLICT_001", "identity.user.name_taken");
         }, acme);
         Assert.True(failed.IsFailure);
         Assert.Equal(0, Count<SysUser>(databases.Platform, u => u.Id == userId));
-        Assert.Equal(0, Count<SysUserStatistics>(databases.Tenant, s => s.UserId == userId));
+        Assert.Equal(0, Count<SysDepartment>(databases.Tenant, d => d.Id == departmentId));
 
-        // 成功的调用（经 HTTP 的示例操作）：平台行在平台库，统计行在租户库，平台库的统计表保持空
+        // 成功的调用：平台行在平台库，部门行在租户库，平台库的部门表保持空
+        var keptUserId = Guid.CreateVersion7();
+        var keptDepartmentId = Guid.CreateVersion7();
+        (await server.InvokeAsync(async ctx =>
+        {
+            (await ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>().AddAsync(new SysUser { Id = keptUserId, UserName = "kept", DisplayName = "Kept", HomeTenantId = "acme" }, ctx.CancellationToken)).ThrowIfFailure();
+            return await ctx.Services.GetRequiredService<IRepository<SysDepartment, Guid>>().AddAsync(new SysDepartment { Id = keptDepartmentId, Code = "kept", Name = "Kept" }, ctx.CancellationToken);
+        }, acme)).ThrowIfFailure();
+        Assert.Equal(1, Count<SysUser>(databases.Platform, u => u.Id == keptUserId));
+        Assert.Equal(1, Count<SysDepartment>(databases.Tenant, d => d.Id == keptDepartmentId));
+        Assert.Equal(0, Count<SysDepartment>(databases.Platform, d => d.Id == keptDepartmentId));
+
+        // 经 HTTP 的示例操作在 PostgreSQL 上往返
         var (created, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"sharded","displayName":"Sharded"}""", acme));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var createdId = Guid.Parse(body.GetProperty("id").GetString()!);
@@ -103,16 +117,14 @@ public sealed class MultiDatabaseSmokeTests
         Assert.Equal("Sharded Again", fetchedBody.GetProperty("displayName").GetString());
         Assert.Equal(createdAt, fetchedBody.GetProperty("createdAt").GetDateTimeOffset());
         Assert.Equal(1, Count<SysUser>(databases.Platform, u => u.Id == createdId));
-        Assert.Equal(1, Count<SysUserStatistics>(databases.Tenant, s => s.UserId == createdId));
-        Assert.Equal(0, Count<SysUserStatistics>(databases.Platform, s => s.UserId == createdId));
 
-        // 同一租户的后续调用能从两个库读回自己的行；统计行经仓储受租户过滤
+        // 同一租户的后续调用能从两个库读回自己的行；部门行经仓储受租户过滤
         var seen = (false, false);
         (await server.InvokeAsync(async ctx =>
         {
             var user = await ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>().FindAsync(createdId, ctx.CancellationToken);
-            var statistics = await ctx.Services.GetRequiredService<IRepository<SysUserStatistics, Guid>>().CountAsync(XiHan.Framework.Persistence.Abstractions.Queries.EntityQuery.All<SysUserStatistics>(), ctx.CancellationToken);
-            seen = (user.HasValue, statistics == 1);
+            var departments = await ctx.Services.GetRequiredService<IRepository<SysDepartment, Guid>>().CountAsync(XiHan.Framework.Persistence.Abstractions.Queries.EntityQuery.All<SysDepartment>(), ctx.CancellationToken);
+            seen = (user.HasValue, departments == 1);
             return Result.Success();
         }, acme)).ThrowIfFailure();
         Assert.Equal((true, true), seen);

@@ -127,11 +127,12 @@ public sealed class TelegramTests : IDisposable
         Assert.Equal(["ask", "start", "h", "id"], _api.Calls[3].Payload["commands"]!.AsArray().Select(static c => c!["command"]!.GetValue<string>()).ToList());
         Assert.Equal("all_group_chats", _api.Calls[3].Payload["scope"]!["type"]!.GetValue<string>());
 
-        // Webhook：没带或带错密钥 401；JSON 坏、机器人不存在一律 200 且不处理
+        // Webhook：没带或带错密钥 401；JSON 坏、机器人不存在（名称区分大小写）一律 200 且不处理
         Assert.Equal(HttpStatusCode.Unauthorized, await WebhookAsync(server, "ops", Message(1, 1001, 1001, "/start"), secret: null));
         Assert.Equal(HttpStatusCode.Unauthorized, await WebhookAsync(server, "ops", Message(1, 1001, 1001, "/start"), secret: "s3cr3t-token"));
         Assert.Equal(HttpStatusCode.OK, await WebhookAsync(server, "ops", "{not json"));
         Assert.Equal(HttpStatusCode.OK, await WebhookAsync(server, "nobody", Message(1, 1001, 1001, "/start")));
+        Assert.Equal(HttpStatusCode.OK, await WebhookAsync(server, "OPS", Message(1, 1001, 1001, "/start")));
         await manager.DrainAsync();
         Assert.Equal(4, _api.Calls.Count);
 

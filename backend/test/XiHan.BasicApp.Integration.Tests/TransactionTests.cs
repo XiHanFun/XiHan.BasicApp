@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -33,7 +34,7 @@ public sealed class TransactionTests : IDisposable
         var failed = await server.InvokeAsync(async ctx =>
         {
             (await ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>().AddAsync(new SysUser { Id = userId, UserName = "rollback", DisplayName = "Rollback", HomeTenantId = "acme" }, ctx.CancellationToken)).ThrowIfFailure();
-            (await ctx.Services.GetRequiredService<IRepository<SysUserStatistics, Guid>>().AddAsync(new SysUserStatistics { Id = Guid.CreateVersion7(), UserId = userId }, ctx.CancellationToken)).ThrowIfFailure();
+            (await ctx.Services.GetRequiredService<IRepository<SysDepartment, Guid>>().AddAsync(new SysDepartment { Id = Guid.CreateVersion7(), Code = "rollback", Name = "Rollback" }, ctx.CancellationToken)).ThrowIfFailure();
             return Error.Validation("IDENTITY_VALIDATION_001", "identity.user.tenant_required");
         }, acme);
         Assert.Equal("IDENTITY_VALIDATION_001", failed.Error?.Code);
@@ -43,7 +44,7 @@ public sealed class TransactionTests : IDisposable
         {
             counts = (
                 await ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>().CountAsync(EntityQuery.All<SysUser>(), ctx.CancellationToken),
-                await ctx.Services.GetRequiredService<IRepository<SysUserStatistics, Guid>>().CountAsync(EntityQuery.All<SysUserStatistics>(), ctx.CancellationToken));
+                await ctx.Services.GetRequiredService<IRepository<SysDepartment, Guid>>().CountAsync(EntityQuery.All<SysDepartment>(), ctx.CancellationToken));
             return Result.Success();
         }, acme)).ThrowIfFailure();
         Assert.Equal((0L, 0L), counts);
@@ -59,7 +60,7 @@ public sealed class TransactionTests : IDisposable
         {
             platformCounts = (
                 await ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>().CountAsync(EntityQuery.All<SysUser>(), ctx.CancellationToken),
-                await ctx.Services.GetRequiredService<IRepository<SysUserStatistics, Guid>>().CountAsync(EntityQuery.All<SysUserStatistics>(), ctx.CancellationToken));
+                await ctx.Services.GetRequiredService<IRepository<SysDepartment, Guid>>().CountAsync(EntityQuery.All<SysDepartment>(), ctx.CancellationToken));
             return Result.Success();
         })).ThrowIfFailure();
         Assert.Equal((1L, 0L), platformCounts);

@@ -3,6 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
+using XiHan.BasicApp.Tenancy.Domain.Services;
 
 namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 
@@ -38,7 +39,7 @@ public sealed record CreateEditionRequest(
     [StringLength(512)] string? Description = null,
     bool IsDefault = false,
     [Range(0, 100_000)] int Order = 0,
-    [MaxLength(500)] IReadOnlyList<string>? Permissions = null,
+    [MaxLength(EditionService.MaxPermissions)] IReadOnlyList<string>? Permissions = null,
     [Range(0, 10_000_000)] int? UserLimit = null,
     [Range(0, 1_000_000_000)] long? StorageLimitMb = null,
     [Range(typeof(decimal), "0", "99999999")] decimal? Price = null,
@@ -84,7 +85,7 @@ public sealed record UpdateEditionRequest(
 /// </remarks>
 /// <param name="Id">套餐主键</param>
 /// <param name="Permissions">白名单：租户能生效的权限码，0 到 500 个；空即什么都不放行</param>
-public sealed record SetEditionPermissionsRequest(Guid Id, [Required, MaxLength(500)] IReadOnlyList<string> Permissions);
+public sealed record SetEditionPermissionsRequest(Guid Id, [Required, MaxLength(EditionService.MaxPermissions)] IReadOnlyList<string> Permissions);
 
 /// <summary>
 /// <c>editions.delete</c> 的请求：集合入参

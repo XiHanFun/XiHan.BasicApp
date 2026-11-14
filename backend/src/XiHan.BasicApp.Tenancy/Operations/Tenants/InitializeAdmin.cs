@@ -61,7 +61,7 @@ public sealed class InitializeAdmin(
             return Error.Conflict(TenancyErrors.AdminInitialized, TenancyMessages.AdminInitialized, MessageArguments.Of(("tenantId", tenant.TenantId)));
         }
 
-        // 独立库的租户要先初始化数据库：用户统计等租户库实体要落进那个库
+        // 独立库的租户要先初始化数据库：管理员一登录就要读写那个库
         if (tenant.IsolationMode == TenantIsolationMode.Database && tenant.DatabaseStatus != TenantDatabaseStatus.Ready)
         {
             return Error.Conflict(TenancyErrors.DatabaseNotReady, TenancyMessages.DatabaseNotReady, MessageArguments.Of(("tenantId", tenant.TenantId)));

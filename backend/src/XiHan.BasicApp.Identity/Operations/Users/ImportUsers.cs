@@ -28,7 +28,6 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// 有问题的行记为失败、不写入，其余的行一次写入，部门与角色在同一事务里写好。导入人缺少加入部门或指派角色的权限、席位不够、写入出错时整批失败
 /// </remarks>
 /// <param name="users">用户仓储</param>
-/// <param name="statistics">用户统计仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="operations">操作登记（取 <c>users.create</c> 的请求 Schema）</param>
 /// <param name="ids">标识生成器</param>
@@ -37,7 +36,6 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
 public sealed class ImportUsers(
     IRepository<SysUser, Guid> users,
-    IRepository<SysUserStatistics, Guid> statistics,
     UserAccountService accounts,
     OperationRegistry operations,
     IIdGenerator<Guid> ids,
@@ -133,7 +131,7 @@ public sealed class ImportUsers(
             }
         }
 
-        var written = await WriteAsync(lines, homeTenant, currentTenant, request.Password, context).ConfigureAwait(false);
+        var written = await WriteAsync(lines, homeTenant, request.Password, context).ConfigureAwait(false);
         if (written.IsFailure)
         {
             return written.Error!;
@@ -152,9 +150,9 @@ public sealed class ImportUsers(
     }
 
     /// <summary>
-    /// 写用户、安全行（初始密码）与租户一侧的统计行
+    /// 写用户与安全行（初始密码）
     /// </summary>
-    private async Task<Result> WriteAsync(IReadOnlyList<(UserImportLine Line, ImportUserRow Row)> lines, string homeTenant, string? currentTenant, string password, InvocationContext context)
+    private async Task<Result> WriteAsync(IReadOnlyList<(UserImportLine Line, ImportUserRow Row)> lines, string homeTenant, string password, InvocationContext context)
     {
         var rows = lines.Select(l => new SysUser
         {
@@ -180,22 +178,7 @@ public sealed class ImportUsers(
         }
 
         var userIds = rows.Select(static u => u.Id).ToList();
-        var passwords = await accounts.AddInitialPasswordsAsync(userIds, password, mustChange: true, context.CancellationToken).ConfigureAwait(false);
-        if (passwords.IsFailure || currentTenant is null)
-        {
-            return passwords;
-        }
-
-        // 统计行在租户库：只有当前租户就是注册地时才写（与新建用户相同）
-        foreach (var outcome in await statistics.AddRangeAsync([.. userIds.Select(id => new SysUserStatistics { Id = ids.NewId(), UserId = id })], context.CancellationToken).ConfigureAwait(false))
-        {
-            if (outcome.IsFailure)
-            {
-                return outcome;
-            }
-        }
-
-        return Result.Success();
+        return await accounts.AddInitialPasswordsAsync(userIds, password, mustChange: true, context.CancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure.Telegram;
 /// 从 <see cref="Domain.Entities.SysTelegramBot"/> 规整而来：令牌已解密、名称与令牌去空格、管理员只取 &gt; 0、群组只取 ≠ 0、命令规整去重
 /// </remarks>
 /// <param name="Id">机器人 ID</param>
-/// <param name="Name">名称（Webhook 路由段，不分大小写）</param>
+/// <param name="Name">名称（Webhook 路由段，区分大小写）</param>
 /// <param name="Token">令牌</param>
 /// <param name="AdminUsers">管理员用户 ID</param>
 /// <param name="AllowedGroupChatIds">群组与频道白名单（空即拒收所有群组与频道）</param>
@@ -100,7 +100,7 @@ public sealed class TelegramRuntime
     /// 按名称找运行中的机器人
     /// </summary>
     /// <remarks>
-    /// 不分大小写、先去空格
+    /// 区分大小写、先去空格：与名称的唯一索引一致，Webhook 回调的路径就是登记时的原名
     /// </remarks>
     /// <param name="name">名称</param>
     /// <returns>机器人；没有为 <see langword="null"/></returns>
@@ -117,7 +117,7 @@ public sealed class TelegramRuntime
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(bots);
-        _current = new Snapshot(settings, bots.ToFrozenDictionary(static b => b.Name, StringComparer.OrdinalIgnoreCase), running);
+        _current = new Snapshot(settings, bots.ToFrozenDictionary(static b => b.Name, StringComparer.Ordinal), running);
     }
 
     /// <summary>
@@ -133,8 +133,8 @@ public sealed class TelegramRuntime
             return;
         }
 
-        var bots = current.Bots.Values.Select(b => string.Equals(b.Name, bot.Name, StringComparison.OrdinalIgnoreCase) ? bot : b);
-        _current = current with { Bots = bots.ToFrozenDictionary(static b => b.Name, StringComparer.OrdinalIgnoreCase) };
+        var bots = current.Bots.Values.Select(b => string.Equals(b.Name, bot.Name, StringComparison.Ordinal) ? bot : b);
+        _current = current with { Bots = bots.ToFrozenDictionary(static b => b.Name, StringComparer.Ordinal) };
     }
 
     private sealed record Snapshot(TelegramSettings Settings, FrozenDictionary<string, TelegramBot> Bots, bool Running);

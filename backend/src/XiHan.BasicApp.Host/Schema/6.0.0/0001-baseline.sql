@@ -396,7 +396,6 @@ CREATE TABLE IF NOT EXISTS "sys_chat_conversation" (
     CONSTRAINT "sys_chat_conversation_pkey" PRIMARY KEY (id)
 );
 CREATE INDEX IF NOT EXISTS ix_sys_chat_conversation_tenant_id_department_id ON public.sys_chat_conversation USING btree (tenant_id, department_id);
-CREATE INDEX IF NOT EXISTS ix_sys_chat_conversation_tenant_id_last_message_at ON public.sys_chat_conversation USING btree (tenant_id, last_message_at);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_chat_conversation_tenant_id_pair_key ON public.sys_chat_conversation USING btree (tenant_id, pair_key) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_chat_conversation_member" (
@@ -469,7 +468,6 @@ CREATE TABLE IF NOT EXISTS "sys_chat_message_reaction" (
     "concurrency_stamp" character varying(32) NOT NULL,
     CONSTRAINT "sys_chat_message_reaction_pkey" PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS ix_sys_chat_message_reaction_tenant_id_conversation_id ON public.sys_chat_message_reaction USING btree (tenant_id, conversation_id);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_chat_message_reaction_message_user_emoji ON public.sys_chat_message_reaction USING btree (tenant_id, message_id, user_id, emoji);
 
 CREATE TABLE IF NOT EXISTS "sys_code_gen_data_source" (
@@ -2100,23 +2098,6 @@ CREATE TABLE IF NOT EXISTS "sys_user_setting" (
     CONSTRAINT "sys_user_setting_pkey" PRIMARY KEY (id)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_setting_user_id_scene_key ON public.sys_user_setting USING btree (user_id, scene, key) WHERE (is_deleted = false);
-
-CREATE TABLE IF NOT EXISTS "sys_user_statistics" (
-    "id" uuid NOT NULL,
-    "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
-    "login_count" integer DEFAULT 0 NOT NULL,
-    "last_login_at" timestamp with time zone NULL,
-    "tenant_id" character varying(512) NOT NULL,
-    "modified_at" timestamp with time zone NULL,
-    "modified_by" character varying(512) DEFAULT NULL::character varying NULL,
-    "is_deleted" boolean DEFAULT false NOT NULL,
-    "deleted_at" timestamp with time zone NULL,
-    "deleted_by" character varying(512) DEFAULT NULL::character varying NULL,
-    "created_at" timestamp with time zone NOT NULL,
-    "created_by" character varying(512) DEFAULT NULL::character varying NULL,
-    "concurrency_stamp" character varying(32) NOT NULL,
-    CONSTRAINT "sys_user_statistics_pkey" PRIMARY KEY (id)
-);
 
 CREATE TABLE IF NOT EXISTS "sys_version" (
     "id" uuid NOT NULL,

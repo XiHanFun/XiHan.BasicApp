@@ -42,7 +42,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
 
     private readonly SemaphoreSlim _concurrency = new(Math.Max(1, options.MaxDispatchConcurrency));
     private readonly ConcurrentDictionary<Task, byte> _inflight = new();
-    private readonly Dictionary<string, Running> _running = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Running> _running = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim _refreshing = new(1, 1);
     private TelegramSettings _settings = TelegramSettings.Default;
     private CancellationToken _stopping;
@@ -136,7 +136,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
                 await StopAllAsync(deleteWebhooks: false).ConfigureAwait(false);
             }
 
-            var desired = bots.ToDictionary(static b => b.Name, StringComparer.OrdinalIgnoreCase);
+            var desired = bots.ToDictionary(static b => b.Name, StringComparer.Ordinal);
             foreach (var name in _running.Keys.Where(n => !desired.ContainsKey(n)).ToList())
             {
                 await StopAsync(name, deleteWebhook: true).ConfigureAwait(false);
@@ -269,10 +269,9 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
                     .ListAsync(EntityQuery.All<SysTelegramBot>().Where(new Specification<SysTelegramBot>(static b => b.IsEnabled)), invocation.CancellationToken).ConfigureAwait(false);
                 var secrets = invocation.Services.GetRequiredService<ISecretProtector>();
 
-                // 重名（不分大小写）只留第一个
+                // 名称由部分唯一索引保证不重
                 bots = rows.OrderBy(static b => b.Order).ThenBy(static b => b.CreatedAt)
-                    .Select(r => Normalize(r, secrets)).OfType<TelegramBot>()
-                    .DistinctBy(static b => b.Name, StringComparer.OrdinalIgnoreCase).ToList();
+                    .Select(r => Normalize(r, secrets)).OfType<TelegramBot>().ToList();
             }
 
             loaded = (value, bots);
@@ -307,7 +306,7 @@ public sealed partial class TelegramBotManager(IServiceScopeFactory scopes, App 
         var allowed = new JsonArray([.. TelegramUpdate.AllowedUpdates.Select(static u => (JsonNode)u)]);
 
         // 先让 Webhook 端点与轮询认得这个机器人，再注册 Webhook / 开始拉取（否则头几条 Update 会因找不到机器人被丢掉）
-        runtime.Publish(settings, _running.Values.Where(r => !r.Stopped && !string.Equals(r.Bot.Name, bot.Name, StringComparison.OrdinalIgnoreCase)).Select(static r => r.Bot).Append(started), running: true);
+        runtime.Publish(settings, _running.Values.Where(r => !r.Stopped && !string.Equals(r.Bot.Name, bot.Name, StringComparison.Ordinal)).Select(static r => r.Bot).Append(started), running: true);
         if (settings.UsesWebhook)
         {
             if (string.IsNullOrEmpty(settings.SecretToken))

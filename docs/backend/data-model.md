@@ -76,7 +76,6 @@
 | 包 | 实体 | 说明 |
 | --- | --- | --- |
 | Organization | `SysDepartment`、`SysDepartmentHierarchy`、`SysPosition`、`SysUserDepartment` | 部门（闭包表维护层级）、岗位、部门成员（聚合根，发出领域事件） |
-| Identity | `SysUserStatistics` | 用户使用统计，在注册地租户 |
 | Access | `SysPermissionRequest` | 授权申请 |
 | Files | `SysFile`、`SysFileStorage`、`SysFileUpload`、`SysExportTask`、`SysImportHistory` | 文件、副本、分片上传会话、导出任务、导入历史 |
 | Notification | `SysNotification`、`SysUserNotification` | 通知与按人投递 |
