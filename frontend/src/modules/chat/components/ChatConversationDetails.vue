@@ -22,9 +22,11 @@ import { getChatApi } from '../api-contract'
 import { CHAT_PERMISSIONS } from '../constants'
 import { useChatStore } from '../store'
 import { chatErrorText, formatMessageTime } from './chat-helpers'
+import { useChatUserCard } from './chat-user-card'
 import ChatAddMembersDialog from './ChatAddMembersDialog.vue'
 import ChatConversationAvatar from './ChatConversationAvatar.vue'
 import ChatGroupInfoDialog from './ChatGroupInfoDialog.vue'
+import ChatMediaDialog from './ChatMediaDialog.vue'
 import ChatPresenceBadge from './ChatPresenceBadge.vue'
 
 /**
@@ -57,6 +59,8 @@ const members = ref<ChatMemberItem[]>([])
 const memberKeyword = ref('')
 const showAddMembers = ref(false)
 const showEditInfo = ref(false)
+const showMedia = ref(false)
+const userCard = useChatUserCard()
 const settingBusy = ref(false)
 let loadSeq = 0
 
@@ -125,6 +129,14 @@ function roleTone(role: ChatMemberRole): 'info' | 'warning' {
 /** 用户操作的失败由界面提示（请求层不弹统一提示） */
 function notifyFailure(error: unknown) {
   toast.danger(chatErrorText(error) || t('common.messages.operation_failed'))
+}
+
+/** 从图片与文件里定位到一条消息：详情顶替着消息流时先让开 */
+function handleLocateMessage(messageId: string) {
+  chatStore.jumpToMessage(conversationId.value, messageId).catch(notifyFailure)
+  if (!props.inline) {
+    emit('close')
+  }
 }
 
 async function loadMembers() {
@@ -361,6 +373,7 @@ function handleLeave() {
           </div>
         </div>
         <XIconButton v-if="canManage" icon="lucide:pencil" :label="t('chat.details.edit_info')" @click="showEditInfo = true" />
+        <XIconButton v-if="peerUserId && userCard" icon="lucide:contact" :label="t('chat.member_menu.profile')" @click="userCard.open(peerUserId)" />
       </div>
 
       <p v-if="conversation.description" class="m-0 px-3 pb-3 text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
@@ -376,6 +389,15 @@ function handleLeave() {
         <div class="text-xs leading-relaxed whitespace-pre-wrap text-foreground">
           {{ conversation.announcement }}
         </div>
+      </section>
+
+      <!-- 图片与文件：会话里发过的，按时间倒着看 -->
+      <section v-if="conversation.conversationType !== 'Assistant'" class="chat-details__section">
+        <button type="button" class="chat-details__link" @click="showMedia = true">
+          <Icon icon="lucide:images" width="14" height="14" class="shrink-0 text-muted-foreground" />
+          <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ t('chat.media.title') }}</span>
+          <Icon icon="lucide:chevron-right" width="14" height="14" class="shrink-0 text-muted-foreground" />
+        </button>
       </section>
 
       <!-- 个人设置：只影响自己这一端的列表 -->
@@ -448,9 +470,18 @@ function handleLeave() {
               :key="member.userId"
               class="flex items-center gap-2.5 border-b border-border/50 py-2 last:border-b-0"
             >
-              <ChatPresenceBadge :user-id="member.userId">
-                <XUserAvatar :avatar="member.avatarFileId" :name="memberName(member)" :size="32" />
-              </ChatPresenceBadge>
+              <!-- 点头像看这个人的资料 -->
+              <button
+                type="button"
+                class="chat-details__avatar"
+                :disabled="!userCard"
+                :aria-label="t('chat.user_card.view_of', { name: memberName(member) })"
+                @click="userCard?.open(member.userId)"
+              >
+                <ChatPresenceBadge :user-id="member.userId">
+                  <XUserAvatar :avatar="member.avatarFileId" :name="memberName(member)" :size="32" />
+                </ChatPresenceBadge>
+              </button>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5">
                   <span class="truncate text-[13px] text-foreground">{{ memberName(member) }}</span>
@@ -490,6 +521,7 @@ function handleLeave() {
       @added="refreshAfterChange"
     />
     <ChatGroupInfoDialog v-model:show="showEditInfo" :conversation="conversation" />
+    <ChatMediaDialog v-model:show="showMedia" :conversation-id="conversation.conversationId" @locate="handleLocateMessage" />
   </div>
 </template>
 
@@ -508,6 +540,31 @@ function handleLeave() {
   color: var(--xh-fg-muted);
   font-size: var(--xh-font-size-xs);
   font-weight: var(--xh-font-weight-medium);
+}
+
+/* 分区里的一整行入口：点了开对话框 */
+.chat-details__link {
+  display: flex;
+  gap: var(--xh-space-2);
+  align-items: center;
+  inline-size: 100%;
+  padding: var(--xh-space-1) var(--xh-space-0);
+  border-radius: var(--xh-shape-control);
+  cursor: pointer;
+}
+
+.chat-details__link:focus-visible,
+.chat-details__avatar:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
+/* 成员头像作按钮：清掉全局按钮重置留下的内距，聚焦环贴着圆形头像画 */
+.chat-details__avatar {
+  flex: none;
+  padding: var(--xh-space-0);
+  border-radius: var(--xh-shape-circle);
+  cursor: pointer;
 }
 
 .chat-details__section > .chat-details__heading {

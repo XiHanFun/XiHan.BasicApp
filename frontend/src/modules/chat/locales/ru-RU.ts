@@ -52,6 +52,9 @@ export default {
       mute: 'Без звука',
       unmute: 'Включить звук',
       mention_me: '[Вас упомянули через {\'@\'}] ',
+      section_conversations: 'Беседы',
+      section_messages: 'Сообщения',
+      messages_empty: 'Подходящих сообщений нет',
     },
     type: {
       single: 'Личный',
@@ -119,6 +122,7 @@ export default {
       set_admin: 'Назначить администратором',
       unset_admin: 'Снять администратора',
       remove: 'Исключить из группы',
+      profile: 'Открыть профиль',
     },
     composer: {
       placeholder_enter: 'Введите сообщение. Enter — отправить / Shift+Enter — новая строка',
@@ -203,6 +207,19 @@ export default {
       online: 'В сети',
       offline: 'Не в сети',
       online_count: 'В сети: {n}',
+    },
+    media: {
+      title: 'Изображения и файлы',
+      images: 'Изображения',
+      files: 'Файлы',
+      images_empty: 'В этой беседе пока нет изображений',
+      files_empty: 'В этой беседе пока нет файлов',
+      load_more: 'Загрузить ещё',
+    },
+    user_card: {
+      title: 'Профиль участника',
+      view_of: 'Открыть профиль: {name}',
+      common_groups: 'Общие группы ({n})',
     },
     record: {
       title: 'Запись переписки',

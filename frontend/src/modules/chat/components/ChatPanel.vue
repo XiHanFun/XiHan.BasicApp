@@ -9,10 +9,12 @@ import { useMediaQuery } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useIsMobile } from '~/composables'
 import { useChatStore } from '../store'
+import { provideChatUserCard } from './chat-user-card'
 import ChatConversationDetails from './ChatConversationDetails.vue'
 import ChatConversationList from './ChatConversationList.vue'
 import ChatMessageThread from './ChatMessageThread.vue'
 import ChatStartDialog from './ChatStartDialog.vue'
+import ChatUserCardDialog from './ChatUserCardDialog.vue'
 
 defineOptions({ name: 'ChatPanel' })
 
@@ -41,8 +43,17 @@ const detailsInline = computed(() => !singlePane.value && isWide.value)
 const detailsVisible = computed(() => showDetails.value && Boolean(chatStore.activeConversation))
 const detailsCovering = computed(() => detailsVisible.value && !detailsInline.value)
 
+// 成员资料卡只放一张：消息流里点头像、会话详情里点成员都开它
+const { show: showUserCard, userId: userCardUserId } = provideChatUserCard()
+
 function handleSelect(conversationId: string) {
   void chatStore.openConversation(conversationId)
+}
+
+/** 搜索命中：打开它所在的会话并定位到那条消息 */
+async function handleLocate(conversationId: string, messageId: string) {
+  await chatStore.openConversation(conversationId)
+  await chatStore.jumpToMessage(conversationId, messageId).catch(() => {})
 }
 
 function handleStart(mode: ChatStartMode) {
@@ -77,7 +88,7 @@ onUnmounted(() => {
     <!-- 多栏：列表 + 消息流（+ 详情） -->
     <template v-if="!singlePane">
       <div class="w-80 shrink-0 border-r border-border xl:w-[360px]">
-        <ChatConversationList @select="handleSelect" @start="handleStart" />
+        <ChatConversationList @select="handleSelect" @start="handleStart" @locate="handleLocate" />
       </div>
       <div class="min-w-0 flex-1">
         <!-- 详情顶替消息流时消息流只藏不卸：滚动位置、搜索与输入中的内容回来还在 -->
@@ -112,10 +123,11 @@ onUnmounted(() => {
             @close="showDetails = false"
           />
         </template>
-        <ChatConversationList v-else @select="handleSelect" @start="handleStart" />
+        <ChatConversationList v-else @select="handleSelect" @start="handleStart" @locate="handleLocate" />
       </div>
     </template>
 
     <ChatStartDialog v-model:show="showStartDialog" :mode="startMode" />
+    <ChatUserCardDialog v-model:show="showUserCard" :user-id="userCardUserId" />
   </div>
 </template>

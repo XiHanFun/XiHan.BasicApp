@@ -43,6 +43,9 @@ export type ChatCallStatus = (typeof ChatCallStatus)[number]
 export const ChatConversationType = ['Single', 'Group', 'Department', 'Assistant'] as const
 export type ChatConversationType = (typeof ChatConversationType)[number]
 
+export const ChatMediaKind = ['Image', 'File'] as const
+export type ChatMediaKind = (typeof ChatMediaKind)[number]
+
 export const ChatMemberRole = ['Owner', 'Admin', 'Member'] as const
 export type ChatMemberRole = (typeof ChatMemberRole)[number]
 
@@ -381,6 +384,7 @@ export const enums = {
   ChatCallParticipantStatus,
   ChatCallStatus,
   ChatConversationType,
+  ChatMediaKind,
   ChatMemberRole,
   ChatMessageType,
   CodeGenDatabaseType,

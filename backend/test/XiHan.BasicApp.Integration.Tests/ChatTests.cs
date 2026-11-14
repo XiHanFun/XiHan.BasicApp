@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 单聊按两人唯一，群聊的治理（加人、移出、退群、改信息与公告、转让群主、设管理员、禁言），部门群只有本部门的人能进、随部门归属事件同步成员；
-/// 消息的发送、撤回、编辑、回应、置顶、已读与搜索，提及所有人只给群主与管理员；附件以会话为访问范围、服务端转发（一条或多条，逐条或合并成一条聊天记录）、聊天审计的详情与成员（方案 H1、H2、H4）；
+/// 消息的发送、撤回、编辑、回应、置顶、已读与搜索（会话内与跨会话），提及所有人只给群主与管理员；会话里图片与文件的汇总，聊天里看一个人的资料；附件以会话为访问范围、服务端转发（一条或多条，逐条或合并成一条聊天记录）、聊天审计的详情与成员（方案 H1、H2、H4）；
 /// 敏感词与保留清理读 <c>chat.policy</c>；推送经聊天 Hub 在提交之后发出；平台一侧同样能聊天；模块可以关掉
 /// </remarks>
 public sealed class ChatTests : IDisposable
@@ -481,6 +481,79 @@ public sealed class ChatTests : IDisposable
         // 审计详情看得到
         var (_, detail) = await CallAsync(server, HttpMethod.Get, $"/api/chat-audit/{sent.GetProperty("messageId").GetString()}", null, TestTokens.Issue("auditor", "acme", Chatter));
         Assert.True(detail.GetProperty("mentionAll").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Search_SpansConversations_MediaListsAttachments_AndProfilesShowCommonGroups()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob, carol, dave) = (users["alice"], users["bob"], users["carol"], users["dave"]);
+        var single = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var docs = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Docs", memberUserIds = new[] { carol } }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var team = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { bob, carol } }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var elsewhere = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = dave }, carol)).Body.GetProperty("conversationId").GetString()!;
+
+        async Task<string> UploadAsync(string name, string contentType)
+        {
+            var request = BasicAppTestServer.Request(HttpMethod.Post, "/api/chat-messages/attachments", token: Token(alice));
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes($"content of {name}"));
+            content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            request.Content = new MultipartFormDataContent { { content, "file", name } };
+            return (await server.SendAsync(request)).Body.GetProperty("attachment").GetProperty("fileId").GetString()!;
+        }
+
+        async Task<string> SendFilesAsync(string conversationId, string messageType, params string[] fileIds)
+        {
+            var (status, body) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId, messageType, attachments = fileIds.Select(static fileId => new { fileId, fileName = "x" }) }, alice);
+            Assert.True(status == HttpStatusCode.OK, body.ToString());
+            return body.GetProperty("messageId").GetString()!;
+        }
+
+        // 跨会话搜索：只在自己所在的会话里找，最近的在前，按偏移翻页；已撤回的不算
+        var draft = (await SendTextAsync(server, alice, single, "quarterly report draft")).GetProperty("messageId").GetString()!;
+        await SendTextAsync(server, bob, team, "nothing to see");
+        var inDocs = (await SendTextAsync(server, carol, docs, "report for docs")).GetProperty("messageId").GetString()!;
+        await SendTextAsync(server, carol, elsewhere, "secret report");
+        var (_, found) = await CallAsync(server, HttpMethod.Get, "/api/chat-messages:search-all?keyword=report", null, alice);
+        Assert.Equal([(inDocs, docs), (draft, single)], found.GetProperty("items").EnumerateArray().Select(static hit => (hit.GetProperty("messageId").GetString()!, hit.GetProperty("conversationId").GetString()!)));
+        Assert.False(found.GetProperty("hasMore").GetBoolean());
+        var (_, first) = await CallAsync(server, HttpMethod.Get, "/api/chat-messages:search-all?keyword=report&take=1", null, alice);
+        Assert.Equal((inDocs, true), (Assert.Single(first.GetProperty("items").EnumerateArray()).GetProperty("messageId").GetString(), first.GetProperty("hasMore").GetBoolean()));
+        var (_, second) = await CallAsync(server, HttpMethod.Get, "/api/chat-messages:search-all?keyword=report&take=1&skip=1", null, alice);
+        Assert.Equal((draft, false), (Assert.Single(second.GetProperty("items").EnumerateArray()).GetProperty("messageId").GetString(), second.GetProperty("hasMore").GetBoolean()));
+        Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, "/api/chat-messages:search-all?keyword=%20", null, alice)).Body.GetProperty("items").GetArrayLength());
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:recall", new { messageId = draft }, alice)).Status);
+        Assert.Equal(inDocs, Assert.Single((await CallAsync(server, HttpMethod.Get, "/api/chat-messages:search-all?keyword=report", null, alice)).Body.GetProperty("items").EnumerateArray()).GetProperty("messageId").GetString());
+
+        // 图片与文件汇总：各取各的，最近的在前、往前翻页；已撤回的不算，不是成员的看不了
+        var (photo, chart, spec) = (await UploadAsync("photo.png", "image/png"), await UploadAsync("chart.png", "image/png"), await UploadAsync("spec.pdf", "application/pdf"));
+        var album = await SendFilesAsync(docs, "Image", photo);
+        var paper = await SendFilesAsync(docs, "File", spec);
+        var later = await SendFilesAsync(docs, "Image", chart);
+        var (_, images) = await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:media?conversationId={docs}&kind=Image", null, carol);
+        Assert.Equal([later, album], images.GetProperty("items").EnumerateArray().Select(static m => m.GetProperty("messageId").GetString()));
+        var (_, newest) = await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:media?conversationId={docs}&kind=Image&take=1", null, carol);
+        Assert.Equal((later, true), (Assert.Single(newest.GetProperty("items").EnumerateArray()).GetProperty("messageId").GetString(), newest.GetProperty("hasMore").GetBoolean()));
+        var (_, older) = await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:media?conversationId={docs}&kind=Image&take=1&beforeMessageId={later}", null, carol);
+        Assert.Equal((album, false), (Assert.Single(older.GetProperty("items").EnumerateArray()).GetProperty("messageId").GetString(), older.GetProperty("hasMore").GetBoolean()));
+        var (_, files) = await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:media?conversationId={docs}&kind=File", null, carol);
+        Assert.Equal("spec.pdf", Assert.Single(Assert.Single(files.GetProperty("items").EnumerateArray()).GetProperty("attachments").EnumerateArray()).GetProperty("fileName").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:recall", new { messageId = paper }, alice)).Status);
+        Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:media?conversationId={docs}&kind=File", null, carol)).Body.GetProperty("items").GetArrayLength());
+        Assert.Equal("CHAT_DENIED_001", (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:media?conversationId={docs}&kind=Image", null, bob)).Body.GetProperty("code").GetString());
+
+        // 资料：聊天里看得到的那些，另带两个人都在的群（按群名排，单聊不算）；看自己没有共同的群
+        var (status, profile) = await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-profile?userId={carol}", null, alice);
+        Assert.True(status == HttpStatusCode.OK, profile.ToString());
+        Assert.Equal((carol, "carol", "CAROL", false), (profile.GetProperty("userId").GetString(), profile.GetProperty("userName").GetString(), profile.GetProperty("displayName").GetString(), profile.GetProperty("isOnline").GetBoolean()));
+        Assert.Equal([(docs, "Docs", 2), (team, "Team", 3)], profile.GetProperty("commonGroups").EnumerateArray().Select(static g => (g.GetProperty("conversationId").GetString()!, g.GetProperty("conversationName").GetString()!, g.GetProperty("memberCount").GetInt32())));
+        Assert.Equal(team, Assert.Single((await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-profile?userId={bob}", null, alice)).Body.GetProperty("commonGroups").EnumerateArray()).GetProperty("conversationId").GetString());
+        Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-profile?userId={alice}", null, alice)).Body.GetProperty("commonGroups").GetArrayLength());
+
+        // 别的租户的人、不存在的人看不了
+        Assert.Equal("CHAT_VALIDATION_021", (await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-profile?userId={users["erin"]}", null, alice)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_NOTFOUND_003", (await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-profile?userId={Guid.CreateVersion7()}", null, alice)).Body.GetProperty("code").GetString());
     }
 
     [Fact]

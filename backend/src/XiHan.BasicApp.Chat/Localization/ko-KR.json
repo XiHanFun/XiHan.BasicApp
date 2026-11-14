@@ -198,5 +198,11 @@
   "chat.preview.record": "[대화 기록]",
   "chat.message.mention_all_unsupported": "모두 멘션은 그룹 채팅에서만 쓸 수 있습니다.",
   "chat.message.forward_mixed": "한 번에 전달하는 메시지는 같은 대화의 것이어야 합니다.",
-  "chat.message.record_too_large": "묶을 내용이 너무 많습니다. 메시지를 줄여 주세요."
+  "chat.message.record_too_large": "묶을 내용이 너무 많습니다. 메시지를 줄여 주세요.",
+  "chat_conversations.user_profile.title": "구성원 프로필",
+  "chat_conversations.user_profile.description": "호출자와 같은 쪽에 있는 사람의 채팅 프로필을 봅니다. 이름, 아바타, 주 부서와 온라인 상태, 그리고 함께 속한 그룹을 돌려줍니다. 연락처는 포함하지 않습니다.",
+  "chat_messages.search_all.title": "모든 대화 검색",
+  "chat_messages.search_all.description": "호출자가 속한 모든 대화에서 키워드로 메시지를 찾습니다. 본문과 첨부에 일치하고 회수된 메시지는 제외하며 최신순입니다.",
+  "chat_messages.media.title": "대화의 이미지와 파일",
+  "chat_messages.media.description": "대화에서 회수되지 않은 이미지 메시지 또는 파일 메시지를 최신순으로 나열합니다. 구성원만 볼 수 있습니다."
 }

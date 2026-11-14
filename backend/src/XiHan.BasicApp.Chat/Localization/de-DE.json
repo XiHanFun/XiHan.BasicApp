@@ -198,5 +198,11 @@
   "chat.preview.record": "[Chatverlauf]",
   "chat.message.mention_all_unsupported": "Alle können nur in Gruppenchats erwähnt werden.",
   "chat.message.forward_mixed": "Gemeinsam weitergeleitete Nachrichten müssen aus derselben Unterhaltung stammen.",
-  "chat.message.record_too_large": "Zu viel Inhalt zum Zusammenfassen. Wählen Sie weniger Nachrichten."
+  "chat.message.record_too_large": "Zu viel Inhalt zum Zusammenfassen. Wählen Sie weniger Nachrichten.",
+  "chat_conversations.user_profile.title": "Mitgliederprofil",
+  "chat_conversations.user_profile.description": "Zeigt, was der Chat über eine Person auf der Seite des Aufrufers weiß: Namen, Avatar, Hauptabteilung und Anwesenheit sowie die gemeinsamen Gruppen; keine Kontaktdaten.",
+  "chat_messages.search_all.title": "Alle Unterhaltungen durchsuchen",
+  "chat_messages.search_all.description": "Sucht Nachrichten per Stichwort in allen Unterhaltungen des Aufrufers: vergleicht Text und Anhänge, überspringt zurückgerufene Nachrichten, neueste zuerst.",
+  "chat_messages.media.title": "Bilder und Dateien einer Unterhaltung",
+  "chat_messages.media.description": "Listet die nicht zurückgerufenen Bild- oder Dateinachrichten einer Unterhaltung, neueste zuerst; nur für Mitglieder."
 }

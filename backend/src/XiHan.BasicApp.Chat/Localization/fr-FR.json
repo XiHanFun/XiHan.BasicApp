@@ -198,5 +198,11 @@
   "chat.preview.record": "[Historique de discussion]",
   "chat.message.mention_all_unsupported": "Tout le monde ne peut être mentionné que dans les discussions de groupe.",
   "chat.message.forward_mixed": "Les messages transférés ensemble doivent venir de la même conversation.",
-  "chat.message.record_too_large": "Trop de contenu à regrouper. Sélectionnez moins de messages."
+  "chat.message.record_too_large": "Trop de contenu à regrouper. Sélectionnez moins de messages.",
+  "chat_conversations.user_profile.title": "Profil du membre",
+  "chat_conversations.user_profile.description": "Affiche ce que la discussion sait d’une personne du côté de l’appelant : noms, avatar, service principal et présence, ainsi que les groupes qu’ils partagent ; sans coordonnées.",
+  "chat_messages.search_all.title": "Rechercher dans toutes les conversations",
+  "chat_messages.search_all.description": "Recherche des messages par mot-clé dans toutes les conversations de l’appelant : compare le texte et les pièces jointes, ignore les messages rappelés, les plus récents d’abord.",
+  "chat_messages.media.title": "Images et fichiers d’une conversation",
+  "chat_messages.media.description": "Liste les messages image ou fichier non rappelés d’une conversation, les plus récents d’abord ; réservé aux membres."
 }

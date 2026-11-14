@@ -19,7 +19,8 @@ namespace XiHan.BasicApp.Chat.Queries;
 /// </summary>
 /// <remarks>
 /// 只看调用方所在一侧，会话里的内容只给成员看。历史按会话内序号取，一次 1 到 100 条、多取一条判断还有没有更早的；
-/// 搜索匹配正文与附件、不含已撤回的，一次 1 到 50 条、按时间倒序、不带回应
+/// 搜索匹配正文与附件、不含已撤回的，一次 1 到 50 条、按时间倒序、不带回应：会话内的按序号翻页，跨会话的在调用方所在的全部会话里找、按偏移翻页
+/// 图片与文件的汇总取会话里未撤回的图片消息或文件消息，最近的在前；看一个人的资料只给聊天里本来就看得到的那些，另带两个人都在的群
 /// 会话列表的单聊对端、会话成员与选人候选都带此刻的在线状态（任一 Hub 上有连接即在线），之后的变化由推送补
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
@@ -28,6 +29,7 @@ public sealed class ChatQueries(ChatStore store, IRealtimePresence presence)
 {
     private const int DefaultHistoryTake = 30;
     private const int DefaultSearchTake = 20;
+    private const int DefaultMediaTake = 30;
     private const int DefaultUserLimit = 50;
 
     /// <summary>
@@ -175,6 +177,123 @@ public sealed class ChatQueries(ChatStore store, IRealtimePresence presence)
 
         var rows = await query.OrderBy(m => m.Seq, OrderByType.Desc).Take(take + 1).ToListAsync(context.CancellationToken).ConfigureAwait(false);
         return new ChatMessagePageResponse([.. rows.Take(take).Select(static m => ChatStore.ItemOf(m))], rows.Count > take);
+    }
+
+    /// <summary>
+    /// 跨会话搜索：在调用方所在的全部会话里找
+    /// </summary>
+    /// <remarks>
+    /// 结果跨着会话，没有共同的序号可作游标，按偏移翻页；翻页之间来了新消息会错开一两条，再搜一次即可
+    /// </remarks>
+    public async Task<ChatMessagePageResponse> SearchAllAsync(InvocationContext context, ChatCaller caller, ChatMessageSearchAllRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var keyword = request.Keyword?.Trim();
+        if (string.IsNullOrEmpty(keyword))
+        {
+            return new ChatMessagePageResponse([], false);
+        }
+
+        var cancellationToken = context.CancellationToken;
+        var userId = caller.UserId;
+        var conversationIds = await store.Members(caller.Side).Where(m => m.UserId == userId).Select(static m => m.ConversationId).ToListAsync(cancellationToken).ConfigureAwait(false);
+        if (conversationIds.Count == 0)
+        {
+            return new ChatMessagePageResponse([], false);
+        }
+
+        var take = request.Take ?? DefaultSearchTake;
+        // 通话记录与聊天记录的正文是 JSON，不参与搜索
+        var rows = await store.Messages(caller.Side)
+            .Where(m => conversationIds.Contains(m.ConversationId) && !m.IsRecalled && m.Type != ChatMessageType.Call && m.Type != ChatMessageType.Record && ((m.Content != null && m.Content.Contains(keyword)) || (m.Attachments != null && m.Attachments.Contains(keyword))))
+            .OrderBy(m => m.CreatedAt, OrderByType.Desc)
+            .OrderBy(m => m.Id, OrderByType.Desc)
+            .Skip(request.Skip ?? 0)
+            .Take(take + 1)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return new ChatMessagePageResponse([.. rows.Take(take).Select(static m => ChatStore.ItemOf(m))], rows.Count > take);
+    }
+
+    /// <summary>
+    /// 会话里的图片或文件（最近的在前）
+    /// </summary>
+    /// <remarks>
+    /// 取未撤回的图片消息或文件消息；聊天记录里套着的附件不在这里
+    /// </remarks>
+    public async Task<Result<ChatMessagePageResponse>> MediaAsync(InvocationContext context, ChatCaller caller, ChatMessageMediaRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var cancellationToken = context.CancellationToken;
+        var member = await store.RequireMemberAsync(caller.Side, request.ConversationId, caller.UserId, cancellationToken).ConfigureAwait(false);
+        if (member.IsFailure)
+        {
+            return member.Error!;
+        }
+
+        var conversationId = request.ConversationId;
+        var type = request.Kind == ChatMediaKind.Image ? ChatMessageType.Image : ChatMessageType.File;
+        var query = store.Messages(caller.Side).Where(m => m.ConversationId == conversationId && !m.IsRecalled && m.Type == type);
+        if (request.BeforeMessageId is { } beforeId)
+        {
+            var before = await SeqOfAsync(caller.Side, conversationId, beforeId, cancellationToken).ConfigureAwait(false);
+            if (!before.TryGetValue(out var cursor))
+            {
+                return before.Error!;
+            }
+
+            query = query.Where(m => m.Seq < cursor);
+        }
+
+        var take = request.Take ?? DefaultMediaTake;
+        var rows = await query.OrderBy(m => m.Seq, OrderByType.Desc).Take(take + 1).ToListAsync(cancellationToken).ConfigureAwait(false);
+        return new ChatMessagePageResponse([.. rows.Take(take).Select(static m => ChatStore.ItemOf(m))], rows.Count > take);
+    }
+
+    /// <summary>
+    /// 聊天里看一个人的资料
+    /// </summary>
+    /// <remarks>
+    /// 那个人须属于当前一侧；共同的群是两个人都在的群聊与部门群，按群名排
+    /// </remarks>
+    public async Task<Result<ChatUserProfileResponse>> UserProfileAsync(InvocationContext context, ChatCaller caller, Guid userId)
+    {
+        var cancellationToken = context.CancellationToken;
+        var found = await store.RequireUsersInSideAsync(caller.Side, [userId], cancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var users))
+        {
+            return found.Error!;
+        }
+
+        var user = users[userId];
+        var departments = await PrimaryDepartmentNamesAsync(context, [userId]).ConfigureAwait(false);
+        var online = await presence.ConnectedUsersAsync(caller.Side, [userId], cancellationToken).ConfigureAwait(false);
+        List<SysChatConversation> common = [];
+        if (userId != caller.UserId)
+        {
+            var me = caller.UserId;
+            var mine = await store.Members(caller.Side).Where(m => m.UserId == me).Select(static m => m.ConversationId).ToListAsync(cancellationToken).ConfigureAwait(false);
+            var shared = mine.Count == 0
+                ? []
+                : await store.Members(caller.Side).Where(m => m.UserId == userId && mine.Contains(m.ConversationId)).Select(static m => m.ConversationId).ToListAsync(cancellationToken).ConfigureAwait(false);
+            if (shared.Count > 0)
+            {
+                common = await store.Conversations(caller.Side)
+                    .Where(c => shared.Contains(c.Id) && (c.Type == ChatConversationType.Group || c.Type == ChatConversationType.Department))
+                    .OrderBy(c => c.Name)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        return new ChatUserProfileResponse(
+            user.Id,
+            user.UserName,
+            user.DisplayName,
+            user.AvatarFileId,
+            departments.GetValueOrDefault(userId),
+            online.Contains(userId),
+            [.. common.Select(static c => new ChatCommonGroup(c.Id, c.Type, c.Name ?? string.Empty, c.Avatar, c.MemberCount))]);
     }
 
     /// <summary>

@@ -106,10 +106,12 @@ export const routes = {
   'chat-conversations.transfer-owner': { method: 'POST', template: '/api/chat-conversations:transfer-owner', path: [], query: [], success: 200 },
   'chat-conversations.update-info': { method: 'POST', template: '/api/chat-conversations:update-info', path: [], query: [], success: 200 },
   'chat-conversations.user-options': { method: 'GET', template: '/api/chat-conversations:user-options', path: [], query: ['keyword', 'limit', 'departmentId', 'skip'], success: 200 },
+  'chat-conversations.user-profile': { method: 'GET', template: '/api/chat-conversations:user-profile', path: [], query: ['userId'], success: 200 },
   'chat-messages.edit': { method: 'POST', template: '/api/chat-messages:edit', path: [], query: [], success: 200 },
   'chat-messages.fast-upload': { method: 'POST', template: '/api/chat-messages:fast-upload', path: [], query: [], success: 200 },
   'chat-messages.forward': { method: 'POST', template: '/api/chat-messages:forward', path: [], query: [], success: 200 },
   'chat-messages.history': { method: 'GET', template: '/api/chat-messages:history', path: [], query: ['conversationId', 'beforeMessageId', 'aroundMessageId', 'take'], success: 200 },
+  'chat-messages.media': { method: 'GET', template: '/api/chat-messages:media', path: [], query: ['conversationId', 'kind', 'beforeMessageId', 'take'], success: 200 },
   'chat-messages.pin': { method: 'POST', template: '/api/chat-messages:pin', path: [], query: [], success: 200 },
   'chat-messages.pinned': { method: 'GET', template: '/api/chat-messages:pinned', path: [], query: ['conversationId'], success: 200 },
   'chat-messages.presign': { method: 'GET', template: '/api/chat-messages:presign', path: [], query: ['conversationId', 'fileId', 'download'], success: 200 },
@@ -117,6 +119,7 @@ export const routes = {
   'chat-messages.recall': { method: 'POST', template: '/api/chat-messages:recall', path: [], query: [], success: 200 },
   'chat-messages.reply-assistant': { method: 'POST', template: '/api/chat-messages:reply-assistant', path: [], query: [], success: 200 },
   'chat-messages.search': { method: 'GET', template: '/api/chat-messages:search', path: [], query: ['conversationId', 'keyword', 'beforeMessageId', 'take'], success: 200 },
+  'chat-messages.search-all': { method: 'GET', template: '/api/chat-messages:search-all', path: [], query: ['keyword', 'skip', 'take'], success: 200 },
   'chat-messages.send': { method: 'POST', template: '/api/chat-messages:send', path: [], query: [], success: 200 },
   'chat-messages.unpin': { method: 'POST', template: '/api/chat-messages:unpin', path: [], query: [], success: 200 },
   'codegen-datasources.create': { method: 'POST', template: '/api/codegen-datasources', path: [], query: [], success: 201 },
@@ -679,6 +682,7 @@ export const chatConversations = {
   transferOwner: (request: RequestOf<'chat-conversations.transfer-owner'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.transfer-owner'>, ResponseOf<'chat-conversations.transfer-owner'>>('chat-conversations.transfer-owner', routes['chat-conversations.transfer-owner'], request, options),
   updateInfo: (request: RequestOf<'chat-conversations.update-info'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.update-info'>, ResponseOf<'chat-conversations.update-info'>>('chat-conversations.update-info', routes['chat-conversations.update-info'], request, options),
   userOptions: (request: RequestOf<'chat-conversations.user-options'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.user-options'>, ResponseOf<'chat-conversations.user-options'>>('chat-conversations.user-options', routes['chat-conversations.user-options'], request, options),
+  userProfile: (request: RequestOf<'chat-conversations.user-profile'>, options?: CallOptions) => invoke<RequestOf<'chat-conversations.user-profile'>, ResponseOf<'chat-conversations.user-profile'>>('chat-conversations.user-profile', routes['chat-conversations.user-profile'], request, options),
 }
 
 /** 资源 `chat-messages` 的操作 */
@@ -687,6 +691,7 @@ export const chatMessages = {
   fastUpload: (request: RequestOf<'chat-messages.fast-upload'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.fast-upload'>, ResponseOf<'chat-messages.fast-upload'>>('chat-messages.fast-upload', routes['chat-messages.fast-upload'], request, options),
   forward: (request: RequestOf<'chat-messages.forward'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.forward'>, ResponseOf<'chat-messages.forward'>>('chat-messages.forward', routes['chat-messages.forward'], request, options),
   history: (request: RequestOf<'chat-messages.history'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.history'>, ResponseOf<'chat-messages.history'>>('chat-messages.history', routes['chat-messages.history'], request, options),
+  media: (request: RequestOf<'chat-messages.media'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.media'>, ResponseOf<'chat-messages.media'>>('chat-messages.media', routes['chat-messages.media'], request, options),
   pin: (request: RequestOf<'chat-messages.pin'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.pin'>, ResponseOf<'chat-messages.pin'>>('chat-messages.pin', routes['chat-messages.pin'], request, options),
   pinned: (request: RequestOf<'chat-messages.pinned'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.pinned'>, ResponseOf<'chat-messages.pinned'>>('chat-messages.pinned', routes['chat-messages.pinned'], request, options),
   presign: (request: RequestOf<'chat-messages.presign'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.presign'>, ResponseOf<'chat-messages.presign'>>('chat-messages.presign', routes['chat-messages.presign'], request, options),
@@ -694,6 +699,7 @@ export const chatMessages = {
   recall: (request: RequestOf<'chat-messages.recall'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.recall'>, ResponseOf<'chat-messages.recall'>>('chat-messages.recall', routes['chat-messages.recall'], request, options),
   replyAssistant: (request: RequestOf<'chat-messages.reply-assistant'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.reply-assistant'>, ResponseOf<'chat-messages.reply-assistant'>>('chat-messages.reply-assistant', routes['chat-messages.reply-assistant'], request, options),
   search: (request: RequestOf<'chat-messages.search'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.search'>, ResponseOf<'chat-messages.search'>>('chat-messages.search', routes['chat-messages.search'], request, options),
+  searchAll: (request: RequestOf<'chat-messages.search-all'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.search-all'>, ResponseOf<'chat-messages.search-all'>>('chat-messages.search-all', routes['chat-messages.search-all'], request, options),
   send: (request: RequestOf<'chat-messages.send'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.send'>, ResponseOf<'chat-messages.send'>>('chat-messages.send', routes['chat-messages.send'], request, options),
   unpin: (request: RequestOf<'chat-messages.unpin'>, options?: CallOptions) => invoke<RequestOf<'chat-messages.unpin'>, ResponseOf<'chat-messages.unpin'>>('chat-messages.unpin', routes['chat-messages.unpin'], request, options),
 }

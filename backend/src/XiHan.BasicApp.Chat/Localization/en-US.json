@@ -198,5 +198,11 @@
   "chat.preview.record": "[Chat record]",
   "chat.message.mention_all_unsupported": "Everyone can only be mentioned in group chats.",
   "chat.message.forward_mixed": "Messages forwarded together must come from the same conversation.",
-  "chat.message.record_too_large": "Too much content to merge. Select fewer messages."
+  "chat.message.record_too_large": "Too much content to merge. Select fewer messages.",
+  "chat_conversations.user_profile.title": "Member profile",
+  "chat_conversations.user_profile.description": "Shows what chat knows about a person on the caller's side: names, avatar, primary department and presence, plus the groups the caller shares with them; no contact details.",
+  "chat_messages.search_all.title": "Search all conversations",
+  "chat_messages.search_all.description": "Finds messages by keyword across every conversation the caller belongs to: matches text and attachments, skips recalled messages, newest first.",
+  "chat_messages.media.title": "Images and files of a conversation",
+  "chat_messages.media.description": "Lists the image messages or file messages of a conversation that have not been recalled, newest first; members only."
 }

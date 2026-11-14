@@ -198,5 +198,11 @@
   "chat.preview.record": "[聊天記錄]",
   "chat.message.mention_all_unsupported": "只有群聊能提及所有人。",
   "chat.message.forward_mixed": "一次轉發的訊息須來自同一個對話。",
-  "chat.message.record_too_large": "合併轉發的內容太多，請少選幾則。"
+  "chat.message.record_too_large": "合併轉發的內容太多，請少選幾則。",
+  "chat_conversations.user_profile.title": "成員資料",
+  "chat_conversations.user_profile.description": "檢視目前一側某個人在聊天中的資料：名稱、頭像、主部門與線上狀態，另附呼叫方與他都在的群；不含聯絡方式。",
+  "chat_messages.search_all.title": "跨對話搜尋",
+  "chat_messages.search_all.description": "在呼叫方所在的全部對話中依關鍵字尋找訊息：比對內文與附件，不含已收回的，依時間倒序。",
+  "chat_messages.media.title": "對話的圖片與檔案",
+  "chat_messages.media.description": "列出對話中未收回的圖片訊息或檔案訊息，最近的在前；只有成員能看。"
 }

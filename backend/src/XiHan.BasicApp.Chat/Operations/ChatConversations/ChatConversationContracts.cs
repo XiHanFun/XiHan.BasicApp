@@ -216,6 +216,37 @@ public sealed record ChatDepartmentNode(Guid DepartmentId, string DepartmentName
 public sealed record ChatUserOption(Guid UserId, string UserName, string DisplayName, Guid? AvatarFileId, string? DepartmentName, bool IsOnline);
 
 /// <summary>
+/// <c>chat-conversations.user-profile</c> 的请求
+/// </summary>
+/// <param name="UserId">用户</param>
+public sealed record ChatUserProfileRequest(Guid UserId);
+
+/// <summary>
+/// 与某个人都在的群
+/// </summary>
+/// <param name="ConversationId">会话</param>
+/// <param name="ConversationType">群聊还是部门群</param>
+/// <param name="ConversationName">群名</param>
+/// <param name="Avatar">群头像</param>
+/// <param name="MemberCount">成员数</param>
+public sealed record ChatCommonGroup(Guid ConversationId, ChatConversationType ConversationType, string ConversationName, string? Avatar, int MemberCount);
+
+/// <summary>
+/// 聊天里看到的一个人的资料
+/// </summary>
+/// <remarks>
+/// 只有聊天里本来就看得到的那些：名字、头像、主部门与在线状态，不带邮箱、手机号这类联系方式
+/// </remarks>
+/// <param name="UserId">用户</param>
+/// <param name="UserName">用户名</param>
+/// <param name="DisplayName">显示名</param>
+/// <param name="AvatarFileId">头像文件</param>
+/// <param name="DepartmentName">主部门的名称；没有任职或在平台一侧为空</param>
+/// <param name="IsOnline">此刻在线</param>
+/// <param name="CommonGroups">调用方与他都在的群聊与部门群（看自己的资料时为空）</param>
+public sealed record ChatUserProfileResponse(Guid UserId, string UserName, string DisplayName, Guid? AvatarFileId, string? DepartmentName, bool IsOnline, IReadOnlyList<ChatCommonGroup> CommonGroups);
+
+/// <summary>
 /// 做完了的会话
 /// </summary>
 /// <param name="ConversationId">会话</param>

@@ -48,6 +48,15 @@ export type ChatMessageHistoryQuery = RequestOf<'chat-messages.history'>
 /** 会话内消息搜索查询 */
 export type ChatMessageSearchQuery = RequestOf<'chat-messages.search'>
 
+/** 跨会话消息搜索查询：关键字与按偏移的分页 */
+export type ChatMessageSearchAllQuery = RequestOf<'chat-messages.search-all'>
+
+/** 会话里图片或文件的汇总查询 */
+export type ChatMessageMediaQuery = RequestOf<'chat-messages.media'>
+
+/** 聊天里看到的一个人的资料：名字、头像、主部门、在线状态与两个人都在的群 */
+export type ChatUserProfile = ResponseOf<'chat-conversations.user-profile'>
+
 /** 选人候选（发起单聊 / 建群 / 加成员）：头像是文件主键，主部门名称没有任职时为空 */
 export type ChatUserOption = Schemas['ChatUserOption']
 
@@ -234,6 +243,12 @@ export interface ChatApiContract {
   messageHistory: (query: ChatMessageHistoryQuery) => Promise<ChatMessageHistoryResult>
   /** 会话内消息搜索（关键字匹配正文与附件名，不含已撤回的） */
   searchMessages: (query: ChatMessageSearchQuery) => Promise<ChatMessageHistoryResult>
+  /** 跨会话搜索：在自己所在的全部会话里找，按时间倒序、按偏移翻页 */
+  searchAllMessages: (query: ChatMessageSearchAllQuery) => Promise<ChatMessageHistoryResult>
+  /** 会话里未撤回的图片消息或文件消息，最近的在前 */
+  conversationMedia: (query: ChatMessageMediaQuery) => Promise<ChatMessageHistoryResult>
+  /** 聊天里看一个人的资料（当前一侧的人；不带联系方式） */
+  userProfile: (userId: string) => Promise<ChatUserProfile>
   members: (conversationId: string) => Promise<ChatMemberItem[]>
   /** 成员已读位（群已读回执） */
   readPositions: (conversationId: string) => Promise<ChatReadPosition[]>

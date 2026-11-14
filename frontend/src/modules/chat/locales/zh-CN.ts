@@ -52,6 +52,9 @@ export default {
       mute: '免打扰',
       unmute: '取消免打扰',
       mention_me: '[有人{\'@\'}我] ',
+      section_conversations: '会话',
+      section_messages: '聊天记录',
+      messages_empty: '没有找到相关的聊天记录',
     },
     type: {
       single: '单聊',
@@ -119,6 +122,7 @@ export default {
       set_admin: '设为管理员',
       unset_admin: '取消管理员',
       remove: '移出本群',
+      profile: '查看资料',
     },
     composer: {
       placeholder_enter: '输入消息，Enter 发送 / Shift+Enter 换行',
@@ -203,6 +207,19 @@ export default {
       online: '在线',
       offline: '离线',
       online_count: '{n} 人在线',
+    },
+    media: {
+      title: '图片与文件',
+      images: '图片',
+      files: '文件',
+      images_empty: '这个会话里还没有图片',
+      files_empty: '这个会话里还没有文件',
+      load_more: '加载更多',
+    },
+    user_card: {
+      title: '成员资料',
+      view_of: '查看 {name} 的资料',
+      common_groups: '共同的群（{n}）',
     },
     record: {
       title: '聊天记录',

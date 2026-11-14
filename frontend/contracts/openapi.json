@@ -11243,6 +11243,103 @@
         }
       }
     },
+    "/api/chat-conversations:user-profile": {
+      "get": {
+        "operationId": "chat-conversations.user-profile",
+        "tags": [
+          "chat-conversations"
+        ],
+        "summary": "Member profile",
+        "description": "Shows what chat knows about a person on the caller\u0027s side: names, avatar, primary department and presence, plus the groups the caller shares with them; no contact details.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-conversations.read",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "\u7528\u6237",
+            "required": true,
+            "schema": {
+              "description": "\u7528\u6237",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u804A\u5929\u91CC\u770B\u5230\u7684\u4E00\u4E2A\u4EBA\u7684\u8D44\u6599",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatUserProfileResponse",
+                  "description": "\u804A\u5929\u91CC\u770B\u5230\u7684\u4E00\u4E2A\u4EBA\u7684\u8D44\u6599",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "description": "\u7528\u6237",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "description": "\u7528\u6237\u540D",
+                      "type": "string"
+                    },
+                    "displayName": {
+                      "description": "\u663E\u793A\u540D",
+                      "type": "string"
+                    },
+                    "avatarFileId": {
+                      "description": "\u5934\u50CF\u6587\u4EF6",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "departmentName": {
+                      "description": "\u4E3B\u90E8\u95E8\u7684\u540D\u79F0\uFF1B\u6CA1\u6709\u4EFB\u804C\u6216\u5728\u5E73\u53F0\u4E00\u4FA7\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isOnline": {
+                      "description": "\u6B64\u523B\u5728\u7EBF",
+                      "type": "boolean"
+                    },
+                    "commonGroups": {
+                      "description": "\u8C03\u7528\u65B9\u4E0E\u4ED6\u90FD\u5728\u7684\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\uFF08\u770B\u81EA\u5DF1\u7684\u8D44\u6599\u65F6\u4E3A\u7A7A\uFF09",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatCommonGroup"
+                      }
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "userName",
+                    "displayName",
+                    "isOnline",
+                    "commonGroups"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chat-messages/attachments": {
       "post": {
         "operationId": "chat-messages.upload",
@@ -11743,7 +11840,113 @@
                   "type": "object",
                   "properties": {
                     "items": {
-                      "description": "\u6D88\u606F\uFF08\u5386\u53F2\u6309\u5E8F\u53F7\u6B63\u5E8F\uFF0C\u641C\u7D22\u6309\u65F6\u95F4\u5012\u5E8F\uFF09",
+                      "description": "\u6D88\u606F\uFF08\u5386\u53F2\u6309\u5E8F\u53F7\u6B63\u5E8F\uFF0C\u641C\u7D22\u4E0E\u9644\u4EF6\u6C47\u603B\u6309\u65F6\u95F4\u5012\u5E8F\uFF09",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatMessageItem"
+                      }
+                    },
+                    "hasMore": {
+                      "description": "\u8FD8\u6709\u66F4\u65E9\u7684",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "hasMore"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-messages:media": {
+      "get": {
+        "operationId": "chat-messages.media",
+        "tags": [
+          "chat-messages"
+        ],
+        "summary": "Images and files of a conversation",
+        "description": "Lists the image messages or file messages of a conversation that have not been recalled, newest first; members only.\n\nRequires permission chat.chat-messages.read (Read chat messages).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-messages.read",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "query",
+            "description": "\u4F1A\u8BDD",
+            "required": true,
+            "schema": {
+              "description": "\u4F1A\u8BDD",
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "description": "\u56FE\u7247\u8FD8\u662F\u6587\u4EF6",
+            "required": true,
+            "schema": {
+              "description": "\u56FE\u7247\u8FD8\u662F\u6587\u4EF6",
+              "$ref": "#/components/schemas/ChatMediaKind"
+            }
+          },
+          {
+            "name": "beforeMessageId",
+            "in": "query",
+            "description": "\u53D6\u8FD9\u6761\u4E4B\u524D\u7684",
+            "required": false,
+            "schema": {
+              "description": "\u53D6\u8FD9\u6761\u4E4B\u524D\u7684",
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "take",
+            "in": "query",
+            "description": "\u6761\u6570\uFF0C1 \u5230 100\uFF0C\u7F3A\u7701 30",
+            "required": false,
+            "schema": {
+              "description": "\u6761\u6570\uFF0C1 \u5230 100\uFF0C\u7F3A\u7701 30",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u9875\u6D88\u606F",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatMessagePageResponse",
+                  "description": "\u4E00\u9875\u6D88\u606F",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u6D88\u606F\uFF08\u5386\u53F2\u6309\u5E8F\u53F7\u6B63\u5E8F\uFF0C\u641C\u7D22\u4E0E\u9644\u4EF6\u6C47\u603B\u6309\u65F6\u95F4\u5012\u5E8F\uFF09",
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ChatMessageItem"
@@ -12292,7 +12495,108 @@
                   "type": "object",
                   "properties": {
                     "items": {
-                      "description": "\u6D88\u606F\uFF08\u5386\u53F2\u6309\u5E8F\u53F7\u6B63\u5E8F\uFF0C\u641C\u7D22\u6309\u65F6\u95F4\u5012\u5E8F\uFF09",
+                      "description": "\u6D88\u606F\uFF08\u5386\u53F2\u6309\u5E8F\u53F7\u6B63\u5E8F\uFF0C\u641C\u7D22\u4E0E\u9644\u4EF6\u6C47\u603B\u6309\u65F6\u95F4\u5012\u5E8F\uFF09",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatMessageItem"
+                      }
+                    },
+                    "hasMore": {
+                      "description": "\u8FD8\u6709\u66F4\u65E9\u7684",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "hasMore"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-messages:search-all": {
+      "get": {
+        "operationId": "chat-messages.search-all",
+        "tags": [
+          "chat-messages"
+        ],
+        "summary": "Search all conversations",
+        "description": "Finds messages by keyword across every conversation the caller belongs to: matches text and attachments, skips recalled messages, newest first.\n\nRequires permission chat.chat-messages.read (Read chat messages).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-messages.read",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "\u5173\u952E\u5B57\uFF08\u5339\u914D\u6B63\u6587\u4E0E\u9644\u4EF6\u540D\uFF0C\u4E0D\u542B\u5DF2\u64A4\u56DE\u7684\uFF09",
+            "required": false,
+            "schema": {
+              "description": "\u5173\u952E\u5B57\uFF08\u5339\u914D\u6B63\u6587\u4E0E\u9644\u4EF6\u540D\uFF0C\u4E0D\u542B\u5DF2\u64A4\u56DE\u7684\uFF09",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "description": "\u8DF3\u8FC7\u524D\u9762\u7684\u6761\u6570\uFF0C\u7F3A\u7701 0",
+            "required": false,
+            "schema": {
+              "description": "\u8DF3\u8FC7\u524D\u9762\u7684\u6761\u6570\uFF0C\u7F3A\u7701 0",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "take",
+            "in": "query",
+            "description": "\u6761\u6570\uFF0C1 \u5230 50\uFF0C\u7F3A\u7701 20",
+            "required": false,
+            "schema": {
+              "description": "\u6761\u6570\uFF0C1 \u5230 50\uFF0C\u7F3A\u7701 20",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u9875\u6D88\u606F",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatMessagePageResponse",
+                  "description": "\u4E00\u9875\u6D88\u606F",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u6D88\u606F\uFF08\u5386\u53F2\u6309\u5E8F\u53F7\u6B63\u5E8F\uFF0C\u641C\u7D22\u4E0E\u9644\u4EF6\u6C47\u603B\u6309\u65F6\u95F4\u5012\u5E8F\uFF09",
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ChatMessageItem"
@@ -65478,6 +65782,43 @@
           "Ended"
         ]
       },
+      "ChatCommonGroup": {
+        "description": "\u4E0E\u67D0\u4E2A\u4EBA\u90FD\u5728\u7684\u7FA4",
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "description": "\u4F1A\u8BDD",
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationType": {
+            "description": "\u7FA4\u804A\u8FD8\u662F\u90E8\u95E8\u7FA4",
+            "$ref": "#/components/schemas/ChatConversationType"
+          },
+          "conversationName": {
+            "description": "\u7FA4\u540D",
+            "type": "string"
+          },
+          "avatar": {
+            "description": "\u7FA4\u5934\u50CF",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "memberCount": {
+            "description": "\u6210\u5458\u6570",
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "conversationId",
+          "conversationType",
+          "conversationName",
+          "memberCount"
+        ]
+      },
       "ChatConversationListItem": {
         "description": "\u6211\u7684\u4F1A\u8BDD\u5217\u8868\u9879",
         "type": "object",
@@ -65670,6 +66011,14 @@
         },
         "required": [
           "urls"
+        ]
+      },
+      "ChatMediaKind": {
+        "description": "\u4F1A\u8BDD\u91CC\u7684\u9644\u4EF6\u6309\u54EA\u4E00\u7C7B\u6C47\u603B",
+        "type": "string",
+        "enum": [
+          "Image",
+          "File"
         ]
       },
       "ChatMemberItem": {

@@ -67,6 +67,56 @@ public sealed class SearchChatMessages(ChatQueries queries) : IOperation<ChatMes
 }
 
 /// <summary>
+/// 跨会话搜索
+/// </summary>
+/// <remarks>
+/// <c>GET /api/chat-messages:search-all?keyword=&amp;skip=&amp;take=</c>。在调用方所在的全部会话里找，匹配正文与附件、不含已撤回的，按时间倒序、按偏移翻页、不带回应
+/// </remarks>
+/// <param name="queries">聊天的查询</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesRead)]
+public sealed class SearchAllChatMessages(ChatQueries queries) : IOperation<ChatMessageSearchAllRequest, ChatMessagePageResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-messages.search-all";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatMessagePageResponse>> HandleAsync(ChatMessageSearchAllRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        return caller.TryGetValue(out var me) ? await queries.SearchAllAsync(context, me, request).ConfigureAwait(false) : caller.Error!;
+    }
+}
+
+/// <summary>
+/// 会话里的图片与文件
+/// </summary>
+/// <remarks>
+/// <c>GET /api/chat-messages:media?conversationId=&amp;kind=&amp;beforeMessageId=&amp;take=</c>。会话成员取这个会话里未撤回的图片消息或文件消息，最近的在前
+/// </remarks>
+/// <param name="queries">聊天的查询</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesRead)]
+public sealed class ListChatMessageMedia(ChatQueries queries) : IOperation<ChatMessageMediaRequest, ChatMessagePageResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-messages.media";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatMessagePageResponse>> HandleAsync(ChatMessageMediaRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        return caller.TryGetValue(out var me) ? await queries.MediaAsync(context, me, request).ConfigureAwait(false) : caller.Error!;
+    }
+}
+
+/// <summary>
 /// 会话里置顶的消息
 /// </summary>
 /// <remarks>

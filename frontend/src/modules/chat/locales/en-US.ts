@@ -52,6 +52,9 @@ export default {
       mute: 'Mute',
       unmute: 'Unmute',
       mention_me: '[Mentioned] ',
+      section_conversations: 'Conversations',
+      section_messages: 'Messages',
+      messages_empty: 'No matching messages',
     },
     type: {
       single: 'Direct',
@@ -119,6 +122,7 @@ export default {
       set_admin: 'Set as admin',
       unset_admin: 'Remove admin',
       remove: 'Remove from group',
+      profile: 'View profile',
     },
     composer: {
       placeholder_enter: 'Type a message. Enter to send / Shift+Enter for newline',
@@ -203,6 +207,19 @@ export default {
       online: 'Online',
       offline: 'Offline',
       online_count: '{n} online',
+    },
+    media: {
+      title: 'Images and files',
+      images: 'Images',
+      files: 'Files',
+      images_empty: 'No images in this conversation yet',
+      files_empty: 'No files in this conversation yet',
+      load_more: 'Load more',
+    },
+    user_card: {
+      title: 'Member profile',
+      view_of: 'View the profile of {name}',
+      common_groups: 'Groups in common ({n})',
     },
     record: {
       title: 'Chat record',

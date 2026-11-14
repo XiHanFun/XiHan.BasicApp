@@ -12,7 +12,7 @@ import type { ChatRecord } from './chat-record'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { ChatCallMedia, ChatMemberRole } from '~/contracts'
 import { useElementSize, useEventListener } from '@vueuse/core'
-import { useMessageFeed, XhButton, XhCheckbox, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useMessageFeed, XhButton, XhCheckbox, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -37,11 +37,13 @@ import {
 import { chatErrorText, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
 import { provideChatImageGallery } from './chat-image-gallery'
 import { CHAT_MAX_FORWARD_MESSAGES, isForwardableMessage } from './chat-record'
+import { useChatUserCard } from './chat-user-card'
 import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
 import ChatCallInviteDialog from './ChatCallInviteDialog.vue'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
+import ChatImageViewer from './ChatImageViewer.vue'
 import ChatMessageItemView from './ChatMessageItemView.vue'
 import ChatPresenceBadge from './ChatPresenceBadge.vue'
 import ChatRecordDialog from './ChatRecordDialog.vue'
@@ -511,6 +513,25 @@ function handleOpenRecord(record: ChatRecord) {
   showRecord.value = true
 }
 
+// ===== 成员资料卡：点别人的头像打开（卡片由聊天面板统一提供） =====
+
+const userCard = useChatUserCard()
+
+/** 发送人是这一侧的用户才有资料可看：助手的回复、中性的系统提示与本人的不行 */
+function canOpenUserCard(item: ChatLocalMessage): boolean {
+  return userCard !== null
+    && Boolean(item.senderUserId)
+    && item.senderUserId !== currentUserId.value
+    && item.messageType !== 'Assistant'
+    && conversation.value?.conversationType !== 'Assistant'
+}
+
+function handleAvatarClick(item: ChatLocalMessage) {
+  if (item.senderUserId && canOpenUserCard(item)) {
+    userCard?.open(item.senderUserId)
+  }
+}
+
 // ===== 头像右键成员菜单（QQ 式；状态 refs 声明在消息菜单段旁） =====
 
 async function openMemberMenu(event: MouseEvent, item: ChatLocalMessage) {
@@ -548,6 +569,11 @@ const memberCtxItems = computed<ChatContextMenuItem[]>(() => {
     return []
   }
   const items: ChatContextMenuItem[] = [
+    {
+      key: 'profile',
+      label: t('chat.member_menu.profile'),
+      icon: 'lucide:contact',
+    },
     {
       key: 'dm',
       label: t('chat.member_menu.send_message'),
@@ -618,6 +644,9 @@ function handleMemberCtxSelect(key: string) {
   }
   const userName = target.senderUserName ?? ''
   switch (key) {
+    case 'profile':
+      userCard?.open(userId)
+      break
     case 'dm':
       chatStore.startSingleConversation(userId).catch(notifyFailure)
       break
@@ -1094,6 +1123,8 @@ onBeforeUnmount(() => {
                 :conversation-type="conversation.conversationType"
                 :read-count="readCountOf(item)"
                 :highlighted="chatStore.highlightMessageId === item.messageId"
+                :avatar-clickable="canOpenUserCard(item)"
+                @avatar-click="handleAvatarClick(item)"
                 @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
                 @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
                 @react="emoji => handleReact(item, emoji)"
@@ -1145,30 +1176,8 @@ onBeforeUnmount(() => {
         <ChatRecordDialog v-model:show="showRecord" :conversation-id="conversationId" :record="openedRecord" />
         <ChatCallInviteDialog v-model:show="showCallInvite" :conversation-id="conversationId" :media="callInviteMedia" />
 
-        <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片
-             计数、翻页、工具条、关闭各自钉在浮层的一条边上，都是 content 的直接子件；只有一张时不出计数与翻页 -->
-        <XhImageViewerRoot v-model:open="galleryOpen" v-model:index="galleryIndex" :collection="galleryItems">
-          <XhImageViewerContent>
-            <XhImageViewerViewport>
-              <XhImageViewerImage />
-            </XhImageViewerViewport>
-            <template v-if="galleryItems.length > 1">
-              <XhImageViewerCounter />
-              <XhImageViewerPrevTrigger />
-              <XhImageViewerNextTrigger />
-            </template>
-            <XhImageViewerToolbar>
-              <XhImageViewerZoomOutTrigger />
-              <XhImageViewerZoomInTrigger />
-              <XhImageViewerRotateLeftTrigger />
-              <XhImageViewerRotateRightTrigger />
-              <XhImageViewerFlipHorizontalTrigger />
-              <XhImageViewerFlipVerticalTrigger />
-              <XhImageViewerResetTrigger />
-            </XhImageViewerToolbar>
-            <XhImageViewerCloseTrigger />
-          </XhImageViewerContent>
-        </XhImageViewerRoot>
+        <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片 -->
+        <ChatImageViewer v-model:open="galleryOpen" v-model:index="galleryIndex" :items="galleryItems" />
 
         <!-- 视口分离态：回到最新 -->
         <div v-if="isDetached" class="sticky bottom-1 flex justify-center">

@@ -131,6 +131,31 @@ public sealed class ChatUserOptions(ChatQueries queries) : IOperation<ChatUserOp
 }
 
 /// <summary>
+/// 聊天里看一个人的资料
+/// </summary>
+/// <remarks>
+/// <c>GET /api/chat-conversations:user-profile?userId=</c>。当前一侧的一个人的名字、头像、主部门与在线状态，另带调用方与他都在的群；不带联系方式，不用身份的用户读权限
+/// </remarks>
+/// <param name="queries">聊天的查询</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
+public sealed class GetChatUserProfile(ChatQueries queries) : IOperation<ChatUserProfileRequest, ChatUserProfileResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-conversations.user-profile";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatUserProfileResponse>> HandleAsync(ChatUserProfileRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        return caller.TryGetValue(out var me) ? await queries.UserProfileAsync(context, me, request.UserId).ConfigureAwait(false) : caller.Error!;
+    }
+}
+
+/// <summary>
 /// 打开单聊
 /// </summary>
 /// <remarks>

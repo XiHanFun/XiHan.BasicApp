@@ -45,6 +45,21 @@ public static class ChatMessages
     public const string UserOptionsChatConversationDescription = "chat_conversations.user_options.description";
 
     /// <summary>
+    /// 操作 <c>chat-conversations.user-profile</c> 的说明
+    /// </summary>
+    public const string UserProfileChatConversationDescription = "chat_conversations.user_profile.description";
+
+    /// <summary>
+    /// 操作 <c>chat-messages.search-all</c> 的说明
+    /// </summary>
+    public const string SearchAllChatMessageDescription = "chat_messages.search_all.description";
+
+    /// <summary>
+    /// 操作 <c>chat-messages.media</c> 的说明
+    /// </summary>
+    public const string MediaChatMessageDescription = "chat_messages.media.description";
+
+    /// <summary>
     /// 操作 <c>chat-conversations.open-single</c> 的说明
     /// </summary>
     public const string OpenSingleChatConversationDescription = "chat_conversations.open_single.description";

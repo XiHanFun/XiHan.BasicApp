@@ -52,6 +52,9 @@ export default {
       mute: '免打擾',
       unmute: '取消免打擾',
       mention_me: '[有人{\'@\'}你] ',
+      section_conversations: '對話',
+      section_messages: '聊天記錄',
+      messages_empty: '找不到相關的聊天記錄',
     },
     type: {
       single: '單聊',
@@ -119,6 +122,7 @@ export default {
       set_admin: '設為管理員',
       unset_admin: '取消管理員',
       remove: '移出本群組',
+      profile: '檢視資料',
     },
     composer: {
       placeholder_enter: '輸入訊息，Enter 傳送 / Shift+Enter 換行',
@@ -203,6 +207,19 @@ export default {
       online: '線上',
       offline: '離線',
       online_count: '{n} 人線上',
+    },
+    media: {
+      title: '圖片與檔案',
+      images: '圖片',
+      files: '檔案',
+      images_empty: '這個對話中還沒有圖片',
+      files_empty: '這個對話中還沒有檔案',
+      load_more: '載入更多',
+    },
+    user_card: {
+      title: '成員資料',
+      view_of: '檢視 {name} 的資料',
+      common_groups: '共同的群（{n}）',
     },
     record: {
       title: '聊天記錄',

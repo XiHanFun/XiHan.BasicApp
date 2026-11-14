@@ -39,6 +39,8 @@ const props = defineProps<{
   readCount?: null | number
   /** 搜索定位高亮（3s 自清） */
   highlighted?: boolean
+  /** 头像能点开资料卡（发送人是这一侧的用户；助手与本人的头像不能） */
+  avatarClickable?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -51,6 +53,8 @@ const emit = defineEmits<{
   record: [record: ChatRecord]
   /** 右键他人头像（QQ 式成员菜单，由消息流统一承载） */
   avatarContextmenu: [event: MouseEvent]
+  /** 点他人头像：看他的资料 */
+  avatarClick: []
 }>()
 
 const { t } = useI18n()
@@ -273,9 +277,14 @@ async function handleDownload(fileId: string) {
   <!-- 普通消息行（本人头像取当前用户资料，在右侧；他人取消息快照名首字，在左侧，右键弹成员菜单） -->
   <div v-else class="group my-1.5 flex gap-2" :class="isSelf ? 'flex-row-reverse' : 'flex-row'">
     <!-- 头像右键独立成员菜单：stop 阻断冒泡（否则消息菜单同时弹出）；本人头像不弹任何菜单 -->
-    <span
-      class="shrink-0"
+    <!-- 能看资料的头像是一颗按钮（键盘也点得到），别的只是一个头像 -->
+    <component
+      :is="props.avatarClickable ? 'button' : 'span'"
+      class="chat-msg-avatar shrink-0"
       :class="{ 'cursor-pointer': !isSelf }"
+      :type="props.avatarClickable ? 'button' : undefined"
+      :aria-label="props.avatarClickable ? t('chat.user_card.view_of', { name: message.senderUserName ?? '' }) : undefined"
+      @click="props.avatarClickable && emit('avatarClick')"
       @contextmenu.stop.prevent="!isSelf && emit('avatarContextmenu', $event)"
     >
       <XUserAvatar
@@ -283,7 +292,7 @@ async function handleDownload(fileId: string) {
         :name="isSelf ? (userStore.nickname || userStore.username) : message.senderUserName"
         :size="30"
       />
-    </span>
+    </component>
     <div class="flex max-w-[86%] min-w-0 flex-col sm:max-w-[72%]" :class="isSelf ? 'items-end' : 'items-start'">
       <!-- 群聊双侧都显示昵称（本人取当前用户资料，右对齐），与对方样式一致 -->
       <div v-if="showSenderName" class="mb-0.5 px-1 text-[11px] text-muted-foreground">
@@ -471,6 +480,18 @@ async function handleDownload(fileId: string) {
 </template>
 
 <style scoped>
+/* 头像作按钮时清掉全局按钮重置留下的内距，聚焦环贴着圆形头像画 */
+.chat-msg-avatar {
+  align-self: flex-start;
+  padding: 0;
+  border-radius: var(--xh-shape-circle);
+}
+
+.chat-msg-avatar:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
 .chat-bubble {
   padding: var(--xh-space-2) var(--xh-space-3);
   border-radius: var(--xh-shape-sheet);

@@ -198,5 +198,11 @@
   "chat.preview.record": "[聊天记录]",
   "chat.message.mention_all_unsupported": "只有群聊能提及所有人。",
   "chat.message.forward_mixed": "一次转发的消息得来自同一个会话。",
-  "chat.message.record_too_large": "合并转发的内容太多，请少选几条。"
+  "chat.message.record_too_large": "合并转发的内容太多，请少选几条。",
+  "chat_conversations.user_profile.title": "成员资料",
+  "chat_conversations.user_profile.description": "看当前一侧一个人在聊天里的资料：名字、头像、主部门与在线状态，另带调用方与他都在的群；不带联系方式。",
+  "chat_messages.search_all.title": "跨会话搜索",
+  "chat_messages.search_all.description": "在调用方所在的全部会话里按关键字找消息：匹配正文与附件，不含已撤回的，按时间倒序。",
+  "chat_messages.media.title": "会话的图片与文件",
+  "chat_messages.media.description": "列出会话里未撤回的图片消息或文件消息，最近的在前；只有成员能看。"
 }

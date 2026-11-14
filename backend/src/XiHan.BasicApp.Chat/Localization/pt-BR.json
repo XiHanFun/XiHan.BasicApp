@@ -198,5 +198,11 @@
   "chat.preview.record": "[Registro de conversa]",
   "chat.message.mention_all_unsupported": "Só é possível mencionar todos em conversas de grupo.",
   "chat.message.forward_mixed": "As mensagens encaminhadas juntas precisam ser da mesma conversa.",
-  "chat.message.record_too_large": "Há conteúdo demais para combinar. Selecione menos mensagens."
+  "chat.message.record_too_large": "Há conteúdo demais para combinar. Selecione menos mensagens.",
+  "chat_conversations.user_profile.title": "Perfil do membro",
+  "chat_conversations.user_profile.description": "Mostra o que o chat sabe sobre uma pessoa do lado do chamador: nomes, avatar, departamento principal e presença, além dos grupos em comum; sem dados de contato.",
+  "chat_messages.search_all.title": "Buscar em todas as conversas",
+  "chat_messages.search_all.description": "Procura mensagens por palavra-chave em todas as conversas do chamador: compara texto e anexos, ignora as retiradas, as mais recentes primeiro.",
+  "chat_messages.media.title": "Imagens e arquivos de uma conversa",
+  "chat_messages.media.description": "Lista as mensagens de imagem ou de arquivo não retiradas de uma conversa, as mais recentes primeiro; apenas para membros."
 }

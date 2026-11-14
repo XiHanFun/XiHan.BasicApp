@@ -52,6 +52,9 @@ export default {
       mute: 'ミュート',
       unmute: 'ミュート解除',
       mention_me: '[{\'@\'}メンションあり] ',
+      section_conversations: 'チャット',
+      section_messages: 'メッセージ',
+      messages_empty: '該当するメッセージはありません',
     },
     type: {
       single: '個人',
@@ -119,6 +122,7 @@ export default {
       set_admin: '管理者に設定',
       unset_admin: '管理者を解除',
       remove: 'グループから退出させる',
+      profile: 'プロフィールを表示',
     },
     composer: {
       placeholder_enter: 'メッセージを入力。Enter で送信 / Shift+Enter で改行',
@@ -203,6 +207,19 @@ export default {
       online: 'オンライン',
       offline: 'オフライン',
       online_count: '{n} 名がオンライン',
+    },
+    media: {
+      title: '画像とファイル',
+      images: '画像',
+      files: 'ファイル',
+      images_empty: 'このチャットにはまだ画像がありません',
+      files_empty: 'このチャットにはまだファイルがありません',
+      load_more: 'さらに読み込む',
+    },
+    user_card: {
+      title: 'メンバーのプロフィール',
+      view_of: '{name} のプロフィールを表示',
+      common_groups: '共通のグループ（{n}）',
     },
     record: {
       title: 'チャット記録',

@@ -136,6 +136,12 @@ describe('权限码与本地存储键', () => {
     expect(operationPermission['chat-conversations.silence-members']).toBe(CHAT_PERMISSIONS.manage)
   })
 
+  it('跨会话搜索与图片文件汇总要消息读，看成员的资料只要会话读', () => {
+    expect(operationPermission['chat-messages.search-all']).toBe(operationPermission['chat-messages.search'])
+    expect(operationPermission['chat-messages.media']).toBe(operationPermission['chat-messages.search'])
+    expect(operationPermission['chat-conversations.user-profile']).toBe(CHAT_PERMISSIONS.read)
+  })
+
   it('通话：认回来电、看会话里的通话、取设置与穿透服务器要通话读，发起、接听、拒绝、加入与挂断要通话', () => {
     for (const operation of [
       'chat-calls.active',

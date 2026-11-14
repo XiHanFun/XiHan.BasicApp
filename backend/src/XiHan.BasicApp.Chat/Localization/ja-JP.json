@@ -198,5 +198,11 @@
   "chat.preview.record": "[チャット記録]",
   "chat.message.mention_all_unsupported": "全員へのメンションはグループチャットでのみ使えます。",
   "chat.message.forward_mixed": "一度に転送するメッセージは同じチャットのものにしてください。",
-  "chat.message.record_too_large": "まとめる内容が多すぎます。選択を減らしてください。"
+  "chat.message.record_too_large": "まとめる内容が多すぎます。選択を減らしてください。",
+  "chat_conversations.user_profile.title": "メンバーのプロフィール",
+  "chat_conversations.user_profile.description": "呼び出し元と同じ側にいる人のチャット上のプロフィールを表示します。名前、アバター、主所属部署、オンライン状態に加え、共通のグループを返します。連絡先は含みません。",
+  "chat_messages.search_all.title": "すべてのチャットを検索",
+  "chat_messages.search_all.description": "呼び出し元が参加しているすべてのチャットからキーワードでメッセージを探します。本文と添付に一致し、取り消したものは含まず、新しい順に返します。",
+  "chat_messages.media.title": "チャットの画像とファイル",
+  "chat_messages.media.description": "チャット内の取り消されていない画像メッセージまたはファイルメッセージを新しい順に一覧します。メンバーだけが見られます。"
 }

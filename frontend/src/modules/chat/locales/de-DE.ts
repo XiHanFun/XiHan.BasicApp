@@ -52,6 +52,9 @@ export default {
       mute: 'Stummschalten',
       unmute: 'Stummschaltung aufheben',
       mention_me: '[Erwähnt] ',
+      section_conversations: 'Unterhaltungen',
+      section_messages: 'Nachrichten',
+      messages_empty: 'Keine passenden Nachrichten',
     },
     type: {
       single: 'Direkt',
@@ -119,6 +122,7 @@ export default {
       set_admin: 'Als Admin festlegen',
       unset_admin: 'Admin entfernen',
       remove: 'Aus Gruppe entfernen',
+      profile: 'Profil anzeigen',
     },
     composer: {
       placeholder_enter: 'Nachricht eingeben. Eingabetaste zum Senden / Umschalt+Eingabetaste für neue Zeile',
@@ -203,6 +207,19 @@ export default {
       online: 'Online',
       offline: 'Offline',
       online_count: '{n} online',
+    },
+    media: {
+      title: 'Bilder und Dateien',
+      images: 'Bilder',
+      files: 'Dateien',
+      images_empty: 'In dieser Unterhaltung gibt es noch keine Bilder',
+      files_empty: 'In dieser Unterhaltung gibt es noch keine Dateien',
+      load_more: 'Mehr laden',
+    },
+    user_card: {
+      title: 'Mitgliederprofil',
+      view_of: 'Profil von {name} anzeigen',
+      common_groups: 'Gemeinsame Gruppen ({n})',
     },
     record: {
       title: 'Chatverlauf',

@@ -322,6 +322,38 @@ describe('附件', () => {
   })
 })
 
+describe('跨会话搜索、图片与文件、资料', () => {
+  it('跨会话搜索带关键字与偏移；图片与文件按会话与类别取；资料按用户取', async () => {
+    const calls = record(request => json(200, request.url.includes('user-profile')
+      ? {
+          userId: 'u-2',
+          userName: 'bob',
+          displayName: 'Bob',
+          avatarFileId: null,
+          departmentName: 'R&D',
+          isOnline: true,
+          commonGroups: [],
+        }
+      : { items: [], hasMore: false }))
+    const api = createChatApi()
+
+    await expect(api.searchAllMessages({ keyword: 'report', skip: 20, take: 20 })).resolves.toEqual({ items: [], hasMore: false })
+    await api.conversationMedia({
+      conversationId: 'c-1',
+      kind: 'File',
+      beforeMessageId: 'm-9',
+      take: 30,
+    })
+    await expect(api.userProfile('u-2')).resolves.toMatchObject({ userName: 'bob', departmentName: 'R&D' })
+
+    expect(calls.map(request => [request.method, request.url])).toEqual([
+      ['GET', '/api/chat-messages:search-all?keyword=report&skip=20&take=20'],
+      ['GET', '/api/chat-messages:media?conversationId=c-1&kind=File&beforeMessageId=m-9&take=30'],
+      ['GET', '/api/chat-conversations:user-profile?userId=u-2'],
+    ])
+  })
+})
+
 describe('通话', () => {
   const call = {
     callId: 'k-1',

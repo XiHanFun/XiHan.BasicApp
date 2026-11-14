@@ -52,6 +52,9 @@ export default {
       mute: 'Silenciar',
       unmute: 'Reactivar sonido',
       mention_me: '[Te han mencionado con {\'@\'}] ',
+      section_conversations: 'Conversaciones',
+      section_messages: 'Mensajes',
+      messages_empty: 'No hay mensajes que coincidan',
     },
     type: {
       single: 'Directo',
@@ -119,6 +122,7 @@ export default {
       set_admin: 'Nombrar administrador',
       unset_admin: 'Quitar administrador',
       remove: 'Expulsar del grupo',
+      profile: 'Ver perfil',
     },
     composer: {
       placeholder_enter: 'Escriba un mensaje. Intro para enviar / Mayús+Intro para nueva línea',
@@ -203,6 +207,19 @@ export default {
       online: 'En línea',
       offline: 'Desconectado',
       online_count: '{n} en línea',
+    },
+    media: {
+      title: 'Imágenes y archivos',
+      images: 'Imágenes',
+      files: 'Archivos',
+      images_empty: 'Todavía no hay imágenes en esta conversación',
+      files_empty: 'Todavía no hay archivos en esta conversación',
+      load_more: 'Cargar más',
+    },
+    user_card: {
+      title: 'Perfil del miembro',
+      view_of: 'Ver el perfil de {name}',
+      common_groups: 'Grupos en común ({n})',
     },
     record: {
       title: 'Registro de chat',

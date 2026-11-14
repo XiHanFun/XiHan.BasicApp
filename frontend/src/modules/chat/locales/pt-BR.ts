@@ -52,6 +52,9 @@ export default {
       mute: 'Silenciar',
       unmute: 'Reativar som',
       mention_me: '[Você foi mencionado com {\'@\'}] ',
+      section_conversations: 'Conversas',
+      section_messages: 'Mensagens',
+      messages_empty: 'Nenhuma mensagem correspondente',
     },
     type: {
       single: 'Direta',
@@ -119,6 +122,7 @@ export default {
       set_admin: 'Tornar administrador',
       unset_admin: 'Remover administrador',
       remove: 'Remover do grupo',
+      profile: 'Ver perfil',
     },
     composer: {
       placeholder_enter: 'Digite uma mensagem. Enter para enviar / Shift+Enter para nova linha',
@@ -203,6 +207,19 @@ export default {
       online: 'Online',
       offline: 'Offline',
       online_count: '{n} online',
+    },
+    media: {
+      title: 'Imagens e arquivos',
+      images: 'Imagens',
+      files: 'Arquivos',
+      images_empty: 'Ainda não há imagens nesta conversa',
+      files_empty: 'Ainda não há arquivos nesta conversa',
+      load_more: 'Carregar mais',
+    },
+    user_card: {
+      title: 'Perfil do membro',
+      view_of: 'Ver o perfil de {name}',
+      common_groups: 'Grupos em comum ({n})',
     },
     record: {
       title: 'Registro de conversa',

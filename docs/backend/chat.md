@@ -155,8 +155,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 资源 | 操作 |
 | --- | --- |
-| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
-| `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
+| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
+| `chat-messages` | `history`、`search`、`search-all`、`media`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members` |
 | `chat-calls` | `active`、`ongoing`、`settings`、`ice-servers`（只读）；`start`、`accept`、`reject`、`join`、`hangup` |
 
@@ -164,8 +164,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 权限码 | 说明 |
 | --- | --- |
-| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读也用它） |
-| `chat.chat-messages.read` | 查看历史、搜索、置顶消息与换附件地址 |
+| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读、看成员的资料也用它） |
+| `chat.chat-messages.read` | 查看历史、会话内与跨会话搜索、会话的图片与文件、置顶消息与换附件地址 |
 | `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
 | `chat.chat-conversations.manage` | 建群与群治理（进操作日志） |
 | `chat.chat-audit.read` | 聊天审计 |
@@ -187,6 +187,19 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 响应的 `hasMore` 说明后面还有没有；每个人带头像文件与主部门的名称（没有任职或在平台一侧为空）。会话成员（`members`）同样带头像文件。
 
 前端的选人是可勾选的候选列表：可搜索、可只看最近联系人（取自单聊会话）或按部门筛选，往下逐页加载；多选时旁边列出已选的人，换一批候选也留着。加成员时已在群里的人照样列出、标注而不可选。会话的资料、公告、个人设置（置顶、免打扰）与成员治理都在会话详情里：宽屏是消息流旁边的第三栏，放不下时顶替消息流。
+
+## 搜索、图片与文件、资料
+
+| 操作 | 说明 |
+| --- | --- |
+| `chat-messages.search` | 在一个会话里按关键字找（匹配正文与附件名），只有成员能搜；最近的在前，`beforeMessageId` 往前翻页 |
+| `chat-messages.search-all` | 在调用方所在的全部会话里按关键字找，口径同上；最近的在前，结果跨着会话、没有共同的序号，按偏移翻页（`skip` 最大 10000，`take` 缺省 20、最大 50），翻页之间来了新消息会错开一两条 |
+| `chat-messages.media` | 一个会话里发过的图片（`kind=Image`）或文件（`kind=File`）消息，只有成员能看（`CHAT_DENIED_001`）；最近的在前，`beforeMessageId` 往前翻页，`take` 缺省 30、最大 100。聊天记录里套着的附件不在这里 |
+| `chat-conversations.user-profile` | 聊天里看一个人的资料：用户名、显示名、头像、主部门、在不在线，与两个人都在的群聊与部门群（按群名排，单聊与助手会话不算，看自己时为空）。那个人须属于当前一侧（`CHAT_VALIDATION_021`），不存在是 `CHAT_NOTFOUND_003`；只要会话读权限，不要身份的用户读权限 |
+
+搜索都不算已撤回的消息、通话记录与聊天记录，关键字为空返回空；图片与文件同样不列已撤回的。三个列表的响应都带 `hasMore`。
+
+前端会话列表的搜索框同时找会话与聊天记录：上面是名字匹配的会话，下面是聊天记录里的命中（哪个会话、谁说的、说了什么），点了打开那个会话并定位到那条消息。会话详情里的「图片与文件」把会话里发过的图片与文件分开列出、逐页往下取：图片点开是这一组的看片浮层，文件点了下载、另能定位到它所在的那条消息。消息流里点别人的头像、头像右键菜单的「查看资料」、会话详情里点成员的头像都打开同一张资料卡，从卡上能发消息、打语音或视频（对方在线时），也能进共同的群。
 
 ## 推送
 

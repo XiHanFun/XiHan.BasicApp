@@ -52,6 +52,9 @@ export default {
       mute: 'Mettre en sourdine',
       unmute: 'Réactiver le son',
       mention_me: '[Vous avez été mentionné avec {\'@\'}] ',
+      section_conversations: 'Conversations',
+      section_messages: 'Messages',
+      messages_empty: 'Aucun message correspondant',
     },
     type: {
       single: 'Direct',
@@ -119,6 +122,7 @@ export default {
       set_admin: 'Nommer administrateur',
       unset_admin: 'Retirer l\'administrateur',
       remove: 'Retirer du groupe',
+      profile: 'Voir le profil',
     },
     composer: {
       placeholder_enter: 'Saisissez un message. Entrée pour envoyer / Maj+Entrée pour un saut de ligne',
@@ -203,6 +207,19 @@ export default {
       online: 'En ligne',
       offline: 'Hors ligne',
       online_count: '{n} en ligne',
+    },
+    media: {
+      title: 'Images et fichiers',
+      images: 'Images',
+      files: 'Fichiers',
+      images_empty: 'Aucune image dans cette conversation pour le moment',
+      files_empty: 'Aucun fichier dans cette conversation pour le moment',
+      load_more: 'Charger plus',
+    },
+    user_card: {
+      title: 'Profil du membre',
+      view_of: 'Voir le profil de {name}',
+      common_groups: 'Groupes en commun ({n})',
     },
     record: {
       title: 'Historique de discussion',

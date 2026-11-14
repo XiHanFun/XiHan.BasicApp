@@ -6,6 +6,7 @@
 <script setup lang="ts">
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { AppDropdownOption } from '~/types'
+import { watchDebounced } from '@vueuse/core'
 import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,11 +16,12 @@ import XInput from '~/components/common/XInput.vue'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { getChatAssistantProvider, useUserStore } from '~/stores'
+import { useChatGlobalSearch } from '../composables/useChatGlobalSearch'
 import {
   CHAT_PERMISSIONS,
 } from '../constants'
 import { useChatStore } from '../store'
-import { chatErrorText, formatConversationTime, previewText } from './chat-helpers'
+import { chatErrorText, formatConversationTime, messageBodyLabel, previewText } from './chat-helpers'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatConversationAvatar from './ChatConversationAvatar.vue'
 import ChatPresenceBadge from './ChatPresenceBadge.vue'
@@ -29,6 +31,8 @@ defineOptions({ name: 'ChatConversationList' })
 const emit = defineEmits<{
   select: [conversationId: string]
   start: [mode: 'assistant' | 'department' | 'group' | 'single']
+  /** 点了聊天记录里的一条命中：打开它所在的会话并定位过去 */
+  locate: [conversationId: string, messageId: string]
 }>()
 
 const { t } = useI18n()
@@ -44,6 +48,29 @@ const filteredConversations = computed(() => {
   }
   return chatStore.conversations.filter(c => c.displayName.toLowerCase().includes(key))
 })
+
+// 有关键字时另在全部会话的聊天记录里找：停手 300 毫秒再发，命中带上它所在的会话
+const searching = computed(() => keyword.value.trim().length > 0)
+const globalSearch = useChatGlobalSearch()
+const messageHits = computed(() => globalSearch.hits.value.flatMap((hit) => {
+  const conversation = chatStore.conversations.find(c => c.conversationId === hit.conversationId)
+  return conversation
+    ? [
+        { hit, conversation },
+      ]
+    : []
+}))
+
+/** 聊天记录的结果还没跟上输入框里的词：防抖等着发，或请求还没回来 */
+const hitsPending = computed(() => globalSearch.searched.value !== keyword.value.trim())
+
+watchDebounced(keyword, (value) => {
+  globalSearch.search(value).catch(notifyFailure)
+}, { debounce: 300 })
+
+function handleLoadMoreHits() {
+  globalSearch.loadMore().catch(notifyFailure)
+}
 
 const startOptions = computed<AppDropdownOption[]>(() => {
   const options: AppDropdownOption[] = [
@@ -186,7 +213,10 @@ function handleItemAction(key: string) {
         <XhSpinner size="md" />
       </div>
       <div class="xh-scroll-area h-full">
-        <div v-if="!filteredConversations.length" class="py-10">
+        <div v-if="searching && filteredConversations.length" class="chat-conv-section">
+          {{ t('chat.list.section_conversations') }}
+        </div>
+        <div v-if="!filteredConversations.length && !searching" class="py-10">
           <XhEmptyStateRoot size="sm">
             <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" />
@@ -256,6 +286,41 @@ function handleItemAction(key: string) {
             </div>
           </div>
         </div>
+
+        <!-- 聊天记录里的命中：哪个会话、谁说的、说了什么，点了定位过去 -->
+        <template v-if="searching">
+          <div class="chat-conv-section">
+            {{ t('chat.list.section_messages') }}
+          </div>
+          <div v-if="hitsPending && !messageHits.length" class="flex justify-center py-4">
+            <XhSpinner />
+          </div>
+          <div v-else-if="!messageHits.length" class="px-3 py-4 text-center text-xs text-muted-foreground">
+            {{ t('chat.list.messages_empty') }}
+          </div>
+          <div
+            v-for="{ hit, conversation } in messageHits"
+            :key="hit.messageId"
+            class="chat-conv-item"
+            @click="emit('locate', conversation.conversationId, hit.messageId)"
+          >
+            <ChatConversationAvatar :conversation-id="conversation.conversationId" :conversation-type="conversation.conversationType" :avatar="conversation.avatar" :name="conversation.displayName" :size="38" />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="truncate text-[13px] font-semibold text-foreground">{{ conversation.displayName }}</span>
+                <span class="shrink-0 text-[11px] text-muted-foreground">{{ formatConversationTime(t, hit.createdAt) }}</span>
+              </div>
+              <div class="mt-0.5 truncate text-xs text-muted-foreground">
+                {{ hit.senderUserName }}: {{ messageBodyLabel(hit) }}
+              </div>
+            </div>
+          </div>
+          <div v-if="globalSearch.hasMore.value" class="flex justify-center py-2">
+            <XhButton variant="subtle" size="sm" :loading="globalSearch.loading.value" @click="handleLoadMoreHits">
+              {{ t('chat.thread.load_more') }}
+            </XhButton>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -290,6 +355,14 @@ function handleItemAction(key: string) {
   font-size: var(--xh-font-size-xs);
   line-height: 16px;
   text-align: center;
+}
+
+/* 搜索时的分区标题：会话、聊天记录 */
+.chat-conv-section {
+  padding: var(--xh-space-2) var(--xh-space-3) var(--xh-space-1);
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-font-size-xs);
+  font-weight: var(--xh-font-weight-medium);
 }
 
 .chat-conv-item {

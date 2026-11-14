@@ -110,9 +110,42 @@ public sealed record ChatMessageHistoryRequest(Guid ConversationId, Guid? Before
 public sealed record ChatMessageSearchRequest(Guid ConversationId, [StringLength(200)] string? Keyword = null, Guid? BeforeMessageId = null, [Range(1, 50)] int? Take = null);
 
 /// <summary>
+/// <c>chat-messages.search-all</c> 的请求
+/// </summary>
+/// <param name="Keyword">关键字（匹配正文与附件名，不含已撤回的）</param>
+/// <param name="Skip">跳过前面的条数，缺省 0</param>
+/// <param name="Take">条数，1 到 50，缺省 20</param>
+public sealed record ChatMessageSearchAllRequest([StringLength(200)] string? Keyword = null, [Range(0, 10000)] int? Skip = null, [Range(1, 50)] int? Take = null);
+
+/// <summary>
+/// 会话里的附件按哪一类汇总
+/// </summary>
+public enum ChatMediaKind
+{
+    /// <summary>
+    /// 图片消息
+    /// </summary>
+    Image = 1,
+
+    /// <summary>
+    /// 文件消息
+    /// </summary>
+    File = 2,
+}
+
+/// <summary>
+/// <c>chat-messages.media</c> 的请求
+/// </summary>
+/// <param name="ConversationId">会话</param>
+/// <param name="Kind">图片还是文件</param>
+/// <param name="BeforeMessageId">取这条之前的</param>
+/// <param name="Take">条数，1 到 100，缺省 30</param>
+public sealed record ChatMessageMediaRequest(Guid ConversationId, ChatMediaKind Kind, Guid? BeforeMessageId = null, [Range(1, 100)] int? Take = null);
+
+/// <summary>
 /// 一页消息
 /// </summary>
-/// <param name="Items">消息（历史按序号正序，搜索按时间倒序）</param>
+/// <param name="Items">消息（历史按序号正序，搜索与附件汇总按时间倒序）</param>
 /// <param name="HasMore">还有更早的</param>
 public sealed record ChatMessagePageResponse(IReadOnlyList<ChatMessageItem> Items, bool HasMore);
 

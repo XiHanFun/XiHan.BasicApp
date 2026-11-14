@@ -1924,6 +1924,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-conversations:user-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Member profile
+         * @description Shows what chat knows about a person on the caller's side: names, avatar, primary department and presence, plus the groups the caller shares with them; no contact details.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        get: operations["chat-conversations.user-profile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-messages/attachments": {
         parameters: {
             query?: never;
@@ -2024,6 +2046,28 @@ export interface paths {
          *     Requires permission chat.chat-messages.read (Read chat messages).
          */
         get: operations["chat-messages.history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Images and files of a conversation
+         * @description Lists the image messages or file messages of a conversation that have not been recalled, newest first; members only.
+         *
+         *     Requires permission chat.chat-messages.read (Read chat messages).
+         */
+        get: operations["chat-messages.media"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2178,6 +2222,28 @@ export interface paths {
          *     Requires permission chat.chat-messages.read (Read chat messages).
          */
         get: operations["chat-messages.search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-messages:search-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search all conversations
+         * @description Finds messages by keyword across every conversation the caller belongs to: matches text and attachments, skips recalled messages, newest first.
+         *
+         *     Requires permission chat.chat-messages.read (Read chat messages).
+         */
+        get: operations["chat-messages.search-all"];
         put?: never;
         post?: never;
         delete?: never;
@@ -11014,6 +11080,25 @@ export interface components {
          * @enum {string}
          */
         ChatCallStatus: "Ringing" | "Ongoing" | "Ended";
+        /** @description 与某个人都在的群 */
+        ChatCommonGroup: {
+            /**
+             * Format: uuid
+             * @description 会话
+             */
+            conversationId: string;
+            /** @description 群聊还是部门群 */
+            conversationType: components["schemas"]["ChatConversationType"];
+            /** @description 群名 */
+            conversationName: string;
+            /** @description 群头像 */
+            avatar?: string | null;
+            /**
+             * Format: int32
+             * @description 成员数
+             */
+            memberCount: number;
+        };
         /** @description 我的会话列表项 */
         ChatConversationListItem: {
             /**
@@ -11105,6 +11190,11 @@ export interface components {
             /** @description TURN 的凭据；STUN 为空 */
             credential?: string | null;
         };
+        /**
+         * @description 会话里的附件按哪一类汇总
+         * @enum {string}
+         */
+        ChatMediaKind: "Image" | "File";
         /** @description 会话成员 */
         ChatMemberItem: {
             /**
@@ -22285,6 +22375,59 @@ export interface operations {
             };
         };
     };
+    "chat-conversations.user-profile": {
+        parameters: {
+            query: {
+                /** @description 用户 */
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 聊天里看到的一个人的资料 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 用户
+                         */
+                        userId: string;
+                        /** @description 用户名 */
+                        userName: string;
+                        /** @description 显示名 */
+                        displayName: string;
+                        /**
+                         * Format: uuid
+                         * @description 头像文件
+                         */
+                        avatarFileId?: string | null;
+                        /** @description 主部门的名称；没有任职或在平台一侧为空 */
+                        departmentName?: string | null;
+                        /** @description 此刻在线 */
+                        isOnline: boolean;
+                        /** @description 调用方与他都在的群聊与部门群（看自己的资料时为空） */
+                        commonGroups: components["schemas"]["ChatCommonGroup"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "chat-messages.upload": {
         parameters: {
             query?: never;
@@ -22536,7 +22679,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @description 消息（历史按序号正序，搜索按时间倒序） */
+                        /** @description 消息（历史按序号正序，搜索与附件汇总按时间倒序） */
+                        items: components["schemas"]["ChatMessageItem"][];
+                        /** @description 还有更早的 */
+                        hasMore: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.media": {
+        parameters: {
+            query: {
+                /** @description 会话 */
+                conversationId: string;
+                /** @description 图片还是文件 */
+                kind: components["schemas"]["ChatMediaKind"];
+                /** @description 取这条之前的 */
+                beforeMessageId?: string | null;
+                /** @description 条数，1 到 100，缺省 30 */
+                take?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一页消息 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 消息（历史按序号正序，搜索与附件汇总按时间倒序） */
                         items: components["schemas"]["ChatMessageItem"][];
                         /** @description 还有更早的 */
                         hasMore: boolean;
@@ -22843,7 +23029,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @description 消息（历史按序号正序，搜索按时间倒序） */
+                        /** @description 消息（历史按序号正序，搜索与附件汇总按时间倒序） */
+                        items: components["schemas"]["ChatMessageItem"][];
+                        /** @description 还有更早的 */
+                        hasMore: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-messages.search-all": {
+        parameters: {
+            query?: {
+                /** @description 关键字（匹配正文与附件名，不含已撤回的） */
+                keyword?: string | null;
+                /** @description 跳过前面的条数，缺省 0 */
+                skip?: number | null;
+                /** @description 条数，1 到 50，缺省 20 */
+                take?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一页消息 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 消息（历史按序号正序，搜索与附件汇总按时间倒序） */
                         items: components["schemas"]["ChatMessageItem"][];
                         /** @description 还有更早的 */
                         hasMore: boolean;

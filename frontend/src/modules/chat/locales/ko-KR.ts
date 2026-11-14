@@ -52,6 +52,9 @@ export default {
       mute: '알림 끄기',
       unmute: '알림 켜기',
       mention_me: '[{\'@\'}멘션됨] ',
+      section_conversations: '대화',
+      section_messages: '메시지',
+      messages_empty: '일치하는 메시지가 없습니다',
     },
     type: {
       single: '개인',
@@ -119,6 +122,7 @@ export default {
       set_admin: '관리자로 지정',
       unset_admin: '관리자 해제',
       remove: '그룹에서 내보내기',
+      profile: '프로필 보기',
     },
     composer: {
       placeholder_enter: '메시지 입력, Enter로 전송 / Shift+Enter로 줄바꿈',
@@ -203,6 +207,19 @@ export default {
       online: '온라인',
       offline: '오프라인',
       online_count: '{n}명 온라인',
+    },
+    media: {
+      title: '이미지와 파일',
+      images: '이미지',
+      files: '파일',
+      images_empty: '이 대화에는 아직 이미지가 없습니다',
+      files_empty: '이 대화에는 아직 파일이 없습니다',
+      load_more: '더 불러오기',
+    },
+    user_card: {
+      title: '구성원 프로필',
+      view_of: '{name}의 프로필 보기',
+      common_groups: '함께 있는 그룹 ({n})',
     },
     record: {
       title: '대화 기록',
