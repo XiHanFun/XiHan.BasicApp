@@ -45,13 +45,14 @@ src/XiHan.BasicApp.<包>/
 | 后台对租户库的工作 | `TenantShardScope.BindTenantAsync`（框架 ADR-0057）或 `ITenantScopeRunner` |
 
 - 库决定协议：平台库实体（租户、用户与账号、角色与授权、菜单、参数、字典、模板、存储配置……）不实现 `IMultiTenant`，用 `OwnerTenantId`（平台 = `TenantIds.Platform`）分侧；租户库实体（部门、文件、日志、通知投递……）用 `TenantScoped*` 基类，没有租户上下文时什么都查不到。
-- 基类：`AppEntity` / `AppRecord` / `AppAuditedEntity` / `AppAggregateRoot` 及 `TenantScoped*` 变体。软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`。
+- 基类：`AppEntity` / `AppRecord` / `AppAuditedEntity` / `AppAggregateRoot` 及 `TenantScoped*` 变体。软删除实体的唯一约束写 `[ActiveUniqueIndex(…, Name = "ux_<表>_<列>…")]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`。
+- 映射全部显式写，不靠命名约定（缩写会被拆错）：实体 `[SugarTable(TableName = "sys_xxx", TableDescription = "<summary> 那一句")]`，每个映射属性 `[SugarColumn(ColumnName = "xxx_yyy", Length = n, IsNullable = …, ColumnDescription = "…")]`，名字小写下划线，可空与属性类型一致，字符串写 `Length`、长文本不写长度另标 `[LongText]`，不用 `[StringLength]` / `[MaxLength]`；索引名 `ix_` / `ux_` + 表名 + 列（按月分表用 `{split_table}`）。`EntityMappingTests` 守护。
 - 实体字段用的枚举：只被一个实体用到的，写在那个实体的文件里（实体类之后，同一命名空间，照 OpenPlatform 的 `SysOAuthApp.cs`）；两个以上实体共用的才单独成文件（如 `SettingStatus.cs`、`DataScope.cs`），一个包几个共用枚举可以合在 `<主题>Enums.cs`。
 - 规约里可空值类型判空写 `!x.HasValue`；查询 `Take` 只收 1–1000，读全量按主键分页读完。
 - 没有实体的原始表（代码生成导入的表、外部数据源）用 `client.Queryable<object>().AS(表名)` 读：表名只取配置里的、不接受请求给的；列名逐个经 `QueryBuilder.Builder.GetTranslationColumnName` 加引号（大小写混合的照原样），不写 `*`（Oracle 的分页不接受 `*` 与行号并列）；主库的表不经实体过滤，租户与软删的条件显式补；库报错（`SqlSugarException` / `DbException`）转成本包的 `Unavailable` 错误、带原因，不原样抛出。
 - 只读操作（动词 `get` / `list` 或声明 `ReadOnly`）跑在只读工作单元里，写入即 500 `PERSISTENCE_UNEXPECTED_001`（按缺陷处理，计入熔断）：要补建的行放到写操作里建，读路径缺行按缺省值读（参照 `UserAccountService.SecurityOfAsync`）。
 - 授予存储、权限检查器与收窄过滤器返回 `Result`：判定本身失败要原样向上返回（框架给 503），不能当作没有权限或悄悄隐藏东西。
-- 字符串列没写长度缺省 512，更长的显式 `[SugarColumn]` / `[LongText]`；给已有行的表加列，非可空的字符串与日期列声明成可空。
+- 常规短文本列写 `Length = 512`，更长或更短按内容定，长文本 `[LongText]`；给已有行的表加列，非可空的字符串与日期列声明成可空。
 - 高频写入的实体标 `[DiffLogIgnored]`；读操作别标 `audited`。
 
 ## 缓存、消息与宿主 Provider

@@ -581,8 +581,8 @@ CREATE TABLE IF NOT EXISTS "sys_code_gen_table_column" (
     "column_name" character varying(200) NOT NULL,
     "column_comment" character varying(500) DEFAULT NULL::character varying NULL,
     "column_type" character varying(100) DEFAULT NULL::character varying NULL,
-    "c_sharp_type" character varying(100) DEFAULT NULL::character varying NULL,
-    "c_sharp_property" character varying(200) DEFAULT NULL::character varying NULL,
+    "csharp_type" character varying(100) DEFAULT NULL::character varying NULL,
+    "csharp_property" character varying(200) DEFAULT NULL::character varying NULL,
     "ts_type" character varying(100) DEFAULT NULL::character varying NULL,
     "column_length" integer NULL,
     "decimal_digits" integer NULL,
@@ -1277,7 +1277,7 @@ CREATE TABLE IF NOT EXISTS "sys_numbering_rule" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_numbering_rule_owner_tenant_id_code ON public.sys_numbering_rule USING btree (owner_tenant_id, code) WHERE (is_deleted = false);
 
-CREATE TABLE IF NOT EXISTS "sys_o_auth_app" (
+CREATE TABLE IF NOT EXISTS "sys_oauth_app" (
     "id" uuid NOT NULL,
     "app_name" character varying(100) NOT NULL,
     "app_description" character varying(500) DEFAULT NULL::character varying NULL,
@@ -1306,12 +1306,12 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_app" (
     "created_at" timestamp with time zone NOT NULL,
     "created_by" character varying(512) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
-    CONSTRAINT "sys_o_auth_app_pkey" PRIMARY KEY (id)
+    CONSTRAINT "sys_oauth_app_pkey" PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS ix_sys_o_auth_app_owner_user_id ON public.sys_o_auth_app USING btree (owner_user_id);
-CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_app_client_id ON public.sys_o_auth_app USING btree (client_id) WHERE (is_deleted = false);
+CREATE INDEX IF NOT EXISTS ix_sys_oauth_app_owner_user_id ON public.sys_oauth_app USING btree (owner_user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_oauth_app_client_id ON public.sys_oauth_app USING btree (client_id) WHERE (is_deleted = false);
 
-CREATE TABLE IF NOT EXISTS "sys_o_auth_code" (
+CREATE TABLE IF NOT EXISTS "sys_oauth_code" (
     "id" uuid NOT NULL,
     "code_hash" character varying(64) NOT NULL,
     "client_id" character varying(100) NOT NULL,
@@ -1331,12 +1331,12 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_code" (
     "created_at" timestamp with time zone NOT NULL,
     "created_by" character varying(512) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
-    CONSTRAINT "sys_o_auth_code_pkey" PRIMARY KEY (id)
+    CONSTRAINT "sys_oauth_code_pkey" PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS ix_sys_o_auth_code_expires_at ON public.sys_o_auth_code USING btree (expires_at);
-CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_code_code_hash ON public.sys_o_auth_code USING btree (code_hash) WHERE (is_deleted = false);
+CREATE INDEX IF NOT EXISTS ix_sys_oauth_code_expires_at ON public.sys_oauth_code USING btree (expires_at);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_oauth_code_code_hash ON public.sys_oauth_code USING btree (code_hash) WHERE (is_deleted = false);
 
-CREATE TABLE IF NOT EXISTS "sys_o_auth_consent" (
+CREATE TABLE IF NOT EXISTS "sys_oauth_consent" (
     "id" uuid NOT NULL,
     "user_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000'::uuid NOT NULL,
     "client_id" character varying(100) NOT NULL,
@@ -1350,11 +1350,11 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_consent" (
     "created_at" timestamp with time zone NOT NULL,
     "created_by" character varying(512) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
-    CONSTRAINT "sys_o_auth_consent_pkey" PRIMARY KEY (id)
+    CONSTRAINT "sys_oauth_consent_pkey" PRIMARY KEY (id)
 );
-CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_consent_user_id_client_id ON public.sys_o_auth_consent USING btree (user_id, client_id) WHERE (is_deleted = false);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_oauth_consent_user_id_client_id ON public.sys_oauth_consent USING btree (user_id, client_id) WHERE (is_deleted = false);
 
-CREATE TABLE IF NOT EXISTS "sys_o_auth_signing_key" (
+CREATE TABLE IF NOT EXISTS "sys_oauth_signing_key" (
     "id" uuid NOT NULL,
     "key_id" character varying(64) NOT NULL,
     "private_key" text NOT NULL,
@@ -1367,10 +1367,10 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_signing_key" (
     "created_at" timestamp with time zone NOT NULL,
     "created_by" character varying(512) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
-    CONSTRAINT "sys_o_auth_signing_key_pkey" PRIMARY KEY (id)
+    CONSTRAINT "sys_oauth_signing_key_pkey" PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS "sys_o_auth_token" (
+CREATE TABLE IF NOT EXISTS "sys_oauth_token" (
     "id" uuid NOT NULL,
     "token_hash" character varying(64) NOT NULL,
     "kind" integer DEFAULT 0 NOT NULL,
@@ -1388,12 +1388,12 @@ CREATE TABLE IF NOT EXISTS "sys_o_auth_token" (
     "created_at" timestamp with time zone NOT NULL,
     "created_by" character varying(512) DEFAULT NULL::character varying NULL,
     "concurrency_stamp" character varying(32) NOT NULL,
-    CONSTRAINT "sys_o_auth_token_pkey" PRIMARY KEY (id)
+    CONSTRAINT "sys_oauth_token_pkey" PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS ix_sys_o_auth_token_expires_at ON public.sys_o_auth_token USING btree (expires_at);
-CREATE INDEX IF NOT EXISTS ix_sys_o_auth_token_family_id ON public.sys_o_auth_token USING btree (family_id);
-CREATE INDEX IF NOT EXISTS ix_sys_o_auth_token_user_id_client_id ON public.sys_o_auth_token USING btree (user_id, client_id);
-CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_o_auth_token_token_hash ON public.sys_o_auth_token USING btree (token_hash) WHERE (is_deleted = false);
+CREATE INDEX IF NOT EXISTS ix_sys_oauth_token_expires_at ON public.sys_oauth_token USING btree (expires_at);
+CREATE INDEX IF NOT EXISTS ix_sys_oauth_token_family_id ON public.sys_oauth_token USING btree (family_id);
+CREATE INDEX IF NOT EXISTS ix_sys_oauth_token_user_id_client_id ON public.sys_oauth_token USING btree (user_id, client_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_oauth_token_token_hash ON public.sys_oauth_token USING btree (token_hash) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_password_history" (
     "id" uuid NOT NULL,

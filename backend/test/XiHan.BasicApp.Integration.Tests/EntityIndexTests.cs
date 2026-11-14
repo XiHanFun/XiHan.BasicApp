@@ -42,7 +42,7 @@ public sealed class EntityIndexTests : IDisposable
     private static string TableOf(Type type)
     {
         // 按月分表的表名带日期后缀（sys_access_log_20261101），索引名跟着变长
-        var table = type.GetCustomAttribute<SugarTable>()?.TableName ?? SnakeCaseNaming.Of(type.Name);
+        var table = type.GetCustomAttribute<SugarTable>()!.TableName;
         return table.Replace("_{year}{month}{day}", "_20261101", StringComparison.Ordinal);
     }
 
@@ -89,7 +89,7 @@ public sealed class EntityIndexTests : IDisposable
                 }
 
                 problems.AddRange(index.Columns.Where(column => type.GetProperty(column) is null).Select(column => $"{type.Name}: [ActiveUniqueIndex] names a missing property '{column}'."));
-                Name(type, index.Name ?? ActiveUniqueIndexes.NameOf(table, index.Columns.Select(SnakeCaseNaming.Of)));
+                Name(type, index.Name ?? $"(unnamed on {string.Join(", ", index.Columns)})");
             }
         }
 

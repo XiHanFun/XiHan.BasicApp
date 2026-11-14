@@ -103,8 +103,8 @@ public static class CodeGenRenderer
             ["TemplateType"] = table.TemplateType.ToString(),
             ["Target"] = table.Target.ToString(),
             ["IsNewPackage"] = table.Target == CodeGenTarget.NewPackage,
-            // 表名与类名按约定换算一致时实体不写 [SugarTable]
-            ["NeedsTableAttribute"] = !string.Equals(CodeGenNaming.Snakeize(table.ClassName), table.TableName, StringComparison.Ordinal),
+            // 实体 [SugarTable] 的表说明：表注释，没有即显示名
+            ["TableDescription"] = CodeGenItems.PhraseOf(table.TableComment) ?? context.DisplayName,
             ["Namespace"] = context.Namespace,
             ["ModuleName"] = context.ModuleName,
             ["ModuleCode"] = context.ModuleCode,
@@ -294,8 +294,6 @@ public static class CodeGenRenderer
             ["IsNullableType"] = nullable,
             ["IsLongText"] = isLongText,
             ["StringLength"] = isString && !isLongText ? column.Length : null,
-            // 列名与属性名按约定换算一致时不写 [SugarColumn]
-            ["NeedsColumnName"] = !string.Equals(CodeGenNaming.Snakeize(column.CSharpProperty), column.ColumnName, StringComparison.Ordinal),
             ["IsPrimaryKey"] = column.IsPrimaryKey,
             ["IsIdentity"] = column.IsIdentity,
             ["IsNullable"] = column.IsNullable,

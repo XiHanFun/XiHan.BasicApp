@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// </summary>
 /// <remarks>
 /// 例如 <c>SysUser</c> → <c>sys_user</c>、<c>HomeTenantId</c> → <c>home_tenant_id</c>、<c>IPAddress</c> → <c>ip_address</c>
-/// 实体或属性显式标了 SqlSugar 名字特性时不改写
+/// 实体或属性显式标了 SqlSugar 名字特性时不改写。BasicApp 的实体都显式写了表名与列名（架构测试守护），这个约定只给框架的数据库记录（审计、调度、发件箱、工作流引擎等）
 /// </remarks>
 public static class SnakeCaseNaming
 {

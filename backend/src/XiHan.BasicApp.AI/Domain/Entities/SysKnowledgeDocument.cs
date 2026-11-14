@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
@@ -15,71 +14,77 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 租户库实体，平台一侧租户为 <c>platform</c>（方案 A2：租户维护自己的知识）；向量按侧分集合，检索只在调用方一侧
 /// 原文留在库里供重建；切块与向量在向量库，块元数据存标题与来源
 /// </remarks>
-[SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]
-[SugarIndex("ix_{table}_tenant_id_status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-[SugarIndex("ix_{table}_embedding_provider_code", nameof(EmbeddingProviderCode), OrderByType.Asc)]
+[SugarTable(TableName = "sys_knowledge_document", TableDescription = "知识文档")]
+[SugarIndex("ix_sys_knowledge_document_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]
+[SugarIndex("ix_sys_knowledge_document_tenant_id_status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("ix_sys_knowledge_document_embedding_provider_code", nameof(EmbeddingProviderCode), OrderByType.Asc)]
 public sealed class SysKnowledgeDocument : TenantScopedAuditedEntity
 {
     /// <summary>
     /// 标题
     /// </summary>
-    [StringLength(200)]
+    [SugarColumn(ColumnName = "title", Length = 200, IsNullable = false, ColumnDescription = "标题")]
     public string Title { get; set; } = string.Empty;
 
     /// <summary>
     /// 来源类型
     /// </summary>
+    [SugarColumn(ColumnName = "source_type", IsNullable = false, ColumnDescription = "来源类型")]
     public KnowledgeSourceType SourceType { get; set; }
 
     /// <summary>
     /// 来源标识（如文件名）
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "source", Length = 500, IsNullable = true, ColumnDescription = "来源标识（如文件名）")]
     public string? Source { get; set; }
 
     /// <summary>
     /// 原文
     /// </summary>
+    [SugarColumn(ColumnName = "raw_content", IsNullable = false, ColumnDescription = "原文")]
     [LongText]
     public string RawContent { get; set; } = string.Empty;
 
     /// <summary>
     /// 向量库里的块数
     /// </summary>
+    [SugarColumn(ColumnName = "chunk_count", IsNullable = false, ColumnDescription = "向量库里的块数")]
     public int ChunkCount { get; set; }
 
     /// <summary>
     /// 嵌入提供商的编码（为空即目录的缺省提供商）
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "embedding_provider_code", Length = 64, IsNullable = true, ColumnDescription = "嵌入提供商的编码（为空即目录的缺省提供商）")]
     public string? EmbeddingProviderCode { get; set; }
 
     /// <summary>
     /// 索引状态
     /// </summary>
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "索引状态")]
     public KnowledgeIndexStatus Status { get; set; }
 
     /// <summary>
     /// 最近一次索引失败的错误码
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "error_code", Length = 64, IsNullable = true, ColumnDescription = "最近一次索引失败的错误码")]
     public string? ErrorCode { get; set; }
 
     /// <summary>
     /// 最近一次索引失败的原因（发起人的区域）
     /// </summary>
-    [StringLength(1000)]
+    [SugarColumn(ColumnName = "error_message", Length = 1000, IsNullable = true, ColumnDescription = "最近一次索引失败的原因（发起人的区域）")]
     public string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 排序号
     /// </summary>
+    [SugarColumn(ColumnName = "order", IsNullable = false, ColumnDescription = "排序号")]
     public int Order { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "remark", Length = 500, IsNullable = true, ColumnDescription = "备注")]
     public string? Remark { get; set; }
 }
 

@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -13,59 +12,62 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// <remarks>
 /// 来源是 SqlSugar 的差异日志回调（方案 D6），按调用缓冲，调用成功才落库
 /// </remarks>
+[SugarTable(TableName = "sys_diff_log_{year}{month}{day}", TableDescription = "数据变更日志：实体的新增、修改、删除（含软删除）与字段级前后值")]
+[SplitTable(SplitType.Month)]
 [SugarIndex("ix_{split_table}_tenant_id_occurred_at", nameof(TenantId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
 [SugarIndex("ix_{split_table}_trace_id", nameof(TraceId), OrderByType.Asc)]
 [SugarIndex("ix_{split_table}_user_id_occurred_at", nameof(UserId), OrderByType.Asc, nameof(OccurredAt), OrderByType.Asc)]
 [SugarIndex("ix_{split_table}_entity_id", nameof(EntityId), OrderByType.Asc)]
-[SugarTable("sys_diff_log_{year}{month}{day}")]
-[SplitTable(SplitType.Month)]
 public sealed class SysDiffLog : AuditLogRecord
 {
     /// <summary>
     /// 触发变更的操作 ID
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "operation_id", Length = 128, IsNullable = true, ColumnDescription = "触发变更的操作 ID")]
     public string? OperationId { get; set; }
 
     /// <summary>
     /// 变更种类
     /// </summary>
+    [SugarColumn(ColumnName = "kind", IsNullable = false, ColumnDescription = "变更种类")]
     public DiffKind Kind { get; set; }
 
     /// <summary>
     /// 实体类型名
     /// </summary>
-    [StringLength(256)]
+    [SugarColumn(ColumnName = "entity_type", Length = 256, IsNullable = false, ColumnDescription = "实体类型名")]
     public string EntityType { get; set; } = string.Empty;
 
     /// <summary>
     /// 表名
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "table_name", Length = 128, IsNullable = true, ColumnDescription = "表名")]
     public string? TableName { get; set; }
 
     /// <summary>
     /// 主键值
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "entity_id", Length = 128, IsNullable = true, ColumnDescription = "主键值")]
     public string? EntityId { get; set; }
 
     /// <summary>
     /// 变更前的值（JSON 对象，新增为空）
     /// </summary>
+    [SugarColumn(ColumnName = "before", IsNullable = true, ColumnDescription = "变更前的值（JSON 对象，新增为空）")]
     [LongText]
     public string? Before { get; set; }
 
     /// <summary>
     /// 变更后的值（JSON 对象，删除为空）
     /// </summary>
+    [SugarColumn(ColumnName = "after", IsNullable = true, ColumnDescription = "变更后的值（JSON 对象，删除为空）")]
     [LongText]
     public string? After { get; set; }
 
     /// <summary>
     /// 有变化的列，逗号分隔
     /// </summary>
-    [StringLength(2048)]
+    [SugarColumn(ColumnName = "changed_fields", Length = 2048, IsNullable = true, ColumnDescription = "有变化的列，逗号分隔")]
     public string? ChangedFields { get; set; }
 }
 

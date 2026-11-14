@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
@@ -15,72 +14,81 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 写法与 <see cref="SysEmail"/> 相同
 /// 服务商发的是它那边的模板，记录里的正文是本应用模板渲染出的文字（便于查看），参数另存一份交给服务商
 /// </remarks>
-[SugarIndex("ix_{table}_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
-[SugarIndex("ix_{table}_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarTable(TableName = "sys_sms", TableDescription = "短信发送记录，也是短信的发件箱（平台库实体，随所属侧）")]
+[SugarIndex("ix_sys_sms_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarIndex("ix_sys_sms_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysSms : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {
     /// <inheritdoc />
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
     /// 发起人（系统发出的为空）
     /// </summary>
+    [SugarColumn(ColumnName = "sender_id", IsNullable = true, ColumnDescription = "发起人（系统发出的为空）")]
     public Guid? SenderId { get; set; }
 
     /// <summary>
     /// 接收人（不是本应用用户的号码为空）
     /// </summary>
+    [SugarColumn(ColumnName = "receiver_id", IsNullable = true, ColumnDescription = "接收人（不是本应用用户的号码为空）")]
     public Guid? ReceiverId { get; set; }
 
     /// <summary>
     /// 手机号
     /// </summary>
-    [StringLength(32)]
+    [SugarColumn(ColumnName = "to_phone", Length = 32, IsNullable = false, ColumnDescription = "手机号")]
     public string ToPhone { get; set; } = string.Empty;
 
     /// <summary>
     /// 正文（本应用模板渲染出的文字）
     /// </summary>
-    [StringLength(1000)]
+    [SugarColumn(ColumnName = "content", Length = 1000, IsNullable = false, ColumnDescription = "正文（本应用模板渲染出的文字）")]
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// 用的模板编码（按短信配置的模板映射换成服务商的模板 ID）
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "template_code", Length = 64, IsNullable = true, ColumnDescription = "用的模板编码（按短信配置的模板映射换成服务商的模板 ID）")]
     public string? TemplateCode { get; set; }
 
     /// <summary>
     /// 模板参数（JSON 对象，按写入顺序交给服务商）
     /// </summary>
+    [SugarColumn(ColumnName = "template_params", IsNullable = true, ColumnDescription = "模板参数（JSON 对象，按写入顺序交给服务商）")]
     [LongText]
     public string? TemplateParams { get; set; }
 
     /// <summary>
     /// 发出时用的服务商
     /// </summary>
+    [SugarColumn(ColumnName = "provider", IsNullable = true, ColumnDescription = "发出时用的服务商")]
     public SmsProvider? Provider { get; set; }
 
     /// <summary>
     /// 服务商返回的消息 ID
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "provider_message_id", Length = 128, IsNullable = true, ColumnDescription = "服务商返回的消息 ID")]
     public string? ProviderMessageId { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "状态")]
     public MessageSendStatus Status { get; set; } = MessageSendStatus.Pending;
 
     /// <summary>
     /// 已尝试的次数
     /// </summary>
+    [SugarColumn(ColumnName = "attempts", IsNullable = false, ColumnDescription = "已尝试的次数")]
     public int Attempts { get; set; }
 
     /// <summary>
     /// 最多尝试的次数
     /// </summary>
+    [SugarColumn(ColumnName = "max_attempts", IsNullable = false, ColumnDescription = "最多尝试的次数")]
     public int MaxAttempts { get; set; } = 3;
 
     /// <summary>
@@ -89,33 +97,36 @@ public sealed class SysSms : AppAuditedEntity, IOwnedByTenant, IMessageRecord
     /// <remarks>
     /// 为空即立即
     /// </remarks>
+    [SugarColumn(ColumnName = "next_attempt_at", IsNullable = true, ColumnDescription = "下次可以尝试的时间")]
     public DateTimeOffset? NextAttemptAt { get; set; }
 
     /// <summary>
     /// 发出时间
     /// </summary>
+    [SugarColumn(ColumnName = "sent_at", IsNullable = true, ColumnDescription = "发出时间")]
     public DateTimeOffset? SentAt { get; set; }
 
     /// <summary>
     /// 最近一次失败的原因
     /// </summary>
-    [StringLength(2000)]
+    [SugarColumn(ColumnName = "error_message", Length = 2000, IsNullable = true, ColumnDescription = "最近一次失败的原因")]
     public string? ErrorMessage { get; set; }
 
     /// <summary>
     /// 发出时用的短信配置
     /// </summary>
+    [SugarColumn(ColumnName = "config_id", IsNullable = true, ColumnDescription = "发出时用的短信配置")]
     public Guid? ConfigId { get; set; }
 
     /// <summary>
     /// 关联的业务类型
     /// </summary>
-    [StringLength(100)]
+    [SugarColumn(ColumnName = "business_type", Length = 100, IsNullable = true, ColumnDescription = "关联的业务类型")]
     public string? BusinessType { get; set; }
 
     /// <summary>
     /// 关联的业务 ID
     /// </summary>
-    [StringLength(100)]
+    [SugarColumn(ColumnName = "business_id", Length = 100, IsNullable = true, ColumnDescription = "关联的业务 ID")]
     public string? BusinessId { get; set; }
 }

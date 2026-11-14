@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
@@ -15,20 +14,21 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 平台一侧的文件 <see cref="TenantScopedAuditedEntity.TenantId"/> 为 <c>platform</c>（与日志同一做法）
 /// 同一侧内容相同（SHA-256 相同）的文件共用对象，各有各的记录，删到最后一条才删对象
 /// </remarks>
-[SugarIndex("ix_{table}_tenant_id_hash_size", nameof(TenantId), OrderByType.Asc, nameof(Hash), OrderByType.Asc, nameof(Size), OrderByType.Asc)]
-[SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarTable(TableName = "sys_file", TableDescription = "文件：一次上传得到一条，内容落在一到多个副本（SysFileStorage）里")]
+[SugarIndex("ix_sys_file_tenant_id_hash_size", nameof(TenantId), OrderByType.Asc, nameof(Hash), OrderByType.Asc, nameof(Size), OrderByType.Asc)]
+[SugarIndex("ix_sys_file_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 public sealed class SysFile : TenantScopedAuditedEntity
 {
     /// <summary>
     /// 系统文件名（对象键的最后一段）
     /// </summary>
-    [StringLength(200)]
+    [SugarColumn(ColumnName = "name", Length = 200, IsNullable = false, ColumnDescription = "系统文件名（对象键的最后一段）")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 上传时的原始文件名
     /// </summary>
-    [StringLength(255)]
+    [SugarColumn(ColumnName = "original_name", Length = 255, IsNullable = false, ColumnDescription = "上传时的原始文件名")]
     public string OriginalName { get; set; } = string.Empty;
 
     /// <summary>
@@ -37,44 +37,49 @@ public sealed class SysFile : TenantScopedAuditedEntity
     /// <remarks>
     /// 没有为空
     /// </remarks>
-    [StringLength(20)]
+    [SugarColumn(ColumnName = "extension", Length = 20, IsNullable = true, ColumnDescription = "扩展名（小写，含点）")]
     public string? Extension { get; set; }
 
     /// <summary>
     /// 文件大类（按内容类型与扩展名推出）
     /// </summary>
+    [SugarColumn(ColumnName = "kind", IsNullable = false, ColumnDescription = "文件大类（按内容类型与扩展名推出）")]
     public FileKind Kind { get; set; }
 
     /// <summary>
     /// 内容类型
     /// </summary>
-    [StringLength(100)]
+    [SugarColumn(ColumnName = "content_type", Length = 100, IsNullable = false, ColumnDescription = "内容类型")]
     public string ContentType { get; set; } = string.Empty;
 
     /// <summary>
     /// 大小（字节）
     /// </summary>
+    [SugarColumn(ColumnName = "size", IsNullable = false, ColumnDescription = "大小（字节）")]
     public long Size { get; set; }
 
     /// <summary>
     /// 内容的 SHA-256（小写十六进制）
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "hash", Length = 64, IsNullable = false, ColumnDescription = "内容的 SHA-256（小写十六进制）")]
     public string Hash { get; set; } = string.Empty;
 
     /// <summary>
     /// 状态
     /// </summary>
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "状态")]
     public FileStatus Status { get; set; }
 
     /// <summary>
     /// 访问级别：谁能换取下载地址
     /// </summary>
+    [SugarColumn(ColumnName = "access_level", IsNullable = false, ColumnDescription = "访问级别：谁能换取下载地址")]
     public FileAccessLevel AccessLevel { get; set; } = FileAccessLevel.Authorized;
 
     /// <summary>
     /// 是否临时文件（到期可清理）
     /// </summary>
+    [SugarColumn(ColumnName = "is_temporary", IsNullable = false, ColumnDescription = "是否临时文件（到期可清理）")]
     public bool IsTemporary { get; set; }
 
     /// <summary>
@@ -83,34 +88,37 @@ public sealed class SysFile : TenantScopedAuditedEntity
     /// <remarks>
     /// 为空不到期
     /// </remarks>
+    [SugarColumn(ColumnName = "expires_at", IsNullable = true, ColumnDescription = "到期时间")]
     public DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>
     /// 来源：<c>upload</c>（上传）、<c>fast-upload</c>（秒传）等
     /// </summary>
-    [StringLength(32)]
+    [SugarColumn(ColumnName = "source", Length = 32, IsNullable = false, ColumnDescription = "来源：upload（上传）、fast-upload（秒传）等")]
     public string Source { get; set; } = string.Empty;
 
     /// <summary>
     /// 标签（逗号分隔）
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "tags", Length = 500, IsNullable = true, ColumnDescription = "标签（逗号分隔）")]
     public string? Tags { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "remark", Length = 500, IsNullable = true, ColumnDescription = "备注")]
     public string? Remark { get; set; }
 
     /// <summary>
     /// 下载次数（经下载端点读取内容的次数）
     /// </summary>
+    [SugarColumn(ColumnName = "download_count", IsNullable = false, ColumnDescription = "下载次数（经下载端点读取内容的次数）")]
     public int DownloadCount { get; set; }
 
     /// <summary>
     /// 最近一次下载时间
     /// </summary>
+    [SugarColumn(ColumnName = "last_downloaded_at", IsNullable = true, ColumnDescription = "最近一次下载时间")]
     public DateTimeOffset? LastDownloadedAt { get; set; }
 }
 

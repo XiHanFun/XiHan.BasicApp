@@ -4,13 +4,13 @@ Tier 0 基座：把框架的持久化、租户与管道接到 BasicApp 的约定
 
 | 类型 | 用途 |
 | --- | --- |
-| `SqlSugarRuntime.Configure` | SqlSugar 方式一回调：`XiHan:Bindings:db` 的连接串与 `provider`（缺省 PostgreSQL）、`AopEvents.DataExecuting` 填操作人、表名与列名 snake_case；协议约定由框架随后施加。租户分片的绑定由框架按租户属性 `ConnectionString` / `DatabaseProvider` 推出后交到同一回调 |
+| `SqlSugarRuntime.Configure` | SqlSugar 方式一回调：`XiHan:Bindings:db` 的连接串与 `provider`（缺省 PostgreSQL）、`AopEvents.DataExecuting` 填操作人、框架数据库记录的表名与列名 snake_case（BasicApp 的实体都显式写 `[SugarTable]` / `[SugarColumn]`）；协议约定由框架随后施加。租户分片的绑定由框架按租户属性 `ConnectionString` / `DatabaseProvider` 推出后交到同一回调 |
 | `AuditorStampMiddleware` + `AuditorStamp` | Transaction 阶段把当前主体 ID 放进异步本地值，回调据此填 `CreatedBy` / `ModifiedBy` / `DeletedBy`。方式一的 `ConnectionConfig` 在装配时只建一份、没有作用域，回调拿不到作用域服务，异步本地值是能读到当前主体的方式（N0 冒烟结论） |
 | `CacheInvalidationMiddleware` + `CacheInvalidation` | 读穿缓存的失效推到工作单元之后：Transaction 阶段开头、排在框架工作单元中间件之前开一段范围，调用里经 `CacheInvalidation.RemoveAsync` / `RemoveManyAsync` 的失效只记下，工作单元提交或回滚之后才删键（回滚了照样删，同一缓存的键一次往返）。缓存未命中时经 `StoreScope` 在独立工作单元里读库、看不到未提交的写入，提交前失效会让同一请求或并发请求把旧数据写回缓存；管道之外（种子、作业）即刻删除。Access 的授权类缓存、Identity 的会话门禁与 Tenancy 的套餐门控都经它失效 |
 | `TenantScopedQuery.For<T>` | 包内 `Queries/` 的起手式：按实体落点取连接（`SqlSugarUnitOfWork.ConnectionFor`），补软删除与租户条件；`OwnedByCurrentTenantOrPlatform` / `OwnedByCurrentTenant` 给 `IOwnedByTenant` 实体用 |
 | `DataScopeQuery` | 数据范围：取当前主体的判定（没装 Access 即不受限），`ApplyDataScope` 按归属人列 / 部门列、`ApplyDataScopeByCreator` 按审计列 `CreatedBy` 套到查询上 |
 | `ActiveUniqueIndexes` | 软删除实体的部分唯一索引（实体上的 `[ActiveUniqueIndex]`，`… WHERE is_deleted = false`）：`RuntimeFeature` 在框架建表之后、`TenantSchemas` 初始化独立库时补建 |
-| `DatabaseProviders` / `SnakeCaseNaming` | 库类型名映射；命名约定 |
+| `DatabaseProviders` / `SnakeCaseNaming` | 库类型名映射；框架数据库记录的命名约定 |
 | `ISecretProtector` | 可逆加密（ASP.NET Core Data Protection）：按用途隔离，密文带 `dp:` 前缀，解不开即失败、不回退明文；多实例共享密钥时配 `BasicApp:DataProtection:KeysDirectory` |
 | `RuntimePermissions` + `RuntimeMessages` | 宿主普通端点用到、不归哪个能力包的权限码，进权限目录：`runtime.cloud-events.deliver`（CloudEvents 入站端点 `/events`，平台侧，只授给服务账号或服务角色）；显示名在 `Localization/<区域>.json` |
 
@@ -22,4 +22,4 @@ Tier 0 基座：把框架的持久化、租户与管道接到 BasicApp 的约定
 
 数据库是启动硬要求：绑定缺失以 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
 
-建表时没写长度与类型的字符串列一律 `varchar(512)`（`SqlSugarRuntime.DefaultStringLength`）；写了 `[LongText]` / `[StringLength]` / `[MaxLength]` 的列交给框架约定（长文本或声明的长度），集成测试 `PersistenceMappingTests` 守住。
+BasicApp 的实体显式写表名、列名、长度、可空与说明（`[SugarTable]` / `[SugarColumn]`，长文本另标 `[LongText]`），架构测试 `EntityMappingTests` 守住。框架的数据库记录不带这些特性，表名与列名按 snake_case 推出，没写长度与类型的字符串列一律 `varchar(512)`（`SqlSugarRuntime.DefaultStringLength`）；写了 `[LongText]` / `[StringLength]` / `[MaxLength]` 的列交给框架约定（长文本或声明的长度），集成测试 `PersistenceMappingTests` 守住。

@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
@@ -15,29 +14,33 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 状态不落库，按撤销时间与有效期推出（<see cref="StatusAt"/>）：到了生效时间自动生效，过了到期时间自动失效；撤销保留记录
 /// 判定时委托人此刻仍须持有所委托的权限或角色，否则不算数
 /// </remarks>
-[SugarIndex("ix_{table}_owner_delegatee_revoked", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]
-[SugarIndex("ix_{table}_owner_delegator_delegatee", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegatorId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc)]
-[SugarIndex("ix_{table}_role_id", nameof(RoleId), OrderByType.Asc)]
-[SugarIndex("ix_{table}_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
+[SugarTable(TableName = "sys_permission_delegation", TableDescription = "限时委托（平台库实体，随所属侧）")]
+[SugarIndex("ix_sys_permission_delegation_owner_delegatee_revoked", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]
+[SugarIndex("ix_sys_permission_delegation_owner_delegator_delegatee", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegatorId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc)]
+[SugarIndex("ix_sys_permission_delegation_role_id", nameof(RoleId), OrderByType.Asc)]
+[SugarIndex("ix_sys_permission_delegation_owner_tenant_id_created_at", nameof(OwnerTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
     /// 委托人
     /// </summary>
+    [SugarColumn(ColumnName = "delegator_id", IsNullable = false, ColumnDescription = "委托人")]
     public Guid DelegatorId { get; set; }
 
     /// <summary>
     /// 被委托人
     /// </summary>
+    [SugarColumn(ColumnName = "delegatee_id", IsNullable = false, ColumnDescription = "被委托人")]
     public Guid DelegateeId { get; set; }
 
     /// <summary>
     /// 委托的权限码（与 <see cref="RoleId"/> 二选一）
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "permission", Length = 128, IsNullable = true, ColumnDescription = "委托的权限码（与 RoleId 二选一）")]
     public string? Permission { get; set; }
 
     /// <summary>
@@ -46,6 +49,7 @@ public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
     /// <remarks>
     /// 被委托人按这个角色的继承链拿到授予，不拿数据范围与字段安全
     /// </remarks>
+    [SugarColumn(ColumnName = "role_id", IsNullable = true, ColumnDescription = "委托的角色（与 Permission 二选一）")]
     public Guid? RoleId { get; set; }
 
     /// <summary>
@@ -54,17 +58,19 @@ public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
     /// <remarks>
     /// 为空即创建即生效
     /// </remarks>
+    [SugarColumn(ColumnName = "effective_at", IsNullable = true, ColumnDescription = "生效时间")]
     public DateTimeOffset? EffectiveAt { get; set; }
 
     /// <summary>
     /// 到期时间（必填）
     /// </summary>
+    [SugarColumn(ColumnName = "expires_at", IsNullable = false, ColumnDescription = "到期时间（必填）")]
     public DateTimeOffset ExpiresAt { get; set; }
 
     /// <summary>
     /// 委托原因
     /// </summary>
-    [StringLength(512)]
+    [SugarColumn(ColumnName = "reason", Length = 512, IsNullable = true, ColumnDescription = "委托原因")]
     public string? Reason { get; set; }
 
     /// <summary>
@@ -73,11 +79,13 @@ public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
     /// <remarks>
     /// 为空即未撤销
     /// </remarks>
+    [SugarColumn(ColumnName = "revoked_at", IsNullable = true, ColumnDescription = "撤销时间")]
     public DateTimeOffset? RevokedAt { get; set; }
 
     /// <summary>
     /// 撤销人
     /// </summary>
+    [SugarColumn(ColumnName = "revoked_by", IsNullable = true, ColumnDescription = "撤销人")]
     public Guid? RevokedBy { get; set; }
 
     /// <summary>

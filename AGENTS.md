@@ -100,7 +100,8 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 
 - 平台库实体不实现 `IMultiTenant`，用 `OwnerTenantId`（平台 = `TenantIds.Platform`）分侧；租户库实体用 `TenantScoped*` 基类，没有租户上下文时什么都查不到。租户只从令牌声明解析。
 - 用 `AppEntity`、`AppAuditedEntity`、`AppAggregateRoot` 等现有基类与 SqlSugar 仓储；分页、投影、联表在 `Queries/` 以 `TenantScopedQuery.For<T>` 起手。不引入 EF Core 作为平行业务数据层。
-- 软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），删除后可重新创建。
+- 实体显式写 `[SugarTable]`（表名、说明）与每个映射属性的 `[SugarColumn]`（列名、长度、可空、说明），名字小写下划线，不靠命名约定推导；索引名 `ix_` / `ux_` + 表名 + 列，`EntityMappingTests` 守护。
+- 软删除实体的唯一约束写 `[ActiveUniqueIndex(…, Name = …)]`（部分唯一索引），删除后可重新创建。
 - 开发库由 Development 的 `InitTables` 建表补列；正式库只认 `backend/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`（PostgreSQL、可重复执行）与版本台账，`BasicApp:Schema:AutoUpgrade` 开启（缺省）时启动自动执行、失败即中断启动。Agent 不手工对任何库执行脚本。
 - 框架的默认内存实现保持零外部依赖；配了 Redis / RabbitMQ 绑定，宿主才装对应 Provider。
 

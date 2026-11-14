@@ -73,7 +73,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 
 ### 生成的后端代码
 
-一张表生成一个资源：资源名是类名的 kebab 复数（`SalesOrder` → `sales-orders`），操作 `<资源>.list / get / create / update / delete / set-status / tree / <属性>-options`，权限码 `<包>.<资源>.read / create / update / delete`（只在租户侧，写操作记审计），页面 `<包>.<资源>`（路由 `/<包>/<资源>`）。实体是租户库实体（`TenantScopedAuditedEntity`），表名或列名与按约定换算的不同时才写 `[SugarTable]` / `[SugarColumn]`，唯一列是部分唯一索引。
+一张表生成一个资源：资源名是类名的 kebab 复数（`SalesOrder` → `sales-orders`），操作 `<资源>.list / get / create / update / delete / set-status / tree / <属性>-options`，权限码 `<包>.<资源>.read / create / update / delete`（只在租户侧，写操作记审计），页面 `<包>.<资源>`（路由 `/<包>/<资源>`）。实体是租户库实体（`TenantScopedAuditedEntity`），显式写 `[SugarTable]`（表名、表说明取表注释，没有即业务名）与每列的 `[SugarColumn]`（列名、长度、可空、说明取列注释），长文本另标 `[LongText]`，唯一列是带名字的部分唯一索引（`ux_<表>_tenant_id_<列>`）。
 
 文件落在 `src/<命名空间>/` 下：
 

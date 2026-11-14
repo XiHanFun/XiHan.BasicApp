@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// </summary>
 /// <remarks>
 /// 由 <c>SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)</c> 在装配时对默认连接调用一次，带分片的调用再对 <c>shard</c> 连接调用一次
-/// 这里只负责库类型、连接串、操作人字段与 snake_case 命名；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加
+/// 这里只负责库类型、连接串、操作人字段与框架数据库记录的 snake_case 命名（BasicApp 的实体显式写 <c>[SugarTable]</c> / <c>[SugarColumn]</c>）；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加
 /// </remarks>
 public static class SqlSugarRuntime
 {

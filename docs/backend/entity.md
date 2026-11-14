@@ -49,27 +49,30 @@ Runtime 的 `TenantScopedQuery` 为 `IOwnedByTenant` 提供两个查询扩展：
 ## 实体示例
 
 ```csharp
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key))]
+[SugarTable(TableName = "sys_config", TableDescription = "系统参数（平台库实体，不实现 IMultiTenant）")]
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key), Name = "ux_sys_config_owner_tenant_id_key")]
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 {
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
+
+    [SugarColumn(ColumnName = "key", Length = 512, IsNullable = false, ColumnDescription = "参数键")]
     public string Key { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
+
+    [SugarColumn(ColumnName = "group", Length = 512, IsNullable = true, ColumnDescription = "分组（自由文本，用于列表归类）")]
     public string? Group { get; set; }
 
+    [SugarColumn(ColumnName = "value", IsNullable = true, ColumnDescription = "参数值")]
     [LongText]
     public string? Value { get; set; }
 
-    [LongText]
-    public string? DefaultValue { get; set; }
-
+    [SugarColumn(ColumnName = "data_type", IsNullable = false, ColumnDescription = "数据类型")]
     public ConfigDataType DataType { get; set; } = ConfigDataType.Text;
-    public bool IsEncrypted { get; set; }
-    public bool IsBuiltIn { get; set; }
-    public bool AllowTenantOverride { get; set; }
+
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "状态")]
     public SettingStatus Status { get; set; } = SettingStatus.Active;
-    public int Order { get; set; }
-    public string? Description { get; set; }
+
+    // 其余列同样写法
 }
 
 public enum ConfigDataType
@@ -82,9 +85,10 @@ public enum ConfigDataType
 }
 ```
 
-- 类名以 `Sys` 开头，表名、列名由命名约定转成 snake_case（`SysConfig` → `sys_config`，`OwnerTenantId` → `owner_tenant_id`）。
-- 没写长度的字符串列缺省 `varchar(512)`；长文本标 `[LongText]`，固定长度用 `[StringLength]` / `[MaxLength]`（`PersistenceMappingTests` 守护）。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
-- 软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 类名以 `Sys` 开头。表名、列名不靠命名约定推出（缩写会被拆错，`SysOAuthApp` 会推成 `sys_o_auth_app`），实体显式写 `[SugarTable(TableName, TableDescription)]`，映射到列的属性写 `[SugarColumn(ColumnName, Length, IsNullable, ColumnDescription)]`；名字用小写下划线（`sys_oauth_app`、`owner_tenant_id`），说明取 `<summary>` 那一句，可空与属性类型一致。基类的公共列（`id`、`concurrency_stamp`、`created_at`、`tenant_id` 等）在 Contracts 的基类上写好了。
+- 字符串列在 `[SugarColumn]` 里写 `Length`（常规短文本 512），长文本不写长度、另标 `[LongText]`；不再用 `[StringLength]` / `[MaxLength]` 给实体定长度。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
+- 索引名明确写出：`[SugarIndex("ix_<表>_<列>…", …)]`，唯一的 `ux_` 开头，按月分表的用 `{split_table}` 占位；软删除实体的唯一约束写 `[ActiveUniqueIndex(…, Name = "ux_<表>_<列>…")]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 架构测试 `EntityMappingTests` 守护上面几条：缺表名、列名、说明、长度，可空与类型不符，或索引名不合 `ix_` / `ux_` + 表名 + 列即失败。
 - 枚举在库里存整数，JSON 里是字符串（各包 `JsonContext` 按字符串序列化）。只被一个实体用到的枚举写在那个实体的文件里（实体类之后，同一命名空间），两个以上实体共用的才单独成文件（如 `SettingStatus.cs`）。
 - 写入极频繁或只存密文与计数的实体（会话、用户设置、账号安全、OAuth 授权码与令牌、邮件短信的发送记录、聊天会话与成员等）在类上标 `[DiffLogIgnored]`，不进数据变更日志；其余全审计实体缺省都记前后值。
 

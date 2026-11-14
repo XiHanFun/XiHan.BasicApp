@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
@@ -14,57 +13,64 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 用户为自己申请一个角色或一个权限码（二选一），提交即发起审批业务 <c>permission-request</c> 的流程，
 /// 审批通过即按期望的有效期指派或直授，驳回或中止即完结。平台一侧的申请租户为 <c>platform</c>。权限按码申请（没有权限实体），不加唯一约束，同一对象的待审批申请在服务里查重
 /// </remarks>
-[SugarIndex("ix_{table}_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]
-[SugarIndex("ix_{table}_tenant_id_request_user_id", nameof(TenantId), OrderByType.Asc, nameof(RequestUserId), OrderByType.Asc)]
-[SugarIndex("ix_{table}_tenant_id_status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarTable(TableName = "sys_permission_request", TableDescription = "授权申请（租户库实体）")]
+[SugarIndex("ix_sys_permission_request_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]
+[SugarIndex("ix_sys_permission_request_tenant_id_request_user_id", nameof(TenantId), OrderByType.Asc, nameof(RequestUserId), OrderByType.Asc)]
+[SugarIndex("ix_sys_permission_request_tenant_id_status", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public sealed class SysPermissionRequest : TenantScopedAuditedEntity
 {
     /// <summary>
     /// 申请人
     /// </summary>
+    [SugarColumn(ColumnName = "request_user_id", IsNullable = false, ColumnDescription = "申请人")]
     public Guid RequestUserId { get; set; }
 
     /// <summary>
     /// 申请的角色（与权限码至少给一个）
     /// </summary>
+    [SugarColumn(ColumnName = "role_id", IsNullable = true, ColumnDescription = "申请的角色（与权限码至少给一个）")]
     public Guid? RoleId { get; set; }
 
     /// <summary>
     /// 申请的权限码（与角色至少给一个）
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "permission_code", Length = 128, IsNullable = true, ColumnDescription = "申请的权限码（与角色至少给一个）")]
     public string? PermissionCode { get; set; }
 
     /// <summary>
     /// 申请原因
     /// </summary>
-    [StringLength(1000)]
+    [SugarColumn(ColumnName = "reason", Length = 1000, IsNullable = false, ColumnDescription = "申请原因")]
     public string Reason { get; set; } = string.Empty;
 
     /// <summary>
     /// 期望生效时间（为空即审批通过立即生效）
     /// </summary>
+    [SugarColumn(ColumnName = "expected_effective_at", IsNullable = true, ColumnDescription = "期望生效时间（为空即审批通过立即生效）")]
     public DateTimeOffset? ExpectedEffectiveAt { get; set; }
 
     /// <summary>
     /// 期望失效时间（为空即长期有效）
     /// </summary>
+    [SugarColumn(ColumnName = "expected_expires_at", IsNullable = true, ColumnDescription = "期望失效时间（为空即长期有效）")]
     public DateTimeOffset? ExpectedExpiresAt { get; set; }
 
     /// <summary>
     /// 当前的审批流程实例（提交与重新提交时回填）
     /// </summary>
+    [SugarColumn(ColumnName = "workflow_instance_id", IsNullable = true, ColumnDescription = "当前的审批流程实例（提交与重新提交时回填）")]
     public Guid? WorkflowInstanceId { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "状态")]
     public PermissionRequestStatus Status { get; set; } = PermissionRequestStatus.Pending;
 
     /// <summary>
     /// 备注（手工处理与流程中止时写原因）
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "remark", Length = 500, IsNullable = true, ColumnDescription = "备注（手工处理与流程中止时写原因）")]
     public string? Remark { get; set; }
 }
 

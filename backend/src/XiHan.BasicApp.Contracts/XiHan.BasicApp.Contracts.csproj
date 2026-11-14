@@ -7,6 +7,8 @@
   <ItemGroup>
     <!-- 实体协议（IEntity、审计接口、租户、软删除、聚合根） -->
     <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <!-- 实体基类的列映射（[SugarColumn]） -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <!-- PermissionDefinition：权限描述换算成内核权限定义 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
   </ItemGroup>

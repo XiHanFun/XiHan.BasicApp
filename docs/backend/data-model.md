@@ -107,9 +107,9 @@
 
 编码、键名这类唯一性由操作在写入前检查并返回本包的 `CONFLICT` 错误码（如参数键在本侧唯一），数据库再用唯一索引兜住并发写入：
 
-- 软删除实体用部分唯一索引，只约束未删除的行（`ux_<表>_<列>… WHERE is_deleted = false`）：同一个编码删了再建、再删都不冲突。实体上写 `[ActiveUniqueIndex(nameof(…))]`，开发库由 Runtime 在建表之后补建，独立库在初始化时补建，生产库随基线脚本建出；只支持 PostgreSQL 与 SQLite。
-- 不软删除的实体（关联表、只增的记录）用唯一的 `[SugarIndex]`；外键查找与列表的筛选、排序用普通 `[SugarIndex]`（`ix_<表>_<列>`）。按月分表的日志用 `{split_table}` 占位，每张月表各带一份。
-- 结构测试（`EntityIndexTests`）守护：软删除实体不写唯一的 `[SugarIndex]`，部分唯一索引只用于软删除实体，列都是实体的属性，索引名不超过 PostgreSQL 的 63 字符（过长时写 `Name` 给一个短名）且不重名。
+- 软删除实体用部分唯一索引，只约束未删除的行（`ux_<表>_<列>… WHERE is_deleted = false`）：同一个编码删了再建、再删都不冲突。实体上写 `[ActiveUniqueIndex(nameof(…), Name = "ux_<表>_<列>…")]`，开发库由 Runtime 在建表之后补建，独立库在初始化时补建，生产库随基线脚本建出；只支持 PostgreSQL 与 SQLite。
+- 不软删除的实体（关联表、只增的记录）用唯一的 `[SugarIndex]`；外键查找与列表的筛选、排序用普通 `[SugarIndex]`（`ix_<表>_<列>`）。索引名都写出表名（`ix_sys_oauth_app_owner_user_id`），按月分表的日志用 `{split_table}` 占位，每张月表各带一份。
+- 结构测试（`EntityIndexTests`）守护：软删除实体不写唯一的 `[SugarIndex]`，部分唯一索引只用于软删除实体，列都是实体的属性，索引名不超过 PostgreSQL 的 63 字符（过长时列段写短名）且不重名；`EntityMappingTests` 另守住索引名是 `ix_` / `ux_` + 表名 + 列。
 
 跨归属的规则（如字典码平台与租户不可重复）索引表达不了，只靠操作里的检查。并发写入撞上唯一 `[SugarIndex]` 时，框架仓储核对后按唯一键重复返回 `PERSISTENCE_CONFLICT_003`；撞上 `[ActiveUniqueIndex]` 建的部分唯一索引时框架识别不了，第二个写入方拿到的是数据库错误。
 

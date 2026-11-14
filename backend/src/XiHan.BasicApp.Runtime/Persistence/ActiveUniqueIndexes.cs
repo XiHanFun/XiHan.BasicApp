@@ -12,9 +12,9 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// 软删除实体的部分唯一索引
 /// </summary>
 /// <remarks>
-/// 按实体上的 <see cref="ActiveUniqueIndexAttribute"/> 建 <c>ux_&lt;表&gt;_&lt;列&gt;… WHERE is_deleted = false</c>，已有即跳过
+/// 按实体上的 <see cref="ActiveUniqueIndexAttribute"/> 以它写明的名字建 <c>… WHERE is_deleted = false</c>，已有即跳过
 /// 在建表之后调用：开发与测试由 <see cref="RuntimeFeature"/> 跟在框架的 <c>InitTables</c> 之后，租户独立库由 <c>TenantSchemas</c> 初始化时调用，生产库随基线脚本建出
-/// 只支持 PostgreSQL 与 SQLite；索引名超出 PostgreSQL 的 63 字符上限即抛出 <see cref="InvalidOperationException"/>（结构测试先行拦下）
+/// 只支持 PostgreSQL 与 SQLite；没写索引名或超出 PostgreSQL 的 63 字符上限即抛出 <see cref="InvalidOperationException"/>（结构测试先行拦下）
 /// </remarks>
 public static class ActiveUniqueIndexes
 {
@@ -22,16 +22,6 @@ public static class ActiveUniqueIndexes
     /// 索引名的长度上限
     /// </summary>
     public const int MaxNameLength = 63;
-
-    /// <summary>
-    /// 索引名
-    /// </summary>
-    public static string NameOf(string table, IEnumerable<string> columns)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(table);
-        ArgumentNullException.ThrowIfNull(columns);
-        return $"ux_{table}_{string.Join('_', columns)}";
-    }
 
     /// <summary>
     /// 在客户端当前的连接上补建这些实体的部分唯一索引
@@ -53,7 +43,7 @@ public static class ActiveUniqueIndexes
             foreach (var attribute in attributes)
             {
                 var columns = attribute.Columns.Select(property => ColumnOf(entity, property)).ToArray();
-                var name = attribute.Name ?? NameOf(entity.DbTableName, columns);
+                var name = attribute.Name ?? throw new InvalidOperationException($"[ActiveUniqueIndex] of {type.Name} on ({string.Join(", ", attribute.Columns)}) has no Name.");
                 if (name.Length > MaxNameLength)
                 {
                     throw new InvalidOperationException($"Index name '{name}' of {type.Name} is longer than {MaxNameLength} characters.");

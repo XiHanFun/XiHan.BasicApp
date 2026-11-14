@@ -2,13 +2,13 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
 using System.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SqlSugar;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Domain.Services;
@@ -223,7 +223,7 @@ public sealed class BotTests : IDisposable
 
         // 请求限 500 字符，全是三字节字符的地址加密后也放得下
         var longest = "https://oapi.dingtalk.com/" + new string('中', 500 - 26);
-        var column = typeof(SysBotConfig).GetProperty(nameof(SysBotConfig.WebhookUrl))!.GetCustomAttribute<StringLengthAttribute>()!.MaximumLength;
+        var column = typeof(SysBotConfig).GetProperty(nameof(SysBotConfig.WebhookUrl))!.GetCustomAttribute<SugarColumn>()!.Length;
         Assert.InRange(secrets.Protect(BotConfigService.WebhookPurpose, longest).Length, 501, column);
     }
 

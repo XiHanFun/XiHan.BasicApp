@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.Framework.Domain.Entities;
 
 namespace XiHan.BasicApp.Contracts.Entities;
@@ -14,5 +15,6 @@ namespace XiHan.BasicApp.Contracts.Entities;
 public abstract class TenantScopedRecord : AppRecord, IMultiTenant
 {
     /// <inheritdoc />
+    [SugarColumn(ColumnName = "tenant_id", Length = 512, IsNullable = false, ColumnDescription = "租户 ID")]
     public string TenantId { get; set; } = string.Empty;
 }

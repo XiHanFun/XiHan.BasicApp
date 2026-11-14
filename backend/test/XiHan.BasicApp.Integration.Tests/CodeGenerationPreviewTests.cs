@@ -204,12 +204,14 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         var files = await PreviewAsync(server, admin, product);
         const string Package = "backend/src/XiHan.BasicApp.Shop/";
 
-        // 实体：表名与类名按约定对不上即写 [SugarTable]，唯一列是部分唯一索引，关联列不焊外键
+        // 实体：表名、列名、长度、可空与说明都显式写，唯一列是带名字的部分唯一索引，关联列不焊外键
         var entity = files[Package + "Domain/Entities/Product.Generated.cs"];
         Assert.Contains("public sealed partial class Product : TenantScopedAuditedEntity", entity, StringComparison.Ordinal);
-        Assert.Contains("[SugarTable(\"biz_product\")]", entity, StringComparison.Ordinal);
-        Assert.Contains("[ActiveUniqueIndex(nameof(TenantId), nameof(ProductCode))]", entity, StringComparison.Ordinal);
-        Assert.Contains("[StringLength(30)]", entity, StringComparison.Ordinal);
+        Assert.Contains("[SugarTable(TableName = \"biz_product\", TableDescription = \"", entity, StringComparison.Ordinal);
+        Assert.Contains("[ActiveUniqueIndex(nameof(TenantId), nameof(ProductCode), Name = \"ux_biz_product_tenant_id_product_code\")]", entity, StringComparison.Ordinal);
+        Assert.Contains("[SugarColumn(ColumnName = \"product_code\", Length = 30, IsNullable = false, ColumnDescription = \"ProductCode\")]", entity, StringComparison.Ordinal);
+        Assert.Contains("[SugarColumn(ColumnName = \"remark\", IsNullable = true, ColumnDescription = \"Remark\")]\n    [LongText]", entity.ReplaceLineEndings("\n"), StringComparison.Ordinal);
+        Assert.DoesNotContain("StringLength", entity, StringComparison.Ordinal);
         Assert.Contains("public Guid? CategoryId { get; set; }", entity, StringComparison.Ordinal);
         Assert.True(files.ContainsKey(Package + "Domain/Entities/Product.cs"));
 

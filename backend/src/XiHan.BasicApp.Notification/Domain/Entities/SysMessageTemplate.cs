@@ -1,7 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
+using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -14,66 +14,73 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 邮件、短信、站内通知与机器人的主题和正文，按 Scriban 语法渲染（双花括号包住变量名）
 /// 租户读得到平台的模板、只改自己的，建同编码的模板即覆盖平台的；取模板时先看当前一侧启用的同编码模板，没有再取平台的
 /// </remarks>
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Channel), nameof(Code))]
+[SugarTable(TableName = "sys_message_template", TableDescription = "消息模板（平台库实体，随所属侧）")]
+[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Channel), nameof(Code), Name = "ux_sys_message_template_owner_tenant_id_channel_code")]
 public sealed class SysMessageTemplate : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
     /// 编码（同一侧、同一渠道内唯一，如 <c>auth-email-login-code</c>）
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "code", Length = 64, IsNullable = false, ColumnDescription = "编码（同一侧、同一渠道内唯一，如 auth-email-login-code）")]
     public string Code { get; set; } = string.Empty;
 
     /// <summary>
     /// 渠道
     /// </summary>
+    [SugarColumn(ColumnName = "channel", IsNullable = false, ColumnDescription = "渠道")]
     public TemplateChannel Channel { get; set; } = TemplateChannel.Email;
 
     /// <summary>
     /// 名称
     /// </summary>
-    [StringLength(128)]
+    [SugarColumn(ColumnName = "name", Length = 128, IsNullable = false, ColumnDescription = "名称")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// 主题（邮件）
     /// </summary>
-    [StringLength(256)]
+    [SugarColumn(ColumnName = "subject", Length = 256, IsNullable = true, ColumnDescription = "主题（邮件）")]
     public string? Subject { get; set; }
 
     /// <summary>
     /// 正文
     /// </summary>
+    [SugarColumn(ColumnName = "content", IsNullable = false, ColumnDescription = "正文")]
     [LongText]
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
     /// 正文是 HTML（邮件）
     /// </summary>
+    [SugarColumn(ColumnName = "is_html", IsNullable = false, ColumnDescription = "正文是 HTML（邮件）")]
     public bool IsHtml { get; set; }
 
     /// <summary>
     /// 说明（可用变量等）
     /// </summary>
-    [StringLength(512)]
+    [SugarColumn(ColumnName = "description", Length = 512, IsNullable = true, ColumnDescription = "说明（可用变量等）")]
     public string? Description { get; set; }
 
     /// <summary>
     /// 是否启用
     /// </summary>
+    [SugarColumn(ColumnName = "is_enabled", IsNullable = false, ColumnDescription = "是否启用")]
     public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// 排序
     /// </summary>
+    [SugarColumn(ColumnName = "order", IsNullable = false, ColumnDescription = "排序")]
     public int Order { get; set; }
 
     /// <summary>
     /// 备注
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "remark", Length = 500, IsNullable = true, ColumnDescription = "备注")]
     public string? Remark { get; set; }
 }
 

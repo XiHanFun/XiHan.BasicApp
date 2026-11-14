@@ -4,6 +4,11 @@
 
 ## 未发布
 
+::: warning 升级须知
+- **按 preview.2 及之前建的库要新建**：6.0.0 基线改了 5 张表与 2 列的名字（见下面第一条），台账里已是 6.0.0 的库不会再执行基线，正式环境读写 OAuth 应用、授权码、授权同意、签名密钥、令牌与代码生成的列配置即失败，开发环境会建出空的新表、原表里的数据不再读到。开发环境删掉库直接启动即可（自动建库、建表、播种）。
+:::
+
+- **调整** 实体的表名、列名、长度、可空、说明与索引名都显式写在实体上，不再由类名、属性名按命名约定推出（缩写会被拆错）；拆错的名字随之改正：表 `sys_o_auth_app`、`sys_o_auth_code`、`sys_o_auth_consent`、`sys_o_auth_signing_key`、`sys_o_auth_token` 改为 `sys_oauth_app`、`sys_oauth_code`、`sys_oauth_consent`、`sys_oauth_signing_key`、`sys_oauth_token`（主键约束与索引名随之改为 `sys_oauth_*`），`sys_code_gen_table_column` 的列 `c_sharp_type`、`c_sharp_property` 改为 `csharp_type`、`csharp_property`，其余表名、列名与索引名不变。代码生成出的实体同样显式写表名、列名、长度、可空、说明与唯一索引名（见[实体](./backend/entity)）
 - **新增** 配置的 JSON Schema（宿主工程的 `ConfigurationSchema.json`）：描述 `XiHan` 与 `BasicApp` 两节每个键的类型、枚举、取值范围、缺省值与说明，Visual Studio 打开 `appsettings*.json` 即有补全、悬停说明与校验，VS Code 与 Rider 的映射见[配置参考](./configuration#json-schema)
 - **新增** 前端 `.env.development` 与 `.env.production`；后端正式环境的值写在不入库的 `appsettings.Production.json`
 - **新增** 灵动岛开放分区：调用方可指定胶囊与展开视图首行两侧的小件（图标、头像、进度环、短文本、计时、自定义组件）、正文下方的内容块（文本、大号数值、线形进度、列表、网格、图片、自定义组件）、底部图标栏，以及是否自动展开、停留时长与能否移除（见[灵动岛](./frontend/dynamic-island)）；卡片与面板的内容铺满整宽，聊天消息上岛时标题前显示发送人头像

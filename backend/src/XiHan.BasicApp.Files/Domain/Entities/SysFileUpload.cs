@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
@@ -16,12 +15,14 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 完成时由应用按存储列出的分片拼成对象，回读算 SHA-256，再落文件记录（内容与同一侧已有的相同即共用已有的对象）
 /// 只有发起人能续传、完成或放弃；过了 <see cref="ExpiresAt"/> 记为过期并放弃存储里的分片
 /// </remarks>
-[SugarIndex("ix_{table}_tenant_id_status_expires_at", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(ExpiresAt), OrderByType.Asc)]
+[SugarTable(TableName = "sys_file_upload", TableDescription = "分片上传：大文件分段直传存储的一次上传")]
+[SugarIndex("ix_sys_file_upload_tenant_id_status_expires_at", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(ExpiresAt), OrderByType.Asc)]
 public sealed class SysFileUpload : TenantScopedAuditedEntity
 {
     /// <summary>
     /// 发起的用户
     /// </summary>
+    [SugarColumn(ColumnName = "user_id", IsNullable = false, ColumnDescription = "发起的用户")]
     public Guid UserId { get; set; }
 
     /// <summary>
@@ -30,34 +31,37 @@ public sealed class SysFileUpload : TenantScopedAuditedEntity
     /// <remarks>
     /// 发起时就定下，对象键的最后一段用它
     /// </remarks>
+    [SugarColumn(ColumnName = "file_id", IsNullable = false, ColumnDescription = "完成后得到的文件 ID")]
     public Guid FileId { get; set; }
 
     /// <summary>
     /// 上传目标的存储配置 ID
     /// </summary>
+    [SugarColumn(ColumnName = "storage_config_id", IsNullable = false, ColumnDescription = "上传目标的存储配置 ID")]
     public Guid StorageConfigId { get; set; }
 
     /// <summary>
     /// 发起时的存储类型
     /// </summary>
+    [SugarColumn(ColumnName = "storage_type", IsNullable = false, ColumnDescription = "发起时的存储类型")]
     public StorageType StorageType { get; set; }
 
     /// <summary>
     /// 桶名
     /// </summary>
-    [StringLength(63)]
+    [SugarColumn(ColumnName = "bucket", Length = 63, IsNullable = false, ColumnDescription = "桶名")]
     public string Bucket { get; set; } = string.Empty;
 
     /// <summary>
     /// 对象键
     /// </summary>
-    [StringLength(1024)]
+    [SugarColumn(ColumnName = "key", Length = 1024, IsNullable = false, ColumnDescription = "对象键")]
     public string Key { get; set; } = string.Empty;
 
     /// <summary>
     /// 存储里的分片上传标识
     /// </summary>
-    [StringLength(1024)]
+    [SugarColumn(ColumnName = "upload_id", Length = 1024, IsNullable = false, ColumnDescription = "存储里的分片上传标识")]
     public string UploadId { get; set; } = string.Empty;
 
     /// <summary>
@@ -66,23 +70,25 @@ public sealed class SysFileUpload : TenantScopedAuditedEntity
     /// <remarks>
     /// 完成、列分片与中止都要带同一个值（存储按它决定合成时是否条件写入）
     /// </remarks>
+    [SugarColumn(ColumnName = "overwrite", IsNullable = false, ColumnDescription = "发起时是否允许覆盖已有对象")]
     public bool Overwrite { get; set; }
 
     /// <summary>
     /// 原始文件名
     /// </summary>
-    [StringLength(255)]
+    [SugarColumn(ColumnName = "original_name", Length = 255, IsNullable = false, ColumnDescription = "原始文件名")]
     public string OriginalName { get; set; } = string.Empty;
 
     /// <summary>
     /// 上传方给的内容类型
     /// </summary>
-    [StringLength(100)]
+    [SugarColumn(ColumnName = "content_type", Length = 100, IsNullable = true, ColumnDescription = "上传方给的内容类型")]
     public string? ContentType { get; set; }
 
     /// <summary>
     /// 声明的大小（字节）
     /// </summary>
+    [SugarColumn(ColumnName = "size", IsNullable = false, ColumnDescription = "声明的大小（字节）")]
     public long Size { get; set; }
 
     /// <summary>
@@ -91,59 +97,67 @@ public sealed class SysFileUpload : TenantScopedAuditedEntity
     /// <remarks>
     /// 最后一片可以更小
     /// </remarks>
+    [SugarColumn(ColumnName = "part_size", IsNullable = false, ColumnDescription = "每片的大小（字节）")]
     public long PartSize { get; set; }
 
     /// <summary>
     /// 分片数
     /// </summary>
+    [SugarColumn(ColumnName = "part_count", IsNullable = false, ColumnDescription = "分片数")]
     public int PartCount { get; set; }
 
     /// <summary>
     /// 完成后文件的访问级别
     /// </summary>
+    [SugarColumn(ColumnName = "access_level", IsNullable = false, ColumnDescription = "完成后文件的访问级别")]
     public FileAccessLevel AccessLevel { get; set; } = FileAccessLevel.Authorized;
 
     /// <summary>
     /// 完成后是否临时文件
     /// </summary>
+    [SugarColumn(ColumnName = "is_temporary", IsNullable = false, ColumnDescription = "完成后是否临时文件")]
     public bool IsTemporary { get; set; }
 
     /// <summary>
     /// 完成后文件的到期时间
     /// </summary>
+    [SugarColumn(ColumnName = "file_expires_at", IsNullable = true, ColumnDescription = "完成后文件的到期时间")]
     public DateTimeOffset? FileExpiresAt { get; set; }
 
     /// <summary>
     /// 完成后文件的标签（逗号分隔）
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "tags", Length = 500, IsNullable = true, ColumnDescription = "完成后文件的标签（逗号分隔）")]
     public string? Tags { get; set; }
 
     /// <summary>
     /// 完成后文件的备注
     /// </summary>
-    [StringLength(500)]
+    [SugarColumn(ColumnName = "remark", Length = 500, IsNullable = true, ColumnDescription = "完成后文件的备注")]
     public string? Remark { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "状态")]
     public FileUploadStatus Status { get; set; }
 
     /// <summary>
     /// 上传的截止时间
     /// </summary>
+    [SugarColumn(ColumnName = "expires_at", IsNullable = false, ColumnDescription = "上传的截止时间")]
     public DateTimeOffset ExpiresAt { get; set; }
 
     /// <summary>
     /// 结束时间（完成、放弃、过期或失败）
     /// </summary>
+    [SugarColumn(ColumnName = "ended_at", IsNullable = true, ColumnDescription = "结束时间（完成、放弃、过期或失败）")]
     public DateTimeOffset? EndedAt { get; set; }
 
     /// <summary>
     /// 失败的原因（错误码）
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "failure_code", Length = 64, IsNullable = true, ColumnDescription = "失败的原因（错误码）")]
     public string? FailureCode { get; set; }
 }
 

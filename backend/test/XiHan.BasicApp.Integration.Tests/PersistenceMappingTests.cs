@@ -19,8 +19,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证建表列映射的字符串列长度
 /// </summary>
 /// <remarks>
-/// 宿主装进来的 BasicApp 实体与框架数据库记录，写了 <c>[LongText]</c> 的字符串列建成长文本、<c>[StringLength(n)]</c> 建成长度 n，
-/// 不被 <see cref="SqlSugarRuntime"/> 的缺省长度盖掉；没注解的字符串列是 <see cref="SqlSugarRuntime.DefaultStringLength"/>
+/// 宿主装进来的 BasicApp 实体与框架数据库记录，写了 <c>[LongText]</c> 的字符串列建成长文本、<c>[SugarColumn(Length = n)]</c> 或 <c>[StringLength(n)]</c> 建成长度 n，
+/// 不被 <see cref="SqlSugarRuntime"/> 的缺省长度盖掉；没注解的字符串列（只有框架记录会有）是 <see cref="SqlSugarRuntime.DefaultStringLength"/>
 /// SQLite 不校验 varchar 长度，这一条只靠映射元数据守住（PostgreSQL 上超长写入报 22001）
 /// </remarks>
 public sealed class PersistenceMappingTests
@@ -44,7 +44,11 @@ public sealed class PersistenceMappingTests
         {
             var column = client.EntityMaintenance.GetEntityInfo(type).Columns.Single(c => c.PropertyName == property.Name);
             var label = $"{type.FullName}.{property.Name}: {column.DataType}({column.Length})";
-            if (property.GetCustomAttribute<StringLengthAttribute>() is { MaximumLength: > 0 } stringLength)
+            if (property.GetCustomAttribute<SugarColumn>() is { Length: > 0 } sugarColumn)
+            {
+                Assert.True(column.Length == sugarColumn.Length, label);
+            }
+            else if (property.GetCustomAttribute<StringLengthAttribute>() is { MaximumLength: > 0 } stringLength)
             {
                 Assert.True(column.Length == stringLength.MaximumLength, label);
             }
@@ -58,14 +62,31 @@ public sealed class PersistenceMappingTests
             }
         }
 
-        var plain = client.EntityMaintenance.GetEntityInfo<SysUserSetting>().Columns.Single(c => c.PropertyName == nameof(SysUserSetting.Key));
+        var plain = client.EntityMaintenance.GetEntityInfo<UnannotatedRecord>().Columns.Single(c => c.PropertyName == nameof(UnannotatedRecord.Name));
         Assert.Equal(SqlSugarRuntime.DefaultStringLength, plain.Length);
     }
 
     private static bool IsAnnotated(PropertyInfo property) =>
-        property.IsDefined(typeof(LongTextAttribute), inherit: true)
+        property.GetCustomAttribute<SugarColumn>() is { Length: > 0 }
+        || property.IsDefined(typeof(LongTextAttribute), inherit: true)
         || property.IsDefined(typeof(StringLengthAttribute), inherit: true)
         || property.IsDefined(typeof(MaxLengthAttribute), inherit: true);
+
+    /// <summary>
+    /// 字符串列没有注解的记录
+    /// </summary>
+    public sealed class UnannotatedRecord
+    {
+        /// <summary>
+        /// 主键
+        /// </summary>
+        public Guid Id { get; set; }
+
+        /// <summary>
+        /// 名称
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+    }
 
     private static ConnectionConfig Configure()
     {

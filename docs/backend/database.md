@@ -48,9 +48,9 @@
 | 项 | 内容 |
 | --- | --- |
 | 库类型与连接串 | 读绑定 `db`（分片连接由框架按租户目录推出） |
-| 命名约定 | 表名、列名 snake_case（`SysUserRole` → `sys_user_role`）；显式写了 `[SugarTable]` / `[SugarColumn]` 名字的不改 |
+| 命名约定 | 只给框架的数据库记录：表名、列名 snake_case（`AuditRecord` → `audit_record`）；BasicApp 的实体显式写 `[SugarTable]` / `[SugarColumn]`，不经这条约定 |
 | 操作人 | `AopEvents.DataExecuting` 填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
-| 字符串缺省长度 | 没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)` |
+| 字符串缺省长度 | 框架记录里没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)`；BasicApp 的实体在 `[SugarColumn]` 里写长度 |
 | 差异日志 | 全审计实体的写入带差异事件，供数据变更日志使用；标了 `[DiffLogIgnored]` 的实体除外 |
 | 从库与 SQL 日志 | 按 `BasicApp:Database` 挂上 |
 

@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 
@@ -22,40 +21,43 @@ public abstract class AuditLogRecord : TenantScopedRecord
     /// <remarks>
     /// 分表字段
     /// </remarks>
+    [SugarColumn(ColumnName = "occurred_at", IsNullable = false, ColumnDescription = "发生时间（UTC）")]
     [SplitField]
     public DateTime OccurredAt { get; set; }
 
     /// <summary>
     /// 所属调用的 trace-id
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "trace_id", Length = 64, IsNullable = false, ColumnDescription = "所属调用的 trace-id")]
     public string TraceId { get; set; } = string.Empty;
 
     /// <summary>
     /// 当时的用户
     /// </summary>
+    [SugarColumn(ColumnName = "user_id", IsNullable = true, ColumnDescription = "当时的用户")]
     public Guid? UserId { get; set; }
 
     /// <summary>
     /// 当时用户的登录名（写入时的快照）
     /// </summary>
-    [StringLength(256)]
+    [SugarColumn(ColumnName = "user_name", Length = 256, IsNullable = true, ColumnDescription = "当时用户的登录名（写入时的快照）")]
     public string? UserName { get; set; }
 
     /// <summary>
     /// 当时的会话
     /// </summary>
+    [SugarColumn(ColumnName = "session_id", IsNullable = true, ColumnDescription = "当时的会话")]
     public Guid? SessionId { get; set; }
 
     /// <summary>
     /// 客户端地址
     /// </summary>
-    [StringLength(64)]
+    [SugarColumn(ColumnName = "client_ip", Length = 64, IsNullable = true, ColumnDescription = "客户端地址")]
     public string? ClientIp { get; set; }
 
     /// <summary>
     /// 客户端的 User-Agent
     /// </summary>
-    [StringLength(512)]
+    [SugarColumn(ColumnName = "user_agent", Length = 512, IsNullable = true, ColumnDescription = "客户端的 User-Agent")]
     public string? UserAgent { get; set; }
 }
