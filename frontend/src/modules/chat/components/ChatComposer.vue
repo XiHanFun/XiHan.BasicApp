@@ -1009,7 +1009,7 @@ defineExpose({ acceptsFiles, addFiles })
   align-items: center;
   padding: var(--xh-space-1) var(--xh-space-2);
   border: none;
-  border-radius: var(--xh-shape-control);
+  border-radius: var(--xh-shape-inset);
   background: transparent;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
@@ -1028,8 +1028,15 @@ defineExpose({ acceptsFiles, addFiles })
   color: var(--xh-fg-brand);
 }
 
-.chat-mention-item:hover {
+.chat-mention-item:hover,
+.chat-mention-item:focus-visible {
   background: var(--xh-bg-subtle-hover);
+}
+
+/* 列表一打开焦点就落在第一行：与组件库菜单的当前行同款（铺底加聚焦环），不留浏览器自带的黑框 */
+.chat-mention-item:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 /* 待发附件条目：图片显示缩略图，文件显示图标+名称，右上角浮动移除按钮 */
