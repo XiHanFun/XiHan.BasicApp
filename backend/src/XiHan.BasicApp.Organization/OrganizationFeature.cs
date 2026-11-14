@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Organization;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -71,6 +72,8 @@ public sealed class OrganizationFeature : IFeature
         context.Services.AddGeneratedRepositories();
         context.Services.AddScoped<DepartmentService>();
         context.Services.AddScoped<MembershipService>();
+        context.Services.AddScoped<DepartmentSnapshots>();
+        context.Services.AddCacheNamespace("organization", editable: false);
         context.Services.AddScoped<PositionQueries>();
         context.Services.AddScoped<MembershipQueries>();
         // 第一个领域事件（方案 D7）：部门归属的加入与移出随写入进发件箱，信封的 subject 是用户

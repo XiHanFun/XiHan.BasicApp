@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -21,8 +22,9 @@ namespace XiHan.BasicApp.Settings.Operations.Dicts;
 /// </remarks>
 /// <param name="dicts">字典仓储</param>
 /// <param name="items">字典项仓储</param>
+/// <param name="sets">字典选项缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsDelete)]
-public sealed class DeleteDicts(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items) : IOperation<DictIdsRequest, BatchResult>
+public sealed class DeleteDicts(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items, DictOptionSets sets) : IOperation<DictIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -71,6 +73,7 @@ public sealed class DeleteDicts(IRepository<SysDict, Guid> dicts, IRepository<Sy
                 return removed.Error!;
             }
 
+            await sets.InvalidateAsync(dict.OwnerTenantId, dict.Code, context.CancellationToken).ConfigureAwait(false);
             succeeded.Add(id);
         }
 

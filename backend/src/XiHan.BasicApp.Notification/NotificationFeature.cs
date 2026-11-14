@@ -97,6 +97,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         }
 
         context.Services.AddScoped<MessageTemplateService>();
+        context.Services.AddSingleton<MessageTemplateEntries>();
         context.Services.AddScoped<ChannelConfigService>();
         context.Services.AddScoped<MessageRecordService>();
         context.Services.AddScoped<MessagingQueries>();

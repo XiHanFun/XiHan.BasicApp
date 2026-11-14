@@ -8,7 +8,7 @@
 
 | 接口 | 来源 | 用途 |
 | --- | --- | --- |
-| `ISharedCache` | 框架 `Caching.Abstractions` | 跨实例共享的缓存，各包都用它：授权规则、角色指派、会话门禁、验证码与登录节流、套餐白名单、打印模板等 |
+| `ISharedCache` | 框架 `Caching.Abstractions` | 跨实例共享的缓存，各包都用它：授权规则、角色指派、会话门禁、验证码与登录节流、套餐白名单、参数、字典选项、用户设置、部门、消息模板、打印模板等 |
 | `ICache` | 框架 | 类型化缓存；配了 Redis 时是本机 L1 + Redis L2 |
 | `ICacheStore` | 框架 | 字节存储，供分布式锁与幂等去重 |
 
@@ -27,11 +27,18 @@
 | 权限规则、角色指派、继承图、委托、权限条件 | 60 秒 | 写入方即时失效 |
 | 访问策略、字段安全规则、约束规则（按侧） | 60 秒 | 写入方即时失效 |
 | 打印模板（按侧 × 编码） | 30 分钟 | 模板写入时 |
+| 参数（按侧 × 键，加密的存密文） | 10 分钟 | 参数增删改、内建参数对齐时 |
+| 字典选项（按侧 × 字典编码） | 10 分钟 | 字典与字典项增删改时 |
+| 用户设置（按用户 × 场景 × 键，没存过的也缓存） | 10 分钟 | 写这一条设置时 |
+| 消息模板（按侧 × 渠道 × 编码，只存启用的） | 10 分钟 | 模板增删改时 |
+| 部门与各部门成员数（按租户整份） | 60 秒 | 部门增删改与移动、任职增删、导入用户时 |
 | 租户目录、权限授予 | 框架进程内缓存，`XiHan:MultiTenancy:Database:CacheTimeToLiveSeconds` / `XiHan:Security:Database:CacheTimeToLiveSeconds`（30 秒） | 框架 `TenantRecordStore` / `PermissionGrantRecordStore` 写入时失效本实例的条目 |
 
 授予与指派的生效、到期在判定时按当前时间比较，不依赖缓存重建。
 
-上面这些读穿缓存未命中时，经 `Runtime.Persistence.StoreScope` 在独立的只读工作单元里读库，看不到调用里还没提交的写入。所以写入方在调用里失效要用 `CacheInvalidation.RemoveAsync` / `RemoveManyAsync`（Runtime）：调用里只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库；同一缓存的键一次往返）。管道之外（种子、作业）调用即刻删除。
+参数、字典选项与消息模板按侧各存一份：租户读时先看自己的、再看平台的，平台那一份改了只失效平台的键，不用逐个租户失效；这一侧没有的也缓存成「没有」，新建时一并失效。
+
+上面这些读穿缓存未命中时，经 `Runtime.Persistence.StoreScope` 在独立的只读工作单元里读主库，看不到调用里还没提交的写入。部门是租户库实体，要在调用自己的租户上下文里读，只在只读操作（`departments.tree`）里读；只读工作单元可能读从库，所以它的时长取 60 秒。所以写入方在调用里失效要用 `CacheInvalidation.RemoveAsync` / `RemoveManyAsync`（Runtime）：调用里只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库；同一缓存的键一次往返）。管道之外（种子、作业）调用即刻删除。
 
 ::: warning 不要在提交前删键
 直接调 `cache.RemoveAsync` 会在提交之前删键。同一请求里的后续读取或并发请求在删键与提交之间未命中，会把提交前的旧数据写回缓存，变更要等缓存过期才生效。新写的读穿缓存一律经 `CacheInvalidation` 失效。
@@ -44,6 +51,7 @@
 | 命名空间 | 能否改写值 |
 | --- | --- |
 | `access:`、`identity:`、`tenancy:`、`openplatform:` | 否（鉴权、签名与套餐门控相关） |
+| `settings:`、`organization:` | 否（参数里有密文，部门数据要整份一致） |
 | `ai:` | 否（提供商目录的戳键） |
 | `realtime:`（配了 Redis 时才有） | 否（在线状态） |
 | `notification:`、`printing:` | 是 |
@@ -72,7 +80,7 @@ BasicApp 没有自建的后台任务框架，异步工作分下面几类：
 | 后台循环 | `IHostedFeature` 随应用启停 | Notification 的发送循环与 Telegram 机器人；Auditing 的日志批量写入；Files 的导出执行；Realtime 的在线状态心跳（配了 Redis 时） |
 | 有界队列 | 调用里只入队，后台批量落库 | 七类分表日志（`BasicApp:Auditing:QueueCapacity` / `BatchSize` / `FlushIntervalSeconds`）；操作日志走框架的 `XiHan:Auditing:Database` 队列 |
 | 提交后推送 | `IRealtimePush.SendAsync` 在调用里暂存，`RealtimeDispatchMiddleware` 在调用成功、事务提交之后发出 | `ForceLogout`、`ReceiveNotification`、`TaskProgress` |
-| 提交后失效 | `CacheInvalidation` 暂存，`CacheInvalidationMiddleware` 在工作单元结束后删键 | Access 的授权类缓存、会话门禁、套餐白名单 |
+| 提交后失效 | `CacheInvalidation` 暂存，`CacheInvalidationMiddleware` 在工作单元结束后删键 | Access 的授权类缓存、会话门禁、套餐白名单、参数、字典选项、用户设置、部门、消息模板 |
 | 领域事件 | 发件箱随业务写入同一事务，后台投递给订阅方 | 见[实体基类](./entity#领域事件) |
 
 不落库的瞬时推送（正在输入、助手的流式增量）用 `IRealtimePush.SendNowAsync`，只能在事务之外调用。

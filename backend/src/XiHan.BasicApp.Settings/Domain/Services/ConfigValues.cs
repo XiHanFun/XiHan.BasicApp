@@ -79,19 +79,34 @@ public sealed class ConfigValues(ISecretProtector protector)
     public Result<Maybe<string>> PlaintextOf(SysConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
-        if (string.IsNullOrEmpty(config.Value))
+        return PlaintextOf(config.Key, config.Value, config.IsEncrypted);
+    }
+
+    /// <summary>
+    /// 取存着的值的明文
+    /// </summary>
+    /// <remarks>
+    /// 给读缓存用：缓存里存的是值本身（加密的是密文）
+    /// </remarks>
+    /// <param name="key">参数键（解不开时写进错误详情）</param>
+    /// <param name="value">存着的值</param>
+    /// <param name="isEncrypted">是否加密</param>
+    /// <returns>明文；没有值为 <c>None</c></returns>
+    public Result<Maybe<string>> PlaintextOf(string key, string? value, bool isEncrypted)
+    {
+        if (string.IsNullOrEmpty(value))
         {
             return Maybe.None<string>();
         }
 
-        if (!config.IsEncrypted)
+        if (!isEncrypted)
         {
-            return Maybe.Some(config.Value);
+            return Maybe.Some(value);
         }
 
-        return protector.TryUnprotect(Purpose, config.Value, out var plaintext)
+        return protector.TryUnprotect(Purpose, value, out var plaintext)
             ? Maybe.Some(plaintext)
-            : Error.Unexpected(SettingsErrors.ConfigUndecryptable, SettingsMessages.ConfigUndecryptable, details: MessageArguments.Of(("key", config.Key)));
+            : Error.Unexpected(SettingsErrors.ConfigUndecryptable, SettingsMessages.ConfigUndecryptable, details: MessageArguments.Of(("key", key)));
     }
 
     private static JsonValueKind? RootKind(string value)

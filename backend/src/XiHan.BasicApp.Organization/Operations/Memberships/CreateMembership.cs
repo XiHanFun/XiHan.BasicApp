@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -23,6 +24,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="service">归属域服务</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="clock">时间源</param>
+/// <param name="snapshots">部门缓存（成员数随之变）</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsCreate)]
 public sealed class CreateMembership(
     IRepository<SysUserDepartment, Guid> memberships,
@@ -30,7 +32,8 @@ public sealed class CreateMembership(
     IRepository<SysPosition, Guid> positions,
     MembershipService service,
     IIdGenerator<Guid> ids,
-    TimeProvider clock) : IOperation<CreateMembershipRequest, MembershipResponse>
+    TimeProvider clock,
+    DepartmentSnapshots snapshots) : IOperation<CreateMembershipRequest, MembershipResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -95,6 +98,8 @@ public sealed class CreateMembership(
         {
             return added.Error!;
         }
+
+        await snapshots.InvalidateAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
 
         return (await service.ComposeAsync([membership], context.CancellationToken).ConfigureAwait(false))[0];
     }

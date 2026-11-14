@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Notification.Domain.Services;
+using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.Notification.Operations.BotConfigs;
 using XiHan.BasicApp.Notification.Operations.Inbox;
@@ -55,6 +56,7 @@ namespace XiHan.BasicApp.Notification;
 [JsonSerializable(typeof(MessagingIdRequest))]
 [JsonSerializable(typeof(MessagingIdsRequest))]
 [JsonSerializable(typeof(MessageTemplateResponse))]
+[JsonSerializable(typeof(ResolvedTemplate))]
 [JsonSerializable(typeof(PageResult<MessageTemplateResponse>))]
 [JsonSerializable(typeof(CreateMessageTemplateRequest))]
 [JsonSerializable(typeof(UpdateMessageTemplateRequest))]

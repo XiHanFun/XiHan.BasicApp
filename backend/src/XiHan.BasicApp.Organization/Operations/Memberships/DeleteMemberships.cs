@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -20,8 +21,9 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="memberships">归属仓储</param>
 /// <param name="service">归属域服务</param>
 /// <param name="clock">时间源</param>
+/// <param name="snapshots">部门缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsDelete)]
-public sealed class DeleteMemberships(IRepository<SysUserDepartment, Guid> memberships, MembershipService service, TimeProvider clock) : IOperation<MembershipIdsRequest, BatchResult>
+public sealed class DeleteMemberships(IRepository<SysUserDepartment, Guid> memberships, MembershipService service, TimeProvider clock, DepartmentSnapshots snapshots) : IOperation<MembershipIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -73,6 +75,11 @@ public sealed class DeleteMemberships(IRepository<SysUserDepartment, Guid> membe
                     }
                 }
             }
+        }
+
+        if (succeeded.Count > 0 && scope.TryGetValue(out var tenantId))
+        {
+            await snapshots.InvalidateAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
         }
 
         return new BatchResult(succeeded, failed);

@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Seeding;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Tenancy.Seeds;
 using XiHan.Framework.Domain.Specifications;
@@ -86,6 +87,9 @@ public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOption
                 return attached;
             }
         }
+
+        // 在调用里只记下，演示部门与任职一起提交之后才删
+        await context.Services.GetRequiredService<DepartmentSnapshots>().InvalidateAsync(DemoTenantSeeder.DemoTenantId, context.CancellationToken).ConfigureAwait(false);
 
         var generalManager = new SysPosition { Id = ids.NewId(), Code = "gm", Name = "总经理", Order = 0 };
         var manager = new SysPosition { Id = ids.NewId(), Code = "manager", Name = "经理", Order = 10 };

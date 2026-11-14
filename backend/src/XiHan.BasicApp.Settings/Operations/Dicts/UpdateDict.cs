@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -17,8 +18,9 @@ namespace XiHan.BasicApp.Settings.Operations.Dicts;
 /// </remarks>
 /// <param name="dicts">字典仓储</param>
 /// <param name="service">字典域服务</param>
+/// <param name="sets">字典选项缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsUpdate)]
-public sealed class UpdateDict(IRepository<SysDict, Guid> dicts, DictService service) : IOperation<UpdateDictRequest, DictResponse>
+public sealed class UpdateDict(IRepository<SysDict, Guid> dicts, DictService service, DictOptionSets sets) : IOperation<UpdateDictRequest, DictResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -47,6 +49,12 @@ public sealed class UpdateDict(IRepository<SysDict, Guid> dicts, DictService ser
         dict.Order = request.Order;
         dict.Status = request.Status;
         var updated = await dicts.UpdateAsync(dict, context.CancellationToken).ConfigureAwait(false);
-        return updated.IsFailure ? updated.Error! : DictResponse.From(dict);
+        if (updated.IsFailure)
+        {
+            return updated.Error!;
+        }
+
+        await sets.InvalidateAsync(dict.OwnerTenantId, dict.Code, context.CancellationToken).ConfigureAwait(false);
+        return DictResponse.From(dict);
     }
 }

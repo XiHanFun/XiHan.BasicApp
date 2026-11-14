@@ -25,8 +25,9 @@ namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 /// <param name="settings">用户设置仓储</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="pushes">实时推送（没装 Realtime 即没有）</param>
+/// <param name="entries">用户设置缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings, IIdGenerator<Guid> ids, IEnumerable<IRealtimePush> pushes) : IOperation<UpdateUserSettingRequest, UserSettingResponse>
+public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings, IIdGenerator<Guid> ids, IEnumerable<IRealtimePush> pushes, UserSettingEntries entries) : IOperation<UpdateUserSettingRequest, UserSettingResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -65,6 +66,8 @@ public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings
         {
             return written.Error!;
         }
+
+        await entries.InvalidateAsync(userId, scene, key, context.CancellationToken).ConfigureAwait(false);
 
         // 设置随人走（不分租户）：推给这个用户在所有侧的连接
         foreach (var push in pushes)

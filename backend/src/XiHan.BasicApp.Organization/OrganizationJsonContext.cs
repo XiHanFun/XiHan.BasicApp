@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Organization;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.BasicApp.Organization.Operations.Departments;
 using XiHan.BasicApp.Organization.Operations.Memberships;
 using XiHan.BasicApp.Organization.Operations.Positions;
@@ -30,6 +31,7 @@ namespace XiHan.BasicApp.Organization;
 [JsonSerializable(typeof(MoveDepartmentRequest))]
 [JsonSerializable(typeof(DepartmentIdsRequest))]
 [JsonSerializable(typeof(DepartmentResponse))]
+[JsonSerializable(typeof(List<DepartmentEntry>))]
 [JsonSerializable(typeof(DepartmentNode))]
 [JsonSerializable(typeof(DepartmentTreeResponse))]
 [JsonSerializable(typeof(DepartmentDetailResponse))]

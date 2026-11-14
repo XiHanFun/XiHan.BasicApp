@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Primitives;
 
@@ -14,8 +15,9 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// <c>POST /api/departments/{id}:move</c>。新上级必须存在且不是自己或自己的子孙；整棵子树的闭包行重算
 /// </remarks>
 /// <param name="service">部门域服务</param>
+/// <param name="snapshots">部门缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsUpdate)]
-public sealed class MoveDepartment(DepartmentService service) : IOperation<MoveDepartmentRequest, DepartmentResponse>
+public sealed class MoveDepartment(DepartmentService service, DepartmentSnapshots snapshots) : IOperation<MoveDepartmentRequest, DepartmentResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -44,6 +46,16 @@ public sealed class MoveDepartment(DepartmentService service) : IOperation<MoveD
         }
 
         var moved = await service.MoveAsync(department, request.ParentId, context.CancellationToken).ConfigureAwait(false);
-        return moved.IsFailure ? moved.Error! : DepartmentResponse.From(department);
+        if (moved.IsFailure)
+        {
+            return moved.Error!;
+        }
+
+        if (scope.TryGetValue(out var tenantId))
+        {
+            await snapshots.InvalidateAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
+        }
+
+        return DepartmentResponse.From(department);
     }
 }

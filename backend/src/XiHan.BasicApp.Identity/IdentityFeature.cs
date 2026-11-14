@@ -80,6 +80,7 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<AccessTokenIssuer>();
         context.Services.AddSingleton<SessionGate>();
+        context.Services.AddSingleton<UserSettingEntries>();
         context.Services.AddSingleton<LoginAttempts>();
         context.Services.TryAddSingleton<ICaptchaCodeSource, RandomCaptchaCodes>();
         context.Services.AddSingleton<Captchas>();

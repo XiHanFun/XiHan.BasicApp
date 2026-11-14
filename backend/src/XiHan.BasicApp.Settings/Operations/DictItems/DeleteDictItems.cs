@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -20,8 +21,10 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// 同一批里先删下级再删上级也按删除时的状态判（入参顺序即处理顺序）
 /// </remarks>
 /// <param name="items">字典项仓储</param>
+/// <param name="service">字典域服务</param>
+/// <param name="sets">字典选项缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsDelete)]
-public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items) : IOperation<DictItemIdsRequest, BatchResult>
+public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items, DictService service, DictOptionSets sets) : IOperation<DictItemIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -62,6 +65,11 @@ public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items) : IOpe
             if (removed.IsFailure)
             {
                 return removed.Error!;
+            }
+
+            if (await service.CodeOfAsync(item.DictId, context.CancellationToken).ConfigureAwait(false) is { } dictCode)
+            {
+                await sets.InvalidateAsync(item.OwnerTenantId, dictCode, context.CancellationToken).ConfigureAwait(false);
             }
 
             succeeded.Add(id);

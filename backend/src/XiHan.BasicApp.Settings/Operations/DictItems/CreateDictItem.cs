@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -20,8 +21,9 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// <param name="items">字典项仓储</param>
 /// <param name="service">字典域服务</param>
 /// <param name="ids">标识生成器</param>
+/// <param name="sets">字典选项缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsCreate)]
-public sealed class CreateDictItem(IRepository<SysDictItem, Guid> items, DictService service, IIdGenerator<Guid> ids) : IOperation<CreateDictItemRequest, DictItemResponse>
+public sealed class CreateDictItem(IRepository<SysDictItem, Guid> items, DictService service, IIdGenerator<Guid> ids, DictOptionSets sets) : IOperation<CreateDictItemRequest, DictItemResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -87,6 +89,8 @@ public sealed class CreateDictItem(IRepository<SysDictItem, Guid> items, DictSer
         {
             return added.Error!;
         }
+
+        await sets.InvalidateAsync(dict.OwnerTenantId, dict.Code, context.CancellationToken).ConfigureAwait(false);
 
         if (item.IsDefault)
         {

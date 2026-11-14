@@ -5,6 +5,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Seeding;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Entities;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -45,7 +46,8 @@ public sealed record DemoDict(string Code, string Name, string Scenario, IReadOn
 /// <param name="items">字典项仓储</param>
 /// <param name="options">种子配置</param>
 /// <param name="ids">标识生成器</param>
-public sealed class DemoDictSeeder(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items, SeedOptions options, IIdGenerator<Guid> ids) : ISeeder
+/// <param name="sets">字典选项缓存</param>
+public sealed class DemoDictSeeder(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items, SeedOptions options, IIdGenerator<Guid> ids, DictOptionSets sets) : ISeeder
 {
     /// <summary>
     /// 演示字典
@@ -115,6 +117,8 @@ public sealed class DemoDictSeeder(IRepository<SysDict, Guid> dicts, IRepository
                     return outcome;
                 }
             }
+
+            await sets.InvalidateAsync(platform, dict.Code, context.CancellationToken).ConfigureAwait(false);
         }
 
         return Result.Success();

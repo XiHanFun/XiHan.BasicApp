@@ -38,7 +38,8 @@ public sealed record TemplateDraft(string Name, string? Subject, string Content,
 /// </remarks>
 /// <param name="templates">模板仓储</param>
 /// <param name="ids">标识生成器</param>
-public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid> templates, IIdGenerator<Guid> ids)
+/// <param name="entries">模板缓存（发送时读）</param>
+public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid> templates, IIdGenerator<Guid> ids, MessageTemplateEntries entries)
 {
     /// <summary>
     /// 取这一侧看得到的模板
@@ -88,17 +89,17 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
     /// <summary>
     /// 发送时取模板：当前一侧启用的同编码模板，没有取平台启用的
     /// </summary>
+    /// <remarks>
+    /// 两侧各从缓存读（<see cref="MessageTemplateEntries"/>）
+    /// </remarks>
     /// <param name="owner">侧</param>
     /// <param name="channel">渠道</param>
     /// <param name="code">编码</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>模板；都没有为 <see langword="null"/></returns>
-    public async Task<SysMessageTemplate?> ResolveAsync(string owner, TemplateChannel channel, string code, CancellationToken cancellationToken)
-    {
-        var platform = TenantIds.Platform;
-        var rows = await templates.ListAsync(EntityQuery.All<SysMessageTemplate>().Where(new Specification<SysMessageTemplate>(t => (t.OwnerTenantId == owner || t.OwnerTenantId == platform) && t.Channel == channel && t.Code == code && t.IsEnabled)), cancellationToken).ConfigureAwait(false);
-        return rows.FirstOrDefault(t => string.Equals(t.OwnerTenantId, owner, StringComparison.Ordinal)) ?? (rows.Count > 0 ? rows[0] : null);
-    }
+    public async Task<ResolvedTemplate?> ResolveAsync(string owner, TemplateChannel channel, string code, CancellationToken cancellationToken)
+        => (IsPlatform(owner) ? null : await entries.OfAsync(owner, channel, code, cancellationToken).ConfigureAwait(false))
+            ?? await entries.OfAsync(TenantIds.Platform, channel, code, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// 这一侧、这个渠道是否已有这个编码的模板（不论启用与否）
@@ -140,7 +141,13 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
         var template = new SysMessageTemplate { Id = ids.NewId(), OwnerTenantId = owner, Code = code, Channel = channel };
         Apply(template, draft);
         var added = await templates.AddAsync(template, cancellationToken).ConfigureAwait(false);
-        return added.IsFailure ? added.Error! : template;
+        if (added.IsFailure)
+        {
+            return added.Error!;
+        }
+
+        await entries.InvalidateAsync(owner, channel, code, cancellationToken).ConfigureAwait(false);
+        return template;
     }
 
     /// <summary>
@@ -161,7 +168,14 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
         }
 
         Apply(template, draft);
-        return await templates.UpdateAsync(template, cancellationToken).ConfigureAwait(false);
+        var updated = await templates.UpdateAsync(template, cancellationToken).ConfigureAwait(false);
+        if (updated.IsFailure)
+        {
+            return updated;
+        }
+
+        await entries.InvalidateAsync(template.OwnerTenantId, template.Channel, template.Code, cancellationToken).ConfigureAwait(false);
+        return updated;
     }
 
     /// <summary>
@@ -192,6 +206,7 @@ public sealed class MessageTemplateService(IRepository<SysMessageTemplate, Guid>
                 continue;
             }
 
+            await entries.InvalidateAsync(template.OwnerTenantId, template.Channel, template.Code, cancellationToken).ConfigureAwait(false);
             succeeded.Add(id);
         }
 

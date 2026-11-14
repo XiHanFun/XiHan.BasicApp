@@ -27,12 +27,14 @@ namespace XiHan.BasicApp.Organization.Infrastructure;
 /// <param name="permissions">权限判定</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="clock">时间源</param>
+/// <param name="snapshots">部门缓存（成员数随之变）</param>
 public sealed class DepartmentUserImport(
     IRepository<SysDepartment, Guid> departments,
     IRepository<SysUserDepartment, Guid> memberships,
     IPermissionChecker permissions,
     IIdGenerator<Guid> ids,
-    TimeProvider clock) : IUserImportExtension
+    TimeProvider clock,
+    DepartmentSnapshots snapshots) : IUserImportExtension
 {
     private const string Field = "departmentCode";
 
@@ -96,6 +98,11 @@ public sealed class DepartmentUserImport(
             {
                 return outcome;
             }
+        }
+
+        if (OrganizationScope.RequireTenant(context).TryGetValue(out var tenantId))
+        {
+            await snapshots.InvalidateAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
         }
 
         return Result.Success();

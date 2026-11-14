@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts.Seeding;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -26,7 +27,8 @@ namespace XiHan.BasicApp.Settings.Seeds;
 /// <param name="values">参数值规则</param>
 /// <param name="sections">各包登记的内建参数</param>
 /// <param name="ids">标识生成器</param>
-public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, ConfigValues values, IEnumerable<ConfigCatalogSection> sections, IIdGenerator<Guid> ids) : ISeeder
+/// <param name="entries">参数缓存</param>
+public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, ConfigValues values, IEnumerable<ConfigCatalogSection> sections, IIdGenerator<Guid> ids, ConfigEntries entries) : ISeeder
 {
     /// <inheritdoc />
     public string Name => "settings.configs";
@@ -66,6 +68,7 @@ public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, Co
                     return added.Error!;
                 }
 
+                await entries.InvalidateAsync(platform, key, context.CancellationToken).ConfigureAwait(false);
                 continue;
             }
 
@@ -100,6 +103,8 @@ public sealed class ConfigCatalogSeeder(IRepository<SysConfig, Guid> configs, Co
             {
                 return updated.Error!;
             }
+
+            await entries.InvalidateAsync(platform, key, context.CancellationToken).ConfigureAwait(false);
         }
 
         return Result.Success();

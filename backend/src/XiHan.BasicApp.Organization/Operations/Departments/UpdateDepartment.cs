@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -18,8 +19,9 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// <param name="departments">部门仓储</param>
 /// <param name="service">部门域服务</param>
 /// <param name="members">成员域服务（核对负责人）</param>
+/// <param name="snapshots">部门缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsUpdate)]
-public sealed class UpdateDepartment(IRepository<SysDepartment, Guid> departments, DepartmentService service, MembershipService members) : IOperation<UpdateDepartmentRequest, DepartmentResponse>
+public sealed class UpdateDepartment(IRepository<SysDepartment, Guid> departments, DepartmentService service, MembershipService members, DepartmentSnapshots snapshots) : IOperation<UpdateDepartmentRequest, DepartmentResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -56,6 +58,12 @@ public sealed class UpdateDepartment(IRepository<SysDepartment, Guid> department
         department.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         department.Status = request.Status;
         var updated = await departments.UpdateAsync(department, context.CancellationToken).ConfigureAwait(false);
-        return updated.IsFailure ? updated.Error! : DepartmentResponse.From(department);
+        if (updated.IsFailure)
+        {
+            return updated.Error!;
+        }
+
+        await snapshots.InvalidateAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
+        return DepartmentResponse.From(department);
     }
 }

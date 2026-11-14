@@ -3,12 +3,14 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.BasicApp.Settings.Queries;
 using XiHan.BasicApp.Settings.Seeds;
 using XiHan.Framework.Kernel;
@@ -63,6 +65,9 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddMessageCatalog(SettingsMessages.Catalog);
         context.Services.AddGeneratedRepositories();
         context.Services.AddScoped<ConfigValues>();
+        context.Services.AddSingleton<ConfigEntries>();
+        context.Services.AddSingleton<DictOptionSets>();
+        context.Services.AddCacheNamespace("settings", editable: false);
         context.Services.AddScoped<IConfigValueReader, ConfigValueReader>();
         context.Services.AddScoped<DictService>();
         context.Services.AddScoped<NumberingRuleService>();

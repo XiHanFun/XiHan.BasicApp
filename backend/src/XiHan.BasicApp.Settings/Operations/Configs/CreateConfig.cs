@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -23,8 +24,9 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// <param name="configs">参数仓储</param>
 /// <param name="values">参数值规则</param>
 /// <param name="ids">标识生成器</param>
+/// <param name="entries">参数缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
-public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, IIdGenerator<Guid> ids) : IOperation<CreateConfigRequest, ConfigResponse>
+public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, IIdGenerator<Guid> ids, ConfigEntries entries) : IOperation<CreateConfigRequest, ConfigResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -78,6 +80,12 @@ public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
         };
         var added = await configs.AddAsync(config, context.CancellationToken).ConfigureAwait(false);
-        return added.IsFailure ? added.Error! : ConfigResponse.From(config);
+        if (added.IsFailure)
+        {
+            return added.Error!;
+        }
+
+        await entries.InvalidateAsync(owner, key, context.CancellationToken).ConfigureAwait(false);
+        return ConfigResponse.From(config);
     }
 }

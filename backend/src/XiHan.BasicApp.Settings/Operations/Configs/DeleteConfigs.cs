@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -17,8 +18,9 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// <c>DELETE /api/configs?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_001</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，内建的 <c>SETTINGS_CONFLICT_006</c>
 /// </remarks>
 /// <param name="configs">参数仓储</param>
+/// <param name="entries">参数缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsDelete)]
-public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs) : IOperation<ConfigIdsRequest, BatchResult>
+public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs, ConfigEntries entries) : IOperation<ConfigIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -60,6 +62,7 @@ public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs) : IOpera
                 return removed.Error!;
             }
 
+            await entries.InvalidateAsync(config.OwnerTenantId, config.Key, context.CancellationToken).ConfigureAwait(false);
             succeeded.Add(id);
         }
 

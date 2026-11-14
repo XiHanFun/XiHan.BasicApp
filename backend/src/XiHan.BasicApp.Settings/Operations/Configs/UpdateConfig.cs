@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
+using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -18,8 +19,9 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// </remarks>
 /// <param name="configs">参数仓储</param>
 /// <param name="values">参数值规则</param>
+/// <param name="entries">参数缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsUpdate)]
-public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values) : IOperation<UpdateConfigRequest, ConfigResponse>
+public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, ConfigEntries entries) : IOperation<UpdateConfigRequest, ConfigResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -72,7 +74,13 @@ public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
         config.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         config.Status = request.Status;
         var updated = await configs.UpdateAsync(config, context.CancellationToken).ConfigureAwait(false);
-        return updated.IsFailure ? updated.Error! : ConfigResponse.From(config);
+        if (updated.IsFailure)
+        {
+            return updated.Error!;
+        }
+
+        await entries.InvalidateAsync(config.OwnerTenantId, config.Key, context.CancellationToken).ConfigureAwait(false);
+        return ConfigResponse.From(config);
     }
 
     /// <summary>

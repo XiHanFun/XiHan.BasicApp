@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Services;
+using XiHan.BasicApp.Organization.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -18,8 +19,9 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// </remarks>
 /// <param name="departments">部门仓储</param>
 /// <param name="service">部门域服务</param>
+/// <param name="snapshots">部门缓存</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsDelete)]
-public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departments, DepartmentService service) : IOperation<DepartmentIdsRequest, BatchResult>
+public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departments, DepartmentService service, DepartmentSnapshots snapshots) : IOperation<DepartmentIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -61,6 +63,11 @@ public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departmen
             }
 
             succeeded.Add(id);
+        }
+
+        if (succeeded.Count > 0 && scope.TryGetValue(out var tenantId))
+        {
+            await snapshots.InvalidateAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
         }
 
         return new BatchResult(succeeded, failed);

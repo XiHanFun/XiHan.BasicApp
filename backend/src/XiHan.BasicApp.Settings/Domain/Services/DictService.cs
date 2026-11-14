@@ -49,6 +49,13 @@ public sealed class DictService(IRepository<SysDict, Guid> dicts, IRepository<Sy
     }
 
     /// <summary>
+    /// 字典的编码
+    /// </summary>
+    /// <returns>字典不存在即 <c>null</c></returns>
+    public async Task<string?> CodeOfAsync(Guid dictId, CancellationToken cancellationToken)
+        => (await dicts.FindAsync(dictId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var dict) ? dict.Code : null;
+
+    /// <summary>
     /// 在这一侧可见的字典里按主键找
     /// </summary>
     public async Task<Maybe<SysDict>> FindVisibleAsync(Guid id, string owner, CancellationToken cancellationToken)
