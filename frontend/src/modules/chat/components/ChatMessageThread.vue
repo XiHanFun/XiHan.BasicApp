@@ -1190,6 +1190,8 @@ onBeforeUnmount(() => {
             v-bind="feed.getItemProps({ id: String(item.messageId), index })"
             :id="`chat-msg-${item.messageId}`"
             :key="item.messageId"
+            class="chat-msg-row"
+            :class="{ 'chat-msg-row--highlight': chatStore.highlightMessageId === item.messageId }"
             @contextmenu="openContextMenu($event, item)"
             @click="handleRowClick(item)"
           >
@@ -1210,7 +1212,6 @@ onBeforeUnmount(() => {
                 :show-sender-name="isGroupLike"
                 :conversation-type="conversation.conversationType"
                 :read-count="readCountOf(item)"
-                :highlighted="chatStore.highlightMessageId === item.messageId"
                 :avatar-clickable="canOpenUserCard(item)"
                 @avatar-click="handleAvatarClick(item)"
                 @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
@@ -1316,6 +1317,17 @@ onBeforeUnmount(() => {
 /* 元信息行里的文字链：字号随这一行压到 xs，经按钮的公开槽给 */
 .chat-meta-link {
   --xh-button-font-size: var(--xh-font-size-xs);
+}
+
+/* 定位到的消息（引用块、搜索命中、置顶）：整行铺一条底色，几秒后撤掉时淡出 */
+.chat-msg-row {
+  border-radius: var(--xh-shape-control);
+  transition: background var(--xh-motion-duration-slide) var(--xh-motion-ease-exit);
+}
+
+.chat-msg-row--highlight {
+  background: var(--xh-bg-brand-subtle);
+  transition-duration: var(--xh-motion-duration-micro);
 }
 
 /* 多选：每条消息前面留一格勾选框，整行可点；消息里的按钮这时不接点击，免得点图片、点文件抢了勾选 */

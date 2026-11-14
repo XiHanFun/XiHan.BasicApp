@@ -38,8 +38,6 @@ const props = defineProps<{
   conversationType: ChatConversationType
   /** 本人消息的已读人数（未加载为 null；单聊 >0 即已读） */
   readCount?: null | number
-  /** 搜索定位高亮（3s 自清） */
-  highlighted?: boolean
   /** 头像能点开资料卡（发送人是这一侧的用户；助手与本人的头像不能） */
   avatarClickable?: boolean
 }>()
@@ -331,7 +329,6 @@ async function handleDownload(fileId: string) {
           isSelf ? 'chat-bubble--self' : 'chat-bubble--other',
           {
             'chat-bubble--mention': mentionsMe,
-            'chat-bubble--highlight': props.highlighted,
             'chat-bubble--announcement': isAnnouncement,
           },
         ]"
@@ -550,21 +547,6 @@ async function handleDownload(fileId: string) {
 
 .chat-bubble--mention {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 45%, transparent);
-}
-
-.chat-bubble--highlight {
-  animation: chat-highlight-pulse 3s var(--xh-motion-ease-enter);
-}
-
-@keyframes chat-highlight-pulse {
-  0%,
-  60% {
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--xh-fg-brand) 60%, transparent);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--xh-fg-brand) 0%, transparent);
-  }
 }
 
 .chat-bubble--announcement {
