@@ -6,14 +6,12 @@
 <script lang="ts" setup>
 import type { IslandAccessory, IslandAction, IslandTask } from '~/composables/useDynamicIsland'
 import { useOnline } from '@vueuse/core'
-import { XhButton } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { toast } from '~/composables'
 import { configureDynamicIsland, islandStatus, useDynamicIsland } from '~/composables/useDynamicIsland'
 import { configureNotificationSound } from '~/composables/useNotificationSound'
-import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
 import { defaultLeading, defaultTrailing, usesElapsed } from './dynamic-island-view'
 import DynamicIslandAccessory from './DynamicIslandAccessory.vue'
@@ -58,6 +56,7 @@ const {
   expand,
   collapse,
   dismissTask,
+  hold,
 } = useDynamicIsland()
 
 /** 壳体是否可见：折叠态需有当前任务，展开态需有面板内容 */
@@ -170,9 +169,11 @@ async function measurePill(): Promise<void> {
   }
   // 量取内容固有宽度：临时切到 max-content（同帧内改回，不产生闪烁）
   // 注意不能直接用 scrollWidth——inner 为 width:100% 时它不小于容器宽，会逐次放大
+  // 取 offsetWidth 而不是 getBoundingClientRect：入场与入栈动效给壳体带着 scale，量到的是缩小后的宽度，文字会被截断
   const previousWidth = inner.style.width
   inner.style.width = 'max-content'
-  const intrinsic = inner.getBoundingClientRect().width
+  // offsetWidth 取整会丢小数，多给 1px 免得末字被省略号吃掉
+  const intrinsic = inner.offsetWidth + 1
   inner.style.width = previousWidth
   // 宽度只收敛为两档：「中」(PILL_MIN_WIDTH 下限) ~「宽」(PILL_MAX_WIDTH 上限)，不再有更小的极简档
   // 第二形态（多任务）固定「宽」档承载聚合文案；第一形态（单任务）在中~宽间按内容自适应，超「宽」自然截断
@@ -184,7 +185,7 @@ async function measurePill(): Promise<void> {
 
 // ── 卡片态：参照 iOS 灵动岛「重要更新自动短暂展开、随后自行收回」──────
 // 由任务的 alert 决定，缺省取「带正文（detail）或内容块」：聊天消息一类有内容的才值得抢占视线，
-// 纯状态胶囊（任务进行中）不打断。用户手动展开时立刻让位给内容态
+// 纯状态胶囊（任务进行中）不打断。展开面板时立刻让位给内容态；鼠标停在卡片上时卡片不收回
 const CARD_LINGER = 2600
 const cardTaskId = ref<string | null>(null)
 let cardTimer: ReturnType<typeof setTimeout> | null = null
@@ -206,10 +207,15 @@ function dismissCard(): void {
   cardTaskId.value = null
 }
 
-function presentCard(task: IslandTask): void {
-  cardTaskId.value = task.id
+/** 卡片停留计时：呈现时开始，鼠标停在上面时暂停，移开后重新计 */
+function lingerCard(): void {
   clearCardTimer()
   cardTimer = setTimeout(dismissCard, CARD_LINGER)
+}
+
+function presentCard(task: IslandTask): void {
+  cardTaskId.value = task.id
+  lingerCard()
 }
 
 /** 当前形态：内容态优先于卡片态，卡片态优先于胶囊 */
@@ -433,7 +439,8 @@ watch(expanded, (open) => {
     void measurePill()
   }
 })
-// 不在场的层是 inert 的：键盘展开时把焦点送进面板，收起时还给胶囊，不让焦点掉回页面开头
+// 不在场的层是 inert 的：键盘展开时把焦点送到面板上（Tab 再进到里面的按钮，不会一回车就点了操作），
+// 收起时还给胶囊，不让焦点掉回页面开头
 const pillRef = ref<HTMLElement | null>(null)
 watch(expanded, async (open) => {
   if (!rootRef.value?.contains(document.activeElement)) {
@@ -441,12 +448,80 @@ watch(expanded, async (open) => {
   }
   await nextTick()
   if (open) {
-    panelLayerRef.value?.querySelector<HTMLElement>('button:not([disabled])')?.focus()
+    panelLayerRef.value?.focus()
   }
   else {
     pillRef.value?.focus()
   }
 }, { flush: 'pre' })
+
+/** 焦点离开岛（Tab 出去、切走窗口）即收起；胶囊交出焦点是在展开途中，不算 */
+function onFocusOut(e: FocusEvent): void {
+  if (!expanded.value || e.target === pillRef.value) {
+    return
+  }
+  const next = e.relatedTarget
+  const leaving = next instanceof Node
+    ? !rootRef.value?.contains(next)
+    // 焦点落空：指针还在岛上（点了岛里不可聚焦的地方）不算离开
+    : !hovering.value
+  if (leaving) {
+    collapse()
+  }
+}
+
+// ── 悬停展开：鼠标停在岛上展开详情、移开收起；触屏与键盘仍靠点按与 Enter ──────
+// 进出各留一点延迟：划过岛去点顶栏时不误展开，移出边缘一下不至于立刻收回
+const HOVER_OPEN_DELAY = 150
+const HOVER_CLOSE_DELAY = 250
+let hoverTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearHoverTimer(): void {
+  if (hoverTimer) {
+    clearTimeout(hoverTimer)
+    hoverTimer = null
+  }
+}
+
+function onShellEnter(e: PointerEvent): void {
+  hovering.value = true
+  if (e.pointerType !== 'mouse') {
+    return
+  }
+  hold(true)
+  clearHoverTimer()
+  if (expanded.value) {
+    return
+  }
+  // 卡片本身就是这一条的详情：停在上面时让它留着，不换成面板，免得要点的按钮挪了位置
+  if (mode.value === 'card') {
+    clearCardTimer()
+    return
+  }
+  hoverTimer = setTimeout(() => {
+    hoverTimer = null
+    expand()
+  }, HOVER_OPEN_DELAY)
+}
+
+function onShellLeave(e: PointerEvent): void {
+  hovering.value = false
+  // 触屏抬手也会发 pointerleave，只认鼠标
+  if (e.pointerType !== 'mouse') {
+    return
+  }
+  hold(false)
+  clearHoverTimer()
+  if (expanded.value) {
+    hoverTimer = setTimeout(() => {
+      hoverTimer = null
+      collapse()
+    }, HOVER_CLOSE_DELAY)
+  }
+  else if (cardTaskId.value) {
+    lingerCard()
+  }
+}
 
 // 无可展开内容时自动收起
 watch(hasPanel, (has) => {
@@ -480,6 +555,8 @@ onBeforeUnmount(() => {
   cardObserver?.disconnect()
   cardObserver = null
   clearCardTimer()
+  clearHoverTimer()
+  hold(false)
   if (tickTimer) {
     clearInterval(tickTimer)
     tickTimer = null
@@ -493,7 +570,7 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
-    <div ref="rootRef" class="di-root">
+    <div ref="rootRef" class="di-root" @focusout="onFocusOut">
       <!-- 后方叠层：先于壳体入 DOM 以保证被壳体压住，仅折叠态且队列里还有待展示时出现 -->
       <TransitionGroup name="di-stack">
         <div
@@ -511,10 +588,10 @@ onBeforeUnmount(() => {
           :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-slide': sliding, 'is-persistent': !expanded && current?.persistent }]"
           :style="shellStyle"
           data-xh-ink="light"
-          @pointerenter="hovering = true"
-          @pointerleave="hovering = false"
+          @pointerenter="onShellEnter"
+          @pointerleave="onShellLeave"
         >
-          <!-- 折叠层：胶囊，左侧 leading、中间文案、右侧 trailing 与岛自己的计数和展开箭头 -->
+          <!-- 折叠层：胶囊，左侧 leading、中间文案、右侧 trailing 与岛自己的计数；鼠标停留或点按展开详情 -->
           <button
             ref="pillRef"
             type="button"
@@ -534,7 +611,6 @@ onBeforeUnmount(() => {
               <span class="di-trailing">
                 <DynamicIslandAccessory v-if="pillTrailing && current" :accessory="pillTrailing" :started-at="current.startedAt" :now="nowTick" />
                 <span v-if="pendingCount > STACK_MAX_LAYERS" class="di-count">+{{ pendingCount }}</span>
-                <Icon v-if="hasPanel" icon="lucide:chevron-down" width="13" height="13" class="di-chevron" />
               </span>
             </span>
           </button>
@@ -554,14 +630,8 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- 展开层：活动面板 -->
-          <div ref="panelLayerRef" class="di-layer di-panel" :class="{ 'is-active': expanded }" :inert="!expanded">
-            <div class="di-panel__head">
-              <span class="di-panel__title">{{ t('island.title') }}</span>
-              <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('island.collapse')" @click.stop="collapse">
-                <Icon icon="lucide:chevron-up" />
-              </XhButton>
-            </div>
-
+          <!-- 面板可编程聚焦（tabindex -1），键盘展开时焦点落在这里；不画标题，名字只给读屏 -->
+          <div ref="panelLayerRef" class="di-layer di-panel" :class="{ 'is-active': expanded }" :inert="!expanded" tabindex="-1" role="group" :aria-label="t('island.title')">
             <div class="di-panel__body">
               <DynamicIslandActivity
                 v-for="task in activeTasks"
@@ -820,32 +890,20 @@ onBeforeUnmount(() => {
   font-weight: 600;
 }
 
-.di-chevron {
-  opacity: 0.5;
-}
-
 /* ============ 展开层：活动面板 ============ */
 /* 固定目标宽度（与壳体展开宽度一致）：折叠态下测得的高度即最终高度，形变期间内容不回流 */
 .di-panel {
   width: min(86vw, 340px);
 }
 
-.di-panel__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--xh-space-2_5) var(--xh-space-3) var(--xh-space-1_5) var(--xh-space-4);
-}
-
-.di-panel__title {
-  font-size: var(--xh-font-size-sm);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+/* 面板只是承接焦点的容器，不画聚焦环；里面的按钮各自有环 */
+.di-panel:focus-visible {
+  outline: none;
 }
 
 .di-panel__body {
   max-height: min(60vh, 460px);
-  padding: var(--xh-space-1) var(--xh-space-2) var(--xh-space-2_5);
+  padding: var(--xh-space-2);
   overflow-y: auto;
 }
 

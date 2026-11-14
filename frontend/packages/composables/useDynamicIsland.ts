@@ -175,6 +175,10 @@ const STORAGE_KEY = 'xihan_island_state'
 
 const tasks = ref<IslandTask[]>([])
 const expanded = ref(false)
+/** 鼠标停在岛上：消息与展开面板时一样不倒计时 */
+const held = ref(false)
+/** 消息计时暂停中：面板展开或鼠标停在岛上 */
+const paused = computed(() => expanded.value || held.value)
 const timers = new Map<string, ReturnType<typeof setTimeout>>()
 let orderSeq = 0
 
@@ -308,22 +312,22 @@ function lingerOf(task: IslandTask): number {
       : SUCCESS_LINGER
 }
 
-/** 终态收尾：非常驻的消息各自开始倒计时（面板展开时不计时，收起后统一重排） */
+/** 终态收尾：非常驻的消息各自开始倒计时（面板展开或鼠标停在岛上时不计时，之后统一重排） */
 function settle(id: string): void {
   const task = tasks.value.find(item => item.id === id)
-  if (!task || task.persistent || expanded.value) {
+  if (!task || task.persistent || paused.value) {
     return
   }
   scheduleRemoval(id, lingerOf(task))
 }
 
 /**
- * 展开面板时暂停全部消息计时，收起后重新计时
- * 否则正看着列表，消息在眼皮底下一条条消失
+ * 展开面板或鼠标停在岛上时暂停全部消息计时，之后重新计时
+ * 否则正看着，消息在眼皮底下一条条消失
  */
-watch(expanded, (open) => {
+watch(paused, (hold) => {
   for (const task of messageStack.value) {
-    if (open) {
+    if (hold) {
       clearTimer(task.id)
     }
     else if (!timers.has(task.id)) {
@@ -587,5 +591,9 @@ export function useDynamicIsland() {
       expanded.value = hasPanel.value && !expanded.value
     },
     dismissTask: (id: string) => removeTask(id),
+    /** 鼠标停在岛上 / 移开：停留期间消息不倒计时 */
+    hold: (on: boolean) => {
+      held.value = on
+    },
   }
 }

@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: '动态',
-    collapse: '收起',
     dismiss: '移除',
     tasks_ongoing: '{n} 个任务进行中',
     elapsed_prefix: '已进行',

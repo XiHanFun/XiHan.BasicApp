@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: 'Atividade',
-    collapse: 'Recolher',
     dismiss: 'Dispensar',
     tasks_ongoing: '{n} tarefas em andamento',
     elapsed_prefix: 'Decorrido',

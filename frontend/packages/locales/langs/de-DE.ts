@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: 'Aktivität',
-    collapse: 'Einklappen',
     dismiss: 'Verwerfen',
     tasks_ongoing: '{n} Aufgaben laufen',
     elapsed_prefix: 'Verstrichen',

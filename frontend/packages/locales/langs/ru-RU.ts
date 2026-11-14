@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: 'Активность',
-    collapse: 'Свернуть',
     dismiss: 'Скрыть',
     tasks_ongoing: 'Выполняется задач: {n}',
     elapsed_prefix: 'Прошло',

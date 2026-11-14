@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: '활동',
-    collapse: '접기',
     dismiss: '제거',
     tasks_ongoing: '작업 {n}개 진행 중',
     elapsed_prefix: '경과',

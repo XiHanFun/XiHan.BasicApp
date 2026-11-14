@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: 'アクティビティ',
-    collapse: '折りたたむ',
     dismiss: '非表示',
     tasks_ongoing: '{n} 件のタスクを実行中',
     elapsed_prefix: '経過',

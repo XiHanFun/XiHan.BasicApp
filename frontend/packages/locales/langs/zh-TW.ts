@@ -997,7 +997,6 @@ export default {
   },
   island: {
     title: '動態',
-    collapse: '收合',
     dismiss: '移除',
     tasks_ongoing: '{n} 個任務進行中',
     elapsed_prefix: '已進行',

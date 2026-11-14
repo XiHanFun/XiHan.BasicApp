@@ -295,6 +295,25 @@ describe('useDynamicIsland 面板展开与计时', () => {
     expect(island.activeTasks.value).toEqual([])
   })
 
+  it('鼠标停在岛上时消息不倒计时，移开后重新计时', async () => {
+    vi.useFakeTimers()
+    const { islandStart, useDynamicIsland } = await loadModule()
+    const island = useDynamicIsland()
+
+    islandStart('m', '保存成功').success()
+    island.hold(true)
+    await nextTick()
+
+    vi.advanceTimersByTime(10_000)
+    expect(island.activeTasks.value).toHaveLength(1)
+
+    island.hold(false)
+    await nextTick()
+
+    vi.advanceTimersByTime(1600)
+    expect(island.activeTasks.value).toEqual([])
+  })
+
   it('面板已展开时新产生的终态不计时，避免眼皮底下消失', async () => {
     vi.useFakeTimers()
     const { islandStart, useDynamicIsland } = await loadModule()
