@@ -100,10 +100,18 @@ export default {
       copy_failed: 'Не удалось скопировать',
       forward: 'Переслать',
       download_failed: 'Не удалось скачать',
+      select: 'Выбрать несколько',
+      select_message: 'Выбрать сообщение от {name}',
+      selected_count: 'Выбрано: {n}',
+      select_limit: 'За один раз можно переслать не более {max} сообщений',
+      forward_one_by_one: 'Переслать по одному',
+      forward_merged: 'Переслать объединённо',
     },
     forward: {
       title: 'Переслать в…',
       sent: 'Переслано',
+      title_many: 'Переслать сообщения ({n})…',
+      title_merged: 'Переслать объединённо ({n})…',
     },
     member_menu: {
       send_message: 'Написать сообщение',
@@ -139,6 +147,7 @@ export default {
       save_edit: 'Сохранить изменения',
       mention_empty: 'Некого упомянуть через {\'@\'}',
       silenced: 'Вам запрещено писать, отправка сообщений пока недоступна',
+      mention_all: 'Все',
     },
     members: {
       count: 'Участников: {n}',
@@ -194,6 +203,13 @@ export default {
       online: 'В сети',
       offline: 'Не в сети',
       online_count: 'В сети: {n}',
+    },
+    record: {
+      title: 'Запись переписки',
+      title_group: 'Запись переписки: {name}',
+      title_pair: 'Запись переписки: {a} и {b}',
+      count: 'Запись переписки · сообщений: {n}',
+      back: 'Назад',
     },
     call: {
       voice: 'Голосовой звонок',
@@ -333,6 +349,8 @@ export default {
       type_assistant: 'Ассистент',
       type_call: 'Звонок',
       type_system: 'Система',
+      type_record: 'Запись переписки',
+      mention_all: 'Все',
     },
   },
 }

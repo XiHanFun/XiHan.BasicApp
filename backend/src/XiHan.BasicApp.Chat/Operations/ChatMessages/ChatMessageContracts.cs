@@ -3,6 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Chat.Domain.Entities;
+using XiHan.BasicApp.Chat.Domain.Services;
 
 namespace XiHan.BasicApp.Chat.Operations.ChatMessages;
 
@@ -41,6 +42,7 @@ public sealed record ChatReactionItem(string Emoji, Guid UserId, string? UserNam
 /// <param name="ReplyPreview">回复快照</param>
 /// <param name="EditedAt">编辑时间（UTC）</param>
 /// <param name="MentionedUserIds">提及的用户</param>
+/// <param name="MentionAll">提及了所有人</param>
 /// <param name="IsPinned">已置顶</param>
 /// <param name="Reactions">表情回应（历史里带，推送与搜索不带）</param>
 public sealed record ChatMessageItem(
@@ -59,8 +61,32 @@ public sealed record ChatMessageItem(
     string? ReplyPreview,
     DateTimeOffset? EditedAt,
     IReadOnlyList<Guid> MentionedUserIds,
+    bool MentionAll,
     bool IsPinned,
     IReadOnlyList<ChatReactionItem> Reactions);
+
+/// <summary>
+/// 聊天记录里的一条消息
+/// </summary>
+/// <param name="SenderUserId">发送人</param>
+/// <param name="SenderUserName">发送人名字的快照</param>
+/// <param name="CreatedAt">原来的发送时间（UTC）</param>
+/// <param name="MessageType">消息类型（助手回复照旧是助手回复；聊天记录套着聊天记录时正文是里面那份的 JSON）</param>
+/// <param name="Content">正文</param>
+/// <param name="Attachments">附件</param>
+public sealed record ChatRecordItem(Guid? SenderUserId, string? SenderUserName, DateTimeOffset CreatedAt, ChatMessageType MessageType, string? Content, IReadOnlyList<ChatMessageAttachment> Attachments);
+
+/// <summary>
+/// 聊天记录消息的正文
+/// </summary>
+/// <remarks>
+/// 合并转发时由服务端写进消息的 <c>content</c>，前端据此写标题（「甲和乙的聊天记录」「某群的聊天记录」）并列出里面的消息
+/// </remarks>
+/// <param name="SourceType">来自什么会话</param>
+/// <param name="SourceName">来自的群名；单聊与助手会话为空</param>
+/// <param name="Participants">单聊是两个人的名字，助手会话是里面消息的发送人；群为空</param>
+/// <param name="Items">里面的消息，按原来的先后</param>
+public sealed record ChatRecord(ChatConversationType SourceType, string? SourceName, IReadOnlyList<string> Participants, IReadOnlyList<ChatRecordItem> Items);
 
 /// <summary>
 /// <c>chat-messages.history</c> 的请求
@@ -106,6 +132,7 @@ public sealed record ChatMessagesResponse(IReadOnlyList<ChatMessageItem> Items);
 /// <param name="ClientMessageId">客户端消息标识</param>
 /// <param name="ReplyToMessageId">回复的消息</param>
 /// <param name="MentionedUserIds">提及的成员</param>
+/// <param name="MentionAll">提及所有人（只有群聊的群主与管理员能用）</param>
 public sealed record SendChatMessageRequest(
     Guid ConversationId,
     ChatMessageType MessageType,
@@ -113,7 +140,8 @@ public sealed record SendChatMessageRequest(
     [MaxLength(20)] IReadOnlyList<ChatMessageAttachment>? Attachments = null,
     [StringLength(50)] string? ClientMessageId = null,
     Guid? ReplyToMessageId = null,
-    [MaxLength(50)] IReadOnlyList<Guid>? MentionedUserIds = null);
+    [MaxLength(50)] IReadOnlyList<Guid>? MentionedUserIds = null,
+    bool MentionAll = false);
 
 /// <summary>
 /// 按消息的请求
@@ -144,9 +172,10 @@ public sealed record ChatReactionResponse(bool Added);
 /// <summary>
 /// <c>chat-messages.forward</c> 的请求
 /// </summary>
-/// <param name="MessageId">要转发的消息</param>
+/// <param name="MessageIds">要转发的消息：同一个会话里的一条或多条</param>
 /// <param name="ConversationIds">转到的会话</param>
-public sealed record ForwardChatMessageRequest(Guid MessageId, [Required, MinLength(1), MaxLength(20)] IReadOnlyList<Guid> ConversationIds);
+/// <param name="Merge">合并成一条聊天记录转发；否则按原来的先后逐条转发</param>
+public sealed record ForwardChatMessageRequest([Required, MinLength(1), MaxLength(ChatRules.MaxForwardMessages)] IReadOnlyList<Guid> MessageIds, [Required, MinLength(1), MaxLength(20)] IReadOnlyList<Guid> ConversationIds, bool Merge = false);
 
 /// <summary>
 /// <c>chat-messages.fast-upload</c> 的请求

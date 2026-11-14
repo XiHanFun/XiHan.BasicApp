@@ -100,10 +100,18 @@ export default {
       copy_failed: 'Kopieren fehlgeschlagen',
       forward: 'Weiterleiten',
       download_failed: 'Download fehlgeschlagen',
+      select: 'Mehrere auswählen',
+      select_message: 'Nachricht von {name} auswählen',
+      selected_count: '{n} ausgewählt',
+      select_limit: 'Es können höchstens {max} Nachrichten auf einmal weitergeleitet werden',
+      forward_one_by_one: 'Einzeln weiterleiten',
+      forward_merged: 'Zusammengefasst weiterleiten',
     },
     forward: {
       title: 'Weiterleiten an…',
       sent: 'Weitergeleitet',
+      title_many: '{n} Nachrichten weiterleiten an…',
+      title_merged: '{n} Nachrichten zusammengefasst weiterleiten an…',
     },
     member_menu: {
       send_message: 'Nachricht senden',
@@ -139,6 +147,7 @@ export default {
       save_edit: 'Änderungen speichern',
       mention_empty: 'Keine Mitglieder zum Erwähnen',
       silenced: 'Sie wurden stummgeschaltet und können derzeit keine Nachrichten senden',
+      mention_all: 'Alle',
     },
     members: {
       count: '{n} Mitglieder',
@@ -194,6 +203,13 @@ export default {
       online: 'Online',
       offline: 'Offline',
       online_count: '{n} online',
+    },
+    record: {
+      title: 'Chatverlauf',
+      title_group: 'Chatverlauf von {name}',
+      title_pair: 'Chatverlauf von {a} und {b}',
+      count: 'Chatverlauf · {n} Nachrichten',
+      back: 'Zurück',
     },
     call: {
       voice: 'Sprachanruf',
@@ -333,6 +349,8 @@ export default {
       joined_at: 'Beigetreten am',
       type_assistant: 'Assistent',
       type_call: 'Anruf',
+      type_record: 'Chatverlauf',
+      mention_all: 'Alle',
     },
   },
 }

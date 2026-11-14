@@ -70,6 +70,7 @@ public sealed record ChatAuditConversationResponse(
 /// <param name="Seq">会话内序号</param>
 /// <param name="Attachments">附件</param>
 /// <param name="MentionedUserIds">提及的用户</param>
+/// <param name="MentionAll">提及了所有人</param>
 /// <param name="ReplyToMessageId">回复的消息</param>
 /// <param name="ReplyPreview">回复快照</param>
 /// <param name="RecalledAt">撤回时间（UTC）</param>
@@ -83,6 +84,7 @@ public sealed record ChatAuditMessageDetailResponse(
     long Seq,
     IReadOnlyList<ChatMessageAttachment> Attachments,
     IReadOnlyList<Guid> MentionedUserIds,
+    bool MentionAll,
     Guid? ReplyToMessageId,
     string? ReplyPreview,
     DateTimeOffset? RecalledAt,

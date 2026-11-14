@@ -8,10 +8,11 @@ import type { ChatLocalMessage } from '../store'
 import type {
   ChatMessageItem,
 } from '../types'
+import type { ChatRecord } from './chat-record'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { ChatCallMedia, ChatMemberRole } from '~/contracts'
-import { useElementSize } from '@vueuse/core'
-import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useElementSize, useEventListener } from '@vueuse/core'
+import { useMessageFeed, XhButton, XhCheckbox, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -35,6 +36,7 @@ import {
 } from '../types'
 import { chatErrorText, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
 import { provideChatImageGallery } from './chat-image-gallery'
+import { CHAT_MAX_FORWARD_MESSAGES, isForwardableMessage } from './chat-record'
 import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
 import ChatCallInviteDialog from './ChatCallInviteDialog.vue'
 import ChatComposer from './ChatComposer.vue'
@@ -42,6 +44,7 @@ import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
 import ChatMessageItemView from './ChatMessageItemView.vue'
 import ChatPresenceBadge from './ChatPresenceBadge.vue'
+import ChatRecordDialog from './ChatRecordDialog.vue'
 
 defineOptions({ name: 'ChatMessageThread' })
 
@@ -346,6 +349,10 @@ const memberTarget = ref<ChatLocalMessage | null>(null)
 const memberTargetRole = ref<ChatMemberRole | null>(null)
 const memberTargetSilenced = ref(false)
 
+// 多选的状态（右键菜单要看它，函数定义见下方多选段）
+const selecting = ref(false)
+const selectedIds = ref<string[]>([])
+
 const ctxItems = computed<ChatContextMenuItem[]>(() => {
   const target = ctxMessage.value
   if (!target) {
@@ -368,6 +375,11 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
     key: 'forward',
     label: t('chat.thread.forward'),
     icon: 'lucide:corner-up-right',
+  })
+  items.push({
+    key: 'select',
+    label: t('chat.thread.select'),
+    icon: 'lucide:list-checks',
   })
   if (canEdit(target)) {
     items.push({
@@ -402,6 +414,11 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
 })
 
 function openContextMenu(event: MouseEvent, item: ChatLocalMessage) {
+  // 多选时整行只管勾选，不弹菜单
+  if (selecting.value) {
+    event.preventDefault()
+    return
+  }
   // 系统提示/通话记录/已撤回/未落库消息无可用操作
   if (item.messageType === 'System' || item.messageType === 'Call' || item.isRecalled || item.pending || item.failed) {
     return
@@ -420,10 +437,79 @@ function handleCtxReact(emoji: string) {
   }
 }
 
-// ===== 转发 =====
+// ===== 转发：单条从右键菜单来，多条先进多选 =====
 
 const showForward = ref(false)
-const forwardTarget = ref<ChatLocalMessage | null>(null)
+const forwardMessages = ref<ChatLocalMessage[]>([])
+const forwardMerge = ref(false)
+
+function openForward(messages: ChatLocalMessage[], merge: boolean) {
+  forwardMessages.value = messages
+  forwardMerge.value = merge
+  showForward.value = true
+}
+
+// ===== 多选：勾选消息后逐条或合并转发 =====
+
+/** 勾选的消息按会话里的先后排 */
+const selectedMessages = computed(() => {
+  const picked = new Set(selectedIds.value)
+  return chatStore.activeMessages.filter(item => picked.has(item.messageId))
+})
+
+function startSelecting(item: ChatLocalMessage) {
+  selecting.value = true
+  selectedIds.value = [item.messageId]
+}
+
+function stopSelecting() {
+  selecting.value = false
+  selectedIds.value = []
+}
+
+function toggleSelected(item: ChatLocalMessage) {
+  if (!isForwardableMessage(item)) {
+    return
+  }
+  if (selectedIds.value.includes(item.messageId)) {
+    selectedIds.value = selectedIds.value.filter(id => id !== item.messageId)
+    return
+  }
+  if (selectedIds.value.length >= CHAT_MAX_FORWARD_MESSAGES) {
+    toast.warning(t('chat.thread.select_limit', { max: CHAT_MAX_FORWARD_MESSAGES }))
+    return
+  }
+  selectedIds.value = [
+    ...selectedIds.value,
+    item.messageId,
+  ]
+}
+
+function handleRowClick(item: ChatLocalMessage) {
+  if (selecting.value) {
+    toggleSelected(item)
+  }
+}
+
+// Esc 退出多选：刚从右键菜单过来时焦点不在线程里，得在窗口上听；转发对话框开着时 Esc 归它
+useEventListener(window, 'keydown', (event: KeyboardEvent) => {
+  if (selecting.value && event.key === 'Escape' && !showForward.value) {
+    stopSelecting()
+  }
+})
+
+// 换了会话，勾选的是上一个会话的消息：收起多选
+watch(conversationId, stopSelecting)
+
+// ===== 聊天记录：点卡片看里面的消息 =====
+
+const showRecord = ref(false)
+const openedRecord = ref<ChatRecord | null>(null)
+
+function handleOpenRecord(record: ChatRecord) {
+  openedRecord.value = record
+  showRecord.value = true
+}
 
 // ===== 头像右键成员菜单（QQ 式；状态 refs 声明在消息菜单段旁） =====
 
@@ -592,8 +678,10 @@ async function handleCtxSelect(key: string | number) {
       handleReply(target)
       break
     case 'forward':
-      forwardTarget.value = target
-      showForward.value = true
+      openForward([target], false)
+      break
+    case 'select':
+      startSelecting(target)
       break
     case 'edit':
       handleEdit(target)
@@ -986,20 +1074,34 @@ onBeforeUnmount(() => {
             :id="`chat-msg-${item.messageId}`"
             :key="item.messageId"
             @contextmenu="openContextMenu($event, item)"
+            @click="handleRowClick(item)"
           >
-            <ChatMessageItemView
-              :message="item"
-              :is-self="item.senderUserId === currentUserId"
-              :show-sender-name="isGroupLike"
-              :conversation-type="conversation.conversationType"
-              :read-count="readCountOf(item)"
-              :highlighted="chatStore.highlightMessageId === item.messageId"
-              @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
-              @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
-              @react="emoji => handleReact(item, emoji)"
-              @call="media => handleStartCall(media)"
-              @avatar-contextmenu="event => openMemberMenu(event, item)"
-            />
+            <!-- 条目的排布归消息流，多选的横排另套一层：每条前面一个勾选框；不能转发的（系统提示、通话记录、已撤回）占着位、选不了 -->
+            <div :class="{ 'chat-select-row': selecting, 'chat-select-row--picked': selecting && selectedIds.includes(item.messageId) }">
+              <span v-if="selecting" class="chat-select-row__box">
+                <XhCheckbox
+                  v-if="isForwardableMessage(item)"
+                  :checked="selectedIds.includes(item.messageId)"
+                  :aria-label="t('chat.thread.select_message', { name: item.senderUserName ?? '' })"
+                  @update:checked="toggleSelected(item)"
+                  @click.stop
+                />
+              </span>
+              <ChatMessageItemView
+                :message="item"
+                :is-self="item.senderUserId === currentUserId"
+                :show-sender-name="isGroupLike"
+                :conversation-type="conversation.conversationType"
+                :read-count="readCountOf(item)"
+                :highlighted="chatStore.highlightMessageId === item.messageId"
+                @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
+                @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
+                @react="emoji => handleReact(item, emoji)"
+                @call="media => handleStartCall(media)"
+                @record="handleOpenRecord"
+                @avatar-contextmenu="event => openMemberMenu(event, item)"
+              />
+            </div>
           </div>
 
           <!-- 助手回复流：生成期间的临时气泡，落库消息到达后由 store 丢弃 -->
@@ -1039,7 +1141,8 @@ onBeforeUnmount(() => {
         />
 
         <!-- 转发目标选择 -->
-        <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
+        <ChatForwardDialog v-model:show="showForward" :messages="forwardMessages" :merge="forwardMerge" @forwarded="stopSelecting" />
+        <ChatRecordDialog v-model:show="showRecord" :conversation-id="conversationId" :record="openedRecord" />
         <ChatCallInviteDialog v-model:show="showCallInvite" :conversation-id="conversationId" :media="callInviteMedia" />
 
         <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片
@@ -1082,8 +1185,24 @@ onBeforeUnmount(() => {
       {{ t('chat.thread.typing', { name: chatStore.activeTyping.userName ?? '' }) }}
     </div>
 
+    <!-- 多选时输入区换成操作条：已选几条，逐条或合并转发 -->
+    <div v-if="selecting" class="chat-select-bar" role="toolbar" :aria-label="t('chat.thread.select')">
+      <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground" aria-live="polite">{{ t('chat.thread.selected_count', { n: selectedIds.length }) }}</span>
+      <XhButton variant="subtle" size="sm" :disabled="!selectedIds.length" @click="openForward(selectedMessages, false)">
+        <Icon icon="lucide:corner-up-right" />
+        {{ t('chat.thread.forward_one_by_one') }}
+      </XhButton>
+      <XhButton variant="subtle" size="sm" tone="brand" :disabled="!selectedIds.length" @click="openForward(selectedMessages, true)">
+        <Icon icon="lucide:messages-square" />
+        {{ t('chat.thread.forward_merged') }}
+      </XhButton>
+      <XhButton variant="ghost" size="sm" @click="stopSelecting">
+        {{ t('chat.start.cancel') }}
+      </XhButton>
+    </div>
+
     <!-- 输入区 -->
-    <ChatComposer :conversation-id="conversation.conversationId" />
+    <ChatComposer v-else :conversation-id="conversation.conversationId" />
   </div>
 </template>
 
@@ -1091,6 +1210,43 @@ onBeforeUnmount(() => {
 /* 元信息行里的文字链：字号随这一行压到 xs，经按钮的公开槽给 */
 .chat-meta-link {
   --xh-button-font-size: var(--xh-font-size-xs);
+}
+
+/* 多选：每条消息前面留一格勾选框，整行可点；消息里的按钮这时不接点击，免得点图片、点文件抢了勾选 */
+.chat-select-row {
+  display: flex;
+  gap: var(--xh-space-2);
+  align-items: center;
+  border-radius: var(--xh-shape-control);
+  cursor: pointer;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.chat-select-row > :deep(:not(.chat-select-row__box)) {
+  flex: 1;
+  min-inline-size: 0;
+  pointer-events: none;
+}
+
+.chat-select-row--picked {
+  background: var(--xh-bg-subtle);
+}
+
+.chat-select-row__box {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  inline-size: var(--xh-space-6);
+}
+
+/* 多选的操作条：占输入区的位置 */
+.chat-select-bar {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--xh-space-2);
+  align-items: center;
+  padding: var(--xh-space-3);
+  border-block-start: var(--xh-stroke-thin) solid var(--xh-border-default);
 }
 
 /* 通话进行中的横条：与公告、置顶同一排的样子，电话图标用成功色 */

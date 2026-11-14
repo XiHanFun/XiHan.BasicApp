@@ -83,6 +83,19 @@ public static class ChatRules
     public const int MaxMentionCount = 20;
 
     /// <summary>
+    /// 一次转发消息条数的上限
+    /// </summary>
+    public const int MaxForwardMessages = 50;
+
+    /// <summary>
+    /// 一条聊天记录正文（JSON）的长度上限
+    /// </summary>
+    /// <remarks>
+    /// 套了几层聊天记录、每条又很长时会超：超了拒绝，不截断
+    /// </remarks>
+    public const int MaxRecordLength = 500000;
+
+    /// <summary>
     /// 语音时长的上限（秒）
     /// </summary>
     public const int MaxVoiceSeconds = 60;
@@ -172,6 +185,7 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
             ChatMessageType.Voice => Render(context, ChatMessages.PreviewVoice, ("seconds", attachments.Count > 0 ? attachments[0].DurationSeconds ?? 0 : 0)),
             ChatMessageType.File => attachments.Count > 1 ? Render(context, ChatMessages.PreviewFiles, ("count", attachments.Count)) : Render(context, ChatMessages.PreviewFile, ("name", attachments.Count > 0 ? attachments[0].FileName : string.Empty)),
             ChatMessageType.Call => CallPreview(context, MediaOf(content)),
+            ChatMessageType.Record => Render(context, ChatMessages.PreviewRecord),
             _ => content ?? string.Empty,
         };
         return ChatRules.Truncate(preview.Trim(), ChatRules.MaxPreviewLength);

@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "Angeheftete Nachrichten",
   "chat_messages.pinned.description": "Listet die angehefteten Nachrichten einer Unterhaltung auf, zuletzt angeheftete zuerst; nur für Mitglieder.",
   "chat_messages.send.title": "Nachricht senden",
-  "chat_messages.send.description": "Sendet eine Text-, Bild-, Sprach- oder Dateinachricht; für nicht stummgeschaltete Mitglieder; prüft gesperrte Wörter, Zugehörigkeit der Anhänge, Erwähnungen und Antworten und sendet sie dann an alle Mitglieder.",
+  "chat_messages.send.description": "Sendet eine Text-, Bild-, Sprach- oder Dateinachricht; nur Mitglieder ohne Stummschaltung; prüft gesperrte Wörter, Eigentum der Anhänge, Erwähnungen und Antworten, und nur Besitzer und Administratoren einer Gruppe dürfen alle erwähnen; danach geht sie an alle Mitglieder.",
   "chat_messages.recall.title": "Nachricht zurückrufen",
   "chat_messages.recall.description": "Ruft eine eigene Nachricht innerhalb von 2 Minuten zurück; der Text wird geleert, Zeile und Anhänge bleiben erhalten.",
   "chat_messages.edit.title": "Nachricht bearbeiten",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "Nachricht lösen",
   "chat_messages.unpin.description": "Löst eine angeheftete Nachricht nach denselben Regeln wie beim Anheften.",
   "chat_messages.forward.title": "Nachricht weiterleiten",
-  "chat_messages.forward.description": "Leitet eine Nachricht an eine oder mehrere Unterhaltungen weiter und kopiert Typ, Text und Anhänge ohne Weitergeleitet-Vermerk; Assistentenantworten gehen als Text hinaus; jede Unterhaltung gelingt oder scheitert für sich.",
+  "chat_messages.forward.description": "Leitet eine oder mehrere Nachrichten einer Unterhaltung an eine oder mehrere Unterhaltungen weiter: einzeln werden Typ, Text und Anhänge unverändert kopiert, ohne Weiterleitungshinweis, Assistentenantworten gehen als Text hinaus; zusammengefasst werden sie zu einem einzigen Chatverlauf; jede Unterhaltung gelingt oder scheitert für sich.",
   "chat_messages.fast_upload.title": "Anhang sofort hochladen",
   "chat_messages.fast_upload.description": "Verwendet eine Datei mit gleichem Inhalt auf der Seite des Aufrufers als Chat-Anhang wieder oder liefert nichts, sodass der Client normal hochlädt; erfordert nur die Chat-Sendeberechtigung.",
   "chat_messages.presign.title": "Anhang-URL",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "In dieser Unterhaltung läuft bereits ein Anruf. Treten Sie ihm einfach bei.",
   "chat.call.nobody_available": "Alle Eingeladenen sind offline oder telefonieren gerade.",
   "chat.call.full": "Der Anruf ist voll.",
-  "chat.call.ended": "Dieser Anruf ist bereits beendet."
+  "chat.call.ended": "Dieser Anruf ist bereits beendet.",
+  "chat.preview.record": "[Chatverlauf]",
+  "chat.message.mention_all_unsupported": "Alle können nur in Gruppenchats erwähnt werden.",
+  "chat.message.forward_mixed": "Gemeinsam weitergeleitete Nachrichten müssen aus derselben Unterhaltung stammen.",
+  "chat.message.record_too_large": "Zu viel Inhalt zum Zusammenfassen. Wählen Sie weniger Nachrichten."
 }

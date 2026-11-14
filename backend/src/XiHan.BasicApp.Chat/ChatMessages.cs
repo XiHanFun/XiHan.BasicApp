@@ -465,6 +465,26 @@ public static class ChatMessages
     public const string PreviewRecalled = "chat.preview.recalled";
 
     /// <summary>
+    /// 会话预览：聊天记录
+    /// </summary>
+    public const string PreviewRecord = "chat.preview.record";
+
+    /// <summary>
+    /// 这个会话不能提及所有人
+    /// </summary>
+    public const string MentionAllUnsupported = "chat.message.mention_all_unsupported";
+
+    /// <summary>
+    /// 一次转发的消息得来自同一个会话
+    /// </summary>
+    public const string ForwardMixedConversations = "chat.message.forward_mixed";
+
+    /// <summary>
+    /// 合并转发的内容太多
+    /// </summary>
+    public const string RecordTooLarge = "chat.message.record_too_large";
+
+    /// <summary>
     /// 操作 <c>chat-conversations.assistants</c> 的说明
     /// </summary>
     public const string AssistantsChatConversationDescription = "chat_conversations.assistants.description";

@@ -127,14 +127,30 @@ describe('批量操作的逐项失败', () => {
       ],
     }))
 
-    await expect(createChatApi().forwardMessage('m-1', ['c-9'])).rejects.toThrow('CHAT_NOTFOUND_001 的原因')
+    await expect(createChatApi().forwardMessages(['m-1'], ['c-9'])).rejects.toThrow('CHAT_NOTFOUND_001 的原因')
     expect(calls[0]).toMatchObject({
       method: 'POST',
       url: '/api/chat-messages:forward',
       body: {
-        messageId: 'm-1',
+        messageIds: ['m-1'],
         conversationIds: ['c-9'],
+        merge: false,
       },
+    })
+  })
+
+  it('转发可以带多条，merge 为真即合并成一条聊天记录', async () => {
+    const calls = record(() => json(200, {
+      succeeded: ['c-2'],
+      failed: [],
+    }))
+
+    await createChatApi().forwardMessages(['m-1', 'm-2'], ['c-2'], true)
+
+    expect(calls[0]?.body).toEqual({
+      messageIds: ['m-1', 'm-2'],
+      conversationIds: ['c-2'],
+      merge: true,
     })
   })
 })

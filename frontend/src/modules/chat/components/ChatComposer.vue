@@ -74,6 +74,8 @@ const mentionMembers = ref<ChatMemberItem[]>([])
 const mentionLoading = ref(false)
 /** 打 @ 唤起成员列表时那个 @ 在正文里的位置；点工具条 @ 钮唤起时为 null，选中即插在光标处 */
 let mentionAtIndex: null | number = null
+/** 正文里插过「@所有人」：发送时这个记号还在正文里才算数 */
+let mentionAllToken: null | string = null
 /** 已插入的 @ 名单：显示名 → userId（发送时按「@名字仍在正文中」过滤） */
 const mentionDrafts = new Map<string, string>()
 
@@ -202,6 +204,33 @@ function buildReplyPreview(): null | string {
     return null
   }
   return `${target.senderUserName ?? ''}: ${messageBodyLabel(target)}`.slice(0, 300)
+}
+
+/** 群聊里只有群主与管理员能提及所有人（部门群没有群主与管理员，用不了） */
+const canMentionAll = computed(() => {
+  const conversation = chatStore.conversations.find(item => item.conversationId === props.conversationId)
+  return conversation?.conversationType === 'Group'
+    && (conversation.memberRole === 'Owner' || conversation.memberRole === 'Admin')
+})
+
+/**
+ * 插入「@所有人 」，打 @ 唤起时替换从 @ 到光标的一段；焦点的交接同 insertMention
+ */
+function insertMentionAll() {
+  const textarea = textInputRef.value?.el
+  const caret = textarea?.selectionStart ?? draft.value.length
+  const start = mentionAtIndex !== null && mentionAtIndex < caret && draft.value[mentionAtIndex] === '@'
+    ? mentionAtIndex
+    : caret
+  const token = `@${t('chat.composer.mention_all')}`
+  textarea?.focus()
+  draft.value = `${draft.value.slice(0, start)}${token} ${draft.value.slice(caret)}`
+  mentionAllToken = token
+  chatStore.setDraft(props.conversationId, draft.value)
+  void nextTick(() => {
+    const next = start + token.length + 1
+    textarea?.setSelectionRange(next, next)
+  })
 }
 
 /** 收集仍存在于正文中的 @ 名单 */
@@ -422,16 +451,19 @@ async function handleSendText() {
     const replyPreview = buildReplyPreview()
     const replyToMessageId = replyTarget.value?.messageId ?? null
     const mentionedUserIds = collectMentionIds(content)
+    const mentionAll = canMentionAll.value && mentionAllToken !== null && content.includes(mentionAllToken)
     draft.value = ''
     chatStore.setDraft(props.conversationId, '')
     chatStore.replyTarget = null
     mentionDrafts.clear()
+    mentionAllToken = null
     await chatStore.sendMessage({
       conversationId: props.conversationId,
       messageType: 'Text',
       content,
       replyToMessageId,
       mentionedUserIds: mentionedUserIds.length ? mentionedUserIds : null,
+      mentionAll,
     }, { replyPreview }).catch(() => {})
   }
   finally {
@@ -741,9 +773,15 @@ function handlePaste(event: ClipboardEvent) {
                 <div v-if="mentionLoading" class="flex justify-center py-3">
                   <XhSpinner size="sm" />
                 </div>
-                <div v-else-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
+                <div v-else-if="!mentionMembers.length && !canMentionAll" class="py-3 text-center text-xs text-muted-foreground">
                   {{ t('chat.composer.mention_empty') }}
                 </div>
+                <button v-if="canMentionAll && !mentionLoading" type="button" class="chat-mention-item" @click="insertMentionAll">
+                  <span class="chat-mention-item__all">
+                    <Icon icon="lucide:users" width="14" height="14" />
+                  </span>
+                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ t('chat.composer.mention_all') }}</span>
+                </button>
                 <button
                   v-for="member in mentionMembers"
                   :key="member.userId"
@@ -963,6 +1001,19 @@ function handlePaste(event: ClipboardEvent) {
   background: transparent;
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+/* 「所有人」那一行的图标：与成员头像同样大小的圆 */
+.chat-mention-item__all {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--xh-space-6);
+  block-size: var(--xh-space-6);
+  border-radius: var(--xh-shape-circle);
+  background: var(--xh-bg-brand-subtle);
+  color: var(--xh-fg-brand);
 }
 
 .chat-mention-item:hover {

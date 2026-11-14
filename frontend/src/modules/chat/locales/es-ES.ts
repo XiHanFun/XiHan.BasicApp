@@ -100,10 +100,18 @@ export default {
       copy_failed: 'No se pudo copiar',
       forward: 'Reenviar',
       download_failed: 'Error en la descarga',
+      select: 'Seleccionar varios',
+      select_message: 'Seleccionar el mensaje de {name}',
+      selected_count: '{n} seleccionados',
+      select_limit: 'Se pueden reenviar como máximo {max} mensajes a la vez',
+      forward_one_by_one: 'Reenviar uno a uno',
+      forward_merged: 'Reenviar combinados',
     },
     forward: {
       title: 'Reenviar a…',
       sent: 'Reenviado',
+      title_many: 'Reenviar {n} mensajes a…',
+      title_merged: 'Reenviar {n} mensajes combinados a…',
     },
     member_menu: {
       send_message: 'Enviar mensaje',
@@ -139,6 +147,7 @@ export default {
       save_edit: 'Guardar cambios',
       mention_empty: 'No hay miembros a los que mencionar con {\'@\'}',
       silenced: 'Está silenciado y no puede enviar mensajes por ahora',
+      mention_all: 'Todos',
     },
     members: {
       count: '{n} miembros',
@@ -194,6 +203,13 @@ export default {
       online: 'En línea',
       offline: 'Desconectado',
       online_count: '{n} en línea',
+    },
+    record: {
+      title: 'Registro de chat',
+      title_group: 'Registro de chat de {name}',
+      title_pair: 'Registro de chat de {a} y {b}',
+      count: 'Registro de chat · {n} mensajes',
+      back: 'Volver',
     },
     call: {
       voice: 'Llamada de voz',
@@ -333,6 +349,8 @@ export default {
       type_assistant: 'Asistente',
       type_call: 'Llamada',
       type_system: 'Sistema',
+      type_record: 'Registro de chat',
+      mention_all: 'Todos',
     },
   },
 }

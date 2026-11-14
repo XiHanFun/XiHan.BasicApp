@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "ピン留めされたメッセージ",
   "chat_messages.pinned.description": "会話でピン留めされたメッセージを、最近ピン留めされた順に一覧表示します。メンバーのみ利用できます。",
   "chat_messages.send.title": "メッセージを送信",
-  "chat_messages.send.description": "テキスト、画像、音声、ファイルのメッセージを送信します。発言禁止でないメンバーのみ実行でき、禁止ワード、添付ファイルの所有者、メンション、返信を確認したうえで全メンバーにプッシュします。",
+  "chat_messages.send.description": "テキスト、画像、音声、ファイルのメッセージを送信します。メンバーで、発言禁止でないこと。禁止ワード、添付の所有者、メンションと返信を確認し、全員へのメンションはグループチャットのオーナーと管理者だけが使えます。保存後、全メンバーにプッシュします。",
   "chat_messages.recall.title": "メッセージを取り消し",
   "chat_messages.recall.description": "自分が 2 分以内に送信したメッセージを取り消します。本文は消去し、行と添付ファイルは残します。",
   "chat_messages.edit.title": "メッセージを編集",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "メッセージのピン留めを解除",
   "chat_messages.unpin.description": "メッセージのピン留めを解除します。権限はピン留めと同じです。",
   "chat_messages.forward.title": "メッセージを転送",
-  "chat_messages.forward.description": "メッセージを 1 つ以上の会話に転送し、種別、本文、添付ファイルをそのままコピーします。転送元は付けず、アシスタントの返信はテキストとして転送し、会話ごとに成功または失敗します。",
+  "chat_messages.forward.description": "同じチャット内の 1 件または複数のメッセージを 1 つ以上のチャットに転送します。個別転送は種類、本文、添付をそのままコピーし、転送元は付けず、アシスタントの返信はテキストとして送ります。まとめて転送すると 1 件のチャット記録になります。チャットごとに成功または失敗します。",
   "chat_messages.fast_upload.title": "添付ファイルの即時アップロード",
   "chat_messages.fast_upload.description": "呼び出し側に同じ内容のファイルがあればチャットの添付ファイルとして再利用し、なければ空を返してクライアントに通常のアップロードを行わせます。必要なのはチャットの送信権限だけです。",
   "chat_messages.presign.title": "添付ファイルの URL",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "このチャットではすでに通話が行われています。そちらに参加してください。",
   "chat.call.nobody_available": "招待した人は全員オフラインか通話中です。",
   "chat.call.full": "通話は満員です。",
-  "chat.call.ended": "この通話はすでに終了しています。"
+  "chat.call.ended": "この通話はすでに終了しています。",
+  "chat.preview.record": "[チャット記録]",
+  "chat.message.mention_all_unsupported": "全員へのメンションはグループチャットでのみ使えます。",
+  "chat.message.forward_mixed": "一度に転送するメッセージは同じチャットのものにしてください。",
+  "chat.message.record_too_large": "まとめる内容が多すぎます。選択を減らしてください。"
 }

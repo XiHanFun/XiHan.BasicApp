@@ -44,6 +44,7 @@ function message(patch: Partial<ChatMessageItem> & { messageId: string }): ChatM
     isRecalled: false,
     createdAt: '2026-08-27T00:00:00Z',
     mentionedUserIds: [],
+    mentionAll: false,
     isPinned: false,
     reactions: [],
     ...patch,
@@ -599,6 +600,30 @@ describe('推送回灌', () => {
 
     expect(store.conversations[0]?.unreadCount).toBe(2)
     expect(store.mentionsPending.a).toBe(true)
+  })
+
+  it('提及所有人也算提到我；聊天记录的预览用它的标签，不把 JSON 摆出来', () => {
+    const store = setup()
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 0 }),
+    ]
+
+    store.applyIncomingMessage({
+      message: message({ messageId: '1', senderUserId: 'other', mentionAll: true }),
+      conversation: { conversationId: 'a', conversationType: 'Group' },
+    })
+    expect(store.mentionsPending.a).toBe(true)
+
+    store.applyIncomingMessage({
+      message: message({
+        messageId: '2',
+        senderUserId: 'other',
+        messageType: 'Record',
+        content: '{"sourceType":"Single","sourceName":null,"participants":[],"items":[]}',
+      }),
+      conversation: { conversationId: 'a', conversationType: 'Group' },
+    })
+    expect(store.conversations[0]?.lastMessagePreview).toBe('[聊天记录]')
   })
 
   it('自己发的消息回声不累计未读', () => {

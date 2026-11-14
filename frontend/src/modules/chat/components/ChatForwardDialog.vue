@@ -18,9 +18,18 @@ import ChatConversationAvatar from './ChatConversationAvatar.vue'
 
 defineOptions({ name: 'ChatForwardDialog' })
 
-const props = defineProps<{
-  /** 待转发的消息（服务端原样复制类型、正文与附件到目标会话，不带「转发自」） */
-  message: ChatLocalMessage | null
+const props = withDefaults(defineProps<{
+  /** 待转发的消息：同一个会话里的一条或多条（服务端复制到目标会话，不带「转发自」） */
+  messages: ChatLocalMessage[]
+  /** 合并成一条聊天记录转发；否则按原来的先后逐条转发 */
+  merge?: boolean
+}>(), {
+  merge: false,
+})
+
+const emit = defineEmits<{
+  /** 转发出去了 */
+  forwarded: []
 }>()
 
 const show = defineModel<boolean>('show', { default: false })
@@ -35,7 +44,7 @@ const candidates = computed(() => {
   const key = keyword.value.trim().toLowerCase()
   return chatStore.conversations.filter(c =>
     // 不能转发回原会话（无意义），其余全部可选
-    c.conversationId !== props.message?.conversationId
+    c.conversationId !== props.messages[0]?.conversationId
     && (!key || c.displayName.toLowerCase().includes(key)))
 })
 
@@ -46,20 +55,29 @@ watch(show, (visible) => {
   }
 })
 
+const title = computed(() => {
+  if (props.merge) {
+    return t('chat.forward.title_merged', { n: props.messages.length })
+  }
+  return props.messages.length > 1
+    ? t('chat.forward.title_many', { n: props.messages.length })
+    : t('chat.forward.title')
+})
+
 async function handleForward(conversationId: string) {
-  const target = props.message
-  if (!target || sendingTo.value) {
+  if (!props.messages.length || sendingTo.value) {
     return
   }
   sendingTo.value = conversationId
   try {
     // 转发是服务端操作（方案 H1）：附件须是发送人自己上传的，前端原样重发转不了别人的附件；
     // 转出的消息经推送回到各会话（含本人的其他端）
-    await getChatApi().forwardMessage(target.messageId, [conversationId])
+    await getChatApi().forwardMessages(props.messages.map(message => message.messageId), [conversationId], props.merge)
     // 转发即发送，发出去了响一声
     playNotificationSound('send')
     show.value = false
     toast.success(t('chat.forward.sent'))
+    emit('forwarded')
   }
   catch (error) {
     toast.danger(chatErrorText(error) || t('common.messages.operation_failed'))
@@ -74,7 +92,7 @@ async function handleForward(conversationId: string) {
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 380px">
       <XhDialogHeader>
-        <XhDialogTitle>{{ t('chat.forward.title') }}</XhDialogTitle>
+        <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
       <XhDialogCloseTrigger />
       <XhDialogBody>

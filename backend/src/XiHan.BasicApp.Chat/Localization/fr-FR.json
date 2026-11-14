@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "Messages épinglés",
   "chat_messages.pinned.description": "Liste les messages épinglés d’une conversation, les derniers épinglés en premier ; réservé aux membres.",
   "chat_messages.send.title": "Envoyer un message",
-  "chat_messages.send.description": "Envoie un message texte, image, vocal ou fichier ; pour les membres non réduits au silence ; vérifie les mots interdits, la propriété des pièces jointes, les mentions et les réponses, puis le diffuse à tous les membres.",
+  "chat_messages.send.description": "Envoie un message texte, image, vocal ou fichier ; réservé aux membres non réduits au silence ; vérifie les mots interdits, la propriété des pièces jointes, les mentions et les réponses, et seuls le propriétaire et les administrateurs d’un groupe peuvent mentionner tout le monde ; puis le pousse à tous les membres.",
   "chat_messages.recall.title": "Retirer un message",
   "chat_messages.recall.description": "Retire un message de l’appelant dans les 2 minutes : son texte est vidé, la ligne et les pièces jointes sont conservées.",
   "chat_messages.edit.title": "Modifier un message",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "Désépingler un message",
   "chat_messages.unpin.description": "Désépingle un message selon les mêmes règles que l’épinglage.",
   "chat_messages.forward.title": "Transférer un message",
-  "chat_messages.forward.description": "Transfère un message vers une ou plusieurs conversations en copiant son type, son texte et ses pièces jointes sans mention de transfert ; les réponses de l’assistant partent en texte ; chaque conversation réussit ou échoue indépendamment.",
+  "chat_messages.forward.description": "Transfère un ou plusieurs messages d’une conversation vers une ou plusieurs conversations : un par un, le type, le texte et les pièces jointes sont copiés tels quels, sans mention de transfert, et les réponses de l’assistant partent en texte ; regroupés, ils forment un seul historique de discussion ; chaque conversation réussit ou échoue séparément.",
   "chat_messages.fast_upload.title": "Envoi instantané de pièce jointe",
   "chat_messages.fast_upload.description": "Réutilise comme pièce jointe de discussion un fichier de même contenu du côté de l’appelant, ou renvoie un résultat vide pour que le client téléverse normalement ; seule l’autorisation d’envoi du chat est requise.",
   "chat_messages.presign.title": "URL de pièce jointe",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "Un appel est déjà en cours dans cette conversation. Rejoignez-le.",
   "chat.call.nobody_available": "Toutes les personnes invitées sont hors ligne ou déjà en appel.",
   "chat.call.full": "L’appel est complet.",
-  "chat.call.ended": "Cet appel est terminé."
+  "chat.call.ended": "Cet appel est terminé.",
+  "chat.preview.record": "[Historique de discussion]",
+  "chat.message.mention_all_unsupported": "Tout le monde ne peut être mentionné que dans les discussions de groupe.",
+  "chat.message.forward_mixed": "Les messages transférés ensemble doivent venir de la même conversation.",
+  "chat.message.record_too_large": "Trop de contenu à regrouper. Sélectionnez moins de messages."
 }

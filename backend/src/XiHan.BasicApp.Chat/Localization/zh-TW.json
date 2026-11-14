@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "置頂的訊息",
   "chat_messages.pinned.description": "列出對話中置頂的訊息，最近置頂的在前；只給成員查看。",
   "chat_messages.send.title": "傳送訊息",
-  "chat_messages.send.description": "傳送文字、圖片、語音或檔案訊息：只限成員、未被禁言；核對敏感詞、附件歸屬、提及與回覆，寫入資料庫後推送給全體成員。",
+  "chat_messages.send.description": "傳送文字、圖片、語音或檔案訊息：只有成員、未被禁言；核對敏感詞、附件歸屬、提及與回覆，提及所有人只有群聊的群主與管理員能用；寫入後推送給全體成員。",
   "chat_messages.recall.title": "收回訊息",
   "chat_messages.recall.description": "收回自己 2 分鐘內傳送的訊息：清空內文、保留資料列與附件，推送給全體成員。",
   "chat_messages.edit.title": "編輯訊息",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "取消置頂訊息",
   "chat_messages.unpin.description": "取消置頂訊息，權限同置頂。",
   "chat_messages.forward.title": "轉發訊息",
-  "chat_messages.forward.description": "把一則訊息轉發到一個或多個對話：原樣複製類型、內文與附件，不附帶轉發來源，助理回覆以文字轉出；逐個對話成功或失敗。",
+  "chat_messages.forward.description": "把同一個對話中的一則或多則訊息轉發到一個或多個對話：逐則轉發原樣複製類型、內文與附件，不帶轉發來源，助手回覆按文字轉出；合併轉發收成一則聊天記錄；逐個對話成功或失敗。",
   "chat_messages.fast_upload.title": "秒傳附件",
   "chat_messages.fast_upload.description": "同一側已有內容相同的正常檔案時直接得到一個聊天附件，未命中則回傳空值、再走一般上傳；只需聊天的傳送權限。",
   "chat_messages.presign.title": "附件下載位址",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "這個對話中已經有一通電話，直接加入即可。",
   "chat.call.nobody_available": "邀請的人都不在線上或正在通話中。",
   "chat.call.full": "通話人數已滿。",
-  "chat.call.ended": "這通電話已經結束。"
+  "chat.call.ended": "這通電話已經結束。",
+  "chat.preview.record": "[聊天記錄]",
+  "chat.message.mention_all_unsupported": "只有群聊能提及所有人。",
+  "chat.message.forward_mixed": "一次轉發的訊息須來自同一個對話。",
+  "chat.message.record_too_large": "合併轉發的內容太多，請少選幾則。"
 }

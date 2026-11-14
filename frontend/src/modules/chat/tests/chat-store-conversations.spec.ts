@@ -388,6 +388,7 @@ describe('打开与关闭会话', () => {
       isRecalled: false,
       createdAt: '2026-08-27T00:00:00Z',
       mentionedUserIds: [],
+      mentionAll: false,
       isPinned: false,
       reactions: [],
     }

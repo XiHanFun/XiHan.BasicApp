@@ -380,9 +380,12 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function previewOf(message: ChatMessageItem): string {
-    // 通话记录的正文是 JSON，预览用它的标签
+    // 通话记录与聊天记录的正文是 JSON，预览用它们的标签
     if (message.messageType === 'Call') {
       return callRecordLabel(message.content)
+    }
+    if (message.messageType === 'Record') {
+      return '[聊天记录]'
     }
     const count = message.attachments?.length ?? 0
     let text = message.content || ''
@@ -465,6 +468,7 @@ export const useChatStore = defineStore('chat', () => {
       replyToMessageId: input.replyToMessageId,
       replyPreview: localExtras?.replyPreview ?? null,
       mentionedUserIds: input.mentionedUserIds ?? [],
+      mentionAll: input.mentionAll ?? false,
       isPinned: false,
       reactions: [],
       pending: true,
@@ -509,6 +513,7 @@ export const useChatStore = defineStore('chat', () => {
         attachments: item.attachments,
         replyToMessageId: item.replyToMessageId,
         mentionedUserIds: item.mentionedUserIds,
+        mentionAll: item.mentionAll,
         clientMessageId,
       })
       reconcileSaved(saved)
@@ -766,8 +771,8 @@ export const useChatStore = defineStore('chat', () => {
       }
       else {
         conv.unreadCount += 1
-        // [有人@我] 提示（进入会话即清）
-        if (message.mentionedUserIds?.includes(currentUserId())) {
+        // [有人@我] 提示（进入会话即清）；提及所有人也算提到我
+        if (message.mentionAll || message.mentionedUserIds?.includes(currentUserId())) {
           mentionsPending.value[conv.conversationId] = true
         }
       }

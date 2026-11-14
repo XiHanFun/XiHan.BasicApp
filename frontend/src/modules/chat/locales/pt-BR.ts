@@ -100,10 +100,18 @@ export default {
       copy_failed: 'Falha ao copiar',
       forward: 'Encaminhar',
       download_failed: 'Falha no download',
+      select: 'Selecionar várias',
+      select_message: 'Selecionar a mensagem de {name}',
+      selected_count: '{n} selecionadas',
+      select_limit: 'É possível encaminhar no máximo {max} mensagens de uma vez',
+      forward_one_by_one: 'Encaminhar uma a uma',
+      forward_merged: 'Encaminhar combinadas',
     },
     forward: {
       title: 'Encaminhar para…',
       sent: 'Encaminhada',
+      title_many: 'Encaminhar {n} mensagens para…',
+      title_merged: 'Encaminhar {n} mensagens combinadas para…',
     },
     member_menu: {
       send_message: 'Enviar mensagem',
@@ -139,6 +147,7 @@ export default {
       save_edit: 'Salvar alterações',
       mention_empty: 'Nenhum membro para mencionar com {\'@\'}',
       silenced: 'Você foi silenciado e não pode enviar mensagens no momento',
+      mention_all: 'Todos',
     },
     members: {
       count: '{n} membros',
@@ -194,6 +203,13 @@ export default {
       online: 'Online',
       offline: 'Offline',
       online_count: '{n} online',
+    },
+    record: {
+      title: 'Registro de conversa',
+      title_group: 'Registro de conversa de {name}',
+      title_pair: 'Registro de conversa de {a} e {b}',
+      count: 'Registro de conversa · {n} mensagens',
+      back: 'Voltar',
     },
     call: {
       voice: 'Chamada de voz',
@@ -333,6 +349,8 @@ export default {
       type_assistant: 'Assistente',
       type_call: 'Chamada',
       type_system: 'Sistema',
+      type_record: 'Registro de conversa',
+      mention_all: 'Todos',
     },
   },
 }

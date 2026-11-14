@@ -129,6 +129,7 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
             message.Seq,
             ChatAttachmentsJson.Deserialize(message.Attachments),
             ChatAttachmentsJson.MentionsOf(message.MentionedUserIds),
+            message.MentionAll,
             message.ReplyToMessageId,
             message.ReplyPreview,
             message.RecalledAt,

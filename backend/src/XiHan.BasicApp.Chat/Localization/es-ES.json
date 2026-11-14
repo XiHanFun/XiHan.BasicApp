@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "Mensajes fijados",
   "chat_messages.pinned.description": "Lista los mensajes fijados de una conversación, primero los fijados más recientemente; solo para miembros.",
   "chat_messages.send.title": "Enviar mensaje",
-  "chat_messages.send.description": "Envía un mensaje de texto, imagen, voz o archivo; para miembros no silenciados; comprueba palabras prohibidas, la propiedad de los adjuntos, las menciones y las respuestas, y lo envía a todos los miembros.",
+  "chat_messages.send.description": "Envía un mensaje de texto, imagen, voz o archivo; solo miembros sin silenciar; comprueba palabras prohibidas, la propiedad de los adjuntos, las menciones y las respuestas, y solo el propietario y los administradores de un grupo pueden mencionar a todos; después lo envía a todos los miembros.",
   "chat_messages.recall.title": "Retirar mensaje",
   "chat_messages.recall.description": "Retira un mensaje propio en un plazo de 2 minutos: vacía su texto y conserva la fila y los adjuntos.",
   "chat_messages.edit.title": "Editar mensaje",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "Desfijar mensaje",
   "chat_messages.unpin.description": "Desfija un mensaje con las mismas reglas que al fijarlo.",
   "chat_messages.forward.title": "Reenviar mensaje",
-  "chat_messages.forward.description": "Reenvía un mensaje a una o varias conversaciones copiando su tipo, texto y adjuntos sin marca de reenviado; las respuestas del asistente se reenvían como texto; cada conversación tiene éxito o falla por separado.",
+  "chat_messages.forward.description": "Reenvía uno o varios mensajes de una conversación a una o varias conversaciones: uno a uno copia tipo, texto y adjuntos sin marca de reenvío, y las respuestas del asistente salen como texto; combinados forman un único registro de chat; cada conversación se resuelve por separado.",
   "chat_messages.fast_upload.title": "Subida instantánea de adjunto",
   "chat_messages.fast_upload.description": "Reutiliza como adjunto de chat un archivo con el mismo contenido del lado del llamante, o devuelve vacío para que el cliente suba de forma normal; solo requiere el permiso de envío del chat.",
   "chat_messages.presign.title": "URL del adjunto",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "Esta conversación ya tiene una llamada. Únete a ella.",
   "chat.call.nobody_available": "Todas las personas invitadas están desconectadas o en otra llamada.",
   "chat.call.full": "La llamada está completa.",
-  "chat.call.ended": "Esta llamada ya ha terminado."
+  "chat.call.ended": "Esta llamada ya ha terminado.",
+  "chat.preview.record": "[Registro de chat]",
+  "chat.message.mention_all_unsupported": "Solo se puede mencionar a todos en los chats de grupo.",
+  "chat.message.forward_mixed": "Los mensajes reenviados juntos deben ser de la misma conversación.",
+  "chat.message.record_too_large": "Hay demasiado contenido para combinar. Selecciona menos mensajes."
 }

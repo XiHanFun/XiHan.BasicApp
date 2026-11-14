@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "Mensagens fixadas",
   "chat_messages.pinned.description": "Lista as mensagens fixadas de uma conversa, as fixadas mais recentemente primeiro; só para membros.",
   "chat_messages.send.title": "Enviar mensagem",
-  "chat_messages.send.description": "Envia uma mensagem de texto, imagem, voz ou arquivo; para membros não silenciados; verifica palavras proibidas, a propriedade dos anexos, as menções e as respostas, e a envia a todos os membros.",
+  "chat_messages.send.description": "Envia uma mensagem de texto, imagem, voz ou arquivo; apenas membros não silenciados; verifica palavras proibidas, a propriedade dos anexos, menções e respostas, e só o dono e os administradores de um grupo podem mencionar todos; depois envia a todos os membros.",
   "chat_messages.recall.title": "Retirar mensagem",
   "chat_messages.recall.description": "Retira uma mensagem própria em até 2 minutos, apagando o texto e mantendo a linha e os anexos.",
   "chat_messages.edit.title": "Editar mensagem",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "Desafixar mensagem",
   "chat_messages.unpin.description": "Desafixa uma mensagem com as mesmas regras de fixar.",
   "chat_messages.forward.title": "Encaminhar mensagem",
-  "chat_messages.forward.description": "Encaminha uma mensagem para uma ou mais conversas, copiando tipo, texto e anexos sem marca de encaminhada; respostas do assistente saem como texto; cada conversa dá certo ou falha por conta própria.",
+  "chat_messages.forward.description": "Encaminha uma ou mais mensagens de uma conversa para uma ou mais conversas: uma a uma copia tipo, texto e anexos sem marca de encaminhamento, e as respostas do assistente saem como texto; combinadas viram um único registro de conversa; cada conversa dá certo ou falha separadamente.",
   "chat_messages.fast_upload.title": "Envio instantâneo de anexo",
   "chat_messages.fast_upload.description": "Reutiliza como anexo de chat um arquivo com o mesmo conteúdo no lado do chamador, ou retorna vazio para o cliente fazer o upload normal; exige só a permissão de envio do chat.",
   "chat_messages.presign.title": "URL do anexo",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "Esta conversa já tem uma chamada. Entre nela.",
   "chat.call.nobody_available": "Todas as pessoas convidadas estão offline ou em outra chamada.",
   "chat.call.full": "A chamada está lotada.",
-  "chat.call.ended": "Esta chamada já foi encerrada."
+  "chat.call.ended": "Esta chamada já foi encerrada.",
+  "chat.preview.record": "[Registro de conversa]",
+  "chat.message.mention_all_unsupported": "Só é possível mencionar todos em conversas de grupo.",
+  "chat.message.forward_mixed": "As mensagens encaminhadas juntas precisam ser da mesma conversa.",
+  "chat.message.record_too_large": "Há conteúdo demais para combinar. Selecione menos mensagens."
 }

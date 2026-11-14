@@ -189,6 +189,7 @@ describe('业务枚举与后端序列化值对齐', () => {
       'File',
       'Assistant',
       'Call',
+      'Record',
       'System',
     ])
   })

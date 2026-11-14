@@ -263,8 +263,8 @@ public sealed class UnpinChatMessage(ChatMessageService service) : IOperation<Ch
 /// 转发
 /// </summary>
 /// <remarks>
-/// <c>POST /api/chat-messages:forward</c>（方案 H1）。单条转发到一个或多个会话，原样复制类型、正文与附件，不带「转发自」，助手回复按文本转出；
-/// 逐个会话成功或失败
+/// <c>POST /api/chat-messages:forward</c>（方案 H1）。把同一个会话里的一条或多条消息转发到一个或多个会话，逐个会话成功或失败
+/// 逐条转发按原来的先后原样复制类型、正文与附件，不带「转发自」，助手回复按文本转出；<c>merge</c> 为真即合并成一条聊天记录转发
 /// </remarks>
 /// <param name="service">消息服务</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatMessagesSend)]
@@ -281,7 +281,7 @@ public sealed class ForwardChatMessage(ChatMessageService service) : IOperation<
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var caller = ChatCaller.Of(context);
-        return caller.TryGetValue(out var me) ? await service.ForwardAsync(context, me, request.MessageId, request.ConversationIds).ConfigureAwait(false) : caller.Error!;
+        return caller.TryGetValue(out var me) ? await service.ForwardAsync(context, me, request).ConfigureAwait(false) : caller.Error!;
     }
 }
 

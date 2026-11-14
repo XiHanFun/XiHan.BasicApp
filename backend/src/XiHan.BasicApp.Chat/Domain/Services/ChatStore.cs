@@ -311,6 +311,7 @@ public sealed class ChatStore(SideRows rows, SqlSugarUnitOfWork unitOfWork, IRep
             message.ReplyPreview,
             message.EditedAt,
             ChatAttachmentsJson.MentionsOf(message.MentionedUserIds),
+            message.MentionAll,
             message.IsPinned,
             reactions?.ToList() ?? []);
     }

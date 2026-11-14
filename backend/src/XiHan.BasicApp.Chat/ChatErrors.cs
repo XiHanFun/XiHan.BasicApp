@@ -292,6 +292,21 @@ public static class ChatErrors
     public const string CallTooManyParticipants = "CHAT_VALIDATION_032";
 
     /// <summary>
+    /// 这个会话不能提及所有人
+    /// </summary>
+    public const string MentionAllUnsupported = "CHAT_VALIDATION_033";
+
+    /// <summary>
+    /// 一次转发的消息得来自同一个会话
+    /// </summary>
+    public const string ForwardMixedConversations = "CHAT_VALIDATION_034";
+
+    /// <summary>
+    /// 合并转发的内容太多
+    /// </summary>
+    public const string RecordTooLarge = "CHAT_VALIDATION_035";
+
+    /// <summary>
     /// 这个会话里已经有一通电话
     /// </summary>
     public const string CallInProgress = "CHAT_CONFLICT_006";

@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "Pinned messages",
   "chat_messages.pinned.description": "Lists a conversation's pinned messages, most recently pinned first; members only.",
   "chat_messages.send.title": "Send message",
-  "chat_messages.send.description": "Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, then pushes it to all members.",
+  "chat_messages.send.description": "Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, and lets only the owner and administrators of a group mention everyone; then pushes it to all members.",
   "chat_messages.recall.title": "Recall message",
   "chat_messages.recall.description": "Recalls the caller's own message within 2 minutes, clearing its text and keeping the row and attachments.",
   "chat_messages.edit.title": "Edit message",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "Unpin message",
   "chat_messages.unpin.description": "Unpins a message with the same rules as pinning.",
   "chat_messages.forward.title": "Forward message",
-  "chat_messages.forward.description": "Forwards a message to one or more conversations, copying its type, text and attachments without a forwarded-from mark; assistant replies go out as text; each conversation succeeds or fails on its own.",
+  "chat_messages.forward.description": "Forwards one or more messages of a conversation to one or more conversations: one by one it copies type, text and attachments without a forwarded-from mark, assistant replies going out as text; merged, they become a single chat record; each conversation succeeds or fails on its own.",
   "chat_messages.fast_upload.title": "Fast upload attachment",
   "chat_messages.fast_upload.description": "Reuses a file with the same content on the caller's side as a chat attachment, or returns empty so the client uploads normally; needs only the chat send permission.",
   "chat_messages.presign.title": "Attachment URL",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "This conversation already has a call. Join it instead.",
   "chat.call.nobody_available": "Everyone you invited is offline or in another call.",
   "chat.call.full": "The call is full.",
-  "chat.call.ended": "This call has ended."
+  "chat.call.ended": "This call has ended.",
+  "chat.preview.record": "[Chat record]",
+  "chat.message.mention_all_unsupported": "Everyone can only be mentioned in group chats.",
+  "chat.message.forward_mixed": "Messages forwarded together must come from the same conversation.",
+  "chat.message.record_too_large": "Too much content to merge. Select fewer messages."
 }

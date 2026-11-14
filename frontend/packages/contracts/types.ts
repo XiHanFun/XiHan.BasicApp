@@ -1999,7 +1999,7 @@ export interface paths {
         put?: never;
         /**
          * Forward message
-         * @description Forwards a message to one or more conversations, copying its type, text and attachments without a forwarded-from mark; assistant replies go out as text; each conversation succeeds or fails on its own.
+         * @description Forwards one or more messages of a conversation to one or more conversations: one by one it copies type, text and attachments without a forwarded-from mark, assistant replies going out as text; merged, they become a single chat record; each conversation succeeds or fails on its own.
          *
          *     Requires permission chat.chat-messages.send (Send chat messages).
          */
@@ -2197,7 +2197,7 @@ export interface paths {
         put?: never;
         /**
          * Send message
-         * @description Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, then pushes it to all members.
+         * @description Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, and lets only the owner and administrators of a group mention everyone; then pushes it to all members.
          *
          *     Requires permission chat.chat-messages.send (Send chat messages).
          */
@@ -11211,6 +11211,8 @@ export interface components {
             editedAt?: string | null;
             /** @description 提及的用户 */
             mentionedUserIds: string[];
+            /** @description 提及了所有人 */
+            mentionAll: boolean;
             /** @description 已置顶 */
             isPinned: boolean;
             /** @description 表情回应（历史里带，推送与搜索不带） */
@@ -11220,7 +11222,7 @@ export interface components {
          * @description 消息类型
          * @enum {string}
          */
-        ChatMessageType: "Text" | "Image" | "Voice" | "File" | "Assistant" | "Call" | "System";
+        ChatMessageType: "Text" | "Image" | "Voice" | "File" | "Assistant" | "Call" | "Record" | "System";
         /** @description 表情回应 */
         ChatReactionItem: {
             /** @description 表情 */
@@ -20628,6 +20630,8 @@ export interface operations {
                         attachments: components["schemas"]["ChatMessageAttachment"][];
                         /** @description 提及的用户 */
                         mentionedUserIds: string[];
+                        /** @description 提及了所有人 */
+                        mentionAll: boolean;
                         /**
                          * Format: uuid
                          * @description 回复的消息
@@ -22397,6 +22401,8 @@ export interface operations {
                         editedAt?: string | null;
                         /** @description 提及的用户 */
                         mentionedUserIds: string[];
+                        /** @description 提及了所有人 */
+                        mentionAll: boolean;
                         /** @description 已置顶 */
                         isPinned: boolean;
                         /** @description 表情回应（历史里带，推送与搜索不带） */
@@ -22472,13 +22478,12 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /**
-                     * Format: uuid
-                     * @description 要转发的消息
-                     */
-                    messageId: string;
+                    /** @description 要转发的消息：同一个会话里的一条或多条 */
+                    messageIds: string[];
                     /** @description 转到的会话 */
                     conversationIds: string[];
+                    /** @description 合并成一条聊天记录转发；否则按原来的先后逐条转发 */
+                    merge?: boolean;
                 };
             };
         };
@@ -22887,6 +22892,8 @@ export interface operations {
                     replyToMessageId?: string | null;
                     /** @description 提及的成员 */
                     mentionedUserIds?: string[] | null;
+                    /** @description 提及所有人（只有群聊的群主与管理员能用） */
+                    mentionAll?: boolean;
                 };
             };
         };
@@ -22949,6 +22956,8 @@ export interface operations {
                         editedAt?: string | null;
                         /** @description 提及的用户 */
                         mentionedUserIds: string[];
+                        /** @description 提及了所有人 */
+                        mentionAll: boolean;
                         /** @description 已置顶 */
                         isPinned: boolean;
                         /** @description 表情回应（历史里带，推送与搜索不带） */

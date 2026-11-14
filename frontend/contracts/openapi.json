@@ -8354,6 +8354,10 @@
                         "format": "uuid"
                       }
                     },
+                    "mentionAll": {
+                      "description": "\u63D0\u53CA\u4E86\u6240\u6709\u4EBA",
+                      "type": "boolean"
+                    },
                     "replyToMessageId": {
                       "description": "\u56DE\u590D\u7684\u6D88\u606F",
                       "type": [
@@ -8410,6 +8414,7 @@
                     "seq",
                     "attachments",
                     "mentionedUserIds",
+                    "mentionAll",
                     "isPinned",
                     "reactions"
                   ]
@@ -11434,6 +11439,10 @@
                         "format": "uuid"
                       }
                     },
+                    "mentionAll": {
+                      "description": "\u63D0\u53CA\u4E86\u6240\u6709\u4EBA",
+                      "type": "boolean"
+                    },
                     "isPinned": {
                       "description": "\u5DF2\u7F6E\u9876",
                       "type": "boolean"
@@ -11455,6 +11464,7 @@
                     "isRecalled",
                     "createdAt",
                     "mentionedUserIds",
+                    "mentionAll",
                     "isPinned",
                     "reactions"
                   ]
@@ -11564,7 +11574,7 @@
           "chat-messages"
         ],
         "summary": "Forward message",
-        "description": "Forwards a message to one or more conversations, copying its type, text and attachments without a forwarded-from mark; assistant replies go out as text; each conversation succeeds or fails on its own.\n\nRequires permission chat.chat-messages.send (Send chat messages).",
+        "description": "Forwards one or more messages of a conversation to one or more conversations: one by one it copies type, text and attachments without a forwarded-from mark, assistant replies going out as text; merged, they become a single chat record; each conversation succeeds or fails on its own.\n\nRequires permission chat.chat-messages.send (Send chat messages).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-messages.send",
         "parameters": [],
@@ -11578,10 +11588,15 @@
                 "description": "chat-messages.forward \u7684\u8BF7\u6C42",
                 "type": "object",
                 "properties": {
-                  "messageId": {
-                    "description": "\u8981\u8F6C\u53D1\u7684\u6D88\u606F",
-                    "type": "string",
-                    "format": "uuid"
+                  "messageIds": {
+                    "description": "\u8981\u8F6C\u53D1\u7684\u6D88\u606F\uFF1A\u540C\u4E00\u4E2A\u4F1A\u8BDD\u91CC\u7684\u4E00\u6761\u6216\u591A\u6761",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 50
                   },
                   "conversationIds": {
                     "description": "\u8F6C\u5230\u7684\u4F1A\u8BDD",
@@ -11592,10 +11607,14 @@
                     },
                     "minItems": 1,
                     "maxItems": 20
+                  },
+                  "merge": {
+                    "description": "\u5408\u5E76\u6210\u4E00\u6761\u804A\u5929\u8BB0\u5F55\u8F6C\u53D1\uFF1B\u5426\u5219\u6309\u539F\u6765\u7684\u5148\u540E\u9010\u6761\u8F6C\u53D1",
+                    "type": "boolean"
                   }
                 },
                 "required": [
-                  "messageId",
+                  "messageIds",
                   "conversationIds"
                 ]
               }
@@ -12312,7 +12331,7 @@
           "chat-messages"
         ],
         "summary": "Send message",
-        "description": "Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, then pushes it to all members.\n\nRequires permission chat.chat-messages.send (Send chat messages).",
+        "description": "Sends a text, image, voice or file message; members not silenced; checks sensitive words, attachment ownership, mentions and replies, and lets only the owner and administrators of a group mention everyone; then pushes it to all members.\n\nRequires permission chat.chat-messages.send (Send chat messages).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-messages.send",
         "parameters": [],
@@ -12381,6 +12400,10 @@
                       "format": "uuid"
                     },
                     "maxItems": 50
+                  },
+                  "mentionAll": {
+                    "description": "\u63D0\u53CA\u6240\u6709\u4EBA\uFF08\u53EA\u6709\u7FA4\u804A\u7684\u7FA4\u4E3B\u4E0E\u7BA1\u7406\u5458\u80FD\u7528\uFF09",
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -12496,6 +12519,10 @@
                         "format": "uuid"
                       }
                     },
+                    "mentionAll": {
+                      "description": "\u63D0\u53CA\u4E86\u6240\u6709\u4EBA",
+                      "type": "boolean"
+                    },
                     "isPinned": {
                       "description": "\u5DF2\u7F6E\u9876",
                       "type": "boolean"
@@ -12517,6 +12544,7 @@
                     "isRecalled",
                     "createdAt",
                     "mentionedUserIds",
+                    "mentionAll",
                     "isPinned",
                     "reactions"
                   ]
@@ -65846,6 +65874,10 @@
               "format": "uuid"
             }
           },
+          "mentionAll": {
+            "description": "\u63D0\u53CA\u4E86\u6240\u6709\u4EBA",
+            "type": "boolean"
+          },
           "isPinned": {
             "description": "\u5DF2\u7F6E\u9876",
             "type": "boolean"
@@ -65867,6 +65899,7 @@
           "isRecalled",
           "createdAt",
           "mentionedUserIds",
+          "mentionAll",
           "isPinned",
           "reactions"
         ]
@@ -65881,6 +65914,7 @@
           "File",
           "Assistant",
           "Call",
+          "Record",
           "System"
         ]
       },

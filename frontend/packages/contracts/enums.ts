@@ -46,7 +46,7 @@ export type ChatConversationType = (typeof ChatConversationType)[number]
 export const ChatMemberRole = ['Owner', 'Admin', 'Member'] as const
 export type ChatMemberRole = (typeof ChatMemberRole)[number]
 
-export const ChatMessageType = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'Call', 'System'] as const
+export const ChatMessageType = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'Call', 'Record', 'System'] as const
 export type ChatMessageType = (typeof ChatMessageType)[number]
 
 export const CodeGenDatabaseType = ['MySql', 'SqlServer', 'PostgreSql', 'Oracle', 'Sqlite'] as const

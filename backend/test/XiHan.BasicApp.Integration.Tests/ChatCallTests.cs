@@ -108,7 +108,7 @@ public sealed class ChatCallTests : IDisposable
         Assert.Equal("Ended", (await CallAsync(server, HttpMethod.Post, "/api/chat-calls:hangup", new { callId = call }, alice)).Body.GetProperty("status").GetString());
         var recordId = record.GetProperty("messageId").GetString()!;
         Assert.Equal("CHAT_VALIDATION_029", (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:recall", new { messageId = recordId }, alice)).Body.GetProperty("code").GetString());
-        Assert.Equal("CHAT_VALIDATION_022", (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageId = recordId, conversationIds = new[] { conversation } }, alice)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_VALIDATION_022", (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageIds = new[] { recordId }, conversationIds = new[] { conversation } }, alice)).Body.GetProperty("code").GetString());
         Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:search?conversationId={conversation}&keyword=Voice", null, alice)).Body.GetProperty("items").GetArrayLength());
         var (_, reply) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId = conversation, messageType = "Text", content = "回头再聊", replyToMessageId = recordId }, bob, "zh-CN");
         Assert.Equal("alice: [语音通话]", reply.GetProperty("replyPreview").GetString());

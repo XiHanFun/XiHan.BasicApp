@@ -100,10 +100,18 @@ export default {
       copy_failed: 'Copy failed',
       forward: 'Forward',
       download_failed: 'Download failed',
+      select: 'Select',
+      select_message: 'Select the message from {name}',
+      selected_count: '{n} selected',
+      select_limit: 'You can forward up to {max} messages at once',
+      forward_one_by_one: 'Forward one by one',
+      forward_merged: 'Forward merged',
     },
     forward: {
       title: 'Forward to…',
       sent: 'Forwarded',
+      title_many: 'Forward {n} messages to…',
+      title_merged: 'Forward {n} messages merged to…',
     },
     member_menu: {
       send_message: 'Send message',
@@ -139,6 +147,7 @@ export default {
       save_edit: 'Save changes',
       mention_empty: 'No members to mention',
       silenced: 'You are muted and cannot send messages for now',
+      mention_all: 'Everyone',
     },
     members: {
       count: '{n} members',
@@ -194,6 +203,13 @@ export default {
       online: 'Online',
       offline: 'Offline',
       online_count: '{n} online',
+    },
+    record: {
+      title: 'Chat record',
+      title_group: 'Chat record of {name}',
+      title_pair: 'Chat record of {a} and {b}',
+      count: 'Chat record · {n} messages',
+      back: 'Back',
     },
     call: {
       voice: 'Voice call',
@@ -333,6 +349,8 @@ export default {
       joined_at: 'Joined at',
       type_assistant: 'Assistant',
       type_call: 'Call',
+      type_record: 'Chat record',
+      mention_all: 'Everyone',
     },
   },
 }

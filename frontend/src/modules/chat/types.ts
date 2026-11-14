@@ -212,8 +212,11 @@ export interface ChatApiContract {
   editMessage: (messageId: string, content: string) => Promise<ChatMessageItem>
   /** 表情回应开关：再点同一个即取消 */
   toggleReaction: (messageId: string, emoji: string) => Promise<{ added: boolean }>
-  /** 转发到一个或多个会话（服务端原样复制类型、正文与附件）；逐项失败的抛出（带原因） */
-  forwardMessage: (messageId: string, conversationIds: string[]) => Promise<void>
+  /**
+   * 把同一个会话里的一条或多条消息转发到一个或多个会话（服务端做）；逐项失败的抛出（带原因）
+   * 逐条转发原样复制类型、正文与附件；merge 为真即合并成一条聊天记录
+   */
+  forwardMessages: (messageIds: string[], conversationIds: string[], merge?: boolean) => Promise<void>
   /** Pin / 取消 Pin 消息 */
   pinMessage: (messageId: string) => Promise<void>
   unpinMessage: (messageId: string) => Promise<void>

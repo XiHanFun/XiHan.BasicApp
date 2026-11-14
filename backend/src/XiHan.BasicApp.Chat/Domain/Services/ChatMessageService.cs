@@ -1,6 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Operations.ChatConversations;
 using XiHan.BasicApp.Chat.Operations.ChatMessages;
@@ -23,9 +25,10 @@ public sealed record ChatAppended(SysChatMessage Message, SysChatConversation Co
 /// </summary>
 /// <remarks>
 /// 只有成员能发，禁言的不能发与编辑；文本必填不超过 4000，图片与文件至少一个附件，语音恰好一个附件、1 到 60 秒、没有正文；
-/// 系统提示、助手回复与通话记录只由服务端追加，通话记录不能撤回与转发；提及最多 20 人且都是成员；回复只能回本会话未撤回的消息、存快照；撤回只本人 2 分钟内（清正文、留行与附件），编辑只本人的文本 5 分钟内；
+/// 系统提示、助手回复、通话记录与聊天记录只由服务端追加，通话记录不能撤回与转发；提及最多 20 人且都是成员，提及所有人只有群聊的群主与管理员能用；回复只能回本会话未撤回的消息、存快照；撤回只本人 2 分钟内（清正文、留行与附件），编辑只本人的文本 5 分钟内；
 /// 置顶消息单聊双方都能、群与部门群只有群主与管理员、每会话最多 10 条。附件以会话为访问范围（方案 H2）：发送时核对附件是自己在聊天里上传的文件，文件名与大小以文件记录为准
-/// 转发（方案 H1）是服务端单条转发到一个或多个会话，原样复制类型、正文与附件、不带「转发自」，助手回复按文本转出
+/// 转发（方案 H1）在服务端做：同一个会话里的一条或多条转到一个或多个会话，原样复制类型、正文与附件、不带「转发自」，助手回复按文本转出；
+/// 合并转发把选中的消息收成一条聊天记录（正文是 JSON，附件列是里面所有消息的附件），聊天记录本身也能再转发、再合并
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
 /// <param name="attachments">附件文件（Files 实现）</param>
@@ -45,6 +48,18 @@ public sealed class ChatMessageService(
 {
     private const int MaxAttachmentCandidates = 200;
 
+    /// <summary>
+    /// 写聊天记录正文用的序列化
+    /// </summary>
+    /// <remarks>
+    /// 不转义非 ASCII 字符：存下来的就是原文，长度也不被转义撑大
+    /// </remarks>
+    private static readonly ChatJsonContext _recordJson = new(new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    });
+
     private readonly IAttachmentFiles? _files = attachments.FirstOrDefault();
 
     /// <summary>
@@ -53,7 +68,7 @@ public sealed class ChatMessageService(
     public async Task<Result<ChatMessageItem>> SendAsync(InvocationContext context, ChatCaller caller, SendChatMessageRequest request)
     {
         var found = await store.ConversationAsync(caller.Side, request.ConversationId, context.CancellationToken).ConfigureAwait(false);
-        if (found.IsFailure)
+        if (!found.TryGetValue(out var conversation))
         {
             return found.Error!;
         }
@@ -68,6 +83,20 @@ public sealed class ChatMessageService(
         if (sender.IsSilenced)
         {
             return Error.Denied(ChatErrors.Silenced, ChatMessages.Silenced);
+        }
+
+        // 提及所有人会打扰每一个成员：只在群聊里、只给群主与管理员（部门群没有群主与管理员，用不了）
+        if (request.MentionAll)
+        {
+            if (conversation.Type != ChatConversationType.Group)
+            {
+                return Error.Validation(ChatErrors.MentionAllUnsupported, ChatMessages.MentionAllUnsupported);
+            }
+
+            if (sender.Role is not (ChatMemberRole.Owner or ChatMemberRole.Admin))
+            {
+                return Error.Denied(ChatErrors.ManagerRequired, ChatMessages.ManagerRequired);
+            }
         }
 
         var allowed = await policy.EnsureAllowedAsync(context, request.Content).ConfigureAwait(false);
@@ -106,6 +135,7 @@ public sealed class ChatMessageService(
             ReplyToMessageId = request.ReplyToMessageId,
             ReplyPreview = replyPreview.TryGetValue(out var preview) ? preview : null,
             MentionedUserIds = ChatAttachmentsJson.MentionsText(mentioned),
+            MentionAll = request.MentionAll,
         }, ChatRules.Optional(checkedPayload.Content, ChatRules.MaxContentLength), checkedPayload.Attachments, caller.UserId, sender).ConfigureAwait(false);
         if (!appended.TryGetValue(out var sent))
         {
@@ -118,50 +148,80 @@ public sealed class ChatMessageService(
     }
 
     /// <summary>
-    /// 转发一条消息到一个或多个会话：逐个会话成功或失败
+    /// 把同一个会话里的一条或多条消息转发到一个或多个会话：逐个会话成功或失败
     /// </summary>
     /// <remarks>
-    /// 调用方须是原消息所在会话的成员；系统提示、通话记录与已撤回的不能转发；目标会话不存在、不是成员或被禁言的逐项失败
+    /// 调用方须是这些消息所在会话的成员；系统提示、通话记录与已撤回的不能转发；目标会话不存在、不是成员或被禁言的逐项失败
+    /// 逐条转发按原来的先后一条条追加；合并转发追加一条聊天记录，里面是这些消息当时的样子
     /// </remarks>
-    public async Task<Result<BatchResult>> ForwardAsync(InvocationContext context, ChatCaller caller, Guid messageId, IReadOnlyList<Guid> conversationIds)
+    public async Task<Result<BatchResult>> ForwardAsync(InvocationContext context, ChatCaller caller, ForwardChatMessageRequest request)
     {
-        var source = await store.RequireMessageAsync(caller.Side, messageId, context.CancellationToken).ConfigureAwait(false);
-        if (!source.TryGetValue(out var original))
+        ArgumentNullException.ThrowIfNull(request);
+        var cancellationToken = context.CancellationToken;
+        var messageIds = request.MessageIds.Distinct().ToList();
+        var originals = await store.Messages(caller.Side).Where(m => messageIds.Contains(m.Id)).ToListAsync(cancellationToken).ConfigureAwait(false);
+        if (originals.Count != messageIds.Count)
         {
-            return source.Error!;
+            var missing = messageIds.First(id => originals.TrueForAll(m => m.Id != id));
+            return Error.NotFound(ChatErrors.MessageNotFound, ChatMessages.MessageNotFound, MessageArguments.Of(("id", missing)));
         }
 
-        var member = await store.RequireMemberAsync(caller.Side, original.ConversationId, caller.UserId, context.CancellationToken).ConfigureAwait(false);
+        var sourceId = originals[0].ConversationId;
+        if (originals.Exists(m => m.ConversationId != sourceId))
+        {
+            return Error.Validation(ChatErrors.ForwardMixedConversations, ChatMessages.ForwardMixedConversations);
+        }
+
+        var member = await store.RequireMemberAsync(caller.Side, sourceId, caller.UserId, cancellationToken).ConfigureAwait(false);
         if (member.IsFailure)
         {
             return member.Error!;
         }
 
-        if (original.IsRecalled || original.Type is ChatMessageType.System or ChatMessageType.Call)
+        if (originals.Exists(static m => m.IsRecalled || m.Type is ChatMessageType.System or ChatMessageType.Call))
         {
             return Error.Validation(ChatErrors.NotForwardable, ChatMessages.NotForwardable);
         }
 
-        var allowed = await policy.EnsureAllowedAsync(context, original.Content).ConfigureAwait(false);
-        if (allowed.IsFailure)
+        originals = [.. originals.OrderBy(static m => m.Seq)];
+        // 聊天记录的正文是 JSON，里面的话在收进去的时候核对过
+        foreach (var original in originals.Where(static m => m.Type != ChatMessageType.Record))
         {
-            return allowed.Error!;
+            var allowed = await policy.EnsureAllowedAsync(context, original.Content).ConfigureAwait(false);
+            if (allowed.IsFailure)
+            {
+                return allowed.Error!;
+            }
         }
 
-        var type = original.Type == ChatMessageType.Assistant ? ChatMessageType.Text : original.Type;
-        var files = ChatAttachmentsJson.Deserialize(original.Attachments);
-        var users = await store.UsersAsync([caller.UserId], context.CancellationToken).ConfigureAwait(false);
+        List<(ChatMessageType Type, string? Content, IReadOnlyList<ChatMessageAttachment> Files)> outgoing;
+        if (request.Merge)
+        {
+            var merged = await RecordOfAsync(caller.Side, sourceId, originals, cancellationToken).ConfigureAwait(false);
+            if (!merged.TryGetValue(out var record))
+            {
+                return merged.Error!;
+            }
+
+            outgoing = [(ChatMessageType.Record, record.Content, record.Files)];
+        }
+        else
+        {
+            outgoing = [.. originals.Select(static m => (m.Type == ChatMessageType.Assistant ? ChatMessageType.Text : m.Type, m.Content, ChatAttachmentsJson.Deserialize(m.Attachments)))];
+        }
+
+        var users = await store.UsersAsync([caller.UserId], cancellationToken).ConfigureAwait(false);
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
-        foreach (var conversationId in conversationIds.Distinct())
+        foreach (var conversationId in request.ConversationIds.Distinct())
         {
-            if ((await store.ConversationAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false)).IsFailure)
+            if ((await store.ConversationAsync(caller.Side, conversationId, cancellationToken).ConfigureAwait(false)).IsFailure)
             {
                 failed.Add(new BatchFailure(conversationId, ChatErrors.ConversationNotFound, ChatMessages.ConversationNotFound.L()));
                 continue;
             }
 
-            var current = await store.MembersAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false);
+            var current = await store.MembersAsync(caller.Side, conversationId, cancellationToken).ConfigureAwait(false);
             var sender = current.FirstOrDefault(m => m.UserId == caller.UserId);
             if (sender is null || sender.IsSilenced)
             {
@@ -171,24 +231,68 @@ public sealed class ChatMessageService(
                 continue;
             }
 
-            var appended = await AppendAsync(context, caller.Side, conversationId, new SysChatMessage
+            foreach (var (type, content, files) in outgoing)
             {
-                SenderUserId = caller.UserId,
-                SenderName = users.GetValueOrDefault(caller.UserId)?.UserName,
-                Type = type,
-                Content = original.Content,
-                Attachments = original.Attachments,
-            }, original.Content, files, caller.UserId, sender).ConfigureAwait(false);
-            if (!appended.TryGetValue(out var sent))
-            {
-                return appended.Error!;
+                var appended = await AppendAsync(context, caller.Side, conversationId, new SysChatMessage
+                {
+                    SenderUserId = caller.UserId,
+                    SenderName = users.GetValueOrDefault(caller.UserId)?.UserName,
+                    Type = type,
+                    Content = content,
+                    Attachments = ChatAttachmentsJson.Serialize(files),
+                }, content, files, caller.UserId, sender).ConfigureAwait(false);
+                if (!appended.TryGetValue(out var sent))
+                {
+                    return appended.Error!;
+                }
+
+                await push.MessageAsync(caller.Side, ChatStore.ItemOf(sent.Message), sent.Conversation, [.. current.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
             }
 
-            await push.MessageAsync(caller.Side, ChatStore.ItemOf(sent.Message), sent.Conversation, [.. current.Select(static m => m.UserId)], context.CancellationToken).ConfigureAwait(false);
             succeeded.Add(conversationId);
         }
 
         return new BatchResult(succeeded, failed);
+    }
+
+    /// <summary>
+    /// 把一组消息收成一条聊天记录的正文与附件
+    /// </summary>
+    /// <remarks>
+    /// 标题由前端按会话类型写：单聊带两个人的名字（先说话的在前），助手会话带里面消息的发送人，群带群名
+    /// 附件取里面所有消息的附件（套着的聊天记录连它里面的一起）：目标会话的成员凭这条消息换得到每一个的下载地址
+    /// </remarks>
+    private async Task<Result<(string Content, IReadOnlyList<ChatMessageAttachment> Files)>> RecordOfAsync(string side, Guid conversationId, List<SysChatMessage> originals, CancellationToken cancellationToken)
+    {
+        var found = await store.ConversationAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var source))
+        {
+            return found.Error!;
+        }
+
+        IReadOnlyList<string> participants = [];
+        if (source.Type == ChatConversationType.Single)
+        {
+            // 两个人按在这组消息里说话的先后排，没说话的那个在后：标题读起来与里面的第一行对得上
+            var memberIds = await store.MemberIdsAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
+            var users = await store.UsersAsync(memberIds, cancellationToken).ConfigureAwait(false);
+            int FirstSpokeAt(Guid id) => originals.FindIndex(m => m.SenderUserId == id) is var index and >= 0 ? index : int.MaxValue;
+            participants = [.. memberIds.OrderBy(FirstSpokeAt).Select(id => users.GetValueOrDefault(id)?.UserName).Where(static name => !string.IsNullOrWhiteSpace(name)).Select(static name => name!)];
+        }
+        else if (source.Type == ChatConversationType.Assistant)
+        {
+            participants = [.. originals.Select(static m => m.SenderName).Where(static name => !string.IsNullOrWhiteSpace(name)).Select(static name => name!).Distinct(StringComparer.Ordinal)];
+        }
+
+        List<ChatRecordItem> items = [.. originals.Select(static m => new ChatRecordItem(m.SenderUserId, m.SenderName, m.CreatedAt, m.Type, m.Content, ChatAttachmentsJson.Deserialize(m.Attachments)))];
+        var grouped = source.Type is ChatConversationType.Group or ChatConversationType.Department;
+        var content = JsonSerializer.Serialize(new ChatRecord(source.Type, grouped ? source.Name : null, participants, items), _recordJson.ChatRecord);
+        if (content.Length > ChatRules.MaxRecordLength)
+        {
+            return Error.Validation(ChatErrors.RecordTooLarge, ChatMessages.RecordTooLarge);
+        }
+
+        return (content, [.. items.SelectMany(static item => item.Attachments).DistinctBy(static attachment => attachment.FileId)]);
     }
 
     /// <summary>

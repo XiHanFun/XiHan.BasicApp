@@ -26,6 +26,7 @@ function message(messageId: string, patch: Partial<ChatMessageItem> = {}): ChatM
     isRecalled: false,
     createdAt: '2026-10-13T00:00:00Z',
     mentionedUserIds: [],
+    mentionAll: false,
     isPinned: false,
     reactions: [],
     attachments: [

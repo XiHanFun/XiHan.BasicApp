@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 单聊按两人唯一，群聊的治理（加人、移出、退群、改信息与公告、转让群主、设管理员、禁言），部门群只有本部门的人能进、随部门归属事件同步成员；
-/// 消息的发送、撤回、编辑、回应、置顶、已读与搜索；附件以会话为访问范围、服务端转发、聊天审计的详情与成员（方案 H1、H2、H4）；
+/// 消息的发送、撤回、编辑、回应、置顶、已读与搜索，提及所有人只给群主与管理员；附件以会话为访问范围、服务端转发（一条或多条，逐条或合并成一条聊天记录）、聊天审计的详情与成员（方案 H1、H2、H4）；
 /// 敏感词与保留清理读 <c>chat.policy</c>；推送经聊天 Hub 在提交之后发出；平台一侧同样能聊天；模块可以关掉
 /// </remarks>
 public sealed class ChatTests : IDisposable
@@ -321,7 +321,7 @@ public sealed class ChatTests : IDisposable
         Assert.Equal("CHAT_NOTFOUND_005", (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:presign?conversationId={unrelated}&fileId={fileId}", null, carol)).Body.GetProperty("code").GetString());
 
         // 服务端转发：原样复制类型、正文与附件，不是成员的会话逐项失败；转发之后群成员也能凭群换地址
-        var (_, forwarded) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageId = sent.GetProperty("messageId").GetString(), conversationIds = new[] { group, unrelated } }, alice);
+        var (_, forwarded) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageIds = new[] { sent.GetProperty("messageId").GetString() }, conversationIds = new[] { group, unrelated } }, alice);
         Assert.Equal(group, Assert.Single(forwarded.GetProperty("succeeded").EnumerateArray()).GetString());
         Assert.Equal(("CHAT_DENIED_001", unrelated), (Assert.Single(forwarded.GetProperty("failed").EnumerateArray()).GetProperty("code").GetString(), forwarded.GetProperty("failed")[0].GetProperty("id").GetString()));
         var copy = (await HistoryAsync(server, carol, group)).Last();
@@ -360,7 +360,127 @@ public sealed class ChatTests : IDisposable
 
         // 已撤回的不能转发
         Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:recall", new { messageId = copy.GetProperty("messageId").GetString() }, alice)).Status);
-        Assert.Equal("CHAT_VALIDATION_022", (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageId = copy.GetProperty("messageId").GetString(), conversationIds = new[] { single } }, alice)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_VALIDATION_022", (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageIds = new[] { copy.GetProperty("messageId").GetString() }, conversationIds = new[] { single } }, alice)).Body.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Forward_TakesSeveralMessages_OneByOneOrMergedIntoARecord()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob, carol, dave) = (users["alice"], users["bob"], users["carol"], users["dave"]);
+        var single = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var docs = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Docs", memberUserIds = new[] { carol } }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var team = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { dave } }, alice)).Body.GetProperty("conversationId").GetString()!;
+
+        async Task<(HttpStatusCode Status, JsonElement Body)> ForwardAsync(string user, string[] messageIds, string conversationId, bool merge = false, string? locale = null)
+            => await CallAsync(server, HttpMethod.Post, "/api/chat-messages:forward", new { messageIds, conversationIds = new[] { conversationId }, merge }, user, locale);
+        static (string? Type, string? Content) BodyOf(JsonElement message) => (message.GetProperty("messageType").GetString(), message.GetProperty("content").GetString());
+
+        // 原会话里三条：文本、带附件的文件、对方的文本
+        var upload = BasicAppTestServer.Request(HttpMethod.Post, "/api/chat-messages/attachments", token: Token(alice));
+        var bytes = new ByteArrayContent("%PDF-1.4 forwarded"u8.ToArray());
+        bytes.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        upload.Content = new MultipartFormDataContent { { bytes, "file", "spec.pdf" } };
+        var fileId = (await server.SendAsync(upload)).Body.GetProperty("attachment").GetProperty("fileId").GetString()!;
+        var one = (await SendTextAsync(server, alice, single, "第一条")).GetProperty("messageId").GetString()!;
+        var two = (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId = single, messageType = "File", content = "see spec", attachments = new[] { new { fileId, fileName = "spec.pdf" } } }, alice)).Body.GetProperty("messageId").GetString()!;
+        var three = (await SendTextAsync(server, bob, single, "three")).GetProperty("messageId").GetString()!;
+        string[] picked = [three, one, two];
+
+        // 逐条转发：不管给的次序，按原来的先后各成一条，发送人是转发的人
+        var (_, copied) = await ForwardAsync(alice, picked, docs);
+        Assert.Equal(docs, Assert.Single(copied.GetProperty("succeeded").EnumerateArray()).GetString());
+        var copies = (await HistoryAsync(server, carol, docs))[^3..];
+        Assert.Equal([("Text", "第一条"), ("File", "see spec"), ("Text", "three")], copies.Select(BodyOf));
+        Assert.All(copies, copy => Assert.Equal(alice, copy.GetProperty("senderUserId").GetString()));
+
+        // 合并转发：收成一条聊天记录，正文记着来自哪个会话与里面的每条消息（原文不转义），附件是里面所有消息的附件
+        Assert.Equal(HttpStatusCode.OK, (await ForwardAsync(alice, picked, team, merge: true, locale: "zh-CN")).Status);
+        var record = (await HistoryAsync(server, dave, team))[^1];
+        var recordId = record.GetProperty("messageId").GetString()!;
+        Assert.Equal(("Record", alice), (record.GetProperty("messageType").GetString(), record.GetProperty("senderUserId").GetString()));
+        Assert.Equal(fileId, Assert.Single(record.GetProperty("attachments").EnumerateArray()).GetProperty("fileId").GetString());
+        Assert.Contains("第一条", record.GetProperty("content").GetString(), StringComparison.Ordinal);
+        using (var content = JsonDocument.Parse(record.GetProperty("content").GetString()!))
+        {
+            var root = content.RootElement;
+            Assert.Equal(("Single", JsonValueKind.Null), (root.GetProperty("sourceType").GetString(), root.GetProperty("sourceName").ValueKind));
+            Assert.Equal(["alice", "bob"], root.GetProperty("participants").EnumerateArray().Select(static name => name.GetString()));
+            var items = root.GetProperty("items").EnumerateArray().ToList();
+            Assert.Equal([("alice", "Text", "第一条"), ("alice", "File", "see spec"), ("bob", "Text", "three")], items.Select(static item => (item.GetProperty("senderUserName").GetString(), item.GetProperty("messageType").GetString(), item.GetProperty("content").GetString())));
+            Assert.Equal("spec.pdf", Assert.Single(items[1].GetProperty("attachments").EnumerateArray()).GetProperty("fileName").GetString());
+        }
+
+        // 会话预览写「[聊天记录]」；目标会话的成员凭这条聊天记录换得到附件；它不进搜索，回复它时快照用预览文案
+        Assert.Equal("[聊天记录]", (await ConversationAsync(server, dave, team, "zh-CN")).GetProperty("lastMessagePreview").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:presign?conversationId={team}&fileId={fileId}", null, dave)).Status);
+        Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, $"/api/chat-messages:search?conversationId={team}&keyword=three", null, dave)).Body.GetProperty("items").GetArrayLength());
+        var (_, reply) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId = team, messageType = "Text", content = "got it", replyToMessageId = recordId }, dave, "zh-CN");
+        Assert.Equal("alice: [聊天记录]", reply.GetProperty("replyPreview").GetString());
+
+        // 聊天记录能再合并：套在里面，附件跟着走；来自群的记着群名
+        var extra = (await SendTextAsync(server, dave, team, "extra")).GetProperty("messageId").GetString()!;
+        Assert.Equal(HttpStatusCode.OK, (await ForwardAsync(alice, [extra, recordId], docs, merge: true)).Status);
+        var nested = (await HistoryAsync(server, carol, docs))[^1];
+        Assert.Equal(fileId, Assert.Single(nested.GetProperty("attachments").EnumerateArray()).GetProperty("fileId").GetString());
+        using (var content = JsonDocument.Parse(nested.GetProperty("content").GetString()!))
+        {
+            var root = content.RootElement;
+            Assert.Equal(("Group", "Team", 0), (root.GetProperty("sourceType").GetString(), root.GetProperty("sourceName").GetString(), root.GetProperty("participants").GetArrayLength()));
+            var items = root.GetProperty("items").EnumerateArray().ToList();
+            Assert.Equal(["Record", "Text"], items.Select(static item => item.GetProperty("messageType").GetString()));
+            using var inner = JsonDocument.Parse(items[0].GetProperty("content").GetString()!);
+            Assert.Equal(3, inner.RootElement.GetProperty("items").GetArrayLength());
+        }
+
+        // 聊天记录也能逐条转发：原样一条
+        Assert.Equal(HttpStatusCode.OK, (await ForwardAsync(alice, [recordId], single)).Status);
+        var again = (await HistoryAsync(server, bob, single))[^1];
+        Assert.Equal(("Record", record.GetProperty("content").GetString()), BodyOf(again));
+
+        // 不同会话的消息不能一起转；不存在的、已撤回的不能转
+        Assert.Equal("CHAT_VALIDATION_034", (await ForwardAsync(alice, [one, extra], docs)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_NOTFOUND_002", (await ForwardAsync(alice, [one, Guid.CreateVersion7().ToString()], docs)).Body.GetProperty("code").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-messages:recall", new { messageId = extra }, dave)).Status);
+        Assert.Equal("CHAT_VALIDATION_022", (await ForwardAsync(dave, [recordId, extra], team, merge: true)).Body.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task MentionAll_IsForOwnersAndAdminsOfAGroup()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob, carol) = (users["alice"], users["bob"], users["carol"]);
+        var single = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var group = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { bob, carol } }, alice)).Body.GetProperty("conversationId").GetString()!;
+
+        async Task<(HttpStatusCode Status, JsonElement Body)> SendToAllAsync(string user, string conversationId)
+            => await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId, messageType = "Text", content = "@all please read", mentionAll = true }, user);
+
+        // 单聊不能提及所有人；群里只有群主与管理员能用
+        Assert.Equal("CHAT_VALIDATION_033", (await SendToAllAsync(alice, single)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_DENIED_002", (await SendToAllAsync(carol, group)).Body.GetProperty("code").GetString());
+        var (status, sent) = await SendToAllAsync(alice, group);
+        Assert.True(status == HttpStatusCode.OK, sent.ToString());
+        Assert.Equal((true, 0), (sent.GetProperty("mentionAll").GetBoolean(), sent.GetProperty("mentionedUserIds").GetArrayLength()));
+        Assert.True((await HistoryAsync(server, carol, group))[^1].GetProperty("mentionAll").GetBoolean());
+
+        // 设成管理员之后也能用；平常的消息不带这个标记
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:set-member-role", new { conversationId = group, userId = bob, memberRole = "Admin" }, alice)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await SendToAllAsync(bob, group)).Status);
+        Assert.False((await SendTextAsync(server, carol, group, "plain")).GetProperty("mentionAll").GetBoolean());
+
+        // 部门群没有群主与管理员，用不了
+        var organizer = TestTokens.Issue("root", "acme", Organizer);
+        var departmentId = (await CallAsync(server, HttpMethod.Post, "/api/departments", new { code = "rnd", name = "R&D" }, organizer)).Body.GetProperty("id").GetString()!;
+        Assert.Equal(HttpStatusCode.Created, (await CallAsync(server, HttpMethod.Post, "/api/memberships", new { userId = alice, departmentId }, organizer)).Status);
+        var department = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-department", new { departmentId }, alice)).Body.GetProperty("conversationId").GetString()!;
+        Assert.Equal("CHAT_VALIDATION_033", (await SendToAllAsync(alice, department)).Body.GetProperty("code").GetString());
+
+        // 审计详情看得到
+        var (_, detail) = await CallAsync(server, HttpMethod.Get, $"/api/chat-audit/{sent.GetProperty("messageId").GetString()}", null, TestTokens.Issue("auditor", "acme", Chatter));
+        Assert.True(detail.GetProperty("mentionAll").GetBoolean());
     }
 
     [Fact]

@@ -135,8 +135,37 @@ describe('枚举文案与语气', () => {
     expect(auditContentText(t, 'Text', null, 'Group')).toBe('')
   })
 
-  it('七种消息类型都有文案（含助手与通话），会话类型含助手会话', () => {
-    expect(CHAT_MESSAGE_TYPES).toHaveLength(7)
+  it('聊天记录的正文写成「标题 · 几条」，读不出记录的原样给', () => {
+    const record = JSON.stringify({
+      sourceType: 'Group',
+      sourceName: 'Team',
+      participants: [],
+      items: [
+        {
+          senderUserName: 'alice',
+          createdAt: '2026-11-14T08:00:00Z',
+          messageType: 'Text',
+          content: 'one',
+          attachments: [],
+        },
+        {
+          senderUserName: 'bob',
+          createdAt: '2026-11-14T08:00:01Z',
+          messageType: 'Text',
+          content: 'two',
+          attachments: [],
+        },
+      ],
+    })
+
+    expect(auditContentText(t, 'Record', record, 'Group')).toBe('chat.record.title_group · chat.record.count')
+    expect(auditContentText(t, 'Record', '坏掉的正文', 'Group')).toBe('坏掉的正文')
+    expect(messageTypeLabel(t, 'Record')).toBe('chat.audit.type_record')
+    expect(messageTypeTone('Record')).toBe('info')
+  })
+
+  it('八种消息类型都有文案（含助手、通话与聊天记录），会话类型含助手会话', () => {
+    expect(CHAT_MESSAGE_TYPES).toHaveLength(8)
     expect(messageTypeLabel(t, 'Call')).toBe('chat.audit.type_call')
     expect(messageTypeTone('Call')).toBe('info')
     expect(messageTypeLabel(t, 'Assistant')).toBe('chat.audit.type_assistant')

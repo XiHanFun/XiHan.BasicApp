@@ -9,6 +9,7 @@ import type { ChatConversationType, ChatMemberRole, ChatMessageType, PageQueryMa
 import { ref, shallowRef } from 'vue'
 import { chatAudit, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { callMediaLabel, callRecordText, parseCallRecord } from '../../call/call-helpers'
+import { chatRecordTitle, parseChatRecord } from '../../components/chat-record'
 
 export type ChatAuditRow = ResponseOf<'chat-audit.list'>['items'][number]
 export type ChatAuditDetail = ResponseOf<'chat-audit.get'>
@@ -18,7 +19,7 @@ export type ChatAuditConversation = ChatAuditMembers['conversation']
 
 type Translate = (key: string, values?: Record<string, unknown>) => string
 
-/** 消息类型（契约字面量；审计里能出现全部七种） */
+/** 消息类型（契约字面量；审计里能出现全部八种） */
 export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = [
   'Text',
   'Image',
@@ -26,6 +27,7 @@ export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = [
   'File',
   'Assistant',
   'Call',
+  'Record',
   'System',
 ]
 
@@ -70,15 +72,23 @@ export function messageTypeLabel(t: Translate, type: ChatMessageType): string {
     case 'File': return t('chat.audit.type_file')
     case 'Assistant': return t('chat.audit.type_assistant')
     case 'Call': return t('chat.audit.type_call')
+    case 'Record': return t('chat.audit.type_record')
     case 'System': return t('chat.audit.type_system')
     default: return t('chat.audit.type_text')
   }
 }
 
 /**
- * 审计里显示的正文：通话记录的正文是 JSON，写成「媒体 · 结果」一行，口吻随发送人（即发起人），群里的按多人通话说；别的照原文
+ * 审计里显示的正文：通话记录的正文是 JSON，写成「媒体 · 结果」一行，口吻随发送人（即发起人），群里的按多人通话说；
+ * 聊天记录的正文也是 JSON，写成「标题 · 几条」；别的照原文
  */
 export function auditContentText(t: Translate, type: ChatMessageType, content: null | string | undefined, conversationType: ChatConversationType): string {
+  if (type === 'Record') {
+    const chatRecord = parseChatRecord(content)
+    return chatRecord
+      ? `${chatRecordTitle(t, chatRecord)} · ${t('chat.record.count', { n: chatRecord.items.length })}`
+      : content ?? ''
+  }
   if (type !== 'Call') {
     return content ?? ''
   }
@@ -95,6 +105,7 @@ export function messageTypeTone(type: ChatMessageType): Tone {
     case 'Voice':
     case 'File':
     case 'Call':
+    case 'Record':
       return 'info'
     case 'Assistant':
       return 'success'

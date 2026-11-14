@@ -100,10 +100,18 @@ export default {
       copy_failed: '复制失败',
       forward: '转发',
       download_failed: '下载失败',
+      select: '多选',
+      select_message: '选择 {name} 的消息',
+      selected_count: '已选 {n} 条',
+      select_limit: '一次最多转发 {max} 条',
+      forward_one_by_one: '逐条转发',
+      forward_merged: '合并转发',
     },
     forward: {
       title: '转发给…',
       sent: '已转发',
+      title_many: '逐条转发 {n} 条给…',
+      title_merged: '合并转发 {n} 条给…',
     },
     member_menu: {
       send_message: '发送消息',
@@ -139,6 +147,7 @@ export default {
       save_edit: '保存修改',
       mention_empty: '暂无可 {\'@\'} 的成员',
       silenced: '你已被禁言，暂时不能发送消息',
+      mention_all: '所有人',
     },
     members: {
       count: '{n} 名成员',
@@ -194,6 +203,13 @@ export default {
       online: '在线',
       offline: '离线',
       online_count: '{n} 人在线',
+    },
+    record: {
+      title: '聊天记录',
+      title_group: '{name} 的聊天记录',
+      title_pair: '{a} 和 {b} 的聊天记录',
+      count: '聊天记录 · {n} 条',
+      back: '返回上一层',
     },
     call: {
       voice: '语音通话',
@@ -333,6 +349,8 @@ export default {
       joined_at: '入会时间',
       type_assistant: '助手',
       type_call: '通话',
+      type_record: '聊天记录',
+      mention_all: '所有人',
     },
   },
 }

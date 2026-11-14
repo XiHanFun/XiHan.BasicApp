@@ -71,7 +71,7 @@ export function createChatApi(): ChatApiContract {
     },
     editMessage: (messageId, content) => chatMessages.edit({ messageId, content }),
     toggleReaction: (messageId, emoji) => chatMessages.react({ messageId, emoji }),
-    forwardMessage: async (messageId, conversationIds) => throwOnFailed(await chatMessages.forward({ messageId, conversationIds })),
+    forwardMessages: async (messageIds, conversationIds, merge = false) => throwOnFailed(await chatMessages.forward({ messageIds, conversationIds, merge })),
     pinMessage: async (messageId) => {
       await chatMessages.pin({ messageId })
     },

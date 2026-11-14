@@ -100,10 +100,18 @@ export default {
       copy_failed: '복사 실패',
       forward: '전달',
       download_failed: '다운로드에 실패했습니다',
+      select: '여러 개 선택',
+      select_message: '{name}의 메시지 선택',
+      selected_count: '{n}개 선택됨',
+      select_limit: '한 번에 최대 {max}개까지 전달할 수 있습니다',
+      forward_one_by_one: '하나씩 전달',
+      forward_merged: '묶어서 전달',
     },
     forward: {
       title: '전달할 대상…',
       sent: '전달했어요',
+      title_many: '{n}개를 하나씩 전달…',
+      title_merged: '{n}개를 묶어서 전달…',
     },
     member_menu: {
       send_message: '메시지 보내기',
@@ -139,6 +147,7 @@ export default {
       save_edit: '변경 사항 저장',
       mention_empty: '{\'@\'} 할 수 있는 멤버가 없어요',
       silenced: '채팅이 금지되어 지금은 메시지를 보낼 수 없어요',
+      mention_all: '모두',
     },
     members: {
       count: '멤버 {n}명',
@@ -194,6 +203,13 @@ export default {
       online: '온라인',
       offline: '오프라인',
       online_count: '{n}명 온라인',
+    },
+    record: {
+      title: '대화 기록',
+      title_group: '{name}의 대화 기록',
+      title_pair: '{a}와(과) {b}의 대화 기록',
+      count: '대화 기록 · {n}개',
+      back: '이전으로',
     },
     call: {
       voice: '음성 통화',
@@ -333,6 +349,8 @@ export default {
       joined_at: '참여 시간',
       type_assistant: '어시스턴트',
       type_call: '통화',
+      type_record: '대화 기록',
+      mention_all: '모두',
     },
   },
 }

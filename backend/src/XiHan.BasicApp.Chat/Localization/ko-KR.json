@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "고정된 메시지",
   "chat_messages.pinned.description": "대화에 고정된 메시지를 최근에 고정한 순으로 나열합니다. 멤버만 볼 수 있습니다.",
   "chat_messages.send.title": "메시지 보내기",
-  "chat_messages.send.description": "텍스트, 이미지, 음성, 파일 메시지를 보냅니다. 채팅 금지되지 않은 멤버만 보낼 수 있으며, 금칙어, 첨부 파일 소유, 멘션, 답장을 확인한 뒤 모든 멤버에게 푸시합니다.",
+  "chat_messages.send.description": "텍스트, 이미지, 음성 또는 파일 메시지를 보냅니다. 구성원이고 발언 금지 상태가 아니어야 합니다. 금칙어, 첨부 소유, 멘션과 답장을 확인하며, 모두 멘션은 그룹 채팅의 소유자와 관리자만 쓸 수 있습니다. 저장 후 모든 구성원에게 푸시합니다.",
   "chat_messages.recall.title": "메시지 전송 취소",
   "chat_messages.recall.description": "내가 2분 이내에 보낸 메시지의 전송을 취소합니다. 본문은 비우고 행과 첨부 파일은 남깁니다.",
   "chat_messages.edit.title": "메시지 수정",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "메시지 고정 해제",
   "chat_messages.unpin.description": "메시지 고정을 해제합니다. 권한은 고정과 같습니다.",
   "chat_messages.forward.title": "메시지 전달",
-  "chat_messages.forward.description": "메시지를 하나 이상의 대화로 전달합니다. 유형, 본문, 첨부 파일을 그대로 복사하고 전달 출처는 붙이지 않으며, 어시스턴트 답변은 텍스트로 전달하고 대화마다 따로 성공하거나 실패합니다.",
+  "chat_messages.forward.description": "같은 대화의 메시지 하나 이상을 하나 이상의 대화로 전달합니다. 개별 전달은 유형, 본문과 첨부를 그대로 복사하고 전달 출처를 붙이지 않으며 어시스턴트 답변은 텍스트로 보냅니다. 묶어서 전달하면 대화 기록 하나가 됩니다. 대화별로 성공하거나 실패합니다.",
   "chat_messages.fast_upload.title": "첨부 파일 빠른 업로드",
   "chat_messages.fast_upload.description": "호출한 측에 내용이 같은 파일이 있으면 채팅 첨부 파일로 재사용하고, 없으면 빈 값을 반환해 클라이언트가 일반 업로드를 하도록 합니다. 채팅 보내기 권한만 있으면 됩니다.",
   "chat_messages.presign.title": "첨부 파일 주소",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "이 대화에는 이미 통화가 있습니다. 바로 참여하세요.",
   "chat.call.nobody_available": "초대한 사람이 모두 오프라인이거나 통화 중입니다.",
   "chat.call.full": "통화 인원이 가득 찼습니다.",
-  "chat.call.ended": "이 통화는 이미 종료되었습니다."
+  "chat.call.ended": "이 통화는 이미 종료되었습니다.",
+  "chat.preview.record": "[대화 기록]",
+  "chat.message.mention_all_unsupported": "모두 멘션은 그룹 채팅에서만 쓸 수 있습니다.",
+  "chat.message.forward_mixed": "한 번에 전달하는 메시지는 같은 대화의 것이어야 합니다.",
+  "chat.message.record_too_large": "묶을 내용이 너무 많습니다. 메시지를 줄여 주세요."
 }

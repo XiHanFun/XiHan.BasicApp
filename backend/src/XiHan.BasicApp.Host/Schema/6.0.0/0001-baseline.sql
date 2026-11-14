@@ -488,6 +488,7 @@ CREATE TABLE IF NOT EXISTS "sys_chat_message" (
     "reply_preview" character varying(300) DEFAULT NULL::character varying NULL,
     "edited_at" timestamp with time zone NULL,
     "mentioned_user_ids" character varying(1000) DEFAULT NULL::character varying NULL,
+    "mention_all" boolean DEFAULT false NOT NULL,
     "is_pinned" boolean DEFAULT false NOT NULL,
     "pinned_by_user_id" uuid NULL,
     "pinned_at" timestamp with time zone NULL,

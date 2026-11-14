@@ -5,6 +5,7 @@
 
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
+import type { ChatRecord } from './chat-record'
 import type { ChatCallMedia, ChatConversationType } from '~/contracts'
 import { XhButton } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -20,6 +21,7 @@ import { useChatFileUrl, useChatFileUrls } from '../composables/useChatFileUrl'
 import { useChatStore } from '../store'
 import { chatErrorText, formatFileSize, formatMessageTime } from './chat-helpers'
 import { useChatImageGallery } from './chat-image-gallery'
+import { chatRecordPreviewLines, chatRecordTitle, parseChatRecord } from './chat-record'
 import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
 import ChatMessageImage from './ChatMessageImage.vue'
 
@@ -45,6 +47,8 @@ const emit = defineEmits<{
   react: [emoji: string]
   /** 点通话记录：用同样的媒体再打一次 */
   call: [media: ChatCallMedia]
+  /** 点聊天记录：打开看里面的消息 */
+  record: [record: ChatRecord]
   /** 右键他人头像（QQ 式成员菜单，由消息流统一承载） */
   avatarContextmenu: [event: MouseEvent]
 }>()
@@ -60,6 +64,7 @@ const isImage = computed(() => props.message.messageType === 'Image')
 const isVoice = computed(() => props.message.messageType === 'Voice')
 const isFile = computed(() => props.message.messageType === 'File')
 const isCall = computed(() => props.message.messageType === 'Call')
+const isRecord = computed(() => props.message.messageType === 'Record')
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
 /** 通话记录：发送人是发起人，本人发的即我打出去的；群里的是多人通话，说法不点「对方」 */
@@ -74,11 +79,19 @@ const callRecordLine = computed(() => (callRecord.value
     })
   : t('chat.call.record_unknown')))
 
-/** 被 @ 到我：气泡高亮 */
+/** 聊天记录：合并转发出来的一条，卡片上是标题与前几行，点开看全部 */
+const chatRecord = computed(() => (isRecord.value
+  ? parseChatRecord(props.message.content)
+  : null))
+const chatRecordLines = computed(() => (chatRecord.value
+  ? chatRecordPreviewLines(chatRecord.value)
+  : []))
+
 const isAssistantReply = computed(() => props.conversationType === 'Assistant' && !props.isSelf)
 
+/** 被 @ 到我（点了我的名，或提及了所有人）：气泡高亮 */
 const mentionsMe = computed(() =>
-  !props.isSelf && props.message.mentionedUserIds?.includes(currentUserId.value))
+  !props.isSelf && (props.message.mentionAll || props.message.mentionedUserIds?.includes(currentUserId.value)))
 
 /** 回应按 emoji 分组（含我是否已回应） */
 const groupedReactions = computed(() => {
@@ -388,6 +401,18 @@ async function handleDownload(fileId: string) {
           </button>
         </template>
 
+        <!-- 聊天记录：标题、前几行与条数，整张卡片可点开 -->
+        <template v-else-if="isRecord">
+          <button type="button" class="chat-record-card" :disabled="!chatRecord" @click="chatRecord && emit('record', chatRecord)">
+            <span class="block truncate text-[13px] font-medium">{{ chatRecord ? chatRecordTitle(t, chatRecord) : t('chat.record.title') }}</span>
+            <span v-for="(line, index) in chatRecordLines" :key="index" class="block truncate text-xs opacity-70">{{ line }}</span>
+            <span class="chat-record-card__footer">
+              <Icon icon="lucide:messages-square" width="12" height="12" class="shrink-0" />
+              {{ chatRecord ? t('chat.record.count', { n: chatRecord.items.length }) : t('chat.record.title') }}
+            </span>
+          </button>
+        </template>
+
         <!-- 公告卡片（钉钉式：小喇叭标题 + 全文保留换行，发布人经头像/昵称归属） -->
         <template v-else-if="isAnnouncement">
           <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-amber-600">
@@ -599,6 +624,47 @@ async function handleDownload(fileId: string) {
 
 .chat-call-record:disabled {
   cursor: default;
+}
+
+/* 聊天记录卡片：与文件卡片同一副承载面，整张可点 */
+.chat-record-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xh-space-0_5);
+  inline-size: calc(var(--xh-space-8) * 8);
+  max-inline-size: 100%;
+  padding: var(--xh-space-2) var(--xh-space-2_5);
+  border: var(--xh-stroke-thin) solid var(--xh-border-default);
+  border-radius: var(--xh-shape-control);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-default);
+  text-align: start;
+  cursor: pointer;
+  transition: border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.chat-record-card:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--xh-fg-brand) 50%, transparent);
+}
+
+.chat-record-card:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
+.chat-record-card:disabled {
+  cursor: default;
+}
+
+.chat-record-card__footer {
+  display: flex;
+  gap: var(--xh-space-1);
+  align-items: center;
+  margin-block-start: var(--xh-space-1);
+  padding-block-start: var(--xh-space-1);
+  border-block-start: var(--xh-stroke-thin) solid var(--xh-border-subtle);
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-font-size-xs);
 }
 
 .chat-file-card {

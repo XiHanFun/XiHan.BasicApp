@@ -100,10 +100,18 @@ export default {
       copy_failed: 'コピーに失敗しました',
       forward: '転送',
       download_failed: 'ダウンロードに失敗しました',
+      select: '複数選択',
+      select_message: '{name} のメッセージを選択',
+      selected_count: '{n} 件選択中',
+      select_limit: '一度に転送できるのは {max} 件までです',
+      forward_one_by_one: '個別に転送',
+      forward_merged: 'まとめて転送',
     },
     forward: {
       title: '転送先…',
       sent: '転送しました',
+      title_many: '{n} 件を個別に転送…',
+      title_merged: '{n} 件をまとめて転送…',
     },
     member_menu: {
       send_message: 'メッセージを送信',
@@ -139,6 +147,7 @@ export default {
       save_edit: '変更を保存',
       mention_empty: '{\'@\'} できるメンバーがいません',
       silenced: '発言を禁止されているため、現在メッセージを送信できません',
+      mention_all: '全員',
     },
     members: {
       count: 'メンバー {n} 名',
@@ -194,6 +203,13 @@ export default {
       online: 'オンライン',
       offline: 'オフライン',
       online_count: '{n} 名がオンライン',
+    },
+    record: {
+      title: 'チャット記録',
+      title_group: '{name} のチャット記録',
+      title_pair: '{a} と {b} のチャット記録',
+      count: 'チャット記録 · {n} 件',
+      back: '前に戻る',
     },
     call: {
       voice: '音声通話',
@@ -333,6 +349,8 @@ export default {
       joined_at: '参加日時',
       type_assistant: 'アシスタント',
       type_call: '通話',
+      type_record: 'チャット記録',
+      mention_all: '全員',
     },
   },
 }

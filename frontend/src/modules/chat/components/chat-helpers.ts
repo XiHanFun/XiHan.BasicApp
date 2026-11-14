@@ -64,9 +64,12 @@ export function messageBodyLabel(message: {
   messageType: ChatMessageType
   attachments?: ChatMessageAttachment[] | null
 }): string {
-  // 通话记录的正文是 JSON，不当文字显示
+  // 通话记录与聊天记录的正文是 JSON，不当文字显示
   if (message.messageType === 'Call') {
     return callRecordLabel(message.content)
+  }
+  if (message.messageType === 'Record') {
+    return '[聊天记录]'
   }
   if (message.content) {
     return message.content

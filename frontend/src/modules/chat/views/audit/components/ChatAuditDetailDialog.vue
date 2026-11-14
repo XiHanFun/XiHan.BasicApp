@@ -21,7 +21,7 @@ import { auditContentText, conversationTypeLabel, messageTypeLabel } from '../us
 
 defineOptions({ name: 'ChatAuditDetailDialog' })
 
-defineProps<{
+const props = defineProps<{
   loading: boolean
   detail: ChatAuditDetail | null
 }>()
@@ -48,6 +48,25 @@ function yesNo(value: boolean, at?: null | string): string {
     ? `${t('common.statuses.yes')}（${formatDate(at)}）`
     : t('common.statuses.yes')
 }
+
+/** 提及：提及了所有人的写在最前，后面是点名的用户 */
+const mentionsText = computed(() => {
+  const detail = props.detail
+  if (!detail) {
+    return '-'
+  }
+  const mentioned = [
+    ...(detail.mentionAll
+      ? [
+          t('chat.audit.mention_all'),
+        ]
+      : []),
+    ...detail.mentionedUserIds,
+  ]
+  return mentioned.length
+    ? mentioned.join(', ')
+    : '-'
+})
 
 const attachmentColumns = computed<XDataTableColumn<ChatMessageAttachment>[]>(() => [
   {
@@ -179,7 +198,7 @@ const reactionColumns = computed<XDataTableColumn<ChatReactionItem>[]>(() => [
               </XhDescriptionsItem>
               <XhDescriptionsItem style="grid-column: span 2">
                 <XhDescriptionsLabel>{{ t('chat.audit.mentions') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>{{ detail.mentionedUserIds.length ? detail.mentionedUserIds.join(', ') : '-' }}</XhDescriptionsValue>
+                <XhDescriptionsValue>{{ mentionsText }}</XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem style="grid-column: span 2">
                 <XhDescriptionsLabel>{{ t('chat.audit.content') }}</XhDescriptionsLabel>

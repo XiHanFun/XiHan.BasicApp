@@ -100,10 +100,18 @@ export default {
       copy_failed: 'Échec de la copie',
       forward: 'Transférer',
       download_failed: 'Échec du téléchargement',
+      select: 'Sélection multiple',
+      select_message: 'Sélectionner le message de {name}',
+      selected_count: '{n} sélectionnés',
+      select_limit: 'Vous pouvez transférer au plus {max} messages à la fois',
+      forward_one_by_one: 'Transférer un par un',
+      forward_merged: 'Transférer regroupés',
     },
     forward: {
       title: 'Transférer à…',
       sent: 'Transféré',
+      title_many: 'Transférer {n} messages à…',
+      title_merged: 'Transférer {n} messages regroupés à…',
     },
     member_menu: {
       send_message: 'Envoyer un message',
@@ -139,6 +147,7 @@ export default {
       save_edit: 'Enregistrer les modifications',
       mention_empty: 'Aucun membre à mentionner avec {\'@\'}',
       silenced: 'Vous êtes réduit au silence et ne pouvez pas envoyer de messages pour le moment',
+      mention_all: 'Tout le monde',
     },
     members: {
       count: '{n} membres',
@@ -194,6 +203,13 @@ export default {
       online: 'En ligne',
       offline: 'Hors ligne',
       online_count: '{n} en ligne',
+    },
+    record: {
+      title: 'Historique de discussion',
+      title_group: 'Historique de discussion de {name}',
+      title_pair: 'Historique de discussion de {a} et {b}',
+      count: 'Historique de discussion · {n} messages',
+      back: 'Retour',
     },
     call: {
       voice: 'Appel vocal',
@@ -333,6 +349,8 @@ export default {
       type_assistant: 'Assistant',
       type_call: 'Appel',
       type_system: 'Système',
+      type_record: 'Historique de discussion',
+      mention_all: 'Tout le monde',
     },
   },
 }

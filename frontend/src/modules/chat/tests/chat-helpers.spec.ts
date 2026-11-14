@@ -154,6 +154,13 @@ describe('messageBodyLabel 摘要标签', () => {
     })).toBe('[视频通话]')
   })
 
+  it('聊天记录的正文是 JSON：标签写「[聊天记录]」，不把 JSON 摆出来', () => {
+    expect(messageBodyLabel({
+      content: '{"sourceType":"Group","items":[]}',
+      messageType: 'Record',
+    })).toBe('[聊天记录]')
+  })
+
   it('emoji 与超长正文原样返回，不做截断（截断是会话预览 previewOf 的职责）', () => {
     const long = '一'.repeat(500)
 

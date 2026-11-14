@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天模块的源生成序列化上下文
 /// </summary>
 /// <remarks>
-/// 操作的请求与响应、推送载荷、附件、通话记录与策略参数的 JSON，以及订阅的部门归属与在线状态事件；枚举按名称
+/// 操作的请求与响应、推送载荷、附件、通话记录、聊天记录与策略参数的 JSON，以及订阅的部门归属与在线状态事件；枚举按名称
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
@@ -67,6 +67,7 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(ChatAttachmentUploadResponse))]
 [JsonSerializable(typeof(ChatAttachmentUrlResponse))]
 [JsonSerializable(typeof(IReadOnlyList<ChatMessageAttachment>))]
+[JsonSerializable(typeof(ChatRecord))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(PageResult<ChatAuditMessageResponse>))]
 [JsonSerializable(typeof(GetChatAuditMessageRequest))]

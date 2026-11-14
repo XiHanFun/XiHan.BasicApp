@@ -27,7 +27,7 @@ function createFakeApi(tag: string): ChatApiContract {
     markRead: notUsed,
     editMessage: notUsed,
     toggleReaction: notUsed,
-    forwardMessage: notUsed,
+    forwardMessages: notUsed,
     pinMessage: notUsed,
     unpinMessage: notUsed,
     setConversationPinned: notUsed,

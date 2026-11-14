@@ -17,6 +17,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 发送人名字与回复内容存快照：用户在平台库、不能联表；回复快照也不随原消息撤回或编辑回溯
 /// 附件存 JSON 列，文件名与大小以文件记录为准；附件以会话为访问范围（方案 H2），会话成员凭会话换下载地址
 /// 系统提示、助手回复与通话记录也是消息、由服务端追加：发送人为空即中性的系统提示，助手回复以助手 ID 作发送人，通话记录以发起人作发送人
+/// 聊天记录是合并转发出来的消息：正文是 JSON（来自哪个会话与里面的每条消息），附件列是里面所有消息的附件，目标会话的成员凭此换得到下载地址
 /// </remarks>
 [SugarTable(TableName = "sys_chat_message", TableDescription = "聊天消息（租户库实体）")]
 [SugarIndex("ux_sys_chat_message_tenant_id_conversation_id_seq", nameof(TenantId), OrderByType.Asc, nameof(ConversationId), OrderByType.Asc, nameof(Seq), OrderByType.Asc, true)]
@@ -114,6 +115,12 @@ public sealed class SysChatMessage : TenantScopedRecord
     public string? MentionedUserIds { get; set; }
 
     /// <summary>
+    /// 提及了所有人
+    /// </summary>
+    [SugarColumn(ColumnName = "mention_all", IsNullable = false, ColumnDescription = "提及了所有人")]
+    public bool MentionAll { get; set; }
+
+    /// <summary>
     /// 已置顶
     /// </summary>
     [SugarColumn(ColumnName = "is_pinned", IsNullable = false, ColumnDescription = "已置顶")]
@@ -169,6 +176,14 @@ public enum ChatMessageType
     /// 通话结束时由服务端追加，发送人是发起人，正文是通话记录的 JSON（媒体、结束的原因、时长）
     /// </remarks>
     Call = 6,
+
+    /// <summary>
+    /// 聊天记录
+    /// </summary>
+    /// <remarks>
+    /// 合并转发时由服务端追加，发送人是转发的人，正文是聊天记录的 JSON
+    /// </remarks>
+    Record = 7,
 
     /// <summary>
     /// 系统提示

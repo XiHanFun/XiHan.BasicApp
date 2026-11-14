@@ -42,7 +42,7 @@
   "chat_messages.pinned.title": "置顶的消息",
   "chat_messages.pinned.description": "列出会话里置顶的消息，最近置顶的在前；只给成员看。",
   "chat_messages.send.title": "发消息",
-  "chat_messages.send.description": "发文本、图片、语音或文件消息：只有成员、没被禁言；核对敏感词、附件归属、提及与回复，落库后推给全体成员。",
+  "chat_messages.send.description": "发文本、图片、语音或文件消息：只有成员、没被禁言；核对敏感词、附件归属、提及与回复，提及所有人只有群聊的群主与管理员能用；落库后推给全体成员。",
   "chat_messages.recall.title": "撤回消息",
   "chat_messages.recall.description": "撤回自己 2 分钟内发出的消息：清空正文、保留行与附件，推给全体成员。",
   "chat_messages.edit.title": "编辑消息",
@@ -54,7 +54,7 @@
   "chat_messages.unpin.title": "取消置顶消息",
   "chat_messages.unpin.description": "取消置顶消息，权限同置顶。",
   "chat_messages.forward.title": "转发消息",
-  "chat_messages.forward.description": "把一条消息转发到一个或多个会话：原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；逐个会话成功或失败。",
+  "chat_messages.forward.description": "把同一个会话里的一条或多条消息转发到一个或多个会话：逐条转发原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；合并转发收成一条聊天记录；逐个会话成功或失败。",
   "chat_messages.fast_upload.title": "秒传附件",
   "chat_messages.fast_upload.description": "同一侧已有内容相同的正常文件时直接得到一个聊天附件，没命中返回空、再走普通上传；只要聊天的发送权限。",
   "chat_messages.presign.title": "附件下载地址",
@@ -194,5 +194,9 @@
   "chat.call.in_progress": "这个会话里已经有一通电话，直接加入即可。",
   "chat.call.nobody_available": "邀请的人都不在线或正在通话中。",
   "chat.call.full": "通话人数已满。",
-  "chat.call.ended": "这通电话已经结束。"
+  "chat.call.ended": "这通电话已经结束。",
+  "chat.preview.record": "[聊天记录]",
+  "chat.message.mention_all_unsupported": "只有群聊能提及所有人。",
+  "chat.message.forward_mixed": "一次转发的消息得来自同一个会话。",
+  "chat.message.record_too_large": "合并转发的内容太多，请少选几条。"
 }

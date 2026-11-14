@@ -66,6 +66,7 @@ function message(patch: Partial<ChatMessageItem> & { messageId: string }): ChatM
     isRecalled: false,
     createdAt: '2026-08-27T00:00:00Z',
     mentionedUserIds: [],
+    mentionAll: false,
     isPinned: false,
     reactions: [],
     ...patch,
