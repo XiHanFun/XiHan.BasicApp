@@ -717,8 +717,8 @@ public sealed class ChatTests : IDisposable
     [Fact]
     public async Task Presence_RidesOnReads_AndIsPushedToPeersAndOpenGroups()
     {
-        // 离线宽限调到 1 秒：够验证「宽限内回来不推离线」，又不用干等缺省的 8 秒
-        var (server, users) = await StartAsync([new("BasicApp:Realtime:Presence:OfflineGrace", "00:00:01")]);
+        // 离线宽限调到 2 秒：够在宽限内重连一次验证「回来不推离线」，又不用干等缺省的 8 秒
+        var (server, users) = await StartAsync([new("BasicApp:Realtime:Presence:OfflineGrace", "00:00:02")]);
         await using var running = server;
         var (alice, bob, carol) = (users["alice"], users["bob"], users["carol"]);
         var single = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
@@ -763,11 +763,18 @@ public sealed class ChatTests : IDisposable
         // 宽限内断了又连上（刷新页面）：不推离线，回来时补一条在线（空档里读到离线的人靠它纠正）
         var back = ExpectPresence(bobHub, alice);
         await aliceHub.DisposeAsync();
+        // 断开在服务端是异步登记的：等它记下了再连。新连接抢在前面登记的话她压根没掉过线，也就没有要补的那一条
+        for (var attempt = 0; await PeerOnlineAsync(); attempt++)
+        {
+            Assert.True(attempt < 200, "The disconnect was not registered in time.");
+            await Task.Delay(10);
+        }
+
         aliceHub = Connect(server, aliceLogin);
         await aliceHub.StartAsync();
         Assert.True(await back.Task.WaitAsync(_wait));
         var flap = ExpectPresence(bobHub, alice);
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await Task.Delay(TimeSpan.FromSeconds(3));
         Assert.False(flap.Task.IsCompleted);
         Assert.True(await PeerOnlineAsync());
 
