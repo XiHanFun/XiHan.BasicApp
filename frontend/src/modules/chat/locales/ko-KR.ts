@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: '아무도 받지 않았습니다',
       notice_group_interrupted: '통화가 중단되었습니다',
       notice_group_connect_failed: '통화를 연결하지 못했습니다. 네트워크를 확인하세요',
+      screen: '화면 공유',
+      incoming_screen: '화면 공유 요청이 왔어요',
+      incoming_group_screen: '{group}의 화면 공유에 초대합니다',
+      invite_title_screen: '화면 공유 시작',
+      banner_ringing_screen: '{name} 님이 화면 공유를 시작했습니다',
+      banner_ongoing_screen: '화면 공유 진행 중 · {n}명',
     },
     time: {
       yesterday: '어제',

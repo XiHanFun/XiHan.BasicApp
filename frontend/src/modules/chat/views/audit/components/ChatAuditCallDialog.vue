@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon, renderTag, XDataTable } from '~/components'
 import { VNodeRender } from '~/components/common/VNodeRender'
 import { formatDate } from '~/utils'
-import { callMediaLabel } from '../../../call/call-helpers'
+import { callMediaIcon, callMediaLabel } from '../../../call/call-helpers'
 import { callOutcomeLabel, callOutcomeTone, conversationTypeLabel, participantStatusLabel, participantStatusTone } from '../use-chat-audit'
 
 defineOptions({ name: 'ChatAuditCallDialog' })
@@ -89,7 +89,7 @@ const columns = computed<XDataTableColumn<ChatAuditCallParticipant>[]>(() => [
         <XhDialogTitle>
           <div class="det-hd-entity">
             <div class="det-hd-ico">
-              <Icon :icon="call?.media === 'Video' ? 'lucide:video' : 'lucide:phone'" width="22" height="22" />
+              <Icon :icon="callMediaIcon(call?.media)" width="22" height="22" />
             </div>
             <div class="min-w-0">
               <div class="det-hd-name">

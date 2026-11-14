@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: 'Nobody answered',
       notice_group_interrupted: 'The call was interrupted',
       notice_group_connect_failed: 'The call could not connect. Check your network.',
+      screen: 'Screen share',
+      incoming_screen: 'Incoming screen share',
+      incoming_group_screen: 'Invites you to a screen share in {group}',
+      invite_title_screen: 'Start a screen share',
+      banner_ringing_screen: '{name} started a screen share',
+      banner_ongoing_screen: 'Screen share in progress · {n} in the call',
     },
     time: {
       yesterday: 'Yesterday',

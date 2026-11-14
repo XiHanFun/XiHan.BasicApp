@@ -74,14 +74,21 @@ const incoming = computed(() => callStore.phase === 'incoming')
 const windowOpen = computed(() => callStore.engaged && call.value !== null)
 
 const incomingDetail = computed(() => {
-  if (!isGroup.value) {
-    return isVideo.value
-      ? t('chat.call.incoming_video')
-      : t('chat.call.incoming_voice')
+  const group = groupName.value
+  switch (call.value?.media) {
+    case 'Video':
+      return isGroup.value
+        ? t('chat.call.incoming_group_video', { group })
+        : t('chat.call.incoming_video')
+    case 'Screen':
+      return isGroup.value
+        ? t('chat.call.incoming_group_screen', { group })
+        : t('chat.call.incoming_screen')
+    default:
+      return isGroup.value
+        ? t('chat.call.incoming_group_voice', { group })
+        : t('chat.call.incoming_voice')
   }
-  return isVideo.value
-    ? t('chat.call.incoming_group_video', { group: groupName.value })
-    : t('chat.call.incoming_group_voice', { group: groupName.value })
 })
 
 // ── 一人一格：已经在里面的与还在响铃的 ───────────────────────────────
@@ -214,11 +221,12 @@ watch(windowOpen, (open) => {
   if (!open) {
     return
   }
+  // 带画面的（视频、屏幕共享）开大一点的窗
   const preferred = isGroup.value
     ? GROUP_SIZE
-    : isVideo.value
-      ? VIDEO_SIZE
-      : VOICE_SIZE
+    : call.value?.media === 'Voice'
+      ? VOICE_SIZE
+      : VIDEO_SIZE
   const width = Math.max(MIN_SIZE.width, Math.min(preferred.width, window.innerWidth - GAP * 2))
   const height = Math.max(MIN_SIZE.height, Math.min(preferred.height, window.innerHeight - TOP - GAP))
   dimensions.value = { width, height }
@@ -596,7 +604,7 @@ watch(() => callStore.notice, (notice) => {
               :label="callStore.screenOn ? t('chat.call.stop_share') : t('chat.call.share_screen')"
               :variant="callStore.screenOn ? 'subtle' : 'ghost'"
               :aria-pressed="callStore.screenOn"
-              :disabled="call?.status !== 'Ongoing'"
+              :disabled="call?.status !== 'Ongoing' && !callStore.screenOn"
               @click="handleToggleScreen"
             />
             <XhPopoverRoot v-model:open="devicesOpen" placement="top">

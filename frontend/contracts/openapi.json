@@ -9508,7 +9508,7 @@
                       "format": "int32"
                     },
                     "maxVideoParticipants": {
-                      "description": "\u89C6\u9891\u901A\u8BDD\u7684\u4EBA\u6570\u4E0A\u9650\uFF08\u542B\u53D1\u8D77\u4EBA\uFF09",
+                      "description": "\u89C6\u9891\u901A\u8BDD\u4E0E\u5C4F\u5E55\u5171\u4EAB\u7684\u4EBA\u6570\u4E0A\u9650\uFF08\u542B\u53D1\u8D77\u4EBA\uFF09",
                       "type": "integer",
                       "format": "int32"
                     }
@@ -9542,7 +9542,7 @@
           "chat-calls"
         ],
         "summary": "Start call",
-        "description": "Starts a voice or video call and begins ringing: a direct conversation calls the other person, a group or department conversation invites the named members; refused when the caller is already in a call or no invitee can be rung.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
+        "description": "Starts a voice call, a video call or a screen share and begins ringing: a direct conversation calls the other person, a group or department conversation invites the named members; refused when the caller is already in a call or no invitee can be rung.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-calls.call",
         "parameters": [],
@@ -9562,7 +9562,7 @@
                     "format": "uuid"
                   },
                   "media": {
-                    "description": "\u5A92\u4F53\uFF1A\u8BED\u97F3\u6216\u89C6\u9891",
+                    "description": "\u5A92\u4F53\uFF1A\u8BED\u97F3\u3001\u89C6\u9891\u6216\u5C4F\u5E55\u5171\u4EAB",
                     "$ref": "#/components/schemas/ChatCallMedia"
                   },
                   "inviteeUserIds": {
@@ -65977,7 +65977,8 @@
         "type": "string",
         "enum": [
           "Voice",
-          "Video"
+          "Video",
+          "Screen"
         ]
       },
       "ChatCallParticipantItem": {

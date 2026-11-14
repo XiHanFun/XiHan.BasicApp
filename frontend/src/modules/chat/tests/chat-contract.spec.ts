@@ -202,7 +202,7 @@ describe('业务枚举与后端序列化值对齐', () => {
   })
 
   it('通话的媒体、状态、结束原因与参与者状态的成员与后端一致', () => {
-    expect([...ChatCallMedia]).toStrictEqual(['Voice', 'Video'])
+    expect([...ChatCallMedia]).toStrictEqual(['Voice', 'Video', 'Screen'])
     expect([...ChatCallStatus]).toStrictEqual(['Ringing', 'Ongoing', 'Ended'])
     expect([...ChatCallEndReason]).toStrictEqual([
       'Completed',

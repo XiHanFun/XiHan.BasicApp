@@ -59,7 +59,7 @@ function mediaDevices(media: ChatCallMedia): MediaDevices {
 }
 
 /**
- * 取通话要的本端媒体：语音只要麦克风，视频另要摄像头
+ * 取通话要的本端媒体：语音只要麦克风，视频另要摄像头；屏幕共享也只要麦克风，屏幕另取（acquireScreen）
  * 设备取不全即失败：视频通话没有摄像头不悄悄降成语音
  * @throws ChatCallMediaError 带原因
  */

@@ -31,7 +31,7 @@ export type CacheLayer = (typeof CacheLayer)[number]
 export const ChatCallEndReason = ['Completed', 'Cancelled', 'Rejected', 'Missed', 'Interrupted'] as const
 export type ChatCallEndReason = (typeof ChatCallEndReason)[number]
 
-export const ChatCallMedia = ['Voice', 'Video'] as const
+export const ChatCallMedia = ['Voice', 'Video', 'Screen'] as const
 export type ChatCallMedia = (typeof ChatCallMedia)[number]
 
 export const ChatCallParticipantStatus = ['Invited', 'Joined', 'Rejected', 'Missed', 'Left'] as const

@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: 'Ninguém atendeu',
       notice_group_interrupted: 'A chamada foi interrompida',
       notice_group_connect_failed: 'Não foi possível conectar a chamada. Verifique sua rede.',
+      screen: 'Compartilhamento de tela',
+      incoming_screen: 'Compartilhamento de tela recebido',
+      incoming_group_screen: 'Convida você para um compartilhamento de tela em {group}',
+      invite_title_screen: 'Iniciar compartilhamento de tela',
+      banner_ringing_screen: '{name} iniciou um compartilhamento de tela',
+      banner_ongoing_screen: 'Compartilhamento de tela em andamento · {n} na chamada',
     },
     time: {
       yesterday: 'Ontem',

@@ -195,7 +195,12 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
     /// 通话记录的预览
     /// </summary>
     public string CallPreview(InvocationContext context, ChatCallMedia media)
-        => Render(context, media == ChatCallMedia.Video ? ChatMessages.PreviewVideoCall : ChatMessages.PreviewVoiceCall);
+        => Render(context, media switch
+        {
+            ChatCallMedia.Video => ChatMessages.PreviewVideoCall,
+            ChatCallMedia.Screen => ChatMessages.PreviewScreenShare,
+            _ => ChatMessages.PreviewVoiceCall,
+        });
 
     /// <summary>
     /// 通话记录消息记的媒体
@@ -230,17 +235,17 @@ public sealed record ChatPolicySettings
     public int CallMaxVoiceParticipants { get; set; } = ChatPolicy.DefaultMaxVoiceCallParticipants;
 
     /// <summary>
-    /// 视频通话的人数上限（含发起人）
+    /// 视频通话与屏幕共享的人数上限（含发起人）
     /// </summary>
     /// <remarks>
-    /// 多人通话是全互联：每两个人之间一条连接，人越多每个人的上行越重，视频比语音更早到头
+    /// 多人通话是全互联：每两个人之间一条连接，人越多每个人的上行越重，带画面的比语音更早到头
     /// </remarks>
     public int CallMaxVideoParticipants { get; set; } = ChatPolicy.DefaultMaxVideoCallParticipants;
 
     /// <summary>
     /// 这种媒体的通话最多几个人
     /// </summary>
-    public int MaxCallParticipants(ChatCallMedia media) => media == ChatCallMedia.Video ? CallMaxVideoParticipants : CallMaxVoiceParticipants;
+    public int MaxCallParticipants(ChatCallMedia media) => media == ChatCallMedia.Voice ? CallMaxVoiceParticipants : CallMaxVideoParticipants;
 
     /// <summary>
     /// 消息保留天数
@@ -323,7 +328,7 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
         "在线聊天",
         ConfigDataType.Json,
         """{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60,"callMaxVoiceParticipants":8,"callMaxVideoParticipants":6}""",
-        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝；callRingSeconds：通话响铃秒数（10–300），到点没人接即未接听；callMaxVoiceParticipants、callMaxVideoParticipants：语音（2–12）与视频（2–8）通话的人数上限，含发起人；除保留天数外租户可建同键参数覆盖；写错即发送、通话与清理都失败，不按错误的值删数据或放过敏感词",
+        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝；callRingSeconds：通话响铃秒数（10–300），到点没人接即未接听；callMaxVoiceParticipants、callMaxVideoParticipants：语音（2–12）与视频（2–8，屏幕共享同它）通话的人数上限，含发起人；除保留天数外租户可建同键参数覆盖；写错即发送、通话与清理都失败，不按错误的值删数据或放过敏感词",
         AllowTenantOverride: true,
         Order: 500);
 

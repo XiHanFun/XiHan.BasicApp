@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 import {
   callJoinedAt,
   callMediaFailureText,
+  callMediaIcon,
   callMediaLabel,
   callOffersTo,
   callParticipantName,
@@ -70,7 +71,7 @@ describe('解析通话记录', () => {
     ['不是对象', '42'],
     [
       '媒体不认识',
-      record({ media: 'Screen' }),
+      record({ media: 'Hologram' }),
     ],
     [
       '原因不认识',
@@ -159,6 +160,7 @@ describe('气泡里的一行字', () => {
 describe('标签与未读', () => {
   it('简短标签按媒体取；读不出记录按语音通话说', () => {
     expect(callRecordLabel(record({ media: 'Video' }))).toBe('[视频通话]')
+    expect(callRecordLabel(record({ media: 'Screen' }))).toBe('[屏幕共享]')
     expect(callRecordLabel(record())).toBe('[语音通话]')
     expect(callRecordLabel('坏掉的正文')).toBe('[语音通话]')
   })
@@ -166,6 +168,7 @@ describe('标签与未读', () => {
   it('媒体的名字与设备失败的说法各有各的键', () => {
     expect(callMediaLabel(t, 'Voice')).toBe('chat.call.voice')
     expect(callMediaLabel(t, 'Video')).toBe('chat.call.video')
+    expect(callMediaLabel(t, 'Screen')).toBe('chat.call.screen')
     expect(callMediaFailureText(t, 'denied')).toBe('chat.call.media_denied')
     expect(callMediaFailureText(t, 'missing')).toBe('chat.call.media_missing')
     expect(callMediaFailureText(t, 'busy')).toBe('chat.call.media_busy')
@@ -188,6 +191,24 @@ describe('标签与未读', () => {
     expect(isMissedCallRecord(record({ reason: 'Cancelled' }), 'me')).toBe(false)
     expect(isMissedCallRecord('坏掉的正文', 'me')).toBe(false)
     expect(isMissedCallRecord(null, 'me')).toBe(false)
+  })
+})
+
+describe('媒体的图标', () => {
+  it('语音是电话、视频是摄像机、屏幕共享是屏幕；不知道是哪种按语音', () => {
+    expect([
+      callMediaIcon('Voice'),
+      callMediaIcon('Video'),
+      callMediaIcon('Screen'),
+      callMediaIcon(null),
+      callMediaIcon(undefined),
+    ]).toStrictEqual([
+      'lucide:phone',
+      'lucide:video',
+      'lucide:screen-share',
+      'lucide:phone',
+      'lucide:phone',
+    ])
   })
 })
 

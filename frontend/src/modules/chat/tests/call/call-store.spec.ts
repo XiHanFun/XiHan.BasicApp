@@ -3,7 +3,7 @@
  *
  * 职责边界：发起、接听与加入先取设备再问服务端；通话的状态以服务端的返回值与推送为准；
  * 只有占着这通电话的页签建媒体连接、处理信令，别的页签只跟着停铃；通话里每个人各一条连接，后加入的一方出 offer；
- * 响铃到点、连不上、断了由端上收场；屏幕共享只是往各条连接上换轨道；群里还没结束的通话另记在会话名下；
+ * 响铃到点、连不上、断了由端上收场；屏幕共享只是往各条连接上换轨道，单独发起时先挑画面、一发起就带着；群里还没结束的通话另记在会话名下；
  * 连上或重连之后与服务端对一遍。设备、媒体连接、Hub 与提示音都是替身，不碰真的 WebRTC
  */
 import type { ChatApiContract, ChatCallItem, ChatCallParticipantItem } from '@/modules/chat/types'
@@ -444,6 +444,86 @@ describe('发起', () => {
 
     expect(calls).toStrictEqual([])
     expect(store.phase).toBe('incoming')
+  })
+
+  describe('屏幕共享', () => {
+    it('先让用户挑画面，再取麦克风、让服务端响铃：占下之后屏幕就带着，对方接了建连接时直接在屏幕位上', async () => {
+      const { store, calls } = setup()
+
+      await store.start('conv-1', 'Screen')
+
+      const screen = fakes.state.screens[0]!
+      expect(fakes.state.acquired).toStrictEqual(['Screen'])
+      expect(calls).toStrictEqual(['startCall:conv-1:Screen'])
+      expect([
+        store.phase,
+        store.micOn,
+        store.cameraOn,
+        store.screenOn,
+        store.screenStream,
+      ]).toStrictEqual(['outgoing', true, false, true, screen])
+      // 只要麦克风：屏幕另是一路
+      expect(fakes.state.streams[0]?.tracks.map(track => track.kind)).toStrictEqual(['audio'])
+
+      store.applyCallChanged(answered({ media: 'Screen' }))
+      await settle()
+
+      expect(sessionWith(0).options.tracks.screen).toBe(screen.tracks[0])
+      expect(signalsSent().at(-1)?.[3]).toStrictEqual({
+        type: 'state',
+        micOn: true,
+        cameraOn: false,
+        screenOn: true,
+      })
+    })
+
+    it('在选择框里取消：不取麦克风、不问服务端；屏幕取不到的原样抛出', async () => {
+      const { store, calls } = setup()
+      fakes.state.screen = 'cancel'
+
+      await store.start('conv-1', 'Screen')
+
+      expect([
+        fakes.state.acquired,
+        calls,
+        store.phase,
+        store.working,
+      ]).toStrictEqual([[], [], 'idle', false])
+
+      fakes.state.screen = new ChatCallMediaError('unsupported', 'Video')
+      await expect(store.start('conv-1', 'Screen')).rejects.toMatchObject({ failure: 'unsupported' })
+      expect([calls, store.phase, store.working]).toStrictEqual([[], 'idle', false])
+    })
+
+    it('麦克风取不到、服务端不让打：挑好的屏幕也放掉', async () => {
+      const first = setup()
+      fakes.state.mediaFailure = new ChatCallMediaError('denied', 'Screen')
+
+      await expect(first.store.start('conv-1', 'Screen')).rejects.toMatchObject({ failure: 'denied' })
+
+      expect([first.calls, fakes.state.screens[0]?.tracks[0]?.stopped, first.store.screenOn]).toStrictEqual([[], true, false])
+
+      fakes.state.mediaFailure = null
+      const busy = new Error('对方正在通话中')
+      const second = setup({
+        startCall: () => Promise.reject(busy),
+      })
+
+      await expect(second.store.start('conv-1', 'Screen')).rejects.toBe(busy)
+
+      expect(fakes.state.screens[1]?.tracks[0]?.stopped).toBe(true)
+      expect(fakes.state.streams.at(-1)?.tracks.every(track => track.stopped)).toBe(true)
+      expect([second.store.screenOn, second.store.phase]).toStrictEqual([false, 'idle'])
+    })
+
+    it('发起之后从浏览器自己的条上停掉：跟着停止共享，通话照旧', async () => {
+      const { store } = setup()
+      await store.start('conv-1', 'Screen')
+
+      fakes.state.screens[0]?.tracks[0]?.listeners.ended?.forEach(listener => listener())
+
+      expect([store.screenOn, store.phase]).toStrictEqual([false, 'outgoing'])
+    })
   })
 
   it('对方接了：取穿透服务器、与他建连接，后加入的他出 offer，把开关状态告诉他', async () => {

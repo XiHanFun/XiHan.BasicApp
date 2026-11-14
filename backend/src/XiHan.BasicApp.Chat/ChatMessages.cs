@@ -695,6 +695,11 @@ public static class ChatMessages
     public const string PreviewVideoCall = "chat.preview.video_call";
 
     /// <summary>
+    /// 会话预览：屏幕共享
+    /// </summary>
+    public const string PreviewScreenShare = "chat.preview.screen_share";
+
+    /// <summary>
     /// 通话收尾作业的标题
     /// </summary>
     public const string CallSweepJobTitle = "jobs.chat.calls.sweep.title";

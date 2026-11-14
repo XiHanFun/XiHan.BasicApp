@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: '沒有人接聽',
       notice_group_interrupted: '通話中斷了',
       notice_group_connect_failed: '通話未能連上，請檢查網路',
+      screen: '螢幕分享',
+      incoming_screen: '邀請你加入螢幕分享',
+      incoming_group_screen: '邀請你加入 {group} 的螢幕分享',
+      invite_title_screen: '發起螢幕分享',
+      banner_ringing_screen: '{name} 發起了螢幕分享',
+      banner_ongoing_screen: '螢幕分享進行中 · {n} 人',
     },
     time: {
       yesterday: '昨日',

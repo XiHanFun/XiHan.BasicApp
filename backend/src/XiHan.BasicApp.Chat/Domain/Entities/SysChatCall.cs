@@ -98,6 +98,14 @@ public enum ChatCallMedia
     /// 视频
     /// </summary>
     Video = 2,
+
+    /// <summary>
+    /// 屏幕共享
+    /// </summary>
+    /// <remarks>
+    /// 发起人一上来就共享屏幕、带着麦克风；别人按语音进，进来之后也能共享自己的屏幕
+    /// </remarks>
+    Screen = 3,
 }
 
 /// <summary>

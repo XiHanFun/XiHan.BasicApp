@@ -24,8 +24,8 @@ import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
 import { useUserStore } from '~/stores'
 import { getChatApi } from '../api-contract'
-import { callMediaFailureText, callParticipantName } from '../call/call-helpers'
-import { ChatCallMediaError } from '../call/call-media'
+import { callMediaFailureText, callMediaIcon, callParticipantName } from '../call/call-helpers'
+import { canShareScreen, ChatCallMediaError } from '../call/call-media'
 import { useChatCallStore } from '../call/call-store'
 import {
   CHAT_PERMISSIONS,
@@ -125,6 +125,8 @@ const groupCall = computed(() => {
 const callBusy = computed(() => callStore.call !== null || callStore.working || groupCall.value !== null)
 const showCallInvite = ref(false)
 const callInviteMedia = ref<ChatCallMedia>('Voice')
+/** 这个浏览器能共享屏幕才出「屏幕共享」那颗钮（手机浏览器多半不能） */
+const screenShareable = canShareScreen()
 
 function notifyCallFailure(error: unknown) {
   toast.danger(error instanceof ChatCallMediaError
@@ -150,6 +152,18 @@ async function handleStartCall(media: ChatCallMedia) {
   }
 }
 
+/** 横幅上的话按媒体分：谁发起了什么、什么在进行中 */
+const RINGING_BANNER: Record<ChatCallMedia, string> = {
+  Voice: 'chat.call.banner_ringing_voice',
+  Video: 'chat.call.banner_ringing_video',
+  Screen: 'chat.call.banner_ringing_screen',
+}
+const ONGOING_BANNER: Record<ChatCallMedia, string> = {
+  Voice: 'chat.call.banner_ongoing_voice',
+  Video: 'chat.call.banner_ongoing_video',
+  Screen: 'chat.call.banner_ongoing_screen',
+}
+
 // 群里还没结束的那通电话：没在里面的成员看得到、能加入；这个页签正占着它（通话窗开着）时不出横幅
 const ongoingCall = computed(() => (groupCall.value && !(callStore.engaged && callStore.call?.callId === groupCall.value.callId)
   ? groupCall.value
@@ -165,16 +179,11 @@ const ongoingCallText = computed(() => {
   if (joinedElsewhere.value) {
     return t('chat.call.banner_elsewhere')
   }
-  const video = current.media === 'Video'
   if (current.status === 'Ringing') {
     const initiator = current.participants.find(participant => participant.userId === current.initiatorUserId) ?? null
-    return t(video
-      ? 'chat.call.banner_ringing_video'
-      : 'chat.call.banner_ringing_voice', { name: callParticipantName(initiator) || t('chat.call.unknown_peer') })
+    return t(RINGING_BANNER[current.media], { name: callParticipantName(initiator) || t('chat.call.unknown_peer') })
   }
-  return t(video
-    ? 'chat.call.banner_ongoing_video'
-    : 'chat.call.banner_ongoing_voice', { n: current.participants.filter(participant => participant.status === 'Joined').length })
+  return t(ONGOING_BANNER[current.media], { n: current.participants.filter(participant => participant.status === 'Joined').length })
 })
 const canJoinCall = computed(() => ongoingCall.value !== null && !joinedElsewhere.value && userStore.hasPermission(CHAT_PERMISSIONS.call))
 /** 眼前在响的正是这一通时加入即接听；占着别的通话、请求在路上时不能加入 */
@@ -1053,10 +1062,11 @@ onBeforeUnmount(() => {
           {{ chatStore.isUserOnline(peerUserId) ? t('chat.presence.online') : t('chat.presence.offline') }}
         </div>
       </div>
-      <!-- 会话头的操作：语音与视频通话（群里先点名邀请），搜索与详情（资料、设置与成员都收在详情里） -->
+      <!-- 会话头的操作：语音通话、视频通话与屏幕共享（群里先点名邀请），搜索与详情（资料、设置与成员都收在详情里） -->
       <template v-if="canCall">
         <XIconButton icon="lucide:phone" :label="t('chat.call.voice')" :disabled="callBusy" @click="handleStartCall('Voice')" />
         <XIconButton icon="lucide:video" :label="t('chat.call.video')" :disabled="callBusy" @click="handleStartCall('Video')" />
+        <XIconButton v-if="screenShareable" icon="lucide:screen-share" :label="t('chat.call.screen')" :disabled="callBusy" @click="handleStartCall('Screen')" />
       </template>
       <XIconButton icon="lucide:search" :label="t('chat.thread.search')" :variant="showSearch ? 'subtle' : 'ghost'" :aria-pressed="showSearch" @click="toggleSearch" />
       <XIconButton
@@ -1113,7 +1123,7 @@ onBeforeUnmount(() => {
 
     <!-- 群里有通话在进行：谁发起的、几个人在里面，没在里面的可以加入 -->
     <div v-if="ongoingCall" class="chat-call-banner" role="status">
-      <Icon :icon="ongoingCall.media === 'Video' ? 'lucide:video' : 'lucide:phone'" width="13" height="13" class="chat-call-banner__icon shrink-0" />
+      <Icon :icon="callMediaIcon(ongoingCall.media)" width="13" height="13" class="chat-call-banner__icon shrink-0" />
       <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{ ongoingCallText }}</span>
       <XhButton v-if="canJoinCall" size="sm" variant="subtle" tone="success" :disabled="joinBusy" @click="handleJoinCall">
         {{ t('chat.call.banner_join') }}

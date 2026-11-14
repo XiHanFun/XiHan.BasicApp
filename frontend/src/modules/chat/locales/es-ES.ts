@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: 'Nadie ha contestado',
       notice_group_interrupted: 'La llamada se ha interrumpido',
       notice_group_connect_failed: 'No se pudo conectar la llamada. Comprueba tu red.',
+      screen: 'Pantalla compartida',
+      incoming_screen: 'Pantalla compartida entrante',
+      incoming_group_screen: 'Te invita a una pantalla compartida en {group}',
+      invite_title_screen: 'Iniciar pantalla compartida',
+      banner_ringing_screen: '{name} ha iniciado una pantalla compartida',
+      banner_ongoing_screen: 'Pantalla compartida en curso · {n} en la llamada',
     },
     time: {
       yesterday: 'Ayer',

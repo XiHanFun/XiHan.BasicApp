@@ -1495,7 +1495,7 @@ export interface paths {
         put?: never;
         /**
          * Start call
-         * @description Starts a voice or video call and begins ringing: a direct conversation calls the other person, a group or department conversation invites the named members; refused when the caller is already in a call or no invitee can be rung.
+         * @description Starts a voice call, a video call or a screen share and begins ringing: a direct conversation calls the other person, a group or department conversation invites the named members; refused when the caller is already in a call or no invitee can be rung.
          *
          *     Requires permission chat.chat-calls.call (Make voice and video calls).
          */
@@ -11141,7 +11141,7 @@ export interface components {
          * @description 通话的媒体
          * @enum {string}
          */
-        ChatCallMedia: "Voice" | "Video";
+        ChatCallMedia: "Voice" | "Video" | "Screen";
         /** @description 通话的参与者 */
         ChatCallParticipantItem: {
             /**
@@ -21477,7 +21477,7 @@ export interface operations {
                         maxVoiceParticipants: number;
                         /**
                          * Format: int32
-                         * @description 视频通话的人数上限（含发起人）
+                         * @description 视频通话与屏幕共享的人数上限（含发起人）
                          */
                         maxVideoParticipants: number;
                     };
@@ -21510,7 +21510,7 @@ export interface operations {
                      * @description 会话（单聊、群聊或部门群）
                      */
                     conversationId: string;
-                    /** @description 媒体：语音或视频 */
+                    /** @description 媒体：语音、视频或屏幕共享 */
                     media: components["schemas"]["ChatCallMedia"];
                     /** @description 邀请的成员：群聊与部门群必填，单聊不用给（就是对方） */
                     inviteeUserIds?: string[] | null;

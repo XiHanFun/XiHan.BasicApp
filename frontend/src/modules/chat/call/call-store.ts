@@ -685,10 +685,11 @@ export const useChatCallStore = defineStore('chat-call', () => {
 
   /**
    * 发起通话：先取设备（取不到就不打），再让服务端开始响铃
+   * 屏幕共享先让用户挑要共享的画面（要趁着这次点击问浏览器），取消了就不打；挑好的画面一发起就带着，谁进来都直接看到
    * @param conversationId 会话
-   * @param media 语音还是视频
+   * @param media 语音、视频还是屏幕共享
    * @param inviteeUserIds 群聊与部门群里要邀请的成员；单聊不用给
-   * @throws ChatCallMediaError 设备取不到；ApiError 占线、对方不在线等
+   * @throws ChatCallMediaError 设备或屏幕取不到；ApiError 占线、对方不在线等
    */
   async function start(conversationId: string, media: ChatCallMedia, inviteeUserIds?: string[]): Promise<void> {
     if (call.value || working.value) {
@@ -698,11 +699,24 @@ export const useChatCallStore = defineStore('chat-call', () => {
     starting = true
     stashed = null
     let stream: MediaStream | null = null
+    let screen: MediaStream | null = null
     try {
+      if (media === 'Screen') {
+        screen = await acquireScreen()
+        if (!screen) {
+          return
+        }
+      }
       stream = await acquireCallMedia(media)
       const started = await api().startCall(conversationId, media, inviteeUserIds)
       adopt(started, stream)
       stream = null
+      // 等服务端的时候用户已经从浏览器的条上停掉了的不带
+      const [screenTrack] = screen?.getVideoTracks() ?? []
+      if (screen && screenTrack && screenTrack.readyState !== 'ended') {
+        publishScreen(screen, screenTrack)
+        screen = null
+      }
       noteOngoing(started)
       startRing('outgoing')
       scheduleRingEnd(started.callId, millisecondsBetween(started.startedAt, started.ringExpiresAt), true)
@@ -714,6 +728,7 @@ export const useChatCallStore = defineStore('chat-call', () => {
     }
     finally {
       stopStream(stream)
+      stopStream(screen)
       starting = false
       stashed = null
       working.value = false
@@ -910,6 +925,21 @@ export const useChatCallStore = defineStore('chat-call', () => {
     sendState()
   }
 
+  /** 把挑好的屏幕发出去：记下、换到每条连接的屏幕位上、告诉通话里的所有人；之后进来的人建连接时直接带着 */
+  function publishScreen(stream: MediaStream, track: MediaStreamTrack): void {
+    // 用户从浏览器自己的「停止共享」上停掉
+    track.addEventListener('ended', () => {
+      if (screenStream.value === stream) {
+        stopScreenShare()
+      }
+    })
+    screenStream.value = stream
+    for (const link of links.values()) {
+      link.session?.setTrack('screen', track).catch(() => {})
+    }
+    sendState()
+  }
+
   /**
    * 开始共享屏幕：浏览器让用户挑要共享的屏幕、窗口或标签页，挑好即发给通话里的每个人；用户取消了就什么都不做
    * @throws ChatCallMediaError 浏览器不支持，或屏幕取不到
@@ -931,17 +961,7 @@ export const useChatCallStore = defineStore('chat-call', () => {
         stopStream(stream)
         return
       }
-      // 用户从浏览器自己的「停止共享」上停掉
-      track.addEventListener('ended', () => {
-        if (screenStream.value === stream) {
-          stopScreenShare()
-        }
-      })
-      screenStream.value = stream
-      for (const link of links.values()) {
-        link.session?.setTrack('screen', track).catch(() => {})
-      }
-      sendState()
+      publishScreen(stream, track)
     }
     finally {
       sharing = false

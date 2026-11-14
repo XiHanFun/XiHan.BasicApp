@@ -105,15 +105,27 @@ watch(show, async (visible) => {
     chatStore.notePresence(loaded)
     const mine = userStore.userInfo?.basicId
     members.value = loaded.filter(member => member.userId !== mine)
-    maxInvitees.value = (props.media === 'Video'
-      ? settings.maxVideoParticipants
-      : settings.maxVoiceParticipants) - 1
+    // 屏幕共享带画面，人数按视频的上限算
+    maxInvitees.value = (props.media === 'Voice'
+      ? settings.maxVoiceParticipants
+      : settings.maxVideoParticipants) - 1
   }
   catch (error) {
     notifyFailure(error)
   }
   finally {
     loading.value = false
+  }
+})
+
+const title = computed(() => {
+  switch (props.media) {
+    case 'Video':
+      return t('chat.call.invite_title_video')
+    case 'Screen':
+      return t('chat.call.invite_title_screen')
+    default:
+      return t('chat.call.invite_title_voice')
   }
 })
 
@@ -170,7 +182,10 @@ async function handleConfirm() {
   starting.value = true
   try {
     await callStore.start(id, props.media, userIds.value)
-    show.value = false
+    // 屏幕共享在挑画面时取消了就没打出去：对话框留着，可以再来
+    if (callStore.call) {
+      show.value = false
+    }
   }
   catch (error) {
     notifyFailure(error)
@@ -185,7 +200,7 @@ async function handleConfirm() {
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: calc(var(--xh-space-8) * 14)">
       <XhDialogHeader>
-        <XhDialogTitle>{{ props.media === 'Video' ? t('chat.call.invite_title_video') : t('chat.call.invite_title_voice') }}</XhDialogTitle>
+        <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
       <XhDialogCloseTrigger />
       <XhDialogBody>

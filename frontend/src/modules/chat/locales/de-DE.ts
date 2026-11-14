@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: 'Niemand hat angenommen',
       notice_group_interrupted: 'Der Anruf wurde unterbrochen',
       notice_group_connect_failed: 'Der Anruf konnte nicht verbunden werden. Prüfen Sie Ihr Netzwerk.',
+      screen: 'Bildschirmfreigabe',
+      incoming_screen: 'Eingehende Bildschirmfreigabe',
+      incoming_group_screen: 'Lädt Sie zu einer Bildschirmfreigabe in {group} ein',
+      invite_title_screen: 'Bildschirmfreigabe starten',
+      banner_ringing_screen: '{name} hat eine Bildschirmfreigabe gestartet',
+      banner_ongoing_screen: 'Bildschirmfreigabe läuft · {n} im Anruf',
     },
     time: {
       yesterday: 'Gestern',

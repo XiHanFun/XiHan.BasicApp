@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: '誰も応答しませんでした',
       notice_group_interrupted: '通話が中断されました',
       notice_group_connect_failed: '通話を接続できませんでした。ネットワークを確認してください',
+      screen: '画面共有',
+      incoming_screen: '画面共有の着信',
+      incoming_group_screen: '{group} の画面共有に招待しています',
+      invite_title_screen: '画面共有を開始',
+      banner_ringing_screen: '{name} が画面共有を開始しました',
+      banner_ongoing_screen: '画面共有中 · {n} 人',
     },
     time: {
       yesterday: '昨日',

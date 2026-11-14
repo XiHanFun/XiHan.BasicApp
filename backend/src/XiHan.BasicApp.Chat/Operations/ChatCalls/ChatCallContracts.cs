@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Chat.Operations.ChatCalls;
 /// <c>chat-calls.start</c> 的请求
 /// </summary>
 /// <param name="ConversationId">会话（单聊、群聊或部门群）</param>
-/// <param name="Media">媒体：语音或视频</param>
+/// <param name="Media">媒体：语音、视频或屏幕共享</param>
 /// <param name="InviteeUserIds">邀请的成员：群聊与部门群必填，单聊不用给（就是对方）</param>
 public sealed record StartChatCallRequest(Guid ConversationId, ChatCallMedia Media, [MaxLength(50)] IReadOnlyList<Guid>? InviteeUserIds = null);
 
@@ -108,5 +108,5 @@ public sealed record ChatCallRecord(Guid CallId, ChatCallMedia Media, ChatCallEn
 /// </summary>
 /// <param name="RingSeconds">响铃秒数</param>
 /// <param name="MaxVoiceParticipants">语音通话的人数上限（含发起人）</param>
-/// <param name="MaxVideoParticipants">视频通话的人数上限（含发起人）</param>
+/// <param name="MaxVideoParticipants">视频通话与屏幕共享的人数上限（含发起人）</param>
 public sealed record ChatCallSettingsResponse(int RingSeconds, int MaxVoiceParticipants, int MaxVideoParticipants);

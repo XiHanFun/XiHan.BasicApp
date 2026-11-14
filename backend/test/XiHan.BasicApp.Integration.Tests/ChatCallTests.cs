@@ -172,6 +172,14 @@ public sealed class ChatCallTests : IDisposable
         var missedByBob = await ConversationAsync(server, bob, bobAndCarol);
         Assert.Equal(("[视频通话]", 1), (missedByBob.GetProperty("lastMessagePreview").GetString(), missedByBob.GetProperty("unreadCount").GetInt32()));
 
+        // 屏幕共享是第三种媒体：通话、记录与预览都认它
+        var (_, screen) = await StartCallAsync(carol, bobAndCarol, "Screen");
+        var shared = screen.GetProperty("callId").GetString()!;
+        Assert.Equal("Screen", screen.GetProperty("media").GetString());
+        await EndAsync("hangup", carol, shared, "zh-CN");
+        Assert.Equal((shared, "Screen", "Cancelled", 0), RecordOf((await HistoryAsync(server, carol, bobAndCarol))[^1]));
+        Assert.Equal("[屏幕共享]", (await ConversationAsync(server, bob, bobAndCarol)).GetProperty("lastMessagePreview").GetString());
+
         // 受邀的人在响铃时挂断即拒绝
         var (_, declined) = await StartCallAsync(alice, conversation);
         Assert.Equal("Rejected", (await EndAsync("hangup", bob, declined.GetProperty("callId").GetString()!)).GetProperty("endReason").GetString());
@@ -231,6 +239,8 @@ public sealed class ChatCallTests : IDisposable
         Assert.Equal("CHAT_VALIDATION_031", (await StartCallAsync(alice, "Voice", bob, erin)).Body.GetProperty("code").GetString());
         Assert.Equal("CHAT_VALIDATION_032", (await StartCallAsync(alice, "Voice", bob, carol, dave)).Body.GetProperty("code").GetString());
         Assert.Equal("CHAT_VALIDATION_032", (await StartCallAsync(alice, "Video", bob, carol)).Body.GetProperty("code").GetString());
+        // 屏幕共享带画面，人数按视频的上限算
+        Assert.Equal("CHAT_VALIDATION_032", (await StartCallAsync(alice, "Screen", bob, carol)).Body.GetProperty("code").GetString());
         var (_, limits) = await CallAsync(server, HttpMethod.Get, "/api/chat-calls:settings", null, alice);
         Assert.Equal((60, 3, 2), (limits.GetProperty("ringSeconds").GetInt32(), limits.GetProperty("maxVoiceParticipants").GetInt32(), limits.GetProperty("maxVideoParticipants").GetInt32()));
 

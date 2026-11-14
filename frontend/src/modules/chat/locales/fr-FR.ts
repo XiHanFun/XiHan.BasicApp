@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: 'Personne n’a répondu',
       notice_group_interrupted: 'L’appel a été interrompu',
       notice_group_connect_failed: 'L’appel n’a pas pu se connecter. Vérifiez votre réseau.',
+      screen: 'Partage d’écran',
+      incoming_screen: 'Partage d’écran entrant',
+      incoming_group_screen: 'Vous invite à un partage d’écran dans {group}',
+      invite_title_screen: 'Démarrer un partage d’écran',
+      banner_ringing_screen: '{name} a démarré un partage d’écran',
+      banner_ongoing_screen: 'Partage d’écran en cours · {n} dans l’appel',
     },
     time: {
       yesterday: 'Hier',

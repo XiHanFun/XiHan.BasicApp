@@ -16,7 +16,7 @@ import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { getChatApi } from '../api-contract'
-import { callRecordText, parseCallRecord } from '../call/call-helpers'
+import { callMediaIcon, callRecordText, parseCallRecord } from '../call/call-helpers'
 import { useChatFileUrl, useChatFileUrls } from '../composables/useChatFileUrl'
 import { useChatStore } from '../store'
 import { chatErrorText, formatFileSize, formatMessageTime, isChatVideoFile, splitMentionText } from './chat-helpers'
@@ -448,7 +448,7 @@ async function handleDownload(fileId: string) {
             :disabled="!callRecord"
             @click="callRecord && emit('call', callRecord.media)"
           >
-            <Icon :icon="callRecord?.media === 'Video' ? 'lucide:video' : 'lucide:phone'" width="14" height="14" class="shrink-0" />
+            <Icon :icon="callMediaIcon(callRecord?.media)" width="14" height="14" class="shrink-0" />
             <span class="text-[13px] leading-relaxed">{{ callRecordLine }}</span>
           </button>
         </template>

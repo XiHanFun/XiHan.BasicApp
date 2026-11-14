@@ -73,9 +73,14 @@ export function parseCallRecord(content?: null | string): ChatCallRecord | null 
  * 与同一处别的消息类型的标签一个写法；正文读不出记录时按语音通话说
  */
 export function callRecordLabel(content?: null | string): string {
-  return parseCallRecord(content)?.media === 'Video'
-    ? '[视频通话]'
-    : '[语音通话]'
+  switch (parseCallRecord(content)?.media) {
+    case 'Video':
+      return '[视频通话]'
+    case 'Screen':
+      return '[屏幕共享]'
+    default:
+      return '[语音通话]'
+  }
 }
 
 /** 这条通话记录对我来说是不是「没接到」：服务端只给没接到的人记未读，提醒与未读都据此 */
@@ -96,11 +101,28 @@ export function formatCallDuration(seconds: number): string {
     : `${pad(minutes)}:${pad(total % 60)}`
 }
 
-/** 媒体的名字：语音通话或视频通话 */
+/** 媒体的名字：语音通话、视频通话或屏幕共享 */
 export function callMediaLabel(t: Translate, media: ChatCallMedia): string {
-  return media === 'Video'
-    ? t('chat.call.video')
-    : t('chat.call.voice')
+  switch (media) {
+    case 'Video':
+      return t('chat.call.video')
+    case 'Screen':
+      return t('chat.call.screen')
+    default:
+      return t('chat.call.voice')
+  }
+}
+
+/** 媒体的图标；不知道是哪种时按语音 */
+export function callMediaIcon(media: ChatCallMedia | null | undefined): string {
+  switch (media) {
+    case 'Video':
+      return 'lucide:video'
+    case 'Screen':
+      return 'lucide:screen-share'
+    default:
+      return 'lucide:phone'
+  }
 }
 
 /**

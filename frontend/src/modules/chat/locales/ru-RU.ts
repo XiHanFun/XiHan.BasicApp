@@ -312,6 +312,12 @@ export default {
       notice_group_no_answer: 'Никто не ответил',
       notice_group_interrupted: 'Звонок прерван',
       notice_group_connect_failed: 'Не удалось установить соединение. Проверьте сеть.',
+      screen: 'Демонстрация экрана',
+      incoming_screen: 'Входящая демонстрация экрана',
+      incoming_group_screen: 'Приглашает вас на демонстрацию экрана в {group}',
+      invite_title_screen: 'Начать демонстрацию экрана',
+      banner_ringing_screen: '{name} начинает демонстрацию экрана',
+      banner_ongoing_screen: 'Идёт демонстрация экрана · участников: {n}',
     },
     time: {
       yesterday: 'Вчера',
