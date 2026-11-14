@@ -717,7 +717,7 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 | `TurnSecret` | 空 | TURN 的共享密钥，与 TURN 服务器上配的同一个值（coturn 的 `static-auth-secret`）；只留在服务端，按它给每个用户现签限时凭据 |
 | `TurnCredentialLifetime` | `01:00:00` | TURN 凭据的有效期；凭据只在建立连接时核对，过期不影响已经接通的通话 |
 
-时长的写法同 `BasicApp:Realtime:SignalR`。响铃秒数不在这里，在系统参数 `chat.policy` 的 `callRingSeconds`。TURN 服务器的部署见[部署](./deployment#语音与视频通话)。
+时长的写法同 `BasicApp:Realtime:SignalR`。响铃秒数与通话的人数上限不在这里，在系统参数 `chat.policy`（`callRingSeconds`、`callMaxVoiceParticipants`、`callMaxVideoParticipants`）。TURN 服务器的部署见[部署](./deployment#语音与视频通话)。
 
 ## `BasicApp:OpenPlatform`
 

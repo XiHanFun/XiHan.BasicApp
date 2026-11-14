@@ -195,9 +195,16 @@ public sealed class ChatPush(IRealtimePush push)
     /// </summary>
     /// <remarks>
     /// 发给参与者的全部连接：没在处理这通电话的端据此停铃
+    /// 群通话另发给正开着这个会话的连接（会话组）：没被邀请的成员看得到有通话在进行、能加入；不按群的全体成员扇出
     /// </remarks>
-    public ValueTask CallChangedAsync(string side, ChatCallItem call, IReadOnlyCollection<Guid> recipients, CancellationToken cancellationToken)
-        => push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, recipients), ChatRealtimeMethods.ChatCallChanged, call, ChatJsonContext.Default.ChatCallItem, cancellationToken);
+    public async ValueTask CallChangedAsync(string side, ChatCallItem call, IReadOnlyCollection<Guid> recipients, Guid? openConversationId, CancellationToken cancellationToken)
+    {
+        await push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, recipients), ChatRealtimeMethods.ChatCallChanged, call, ChatJsonContext.Default.ChatCallItem, cancellationToken).ConfigureAwait(false);
+        if (openConversationId is { } conversationId)
+        {
+            await push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.HubGroups([ChatHub.GroupOf(conversationId)]), ChatRealtimeMethods.ChatCallChanged, call, ChatJsonContext.Default.ChatCallItem, cancellationToken).ConfigureAwait(false);
+        }
+    }
 
     /// <summary>
     /// 转发一条通话信令

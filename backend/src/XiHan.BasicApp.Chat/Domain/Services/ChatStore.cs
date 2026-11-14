@@ -196,6 +196,25 @@ public sealed class ChatStore(SideRows rows, SqlSugarUnitOfWork unitOfWork, IRep
     }
 
     /// <summary>
+    /// 给指定的几位成员的未读数加一
+    /// </summary>
+    public async Task IncrementUnreadForAsync(string side, Guid conversationId, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(userIds);
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var ids = userIds.ToList();
+        await unitOfWork.EnsureTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await unitOfWork.ConnectionFor(typeof(SysChatConversationMember)).Updateable<SysChatConversationMember>()
+            .SetColumns(m => new SysChatConversationMember { UnreadCount = m.UnreadCount + 1 })
+            .Where(m => m.ConversationId == conversationId && m.TenantId == side && ids.Contains(m.UserId) && !m.IsDeleted)
+            .ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 整行更新一条消息（消息只追加、不软删除，撤回、编辑与置顶改它自己的列）
     /// </summary>
     public async Task UpdateMessageAsync(SysChatMessage message, CancellationToken cancellationToken)

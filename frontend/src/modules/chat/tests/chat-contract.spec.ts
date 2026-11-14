@@ -136,13 +136,20 @@ describe('权限码与本地存储键', () => {
     expect(operationPermission['chat-conversations.silence-members']).toBe(CHAT_PERMISSIONS.manage)
   })
 
-  it('通话：认回来电与取穿透服务器要通话读，发起、接听、拒绝与挂断要通话', () => {
-    expect(operationPermission['chat-calls.active']).toBe(CHAT_PERMISSIONS.callRead)
-    expect(operationPermission['chat-calls.ice-servers']).toBe(CHAT_PERMISSIONS.callRead)
+  it('通话：认回来电、看会话里的通话、取设置与穿透服务器要通话读，发起、接听、拒绝、加入与挂断要通话', () => {
+    for (const operation of [
+      'chat-calls.active',
+      'chat-calls.ongoing',
+      'chat-calls.settings',
+      'chat-calls.ice-servers',
+    ] as const) {
+      expect(operationPermission[operation]).toBe(CHAT_PERMISSIONS.callRead)
+    }
     for (const operation of [
       'chat-calls.start',
       'chat-calls.accept',
       'chat-calls.reject',
+      'chat-calls.join',
       'chat-calls.hangup',
     ] as const) {
       expect(operationPermission[operation]).toBe(CHAT_PERMISSIONS.call)

@@ -5,13 +5,14 @@
 
 /**
  * 通话信令：两端经聊天 Hub 互相转发的消息，服务端只转不解析
- * offer 与 answer 是会话描述，candidate 是 ICE 候选，state 是麦克风与摄像头的开关（对端据此显示静音与头像）
+ * offer 与 answer 是会话描述，candidate 是 ICE 候选，这三种只在一对人之间走（多人通话里每两个人各自协商）
+ * state 是麦克风、摄像头与屏幕共享的开关，发给通话里的所有人（对端据此显示静音、头像与共享的画面）
  */
 export type ChatCallSignal
   = | { type: 'answer', sdp: string }
     | { type: 'candidate', candidate: RTCIceCandidateInit }
     | { type: 'offer', sdp: string }
-    | { type: 'state', micOn: boolean, cameraOn: boolean }
+    | { type: 'state', micOn: boolean, cameraOn: boolean, screenOn: boolean }
 
 /** 编成 Hub 上传的字符串 */
 export function encodeCallSignal(signal: ChatCallSignal): string {
@@ -45,8 +46,13 @@ export function decodeCallSignal(data: string): ChatCallSignal | null {
         ? { type: 'candidate', candidate: signal.candidate as RTCIceCandidateInit }
         : null
     case 'state':
-      return typeof signal.micOn === 'boolean' && typeof signal.cameraOn === 'boolean'
-        ? { type: 'state', micOn: signal.micOn, cameraOn: signal.cameraOn }
+      return typeof signal.micOn === 'boolean' && typeof signal.cameraOn === 'boolean' && typeof signal.screenOn === 'boolean'
+        ? {
+            type: 'state',
+            micOn: signal.micOn,
+            cameraOn: signal.cameraOn,
+            screenOn: signal.screenOn,
+          }
         : null
     default:
       return null

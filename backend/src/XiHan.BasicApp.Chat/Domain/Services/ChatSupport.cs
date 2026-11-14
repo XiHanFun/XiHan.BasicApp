@@ -198,7 +198,7 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
 /// 聊天策略参数 <c>chat.policy</c> 的值
 /// </summary>
 /// <remarks>
-/// 保留天数只读平台值，敏感词与响铃秒数租户可以覆盖（读参数时当前租户的同键参数优先）
+/// 保留天数只读平台值，敏感词、响铃秒数与通话人数上限租户可以覆盖（读参数时当前租户的同键参数优先）
 /// </remarks>
 public sealed record ChatPolicySettings
 {
@@ -209,6 +209,24 @@ public sealed record ChatPolicySettings
     /// 响铃这么久还没人接即未接听
     /// </remarks>
     public int CallRingSeconds { get; set; } = ChatPolicy.DefaultCallRingSeconds;
+
+    /// <summary>
+    /// 语音通话的人数上限（含发起人）
+    /// </summary>
+    public int CallMaxVoiceParticipants { get; set; } = ChatPolicy.DefaultMaxVoiceCallParticipants;
+
+    /// <summary>
+    /// 视频通话的人数上限（含发起人）
+    /// </summary>
+    /// <remarks>
+    /// 多人通话是全互联：每两个人之间一条连接，人越多每个人的上行越重，视频比语音更早到头
+    /// </remarks>
+    public int CallMaxVideoParticipants { get; set; } = ChatPolicy.DefaultMaxVideoCallParticipants;
+
+    /// <summary>
+    /// 这种媒体的通话最多几个人
+    /// </summary>
+    public int MaxCallParticipants(ChatCallMedia media) => media == ChatCallMedia.Video ? CallMaxVideoParticipants : CallMaxVoiceParticipants;
 
     /// <summary>
     /// 消息保留天数
@@ -225,7 +243,8 @@ public sealed record ChatPolicySettings
 /// 聊天策略（作用域）
 /// </summary>
 /// <remarks>
-/// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60}</c>），没建即用缺省值；建了而 JSON 不合法、保留天数不在 1 到 3650 之间或响铃秒数不在 10 到 300 之间即失败（不按错误的值删数据或放过敏感词）
+/// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60,"callMaxVoiceParticipants":8,"callMaxVideoParticipants":6}</c>），没建即用缺省值；
+/// 建了而 JSON 不合法或有取值越界（保留天数 1 到 3650、响铃秒数 10 到 300、语音通话人数 2 到 12、视频通话人数 2 到 8）即失败（不按错误的值删数据或放过敏感词）
 /// 敏感词管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名
 /// </remarks>
 /// <param name="readers">参数读取（Settings 实现）</param>
@@ -262,6 +281,26 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
     public const int MaxCallRingSeconds = 300;
 
     /// <summary>
+    /// 缺省的语音通话人数上限
+    /// </summary>
+    public const int DefaultMaxVoiceCallParticipants = 8;
+
+    /// <summary>
+    /// 缺省的视频通话人数上限
+    /// </summary>
+    public const int DefaultMaxVideoCallParticipants = 6;
+
+    /// <summary>
+    /// 语音通话人数上限能配到的最大值
+    /// </summary>
+    public const int VoiceCallParticipantsCeiling = 12;
+
+    /// <summary>
+    /// 视频通话人数上限能配到的最大值
+    /// </summary>
+    public const int VideoCallParticipantsCeiling = 8;
+
+    /// <summary>
     /// 内建参数的元数据
     /// </summary>
     public static ConfigDescriptor Config { get; } = new(
@@ -269,8 +308,8 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
         "聊天策略",
         "在线聊天",
         ConfigDataType.Json,
-        """{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60}""",
-        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝；callRingSeconds：通话响铃秒数（10–300），到点没人接即未接听；后两项租户可建同键参数覆盖；写错即发送、通话与清理都失败，不按错误的值删数据或放过敏感词",
+        """{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60,"callMaxVoiceParticipants":8,"callMaxVideoParticipants":6}""",
+        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝；callRingSeconds：通话响铃秒数（10–300），到点没人接即未接听；callMaxVoiceParticipants、callMaxVideoParticipants：语音（2–12）与视频（2–8）通话的人数上限，含发起人；除保留天数外租户可建同键参数覆盖；写错即发送、通话与清理都失败，不按错误的值删数据或放过敏感词",
         AllowTenantOverride: true,
         Order: 500);
 
@@ -306,7 +345,13 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
             settings = null;
         }
 
-        return settings is { RetentionDays: >= 1 and <= MaxRetentionDays, CallRingSeconds: >= MinCallRingSeconds and <= MaxCallRingSeconds }
+        return settings is
+        {
+            RetentionDays: >= 1 and <= MaxRetentionDays,
+            CallRingSeconds: >= MinCallRingSeconds and <= MaxCallRingSeconds,
+            CallMaxVoiceParticipants: >= 2 and <= VoiceCallParticipantsCeiling,
+            CallMaxVideoParticipants: >= 2 and <= VideoCallParticipantsCeiling,
+        }
             ? settings
             : Error.Validation(ChatErrors.PolicyInvalid, ChatMessages.PolicyInvalid, MessageArguments.Of(("key", ConfigKey)));
     }

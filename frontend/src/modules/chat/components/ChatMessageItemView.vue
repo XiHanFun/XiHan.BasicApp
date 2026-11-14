@@ -62,12 +62,16 @@ const isFile = computed(() => props.message.messageType === 'File')
 const isCall = computed(() => props.message.messageType === 'Call')
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
-/** 通话记录：发送人是发起人，本人发的即我打出去的 */
+/** 通话记录：发送人是发起人，本人发的即我打出去的；群里的是多人通话，说法不点「对方」 */
 const callRecord = computed(() => (isCall.value
   ? parseCallRecord(props.message.content)
   : null))
 const callRecordLine = computed(() => (callRecord.value
-  ? callRecordText(t, callRecord.value, props.isSelf)
+  ? callRecordText(t, callRecord.value, {
+      outgoing: props.isSelf,
+      group: props.conversationType !== 'Single',
+      myUserId: currentUserId.value,
+    })
   : t('chat.call.record_unknown')))
 
 /** 被 @ 到我：气泡高亮 */

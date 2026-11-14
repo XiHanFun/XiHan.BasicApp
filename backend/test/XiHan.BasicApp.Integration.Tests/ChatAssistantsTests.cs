@@ -162,6 +162,10 @@ public sealed class ChatAssistantsTests : IDisposable
         Assert.Equal("Assistant", greeting.GetProperty("messageType").GetString());
         Assert.Equal("Hi, ask me anything.", greeting.GetProperty("content").GetString());
 
+        // 助手会话里不能打电话
+        var (_, refused) = await SendAsync(server, HttpMethod.Post, "/api/chat-calls:start", new { conversationId = conversation, media = "Voice" }, token);
+        Assert.Equal("CHAT_VALIDATION_028", refused.GetProperty("code").GetString());
+
         await using var hub = Connect(server, (await AuthFlowTests.LoginAsync(server, "alice", Password, "acme")).GetProperty("accessToken").GetString()!);
         var deltas = new ConcurrentQueue<JsonElement>();
         hub.On<JsonElement>(ChatRealtimeMethods.ChatAssistantDelta, payload => deltas.Enqueue(payload));

@@ -66,6 +66,9 @@ export type ChatCallParticipantItem = Schemas['ChatCallParticipantItem']
 /** 我此刻所在的通话（没有为空）与服务端此刻的时间 */
 export type ChatActiveCallResult = ResponseOf<'chat-calls.active'>
 
+/** 通话的设置：响铃秒数与语音、视频通话的人数上限 */
+export type ChatCallSettings = ResponseOf<'chat-calls.settings'>
+
 /** 一组 ICE 服务器（STUN 没有用户名与凭据，TURN 的凭据到点失效） */
 export type ChatIceServer = Schemas['ChatIceServer']
 
@@ -241,16 +244,25 @@ export interface ChatApiContract {
   uploadAttachment: (file: File, onProgress?: (percent: number) => void) => Promise<ChatAttachmentUploadResult>
   /** 按会话换附件的签名地址（图片内联、语音、文件下载；会过期）；download 为真即以附件下载（带原始文件名） */
   getFileUrl: (conversationId: string, fileId: string, download?: boolean) => Promise<ChatFileUrl>
-  /** 在单聊里发起通话并开始响铃；自己或对方占线、对方不在线都抛出（带原因） */
-  startCall: (conversationId: string, media: ChatCallMedia) => Promise<ChatCallItem>
-  /** 接听还在响铃的来电；多端同时接只有先到的成功 */
+  /**
+   * 发起通话并开始响铃：单聊呼叫对方；群聊与部门群点名邀请成员（inviteeUserIds）
+   * 自己占线、单聊的对方占线或不在线、群里一个能响铃的都没有、群里已经有一通都抛出（带原因）
+   */
+  startCall: (conversationId: string, media: ChatCallMedia, inviteeUserIds?: string[]) => Promise<ChatCallItem>
+  /** 接听还在等自己答复的来电；多端同时接只有先到的成功 */
   acceptCall: (callId: string) => Promise<ChatCallItem>
-  /** 拒绝还在响铃的来电 */
+  /** 拒绝还在等自己答复的来电 */
   rejectCall: (callId: string) => Promise<ChatCallItem>
-  /** 挂断：接通前发起人挂即取消，响铃到点了挂算没人接，接通后即结束；已经结束的照样成功 */
+  /** 加入会话里一通还没结束的多人通话（没被邀请、拒绝过、没接到、离开了的都能来）；人数满了抛出 */
+  joinCall: (callId: string) => Promise<ChatCallItem>
+  /** 挂断：没人接时发起人挂即取消，响铃到点了挂算没人接；通话中挂即离开，剩下的人不够时通话结束；已经结束的照样成功 */
   hangupCall: (callId: string) => Promise<ChatCallItem>
   /** 我此刻所在的通话与服务端此刻的时间（页面刷新、连接重连后据此认回来电） */
   activeCall: () => Promise<ChatActiveCallResult>
+  /** 会话里还没结束的那通电话；没有为 null（只有会话成员能看） */
+  ongoingCall: (conversationId: string) => Promise<ChatActiveCallResult>
+  /** 通话的设置：响铃秒数与人数上限 */
+  callSettings: () => Promise<ChatCallSettings>
   /** 建立通话连接用的 ICE 服务器（没配为空） */
   callIceServers: () => Promise<ChatIceServer[]>
 }

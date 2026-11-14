@@ -49,8 +49,11 @@ function createFakeApi(tag: string): ChatApiContract {
     startCall: notUsed,
     acceptCall: notUsed,
     rejectCall: notUsed,
+    joinCall: notUsed,
     hangupCall: notUsed,
     activeCall: notUsed,
+    ongoingCall: notUsed,
+    callSettings: notUsed,
     callIceServers: notUsed,
   } satisfies ChatApiContract
 }

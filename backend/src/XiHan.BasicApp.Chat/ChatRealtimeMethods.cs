@@ -84,7 +84,7 @@ public static class ChatRealtimeMethods
     /// 客户端可调：通话信令
     /// </summary>
     /// <remarks>
-    /// 核对是这通接通了的电话里的人后转给通话里的其他人，不落库
+    /// 核对是这通接通了的电话里的人后转给指定的那个人（没指定即通话里的其他人），不落库
     /// </remarks>
     public const string CallSignal = "CallSignal";
 

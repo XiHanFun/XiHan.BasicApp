@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Chat.Domain.Entities;
 
 namespace XiHan.BasicApp.Chat.Operations.ChatCalls;
@@ -8,9 +9,10 @@ namespace XiHan.BasicApp.Chat.Operations.ChatCalls;
 /// <summary>
 /// <c>chat-calls.start</c> 的请求
 /// </summary>
-/// <param name="ConversationId">会话（单聊）</param>
+/// <param name="ConversationId">会话（单聊、群聊或部门群）</param>
 /// <param name="Media">媒体：语音或视频</param>
-public sealed record StartChatCallRequest(Guid ConversationId, ChatCallMedia Media);
+/// <param name="InviteeUserIds">邀请的成员：群聊与部门群必填，单聊不用给（就是对方）</param>
+public sealed record StartChatCallRequest(Guid ConversationId, ChatCallMedia Media, [MaxLength(50)] IReadOnlyList<Guid>? InviteeUserIds = null);
 
 /// <summary>
 /// 按通话的请求
@@ -40,6 +42,8 @@ public sealed record ChatCallParticipantItem(Guid UserId, string? UserName, stri
 /// </summary>
 /// <param name="CallId">通话</param>
 /// <param name="ConversationId">会话</param>
+/// <param name="ConversationType">会话类型：单聊是一对一通话，群聊与部门群是多人通话</param>
+/// <param name="ConversationName">会话名称（单聊为空）</param>
 /// <param name="InitiatorUserId">发起人</param>
 /// <param name="Media">媒体</param>
 /// <param name="Status">状态</param>
@@ -52,6 +56,8 @@ public sealed record ChatCallParticipantItem(Guid UserId, string? UserName, stri
 public sealed record ChatCallItem(
     Guid CallId,
     Guid ConversationId,
+    ChatConversationType ConversationType,
+    string? ConversationName,
     Guid InitiatorUserId,
     ChatCallMedia Media,
     ChatCallStatus Status,
@@ -63,9 +69,9 @@ public sealed record ChatCallItem(
     IReadOnlyList<ChatCallParticipantItem> Participants);
 
 /// <summary>
-/// <c>chat-calls.active</c> 的响应
+/// <c>chat-calls.active</c> 与 <c>chat-calls.ongoing</c> 的响应
 /// </summary>
-/// <param name="Call">我此刻所在的通话（响铃中或通话中）；没有为空</param>
+/// <param name="Call">还没结束的那一通（响铃中或通话中）；没有为空</param>
 /// <param name="Now">服务端此刻的时间（UTC）：端上据它算响铃还剩多久，不靠本机的钟</param>
 public sealed record ChatActiveCallResponse(ChatCallItem? Call, DateTimeOffset Now);
 
@@ -94,4 +100,13 @@ public sealed record ChatIceServersResponse(IReadOnlyList<ChatIceServer> IceServ
 /// <param name="Media">媒体</param>
 /// <param name="Reason">结束的原因</param>
 /// <param name="DurationSeconds">通话时长（秒）；没接通为 0</param>
-public sealed record ChatCallRecord(Guid CallId, ChatCallMedia Media, ChatCallEndReason Reason, int DurationSeconds);
+/// <param name="MissedUserIds">没接到这通电话的人（受邀而始终没加入）；端上据此给他们记未读</param>
+public sealed record ChatCallRecord(Guid CallId, ChatCallMedia Media, ChatCallEndReason Reason, int DurationSeconds, IReadOnlyList<Guid> MissedUserIds);
+
+/// <summary>
+/// <c>chat-calls.settings</c> 的响应
+/// </summary>
+/// <param name="RingSeconds">响铃秒数</param>
+/// <param name="MaxVoiceParticipants">语音通话的人数上限（含发起人）</param>
+/// <param name="MaxVideoParticipants">视频通话的人数上限（含发起人）</param>
+public sealed record ChatCallSettingsResponse(int RingSeconds, int MaxVoiceParticipants, int MaxVideoParticipants);

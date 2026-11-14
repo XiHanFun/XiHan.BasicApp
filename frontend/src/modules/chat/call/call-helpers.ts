@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-/** 通话的展示辅助：通话记录消息的解析与文案、时长格式（纯函数，i18n 由调用方注入） */
+/** 通话的展示与判定辅助：通话记录消息的解析与文案、时长格式、谁出 offer（纯函数，i18n 由调用方注入） */
 
 import type { ChatCallItem, ChatCallParticipantItem } from '../types'
 import type { ChatCallMediaFailure } from './call-media'
@@ -19,6 +19,18 @@ export interface ChatCallRecord {
   reason: ChatCallEndReason
   /** 通话时长（秒）；没接通为 0 */
   durationSeconds: number
+  /** 没接到这通电话的人（服务端只给他们记未读） */
+  missedUserIds: string[]
+}
+
+/** 通话记录是说给谁看的：同一条记录，发起人、没接到的人与别的成员看到的说法不同 */
+export interface ChatCallRecordViewer {
+  /** 这通电话是不是我发起的 */
+  outgoing: boolean
+  /** 是不是多人通话（群聊、部门群里的） */
+  group: boolean
+  /** 我的用户 ID */
+  myUserId: string
 }
 
 /**
@@ -42,7 +54,9 @@ export function parseCallRecord(content?: null | string): ChatCallRecord | null 
   const record = parsed as Record<string, unknown>
   const media = ChatCallMedias.find(value => value === record.media)
   const reason = ChatCallEndReason.find(value => value === record.reason)
-  if (typeof record.callId !== 'string' || !media || !reason || typeof record.durationSeconds !== 'number') {
+  const missed = record.missedUserIds
+  if (typeof record.callId !== 'string' || !media || !reason || typeof record.durationSeconds !== 'number'
+    || !Array.isArray(missed) || !missed.every(id => typeof id === 'string')) {
     return null
   }
   return {
@@ -50,6 +64,7 @@ export function parseCallRecord(content?: null | string): ChatCallRecord | null 
     media,
     reason,
     durationSeconds: Math.max(0, Math.floor(record.durationSeconds)),
+    missedUserIds: missed,
   }
 }
 
@@ -63,10 +78,9 @@ export function callRecordLabel(content?: null | string): string {
     : '[语音通话]'
 }
 
-/** 这条通话记录是不是「没接到」：对方取消了或没人接（服务端只给这种记未读） */
-export function isMissedCallRecord(content?: null | string): boolean {
-  const reason = parseCallRecord(content)?.reason
-  return reason === 'Missed' || reason === 'Cancelled'
+/** 这条通话记录对我来说是不是「没接到」：服务端只给没接到的人记未读，提醒与未读都据此 */
+export function isMissedCallRecord(content: null | string | undefined, myUserId: string): boolean {
+  return parseCallRecord(content)?.missedUserIds.includes(myUserId) ?? false
 }
 
 /** 通话时长：不到一小时 mm:ss，到了 h:mm:ss */
@@ -91,12 +105,11 @@ export function callMediaLabel(t: Translate, media: ChatCallMedia): string {
 
 /**
  * 通话记录在气泡里的一行字
- * 同一件事两边说法不同：我打出去没人接是「对方未接听」，打给我没接到是「未接听」
- * @param t 翻译
- * @param record 通话记录
- * @param outgoing 这通电话是不是我发起的
+ * 同一件事各人说法不同：一对一里我打出去没人接是「对方未接听」，打给我没接到是「未接听」；
+ * 多人通话不说「对方」：受邀的都没来是「无人接听」，只有自己没接到的人看到「未接听」
  */
-export function callRecordText(t: Translate, record: ChatCallRecord, outgoing: boolean): string {
+export function callRecordText(t: Translate, record: ChatCallRecord, viewer: ChatCallRecordViewer): string {
+  const { outgoing, group } = viewer
   switch (record.reason) {
     case 'Completed':
       return t('chat.call.record_completed', {
@@ -107,14 +120,22 @@ export function callRecordText(t: Translate, record: ChatCallRecord, outgoing: b
         duration: formatCallDuration(record.durationSeconds),
       })
     case 'Cancelled':
-      return outgoing
+      return outgoing || group
         ? t('chat.call.record_cancelled')
         : t('chat.call.record_cancelled_by_peer')
     case 'Rejected':
+      if (group) {
+        return t('chat.call.record_no_answer')
+      }
       return outgoing
         ? t('chat.call.record_rejected_by_peer')
         : t('chat.call.record_rejected')
     case 'Missed':
+      if (group) {
+        return !outgoing && record.missedUserIds.includes(viewer.myUserId)
+          ? t('chat.call.record_missed')
+          : t('chat.call.record_no_answer')
+      }
       return outgoing
         ? t('chat.call.record_missed_by_peer')
         : t('chat.call.record_missed')
@@ -135,7 +156,34 @@ export function callMediaFailureText(t: Translate, failure: ChatCallMediaFailure
   }
 }
 
-/** 通话里的另一个人；找不到（数据不全）为 null */
+/** 是不是多人通话：群聊与部门群里的通话，一对一的在单聊里 */
+export function isGroupCall(call: Pick<ChatCallItem, 'conversationType'>): boolean {
+  return call.conversationType !== 'Single'
+}
+
+/** 参与者这次加入通话的时刻（毫秒）；没加入过或读不出的为 0 */
+export function callJoinedAt(participant: ChatCallParticipantItem): number {
+  const joinedAt = Date.parse(participant.joinedAt ?? '')
+  return Number.isFinite(joinedAt)
+    ? joinedAt
+    : 0
+}
+
+/**
+ * 两个人之间由谁出 offer：后加入通话的一方出，同一毫秒加入的比用户 ID
+ * 两端各自按同一份参与者算，结论一致，不会两边同时出 offer
+ */
+export function callOffersTo(me: ChatCallParticipantItem, peer: ChatCallParticipantItem): boolean {
+  const [mine, theirs] = [
+    callJoinedAt(me),
+    callJoinedAt(peer),
+  ]
+  return mine === theirs
+    ? me.userId > peer.userId
+    : mine > theirs
+}
+
+/** 一对一通话里的另一个人；找不到（数据不全）为 null */
 export function peerOfCall(call: ChatCallItem, myUserId: string): ChatCallParticipantItem | null {
   return call.participants.find(participant => participant.userId !== myUserId) ?? null
 }

@@ -34,8 +34,8 @@ namespace XiHan.BasicApp.Chat;
 /// <remarks>
 /// 会话、成员、消息、表情回应、通话与通话参与者六张租户库表（平台一侧租户为 <c>platform</c>），聊天 Hub <see cref="RealtimeHubs.Chat"/> 由本包登记、宿主一并映射，
 /// 推送经 Realtime 在提交之后发出。部门群随 Organization 的领域事件 <see cref="Topics.OrganizationMembershipChanged"/> 同步成员，在线状态随 Realtime 的 <see cref="Topics.RealtimePresenceChanged"/> 推给相关的人；
-/// 敏感词、保留天数与响铃秒数读参数 <c>chat.policy</c>，保留清理是内建作业 <c>chat.messages.cleanup</c>；附件以会话为访问范围（方案 H2，经 Files 的附件契约）；
-/// 单聊里的语音与视频通话只记状态：媒体在两端的浏览器之间走 WebRTC，信令经聊天 Hub 转发，穿透用的 STUN 与 TURN 读 <see cref="ChatCallOptions"/>，没人管的通话由内建作业 <c>chat.calls.sweep</c> 收尾；
+/// 敏感词、保留天数、响铃秒数与通话人数上限读参数 <c>chat.policy</c>，保留清理是内建作业 <c>chat.messages.cleanup</c>；附件以会话为访问范围（方案 H2，经 Files 的附件契约）；
+/// 语音与视频通话（单聊里一对一，群聊与部门群里多人）只记状态：媒体在浏览器之间走 WebRTC，信令经聊天 Hub 转发，穿透用的 STUN 与 TURN 读 <see cref="ChatCallOptions"/>，没人管的通话由内建作业 <c>chat.calls.sweep</c> 收尾；
 /// 另补服务端转发（方案 H1）与审计的消息详情、会话成员（方案 H4）。助手经 Contracts 的 <c>IChatAssistants</c> 应答（AI 实现），AI 关掉时助手操作明确返回不可用，其余照常
 /// 宿主按 <c>BasicApp:Modules:Chat:Enabled</c> 决定是否装配；关掉后权限目录、页面登记、Hub 与订阅都不在，菜单种子删掉它的页面
 /// </remarks>

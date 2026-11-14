@@ -141,6 +141,7 @@ describe('messageBodyLabel 摘要标签', () => {
       media,
       reason: 'Missed',
       durationSeconds: 0,
+      missedUserIds: [],
     })
 
     expect(messageBodyLabel({

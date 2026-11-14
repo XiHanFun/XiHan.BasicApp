@@ -185,7 +185,7 @@ const reactionColumns = computed<XDataTableColumn<ChatReactionItem>[]>(() => [
                 <XhDescriptionsLabel>{{ t('chat.audit.content') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
                   <span v-if="detail.message.isRecalled && !detail.message.content" class="text-caption text-fg-muted">{{ t('chat.audit.content_recalled') }}</span>
-                  <span v-else class="chat-audit-content">{{ text(auditContentText(t, detail.message.messageType, detail.message.content)) }}</span>
+                  <span v-else class="chat-audit-content">{{ text(auditContentText(t, detail.message.messageType, detail.message.content, detail.conversation.conversationType)) }}</span>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
             </XhDescriptionsRoot>

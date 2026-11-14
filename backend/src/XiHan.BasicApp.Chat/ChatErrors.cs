@@ -237,9 +237,9 @@ public static class ChatErrors
     public const string AssistantReplyEmpty = "CHAT_UNAVAILABLE_003";
 
     /// <summary>
-    /// 只有单聊能发起通话
+    /// 这个会话不能发起通话（助手会话）
     /// </summary>
-    public const string CallSingleOnly = "CHAT_VALIDATION_028";
+    public const string CallUnsupported = "CHAT_VALIDATION_028";
 
     /// <summary>
     /// 通话记录不能撤回
@@ -275,4 +275,39 @@ public static class ChatErrors
     /// 这通电话已经不在响铃
     /// </summary>
     public const string CallNotRinging = "CHAT_CONFLICT_005";
+
+    /// <summary>
+    /// 群通话没有邀请任何人
+    /// </summary>
+    public const string CallInviteesRequired = "CHAT_VALIDATION_030";
+
+    /// <summary>
+    /// 邀请了不是会话成员的人
+    /// </summary>
+    public const string CallInviteeNotMember = "CHAT_VALIDATION_031";
+
+    /// <summary>
+    /// 邀请的人数超过了通话的人数上限
+    /// </summary>
+    public const string CallTooManyParticipants = "CHAT_VALIDATION_032";
+
+    /// <summary>
+    /// 这个会话里已经有一通电话
+    /// </summary>
+    public const string CallInProgress = "CHAT_CONFLICT_006";
+
+    /// <summary>
+    /// 邀请的人都不在线或正在通话中
+    /// </summary>
+    public const string CallNobodyAvailable = "CHAT_CONFLICT_007";
+
+    /// <summary>
+    /// 通话人数已满
+    /// </summary>
+    public const string CallFull = "CHAT_CONFLICT_008";
+
+    /// <summary>
+    /// 这通电话已经结束
+    /// </summary>
+    public const string CallEnded = "CHAT_CONFLICT_009";
 }

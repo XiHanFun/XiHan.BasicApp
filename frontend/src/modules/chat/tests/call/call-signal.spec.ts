@@ -16,16 +16,22 @@ describe('编与解', () => {
       type: 'candidate',
       candidate: { candidate: 'candidate:1 1 udp 1 10.0.0.1 5000 typ host', sdpMid: '0', sdpMLineIndex: 0 },
     },
-    { type: 'state', micOn: false, cameraOn: true },
+    {
+      type: 'state',
+      micOn: false,
+      cameraOn: true,
+      screenOn: true,
+    },
   ])('$type 编成字符串再解开还是原样', (signal) => {
     expect(decodeCallSignal(encodeCallSignal(signal))).toStrictEqual(signal)
   })
 
   it('多出来的字段不带进结果：只取这一种信令该有的', () => {
-    expect(decodeCallSignal('{"type":"state","micOn":true,"cameraOn":false,"extra":1}')).toStrictEqual({
+    expect(decodeCallSignal('{"type":"state","micOn":true,"cameraOn":false,"screenOn":false,"extra":1}')).toStrictEqual({
       type: 'state',
       micOn: true,
       cameraOn: false,
+      screenOn: false,
     })
   })
 })
@@ -41,8 +47,9 @@ describe('不认的信令', () => {
     ['answer 的 sdp 是空串', '{"type":"answer","sdp":""}'],
     ['candidate 不是对象', '{"type":"candidate","candidate":"candidate:1"}'],
     ['candidate 是 null', '{"type":"candidate","candidate":null}'],
-    ['state 的开关不是布尔', '{"type":"state","micOn":"yes","cameraOn":true}'],
-    ['state 少一个开关', '{"type":"state","micOn":true}'],
+    ['state 的开关不是布尔', '{"type":"state","micOn":"yes","cameraOn":true,"screenOn":false}'],
+    ['state 少一个开关', '{"type":"state","micOn":true,"screenOn":false}'],
+    ['state 没有屏幕共享的开关', '{"type":"state","micOn":true,"cameraOn":true}'],
   ])('%s：返回 null', (_, data) => {
     expect(decodeCallSignal(data)).toBeNull()
   })

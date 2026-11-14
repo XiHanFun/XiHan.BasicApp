@@ -190,10 +190,10 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 
 ## 语音与视频通话
 
-通话的媒体在两端的浏览器之间走 WebRTC，不经后端。上线前要备好两件事：
+通话的媒体在浏览器之间走 WebRTC，不经后端；多人通话里每两个人之间各一条连接。上线前要备好两件事：
 
-- **HTTPS**：浏览器只在 HTTPS（与 `localhost`）下给麦克风与摄像头，站点要挂证书。
-- **TURN 中继**：两端在同一网段或都能直连时不用它；隔着对称型 NAT、企业防火墙的两端要靠 TURN 转发媒体，否则接通后连不上、30 秒后自动挂断。
+- **HTTPS**：浏览器只在 HTTPS（与 `localhost`）下给麦克风、摄像头与屏幕，站点要挂证书。
+- **TURN 中继**：两端在同一网段或都能直连时不用它；隔着对称型 NAT、企业防火墙的两端要靠 TURN 转发媒体，否则接通后这两个人之间连不上（一对一通话 30 秒后自动挂断，多人通话里互相连不上的两个人听不到对方）。
 
 TURN 服务器自己部署，仓库只给配置项与示例。以 coturn 为例（`docker-compose.yml` 里有注释掉的 `coturn` 服务）：
 
@@ -208,7 +208,7 @@ BasicApp__Chat__Calls__TurnUrls__1=turn:turn.example.com:3478?transport=tcp
 BasicApp__Chat__Calls__TurnSecret=<与 static-auth-secret 相同的随机串>
 ```
 
-后端按共享密钥给每个用户现签限时凭据（缺省一小时），密钥不下发到浏览器。要走 TLS 的 TURN（`turns:`，穿只放行 443 的网络）时给 coturn 配证书并把地址写成 `turns:turn.example.com:5349?transport=tcp`。中继的流量按通话码率计，视频通话每路约 1–2 Mbps，带宽按经中继的并发数估。
+后端按共享密钥给每个用户现签限时凭据（缺省一小时），密钥不下发到浏览器。要走 TLS 的 TURN（`turns:`，穿只放行 443 的网络）时给 coturn 配证书并把地址写成 `turns:turn.example.com:5349?transport=tcp`。中继的流量按通话码率计，视频与共享的屏幕每路约 1–2 Mbps，带宽按经中继的并发路数估：多人通话是全互联，N 个人的通话有 N×(N−1)/2 条连接，每条经中继的连接两个方向各算一路。
 
 已有部署升级后，通话的两个权限码（`chat.chat-calls.read`、`chat.chat-calls.call`）要在套餐白名单与角色里授予，用户才看得到通话按钮、接得到来电。
 

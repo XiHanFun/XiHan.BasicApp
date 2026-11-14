@@ -119,18 +119,20 @@ describe('chatAuditResource', () => {
 })
 
 describe('枚举文案与语气', () => {
-  it('通话记录的正文写成「媒体 · 结果」，口吻随发起人；别的类型照原文，读不出记录的原样给', () => {
+  it('通话记录的正文写成「媒体 · 结果」，口吻随发起人，群里的按多人通话说；别的类型照原文，读不出记录的原样给', () => {
     const record = JSON.stringify({
       callId: 'k-1',
       media: 'Video',
       reason: 'Missed',
       durationSeconds: 0,
+      missedUserIds: ['bob'],
     })
 
-    expect(auditContentText(t, 'Call', record)).toBe('chat.call.video · chat.call.record_missed_by_peer')
-    expect(auditContentText(t, 'Call', '坏掉的正文')).toBe('坏掉的正文')
-    expect(auditContentText(t, 'Text', record)).toBe(record)
-    expect(auditContentText(t, 'Text', null)).toBe('')
+    expect(auditContentText(t, 'Call', record, 'Single')).toBe('chat.call.video · chat.call.record_missed_by_peer')
+    expect(auditContentText(t, 'Call', record, 'Group')).toBe('chat.call.video · chat.call.record_no_answer')
+    expect(auditContentText(t, 'Call', '坏掉的正文', 'Single')).toBe('坏掉的正文')
+    expect(auditContentText(t, 'Text', record, 'Single')).toBe(record)
+    expect(auditContentText(t, 'Text', null, 'Group')).toBe('')
   })
 
   it('七种消息类型都有文案（含助手与通话），会话类型含助手会话', () => {

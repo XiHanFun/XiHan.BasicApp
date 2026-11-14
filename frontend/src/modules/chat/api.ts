@@ -138,11 +138,14 @@ export function createChatApi(): ChatApiContract {
         expiresAt: signed.expiresAt,
       }
     },
-    startCall: (conversationId, media) => chatCalls.start({ conversationId, media }),
+    startCall: (conversationId, media, inviteeUserIds) => chatCalls.start({ conversationId, media, inviteeUserIds }),
     acceptCall: callId => chatCalls.accept({ callId }),
     rejectCall: callId => chatCalls.reject({ callId }),
+    joinCall: callId => chatCalls.join({ callId }),
     hangupCall: callId => chatCalls.hangup({ callId }),
     activeCall: () => chatCalls.active({}),
+    ongoingCall: conversationId => chatCalls.ongoing({ conversationId }),
+    callSettings: () => chatCalls.settings({}),
     callIceServers: async () => (await chatCalls.iceServers({})).iceServers,
   }
 }

@@ -96,6 +96,7 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(ChatActiveCallResponse))]
 [JsonSerializable(typeof(ChatIceServersResponse))]
 [JsonSerializable(typeof(ChatCallRecord))]
+[JsonSerializable(typeof(ChatCallSettingsResponse))]
 [JsonSerializable(typeof(ChatCallSignalPayload))]
 [JsonSerializable(typeof(ChatPolicySettings))]
 [JsonSerializable(typeof(MembershipChanged))]

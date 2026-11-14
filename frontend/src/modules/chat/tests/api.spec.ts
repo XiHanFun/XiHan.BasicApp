@@ -310,6 +310,8 @@ describe('通话', () => {
   const call = {
     callId: 'k-1',
     conversationId: 'c-1',
+    conversationType: 'Group',
+    conversationName: 'Team',
     initiatorUserId: 'u-1',
     media: 'Video',
     status: 'Ringing',
@@ -318,13 +320,15 @@ describe('通话', () => {
     participants: [],
   }
 
-  it('发起带会话与媒体；接听、拒绝、挂断只带通话', async () => {
+  it('发起带会话与媒体，群里另带点名邀请的人；接听、拒绝、加入、挂断只带通话', async () => {
     const calls = record(() => json(200, call))
     const api = createChatApi()
 
     await expect(api.startCall('c-1', 'Video')).resolves.toMatchObject({ callId: 'k-1', media: 'Video' })
+    await api.startCall('c-1', 'Voice', ['u-2', 'u-3'])
     await api.acceptCall('k-1')
     await api.rejectCall('k-1')
+    await api.joinCall('k-1')
     await api.hangupCall('k-1')
 
     expect(calls).toEqual([
@@ -335,12 +339,26 @@ describe('通话', () => {
       },
       {
         method: 'POST',
+        url: '/api/chat-calls:start',
+        body: {
+          conversationId: 'c-1',
+          media: 'Voice',
+          inviteeUserIds: ['u-2', 'u-3'],
+        },
+      },
+      {
+        method: 'POST',
         url: '/api/chat-calls:accept',
         body: { callId: 'k-1' },
       },
       {
         method: 'POST',
         url: '/api/chat-calls:reject',
+        body: { callId: 'k-1' },
+      },
+      {
+        method: 'POST',
+        url: '/api/chat-calls:join',
         body: { callId: 'k-1' },
       },
       {
@@ -373,6 +391,20 @@ describe('通话', () => {
     expect(calls.map(request => [request.method, request.url])).toEqual([
       ['GET', '/api/chat-calls:active'],
       ['GET', '/api/chat-calls:ice-servers'],
+    ])
+  })
+
+  it('会话里的通话按会话取，没有为空；通话的设置原样带回', async () => {
+    const calls = record(request => json(200, request.url.includes(':ongoing')
+      ? { call: null, now: '2026-11-14T08:00:20Z' }
+      : { ringSeconds: 60, maxVoiceParticipants: 8, maxVideoParticipants: 6 }))
+    const api = createChatApi()
+
+    await expect(api.ongoingCall('c-1')).resolves.toEqual({ call: null, now: '2026-11-14T08:00:20Z' })
+    await expect(api.callSettings()).resolves.toEqual({ ringSeconds: 60, maxVoiceParticipants: 8, maxVideoParticipants: 6 })
+    expect(calls.map(request => [request.method, request.url])).toEqual([
+      ['GET', '/api/chat-calls:ongoing?conversationId=c-1'],
+      ['GET', '/api/chat-calls:settings'],
     ])
   })
 

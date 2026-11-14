@@ -2,7 +2,7 @@
 
 本页说明在线聊天的会话与消息规则、语音与视频通话、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
 
-Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，单聊里的语音与视频通话，聊天 Hub 与聊天审计。
+Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，语音与视频通话（单聊里一对一，群聊与部门群里多人，可以共享屏幕），聊天 Hub 与聊天审计。
 
 ## 数据
 
@@ -60,67 +60,93 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 ## 语音与视频通话
 
-单聊里的一对一通话。媒体在两端的浏览器之间走 WebRTC：能直连就直连，直连不通时经 TURN 中继；服务端只记通话的状态、转发信令，不经手也不录制媒体。
+单聊里是一对一通话，群聊与部门群里是多人通话，通话中可以共享屏幕。媒体在浏览器之间走 WebRTC：多人通话里每两个人之间各一条连接（全互联，不经媒体服务器），能直连就直连，直连不通时经 TURN 中继；服务端只记通话的状态、转发信令，不经手也不录制媒体。
 
 ### 状态
 
-| 状态 | 说明 |
+| 通话的状态 | 说明 |
 | --- | --- |
-| `Ringing` | 响铃中：发起人已加入，对方受邀 |
-| `Ongoing` | 通话中：对方接听了 |
+| `Ringing` | 响铃中：发起人已加入，还没有别人进来 |
+| `Ongoing` | 通话中：有人接听或加入过 |
 | `Ended` | 已结束，带结束的原因 |
+
+| 参与者的状态 | 说明 |
+| --- | --- |
+| `Invited` | 受邀，在响铃 |
+| `Joined` | 在通话里 |
+| `Rejected` | 拒绝了 |
+| `Missed` | 没接到：响铃到点、响铃时离线，或发起时占线、不在线没能响铃 |
+| `Left` | 离开了 |
 
 | 结束的原因 | 说明 |
 | --- | --- |
-| `Completed` | 接通后有人挂断 |
-| `Cancelled` | 接通前发起人挂断，或发起人离线 |
-| `Rejected` | 对方拒绝（响铃时对方挂断也算） |
-| `Missed` | 响铃到点没人接，或对方离线 |
-| `Interrupted` | 通话中有人离线 |
+| `Completed` | 通话中的人陆续挂断，剩下不到两个人 |
+| `Cancelled` | 没人接之前发起人挂断，或发起人离线 |
+| `Rejected` | 受邀的人都拒绝了（响铃时受邀的人挂断也算拒绝） |
+| `Missed` | 受邀的人都没来，其中有人没接到（响铃到点、离线，或没能响铃） |
+| `Interrupted` | 通话中有人离线，剩下不到两个人 |
 
 ### 规则
 
 | 规则 | 说明 |
 | --- | --- |
-| 发起 | 只有单聊；自己与对方都不在别的通话里（受邀还没接也算占着）；对方此刻在线，不在线不响铃、直接拒绝 |
-| 接听与拒绝 | 只有受邀的人、还在响铃时；多端同时接听只有先到的成功，其余端随推送停铃 |
-| 挂断 | 接通后任一方挂断即结束；响铃时发起人挂断即取消、受邀的人挂断即拒绝；已经结束的照样成功（两边可能同时挂） |
-| 响铃到点 | 响铃秒数读 `chat.policy` 的 `callRingSeconds`（缺省 60）。到点由端上来挂：发起端准点挂，受邀端晚 2 秒替它挂；服务端把到点前 3 秒起的挂断一律记未接听 |
-| 离线 | 用户离线（过了[离线宽限](#在线状态)）即结束他占着的通话：响铃的取消或记未接听，通话中的记中断 |
-| 收尾 | 内建作业 `chat.calls.sweep` 每 5 分钟按平台与每个租户收一遍没人管的通话（响铃过点、发起人已离线、通话中有人离线）；停用的租户跳过 |
-| 先后 | 同一会话里的发起、接听、拒绝、挂断对会话行加锁排成先后：两个人同时互相呼叫只成一通。锁只在会话上，两个不同的人在同一瞬间呼叫同一个人时可能各响一通，先接的成立，另一通到点记未接听 |
+| 发起 | 单聊呼叫对方：自己与对方都不在别的通话里（受邀还没接也算占着），对方此刻在线，否则不响铃、直接拒绝。群聊与部门群点名邀请成员（`inviteeUserIds`）：不能为空、都得是会话成员、连发起人在内不超过人数上限；占线与不在线的受邀人不响铃、记成没接到，一个能响铃的都没有即拒绝；一个会话同一时刻只有一通。助手会话不能通话 |
+| 人数上限 | 读 `chat.policy`：语音 `callMaxVoiceParticipants`（缺省 8），视频 `callMaxVideoParticipants`（缺省 6）。发起时按受邀的人数核对，接听与加入时按已经在通话里的人数核对 |
+| 接听与拒绝 | 只有受邀还没答复的人、通话还没结束时；多端同时接听只有先到的成功，其余端随推送停铃。有人接听即接通，别的受邀人照常响铃 |
+| 加入 | 多人通话还没结束时会话成员都能加入（`chat-calls.join`）：没被邀请的、拒绝过的、没接到的、离开了的都能来；人数满了即拒绝 |
+| 挂断 | 没人接时发起人挂断即取消，受邀的人在响铃时挂断即拒绝；通话中挂断即离开，剩下不到两个人、又没人还在响铃时通话结束；已经结束的、早就不在里面的照样成功（几个人可能同时挂） |
+| 响铃到点 | 响铃秒数读 `chat.policy` 的 `callRingSeconds`（缺省 60）。到点由端上来挂：发起端准点挂，受邀端晚 2 秒挂掉自己那份邀请；服务端把到点前 3 秒起的挂断一律记未接听 |
+| 离线 | 用户离线（过了[离线宽限](#在线状态)）即离开他占着的通话：受邀的记没接到，没人接时发起人离线即取消，通话中的记离开、剩下的人不够时以中断结束 |
+| 收尾 | 内建作业 `chat.calls.sweep` 每 5 分钟按平台与每个租户收一遍没人管的通话（响铃过点、发起人已离线、通话中已经离线的人与过点还挂着的邀请）；停用的租户跳过 |
+| 先后 | 同一会话里的发起、接听、拒绝、加入、挂断对会话行加锁排成先后：两个人同时互相呼叫只成一通，一个群里不会同时起两通。锁只在会话上，两个不同会话里的人在同一瞬间呼叫同一个人时可能各响一通，先接的成立，另一通到点记未接听 |
 
 ### 通话记录
 
-通话结束时往会话里追加一条类型为 `Call` 的消息：发送人是发起人，正文是 JSON（`callId`、`media`、`reason`、`durationSeconds`），会话预览写「[语音通话]」或「[视频通话]」。没接到的（`Missed`、`Cancelled`）给对方记一条未读，接通过的与拒绝的不记。通话记录不能撤回、不能转发，也不进会话内搜索；聊天审计里显示为「媒体 · 结果」。
+通话结束时往会话里追加一条类型为 `Call` 的消息：发送人是发起人，正文是 JSON（`callId`、`media`、`reason`、`durationSeconds`、`missedUserIds`），会话预览写「[语音通话]」或「[视频通话]」。只给没接到的人（`missedUserIds`）各记一条未读，接通过的、自己拒绝的与没被邀请的不记。通话记录不能撤回、不能转发，也不进会话内搜索；聊天审计里显示为「媒体 · 结果」。
 
 ### 信令与穿透
 
-- 信令经聊天 Hub：占着通话的端调 `CallSignal(callId, data)`，服务端核对它是这通接通了的电话里的人，把 `ChatCallSignal`（`callId`、`fromUserId`、`data`）转给通话里的另一个人。`data` 是两端之间约定的 JSON（会话描述、ICE 候选、麦克风与摄像头的开关），不超过 20000 个字符，服务端不解析、不落库。
-- 通话每次变化推 `ChatCallChanged`，载荷是通话此刻的样子，发给两个人的全部连接。
+- 信令经聊天 Hub：占着通话的端调 `CallSignal(callId, toUserId, data)`，服务端核对它是这通接通了的电话里的人，把 `ChatCallSignal`（`callId`、`fromUserId`、`data`）转出去：给了 `toUserId` 只转给他（他也得在通话里），没给转给已经加入的其他人。`data` 是两端之间约定的 JSON，不超过 20000 个字符，服务端不解析、不落库：会话描述与 ICE 候选指给一个人，麦克风、摄像头与屏幕共享的开关发给所有人。
+- 通话每次变化推 `ChatCallChanged`，载荷是通话此刻的样子，发给参与过这通电话的每个人的全部连接；多人通话另发给正开着这个会话的连接（会话组），没被邀请的成员据此看到有通话在进行。打开会话时用 `chat-calls.ongoing` 取这个会话里还没结束的那一通。
 - 穿透服务器由 `chat-calls.ice-servers` 给出，取自宿主配置 `BasicApp:Chat:Calls`（见[配置](../configuration#basicapp-chat-calls)）。TURN 用共享密钥的限时凭据：用户名是「到期秒数:用户」，凭据是它的 HMAC-SHA1，按调用方现签，密钥不下发。都不配也能用，只是只有同一网段或能直连的两端打得通。
+
+### 媒体连接与屏幕共享
+
+- 通话里每两个人之间一条连接，后加入通话的一方出 offer（同一毫秒加入的比用户 ID），两端各自按同一份参与者算，不会同时出。有人离开只关与他的那条，他再加入时重新建。
+- 每条连接在协商时按固定次序留好三个轨道位：麦克风、摄像头、屏幕。之后开关摄像头、换设备、开始与停止共享屏幕都只是往位上换轨道，不重新协商；对端凭位置认出是哪一路。
+- 屏幕共享在语音与视频通话里都有：浏览器让用户挑整个屏幕、一个窗口或一个标签页，只共享画面、不带系统声音；从浏览器自己的「停止共享」上停掉也算停止。不支持的浏览器（多数手机浏览器）不出这个按钮。
+- 全互联里每个人要给其余每个人各发一路媒体，上行带宽随人数增长，人数上限按此定；人更多要换成经媒体服务器转发的架构。
 
 ### 前端
 
-- 会话头的语音与视频按钮只在单聊出现；通话记录的气泡可点，用同样的媒体再打一次。
-- 来电卡片与通话窗挂在布局根部：任何页面都能接听，离开聊天页通话不断。通话窗可拖动、收拢成标题栏或铺满视口，有静音、关摄像头、换麦克风与摄像头（浏览器支持时还有扬声器）与挂断。
-- 来电在每个开着的页签都响；只有发起或接听的那个页签建媒体连接、处理信令，别的页签随推送停铃。没有 `chat.chat-calls.call` 的人不出来电卡片，那通电话到点记未接听。
-- 接通后 30 秒媒体还没连上、或连接断开 8 秒没恢复，端上自己挂断并提示。
-- 刷新页面：还在响的来电经 `chat-calls.active` 认回来；刷新之前占着通话的那个页签，媒体已经随页面没了，回来后替自己挂断。
-- 浏览器只在 HTTPS 与 `localhost` 下给麦克风与摄像头。
+- 会话头有语音与视频按钮：单聊直接呼叫对方；群聊与部门群先开点名的对话框，列出会话成员，不在线的选不了，最多选到人数上限减一。通话记录的气泡可点，用同样的媒体再打一次。
+- 群里有通话在进行时，会话顶上出一条横幅（谁发起的、几个人在里面），没在里面的成员点「加入」即进通话；自己已经在别处接听的只显示提示。
+- 来电卡片与通话窗挂在布局根部：任何页面都能接听，离开聊天页通话不断。多人通话的来电写明是哪个群。通话窗可拖动、收拢成标题栏或铺满视口，里面一人一格（还在响铃的也占一格，连不上的标出来），有人共享屏幕时屏幕占主画面、各人收成底下一排；有静音、关摄像头、共享屏幕、换麦克风与摄像头（浏览器支持时还有扬声器）与挂断。
+- 来电在每个开着的页签都响；只有发起、接听或加入的那个页签建媒体连接、处理信令，别的页签随推送停铃。没有 `chat.chat-calls.call` 的人不出来电卡片，那份邀请到点记没接到。
+- 与一个人之间 30 秒媒体还没连上、或连接断开 8 秒没恢复，这条连接作废、他那一格标成连不上；与所有人都这样了，端上自己挂断并提示。
+- 响应与推送之间没有先后：接听、加入的请求在路上时到过推送的，以推送为准，不拿可能更旧的响应对齐连接。
+- 刷新页面：还在等自己答复的来电经 `chat-calls.active` 认回来；刷新之前占着通话的那个页签，媒体已经随页面没了，回来后替自己挂断（多人通话里别人照常，可以从横幅再加入）。
+- 浏览器只在 HTTPS 与 `localhost` 下给麦克风、摄像头与屏幕。
 
 ### 错误码
 
 | 错误码 | 说明 |
 | --- | --- |
-| `CHAT_VALIDATION_028` | 只有单聊能发起通话 |
+| `CHAT_VALIDATION_028` | 这个会话不能发起通话（助手会话） |
 | `CHAT_VALIDATION_029` | 通话记录不能撤回 |
+| `CHAT_VALIDATION_030` | 群通话至少要邀请一名成员 |
+| `CHAT_VALIDATION_031` | 只能邀请这个会话的成员 |
+| `CHAT_VALIDATION_032` | 超过这种通话的人数上限 |
 | `CHAT_NOTFOUND_006` | 通话不存在 |
 | `CHAT_DENIED_010` | 不是这通电话的参与者 |
 | `CHAT_CONFLICT_002` | 自己正在另一通电话里 |
 | `CHAT_CONFLICT_003` | 对方正在通话中 |
 | `CHAT_CONFLICT_004` | 对方不在线 |
 | `CHAT_CONFLICT_005` | 这通电话已经被接听或已结束 |
+| `CHAT_CONFLICT_006` | 这个会话里已经有一通电话 |
+| `CHAT_CONFLICT_007` | 邀请的人都不在线或正在通话中 |
+| `CHAT_CONFLICT_008` | 通话人数已满 |
+| `CHAT_CONFLICT_009` | 这通电话已经结束 |
 
 ## 操作与权限
 
@@ -129,7 +155,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
 | `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members` |
-| `chat-calls` | `active`、`ice-servers`（只读）；`start`、`accept`、`reject`、`hangup` |
+| `chat-calls` | `active`、`ongoing`、`settings`、`ice-servers`（只读）；`start`、`accept`、`reject`、`join`、`hangup` |
 
 普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`，要 `chat.chat-messages.send`，访问日志记作 `chat-messages.upload`）。
 
@@ -140,8 +166,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
 | `chat.chat-conversations.manage` | 建群与群治理（进操作日志） |
 | `chat.chat-audit.read` | 聊天审计 |
-| `chat.chat-calls.read` | 查看自己此刻所在的通话、取穿透服务器 |
-| `chat.chat-calls.call` | 发起、接听、拒绝与挂断通话（进操作日志） |
+| `chat.chat-calls.read` | 查看自己此刻所在的通话与所在会话里的通话，取通话设置与穿透服务器 |
+| `chat.chat-calls.call` | 发起、接听、拒绝、加入与挂断通话（进操作日志） |
 
 权限码两侧都有。套餐白名单与角色的授权是运营数据，种子只在首次写入：已有的套餐与角色不会自动带上之后新增的权限码，要在套餐页与角色页授予。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）在「消息中心」目录下。
 
@@ -166,7 +192,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 方向 | 方法 |
 | --- | --- |
 | 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`、`ChatCallChanged`、`ChatCallSignal` |
-| 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库）、`CallSignal`（核对是接通了的通话里的人后转给另一个人，不落库） |
+| 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库）、`CallSignal`（核对是接通了的通话里的人后转给指定的人或通话里的其他人，不落库） |
 
 `ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`。
 
@@ -203,10 +229,10 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 ## 策略与保留清理
 
-参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词与响铃秒数），缺省值：
+参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词、响铃秒数与通话人数上限），缺省值：
 
 ```json
-{ "retentionDays": 365, "sensitiveWords": [], "callRingSeconds": 60 }
+{ "retentionDays": 365, "sensitiveWords": [], "callRingSeconds": 60, "callMaxVoiceParticipants": 8, "callMaxVideoParticipants": 6 }
 ```
 
 | 字段 | 说明 |
@@ -214,8 +240,10 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 | `retentionDays` | 消息保留天数，1 到 3650，只读平台的值 |
 | `sensitiveWords` | 敏感词，不区分大小写的包含匹配；租户建了同键参数即用租户的；管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名（`CHAT_VALIDATION_023`） |
 | `callRingSeconds` | 通话响铃秒数，10 到 300；到点没人接即未接听；租户建了同键参数即用租户的 |
+| `callMaxVoiceParticipants` | 语音通话连发起人在内的人数上限，2 到 12；租户建了同键参数即用租户的 |
+| `callMaxVideoParticipants` | 视频通话连发起人在内的人数上限，2 到 8；租户建了同键参数即用租户的 |
 
-JSON 不合法、保留天数或响铃秒数越界即 `CHAT_VALIDATION_024`，发送、通话与清理都不按错误的值执行。
+JSON 不合法、保留天数、响铃秒数或人数上限越界即 `CHAT_VALIDATION_024`，发送、通话与清理都不按错误的值执行。前端经 `chat-calls.settings` 取响铃秒数与两个人数上限。
 
 内建作业 `chat.messages.cleanup` 每天 04:00（UTC）按平台与每个租户逐个清理（独立库的租户清它自己的库）：先删所属消息已过期的表情回应，再删过期的消息；不删会话、成员与附件文件。一侧失败只记日志，不影响其他侧。
 

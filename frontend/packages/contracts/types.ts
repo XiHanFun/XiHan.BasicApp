@@ -1297,7 +1297,7 @@ export interface paths {
         put?: never;
         /**
          * Accept call
-         * @description Accepts an incoming call that is still ringing; when several devices accept at once only the first succeeds.
+         * @description Accepts an incoming call that is still waiting for the caller's answer; when several devices accept at once only the first succeeds.
          *
          *     Requires permission chat.chat-calls.call (Make voice and video calls).
          */
@@ -1341,7 +1341,7 @@ export interface paths {
         put?: never;
         /**
          * Hang up call
-         * @description Hangs up a call: the initiator hanging up before it is answered cancels it, either side hanging up afterwards ends it; a call that has already ended still succeeds.
+         * @description Hangs up a call: the initiator hanging up before anyone answers cancels it, hanging up during the call leaves it, and the call ends when too few people remain; a call that has already ended still succeeds.
          *
          *     Requires permission chat.chat-calls.call (Make voice and video calls).
          */
@@ -1374,6 +1374,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-calls:join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join call
+         * @description Lets a conversation member join a multi-party call that has not ended: members who were not invited, declined, missed it or left can all come in; refused when the call is full.
+         *
+         *     Requires permission chat.chat-calls.call (Make voice and video calls).
+         */
+        post: operations["chat-calls.join"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:ongoing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Call in a conversation
+         * @description Returns the ringing or ongoing call of a conversation, or nothing; only members of the conversation can see it.
+         *
+         *     Requires permission chat.chat-calls.read (Read chat calls).
+         */
+        get: operations["chat-calls.ongoing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-calls:reject": {
         parameters: {
             query?: never;
@@ -1385,11 +1429,33 @@ export interface paths {
         put?: never;
         /**
          * Reject call
-         * @description Rejects an incoming call that is still ringing; the call ends and leaves a record in the conversation.
+         * @description Rejects an incoming call that is still waiting for the caller's answer; once no invitee is coming the call ends and leaves a record in the conversation.
          *
          *     Requires permission chat.chat-calls.call (Make voice and video calls).
          */
         post: operations["chat-calls.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Call settings
+         * @description Returns the ring seconds and the participant limits of voice and video calls.
+         *
+         *     Requires permission chat.chat-calls.read (Read chat calls).
+         */
+        get: operations["chat-calls.settings"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1407,7 +1473,7 @@ export interface paths {
         put?: never;
         /**
          * Start call
-         * @description Starts a voice or video call in a direct conversation and begins ringing; refused when either side is already in a call or the other side is offline.
+         * @description Starts a voice or video call and begins ringing: a direct conversation calls the other person, a group or department conversation invites the named members; refused when the caller is already in a call or no invitee can be rung.
          *
          *     Requires permission chat.chat-calls.call (Make voice and video calls).
          */
@@ -10866,6 +10932,10 @@ export interface components {
              * @description 会话
              */
             conversationId: string;
+            /** @description 会话类型：单聊是一对一通话，群聊与部门群是多人通话 */
+            conversationType: components["schemas"]["ChatConversationType"];
+            /** @description 会话名称（单聊为空） */
+            conversationName?: string | null;
             /**
              * Format: uuid
              * @description 发起人
@@ -20712,6 +20782,10 @@ export interface operations {
                          * @description 会话
                          */
                         conversationId: string;
+                        /** @description 会话类型：单聊是一对一通话，群聊与部门群是多人通话 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称（单聊为空） */
+                        conversationName?: string | null;
                         /**
                          * Format: uuid
                          * @description 发起人
@@ -20768,14 +20842,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description chat-calls.active 的响应 */
+            /** @description chat-calls.active 与 chat-calls.ongoing 的响应 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /** @description 我此刻所在的通话（响铃中或通话中）；没有为空 */
+                        /** @description 还没结束的那一通（响铃中或通话中）；没有为空 */
                         call?: components["schemas"]["ChatCallItem"] | null;
                         /**
                          * Format: date-time
@@ -20833,6 +20907,10 @@ export interface operations {
                          * @description 会话
                          */
                         conversationId: string;
+                        /** @description 会话类型：单聊是一对一通话，群聊与部门群是多人通话 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称（单聊为空） */
+                        conversationName?: string | null;
                         /**
                          * Format: uuid
                          * @description 发起人
@@ -20917,7 +20995,7 @@ export interface operations {
             };
         };
     };
-    "chat-calls.reject": {
+    "chat-calls.join": {
         parameters: {
             query?: never;
             header?: never;
@@ -20954,6 +21032,10 @@ export interface operations {
                          * @description 会话
                          */
                         conversationId: string;
+                        /** @description 会话类型：单聊是一对一通话，群聊与部门群是多人通话 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称（单聊为空） */
+                        conversationName?: string | null;
                         /**
                          * Format: uuid
                          * @description 发起人
@@ -21001,24 +21083,62 @@ export interface operations {
             };
         };
     };
-    "chat-calls.start": {
+    "chat-calls.ongoing": {
+        parameters: {
+            query: {
+                /** @description 会话 */
+                conversationId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description chat-calls.active 与 chat-calls.ongoing 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 还没结束的那一通（响铃中或通话中）；没有为空 */
+                        call?: components["schemas"]["ChatCallItem"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 服务端此刻的时间（UTC）：端上据它算响铃还剩多久，不靠本机的钟
+                         */
+                        now: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.reject": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description chat-calls.start 的请求 */
+        /** @description 按通话的请求 */
         requestBody: {
             content: {
                 "application/json": {
                     /**
                      * Format: uuid
-                     * @description 会话（单聊）
+                     * @description 通话
                      */
-                    conversationId: string;
-                    /** @description 媒体：语音或视频 */
-                    media: components["schemas"]["ChatCallMedia"];
+                    callId: string;
                 };
             };
         };
@@ -21040,6 +21160,147 @@ export interface operations {
                          * @description 会话
                          */
                         conversationId: string;
+                        /** @description 会话类型：单聊是一对一通话，群聊与部门群是多人通话 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称（单聊为空） */
+                        conversationName?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description 发起人
+                         */
+                        initiatorUserId: string;
+                        /** @description 媒体 */
+                        media: components["schemas"]["ChatCallMedia"];
+                        /** @description 状态 */
+                        status: components["schemas"]["ChatCallStatus"];
+                        /** @description 结束的原因；没结束为空 */
+                        endReason?: components["schemas"]["ChatCallEndReason"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 发起时间（UTC）
+                         */
+                        startedAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 响铃到几时（UTC），过了还没人接即未接听
+                         */
+                        ringExpiresAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 接通时间（UTC）
+                         */
+                        answeredAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间（UTC）
+                         */
+                        endedAt?: string | null;
+                        /** @description 参与者（发起人在前） */
+                        participants: components["schemas"]["ChatCallParticipantItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description chat-calls.settings 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: int32
+                         * @description 响铃秒数
+                         */
+                        ringSeconds: number;
+                        /**
+                         * Format: int32
+                         * @description 语音通话的人数上限（含发起人）
+                         */
+                        maxVoiceParticipants: number;
+                        /**
+                         * Format: int32
+                         * @description 视频通话的人数上限（含发起人）
+                         */
+                        maxVideoParticipants: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-calls.start 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话（单聊、群聊或部门群）
+                     */
+                    conversationId: string;
+                    /** @description 媒体：语音或视频 */
+                    media: components["schemas"]["ChatCallMedia"];
+                    /** @description 邀请的成员：群聊与部门群必填，单聊不用给（就是对方） */
+                    inviteeUserIds?: string[] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 一次通话 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通话
+                         */
+                        callId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
+                        /** @description 会话类型：单聊是一对一通话，群聊与部门群是多人通话 */
+                        conversationType: components["schemas"]["ChatConversationType"];
+                        /** @description 会话名称（单聊为空） */
+                        conversationName?: string | null;
                         /**
                          * Format: uuid
                          * @description 发起人

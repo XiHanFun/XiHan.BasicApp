@@ -5,18 +5,33 @@
 
 import type { ChatCallSignal } from './call-signal'
 
-/** 一场通话的媒体连接要的东西 */
+/** 一条连接上的轨道位：麦克风、摄像头与共享的屏幕 */
+export type ChatCallSlot = 'camera' | 'mic' | 'screen'
+
+/** 轨道位的固定次序：两端按它对齐，对端的轨道凭位置认出是哪一路 */
+export const CHAT_CALL_SLOTS: readonly ChatCallSlot[] = ['mic', 'camera', 'screen']
+
+const SLOT_KIND: Record<ChatCallSlot, 'audio' | 'video'> = {
+  mic: 'audio',
+  camera: 'video',
+  screen: 'video',
+}
+
+/** 各轨道位上本端此刻在发的轨道；没有（没开摄像头、没在共享）为 null 或不写 */
+export type ChatCallTracks = Partial<Record<ChatCallSlot, MediaStreamTrack | null>>
+
+/** 与一个对端之间的媒体连接要的东西 */
 export interface ChatCallSessionOptions {
-  /** 发起方出 offer，接听方等 offer 再回 answer */
-  initiator: boolean
+  /** 出 offer 的一方；另一方等 offer 再回 answer */
+  offerer: boolean
   /** 穿透用的 STUN 与 TURN；没配为空，只有能直连的两端打得通 */
   iceServers: RTCIceServer[]
-  /** 本端的麦克风（与摄像头） */
-  localStream: MediaStream
+  /** 建连接时本端各轨道位上的轨道 */
+  tracks: ChatCallTracks
   /** 把信令交给对端（经聊天 Hub 转发） */
   send: (signal: ChatCallSignal) => void
-  /** 对端的媒体到了 */
-  onRemoteStream: (stream: MediaStream) => void
+  /** 对端某个轨道位的轨道到了（轨道在不在出画面、出声音，看对端发来的开关状态） */
+  onRemoteTrack: (slot: ChatCallSlot, track: MediaStreamTrack) => void
   /** 连接状态变了 */
   onStateChange: (state: RTCPeerConnectionState) => void
   /** 建连接的方法；测试注入替身，缺省用浏览器的 RTCPeerConnection */
@@ -24,13 +39,15 @@ export interface ChatCallSessionOptions {
 }
 
 /**
- * 一场一对一通话的媒体连接（浏览器原生 WebRTC）
+ * 与一个对端之间的媒体连接（浏览器原生 WebRTC）；多人通话里每两个人之间各有一条
  * 只管两端之间的连接：会话描述的一来一回、ICE 候选的交换与本端轨道的替换；通话的状态（谁叫了谁、接没接）不归它管
+ * 三个轨道位在协商时一次留好：之后开关摄像头、开始与停止共享屏幕都只是往位上换轨道，不重新协商
  * 信令一条一条顺序处理：对端的候选可能比会话描述先到，先存着，等远端描述设好再加
  */
 export class ChatCallSession {
   private readonly peer: RTCPeerConnection
   private readonly options: ChatCallSessionOptions
+  private readonly tracks: ChatCallTracks
   private readonly pendingCandidates: RTCIceCandidateInit[] = []
   private remoteDescribed = false
   private closed = false
@@ -38,10 +55,14 @@ export class ChatCallSession {
 
   constructor(options: ChatCallSessionOptions) {
     this.options = options
+    this.tracks = { ...options.tracks }
     const createPeer = options.createPeer ?? (configuration => new RTCPeerConnection(configuration))
     this.peer = createPeer({ iceServers: options.iceServers })
-    for (const track of options.localStream.getTracks()) {
-      this.peer.addTrack(track, options.localStream)
+    if (options.offerer) {
+      // 出 offer 的一方按固定次序留位；另一方的位由对端的 offer 带出来
+      for (const slot of CHAT_CALL_SLOTS) {
+        this.peer.addTransceiver(this.tracks[slot] ?? SLOT_KIND[slot], { direction: 'sendrecv' })
+      }
     }
     this.peer.onicecandidate = (event) => {
       if (event.candidate && !this.closed) {
@@ -52,8 +73,9 @@ export class ChatCallSession {
       }
     }
     this.peer.ontrack = (event) => {
-      if (!this.closed) {
-        options.onRemoteStream(event.streams[0] ?? new MediaStream([event.track]))
+      const slot = CHAT_CALL_SLOTS[this.peer.getTransceivers().indexOf(event.transceiver)]
+      if (slot && !this.closed) {
+        options.onRemoteTrack(slot, event.track)
       }
     }
     this.peer.onconnectionstatechange = () => {
@@ -63,7 +85,7 @@ export class ChatCallSession {
     }
   }
 
-  /** 发起方开始协商：出 offer 交给对端 */
+  /** 出 offer 的一方开始协商：把 offer 交给对端 */
   start(): Promise<void> {
     return this.enqueue(async () => {
       const offer = await this.peer.createOffer()
@@ -78,6 +100,7 @@ export class ChatCallSession {
       switch (signal.type) {
         case 'offer': {
           await this.describeRemote({ type: 'offer', sdp: signal.sdp })
+          await this.occupySlots()
           const answer = await this.peer.createAnswer()
           await this.peer.setLocalDescription(answer)
           this.options.send({ type: 'answer', sdp: answer.sdp ?? '' })
@@ -88,7 +111,7 @@ export class ChatCallSession {
           break
         case 'candidate':
           if (this.remoteDescribed) {
-            await this.peer.addIceCandidate(signal.candidate)
+            await this.addCandidate(signal.candidate)
           }
           else {
             this.pendingCandidates.push(signal.candidate)
@@ -101,16 +124,17 @@ export class ChatCallSession {
   }
 
   /**
-   * 换一条本端轨道（换麦克风或摄像头）：发送端原地替换，不重新协商
-   * @returns 换上了为真；连接里没有这一类轨道的发送端为假
+   * 往一个轨道位上换轨道：换设备、开始共享屏幕给新轨道，停止共享给 null；发送端原地替换，不重新协商
+   * 应答的一方在对端的 offer 到之前还没有位：先记着，应答时一并挂上
    */
-  async replaceTrack(track: MediaStreamTrack): Promise<boolean> {
-    const sender = this.peer.getSenders().find(candidate => candidate.track?.kind === track.kind)
-    if (!sender || this.closed) {
-      return false
-    }
-    await sender.replaceTrack(track)
-    return true
+  setTrack(slot: ChatCallSlot, track: MediaStreamTrack | null): Promise<void> {
+    this.tracks[slot] = track
+    return this.enqueue(async () => {
+      const transceiver = this.peer.getTransceivers()[CHAT_CALL_SLOTS.indexOf(slot)]
+      if (transceiver) {
+        await transceiver.sender.replaceTrack(this.tracks[slot] ?? null)
+      }
+    })
   }
 
   /** 关掉连接；之后到的信令不再处理 */
@@ -125,11 +149,33 @@ export class ChatCallSession {
     this.peer.close()
   }
 
+  /** 应答的一方：对端的 offer 带出了三个位，各位改成双向并挂上本端的轨道 */
+  private async occupySlots(): Promise<void> {
+    const transceivers = this.peer.getTransceivers()
+    for (const [index, slot] of CHAT_CALL_SLOTS.entries()) {
+      const transceiver = transceivers[index]
+      if (transceiver) {
+        transceiver.direction = 'sendrecv'
+        await transceiver.sender.replaceTrack(this.tracks[slot] ?? null)
+      }
+    }
+  }
+
   private async describeRemote(description: RTCSessionDescriptionInit): Promise<void> {
     await this.peer.setRemoteDescription(description)
     this.remoteDescribed = true
     for (const candidate of this.pendingCandidates.splice(0)) {
+      await this.addCandidate(candidate)
+    }
+  }
+
+  /** 一条候选加不上不算连接失败：别的候选照样能连，连不上的由连接状态说 */
+  private async addCandidate(candidate: RTCIceCandidateInit): Promise<void> {
+    try {
       await this.peer.addIceCandidate(candidate)
+    }
+    catch {
+      // 忽略这一条
     }
   }
 

@@ -28,16 +28,20 @@ import XIconButton from '~/components/common/XIconButton.vue'
 import XSelect from '~/components/common/XSelect.vue'
 import { toast, useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
-import { callMediaFailureText, callMediaLabel, callParticipantName, formatCallDuration } from '../call/call-helpers'
-import { ChatCallMediaError, listCallDevices } from '../call/call-media'
+import { useUserStore } from '~/stores'
+import { callMediaFailureText, callMediaLabel, callParticipantName, formatCallDuration, isGroupCall } from '../call/call-helpers'
+import { canShareScreen, ChatCallMediaError, listCallDevices } from '../call/call-media'
 import { useChatCallStore } from '../call/call-store'
 import { chatErrorText } from '../components/chat-helpers'
+import ChatCallAudio from './ChatCallAudio.vue'
+import ChatCallTile from './ChatCallTile.vue'
 
 /**
  * 通话的全局界面：来电卡片与通话窗，挂在布局根部，任何页面都能接听，离开聊天页通话不断
  *
- * 来电卡片在每个开着的页签都出现；通话窗只在占着这通电话的页签（发起了或接听了的那个）出现，
+ * 来电卡片在每个开着的页签都出现；通话窗只在占着这通电话的页签（发起了、接听了或加入了的那个）出现，
  * 非模态、可拖动、可收拢成标题栏或铺满视口，通话期间照常用页面
+ * 通话窗里一人一格（还在响铃的也占一格），有人共享屏幕时屏幕占主画面、各人收成底下一排
  */
 defineOptions({ name: 'AppChatCall' })
 
@@ -47,19 +51,121 @@ const GAP = 16
 const TOP = 96
 const VOICE_SIZE: FloatingPanelSize = { width: 320, height: 380 }
 const VIDEO_SIZE: FloatingPanelSize = { width: 520, height: 440 }
+/** 多人通话与看共享的屏幕要大一些 */
+const GROUP_SIZE: FloatingPanelSize = { width: 600, height: 480 }
 const MIN_SIZE: FloatingPanelSize = { width: 280, height: 300 }
 
 const { t } = useI18n()
 const callStore = useChatCallStore()
+const userStore = useUserStore()
 const { isMobile } = useIsMobile()
 
 const call = computed(() => callStore.call)
 const isVideo = computed(() => call.value?.media === 'Video')
+const isGroup = computed(() => (call.value
+  ? isGroupCall(call.value)
+  : false))
+/** 一对一是对方，多人通话是发起人（来电卡片上说是谁叫的） */
 const peerName = computed(() => callParticipantName(callStore.peer) || t('chat.call.unknown_peer'))
+const groupName = computed(() => call.value?.conversationName?.trim() || t('chat.call.group_fallback'))
 const mediaLabel = computed(() => callMediaLabel(t, call.value?.media ?? 'Voice'))
 const incoming = computed(() => callStore.phase === 'incoming')
 /** 占着这通电话的页签才开通话窗 */
 const windowOpen = computed(() => callStore.engaged && call.value !== null)
+
+const incomingDetail = computed(() => {
+  if (!isGroup.value) {
+    return isVideo.value
+      ? t('chat.call.incoming_video')
+      : t('chat.call.incoming_voice')
+  }
+  return isVideo.value
+    ? t('chat.call.incoming_group_video', { group: groupName.value })
+    : t('chat.call.incoming_group_voice', { group: groupName.value })
+})
+
+// ── 一人一格：已经在里面的与还在响铃的 ───────────────────────────────
+interface CallTile {
+  userId: string
+  name: string
+  avatar: null | string
+  /** 看得到的画面：视频通话、他开着摄像头、轨道已经到了 */
+  video: MediaStream | null
+  status?: string
+  mutedLabel?: string
+  dimmed: boolean
+}
+
+const tiles = computed<CallTile[]>(() => {
+  const current = call.value
+  if (!current) {
+    return []
+  }
+  const mine = userStore.userInfo?.basicId ?? ''
+  const joined = new Map(callStore.peers.map(peer => [peer.userId, peer]))
+  return current.participants
+    .filter(participant => participant.userId !== mine && (participant.status === 'Joined' || participant.status === 'Invited'))
+    .map((participant) => {
+      const name = callParticipantName(participant) || t('chat.call.unknown_peer')
+      const tile = { userId: participant.userId, name, avatar: participant.avatarFileId ?? null }
+      if (participant.status === 'Invited') {
+        return {
+          ...tile,
+          video: null,
+          status: t('chat.call.tile_ringing'),
+          dimmed: true,
+        }
+      }
+      const peer = joined.get(participant.userId)
+      if (!peer || peer.connection === 'connecting') {
+        return {
+          ...tile,
+          video: null,
+          status: t('chat.call.tile_connecting'),
+          dimmed: false,
+        }
+      }
+      if (peer.connection === 'failed') {
+        return {
+          ...tile,
+          video: null,
+          status: t('chat.call.tile_failed'),
+          dimmed: true,
+        }
+      }
+      return {
+        ...tile,
+        video: isVideo.value && peer.cameraOn
+          ? peer.camera
+          : null,
+        mutedLabel: peer.micOn
+          ? undefined
+          : t('chat.call.tile_muted', { name }),
+        dimmed: false,
+      }
+    })
+})
+
+/** 主画面上那块共享的屏幕：先看别人的，没有别人在共享才看自己的 */
+const sharedScreen = computed(() => {
+  const sharer = callStore.peers.find(peer => peer.screenOn && peer.screen !== null)
+  if (sharer) {
+    return {
+      stream: sharer.screen,
+      label: t('chat.call.screen_of', { name: callParticipantName(sharer.participant) || t('chat.call.unknown_peer') }),
+    }
+  }
+  return callStore.screenStream
+    ? {
+        stream: callStore.screenStream,
+        label: t('chat.call.screen_mine'),
+      }
+    : null
+})
+
+const windowTitle = computed(() => (isGroup.value
+  ? t('chat.call.window_title_group', { media: mediaLabel.value, name: groupName.value, n: callStore.peers.length + 1 })
+  : t('chat.call.window_title', { media: mediaLabel.value, name: peerName.value })))
 
 // ── 通话时长：连上之后每秒走一格 ─────────────────────────────────────
 const now = ref(Date.now())
@@ -90,6 +196,8 @@ const statusText = computed(() => {
       return t('chat.call.status_ringing')
     case 'connecting':
       return t('chat.call.status_connecting')
+    case 'waiting':
+      return t('chat.call.status_waiting')
     case 'connected':
       return formatCallDuration(((now.value - (callStore.connectedAt ?? now.value)) / 1000))
     default:
@@ -106,9 +214,11 @@ watch(windowOpen, (open) => {
   if (!open) {
     return
   }
-  const preferred = isVideo.value
-    ? VIDEO_SIZE
-    : VOICE_SIZE
+  const preferred = isGroup.value
+    ? GROUP_SIZE
+    : isVideo.value
+      ? VIDEO_SIZE
+      : VOICE_SIZE
   const width = Math.max(MIN_SIZE.width, Math.min(preferred.width, window.innerWidth - GAP * 2))
   const height = Math.max(MIN_SIZE.height, Math.min(preferred.height, window.innerHeight - TOP - GAP))
   dimensions.value = { width, height }
@@ -122,33 +232,60 @@ watch(windowOpen, (open) => {
     : 'default'
 })
 
-// ── 媒体元素：对端的声音走隐藏的音频元素，画面走静音的视频元素 ─────
-const remoteAudio = ref<HTMLAudioElement | null>(null)
-const remoteVideo = ref<HTMLVideoElement | null>(null)
+// 有人开始共享屏幕：窗口太小看不清，撑到看屏幕的大小（用户自己收拢或铺满了的不动）
+watch(() => sharedScreen.value !== null, (sharing) => {
+  if (!sharing || windowState.value !== 'default') {
+    return
+  }
+  const width = Math.max(dimensions.value.width, Math.min(GROUP_SIZE.width, window.innerWidth - GAP * 2))
+  const height = Math.max(dimensions.value.height, Math.min(GROUP_SIZE.height, window.innerHeight - TOP - GAP))
+  dimensions.value = { width, height }
+  position.value = {
+    x: Math.max(GAP, Math.min(position.value.x, window.innerWidth - width - GAP)),
+    y: Math.max(GAP, Math.min(position.value.y, window.innerHeight - height - GAP)),
+  }
+})
+
+// ── 自己的画面：右下角的小窗 ────────────────────────────────────────
 const localVideo = ref<HTMLVideoElement | null>(null)
 
-function attach(element: HTMLMediaElement | null, stream: MediaStream | null): void {
-  if (element && element.srcObject !== stream) {
-    element.srcObject = stream
-  }
-}
-
-watch([
-  remoteAudio,
-  () => callStore.remoteStream,
-], ([element, stream]) => attach(element, stream), { flush: 'post' })
-watch([
-  remoteVideo,
-  () => callStore.remoteStream,
-], ([element, stream]) => attach(element, stream), { flush: 'post' })
 watch([
   localVideo,
   () => callStore.localStream,
-], ([element, stream]) => attach(element, stream), { flush: 'post' })
+], ([element, stream]) => {
+  if (element && element.srcObject !== stream) {
+    element.srcObject = stream
+  }
+}, { flush: 'post' })
 
-/** 对端的画面看得到：视频通话、对端开着摄像头、媒体已经到了 */
-const showRemoteVideo = computed(() => isVideo.value && callStore.peerCameraOn && callStore.remoteStream !== null)
 const showLocalVideo = computed(() => isVideo.value && callStore.cameraOn && callStore.localStream !== null)
+/** 一对一时自己的画面是右下角的小窗；多人或有屏幕在共享时进宫格占一格，不压在别人的格子上 */
+const localInGrid = computed(() => showLocalVideo.value && (tiles.value.length > 1 || sharedScreen.value !== null))
+
+/** 宫格的列数：人越多分得越细 */
+const columns = computed(() => {
+  const count = tiles.value.length + (localInGrid.value
+    ? 1
+    : 0)
+  if (count <= 1) {
+    return 1
+  }
+  if (count <= 4) {
+    return 2
+  }
+  return count <= 9
+    ? 3
+    : 4
+})
+
+const avatarSize = computed(() => {
+  if (tiles.value.length <= 1) {
+    return 72
+  }
+  return tiles.value.length <= 4
+    ? 56
+    : 44
+})
 
 // ── 设备：通话中换麦克风、摄像头与扬声器 ────────────────────────────
 interface DeviceOption { label: string, value: string }
@@ -207,17 +344,33 @@ async function handleSwitchDevice(kind: 'audioinput' | 'videoinput', value: unkn
   }
 }
 
-async function handleSwitchSpeaker(value: unknown): Promise<void> {
-  const element = remoteAudio.value
-  if (typeof value !== 'string' || !element || !('setSinkId' in element)) {
+function handleSwitchSpeaker(value: unknown): void {
+  if (typeof value === 'string' && value !== '') {
+    speakerId.value = value
+  }
+}
+
+/** 换不到选的扬声器：退回系统缺省；每个人的音频元素各报一次，只提示一次 */
+function handleSpeakerError(error: unknown): void {
+  if (speakerId.value !== null) {
+    speakerId.value = null
+    toast.danger(mediaErrorText(error))
+  }
+}
+
+// ── 屏幕共享 ────────────────────────────────────────────────────────
+const screenShareable = canShareScreen()
+
+async function handleToggleScreen(): Promise<void> {
+  if (callStore.screenOn) {
+    callStore.stopScreenShare()
     return
   }
   try {
-    await element.setSinkId(value)
-    speakerId.value = value
+    await callStore.startScreenShare()
   }
-  catch (error) {
-    toast.danger(mediaErrorText(error))
+  catch {
+    toast.danger(t('chat.call.screen_failed'))
   }
 }
 
@@ -265,12 +418,21 @@ const NOTICE_KEYS: Record<ChatCallNoticeKind, string> = {
   'interrupted': 'chat.call.notice_interrupted',
   'connect-failed': 'chat.call.notice_connect_failed',
 }
+/** 多人通话不点某一个人的名（取消的除外：那是发起人取消的） */
+const GROUP_NOTICE_KEYS: Partial<Record<ChatCallNoticeKind, string>> = {
+  'no-answer': 'chat.call.notice_group_no_answer',
+  'interrupted': 'chat.call.notice_group_interrupted',
+  'connect-failed': 'chat.call.notice_group_connect_failed',
+}
 
 watch(() => callStore.notice, (notice) => {
   if (!notice) {
     return
   }
-  const text = t(NOTICE_KEYS[notice.kind], { name: notice.peerName || t('chat.call.unknown_peer') })
+  const key = (notice.group
+    ? GROUP_NOTICE_KEYS[notice.kind]
+    : undefined) ?? NOTICE_KEYS[notice.kind]
+  const text = t(key, { name: notice.peerName || t('chat.call.unknown_peer') })
   if (notice.kind === 'connect-failed' || notice.kind === 'interrupted') {
     toast.warning(text)
   }
@@ -297,7 +459,7 @@ watch(() => callStore.notice, (notice) => {
           {{ peerName }}
         </div>
         <div id="app-chat-call-incoming-detail" class="truncate text-xs text-muted-foreground">
-          {{ isVideo ? t('chat.call.incoming_video') : t('chat.call.incoming_voice') }}
+          {{ incomingDetail }}
         </div>
       </div>
       <XhButton
@@ -338,7 +500,7 @@ watch(() => callStore.notice, (notice) => {
     <XhFloatingPanelPositioner>
       <XhFloatingPanelContent>
         <XhFloatingPanelHeader>
-          <XhFloatingPanelTitle>{{ t('chat.call.window_title', { media: mediaLabel, name: peerName }) }}</XhFloatingPanelTitle>
+          <XhFloatingPanelTitle>{{ windowTitle }}</XhFloatingPanelTitle>
           <!-- 收拢成标题栏时正文藏着，状态与时长挪到这里；每秒在变，不交给读屏播报 -->
           <span v-if="windowState === 'minimized'" class="shrink-0 text-xs tabular-nums text-muted-foreground" aria-hidden="true">{{ statusText }}</span>
           <XhFloatingPanelDragTrigger />
@@ -346,39 +508,63 @@ watch(() => callStore.notice, (notice) => {
           <XhFloatingPanelWindowStateTrigger window-state="maximized" />
         </XhFloatingPanelHeader>
         <XhFloatingPanelBody class="app-chat-call__body">
-          <!-- 对端的声音：独立的音频元素，画面关着、窗口收拢时照样出声 -->
-          <audio ref="remoteAudio" autoplay />
+          <!-- 各人的声音：每人一个音频元素，画面关着、窗口收拢时照样出声 -->
+          <ChatCallAudio
+            v-for="peer in callStore.peers"
+            :key="peer.userId"
+            :stream="peer.audio"
+            :sink-id="speakerId"
+            @sink-error="handleSpeakerError"
+          />
 
-          <div class="app-chat-call__stage" :class="{ 'app-chat-call__stage--video': showRemoteVideo }">
-            <video
-              v-show="showRemoteVideo"
-              ref="remoteVideo"
-              class="app-chat-call__remote"
-              autoplay
-              playsinline
-              muted
-              :aria-label="t('chat.call.remote_video', { name: peerName })"
+          <div class="app-chat-call__stage">
+            <!-- 共享的屏幕占主画面，各人收成底下一排 -->
+            <ChatCallTile
+              v-if="sharedScreen"
+              class="app-chat-call__screen"
+              fit="contain"
+              :name="sharedScreen.label"
+              :stream="sharedScreen.stream"
+              :video-label="sharedScreen.label"
             />
-            <div v-if="!showRemoteVideo" class="flex flex-col items-center gap-2 text-center">
-              <XUserAvatar :avatar="callStore.peer?.avatarFileId ?? null" :name="peerName" :size="72" />
-              <div class="max-w-full truncate text-sm font-semibold text-foreground">
-                {{ peerName }}
+            <div
+              v-if="tiles.length > 0 || localInGrid"
+              class="app-chat-call__grid"
+              :class="{ 'app-chat-call__grid--strip': sharedScreen !== null }"
+              :style="{ '--app-chat-call-columns': columns }"
+            >
+              <ChatCallTile
+                v-for="tile in tiles"
+                :key="tile.userId"
+                :name="tile.name"
+                :avatar="tile.avatar"
+                :avatar-size="sharedScreen ? 44 : avatarSize"
+                :stream="tile.video"
+                :video-label="t('chat.call.remote_video', { name: tile.name })"
+                :status="tile.status"
+                :muted-label="tile.mutedLabel"
+                :dimmed="tile.dimmed"
+              />
+              <ChatCallTile
+                v-if="localInGrid"
+                mirrored
+                :name="t('chat.call.local_video')"
+                :stream="callStore.localStream"
+                :video-label="t('chat.call.local_video')"
+              />
+            </div>
+
+            <!-- 状态一行：呼叫中、连接中、等人，连上后是时长
+                 读屏只播报状态的变化；时长每秒在变，标成计时器、不逐秒播报 -->
+            <div class="app-chat-call__status-row">
+              <div class="app-chat-call__status">
+                <span v-if="callStore.phase === 'connected'" role="timer" class="tabular-nums">{{ statusText }}</span>
+                <span v-else role="status">{{ statusText }}</span>
               </div>
             </div>
 
-            <!-- 状态一行：呼叫中、连接中，连上后是时长
-                 读屏只播报状态的变化；时长每秒在变，标成计时器、不逐秒播报 -->
-            <div class="app-chat-call__status">
-              <span v-if="callStore.phase === 'connected'" role="timer" class="tabular-nums">{{ statusText }}</span>
-              <span v-else role="status">{{ statusText }}</span>
-              <span v-if="callStore.phase === 'connected' && !callStore.peerMicOn" role="status" class="inline-flex items-center gap-1">
-                <Icon icon="lucide:mic-off" width="12" height="12" />
-                {{ t('chat.call.peer_muted') }}
-              </span>
-            </div>
-
             <video
-              v-show="showLocalVideo"
+              v-show="showLocalVideo && !localInGrid"
               ref="localVideo"
               class="app-chat-call__local"
               autoplay
@@ -403,6 +589,15 @@ watch(() => callStore.notice, (notice) => {
               :variant="callStore.cameraOn ? 'ghost' : 'subtle'"
               :aria-pressed="!callStore.cameraOn"
               @click="callStore.setCameraOn(!callStore.cameraOn)"
+            />
+            <XIconButton
+              v-if="screenShareable"
+              :icon="callStore.screenOn ? 'lucide:screen-share-off' : 'lucide:screen-share'"
+              :label="callStore.screenOn ? t('chat.call.stop_share') : t('chat.call.share_screen')"
+              :variant="callStore.screenOn ? 'subtle' : 'ghost'"
+              :aria-pressed="callStore.screenOn"
+              :disabled="call?.status !== 'Ongoing'"
+              @click="handleToggleScreen"
             />
             <XhPopoverRoot v-model:open="devicesOpen" placement="top">
               <XhPopoverTrigger as-child>
@@ -488,31 +683,53 @@ watch(() => callStore.notice, (notice) => {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--xh-space-3);
-  align-items: center;
-  justify-content: center;
+  gap: var(--xh-space-2);
   min-block-size: 0;
-  padding: var(--xh-space-4);
+  padding: var(--xh-space-2);
   background: var(--xh-bg-muted);
   overflow: hidden;
 }
 
-/* 有对端的画面时状态行靠上，不挡在画面正中 */
-.app-chat-call__stage--video {
-  justify-content: flex-start;
+/* 共享的屏幕：占满余下的高度 */
+.app-chat-call__screen {
+  flex: 1;
 }
 
-.app-chat-call__remote {
+/* 宫格：列数随人数给，行高均分，一人一格 */
+.app-chat-call__grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(var(--app-chat-call-columns, 1), minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: var(--xh-space-2);
+  min-block-size: 0;
+}
+
+/* 有屏幕在共享时各人收成底下一排：定高、等宽，多了横向滚 */
+.app-chat-call__grid--strip {
+  display: flex;
+  flex: none;
+  block-size: calc(var(--xh-space-8) * 3);
+  overflow-x: auto;
+}
+
+.app-chat-call__grid--strip > * {
+  flex: none;
+  aspect-ratio: 4 / 3;
+}
+
+/* 状态行：浮在画面上沿正中，不拦下面的点击 */
+.app-chat-call__status-row {
   position: absolute;
-  inset: 0;
-  inline-size: 100%;
-  block-size: 100%;
-  object-fit: cover;
+  inset-block-start: var(--xh-space-3);
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
 }
 
-/* 状态行：有画面时压在画面上，垫一层实体底保证看得清 */
+/* 垫一层实体底，压在画面上也看得清 */
 .app-chat-call__status {
-  position: relative;
   display: flex;
   gap: var(--xh-space-2);
   align-items: center;

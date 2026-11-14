@@ -2,11 +2,12 @@
  * call-media.ts：通话设备的获取、停用与列举
  *
  * 职责边界：语音只要麦克风、视频另要摄像头，取不全即失败（不悄悄降成语音）；
- * 浏览器的各种拒绝归成四种原因，界面据此说人话；换设备按设备号精确取一条轨道
+ * 浏览器的各种拒绝归成四种原因，界面据此说人话；换设备按设备号精确取一条轨道；
+ * 共享屏幕只要画面，用户在选择框里取消不算失败
  * navigator.mediaDevices 在 jsdom 里没有，每个用例自己放替身
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { acquireCallMedia, acquireCallTrack, ChatCallMediaError, listCallDevices, stopStream } from '@/modules/chat/call/call-media'
+import { acquireCallMedia, acquireCallTrack, acquireScreen, canShareScreen, ChatCallMediaError, listCallDevices, stopStream } from '@/modules/chat/call/call-media'
 
 function installMediaDevices(devices: Partial<MediaDevices> | undefined): void {
   Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: devices })
@@ -117,6 +118,49 @@ describe('换设备', () => {
       getUserMedia: () => Promise.reject(namedError('NotReadableError')),
     } as unknown as MediaDevices)
     await expect(acquireCallTrack('videoinput', 'cam')).rejects.toMatchObject({ failure: 'busy', media: 'Video' })
+  })
+})
+
+describe('共享屏幕', () => {
+  it('只要画面、不带声音，轨道标成保清晰', async () => {
+    const track = { kind: 'video', contentHint: '' }
+    const stream = {
+      getVideoTracks: () => [track],
+    }
+    const getDisplayMedia = vi.fn(async () => stream)
+    installMediaDevices({ getDisplayMedia } as unknown as MediaDevices)
+
+    expect(canShareScreen()).toBe(true)
+    await expect(acquireScreen()).resolves.toBe(stream)
+
+    expect(getDisplayMedia.mock.calls).toStrictEqual([
+      [
+        { video: true, audio: false },
+      ],
+    ])
+    expect(track.contentHint).toBe('detail')
+  })
+
+  it('用户在选择框里取消：不算失败，什么都不给', async () => {
+    installMediaDevices({
+      getDisplayMedia: () => Promise.reject(namedError('NotAllowedError')),
+    } as unknown as MediaDevices)
+
+    await expect(acquireScreen()).resolves.toBeNull()
+  })
+
+  it('浏览器不支持、取不到：带原因失败', async () => {
+    installMediaDevices({
+      getUserMedia: async () => ({}),
+    } as unknown as MediaDevices)
+    expect(canShareScreen()).toBe(false)
+    await expect(acquireScreen()).rejects.toMatchObject({ failure: 'unsupported' })
+
+    installMediaDevices({
+      getDisplayMedia: () => Promise.reject(namedError('NotReadableError')),
+    } as unknown as MediaDevices)
+    await expect(acquireScreen()).rejects.toBeInstanceOf(ChatCallMediaError)
+    await expect(acquireScreen()).rejects.toMatchObject({ failure: 'busy' })
   })
 })
 

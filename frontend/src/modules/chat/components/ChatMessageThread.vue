@@ -22,7 +22,7 @@ import { dialog, toast, xhTranslationsOfCurrentLocale } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { getChatApi } from '../api-contract'
-import { callMediaFailureText } from '../call/call-helpers'
+import { callMediaFailureText, callParticipantName } from '../call/call-helpers'
 import { ChatCallMediaError } from '../call/call-media'
 import { useChatCallStore } from '../call/call-store'
 import {
@@ -36,6 +36,7 @@ import {
 import { chatErrorText, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
 import { provideChatImageGallery } from './chat-image-gallery'
 import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
+import ChatCallInviteDialog from './ChatCallInviteDialog.vue'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
@@ -105,25 +106,98 @@ const peerUserId = computed(() =>
     ? conversation.value.peerUserId ?? null
     : null)
 
-// 通话：只有单聊能打，要通话权限；这个页签眼前已经有一通（在响或在通）时不能再打
+// 通话：单聊直接打给对方，群聊与部门群先点名邀请；要通话权限
+// 这个页签眼前已经有一通（在响或在通）、群里已经有一通在进行时不能再打
 const callStore = useChatCallStore()
-const canCall = computed(() => Boolean(peerUserId.value) && userStore.hasPermission(CHAT_PERMISSIONS.call))
-const callBusy = computed(() => callStore.call !== null || callStore.working)
+const canCall = computed(() => (Boolean(peerUserId.value) || isGroupLike.value) && userStore.hasPermission(CHAT_PERMISSIONS.call))
+const groupCall = computed(() => {
+  const id = conversationId.value
+  return isGroupLike.value && id
+    ? callStore.ongoingCalls[id] ?? null
+    : null
+})
+const callBusy = computed(() => callStore.call !== null || callStore.working || groupCall.value !== null)
+const showCallInvite = ref(false)
+const callInviteMedia = ref<ChatCallMedia>('Voice')
+
+function notifyCallFailure(error: unknown) {
+  toast.danger(error instanceof ChatCallMediaError
+    ? callMediaFailureText(t, error.failure)
+    : chatErrorText(error) || t('common.messages.operation_failed'))
+}
 
 async function handleStartCall(media: ChatCallMedia) {
   const id = conversationId.value
-  if (!id) {
+  if (!id || callBusy.value) {
+    return
+  }
+  if (isGroupLike.value) {
+    callInviteMedia.value = media
+    showCallInvite.value = true
     return
   }
   try {
     await callStore.start(id, media)
   }
   catch (error) {
-    toast.danger(error instanceof ChatCallMediaError
-      ? callMediaFailureText(t, error.failure)
-      : chatErrorText(error) || t('common.messages.operation_failed'))
+    notifyCallFailure(error)
   }
 }
+
+// 群里还没结束的那通电话：没在里面的成员看得到、能加入；这个页签正占着它（通话窗开着）时不出横幅
+const ongoingCall = computed(() => (groupCall.value && !(callStore.engaged && callStore.call?.callId === groupCall.value.callId)
+  ? groupCall.value
+  : null))
+/** 我在别的页签或别的端已经在这通电话里 */
+const joinedElsewhere = computed(() =>
+  ongoingCall.value?.participants.some(participant => participant.userId === currentUserId.value && participant.status === 'Joined') ?? false)
+const ongoingCallText = computed(() => {
+  const current = ongoingCall.value
+  if (!current) {
+    return ''
+  }
+  if (joinedElsewhere.value) {
+    return t('chat.call.banner_elsewhere')
+  }
+  const video = current.media === 'Video'
+  if (current.status === 'Ringing') {
+    const initiator = current.participants.find(participant => participant.userId === current.initiatorUserId) ?? null
+    return t(video
+      ? 'chat.call.banner_ringing_video'
+      : 'chat.call.banner_ringing_voice', { name: callParticipantName(initiator) || t('chat.call.unknown_peer') })
+  }
+  return t(video
+    ? 'chat.call.banner_ongoing_video'
+    : 'chat.call.banner_ongoing_voice', { n: current.participants.filter(participant => participant.status === 'Joined').length })
+})
+const canJoinCall = computed(() => ongoingCall.value !== null && !joinedElsewhere.value && userStore.hasPermission(CHAT_PERMISSIONS.call))
+/** 眼前在响的正是这一通时加入即接听；占着别的通话、请求在路上时不能加入 */
+const joinBusy = computed(() => callStore.working || (callStore.call !== null && callStore.call.callId !== ongoingCall.value?.callId))
+
+async function handleJoinCall() {
+  const target = ongoingCall.value
+  if (!target || joinBusy.value) {
+    return
+  }
+  try {
+    await callStore.join(target)
+  }
+  catch (error) {
+    notifyCallFailure(error)
+    // 进不去多半是它变了（结束了、满了）：重取一遍
+    callStore.loadOngoing(target.conversationId).catch(() => {})
+  }
+}
+
+// 打开群会话时取它里面的通话，之后的变化经会话组推来
+watch([
+  conversationId,
+  isGroupLike,
+], ([id, group]) => {
+  callStore.watchConversation(group && id
+    ? id
+    : null).catch(() => {})
+}, { immediate: true })
 
 const conversationTypeLabel = computed(() => {
   switch (conversation.value?.conversationType) {
@@ -738,7 +812,7 @@ onBeforeUnmount(() => {
           {{ chatStore.isUserOnline(peerUserId) ? t('chat.presence.online') : t('chat.presence.offline') }}
         </div>
       </div>
-      <!-- 会话头的操作：单聊的语音与视频通话，搜索与详情（资料、设置与成员都收在详情里） -->
+      <!-- 会话头的操作：语音与视频通话（群里先点名邀请），搜索与详情（资料、设置与成员都收在详情里） -->
       <template v-if="canCall">
         <XIconButton icon="lucide:phone" :label="t('chat.call.voice')" :disabled="callBusy" @click="handleStartCall('Voice')" />
         <XIconButton icon="lucide:video" :label="t('chat.call.video')" :disabled="callBusy" @click="handleStartCall('Video')" />
@@ -794,6 +868,15 @@ onBeforeUnmount(() => {
       <div v-else-if="searchKeyword.trim()" class="py-3 text-center text-xs text-muted-foreground">
         {{ t('chat.thread.search_empty') }}
       </div>
+    </div>
+
+    <!-- 群里有通话在进行：谁发起的、几个人在里面，没在里面的可以加入 -->
+    <div v-if="ongoingCall" class="chat-call-banner" role="status">
+      <Icon :icon="ongoingCall.media === 'Video' ? 'lucide:video' : 'lucide:phone'" width="13" height="13" class="chat-call-banner__icon shrink-0" />
+      <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{ ongoingCallText }}</span>
+      <XhButton v-if="canJoinCall" size="sm" variant="subtle" tone="success" :disabled="joinBusy" @click="handleJoinCall">
+        {{ t('chat.call.banner_join') }}
+      </XhButton>
     </div>
 
     <!-- 群公告横条（同置顶栏样式，点开看全文，换行经 pre-wrap 正确渲染） -->
@@ -957,6 +1040,7 @@ onBeforeUnmount(() => {
 
         <!-- 转发目标选择 -->
         <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
+        <ChatCallInviteDialog v-model:show="showCallInvite" :conversation-id="conversationId" :media="callInviteMedia" />
 
         <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片
              计数、翻页、工具条、关闭各自钉在浮层的一条边上，都是 content 的直接子件；只有一张时不出计数与翻页 -->
@@ -1007,6 +1091,20 @@ onBeforeUnmount(() => {
 /* 元信息行里的文字链：字号随这一行压到 xs，经按钮的公开槽给 */
 .chat-meta-link {
   --xh-button-font-size: var(--xh-font-size-xs);
+}
+
+/* 通话进行中的横条：与公告、置顶同一排的样子，电话图标用成功色 */
+.chat-call-banner {
+  display: flex;
+  gap: var(--xh-space-2);
+  align-items: center;
+  padding: var(--xh-space-1) var(--xh-space-3);
+  border-block-end: var(--xh-stroke-thin) solid var(--xh-border-default);
+  background: var(--xh-bg-subtle);
+}
+
+.chat-call-banner__icon {
+  color: var(--xh-fg-success);
 }
 
 .chat-search-hit {

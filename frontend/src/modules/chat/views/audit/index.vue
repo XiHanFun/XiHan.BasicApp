@@ -146,7 +146,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 280,
     ellipsis: true,
     order: 15,
-    render: row => auditContentText(t, asRow(row).messageType, asRow(row).content) || '-',
+    render: row => auditContentText(t, asRow(row).messageType, asRow(row).content, asRow(row).conversationType) || '-',
   },
   {
     key: 'fileName',

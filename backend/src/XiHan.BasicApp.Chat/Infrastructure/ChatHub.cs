@@ -82,21 +82,34 @@ internal sealed partial class ChatHub(RealtimeHubServices realtime, App app, ISe
     /// 通话信令
     /// </summary>
     /// <remarks>
-    /// 转给这通电话里的其他人；不是这通接通了的电话里的人、信令为空或过长即忽略
+    /// 给了对象即只转给他（多人通话里每两个人之间各自协商），没给即转给这通电话里的其他人
+    /// 不是这通接通了的电话里的人、对象不在通话里、信令为空或过长即忽略
     /// </remarks>
     /// <param name="callId">通话 ID</param>
+    /// <param name="toUserId">转给谁；为空即通话里的其他人</param>
     /// <param name="data">信令（两端之间约定的 JSON），服务端不解析</param>
-    public async Task CallSignal(string callId, string data)
+    public async Task CallSignal(string callId, string? toUserId, string data)
     {
         if (!Guid.TryParse(callId, out var id) || Connection is not { } connection || string.IsNullOrEmpty(data) || data.Length > MaxSignalLength)
         {
             return;
         }
 
+        Guid? target = null;
+        if (!string.IsNullOrEmpty(toUserId))
+        {
+            if (!Guid.TryParse(toUserId, out var parsed))
+            {
+                return;
+            }
+
+            target = parsed;
+        }
+
         await using var scope = scopes.CreateAsyncScope();
         var outcome = await app.InvokeAsync(ContextOf(scope.ServiceProvider, connection), async ctx =>
         {
-            var targets = await ctx.Services.GetRequiredService<ChatCallService>().SignalTargetsAsync(connection.Side, id, connection.UserId, ctx.CancellationToken).ConfigureAwait(false);
+            var targets = await ctx.Services.GetRequiredService<ChatCallService>().SignalTargetsAsync(connection.Side, id, connection.UserId, target, ctx.CancellationToken).ConfigureAwait(false);
             await ctx.Services.GetRequiredService<ChatPush>().CallSignalAsync(connection.Side, new ChatCallSignalPayload(id, connection.UserId, data), targets, ctx.CancellationToken).ConfigureAwait(false);
             ctx.SetOutcome(Result.Success());
         }).ConfigureAwait(false);

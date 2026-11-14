@@ -53,7 +53,7 @@
     {
       "name": "chat-calls",
       "x-displayName": "Chat calls",
-      "description": "Voice and video calls in direct conversations: start, accept, reject, hang up, the current call and ICE servers."
+      "description": "Voice and video calls: one to one in direct conversations, multi-party in group and department conversations; start, accept, reject, join, hang up, the current call, call settings and ICE servers."
     },
     {
       "name": "chat-conversations",
@@ -8596,7 +8596,7 @@
           "chat-calls"
         ],
         "summary": "Accept call",
-        "description": "Accepts an incoming call that is still ringing; when several devices accept at once only the first succeeds.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
+        "description": "Accepts an incoming call that is still waiting for the caller\u0027s answer; when several devices accept at once only the first succeeds.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-calls.call",
         "parameters": [],
@@ -8642,6 +8642,17 @@
                       "description": "\u4F1A\u8BDD",
                       "type": "string",
                       "format": "uuid"
+                    },
+                    "conversationType": {
+                      "description": "\u4F1A\u8BDD\u7C7B\u578B\uFF1A\u5355\u804A\u662F\u4E00\u5BF9\u4E00\u901A\u8BDD\uFF0C\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u662F\u591A\u4EBA\u901A\u8BDD",
+                      "$ref": "#/components/schemas/ChatConversationType"
+                    },
+                    "conversationName": {
+                      "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "initiatorUserId": {
                       "description": "\u53D1\u8D77\u4EBA",
@@ -8704,6 +8715,7 @@
                   "required": [
                     "callId",
                     "conversationId",
+                    "conversationType",
                     "initiatorUserId",
                     "media",
                     "status",
@@ -8741,16 +8753,16 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "chat-calls.active \u7684\u54CD\u5E94",
+            "description": "chat-calls.active \u4E0E chat-calls.ongoing \u7684\u54CD\u5E94",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "ChatActiveCallResponse",
-                  "description": "chat-calls.active \u7684\u54CD\u5E94",
+                  "description": "chat-calls.active \u4E0E chat-calls.ongoing \u7684\u54CD\u5E94",
                   "type": "object",
                   "properties": {
                     "call": {
-                      "description": "\u6211\u6B64\u523B\u6240\u5728\u7684\u901A\u8BDD\uFF08\u54CD\u94C3\u4E2D\u6216\u901A\u8BDD\u4E2D\uFF09\uFF1B\u6CA1\u6709\u4E3A\u7A7A",
+                      "description": "\u8FD8\u6CA1\u7ED3\u675F\u7684\u90A3\u4E00\u901A\uFF08\u54CD\u94C3\u4E2D\u6216\u901A\u8BDD\u4E2D\uFF09\uFF1B\u6CA1\u6709\u4E3A\u7A7A",
                       "anyOf": [
                         {
                           "$ref": "#/components/schemas/ChatCallItem"
@@ -8793,7 +8805,7 @@
           "chat-calls"
         ],
         "summary": "Hang up call",
-        "description": "Hangs up a call: the initiator hanging up before it is answered cancels it, either side hanging up afterwards ends it; a call that has already ended still succeeds.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
+        "description": "Hangs up a call: the initiator hanging up before anyone answers cancels it, hanging up during the call leaves it, and the call ends when too few people remain; a call that has already ended still succeeds.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-calls.call",
         "parameters": [],
@@ -8839,6 +8851,17 @@
                       "description": "\u4F1A\u8BDD",
                       "type": "string",
                       "format": "uuid"
+                    },
+                    "conversationType": {
+                      "description": "\u4F1A\u8BDD\u7C7B\u578B\uFF1A\u5355\u804A\u662F\u4E00\u5BF9\u4E00\u901A\u8BDD\uFF0C\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u662F\u591A\u4EBA\u901A\u8BDD",
+                      "$ref": "#/components/schemas/ChatConversationType"
+                    },
+                    "conversationName": {
+                      "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "initiatorUserId": {
                       "description": "\u53D1\u8D77\u4EBA",
@@ -8901,6 +8924,7 @@
                   "required": [
                     "callId",
                     "conversationId",
+                    "conversationType",
                     "initiatorUserId",
                     "media",
                     "status",
@@ -8982,14 +9006,14 @@
         }
       }
     },
-    "/api/chat-calls:reject": {
+    "/api/chat-calls:join": {
       "post": {
-        "operationId": "chat-calls.reject",
+        "operationId": "chat-calls.join",
         "tags": [
           "chat-calls"
         ],
-        "summary": "Reject call",
-        "description": "Rejects an incoming call that is still ringing; the call ends and leaves a record in the conversation.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
+        "summary": "Join call",
+        "description": "Lets a conversation member join a multi-party call that has not ended: members who were not invited, declined, missed it or left can all come in; refused when the call is full.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-calls.call",
         "parameters": [],
@@ -9036,6 +9060,17 @@
                       "type": "string",
                       "format": "uuid"
                     },
+                    "conversationType": {
+                      "description": "\u4F1A\u8BDD\u7C7B\u578B\uFF1A\u5355\u804A\u662F\u4E00\u5BF9\u4E00\u901A\u8BDD\uFF0C\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u662F\u591A\u4EBA\u901A\u8BDD",
+                      "$ref": "#/components/schemas/ChatConversationType"
+                    },
+                    "conversationName": {
+                      "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "initiatorUserId": {
                       "description": "\u53D1\u8D77\u4EBA",
                       "type": "string",
@@ -9097,12 +9132,293 @@
                   "required": [
                     "callId",
                     "conversationId",
+                    "conversationType",
                     "initiatorUserId",
                     "media",
                     "status",
                     "startedAt",
                     "ringExpiresAt",
                     "participants"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-calls:ongoing": {
+      "get": {
+        "operationId": "chat-calls.ongoing",
+        "tags": [
+          "chat-calls"
+        ],
+        "summary": "Call in a conversation",
+        "description": "Returns the ringing or ongoing call of a conversation, or nothing; only members of the conversation can see it.\n\nRequires permission chat.chat-calls.read (Read chat calls).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-calls.read",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "query",
+            "description": "\u4F1A\u8BDD",
+            "required": true,
+            "schema": {
+              "description": "\u4F1A\u8BDD",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "chat-calls.active \u4E0E chat-calls.ongoing \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatActiveCallResponse",
+                  "description": "chat-calls.active \u4E0E chat-calls.ongoing \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "call": {
+                      "description": "\u8FD8\u6CA1\u7ED3\u675F\u7684\u90A3\u4E00\u901A\uFF08\u54CD\u94C3\u4E2D\u6216\u901A\u8BDD\u4E2D\uFF09\uFF1B\u6CA1\u6709\u4E3A\u7A7A",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/ChatCallItem"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "now": {
+                      "description": "\u670D\u52A1\u7AEF\u6B64\u523B\u7684\u65F6\u95F4\uFF08UTC\uFF09\uFF1A\u7AEF\u4E0A\u636E\u5B83\u7B97\u54CD\u94C3\u8FD8\u5269\u591A\u4E45\uFF0C\u4E0D\u9760\u672C\u673A\u7684\u949F",
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "now"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-calls:reject": {
+      "post": {
+        "operationId": "chat-calls.reject",
+        "tags": [
+          "chat-calls"
+        ],
+        "summary": "Reject call",
+        "description": "Rejects an incoming call that is still waiting for the caller\u0027s answer; once no invitee is coming the call ends and leaves a record in the conversation.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-calls.call",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u6309\u901A\u8BDD\u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ChatCallRequest",
+                "description": "\u6309\u901A\u8BDD\u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "callId": {
+                    "description": "\u901A\u8BDD",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "callId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E00\u6B21\u901A\u8BDD",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatCallItem",
+                  "description": "\u4E00\u6B21\u901A\u8BDD",
+                  "type": "object",
+                  "properties": {
+                    "callId": {
+                      "description": "\u901A\u8BDD",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "conversationId": {
+                      "description": "\u4F1A\u8BDD",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "conversationType": {
+                      "description": "\u4F1A\u8BDD\u7C7B\u578B\uFF1A\u5355\u804A\u662F\u4E00\u5BF9\u4E00\u901A\u8BDD\uFF0C\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u662F\u591A\u4EBA\u901A\u8BDD",
+                      "$ref": "#/components/schemas/ChatConversationType"
+                    },
+                    "conversationName": {
+                      "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "initiatorUserId": {
+                      "description": "\u53D1\u8D77\u4EBA",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "media": {
+                      "description": "\u5A92\u4F53",
+                      "$ref": "#/components/schemas/ChatCallMedia"
+                    },
+                    "status": {
+                      "description": "\u72B6\u6001",
+                      "$ref": "#/components/schemas/ChatCallStatus"
+                    },
+                    "endReason": {
+                      "description": "\u7ED3\u675F\u7684\u539F\u56E0\uFF1B\u6CA1\u7ED3\u675F\u4E3A\u7A7A",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/ChatCallEndReason"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "startedAt": {
+                      "description": "\u53D1\u8D77\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "ringExpiresAt": {
+                      "description": "\u54CD\u94C3\u5230\u51E0\u65F6\uFF08UTC\uFF09\uFF0C\u8FC7\u4E86\u8FD8\u6CA1\u4EBA\u63A5\u5373\u672A\u63A5\u542C",
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "answeredAt": {
+                      "description": "\u63A5\u901A\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "endedAt": {
+                      "description": "\u7ED3\u675F\u65F6\u95F4\uFF08UTC\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "participants": {
+                      "description": "\u53C2\u4E0E\u8005\uFF08\u53D1\u8D77\u4EBA\u5728\u524D\uFF09",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatCallParticipantItem"
+                      }
+                    }
+                  },
+                  "required": [
+                    "callId",
+                    "conversationId",
+                    "conversationType",
+                    "initiatorUserId",
+                    "media",
+                    "status",
+                    "startedAt",
+                    "ringExpiresAt",
+                    "participants"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-calls:settings": {
+      "get": {
+        "operationId": "chat-calls.settings",
+        "tags": [
+          "chat-calls"
+        ],
+        "summary": "Call settings",
+        "description": "Returns the ring seconds and the participant limits of voice and video calls.\n\nRequires permission chat.chat-calls.read (Read chat calls).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-calls.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "chat-calls.settings \u7684\u54CD\u5E94",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatCallSettingsResponse",
+                  "description": "chat-calls.settings \u7684\u54CD\u5E94",
+                  "type": "object",
+                  "properties": {
+                    "ringSeconds": {
+                      "description": "\u54CD\u94C3\u79D2\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "maxVoiceParticipants": {
+                      "description": "\u8BED\u97F3\u901A\u8BDD\u7684\u4EBA\u6570\u4E0A\u9650\uFF08\u542B\u53D1\u8D77\u4EBA\uFF09",
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "maxVideoParticipants": {
+                      "description": "\u89C6\u9891\u901A\u8BDD\u7684\u4EBA\u6570\u4E0A\u9650\uFF08\u542B\u53D1\u8D77\u4EBA\uFF09",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "ringSeconds",
+                    "maxVoiceParticipants",
+                    "maxVideoParticipants"
                   ]
                 }
               }
@@ -9128,7 +9444,7 @@
           "chat-calls"
         ],
         "summary": "Start call",
-        "description": "Starts a voice or video call in a direct conversation and begins ringing; refused when either side is already in a call or the other side is offline.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
+        "description": "Starts a voice or video call and begins ringing: a direct conversation calls the other person, a group or department conversation invites the named members; refused when the caller is already in a call or no invitee can be rung.\n\nRequires permission chat.chat-calls.call (Make voice and video calls).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-calls.call",
         "parameters": [],
@@ -9143,13 +9459,25 @@
                 "type": "object",
                 "properties": {
                   "conversationId": {
-                    "description": "\u4F1A\u8BDD\uFF08\u5355\u804A\uFF09",
+                    "description": "\u4F1A\u8BDD\uFF08\u5355\u804A\u3001\u7FA4\u804A\u6216\u90E8\u95E8\u7FA4\uFF09",
                     "type": "string",
                     "format": "uuid"
                   },
                   "media": {
                     "description": "\u5A92\u4F53\uFF1A\u8BED\u97F3\u6216\u89C6\u9891",
                     "$ref": "#/components/schemas/ChatCallMedia"
+                  },
+                  "inviteeUserIds": {
+                    "description": "\u9080\u8BF7\u7684\u6210\u5458\uFF1A\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u5FC5\u586B\uFF0C\u5355\u804A\u4E0D\u7528\u7ED9\uFF08\u5C31\u662F\u5BF9\u65B9\uFF09",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "maxItems": 50
                   }
                 },
                 "required": [
@@ -9180,6 +9508,17 @@
                       "type": "string",
                       "format": "uuid"
                     },
+                    "conversationType": {
+                      "description": "\u4F1A\u8BDD\u7C7B\u578B\uFF1A\u5355\u804A\u662F\u4E00\u5BF9\u4E00\u901A\u8BDD\uFF0C\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u662F\u591A\u4EBA\u901A\u8BDD",
+                      "$ref": "#/components/schemas/ChatConversationType"
+                    },
+                    "conversationName": {
+                      "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "initiatorUserId": {
                       "description": "\u53D1\u8D77\u4EBA",
                       "type": "string",
@@ -9241,6 +9580,7 @@
                   "required": [
                     "callId",
                     "conversationId",
+                    "conversationType",
                     "initiatorUserId",
                     "media",
                     "status",
@@ -64944,6 +65284,17 @@
             "type": "string",
             "format": "uuid"
           },
+          "conversationType": {
+            "description": "\u4F1A\u8BDD\u7C7B\u578B\uFF1A\u5355\u804A\u662F\u4E00\u5BF9\u4E00\u901A\u8BDD\uFF0C\u7FA4\u804A\u4E0E\u90E8\u95E8\u7FA4\u662F\u591A\u4EBA\u901A\u8BDD",
+            "$ref": "#/components/schemas/ChatConversationType"
+          },
+          "conversationName": {
+            "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "initiatorUserId": {
             "description": "\u53D1\u8D77\u4EBA",
             "type": "string",
@@ -65005,6 +65356,7 @@
         "required": [
           "callId",
           "conversationId",
+          "conversationType",
           "initiatorUserId",
           "media",
           "status",
@@ -78062,12 +78414,12 @@
       "chat.chat-calls.call": {
         "code": "chat.chat-calls.call",
         "displayName": "Make voice and video calls",
-        "description": "Start, accept, reject and hang up voice and video calls in conversations the caller belongs to."
+        "description": "Start, accept, reject, join and hang up voice and video calls in conversations the caller belongs to."
       },
       "chat.chat-calls.read": {
         "code": "chat.chat-calls.read",
         "displayName": "Read chat calls",
-        "description": "See the call the caller is currently in and get the ICE servers used to connect it."
+        "description": "See the call the caller is currently in and the ongoing call of a conversation the caller belongs to, and get the call settings and ICE servers."
       },
       "chat.chat-conversations.manage": {
         "code": "chat.chat-conversations.manage",

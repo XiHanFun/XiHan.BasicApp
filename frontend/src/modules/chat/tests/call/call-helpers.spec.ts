@@ -1,19 +1,22 @@
 /**
- * call-helpers.ts：通话记录消息的解析与文案、时长格式
+ * call-helpers.ts：通话记录消息的解析与文案、时长格式、谁出 offer
  *
  * 职责边界：通话记录的正文是服务端写的 JSON，读不出来的一律当没有记录（不抛错）；
- * 同一件事两边说法不同（我打出去没人接是「对方未接听」，打给我没接到是「未接听」）；
- * 只有没接到的记录算未读。翻译函数用回显键的替身，断言落在键与参数上
+ * 同一件事各人说法不同（一对一里我打出去没人接是「对方未接听」，打给我没接到是「未接听」，多人通话不说「对方」）；
+ * 只有自己没接到的记录算未读；两个人之间后加入的一方出 offer。翻译函数用回显键的替身，断言落在键与参数上
  */
 import type { ChatCallItem, ChatCallParticipantItem } from '@/modules/chat/types'
 import { describe, expect, it } from 'vitest'
 import {
+  callJoinedAt,
   callMediaFailureText,
   callMediaLabel,
+  callOffersTo,
   callParticipantName,
   callRecordLabel,
   callRecordText,
   formatCallDuration,
+  isGroupCall,
   isMissedCallRecord,
   millisecondsBetween,
   parseCallRecord,
@@ -33,6 +36,7 @@ function record(patch: Record<string, unknown> = {}): string {
     media: 'Voice',
     reason: 'Completed',
     durationSeconds: 135,
+    missedUserIds: [],
     ...patch,
   })
 }
@@ -42,12 +46,15 @@ function participant(patch: Partial<ChatCallParticipantItem> & { userId: string 
 }
 
 describe('解析通话记录', () => {
-  it('服务端写的正文解得出通话、媒体、原因与时长', () => {
-    expect(parseCallRecord(record())).toStrictEqual({
+  it('服务端写的正文解得出通话、媒体、原因、时长与没接到的人', () => {
+    expect(parseCallRecord(record({
+      missedUserIds: ['bob', 'carol'],
+    }))).toStrictEqual({
       callId: 'c-1',
       media: 'Voice',
       reason: 'Completed',
       durationSeconds: 135,
+      missedUserIds: ['bob', 'carol'],
     })
   })
 
@@ -77,6 +84,20 @@ describe('解析通话记录', () => {
       '时长不是数字',
       record({ durationSeconds: '135' }),
     ],
+    [
+      '没接到的人不是数组',
+      record({ missedUserIds: 'bob' }),
+    ],
+    [
+      '没接到的人里有不是字符串的',
+      record({
+        missedUserIds: ['bob', 7],
+      }),
+    ],
+    [
+      '没有没接到的人这一项',
+      record({ missedUserIds: undefined }),
+    ],
   ])('%s：读不出记录', (_, content) => {
     expect(parseCallRecord(content)).toBeNull()
   })
@@ -104,7 +125,9 @@ describe('通话时长', () => {
 
 describe('气泡里的一行字', () => {
   const of = (reason: string, outgoing: boolean, durationSeconds = 0) =>
-    callRecordText(t, parseCallRecord(record({ reason, durationSeconds }))!, outgoing)
+    callRecordText(t, parseCallRecord(record({ reason, durationSeconds }))!, { outgoing, group: false, myUserId: 'me' })
+  const inGroup = (reason: string, outgoing: boolean, missedUserIds: string[] = []) =>
+    callRecordText(t, parseCallRecord(record({ reason, durationSeconds: 0, missedUserIds }))!, { outgoing, group: true, myUserId: 'me' })
 
   it('接通过的带时长，两边说法一样', () => {
     expect(of('Completed', true, 135)).toBe('chat.call.record_completed{"duration":"02:15"}')
@@ -119,6 +142,17 @@ describe('气泡里的一行字', () => {
     expect(of('Rejected', false)).toBe('chat.call.record_rejected')
     expect(of('Missed', true)).toBe('chat.call.record_missed_by_peer')
     expect(of('Missed', false)).toBe('chat.call.record_missed')
+  })
+
+  it('多人通话不说「对方」：受邀的都没来是无人接听，只有自己没接到的人看到未接听', () => {
+    expect(inGroup('Completed', false)).toBe('chat.call.record_completed{"duration":"00:00"}')
+    expect(inGroup('Cancelled', true)).toBe('chat.call.record_cancelled')
+    expect(inGroup('Cancelled', false, ['me'])).toBe('chat.call.record_cancelled')
+    expect(inGroup('Rejected', true)).toBe('chat.call.record_no_answer')
+    expect(inGroup('Rejected', false)).toBe('chat.call.record_no_answer')
+    expect(inGroup('Missed', true, ['bob'])).toBe('chat.call.record_no_answer')
+    expect(inGroup('Missed', false, ['bob'])).toBe('chat.call.record_no_answer')
+    expect(inGroup('Missed', false, ['bob', 'me'])).toBe('chat.call.record_missed')
   })
 })
 
@@ -138,13 +172,22 @@ describe('标签与未读', () => {
     expect(callMediaFailureText(t, 'unsupported')).toBe('chat.call.media_unsupported')
   })
 
-  it('只有对方取消与没人接算没接到', () => {
-    expect(isMissedCallRecord(record({ reason: 'Missed' }))).toBe(true)
-    expect(isMissedCallRecord(record({ reason: 'Cancelled' }))).toBe(true)
-    expect(isMissedCallRecord(record({ reason: 'Completed' }))).toBe(false)
-    expect(isMissedCallRecord(record({ reason: 'Rejected' }))).toBe(false)
-    expect(isMissedCallRecord(record({ reason: 'Interrupted' }))).toBe(false)
-    expect(isMissedCallRecord(null)).toBe(false)
+  it('没接到看的是记录里点了谁的名，不看结果：通话接通了，没接到的人照样算没接到', () => {
+    expect(isMissedCallRecord(record({
+      reason: 'Missed',
+      missedUserIds: ['me'],
+    }), 'me')).toBe(true)
+    expect(isMissedCallRecord(record({
+      reason: 'Completed',
+      missedUserIds: ['bob', 'me'],
+    }), 'me')).toBe(true)
+    expect(isMissedCallRecord(record({
+      reason: 'Missed',
+      missedUserIds: ['bob'],
+    }), 'me')).toBe(false)
+    expect(isMissedCallRecord(record({ reason: 'Cancelled' }), 'me')).toBe(false)
+    expect(isMissedCallRecord('坏掉的正文', 'me')).toBe(false)
+    expect(isMissedCallRecord(null, 'me')).toBe(false)
   })
 })
 
@@ -152,6 +195,7 @@ describe('通话里的人与时刻', () => {
   const call = {
     callId: 'c-1',
     conversationId: 'conv',
+    conversationType: 'Single',
     initiatorUserId: 'me',
     media: 'Voice',
     status: 'Ringing',
@@ -177,6 +221,31 @@ describe('通话里的人与时刻', () => {
         participant({ userId: 'me' }),
       ],
     }, 'me')).toBeNull()
+  })
+
+  it('单聊里的是一对一通话，群聊与部门群里的是多人通话', () => {
+    expect(isGroupCall(call)).toBe(false)
+    expect(isGroupCall({ conversationType: 'Group' })).toBe(true)
+    expect(isGroupCall({ conversationType: 'Department' })).toBe(true)
+  })
+
+  it('两个人之间后加入的一方出 offer：两端各算各的，结论相反', () => {
+    const early = participant({ userId: 'b', joinedAt: '2026-11-14T08:00:05.100Z' })
+    const late = participant({ userId: 'a', joinedAt: '2026-11-14T08:00:09.000Z' })
+
+    expect(callOffersTo(late, early)).toBe(true)
+    expect(callOffersTo(early, late)).toBe(false)
+    expect(callJoinedAt(early)).toBe(Date.parse('2026-11-14T08:00:05.100Z'))
+  })
+
+  it('同一毫秒加入的比用户 ID；加入时刻读不出的按 0 算', () => {
+    const one = participant({ userId: 'a', joinedAt: '2026-11-14T08:00:05.1234567Z' })
+    const other = participant({ userId: 'b', joinedAt: '2026-11-14T08:00:05.123Z' })
+
+    expect(callOffersTo(other, one)).toBe(true)
+    expect(callOffersTo(one, other)).toBe(false)
+    expect(callJoinedAt(participant({ userId: 'u' }))).toBe(0)
+    expect(callJoinedAt(participant({ userId: 'u', joinedAt: '不是时间' }))).toBe(0)
   })
 
   it('称呼取用户名（与会话标题一致），没有取显示名，都没有为空', () => {

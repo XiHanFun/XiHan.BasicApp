@@ -76,15 +76,15 @@ export function messageTypeLabel(t: Translate, type: ChatMessageType): string {
 }
 
 /**
- * 审计里显示的正文：通话记录的正文是 JSON，写成「媒体 · 结果」一行，口吻随发送人（即发起人）；别的照原文
+ * 审计里显示的正文：通话记录的正文是 JSON，写成「媒体 · 结果」一行，口吻随发送人（即发起人），群里的按多人通话说；别的照原文
  */
-export function auditContentText(t: Translate, type: ChatMessageType, content?: null | string): string {
+export function auditContentText(t: Translate, type: ChatMessageType, content: null | string | undefined, conversationType: ChatConversationType): string {
   if (type !== 'Call') {
     return content ?? ''
   }
   const record = parseCallRecord(content)
   return record
-    ? `${callMediaLabel(t, record.media)} · ${callRecordText(t, record, true)}`
+    ? `${callMediaLabel(t, record.media)} · ${callRecordText(t, record, { outgoing: true, group: conversationType !== 'Single', myUserId: '' })}`
     : content ?? ''
 }
 

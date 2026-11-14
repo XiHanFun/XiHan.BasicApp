@@ -2278,7 +2278,7 @@
         },
         "Chat": {
           "type": "object",
-          "description": "在线聊天；模块开关在 BasicApp:Modules:Chat，敏感词、保留天数与响铃秒数在参数 chat.policy",
+          "description": "在线聊天；模块开关在 BasicApp:Modules:Chat，敏感词、保留天数、响铃秒数与通话人数上限在参数 chat.policy",
           "properties": {
             "Calls": {
               "type": "object",

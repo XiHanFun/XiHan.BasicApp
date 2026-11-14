@@ -755,9 +755,9 @@ export const useChatStore = defineStore('chat', () => {
     conv.lastSeq = Math.max(conv.lastSeq ?? 0, message.seq)
     const isSelf = message.senderUserId === currentUserId()
     // 系统提示消息（中性提示没有发送人，公告带操作人）：只刷时间线与预览，不计未读（与后端一致）
-    // 通话记录只有没接到的才计未读（对方取消或没人接），接通过的与拒绝的不计（与后端一致）
+    // 通话记录只给没接到的人计未读，接通过的、自己拒绝的与没被邀请的不计（与后端一致）
     const silent = message.messageType === 'System'
-      || (message.messageType === 'Call' && !isMissedCallRecord(message.content))
+      || (message.messageType === 'Call' && !isMissedCallRecord(message.content, currentUserId()))
     if (!isSelf && !silent) {
       const isActiveAndVisible = activeConversationId.value === conv.conversationId
         && typeof document !== 'undefined' && document.hasFocus()

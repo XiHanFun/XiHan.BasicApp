@@ -107,6 +107,37 @@ export async function acquireCallTrack(kind: 'audioinput' | 'videoinput', device
   }
 }
 
+/** 这个浏览器能不能共享屏幕（手机浏览器多半不能） */
+export function canShareScreen(): boolean {
+  return typeof globalThis.navigator?.mediaDevices?.getDisplayMedia === 'function'
+}
+
+/**
+ * 取要共享的屏幕：浏览器弹出选择框，由用户挑整个屏幕、一个窗口或一个标签页；只要画面，不带系统声音
+ * @returns 屏幕的画面；用户在选择框里取消了为 null
+ * @throws ChatCallMediaError 浏览器不支持，或取不到（被系统拦下等）
+ */
+export async function acquireScreen(): Promise<MediaStream | null> {
+  if (!canShareScreen()) {
+    throw new ChatCallMediaError('unsupported', 'Video')
+  }
+  try {
+    const stream = await globalThis.navigator.mediaDevices.getDisplayMedia({ video: true, audio: false })
+    for (const track of stream.getVideoTracks()) {
+      // 屏幕上多是文字与界面：告诉编码器保清晰，不保帧率
+      track.contentHint = 'detail'
+    }
+    return stream
+  }
+  catch (error) {
+    // 取消选择框与没给权限是同一个错误，分不出来：都当作用户不想共享
+    if (error instanceof Error && error.name === 'NotAllowedError') {
+      return null
+    }
+    throw new ChatCallMediaError(failureOf(error), 'Video', error)
+  }
+}
+
 /** 停掉一路媒体的全部轨道（麦克风与摄像头的占用灯随之熄灭） */
 export function stopStream(stream: MediaStream | null | undefined): void {
   for (const track of stream?.getTracks() ?? []) {

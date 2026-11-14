@@ -81,7 +81,10 @@ export const routes = {
   'chat-calls.active': { method: 'GET', template: '/api/chat-calls:active', path: [], query: [], success: 200 },
   'chat-calls.hangup': { method: 'POST', template: '/api/chat-calls:hangup', path: [], query: [], success: 200 },
   'chat-calls.ice-servers': { method: 'GET', template: '/api/chat-calls:ice-servers', path: [], query: [], success: 200 },
+  'chat-calls.join': { method: 'POST', template: '/api/chat-calls:join', path: [], query: [], success: 200 },
+  'chat-calls.ongoing': { method: 'GET', template: '/api/chat-calls:ongoing', path: [], query: ['conversationId'], success: 200 },
   'chat-calls.reject': { method: 'POST', template: '/api/chat-calls:reject', path: [], query: [], success: 200 },
+  'chat-calls.settings': { method: 'GET', template: '/api/chat-calls:settings', path: [], query: [], success: 200 },
   'chat-calls.start': { method: 'POST', template: '/api/chat-calls:start', path: [], query: [], success: 200 },
   'chat-conversations.add-members': { method: 'POST', template: '/api/chat-conversations:add-members', path: [], query: [], success: 200 },
   'chat-conversations.assistants': { method: 'GET', template: '/api/chat-conversations:assistants', path: [], query: [], success: 200 },
@@ -647,7 +650,10 @@ export const chatCalls = {
   active: (request: RequestOf<'chat-calls.active'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.active'>, ResponseOf<'chat-calls.active'>>('chat-calls.active', routes['chat-calls.active'], request, options),
   hangup: (request: RequestOf<'chat-calls.hangup'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.hangup'>, ResponseOf<'chat-calls.hangup'>>('chat-calls.hangup', routes['chat-calls.hangup'], request, options),
   iceServers: (request: RequestOf<'chat-calls.ice-servers'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.ice-servers'>, ResponseOf<'chat-calls.ice-servers'>>('chat-calls.ice-servers', routes['chat-calls.ice-servers'], request, options),
+  join: (request: RequestOf<'chat-calls.join'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.join'>, ResponseOf<'chat-calls.join'>>('chat-calls.join', routes['chat-calls.join'], request, options),
+  ongoing: (request: RequestOf<'chat-calls.ongoing'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.ongoing'>, ResponseOf<'chat-calls.ongoing'>>('chat-calls.ongoing', routes['chat-calls.ongoing'], request, options),
   reject: (request: RequestOf<'chat-calls.reject'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.reject'>, ResponseOf<'chat-calls.reject'>>('chat-calls.reject', routes['chat-calls.reject'], request, options),
+  settings: (request: RequestOf<'chat-calls.settings'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.settings'>, ResponseOf<'chat-calls.settings'>>('chat-calls.settings', routes['chat-calls.settings'], request, options),
   start: (request: RequestOf<'chat-calls.start'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.start'>, ResponseOf<'chat-calls.start'>>('chat-calls.start', routes['chat-calls.start'], request, options),
 }
 

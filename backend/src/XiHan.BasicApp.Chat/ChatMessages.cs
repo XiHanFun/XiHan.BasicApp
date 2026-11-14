@@ -545,9 +545,59 @@ public static class ChatMessages
     public const string IceServersChatCallDescription = "chat_calls.ice_servers.description";
 
     /// <summary>
-    /// 只有单聊能发起通话
+    /// 操作 <c>chat-calls.join</c> 的说明
     /// </summary>
-    public const string CallSingleOnly = "chat.call.single_only";
+    public const string JoinChatCallDescription = "chat_calls.join.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.ongoing</c> 的说明
+    /// </summary>
+    public const string OngoingChatCallDescription = "chat_calls.ongoing.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.settings</c> 的说明
+    /// </summary>
+    public const string SettingsChatCallDescription = "chat_calls.settings.description";
+
+    /// <summary>
+    /// 这个会话不能发起通话
+    /// </summary>
+    public const string CallUnsupported = "chat.call.unsupported";
+
+    /// <summary>
+    /// 群通话至少要邀请一名成员
+    /// </summary>
+    public const string CallInviteesRequired = "chat.call.invitees_required";
+
+    /// <summary>
+    /// 只能邀请这个会话的成员
+    /// </summary>
+    public const string CallInviteeNotMember = "chat.call.invitee_not_member";
+
+    /// <summary>
+    /// 通话人数超过上限（参数 <c>max</c>）
+    /// </summary>
+    public const string CallTooManyParticipants = "chat.call.too_many";
+
+    /// <summary>
+    /// 这个会话里已经有一通电话
+    /// </summary>
+    public const string CallInProgress = "chat.call.in_progress";
+
+    /// <summary>
+    /// 邀请的人都不在线或正在通话中
+    /// </summary>
+    public const string CallNobodyAvailable = "chat.call.nobody_available";
+
+    /// <summary>
+    /// 通话人数已满
+    /// </summary>
+    public const string CallFull = "chat.call.full";
+
+    /// <summary>
+    /// 这通电话已经结束
+    /// </summary>
+    public const string CallEnded = "chat.call.ended";
 
     /// <summary>
     /// 通话记录不能撤回

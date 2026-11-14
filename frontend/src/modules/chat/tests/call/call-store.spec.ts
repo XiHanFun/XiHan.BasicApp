@@ -1,8 +1,9 @@
 /**
  * call-store.ts：这个页签眼里的那一通电话
  *
- * 职责边界：发起与接听先取设备再问服务端；通话的状态以服务端的返回值与推送为准；
- * 只有占着这通电话的页签建媒体连接、处理信令，别的页签只跟着停铃；响铃到点、连不上、断了由端上收场；
+ * 职责边界：发起、接听与加入先取设备再问服务端；通话的状态以服务端的返回值与推送为准；
+ * 只有占着这通电话的页签建媒体连接、处理信令，别的页签只跟着停铃；通话里每个人各一条连接，后加入的一方出 offer；
+ * 响铃到点、连不上、断了由端上收场；屏幕共享只是往各条连接上换轨道；群里还没结束的通话另记在会话名下；
  * 连上或重连之后与服务端对一遍。设备、媒体连接、Hub 与提示音都是替身，不碰真的 WebRTC
  */
 import type { ChatApiContract, ChatCallItem, ChatCallParticipantItem } from '@/modules/chat/types'
@@ -17,7 +18,14 @@ import { ApiError } from '~/request'
 import { useAuthStore } from '~/stores'
 
 const fakes = vi.hoisted(() => {
-  interface FakeTrack { kind: string, enabled: boolean, stopped: boolean, stop: () => void }
+  interface FakeTrack {
+    kind: string
+    enabled: boolean
+    stopped: boolean
+    stop: () => void
+    listeners: Record<string, (() => void)[]>
+    addEventListener: (type: string, listener: () => void) => void
+  }
 
   function createTrack(kind: string): FakeTrack {
     const track: FakeTrack = {
@@ -27,19 +35,16 @@ const fakes = vi.hoisted(() => {
       stop: () => {
         track.stopped = true
       },
+      listeners: {},
+      addEventListener: (type, listener) => {
+        (track.listeners[type] ??= []).push(listener)
+      },
     }
     return track
   }
 
-  function createStream(video: boolean) {
-    const tracks = [
-      createTrack('audio'),
-      ...(video
-        ? [
-            createTrack('video'),
-          ]
-        : []),
-    ]
+  function createStream(kinds: string[]) {
+    const tracks = kinds.map(createTrack)
     return {
       tracks,
       getTracks: () => [...tracks],
@@ -60,21 +65,24 @@ const fakes = vi.hoisted(() => {
     acquired: [] as string[],
     streams: [] as ReturnType<typeof createStream>[],
     mediaFailure: null as unknown,
+    /** 下一次取屏幕的结果：给画面、用户取消，或抛出 */
+    screen: 'stream' as 'cancel' | 'stream' | Error,
+    screens: [] as ReturnType<typeof createStream>[],
     sessions: [] as FakeSession[],
   }
 
   class FakeSession {
     readonly handled: unknown[] = []
-    readonly replaced: FakeTrack[] = []
+    readonly tracks: [string, FakeTrack | null][] = []
     started = 0
     closed = false
     failHandle = false
 
     constructor(readonly options: {
-      initiator: boolean
+      offerer: boolean
       iceServers: unknown[]
-      localStream: unknown
-      onRemoteStream: (stream: unknown) => void
+      tracks: Record<string, FakeTrack | null>
+      onRemoteTrack: (slot: string, track: unknown) => void
       onStateChange: (state: string) => void
     }) {
       state.sessions.push(this)
@@ -93,9 +101,9 @@ const fakes = vi.hoisted(() => {
       return Promise.resolve()
     }
 
-    replaceTrack(track: FakeTrack): Promise<boolean> {
-      this.replaced.push(track)
-      return Promise.resolve(true)
+    setTrack(slot: string, track: FakeTrack | null): Promise<void> {
+      this.tracks.push([slot, track])
+      return Promise.resolve()
     }
 
     close(): void {
@@ -103,11 +111,17 @@ const fakes = vi.hoisted(() => {
     }
   }
 
+  /** MediaStream 的替身：只记下装了哪些轨道 */
+  class FakeMediaStream {
+    constructor(readonly tracks: unknown[]) {}
+  }
+
   return {
     state,
     createTrack,
     createStream,
     FakeSession,
+    FakeMediaStream,
   }
 })
 
@@ -132,7 +146,9 @@ vi.mock('@/modules/chat/call/call-media', async importOriginal => ({
     if (fakes.state.mediaFailure) {
       throw fakes.state.mediaFailure
     }
-    const stream = fakes.createStream(media === 'Video')
+    const stream = fakes.createStream(media === 'Video'
+      ? ['audio', 'video']
+      : ['audio'])
     fakes.state.acquired.push(media)
     fakes.state.streams.push(stream)
     return stream
@@ -140,63 +156,135 @@ vi.mock('@/modules/chat/call/call-media', async importOriginal => ({
   acquireCallTrack: async (kind: string) => fakes.createTrack(kind === 'videoinput'
     ? 'video'
     : 'audio'),
+  acquireScreen: async () => {
+    if (fakes.state.screen === 'cancel') {
+      return null
+    }
+    if (fakes.state.screen instanceof Error) {
+      throw fakes.state.screen
+    }
+    const stream = fakes.createStream(['video'])
+    fakes.state.screens.push(stream)
+    return stream
+  },
 }))
 
 vi.mock('@/modules/chat/call/call-session', () => ({ ChatCallSession: fakes.FakeSession }))
 
 const ME = 'me'
 const BOB = 'bob'
+const CAROL = 'carol'
 const START = '2026-11-14T08:00:00.000Z'
+/** 之后先后加入的三个时刻 */
+const T1 = '2026-11-14T08:00:05.000Z'
+const T2 = '2026-11-14T08:00:09.000Z'
+const T3 = '2026-11-14T08:00:30.000Z'
 
-function participant(userId: string, status: ChatCallParticipantItem['status']): ChatCallParticipantItem {
+function participant(userId: string, status: ChatCallParticipantItem['status'], joinedAt?: string): ChatCallParticipantItem {
   return {
     userId,
     userName: userId,
-    displayName: userId === BOB
-      ? 'Bob'
-      : '我',
+    displayName: userId === ME
+      ? '我'
+      : userId.toUpperCase(),
     status,
+    ...(joinedAt
+      ? { joinedAt }
+      : {}),
   }
 }
 
-/** 我打给 Bob 的一通 */
+/** 我打给 Bob 的一通，还在响 */
 function outgoing(patch: Partial<ChatCallItem> = {}): ChatCallItem {
   return {
     callId: 'call-1',
     conversationId: 'conv-1',
+    conversationType: 'Single',
     initiatorUserId: ME,
     media: 'Voice',
     status: 'Ringing',
     startedAt: START,
     ringExpiresAt: '2026-11-14T08:01:00.000Z',
     participants: [
-      participant(ME, 'Joined'),
+      participant(ME, 'Joined', START),
       participant(BOB, 'Invited'),
     ],
     ...patch,
   }
 }
 
-/** Bob 打给我的一通 */
+/** 我打给 Bob、Bob 接了 */
+function answered(patch: Partial<ChatCallItem> = {}): ChatCallItem {
+  return outgoing({
+    status: 'Ongoing',
+    participants: [
+      participant(ME, 'Joined', START),
+      participant(BOB, 'Joined', T1),
+    ],
+    ...patch,
+  })
+}
+
+/** Bob 打给我的一通，还在响 */
 function incoming(patch: Partial<ChatCallItem> = {}): ChatCallItem {
   return outgoing({
     initiatorUserId: BOB,
     participants: [
-      participant(BOB, 'Joined'),
+      participant(BOB, 'Joined', START),
       participant(ME, 'Invited'),
     ],
     ...patch,
   })
 }
 
+/** Bob 打给我、我接了 */
+function accepted(patch: Partial<ChatCallItem> = {}): ChatCallItem {
+  return incoming({
+    status: 'Ongoing',
+    participants: [
+      participant(BOB, 'Joined', START),
+      participant(ME, 'Joined', T1),
+    ],
+    ...patch,
+  })
+}
+
+/** 群里的一通 */
+function group(participants: ChatCallParticipantItem[], patch: Partial<ChatCallItem> = {}): ChatCallItem {
+  return outgoing({
+    callId: 'call-g',
+    conversationId: 'conv-g',
+    conversationType: 'Group',
+    conversationName: 'Team',
+    participants,
+    ...patch,
+  })
+}
+
+/** 我在群里发起、点了 Bob 与 Carol 的一通：各人此刻的状态由调用方给 */
+function mine(bob: ChatCallParticipantItem, carol: ChatCallParticipantItem, patch: Partial<ChatCallItem> = {}): ChatCallItem {
+  return group([
+    participant(ME, 'Joined', START),
+    bob,
+    carol,
+  ], { status: 'Ongoing', ...patch })
+}
+
 function createApi(overrides: Partial<ChatApiContract> = {}) {
   const calls: string[] = []
   const base: Partial<ChatApiContract> = {
-    startCall: async (_, media) => outgoing({ media }),
-    acceptCall: async callId => incoming({ callId, status: 'Ongoing' }),
+    startCall: async (_, media, inviteeUserIds) => (inviteeUserIds
+      ? group([
+          participant(ME, 'Joined', START),
+          ...inviteeUserIds.map(userId => participant(userId, 'Invited')),
+        ], { media })
+      : outgoing({ media })),
+    acceptCall: async callId => accepted({ callId }),
     rejectCall: async callId => incoming({ callId, status: 'Ended', endReason: 'Rejected' }),
     hangupCall: async callId => outgoing({ callId, status: 'Ended', endReason: 'Completed' }),
     activeCall: async () => ({ call: null, now: START }),
+    ongoingCall: async () => ({ call: null, now: START }),
+    callSettings: async () => ({ ringSeconds: 60, maxVoiceParticipants: 8, maxVideoParticipants: 6 }),
     callIceServers: async () => [],
     ...overrides,
   }
@@ -204,7 +292,10 @@ function createApi(overrides: Partial<ChatApiContract> = {}) {
     get(target, property: string) {
       const implementation = Reflect.get(target, property) as ((...args: unknown[]) => unknown) | undefined
       return (...args: unknown[]) => {
-        calls.push([property, ...args].join(':'))
+        calls.push([
+          property,
+          ...args.filter(arg => arg !== undefined),
+        ].join(':'))
         return implementation
           ? implementation(...args)
           : Promise.reject(new Error(`未预期调用 ${property}`))
@@ -243,19 +334,38 @@ function setup(overrides: Partial<ChatApiContract> = {}, permissions: string[] =
 }
 
 /** 让没被等待的异步（取穿透服务器、建连接）走完 */
-const settle = () => vi.advanceTimersByTimeAsync(0)
+async function settle(): Promise<void> {
+  await vi.advanceTimersByTimeAsync(0)
+  await vi.advanceTimersByTimeAsync(0)
+}
 
+/** 发到 Hub 的信令：方法、通话、指给谁（null 即通话里的所有人）与内容 */
 function signalsSent() {
   return fakes.state.hub.map(call => [
     call.method,
     call.args[0],
-    JSON.parse(String(call.args[1])),
+    call.args[1],
+    JSON.parse(String(call.args[2])),
   ])
+}
+
+function signal(fromUserId: string, data: unknown, callId = 'call-1') {
+  return {
+    callId,
+    fromUserId,
+    data: JSON.stringify(data),
+  }
+}
+
+/** 与某个人的那条连接（一个人可能先后建过几条，取最新的） */
+function sessionWith(index: number) {
+  return fakes.state.sessions[index]!
 }
 
 beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(new Date(START))
+  vi.stubGlobal('MediaStream', fakes.FakeMediaStream)
   sessionStorage.clear()
   Object.assign(fakes.state, {
     hub: [],
@@ -263,11 +373,14 @@ beforeEach(() => {
     acquired: [],
     streams: [],
     mediaFailure: null,
+    screen: 'stream',
+    screens: [],
     sessions: [],
   })
 })
 
 afterEach(() => {
+  vi.unstubAllGlobals()
   vi.useRealTimers()
 })
 
@@ -284,7 +397,8 @@ describe('发起', () => {
       store.engaged,
       store.cameraOn,
       store.micOn,
-    ]).toStrictEqual(['outgoing', true, true, true])
+      store.screenOn,
+    ]).toStrictEqual(['outgoing', true, true, true, false])
     expect(store.peer?.userId).toBe(BOB)
     expect(store.localStream).toBe(fakes.state.streams[0])
     expect(fakes.state.sounds).toStrictEqual(['receive'])
@@ -332,7 +446,7 @@ describe('发起', () => {
     expect(store.phase).toBe('incoming')
   })
 
-  it('对方接了：取穿透服务器、建连接并出 offer，把开关状态告诉对端', async () => {
+  it('对方接了：取穿透服务器、与他建连接，后加入的他出 offer，把开关状态告诉他', async () => {
     const { store, calls } = setup({
       callIceServers: async () => [
         {
@@ -347,18 +461,12 @@ describe('发起', () => {
     })
     await store.start('conv-1', 'Voice')
 
-    store.applyCallChanged(outgoing({
-      status: 'Ongoing',
-      participants: [
-        participant(ME, 'Joined'),
-        participant(BOB, 'Joined'),
-      ],
-    }))
+    store.applyCallChanged(answered())
     await settle()
 
-    const session = fakes.state.sessions[0]!
+    const session = sessionWith(0)
     expect(calls).toStrictEqual(['startCall:conv-1:Voice', 'callIceServers'])
-    expect(session.options.initiator).toBe(true)
+    expect([session.options.offerer, session.started]).toStrictEqual([false, 0])
     expect(session.options.iceServers).toStrictEqual([
       {
         urls: ['stun:turn.example.com:3478'],
@@ -369,21 +477,66 @@ describe('发起', () => {
         credential: 'secret',
       },
     ])
-    expect(session.options.localStream).toBe(fakes.state.streams[0])
-    expect(session.started).toBe(1)
+    expect(session.options.tracks).toStrictEqual({
+      mic: fakes.state.streams[0]?.tracks[0],
+      camera: null,
+      screen: null,
+    })
     expect(signalsSent()).toStrictEqual([
       [
         'CallSignal',
         'call-1',
-        { type: 'state', micOn: true, cameraOn: false },
+        BOB,
+        {
+          type: 'state',
+          micOn: true,
+          cameraOn: false,
+          screenOn: false,
+        },
       ],
     ])
     expect(store.phase).toBe('connecting')
+    expect(store.peers.map(peer => [peer.userId, peer.connection])).toStrictEqual([
+      [BOB, 'connecting'],
+    ])
 
     // 接通了不再响铃
     fakes.state.sounds.length = 0
     await vi.advanceTimersByTimeAsync(10000)
     expect(fakes.state.sounds).toStrictEqual([])
+  })
+
+  it('连接还在建时先到的信令存着，建好后按先后交给它；之后的直接给', async () => {
+    let releaseIce: (servers: never[]) => void = () => undefined
+    const { store } = setup({
+      callIceServers: () => new Promise(resolve => (releaseIce = resolve)),
+    })
+    await store.start('conv-1', 'Voice')
+    store.applyCallChanged(answered())
+
+    store.applyCallSignal(signal(BOB, { type: 'offer', sdp: 'v=0' }))
+    store.applyCallSignal(signal(BOB, {
+      type: 'candidate',
+      candidate: { candidate: 'a' },
+    }))
+    expect(fakes.state.sessions).toHaveLength(0)
+    releaseIce([])
+    await settle()
+
+    const session = sessionWith(0)
+    expect(session.handled).toStrictEqual([
+      { type: 'offer', sdp: 'v=0' },
+      {
+        type: 'candidate',
+        candidate: { candidate: 'a' },
+      },
+    ])
+
+    store.applyCallSignal(signal(BOB, {
+      type: 'candidate',
+      candidate: { candidate: 'b' },
+    }))
+    expect(session.handled).toHaveLength(3)
   })
 
   it('接听快过发起的响应：先到的接通推送在占下之后补上', async () => {
@@ -395,7 +548,7 @@ describe('发起', () => {
     const starting = store.start('conv-1', 'Voice')
     await settle()
     store.applyCallChanged(outgoing())
-    store.applyCallChanged(outgoing({ status: 'Ongoing' }))
+    store.applyCallChanged(answered())
     expect(store.phase).toBe('idle')
     release(outgoing())
     await starting
@@ -413,8 +566,8 @@ describe('来电', () => {
     store.applyCallChanged(incoming({
       callId: 'stranger',
       participants: [
-        participant(BOB, 'Joined'),
-        participant('carol', 'Invited'),
+        participant(BOB, 'Joined', START),
+        participant(CAROL, 'Invited'),
       ],
     }))
     store.applyCallChanged(outgoing({ callId: 'elsewhere' }))
@@ -422,48 +575,31 @@ describe('来电', () => {
 
     store.applyCallChanged(incoming())
 
-    expect([store.phase, store.engaged, store.peer?.displayName]).toStrictEqual(['incoming', false, 'Bob'])
+    expect([store.phase, store.engaged, store.peer?.displayName]).toStrictEqual(['incoming', false, 'BOB'])
     expect(fakes.state.sounds).toStrictEqual(['notification'])
     expect(sessionStorage.getItem(CHAT_CALL_SESSION_KEY)).toBeNull()
   })
 
-  it('接听：取设备、占下、告诉服务端，等对方的 offer；先到的信令存着，按先后交给连接', async () => {
-    let releaseIce: (servers: never[]) => void = () => undefined
+  it('接听：取设备、占下、告诉服务端，后加入的我出 offer', async () => {
     const { store, calls } = setup({
-      callIceServers: () => new Promise(resolve => (releaseIce = resolve)),
+      acceptCall: async callId => accepted({ callId, media: 'Video' }),
     })
     store.applyCallChanged(incoming({ media: 'Video' }))
 
     await store.accept()
+    await settle()
+
     expect(fakes.state.acquired).toStrictEqual(['Video'])
     expect(calls).toStrictEqual(['acceptCall:call-1', 'callIceServers'])
     expect([
       store.phase,
       store.engaged,
+      store.cameraOn,
       sessionStorage.getItem(CHAT_CALL_SESSION_KEY),
-    ]).toStrictEqual(['connecting', true, 'call-1'])
-
-    // 连接还在建：对方的 offer 与候选先到
-    store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: '{"type":"offer","sdp":"v=0"}' })
-    store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: '{"type":"candidate","candidate":{"candidate":"a"}}' })
-    expect(fakes.state.sessions).toHaveLength(0)
-    releaseIce([])
-    await settle()
-
-    const session = fakes.state.sessions[0]!
-    expect(session.options.initiator).toBe(false)
-    expect(session.started).toBe(0)
-    expect(session.handled).toStrictEqual([
-      { type: 'offer', sdp: 'v=0' },
-      {
-        type: 'candidate',
-        candidate: { candidate: 'a' },
-      },
-    ])
-
-    // 连接建好之后的直接交给它
-    store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: '{"type":"candidate","candidate":{"candidate":"b"}}' })
-    expect(session.handled).toHaveLength(3)
+    ]).toStrictEqual(['connecting', true, true, 'call-1'])
+    const session = sessionWith(0)
+    expect([session.options.offerer, session.started]).toStrictEqual([true, 1])
+    expect(session.options.tracks.camera).toBe(fakes.state.streams[0]?.tracks[1])
   })
 
   it('接通的推送比接听的响应先到：不当成在别处接了，连接只建一次', async () => {
@@ -475,10 +611,10 @@ describe('来电', () => {
 
     const accepting = store.accept()
     await settle()
-    store.applyCallChanged(incoming({ status: 'Ongoing' }))
-    await settle()
     expect([store.phase, store.engaged]).toStrictEqual(['connecting', true])
-    release(incoming({ status: 'Ongoing' }))
+    store.applyCallChanged(accepted())
+    await settle()
+    release(accepted())
     await accepting
     await settle()
 
@@ -486,11 +622,41 @@ describe('来电', () => {
     expect(store.call?.status).toBe('Ongoing')
   })
 
+  it('接听的响应比别人加入的推送晚到：以推送为准，不照旧响应把刚建好的连接关掉', async () => {
+    let release: (item: ChatCallItem) => void = () => undefined
+    const { store } = setup({
+      acceptCall: () => new Promise(resolve => (release = resolve)),
+    })
+    const seenBy = (me: ChatCallParticipantItem, carol: ChatCallParticipantItem, status: ChatCallItem['status']) => group([
+      participant(BOB, 'Joined', START),
+      me,
+      carol,
+    ], { initiatorUserId: BOB, status })
+    store.applyCallChanged(seenBy(participant(ME, 'Invited'), participant(CAROL, 'Invited'), 'Ringing'))
+
+    const accepting = store.accept()
+    await settle()
+    // 我接听的那一步提交了，Carol 紧跟着也接了：两条推送都先于我那一步的响应到
+    const afterMe = seenBy(participant(ME, 'Joined', T1), participant(CAROL, 'Invited'), 'Ongoing')
+    const afterCarol = seenBy(participant(ME, 'Joined', T1), participant(CAROL, 'Joined', T2), 'Ongoing')
+    store.applyCallChanged(afterMe)
+    store.applyCallChanged(afterCarol)
+    await settle()
+    expect(store.peers.map(peer => peer.userId)).toStrictEqual([BOB, CAROL])
+
+    release(afterMe)
+    await accepting
+    await settle()
+
+    expect(store.peers.map(peer => peer.userId)).toStrictEqual([BOB, CAROL])
+    expect(fakes.state.sessions.map(session => session.closed)).toStrictEqual([false, false])
+  })
+
   it('在别处接了：停铃收起，不提示', async () => {
     const { store } = setup()
     store.applyCallChanged(incoming())
 
-    store.applyCallChanged(incoming({ status: 'Ongoing' }))
+    store.applyCallChanged(accepted())
     fakes.state.sounds.length = 0
     await vi.advanceTimersByTimeAsync(10000)
 
@@ -505,7 +671,7 @@ describe('来电', () => {
 
     store.applyCallChanged(incoming({ status: 'Ended', endReason: 'Cancelled' }))
     expect(store.phase).toBe('idle')
-    expect(store.notice).toStrictEqual({ kind: 'cancelled', peerName: 'bob' })
+    expect(store.notice).toStrictEqual({ kind: 'cancelled', peerName: 'bob', group: false })
 
     store.notice = null
     store.applyCallChanged(incoming({ callId: 'call-2' }))
@@ -513,7 +679,7 @@ describe('来电', () => {
     expect([store.phase, store.notice]).toStrictEqual(['idle', null])
   })
 
-  it('拒绝：告诉服务端并收起；服务端说它已经不在响铃时照样收起、不抛', async () => {
+  it('拒绝：告诉服务端并收起；服务端说它已经不在等我答复时照样收起、不抛', async () => {
     const { store, calls } = setup()
     store.applyCallChanged(incoming())
 
@@ -553,7 +719,7 @@ describe('来电', () => {
     const { store } = setup({
       acceptCall: callId => (fail
         ? Promise.reject(new TypeError('Failed to fetch'))
-        : Promise.resolve(incoming({ callId, status: 'Ongoing' }))),
+        : Promise.resolve(accepted({ callId }))),
     })
     store.applyCallChanged(incoming())
 
@@ -575,6 +741,43 @@ describe('来电', () => {
 
     expect([store.call?.callId, store.phase, store.notice]).toStrictEqual(['call-1', 'outgoing', null])
   })
+
+  it('多人通话的来电：别人先接了，我还没答复就接着响；我的邀请没了才收起', async () => {
+    const { store } = setup()
+    const ringing = group([
+      participant(BOB, 'Joined', START),
+      participant(ME, 'Invited'),
+      participant(CAROL, 'Invited'),
+    ], { initiatorUserId: BOB })
+    store.applyCallChanged(ringing)
+    expect([store.phase, store.peer?.userId]).toStrictEqual(['incoming', BOB])
+
+    store.applyCallChanged({
+      ...ringing,
+      status: 'Ongoing',
+      participants: [
+        participant(BOB, 'Joined', START),
+        participant(ME, 'Invited'),
+        participant(CAROL, 'Joined', T1),
+      ],
+    })
+    fakes.state.sounds.length = 0
+    await vi.advanceTimersByTimeAsync(2200)
+    expect([store.phase, store.call?.status]).toStrictEqual(['incoming', 'Ongoing'])
+    expect(fakes.state.sounds).toStrictEqual(['notification'])
+
+    // 在别的端拒绝了
+    store.applyCallChanged({
+      ...ringing,
+      status: 'Ongoing',
+      participants: [
+        participant(BOB, 'Joined', START),
+        participant(ME, 'Rejected'),
+        participant(CAROL, 'Joined', T1),
+      ],
+    })
+    expect([store.phase, store.notice]).toStrictEqual(['idle', null])
+  })
 })
 
 describe('响铃到点', () => {
@@ -588,7 +791,7 @@ describe('响铃到点', () => {
 
     expect(calls).toStrictEqual(['startCall:conv-1:Voice', 'hangupCall:call-1'])
     expect(store.phase).toBe('idle')
-    expect(store.notice).toStrictEqual({ kind: 'no-answer', peerName: 'bob' })
+    expect(store.notice).toStrictEqual({ kind: 'no-answer', peerName: 'bob', group: false })
     expect(fakes.state.streams[0]?.tracks.every(track => track.stopped)).toBe(true)
 
     // 服务端随后推来的结束不再重复提示
@@ -621,13 +824,27 @@ describe('响铃到点', () => {
     expect(calls).toStrictEqual(['acceptCall:call-1'])
     expect(store.phase).toBe('connecting')
   })
+
+  it('多人通话已经有人接了：受邀端到点挂掉的只是自己那份邀请', async () => {
+    const { store, calls } = setup()
+    store.applyCallChanged(group([
+      participant(BOB, 'Joined', START),
+      participant(ME, 'Invited'),
+      participant(CAROL, 'Joined', T1),
+    ], { initiatorUserId: BOB, status: 'Ongoing' }))
+
+    await vi.advanceTimersByTimeAsync(62000)
+
+    expect(calls).toStrictEqual(['hangupCall:call-g'])
+    expect([store.phase, store.notice]).toStrictEqual(['idle', null])
+  })
 })
 
 describe('通话中', () => {
   async function connected(media: 'Video' | 'Voice' = 'Voice') {
     const context = setup()
     await context.store.start('conv-1', media)
-    context.store.applyCallChanged(outgoing({ media, status: 'Ongoing' }))
+    context.store.applyCallChanged(answered({ media }))
     await settle()
     // 一个用例里可能先后起几通：取最新的那一个
     const session = fakes.state.sessions.at(-1)!
@@ -640,21 +857,32 @@ describe('通话中', () => {
     }
   }
 
-  it('媒体连上：记下时刻，对端的媒体归位', async () => {
+  it('媒体连上：记下时刻；对端各轨道位的轨道落到他的声音、摄像头与屏幕上', async () => {
     const { store, session } = await connected()
-    const remote = { id: 'remote' }
+    const [mic, camera, screen] = [
+      { id: 'mic' },
+      { id: 'cam' },
+      { id: 'screen' },
+    ]
 
-    session.options.onRemoteStream(remote)
+    session.options.onRemoteTrack('mic', mic)
+    session.options.onRemoteTrack('camera', camera)
+    session.options.onRemoteTrack('screen', screen)
 
-    expect([store.phase, store.connectionState, store.connectedAt]).toStrictEqual([
-      'connected',
+    expect([store.phase, store.connectedAt]).toStrictEqual([
       'connected',
       Date.parse(START),
     ])
-    expect(store.remoteStream).toBe(remote)
+    const peer = store.peers[0]!
+    expect(peer.connection).toBe('connected')
+    expect([peer.audio, peer.camera, peer.screen]).toStrictEqual([
+      new fakes.FakeMediaStream([mic]),
+      new fakes.FakeMediaStream([camera]),
+      new fakes.FakeMediaStream([screen]),
+    ])
   })
 
-  it('静音与关摄像头：改本端轨道并告诉对端', async () => {
+  it('静音与关摄像头：改本端轨道并告诉通话里的所有人', async () => {
     const { store, stream } = await connected('Video')
 
     store.setMicOn(false)
@@ -666,24 +894,42 @@ describe('通话中', () => {
       [
         'CallSignal',
         'call-1',
-        { type: 'state', micOn: false, cameraOn: true },
+        null,
+        {
+          type: 'state',
+          micOn: false,
+          cameraOn: true,
+          screenOn: false,
+        },
       ],
       [
         'CallSignal',
         'call-1',
-        { type: 'state', micOn: false, cameraOn: false },
+        null,
+        {
+          type: 'state',
+          micOn: false,
+          cameraOn: false,
+          screenOn: false,
+        },
       ],
     ])
   })
 
   it('对端的开关随 state 信令更新；别的通话的、自己发的、读不懂的都不理', async () => {
     const { store, session } = await connected('Video')
+    expect([store.peers[0]?.micOn, store.peers[0]?.cameraOn, store.peers[0]?.screenOn]).toStrictEqual([true, true, false])
 
-    store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: '{"type":"state","micOn":false,"cameraOn":false}' })
-    expect([store.peerMicOn, store.peerCameraOn]).toStrictEqual([false, false])
+    store.applyCallSignal(signal(BOB, {
+      type: 'state',
+      micOn: false,
+      cameraOn: false,
+      screenOn: true,
+    }))
+    expect([store.peers[0]?.micOn, store.peers[0]?.cameraOn, store.peers[0]?.screenOn]).toStrictEqual([false, false, true])
 
-    store.applyCallSignal({ callId: 'call-9', fromUserId: BOB, data: '{"type":"offer","sdp":"v=0"}' })
-    store.applyCallSignal({ callId: 'call-1', fromUserId: ME, data: '{"type":"offer","sdp":"v=0"}' })
+    store.applyCallSignal(signal(BOB, { type: 'offer', sdp: 'v=0' }, 'call-9'))
+    store.applyCallSignal(signal(ME, { type: 'offer', sdp: 'v=0' }))
     store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: 'garbage' })
     expect(session.handled).toStrictEqual([])
   })
@@ -692,7 +938,7 @@ describe('通话中', () => {
     const { store } = setup()
     store.applyCallChanged(incoming())
 
-    store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: '{"type":"offer","sdp":"v=0"}' })
+    store.applyCallSignal(signal(BOB, { type: 'offer', sdp: 'v=0' }))
 
     expect(fakes.state.sessions).toHaveLength(0)
     expect(store.phase).toBe('incoming')
@@ -702,6 +948,7 @@ describe('通话中', () => {
     const { store, calls, session } = await connected()
 
     session.options.onStateChange('disconnected')
+    expect(store.peers[0]?.connection).toBe('connecting')
     await vi.advanceTimersByTimeAsync(7000)
     session.options.onStateChange('connected')
     await vi.advanceTimersByTimeAsync(5000)
@@ -711,7 +958,7 @@ describe('通话中', () => {
     await vi.advanceTimersByTimeAsync(8000)
 
     expect(store.phase).toBe('idle')
-    expect(store.notice).toStrictEqual({ kind: 'interrupted', peerName: 'bob' })
+    expect(store.notice).toStrictEqual({ kind: 'interrupted', peerName: 'bob', group: false })
     expect(calls.at(-1)).toBe('hangupCall:call-1')
     expect(session.closed).toBe(true)
   })
@@ -724,9 +971,9 @@ describe('通话中', () => {
     fakes.state.sessions.length = 0
     const never = setup()
     await never.store.start('conv-1', 'Voice')
-    never.store.applyCallChanged(outgoing({ status: 'Ongoing' }))
+    never.store.applyCallChanged(answered())
     await settle()
-    fakes.state.sessions[0]!.options.onStateChange('failed')
+    sessionWith(0).options.onStateChange('failed')
     expect(never.store.notice?.kind).toBe('connect-failed')
     expect(never.calls.at(-1)).toBe('hangupCall:call-1')
   })
@@ -734,7 +981,7 @@ describe('通话中', () => {
   it('接通后 30 秒媒体还没连上即挂断；连上了就不再管', async () => {
     const { store, calls } = setup()
     await store.start('conv-1', 'Voice')
-    store.applyCallChanged(outgoing({ status: 'Ongoing' }))
+    store.applyCallChanged(answered())
     await settle()
 
     await vi.advanceTimersByTimeAsync(30000)
@@ -755,7 +1002,7 @@ describe('通话中', () => {
     })
     await store.start('conv-1', 'Voice')
 
-    store.applyCallChanged(outgoing({ status: 'Ongoing' }))
+    store.applyCallChanged(answered())
     await settle()
 
     expect([store.phase, store.notice?.kind]).toStrictEqual(['idle', 'connect-failed'])
@@ -763,11 +1010,14 @@ describe('通话中', () => {
     expect(fakes.state.sessions).toHaveLength(0)
   })
 
-  it('对端的信令处理不了：收场并提示连不上', async () => {
-    const { store, session } = await connected()
-    session.failHandle = true
+  it('对端的信令处理不了：这条连接作废，只有他一个人时收场', async () => {
+    const { store } = setup()
+    await store.start('conv-1', 'Voice')
+    store.applyCallChanged(answered())
+    await settle()
+    sessionWith(0).failHandle = true
 
-    store.applyCallSignal({ callId: 'call-1', fromUserId: BOB, data: '{"type":"answer","sdp":"broken"}' })
+    store.applyCallSignal(signal(BOB, { type: 'offer', sdp: 'broken' }))
     await settle()
 
     expect([store.phase, store.notice?.kind]).toStrictEqual(['idle', 'connect-failed'])
@@ -782,36 +1032,36 @@ describe('通话中', () => {
     expect([
       store.phase,
       store.localStream,
-      store.remoteStream,
+      store.peers,
       store.connectedAt,
-    ]).toStrictEqual(['idle', null, null, null])
+    ]).toStrictEqual(['idle', null, [], null])
     expect([
       session.closed,
       stream.tracks.every(track => track.stopped),
     ]).toStrictEqual([true, true])
     expect(sessionStorage.getItem(CHAT_CALL_SESSION_KEY)).toBeNull()
 
-    store.applyCallChanged(outgoing({ status: 'Ended', endReason: 'Completed' }))
+    store.applyCallChanged(answered({ status: 'Ended', endReason: 'Completed' }))
     expect(store.notice).toBeNull()
   })
 
   it('对端挂断：收场不提示；对端掉线记的中断要提示；对方拒绝要提示', async () => {
     const hungUp = await connected()
-    hungUp.store.applyCallChanged(outgoing({ status: 'Ended', endReason: 'Completed' }))
+    hungUp.store.applyCallChanged(answered({ status: 'Ended', endReason: 'Completed' }))
     expect([hungUp.store.phase, hungUp.store.notice, hungUp.session.closed]).toStrictEqual(['idle', null, true])
 
     fakes.state.sessions.length = 0
     const dropped = await connected()
-    dropped.store.applyCallChanged(outgoing({ status: 'Ended', endReason: 'Interrupted' }))
-    expect(dropped.store.notice).toStrictEqual({ kind: 'interrupted', peerName: 'bob' })
+    dropped.store.applyCallChanged(answered({ status: 'Ended', endReason: 'Interrupted' }))
+    expect(dropped.store.notice).toStrictEqual({ kind: 'interrupted', peerName: 'bob', group: false })
 
     const rejected = setup()
     await rejected.store.start('conv-1', 'Voice')
     rejected.store.applyCallChanged(outgoing({ status: 'Ended', endReason: 'Rejected' }))
-    expect(rejected.store.notice).toStrictEqual({ kind: 'rejected', peerName: 'bob' })
+    expect(rejected.store.notice).toStrictEqual({ kind: 'rejected', peerName: 'bob', group: false })
   })
 
-  it('换设备：新轨道沿用当前的开关，替换进连接与本端媒体，旧的停掉', async () => {
+  it('换设备：新轨道沿用当前的开关，换到连接的位上与本端媒体里，旧的停掉', async () => {
     const { store, session, stream } = await connected('Video')
     const [oldMic, oldCamera] = stream.tracks
     store.setCameraOn(false)
@@ -819,13 +1069,454 @@ describe('通话中', () => {
     await store.switchDevice('audioinput', 'mic-2')
     await store.switchDevice('videoinput', 'cam-2')
 
-    expect(session.replaced.map(track => [track.kind, track.enabled])).toStrictEqual([
-      ['audio', true],
-      ['video', false],
+    expect(session.tracks.map(([slot, track]) => [slot, track?.kind, track?.enabled])).toStrictEqual([
+      ['mic', 'audio', true],
+      ['camera', 'video', false],
     ])
     expect([oldMic?.stopped, oldCamera?.stopped]).toStrictEqual([true, true])
     expect(stream.tracks).toHaveLength(2)
     expect(stream.tracks.every(track => !track.stopped)).toBe(true)
+  })
+
+  describe('屏幕共享', () => {
+    it('开始：屏幕的轨道换到每条连接的屏幕位上，告诉所有人；停止：位上清空、轨道停掉、再告诉一次', async () => {
+      const { store, session } = await connected()
+
+      await store.startScreenShare()
+
+      const screen = fakes.state.screens[0]!
+      expect([store.screenOn, store.screenStream]).toStrictEqual([true, screen])
+      expect(session.tracks).toStrictEqual([
+        ['screen', screen.tracks[0]],
+      ])
+      expect(signalsSent()).toStrictEqual([
+        [
+          'CallSignal',
+          'call-1',
+          null,
+          {
+            type: 'state',
+            micOn: true,
+            cameraOn: false,
+            screenOn: true,
+          },
+        ],
+      ])
+
+      store.stopScreenShare()
+
+      expect([store.screenOn, screen.tracks[0]?.stopped]).toStrictEqual([false, true])
+      expect(session.tracks.at(-1)).toStrictEqual(['screen', null])
+      expect(signalsSent().at(-1)?.[3]).toStrictEqual({
+        type: 'state',
+        micOn: true,
+        cameraOn: false,
+        screenOn: false,
+      })
+    })
+
+    it('用户在选择框里取消：什么都不做；取不到的原样抛出', async () => {
+      const { store, session } = await connected()
+      fakes.state.screen = 'cancel'
+
+      await store.startScreenShare()
+
+      expect([
+        store.screenOn,
+        session.tracks,
+        signalsSent(),
+      ]).toStrictEqual([false, [], []])
+
+      fakes.state.screen = new ChatCallMediaError('busy', 'Video')
+      await expect(store.startScreenShare()).rejects.toMatchObject({ failure: 'busy' })
+      expect(store.screenOn).toBe(false)
+    })
+
+    it('用户从浏览器自己的条上停掉：跟着停止共享', async () => {
+      const { store, session } = await connected()
+      await store.startScreenShare()
+
+      fakes.state.screens[0]?.tracks[0]?.listeners.ended?.forEach(listener => listener())
+
+      expect(store.screenOn).toBe(false)
+      expect(session.tracks.at(-1)).toStrictEqual(['screen', null])
+    })
+
+    it('正在共享时不再取一次；没占着通话的不能共享', async () => {
+      const { store } = await connected()
+      await store.startScreenShare()
+      await store.startScreenShare()
+      expect(fakes.state.screens).toHaveLength(1)
+
+      const idle = setup()
+      idle.store.applyCallChanged(incoming())
+      await idle.store.startScreenShare()
+      expect(fakes.state.screens).toHaveLength(1)
+    })
+
+    it('挂断时连同共享的屏幕一起放掉', async () => {
+      const { store } = await connected()
+      await store.startScreenShare()
+
+      await store.hangup()
+
+      expect([store.screenOn, fakes.state.screens[0]?.tracks[0]?.stopped]).toStrictEqual([false, true])
+    })
+  })
+})
+
+describe('多人通话', () => {
+  /** 我在群里发起，Bob 已经接了、Carol 还在响 */
+  async function started() {
+    const context = setup()
+    await context.store.start('conv-g', 'Voice', [BOB, CAROL])
+    context.store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Invited')))
+    await settle()
+    fakes.state.hub.length = 0
+    return context
+  }
+
+  it('发起带上点名邀请的人；每进来一个人各建一条连接，后加入的一方出 offer', async () => {
+    const { store, calls } = setup()
+
+    await store.start('conv-g', 'Voice', [BOB, CAROL])
+    expect(calls).toStrictEqual(['startCall:conv-g:Voice:bob,carol'])
+    expect([store.phase, store.peers]).toStrictEqual(['outgoing', []])
+
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Invited')))
+    await settle()
+    expect(store.peers.map(peer => peer.userId)).toStrictEqual([BOB])
+    expect(fakes.state.sessions.map(session => session.options.offerer)).toStrictEqual([false])
+
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Joined', T2)))
+    await settle()
+    expect(store.peers.map(peer => peer.userId)).toStrictEqual([BOB, CAROL])
+    expect(fakes.state.sessions.map(session => session.options.offerer)).toStrictEqual([false, false])
+    // 各人只收到指给自己的开关状态
+    expect(signalsSent().map(sent => sent[2])).toStrictEqual([BOB, CAROL])
+  })
+
+  it('信令各走各的连接；还没看到他加入的人发来的先存着，等他进来再给', async () => {
+    const { store } = await started()
+
+    store.applyCallSignal(signal(BOB, { type: 'offer', sdp: 'from-bob' }, 'call-g'))
+    store.applyCallSignal(signal(CAROL, { type: 'offer', sdp: 'from-carol' }, 'call-g'))
+    expect(sessionWith(0).handled).toStrictEqual([
+      { type: 'offer', sdp: 'from-bob' },
+    ])
+    expect(fakes.state.sessions).toHaveLength(1)
+
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Joined', T2)))
+    await settle()
+
+    expect(sessionWith(1).handled).toStrictEqual([
+      { type: 'offer', sdp: 'from-carol' },
+    ])
+    expect(sessionWith(0).handled).toHaveLength(1)
+  })
+
+  it('有人离开：只关与他的那条连接，通话照常；里面只剩我而还有人在响时等着', async () => {
+    const { store, calls } = await started()
+    sessionWith(0).options.onStateChange('connected')
+    expect(store.phase).toBe('connected')
+
+    store.applyCallChanged(mine(participant(BOB, 'Left', T1), participant(CAROL, 'Invited')))
+
+    expect(sessionWith(0).closed).toBe(true)
+    expect([store.phase, store.peers, store.engaged]).toStrictEqual(['waiting', [], true])
+    expect(calls).toStrictEqual(['startCall:conv-g:Voice:bob,carol', 'callIceServers'])
+  })
+
+  it('有人离开又回来（加入的时刻变了）：旧连接作废、重新建；同一次加入的时刻读到的精度不同不算', async () => {
+    const { store } = await started()
+
+    store.applyCallChanged(mine(participant(BOB, 'Joined', '2026-11-14T08:00:05.0004567Z'), participant(CAROL, 'Invited')))
+    await settle()
+    expect(fakes.state.sessions).toHaveLength(1)
+    expect(sessionWith(0).closed).toBe(false)
+
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T3), participant(CAROL, 'Invited')))
+    await settle()
+
+    expect(fakes.state.sessions).toHaveLength(2)
+    expect([sessionWith(0).closed, sessionWith(1).closed]).toStrictEqual([true, false])
+    expect(store.peers.map(peer => [peer.userId, peer.connection])).toStrictEqual([
+      [BOB, 'connecting'],
+    ])
+  })
+
+  it('与一个人连不上：他那一格标成连不上，别人照常；与所有人都连不上才收场', async () => {
+    const { store, calls } = await started()
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Joined', T2)))
+    await settle()
+    sessionWith(1).options.onStateChange('connected')
+
+    sessionWith(0).options.onStateChange('failed')
+
+    expect(store.peers.map(peer => [peer.userId, peer.connection])).toStrictEqual([
+      [BOB, 'failed'],
+      [CAROL, 'connected'],
+    ])
+    expect([store.phase, sessionWith(0).closed, store.notice]).toStrictEqual(['connected', true, null])
+
+    // 连不上的人再发来的信令不理、不存
+    store.applyCallSignal(signal(BOB, { type: 'offer', sdp: 'late' }, 'call-g'))
+    expect(sessionWith(0).handled).toStrictEqual([])
+
+    sessionWith(1).options.onStateChange('failed')
+
+    expect(store.phase).toBe('idle')
+    expect(store.notice).toStrictEqual({ kind: 'interrupted', peerName: 'me', group: true })
+    expect(calls.at(-1)).toBe('hangupCall:call-g')
+  })
+
+  it('服务端把我记成离开了（它以为我掉线了）：这个页签退出来并提示中断', async () => {
+    const { store } = await started()
+
+    store.applyCallChanged(group([
+      participant(ME, 'Left', START),
+      participant(BOB, 'Joined', T1),
+      participant(CAROL, 'Joined', T2),
+    ], { status: 'Ongoing' }))
+
+    expect([store.phase, store.localStream, sessionWith(0).closed]).toStrictEqual(['idle', null, true])
+    expect(store.notice).toStrictEqual({ kind: 'interrupted', peerName: 'me', group: true })
+  })
+
+  it('受邀的都没来：不点谁拒绝了，说没人接；通话正常结束不提示', async () => {
+    const declined = setup()
+    await declined.store.start('conv-g', 'Voice', [BOB, CAROL])
+    declined.store.applyCallChanged(mine(participant(BOB, 'Rejected'), participant(CAROL, 'Rejected'), { status: 'Ended', endReason: 'Rejected' }))
+    expect(declined.store.notice).toStrictEqual({ kind: 'no-answer', peerName: 'me', group: true })
+
+    const { store } = await started()
+    store.applyCallChanged(mine(participant(BOB, 'Left', T1), participant(CAROL, 'Missed'), { status: 'Ended', endReason: 'Completed' }))
+    expect([store.phase, store.notice]).toStrictEqual(['idle', null])
+  })
+
+  describe('加入', () => {
+    const target = group([
+      participant(BOB, 'Joined', START),
+      participant(CAROL, 'Joined', T1),
+    ], { initiatorUserId: BOB, status: 'Ongoing' })
+    const joined = {
+      ...target,
+      participants: [
+        ...target.participants,
+        participant(ME, 'Joined', T2),
+      ],
+    }
+
+    it('先取设备再告诉服务端：与里面的每个人各建一条连接、都由我出 offer，穿透服务器合取一次', async () => {
+      const { store, calls } = setup({
+        joinCall: async () => joined,
+      })
+
+      await store.join(target)
+      await settle()
+
+      expect(fakes.state.acquired).toStrictEqual(['Voice'])
+      expect(calls).toStrictEqual(['joinCall:call-g', 'callIceServers'])
+      expect([
+        store.phase,
+        store.engaged,
+        sessionStorage.getItem(CHAT_CALL_SESSION_KEY),
+      ]).toStrictEqual(['connecting', true, 'call-g'])
+      expect(fakes.state.sessions.map(session => [session.options.offerer, session.started])).toStrictEqual([
+        [true, 1],
+        [true, 1],
+      ])
+    })
+
+    it('加入的响应没到、先到的推送比它早（我还是上次离开的样子）：等着，不当成被请出去；响应来了也不再用它', async () => {
+      let release: (item: ChatCallItem) => void = () => undefined
+      const { store } = setup({
+        joinCall: () => new Promise(resolve => (release = resolve)),
+      })
+      const before = {
+        ...target,
+        participants: [
+          ...target.participants,
+          participant(ME, 'Left', T1),
+        ],
+      }
+
+      const joining = store.join(before)
+      await settle()
+      store.applyCallChanged(before)
+      release(joined)
+      await joining
+      await settle()
+      // 响应没用上：还在等自己已加入的那条推送
+      expect([store.phase, store.engaged, fakes.state.sessions.length]).toStrictEqual(['connecting', true, 0])
+
+      // 比我那一步还早的推送接着到：照样不当成被请出去
+      store.applyCallChanged(before)
+      expect([store.engaged, store.notice]).toStrictEqual([true, null])
+
+      store.applyCallChanged(joined)
+      await settle()
+      expect(fakes.state.sessions).toHaveLength(2)
+
+      // 之后再被记成离开才是真的被请出去了
+      store.applyCallChanged(before)
+      expect([store.phase, store.notice?.kind]).toStrictEqual(['idle', 'interrupted'])
+    })
+
+    it('进不去（人数满了、已经结束）：放掉设备、不再占着，错误原样抛出', async () => {
+      const { store } = setup({
+        joinCall: () => Promise.reject(new ApiError(409, { code: 'CHAT_CONFLICT_008', detail: '通话人数已满。' })),
+      })
+
+      await expect(store.join(target)).rejects.toMatchObject({ code: 'CHAT_CONFLICT_008' })
+
+      expect([store.phase, store.engaged, store.localStream]).toStrictEqual(['idle', false, null])
+      expect(fakes.state.streams[0]?.tracks.every(track => track.stopped)).toBe(true)
+      expect(sessionStorage.getItem(CHAT_CALL_SESSION_KEY)).toBeNull()
+    })
+
+    it('它正是眼前在响的来电：加入即接听；眼前有别的通话时不加入', async () => {
+      const ringing = group([
+        participant(BOB, 'Joined', START),
+        participant(ME, 'Invited'),
+      ], { initiatorUserId: BOB })
+      const invited = setup({
+        acceptCall: async () => ({
+          ...ringing,
+          status: 'Ongoing',
+          participants: [
+            participant(BOB, 'Joined', START),
+            participant(ME, 'Joined', T1),
+          ],
+        }),
+      })
+      invited.store.applyCallChanged(ringing)
+
+      await invited.store.join(ringing)
+
+      expect(invited.calls[0]).toBe('acceptCall:call-g')
+      expect(invited.store.engaged).toBe(true)
+
+      const busy = setup()
+      await busy.store.start('conv-1', 'Voice')
+      await busy.store.join(target)
+      expect(busy.calls).toStrictEqual(['startCall:conv-1:Voice'])
+    })
+  })
+
+  describe('会话里还没结束的通话', () => {
+    const theirs = group([
+      participant(BOB, 'Joined', START),
+      participant(CAROL, 'Invited'),
+    ], { initiatorUserId: BOB })
+
+    it('群通话的推送记到会话名下，结束了拿掉；一对一的不记；不是我的通话不出来电', () => {
+      const { store } = setup()
+
+      store.applyCallChanged(theirs)
+      store.applyCallChanged(incoming({ callId: 'single', status: 'Ended', endReason: 'Missed' }))
+      expect(Object.keys(store.ongoingCalls)).toStrictEqual(['conv-g'])
+      expect(store.phase).toBe('idle')
+
+      store.applyCallChanged({ ...theirs, status: 'Ended', endReason: 'Cancelled' })
+      expect(store.ongoingCalls).toStrictEqual({})
+    })
+
+    it('打开群会话时取一遍：有就记下，没有就拿掉；没有通话读权限不问', async () => {
+      let found: ChatCallItem | null = theirs
+      const { store, calls } = setup({
+        ongoingCall: async () => ({ call: found, now: START }),
+      })
+
+      await store.loadOngoing('conv-g')
+      expect(store.ongoingCalls['conv-g']?.callId).toBe('call-g')
+
+      found = null
+      await store.loadOngoing('conv-g')
+      expect(store.ongoingCalls).toStrictEqual({})
+      expect(calls).toStrictEqual(['ongoingCall:conv-g', 'ongoingCall:conv-g'])
+
+      const denied = setup({}, [CHAT_PERMISSIONS.read])
+      await denied.store.loadOngoing('conv-g')
+      expect(denied.calls).toStrictEqual([])
+    })
+
+    it('取的时候推送先到了：以推送为准', async () => {
+      let release: (result: { call: ChatCallItem | null, now: string }) => void = () => undefined
+      const { store } = setup({
+        ongoingCall: () => new Promise(resolve => (release = resolve)),
+      })
+
+      const loading = store.loadOngoing('conv-g')
+      store.applyCallChanged({ ...theirs, status: 'Ended', endReason: 'Cancelled' })
+      release({ call: theirs, now: START })
+      await loading
+
+      expect(store.ongoingCalls).toStrictEqual({})
+    })
+
+    it('换一个会话看：离开的那个不再有推送，不是我的通话就丢掉；我在里面的留着；重连之后重取', async () => {
+      const { store, calls } = setup({
+        ongoingCall: async conversationId => ({
+          call: conversationId === 'conv-g'
+            ? theirs
+            : null,
+          now: START,
+        }),
+      })
+
+      await store.watchConversation('conv-g')
+      expect(Object.keys(store.ongoingCalls)).toStrictEqual(['conv-g'])
+      await store.watchConversation('conv-h')
+      expect(store.ongoingCalls).toStrictEqual({})
+
+      // 我是这通电话的参与者（哪怕已经离开）：照样收得到推送，留着
+      await store.watchConversation('conv-g')
+      store.applyCallChanged(group([
+        participant(BOB, 'Joined', START),
+        participant(ME, 'Left', T1),
+        participant(CAROL, 'Joined', T2),
+      ], { initiatorUserId: BOB, status: 'Ongoing' }))
+      await store.watchConversation(null)
+      expect(Object.keys(store.ongoingCalls)).toStrictEqual(['conv-g'])
+
+      calls.length = 0
+      await store.watchConversation('conv-h')
+      await store.restore()
+      expect(calls).toStrictEqual(['ongoingCall:conv-h', 'ongoingCall:conv-h', 'activeCall'])
+    })
+
+    it('通话的设置取回来记着', async () => {
+      const { store } = setup()
+
+      await expect(store.loadSettings()).resolves.toStrictEqual({ ringSeconds: 60, maxVoiceParticipants: 8, maxVideoParticipants: 6 })
+
+      expect(store.settings?.maxVideoParticipants).toBe(6)
+    })
+  })
+
+  it('正在共享屏幕时进来的人：建连接时屏幕位上直接带着屏幕的轨道', async () => {
+    const { store } = await started()
+    await store.startScreenShare()
+
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Joined', T2)))
+    await settle()
+
+    expect(sessionWith(0).tracks).toStrictEqual([
+      ['screen', fakes.state.screens[0]?.tracks[0]],
+    ])
+    expect(sessionWith(1).options.tracks.screen).toBe(fakes.state.screens[0]?.tracks[0])
+    expect(signalsSent().at(-1)).toStrictEqual([
+      'CallSignal',
+      'call-g',
+      CAROL,
+      {
+        type: 'state',
+        micOn: true,
+        cameraOn: false,
+        screenOn: true,
+      },
+    ])
   })
 })
 
@@ -867,7 +1558,7 @@ describe('与服务端对一遍', () => {
     expect(fakes.state.streams[0]?.tracks.every(track => track.stopped)).toBe(true)
   })
 
-  it('还在响的来电认回来，剩余时间按服务端的钟算', async () => {
+  it('还在等我答复的来电认回来，剩余时间按服务端的钟算', async () => {
     // 服务端的钟比本机快一小时：响铃还剩 20 秒
     const { store, calls } = setup({
       activeCall: async () => ({
@@ -890,7 +1581,7 @@ describe('与服务端对一遍', () => {
     sessionStorage.setItem(CHAT_CALL_SESSION_KEY, 'call-1')
     const { store, calls } = setup({
       activeCall: async () => ({
-        call: outgoing({ status: 'Ongoing' }),
+        call: answered(),
         now: START,
       }),
     })
@@ -907,7 +1598,7 @@ describe('与服务端对一遍', () => {
   it('在别的页签或别的端通着的、自己在别处发起的都不管', async () => {
     const ongoing = setup({
       activeCall: async () => ({
-        call: incoming({ status: 'Ongoing' }),
+        call: accepted(),
         now: START,
       }),
     })
@@ -917,23 +1608,45 @@ describe('与服务端对一遍', () => {
       ['activeCall'],
     ])
 
-    const mine = setup({
+    const elsewhere = setup({
       activeCall: async () => ({
         call: outgoing(),
         now: START,
       }),
     })
-    await mine.store.restore()
-    expect([mine.store.phase, mine.calls]).toStrictEqual([
+    await elsewhere.store.restore()
+    expect([elsewhere.store.phase, elsewhere.calls]).toStrictEqual([
       'idle',
       ['activeCall'],
     ])
   })
 
+  it('对的时候推送先到了：以推送为准，不拿取回来的旧状态覆盖', async () => {
+    let release: (result: { call: ChatCallItem, now: string }) => void = () => undefined
+    const { store } = setup({
+      activeCall: () => new Promise(resolve => (release = resolve)),
+    })
+    await store.start('conv-g', 'Voice', [BOB, CAROL])
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Invited')))
+    await settle()
+
+    const restoring = store.restore()
+    store.applyCallChanged(mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Joined', T2)))
+    release({
+      call: mine(participant(BOB, 'Joined', T1), participant(CAROL, 'Invited')),
+      now: START,
+    })
+    await restoring
+    await settle()
+
+    expect(store.peers.map(peer => peer.userId)).toStrictEqual([BOB, CAROL])
+    expect(fakes.state.sessions.map(session => session.closed)).toStrictEqual([false, false])
+  })
+
   it('还是眼前这一通：以服务端的状态为准，漏掉的接通推送补上', async () => {
     const { store } = setup({
       activeCall: async () => ({
-        call: outgoing({ status: 'Ongoing' }),
+        call: answered(),
         now: START,
       }),
     })
@@ -949,18 +1662,19 @@ describe('与服务端对一遍', () => {
 
   it('登出：放掉一切，不问服务端', async () => {
     const { store, calls } = setup()
-    await store.start('conv-1', 'Voice')
-    store.notice = { kind: 'rejected', peerName: 'bob' }
+    await store.start('conv-g', 'Voice', [BOB])
+    store.notice = { kind: 'rejected', peerName: 'bob', group: false }
 
     store.reset()
 
-    expect(calls).toStrictEqual(['startCall:conv-1:Voice'])
+    expect(calls).toStrictEqual(['startCall:conv-g:Voice:bob'])
     expect([
       store.phase,
       store.engaged,
       store.localStream,
       store.notice,
-    ]).toStrictEqual(['idle', false, null, null])
+      store.ongoingCalls,
+    ]).toStrictEqual(['idle', false, null, null, {}])
     expect(fakes.state.streams[0]?.tracks.every(track => track.stopped)).toBe(true)
   })
 })

@@ -533,9 +533,9 @@ public sealed class ChatMessageService(
     /// 追加一条通话记录（刷新会话预览）
     /// </summary>
     /// <remarks>
-    /// 发送人是发起人，正文是通话记录的 JSON；<paramref name="countUnread"/> 为真时给发起人之外的成员记一条未读（对方没接到这通电话）
+    /// 发送人是发起人，正文是通话记录的 JSON；<paramref name="missedUserIds"/> 里的人各记一条未读（他们没接到这通电话）
     /// </remarks>
-    public async Task<Result<ChatAppended>> AppendCallAsync(InvocationContext context, string side, Guid conversationId, Guid initiatorUserId, string? initiatorName, string content, string preview, bool countUnread)
+    public async Task<Result<ChatAppended>> AppendCallAsync(InvocationContext context, string side, Guid conversationId, Guid initiatorUserId, string? initiatorName, string content, string preview, IReadOnlyCollection<Guid> missedUserIds)
     {
         var allocated = await store.NextSeqAsync(side, conversationId, context.CancellationToken).ConfigureAwait(false);
         if (!allocated.TryGetValue(out var next))
@@ -560,10 +560,7 @@ public sealed class ChatMessageService(
         conversation.LastMessageAt = message.CreatedAt;
         conversation.LastMessagePreview = ChatRules.Truncate(preview, ChatRules.MaxPreviewLength);
         await store.Rows.UpdateAsync(conversation, context.CancellationToken).ConfigureAwait(false);
-        if (countUnread)
-        {
-            await store.IncrementUnreadAsync(side, conversationId, initiatorUserId, context.CancellationToken).ConfigureAwait(false);
-        }
+        await store.IncrementUnreadForAsync(side, conversationId, missedUserIds, context.CancellationToken).ConfigureAwait(false);
 
         return new ChatAppended(message, conversation);
     }

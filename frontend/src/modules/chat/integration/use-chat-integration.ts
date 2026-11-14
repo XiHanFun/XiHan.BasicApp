@@ -55,8 +55,8 @@ export function useChatIntegration() {
     if (message.senderUserId === userStore.userInfo?.basicId || message.messageType === 'System') {
       return
     }
-    // 通话记录：只有没接到的（对方取消或没人接）才提醒，接通过的与自己拒的不提醒
-    if (message.messageType === 'Call' && !isMissedCallRecord(message.content)) {
+    // 通话记录：只有自己没接到的才提醒，接通过的、自己拒的与没被邀请的不提醒
+    if (message.messageType === 'Call' && !isMissedCallRecord(message.content, userStore.userInfo?.basicId ?? '')) {
       return
     }
 
