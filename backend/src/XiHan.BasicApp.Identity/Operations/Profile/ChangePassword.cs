@@ -65,7 +65,7 @@ public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository
 
         var sid = principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         var current = sid is not null && Guid.TryParse(sid, out var sessionId) ? sessionId : (Guid?)null;
-        var revoked = await accounts.RevokeSessionsAsync(user.Id, "password-changed", context.CancellationToken, except: current).ConfigureAwait(false);
+        var revoked = await accounts.EndStaleSessionsAsync(security, "password-changed", context.CancellationToken, keep: current).ConfigureAwait(false);
         if (revoked.IsFailure)
         {
             return revoked.Error!;

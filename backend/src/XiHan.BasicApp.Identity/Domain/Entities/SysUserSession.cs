@@ -14,6 +14,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 刷新令牌不透明、只存 SHA-256 散列，拿到库也换不出能用的令牌；续签、切换租户、激活角色都轮换它，旧的立即失效
 /// 落平台库、不分租户：一个会话能在注册地、成员租户与平台之间切换（同一 <c>sid</c>），<see cref="ActiveTenantId"/> 记它当前所在的一侧（平台为 <see langword="null"/>），在线用户按这一列分侧
 /// 门禁每个请求都要核对，判定进共享缓存、吊销与锁屏解锁时主动失效；共享缓存是进程内实现时，其他实例最迟在 <c>BasicApp:Auth:SessionCacheSeconds</c> 后生效。经账号域服务的吊销还在提交后推送强制下线并断开实时连接
+/// 记下签发时账号的安全戳（<see cref="SecurityStamp"/>），门禁与续签时与账号当前的对不上即失效：设密码、开关双因素这类改动之后，哪怕有会话没被吊销（并发的登录、漏掉的路径）也用不了；吊销仍照常做，会话列表与之一致
 /// 吊销只置 <see cref="RevokedAt"/>、不删行：个人中心的在线时长按会话起止计算，下线原因也留着；代价是没有清理作业，行会一直累积
 /// 模仿登录另开一行，记发起人与他当时的会话：发起人的会话保留，结束模仿时回到它；它失效（注销、被吊销或过期）时模仿会话随之失效。模仿会话的期限在发起时定死，续签不顺延
 /// 锁定记在会话上而不是账号上：锁屏只作用于这一个端，不影响同一用户的其他端；强制改密锁也按会话，解开它的办法就是改密。解锁的失败计数与吊销在独立作用域里提交，否则随失败的调用回滚
@@ -174,6 +175,15 @@ public sealed class SysUserSession : AppAuditedEntity
     public int UnlockFailedAttempts { get; set; }
 
     /// <summary>
+    /// 签发时账号的安全戳
+    /// </summary>
+    /// <remarks>
+    /// 与账号当前的安全戳对不上即失效；本人改密、开关双因素时当前会话改记新戳、照常可用
+    /// </remarks>
+    [SugarColumn(ColumnName = "security_stamp", Length = 32, IsNullable = true, ColumnDescription = "签发时账号的安全戳")]
+    public string? SecurityStamp { get; set; }
+
+    /// <summary>
     /// 当前是否有效：未吊销且未过期
     /// </summary>
     public bool IsActive(DateTimeOffset now) => RevokedAt is null && RefreshExpiresAt > now;
@@ -182,6 +192,17 @@ public sealed class SysUserSession : AppAuditedEntity
     /// 当前是否因为要先改密而锁定
     /// </summary>
     public bool IsPasswordChangeRequired() => string.Equals(LockReason, SessionLockReasons.PasswordChangeRequired, StringComparison.Ordinal);
+
+    /// <summary>
+    /// 签发时的安全戳是否还是账号当前的
+    /// </summary>
+    /// <param name="security">会话用户的账号安全</param>
+    /// <returns>一致为真</returns>
+    public bool MatchesStamp(SysUserSecurity security)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+        return string.Equals(SecurityStamp, security.SecurityStamp, StringComparison.Ordinal);
+    }
 }
 
 /// <summary>

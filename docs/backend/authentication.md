@@ -29,9 +29,11 @@
 | 访问令牌 | HS256 JWT，缺省 120 分钟（`AccessTokenMinutes`）；声明 `sub` 用户 ID、`tenant` 当前租户（平台没有）、`sid` 会话 ID、`role` 本会话激活的角色、模仿时 `act` |
 | 刷新令牌 | 32 字节随机数，库里只存 SHA-256 散列，缺省 7 天（`RefreshTokenDays`）；每次刷新轮换、旧的立即失效，并顺延会话有效期；模仿会话的到期时间不顺延 |
 | 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型、IP 与登录地点（IP 归属地） |
-| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期或用户不正常即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
+| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期、用户不正常或签发时的安全戳已换新即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
 
-吊销会话的场景：注销、改密、管理员重置密码、找回密码、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
+吊销会话的场景：注销、改密、管理员重置密码、找回密码、本人开关双因素、管理员重置双因素、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
+
+账号的安全戳在设密码、开关或重置双因素、本人停用账号时换新。会话签发时记下当时的戳，门禁与 `auth.refresh` 对不上即 `IDENTITY_DENIED_001`：与换新并发的登录开出的会话也用不了。换新的同时吊销本人的其余会话；本人改密、开关双因素时当前会话改记新戳，照常可用。
 
 ## 登录方式
 

@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 认证器密钥经 <c>ISecretProtector</c> 加密存，校验验证码要明文、不能存散列；<see cref="TwoFactorLastStep"/> 记最近通过的时间步，同一步的码不能再用
 /// 密码由他人设置时记下 <see cref="MustChangePassword"/>，逼不逼改看登录时的系统参数 <c>identity.password</c>：标记随密码写下，策略事后打开也对已有账号生效
 /// 多端登录与设备数、开放接口的签名算法与 IP 白名单放在这里而不是各会话或各凭证上：按人设一次，作用于本人全部会话与凭证
-/// 安全戳在设密码、开关双因素、本人停用账号时换新，但没有代码核对它；让既有会话失效靠吊销 <see cref="SysUserSession"/>
+/// 安全戳在设密码、开关或重置双因素、本人停用账号时换新；会话签发时记下当时的戳，门禁与续签时对不上即失效，换新的同时照常吊销旧会话（本人当前会话改记新戳）
 /// 只有本人注销账号时连同账号软删，管理员删除用户不动本行
 /// </remarks>
 [SugarTable(TableName = "sys_user_security", TableDescription = "账号安全信息：密码散列、失败计数与锁定、安全戳与双因素")]
@@ -80,9 +80,12 @@ public sealed class SysUserSecurity : AppAuditedEntity
     public DateTimeOffset? LockoutEndAt { get; set; }
 
     /// <summary>
-    /// 安全戳：改密、重置、锁定时更新，用于使既有会话失效
+    /// 安全戳：设密码、开关或重置双因素时换新
     /// </summary>
-    [SugarColumn(ColumnName = "security_stamp", Length = 512, IsNullable = false, ColumnDescription = "安全戳：改密、重置、锁定时更新，用于使既有会话失效")]
+    /// <remarks>
+    /// 会话记下签发时的戳，对不上即失效
+    /// </remarks>
+    [SugarColumn(ColumnName = "security_stamp", Length = 32, IsNullable = false, ColumnDescription = "安全戳：设密码、开关或重置双因素时换新")]
     public string SecurityStamp { get; set; } = string.Empty;
 
     /// <summary>

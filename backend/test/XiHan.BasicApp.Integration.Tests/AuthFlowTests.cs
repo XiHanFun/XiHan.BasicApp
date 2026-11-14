@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证身份链路的登录、令牌、会话、刷新、注销与改密
 /// </summary>
 /// <remarks>
-/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、强制下线不被提交前的门禁核对回填、当前主体、租户账号登录与本人改密
+/// 密码登录与锁定、访问令牌与会话门禁、刷新令牌轮换、注销、强制下线不被提交前的门禁核对回填、安全戳换新后旧会话失效、当前主体、租户账号登录与本人改密
 /// </remarks>
 public sealed class AuthFlowTests : IDisposable
 {
@@ -176,6 +176,50 @@ public sealed class AuthFlowTests : IDisposable
         var (gone, goneBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
         Assert.Equal(HttpStatusCode.Forbidden, gone.StatusCode);
         Assert.Equal("IDENTITY_DENIED_001", goneBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Sessions_SignedWithAnOutdatedStamp_AreRejected_EvenIfNotRevoked()
+    {
+        // 安全戳换新而会话没被吊销（与换新并发的登录、漏掉吊销的路径）：门禁与续签都按签发时记下的戳拒绝
+        await using var server = await StartAsync();
+        var admin = (await LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var other = await LoginAsync(server, "superadmin", "SuperAdmin@123");
+        var access = other.GetProperty("accessToken").GetString()!;
+        var sessionId = Guid.Parse(other.GetProperty("sessionId").GetString()!);
+        var (before, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
+        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+
+        (await server.InvokeAsync(async ctx =>
+        {
+            var securities = ctx.Services.GetRequiredService<IRepository<SysUserSecurity, Guid>>();
+            var session = (await ctx.Services.GetRequiredService<IRepository<SysUserSession, Guid>>().FindAsync(sessionId, ctx.CancellationToken)).ValueOrThrow();
+            var userId = session.UserId;
+            var security = (await securities.ListAsync(EntityQuery.All<SysUserSecurity>().Where(new Specification<SysUserSecurity>(s => s.UserId == userId)), ctx.CancellationToken)).Single();
+            security.SecurityStamp = Guid.NewGuid().ToString("N");
+            await ctx.Services.GetRequiredService<SessionGate>().InvalidateAsync(sessionId, ctx.CancellationToken);
+            return await securities.UpdateAsync(security, ctx.CancellationToken);
+        }, admin)).ThrowIfFailure();
+
+        var (gone, goneBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
+        Assert.Equal(HttpStatusCode.Forbidden, gone.StatusCode);
+        Assert.Equal("IDENTITY_DENIED_001", goneBody.GetProperty("code").GetString());
+        var (noRefresh, noRefreshBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:refresh", $$"""{"refreshToken":"{{other.GetProperty("refreshToken").GetString()}}"}"""));
+        Assert.Equal(HttpStatusCode.Forbidden, noRefresh.StatusCode);
+        Assert.Equal("IDENTITY_DENIED_001", noRefreshBody.GetProperty("code").GetString());
+
+        DateTimeOffset? revokedAt = DateTimeOffset.MinValue;
+        (await server.InvokeAsync(async ctx =>
+        {
+            revokedAt = (await ctx.Services.GetRequiredService<IRepository<SysUserSession, Guid>>().FindAsync(sessionId, ctx.CancellationToken)).ValueOrThrow().RevokedAt;
+            return Result.Success();
+        })).ThrowIfFailure();
+        Assert.Null(revokedAt);
+
+        // 重新登录记下新戳，照常可用
+        var again = (await LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (fresh, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: again));
+        Assert.Equal(HttpStatusCode.OK, fresh.StatusCode);
     }
 
     [Fact]

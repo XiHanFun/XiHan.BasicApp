@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/users:reset-two-factor</c>。清掉全部方式与认证器密钥，用户下次只凭密码登录、再自行重新绑定；
-/// 给丢了认证器的用户用。不能对自己操作（本人走个人中心）。每个被重置的账号记一条 <see cref="LoginEvent.TwoFactorReset"/> 登录日志
+/// 给丢了认证器的用户用。安全戳随之换新、这些用户的会话全部吊销。不能对自己操作（本人走个人中心）。每个被重置的账号记一条 <see cref="LoginEvent.TwoFactorReset"/> 登录日志
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
@@ -56,6 +56,12 @@ public sealed class ResetTwoFactor(IRepository<SysUser, Guid> users, IRepository
             {
                 failed.Add(BatchFailure.From(user.Id, updated.Error!));
                 continue;
+            }
+
+            var revoked = await accounts.RevokeSessionsAsync(user.Id, "two-factor-reset", context.CancellationToken).ConfigureAwait(false);
+            if (revoked.IsFailure)
+            {
+                return revoked.Error!;
             }
 
             succeeded.Add(user.Id);

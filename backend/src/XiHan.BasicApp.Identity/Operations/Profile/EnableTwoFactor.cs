@@ -7,6 +7,7 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Auth;
+using XiHan.BasicApp.Identity.Queries;
 using XiHan.BasicApp.Runtime.Security;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -21,7 +22,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <c>POST /api/profile:enable-two-factor</c>。认证器用 <c>profile.setup-totp</c> 暂存的密钥校验认证器算出的码，
 /// 通过才把密钥加密落库、开启双因素（这一步就算用过一次，同一步的码不能再用来登录）
 /// 邮箱与短信要本人已验证的联系方式，用 <c>profile.send-two-factor-code</c> 发出的码确认；已开着即原样返回
-/// 登录日志记为 <see cref="LoginEvent.TwoFactorEnable"/>。模仿会话不能做
+/// 安全戳随之换新：本人其余会话下线，当前会话照常可用。登录日志记为 <see cref="LoginEvent.TwoFactorEnable"/>。模仿会话不能做
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
@@ -77,7 +78,13 @@ public sealed class EnableTwoFactor(
             security.TwoFactorEnabled = true;
             security.SecurityStamp = UserAccountService.NewStamp();
             var saved = await securities.UpdateAsync(security, context.CancellationToken).ConfigureAwait(false);
-            return saved.IsFailure ? saved.Error! : ProfileResponse.From(user, security);
+            if (saved.IsFailure)
+            {
+                return saved.Error!;
+            }
+
+            var ended = await accounts.EndStaleSessionsAsync(security, "two-factor-enabled", context.CancellationToken, SessionQueries.CurrentSessionOf(context)).ConfigureAwait(false);
+            return ended.IsFailure ? ended.Error! : ProfileResponse.From(user, security);
         }
 
         if (security.TwoFactorMethods.HasFlag(TwoFactorMethods.Totp))
@@ -104,6 +111,12 @@ public sealed class EnableTwoFactor(
         if (updated.IsFailure)
         {
             return updated.Error!;
+        }
+
+        var stale = await accounts.EndStaleSessionsAsync(security, "two-factor-enabled", context.CancellationToken, SessionQueries.CurrentSessionOf(context)).ConfigureAwait(false);
+        if (stale.IsFailure)
+        {
+            return stale.Error!;
         }
 
         await enrollments.DiscardAsync(user.Id, context.CancellationToken).ConfigureAwait(false);

@@ -7,6 +7,7 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Auth;
+using XiHan.BasicApp.Identity.Queries;
 using XiHan.BasicApp.Runtime.Security;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -20,7 +21,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <remarks>
 /// <c>POST /api/profile:disable-two-factor</c>。认证器要用当前认证器的码确认（防重放），通过即清掉密钥；
 /// 邮箱与短信用 <c>profile.send-two-factor-code</c> 发到本人已验证联系方式的码确认；
-/// 方式本就没开时原样返回、不要验证码。最后一种方式关掉即整体关闭双因素。登录日志记为 <see cref="LoginEvent.TwoFactorDisable"/>。模仿会话不能做
+/// 方式本就没开时原样返回、不要验证码。最后一种方式关掉即整体关闭双因素。安全戳随之换新：本人其余会话下线，当前会话照常可用。登录日志记为 <see cref="LoginEvent.TwoFactorDisable"/>。模仿会话不能做
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
@@ -87,6 +88,12 @@ public sealed class DisableTwoFactor(
         security.TwoFactorEnabled = security.TwoFactorMethods != TwoFactorMethods.None;
         security.SecurityStamp = UserAccountService.NewStamp();
         var updated = await securities.UpdateAsync(security, context.CancellationToken).ConfigureAwait(false);
-        return updated.IsFailure ? updated.Error! : ProfileResponse.From(user, security);
+        if (updated.IsFailure)
+        {
+            return updated.Error!;
+        }
+
+        var ended = await accounts.EndStaleSessionsAsync(security, "two-factor-disabled", context.CancellationToken, SessionQueries.CurrentSessionOf(context)).ConfigureAwait(false);
+        return ended.IsFailure ? ended.Error! : ProfileResponse.From(user, security);
     }
 }

@@ -116,6 +116,7 @@ public sealed class LoginSessions(
             ClientInfo = SessionClient.AgentOf(context),
             LockReason = locked ? SessionLockReasons.PasswordChangeRequired : null,
             LockedAt = locked ? now : null,
+            SecurityStamp = security.SecurityStamp,
         };
         SessionClient.Describe(session, context);
         var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);

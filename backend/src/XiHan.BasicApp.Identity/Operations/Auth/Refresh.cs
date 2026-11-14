@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// 刷新令牌：轮换刷新令牌并签发新的访问令牌
 /// </summary>
 /// <remarks>
-/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销或过期即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>
+/// 匿名操作。按散列找到有效会话，轮换刷新令牌、顺延会话有效期，签发新的访问令牌。会话已吊销、过期或签发时的安全戳已换新即 <c>IDENTITY_DENIED_001</c>，客户端重新登录；会话以成员身份所在的租户里，成员关系被移除或到期即 <c>IDENTITY_DENIED_006</c>
 /// 模仿会话只换令牌不顺延：到期时间在发起时定死，新令牌也不超过它（模仿时长可以比访问令牌长，所以让刷新，但续不了期）
 /// </remarks>
 /// <param name="accounts">账号域服务</param>
@@ -102,6 +102,17 @@ public sealed class Refresh(
 
         log.UserName = user.UserName;
         log.AccountTenantId = user.HomeTenantId;
+        var security = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!security.TryGetValue(out var stamp))
+        {
+            return security.Error!;
+        }
+
+        if (!session.MatchesStamp(stamp))
+        {
+            return Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
+        }
+
         // 以成员身份所在的租户（非注册地、非模仿）：成员关系移除或到期即不再续签
         if (session.ActiveTenantId is { } memberTenant && session.ImpersonatorUserId is null && !string.Equals(user.HomeTenantId, memberTenant, StringComparison.Ordinal) && !await CanEnterAsync(memberTenant, user.Id, context.CancellationToken).ConfigureAwait(false))
         {

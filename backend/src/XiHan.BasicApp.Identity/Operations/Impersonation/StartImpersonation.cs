@@ -162,6 +162,12 @@ public sealed class StartImpersonation(
             return configured.Error!;
         }
 
+        var targetSecurity = await accounts.SecurityOfAsync(target.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!targetSecurity.TryGetValue(out var stamp))
+        {
+            return targetSecurity.Error!;
+        }
+
         await notices.ImpersonationAsync(target, actor, requested, settings, context).ConfigureAwait(false);
         var refreshToken = RefreshTokens.Generate();
         var session = new SysUserSession
@@ -174,6 +180,7 @@ public sealed class StartImpersonation(
             RefreshExpiresAt = now + settings.SessionLifetime,
             ImpersonatorUserId = actor.Id,
             ImpersonatorSessionId = origin.Id,
+            SecurityStamp = stamp.SecurityStamp,
             IpAddress = SessionClient.AddressOf(context),
             ClientInfo = SessionClient.AgentOf(context),
         };

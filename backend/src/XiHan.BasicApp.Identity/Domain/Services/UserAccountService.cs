@@ -233,6 +233,33 @@ public sealed class UserAccountService
     }
 
     /// <summary>
+    /// 安全戳换新之后结束旧会话
+    /// </summary>
+    /// <remarks>
+    /// 戳对不上的会话门禁与续签本就不认，这里再经 <see cref="RevokeSessionsAsync"/> 吊销它们（记原因、推送下线），会话列表与之一致；
+    /// <paramref name="keep"/> 是本人当前会话：改记新戳、照常可用。调用方先把新戳写进安全行
+    /// </remarks>
+    /// <param name="security">已换新戳的账号安全</param>
+    /// <param name="reason">吊销原因（落库）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <param name="keep">要保留的会话</param>
+    public async Task<Result> EndStaleSessionsAsync(SysUserSecurity security, string reason, CancellationToken cancellationToken, Guid? keep = null)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+        if (keep is { } id && (await _sessions.FindAsync(id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var current) && current.UserId == security.UserId)
+        {
+            current.SecurityStamp = security.SecurityStamp;
+            var updated = await _sessions.UpdateAsync(current, cancellationToken).ConfigureAwait(false);
+            if (updated.IsFailure)
+            {
+                return updated;
+            }
+        }
+
+        return await RevokeSessionsAsync(security.UserId, reason, cancellationToken, keep).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 按登录策略吊销多出来的会话
     /// </summary>
     /// <remarks>

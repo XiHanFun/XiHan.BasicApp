@@ -6,6 +6,8 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Caching.Abstractions.Stores;
+using XiHan.Framework.Domain.Specifications;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
@@ -15,7 +17,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// 会话门禁：核对令牌的会话仍然有效
 /// </summary>
 /// <remarks>
-/// 单例服务。按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）
+/// 单例服务。按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常、签发时的安全戳还是账号当前的；模仿会话还要求发起人的原会话仍有效）
 /// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效（推到工作单元结束之后）
 /// </remarks>
 public sealed class SessionGate
@@ -109,6 +111,13 @@ public sealed class SessionGate
 
             var user = await services.GetRequiredService<IRepository<SysUser, Guid>>().FindAsync(row.UserId, ct).ConfigureAwait(false);
             if (!user.TryGetValue(out var account) || account.Status != UserStatus.Active)
+            {
+                return Invalid;
+            }
+
+            var userId = row.UserId;
+            var security = await services.GetRequiredService<IRepository<SysUserSecurity, Guid>>().ListAsync(EntityQuery.All<SysUserSecurity>().Where(new Specification<SysUserSecurity>(s => s.UserId == userId)).Page(0, 1), ct).ConfigureAwait(false);
+            if (security.Count == 0 || !row.MatchesStamp(security[0]))
             {
                 return Invalid;
             }
