@@ -10,7 +10,11 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 异常日志：调用期间抛出的未处理异常
 /// </summary>
 /// <remarks>
-/// 在内核把它转成 <c>KERNEL_UNEXPECTED</c> 结果之前，由 Observe 阶段的中间件写入；作业等非操作调用同样记录
+/// 未处理异常单独成表，存完整堆栈、抛出点、主机、运行环境与应用版本：访问日志只记得结果是服务端故障，排查要看到异常本身；堆栈很大，并进访问日志会让每一行都变大
+/// 在 Observe 阶段、内核把异常转成 <c>KERNEL_UNEXPECTED</c> 结果之前截下：转换之后只剩通用错误，异常的类型与堆栈就丢了
+/// 取消不记，取消不是故障；作业等非操作调用同样记录，后台任务的故障也要查得到
+/// 不受访问日志的开关与排除名单影响：可以为降噪关掉访问日志，故障不能跟着漏掉
+/// trace-id 与访问日志共用，从失败的那次访问直接跳到对应的异常；分表、异步批量写入与只追加同其他分表日志（见 <see cref="AuditLogRecord"/>）
 /// </remarks>
 [SugarTable(TableName = "sys_exception_log_{year}{month}{day}", TableDescription = "异常日志：调用期间抛出的未处理异常")]
 [SplitTable(SplitType.Month)]

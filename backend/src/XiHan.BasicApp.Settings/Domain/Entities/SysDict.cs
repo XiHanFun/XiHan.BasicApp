@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 字典（平台库实体）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 分平台字典与租户字典。字典不覆盖：平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码
-/// 选项由 <see cref="SysDictItem"/> 承载；停用的字典不再给出选项
+/// 平台字典要让每个租户都读得到，所以落平台库、用 <see cref="OwnerTenantId"/> 分平台字典与租户字典：读共享（平台的加本租户的），写只本侧
+/// 字典不覆盖，和参数不同：平台建字典要求全库没有同码，租户建字典要求平台与本租户都没有同码，所以在任何一侧按编码找字典都只有一本
+/// 编码在本侧唯一是部分唯一索引（软删除后同码可重建），跨侧的查重由服务做；编码创建后不可改
+/// 选项由 <see cref="SysDictItem"/> 承载；有字典项的不能删，先删项、不级联
+/// 选项经读穿缓存（<c>DictOptionSets</c>）给出：按（侧、编码）各存一份，平台字典改了只失效平台那一份；停用的字典存空选项、不再给出选项；字典与字典项写入即失效，失效经 <c>CacheInvalidation</c> 推到工作单元结束之后
+/// 系统不依赖任何内置字典；演示字典只在 <c>BasicApp:Seed:EnableDemoData</c> 打开时由种子写入
 /// </remarks>
 [SugarTable(TableName = "sys_dict", TableDescription = "字典（平台库实体）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_dict_owner_tenant_id_code")]

@@ -11,8 +11,11 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 消息模板（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 邮件、短信、站内通知与机器人的主题和正文，按 Scriban 语法渲染（双花括号包住变量名）
-/// 租户读得到平台的模板、只改自己的，建同编码的模板即覆盖平台的；取模板时先看当前一侧启用的同编码模板，没有再取平台的
+/// 落平台库、按 <c>OwnerTenantId</c> 分侧：平台由种子写全局模板、之后由运营维护；租户读得到平台的、只改自己的，建同编码的即覆盖，删掉自己的即回落到平台的，不必每个租户复制一份
+/// 发送方按渠道与编码引用而不是按主键：Identity、通知与短信配置的模板映射都只认编码，覆盖与回落都不用改调用方，所以编码与渠道建好不改
+/// 同一侧、同一渠道内编码唯一，用部分唯一索引，删除后同编码可重建
+/// 发送时按侧、渠道与编码读穿共享缓存，先看本侧启用的、再看平台启用的，平台模板改了只失效平台那一份；失效推到工作单元结束之后，提交前的旧值不会被回填进缓存
+/// 按 Scriban 渲染，保存前做语法检查：坏模板在保存时就被拒，不等到发送时才失败
 /// </remarks>
 [SugarTable(TableName = "sys_message_template", TableDescription = "消息模板（平台库实体，随所属侧）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Channel), nameof(Code), Name = "ux_sys_message_template_owner_tenant_id_channel_code")]

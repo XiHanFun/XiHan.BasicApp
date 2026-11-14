@@ -184,7 +184,7 @@ public sealed class LarkBotTransport(IHttpClientFactory http, TimeProvider clock
 /// Telegram 广播
 /// </summary>
 /// <remarks>
-/// 经 <see cref="Telegram.TelegramNotifier"/> 发 <c>sendMessage</c>（与交互用同一套网络设置、重试与出站审计）；返回的消息 ID 记进发件箱
+/// 经 <see cref="Telegram.TelegramNotifier"/> 发 <c>sendMessage</c>（与交互用同一套网络设置、重试与出站审计）；返回的消息 ID 随发送结果带回，机器人消息的发件箱不记它
 /// </remarks>
 /// <param name="notifier">Telegram 出站</param>
 public sealed class TelegramBotTransport(Telegram.TelegramNotifier notifier) : IBotTransport

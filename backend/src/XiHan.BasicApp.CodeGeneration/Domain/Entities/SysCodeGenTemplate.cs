@@ -11,8 +11,11 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的模板
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧。内置模板由种子每次启动对齐正文与路径、不能修改与删除，启停归运营；自定义模板随意维护
-/// 编码唯一，软删除后可以重建
+/// 平台库实体、只在平台一侧。模板存在库里而不只放在程序里：自定义模板可以在线维护与启停，生成时与内置模板一起按生成模式挑选
+/// 内置模板随程序版本走：种子 <c>codegeneration.templates</c> 每次启动按嵌入的 <c>.sbn</c> 对齐正文、表达式、写入方式与排序等，改了模板文件已有的库也生效；所以内置模板不能改也不能删（改了也会被覆盖），只能启停，启停归运营、种子不动；要定制就另建一份自定义模板
+/// 按编码引用：生成可以显式指定编码，生成历史记下用到的模板编码；编码唯一、建好后不能改，部分唯一索引让软删除后同编码可以重建
+/// 前后端归属与「只在新建包时产出」都由分组前缀表达（<c>backend-*</c> / <c>frontend-*</c>、<c>*-package</c>），生成范围与目标按分组裁模板
+/// 文件名与目录也是模板表达式，渲染出的路径只能是那一侧根目录下的相对路径（不带盘符与 <c>..</c>），自定义模板写不到根目录之外
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_template", TableDescription = "代码生成的模板")]
 [ActiveUniqueIndex(nameof(TemplateCode), Name = "ux_sys_code_gen_template_template_code")]

@@ -10,7 +10,11 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 收件箱的一条（租户库实体，平台一侧租户为 <c>platform</c>）
 /// </summary>
 /// <remarks>
-/// 一个接收人对一条已发布通知的阅读、确认与弹窗状态。每个（通知, 用户）至多一条；用户删除即软删除
+/// 收件箱每人一行，不在通知上记已读名单：已读、确认与弹窗状态要按人改、按人查，横幅、弹窗与强制阅读也都按本人的状态取
+/// 只存状态不复制内容：标题与正文从 <see cref="SysNotification"/> 联表取，两者同在一个租户库（平台一侧租户为 <c>platform</c>）
+/// 每个（通知, 用户）至多一行，用部分唯一索引，软删除的行不占位
+/// 本人删除即软删除，通知与别人的收件箱不受影响；阅读统计按还留着的行算
+/// 状态改得频繁，所以不进差异日志
 /// </remarks>
 [SugarTable(TableName = "sys_user_notification", TableDescription = "收件箱的一条（租户库实体，平台一侧租户为 platform）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(NotificationId), nameof(UserId), Name = "ux_sys_user_notification_tenant_id_notification_id_user_id")]

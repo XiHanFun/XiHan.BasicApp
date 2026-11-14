@@ -10,8 +10,13 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 角色（平台库实体，不实现 <c>IMultiTenant</c>）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台角色，否则是该租户的角色
-/// 授予写在框架的 <c>PermissionGrantRecord</c>，主体是 <c>role:&lt;角色 ID&gt;</c>（跨租户不撞），租户列按所属侧；角色码在同一侧唯一且创建后不可改
+/// 平台库实体、不实现 <c>IMultiTenant</c>：<see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台角色，否则是该租户的角色；平台与各租户的角色同表，按所属侧隔离，别的侧的角色按 ID 也找不到
+/// 授予写在框架的 <c>PermissionGrantRecord</c>，主体是 <c>role:&lt;角色 ID&gt;</c>、租户列按所属侧：用 ID 不用角色码，各租户可以有同码的角色而授予不串
+/// 角色码在同一侧唯一且创建后不可改，只作稳定的业务标识；是部分唯一索引，软删除后同一角色码可以重建。令牌里的角色声明与各关联表都按角色 ID 引用
+/// 数据范围直接存在角色上，只有自定义范围才要部门清单，拆到 <see cref="SysRoleDataScope"/>；平台没有部门，平台角色只能是全部
+/// 停用保留成员与授予，只是不进令牌、也不往下级传授予：可以临时冻结一个角色而不丢配置
+/// 内建角色 <c>admin</c>（<see cref="IsBuiltIn"/>，授予 <c>*</c>）由平台种子与新租户初始化各建一个，不能删，也不参与继承、委托与权限条件
+/// 删除是软删除，但成员指派、授予、规则行、条件、委托、字段安全规则、自定义部门与它作为下级的继承边一并清掉：不会留下仍在生效的授予；仍被别的角色继承的不能删，免得悄悄拿走下级持有人的授予
 /// </remarks>
 [SugarTable(TableName = "sys_role", TableDescription = "角色（平台库实体，不实现 IMultiTenant）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_role_owner_tenant_id_code")]

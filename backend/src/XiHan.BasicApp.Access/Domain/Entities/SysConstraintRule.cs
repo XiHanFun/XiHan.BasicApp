@@ -11,8 +11,13 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 约束规则（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 见方案 5.9 与第 10 节第 7 项。静态职责分离、动态职责分离、权限互斥、基数与条件五种，违规按处理方式拒绝、警告、只记录或需审批（审批流程未接入，按拒绝）
-/// 规则项是这条规则约束的目标（角色、权限码或用户），同一组号的项是一组；数量上限写在 <see cref="MaxAllowed"/>，条件类的条件以 JSON 存在 <see cref="Conditions"/>
+/// 静态职责分离、动态职责分离、权限互斥、基数与条件五种约束（方案 5.9 与第 10 节第 7 项）收在一张表、按 <see cref="Type"/> 区分：五种共用编码、优先级、有效期与违规处理，判定入口只有 <c>ConstraintEnforcer</c> 一处
+/// 落平台库，按 <see cref="OwnerTenantId"/> 只在所属一侧判定：平台与各租户各自维护自己的合规规则，互不影响
+/// 约束的目标拆到 <see cref="SysConstraintRuleItem"/>，同一组号的项是一组、上限写在 <see cref="MaxAllowed"/>；条件只有条件类用到，以 JSON 存在 <see cref="Conditions"/>，不另建表
+/// 判定发生在授权变更时（指派角色、导入成员、直授权限、角色授予、改上级、委托角色、会话激活角色），只报这次变更带进来的违规：规则后加不会让已有的授权突然失效
+/// 违规按处理方式落地：需审批在给用户指派角色与直授权限时替该用户发起授权申请（<see cref="SysPermissionRequest"/>），别的变更没有审批的载体、按拒绝；警告与只记录放行并记权限变更日志
+/// 一侧启用的规则连同规则项放共享缓存 60 秒、写入后失效，有效期在判定时比较；目标被停用或删除不连带改规则，启用规则时重新校验
+/// 编码同侧唯一是部分唯一索引，软删除后同一编码可以重建
 /// </remarks>
 [SugarTable(TableName = "sys_constraint_rule", TableDescription = "约束规则（平台库实体，随所属侧）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_constraint_rule_owner_tenant_id_code")]
@@ -127,6 +132,10 @@ public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
 /// <summary>
 /// 约束规则的一个规则项（平台库实体）：随规则整体替换
 /// </summary>
+/// <remarks>
+/// 规则的目标一行一个，<see cref="TargetId"/> 按规则的目标类型存角色 ID、权限码或用户 ID：权限码没有实体，三种目标统一按文本存，角色与用户的 ID 规整成小写的标准写法，查重与判定按文本比对
+/// 只随规则整组替换、物理删除，同一规则里目标唯一由普通唯一索引保证；目标角色或用户删除时不连带清理，规则启用时重新校验
+/// </remarks>
 [SugarTable(TableName = "sys_constraint_rule_item", TableDescription = "约束规则的一个规则项（平台库实体）：随规则整体替换")]
 [SugarIndex("ux_sys_constraint_rule_item_rule_id_target_id", nameof(RuleId), OrderByType.Asc, nameof(TargetId), OrderByType.Asc, true)]
 public sealed class SysConstraintRuleItem : AppRecord, IOwnedByTenant

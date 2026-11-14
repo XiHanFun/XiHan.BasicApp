@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 第三方账号绑定
 /// </summary>
 /// <remarks>
-/// 平台库，跟着账号走。在（注册地, 提供商, 第三方标识）上唯一
-/// 提供商存规范的类型名（<c>github</c>、<c>wechat</c>…，不存配置的方案名：同一个微信 unionid 经两个方案仍是一个身份）。不存第三方的令牌
+/// 第三方身份到账号的绑定，跟着账号走、落平台库；带上用户的注册地，在（注册地, 提供商, 第三方标识）上部分唯一：登录页先选注册地再按第三方身份找账号，同一个第三方身份在不同注册地可以各绑一个账号
+/// 每人每个提供商至多绑一个（同样是部分唯一索引），再绑同一提供商的另一个账号即就地换掉标识
+/// 提供商存规范的类型名（<c>github</c>、<c>wechat</c>…），不存配置的方案名：同一个微信 unionid 经两个方案仍是一个身份
+/// 不自动建号：没绑定的身份登录即拒绝，账号都是先用密码登录、再到个人中心绑定，所以解绑不用顾及「这是唯一的登录方式」
+/// 不存第三方的令牌，只存每次登录刷新的显示名、邮箱与头像快照，只用来认人；每次登录都写，标 <c>[DiffLogIgnored]</c> 不进数据变更日志
+/// 删除用户不连带删除绑定：账号不在了登录按没绑定拒绝，但那个第三方身份在同一注册地仍被这行占着
 /// </remarks>
 [SugarTable(TableName = "sys_user_external_login", TableDescription = "第三方账号绑定")]
 [ActiveUniqueIndex(nameof(HomeTenantId), nameof(Provider), nameof(ProviderKey), Name = "ux_sys_user_external_login_home_tenant_id_provider_provider_key")]

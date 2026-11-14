@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </summary>
 /// <remarks>
 /// JWT 认证 → 主体声明解析租户 → 按契约判定 <c>identity.users.create</c> → Validate 阶段按 Schema 与自校验拒绝坏请求 → 工作单元内写用户、账号安全（可带初始密码）与用户统计（租户库）
-/// 注册地租户：租户主体只能建本租户的用户；平台主体可指定租户，不指定即平台账号。统计行只在当前租户就是注册地时创建（租户库写入需要租户上下文），其余情形在首次登录时补
+/// 注册地租户：租户主体只能建本租户的用户；平台主体可指定租户，不指定即平台账号。统计行只在当前租户就是注册地时创建（租户库写入需要租户上下文），其余情形不建
 /// 管理类写操作，按 5.4 只暴露给 HTTP（N0 曾同时暴露到 gRPC / MCP 做三协议冒烟，冒烟已改落到只读的 <c>users.get</c> / <c>users.list</c>）
 /// </remarks>
 /// <param name="users">用户仓储（默认连接）</param>

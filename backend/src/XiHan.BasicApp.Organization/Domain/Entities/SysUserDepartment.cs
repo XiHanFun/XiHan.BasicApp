@@ -11,8 +11,12 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// 用户部门归属（租户库实体）
 /// </summary>
 /// <remarks>
-/// 一个用户可在多个部门，恰有一个主部门（<see cref="IsPrimary"/>）；用户是平台库的 <c>SysUser</c>（注册地必须是当前租户），这里只存主键
-/// 加入与移出部门时记领域事件 <see cref="MembershipChanged"/>（主题 <c>basicapp.organization.membership-changed</c>），随写入进发件箱
+/// 用户与部门的关联表，带任职属性（岗位、工号、职级、入职时间）：一个人可在多个部门任职，这些属性按任职存而不是按人存
+/// 恰有一个主部门（<see cref="IsPrimary"/>）：用户列表的主部门、流程从主部门往上找主管、权限条件的主部门属性都要一个确定的答案；设为主部门时取消同一用户的其他主标记，移出主部门时剩下的第一条自动接上
+/// 用户只存平台库 <c>SysUser</c> 的主键：用户在平台库、任职在租户库，分库时不能联表也不建外键，名称按主键批量补；写入时核对用户在当前租户（注册在这里或外部成员）
+/// （租户, 用户, 部门）用部分唯一索引：同一部门只能任职一次，移出（软删除）后可以重新加入
+/// 是聚合根：加入与移出记领域事件 <see cref="MembershipChanged"/>，随写入进发件箱、与归属同一事务提交，回滚即不发；Chat 据此同步部门群，本包不必知道下游
+/// 任职是数据范围从部门展开成用户的依据，也是部门成员数的来源，所以加入与移出让部门缓存失效；任职列表本身也按调用方的数据范围收窄
 /// </remarks>
 [SugarTable(TableName = "sys_user_department", TableDescription = "用户部门归属（租户库实体）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(UserId), nameof(DepartmentId), Name = "ux_sys_user_department_tenant_id_user_id_department_id")]

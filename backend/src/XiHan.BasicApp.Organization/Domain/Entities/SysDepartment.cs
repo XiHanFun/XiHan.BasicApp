@@ -10,7 +10,14 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// 部门（租户库实体，严格按租户过滤）
 /// </summary>
 /// <remarks>
-/// 层级用 <see cref="ParentId"/> 表示直接上级，祖先 / 子孙关系由闭包表 <see cref="SysDepartmentHierarchy"/> 维护（数据范围「本部门及子部门」用它联查）
+/// 组织是租户自己的数据：部门落租户库、只在租户侧管理，平台一侧查不到任何部门，操作没有租户上下文直接拒绝
+/// 树用 <see cref="ParentId"/> 存直接上级，祖先 / 子孙关系另由闭包表 <see cref="SysDepartmentHierarchy"/> 维护：改上级与组树只看 <see cref="ParentId"/>，数据范围「本部门及子部门」、按部门找人含下级要一次取出全部子孙，靠闭包表免去递归；两者都经 <see cref="Services.DepartmentService"/> 写，保持一致
+/// 编码租户内唯一、建后不改，用部分唯一索引：软删除后同编码可以重建；导入用户、组织目录与流程办理人都按编码找部门，编码要稳定
+/// 负责人只存平台库 <c>SysUser</c> 的主键：用户在平台库、部门在租户库，分库时不能联表也不建外键，写入时核对负责人在本租户（注册在这里或外部成员）
+/// 整租户的部门连同各部门成员数作为一份读穿缓存（<c>DepartmentSnapshots</c>）：部门树与选择器每次都要全量，一个租户的部门以百计，整份缓存比逐级查便宜；部门与归属写入即在工作单元结束后失效，只在只读操作里回填（写事务里读会把未提交的行写进缓存），60 秒过期兜住从库的延迟
+/// 软删除，还有子部门或成员的不能删，免得留下孤儿节点与悬空的任职；它的闭包行随之物理删除
+/// 不用的部门改停用而不是删除：数据与任职都留着，但按编码找成员与负责人、字段安全、权限条件的部门属性与 Chat 的部门树只认启用的部门
+/// Access 与 Chat 直接引用本包读仓储；Identity 在本包之下，Workflow 与 Notification 不引用本包，都经 Contracts 的组织目录与接收人来源读部门
 /// </remarks>
 [SugarTable(TableName = "sys_department", TableDescription = "部门（租户库实体，严格按租户过滤）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(Code), Name = "ux_sys_department_tenant_id_code")]

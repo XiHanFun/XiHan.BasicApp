@@ -10,9 +10,14 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 文件：一次上传得到一条，内容落在一到多个副本（<see cref="SysFileStorage"/>）里
 /// </summary>
 /// <remarks>
-/// 租户库实体，方案 5.12。读写取主副本
-/// 平台一侧的文件 <see cref="TenantScopedAuditedEntity.TenantId"/> 为 <c>platform</c>（与日志同一做法）
-/// 同一侧内容相同（SHA-256 相同）的文件共用对象，各有各的记录，删到最后一条才删对象
+/// 文件记录与内容的存放位置分表（<see cref="SysFileStorage"/>）：一份内容可以落在多个副本里，换主副本、校验副本不动文件本身，也不动引用它的业务；读写都取主副本
+/// 落租户库（方案 5.12），平台一侧的文件 <see cref="TenantScopedAuditedEntity.TenantId"/> 为 <c>platform</c>（与日志同一做法）；头像固定存平台侧、访问级别公开，跟着用户走，任何已登录主体不分侧都能换它的签名地址
+/// 内容先写本地临时文件、边写边算 SHA-256，写进存储之后才落记录，所以没有「上传中」「上传失败」这类状态
+/// 同一侧 SHA-256 与大小都相同的正常文件共用存储里的对象、各有各的记录：重复上传与秒传不再多占存储，名称、访问级别、到期与标签各管各的；删到这一侧最后一条引用才删对象。存储配额却按记录算，共用对象的文件各自计入
+/// 访问级别决定谁能换签名地址；签名地址指向对象本身、有效期内不再经过应用（ADR-0049），签出之后的归档、损坏或改级别都不影响它
+/// 别的包经 Contracts 存取（头像、业务附件、临时文件），由业务按自己的范围先核对，不要求通用的文件权限；被 <c>SysUser.AvatarFileId</c>、<c>SysChatMessage</c> 的附件、<c>SysCodeGenHistory</c> 与 <see cref="SysExportTask"/> 按文件 ID 引用
+/// 业务产出的文件（导出结果、代码生成的产物包）标为临时并带到期时间，由作业 <c>files.temporary.purge</c> 每小时逐侧分批删掉，积压的留给下一次；没标为临时的即使写了到期时间也不删；经临时文件契约读取时到期即按不存在，不等作业
+/// 软删除连同副本，对象删不掉只记警告、记录照删；下载次数在独立的短事务里原子加一，不随下载期间的调用事务一直占着行
 /// </remarks>
 [SugarTable(TableName = "sys_file", TableDescription = "文件：一次上传得到一条，内容落在一到多个副本（SysFileStorage）里")]
 [SugarIndex("ix_sys_file_tenant_id_hash_size", nameof(TenantId), OrderByType.Asc, nameof(Hash), OrderByType.Asc, nameof(Size), OrderByType.Asc)]

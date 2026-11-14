@@ -10,8 +10,13 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 租户（平台库业务实体）
 /// </summary>
 /// <remarks>
-/// 套餐、到期、配额、状态归这里；租户目录（ID、显示名、是否启用、分片连接）是框架的 <c>TenantRecord</c>，开通 / 启停 / 改名 / 配置独立库时在同一工作单元里同步
-/// <see cref="TenantId"/> 是目录键（登录与令牌里的 <c>tenant</c>），创建后不可改
+/// 租户分两处存：框架的租户目录 <c>TenantRecord</c> 管解析、启停与分片（ID、显示名、是否启用、到期时间、分片连接），套餐、配额、所有者与独立库这些业务字段在本表；开通、改资料、启停、到期、配置与初始化独立库时在同一工作单元里同步，删除时从目录移除
+/// 到期时间也写进目录属性：Identity 不引用 Tenancy，登录、刷新与切入在到期那一刻就按目录拒绝，不等每 5 分钟一次的作业 <c>tenancy.tenants.expire</c> 把状态改成到期
+/// <see cref="TenantId"/> 是目录键（登录与令牌里的 <c>tenant</c>），创建后不可改；成员、用户注册地、会话与各包租户库实体都按它而不是按主键引用租户。部分唯一索引 <c>ux_sys_tenant_tenant_id</c> 只约束未删除的行，<c>platform</c> 是保留 ID
+/// 所有者是 <see cref="AdminUserId"/>，每租户唯一，不是一种成员类型；删除、停用、锁定所有者或把他移出租户之前都要先转移所有权
+/// 独立库的连接串经 <c>ISecretProtector</c> 加密存，同步进目录时仍是密文、由 Runtime 的分片解析器解密；独立库就绪之后不能再改连接，数据已在那个库里
+/// <see cref="EditionId"/> 为空即不受套餐限制，只能显式选择（开通时总会落到指定或缺省的套餐）；换套餐后让该租户的门控缓存失效
+/// 还有注册地在该租户的用户就不能删；删除即软删本行并从目录移除，成员行不连带删除。只在平台侧管理，带租户声明的调用一律拒绝
 /// </remarks>
 [SugarTable(TableName = "sys_tenant", TableDescription = "租户（平台库业务实体）")]
 [ActiveUniqueIndex(nameof(TenantId), Name = "ux_sys_tenant_tenant_id")]

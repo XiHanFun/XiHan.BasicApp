@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 发号的永久记录（平台库实体，只追加）
 /// </summary>
 /// <remarks>
-/// 兼作幂等事实与审计。<see cref="OwnerTenantId"/> 是规则所属一侧，<see cref="RequestTenantId"/> 是发起调用的一侧，两者在租户共用平台规则时不同
-/// 号码按格式快照与流水区间重建，不存号码列表
+/// 每次发号留一条永久记录、只追加：它是幂等的事实来源（同一侧对同一规则用同一个幂等键只发一次号，参数指纹相同即按记录重放、不同即冲突），也是发号审计
+/// <see cref="OwnerTenantId"/> 是规则所属一侧，<see cref="RequestTenantId"/> 是发起调用的一侧，两者在租户共用平台规则时不同；幂等唯一索引带上发起侧，各租户的幂等键互不干扰
+/// 不软删除、不修改，所以幂等用普通唯一索引而不是部分唯一索引
+/// 不存号码列表，只存格式快照与流水区间：号码按快照重建，规则停用后重放照样拿到当时那批号
+/// 与推进规则流水写在同一个独立事务里，记录在即号已发；重置流水时以本周期已发出的最大值兜底，重置后不会重发
+/// 没有删除，发过号的规则因此也不能删
 /// </remarks>
 [SugarTable(TableName = "sys_numbering_allocation", TableDescription = "发号的永久记录（平台库实体，只追加）")]
 [SugarIndex("ux_sys_numbering_allocation_idempotency", nameof(OwnerTenantId), OrderByType.Asc, nameof(RuleId), OrderByType.Asc, nameof(RequestTenantId), OrderByType.Asc, nameof(IdempotencyKey), OrderByType.Asc, true)]

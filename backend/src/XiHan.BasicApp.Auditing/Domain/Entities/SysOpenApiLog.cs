@@ -9,8 +9,12 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 开放接口日志：签名开放接口的调用与验签结果
 /// </summary>
 /// <remarks>
-/// 签名开放接口即 <c>open.*</c> 操作（<c>/api/open:{动词}</c>）。OpenPlatform 的验签中间件在调用里登记 <c>OpenApiLogEntry</c>，由审计日志中间件按调用结果落库（成败都记）
-/// 请求与响应正文只存截断后的摘要，敏感头不落库
+/// 签名开放接口即 <c>open.*</c> 操作（<c>/api/open:{动词}</c>）。另记一类：接入方对接排障要看签名算法、验签结果、报文大小与正文摘要，访问日志不该为少数接口加这些列
+/// 成败都记，验签失败也记下请求头里的 AppKey 原值：对接最常见的失败就是验签不过，这时凭证可能根本不存在，所以按 <see cref="ClientId"/>（AppKey）而不是凭证主键关联 Identity 的 <c>SysUserApiCredential</c>，应用名称是快照
+/// 签名调用本身是匿名的：用户记凭证归属人，日志落在归属人的注册地，按人与按一侧追溯都和普通调用一致
+/// 正文只存截断后的明文摘要（加密的请求存解密后的），敏感头不落库：够排障，又不让日志无限变大或泄露凭证
+/// 写入方是 OpenPlatform 的验签中间件，与本包同在 Tier 2、不互相引用，经 Contracts 的 <c>OpenApiLogEntry</c> 在调用里登记，成败、状态码与耗时由本包在调用结束时取
+/// 分表、异步批量写入与只追加同其他分表日志（见 <see cref="AuditLogRecord"/>），另按 AppKey 建索引看一个接入应用的调用
 /// </remarks>
 [SugarTable(TableName = "sys_open_api_log_{year}{month}{day}", TableDescription = "开放接口日志：签名开放接口的调用与验签结果")]
 [SplitTable(SplitType.Month)]

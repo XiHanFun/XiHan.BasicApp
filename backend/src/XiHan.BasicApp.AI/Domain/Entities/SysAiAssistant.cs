@@ -11,8 +11,11 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 助手
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，两侧的聊天都能用：提示词、提供商与知识范围的一份配置，另加可用的工具（方案 A3）
-/// 编码唯一，建后不可改（会话按助手 ID 绑定）；缺省最多一个；软删除后可以重建
+/// 助手是提示词、聊天提供商、知识检索与可用工具的一份配置（方案 A3），只在平台一侧、两侧的聊天都能用；聊天包不引用本包，经 Contracts 的 <c>IChatAssistants</c> 拿到助手并让它应答
+/// 按编码引用提示词与提供商（为空即缺省提示词与缺省提供商），工具存为工具名的 JSON 数组：保存时就核对引用存在且启用、工具在目录里，配错当场报，不等到回复时才失败
+/// 编码唯一、建后不可改；会话按助手 ID 绑定（<c>SysChatConversation.AssistantId</c>），一个用户对一个助手一个会话
+/// 软删除后同码可重建；已有会话不删，但停用或删除的助手按不存在处理，不出现在可用列表里，会话也不能再继续提问
+/// 缺省最多一个、停用的不能设为缺省；工具以调用方身份执行，没有权限时模型收到拒绝、回复本身不失败
 /// </remarks>
 [SugarTable(TableName = "sys_ai_assistant", TableDescription = "助手")]
 [ActiveUniqueIndex(nameof(Code), Name = "ux_sys_ai_assistant_code")]

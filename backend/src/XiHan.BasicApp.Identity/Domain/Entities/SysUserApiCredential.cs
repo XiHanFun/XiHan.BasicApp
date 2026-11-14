@@ -10,8 +10,13 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 开放接口凭证
 /// </summary>
 /// <remarks>
-/// 平台库，跟着账号走，不分租户。个人中心「开放接口」自助创建，每人最多 5 个；签名开放接口按 AppKey 验签（OpenPlatform 经 Contracts 的凭证目录取）
-/// 密钥经 <c>ISecretProtector</c> 加密存（验签要明文，不能存散列），明文只在创建与滚动时返回一次。签名算法与 IP 白名单在账号安全上，作用于本人全部凭证
+/// 开放接口凭证跟着账号走，落平台库、不分租户：签名调用在 Authenticate 阶段按 AppKey 认人，那时还没有租户上下文；每人最多 5 个
+/// 密钥经 <c>ISecretProtector</c> 加密存而不是存散列：验签要用明文重算签名；明文只在创建与滚动时返回一次
+/// AppKey 全局唯一，部分唯一索引 <c>ux_sys_user_api_credential_app_key</c> 只约束未删除的行
+/// 签名算法与 IP 白名单放在账号安全上（<see cref="SysUserSecurity"/>），按人设一次、作用于本人全部凭证
+/// OpenPlatform 经 Contracts 的凭证目录取凭证，不缓存：停用、删除、滚动密钥与改白名单立即生效；归属人停用或锁定中照样取出，由调用方按账号状态拒绝
+/// <see cref="LastUsedAt"/> 在验签通过后回写，同一实例一分钟内只写一次、在独立作用域里提交：不让每个签名请求都写库
+/// 存的是密钥密文，标 <c>[DiffLogIgnored]</c> 不进数据变更日志；删除用户不连带删除凭证，归属人不在了凭证目录就取不出它
 /// </remarks>
 [SugarTable(TableName = "sys_user_api_credential", TableDescription = "开放接口凭证")]
 [ActiveUniqueIndex(nameof(AppKey), Name = "ux_sys_user_api_credential_app_key")]

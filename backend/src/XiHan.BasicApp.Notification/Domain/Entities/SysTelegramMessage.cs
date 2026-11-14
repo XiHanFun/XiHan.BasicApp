@@ -11,8 +11,10 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// Telegram 的出站审计（平台库实体）
 /// </summary>
 /// <remarks>
-/// 发消息、改消息这几种调用在成功或最终失败时各记一条（不按每次重试记）
-/// 普通表，没有页面与操作
+/// Telegram 出站调用的审计：发消息、发图片与文件、改消息与改按钮在成功或最终失败时各记一条，不按每次重试记，耗时含重试等待；交互回复、管理员告警与发件箱的广播都经同一个出站，一并记下
+/// 在独立的作用域与事务里写：审计不随调用回滚丢失，写不进去也只记日志、不影响发送结果
+/// <see cref="BotName"/> 存当时的名称快照：机器人改名或删除后仍看得出是哪个
+/// 只追加、不修改；Telegram 只在平台，所以不分侧；没有页面、操作与清理作业，供直接排查
 /// </remarks>
 [SugarTable(TableName = "sys_telegram_message", TableDescription = "Telegram 的出站审计（平台库实体）")]
 [DiffLogIgnored]

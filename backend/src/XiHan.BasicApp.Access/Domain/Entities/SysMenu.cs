@@ -10,9 +10,12 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 菜单（平台库目录实体，两侧共用一棵树，按权限裁剪）
 /// </summary>
 /// <remarks>
-/// 页面节点由各包的页面登记派生：<see cref="Route"/>、<see cref="Component"/>、<see cref="TitleKey"/>、<see cref="Permission"/> 归登记，
-/// 种子每次对齐；展示字段（标题覆盖、图标、排序、所属目录、可见、缓存、固定标签、启停、徽标）运营可改，改过即 <see cref="IsCustomized"/>，种子不再覆盖，可经 <c>menus.reset</c> 恢复登记的值
-/// 目录与外链节点由运营新建（编码 <c>custom.&lt;名&gt;</c>），种子不碰；内置的几个（见 <see cref="BuiltInMenus"/>）由种子只首写一次，此后与运营建的一样
+/// 平台库目录实体、不分侧：两侧共用一棵树，只在平台侧管理；下发时按当前主体的有效权限裁剪，要求的权限不在集合里即连同子树去掉，裁剪后没有子节点的目录不下发。菜单只改善可用性，授权仍在操作上判定
+/// 页面节点由各包的页面登记派生：<see cref="Route"/>、<see cref="Component"/>、<see cref="TitleKey"/>、<see cref="Permission"/> 归登记、运营改不了，种子 <c>access.menus</c> 每次对齐，登记里已不存在的页面节点软删除
+/// 展示字段（标题覆盖、图标、排序、所属目录、可见、缓存、固定标签、启停、徽标）运营可改，改过即 <see cref="IsCustomized"/>：每次部署照常对齐登记，又不冲掉运营的调整，需要时经 <c>menus.reset</c> 恢复登记的值
+/// 目录与外链节点由运营新建（编码 <c>custom.&lt;名&gt;</c>），种子不碰；内置的几个（见 <see cref="BuiltInMenus"/>）由种子只首写一次，写过（含已删除的）就不再补，此后与运营建的一样
+/// 「隐藏」与「停用」分开：隐藏的页面仍有路由、可直接访问，只是导航里不显示；停用的节点连同子树不下发、页面没有路由。页面节点不能删，要不显示就设为隐藏
+/// 编码唯一是部分唯一索引：页面节点被软删除后，同一页面码再登记时新建一行
 /// </remarks>
 [SugarTable(TableName = "sys_menu", TableDescription = "菜单（平台库目录实体，两侧共用一棵树，按权限裁剪）")]
 [ActiveUniqueIndex(nameof(Code), Name = "ux_sys_menu_code")]
@@ -192,7 +195,7 @@ public enum MenuKind
     /// 目录：运营建的分组节点
     /// </summary>
     /// <remarks>
-    /// 可在顶层或另一个目录下，没有路由；裁剪后没有子节点即不下发。内置的帮助中心目录由种子只首写一次
+    /// 可在顶层或另一个目录下，没有路由；裁剪后没有子节点即不下发。内置的目录（各包页面登记指到的目录与帮助中心）由种子只首写一次
     /// </remarks>
     Directory = 1,
 

@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// Telegram 机器人（平台库实体，平台托管）
 /// </summary>
 /// <remarks>
-/// 令牌、Webhook 与会话都是平台级的，租户看不到
-/// 令牌加密存储、响应里不回显；管理员、群组白名单与命令白名单供交互（Webhook 与命令）使用；广播群收平台一侧按机器人渠道发出的通知
+/// 平台托管、不分侧：机器人的 Webhook 与长轮询都由平台进程托管，令牌与会话是平台级的，所以没有 <c>OwnerTenantId</c>，租户看不到
+/// 名称是路由键：Webhook 地址按名称区分机器人，所以名称唯一（部分唯一索引，删除后可重用）；运行时按名称不分大小写查找、重名只留第一个，而唯一索引区分大小写
+/// 令牌就是机器人的全部权限：加密存储、响应里不回显，修改时不填即保留
+/// 管理员、群组白名单、命令白名单与广播群存逗号分隔的规整文本：只随机器人整体读写，托管时规整成集合，不另建关联表；广播群收平台一侧按机器人渠道发出的通知
+/// 改动不即时推送：托管循环每个刷新周期（参数 <c>notification.telegram</c>）重读启用的机器人，对照运行中的启动、重启或撤下，所以改完要等一个周期才生效
+/// 软删除不检查引用：发件箱里还在排队的广播到发送时找不到机器人即失败
 /// </remarks>
 [SugarTable(TableName = "sys_telegram_bot", TableDescription = "Telegram 机器人（平台库实体，平台托管）")]
 [ActiveUniqueIndex(nameof(Name), Name = "ux_sys_telegram_bot_name")]

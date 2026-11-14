@@ -11,9 +11,13 @@ namespace XiHan.BasicApp.Printing.Domain.Entities;
 /// 打印模板（平台库实体，不实现 <c>IMultiTenant</c>）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台全局模板，否则是该租户的私有模板
-/// 独立库的租户也读写平台库里的这张表。编码在所属一侧唯一、创建后不可改；
-/// 数据源编码可空（自由模板），只提供字段契约、设计素材与缺省样例。并发戳参与修改与启停的乐观并发
+/// 全局模板与租户私有模板放在同一张平台库表里、按 <see cref="OwnerTenantId"/> 分侧（<c>platform</c> 即全局），不实现 <c>IMultiTenant</c>：租户解析一个编码时先找自己的、没有再退到开放的全局模板；独立库的租户也读写平台库里的这张表
+/// 业务按编码而不是按 ID 取模板：租户可以用同一编码的私有模板覆盖全局模板，业务代码不用知道用的是哪一份；所以编码在所属一侧唯一、创建后不可改，部分唯一索引让删掉后同编码可以重建
+/// 全局模板要显式向租户开放（<see cref="AllowTenantUse"/>）才对租户可见，开放后所有租户都能解析到，租户私有模板这一项恒为否；平台一侧写全局模板另要 <c>printing.print-templates.global-manage</c>
+/// 数据源按编码引用代码里登记的打印数据源（<c>PrintDataSourceRegistry</c>），它只提供字段契约、设计素材与缺省样例，为空即自由模板；写入时须已登记
+/// 模板 JSON 原样保存，后端只做最小结构校验、不解析设计内容
+/// 解析结果按「侧 + 编码」进共享缓存 30 分钟、「没有」也缓存，写入后推到工作单元结束再失效；缓存的只是模板元数据与设计 JSON，不缓存打印数据
+/// 只有停用的模板能删（软删除）；并发戳参与修改与启停的乐观并发
 /// </remarks>
 [SugarTable(TableName = "sys_print_template", TableDescription = "打印模板（平台库实体，不实现 IMultiTenant）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(TemplateCode), Name = "ux_sys_print_template_owner_tenant_id_template_code")]

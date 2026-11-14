@@ -10,9 +10,11 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 群机器人配置（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 钉钉、飞书或企业微信的 Webhook 地址、签名密钥与安全关键词
-/// 每个服务商在一侧有一个缺省机器人，通知按机器人渠道发到本侧每个服务商的缺省机器人；租户没有就不发（不借平台的机器人）
-/// Webhook 地址与签名密钥加密存储，响应里不回显（地址只给主机）
+/// 落平台库、按 <c>OwnerTenantId</c> 分侧；通知的机器人渠道发到本侧每个服务商的缺省机器人，所以缺省按服务商分：每侧每个服务商至多一个，第一个自动成为缺省，缺省的不能停用、删除或换服务商，免得这个服务商没有可发的
+/// 不借平台的机器人：租户的通知不进平台的群，本侧一个都没有即带机器人渠道的发布整次失败；这一点与邮件、短信不同，那两种租户没配时由平台代发
+/// Webhook 地址整串加密：钉钉的 <c>access_token</c>、飞书路径里的令牌、企业微信的 <c>key</c> 都在地址里，拿到就能往群里发，所以响应只给主机，修改时交回遮过的地址即保留原值
+/// 只认各服务商官方的 https 主机：租户能填的地址不许指向别处
+/// 编码同侧唯一用部分唯一索引，删除后同编码可重建
 /// </remarks>
 [SugarTable(TableName = "sys_bot_config", TableDescription = "群机器人配置（平台库实体，随所属侧）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_bot_config_owner_tenant_id_code")]

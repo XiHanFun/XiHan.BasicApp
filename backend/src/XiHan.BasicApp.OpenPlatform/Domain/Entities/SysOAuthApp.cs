@@ -10,8 +10,14 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// OAuth 应用：接入本系统单点登录的第三方应用
 /// </summary>
 /// <remarks>
-/// 平台库实体。平台在「应用管理」里建的没有归属人；用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到
-/// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）。机密客户端的密钥只存 SHA-256（密钥是 256 位随机数，不需要慢散列，慢散列会让令牌端点成为耗 CPU 的入口）；公开客户端没有密钥、授权码必须带 PKCE
+/// 接入本系统单点登录的第三方应用：平台在「应用管理」里建的没有归属人，用户在个人中心「我的应用」里建的归属本人，平台管理页也看得到
+/// 落平台库、不分租户：令牌端点与 userinfo 绕过内核管道、没有租户上下文，也要能按 ClientId 找到应用
+/// 发给它的用户令牌只用于身份（受众是 ClientId，只认 userinfo 与 id_token，后台接口不认）：授权类型只开授权码与刷新令牌，范围只开 <c>openid profile email phone</c>，没有用户的客户端凭证模式用不上
+/// 机密客户端的密钥是 256 位随机数，只存 SHA-256、只在新建与重置时返回一次：随机密钥没有可猜的空间，不需要慢散列，慢散列反而让匿名的令牌端点成为耗 CPU 的入口
+/// 公开客户端（SPA、移动端、桌面端）放不住密钥，所以没有密钥、授权码必须带 PKCE
+/// 授权码、同意记录与令牌都按 ClientId 关联应用、不建外键，所以 ClientId 与客户端类型只在新建时定；ClientId 的唯一是部分唯一索引，应用软删除后同一个 ClientId 可以重建
+/// 删除是软删除，授权码、同意与令牌不连带删：客户端认证与 userinfo 只认启用中的应用，应用删除或停用即让它发出的令牌失效，不用逐行吊销
+/// 我的应用的授权类型、范围（<c>openid profile email</c>）与有效期固定，也不能跳过同意页：个人建的应用只拿身份，跳过同意只留给平台登记的应用
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_app", TableDescription = "OAuth 应用：接入本系统单点登录的第三方应用")]
 [ActiveUniqueIndex(nameof(ClientId), Name = "ux_sys_oauth_app_client_id")]

@@ -11,8 +11,10 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 短信发送记录，也是短信的发件箱（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 写法与 <see cref="SysEmail"/> 相同
-/// 服务商发的是它那边的模板，记录里的正文是本应用模板渲染出的文字（便于查看），参数另存一份交给服务商
+/// 与 <see cref="SysEmail"/> 同一套发件箱：随业务一起提交、发送循环条件更新领取、配置到发送时才取（租户没有取平台的）、按次数退避重试、验证码发完即清空正文与参数
+/// 云服务商只认它那边审核过的模板：记录里的正文是本应用模板渲染出的文字，只供查看；<see cref="TemplateParams"/> 另存调用方给的参数交给服务商，补上的品牌名只用于本地渲染，免得参数个数和服务商模板对不上
+/// 记录存本应用的模板编码，到发送时才按配置的模板映射换成服务商的模板 ID：换配置或改映射不用动排队中的记录
+/// 发送时回写服务商与服务商返回的消息 ID，供到服务商那边核对
 /// </remarks>
 [SugarTable(TableName = "sys_sms", TableDescription = "短信发送记录，也是短信的发件箱（平台库实体，随所属侧）")]
 [SugarIndex("ix_sys_sms_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]

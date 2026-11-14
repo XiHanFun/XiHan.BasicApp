@@ -11,8 +11,9 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 导入历史：一次导入结束后由前端记下的结果
 /// </summary>
 /// <remarks>
-/// 租户库只追加的记录，平台一侧租户为 <c>platform</c>
-/// 导入在前端逐行调资源的新建操作完成，结束后由前端记一条结果，导入弹窗列出本人最近几次
+/// 导入没有后端的批量接口：前端逐行调资源的新建操作，每行照常经过权限与校验；这张表只在导入结束后由前端记一条汇总，后端不经手导入的数据
+/// 按侧、本人与页面码归类，导入弹窗列出本人在这一页最近几次，索引就按这一种读法建；错误摘要是前端给的 JSON，截到 8000 个字符
+/// 租户库只追加的记录（平台一侧租户为 <c>platform</c>），写入后不改；没有删除，也没有清理作业
 /// </remarks>
 [SugarTable(TableName = "sys_import_history", TableDescription = "导入历史：一次导入结束后由前端记下的结果")]
 [SugarIndex("ix_sys_import_history_tenant_id_user_id_page_code_created_at", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(PageCode), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]

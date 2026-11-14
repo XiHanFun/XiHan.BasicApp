@@ -10,10 +10,12 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 分片上传：大文件分段直传存储的一次上传
 /// </summary>
 /// <remarks>
-/// 租户库实体，平台一侧租户为 <c>platform</c>
-/// 发起时选好上传目标配置、对象键并在存储里开一次分片上传（<c>IBlobMultipartStore</c>），各分片经签名地址直传存储；
-/// 完成时由应用按存储列出的分片拼成对象，回读算 SHA-256，再落文件记录（内容与同一侧已有的相同即共用已有的对象）
-/// 只有发起人能续传、完成或放弃；过了 <see cref="ExpiresAt"/> 记为过期并放弃存储里的分片
+/// 大文件不经应用转发：发起时在上传目标的存储里开一次分片上传（<c>IBlobMultipartStore</c>），记下配置、桶、对象键与存储给的上传标识，各分片经签名地址直传存储；这张表只是应用这边的会话记录，断点续传时已传的分片以存储列出的为准
+/// 完成时不信客户端报的分片清单：按存储列出的分片核对编号齐全与总大小，拼好后回读算 SHA-256（客户端不必自己算），再照普通上传的规则落文件，与同一侧已有内容相同即共用已有的对象、刚拼好的对象删掉
+/// 完成后文件的访问级别、临时与到期、标签与备注在发起时就存下，完成那一步据此落文件；<see cref="FileId"/> 发起时定下、用作对象键的最后一段，完成后指向实际得到的文件
+/// 存储配额在发起与完成时各核对一次；只有发起人能续传、完成或放弃，别人的按不存在
+/// 有截止时间（<c>BasicApp:Files:UploadLifetime</c>）：操作里过了 <see cref="ExpiresAt"/> 即按过期回答，作业 <c>files.uploads.expire</c> 每小时逐侧把过期的记为过期并放弃存储里没完成的分片（放弃不了只记警告）
+/// 租户库实体，平台一侧租户为 <c>platform</c>；不删除，结束（完成、放弃、过期）后留作记录
 /// </remarks>
 [SugarTable(TableName = "sys_file_upload", TableDescription = "分片上传：大文件分段直传存储的一次上传")]
 [SugarIndex("ix_sys_file_upload_tenant_id_status_expires_at", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(ExpiresAt), OrderByType.Asc)]

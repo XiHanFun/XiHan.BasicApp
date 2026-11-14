@@ -11,8 +11,11 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 权限变更日志
 /// </summary>
 /// <remarks>
-/// 记角色授予与撤销、成员加入与移出、数据范围、删除角色、套餐白名单与租户换套餐
-/// 由 Access / Tenancy 在调用里登记（<see cref="PermissionChangeLogEntry"/>），只在调用成功时落库；操作人是公共列里的用户
+/// 授权面的变更单独成表，按语义（<see cref="PermissionChangeType"/>）记角色、用户、套餐与租户几个维度：权限是安全边界，要回答「谁在何时把什么权限给了谁或收回」，数据变更日志只看得到行的增删，看不出给了哪个角色哪些权限码
+/// 只在调用成功时落库：失败的调用已回滚，什么也没变；警告或只记录的约束规则违反也记在这里，留下放行的证据
+/// 写入方 Access 与 Tenancy 在 Tier 1 不引用本包，经 Contracts 的 <see cref="PermissionChangeLogEntry"/> 在调用里登记；系统自动做的指派与解除（新租户建内建管理员、成员移出租户）同样登记，不只记手工操作
+/// 角色名、目标用户的登录名与套餐编码是写入时的快照，对象删除或改名后日志仍看得懂；操作人就是公共列里的用户，不另设列
+/// 另按目标用户建索引：查一个人的权限被谁改过；分表、异步批量写入与只追加同其他分表日志（见 <see cref="AuditLogRecord"/>）
 /// </remarks>
 [SugarTable(TableName = "sys_permission_change_log_{year}{month}{day}", TableDescription = "权限变更日志")]
 [SplitTable(SplitType.Month)]

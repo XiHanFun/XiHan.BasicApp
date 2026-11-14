@@ -10,9 +10,16 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 用户账号实体
 /// </summary>
 /// <remarks>
-/// 平台库，表 <c>sys_user</c>
-/// 账号域实体不实现 <c>IMultiTenant</c>，用 <see cref="HomeTenantId"/>（注册地租户，平台账号为 <c>platform</c>）列标识归属，登录等无租户阶段的操作按它查
-/// 唯一索引 <c>(home_tenant_id, user_name, is_deleted)</c>，删除后同名可重建。密码与锁定在 <see cref="SysUserSecurity"/>
+/// 账号跟着人走、不属于某个租户，所以落平台库、不实现 <c>IMultiTenant</c>：用 <see cref="HomeTenantId"/> 记注册地（平台账号为 <c>platform</c>），登录这类还没有租户上下文的操作按它找人；同一个人进别的租户靠 <c>SysTenantMember</c>，不另建账号
+/// 登录名只在注册地内唯一，由部分唯一索引 <c>ux_sys_user_home_tenant_id_user_name</c> 只约束未删除的行：不同注册地可以有同名账号，软删除后同名可以重建
+/// 密码散列、失败计数、锁定与双因素拆到一对一的 <see cref="SysUserSecurity"/>：用户列表、详情与各包对用户的读取碰不到散列与密钥
+/// 两种锁分开存：管理员锁定改 <see cref="Status"/>，要人工解锁；连续登录失败只写 <see cref="SysUserSecurity.LockoutEndAt"/>，到点自动解除
+/// 停用、锁定与删除都同时吊销该用户的全部会话：会话门禁虽然也核对用户状态，但判定有缓存，吊销让门禁缓存立即失效并推送下线
+/// <see cref="IsSystemAccount"/> 标出种子写的超级管理员与租户开通时的管理员，只由种子与开通租户管理员时标记，用户管理里的停用、锁定、删除与重置都跳过它们
+/// 软删除不级联：管理员删除只删本行，本人注销连同账号安全一起删；会话、凭证以及各包按用户 ID 的引用都留着，账号不在了这些行也就用不上
+/// <see cref="LastLoginAt"/> 与 <see cref="LastLoginIp"/> 在开会话时写，模仿登录不写：那不是本人的一次登录
+/// 头像引用 Files 平台侧的公开文件（<see cref="AvatarFileId"/>），跟着人走、不计入租户的存储配额；换掉时经 Contracts 的 <c>IAvatarFiles</c> 回收旧文件，Identity 不直接依赖 Files
+/// 索引都以注册地开头，因为对用户的读法几乎都先限定注册地：列表按创建时间、验证码登录与找回密码按手机号，也服务按注册地计数
 /// </remarks>
 [SugarTable(TableName = "sys_user", TableDescription = "用户账号实体")]
 [ActiveUniqueIndex(nameof(HomeTenantId), nameof(UserName), Name = "ux_sys_user_home_tenant_id_user_name")]

@@ -10,9 +10,11 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 授予规则（平台库实体，随主体分侧）
 /// </summary>
 /// <remarks>
-/// 一个主体（角色或用户）在一个权限码上的 Grant 附加信息或 Deny。同一侧同一主体同一权限码只有一行
-/// 授予本身仍写框架的 <c>PermissionGrantRecord</c>（别的包直接写入的授予同样算数），这里只放框架记录表达不了的：
-/// Deny（不写框架授予）、授予的生效与到期时间、原因；没有规则行的授予就是普通授予。判定经 Access 的权限过滤器按「用户 Deny &gt; 用户 Grant &gt; 角色 Deny（本角色）&gt; 角色 Grant」收窄
+/// 一个主体（角色或用户）在一个权限码上的 Grant 附加信息或 Deny：授予本身仍写框架的 <c>PermissionGrantRecord</c>（别的包直接写入的授予同样算数），这里只放框架记录表达不了的——Deny（不写框架授予）、授予的生效与到期时间、原因
+/// 普通授予（没有有效期也没有原因）不留规则行，把授予改回普通即删掉它的行：本表只装例外，框架存储仍是授予的真源
+/// 判定经 <c>AccessPermissionFilter</c> 在框架的授予命中之后按「用户 Deny &gt; 用户 Grant &gt; 角色 Deny（本角色）&gt; 角色 Grant」收窄：用户上的拒绝压过一切，角色上的拒绝只拿走这个角色自己的授予；<c>auth.permissions</c> 的有效权限同源
+/// 落平台库，<see cref="OwnerTenantId"/> 随主体所在的一侧；同一侧同一主体同一权限码只有一行，已有的就地覆盖动作、有效期与原因。不软删除，撤销即物理删除，所以是普通唯一索引
+/// 判定按（侧、主体）读全部规则放共享缓存 60 秒、写入后失效；有效期在判定时按当前时间比较，到点生效与到期不必重建缓存
 /// </remarks>
 [SugarTable(TableName = "sys_permission_rule", TableDescription = "授予规则（平台库实体，随主体分侧）")]
 [SugarIndex("ux_sys_permission_rule_owner_subject_permission", nameof(OwnerTenantId), OrderByType.Asc, nameof(SubjectKind), OrderByType.Asc, nameof(SubjectId), OrderByType.Asc, nameof(Permission), OrderByType.Asc, true)]

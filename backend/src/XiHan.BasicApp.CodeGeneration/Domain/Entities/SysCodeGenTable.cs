@@ -11,8 +11,13 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的表配置
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧。由导入表结构建出，一张库表一条（表名唯一，与数据源无关），删除时连带软删它的列配置
-/// 生成的页面登记在所属包的 <c>Pages.cs</c>、目录按包；生成目标是新建包或加入已有包
+/// 平台库实体、只在平台一侧。由导入表结构建出，一张库表一条：表名唯一且与数据源无关，零代码运行时拿它拼查询、列配置也都挂在它下面，所以表名只来自导入与同步，修改时不能改
+/// 导入时记下 <see cref="DataSourceId"/> 与 <see cref="DatabaseType"/>：同步结构、生成与零代码运行时都回到同一个库，类型映射按导入时的库选
+/// 推断出的字段可以人工改，改过的记进 <see cref="UserModifiedFields"/>：同步结构时表注释与主键以库为准，被跟踪的字段只在没人工改过时才跟随新的推断，人工的配置不被覆盖
+/// 登记过实体的主库表导入时缺省「加入已有包」，生成时不再出实体，免得与手写的实体重复定义
+/// 主从模式由明细表的 <see cref="MasterTableId"/> 指向主表配置，生成主表时再反查它的明细表；主从与关联都按表配置 ID 引用，删除时不检查这些引用，悬空的在生成时按配置检查不过报出来
+/// 生成结果与最近生成时间只在成功时回写，每次生成的成败与产物记在 <see cref="SysCodeGenHistory"/>
+/// 软删除并连带软删列配置，生成历史保留；表名是部分唯一索引，删掉后同一张表可以重新导入；停用的表配置不能用于零代码运行时
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_table", TableDescription = "代码生成的表配置")]
 [ActiveUniqueIndex(nameof(TableName), Name = "ux_sys_code_gen_table_table_name")]

@@ -88,6 +88,7 @@ public enum ConfigDataType
 - 类名以 `Sys` 开头。表名、列名不靠命名约定推出（缩写会被拆错，`SysOAuthApp` 会推成 `sys_o_auth_app`），实体显式写 `[SugarTable(TableName, TableDescription)]`，映射到列的属性写 `[SugarColumn(ColumnName, Length, IsNullable, ColumnDescription)]`；名字用小写下划线（`sys_oauth_app`、`owner_tenant_id`），说明取 `<summary>` 那一句，可空与属性类型一致。基类的公共列（`id`、`concurrency_stamp`、`created_at`、`tenant_id` 等）在 Contracts 的基类上写好了。
 - 字符串列在 `[SugarColumn]` 里写 `Length`（常规短文本 512），长文本不写长度、另标 `[LongText]`；不再用 `[StringLength]` / `[MaxLength]` 给实体定长度。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
 - 索引名明确写出：`[SugarIndex("ix_<表>_<列>…", …)]`，唯一的 `ux_` 开头，按月分表的用 `{split_table}` 占位；软删除实体的唯一约束写 `[ActiveUniqueIndex(…, Name = "ux_<表>_<列>…")]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 实体类的 `<remarks>` 讲这个实体为什么这样设计：为什么单独成表、落哪个库、结构与唯一性的取舍、为什么软删或只追加、已知限制；每行一个决定和理由，不罗列操作与错误码，也不套固定分段。
 - 架构测试 `EntityMappingTests` 守护上面几条：缺表名、列名、说明、长度，可空与类型不符，或索引名不合 `ix_` / `ux_` + 表名 + 列即失败。
 - 枚举在库里存整数，JSON 里是字符串（各包 `JsonContext` 按字符串序列化）。只被一个实体用到的枚举写在那个实体的文件里（实体类之后，同一命名空间），两个以上实体共用的才单独成文件（如 `SettingStatus.cs`）。
 - 写入极频繁或只存密文与计数的实体（会话、用户设置、账号安全、OAuth 授权码与令牌、邮件短信的发送记录、聊天会话与成员等）在类上标 `[DiffLogIgnored]`，不进数据变更日志；其余全审计实体缺省都记前后值。

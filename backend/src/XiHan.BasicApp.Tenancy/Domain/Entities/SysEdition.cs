@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 租户套餐（平台库，表 <c>sys_edition</c>）
 /// </summary>
 /// <remarks>
-/// 权限白名单（<see cref="SysEditionGrant"/>）决定绑定它的租户能生效哪些权限，租户管理员持有 <c>*</c> 也被收窄到白名单
-/// <see cref="Code"/> 在平台内唯一（含已软删的行之外）；至多一个缺省套餐，开通租户不指定套餐时用它。价格与计费周期只作展示（没有计费流程），用户与存储配额由 Contracts 的 <c>ITenantQuota</c> 约束
+/// 用权限白名单（<see cref="SysEditionGrant"/>）决定绑定它的租户能生效哪些权限：Access 在授予命中之后再求交，租户管理员持有 <c>*</c> 也被收窄到白名单；换套餐只改租户上的引用，不动任何授予
+/// 落平台库、只在平台侧管理；编码由部分唯一索引 <c>ux_sys_edition_code</c> 只约束未删除的行，创建后不可改，种子按编码只首写
+/// 至多一个缺省套餐，开通租户不指定套餐时用它；互斥靠写路径清掉其余的缺省标记，库里没有约束；缺省套餐必须启用
+/// 停用只挡新的分配（开通、换套餐），已绑定的租户照旧按它的白名单与配额
+/// 席位与存储上限是缺省值，租户自己的上限优先、都没有即不限，由 Contracts 的 <c>ITenantQuota</c> 在租户主体建用户与上传文件时约束；价格与计费周期只作展示，没有计费流程
+/// 还有租户绑定即不能删，删除时先物理删掉白名单再软删套餐；门控遇到绑定的套餐已不存在时按空白名单处理，宁可拒绝
 /// </remarks>
 [SugarTable(TableName = "sys_edition", TableDescription = "租户套餐（平台库，表 sys_edition）")]
 [ActiveUniqueIndex(nameof(Code), Name = "ux_sys_edition_code")]

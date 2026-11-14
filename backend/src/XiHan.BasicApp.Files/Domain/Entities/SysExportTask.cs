@@ -11,8 +11,12 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 导出任务：把某个列表操作的查询结果导成 CSV 或 XLSX 文件
 /// </summary>
 /// <remarks>
-/// 租户库实体，平台一侧租户为 <c>platform</c>
-/// 按发起人的身份导出，结果存成临时文件
+/// 导出做成后台任务而不是一次同步调用：大列表要逐页取、逐行写文件，耗时可能很长，提交即返回，状态、进度与结果记在这张表，进度另经推送告诉发起人
+/// 不另写导出提供方，导出的就是某个 <c>.list</c> 操作本身（<see cref="BusinessType"/>）：后台以发起人的凭据经全管道逐页调它，权限、租户、数据范围与字段安全都与发起人自己查询一致
+/// 查询与列在提交时存成快照（JSON），执行时照提交那一刻的筛选与列导出
+/// 发起人的凭据只随作业放在进程内队列、不落库：进程重启后没执行完的任务无法续跑，启动时记为中断（失败）；失败经独立的短事务记下，那时发起人的凭据可能已经用不了
+/// 结果存成 Files 的临时文件（7 天到期、访问级别「已登录」），任务只记文件 ID、文件名与大小；文件到期后由作业 <c>files.temporary.purge</c> 删掉，任务行留着
+/// 租户库实体，平台一侧租户为 <c>platform</c>；每人只看得到自己的任务，删除即软删并连同结果文件，执行中的不能删
 /// </remarks>
 [SugarTable(TableName = "sys_export_task", TableDescription = "导出任务：把某个列表操作的查询结果导成 CSV 或 XLSX 文件")]
 [SugarIndex("ix_sys_export_task_tenant_id_requester_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(RequesterId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]

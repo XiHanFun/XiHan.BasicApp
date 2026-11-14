@@ -11,8 +11,11 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的历史记录
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，只增不改。每次生成（成功、失败）记一条，预览不记
-/// 产物包存成 Files 的临时文件、这里记文件 ID（方案 C2）
+/// 平台库实体、只在平台一侧。每次生成不论成败记一条、预览不记：生成会产出包或写进项目，要留下谁在何时按什么生成了什么
+/// 失败的那条在独立的短事务（<c>StoreScope</c>）里写：失败的调用会回滚自己的写入，历史不能跟着丢；写不进只丢这条历史，不改变返回的失败
+/// 只增不改，表名、表配置快照、用到的模板与产物清单随行存成 JSON：表配置之后改了或删了，历史仍说得清当时按什么生成
+/// 产物包不放进响应，存成 Files 的临时文件（经 Contracts 的 <c>ITemporaryFiles</c>，7 天到期，方案 C2），这里只记文件 ID；下载走宿主的普通端点，按生成历史的读权限核对、不要求通用的文件权限
+/// 包到期后由作业 <c>files.temporary.purge</c> 清掉，历史行保留，再下载时说成这次生成的包已经没有了
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_history", TableDescription = "代码生成的历史记录")]
 [SugarIndex("ix_sys_code_gen_history_generated_at", nameof(GeneratedAt), OrderByType.Desc)]

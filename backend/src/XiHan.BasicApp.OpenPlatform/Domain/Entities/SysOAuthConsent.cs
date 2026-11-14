@@ -10,8 +10,11 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 用户对某个应用的授权同意
 /// </summary>
 /// <remarks>
-/// 平台库实体
-/// 同意过的范围覆盖本次请求的就不再弹同意页；用户在个人中心撤销即删掉它并吊销这个应用的全部令牌
+/// 记下用户同意过某个应用的哪些范围：同意过的范围覆盖本次请求的就不再弹同意页；范围累积，同意新范围时并进这一行，不另起一行
+/// 一个用户对一个应用一行，唯一是（用户、ClientId）的部分唯一索引：撤销是软删除，之后再授权可以重建
+/// 撤销同意即删掉它并吊销这个应用拿到的本人全部令牌：令牌出自同意，撤了同意不能还留着可用的令牌
+/// 落平台库、按 ClientId 关联应用，与应用、授权码同在一个库；应用删除后同意记录照常列出，只是没有应用名称
+/// 只能本人同意或撤销，模仿会话不能做
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_consent", TableDescription = "用户对某个应用的授权同意")]
 [ActiveUniqueIndex(nameof(UserId), nameof(ClientId), Name = "ux_sys_oauth_consent_user_id_client_id")]

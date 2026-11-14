@@ -11,8 +11,10 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 提示词
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，助手引用它当系统提示词。正文原样使用、没有变量渲染，版本只是标签、同一编码只有一行（方案 A4）
-/// 编码唯一，建后不可改；软删除后可以重建
+/// 提示词单独成表、只在平台一侧，助手按编码引用它当系统提示词：几个助手可以共用一段提示词，改一处即生效
+/// 正文原样使用、没有变量渲染，版本只是标签、同一编码只有一行（方案 A4），不留历史版本
+/// 编码建后不可改（助手按编码引用），被助手引用即不能删；唯一是部分唯一索引，软删除后同码可重建
+/// 引用它的助手在它停用后回复即失败、不回落到缺省提示词：配错要暴露出来，不悄悄换成别的提示词
 /// </remarks>
 [SugarTable(TableName = "sys_ai_prompt", TableDescription = "提示词")]
 [ActiveUniqueIndex(nameof(Code), Name = "ux_sys_ai_prompt_code")]

@@ -10,9 +10,12 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 限时委托（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 委托人在有效期内把一个权限码或一个角色交给被委托人（方案 5.9）
-/// 状态不落库，按撤销时间与有效期推出（<see cref="StatusAt"/>）：到了生效时间自动生效，过了到期时间自动失效；撤销保留记录
-/// 判定时委托人此刻仍须持有所委托的权限或角色，否则不算数
+/// 委托人在有效期内把一个权限码或一个角色交给被委托人（方案 5.9）：临时代办不必改角色指派或直授，到期自动收回
+/// 状态不落库，按撤销时间与有效期推出（<see cref="StatusAt"/>）：到点生效与到期不需要谁去改状态，状态也不会与时间对不上；撤销只记撤销时间与撤销人，记录保留
+/// 判定时委托人此刻仍须持有所委托的权限或角色，否则不算数：委托人自己被收回了，转出去的随之失效，委托不会比来源更持久
+/// 委托不写框架的授予存储，由 <c>AccessGrantSource</c> 在存储没命中时给出，之后照常经权限过滤器收窄；委托的角色按它的继承链给授予，不带数据范围与字段安全，约束规则把它算作被委托人持有的角色
+/// 落平台库，只在所属一侧（<see cref="OwnerTenantId"/>）算数；判定读被委托人名下未撤销、未到期的委托，放共享缓存 60 秒，索引按这一读法建
+/// 不加唯一约束：只拦同一委托人、被委托人与目标上未撤销、未到期的重复，撤销或到期后可以重建
 /// </remarks>
 [SugarTable(TableName = "sys_permission_delegation", TableDescription = "限时委托（平台库实体，随所属侧）")]
 [SugarIndex("ix_sys_permission_delegation_owner_delegatee_revoked", nameof(OwnerTenantId), OrderByType.Asc, nameof(DelegateeId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]

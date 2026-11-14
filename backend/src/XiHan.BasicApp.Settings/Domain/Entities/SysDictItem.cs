@@ -11,8 +11,12 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 字典项（平台库实体，属主与所在字典相同）
 /// </summary>
 /// <remarks>
-/// 同一字典内编码唯一，可按 <see cref="ParentId"/> 组成树（上级在同一字典、不成环）；每个字典至多一个缺省项
-/// 业务数据按 <see cref="Code"/> 存；停用的项照常给出（标为停用，只用于回显历史数据）
+/// 字典的选项单独成表，属主取所在字典的 <see cref="SysDict.OwnerTenantId"/>：项与字典同侧，读共享、写只本侧对项照样成立
+/// 业务数据按 <see cref="Code"/> 存，所以编码字典内唯一、创建后不可改；唯一是部分唯一索引，软删除后同码可重建
+/// 可按 <see cref="ParentId"/> 组成树（上级在同一字典、不成环），给级联取值用；编码唯一、无环与缺省项唯一都要看整本字典，校验时按主键逐页取全，不截断
+/// 每个字典至多一个缺省项，设为缺省即取消其他的
+/// 停用的项照常给出、标为停用：历史数据里存着它的编码，还要能回显；有下级的不能删
+/// 增删改都失效所在字典的选项缓存
 /// </remarks>
 [SugarTable(TableName = "sys_dict_item", TableDescription = "字典项（平台库实体，属主与所在字典相同）")]
 [ActiveUniqueIndex(nameof(DictId), nameof(Code), Name = "ux_sys_dict_item_dict_id_code")]

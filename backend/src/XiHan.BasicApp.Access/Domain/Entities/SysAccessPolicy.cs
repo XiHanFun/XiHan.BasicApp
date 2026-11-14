@@ -11,8 +11,12 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 访问策略（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 见方案 5.9。按请求属性（地址、归属地、时段、User-Agent、主体、路径等）只记录、拒绝或放行
-/// 平台层管全部调用，租户层管本租户已登录的调用；层内放行压过拒绝、平台拒绝不看租户层。新建一律只记录，动作与状态另有操作修改
+/// 按请求属性（地址、归属地、时段、User-Agent、主体、路径等）只记录、拒绝或放行（方案 5.9）：权限码管「能做什么」，这一层管「从哪里、什么时候能进来」，所以在租户解析之后、授权之前判定，登录签发前也判一次
+/// 落平台库，按 <see cref="OwnerTenantId"/> 分两层：平台层管全部外部调用（HTTP、gRPC、MCP），租户层只管本租户已登录的调用；平台层先判，拦下即不看租户层，租户的放行策略开不了平台的封锁
+/// 层内放行压过拒绝：给白名单开口子只要加一条放行，不必逐条改拒绝策略；命中的策略全部记条件命中，只记录的策略也有留痕
+/// 新建一律只记录、启用，动作与状态另经操作修改；改完仍是启用中的拒绝时按发起修改的请求试算，会拦下自己即拒绝保存：先观察命中再收紧，免得一条策略把管理员锁在外面，真锁住了由配置 <c>BasicApp:Access:AccessPolicyEnabled</c> 总开关关掉
+/// 每次外部调用都要判定，所以一侧启用的策略连同条件（<see cref="SysAccessPolicyCondition"/>）放共享缓存 60 秒，写入后在工作单元结束时失效；有效期在判定时按当前时间比较，到点生效或失效不必等缓存过期
+/// 编码同侧唯一是部分唯一索引，软删除后同一编码可以重建；<see cref="TemplateCode"/> 只记来自哪个代码里的预置模板，种子按模板补写平台侧还没有的编码，已有的（含改过的）不动
 /// </remarks>
 [SugarTable(TableName = "sys_access_policy", TableDescription = "访问策略（平台库实体，随所属侧）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_access_policy_owner_tenant_id_code")]
@@ -107,6 +111,10 @@ public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
 /// <summary>
 /// 访问策略的一条条件（平台库实体）：随策略整体替换，组内且、组间或
 /// </summary>
+/// <remarks>
+/// 一条条件一行，<see cref="OwnerTenantId"/> 与策略相同：按侧与一批策略 ID 一起读，判定缓存、列表投影与防自锁试算都这样取
+/// 没有单条的增删改，只随策略整组替换：先物理删掉这条策略的全部条件，再按提交顺序写入、<see cref="Ordinal"/> 记顺序，读回按它排、按组号组装成条件引擎的条件集
+/// </remarks>
 [SugarTable(TableName = "sys_access_policy_condition", TableDescription = "访问策略的一条条件（平台库实体）：随策略整体替换，组内且、组间或")]
 [SugarIndex("ix_sys_access_policy_condition_owner_tenant_id_policy_id", nameof(OwnerTenantId), OrderByType.Asc, nameof(PolicyId), OrderByType.Asc)]
 public sealed class SysAccessPolicyCondition : AppRecord, IOwnedByTenant

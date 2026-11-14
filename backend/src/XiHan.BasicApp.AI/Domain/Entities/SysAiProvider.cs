@@ -10,9 +10,13 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 模型提供商
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧，租户经助手用到平台配置的提供商。只有 OpenAI 兼容一种协议，改端点接各家
-/// 编码即框架 Provider 目录里的名字，建后不可改；API 密钥经 <c>ISecretProtector</c> 加密存储、响应里不回显
-/// 超时接框架的 Provider 超时，最大输出与温度随每次聊天调用带上（方案 N4 D2）
+/// 模型提供商落库，以 <c>AiProviderCatalog</c> 取代框架按配置建的 Provider 目录（方案 A1）：平台在界面上增改提供商，写入提交后即生效
+/// 只在平台一侧、落平台库：租户经助手用到平台配置的提供商
+/// 只有 OpenAI 兼容一种协议，改端点接各家；<see cref="Code"/> 即框架 Provider 目录里的名字，助手与知识文档都按编码引用它，所以建后不可改；唯一是部分唯一索引，软删除后同码可重建
+/// API 密钥经 <c>ISecretProtector</c> 加密存储、响应里不回显；解不开按未配置处理（fail-closed），不当明文用
+/// 框架的目录接口是同步的，所以目录持一份内存快照：写入的调用提交之后才重载（中间件排在工作单元之外），配了 Redis 时别的实例经共享缓存的变更通知跟着重载；停用的不进快照
+/// 被助手或任何一侧的知识文档引用即不能删（方案 D5）：知识文档在租户库，删除前逐侧查，任何一侧查不了即失败，不当作没有引用
+/// 超时接框架的 Provider 超时，最大输出与温度随每次聊天调用带上（方案 N4 D2）；缺省最多一个，引用的编码为空即用它
 /// </remarks>
 [SugarTable(TableName = "sys_ai_provider", TableDescription = "模型提供商")]
 [ActiveUniqueIndex(nameof(Code), Name = "ux_sys_ai_provider_code")]

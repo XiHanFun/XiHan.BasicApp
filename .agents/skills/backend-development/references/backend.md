@@ -75,6 +75,8 @@ src/XiHan.BasicApp.<包>/
 
 `<summary>` 三行写法、正文一句、显示宽度不超过 40、不出现「；」与「。」；细节进 `<remarks>` / `<param>` / `<returns>`。DTO 的注释会成为 OpenAPI 字段说明。
 
+实体类的 `<remarks>` 讲这个实体在整个系统里为什么这样设计（样例 `Auditing/Domain/Entities/SysAccessLog.cs`）：每行一个决定和它的理由，挑实体真正有的写——为什么单独成表、落平台库还是租户库、结构取舍（存散列、快照、闭包表、按编码引用）、唯一性与删除方式、一致性与缓存、已知限制。不罗列操作 ID、错误码与每个索引的用途，不套固定分段；简单的实体一两行，复杂的可按它自身的主题加小标题。
+
 所有注释（`///`、`//`、`/* */`）句末不加「。」，结束标签之前的也不加（`…</param>`）；一行里有多句时句间照常用「。」。`XmlDocumentationTests.Comments_DoNotEndWithAFullStop` 守护 src 与 test。生成的代码同样：代码生成的模板（`Seeds/Templates/**/*.sbn`，`CodeGenerationPreviewTests` 核对产物）、渲染器拼进注释的文案（用 `CodeGenItems.PhraseOf` 去掉消息文案的句号）与前端 `gen-contracts.mjs` 写出的注释都不带。消息目录、本地化文案与异常信息不是注释，照常带标点。提交前：
 
 ```bash

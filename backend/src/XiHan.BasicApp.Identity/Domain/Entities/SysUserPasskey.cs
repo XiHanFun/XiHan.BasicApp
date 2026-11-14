@@ -10,7 +10,12 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 账号登记的通行密钥
 /// </summary>
 /// <remarks>
-/// 平台库，跟着账号走。凭据 ID 由认证器随机生成、全局唯一。只存公钥与签名计数，私钥不离开认证器
+/// 跟着账号走、落平台库；只存公钥、签名计数与认证器属性，私钥不离开认证器，拿到库也冒用不了
+/// 凭据 ID 由认证器随机生成，部分唯一索引 <c>ux_sys_user_passkey_credential_id</c> 在全局约束：免用户名登录在认出人之前只有凭据 ID，要按它全局找到通行密钥再认出账号
+/// 登录进的注册地取自所属用户；行上的 <see cref="HomeTenantId"/> 只随登记写下，登录不读它
+/// 每次登录按认证器的回答刷新 <see cref="SignCount"/> 与 <see cref="BackedUp"/>，签名计数由框架核对
+/// 每人最多 10 个，本人的列表按用户取、没有单独的索引；标 <c>[DiffLogIgnored]</c> 不进数据变更日志
+/// 宿主配了 <c>XiHan:Security:WebAuthn</c>、系统参数 <c>identity.login-methods</c> 也开放了才可用
 /// </remarks>
 [SugarTable(TableName = "sys_user_passkey", TableDescription = "账号登记的通行密钥")]
 [ActiveUniqueIndex(nameof(CredentialId), Name = "ux_sys_user_passkey_credential_id")]

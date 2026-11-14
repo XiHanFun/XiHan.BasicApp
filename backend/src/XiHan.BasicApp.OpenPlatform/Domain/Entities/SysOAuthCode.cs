@@ -10,9 +10,12 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// OAuth 授权码：只存散列，用一次即作废
 /// </summary>
 /// <remarks>
-/// 平台库实体（放租户库的话，库隔离的租户在匿名的令牌端点上查不到）
-/// 作废经条件更新抢占，抢输的按重放处理
-/// PKCE 的 challenge 按 RFC 7636 最长 128 字符
+/// 授权码模式里「用户同意」与「应用换令牌」之间的一次性凭据：只存 SHA-256，库里的行拿去也兑换不了；回调地址、范围、PKCE challenge 与 nonce 随码存下，换令牌时逐项核对，id_token 原样带回 nonce
+/// 落平台库：放租户库的话，库隔离的租户在匿名的令牌端点上查不到
+/// 用一次即作废，作废经条件更新抢占：同时兑换的两次只有一次改得到行，抢输的与再次兑换的都按重放处理，吊销这个码兑换出的整族令牌
+/// 主键兼作令牌族 ID（<see cref="SysOAuthToken.FamilyId"/>），重放时据此找到要吊销的令牌
+/// PKCE 的 challenge 按 RFC 7636 最长 128 字符；公开客户端没带 challenge 换不了令牌
+/// 寿命取应用的授权码有效期（缺省 300 秒）；作业 <c>openplatform.oauth-cleanup</c> 在过期一天后物理删除（重放与吊销的判定只看没过期的），运行态凭据不进数据变更日志
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_code", TableDescription = "OAuth 授权码：只存散列，用一次即作废")]
 [ActiveUniqueIndex(nameof(CodeHash), Name = "ux_sys_oauth_code_code_hash")]

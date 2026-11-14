@@ -10,9 +10,13 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的外部数据源
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧。导入表结构与零代码运行时经它连外部库，表配置的数据源为空即主库
-/// 口令与连接串经 <c>ISecretProtector</c> 加密存储、响应里不回显（方案 C2）；
-/// 显式连接串优先，没有就按主机、端口、库名、账号拼出。名称唯一，软删除后可以重建
+/// 外部库的连接定义单独成表、表配置按 <see cref="SysCodeGenTable.DataSourceId"/> 引用（为空即主库）：同一个外部库可以给多张表配置用，导入、同步结构与零代码运行时都回到同一个定义；还被表配置引用的不能删，免得表配置失去来源
+/// 平台库实体、只在平台一侧：代码生成是平台的开发工具，不对租户开放
+/// 口令与显式连接串经 <c>ISecretProtector</c> 加密存储、响应里不回显（方案 C2），修改时留空即保留原值；但口令留空又改了数据库类型、主机或端口即拒绝，只有改配置权限的人不能把旧口令带到自己指定的新地址上
+/// 连接前按出站地址策略核对拼好的连接串里的主机（附加参数也能写主机），防的是把内网地址直接填进来；SQLite 的库名是服务器上的文件路径，要 <c>BasicApp:CodeGeneration:AllowSqliteDataSource</c> 打开才能用
+/// 连接在框架的运行时数据源里按 <c>codegen-&lt;ID&gt;</c> 登记、复用并各带一条健康项，修改、启停与删除之后注销，下次使用按新定义重建：不每次请求新建连接，也不会拿着旧定义去连
+/// 停用的不能用于导入、同步结构与零代码运行时，也不回落到主库；测试连接停用的也能测，结果写回最近一次测试的三列，列表上就看得出哪个连不上
+/// 名称是部分唯一索引，软删除后同名可以重建
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_data_source", TableDescription = "代码生成的外部数据源")]
 [ActiveUniqueIndex(nameof(SourceName), Name = "ux_sys_code_gen_data_source_source_name")]

@@ -11,8 +11,12 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 代码生成的列配置
 /// </summary>
 /// <remarks>
-/// 平台库实体、只在平台一侧。同一张表的列名唯一（部分唯一索引，方案 C2）；
-/// 导入与同步结构时按库结构推断类型、控件与查询方式，人工改过的字段在同步时保留
+/// 平台库实体、只在平台一侧。列配置单独成表、按 <see cref="TableId"/> 挂在表配置下：一张表的列数不定，每列的类型、控件、查询方式与选项来源都要单独调
+/// 同一张表的列名唯一（部分唯一索引，方案 C2）：同步结构按列名对上库里的列，软删除后同名的列可以重新补进来
+/// 结构字段与推断字段分开对待：列类型、注释、主键、自增、可空、长度与小数位数以库为准，每次同步都覆盖；C# 类型、控件、查询方式等是推断再加人工调整，改过的记进 <see cref="UserModifiedFields"/>，同步时不再覆盖
+/// 选项来源只留生效的那一个字段（字典码、枚举名、常量 JSON 或关联表），保存时清掉其余的，免得前一种来源的残留值报出无关的错
+/// 关联表与关联树按 <see cref="RelationTableId"/> 指向另一张表配置，生成时才解析目标并核对类型
+/// 库里已删的列在同步时软删列配置；零代码运行时只逐列取列配置里有的列，库里已没有的读不出，要先同步结构
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_table_column", TableDescription = "代码生成的列配置")]
 [ActiveUniqueIndex(nameof(TableId), nameof(ColumnName), Name = "ux_sys_code_gen_table_column_table_id_column_name")]

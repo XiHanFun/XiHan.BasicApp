@@ -10,8 +10,10 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 用户的通知偏好
 /// </summary>
 /// <remarks>
-/// 平台库，跟着账号走，不分租户；每人至多一行，第一次保存时建。没有行即全收
-/// 只存真正起作用的开关：站内信 / 邮件 / 短信三个渠道与公告 / 待办 / 安全三类
+/// 每人至多一行、第一次保存时才建，没有行即全收：缺省不需要种子或回填，新用户天然全开
+/// 只存真正起作用的开关：站内信 / 邮件 / 短信三个渠道与公告 / 待办 / 安全三类，别的类别都算公告
+/// 跟着账号走、落平台库，不分租户：偏好对这个人在所有租户收到的通知都生效
+/// Notification 发布与扇出时经 Contracts 的 <c>INotificationPreferences</c> 按一批接收人取，渠道与类别都开着才收；强制阅读与紧急通知由 Notification 跳过过滤，用户关不掉
 /// </remarks>
 [SugarTable(TableName = "sys_user_notification_preference", TableDescription = "用户的通知偏好")]
 [ActiveUniqueIndex(nameof(UserId), Name = "ux_sys_user_notification_preference_user_id")]

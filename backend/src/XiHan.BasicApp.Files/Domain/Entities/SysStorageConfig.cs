@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 存储配置：本地目录或 S3 兼容的对象存储
 /// </summary>
 /// <remarks>
-/// 平台库实体，随所属侧，方案 5.12。S3、OSS、COS、MinIO 都走 S3 协议
-/// 上传用当前一侧的缺省配置，租户没有就用平台的缺省配置；已有副本按它记下的配置读写。访问密钥加密存储，响应里不回显
+/// 平台库实体、按 <see cref="OwnerTenantId"/> 分侧（方案 5.12）：租户可以有自己的存储，没有自己的缺省配置时上传落在平台的缺省配置上，平台的配置因此兜底所有租户
+/// 每侧至多一条缺省配置、须启用，它就是这一侧的上传目标；已有副本按它们记下的配置读写，所以换缺省或停用一条配置都不影响已存的文件（停用只是不再接收新上传），缺省的不能停用也不能删
+/// 还被副本引用的配置不能删，数引用时不分侧：平台的配置也会被租户的副本用到
+/// S3、OSS、COS、MinIO 都走 S3 协议；每条 S3 兼容配置对应框架的一个命名存储实例，配置一改注册表按新定义换实例，本地配置共用一个以 <c>BasicApp:Files:LocalRootPath</c> 为根的实例，桶是根下的子目录
+/// 访问密钥经 <c>ISecretProtector</c> 加密存储、响应里不回显，修改时留空即保留原值
+/// 编码同侧唯一、建好后不改，部分唯一索引让软删除后同编码可以重建；种子只在编码不存在时写平台的 <c>local-default</c>（本地目录），全新部署即可上传，之后由运营维护
 /// </remarks>
 [SugarTable(TableName = "sys_storage_config", TableDescription = "存储配置：本地目录或 S3 兼容的对象存储")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_storage_config_owner_tenant_id_code")]

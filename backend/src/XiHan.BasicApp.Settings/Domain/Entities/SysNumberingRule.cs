@@ -10,9 +10,13 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 业务编号规则（平台库实体）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 分平台规则与租户规则；平台规则 <see cref="AllowTenantUse"/> 时租户也能用它发号（共享一条流水）
-/// 规则行同时保存当前周期与最后发出的流水值；发号在独立事务里先锁住规则行再推进，发出的号永久消耗（可以有空洞，不会重用）
-/// 首次发号后格式（前缀、分隔符、日期格式、流水位数、重置周期、时区）冻结
+/// 编号规则落平台库、用 <see cref="OwnerTenantId"/> 分平台规则与租户规则；平台规则 <see cref="AllowTenantUse"/> 时租户也能用它发号，与平台共享一条流水
+/// 规则行同时保存当前周期与最后发出的流水值，发号即推进这一行：先对规则行做一次加锁更新，同一规则的并发发号由此串行，不会重号
+/// 发号在独立事务里提交，行锁只持有到这次发号结束，外层调用失败也不回收：发出的号永久消耗，可以有空洞，不会重用
+/// 周期只前进：翻转按单调递增的周期序号判断，时钟落后的节点不能把规则拉回旧周期重发号
+/// 日期格式必须能区分重置周期，否则不同周期会出同号；重置流水只能向前跳，不能低于本周期已发出的最大值
+/// 首次发号后格式（前缀、分隔符、日期格式、流水位数、重置周期、时区）冻结，规则也不能删：发号记录是永久事实，不用了即停用
+/// 编码在本侧唯一是部分唯一索引，软删除后同码可重建；修改与重置期间有并发发号即并发戳不符、整笔失败
 /// </remarks>
 [SugarTable(TableName = "sys_numbering_rule", TableDescription = "业务编号规则（平台库实体）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_numbering_rule_owner_tenant_id_code")]

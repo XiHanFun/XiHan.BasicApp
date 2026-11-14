@@ -9,7 +9,12 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 访问日志：每次操作调用一条（含认证失败与越权的尝试）
 /// </summary>
 /// <remarks>
-/// 由 Observe 阶段的中间件在调用结束时写入
+/// 每次操作调用记一条，连认证失败与越权的尝试也记：安全审计与排查「为什么没有权限」要的是全部调用，不只成功的；结果、错误码、耗时与客户端信息随行存下，看一条就知道发生了什么，不必回查别的表
+/// 量随调用次数线性增长，所以按 <see cref="AuditLogRecord.OccurredAt"/> 按月分表：查询带时间范围只扫涉及的月表，单表不会无限膨胀，过了保留期的行由作业 <c>auditing.retention</c> 成批删掉
+/// 落租户库、按产生它的租户写（平台一侧记 <c>platform</c>）：日志随租户分库隔离，租户只看得到自己的调用
+/// 写入不进调用的事务：中间件在调用结束时放进有界队列，由后台批量落库；审计存储慢或不可用时宁可丢日志并计数，也不拖慢或拒绝业务调用
+/// 只追加、不修改，留作审计证据；<see cref="AuditLogRecord.TraceId"/> 与操作、异常、登录、权限变更、数据变更日志共用，按一次调用串成时间线
+/// 索引对应三种读法：租户加时间的列表、trace-id 与会话的链路、用户加时间的行为追溯
 /// </remarks>
 [SugarTable(TableName = "sys_access_log_{year}{month}{day}", TableDescription = "访问日志：每次操作调用一条（含认证失败与越权的尝试）")]
 [SplitTable(SplitType.Month)]

@@ -10,7 +10,12 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 登录日志：登录、刷新、退出、切换租户、模仿与本人改密
 /// </summary>
 /// <remarks>
-/// 成功失败都记。由 Identity 在调用里登记（<see cref="LoginLogEntry"/>），调用结束后按结果落库
+/// 身份事件（<see cref="LoginEvent"/>：登录、刷新、退出、切换租户、模仿、改密、双因素、激活角色）单独成表，成败都记：账号安全审计与个人中心的登录记录按账号看经历，访问日志按调用记，登录时调用方还是匿名，拼不出这条线
+/// 主体是账号本身而不是调用方：用户、登录名、会话与租户取登记的值，没有再取调用方；认不出账号的失败登录只有填的登录名，所以登录名另建索引
+/// 写入方 Identity 与 Access 在 Tier 1 不引用本包，经 Contracts 的 <see cref="LoginLogEntry"/> 在调用里登记；调用结束后才按最终结果定成败，中途失败返回之前已填的照样记下
+/// <see cref="AccountTenantId"/> 存登录时填的租户原值：目录里不存在或停用的租户，日志落在平台一侧，原值留着供排查
+/// 模仿期间的事件记发起人：被模仿的人在自己的登录记录里能分出哪些是别人模仿时留下的
+/// 不受访问日志的开关与排除名单影响；分表、异步批量写入与只追加同其他分表日志（见 <see cref="AuditLogRecord"/>）
 /// </remarks>
 [SugarTable(TableName = "sys_login_log_{year}{month}{day}", TableDescription = "登录日志：登录、刷新、退出、切换租户、模仿与本人改密")]
 [SplitTable(SplitType.Month)]

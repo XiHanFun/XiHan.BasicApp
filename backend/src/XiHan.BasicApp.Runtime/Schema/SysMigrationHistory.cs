@@ -11,7 +11,10 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// 一个升级脚本的执行记录
 /// </summary>
 /// <remarks>
-/// 每执行一个脚本记一行，成功与失败都记；同一脚本失败后修好重试会再记一行
+/// 每执行一个脚本记一行，成功与失败都记，同一脚本失败后修好重试会再记一行：保留完整的执行经过而不覆盖失败记录，运维看得到每次升级在哪个节点、跑了多久、为什么失败
+/// 记录写在脚本的事务之外：脚本失败回滚了，失败的记录与原因照样留下
+/// 与 <see cref="SysVersion"/> 一起按实体先建（与 InitTables 同一结构），不靠脚本建：执行第一个脚本之前就要有地方记
+/// 平台库与每个就绪的租户独立库各有一张，分别由 <see cref="SchemaUpgrader"/> 与 <see cref="TenantSchemas"/> 写：独立库的结构各自推进，记录跟着库走；只追加，不删除
 /// </remarks>
 [SugarTable(TableName = "sys_migration_history", TableDescription = "一个升级脚本的执行记录")]
 [SugarIndex("ix_sys_migration_history_executed_at", nameof(ExecutedAt), OrderByType.Asc)]

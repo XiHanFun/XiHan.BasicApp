@@ -10,7 +10,12 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 会话成员（租户库实体）
 /// </summary>
 /// <remarks>
-/// 退群、被移出即软删除；个人的置顶、免打扰、未读与已读位也在这里，读写频繁，不进差异日志
+/// 成员行同时承载「某人在某会话」的个人状态（角色、禁言、置顶、免打扰、未读数、已读位）：这些和成员身份同生同灭，不另建表
+/// 未读数冗余存：发消息时一条更新语句给其他成员加一、标已读清零，会话列表不用按已读位去数消息；已读位存序号、只前移，群的已读回执按它比较
+/// 退群、被移出或离开部门即软删除，部分唯一索引让再入群另写一行
+/// 入群的人须注册在本侧或是本侧的租户成员：成员行记的是建行时的一侧，不拦就会建出对方那一侧看不到的会话
+/// 部门群的成员随 Organization 的部门归属事件进出，按处理时的归属核对，消息乱序或重复投递都收敛到同一结果
+/// 用户在平台库、聊天在租户库，分库时不能联表，名字按主键批量补；读写频繁，所以不进差异日志
 /// </remarks>
 [SugarTable(TableName = "sys_chat_conversation_member", TableDescription = "会话成员（租户库实体）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(ConversationId), nameof(UserId), Name = "ux_sys_chat_conversation_member_conversation_user")]

@@ -10,7 +10,10 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// 岗位（租户库实体）
 /// </summary>
 /// <remarks>
-/// 归属记录引用它；被引用时不能删除
+/// 岗位是与部门正交的维度，挂在任职（<see cref="SysUserDepartment.PositionId"/>）上而不属于某个部门：同一个人在不同部门可以任不同岗位，同一岗位可以跨部门
+/// 落租户库、只在租户侧管理，每个租户维护自己的岗位体系
+/// 编码租户内唯一、建后不改，用部分唯一索引：软删除后同编码可以重建；流程按岗位找办理人、权限条件按岗位判定都按编码引用，编码要稳定
+/// 软删除，还被任职引用的不能删，免得任职悬空；不用的岗位改停用，停用后不再出现在组织目录的选项与任职人里，也不进权限条件的岗位属性
 /// </remarks>
 [SugarTable(TableName = "sys_position", TableDescription = "岗位（租户库实体）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(Code), Name = "ux_sys_position_tenant_id_code")]

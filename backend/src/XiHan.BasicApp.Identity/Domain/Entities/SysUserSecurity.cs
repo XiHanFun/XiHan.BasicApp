@@ -10,7 +10,15 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 账号安全信息：密码散列、失败计数与锁定、安全戳与双因素
 /// </summary>
 /// <remarks>
-/// 平台库，表 <c>sys_user_security</c>，与用户一对一。与用户资料分开，列表与详情永远碰不到散列与密钥
+/// 与 <see cref="SysUser"/> 一对一拆表：散列、密钥与计数只在登录、改密与双因素这些路径上读，用户列表与详情碰不到；标 <c>[DiffLogIgnored]</c>，这些密文与计数也不进数据变更日志
+/// 行按需建：取安全行时没有即建一行空的（没有密码、不能登录），只读调用里只给出不落库的缺省行（框架拒绝只读工作单元里的写入）；部分唯一索引 <c>ux_sys_user_security_user_id</c> 保证一人一行
+/// 失败计数与锁定在独立作用域里提交：登录以失败结束时调用的工作单元整体回滚，不这样就永远锁不住；锁定到 <see cref="LockoutEndAt"/> 自动解除，不改 <c>SysUser.Status</c>
+/// 开了双因素的账号等第二步通过才清零计数：只知道密码的人不能靠反复登录把计数清掉
+/// 认证器密钥经 <c>ISecretProtector</c> 加密存，校验验证码要明文、不能存散列；<see cref="TwoFactorLastStep"/> 记最近通过的时间步，同一步的码不能再用
+/// 密码由他人设置时记下 <see cref="MustChangePassword"/>，逼不逼改看登录时的系统参数 <c>identity.password</c>：标记随密码写下，策略事后打开也对已有账号生效
+/// 多端登录与设备数、开放接口的签名算法与 IP 白名单放在这里而不是各会话或各凭证上：按人设一次，作用于本人全部会话与凭证
+/// 安全戳在设密码、开关双因素、本人停用账号时换新，但没有代码核对它；让既有会话失效靠吊销 <see cref="SysUserSession"/>
+/// 只有本人注销账号时连同账号软删，管理员删除用户不动本行
 /// </remarks>
 [SugarTable(TableName = "sys_user_security", TableDescription = "账号安全信息：密码散列、失败计数与锁定、安全戳与双因素")]
 [ActiveUniqueIndex(nameof(UserId), Name = "ux_sys_user_security_user_id")]

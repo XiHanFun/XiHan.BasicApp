@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// </summary>
 /// <remarks>
 /// <c>PUT /api/configs/{id}</c>。只能改本侧的（另一侧 <c>SETTINGS_DENIED_001</c>）；键不可改，内建参数不能改数据类型
-/// 加密：仍加密且没给新值即保留原密文；新开加密即加密现值；关掉加密且没给新值即解密现值。值按（新的）数据类型校验
+/// 加密：仍加密且没给新值即保留原密文；新开加密即加密现值；关掉加密且没给新值即清空值（解密落库会让只有改权限的人在响应与差异日志里读到明文）。值按（新的）数据类型校验
 /// </remarks>
 /// <param name="configs">参数仓储</param>
 /// <param name="values">参数值规则</param>

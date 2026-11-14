@@ -10,8 +10,10 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 会话激活的角色（平台库实体）
 /// </summary>
 /// <remarks>
-/// 会话 × 角色一行，随会话所在的一侧。令牌只带激活中的角色；
-/// 激活前校验持有、激活时过动态职责分离（DSD）。切换租户、重新激活时旧行记停用，不再持有的记到期，留作查询
+/// 会话 × 角色一行：动态职责分离（DSD）约束的是同一会话同时激活的角色，持有关系在 <see cref="SysUserRole"/>，激活集要另记；令牌只带激活中的角色
+/// 落平台库，<see cref="OwnerTenantId"/> 随会话所在的一侧；同一会话同一侧同一角色只有一行，再激活即原地改回激活中，停用与到期也只改状态、不删行，留作「这个会话当时用着哪些角色」的查询
+/// 只由 Identity 在签发令牌处经 Contracts 的 <c>ISessionRoleActivator</c> 写：登录、切换租户与开始模仿时重新来过，续签时不再持有的记到期，本人或 DSD 停掉的不自动恢复；激活前校验持有、激活时过 DSD
+/// 有角色被 DSD 停掉或不再持有时另记一条登录日志：用户少了角色时查得到原因
 /// </remarks>
 [SugarTable(TableName = "sys_session_role", TableDescription = "会话激活的角色（平台库实体）")]
 [SugarIndex("ux_sys_session_role_session_id_owner_tenant_id_role_id", nameof(SessionId), OrderByType.Asc, nameof(OwnerTenantId), OrderByType.Asc, nameof(RoleId), OrderByType.Asc, true)]
@@ -63,7 +65,7 @@ public sealed class SysSessionRole : AppRecord, IOwnedByTenant
     /// 激活、停用或到期的原因
     /// </summary>
     /// <remarks>
-    /// 激活时为 <c>login</c>、<c>switch-tenant</c>、<c>impersonation</c>、<c>refresh</c> 或 <c>manual</c>；停用时为 <c>manual</c>、<c>switch-tenant</c>、<c>dsd:&lt;规则编码&gt;</c>，到期为 <c>not-held</c>
+    /// 签发令牌时激活与停用记调用的操作 ID（如 <c>auth.login</c>、<c>auth.switch-tenant</c>，管道外为 <c>internal</c>）；手动激活与停用为 <c>manual</c>，被职责分离挡下为 <c>dsd:&lt;规则编码&gt;</c>，不再持有即到期为 <c>not-held</c>
     /// </remarks>
     [SugarColumn(ColumnName = "reason", Length = 500, IsNullable = true, ColumnDescription = "激活、停用或到期的原因")]
     public string? Reason { get; set; }

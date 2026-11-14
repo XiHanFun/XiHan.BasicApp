@@ -11,9 +11,13 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 邮件发送记录，也是邮件的发件箱（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 发送记录即队列。业务写入时只记一条排队中的记录、随业务一起提交，
-/// 由后台的发送循环按所属侧的缺省邮件配置发出，失败按退避重试，用完重试即失败；重发即改回排队中
-/// 主题与正文在写入时已按模板渲染好，记录的就是实际发出的内容
+/// 发送记录兼作发件箱：业务在自己的工作单元里写一条排队中的记录、随业务一起提交，业务回滚就不发，提交了就一定会被发送循环取到；同一行再记尝试次数、结果与实际用的配置，队列和发送记录不必分两张表，排查看一行就够
+/// 落平台库、按 <c>OwnerTenantId</c> 分侧（平台为 <c>platform</c>）：一个后台发送循环就能跨所有侧取排队记录，各侧只看得到自己的记录
+/// 主题与正文写入时已按模板渲染好，发出去的就是记下的这份，模板之后再改不影响已排队的与历史记录；配置却到发送时才取（本侧启用的缺省，租户没有取平台的），换配置对排队中与重试中的立即生效，<see cref="ConfigId"/> 回写这次实际用的那条
+/// 领取用条件更新把排队中改成发送中，多实例并行也只有一个领到；进程中断留在发送中的记录在启动时改回排队中，代价是发出后、回写前中断的那一条会再发一次
+/// 失败按次数退避重试，最多次数在写入时定到行上，之后改配置不影响已排队的
+/// 验证码（<c>identity.verification</c>）的正文就是账号的钥匙：发送结束即清空、响应里不返回、也不能重发；重试期间还要用，所以不是一入队就不存
+/// 发送循环频繁改状态，所以不进差异日志；软删除，没有清理作业，记录一直保留
 /// </remarks>
 [SugarTable(TableName = "sys_email", TableDescription = "邮件发送记录，也是邮件的发件箱（平台库实体，随所属侧）")]
 [SugarIndex("ix_sys_email_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
@@ -114,9 +118,9 @@ public sealed class SysEmail : AppAuditedEntity, IOwnedByTenant, IMessageRecord
     public Guid? ConfigId { get; set; }
 
     /// <summary>
-    /// 关联的业务类型（如 <c>notification</c>、<c>auth.login-code</c>）
+    /// 关联的业务类型（如 <c>notification</c>、<c>identity.verification</c>）
     /// </summary>
-    [SugarColumn(ColumnName = "business_type", Length = 100, IsNullable = true, ColumnDescription = "关联的业务类型（如 notification、auth.login-code）")]
+    [SugarColumn(ColumnName = "business_type", Length = 100, IsNullable = true, ColumnDescription = "关联的业务类型（如 notification、identity.verification）")]
     public string? BusinessType { get; set; }
 
     /// <summary>

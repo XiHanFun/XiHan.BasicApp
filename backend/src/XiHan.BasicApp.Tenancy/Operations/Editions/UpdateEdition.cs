@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// 修改套餐
 /// </summary>
 /// <remarks>
-/// <c>PUT /api/editions/{id}</c>（平台侧）。只动名称、说明、缺省标记、排序与状态，不影响门控（白名单走 <c>editions.set-permissions</c>）
+/// <c>PUT /api/editions/{id}</c>（平台侧）。改名称、说明、缺省标记、排序、状态、用户数与存储配额、价格、计费周期与免费标记，不动白名单（白名单走 <c>editions.set-permissions</c>）
 /// 启停并入这里，整体覆盖。缺省套餐必须启用（<c>TENANCY_CONFLICT_017</c>）：要停用，先把别的启用套餐设为缺省
 /// </remarks>
 /// <param name="editions">套餐仓储</param>

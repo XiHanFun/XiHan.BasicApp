@@ -11,9 +11,11 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 权限条件的一条子句（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 挂在一个授权绑定（侧 × 主体 × 权限码 × 授予或拒绝）上，方案 5.9 的 ABAC
-/// 同一绑定里同组的子句取且、组之间取或；挂在授予上是「满足才授予」，挂在拒绝上是「满足才拒绝」。绑定按键直接对应，不经规则行（普通授予没有规则行）；
-/// 绑定没了（撤销、授予换成拒绝或反过来、删角色）即连同删除。值种类由属性登记决定，不另存值类型
+/// 方案 5.9 的 ABAC：给一个授权绑定（侧 × 主体 × 权限码 × 授予或拒绝）加按请求属性判定的条件；同一绑定里同组的子句取且、组之间取或，挂在授予上是「满足才授予」，挂在拒绝上是「满足才拒绝」
+/// 绑定按键直接对应，不经 <see cref="SysPermissionRule"/>：普通授予只在框架的授予存储里、没有规则行，按（主体、权限码、动作）挂才覆盖得到；绑定没了（撤销、授予与拒绝互换、删角色）即连同删除，不留悬空的条件
+/// 框架的权限过滤器拿不到请求属性，所以条件不在框架判定里求值，而由框架授权之后的 <c>PermissionConditionMiddleware</c> 按调用来源、主体与时刻判定操作声明的权限码；配置 <c>BasicApp:Access:PermissionConditionMode</c> 可以只记录不拦
+/// 一条子句一行、可单独启停：停用的子句不参与判定，启用时重新校验绑定；值种类由属性登记决定，不另存值类型
+/// 判定按（侧、主体）取启用的子句，放共享缓存 60 秒、写入后在工作单元结束时失效；索引正按侧与主体建
 /// </remarks>
 [SugarTable(TableName = "sys_permission_condition", TableDescription = "权限条件的一条子句（平台库实体，随所属侧）")]
 [SugarIndex("ix_sys_permission_condition_owner_subject", nameof(OwnerTenantId), OrderByType.Asc, nameof(SubjectKind), OrderByType.Asc, nameof(SubjectId), OrderByType.Asc)]

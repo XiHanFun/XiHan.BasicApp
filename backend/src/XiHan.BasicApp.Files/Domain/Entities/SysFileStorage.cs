@@ -10,7 +10,11 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 文件副本：文件内容在某个存储配置里的一份
 /// </summary>
 /// <remarks>
-/// 租户库实体，记下配置、桶与对象键。每个文件恰好一个主副本，读写取主副本
+/// 内容落在哪从文件记录里拆出来：记下存储配置、桶、对象键与写入时的存储类型，配置之后改了类型也看得出这份当初落在哪；每个文件恰好一个主副本（<see cref="IsPrimary"/>），读写取主副本
+/// 与文件同侧，存储配置按 ID 引用本侧或平台的：租户没有自己的缺省配置时副本落在平台的配置上，照样读写
+/// 共用对象就是多条副本指向同一配置、桶与对象键：删一个文件时数这一侧还有几条副本指向这个对象，没有了才从存储里删，索引按这个读法建
+/// 校验按 SHA-256 重读内容，只有确认内容缺失或不符才记校验失败，存储本身不可用（网络、权限）时不改状态；主副本不通过即把文件记为损坏，换到一个正常且校验过的副本即恢复，所以主副本不能停用
+/// 还有未删除副本的存储配置不能删（不分侧，平台的配置也会被租户的副本用到）；副本随文件软删除
 /// </remarks>
 [SugarTable(TableName = "sys_file_storage", TableDescription = "文件副本：文件内容在某个存储配置里的一份")]
 [SugarIndex("ix_sys_file_storage_tenant_id_file_id", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]

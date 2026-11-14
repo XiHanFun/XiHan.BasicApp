@@ -10,9 +10,12 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 发给第三方应用的访问令牌与刷新令牌
 /// </summary>
 /// <remarks>
-/// 平台库实体。访问令牌与刷新令牌都是不透明随机串、只存散列，撤销立即生效
-/// 同一次授权码兑换出来的令牌属于一个族（<see cref="FamilyId"/>）：刷新令牌轮换时旧的作废，作废的刷新令牌再被使用即整族吊销
+/// 访问令牌与刷新令牌都是 256 位不透明随机串，库里只存 SHA-256：每次使用都回库核对，撤销立即生效，库里的行拿去也用不了
 /// 只用于身份：只认 userinfo，后台接口不认
+/// 同一次授权码兑换出来的令牌属于一个族（<see cref="FamilyId"/> 即授权码行的主键）：刷新令牌轮换时旧的作废、同族发新的一对，作废的刷新令牌或用过的授权码再被使用即整族吊销，重放一次整条链都失效
+/// 吊销只写 <see cref="RevokedAt"/>、不删行：留着已吊销的行才认得出重放
+/// 每次使用都看应用是否启用、用户是否正常：停用应用或用户即刻生效，不必逐个吊销令牌
+/// 随兑换与刷新频繁写入，不进数据变更日志；作业 <c>openplatform.oauth-cleanup</c> 在过期七天后物理删除
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_token", TableDescription = "发给第三方应用的访问令牌与刷新令牌")]
 [ActiveUniqueIndex(nameof(TokenHash), Name = "ux_sys_oauth_token_token_hash")]

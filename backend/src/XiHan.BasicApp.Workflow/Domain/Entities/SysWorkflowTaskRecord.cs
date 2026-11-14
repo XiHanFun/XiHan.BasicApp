@@ -10,9 +10,11 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 /// 审批记录（租户库实体）
 /// </summary>
 /// <remarks>
-/// 办理、转办、加签各写一行（归办理人），抄送每个被抄送人一行；只追加不改
-/// 「我已审批」「抄送我的」与审批轨迹都读它，引擎表里没有这些动作的历史。平台一侧的记录租户为 <c>platform</c>
-/// 任务、节点与实例的名字按写入时的快照存，定义改了、实例清理了也照常显示
+/// 引擎的表里没有办理、转办、加签与抄送这些动作的历史，「我已审批」「抄送我的」与审批轨迹都靠这张表；审批详情也按它判定参与关系，办理过或被抄送过的人能看
+/// 每个归属用户一行（办理人，或每个被抄送人各一行）：两个列表直接按本人查，不用解析目标用户串；索引按「本人 + 动作 + 时间倒序」与「实例 + 时间」两种读法建
+/// 任务、节点、实例与定义的名字按写入时的快照存（过长截断）：定义改了、实例清理了也照常显示，不必回查引擎
+/// 办理、转办、加签的记录写在办理的事务里，与办理同进退；抄送记录由任务创建事件的处理器写，依次审批的每一轮、会签的每个受理人都带着同一串抄送人，所以同一实例同一节点对同一人只记一次
+/// 只追加不改，平台一侧的记录租户为 <c>platform</c>；没有删除，也没有清理作业
 /// </remarks>
 [SugarTable(TableName = "sys_workflow_task_record", TableDescription = "审批记录（租户库实体）")]
 [SugarIndex("ix_sys_workflow_task_record_tenant_id_user_id_action", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(Action), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]

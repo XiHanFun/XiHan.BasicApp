@@ -12,8 +12,14 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 系统参数（平台库实体，不实现 <c>IMultiTenant</c>）
 /// </summary>
 /// <remarks>
-/// <see cref="OwnerTenantId"/> 为 <c>platform</c> 的是平台参数，否则是该租户的参数
-/// 租户新建与平台参数同键的参数即覆盖它（平台参数 <see cref="AllowTenantOverride"/> 为 <c>false</c> 时不许）；生效值取租户的、再取平台的，停用的视为不存在
+/// 平台参数要让每个租户都读得到，所以落平台库、不实现 <c>IMultiTenant</c>，用 <see cref="OwnerTenantId"/> 分平台参数（<c>platform</c>）与租户参数：读共享（平台的加本租户的），写只本侧
+/// 租户可以建与平台参数同键的参数来覆盖它，生效值先取租户的、再取平台的，停用的视为不存在：平台定缺省、租户按需改，不用给每个租户复制一份；平台参数可用 <see cref="AllowTenantOverride"/> 禁止覆盖，删掉租户的那份即回到平台的值
+/// 参数键在本侧唯一、创建后不可改，各包按键读；唯一是部分唯一索引，软删除后同键可重建
+/// 内建参数由各包经 <c>AddConfigCatalog</c> 登记（<see cref="ConfigDescriptor"/>）、种子 <c>settings.configs</c> 对齐：名称、数据类型、缺省值、加密与否随代码走，值、状态与排序号只首写、之后归运营
+/// 内建的不能删、不能改数据类型：类型由登记它的包决定，种子发现现值不符登记的类型即报错，要由人改对
+/// 需要保密的值加密落库、读出不回显，缺省值不加密；关掉加密而没给新值即清空值，否则解密落库等于让只有改权限的人在响应与差异日志里读到明文
+/// 读经 <see cref="IConfigValueReader"/> 走读穿缓存（<c>ConfigEntries</c>）：按（侧、键）各缓存一份，平台参数改了只失效平台那一份、不用逐个租户失效；加密的存密文，明文不进缓存
+/// 写入后的失效经 <c>CacheInvalidation</c> 推到工作单元结束之后再删：提交前的旧数据不会被并发的读回填进缓存
 /// </remarks>
 [SugarTable(TableName = "sys_config", TableDescription = "系统参数（平台库实体，不实现 IMultiTenant）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key), Name = "ux_sys_config_owner_tenant_id_key")]

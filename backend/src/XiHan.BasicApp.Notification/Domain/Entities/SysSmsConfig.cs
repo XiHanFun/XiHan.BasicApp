@@ -11,8 +11,9 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 短信配置（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 服务商凭据、签名与模板映射（本应用的短信模板编码 → 服务商的模板 ID）
-/// 发送用当前一侧启用的缺省配置，租户没有就用平台的；访问密钥加密存储，响应里不回显
+/// 分侧、缺省、平台代发与发送时才取的规则与 <see cref="SysEmailConfig"/> 相同
+/// 模板映射（本应用的模板编码 → 服务商的模板 ID）放在配置上而不是模板上：服务商模板 ID 属于这个服务商账号，换配置即换一套映射，模板与业务调用方只认本应用的编码；映射只整体读写，存成 JSON 列
+/// 访问密钥加密存储、不回显，修改时不填即保留；解不开就发不出，不把库里的值当明文用
 /// </remarks>
 [SugarTable(TableName = "sys_sms_config", TableDescription = "短信配置（平台库实体，随所属侧）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_sms_config_owner_tenant_id_code")]

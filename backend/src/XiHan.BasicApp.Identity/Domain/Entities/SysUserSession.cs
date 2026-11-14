@@ -10,9 +10,15 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 登录会话
 /// </summary>
 /// <remarks>
-/// 平台库，表 <c>sys_user_session</c>
-/// 会话 ID 即访问令牌的 <c>sid</c> 声明，刷新令牌不透明、只存散列
-/// 吊销即置 <see cref="RevokedAt"/>，由会话门禁在 Authenticate 阶段拒绝
+/// 一次登录一行，会话 ID 就是访问令牌的 <c>sid</c>：访问令牌无状态，要在过期前让它失效就得有一行可吊销的会话；会话门禁在 Authenticate 阶段按 <c>sid</c> 核对
+/// 刷新令牌不透明、只存 SHA-256 散列，拿到库也换不出能用的令牌；续签、切换租户、激活角色都轮换它，旧的立即失效
+/// 落平台库、不分租户：一个会话能在注册地、成员租户与平台之间切换（同一 <c>sid</c>），<see cref="ActiveTenantId"/> 记它当前所在的一侧（平台为 <see langword="null"/>），在线用户按这一列分侧
+/// 门禁每个请求都要核对，判定进共享缓存、吊销与锁屏解锁时主动失效；共享缓存是进程内实现时，其他实例最迟在 <c>BasicApp:Auth:SessionCacheSeconds</c> 后生效。经账号域服务的吊销还在提交后推送强制下线并断开实时连接
+/// 吊销只置 <see cref="RevokedAt"/>、不删行：个人中心的在线时长按会话起止计算，下线原因也留着；代价是没有清理作业，行会一直累积
+/// 模仿登录另开一行，记发起人与他当时的会话：发起人的会话保留，结束模仿时回到它；它失效（注销、被吊销或过期）时模仿会话随之失效。模仿会话的期限在发起时定死，续签不顺延
+/// 锁定记在会话上而不是账号上：锁屏只作用于这一个端，不影响同一用户的其他端；强制改密锁也按会话，解开它的办法就是改密。解锁的失败计数与吊销在独立作用域里提交，否则随失败的调用回滚
+/// 每次续签都写，属写得极频繁的运行态数据，标 <c>[DiffLogIgnored]</c> 不进数据变更日志
+/// 索引按读法建：刷新令牌散列唯一（部分唯一索引）、按用户找有效会话、按一侧列在线用户、按发起人与原会话找模仿会话
 /// </remarks>
 [SugarTable(TableName = "sys_user_session", TableDescription = "登录会话")]
 [ActiveUniqueIndex(nameof(RefreshTokenHash), Name = "ux_sys_user_session_refresh_token_hash")]
@@ -78,7 +84,7 @@ public sealed class SysUserSession : AppAuditedEntity
     /// 吊销原因
     /// </summary>
     /// <remarks>
-    /// 取值：<c>logout</c>、<c>password-changed</c>、<c>locked</c>、<c>revoked</c>
+    /// 本人：退出 <c>logout</c>、改密 <c>password-changed</c>、找回密码 <c>password-reset</c>、吊销自己的会话 <c>self-revoked</c>、停用与注销账号 <c>self-deactivated</c> / <c>self-deleted</c>；模仿：结束模仿 <c>impersonation-stopped</c>、模仿方退出 <c>impersonator-logout</c>；管理员：吊销 <c>revoked</c>、停用 <c>disabled</c>、锁定 <c>locked</c>、删除 <c>deleted</c>；登录策略挤掉 <c>login-policy</c>；锁屏：没有锁屏密码 <c>lock-password-missing</c>、解锁失败次数用完 <c>unlock-exhausted</c>
     /// </remarks>
     [SugarColumn(ColumnName = "revoke_reason", Length = 512, IsNullable = true, ColumnDescription = "吊销原因")]
     public string? RevokeReason { get; set; }

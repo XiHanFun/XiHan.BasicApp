@@ -10,8 +10,11 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 邮件配置（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// SMTP 服务器与发件人。发送用当前一侧启用的缺省配置，租户没有就用平台的
-/// 密码加密存储，响应里不回显，修改时不填即保留原值
+/// 落平台库、按 <c>OwnerTenantId</c> 分侧；发送只认本侧启用的缺省配置，租户没有就用平台的，由平台代发
+/// 每侧至多一条缺省，第一条自动成为缺省，缺省的须启用、不能停用或删除：免得这一侧没有可用的配置
+/// 配置到发送时才取，不定格在发送记录上：改配置或换缺省对排队中与重试中的邮件立即生效
+/// 密码加密存储、不回显，修改时不填即保留；但改了主机或端口、关掉加密或改成接受无效证书时要重新填，免得保存的密码被送到别的服务器或不安全的连接上
+/// 编码同侧唯一用部分唯一索引，删除后同编码可重建
 /// </remarks>
 [SugarTable(TableName = "sys_email_config", TableDescription = "邮件配置（平台库实体，随所属侧）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_email_config_owner_tenant_id_code")]

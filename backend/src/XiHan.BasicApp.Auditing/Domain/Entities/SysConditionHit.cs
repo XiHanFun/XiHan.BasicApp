@@ -10,8 +10,12 @@ namespace XiHan.BasicApp.Auditing.Domain.Entities;
 /// 条件命中记录
 /// </summary>
 /// <remarks>
-/// 访问策略的命中（拒绝、放行、只记录）与权限条件的拒绝；同一规则对同一来源一分钟内的命中合并成一行
-/// 写入方是 Access 的访问策略与权限条件（「N1 四包深化」，排在本批之后），本批只有查询面
+/// 访问策略的每条命中（拒绝、放行、只记录）与权限条件的不满足都记一行，与调用成败无关：只记录与放行的策略不拦请求，效果只能从命中看；排查「为什么被拦」也要看命中本身，不只是失败的调用
+/// 命中量随请求放大（一条放行策略每个请求都命中），所以同一批落库里来源、策略、动作、时机、是否拦截、地址、方法、路径、用户与 UTC 分钟都相同的合并成一行并累加 <see cref="HitCount"/>；只在批内合并、不跨批回读改写，表仍是只追加
+/// 写入方是 Access 的访问策略中间件、登录守卫与权限条件中间件：Access 在 Tier 1 不引用本包，经 Contracts 的 <see cref="ConditionHitLogEntry"/> 在调用里登记，由本包在 Observe 阶段落库
+/// 平台层策略管全部调用，它的命中落在平台一侧；租户层的落在租户一侧，各自只看自己的策略效果
+/// <see cref="PolicyId"/> 指向 Access 的 <c>SysAccessPolicy</c>，权限条件没有策略行，<see cref="PolicyCode"/> 改记权限码；策略名称是命中时的快照，策略改名或删除后记录仍看得懂
+/// 分表、异步批量写入与只追加同其他分表日志（见 <see cref="AuditLogRecord"/>），另按策略建索引，从一条策略查它的全部命中
 /// </remarks>
 [SugarTable(TableName = "sys_condition_hit_{year}{month}{day}", TableDescription = "条件命中记录")]
 [SplitTable(SplitType.Month)]

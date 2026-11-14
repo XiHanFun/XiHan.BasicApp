@@ -10,8 +10,10 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// 库的版本台账
 /// </summary>
 /// <remarks>
-/// 每个库一行（<see cref="RowId"/>），由 <see cref="SchemaUpgrader"/> 维护：库的结构版本与升级锁（哪个节点从何时开始升级）
-/// 升级锁靠这一行的条件更新抢占，过了 <see cref="SchemaOptions.LockExpiry"/> 的锁视为已失效（节点中途退出）
+/// 每个库固定一行（<see cref="RowId"/>），记结构版本（已执行完的最高版本目录）：升级只执行比它新的目录，库比应用带的脚本还新即拒绝，防止旧应用跑在新结构上
+/// 升级锁也放在这一行，靠条件更新抢占、时间取库的 <c>now()</c>：不另需分布式锁组件，各节点的时钟也不必对齐；过了 <see cref="SchemaOptions.LockExpiry"/> 的锁视为已失效，持锁节点中途退出时别的节点能接手
+/// 平台库的这一行由 <see cref="SchemaUpgrader"/> 维护，表与行不存在即按实体先建（多节点同时建时后到的再看一眼即可）；脚本只为 PostgreSQL 写，别的库跳过、由 InitTables 建表
+/// 租户独立库在自己的库里各有一行：初始化时按当前实体建表、直接登记为最新版本，不重放历史脚本；之后的启动升级在平台库之后、同一把锁里逐个推进（停用的租户也升）
 /// </remarks>
 [SugarTable(TableName = "sys_version", TableDescription = "库的版本台账")]
 public sealed class SysVersion : AppEntity

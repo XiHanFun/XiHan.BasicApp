@@ -11,8 +11,13 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 知识文档
 /// </summary>
 /// <remarks>
-/// 租户库实体，平台一侧租户为 <c>platform</c>（方案 A2：租户维护自己的知识）；向量按侧分集合，检索只在调用方一侧
-/// 原文留在库里供重建；切块与向量在向量库，块元数据存标题与来源
+/// 租户库实体，平台一侧租户为 <c>platform</c>（方案 A2：租户维护自己的知识）：知识随租户分库隔离
+/// 向量按侧分集合（<c>knowledge.platform</c>、<c>knowledge.&lt;租户 ID&gt;</c>），检索只在调用方一侧的集合里做：框架的元数据过滤在进程内完成，不能当隔离边界
+/// 原文留在库里供重建；切块与向量在向量库，块元数据存标题与来源，行上只记块数、索引状态与最近一次失败的原因
+/// 摄入与重建有网络 I/O（嵌入与向量库），不放在调用的事务里：行的写入各自在独立的工作单元里提交，索引在两次写入之间做；进程中断即停在 <see cref="KnowledgeIndexStatus.Pending"/>、可以重建，回写失败即补偿删除刚写入的向量，库与向量库不留孤儿
+/// 索引失败以 <see cref="KnowledgeIndexStatus.Failed"/> 保存并成功返回：文档先留下，原因记在行上，可以重建；重建由框架先写后删，失败时旧块照常可检索
+/// 删除先删向量再软删行，向量库不可达即不删行；没写入过向量的不碰向量库，没配向量库也删得掉
+/// 嵌入提供商按编码引用（为空即缺省提供商），删提供商前逐侧按它查引用
 /// </remarks>
 [SugarTable(TableName = "sys_knowledge_document", TableDescription = "知识文档")]
 [SugarIndex("ix_sys_knowledge_document_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Desc)]

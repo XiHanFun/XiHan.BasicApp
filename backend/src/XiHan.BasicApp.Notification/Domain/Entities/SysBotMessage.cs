@@ -11,8 +11,11 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 机器人消息的发件箱（平台库实体，随所属侧）
 /// </summary>
 /// <remarks>
-/// 发布时按本侧每个服务商的缺省机器人各写一条（平台一侧另按每个 Telegram 机器人的每个广播群各一条），与业务同一事务提交，由发送循环发出、失败按次数重试
-/// 没有操作与页面，只供发送循环与排查
+/// 机器人消息另有发件箱，不并进邮件与短信的记录：目标是机器人或广播群而不是某个人，没有收件地址；一条通知给本侧每个服务商的缺省机器人各写一条，平台一侧另给每个 Telegram 广播群各写一条，每条各自重试、互不拖累
+/// 只存目标的 <see cref="ConfigId"/>（Telegram 另存 <see cref="ChatId"/>），不复制 Webhook 地址与令牌：密文只留在配置里，发送时按 ID 重读，停用或删除后排队中的消息即发送失败，不会再发到撤下的群
+/// 只发本侧的机器人：租户的通知不进平台的群，Telegram 只在平台一侧
+/// 与邮件、短信同一个发送循环、同一套领取与重试，随发布一起提交；正文写入时已渲染成纯文本
+/// 没有操作与页面，只供发送循环与排查；发送循环频繁改状态，所以不进差异日志；没有清理作业
 /// </remarks>
 [SugarTable(TableName = "sys_bot_message", TableDescription = "机器人消息的发件箱（平台库实体，随所属侧）")]
 [SugarIndex("ix_sys_bot_message_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
