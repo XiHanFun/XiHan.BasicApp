@@ -872,6 +872,8 @@ export default {
       stop: 'Identitätsübernahme beenden',
       stop_failed: 'Beenden der Identitätsübernahme fehlgeschlagen',
       banner: 'Agiert als „{target}“ — gestartet von {operator}',
+      island_label: 'Agiert als „{target}“',
+      island_detail: 'Gestartet von {operator}',
     },
     favorites: {
       title: 'Favoriten',

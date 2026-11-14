@@ -872,6 +872,8 @@ export default {
       stop: '退出模仿',
       stop_failed: '退出模仿失败',
       banner: '正在以「{target}」的身份操作，发起人：{operator}',
+      island_label: '正在以「{target}」的身份操作',
+      island_detail: '发起人：{operator}',
     },
     favorites: {
       title: '收藏夹',

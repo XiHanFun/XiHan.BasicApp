@@ -872,6 +872,8 @@ export default {
       stop: '대리 로그인 종료',
       stop_failed: '대리 로그인을 종료하지 못했어요',
       banner: '「{target}」 계정으로 작업 중이에요. 실행자: {operator}',
+      island_label: '「{target}」 계정으로 작업 중',
+      island_detail: '실행자: {operator}',
     },
     favorites: {
       title: '즐겨찾기',

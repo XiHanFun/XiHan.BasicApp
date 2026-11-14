@@ -872,6 +872,8 @@ export default {
       stop: 'Stop impersonating',
       stop_failed: 'Failed to stop impersonation',
       banner: 'Acting as "{target}" — started by {operator}',
+      island_label: 'Acting as "{target}"',
+      island_detail: 'Started by {operator}',
     },
     favorites: {
       title: 'Favorites',

@@ -872,6 +872,8 @@ export default {
       stop: '結束模仿',
       stop_failed: '結束模仿失敗',
       banner: '正在以「{target}」的身分操作，發起人：{operator}',
+      island_label: '正在以「{target}」的身分操作',
+      island_detail: '發起人：{operator}',
     },
     favorites: {
       title: '收藏夾',

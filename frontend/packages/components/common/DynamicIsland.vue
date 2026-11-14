@@ -509,7 +509,7 @@ onBeforeUnmount(() => {
         <div
           v-if="shellVisible"
           class="di-shell"
-          :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-slide': sliding }]"
+          :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-slide': sliding, 'is-persistent': !expanded && current?.persistent }]"
           :style="shellStyle"
           @pointerenter="hovering = true"
           @pointerleave="hovering = false"
@@ -866,10 +866,11 @@ onBeforeUnmount(() => {
 }
 
 /* ============ 终态：折叠态指示器用状态色实心圆底 + 深色图标 ============ */
-/* 形状仍是胶囊（同 iOS 完成态不变形），靠状态色圆底图标 + 弹入动效与「进度环」区分 */
-.di-shell.is-success .di-pill__inner .di-indicator,
-.di-shell.is-error .di-pill__inner .di-indicator,
-.di-shell.is-info .di-pill__inner .di-indicator {
+/* 形状仍是胶囊（同 iOS 完成态不变形），靠状态色圆底图标 + 弹入动效与「进度环」区分
+   常驻状态（模仿登录、网络或实时连接断开）不是完成反馈，不画圆底、不弹入，与面板里同一个图标 */
+.di-shell.is-success:not(.is-persistent) .di-pill__inner .di-indicator,
+.di-shell.is-error:not(.is-persistent) .di-pill__inner .di-indicator,
+.di-shell.is-info:not(.is-persistent) .di-pill__inner .di-indicator {
   width: 18px;
   height: 18px;
   border-radius: var(--xh-shape-pill);
@@ -894,15 +895,15 @@ onBeforeUnmount(() => {
   }
 }
 
-.di-shell.is-success .di-pill__inner .di-indicator {
+.di-shell.is-success:not(.is-persistent) .di-pill__inner .di-indicator {
   background: color-mix(in srgb, var(--xh-fg-success) 75%, var(--xh-fg-on-media-chrome));
 }
 
-.di-shell.is-error .di-pill__inner .di-indicator {
+.di-shell.is-error:not(.is-persistent) .di-pill__inner .di-indicator {
   background: color-mix(in srgb, var(--xh-fg-danger) 85%, var(--xh-fg-on-media-chrome));
 }
 
-.di-shell.is-info .di-pill__inner .di-indicator {
+.di-shell.is-info:not(.is-persistent) .di-pill__inner .di-indicator {
   background: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
 }
 

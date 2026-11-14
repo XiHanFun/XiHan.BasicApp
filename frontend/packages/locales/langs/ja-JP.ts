@@ -872,6 +872,8 @@ export default {
       stop: '代理ログインを終了',
       stop_failed: '代理ログインの終了に失敗しました',
       banner: '「{target}」として操作中です。実行者：{operator}',
+      island_label: '「{target}」として操作中',
+      island_detail: '実行者：{operator}',
     },
     favorites: {
       title: 'お気に入り',

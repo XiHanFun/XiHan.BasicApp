@@ -872,6 +872,8 @@ export default {
       stop: 'Parar de personificar',
       stop_failed: 'Falha ao encerrar a personificação',
       banner: 'Atuando como "{target}" — iniciado por {operator}',
+      island_label: 'Atuando como "{target}"',
+      island_detail: 'Iniciado por {operator}',
     },
     favorites: {
       title: 'Favoritos',

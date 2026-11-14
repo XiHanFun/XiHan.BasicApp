@@ -872,6 +872,8 @@ export default {
       stop: 'Прекратить имперсонацию',
       stop_failed: 'Не удалось прекратить имперсонацию',
       banner: 'Работа от имени «{target}» — начал {operator}',
+      island_label: 'Работа от имени «{target}»',
+      island_detail: 'Начал {operator}',
     },
     favorites: {
       title: 'Избранное',

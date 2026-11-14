@@ -872,6 +872,8 @@ export default {
       stop: 'Arrêter l\'usurpation',
       stop_failed: 'Impossible d\'arrêter l\'usurpation',
       banner: 'Connecté en tant que « {target} » — lancé par {operator}',
+      island_label: 'Connecté en tant que « {target} »',
+      island_detail: 'Lancé par {operator}',
     },
     favorites: {
       title: 'Favoris',

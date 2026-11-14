@@ -872,6 +872,8 @@ export default {
       stop: 'Dejar de suplantar',
       stop_failed: 'No se pudo detener la suplantación',
       banner: 'Actuando como "{target}" — iniciado por {operator}',
+      island_label: 'Actuando como "{target}"',
+      island_detail: 'Iniciado por {operator}',
     },
     favorites: {
       title: 'Favoritos',
