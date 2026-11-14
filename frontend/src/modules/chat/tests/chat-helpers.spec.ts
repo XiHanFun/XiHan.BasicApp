@@ -2,13 +2,13 @@
  * components/chat-helpers.ts 纯函数行为
  *
  * 职责边界：只测消息摘要标签、会话/消息时间格式化、文件大小格式化与报错文案这五个导出函数的全分支与边界，
- * 另有按文件名认视频与从拖放里取文件（文件夹不收）
+ * 另有按文件名认视频、从拖放里取文件（文件夹不收）与正文按「@名字」切段
  * 时间相关用例一律 vi.setSystemTime 固定“现在”。应用时区没设时跟随浏览器，这时用不带时区标记的 ISO 串作为输入
  * （`2026-08-27T09:05:00` 按本地时区解析），结果与本机时区无关；设了应用时区的用例用 UTC 时刻作为输入
  */
 import { createStreamRenderer } from '@xihan-ui/markdown'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { assistantMarkdownSource, chatErrorText, droppedFiles, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, isChatVideoFile, messageBodyLabel, previewText } from '@/modules/chat/components/chat-helpers'
+import { assistantMarkdownSource, chatErrorText, droppedFiles, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, isChatVideoFile, messageBodyLabel, previewText, splitMentionText } from '@/modules/chat/components/chat-helpers'
 import { ApiError } from '~/request'
 import { setDisplayTimeZone } from '~/utils'
 
@@ -331,6 +331,53 @@ describe('droppedFiles 拖进来的文件', () => {
 
   it('环境不给逐项列表时退回文件列表', () => {
     expect(droppedFiles(transfer([], [photo, notes]))).toEqual([photo, notes])
+  })
+})
+
+describe('splitMentionText 正文按「@名字」切段', () => {
+  const names = { u1: '张三', u2: '张三丰', u3: '李四' }
+
+  it('对得上名字的「@名字」单独成段并带上 userId，前后的文字原样留着', () => {
+    expect(splitMentionText('你好 @张三 看一下\n谢谢', ['u1'], names)).toEqual([
+      { text: '你好 ' },
+      { text: '@张三', userId: 'u1' },
+      { text: ' 看一下\n谢谢' },
+    ])
+  })
+
+  it('一个名字是另一个的开头时先认长的', () => {
+    expect(splitMentionText('@张三丰 @张三', ['u1', 'u2'], names)).toEqual([
+      { text: '@张三丰', userId: 'u2' },
+      { text: ' ' },
+      { text: '@张三', userId: 'u1' },
+    ])
+  })
+
+  it('同一个人被提到几次，每处都切出来', () => {
+    expect(splitMentionText('@李四@李四', ['u3'], names)).toEqual([
+      { text: '@李四', userId: 'u3' },
+      { text: '@李四', userId: 'u3' },
+    ])
+  })
+
+  it('没被提及的名字、名单里没有的人、单独的 @ 都照普通文字留着', () => {
+    expect(splitMentionText('@李四 和 @王五 发到 a@b.com', ['u1', 'u9'], names)).toEqual([
+      { text: '@李四 和 @王五 发到 a@b.com' },
+    ])
+  })
+
+  it('没有提及或没有名单时整段是普通文字', () => {
+    expect(splitMentionText('@张三', [], names)).toEqual([
+      { text: '@张三' },
+    ])
+    expect(splitMentionText('@张三', ['u1'], {})).toEqual([
+      { text: '@张三' },
+    ])
+  })
+
+  it('正文是空的就没有段', () => {
+    expect(splitMentionText('', ['u1'], names)).toEqual([])
+    expect(splitMentionText('', [], names)).toEqual([])
   })
 })
 

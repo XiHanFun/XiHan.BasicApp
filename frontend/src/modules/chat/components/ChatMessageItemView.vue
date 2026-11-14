@@ -19,7 +19,7 @@ import { getChatApi } from '../api-contract'
 import { callRecordText, parseCallRecord } from '../call/call-helpers'
 import { useChatFileUrl, useChatFileUrls } from '../composables/useChatFileUrl'
 import { useChatStore } from '../store'
-import { chatErrorText, formatFileSize, formatMessageTime, isChatVideoFile } from './chat-helpers'
+import { chatErrorText, formatFileSize, formatMessageTime, isChatVideoFile, splitMentionText } from './chat-helpers'
 import { useChatImageGallery } from './chat-image-gallery'
 import { chatRecordPreviewLines, chatRecordTitle, parseChatRecord } from './chat-record'
 import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
@@ -40,6 +40,8 @@ const props = defineProps<{
   readCount?: null | number
   /** 头像能点开资料卡（发送人是这一侧的用户；助手与本人的头像不能） */
   avatarClickable?: boolean
+  /** 会话成员的名字（userId → 名字）：正文里对得上的「@名字」能点开那个人的资料卡；不给就都是普通文字 */
+  mentionNames?: Readonly<Record<string, string>>
 }>()
 
 const emit = defineEmits<{
@@ -56,6 +58,8 @@ const emit = defineEmits<{
   avatarClick: []
   /** 点引用块：跳到被回复的那条消息 */
   jumpReply: []
+  /** 点正文里的「@名字」：看那个人的资料 */
+  mention: [userId: string]
 }>()
 
 const { t } = useI18n()
@@ -97,6 +101,10 @@ const isAssistantReply = computed(() => props.conversationType === 'Assistant' &
 /** 被 @ 到我（点了我的名，或提及了所有人）：气泡高亮 */
 const mentionsMe = computed(() =>
   !props.isSelf && (props.message.mentionAll || props.message.mentionedUserIds?.includes(currentUserId.value)))
+
+/** 正文按「@名字」切开：点到人的那几段能点 */
+const textSegments = computed(() =>
+  splitMentionText(props.message.content ?? '', props.message.mentionedUserIds ?? [], props.mentionNames ?? {}))
 
 /** 回应按 emoji 分组（含我是否已回应） */
 const groupedReactions = computed(() => {
@@ -466,10 +474,23 @@ async function handleDownload(fileId: string) {
           <span class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
         </template>
 
-        <!-- 文本：助手的回复按 Markdown 显示，别的照原文 -->
+        <!-- 文本：助手的回复按 Markdown 显示，别的照原文；点到人的「@名字」是按钮，点开他的资料卡 -->
         <template v-else>
           <ChatAssistantMarkdown v-if="isAssistantReply" :text="message.content ?? ''" />
-          <span v-else class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
+          <span v-else class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+            <template v-for="(segment, index) in textSegments" :key="index">
+              <button
+                v-if="segment.userId"
+                type="button"
+                class="chat-mention-link"
+                :title="t('chat.user_card.view_of', { name: segment.text.slice(1) })"
+                @click="emit('mention', segment.userId)"
+              >
+                {{ segment.text }}
+              </button>
+              <span v-else>{{ segment.text }}</span>
+            </template>
+          </span>
         </template>
       </div>
 
@@ -547,6 +568,28 @@ async function handleDownload(fileId: string) {
 
 .chat-bubble--mention {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xh-fg-brand) 45%, transparent);
+}
+
+/* 正文里点到人的「@名字」：是个按钮，排在文字里、样子是品牌色的字 */
+.chat-mention-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  border-radius: var(--xh-shape-inset);
+  background: none;
+  font: inherit;
+  font-weight: var(--xh-font-weight-medium);
+  color: var(--xh-fg-brand);
+  cursor: pointer;
+}
+
+.chat-mention-link:hover {
+  text-decoration: underline;
+}
+
+.chat-mention-link:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .chat-bubble--announcement {

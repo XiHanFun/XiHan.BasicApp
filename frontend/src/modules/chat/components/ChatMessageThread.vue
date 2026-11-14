@@ -13,7 +13,7 @@ import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { ChatCallMedia, ChatMemberRole } from '~/contracts'
 import { useElementSize, useEventListener } from '@vueuse/core'
 import { useMessageFeed, XhButton, XhCheckbox, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XIconButton from '~/components/common/XIconButton.vue'
@@ -532,6 +532,42 @@ function handleAvatarClick(item: ChatLocalMessage) {
     userCard?.open(item.senderUserId)
   }
 }
+
+// ===== 被 @ 的人：正文里的「@名字」点开他的资料卡 =====
+// 消息只带被提及的用户 ID，名字取会话成员名单；眼前有带提及的消息才去取，成员变了重取
+
+/** 当前会话成员的名字（userId → 名字）；没有资料卡可开的地方不取 */
+const mentionNames = shallowRef<Record<string, string>>({})
+let mentionNamesSeq = 0
+const hasMentions = computed(() =>
+  userCard !== null && isGroupLike.value && chatStore.activeMessages.some(message => message.mentionedUserIds?.length))
+
+async function loadMentionNames() {
+  const id = conversationId.value
+  const seq = ++mentionNamesSeq
+  if (!id || !hasMentions.value) {
+    mentionNames.value = {}
+    return
+  }
+  try {
+    const members = await getChatApi().members(id)
+    if (seq === mentionNamesSeq) {
+      mentionNames.value = Object.fromEntries(members.map(member => [member.userId, member.userName ?? '']))
+    }
+  }
+  catch {
+    // 名单取不到：「@名字」照普通文字显示，不打扰
+    if (seq === mentionNamesSeq) {
+      mentionNames.value = {}
+    }
+  }
+}
+
+watch([
+  conversationId,
+  hasMentions,
+  () => chatStore.conversationRevisions[conversationId.value ?? ''],
+], () => void loadMentionNames(), { immediate: true })
 
 // ===== 拖文件进来：整个消息流都是落点，松开即暂存到输入区待发 =====
 const composerRef = ref<InstanceType<typeof ChatComposer> | null>(null)
@@ -1213,7 +1249,9 @@ onBeforeUnmount(() => {
                 :conversation-type="conversation.conversationType"
                 :read-count="readCountOf(item)"
                 :avatar-clickable="canOpenUserCard(item)"
+                :mention-names="mentionNames"
                 @avatar-click="handleAvatarClick(item)"
+                @mention="userId => userCard?.open(userId)"
                 @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
                 @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
                 @react="emoji => handleReact(item, emoji)"

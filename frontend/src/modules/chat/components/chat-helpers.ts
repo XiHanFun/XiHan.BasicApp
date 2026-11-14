@@ -179,6 +179,57 @@ export function droppedFiles(transfer: DataTransfer | null | undefined): File[] 
   })
 }
 
+/** 正文里的一段：带 userId 的是点到某个人的「@名字」，其余是普通文字 */
+export interface ChatTextSegment {
+  text: string
+  userId?: string
+}
+
+/**
+ * 把正文按「@名字」切段：消息只带被提及的用户 ID，名字由调用方给（userId → 名字）
+ * 名字对不上的（改过名、已不在名单里）照普通文字留着；一个名字是另一个的开头时先认长的
+ */
+export function splitMentionText(content: string, mentionedUserIds: readonly string[], names: Readonly<Record<string, string>>): ChatTextSegment[] {
+  const targets = mentionedUserIds
+    .map(userId => ({ userId, token: `@${names[userId] ?? ''}` }))
+    .filter(target => target.token.length > 1)
+    .sort((left, right) => right.token.length - left.token.length)
+  if (!content) {
+    return []
+  }
+  if (!targets.length) {
+    return [
+      { text: content },
+    ]
+  }
+
+  const segments: ChatTextSegment[] = []
+  let plainStart = 0
+  let cursor = content.indexOf('@')
+  while (cursor !== -1) {
+    const at = cursor
+    const hit = targets.find(target => content.startsWith(target.token, at))
+    if (hit) {
+      if (at > plainStart) {
+        segments.push({
+          text: content.slice(plainStart, at),
+        })
+      }
+      segments.push({ text: hit.token, userId: hit.userId })
+      plainStart = at + hit.token.length
+    }
+    cursor = content.indexOf('@', hit
+      ? plainStart
+      : at + 1)
+  }
+  if (plainStart < content.length) {
+    segments.push({
+      text: content.slice(plainStart),
+    })
+  }
+  return segments
+}
+
 /** 文件大小：B/KB/MB/GB（保留一位小数） */
 export function formatFileSize(bytes?: null | number): string {
   // NaN / ±Infinity 也算无效输入：后端字段缺失被 Number() 化即为 NaN，
