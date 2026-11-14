@@ -42,7 +42,7 @@
 
 | 方向 | 方法 | 前端处理 |
 | --- | --- | --- |
-| 推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatMessageEdited`、`ChatReactionChanged` | 按会话内序号 `seq` 并入消息流，重复到达的不覆盖已有那条；别人发来的消息不在当前会话时响提示音，不在聊天页时上灵动岛 |
+| 推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatMessageEdited`、`ChatReactionChanged` | 按会话内序号 `seq` 并入消息流，重复到达的不覆盖已有那条；别人发来的消息不在当前会话时响提示音，不在聊天页时上灵动岛，偏好里开了桌面通知且页面不在眼前时发系统通知；免打扰的会话都不提醒。未读合计写在页面标题前面 |
 | 推送 | `ChatReadPositionChanged` | 已读位只前移，群消息的已读人数按序号比 |
 | 推送 | `ChatConversationChanged` | 按变更类型刷新会话列表、成员与群信息 |
 | 推送 | `ChatTyping` | 显示「正在输入」4 秒 |

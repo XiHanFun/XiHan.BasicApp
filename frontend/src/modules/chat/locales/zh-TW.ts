@@ -109,6 +109,9 @@ export default {
       select_limit: '一次最多轉發 {max} 則',
       forward_one_by_one: '逐則轉發',
       forward_merged: '合併轉發',
+      video_play: '播放影片 {name}',
+      video_unplayable: '這部影片無法在瀏覽器中播放，可以下載後觀看',
+      drop_hint: '放開，把檔案加入待傳送',
     },
     forward: {
       title: '轉發給…',

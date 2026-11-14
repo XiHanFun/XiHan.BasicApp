@@ -19,11 +19,12 @@ import { getChatApi } from '../api-contract'
 import { callRecordText, parseCallRecord } from '../call/call-helpers'
 import { useChatFileUrl, useChatFileUrls } from '../composables/useChatFileUrl'
 import { useChatStore } from '../store'
-import { chatErrorText, formatFileSize, formatMessageTime } from './chat-helpers'
+import { chatErrorText, formatFileSize, formatMessageTime, isChatVideoFile } from './chat-helpers'
 import { useChatImageGallery } from './chat-image-gallery'
 import { chatRecordPreviewLines, chatRecordTitle, parseChatRecord } from './chat-record'
 import ChatAssistantMarkdown from './ChatAssistantMarkdown.vue'
 import ChatMessageImage from './ChatMessageImage.vue'
+import ChatMessageVideo from './ChatMessageVideo.vue'
 
 defineOptions({ name: 'ChatMessageItemView' })
 
@@ -212,7 +213,7 @@ function toggleVoicePlay(): void {
 
 function onVoicePlay(): void {
   voicePlaying.value = true
-  chatStore.playingVoiceMessageId = props.message.messageId
+  chatStore.playingMediaId = props.message.messageId
 }
 
 function onVoicePause(): void {
@@ -236,13 +237,13 @@ function onVoiceEnded(): void {
 }
 
 function releaseVoiceSlot(): void {
-  if (chatStore.playingVoiceMessageId === props.message.messageId) {
-    chatStore.playingVoiceMessageId = null
+  if (chatStore.playingMediaId === props.message.messageId) {
+    chatStore.playingMediaId = null
   }
 }
 
-// 别的语音开始发声：自己让位。暂停会触发 pause 事件，但那时占位已不是自己，不会互相清空
-watch(() => chatStore.playingVoiceMessageId, (playingId) => {
+// 别的语音或视频开始出声：自己让位。暂停会触发 pause 事件，但那时占位已不是自己，不会互相清空
+watch(() => chatStore.playingMediaId, (playingId) => {
   if (playingId !== props.message.messageId && audioRef.value && !audioRef.value.paused) {
     audioRef.value.pause()
   }
@@ -250,6 +251,22 @@ watch(() => chatStore.playingVoiceMessageId, (playingId) => {
 
 // 正发声时被卸载（切会话、消息滚出等）：占位得还回去，否则一直挂着已不存在的消息
 onBeforeUnmount(releaseVoiceSlot)
+
+// ── 视频附件：认得出的在气泡里就地播放 ──────────────────────────────
+/** 浏览器里放不了的视频（解不了的编码）：退回按普通文件显示 */
+const unplayableVideos = ref<string[]>([])
+
+function isInlineVideo(attachment: { fileId: string, fileName?: null | string }): boolean {
+  return isChatVideoFile(attachment.fileName) && !unplayableVideos.value.includes(attachment.fileId)
+}
+
+function handleVideoUnplayable(fileId: string) {
+  unplayableVideos.value = [
+    ...unplayableVideos.value,
+    fileId,
+  ]
+  toast.warning(t('chat.thread.video_unplayable'))
+}
 
 async function handleDownload(fileId: string) {
   if (!fileId) {
@@ -346,23 +363,33 @@ async function handleDownload(fileId: string) {
           </div>
         </template>
 
-        <!-- 文件卡片（多文件逐个堆叠） -->
+        <!-- 文件卡片（多文件逐个堆叠）；视频在气泡里就地播放 -->
         <template v-else-if="isFile">
           <div class="flex flex-col gap-1.5">
-            <button
-              v-for="att in attachments"
-              :key="att.fileId"
-              type="button"
-              class="chat-file-card"
-              @click="handleDownload(att.fileId)"
-            >
-              <Icon icon="lucide:file" width="26" height="26" class="shrink-0 text-primary" />
-              <span class="min-w-0 flex-1 text-left">
-                <span class="block truncate text-[13px] font-medium">{{ att.fileName }}</span>
-                <span class="block text-[11px] opacity-70">{{ formatFileSize(att.fileSize) }}</span>
-              </span>
-              <Icon icon="lucide:download" width="14" height="14" class="shrink-0 opacity-70" />
-            </button>
+            <template v-for="att in attachments" :key="att.fileId">
+              <ChatMessageVideo
+                v-if="isInlineVideo(att)"
+                :conversation-id="message.conversationId"
+                :file-id="att.fileId"
+                :file-name="att.fileName ?? ''"
+                :file-size="att.fileSize"
+                @download="handleDownload(att.fileId)"
+                @unplayable="handleVideoUnplayable(att.fileId)"
+              />
+              <button
+                v-else
+                type="button"
+                class="chat-file-card"
+                @click="handleDownload(att.fileId)"
+              >
+                <Icon icon="lucide:file" width="26" height="26" class="shrink-0 text-primary" />
+                <span class="min-w-0 flex-1 text-left">
+                  <span class="block truncate text-[13px] font-medium">{{ att.fileName }}</span>
+                  <span class="block text-[11px] opacity-70">{{ formatFileSize(att.fileSize) }}</span>
+                </span>
+                <Icon icon="lucide:download" width="14" height="14" class="shrink-0 opacity-70" />
+              </button>
+            </template>
           </div>
           <div v-if="message.content" class="mt-1 text-[13px]">
             {{ message.content }}

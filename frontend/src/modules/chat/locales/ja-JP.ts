@@ -109,6 +109,9 @@ export default {
       select_limit: '一度に転送できるのは {max} 件までです',
       forward_one_by_one: '個別に転送',
       forward_merged: 'まとめて転送',
+      video_play: '動画 {name} を再生',
+      video_unplayable: 'この動画はブラウザーで再生できません。ダウンロードしてご覧ください',
+      drop_hint: 'ドロップしてファイルを送信待ちに追加',
     },
     forward: {
       title: '転送先…',

@@ -5,7 +5,7 @@
 
 import type { Router, RouteRecordRaw } from 'vue-router'
 
-import { isLockedState, loadingBar } from '~/composables'
+import { isLockedState, loadingBar, setDocumentTitle } from '~/composables'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import {
@@ -243,7 +243,7 @@ export function setupRouterGuard(router: Router) {
     }
 
     if (!appStore.dynamicTitle) {
-      document.title = 'XiHan BasicApp'
+      setDocumentTitle('XiHan BasicApp')
       return
     }
     const title = to.meta?.title as string | undefined
@@ -251,7 +251,7 @@ export function setupRouterGuard(router: Router) {
       const translated = i18n.global.te(title)
         ? i18n.global.t(title)
         : title
-      document.title = `${translated} - XiHan BasicApp`
+      setDocumentTitle(`${translated} - XiHan BasicApp`)
     }
   })
 

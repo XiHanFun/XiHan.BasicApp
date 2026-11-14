@@ -12,6 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { XHelpTip as PrefTip, XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
+import { desktopNotificationPermission, requestDesktopNotificationPermission, toast } from '~/composables'
 import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_PRESETS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -43,6 +44,24 @@ watch(
       appStore.sidebarSubDark = false
   },
 )
+
+// ── 桌面通知：打开开关时才向浏览器申请授权（只能在用户手势里问）；这个浏览器没授权时开关显示为关 ──
+const desktopPermission = ref(desktopNotificationPermission())
+const notifyDesktopOn = computed(() => appStore.notifyDesktop && desktopPermission.value === 'granted')
+
+async function handleNotifyDesktopChange(next: boolean) {
+  if (!next) {
+    appStore.notifyDesktop = false
+    return
+  }
+  desktopPermission.value = await requestDesktopNotificationPermission()
+  if (desktopPermission.value === 'granted') {
+    appStore.notifyDesktop = true
+  }
+  else {
+    toast.warning(t('preference.general.notify_desktop_denied'))
+  }
+}
 
 interface PreferenceAppearanceTabProps {
   appStore: ReturnType<typeof useAppStore>
@@ -507,6 +526,18 @@ const loaderItems = computed(() =>
           <PrefTip :content="t('preference.general.notify_sound_tip')" />
         </div>
         <XhSwitch v-model:checked="appStore.notifySound" :aria-label="t('preference.general.notify_sound')" />
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.notify_desktop') }}</span>
+          <PrefTip :content="t('preference.general.notify_desktop_tip')" />
+        </div>
+        <XhSwitch
+          :checked="notifyDesktopOn"
+          :disabled="desktopPermission === 'unsupported'"
+          :aria-label="t('preference.general.notify_desktop')"
+          @update:checked="handleNotifyDesktopChange"
+        />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">

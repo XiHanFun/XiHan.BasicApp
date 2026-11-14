@@ -109,6 +109,9 @@ export default {
       select_limit: 'Vous pouvez transférer au plus {max} messages à la fois',
       forward_one_by_one: 'Transférer un par un',
       forward_merged: 'Transférer regroupés',
+      video_play: 'Lire la vidéo {name}',
+      video_unplayable: 'Cette vidéo ne peut pas être lue dans le navigateur. Téléchargez-la pour la regarder.',
+      drop_hint: 'Déposez pour ajouter les fichiers au message',
     },
     forward: {
       title: 'Transférer à…',

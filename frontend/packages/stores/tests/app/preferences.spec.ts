@@ -131,6 +131,7 @@ describe('默认值', () => {
     expect(store.widgetFavorites).toBe(true)
     expect(store.widgetDynamicIsland).toBe(true)
     expect(store.notifySound).toBe(true)
+    expect(store.notifyDesktop).toBe(false)
     expect(store.widgetPreferencePosition).toBe('auto')
   })
 
@@ -310,6 +311,15 @@ describe('setter 落地', () => {
       store.widgetDynamicIsland,
       store.notifySound,
     ]).toEqual(Array.from<boolean>({ length: 7 }).fill(false))
+  })
+
+  it('桌面通知缺省关，可开可关', () => {
+    const store = freshStore()
+
+    store.setNotifyDesktop(true)
+    expect(store.notifyDesktop).toBe(true)
+    store.setNotifyDesktop(false)
+    expect(store.notifyDesktop).toBe(false)
   })
 
   it('五个工具的位置逐项可设，含隐藏', () => {

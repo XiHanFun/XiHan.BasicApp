@@ -667,6 +667,18 @@ function handlePaste(event: ClipboardEvent) {
   event.preventDefault()
   addAttachments(files)
 }
+
+/** 这会儿收不收文件：能发言、没在改消息、没在语音输入 */
+const acceptsFiles = computed(() => canSend.value && !isSilenced.value && !isEditing.value && !voiceMode.value)
+
+/** 外面交进来的文件（拖到消息流上的）：与粘贴一样暂存待发 */
+function addFiles(files: File[]) {
+  if (acceptsFiles.value && files.length) {
+    addAttachments(files)
+  }
+}
+
+defineExpose({ acceptsFiles, addFiles })
 </script>
 
 <template>

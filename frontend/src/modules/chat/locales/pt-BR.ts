@@ -109,6 +109,9 @@ export default {
       select_limit: 'É possível encaminhar no máximo {max} mensagens de uma vez',
       forward_one_by_one: 'Encaminhar uma a uma',
       forward_merged: 'Encaminhar combinadas',
+      video_play: 'Reproduzir o vídeo {name}',
+      video_unplayable: 'Este vídeo não pode ser reproduzido no navegador. Baixe para assistir.',
+      drop_hint: 'Solte para adicionar os arquivos à mensagem',
     },
     forward: {
       title: 'Encaminhar para…',

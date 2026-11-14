@@ -109,6 +109,9 @@ export default {
       select_limit: 'You can forward up to {max} messages at once',
       forward_one_by_one: 'Forward one by one',
       forward_merged: 'Forward merged',
+      video_play: 'Play video {name}',
+      video_unplayable: 'This video cannot be played in the browser. Download it to watch.',
+      drop_hint: 'Drop to add the files to your message',
     },
     forward: {
       title: 'Forward to…',

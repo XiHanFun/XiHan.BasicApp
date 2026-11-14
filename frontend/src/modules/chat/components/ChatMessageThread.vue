@@ -34,7 +34,7 @@ import {
   CHAT_EDIT_WINDOW_MINUTES,
   CHAT_RECALL_WINDOW_MINUTES,
 } from '../types'
-import { chatErrorText, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
+import { chatErrorText, droppedFiles, formatMessageTime, hasReadReceipt, messageBodyLabel } from './chat-helpers'
 import { provideChatImageGallery } from './chat-image-gallery'
 import { CHAT_MAX_FORWARD_MESSAGES, isForwardableMessage } from './chat-record'
 import { useChatUserCard } from './chat-user-card'
@@ -532,6 +532,48 @@ function handleAvatarClick(item: ChatLocalMessage) {
   }
 }
 
+// ===== 拖文件进来：整个消息流都是落点，松开即暂存到输入区待发 =====
+const composerRef = ref<InstanceType<typeof ChatComposer> | null>(null)
+/** 拖着文件悬在上面的层数：进子元素是先进后出，按层数算才不闪 */
+const dragDepth = ref(0)
+const dropActive = computed(() => dragDepth.value > 0 && (composerRef.value?.acceptsFiles ?? false))
+
+function draggingFiles(event: DragEvent): boolean {
+  return event.dataTransfer?.types.includes('Files') ?? false
+}
+
+function handleDragEnter(event: DragEvent) {
+  if (draggingFiles(event)) {
+    dragDepth.value += 1
+  }
+}
+
+function handleDragLeave(event: DragEvent) {
+  if (draggingFiles(event)) {
+    dragDepth.value = Math.max(0, dragDepth.value - 1)
+  }
+}
+
+function handleDragOver(event: DragEvent) {
+  if (!draggingFiles(event) || !event.dataTransfer) {
+    return
+  }
+  // 不拦下来浏览器会直接打开这个文件；这会儿收不了的显示成不可放
+  event.preventDefault()
+  event.dataTransfer.dropEffect = composerRef.value?.acceptsFiles
+    ? 'copy'
+    : 'none'
+}
+
+function handleDrop(event: DragEvent) {
+  if (!draggingFiles(event)) {
+    return
+  }
+  event.preventDefault()
+  dragDepth.value = 0
+  composerRef.value?.addFiles(droppedFiles(event.dataTransfer))
+}
+
 // ===== 头像右键成员菜单（QQ 式；状态 refs 声明在消息菜单段旁） =====
 
 async function openMemberMenu(event: MouseEvent, item: ChatLocalMessage) {
@@ -906,7 +948,14 @@ onBeforeUnmount(() => {
     </XhEmptyStateRoot>
   </div>
 
-  <div v-else class="flex h-full min-h-0 flex-col">
+  <div
+    v-else
+    class="relative flex h-full min-h-0 flex-col"
+    @dragenter="handleDragEnter"
+    @dragleave="handleDragLeave"
+    @dragover="handleDragOver"
+    @drop="handleDrop"
+  >
     <!-- 会话头（固定高度：单聊无副行时与群聊保持一致） -->
     <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
       <XIconButton v-if="props.showBack" icon="lucide:arrow-left" :label="t('header.toolbar.nav_back')" @click="emit('back')" />
@@ -1211,7 +1260,15 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 输入区 -->
-    <ChatComposer v-else :conversation-id="conversation.conversationId" />
+    <ChatComposer v-else ref="composerRef" :conversation-id="conversation.conversationId" />
+
+    <!-- 拖着文件悬在上面：罩一层提示，松开即加到待发 -->
+    <Transition name="app-fade">
+      <div v-if="dropActive" class="chat-drop-overlay" aria-hidden="true">
+        <Icon icon="lucide:upload" width="28" height="28" />
+        <span>{{ t('chat.thread.drop_hint') }}</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -1246,6 +1303,24 @@ onBeforeUnmount(() => {
   flex: none;
   justify-content: center;
   inline-size: var(--xh-space-6);
+}
+
+/* 拖着文件悬在消息流上的罩层：不接指针，底下照常收拖放事件 */
+.chat-drop-overlay {
+  position: absolute;
+  inset: var(--xh-space-2);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--xh-space-2);
+  align-items: center;
+  justify-content: center;
+  border: var(--xh-stroke-thick) dashed var(--xh-fg-brand);
+  border-radius: var(--xh-shape-control);
+  background: color-mix(in srgb, var(--xh-bg-surface) 88%, transparent);
+  color: var(--xh-fg-brand);
+  font-size: var(--xh-font-size-sm);
+  pointer-events: none;
 }
 
 /* 多选的操作条：占输入区的位置 */

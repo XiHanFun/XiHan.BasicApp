@@ -147,6 +147,38 @@ export function formatMessageTime(time?: null | string): string {
     : 'YYYY/M/D HH:mm')
 }
 
+/** 浏览器里通常能直接播放的视频扩展名 */
+const VIDEO_EXTENSIONS = new Set(['m4v', 'mov', 'mp4', 'ogv', 'webm'])
+
+/** 按文件名认视频：认出来的在气泡里就地播放，放不了再退回按普通文件显示 */
+export function isChatVideoFile(fileName?: null | string): boolean {
+  if (!fileName) {
+    return false
+  }
+  const dot = fileName.lastIndexOf('.')
+  return dot > 0 && VIDEO_EXTENSIONS.has(fileName.slice(dot + 1).toLowerCase())
+}
+
+/** 拖进来的文件；文件夹不收（它没有内容可传） */
+export function droppedFiles(transfer: DataTransfer | null | undefined): File[] {
+  if (!transfer) {
+    return []
+  }
+  const items = [...transfer.items]
+  if (!items.length) {
+    return [...transfer.files]
+  }
+  return items.flatMap((item) => {
+    if (item.kind !== 'file' || item.webkitGetAsEntry()?.isDirectory) {
+      return []
+    }
+    const file = item.getAsFile()
+    return file
+      ? [file]
+      : []
+  })
+}
+
 /** 文件大小：B/KB/MB/GB（保留一位小数） */
 export function formatFileSize(bytes?: null | number): string {
   // NaN / ±Infinity 也算无效输入：后端字段缺失被 Number() 化即为 NaN，

@@ -19,44 +19,44 @@ import type {
 } from '../types'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import { islandStart, playNotificationSound, useSignalR } from '~/composables'
+import { useRoute, useRouter } from 'vue-router'
+import { islandStart, playNotificationSound, setDocumentTitleBadge, showDesktopNotification, useSignalR } from '~/composables'
 import { RealtimeHubs, RealtimeMethods } from '~/contracts'
-import { useAccessStore, useUserStore } from '~/stores'
-import { isMissedCallRecord } from '../call/call-helpers'
+import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 import { useChatCallStore } from '../call/call-store'
 import { previewText } from '../components/chat-helpers'
 import { CHAT_PAGE_PATH, CHAT_PERMISSIONS } from '../constants'
 import { useChatStore } from '../store'
+import { chatDesktopNotificationText, shouldAlertChatMessage } from './chat-alert'
 
 const CHAT_RECONNECT_INTERVAL_MS = 15000
 
 /**
  * 在 BasicLayout 中初始化聊天实时链路（RealtimeHubs.Chat 独立连接）
- * 推送回灌 chat store 与通话 store，并预取会话列表供顶栏未读角标
+ * 推送回灌 chat store 与通话 store，并预取会话列表供顶栏未读角标；未读合计另写进页面标题
  * 没有会话读权限（chat.chat-conversations.read）时整条链路静默关闭
  */
 export function useChatIntegration() {
   const accessStore = useAccessStore()
   const userStore = useUserStore()
+  const appStore = useAppStore()
   const chatStore = useChatStore()
   const callStore = useChatCallStore()
   const signalR = useSignalR(RealtimeHubs.Chat)
   const route = useRoute()
+  const router = useRouter()
   const { t } = useI18n()
 
   /**
-   * 提醒他人发来的消息，岛提示与提示音分开判断静音
-   * 岛提示：在聊天页就不弹，消息就在眼前
+   * 提醒他人发来的消息；提示音、桌面通知与岛提示各看各的场合
    * 提示音：只有正开着这条会话且窗口在前台才不响，否则会漏掉
+   * 桌面通知：偏好开着、页面不在眼前才发，点了回到这个会话
+   * 岛提示：在聊天页就不弹，消息就在眼前
    */
   function notifyIncomingMessage(payload: ChatMessagePushPayload) {
     const { message, conversation } = payload
-    if (message.senderUserId === userStore.userInfo?.basicId || message.messageType === 'System') {
-      return
-    }
-    // 通话记录：只有自己没接到的才提醒，接通过的、自己拒的与没被邀请的不提醒
-    if (message.messageType === 'Call' && !isMissedCallRecord(message.content, userStore.userInfo?.basicId ?? '')) {
+    const muted = chatStore.conversations.find(c => c.conversationId === message.conversationId)?.isMuted ?? false
+    if (!shouldAlertChatMessage(message, userStore.userInfo?.basicId ?? '', muted)) {
       return
     }
 
@@ -69,13 +69,26 @@ export function useChatIntegration() {
       playNotificationSound('receive')
     }
 
+    const sender = message.senderUserName || conversation.conversationName || t('chat.island_new_message_fallback')
+    const preview = previewText(conversation.conversationType, conversation.lastMessagePreview?.trim() || message.content?.trim() || '')
+
+    if (appStore.notifyDesktop) {
+      showDesktopNotification({
+        ...chatDesktopNotificationText(conversation, sender, preview),
+        // 同一个会话只留最新一条
+        tag: `chat:${message.conversationId}`,
+        onClick: () => {
+          void router.push(CHAT_PAGE_PATH)
+          chatStore.openConversation(message.conversationId).catch(() => {})
+        },
+      })
+    }
+
     if (onChatPage) {
       return
     }
 
     // 卡片形态：标题给发送人、副文本给消息正文，与手机通知一致
-    const sender = message.senderUserName || conversation.conversationName || t('chat.island_new_message_fallback')
-    const preview = previewText(conversation.conversationType, conversation.lastMessagePreview?.trim() || message.content?.trim() || '')
     // islandStart 只建条目，要靠句柄置终态才会安排移除；此处随即 info() 收尾，
     // 否则这条通知会一直挂在岛上不消失
     // id 带上 messageId：按会话取 id 会让同一会话的后续消息复用同一条目（更新而非新增），
@@ -172,6 +185,9 @@ export function useChatIntegration() {
     callStore.restore().catch(() => {})
   })
 
+  // 未读合计写进页面标题：标签页不在眼前也看得到（免打扰的会话不计，与顶栏角标一致）
+  const stopUnreadWatch = watch(() => chatStore.totalUnread, count => setDocumentTitleBadge(count), { immediate: true })
+
   const stopTokenWatch = watch(
     () => accessStore.accessToken,
     async (token) => {
@@ -216,6 +232,8 @@ export function useChatIntegration() {
   onUnmounted(() => {
     stopTokenWatch()
     stopConnectedWatch()
+    stopUnreadWatch()
+    setDocumentTitleBadge(0)
     clearReconnectTimer()
     isListenersBound = false
     window.removeEventListener('focus', handleWindowFocus)

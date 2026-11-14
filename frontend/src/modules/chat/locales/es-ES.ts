@@ -109,6 +109,9 @@ export default {
       select_limit: 'Se pueden reenviar como máximo {max} mensajes a la vez',
       forward_one_by_one: 'Reenviar uno a uno',
       forward_merged: 'Reenviar combinados',
+      video_play: 'Reproducir el vídeo {name}',
+      video_unplayable: 'Este vídeo no se puede reproducir en el navegador. Descárguelo para verlo.',
+      drop_hint: 'Suelte para añadir los archivos al mensaje',
     },
     forward: {
       title: 'Reenviar a…',

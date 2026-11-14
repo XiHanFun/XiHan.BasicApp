@@ -109,6 +109,9 @@ export default {
       select_limit: '한 번에 최대 {max}개까지 전달할 수 있습니다',
       forward_one_by_one: '하나씩 전달',
       forward_merged: '묶어서 전달',
+      video_play: '동영상 {name} 재생',
+      video_unplayable: '이 동영상은 브라우저에서 재생할 수 없습니다. 다운로드해서 보세요',
+      drop_hint: '놓으면 파일이 보낼 목록에 추가됩니다',
     },
     forward: {
       title: '전달할 대상…',

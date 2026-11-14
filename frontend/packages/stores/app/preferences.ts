@@ -27,6 +27,7 @@ import {
   LEGACY_WIDGET_THEME_TOGGLE_KEY,
   LEGACY_WIDGET_TIMEZONE_KEY,
   LOCALE_KEY,
+  NOTIFY_DESKTOP_KEY,
   NOTIFY_SOUND_KEY,
   PREFERENCE_SYNC_KEY,
   SEARCH_SYNC_KEY,
@@ -115,6 +116,8 @@ export function createPreferencesSlice() {
   const widgetFavorites = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FAVORITES_KEY) ?? true)
   const widgetDynamicIsland = ref<boolean>(LocalStorage.get<boolean>(WIDGET_DYNAMIC_ISLAND_KEY) ?? true)
   const notifySound = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_SOUND_KEY) ?? true)
+  // 桌面通知缺省关：要浏览器授权，授权只能在用户手势里申请
+  const notifyDesktop = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_DESKTOP_KEY) ?? false)
   const widgetPreferencePosition = ref<PreferenceEntryPlacement>(
     LocalStorage.get<PreferenceEntryPlacement>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
@@ -169,6 +172,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGET_FAVORITES_KEY, widgetFavorites, true)
   bindPersist(WIDGET_DYNAMIC_ISLAND_KEY, widgetDynamicIsland, true)
   bindPersist(NOTIFY_SOUND_KEY, notifySound, true)
+  bindPersist(NOTIFY_DESKTOP_KEY, notifyDesktop, false)
   bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, 'auto')
   bindPersist(FOOTER_ENABLE_KEY, footerEnable, true)
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)
@@ -265,6 +269,9 @@ export function createPreferencesSlice() {
   function setNotifySound(v: boolean) {
     save(NOTIFY_SOUND_KEY, notifySound, v)
   }
+  function setNotifyDesktop(v: boolean) {
+    save(NOTIFY_DESKTOP_KEY, notifyDesktop, v)
+  }
   function setWidgetPreferencePosition(v: PreferenceEntryPlacement) {
     save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
   }
@@ -335,6 +342,7 @@ export function createPreferencesSlice() {
     widgetFavorites,
     widgetDynamicIsland,
     notifySound,
+    notifyDesktop,
     widgetPreferencePosition,
     footerEnable,
     footerFixed,
@@ -373,6 +381,7 @@ export function createPreferencesSlice() {
     setWidgetFavorites,
     setWidgetDynamicIsland,
     setNotifySound,
+    setNotifyDesktop,
     setWidgetPreferencePosition,
     setFooterEnable,
     setFooterFixed,

@@ -109,6 +109,9 @@ export default {
       select_limit: 'Es können höchstens {max} Nachrichten auf einmal weitergeleitet werden',
       forward_one_by_one: 'Einzeln weiterleiten',
       forward_merged: 'Zusammengefasst weiterleiten',
+      video_play: 'Video {name} abspielen',
+      video_unplayable: 'Dieses Video kann im Browser nicht abgespielt werden. Laden Sie es zum Ansehen herunter.',
+      drop_hint: 'Loslassen, um die Dateien zur Nachricht hinzuzufügen',
     },
     forward: {
       title: 'Weiterleiten an…',

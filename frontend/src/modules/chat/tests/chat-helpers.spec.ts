@@ -1,13 +1,14 @@
 /**
  * components/chat-helpers.ts 纯函数行为
  *
- * 职责边界：只测消息摘要标签、会话/消息时间格式化、文件大小格式化与报错文案这五个导出函数的全分支与边界
+ * 职责边界：只测消息摘要标签、会话/消息时间格式化、文件大小格式化与报错文案这五个导出函数的全分支与边界，
+ * 另有按文件名认视频与从拖放里取文件（文件夹不收）
  * 时间相关用例一律 vi.setSystemTime 固定“现在”。应用时区没设时跟随浏览器，这时用不带时区标记的 ISO 串作为输入
  * （`2026-08-27T09:05:00` 按本地时区解析），结果与本机时区无关；设了应用时区的用例用 UTC 时刻作为输入
  */
 import { createStreamRenderer } from '@xihan-ui/markdown'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { assistantMarkdownSource, chatErrorText, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, messageBodyLabel, previewText } from '@/modules/chat/components/chat-helpers'
+import { assistantMarkdownSource, chatErrorText, droppedFiles, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, isChatVideoFile, messageBodyLabel, previewText } from '@/modules/chat/components/chat-helpers'
 import { ApiError } from '~/request'
 import { setDisplayTimeZone } from '~/utils'
 
@@ -259,6 +260,77 @@ describe('按应用时区显示', () => {
 
     setDisplayTimeZone('America/New_York')
     expect(formatMessageTime('2026-08-27T14:50:00Z')).toBe('10:50')
+  })
+})
+
+describe('isChatVideoFile 按文件名认视频', () => {
+  it('浏览器通常放得了的几种扩展名算视频，不分大小写', () => {
+    expect([
+      'a.mp4',
+      'b.WEBM',
+      'c.MoV',
+      'd.m4v',
+      'e.ogv',
+      'archive.tar.mp4',
+    ].map(isChatVideoFile))
+      .toEqual([true, true, true, true, true, true])
+  })
+
+  it('别的扩展名、没有扩展名、只有扩展名与空值都不算', () => {
+    expect([
+      'a.avi',
+      'b.mkv',
+      'c.mp3',
+      'mp4',
+      '.mp4',
+      'd.mp4.txt',
+      '',
+      null,
+      undefined,
+    ].map(isChatVideoFile))
+      .toEqual(Array.from({ length: 9 }).fill(false))
+  })
+})
+
+describe('droppedFiles 拖进来的文件', () => {
+  /** 拖放里的一项：文件、文件夹或一段文字 */
+  function item(kind: 'file' | 'string', file: File | null, isDirectory = false): DataTransferItem {
+    return {
+      kind,
+      getAsFile: () => file,
+      webkitGetAsEntry: () => (file || isDirectory
+        ? { isDirectory }
+        : null),
+    } as unknown as DataTransferItem
+  }
+
+  function transfer(items: DataTransferItem[], files: File[] = []): DataTransfer {
+    return { items, files } as unknown as DataTransfer
+  }
+
+  const photo = new File(['p'], 'photo.png', { type: 'image/png' })
+  const notes = new File(['n'], 'notes.txt', { type: 'text/plain' })
+
+  it('没有拖放数据即空', () => {
+    expect(droppedFiles(null)).toEqual([])
+    expect(droppedFiles(undefined)).toEqual([])
+  })
+
+  it('逐项取文件：文件夹与文字不收，取不到文件的项跳过', () => {
+    const folder = new File([], 'folder')
+    const result = droppedFiles(transfer([
+      item('file', photo),
+      item('file', folder, true),
+      item('string', null),
+      item('file', null),
+      item('file', notes),
+    ]))
+
+    expect(result).toEqual([photo, notes])
+  })
+
+  it('环境不给逐项列表时退回文件列表', () => {
+    expect(droppedFiles(transfer([], [photo, notes]))).toEqual([photo, notes])
   })
 })
 

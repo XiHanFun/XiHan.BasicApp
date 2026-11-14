@@ -109,6 +109,9 @@ export default {
       select_limit: '一次最多转发 {max} 条',
       forward_one_by_one: '逐条转发',
       forward_merged: '合并转发',
+      video_play: '播放视频 {name}',
+      video_unplayable: '这个视频在浏览器里播放不了，可以下载后观看',
+      drop_hint: '松开，把文件加到待发送',
     },
     forward: {
       title: '转发给…',

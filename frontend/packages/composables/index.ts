@@ -3,6 +3,8 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
+export * from './desktop-notification'
+export * from './document-title'
 export * from './prompt-service'
 export * from './session-lock'
 export * from './ui-service'
