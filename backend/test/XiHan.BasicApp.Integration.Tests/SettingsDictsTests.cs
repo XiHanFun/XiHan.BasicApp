@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.Framework.Persistence.Abstractions.Queries;
@@ -16,7 +17,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 编码平台与租户之间也不重、树形项（同字典、无环）、缺省项唯一、元数据必须是 JSON、选项深度优先展平且停用项标出、
-/// 停用字典没有选项也不能加项、删除的守护（有项的字典、有下级的项、另一侧的字典）、选项只要求已登录
+/// 停用字典没有选项也不能加项、删除的守护（有项的字典、有下级的项、另一侧的字典）、选项只要求已登录；
+/// 各包登记的内建字典：种子对齐名称与登记的项、状态与运营另加的项归运营，内建字典与登记的项不能删
 /// </remarks>
 public sealed class SettingsDictsTests : IDisposable
 {
@@ -139,6 +141,64 @@ public sealed class SettingsDictsTests : IDisposable
         var (platformList, platformListBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dicts:list", """{"page":{"index":1,"size":50}}""", platform));
         Assert.Equal(HttpStatusCode.OK, platformList.StatusCode);
         Assert.Equal(["customer_level"], platformListBody.GetProperty("items").EnumerateArray().Select(static d => d.GetProperty("code").GetString()).ToList());
+    }
+
+    [Fact]
+    public async Task BuiltInDicts_FromThePackageCatalog_AreAlignedAndProtected()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder => builder.Services.AddDictCatalog("test",
+        [
+            new DictDescriptor("test.level", "Level", "test", "Built-in level", [new("low", "Low", "1"), new("high", "High", "2", IsDefault: true), new("urgent", "Urgent", "3", Parent: "high")], Order: 5),
+        ]));
+        await using var running = server;
+
+        // 种子建成平台的内建字典：登记的项按登记顺序，缺省项首写
+        var (listed, listedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dicts:list", """{"page":{"index":1,"size":50}}""", platform));
+        Assert.Equal(HttpStatusCode.OK, listed.StatusCode);
+        var dict = Assert.Single(listedBody.GetProperty("items").EnumerateArray(), static d => d.GetProperty("code").GetString() == "test.level");
+        Assert.Equal((true, "Level", 5), (dict.GetProperty("isBuiltIn").GetBoolean(), dict.GetProperty("name").GetString(), dict.GetProperty("order").GetInt32()));
+        var dictId = dict.GetProperty("id").GetString()!;
+        async Task<List<JsonElement>> OptionsAsync()
+        {
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/dicts:options?code=test.level", token: platform));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            return body.GetProperty("items").EnumerateArray().ToList();
+        }
+
+        var options = await OptionsAsync();
+        Assert.Equal(["low", "high", "urgent"], options.Select(static o => o.GetProperty("value").GetString()).ToList());
+        Assert.Equal("high", options[2].GetProperty("parentValue").GetString());
+        Assert.Equal(["high"], options.Where(static o => o.GetProperty("isDefault").GetBoolean()).Select(static o => o.GetProperty("value").GetString()).ToList());
+
+        // 内建字典与登记的项不能删；运营另加的项照常删
+        var (dictDelete, dictDeleteBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/dicts?ids={dictId}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, dictDelete.StatusCode);
+        Assert.Equal("SETTINGS_CONFLICT_006", dictDeleteBody.GetProperty("failed")[0].GetProperty("code").GetString());
+        var (tree, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items:tree?dictId={dictId}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, tree.StatusCode);
+        var low = treeBody.GetProperty("items").EnumerateArray().Single(static i => i.GetProperty("code").GetString() == "low").GetProperty("id").GetString()!;
+        var (itemDelete, itemDeleteBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/dict-items?ids={low}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, itemDelete.StatusCode);
+        Assert.Equal("SETTINGS_CONFLICT_006", itemDeleteBody.GetProperty("failed")[0].GetProperty("code").GetString());
+        var extra = await CreateItemAsync(server, platform, dictId, "extra", "Extra", order: 100);
+        var kept = await CreateItemAsync(server, platform, dictId, "kept", "Kept", order: 110);
+        var (extraDelete, extraDeleteBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/dict-items?ids={extra}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, extraDelete.StatusCode);
+        Assert.Equal([extra], extraDeleteBody.GetProperty("succeeded").EnumerateArray().Select(static i => i.GetString()).ToList());
+
+        // 运营改了名称、项名与状态后重新播种：名称与登记的项对齐回来，状态与另加的项不动
+        Assert.Equal(HttpStatusCode.OK, (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/dicts/{dictId}", """{"name":"Renamed","category":"test","order":5,"status":"Disabled"}""", platform))).Response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/dict-items/{low}", """{"name":"Lowest","value":"0","order":10}""", platform))).Response.StatusCode);
+        await server.RunSeedersAsync(["settings.dicts"]);
+        var (again, againBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dicts/{dictId}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, again.StatusCode);
+        Assert.Equal(("Level", "Disabled"), (againBody.GetProperty("name").GetString(), againBody.GetProperty("status").GetString()));
+        var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items:tree?dictId={dictId}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, items.StatusCode);
+        var rows = itemsBody.GetProperty("items").EnumerateArray().ToList();
+        Assert.Equal(["low", "high", "urgent", "kept"], rows.Select(static r => r.GetProperty("code").GetString()).ToList());
+        Assert.Equal(("Low", "1"), (rows[0].GetProperty("name").GetString(), rows[0].GetProperty("value").GetString()));
+        Assert.Equal(kept, rows[3].GetProperty("id").GetString());
     }
 
     [Fact]

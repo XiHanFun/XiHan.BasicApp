@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.BasicApp.Settings.Domain.Services;
 
@@ -52,7 +53,7 @@ public static class DictCodes
     /// <summary>
     /// 编码的正则
     /// </summary>
-    public const string Pattern = "^[A-Za-z][A-Za-z0-9._-]{0,99}$";
+    public const string Pattern = DictDescriptor.CodePattern;
 }
 
 /// <summary>

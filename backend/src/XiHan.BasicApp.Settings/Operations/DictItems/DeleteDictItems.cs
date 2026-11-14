@@ -17,14 +17,15 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// 批量删除字典项
 /// </summary>
 /// <remarks>
-/// <c>DELETE /api/dict-items?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_003</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，还有下级的 <c>SETTINGS_CONFLICT_005</c>
+/// <c>DELETE /api/dict-items?ids=...</c>。逐项：看不见的 <c>SETTINGS_NOTFOUND_003</c>，另一侧的 <c>SETTINGS_DENIED_001</c>，内建字典里登记的 <c>SETTINGS_CONFLICT_006</c>，还有下级的 <c>SETTINGS_CONFLICT_005</c>
 /// 同一批里先删下级再删上级也按删除时的状态判（入参顺序即处理顺序）
 /// </remarks>
 /// <param name="items">字典项仓储</param>
 /// <param name="service">字典域服务</param>
 /// <param name="sets">字典选项缓存</param>
+/// <param name="catalog">各包登记的内建字典</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsDelete)]
-public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items, DictService service, DictOptionSets sets) : IOperation<DictItemIdsRequest, BatchResult>
+public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items, DictService service, DictOptionSets sets, DictCatalog catalog) : IOperation<DictItemIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -54,6 +55,13 @@ public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items, DictSe
                 continue;
             }
 
+            var dictCode = await service.CodeOfAsync(item.DictId, context.CancellationToken).ConfigureAwait(false);
+            if (dictCode is not null && catalog.IsBuiltInItem(dictCode, item))
+            {
+                failed.Add(new BatchFailure(id, SettingsErrors.BuiltInProtected, SettingsMessages.BuiltInProtected.L(("name", item.Name))));
+                continue;
+            }
+
             var itemId = item.Id;
             if (await items.CountAsync(EntityQuery.All<SysDictItem>().Where(new Specification<SysDictItem>(i => i.ParentId == itemId)), context.CancellationToken).ConfigureAwait(false) > 0)
             {
@@ -67,7 +75,7 @@ public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items, DictSe
                 return removed.Error!;
             }
 
-            if (await service.CodeOfAsync(item.DictId, context.CancellationToken).ConfigureAwait(false) is { } dictCode)
+            if (dictCode is not null)
             {
                 await sets.InvalidateAsync(item.OwnerTenantId, dictCode, context.CancellationToken).ConfigureAwait(false);
             }

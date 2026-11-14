@@ -67,6 +67,7 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<ConfigValues>();
         context.Services.AddSingleton<ConfigEntries>();
         context.Services.AddSingleton<DictOptionSets>();
+        context.Services.AddSingleton<DictCatalog>();
         context.Services.AddCacheNamespace("settings", editable: false);
         context.Services.AddScoped<IConfigValueReader, ConfigValueReader>();
         context.Services.AddScoped<DictService>();
@@ -78,6 +79,7 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<NumberingRuleQueries>();
         context.Services.AddScoped<NumberingAllocationQueries>();
         context.Services.AddSeeder<ConfigCatalogSeeder>();
+        context.Services.AddSeeder<DictCatalogSeeder>();
         context.Services.AddSeeder<DemoDictSeeder>();
         context.Services.AddPermissionCatalog("settings", SettingsPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用

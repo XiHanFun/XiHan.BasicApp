@@ -15,7 +15,8 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 编码在本侧唯一是部分唯一索引（软删除后同码可重建），跨侧的查重由服务做；编码创建后不可改
 /// 选项由 <see cref="SysDictItem"/> 承载；有字典项的不能删，先删项、不级联
 /// 选项经读穿缓存（<c>DictOptionSets</c>）给出：按（侧、编码）各存一份，平台字典改了只失效平台那一份；停用的字典存空选项、不再给出选项；字典与字典项写入即失效，失效经 <c>CacheInvalidation</c> 推到工作单元结束之后
-/// 系统不依赖任何内置字典；演示字典只在 <c>BasicApp:Seed:EnableDemoData</c> 打开时由种子写入
+/// 内建字典由按编码依赖它的包经 <c>AddDictCatalog</c> 登记、种子 <c>settings.dicts</c> 对齐：名称、分类、说明与登记的项随代码走，状态、排序与运营另加的项归运营；内建字典不能删，登记的项也不能删（删了下次播种又建回来）
+/// 演示字典只在 <c>BasicApp:Seed:EnableDemoData</c> 打开时由种子写入，不是内建的
 /// </remarks>
 [SugarTable(TableName = "sys_dict", TableDescription = "字典（平台库实体）")]
 [ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_dict_owner_tenant_id_code")]
@@ -50,9 +51,9 @@ public sealed class SysDict : AppAuditedEntity, IOwnedByTenant
     public string? Description { get; set; }
 
     /// <summary>
-    /// 内建（种子写入）：不能删除
+    /// 内建（各包登记、种子写入）：不能删除
     /// </summary>
-    [SugarColumn(ColumnName = "is_built_in", IsNullable = false, ColumnDescription = "内建（种子写入）：不能删除")]
+    [SugarColumn(ColumnName = "is_built_in", IsNullable = false, ColumnDescription = "内建（各包登记、种子写入）：不能删除")]
     public bool IsBuiltIn { get; set; }
 
     /// <summary>
