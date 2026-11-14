@@ -82,7 +82,7 @@ files.complete-upload     按存储里已上传的分片拼成对象（不用客
 files.abort-upload        放弃，丢弃已上传的分片
 ```
 
-上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。
+上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。完成时缺片或总大小不符（`FILES_CONFLICT_009` / `010`）可以补传后再完成；拼好后回读的大小仍与声明的不符时，对象删掉、上传记为失败（`Failed`），只能重新发起。
 
 ## 导出中心
 

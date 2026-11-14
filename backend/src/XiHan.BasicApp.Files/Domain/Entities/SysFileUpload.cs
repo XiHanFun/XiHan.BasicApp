@@ -15,7 +15,8 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 完成后文件的访问级别、临时与到期、标签与备注在发起时就存下，完成那一步据此落文件；<see cref="FileId"/> 发起时定下、用作对象键的最后一段，完成后指向实际得到的文件
 /// 存储配额在发起与完成时各核对一次；只有发起人能续传、完成或放弃，别人的按不存在
 /// 有截止时间（<c>BasicApp:Files:UploadLifetime</c>）：操作里过了 <see cref="ExpiresAt"/> 即按过期回答，作业 <c>files.uploads.expire</c> 每小时逐侧把过期的记为过期并放弃存储里没完成的分片（放弃不了只记警告）
-/// 租户库实体，平台一侧租户为 <c>platform</c>；不删除，结束（完成、放弃、过期）后留作记录
+/// 拼出的大小与声明的不符时存储里的这次上传已经结束，记为失败并留下错误码；这次调用以失败结束、写入随之回滚，所以失败在独立的短事务里记
+/// 租户库实体，平台一侧租户为 <c>platform</c>；不删除，结束（完成、放弃、过期、失败）后留作记录
 /// </remarks>
 [SugarTable(TableName = "sys_file_upload", TableDescription = "分片上传：大文件分段直传存储的一次上传")]
 [SugarIndex("ix_sys_file_upload_tenant_id_status_expires_at", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(ExpiresAt), OrderByType.Asc)]

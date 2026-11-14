@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Files.Infrastructure;
@@ -10,6 +11,7 @@ using XiHan.Framework.ObjectStorage.Abstractions.Keys;
 using XiHan.Framework.ObjectStorage.Abstractions.Multipart;
 using XiHan.Framework.ObjectStorage.Abstractions.Signing;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
+using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Files.Domain.Services;
@@ -46,6 +48,7 @@ public sealed record SignedPart(int PartNumber, string Url, DateTimeOffset Expir
 /// <param name="options">文件包配置</param>
 /// <param name="ids">ID 生成器</param>
 /// <param name="clock">时钟</param>
+/// <param name="scopes">作用域工厂（失败在独立的短事务里记）</param>
 /// <param name="logger">日志</param>
 public sealed partial class FileUploadService(
     SideRows rows,
@@ -55,6 +58,7 @@ public sealed partial class FileUploadService(
     FilesOptions options,
     IIdGenerator<Guid> ids,
     TimeProvider clock,
+    IServiceScopeFactory scopes,
     ILogger<FileUploadService> logger)
 {
     /// <summary>
@@ -270,7 +274,8 @@ public sealed partial class FileUploadService(
     /// </summary>
     /// <remarks>
     /// 按存储列出的分片核对编号齐全（缺的片 <c>FILES_CONFLICT_009</c>）、总大小与声明的一致（<c>FILES_CONFLICT_010</c>），这两种可以补传后再完成；
-    /// 再核对一次配额，拼成对象、回读算 SHA-256 与大小，经 <see cref="FileService"/> 落文件，上传记为已完成并指向得到的文件
+    /// 再核对一次配额，拼成对象、回读算 SHA-256 与大小，经 <see cref="FileService"/> 落文件，上传记为已完成并指向得到的文件；
+    /// 拼出的大小与声明的不符时对象不留，存储里的这次上传已经结束，上传记为失败（错误码记在 <see cref="SysFileUpload.FailureCode"/>），只能重新发起
     /// </remarks>
     /// <param name="context">调用上下文</param>
     /// <param name="upload">分片上传</param>
@@ -342,7 +347,9 @@ public sealed partial class FileUploadService(
         {
             // 存储报的分片长度与拼出的不一致：对象不留，这次上传在存储里已经结束，只能重新发起
             await target.Store.DeleteAsync(new ContainerName(upload.Bucket), new BlobKey(upload.Key), cancellationToken).ConfigureAwait(false);
-            return Error.Conflict(FilesErrors.UploadSizeMismatch, FilesMessages.UploadSizeMismatch, MessageArguments.Of(("actual", length), ("expected", upload.Size)));
+            var mismatch = Error.Conflict(FilesErrors.UploadSizeMismatch, FilesMessages.UploadSizeMismatch, MessageArguments.Of(("actual", length), ("expected", upload.Size)));
+            await FailAsync(upload, mismatch.Code, cancellationToken).ConfigureAwait(false);
+            return mismatch;
         }
 
         var file = await files.AdoptAsync(upload, target.Store, hash, cancellationToken).ConfigureAwait(false);
@@ -420,6 +427,37 @@ public sealed partial class FileUploadService(
         return due.Count;
     }
 
+    /// <summary>
+    /// 在独立的短事务里把上传记为失败
+    /// </summary>
+    /// <remarks>
+    /// 这次调用以失败结束，自己的写入随之回滚；不另记，上传会一直显示上传中，到期才被过期作业收掉。记不进只记警告
+    /// </remarks>
+    private async Task FailAsync(SysFileUpload upload, string code, CancellationToken cancellationToken)
+    {
+        var id = upload.Id;
+        var now = clock.GetUtcNow();
+        var failed = await StoreScope.WriteAsync(scopes, async (services, ct) =>
+        {
+            var unitOfWork = services.GetRequiredService<SqlSugarUnitOfWork>();
+            await unitOfWork.EnsureTransactionAsync(ct).ConfigureAwait(false);
+            await unitOfWork.ConnectionFor(typeof(SysFileUpload)).Updateable<SysFileUpload>()
+                .SetColumns(u => new SysFileUpload { Status = FileUploadStatus.Failed, EndedAt = now, FailureCode = code })
+                .Where(u => u.Id == id && u.Status == FileUploadStatus.Uploading)
+                .ExecuteCommandAsync(ct).ConfigureAwait(false);
+            return Result.Success();
+        }, cancellationToken).ConfigureAwait(false);
+        if (failed.IsFailure)
+        {
+            LogFailureNotRecorded(logger, id, failed.Error!.Code);
+            return;
+        }
+
+        upload.Status = FileUploadStatus.Failed;
+        upload.EndedAt = now;
+        upload.FailureCode = code;
+    }
+
     private Result EnsureActive(SysFileUpload upload)
     {
         var status = StatusOf(upload);
@@ -461,4 +499,7 @@ public sealed partial class FileUploadService(
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "The expired upload {UploadId} was not aborted in storage ({Code}); it is marked expired.")]
     private static partial void LogNotAborted(ILogger logger, Guid uploadId, string code);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "The failed upload {UploadId} could not be marked failed ({Code}); it stays uploading until it expires.")]
+    private static partial void LogFailureNotRecorded(ILogger logger, Guid uploadId, string code);
 }
