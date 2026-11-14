@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "重发短信",
   "permissions.notification.sms.resend.description": "重发失败、已取消或已发送的短信，并取消排队中的短信。",
   "permissions.notification.sms.delete.name": "删除短信发送记录",
-  "permissions.notification.sms.delete.description": "删除当前一侧的短信发送记录。"
+  "permissions.notification.sms.delete.description": "删除当前一侧的短信发送记录。",
+  "notification.retention.invalid": "系统参数 notification.retention-days 的值 {value} 不合法：要是 1 到 3650 的整数。",
+  "jobs.notification.messages.cleanup.title": "发送记录保留清理",
+  "jobs.notification.messages.cleanup.description": "删除早于保留期（平台参数 notification.retention-days，缺省 180 天）的已结束的邮件、短信与机器人消息发送记录，以及 Telegram 出站审计；排队中与发送中的不动。"
 }

@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "An approval task has been transferred to you.",
   "workflow.notify.transfer_content_comment": "An approval task has been transferred to you: {comment}",
   "workflow.notify.fault_title": "Workflow faulted: {instance}",
-  "workflow.notify.fault_content": "The workflow \"{instance}\" you started faulted: {reason}"
+  "workflow.notify.fault_content": "The workflow \"{instance}\" you started faulted: {reason}",
+  "jobs.workflow.receipts.cleanup.title": "Clean up workflow event receipts",
+  "jobs.workflow.receipts.cleanup.description": "Delete workflow event receipts older than 90 days. Receipts only stop the same event from being handled twice, and redeliveries all happen well within that window; the platform and each tenant are cleaned separately."
 }

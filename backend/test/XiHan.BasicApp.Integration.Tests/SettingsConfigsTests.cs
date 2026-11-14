@@ -11,6 +11,7 @@ using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
+using XiHan.BasicApp.Notification.Jobs;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -181,7 +182,7 @@ public sealed class SettingsConfigsTests : IDisposable
         // 每个代码读取的参数都登记了，种子建成内建参数、值留空
         var registered = server.Services.GetServices<ConfigCatalogSection>().SelectMany(static s => s.Configs).ToList();
         Assert.Equal(
-            ["access.security.login-auto-ban", "auditing.retention-days", "chat.policy", "identity.impersonation", "identity.login-methods", "identity.password", "notification.telegram", "notification.telegram.webhook-secret-token"],
+            ["access.security.login-auto-ban", "auditing.retention-days", "chat.policy", "identity.impersonation", "identity.login-methods", "identity.password", "notification.retention-days", "notification.telegram", "notification.telegram.webhook-secret-token"],
             registered.Select(static c => c.Key).Order(StringComparer.Ordinal));
         foreach (var descriptor in registered)
         {
@@ -199,7 +200,8 @@ public sealed class SettingsConfigsTests : IDisposable
             Ban: (await LoginDefense.SettingsAsync(ctx)).ValueOrThrow(),
             Telegram: (await TelegramSettings.LoadAsync(ctx)).ValueOrThrow(),
             Chat: (await ctx.Services.GetRequiredService<ChatPolicy>().ReadAsync(ctx)).ValueOrThrow(),
-            Retention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(AuditLogOptions.RetentionDaysConfigKey, ctx)).ValueOrThrow()));
+            Retention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(AuditLogOptions.RetentionDaysConfigKey, ctx)).ValueOrThrow(),
+            MessageRetention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(MessageRetentionJob.RetentionDaysConfigKey, ctx)).ValueOrThrow()));
         Assert.Equal([LoginMethods.Password], read.Methods);
         Assert.Equal(PasswordSettings.Default, read.Password);
         Assert.Equal(ImpersonationSettings.Default, read.Impersonation);
@@ -207,6 +209,7 @@ public sealed class SettingsConfigsTests : IDisposable
         Assert.Equal(TelegramSettings.Default with { Network = new TelegramNetwork() }, read.Telegram);
         Assert.Equal((ChatPolicy.DefaultRetentionDays, 0), (read.Chat.RetentionDays, read.Chat.SensitiveWords.Count));
         Assert.False(read.Retention.HasValue);
+        Assert.True(read.MessageRetention.TryGetValue(out var days) && days == MessageRetentionJob.DefaultRetentionDays.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     [Fact]

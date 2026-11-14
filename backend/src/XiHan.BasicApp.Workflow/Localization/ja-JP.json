@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "承認タスクがあなたに転送されました。",
   "workflow.notify.transfer_content_comment": "承認タスクがあなたに転送されました：{comment}",
   "workflow.notify.fault_title": "ワークフロー障害：{instance}",
-  "workflow.notify.fault_content": "あなたが起票したワークフロー「{instance}」が障害になりました：{reason}"
+  "workflow.notify.fault_content": "あなたが起票したワークフロー「{instance}」が障害になりました：{reason}",
+  "jobs.workflow.receipts.cleanup.title": "ワークフローイベント受領記録のクリーンアップ",
+  "jobs.workflow.receipts.cleanup.description": "90 日より前のワークフローイベント受領記録を削除します。受領記録は同じイベントの二重処理を防ぐためだけのもので、再配信はすべてこの期間内に起こります。プラットフォームと各テナントを個別に処理します。"
 }

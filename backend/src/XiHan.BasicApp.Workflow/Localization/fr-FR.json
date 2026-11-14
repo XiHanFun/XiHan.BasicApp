@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "Une tâche d'approbation vous a été transférée.",
   "workflow.notify.transfer_content_comment": "Une tâche d'approbation vous a été transférée : {comment}",
   "workflow.notify.fault_title": "Échec du workflow : {instance}",
-  "workflow.notify.fault_content": "Le workflow « {instance} » que vous avez lancé a échoué : {reason}"
+  "workflow.notify.fault_content": "Le workflow « {instance} » que vous avez lancé a échoué : {reason}",
+  "jobs.workflow.receipts.cleanup.title": "Nettoyer les accusés d’événements de workflow",
+  "jobs.workflow.receipts.cleanup.description": "Supprime les accusés d’événements de workflow de plus de 90 jours. Ils servent seulement à ne pas traiter deux fois le même événement, et les relivraisons ont toutes lieu dans ce délai ; la plateforme et chaque locataire sont nettoyés séparément."
 }

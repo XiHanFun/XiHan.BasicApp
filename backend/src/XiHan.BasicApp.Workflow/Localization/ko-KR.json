@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "결재 작업이 당신에게 이관되었습니다.",
   "workflow.notify.transfer_content_comment": "결재 작업이 당신에게 이관되었습니다: {comment}",
   "workflow.notify.fault_title": "워크플로 오류: {instance}",
-  "workflow.notify.fault_content": "당신이 기안한 워크플로 \"{instance}\"에 오류가 났습니다: {reason}"
+  "workflow.notify.fault_content": "당신이 기안한 워크플로 \"{instance}\"에 오류가 났습니다: {reason}",
+  "jobs.workflow.receipts.cleanup.title": "워크플로 이벤트 수신 기록 정리",
+  "jobs.workflow.receipts.cleanup.description": "90일이 지난 워크플로 이벤트 수신 기록을 삭제합니다. 수신 기록은 같은 이벤트의 중복 처리를 막는 용도이며 재전달은 모두 이 기간 안에 일어납니다. 플랫폼과 각 테넌트를 따로 정리합니다."
 }

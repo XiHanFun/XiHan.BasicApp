@@ -83,7 +83,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 ## 通知
 
-订阅 `workflow.task.created`、`workflow.task.transferred` 与 `workflow.instance.faulted`（竞争消费），经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心：受理人收待办；被抄送人收抄送并写抄送记录（同一实例同一节点对同一人只记一次、只通知一次）；转办的新受理人收转办；实例故障时发起人收故障。投递至少一次，按消息 ID 去重（`sys_workflow_message_receipt`）；Notification 没装或投递失败只记日志，不阻断流程。文案按收件人的界面语言出（偏好里同步到后端的语言，经 Contracts 的 `IUserLocales`，Identity 实现），收件人按语言分组各投一条；没存语言的按这次调用的区域，后台恢复流程（定时、延时、超时）时没有区域，落到缺省区域。
+订阅 `workflow.task.created`、`workflow.task.transferred` 与 `workflow.instance.faulted`（竞争消费），经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心：受理人收待办；被抄送人收抄送并写抄送记录（同一实例同一节点对同一人只记一次、只通知一次）；转办的新受理人收转办；实例故障时发起人收故障。投递至少一次，按消息 ID 去重（`sys_workflow_message_receipt`，回执留 90 天，作业 `workflow.receipts.cleanup` 删掉更早的）；Notification 没装或投递失败只记日志，不阻断流程。文案按收件人的界面语言出（偏好里同步到后端的语言，经 Contracts 的 `IUserLocales`，Identity 实现），收件人按语言分组各投一条；没存语言的按这次调用的区域，后台恢复流程（定时、延时、超时）时没有区域，落到缺省区域。
 
 工作台小组件 `workflow.todo`（我的待办）：值是调用方的待办数，条目是最近到达的 5 条，点开到审批中心直接办理。前端经 `registerWorkbenchWidget` 把它登记到看板（挂在审批中心页上，模块关掉即隐藏），见[工作台](./workbench#为能力包添加小组件)。
 

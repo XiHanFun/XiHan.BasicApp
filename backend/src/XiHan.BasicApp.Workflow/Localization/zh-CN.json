@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "一条审批任务已由他人转办给您。",
   "workflow.notify.transfer_content_comment": "一条审批任务已由他人转办给您：{comment}",
   "workflow.notify.fault_title": "流程故障：{instance}",
-  "workflow.notify.fault_content": "您发起的流程「{instance}」执行故障：{reason}"
+  "workflow.notify.fault_content": "您发起的流程「{instance}」执行故障：{reason}",
+  "jobs.workflow.receipts.cleanup.title": "工作流事件回执清理",
+  "jobs.workflow.receipts.cleanup.description": "删除 90 天前的工作流事件回执：回执只用来防同一事件被处理两次，重投都在这之内；平台与每个租户分别清理。"
 }

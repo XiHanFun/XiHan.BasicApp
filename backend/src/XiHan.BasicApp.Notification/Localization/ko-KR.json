@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "SMS 재발송",
   "permissions.notification.sms.resend.description": "실패했거나 취소되었거나 발송된 SMS를 다시 보내고, 대기 중인 SMS를 취소합니다.",
   "permissions.notification.sms.delete.name": "SMS 발송 기록 삭제",
-  "permissions.notification.sms.delete.description": "호출자 측의 SMS 발송 기록을 삭제합니다."
+  "permissions.notification.sms.delete.description": "호출자 측의 SMS 발송 기록을 삭제합니다.",
+  "notification.retention.invalid": "시스템 매개변수 notification.retention-days의 값 {value}이(가) 올바르지 않습니다. 1부터 3650까지의 정수여야 합니다.",
+  "jobs.notification.messages.cleanup.title": "발송 기록 보존 정리",
+  "jobs.notification.messages.cleanup.description": "보존 기간(플랫폼 매개변수 notification.retention-days, 기본 180일)보다 오래된, 끝난 이메일·SMS·봇 메시지 발송 기록과 Telegram 발신 감사를 삭제합니다. 대기 중이거나 발송 중인 것은 그대로 둡니다."
 }

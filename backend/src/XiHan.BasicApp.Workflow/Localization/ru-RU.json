@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "Вам передана задача согласования.",
   "workflow.notify.transfer_content_comment": "Вам передана задача согласования: {comment}",
   "workflow.notify.fault_title": "Сбой рабочего процесса: {instance}",
-  "workflow.notify.fault_content": "В запущенном вами рабочем процессе «{instance}» произошёл сбой: {reason}"
+  "workflow.notify.fault_content": "В запущенном вами рабочем процессе «{instance}» произошёл сбой: {reason}",
+  "jobs.workflow.receipts.cleanup.title": "Очистка квитанций событий процессов",
+  "jobs.workflow.receipts.cleanup.description": "Удаляет квитанции событий бизнес-процессов старше 90 дней. Квитанции нужны только чтобы не обработать одно событие дважды, а повторные доставки укладываются в этот срок; платформа и каждый арендатор очищаются отдельно."
 }

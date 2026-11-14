@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "Reenviar SMS",
   "permissions.notification.sms.resend.description": "Reenviar SMS fallidos, cancelados o enviados, y cancelar los que están en cola.",
   "permissions.notification.sms.delete.name": "Eliminar registros de envío de SMS",
-  "permissions.notification.sms.delete.description": "Eliminar registros de envío de SMS del lado del llamante."
+  "permissions.notification.sms.delete.description": "Eliminar registros de envío de SMS del lado del llamante.",
+  "notification.retention.invalid": "El valor {value} del parámetro del sistema notification.retention-days no es válido: use un entero de 1 a 3650.",
+  "jobs.notification.messages.cleanup.title": "Limpiar registros de envío",
+  "jobs.notification.messages.cleanup.description": "Elimina los registros terminados de correo, SMS y mensajes de bot y las auditorías salientes de Telegram anteriores al período de retención (parámetro de plataforma notification.retention-days, 180 días por defecto); los mensajes en cola o en envío se conservan."
 }

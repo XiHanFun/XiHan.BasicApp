@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "SMS erneut senden",
   "permissions.notification.sms.resend.description": "Fehlgeschlagene, abgebrochene oder gesendete SMS erneut senden und wartende abbrechen.",
   "permissions.notification.sms.delete.name": "SMS-Sendeprotokolle löschen",
-  "permissions.notification.sms.delete.description": "SMS-Sendeprotokolle der eigenen Seite löschen."
+  "permissions.notification.sms.delete.description": "SMS-Sendeprotokolle der eigenen Seite löschen.",
+  "notification.retention.invalid": "Der Wert {value} des Systemparameters notification.retention-days ist ungültig: Verwenden Sie eine ganze Zahl von 1 bis 3650.",
+  "jobs.notification.messages.cleanup.title": "Versandprotokolle bereinigen",
+  "jobs.notification.messages.cleanup.description": "Löscht abgeschlossene E-Mail-, SMS- und Bot-Nachrichtenprotokolle sowie Telegram-Ausgangsprotokolle, die älter als die Aufbewahrungsfrist sind (Plattformparameter notification.retention-days, standardmäßig 180 Tage); wartende und laufende Nachrichten bleiben erhalten."
 }

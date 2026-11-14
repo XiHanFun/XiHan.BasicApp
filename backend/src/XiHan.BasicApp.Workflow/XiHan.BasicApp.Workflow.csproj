@@ -19,6 +19,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Workflow.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>

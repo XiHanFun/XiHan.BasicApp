@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "Uma tarefa de aprovação foi transferida para você.",
   "workflow.notify.transfer_content_comment": "Uma tarefa de aprovação foi transferida para você: {comment}",
   "workflow.notify.fault_title": "Falha no fluxo: {instance}",
-  "workflow.notify.fault_content": "O fluxo \"{instance}\" que você iniciou falhou: {reason}"
+  "workflow.notify.fault_content": "O fluxo \"{instance}\" que você iniciou falhou: {reason}",
+  "jobs.workflow.receipts.cleanup.title": "Limpar recibos de eventos de fluxo",
+  "jobs.workflow.receipts.cleanup.description": "Exclui recibos de eventos de fluxo de trabalho com mais de 90 dias. Os recibos só evitam processar o mesmo evento duas vezes e as reentregas acontecem todas dentro desse prazo; a plataforma e cada locatário são limpos separadamente."
 }

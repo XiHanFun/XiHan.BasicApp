@@ -12,6 +12,7 @@ using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Workflow.Domain.Services;
 using XiHan.BasicApp.Workflow.Handlers;
 using XiHan.BasicApp.Workflow.Infrastructure;
+using XiHan.BasicApp.Workflow.Jobs;
 using XiHan.BasicApp.Workflow.Operations.Approvals;
 using XiHan.BasicApp.Workflow.Queries;
 using XiHan.BasicApp.Workflow.Seeds;
@@ -22,6 +23,8 @@ using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Scheduling.Abstractions;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Events;
@@ -56,6 +59,7 @@ public sealed class WorkflowFeature : IFeature
             new CapabilityRequirement(SecurityCapabilities.Authorization, SecurityCapabilities.Version),
             new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
             new CapabilityRequirement(EngineCapabilities.Execution, EngineCapabilities.Version),
+            new CapabilityRequirement(SchedulingCapabilities.Jobs, SchedulingCapabilities.Version),
         ],
         Contributes = new Contributions
         {
@@ -122,6 +126,7 @@ public sealed class WorkflowFeature : IFeature
         }
 
         context.Services.AddSeeder<WorkflowDemoSeeder>();
+        context.Services.AddJob<ReceiptCleanupJob>(new JobName(ReceiptCleanupJob.Name), ReceiptCleanupJob.Schedule);
         context.AddGeneratedOperations();
     }
 }

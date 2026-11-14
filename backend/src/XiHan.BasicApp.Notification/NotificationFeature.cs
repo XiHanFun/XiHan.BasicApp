@@ -14,6 +14,7 @@ using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Notification.Infrastructure.Telegram;
+using XiHan.BasicApp.Notification.Jobs;
 using XiHan.BasicApp.Notification.Middleware;
 using XiHan.BasicApp.Notification.Queries;
 using XiHan.BasicApp.Notification.Seeds;
@@ -30,6 +31,8 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Scheduling.Abstractions;
+using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Security.Abstractions;
 
 namespace XiHan.BasicApp.Notification;
@@ -68,6 +71,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
             new CapabilityRequirement(MultiTenancyCapabilities.Context, MultiTenancyCapabilities.Version),
             new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
             new CapabilityRequirement(CachingCapabilities.Distributed, CachingCapabilities.Version),
+            new CapabilityRequirement(SchedulingCapabilities.Jobs, SchedulingCapabilities.Version),
         ],
         Contributes = new Contributions
         {
@@ -136,7 +140,8 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         // 缓存管理只开放登记过的命名空间
         context.Services.AddCacheNamespace("notification", editable: true);
         context.Services.AddPageCatalog("notification", NotificationPages.All);
-        context.Services.AddConfigCatalog("notification", [TelegramSettings.Config, TelegramSettings.SecretConfig]);
+        context.Services.AddConfigCatalog("notification", [TelegramSettings.Config, TelegramSettings.SecretConfig, MessageRetentionJob.RetentionDaysConfig]);
+        context.Services.AddJob<MessageRetentionJob>(new JobName(MessageRetentionJob.Name), MessageRetentionJob.Schedule);
         foreach (var permission in NotificationPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

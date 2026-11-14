@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "一筆審批任務已由他人轉辦給您。",
   "workflow.notify.transfer_content_comment": "一筆審批任務已由他人轉辦給您：{comment}",
   "workflow.notify.fault_title": "流程故障：{instance}",
-  "workflow.notify.fault_content": "您發起的流程「{instance}」執行故障：{reason}"
+  "workflow.notify.fault_content": "您發起的流程「{instance}」執行故障：{reason}",
+  "jobs.workflow.receipts.cleanup.title": "工作流程事件回執清理",
+  "jobs.workflow.receipts.cleanup.description": "刪除 90 天前的工作流程事件回執：回執只用來防止同一事件被處理兩次，重投都在這之內；平台與每個租戶分別清理。"
 }

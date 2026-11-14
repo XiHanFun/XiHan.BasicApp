@@ -65,6 +65,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 - 租户没有可用通道时回落平台的配置（平台代发）；机器人不回落。
 - 密钥经 `ISecretProtector` 加密存放，不回显。
 - 发送记录 `SysEmail` / `SysSms` 本身即发件箱：`emails.list / get / resend / cancel / delete`、`sms.*` 同（权限 `notification.emails.read / resend / delete`，`cancel` 用 `resend`；短信同理）。验证码（业务类型 `identity.verification`）的记录不返回正文与参数，发送结束即清空，也不能重发：读记录的权限不能拿它接管账号。
+- 发送记录按平台参数 `notification.retention-days`（缺省 180 天）保留：作业 `notification.messages.cleanup` 每天删掉更早的、已结束（已发送、失败、已取消）的邮件、短信与机器人消息记录，连同 Telegram 出站审计；排队中与发送中的再老也不动。
 - 改通道的地址（SMTP 的主机、端口，关掉加密或不再验证书）时，留空的口令不再保留，要重新填（`NOTIFICATION_VALIDATION_016`）。AI 提供商的地址（`AI_VALIDATION_107`）、代码生成数据源的地址（`CODEGENERATION_VALIDATION_014`）同样。
 - 发送循环按 `BasicApp:Notification` 的 `DispatchInterval`、`RetryDelay`、`MaxAttempts`、`StuckAfter` 工作；启动时把上个进程发到一半的记录改回排队中。
 

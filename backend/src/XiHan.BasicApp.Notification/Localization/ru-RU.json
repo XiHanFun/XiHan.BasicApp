@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "Повторная отправка SMS",
   "permissions.notification.sms.resend.description": "Повторно отправить неудавшиеся, отменённые или отправленные SMS и отменить SMS в очереди.",
   "permissions.notification.sms.delete.name": "Удаление записей отправки SMS",
-  "permissions.notification.sms.delete.description": "Удалить записи отправки SMS своей стороны."
+  "permissions.notification.sms.delete.description": "Удалить записи отправки SMS своей стороны.",
+  "notification.retention.invalid": "Значение {value} системного параметра notification.retention-days недопустимо: укажите целое число от 1 до 3650.",
+  "jobs.notification.messages.cleanup.title": "Очистка журналов отправки",
+  "jobs.notification.messages.cleanup.description": "Удаляет завершённые записи об отправке писем, SMS и сообщений ботов и исходящий аудит Telegram старше срока хранения (параметр платформы notification.retention-days, по умолчанию 180 дней); сообщения в очереди и в отправке сохраняются."
 }

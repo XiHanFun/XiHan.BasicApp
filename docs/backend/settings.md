@@ -37,6 +37,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | `auditing.retention-days` | Auditing | 数字 | 日志保留天数（1–3650，只认平台的）；不给缺省值，为空即配置项 `BasicApp:Auditing:DefaultRetentionDays`（缺省 180） |
 | `notification.telegram` | Notification | JSON | Telegram 的总开关、Webhook 根地址、刷新周期、兜底回复与网络设置（只认平台的，缺省关） |
 | `notification.telegram.webhook-secret-token` | Notification | 文本（加密） | Telegram Webhook 密钥（只认平台的） |
+| `notification.retention-days` | Notification | 数字 | 发送记录保留天数（1–3650，缺省 180，只认平台的）：作业 `notification.messages.cleanup` 删掉更早的、已结束的邮件、短信与机器人消息记录与 Telegram 出站审计；写错即清理失败 |
 | `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
 
 ## 字典

@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 领取用条件更新把排队中改成发送中，多实例并行也只有一个领到；进程中断留在发送中的记录在启动时改回排队中，代价是发出后、回写前中断的那一条会再发一次
 /// 失败按次数退避重试，最多次数在写入时定到行上，之后改配置不影响已排队的
 /// 验证码（<c>identity.verification</c>）的正文就是账号的钥匙：发送结束即清空、响应里不返回、也不能重发；重试期间还要用，所以不是一入队就不存
-/// 发送循环频繁改状态，所以不进差异日志；软删除，没有清理作业，记录一直保留
+/// 发送循环频繁改状态，所以不进差异日志；可软删除；作业 <c>notification.messages.cleanup</c> 按平台参数 <c>notification.retention-days</c>（缺省 180 天）物理删除已结束的记录，排队中与发送中的不动
 /// </remarks>
 [SugarTable(TableName = "sys_email", TableDescription = "邮件发送记录，也是邮件的发件箱（平台库实体，随所属侧）")]
 [SugarIndex("ix_sys_email_status_created_at", nameof(Status), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]

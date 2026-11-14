@@ -613,6 +613,24 @@ public static class NotificationMessages
     /// </remarks>
     public const string SortUnsupported = "notification.query.sort_unsupported";
 
+    /// <summary>
+    /// 发送记录保留天数的参数值不合法
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>
+    /// </remarks>
+    public const string RetentionInvalid = "notification.retention.invalid";
+
+    /// <summary>
+    /// 作业 <c>notification.messages.cleanup</c> 的显示名
+    /// </summary>
+    public const string RetentionJobTitle = "jobs.notification.messages.cleanup.title";
+
+    /// <summary>
+    /// 作业 <c>notification.messages.cleanup</c> 的说明
+    /// </summary>
+    public const string RetentionJobDescription = "jobs.notification.messages.cleanup.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(NotificationMessages)));
 
     /// <summary>

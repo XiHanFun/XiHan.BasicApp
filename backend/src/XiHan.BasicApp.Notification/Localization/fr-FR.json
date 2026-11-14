@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "Renvoyer des SMS",
   "permissions.notification.sms.resend.description": "Renvoyer des SMS échoués, annulés ou envoyés, et annuler ceux en file d’attente.",
   "permissions.notification.sms.delete.name": "Supprimer les envois de SMS",
-  "permissions.notification.sms.delete.description": "Supprimer les enregistrements d’envoi de SMS du côté de l’appelant."
+  "permissions.notification.sms.delete.description": "Supprimer les enregistrements d’envoi de SMS du côté de l’appelant.",
+  "notification.retention.invalid": "La valeur {value} du paramètre système notification.retention-days est invalide : utilisez un entier de 1 à 3650.",
+  "jobs.notification.messages.cleanup.title": "Nettoyer les journaux d’envoi",
+  "jobs.notification.messages.cleanup.description": "Supprime les journaux terminés d’e-mails, de SMS et de messages de bot ainsi que les audits sortants Telegram plus anciens que la durée de conservation (paramètre de plateforme notification.retention-days, 180 jours par défaut) ; les messages en file ou en cours d’envoi sont conservés."
 }

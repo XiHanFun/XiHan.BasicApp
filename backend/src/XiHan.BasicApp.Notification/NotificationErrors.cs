@@ -294,4 +294,12 @@ public static class NotificationErrors
     /// 参数 <c>targetType</c>
     /// </remarks>
     public const string RecipientSourceMissing = "NOTIFICATION_UNAVAILABLE_001";
+
+    /// <summary>
+    /// 发送记录保留天数的参数值不合法
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>value</c>
+    /// </remarks>
+    public const string RetentionInvalid = "NOTIFICATION_VALIDATION_017";
 }

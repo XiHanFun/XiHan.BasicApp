@@ -394,6 +394,16 @@ public static class WorkflowMessages
     /// </remarks>
     public const string NotifyFaultContent = "workflow.notify.fault_content";
 
+    /// <summary>
+    /// 作业 <c>workflow.receipts.cleanup</c> 的显示名
+    /// </summary>
+    public const string ReceiptCleanupJobTitle = "jobs.workflow.receipts.cleanup.title";
+
+    /// <summary>
+    /// 作业 <c>workflow.receipts.cleanup</c> 的说明
+    /// </summary>
+    public const string ReceiptCleanupJobDescription = "jobs.workflow.receipts.cleanup.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(WorkflowMessages)));
 
     /// <summary>

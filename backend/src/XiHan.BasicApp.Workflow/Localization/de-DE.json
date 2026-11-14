@@ -121,5 +121,7 @@
   "workflow.notify.transfer_content": "Eine Genehmigungsaufgabe wurde an Sie weitergeleitet.",
   "workflow.notify.transfer_content_comment": "Eine Genehmigungsaufgabe wurde an Sie weitergeleitet: {comment}",
   "workflow.notify.fault_title": "Workflow-Fehler: {instance}",
-  "workflow.notify.fault_content": "Der von Ihnen gestartete Workflow „{instance}“ ist fehlgeschlagen: {reason}"
+  "workflow.notify.fault_content": "Der von Ihnen gestartete Workflow „{instance}“ ist fehlgeschlagen: {reason}",
+  "jobs.workflow.receipts.cleanup.title": "Workflow-Ereignisbelege bereinigen",
+  "jobs.workflow.receipts.cleanup.description": "Löscht Workflow-Ereignisbelege, die älter als 90 Tage sind. Belege verhindern nur die doppelte Verarbeitung desselben Ereignisses, und erneute Zustellungen liegen alle innerhalb dieses Zeitraums; Plattform und Mandanten werden getrennt bereinigt."
 }

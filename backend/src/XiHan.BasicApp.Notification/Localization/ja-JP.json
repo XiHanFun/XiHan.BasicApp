@@ -237,5 +237,8 @@
   "permissions.notification.sms.resend.name": "SMS の再送信",
   "permissions.notification.sms.resend.description": "失敗・取り消し済み・送信済みの SMS を再送し、待機中の SMS を取り消します。",
   "permissions.notification.sms.delete.name": "SMS 送信記録の削除",
-  "permissions.notification.sms.delete.description": "現在の側の SMS 送信記録を削除します。"
+  "permissions.notification.sms.delete.description": "現在の側の SMS 送信記録を削除します。",
+  "notification.retention.invalid": "システムパラメーター notification.retention-days の値 {value} が不正です。1 から 3650 の整数にしてください。",
+  "jobs.notification.messages.cleanup.title": "送信記録の保持クリーンアップ",
+  "jobs.notification.messages.cleanup.description": "保持期間（プラットフォームのパラメーター notification.retention-days、既定 180 日）より古い、完了済みのメール・SMS・ボットメッセージの送信記録と Telegram 送信監査を削除します。キュー中・送信中のものは残します。"
 }

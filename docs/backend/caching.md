@@ -95,6 +95,8 @@ BasicApp 没有自建的后台任务框架，异步工作分下面几类：
 | `files.uploads.expire` | `15 * * * *` | 清理过期的分片上传 |
 | `files.temporary.purge` | `45 * * * *` | 清理到期的临时文件，见[文件与存储](./file#临时文件) |
 | `openplatform.oauth-cleanup` | `30 3 * * *` | 物理删除过期一天的授权码与过期七天的令牌 |
+| `notification.messages.cleanup` | `30 3 * * *` | 按保留天数删除已结束的发送记录与 Telegram 出站审计 |
+| `workflow.receipts.cleanup` | `30 4 * * *` | 删除 90 天前的工作流事件回执 |
 
 作业的查看、暂停、立即执行与改计划见[定时任务](./scheduling)。
 
