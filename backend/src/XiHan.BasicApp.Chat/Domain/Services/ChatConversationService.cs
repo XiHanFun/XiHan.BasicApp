@@ -5,6 +5,7 @@ using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Operations.ChatConversations;
 using XiHan.BasicApp.Contracts.Assistants;
 using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -28,6 +29,7 @@ namespace XiHan.BasicApp.Chat.Domain.Services;
 /// <param name="push">推送</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="clock">时间源</param>
+/// <param name="presence">在线状态</param>
 public sealed class ChatConversationService(
     ChatStore store,
     IRepository<SysDepartment, Guid> departments,
@@ -35,7 +37,8 @@ public sealed class ChatConversationService(
     ChatTexts texts,
     ChatPush push,
     IIdGenerator<Guid> ids,
-    TimeProvider clock)
+    TimeProvider clock,
+    IRealtimePresence presence)
 {
     /// <summary>
     /// 打开单聊，没有即建
@@ -552,7 +555,8 @@ public sealed class ChatConversationService(
         await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.MemberRoleChanged, recipients, context.CancellationToken).ConfigureAwait(false);
         var users = await store.UsersAsync([userId], context.CancellationToken).ConfigureAwait(false);
         var user = users.GetValueOrDefault(userId);
-        return new ChatMemberItem(userId, user?.UserName, user?.DisplayName, target.Role, target.IsSilenced, target.JoinedAt, user?.AvatarFileId);
+        var online = await presence.ConnectedUsersAsync(caller.Side, [userId], context.CancellationToken).ConfigureAwait(false);
+        return new ChatMemberItem(userId, user?.UserName, user?.DisplayName, target.Role, target.IsSilenced, target.JoinedAt, user?.AvatarFileId, online.Contains(userId));
     }
 
     /// <summary>

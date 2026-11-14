@@ -8,6 +8,7 @@
         "ChatConversationChanged",
         "ChatMessageEdited",
         "ChatMessageRecalled",
+        "ChatPresenceChanged",
         "ChatReactionChanged",
         "ChatReadPositionChanged",
         "ChatTyping",

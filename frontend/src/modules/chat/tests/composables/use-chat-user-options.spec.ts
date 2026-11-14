@@ -18,6 +18,7 @@ function user(userId: string): ChatUserOption {
     displayName: userId.toUpperCase(),
     avatarFileId: null,
     departmentName: null,
+    isOnline: false,
   }
 }
 

@@ -41,4 +41,19 @@ internal sealed class RealtimePresence(ConnectionRegistry registry, PresenceBoar
 
         return users.Count;
     }
+
+    /// <inheritdoc />
+    public async ValueTask<IReadOnlySet<Guid>> ConnectedUsersAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(side);
+        ArgumentNullException.ThrowIfNull(userIds);
+        var online = registry.OnlineIn(side, userIds);
+        if (board is not null && online.Count < userIds.Count)
+        {
+            var wanted = userIds.ToHashSet();
+            online.UnionWith((await board.OthersAsync(cancellationToken).ConfigureAwait(false)).Where(e => string.Equals(e.Side, side, StringComparison.Ordinal) && wanted.Contains(e.UserId)).Select(static e => e.UserId));
+        }
+
+        return online;
+    }
 }

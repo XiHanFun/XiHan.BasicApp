@@ -19,4 +19,12 @@ public static class Topics
     /// Organization 发出，载荷 <see cref="Organization.MembershipChanged"/>；Chat 据此同步部门群成员
     /// </remarks>
     public const string OrganizationMembershipChanged = "basicapp.organization.membership-changed";
+
+    /// <summary>
+    /// 用户的在线状态变了（在某一侧上线或离线）
+    /// </summary>
+    /// <remarks>
+    /// Realtime 在连接登记变化时直接发布（没有业务写入，不经发件箱），载荷 <see cref="Realtime.PresenceChanged"/>；Chat 据此把在线状态推给相关的人
+    /// </remarks>
+    public const string RealtimePresenceChanged = "basicapp.realtime.presence-changed";
 }

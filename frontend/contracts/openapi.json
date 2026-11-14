@@ -9800,13 +9800,18 @@
                         "null"
                       ],
                       "format": "uuid"
+                    },
+                    "isOnline": {
+                      "description": "\u6B64\u523B\u5728\u7EBF",
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "userId",
                     "memberRole",
                     "isSilenced",
-                    "joinedAt"
+                    "joinedAt",
+                    "isOnline"
                   ]
                 }
               }
@@ -64158,6 +64163,10 @@
             "description": "\u6700\u5927\u6D88\u606F\u5E8F\u53F7",
             "type": "integer",
             "format": "int64"
+          },
+          "peerOnline": {
+            "description": "\u5355\u804A\u7684\u5BF9\u7AEF\u6B64\u523B\u5728\u7EBF\uFF1B\u522B\u7684\u4F1A\u8BDD\u7C7B\u578B\u6052\u4E3A\u5047",
+            "type": "boolean"
           }
         },
         "required": [
@@ -64170,7 +64179,8 @@
           "isMuted",
           "isPinned",
           "isSilenced",
-          "lastSeq"
+          "lastSeq",
+          "peerOnline"
         ]
       },
       "ChatConversationType": {
@@ -64253,13 +64263,18 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "isOnline": {
+            "description": "\u6B64\u523B\u5728\u7EBF",
+            "type": "boolean"
           }
         },
         "required": [
           "userId",
           "memberRole",
           "isSilenced",
-          "joinedAt"
+          "joinedAt",
+          "isOnline"
         ]
       },
       "ChatMemberRole": {
@@ -64529,12 +64544,17 @@
               "string",
               "null"
             ]
+          },
+          "isOnline": {
+            "description": "\u6B64\u523B\u5728\u7EBF",
+            "type": "boolean"
           }
         },
         "required": [
           "userId",
           "userName",
-          "displayName"
+          "displayName",
+          "isOnline"
         ]
       },
       "CodeGenDatabaseType": {

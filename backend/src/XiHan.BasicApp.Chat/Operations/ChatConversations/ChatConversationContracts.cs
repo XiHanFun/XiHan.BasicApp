@@ -153,6 +153,7 @@ public sealed record ChatConversationOpenResponse(Guid ConversationId, ChatConve
 /// <param name="LastMessageAt">最后一条消息的时间（UTC）</param>
 /// <param name="LastMessagePreview">最后一条消息的预览</param>
 /// <param name="LastSeq">最大消息序号</param>
+/// <param name="PeerOnline">单聊的对端此刻在线；别的会话类型恒为假</param>
 public sealed record ChatConversationListItem(
     Guid ConversationId,
     ChatConversationType ConversationType,
@@ -171,7 +172,8 @@ public sealed record ChatConversationListItem(
     string? Description,
     DateTimeOffset? LastMessageAt,
     string? LastMessagePreview,
-    long LastSeq);
+    long LastSeq,
+    bool PeerOnline);
 
 /// <summary>
 /// 会话成员
@@ -183,7 +185,8 @@ public sealed record ChatConversationListItem(
 /// <param name="IsSilenced">被禁言</param>
 /// <param name="JoinedAt">入会时间（UTC）</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）</param>
-public sealed record ChatMemberItem(Guid UserId, string? UserName, string? DisplayName, ChatMemberRole MemberRole, bool IsSilenced, DateTimeOffset JoinedAt, Guid? AvatarFileId);
+/// <param name="IsOnline">此刻在线</param>
+public sealed record ChatMemberItem(Guid UserId, string? UserName, string? DisplayName, ChatMemberRole MemberRole, bool IsSilenced, DateTimeOffset JoinedAt, Guid? AvatarFileId, bool IsOnline);
 
 /// <summary>
 /// 成员的已读位
@@ -209,7 +212,8 @@ public sealed record ChatDepartmentNode(Guid DepartmentId, string DepartmentName
 /// <param name="DisplayName">显示名</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）</param>
 /// <param name="DepartmentName">主部门的名称；没有任职或在平台一侧为空</param>
-public sealed record ChatUserOption(Guid UserId, string UserName, string DisplayName, Guid? AvatarFileId, string? DepartmentName);
+/// <param name="IsOnline">此刻在线</param>
+public sealed record ChatUserOption(Guid UserId, string UserName, string DisplayName, Guid? AvatarFileId, string? DepartmentName, bool IsOnline);
 
 /// <summary>
 /// 做完了的会话

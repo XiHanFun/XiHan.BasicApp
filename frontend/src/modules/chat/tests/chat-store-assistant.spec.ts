@@ -41,6 +41,7 @@ vi.mock('~/composables/useSignalR', () => ({
 function conversation(patch: Partial<ChatConversationListItem> & { conversationId: string }): ChatConversationListItem {
   return {
     lastSeq: 0,
+    peerOnline: false,
     conversationType: 'Single',
     displayName: '会话',
     memberCount: 2,

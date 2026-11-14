@@ -190,6 +190,11 @@ export default {
       member_search: '搜尋成員',
       member_empty: '沒有符合的成員',
     },
+    presence: {
+      online: '線上',
+      offline: '離線',
+      online_count: '{n} 人線上',
+    },
     time: {
       yesterday: '昨日',
     },

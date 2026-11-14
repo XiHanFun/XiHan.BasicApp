@@ -6,6 +6,7 @@ using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Domain.Services;
 using XiHan.BasicApp.Chat.Operations.ChatConversations;
 using XiHan.BasicApp.Chat.Operations.ChatMessages;
+using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Organization.Domain.Entities;
 using XiHan.BasicApp.Runtime.Queries;
@@ -19,9 +20,11 @@ namespace XiHan.BasicApp.Chat.Queries;
 /// <remarks>
 /// 只看调用方所在一侧，会话里的内容只给成员看。历史按会话内序号取，一次 1 到 100 条、多取一条判断还有没有更早的；
 /// 搜索匹配正文与附件、不含已撤回的，一次 1 到 50 条、按时间倒序、不带回应
+/// 会话列表的单聊对端、会话成员与选人候选都带此刻的在线状态（任一 Hub 上有连接即在线），之后的变化由推送补
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
-public sealed class ChatQueries(ChatStore store)
+/// <param name="presence">在线状态</param>
+public sealed class ChatQueries(ChatStore store, IRealtimePresence presence)
 {
     private const int DefaultHistoryTake = 30;
     private const int DefaultSearchTake = 20;
@@ -49,6 +52,7 @@ public sealed class ChatQueries(ChatStore store)
             : await store.Members(caller.Side).Where(m => singleIds.Contains(m.ConversationId) && m.UserId != caller.UserId).ToListAsync(cancellationToken).ConfigureAwait(false);
         var peerUsers = await store.UsersAsync([.. peers.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
         var peerOf = peers.GroupBy(static m => m.ConversationId).ToDictionary(static g => g.Key, static g => g.First().UserId);
+        var online = await presence.ConnectedUsersAsync(caller.Side, [.. peerOf.Values.Distinct()], cancellationToken).ConfigureAwait(false);
 
         var items = new List<ChatConversationListItem>(mine.Count);
         foreach (var member in mine)
@@ -79,7 +83,8 @@ public sealed class ChatQueries(ChatStore store)
                 conversation.Description,
                 conversation.LastMessageAt,
                 conversation.LastMessagePreview,
-                conversation.LastSeq));
+                conversation.LastSeq,
+                peerId is { } who && online.Contains(who)));
         }
 
         return new ChatConversationsResponse([.. items
@@ -207,13 +212,14 @@ public sealed class ChatQueries(ChatStore store)
     {
         var members = await store.MembersAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
         var users = await store.UsersAsync([.. members.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
+        var online = await presence.ConnectedUsersAsync(side, [.. members.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
         return [.. members
             .OrderBy(static m => m.Role)
             .ThenBy(static m => m.JoinedAt)
             .Select(m =>
             {
                 var user = users.GetValueOrDefault(m.UserId);
-                return new ChatMemberItem(m.UserId, user?.UserName, user?.DisplayName, m.Role, m.IsSilenced, m.JoinedAt, user?.AvatarFileId);
+                return new ChatMemberItem(m.UserId, user?.UserName, user?.DisplayName, m.Role, m.IsSilenced, m.JoinedAt, user?.AvatarFileId, online.Contains(m.UserId));
             })];
     }
 
@@ -278,8 +284,10 @@ public sealed class ChatQueries(ChatStore store)
         var limit = request.Limit ?? DefaultUserLimit;
         var users = await query.OrderBy(u => u.DisplayName).OrderBy(u => u.Id).Skip(request.Skip ?? 0).Take(limit + 1).ToListAsync(cancellationToken).ConfigureAwait(false);
         var page = users.Take(limit).ToList();
-        var departments = await PrimaryDepartmentNamesAsync(context, [.. page.Select(static u => u.Id)]).ConfigureAwait(false);
-        return new ChatUserOptionsResponse([.. page.Select(u => new ChatUserOption(u.Id, u.UserName, u.DisplayName, u.AvatarFileId, departments.GetValueOrDefault(u.Id)))], users.Count > limit);
+        List<Guid> pageIds = [.. page.Select(static u => u.Id)];
+        var departments = await PrimaryDepartmentNamesAsync(context, pageIds).ConfigureAwait(false);
+        var online = await presence.ConnectedUsersAsync(side, pageIds, cancellationToken).ConfigureAwait(false);
+        return new ChatUserOptionsResponse([.. page.Select(u => new ChatUserOption(u.Id, u.UserName, u.DisplayName, u.AvatarFileId, departments.GetValueOrDefault(u.Id), online.Contains(u.Id)))], users.Count > limit);
     }
 
     private static async Task<List<Guid>> DepartmentStaffAsync(InvocationContext context, Guid departmentId)

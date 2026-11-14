@@ -9,6 +9,7 @@ using XiHan.BasicApp.Chat.Operations.ChatMessages;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Organization;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Contracts.Realtime;
 
 namespace XiHan.BasicApp.Chat;
 
@@ -78,6 +79,7 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(ChatMessageEditedPayload))]
 [JsonSerializable(typeof(ChatReactionChangedPayload))]
 [JsonSerializable(typeof(ChatReadPositionChangedPayload))]
+[JsonSerializable(typeof(ChatPresenceChangedPayload))]
 [JsonSerializable(typeof(ChatAssistantDeltaPayload))]
 [JsonSerializable(typeof(ChatAssistantCompletedPayload))]
 [JsonSerializable(typeof(ChatAssistantsRequest))]
@@ -88,4 +90,5 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(ReplyAssistantResponse))]
 [JsonSerializable(typeof(ChatPolicySettings))]
 [JsonSerializable(typeof(MembershipChanged))]
+[JsonSerializable(typeof(PresenceChanged))]
 public sealed partial class ChatJsonContext : JsonSerializerContext;

@@ -36,7 +36,7 @@ import {
 /** 首字母大写驼峰（后端方法名形态） */
 const PASCAL_CASE = /^[A-Z][A-Za-z0-9]*$/u
 
-/** 聊天集成订阅的九个推送方法（use-chat-integration 逐个 on） */
+/** 聊天集成订阅的十个推送方法（use-chat-integration 逐个 on） */
 const CHAT_PUSH_METHODS = [
   RealtimeMethods.ReceiveChatMessage,
   RealtimeMethods.ChatMessageRecalled,
@@ -45,17 +45,18 @@ const CHAT_PUSH_METHODS = [
   RealtimeMethods.ChatMessageEdited,
   RealtimeMethods.ChatReactionChanged,
   RealtimeMethods.ChatReadPositionChanged,
+  RealtimeMethods.ChatPresenceChanged,
   RealtimeMethods.ChatAssistantDelta,
   RealtimeMethods.ChatAssistantCompleted,
 ]
 
 describe('实时推送方法名', () => {
-  it('九个聊天推送方法名互不重复，避免同名订阅互相顶掉', () => {
-    expect(CHAT_PUSH_METHODS).toHaveLength(9)
+  it('十个聊天推送方法名互不重复，避免同名订阅互相顶掉', () => {
+    expect(CHAT_PUSH_METHODS).toHaveLength(10)
     expect(new Set(CHAT_PUSH_METHODS).size).toBe(CHAT_PUSH_METHODS.length)
   })
 
-  it('生成的推送方法表里聊天相关的恰好是这九个，后端新增或改名时这里先报', () => {
+  it('生成的推送方法表里聊天相关的恰好是这十个，后端新增或改名时这里先报', () => {
     const chatMethods = Object.values(RealtimeMethods).filter(name => name.includes('Chat')).sort()
 
     expect(chatMethods).toStrictEqual([...CHAT_PUSH_METHODS].sort())

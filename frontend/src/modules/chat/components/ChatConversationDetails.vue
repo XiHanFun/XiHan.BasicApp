@@ -25,6 +25,7 @@ import { chatErrorText, formatMessageTime } from './chat-helpers'
 import ChatAddMembersDialog from './ChatAddMembersDialog.vue'
 import ChatConversationAvatar from './ChatConversationAvatar.vue'
 import ChatGroupInfoDialog from './ChatGroupInfoDialog.vue'
+import ChatPresenceBadge from './ChatPresenceBadge.vue'
 
 /**
  * 会话详情：会话资料、群公告、个人设置（置顶、免打扰）与成员治理
@@ -84,6 +85,12 @@ const typeLabel = computed(() => {
 })
 
 const memberIds = computed(() => members.value.map(member => member.userId))
+const onlineCount = computed(() => members.value.filter(member => chatStore.isUserOnline(member.userId)).length)
+// 单聊的资料带对端的在线状态
+const peerUserId = computed(() =>
+  props.conversation.conversationType === 'Single'
+    ? props.conversation.peerUserId ?? null
+    : null)
 
 const filteredMembers = computed(() => {
   const key = memberKeyword.value.trim().toLowerCase()
@@ -132,6 +139,7 @@ async function loadMembers() {
     const items = await getChatApi().members(conversationId.value)
     if (seq === loadSeq) {
       members.value = items
+      chatStore.notePresence(items)
     }
   }
   catch (error) {
@@ -330,14 +338,16 @@ function handleLeave() {
     <div class="xh-scroll-area min-h-0 flex-1">
       <!-- 会话资料 -->
       <div class="flex items-center gap-3 px-3 py-3">
-        <ChatConversationAvatar
-          :conversation-id="conversation.conversationId"
-          :conversation-type="conversation.conversationType"
-          :avatar="conversation.avatar"
-          :name="conversation.displayName"
-          :size="48"
-          :round="!isGroupLike"
-        />
+        <ChatPresenceBadge :user-id="peerUserId">
+          <ChatConversationAvatar
+            :conversation-id="conversation.conversationId"
+            :conversation-type="conversation.conversationType"
+            :avatar="conversation.avatar"
+            :name="conversation.displayName"
+            :size="48"
+            :round="!isGroupLike"
+          />
+        </ChatPresenceBadge>
         <div class="min-w-0 flex-1">
           <div class="truncate text-sm font-semibold text-foreground">
             {{ conversation.displayName }}
@@ -347,6 +357,7 @@ function handleLeave() {
               <XhTagLabel>{{ typeLabel }}</XhTagLabel>
             </XhTagRoot>
             <span v-if="isGroupLike">{{ t('chat.members.count', { n: conversation.memberCount }) }}</span>
+            <span v-else-if="peerUserId">{{ chatStore.isUserOnline(peerUserId) ? t('chat.presence.online') : t('chat.presence.offline') }}</span>
           </div>
         </div>
         <XIconButton v-if="canManage" icon="lucide:pencil" :label="t('chat.details.edit_info')" @click="showEditInfo = true" />
@@ -397,6 +408,7 @@ function handleLeave() {
         <div class="flex items-center justify-between gap-2">
           <h3 class="chat-details__heading">
             {{ t('chat.members.section_members', { n: members.length || conversation.memberCount }) }}
+            <span v-if="members.length">· {{ t('chat.presence.online_count', { n: onlineCount }) }}</span>
           </h3>
           <XhButton v-if="canManage && isGroup" variant="subtle" size="sm" @click="showAddMembers = true">
             <Icon icon="lucide:user-plus" />
@@ -436,7 +448,9 @@ function handleLeave() {
               :key="member.userId"
               class="flex items-center gap-2.5 border-b border-border/50 py-2 last:border-b-0"
             >
-              <XUserAvatar :avatar="member.avatarFileId" :name="memberName(member)" :size="32" />
+              <ChatPresenceBadge :user-id="member.userId">
+                <XUserAvatar :avatar="member.avatarFileId" :name="memberName(member)" :size="32" />
+              </ChatPresenceBadge>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5">
                   <span class="truncate text-[13px] text-foreground">{{ memberName(member) }}</span>

@@ -190,6 +190,11 @@ export default {
       member_search: 'メンバーを検索',
       member_empty: '一致するメンバーがいません',
     },
+    presence: {
+      online: 'オンライン',
+      offline: 'オフライン',
+      online_count: '{n} 名がオンライン',
+    },
     time: {
       yesterday: '昨日',
     },

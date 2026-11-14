@@ -96,10 +96,21 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 方向 | 方法 |
 | --- | --- |
-| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted` |
+| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted` |
 | 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库） |
 
 `ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`。
+
+## 在线状态
+
+在线即此刻在这一侧持有实时连接（任一 Hub 都算，见[实时推送](./realtime#在线状态)）。
+
+- 读的时候带当时的状态：会话列表的单聊带 `peerOnline`，会话成员与选人候选带 `isOnline`。
+- 之后的变化推 `ChatPresenceChanged`（`userId`、`isOnline`）：Chat 订阅 Realtime 的 `basicapp.realtime.presence-changed`，按处理时的在线状态推，乱序或重复投递推出去的都是当时的事实。
+- 受众是他的单聊对端（按人点发），以及正开着他所在的群或部门群的连接（会话组，即调过 `JoinConversation` 的连接）；不按群的全体成员扇出，没参加任何会话的人不推。
+- 刷新页面、断线重连不闪：最后一条连接断开后有一段宽限（缺省 8 秒），宽限内又连上即不推。
+
+前端把读回来的状态与推来的变化记在同一处，头像右下角的绿点、单聊头部与详情里的「在线 / 离线」、群成员的在线人数都从那里取；实时连接断过又连上时把会话列表与当前会话的成员重取一遍。
 
 ## 附件
 

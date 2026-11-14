@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Chat.Domain.Entities;
+using XiHan.BasicApp.Chat.Infrastructure;
 using XiHan.BasicApp.Chat.Operations.ChatMessages;
 using XiHan.BasicApp.Contracts.Realtime;
 
@@ -94,6 +95,13 @@ public sealed record ChatAssistantDeltaPayload(Guid ConversationId, string Reply
 public sealed record ChatAssistantCompletedPayload(Guid ConversationId, string ReplyId, Guid? MessageId, string? ErrorCode, string? Error);
 
 /// <summary>
+/// <c>ChatPresenceChanged</c> 的载荷
+/// </summary>
+/// <param name="UserId">用户</param>
+/// <param name="IsOnline">此刻在线</param>
+public sealed record ChatPresenceChangedPayload(Guid UserId, bool IsOnline);
+
+/// <summary>
 /// 聊天的推送（作用域）
 /// </summary>
 /// <remarks>
@@ -159,6 +167,19 @@ public sealed class ChatPush(IRealtimePush push)
     /// </summary>
     public ValueTask ReactionAsync(string side, ChatReactionChangedPayload payload, IReadOnlyCollection<Guid> recipients, CancellationToken cancellationToken)
         => push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, recipients), ChatRealtimeMethods.ChatReactionChanged, payload, ChatJsonContext.Default.ChatReactionChangedPayload, cancellationToken);
+
+    /// <summary>
+    /// 推在线状态
+    /// </summary>
+    /// <remarks>
+    /// 单聊的对端按人点发；群与部门群只发给此刻在那个会话组里的连接（正开着它的人），不按全体成员扇出
+    /// </remarks>
+    public async ValueTask PresenceAsync(string side, ChatPresenceChangedPayload payload, IReadOnlyCollection<Guid> peers, IReadOnlyCollection<Guid> conversationIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(conversationIds);
+        await push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, peers), ChatRealtimeMethods.ChatPresenceChanged, payload, ChatJsonContext.Default.ChatPresenceChangedPayload, cancellationToken).ConfigureAwait(false);
+        await push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.HubGroups(conversationIds.Select(ChatHub.GroupOf)), ChatRealtimeMethods.ChatPresenceChanged, payload, ChatJsonContext.Default.ChatPresenceChangedPayload, cancellationToken).ConfigureAwait(false);
+    }
 
     /// <summary>
     /// 推已读位

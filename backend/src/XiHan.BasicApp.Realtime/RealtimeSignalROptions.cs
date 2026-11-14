@@ -126,7 +126,7 @@ public sealed record RealtimeSignalROptions
             : throw new ArgumentException($"'{ConfigurationSection}:{key}' must be 'true' or 'false', but was '{raw}'.");
     }
 
-    private static TimeSpan Duration(IConfigurationSection section, string key, TimeSpan defaultValue)
+    internal static TimeSpan Duration(IConfigurationSection section, string key, TimeSpan defaultValue)
     {
         if (section[key] is not { Length: > 0 } raw)
         {
@@ -136,7 +136,7 @@ public sealed record RealtimeSignalROptions
         // 少了冒号的（15、00:15）TimeSpan 也认，只是读成 15 天、15 分钟，按写错处理
         return raw.Count(static c => c == ':') == 2 && TimeSpan.TryParse(raw, CultureInfo.InvariantCulture, out var value) && value > TimeSpan.Zero
             ? value
-            : throw new ArgumentException($"'{ConfigurationSection}:{key}' must be a positive duration written as 'hh:mm:ss', but was '{raw}'.");
+            : throw new ArgumentException($"'{section.Path}:{key}' must be a positive duration written as 'hh:mm:ss', but was '{raw}'.");
     }
 
     private static long Size(IConfigurationSection section, string key, long defaultValue, long maximum = long.MaxValue)

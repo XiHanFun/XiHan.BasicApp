@@ -22,6 +22,7 @@ import { useChatUserOptions } from '../composables/useChatUserOptions'
 import { useChatStore } from '../store'
 import { chatErrorText } from './chat-helpers'
 import { mergePickedUsers } from './chat-member-picker'
+import ChatPresenceBadge from './ChatPresenceBadge.vue'
 
 /**
  * 选人：左边是可勾选的候选列表（搜索、最近联系人、按部门筛、逐页加载），多选时右边列出已选的人
@@ -87,6 +88,7 @@ const recentUsers = computed<ChatUserOption[]>(() => {
       displayName: conversation.displayName,
       avatarFileId: conversation.avatar ?? null,
       departmentName: null,
+      isOnline: conversation.peerOnline,
     }))
 })
 
@@ -165,6 +167,9 @@ watch(model, (ids) => {
   }
 })
 
+// 候选读回来的在线状态并进聊天 store：在线点一律从那里取，之后的上下线推送也改在那里
+watch(directory.users, users => chatStore.notePresence(users))
+
 watchDebounced(keyword, reload, { debounce: 250 })
 watch([
   scope,
@@ -221,7 +226,9 @@ onMounted(() => {
         <XhListboxContent>
           <XhListboxItem v-for="user in candidates" :key="user.userId" :value="user.userId">
             <XhListboxItemPrefix>
-              <XUserAvatar :avatar="user.avatarFileId" :name="user.displayName" :size="28" />
+              <ChatPresenceBadge :user-id="user.userId">
+                <XUserAvatar :avatar="user.avatarFileId" :name="user.displayName" :size="28" />
+              </ChatPresenceBadge>
             </XhListboxItemPrefix>
             <XhListboxItemText>{{ user.displayName }}</XhListboxItemText>
             <XhListboxItemDescription v-if="describe(user)">
@@ -251,7 +258,9 @@ onMounted(() => {
         </div>
         <ul v-if="picked.length" class="xh-scroll-area m-0 min-h-0 flex-1 list-none px-1 pt-0 pb-1">
           <li v-for="user in picked" :key="user.userId" class="app-fade flex items-center gap-2 py-1 pr-1 pl-2">
-            <XUserAvatar :avatar="user.avatarFileId" :name="user.displayName" :size="28" />
+            <ChatPresenceBadge :user-id="user.userId">
+              <XUserAvatar :avatar="user.avatarFileId" :name="user.displayName" :size="28" />
+            </ChatPresenceBadge>
             <span class="min-w-0 flex-1 truncate text-[13px] text-foreground">{{ user.displayName }}</span>
             <XIconButton icon="lucide:x" :label="t('chat.picker.remove', { name: user.displayName })" @click="handleRemove(user.userId)" />
           </li>

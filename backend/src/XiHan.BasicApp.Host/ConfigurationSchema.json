@@ -2222,7 +2222,7 @@
         },
         "Realtime": {
           "type": "object",
-          "description": "实时通信（SignalR）的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省值；时长写 hh:mm:ss（可带天数 d.hh:mm:ss）且大于零，只写 15 或 00:15 都算写错",
+          "description": "实时通信（SignalR）的 Hub 参数与在线状态的发布参数；Hub 参数对全部 Hub 生效，缺省即 ASP.NET Core 的缺省值；时长写 hh:mm:ss（可带天数 d.hh:mm:ss）且大于零，只写 15 或 00:15 都算写错",
           "properties": {
             "SignalR": {
               "type": "object",
@@ -2261,6 +2261,16 @@
                   "type": "integer",
                   "description": "每个客户端的最大并行调用数",
                   "default": 1
+                }
+              }
+            },
+            "Presence": {
+              "type": "object",
+              "properties": {
+                "OfflineGrace": {
+                  "type": "string",
+                  "description": "用户最后一条连接断开之后多久才算离线；宽限之内又连上（刷新页面、断线重连）不发布在线状态的变化",
+                  "default": "00:00:08"
                 }
               }
             }

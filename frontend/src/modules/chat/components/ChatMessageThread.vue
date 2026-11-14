@@ -37,6 +37,7 @@ import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
 import ChatMessageItemView from './ChatMessageItemView.vue'
+import ChatPresenceBadge from './ChatPresenceBadge.vue'
 
 defineOptions({ name: 'ChatMessageThread' })
 
@@ -94,6 +95,12 @@ const isGroupLike = computed(() =>
   conversation.value?.conversationType === 'Group'
   || conversation.value?.conversationType === 'Department',
 )
+
+// 单聊：头像带对端的在线点，副行写在线或离线
+const peerUserId = computed(() =>
+  conversation.value?.conversationType === 'Single'
+    ? conversation.value.peerUserId ?? null
+    : null)
 
 const conversationTypeLabel = computed(() => {
   switch (conversation.value?.conversationType) {
@@ -689,7 +696,9 @@ onBeforeUnmount(() => {
     <!-- 会话头（固定高度：单聊无副行时与群聊保持一致） -->
     <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
       <XIconButton v-if="props.showBack" icon="lucide:arrow-left" :label="t('header.toolbar.nav_back')" @click="emit('back')" />
-      <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="32" />
+      <ChatPresenceBadge :user-id="peerUserId">
+        <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="32" />
+      </ChatPresenceBadge>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5">
           <span class="truncate text-sm font-semibold text-foreground">{{ conversation.displayName }}</span>
@@ -701,6 +710,9 @@ onBeforeUnmount(() => {
         </div>
         <div v-if="isGroupLike" class="text-[11px] text-muted-foreground">
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
+        </div>
+        <div v-else-if="peerUserId" class="text-[11px] text-muted-foreground">
+          {{ chatStore.isUserOnline(peerUserId) ? t('chat.presence.online') : t('chat.presence.offline') }}
         </div>
       </div>
       <!-- 会话头的操作：搜索与详情（资料、设置与成员都收在详情里） -->

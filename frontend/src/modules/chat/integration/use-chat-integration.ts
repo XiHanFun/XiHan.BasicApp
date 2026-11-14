@@ -9,6 +9,7 @@ import type {
   ChatConversationChangedPushPayload,
   ChatMessageEditedPushPayload,
   ChatMessagePushPayload,
+  ChatPresenceChangedPushPayload,
   ChatReactionChangedPushPayload,
   ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
@@ -104,6 +105,8 @@ export function useChatIntegration() {
       chatStore.applyReactionChanged(payload as ChatReactionChangedPushPayload))
     signalR.on(RealtimeMethods.ChatReadPositionChanged, payload =>
       chatStore.applyReadPositionChanged(payload as ChatReadPositionChangedPushPayload))
+    signalR.on(RealtimeMethods.ChatPresenceChanged, payload =>
+      chatStore.applyPresenceChanged(payload as ChatPresenceChangedPushPayload))
     signalR.on(RealtimeMethods.ChatAssistantDelta, payload =>
       chatStore.applyAssistantDelta(payload as ChatAssistantDeltaPushPayload))
     signalR.on(RealtimeMethods.ChatAssistantCompleted, payload =>
@@ -141,6 +144,18 @@ export function useChatIntegration() {
     }
   }
 
+  // 连接断过又连上：断开期间的上下线没收到，把在线状态重取一遍（第一次连上不算，那时刚读过）
+  let everConnected = false
+  const stopConnectedWatch = watch(signalR.connected, (connected) => {
+    if (!connected) {
+      return
+    }
+    if (everConnected) {
+      chatStore.resyncPresence()
+    }
+    everConnected = true
+  })
+
   const stopTokenWatch = watch(
     () => accessStore.accessToken,
     async (token) => {
@@ -152,6 +167,7 @@ export function useChatIntegration() {
         clearReconnectTimer()
         await signalR.destroy()
         isListenersBound = false
+        everConnected = false
         chatStore.$reset()
       }
     },
@@ -182,6 +198,7 @@ export function useChatIntegration() {
 
   onUnmounted(() => {
     stopTokenWatch()
+    stopConnectedWatch()
     clearReconnectTimer()
     isListenersBound = false
     window.removeEventListener('focus', handleWindowFocus)

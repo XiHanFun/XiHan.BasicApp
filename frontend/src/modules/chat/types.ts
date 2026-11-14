@@ -138,6 +138,12 @@ export interface ChatReadPositionChangedPushPayload {
   lastReadSeq: number
 }
 
+/** SignalR ChatPresenceChanged 载荷：有人上线或离线了（单聊对端，或正开着的群里的成员） */
+export interface ChatPresenceChangedPushPayload {
+  userId: string
+  isOnline: boolean
+}
+
 /** SignalR ChatAssistantDelta 载荷 */
 export interface ChatAssistantDeltaPushPayload {
   conversationId: string

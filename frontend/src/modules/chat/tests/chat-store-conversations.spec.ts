@@ -2,7 +2,7 @@
  * store.ts 的会话维度行为
  *
  * 职责边界：会话列表拉取与并发去重、排序（置顶优先 + 最后消息时间倒序）、未读合计与免打扰、
- * 打开/关闭会话时的 Hub 进出组、已读防抖上报、typing 展示与节流、草稿持久化、置顶/免打扰开关
+ * 打开/关闭会话时的 Hub 进出组、已读防抖上报、typing 展示与节流、草稿持久化、置顶/免打扰开关、在线状态
  * 消息流与助手流分别在 chat-store-messages / chat-store-assistant 两个文件里
  *
  * SignalR 被整体替身掉（不建立真实连接），并记录每次 invoke 以便断言进出组顺序
@@ -36,6 +36,7 @@ vi.mock('~/composables/useSignalR', () => ({
 function conversation(patch: Partial<ChatConversationListItem> & { conversationId: string }): ChatConversationListItem {
   return {
     lastSeq: 0,
+    peerOnline: false,
     conversationType: 'Single',
     displayName: `会话 ${patch.conversationId}`,
     memberCount: 2,
@@ -608,6 +609,77 @@ describe('草稿持久化', () => {
     const store = setup()
 
     expect(store.getDraft('a')).toBe('上次没发完')
+  })
+})
+
+describe('在线状态', () => {
+  it('会话列表带回单聊对端的在线状态；群与助手不算，没读到过的人按不在线', async () => {
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', peerUserId: 'u1', peerOnline: true }),
+        conversation({ conversationId: 'b', peerUserId: 'u2', peerOnline: false }),
+        conversation({ conversationId: 'g', conversationType: 'Group', peerOnline: false }),
+      ]),
+    })
+
+    await store.loadConversations()
+
+    expect(store.isUserOnline('u1')).toBe(true)
+    expect(store.isUserOnline('u2')).toBe(false)
+    expect(store.isUserOnline('nobody')).toBe(false)
+    expect(store.isUserOnline(null)).toBe(false)
+    expect(Object.keys(store.presence)).toEqual(['u1', 'u2'])
+  })
+
+  it('推来的上下线改写状态；成员、选人读回来的也并进同一处', () => {
+    const store = setup()
+
+    store.notePresence([
+      { userId: 'u1', isOnline: true },
+      { userId: 'u2', isOnline: false },
+    ])
+    store.applyPresenceChanged({ userId: 'u1', isOnline: false })
+    store.applyPresenceChanged({ userId: 'u3', isOnline: true })
+
+    expect([
+      store.isUserOnline('u1'),
+      store.isUserOnline('u2'),
+      store.isUserOnline('u3'),
+    ]).toEqual([false, false, true])
+  })
+
+  it('连接断过又连上：重取会话列表，并给当前会话记一次变更让成员列表重取', async () => {
+    let online = false
+    let pulls = 0
+    const store = setup({
+      myConversations: () => {
+        pulls++
+        return Promise.resolve([
+          conversation({ conversationId: 'a', peerUserId: 'u1', peerOnline: online }),
+        ])
+      },
+    })
+    await store.loadConversations()
+    await store.openConversation('a')
+    const before = store.conversationRevisions.a ?? 0
+    online = true
+
+    store.resyncPresence()
+    await vi.waitFor(() => expect(store.isUserOnline('u1')).toBe(true))
+
+    expect(pulls).toBe(2)
+    expect(store.conversationRevisions.a).toBe(before + 1)
+  })
+
+  it('重置清掉在线状态：换账号后不带着上一个人看到的状态', () => {
+    const store = setup()
+    store.notePresence([
+      { userId: 'u1', isOnline: true },
+    ])
+
+    store.$reset()
+
+    expect(store.presence).toEqual({})
   })
 })
 

@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天 Hub 的方法名
 /// </summary>
 /// <remarks>
-/// 服务端推 9 个方法（助手的两个随 N4 发出），客户端可调 3 个；<c>contracts export</c> 一并写进 <c>realtime.json</c>
+/// 服务端推 10 个方法（助手的两个随 N4 发出），客户端可调 3 个；<c>contracts export</c> 一并写进 <c>realtime.json</c>
 /// </remarks>
 public static class ChatRealtimeMethods
 {
@@ -50,6 +50,14 @@ public static class ChatRealtimeMethods
     public const string ChatReadPositionChanged = "ChatReadPositionChanged";
 
     /// <summary>
+    /// 有人上线或离线了
+    /// </summary>
+    /// <remarks>
+    /// 发给他的单聊对端，以及正开着他所在的群或部门群的连接
+    /// </remarks>
+    public const string ChatPresenceChanged = "ChatPresenceChanged";
+
+    /// <summary>
     /// 助手回复的流式增量（N4）
     /// </summary>
     public const string ChatAssistantDelta = "ChatAssistantDelta";
@@ -86,7 +94,7 @@ public static class ChatRealtimeMethods
     public static IReadOnlyList<string> All { get; } =
     [
         ChatAssistantCompleted, ChatAssistantDelta, ChatConversationChanged, ChatMessageEdited, ChatMessageRecalled,
-        ChatReactionChanged, ChatReadPositionChanged, ChatTyping, ReceiveChatMessage,
+        ChatPresenceChanged, ChatReactionChanged, ChatReadPositionChanged, ChatTyping, ReceiveChatMessage,
     ];
 
     /// <summary>

@@ -144,6 +144,7 @@ internal sealed partial class RealtimeOutbox(RealtimeHubCatalog hubs, Connection
         RealtimeAudienceKind.UsersInSide => clients.Groups(audience.Ids.Select(id => RealtimeGroups.UserIn(audience.SideId!, id)).ToList()),
         RealtimeAudienceKind.Users => clients.Groups(audience.Ids.Select(RealtimeGroups.User).ToList()),
         RealtimeAudienceKind.Side => clients.Group(RealtimeGroups.Side(audience.SideId!)),
+        RealtimeAudienceKind.HubGroups => clients.Groups(audience.Groups),
         _ => throw new ArgumentOutOfRangeException(nameof(audience), audience.Kind, "Unknown realtime audience."),
     };
 

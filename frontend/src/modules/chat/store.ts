@@ -12,6 +12,7 @@ import type {
   ChatMessageItem,
   ChatMessagePushPayload,
   ChatMessageSendInput,
+  ChatPresenceChangedPushPayload,
   ChatReactionChangedPushPayload,
   ChatReadPositionChangedPushPayload,
   ChatRecalledPushPayload,
@@ -105,6 +106,8 @@ export const useChatStore = defineStore('chat', () => {
   const hasMoreOlder = ref<Record<string, boolean>>({})
   const historyLoading = ref<Record<string, boolean>>({})
   const typingIndicators = ref<Record<string, ChatTypingPushPayload>>({})
+  // 用户此刻在不在线：读接口带回来的状态与之后推来的变化都记在这里，界面一律从这里取
+  const presence = ref<Record<string, boolean>>({})
   // 会话的变更次数（成员、角色、禁言、群信息的推送各加一）：开着的成员列表据此重取
   const conversationRevisions = ref<Record<string, number>>({})
   /** 会话成员已读位：conversationId → (userId → lastReadSeq，没读过为 0) */
@@ -216,6 +219,9 @@ export const useChatStore = defineStore('chat', () => {
     try {
       conversations.value = await api().myConversations()
       sortConversations()
+      notePresence(conversations.value
+        .filter(c => c.conversationType === 'Single' && c.peerUserId)
+        .map(c => ({ userId: c.peerUserId!, isOnline: c.peerOnline })))
       conversationsLoaded.value = true
       // 活跃会话已被移出/解散：收敛回列表态
       if (
@@ -778,6 +784,36 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /** 已读位只前移不回退（后端同）：推送乱序到达时较旧的那条不把已读人数往回拉 */
+  // ===== 在线状态 =====
+
+  /** 记下一批用户此刻的在线状态（会话列表、成员、选人候选读回来的） */
+  function notePresence(entries: readonly { userId: string, isOnline: boolean }[]) {
+    for (const entry of entries) {
+      presence.value[entry.userId] = entry.isOnline
+    }
+  }
+
+  /** 某个用户此刻在不在线；没读到过的按不在线 */
+  function isUserOnline(userId: null | string | undefined): boolean {
+    return Boolean(userId && presence.value[userId])
+  }
+
+  function applyPresenceChanged(payload: ChatPresenceChangedPushPayload) {
+    presence.value[payload.userId] = payload.isOnline
+  }
+
+  /**
+   * 实时连接断过又连上：断开期间的上下线没收到
+   * 会话列表重取一遍（带回单聊对端的状态），当前会话记一次变更、开着的成员列表随之重取
+   */
+  function resyncPresence() {
+    loadConversations().catch(() => {})
+    const id = activeConversationId.value
+    if (id) {
+      conversationRevisions.value[id] = (conversationRevisions.value[id] ?? 0) + 1
+    }
+  }
+
   function applyReadPositionChanged(payload: ChatReadPositionChangedPushPayload) {
     const map = readPositions.value[payload.conversationId]
     if (map) {
@@ -979,6 +1015,7 @@ export const useChatStore = defineStore('chat', () => {
     hasMoreOlder.value = {}
     historyLoading.value = {}
     typingIndicators.value = {}
+    presence.value = {}
     conversationRevisions.value = {}
     readPositions.value = {}
     pinnedMessages.value = {}
@@ -1063,6 +1100,11 @@ export const useChatStore = defineStore('chat', () => {
     applyMessageEdited,
     applyReactionChanged,
     applyReadPositionChanged,
+    presence,
+    notePresence,
+    isUserOnline,
+    applyPresenceChanged,
+    resyncPresence,
     applyConversationChanged,
     applyTyping,
     startSingleConversation,

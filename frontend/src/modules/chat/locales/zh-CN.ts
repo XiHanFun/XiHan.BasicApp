@@ -190,6 +190,11 @@ export default {
       member_search: '搜索成员',
       member_empty: '没有匹配的成员',
     },
+    presence: {
+      online: '在线',
+      offline: '离线',
+      online_count: '{n} 人在线',
+    },
     time: {
       yesterday: '昨天',
     },

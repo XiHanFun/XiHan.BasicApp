@@ -10757,6 +10757,8 @@ export interface components {
              * @description 最大消息序号
              */
             lastSeq: number;
+            /** @description 单聊的对端此刻在线；别的会话类型恒为假 */
+            peerOnline: boolean;
         };
         /**
          * @description 会话类型
@@ -10800,6 +10802,8 @@ export interface components {
              * @description 头像文件（前端按它换签名地址显示）
              */
             avatarFileId?: string | null;
+            /** @description 此刻在线 */
+            isOnline: boolean;
         };
         /**
          * @description 成员角色
@@ -10937,6 +10941,8 @@ export interface components {
             avatarFileId?: string | null;
             /** @description 主部门的名称；没有任职或在平台一侧为空 */
             departmentName?: string | null;
+            /** @description 此刻在线 */
+            isOnline: boolean;
         };
         /**
          * @description 数据源的数据库类型
@@ -21133,6 +21139,8 @@ export interface operations {
                          * @description 头像文件（前端按它换签名地址显示）
                          */
                         avatarFileId?: string | null;
+                        /** @description 此刻在线 */
+                        isOnline: boolean;
                     };
                 };
             };

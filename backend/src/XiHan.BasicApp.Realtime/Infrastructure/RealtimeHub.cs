@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Realtime.Infrastructure;
 /// <remarks>
 /// 各包的 Hub 继承它并经 <see cref="RealtimeHubServiceCollectionExtensions.AddRealtimeHub{THub}"/> 登记，由宿主统一映射（绕过内核管道，经框架的认证方案 <c>XiHan</c> 认证，
 /// 会话仍有效由 <see cref="SessionAuthenticationFilter"/> 在认证时核对）。连上即加入会话 / 用户 / 侧的组，再登记连接（在线状态显示为在线时一定已经收得到推送）；
+/// 用户在这一侧的第一条连接到了、最后一条断了，交给 <see cref="PresenceAnnouncer"/> 发布上线与离线；
 /// 派生的 Hub 要让连接加入别的组时用 <see cref="JoinGroupAsync"/>，这样吊销会话时它们一并被移出
 /// </remarks>
 /// <param name="realtime">实时服务</param>
@@ -48,7 +49,11 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
 
         var connection = new RealtimeConnection(Context.ConnectionId, realtime.HubPathOf(GetType()), sessionId, userId, side, Context);
         Context.Items[ConnectionItem] = connection;
-        await realtime.Registry.AddAsync(connection, Context.ConnectionAborted).ConfigureAwait(false);
+        if (await realtime.Registry.AddAsync(connection, Context.ConnectionAborted).ConfigureAwait(false))
+        {
+            await realtime.Announcer.ArrivedAsync(side, userId).ConfigureAwait(false);
+        }
+
         await base.OnConnectedAsync().ConfigureAwait(false);
     }
 
@@ -56,7 +61,11 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         // 组成员随连接一起由 SignalR 清掉，登记表自己清
-        await realtime.Registry.RemoveAsync(Context.ConnectionId, CancellationToken.None).ConfigureAwait(false);
+        if (await realtime.Registry.RemoveAsync(Context.ConnectionId, CancellationToken.None).ConfigureAwait(false) && Connection is { } connection)
+        {
+            realtime.Announcer.Left(connection.Side, connection.UserId);
+        }
+
         await base.OnDisconnectedAsync(exception).ConfigureAwait(false);
     }
 
@@ -91,13 +100,16 @@ public abstract class RealtimeHub(RealtimeHubServices realtime) : Hub
 /// </remarks>
 public sealed class RealtimeHubServices
 {
-    internal RealtimeHubServices(ConnectionRegistry registry, RealtimeHubCatalog catalog)
+    internal RealtimeHubServices(ConnectionRegistry registry, RealtimeHubCatalog catalog, PresenceAnnouncer announcer)
     {
         Registry = registry;
         Catalog = catalog;
+        Announcer = announcer;
     }
 
     internal ConnectionRegistry Registry { get; }
+
+    internal PresenceAnnouncer Announcer { get; }
 
     internal RealtimeHubCatalog Catalog { get; }
 

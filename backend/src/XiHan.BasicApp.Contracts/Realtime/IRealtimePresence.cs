@@ -26,4 +26,13 @@ public interface IRealtimePresence
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户数</returns>
     ValueTask<int> ConnectedUsersAsync(string side, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 一批用户里此刻在某一侧持有实时连接的
+    /// </summary>
+    /// <param name="side">侧（租户 ID，平台为 <see cref="TenantIds.Platform"/>）</param>
+    /// <param name="userIds">用户 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>持有连接的用户 ID</returns>
+    ValueTask<IReadOnlySet<Guid>> ConnectedUsersAsync(string side, IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
 }

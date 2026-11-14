@@ -466,6 +466,68 @@ public sealed class ChatTests : IDisposable
     }
 
     [Fact]
+    public async Task Presence_RidesOnReads_AndIsPushedToPeersAndOpenGroups()
+    {
+        // 离线宽限调到 1 秒：够验证「宽限内回来不推」，又不用干等缺省的 8 秒
+        var (server, users) = await StartAsync([new("BasicApp:Realtime:Presence:OfflineGrace", "00:00:01")]);
+        await using var running = server;
+        var (alice, bob, carol) = (users["alice"], users["bob"], users["carol"]);
+        var single = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var group = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { bob, carol } }, alice)).Body.GetProperty("conversationId").GetString()!;
+
+        async Task<string> LoginAsync(string userName) => (await AuthFlowTests.LoginAsync(server, userName, Password, "acme")).GetProperty("accessToken").GetString()!;
+        async Task<bool> PeerOnlineAsync() => (await ConversationAsync(server, bob, single)).GetProperty("peerOnline").GetBoolean();
+        async Task<Dictionary<string, bool>> MembersOnlineAsync()
+        {
+            var (_, members) = await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:members?conversationId={group}", null, bob);
+            return members.GetProperty("items").EnumerateArray().ToDictionary(static m => m.GetProperty("userName").GetString()!, static m => m.GetProperty("isOnline").GetBoolean());
+        }
+
+        // bob 是 alice 的单聊对端；carol 只和她同群、正开着这个群；dave 和她没有任何会话
+        await using var bobHub = Connect(server, await LoginAsync("bob"));
+        await using var carolHub = Connect(server, await LoginAsync("carol"));
+        await using var daveHub = Connect(server, await LoginAsync("dave"));
+        var toBob = ExpectPresence(bobHub, alice);
+        var toCarol = ExpectPresence(carolHub, alice);
+        var toDave = ExpectPresence(daveHub, alice);
+        await bobHub.StartAsync();
+        await carolHub.StartAsync();
+        await daveHub.StartAsync();
+        await carolHub.InvokeAsync(ChatRealtimeMethods.JoinConversation, group);
+
+        // 读的时候带此刻的状态：alice 还没连上
+        Assert.False(await PeerOnlineAsync());
+        Assert.Equal((false, true, true), ((await MembersOnlineAsync())["alice"], (await MembersOnlineAsync())["bob"], (await MembersOnlineAsync())["carol"]));
+
+        // 上线：推给单聊对端与正开着群的人，不相干的人收不到
+        var aliceLogin = await LoginAsync("alice");
+        var aliceHub = Connect(server, aliceLogin);
+        await aliceHub.StartAsync();
+        Assert.True(await toBob.Task.WaitAsync(_wait));
+        Assert.True(await toCarol.Task.WaitAsync(_wait));
+        Assert.True(await PeerOnlineAsync());
+        Assert.True((await MembersOnlineAsync())["alice"]);
+        var (_, options) = await CallAsync(server, HttpMethod.Get, "/api/chat-conversations:user-options?keyword=ALICE", null, bob);
+        Assert.True(Assert.Single(options.GetProperty("items").EnumerateArray()).GetProperty("isOnline").GetBoolean());
+        Assert.False(toDave.Task.IsCompleted);
+
+        // 宽限内断了又连上（刷新页面）：两头都不推
+        var flap = ExpectPresence(bobHub, alice);
+        await aliceHub.DisposeAsync();
+        aliceHub = Connect(server, aliceLogin);
+        await aliceHub.StartAsync();
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        Assert.False(flap.Task.IsCompleted);
+        Assert.True(await PeerOnlineAsync());
+
+        // 真的走了：宽限过后推离线
+        await aliceHub.DisposeAsync();
+        Assert.False(await flap.Task.WaitAsync(_wait));
+        Assert.False(await PeerOnlineAsync());
+        Assert.False(toDave.Task.IsCompleted);
+    }
+
+    [Fact]
     public async Task PlatformSide_ChatsAmongPlatformAccountsOnly()
     {
         var (server, users) = await StartAsync();
@@ -528,9 +590,9 @@ public sealed class ChatTests : IDisposable
     /// <remarks>
     /// 租户 acme 与 globex，角色 chatter 在平台与每个租户持聊天的全部权限，organizer 在每个租户持组织的部门与归属；acme 建 alice、bob、carol、dave，globex 建 erin，真实用户按用户授予聊天权限
     /// </remarks>
-    private async Task<(BasicAppTestServer Server, Dictionary<string, string> Users)> StartAsync()
+    private async Task<(BasicAppTestServer Server, Dictionary<string, string> Users)> StartAsync(IEnumerable<KeyValuePair<string, string?>>? settings = null)
     {
-        var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, settings: settings);
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
         await server.SeedAsync([], [
@@ -593,6 +655,25 @@ public sealed class ChatTests : IDisposable
     {
         var received = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
         connection.On<JsonElement>(method, payload => received.TrySetResult(payload));
+        return received;
+    }
+
+    /// <summary>
+    /// 等某个用户的在线状态推送
+    /// </summary>
+    /// <remarks>
+    /// 结果是推来的在线与否；别人的上下线不算
+    /// </remarks>
+    private static TaskCompletionSource<bool> ExpectPresence(HubConnection connection, string userId)
+    {
+        var received = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On<JsonElement>(ChatRealtimeMethods.ChatPresenceChanged, payload =>
+        {
+            if (payload.GetProperty("userId").GetString() == userId)
+            {
+                received.TrySetResult(payload.GetProperty("isOnline").GetBoolean());
+            }
+        });
         return received;
     }
 

@@ -190,6 +190,11 @@ export default {
       member_search: 'Buscar miembros',
       member_empty: 'No hay miembros que coincidan',
     },
+    presence: {
+      online: 'En línea',
+      offline: 'Desconectado',
+      online_count: '{n} en línea',
+    },
     time: {
       yesterday: 'Ayer',
     },

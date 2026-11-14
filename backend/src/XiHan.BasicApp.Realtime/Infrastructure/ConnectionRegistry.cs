@@ -42,10 +42,13 @@ public sealed record RealtimeConnection(string ConnectionId, string Hub, Guid Se
 /// </summary>
 /// <remarks>
 /// 断开本实例上的连接都查它；在线状态不配 Redis 时直接查它，配了 Redis 时由 <see cref="PresenceBoard"/> 把它写进共享缓存。变化时触发 <see cref="Changed"/>
+/// 另按（侧, 用户）记连接数：登记与拿掉时说出这是不是那个人在这一侧的第一条、最后一条连接，上下线的发布据此判断
 /// </remarks>
 internal sealed class ConnectionRegistry
 {
     private readonly ConcurrentDictionary<string, RealtimeConnection> _connections = new(StringComparer.Ordinal);
+    private readonly Dictionary<(string Side, Guid UserId), int> _users = [];
+    private readonly Lock _gate = new();
 
     /// <summary>
     /// 登记有变化（连接、断开、加组、退组）
@@ -57,14 +60,83 @@ internal sealed class ConnectionRegistry
     /// </summary>
     public IReadOnlyList<RealtimeConnection> All => [.. _connections.Values];
 
-    public Task AddAsync(RealtimeConnection connection, CancellationToken cancellationToken)
+    /// <summary>
+    /// 登记一条连接
+    /// </summary>
+    /// <returns>它是不是这个用户在这一侧的第一条连接</returns>
+    public async Task<bool> AddAsync(RealtimeConnection connection, CancellationToken cancellationToken)
     {
-        _connections[connection.ConnectionId] = connection;
-        return NotifyAsync(cancellationToken);
+        bool first;
+        lock (_gate)
+        {
+            if (_connections.TryAdd(connection.ConnectionId, connection))
+            {
+                var key = (connection.Side, connection.UserId);
+                var count = _users.GetValueOrDefault(key) + 1;
+                _users[key] = count;
+                first = count == 1;
+            }
+            else
+            {
+                _connections[connection.ConnectionId] = connection;
+                first = false;
+            }
+        }
+
+        await NotifyAsync(cancellationToken).ConfigureAwait(false);
+        return first;
     }
 
-    public Task RemoveAsync(string connectionId, CancellationToken cancellationToken)
-        => _connections.TryRemove(connectionId, out _) ? NotifyAsync(cancellationToken) : Task.CompletedTask;
+    /// <summary>
+    /// 拿掉一条连接
+    /// </summary>
+    /// <returns>它是不是这个用户在这一侧的最后一条连接；没登记过为 <see langword="false"/></returns>
+    public async Task<bool> RemoveAsync(string connectionId, CancellationToken cancellationToken)
+    {
+        bool last;
+        lock (_gate)
+        {
+            if (!_connections.TryRemove(connectionId, out var connection))
+            {
+                return false;
+            }
+
+            var key = (connection.Side, connection.UserId);
+            var count = _users.GetValueOrDefault(key) - 1;
+            last = count <= 0;
+            if (last)
+            {
+                _users.Remove(key);
+            }
+            else
+            {
+                _users[key] = count;
+            }
+        }
+
+        await NotifyAsync(cancellationToken).ConfigureAwait(false);
+        return last;
+    }
+
+    /// <summary>
+    /// 一批用户里此刻在某一侧有连接登记在本实例上的
+    /// </summary>
+    public HashSet<Guid> OnlineIn(string side, IReadOnlyCollection<Guid> userIds)
+    {
+        var online = new HashSet<Guid>();
+        lock (_gate)
+        {
+            foreach (var userId in userIds)
+            {
+                if (_users.ContainsKey((side, userId)))
+                {
+                    online.Add(userId);
+                }
+            }
+        }
+
+        return online;
+    }
 
     public Task AddGroupAsync(string connectionId, string group, CancellationToken cancellationToken)
         => _connections.TryGetValue(connectionId, out var connection) && connection.AddGroup(group) ? NotifyAsync(cancellationToken) : Task.CompletedTask;

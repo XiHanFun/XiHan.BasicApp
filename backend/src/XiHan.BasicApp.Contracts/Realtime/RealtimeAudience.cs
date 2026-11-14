@@ -27,21 +27,27 @@ public enum RealtimeAudienceKind
     /// 某一侧的全部连接
     /// </summary>
     Side = 3,
+
+    /// <summary>
+    /// Hub 自己让连接加入的组（如聊天的会话组）里的连接
+    /// </summary>
+    HubGroups = 4,
 }
 
 /// <summary>
-/// 推送的受众：会话、某一侧的用户、所有侧的用户或某一侧的全部连接
+/// 推送的受众：会话、某一侧的用户、所有侧的用户、某一侧的全部连接或 Hub 自己的组
 /// </summary>
 /// <remarks>
 /// 侧是租户 ID，平台一侧为 <see cref="TenantIds.Platform"/>
 /// </remarks>
 public sealed record RealtimeAudience
 {
-    private RealtimeAudience(RealtimeAudienceKind kind, string? side, IReadOnlyList<Guid> ids)
+    private RealtimeAudience(RealtimeAudienceKind kind, string? side, IReadOnlyList<Guid> ids, IReadOnlyList<string>? groups = null)
     {
         Kind = kind;
         SideId = side;
         Ids = ids;
+        Groups = groups ?? [];
     }
 
     /// <summary>
@@ -61,9 +67,17 @@ public sealed record RealtimeAudience
     /// 会话或用户 ID
     /// </summary>
     /// <remarks>
-    /// <see cref="RealtimeAudienceKind.Side"/> 为空
+    /// <see cref="RealtimeAudienceKind.Side"/> 与 <see cref="RealtimeAudienceKind.HubGroups"/> 为空
     /// </remarks>
     public IReadOnlyList<Guid> Ids { get; }
+
+    /// <summary>
+    /// Hub 自己的组名
+    /// </summary>
+    /// <remarks>
+    /// 只有 <see cref="RealtimeAudienceKind.HubGroups"/> 有值
+    /// </remarks>
+    public IReadOnlyList<string> Groups { get; }
 
     /// <summary>
     /// 指定会话上的连接
@@ -94,9 +108,26 @@ public sealed record RealtimeAudience
     }
 
     /// <summary>
-    /// 没有任何接收者（空的会话或用户列表）
+    /// Hub 自己让连接加入的组里的连接
     /// </summary>
-    public bool IsEmpty => Kind != RealtimeAudienceKind.Side && Ids.Count == 0;
+    /// <remarks>
+    /// 组名由登记那个 Hub 的包定（它在 Hub 里让连接加入、退出），只有此刻在组里的连接收得到，适合只给正看着某样东西的人发的瞬时状态
+    /// </remarks>
+    public static RealtimeAudience HubGroups(IEnumerable<string> groups)
+    {
+        ArgumentNullException.ThrowIfNull(groups);
+        return new(RealtimeAudienceKind.HubGroups, null, [], groups.Distinct(StringComparer.Ordinal).ToArray());
+    }
+
+    /// <summary>
+    /// 没有任何接收者（空的会话、用户或组列表）
+    /// </summary>
+    public bool IsEmpty => Kind switch
+    {
+        RealtimeAudienceKind.Side => false,
+        RealtimeAudienceKind.HubGroups => Groups.Count == 0,
+        _ => Ids.Count == 0,
+    };
 
     private static Guid[] Unique(IEnumerable<Guid> ids)
     {

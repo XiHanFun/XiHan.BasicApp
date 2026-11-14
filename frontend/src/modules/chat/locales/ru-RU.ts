@@ -190,6 +190,11 @@ export default {
       member_search: 'Поиск участников',
       member_empty: 'Подходящих участников нет',
     },
+    presence: {
+      online: 'В сети',
+      offline: 'Не в сети',
+      online_count: 'В сети: {n}',
+    },
     time: {
       yesterday: 'Вчера',
     },

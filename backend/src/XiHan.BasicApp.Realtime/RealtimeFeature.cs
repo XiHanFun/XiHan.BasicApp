@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Realtime;
 /// </summary>
 /// <remarks>
 /// SignalR Hub 的登记与映射（通知 Hub <see cref="RealtimeHubs.Notification"/> 与各包经 <see cref="RealtimeHubServiceCollectionExtensions.AddRealtimeHub{THub}"/> 登记的 Hub，由宿主经 <see cref="RealtimeEndpoints.MapRealtimeHubs"/> 映射）、
-/// 连接登记与在线状态（<see cref="IRealtimePresence"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起
+/// 连接登记与在线状态（<see cref="IRealtimePresence"/>，上线与离线另发 <see cref="Topics.RealtimePresenceChanged"/>，见 <see cref="RealtimePresenceOptions"/>）、推送（<see cref="IRealtimePush"/>，调用成功提交后才发出）。没有操作与权限：推送由各包在自己的操作里发起
 /// 宿主配了 Redis 时以 <c>scaleOut</c> 装配（方案 N3 第二批，用户定「配置了就跨实例」）：SignalR 接 Redis 背板（连接配置取宿主的 Redis 缓存配置，频道带同一键前缀），
 /// 在线状态的连接登记存进共享缓存、按实例心跳续期，断开连接经消息代理广播到各实例；没配即全部在本实例内
 /// Hub 的保活、超时与消息大小等参数见 <see cref="RealtimeSignalROptions"/>
@@ -105,7 +105,9 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
         context.Services.AddSingleton(RealtimeNode.Create());
         context.Services.AddSingleton<ConnectionRegistry>();
         context.Services.AddSingleton<ConnectionCloser>();
-        context.Services.AddSingleton(static services => new RealtimeHubServices(services.GetRequiredService<ConnectionRegistry>(), services.GetRequiredService<RealtimeHubCatalog>()));
+        context.Services.AddSingleton(RealtimePresenceOptions.FromConfiguration(context.Configuration));
+        context.Services.AddSingleton<PresenceAnnouncer>();
+        context.Services.AddSingleton(static services => new RealtimeHubServices(services.GetRequiredService<ConnectionRegistry>(), services.GetRequiredService<RealtimeHubCatalog>(), services.GetRequiredService<PresenceAnnouncer>()));
         context.Services.AddRealtimeHub<NotificationHub>(RealtimeHubs.Notification);
         context.Services.AddScoped<RealtimeOutbox>();
         context.Services.AddScoped<IRealtimePush>(static services => services.GetRequiredService<RealtimeOutbox>());

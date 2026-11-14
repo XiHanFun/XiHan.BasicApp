@@ -22,6 +22,7 @@ import { useChatStore } from '../store'
 import { chatErrorText, formatConversationTime, previewText } from './chat-helpers'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatConversationAvatar from './ChatConversationAvatar.vue'
+import ChatPresenceBadge from './ChatPresenceBadge.vue'
 
 defineOptions({ name: 'ChatConversationList' })
 
@@ -206,7 +207,10 @@ function handleItemAction(key: string) {
           @contextmenu="openItemContextMenu($event, conv.conversationId)"
         >
           <div class="chat-conv-avatar">
-            <ChatConversationAvatar :conversation-id="conv.conversationId" :conversation-type="conv.conversationType" :avatar="conv.avatar" :name="conv.displayName" :size="38" />
+            <!-- 单聊的头像带对端的在线点；群、部门群与助手不出点 -->
+            <ChatPresenceBadge :user-id="conv.conversationType === 'Single' ? conv.peerUserId : null">
+              <ChatConversationAvatar :conversation-id="conv.conversationId" :conversation-type="conv.conversationType" :avatar="conv.avatar" :name="conv.displayName" :size="38" />
+            </ChatPresenceBadge>
             <span v-if="!conv.isMuted && conv.unreadCount > 0" class="chat-conv-avatar__badge">
               {{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}
             </span>

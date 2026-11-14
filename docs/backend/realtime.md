@@ -46,6 +46,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 | `UsersIn(side, ids)` | 用户在某一侧的连接：同一个人切到别的租户时收不到 |
 | `Users(ids)` | 用户的全部连接，不分侧 |
 | `Side(side)` | 平台或某个租户的全部在线连接 |
+| `HubGroups(names)` | Hub 自己让连接加入的组（如聊天的会话组）里的连接：组名由登记那个 Hub 的包定，只有此刻在组里的连接收得到 |
 
 第一个参数是 Hub 路径，没登记的 Hub 在调用里即抛出。
 
@@ -80,12 +81,17 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 ## 在线状态
 
-`Contracts` 的在线状态接口（Realtime 实现）回答「哪些会话此刻持有实时连接」「某一侧有多少在线用户」：
+`Contracts` 的在线状态接口（Realtime 实现）回答「哪些会话此刻持有实时连接」「某一侧有多少在线用户」「一批用户里谁此刻在这一侧在线」：
 
 - 在线用户页（`sessions.list`）标出实时在线的会话；
-- 工作台的在线设备、访问概况小组件。
+- 工作台的在线设备、访问概况小组件；
+- 在线聊天的会话列表、成员与选人带在线状态（见[在线聊天](./chat#在线状态)）。
 
 任一 Hub 上的连接都算在线。
+
+用户在某一侧的第一条连接到了、最后一条连接断了，Realtime 各发一条消息 `basicapp.realtime.presence-changed`（载荷只有用户，信封带侧；直接发布、不经发件箱），订阅的包据此把变化推给相关的人。消息不带「上线还是离线」：投递至少一次、可能乱序，订阅方读处理时的状态。
+
+离线留一段宽限（配置 `BasicApp:Realtime:Presence:OfflineGrace`，缺省 8 秒，见[配置参考](../configuration#basicapp-realtime-presence)）：宽限之内又连上的（刷新页面、断线重连）两头都不发。发布只看本实例的连接、尽力而为：失败只记日志，停机时还在宽限里的离线不再发，各处读到的状态以接口为准。
 
 ## 跨实例
 

@@ -18,6 +18,7 @@ export const RealtimeMethods = {
   ChatConversationChanged: 'ChatConversationChanged',
   ChatMessageEdited: 'ChatMessageEdited',
   ChatMessageRecalled: 'ChatMessageRecalled',
+  ChatPresenceChanged: 'ChatPresenceChanged',
   ChatReactionChanged: 'ChatReactionChanged',
   ChatReadPositionChanged: 'ChatReadPositionChanged',
   ChatTyping: 'ChatTyping',
