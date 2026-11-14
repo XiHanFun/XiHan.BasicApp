@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { INITIAL_PASSWORD, SUPER_ADMIN } from './env.ts'
-import { expectToast, login, openPage, RUN, search } from './support.ts'
+import { createUser, expectToast, grantDirectly, login, openPage, RUN, search } from './support.ts'
 
 // 一条主干：开通租户 → 租户管理员登录 → 建角色与成员 → 成员提交授权申请 → 管理员在审批中心同意 → 成员看到已批准
 // 后一步用前一步开通的租户与账号，串行跑，前一步失败后面跳过
@@ -12,6 +12,7 @@ const member = {
   tenant: tenant.id,
   username: 'member',
   displayName: 'E2E 成员',
+  email: `member@${tenant.id}.e2e.test`,
   password: INITIAL_PASSWORD,
 }
 const requestedRole = { code: 'auditor', name: 'E2E 审计员' }
@@ -61,28 +62,8 @@ test('租户管理员建角色与成员，并给成员直授申请权限', async
   await role.getByRole('button', { name: '保存' }).click()
   await expect(role).toBeHidden()
 
-  await openPage(page, '/identity/users')
-  await page.getByRole('button', { name: '新建用户' }).click()
-  const user = page.getByRole('dialog', { name: '新建用户' })
-  await user.getByRole('textbox', { name: '用户名' }).fill(member.username)
-  await user.getByRole('textbox', { name: '显示名' }).fill(member.displayName)
-  await user.getByRole('textbox', { name: '邮箱' }).fill(`${member.username}@${tenant.id}.e2e.test`)
-  await user.getByRole('textbox', { name: '初始密码' }).fill(member.password)
-  await user.getByRole('button', { name: '保存' }).click()
-  await expect(user).toBeHidden()
-
-  await page.getByRole('row').filter({ hasText: `@${member.username}` }).getByRole('button', { name: '更多' }).click()
-  await page.getByRole('menuitem', { name: '权限直授' }).click()
-  const grant = page.getByRole('dialog', { name: `权限直授 · ${member.displayName}` })
-  for (const code of memberGrants) {
-    await grant.getByRole('textbox', { name: '可授予' }).fill(code)
-    await grant.getByRole('listbox', { name: '可授予' }).getByRole('option', { name: code }).click()
-    await grant.getByRole('button', { name: '将选中项移到「已授予」' }).click()
-  }
-  await expect(grant.getByRole('listbox', { name: '已授予' }).getByRole('option')).toHaveCount(memberGrants.length)
-  await grant.getByRole('button', { name: '保存直授' }).click()
-  // 抽屉保存后不关，留着接着改
-  await expectToast(page, `已保存（授予 ${memberGrants.length} 项，拒绝 0 项，撤销 0 项）`)
+  await createUser(page, member)
+  await grantDirectly(page, member, memberGrants)
 })
 
 test('成员提交角色申请，进入待审批', async ({ page }) => {

@@ -8,6 +8,12 @@ export interface Credentials {
   password: string
 }
 
+/** 用例里新建的用户 */
+export interface NewUser extends Credentials {
+  displayName: string
+  email: string
+}
+
 /** 本次运行独有的后缀：库在本机多次运行之间保留，开通的租户与账号靠它不重名 */
 export const RUN = Date.now().toString(36)
 
@@ -52,6 +58,36 @@ export async function search(page: Page, keyword: string, field = '搜索') {
   await page.getByRole('textbox', { name: field, exact: true }).fill(keyword)
   await page.getByRole('button', { name: '查询', exact: true }).click()
   return page.getByRole('row').filter({ hasText: keyword })
+}
+
+/** 在用户页新建一个用户；调用方已登录且能建用户 */
+export async function createUser(page: Page, user: NewUser) {
+  await openPage(page, '/identity/users')
+  await page.getByRole('button', { name: '新建用户' }).click()
+  const dialog = page.getByRole('dialog', { name: '新建用户' })
+  await dialog.getByRole('textbox', { name: '用户名' }).fill(user.username)
+  await dialog.getByRole('textbox', { name: '显示名' }).fill(user.displayName)
+  await dialog.getByRole('textbox', { name: '邮箱' }).fill(user.email)
+  await dialog.getByRole('textbox', { name: '初始密码' }).fill(user.password)
+  await dialog.getByRole('button', { name: '保存' }).click()
+  await expect(dialog).toBeHidden()
+}
+
+/** 在用户页给一个用户直授几个权限码，等到保存成功；抽屉保存后不关，留着接着改 */
+export async function grantDirectly(page: Page, user: Pick<NewUser, 'displayName' | 'username'>, codes: string[]) {
+  // 平台一侧的用户随每次运行越积越多，先按用户名查出那一行
+  await search(page, user.username, '关键字')
+  await page.getByRole('row').filter({ hasText: `@${user.username}` }).getByRole('button', { name: '更多' }).click()
+  await page.getByRole('menuitem', { name: '权限直授' }).click()
+  const grant = page.getByRole('dialog', { name: `权限直授 · ${user.displayName}` })
+  for (const code of codes) {
+    await grant.getByRole('textbox', { name: '可授予' }).fill(code)
+    await grant.getByRole('listbox', { name: '可授予' }).getByRole('option', { name: code }).click()
+    await grant.getByRole('button', { name: '将选中项移到「已授予」' }).click()
+  }
+  await expect(grant.getByRole('listbox', { name: '已授予' }).getByRole('option')).toHaveCount(codes.length)
+  await grant.getByRole('button', { name: '保存直授' }).click()
+  await expectToast(page, `已保存（授予 ${codes.length} 项，拒绝 0 项，撤销 0 项）`)
 }
 
 /** 等到某条提示出现（成功、失败都是 toast） */

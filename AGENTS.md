@@ -140,7 +140,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 - 后端修改先跑相关的集成测试类，再跑解决方案构建与全量测试；Release 构建 0 警告。
 - 架构测试守护层级、`Expose`、权限码文法、匿名白名单、目录结构、文案键集、DTO 写法与 XML 文档格式；集成测试经 `BasicAppTestServer` 走真实 HTTP，验证权限、租户隔离、事务、取消与错误码。
 - 前端逻辑使用 Vitest，测试放所属包或模块的 `tests/` 目录、按被测文件的子路径摆放、命名 `*.spec.ts`；视觉与交互改动还要在真实浏览器检查亮 / 暗色、窄视口、键盘、焦点和 reduced motion。
-- 端到端冒烟（Playwright）在 `frontend/e2e/`，按真实用户操作走登录、开通租户、成员申请与审批这条主干；`playwright.config.ts` 以 Development 环境自起后端（专用库、关掉图形验证码）与前端生产构建的预览。改登录、壳层、路由、列表页引擎或这条主干上的页面时跑 `pnpm e2e`。
+- 端到端冒烟（Playwright）在 `frontend/e2e/`，按真实用户操作走登录、开通租户、成员申请与审批这条主干，聊天另有一条（单聊、语音通话与聊天审计）；`playwright.config.ts` 以 Development 环境自起后端（专用库、关掉图形验证码）与前端生产构建的预览。改登录、壳层、路由、列表页引擎或这两条主干上的页面时跑 `pnpm e2e`。
 - 修改共享组件、路由、请求、权限或主题时，运行 `pnpm check`、`pnpm test` 和 `pnpm build`。
 - 不删除断言、忽略失败、扩大 allowlist 或降低门禁来制造绿色结果。
 
