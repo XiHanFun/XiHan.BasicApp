@@ -552,7 +552,7 @@ public sealed class ChatConversationService(
         await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.MemberRoleChanged, recipients, context.CancellationToken).ConfigureAwait(false);
         var users = await store.UsersAsync([userId], context.CancellationToken).ConfigureAwait(false);
         var user = users.GetValueOrDefault(userId);
-        return new ChatMemberItem(userId, user?.UserName, user?.DisplayName, target.Role, target.IsSilenced, target.JoinedAt);
+        return new ChatMemberItem(userId, user?.UserName, user?.DisplayName, target.Role, target.IsSilenced, target.JoinedAt, user?.AvatarFileId);
     }
 
     /// <summary>

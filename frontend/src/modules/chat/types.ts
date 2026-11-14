@@ -48,14 +48,14 @@ export type ChatMessageHistoryQuery = RequestOf<'chat-messages.history'>
 /** 会话内消息搜索查询 */
 export type ChatMessageSearchQuery = RequestOf<'chat-messages.search'>
 
-/** 选人（发起单聊 / 建群）轻量条目；nickName 槽位放显示名 */
-export interface ChatUserPickerItem {
-  userId: string
-  userName: string
-  nickName?: null | string
-  /** 头像文件主键（XUserAvatar 换签名地址显示） */
-  avatar?: null | string
-}
+/** 选人候选（发起单聊 / 建群 / 加成员）：头像是文件主键，主部门名称没有任职时为空 */
+export type ChatUserOption = Schemas['ChatUserOption']
+
+/** 选人查询：关键字、部门（含全部下级）与分页 */
+export type ChatUserOptionsQuery = RequestOf<'chat-conversations.user-options'>
+
+/** 一页选人候选（按显示名排序） */
+export type ChatUserOptionsResult = ResponseOf<'chat-conversations.user-options'>
 
 /** 部门树节点（发起部门群） */
 export interface ChatDepartmentPickerNode {
@@ -208,8 +208,8 @@ export interface ChatApiContract {
   readPositions: (conversationId: string) => Promise<ChatReadPosition[]>
   /** 会话内被 Pin 的消息 */
   pinnedMessages: (conversationId: string) => Promise<ChatMessageItem[]>
-  /** 选人（keyword 匹配用户名与显示名），聊天专属的轻量端点，只要会话读权限 */
-  selectUsers: (keyword: string, limit?: number) => Promise<ChatUserPickerItem[]>
+  /** 选人（关键字匹配用户名与显示名，可按部门筛、逐页取），聊天专属的轻量端点，只要会话读权限 */
+  userOptions: (query: ChatUserOptionsQuery) => Promise<ChatUserOptionsResult>
   /** 当前一侧启用的部门树（发起部门群用；平台侧没有部门） */
   departmentTree: () => Promise<ChatDepartmentPickerNode[]>
   /** 上传聊天附件（先按 SHA-256 秒传，没命中再普通上传） */

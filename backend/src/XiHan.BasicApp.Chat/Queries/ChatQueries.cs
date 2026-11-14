@@ -213,7 +213,7 @@ public sealed class ChatQueries(ChatStore store)
             .Select(m =>
             {
                 var user = users.GetValueOrDefault(m.UserId);
-                return new ChatMemberItem(m.UserId, user?.UserName, user?.DisplayName, m.Role, m.IsSilenced, m.JoinedAt);
+                return new ChatMemberItem(m.UserId, user?.UserName, user?.DisplayName, m.Role, m.IsSilenced, m.JoinedAt, user?.AvatarFileId);
             })];
     }
 
@@ -249,11 +249,13 @@ public sealed class ChatQueries(ChatStore store)
     /// 选人：当前一侧的正常账号
     /// </summary>
     /// <remarks>
-    /// 平台是注册在平台的账号，租户是注册在本租户的用户与租户成员；按创建时间倒序
+    /// 平台是注册在平台的账号，租户是注册在本租户的用户与租户成员；按显示名排序、多取一条判断后面还有没有
+    /// 按部门筛选取部门自身与全部下级里任职的人；用户在平台库、任职在租户库，不能联表，先取任职的用户再按主键筛，主部门的名称也按主键批量补
     /// </remarks>
     public async Task<ChatUserOptionsResponse> UserOptionsAsync(InvocationContext context, ChatCaller caller, ChatUserOptionsRequest request)
     {
-        var members = (await store.TenantMembersAsync(caller.Side, context.CancellationToken).ConfigureAwait(false)).ToList();
+        var cancellationToken = context.CancellationToken;
+        var members = (await store.TenantMembersAsync(caller.Side, cancellationToken).ConfigureAwait(false)).ToList();
         var side = caller.Side;
         var query = TenantScopedQuery.For<SysUser>(context).Where(u => u.Status == UserStatus.Active && (u.HomeTenantId == side || members.Contains(u.Id)));
         if (!string.IsNullOrWhiteSpace(request.Keyword))
@@ -262,8 +264,58 @@ public sealed class ChatQueries(ChatStore store)
             query = query.Where(u => u.UserName.Contains(keyword) || u.DisplayName.Contains(keyword));
         }
 
-        var users = await query.OrderBy(u => u.CreatedAt, OrderByType.Desc).Take(request.Limit ?? DefaultUserLimit).ToListAsync(context.CancellationToken).ConfigureAwait(false);
-        return new ChatUserOptionsResponse([.. users.Select(static u => new ChatUserOption(u.Id, u.UserName, u.DisplayName, u.AvatarFileId))]);
+        if (request.DepartmentId is { } departmentId)
+        {
+            var staff = await DepartmentStaffAsync(context, departmentId).ConfigureAwait(false);
+            if (staff.Count == 0)
+            {
+                return new ChatUserOptionsResponse([], false);
+            }
+
+            query = query.Where(u => staff.Contains(u.Id));
+        }
+
+        var limit = request.Limit ?? DefaultUserLimit;
+        var users = await query.OrderBy(u => u.DisplayName).OrderBy(u => u.Id).Skip(request.Skip ?? 0).Take(limit + 1).ToListAsync(cancellationToken).ConfigureAwait(false);
+        var page = users.Take(limit).ToList();
+        var departments = await PrimaryDepartmentNamesAsync(context, [.. page.Select(static u => u.Id)]).ConfigureAwait(false);
+        return new ChatUserOptionsResponse([.. page.Select(u => new ChatUserOption(u.Id, u.UserName, u.DisplayName, u.AvatarFileId, departments.GetValueOrDefault(u.Id)))], users.Count > limit);
+    }
+
+    private static async Task<List<Guid>> DepartmentStaffAsync(InvocationContext context, Guid departmentId)
+    {
+        // 闭包表带深度 0 的自身行，一次取到部门自身与全部下级
+        var subtree = await TenantScopedQuery.For<SysDepartmentHierarchy>(context).Where(h => h.AncestorId == departmentId).Select(static h => h.DescendantId).ToListAsync(context.CancellationToken).ConfigureAwait(false);
+        return subtree.Count == 0
+            ? []
+            : [.. (await TenantScopedQuery.For<SysUserDepartment>(context).Where(m => subtree.Contains(m.DepartmentId)).Select(static m => m.UserId).ToListAsync(context.CancellationToken).ConfigureAwait(false)).Distinct()];
+    }
+
+    private static async Task<Dictionary<Guid, string>> PrimaryDepartmentNamesAsync(InvocationContext context, List<Guid> userIds)
+    {
+        if (userIds.Count == 0)
+        {
+            return [];
+        }
+
+        var primary = await TenantScopedQuery.For<SysUserDepartment>(context).Where(m => userIds.Contains(m.UserId) && m.IsPrimary).ToListAsync(context.CancellationToken).ConfigureAwait(false);
+        if (primary.Count == 0)
+        {
+            return [];
+        }
+
+        var departmentIds = primary.Select(static m => m.DepartmentId).Distinct().ToList();
+        var names = (await TenantScopedQuery.For<SysDepartment>(context).Where(d => departmentIds.Contains(d.Id)).ToListAsync(context.CancellationToken).ConfigureAwait(false)).ToDictionary(static d => d.Id, static d => d.Name);
+        var result = new Dictionary<Guid, string>(primary.Count);
+        foreach (var membership in primary)
+        {
+            if (names.TryGetValue(membership.DepartmentId, out var name))
+            {
+                result[membership.UserId] = name;
+            }
+        }
+
+        return result;
     }
 
     private async Task<Result<long>> SeqOfAsync(string side, Guid conversationId, Guid messageId, CancellationToken cancellationToken)

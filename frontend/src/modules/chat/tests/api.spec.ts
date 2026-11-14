@@ -187,27 +187,31 @@ describe('个人开关与查询', () => {
     })
   })
 
-  it('选人：显示名放进 nickName 槽位、头像文件主键放进 avatar；空关键字不进查询串', async () => {
-    const calls = record(() => json(200, {
+  it('选人：原样交回一页候选；空白关键字不进查询串，部门与分页照带', async () => {
+    const page = {
       items: [
         {
           userId: 'u-1',
           userName: 'alice',
           displayName: 'Alice',
           avatarFileId: 'f-a',
+          departmentName: 'R&D',
         },
       ],
-    }))
+      hasMore: true,
+    }
+    const calls = record(() => json(200, page))
 
-    await expect(createChatApi().selectUsers('  ', 20)).resolves.toEqual([
-      {
-        userId: 'u-1',
-        userName: 'alice',
-        nickName: 'Alice',
-        avatar: 'f-a',
-      },
-    ])
-    expect(calls[0]?.url).toBe('/api/chat-conversations:user-options?limit=20')
+    await expect(createChatApi().userOptions({
+      keyword: '  ',
+      departmentId: 'd-1',
+      skip: 30,
+      limit: 30,
+    })).resolves.toEqual(page)
+    expect(calls[0]?.url).toBe('/api/chat-conversations:user-options?departmentId=d-1&skip=30&limit=30')
+
+    await createChatApi().userOptions({ keyword: ' ali ', limit: 30 })
+    expect(calls[1]?.url).toBe('/api/chat-conversations:user-options?keyword=ali&limit=30')
   })
 
   it('部门树：没有下级的节点 children 为空，不出空数组的展开箭头', async () => {

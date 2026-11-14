@@ -196,6 +196,61 @@ public sealed class ChatTests : IDisposable
     }
 
     [Fact]
+    public async Task UserOptions_PageByDisplayName_AndFilterByDepartmentSubtree()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var organizer = TestTokens.Issue("root", "acme", Organizer);
+        var (_, parent) = await CallAsync(server, HttpMethod.Post, "/api/departments", new { code = "rnd", name = "R&D" }, organizer);
+        var parentId = parent.GetProperty("id").GetString()!;
+        var (_, child) = await CallAsync(server, HttpMethod.Post, "/api/departments", new { code = "web", name = "Web", parentId }, organizer);
+        var childId = child.GetProperty("id").GetString()!;
+        var (_, other) = await CallAsync(server, HttpMethod.Post, "/api/departments", new { code = "ops", name = "Ops" }, organizer);
+        var otherId = other.GetProperty("id").GetString()!;
+
+        // alice 在上级部门，bob 在下级部门（主部门）又兼在别的部门，carol 只在别的部门，dave 没有任职
+        foreach (var (user, departmentId) in new[] { (users["alice"], parentId), (users["bob"], childId), (users["bob"], otherId), (users["carol"], otherId) })
+        {
+            Assert.Equal(HttpStatusCode.Created, (await CallAsync(server, HttpMethod.Post, "/api/memberships", new { userId = user, departmentId }, organizer)).Status);
+        }
+
+        // 按显示名排序逐页取，多取一条判断后面还有没有；带主部门名称，没有任职的为空
+        async Task<(List<JsonElement> Items, bool HasMore)> OptionsAsync(string query)
+        {
+            var (status, body) = await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-options?{query}", null, users["alice"]);
+            Assert.True(status == HttpStatusCode.OK, body.ToString());
+            return ([.. body.GetProperty("items").EnumerateArray()], body.GetProperty("hasMore").GetBoolean());
+        }
+
+        static string?[] NamesOf(List<JsonElement> items) => [.. items.Select(static u => u.GetProperty("userName").GetString())];
+        var (everyone, _) = await OptionsAsync("limit=500");
+        var chatters = everyone.Where(u => users.ContainsKey(u.GetProperty("userName").GetString()!)).ToList();
+        Assert.Equal(["alice", "bob", "carol", "dave"], NamesOf(chatters));
+        Assert.Equal(["R&D", "Web", "Ops", null], chatters.Select(static u => u.GetProperty("departmentName").GetString()));
+        Assert.DoesNotContain("erin", NamesOf(everyone));
+        var (firstPage, firstMore) = await OptionsAsync("limit=2");
+        var (secondPage, _) = await OptionsAsync("skip=2&limit=2");
+        Assert.True(firstMore);
+        Assert.Equal(NamesOf([.. everyone.Take(4)]), NamesOf([.. firstPage, .. secondPage]));
+        var (last, lastMore) = await OptionsAsync($"skip={everyone.Count - 1}&limit=2");
+        Assert.Equal((1, false), (last.Count, lastMore));
+
+        // 部门筛选取部门自身与全部下级；可与关键字叠加；没人的部门与别的租户的部门都是空
+        Assert.Equal(["alice", "bob"], NamesOf((await OptionsAsync($"departmentId={parentId}")).Items));
+        Assert.Equal(["bob"], NamesOf((await OptionsAsync($"departmentId={childId}")).Items));
+        Assert.Equal(["bob", "carol"], NamesOf((await OptionsAsync($"departmentId={otherId}")).Items));
+        Assert.Equal(["carol"], NamesOf((await OptionsAsync($"departmentId={otherId}&keyword=CAR")).Items));
+        Assert.Empty((await OptionsAsync($"departmentId={Guid.NewGuid()}")).Items);
+        var (_, foreign) = await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-options?departmentId={parentId}", null, TestTokens.Issue(users["erin"], "globex", Chatter));
+        Assert.Equal(0, foreign.GetProperty("items").GetArrayLength());
+
+        // 成员条目带头像文件
+        var (_, group) = await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { users["bob"] } }, users["alice"]);
+        var (_, members) = await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:members?conversationId={group.GetProperty("conversationId").GetString()}", null, users["alice"]);
+        Assert.All(members.GetProperty("items").EnumerateArray(), static m => Assert.Equal(JsonValueKind.Null, m.GetProperty("avatarFileId").ValueKind));
+    }
+
+    [Fact]
     public async Task Presign_ComparesAttachmentIds_NotTheirFileNames()
     {
         var (server, users) = await StartAsync();

@@ -9792,6 +9792,14 @@
                       "description": "\u5165\u4F1A\u65F6\u95F4\uFF08UTC\uFF09",
                       "type": "string",
                       "format": "date-time"
+                    },
+                    "avatarFileId": {
+                      "description": "\u5934\u50CF\u6587\u4EF6\uFF08\u524D\u7AEF\u6309\u5B83\u6362\u7B7E\u540D\u5730\u5740\u663E\u793A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
                     }
                   },
                   "required": [
@@ -10096,7 +10104,7 @@
           "chat-conversations"
         ],
         "summary": "User options",
-        "description": "Lists active accounts on the caller\u0027s side by keyword for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
+        "description": "Pages through active accounts on the caller\u0027s side by keyword and department (including its descendants), with each user\u0027s primary department, for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-conversations.read",
         "parameters": [
@@ -10129,6 +10137,36 @@
               "minimum": 1,
               "maximum": 500
             }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "description": "\u53EA\u770B\u8FD9\u4E2A\u90E8\u95E8\u53CA\u5176\u5168\u90E8\u4E0B\u7EA7\u91CC\u7684\u4EBA",
+            "required": false,
+            "schema": {
+              "description": "\u53EA\u770B\u8FD9\u4E2A\u90E8\u95E8\u53CA\u5176\u5168\u90E8\u4E0B\u7EA7\u91CC\u7684\u4EBA",
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "description": "\u8DF3\u8FC7\u524D\u9762\u7684\u6761\u6570\uFF0C\u7F3A\u7701 0",
+            "required": false,
+            "schema": {
+              "description": "\u8DF3\u8FC7\u524D\u9762\u7684\u6761\u6570\uFF0C\u7F3A\u7701 0",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0,
+              "maximum": 100000
+            }
           }
         ],
         "responses": {
@@ -10147,10 +10185,15 @@
                       "items": {
                         "$ref": "#/components/schemas/ChatUserOption"
                       }
+                    },
+                    "hasMore": {
+                      "description": "\u540E\u9762\u8FD8\u6709",
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "items"
+                    "items",
+                    "hasMore"
                   ]
                 }
               }
@@ -64202,6 +64245,14 @@
             "description": "\u5165\u4F1A\u65F6\u95F4\uFF08UTC\uFF09",
             "type": "string",
             "format": "date-time"
+          },
+          "avatarFileId": {
+            "description": "\u5934\u50CF\u6587\u4EF6\uFF08\u524D\u7AEF\u6309\u5B83\u6362\u7B7E\u540D\u5730\u5740\u663E\u793A\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           }
         },
         "required": [
@@ -64471,6 +64522,13 @@
               "null"
             ],
             "format": "uuid"
+          },
+          "departmentName": {
+            "description": "\u4E3B\u90E8\u95E8\u7684\u540D\u79F0\uFF1B\u6CA1\u6709\u4EFB\u804C\u6216\u5728\u5E73\u53F0\u4E00\u4FA7\u4E3A\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [

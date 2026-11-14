@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "部門樹",
   "chat_conversations.department_tree.description": "列出目前一側啟用的部門樹，供發起部門群組使用；平台沒有部門。",
   "chat_conversations.user_options.title": "可選的使用者",
-  "chat_conversations.user_options.description": "依關鍵字列出目前一側的正常帳號（平台是註冊在平台的帳號，租戶是註冊在本租戶的使用者與租戶成員），供發起聊天與新增成員。",
+  "chat_conversations.user_options.description": "依關鍵字與部門（含全部下級）分頁列出目前一側的正常帳號（平台是註冊在平台的帳號，租戶是註冊在本租戶的使用者與租戶成員），附主部門名稱，供發起聊天與新增成員。",
   "chat_conversations.open_single.title": "開啟單聊",
   "chat_conversations.open_single.description": "開啟與對方的單聊，沒有即建立；同一對使用者在本側只有一個單聊，對方須屬於目前一側。",
   "chat_conversations.create_group.title": "建立群組",

@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "Árbol de departamentos",
   "chat_conversations.department_tree.description": "Lista como árbol los departamentos habilitados del lado del llamante para abrir chats de departamento; la plataforma no tiene departamentos.",
   "chat_conversations.user_options.title": "Usuarios seleccionables",
-  "chat_conversations.user_options.description": "Lista por palabra clave las cuentas activas del lado del llamante para iniciar chats y añadir miembros: en la plataforma, sus cuentas; en un inquilino, sus usuarios propios y los miembros del inquilino.",
+  "chat_conversations.user_options.description": "Lista por páginas, por palabra clave y departamento (incluidos los subordinados), las cuentas activas del lado del llamante con su departamento principal, para iniciar chats y añadir miembros: en la plataforma, sus cuentas; en un inquilino, sus usuarios propios y los miembros del inquilino.",
   "chat_conversations.open_single.title": "Abrir chat individual",
   "chat_conversations.open_single.description": "Abre el chat individual con un interlocutor y lo crea si no existe; cada par de usuarios tiene un único chat individual por lado y el interlocutor debe pertenecer al lado del llamante.",
   "chat_conversations.create_group.title": "Crear chat de grupo",

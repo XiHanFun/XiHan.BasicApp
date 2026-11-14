@@ -110,9 +110,18 @@ public sealed record MarkReadRequest(Guid ConversationId, Guid? UpToMessageId = 
 /// <summary>
 /// <c>chat-conversations.user-options</c> 的请求
 /// </summary>
+/// <remarks>
+/// 按显示名排序，<paramref name="Skip"/> 与 <paramref name="Limit"/> 逐页往下取
+/// </remarks>
 /// <param name="Keyword">关键字（匹配用户名与显示名）</param>
 /// <param name="Limit">条数上限，缺省 50</param>
-public sealed record ChatUserOptionsRequest([StringLength(100)] string? Keyword = null, [Range(1, 500)] int? Limit = null);
+/// <param name="DepartmentId">只看这个部门及其全部下级里的人</param>
+/// <param name="Skip">跳过前面的条数，缺省 0</param>
+public sealed record ChatUserOptionsRequest(
+    [StringLength(100)] string? Keyword = null,
+    [Range(1, 500)] int? Limit = null,
+    Guid? DepartmentId = null,
+    [Range(0, 100000)] int? Skip = null);
 
 /// <summary>
 /// 打开或建立会话的结果
@@ -173,7 +182,8 @@ public sealed record ChatConversationListItem(
 /// <param name="MemberRole">角色</param>
 /// <param name="IsSilenced">被禁言</param>
 /// <param name="JoinedAt">入会时间（UTC）</param>
-public sealed record ChatMemberItem(Guid UserId, string? UserName, string? DisplayName, ChatMemberRole MemberRole, bool IsSilenced, DateTimeOffset JoinedAt);
+/// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）</param>
+public sealed record ChatMemberItem(Guid UserId, string? UserName, string? DisplayName, ChatMemberRole MemberRole, bool IsSilenced, DateTimeOffset JoinedAt, Guid? AvatarFileId);
 
 /// <summary>
 /// 成员的已读位
@@ -198,7 +208,8 @@ public sealed record ChatDepartmentNode(Guid DepartmentId, string DepartmentName
 /// <param name="UserName">用户名</param>
 /// <param name="DisplayName">显示名</param>
 /// <param name="AvatarFileId">头像文件（前端按它换签名地址显示）</param>
-public sealed record ChatUserOption(Guid UserId, string UserName, string DisplayName, Guid? AvatarFileId);
+/// <param name="DepartmentName">主部门的名称；没有任职或在平台一侧为空</param>
+public sealed record ChatUserOption(Guid UserId, string UserName, string DisplayName, Guid? AvatarFileId, string? DepartmentName);
 
 /// <summary>
 /// 做完了的会话
@@ -240,7 +251,8 @@ public sealed record ChatDepartmentTreeResponse(IReadOnlyList<ChatDepartmentNode
 /// 可选的用户
 /// </summary>
 /// <param name="Items">用户</param>
-public sealed record ChatUserOptionsResponse(IReadOnlyList<ChatUserOption> Items);
+/// <param name="HasMore">后面还有</param>
+public sealed record ChatUserOptionsResponse(IReadOnlyList<ChatUserOption> Items, bool HasMore);
 
 /// <summary>
 /// <c>chat-conversations.assistants</c> 的请求（没有参数）

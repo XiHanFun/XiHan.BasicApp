@@ -1713,7 +1713,7 @@ export interface paths {
         };
         /**
          * User options
-         * @description Lists active accounts on the caller's side by keyword for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.
+         * @description Pages through active accounts on the caller's side by keyword and department (including its descendants), with each user's primary department, for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.
          *
          *     Requires permission chat.chat-conversations.read (Use chat conversations).
          */
@@ -10795,6 +10795,11 @@ export interface components {
              * @description 入会时间（UTC）
              */
             joinedAt: string;
+            /**
+             * Format: uuid
+             * @description 头像文件（前端按它换签名地址显示）
+             */
+            avatarFileId?: string | null;
         };
         /**
          * @description 成员角色
@@ -10930,6 +10935,8 @@ export interface components {
              * @description 头像文件（前端按它换签名地址显示）
              */
             avatarFileId?: string | null;
+            /** @description 主部门的名称；没有任职或在平台一侧为空 */
+            departmentName?: string | null;
         };
         /**
          * @description 数据源的数据库类型
@@ -21121,6 +21128,11 @@ export interface operations {
                          * @description 入会时间（UTC）
                          */
                         joinedAt: string;
+                        /**
+                         * Format: uuid
+                         * @description 头像文件（前端按它换签名地址显示）
+                         */
+                        avatarFileId?: string | null;
                     };
                 };
             };
@@ -21294,6 +21306,10 @@ export interface operations {
                 keyword?: string | null;
                 /** @description 条数上限，缺省 50 */
                 limit?: number | null;
+                /** @description 只看这个部门及其全部下级里的人 */
+                departmentId?: string | null;
+                /** @description 跳过前面的条数，缺省 0 */
+                skip?: number | null;
             };
             header?: never;
             path?: never;
@@ -21310,6 +21326,8 @@ export interface operations {
                     "application/json": {
                         /** @description 用户 */
                         items: components["schemas"]["ChatUserOption"][];
+                        /** @description 后面还有 */
+                        hasMore: boolean;
                     };
                 };
             };

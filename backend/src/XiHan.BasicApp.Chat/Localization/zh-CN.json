@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "部门树",
   "chat_conversations.department_tree.description": "列出当前一侧启用的部门树，供发起部门群用；平台没有部门。",
   "chat_conversations.user_options.title": "可选的用户",
-  "chat_conversations.user_options.description": "按关键字列出当前一侧的正常账号（平台是注册在平台的账号，租户是注册在本租户的用户与租户成员），供发起聊天与加人。",
+  "chat_conversations.user_options.description": "按关键字与部门（含全部下级）分页列出当前一侧的正常账号（平台是注册在平台的账号，租户是注册在本租户的用户与租户成员），带主部门名称，供发起聊天与加人。",
   "chat_conversations.open_single.title": "打开单聊",
   "chat_conversations.open_single.description": "打开与对端的单聊，没有即建；同一对用户在本侧只有一个单聊，对端须属于当前一侧。",
   "chat_conversations.create_group.title": "建群",

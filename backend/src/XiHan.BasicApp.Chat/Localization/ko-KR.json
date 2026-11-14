@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "부서 트리",
   "chat_conversations.department_tree.description": "현재 측에서 사용 중인 부서를 트리로 나열하여 부서 그룹을 여는 데 씁니다. 플랫폼에는 부서가 없습니다.",
   "chat_conversations.user_options.title": "선택 가능한 사용자",
-  "chat_conversations.user_options.description": "현재 측의 정상 계정을 키워드로 나열하여 채팅 시작과 멤버 추가에 씁니다. 플랫폼은 플랫폼에 등록된 계정, 테넌트는 해당 테넌트에 등록된 사용자와 테넌트 멤버입니다.",
+  "chat_conversations.user_options.description": "현재 측의 정상 계정을 키워드와 부서(하위 부서 포함)로 페이지 단위로 나열하고 주 부서 이름을 함께 돌려주어 채팅 시작과 멤버 추가에 씁니다. 플랫폼은 플랫폼에 등록된 계정, 테넌트는 해당 테넌트에 등록된 사용자와 테넌트 멤버입니다.",
   "chat_conversations.open_single.title": "1:1 채팅 열기",
   "chat_conversations.open_single.description": "상대와의 1:1 채팅을 열고 없으면 만듭니다. 같은 사용자 쌍의 1:1 채팅은 측마다 하나이며, 상대는 현재 측에 속해야 합니다.",
   "chat_conversations.create_group.title": "그룹 채팅 만들기",

@@ -109,7 +109,7 @@ public sealed class ChatDepartmentTree : IOperation<ChatEmptyRequest, ChatDepart
 /// 发起聊天与加人用的选人
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:user-options?keyword=&amp;limit=</c>。当前一侧的正常账号，不用身份的用户读权限
+/// <c>GET /api/chat-conversations:user-options?keyword=&amp;departmentId=&amp;skip=&amp;limit=</c>。当前一侧的正常账号，不用身份的用户读权限与组织的归属读权限
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]

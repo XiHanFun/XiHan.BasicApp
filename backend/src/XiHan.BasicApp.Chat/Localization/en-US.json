@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "Department tree",
   "chat_conversations.department_tree.description": "Lists the enabled departments on the caller's side as a tree for opening department chats; the platform has no departments.",
   "chat_conversations.user_options.title": "User options",
-  "chat_conversations.user_options.description": "Lists active accounts on the caller's side by keyword for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.",
+  "chat_conversations.user_options.description": "Pages through active accounts on the caller's side by keyword and department (including its descendants), with each user's primary department, for starting chats and adding members: platform accounts on the platform, home users and members in a tenant.",
   "chat_conversations.open_single.title": "Open single chat",
   "chat_conversations.open_single.description": "Opens the single chat with a peer, creating it if missing; a pair has one single chat per side and the peer must belong to the caller's side.",
   "chat_conversations.create_group.title": "Create group chat",

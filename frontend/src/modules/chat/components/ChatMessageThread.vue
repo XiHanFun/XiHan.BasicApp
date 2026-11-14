@@ -10,6 +10,7 @@ import type {
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { ChatMemberRole } from '~/contracts'
+import { useElementSize } from '@vueuse/core'
 import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -42,13 +43,16 @@ defineOptions({ name: 'ChatMessageThread' })
 const props = withDefaults(defineProps<{
   /** 抽屉窄布局：显示返回按钮 */
   showBack?: boolean
+  /** 会话详情正开着：详情钮呈按下态 */
+  detailsOpen?: boolean
 }>(), {
   showBack: false,
+  detailsOpen: false,
 })
 
 const emit = defineEmits<{
   back: []
-  members: []
+  details: []
 }>()
 
 const { t } = useI18n()
@@ -160,6 +164,20 @@ const pinnedList = computed(() =>
     : [])
 
 /** 公告首行（横条内单行预览，全文在弹层） */
+/**
+ * 公告全文的浮层与公告条等宽（两侧各让出一点边距），读起来是这一条往下展开
+ * 浮层缺省按内容收窄、另有自己的最大宽度，这里把两样都换成公告条的宽度；可用宽度的上限仍归组件库
+ */
+const ANNOUNCEMENT_PANEL_INSET = 24
+const announcementBarRef = ref<HTMLElement | null>(null)
+const { width: announcementBarWidth } = useElementSize(announcementBarRef)
+const announcementPanelStyle = computed(() => {
+  const width = announcementBarWidth.value - ANNOUNCEMENT_PANEL_INSET
+  return width > 0
+    ? { 'inlineSize': `${width}px`, '--xh-popover-max-w': `${width}px` }
+    : undefined
+})
+
 const announcementFirstLine = computed(() =>
   (conversation.value?.announcement ?? '').split('\n')[0] ?? '')
 
@@ -685,8 +703,15 @@ onBeforeUnmount(() => {
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
         </div>
       </div>
-      <XIconButton icon="lucide:search" :label="t('chat.thread.search')" @click="toggleSearch" />
-      <XIconButton v-if="isGroupLike" icon="lucide:users" :label="t('chat.members.section_members', { n: conversation.memberCount })" @click="emit('members')" />
+      <!-- 会话头的操作：搜索与详情（资料、设置与成员都收在详情里） -->
+      <XIconButton icon="lucide:search" :label="t('chat.thread.search')" :variant="showSearch ? 'subtle' : 'ghost'" :aria-pressed="showSearch" @click="toggleSearch" />
+      <XIconButton
+        icon="lucide:panel-right"
+        :label="t('chat.details.title')"
+        :variant="props.detailsOpen ? 'subtle' : 'ghost'"
+        :aria-pressed="props.detailsOpen"
+        @click="emit('details')"
+      />
     </div>
 
     <!-- 会话内搜索面板 -->
@@ -733,7 +758,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 群公告横条（同置顶栏样式，点开看全文，换行经 pre-wrap 正确渲染） -->
-    <div v-if="isGroupLike && conversation.announcement" class="border-b border-border bg-amber-500/5">
+    <div v-if="isGroupLike && conversation.announcement" ref="announcementBarRef" class="border-b border-border bg-amber-500/5">
       <XhPopoverRoot placement="bottom">
         <!-- 整条横栏就是触发器：点哪都展开全文 -->
         <XhPopoverTrigger class="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-start">
@@ -744,7 +769,7 @@ onBeforeUnmount(() => {
           <Icon icon="lucide:chevron-down" width="12" height="12" class="shrink-0 text-muted-foreground/60" />
         </XhPopoverTrigger>
         <XhPopoverPositioner>
-          <XhPopoverContent>
+          <XhPopoverContent :style="announcementPanelStyle">
             <div class="max-h-64 overflow-y-auto">
               <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
               <XhPopoverTitle class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">

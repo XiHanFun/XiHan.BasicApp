@@ -105,6 +105,8 @@ export const useChatStore = defineStore('chat', () => {
   const hasMoreOlder = ref<Record<string, boolean>>({})
   const historyLoading = ref<Record<string, boolean>>({})
   const typingIndicators = ref<Record<string, ChatTypingPushPayload>>({})
+  // 会话的变更次数（成员、角色、禁言、群信息的推送各加一）：开着的成员列表据此重取
+  const conversationRevisions = ref<Record<string, number>>({})
   /** 会话成员已读位：conversationId → (userId → lastReadSeq，没读过为 0) */
   const readPositions = ref<Record<string, Record<string, number>>>({})
   /** 会话内 Pin 消息缓存 */
@@ -800,6 +802,7 @@ export const useChatStore = defineStore('chat', () => {
       return
     }
     // 成员增删/新建会话/个人设置多端同步：整表刷新（含被移出时活跃会话收敛）
+    conversationRevisions.value[payload.conversationId] = (conversationRevisions.value[payload.conversationId] ?? 0) + 1
     loadConversations().catch(() => {})
   }
 
@@ -976,6 +979,7 @@ export const useChatStore = defineStore('chat', () => {
     hasMoreOlder.value = {}
     historyLoading.value = {}
     typingIndicators.value = {}
+    conversationRevisions.value = {}
     readPositions.value = {}
     pinnedMessages.value = {}
     mentionsPending.value = {}
@@ -1008,6 +1012,7 @@ export const useChatStore = defineStore('chat', () => {
     hasMoreOlder,
     historyLoading,
     typingIndicators,
+    conversationRevisions,
     readPositions,
     pinnedMessages,
     mentionsPending,

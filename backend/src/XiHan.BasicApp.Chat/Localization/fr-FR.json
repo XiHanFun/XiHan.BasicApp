@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "Arborescence des services",
   "chat_conversations.department_tree.description": "Liste en arborescence les services activés du côté de l’appelant pour ouvrir des discussions de service ; la plateforme n’a pas de services.",
   "chat_conversations.user_options.title": "Utilisateurs sélectionnables",
-  "chat_conversations.user_options.description": "Liste par mot-clé les comptes actifs du côté de l’appelant pour démarrer des discussions et ajouter des membres : comptes de la plateforme côté plateforme, utilisateurs propres et membres du locataire dans un locataire.",
+  "chat_conversations.user_options.description": "Liste par pages, par mot-clé et par service (sous-services compris), les comptes actifs du côté de l’appelant avec leur service principal, pour démarrer des discussions et ajouter des membres : comptes de la plateforme côté plateforme, utilisateurs propres et membres du locataire dans un locataire.",
   "chat_conversations.open_single.title": "Ouvrir une discussion privée",
   "chat_conversations.open_single.description": "Ouvre la discussion privée avec un interlocuteur, en la créant si besoin ; une paire d’utilisateurs n’a qu’une discussion privée par côté et l’interlocuteur doit appartenir au côté de l’appelant.",
   "chat_conversations.create_group.title": "Créer une discussion de groupe",

@@ -100,13 +100,8 @@ export function createChatApi(): ChatApiContract {
     members: async conversationId => (await chatConversations.members({ conversationId })).items,
     readPositions: async conversationId => (await chatConversations.readPositions({ conversationId })).items,
     pinnedMessages: async conversationId => (await chatMessages.pinned({ conversationId })).items,
-    // 聊天专属选人端点（只要会话读权限）；显示名放进 nickName 槽位，头像是文件主键
-    selectUsers: async (keyword, limit = 20) => (await chatConversations.userOptions({ keyword: keyword.trim() || null, limit })).items.map(user => ({
-      userId: user.userId,
-      userName: user.userName,
-      nickName: user.displayName,
-      avatar: user.avatarFileId ?? null,
-    })),
+    // 聊天专属选人端点（只要会话读权限）；空白关键字不发，免得查询串里带一段空格
+    userOptions: query => chatConversations.userOptions({ ...query, keyword: query.keyword?.trim() || null }),
     // 聊天专属部门树：当前一侧启用的部门（平台侧没有部门）
     departmentTree: async () => (await chatConversations.departmentTree({})).items.map(mapDepartment),
     async uploadAttachment(file, onProgress) {

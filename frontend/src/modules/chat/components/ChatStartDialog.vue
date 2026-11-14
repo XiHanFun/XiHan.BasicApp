@@ -39,7 +39,7 @@ import {
 } from '../types'
 import { chatErrorText } from './chat-helpers'
 
-import ChatUserSelect from './ChatUserSelect.vue'
+import ChatMemberPicker from './ChatMemberPicker.vue'
 
 export type ChatStartMode = 'assistant' | 'department' | 'group' | 'single'
 
@@ -60,7 +60,9 @@ const chatStore = useChatStore()
 const userStore = useUserStore()
 
 const submitting = ref(false)
-const singleUserId = ref<null | string>(null)
+// 打开的次数：选人按它换一份新的
+const pickerSession = ref(0)
+const singleUserIds = ref<string[]>([])
 const groupName = ref('')
 const groupMemberIds = ref<string[]>([])
 const departmentId = ref<null | string>(null)
@@ -84,6 +86,18 @@ const title = computed(() => {
 })
 
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
+
+// 建群要并排放下候选与已选两栏，其余几种只有一栏或一个字段
+const dialogWidth = computed(() => {
+  switch (props.mode) {
+    case 'group':
+      return '680px'
+    case 'single':
+      return '480px'
+    default:
+      return '420px'
+  }
+})
 
 function mapDepartment(node: ChatDepartmentPickerNode): TreeSelectOption {
   return {
@@ -137,7 +151,8 @@ async function loadAssistants() {
 
 watch(show, (visible) => {
   if (visible) {
-    singleUserId.value = null
+    pickerSession.value++
+    singleUserIds.value = []
     groupName.value = ''
     groupMemberIds.value = []
     departmentId.value = null
@@ -155,7 +170,7 @@ async function handleConfirm() {
   if (submitting.value) {
     return
   }
-  if (props.mode === 'single' && !singleUserId.value) {
+  if (props.mode === 'single' && !singleUserIds.value.length) {
     toast.warning(t('chat.start.user_required'))
     return
   }
@@ -181,7 +196,7 @@ async function handleConfirm() {
   submitting.value = true
   try {
     if (props.mode === 'single') {
-      await chatStore.startSingleConversation(singleUserId.value!)
+      await chatStore.startSingleConversation(singleUserIds.value[0]!)
     }
     else if (props.mode === 'group') {
       await chatStore.startGroupConversation(groupName.value.trim(), groupMemberIds.value)
@@ -207,23 +222,27 @@ async function handleConfirm() {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="--xh-dialog-max-w: 420px">
+    <XhDialogContent :style="{ '--xh-dialog-max-w': dialogWidth }">
       <XhDialogHeader>
         <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
       <XhDialogCloseTrigger />
       <XhDialogBody>
         <div class="flex flex-col gap-3">
-          <XhFieldRoot v-if="props.mode === 'single'" required>
-            <XhFieldLabel>{{ t('chat.start.user_label') }}</XhFieldLabel>
-            <XhFieldControl>
-              <ChatUserSelect
-                v-model="singleUserId"
+          <template v-if="props.mode === 'single'">
+            <!-- 选人随第一次打开才挂上，之后每次打开换一份新的：搜索、范围与已选不带到下一次；关着时留着，退场动画里正文不塌
+                 选人是一组控件，不放进字段控件（那是给单个输入框的壳），名字经 aria-label 给到组上 -->
+            <XhFieldRoot v-if="pickerSession > 0" required>
+              <XhFieldLabel>{{ t('chat.start.user_label') }}</XhFieldLabel>
+              <ChatMemberPicker
+                :key="pickerSession"
+                v-model:value="singleUserIds"
+                :multiple="false"
                 :exclude-user-ids="[currentUserId]"
-                :placeholder="t('chat.start.user_placeholder')"
+                :aria-label="t('chat.start.user_label')"
               />
-            </XhFieldControl>
-          </XhFieldRoot>
+            </XhFieldRoot>
+          </template>
 
           <template v-else-if="props.mode === 'group'">
             <XhFieldRoot required>
@@ -237,16 +256,14 @@ async function handleConfirm() {
                 />
               </XhFieldControl>
             </XhFieldRoot>
-            <XhFieldRoot required>
+            <XhFieldRoot v-if="pickerSession > 0" required>
               <XhFieldLabel>{{ t('chat.start.members_label') }}</XhFieldLabel>
-              <XhFieldControl>
-                <ChatUserSelect
-                  v-model="groupMemberIds"
-                  multiple
-                  :exclude-user-ids="[currentUserId]"
-                  :placeholder="t('chat.start.users_placeholder')"
-                />
-              </XhFieldControl>
+              <ChatMemberPicker
+                :key="pickerSession"
+                v-model:value="groupMemberIds"
+                :exclude-user-ids="[currentUserId]"
+                :aria-label="t('chat.start.members_label')"
+              />
             </XhFieldRoot>
           </template>
 

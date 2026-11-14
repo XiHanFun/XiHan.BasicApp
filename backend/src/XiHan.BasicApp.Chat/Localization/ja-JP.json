@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "部門ツリー",
   "chat_conversations.department_tree.description": "呼び出し側で有効な部門をツリーで一覧表示し、部門グループを開くために使います。プラットフォームには部門がありません。",
   "chat_conversations.user_options.title": "ユーザーの選択肢",
-  "chat_conversations.user_options.description": "呼び出し側の有効なアカウントをキーワードで一覧表示し、チャットの開始やメンバーの追加に使います。プラットフォームではプラットフォームのアカウント、テナントでは自テナントのユーザーとテナントメンバーです。",
+  "chat_conversations.user_options.description": "呼び出し側の有効なアカウントをキーワードと部門（下位部門を含む）でページごとに一覧表示し、主所属部門の名称も返します。チャットの開始やメンバーの追加に使います。プラットフォームではプラットフォームのアカウント、テナントでは自テナントのユーザーとテナントメンバーです。",
   "chat_conversations.open_single.title": "個人チャットを開く",
   "chat_conversations.open_single.description": "相手との個人チャットを開き、なければ作成します。同じユーザーの組み合わせの個人チャットは側ごとに 1 つで、相手は呼び出し側に属している必要があります。",
   "chat_conversations.create_group.title": "グループチャットを作成",

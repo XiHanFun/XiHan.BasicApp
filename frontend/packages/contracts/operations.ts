@@ -96,7 +96,7 @@ export const routes = {
   'chat-conversations.silence-members': { method: 'POST', template: '/api/chat-conversations:silence-members', path: [], query: [], success: 200 },
   'chat-conversations.transfer-owner': { method: 'POST', template: '/api/chat-conversations:transfer-owner', path: [], query: [], success: 200 },
   'chat-conversations.update-info': { method: 'POST', template: '/api/chat-conversations:update-info', path: [], query: [], success: 200 },
-  'chat-conversations.user-options': { method: 'GET', template: '/api/chat-conversations:user-options', path: [], query: ['keyword', 'limit'], success: 200 },
+  'chat-conversations.user-options': { method: 'GET', template: '/api/chat-conversations:user-options', path: [], query: ['keyword', 'limit', 'departmentId', 'skip'], success: 200 },
   'chat-messages.edit': { method: 'POST', template: '/api/chat-messages:edit', path: [], query: [], success: 200 },
   'chat-messages.fast-upload': { method: 'POST', template: '/api/chat-messages:fast-upload', path: [], query: [], success: 200 },
   'chat-messages.forward': { method: 'POST', template: '/api/chat-messages:forward', path: [], query: [], success: 200 },

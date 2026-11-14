@@ -8,7 +8,7 @@
   "chat_conversations.department_tree.title": "Abteilungsbaum",
   "chat_conversations.department_tree.description": "Listet die aktivierten Abteilungen auf der Seite des Aufrufers als Baum auf, um Abteilungsgruppen zu öffnen; die Plattform hat keine Abteilungen.",
   "chat_conversations.user_options.title": "Benutzerauswahl",
-  "chat_conversations.user_options.description": "Listet aktive Konten auf der Seite des Aufrufers nach Stichwort auf, um Chats zu beginnen und Mitglieder hinzuzufügen: auf der Plattform deren Konten, im Mandanten eigene Benutzer und Mandantenmitglieder.",
+  "chat_conversations.user_options.description": "Listet aktive Konten auf der Seite des Aufrufers seitenweise nach Stichwort und Abteilung (einschließlich Unterabteilungen) mit der Hauptabteilung auf, um Chats zu beginnen und Mitglieder hinzuzufügen: auf der Plattform deren Konten, im Mandanten eigene Benutzer und Mandantenmitglieder.",
   "chat_conversations.open_single.title": "Direktchat öffnen",
   "chat_conversations.open_single.description": "Öffnet den Direktchat mit einem Gegenüber und legt ihn bei Bedarf an; ein Benutzerpaar hat je Seite genau einen Direktchat, und das Gegenüber muss zur Seite des Aufrufers gehören.",
   "chat_conversations.create_group.title": "Gruppenchat erstellen",
