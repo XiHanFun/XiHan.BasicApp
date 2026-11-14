@@ -112,6 +112,7 @@ const frontendSidebar: DefaultTheme.SidebarItem[] = [
       ["国际化与时区", "i18n"],
       ["字体图标", "icon"],
       ["实时通信", "realtime"],
+      ["灵动岛", "dynamic-island"],
       ["常用组件", "components"],
     ]),
   },

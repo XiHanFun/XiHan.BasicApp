@@ -1,5 +1,5 @@
 {
-  "packages/components/common/DynamicIsland.vue": 26,
+  "packages/components/common/DynamicIsland.vue": 17,
   "packages/components/common/LockScreen.vue": 17,
   "packages/components/common/SyncStatusBadge.vue": 1,
   "packages/components/schema/SchemaImportDialog.vue": 2,

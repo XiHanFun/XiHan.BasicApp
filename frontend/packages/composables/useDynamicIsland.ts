@@ -4,25 +4,79 @@
  */
 
 import type { Tone } from '@xihan-ui/core'
-import { computed, ref, watch } from 'vue'
+import type { Component } from 'vue'
+import { computed, markRaw, ref, watch } from 'vue'
 
 /**
  * 灵动岛（Dynamic Island）
  *
- * 不止是提醒：支持「进行中/成功/失败/信息」状态、确定性进度（进度环）、岛内交互按钮、
- * 整条点击跳转、常驻状态（网络/实时连接等）、服务端后台任务（SignalR TaskProgress 推送）
- * 以及点击展开的活动面板（活动 + 最近历史）
+ * 一条活动（任务）有三种呈现，分区参照 iOS 实时活动：
+ * - 胶囊：左侧 leading、中间 label、右侧 trailing
+ * - 卡片：有新内容时自动短暂展开，自上而下是 leading / label + detail / trailing、内容块 blocks、操作 actions
+ * - 面板：点开胶囊后列出全部活动，每条与卡片同一套分区
  *
- * 模块级单例状态，可在 store / composable / 组件任意处调用，由全局挂载的
- * DynamicIsland 组件订阅渲染。`islandStart` 兼容旧用法 `islandStart(id, label)`
+ * 各区放什么由调用方决定：两侧放小件（IslandAccessory），正文下方放内容块（IslandBlock），
+ * 都有 custom 一档交给调用方自己的组件；不写的区按状态取缺省（进度环、状态图标、百分比、已用时）
  *
- * 常驻性：状态存活于模块作用域（跨路由不丢）；服务端任务与历史另存 sessionStorage，
- * 刷新页面后自动恢复（进行中的服务端任务等待 SignalR 续推）
+ * 模块级单例状态，可在 store / composable / 组件任意处调用，由全局挂载的 DynamicIsland 组件订阅渲染
+ * 状态存活于模块作用域（跨路由不丢）；服务端进行中的任务另存 sessionStorage，刷新后恢复并等 SignalR 续推
  */
 
 export type IslandState = 'loading' | 'success' | 'error' | 'info'
 /** 岛内按钮的语气：取组件库 tone 轴里的三档，缺省 neutral */
 export type IslandTone = Extract<Tone, 'neutral' | 'brand' | 'danger'>
+
+/** 交给调用方自己的组件：灵动岛只负责放进槽位，组件内的交互与样式归调用方 */
+export interface IslandCustom {
+  type: 'custom'
+  component: Component
+  props?: Record<string, unknown>
+}
+
+/**
+ * 两侧小件：胶囊与展开行的 leading / trailing
+ * 空间只够一个图标、一枚头像、一个小环或一小段字
+ */
+export type IslandAccessory
+  = | { type: 'icon', icon: string, tone?: Tone }
+    | { type: 'avatar', name: string, avatar?: null | string }
+    /** 进度环：value 省略即不确定态（旋转弧环），环心可放图标 */
+    | { type: 'ring', value?: number, max?: number, icon?: string, tone?: Tone }
+    | { type: 'text', text: string, tone?: Tone }
+    /** 自活动开始起的计时（m:ss） */
+    | { type: 'elapsed' }
+    | IslandCustom
+
+/** 列表行：行首小件、名称、右侧取值，给了 progress 就在行下画一条进度 */
+export interface IslandListItem {
+  key: string
+  label: string
+  leading?: IslandAccessory
+  value?: string
+  /** 0-100 */
+  progress?: number
+  tone?: Tone
+}
+
+/** 网格格子：自上而下是标题、图标、取值，各格等宽 */
+export interface IslandGridItem {
+  key: string
+  label: string
+  icon?: string
+  value: string
+}
+
+/** 正文下方的内容块，按数组顺序自上而下 */
+export type IslandBlock
+  = | { type: 'text', text: string }
+    /** 大号数值：value + unit，下方 caption，右侧可挂一枚小件（如进度环） */
+    | { type: 'metric', value: number | string, unit?: string, caption?: string, accessory?: IslandAccessory }
+    /** 线形进度：上方 label 与 valueText，缺省取值为百分比 */
+    | { type: 'progress', value: number, max?: number, label?: string, valueText?: string, tone?: Tone }
+    | { type: 'list', items: IslandListItem[] }
+    | { type: 'grid', items: IslandGridItem[] }
+    | { type: 'media', src: string, alt: string }
+    | IslandCustom
 
 /** 岛内交互按钮 */
 export interface IslandAction {
@@ -36,18 +90,34 @@ export interface IslandAction {
   keepOpen?: boolean
 }
 
-/** 创建 / 更新任务时可选字段 */
+/** 创建 / 更新任务时可选字段；省略的字段沿用这条任务原有的值 */
 export interface IslandTaskInit {
-  /** 副文本（展开面板内展示） */
+  /** 副文本：卡片里最多两行，面板里完整显示 */
   detail?: string
-  /** 自定义前导图标（覆盖按状态推断的图标） */
+  /** 缺省指示器上的图标：进行中画在环心，终态替换状态图标；要整个换掉指示器用 leading */
   icon?: string
   /** 状态 */
   state?: IslandState
   /** 进度 0-100；省略表示不确定（旋转弧环） */
   progress?: number
+  /** 左侧小件，缺省是状态指示器（进行中是进度环，终态是状态图标） */
+  leading?: IslandAccessory
+  /** 右侧小件，缺省在进行中且有进度时显示百分比 */
+  trailing?: IslandAccessory
+  /** 正文下方的内容块 */
+  blocks?: IslandBlock[]
   /** 岛内交互按钮 */
   actions?: IslandAction[]
+  /** 按钮的排法：inline 一行带字的按钮（缺省），bar 底部等宽的图标栏 */
+  actionLayout?: 'inline' | 'bar'
+  /** 有新内容时自动短暂展开成卡片；缺省带 detail 或 blocks 时展开 */
+  alert?: boolean
+  /** 进行中时在面板里显示已用时，缺省显示 */
+  elapsed?: boolean
+  /** 面板里可手动移除，缺省非常驻的都可移除 */
+  dismissible?: boolean
+  /** 终态停留的毫秒数；缺省成功 1.6 秒、失败 3.2 秒、信息 2.4 秒 */
+  duration?: number
   /** 整条点击回调（如跳转/查看） */
   onClick?: () => void
   /** 整条点击跳转的应用内链接（与 onClick 二选一，组件经路由跳转） */
@@ -61,34 +131,24 @@ export interface IslandTask extends IslandTaskInit {
   label: string
   state: IslandState
   order: number
-  /** event=普通任务（终态入历史）；status=常驻状态 */
+  /** event=普通任务；status=常驻状态 */
   kind: 'event' | 'status'
   /** local=前端本地任务；server=服务端推送任务（参与刷新恢复） */
   source: 'local' | 'server'
-  /** 任务开始时间戳（展开面板显示耗时） */
+  /** 任务开始时间戳（已用时从这里算） */
   startedAt: number
 }
 
-export interface IslandHistoryItem {
-  id: string
-  label: string
-  detail?: string
-  state: IslandState
-  order: number
-  /** 终态时间戳（展开面板显示相对时间） */
-  time: number
-}
-
 export interface IslandHandle {
-  /** 仅更新文案（兼容旧用法） */
+  /** 仅更新文案 */
   update: (label: string) => void
   /** 合并更新任意字段 */
   patch: (p: Partial<IslandTaskInit> & { label?: string }) => void
   /** 设置进度 0-100 */
   setProgress: (n: number) => void
-  /** 标记成功（短暂停留后自动消失，并入历史） */
+  /** 标记成功（短暂停留后自动消失） */
   success: (label?: string, opts?: IslandTaskInit) => void
-  /** 标记失败（稍长停留后自动消失，并入历史） */
+  /** 标记失败（稍长停留后自动消失） */
   error: (label?: string, opts?: IslandTaskInit) => void
   /** 标记信息态（默认短暂停留；opts.persistent 则常驻） */
   info: (label?: string, opts?: IslandTaskInit) => void
@@ -111,11 +171,9 @@ const ERROR_LINGER = 3200
 const INFO_LINGER = 2400
 /** 同时存活的消息条数上限：超出丢最旧的，避免刷屏时堆一长串 */
 const MESSAGE_CAP = 5
-const HISTORY_CAP = 20
 const STORAGE_KEY = 'xihan_island_state'
 
 const tasks = ref<IslandTask[]>([])
-const history = ref<IslandHistoryItem[]>([])
 const expanded = ref(false)
 const timers = new Map<string, ReturnType<typeof setTimeout>>()
 let orderSeq = 0
@@ -162,7 +220,7 @@ const loadingCount = computed(() => tasks.value.filter(item => item.state === 'l
 const activeTasks = computed(() => [...tasks.value].sort((a, b) => b.order - a.order))
 
 /** 是否有可展开内容 */
-const hasPanel = computed(() => tasks.value.length > 0 || history.value.length > 0)
+const hasPanel = computed(() => tasks.value.length > 0)
 
 function clearTimer(id: string): void {
   const timer = timers.get(id)
@@ -172,29 +230,8 @@ function clearTimer(id: string): void {
   }
 }
 
-function pushHistory(task: IslandTask): void {
-  if (task.state !== 'success' && task.state !== 'error') {
-    return
-  }
-  history.value = [
-    {
-      id: task.id,
-      label: task.label,
-      detail: task.detail,
-      state: task.state,
-      order: ++orderSeq,
-      time: Date.now(),
-    },
-    ...history.value,
-  ].slice(0, HISTORY_CAP)
-}
-
-function removeTask(id: string, recordHistory = true): void {
+function removeTask(id: string): void {
   clearTimer(id)
-  const task = tasks.value.find(item => item.id === id)
-  if (task && recordHistory) {
-    pushHistory(task)
-  }
   tasks.value = tasks.value.filter(item => item.id !== id)
 }
 
@@ -203,24 +240,42 @@ function scheduleRemoval(id: string, delay: number): void {
   timers.set(id, setTimeout(removeTask, delay, id))
 }
 
+/** 调用方的组件不进响应式：放进任务列表时标成 raw，免得被深层代理 */
+function markComponents(init: IslandTaskInit): void {
+  const mark = (item?: IslandAccessory | IslandBlock) => {
+    if (item?.type === 'custom') {
+      markRaw(item.component)
+    }
+  }
+  mark(init.leading)
+  mark(init.trailing)
+  for (const block of init.blocks ?? []) {
+    mark(block)
+    if (block.type === 'metric') {
+      mark(block.accessory)
+    }
+    else if (block.type === 'list') {
+      block.items.forEach(item => mark(item.leading))
+    }
+  }
+}
+
 function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' | 'status', source: 'local' | 'server' = 'local'): void {
   const index = tasks.value.findIndex(item => item.id === id)
   const base: Partial<IslandTask> = index >= 0
     ? tasks.value[index]!
     : {}
+  markComponents(init)
+  // 省略或给 undefined 的字段沿用原值
+  const patch = Object.fromEntries(Object.entries(init).filter(([, value]) => value !== undefined)) as IslandTaskInit
   const next: IslandTask = {
+    ...base,
+    ...patch,
     id,
-    kind: (base.kind as IslandTask['kind']) ?? kind,
-    source: (base.source as IslandTask['source']) ?? source,
+    kind: base.kind ?? kind,
+    source: base.source ?? source,
     label,
-    detail: init.detail ?? base.detail,
-    icon: init.icon ?? base.icon,
-    state: init.state ?? base.state ?? 'loading',
-    progress: init.progress ?? base.progress,
-    actions: init.actions ?? base.actions,
-    onClick: init.onClick ?? base.onClick,
-    link: init.link ?? base.link,
-    persistent: init.persistent ?? base.persistent,
+    state: patch.state ?? base.state ?? 'loading',
     startedAt: base.startedAt ?? Date.now(),
     order: ++orderSeq,
   }
@@ -237,29 +292,29 @@ function upsert(id: string, label: string, init: IslandTaskInit, kind: 'event' |
 
 /** 限长：一波消息涌进来时只留最近的若干条，最旧的直接丢掉，避免堆一长串 */
 function trimMessages(): void {
-  const stack = tasks.value
-    .filter(item => item.state !== 'loading' && !item.persistent)
-    .sort((a, b) => b.order - a.order)
-  for (const task of stack.slice(MESSAGE_CAP)) {
+  for (const task of messageStack.value.slice(MESSAGE_CAP)) {
     removeTask(task.id)
   }
 }
 
-function lingerOf(state: IslandState): number {
-  return state === 'error'
+function lingerOf(task: IslandTask): number {
+  if (task.duration != null) {
+    return task.duration
+  }
+  return task.state === 'error'
     ? ERROR_LINGER
-    : state === 'info'
+    : task.state === 'info'
       ? INFO_LINGER
       : SUCCESS_LINGER
 }
 
 /** 终态收尾：非常驻的消息各自开始倒计时（面板展开时不计时，收起后统一重排） */
-function settle(id: string, state: IslandState): void {
+function settle(id: string): void {
   const task = tasks.value.find(item => item.id === id)
   if (!task || task.persistent || expanded.value) {
     return
   }
-  scheduleRemoval(id, lingerOf(state))
+  scheduleRemoval(id, lingerOf(task))
 }
 
 /**
@@ -272,7 +327,7 @@ watch(expanded, (open) => {
       clearTimer(task.id)
     }
     else if (!timers.has(task.id)) {
-      scheduleRemoval(task.id, lingerOf(task.state))
+      scheduleRemoval(task.id, lingerOf(task))
     }
   }
 })
@@ -286,7 +341,7 @@ function makeHandle(id: string): IslandHandle {
       : false)
     upsert(id, label ?? existing?.label ?? '', { ...opts, state, persistent }, existing?.kind ?? 'event')
     if (!persistent) {
-      settle(id, state)
+      settle(id)
     }
   }
   return {
@@ -315,15 +370,14 @@ function makeHandle(id: string): IslandHandle {
       apply(label, 'info', opts)
     },
     dismiss() {
-      removeTask(id, false)
+      removeTask(id)
     },
   }
 }
 
-// ── 会话级持久化：服务端任务（进行中）与历史在刷新后恢复 ────────────
+// ── 会话级持久化：服务端进行中的任务在刷新后恢复 ────────────────────
 interface PersistedState {
   tasks: Array<Pick<IslandTask, 'detail' | 'icon' | 'id' | 'label' | 'link' | 'progress' | 'startedAt'>>
-  history: IslandHistoryItem[]
 }
 
 function persistState(): void {
@@ -340,7 +394,6 @@ function persistState(): void {
           link: item.link,
           startedAt: item.startedAt,
         })),
-      history: history.value,
     }
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
   }
@@ -356,12 +409,6 @@ function restoreState(): void {
       return
     }
     const saved = JSON.parse(raw) as Partial<PersistedState>
-    if (Array.isArray(saved.history)) {
-      history.value = saved.history.slice(0, HISTORY_CAP)
-      // 序号续接：orderSeq 每次会话从 0 起，若不推进到恢复历史的最大序号，
-      // 本会话同名任务会产出与恢复项相同的 (id, order)，导致列表 key 冲突
-      orderSeq = Math.max(orderSeq, ...history.value.map(item => item.order ?? 0))
-    }
     for (const item of saved.tasks ?? []) {
       upsert(item.id, item.label, {
         detail: item.detail,
@@ -382,7 +429,7 @@ function restoreState(): void {
 }
 
 restoreState()
-watch([tasks, history], persistState, { deep: true })
+watch(tasks, persistState, { deep: true })
 
 // ── 关闭灵动岛时的兜底接管 ──────────────────────────────────────
 // 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由轻提示接管终态
@@ -455,7 +502,7 @@ function silentHandle(): IslandHandle {
  * 开始一个灵动岛任务（默认进行中态）。返回句柄推进终态
  * @param id    任务键；同 id 复用同一条
  * @param label 文案
- * @param init  可选：detail/icon/state/progress/actions/onClick/link/persistent
+ * @param init  可选字段，见 IslandTaskInit
  */
 export function islandStart(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
   // 灵动岛关闭：不进岛，终态由轻提示接管
@@ -497,9 +544,7 @@ export function applyServerTaskProgress(payload: ServerTaskProgressPayload): voi
 
   if (!islandEnabled()) {
     if (state !== 'loading') {
-      messageSink?.(state === 'info'
-        ? 'info'
-        : state, payload.label)
+      messageSink?.(state, payload.label)
     }
     return
   }
@@ -516,7 +561,7 @@ export function applyServerTaskProgress(payload: ServerTaskProgressPayload): voi
   }, 'event', 'server')
 
   if (state !== 'loading') {
-    settle(id, state)
+    settle(id)
   }
 }
 
@@ -525,7 +570,6 @@ export function useDynamicIsland() {
   return {
     current,
     activeTasks,
-    history,
     expanded,
     loadingCount,
     pendingTasks,
@@ -542,9 +586,6 @@ export function useDynamicIsland() {
     toggleExpand: () => {
       expanded.value = hasPanel.value && !expanded.value
     },
-    dismissTask: (id: string) => removeTask(id, false),
-    clearHistory: () => {
-      history.value = []
-    },
+    dismissTask: (id: string) => removeTask(id),
   }
 }

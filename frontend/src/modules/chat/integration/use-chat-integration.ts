@@ -71,7 +71,7 @@ export function useChatIntegration() {
     // id 带上 messageId：按会话取 id 会让同一会话的后续消息复用同一条目（更新而非新增），
     // 岛上永远只有一条，既排不了队也堆不起来
     islandStart(`chat:msg:${message.conversationId}:${message.messageId}`, sender, {
-      icon: 'lucide:message-circle',
+      leading: { type: 'avatar', name: sender },
       detail: preview,
       link: CHAT_PAGE_PATH,
     }).info()

@@ -4,9 +4,9 @@
 -->
 
 <script lang="ts" setup>
-import type { IslandAction, IslandState, IslandTask } from '~/composables/useDynamicIsland'
+import type { IslandAccessory, IslandAction, IslandTask } from '~/composables/useDynamicIsland'
 import { useOnline } from '@vueuse/core'
-import { XhButton, XhButtonLabel, XhButtonPrefix } from '@xihan-ui/vue'
+import { XhButton } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -15,6 +15,9 @@ import { configureDynamicIsland, islandStatus, useDynamicIsland } from '~/compos
 import { configureNotificationSound } from '~/composables/useNotificationSound'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
+import { defaultLeading, defaultTrailing, usesElapsed } from './dynamic-island-view'
+import DynamicIslandAccessory from './DynamicIslandAccessory.vue'
+import DynamicIslandActivity from './DynamicIslandActivity.vue'
 
 defineOptions({ name: 'DynamicIsland' })
 
@@ -47,7 +50,6 @@ configureNotificationSound(() => appStore.notifySound)
 const {
   current,
   activeTasks,
-  history,
   expanded,
   loadingCount,
   pendingTasks,
@@ -56,7 +58,6 @@ const {
   expand,
   collapse,
   dismissTask,
-  clearHistory,
 } = useDynamicIsland()
 
 /** 壳体是否可见：折叠态需有当前任务，展开态需有面板内容 */
@@ -80,18 +81,28 @@ const displayLabel = computed(() => {
   return current.value.label
 })
 
-function stateIcon(state?: IslandState): string {
-  switch (state) {
-    case 'success':
-      return 'lucide:check'
-    case 'error':
-      return 'lucide:triangle-alert'
-    case 'info':
-      return 'lucide:info'
-    default:
-      return 'lucide:loader-2'
+/** 胶囊左侧：多任务聚合或调用方没给时是状态指示器 */
+const pillLeading = computed<IslandAccessory | null>(() => {
+  const task = current.value
+  if (!task) {
+    return null
   }
-}
+  return isMulti.value || !task.leading
+    ? defaultLeading(task)
+    : task.leading
+})
+/** 左侧是不是状态指示器：只有它带状态色与完成态圆底 */
+const pillLeadingIsState = computed(() => !!current.value && (isMulti.value || !current.value.leading))
+/** 胶囊右侧：多任务聚合时只给百分比 */
+const pillTrailing = computed<IslandAccessory | undefined>(() => {
+  const task = current.value
+  if (!task) {
+    return undefined
+  }
+  return isMulti.value
+    ? defaultTrailing(task)
+    : task.trailing ?? defaultTrailing(task)
+})
 
 function onActionClick(task: IslandTask, action: IslandAction): void {
   action.handler()
@@ -115,52 +126,23 @@ function onTaskClick(task: IslandTask): void {
   }
 }
 
-// ── 进度环（确定态）参数 ─────────────────────────────────────────
-const RING_RADIUS = 8
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
-
-function ringDashOffset(progress: number): number {
-  const clamped = Math.max(0, Math.min(100, progress))
-  return RING_CIRCUMFERENCE * (1 - clamped / 100)
-}
-
-// ── 耗时计时（任一 loading 任务存在时每秒刷新） ───────────────────
+// ── 计时（进行中的已用时、两侧或内容块里的计时）：用到时才每秒走一次 ────────
 const nowTick = ref(Date.now())
 let tickTimer: ReturnType<typeof setInterval> | null = null
-watch(loadingCount, (count) => {
-  if (count > 0 && !tickTimer) {
+const needsClock = computed(() => activeTasks.value.some(task =>
+  (task.state === 'loading' && task.elapsed !== false) || usesElapsed(task)))
+watch(needsClock, (needed) => {
+  if (needed && !tickTimer) {
+    nowTick.value = Date.now()
     tickTimer = setInterval(() => {
       nowTick.value = Date.now()
     }, 1000)
   }
-  else if (count === 0 && tickTimer) {
+  else if (!needed && tickTimer) {
     clearInterval(tickTimer)
     tickTimer = null
   }
 }, { immediate: true })
-
-function elapsedText(task: IslandTask): string {
-  const seconds = Math.max(0, Math.floor((nowTick.value - task.startedAt) / 1000))
-  if (seconds < 60) {
-    return `${t('island.elapsed_prefix')} ${seconds}s`
-  }
-  return `${t('island.elapsed_prefix')} ${Math.floor(seconds / 60)}m ${seconds % 60}s`
-}
-
-function relativeTime(time: number): string {
-  const diff = Date.now() - time
-  if (diff < 60_000) {
-    return t('island.just_now')
-  }
-  if (diff < 3_600_000) {
-    return t('island.minutes_ago', {
-      n: Math.floor(diff / 60_000),
-    })
-  }
-  return t('island.hours_ago', {
-    n: Math.floor(diff / 3_600_000),
-  })
-}
 
 // ── 单壳体形变：胶囊 ⇄ 面板共用一个容器，宽/高/圆角平滑过渡 ────────
 const PILL_HEIGHT = 34
@@ -201,8 +183,8 @@ async function measurePill(): Promise<void> {
 }
 
 // ── 卡片态：参照 iOS 灵动岛「重要更新自动短暂展开、随后自行收回」──────
-// 判据取「任务是否带正文（detail）」：聊天消息一类有正文的才值得抢占视线，
-// 纯状态胶囊（连接断开/任务进行中）不打断。用户手动展开时立刻让位给内容态
+// 由任务的 alert 决定，缺省取「带正文（detail）或内容块」：聊天消息一类有内容的才值得抢占视线，
+// 纯状态胶囊（任务进行中）不打断。用户手动展开时立刻让位给内容态
 const CARD_LINGER = 2600
 const cardTaskId = ref<string | null>(null)
 let cardTimer: ReturnType<typeof setTimeout> | null = null
@@ -295,8 +277,7 @@ watch(
     if (prev && next !== prev) {
       triggerSlideIn()
     }
-    // 带正文＝值得抢占视线的更新，自动进卡片态
-    if (task.detail) {
+    if (task.alert ?? Boolean(task.detail || task.blocks?.length)) {
       presentCard(task)
     }
   },
@@ -330,7 +311,7 @@ watch(cardLayerRef, (layer, _old, onCleanup) => {
   onCleanup(() => cardObserver?.unobserve(layer))
 }, { flush: 'post' })
 
-// 面板内容尺寸随任务/历史变化：ResizeObserver 持续驱动壳体高度过渡（惰性创建，规避挂载时序）
+// 面板内容尺寸随任务变化：ResizeObserver 持续驱动壳体高度过渡（惰性创建，规避挂载时序）
 let panelObserver: ResizeObserver | null = null
 watch(panelLayerRef, (layer, _old, onCleanup) => {
   if (!layer) {
@@ -350,7 +331,10 @@ watch(
   () => [
     displayLabel.value,
     current.value?.state,
-    current.value?.progress != null,
+    pillLeading.value?.type,
+    pillTrailing.value?.type === 'text'
+      ? pillTrailing.value.text
+      : pillTrailing.value?.type,
     loadingCount.value,
     pendingCount.value,
   ] as const,
@@ -449,6 +433,21 @@ watch(expanded, (open) => {
     void measurePill()
   }
 })
+// 不在场的层是 inert 的：键盘展开时把焦点送进面板，收起时还给胶囊，不让焦点掉回页面开头
+const pillRef = ref<HTMLElement | null>(null)
+watch(expanded, async (open) => {
+  if (!rootRef.value?.contains(document.activeElement)) {
+    return
+  }
+  await nextTick()
+  if (open) {
+    panelLayerRef.value?.querySelector<HTMLElement>('button:not([disabled])')?.focus()
+  }
+  else {
+    pillRef.value?.focus()
+  }
+}, { flush: 'pre' })
+
 // 无可展开内容时自动收起
 watch(hasPanel, (has) => {
   if (!has) {
@@ -511,172 +510,70 @@ onBeforeUnmount(() => {
           class="di-shell"
           :class="[expanded ? 'is-open' : `is-${current?.state ?? 'info'}`, { 'di-slide': sliding, 'is-persistent': !expanded && current?.persistent }]"
           :style="shellStyle"
+          data-xh-ink="light"
           @pointerenter="hovering = true"
           @pointerleave="hovering = false"
         >
-          <!-- 折叠层：胶囊（图标贴最左，按钮贴最右） -->
+          <!-- 折叠层：胶囊，左侧 leading、中间文案、右侧 trailing 与岛自己的计数和展开箭头 -->
           <button
+            ref="pillRef"
             type="button"
             class="di-layer di-pill"
             :class="{ 'is-active': mode === 'pill' }"
             :aria-label="current?.label"
-            :tabindex="mode === 'pill' ? 0 : -1"
+            :inert="mode !== 'pill'"
             @click="expand"
           >
             <span ref="pillInnerRef" class="di-pill__inner">
-              <!-- 指示器：确定态进度环 / 不确定态旋转弧环 / 终态状态图标 -->
-              <span class="di-indicator">
-                <template v-if="current?.state === 'loading'">
-                  <svg class="di-ring" :class="{ 'di-ring--spin': current.progress == null }" viewBox="0 0 20 20">
-                    <circle class="di-ring__track" cx="10" cy="10" :r="RING_RADIUS" />
-                    <circle
-                      class="di-ring__bar"
-                      cx="10"
-                      cy="10"
-                      :r="RING_RADIUS"
-                      :stroke-dasharray="RING_CIRCUMFERENCE"
-                      :stroke-dashoffset="current.progress == null ? RING_CIRCUMFERENCE * 0.72 : ringDashOffset(current.progress)"
-                    />
-                  </svg>
-                  <Icon v-if="current.icon" :icon="current.icon" width="9" height="9" class="di-ring__icon" />
-                </template>
-                <Icon v-else-if="current" :icon="current.icon || stateIcon(current.state)" width="15" height="15" />
+              <span v-if="pillLeading && current" class="di-indicator" :class="{ 'is-state': pillLeadingIsState }">
+                <DynamicIslandAccessory :accessory="pillLeading" :started-at="current.startedAt" :now="nowTick" />
               </span>
               <Transition name="di-text" mode="out-in">
                 <span v-if="displayLabel" :key="displayLabel" class="di-label">{{ displayLabel }}</span>
               </Transition>
               <span class="di-trailing">
-                <span v-if="current?.state === 'loading' && current?.progress != null" class="di-pct">
-                  {{ Math.round(current.progress) }}%
-                </span>
+                <DynamicIslandAccessory v-if="pillTrailing && current" :accessory="pillTrailing" :started-at="current.startedAt" :now="nowTick" />
                 <span v-if="pendingCount > STACK_MAX_LAYERS" class="di-count">+{{ pendingCount }}</span>
                 <Icon v-if="hasPanel" icon="lucide:chevron-down" width="13" height="13" class="di-chevron" />
               </span>
             </span>
           </button>
 
-          <!-- 卡片层：重要更新自动短暂呈现，点击进入目标或展开内容 -->
-          <button
-            ref="cardLayerRef"
-            type="button"
-            class="di-layer di-card"
-            :class="{ 'is-active': mode === 'card' }"
-            :tabindex="mode === 'card' ? 0 : -1"
-            @click="onCardClick"
-          >
-            <span class="di-card__icon">
-              <Icon :icon="cardTask?.icon || stateIcon(cardTask?.state)" width="18" height="18" />
-            </span>
-            <span class="di-card__body">
-              <span class="di-card__title">{{ cardTask?.label }}</span>
-              <span v-if="cardTask?.detail" class="di-card__detail">{{ cardTask.detail }}</span>
-            </span>
-          </button>
+          <!-- 卡片层：有新内容时自动短暂呈现这一条的展开视图，点击进入目标或展开面板
+               三层叠着做交叉淡变，不在场的层 inert：读屏与 Tab 都跳过它 -->
+          <div ref="cardLayerRef" class="di-layer di-card" :class="{ 'is-active': mode === 'card' }" :inert="mode !== 'card'">
+            <DynamicIslandActivity
+              v-if="cardTask"
+              :task="cardTask"
+              variant="card"
+              clickable
+              :now="nowTick"
+              @open="onCardClick"
+              @action="action => cardTask && onActionClick(cardTask, action)"
+            />
+          </div>
 
           <!-- 展开层：活动面板 -->
-          <!-- 面板底色恒深：data-xh-ink="light" 让里面组件库的按钮取深底上的那套令牌 -->
-          <div ref="panelLayerRef" class="di-layer di-panel" :class="{ 'is-active': expanded }" data-xh-ink="light">
+          <div ref="panelLayerRef" class="di-layer di-panel" :class="{ 'is-active': expanded }" :inert="!expanded">
             <div class="di-panel__head">
               <span class="di-panel__title">{{ t('island.title') }}</span>
-              <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('island.collapse')" :tabindex="expanded ? 0 : -1" @click.stop="collapse">
+              <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn" :aria-label="t('island.collapse')" @click.stop="collapse">
                 <Icon icon="lucide:chevron-up" />
               </XhButton>
             </div>
 
             <div class="di-panel__body">
-              <!-- 活动中 -->
-              <template v-if="activeTasks.length">
-                <div
-                  v-for="task in activeTasks"
-                  :key="task.id"
-                  class="di-item"
-                  :class="[`is-${task.state}`, { 'is-clickable': isTaskClickable(task) }]"
-                  @click="onTaskClick(task)"
-                >
-                  <span class="di-indicator">
-                    <template v-if="task.state === 'loading'">
-                      <svg class="di-ring" :class="{ 'di-ring--spin': task.progress == null }" viewBox="0 0 20 20">
-                        <circle class="di-ring__track" cx="10" cy="10" :r="RING_RADIUS" />
-                        <circle
-                          class="di-ring__bar"
-                          cx="10"
-                          cy="10"
-                          :r="RING_RADIUS"
-                          :stroke-dasharray="RING_CIRCUMFERENCE"
-                          :stroke-dashoffset="task.progress == null ? RING_CIRCUMFERENCE * 0.72 : ringDashOffset(task.progress)"
-                        />
-                      </svg>
-                      <Icon v-if="task.icon" :icon="task.icon" width="9" height="9" class="di-ring__icon" />
-                    </template>
-                    <Icon v-else :icon="task.icon || stateIcon(task.state)" width="15" height="15" />
-                  </span>
-                  <div class="di-item__body">
-                    <div class="di-item__label">
-                      {{ task.label }}
-                    </div>
-                    <div v-if="task.detail" class="di-item__detail">
-                      {{ task.detail }}
-                    </div>
-                    <div v-if="task.progress != null && task.state === 'loading'" class="di-progress">
-                      <span class="di-progress__track">
-                        <span class="di-progress__bar" :style="{ width: `${task.progress}%` }" />
-                      </span>
-                      <span class="di-progress__pct">{{ Math.round(task.progress) }}%</span>
-                    </div>
-                    <div v-if="task.state === 'loading'" class="di-item__meta">
-                      {{ elapsedText(task) }}
-                    </div>
-                    <div v-if="task.actions?.length" class="di-actions">
-                      <!-- 品牌档是主操作（实心），其余走淡底 -->
-                      <XhButton
-                        v-for="action in task.actions"
-                        :key="action.key"
-                        size="sm"
-                        :variant="action.tone === 'brand' ? 'solid' : 'subtle'"
-                        :tone="action.tone ?? 'neutral'"
-                        @click.stop="onActionClick(task, action)"
-                      >
-                        <XhButtonPrefix v-if="action.icon">
-                          <Icon :icon="action.icon" />
-                        </XhButtonPrefix>
-                        <XhButtonLabel>{{ action.label }}</XhButtonLabel>
-                      </XhButton>
-                    </div>
-                  </div>
-                  <!-- 悬停才露出：显隐与定位落在外层，不在组件库按钮的根上写过渡 -->
-                  <span v-if="!task.persistent" class="di-item__dismiss">
-                    <XhButton variant="ghost" size="sm" icon-only class="x-icon-btn di-item__dismiss-btn" :aria-label="t('island.dismiss')" @click.stop="dismissTask(task.id)">
-                      <Icon icon="lucide:x" />
-                    </XhButton>
-                  </span>
-                </div>
-              </template>
-
-              <!-- 最近历史 -->
-              <div v-if="history.length" class="di-history">
-                <div class="di-history__head">
-                  <span>{{ t('island.recent') }}</span>
-                  <XhButton variant="link" size="sm" class="xh-link-button" @click="clearHistory">
-                    {{ t('island.clear') }}
-                  </XhButton>
-                </div>
-                <div
-                  v-for="item in history"
-                  :key="`${item.id}:${item.order}:${item.time}`"
-                  class="di-history-item"
-                  :class="`is-${item.state}`"
-                >
-                  <span class="di-indicator">
-                    <Icon :icon="stateIcon(item.state)" width="13" height="13" />
-                  </span>
-                  <span class="di-history-item__label">{{ item.label }}</span>
-                  <span class="di-history-item__time">{{ relativeTime(item.time) }}</span>
-                </div>
-              </div>
-
-              <div v-if="!activeTasks.length && !history.length" class="di-empty">
-                {{ t('island.empty') }}
-              </div>
+              <DynamicIslandActivity
+                v-for="task in activeTasks"
+                :key="task.id"
+                :task="task"
+                variant="row"
+                :clickable="isTaskClickable(task)"
+                :now="nowTick"
+                @open="onTaskClick(task)"
+                @action="action => onActionClick(task, action)"
+                @dismiss="dismissTask(task.id)"
+              />
             </div>
           </div>
         </div>
@@ -850,27 +747,30 @@ onBeforeUnmount(() => {
   color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 85%, transparent);
 }
 
-.is-success .di-indicator,
-.di-item.is-success .di-indicator {
+/* 调用方给的小件按自身宽度排（短文本、头像），定宽的圆只给状态指示器 */
+.di-indicator:not(.is-state) {
+  width: auto;
+  min-width: var(--xh-glyph-size-lg);
+}
+
+.is-success .di-indicator.is-state {
   color: color-mix(in srgb, var(--xh-fg-success) 75%, var(--xh-fg-on-media-chrome));
 }
 
-.is-error .di-indicator,
-.di-item.is-error .di-indicator {
+.is-error .di-indicator.is-state {
   color: color-mix(in srgb, var(--xh-fg-danger) 85%, var(--xh-fg-on-media-chrome));
 }
 
-.is-info .di-indicator,
-.di-item.is-info .di-indicator {
+.is-info .di-indicator.is-state {
   color: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
 }
 
 /* ============ 终态：折叠态指示器用状态色实心圆底 + 深色图标 ============ */
 /* 形状仍是胶囊（同 iOS 完成态不变形），靠状态色圆底图标 + 弹入动效与「进度环」区分
    常驻状态（模仿登录、网络或实时连接断开）不是完成反馈，不画圆底、不弹入，与面板里同一个图标 */
-.di-shell.is-success:not(.is-persistent) .di-pill__inner .di-indicator,
-.di-shell.is-error:not(.is-persistent) .di-pill__inner .di-indicator,
-.di-shell.is-info:not(.is-persistent) .di-pill__inner .di-indicator {
+.di-shell.is-success:not(.is-persistent) .di-pill__inner .di-indicator.is-state,
+.di-shell.is-error:not(.is-persistent) .di-pill__inner .di-indicator.is-state,
+.di-shell.is-info:not(.is-persistent) .di-pill__inner .di-indicator.is-state {
   width: 18px;
   height: 18px;
   border-radius: var(--xh-shape-pill);
@@ -895,66 +795,16 @@ onBeforeUnmount(() => {
   }
 }
 
-.di-shell.is-success:not(.is-persistent) .di-pill__inner .di-indicator {
+.di-shell.is-success:not(.is-persistent) .di-pill__inner .di-indicator.is-state {
   background: color-mix(in srgb, var(--xh-fg-success) 75%, var(--xh-fg-on-media-chrome));
 }
 
-.di-shell.is-error:not(.is-persistent) .di-pill__inner .di-indicator {
+.di-shell.is-error:not(.is-persistent) .di-pill__inner .di-indicator.is-state {
   background: color-mix(in srgb, var(--xh-fg-danger) 85%, var(--xh-fg-on-media-chrome));
 }
 
-.di-shell.is-info:not(.is-persistent) .di-pill__inner .di-indicator {
+.di-shell.is-info:not(.is-persistent) .di-pill__inner .di-indicator.is-state {
   background: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
-}
-
-/* ============ 进度环 ============ */
-.di-ring {
-  width: 20px;
-  height: 20px;
-  transform: rotate(-90deg);
-}
-
-.di-ring__track {
-  fill: none;
-  stroke: color-mix(in srgb, var(--xh-fg-on-media-chrome) 16%, transparent);
-  stroke-width: 2.5;
-}
-
-.di-ring__bar {
-  fill: none;
-  stroke: color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome));
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
-}
-
-/* 不确定态：固定弧长旋转 */
-.di-ring--spin {
-  animation: di-ring-rotate 1s var(--xh-motion-ease-loop) infinite;
-}
-
-.di-ring--spin .di-ring__bar {
-  transition: none;
-}
-
-@keyframes di-ring-rotate {
-  to {
-    transform: rotate(270deg);
-  }
-}
-
-.di-ring__icon {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 80%, transparent);
-}
-
-.di-pct {
-  font-size: var(--xh-font-size-xs);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--xh-fg-brand) 50%, var(--xh-fg-on-media-chrome));
 }
 
 .di-count {
@@ -997,172 +847,6 @@ onBeforeUnmount(() => {
   max-height: min(60vh, 460px);
   padding: var(--xh-space-1) var(--xh-space-2) var(--xh-space-2_5);
   overflow-y: auto;
-}
-
-/* 活动项 */
-.di-item {
-  position: relative;
-  display: flex;
-  gap: var(--xh-space-2_5);
-  padding: var(--xh-space-2) var(--xh-space-6) var(--xh-space-2) var(--xh-space-2);
-  border-radius: var(--xh-shape-sheet);
-}
-
-.di-item.is-clickable {
-  cursor: pointer;
-}
-
-.di-item.is-clickable:hover {
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 6%, transparent);
-}
-
-.di-item .di-indicator {
-  margin-top: 1px;
-}
-
-.di-item__body {
-  min-width: 0;
-  flex: 1;
-}
-
-.di-item__label {
-  font-size: var(--xh-font-size-sm);
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.di-item__detail {
-  margin-top: 2px;
-  font-size: var(--xh-font-size-xs);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 55%, transparent);
-  line-height: 1.45;
-}
-
-.di-item__meta {
-  margin-top: 4px;
-  font-size: var(--xh-font-size-xs);
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 40%, transparent);
-}
-
-/* 关闭钮落在这一条右侧留出的 space-6 里，盒高与首行行高相当，竖向对齐首行文字 */
-.di-item__dismiss {
-  position: absolute;
-  inset-block-start: var(--xh-space-2);
-  inset-inline-end: var(--xh-space-1);
-  display: inline-flex;
-  opacity: 0;
-  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-/* 组件库的纯图标钮压小：盒取 lg 字形档、字形取 xs 档，经按钮的公开槽给 */
-.di-item__dismiss-btn {
-  --xh-button-h: var(--xh-glyph-size-lg);
-  --xh-button-icon-size: var(--xh-glyph-size-xs);
-}
-
-/* 悬停这一条或键盘聚焦到关闭钮时露出 */
-.di-item:hover .di-item__dismiss,
-.di-item__dismiss:focus-within {
-  opacity: 1;
-}
-
-/* 进度条（面板内与环互补，长文案下更易读） */
-.di-progress {
-  display: flex;
-  align-items: center;
-  gap: var(--xh-space-2);
-  margin-top: 7px;
-}
-
-.di-progress__track {
-  position: relative;
-  flex: 1;
-  height: 5px;
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
-  border-radius: var(--xh-shape-pill);
-  overflow: hidden;
-}
-
-.di-progress__bar {
-  position: absolute;
-  inset-inline-start: 0;
-  top: 0;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--xh-fg-brand) 70%, var(--xh-fg-on-media-chrome)),
-    color-mix(in srgb, var(--xh-color-info-500) 60%, var(--xh-fg-on-media-chrome))
-  );
-  border-radius: var(--xh-shape-pill);
-  transition: width var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
-}
-
-.di-progress__pct {
-  font-size: var(--xh-font-size-xs);
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 70%, transparent);
-}
-
-/* 操作按钮 */
-.di-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--xh-space-1_5);
-  margin-top: 9px;
-}
-
-/* 历史 */
-.di-history {
-  margin-top: 4px;
-  padding-top: var(--xh-space-1_5);
-  border-top: 1px solid color-mix(in srgb, var(--xh-fg-on-media-chrome) 8%, transparent);
-}
-
-.di-history__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--xh-space-1) var(--xh-space-2);
-  font-size: var(--xh-font-size-xs);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
-}
-
-.di-history-item {
-  display: flex;
-  align-items: center;
-  gap: var(--xh-space-2);
-  padding: var(--xh-space-1) var(--xh-space-2);
-  font-size: var(--xh-font-size-xs);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 65%, transparent);
-}
-
-.di-history-item .di-indicator {
-  width: auto;
-  height: auto;
-  opacity: 0.8;
-}
-
-.di-history-item__label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.di-history-item__time {
-  flex-shrink: 0;
-  font-size: var(--xh-font-size-xs);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 35%, transparent);
-}
-
-.di-empty {
-  padding: var(--xh-space-4);
-  text-align: center;
-  font-size: var(--xh-font-size-xs);
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 45%, transparent);
 }
 
 /* ============ 壳体出现/消失过渡：从视口顶缘弹出 / 收回 ============ */
@@ -1222,58 +906,8 @@ onBeforeUnmount(() => {
   transform: translateY(-6px);
 }
 
-/* ── 卡片态：介于胶囊与内容面板之间的中间形态 ── */
+/* ── 卡片态：介于胶囊与内容面板之间的中间形态，承载这一条的展开视图 ── */
 .di-card {
-  display: flex;
-  align-items: center;
-  gap: var(--xh-space-2_5);
-  width: 100%;
-  padding: var(--xh-space-3) var(--xh-space-4);
-  text-align: left;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-}
-
-.di-card__icon {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--xh-fg-on-media-chrome) 12%, transparent);
-  color: var(--xh-fg-on-media-chrome);
-}
-
-.di-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--xh-space-0_5);
-  min-width: 0;
-  flex: 1;
-}
-
-.di-card__title {
-  font-size: var(--xh-font-size-sm);
-  font-weight: 600;
-  color: var(--xh-fg-on-media-chrome);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 正文最多两行：再多就该去内容态看，卡片只负责一眼可读 */
-.di-card__detail {
-  font-size: var(--xh-font-size-xs);
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--xh-fg-on-media-chrome) 72%, transparent);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  word-break: break-word;
+  inline-size: 100%;
 }
 </style>

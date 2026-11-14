@@ -1,17 +1,17 @@
 /**
  * useDynamicIsland 灵动岛单元测试
- * 职责：锁定「消息堆叠而非排队」「按状态各自倒计时」「面板展开暂停计时、收起重排」
- * 「消息条数上限 5 / 历史上限 20」「只有 success/error 入历史」
- * 「服务端进行中任务与历史写 sessionStorage、刷新恢复且序号续接」
- * 「灵动岛关闭时终态由轻提示接管、常驻状态整体静默」这几条约定，以及计时器卸载清理
+ * 职责：锁定「消息堆叠而非排队」「按状态各自倒计时、duration 可改停留」「面板展开暂停计时、收起重排」
+ * 「消息条数上限 5」「槽位与内容块随 patch 合并、调用方组件不进响应式」
+ * 「服务端进行中任务写 sessionStorage、刷新恢复」
+ * 「灵动岛关闭时终态由轻提示接管、常驻状态整体静默」这几条约定
  */
 import type { IslandTask } from '~/composables/useDynamicIsland'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { defineComponent, isProxy, nextTick } from 'vue'
 
 const STORAGE_KEY = 'xihan_island_state'
 
-/** 每个用例一份全新模块状态：tasks / history / timers / orderSeq 都是模块级的 */
+/** 每个用例一份全新模块状态：tasks / timers / orderSeq 都是模块级的 */
 async function loadModule() {
   vi.resetModules()
   return import('~/composables/useDynamicIsland')
@@ -80,18 +80,16 @@ describe('useDynamicIsland 任务生命周期', () => {
     expect(current?.icon).toBe('lucide:download')
   })
 
-  it('dismiss 立即移除且不入历史', async () => {
+  it('dismiss 立即移除', async () => {
     const { islandStart, useDynamicIsland } = await loadModule()
     const task = islandStart('t1', '导出')
 
     task.dismiss()
 
-    const island = useDynamicIsland()
-    expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value).toEqual([])
+    expect(useDynamicIsland().activeTasks.value).toEqual([])
   })
 
-  it('成功终态在停留 1600ms 后消失，并留下一条历史', async () => {
+  it('成功终态在停留 1600ms 后消失', async () => {
     vi.useFakeTimers()
     const { islandStart, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
@@ -105,7 +103,6 @@ describe('useDynamicIsland 任务生命周期', () => {
 
     vi.advanceTimersByTime(1)
     expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value.map(item => item.label)).toEqual(['导出完成'])
   })
 
   it('失败终态停留更久（3200ms），给用户看清错误的时间', async () => {
@@ -136,16 +133,18 @@ describe('useDynamicIsland 任务生命周期', () => {
     expect(island.activeTasks.value).toEqual([])
   })
 
-  it('信息态只在 success/error 入历史的规则外，因此不留历史', async () => {
+  it('duration 改写终态的停留时长', async () => {
     vi.useFakeTimers()
     const { islandStart, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
 
-    islandStart('t1', '提示').info('已知悉')
-    vi.advanceTimersByTime(2400)
+    islandStart('t1', '导出', { duration: 5000 }).success('导出完成')
 
+    vi.advanceTimersByTime(4999)
+    expect(island.activeTasks.value).toHaveLength(1)
+
+    vi.advanceTimersByTime(1)
     expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value).toEqual([])
   })
 
   it('终态未指定文案时沿用原标签', async () => {
@@ -343,7 +342,7 @@ describe('useDynamicIsland 面板展开与计时', () => {
     expect(island.expanded.value).toBe(false)
   })
 
-  it('仅剩历史记录时面板仍可展开', async () => {
+  it('最后一条消息消失后面板不再可展开', async () => {
     vi.useFakeTimers()
     const { islandStart, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
@@ -352,24 +351,10 @@ describe('useDynamicIsland 面板展开与计时', () => {
     vi.advanceTimersByTime(1600)
 
     expect(island.activeTasks.value).toEqual([])
-    expect(island.hasPanel.value).toBe(true)
-  })
-
-  it('清空历史后面板不再可展开', async () => {
-    vi.useFakeTimers()
-    const { islandStart, useDynamicIsland } = await loadModule()
-    const island = useDynamicIsland()
-
-    islandStart('m', '保存成功').success()
-    vi.advanceTimersByTime(1600)
-
-    island.clearHistory()
-
-    expect(island.history.value).toEqual([])
     expect(island.hasPanel.value).toBe(false)
   })
 
-  it('面板内手动关闭任务不写历史', async () => {
+  it('面板内手动关闭即移除这一条', async () => {
     const { islandStart, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
 
@@ -377,36 +362,99 @@ describe('useDynamicIsland 面板展开与计时', () => {
     island.dismissTask('m')
 
     expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value).toEqual([])
   })
 })
 
-describe('useDynamicIsland 历史上限', () => {
-  it('历史最多保留 20 条，最新在前', async () => {
-    vi.useFakeTimers()
+describe('useDynamicIsland 槽位与内容块', () => {
+  it('leading / trailing / blocks 随任务保存，patch 不带时沿用原值', async () => {
     const { islandStart, useDynamicIsland } = await loadModule()
-    const island = useDynamicIsland()
+    const task = islandStart('t', '上传', {
+      leading: { type: 'avatar', name: '张三' },
+      trailing: { type: 'elapsed' },
+      blocks: [
+        {
+          type: 'metric',
+          value: 4.33,
+          unit: 'GB',
+          caption: '已上传',
+        },
+      ],
+      actionLayout: 'bar',
+    })
 
-    for (let i = 1; i <= 22; i++) {
-      islandStart(`m${i}`, `消息${i}`).success()
-      vi.advanceTimersByTime(1600)
-    }
+    task.patch({ detail: '第 2 个文件' })
 
-    expect(island.history.value).toHaveLength(20)
-    expect(island.history.value[0]?.label).toBe('消息22')
-    expect(island.history.value.at(-1)?.label).toBe('消息3')
+    const current = useDynamicIsland().current.value
+    expect(current?.leading).toEqual({ type: 'avatar', name: '张三' })
+    expect(current?.trailing).toEqual({ type: 'elapsed' })
+    expect(current?.blocks).toEqual([
+      {
+        type: 'metric',
+        value: 4.33,
+        unit: 'GB',
+        caption: '已上传',
+      },
+    ])
+    expect(current?.actionLayout).toBe('bar')
+    expect(current?.detail).toBe('第 2 个文件')
   })
 
-  it('被限长挤掉的旧消息同样计入历史', async () => {
-    vi.useFakeTimers()
+  it('patch 给出的内容块整体替换原来的', async () => {
     const { islandStart, useDynamicIsland } = await loadModule()
-    const island = useDynamicIsland()
+    const task = islandStart('t', '上传', {
+      blocks: [
+        { type: 'text', text: '旧' },
+      ],
+    })
 
-    for (let i = 1; i <= 6; i++) {
-      islandStart(`m${i}`, `消息${i}`).success()
-    }
+    task.patch({
+      blocks: [
+        { type: 'progress', value: 30, label: '进度' },
+      ],
+    })
 
-    expect(island.history.value.map(item => item.label)).toEqual(['消息1'])
+    expect(useDynamicIsland().current.value?.blocks).toEqual([
+      { type: 'progress', value: 30, label: '进度' },
+    ])
+  })
+
+  it('调用方的组件不进响应式：两侧、内容块与列表行里的都保持原对象', async () => {
+    const { islandStart, useDynamicIsland } = await loadModule()
+    const Widget = defineComponent({
+      name: 'Widget',
+      render: () => null,
+    })
+
+    islandStart('t', '自定义', {
+      leading: { type: 'custom', component: Widget },
+      blocks: [
+        {
+          type: 'custom',
+          component: Widget,
+          props: { n: 1 },
+        },
+        {
+          type: 'list',
+          items: [
+            {
+              key: 'a',
+              label: 'A',
+              leading: { type: 'custom', component: Widget },
+            },
+          ],
+        },
+      ],
+    })
+
+    const current = useDynamicIsland().current.value
+    const leading = current?.leading
+    const [custom, list] = current?.blocks ?? []
+    const rowLeading = list?.type === 'list'
+      ? list.items[0]?.leading
+      : undefined
+    expect(leading?.type === 'custom' && !isProxy(leading.component)).toBe(true)
+    expect(custom?.type === 'custom' && !isProxy(custom.component)).toBe(true)
+    expect(rowLeading?.type === 'custom' && !isProxy(rowLeading.component)).toBe(true)
   })
 })
 
@@ -424,7 +472,7 @@ describe('useDynamicIsland 会话级持久化', () => {
     expect(saved.tasks.map(item => item.id)).toEqual(['server:job-1'])
   })
 
-  it('刷新后恢复服务端进行中任务与历史', async () => {
+  it('刷新后恢复服务端进行中任务', async () => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
       tasks: [
         {
@@ -432,15 +480,6 @@ describe('useDynamicIsland 会话级持久化', () => {
           label: '恢复的任务',
           progress: 40,
           startedAt: 1000,
-        },
-      ],
-      history: [
-        {
-          id: 'h1',
-          label: '历史项',
-          state: 'success',
-          order: 7,
-          time: 1,
         },
       ],
     }))
@@ -451,27 +490,6 @@ describe('useDynamicIsland 会话级持久化', () => {
     expect(island.activeTasks.value.map((item: IslandTask) => item.id)).toEqual(['server:job-1'])
     expect(island.activeTasks.value[0]?.progress).toBe(40)
     expect(island.activeTasks.value[0]?.startedAt).toBe(1000)
-    expect(island.history.value.map(item => item.label)).toEqual(['历史项'])
-  })
-
-  it('恢复历史后序号续接，新任务不会与恢复项撞 order', async () => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-      tasks: [],
-      history: [
-        {
-          id: 'h1',
-          label: '历史项',
-          state: 'success',
-          order: 7,
-          time: 1,
-        },
-      ],
-    }))
-
-    const { islandStart, useDynamicIsland } = await loadModule()
-    islandStart('new', '新任务')
-
-    expect(useDynamicIsland().current.value?.order).toBeGreaterThan(7)
   })
 
   it('损坏的持久化载荷被丢弃，不影响启动', async () => {
@@ -480,24 +498,6 @@ describe('useDynamicIsland 会话级持久化', () => {
     const { useDynamicIsland } = await loadModule()
 
     expect(useDynamicIsland().activeTasks.value).toEqual([])
-    expect(useDynamicIsland().history.value).toEqual([])
-  })
-
-  it('历史超过上限的持久化载荷在恢复时被截断到 20 条', async () => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-      tasks: [],
-      history: Array.from({ length: 30 }, (_, i) => ({
-        id: `h${i}`,
-        label: `历史${i}`,
-        state: 'success',
-        order: i,
-        time: i,
-      })),
-    }))
-
-    const { useDynamicIsland } = await loadModule()
-
-    expect(useDynamicIsland().history.value).toHaveLength(20)
   })
 })
 
@@ -542,7 +542,7 @@ describe('useDynamicIsland 服务端任务进度', () => {
     expect(useDynamicIsland().activeTasks.value[0]?.state).toBe('success')
   })
 
-  it('终态服务端任务照常倒计时消失并入历史', async () => {
+  it('终态服务端任务照常倒计时消失', async () => {
     vi.useFakeTimers()
     const { applyServerTaskProgress, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
@@ -551,7 +551,6 @@ describe('useDynamicIsland 服务端任务进度', () => {
     vi.advanceTimersByTime(3200)
 
     expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value.map(item => item.label)).toEqual(['任务失败'])
   })
 
   it('null 的 detail / progress / link 被规整为 undefined，不写进任务', async () => {

@@ -3,7 +3,7 @@
  * 职责：锁定上行保存 / 水合 / 远端下行三类场景共用同一套文案与节奏——
  * 起始「正在同步{name}…」、成功「{name}已同步」、失败「{name}同步失败」、
  * 远端下行一次性走「正在应用…」→「{name}已从其他设备同步」，
- * 以及 dismiss 为静默收尾（不落历史、不弹结果）
+ * 以及 dismiss 为静默收尾（直接移除、不弹结果）
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
 // 预热依赖图：被测模块引 ~/locales，会牵出七套语言包、vue-i18n 与 ~/utils 桶文件，首次转换在满并行下要数秒
@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的
 import '~/composables/useSettingSyncIsland'
 
-/** 每个用例一份全新模块状态：灵动岛的 tasks / history 是模块级的 */
+/** 每个用例一份全新模块状态：灵动岛的 tasks 是模块级的 */
 async function loadModule() {
   vi.resetModules()
   // 文案按区域懒加载：模块重置后要重新装一次（vitest-setup 装的是上一份实例）
@@ -62,14 +62,12 @@ describe('settingSyncIsland 上行同步', () => {
     expect(current?.state).toBe('error')
   })
 
-  it('静默收尾直接移除任务，不弹结果也不入历史', async () => {
+  it('静默收尾直接移除任务，不弹结果', async () => {
     const { settingSyncIsland, useDynamicIsland } = await loadModule()
 
     settingSyncIsland('sync:search', '搜索设置').dismiss()
 
-    const island = useDynamicIsland()
-    expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value).toEqual([])
+    expect(useDynamicIsland().activeTasks.value).toEqual([])
   })
 
   it('同一个 id 复用同一条，重复保存不会堆出多条提示', async () => {
@@ -90,16 +88,17 @@ describe('settingSyncIsland 上行同步', () => {
     expect(useDynamicIsland().activeTasks.value).toHaveLength(2)
   })
 
-  it('成功收尾后按成功停留时长自动消失并入历史', async () => {
+  it('成功收尾后按成功停留时长自动消失', async () => {
     vi.useFakeTimers()
     const { settingSyncIsland, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
 
     settingSyncIsland('sync:pref', '偏好设置').success()
-    vi.advanceTimersByTime(1600)
+    vi.advanceTimersByTime(1599)
+    expect(island.current.value?.label).toBe('偏好设置已同步')
 
+    vi.advanceTimersByTime(1)
     expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value.map(item => item.label)).toEqual(['偏好设置已同步'])
   })
 
   it('设置名为空串时文案退化为不带名称，仍不产生裸 key', async () => {
@@ -131,16 +130,17 @@ describe('settingSyncRemoteApplied 远端下行', () => {
     expect(current?.state).toBe('success')
   })
 
-  it('下行提示同样按成功节奏消失并入历史', async () => {
+  it('下行提示同样按成功节奏消失', async () => {
     vi.useFakeTimers()
     const { settingSyncRemoteApplied, useDynamicIsland } = await loadModule()
     const island = useDynamicIsland()
 
     settingSyncRemoteApplied('sync:remote:fav', '收藏夹')
-    vi.advanceTimersByTime(1600)
+    vi.advanceTimersByTime(1599)
+    expect(island.current.value?.label).toBe('收藏夹已从其他设备同步')
 
+    vi.advanceTimersByTime(1)
     expect(island.activeTasks.value).toEqual([])
-    expect(island.history.value.map(item => item.label)).toEqual(['收藏夹已从其他设备同步'])
   })
 
   it('同 id 的多次下行提示复用同一条，不刷屏', async () => {

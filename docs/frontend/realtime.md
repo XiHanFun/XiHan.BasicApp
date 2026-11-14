@@ -31,7 +31,7 @@
 | --- | --- |
 | `ForceLogout` | 会话被吊销：载荷带 `targetSessionIds` 时只处理本会话；断开连接、清会话，弹窗提示原因，确认后退出 |
 | `ReceiveNotification` | 右下角通知卡片（纯文本摘要，5 秒）、提示音，并通知顶栏的通知中心刷新 |
-| `TaskProgress` | 导出等后台任务进度，显示在灵动岛（`applyServerTaskProgress`） |
+| `TaskProgress` | 导出等后台任务进度，显示在[灵动岛](./dynamic-island)（`applyServerTaskProgress`） |
 | `UserSettingChanged` | 同一用户在其他设备上改了设置：偏好与收藏按 `settingKey` 实时应用；页面设置（`scene = Page`：列设置、搜索设置、个人视图、看板布局）按页面码分发给已打开的页面，关着对应同步开关的部分不应用；载荷带 `sourceClientId`，本端据此忽略自己的回显 |
 
 推送不保证送达：断线期间错过的通知以收件箱为准（打开通知中心或刷新时重新拉取）。强制阅读与登录弹窗的公告由布局在挂载时经 `inbox.mandatory`、`inbox.popups` 拉取，不依赖推送。
