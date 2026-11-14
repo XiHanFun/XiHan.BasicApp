@@ -34,6 +34,30 @@ public sealed class ListChatAuditMessages(ChatAuditQueries queries) : IOperation
 }
 
 /// <summary>
+/// 聊天审计的通话记录
+/// </summary>
+/// <remarks>
+/// <c>POST /api/chat-audit:list-calls</c>。当前一侧全部会话的通话，不要求是成员；只有状态与参与者，筛选与排序见 <see cref="ChatAuditQueries"/>
+/// </remarks>
+/// <param name="queries">审计查询</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatAuditRead)]
+public sealed class ListChatAuditCalls(ChatAuditQueries queries) : IOperation<PageRequest, PageResult<ChatAuditCallResponse>>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-audit.list-calls";
+
+    /// <inheritdoc />
+    public ValueTask<Result<PageResult<ChatAuditCallResponse>>> HandleAsync(PageRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        return queries.CallsAsync(request, context);
+    }
+}
+
+/// <summary>
 /// 聊天审计的消息详情
 /// </summary>
 /// <remarks>

@@ -77,6 +77,7 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(GetChatAuditMessageRequest))]
 [JsonSerializable(typeof(ChatAuditMessageDetailResponse))]
 [JsonSerializable(typeof(ChatAuditMembersResponse))]
+[JsonSerializable(typeof(PageResult<ChatAuditCallResponse>))]
 [JsonSerializable(typeof(BatchResult))]
 [JsonSerializable(typeof(ChatMessagePushPayload))]
 [JsonSerializable(typeof(ChatMessageRecalledPayload))]

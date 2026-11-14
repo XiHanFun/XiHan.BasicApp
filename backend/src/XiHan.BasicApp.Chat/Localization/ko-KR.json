@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "채팅 메시지",
   "openapi.tags.chat_messages.description": "메시지 기록과 검색, 보내기, 전송 취소, 수정, 반응, 고정, 전달과 첨부 파일.",
   "openapi.tags.chat_audit.name": "채팅 감사",
-  "openapi.tags.chat_audit.description": "멤버가 아니어도 현재 측의 메시지, 메시지 상세와 대화 멤버를 조회합니다.",
+  "openapi.tags.chat_audit.description": "멤버가 아니어도 현재 측의 메시지, 메시지 상세, 대화 멤버와 통화 기록을 조회합니다.",
   "permissions.chat.chat_conversations.read.name": "채팅 대화 사용",
   "permissions.chat.chat_conversations.read.description": "호출자의 대화를 나열하고 열며, 구성원과 읽음 위치를 조회하고, 나가기, 고정, 알림 끄기, 읽음 표시를 합니다.",
   "permissions.chat.chat_conversations.manage.name": "그룹 채팅 관리",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "채팅 메시지 보내기",
   "permissions.chat.chat_messages.send.description": "호출자가 속한 대화에서 메시지를 보내기, 회수, 편집, 반응, 고정, 전달하고 첨부 파일을 업로드합니다.",
   "permissions.chat.chat_audit.read.name": "채팅 감사",
-  "permissions.chat.chat_audit.read.description": "호출자 측의 모든 메시지를 검색하고, 대화 구성원이 아니어도 메시지 상세와 대화 구성원을 조회합니다.",
+  "permissions.chat.chat_audit.read.description": "호출자 측의 모든 메시지와 통화 기록을 검색하고, 대화 구성원이 아니어도 메시지 상세와 대화 구성원을 조회합니다.",
   "chat_conversations.assistants.title": "사용 가능한 어시스턴트",
   "chat_conversations.assistants.description": "채팅에서 사용할 수 있는 어시스턴트를 나열합니다. AI 모듈이 없으면 어시스턴트를 사용할 수 없다고 알립니다.",
   "chat_conversations.open_assistant.title": "어시스턴트 대화 열기",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "대화에서 회수되지 않은 이미지 메시지 또는 파일 메시지를 최신순으로 나열합니다. 구성원만 볼 수 있습니다.",
   "chat_conversations.dissolve.title": "그룹 채팅 해산",
   "chat_conversations.dissolve.description": "방장이 그룹 채팅을 해산합니다. 모든 구성원이 나가게 되고 누구의 대화 목록에도 남지 않습니다. 메시지는 남아 채팅 감사에서 계속 볼 수 있습니다.",
-  "chat.system.group_dissolved": "{name} 님이 그룹 채팅을 해산했습니다"
+  "chat.system.group_dissolved": "{name} 님이 그룹 채팅을 해산했습니다",
+  "chat_audit.list_calls.title": "통화 기록 감사",
+  "chat_audit.list_calls.description": "구성원이 아니어도 현재 측 모든 대화의 통화를 페이지 단위로 조회합니다. 누가 걸었는지, 누가 참여했는지와 각자의 상태, 결과와 통화 시간을 보여 주며 통화 내용은 포함하지 않습니다. 대화, 발신자, 참여자, 미디어, 상태, 종료 사유, 발신 시각으로 필터링할 수 있습니다."
 }

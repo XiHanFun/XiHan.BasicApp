@@ -205,6 +205,11 @@ public static class ChatMessages
     public const string MembersChatAuditDescription = "chat_audit.members.description";
 
     /// <summary>
+    /// 操作 <c>chat-audit.list-calls</c> 的说明
+    /// </summary>
+    public const string ListCallsChatAuditDescription = "chat_audit.list_calls.description";
+
+    /// <summary>
     /// 会话不存在
     /// </summary>
     public const string ConversationNotFound = "chat.conversation.not_found";

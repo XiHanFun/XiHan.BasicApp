@@ -162,7 +162,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | --- | --- |
 | `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`dissolve`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
 | `chat-messages` | `history`、`search`、`search-all`、`media`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
-| `chat-audit` | `list`、`get`、`members` |
+| `chat-audit` | `list`、`get`、`members`、`list-calls`（都只读） |
 | `chat-calls` | `active`、`ongoing`、`settings`、`ice-servers`（只读）；`start`、`accept`、`reject`、`join`、`hangup` |
 
 普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`，要 `chat.chat-messages.send`，访问日志记作 `chat-messages.upload`）。
@@ -240,14 +240,17 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 ## 聊天审计
 
-持 `chat.chat-audit.read` 即看当前一侧全部会话的消息，不要求是成员：
+持 `chat.chat-audit.read` 即看当前一侧全部会话的消息与通话记录，不要求是成员：
 
 - 列表按关键字（正文、发送人名、附件）与会话、发送人、消息类型（含通话记录与聊天记录）、发送时间、是否撤回筛选，缺省不含已撤回的，筛选 `includeRecalled` 为 `true` 即都看；
 - 消息详情带所在会话、附件、提及（含提及所有人）、回复与表情回应；
 - 会话成员列出会话与它现在的成员；
-- 已解散的群照样查得到：消息还在（末尾是那条解散提示），会话带解散时间 `dissolvedAt`，成员列的是解散时还在里面的人。
+- 已解散的群照样查得到：消息还在（末尾是那条解散提示），会话带解散时间 `dissolvedAt`，成员列的是解散时还在里面的人；
+- 通话记录（`chat-audit.list-calls`）按发起时间倒着列出通话：所在会话、发起人、媒体、状态与结束原因、发起 / 接通 / 结束时间、时长（没接通或还没结束为空），以及每个参与者的状态与进出时间。可按会话、发起人、参与者（`participantUserId`）、媒体、状态（`eq`）、结束原因（`eq` / `in`）与发起时间（`startedAt` 的 `ge` / `le`）筛选，只能按发起时间排序，没有关键字；不认识的筛选、排序与关键字一律 `CHAT_VALIDATION_025`。媒体在浏览器之间直连、不经服务端，所以只有通话的状态可查，没有通话内容。
 
 撤回清空的正文与编辑前的正文不另留。
+
+前端的审计页一页两签：「消息」是消息列表、消息详情与会话成员，「通话记录」是通话列表，行上的「详情」看参与者、「成员」看所在会话的成员。
 
 ## 策略与保留清理
 

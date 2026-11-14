@@ -1264,6 +1264,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-audit:list-calls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Audit call records
+         * @description Pages through the calls of every conversation on the caller's side without membership: who started each one, who took part, their statuses, the outcome and the duration, never the call content; filterable by conversation, initiator, participant, media, status, end reason and start time.
+         *
+         *     Requires permission chat.chat-audit.read (Audit chat messages).
+         */
+        post: operations["chat-audit.list-calls"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-audit:members": {
         parameters: {
             query?: never;
@@ -10921,6 +10943,58 @@ export interface components {
         ChatAttachmentUploadResponse: {
             /** @description 附件；秒传没命中为空，前端再走普通上传（POST /api/chat-messages/attachments，总有值） */
             attachment?: components["schemas"]["ChatAttachmentResponse"] | null;
+        };
+        /** @description 审计里的一通电话 */
+        ChatAuditCallResponse: {
+            /**
+             * Format: uuid
+             * @description 通话
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description 会话
+             */
+            conversationId: string;
+            /** @description 会话名称（单聊为空） */
+            conversationName?: string | null;
+            /** @description 会话类型 */
+            conversationType: components["schemas"]["ChatConversationType"];
+            /**
+             * Format: uuid
+             * @description 发起人
+             */
+            initiatorUserId: string;
+            /** @description 发起人的用户名 */
+            initiatorUserName?: string | null;
+            /** @description 媒体 */
+            media: components["schemas"]["ChatCallMedia"];
+            /** @description 状态 */
+            status: components["schemas"]["ChatCallStatus"];
+            /** @description 结束的原因；没结束为空 */
+            endReason?: components["schemas"]["ChatCallEndReason"] | null;
+            /**
+             * Format: date-time
+             * @description 发起时间（UTC）
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description 接通时间（UTC）；没接通为空
+             */
+            answeredAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 结束时间（UTC）；没结束为空
+             */
+            endedAt?: string | null;
+            /**
+             * Format: int32
+             * @description 通话时长（秒）；没接通或还没结束为空
+             */
+            durationSeconds?: number | null;
+            /** @description 参与者（发起人在前） */
+            participants: components["schemas"]["ChatCallParticipantItem"][];
         };
         /** @description 审计里的会话 */
         ChatAuditConversationResponse: {
@@ -20812,6 +20886,49 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["ChatAuditMessageResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-audit.list-calls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ChatAuditCallResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

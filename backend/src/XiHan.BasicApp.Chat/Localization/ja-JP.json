@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "チャットメッセージ",
   "openapi.tags.chat_messages.description": "メッセージ履歴と検索、送信、取り消し、編集、リアクション、ピン留め、転送と添付ファイル。",
   "openapi.tags.chat_audit.name": "チャット監査",
-  "openapi.tags.chat_audit.description": "メンバーでなくても、呼び出し側のメッセージ、メッセージ詳細、会話メンバーを参照します。",
+  "openapi.tags.chat_audit.description": "メンバーでなくても、呼び出し側のメッセージ、メッセージ詳細、会話メンバー、通話記録を参照します。",
   "permissions.chat.chat_conversations.read.name": "チャット会話の利用",
   "permissions.chat.chat_conversations.read.description": "呼び出し元の会話を一覧表示して開き、メンバーと既読位置を参照し、退出、ピン留め、ミュート、既読化を行います。",
   "permissions.chat.chat_conversations.manage.name": "グループチャットの管理",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "チャットメッセージの送信",
   "permissions.chat.chat_messages.send.description": "呼び出し元が参加している会話で、メッセージの送信、取り消し、編集、リアクション、ピン留め、転送と添付ファイルのアップロードを行います。",
   "permissions.chat.chat_audit.read.name": "チャット監査",
-  "permissions.chat.chat_audit.read.description": "現在の側のすべてのメッセージを検索し、会話のメンバーでなくてもメッセージの詳細と会話のメンバーを参照します。",
+  "permissions.chat.chat_audit.read.description": "現在の側のすべてのメッセージと通話記録を検索し、会話のメンバーでなくてもメッセージの詳細と会話のメンバーを参照します。",
   "chat_conversations.assistants.title": "利用可能なアシスタント",
   "chat_conversations.assistants.description": "チャットで利用できるアシスタントを一覧表示します。AI モジュールがない場合はアシスタント利用不可を返します。",
   "chat_conversations.open_assistant.title": "アシスタントとの会話を開く",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "チャット内の取り消されていない画像メッセージまたはファイルメッセージを新しい順に一覧します。メンバーだけが見られます。",
   "chat_conversations.dissolve.title": "グループチャットを解散",
   "chat_conversations.dissolve.description": "オーナーがグループチャットを解散します。全メンバーが外され、誰のチャット一覧からも消えます。メッセージは残り、チャット監査では引き続き確認できます。",
-  "chat.system.group_dissolved": "{name} がグループチャットを解散しました"
+  "chat.system.group_dissolved": "{name} がグループチャットを解散しました",
+  "chat_audit.list_calls.title": "通話記録の監査",
+  "chat_audit.list_calls.description": "メンバーでなくても、現在の側のすべての会話の通話をページ単位で取得します。発信者、参加者とそれぞれの状態、結果と通話時間が分かり、通話の内容は含みません。会話、発信者、参加者、メディア、状態、終了理由、発信日時で絞り込めます。"
 }

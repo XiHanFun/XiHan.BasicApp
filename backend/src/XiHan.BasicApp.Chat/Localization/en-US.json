@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "Chat messages",
   "openapi.tags.chat_messages.description": "Message history and search; sending, recalling, editing, reacting, pinning, forwarding and attachments.",
   "openapi.tags.chat_audit.name": "Chat audit",
-  "openapi.tags.chat_audit.description": "Messages, message details and conversation members on the caller's side without membership.",
+  "openapi.tags.chat_audit.description": "Messages, message details, conversation members and call records on the caller's side without membership.",
   "permissions.chat.chat_conversations.read.name": "Use chat conversations",
   "permissions.chat.chat_conversations.read.description": "List and open the caller's conversations, read members and read positions, leave, pin, mute and mark conversations as read.",
   "permissions.chat.chat_conversations.manage.name": "Manage group chats",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "Send chat messages",
   "permissions.chat.chat_messages.send.description": "Send, recall, edit, react to, pin, forward messages and upload attachments in conversations the caller belongs to.",
   "permissions.chat.chat_audit.read.name": "Audit chat messages",
-  "permissions.chat.chat_audit.read.description": "Search every message on the caller's side, view message details and conversation members without being a member.",
+  "permissions.chat.chat_audit.read.description": "Search every message and call record on the caller's side, view message details and conversation members without being a member.",
   "chat_conversations.assistants.title": "List available assistants",
   "chat_conversations.assistants.description": "List the assistants available in chat. Reports assistants as unavailable when the AI module is not installed.",
   "chat_conversations.open_assistant.title": "Open an assistant conversation",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "Lists the image messages or file messages of a conversation that have not been recalled, newest first; members only.",
   "chat_conversations.dissolve.title": "Dissolve group chat",
   "chat_conversations.dissolve.description": "The owner dissolves a group chat: every member is removed and it disappears from all conversation lists; the messages are kept and stay visible to chat audit.",
-  "chat.system.group_dissolved": "{name} dissolved the group chat"
+  "chat.system.group_dissolved": "{name} dissolved the group chat",
+  "chat_audit.list_calls.title": "Audit call records",
+  "chat_audit.list_calls.description": "Pages through the calls of every conversation on the caller's side without membership: who started each one, who took part, their statuses, the outcome and the duration, never the call content; filterable by conversation, initiator, participant, media, status, end reason and start time."
 }

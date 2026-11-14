@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "Chat-Nachrichten",
   "openapi.tags.chat_messages.description": "Nachrichtenverlauf und Suche; Senden, Zurückrufen, Bearbeiten, Reagieren, Anheften, Weiterleiten und Anhänge.",
   "openapi.tags.chat_audit.name": "Chat-Audit",
-  "openapi.tags.chat_audit.description": "Nachrichten, Nachrichtendetails und Mitglieder von Unterhaltungen auf der Seite des Aufrufers, ohne Mitgliedschaft.",
+  "openapi.tags.chat_audit.description": "Nachrichten, Nachrichtendetails, Mitglieder von Unterhaltungen und Anrufprotokolle auf der Seite des Aufrufers, ohne Mitgliedschaft.",
   "permissions.chat.chat_conversations.read.name": "Chat-Unterhaltungen nutzen",
   "permissions.chat.chat_conversations.read.description": "Die eigenen Unterhaltungen auflisten und öffnen, Mitglieder und Lesepositionen ansehen, Unterhaltungen verlassen, anheften, stummschalten und als gelesen markieren.",
   "permissions.chat.chat_conversations.manage.name": "Gruppenchats verwalten",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "Chat-Nachrichten senden",
   "permissions.chat.chat_messages.send.description": "In den eigenen Unterhaltungen Nachrichten senden, zurückrufen, bearbeiten, darauf reagieren, anheften, weiterleiten und Anhänge hochladen.",
   "permissions.chat.chat_audit.read.name": "Chat-Nachrichten prüfen",
-  "permissions.chat.chat_audit.read.description": "Alle Nachrichten der eigenen Seite durchsuchen und Nachrichtendetails sowie Gesprächsmitglieder ansehen, ohne Mitglied zu sein.",
+  "permissions.chat.chat_audit.read.description": "Alle Nachrichten und Anrufprotokolle der eigenen Seite durchsuchen und Nachrichtendetails sowie Gesprächsmitglieder ansehen, ohne Mitglied zu sein.",
   "chat_conversations.assistants.title": "Verfügbare Assistenten auflisten",
   "chat_conversations.assistants.description": "Listet die im Chat verfügbaren Assistenten auf. Meldet sie als nicht verfügbar, wenn das KI-Modul nicht installiert ist.",
   "chat_conversations.open_assistant.title": "Assistenten-Unterhaltung öffnen",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "Listet die nicht zurückgerufenen Bild- oder Dateinachrichten einer Unterhaltung, neueste zuerst; nur für Mitglieder.",
   "chat_conversations.dissolve.title": "Gruppenchat auflösen",
   "chat_conversations.dissolve.description": "Der Inhaber löst einen Gruppenchat auf: Alle Mitglieder werden entfernt und er verschwindet aus allen Unterhaltungslisten; die Nachrichten bleiben erhalten und sind im Chat-Audit weiterhin sichtbar.",
-  "chat.system.group_dissolved": "{name} hat den Gruppenchat aufgelöst"
+  "chat.system.group_dissolved": "{name} hat den Gruppenchat aufgelöst",
+  "chat_audit.list_calls.title": "Anrufprotokolle prüfen",
+  "chat_audit.list_calls.description": "Listet seitenweise die Anrufe aller Unterhaltungen der eigenen Seite auf, ohne Mitgliedschaft: wer angerufen hat, wer teilgenommen hat, die jeweiligen Status, das Ergebnis und die Dauer, nie den Gesprächsinhalt; filterbar nach Unterhaltung, Anrufer, Teilnehmer, Medium, Status, Beendigungsgrund und Startzeit."
 }

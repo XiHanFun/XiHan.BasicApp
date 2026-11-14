@@ -76,6 +76,7 @@ export const routes = {
   'caches.update': { method: 'PUT', template: '/api/caches', path: [], query: [], success: 200 },
   'chat-audit.get': { method: 'GET', template: '/api/chat-audit/{id}', path: ['id'], query: [], success: 200 },
   'chat-audit.list': { method: 'POST', template: '/api/chat-audit:list', path: [], query: [], success: 200 },
+  'chat-audit.list-calls': { method: 'POST', template: '/api/chat-audit:list-calls', path: [], query: [], success: 200 },
   'chat-audit.members': { method: 'GET', template: '/api/chat-audit:members', path: [], query: ['conversationId'], success: 200 },
   'chat-calls.accept': { method: 'POST', template: '/api/chat-calls:accept', path: [], query: [], success: 200 },
   'chat-calls.active': { method: 'GET', template: '/api/chat-calls:active', path: [], query: [], success: 200 },
@@ -645,6 +646,7 @@ export const caches = {
 export const chatAudit = {
   get: (request: RequestOf<'chat-audit.get'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.get'>, ResponseOf<'chat-audit.get'>>('chat-audit.get', routes['chat-audit.get'], request, options),
   list: (request: RequestOf<'chat-audit.list'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.list'>, ResponseOf<'chat-audit.list'>>('chat-audit.list', routes['chat-audit.list'], request, options),
+  listCalls: (request: RequestOf<'chat-audit.list-calls'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.list-calls'>, ResponseOf<'chat-audit.list-calls'>>('chat-audit.list-calls', routes['chat-audit.list-calls'], request, options),
   members: (request: RequestOf<'chat-audit.members'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.members'>, ResponseOf<'chat-audit.members'>>('chat-audit.members', routes['chat-audit.members'], request, options),
 }
 

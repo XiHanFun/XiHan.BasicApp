@@ -6,7 +6,9 @@ using SqlSugar;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Domain.Services;
 using XiHan.BasicApp.Chat.Operations.ChatAudit;
+using XiHan.BasicApp.Chat.Operations.ChatCalls;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Primitives;
 
@@ -20,6 +22,8 @@ namespace XiHan.BasicApp.Chat.Queries;
 /// 筛选 <c>conversationId</c>、<c>senderUserId</c>（<c>eq</c>）、<c>messageType</c>（<c>eq</c> / <c>in</c>）、<c>createdAt</c>（<c>ge</c> / <c>le</c>）、<c>isRecalled</c>（<c>eq</c>）；
 /// 没给 <c>isRecalled</c> 时缺省不含已撤回的，给 <c>includeRecalled</c> 为 <c>true</c> 即都看
 /// 排序 <c>createdAt</c>、<c>messageType</c>，缺省按发送时间倒序。另有消息详情与会话成员（方案 H4）
+/// 通话记录另列：筛选 <c>conversationId</c>、<c>initiatorUserId</c>、<c>participantUserId</c>、<c>media</c>、<c>status</c>（<c>eq</c>）、<c>endReason</c>（<c>eq</c> / <c>in</c>）、<c>startedAt</c>（<c>ge</c> / <c>le</c>），
+/// 排序 <c>startedAt</c>、缺省倒序，没有关键字
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
 /// <param name="chats">聊天的查询（成员条目）</param>
@@ -31,6 +35,12 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     private const string FieldCreatedAt = "createdAt";
     private const string FieldIsRecalled = "isRecalled";
     private const string FieldIncludeRecalled = "includeRecalled";
+    private const string FieldInitiatorUserId = "initiatorUserId";
+    private const string FieldParticipantUserId = "participantUserId";
+    private const string FieldMedia = "media";
+    private const string FieldStatus = "status";
+    private const string FieldEndReason = "endReason";
+    private const string FieldStartedAt = "startedAt";
 
     /// <summary>
     /// 分页列出消息
@@ -140,6 +150,62 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     }
 
     /// <summary>
+    /// 分页列出通话
+    /// </summary>
+    /// <remarks>
+    /// 每通带它的参与者与各自的状态；解散了的群里的通话照样列出
+    /// </remarks>
+    public async ValueTask<Result<PageResult<ChatAuditCallResponse>>> CallsAsync(PageRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var side = SideRows.SideOf(context);
+        var cancellationToken = context.CancellationToken;
+        if (!string.IsNullOrWhiteSpace(request.Keyword))
+        {
+            // 通话没有可按关键字找的文字
+            return Error.Validation(ChatErrors.QueryUnsupported, ChatMessages.FilterUnsupported, MessageArguments.Of(("field", "keyword"), ("operator", "contains")));
+        }
+
+        var query = store.Calls(side);
+        foreach (var filter in request.Filters)
+        {
+            var filtered = ApplyCall(query, side, filter, filter.Value?.Trim() ?? string.Empty);
+            if (!filtered.TryGetValue(out query))
+            {
+                return filtered.Error!;
+            }
+        }
+
+        if (request.Sorts.Count == 0)
+        {
+            query = query.OrderBy(c => c.CreatedAt, OrderByType.Desc).OrderBy(c => c.Id, OrderByType.Desc);
+        }
+
+        foreach (var sort in request.Sorts)
+        {
+            if (!string.Equals(sort.Field, FieldStartedAt, StringComparison.Ordinal))
+            {
+                return Error.Validation(ChatErrors.QueryUnsupported, ChatMessages.SortUnsupported, MessageArguments.Of(("field", sort.Field)));
+            }
+
+            var direction = sort.Descending ? OrderByType.Desc : OrderByType.Asc;
+            query = query.OrderBy(c => c.CreatedAt, direction).OrderBy(c => c.Id, direction);
+        }
+
+        var total = new RefAsync<int>();
+        var rows = await query.ToPageListAsync(request.Page.Index, request.Page.Size, total, cancellationToken).ConfigureAwait(false);
+        var callIds = rows.Select(static c => c.Id).ToList();
+        var participants = callIds.Count == 0
+            ? []
+            : await store.CallParticipants(side).Where(p => callIds.Contains(p.CallId)).ToListAsync(cancellationToken).ConfigureAwait(false);
+        var conversations = await ConversationsAsync(side, [.. rows.Select(static c => c.ConversationId)], cancellationToken).ConfigureAwait(false);
+        var users = await store.UsersAsync([.. rows.Select(static c => c.InitiatorUserId), .. participants.Select(static p => p.UserId)], cancellationToken).ConfigureAwait(false);
+        var byCall = participants.ToLookup(static p => p.CallId);
+        return new PageResult<ChatAuditCallResponse>([.. rows.Select(c => CallOf(c, conversations.GetValueOrDefault(c.ConversationId), byCall[c.Id], users))], total.Value, request.Page);
+    }
+
+    /// <summary>
     /// 会话与它现在的成员
     /// </summary>
     /// <remarks>
@@ -190,6 +256,71 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
             message.IsRecalled,
             message.EditedAt,
             message.CreatedAt);
+    }
+
+    private static ChatAuditCallResponse CallOf(SysChatCall call, SysChatConversation? conversation, IEnumerable<SysChatCallParticipant> participants, IReadOnlyDictionary<Guid, SysUser> users)
+        => new(
+            call.Id,
+            call.ConversationId,
+            conversation?.Type == ChatConversationType.Single ? null : conversation?.Name,
+            conversation?.Type ?? ChatConversationType.Single,
+            call.InitiatorUserId,
+            users.GetValueOrDefault(call.InitiatorUserId)?.UserName,
+            call.Media,
+            call.Status,
+            call.EndReason,
+            call.CreatedAt,
+            call.AnsweredAt,
+            call.EndedAt,
+            call is { AnsweredAt: { } answered, EndedAt: { } ended } ? Math.Max(0, (int)(ended - answered).TotalSeconds) : null,
+            [.. participants
+                .OrderByDescending(p => p.UserId == call.InitiatorUserId)
+                .ThenBy(static p => p.UserId)
+                .Select(p =>
+                {
+                    var user = users.GetValueOrDefault(p.UserId);
+                    return new ChatCallParticipantItem(p.UserId, user?.UserName, user?.DisplayName, user?.AvatarFileId, p.Status, p.JoinedAt, p.LeftAt);
+                })]);
+
+    private static Result<ISugarQueryable<SysChatCall>> ApplyCall(ISugarQueryable<SysChatCall> query, string side, PageFilter filter, string value)
+    {
+        switch (filter.Field, filter.Operator)
+        {
+            case (FieldConversationId, "eq"):
+                return Guid.TryParse(value, out var conversationId) ? Result.Success(query.Where(c => c.ConversationId == conversationId)) : Unsupported(filter);
+            case (FieldInitiatorUserId, "eq"):
+                return Guid.TryParse(value, out var initiatorId) ? Result.Success(query.Where(c => c.InitiatorUserId == initiatorId)) : Unsupported(filter);
+            case (FieldParticipantUserId, "eq"):
+                return Guid.TryParse(value, out var participantId)
+                    ? Result.Success(query.Where(c => SqlFunc.Subqueryable<SysChatCallParticipant>().Where(p => p.CallId == c.Id && p.UserId == participantId && p.TenantId == side && !p.IsDeleted).Any()))
+                    : Unsupported(filter);
+            case (FieldMedia, "eq"):
+                return Enum.TryParse<ChatCallMedia>(value, ignoreCase: true, out var media) && Enum.IsDefined(media) ? Result.Success(query.Where(c => c.Media == media)) : Unsupported(filter);
+            case (FieldStatus, "eq"):
+                return Enum.TryParse<ChatCallStatus>(value, ignoreCase: true, out var status) && Enum.IsDefined(status) ? Result.Success(query.Where(c => c.Status == status)) : Unsupported(filter);
+            case (FieldEndReason, "eq" or "in"):
+                var reasons = new List<ChatCallEndReason?>();
+                foreach (var part in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (!Enum.TryParse<ChatCallEndReason>(part, ignoreCase: true, out var parsed) || !Enum.IsDefined(parsed))
+                    {
+                        return Unsupported(filter);
+                    }
+
+                    reasons.Add(parsed);
+                }
+
+                return reasons.Count == 0 ? Unsupported(filter) : Result.Success(query.Where(c => reasons.Contains(c.EndReason)));
+            case (FieldStartedAt, "ge" or "le"):
+                if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var at))
+                {
+                    return Unsupported(filter);
+                }
+
+                return Result.Success(string.Equals(filter.Operator, "ge", StringComparison.Ordinal) ? query.Where(c => c.CreatedAt >= at) : query.Where(c => c.CreatedAt <= at));
+            default:
+                return Unsupported(filter);
+        }
     }
 
     private static Result<ISugarQueryable<SysChatMessage>> Apply(ISugarQueryable<SysChatMessage> query, PageFilter filter, string value)

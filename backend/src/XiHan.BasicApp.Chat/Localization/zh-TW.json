@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "聊天訊息",
   "openapi.tags.chat_messages.description": "訊息記錄與搜尋，傳送、收回、編輯、回應、置頂、轉發與附件。",
   "openapi.tags.chat_audit.name": "聊天稽核",
-  "openapi.tags.chat_audit.description": "無須是成員即可查看目前一側的訊息、訊息詳情與對話成員。",
+  "openapi.tags.chat_audit.description": "無須是成員即可查看目前一側的訊息、訊息詳情、對話成員與通話記錄。",
   "permissions.chat.chat_conversations.read.name": "使用聊天對話",
   "permissions.chat.chat_conversations.read.description": "列出並開啟呼叫者的對話，查看成員與已讀位置，退出、置頂、靜音並標記已讀。",
   "permissions.chat.chat_conversations.manage.name": "管理群組聊天",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "傳送聊天訊息",
   "permissions.chat.chat_messages.send.description": "在呼叫者所在的對話中傳送、收回、編輯、回應、置頂、轉寄訊息與上傳附件。",
   "permissions.chat.chat_audit.read.name": "聊天稽核",
-  "permissions.chat.chat_audit.read.description": "查看目前一側的全部訊息，不必是對話成員也能查看訊息詳情與對話成員。",
+  "permissions.chat.chat_audit.read.description": "查看目前一側的全部訊息與通話記錄，不必是對話成員也能查看訊息詳情與對話成員。",
   "chat_conversations.assistants.title": "可用的助手",
   "chat_conversations.assistants.description": "列出聊天裡可用的助手；AI 模組沒有裝配時回報助手不可用。",
   "chat_conversations.open_assistant.title": "開啟助手會話",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "列出對話中未收回的圖片訊息或檔案訊息，最近的在前；只有成員能看。",
   "chat_conversations.dissolve.title": "解散群組",
   "chat_conversations.dissolve.description": "群組擁有者解散群組聊天：全部成員移出，任何人的對話清單裡都不再有它；訊息保留，聊天稽核仍然看得到。",
-  "chat.system.group_dissolved": "{name} 解散了群組聊天"
+  "chat.system.group_dissolved": "{name} 解散了群組聊天",
+  "chat_audit.list_calls.title": "稽核通話記錄",
+  "chat_audit.list_calls.description": "分頁查詢目前一側全部對話的通話，無須是成員：誰發起的、誰在裡面、各自的狀態、結果與時長，不含通話內容；可依對話、發起人、參與者、媒體、狀態、結束原因與發起時間篩選。"
 }

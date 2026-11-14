@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "Messages de chat",
   "openapi.tags.chat_messages.description": "Historique et recherche de messages ; envoi, retrait, modification, réactions, épinglage, transfert et pièces jointes.",
   "openapi.tags.chat_audit.name": "Audit du chat",
-  "openapi.tags.chat_audit.description": "Messages, détails des messages et membres des conversations du côté de l’appelant, sans être membre.",
+  "openapi.tags.chat_audit.description": "Messages, détails des messages, membres des conversations et journaux d’appels du côté de l’appelant, sans être membre.",
   "permissions.chat.chat_conversations.read.name": "Utiliser les conversations de chat",
   "permissions.chat.chat_conversations.read.description": "Lister et ouvrir les conversations de l’appelant, consulter les membres et les positions de lecture, quitter, épingler, mettre en sourdine et marquer comme lues.",
   "permissions.chat.chat_conversations.manage.name": "Gérer les discussions de groupe",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "Envoyer des messages de chat",
   "permissions.chat.chat_messages.send.description": "Envoyer, rappeler, modifier, épingler et transférer des messages, y réagir et téléverser des pièces jointes dans les conversations de l’appelant.",
   "permissions.chat.chat_audit.read.name": "Auditer les messages de chat",
-  "permissions.chat.chat_audit.read.description": "Rechercher tous les messages de son côté et consulter le détail des messages et les membres des conversations sans en être membre.",
+  "permissions.chat.chat_audit.read.description": "Rechercher tous les messages et journaux d’appels de son côté et consulter le détail des messages et les membres des conversations sans en être membre.",
   "chat_conversations.assistants.title": "Lister les assistants disponibles",
   "chat_conversations.assistants.description": "Liste les assistants disponibles dans le chat. Les signale indisponibles si le module IA n'est pas installé.",
   "chat_conversations.open_assistant.title": "Ouvrir une conversation avec un assistant",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "Liste les messages image ou fichier non rappelés d’une conversation, les plus récents d’abord ; réservé aux membres.",
   "chat_conversations.dissolve.title": "Dissoudre la discussion de groupe",
   "chat_conversations.dissolve.description": "Le propriétaire dissout une discussion de groupe : tous les membres sont retirés et elle disparaît de toutes les listes de conversations ; les messages sont conservés et restent visibles dans l’audit des discussions.",
-  "chat.system.group_dissolved": "{name} a dissous la discussion de groupe"
+  "chat.system.group_dissolved": "{name} a dissous la discussion de groupe",
+  "chat_audit.list_calls.title": "Auditer les journaux d’appels",
+  "chat_audit.list_calls.description": "Liste par pages les appels de toutes les conversations de son côté, sans en être membre : qui a lancé l’appel, qui y a participé, le statut de chacun, l’issue et la durée, jamais le contenu ; filtrable par conversation, initiateur, participant, média, statut, motif de fin et heure de début."
 }

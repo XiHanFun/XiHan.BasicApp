@@ -48,7 +48,7 @@
     {
       "name": "chat-audit",
       "x-displayName": "Chat audit",
-      "description": "Messages, message details and conversation members on the caller\u0027s side without membership."
+      "description": "Messages, message details, conversation members and call records on the caller\u0027s side without membership."
     },
     {
       "name": "chat-calls",
@@ -8496,6 +8496,99 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ChatAuditMessageResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat-audit:list-calls": {
+      "post": {
+        "operationId": "chat-audit.list-calls",
+        "tags": [
+          "chat-audit"
+        ],
+        "summary": "Audit call records",
+        "description": "Pages through the calls of every conversation on the caller\u0027s side without membership: who started each one, who took part, their statuses, the outcome and the duration, never the call content; filterable by conversation, initiator, participant, media, status, end reason and start time.\n\nRequires permission chat.chat-audit.read (Audit chat messages).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-audit.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfChatAuditCallResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatAuditCallResponse"
                       }
                     },
                     "total": {
@@ -65507,6 +65600,110 @@
           }
         }
       },
+      "ChatAuditCallResponse": {
+        "description": "\u5BA1\u8BA1\u91CC\u7684\u4E00\u901A\u7535\u8BDD",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u901A\u8BDD",
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "description": "\u4F1A\u8BDD",
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationName": {
+            "description": "\u4F1A\u8BDD\u540D\u79F0\uFF08\u5355\u804A\u4E3A\u7A7A\uFF09",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "conversationType": {
+            "description": "\u4F1A\u8BDD\u7C7B\u578B",
+            "$ref": "#/components/schemas/ChatConversationType"
+          },
+          "initiatorUserId": {
+            "description": "\u53D1\u8D77\u4EBA",
+            "type": "string",
+            "format": "uuid"
+          },
+          "initiatorUserName": {
+            "description": "\u53D1\u8D77\u4EBA\u7684\u7528\u6237\u540D",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "media": {
+            "description": "\u5A92\u4F53",
+            "$ref": "#/components/schemas/ChatCallMedia"
+          },
+          "status": {
+            "description": "\u72B6\u6001",
+            "$ref": "#/components/schemas/ChatCallStatus"
+          },
+          "endReason": {
+            "description": "\u7ED3\u675F\u7684\u539F\u56E0\uFF1B\u6CA1\u7ED3\u675F\u4E3A\u7A7A",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChatCallEndReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "startedAt": {
+            "description": "\u53D1\u8D77\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          },
+          "answeredAt": {
+            "description": "\u63A5\u901A\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u6CA1\u63A5\u901A\u4E3A\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "endedAt": {
+            "description": "\u7ED3\u675F\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u6CA1\u7ED3\u675F\u4E3A\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "durationSeconds": {
+            "description": "\u901A\u8BDD\u65F6\u957F\uFF08\u79D2\uFF09\uFF1B\u6CA1\u63A5\u901A\u6216\u8FD8\u6CA1\u7ED3\u675F\u4E3A\u7A7A",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "participants": {
+            "description": "\u53C2\u4E0E\u8005\uFF08\u53D1\u8D77\u4EBA\u5728\u524D\uFF09",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatCallParticipantItem"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "conversationId",
+          "conversationType",
+          "initiatorUserId",
+          "media",
+          "status",
+          "startedAt",
+          "participants"
+        ]
+      },
       "ChatAuditConversationResponse": {
         "description": "\u5BA1\u8BA1\u91CC\u7684\u4F1A\u8BDD",
         "type": "object",
@@ -78870,7 +79067,7 @@
       "chat.chat-audit.read": {
         "code": "chat.chat-audit.read",
         "displayName": "Audit chat messages",
-        "description": "Search every message on the caller\u0027s side, view message details and conversation members without being a member."
+        "description": "Search every message and call record on the caller\u0027s side, view message details and conversation members without being a member."
       },
       "chat.chat-calls.call": {
         "code": "chat.chat-calls.call",

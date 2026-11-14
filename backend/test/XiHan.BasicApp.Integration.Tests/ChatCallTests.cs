@@ -27,6 +27,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 通话只记状态：发起、接听、拒绝、加入、挂断与没人接，同一会话里排成先后，一个人同一时刻只在一通电话里；
 /// 单聊一对一，群里点名邀请、不超过人数上限，没被邀请的成员能在通话结束前加入，只剩一个人时结束；
 /// 信令经聊天 Hub 只在接通了的通话里转发、可以指给一个人；结束时往会话里追加通话记录；离线与收尾作业结束没人管的通话，群解散时里面的通话一并结束；
+/// 聊天审计按侧列出通话与各自的参与者，不要求是成员；
 /// 穿透服务器读宿主配置、TURN 凭据按用户现签，响铃秒数与人数上限读 <c>chat.policy</c>
 /// 响铃到点用拨钟验证：钟只影响进程内取的时刻，令牌照常按真实时间校验
 /// </remarks>
@@ -402,6 +403,106 @@ public sealed class ChatCallTests : IDisposable
         Assert.Equal((fourth, "Interrupted"), (interrupted.GetProperty("callId").GetString(), interrupted.GetProperty("endReason").GetString()));
         Assert.Equal([carol], MissedOf((await HistoryAsync(server, alice, group))[^1]));
         Assert.Equal(2, await UnreadAsync(carol));
+    }
+
+    [Fact]
+    public async Task Audit_ListsTheCallsOnTheSide_WithTheirParticipants()
+    {
+        var (server, users) = await StartWithAsync(["alice", "bob", "carol", "dave"]);
+        await using var running = server;
+        var (alice, bob, carol, dave) = (users["alice"], users["bob"], users["carol"], users["dave"]);
+        var single = await OpenSingleAsync(server, alice, bob);
+        var group = await CreateGroupAsync(server, alice, "Team", bob, carol);
+        await using var aliceHub = await ConnectAsync(server, "alice");
+        await using var bobHub = await ConnectAsync(server, "bob");
+        await using var carolHub = await ConnectAsync(server, "carol");
+
+        async Task<string> StartCallAsync(string caller, string conversationId, string media, params string[] inviteeUserIds)
+        {
+            var (status, body) = await CallAsync(server, HttpMethod.Post, "/api/chat-calls:start", new { conversationId, media, inviteeUserIds }, caller);
+            Assert.True(status == HttpStatusCode.OK, body.ToString());
+            return body.GetProperty("callId").GetString()!;
+        }
+
+        async Task DoAsync(string verb, string caller, string callId)
+        {
+            var (status, body) = await CallAsync(server, HttpMethod.Post, $"/api/chat-calls:{verb}", new { callId }, caller);
+            Assert.True(status == HttpStatusCode.OK, body.ToString());
+        }
+
+        // 三通电话，各隔一分钟：单聊里接通了 2 分 15 秒的语音；单聊里被拒绝的视频；群里接通 30 秒、另一个人还在响时群被解散
+        var completed = await StartCallAsync(alice, single, "Voice");
+        await DoAsync("accept", bob, completed);
+        _clock.Set(_clock.GetUtcNow().AddSeconds(135));
+        await DoAsync("hangup", bob, completed);
+        _clock.Set(_clock.GetUtcNow().AddSeconds(60));
+        var rejected = await StartCallAsync(bob, single, "Video");
+        var rejectedAt = _clock.GetUtcNow();
+        await DoAsync("reject", alice, rejected);
+        _clock.Set(_clock.GetUtcNow().AddSeconds(60));
+        var interrupted = await StartCallAsync(alice, group, "Voice", bob, carol);
+        await DoAsync("accept", bob, interrupted);
+        _clock.Set(_clock.GetUtcNow().AddSeconds(30));
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:dissolve", new { conversationId = group }, alice)).Status);
+
+        // dave 不在任何一个会话里，持审计权限即可看
+        async Task<(HttpStatusCode Status, JsonElement Body)> AuditAsync(object request, string? caller = null)
+            => await CallAsync(server, HttpMethod.Post, "/api/chat-audit:list-calls", request, caller ?? dave);
+        async Task<List<string?>> IdsAsync(params object[] filters)
+        {
+            var (status, body) = await AuditAsync(new { page = new { index = 1, size = 20 }, filters });
+            Assert.True(status == HttpStatusCode.OK, body.ToString());
+            return [.. body.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("id").GetString())];
+        }
+
+        static object Filter(string field, string @operator, string value) => new { field, @operator, value };
+
+        // 缺省按发起时间倒序；每通带会话、发起人、结果、时长与参与者，解散了的群照样对得上名字
+        var (found, page) = await AuditAsync(new { page = new { index = 1, size = 20 } });
+        Assert.True(found == HttpStatusCode.OK, page.ToString());
+        Assert.Equal(3, page.GetProperty("total").GetInt64());
+        var calls = page.GetProperty("items").EnumerateArray().ToDictionary(static c => c.GetProperty("id").GetString()!);
+        Assert.Equal([interrupted, rejected, completed], page.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("id").GetString()));
+        var first = calls[completed];
+        Assert.Equal((single, "Single", JsonValueKind.Null), (first.GetProperty("conversationId").GetString(), first.GetProperty("conversationType").GetString(), first.GetProperty("conversationName").ValueKind));
+        Assert.Equal((alice, "alice", "Voice", "Ended", "Completed", 135), (first.GetProperty("initiatorUserId").GetString(), first.GetProperty("initiatorUserName").GetString(), first.GetProperty("media").GetString(), first.GetProperty("status").GetString(), first.GetProperty("endReason").GetString(), first.GetProperty("durationSeconds").GetInt32()));
+        Assert.Equal(TimeSpan.FromSeconds(135), first.GetProperty("endedAt").GetDateTimeOffset() - first.GetProperty("answeredAt").GetDateTimeOffset());
+        Assert.Equal([(alice, "Left"), (bob, "Left")], ParticipantsOf(first));
+        Assert.Equal(("alice", "ALICE"), (first.GetProperty("participants")[0].GetProperty("userName").GetString(), first.GetProperty("participants")[0].GetProperty("displayName").GetString()));
+        var second = calls[rejected];
+        Assert.Equal((bob, "Video", "Rejected", JsonValueKind.Null, JsonValueKind.Null), (second.GetProperty("initiatorUserId").GetString(), second.GetProperty("media").GetString(), second.GetProperty("endReason").GetString(), second.GetProperty("answeredAt").ValueKind, second.GetProperty("durationSeconds").ValueKind));
+        Assert.Equal(Statuses((alice, "Rejected"), (bob, "Left")), StatusesOf(second));
+        var third = calls[interrupted];
+        Assert.Equal((group, "Group", "Team", "Interrupted", 30), (third.GetProperty("conversationId").GetString(), third.GetProperty("conversationType").GetString(), third.GetProperty("conversationName").GetString(), third.GetProperty("endReason").GetString(), third.GetProperty("durationSeconds").GetInt32()));
+        Assert.Equal(Statuses((alice, "Left"), (bob, "Left"), (carol, "Missed")), StatusesOf(third));
+
+        // 筛选：会话、发起人、参与者、媒体、状态、结束原因（可多个）与发起时间
+        Assert.Equal([rejected, completed], await IdsAsync(Filter("conversationId", "eq", single)));
+        Assert.Equal([rejected], await IdsAsync(Filter("initiatorUserId", "eq", bob)));
+        Assert.Equal([interrupted], await IdsAsync(Filter("participantUserId", "eq", carol)));
+        Assert.Equal([interrupted, rejected, completed], await IdsAsync(Filter("participantUserId", "eq", bob)));
+        Assert.Equal([rejected], await IdsAsync(Filter("media", "eq", "Video")));
+        Assert.Equal([interrupted, rejected, completed], await IdsAsync(Filter("status", "eq", "Ended")));
+        Assert.Empty(await IdsAsync(Filter("status", "eq", "Ongoing")));
+        Assert.Equal([interrupted, completed], await IdsAsync(Filter("endReason", "in", "Completed,Interrupted")));
+        Assert.Equal([rejected], await IdsAsync(Filter("endReason", "eq", "Rejected"), Filter("participantUserId", "eq", alice)));
+        Assert.Equal([interrupted, rejected], await IdsAsync(Filter("startedAt", "ge", rejectedAt.ToString("O"))));
+        Assert.Equal([rejected, completed], await IdsAsync(Filter("startedAt", "le", rejectedAt.ToString("O"))));
+        var (_, ascending) = await AuditAsync(new { page = new { index = 1, size = 2 }, sorts = new[] { new { field = "startedAt", descending = false } } });
+        Assert.Equal([completed, rejected], ascending.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("id").GetString()));
+        Assert.Equal(3, ascending.GetProperty("total").GetInt64());
+
+        // 不认识的筛选、排序与关键字都拒绝，不当成没给
+        Assert.Equal("CHAT_VALIDATION_025", (await AuditAsync(new { page = new { index = 1, size = 20 }, filters = new[] { Filter("media", "eq", "Fax") } })).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_VALIDATION_025", (await AuditAsync(new { page = new { index = 1, size = 20 }, filters = new[] { Filter("content", "eq", "x") } })).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_VALIDATION_025", (await AuditAsync(new { page = new { index = 1, size = 20 }, sorts = new[] { new { field = "media", descending = true } } })).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_VALIDATION_025", (await AuditAsync(new { page = new { index = 1, size = 20 }, keyword = "alice" })).Body.GetProperty("code").GetString());
+
+        // 没有审计权限的看不了；别的租户一通也看不到
+        Assert.Equal(HttpStatusCode.Forbidden, (await AuditAsync(new { page = new { index = 1, size = 20 } }, TestTokens.Issue(Guid.CreateVersion7().ToString(), "acme", "nobody"))).Status);
+        var (elsewhere, none) = await AuditAsync(new { page = new { index = 1, size = 20 } }, TestTokens.Issue(dave, "globex", Chatter));
+        Assert.True(elsewhere == HttpStatusCode.OK, none.ToString());
+        Assert.Equal(0, none.GetProperty("total").GetInt64());
     }
 
     [Fact]

@@ -1,6 +1,7 @@
+import type { ChatAuditCall } from '@/modules/chat/views/audit/use-chat-audit'
 import type { SchemaQueryParams } from '~/components'
 import { describe, expect, it } from 'vitest'
-import { auditContentText, CHAT_MESSAGE_TYPES, chatAuditResource, conversationTypeLabel, memberRoleTone, messageTypeLabel, messageTypeTone, useAuditLoader } from '@/modules/chat/views/audit/use-chat-audit'
+import { auditContentText, callConversationLabel, callEndReasonLabel, callOutcomeLabel, callOutcomeTone, callStatusLabel, CHAT_MESSAGE_TYPES, chatAuditCallResource, chatAuditResource, conversationTypeLabel, memberRoleTone, messageTypeLabel, messageTypeTone, participantName, participantStatusLabel, participantStatusTone, toChatAuditCallRow, useAuditLoader } from '@/modules/chat/views/audit/use-chat-audit'
 import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 
@@ -40,6 +41,45 @@ function row(id: string) {
     isRecalled: false,
     editedAt: null,
     createdAt: '2026-11-01T00:00:00Z',
+  }
+}
+
+function callRow(overrides: Partial<ChatAuditCall> = {}): ChatAuditCall {
+  return {
+    id: 'k-1',
+    conversationId: 'c-1',
+    conversationName: null,
+    conversationType: 'Single',
+    initiatorUserId: 'u-1',
+    initiatorUserName: 'alice',
+    media: 'Voice',
+    status: 'Ended',
+    endReason: 'Completed',
+    startedAt: '2026-11-01T00:00:00Z',
+    answeredAt: '2026-11-01T00:00:05Z',
+    endedAt: '2026-11-01T00:02:20Z',
+    durationSeconds: 135,
+    participants: [
+      {
+        userId: 'u-1',
+        userName: 'alice',
+        displayName: 'Alice',
+        avatarFileId: null,
+        status: 'Left',
+        joinedAt: '2026-11-01T00:00:00Z',
+        leftAt: '2026-11-01T00:02:20Z',
+      },
+      {
+        userId: 'u-2',
+        userName: 'bob',
+        displayName: null,
+        avatarFileId: null,
+        status: 'Left',
+        joinedAt: '2026-11-01T00:00:05Z',
+        leftAt: '2026-11-01T00:02:20Z',
+      },
+    ],
+    ...overrides,
   }
 }
 
@@ -115,6 +155,178 @@ describe('chatAuditResource', () => {
       pageSize: 20,
       filters: { content: 'x' },
     })).rejects.toThrow('content')
+  })
+})
+
+describe('chatAuditCallResource', () => {
+  it('把 SchemaPage 的查询换成 chat-audit.list-calls 的分页请求：结束原因多选合成 in、发起时间拆成 ge / le，其余精确匹配，不带关键字', async () => {
+    const calls = record(() => new Response(JSON.stringify({
+      items: [
+        callRow(),
+      ],
+      total: 1,
+      page: { index: 2, size: 10 },
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+    const params: SchemaQueryParams = {
+      page: 2,
+      pageSize: 10,
+      filters: {
+        conversationId: 'c-1',
+        initiatorUserId: 'u-1',
+        participantUserId: 'u-2',
+        media: 'Voice',
+        status: 'Ended',
+        endReason: ['Completed', 'Interrupted'],
+        startedAt: ['2026-10-01T00:00:00Z', '2026-11-02T00:00:00Z'],
+      },
+      conditionFilters: [
+        {
+          field: 'endReason',
+          operator: QueryOperator.In,
+          values: ['Completed', 'Interrupted'],
+        },
+        {
+          field: 'startedAt',
+          operator: QueryOperator.Between,
+          values: ['2026-10-01T00:00:00Z', '2026-11-02T00:00:00Z'],
+        },
+      ],
+      sorts: [
+        { field: 'startedAt', order: 'asc' },
+      ],
+    }
+
+    const result = await chatAuditCallResource().page!(params)
+
+    expect(calls[0]).toMatchObject({ method: 'POST', url: '/api/chat-audit:list-calls' })
+    expect(calls[0]!.body).toEqual({
+      page: { index: 2, size: 10 },
+      filters: [
+        { field: 'endReason', operator: 'in', value: 'Completed,Interrupted' },
+        { field: 'startedAt', operator: 'ge', value: '2026-10-01T00:00:00Z' },
+        { field: 'startedAt', operator: 'le', value: '2026-11-02T00:00:00Z' },
+        { field: 'conversationId', operator: 'eq', value: 'c-1' },
+        { field: 'initiatorUserId', operator: 'eq', value: 'u-1' },
+        { field: 'participantUserId', operator: 'eq', value: 'u-2' },
+        { field: 'media', operator: 'eq', value: 'Voice' },
+        { field: 'status', operator: 'eq', value: 'Ended' },
+      ],
+      sorts: [
+        { field: 'startedAt', descending: false },
+      ],
+      keyword: null,
+    })
+    expect(result.items.map(item => item.id)).toEqual(['k-1'])
+    expect(result.page.totalCount).toBe(1)
+    // 行上带着换算好的文字：列、速览卡与导出读的是同一份
+    expect(result.items[0]).toMatchObject({ conversationLabel: 'Alice / bob', participantNames: 'Alice、bob', durationText: '02:15' })
+  })
+
+  it('没登记的筛选字段直接报错，而不是静默丢掉条件', async () => {
+    record(() => new Response('{}', { status: 200 }))
+
+    await expect(chatAuditCallResource().page!({
+      page: 1,
+      pageSize: 20,
+      filters: { content: 'x' },
+    })).rejects.toThrow('content')
+  })
+})
+
+describe('通话记录的文案与语气', () => {
+  it('结果：结束了的说怎么结束的，还没结束的说状态；正常打完成功、没接上警告、中断危险、进行中提示', () => {
+    const ended = (endReason: ChatAuditCall['endReason']) => ({ status: 'Ended' as const, endReason })
+
+    expect([
+      'Completed',
+      'Cancelled',
+      'Rejected',
+      'Missed',
+      'Interrupted',
+    ].map(reason => callOutcomeLabel(t, ended(reason as ChatAuditCall['endReason'])))).toEqual([
+      'chat.audit.call_reason_completed',
+      'chat.audit.call_reason_cancelled',
+      'chat.audit.call_reason_rejected',
+      'chat.audit.call_reason_missed',
+      'chat.audit.call_reason_interrupted',
+    ])
+    expect([
+      'Completed',
+      'Cancelled',
+      'Rejected',
+      'Missed',
+      'Interrupted',
+    ].map(reason => callOutcomeTone(ended(reason as ChatAuditCall['endReason'])))).toEqual([
+      'success',
+      'warning',
+      'warning',
+      'warning',
+      'danger',
+    ])
+    expect([
+      callOutcomeLabel(t, { status: 'Ringing', endReason: null }),
+      callOutcomeLabel(t, { status: 'Ongoing', endReason: null }),
+    ]).toEqual(['chat.audit.call_status_ringing', 'chat.audit.call_status_ongoing'])
+    expect(callOutcomeTone({ status: 'Ongoing', endReason: null })).toBe('info')
+    expect(callStatusLabel(t, 'Ended')).toBe('chat.audit.call_status_ended')
+    expect(callEndReasonLabel(t, 'Completed')).toBe('chat.audit.call_reason_completed')
+  })
+
+  it('参与者的状态各有文案；在里面成功、响铃中提示、拒绝与没接到警告、离开了中性', () => {
+    const statuses = [
+      'Invited',
+      'Joined',
+      'Rejected',
+      'Missed',
+      'Left',
+    ] as const
+
+    expect(statuses.map(status => participantStatusLabel(t, status))).toEqual([
+      'chat.audit.participant_invited',
+      'chat.audit.participant_joined',
+      'chat.audit.participant_rejected',
+      'chat.audit.participant_missed',
+      'chat.audit.participant_left',
+    ])
+    expect(statuses.map(participantStatusTone)).toEqual([
+      'info',
+      'success',
+      'warning',
+      'warning',
+      'neutral',
+    ])
+  })
+
+  it('参与者的名字依次取显示名、用户名、主键；会话有名字用名字，单聊没有名字就写出两个人', () => {
+    const [alice, bob] = callRow().participants
+
+    expect([
+      participantName(alice!),
+      participantName(bob!),
+      participantName({ userId: 'u-3', userName: null, displayName: null }),
+    ]).toEqual(['Alice', 'bob', 'u-3'])
+    expect(callConversationLabel(callRow())).toBe('Alice / bob')
+    expect(callConversationLabel(callRow({ conversationName: '研发群', conversationType: 'Group' }))).toBe('研发群')
+  })
+
+  it('换算成列表的一行：会话、参与者与时长各成一段文字；没接通的时长为空串，群用会话名', () => {
+    expect(toChatAuditCallRow(callRow({
+      conversationName: '研发群',
+      conversationType: 'Group',
+      endReason: 'Missed',
+      answeredAt: null,
+      durationSeconds: null,
+    })))
+      .toMatchObject({
+        id: 'k-1',
+        conversationLabel: '研发群',
+        participantNames: 'Alice、bob',
+        durationText: '',
+      })
+    expect(toChatAuditCallRow(callRow({ durationSeconds: 0 })).durationText).toBe('00:00')
   })
 })
 

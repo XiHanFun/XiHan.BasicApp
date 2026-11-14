@@ -5,10 +5,10 @@
 
 import type { Tone } from '@xihan-ui/core'
 import type { SchemaResource } from '~/components'
-import type { ChatConversationType, ChatMemberRole, ChatMessageType, PageQueryMapping, ResponseOf } from '~/contracts'
+import type { ChatCallEndReason, ChatCallParticipantStatus, ChatCallStatus, ChatConversationType, ChatMemberRole, ChatMessageType, PageQueryMapping, ResponseOf } from '~/contracts'
 import { ref, shallowRef } from 'vue'
 import { chatAudit, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { callMediaLabel, callRecordText, parseCallRecord } from '../../call/call-helpers'
+import { callMediaLabel, callRecordText, formatCallDuration, parseCallRecord } from '../../call/call-helpers'
 import { chatRecordTitle, parseChatRecord } from '../../components/chat-record'
 
 export type ChatAuditRow = ResponseOf<'chat-audit.list'>['items'][number]
@@ -16,6 +16,21 @@ export type ChatAuditDetail = ResponseOf<'chat-audit.get'>
 export type ChatAuditMembers = ResponseOf<'chat-audit.members'>
 export type ChatAuditMember = ChatAuditMembers['items'][number]
 export type ChatAuditConversation = ChatAuditMembers['conversation']
+export type ChatAuditCall = ResponseOf<'chat-audit.list-calls'>['items'][number]
+export type ChatAuditCallParticipant = ChatAuditCall['participants'][number]
+
+/**
+ * 通话记录列表的一行：通话本身，加上三项换算好的文字
+ * 列、速览卡与导出读的都是行上的值，所以会话叫什么、参与者是谁、时长多久先在这里换算好
+ */
+export interface ChatAuditCallRow extends ChatAuditCall {
+  /** 会话叫什么：群与部门群是会话名，单聊写出两个人 */
+  conversationLabel: string
+  /** 参与者的名字（发起人在前） */
+  participantNames: string
+  /** 通话时长；没接通或还没结束为空串 */
+  durationText: string
+}
 
 type Translate = (key: string, values?: Record<string, unknown>) => string
 
@@ -51,6 +66,47 @@ export const CHAT_AUDIT_QUERY: PageQueryMapping = {
 export function chatAuditResource(): SchemaResource<ChatAuditRow> {
   return {
     page: async params => toSchemaPageResult(await chatAudit.list(toPageRequest(params, CHAT_AUDIT_QUERY)), params),
+  }
+}
+
+/**
+ * 通话记录的后端筛选（与后端 ChatAuditQueries 的白名单一致）：会话、发起人、参与者、媒体与状态精确匹配，
+ * 结束原因多选（合成 in），发起时间按区间（拆成 ge / le）；通话没有可按关键字找的文字
+ */
+export const CHAT_AUDIT_CALL_QUERY: PageQueryMapping = {
+  ranges: ['startedAt'],
+  multiples: ['endReason'],
+  filters: {
+    conversationId: 'eq',
+    initiatorUserId: 'eq',
+    participantUserId: 'eq',
+    media: 'eq',
+    status: 'eq',
+  },
+}
+
+/** 把一通电话换算成列表的一行 */
+export function toChatAuditCallRow(call: ChatAuditCall): ChatAuditCallRow {
+  return {
+    ...call,
+    conversationLabel: callConversationLabel(call),
+    participantNames: call.participants.map(participantName).join('、'),
+    durationText: call.durationSeconds === null || call.durationSeconds === undefined
+      ? ''
+      : formatCallDuration(call.durationSeconds),
+  }
+}
+
+/** 通话记录的资源：只读分页 */
+export function chatAuditCallResource(): SchemaResource<ChatAuditCallRow> {
+  return {
+    page: async (params) => {
+      const result = await chatAudit.listCalls(toPageRequest(params, CHAT_AUDIT_CALL_QUERY))
+      return toSchemaPageResult({
+        ...result,
+        items: result.items.map(toChatAuditCallRow),
+      }, params)
+    },
   }
 }
 
@@ -96,6 +152,76 @@ export function auditContentText(t: Translate, type: ChatMessageType, content: n
   return record
     ? `${callMediaLabel(t, record.media)} · ${callRecordText(t, record, { outgoing: true, group: conversationType !== 'Single', myUserId: '' })}`
     : content ?? ''
+}
+
+export function callStatusLabel(t: Translate, status: ChatCallStatus): string {
+  switch (status) {
+    case 'Ringing': return t('chat.audit.call_status_ringing')
+    case 'Ongoing': return t('chat.audit.call_status_ongoing')
+    default: return t('chat.audit.call_status_ended')
+  }
+}
+
+export function callEndReasonLabel(t: Translate, reason: ChatCallEndReason): string {
+  switch (reason) {
+    case 'Cancelled': return t('chat.audit.call_reason_cancelled')
+    case 'Rejected': return t('chat.audit.call_reason_rejected')
+    case 'Missed': return t('chat.audit.call_reason_missed')
+    case 'Interrupted': return t('chat.audit.call_reason_interrupted')
+    default: return t('chat.audit.call_reason_completed')
+  }
+}
+
+/** 一通电话的结果：结束了的说怎么结束的，还没结束的说状态 */
+export function callOutcomeLabel(t: Translate, call: Pick<ChatAuditCall, 'endReason' | 'status'>): string {
+  return call.endReason
+    ? callEndReasonLabel(t, call.endReason)
+    : callStatusLabel(t, call.status)
+}
+
+/** 结果的语气：正常打完是成功，还在进行是提示，没接上（拒绝、未接听、取消）是警告，中断是危险 */
+export function callOutcomeTone(call: Pick<ChatAuditCall, 'endReason' | 'status'>): Tone {
+  switch (call.endReason) {
+    case 'Completed': return 'success'
+    case 'Interrupted': return 'danger'
+    case 'Cancelled':
+    case 'Rejected':
+    case 'Missed':
+      return 'warning'
+    default: return 'info'
+  }
+}
+
+export function participantStatusLabel(t: Translate, status: ChatCallParticipantStatus): string {
+  switch (status) {
+    case 'Invited': return t('chat.audit.participant_invited')
+    case 'Joined': return t('chat.audit.participant_joined')
+    case 'Rejected': return t('chat.audit.participant_rejected')
+    case 'Missed': return t('chat.audit.participant_missed')
+    default: return t('chat.audit.participant_left')
+  }
+}
+
+/** 参与者状态的语气：在里面是成功，响铃中是提示，拒绝与没接到是警告，离开了中性 */
+export function participantStatusTone(status: ChatCallParticipantStatus): Tone {
+  switch (status) {
+    case 'Joined': return 'success'
+    case 'Invited': return 'info'
+    case 'Rejected':
+    case 'Missed':
+      return 'warning'
+    default: return 'neutral'
+  }
+}
+
+/** 参与者的名字：显示名、用户名、主键依次取 */
+export function participantName(participant: Pick<ChatAuditCallParticipant, 'displayName' | 'userId' | 'userName'>): string {
+  return participant.displayName || participant.userName || participant.userId
+}
+
+/** 通话所在的会话叫什么：群与部门群是会话名，单聊没有名字、写出两个人 */
+export function callConversationLabel(call: Pick<ChatAuditCall, 'conversationName' | 'participants'>): string {
+  return call.conversationName || call.participants.map(participantName).join(' / ')
 }
 
 /** 消息类型的语气：文本中性，图片、语音、文件与通话记录一类，助手与系统另起 */

@@ -130,7 +130,7 @@
   "openapi.tags.chat_messages.name": "聊天消息",
   "openapi.tags.chat_messages.description": "消息历史与搜索，发送、撤回、编辑、回应、置顶、转发与附件。",
   "openapi.tags.chat_audit.name": "聊天审计",
-  "openapi.tags.chat_audit.description": "不要求是成员地查看当前一侧的消息、消息详情与会话成员。",
+  "openapi.tags.chat_audit.description": "不要求是成员地查看当前一侧的消息、消息详情、会话成员与通话记录。",
   "permissions.chat.chat_conversations.read.name": "使用聊天会话",
   "permissions.chat.chat_conversations.read.description": "列出并打开调用方的会话，查看成员与已读位置，退出、置顶、免打扰并标记已读。",
   "permissions.chat.chat_conversations.manage.name": "管理群聊",
@@ -140,7 +140,7 @@
   "permissions.chat.chat_messages.send.name": "发送聊天消息",
   "permissions.chat.chat_messages.send.description": "在调用方所在的会话里发送、撤回、编辑、回应、置顶、转发消息与上传附件。",
   "permissions.chat.chat_audit.read.name": "聊天审计",
-  "permissions.chat.chat_audit.read.description": "查看当前一侧的全部消息，不必是会话成员也能看消息详情与会话成员。",
+  "permissions.chat.chat_audit.read.description": "查看当前一侧的全部消息与通话记录，不必是会话成员也能看消息详情与会话成员。",
   "chat_conversations.assistants.title": "可用的助手",
   "chat_conversations.assistants.description": "列出聊天里可用的助手；AI 模块没有装配时报助手不可用。",
   "chat_conversations.open_assistant.title": "打开助手会话",
@@ -207,5 +207,7 @@
   "chat_messages.media.description": "列出会话里未撤回的图片消息或文件消息，最近的在前；只有成员能看。",
   "chat_conversations.dissolve.title": "解散群",
   "chat_conversations.dissolve.description": "群主解散群聊：全部成员移出，谁的会话列表里都不再有它；消息留着，聊天审计照样看得到。",
-  "chat.system.group_dissolved": "{name} 解散了群聊"
+  "chat.system.group_dissolved": "{name} 解散了群聊",
+  "chat_audit.list_calls.title": "审计通话记录",
+  "chat_audit.list_calls.description": "分页查询当前一侧全部会话的通话，不要求是成员：谁发起的、谁在里面、各自的状态、结果与时长，不含通话内容；可按会话、发起人、参与者、媒体、状态、结束原因与发起时间筛选。"
 }

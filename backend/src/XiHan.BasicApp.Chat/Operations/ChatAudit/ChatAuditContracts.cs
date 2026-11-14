@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Chat.Domain.Entities;
+using XiHan.BasicApp.Chat.Operations.ChatCalls;
 using XiHan.BasicApp.Chat.Operations.ChatConversations;
 using XiHan.BasicApp.Chat.Operations.ChatMessages;
 
@@ -101,6 +102,42 @@ public sealed record ChatAuditMessageDetailResponse(
 /// <param name="Conversation">会话</param>
 /// <param name="Items">现有成员，已解散的群是解散时的成员（按角色再按入会时间）</param>
 public sealed record ChatAuditMembersResponse(ChatAuditConversationResponse Conversation, IReadOnlyList<ChatMemberItem> Items);
+
+/// <summary>
+/// 审计里的一通电话
+/// </summary>
+/// <remarks>
+/// 只有通话的状态与参与者；媒体在浏览器之间直连、不经服务端，没有通话内容可看
+/// </remarks>
+/// <param name="Id">通话</param>
+/// <param name="ConversationId">会话</param>
+/// <param name="ConversationName">会话名称（单聊为空）</param>
+/// <param name="ConversationType">会话类型</param>
+/// <param name="InitiatorUserId">发起人</param>
+/// <param name="InitiatorUserName">发起人的用户名</param>
+/// <param name="Media">媒体</param>
+/// <param name="Status">状态</param>
+/// <param name="EndReason">结束的原因；没结束为空</param>
+/// <param name="StartedAt">发起时间（UTC）</param>
+/// <param name="AnsweredAt">接通时间（UTC）；没接通为空</param>
+/// <param name="EndedAt">结束时间（UTC）；没结束为空</param>
+/// <param name="DurationSeconds">通话时长（秒）；没接通或还没结束为空</param>
+/// <param name="Participants">参与者（发起人在前）</param>
+public sealed record ChatAuditCallResponse(
+    Guid Id,
+    Guid ConversationId,
+    string? ConversationName,
+    ChatConversationType ConversationType,
+    Guid InitiatorUserId,
+    string? InitiatorUserName,
+    ChatCallMedia Media,
+    ChatCallStatus Status,
+    ChatCallEndReason? EndReason,
+    DateTimeOffset StartedAt,
+    DateTimeOffset? AnsweredAt,
+    DateTimeOffset? EndedAt,
+    int? DurationSeconds,
+    IReadOnlyList<ChatCallParticipantItem> Participants);
 
 /// <summary>
 /// <c>chat-audit.get</c> 的请求
