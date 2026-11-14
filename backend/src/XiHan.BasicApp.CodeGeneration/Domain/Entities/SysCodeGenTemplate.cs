@@ -77,6 +77,9 @@ public sealed class SysCodeGenTemplate : AppAuditedEntity
     /// <summary>
     /// 内置模板的资源路径
     /// </summary>
+    /// <remarks>
+    /// 种子写入嵌入资源名（<c>Templates/…</c>，即工程里 <c>Seeds/Templates</c> 下的文件），看得出正文出自哪个文件；自定义模板为空
+    /// </remarks>
     [SugarColumn(ColumnName = "template_path", Length = 500, IsNullable = true, ColumnDescription = "内置模板的资源路径")]
     public string? TemplatePath { get; set; }
 

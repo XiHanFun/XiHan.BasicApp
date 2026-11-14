@@ -68,14 +68,15 @@ public sealed record CodegenTemplateResponse(
 }
 
 /// <summary>
-/// 模板详情：列表项加正文、路径表达式与备注
+/// 模板详情：列表项加正文、资源路径、路径表达式与备注
 /// </summary>
 /// <param name="Template">列表项的内容</param>
 /// <param name="TemplateContent">正文（Scriban）</param>
+/// <param name="TemplatePath">内置模板的嵌入资源名（<c>Templates/…</c>），自定义模板为空</param>
 /// <param name="FileNameExpression">文件名表达式</param>
 /// <param name="FilePathExpression">目录表达式（相对那一侧的根目录）</param>
 /// <param name="Remark">备注</param>
-public sealed record CodegenTemplateDetailResponse(CodegenTemplateResponse Template, string? TemplateContent, string? FileNameExpression, string? FilePathExpression, string? Remark)
+public sealed record CodegenTemplateDetailResponse(CodegenTemplateResponse Template, string? TemplateContent, string? TemplatePath, string? FileNameExpression, string? FilePathExpression, string? Remark)
 {
     /// <summary>
     /// 从实体投影
@@ -84,7 +85,7 @@ public sealed record CodegenTemplateDetailResponse(CodegenTemplateResponse Templ
     public static CodegenTemplateDetailResponse From(SysCodeGenTemplate template)
     {
         ArgumentNullException.ThrowIfNull(template);
-        return new CodegenTemplateDetailResponse(CodegenTemplateResponse.From(template), template.TemplateContent, template.FileNameExpression, template.FilePathExpression, template.Remark);
+        return new CodegenTemplateDetailResponse(CodegenTemplateResponse.From(template), template.TemplateContent, template.TemplatePath, template.FileNameExpression, template.FilePathExpression, template.Remark);
     }
 }
 

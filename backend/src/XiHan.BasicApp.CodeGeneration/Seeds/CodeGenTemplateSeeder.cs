@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.CodeGeneration.Seeds;
 /// </summary>
 /// <remarks>
 /// 号段 600 + 20（平台数据，可选模块按偏移；Access 已占 610）。把嵌入的 <c>Seeds/Templates/**/*.sbn</c> 写成内置模板，
-/// 每次启动对齐正文、名称、分组、生成模式、扩展名、路径表达式、写入方式与排序（内置模板随程序版本走，改了模板文件已有的库也要生效），启停归运维、不动
+/// 每次启动对齐正文、资源路径、名称、分组、生成模式、扩展名、路径表达式、写入方式与排序（内置模板随程序版本走，改了模板文件已有的库也要生效），启停归运维、不动
 /// 嵌入的文件缺了是构建问题，直接失败
 /// </remarks>
 /// <param name="templates">模板仓储</param>
@@ -30,6 +30,17 @@ public sealed class CodeGenTemplateSeeder(IRepository<SysCodeGenTemplate, Guid> 
     public int Order => SeedOrders.PlatformData + (SeedOrders.ModuleOffset * 2);
 
     /// <summary>
+    /// 内置模板的嵌入资源名
+    /// </summary>
+    /// <param name="template">内置模板</param>
+    /// <returns><c>Templates/</c> 加 <c>Seeds/Templates</c> 下的相对路径</returns>
+    public static string ResourcePathOf(BuiltInTemplate template)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        return "Templates/" + template.Resource;
+    }
+
+    /// <summary>
     /// 读一份内置模板的正文
     /// </summary>
     /// <param name="template">内置模板</param>
@@ -38,8 +49,9 @@ public sealed class CodeGenTemplateSeeder(IRepository<SysCodeGenTemplate, Guid> 
     {
         ArgumentNullException.ThrowIfNull(template);
         var assembly = typeof(CodeGenTemplateSeeder).Assembly;
-        var name = assembly.GetManifestResourceNames().FirstOrDefault(n => n.Replace('\\', '/') == "Templates/" + template.Resource)
-            ?? throw new InvalidOperationException($"Built-in code generation template '{template.Code}' is missing its embedded file 'Templates/{template.Resource}'.");
+        var path = ResourcePathOf(template);
+        var name = assembly.GetManifestResourceNames().FirstOrDefault(n => n.Replace('\\', '/') == path)
+            ?? throw new InvalidOperationException($"Built-in code generation template '{template.Code}' is missing its embedded file '{path}'.");
         using var stream = assembly.GetManifestResourceStream(name)!;
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd().Replace("\r\n", "\n", StringComparison.Ordinal);
@@ -58,7 +70,7 @@ public sealed class CodeGenTemplateSeeder(IRepository<SysCodeGenTemplate, Guid> 
             var order = (index + 1) * 10;
             if (existing.TryGetValue(builtIn.Code, out var template))
             {
-                if (template.IsBuiltIn && template.TemplateContent == content && template.TemplateName == builtIn.Name && template.TemplateGroup == builtIn.Group
+                if (template.IsBuiltIn && template.TemplateContent == content && template.TemplatePath == ResourcePathOf(builtIn) && template.TemplateName == builtIn.Name && template.TemplateGroup == builtIn.Group
                     && template.TemplateType == builtIn.TemplateType && template.FileExtension == builtIn.Extension && template.FileNameExpression == builtIn.FileName
                     && template.FilePathExpression == builtIn.FilePath && template.WriteMode == builtIn.WriteMode && template.Order == order)
                 {
@@ -95,6 +107,7 @@ public sealed class CodeGenTemplateSeeder(IRepository<SysCodeGenTemplate, Guid> 
         template.TemplateEngine = CodeGenTemplateEngine.Scriban;
         template.WriteMode = builtIn.WriteMode;
         template.TemplateContent = content;
+        template.TemplatePath = ResourcePathOf(builtIn);
         template.FileNameExpression = builtIn.FileName;
         template.FilePathExpression = builtIn.FilePath;
         template.FileExtension = builtIn.Extension;

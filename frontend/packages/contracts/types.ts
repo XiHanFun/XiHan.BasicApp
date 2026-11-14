@@ -23821,7 +23821,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 模板详情：列表项加正文、路径表达式与备注 */
+            /** @description 模板详情：列表项加正文、资源路径、路径表达式与备注 */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -23832,6 +23832,8 @@ export interface operations {
                         template: components["schemas"]["CodegenTemplateResponse"];
                         /** @description 正文（Scriban） */
                         templateContent?: string | null;
+                        /** @description 内置模板的嵌入资源名（Templates/…），自定义模板为空 */
+                        templatePath?: string | null;
                         /** @description 文件名表达式 */
                         fileNameExpression?: string | null;
                         /** @description 目录表达式（相对那一侧的根目录） */
@@ -23899,7 +23901,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 模板详情：列表项加正文、路径表达式与备注 */
+            /** @description 模板详情：列表项加正文、资源路径、路径表达式与备注 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -23910,6 +23912,8 @@ export interface operations {
                         template: components["schemas"]["CodegenTemplateResponse"];
                         /** @description 正文（Scriban） */
                         templateContent?: string | null;
+                        /** @description 内置模板的嵌入资源名（Templates/…），自定义模板为空 */
+                        templatePath?: string | null;
                         /** @description 文件名表达式 */
                         fileNameExpression?: string | null;
                         /** @description 目录表达式（相对那一侧的根目录） */
@@ -23984,7 +23988,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 模板详情：列表项加正文、路径表达式与备注 */
+            /** @description 模板详情：列表项加正文、资源路径、路径表达式与备注 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -23995,6 +23999,8 @@ export interface operations {
                         template: components["schemas"]["CodegenTemplateResponse"];
                         /** @description 正文（Scriban） */
                         templateContent?: string | null;
+                        /** @description 内置模板的嵌入资源名（Templates/…），自定义模板为空 */
+                        templatePath?: string | null;
                         /** @description 文件名表达式 */
                         fileNameExpression?: string | null;
                         /** @description 目录表达式（相对那一侧的根目录） */
@@ -24044,7 +24050,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description 模板详情：列表项加正文、路径表达式与备注 */
+            /** @description 模板详情：列表项加正文、资源路径、路径表达式与备注 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -24055,6 +24061,8 @@ export interface operations {
                         template: components["schemas"]["CodegenTemplateResponse"];
                         /** @description 正文（Scriban） */
                         templateContent?: string | null;
+                        /** @description 内置模板的嵌入资源名（Templates/…），自定义模板为空 */
+                        templatePath?: string | null;
                         /** @description 文件名表达式 */
                         fileNameExpression?: string | null;
                         /** @description 目录表达式（相对那一侧的根目录） */

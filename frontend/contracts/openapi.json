@@ -15205,12 +15205,12 @@
         },
         "responses": {
           "201": {
-            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "CodegenTemplateDetailResponse",
-                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
                   "type": "object",
                   "properties": {
                     "template": {
@@ -15219,6 +15219,13 @@
                     },
                     "templateContent": {
                       "description": "\u6B63\u6587\uFF08Scriban\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templatePath": {
+                      "description": "\u5185\u7F6E\u6A21\u677F\u7684\u5D4C\u5165\u8D44\u6E90\u540D\uFF08Templates/\u2026\uFF09\uFF0C\u81EA\u5B9A\u4E49\u6A21\u677F\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -15291,12 +15298,12 @@
         ],
         "responses": {
           "200": {
-            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "CodegenTemplateDetailResponse",
-                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
                   "type": "object",
                   "properties": {
                     "template": {
@@ -15305,6 +15312,13 @@
                     },
                     "templateContent": {
                       "description": "\u6B63\u6587\uFF08Scriban\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templatePath": {
+                      "description": "\u5185\u7F6E\u6A21\u677F\u7684\u5D4C\u5165\u8D44\u6E90\u540D\uFF08Templates/\u2026\uFF09\uFF0C\u81EA\u5B9A\u4E49\u6A21\u677F\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -15493,12 +15507,12 @@
         },
         "responses": {
           "200": {
-            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "CodegenTemplateDetailResponse",
-                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
                   "type": "object",
                   "properties": {
                     "template": {
@@ -15507,6 +15521,13 @@
                     },
                     "templateContent": {
                       "description": "\u6B63\u6587\uFF08Scriban\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templatePath": {
+                      "description": "\u5185\u7F6E\u6A21\u677F\u7684\u5D4C\u5165\u8D44\u6E90\u540D\uFF08Templates/\u2026\uFF09\uFF0C\u81EA\u5B9A\u4E49\u6A21\u677F\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -15622,12 +15643,12 @@
         },
         "responses": {
           "200": {
-            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+            "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "CodegenTemplateDetailResponse",
-                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
+                  "description": "\u6A21\u677F\u8BE6\u60C5\uFF1A\u5217\u8868\u9879\u52A0\u6B63\u6587\u3001\u8D44\u6E90\u8DEF\u5F84\u3001\u8DEF\u5F84\u8868\u8FBE\u5F0F\u4E0E\u5907\u6CE8",
                   "type": "object",
                   "properties": {
                     "template": {
@@ -15636,6 +15657,13 @@
                     },
                     "templateContent": {
                       "description": "\u6B63\u6587\uFF08Scriban\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templatePath": {
+                      "description": "\u5185\u7F6E\u6A21\u677F\u7684\u5D4C\u5165\u8D44\u6E90\u540D\uFF08Templates/\u2026\uFF09\uFF0C\u81EA\u5B9A\u4E49\u6A21\u677F\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"

@@ -161,9 +161,10 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         var entity = items.Single(static t => t.GetProperty("templateCode").GetString() == "backend.entity");
         var entityId = entity.GetProperty("id").GetString();
 
-        // 内置模板：详情带正文；不能改、不能删；可以启停
+        // 内置模板：详情带正文与嵌入资源名；不能改、不能删；可以启停
         var (_, detail) = await SendAsync(server, HttpMethod.Get, $"/api/codegen-templates/{entityId}", null, admin);
         Assert.Contains("TenantScopedAuditedEntity", detail.GetProperty("templateContent").GetString(), StringComparison.Ordinal);
+        Assert.Equal("Templates/Backend/Entity.sbn", detail.GetProperty("templatePath").GetString());
         var builtInUpdate = new { concurrencyStamp = entity.GetProperty("concurrencyStamp").GetString(), templateName = "x", templateType = "Universal", templateEngine = "Scriban", writeMode = "AlwaysOverwrite", templateContent = "x" };
         var (edited, editedBody) = await SendAsync(server, HttpMethod.Put, $"/api/codegen-templates/{entityId}", builtInUpdate, admin);
         Assert.Equal((HttpStatusCode.Conflict, CodeGenerationErrors.TemplateBuiltIn), (edited.StatusCode, editedBody.GetProperty("code").GetString()));
