@@ -23,6 +23,10 @@ import {
   CHAT_RECALL_WINDOW_MINUTES,
 } from '@/modules/chat/types'
 import {
+  ChatCallEndReason,
+  ChatCallMedia,
+  ChatCallParticipantStatus,
+  ChatCallStatus,
   ChatConversationType,
   ChatMemberRole,
   ChatMessageType,
@@ -36,7 +40,7 @@ import {
 /** 首字母大写驼峰（后端方法名形态） */
 const PASCAL_CASE = /^[A-Z][A-Za-z0-9]*$/u
 
-/** 聊天集成订阅的十个推送方法（use-chat-integration 逐个 on） */
+/** 聊天集成订阅的十二个推送方法（use-chat-integration 逐个 on） */
 const CHAT_PUSH_METHODS = [
   RealtimeMethods.ReceiveChatMessage,
   RealtimeMethods.ChatMessageRecalled,
@@ -48,15 +52,17 @@ const CHAT_PUSH_METHODS = [
   RealtimeMethods.ChatPresenceChanged,
   RealtimeMethods.ChatAssistantDelta,
   RealtimeMethods.ChatAssistantCompleted,
+  RealtimeMethods.ChatCallChanged,
+  RealtimeMethods.ChatCallSignal,
 ]
 
 describe('实时推送方法名', () => {
-  it('十个聊天推送方法名互不重复，避免同名订阅互相顶掉', () => {
-    expect(CHAT_PUSH_METHODS).toHaveLength(10)
+  it('十二个聊天推送方法名互不重复，避免同名订阅互相顶掉', () => {
+    expect(CHAT_PUSH_METHODS).toHaveLength(12)
     expect(new Set(CHAT_PUSH_METHODS).size).toBe(CHAT_PUSH_METHODS.length)
   })
 
-  it('生成的推送方法表里聊天相关的恰好是这十个，后端新增或改名时这里先报', () => {
+  it('生成的推送方法表里聊天相关的恰好是这十二个，后端新增或改名时这里先报', () => {
     const chatMethods = Object.values(RealtimeMethods).filter(name => name.includes('Chat')).sort()
 
     expect(chatMethods).toStrictEqual([...CHAT_PUSH_METHODS].sort())
@@ -77,10 +83,15 @@ describe('实时推送方法名', () => {
 })
 
 describe('客户端 Hub 方法与路径', () => {
-  it('三个客户端方法名互不重复且为 PascalCase', () => {
+  it('四个客户端方法名互不重复且为 PascalCase', () => {
     const values = Object.values(RealtimeInvocations)
 
-    expect(values).toStrictEqual(['JoinConversation', 'LeaveConversation', 'Typing'])
+    expect(values).toStrictEqual([
+      'CallSignal',
+      'JoinConversation',
+      'LeaveConversation',
+      'Typing',
+    ])
     expect(new Set(values).size).toBe(values.length)
     for (const value of values) {
       expect(value).toMatch(PASCAL_CASE)
@@ -105,7 +116,8 @@ describe('客户端 Hub 方法与路径', () => {
 })
 
 describe('权限码与本地存储键', () => {
-  it('三个权限码互不重复，都在生成的权限表里，且是 chat 包的三段码', () => {
+  it('五个权限码互不重复，都在生成的权限表里，且是 chat 包的三段码', () => {
+    expect(Object.keys(CHAT_PERMISSIONS)).toHaveLength(5)
     const values = Object.values(CHAT_PERMISSIONS)
 
     expect(new Set(values).size).toBe(values.length)
@@ -122,6 +134,19 @@ describe('权限码与本地存储键', () => {
     expect(operationPermission['chat-messages.forward']).toBe(CHAT_PERMISSIONS.send)
     expect(operationPermission['chat-conversations.create-group']).toBe(CHAT_PERMISSIONS.manage)
     expect(operationPermission['chat-conversations.silence-members']).toBe(CHAT_PERMISSIONS.manage)
+  })
+
+  it('通话：认回来电与取穿透服务器要通话读，发起、接听、拒绝与挂断要通话', () => {
+    expect(operationPermission['chat-calls.active']).toBe(CHAT_PERMISSIONS.callRead)
+    expect(operationPermission['chat-calls.ice-servers']).toBe(CHAT_PERMISSIONS.callRead)
+    for (const operation of [
+      'chat-calls.start',
+      'chat-calls.accept',
+      'chat-calls.reject',
+      'chat-calls.hangup',
+    ] as const) {
+      expect(operationPermission[operation]).toBe(CHAT_PERMISSIONS.call)
+    }
   })
 
   it('三个 localStorage 键互不重复，草稿、发送键偏好、语音已听各占一格', () => {
@@ -156,7 +181,27 @@ describe('业务枚举与后端序列化值对齐', () => {
       'Voice',
       'File',
       'Assistant',
+      'Call',
       'System',
+    ])
+  })
+
+  it('通话的媒体、状态、结束原因与参与者状态的成员与后端一致', () => {
+    expect([...ChatCallMedia]).toStrictEqual(['Voice', 'Video'])
+    expect([...ChatCallStatus]).toStrictEqual(['Ringing', 'Ongoing', 'Ended'])
+    expect([...ChatCallEndReason]).toStrictEqual([
+      'Completed',
+      'Cancelled',
+      'Rejected',
+      'Missed',
+      'Interrupted',
+    ])
+    expect([...ChatCallParticipantStatus]).toStrictEqual([
+      'Invited',
+      'Joined',
+      'Rejected',
+      'Missed',
+      'Left',
     ])
   })
 

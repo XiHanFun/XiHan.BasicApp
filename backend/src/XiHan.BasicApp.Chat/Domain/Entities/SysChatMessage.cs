@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 撤回清空正文、保留行与附件：时间线与引用它的回复不断开；编辑直接覆盖正文、记编辑时间，审计不另留原文（方案 H4）
 /// 发送人名字与回复内容存快照：用户在平台库、不能联表；回复快照也不随原消息撤回或编辑回溯
 /// 附件存 JSON 列，文件名与大小以文件记录为准；附件以会话为访问范围（方案 H2），会话成员凭会话换下载地址
-/// 系统提示与助手回复也是消息、由服务端追加：发送人为空即中性的系统提示，助手回复以助手 ID 作发送人
+/// 系统提示、助手回复与通话记录也是消息、由服务端追加：发送人为空即中性的系统提示，助手回复以助手 ID 作发送人，通话记录以发起人作发送人
 /// </remarks>
 [SugarTable(TableName = "sys_chat_message", TableDescription = "聊天消息（租户库实体）")]
 [SugarIndex("ux_sys_chat_message_tenant_id_conversation_id_seq", nameof(TenantId), OrderByType.Asc, nameof(ConversationId), OrderByType.Asc, nameof(Seq), OrderByType.Asc, true)]
@@ -161,6 +161,14 @@ public enum ChatMessageType
     /// 助手回复
     /// </summary>
     Assistant = 5,
+
+    /// <summary>
+    /// 通话记录
+    /// </summary>
+    /// <remarks>
+    /// 通话结束时由服务端追加，发送人是发起人，正文是通话记录的 JSON（媒体、结束的原因、时长）
+    /// </remarks>
+    Call = 6,
 
     /// <summary>
     /// 系统提示

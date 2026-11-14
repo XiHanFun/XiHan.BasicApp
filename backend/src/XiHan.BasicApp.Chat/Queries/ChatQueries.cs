@@ -160,7 +160,8 @@ public sealed class ChatQueries(ChatStore store, IRealtimePresence presence)
 
         var take = request.Take ?? DefaultSearchTake;
         var conversationId = request.ConversationId;
-        var query = store.Messages(caller.Side).Where(m => m.ConversationId == conversationId && !m.IsRecalled && ((m.Content != null && m.Content.Contains(keyword)) || (m.Attachments != null && m.Attachments.Contains(keyword))));
+        // 通话记录的正文是 JSON，不参与搜索
+        var query = store.Messages(caller.Side).Where(m => m.ConversationId == conversationId && !m.IsRecalled && m.Type != ChatMessageType.Call && ((m.Content != null && m.Content.Contains(keyword)) || (m.Attachments != null && m.Attachments.Contains(keyword))));
         if (request.BeforeMessageId is { } beforeId)
         {
             var before = await SeqOfAsync(caller.Side, conversationId, beforeId, context.CancellationToken).ConfigureAwait(false);

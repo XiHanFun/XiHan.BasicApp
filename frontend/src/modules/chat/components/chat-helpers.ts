@@ -11,6 +11,7 @@ import type {
 import type { ChatConversationType, ChatMessageType } from '~/contracts'
 import { ApiError } from '~/request'
 import { formatDateTime, getDisplayTimeZone } from '~/utils'
+import { callRecordLabel } from '../call/call-helpers'
 
 type Translate = (key: string, named?: Record<string, unknown>) => string
 
@@ -63,6 +64,10 @@ export function messageBodyLabel(message: {
   messageType: ChatMessageType
   attachments?: ChatMessageAttachment[] | null
 }): string {
+  // 通话记录的正文是 JSON，不当文字显示
+  if (message.messageType === 'Call') {
+    return callRecordLabel(message.content)
+  }
   if (message.content) {
     return message.content
   }

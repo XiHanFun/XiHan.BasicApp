@@ -1,12 +1,12 @@
 # 在线聊天
 
-本页说明在线聊天的会话与消息规则、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
+本页说明在线聊天的会话与消息规则、语音与视频通话、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
 
-Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub 与聊天审计。
+Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，单聊里的语音与视频通话，聊天 Hub 与聊天审计。
 
 ## 数据
 
-四张租户库表（`TenantScoped*`），平台一侧以 `platform` 为租户落在同一张表里，平台账号之间同样能聊天；独立库的租户在自己的库里。
+六张租户库表（`TenantScoped*`），平台一侧以 `platform` 为租户落在同一张表里，平台账号之间同样能聊天；独立库的租户在自己的库里。
 
 | 表 | 说明 |
 | --- | --- |
@@ -14,6 +14,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、禁言、入会时间；退群与移出即软删除 |
 | `sys_chat_message` | 消息：会话内序号、发送人与名字快照、类型、正文、附件（JSON）、撤回、编辑、回复快照、提及、置顶；不软删除，按保留期物理删除 |
 | `sys_chat_message_reaction` | 表情回应：同一消息、同一用户、同一表情只有一条 |
+| `sys_chat_call` | 通话：会话、发起人、媒体（语音、视频）、状态、结束的原因、响铃到几时、接通与结束时间、通话记录消息；不进差异日志 |
+| `sys_chat_call_participant` | 通话的参与者：状态（受邀、已加入、已拒绝、未接听、已离开）、加入与离开时间；同一通话里一个用户只有一行 |
 
 会话内的消息按序号排序：发消息时对会话行加一取得序号（行锁让同一会话的发送串行），历史的游标、已读位与已读回执都比序号。主键是 GUIDv7，同一毫秒内没有先后，不能用来排序。
 
@@ -25,12 +27,12 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 群聊 | 含群主至少两人，发起人为群主；加人、移出、改信息与公告、禁言要群主或管理员，转让群主与设管理员只有群主；群主不能退群或被移出；没有解散 |
 | 部门群 | 只有本部门的成员能进，打开时补齐部门现有成员；没有群主与管理员，所以没人能改信息、置顶消息或禁言；名称随部门、不能改；平台没有部门，部门群只在租户一侧 |
 | 成员范围 | 加进会话的人必须属于当前一侧：平台是注册在平台的账号，租户是注册在本租户的用户与租户成员（`CHAT_VALIDATION_021`） |
-| 发送 | 只有成员、没被禁言；文本必填不超过 4000 个字符，图片与文件至少一个附件（可带说明），语音恰好一个附件、1 到 60 秒、没有正文；系统提示与助手回复只由服务端追加 |
+| 发送 | 只有成员、没被禁言；文本必填不超过 4000 个字符，图片与文件至少一个附件（可带说明），语音恰好一个附件、1 到 60 秒、没有正文；系统提示、助手回复与通话记录只由服务端追加 |
 | 提及与回复 | 最多提及 20 名成员；只能回复本会话未撤回的消息，存「发送人: 内容」快照 |
-| 撤回 | 本人、发出 2 分钟内，清空正文、保留行与附件 |
+| 撤回 | 本人、发出 2 分钟内，清空正文、保留行与附件；通话记录不能撤回 |
 | 编辑 | 本人的文本、发出 5 分钟内、没被禁言 |
 | 置顶消息 | 单聊双方都能，群与部门群只有群主与管理员，每会话最多 10 条（`CHAT_CONFLICT_001`） |
-| 转发 | 服务端单条转发到一个或多个会话，原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；系统提示与已撤回的不能转发，不是成员或被禁言的会话逐项失败 |
+| 转发 | 服务端单条转发到一个或多个会话，原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；系统提示、通话记录与已撤回的不能转发，不是成员或被禁言的会话逐项失败 |
 | 已读 | 未读清零、已读位前移（不回退，没给消息即读到最新），已读位推给全体成员 |
 
 系统提示（建群、邀请、退群、移出、转让）与会话预览按发起调用的区域写进库里，公告以操作人的身份进消息流。
@@ -56,6 +58,70 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 助手本身的配置见 [AI 能力](./ai#助手)。
 
+## 语音与视频通话
+
+单聊里的一对一通话。媒体在两端的浏览器之间走 WebRTC：能直连就直连，直连不通时经 TURN 中继；服务端只记通话的状态、转发信令，不经手也不录制媒体。
+
+### 状态
+
+| 状态 | 说明 |
+| --- | --- |
+| `Ringing` | 响铃中：发起人已加入，对方受邀 |
+| `Ongoing` | 通话中：对方接听了 |
+| `Ended` | 已结束，带结束的原因 |
+
+| 结束的原因 | 说明 |
+| --- | --- |
+| `Completed` | 接通后有人挂断 |
+| `Cancelled` | 接通前发起人挂断，或发起人离线 |
+| `Rejected` | 对方拒绝（响铃时对方挂断也算） |
+| `Missed` | 响铃到点没人接，或对方离线 |
+| `Interrupted` | 通话中有人离线 |
+
+### 规则
+
+| 规则 | 说明 |
+| --- | --- |
+| 发起 | 只有单聊；自己与对方都不在别的通话里（受邀还没接也算占着）；对方此刻在线，不在线不响铃、直接拒绝 |
+| 接听与拒绝 | 只有受邀的人、还在响铃时；多端同时接听只有先到的成功，其余端随推送停铃 |
+| 挂断 | 接通后任一方挂断即结束；响铃时发起人挂断即取消、受邀的人挂断即拒绝；已经结束的照样成功（两边可能同时挂） |
+| 响铃到点 | 响铃秒数读 `chat.policy` 的 `callRingSeconds`（缺省 60）。到点由端上来挂：发起端准点挂，受邀端晚 2 秒替它挂；服务端把到点前 3 秒起的挂断一律记未接听 |
+| 离线 | 用户离线（过了[离线宽限](#在线状态)）即结束他占着的通话：响铃的取消或记未接听，通话中的记中断 |
+| 收尾 | 内建作业 `chat.calls.sweep` 每 5 分钟按平台与每个租户收一遍没人管的通话（响铃过点、发起人已离线、通话中有人离线）；停用的租户跳过 |
+| 先后 | 同一会话里的发起、接听、拒绝、挂断对会话行加锁排成先后：两个人同时互相呼叫只成一通。锁只在会话上，两个不同的人在同一瞬间呼叫同一个人时可能各响一通，先接的成立，另一通到点记未接听 |
+
+### 通话记录
+
+通话结束时往会话里追加一条类型为 `Call` 的消息：发送人是发起人，正文是 JSON（`callId`、`media`、`reason`、`durationSeconds`），会话预览写「[语音通话]」或「[视频通话]」。没接到的（`Missed`、`Cancelled`）给对方记一条未读，接通过的与拒绝的不记。通话记录不能撤回、不能转发，也不进会话内搜索；聊天审计里显示为「媒体 · 结果」。
+
+### 信令与穿透
+
+- 信令经聊天 Hub：占着通话的端调 `CallSignal(callId, data)`，服务端核对它是这通接通了的电话里的人，把 `ChatCallSignal`（`callId`、`fromUserId`、`data`）转给通话里的另一个人。`data` 是两端之间约定的 JSON（会话描述、ICE 候选、麦克风与摄像头的开关），不超过 20000 个字符，服务端不解析、不落库。
+- 通话每次变化推 `ChatCallChanged`，载荷是通话此刻的样子，发给两个人的全部连接。
+- 穿透服务器由 `chat-calls.ice-servers` 给出，取自宿主配置 `BasicApp:Chat:Calls`（见[配置](../configuration#basicapp-chat-calls)）。TURN 用共享密钥的限时凭据：用户名是「到期秒数:用户」，凭据是它的 HMAC-SHA1，按调用方现签，密钥不下发。都不配也能用，只是只有同一网段或能直连的两端打得通。
+
+### 前端
+
+- 会话头的语音与视频按钮只在单聊出现；通话记录的气泡可点，用同样的媒体再打一次。
+- 来电卡片与通话窗挂在布局根部：任何页面都能接听，离开聊天页通话不断。通话窗可拖动、收拢成标题栏或铺满视口，有静音、关摄像头、换麦克风与摄像头（浏览器支持时还有扬声器）与挂断。
+- 来电在每个开着的页签都响；只有发起或接听的那个页签建媒体连接、处理信令，别的页签随推送停铃。没有 `chat.chat-calls.call` 的人不出来电卡片，那通电话到点记未接听。
+- 接通后 30 秒媒体还没连上、或连接断开 8 秒没恢复，端上自己挂断并提示。
+- 刷新页面：还在响的来电经 `chat-calls.active` 认回来；刷新之前占着通话的那个页签，媒体已经随页面没了，回来后替自己挂断。
+- 浏览器只在 HTTPS 与 `localhost` 下给麦克风与摄像头。
+
+### 错误码
+
+| 错误码 | 说明 |
+| --- | --- |
+| `CHAT_VALIDATION_028` | 只有单聊能发起通话 |
+| `CHAT_VALIDATION_029` | 通话记录不能撤回 |
+| `CHAT_NOTFOUND_006` | 通话不存在 |
+| `CHAT_DENIED_010` | 不是这通电话的参与者 |
+| `CHAT_CONFLICT_002` | 自己正在另一通电话里 |
+| `CHAT_CONFLICT_003` | 对方正在通话中 |
+| `CHAT_CONFLICT_004` | 对方不在线 |
+| `CHAT_CONFLICT_005` | 这通电话已经被接听或已结束 |
+
 ## 操作与权限
 
 | 资源 | 操作 |
@@ -63,6 +129,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
 | `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members` |
+| `chat-calls` | `active`、`ice-servers`（只读）；`start`、`accept`、`reject`、`hangup` |
 
 普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`，要 `chat.chat-messages.send`，访问日志记作 `chat-messages.upload`）。
 
@@ -73,8 +140,10 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
 | `chat.chat-conversations.manage` | 建群与群治理（进操作日志） |
 | `chat.chat-audit.read` | 聊天审计 |
+| `chat.chat-calls.read` | 查看自己此刻所在的通话、取穿透服务器 |
+| `chat.chat-calls.call` | 发起、接听、拒绝与挂断通话（进操作日志） |
 
-权限码两侧都有。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）在「消息中心」目录下。
+权限码两侧都有。套餐白名单与角色的授权是运营数据，种子只在首次写入：已有的套餐与角色不会自动带上之后新增的权限码，要在套餐页与角色页授予。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）在「消息中心」目录下。
 
 ## 选人
 
@@ -96,8 +165,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 方向 | 方法 |
 | --- | --- |
-| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted` |
-| 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库） |
+| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`、`ChatCallChanged`、`ChatCallSignal` |
+| 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库）、`CallSignal`（核对是接通了的通话里的人后转给另一个人，不落库） |
 
 `ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`。
 
@@ -126,7 +195,7 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 持 `chat.chat-audit.read` 即看当前一侧全部会话的消息，不要求是成员：
 
-- 列表按关键字（正文、发送人名、附件）与会话、发送人、消息类型、发送时间、是否撤回筛选，缺省不含已撤回的，筛选 `includeRecalled` 为 `true` 即都看；
+- 列表按关键字（正文、发送人名、附件）与会话、发送人、消息类型（含通话记录）、发送时间、是否撤回筛选，缺省不含已撤回的，筛选 `includeRecalled` 为 `true` 即都看；
 - 消息详情带所在会话、附件、提及、回复与表情回应；
 - 会话成员列出会话与它现在的成员。
 
@@ -134,24 +203,25 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 ## 策略与保留清理
 
-参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词），缺省值：
+参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词与响铃秒数），缺省值：
 
 ```json
-{ "retentionDays": 365, "sensitiveWords": [] }
+{ "retentionDays": 365, "sensitiveWords": [], "callRingSeconds": 60 }
 ```
 
 | 字段 | 说明 |
 | --- | --- |
 | `retentionDays` | 消息保留天数，1 到 3650，只读平台的值 |
 | `sensitiveWords` | 敏感词，不区分大小写的包含匹配；租户建了同键参数即用租户的；管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名（`CHAT_VALIDATION_023`） |
+| `callRingSeconds` | 通话响铃秒数，10 到 300；到点没人接即未接听；租户建了同键参数即用租户的 |
 
-JSON 不合法或保留天数越界即 `CHAT_VALIDATION_024`，发送与清理都不按错误的值执行。
+JSON 不合法、保留天数或响铃秒数越界即 `CHAT_VALIDATION_024`，发送、通话与清理都不按错误的值执行。
 
 内建作业 `chat.messages.cleanup` 每天 04:00（UTC）按平台与每个租户逐个清理（独立库的租户清它自己的库）：先删所属消息已过期的表情回应，再删过期的消息；不删会话、成员与附件文件。一侧失败只记日志，不影响其他侧。
 
 ## 开关
 
-`BasicApp:Modules:Chat:Enabled`（缺省开）。关掉后宿主不装配 Chat：权限目录、页面、Hub、附件上传端点与部门归属订阅都不在，菜单不下发、操作 404；Organization 照常发出领域事件，没有订阅方。四张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
+`BasicApp:Modules:Chat:Enabled`（缺省开）。关掉后宿主不装配 Chat：权限目录、页面、Hub、附件上传端点、两个内建作业与部门归属、在线状态的订阅都不在，菜单不下发、操作 404；Organization 照常发出领域事件，没有订阅方。六张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
 
 ## 下一步
 

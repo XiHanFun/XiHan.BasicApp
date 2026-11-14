@@ -65,6 +65,7 @@ appsettings.json
    ├─ Files                 上传、分片与签名下载
    ├─ Notification          通知发件箱与 Telegram
    ├─ Realtime              SignalR Hub 参数
+   ├─ Chat                  语音与视频通话的穿透服务器
    ├─ OpenPlatform          开放接口签名与 OAuth2 / OIDC 授权服务
    ├─ CodeGeneration        代码生成
    └─ AI                    知识库的向量库（Qdrant）
@@ -704,6 +705,19 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 | `OfflineGrace` | `00:00:08` | 最后一条连接断开之后多久才算离线；宽限之内又连上（刷新页面、断线重连）不发布变化 |
 
 时长的写法同上一节。
+
+## `BasicApp:Chat:Calls`
+
+语音与视频通话的穿透服务器（见[在线聊天](./backend/chat#语音与视频通话)）。媒体在两端的浏览器之间直连，直连不通时经 TURN 中继；都不配也能用，只是只有同一网段或能直连的两端打得通。配置写错启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `StunUrls` | 空 | STUN 地址，`stun:` 或 `stuns:` 开头，如 `stun:turn.example.com:3478` |
+| `TurnUrls` | 空 | TURN 地址，`turn:` 或 `turns:` 开头，如 `turn:turn.example.com:3478?transport=udp`；配了它就必须配 `TurnSecret` |
+| `TurnSecret` | 空 | TURN 的共享密钥，与 TURN 服务器上配的同一个值（coturn 的 `static-auth-secret`）；只留在服务端，按它给每个用户现签限时凭据 |
+| `TurnCredentialLifetime` | `01:00:00` | TURN 凭据的有效期；凭据只在建立连接时核对，过期不影响已经接通的通话 |
+
+时长的写法同 `BasicApp:Realtime:SignalR`。响铃秒数不在这里，在系统参数 `chat.policy` 的 `callRingSeconds`。TURN 服务器的部署见[部署](./deployment#语音与视频通话)。
 
 ## `BasicApp:OpenPlatform`
 

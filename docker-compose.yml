@@ -4,7 +4,7 @@
 # - 构建后端镜像时按 backend/props/framework.props 的版本从 NuGet 还原 XiHan.Framework，需要能访问 nuget.org
 # - init 服务先执行表结构升级与种子（可重复执行，每次 up 都会跑一遍），完成后后端才启动
 # - 前端 http://localhost:${FRONTEND_PORT}，用 superadmin 与 .env 里的 SUPERADMIN_PASSWORD 登录，登录后立即修改密码
-# - 单实例零外部依赖：缓存与消息走进程内实现；要 Redis、RabbitMQ、Qdrant 时打开文末注释掉的服务
+# - 单实例零外部依赖：缓存与消息走进程内实现；要 Redis、RabbitMQ、Qdrant、通话的 TURN 中继时打开文末注释掉的服务
 # 完整配置项见 backend/src/XiHan.BasicApp.Host/appsettings.json，部署要点见 docs/deployment.md
 
 name: xihan-basicapp
@@ -32,6 +32,11 @@ x-backend-env: &backend-env
   # XiHan__Bindings__queue__value: amqp://guest:guest@rabbitmq:5672
   # Qdrant 向量库（AI 知识库；打开下面的 qdrant 服务后取消注释）
   # BasicApp__AI__Qdrant__Host: qdrant
+  # 语音与视频通话的穿透服务器（打开下面的 coturn 服务后取消注释；浏览器要连得到这个地址，写公网域名或地址）
+  # BasicApp__Chat__Calls__StunUrls__0: stun:${TURN_HOST}:3478
+  # BasicApp__Chat__Calls__TurnUrls__0: turn:${TURN_HOST}:3478?transport=udp
+  # BasicApp__Chat__Calls__TurnUrls__1: turn:${TURN_HOST}:3478?transport=tcp
+  # BasicApp__Chat__Calls__TurnSecret: ${TURN_SECRET}
 
 services:
   db:
@@ -118,6 +123,25 @@ services:
   #   restart: unless-stopped
   #   networks:
   #     - basicapp
+
+  # 可选：TURN 中继（语音与视频通话；两端的浏览器不能直连时媒体经它转发）
+  # 用宿主机网络：中继要对外开放 3478（UDP 与 TCP）与下面的中继端口段，external-ip 写公网地址
+  # coturn:
+  #   image: coturn/coturn:4-alpine
+  #   network_mode: host
+  #   command:
+  #     - --use-auth-secret
+  #     - --static-auth-secret=${TURN_SECRET}
+  #     - --realm=${TURN_HOST}
+  #     - --external-ip=${TURN_EXTERNAL_IP}
+  #     - --listening-port=3478
+  #     - --min-port=49160
+  #     - --max-port=49200
+  #     - --fingerprint
+  #     - --no-cli
+  #     - --no-tls
+  #     - --no-dtls
+  #   restart: unless-stopped
 
 networks:
   basicapp:

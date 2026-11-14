@@ -2,7 +2,7 @@
  * api.ts：聊天 API 契约到生成的操作客户端的映射
  *
  * 职责边界：锁定这几处——批量操作的逐项失败要抛出（不当成功吞掉）、置顶与免打扰传新值、
- * 转发走服务端、选人与部门树的字段换算、附件先秒传再普通上传、附件地址按会话签出且原样使用
+ * 转发走服务端、选人与部门树的字段换算、附件先秒传再普通上传、附件地址按会话签出且原样使用、通话的六个操作
  * 网络层用 configureRequest 换掉 fetch，普通上传（XMLHttpRequest）替身掉 uploadForm
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -303,5 +303,82 @@ describe('附件', () => {
       '/base/api/chat-messages:presign?conversationId=c-1&fileId=f-1&download=false',
       '/base/api/chat-messages:presign?conversationId=c-1&fileId=f-1&download=true',
     ])
+  })
+})
+
+describe('通话', () => {
+  const call = {
+    callId: 'k-1',
+    conversationId: 'c-1',
+    initiatorUserId: 'u-1',
+    media: 'Video',
+    status: 'Ringing',
+    startedAt: '2026-11-14T08:00:00Z',
+    ringExpiresAt: '2026-11-14T08:01:00Z',
+    participants: [],
+  }
+
+  it('发起带会话与媒体；接听、拒绝、挂断只带通话', async () => {
+    const calls = record(() => json(200, call))
+    const api = createChatApi()
+
+    await expect(api.startCall('c-1', 'Video')).resolves.toMatchObject({ callId: 'k-1', media: 'Video' })
+    await api.acceptCall('k-1')
+    await api.rejectCall('k-1')
+    await api.hangupCall('k-1')
+
+    expect(calls).toEqual([
+      {
+        method: 'POST',
+        url: '/api/chat-calls:start',
+        body: { conversationId: 'c-1', media: 'Video' },
+      },
+      {
+        method: 'POST',
+        url: '/api/chat-calls:accept',
+        body: { callId: 'k-1' },
+      },
+      {
+        method: 'POST',
+        url: '/api/chat-calls:reject',
+        body: { callId: 'k-1' },
+      },
+      {
+        method: 'POST',
+        url: '/api/chat-calls:hangup',
+        body: { callId: 'k-1' },
+      },
+    ])
+  })
+
+  it('当前通话原样带回通话与服务端的时间；穿透服务器只取那一组', async () => {
+    const calls = record(request => json(200, request.url.endsWith(':active')
+      ? { call, now: '2026-11-14T08:00:20Z' }
+      : {
+          iceServers: [
+            {
+              urls: ['stun:turn.example.com:3478'],
+            },
+          ],
+          expiresAt: null,
+        }))
+    const api = createChatApi()
+
+    await expect(api.activeCall()).resolves.toEqual({ call, now: '2026-11-14T08:00:20Z' })
+    await expect(api.callIceServers()).resolves.toEqual([
+      {
+        urls: ['stun:turn.example.com:3478'],
+      },
+    ])
+    expect(calls.map(request => [request.method, request.url])).toEqual([
+      ['GET', '/api/chat-calls:active'],
+      ['GET', '/api/chat-calls:ice-servers'],
+    ])
+  })
+
+  it('占线这类拒绝带着服务端的原因抛出', async () => {
+    record(() => json(409, { code: 'CHAT_CONFLICT_003', detail: '对方正在通话中，稍后再试。' }, 'application/problem+json'))
+
+    await expect(createChatApi().startCall('c-1', 'Voice')).rejects.toMatchObject({ code: 'CHAT_CONFLICT_003', detail: '对方正在通话中，稍后再试。' })
   })
 })

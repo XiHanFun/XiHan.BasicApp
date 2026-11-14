@@ -9,7 +9,7 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import type { ChatMemberRole } from '~/contracts'
+import type { ChatCallMedia, ChatMemberRole } from '~/contracts'
 import { useElementSize } from '@vueuse/core'
 import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -22,6 +22,9 @@ import { dialog, toast, xhTranslationsOfCurrentLocale } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { getChatApi } from '../api-contract'
+import { callMediaFailureText } from '../call/call-helpers'
+import { ChatCallMediaError } from '../call/call-media'
+import { useChatCallStore } from '../call/call-store'
 import {
   CHAT_PERMISSIONS,
 } from '../constants'
@@ -101,6 +104,26 @@ const peerUserId = computed(() =>
   conversation.value?.conversationType === 'Single'
     ? conversation.value.peerUserId ?? null
     : null)
+
+// 通话：只有单聊能打，要通话权限；这个页签眼前已经有一通（在响或在通）时不能再打
+const callStore = useChatCallStore()
+const canCall = computed(() => Boolean(peerUserId.value) && userStore.hasPermission(CHAT_PERMISSIONS.call))
+const callBusy = computed(() => callStore.call !== null || callStore.working)
+
+async function handleStartCall(media: ChatCallMedia) {
+  const id = conversationId.value
+  if (!id) {
+    return
+  }
+  try {
+    await callStore.start(id, media)
+  }
+  catch (error) {
+    toast.danger(error instanceof ChatCallMediaError
+      ? callMediaFailureText(t, error.failure)
+      : chatErrorText(error) || t('common.messages.operation_failed'))
+  }
+}
 
 const conversationTypeLabel = computed(() => {
   switch (conversation.value?.conversationType) {
@@ -305,8 +328,8 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
 })
 
 function openContextMenu(event: MouseEvent, item: ChatLocalMessage) {
-  // 系统提示/已撤回/未落库消息无可用操作
-  if (item.messageType === 'System' || item.isRecalled || item.pending || item.failed) {
+  // 系统提示/通话记录/已撤回/未落库消息无可用操作
+  if (item.messageType === 'System' || item.messageType === 'Call' || item.isRecalled || item.pending || item.failed) {
     return
   }
   event.preventDefault()
@@ -715,7 +738,11 @@ onBeforeUnmount(() => {
           {{ chatStore.isUserOnline(peerUserId) ? t('chat.presence.online') : t('chat.presence.offline') }}
         </div>
       </div>
-      <!-- 会话头的操作：搜索与详情（资料、设置与成员都收在详情里） -->
+      <!-- 会话头的操作：单聊的语音与视频通话，搜索与详情（资料、设置与成员都收在详情里） -->
+      <template v-if="canCall">
+        <XIconButton icon="lucide:phone" :label="t('chat.call.voice')" :disabled="callBusy" @click="handleStartCall('Voice')" />
+        <XIconButton icon="lucide:video" :label="t('chat.call.video')" :disabled="callBusy" @click="handleStartCall('Video')" />
+      </template>
       <XIconButton icon="lucide:search" :label="t('chat.thread.search')" :variant="showSearch ? 'subtle' : 'ghost'" :aria-pressed="showSearch" @click="toggleSearch" />
       <XIconButton
         icon="lucide:panel-right"
@@ -887,6 +914,7 @@ onBeforeUnmount(() => {
               @retry="item.clientMessageId && chatStore.retryMessage(conversation.conversationId, item.clientMessageId).catch(() => {})"
               @remove="item.clientMessageId && chatStore.removeLocalMessage(conversation.conversationId, item.clientMessageId)"
               @react="emoji => handleReact(item, emoji)"
+              @call="media => handleStartCall(media)"
               @avatar-contextmenu="event => openMemberMenu(event, item)"
             />
           </div>

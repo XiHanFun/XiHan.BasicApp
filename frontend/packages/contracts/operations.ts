@@ -77,6 +77,12 @@ export const routes = {
   'chat-audit.get': { method: 'GET', template: '/api/chat-audit/{id}', path: ['id'], query: [], success: 200 },
   'chat-audit.list': { method: 'POST', template: '/api/chat-audit:list', path: [], query: [], success: 200 },
   'chat-audit.members': { method: 'GET', template: '/api/chat-audit:members', path: [], query: ['conversationId'], success: 200 },
+  'chat-calls.accept': { method: 'POST', template: '/api/chat-calls:accept', path: [], query: [], success: 200 },
+  'chat-calls.active': { method: 'GET', template: '/api/chat-calls:active', path: [], query: [], success: 200 },
+  'chat-calls.hangup': { method: 'POST', template: '/api/chat-calls:hangup', path: [], query: [], success: 200 },
+  'chat-calls.ice-servers': { method: 'GET', template: '/api/chat-calls:ice-servers', path: [], query: [], success: 200 },
+  'chat-calls.reject': { method: 'POST', template: '/api/chat-calls:reject', path: [], query: [], success: 200 },
+  'chat-calls.start': { method: 'POST', template: '/api/chat-calls:start', path: [], query: [], success: 200 },
   'chat-conversations.add-members': { method: 'POST', template: '/api/chat-conversations:add-members', path: [], query: [], success: 200 },
   'chat-conversations.assistants': { method: 'GET', template: '/api/chat-conversations:assistants', path: [], query: [], success: 200 },
   'chat-conversations.create-group': { method: 'POST', template: '/api/chat-conversations:create-group', path: [], query: [], success: 200 },
@@ -633,6 +639,16 @@ export const chatAudit = {
   get: (request: RequestOf<'chat-audit.get'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.get'>, ResponseOf<'chat-audit.get'>>('chat-audit.get', routes['chat-audit.get'], request, options),
   list: (request: RequestOf<'chat-audit.list'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.list'>, ResponseOf<'chat-audit.list'>>('chat-audit.list', routes['chat-audit.list'], request, options),
   members: (request: RequestOf<'chat-audit.members'>, options?: CallOptions) => invoke<RequestOf<'chat-audit.members'>, ResponseOf<'chat-audit.members'>>('chat-audit.members', routes['chat-audit.members'], request, options),
+}
+
+/** 资源 `chat-calls` 的操作 */
+export const chatCalls = {
+  accept: (request: RequestOf<'chat-calls.accept'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.accept'>, ResponseOf<'chat-calls.accept'>>('chat-calls.accept', routes['chat-calls.accept'], request, options),
+  active: (request: RequestOf<'chat-calls.active'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.active'>, ResponseOf<'chat-calls.active'>>('chat-calls.active', routes['chat-calls.active'], request, options),
+  hangup: (request: RequestOf<'chat-calls.hangup'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.hangup'>, ResponseOf<'chat-calls.hangup'>>('chat-calls.hangup', routes['chat-calls.hangup'], request, options),
+  iceServers: (request: RequestOf<'chat-calls.ice-servers'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.ice-servers'>, ResponseOf<'chat-calls.ice-servers'>>('chat-calls.ice-servers', routes['chat-calls.ice-servers'], request, options),
+  reject: (request: RequestOf<'chat-calls.reject'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.reject'>, ResponseOf<'chat-calls.reject'>>('chat-calls.reject', routes['chat-calls.reject'], request, options),
+  start: (request: RequestOf<'chat-calls.start'>, options?: CallOptions) => invoke<RequestOf<'chat-calls.start'>, ResponseOf<'chat-calls.start'>>('chat-calls.start', routes['chat-calls.start'], request, options),
 }
 
 /** 资源 `chat-conversations` 的操作 */

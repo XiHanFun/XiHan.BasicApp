@@ -6,6 +6,8 @@
 import type {
   ChatAssistantCompletedPushPayload,
   ChatAssistantDeltaPushPayload,
+  ChatCallItem,
+  ChatCallSignalPushPayload,
   ChatConversationChangedPushPayload,
   ChatMessageEditedPushPayload,
   ChatMessagePushPayload,
@@ -21,6 +23,8 @@ import { useRoute } from 'vue-router'
 import { islandStart, playNotificationSound, useSignalR } from '~/composables'
 import { RealtimeHubs, RealtimeMethods } from '~/contracts'
 import { useAccessStore, useUserStore } from '~/stores'
+import { isMissedCallRecord } from '../call/call-helpers'
+import { useChatCallStore } from '../call/call-store'
 import { previewText } from '../components/chat-helpers'
 import { CHAT_PAGE_PATH, CHAT_PERMISSIONS } from '../constants'
 import { useChatStore } from '../store'
@@ -29,13 +33,14 @@ const CHAT_RECONNECT_INTERVAL_MS = 15000
 
 /**
  * 在 BasicLayout 中初始化聊天实时链路（RealtimeHubs.Chat 独立连接）
- * 推送回灌 chat store，并预取会话列表供顶栏未读角标
+ * 推送回灌 chat store 与通话 store，并预取会话列表供顶栏未读角标
  * 没有会话读权限（chat.chat-conversations.read）时整条链路静默关闭
  */
 export function useChatIntegration() {
   const accessStore = useAccessStore()
   const userStore = useUserStore()
   const chatStore = useChatStore()
+  const callStore = useChatCallStore()
   const signalR = useSignalR(RealtimeHubs.Chat)
   const route = useRoute()
   const { t } = useI18n()
@@ -48,6 +53,10 @@ export function useChatIntegration() {
   function notifyIncomingMessage(payload: ChatMessagePushPayload) {
     const { message, conversation } = payload
     if (message.senderUserId === userStore.userInfo?.basicId || message.messageType === 'System') {
+      return
+    }
+    // 通话记录：只有没接到的（对方取消或没人接）才提醒，接通过的与自己拒的不提醒
+    if (message.messageType === 'Call' && !isMissedCallRecord(message.content)) {
       return
     }
 
@@ -111,6 +120,10 @@ export function useChatIntegration() {
       chatStore.applyAssistantDelta(payload as ChatAssistantDeltaPushPayload))
     signalR.on(RealtimeMethods.ChatAssistantCompleted, payload =>
       chatStore.applyAssistantCompleted(payload as ChatAssistantCompletedPushPayload))
+    signalR.on(RealtimeMethods.ChatCallChanged, payload =>
+      callStore.applyCallChanged(payload as ChatCallItem))
+    signalR.on(RealtimeMethods.ChatCallSignal, payload =>
+      callStore.applyCallSignal(payload as ChatCallSignalPushPayload))
     isListenersBound = true
   }
 
@@ -145,6 +158,7 @@ export function useChatIntegration() {
   }
 
   // 连接断过又连上：断开期间的上下线没收到，把在线状态重取一遍（第一次连上不算，那时刚读过）
+  // 通话每次连上都与服务端对一遍：还在响的来电认回来，断线期间结束了的收场，刷新前占着的那一通替自己挂断
   let everConnected = false
   const stopConnectedWatch = watch(signalR.connected, (connected) => {
     if (!connected) {
@@ -154,6 +168,7 @@ export function useChatIntegration() {
       chatStore.resyncPresence()
     }
     everConnected = true
+    callStore.restore().catch(() => {})
   })
 
   const stopTokenWatch = watch(
@@ -168,6 +183,7 @@ export function useChatIntegration() {
         await signalR.destroy()
         isListenersBound = false
         everConnected = false
+        callStore.reset()
         chatStore.$reset()
       }
     },

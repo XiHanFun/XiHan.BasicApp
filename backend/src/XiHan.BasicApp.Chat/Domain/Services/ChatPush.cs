@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Infrastructure;
+using XiHan.BasicApp.Chat.Operations.ChatCalls;
 using XiHan.BasicApp.Chat.Operations.ChatMessages;
 using XiHan.BasicApp.Contracts.Realtime;
 
@@ -102,6 +103,14 @@ public sealed record ChatAssistantCompletedPayload(Guid ConversationId, string R
 public sealed record ChatPresenceChangedPayload(Guid UserId, bool IsOnline);
 
 /// <summary>
+/// <c>ChatCallSignal</c> 的载荷
+/// </summary>
+/// <param name="CallId">通话</param>
+/// <param name="FromUserId">发出信令的用户</param>
+/// <param name="Data">信令（两端之间约定的 JSON：SDP、ICE 候选与静音这类状态），服务端不解析</param>
+public sealed record ChatCallSignalPayload(Guid CallId, Guid FromUserId, string Data);
+
+/// <summary>
 /// 聊天的推送（作用域）
 /// </summary>
 /// <remarks>
@@ -180,6 +189,21 @@ public sealed class ChatPush(IRealtimePush push)
         await push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, peers), ChatRealtimeMethods.ChatPresenceChanged, payload, ChatJsonContext.Default.ChatPresenceChangedPayload, cancellationToken).ConfigureAwait(false);
         await push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.HubGroups(conversationIds.Select(ChatHub.GroupOf)), ChatRealtimeMethods.ChatPresenceChanged, payload, ChatJsonContext.Default.ChatPresenceChangedPayload, cancellationToken).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// 推通话此刻的样子（响铃、接通、结束）
+    /// </summary>
+    /// <remarks>
+    /// 发给参与者的全部连接：没在处理这通电话的端据此停铃
+    /// </remarks>
+    public ValueTask CallChangedAsync(string side, ChatCallItem call, IReadOnlyCollection<Guid> recipients, CancellationToken cancellationToken)
+        => push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, recipients), ChatRealtimeMethods.ChatCallChanged, call, ChatJsonContext.Default.ChatCallItem, cancellationToken);
+
+    /// <summary>
+    /// 转发一条通话信令
+    /// </summary>
+    public ValueTask CallSignalAsync(string side, ChatCallSignalPayload payload, IReadOnlyCollection<Guid> recipients, CancellationToken cancellationToken)
+        => push.SendAsync(RealtimeHubs.Chat, RealtimeAudience.UsersIn(side, recipients), ChatRealtimeMethods.ChatCallSignal, payload, ChatJsonContext.Default.ChatCallSignalPayload, cancellationToken);
 
     /// <summary>
     /// 推已读位

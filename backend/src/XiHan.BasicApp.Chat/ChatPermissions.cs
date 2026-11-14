@@ -9,9 +9,9 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天模块的权限码
 /// </summary>
 /// <remarks>
-/// 资源段与操作同词，共 5 个码，两侧都有：会话读与消息读（打开会话、退群、置顶、免打扰、已读这些个人操作也用会话读），
-/// 消息发送（撤回、编辑、回应、置顶消息、转发、附件），会话管理（建群与群治理），聊天审计
-/// 发送与管理进操作日志，读与审计不进
+/// 资源段与操作同词，共 7 个码，两侧都有：会话读与消息读（打开会话、退群、置顶、免打扰、已读这些个人操作也用会话读），
+/// 消息发送（撤回、编辑、回应、置顶消息、转发、附件），会话管理（建群与群治理），聊天审计，通话读（当前通话与穿透服务器）与通话（发起、接听、拒绝、挂断）
+/// 发送、管理与通话进操作日志，读与审计不进
 /// </remarks>
 public static class ChatPermissions
 {
@@ -41,6 +41,16 @@ public static class ChatPermissions
     public const string ChatAuditRead = "chat.chat-audit.read";
 
     /// <summary>
+    /// 查看当前通话
+    /// </summary>
+    public const string ChatCallsRead = "chat.chat-calls.read";
+
+    /// <summary>
+    /// 语音与视频通话
+    /// </summary>
+    public const string ChatCallsCall = "chat.chat-calls.call";
+
+    /// <summary>
     /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -50,5 +60,7 @@ public static class ChatPermissions
         new(ChatMessagesRead, "Read chat messages", PermissionScope.Both, description: "Read the history, search and pinned messages of conversations the caller belongs to, and sign their attachments."),
         new(ChatMessagesSend, "Send chat messages", PermissionScope.Both, audited: true, description: "Send, recall, edit, react to, pin, forward messages and upload attachments in conversations the caller belongs to."),
         new(ChatAuditRead, "Audit chat messages", PermissionScope.Both, description: "Search every message on the caller's side, view message details and conversation members without being a member."),
+        new(ChatCallsRead, "Read chat calls", PermissionScope.Both, description: "See the call the caller is currently in and get the ICE servers used to connect it."),
+        new(ChatCallsCall, "Make voice and video calls", PermissionScope.Both, audited: true, description: "Start, accept, reject and hang up voice and video calls in conversations the caller belongs to."),
     ];
 }

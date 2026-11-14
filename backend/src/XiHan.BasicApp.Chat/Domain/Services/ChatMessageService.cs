@@ -23,7 +23,7 @@ public sealed record ChatAppended(SysChatMessage Message, SysChatConversation Co
 /// </summary>
 /// <remarks>
 /// 只有成员能发，禁言的不能发与编辑；文本必填不超过 4000，图片与文件至少一个附件，语音恰好一个附件、1 到 60 秒、没有正文；
-/// 系统提示与助手回复只由服务端追加；提及最多 20 人且都是成员；回复只能回本会话未撤回的消息、存快照；撤回只本人 2 分钟内（清正文、留行与附件），编辑只本人的文本 5 分钟内；
+/// 系统提示、助手回复与通话记录只由服务端追加，通话记录不能撤回与转发；提及最多 20 人且都是成员；回复只能回本会话未撤回的消息、存快照；撤回只本人 2 分钟内（清正文、留行与附件），编辑只本人的文本 5 分钟内；
 /// 置顶消息单聊双方都能、群与部门群只有群主与管理员、每会话最多 10 条。附件以会话为访问范围（方案 H2）：发送时核对附件是自己在聊天里上传的文件，文件名与大小以文件记录为准
 /// 转发（方案 H1）是服务端单条转发到一个或多个会话，原样复制类型、正文与附件、不带「转发自」，助手回复按文本转出
 /// </remarks>
@@ -121,7 +121,7 @@ public sealed class ChatMessageService(
     /// 转发一条消息到一个或多个会话：逐个会话成功或失败
     /// </summary>
     /// <remarks>
-    /// 调用方须是原消息所在会话的成员；系统提示与已撤回的不能转发；目标会话不存在、不是成员或被禁言的逐项失败
+    /// 调用方须是原消息所在会话的成员；系统提示、通话记录与已撤回的不能转发；目标会话不存在、不是成员或被禁言的逐项失败
     /// </remarks>
     public async Task<Result<BatchResult>> ForwardAsync(InvocationContext context, ChatCaller caller, Guid messageId, IReadOnlyList<Guid> conversationIds)
     {
@@ -137,7 +137,7 @@ public sealed class ChatMessageService(
             return member.Error!;
         }
 
-        if (original.IsRecalled || original.Type == ChatMessageType.System)
+        if (original.IsRecalled || original.Type is ChatMessageType.System or ChatMessageType.Call)
         {
             return Error.Validation(ChatErrors.NotForwardable, ChatMessages.NotForwardable);
         }
@@ -210,6 +210,12 @@ public sealed class ChatMessageService(
         if (message.IsRecalled)
         {
             return Error.Validation(ChatErrors.Recalled, ChatMessages.Recalled);
+        }
+
+        // 通话记录以发起人为发送人，但它记的是发生过的事，不是他写的话
+        if (message.Type == ChatMessageType.Call)
+        {
+            return Error.Validation(ChatErrors.CallRecordLocked, ChatMessages.CallRecordLocked);
         }
 
         var now = clock.GetUtcNow();
@@ -520,6 +526,45 @@ public sealed class ChatMessageService(
         conversation.LastMessageAt = message.CreatedAt;
         conversation.LastMessagePreview = texts.Preview(context, ChatMessageType.Assistant, text, []);
         await store.Rows.UpdateAsync(conversation, context.CancellationToken).ConfigureAwait(false);
+        return new ChatAppended(message, conversation);
+    }
+
+    /// <summary>
+    /// 追加一条通话记录（刷新会话预览）
+    /// </summary>
+    /// <remarks>
+    /// 发送人是发起人，正文是通话记录的 JSON；<paramref name="countUnread"/> 为真时给发起人之外的成员记一条未读（对方没接到这通电话）
+    /// </remarks>
+    public async Task<Result<ChatAppended>> AppendCallAsync(InvocationContext context, string side, Guid conversationId, Guid initiatorUserId, string? initiatorName, string content, string preview, bool countUnread)
+    {
+        var allocated = await store.NextSeqAsync(side, conversationId, context.CancellationToken).ConfigureAwait(false);
+        if (!allocated.TryGetValue(out var next))
+        {
+            return allocated.Error!;
+        }
+
+        var message = new SysChatMessage
+        {
+            Id = ids.NewId(),
+            TenantId = side,
+            ConversationId = conversationId,
+            Seq = next.Seq,
+            SenderUserId = initiatorUserId,
+            SenderName = initiatorName,
+            Type = ChatMessageType.Call,
+            Content = content,
+        };
+        await store.Rows.AppendAsync(message, context.CancellationToken).ConfigureAwait(false);
+        var conversation = next.Conversation;
+        conversation.LastMessageId = message.Id;
+        conversation.LastMessageAt = message.CreatedAt;
+        conversation.LastMessagePreview = ChatRules.Truncate(preview, ChatRules.MaxPreviewLength);
+        await store.Rows.UpdateAsync(conversation, context.CancellationToken).ConfigureAwait(false);
+        if (countUnread)
+        {
+            await store.IncrementUnreadAsync(side, conversationId, initiatorUserId, context.CancellationToken).ConfigureAwait(false);
+        }
+
         return new ChatAppended(message, conversation);
     }
 

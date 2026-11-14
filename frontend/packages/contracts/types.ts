@@ -1286,6 +1286,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-calls:accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept call
+         * @description Accepts an incoming call that is still ringing; when several devices accept at once only the first succeeds.
+         *
+         *     Requires permission chat.chat-calls.call (Make voice and video calls).
+         */
+        post: operations["chat-calls.accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current call
+         * @description Returns the call the caller is in right now (ringing or ongoing), or nothing.
+         *
+         *     Requires permission chat.chat-calls.read (Read chat calls).
+         */
+        get: operations["chat-calls.active"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:hangup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hang up call
+         * @description Hangs up a call: the initiator hanging up before it is answered cancels it, either side hanging up afterwards ends it; a call that has already ended still succeeds.
+         *
+         *     Requires permission chat.chat-calls.call (Make voice and video calls).
+         */
+        post: operations["chat-calls.hangup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:ice-servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Call ICE servers
+         * @description Returns the STUN and TURN servers used to connect a call; the TURN credential is issued for the caller and expires.
+         *
+         *     Requires permission chat.chat-calls.read (Read chat calls).
+         */
+        get: operations["chat-calls.ice-servers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject call
+         * @description Rejects an incoming call that is still ringing; the call ends and leaves a record in the conversation.
+         *
+         *     Requires permission chat.chat-calls.call (Make voice and video calls).
+         */
+        post: operations["chat-calls.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chat-calls:start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start call
+         * @description Starts a voice or video call in a direct conversation and begins ringing; refused when either side is already in a call or the other side is offline.
+         *
+         *     Requires permission chat.chat-calls.call (Make voice and video calls).
+         */
+        post: operations["chat-calls.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-conversations:add-members": {
         parameters: {
             query?: never;
@@ -10717,6 +10849,101 @@ export interface components {
              */
             createdAt: string;
         };
+        /**
+         * @description 通话结束的原因
+         * @enum {string}
+         */
+        ChatCallEndReason: "Completed" | "Cancelled" | "Rejected" | "Missed" | "Interrupted";
+        /** @description 一次通话 */
+        ChatCallItem: {
+            /**
+             * Format: uuid
+             * @description 通话
+             */
+            callId: string;
+            /**
+             * Format: uuid
+             * @description 会话
+             */
+            conversationId: string;
+            /**
+             * Format: uuid
+             * @description 发起人
+             */
+            initiatorUserId: string;
+            /** @description 媒体 */
+            media: components["schemas"]["ChatCallMedia"];
+            /** @description 状态 */
+            status: components["schemas"]["ChatCallStatus"];
+            /** @description 结束的原因；没结束为空 */
+            endReason?: components["schemas"]["ChatCallEndReason"] | null;
+            /**
+             * Format: date-time
+             * @description 发起时间（UTC）
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @description 响铃到几时（UTC），过了还没人接即未接听
+             */
+            ringExpiresAt: string;
+            /**
+             * Format: date-time
+             * @description 接通时间（UTC）
+             */
+            answeredAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 结束时间（UTC）
+             */
+            endedAt?: string | null;
+            /** @description 参与者（发起人在前） */
+            participants: components["schemas"]["ChatCallParticipantItem"][];
+        };
+        /**
+         * @description 通话的媒体
+         * @enum {string}
+         */
+        ChatCallMedia: "Voice" | "Video";
+        /** @description 通话的参与者 */
+        ChatCallParticipantItem: {
+            /**
+             * Format: uuid
+             * @description 用户
+             */
+            userId: string;
+            /** @description 用户名 */
+            userName?: string | null;
+            /** @description 显示名 */
+            displayName?: string | null;
+            /**
+             * Format: uuid
+             * @description 头像文件（前端按它换签名地址显示）
+             */
+            avatarFileId?: string | null;
+            /** @description 在通话里的状态 */
+            status: components["schemas"]["ChatCallParticipantStatus"];
+            /**
+             * Format: date-time
+             * @description 加入时间（UTC）
+             */
+            joinedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 离开时间（UTC）
+             */
+            leftAt?: string | null;
+        };
+        /**
+         * @description 参与者在通话里的状态
+         * @enum {string}
+         */
+        ChatCallParticipantStatus: "Invited" | "Joined" | "Rejected" | "Missed" | "Left";
+        /**
+         * @description 通话的状态
+         * @enum {string}
+         */
+        ChatCallStatus: "Ringing" | "Ongoing" | "Ended";
         /** @description 我的会话列表项 */
         ChatConversationListItem: {
             /**
@@ -10798,6 +11025,15 @@ export interface components {
             departmentName: string;
             /** @description 下级部门 */
             children: components["schemas"]["ChatDepartmentNode"][];
+        };
+        /** @description 一组 ICE 服务器 */
+        ChatIceServer: {
+            /** @description 地址（stun:、turn: 或 turns:） */
+            urls: string[];
+            /** @description TURN 的用户名；STUN 为空 */
+            username?: string | null;
+            /** @description TURN 的凭据；STUN 为空 */
+            credential?: string | null;
         };
         /** @description 会话成员 */
         ChatMemberItem: {
@@ -10914,7 +11150,7 @@ export interface components {
          * @description 消息类型
          * @enum {string}
          */
-        ChatMessageType: "Text" | "Image" | "Voice" | "File" | "Assistant" | "System";
+        ChatMessageType: "Text" | "Image" | "Voice" | "File" | "Assistant" | "Call" | "System";
         /** @description 表情回应 */
         ChatReactionItem: {
             /** @description 表情 */
@@ -20425,6 +20661,418 @@ export interface operations {
                         conversation: components["schemas"]["ChatAuditConversationResponse"];
                         /** @description 现有成员（按角色再按入会时间） */
                         items: components["schemas"]["ChatMemberItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按通话的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 通话
+                     */
+                    callId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一次通话 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通话
+                         */
+                        callId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: uuid
+                         * @description 发起人
+                         */
+                        initiatorUserId: string;
+                        /** @description 媒体 */
+                        media: components["schemas"]["ChatCallMedia"];
+                        /** @description 状态 */
+                        status: components["schemas"]["ChatCallStatus"];
+                        /** @description 结束的原因；没结束为空 */
+                        endReason?: components["schemas"]["ChatCallEndReason"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 发起时间（UTC）
+                         */
+                        startedAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 响铃到几时（UTC），过了还没人接即未接听
+                         */
+                        ringExpiresAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 接通时间（UTC）
+                         */
+                        answeredAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间（UTC）
+                         */
+                        endedAt?: string | null;
+                        /** @description 参与者（发起人在前） */
+                        participants: components["schemas"]["ChatCallParticipantItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description chat-calls.active 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 我此刻所在的通话（响铃中或通话中）；没有为空 */
+                        call?: components["schemas"]["ChatCallItem"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 服务端此刻的时间（UTC）：端上据它算响铃还剩多久，不靠本机的钟
+                         */
+                        now: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.hangup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按通话的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 通话
+                     */
+                    callId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一次通话 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通话
+                         */
+                        callId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: uuid
+                         * @description 发起人
+                         */
+                        initiatorUserId: string;
+                        /** @description 媒体 */
+                        media: components["schemas"]["ChatCallMedia"];
+                        /** @description 状态 */
+                        status: components["schemas"]["ChatCallStatus"];
+                        /** @description 结束的原因；没结束为空 */
+                        endReason?: components["schemas"]["ChatCallEndReason"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 发起时间（UTC）
+                         */
+                        startedAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 响铃到几时（UTC），过了还没人接即未接听
+                         */
+                        ringExpiresAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 接通时间（UTC）
+                         */
+                        answeredAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间（UTC）
+                         */
+                        endedAt?: string | null;
+                        /** @description 参与者（发起人在前） */
+                        participants: components["schemas"]["ChatCallParticipantItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.ice-servers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description chat-calls.ice-servers 的响应 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description ICE 服务器；没配为空，只有同一网段或能直连的两端打得通 */
+                        iceServers: components["schemas"]["ChatIceServer"][];
+                        /**
+                         * Format: date-time
+                         * @description TURN 凭据的到期时间（UTC）；没配 TURN 为空
+                         */
+                        expiresAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按通话的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 通话
+                     */
+                    callId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一次通话 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通话
+                         */
+                        callId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: uuid
+                         * @description 发起人
+                         */
+                        initiatorUserId: string;
+                        /** @description 媒体 */
+                        media: components["schemas"]["ChatCallMedia"];
+                        /** @description 状态 */
+                        status: components["schemas"]["ChatCallStatus"];
+                        /** @description 结束的原因；没结束为空 */
+                        endReason?: components["schemas"]["ChatCallEndReason"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 发起时间（UTC）
+                         */
+                        startedAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 响铃到几时（UTC），过了还没人接即未接听
+                         */
+                        ringExpiresAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 接通时间（UTC）
+                         */
+                        answeredAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间（UTC）
+                         */
+                        endedAt?: string | null;
+                        /** @description 参与者（发起人在前） */
+                        participants: components["schemas"]["ChatCallParticipantItem"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-calls.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-calls.start 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话（单聊）
+                     */
+                    conversationId: string;
+                    /** @description 媒体：语音或视频 */
+                    media: components["schemas"]["ChatCallMedia"];
+                };
+            };
+        };
+        responses: {
+            /** @description 一次通话 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 通话
+                         */
+                        callId: string;
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
+                        /**
+                         * Format: uuid
+                         * @description 发起人
+                         */
+                        initiatorUserId: string;
+                        /** @description 媒体 */
+                        media: components["schemas"]["ChatCallMedia"];
+                        /** @description 状态 */
+                        status: components["schemas"]["ChatCallStatus"];
+                        /** @description 结束的原因；没结束为空 */
+                        endReason?: components["schemas"]["ChatCallEndReason"] | null;
+                        /**
+                         * Format: date-time
+                         * @description 发起时间（UTC）
+                         */
+                        startedAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 响铃到几时（UTC），过了还没人接即未接听
+                         */
+                        ringExpiresAt: string;
+                        /**
+                         * Format: date-time
+                         * @description 接通时间（UTC）
+                         */
+                        answeredAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 结束时间（UTC）
+                         */
+                        endedAt?: string | null;
+                        /** @description 参与者（发起人在前） */
+                        participants: components["schemas"]["ChatCallParticipantItem"][];
                     };
                 };
             };

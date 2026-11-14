@@ -26,13 +26,19 @@ export const CHAT_VOICE_PLAYED_STORAGE_KEY = 'chat-voice-played'
 /** 语音已听记录保留条数上限，超出丢最旧的 */
 export const CHAT_VOICE_PLAYED_CAP = 500
 
+/** 这个页签正占着的通话（发起了或接听了）的会话存储键：刷新后媒体没了，凭它认出该替自己挂断的那一通 */
+export const CHAT_CALL_SESSION_KEY = 'chat-call-engaged'
+
 /**
  * 聊天界面用到的权限码（后端 ChatPermissions）：
- * 会话读管打开会话、退群、置顶、免打扰与已读，消息发送管发、撤回、编辑、回应、置顶消息与转发，会话管理管建群与群治理
+ * 会话读管打开会话、退群、置顶、免打扰与已读，消息发送管发、撤回、编辑、回应、置顶消息与转发，会话管理管建群与群治理，
+ * 通话读管认回来电与取穿透服务器，通话管发起、接听、拒绝与挂断
  * 只做显隐，安全边界在后端；类型保证每个码都在生成的权限表里
  */
 export const CHAT_PERMISSIONS = {
   read: 'chat.chat-conversations.read',
   send: 'chat.chat-messages.send',
   manage: 'chat.chat-conversations.manage',
+  callRead: 'chat.chat-calls.read',
+  call: 'chat.chat-calls.call',
 } as const satisfies Record<string, Permission>

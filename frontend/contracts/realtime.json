@@ -5,6 +5,8 @@
       "methods": [
         "ChatAssistantCompleted",
         "ChatAssistantDelta",
+        "ChatCallChanged",
+        "ChatCallSignal",
         "ChatConversationChanged",
         "ChatMessageEdited",
         "ChatMessageRecalled",
@@ -15,6 +17,7 @@
         "ReceiveChatMessage"
       ],
       "invocations": [
+        "CallSignal",
         "JoinConversation",
         "LeaveConversation",
         "Typing"

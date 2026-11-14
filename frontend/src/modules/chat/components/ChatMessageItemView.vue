@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import type { ChatConversationType } from '~/contracts'
+import type { ChatCallMedia, ChatConversationType } from '~/contracts'
 import { XhButton } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,6 +15,7 @@ import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { getChatApi } from '../api-contract'
+import { callRecordText, parseCallRecord } from '../call/call-helpers'
 import { useChatFileUrl, useChatFileUrls } from '../composables/useChatFileUrl'
 import { useChatStore } from '../store'
 import { chatErrorText, formatFileSize, formatMessageTime } from './chat-helpers'
@@ -42,6 +43,8 @@ const emit = defineEmits<{
   retry: []
   remove: []
   react: [emoji: string]
+  /** 点通话记录：用同样的媒体再打一次 */
+  call: [media: ChatCallMedia]
   /** 右键他人头像（QQ 式成员菜单，由消息流统一承载） */
   avatarContextmenu: [event: MouseEvent]
 }>()
@@ -56,7 +59,16 @@ const isAnnouncement = computed(() => isSystem.value && Boolean(props.message.se
 const isImage = computed(() => props.message.messageType === 'Image')
 const isVoice = computed(() => props.message.messageType === 'Voice')
 const isFile = computed(() => props.message.messageType === 'File')
+const isCall = computed(() => props.message.messageType === 'Call')
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
+
+/** 通话记录：发送人是发起人，本人发的即我打出去的 */
+const callRecord = computed(() => (isCall.value
+  ? parseCallRecord(props.message.content)
+  : null))
+const callRecordLine = computed(() => (callRecord.value
+  ? callRecordText(t, callRecord.value, props.isSelf)
+  : t('chat.call.record_unknown')))
 
 /** 被 @ 到我：气泡高亮 */
 const isAssistantReply = computed(() => props.conversationType === 'Assistant' && !props.isSelf)
@@ -93,7 +105,8 @@ const groupedReactions = computed(() => {
 
 /** 已读回执文案（仅本人已落库消息） */
 const readReceiptLabel = computed(() => {
-  if (!props.isSelf || props.message.pending || props.message.failed || props.message.isRecalled) {
+  // 通话记录不是谁发的话，不挂已读回执
+  if (!props.isSelf || isCall.value || props.message.pending || props.message.failed || props.message.isRecalled) {
     return ''
   }
   if (props.readCount == null) {
@@ -357,6 +370,20 @@ async function handleDownload(fileId: string) {
           </button>
         </template>
 
+        <!-- 通话记录：一行结果（时长、未接听、已拒绝、已取消），点它用同样的媒体再打一次 -->
+        <template v-else-if="isCall">
+          <button
+            type="button"
+            class="chat-call-record"
+            :title="t('chat.call.call_back')"
+            :disabled="!callRecord"
+            @click="callRecord && emit('call', callRecord.media)"
+          >
+            <Icon :icon="callRecord?.media === 'Video' ? 'lucide:video' : 'lucide:phone'" width="14" height="14" class="shrink-0" />
+            <span class="text-[13px] leading-relaxed">{{ callRecordLine }}</span>
+          </button>
+        </template>
+
         <!-- 公告卡片（钉钉式：小喇叭标题 + 全文保留换行，发布人经头像/昵称归属） -->
         <template v-else-if="isAnnouncement">
           <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-amber-600">
@@ -548,6 +575,26 @@ async function handleDownload(fileId: string) {
   border-radius: 50%;
   background: var(--xh-fg-danger);
   box-shadow: 0 0 0 2px var(--xh-bg-surface);
+}
+
+/* 通话记录：气泡里的一行，整行可点（回拨）；全局按钮重置留着 UA 内距，这里清掉 */
+.chat-call-record {
+  display: inline-flex;
+  gap: var(--xh-space-1_5);
+  align-items: center;
+  padding: 0;
+  border-radius: var(--xh-shape-inset);
+  color: inherit;
+  cursor: pointer;
+}
+
+.chat-call-record:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
+.chat-call-record:disabled {
+  cursor: default;
 }
 
 .chat-file-card {

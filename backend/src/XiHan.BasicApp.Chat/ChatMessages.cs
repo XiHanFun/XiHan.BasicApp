@@ -514,6 +514,96 @@ public static class ChatMessages
     /// </summary>
     public const string RetentionJobDescription = "jobs.chat.messages.cleanup.description";
 
+    /// <summary>
+    /// 操作 <c>chat-calls.start</c> 的说明
+    /// </summary>
+    public const string StartChatCallDescription = "chat_calls.start.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.accept</c> 的说明
+    /// </summary>
+    public const string AcceptChatCallDescription = "chat_calls.accept.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.reject</c> 的说明
+    /// </summary>
+    public const string RejectChatCallDescription = "chat_calls.reject.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.hangup</c> 的说明
+    /// </summary>
+    public const string HangupChatCallDescription = "chat_calls.hangup.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.active</c> 的说明
+    /// </summary>
+    public const string ActiveChatCallDescription = "chat_calls.active.description";
+
+    /// <summary>
+    /// 操作 <c>chat-calls.ice-servers</c> 的说明
+    /// </summary>
+    public const string IceServersChatCallDescription = "chat_calls.ice_servers.description";
+
+    /// <summary>
+    /// 只有单聊能发起通话
+    /// </summary>
+    public const string CallSingleOnly = "chat.call.single_only";
+
+    /// <summary>
+    /// 通话记录不能撤回
+    /// </summary>
+    public const string CallRecordLocked = "chat.call.record_locked";
+
+    /// <summary>
+    /// 通话不存在
+    /// </summary>
+    public const string CallNotFound = "chat.call.not_found";
+
+    /// <summary>
+    /// 不是这通电话的参与者
+    /// </summary>
+    public const string NotCallParticipant = "chat.call.not_participant";
+
+    /// <summary>
+    /// 自己正在另一通电话里
+    /// </summary>
+    public const string CallerBusy = "chat.call.caller_busy";
+
+    /// <summary>
+    /// 对方正在通话中
+    /// </summary>
+    public const string CalleeBusy = "chat.call.callee_busy";
+
+    /// <summary>
+    /// 对方不在线
+    /// </summary>
+    public const string CalleeOffline = "chat.call.callee_offline";
+
+    /// <summary>
+    /// 这通电话已经被接听或已结束
+    /// </summary>
+    public const string CallNotRinging = "chat.call.not_ringing";
+
+    /// <summary>
+    /// 会话预览：语音通话
+    /// </summary>
+    public const string PreviewVoiceCall = "chat.preview.voice_call";
+
+    /// <summary>
+    /// 会话预览：视频通话
+    /// </summary>
+    public const string PreviewVideoCall = "chat.preview.video_call";
+
+    /// <summary>
+    /// 通话收尾作业的标题
+    /// </summary>
+    public const string CallSweepJobTitle = "jobs.chat.calls.sweep.title";
+
+    /// <summary>
+    /// 通话收尾作业的说明
+    /// </summary>
+    public const string CallSweepJobDescription = "jobs.chat.calls.sweep.description";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(ChatMessages)));
 
     /// <summary>

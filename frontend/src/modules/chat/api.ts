@@ -9,7 +9,7 @@ import type {
   ChatDepartmentPickerNode,
 } from './types'
 import type { components } from '~/contracts'
-import { chatConversations, chatMessages } from '~/contracts'
+import { chatCalls, chatConversations, chatMessages } from '~/contracts'
 import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
 
 type ChatAttachmentResponse = components['schemas']['ChatAttachmentResponse']
@@ -138,5 +138,11 @@ export function createChatApi(): ChatApiContract {
         expiresAt: signed.expiresAt,
       }
     },
+    startCall: (conversationId, media) => chatCalls.start({ conversationId, media }),
+    acceptCall: callId => chatCalls.accept({ callId }),
+    rejectCall: callId => chatCalls.reject({ callId }),
+    hangupCall: callId => chatCalls.hangup({ callId }),
+    activeCall: () => chatCalls.active({}),
+    callIceServers: async () => (await chatCalls.iceServers({})).iceServers,
   }
 }

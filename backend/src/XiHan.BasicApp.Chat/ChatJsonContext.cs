@@ -4,6 +4,7 @@
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Chat.Domain.Services;
 using XiHan.BasicApp.Chat.Operations.ChatAudit;
+using XiHan.BasicApp.Chat.Operations.ChatCalls;
 using XiHan.BasicApp.Chat.Operations.ChatConversations;
 using XiHan.BasicApp.Chat.Operations.ChatMessages;
 using XiHan.BasicApp.Contracts.Batch;
@@ -17,7 +18,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天模块的源生成序列化上下文
 /// </summary>
 /// <remarks>
-/// 操作的请求与响应、推送载荷、附件与策略参数的 JSON，以及订阅的部门归属事件；枚举按名称
+/// 操作的请求与响应、推送载荷、附件、通话记录与策略参数的 JSON，以及订阅的部门归属与在线状态事件；枚举按名称
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
@@ -88,6 +89,14 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(ChatAssistantOpenResponse))]
 [JsonSerializable(typeof(ReplyAssistantRequest))]
 [JsonSerializable(typeof(ReplyAssistantResponse))]
+[JsonSerializable(typeof(StartChatCallRequest))]
+[JsonSerializable(typeof(ChatCallRequest))]
+[JsonSerializable(typeof(ChatCallEmptyRequest))]
+[JsonSerializable(typeof(ChatCallItem))]
+[JsonSerializable(typeof(ChatActiveCallResponse))]
+[JsonSerializable(typeof(ChatIceServersResponse))]
+[JsonSerializable(typeof(ChatCallRecord))]
+[JsonSerializable(typeof(ChatCallSignalPayload))]
 [JsonSerializable(typeof(ChatPolicySettings))]
 [JsonSerializable(typeof(MembershipChanged))]
 [JsonSerializable(typeof(PresenceChanged))]

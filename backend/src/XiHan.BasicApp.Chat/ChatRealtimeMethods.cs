@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Chat;
 /// 聊天 Hub 的方法名
 /// </summary>
 /// <remarks>
-/// 服务端推 10 个方法（助手的两个随 N4 发出），客户端可调 3 个；<c>contracts export</c> 一并写进 <c>realtime.json</c>
+/// 服务端推 12 个方法（助手的两个随 N4 发出），客户端可调 4 个；<c>contracts export</c> 一并写进 <c>realtime.json</c>
 /// </remarks>
 public static class ChatRealtimeMethods
 {
@@ -68,6 +68,27 @@ public static class ChatRealtimeMethods
     public const string ChatAssistantCompleted = "ChatAssistantCompleted";
 
     /// <summary>
+    /// 通话变了：响铃、接通或结束
+    /// </summary>
+    /// <remarks>
+    /// 载荷是通话此刻的样子，发给参与者的全部连接
+    /// </remarks>
+    public const string ChatCallChanged = "ChatCallChanged";
+
+    /// <summary>
+    /// 对端转来的通话信令（SDP、ICE 候选与静音这类状态）
+    /// </summary>
+    public const string ChatCallSignal = "ChatCallSignal";
+
+    /// <summary>
+    /// 客户端可调：通话信令
+    /// </summary>
+    /// <remarks>
+    /// 核对是这通接通了的电话里的人后转给通话里的其他人，不落库
+    /// </remarks>
+    public const string CallSignal = "CallSignal";
+
+    /// <summary>
     /// 客户端可调：进入会话
     /// </summary>
     /// <remarks>
@@ -93,14 +114,14 @@ public static class ChatRealtimeMethods
     /// </summary>
     public static IReadOnlyList<string> All { get; } =
     [
-        ChatAssistantCompleted, ChatAssistantDelta, ChatConversationChanged, ChatMessageEdited, ChatMessageRecalled,
-        ChatPresenceChanged, ChatReactionChanged, ChatReadPositionChanged, ChatTyping, ReceiveChatMessage,
+        ChatAssistantCompleted, ChatAssistantDelta, ChatCallChanged, ChatCallSignal, ChatConversationChanged, ChatMessageEdited,
+        ChatMessageRecalled, ChatPresenceChanged, ChatReactionChanged, ChatReadPositionChanged, ChatTyping, ReceiveChatMessage,
     ];
 
     /// <summary>
     /// 客户端可调的全部方法名（按字母序）
     /// </summary>
-    public static IReadOnlyList<string> Invocations { get; } = [JoinConversation, LeaveConversation, Typing];
+    public static IReadOnlyList<string> Invocations { get; } = [CallSignal, JoinConversation, LeaveConversation, Typing];
 
     /// <summary>
     /// 会话变更的种类

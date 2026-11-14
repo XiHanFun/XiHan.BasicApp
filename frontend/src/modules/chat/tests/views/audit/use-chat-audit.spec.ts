@@ -1,6 +1,6 @@
 import type { SchemaQueryParams } from '~/components'
 import { describe, expect, it } from 'vitest'
-import { chatAuditResource, conversationTypeLabel, memberRoleTone, messageTypeLabel, messageTypeTone, useAuditLoader } from '@/modules/chat/views/audit/use-chat-audit'
+import { auditContentText, CHAT_MESSAGE_TYPES, chatAuditResource, conversationTypeLabel, memberRoleTone, messageTypeLabel, messageTypeTone, useAuditLoader } from '@/modules/chat/views/audit/use-chat-audit'
 import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
 
@@ -119,7 +119,24 @@ describe('chatAuditResource', () => {
 })
 
 describe('枚举文案与语气', () => {
-  it('六种消息类型都有文案（含助手），会话类型含助手会话', () => {
+  it('通话记录的正文写成「媒体 · 结果」，口吻随发起人；别的类型照原文，读不出记录的原样给', () => {
+    const record = JSON.stringify({
+      callId: 'k-1',
+      media: 'Video',
+      reason: 'Missed',
+      durationSeconds: 0,
+    })
+
+    expect(auditContentText(t, 'Call', record)).toBe('chat.call.video · chat.call.record_missed_by_peer')
+    expect(auditContentText(t, 'Call', '坏掉的正文')).toBe('坏掉的正文')
+    expect(auditContentText(t, 'Text', record)).toBe(record)
+    expect(auditContentText(t, 'Text', null)).toBe('')
+  })
+
+  it('七种消息类型都有文案（含助手与通话），会话类型含助手会话', () => {
+    expect(CHAT_MESSAGE_TYPES).toHaveLength(7)
+    expect(messageTypeLabel(t, 'Call')).toBe('chat.audit.type_call')
+    expect(messageTypeTone('Call')).toBe('info')
     expect(messageTypeLabel(t, 'Assistant')).toBe('chat.audit.type_assistant')
     expect(messageTypeLabel(t, 'Voice')).toBe('chat.audit.type_voice')
     expect(messageTypeTone('System')).toBe('warning')

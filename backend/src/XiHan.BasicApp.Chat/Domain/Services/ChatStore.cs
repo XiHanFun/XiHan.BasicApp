@@ -54,6 +54,16 @@ public sealed class ChatStore(SideRows rows, SqlSugarUnitOfWork unitOfWork, IRep
     public ISugarQueryable<SysChatMessageReaction> Reactions(string side) => rows.Records<SysChatMessageReaction>(side);
 
     /// <summary>
+    /// 一侧的通话
+    /// </summary>
+    public ISugarQueryable<SysChatCall> Calls(string side) => rows.Query<SysChatCall>(side);
+
+    /// <summary>
+    /// 一侧的通话参与者
+    /// </summary>
+    public ISugarQueryable<SysChatCallParticipant> CallParticipants(string side) => rows.Query<SysChatCallParticipant>(side);
+
+    /// <summary>
     /// 一个会话
     /// </summary>
     /// <remarks>
@@ -156,6 +166,21 @@ public sealed class ChatStore(SideRows rows, SqlSugarUnitOfWork unitOfWork, IRep
             .ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
         var reloaded = await ConversationAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
         return reloaded.TryGetValue(out var conversation) ? (conversation, conversation.LastSeq) : reloaded.Error!;
+    }
+
+    /// <summary>
+    /// 对会话行加锁直到提交
+    /// </summary>
+    /// <remarks>
+    /// 一条不改值的更新语句拿着会话行的写锁：同一会话里要排先后的改动（通话的发起、接听、挂断）先调它，再读再改
+    /// </remarks>
+    public async Task LockConversationAsync(string side, Guid conversationId, CancellationToken cancellationToken)
+    {
+        await unitOfWork.EnsureTransactionAsync(cancellationToken).ConfigureAwait(false);
+        await unitOfWork.ConnectionFor(typeof(SysChatConversation)).Updateable<SysChatConversation>()
+            .SetColumns(c => new SysChatConversation { LastSeq = c.LastSeq })
+            .Where(c => c.Id == conversationId && c.TenantId == side)
+            .ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

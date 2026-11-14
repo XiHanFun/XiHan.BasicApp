@@ -17,7 +17,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon, XDataTable } from '~/components'
 import { formatDate } from '~/utils'
 import { formatFileSize } from '../../../components/chat-helpers'
-import { conversationTypeLabel, messageTypeLabel } from '../use-chat-audit'
+import { auditContentText, conversationTypeLabel, messageTypeLabel } from '../use-chat-audit'
 
 defineOptions({ name: 'ChatAuditDetailDialog' })
 
@@ -185,7 +185,7 @@ const reactionColumns = computed<XDataTableColumn<ChatReactionItem>[]>(() => [
                 <XhDescriptionsLabel>{{ t('chat.audit.content') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
                   <span v-if="detail.message.isRecalled && !detail.message.content" class="text-caption text-fg-muted">{{ t('chat.audit.content_recalled') }}</span>
-                  <span v-else class="chat-audit-content">{{ text(detail.message.content) }}</span>
+                  <span v-else class="chat-audit-content">{{ text(auditContentText(t, detail.message.messageType, detail.message.content)) }}</span>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
             </XhDescriptionsRoot>

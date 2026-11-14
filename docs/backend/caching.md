@@ -91,6 +91,7 @@ BasicApp 没有自建的后台任务框架，异步工作分下面几类：
 | --- | --- | --- |
 | `auditing.retention` | `BasicApp:Auditing:RetentionCron`（缺省 `0 3 * * *`） | 按保留天数清理日志，见[日志审计](./logging) |
 | `chat.messages.cleanup` | `0 4 * * *` | 按保留期清理聊天消息，见[在线聊天](./chat) |
+| `chat.calls.sweep` | `*/5 * * * *` | 收尾没人管的聊天通话，见[在线聊天](./chat#语音与视频通话) |
 | `tenancy.tenants.expire` | `*/5 * * * *` | 把已过到期时间的租户标为到期，并停用租户目录里的记录 |
 | `files.uploads.expire` | `15 * * * *` | 清理过期的分片上传 |
 | `files.temporary.purge` | `45 * * * *` | 清理到期的临时文件，见[文件与存储](./file#临时文件) |

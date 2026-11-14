@@ -28,13 +28,25 @@ export type BotProvider = (typeof BotProvider)[number]
 export const CacheLayer = ['Store', 'Objects'] as const
 export type CacheLayer = (typeof CacheLayer)[number]
 
+export const ChatCallEndReason = ['Completed', 'Cancelled', 'Rejected', 'Missed', 'Interrupted'] as const
+export type ChatCallEndReason = (typeof ChatCallEndReason)[number]
+
+export const ChatCallMedia = ['Voice', 'Video'] as const
+export type ChatCallMedia = (typeof ChatCallMedia)[number]
+
+export const ChatCallParticipantStatus = ['Invited', 'Joined', 'Rejected', 'Missed', 'Left'] as const
+export type ChatCallParticipantStatus = (typeof ChatCallParticipantStatus)[number]
+
+export const ChatCallStatus = ['Ringing', 'Ongoing', 'Ended'] as const
+export type ChatCallStatus = (typeof ChatCallStatus)[number]
+
 export const ChatConversationType = ['Single', 'Group', 'Department', 'Assistant'] as const
 export type ChatConversationType = (typeof ChatConversationType)[number]
 
 export const ChatMemberRole = ['Owner', 'Admin', 'Member'] as const
 export type ChatMemberRole = (typeof ChatMemberRole)[number]
 
-export const ChatMessageType = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'System'] as const
+export const ChatMessageType = ['Text', 'Image', 'Voice', 'File', 'Assistant', 'Call', 'System'] as const
 export type ChatMessageType = (typeof ChatMessageType)[number]
 
 export const CodeGenDatabaseType = ['MySql', 'SqlServer', 'PostgreSql', 'Oracle', 'Sqlite'] as const
@@ -364,6 +376,10 @@ export const enums = {
   Architecture,
   BotProvider,
   CacheLayer,
+  ChatCallEndReason,
+  ChatCallMedia,
+  ChatCallParticipantStatus,
+  ChatCallStatus,
   ChatConversationType,
   ChatMemberRole,
   ChatMessageType,

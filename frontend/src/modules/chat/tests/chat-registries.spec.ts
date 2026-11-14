@@ -46,6 +46,12 @@ function createFakeApi(tag: string): ChatApiContract {
     departmentTree: notUsed,
     uploadAttachment: notUsed,
     getFileUrl: () => Promise.resolve({ url: tag, expiresAt: '2026-11-01T00:00:00Z' }),
+    startCall: notUsed,
+    acceptCall: notUsed,
+    rejectCall: notUsed,
+    hangupCall: notUsed,
+    activeCall: notUsed,
+    callIceServers: notUsed,
   } satisfies ChatApiContract
 }
 

@@ -135,6 +135,24 @@ describe('messageBodyLabel 摘要标签', () => {
     expect(label).toBe('[文件] 2个')
   })
 
+  it('通话记录的正文是 JSON：按媒体给标签，不把 JSON 当文字', () => {
+    const record = (media: string) => JSON.stringify({
+      callId: 'k-1',
+      media,
+      reason: 'Missed',
+      durationSeconds: 0,
+    })
+
+    expect(messageBodyLabel({
+      content: record('Voice'),
+      messageType: 'Call',
+    })).toBe('[语音通话]')
+    expect(messageBodyLabel({
+      content: record('Video'),
+      messageType: 'Call',
+    })).toBe('[视频通话]')
+  })
+
   it('emoji 与超长正文原样返回，不做截断（截断是会话预览 previewOf 的职责）', () => {
     const long = '一'.repeat(500)
 

@@ -27,7 +27,7 @@ docker compose up -d --build
 - `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行，每次 `up` 都会跑一遍），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射，演示数据按 `.env` 的 `ENABLE_DEMO_DATA`（缺省 `false`）。
 - 可写的数据都在后端容器的 `/app/data` 卷：文件存储、数据保护密钥与框架缺省的文件系统存储。`init` 与后端共用这个卷，种子加密写入的值才解得开。
 - 编排网络固定为 `172.30.0.0/24`，后端只信这个网段里的 Nginx 转发头（`BasicApp__ForwardedHeaders__KnownNetworks__0`）。
-- Redis（`redis:8-alpine`）、RabbitMQ（`rabbitmq:4-alpine`）、Qdrant（`qdrant/qdrant:v1.15.1`）在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应配置的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
+- Redis（`redis:8-alpine`）、RabbitMQ（`rabbitmq:4-alpine`）、Qdrant（`qdrant/qdrant:v1.15.1`）与通话的 TURN 中继（`coturn/coturn:4-alpine`，见[语音与视频通话](#语音与视频通话)）在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应配置的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
 
 ## 后端：发布
 
@@ -187,6 +187,30 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 
 1. 删掉要还原那一侧的集合（Qdrant 的 `DELETE /collections/<集合名>`）；
 2. 在那一侧逐篇重建索引：知识库页的行操作「重建索引」，或操作 `knowledge-documents.reindex`。集合在第一次写入时重新建好，重建用的是库里留存的原文。
+
+## 语音与视频通话
+
+通话的媒体在两端的浏览器之间走 WebRTC，不经后端。上线前要备好两件事：
+
+- **HTTPS**：浏览器只在 HTTPS（与 `localhost`）下给麦克风与摄像头，站点要挂证书。
+- **TURN 中继**：两端在同一网段或都能直连时不用它；隔着对称型 NAT、企业防火墙的两端要靠 TURN 转发媒体，否则接通后连不上、30 秒后自动挂断。
+
+TURN 服务器自己部署，仓库只给配置项与示例。以 coturn 为例（`docker-compose.yml` 里有注释掉的 `coturn` 服务）：
+
+1. 准备一台有公网地址的主机，放行 3478（UDP 与 TCP）与中继端口段（示例是 UDP 49160–49200，按并发通话数放大，每通经中继的通话占两到四个端口）。
+2. coturn 以 `use-auth-secret` 运行，`static-auth-secret` 取一个随机串，`external-ip` 写公网地址，`realm` 写站点域名。
+3. 后端配 `BasicApp:Chat:Calls`：`TurnUrls` 指向这台主机，`TurnSecret` 与 `static-auth-secret` 相同，`StunUrls` 可以指向同一台（coturn 同时应答 STUN）。
+
+```bash
+BasicApp__Chat__Calls__StunUrls__0=stun:turn.example.com:3478
+BasicApp__Chat__Calls__TurnUrls__0=turn:turn.example.com:3478?transport=udp
+BasicApp__Chat__Calls__TurnUrls__1=turn:turn.example.com:3478?transport=tcp
+BasicApp__Chat__Calls__TurnSecret=<与 static-auth-secret 相同的随机串>
+```
+
+后端按共享密钥给每个用户现签限时凭据（缺省一小时），密钥不下发到浏览器。要走 TLS 的 TURN（`turns:`，穿只放行 443 的网络）时给 coturn 配证书并把地址写成 `turns:turn.example.com:5349?transport=tcp`。中继的流量按通话码率计，视频通话每路约 1–2 Mbps，带宽按经中继的并发数估。
+
+已有部署升级后，通话的两个权限码（`chat.chat-calls.read`、`chat.chat-calls.call`）要在套餐白名单与角色里授予，用户才看得到通话按钮、接得到来电。
 
 ## 多实例部署
 

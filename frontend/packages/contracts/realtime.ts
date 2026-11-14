@@ -15,6 +15,8 @@ export const RealtimeHubs = {
 export const RealtimeMethods = {
   ChatAssistantCompleted: 'ChatAssistantCompleted',
   ChatAssistantDelta: 'ChatAssistantDelta',
+  ChatCallChanged: 'ChatCallChanged',
+  ChatCallSignal: 'ChatCallSignal',
   ChatConversationChanged: 'ChatConversationChanged',
   ChatMessageEdited: 'ChatMessageEdited',
   ChatMessageRecalled: 'ChatMessageRecalled',
@@ -33,6 +35,7 @@ export type RealtimeMethod = typeof RealtimeMethods[keyof typeof RealtimeMethods
 
 /** 客户端可调的 Hub 方法名（后端各 Hub 的客户端方法，如聊天的进入会话、正在输入） */
 export const RealtimeInvocations = {
+  CallSignal: 'CallSignal',
   JoinConversation: 'JoinConversation',
   LeaveConversation: 'LeaveConversation',
   Typing: 'Typing',

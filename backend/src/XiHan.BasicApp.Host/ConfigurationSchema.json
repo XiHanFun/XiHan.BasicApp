@@ -2276,6 +2276,41 @@
             }
           }
         },
+        "Chat": {
+          "type": "object",
+          "description": "在线聊天；模块开关在 BasicApp:Modules:Chat，敏感词、保留天数与响铃秒数在参数 chat.policy",
+          "properties": {
+            "Calls": {
+              "type": "object",
+              "description": "语音与视频通话的穿透参数：媒体在两端的浏览器之间直连，直连不通时经 TURN 中继。都不配也能用，只是只有同一网段或能直连的两端打得通；写错即启动失败",
+              "properties": {
+                "StunUrls": {
+                  "type": "array",
+                  "description": "STUN 地址，stun: 或 stuns: 开头，如 stun:turn.example.com:3478",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "TurnUrls": {
+                  "type": "array",
+                  "description": "TURN 地址，turn: 或 turns: 开头，如 turn:turn.example.com:3478?transport=udp；配了它就必须配 TurnSecret",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "TurnSecret": {
+                  "type": "string",
+                  "description": "TURN 的共享密钥，与 TURN 服务器上配的同一个值（coturn 的 static-auth-secret）；只留在服务端，按它给每个用户现签限时凭据"
+                },
+                "TurnCredentialLifetime": {
+                  "type": "string",
+                  "description": "TURN 凭据的有效期，写 hh:mm:ss 且大于零；凭据只在建立连接时核对，过期不影响已经接通的通话",
+                  "default": "01:00:00"
+                }
+              }
+            }
+          }
+        },
         "OpenPlatform": {
           "type": "object",
           "description": "开放平台：签名接口与 OAuth2 / OIDC 授权服务（BasicApp 作为授权方）；写错不报错：数字超出范围时夹到范围内",

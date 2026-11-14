@@ -48,10 +48,15 @@
 | 推送 | `ChatTyping` | 显示「正在输入」4 秒 |
 | 推送 | `ChatPresenceChanged` | 改写那个人的在线状态；头像的在线点、单聊的「在线 / 离线」与群成员的在线人数随之变。连接断过又连上时重取会话列表与当前会话的成员 |
 | 推送 | `ChatAssistantDelta`、`ChatAssistantCompleted` | 助手流式回复：增量立即推给本人，结束或失败时收到完成，失败带 `errorCode` 与 `error` |
+| 推送 | `ChatCallChanged` | 通话此刻的样子：响铃的来电出卡片并响铃，接通了建媒体连接，结束了收场；在别处接听的只停铃 |
+| 推送 | `ChatCallSignal` | 对端转来的信令（会话描述、ICE 候选、麦克风与摄像头的开关）；只有占着这通电话的页签处理 |
 | 调用 | `JoinConversation` / `LeaveConversation` | 打开与离开会话时进出会话组 |
 | 调用 | `Typing` | 输入时节流，3 秒至多调用一次 |
+| 调用 | `CallSignal` | 通话中把本端的信令交给对端 |
 
 客户端可调的方法名来自生成的 `RealtimeInvocations`。会话列表与消息里的时间按应用时区显示，「今天 / 昨天」也按应用时区的日历日算。附件与群头像经 `chat-messages.presign` 凭会话换签名地址，不走通用文件的签名。
+
+语音与视频通话的媒体走浏览器原生的 WebRTC，不经 Hub；通话状态在 `call/call-store.ts`，媒体连接在 `call/call-session.ts`，来电卡片与通话窗是壳层浮层 `integration/AppChatCall.vue`。每次连上（含重连）都调 `chat-calls.active` 与服务端对一遍：还在响的来电认回来，断线期间结束了的收场。规则见[在线聊天](../backend/chat#语音与视频通话)。
 
 ## 订阅推送
 

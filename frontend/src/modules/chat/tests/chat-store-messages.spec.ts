@@ -635,6 +635,37 @@ describe('推送回灌', () => {
     expect(store.conversations[0]?.lastMessagePreview).toBe('张三加入了群聊')
   })
 
+  it('通话记录：只有没接到的计未读（对方取消或没人接），接通过的与拒绝的不计（与后端口径一致）', () => {
+    const store = setup()
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 0 }),
+    ]
+    const push = (messageId: string, reason: string) => store.applyIncomingMessage({
+      message: message({
+        messageId,
+        messageType: 'Call',
+        content: JSON.stringify({
+          callId: `k-${messageId}`,
+          media: 'Video',
+          reason,
+          durationSeconds: 0,
+        }),
+      }),
+      conversation: { conversationId: 'a', conversationType: 'Single' },
+    })
+
+    push('1', 'Completed')
+    push('2', 'Rejected')
+    push('3', 'Interrupted')
+    expect(store.conversations[0]?.unreadCount).toBe(0)
+    // 推送没带预览时本地回退用通话的标签，不把 JSON 摆出来
+    expect(store.conversations[0]?.lastMessagePreview).toBe('[视频通话]')
+
+    push('4', 'Missed')
+    push('5', 'Cancelled')
+    expect(store.conversations[0]?.unreadCount).toBe(2)
+  })
+
   it('正开着该会话且窗口在前台时自动已读而不是累加未读', async () => {
     vi.useFakeTimers()
     const marked: string[] = []

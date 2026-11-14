@@ -16,6 +16,7 @@ import { chatErrorText } from '../../components/chat-helpers'
 import ChatAuditDetailDialog from './components/ChatAuditDetailDialog.vue'
 import ChatAuditMembersDialog from './components/ChatAuditMembersDialog.vue'
 import {
+  auditContentText,
   CHAT_MESSAGE_TYPES,
   chatAuditResource,
   conversationTypeLabel,
@@ -145,7 +146,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 280,
     ellipsis: true,
     order: 15,
-    render: row => asRow(row).content || '-',
+    render: row => auditContentText(t, asRow(row).messageType, asRow(row).content) || '-',
   },
   {
     key: 'fileName',

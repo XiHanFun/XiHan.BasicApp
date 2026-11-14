@@ -235,4 +235,44 @@ public static class ChatErrors
     /// 助手没有产生任何内容
     /// </summary>
     public const string AssistantReplyEmpty = "CHAT_UNAVAILABLE_003";
+
+    /// <summary>
+    /// 只有单聊能发起通话
+    /// </summary>
+    public const string CallSingleOnly = "CHAT_VALIDATION_028";
+
+    /// <summary>
+    /// 通话记录不能撤回
+    /// </summary>
+    public const string CallRecordLocked = "CHAT_VALIDATION_029";
+
+    /// <summary>
+    /// 通话不存在
+    /// </summary>
+    public const string CallNotFound = "CHAT_NOTFOUND_006";
+
+    /// <summary>
+    /// 不是这通电话的参与者
+    /// </summary>
+    public const string NotCallParticipant = "CHAT_DENIED_010";
+
+    /// <summary>
+    /// 自己正在另一通电话里
+    /// </summary>
+    public const string CallerBusy = "CHAT_CONFLICT_002";
+
+    /// <summary>
+    /// 对方正在通话中
+    /// </summary>
+    public const string CalleeBusy = "CHAT_CONFLICT_003";
+
+    /// <summary>
+    /// 对方不在线
+    /// </summary>
+    public const string CalleeOffline = "CHAT_CONFLICT_004";
+
+    /// <summary>
+    /// 这通电话已经不在响铃
+    /// </summary>
+    public const string CallNotRinging = "CHAT_CONFLICT_005";
 }

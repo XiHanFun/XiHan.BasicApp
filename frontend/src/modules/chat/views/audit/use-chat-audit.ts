@@ -8,6 +8,7 @@ import type { SchemaResource } from '~/components'
 import type { ChatConversationType, ChatMemberRole, ChatMessageType, PageQueryMapping, ResponseOf } from '~/contracts'
 import { ref, shallowRef } from 'vue'
 import { chatAudit, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { callMediaLabel, callRecordText, parseCallRecord } from '../../call/call-helpers'
 
 export type ChatAuditRow = ResponseOf<'chat-audit.list'>['items'][number]
 export type ChatAuditDetail = ResponseOf<'chat-audit.get'>
@@ -17,13 +18,14 @@ export type ChatAuditConversation = ChatAuditMembers['conversation']
 
 type Translate = (key: string, values?: Record<string, unknown>) => string
 
-/** 消息类型（契约字面量；审计里能出现全部六种） */
+/** 消息类型（契约字面量；审计里能出现全部七种） */
 export const CHAT_MESSAGE_TYPES: readonly ChatMessageType[] = [
   'Text',
   'Image',
   'Voice',
   'File',
   'Assistant',
+  'Call',
   'System',
 ]
 
@@ -67,17 +69,32 @@ export function messageTypeLabel(t: Translate, type: ChatMessageType): string {
     case 'Voice': return t('chat.audit.type_voice')
     case 'File': return t('chat.audit.type_file')
     case 'Assistant': return t('chat.audit.type_assistant')
+    case 'Call': return t('chat.audit.type_call')
     case 'System': return t('chat.audit.type_system')
     default: return t('chat.audit.type_text')
   }
 }
 
-/** 消息类型的语气：文本中性，图片、语音、文件是附件类，助手与系统另起 */
+/**
+ * 审计里显示的正文：通话记录的正文是 JSON，写成「媒体 · 结果」一行，口吻随发送人（即发起人）；别的照原文
+ */
+export function auditContentText(t: Translate, type: ChatMessageType, content?: null | string): string {
+  if (type !== 'Call') {
+    return content ?? ''
+  }
+  const record = parseCallRecord(content)
+  return record
+    ? `${callMediaLabel(t, record.media)} · ${callRecordText(t, record, true)}`
+    : content ?? ''
+}
+
+/** 消息类型的语气：文本中性，图片、语音、文件与通话记录一类，助手与系统另起 */
 export function messageTypeTone(type: ChatMessageType): Tone {
   switch (type) {
     case 'Image':
     case 'Voice':
     case 'File':
+    case 'Call':
       return 'info'
     case 'Assistant':
       return 'success'

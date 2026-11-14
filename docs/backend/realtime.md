@@ -29,7 +29,7 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | `ReceiveNotification` | Notification | 发布或提醒时按接收人推送 |
 | `TaskProgress` | Files、Notification | 导出任务与通知发布的进度，只推给发起人，见[任务进度](#任务进度) |
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
-| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更与正在输入，见[在线聊天](./chat#推送) |
+| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更、正在输入与通话（状态与信令），见[在线聊天](./chat#推送) |
 
 方法清单由 `contracts export` 一并导出为 `frontend/contracts/realtime.json`，前端生成 `packages/contracts/realtime.ts`。推送载荷是各包自己的记录，按各包的源生成序列化上下文序列化（枚举按名称）。
 
@@ -85,7 +85,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 - 在线用户页（`sessions.list`）标出实时在线的会话；
 - 工作台的在线设备、访问概况小组件；
-- 在线聊天的会话列表、成员与选人带在线状态（见[在线聊天](./chat#在线状态)）。
+- 在线聊天的会话列表、成员与选人带在线状态（见[在线聊天](./chat#在线状态)）；通话只呼叫此刻在线的人，离线即结束他占着的通话（见[在线聊天](./chat#语音与视频通话)）。
 
 任一 Hub 上的连接都算在线。
 

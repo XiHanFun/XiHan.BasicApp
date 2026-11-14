@@ -187,6 +187,6 @@ public sealed class UsersHttpTests : IDisposable
         var hubs = realtime.RootElement.GetProperty("hubs").EnumerateArray().ToList();
         Assert.Equal(["/hubs/chat", "/hubs/notification"], hubs.Select(static h => h.GetProperty("path").GetString()).ToList());
         Assert.Equal(["ForceLogout", "ReceiveNotification", "TaskProgress", "UserSettingChanged"], hubs[1].GetProperty("methods").EnumerateArray().Select(static m => m.GetString()).ToList());
-        Assert.Equal(["JoinConversation", "LeaveConversation", "Typing"], hubs[0].GetProperty("invocations").EnumerateArray().Select(static m => m.GetString()).ToList());
+        Assert.Equal(["CallSignal", "JoinConversation", "LeaveConversation", "Typing"], hubs[0].GetProperty("invocations").EnumerateArray().Select(static m => m.GetString()).ToList());
     }
 }

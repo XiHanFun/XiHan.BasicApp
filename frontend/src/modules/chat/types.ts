@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import type { ChatConversationType, ChatMemberRole, components, RequestOf, ResponseOf } from '~/contracts'
+import type { ChatCallMedia, ChatConversationType, ChatMemberRole, components, RequestOf, ResponseOf } from '~/contracts'
 
 /**
  * 在线聊天的类型：网络契约一律取生成的 `~/contracts`（后端 DTO 是真源），这里只起聊天侧的别名；
@@ -56,6 +56,18 @@ export type ChatUserOptionsQuery = RequestOf<'chat-conversations.user-options'>
 
 /** 一页选人候选（按显示名排序） */
 export type ChatUserOptionsResult = ResponseOf<'chat-conversations.user-options'>
+
+/** 一次通话此刻的样子：通话操作的响应，也是 ChatCallChanged 推送的载荷 */
+export type ChatCallItem = Schemas['ChatCallItem']
+
+/** 通话的参与者 */
+export type ChatCallParticipantItem = Schemas['ChatCallParticipantItem']
+
+/** 我此刻所在的通话（没有为空）与服务端此刻的时间 */
+export type ChatActiveCallResult = ResponseOf<'chat-calls.active'>
+
+/** 一组 ICE 服务器（STUN 没有用户名与凭据，TURN 的凭据到点失效） */
+export type ChatIceServer = Schemas['ChatIceServer']
 
 /** 部门树节点（发起部门群） */
 export interface ChatDepartmentPickerNode {
@@ -144,6 +156,13 @@ export interface ChatPresenceChangedPushPayload {
   isOnline: boolean
 }
 
+/** SignalR ChatCallSignal 载荷：对端转来的一条通话信令，data 是两端之间约定的 JSON（见 call/call-signal.ts） */
+export interface ChatCallSignalPushPayload {
+  callId: string
+  fromUserId: string
+  data: string
+}
+
 /** SignalR ChatAssistantDelta 载荷 */
 export interface ChatAssistantDeltaPushPayload {
   conversationId: string
@@ -222,4 +241,16 @@ export interface ChatApiContract {
   uploadAttachment: (file: File, onProgress?: (percent: number) => void) => Promise<ChatAttachmentUploadResult>
   /** 按会话换附件的签名地址（图片内联、语音、文件下载；会过期）；download 为真即以附件下载（带原始文件名） */
   getFileUrl: (conversationId: string, fileId: string, download?: boolean) => Promise<ChatFileUrl>
+  /** 在单聊里发起通话并开始响铃；自己或对方占线、对方不在线都抛出（带原因） */
+  startCall: (conversationId: string, media: ChatCallMedia) => Promise<ChatCallItem>
+  /** 接听还在响铃的来电；多端同时接只有先到的成功 */
+  acceptCall: (callId: string) => Promise<ChatCallItem>
+  /** 拒绝还在响铃的来电 */
+  rejectCall: (callId: string) => Promise<ChatCallItem>
+  /** 挂断：接通前发起人挂即取消，响铃到点了挂算没人接，接通后即结束；已经结束的照样成功 */
+  hangupCall: (callId: string) => Promise<ChatCallItem>
+  /** 我此刻所在的通话与服务端此刻的时间（页面刷新、连接重连后据此认回来电） */
+  activeCall: () => Promise<ChatActiveCallResult>
+  /** 建立通话连接用的 ICE 服务器（没配为空） */
+  callIceServers: () => Promise<ChatIceServer[]>
 }

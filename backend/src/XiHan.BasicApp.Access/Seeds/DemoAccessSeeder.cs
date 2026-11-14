@@ -83,7 +83,7 @@ public sealed class DemoAccessSeeder(
 
         var employee = await EnsureRoleAsync(
             new SysRole { Id = ids.NewId(), OwnerTenantId = tenant, Code = EmployeeRoleCode, Name = "普通员工", Description = "只看本人数据；可查看与发起流程、使用聊天。", DataScope = DataScope.SelfOnly, Order = 20 },
-            ["workflow.workflow-definitions.read", "workflow.workflow-instances.read", "workflow.workflow-instances.execute", "chat.chat-conversations.read", "chat.chat-messages.read", "chat.chat-messages.send"],
+            ["workflow.workflow-definitions.read", "workflow.workflow-instances.read", "workflow.workflow-instances.execute", "chat.chat-conversations.read", "chat.chat-messages.read", "chat.chat-messages.send", "chat.chat-calls.read", "chat.chat-calls.call"],
             [.. staff.Where(found.ContainsKey).Select(name => found[name])],
             [],
             context).ConfigureAwait(false);

@@ -171,20 +171,45 @@ public sealed class ChatTexts(IMessageLocalizer localizer)
             ChatMessageType.Image => attachments.Count > 1 ? Render(context, ChatMessages.PreviewImages, ("count", attachments.Count)) : Render(context, ChatMessages.PreviewImage),
             ChatMessageType.Voice => Render(context, ChatMessages.PreviewVoice, ("seconds", attachments.Count > 0 ? attachments[0].DurationSeconds ?? 0 : 0)),
             ChatMessageType.File => attachments.Count > 1 ? Render(context, ChatMessages.PreviewFiles, ("count", attachments.Count)) : Render(context, ChatMessages.PreviewFile, ("name", attachments.Count > 0 ? attachments[0].FileName : string.Empty)),
+            ChatMessageType.Call => CallPreview(context, MediaOf(content)),
             _ => content ?? string.Empty,
         };
         return ChatRules.Truncate(preview.Trim(), ChatRules.MaxPreviewLength);
     }
+
+    /// <summary>
+    /// 通话记录的预览
+    /// </summary>
+    public string CallPreview(InvocationContext context, ChatCallMedia media)
+        => Render(context, media == ChatCallMedia.Video ? ChatMessages.PreviewVideoCall : ChatMessages.PreviewVoiceCall);
+
+    /// <summary>
+    /// 通话记录消息记的媒体
+    /// </summary>
+    /// <remarks>
+    /// 通话记录只由服务端写，正文读不出记录是缺陷，直接抛出
+    /// </remarks>
+    private static ChatCallMedia MediaOf(string? content)
+        => (string.IsNullOrEmpty(content) ? null : JsonSerializer.Deserialize(content, ChatJsonContext.Default.ChatCallRecord))?.Media
+           ?? throw new InvalidOperationException("A call record message carries no call record in its content.");
 }
 
 /// <summary>
 /// 聊天策略参数 <c>chat.policy</c> 的值
 /// </summary>
 /// <remarks>
-/// 保留天数只读平台值，敏感词租户可以覆盖（读参数时当前租户的同键参数优先）
+/// 保留天数只读平台值，敏感词与响铃秒数租户可以覆盖（读参数时当前租户的同键参数优先）
 /// </remarks>
 public sealed record ChatPolicySettings
 {
+    /// <summary>
+    /// 通话响铃秒数
+    /// </summary>
+    /// <remarks>
+    /// 响铃这么久还没人接即未接听
+    /// </remarks>
+    public int CallRingSeconds { get; set; } = ChatPolicy.DefaultCallRingSeconds;
+
     /// <summary>
     /// 消息保留天数
     /// </summary>
@@ -200,7 +225,7 @@ public sealed record ChatPolicySettings
 /// 聊天策略（作用域）
 /// </summary>
 /// <remarks>
-/// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[]}</c>），没建即用缺省值；建了而 JSON 不合法或保留天数不在 1 到 3650 之间即失败（不按错误的值删数据或放过敏感词）
+/// 参数 <c>chat.policy</c>（JSON，<c>{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60}</c>），没建即用缺省值；建了而 JSON 不合法、保留天数不在 1 到 3650 之间或响铃秒数不在 10 到 300 之间即失败（不按错误的值删数据或放过敏感词）
 /// 敏感词管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名
 /// </remarks>
 /// <param name="readers">参数读取（Settings 实现）</param>
@@ -222,6 +247,21 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
     public const int MaxRetentionDays = 3650;
 
     /// <summary>
+    /// 缺省响铃秒数
+    /// </summary>
+    public const int DefaultCallRingSeconds = 60;
+
+    /// <summary>
+    /// 响铃秒数的下限
+    /// </summary>
+    public const int MinCallRingSeconds = 10;
+
+    /// <summary>
+    /// 响铃秒数的上限
+    /// </summary>
+    public const int MaxCallRingSeconds = 300;
+
+    /// <summary>
     /// 内建参数的元数据
     /// </summary>
     public static ConfigDescriptor Config { get; } = new(
@@ -229,8 +269,8 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
         "聊天策略",
         "在线聊天",
         ConfigDataType.Json,
-        """{"retentionDays":365,"sensitiveWords":[]}""",
-        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝，租户可建同键参数覆盖；写错即发送与清理都失败，不按错误的值删数据或放过敏感词",
+        """{"retentionDays":365,"sensitiveWords":[],"callRingSeconds":60}""",
+        "retentionDays：消息保留天数（1–3650，只读平台的）；sensitiveWords：敏感词，发送与编辑的正文含有即拒绝；callRingSeconds：通话响铃秒数（10–300），到点没人接即未接听；后两项租户可建同键参数覆盖；写错即发送、通话与清理都失败，不按错误的值删数据或放过敏感词",
         AllowTenantOverride: true,
         Order: 500);
 
@@ -266,7 +306,7 @@ public sealed class ChatPolicy(IEnumerable<IConfigValueReader> readers)
             settings = null;
         }
 
-        return settings is { RetentionDays: >= 1 and <= MaxRetentionDays }
+        return settings is { RetentionDays: >= 1 and <= MaxRetentionDays, CallRingSeconds: >= MinCallRingSeconds and <= MaxCallRingSeconds }
             ? settings
             : Error.Validation(ChatErrors.PolicyInvalid, ChatMessages.PolicyInvalid, MessageArguments.Of(("key", ConfigKey)));
     }

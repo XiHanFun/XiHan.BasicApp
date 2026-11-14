@@ -28,6 +28,7 @@ import { ApiError } from '~/request'
 import { getChatAssistantProvider, useUserStore } from '~/stores'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from './api-contract'
+import { callRecordLabel, isMissedCallRecord } from './call/call-helpers'
 import {
   CHAT_ASSISTANT_UNAVAILABLE_CODE,
   CHAT_DRAFTS_STORAGE_KEY,
@@ -372,6 +373,10 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function previewOf(message: ChatMessageItem): string {
+    // 通话记录的正文是 JSON，预览用它的标签
+    if (message.messageType === 'Call') {
+      return callRecordLabel(message.content)
+    }
     const count = message.attachments?.length ?? 0
     let text = message.content || ''
     if (!text) {
@@ -743,8 +748,10 @@ export const useChatStore = defineStore('chat', () => {
     conv.lastSeq = Math.max(conv.lastSeq ?? 0, message.seq)
     const isSelf = message.senderUserId === currentUserId()
     // 系统提示消息（中性提示没有发送人，公告带操作人）：只刷时间线与预览，不计未读（与后端一致）
-    const isSystem = message.messageType === 'System'
-    if (!isSelf && !isSystem) {
+    // 通话记录只有没接到的才计未读（对方取消或没人接），接通过的与拒绝的不计（与后端一致）
+    const silent = message.messageType === 'System'
+      || (message.messageType === 'Call' && !isMissedCallRecord(message.content))
+    if (!isSelf && !silent) {
       const isActiveAndVisible = activeConversationId.value === conv.conversationId
         && typeof document !== 'undefined' && document.hasFocus()
       if (isActiveAndVisible) {
