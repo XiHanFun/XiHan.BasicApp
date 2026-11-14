@@ -509,10 +509,10 @@ onBeforeUnmount(() => {
                       {{ t(point) }}
                     </li>
                   </ul>
-                  <div v-if="slide.action" class="app-welcome__visit">
-                    <XhButton variant="outline" @click.stop="visit(slide, $event)">
+                  <!-- 这一屏没有「去看看」时也留着这一行：各屏的说明才落在同一个高度上 -->
+                  <div class="app-welcome__visit">
+                    <XhButton v-if="slide.action" variant="outline" size="lg" class="app-welcome__plain" @click.stop="visit(slide, $event)">
                       {{ t(slide.action.labelKey) }}
-                      <Icon icon="lucide:arrow-right" />
                     </XhButton>
                   </div>
                 </article>
@@ -554,11 +554,10 @@ onBeforeUnmount(() => {
         <Transition name="app-welcome-foot" mode="out-in" @enter="onFootEnter">
           <div v-if="scene === 'intro'" key="intro" class="app-welcome__actions" data-welcome-foot="intro">
             <div class="app-welcome__buttons">
-              <XhButton variant="solid" size="lg" data-welcome-primary @click.stop="enterTour()">
+              <XhButton variant="solid" size="lg" full-width data-welcome-primary @click.stop="enterTour()">
                 {{ t('welcome.intro.start') }}
-                <Icon icon="lucide:arrow-right" />
               </XhButton>
-              <XhButton variant="outline" size="lg" @click.stop="close($event.currentTarget)">
+              <XhButton variant="outline" size="lg" full-width class="app-welcome__plain" @click.stop="close($event.currentTarget)">
                 {{ t('welcome.intro.enter') }}
               </XhButton>
             </div>
@@ -570,7 +569,7 @@ onBeforeUnmount(() => {
             </p>
           </div>
           <div v-else-if="scene === 'tour'" key="tour" class="app-welcome__nav" data-welcome-foot="tour">
-            <XhButton variant="ghost" :class="{ 'is-hidden': index === 0 }" :disabled="index === 0" @click.stop="go(index - 1)">
+            <XhButton variant="outline" class="app-welcome__plain" :class="{ 'is-hidden': index === 0 }" :disabled="index === 0" @click.stop="go(index - 1)">
               <Icon icon="lucide:arrow-left" />
               {{ t('welcome.tour.previous') }}
             </XhButton>
@@ -588,15 +587,16 @@ onBeforeUnmount(() => {
             </div>
             <XhButton variant="solid" data-welcome-primary @click.stop="next()">
               {{ index === slides.length - 1 ? t('welcome.tour.done') : t('welcome.tour.next') }}
-              <Icon icon="lucide:arrow-right" />
+              <!-- 箭头只给翻页的「上一步」「下一步」：最后一屏是「完成」，不带 -->
+              <Icon v-if="index < slides.length - 1" icon="lucide:arrow-right" />
             </XhButton>
           </div>
           <div v-else key="final" class="app-welcome__actions" data-welcome-foot="final">
             <div class="app-welcome__buttons">
-              <XhButton variant="solid" size="lg" data-welcome-primary @click.stop="close($event.currentTarget)">
+              <XhButton variant="solid" size="lg" full-width data-welcome-primary @click.stop="close($event.currentTarget)">
                 {{ t('welcome.final.start') }}
               </XhButton>
-              <XhButton v-if="slides.length > 0" variant="ghost" size="lg" @click.stop="enterTour()">
+              <XhButton v-if="slides.length > 0" variant="outline" size="lg" full-width class="app-welcome__plain" @click.stop="enterTour()">
                 {{ t('welcome.final.again') }}
               </XhButton>
             </div>
@@ -923,24 +923,35 @@ onBeforeUnmount(() => {
   color: var(--xh-fg-muted);
   font-size: clamp(var(--xh-font-size-md), 1.5vw, var(--xh-font-size-lg));
   line-height: var(--xh-leading-relaxed);
+  /* 文案里的换行照着断：收尾那句「之后想再看一遍…」另起一行 */
+  white-space: pre-line;
   text-wrap: balance;
 }
 
-/* 亮点导览 */
+/*
+ * 亮点导览：整块随视口放大，宽占视口的四分之三上下，说明五份、演示七份
+ * 演示舞台按 4:3 出高，所以宽还要受可用高度限制：视口高减去顶栏、底栏与留白，再折回整块的宽
+ * 说明文字的字号跟着整块走，各级按 em 取
+ */
 .app-welcome__tour {
   display: grid;
-  grid-template-columns: minmax(0, 26rem) minmax(0, 38rem);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   align-items: center;
   justify-content: center;
-  gap: calc(var(--xh-space-8) * 2);
-  inline-size: min(100%, 72rem);
+  gap: calc(var(--xh-space-8) * 2.5);
+  inline-size: min(100%, 74vw, calc((100vh - var(--xh-space-8) * 9.5) * 2.25));
+  font-size: clamp(var(--xh-font-size-md), 1.05vw, calc(var(--xh-font-size-md) * 1.5));
 }
 
+/* 说明栏与演示舞台等高：说明在「去看看」上方的空间里居中，「去看看」落在左下角、与舞台的下沿对齐 */
 .app-welcome__slides {
   display: grid;
+  align-self: stretch;
 }
 
 .app-welcome__slide {
+  display: flex;
+  flex-direction: column;
   grid-area: 1 / 1;
 }
 
@@ -997,8 +1008,9 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: var(--xh-space-2_5);
+  margin-block-start: auto;
   color: var(--xh-fg-subtle);
-  font-size: var(--xh-font-size-sm);
+  font-size: 0.9em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1014,17 +1026,17 @@ onBeforeUnmount(() => {
 }
 
 .app-welcome__heading {
-  margin: var(--xh-space-4) 0 0;
-  font-size: clamp(var(--xh-font-size-2xl), 3.2vw, calc(var(--xh-font-size-5xl) * 1.15));
+  margin: var(--xh-space-5) 0 0;
+  font-size: 2.9em;
   font-weight: var(--xh-font-weight-bold);
   line-height: var(--xh-leading-tight);
   text-wrap: balance;
 }
 
 .app-welcome__text {
-  margin: var(--xh-space-3) 0 0;
+  margin: var(--xh-space-4) 0 0;
   color: var(--xh-fg-muted);
-  font-size: var(--xh-font-size-lg);
+  font-size: 1.25em;
   line-height: var(--xh-leading-relaxed);
   text-wrap: pretty;
 }
@@ -1033,7 +1045,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: var(--xh-space-2);
-  margin: var(--xh-space-5) 0 0;
+  margin: var(--xh-space-6) 0 auto;
   padding: 0;
   list-style: none;
 }
@@ -1047,7 +1059,7 @@ onBeforeUnmount(() => {
   border-radius: var(--xh-shape-pill);
   background-color: var(--xh-bg-surface);
   color: var(--xh-fg-muted);
-  font-size: var(--xh-font-size-sm);
+  font-size: 0.9em;
 }
 
 .app-welcome__points li::before {
@@ -1059,7 +1071,16 @@ onBeforeUnmount(() => {
 }
 
 .app-welcome__visit {
+  /* 没有按钮的一屏也占着一颗大号钮的高度 */
+  min-block-size: calc(var(--xh-space-8) * 1.25);
   margin-block-start: var(--xh-space-6);
+}
+
+/* 欢迎层的底是带颜色的光斑：描边钮缺省是透明底，光斑会从钮里透出来，这里给它实心的面 */
+.app-welcome__plain {
+  --xh-button-bg: var(--xh-bg-surface);
+  --xh-button-bg-hover: var(--xh-bg-subtle);
+  --xh-button-bg-active: var(--xh-bg-subtle-hover);
 }
 
 /* 演示舞台：外圈一道流动的光，翻页时整块摆一下 */
@@ -1153,11 +1174,11 @@ onBeforeUnmount(() => {
   transform: scale(0.96);
 }
 
-/* 底部的操作 */
+/* 底部的操作：三幕的高度不一样（两行按钮、一行翻页），底栏按最高的一幕留足并贴底摆，换幕时上面的画面不跟着跳 */
 .app-welcome__foot {
   display: grid;
-  align-items: center;
-  min-block-size: calc(var(--xh-space-8) * 3.5);
+  align-items: end;
+  min-block-size: calc(var(--xh-space-8) * 5.5);
   padding: 0 var(--xh-space-7) var(--xh-space-5);
   transition: opacity var(--xh-motion-duration-slide) var(--xh-motion-ease-enter);
 }
@@ -1169,11 +1190,12 @@ onBeforeUnmount(() => {
   gap: var(--xh-space-4);
 }
 
+/* 主操作与次操作各占一行、同宽 */
 .app-welcome__buttons {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   gap: var(--xh-space-2_5);
+  inline-size: min(100%, calc(var(--xh-space-8) * 10));
 }
 
 .app-welcome__hints {
@@ -1259,7 +1281,9 @@ onBeforeUnmount(() => {
   .app-welcome__tour {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--xh-space-5);
+    inline-size: 100%;
     max-inline-size: 32rem;
+    font-size: var(--xh-font-size-md);
   }
 
   .app-welcome__stage-wrap {
@@ -1275,11 +1299,12 @@ onBeforeUnmount(() => {
 
   .app-welcome__heading {
     margin-block-start: var(--xh-space-2_5);
+    font-size: 1.75em;
   }
 
   .app-welcome__text {
     margin-block-start: var(--xh-space-2);
-    font-size: var(--xh-font-size-md);
+    font-size: 1em;
   }
 
   .app-welcome__points {
@@ -1287,6 +1312,7 @@ onBeforeUnmount(() => {
   }
 
   .app-welcome__visit {
+    min-block-size: 0;
     margin-block-start: var(--xh-space-3);
   }
 
@@ -1300,13 +1326,6 @@ onBeforeUnmount(() => {
 
   .app-welcome__foot {
     padding-inline: var(--xh-space-4);
-  }
-}
-
-@media (min-width: 53.8125rem) and (max-height: 45rem) {
-  .app-welcome__stage-wrap {
-    justify-self: center;
-    inline-size: min(100%, calc((100vh - 15rem) * 4 / 3));
   }
 }
 </style>

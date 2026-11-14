@@ -1624,7 +1624,7 @@ export default {
     },
     final: {
       title: 'Alles bereit',
-      lead: 'Das ist erst der Anfang. Auf der Seite „Über“ können Sie die Einführung jederzeit erneut abspielen.',
+      lead: 'Das ist erst der Anfang.\nAuf der Seite „Über“ können Sie die Einführung jederzeit erneut abspielen.',
       start: 'Loslegen',
       again: 'Noch einmal ansehen',
     },

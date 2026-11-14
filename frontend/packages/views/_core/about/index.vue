@@ -442,7 +442,12 @@ onMounted(() => {
 }
 
 /* 重看欢迎页的入口靠在标题行的另一头 */
+/* 横幅铺着一层有色的光：描边钮缺省透明底，在上面不显眼，给它实心的面 */
 .ab-banner-action {
+  --xh-button-bg: var(--xh-bg-surface);
+  --xh-button-bg-hover: var(--xh-bg-subtle);
+  --xh-button-bg-active: var(--xh-bg-subtle-hover);
+
   position: relative;
   margin-inline-start: auto;
 }

@@ -1624,7 +1624,7 @@ export default {
     },
     final: {
       title: 'Tout est prêt',
-      lead: 'Ce n’est qu’un début. Pour revoir cette présentation, relancez-la à tout moment depuis la page À propos.',
+      lead: 'Ce n’est qu’un début.\nPour revoir cette présentation, relancez-la à tout moment depuis la page À propos.',
       start: 'Commencer',
       again: 'Revoir',
     },

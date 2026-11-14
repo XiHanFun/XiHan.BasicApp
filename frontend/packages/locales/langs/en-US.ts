@@ -1624,7 +1624,7 @@ export default {
     },
     final: {
       title: 'You’re all set',
-      lead: 'This is only the beginning. To watch it again, replay it from the About page at any time.',
+      lead: 'This is only the beginning.\nTo watch it again, replay it from the About page at any time.',
       start: 'Get started',
       again: 'Watch again',
     },

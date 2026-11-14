@@ -1624,7 +1624,7 @@ export default {
     },
     final: {
       title: 'Tudo pronto',
-      lead: 'Isto é só o começo. Para ver de novo, reproduza a qualquer momento na página Sobre.',
+      lead: 'Isto é só o começo.\nPara ver de novo, reproduza a qualquer momento na página Sobre.',
       start: 'Começar',
       again: 'Ver de novo',
     },
