@@ -15,15 +15,16 @@ import {
   XhScrollAreaTrack,
   XhScrollAreaViewport,
 } from '@xihan-ui/vue'
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { XDropdown, XIconButton } from '~/components'
+import { isLockedState, SESSION_LOCK_CHANGED_EVENT } from '~/composables/session-lock'
 import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { FOUNDATION_PROJECTS } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useShellExtensions, useSplitViewStore, useTabbarStore } from '~/stores'
+import { useShellExtensions, useSplitViewStore, useTabbarStore, useWelcomeStore } from '~/stores'
 import AppBackTop from './components/AppBackTop.vue'
 import AppFavorites from './components/AppFavorites.vue'
 import AppFloatToolbar from './components/AppFloatToolbar.vue'
@@ -38,6 +39,7 @@ import ImpersonationBanner from './components/ImpersonationBanner.vue'
 import NotificationBanner from './components/NotificationBanner.vue'
 import NotificationGate from './components/NotificationGate.vue'
 import SplitPane from './components/SplitPane.vue'
+import { registerShellWelcomeHighlights } from './components/welcome/highlights'
 import { openTabInNewWindow, useLayoutShellAdapter } from './composables'
 import { useCheckUpdates } from './composables/use-check-updates'
 import { useSignalRIntegration } from './composables/use-signalr-integration'
@@ -66,6 +68,48 @@ const shellOverlays = computed(() => shellExtensions.flatMap(extension => extens
 
 // 定时检查前端资源更新
 useCheckUpdates()
+
+// 新版欢迎页：进入壳层时看一眼这条版本线看过没有，没看过就打开；开着的时候壳层整体不接键盘与读屏
+// 锁屏、强制改密的遮罩盖着时不看：等解锁了（锁定态变更事件）再看；一次进入只看一次，之后锁屏开合、退出时清锁定标记都不再看
+const welcome = useWelcomeStore()
+// 壳层自己的几屏亮点在这里登记：布局挂载时应用上下文（个人中心的路由）已经就绪
+registerShellWelcomeHighlights()
+// 欢迎层按需加载：没轮到它出现的人不必下载沙粒画面那部分代码；出现过一次就留着，重看不用再等
+const AppWelcome = defineAsyncComponent(() => import('./components/AppWelcome.vue'))
+const welcomeLoaded = ref(false)
+/** 欢迎层打开之前焦点在哪（「关于」页的重看按钮）；得在壳层停接操作之前记下，那之后焦点就被移走了 */
+let welcomeReturnFocus: HTMLElement | null = null
+watch(() => welcome.open, (open) => {
+  if (open) {
+    welcomeLoaded.value = true
+    const active = document.activeElement
+    welcomeReturnFocus = active instanceof HTMLElement && active !== document.body
+      ? active
+      : null
+    return
+  }
+  const origin = welcomeReturnFocus
+  welcomeReturnFocus = null
+  if (!origin)
+    return
+  // 壳层要等这一轮更新完才重新接操作，焦点在那之后才还得回去；这期间别处接了焦点就不抢
+  void nextTick(() => {
+    if (origin.isConnected && (document.activeElement === null || document.activeElement === document.body))
+      origin.focus({ preventScroll: true })
+  })
+}, { immediate: true })
+let welcomeChecked = false
+function checkWelcome(): void {
+  if (welcomeChecked || isLockedState())
+    return
+  welcomeChecked = true
+  void welcome.check()
+}
+onMounted(() => {
+  checkWelcome()
+  window.addEventListener(SESSION_LOCK_CHANGED_EVENT, checkWelcome)
+})
+onBeforeUnmount(() => window.removeEventListener(SESSION_LOCK_CHANGED_EVENT, checkWelcome))
 
 // 容器变形转场：点击的行/按钮「长大」成弹窗、关闭收回原位（跟随「页面切换动画」偏好）
 setupContainerTransform({
@@ -295,7 +339,7 @@ const sidebarEnableState = computed(
 </script>
 
 <template>
-  <div class="relative flex h-full w-full">
+  <div class="relative flex h-full w-full" :inert="welcome.open || undefined">
     <!-- ==================== Sidebar ==================== -->
     <div
       v-if="sidebarEnableState"
@@ -628,6 +672,9 @@ const sidebarEnableState = computed(
 
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
+
+    <!-- 新版欢迎页（teleport 到 body 的全屏层，首次进入新的版本线时出现一次） -->
+    <AppWelcome v-if="welcomeLoaded" />
 
     <!-- Mobile mask：随移动端侧栏抽屉淡入淡出 -->
     <Transition name="layout-mask">

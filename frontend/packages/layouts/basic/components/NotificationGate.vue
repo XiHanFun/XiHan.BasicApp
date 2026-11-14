@@ -20,16 +20,19 @@ import {
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
-import { useAppContext } from '~/stores'
+import { useAppContext, useWelcomeStore } from '~/stores'
 
 defineOptions({ name: 'NotificationGate' })
 
 const { t } = useI18n()
 const appContext = useAppContext()
+const welcome = useWelcomeStore()
+/** 欢迎层开着、或还没判完要不要开：公告先等着，别弹出来又被欢迎层盖住 */
+const held = computed(() => welcome.open || !welcome.checked)
 
 // ── 强制阅读：未读必读公告（最高优先级，遮罩拦截，逐条「我已阅读」） ──
 const mandatoryList = ref<AppUserInboxDisplayItem[]>([])
-const mandatoryVisible = computed(() => mandatoryList.value.length > 0)
+const mandatoryVisible = computed(() => !held.value && mandatoryList.value.length > 0)
 const currentMandatory = computed<AppUserInboxDisplayItem | null>(() => mandatoryList.value[0] ?? null)
 const markingId = ref<string | null>(null)
 
@@ -38,7 +41,7 @@ const popupList = ref<AppUserInboxDisplayItem[]>([])
 const popupIndex = ref(0)
 const currentPopup = computed<AppUserInboxDisplayItem | null>(() => popupList.value[popupIndex.value] ?? null)
 // 强制阅读未清空前不弹普通 popup
-const popupVisible = computed(() => !mandatoryVisible.value && currentPopup.value !== null)
+const popupVisible = computed(() => !held.value && mandatoryList.value.length === 0 && currentPopup.value !== null)
 
 async function onMandatoryRead(item: AppUserInboxDisplayItem): Promise<void> {
   markingId.value = item.basicId

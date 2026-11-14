@@ -136,6 +136,9 @@ export default defineConfig(({ mode }) => {
         'pinia',
         'vue-i18n',
         '@vue/runtime-core',
+        // 背景包链到源码时它自己带着一份 core 与 motion：减弱动效的偏好记在 motion 的模块状态里，两份就各记各的
+        '@xihan-ui/core',
+        '@xihan-ui/motion',
       ],
     },
     optimizeDeps: {

@@ -16,6 +16,7 @@ import { useSplitViewStore } from '~/stores/split-view'
 import { SetupStoreId } from '~/stores/store-ids'
 import { useTabbarStore } from '~/stores/tabbar'
 import { useUserStore } from '~/stores/user'
+import { useWelcomeStore } from '~/stores/welcome'
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -48,6 +49,7 @@ describe('枚举取值本身', () => {
       'LayoutPreferences',
       'Notification',
       'TabbarPreferences',
+      'Welcome',
     ])
   })
 })
@@ -63,6 +65,7 @@ describe('实际 store 的 $id 与枚举登记一致', () => {
     expect(useLayoutStateStore().$id).toBe(SetupStoreId.LayoutState)
     expect(useLayoutBridgeStore().$id).toBe(SetupStoreId.LayoutBridge)
     expect(useNotificationStore().$id).toBe(SetupStoreId.Notification)
+    expect(useWelcomeStore().$id).toBe(SetupStoreId.Welcome)
   })
 
   it('同一个 pinia 实例里各 store 互相独立，不因 id 冲突而共享状态', () => {
@@ -76,8 +79,9 @@ describe('实际 store 的 $id 与枚举登记一致', () => {
       useLayoutStateStore().$id,
       useLayoutBridgeStore().$id,
       useNotificationStore().$id,
+      useWelcomeStore().$id,
     ])
 
-    expect(ids.size).toBe(9)
+    expect(ids.size).toBe(10)
   })
 })

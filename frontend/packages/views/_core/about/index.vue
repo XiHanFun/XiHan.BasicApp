@@ -5,20 +5,22 @@
 
 <script lang="ts" setup>
 import type { ResponseOf } from '~/contracts'
-import { XhCardContent, XhCardHeader, XhCardRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
 import { server as serverApi } from '~/contracts'
 import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
-import { useAuthStore } from '~/stores'
+import { useAuthStore, useWelcomeStore } from '~/stores'
 import PackageJson from '../../../../package.json'
 
 defineOptions({ name: 'AboutPage' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
+/** 新版欢迎页的重看入口：这一版登记过亮点、开关也开着才出现 */
+const welcome = useWelcomeStore()
 
 // package.json 里的依赖值是 pnpm 的 catalog: 协议串，真实版本由构建期解析后注入
 const dependencies = __APP_DEPENDENCIES__
@@ -156,6 +158,10 @@ onMounted(() => {
       <div class="ab-banner-title">
         <Icon icon="lucide:shield-check" width="18" />
         <span>{{ t('page.about.title') }}</span>
+        <XhButton v-if="welcome.available" class="ab-banner-action" variant="outline" size="sm" @click="welcome.show()">
+          <Icon icon="lucide:sparkles" width="14" />
+          {{ t('welcome.replay') }}
+        </XhButton>
       </div>
       <div class="ab-hero">
         <div class="ab-logo">
@@ -433,6 +439,12 @@ onMounted(() => {
   font-size: var(--xh-font-size-md);
   font-weight: var(--xh-font-weight-semibold);
   color: var(--xh-fg-default);
+}
+
+/* 重看欢迎页的入口靠在标题行的另一头 */
+.ab-banner-action {
+  position: relative;
+  margin-inline-start: auto;
 }
 
 .ab-hero {

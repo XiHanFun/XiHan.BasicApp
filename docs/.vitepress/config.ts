@@ -113,6 +113,7 @@ const frontendSidebar: DefaultTheme.SidebarItem[] = [
       ["字体图标", "icon"],
       ["实时通信", "realtime"],
       ["灵动岛", "dynamic-island"],
+      ["新版欢迎页", "welcome"],
       ["常用组件", "components"],
     ]),
   },

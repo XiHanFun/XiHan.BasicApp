@@ -17,4 +17,5 @@ export enum SetupStoreId {
   LayoutPreferences = 'layout-preferences',
   Notification = 'notification',
   TabbarPreferences = 'tabbar-preferences',
+  Welcome = 'welcome',
 }

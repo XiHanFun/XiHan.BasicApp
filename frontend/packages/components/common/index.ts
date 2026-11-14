@@ -26,6 +26,7 @@ export { renderTag } from './tag-cell'
 export { default as XUserAvatar } from './UserAvatar.vue'
 // 把 (row) => VNodeChild 这类渲染函数塞进模板的稳定壳子
 export { VNodeRender } from './VNodeRender'
+export { default as XArtboard } from './XArtboard.vue'
 export { default as XCascader } from './XCascader.vue'
 export { default as XColorPicker } from './XColorPicker.vue'
 export { default as XCombobox } from './XCombobox.vue'

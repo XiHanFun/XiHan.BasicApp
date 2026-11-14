@@ -25,6 +25,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_LOGO?: string
   readonly VITE_APP_SUBTITLE?: string
   readonly VITE_APP_DESCRIPTION?: string
+  /** 新版欢迎页开关：设为 false 即不出现（缺省开） */
+  readonly VITE_APP_WELCOME?: string
   /** 首页兜底路径（壳层固定首页标签、守卫重定向） */
   readonly VITE_HOME_PATH?: string
   /** 路由模式：history 用 HTML5 历史，其余（缺省 hash）用 # 路由；静态托管不配回退规则时用 hash */

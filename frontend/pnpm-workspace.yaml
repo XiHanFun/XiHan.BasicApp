@@ -65,6 +65,7 @@ catalog:
   '@xihan-print/core': ^1.0.0
   '@xihan-print/designer': ^1.0.0
   '@xihan-print/runtime': ^1.0.0
+  '@xihan-ui/backgrounds': ^5.5.2
   '@xihan-ui/code-highlight': ^5.5.2
   '@xihan-ui/core': ^5.5.2
   '@xihan-ui/designer-kit': ^5.5.2

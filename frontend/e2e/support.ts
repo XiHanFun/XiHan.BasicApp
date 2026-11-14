@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page, Response } from '@playwright/test'
 import { expect } from '@playwright/test'
 
 export interface Credentials {
@@ -17,8 +17,64 @@ export interface NewUser extends Credentials {
 /** 本次运行独有的后缀：库在本机多次运行之间保留，开通的租户与账号靠它不重名 */
 export const RUN = Date.now().toString(36)
 
+/** 各页面进壳层时读到的「新版欢迎页看过没有」，先到的排着等取 */
+const welcomeChecks = new WeakMap<Page, boolean[]>()
+
+function isWelcomeSetting(response: Response, method: 'GET' | 'PUT'): boolean {
+  const request = response.request()
+  const url = new URL(response.url())
+  if (request.method() !== method || !url.pathname.endsWith('/api/user-settings'))
+    return false
+  return method === 'GET'
+    ? url.searchParams.get('key') === 'welcome'
+    : (request.postData() ?? '').includes('"welcome"')
+}
+
+/** 开始记这个页面进壳层时的那次读取；同一个页面只挂一次 */
+function watchWelcome(page: Page): boolean[] {
+  const watched = welcomeChecks.get(page)
+  if (watched)
+    return watched
+  const checks: boolean[] = []
+  welcomeChecks.set(page, checks)
+  page.on('response', (response) => {
+    if (!isWelcomeSetting(response, 'GET'))
+      return
+    // 读不到时前端这一次不弹，与看过同样处理
+    if (!response.ok()) {
+      checks.push(true)
+      return
+    }
+    // 正文取不出来是页面紧接着整页重建了：重建之后会再读一次，这一次不算
+    void response.json().then((setting: { value?: null | string }) => checks.push(!!setting.value), () => {})
+  })
+  return checks
+}
+
+/** 新版欢迎页那一层 */
+export function welcomeLayer(page: Page): Locator {
+  return page.getByRole('dialog', { name: /^欢迎使用/ })
+}
+
+/**
+ * 等进壳层时的那次读取回来，返回这个账号看过新版欢迎页没有
+ * 欢迎页出不出现由它定，等它回来再断言，不靠猜时间
+ */
+export async function welcomeSeen(page: Page): Promise<boolean> {
+  const checks = watchWelcome(page)
+  await expect.poll(() => checks.length, { message: '进壳层时应当读一次「新版欢迎页看过没有」' }).toBeGreaterThan(0)
+  return checks.shift()!
+}
+
+/** 欢迎页关掉时把「看过」记到账号上的那次保存；点关闭之前先挂上，关掉之后等它回来再往下走 */
+export function welcomeSaved(page: Page): Promise<Response> {
+  return page.waitForResponse(response => isWelcomeSetting(response, 'PUT'))
+}
+
 /** 登录页填表提交；落到首页还是强制改密的锁屏由调用方断言 */
 export async function submitLogin(page: Page, credentials: Credentials) {
+  // 换了账号，上一个账号留下的读取结果不算数
+  watchWelcome(page).length = 0
   await page.goto('/#/auth/login')
   // 登录配置取到之前提交钮是禁用的，页面还在挂载，先填的值可能被换掉
   const submit = page.getByRole('button', { name: '登录', exact: true })
@@ -42,8 +98,17 @@ export async function login(page: Page, credentials: Credentials) {
   await expectWorkbench(page)
 }
 
+/** 等到工作台；没看过新版欢迎页的账号先像用户那样把它关掉 */
 export async function expectWorkbench(page: Page) {
   await expect(page).toHaveURL(/#\/workbench\/dashboard/)
+  if (!await welcomeSeen(page)) {
+    const welcome = welcomeLayer(page)
+    await expect(welcome).toBeVisible()
+    const saved = welcomeSaved(page)
+    await page.keyboard.press('Escape')
+    await expect(welcome).toBeHidden()
+    await saved
+  }
   await expect(page.getByRole('navigation', { name: '侧边栏' })).toBeVisible()
 }
 

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "@xihan-ui/backgrounds": "catalog:",
     "@xihan-ui/core": "catalog:",
     "@xihan-ui/headless": "catalog:",
     "@xihan-ui/motion": "catalog:",

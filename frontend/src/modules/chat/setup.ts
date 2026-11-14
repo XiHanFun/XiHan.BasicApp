@@ -4,7 +4,7 @@
  */
 
 import { registerModuleLocales } from '~/locales'
-import { registerShellExtension } from '~/stores'
+import { registerShellExtension, registerWelcomeHighlights } from '~/stores'
 import { createChatApi } from './api'
 import { setChatApi } from './api-contract'
 import { chatShellExtension } from './integration'
@@ -18,4 +18,19 @@ export default function setup(): void {
   registerModuleLocales(import.meta.glob<{ default: Record<string, unknown> }>('./locales/*.ts'))
   setChatApi(createChatApi())
   registerShellExtension(chatShellExtension)
+  // 新版欢迎页里介绍聊天的一屏：挂在会话页上，模块关掉或没有权限时后端不下发这个页面，这一屏随之不出现
+  registerWelcomeHighlights({
+    release: '6.0',
+    key: 'chat',
+    order: 40,
+    icon: 'lucide:messages-square',
+    tone: 'danger',
+    categoryKey: 'chat.welcome.category',
+    titleKey: 'chat.welcome.title',
+    descriptionKey: 'chat.welcome.description',
+    pointKeys: ['chat.welcome.point_chat', 'chat.welcome.point_call', 'chat.welcome.point_share'],
+    demo: () => import('./components/WelcomeDemo.vue'),
+    page: 'chat.conversations',
+    action: { labelKey: 'chat.welcome.action', to: '/chat/conversations' },
+  })
 }

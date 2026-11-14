@@ -54,6 +54,7 @@
 | `LocaleSwitcher`、`TimezoneSwitcher` | 区域与时区切换（顶栏、悬浮工具栏、偏好设置） |
 | `LockScreen`、`DynamicIsland`、`AppWatermark` | 锁屏、灵动岛（往岛上放活动见[灵动岛](./dynamic-island)）、水印，挂在 `App.vue` |
 | `SyncStatusBadge`、`PageLoader` | 设置同步状态、页面加载占位 |
+| `XArtboard` | 按固定的设计尺寸排版再整体缩放的画板，给只当画面看的演示用（见[新版欢迎页](./welcome#演示组件)） |
 
 ## 写法约定
 
