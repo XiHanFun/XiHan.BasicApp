@@ -177,6 +177,10 @@ export default {
       silence: '채팅 금지',
       unsilence: '채팅 금지 해제',
       silenced: '채팅 금지됨',
+      dissolve: '그룹 해산',
+      dissolve_confirm: '"{name}" 그룹을 해산하면 모든 구성원이 나가게 되고, 누구도 이 그룹과 그 안의 메시지를 볼 수 없게 되며 되돌릴 수 없습니다. 해산하시겠습니까?',
+      dissolve_done: '그룹이 해산되었습니다',
+      dissolved_notice: '그룹 "{name}"이(가) 방장에 의해 해산되었습니다',
     },
     picker: {
       search_placeholder: '사용자 이름 또는 표시 이름 검색',
@@ -371,6 +375,9 @@ export default {
       type_call: '통화',
       type_record: '대화 기록',
       mention_all: '모두',
+      dissolved: '해산됨',
+      dissolved_at: '해산 시각',
+      members_at_dissolution: '해산 당시 구성원 ({n})',
     },
   },
 }

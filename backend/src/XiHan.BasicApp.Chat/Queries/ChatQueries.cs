@@ -329,8 +329,14 @@ public sealed class ChatQueries(ChatStore store, IRealtimePresence presence)
     /// 会话成员的条目（聊天审计也用）
     /// </summary>
     public async Task<IReadOnlyList<ChatMemberItem>> MemberItemsAsync(string side, Guid conversationId, CancellationToken cancellationToken)
+        => await MemberItemsAsync(side, await store.MembersAsync(side, conversationId, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
+    /// <summary>
+    /// 这些成员行的条目（按角色再按入会时间）
+    /// </summary>
+    public async Task<IReadOnlyList<ChatMemberItem>> MemberItemsAsync(string side, IReadOnlyList<SysChatConversationMember> members, CancellationToken cancellationToken)
     {
-        var members = await store.MembersAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(members);
         var users = await store.UsersAsync([.. members.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
         var online = await presence.ConnectedUsersAsync(side, [.. members.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
         return [.. members

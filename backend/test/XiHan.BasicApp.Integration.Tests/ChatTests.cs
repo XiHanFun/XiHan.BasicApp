@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 验证在线聊天
 /// </summary>
 /// <remarks>
-/// 单聊按两人唯一，群聊的治理（加人、移出、退群、改信息与公告、转让群主、设管理员、禁言），部门群只有本部门的人能进、随部门归属事件同步成员；
+/// 单聊按两人唯一，群聊的治理（加人、移出、退群、改信息与公告、转让群主、设管理员、禁言、解散），部门群只有本部门的人能进、随部门归属事件同步成员；
 /// 消息的发送、撤回、编辑、回应、置顶、已读与搜索（会话内与跨会话），提及所有人只给群主与管理员；会话里图片与文件的汇总，聊天里看一个人的资料；附件以会话为访问范围、服务端转发（一条或多条，逐条或合并成一条聊天记录）、聊天审计的详情与成员（方案 H1、H2、H4）；
 /// 敏感词与保留清理读 <c>chat.policy</c>；推送经聊天 Hub 在提交之后发出；平台一侧同样能聊天；模块可以关掉
 /// </remarks>
@@ -162,6 +162,62 @@ public sealed class ChatTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:leave", new { conversationId = conversation }, alice)).Status);
         Assert.DoesNotContain(await MineAsync(server, alice), c => c.GetProperty("conversationId").GetString() == conversation);
         Assert.Equal(2, (await ConversationAsync(server, bob, conversation)).GetProperty("memberCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task Dissolve_IsForTheOwnerOfAGroup_AndKeepsTheHistoryForAudit()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob, carol, dave) = (users["alice"], users["bob"], users["carol"], users["dave"]);
+        var single = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+        var group = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { bob, carol, dave } }, alice, "zh-CN")).Body.GetProperty("conversationId").GetString()!;
+        var said = (await SendTextAsync(server, bob, group, "before the end")).GetProperty("messageId").GetString()!;
+        // dave 先退群：解散时他不在里面
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:leave", new { conversationId = group }, dave, "zh-CN")).Status);
+
+        async Task<(HttpStatusCode Status, JsonElement Body)> DissolveAsync(string conversationId, string caller)
+            => await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:dissolve", new { conversationId }, caller, "zh-CN");
+        async Task<string?> CodeOfAsync(HttpMethod method, string path, object? body, string caller)
+            => (await CallAsync(server, method, path, body, caller)).Body.GetProperty("code").GetString();
+
+        // 只在群聊、只有群主
+        Assert.Equal("CHAT_VALIDATION_003", (await DissolveAsync(single, alice)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_DENIED_003", (await DissolveAsync(group, bob)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_NOTFOUND_001", (await DissolveAsync(Guid.CreateVersion7().ToString(), alice)).Body.GetProperty("code").GetString());
+        var (status, dissolved) = await DissolveAsync(group, alice);
+        Assert.True(status == HttpStatusCode.OK, dissolved.ToString());
+        Assert.Equal(group, dissolved.GetProperty("conversationId").GetString());
+
+        // 谁的列表里都没有了，在里面做什么都当它不在；单聊不受影响
+        foreach (var member in new[] { alice, bob, carol })
+        {
+            Assert.DoesNotContain(await MineAsync(server, member), c => c.GetProperty("conversationId").GetString() == group);
+        }
+
+        Assert.Contains(await MineAsync(server, alice), c => c.GetProperty("conversationId").GetString() == single);
+        Assert.Equal("CHAT_DENIED_001", await CodeOfAsync(HttpMethod.Get, $"/api/chat-messages:history?conversationId={group}", null, bob));
+        Assert.Equal("CHAT_NOTFOUND_001", await CodeOfAsync(HttpMethod.Post, "/api/chat-messages:send", new { conversationId = group, messageType = "Text", content = "anyone?" }, alice));
+        Assert.Equal("CHAT_NOTFOUND_001", (await DissolveAsync(group, alice)).Body.GetProperty("code").GetString());
+        Assert.Equal("CHAT_NOTFOUND_001", await CodeOfAsync(HttpMethod.Post, "/api/chat-conversations:add-members", new { conversationId = group, userIds = new[] { dave } }, alice));
+        Assert.Equal("CHAT_NOTFOUND_001", await CodeOfAsync(HttpMethod.Post, "/api/chat-conversations:transfer-owner", new { conversationId = group, newOwnerUserId = bob }, alice));
+        Assert.Equal("CHAT_NOTFOUND_001", await CodeOfAsync(HttpMethod.Post, "/api/chat-conversations:update-info", new { conversationId = group, conversationName = "Back" }, alice));
+        Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, "/api/chat-messages:search-all?keyword=before", null, alice)).Body.GetProperty("items").GetArrayLength());
+        Assert.Equal(0, (await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:user-profile?userId={bob}", null, alice)).Body.GetProperty("commonGroups").GetArrayLength());
+
+        // 聊天审计照样看得到：消息（末尾是解散提示）、会话的名字与解散时间、解散时还在里面的成员
+        var auditor = TestTokens.Issue("auditor", "acme", Chatter);
+        var (_, page) = await CallAsync(server, HttpMethod.Post, "/api/chat-audit:list", new { page = new { index = 1, size = 20 }, filters = new[] { new { field = "conversationId", @operator = "eq", value = group } }, sorts = new[] { new { field = "createdAt", descending = false } } }, auditor);
+        Assert.Equal(["alice 创建了群聊", "before the end", "dave 退出群聊", "alice 解散了群聊"], page.GetProperty("items").EnumerateArray().Select(static m => m.GetProperty("content").GetString()));
+        Assert.All(page.GetProperty("items").EnumerateArray(), static m => Assert.Equal(("Team", "Group"), (m.GetProperty("conversationName").GetString(), m.GetProperty("conversationType").GetString())));
+        var (found, detail) = await CallAsync(server, HttpMethod.Get, $"/api/chat-audit/{said}", null, auditor);
+        Assert.True(found == HttpStatusCode.OK, detail.ToString());
+        Assert.Equal(("before the end", "Team", JsonValueKind.String), (detail.GetProperty("message").GetProperty("content").GetString(), detail.GetProperty("conversation").GetProperty("conversationName").GetString(), detail.GetProperty("conversation").GetProperty("dissolvedAt").ValueKind));
+        var (_, members) = await CallAsync(server, HttpMethod.Get, $"/api/chat-audit:members?conversationId={group}", null, auditor);
+        Assert.Equal(new[] { alice, bob, carol }.Order(), members.GetProperty("items").EnumerateArray().Select(static m => m.GetProperty("userId").GetString()).Order());
+        Assert.Equal("Owner", members.GetProperty("items").EnumerateArray().Single(m => m.GetProperty("userId").GetString() == alice).GetProperty("memberRole").GetString());
+        Assert.Equal(JsonValueKind.String, members.GetProperty("conversation").GetProperty("dissolvedAt").ValueKind);
+        Assert.Equal(JsonValueKind.Null, (await CallAsync(server, HttpMethod.Get, $"/api/chat-audit:members?conversationId={single}", null, auditor)).Body.GetProperty("conversation").GetProperty("dissolvedAt").ValueKind);
     }
 
     [Fact]

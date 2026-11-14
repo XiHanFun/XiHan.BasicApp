@@ -19,12 +19,13 @@ namespace XiHan.BasicApp.Chat.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 单聊按两人唯一；建群含群主至少两人、发起人为群主；部门群只有本部门的成员能进、打开时补齐部门成员，没有群主与管理员（方案 H3）；
-/// 群治理（加人、移出、改信息、转让群主、禁言、设管理员）只在群聊，群主不能退群或被移出，没有解散。治理产生的系统提示与会话变更在提交之后推给成员
+/// 群治理（加人、移出、改信息、转让群主、禁言、设管理员、解散）只在群聊，群主不能退群或被移出，只能转让或解散。治理产生的系统提示与会话变更在提交之后推给成员
 /// 平台没有部门（部门是租户库实体），部门群只在租户一侧
 /// </remarks>
 /// <param name="store">按侧读写聊天表</param>
 /// <param name="departments">部门仓储</param>
 /// <param name="messages">消息服务（系统提示）</param>
+/// <param name="calls">通话（解散时收场）</param>
 /// <param name="texts">系统提示文案</param>
 /// <param name="push">推送</param>
 /// <param name="ids">标识生成器</param>
@@ -34,6 +35,7 @@ public sealed class ChatConversationService(
     ChatStore store,
     IRepository<SysDepartment, Guid> departments,
     ChatMessageService messages,
+    ChatCallService calls,
     ChatTexts texts,
     ChatPush push,
     IIdGenerator<Guid> ids,
@@ -316,7 +318,7 @@ public sealed class ChatConversationService(
     /// </remarks>
     public async Task<Result> UpdateInfoAsync(InvocationContext context, ChatCaller caller, UpdateConversationInfoRequest request)
     {
-        var found = await store.ConversationAsync(caller.Side, request.ConversationId, context.CancellationToken).ConfigureAwait(false);
+        var found = await store.LockedConversationAsync(caller.Side, request.ConversationId, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var conversation))
         {
             return found.Error!;
@@ -402,7 +404,7 @@ public sealed class ChatConversationService(
     /// </remarks>
     public async Task<Result> TransferOwnerAsync(InvocationContext context, ChatCaller caller, Guid conversationId, Guid newOwnerUserId)
     {
-        var found = await store.ConversationAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false);
+        var found = await store.LockedConversationAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var conversation))
         {
             return found.Error!;
@@ -440,6 +442,51 @@ public sealed class ChatConversationService(
         var recipients = await store.MemberIdsAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false);
         var announced = await AnnounceAsync(context, caller, conversationId, text, ChatRealtimeMethods.ChangeTypes.OwnerTransferred, recipients, memberCount: null).ConfigureAwait(false);
         return announced.IsFailure ? announced.Error! : Result.Success();
+    }
+
+    /// <summary>
+    /// 解散群
+    /// </summary>
+    /// <remarks>
+    /// 只在群聊、只有群主。里面还没结束的通话先结束，追加一条解散提示，再把会话与全部成员行一起软删除：
+    /// 谁的会话列表里都不再有它，消息留着（保留清理照常），聊天审计照样看得到；解散提示不推给成员，他们收到的是会话变更
+    /// </remarks>
+    public async Task<Result> DissolveAsync(InvocationContext context, ChatCaller caller, Guid conversationId)
+    {
+        var cancellationToken = context.CancellationToken;
+        var found = await store.LockedConversationAsync(caller.Side, conversationId, cancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var conversation))
+        {
+            return found.Error!;
+        }
+
+        if (conversation.Type != ChatConversationType.Group)
+        {
+            return Error.Validation(ChatErrors.GroupOnly, ChatMessages.GroupOnly);
+        }
+
+        if (conversation.OwnerUserId != caller.UserId)
+        {
+            return Error.Denied(ChatErrors.OwnerRequired, ChatMessages.OwnerRequired);
+        }
+
+        var ended = await calls.EndForConversationAsync(context, caller.Side, conversationId).ConfigureAwait(false);
+        if (ended.IsFailure)
+        {
+            return ended.Error!;
+        }
+
+        var users = await store.UsersAsync([caller.UserId], cancellationToken).ConfigureAwait(false);
+        var text = texts.Render(context, ChatMessages.SystemGroupDissolved, ("name", users.GetValueOrDefault(caller.UserId)?.UserName));
+        var system = await messages.AppendSystemAsync(context, caller.Side, conversationId, text, text, senderUserId: null, senderName: null).ConfigureAwait(false);
+        if (!system.TryGetValue(out var appended))
+        {
+            return system.Error!;
+        }
+
+        var members = await store.DissolveAsync(appended.Conversation, cancellationToken).ConfigureAwait(false);
+        await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.Dissolved, [.. members.Select(static m => m.UserId)], cancellationToken).ConfigureAwait(false);
+        return Result.Success();
     }
 
     /// <summary>

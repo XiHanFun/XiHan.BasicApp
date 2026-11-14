@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "Remover membros do grupo",
   "chat_conversations.remove_members.description": "Remove membros de um chat em grupo; só chats em grupo, pelo proprietário ou um administrador; quem não é membro, o proprietário e o próprio chamador falham item a item.",
   "chat_conversations.leave.title": "Sair do chat em grupo",
-  "chat_conversations.leave.description": "Sai de um chat em grupo; só chats em grupo, e o proprietário precisa transferir a propriedade antes.",
+  "chat_conversations.leave.description": "Sai de um chat em grupo; só chats em grupo, e o proprietário precisa transferir a propriedade ou dissolver o grupo antes.",
   "chat_conversations.update_info.title": "Atualizar informações do chat",
   "chat_conversations.update_info.description": "Atualiza o nome, o comunicado, a descrição e o avatar; pelo proprietário ou um administrador; chats de departamento mantêm o nome e um novo comunicado é publicado em nome de quem fez a alteração.",
   "chat_conversations.transfer_owner.title": "Transferir propriedade",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "Um chat em grupo precisa de pelo menos {min} membros, incluindo o proprietário.",
   "chat.conversation.group_only": "Só chats em grupo permitem esta operação.",
   "chat.conversation.single_unsupported": "Chats individuais não permitem esta operação.",
-  "chat.group.owner_cannot_leave": "O proprietário não pode sair nem ser removido; transfira a propriedade antes.",
+  "chat.group.owner_cannot_leave": "O proprietário não pode sair nem ser removido; transfira a propriedade antes ou dissolva o grupo.",
   "chat.department.name_locked": "Um chat de departamento leva o nome do departamento e não pode ser renomeado.",
   "chat.message.content_invalid": "Uma mensagem de texto não pode ficar vazia nem passar de {max} caracteres.",
   "chat.message.attachments_required": "Mensagens de imagem e de arquivo precisam de pelo menos um anexo.",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "Buscar em todas as conversas",
   "chat_messages.search_all.description": "Procura mensagens por palavra-chave em todas as conversas do chamador: compara texto e anexos, ignora as retiradas, as mais recentes primeiro.",
   "chat_messages.media.title": "Imagens e arquivos de uma conversa",
-  "chat_messages.media.description": "Lista as mensagens de imagem ou de arquivo não retiradas de uma conversa, as mais recentes primeiro; apenas para membros."
+  "chat_messages.media.description": "Lista as mensagens de imagem ou de arquivo não retiradas de uma conversa, as mais recentes primeiro; apenas para membros.",
+  "chat_conversations.dissolve.title": "Dissolver o chat em grupo",
+  "chat_conversations.dissolve.description": "O proprietário dissolve um chat em grupo: todos os membros são removidos e ele some de todas as listas de conversas; as mensagens são mantidas e continuam visíveis na auditoria do chat.",
+  "chat.system.group_dissolved": "{name} dissolveu o chat em grupo"
 }

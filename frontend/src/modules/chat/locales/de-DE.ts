@@ -177,6 +177,10 @@ export default {
       silence: 'Stummschalten',
       unsilence: 'Stummschaltung aufheben',
       silenced: 'Stummgeschaltet',
+      dissolve: 'Gruppe auflösen',
+      dissolve_confirm: 'Wenn „{name}“ aufgelöst wird, werden alle Mitglieder entfernt. Niemand kann die Gruppe oder ihre Nachrichten danach noch sehen, und das lässt sich nicht rückgängig machen. Gruppe auflösen?',
+      dissolve_done: 'Gruppe aufgelöst',
+      dissolved_notice: 'Die Gruppe „{name}“ wurde vom Inhaber aufgelöst',
     },
     picker: {
       search_placeholder: 'Nach Benutzername oder Anzeigename suchen',
@@ -371,6 +375,9 @@ export default {
       type_call: 'Anruf',
       type_record: 'Chatverlauf',
       mention_all: 'Alle',
+      dissolved: 'Aufgelöst',
+      dissolved_at: 'Aufgelöst am',
+      members_at_dissolution: 'Mitglieder bei der Auflösung ({n})',
     },
   },
 }

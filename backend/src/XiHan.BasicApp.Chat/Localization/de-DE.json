@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "Gruppenmitglieder entfernen",
   "chat_conversations.remove_members.description": "Entfernt Mitglieder aus einem Gruppenchat; nur Gruppenchats, durch Inhaber oder Administrator; Nichtmitglieder, der Inhaber und der Aufrufer selbst schlagen einzeln fehl.",
   "chat_conversations.leave.title": "Gruppenchat verlassen",
-  "chat_conversations.leave.description": "Verlässt einen Gruppenchat; nur Gruppenchats, der Inhaber muss zuerst die Inhaberschaft übertragen.",
+  "chat_conversations.leave.description": "Verlässt einen Gruppenchat; nur Gruppenchats, der Inhaber muss zuerst die Inhaberschaft übertragen oder die Gruppe auflösen.",
   "chat_conversations.update_info.title": "Chat-Infos ändern",
   "chat_conversations.update_info.description": "Ändert Name, Ankündigung, Beschreibung und Avatar; durch Inhaber oder Administrator; Abteilungsgruppen behalten ihren Namen, eine neue Ankündigung wird im Namen des Bearbeiters gepostet.",
   "chat_conversations.transfer_owner.title": "Inhaberschaft übertragen",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "Ein Gruppenchat braucht mindestens {min} Mitglieder einschließlich des Inhabers.",
   "chat.conversation.group_only": "Das wird nur in Gruppenchats unterstützt.",
   "chat.conversation.single_unsupported": "Das wird in Direktchats nicht unterstützt.",
-  "chat.group.owner_cannot_leave": "Der Inhaber kann weder austreten noch entfernt werden; übertragen Sie zuerst die Inhaberschaft.",
+  "chat.group.owner_cannot_leave": "Der Inhaber kann weder austreten noch entfernt werden; übertragen Sie zuerst die Inhaberschaft oder lösen Sie die Gruppe auf.",
   "chat.department.name_locked": "Eine Abteilungsgruppe trägt den Namen ihrer Abteilung und kann nicht umbenannt werden.",
   "chat.message.content_invalid": "Eine Textnachricht darf weder leer noch länger als {max} Zeichen sein.",
   "chat.message.attachments_required": "Bild- und Dateinachrichten brauchen mindestens einen Anhang.",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "Alle Unterhaltungen durchsuchen",
   "chat_messages.search_all.description": "Sucht Nachrichten per Stichwort in allen Unterhaltungen des Aufrufers: vergleicht Text und Anhänge, überspringt zurückgerufene Nachrichten, neueste zuerst.",
   "chat_messages.media.title": "Bilder und Dateien einer Unterhaltung",
-  "chat_messages.media.description": "Listet die nicht zurückgerufenen Bild- oder Dateinachrichten einer Unterhaltung, neueste zuerst; nur für Mitglieder."
+  "chat_messages.media.description": "Listet die nicht zurückgerufenen Bild- oder Dateinachrichten einer Unterhaltung, neueste zuerst; nur für Mitglieder.",
+  "chat_conversations.dissolve.title": "Gruppenchat auflösen",
+  "chat_conversations.dissolve.description": "Der Inhaber löst einen Gruppenchat auf: Alle Mitglieder werden entfernt und er verschwindet aus allen Unterhaltungslisten; die Nachrichten bleiben erhalten und sind im Chat-Audit weiterhin sichtbar.",
+  "chat.system.group_dissolved": "{name} hat den Gruppenchat aufgelöst"
 }

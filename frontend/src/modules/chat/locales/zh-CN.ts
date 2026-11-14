@@ -177,6 +177,10 @@ export default {
       silence: '禁言',
       unsilence: '解除禁言',
       silenced: '已禁言',
+      dissolve: '解散群聊',
+      dissolve_confirm: '解散「{name}」后，所有成员都会被移出，谁都看不到这个群和里面的聊天记录了，而且不能恢复。确认解散？',
+      dissolve_done: '群聊已解散',
+      dissolved_notice: '群聊「{name}」已被群主解散',
     },
     picker: {
       search_placeholder: '搜索用户名或显示名',
@@ -371,6 +375,9 @@ export default {
       type_call: '通话',
       type_record: '聊天记录',
       mention_all: '所有人',
+      dissolved: '已解散',
+      dissolved_at: '解散时间',
+      members_at_dissolution: '解散时的成员（{n}）',
     },
   },
 }

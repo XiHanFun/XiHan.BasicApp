@@ -100,6 +100,11 @@ public static class ChatMessages
     public const string TransferOwnerChatConversationDescription = "chat_conversations.transfer_owner.description";
 
     /// <summary>
+    /// 操作 <c>chat-conversations.dissolve</c> 的说明
+    /// </summary>
+    public const string DissolveChatConversationDescription = "chat_conversations.dissolve.description";
+
+    /// <summary>
     /// 操作 <c>chat-conversations.silence-members</c> 的说明
     /// </summary>
     public const string SilenceMembersChatConversationDescription = "chat_conversations.silence_members.description";
@@ -428,6 +433,11 @@ public static class ChatMessages
     /// 系统提示：转让群主
     /// </summary>
     public const string SystemOwnerTransferred = "chat.system.owner_transferred";
+
+    /// <summary>
+    /// 系统提示：解散群
+    /// </summary>
+    public const string SystemGroupDissolved = "chat.system.group_dissolved";
 
     /// <summary>
     /// 会话预览：群公告

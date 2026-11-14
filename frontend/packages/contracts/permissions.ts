@@ -296,6 +296,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'chat-conversations.assistants': 'chat.chat-conversations.read',
   'chat-conversations.create-group': 'chat.chat-conversations.manage',
   'chat-conversations.department-tree': 'chat.chat-conversations.read',
+  'chat-conversations.dissolve': 'chat.chat-conversations.manage',
   'chat-conversations.leave': 'chat.chat-conversations.read',
   'chat-conversations.mark-read': 'chat.chat-conversations.read',
   'chat-conversations.members': 'chat.chat-conversations.read',

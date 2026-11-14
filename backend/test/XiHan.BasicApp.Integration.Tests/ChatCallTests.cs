@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// <remarks>
 /// 通话只记状态：发起、接听、拒绝、加入、挂断与没人接，同一会话里排成先后，一个人同一时刻只在一通电话里；
 /// 单聊一对一，群里点名邀请、不超过人数上限，没被邀请的成员能在通话结束前加入，只剩一个人时结束；
-/// 信令经聊天 Hub 只在接通了的通话里转发、可以指给一个人；结束时往会话里追加通话记录；离线与收尾作业结束没人管的通话；
+/// 信令经聊天 Hub 只在接通了的通话里转发、可以指给一个人；结束时往会话里追加通话记录；离线与收尾作业结束没人管的通话，群解散时里面的通话一并结束；
 /// 穿透服务器读宿主配置、TURN 凭据按用户现签，响铃秒数与人数上限读 <c>chat.policy</c>
 /// 响铃到点用拨钟验证：钟只影响进程内取的时刻，令牌照常按真实时间校验
 /// </remarks>
@@ -402,6 +402,46 @@ public sealed class ChatCallTests : IDisposable
         Assert.Equal((fourth, "Interrupted"), (interrupted.GetProperty("callId").GetString(), interrupted.GetProperty("endReason").GetString()));
         Assert.Equal([carol], MissedOf((await HistoryAsync(server, alice, group))[^1]));
         Assert.Equal(2, await UnreadAsync(carol));
+    }
+
+    [Fact]
+    public async Task DissolvingAGroup_EndsItsCall_AndTellsTheMembers()
+    {
+        var (server, users) = await StartWithAsync(["alice", "bob", "carol"]);
+        await using var running = server;
+        var (alice, bob, carol) = (users["alice"], users["bob"], users["carol"]);
+        var group = await CreateGroupAsync(server, alice, "Team", bob, carol);
+        await using var aliceHub = await ConnectAsync(server, "alice");
+        await using var bobHub = await ConnectAsync(server, "bob");
+        await using var carolHub = await ConnectAsync(server, "carol");
+        var bobCalls = Watch(bobHub, ChatRealtimeMethods.ChatCallChanged);
+        var carolChanges = Watch(carolHub, ChatRealtimeMethods.ChatConversationChanged);
+        var (status, started) = await CallAsync(server, HttpMethod.Post, "/api/chat-calls:start", new { conversationId = group, media = "Voice", inviteeUserIds = new[] { bob, carol } }, alice);
+        Assert.True(status == HttpStatusCode.OK, started.ToString());
+        var call = started.GetProperty("callId").GetString()!;
+        Assert.Equal("Ongoing", (await CallAsync(server, HttpMethod.Post, "/api/chat-calls:accept", new { callId = call }, bob)).Body.GetProperty("status").GetString());
+
+        // 解散：通话以中断结束，还在响铃的记没接到；成员收到解散
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:dissolve", new { conversationId = group }, alice)).Status);
+        var ended = await UntilAsync(bobCalls, static c => c.GetProperty("status").GetString() == "Ended");
+        Assert.Equal((call, "Interrupted"), (ended.GetProperty("callId").GetString(), ended.GetProperty("endReason").GetString()));
+        Assert.Equal(Statuses((alice, "Left"), (bob, "Left"), (carol, "Missed")), StatusesOf(ended));
+        var dissolved = await UntilAsync(carolChanges, static c => c.GetProperty("changeType").GetString() == "dissolved");
+        Assert.Equal(group, dissolved.GetProperty("conversationId").GetString());
+        Assert.Null(await ActiveAsync(server, alice));
+        Assert.Null(await ActiveAsync(server, bob));
+
+        // 那通电话照样读得到（解散了的群还找得到）；群里不能再发起
+        Assert.Equal("Ended", (await CallAsync(server, HttpMethod.Post, "/api/chat-calls:hangup", new { callId = call }, alice)).Body.GetProperty("status").GetString());
+        Assert.Equal("CHAT_DENIED_001", (await CallAsync(server, HttpMethod.Post, "/api/chat-calls:start", new { conversationId = group, media = "Voice", inviteeUserIds = new[] { bob } }, alice)).Body.GetProperty("code").GetString());
+
+        // 还没人接的那种：解散即取消
+        var second = await CreateGroupAsync(server, alice, "Second", bob);
+        var (_, ringing) = await CallAsync(server, HttpMethod.Post, "/api/chat-calls:start", new { conversationId = second, media = "Voice", inviteeUserIds = new[] { bob } }, alice);
+        Assert.Equal("Ringing", ringing.GetProperty("status").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:dissolve", new { conversationId = second }, alice)).Status);
+        var cancelled = await UntilAsync(bobCalls, c => c.GetProperty("callId").GetString() == ringing.GetProperty("callId").GetString() && c.GetProperty("status").GetString() == "Ended");
+        Assert.Equal("Cancelled", cancelled.GetProperty("endReason").GetString());
     }
 
     [Fact]

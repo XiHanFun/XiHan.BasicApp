@@ -177,6 +177,10 @@ export default {
       silence: 'Mute',
       unsilence: 'Unmute',
       silenced: 'Muted',
+      dissolve: 'Dissolve group',
+      dissolve_confirm: 'Dissolving "{name}" removes every member. Nobody will be able to see the group or its messages again, and this cannot be undone. Dissolve it?',
+      dissolve_done: 'Group dissolved',
+      dissolved_notice: 'The group "{name}" was dissolved by its owner',
     },
     picker: {
       search_placeholder: 'Search by username or display name',
@@ -371,6 +375,9 @@ export default {
       type_call: 'Call',
       type_record: 'Chat record',
       mention_all: 'Everyone',
+      dissolved: 'Dissolved',
+      dissolved_at: 'Dissolved at',
+      members_at_dissolution: 'Members when dissolved ({n})',
     },
   },
 }

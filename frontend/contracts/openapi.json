@@ -8566,7 +8566,7 @@
                       "$ref": "#/components/schemas/ChatAuditConversationResponse"
                     },
                     "items": {
-                      "description": "\u73B0\u6709\u6210\u5458\uFF08\u6309\u89D2\u8272\u518D\u6309\u5165\u4F1A\u65F6\u95F4\uFF09",
+                      "description": "\u73B0\u6709\u6210\u5458\uFF0C\u5DF2\u89E3\u6563\u7684\u7FA4\u662F\u89E3\u6563\u65F6\u7684\u6210\u5458\uFF08\u6309\u89D2\u8272\u518D\u6309\u5165\u4F1A\u65F6\u95F4\uFF09",
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/ChatMemberItem"
@@ -9895,6 +9895,76 @@
         }
       }
     },
+    "/api/chat-conversations:dissolve": {
+      "post": {
+        "operationId": "chat-conversations.dissolve",
+        "tags": [
+          "chat-conversations"
+        ],
+        "summary": "Dissolve group chat",
+        "description": "The owner dissolves a group chat: every member is removed and it disappears from all conversation lists; the messages are kept and stay visible to chat audit.\n\nRequires permission chat.chat-conversations.manage (Manage group chats).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-conversations.manage",
+        "parameters": [],
+        "requestBody": {
+          "description": "\u6309\u4F1A\u8BDD\u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ChatConversationRequest",
+                "description": "\u6309\u4F1A\u8BDD\u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "conversationId": {
+                    "description": "\u4F1A\u8BDD",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "conversationId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u505A\u5B8C\u4E86\u7684\u4F1A\u8BDD",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatConversationIdResponse",
+                  "description": "\u505A\u5B8C\u4E86\u7684\u4F1A\u8BDD",
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "description": "\u4F1A\u8BDD",
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chat-conversations:leave": {
       "post": {
         "operationId": "chat-conversations.leave",
@@ -9902,7 +9972,7 @@
           "chat-conversations"
         ],
         "summary": "Leave group chat",
-        "description": "Leaves a group chat; group chats only, the owner must transfer ownership first.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
+        "description": "Leaves a group chat; group chats only, the owner must transfer ownership or dissolve the group first.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "chat.chat-conversations.read",
         "parameters": [],
@@ -65492,6 +65562,14 @@
           },
           "lastMessageAt": {
             "description": "\u6700\u540E\u4E00\u6761\u6D88\u606F\u7684\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "dissolvedAt": {
+            "description": "\u89E3\u6563\u7684\u65F6\u95F4\uFF08UTC\uFF09\uFF1B\u6CA1\u89E3\u6563\u4E3A\u7A7A",
             "type": [
               "string",
               "null"

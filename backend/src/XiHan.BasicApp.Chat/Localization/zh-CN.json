@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "移出群成员",
   "chat_conversations.remove_members.description": "把成员移出群聊：只在群聊、要群主或管理员；不是成员、群主与自己逐项失败。",
   "chat_conversations.leave.title": "退群",
-  "chat_conversations.leave.description": "调用方退出群聊：只在群聊，群主须先转让群主。",
+  "chat_conversations.leave.description": "调用方退出群聊：只在群聊，群主须先转让群主或解散群。",
   "chat_conversations.update_info.title": "改群信息",
   "chat_conversations.update_info.description": "改群名、公告、描述与头像：要群主或管理员，部门群不能改名，公告变了追加以操作人身份发出的公告。",
   "chat_conversations.transfer_owner.title": "转让群主",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "群聊至少要有 {min} 名成员（含群主）。",
   "chat.conversation.group_only": "只有群聊支持这个操作。",
   "chat.conversation.single_unsupported": "单聊不支持这个操作。",
-  "chat.group.owner_cannot_leave": "群主不能退群或被移出，请先转让群主。",
+  "chat.group.owner_cannot_leave": "群主不能退群或被移出，请先转让群主，或者解散群。",
   "chat.department.name_locked": "部门群的名称随部门，不能修改。",
   "chat.message.content_invalid": "文本消息不能为空，也不能超过 {max} 个字符。",
   "chat.message.attachments_required": "图片与文件消息至少要有一个附件。",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "跨会话搜索",
   "chat_messages.search_all.description": "在调用方所在的全部会话里按关键字找消息：匹配正文与附件，不含已撤回的，按时间倒序。",
   "chat_messages.media.title": "会话的图片与文件",
-  "chat_messages.media.description": "列出会话里未撤回的图片消息或文件消息，最近的在前；只有成员能看。"
+  "chat_messages.media.description": "列出会话里未撤回的图片消息或文件消息，最近的在前；只有成员能看。",
+  "chat_conversations.dissolve.title": "解散群",
+  "chat_conversations.dissolve.description": "群主解散群聊：全部成员移出，谁的会话列表里都不再有它；消息留着，聊天审计照样看得到。",
+  "chat.system.group_dissolved": "{name} 解散了群聊"
 }

@@ -862,6 +862,14 @@ export const useChatStore = defineStore('chat', () => {
       }
       return
     }
+    // 群被解散：它已经不在了，直接从列表里拿掉（正开着就收起）；不走下面的修订号与重读，读它的成员只会被拒绝
+    if (payload.changeType === 'dissolved') {
+      if (activeConversationId.value === payload.conversationId) {
+        closeActiveConversation()
+      }
+      conversations.value = conversations.value.filter(c => c.conversationId !== payload.conversationId)
+      return
+    }
     // 成员增删/新建会话/个人设置多端同步：整表刷新（含被移出时活跃会话收敛）
     conversationRevisions.value[payload.conversationId] = (conversationRevisions.value[payload.conversationId] ?? 0) + 1
     loadConversations().catch(() => {})

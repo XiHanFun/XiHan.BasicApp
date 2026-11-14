@@ -177,6 +177,10 @@ export default {
       silence: 'Réduire au silence',
       unsilence: 'Lever le silence',
       silenced: 'Réduit au silence',
+      dissolve: 'Dissoudre le groupe',
+      dissolve_confirm: 'Dissoudre « {name} » retire tous les membres. Plus personne ne pourra voir le groupe ni ses messages, et cette action est irréversible. Le dissoudre ?',
+      dissolve_done: 'Groupe dissous',
+      dissolved_notice: 'Le groupe « {name} » a été dissous par son propriétaire',
     },
     picker: {
       search_placeholder: 'Rechercher par nom d\'utilisateur ou nom affiché',
@@ -371,6 +375,9 @@ export default {
       type_system: 'Système',
       type_record: 'Historique de discussion',
       mention_all: 'Tout le monde',
+      dissolved: 'Dissous',
+      dissolved_at: 'Dissous le',
+      members_at_dissolution: 'Membres au moment de la dissolution ({n})',
     },
   },
 }

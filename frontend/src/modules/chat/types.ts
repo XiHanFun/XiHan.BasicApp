@@ -126,7 +126,7 @@ export interface ChatRecalledPushPayload {
 /** SignalR ChatConversationChanged 载荷（变更种类见后端 ChatRealtimeMethods.ChangeTypes） */
 export interface ChatConversationChangedPushPayload {
   conversationId: string
-  changeType: 'created' | 'member-added' | 'member-removed' | 'pinned-changed' | (string & {})
+  changeType: 'created' | 'dissolved' | 'member-added' | 'member-removed' | 'pinned-changed' | (string & {})
 }
 
 /** SignalR ChatTyping 载荷 */
@@ -214,6 +214,8 @@ export interface ChatApiContract {
   removeMember: (conversationId: string, userId: string) => Promise<void>
   /** 主动退群：退出对象恒为当前登录用户，只要会话读权限，不要群治理权限 */
   leaveConversation: (conversationId: string) => Promise<void>
+  /** 解散群：只有群主，要群治理权限；全部成员移出，谁的列表里都不再有它 */
+  dissolveConversation: (conversationId: string) => Promise<void>
   sendMessage: (input: ChatMessageSendInput) => Promise<ChatMessageItem>
   recallMessage: (messageId: string) => Promise<void>
   markRead: (conversationId: string, upToMessageId?: null | string) => Promise<void>

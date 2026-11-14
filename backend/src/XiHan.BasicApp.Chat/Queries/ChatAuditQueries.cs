@@ -116,7 +116,7 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
             return found.Error!;
         }
 
-        var conversation = await store.ConversationAsync(side, message.ConversationId, context.CancellationToken).ConfigureAwait(false);
+        var conversation = await store.ConversationWithDissolvedAsync(side, message.ConversationId, context.CancellationToken).ConfigureAwait(false);
         if (!conversation.TryGetValue(out var owner))
         {
             return conversation.Error!;
@@ -142,20 +142,37 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     /// <summary>
     /// 会话与它现在的成员
     /// </summary>
+    /// <remarks>
+    /// 已解散的群给解散时还在里面的成员
+    /// </remarks>
     public async Task<Result<ChatAuditMembersResponse>> MembersAsync(InvocationContext context, Guid conversationId)
     {
         var side = SideRows.SideOf(context);
-        var found = await store.ConversationAsync(side, conversationId, context.CancellationToken).ConfigureAwait(false);
+        var cancellationToken = context.CancellationToken;
+        var found = await store.ConversationWithDissolvedAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var conversation))
         {
             return found.Error!;
         }
 
-        return new ChatAuditMembersResponse(ConversationOf(conversation), await chats.MemberItemsAsync(side, conversationId, context.CancellationToken).ConfigureAwait(false));
+        var members = conversation.IsDeleted
+            ? await store.MembersAtDissolutionAsync(conversation, cancellationToken).ConfigureAwait(false)
+            : await store.MembersAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
+        return new ChatAuditMembersResponse(ConversationOf(conversation), await chats.MemberItemsAsync(side, members, cancellationToken).ConfigureAwait(false));
     }
 
     private static ChatAuditConversationResponse ConversationOf(SysChatConversation conversation)
-        => new(conversation.Id, conversation.Type, conversation.Name, conversation.MemberCount, conversation.OwnerUserId, conversation.DepartmentId, conversation.Announcement, conversation.CreatedAt, conversation.LastMessageAt);
+        => new(
+            conversation.Id,
+            conversation.Type,
+            conversation.Name,
+            conversation.MemberCount,
+            conversation.OwnerUserId,
+            conversation.DepartmentId,
+            conversation.Announcement,
+            conversation.CreatedAt,
+            conversation.LastMessageAt,
+            conversation.IsDeleted ? conversation.DeletedAt : null);
 
     private static ChatAuditMessageResponse ItemOf(SysChatMessage message, SysChatConversation? conversation)
     {
@@ -218,6 +235,7 @@ public sealed class ChatAuditQueries(ChatStore store, ChatQueries chats)
     private async Task<IReadOnlyDictionary<Guid, SysChatConversation>> ConversationsAsync(string side, IReadOnlyCollection<Guid> conversationIds, CancellationToken cancellationToken)
     {
         var ids = conversationIds.Distinct().ToList();
-        return ids.Count == 0 ? new Dictionary<Guid, SysChatConversation>() : (await store.Conversations(side).Where(c => ids.Contains(c.Id)).ToListAsync(cancellationToken).ConfigureAwait(false)).ToDictionary(static c => c.Id);
+        // 解散了的群的消息还在，会话名照样要对得上
+        return ids.Count == 0 ? new Dictionary<Guid, SysChatConversation>() : (await store.ConversationsWithDissolved(side).Where(c => ids.Contains(c.Id)).ToListAsync(cancellationToken).ConfigureAwait(false)).ToDictionary(static c => c.Id);
     }
 }

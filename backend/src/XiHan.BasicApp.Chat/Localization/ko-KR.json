@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "그룹 멤버 내보내기",
   "chat_conversations.remove_members.description": "그룹 채팅에서 멤버를 내보냅니다. 그룹 채팅에서만 방장 또는 관리자가 할 수 있으며, 멤버가 아닌 사용자, 방장, 자기 자신은 항목별로 실패합니다.",
   "chat_conversations.leave.title": "그룹 채팅 나가기",
-  "chat_conversations.leave.description": "그룹 채팅에서 나갑니다. 그룹 채팅에서만 가능하며 방장은 먼저 방장을 위임해야 합니다.",
+  "chat_conversations.leave.description": "그룹 채팅에서 나갑니다. 그룹 채팅에서만 가능하며 방장은 먼저 방장을 위임하거나 그룹을 해산해야 합니다.",
   "chat_conversations.update_info.title": "채팅 정보 수정",
   "chat_conversations.update_info.description": "이름, 공지, 설명, 프로필 이미지를 수정합니다. 방장 또는 관리자가 할 수 있고 부서 그룹은 이름을 바꿀 수 없으며, 공지가 바뀌면 작업자 이름으로 공지가 게시됩니다.",
   "chat_conversations.transfer_owner.title": "방장 위임",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "그룹 채팅에는 방장을 포함해 멤버가 {min}명 이상 있어야 합니다.",
   "chat.conversation.group_only": "그룹 채팅에서만 지원하는 작업입니다.",
   "chat.conversation.single_unsupported": "1:1 채팅에서는 지원하지 않는 작업입니다.",
-  "chat.group.owner_cannot_leave": "방장은 나가거나 내보내질 수 없습니다. 먼저 방장을 위임하세요.",
+  "chat.group.owner_cannot_leave": "방장은 나가거나 내보내질 수 없습니다. 먼저 방장을 위임하거나 그룹을 해산하세요.",
   "chat.department.name_locked": "부서 그룹의 이름은 부서를 따르므로 바꿀 수 없습니다.",
   "chat.message.content_invalid": "텍스트 메시지는 비워 둘 수 없으며 {max}자를 넘을 수 없습니다.",
   "chat.message.attachments_required": "이미지와 파일 메시지에는 첨부 파일이 하나 이상 있어야 합니다.",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "모든 대화 검색",
   "chat_messages.search_all.description": "호출자가 속한 모든 대화에서 키워드로 메시지를 찾습니다. 본문과 첨부에 일치하고 회수된 메시지는 제외하며 최신순입니다.",
   "chat_messages.media.title": "대화의 이미지와 파일",
-  "chat_messages.media.description": "대화에서 회수되지 않은 이미지 메시지 또는 파일 메시지를 최신순으로 나열합니다. 구성원만 볼 수 있습니다."
+  "chat_messages.media.description": "대화에서 회수되지 않은 이미지 메시지 또는 파일 메시지를 최신순으로 나열합니다. 구성원만 볼 수 있습니다.",
+  "chat_conversations.dissolve.title": "그룹 채팅 해산",
+  "chat_conversations.dissolve.description": "방장이 그룹 채팅을 해산합니다. 모든 구성원이 나가게 되고 누구의 대화 목록에도 남지 않습니다. 메시지는 남아 채팅 감사에서 계속 볼 수 있습니다.",
+  "chat.system.group_dissolved": "{name} 님이 그룹 채팅을 해산했습니다"
 }

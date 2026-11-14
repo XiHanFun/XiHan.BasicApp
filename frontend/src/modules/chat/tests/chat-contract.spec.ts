@@ -134,6 +134,7 @@ describe('权限码与本地存储键', () => {
     expect(operationPermission['chat-messages.forward']).toBe(CHAT_PERMISSIONS.send)
     expect(operationPermission['chat-conversations.create-group']).toBe(CHAT_PERMISSIONS.manage)
     expect(operationPermission['chat-conversations.silence-members']).toBe(CHAT_PERMISSIONS.manage)
+    expect(operationPermission['chat-conversations.dissolve']).toBe(CHAT_PERMISSIONS.manage)
   })
 
   it('跨会话搜索与图片文件汇总要消息读，看成员的资料只要会话读', () => {

@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "Retirer des membres du groupe",
   "chat_conversations.remove_members.description": "Retire des membres d’une discussion de groupe ; discussions de groupe uniquement, par le propriétaire ou un administrateur ; les non-membres, le propriétaire et l’appelant lui-même échouent un par un.",
   "chat_conversations.leave.title": "Quitter la discussion de groupe",
-  "chat_conversations.leave.description": "Quitte une discussion de groupe ; discussions de groupe uniquement, le propriétaire doit d’abord transférer la propriété.",
+  "chat_conversations.leave.description": "Quitte une discussion de groupe ; discussions de groupe uniquement, le propriétaire doit d’abord transférer la propriété ou dissoudre le groupe.",
   "chat_conversations.update_info.title": "Modifier les infos de la discussion",
   "chat_conversations.update_info.description": "Modifie le nom, l’annonce, la description et l’avatar ; par le propriétaire ou un administrateur ; les discussions de service gardent leur nom, une nouvelle annonce est publiée au nom de l’auteur de la modification.",
   "chat_conversations.transfer_owner.title": "Transférer la propriété",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "Une discussion de groupe doit compter au moins {min} membres, propriétaire compris.",
   "chat.conversation.group_only": "Seules les discussions de groupe prennent en charge cette opération.",
   "chat.conversation.single_unsupported": "Les discussions privées ne prennent pas en charge cette opération.",
-  "chat.group.owner_cannot_leave": "Le propriétaire ne peut ni quitter le groupe ni en être retiré ; transférez d’abord la propriété.",
+  "chat.group.owner_cannot_leave": "Le propriétaire ne peut ni quitter le groupe ni en être retiré ; transférez d’abord la propriété ou dissolvez le groupe.",
   "chat.department.name_locked": "Une discussion de service porte le nom de son service et ne peut pas être renommée.",
   "chat.message.content_invalid": "Un message texte ne peut être ni vide ni dépasser {max} caractères.",
   "chat.message.attachments_required": "Les messages image et fichier doivent avoir au moins une pièce jointe.",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "Rechercher dans toutes les conversations",
   "chat_messages.search_all.description": "Recherche des messages par mot-clé dans toutes les conversations de l’appelant : compare le texte et les pièces jointes, ignore les messages rappelés, les plus récents d’abord.",
   "chat_messages.media.title": "Images et fichiers d’une conversation",
-  "chat_messages.media.description": "Liste les messages image ou fichier non rappelés d’une conversation, les plus récents d’abord ; réservé aux membres."
+  "chat_messages.media.description": "Liste les messages image ou fichier non rappelés d’une conversation, les plus récents d’abord ; réservé aux membres.",
+  "chat_conversations.dissolve.title": "Dissoudre la discussion de groupe",
+  "chat_conversations.dissolve.description": "Le propriétaire dissout une discussion de groupe : tous les membres sont retirés et elle disparaît de toutes les listes de conversations ; les messages sont conservés et restent visibles dans l’audit des discussions.",
+  "chat.system.group_dissolved": "{name} a dissous la discussion de groupe"
 }

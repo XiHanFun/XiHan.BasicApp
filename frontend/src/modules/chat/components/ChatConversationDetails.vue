@@ -74,6 +74,8 @@ const canManage = computed(() =>
   userStore.hasPermission(CHAT_PERMISSIONS.manage) && (isOwner.value || myRole.value === 'Admin'))
 // 群主不能退群（须先移交，后端硬校验），普通成员与管理员可退
 const canLeave = computed(() => isGroup.value && !isOwner.value)
+/** 群主不能退群，只能转让或解散 */
+const canDissolve = computed(() => isGroup.value && isOwner.value && userStore.hasPermission(CHAT_PERMISSIONS.manage))
 
 const typeLabel = computed(() => {
   switch (props.conversation.conversationType) {
@@ -336,6 +338,26 @@ function handleLeave() {
     },
   })
 }
+
+function handleDissolve() {
+  const id = conversationId.value
+  void confirmDanger({
+    title: t('chat.members.dissolve'),
+    content: t('chat.members.dissolve_confirm', { name: props.conversation.displayName }),
+    onOk: async () => {
+      try {
+        await getChatApi().dissolveConversation(id)
+        emit('close')
+        chatStore.closeActiveConversation()
+        chatStore.loadConversations().catch(() => {})
+        toast.success(t('chat.members.dissolve_done'))
+      }
+      catch (error) {
+        notifyFailure(error)
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -511,6 +533,12 @@ function handleLeave() {
       <XhButton variant="subtle" size="sm" tone="danger" full-width @click="handleLeave">
         <Icon icon="lucide:log-out" />
         {{ t('chat.members.leave') }}
+      </XhButton>
+    </div>
+    <div v-else-if="canDissolve" class="shrink-0 border-t border-border px-3 py-2">
+      <XhButton variant="subtle" size="sm" tone="danger" full-width @click="handleDissolve">
+        <Icon icon="lucide:trash-2" />
+        {{ t('chat.members.dissolve') }}
       </XhButton>
     </div>
 

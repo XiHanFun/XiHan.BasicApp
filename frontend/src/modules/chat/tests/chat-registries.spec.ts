@@ -22,6 +22,7 @@ function createFakeApi(tag: string): ChatApiContract {
     addMembers: notUsed,
     removeMember: notUsed,
     leaveConversation: notUsed,
+    dissolveConversation: notUsed,
     sendMessage: notUsed,
     recallMessage: notUsed,
     markRead: notUsed,

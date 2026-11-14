@@ -75,6 +75,75 @@ public sealed class ChatStore(SideRows rows, SqlSugarUnitOfWork unitOfWork, IRep
             : Error.NotFound(ChatErrors.ConversationNotFound, ChatMessages.ConversationNotFound, MessageArguments.Of(("id", conversationId)));
 
     /// <summary>
+    /// 一侧的会话，连已解散的
+    /// </summary>
+    /// <remarks>
+    /// 解散即软删除，成员看到的一律是没解散的；聊天审计与通话要连解散了的一起找
+    /// </remarks>
+    public ISugarQueryable<SysChatConversation> ConversationsWithDissolved(string side)
+        => unitOfWork.ConnectionFor(typeof(SysChatConversation)).Queryable<SysChatConversation>().Where(c => c.TenantId == side);
+
+    /// <summary>
+    /// 一个会话，连已解散的
+    /// </summary>
+    /// <remarks>
+    /// 不存在为失败
+    /// </remarks>
+    public async Task<Result<SysChatConversation>> ConversationWithDissolvedAsync(string side, Guid conversationId, CancellationToken cancellationToken)
+    {
+        var found = await ConversationsWithDissolved(side).Where(c => c.Id == conversationId).Take(1).ToListAsync(cancellationToken).ConfigureAwait(false);
+        return found.Count == 0
+            ? Error.NotFound(ChatErrors.ConversationNotFound, ChatMessages.ConversationNotFound, MessageArguments.Of(("id", conversationId)))
+            : found[0];
+    }
+
+    /// <summary>
+    /// 对会话行加锁再读回
+    /// </summary>
+    /// <remarks>
+    /// 会话行是整行更新的：改信息、转让群主与解散先调它排成先后，等在解散后面的那次更新才不会把解散了的群写回来
+    /// </remarks>
+    public async Task<Result<SysChatConversation>> LockedConversationAsync(string side, Guid conversationId, CancellationToken cancellationToken)
+    {
+        await LockConversationAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
+        return await ConversationAsync(side, conversationId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 解散：会话与它的全部成员行一起软删除
+    /// </summary>
+    /// <remarks>
+    /// 成员行记与会话同一个删除时刻，审计据此认出解散时还在里面的人
+    /// </remarks>
+    /// <returns>解散时的成员</returns>
+    public async Task<List<SysChatConversationMember>> DissolveAsync(SysChatConversation conversation, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(conversation);
+        var members = await MembersAsync(conversation.TenantId, conversation.Id, cancellationToken).ConfigureAwait(false);
+        await rows.SoftDeleteAsync(conversation, cancellationToken).ConfigureAwait(false);
+        foreach (var member in members)
+        {
+            member.IsDeleted = true;
+            member.DeletedAt = conversation.DeletedAt;
+        }
+
+        await rows.UpdateRangeAsync(members, cancellationToken).ConfigureAwait(false);
+        return members;
+    }
+
+    /// <summary>
+    /// 群解散时还在里面的成员
+    /// </summary>
+    public async Task<List<SysChatConversationMember>> MembersAtDissolutionAsync(SysChatConversation conversation, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(conversation);
+        var (side, conversationId, dissolvedAt) = (conversation.TenantId, conversation.Id, conversation.DeletedAt);
+        return await unitOfWork.ConnectionFor(typeof(SysChatConversationMember)).Queryable<SysChatConversationMember>()
+            .Where(m => m.TenantId == side && m.ConversationId == conversationId && m.IsDeleted && m.DeletedAt >= dissolvedAt)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// 会话的全部成员
     /// </summary>
     public Task<List<SysChatConversationMember>> MembersAsync(string side, Guid conversationId, CancellationToken cancellationToken)

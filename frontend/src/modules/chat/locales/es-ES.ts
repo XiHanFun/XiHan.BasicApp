@@ -177,6 +177,10 @@ export default {
       silence: 'Silenciar',
       unsilence: 'Quitar silencio',
       silenced: 'Silenciado',
+      dissolve: 'Disolver el grupo',
+      dissolve_confirm: 'Al disolver «{name}» se quita a todos los miembros. Nadie podrá volver a ver el grupo ni sus mensajes, y no se puede deshacer. ¿Disolverlo?',
+      dissolve_done: 'Grupo disuelto',
+      dissolved_notice: 'El propietario ha disuelto el grupo «{name}»',
     },
     picker: {
       search_placeholder: 'Buscar por nombre de usuario o nombre visible',
@@ -371,6 +375,9 @@ export default {
       type_system: 'Sistema',
       type_record: 'Registro de chat',
       mention_all: 'Todos',
+      dissolved: 'Disuelto',
+      dissolved_at: 'Disuelto el',
+      members_at_dissolution: 'Miembros al disolverse ({n})',
     },
   },
 }

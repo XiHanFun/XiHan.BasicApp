@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "移出群組成員",
   "chat_conversations.remove_members.description": "把成員移出群組聊天：只限群組聊天、需群組擁有者或管理員；非成員、群組擁有者與自己逐項失敗。",
   "chat_conversations.leave.title": "退出群組",
-  "chat_conversations.leave.description": "呼叫方退出群組聊天：只限群組聊天，群組擁有者須先轉讓擁有者身分。",
+  "chat_conversations.leave.description": "呼叫方退出群組聊天：只限群組聊天，群組擁有者須先轉讓擁有者身分或解散群組。",
   "chat_conversations.update_info.title": "修改群組資訊",
   "chat_conversations.update_info.description": "修改群組名稱、公告、描述與頭像：需群組擁有者或管理員，部門群組不能改名，公告變更時追加以操作人身分發出的公告。",
   "chat_conversations.transfer_owner.title": "轉讓群組擁有者",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "群組聊天至少要有 {min} 名成員（含群組擁有者）。",
   "chat.conversation.group_only": "只有群組聊天支援這個操作。",
   "chat.conversation.single_unsupported": "單聊不支援這個操作。",
-  "chat.group.owner_cannot_leave": "群組擁有者不能退出群組或被移出，請先轉讓群組擁有者。",
+  "chat.group.owner_cannot_leave": "群組擁有者不能退出群組或被移出，請先轉讓群組擁有者，或者解散群組。",
   "chat.department.name_locked": "部門群組的名稱隨部門而定，不能修改。",
   "chat.message.content_invalid": "文字訊息不能為空，也不能超過 {max} 個字元。",
   "chat.message.attachments_required": "圖片與檔案訊息至少要有一個附件。",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "跨對話搜尋",
   "chat_messages.search_all.description": "在呼叫方所在的全部對話中依關鍵字尋找訊息：比對內文與附件，不含已收回的，依時間倒序。",
   "chat_messages.media.title": "對話的圖片與檔案",
-  "chat_messages.media.description": "列出對話中未收回的圖片訊息或檔案訊息，最近的在前；只有成員能看。"
+  "chat_messages.media.description": "列出對話中未收回的圖片訊息或檔案訊息，最近的在前；只有成員能看。",
+  "chat_conversations.dissolve.title": "解散群組",
+  "chat_conversations.dissolve.description": "群組擁有者解散群組聊天：全部成員移出，任何人的對話清單裡都不再有它；訊息保留，聊天稽核仍然看得到。",
+  "chat.system.group_dissolved": "{name} 解散了群組聊天"
 }

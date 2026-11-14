@@ -177,6 +177,10 @@ export default {
       silence: '発言を禁止',
       unsilence: '発言禁止を解除',
       silenced: '発言禁止中',
+      dissolve: 'グループを解散',
+      dissolve_confirm: '「{name}」を解散すると、全メンバーが外され、このグループとその中のメッセージは誰にも見えなくなります。元に戻せません。解散しますか？',
+      dissolve_done: 'グループを解散しました',
+      dissolved_notice: 'グループ「{name}」はオーナーによって解散されました',
     },
     picker: {
       search_placeholder: 'ユーザー名または表示名で検索',
@@ -371,6 +375,9 @@ export default {
       type_call: '通話',
       type_record: 'チャット記録',
       mention_all: '全員',
+      dissolved: '解散済み',
+      dissolved_at: '解散日時',
+      members_at_dissolution: '解散時のメンバー（{n}）',
     },
   },
 }

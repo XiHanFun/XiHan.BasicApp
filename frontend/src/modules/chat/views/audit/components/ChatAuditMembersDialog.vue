@@ -104,6 +104,9 @@ const columns = computed<XDataTableColumn<ChatAuditMember>[]>(() => [
               </div>
               <div v-if="members" class="det-hd-sub">
                 {{ conversationTypeLabel(t, members.conversation.conversationType) }} · {{ t('chat.members.count', { n: members.conversation.memberCount }) }}
+                <template v-if="members.conversation.dissolvedAt">
+                  · {{ t('chat.audit.dissolved') }}
+                </template>
               </div>
             </div>
           </div>
@@ -132,6 +135,10 @@ const columns = computed<XDataTableColumn<ChatAuditMember>[]>(() => [
               <XhDescriptionsLabel>{{ t('chat.audit.last_message_at') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>{{ formatDate(members.conversation.lastMessageAt) }}</XhDescriptionsValue>
             </XhDescriptionsItem>
+            <XhDescriptionsItem v-if="members.conversation.dissolvedAt" style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('chat.audit.dissolved_at') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatDate(members.conversation.dissolvedAt) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
             <XhDescriptionsItem style="grid-column: span 2">
               <XhDescriptionsLabel>{{ t('chat.members.announcement_title') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -142,7 +149,9 @@ const columns = computed<XDataTableColumn<ChatAuditMember>[]>(() => [
 
           <section class="flex flex-col gap-2">
             <h3 class="section-title">
-              {{ t('chat.members.section_members', { n: members.items.length }) }}
+              {{ members.conversation.dissolvedAt
+                ? t('chat.audit.members_at_dissolution', { n: members.items.length })
+                : t('chat.members.section_members', { n: members.items.length }) }}
             </h3>
             <XDataTable :columns="columns" :data="members.items" row-key="userId" />
           </section>

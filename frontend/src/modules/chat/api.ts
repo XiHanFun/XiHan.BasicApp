@@ -62,6 +62,9 @@ export function createChatApi(): ChatApiContract {
     leaveConversation: async (conversationId) => {
       await chatConversations.leave({ conversationId })
     },
+    dissolveConversation: async (conversationId) => {
+      await chatConversations.dissolve({ conversationId })
+    },
     sendMessage: input => chatMessages.send(input),
     recallMessage: async (messageId) => {
       await chatMessages.recall({ messageId })

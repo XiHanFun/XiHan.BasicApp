@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "グループメンバーを退出させる",
   "chat_conversations.remove_members.description": "グループチャットからメンバーを退出させます。グループチャットのみで、オーナーまたは管理者が実行でき、メンバーでない人、オーナー、自分自身は項目ごとに失敗します。",
   "chat_conversations.leave.title": "グループチャットを退会",
-  "chat_conversations.leave.description": "グループチャットを退会します。グループチャットのみで、オーナーは先にオーナーを譲渡する必要があります。",
+  "chat_conversations.leave.description": "グループチャットを退会します。グループチャットのみで、オーナーは先にオーナーを譲渡するかグループを解散する必要があります。",
   "chat_conversations.update_info.title": "チャット情報を更新",
   "chat_conversations.update_info.description": "名前、お知らせ、説明、アイコンを更新します。オーナーまたは管理者が実行でき、部門グループは名前を変更できません。お知らせが変わると操作者の名前で投稿されます。",
   "chat_conversations.transfer_owner.title": "オーナーを譲渡",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "グループチャットにはオーナーを含めて {min} 人以上のメンバーが必要です。",
   "chat.conversation.group_only": "この操作はグループチャットでのみ利用できます。",
   "chat.conversation.single_unsupported": "この操作は個人チャットでは利用できません。",
-  "chat.group.owner_cannot_leave": "オーナーは退会も退出もできません。先にオーナーを譲渡してください。",
+  "chat.group.owner_cannot_leave": "オーナーは退会も退出もできません。先にオーナーを譲渡するか、グループを解散してください。",
   "chat.department.name_locked": "部門グループの名前は部門に従うため、変更できません。",
   "chat.message.content_invalid": "テキストメッセージは空にできず、{max} 文字を超えることもできません。",
   "chat.message.attachments_required": "画像とファイルのメッセージには添付ファイルが 1 つ以上必要です。",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "すべてのチャットを検索",
   "chat_messages.search_all.description": "呼び出し元が参加しているすべてのチャットからキーワードでメッセージを探します。本文と添付に一致し、取り消したものは含まず、新しい順に返します。",
   "chat_messages.media.title": "チャットの画像とファイル",
-  "chat_messages.media.description": "チャット内の取り消されていない画像メッセージまたはファイルメッセージを新しい順に一覧します。メンバーだけが見られます。"
+  "chat_messages.media.description": "チャット内の取り消されていない画像メッセージまたはファイルメッセージを新しい順に一覧します。メンバーだけが見られます。",
+  "chat_conversations.dissolve.title": "グループチャットを解散",
+  "chat_conversations.dissolve.description": "オーナーがグループチャットを解散します。全メンバーが外され、誰のチャット一覧からも消えます。メッセージは残り、チャット監査では引き続き確認できます。",
+  "chat.system.group_dissolved": "{name} がグループチャットを解散しました"
 }

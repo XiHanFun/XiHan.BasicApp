@@ -1572,6 +1572,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-conversations:dissolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dissolve group chat
+         * @description The owner dissolves a group chat: every member is removed and it disappears from all conversation lists; the messages are kept and stay visible to chat audit.
+         *
+         *     Requires permission chat.chat-conversations.manage (Manage group chats).
+         */
+        post: operations["chat-conversations.dissolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-conversations:leave": {
         parameters: {
             query?: never;
@@ -1583,7 +1605,7 @@ export interface paths {
         put?: never;
         /**
          * Leave group chat
-         * @description Leaves a group chat; group chats only, the owner must transfer ownership first.
+         * @description Leaves a group chat; group chats only, the owner must transfer ownership or dissolve the group first.
          *
          *     Requires permission chat.chat-conversations.read (Use chat conversations).
          */
@@ -10938,6 +10960,11 @@ export interface components {
              * @description 最后一条消息的时间（UTC）
              */
             lastMessageAt?: string | null;
+            /**
+             * Format: date-time
+             * @description 解散的时间（UTC）；没解散为空
+             */
+            dissolvedAt?: string | null;
         };
         /** @description 审计里的一条消息 */
         ChatAuditMessageResponse: {
@@ -20823,7 +20850,7 @@ export interface operations {
                     "application/json": {
                         /** @description 会话 */
                         conversation: components["schemas"]["ChatAuditConversationResponse"];
-                        /** @description 现有成员（按角色再按入会时间） */
+                        /** @description 现有成员，已解散的群是解散时的成员（按角色再按入会时间） */
                         items: components["schemas"]["ChatMemberItem"][];
                     };
                 };
@@ -21588,6 +21615,52 @@ export interface operations {
                     "application/json": {
                         /** @description 顶层部门 */
                         items: components["schemas"]["ChatDepartmentNode"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.dissolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description 按会话的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话
+                     */
+                    conversationId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 做完了的会话 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 会话
+                         */
+                        conversationId: string;
                     };
                 };
             };

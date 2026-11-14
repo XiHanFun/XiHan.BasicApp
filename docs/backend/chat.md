@@ -10,8 +10,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 表 | 说明 |
 | --- | --- |
-| `sys_chat_conversation` | 会话：类型（单聊、群聊、部门群、助手）、名称、头像、单聊唯一键、部门、群主、助手、成员数、最大消息序号、最后消息、公告、描述；软删除，不进差异日志 |
-| `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、禁言、入会时间；退群与移出即软删除 |
+| `sys_chat_conversation` | 会话：类型（单聊、群聊、部门群、助手）、名称、头像、单聊唯一键、部门、群主、助手、成员数、最大消息序号、最后消息、公告、描述；软删除（解散群即软删除它），不进差异日志 |
+| `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、禁言、入会时间；退群、移出与解散群即软删除 |
 | `sys_chat_message` | 消息：会话内序号、发送人与名字快照、类型、正文、附件（JSON）、撤回、编辑、回复快照、提及（点名的成员与提及所有人）、置顶；不软删除，按保留期物理删除 |
 | `sys_chat_message_reaction` | 表情回应：同一消息、同一用户、同一表情只有一条 |
 | `sys_chat_call` | 通话：会话、发起人、媒体（语音、视频）、状态、结束的原因、响铃到几时、接通与结束时间、通话记录消息；不进差异日志 |
@@ -24,7 +24,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 规则 | 说明 |
 | --- | --- |
 | 单聊 | 同一对用户每侧只有一个，没有即建；不能和自己单聊 |
-| 群聊 | 含群主至少两人，发起人为群主；加人、移出、改信息与公告、禁言要群主或管理员，转让群主与设管理员只有群主；群主不能退群或被移出；没有解散 |
+| 群聊 | 含群主至少两人，发起人为群主；加人、移出、改信息与公告、禁言要群主或管理员，转让群主、设管理员与解散只有群主；群主不能退群或被移出，只能转让或解散 |
+| 解散群 | 只在群聊（`CHAT_VALIDATION_003`）、只有群主（`CHAT_DENIED_003`）。里面还没结束的通话先结束（还没人接的记已取消，通话中的以中断结束），追加一条解散提示，再把会话与它的全部成员行一起软删除：谁的会话列表里都不再有它，之后在里面做什么都当它不存在（`CHAT_NOTFOUND_001`，查历史这类先核对成员的是 `CHAT_DENIED_001`）。消息留着、保留清理照常，聊天审计照样看得到；解散不能撤销 |
 | 部门群 | 只有本部门的成员能进，打开时补齐部门现有成员；没有群主与管理员，所以没人能改信息、置顶消息或禁言；名称随部门、不能改；平台没有部门，部门群只在租户一侧 |
 | 成员范围 | 加进会话的人必须属于当前一侧：平台是注册在平台的账号，租户是注册在本租户的用户与租户成员（`CHAT_VALIDATION_021`） |
 | 发送 | 只有成员、没被禁言；文本必填不超过 4000 个字符，图片与文件至少一个附件（可带说明），语音恰好一个附件、1 到 60 秒、没有正文；系统提示、助手回复、通话记录与聊天记录只由服务端追加 |
@@ -159,7 +160,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 资源 | 操作 |
 | --- | --- |
-| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
+| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`dissolve`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
 | `chat-messages` | `history`、`search`、`search-all`、`media`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members` |
 | `chat-calls` | `active`、`ongoing`、`settings`、`ice-servers`（只读）；`start`、`accept`、`reject`、`join`、`hangup` |
@@ -171,7 +172,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读、看成员的资料也用它） |
 | `chat.chat-messages.read` | 查看历史、会话内与跨会话搜索、会话的图片与文件、置顶消息与换附件地址 |
 | `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
-| `chat.chat-conversations.manage` | 建群与群治理（进操作日志） |
+| `chat.chat-conversations.manage` | 建群、群治理与解散群（进操作日志） |
 | `chat.chat-audit.read` | 聊天审计 |
 | `chat.chat-calls.read` | 查看自己此刻所在的通话与所在会话里的通话，取通话设置与穿透服务器 |
 | `chat.chat-calls.call` | 发起、接听、拒绝、加入与挂断通话（进操作日志） |
@@ -211,10 +212,10 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 方向 | 方法 |
 | --- | --- |
-| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`、`ChatCallChanged`、`ChatCallSignal` |
+| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（12 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`、`ChatCallChanged`、`ChatCallSignal` |
 | 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库）、`CallSignal`（核对是接通了的通话里的人后转给指定的人或通话里的其他人，不落库） |
 
-`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`。
+`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`、`dissolved`。群被解散时推给解散那一刻还在里面的成员，前端把它从列表里拿掉（正开着就收起），不是群主的另出一条提示说是哪个群。
 
 ## 在线状态
 
@@ -243,7 +244,8 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 - 列表按关键字（正文、发送人名、附件）与会话、发送人、消息类型（含通话记录与聊天记录）、发送时间、是否撤回筛选，缺省不含已撤回的，筛选 `includeRecalled` 为 `true` 即都看；
 - 消息详情带所在会话、附件、提及（含提及所有人）、回复与表情回应；
-- 会话成员列出会话与它现在的成员。
+- 会话成员列出会话与它现在的成员；
+- 已解散的群照样查得到：消息还在（末尾是那条解散提示），会话带解散时间 `dissolvedAt`，成员列的是解散时还在里面的人。
 
 撤回清空的正文与编辑前的正文不另留。
 

@@ -25,7 +25,7 @@ public static class ChatRealtimeMethods
     /// 会话变更
     /// </summary>
     /// <remarks>
-    /// 成员、信息、群主、角色、禁言、置顶消息、个人设置与部门同步，种类见 <see cref="ChangeTypes"/>
+    /// 成员、信息、群主、角色、禁言、置顶消息、个人设置、部门同步与解散，种类见 <see cref="ChangeTypes"/>
     /// </remarks>
     public const string ChatConversationChanged = "ChatConversationChanged";
 
@@ -182,5 +182,10 @@ public static class ChatRealtimeMethods
         /// 随部门归属移出了部门群
         /// </summary>
         public const string DepartmentKicked = "department-kicked";
+
+        /// <summary>
+        /// 群被群主解散了
+        /// </summary>
+        public const string Dissolved = "dissolved";
     }
 }

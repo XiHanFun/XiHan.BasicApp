@@ -523,6 +523,35 @@ describe('会话变更推送', () => {
     store.applyConversationChanged({ conversationId: 'a', changeType: 'member-removed' })
     await vi.waitFor(() => expect(listCalls).toBe(1))
   })
+
+  it('群被解散：直接从列表里拿掉、正开着就收起，不重读列表也不动修订号（重读它的成员只会被拒绝）', async () => {
+    let listCalls = 0
+    const store = setup({
+      myConversations: () => {
+        listCalls += 1
+        return Promise.resolve([
+          conversation({ conversationId: 'a', unreadCount: 2 }),
+          conversation({ conversationId: 'b', unreadCount: 1 }),
+        ])
+      },
+    })
+    await store.loadConversations()
+    await store.openConversation('a')
+    store.replyTarget = message({ messageId: '1', conversationId: 'a' })
+
+    store.applyConversationChanged({ conversationId: 'a', changeType: 'dissolved' })
+    await Promise.resolve()
+
+    expect(store.conversations.map(item => item.conversationId)).toEqual(['b'])
+    expect([store.activeConversationId, store.replyTarget]).toEqual([null, null])
+    expect(store.totalUnread).toBe(1)
+    expect([listCalls, store.conversationRevisions.a]).toEqual([1, undefined])
+
+    // 解散的不是正开着的那个：只拿掉它，开着的不动
+    await store.openConversation('b')
+    store.applyConversationChanged({ conversationId: 'gone-already', changeType: 'dissolved' })
+    expect([store.activeConversationId, store.conversations.length]).toEqual(['b', 1])
+  })
 })
 
 describe('$reset 清理', () => {

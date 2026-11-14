@@ -20,7 +20,7 @@
   "chat_conversations.remove_members.title": "Remove group members",
   "chat_conversations.remove_members.description": "Removes members from a group chat; group chats only, owner or administrator; non-members, the owner and the caller fail per item.",
   "chat_conversations.leave.title": "Leave group chat",
-  "chat_conversations.leave.description": "Leaves a group chat; group chats only, the owner must transfer ownership first.",
+  "chat_conversations.leave.description": "Leaves a group chat; group chats only, the owner must transfer ownership or dissolve the group first.",
   "chat_conversations.update_info.title": "Update chat info",
   "chat_conversations.update_info.description": "Updates the name, announcement, description and avatar; owner or administrator, department chats keep their name, a new announcement is posted in the operator's name.",
   "chat_conversations.transfer_owner.title": "Transfer ownership",
@@ -83,7 +83,7 @@
   "chat.group.too_small": "A group chat needs at least {min} members, the owner included.",
   "chat.conversation.group_only": "Only group chats support this.",
   "chat.conversation.single_unsupported": "Single chats do not support this.",
-  "chat.group.owner_cannot_leave": "The owner cannot leave or be removed; transfer ownership first.",
+  "chat.group.owner_cannot_leave": "The owner cannot leave or be removed; transfer ownership first, or dissolve the group.",
   "chat.department.name_locked": "A department chat is named after its department and cannot be renamed.",
   "chat.message.content_invalid": "A text message cannot be empty or longer than {max} characters.",
   "chat.message.attachments_required": "Image and file messages need at least one attachment.",
@@ -204,5 +204,8 @@
   "chat_messages.search_all.title": "Search all conversations",
   "chat_messages.search_all.description": "Finds messages by keyword across every conversation the caller belongs to: matches text and attachments, skips recalled messages, newest first.",
   "chat_messages.media.title": "Images and files of a conversation",
-  "chat_messages.media.description": "Lists the image messages or file messages of a conversation that have not been recalled, newest first; members only."
+  "chat_messages.media.description": "Lists the image messages or file messages of a conversation that have not been recalled, newest first; members only.",
+  "chat_conversations.dissolve.title": "Dissolve group chat",
+  "chat_conversations.dissolve.description": "The owner dissolves a group chat: every member is removed and it disappears from all conversation lists; the messages are kept and stay visible to chat audit.",
+  "chat.system.group_dissolved": "{name} dissolved the group chat"
 }

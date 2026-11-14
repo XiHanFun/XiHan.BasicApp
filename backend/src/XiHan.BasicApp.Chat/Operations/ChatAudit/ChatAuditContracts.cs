@@ -48,6 +48,7 @@ public sealed record ChatAuditMessageResponse(
 /// <param name="Announcement">群公告</param>
 /// <param name="CreatedAt">创建时间（UTC）</param>
 /// <param name="LastMessageAt">最后一条消息的时间（UTC）</param>
+/// <param name="DissolvedAt">解散的时间（UTC）；没解散为空</param>
 public sealed record ChatAuditConversationResponse(
     Guid Id,
     ChatConversationType ConversationType,
@@ -57,7 +58,8 @@ public sealed record ChatAuditConversationResponse(
     Guid? DepartmentId,
     string? Announcement,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? LastMessageAt);
+    DateTimeOffset? LastMessageAt,
+    DateTimeOffset? DissolvedAt);
 
 /// <summary>
 /// 审计里的消息详情
@@ -97,7 +99,7 @@ public sealed record ChatAuditMessageDetailResponse(
 /// 审计里的会话成员
 /// </summary>
 /// <param name="Conversation">会话</param>
-/// <param name="Items">现有成员（按角色再按入会时间）</param>
+/// <param name="Items">现有成员，已解散的群是解散时的成员（按角色再按入会时间）</param>
 public sealed record ChatAuditMembersResponse(ChatAuditConversationResponse Conversation, IReadOnlyList<ChatMemberItem> Items);
 
 /// <summary>

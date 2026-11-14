@@ -177,6 +177,10 @@ export default {
       silence: '設為禁言',
       unsilence: '取消禁言',
       silenced: '禁言中',
+      dissolve: '解散群組',
+      dissolve_confirm: '解散「{name}」後，所有成員都會被移出，任何人都看不到這個群組和裡面的聊天記錄，而且無法復原。確認解散？',
+      dissolve_done: '群組已解散',
+      dissolved_notice: '群組「{name}」已被群組擁有者解散',
     },
     picker: {
       search_placeholder: '搜尋使用者名稱或顯示名稱',
@@ -371,6 +375,9 @@ export default {
       type_call: '通話',
       type_record: '聊天記錄',
       mention_all: '所有人',
+      dissolved: '已解散',
+      dissolved_at: '解散時間',
+      members_at_dissolution: '解散時的成員（{n}）',
     },
   },
 }

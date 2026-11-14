@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 会话列表从本人的成员行出发、按 ID 取会话，在内存里按置顶与最后消息时间排，所以不给最后消息时间建索引：它随每条消息改，索引只会多一次写
 /// 部门群跟着部门走：每个部门打开的是同一个部门群，名称随部门、不能改，成员随 Organization 的部门归属事件同步；部门是租户库实体，所以部门群只在租户一侧
 /// 助手由 AI 包经 Contracts 的 <c>IChatAssistants</c> 提供，会话只记 <see cref="AssistantId"/> 与建会话时的名字和头像，本包不依赖 AI 包
-/// 没有删除入口，群也没有解散：消息历史与聊天审计都挂在会话上，保留清理只删消息
+/// 没有删除入口，只有群聊能由群主解散：解散即软删除会话与它的全部成员行，消息留着（保留清理只删消息），聊天审计连解散了的一起看
 /// </remarks>
 [SugarTable(TableName = "sys_chat_conversation", TableDescription = "聊天会话（租户库实体）")]
 [ActiveUniqueIndex(nameof(TenantId), nameof(PairKey), Name = "ux_sys_chat_conversation_tenant_id_pair_key")]

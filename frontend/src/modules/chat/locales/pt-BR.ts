@@ -177,6 +177,10 @@ export default {
       silence: 'Silenciar',
       unsilence: 'Remover silêncio',
       silenced: 'Silenciado',
+      dissolve: 'Dissolver o grupo',
+      dissolve_confirm: 'Dissolver "{name}" remove todos os membros. Ninguém mais poderá ver o grupo nem as mensagens dele, e isso não pode ser desfeito. Dissolver?',
+      dissolve_done: 'Grupo dissolvido',
+      dissolved_notice: 'O grupo "{name}" foi dissolvido pelo proprietário',
     },
     picker: {
       search_placeholder: 'Pesquisar por nome de usuário ou nome de exibição',
@@ -371,6 +375,9 @@ export default {
       type_system: 'Sistema',
       type_record: 'Registro de conversa',
       mention_all: 'Todos',
+      dissolved: 'Dissolvido',
+      dissolved_at: 'Dissolvido em',
+      members_at_dissolution: 'Membros no momento da dissolução ({n})',
     },
   },
 }

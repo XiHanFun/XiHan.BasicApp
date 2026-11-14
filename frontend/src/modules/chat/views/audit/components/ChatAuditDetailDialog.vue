@@ -239,6 +239,10 @@ const reactionColumns = computed<XDataTableColumn<ChatReactionItem>[]>(() => [
                 <XhDescriptionsLabel>{{ t('chat.audit.last_message_at') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>{{ formatDate(detail.conversation.lastMessageAt) }}</XhDescriptionsValue>
               </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="detail.conversation.dissolvedAt" style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('chat.audit.dissolved_at') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>{{ formatDate(detail.conversation.dissolvedAt) }}</XhDescriptionsValue>
+              </XhDescriptionsItem>
             </XhDescriptionsRoot>
           </section>
 

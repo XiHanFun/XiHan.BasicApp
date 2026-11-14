@@ -119,6 +119,35 @@ describe('批量操作的逐项失败', () => {
     })
   })
 
+  it('退群与解散只带会话；解散被拒绝时带着服务端的原因抛出', async () => {
+    const calls = record(call => (call.url.endsWith(':dissolve') && (call.body as { conversationId: string }).conversationId === 'c-2'
+      ? json(403, { code: 'CHAT_DENIED_003', detail: 'Only the owner can do this.' })
+      : json(200, { conversationId: 'c-1' })))
+    const api = createChatApi()
+
+    await api.leaveConversation('c-1')
+    await api.dissolveConversation('c-1')
+    await expect(api.dissolveConversation('c-2')).rejects.toMatchObject({ code: 'CHAT_DENIED_003' })
+
+    expect(calls.map(call => [call.method, call.url, call.body])).toEqual([
+      [
+        'POST',
+        '/api/chat-conversations:leave',
+        { conversationId: 'c-1' },
+      ],
+      [
+        'POST',
+        '/api/chat-conversations:dissolve',
+        { conversationId: 'c-1' },
+      ],
+      [
+        'POST',
+        '/api/chat-conversations:dissolve',
+        { conversationId: 'c-2' },
+      ],
+    ])
+  })
+
   it('转发是服务端操作：目标会话逐项失败时抛出', async () => {
     const calls = record(() => json(200, {
       succeeded: [],

@@ -20,7 +20,7 @@ import type {
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { islandStart, playNotificationSound, setDocumentTitleBadge, showDesktopNotification, useSignalR } from '~/composables'
+import { islandStart, playNotificationSound, setDocumentTitleBadge, showDesktopNotification, toast, useSignalR } from '~/composables'
 import { RealtimeHubs, RealtimeMethods } from '~/contracts'
 import { useAccessStore, useAppStore, useUserStore } from '~/stores'
 import { useChatCallStore } from '../call/call-store'
@@ -100,6 +100,20 @@ export function useChatIntegration() {
     }).info()
   }
 
+  /**
+   * 所在的群被解散了：告诉一声是哪个群，免得它从列表里不声不响地没了
+   * 解散只有群主能做，自己是群主的那一下（含自己的别的设备）不用提示
+   */
+  function notifyDissolved(payload: ChatConversationChangedPushPayload) {
+    if (payload.changeType !== 'dissolved') {
+      return
+    }
+    const gone = chatStore.conversations.find(c => c.conversationId === payload.conversationId)
+    if (gone && gone.memberRole !== 'Owner') {
+      toast.info(t('chat.members.dissolved_notice', { name: gone.displayName }))
+    }
+  }
+
   let isListenersBound = false
   let reconnectTimer: ReturnType<typeof setInterval> | null = null
 
@@ -117,8 +131,11 @@ export function useChatIntegration() {
     })
     signalR.on(RealtimeMethods.ChatMessageRecalled, payload =>
       chatStore.applyMessageRecalled(payload as ChatRecalledPushPayload))
-    signalR.on(RealtimeMethods.ChatConversationChanged, payload =>
-      chatStore.applyConversationChanged(payload as ChatConversationChangedPushPayload))
+    signalR.on(RealtimeMethods.ChatConversationChanged, (payload) => {
+      // 先认出是哪个群再交给 store：store 一收到就把它从列表里拿掉了
+      notifyDissolved(payload as ChatConversationChangedPushPayload)
+      chatStore.applyConversationChanged(payload as ChatConversationChangedPushPayload)
+    })
     signalR.on(RealtimeMethods.ChatTyping, payload =>
       chatStore.applyTyping(payload as ChatTypingPushPayload))
     signalR.on(RealtimeMethods.ChatMessageEdited, payload =>

@@ -177,6 +177,10 @@ export default {
       silence: 'Запретить писать',
       unsilence: 'Разрешить писать',
       silenced: 'Запрещено писать',
+      dissolve: 'Распустить группу',
+      dissolve_confirm: 'После роспуска «{name}» все участники будут исключены. Никто больше не увидит группу и её сообщения, и отменить это нельзя. Распустить?',
+      dissolve_done: 'Группа распущена',
+      dissolved_notice: 'Группа «{name}» распущена владельцем',
     },
     picker: {
       search_placeholder: 'Поиск по имени пользователя или отображаемому имени',
@@ -371,6 +375,9 @@ export default {
       type_system: 'Система',
       type_record: 'Запись переписки',
       mention_all: 'Все',
+      dissolved: 'Распущена',
+      dissolved_at: 'Время роспуска',
+      members_at_dissolution: 'Участники на момент роспуска ({n})',
     },
   },
 }

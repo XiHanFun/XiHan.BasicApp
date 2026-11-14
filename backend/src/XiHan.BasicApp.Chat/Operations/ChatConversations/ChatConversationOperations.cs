@@ -423,6 +423,37 @@ public sealed class TransferChatConversationOwner(ChatConversationService servic
 }
 
 /// <summary>
+/// 解散群
+/// </summary>
+/// <remarks>
+/// <c>POST /api/chat-conversations:dissolve</c>。只在群聊、只有群主；全部成员移出，消息留给聊天审计
+/// </remarks>
+/// <param name="service">会话服务</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsManage)]
+public sealed class DissolveChatConversation(ChatConversationService service) : IOperation<ChatConversationRequest, ChatConversationIdResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-conversations.dissolve";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatConversationIdResponse>> HandleAsync(ChatConversationRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        if (!caller.TryGetValue(out var me))
+        {
+            return caller.Error!;
+        }
+
+        var dissolved = await service.DissolveAsync(context, me, request.ConversationId).ConfigureAwait(false);
+        return dissolved.IsFailure ? dissolved.Error! : new ChatConversationIdResponse(request.ConversationId);
+    }
+}
+
+/// <summary>
 /// 禁言或解除
 /// </summary>
 /// <remarks>

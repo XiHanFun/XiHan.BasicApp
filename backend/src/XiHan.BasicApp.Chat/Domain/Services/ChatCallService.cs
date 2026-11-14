@@ -94,6 +94,13 @@ public sealed class ChatCallService(
 
         var conversationId = conversation.Id;
         await store.LockConversationAsync(caller.Side, conversationId, cancellationToken).ConfigureAwait(false);
+        // 等锁的时候群可能已经解散
+        var still = await store.ConversationAsync(caller.Side, conversationId, cancellationToken).ConfigureAwait(false);
+        if (still.IsFailure)
+        {
+            return still.Error!;
+        }
+
         if (isGroup && await store.Calls(caller.Side).Where(c => c.ConversationId == conversationId && c.Status != ChatCallStatus.Ended).AnyAsync(cancellationToken).ConfigureAwait(false))
         {
             return Error.Conflict(ChatErrors.CallInProgress, ChatMessages.CallInProgress);
@@ -403,6 +410,29 @@ public sealed class ChatCallService(
     }
 
     /// <summary>
+    /// 群要解散了：把里面还没结束的通话结束掉
+    /// </summary>
+    /// <remarks>
+    /// 调用方已经对会话行加了锁。还没人接的记已取消，通话中的以中断结束
+    /// </remarks>
+    public async Task<Result> EndForConversationAsync(InvocationContext context, string side, Guid conversationId)
+    {
+        var cancellationToken = context.CancellationToken;
+        var open = await store.Calls(side).Where(c => c.ConversationId == conversationId && c.Status != ChatCallStatus.Ended).ToListAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var call in open)
+        {
+            var participants = await ParticipantsAsync(side, call.Id, cancellationToken).ConfigureAwait(false);
+            var ended = await EndAsync(context, side, call, participants, call.Status == ChatCallStatus.Ringing ? ChatCallEndReason.Cancelled : ChatCallEndReason.Interrupted).ConfigureAwait(false);
+            if (ended.IsFailure)
+            {
+                return ended.Error!;
+            }
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
     /// 收尾一侧没人管的通话
     /// </summary>
     /// <remarks>
@@ -699,10 +729,10 @@ public sealed class ChatCallService(
     /// 通话所在的会话
     /// </summary>
     /// <remarks>
-    /// 会话不删，通话的会话找不到是缺陷，直接抛出
+    /// 连解散了的群一起找（它里面结束了的通话还读得到）；会话行不物理删除，找不到是缺陷，直接抛出
     /// </remarks>
     private async Task<SysChatConversation> ConversationOfAsync(string side, Guid conversationId, CancellationToken cancellationToken)
-        => (await store.Rows.FindAsync<SysChatConversation>(side, conversationId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var conversation)
+        => (await store.ConversationWithDissolvedAsync(side, conversationId, cancellationToken).ConfigureAwait(false)).TryGetValue(out var conversation)
             ? conversation
             : throw new InvalidOperationException($"Chat conversation '{conversationId}' of a call is missing.");
 
