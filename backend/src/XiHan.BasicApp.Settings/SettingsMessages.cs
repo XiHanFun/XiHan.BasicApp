@@ -259,6 +259,14 @@ public static class SettingsMessages
     public const string ValueTypeMismatch = "settings.config.value_type";
 
     /// <summary>
+    /// 内建参数的值不符合要求
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>
+    /// </remarks>
+    public const string ValueRejected = "settings.config.value_rejected";
+
+    /// <summary>
     /// 元数据不是 JSON
     /// </summary>
     public const string MetadataNotJson = "settings.dict_item.metadata_not_json";

@@ -63,7 +63,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
         var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: token, acceptLanguage: "en-US"));
         Assert.Equal(HttpStatusCode.Forbidden, me.StatusCode);
         Assert.Equal(("IDENTITY_DENIED_002", Reason), (meBody.GetProperty("code").GetString(), meBody.GetProperty("details").GetProperty("reason").GetString()));
-        Assert.Equal("Your password was set by an administrator; change it first.", meBody.GetProperty("detail").GetString());
+        Assert.Equal("The platform's password rules require you to change your password first.", meBody.GetProperty("detail").GetString());
     }
 
     [Fact]
@@ -216,21 +216,21 @@ public sealed class ForcePasswordChangeTests : IDisposable
     }
 
     [Fact]
-    public async Task AWrongValue_StopsOnlyThePasswordLoginsItWouldLock_AndScreenLockStaysStrict()
+    public async Task AWrongValue_IsRejectedWhenSaved_AndScreenLockStaysStrict()
     {
         var (server, superadmin) = await StartAsync();
         await using (server)
         {
-            // 本人改过密码的账号不读这个参数，照常登录；有标记的账号报错（看不懂的参数不当缺省用）
+            // 写错的值保存时即拒绝，参数还是缺省值，登录照常（库里的值被改坏的情形见 PasswordPolicyTests）
             await CreateUserAsync(server, superadmin, "changed", "Changed@123456");
             var changedLogin = await AuthFlowTests.LoginAsync(server, "changed", "Changed@123456");
             var changedToken = changedLogin.GetProperty("accessToken").GetString()!;
             var (selfChanged, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:change-password", """{"currentPassword":"Changed@123456","newPassword":"Changed@654321"}""", changedToken));
             Assert.Equal(HttpStatusCode.OK, selfChanged.StatusCode);
             await CreateUserAsync(server, superadmin, "created", "Created@123456");
-            await ConfigureAsync(server, superadmin, """{"forceChange":"yes please"}""");
-            var (rejected, rejectedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"created","password":"Created@123456"}"""));
-            Assert.Equal((HttpStatusCode.BadRequest, "IDENTITY_VALIDATION_025"), (rejected.StatusCode, rejectedBody.GetProperty("code").GetString()));
+            var (rejected, rejectedBody) = await SettingsTestHost.SetBuiltInConfigAsync(server, superadmin, PasswordSettings.ConfigKey, """{"forceChange":"yes please"}""");
+            Assert.Equal((HttpStatusCode.BadRequest, "SETTINGS_VALIDATION_011"), (rejected, rejectedBody.GetProperty("code").GetString()));
+            Assert.False((await AuthFlowTests.LoginAsync(server, "created", "Created@123456")).GetProperty("mustChangePassword").GetBoolean());
             await AuthFlowTests.LoginAsync(server, "changed", "Changed@654321");
 
             // 锁屏不因此放宽：锁屏的会话不能靠改密绕过

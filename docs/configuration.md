@@ -560,15 +560,13 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 ## `BasicApp:Auth`
 
-身份认证：令牌、登录失败锁定、密码策略、图形验证码、登录节流、双因素、验证码与自助注册。数字须为正数（`PasswordHistoryDepth` 可为 0）。
+身份认证：令牌、登录失败锁定、图形验证码、登录节流、双因素、验证码与自助注册。数字须为正数。密码策略（长度、复杂度、历史与有效期）在系统参数 `identity.password`，见[统一认证](./backend/authentication#密码策略)。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `AccessTokenMinutes` | `120` | 访问令牌有效期（分钟） |
 | `RefreshTokenDays` | `7` | 刷新令牌（会话）有效期（天） |
 | `MaxFailedAccessAttempts` / `LockoutMinutes` | `5` / `15` | 连续登录失败多少次锁定账号、锁定多久 |
-| `PasswordMinLength` | `8` | 密码最短长度 |
-| `PasswordHistoryDepth` | `3` | 不得与最近多少个历史密码相同；0 不检查，最多 1000，配得更大启动即失败 |
 | `SessionCacheSeconds` | `30` | 会话门禁的缓存秒数；吊销会话最迟在这么久后对其他实例生效 |
 | `CaptchaEnabled` / `CaptchaSeconds` | `true` / `300` | 密码登录是否要求图形验证码、验证码有效期 |
 | `LoginThrottleWindowSeconds` | `60` | 登录节流的固定窗口 |

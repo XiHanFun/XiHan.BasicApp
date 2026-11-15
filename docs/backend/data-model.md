@@ -25,7 +25,7 @@
 | `SysUser` | 账号：`HomeTenantId` 为注册地租户（平台账号为 `platform`），状态、是否系统内置账号、资料与头像 |
 | `SysUserSecurity` | 账号安全：密码散列、失败计数、锁定期、双因素（密钥加密存储）、开放接口签名设置、登录策略 |
 | `SysUserSession` | 会话：ID 即令牌的 `sid`，`ActiveTenantId` 为会话当前所在的租户（平台为空）；刷新令牌散列、客户端信息、登录地点、锁屏、模仿发起人 |
-| `SysPasswordHistory` | 密码历史（不可复用的深度见 `BasicApp:Auth:PasswordHistoryDepth`） |
+| `SysPasswordHistory` | 密码历史（不可复用的深度见系统参数 `identity.password` 的 `historyDepth`） |
 | `SysUserSetting` | 用户设置（用户 × 场景 × 键，值是 JSON）：偏好、收藏、工作台布局 |
 | `SysUserNotificationPreference` | 通知偏好 |
 | `SysUserExternalLogin` | 第三方账号绑定 |

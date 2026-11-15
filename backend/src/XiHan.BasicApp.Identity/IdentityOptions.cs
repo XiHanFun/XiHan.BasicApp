@@ -3,7 +3,6 @@
 
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
-using XiHan.Framework.Persistence.Abstractions.Queries;
 
 namespace XiHan.BasicApp.Identity;
 
@@ -11,7 +10,7 @@ namespace XiHan.BasicApp.Identity;
 /// 身份包配置（<c>BasicApp:Auth</c>）
 /// </summary>
 /// <remarks>
-/// 包括令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流、双因素、验证码与自助注册
+/// 包括令牌有效期、登录失败锁定、会话门禁缓存、图形验证码、登录节流、双因素、验证码与自助注册；密码策略在系统参数 <c>identity.password</c>
 /// </remarks>
 public sealed record IdentityOptions
 {
@@ -42,20 +41,6 @@ public sealed record IdentityOptions
     /// 锁定时长（<c>LockoutMinutes</c>，缺省 15 分钟）
     /// </summary>
     public TimeSpan LockoutDuration { get; init; } = TimeSpan.FromMinutes(15);
-
-    /// <summary>
-    /// 密码最短长度（<c>PasswordMinLength</c>，缺省 8）
-    /// </summary>
-    public int PasswordMinLength { get; init; } = 8;
-
-    /// <summary>
-    /// 不得与最近多少个历史密码相同
-    /// </summary>
-    /// <remarks>
-    /// 配置键 <c>PasswordHistoryDepth</c>，缺省 3；0 不检查。历史按一次查询取出比对，最多
-    /// <see cref="EntityQuery.DefaultMaxTake"/>（1000），配得更大在读配置时就失败
-    /// </remarks>
-    public int PasswordHistoryDepth { get; init; } = 3;
 
     /// <summary>
     /// 会话门禁的缓存存活时间
@@ -208,18 +193,6 @@ public sealed record IdentityOptions
             options = options with { LockoutDuration = TimeSpan.FromMinutes(lockoutMinutes) };
         }
 
-        if (ReadPositive(section, "PasswordMinLength") is { } minLength)
-        {
-            options = options with { PasswordMinLength = (int)minLength };
-        }
-
-        if (ReadNonNegative(section, "PasswordHistoryDepth") is { } depth)
-        {
-            options = depth <= EntityQuery.DefaultMaxTake
-                ? options with { PasswordHistoryDepth = (int)depth }
-                : throw new ArgumentException($"'{ConfigurationSection}:PasswordHistoryDepth' must be at most {EntityQuery.DefaultMaxTake}, but was '{depth}'.");
-        }
-
         if (ReadPositive(section, "SessionCacheSeconds") is { } cacheSeconds)
         {
             options = options with { SessionCacheTimeToLive = TimeSpan.FromSeconds(cacheSeconds) };
@@ -325,18 +298,5 @@ public sealed record IdentityOptions
         return double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && value > 0
             ? value
             : throw new ArgumentException($"'{ConfigurationSection}:{key}' must be a positive number, but was '{raw}'.");
-    }
-
-    private static double? ReadNonNegative(IConfiguration section, string key)
-    {
-        var raw = section[key];
-        if (string.IsNullOrEmpty(raw))
-        {
-            return null;
-        }
-
-        return double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) && value >= 0
-            ? value
-            : throw new ArgumentException($"'{ConfigurationSection}:{key}' must be a non-negative number, but was '{raw}'.");
     }
 }

@@ -37,6 +37,15 @@ const loginConfig = ref<LoginConfig>({
   oAuthProviders: [],
   captchaEnabled: false,
   registrationEnabled: false,
+  // 登录页不设密码，取到配置之前占位
+  passwordPolicy: {
+    minLength: 8,
+    requireLetter: true,
+    requireDigit: true,
+    requireUppercase: false,
+    requireLowercase: false,
+    requireSymbol: false,
+  },
 })
 
 // ==================== 图形验证码 ====================

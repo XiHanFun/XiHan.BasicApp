@@ -82,6 +82,19 @@ public sealed partial class SecurityNotices(IEnumerable<IInboxDelivery> deliveri
     }
 
     /// <summary>
+    /// 提醒账号本人密码已过期、要先改密
+    /// </summary>
+    /// <param name="user">账号</param>
+    /// <param name="tenant">登录的上下文；平台为 <see langword="null"/></param>
+    /// <param name="days">密码有效天数</param>
+    /// <param name="context">调用上下文</param>
+    public Task PasswordExpiredAsync(SysUser user, string? tenant, int days, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return DeliverAsync(user.Id, tenant, IdentityMessages.PasswordExpiredNoticeTitle, IdentityMessages.PasswordExpiredNoticeContent, [("days", days)], ProfileLink, PasswordChangeBusinessType, user.Id, context);
+    }
+
+    /// <summary>
     /// 告诉账号本人添加了一个通行密钥
     /// </summary>
     /// <remarks>

@@ -13,4 +13,4 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </remarks>
 /// <param name="Id">用户 ID</param>
 /// <param name="NewPassword">新密码（策略：最短 8 位、含字母与数字、不与最近的历史密码相同）</param>
-public sealed record ResetPasswordRequest(Guid Id, [Required, StringLength(128, MinimumLength = 8)] string NewPassword);
+public sealed record ResetPasswordRequest(Guid Id, [Required, StringLength(128, MinimumLength = 1)] string NewPassword);

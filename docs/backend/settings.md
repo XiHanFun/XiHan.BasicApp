@@ -31,7 +31,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 键 | 谁读 | 类型 | 含义 |
 | --- | --- | --- | --- |
 | `identity.login-methods` | Identity | 数组 | 登录页开放的方式（只认平台的，不许租户覆盖）：`password`、`email`、`phone`、`passkey`（还要宿主配了 `XiHan:Security:WebAuthn`）；缺省 `["password"]` 即只有密码登录，写错即登录配置报错 |
-| `identity.password` | Identity | JSON | 密码设置（只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
+| `identity.password` | Identity | JSON | 密码策略（只认平台的）：最短长度、须含的字符、历史深度、有效天数与强制改密，写错的值保存时即拒绝，见[统一认证](./authentication#密码策略) |
 | `identity.impersonation` | Identity | JSON | 模仿登录（租户可覆盖）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
 | `access.security.login-auto-ban` | Access | JSON | 登录失败自动封禁（只认平台的，缺省关闭），见[访问策略](./access-policy) |
 | `auditing.retention-days` | Auditing | 数字 | 日志保留天数（1–3650，只认平台的）；不给缺省值，为空即配置项 `BasicApp:Auditing:DefaultRetentionDays`（缺省 180） |

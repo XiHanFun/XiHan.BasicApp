@@ -12962,7 +12962,7 @@ export interface components {
         };
         /** @description 导出的一列（请求） */
         ExportColumnRequest: {
-            /** @description 字段名（列表响应里的属性名） */
+            /** @description 字段在列表响应一行里的路径：属性名，深一层用点号接，数组用下标（如 last.startedAt、triggers.0.kind）；| 分隔几条备选，取第一条有文字的 */
             key: string;
             /** @description 表头 */
             title: string;
@@ -14828,6 +14828,24 @@ export interface components {
         PageSort: {
             field: string;
             descending?: boolean;
+        };
+        /** @description 设新密码的规则 */
+        PasswordPolicyResponse: {
+            /**
+             * Format: int32
+             * @description 最短长度
+             */
+            minLength: number;
+            /** @description 须含字母 */
+            requireLetter: boolean;
+            /** @description 须含数字 */
+            requireDigit: boolean;
+            /** @description 须含大写字母 */
+            requireUppercase: boolean;
+            /** @description 须含小写字母 */
+            requireLowercase: boolean;
+            /** @description 须含字母与数字以外的字符 */
+            requireSymbol: boolean;
         };
         /**
          * @description 授予规则的动作
@@ -19408,7 +19426,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 登录页的配置：可用的登录方式、第三方登录、是否要求图形验证码与是否开放注册 */
+            /** @description 登录页的配置：登录方式、第三方登录、验证码、注册与密码规则 */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -19423,6 +19441,8 @@ export interface operations {
                         captchaEnabled: boolean;
                         /** @description 是否开放自助注册（BasicApp:Auth:SelfRegistrationEnabled） */
                         registrationEnabled: boolean;
+                        /** @description 设新密码的规则（注册、找回与改密的表单据此提示） */
+                        passwordPolicy: components["schemas"]["PasswordPolicyResponse"];
                     };
                 };
             };

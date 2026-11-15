@@ -95,7 +95,7 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, UserAccountServ
         if (request.Password is { Length: > 0 })
         {
             // 密码由管理员定的：记下来，系统参数 identity.password 打开时登录要先改
-            var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: true, context.CancellationToken).ConfigureAwait(false);
+            var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: true, context).ConfigureAwait(false);
             if (set.IsFailure)
             {
                 return set.Error!;

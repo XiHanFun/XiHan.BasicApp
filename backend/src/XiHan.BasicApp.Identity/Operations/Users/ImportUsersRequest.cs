@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="Password">这批用户共用的初始密码，账号标记为须改密</param>
 public sealed record ImportUsersRequest(
     [Required, MinLength(1), MaxLength(200)] IReadOnlyList<ImportUserRow> Rows,
-    [Required, StringLength(128, MinimumLength = 8)] string Password);
+    [Required, StringLength(128, MinimumLength = 1)] string Password);
 
 /// <summary>
 /// 导入的一行

@@ -20,7 +20,7 @@
 
 **本人关闭账号**：`profile.deactivate-account`（停用，管理员可以重新启用）与 `profile.delete-account`（注销，账号软删除）。都要当前密码，模仿会话不能做，租户所有者要先转移所有权（`IDENTITY_CONFLICT_011`），成功后吊销本人全部会话。
 
-**密码**：PBKDF2-SHA256 散列；至少 `PasswordMinLength`（8）位、同时含字母与数字；不能与最近 `PasswordHistoryDepth`（3）个密码相同。
+**密码**：PBKDF2-SHA256 散列；规则见[密码策略](#密码策略)。
 
 ## 令牌与会话
 
@@ -37,7 +37,7 @@
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
+开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码、是否开放注册与设新密码的规则返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
 ### 密码登录 `auth.login`
 
@@ -49,16 +49,35 @@
 
 账号开了双因素即返回挑战（见[双因素](#双因素)）；否则先过登录守卫（Access 实现：访问策略的登录时机、登录失败自动封禁），再开会话、签令牌对。
 
-### 强制修改由他人设置的密码
+### 密码策略
 
-密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，缺省关）的 `forceChange` 决定要不要逼：
+规则都在系统参数 `identity.password`（JSON，只认平台的：账号跨租户、登录在进入租户之前），没建参数即缺省值，参数配置页改了立即生效：
+
+| 字段 | 缺省 | 含义 |
+| --- | --- | --- |
+| `minLength` | `8` | 最短长度，6 到 128 |
+| `requireLetter` / `requireDigit` | `true` / `true` | 须含字母、数字 |
+| `requireUppercase` / `requireLowercase` / `requireSymbol` | `false` | 须含大写字母、小写字母、字母与数字以外的字符 |
+| `historyDepth` | `3` | 不得与最近几个用过的密码相同（连同当前密码）；0 不检查，最多 1000 |
+| `expiryDays` | `0` | 密码有效天数，0 不过期，最多 3650；过期后凭密码登录要先改密，见下一节 |
+| `forceChange` | `false` | 强制修改由他人设置的密码，见下一节 |
+
+设密码的各个入口（创建用户、重置、导入、开通租户管理员、注册、找回、本人改密、种子）按同一份规则校验，不满足报 `IDENTITY_VALIDATION_003`（文案说明第一条不满足的规则）或 `IDENTITY_VALIDATION_004`（用过的密码）；请求只限 128 位上限，下限由 `minLength` 定。登录页配置 `auth.login-config` 带出 `passwordPolicy`（长度与须含的字符），注册、找回与改密的表单据此提示。
+
+写错的值（字段类型不对、取值越界、不是 JSON 对象）经参数配置保存时即拒绝（`SETTINGS_VALIDATION_011` / `002`），不会挡住登录；库里的值被直接改坏时，设密码与凭密码登录都报 `IDENTITY_VALIDATION_025`，已登录的会话不受影响。
+
+### 强制修改由他人设置的密码与过期的密码
+
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。`identity.password` 的 `forceChange` 决定要不要逼；`expiryDays` 大于 0 时，最近一次设密码超过这么多天的账号同样要先改密：
 
 | 状态 | 效果 |
 | --- | --- |
 | 关（缺省） | 只留着标记，直接放行 |
 | 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（令牌响应 `mustChangePassword` 为 `true`，锁定原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
 
-锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
+密码过期的账号凭密码登录时同样锁定、原因同样是 `PasswordChangeRequired`，站内信说明是过期（标题「密码已过期」，正文带有效天数）；没有改密时间的按已过期算。改密之后重新计时；已经在线的会话不因到期被锁，下次凭密码登录才受影响。
+
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
@@ -142,7 +161,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 ## 锁屏
 
-`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码](#强制修改由他人设置的密码)；锁屏的会话也不能靠改密解开。
+`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码与过期的密码](#强制修改由他人设置的密码与过期的密码)；锁屏的会话也不能靠改密解开。
 
 ## 模仿登录
 

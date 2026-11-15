@@ -50,7 +50,7 @@ public sealed class ResetPassword(IRepository<SysUser, Guid> users, UserAccountS
             return securityResult.Error!;
         }
 
-        var set = await accounts.SetPasswordAsync(security, request.NewPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
+        var set = await accounts.SetPasswordAsync(security, request.NewPassword, mustChange: true, context).ConfigureAwait(false);
         if (set.IsFailure)
         {
             return set.Error!;

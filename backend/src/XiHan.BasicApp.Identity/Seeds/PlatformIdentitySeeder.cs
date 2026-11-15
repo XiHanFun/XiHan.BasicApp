@@ -79,7 +79,7 @@ public sealed class PlatformIdentitySeeder(
                 return Error.Validation(IdentityErrors.SuperAdminPasswordMissing, IdentityMessages.SuperAdminPasswordMissing);
             }
 
-            var set = await accounts.SetPasswordAsync(security, options.SuperAdminPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
+            var set = await accounts.SetPasswordAsync(security, options.SuperAdminPassword, mustChange: true, context).ConfigureAwait(false);
             if (set.IsFailure)
             {
                 return set;

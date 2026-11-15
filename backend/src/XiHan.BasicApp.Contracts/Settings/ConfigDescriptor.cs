@@ -19,4 +19,5 @@ namespace XiHan.BasicApp.Contracts.Settings;
 /// <param name="AllowTenantOverride">是否允许租户同键覆盖</param>
 /// <param name="IsEncrypted">值是否加密落库（密钥类参数）</param>
 /// <param name="Order">首次写入时的排序号</param>
-public sealed record ConfigDescriptor(string Key, string Name, string Group, ConfigDataType DataType, string? DefaultValue, string Description, bool AllowTenantOverride = false, bool IsEncrypted = false, int Order = 0);
+/// <param name="Accepts">保存时核对值能不能用（明文、非空）；只给写错会挡住关键功能、要在保存时就拒绝的参数，为空只核对数据类型</param>
+public sealed record ConfigDescriptor(string Key, string Name, string Group, ConfigDataType DataType, string? DefaultValue, string Description, bool AllowTenantOverride = false, bool IsEncrypted = false, int Order = 0, Func<string, bool>? Accepts = null);

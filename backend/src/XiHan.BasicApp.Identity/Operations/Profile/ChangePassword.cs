@@ -57,7 +57,7 @@ public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository
             return Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }
 
-        var set = await accounts.SetPasswordAsync(security, request.NewPassword, mustChange: false, context.CancellationToken).ConfigureAwait(false);
+        var set = await accounts.SetPasswordAsync(security, request.NewPassword, mustChange: false, context).ConfigureAwait(false);
         if (set.IsFailure)
         {
             return set.Error!;

@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
   "settings.query.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
   "settings.config.value_type": "'{field}' がデータ型 '{type}' と一致しません。",
+  "settings.config.value_rejected": "パラメーター {key} の値が要件を満たしていないため保存しませんでした。有効な値はパラメーターの説明を参照してください。",
   "settings.dict_item.metadata_not_json": "メタデータは正しい JSON である必要があります。",
   "settings.dict_item.parent_invalid": "親は同じ辞書の項目で、自分自身や子孫であってはいけません。",
   "settings.numbering_rule.format_unsafe": "日付形式 '{dateFormat}' ではリセット周期 '{resetCycle}' を区別できず、重複番号が出ます。",

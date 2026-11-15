@@ -55,7 +55,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 接口返回 403，`code` 是 `IDENTITY_DENIED_002`
 
-会话被锁定，`details.reason` 说明原因：`ScreenLock` 是锁屏，前端进锁屏界面，调 `auth.unlock` 解锁；`PasswordChangeRequired` 是强制改密（系统参数 `identity.password`），调 `profile.change-password` 改完即解开。
+会话被锁定，`details.reason` 说明原因：`ScreenLock` 是锁屏，前端进锁屏界面，调 `auth.unlock` 解锁；`PasswordChangeRequired` 是要先改密（密码由他人设置且打开了强制改密，或密码过期，见系统参数 `identity.password`），调 `profile.change-password` 改完即解开。
 
 ### 授予权限后是否需要重新登录？
 

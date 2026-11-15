@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "The filter '{field} {operator}' is not supported.",
   "settings.query.sort_unsupported": "Sorting by '{field}' is not supported.",
   "settings.config.value_type": "'{field}' does not match the data type '{type}'.",
+  "settings.config.value_rejected": "The value of parameter '{key}' does not meet its requirements and was not saved; see the parameter description for valid values.",
   "settings.dict_item.metadata_not_json": "Metadata must be valid JSON.",
   "settings.dict_item.parent_invalid": "The parent must be in the same dictionary and cannot be the item itself or one of its descendants.",
   "settings.numbering_rule.format_unsafe": "The date format '{dateFormat}' cannot tell periods of the reset cycle '{resetCycle}' apart and would produce duplicates.",

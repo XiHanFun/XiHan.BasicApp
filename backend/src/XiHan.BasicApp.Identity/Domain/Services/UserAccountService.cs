@@ -139,25 +139,33 @@ public sealed class UserAccountService
     /// 设置密码
     /// </summary>
     /// <remarks>
-    /// 策略校验、与最近 N 个历史密码比对、写散列与安全戳、追加历史；<paramref name="mustChange"/> 为真时要求下次登录改密
+    /// 按系统参数的密码设置校验复杂度、与最近 N 个历史密码比对、写散列与安全戳、追加历史；<paramref name="mustChange"/> 为真时要求下次登录改密
     /// </remarks>
-    public async Task<Result> SetPasswordAsync(SysUserSecurity security, string password, bool mustChange, CancellationToken cancellationToken)
+    public async Task<Result> SetPasswordAsync(SysUserSecurity security, string password, bool mustChange, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(security);
-        var policy = PasswordPolicy.Validate(password, _options);
+        ArgumentNullException.ThrowIfNull(context);
+        var cancellationToken = context.CancellationToken;
+        var configured = await PasswordSettings.ReadAsync(context).ConfigureAwait(false);
+        if (!configured.TryGetValue(out var settings))
+        {
+            return configured.Error!;
+        }
+
+        var policy = PasswordPolicy.Validate(password, settings);
         if (policy.IsFailure)
         {
             return policy;
         }
 
-        if (_options.PasswordHistoryDepth > 0)
+        if (settings.HistoryDepth > 0)
         {
             var recent = await _histories.ListAsync(
-                EntityQuery.All<SysPasswordHistory>().Where(new Specification<SysPasswordHistory>(h => h.UserId == security.UserId)).OrderBy(static h => h.CreatedAt, descending: true).Page(0, _options.PasswordHistoryDepth),
+                EntityQuery.All<SysPasswordHistory>().Where(new Specification<SysPasswordHistory>(h => h.UserId == security.UserId)).OrderBy(static h => h.CreatedAt, descending: true).Page(0, settings.HistoryDepth),
                 cancellationToken).ConfigureAwait(false);
             if (recent.Any(h => PasswordHasher.Verify(password, h.PasswordHash)) || PasswordHasher.Verify(password, security.PasswordHash))
             {
-                return Error.Validation(IdentityErrors.PasswordReused, IdentityMessages.PasswordReused, MessageArguments.Of(("depth", _options.PasswordHistoryDepth)));
+                return Error.Validation(IdentityErrors.PasswordReused, IdentityMessages.PasswordReused, MessageArguments.Of(("depth", settings.HistoryDepth)));
             }
         }
 
@@ -177,15 +185,10 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 按密码策略校验
-    /// </summary>
-    public Result CheckPassword(string password) => PasswordPolicy.Validate(password, _options);
-
-    /// <summary>
     /// 给一批刚建的用户设同一个初始密码
     /// </summary>
     /// <remarks>
-    /// 建安全行并追加密码历史，调用方先用 <see cref="CheckPassword"/> 过策略。散列只算一次、各行共用：同一个密码分别加盐，破解出一个也就知道了其余的，
+    /// 建安全行并追加密码历史，调用方先用 <see cref="PasswordPolicy.CheckAsync"/> 过策略。散列只算一次、各行共用：同一个密码分别加盐，破解出一个也就知道了其余的，
     /// 分开算只会让导入慢上百倍（每次散列 60 万轮）
     /// </remarks>
     public async Task<Result> AddInitialPasswordsAsync(IReadOnlyList<Guid> userIds, string password, bool mustChange, CancellationToken cancellationToken)

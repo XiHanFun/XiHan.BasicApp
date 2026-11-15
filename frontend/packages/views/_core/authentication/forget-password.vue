@@ -5,6 +5,7 @@
 
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
+import type { PasswordPolicy } from '~/types'
 import {
   XhButton,
   XhFieldControl,
@@ -16,7 +17,7 @@ import {
   XhPinInputInput,
   XhPinInputRoot,
 } from '@xihan-ui/vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { XInput } from '~/components'
@@ -25,6 +26,7 @@ import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
+import { passwordPolicyError } from '~/utils'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import { OTP_CODE_LENGTH } from '../shared/pin-code'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
@@ -52,6 +54,18 @@ const formData = ref({
 
 /** 验证码的逐格值；格子每次改动把串写回表单 */
 const codeCells = ref<string[]>([])
+
+/** 设新密码的规则：取到登录页配置之前为空 */
+const passwordPolicy = ref<null | PasswordPolicy>(null)
+
+onMounted(async () => {
+  try {
+    passwordPolicy.value = (await apis.getLoginConfigApi()).passwordPolicy
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('page.auth.load_config_failed'))
+  }
+})
 
 const rules = computed<FormRules<typeof formData.value>>(() => ({
   email: [
@@ -81,16 +95,12 @@ const rules = computed<FormRules<typeof formData.value>>(() => ({
       message: t('page.auth.reset_new_password_placeholder'),
     },
     {
-      // 与后端密码策略一致：至少 8 位，同时含字母与数字（不合格后端也不消费验证码）
+      // 按登录页配置里的密码规则提示（不合格后端也不消费验证码）；规则没取到或空值时只按上面那条 required
       validator: (value) => {
         const password = String(value ?? '')
-        if (!password)
-          return null
-        if (password.length < 8)
-          return t('page.auth.password_rule_length')
-        if (!/[a-z]/i.test(password) || !/\d/.test(password))
-          return t('page.auth.password_rule_letter_digit')
-        return null
+        return password && passwordPolicy.value
+          ? passwordPolicyError(password, passwordPolicy.value, t)
+          : null
       },
     },
   ],
