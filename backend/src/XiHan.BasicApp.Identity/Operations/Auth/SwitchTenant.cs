@@ -34,7 +34,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="options">身份配置</param>
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SwitchTenant(
     IRepository<SysUser, Guid> users,
     IRepository<SysUserSession, Guid> sessions,

@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Notification.Operations.Inbox;
 /// <c>POST /api/inbox:list</c>（我的消息页与顶栏的通知中心都读它）
 /// </remarks>
 /// <param name="queries">收件箱查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListInbox(InboxQueries queries) : IOperation<PageRequest, PageResult<InboxItemResponse>>
 {
     /// <summary>
@@ -39,7 +39,7 @@ public sealed class ListInbox(InboxQueries queries) : IOperation<PageRequest, Pa
 /// 本人未读的横幅：<c>GET /api/inbox:banners</c>
 /// </summary>
 /// <param name="queries">收件箱查询</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListInboxBanners(InboxQueries queries) : IOperation<InboxShowcaseRequest, InboxItemsResponse>
 {
     /// <summary>
@@ -60,7 +60,7 @@ public sealed class ListInboxBanners(InboxQueries queries) : IOperation<InboxSho
 /// 本人还没弹过的弹窗：<c>GET /api/inbox:popups</c>
 /// </summary>
 /// <param name="queries">收件箱查询</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListInboxPopups(InboxQueries queries) : IOperation<InboxShowcaseRequest, InboxItemsResponse>
 {
     /// <summary>
@@ -84,7 +84,7 @@ public sealed class ListInboxPopups(InboxQueries queries) : IOperation<InboxShow
 /// <c>GET /api/inbox:mandatory</c>（路由守卫据此拦截）
 /// </remarks>
 /// <param name="queries">收件箱查询</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListInboxMandatory(InboxQueries queries) : IOperation<InboxShowcaseRequest, InboxItemsResponse>
 {
     /// <summary>
@@ -108,7 +108,7 @@ public sealed class ListInboxMandatory(InboxQueries queries) : IOperation<InboxS
 /// <c>POST /api/inbox:mark-read</c>；不是本人的逐项 <c>NOTIFICATION_NOTFOUND_002</c>
 /// </remarks>
 /// <param name="service">收件箱服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MarkInboxRead(InboxService service) : IOperation<InboxIdsRequest, BatchResult>
 {
     /// <summary>
@@ -133,7 +133,7 @@ public sealed class MarkInboxRead(InboxService service) : IOperation<InboxIdsReq
 /// </remarks>
 /// <param name="service">收件箱服务</param>
 /// <param name="queries">收件箱查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MarkInboxAllRead(InboxService service, InboxQueries queries) : IOperation<MarkAllInboxReadRequest, InboxCountResponse>
 {
     /// <summary>
@@ -155,7 +155,7 @@ public sealed class MarkInboxAllRead(InboxService service, InboxQueries queries)
 /// 确认：<c>POST /api/inbox/{id}:confirm</c>（同时标已读）
 /// </summary>
 /// <param name="service">收件箱服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ConfirmInbox(InboxService service) : IOperation<InboxIdRequest, InboxCountResponse>
 {
     /// <summary>
@@ -186,7 +186,7 @@ public sealed class ConfirmInbox(InboxService service) : IOperation<InboxIdReque
 /// <c>POST /api/inbox/{id}:mark-popup-shown</c>
 /// </remarks>
 /// <param name="service">收件箱服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MarkInboxPopupShown(InboxService service) : IOperation<InboxIdRequest, InboxCountResponse>
 {
     /// <summary>
@@ -217,7 +217,7 @@ public sealed class MarkInboxPopupShown(InboxService service) : IOperation<Inbox
 /// <c>DELETE /api/inbox?ids=</c>（方案 5.11）
 /// </remarks>
 /// <param name="service">收件箱服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteInbox(InboxService service) : IOperation<InboxIdsRequest, BatchResult>
 {
     /// <summary>

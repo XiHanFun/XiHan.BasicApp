@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsSuspend)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsSuspend)]
 public sealed class ResumeTenants(IRepository<SysTenant, Guid> tenants, TenantService service, TimeProvider clock) : IOperation<TenantIdsRequest, BatchResult>
 {
     /// <summary>

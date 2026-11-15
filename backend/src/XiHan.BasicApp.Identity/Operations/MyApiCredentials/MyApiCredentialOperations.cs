@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Identity.Operations.MyApiCredentials;
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyApiCredentials(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<MyApiCredentialsRequest, MyApiCredentialsResponse>
 {
     /// <summary>
@@ -55,7 +55,7 @@ public sealed class ListMyApiCredentials(IRepository<SysUser, Guid> users, UserA
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CreateMyApiCredential(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<CreateMyApiCredentialRequest, ApiCredentialSecretResponse>
 {
     /// <summary>
@@ -89,7 +89,7 @@ public sealed class CreateMyApiCredential(IRepository<SysUser, Guid> users, User
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateMyApiCredential(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<UpdateMyApiCredentialRequest, MyApiCredentialResponse>
 {
     /// <summary>
@@ -128,7 +128,7 @@ public sealed class UpdateMyApiCredential(IRepository<SysUser, Guid> users, User
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<MyApiCredentialIdRequest, ApiCredentialSecretResponse>
 {
     /// <summary>
@@ -167,7 +167,7 @@ public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteMyApiCredentials(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<MyApiCredentialIdsRequest, BatchResult>
 {
     /// <summary>
@@ -198,7 +198,7 @@ public sealed class DeleteMyApiCredentials(IRepository<SysUser, Guid> users, Use
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetMyApiSettings(IRepository<SysUser, Guid> users, UserAccountService accounts) : IOperation<MyApiCredentialsRequest, MyApiSettingsResponse>
 {
     /// <summary>
@@ -228,7 +228,7 @@ public sealed class GetMyApiSettings(IRepository<SysUser, Guid> users, UserAccou
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="securities">账号安全仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateMyApiSettings(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserSecurity, Guid> securities) : IOperation<UpdateMyApiSettingsRequest, MyApiSettingsResponse>
 {
     /// <summary>

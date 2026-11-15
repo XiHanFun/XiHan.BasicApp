@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// </remarks>
 /// <param name="editions">套餐仓储</param>
 /// <param name="service">套餐域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.EditionsDelete)]
 public sealed class DeleteEditions(IRepository<SysEdition, Guid> editions, EditionService service) : IOperation<EditionIdsRequest, BatchResult>
 {
     /// <summary>

@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// 发过号的 <c>SETTINGS_CONFLICT_009</c>（发号记录是永久事实，停用即可）
 /// </remarks>
 /// <param name="rules">规则仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesDelete)]
 public sealed class DeleteNumberingRules(IRepository<SysNumberingRule, Guid> rules) : IOperation<NumberingRuleIdsRequest, BatchResult>
 {
     /// <summary>

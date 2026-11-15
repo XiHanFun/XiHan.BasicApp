@@ -62,7 +62,7 @@ public sealed record LiftLoginBanResponse(string Ip);
 /// </remarks>
 /// <param name="bans">封禁存储</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.LoginBansRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.LoginBansRead)]
 public sealed class ListLoginBans(Infrastructure.LoginBans bans, TimeProvider clock) : IOperation<LoginBansRequest, LoginBansResponse>
 {
     /// <summary>
@@ -94,7 +94,7 @@ public sealed class ListLoginBans(Infrastructure.LoginBans bans, TimeProvider cl
 /// <c>POST /api/login-bans:lift</c>（只在平台），连同它这一窗口的失败计数；没封着即 <c>ACCESS_NOTFOUND_009</c>
 /// </remarks>
 /// <param name="bans">封禁存储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.LoginBansLift)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.LoginBansLift)]
 public sealed class LiftLoginBan(Infrastructure.LoginBans bans) : IOperation<LiftLoginBanRequest, LiftLoginBanResponse>
 {
     /// <summary>

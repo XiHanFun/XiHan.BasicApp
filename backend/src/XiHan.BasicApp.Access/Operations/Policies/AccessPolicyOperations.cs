@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Access.Operations.Policies;
 /// <c>POST /api/policies:list</c>。缺省按求值顺序（优先级升序、再按编码）
 /// </remarks>
 /// <param name="queries">策略查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class ListAccessPolicies(AccessPolicyQueries queries) : IOperation<PageRequest, PageResult<AccessPolicyResponse>>
 {
     /// <summary>
@@ -46,7 +46,7 @@ public sealed class ListAccessPolicies(AccessPolicyQueries queries) : IOperation
 /// </summary>
 /// <param name="service">策略服务</param>
 /// <param name="projection">策略投影</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class GetAccessPolicy(AccessPolicyService service, AccessPolicyProjection projection) : IOperation<GetAccessPolicyRequest, AccessPolicyResponse>
 {
     /// <summary>
@@ -76,7 +76,7 @@ public sealed class GetAccessPolicy(AccessPolicyService service, AccessPolicyPro
 /// </remarks>
 /// <param name="service">策略服务</param>
 /// <param name="projection">策略投影</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesCreate)]
 public sealed class CreateAccessPolicy(AccessPolicyService service, AccessPolicyProjection projection) : IOperation<CreateAccessPolicyRequest, AccessPolicyResponse>
 {
     /// <summary>
@@ -109,7 +109,7 @@ public sealed class CreateAccessPolicy(AccessPolicyService service, AccessPolicy
 /// <param name="projection">策略投影</param>
 /// <param name="security">安全配置（角色声明名）</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesUpdate)]
 public sealed class UpdateAccessPolicy(AccessPolicyService service, AccessPolicyProjection projection, SecurityOptions security, TimeProvider clock) : IOperation<UpdateAccessPolicyRequest, AccessPolicyResponse>
 {
     /// <summary>
@@ -147,7 +147,7 @@ public sealed class UpdateAccessPolicy(AccessPolicyService service, AccessPolicy
 /// <param name="projection">策略投影</param>
 /// <param name="security">安全配置（角色声明名）</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesUpdate)]
 public sealed class SetAccessPolicyAction(AccessPolicyService service, AccessPolicyProjection projection, SecurityOptions security, TimeProvider clock) : IOperation<SetAccessPolicyActionRequest, AccessPolicyResponse>
 {
     /// <summary>
@@ -185,7 +185,7 @@ public sealed class SetAccessPolicyAction(AccessPolicyService service, AccessPol
 /// <param name="projection">策略投影</param>
 /// <param name="security">安全配置（角色声明名）</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesUpdate)]
 public sealed class SetAccessPolicyStatus(AccessPolicyService service, AccessPolicyProjection projection, SecurityOptions security, TimeProvider clock) : IOperation<SetAccessPolicyStatusRequest, AccessPolicyResponse>
 {
     /// <summary>
@@ -220,7 +220,7 @@ public sealed class SetAccessPolicyStatus(AccessPolicyService service, AccessPol
 /// <c>DELETE /api/policies?ids=...</c>，逐项结果
 /// </remarks>
 /// <param name="service">策略服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PoliciesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PoliciesDelete)]
 public sealed class DeleteAccessPolicies(AccessPolicyService service) : IOperation<AccessPolicyIdsRequest, BatchResult>
 {
     /// <summary>
@@ -264,7 +264,7 @@ public sealed class DeleteAccessPolicies(AccessPolicyService service) : IOperati
 /// <c>GET /api/policies:attributes</c>。与 <c>permission-conditions.attributes</c> 同一份目录，按访问策略的权限给出
 /// </remarks>
 /// <param name="registry">条件属性登记表</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class ListAccessPolicyAttributes(IConditionAttributeRegistry registry) : IOperation<AccessPolicyAttributesRequest, ConditionAttributesResponse>
 {
     /// <summary>
@@ -288,7 +288,7 @@ public sealed class ListAccessPolicyAttributes(IConditionAttributeRegistry regis
 /// <c>GET /api/policies:templates</c>。页面上从模板新建用（新建出来一律只记录），时机按当前一侧推出
 /// </remarks>
 /// <param name="service">策略服务（编译）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesRead)]
 public sealed class ListAccessPolicyTemplates(AccessPolicyService service) : IOperation<AccessPolicyTemplatesRequest, AccessPolicyTemplatesResponse>
 {
     /// <summary>
@@ -322,7 +322,7 @@ public sealed class ListAccessPolicyTemplates(AccessPolicyService service) : IOp
 /// <c>POST /api/policies:trial</c>（带草稿条件，走 POST）。已有策略或草稿条件按给定的请求情形只求这一条、不看有效期，逐组逐条件说明
 /// </remarks>
 /// <param name="trials">试运行</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesTrial)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PoliciesTrial)]
 public sealed class TrialAccessPolicy(AccessPolicyTrialService trials) : IOperation<TrialAccessPolicyRequest, AccessPolicyTrialResponse>
 {
     /// <summary>

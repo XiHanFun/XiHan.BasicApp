@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="contacts">发码</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SendVerificationCode(IRepository<SysUser, Guid> users, UserAccountService accounts, ContactCodes contacts) : IOperation<SendVerificationCodeRequest, CodeSentResponse>
 {
     /// <summary>
@@ -68,7 +68,7 @@ public sealed class SendVerificationCode(IRepository<SysUser, Guid> users, UserA
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="codes">验证码</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class VerifyContact(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes) : IOperation<ContactCodeRequest, ProfileResponse>
 {
     /// <summary>
@@ -117,7 +117,7 @@ public sealed class VerifyContact(IRepository<SysUser, Guid> users, UserAccountS
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="contacts">发码</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SendChangeContactCode(IRepository<SysUser, Guid> users, UserAccountService accounts, ContactCodes contacts) : IOperation<SendChangeContactCodeRequest, CodeSentResponse>
 {
     /// <summary>
@@ -163,7 +163,7 @@ public sealed class SendChangeContactCode(IRepository<SysUser, Guid> users, User
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="codes">验证码</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ChangeContact(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes) : IOperation<ContactCodeRequest, ProfileResponse>
 {
     /// <summary>

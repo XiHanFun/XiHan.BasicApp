@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// <c>GET /api/configs/{id}</c>。平台参数谁都能看，租户参数只有它自己；加密值不回显
 /// </remarks>
 /// <param name="configs">参数仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsRead)]
 public sealed class GetConfig(IRepository<SysConfig, Guid> configs) : IOperation<GetConfigRequest, ConfigResponse>
 {
     /// <summary>

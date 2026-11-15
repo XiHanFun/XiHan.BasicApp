@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Maintenance.Operations.Caches;
 /// <c>GET /api/caches:namespaces</c>（平台侧）。只有各包登记过的命名空间（<see cref="CacheNamespace"/>），框架自己的键不开放
 /// </remarks>
 /// <param name="namespaces">各包登记的命名空间</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
 public sealed class ListCacheNamespaces(IEnumerable<CacheNamespace> namespaces) : IOperation<CacheNamespacesRequest, CacheNamespacesResponse>
 {
     /// <summary>
@@ -53,7 +53,7 @@ public sealed class ListCacheNamespaces(IEnumerable<CacheNamespace> namespaces) 
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
 public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CacheKeysRequest, CacheKeysResponse>
 {
     /// <summary>
@@ -245,7 +245,7 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.CachesRead)]
 public sealed class InspectCacheEntry(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CacheKeyRequest, CacheEntryResponse>
 {
     /// <summary>
@@ -297,7 +297,7 @@ public sealed class InspectCacheEntry(ISharedCache cache, IEnumerable<CacheNames
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.CachesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.CachesUpdate)]
 public sealed class UpdateCacheEntry(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<UpdateCacheRequest, CacheEntryResponse>
 {
     /// <summary>
@@ -362,7 +362,7 @@ public sealed class UpdateCacheEntry(ISharedCache cache, IEnumerable<CacheNamesp
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.CachesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.CachesDelete)]
 public sealed class DeleteCacheEntries(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CacheKeysDeleteRequest, CacheDeleteResult>
 {
     /// <summary>
@@ -412,7 +412,7 @@ public sealed class DeleteCacheEntries(ISharedCache cache, IEnumerable<CacheName
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.CachesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.CachesDelete)]
 public sealed class DeleteCacheByPrefix(ISharedCache cache, IEnumerable<CacheNamespace> namespaces) : IOperation<CachePrefixRequest, CachePrefixDeleteResult>
 {
     /// <summary>

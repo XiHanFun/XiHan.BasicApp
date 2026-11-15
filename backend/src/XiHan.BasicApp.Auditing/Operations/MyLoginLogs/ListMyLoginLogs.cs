@@ -48,7 +48,7 @@ public sealed record MyLoginLogResponse(Guid Id, DateTimeOffset OccurredAt, Logi
 /// 模仿会话里看到的是被模仿的人的日志
 /// </remarks>
 /// <param name="unitOfWork">工作单元</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyLoginLogs(SqlSugarUnitOfWork unitOfWork) : IOperation<MyLoginLogsRequest, PageResult<MyLoginLogResponse>>
 {
     /// <summary>

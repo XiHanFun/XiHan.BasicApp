@@ -83,7 +83,7 @@ public sealed record UserDetailResponse(UserResponse User, UserSecurityDetailRes
 /// <param name="sessions">会话查询</param>
 /// <param name="activity">今日统计（Auditing 提供）</param>
 /// <param name="clock">时钟</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.UsersRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.UsersRead)]
 public sealed class GetUserDetail(IRepository<SysUser, Guid> users, SideUsers sideUsers, UserAccountService accounts, SessionQueries sessions, IEnumerable<IUserActivityReader> activity, TimeProvider clock) : IOperation<UserDetailRequest, UserDetailResponse>
 {
     /// <summary>

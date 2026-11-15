@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Notification.Operations.Notifications;
 /// <c>POST /api/notifications:list</c>
 /// </remarks>
 /// <param name="queries">通知查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
 public sealed class ListNotifications(NotificationQueries queries) : IOperation<PageRequest, PageResult<NotificationResponse>>
 {
     /// <summary>
@@ -40,7 +40,7 @@ public sealed class ListNotifications(NotificationQueries queries) : IOperation<
 /// 取一条通知：<c>GET /api/notifications/{id}</c>
 /// </summary>
 /// <param name="service">通知服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
 public sealed class GetNotification(NotificationService service) : IOperation<NotificationIdRequest, NotificationResponse>
 {
     /// <summary>
@@ -66,7 +66,7 @@ public sealed class GetNotification(NotificationService service) : IOperation<No
 /// </remarks>
 /// <param name="service">通知服务</param>
 /// <param name="permissions">权限检查器（判定立即发布）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsCreate)]
 public sealed class CreateNotification(NotificationService service, IPermissionChecker permissions) : IOperation<CreateNotificationRequest, NotificationResponse>
 {
     /// <summary>
@@ -119,7 +119,7 @@ public sealed class CreateNotification(NotificationService service, IPermissionC
 /// <c>PUT /api/notifications/{id}</c>。整体覆盖，已发布的 <c>NOTIFICATION_CONFLICT_001</c>
 /// </remarks>
 /// <param name="service">通知服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsUpdate)]
 public sealed class UpdateNotification(NotificationService service) : IOperation<UpdateNotificationRequest, NotificationResponse>
 {
     /// <summary>
@@ -150,7 +150,7 @@ public sealed class UpdateNotification(NotificationService service) : IOperation
 /// <c>DELETE /api/notifications?ids=</c>。已发布的同时从接收人的收件箱里移除
 /// </remarks>
 /// <param name="service">通知服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsDelete)]
 public sealed class DeleteNotifications(NotificationService service) : IOperation<NotificationIdsRequest, BatchResult>
 {
     /// <summary>
@@ -175,7 +175,7 @@ public sealed class DeleteNotifications(NotificationService service) : IOperatio
 /// 发布进度经 <c>TaskProgress</c> 推给发布人：开始与失败见 <see cref="Middleware.PublishProgressMiddleware"/>，成功在这里随提交发出
 /// </remarks>
 /// <param name="service">通知服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
 public sealed class PublishNotification(NotificationService service) : IOperation<NotificationIdRequest, NotificationDeliveryResponse>
 {
     /// <summary>
@@ -212,7 +212,7 @@ public sealed class PublishNotification(NotificationService service) : IOperatio
 /// <c>POST /api/notifications/{id}:remind</c>。再推给未读或未确认的接收人；草稿 <c>NOTIFICATION_CONFLICT_002</c>
 /// </remarks>
 /// <param name="service">通知服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsPublish)]
 public sealed class RemindNotification(NotificationService service) : IOperation<NotificationIdRequest, NotificationDeliveryResponse>
 {
     /// <summary>
@@ -244,7 +244,7 @@ public sealed class RemindNotification(NotificationService service) : IOperation
 /// </remarks>
 /// <param name="service">通知服务</param>
 /// <param name="queries">通知查询</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
 public sealed class GetNotificationReadStats(NotificationService service, NotificationQueries queries) : IOperation<NotificationIdRequest, NotificationReadStatsResponse>
 {
     /// <summary>
@@ -275,7 +275,7 @@ public sealed class GetNotificationReadStats(NotificationService service, Notifi
 /// </remarks>
 /// <param name="service">通知服务</param>
 /// <param name="queries">通知查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.NotificationsRead)]
 public sealed class ListNotificationRecipients(NotificationService service, NotificationQueries queries) : IOperation<NotificationRecipientsRequest, PageResult<NotificationRecipientResponse>>
 {
     /// <summary>

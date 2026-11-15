@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// </remarks>
 /// <param name="service">部门域服务</param>
 /// <param name="users">用户仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.DepartmentsRead)]
+[Operation(Id, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.DepartmentsRead)]
 public sealed class GetDepartment(DepartmentService service, IRepository<SysUser, Guid> users) : IOperation<GetDepartmentRequest, DepartmentDetailResponse>
 {
     /// <summary>

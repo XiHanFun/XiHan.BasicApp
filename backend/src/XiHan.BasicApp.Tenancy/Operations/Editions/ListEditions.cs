@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// </remarks>
 /// <param name="editions">套餐仓储</param>
 /// <param name="service">套餐域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.EditionsRead)]
 public sealed class ListEditions(IRepository<SysEdition, Guid> editions, EditionService service) : IOperation<ListEditionsRequest, EditionsResponse>
 {
     /// <summary>

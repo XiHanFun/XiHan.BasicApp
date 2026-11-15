@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetProfile(IRepository<SysUser, Guid> users, UserAccountService accounts) : IOperation<ProfileRequest, ProfileResponse>
 {
     /// <summary>

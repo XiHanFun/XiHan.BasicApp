@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsSuspend)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsSuspend)]
 public sealed class SuspendTenants(IRepository<SysTenant, Guid> tenants, TenantService service) : IOperation<TenantIdsRequest, BatchResult>
 {
     /// <summary>

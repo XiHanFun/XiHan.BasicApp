@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Auditing.Operations.AccessLogs;
 /// <c>GET /api/access-logs/{id}</c>。不在当前一侧即找不到
 /// </remarks>
 /// <param name="queries">访问日志查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.AccessLogsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AuditingPermissions.AccessLogsRead)]
 public sealed class GetAccessLog(AccessLogQueries queries) : IOperation<GetAccessLogRequest, AccessLogResponse>
 {
     /// <summary>

@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用</param>
 /// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class Login(
     UserAccountService accounts,
     LoginAttempts attempts,

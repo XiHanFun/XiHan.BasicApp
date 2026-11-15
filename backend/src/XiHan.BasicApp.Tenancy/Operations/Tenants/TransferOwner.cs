@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="initializers">租户初始化扩展（Access 实现：管理员角色与授权缓存）</param>
 /// <param name="service">租户域服务</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsTransferOwner)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsTransferOwner)]
 public sealed class TransferOwner(
     IRepository<SysTenant, Guid> tenants,
     IRepository<SysUser, Guid> users,

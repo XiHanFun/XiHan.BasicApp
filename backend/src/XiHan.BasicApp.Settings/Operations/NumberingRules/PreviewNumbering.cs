@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// 格式组合不安全 <c>SETTINGS_VALIDATION_005</c>，时区无效 <c>SETTINGS_VALIDATION_006</c>，区间越出位数 <c>SETTINGS_VALIDATION_007</c>
 /// </remarks>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
 public sealed class PreviewNumbering(TimeProvider clock) : IOperation<PreviewNumberingRequest, NumberingPreviewResponse>
 {
     /// <summary>

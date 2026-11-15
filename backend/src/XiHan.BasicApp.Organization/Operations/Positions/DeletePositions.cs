@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Organization.Operations.Positions;
 /// </remarks>
 /// <param name="positions">岗位仓储</param>
 /// <param name="memberships">归属仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsDelete)]
 public sealed class DeletePositions(IRepository<SysPosition, Guid> positions, IRepository<SysUserDepartment, Guid> memberships) : IOperation<PositionIdsRequest, BatchResult>
 {
     /// <summary>

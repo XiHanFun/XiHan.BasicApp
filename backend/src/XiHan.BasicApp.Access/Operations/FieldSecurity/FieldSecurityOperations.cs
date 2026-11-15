@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Access.Operations.FieldSecurity;
 /// <c>GET /api/field-security:entities</c>。各包登记的实体与可配置字段（字段名与接口字段同名）
 /// </remarks>
 /// <param name="catalog">字段安全实体目录</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityRead)]
 public sealed class ListFieldSecurityEntities(FieldSecurityCatalog catalog) : IOperation<FieldSecurityEntitiesRequest, FieldSecurityEntitiesResponse>
 {
     /// <summary>
@@ -46,7 +46,7 @@ public sealed class ListFieldSecurityEntities(FieldSecurityCatalog catalog) : IO
 /// <c>POST /api/field-security:list</c>
 /// </remarks>
 /// <param name="queries">规则查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityRead)]
 public sealed class ListFieldSecurityRules(FieldSecurityQueries queries) : IOperation<PageRequest, PageResult<FieldSecurityRuleResponse>>
 {
     /// <summary>
@@ -70,7 +70,7 @@ public sealed class ListFieldSecurityRules(FieldSecurityQueries queries) : IOper
 /// <c>GET /api/field-security/{id}</c>
 /// </remarks>
 /// <param name="service">字段安全规则服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityRead)]
 public sealed class GetFieldSecurityRule(FieldSecurityService service) : IOperation<GetFieldSecurityRuleRequest, FieldSecurityRuleResponse>
 {
     /// <summary>
@@ -96,7 +96,7 @@ public sealed class GetFieldSecurityRule(FieldSecurityService service) : IOperat
 /// 在当前一侧新建字段安全规则：<c>POST /api/field-security</c>
 /// </summary>
 /// <param name="service">字段安全规则服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityCreate)]
 public sealed class CreateFieldSecurityRule(FieldSecurityService service) : IOperation<CreateFieldSecurityRuleRequest, FieldSecurityRuleResponse>
 {
     /// <summary>
@@ -127,7 +127,7 @@ public sealed class CreateFieldSecurityRule(FieldSecurityService service) : IOpe
 /// <c>PUT /api/field-security/{id}</c>
 /// </remarks>
 /// <param name="service">字段安全规则服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityUpdate)]
 public sealed class UpdateFieldSecurityRule(FieldSecurityService service) : IOperation<UpdateFieldSecurityRuleRequest, FieldSecurityRuleResponse>
 {
     /// <summary>
@@ -163,7 +163,7 @@ public sealed class UpdateFieldSecurityRule(FieldSecurityService service) : IOpe
 /// <c>DELETE /api/field-security?ids=...</c>，逐项结果
 /// </remarks>
 /// <param name="service">字段安全规则服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.FieldSecurityDelete)]
 public sealed class DeleteFieldSecurityRules(FieldSecurityService service) : IOperation<FieldSecurityRuleIdsRequest, BatchResult>
 {
     /// <summary>

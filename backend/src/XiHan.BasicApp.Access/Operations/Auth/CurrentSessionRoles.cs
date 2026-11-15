@@ -42,7 +42,7 @@ public sealed record SessionRolesResponse(IReadOnlyList<SessionRoleItemResponse>
 /// <param name="resolver">持有的角色</param>
 /// <param name="roles">角色仓储</param>
 /// <param name="options">安全选项（角色声明名）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
 public sealed class CurrentSessionRoles(IUserRoleResolver resolver, IRepository<SysRole, Guid> roles, SecurityOptions options) : IOperation<SessionRolesRequest, SessionRolesResponse>
 {
     /// <summary>

@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Access.Operations.UserGrants;
 /// <param name="users">这一侧的用户</param>
 /// <param name="grants">用户直接授予</param>
 /// <param name="rules">授予规则</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsRead)]
 public sealed class ListUserGrants(SideUsers users, Infrastructure.UserGrants grants, PermissionRuleWriter rules) : IOperation<UserGrantsRequest, UserGrantsResponse>
 {
     /// <summary>
@@ -68,7 +68,7 @@ public sealed class ListUserGrants(SideUsers users, Infrastructure.UserGrants gr
 /// </remarks>
 /// <param name="grants">直授</param>
 /// <param name="approvals">转审批</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
 public sealed class GrantUser(UserGrantService grants, ConstraintApprovalRouter approvals) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
@@ -96,7 +96,7 @@ public sealed class GrantUser(UserGrantService grants, ConstraintApprovalRouter 
 /// <param name="grants">用户直接授予</param>
 /// <param name="rules">授予规则</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
 public sealed class DenyUser(SideUsers users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>
@@ -136,7 +136,7 @@ public sealed class DenyUser(SideUsers users, PermissionCatalog catalog, Infrast
 /// <param name="grants">用户直接授予</param>
 /// <param name="rules">授予规则</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.UserGrantsGrant)]
 public sealed class RevokeUser(SideUsers users, PermissionCatalog catalog, Infrastructure.UserGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<UserPermissionsRequest, PermissionBatchResult>
 {
     /// <summary>

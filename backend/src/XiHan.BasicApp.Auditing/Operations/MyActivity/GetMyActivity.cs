@@ -70,7 +70,7 @@ public sealed record MyActivityResponse(
 /// <param name="unitOfWork">工作单元</param>
 /// <param name="clock">时钟</param>
 /// <param name="sessions">会话时段（Identity 提供，没装即没有在线时长）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetMyActivity(SqlSugarUnitOfWork unitOfWork, TimeProvider clock, IEnumerable<ISessionHistory> sessions) : IOperation<MyActivityRequest, MyActivityResponse>
 {
     /// <summary>

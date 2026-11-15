@@ -34,7 +34,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="tenants">框架租户目录：会话所属租户已停用或已删即不再续签</param>
 /// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
 /// <param name="memberships">成员关系（Tenancy 实现）：会话在成员租户里时，成员关系被移除或到期即不再续签</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class Refresh(
     UserAccountService accounts,
     IRepository<SysUser, Guid> users,

@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Maintenance.Operations.Migrations;
 /// <c>scriptName</c>、<c>nodeName</c>（<c>contains</c>）、<c>success</c>（<c>eq</c>）、<c>executedAt</c>（<c>ge</c> / <c>lt</c>）；排序支持 <c>executedAt</c>、<c>version</c>、<c>scriptName</c>、<c>durationMs</c>。只在平台一侧
 /// </remarks>
 /// <param name="queries">台账与执行记录的查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.MigrationsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.MigrationsRead)]
 public sealed class ListMigrations(SchemaQueries queries) : IOperation<PageRequest, PageResult<MigrationResponse>>
 {
     /// <summary>
@@ -41,7 +41,7 @@ public sealed class ListMigrations(SchemaQueries queries) : IOperation<PageReque
 /// <c>GET /api/migrations/{id}</c>。只在平台一侧
 /// </remarks>
 /// <param name="queries">台账与执行记录的查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.MigrationsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.MigrationsRead)]
 public sealed class GetMigration(SchemaQueries queries) : IOperation<MigrationIdRequest, MigrationResponse>
 {
     /// <summary>

@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Auditing.Operations.ConditionHits;
 /// <c>GET /api/condition-hits/{id}</c>。不在当前一侧即找不到
 /// </remarks>
 /// <param name="queries">条件命中记录查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.ConditionHitsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AuditingPermissions.ConditionHitsRead)]
 public sealed class GetConditionHit(ConditionHitQueries queries) : IOperation<GetConditionHitRequest, ConditionHitResponse>
 {
     /// <summary>

@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// </remarks>
 /// <param name="assignments">角色指派</param>
 /// <param name="approvals">转审批</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
 public sealed class AssignRole(RoleAssignmentService assignments, ConstraintApprovalRouter approvals) : IOperation<RoleMembersRequest, BatchResult>
 {
     /// <summary>

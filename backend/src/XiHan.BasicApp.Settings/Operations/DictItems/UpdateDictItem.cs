@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// <param name="items">字典项仓储</param>
 /// <param name="service">字典域服务</param>
 /// <param name="sets">字典选项缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsUpdate)]
 public sealed class UpdateDictItem(IRepository<SysDictItem, Guid> items, DictService service, DictOptionSets sets) : IOperation<UpdateDictItemRequest, DictItemResponse>
 {
     /// <summary>

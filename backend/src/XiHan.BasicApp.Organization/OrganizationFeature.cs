@@ -44,7 +44,7 @@ public sealed class OrganizationFeature : IFeature
         Package = "XiHan.BasicApp.Organization",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(OrganizationCapabilities.Organization, OrganizationCapabilities.Version)],
         Requires =

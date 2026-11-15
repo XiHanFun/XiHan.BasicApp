@@ -113,7 +113,7 @@ public sealed record RevokeOAuthConsentResponse(bool Revoked);
 /// <c>GET /api/oauth-consents:resolve</c>。已登录即可，模仿会话不能授权第三方应用
 /// </remarks>
 /// <param name="authorizer">授权端点的规则</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ResolveOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OAuthAuthorizeRequest, OAuthConsentPreviewResponse>
 {
     /// <summary>
@@ -146,7 +146,7 @@ public sealed class ResolveOAuthConsent(OAuthAuthorizer authorizer) : IOperation
 /// <c>POST /api/oauth-consents:approve</c>。发授权码、记下同意，返回带 code 与 state 的回调地址；请求不对即 <c>OPENPLATFORM_VALIDATION_014</c>。模仿会话不能做
 /// </remarks>
 /// <param name="authorizer">授权端点的规则</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ApproveOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OAuthAuthorizeRequest, OAuthConsentRedirectResponse>
 {
     /// <summary>
@@ -184,7 +184,7 @@ public sealed class ApproveOAuthConsent(OAuthAuthorizer authorizer) : IOperation
 /// <c>POST /api/oauth-consents:deny</c>。客户端与回调地址都对上了才返回 <c>error=access_denied</c> 的回调地址；对不上即 <c>OPENPLATFORM_VALIDATION_014</c>
 /// </remarks>
 /// <param name="authorizer">授权端点的规则</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DenyOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OAuthAuthorizeRequest, OAuthConsentRedirectResponse>
 {
     /// <summary>
@@ -215,7 +215,7 @@ public sealed class DenyOAuthConsent(OAuthAuthorizer authorizer) : IOperation<OA
 /// </remarks>
 /// <param name="consents">同意记录仓储</param>
 /// <param name="apps">应用仓储</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListOAuthConsents(IRepository<SysOAuthConsent, Guid> consents, IRepository<SysOAuthApp, Guid> apps) : IOperation<OAuthConsentsRequest, OAuthConsentsResponse>
 {
     /// <summary>
@@ -256,7 +256,7 @@ public sealed class ListOAuthConsents(IRepository<SysOAuthConsent, Guid> consent
 /// </remarks>
 /// <param name="consents">同意记录仓储</param>
 /// <param name="tokens">令牌服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class RevokeOAuthConsent(IRepository<SysOAuthConsent, Guid> consents, OAuthTokenService tokens) : IOperation<RevokeOAuthConsentRequest, RevokeOAuthConsentResponse>
 {
     /// <summary>

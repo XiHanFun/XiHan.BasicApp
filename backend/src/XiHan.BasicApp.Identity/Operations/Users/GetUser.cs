@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="sideUsers">这一侧的用户</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Grpc | Expose.Mcp | Expose.Ai, Permission = IdentityPermissions.UsersRead)]
+[Operation(Id, Expose = Expose.Http | Expose.Grpc | Expose.Mcp | Expose.Ai, Permission = IdentityPermissions.UsersRead)]
 public sealed class GetUser(IRepository<SysUser, Guid> users, SideUsers sideUsers) : IOperation<GetUserRequest, UserResponse>
 {
     /// <summary>

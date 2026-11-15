@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <c>POST /api/users:unlock</c>。状态由 <c>Locked</c> 回到 <c>Active</c>；本来就不是锁定状态的用户视为已解锁，算成功
 /// </remarks>
 /// <param name="users">用户仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersLock)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersLock)]
 public sealed class UnlockUsers(IRepository<SysUser, Guid> users) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>

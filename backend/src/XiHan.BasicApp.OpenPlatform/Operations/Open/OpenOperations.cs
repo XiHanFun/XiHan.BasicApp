@@ -49,7 +49,7 @@ public sealed record OpenEchoResponse(bool Ok, string Message, string AppKey, Op
 /// </remarks>
 /// <param name="request">本次开放接口请求</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http)]
 public sealed class OpenPing(OpenApiRequest request, TimeProvider clock) : IOperation<OpenPingRequest, OpenPingResponse>
 {
     /// <summary>
@@ -79,7 +79,7 @@ public sealed class OpenPing(OpenApiRequest request, TimeProvider clock) : IOper
 /// </remarks>
 /// <param name="request">本次开放接口请求</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class OpenEcho(OpenApiRequest request, TimeProvider clock) : IOperation<OpenEchoRequest, OpenEchoResponse>
 {
     /// <summary>

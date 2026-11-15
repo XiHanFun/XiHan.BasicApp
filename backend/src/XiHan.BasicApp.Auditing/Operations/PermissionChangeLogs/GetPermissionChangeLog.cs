@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Auditing.Operations.PermissionChangeLogs;
 /// <c>GET /api/permission-change-logs/{id}</c>。不在当前一侧即找不到
 /// </remarks>
 /// <param name="queries">权限变更日志查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.PermissionChangeLogsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AuditingPermissions.PermissionChangeLogsRead)]
 public sealed class GetPermissionChangeLog(PermissionChangeLogQueries queries) : IOperation<GetPermissionChangeLogRequest, PermissionChangeLogResponse>
 {
     /// <summary>

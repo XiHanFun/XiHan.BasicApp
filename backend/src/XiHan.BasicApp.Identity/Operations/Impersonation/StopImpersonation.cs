@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class StopImpersonation(
     IRepository<SysUser, Guid> users,
     IRepository<SysUserSession, Guid> sessions,

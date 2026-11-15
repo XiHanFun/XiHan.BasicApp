@@ -81,7 +81,7 @@ public sealed record ImportHistoriesResponse(IReadOnlyList<ImportHistoryResponse
 /// </remarks>
 /// <param name="rows">记录读写</param>
 /// <param name="ids">ID 生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CreateImportHistory(SideRows rows, IIdGenerator<Guid> ids) : IOperation<CreateImportHistoryRequest, ImportHistoryResponse>
 {
     /// <summary>
@@ -125,7 +125,7 @@ public sealed class CreateImportHistory(SideRows rows, IIdGenerator<Guid> ids) :
 /// <c>GET /api/import-histories:recent?pageCode=&amp;count=</c>
 /// </remarks>
 /// <param name="rows">记录读写</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class RecentImportHistories(SideRows rows) : IOperation<RecentImportHistoriesRequest, ImportHistoriesResponse>
 {
     /// <summary>

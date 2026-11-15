@@ -84,7 +84,7 @@ public sealed record PasswordResetResponse(string UserName);
 /// <param name="captchas">图形验证码</param>
 /// <param name="options">身份配置</param>
 /// <param name="senders">消息发送（装了 Notification 才有）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class Register(
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,
@@ -188,7 +188,7 @@ public sealed class Register(
 /// <param name="contacts">发码</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="clock">时间源（租户到期）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class RequestPasswordReset(UserAccountService accounts, ContactCodes contacts, ITenantStore tenants, TimeProvider clock) : IOperation<RequestPasswordResetRequest, CodeSentResponse>
 {
     /// <summary>
@@ -236,7 +236,7 @@ public sealed class RequestPasswordReset(UserAccountService accounts, ContactCod
 /// <param name="tenants">框架租户目录</param>
 /// <param name="clock">时间源（租户到期）</param>
 /// <param name="options">身份配置（密码策略）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class ResetPasswordWithCode(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes, ITenantStore tenants, TimeProvider clock, IdentityOptions options) : IOperation<ResetPasswordWithCodeRequest, PasswordResetResponse>
 {
     /// <summary>

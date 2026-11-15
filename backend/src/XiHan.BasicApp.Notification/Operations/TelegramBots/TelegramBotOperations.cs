@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Notification.Operations.TelegramBots;
 /// <c>POST /api/telegram-bots:list</c>（平台托管；令牌不回显）
 /// </remarks>
 /// <param name="queries">查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsRead)]
 public sealed class ListTelegramBots(MessagingQueries queries) : IOperation<PageRequest, PageResult<TelegramBotResponse>>
 {
     /// <summary>
@@ -37,7 +37,7 @@ public sealed class ListTelegramBots(MessagingQueries queries) : IOperation<Page
 /// <c>GET /api/telegram-bots/{id}</c>
 /// </remarks>
 /// <param name="service">机器人服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsRead)]
 public sealed class GetTelegramBot(TelegramBotService service) : IOperation<MessagingIdRequest, TelegramBotResponse>
 {
     /// <summary>
@@ -62,7 +62,7 @@ public sealed class GetTelegramBot(TelegramBotService service) : IOperation<Mess
 /// <c>POST /api/telegram-bots</c>（名称唯一 <c>NOTIFICATION_CONFLICT_008</c>、令牌格式 <c>NOTIFICATION_VALIDATION_012</c>、ID 列表须是整数 <c>013</c>、命令名 <c>014</c>）
 /// </remarks>
 /// <param name="service">机器人服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsCreate)]
 public sealed class CreateTelegramBot(TelegramBotService service) : IOperation<CreateTelegramBotRequest, TelegramBotResponse>
 {
     /// <summary>
@@ -87,7 +87,7 @@ public sealed class CreateTelegramBot(TelegramBotService service) : IOperation<C
 /// <c>PUT /api/telegram-bots/{id}</c>（令牌不填即保留）
 /// </remarks>
 /// <param name="service">机器人服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsUpdate)]
 public sealed class UpdateTelegramBot(TelegramBotService service) : IOperation<UpdateTelegramBotRequest, TelegramBotResponse>
 {
     /// <summary>
@@ -118,7 +118,7 @@ public sealed class UpdateTelegramBot(TelegramBotService service) : IOperation<U
 /// <c>DELETE /api/telegram-bots?ids=</c>
 /// </remarks>
 /// <param name="service">机器人服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TelegramBotsDelete)]
 public sealed class DeleteTelegramBots(TelegramBotService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>

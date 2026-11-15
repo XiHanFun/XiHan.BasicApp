@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Notification.Operations.MessageTemplates;
 /// <c>POST /api/message-templates:list</c>
 /// </remarks>
 /// <param name="queries">查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesRead)]
 public sealed class ListMessageTemplates(MessagingQueries queries) : IOperation<PageRequest, PageResult<MessageTemplateResponse>>
 {
     /// <summary>
@@ -35,7 +35,7 @@ public sealed class ListMessageTemplates(MessagingQueries queries) : IOperation<
 /// 取一个消息模板：<c>GET /api/message-templates/{id}</c>
 /// </summary>
 /// <param name="service">模板服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesRead)]
 public sealed class GetMessageTemplate(MessageTemplateService service) : IOperation<MessagingIdRequest, MessageTemplateResponse>
 {
     /// <summary>
@@ -60,7 +60,7 @@ public sealed class GetMessageTemplate(MessageTemplateService service) : IOperat
 /// <c>POST /api/message-templates</c>。编码在本侧、同一渠道内唯一（<c>NOTIFICATION_CONFLICT_003</c>），主题与正文须能解析（<c>NOTIFICATION_VALIDATION_007</c>）
 /// </remarks>
 /// <param name="service">模板服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesCreate)]
 public sealed class CreateMessageTemplate(MessageTemplateService service) : IOperation<CreateMessageTemplateRequest, MessageTemplateResponse>
 {
     /// <summary>
@@ -85,7 +85,7 @@ public sealed class CreateMessageTemplate(MessageTemplateService service) : IOpe
 /// <c>PUT /api/message-templates/{id}</c>（编码与渠道不改）
 /// </remarks>
 /// <param name="service">模板服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesUpdate)]
 public sealed class UpdateMessageTemplate(MessageTemplateService service) : IOperation<UpdateMessageTemplateRequest, MessageTemplateResponse>
 {
     /// <summary>
@@ -116,7 +116,7 @@ public sealed class UpdateMessageTemplate(MessageTemplateService service) : IOpe
 /// <c>DELETE /api/message-templates?ids=</c>（平台的全局模板只有平台能删；租户删了自己的同编码模板即回落到平台的）
 /// </remarks>
 /// <param name="service">模板服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.TemplatesDelete)]
 public sealed class DeleteMessageTemplates(MessageTemplateService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>

@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="memberships">成员关系（Tenancy 实现）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class ListImpersonationCandidates(IRepository<SysUser, Guid> users, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<ImpersonationCandidatesRequest, PageResult<ImpersonationCandidateResponse>>
 {
     /// <summary>

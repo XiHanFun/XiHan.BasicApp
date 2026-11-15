@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Access.Operations.PermissionConditions;
 /// <c>GET /api/permission-conditions:attributes</c>。权限条件与访问策略共用，带每个属性可用的运算符与认证前能否取得
 /// </remarks>
 /// <param name="registry">条件属性登记表</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsRead)]
 public sealed class ListConditionAttributes(IConditionAttributeRegistry registry) : IOperation<ConditionAttributesRequest, ConditionAttributesResponse>
 {
     /// <summary>
@@ -54,7 +54,7 @@ public sealed class ListConditionAttributes(IConditionAttributeRegistry registry
 /// <c>GET /api/permission-conditions?subjectKind=&amp;subjectId=</c>。授予来自框架授予存储，拒绝来自规则行；子句含停用的
 /// </remarks>
 /// <param name="service">条件服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsRead)]
 public sealed class ListPermissionConditions(PermissionConditionService service) : IOperation<PermissionConditionsRequest, PermissionConditionsResponse>
 {
     /// <summary>
@@ -90,7 +90,7 @@ public sealed class ListPermissionConditions(PermissionConditionService service)
 /// <c>POST /api/permission-conditions</c>。挂在授予上是满足才授予，挂在拒绝上是满足才拒绝；调用时按请求属性判定
 /// </remarks>
 /// <param name="service">条件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsCreate)]
 public sealed class CreatePermissionCondition(PermissionConditionService service) : IOperation<CreatePermissionConditionRequest, PermissionConditionResponse>
 {
     /// <summary>
@@ -122,7 +122,7 @@ public sealed class CreatePermissionCondition(PermissionConditionService service
 /// <c>PUT /api/permission-conditions/{id}</c>。启用时重新校验绑定
 /// </remarks>
 /// <param name="service">条件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsUpdate)]
 public sealed class UpdatePermissionCondition(PermissionConditionService service) : IOperation<UpdatePermissionConditionRequest, PermissionConditionResponse>
 {
     /// <summary>
@@ -158,7 +158,7 @@ public sealed class UpdatePermissionCondition(PermissionConditionService service
 /// <c>DELETE /api/permission-conditions?ids=</c>
 /// </remarks>
 /// <param name="service">条件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsDelete)]
 public sealed class DeletePermissionConditions(PermissionConditionService service) : IOperation<PermissionConditionIdsRequest, BatchResult>
 {
     /// <summary>
@@ -226,7 +226,7 @@ internal static class ConditionLog
 /// <c>GET /api/permission-conditions:trial</c>。一个用户在一个权限码上按给定的请求情形判定，逐组逐子句说明；按他此刻的有效指派与委托，不看令牌
 /// </remarks>
 /// <param name="insight">试算与盘点</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
 public sealed class TrialPermissionCondition(ConditionInsightService insight) : IOperation<ConditionTrialRequest, ConditionTrialResponse>
 {
     /// <summary>
@@ -250,7 +250,7 @@ public sealed class TrialPermissionCondition(ConditionInsightService insight) : 
 /// <c>GET /api/permission-conditions:batch-trial</c>。一个绑定影响到的人此刻各自的结论（角色即它及其下级角色的有效成员，最多 200 人）
 /// </remarks>
 /// <param name="insight">试算与盘点</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
 public sealed class BatchTrialPermissionCondition(ConditionInsightService insight) : IOperation<ConditionBatchTrialRequest, ConditionBatchTrialResponse>
 {
     /// <summary>
@@ -274,7 +274,7 @@ public sealed class BatchTrialPermissionCondition(ConditionInsightService insigh
 /// <c>GET /api/permission-conditions:inventory</c>。这一侧每条子句的诊断（属性未登记、旧写法、编译不过、绑定已不在）与所在组的结论
 /// </remarks>
 /// <param name="insight">试算与盘点</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.PermissionConditionsTrial)]
 public sealed class PermissionConditionInventory(ConditionInsightService insight) : IOperation<ConditionInventoryRequest, ConditionInventoryResponse>
 {
     /// <summary>

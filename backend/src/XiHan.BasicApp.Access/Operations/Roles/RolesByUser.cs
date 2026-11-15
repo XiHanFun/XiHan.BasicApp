@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// </remarks>
 /// <param name="members">指派仓储</param>
 /// <param name="service">角色域服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class RolesByUser(IRepository<SysUserRole, Guid> members, RoleService service) : IOperation<RolesByUserRequest, RolesByUserResponse>
 {
     /// <summary>

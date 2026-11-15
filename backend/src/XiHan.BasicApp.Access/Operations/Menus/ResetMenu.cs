@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
 /// <param name="service">菜单域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]
 public sealed class ResetMenu(IRepository<SysMenu, Guid> menus, MenuService service) : IOperation<ResetMenuRequest, MenuResponse>
 {
     /// <summary>

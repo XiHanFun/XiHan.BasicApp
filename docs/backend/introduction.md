@@ -15,7 +15,7 @@ public sealed class SettingsFeature : IFeature
         Package = "XiHan.BasicApp.Settings",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(SettingsCapabilities.Settings, SettingsCapabilities.Version)],  // basicapp.settings@1
         Requires =

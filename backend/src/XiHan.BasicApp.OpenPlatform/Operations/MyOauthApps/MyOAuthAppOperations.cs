@@ -103,7 +103,7 @@ internal static class MyOAuthAppSubject
 /// <c>GET /api/my-oauth-apps</c>。已登录即可
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyOAuthApps(OAuthAppService service) : IOperation<MyOAuthAppsRequest, MyOAuthAppsResponse>
 {
     /// <summary>
@@ -134,7 +134,7 @@ public sealed class ListMyOAuthApps(OAuthAppService service) : IOperation<MyOAut
 /// <c>GET /api/my-oauth-apps/{id}</c>（别人的与平台的当作不存在）
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetMyOAuthApp(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppResponse>
 {
     /// <summary>
@@ -165,7 +165,7 @@ public sealed class GetMyOAuthApp(OAuthAppService service) : IOperation<OAuthApp
 /// <c>POST /api/my-oauth-apps</c>（ClientId 为 32 位十六进制；机密客户端的密钥只在这一次返回）。模仿会话不能做
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CreateMyOAuthApp(OAuthAppService service) : IOperation<CreateMyOAuthAppRequest, OAuthAppSecretResponse>
 {
     /// <summary>
@@ -197,7 +197,7 @@ public sealed class CreateMyOAuthApp(OAuthAppService service) : IOperation<Creat
 /// <c>PUT /api/my-oauth-apps/{id}</c>（名称、主页、描述、回调地址、Logo 与启停；授权类型、范围与有效期不变）。模仿会话不能做
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateMyOAuthApp(OAuthAppService service) : IOperation<UpdateMyOAuthAppRequest, OAuthAppResponse>
 {
     /// <summary>
@@ -236,7 +236,7 @@ public sealed class UpdateMyOAuthApp(OAuthAppService service) : IOperation<Updat
 /// <c>POST /api/my-oauth-apps/{id}:reset-secret</c>（公开客户端 <c>OPENPLATFORM_CONFLICT_003</c>）。模仿会话不能做
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ResetMyOAuthAppSecret(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppSecretResponse>
 {
     /// <summary>
@@ -273,7 +273,7 @@ public sealed class ResetMyOAuthAppSecret(OAuthAppService service) : IOperation<
 /// <c>DELETE /api/my-oauth-apps?ids=</c>（别人的逐项 <c>OPENPLATFORM_NOTFOUND_001</c>）。模仿会话不能做
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteMyOAuthApps(OAuthAppService service) : IOperation<OAuthAppIdsRequest, BatchResult>
 {
     /// <summary>

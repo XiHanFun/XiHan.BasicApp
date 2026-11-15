@@ -33,7 +33,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="ids">标识生成器</param>
 /// <param name="quotas">租户配额</param>
 /// <param name="extensions">部门、角色这些列的校验与写入</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
 public sealed class ImportUsers(
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,

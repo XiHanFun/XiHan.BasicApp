@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]
 public sealed class UpdateTenant(IRepository<SysTenant, Guid> tenants, TenantService service) : IOperation<UpdateTenantRequest, TenantResponse>
 {
     /// <summary>

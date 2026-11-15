@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// 套餐详情：<c>GET /api/editions/{id}</c>，带白名单
 /// </summary>
 /// <param name="service">套餐域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.EditionsRead)]
 public sealed class GetEdition(EditionService service) : IOperation<GetEditionRequest, EditionDetailResponse>
 {
     /// <summary>

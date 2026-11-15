@@ -35,7 +35,7 @@ public sealed class MaintenanceFeature : IFeature
         Package = "XiHan.BasicApp.Maintenance",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(MaintenanceCapabilities.Maintenance, MaintenanceCapabilities.Version)],
         Requires =

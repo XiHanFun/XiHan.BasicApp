@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Settings.Operations.Dicts;
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。选项按侧缓存（<see cref="DictOptionSets"/>），本侧没有这个编码再看平台的
 /// </remarks>
 /// <param name="sets">字典选项缓存</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Policy = Policies.Authenticated)]
 public sealed class DictOptions(DictOptionSets sets) : IOperation<DictOptionsRequest, DictOptionsResponse>
 {
     /// <summary>

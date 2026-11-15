@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Files.Operations.ExportTasks;
 /// <c>POST /api/export-tasks:submit</c>。只要求登录；要导出的列表操作在执行时按发起人的身份照常判定权限、数据范围与字段安全
 /// </remarks>
 /// <param name="service">导出任务服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class SubmitExportTask(ExportTaskService service) : IOperation<SubmitExportTaskRequest, ExportTaskResponse>
 {
     /// <summary>
@@ -48,7 +48,7 @@ public sealed class SubmitExportTask(ExportTaskService service) : IOperation<Sub
 /// <c>POST /api/export-tasks:list</c>。缺省按提交时间倒序
 /// </remarks>
 /// <param name="queries">任务查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListExportTasks(ExportTaskQueries queries) : IOperation<PageRequest, PageResult<ExportTaskResponse>>
 {
     /// <summary>
@@ -69,7 +69,7 @@ public sealed class ListExportTasks(ExportTaskQueries queries) : IOperation<Page
 /// 取自己的一个导出任务：<c>GET /api/export-tasks/{id}</c>
 /// </summary>
 /// <param name="service">导出任务服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetExportTask(ExportTaskService service) : IOperation<ExportTaskIdRequest, ExportTaskResponse>
 {
     /// <summary>
@@ -99,7 +99,7 @@ public sealed class GetExportTask(ExportTaskService service) : IOperation<Export
 /// <c>POST /api/export-tasks/{id}:cancel</c>。执行中的不能取消
 /// </remarks>
 /// <param name="service">导出任务服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CancelExportTask(ExportTaskService service) : IOperation<ExportTaskIdRequest, ExportTaskResponse>
 {
     /// <summary>
@@ -135,7 +135,7 @@ public sealed class CancelExportTask(ExportTaskService service) : IOperation<Exp
 /// <c>DELETE /api/export-tasks?ids=</c>。结果文件一并删除；执行中的逐项拒绝
 /// </remarks>
 /// <param name="service">导出任务服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteExportTasks(ExportTaskService service) : IOperation<ExportTaskIdsRequest, BatchResult>
 {
     /// <summary>

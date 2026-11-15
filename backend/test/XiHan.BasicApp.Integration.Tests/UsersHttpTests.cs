@@ -168,6 +168,10 @@ public sealed class UsersHttpTests : IDisposable
         Assert.True(document.GetProperty("components").GetProperty("x-xihan-permissions").TryGetProperty("identity.users.read", out _));
         Assert.True(document.GetProperty("components").GetProperty("securitySchemes").TryGetProperty("bearer", out _));
 
+        // 稳定级别：核心包的操作是 Stable、不带标注，可选模块的操作带 Preview
+        Assert.False(document.GetProperty("paths").GetProperty("/api/users").GetProperty("post").TryGetProperty("x-xihan-stability", out _));
+        Assert.Equal("Preview", document.GetProperty("paths").GetProperty("/api/chat-audit:list").GetProperty("post").GetProperty("x-xihan-stability").GetString());
+
         var served = await server.Client.GetByteArrayAsync("/openapi.json");
         var exported = Host.Contracts.ContractsExporter.Build(server.App);
         Assert.Equal(served, exported);

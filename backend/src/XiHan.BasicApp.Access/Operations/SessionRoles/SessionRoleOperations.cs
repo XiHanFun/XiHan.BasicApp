@@ -40,7 +40,7 @@ public sealed record GetSessionRoleRequest([Required] Guid Id);
 /// <c>POST /api/session-roles:list</c>（只读）。缺省按激活时间倒序
 /// </remarks>
 /// <param name="queries">会话角色查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]
 public sealed class ListSessionRoles(SessionRoleQueries queries) : IOperation<PageRequest, PageResult<SessionRoleResponse>>
 {
     /// <summary>
@@ -64,7 +64,7 @@ public sealed class ListSessionRoles(SessionRoleQueries queries) : IOperation<Pa
 /// <c>GET /api/session-roles/{id}</c>
 /// </remarks>
 /// <param name="queries">会话角色查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]
 public sealed class GetSessionRole(SessionRoleQueries queries) : IOperation<GetSessionRoleRequest, SessionRoleResponse>
 {
     /// <summary>

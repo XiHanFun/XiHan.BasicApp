@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Access.Operations.Permissions;
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）
 /// </remarks>
 /// <param name="effective">有效权限（一侧的目录与套餐收窄）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = AccessPermissions.PermissionsRead)]
+[Operation(Id, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = AccessPermissions.PermissionsRead)]
 public sealed class ListPermissions(EffectivePermissions effective) : IOperation<ListPermissionsRequest, PermissionCatalogResponse>
 {
     /// <summary>

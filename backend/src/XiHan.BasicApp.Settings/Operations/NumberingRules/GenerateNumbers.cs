@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// 规则停用 <c>SETTINGS_CONFLICT_010</c>，流水用尽 <c>SETTINGS_CONFLICT_011</c>，时钟落后 <c>SETTINGS_CONFLICT_012</c>，平台上下文用租户范围 <c>SETTINGS_VALIDATION_009</c>
 /// </remarks>
 /// <param name="generator">发号器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesGenerate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesGenerate)]
 public sealed class GenerateNumbers(INumberGenerator generator) : IOperation<GenerateNumbersRequest, NumberAllocation>
 {
     /// <summary>

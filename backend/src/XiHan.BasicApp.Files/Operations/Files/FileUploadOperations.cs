@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Files.Operations.Files;
 /// 小文件仍走普通端点 <c>POST /api/files/upload</c>。大小上限与存储配额同普通上传
 /// </remarks>
 /// <param name="uploads">分片上传服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class StartUpload(FileUploadService uploads) : IOperation<StartUploadRequest, FileUploadResponse>
 {
     /// <summary>
@@ -47,7 +47,7 @@ public sealed class StartUpload(FileUploadService uploads) : IOperation<StartUpl
 /// <c>GET /api/files:upload-session?uploadId=</c>。上传中的带上存储里已上传的分片编号，断点续传时据此跳过已传的分片
 /// </remarks>
 /// <param name="uploads">分片上传服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class GetUploadSession(FileUploadService uploads) : IOperation<UploadSessionRequest, FileUploadResponse>
 {
     /// <summary>
@@ -83,7 +83,7 @@ public sealed class GetUploadSession(FileUploadService uploads) : IOperation<Upl
 /// <c>POST /api/files:sign-upload-parts</c>。一次至多 100 片；地址缺省 30 分钟到期，过期了再签
 /// </remarks>
 /// <param name="uploads">分片上传服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class SignUploadParts(FileUploadService uploads) : IOperation<SignUploadPartsRequest, SignUploadPartsResponse>
 {
     /// <summary>
@@ -116,7 +116,7 @@ public sealed class SignUploadParts(FileUploadService uploads) : IOperation<Sign
 /// <c>POST /api/files:complete-upload</c>。按存储里已上传的分片拼成对象（不用客户端报分片清单），缺片或总大小不符可以补传后再完成
 /// </remarks>
 /// <param name="uploads">分片上传服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class CompleteUpload(FileUploadService uploads) : IOperation<UploadSessionRequest, FileResponse>
 {
     /// <summary>
@@ -147,7 +147,7 @@ public sealed class CompleteUpload(FileUploadService uploads) : IOperation<Uploa
 /// <c>POST /api/files:abort-upload</c>。丢弃存储里已上传的分片；已结束的不能放弃
 /// </remarks>
 /// <param name="uploads">分片上传服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class AbortUpload(FileUploadService uploads) : IOperation<UploadSessionRequest, FileUploadResponse>
 {
     /// <summary>

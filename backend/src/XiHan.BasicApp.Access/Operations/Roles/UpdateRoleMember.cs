@@ -41,7 +41,7 @@ public sealed record RoleMemberWindowRequest(Guid Id, [Required] Guid UserId, Da
 /// <param name="assignments">指派缓存</param>
 /// <param name="enforcer">约束规则求值</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
 public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRole, Guid> members, SideUsers users, RoleAssignments assignments, ConstraintEnforcer enforcer, TimeProvider clock) : IOperation<RoleMemberWindowRequest, RoleMemberResponse>
 {
     /// <summary>

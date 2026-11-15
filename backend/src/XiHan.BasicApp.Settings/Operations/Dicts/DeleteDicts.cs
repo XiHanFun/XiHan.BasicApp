@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Settings.Operations.Dicts;
 /// <param name="dicts">字典仓储</param>
 /// <param name="items">字典项仓储</param>
 /// <param name="sets">字典选项缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.DictsDelete)]
 public sealed class DeleteDicts(IRepository<SysDict, Guid> dicts, IRepository<SysDictItem, Guid> items, DictOptionSets sets) : IOperation<DictIdsRequest, BatchResult>
 {
     /// <summary>

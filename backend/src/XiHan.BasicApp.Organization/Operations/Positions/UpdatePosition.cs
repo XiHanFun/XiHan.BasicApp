@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Organization.Operations.Positions;
 /// <c>PUT /api/positions/{id}</c>（名称、排序、说明、状态）
 /// </remarks>
 /// <param name="positions">岗位仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsUpdate)]
 public sealed class UpdatePosition(IRepository<SysPosition, Guid> positions) : IOperation<UpdatePositionRequest, PositionResponse>
 {
     /// <summary>

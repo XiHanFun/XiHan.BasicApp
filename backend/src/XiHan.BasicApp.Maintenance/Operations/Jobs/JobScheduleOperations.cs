@@ -49,7 +49,7 @@ public sealed record JobTypesResponse(IReadOnlyList<string> Items);
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
 /// <param name="types">作业类型登记</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsReschedule)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsReschedule)]
 public sealed class RescheduleJob(IJobScheduler scheduler, JobTypeRegistry types) : IOperation<RescheduleJobRequest, JobResponse>
 {
     /// <summary>
@@ -138,7 +138,7 @@ public sealed class RescheduleJob(IJobScheduler scheduler, JobTypeRegistry types
 /// 没有代码定义的作业逐项报 <c>SCHEDULING_NOTFOUND_005</c>
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsReschedule)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsReschedule)]
 public sealed class RestoreJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>
@@ -162,7 +162,7 @@ public sealed class RestoreJobs(IJobScheduler scheduler) : IOperation<JobIdsRequ
 /// <c>GET /api/jobs:types</c>（平台侧）。作业列表按类型筛选与新建运行时作业（<c>jobs.create</c>）时的候选，只读
 /// </remarks>
 /// <param name="types">作业类型登记</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class ListJobTypes(JobTypeRegistry types) : IOperation<JobTypesRequest, JobTypesResponse>
 {
     /// <summary>

@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Notification.Operations.SmsConfigs;
 /// <c>POST /api/sms-configs:list</c>（访问密钥不回显）
 /// </remarks>
 /// <param name="queries">查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsRead)]
 public sealed class ListSmsConfigs(MessagingQueries queries) : IOperation<PageRequest, PageResult<SmsConfigResponse>>
 {
     /// <summary>
@@ -35,7 +35,7 @@ public sealed class ListSmsConfigs(MessagingQueries queries) : IOperation<PageRe
 /// 取一个短信配置：<c>GET /api/sms-configs/{id}</c>
 /// </summary>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsRead)]
 public sealed class GetSmsConfig(ChannelConfigService service) : IOperation<MessagingIdRequest, SmsConfigResponse>
 {
     /// <summary>
@@ -60,7 +60,7 @@ public sealed class GetSmsConfig(ChannelConfigService service) : IOperation<Mess
 /// <c>POST /api/sms-configs</c>（模板映射须是 JSON 对象，<c>NOTIFICATION_VALIDATION_009</c>）
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsCreate)]
 public sealed class CreateSmsConfig(ChannelConfigService service) : IOperation<CreateSmsConfigRequest, SmsConfigResponse>
 {
     /// <summary>
@@ -85,7 +85,7 @@ public sealed class CreateSmsConfig(ChannelConfigService service) : IOperation<C
 /// <c>PUT /api/sms-configs/{id}</c>（访问密钥不填即保留；缺省配置不能停用）
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsUpdate)]
 public sealed class UpdateSmsConfig(ChannelConfigService service) : IOperation<UpdateSmsConfigRequest, SmsConfigResponse>
 {
     /// <summary>
@@ -116,7 +116,7 @@ public sealed class UpdateSmsConfig(ChannelConfigService service) : IOperation<U
 /// <c>POST /api/sms-configs/{id}:set-default</c>（须启用）
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsUpdate)]
 public sealed class SetDefaultSmsConfig(ChannelConfigService service) : IOperation<MessagingIdRequest, SmsConfigResponse>
 {
     /// <summary>
@@ -147,7 +147,7 @@ public sealed class SetDefaultSmsConfig(ChannelConfigService service) : IOperati
 /// <c>DELETE /api/sms-configs?ids=</c>（缺省配置逐项拒绝）
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = NotificationPermissions.SmsConfigsDelete)]
 public sealed class DeleteSmsConfigs(ChannelConfigService service) : IOperation<MessagingIdsRequest, BatchResult>
 {
     /// <summary>

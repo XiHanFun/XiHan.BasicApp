@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="service">租户域服务</param>
 /// <param name="users">用户仓储</param>
 /// <param name="quotas">租户配额（有效上限与用量）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
 public sealed class GetTenant(TenantService service, IRepository<SysUser, Guid> users, TenantQuotas quotas) : IOperation<GetTenantRequest, TenantDetailResponse>
 {
     /// <summary>

@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Maintenance.Operations.Versions;
 /// 排序支持 <c>database</c>、<c>appVersion</c>、<c>dbVersion</c>、<c>upgradedAt</c>（缺省平台库在前、其余按库名）。只在平台一侧
 /// </remarks>
 /// <param name="queries">台账与执行记录的查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.VersionsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.VersionsRead)]
 public sealed class ListVersions(SchemaQueries queries) : IOperation<PageRequest, PageResult<SchemaVersionResponse>>
 {
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class ListVersions(SchemaQueries queries) : IOperation<PageRequest
 /// <c>GET /api/versions/{id}</c>，<c>id</c> 是库名（<c>platform</c> 或独立库的租户 ID）。只在平台一侧
 /// </remarks>
 /// <param name="queries">台账与执行记录的查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.VersionsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.VersionsRead)]
 public sealed class GetVersion(SchemaQueries queries) : IOperation<VersionIdRequest, SchemaVersionResponse>
 {
     /// <summary>

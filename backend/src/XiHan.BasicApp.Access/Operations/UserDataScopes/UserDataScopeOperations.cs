@@ -49,7 +49,7 @@ public sealed record UserDataScopeResponse(Guid UserId, DataScope? DataScope, IR
 /// </remarks>
 /// <param name="users">这一侧的用户</param>
 /// <param name="scopes">用户级数据范围覆盖服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesRead)]
 public sealed class GetUserDataScope(SideUsers users, UserDataScopeService scopes) : IOperation<UserDataScopeRequest, UserDataScopeResponse>
 {
     /// <summary>
@@ -88,7 +88,7 @@ public sealed class GetUserDataScope(SideUsers users, UserDataScopeService scope
 /// </remarks>
 /// <param name="users">这一侧的用户</param>
 /// <param name="scopes">用户级数据范围覆盖服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesUpdate)]
 public sealed class SetUserDataScope(SideUsers users, UserDataScopeService scopes) : IOperation<SetUserDataScopeRequest, UserDataScopeResponse>
 {
     /// <summary>

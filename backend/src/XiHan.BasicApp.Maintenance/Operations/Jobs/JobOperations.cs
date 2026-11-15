@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Maintenance.Operations.Jobs;
 /// 排序支持 <c>name</c>、<c>title</c>、<c>nextRunAt</c>、<c>lastRunAt</c>、<c>updatedAt</c>。作业不多，在内存里筛选与分页。只在平台一侧
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class ListJobs(IJobScheduler scheduler) : IOperation<PageRequest, PageResult<JobResponse>>
 {
     /// <summary>
@@ -104,7 +104,7 @@ public sealed class ListJobs(IJobScheduler scheduler) : IOperation<PageRequest, 
 /// <c>GET /api/jobs/{id}</c>，<c>id</c> 是作业名。只在平台一侧
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class GetJob(IJobScheduler scheduler) : IOperation<JobIdRequest, JobResponse>
 {
     /// <summary>
@@ -145,7 +145,7 @@ public sealed class GetJob(IJobScheduler scheduler) : IOperation<JobIdRequest, J
 /// 代码登记的作业重启之后仍是暂停的。只在平台一侧
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsUpdate)]
 public sealed class PauseJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>
@@ -169,7 +169,7 @@ public sealed class PauseJobs(IJobScheduler scheduler) : IOperation<JobIdsReques
 /// <c>POST /api/jobs:resume</c>。恢复后按计划从下一次触发时间接着跑；没暂停的照样算成功。只在平台一侧
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsUpdate)]
 public sealed class ResumeJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>
@@ -193,7 +193,7 @@ public sealed class ResumeJobs(IJobScheduler scheduler) : IOperation<JobIdsReque
 /// <c>POST /api/jobs/{id}:trigger</c>。排进一个一次性的手动触发器、由任一节点执行，不等结果，返回触发器名（运行历史里看结果）；暂停的作业也可以立即执行。只在平台一侧
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsTrigger)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsTrigger)]
 public sealed class TriggerJob(IJobScheduler scheduler) : IOperation<JobIdRequest, JobQueuedResponse>
 {
     /// <summary>
@@ -240,7 +240,7 @@ public sealed class TriggerJob(IJobScheduler scheduler) : IOperation<JobIdReques
 /// <c>GET /api/jobs:validate-schedule</c>。接受 Cron 表达式（5 到 7 段，Quartz 写法的超集）或计划的文本写法；写错即 <see cref="MaintenanceErrors.ScheduleInvalid"/>。不改任何作业。只在平台一侧
 /// </remarks>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.JobsRead)]
 public sealed class ValidateSchedule(TimeProvider clock) : IOperation<ValidateScheduleRequest, ScheduleCheckResponse>
 {
     /// <summary>

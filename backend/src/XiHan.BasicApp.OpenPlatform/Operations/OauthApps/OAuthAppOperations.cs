@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.OpenPlatform.Operations.OauthApps;
 /// <c>POST /api/oauth-apps:list</c>（平台建的与用户在「我的应用」里建的都在内，密钥不回显）
 /// </remarks>
 /// <param name="queries">查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsRead)]
 public sealed class ListOAuthApps(OAuthAppQueries queries) : IOperation<PageRequest, PageResult<OAuthAppResponse>>
 {
     /// <summary>
@@ -33,7 +33,7 @@ public sealed class ListOAuthApps(OAuthAppQueries queries) : IOperation<PageRequ
 /// 取一个 OAuth 应用：<c>GET /api/oauth-apps/{id}</c>
 /// </summary>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsRead)]
 public sealed class GetOAuthApp(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppResponse>
 {
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class GetOAuthApp(OAuthAppService service) : IOperation<OAuthAppId
 /// <c>POST /api/oauth-apps</c>（ClientId 重复 <c>OPENPLATFORM_CONFLICT_002</c>；机密客户端的密钥只在这一次返回；公开客户端也可以建）
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsCreate)]
 public sealed class CreateOAuthApp(OAuthAppService service) : IOperation<CreateOAuthAppRequest, OAuthAppSecretResponse>
 {
     /// <summary>
@@ -83,7 +83,7 @@ public sealed class CreateOAuthApp(OAuthAppService service) : IOperation<CreateO
 /// <c>PUT /api/oauth-apps/{id}</c>。ClientId、客户端类型与密钥不变
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsUpdate)]
 public sealed class UpdateOAuthApp(OAuthAppService service) : IOperation<UpdateOAuthAppRequest, OAuthAppResponse>
 {
     /// <summary>
@@ -114,7 +114,7 @@ public sealed class UpdateOAuthApp(OAuthAppService service) : IOperation<UpdateO
 /// <c>POST /api/oauth-apps/{id}:reset-secret</c>（旧密钥立即失效；公开客户端 <c>OPENPLATFORM_CONFLICT_003</c>）
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsUpdate)]
 public sealed class ResetOAuthAppSecret(OAuthAppService service) : IOperation<OAuthAppIdRequest, OAuthAppSecretResponse>
 {
     /// <summary>
@@ -145,7 +145,7 @@ public sealed class ResetOAuthAppSecret(OAuthAppService service) : IOperation<OA
 /// <c>DELETE /api/oauth-apps?ids=</c>（软删除，发出的令牌随应用失效）
 /// </remarks>
 /// <param name="service">应用服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = OpenPlatformPermissions.OAuthAppsDelete)]
 public sealed class DeleteOAuthApps(OAuthAppService service) : IOperation<OAuthAppIdsRequest, BatchResult>
 {
     /// <summary>

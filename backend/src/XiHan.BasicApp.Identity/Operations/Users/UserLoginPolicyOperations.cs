@@ -47,7 +47,7 @@ public sealed record UserLoginPolicyResponse(Guid UserId, bool AllowMultiLogin, 
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.UsersRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.UsersRead)]
 public sealed class GetUserLoginPolicy(IRepository<SysUser, Guid> users, UserAccountService accounts) : IOperation<GetUserRequest, UserLoginPolicyResponse>
 {
     /// <summary>
@@ -81,7 +81,7 @@ public sealed class GetUserLoginPolicy(IRepository<SysUser, Guid> users, UserAcc
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
 /// <param name="accounts">账号域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersLoginPolicy)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersLoginPolicy)]
 public sealed class SetUserLoginPolicy(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts) : IOperation<SetUserLoginPolicyRequest, UserLoginPolicyResponse>
 {
     /// <summary>

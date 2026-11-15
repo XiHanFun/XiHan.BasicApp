@@ -50,7 +50,7 @@ public sealed record CreateJobRequest(
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
 /// <param name="types">作业类型登记</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsCreate)]
 public sealed class CreateJob(IJobScheduler scheduler, JobTypeRegistry types) : IOperation<CreateJobRequest, JobResponse>
 {
     /// <summary>
@@ -141,7 +141,7 @@ public sealed class CreateJob(IJobScheduler scheduler, JobTypeRegistry types) : 
 /// 代码登记的（含运行时改过计划的）逐项报 <c>MAINTENANCE_CONFLICT_004</c>，不存在的报 <c>MAINTENANCE_NOTFOUND_001</c>
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobsDelete)]
 public sealed class DeleteJobs(IJobScheduler scheduler) : IOperation<JobIdsRequest, JobBatchResult>
 {
     /// <summary>

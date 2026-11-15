@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// 停用的节点连同子树不进 <c>auth.permissions</c>，页面没有路由；状态是展示字段，页面节点改了即标为已定制（种子不覆盖，<c>menus.reset</c> 恢复启用）；状态没变不写库
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]
 public sealed class SetMenuStatus(IRepository<SysMenu, Guid> menus) : IOperation<SetMenuStatusRequest, MenuResponse>
 {
     /// <summary>

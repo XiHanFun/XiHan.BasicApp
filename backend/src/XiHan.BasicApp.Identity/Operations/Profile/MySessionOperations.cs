@@ -92,7 +92,7 @@ internal static class MySessions
 /// <param name="accounts">账号域服务</param>
 /// <param name="sessions">会话仓储</param>
 /// <param name="clock">时钟</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMySessions(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserSession, Guid> sessions, TimeProvider clock) : IOperation<ProfileRequest, MySessionsResponse>
 {
     /// <summary>
@@ -128,7 +128,7 @@ public sealed class ListMySessions(IRepository<SysUser, Guid> users, UserAccount
 /// <param name="accounts">账号域服务（吊销与推送）</param>
 /// <param name="sessions">会话仓储</param>
 /// <param name="clock">时钟</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class RevokeMySession(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserSession, Guid> sessions, TimeProvider clock) : IOperation<RevokeMySessionRequest, MySessionsResponse>
 {
     /// <summary>
@@ -176,7 +176,7 @@ public sealed class RevokeMySession(IRepository<SysUser, Guid> users, UserAccoun
 /// <param name="accounts">账号域服务（吊销与推送）</param>
 /// <param name="sessions">会话仓储</param>
 /// <param name="clock">时钟</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class RevokeMyOtherSessions(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserSession, Guid> sessions, TimeProvider clock) : IOperation<ProfileRequest, MySessionsResponse>
 {
     /// <summary>

@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Auditing.Operations.OperationLogs;
 /// <c>POST /api/operation-logs:list</c>。只看当前一侧（平台主体看没有租户的记录，租户主体看本租户的）
 /// </remarks>
 /// <param name="queries">操作日志查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.OperationLogsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AuditingPermissions.OperationLogsRead)]
 public sealed class ListOperationLogs(OperationLogQueries queries) : IOperation<PageRequest, PageResult<OperationLogResponse>>
 {
     /// <summary>

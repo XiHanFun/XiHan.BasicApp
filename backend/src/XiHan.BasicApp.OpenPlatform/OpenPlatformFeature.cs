@@ -46,7 +46,7 @@ public sealed class OpenPlatformFeature : IFeature
         Package = "XiHan.BasicApp.OpenPlatform",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(OpenPlatformCapabilities.OpenPlatform, OpenPlatformCapabilities.Version)],
         Requires =

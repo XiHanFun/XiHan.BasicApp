@@ -37,7 +37,7 @@ public sealed record SendTwoFactorCodeRequest(
 /// <param name="tickets">两步验证票据</param>
 /// <param name="contacts">发码</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class SendTwoFactorCode(
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,

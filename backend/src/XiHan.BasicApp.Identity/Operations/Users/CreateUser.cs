@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="accounts">账号域服务</param>
 /// <param name="ids">标识生成器（UUID v7）</param>
 /// <param name="quotas">租户配额（租户一侧建用户占一个席位；没装 Tenancy 即不限）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersCreate)]
 public sealed class CreateUser(IRepository<SysUser, Guid> users, UserAccountService accounts, IIdGenerator<Guid> ids, IEnumerable<ITenantQuota> quotas) : IOperation<CreateUserRequest, UserResponse>
 {
     /// <summary>

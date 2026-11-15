@@ -70,7 +70,7 @@ public sealed record HealthItemResponse(
 /// <c>GET /api/server</c>（平台侧）。运行信息由框架 <see cref="IHostMonitor"/> 给出（不启动外部命令），健康项逐个取各 Provider 的最近一次检查
 /// </remarks>
 /// <param name="services">服务提供器（取运行信息与健康项）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.ServerRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.ServerRead)]
 public sealed class GetServerInfo(IServiceProvider services) : IOperation<ServerInfoRequest, ServerInfoResponse>
 {
     /// <summary>
@@ -144,7 +144,7 @@ public sealed record ServerPackagesResponse(IReadOnlyList<ServerPackageResponse>
 /// <c>GET /api/server:packages</c>（平台侧，只有关于页用）
 /// 已加载的 <c>XiHan*</c> 程序集直接引用的第三方程序集，去掉 <c>XiHan</c>、<c>Microsoft</c>、<c>System</c> 开头的，同名取最高版本
 /// </remarks>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.ServerRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = MaintenancePermissions.ServerRead)]
 public sealed class GetServerPackages : IOperation<ServerPackagesRequest, ServerPackagesResponse>
 {
     /// <summary>

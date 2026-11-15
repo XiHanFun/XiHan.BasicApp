@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Files.Operations.StorageConfigs;
 /// <c>POST /api/storage-configs:list</c>。缺省配置在前，访问密钥不回显
 /// </remarks>
 /// <param name="queries">配置查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsRead)]
 public sealed class ListStorageConfigs(StorageConfigQueries queries) : IOperation<PageRequest, PageResult<StorageConfigResponse>>
 {
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class ListStorageConfigs(StorageConfigQueries queries) : IOperatio
 /// <c>GET /api/storage-configs/{id}</c>
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsRead)]
 public sealed class GetStorageConfig(StorageConfigService service) : IOperation<StorageConfigIdRequest, StorageConfigResponse>
 {
     /// <summary>
@@ -73,7 +73,7 @@ public sealed class GetStorageConfig(StorageConfigService service) : IOperation<
 /// <c>POST /api/storage-configs</c>。设为缺省时同侧原来的缺省配置不再是缺省
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsCreate)]
 public sealed class CreateStorageConfig(StorageConfigService service) : IOperation<CreateStorageConfigRequest, StorageConfigResponse>
 {
     /// <summary>
@@ -103,7 +103,7 @@ public sealed class CreateStorageConfig(StorageConfigService service) : IOperati
 /// <c>PUT /api/storage-configs/{id}</c>。编码不改，访问密钥不填即保留原值；已有副本照旧按这条配置读写
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
 public sealed class UpdateStorageConfig(StorageConfigService service) : IOperation<UpdateStorageConfigRequest, StorageConfigResponse>
 {
     /// <summary>
@@ -138,7 +138,7 @@ public sealed class UpdateStorageConfig(StorageConfigService service) : IOperati
 /// <c>POST /api/storage-configs/{id}:set-status</c>。缺省配置不能停用；停用后不再接收上传，已有副本照常读取
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
 public sealed class SetStorageConfigStatus(StorageConfigService service) : IOperation<SetStorageConfigStatusRequest, StorageConfigResponse>
 {
     /// <summary>
@@ -173,7 +173,7 @@ public sealed class SetStorageConfigStatus(StorageConfigService service) : IOper
 /// <c>POST /api/storage-configs/{id}:set-default</c>。之后的上传都落在它上面
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsUpdate)]
 public sealed class SetDefaultStorageConfig(StorageConfigService service) : IOperation<StorageConfigIdRequest, StorageConfigResponse>
 {
     /// <summary>
@@ -208,7 +208,7 @@ public sealed class SetDefaultStorageConfig(StorageConfigService service) : IOpe
 /// <c>DELETE /api/storage-configs?ids=</c>。缺省配置与还有副本的配置逐项拒绝
 /// </remarks>
 /// <param name="service">配置服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.StorageConfigsDelete)]
 public sealed class DeleteStorageConfigs(StorageConfigService service) : IOperation<StorageConfigIdsRequest, BatchResult>
 {
     /// <summary>

@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Access.Operations.ConstraintRules;
 /// <c>POST /api/constraint-rules:list</c>。缺省按求值顺序（优先级从大到小、再按编码）
 /// </remarks>
 /// <param name="queries">规则查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesRead)]
 public sealed class ListConstraintRules(ConstraintRuleQueries queries) : IOperation<PageRequest, PageResult<ConstraintRuleResponse>>
 {
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class ListConstraintRules(ConstraintRuleQueries queries) : IOperat
 /// </remarks>
 /// <param name="service">规则服务</param>
 /// <param name="projection">规则投影</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesRead)]
 public sealed class GetConstraintRule(ConstraintRuleService service, ConstraintRuleProjection projection) : IOperation<GetConstraintRuleRequest, ConstraintRuleResponse>
 {
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class GetConstraintRule(ConstraintRuleService service, ConstraintR
 /// </remarks>
 /// <param name="service">规则服务</param>
 /// <param name="projection">规则投影</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesCreate)]
 public sealed class CreateConstraintRule(ConstraintRuleService service, ConstraintRuleProjection projection) : IOperation<CreateConstraintRuleRequest, ConstraintRuleResponse>
 {
     /// <summary>
@@ -103,7 +103,7 @@ public sealed class CreateConstraintRule(ConstraintRuleService service, Constrai
 /// </remarks>
 /// <param name="service">规则服务</param>
 /// <param name="projection">规则投影</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesUpdate)]
 public sealed class UpdateConstraintRule(ConstraintRuleService service, ConstraintRuleProjection projection) : IOperation<UpdateConstraintRuleRequest, ConstraintRuleResponse>
 {
     /// <summary>
@@ -139,7 +139,7 @@ public sealed class UpdateConstraintRule(ConstraintRuleService service, Constrai
 /// </remarks>
 /// <param name="service">规则服务</param>
 /// <param name="projection">规则投影</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesUpdate)]
 public sealed class SetConstraintRuleStatus(ConstraintRuleService service, ConstraintRuleProjection projection) : IOperation<SetConstraintRuleStatusRequest, ConstraintRuleResponse>
 {
     /// <summary>
@@ -174,7 +174,7 @@ public sealed class SetConstraintRuleStatus(ConstraintRuleService service, Const
 /// <c>DELETE /api/constraint-rules?ids=...</c>，逐项结果
 /// </remarks>
 /// <param name="service">规则服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesDelete)]
 public sealed class DeleteConstraintRules(ConstraintRuleService service) : IOperation<ConstraintRuleIdsRequest, BatchResult>
 {
     /// <summary>

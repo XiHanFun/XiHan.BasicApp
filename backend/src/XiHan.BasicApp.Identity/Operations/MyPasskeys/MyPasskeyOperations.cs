@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Identity.Operations.MyPasskeys;
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="passkeys">通行密钥的仪式</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListMyPasskeys(IRepository<SysUser, Guid> users, UserAccountService accounts, PasskeyCeremonies passkeys) : IOperation<MyPasskeysRequest, MyPasskeysResponse>
 {
     /// <summary>
@@ -58,7 +58,7 @@ public sealed class ListMyPasskeys(IRepository<SysUser, Guid> users, UserAccount
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="passkeys">通行密钥的仪式</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class BeginCreateMyPasskey(IRepository<SysUser, Guid> users, UserAccountService accounts, PasskeyCeremonies passkeys) : IOperation<BeginCreateMyPasskeyRequest, BeginCreateMyPasskeyResponse>
 {
     /// <summary>
@@ -112,7 +112,7 @@ public sealed class BeginCreateMyPasskey(IRepository<SysUser, Guid> users, UserA
 /// <param name="rows">通行密钥仓储</param>
 /// <param name="notices">发给本人的安全通知</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CreateMyPasskey(IRepository<SysUser, Guid> users, UserAccountService accounts, PasskeyCeremonies passkeys, IRepository<SysUserPasskey, Guid> rows, SecurityNotices notices, IIdGenerator<Guid> ids) : IOperation<CreateMyPasskeyRequest, MyPasskeyResponse>
 {
     /// <summary>
@@ -195,7 +195,7 @@ public sealed class CreateMyPasskey(IRepository<SysUser, Guid> users, UserAccoun
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="rows">通行密钥仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateMyPasskey(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserPasskey, Guid> rows) : IOperation<UpdateMyPasskeyRequest, MyPasskeyResponse>
 {
     /// <summary>
@@ -235,7 +235,7 @@ public sealed class UpdateMyPasskey(IRepository<SysUser, Guid> users, UserAccoun
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="rows">通行密钥仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteMyPasskeys(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserPasskey, Guid> rows) : IOperation<MyPasskeyIdsRequest, BatchResult>
 {
     /// <summary>

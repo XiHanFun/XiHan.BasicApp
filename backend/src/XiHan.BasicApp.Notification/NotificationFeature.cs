@@ -60,7 +60,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         Package = "XiHan.BasicApp.Notification",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(NotificationCapabilities.Notification, NotificationCapabilities.Version)],
         Requires =

@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// <param name="service">部门域服务</param>
 /// <param name="members">成员域服务（核对负责人）</param>
 /// <param name="snapshots">部门缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsUpdate)]
 public sealed class UpdateDepartment(IRepository<SysDepartment, Guid> departments, DepartmentService service, MembershipService members, DepartmentSnapshots snapshots) : IOperation<UpdateDepartmentRequest, DepartmentResponse>
 {
     /// <summary>

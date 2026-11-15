@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// </summary>
 /// <param name="items">字典项仓储</param>
 /// <param name="service">字典域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsRead)]
 public sealed class GetDictItem(IRepository<SysDictItem, Guid> items, DictService service) : IOperation<GetDictItemRequest, DictItemResponse>
 {
     /// <summary>

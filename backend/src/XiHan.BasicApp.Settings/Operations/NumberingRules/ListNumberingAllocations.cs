@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// </remarks>
 /// <param name="service">规则域服务</param>
 /// <param name="queries">发号记录查询</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesRead)]
 public sealed class ListNumberingAllocations(NumberingRuleService service, NumberingAllocationQueries queries) : IOperation<NumberingAllocationsRequest, PageResult<NumberingAllocationResponse>>
 {
     /// <summary>

@@ -40,7 +40,7 @@ public sealed record ExternalLoginRequest([Required, StringLength(128)] string T
 /// <param name="logins">登录完成（开会话、签令牌）</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class ExternalLogin(
     ISharedCache cache,
     IRepository<SysUserExternalLogin, Guid> bindings,

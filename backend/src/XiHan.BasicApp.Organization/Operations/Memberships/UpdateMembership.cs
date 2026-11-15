@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="memberships">归属仓储</param>
 /// <param name="positions">岗位仓储</param>
 /// <param name="service">归属域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsUpdate)]
 public sealed class UpdateMembership(IRepository<SysUserDepartment, Guid> memberships, IRepository<SysPosition, Guid> positions, MembershipService service) : IOperation<UpdateMembershipRequest, MembershipResponse>
 {
     /// <summary>

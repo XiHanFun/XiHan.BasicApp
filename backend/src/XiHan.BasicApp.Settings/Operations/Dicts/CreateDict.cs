@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Settings.Operations.Dicts;
 /// <param name="service">字典域服务</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="sets">字典选项缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.DictsCreate)]
 public sealed class CreateDict(IRepository<SysDict, Guid> dicts, DictService service, IIdGenerator<Guid> ids, DictOptionSets sets) : IOperation<CreateDictRequest, DictResponse>
 {
     /// <summary>

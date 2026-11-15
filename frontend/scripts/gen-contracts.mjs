@@ -39,6 +39,20 @@ function pascal(text) {
   return c.charAt(0).toUpperCase() + c.slice(1)
 }
 
+/** `application/json`、`application/problem+json` 这类 JSON 媒体类型 */
+function isJsonMedia(type) {
+  return /^application\/(?:[\w.+-]+\+)?json\b/i.test(type)
+}
+
+/** 普通端点（文件上传、下载）：请求体或成功响应至少有一边不是 JSON；操作只收发 JSON */
+function isPlainEndpoint(operation) {
+  const request = Object.keys(operation.requestBody?.content ?? {})
+  const responses = Object.entries(operation.responses ?? {})
+    .filter(([code]) => /^2\d\d$/.test(code))
+    .flatMap(([, response]) => Object.keys(response?.content ?? {}))
+  return request.concat(responses).some(type => !isJsonMedia(type))
+}
+
 /** 文档里的全部操作（不含普通端点）：按 operationId 排序，带方法、路由模板、参数落点与授权扩展 */
 function collectOperations(doc) {
   const operations = []
@@ -46,8 +60,8 @@ function collectOperations(doc) {
     for (const [method, operation] of Object.entries(methods)) {
       if (!operation || typeof operation !== 'object' || !operation.operationId)
         continue
-      // 普通端点（文件上传、下载）只有端点名、没有操作的稳定性标注：不进类型化客户端，前端经 request 的 uploadForm / endpointUrl 调用
-      if (!operation['x-xihan-stability'])
+      // 普通端点不进类型化客户端，前端经 request 的 uploadForm / endpointUrl 调用；Stable 的操作不带 x-xihan-stability，不能拿它区分
+      if (isPlainEndpoint(operation))
         continue
       const parameters = operation.parameters ?? []
       operations.push({

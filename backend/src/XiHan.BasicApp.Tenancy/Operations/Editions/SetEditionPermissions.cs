@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// </remarks>
 /// <param name="service">套餐域服务</param>
 /// <param name="gate">套餐门控</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.EditionsUpdate)]
 public sealed class SetEditionPermissions(EditionService service, EditionGate gate) : IOperation<SetEditionPermissionsRequest, EditionDetailResponse>
 {
     /// <summary>

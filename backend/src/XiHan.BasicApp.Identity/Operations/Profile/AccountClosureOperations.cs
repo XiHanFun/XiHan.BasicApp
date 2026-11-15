@@ -82,7 +82,7 @@ internal static class AccountClosure
 /// <param name="securities">账号安全仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="memberships">成员关系（Tenancy 实现：找出所有者）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeactivateAccount(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<CloseAccountRequest, AccountClosedResponse>
 {
     /// <summary>
@@ -132,7 +132,7 @@ public sealed class DeactivateAccount(IRepository<SysUser, Guid> users, IReposit
 /// <param name="securities">账号安全仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="memberships">成员关系（Tenancy 实现：找出所有者）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class DeleteAccount(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<CloseAccountRequest, AccountClosedResponse>
 {
     /// <summary>

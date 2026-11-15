@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// </remarks>
 /// <param name="options">身份配置</param>
 /// <param name="external">第三方登录配置（登录页上的提供方）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http)]
 public sealed class LoginConfig(IdentityOptions options, ExternalLoginOptions external) : IOperation<LoginConfigRequest, LoginConfigResponse>
 {
     /// <summary>

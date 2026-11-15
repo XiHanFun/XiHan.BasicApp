@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="service">租户域服务</param>
 /// <param name="editions">套餐域服务</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsCreate)]
 public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantService service, EditionService editions, IIdGenerator<Guid> ids) : IOperation<CreateTenantRequest, TenantResponse>
 {
     /// <summary>
