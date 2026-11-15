@@ -4,9 +4,9 @@
  */
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { positions as positionsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, positions as positionsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type PositionRow = ResponseOf<'positions.list'>['items'][number]
@@ -39,6 +39,11 @@ function emptyForm(): PositionForm {
   }
 }
 
+/** 岗位列表的筛选登记 */
+const POSITION_QUERY: PageQueryMapping = {
+  filters: { status: 'eq' },
+}
+
 /**
  * SchemaPage 的资源：分页、删除、启停与导入新建
  * 关键字匹配编码与名称；可排序列是编码、名称、排序与创建时间
@@ -46,11 +51,10 @@ function emptyForm(): PositionForm {
 export function positionsResource(): SchemaResource<PositionRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await positionsApi.list(toPageRequest(params, {
-        filters: { status: 'eq' },
-      })),
+      await positionsApi.list(toPageRequest(params, POSITION_QUERY)),
       params,
     ),
+    export: exportCenter('positions.list', POSITION_QUERY),
     remove: async id => throwOnFailed(await positionsApi.delete({
       ids: [
         String(id),

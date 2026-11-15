@@ -4,9 +4,9 @@
  */
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { configs as configsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { configs as configsApi, exportCenter, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type ConfigRow = ResponseOf<'configs.list'>['items'][number]
@@ -60,6 +60,17 @@ function emptyForm(): ConfigForm {
   }
 }
 
+/** 参数列表的筛选登记 */
+const CONFIG_QUERY: PageQueryMapping = {
+  filters: {
+    group: 'eq',
+    dataType: 'eq',
+    owner: 'eq',
+    status: 'eq',
+    isEncrypted: 'eq',
+  },
+}
+
 /**
  * SchemaPage 的资源：分页、删除、启停与导入新建
  * 读共享：列出平台参数与本侧参数；关键字匹配键与名称
@@ -67,17 +78,10 @@ function emptyForm(): ConfigForm {
 export function configsResource(): SchemaResource<ConfigRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await configsApi.list(toPageRequest(params, {
-        filters: {
-          group: 'eq',
-          dataType: 'eq',
-          owner: 'eq',
-          status: 'eq',
-          isEncrypted: 'eq',
-        },
-      })),
+      await configsApi.list(toPageRequest(params, CONFIG_QUERY)),
       params,
     ),
+    export: exportCenter('configs.list', CONFIG_QUERY),
     remove: async id => throwOnFailed(await configsApi.delete({
       ids: [
         String(id),

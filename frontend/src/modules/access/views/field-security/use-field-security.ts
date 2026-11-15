@@ -4,10 +4,10 @@
  */
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { RequestOf, ResponseOf } from '~/contracts'
+import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
-import { departments as departmentsApi, fieldSecurity as fieldSecurityApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, exportCenter, fieldSecurity as fieldSecurityApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type FieldRuleRow = ResponseOf<'field-security.list'>['items'][number]
@@ -105,6 +105,16 @@ function updateRequest(row: FieldRuleRow, status: FieldRuleStatus): RequestOf<'f
   }
 }
 
+/** 字段安全规则列表的筛选登记 */
+const FIELD_RULE_QUERY: PageQueryMapping = {
+  multiples: [
+    'entity',
+    'targetKind',
+    'strategy',
+    'status',
+  ],
+}
+
 /**
  * 字段安全规则的 SchemaPage 资源
  * 作用侧为当前租户或平台；关键字匹配字段名与备注
@@ -112,16 +122,10 @@ function updateRequest(row: FieldRuleRow, status: FieldRuleStatus): RequestOf<'f
 export function fieldSecurityResource(): SchemaResource<FieldRuleRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await fieldSecurityApi.list(toPageRequest(params, {
-        multiples: [
-          'entity',
-          'targetKind',
-          'strategy',
-          'status',
-        ],
-      })),
+      await fieldSecurityApi.list(toPageRequest(params, FIELD_RULE_QUERY)),
       params,
     ),
+    export: exportCenter('field-security.list', FIELD_RULE_QUERY),
     remove: async id => throwOnFailed(await fieldSecurityApi.delete({
       ids: [
         String(id),

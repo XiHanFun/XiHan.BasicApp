@@ -4,9 +4,9 @@
  */
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { computed, reactive, ref, watch } from 'vue'
-import { numberingRules as rulesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, numberingRules as rulesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type RuleRow = ResponseOf<'numbering-rules.list'>['items'][number]
@@ -118,6 +118,11 @@ function formatOf(form: Pick<RuleForm, 'dateFormat' | 'prefix' | 'resetCycle' | 
   }
 }
 
+/** 编号规则列表的筛选登记 */
+const NUMBERING_RULE_QUERY: PageQueryMapping = {
+  filters: { owner: 'eq', status: 'eq', resetCycle: 'eq' },
+}
+
 /**
  * SchemaPage 的资源：分页、删除、启停与导入新建
  * 平台列平台规则，租户列自己的与供租户使用的平台规则；关键字匹配编码与名称
@@ -125,11 +130,10 @@ function formatOf(form: Pick<RuleForm, 'dateFormat' | 'prefix' | 'resetCycle' | 
 export function numberingRulesResource(): SchemaResource<RuleRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await rulesApi.list(toPageRequest(params, {
-        filters: { owner: 'eq', status: 'eq', resetCycle: 'eq' },
-      })),
+      await rulesApi.list(toPageRequest(params, NUMBERING_RULE_QUERY)),
       params,
     ),
+    export: exportCenter('numbering-rules.list', NUMBERING_RULE_QUERY),
     // 发过号的与另一侧的规则由后端逐项拒绝
     remove: async id => throwOnFailed(await rulesApi.delete({
       ids: [

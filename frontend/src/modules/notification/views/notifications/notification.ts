@@ -6,7 +6,7 @@
 import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { DeliveryChannel, NotificationContentFormat, NotificationPriority, NotificationRecipientFilter, NotificationTargetType, NotificationType, PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
-import { DeliveryChannel as DELIVERY_CHANNELS, departments as departmentsApi, notifications as notificationsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { DeliveryChannel as DELIVERY_CHANNELS, departments as departmentsApi, exportCenter, notifications as notificationsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { throwOnFailed } from '~/request'
 import { csvNeutralize } from '~/utils'
 
@@ -226,6 +226,7 @@ export function toUpdateBody(form: NotificationForm & { id: string }): RequestOf
 export function notificationResource(): SchemaResource<NotificationRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await notificationsApi.list(toPageRequest(params, NOTIFICATION_QUERY)), params),
+    export: exportCenter('notifications.list', NOTIFICATION_QUERY),
     remove: async (id) => {
       throwOnFailed(await notificationsApi.delete({
         ids: [

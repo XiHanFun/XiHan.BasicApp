@@ -301,15 +301,6 @@ export default {
         search_result: 'Suchergebnis',
         all: 'Alle',
       },
-      business_types: {
-        users: 'Benutzer',
-        operation_logs: 'Vorgangsprotokolle',
-        access_logs: 'Zugriffsprotokolle',
-        login_logs: 'Anmeldeprotokolle',
-        exception_logs: 'Ausnahmeprotokolle',
-        diff_logs: 'Datenänderungsprotokolle',
-        open_api_logs: 'Open-API-Protokolle',
-      },
       fields: {
         keyword: 'Stichwort',
         task_name: 'Aufgabenname',

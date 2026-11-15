@@ -7,7 +7,7 @@ import type { Tone } from '@xihan-ui/core'
 import type { Translate } from '../jobs/job'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
-import { toPageRequest, toSchemaPageResult, versions as versionsApi } from '~/contracts'
+import { exportCenter, toPageRequest, toSchemaPageResult, versions as versionsApi } from '~/contracts'
 
 /** 版本台账的一行：一个库一行（平台库为 platform，已就绪的独立库按租户 ID 各一行；读不到台账的带 error） */
 export type VersionRow = ResponseOf<'versions.list'>['items'][number]
@@ -58,7 +58,7 @@ export function upgradingOptions(t: Translate): { label: string, value: string }
 /** 列表行：库名的显示文本是列也是导出字段（导出按行里的键取值），库名本身留作行键与详情的 ID */
 export type VersionListRow = VersionRow & { databaseName: string }
 
-/** SchemaPage 的资源：只有分页（没有写操作，导出是 SchemaPage 的本地 CSV） */
+/** SchemaPage 的资源：分页与导出（没有写操作）；导出中心的库名取原值（platform 或租户 ID） */
 export function versionResource(t: Translate): SchemaResource<VersionListRow> {
   return {
     page: async (params: SchemaQueryParams) => {
@@ -71,6 +71,9 @@ export function versionResource(t: Translate): SchemaResource<VersionListRow> {
         })),
       }, params)
     },
+    export: exportCenter('versions.list', VERSION_QUERY, {
+      columnPaths: { databaseName: 'database' },
+    }),
   }
 }
 

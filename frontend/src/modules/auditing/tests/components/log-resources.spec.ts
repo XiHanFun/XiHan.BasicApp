@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ACCESS_LOG_QUERY,
   accessLogsResource,
+  CONDITION_HIT_QUERY,
   conditionHitsResource,
   DIFF_LOG_QUERY,
   diffLogsResource,
@@ -13,6 +14,7 @@ import {
   openApiLogsResource,
   OPERATION_LOG_QUERY,
   operationLogsResource,
+  PERMISSION_CHANGE_LOG_QUERY,
   permissionChangeLogsResource,
 } from '@/modules/auditing/components/log-resources'
 import { toPageRequest } from '~/contracts'
@@ -163,6 +165,16 @@ describe('日志列表的后端筛选登记', () => {
         'open-api-logs.list',
         OPEN_API_LOG_QUERY,
       ],
+      [
+        permissionChangeLogsResource(),
+        'permission-change-logs.list',
+        PERMISSION_CHANGE_LOG_QUERY,
+      ],
+      [
+        conditionHitsResource(),
+        'condition-hits.list',
+        CONDITION_HIT_QUERY,
+      ],
     ] as const
     for (const [resource, businessType, query] of cases) {
       expect(resource.export?.businessType).toBe(businessType)
@@ -174,11 +186,6 @@ describe('日志列表的后端筛选登记', () => {
       pageSize: 20,
       filters: { clientIp: '127.0.0.1' },
     })).toThrow(/clientIp/)
-  })
-
-  it('权限变更日志与条件命中只留本地导出', () => {
-    expect(permissionChangeLogsResource().export).toBeUndefined()
-    expect(conditionHitsResource().export).toBeUndefined()
   })
 
   it('操作日志的会话与地址不能筛选：这两项不在登记里，出现即报错', () => {

@@ -5,7 +5,7 @@
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
-import { files as filesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, files as filesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { throwOnFailed } from '~/request'
 import { parseCsvRows } from '~/utils'
 
@@ -60,22 +60,25 @@ export function normalizeExtension(value: unknown): unknown {
     : `.${extension}`
 }
 
+/** 列表的分页请求：扩展名统一成小写带点 */
+function toFilesRequest(params: SchemaQueryParams) {
+  return toPageRequest({
+    ...params,
+    filters: {
+      ...params.filters,
+      extension: normalizeExtension(params.filters.extension),
+    },
+  }, FILE_QUERY)
+}
+
 /**
  * SchemaPage 的资源：分页（缺省按上传时间倒序）与删除
  * 内容不再被别的文件用到时，随之从存储里删除
  */
 export function fileResource(): SchemaResource<FileRow> {
   return {
-    page: async (params: SchemaQueryParams) => {
-      const normalized = {
-        ...params,
-        filters: {
-          ...params.filters,
-          extension: normalizeExtension(params.filters.extension),
-        },
-      }
-      return toSchemaPageResult(await filesApi.list(toPageRequest(normalized, FILE_QUERY)), params)
-    },
+    page: async (params: SchemaQueryParams) => toSchemaPageResult(await filesApi.list(toFilesRequest(params)), params),
+    export: exportCenter('files.list', toFilesRequest),
     remove: async id => throwOnFailed(await filesApi.delete({
       ids: [
         String(id),

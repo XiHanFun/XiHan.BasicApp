@@ -25,10 +25,13 @@ beforeEach(() => {
 })
 
 describe('约束规则的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
+  it('按读权限出导出按钮，能提交到导出中心；规则项数在浏览器里算，导出中心不导', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('access.constraint-rules.read')
-    expect(schema.resource.export).toBeUndefined()
+    expect(schema.resource.export).toMatchObject({
+      businessType: 'constraint-rules.list',
+      columnPaths: { itemCount: null },
+    })
   })
 
   it('规则项数从规则项算出，枚举写文案', () => {

@@ -301,15 +301,6 @@ export default {
         search_result: '查询结果',
         all: '全部',
       },
-      business_types: {
-        users: '用户',
-        operation_logs: '操作日志',
-        access_logs: '访问日志',
-        login_logs: '登录日志',
-        exception_logs: '异常日志',
-        diff_logs: '数据变更日志',
-        open_api_logs: '开放接口日志',
-      },
       fields: {
         keyword: '关键词',
         task_name: '任务名称',

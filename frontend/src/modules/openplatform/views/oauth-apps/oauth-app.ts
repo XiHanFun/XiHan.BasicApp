@@ -6,7 +6,7 @@
 import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
-import { oauthApps as oauthAppsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, oauthApps as oauthAppsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
@@ -308,6 +308,7 @@ export function toUpdateBody(form: OAuthAppForm & { id: string }): RequestOf<'oa
 export function oauthAppResource(): SchemaResource<OAuthAppRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await oauthAppsApi.list(toPageRequest(params, OAUTH_APP_QUERY)), params),
+    export: exportCenter('oauth-apps.list', OAUTH_APP_QUERY),
     remove: async id => throwOnFailed(await oauthAppsApi.delete({
       ids: [
         String(id),

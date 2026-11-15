@@ -4,8 +4,8 @@
  */
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { RequestOf, ResponseOf } from '~/contracts'
-import { constraintRules as constraintRulesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
+import { constraintRules as constraintRulesApi, exportCenter, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { throwOnFailed } from '~/request'
 
 export type ConstraintRuleRow = ResponseOf<'constraint-rules.list'>['items'][number]
@@ -147,6 +147,16 @@ export function toListRow(row: ConstraintRuleRow): ConstraintRuleListRow {
   return { ...row, itemCount: row.items.length }
 }
 
+/** 约束规则列表的筛选登记 */
+const CONSTRAINT_RULE_QUERY: PageQueryMapping = {
+  multiples: [
+    'type',
+    'targetType',
+    'violationAction',
+    'status',
+  ],
+}
+
 /**
  * 约束规则的 SchemaPage 资源
  * 作用侧为当前租户或平台，缺省按求值顺序；关键字匹配编码、名称、说明与备注
@@ -154,19 +164,16 @@ export function toListRow(row: ConstraintRuleRow): ConstraintRuleListRow {
 export function constraintRuleResource(): SchemaResource<ConstraintRuleListRow> {
   return {
     page: async (params: SchemaQueryParams) => {
-      const result = await constraintRulesApi.list(toPageRequest(params, {
-        multiples: [
-          'type',
-          'targetType',
-          'violationAction',
-          'status',
-        ],
-      }))
+      const result = await constraintRulesApi.list(toPageRequest(params, CONSTRAINT_RULE_QUERY))
       return toSchemaPageResult({
         ...result,
         items: result.items.map(toListRow),
       }, params)
     },
+    // 规则项数在浏览器里算，导出中心不导
+    export: exportCenter('constraint-rules.list', CONSTRAINT_RULE_QUERY, {
+      columnPaths: { itemCount: null },
+    }),
     remove: async id => throwOnFailed(await constraintRulesApi.delete({
       ids: [
         String(id),

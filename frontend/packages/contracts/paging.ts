@@ -3,8 +3,9 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
+import type { OperationId } from './operations'
 import type { components } from './types'
-import type { SchemaQueryParams } from '~/components/schema/types'
+import type { SchemaExportCenter, SchemaQueryParams } from '~/components/schema/types'
 import type { PageResult } from '~/types/contracts'
 import { QueryOperator } from '~/types/contracts'
 
@@ -91,6 +92,27 @@ export function toPageRequest(params: SchemaQueryParams, mapping: PageQueryMappi
     keyword: isBlank(keyword)
       ? null
       : String(keyword).trim(),
+  }
+}
+
+/** 列表操作的 ID：导出中心的业务类型 */
+export type ListOperationId = Extract<OperationId, `${string}.list`>
+
+/**
+ * 提交到导出中心的配置
+ * 查询快照与列表页共用同一份筛选登记（`query` 给 `toPageRequest` 的映射，或直接给请求的构造），后台按它逐页调列表操作
+ */
+export function exportCenter(
+  businessType: ListOperationId,
+  query: PageQueryMapping | ((params: SchemaQueryParams) => unknown) = {},
+  options: Pick<SchemaExportCenter, 'columnPaths' | 'wholeList'> = {},
+): SchemaExportCenter {
+  return {
+    businessType,
+    buildQuery: typeof query === 'function'
+      ? query
+      : params => toPageRequest(params, query),
+    ...options,
   }
 }
 

@@ -301,15 +301,6 @@ export default {
         search_result: 'Результаты поиска',
         all: 'Все',
       },
-      business_types: {
-        users: 'Пользователи',
-        operation_logs: 'Журнал операций',
-        access_logs: 'Журнал доступа',
-        login_logs: 'Журнал входов',
-        exception_logs: 'Журнал исключений',
-        diff_logs: 'Журнал изменений данных',
-        open_api_logs: 'Журнал открытого API',
-      },
       fields: {
         keyword: 'Ключевое слово',
         task_name: 'Название задачи',

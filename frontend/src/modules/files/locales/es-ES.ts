@@ -301,15 +301,6 @@ export default {
         search_result: 'Resultados de búsqueda',
         all: 'Todo',
       },
-      business_types: {
-        users: 'Usuarios',
-        operation_logs: 'Registros de operaciones',
-        access_logs: 'Registros de acceso',
-        login_logs: 'Registros de inicio de sesión',
-        exception_logs: 'Registros de excepciones',
-        diff_logs: 'Registros de cambios de datos',
-        open_api_logs: 'Registros de API abierta',
-      },
       fields: {
         keyword: 'Palabra clave',
         task_name: 'Nombre de la tarea',

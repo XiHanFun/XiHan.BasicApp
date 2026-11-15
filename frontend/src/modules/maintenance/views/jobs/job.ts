@@ -6,7 +6,7 @@
 import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource, SchemaSelectOption } from '~/components'
 import type { JobRetryBackoff, JobRunState, JobScheduleKind, JobSource, JobTrigger, PageQueryMapping, PageRequest, RequestOf, ResponseOf, TriggerState } from '~/contracts'
-import { jobRuns as jobRunsApi, jobs as jobsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, jobRuns as jobRunsApi, jobs as jobsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { formatSeconds } from '../caches/cache'
 
@@ -305,6 +305,16 @@ export function jobResource(): SchemaResource<JobRow> {
         items: result.items.map(toJobRow),
       }, params)
     },
+    // 分组、运行状态与执行次数在浏览器里算，导出中心不导；触发类型与上次运行取响应里的原值
+    export: exportCenter('jobs.list', toJobsRequest, {
+      columnPaths: {
+        group: null,
+        runState: null,
+        executedCount: null,
+        kind: 'triggers.0.kind',
+        lastRunAt: 'last.startedAt',
+      },
+    }),
     updateStatus: async (id, enabled) => {
       const request = {
         ids: [

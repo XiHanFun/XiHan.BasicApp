@@ -358,6 +358,9 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
     /// <summary>
     /// 以发起人的身份调一页列表操作（全管道），取出 <c>items</c> 与 <c>total</c>
     /// </summary>
+    /// <remarks>
+    /// 一次返回整份的列表没有 <c>total</c>，按取到的行数算；树形列表（项带 <c>children</c> 数组）按先序展开成行
+    /// </remarks>
     private async Task<Result<(IReadOnlyList<JsonElement> Items, long Total)>> PageAsync(ExportJob job, string operationId, JsonObject query, CancellationToken cancellationToken)
     {
         await using var scope = scopes.CreateAsyncScope();
@@ -372,9 +375,26 @@ public sealed partial class ExportRunner(ExportJobs queue, IServiceScopeFactory 
 
         using var document = JsonDocument.Parse(response.Payload);
         var root = document.RootElement;
-        var items = root.TryGetProperty("items", out var array) && array.ValueKind == JsonValueKind.Array ? [.. array.EnumerateArray().Select(static e => e.Clone())] : new List<JsonElement>();
+        var items = new List<JsonElement>();
+        if (root.TryGetProperty("items", out var array) && array.ValueKind == JsonValueKind.Array)
+        {
+            Flatten(array, items);
+        }
+
         var total = root.TryGetProperty("total", out var count) && count.TryGetInt64(out var value) ? value : items.Count;
         return (items, total);
+    }
+
+    private static void Flatten(JsonElement nodes, List<JsonElement> rows)
+    {
+        foreach (var node in nodes.EnumerateArray())
+        {
+            rows.Add(node.Clone());
+            if (node.ValueKind == JsonValueKind.Object && node.TryGetProperty("children", out var children) && children.ValueKind == JsonValueKind.Array)
+            {
+                Flatten(children, rows);
+            }
+        }
     }
 
     /// <summary>

@@ -301,15 +301,6 @@ export default {
         search_result: '조회 결과',
         all: '전체',
       },
-      business_types: {
-        users: '사용자',
-        operation_logs: '작업 로그',
-        access_logs: '접근 로그',
-        login_logs: '로그인 로그',
-        exception_logs: '예외 로그',
-        diff_logs: '데이터 변경 로그',
-        open_api_logs: '오픈 API 로그',
-      },
       fields: {
         keyword: '키워드',
         task_name: '작업 이름',

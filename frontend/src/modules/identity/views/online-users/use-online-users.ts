@@ -5,7 +5,7 @@
 
 import type { SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf } from '~/contracts'
-import { sessions, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, sessions, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { throwOnFailed } from '~/request'
 
 export type OnlineSessionRow = ResponseOf<'sessions.list'>['items'][number]
@@ -23,6 +23,7 @@ export const ONLINE_SESSION_QUERY: PageQueryMapping = {
 export function onlineSessionsResource(): SchemaResource<OnlineSessionRow> {
   return {
     page: async params => toSchemaPageResult(await sessions.list(toPageRequest(params, ONLINE_SESSION_QUERY)), params),
+    export: exportCenter('sessions.list', ONLINE_SESSION_QUERY),
   }
 }
 

@@ -3,13 +3,14 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import type { SchemaQueryParams, SchemaResource } from '~/components'
+import type { SchemaResource } from '~/components'
 import type { OperationId, PageQueryMapping, PageRequest, ResponseOf } from '~/contracts'
 import {
   accessLogs,
   conditionHits,
   diffLogs,
   exceptionLogs,
+  exportCenter,
   loginLogs,
   openApiLogs,
   operationLogs,
@@ -76,10 +77,7 @@ function readonly<TRow>(list: ListOperation<TRow>, query: PageQueryMapping): Sch
 function exportable<TRow>(businessType: Extract<OperationId, `${string}.list`>, list: ListOperation<TRow>, query: PageQueryMapping): SchemaResource<TRow> {
   return {
     ...readonly(list, query),
-    export: {
-      businessType,
-      buildQuery: (params: SchemaQueryParams) => toPageRequest(params, query),
-    },
+    export: exportCenter(businessType, query),
   }
 }
 
@@ -163,8 +161,7 @@ export const accessLogsResource = () => exportable<AccessLogRow>('access-logs.li
 export const exceptionLogsResource = () => exportable<ExceptionLogRow>('exception-logs.list', request => exceptionLogs.list(request), EXCEPTION_LOG_QUERY)
 export const loginLogsResource = () => exportable<LoginLogRow>('login-logs.list', request => loginLogs.list(request), LOGIN_LOG_QUERY)
 export const diffLogsResource = () => exportable<DiffLogRow>('diff-logs.list', request => diffLogs.list(request), DIFF_LOG_QUERY)
-// 权限变更日志与条件命中只留本地导出
-export const permissionChangeLogsResource = () => readonly<PermissionChangeLogRow>(request => permissionChangeLogs.list(request), PERMISSION_CHANGE_LOG_QUERY)
-export const conditionHitsResource = () => readonly<ConditionHitRow>(request => conditionHits.list(request), CONDITION_HIT_QUERY)
+export const permissionChangeLogsResource = () => exportable<PermissionChangeLogRow>('permission-change-logs.list', request => permissionChangeLogs.list(request), PERMISSION_CHANGE_LOG_QUERY)
+export const conditionHitsResource = () => exportable<ConditionHitRow>('condition-hits.list', request => conditionHits.list(request), CONDITION_HIT_QUERY)
 export const openApiLogsResource = () => exportable<OpenApiLogRow>('open-api-logs.list', request => openApiLogs.list(request), OPEN_API_LOG_QUERY)
 export const operationLogsResource = () => exportable<OperationLogRow>('operation-logs.list', request => operationLogs.list(request), OPERATION_LOG_QUERY)

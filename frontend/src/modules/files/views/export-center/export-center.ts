@@ -27,17 +27,42 @@ export const EXPORT_TASK_STATUSES: readonly ExportTaskStatus[] = [
 export const EXPORT_FORMATS: readonly ExportFormat[] = ['Csv', 'Xlsx']
 
 /**
- * 认得的业务类型（列表操作 ID）：后端能导任何列表操作，
+ * 认得的业务类型：接了导出中心的列表页的列表操作 ID（后端能导任何列表操作），
  * 不在这里的照原样显示
  */
 export const KNOWN_BUSINESS_TYPES = [
   'users.list',
+  'sessions.list',
+  'roles.list',
+  'permissions.list',
+  'menus.list',
+  'delegations.list',
+  'permission-requests.list',
+  'field-security.list',
+  'constraint-rules.list',
+  'tenants.list',
+  'editions.list',
+  'positions.list',
   'operation-logs.list',
   'access-logs.list',
   'login-logs.list',
   'exception-logs.list',
   'diff-logs.list',
   'open-api-logs.list',
+  'permission-change-logs.list',
+  'condition-hits.list',
+  'files.list',
+  'oauth-apps.list',
+  'message-templates.list',
+  'emails.list',
+  'sms.list',
+  'notifications.list',
+  'configs.list',
+  'dicts.list',
+  'dict-items.list',
+  'numbering-rules.list',
+  'jobs.list',
+  'versions.list',
 ] as const satisfies readonly OperationId[]
 
 /** 重启打断的任务，后端在失败原因里记的字面量 */
@@ -156,16 +181,41 @@ export function formatLabel(format: ExportFormat): string {
     : 'CSV'
 }
 
-/** 业务类型是列表操作 ID：认得的翻成页面名，其余原样 */
+/** 业务类型是列表操作 ID：认得的翻成导出它的页面（或页签）的标题，其余原样 */
 export function businessTypeLabel(t: Translate, businessType: string): string {
   switch (businessType) {
-    case 'users.list': return t('files.export_center.business_types.users')
-    case 'operation-logs.list': return t('files.export_center.business_types.operation_logs')
-    case 'access-logs.list': return t('files.export_center.business_types.access_logs')
-    case 'login-logs.list': return t('files.export_center.business_types.login_logs')
-    case 'exception-logs.list': return t('files.export_center.business_types.exception_logs')
-    case 'diff-logs.list': return t('files.export_center.business_types.diff_logs')
-    case 'open-api-logs.list': return t('files.export_center.business_types.open_api_logs')
+    case 'users.list': return t('identity.users.title')
+    case 'sessions.list': return t('identity.online_users.title')
+    case 'roles.list': return t('access.roles.title')
+    case 'permissions.list': return t('access.permissions.title')
+    case 'menus.list': return t('access.menus.title')
+    case 'delegations.list': return t('access.delegations.tab')
+    case 'permission-requests.list': return t('access.permission_requests.tab')
+    case 'field-security.list': return t('access.field_security.title')
+    case 'constraint-rules.list': return t('access.constraint_rules.title')
+    case 'tenants.list': return t('tenancy.tenants.title')
+    case 'editions.list': return t('tenancy.editions.title')
+    case 'positions.list': return t('organization.positions.title')
+    case 'operation-logs.list': return t('auditing.operation_logs.title')
+    case 'access-logs.list': return t('auditing.access_logs.title')
+    case 'login-logs.list': return t('auditing.login_logs.title')
+    case 'exception-logs.list': return t('auditing.exception_logs.title')
+    case 'diff-logs.list': return t('auditing.diff_logs.title')
+    case 'open-api-logs.list': return t('auditing.open_api_logs.title')
+    case 'permission-change-logs.list': return t('auditing.permission_change_logs.title')
+    case 'condition-hits.list': return t('auditing.condition_hits.title')
+    case 'files.list': return t('files.library.title')
+    case 'oauth-apps.list': return t('openplatform.oauth_apps.title')
+    case 'message-templates.list': return t('notification.templates.title')
+    case 'emails.list': return t('notification.messages.tab_email')
+    case 'sms.list': return t('notification.messages.tab_sms')
+    case 'notifications.list': return t('notification.notifications.title')
+    case 'configs.list': return t('settings.configs.title')
+    case 'dicts.list': return t('settings.dicts.title')
+    case 'dict-items.list': return t('settings.dicts.items')
+    case 'numbering-rules.list': return t('settings.numbering_rules.title')
+    case 'jobs.list': return t('maintenance.jobs.title')
+    case 'versions.list': return t('maintenance.versions.title')
     default: return businessType
   }
 }

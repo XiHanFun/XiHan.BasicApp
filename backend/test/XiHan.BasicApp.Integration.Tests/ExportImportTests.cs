@@ -168,4 +168,69 @@ public sealed class ExportImportTests : IDisposable
         Assert.Equal("b.csv", Assert.Single(recent.EnumerateArray()).GetProperty("fileName").GetString());
         Assert.Equal(2, (await SendAsync(server, HttpMethod.Get, "/api/import-histories:recent?pageCode=organization.positions", null, platform)).Body.GetProperty("items").GetArrayLength());
     }
+
+    /// <summary>
+    /// 前端列表页声明的导出中心业务类型
+    /// </summary>
+    /// <remarks>
+    /// 与 <c>frontend/src/modules/files/views/export-center/export-center.ts</c> 的 <c>KNOWN_BUSINESS_TYPES</c> 一致；岗位只在租户一侧
+    /// </remarks>
+    private static readonly string[] _pageListOperations =
+    [
+        "users.list", "sessions.list", "roles.list", "permissions.list", "menus.list", "delegations.list", "permission-requests.list", "field-security.list", "constraint-rules.list",
+        "tenants.list", "editions.list",
+        "operation-logs.list", "access-logs.list", "login-logs.list", "exception-logs.list", "diff-logs.list", "open-api-logs.list", "permission-change-logs.list", "condition-hits.list",
+        "files.list", "oauth-apps.list", "message-templates.list", "emails.list", "sms.list", "notifications.list",
+        "configs.list", "dicts.list", "dict-items.list", "numbering-rules.list", "jobs.list", "versions.list",
+    ];
+
+    [Fact]
+    public async Task EveryPageListOperation_Exports_IncludingWholeListsTreesAndNestedFields()
+    {
+        var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder => builder.Configuration.AddInMemoryCollection([new("BasicApp:Files:LocalRootPath", _root)]));
+        await using var running = server;
+        async Task<(JsonElement Task, string Csv)> ExportAsync(string businessType, string scope, object query, object[] columns, string? token = null)
+        {
+            token ??= platform;
+            var request = new { businessType, format = "Csv", scope, taskName = businessType, querySnapshot = JsonSerializer.Serialize(query), columns };
+            var (status, submitted) = await SendAsync(server, HttpMethod.Post, "/api/export-tasks:submit", JsonSerializer.Serialize(request), token);
+            Assert.True(status == HttpStatusCode.OK, $"{businessType}: {submitted}");
+            var done = await FinishedAsync(server, token, submitted.GetProperty("id").GetString()!);
+            Assert.True(done.GetProperty("status").GetString() == "Success", $"{businessType}: {done}");
+            var bytes = await DownloadAsync(server, token, done.GetProperty("fileId").GetString()!);
+            return (done, Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3));
+        }
+
+        // 每个页面的列表操作都能经导出中心导出（以平台超管的身份、快照与列表页的分页请求同形）
+        var paged = new { page = new { index = 1, size = 20 }, filters = Array.Empty<object>(), sorts = Array.Empty<object>(), keyword = (string?)null };
+        object[] id = [new { key = "id", title = "Id" }];
+        foreach (var businessType in _pageListOperations)
+        {
+            await ExportAsync(businessType, "SearchResult", paged, id);
+        }
+
+        await ExportAsync("positions.list", "SearchResult", paged, id, tenant);
+
+        // 一次返回整份的列表（不分页、没有 total）：权限目录按快照里的作用侧，行数即目录的条数
+        var catalog = (await SendAsync(server, HttpMethod.Get, "/api/permissions?side=tenant", null, platform)).Body.GetProperty("items").GetArrayLength();
+        var (permissions, permissionCsv) = await ExportAsync("permissions.list", "All", new { side = "tenant" }, [new { key = "code", title = "Code" }]);
+        Assert.Equal(catalog, permissions.GetProperty("processedCount").GetInt64());
+        Assert.Contains("\r\nidentity.users.read\r\n", permissionCsv, StringComparison.Ordinal);
+
+        // 树形列表：菜单整棵树按先序展开，子节点紧跟在上级之后
+        var tree = (await SendAsync(server, HttpMethod.Get, "/api/menus", null, platform)).Body.GetProperty("items");
+        var root = tree.EnumerateArray().First(static node => node.GetProperty("children").GetArrayLength() > 0);
+        var child = root.GetProperty("children")[0];
+        var (menus, menuCsv) = await ExportAsync("menus.list", "All", new { }, [new { key = "code", title = "Code" }]);
+        Assert.True(menus.GetProperty("processedCount").GetInt64() > tree.GetArrayLength());
+        Assert.Contains($"\r\n{root.GetProperty("code").GetString()}\r\n{child.GetProperty("code").GetString()}\r\n", menuCsv, StringComparison.Ordinal);
+
+        // 列按路径取值：深一层用点号、数组用下标，走不到的为空，| 分隔的备选取第一条有文字的
+        var single = new { page = new { index = 1, size = 1 }, filters = Array.Empty<object>(), sorts = Array.Empty<object>(), keyword = (string?)null };
+        var job = (await SendAsync(server, HttpMethod.Post, "/api/jobs:list", JsonSerializer.Serialize(single), platform)).Body.GetProperty("items")[0];
+        var kind = job.GetProperty("triggers")[0].GetProperty("kind").GetString();
+        var (_, jobCsv) = await ExportAsync("jobs.list", "CurrentPage", single, [new { key = "name", title = "Name" }, new { key = "triggers.0.kind", title = "Kind", valueMap = new Dictionary<string, string> { [kind!] = "触发" } }, new { key = "triggers.9.kind", title = "Missing" }, new { key = "triggers.9.kind|name", title = "Fallback" }]);
+        var name = job.GetProperty("name").GetString();
+        Assert.Equal($"Name,Kind,Missing,Fallback\r\n{name},触发,,{name}\r\n", jobCsv);
+    }
 }
