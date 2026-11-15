@@ -2066,10 +2066,6 @@
           "type": "object",
           "description": "通知：邮件、短信、机器人发件箱与 Telegram 交互（通道与机器人本身在后台页面配置）；写错不报错：不合法的值按缺省值处理",
           "properties": {
-            "Brand": {
-              "type": "string",
-              "description": "邮件与短信模板变量 brand 的缺省值；不写即应用名"
-            },
             "DispatchInterval": {
               "type": "string",
               "description": "发送循环的轮询间隔（hh:mm:ss）；有新记录时提前唤醒",

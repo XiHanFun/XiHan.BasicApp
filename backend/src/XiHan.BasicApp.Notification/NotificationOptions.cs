@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Configuration;
-using XiHan.BasicApp.Contracts;
 
 namespace XiHan.BasicApp.Notification;
 
@@ -15,11 +14,6 @@ public sealed class NotificationOptions
     /// 配置节
     /// </summary>
     public const string Section = "BasicApp:Notification";
-
-    /// <summary>
-    /// 邮件与短信模板里的品牌名 <c>brand</c>（调用方没传时补上），缺省为应用名
-    /// </summary>
-    public string Brand { get; init; } = AppInfo.Name;
 
     /// <summary>
     /// 发送循环的轮询间隔（缺省 5 秒）
@@ -59,7 +53,6 @@ public sealed class NotificationOptions
         var defaults = new NotificationOptions();
         return new NotificationOptions
         {
-            Brand = section[nameof(Brand)] is { Length: > 0 } brand ? brand : defaults.Brand,
             DispatchInterval = TimeSpan.TryParse(section[nameof(DispatchInterval)], out var interval) && interval > TimeSpan.Zero ? interval : defaults.DispatchInterval,
             RetryDelay = TimeSpan.TryParse(section[nameof(RetryDelay)], out var delay) && delay >= TimeSpan.Zero ? delay : defaults.RetryDelay,
             MaxAttempts = int.TryParse(section[nameof(MaxAttempts)], out var attempts) && attempts > 0 ? attempts : defaults.MaxAttempts,
