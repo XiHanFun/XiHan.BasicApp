@@ -1,33 +1,32 @@
 # 表结构升级
 
-本页说明正式库的表结构如何建立与升级、升级脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
+本页说明库的表结构如何建立与升级、什么时候要写升级脚本、脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
 
-开发库与正式库建表的方式不同：
+表结构由 ORM 按实体建出与补齐，各种库走同一条路径；升级脚本只做 ORM 做不了的事。
 
 | 库 | 建表方式 |
 | --- | --- |
-| 开发库 | Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动时按实体建缺表、加缺列（另补软删除实体的部分唯一索引） |
-| 正式库 | 只认 `Schema/<版本>/*.sql` 与版本台账，由 `SchemaUpgrader` 执行；`InitTables` 保持关闭 |
+| 开发库 | Development 打开 `XiHan:Persistence:SqlSugar:InitTables`：每次启动按实体建缺表、加缺列（另补软删除实体的部分唯一索引），改了实体重启即生效 |
+| 正式库 | 表结构升级器（`SchemaUpgrader`）在启动时执行：新库按实体建全部表；已有库先执行比台账新的升级脚本，再按实体补缺的表与列；`InitTables` 保持关闭 |
 
 ## 机制
 
 | 项 | 说明 |
 | --- | --- |
-| 脚本 | `backend/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`：每个子目录是一个版本（`主.次.修订`，目录名不是版本号即报错），PostgreSQL 方言、`CREATE TABLE IF NOT EXISTS` 风格、可重复执行；目录里的 `.sql` 按文件名顺序执行。目录可用 `BasicApp:Schema:Directory` 改（相对路径按程序目录解析） |
-| 基线 | 最低的版本目录：`Schema/6.0.0/0001-baseline.sql`，由 `SchemaBaselineTests` 按 InitTables 建出的结构生成，包含应用实体与框架 Provider 的表（`tenant_record`、`permission_grant_record`、`audit_record`、`message_translation`、`outbox_message`、调度五张表、工作流九张表） |
-| 台账 | 每个库自己的 `sys_version`（结构版本、应用版本、是否升级中、升级节点与开始时间）与 `sys_migration_history`（每个脚本的执行记录：版本、脚本、节点、成败、耗时、错误） |
+| 按实体建表 | 新库建出全部已登记实体的表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`message_translation`、`outbox_message`、调度与工作流的表），再补软删除实体的部分唯一索引；已有库只建缺的表、加缺的列，不改、不删已有的列。只在新库、执行了脚本或应用版本变了时做，同一版本的节点重启不再逐表核对 |
+| 升级脚本 | `backend/src/XiHan.BasicApp.Host/Schema/<版本>/<库类型>/*.sql`：每个子目录是一个版本（`主.次.修订`），其下按库类型分目录（`postgresql`、`mysql`、`sqlserver`、`oracle`，测试用 `sqlite`），租户独立库的脚本在库类型目录下的 `tenant/` 里；按文件名顺序执行。目录名不是版本号、库类型写错、脚本没放进库类型目录都报错。目录可用 `BasicApp:Schema:Directory` 改（相对路径按程序目录解析），没有脚本时目录可以不存在 |
+| 结构版本 | 新库登记为当前结构版本：脚本目录里最高的版本与 `6.0.0` 取大者；执行完某个版本的脚本即推进到那个版本 |
+| 台账 | 每个库自己的 `sys_version`（结构版本、应用版本、是否升级中、升级节点与开始时间）与 `sys_migration_history`（每一步的执行记录：版本、脚本或 `orm-sync`、节点、成败、耗时、错误） |
 | 执行器 | Runtime 的 `SchemaUpgrader`，租户独立库由 `TenantSchemas` 升级 |
 
 ### 执行顺序
 
-1. 打开 `BasicApp:Schema:CreateDatabase`（开发环境打开，缺省关）时，平台库不存在即先建库；台账两张表再按实体建好；
-2. 经台账行的条件更新抢升级锁（时间按库的 `now()`，各节点时钟不必对齐）；锁过了 `BasicApp:Schema:LockExpiryMinutes`（缺省 30 分钟）即视为持锁节点已退出，别的节点可以接手；等别的节点升级最多 `LockWaitMinutes`（缺省 10 分钟），等不到即升级失败；
-3. 新库从基线建起，之后每个版本一个目录，只执行比台账新的；每个脚本一个事务，成功与失败都记进升级记录，失败即停；库的结构版本比应用带的脚本还新即 `RUNTIME_VALIDATION_004`（不能用旧版本的应用连新库）；
-4. 平台库升完后，在同一把锁里逐个升级已就绪的租户独立库：只跑 `Schema/<版本>/tenant/*.sql`，台账在各自的库里，停用的租户也升；没有租户脚本的版本只推进台账。
+1. 打开 `BasicApp:Schema:CreateDatabase`（开发环境打开，缺省关）时，平台库不存在即先建库（Oracle 的库是 DBA 事先建好的用户，不建）；台账两张表再按实体建好；
+2. 经台账行的条件更新抢升级锁；锁过了 `BasicApp:Schema:LockExpiryMinutes`（缺省 30 分钟）即视为持锁节点已退出，别的节点可以接手；等别的节点升级最多 `LockWaitMinutes`（缺省 10 分钟），等不到即升级失败。锁的时间取节点时钟，各节点的偏差远小于失效时间即可；
+3. 新库按实体建全部表，登记当前结构版本；已有库先执行比台账新的、本库类型的脚本（每个脚本一个事务，成功与失败都记进升级记录，失败即停），再按实体补缺的表与列（记一步 `orm-sync`）。库的结构版本比应用还新即 `RUNTIME_VALIDATION_004`（不能用旧版本的应用连新库）；
+4. 平台库升完后，在同一把锁里逐个升级已就绪的租户独立库：执行本库类型目录下 `tenant/` 里的脚本，再按租户库实体补表补列；台账在各自的库里，停用的租户也升。
 
 升级期间，已在运行的其他节点每 10 秒读一次台账，看到有节点持着没过期的锁即进入维护模式：除 `/health` 与 `/.well-known/` 外一律 503（`RUNTIME_UNAVAILABLE_003`，带 `Retry-After`）。
-
-只支持 PostgreSQL：别的库（测试用的 SQLite）跳过脚本，由 InitTables 建表。
 
 ### 执行时机
 
@@ -44,24 +43,30 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 租户独立库
 
-`tenants.initialize-database` 在租户的分片上建库、只建租户库实体的表（按当前实体建即是最新结构），并在该库的台账登记当前结构版本；之后随平台的升级只跑 `tenant/` 下的脚本。见[多租户 SaaS](./multi-tenancy#开通三步)。
+`tenants.initialize-database` 在租户的分片上建库、按实体只建租户库实体的表，并在该库的台账登记当前结构版本；之后随平台一起升级。独立库的库类型可以与平台库不同，脚本按它自己的类型取。见[多租户 SaaS](./multi-tenancy#开通三步)。
 
 ## 写升级脚本
 
-改了实体（加表、加列、改长度）时：
+加表、加列、加索引都不用写脚本，ORM 会补。要写脚本的只有 ORM 做不了的：
 
-1. 首个正式版发布之前，直接重生成基线：设 `XIHAN_TEST_POSTGRES`（服务器连接串，不带库名）与 `XIHAN_UPDATE_SCHEMA_BASELINE=1` 跑 `SchemaBaselineTests.Baseline_BuildsTheSameTablesAsInitTables_AndRunsOnce`，测试自建临时库、按 InitTables 写回 `0001-baseline.sql`，再校验基线建出的库与 InitTables 一致；只提交基线里属于本次改动的变化。
-2. 正式版发布之后，每个版本一个新目录（`Schema/<新版本>/`），新增脚本、文件名带序号：
-   - 写成可重复执行（`CREATE TABLE IF NOT EXISTS`、`ADD COLUMN IF NOT EXISTS` …），只用 PostgreSQL 方言；
-   - 影响租户库实体的，另在 `Schema/<新版本>/tenant/` 写一份。
-3. 开发库由 InitTables 自动对齐，但正式环境只执行脚本，两者必须一致，`SchemaBaselineTests` 守着基线与实体的一致性。
+- 改列名、改表名（ORM 会把新名字当成新列或新表）；
+- 改列的类型或长度，或把可空改成非空（ORM 不改已有的列）；
+- 删列、删表、删索引；
+- 搬数据：新列要从旧列算出来、拆表合表、给已有行回填非空字符串或日期时间列。
+
+写法：
+
+1. 每个版本一个新目录，脚本放进各库类型的目录：`Schema/<新版本>/postgresql/0001-xxx.sql`、`…/mysql/…`、`…/sqlserver/…`、`…/oracle/…`，四种库都要有；影响租户库实体的，另在各库类型目录的 `tenant/` 里写一份。
+2. 脚本在按实体补表补列之前执行：要往新列搬数据的，在脚本里先把列加上。
+3. 写成可重复执行（先判断表、列、索引是否存在）：MySQL 与 Oracle 的 DDL 会隐式提交、回滚不了，失败后修好重跑，已执行的部分要能跳过。
+4. Oracle 不能一次执行多条语句：语句之间用只有 `/` 的一行隔开，普通语句末尾不写分号，PL/SQL 块照常写。SQL Server 的脚本不要写 `GO`。
 
 ::: tip 给已有行的表加列
-开发库的 InitTables 只能给已有行的表加可空列，或数值 / 枚举 / 布尔 / `Guid` 这类能按 CLR 缺省值回填的非可空列；非可空的字符串与日期时间列在实体里声明成可空，或者重建开发库。
+InitTables 与升级器补列时，只能给已有行的表加可空列，或数值 / 枚举 / 布尔 / `Guid` 这类能按 CLR 缺省值回填的非可空列；非可空的字符串与日期时间列在实体里声明成可空，或者写脚本先加列并回填。
 :::
 
 ::: tip 新的唯一索引建不出来
-实体或框架的表多了唯一索引时，开发库里已有重复数据会让 InitTables 建不出索引，宿主启动即失败。开发库重建后重新 `seed`，或按报错的表去掉重复行再启动。
+实体或框架的表多了唯一索引时，库里已有重复数据会让建索引失败，升级即中断。按报错的表去掉重复行再启动；开发库也可以重建后重新 `seed`。
 :::
 
 ## 版本与升级记录
@@ -71,7 +76,7 @@ Maintenance 包提供只读的管理面（平台侧，页面在「系统管理 �
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
 | `versions.list` / `get` | `maintenance.versions.read` | 每个库一行（平台库为 `platform`，另加各独立库租户，按库名取）：应用版本、结构版本、是否升级中、升级节点；读不到的库带错误说明 |
-| `migrations.list` / `get` | `maintenance.migrations.read` | 脚本执行台账：版本、脚本、节点、成败、耗时 |
+| `migrations.list` / `get` | `maintenance.migrations.read` | 升级记录：版本、脚本或 `orm-sync`、节点、成败、耗时 |
 
 ## 下一步
 

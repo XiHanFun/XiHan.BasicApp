@@ -66,8 +66,8 @@ src/XiHan.BasicApp.<包>/
 ## 种子与表结构
 
 - 种子实现 `ISeeder`、`AddSeeder<T>()`，号段取 `Contracts.Seeding.SeedOrders`（身份 100、操作字典 200、权限目录 300、菜单 400、套餐 500、平台数据 600、演示 900，模块偏移 +10）；目录类每次对齐，运营数据只首写，演示数据看 `BasicApp:Seed:EnableDemoData`。
-- 开发库靠 Development 的 `InitTables` 建表；正式库只认 `Host/Schema/<版本>/*.sql` 与版本台账（`SchemaUpgrader` 启动时执行、失败即中断）。Agent 不对任何库手工执行脚本。
-- 首个正式版发布前改表就重生成 `6.0.0` 基线：`XIHAN_TEST_POSTGRES=<服务器> XIHAN_UPDATE_SCHEMA_BASELINE=1` 跑 `SchemaBaselineTests.Baseline_BuildsTheSameTablesAsInitTables_AndRunsOnce`，测试自建临时库、按 InitTables 写回 `0001-baseline.sql` 并校验基线建的库与之一致；只提交基线里属于本次改动的变化。
+- 表结构由 ORM 按实体建出：开发库靠 Development 的 `InitTables`；正式库由 `SchemaUpgrader` 启动时执行（新库按实体建表；已有库先跑比台账新的脚本，再按实体补表补列；失败即中断）。Agent 不对任何库手工执行脚本。
+- 加表、加列、加索引只改实体；改名、改类型或长度、可空改非空、删列、搬数据才写升级脚本：`Host/Schema/<新版本>/<库类型>/*.sql`，`postgresql`、`mysql`、`sqlserver`、`oracle` 各一份，租户库实体的另放各库类型目录的 `tenant/`；可重复执行，Oracle 语句以只有 `/` 的行分隔。`SchemaUpgradeTests` 守着升级器建的库与 InitTables 一致。
 
 ## XML 文档
 

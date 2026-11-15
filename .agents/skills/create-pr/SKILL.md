@@ -19,7 +19,7 @@ description: 为 XiHan.BasicApp 准备、审查或创建 Pull Request 时使用�
 
 - 标题使用 Conventional Commit 形态，描述业务或使用者结果。
 - 操作、DTO、权限码、页面登记和可选模块开关必须列出两端同步情况：契约导出（`frontend/contracts`）与前端生成物是否同一提交。
-- 表结构变化列出 `Schema/<版本>/*.sql`、已有数据、可重复执行性、备份和回滚风险。
+- 表结构变化列出改了哪些实体、有没有 `Schema/<版本>/<库类型>/*.sql` 升级脚本（四种库是否齐全）、已有数据、可重复执行性、备份和回滚风险。
 - 只有实际执行的后端构建 / 测试、前端 `pnpm check` / `test` / `build` 和文档构建才能勾选。
 - XiHan.Framework 快照构建或 XiHan.UI 本地联调必须说明，不能把锁定提交、正式包验证与源码联调混为一谈。
 

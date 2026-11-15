@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Data.Common;
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
@@ -21,7 +20,8 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// </summary>
 /// <remarks>
 /// 方案 5.10、5.14：库隔离租户的独立库只建落租户库的实体（<see cref="EntityTypeCatalog.TenantScoped"/>），按当前实体建表即是最新结构，
-/// 随即在该库自己的台账（<see cref="SysVersion"/>）登记当前结构版本；之后升级只跑比台账新的 <c>Schema/&lt;版本&gt;/tenant/*.sql</c>，没有租户脚本的版本只推进台账
+/// 随即在该库自己的台账（<see cref="SysVersion"/>）登记当前结构版本；之后升级与平台库同一套（<see cref="SchemaMigration"/>）：先跑比台账新的、本库类型的
+/// <c>Schema/&lt;版本&gt;/&lt;库类型&gt;/tenant/*.sql</c>，再按实体补缺的表与列。独立库的库类型可以与平台库不同，脚本按它自己的类型取
 /// 都在该租户的分片连接上做：自建服务作用域、先经框架的 <see cref="TenantShardScope"/> 按租户目录绑定分片（不经管道，不看应用状态与租户是否启用），再取持久化客户端
 /// </remarks>
 /// <param name="scopes">服务作用域工厂</param>
@@ -31,11 +31,6 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// <param name="logger">日志</param>
 public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTypeCatalog entities, SchemaOptions options, TimeProvider clock, ILogger<TenantSchemas> logger)
 {
-    /// <summary>
-    /// 租户脚本所在的子目录名
-    /// </summary>
-    public const string TenantDirectory = "tenant";
-
     /// <summary>
     /// 租户目录里标记独立库已就绪的属性
     /// </summary>
@@ -60,7 +55,7 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
             return bound.Error!;
         }
 
-        var discovered = SchemaScripts.Discover(options.Directory);
+        var discovered = SchemaScripts.Discover(options.Directory, DatabaseProviders.NameOf(shard.CurrentConnectionConfig.DbType));
         if (!discovered.TryGetValue(out var versions))
         {
             return discovered.Error!;
@@ -68,38 +63,35 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
 
         try
         {
-            shard.DbMaintenance.CreateDatabase();
-            var split = entities.TenantScoped.Where(static t => t.IsDefined(typeof(SplitTableAttribute), inherit: false)).ToArray();
-            var plain = entities.TenantScoped.Except(split).Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
-            shard.CodeFirst.InitTables(plain);
-            if (split.Length > 0)
+            // Oracle 的库是 DBA 事先建好的用户，不建库
+            if (shard.CurrentConnectionConfig.DbType != DbType.Oracle)
             {
-                shard.CodeFirst.SplitTables().InitTables(split);
+                shard.DbMaintenance.CreateDatabase();
             }
 
-            ActiveUniqueIndexes.Ensure(shard, plain);
-
-            var current = versions[^1].Name;
+            var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
+            SchemaMigration.Sync(shard, types);
+            var current = SchemaScripts.NameOf(SchemaScripts.Current(versions));
             if (!await shard.Queryable<SysVersion>().AnyAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false))
             {
                 await shard.Insertable(new SysVersion { Id = SysVersion.RowId, AppVersion = AppInfo.Version, DbVersion = current, UpgradedAt = clock.GetUtcNow(), ConcurrencyStamp = Guid.NewGuid().ToString("N") })
                     .ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            LogInitialized(logger, tenantId, current, plain.Length + split.Length);
+            LogInitialized(logger, tenantId, current, types.Length);
             return current;
         }
-        catch (Exception exception) when (exception is DbException or SqlSugarException)
+        catch (Exception exception) when (exception is DbException or SqlSugarException or NotSupportedException or FrameworkException)
         {
             return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"Initializing the database of tenant '{tenantId}' failed: {exception.Message}");
         }
     }
 
     /// <summary>
-    /// 把租户的分片升到应用带的结构版本
+    /// 把租户的分片升到应用的结构版本
     /// </summary>
     /// <remarks>
-    /// 只对已初始化的库调用；库比应用新即 <see cref="RuntimeErrors.SchemaNewerThanApp"/>。每个脚本一个事务，成功与失败都记进该库的升级记录，失败即停
+    /// 只对已初始化的库调用；库比应用新即 <see cref="RuntimeErrors.SchemaNewerThanApp"/>。每一步成功与失败都记进该库的升级记录，失败即停
     /// </remarks>
     public async Task<Result<SchemaUpgradeReport>> UpgradeAsync(string tenantId, string node, CancellationToken cancellationToken)
     {
@@ -111,7 +103,7 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
             return bound.Error!;
         }
 
-        var discovered = SchemaScripts.Discover(options.Directory);
+        var discovered = SchemaScripts.Discover(options.Directory, DatabaseProviders.NameOf(shard.CurrentConnectionConfig.DbType));
         if (!discovered.TryGetValue(out var versions))
         {
             return discovered.Error!;
@@ -120,41 +112,16 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
         try
         {
             var row = await shard.Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false);
-            var from = row?.DbVersion;
-            if (row is null || from is null || !System.Version.TryParse(from, out var current))
+            if (row?.DbVersion is null)
             {
                 return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"The database of tenant '{tenantId}' has no schema version; initialize it first.");
             }
 
-            if (current > versions[^1].Version)
-            {
-                return Error.Literal(RuntimeErrors.SchemaNewerThanApp, $"The schema version '{from}' of tenant '{tenantId}' is newer than the scripts this application ships (up to '{versions[^1].Name}').");
-            }
-
-            var applied = new List<string>();
-            foreach (var version in versions.Where(v => v.Version > current))
-            {
-                var folder = Path.Combine(options.Directory, version.Name, TenantDirectory);
-                var files = System.IO.Directory.Exists(folder) ? System.IO.Directory.EnumerateFiles(folder, "*.sql").Order(StringComparer.Ordinal).ToList() : [];
-                foreach (var file in files)
-                {
-                    var failed = await ApplyAsync(shard, version.Name, file, node, cancellationToken).ConfigureAwait(false);
-                    if (failed is not null)
-                    {
-                        return Error.Literal(RuntimeErrors.SchemaUpgradeFailed, $"Tenant '{tenantId}' schema script {version.Name}/{Path.GetFileName(file)} failed: {failed}");
-                    }
-
-                    applied.Add(version.Name + "/" + TenantDirectory + "/" + Path.GetFileName(file));
-                }
-
-                await shard.Updateable<SysVersion>().SetColumns(v => new SysVersion { DbVersion = version.Name }).Where(v => v.Id == SysVersion.RowId).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
-                current = version.Version;
-            }
-
-            var upgradedAt = clock.GetUtcNow();
-            await shard.Updateable<SysVersion>().SetColumns(v => new SysVersion { AppVersion = AppInfo.Version, UpgradedAt = upgradedAt }).Where(v => v.Id == SysVersion.RowId).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
-            var to = versions.First(v => v.Version == current).Name;
-            return new SchemaUpgradeReport(false, from, to, applied);
+            var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
+            var upgraded = await SchemaMigration.ApplyAsync(shard, () => SchemaMigration.Sync(shard, types), versions, tenant: true, node, clock, logger, cancellationToken).ConfigureAwait(false);
+            return upgraded.IsFailure
+                ? Error.Literal(upgraded.Error!.Code, $"Tenant '{tenantId}': {upgraded.Error.Text ?? upgraded.Error.Code}")
+                : upgraded;
         }
         catch (Exception exception) when (exception is DbException or SqlSugarException)
         {
@@ -218,39 +185,6 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
         {
             return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"Reading the schema version of tenant '{tenantId}' failed: {exception.Message}");
         }
-    }
-
-    private async Task<string?> ApplyAsync(ISqlSugarClient shard, string version, string file, string node, CancellationToken cancellationToken)
-    {
-        var sql = await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false);
-        var executedAt = clock.GetUtcNow();
-        var watch = Stopwatch.StartNew();
-        string? error = null;
-        try
-        {
-            await shard.Ado.BeginTranAsync().ConfigureAwait(false);
-            await shard.Ado.ExecuteCommandAsync(sql).ConfigureAwait(false);
-            await shard.Ado.CommitTranAsync().ConfigureAwait(false);
-        }
-        catch (Exception exception) when (exception is DbException or SqlSugarException)
-        {
-            await shard.Ado.RollbackTranAsync().ConfigureAwait(false);
-            error = exception.Message;
-        }
-
-        await shard.Insertable(new SysMigrationHistory
-        {
-            Id = Guid.CreateVersion7(),
-            ConcurrencyStamp = Guid.NewGuid().ToString("N"),
-            Version = version,
-            ScriptName = TenantDirectory + "/" + Path.GetFileName(file),
-            ExecutedAt = executedAt,
-            DurationMs = watch.ElapsedMilliseconds,
-            Success = error is null,
-            NodeName = node,
-            ErrorMessage = error,
-        }).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
-        return error;
     }
 
     /// <summary>

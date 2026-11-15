@@ -20,7 +20,7 @@ createdb -h 127.0.0.1 -U postgres xihan_basicapp
 dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development
 ```
 
-Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记的实体建表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`outbox_message`、`message_translation` 与调度表），软删除实体的部分唯一索引随后补建。生产库的表结构由 `Schema/<版本>/*.sql` 与版本台账管理（`schema upgrade` 命令，或 `BasicApp:Schema:AutoUpgrade` 开着时启动自动执行），6.0.0 基线是 `Schema/6.0.0/0001-baseline.sql`。
+Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记的实体建表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`outbox_message`、`message_translation` 与调度表），软删除实体的部分唯一索引随后补建。生产库由表结构升级器管理（`schema upgrade` 命令，或 `BasicApp:Schema:AutoUpgrade` 开着时启动自动执行）：新库按实体建表，已有库先执行 `Schema/<版本>/<库类型>/*.sql` 里比台账新的脚本、再按实体补表补列。
 
 ## 配置
 

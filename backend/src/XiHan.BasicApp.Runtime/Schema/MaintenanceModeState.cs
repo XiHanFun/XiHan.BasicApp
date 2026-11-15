@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// </summary>
 /// <remarks>
 /// 每 <see cref="PollInterval"/> 读一次平台库的版本台账：有节点持着没过期的升级锁即进入维护模式，
-/// 维护模式下除健康检查外的请求一律 503。只看 PostgreSQL 库（升级脚本只为它写）；台账还没建或读不到时不进入维护模式
+/// 维护模式下除健康检查外的请求一律 503。台账还没建或读不到时不进入维护模式
 /// </remarks>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="options">结构升级配置</param>
@@ -52,18 +52,12 @@ public sealed class MaintenanceModeState(IServiceScopeFactory scopes, SchemaOpti
         var client = scope.ServiceProvider.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysVersion));
         // 新库还没建表时读不到，下面接住了：不是错误，不进 SQL 错误日志
         using var expected = SqlDiagnostics.ExpectErrors();
-        if (client.CurrentConnectionConfig.DbType != DbType.PostgreSQL)
-        {
-            return false;
-        }
-
         try
         {
-            // 与升级锁同一口径：时间按库的 now()
-            return await client.Ado.GetIntAsync(
-                "SELECT COUNT(*) FROM sys_version WHERE id = @id AND is_upgrading AND upgrade_started_at > now() - make_interval(secs => @expiry)",
-                new SugarParameter("@id", SysVersion.RowId),
-                new SugarParameter("@expiry", options.LockExpiry.TotalSeconds)).ConfigureAwait(false) > 0;
+            // 与升级锁同一口径：时间取节点时钟
+            var expired = clock.GetUtcNow() - options.LockExpiry;
+            return await client.Queryable<SysVersion>()
+                .AnyAsync(v => v.Id == SysVersion.RowId && v.IsUpgrading && v.UpgradeStartedAt > expired, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is DbException or SqlSugarException)
         {

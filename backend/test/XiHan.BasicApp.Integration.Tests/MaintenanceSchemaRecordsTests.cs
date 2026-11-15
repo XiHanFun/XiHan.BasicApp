@@ -39,7 +39,7 @@ public sealed class MaintenanceSchemaRecordsTests : IDisposable
         {
             (await ctx.Services.GetRequiredService<IRepository<SysVersion, Guid>>().AddAsync(new SysVersion { Id = SysVersion.RowId, AppVersion = "6.0.0-preview.1", DbVersion = "6.0.0", UpgradedAt = now }, ctx.CancellationToken)).ThrowIfFailure();
             var history = ctx.Services.GetRequiredService<IRepository<SysMigrationHistory, Guid>>();
-            (await history.AddAsync(new SysMigrationHistory { Id = Guid.CreateVersion7(), Version = "6.0.0", ScriptName = "0001-baseline.sql", ExecutedAt = now.AddMinutes(-2), DurationMs = 812, Success = true, NodeName = "node-a" }, ctx.CancellationToken)).ThrowIfFailure();
+            (await history.AddAsync(new SysMigrationHistory { Id = Guid.CreateVersion7(), Version = "6.0.0", ScriptName = SysMigrationHistory.OrmSync, ExecutedAt = now.AddMinutes(-2), DurationMs = 812, Success = true, NodeName = "node-a" }, ctx.CancellationToken)).ThrowIfFailure();
             return await history.AddAsync(new SysMigrationHistory { Id = failedId, Version = "6.0.1", ScriptName = "0001-users.sql", ExecutedAt = now.AddMinutes(-1), DurationMs = 15, Success = false, NodeName = "node-a", ErrorMessage = "relation \"sys_users\" does not exist" }, ctx.CancellationToken);
         })).ThrowIfFailure();
 
@@ -55,7 +55,7 @@ public sealed class MaintenanceSchemaRecordsTests : IDisposable
 
         // 缺省按执行时间倒序；按结果筛选；按 ID 取到失败原因
         var (_, records) = await SendAsync(server, HttpMethod.Post, "/api/migrations:list", new { }, platform);
-        Assert.Equal(["0001-users.sql", "0001-baseline.sql"], records.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("scriptName").GetString()));
+        Assert.Equal(["0001-users.sql", SysMigrationHistory.OrmSync], records.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("scriptName").GetString()));
         var (_, failed) = await SendAsync(server, HttpMethod.Post, "/api/migrations:list", new { filters = new[] { new { field = "success", @operator = "eq", value = "false" } } }, platform);
         Assert.Equal(1, failed.GetProperty("total").GetInt64());
         var (got, record) = await SendAsync(server, HttpMethod.Get, $"/api/migrations/{failedId}", null, platform);

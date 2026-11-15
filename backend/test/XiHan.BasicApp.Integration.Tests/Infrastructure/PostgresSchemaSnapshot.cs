@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Data;
-using System.Text;
 using System.Text.RegularExpressions;
 using SqlSugar;
 
@@ -13,7 +12,7 @@ namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 /// </summary>
 /// <remarks>
 /// 表、列（类型、可空、缺省、自增）、约束（PostgreSQL 18 起列的 NOT NULL 也记成约束，已在列定义里，不重复）与不属于约束的索引；按月分表的表（名字以 <c>_yyyyMMdd</c> 结尾）不算，它们由写入时按需建出
-/// 用来比对 InitTables 建的库与基线脚本建的库，也用来把前者渲染成基线脚本
+/// 用来比对框架 InitTables 建的库与升级执行器建的库
 /// </remarks>
 public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable> Tables)
 {
@@ -66,32 +65,6 @@ public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable>
     }
 
     /// <summary>
-    /// 渲染成可重复执行的建表脚本
-    /// </summary>
-    /// <remarks>
-    /// <c>CREATE TABLE IF NOT EXISTS</c>（列按原顺序，<c>serial</c> 列还原成 <c>serial</c> / <c>bigserial</c>，约束写在表内）与 <c>CREATE INDEX IF NOT EXISTS</c>
-    /// </remarks>
-    public string ToSql(string header)
-    {
-        var sql = new StringBuilder();
-        sql.Append(header).Append('\n');
-        foreach (var table in Tables)
-        {
-            sql.Append('\n').Append("CREATE TABLE IF NOT EXISTS \"").Append(table.Name).Append("\" (\n");
-            var lines = table.Columns.Select(static c => "    " + c.ToDefinition())
-                .Concat(table.Constraints.Select(static c => $"    CONSTRAINT \"{c.Name}\" {c.Definition}"))
-                .ToList();
-            sql.Append(string.Join(",\n", lines)).Append("\n);\n");
-            foreach (var index in table.Indexes)
-            {
-                sql.Append(IndexHead().Replace(index.Definition, "$1 IF NOT EXISTS ", 1)).Append(";\n");
-            }
-        }
-
-        return sql.ToString();
-    }
-
-    /// <summary>
     /// 列出与另一个快照的差别
     /// </summary>
     /// <remarks>
@@ -116,9 +89,6 @@ public sealed partial record PostgresSchemaSnapshot(IReadOnlyList<PostgresTable>
 
     [GeneratedRegex(@"_\d{8}$", RegexOptions.CultureInvariant)]
     private static partial Regex SplitTable();
-
-    [GeneratedRegex(@"^(CREATE (?:UNIQUE )?INDEX) ", RegexOptions.CultureInvariant)]
-    private static partial Regex IndexHead();
 }
 
 /// <summary>

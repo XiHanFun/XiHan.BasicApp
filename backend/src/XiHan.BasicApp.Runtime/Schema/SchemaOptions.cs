@@ -31,7 +31,7 @@ public sealed record SchemaOptions
     /// 升级前平台库不存在时是否先建库
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>CreateDatabase</c>，缺省关：库名写错时不悄悄建一个空库。开发环境打开，克隆下来不用先手工建库；建库经维护库 <c>postgres</c>，连接账号要有建库权限
+    /// 配置键 <c>CreateDatabase</c>，缺省关：库名写错时不悄悄建一个空库。开发环境打开，克隆下来不用先手工建库；建库经各库的维护库，连接账号要有建库权限；Oracle 的库是 DBA 事先建好的用户，不建
     /// </remarks>
     public bool CreateDatabase { get; init; }
 
@@ -39,7 +39,7 @@ public sealed record SchemaOptions
     /// 脚本目录
     /// </summary>
     /// <remarks>
-    /// 配置键 <c>Directory</c>，缺省应用目录下的 <c>Schema</c>；其下每个版本一个子目录（如 <c>6.0.0</c>），目录里的 <c>.sql</c> 按文件名顺序执行
+    /// 配置键 <c>Directory</c>，缺省应用目录下的 <c>Schema</c>；其下每个版本一个子目录，再按库类型分目录（如 <c>6.1.0/postgresql</c>），目录里的 <c>.sql</c> 按文件名顺序执行；没有脚本时可以不存在
     /// </remarks>
     public string Directory { get; init; } = Path.Combine(AppContext.BaseDirectory, "Schema");
 

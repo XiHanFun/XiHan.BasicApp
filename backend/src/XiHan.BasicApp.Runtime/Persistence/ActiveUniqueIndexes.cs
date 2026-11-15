@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// </summary>
 /// <remarks>
 /// 按实体上的 <see cref="ActiveUniqueIndexAttribute"/> 以它写明的名字建 <c>… WHERE is_deleted = false</c>，已有即跳过
-/// 在建表之后调用：开发与测试由 <see cref="RuntimeFeature"/> 跟在框架的 <c>InitTables</c> 之后，租户独立库由 <c>TenantSchemas</c> 初始化时调用，生产库随基线脚本建出
+/// 在建表之后调用：开发与测试由 <see cref="RuntimeFeature"/> 跟在框架的 <c>InitTables</c> 之后，正式库与租户独立库由表结构升级器按实体建表之后调用
 /// 只支持 PostgreSQL 与 SQLite；没写索引名或超出 PostgreSQL 的 63 字符上限即抛出 <see cref="InvalidOperationException"/>（结构测试先行拦下）
 /// </remarks>
 public static class ActiveUniqueIndexes

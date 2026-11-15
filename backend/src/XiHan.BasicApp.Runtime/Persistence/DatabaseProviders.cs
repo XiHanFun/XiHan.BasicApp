@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 public static class DatabaseProviders
 {
     /// <summary>
-    /// PostgreSQL：生产与开发的缺省库
+    /// PostgreSQL：缺省库
     /// </summary>
     public const string PostgreSql = "postgresql";
 
@@ -33,6 +33,19 @@ public static class DatabaseProviders
     /// SQL Server
     /// </summary>
     public const string SqlServer = "sqlserver";
+
+    /// <summary>
+    /// Oracle
+    /// </summary>
+    public const string Oracle = "oracle";
+
+    /// <summary>
+    /// 正式环境支持的库类型名
+    /// </summary>
+    /// <remarks>
+    /// 升级脚本按这些名字分目录（<c>Schema/&lt;版本&gt;/&lt;库类型&gt;/</c>）；SQLite 只给测试，不在其列
+    /// </remarks>
+    public static IReadOnlyList<string> Production { get; } = [PostgreSql, MySql, SqlServer, Oracle];
 
     /// <summary>
     /// 按名字取库类型
@@ -54,7 +67,25 @@ public static class DatabaseProviders
             Sqlite => DbType.Sqlite,
             MySql => DbType.MySql,
             SqlServer or "mssql" => DbType.SqlServer,
-            _ => throw new FrameworkException(RuntimeErrors.DatabaseProviderUnsupported, $"Database provider '{provider}' is not supported; use one of postgresql, sqlite, mysql, sqlserver."),
+            Oracle => DbType.Oracle,
+            _ => throw new FrameworkException(RuntimeErrors.DatabaseProviderUnsupported, $"Database provider '{provider}' is not supported; use one of postgresql, mysql, sqlserver, oracle, sqlite."),
         };
     }
+
+    /// <summary>
+    /// 库类型的规范名
+    /// </summary>
+    /// <remarks>
+    /// 与 <see cref="Parse"/> 互逆，升级脚本的库类型目录用它
+    /// </remarks>
+    /// <exception cref="ArgumentOutOfRangeException">不是这里支持的库类型</exception>
+    public static string NameOf(DbType dbType) => dbType switch
+    {
+        DbType.PostgreSQL => PostgreSql,
+        DbType.Sqlite => Sqlite,
+        DbType.MySql => MySql,
+        DbType.SqlServer => SqlServer,
+        DbType.Oracle => Oracle,
+        _ => throw new ArgumentOutOfRangeException(nameof(dbType), dbType, "Unsupported database type."),
+    };
 }

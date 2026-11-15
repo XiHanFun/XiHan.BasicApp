@@ -37,7 +37,7 @@ docker compose up -d --build
 dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
 ```
 
-发布目录里带着 `Schema/<版本>/*.sql`、`IpDatabases/*.xdb`（IP 归属地离线库）与 `appsettings.json`。
+发布目录里带着 `IpDatabases/*.xdb`（IP 归属地离线库）与 `appsettings.json`，有升级脚本的版本还带着 `Schema/<版本>/<库类型>/*.sql`。
 
 ### 生产配置清单
 

@@ -8,7 +8,7 @@ namespace XiHan.BasicApp.Contracts.Entities;
 /// </summary>
 /// <remarks>
 /// 落成部分唯一索引 <c>&lt;Name&gt; … WHERE is_deleted = false</c>：已删除的行不受约束，同一个键删了再建、再删都不冲突（把 <c>is_deleted</c> 放进唯一列的话，同键第二次删除即撞约束）
-/// SqlSugar 的 <c>[SugarIndex]</c> 写不出条件，由 <c>Runtime</c> 在建表之后补建，生产库随基线脚本建出；不软删除的实体照用 <c>[SugarIndex]</c> 的唯一索引
+/// SqlSugar 的 <c>[SugarIndex]</c> 写不出条件，由 <c>Runtime</c> 在建表之后补建（开发库跟着 InitTables，正式库跟着表结构升级器）；不软删除的实体照用 <c>[SugarIndex]</c> 的唯一索引
 /// 结构测试守护：只用于软删除实体，软删除实体不写唯一的 <c>[SugarIndex]</c>，列必须是实体的属性，必须写 <see cref="Name"/>
 /// </remarks>
 /// <param name="columns">属性名，按索引列的顺序</param>

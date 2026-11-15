@@ -1507,7 +1507,7 @@
         },
         "Schema": {
           "type": "object",
-          "description": "表结构升级：启动时按 Schema/<版本>/*.sql 与版本台账升级平台库与各租户库",
+          "description": "表结构升级：启动时按实体建表补列，并执行 Schema/<版本>/<库类型>/*.sql 里比台账新的升级脚本，平台库与各租户库都升",
           "properties": {
             "AutoUpgrade": {
               "type": "boolean",
@@ -1516,12 +1516,12 @@
             },
             "CreateDatabase": {
               "type": "boolean",
-              "description": "升级前平台库不存在时先建库（经维护库 postgres，连接账号要有建库权限）；缺省关，库名写错时不悄悄建空库，开发环境打开",
+              "description": "升级前平台库不存在时先建库（经各库的维护库，连接账号要有建库权限；Oracle 的库是 DBA 事先建好的用户，不建）；缺省关，库名写错时不悄悄建空库，开发环境打开",
               "default": false
             },
             "Directory": {
               "type": "string",
-              "description": "脚本目录；不写即程序目录下的 Schema。相对路径按程序目录（不是当前目录）解析"
+              "description": "升级脚本目录；不写即程序目录下的 Schema。相对路径按程序目录（不是当前目录）解析，没有脚本时可以不存在"
             },
             "LockExpiryMinutes": {
               "type": "integer",

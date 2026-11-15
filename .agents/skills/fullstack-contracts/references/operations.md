@@ -25,8 +25,8 @@
 
 ## 表结构与种子
 
-- 开发库由 Development 的 `InitTables` 建表补列；正式库只认 `Host/Schema/<版本>/*.sql`（PostgreSQL、`CREATE TABLE IF NOT EXISTS`、可重复执行）与版本台账，`SchemaUpgrader` 在启动时按库取租约锁执行、失败即中断，别的节点升级期间维护模式返回 503。
-- 首个正式版发布前改表就重生成 `6.0.0/0001-baseline.sql`（`SchemaBaselineTests` + `XIHAN_UPDATE_SCHEMA_BASELINE=1` + `XIHAN_TEST_POSTGRES`），发布后每个版本一个新目录。
+- 表结构由 ORM 按实体建出：开发库由 Development 的 `InitTables` 建表补列；正式库由 `SchemaUpgrader` 在启动时按库取租约锁执行（新库按实体建表，已有库先跑比台账新的 `Host/Schema/<版本>/<库类型>/*.sql`、再按实体补表补列）、失败即中断，别的节点升级期间维护模式返回 503。
+- 升级脚本只写 ORM 做不了的改动（改名、改类型或长度、删列、搬数据），每个版本一个目录、每种库一份、可重复执行。
 - 不做上一大版本的数据迁移（D12）。Agent 不对任何库手工执行脚本，也不删改用户的开发库；要验证建表，用测试自建的临时库。
 - 种子：`dotnet XiHan.BasicApp.Host.dll seed [--only <名>] [--list]`，号段见 `SeedOrders`；初始账号 `superadmin`，密码来自 `BasicApp:Seed:SuperAdminPassword`。
 

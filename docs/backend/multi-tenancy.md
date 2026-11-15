@@ -50,7 +50,7 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 | `tenants.quotas` | `tenancy.tenants.read` | 各租户的用量与配额（平台侧） |
 | `tenants.mine` | 登录即可 | 我能进入的租户（控制中心、个人中心「我的租户」） |
 
-独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构脚本只为 PostgreSQL 编写，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
+独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构按实体建出，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
 
 ## 成员与切换
 
