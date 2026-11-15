@@ -71,6 +71,8 @@ const textInputRef = ref<{ el: HTMLInputElement | HTMLTextAreaElement | null, fo
 const showEmojiPicker = ref(false)
 const showMentionPicker = ref(false)
 const mentionMembers = ref<ChatMemberItem[]>([])
+/** 提及列表的容器：名单读回来时要找它的第一行 */
+const mentionListRef = ref<HTMLElement | null>(null)
 const mentionLoading = ref(false)
 /** 打 @ 唤起成员列表时那个 @ 在正文里的位置；点工具条 @ 钮唤起时为 null，选中即插在光标处 */
 let mentionAtIndex: null | number = null
@@ -233,6 +235,11 @@ function insertMentionAll() {
   })
 }
 
+/** 指针移到哪一行，焦点就跟到哪一行：当前行只有一个，键盘与指针说的是同一个 */
+function focusMentionRow(event: MouseEvent) {
+  (event.currentTarget as HTMLElement | null)?.focus()
+}
+
 /** 收集仍存在于正文中的 @ 名单 */
 function collectMentionIds(content: string): string[] {
   const ids: string[] = []
@@ -338,7 +345,22 @@ async function loadMentionMembers() {
   }
   finally {
     mentionLoading.value = false
+    void nextTick(focusFirstMentionRow)
   }
+}
+
+/**
+ * 名单读回来时列表已经开着：浮层打开那一刻里面还没有能聚焦的行，焦点落在了浮层自己身上
+ * 这时把它交给第一行，与名单已经在手时打开是同一个样子（当前行是第一行，回车即选中）
+ */
+function focusFirstMentionRow() {
+  const list = mentionListRef.value
+  const active = document.activeElement
+  // 焦点在包着列表的浮层上才接手：在正文框里、在某一行上、已经不在这儿了的都不动
+  if (!list || !showMentionPicker.value || !active || active === document.body || !active.contains(list)) {
+    return
+  }
+  list.querySelector<HTMLElement>('.chat-mention-item')?.focus()
 }
 
 /**
@@ -781,14 +803,14 @@ defineExpose({ acceptsFiles, addFiles })
           </XhPopoverTrigger>
           <XhPopoverPositioner>
             <XhPopoverContent :aria-label="t('chat.composer.mention')">
-              <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
+              <div ref="mentionListRef" class="flex max-h-52 w-52 flex-col overflow-y-auto">
                 <div v-if="mentionLoading" class="flex justify-center py-3">
                   <XhSpinner size="sm" />
                 </div>
                 <div v-else-if="!mentionMembers.length && !canMentionAll" class="py-3 text-center text-xs text-muted-foreground">
                   {{ t('chat.composer.mention_empty') }}
                 </div>
-                <button v-if="canMentionAll && !mentionLoading" type="button" class="chat-mention-item" @click="insertMentionAll">
+                <button v-if="canMentionAll && !mentionLoading" type="button" class="chat-mention-item" @mouseenter="focusMentionRow" @click="insertMentionAll">
                   <span class="chat-mention-item__all">
                     <Icon icon="lucide:users" width="14" height="14" />
                   </span>
@@ -799,6 +821,7 @@ defineExpose({ acceptsFiles, addFiles })
                   :key="member.userId"
                   type="button"
                   class="chat-mention-item"
+                  @mouseenter="focusMentionRow"
                   @click="insertMention(member)"
                 >
                   <XUserAvatar :name="member.userName" :size="24" />
@@ -1033,10 +1056,9 @@ defineExpose({ acceptsFiles, addFiles })
   background: var(--xh-bg-subtle-hover);
 }
 
-/* 列表一打开焦点就落在第一行：与组件库菜单的当前行同款（铺底加聚焦环），不留浏览器自带的黑框 */
+/* 列表一打开焦点就落在第一行：当前行只铺底，铺的底就是它的焦点指示，不画环也不留浏览器自带的黑框 */
 .chat-mention-item:focus-visible {
-  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
-  outline-offset: var(--xh-ring-offset);
+  outline: none;
 }
 
 /* 待发附件条目：图片显示缩略图，文件显示图标+名称，右上角浮动移除按钮 */
