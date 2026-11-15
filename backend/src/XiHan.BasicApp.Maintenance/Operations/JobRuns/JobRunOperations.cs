@@ -80,7 +80,7 @@ public sealed record JobRunResponse(
 /// 运行历史只保留框架配置的天数（缺省 7 天）。条件都能交给框架时总数取 <c>CountRunsAsync</c>、按偏移直接取一页；有触发方式或关键字时逐批取齐再筛。只在平台一侧
 /// </remarks>
 /// <param name="scheduler">框架调度</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = MaintenancePermissions.JobRunsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = MaintenancePermissions.JobRunsRead)]
 public sealed class ListJobRuns(IJobScheduler scheduler) : IOperation<PageRequest, PageResult<JobRunResponse>>
 {
     /// <summary>

@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="service">租户域服务</param>
 /// <param name="editions">套餐域服务</param>
 /// <param name="gate">套餐门控</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]
 public sealed class ChangeTenantEdition(IRepository<SysTenant, Guid> tenants, TenantService service, EditionService editions, EditionGate gate) : IOperation<ChangeTenantEditionRequest, TenantResponse>
 {
     /// <summary>

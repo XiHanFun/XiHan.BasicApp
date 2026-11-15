@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// <param name="members">成员域服务（核对负责人）</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="snapshots">部门缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsCreate)]
 public sealed class CreateDepartment(IRepository<SysDepartment, Guid> departments, DepartmentService service, MembershipService members, IIdGenerator<Guid> ids, DepartmentSnapshots snapshots) : IOperation<CreateDepartmentRequest, DepartmentResponse>
 {
     /// <summary>

@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// <param name="rules">规则仓储</param>
 /// <param name="service">规则域服务</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesCreate)]
 public sealed class CreateNumberingRule(IRepository<SysNumberingRule, Guid> rules, NumberingRuleService service, IIdGenerator<Guid> ids) : IOperation<CreateNumberingRuleRequest, NumberingRuleResponse>
 {
     /// <summary>

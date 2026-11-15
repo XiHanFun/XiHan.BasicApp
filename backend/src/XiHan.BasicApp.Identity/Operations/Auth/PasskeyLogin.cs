@@ -43,7 +43,7 @@ public sealed record LoginByPasskeyRequest([Required, StringLength(128)] string 
 /// 不列允许的凭据，由认证器列出本站的通行密钥让人选，不用先填账号与注册地。宿主没配或系统参数没开放时不可用
 /// </remarks>
 /// <param name="passkeys">通行密钥的仪式</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class BeginPasskeyLogin(PasskeyCeremonies passkeys) : IOperation<BeginPasskeyLoginRequest, BeginPasskeyLoginResponse>
 {
     /// <summary>
@@ -86,7 +86,7 @@ public sealed class BeginPasskeyLogin(PasskeyCeremonies passkeys) : IOperation<B
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="guards">登录守卫</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class LoginByPasskey(
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,

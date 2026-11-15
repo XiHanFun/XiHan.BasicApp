@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）；分页检索走 <c>dict-items.list</c>
 /// </remarks>
 /// <param name="service">字典域服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = SettingsPermissions.DictItemsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = SettingsPermissions.DictItemsRead)]
 public sealed class DictItemTree(DictService service) : IOperation<DictItemTreeRequest, DictItemTreeResponse>
 {
     /// <summary>

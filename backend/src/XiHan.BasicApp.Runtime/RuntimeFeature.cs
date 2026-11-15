@@ -47,7 +47,7 @@ public sealed class RuntimeFeature : IHostedFeature
         Package = "XiHan.BasicApp.Runtime",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version)],
         Requires =

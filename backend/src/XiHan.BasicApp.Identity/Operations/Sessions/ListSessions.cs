@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Identity.Operations.Sessions;
 /// 只看当前一侧，租户一侧再按数据范围收窄
 /// </remarks>
 /// <param name="queries">会话查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRead)]
 public sealed class ListSessions(SessionQueries queries) : IOperation<PageRequest, PageResult<OnlineSessionResponse>>
 {
     /// <summary>

@@ -63,7 +63,7 @@ public sealed record RoleHierarchyResponse(Guid RoleId, IReadOnlyList<RoleRelati
 /// </remarks>
 /// <param name="service">角色查找</param>
 /// <param name="reader">继承关系的组装</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader reader) : IOperation<GetRoleRequest, RoleHierarchyResponse>
 {
     /// <summary>
@@ -97,7 +97,7 @@ public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader re
 /// <param name="hierarchy">继承写入</param>
 /// <param name="reader">继承关系的组装</param>
 /// <param name="enforcer">约束规则求值</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesSetParents)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesSetParents)]
 public sealed class SetRoleParents(RoleService service, RoleHierarchyService hierarchy, RoleHierarchyReader reader, ConstraintEnforcer enforcer) : IOperation<SetRoleParentsRequest, RoleHierarchyResponse>
 {
     /// <summary>

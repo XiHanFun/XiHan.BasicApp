@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Identity.Operations.Sessions;
 /// <c>GET /api/sessions:summary</c>。当前一侧的有效会话数、有会话的用户数（同列表一样按数据范围收窄）与持有实时连接的用户数
 /// </remarks>
 /// <param name="queries">会话查询</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRead)]
 public sealed class GetSessionSummary(SessionQueries queries) : IOperation<SessionSummaryRequest, SessionSummaryResponse>
 {
     /// <summary>

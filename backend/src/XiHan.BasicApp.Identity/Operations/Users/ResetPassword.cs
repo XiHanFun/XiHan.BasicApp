@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersResetPassword)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersResetPassword)]
 public sealed class ResetPassword(IRepository<SysUser, Guid> users, UserAccountService accounts, TimeProvider clock) : IOperation<ResetPasswordRequest, PasswordChangedResponse>
 {
     /// <summary>

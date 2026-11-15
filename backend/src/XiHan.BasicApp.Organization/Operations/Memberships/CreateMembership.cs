@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="ids">标识生成器</param>
 /// <param name="clock">时间源</param>
 /// <param name="snapshots">部门缓存（成员数随之变）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsCreate)]
 public sealed class CreateMembership(
     IRepository<SysUserDepartment, Guid> memberships,
     DepartmentService departments,

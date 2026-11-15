@@ -50,7 +50,7 @@ public sealed class AuditingFeature : IHostedFeature, IDisposable
         Package = "XiHan.BasicApp.Auditing",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(AuditingCapabilities.Auditing, AuditingCapabilities.Version)],
         Requires =

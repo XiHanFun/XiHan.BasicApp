@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// <param name="rules">规则仓储</param>
 /// <param name="service">规则域服务</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesReset)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesReset)]
 public sealed class ResetNumberingRule(IRepository<SysNumberingRule, Guid> rules, NumberingRuleService service, TimeProvider clock) : IOperation<ResetNumberingRuleRequest, NumberingRuleResponse>
 {
     /// <summary>

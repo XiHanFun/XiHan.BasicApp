@@ -67,7 +67,7 @@ public sealed record TenantQuotasResponse(IReadOnlyList<TenantQuotaResponse> Ite
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="quotas">租户配额</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
 public sealed class ListTenantQuotas(IRepository<SysTenant, Guid> tenants, TenantQuotas quotas) : IOperation<ListTenantQuotasRequest, TenantQuotasResponse>
 {
     /// <summary>

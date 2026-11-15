@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Auditing.Operations.ExceptionLogs;
 /// <c>GET /api/exception-logs/{id}</c>。不在当前一侧即找不到
 /// </remarks>
 /// <param name="queries">异常日志查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AuditingPermissions.ExceptionLogsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AuditingPermissions.ExceptionLogsRead)]
 public sealed class GetExceptionLog(ExceptionLogQueries queries) : IOperation<GetExceptionLogRequest, ExceptionLogDetailResponse>
 {
     /// <summary>

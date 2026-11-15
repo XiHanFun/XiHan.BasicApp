@@ -66,7 +66,7 @@ public sealed record UnlinkExternalLoginRequest([Required, StringLength(32)] str
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="bindings">第三方绑定仓储</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ListExternalLogins(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings) : IOperation<ProfileRequest, ExternalLoginsResponse>
 {
     /// <summary>
@@ -102,7 +102,7 @@ public sealed class ListExternalLogins(IRepository<SysUser, Guid> users, UserAcc
 /// <param name="accounts">账号域服务</param>
 /// <param name="options">第三方登录配置</param>
 /// <param name="cache">共享缓存（绑定意图）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class BeginExternalBind(IRepository<SysUser, Guid> users, UserAccountService accounts, ExternalLoginOptions options, ISharedCache cache) : IOperation<BeginExternalBindRequest, BeginExternalBindResponse>
 {
     /// <summary>
@@ -144,7 +144,7 @@ public sealed class BeginExternalBind(IRepository<SysUser, Guid> users, UserAcco
 /// <param name="bindings">第三方绑定仓储</param>
 /// <param name="cache">共享缓存（票据）</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings, ISharedCache cache, IIdGenerator<Guid> ids) : IOperation<LinkExternalLoginRequest, ExternalLoginResponse>
 {
     /// <summary>
@@ -207,7 +207,7 @@ public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAcco
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="bindings">第三方绑定仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UnlinkExternalLogin(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings) : IOperation<UnlinkExternalLoginRequest, ExternalLoginsResponse>
 {
     /// <summary>

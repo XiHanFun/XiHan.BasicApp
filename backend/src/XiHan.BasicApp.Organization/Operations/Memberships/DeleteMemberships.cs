@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// <param name="service">归属域服务</param>
 /// <param name="clock">时间源</param>
 /// <param name="snapshots">部门缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.MembershipsDelete)]
 public sealed class DeleteMemberships(IRepository<SysUserDepartment, Guid> memberships, MembershipService service, TimeProvider clock, DepartmentSnapshots snapshots) : IOperation<MembershipIdsRequest, BatchResult>
 {
     /// <summary>

@@ -58,7 +58,7 @@ public sealed record SubscriptionResponse(
 /// <param name="service">租户域服务</param>
 /// <param name="quotas">租户配额</param>
 /// <param name="clock">时钟</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.SubscriptionRead)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.SubscriptionRead)]
 public sealed class GetSubscription(TenantService service, TenantQuotas quotas, TimeProvider clock) : IOperation<GetSubscriptionRequest, SubscriptionResponse>
 {
     /// <summary>

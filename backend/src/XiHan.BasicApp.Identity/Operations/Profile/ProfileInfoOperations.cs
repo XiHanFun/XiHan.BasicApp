@@ -62,7 +62,7 @@ internal static class UserNameChange
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateProfile(IRepository<SysUser, Guid> users, UserAccountService accounts) : IOperation<UpdateProfileRequest, ProfileResponse>
 {
     /// <summary>
@@ -108,7 +108,7 @@ public sealed class UpdateProfile(IRepository<SysUser, Guid> users, UserAccountS
 /// <param name="securities">账号安全仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="clock">时钟</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts, TimeProvider clock) : IOperation<ChangeUserNameRequest, ProfileResponse>
 {
     /// <summary>
@@ -178,7 +178,7 @@ public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="avatars">头像</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class RemoveAvatar(IRepository<SysUser, Guid> users, UserAccountService accounts, ProfileAvatars avatars) : IOperation<ProfileRequest, ProfileResponse>
 {
     /// <summary>

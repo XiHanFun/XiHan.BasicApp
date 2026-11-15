@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="grants">角色授予</param>
 /// <param name="rules">授予规则</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
 public sealed class RevokeRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions) : IOperation<RolePermissionsRequest, PermissionBatchResult>
 {
     /// <summary>

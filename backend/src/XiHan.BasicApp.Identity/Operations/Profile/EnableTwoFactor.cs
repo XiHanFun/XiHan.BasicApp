@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <param name="codes">邮件与短信验证码</param>
 /// <param name="protector">密钥加密</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class EnableTwoFactor(
     IRepository<SysUser, Guid> users,
     IRepository<SysUserSecurity, Guid> securities,

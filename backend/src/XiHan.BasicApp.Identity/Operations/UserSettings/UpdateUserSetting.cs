@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 /// <param name="ids">标识生成器</param>
 /// <param name="pushes">实时推送（没装 Realtime 即没有）</param>
 /// <param name="entries">用户设置缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateUserSetting(IRepository<SysUserSetting, Guid> settings, IIdGenerator<Guid> ids, IEnumerable<IRealtimePush> pushes, UserSettingEntries entries) : IOperation<UpdateUserSettingRequest, UserSettingResponse>
 {
     /// <summary>

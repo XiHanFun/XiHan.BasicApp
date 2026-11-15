@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// <param name="members">成员仓储</param>
 /// <param name="users">用户仓储</param>
 /// <param name="service">租户域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersRead)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersRead)]
 public sealed class ListTenantMembers(IRepository<SysTenantMember, Guid> members, IRepository<SysUser, Guid> users, TenantService service) : IOperation<TenantMembersRequest, TenantMembersResponse>
 {
     /// <summary>

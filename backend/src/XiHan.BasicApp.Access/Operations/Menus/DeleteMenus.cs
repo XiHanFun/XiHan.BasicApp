@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
 /// <param name="service">菜单域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusDelete)]
 public sealed class DeleteMenus(IRepository<SysMenu, Guid> menus, MenuService service) : IOperation<MenuIdsRequest, BatchResult>
 {
     /// <summary>

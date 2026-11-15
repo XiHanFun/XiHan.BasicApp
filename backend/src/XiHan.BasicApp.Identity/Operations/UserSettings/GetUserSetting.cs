@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Identity.Operations.UserSettings;
 /// 模仿中读的是被模仿用户的设置（令牌主体即被模仿者）。经缓存读（<see cref="UserSettingEntries"/>）
 /// </remarks>
 /// <param name="entries">用户设置缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetUserSetting(UserSettingEntries entries) : IOperation<GetUserSettingRequest, UserSettingResponse>
 {
     /// <summary>

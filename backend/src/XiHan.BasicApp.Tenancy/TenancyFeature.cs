@@ -45,7 +45,7 @@ public sealed class TenancyFeature : IFeature
         Package = "XiHan.BasicApp.Tenancy",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(TenancyCapabilities.Tenancy, TenancyCapabilities.Version)],
         Requires =

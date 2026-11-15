@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// <param name="menus">菜单仓储</param>
 /// <param name="service">菜单域服务</param>
 /// <param name="catalog">权限目录</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusUpdate)]
 public sealed class UpdateMenu(IRepository<SysMenu, Guid> menus, MenuService service, PermissionCatalog catalog) : IOperation<UpdateMenuRequest, MenuResponse>
 {
     /// <summary>

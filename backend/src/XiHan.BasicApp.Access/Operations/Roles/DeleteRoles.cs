@@ -31,7 +31,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="hierarchy">继承写入（仍被继承的不能删，连同删它作为下级的边）</param>
 /// <param name="delegations">委托（连同删委托该角色的记录）</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
 public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache, FieldSecurityService fieldRules, RoleHierarchyService hierarchy, DelegationService delegations, PermissionConditionService conditions) : IOperation<RoleIdsRequest, BatchResult>
 {
     /// <summary>

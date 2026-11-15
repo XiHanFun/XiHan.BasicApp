@@ -74,7 +74,7 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
             Package = "XiHan.BasicApp.Realtime",
             Version = AppInfo.Version,
             Primitives = 1,
-            Stability = Stability.Preview,
+            Stability = Stability.Stable,
             Kind = ManifestKind.Capability,
             Provides = [new CapabilityDeclaration(RealtimeCapabilities.Realtime, RealtimeCapabilities.Version)],
             Requires = requires,

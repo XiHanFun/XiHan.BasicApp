@@ -48,7 +48,7 @@ public sealed record LoginByCodeRequest(ContactChannel Channel, [Required, Strin
 /// <param name="contacts">发码</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="clock">时间源（租户到期）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class SendLoginCode(UserAccountService accounts, ContactCodes contacts, ITenantStore tenants, TimeProvider clock) : IOperation<SendLoginCodeRequest, CodeSentResponse>
 {
     /// <summary>
@@ -108,7 +108,7 @@ public sealed class SendLoginCode(UserAccountService accounts, ContactCodes cont
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="guards">登录守卫</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
+[Operation(Id, Expose = Expose.Http)]
 public sealed class LoginByCode(
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,

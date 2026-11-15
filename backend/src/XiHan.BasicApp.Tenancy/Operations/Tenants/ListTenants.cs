@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <c>POST /api/tenants:list</c>（分页、关键字、筛选、排序）
 /// </remarks>
 /// <param name="queries">租户查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsRead)]
 public sealed class ListTenants(TenantQueries queries) : IOperation<PageRequest, PageResult<TenantResponse>>
 {
     /// <summary>

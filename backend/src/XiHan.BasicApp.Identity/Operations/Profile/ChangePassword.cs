@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <param name="accounts">账号域服务</param>
 /// <param name="gate">会话门禁</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository<SysUserSession, Guid> sessions, UserAccountService accounts, SessionGate gate, TimeProvider clock) : IOperation<ChangePasswordRequest, PasswordChangedResponse>
 {
     /// <summary>

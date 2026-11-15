@@ -56,7 +56,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         Package = "XiHan.BasicApp.Files",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(FilesCapabilities.Files, FilesCapabilities.Version)],
         Requires =

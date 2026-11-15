@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号服务（吊销会话）</param>
 /// <param name="memberships">租户成员解析（找出所有者）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersDisable)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersDisable)]
 public sealed class DisableUsers(IRepository<SysUser, Guid> users, UserAccountService accounts, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>
@@ -64,7 +64,7 @@ public sealed class DisableUsers(IRepository<SysUser, Guid> users, UserAccountSe
 /// <c>POST /api/users:enable</c>。状态由 <c>Disabled</c> 回到 <c>Active</c>；本来就是正常的用户视为已启用、算成功，锁定中的不动（要解锁）
 /// </remarks>
 /// <param name="users">用户仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersDisable)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersDisable)]
 public sealed class EnableUsers(IRepository<SysUser, Guid> users) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>

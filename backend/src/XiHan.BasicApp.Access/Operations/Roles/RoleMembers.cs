@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="service">角色域服务</param>
 /// <param name="members">指派仓储</param>
 /// <param name="users">这一侧的用户</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Guid> members, SideUsers users) : IOperation<RoleMembersQueryRequest, RoleMembersResponse>
 {
     private const int MaxItems = 500;

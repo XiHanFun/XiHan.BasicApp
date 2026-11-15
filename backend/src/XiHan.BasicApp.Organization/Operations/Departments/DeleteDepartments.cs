@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// <param name="departments">部门仓储</param>
 /// <param name="service">部门域服务</param>
 /// <param name="snapshots">部门缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsDelete)]
 public sealed class DeleteDepartments(IRepository<SysDepartment, Guid> departments, DepartmentService service, DepartmentSnapshots snapshots) : IOperation<DepartmentIdsRequest, BatchResult>
 {
     /// <summary>

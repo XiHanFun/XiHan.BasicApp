@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Settings.Operations.DictItems;
 /// <param name="service">字典域服务</param>
 /// <param name="sets">字典选项缓存</param>
 /// <param name="catalog">各包登记的内建字典</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.DictItemsDelete)]
 public sealed class DeleteDictItems(IRepository<SysDictItem, Guid> items, DictService service, DictOptionSets sets, DictCatalog catalog) : IOperation<DictItemIdsRequest, BatchResult>
 {
     /// <summary>

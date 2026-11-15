@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="sessions">会话仓储</param>
 /// <param name="gate">会话门禁</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class Logout(IRepository<SysUserSession, Guid> sessions, SessionGate gate, TimeProvider clock) : IOperation<LogoutRequest, LogoutResponse>
 {
     /// <summary>

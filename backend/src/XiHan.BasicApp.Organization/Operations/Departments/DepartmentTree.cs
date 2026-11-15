@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Organization.Operations.Departments;
 /// 部门与成员数按租户整份缓存（<see cref="DepartmentSnapshots"/>），关键字在缓存之上过滤
 /// </remarks>
 /// <param name="snapshots">部门缓存</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.DepartmentsRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.DepartmentsRead)]
 public sealed class DepartmentTree(DepartmentSnapshots snapshots) : IOperation<DepartmentTreeRequest, DepartmentTreeResponse>
 {
     /// <summary>

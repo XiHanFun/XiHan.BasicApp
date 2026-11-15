@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Organization.Operations.Positions;
 /// </remarks>
 /// <param name="positions">岗位仓储</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsCreate)]
 public sealed class CreatePosition(IRepository<SysPosition, Guid> positions, IIdGenerator<Guid> ids) : IOperation<CreatePositionRequest, PositionResponse>
 {
     /// <summary>

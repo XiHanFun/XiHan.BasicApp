@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
 /// <param name="protector">机密保护器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsConfigureDatabase)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsConfigureDatabase)]
 public sealed class ConfigureTenantDatabase(IRepository<SysTenant, Guid> tenants, TenantService service, ISecretProtector protector) : IOperation<ConfigureTenantDatabaseRequest, TenantResponse>
 {
     /// <summary>
@@ -100,7 +100,7 @@ public sealed class ConfigureTenantDatabase(IRepository<SysTenant, Guid> tenants
 /// <param name="service">租户域服务</param>
 /// <param name="schemas">租户库的建库与建表</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsInitializeDatabase)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsInitializeDatabase)]
 public sealed class InitializeTenantDatabase(IRepository<SysTenant, Guid> tenants, TenantService service, TenantSchemas schemas, TimeProvider clock) : IOperation<InitializeTenantDatabaseRequest, TenantResponse>
 {
     /// <summary>

@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="service">角色域服务</param>
 /// <param name="scopes">角色数据范围服务</param>
 /// <param name="hierarchy">继承图缓存（启停后失效）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesUpdate)]
 public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService service, RoleDataScopeService scopes, RoleHierarchy hierarchy) : IOperation<UpdateRoleRequest, RoleResponse>
 {
     /// <summary>

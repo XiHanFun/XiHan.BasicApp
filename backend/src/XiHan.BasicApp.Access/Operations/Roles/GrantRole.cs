@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="rules">授予规则</param>
 /// <param name="conditions">权限条件（绑定没了连同删除）</param>
 /// <param name="enforcer">约束规则求值</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesGrant)]
 public sealed class GrantRole(RoleService service, PermissionCatalog catalog, RoleGrants grants, PermissionRuleWriter rules, PermissionConditionService conditions, ConstraintEnforcer enforcer) : IOperation<RolePermissionsRequest, PermissionBatchResult>
 {
     /// <summary>

@@ -42,7 +42,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="activators">会话角色激活（令牌只带激活的角色）</param>
 /// <param name="notices">通知被模仿者</param>
 /// <param name="guards">模仿的权限上限（Access 实现）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.ImpersonationStart)]
 public sealed class StartImpersonation(
     IRepository<SysUser, Guid> users,
     IRepository<SysUserSession, Guid> sessions,

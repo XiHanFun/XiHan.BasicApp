@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// <param name="configs">参数仓储</param>
 /// <param name="values">参数值规则</param>
 /// <param name="entries">参数缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsUpdate)]
 public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, ConfigEntries entries) : IOperation<UpdateConfigRequest, ConfigResponse>
 {
     /// <summary>

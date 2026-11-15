@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Access.Operations.Delegations;
 /// <c>POST /api/delegations:list</c>。状态按撤销时间与有效期推出（未到生效时间、生效中、已到期、已撤销）
 /// </remarks>
 /// <param name="queries">委托查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.DelegationsRead)]
 public sealed class ListDelegations(DelegationQueries queries) : IOperation<PageRequest, PageResult<DelegationResponse>>
 {
     /// <summary>
@@ -53,7 +53,7 @@ public sealed class ListDelegations(DelegationQueries queries) : IOperation<Page
 /// <param name="enforcer">约束规则求值</param>
 /// <param name="users">用户仓储（被委托人的登录名）</param>
 /// <param name="evaluator">授予全貌（核对代他人委托的操作者）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.DelegationsCreate)]
 public sealed class CreateDelegation(DelegationService service, ConstraintEnforcer enforcer, IRepository<SysUser, Guid> users, GrantEvaluator evaluator) : IOperation<CreateDelegationRequest, DelegationResponse>
 {
     /// <summary>
@@ -129,7 +129,7 @@ public sealed class CreateDelegation(DelegationService service, ConstraintEnforc
 /// <c>POST /api/delegations:revoke</c>。只撤销未到生效时间或生效中的，保留记录；撤销即刻失效
 /// </remarks>
 /// <param name="service">委托服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsRevoke)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.DelegationsRevoke)]
 public sealed class RevokeDelegation(DelegationService service) : IOperation<RevokeDelegationRequest, DelegationResponse>
 {
     /// <summary>
@@ -166,7 +166,7 @@ public sealed class RevokeDelegation(DelegationService service) : IOperation<Rev
 /// <c>POST /api/delegations:delete</c>。任何状态都可删；生效中的随之失效
 /// </remarks>
 /// <param name="service">委托服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.DelegationsDelete)]
 public sealed class DeleteDelegations(DelegationService service) : IOperation<DelegationIdsRequest, BatchResult>
 {
     /// <summary>

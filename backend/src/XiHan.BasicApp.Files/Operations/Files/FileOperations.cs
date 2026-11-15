@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Files.Operations.Files;
 /// <c>POST /api/files:list</c>。上传与下载内容走普通端点 <c>POST /api/files/upload</c>、<c>GET /api/files/{id}/content</c>
 /// </remarks>
 /// <param name="queries">文件查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
 public sealed class ListFiles(FileQueries queries) : IOperation<PageRequest, PageResult<FileResponse>>
 {
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class ListFiles(FileQueries queries) : IOperation<PageRequest, Pag
 /// 按 ID 取当前一侧的文件：<c>GET /api/files/{id}</c>
 /// </summary>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
 public sealed class GetFile(FileService files) : IOperation<GetFileRequest, FileResponse>
 {
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class GetFile(FileService files) : IOperation<GetFileRequest, File
 /// <c>PUT /api/files/{id}</c>
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class UpdateFile(FileService files) : IOperation<UpdateFileRequest, FileResponse>
 {
     /// <summary>
@@ -103,7 +103,7 @@ public sealed class UpdateFile(FileService files) : IOperation<UpdateFileRequest
 /// <c>POST /api/files:set-status</c>。已损坏的文件逐项拒绝（先换一个校验通过的主副本）
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class SetFileStatus(FileService files) : IOperation<SetFileStatusRequest, BatchResult>
 {
     /// <summary>
@@ -127,7 +127,7 @@ public sealed class SetFileStatus(FileService files) : IOperation<SetFileStatusR
 /// <c>DELETE /api/files?ids=</c>。不再被别的文件用到的内容随之从存储里删除
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesDelete)]
 public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, BatchResult>
 {
     /// <summary>
@@ -153,7 +153,7 @@ public sealed class DeleteFiles(FileService files) : IOperation<FileIdsRequest, 
 /// 归档或损坏的文件换不到地址。地址由对象存储签出、指向对象本身，有效期内不再校验身份（给图片、链接与新窗口用），签出之后的归档不影响它；换一次记一次下载
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class PresignFile(FileService files) : IOperation<PresignFileRequest, PresignFileResponse>
 {
     /// <summary>
@@ -203,7 +203,7 @@ public sealed class PresignFile(FileService files) : IOperation<PresignFileReque
 /// <c>POST /api/files:fast-upload</c>。同一侧已有内容相同的正常文件时直接得到一条新记录（共用存储里的内容），没命中返回空，前端再走普通上传
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesCreate)]
 public sealed class FastUploadFile(FileService files) : IOperation<FastUploadFileRequest, FastUploadFileResponse>
 {
     /// <summary>
@@ -234,7 +234,7 @@ public sealed class FastUploadFile(FileService files) : IOperation<FastUploadFil
 /// </remarks>
 /// <param name="files">文件服务</param>
 /// <param name="configs">存储配置（补配置的编码与名称）</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Permission = FilesPermissions.FilesRead)]
 public sealed class ListFileStorages(FileService files, StorageConfigService configs) : IOperation<GetFileRequest, FileStoragesResponse>
 {
     /// <summary>
@@ -266,7 +266,7 @@ public sealed class ListFileStorages(FileService files, StorageConfigService con
 /// <c>POST /api/files/{id}:set-primary-storage</c>。目标须正常且校验过；已损坏的文件随之恢复
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class SetPrimaryStorage(FileService files) : IOperation<FileStorageRequest, FileResponse>
 {
     /// <summary>
@@ -310,7 +310,7 @@ public sealed class SetPrimaryStorage(FileService files) : IOperation<FileStorag
 /// 再把它设为主副本即完成迁移。同一配置里只放一份（<c>FILES_CONFLICT_011</c>），停用的配置不接收（<c>FILES_CONFLICT_012</c>）
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class CopyStorage(FileService files) : IOperation<CopyFileStorageRequest, FileStorageResponse>
 {
     /// <summary>
@@ -342,7 +342,7 @@ public sealed class CopyStorage(FileService files) : IOperation<CopyFileStorageR
 /// <c>POST /api/files/{id}:verify-storage</c>。读出内容按 SHA-256 比对，不符或读不到记校验失败，主副本不通过时文件记为损坏
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class VerifyStorage(FileService files) : IOperation<FileStorageRequest, FileResponse>
 {
     /// <summary>
@@ -385,7 +385,7 @@ public sealed class VerifyStorage(FileService files) : IOperation<FileStorageReq
 /// <c>POST /api/files/{id}:set-storage-status</c>。主副本不能停用，校验失败的副本要重新校验
 /// </remarks>
 /// <param name="files">文件服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = FilesPermissions.FilesUpdate)]
 public sealed class SetStorageStatus(FileService files) : IOperation<SetFileStorageStatusRequest, FileResponse>
 {
     /// <summary>

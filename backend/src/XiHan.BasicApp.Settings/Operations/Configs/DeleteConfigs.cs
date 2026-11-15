@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// </remarks>
 /// <param name="configs">参数仓储</param>
 /// <param name="entries">参数缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsDelete)]
 public sealed class DeleteConfigs(IRepository<SysConfig, Guid> configs, ConfigEntries entries) : IOperation<ConfigIdsRequest, BatchResult>
 {
     /// <summary>

@@ -63,7 +63,7 @@ public sealed record UpdateNotificationPreferenceRequest(bool ChannelInApp, bool
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="preferences">偏好仓储</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class GetNotificationPreference(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserNotificationPreference, Guid> preferences) : IOperation<ProfileRequest, NotificationPreferenceResponse>
 {
     /// <summary>
@@ -97,7 +97,7 @@ public sealed class GetNotificationPreference(IRepository<SysUser, Guid> users, 
 /// <param name="accounts">账号域服务</param>
 /// <param name="preferences">偏好仓储</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class UpdateNotificationPreference(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserNotificationPreference, Guid> preferences, IIdGenerator<Guid> ids) : IOperation<UpdateNotificationPreferenceRequest, NotificationPreferenceResponse>
 {
     /// <summary>

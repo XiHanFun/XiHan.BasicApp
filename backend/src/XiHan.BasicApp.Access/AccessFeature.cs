@@ -55,7 +55,7 @@ public sealed class AccessFeature : IFeature
         Package = "XiHan.BasicApp.Access",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(AccessCapabilities.Access, AccessCapabilities.Version)],
         Requires =

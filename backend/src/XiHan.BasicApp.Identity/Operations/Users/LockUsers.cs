@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="memberships">成员关系（Tenancy 实现：租户的所有者逐项拒绝）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersLock)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersLock)]
 public sealed class LockUsers(IRepository<SysUser, Guid> users, UserAccountService accounts, IEnumerable<ITenantMembershipResolver> memberships) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>

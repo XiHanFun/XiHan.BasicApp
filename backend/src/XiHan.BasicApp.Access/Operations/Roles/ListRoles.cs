@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <c>POST /api/roles:list</c>（分页、关键字、筛选、排序），只列当前作用侧
 /// </remarks>
 /// <param name="queries">角色查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class ListRoles(RoleQueries queries) : IOperation<PageRequest, PageResult<RoleResponse>>
 {
     /// <summary>

@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="service">角色域服务</param>
 /// <param name="scopes">角色数据范围服务</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesCreate)]
 public sealed class CreateRole(IRepository<SysRole, Guid> roles, RoleService service, RoleDataScopeService scopes, IIdGenerator<Guid> ids) : IOperation<CreateRoleRequest, RoleResponse>
 {
     /// <summary>

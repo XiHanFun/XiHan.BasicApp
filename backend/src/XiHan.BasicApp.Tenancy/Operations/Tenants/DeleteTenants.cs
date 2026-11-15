@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="tenants">租户仓储</param>
 /// <param name="users">用户仓储</param>
 /// <param name="service">租户域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsDelete)]
 public sealed class DeleteTenants(IRepository<SysTenant, Guid> tenants, IRepository<SysUser, Guid> users, TenantService service) : IOperation<TenantIdsRequest, BatchResult>
 {
     /// <summary>

@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// <param name="service">菜单域服务</param>
 /// <param name="catalog">权限目录</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusCreate)]
 public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService service, PermissionCatalog catalog, IIdGenerator<Guid> ids) : IOperation<CreateMenuRequest, MenuResponse>
 {
     /// <summary>

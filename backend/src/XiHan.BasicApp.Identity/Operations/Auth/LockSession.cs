@@ -51,7 +51,7 @@ public sealed record UnlockResponse(bool Unlocked);
 /// <param name="sessions">会话仓储</param>
 /// <param name="gate">会话门禁</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class LockSession(IRepository<SysUserSession, Guid> sessions, SessionGate gate, TimeProvider clock) : IOperation<LockRequest, LockResponse>
 {
     /// <summary>
@@ -103,7 +103,7 @@ public sealed class LockSession(IRepository<SysUserSession, Guid> sessions, Sess
 /// <param name="gate">会话门禁</param>
 /// <param name="scopes">作用域工厂（调用之外写计数与吊销）</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class Unlock(IRepository<SysUserSession, Guid> sessions, SessionGate gate, IServiceScopeFactory scopes, TimeProvider clock) : IOperation<UnlockRequest, UnlockResponse>
 {
     /// <summary>

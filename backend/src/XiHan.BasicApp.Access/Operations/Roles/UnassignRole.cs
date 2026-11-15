@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="members">指派仓储</param>
 /// <param name="users">用户仓储（权限变更日志记目标用户的登录名）</param>
 /// <param name="assignments">指派缓存（移出即从判定里拿掉，不等令牌刷新）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
 public sealed class UnassignRole(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments) : IOperation<RoleMembersRequest, BatchResult>
 {
     /// <summary>

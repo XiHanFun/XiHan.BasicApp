@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Identity.Operations.Sessions;
 /// </remarks>
 /// <param name="queries">会话查询（取当前一侧、数据范围内的有效会话）</param>
 /// <param name="accounts">账号域服务（吊销与推送）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRevoke)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.SessionsRevoke)]
 public sealed class RevokeSessions(SessionQueries queries, UserAccountService accounts) : IOperation<RevokeSessionsRequest, BatchResult>
 {
     /// <summary>

@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="tenants">租户仓储</param>
 /// <param name="members">成员仓储</param>
 /// <param name="clock">时间源</param>
-[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class MyTenants(IRepository<SysUser, Guid> users, IRepository<SysTenant, Guid> tenants, IRepository<SysTenantMember, Guid> members, TimeProvider clock) : IOperation<MyTenantsRequest, MyTenantsResponse>
 {
     /// <summary>

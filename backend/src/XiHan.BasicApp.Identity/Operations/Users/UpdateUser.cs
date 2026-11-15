@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="permissions">权限判定（改联系方式）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersUpdate)]
 public sealed class UpdateUser(IRepository<SysUser, Guid> users, IPermissionChecker permissions) : IOperation<UpdateUserRequest, UserResponse>
 {
     /// <summary>

@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Settings.Operations.Configs;
 /// <param name="values">参数值规则</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="entries">参数缓存</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
 public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, IIdGenerator<Guid> ids, ConfigEntries entries) : IOperation<CreateConfigRequest, ConfigResponse>
 {
     /// <summary>

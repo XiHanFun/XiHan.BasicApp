@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Organization.Operations.Memberships;
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）
 /// </remarks>
 /// <param name="queries">归属查询</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.MembershipsRead)]
+[Operation(Id, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.MembershipsRead)]
 public sealed class ListMemberships(MembershipQueries queries) : IOperation<PageRequest, PageResult<MembershipResponse>>
 {
     /// <summary>

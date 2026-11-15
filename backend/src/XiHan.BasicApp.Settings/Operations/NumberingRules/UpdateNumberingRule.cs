@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Settings.Operations.NumberingRules;
 /// 流水位数要装得下已保留的流水值（重置可能先推过）。并发发号改过规则行时并发戳不符，整笔失败
 /// </remarks>
 /// <param name="rules">规则仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesUpdate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.NumberingRulesUpdate)]
 public sealed class UpdateNumberingRule(IRepository<SysNumberingRule, Guid> rules) : IOperation<UpdateNumberingRuleRequest, NumberingRuleResponse>
 {
     /// <summary>

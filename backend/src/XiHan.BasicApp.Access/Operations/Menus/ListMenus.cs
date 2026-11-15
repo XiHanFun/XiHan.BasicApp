@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// 菜单树：<c>GET /api/menus</c>（平台侧），含隐藏节点、运营节点与定制标记
 /// </summary>
 /// <param name="service">菜单域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusRead)]
 public sealed class ListMenus(MenuService service) : IOperation<ListMenusRequest, MenusResponse>
 {
     /// <summary>

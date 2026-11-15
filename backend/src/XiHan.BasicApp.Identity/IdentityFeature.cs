@@ -49,7 +49,7 @@ public sealed class IdentityFeature : IFeature
         Package = "XiHan.BasicApp.Identity",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(IdentityCapabilities.Identity, IdentityCapabilities.Version)],
         Requires =

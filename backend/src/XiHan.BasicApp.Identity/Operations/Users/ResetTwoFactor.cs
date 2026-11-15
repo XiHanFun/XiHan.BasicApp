@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
 /// <param name="accounts">账号域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = IdentityPermissions.UsersResetTwoFactor)]
+[Operation(Id, Expose = Expose.Http, Permission = IdentityPermissions.UsersResetTwoFactor)]
 public sealed class ResetTwoFactor(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts) : IOperation<UserIdsRequest, BatchResult>
 {
     /// <summary>

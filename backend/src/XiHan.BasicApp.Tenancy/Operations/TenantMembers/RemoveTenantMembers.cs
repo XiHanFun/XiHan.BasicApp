@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 /// <param name="tenants">租户仓储（所有者不能移出）</param>
 /// <param name="users">用户仓储（拒绝时提示所有者的显示名）</param>
 /// <param name="initializers">上层包的扩展点（Access 解除角色）</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersDelete)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantMembersDelete)]
 public sealed class RemoveTenantMembers(IRepository<SysTenantMember, Guid> members, IRepository<SysTenant, Guid> tenants, IRepository<SysUser, Guid> users, IEnumerable<ITenantInitializer> initializers) : IOperation<TenantMemberIdsRequest, BatchResult>
 {
     /// <summary>

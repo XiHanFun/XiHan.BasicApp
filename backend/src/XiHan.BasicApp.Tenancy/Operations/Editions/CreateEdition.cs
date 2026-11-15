@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Editions;
 /// <param name="editions">套餐仓储</param>
 /// <param name="service">套餐域服务</param>
 /// <param name="ids">标识生成器</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.EditionsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.EditionsCreate)]
 public sealed class CreateEdition(IRepository<SysEdition, Guid> editions, EditionService service, IIdGenerator<Guid> ids) : IOperation<CreateEditionRequest, EditionDetailResponse>
 {
     /// <summary>

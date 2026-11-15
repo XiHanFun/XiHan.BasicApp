@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// 菜单节点：<c>GET /api/menus/{id}</c>（平台侧）
 /// </summary>
 /// <param name="menus">菜单仓储</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusRead)]
+[Operation(Id, Expose = Expose.Http, Permission = AccessPermissions.MenusRead)]
 public sealed class GetMenu(IRepository<SysMenu, Guid> menus) : IOperation<GetMenuRequest, MenuResponse>
 {
     /// <summary>

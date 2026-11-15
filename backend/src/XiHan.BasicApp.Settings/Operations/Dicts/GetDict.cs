@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Settings.Operations.Dicts;
 /// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）
 /// </remarks>
 /// <param name="service">字典域服务</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = SettingsPermissions.DictsRead)]
+[Operation(Id, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = SettingsPermissions.DictsRead)]
 public sealed class GetDict(DictService service) : IOperation<GetDictRequest, DictResponse>
 {
     /// <summary>
