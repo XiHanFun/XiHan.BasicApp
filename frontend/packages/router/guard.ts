@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import type { Router, RouteRecordRaw } from 'vue-router'
+import type { RouteLocationNormalized, Router, RouteRecordRaw } from 'vue-router'
 
 import { isLockedState, loadingBar, setDocumentTitle } from '~/composables'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
@@ -15,12 +15,32 @@ import {
   useAccessStore,
   useAppStore,
   useAuthStore,
+  useSiteStore,
   useTabbarStore,
   useUserStore,
 } from '~/stores'
 import { mapMenuToRoutes } from './dynamic'
 
 const WHITE_LIST = [FORBIDDEN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH]
+
+/**
+ * 按路由与站点设置的系统名写浏览器标题：路由切换后与系统名变了（登录、换租户、改站点设置）时调用
+ * 关了动态标题只写系统名；路由没有标题时不动
+ */
+export function applyDocumentTitle(to: Pick<RouteLocationNormalized, 'meta'>): void {
+  const name = useSiteStore().name
+  if (!useAppStore().dynamicTitle) {
+    setDocumentTitle(name)
+    return
+  }
+  const title = to.meta?.title as string | undefined
+  if (title) {
+    const translated = i18n.global.te(title)
+      ? i18n.global.t(title)
+      : title
+    setDocumentTitle(`${translated} - ${name}`)
+  }
+}
 
 export function setupRouterGuard(router: Router) {
   // 本次页面生命周期里由菜单装上的路由名：换账号后重新装载前先卸掉上一份
@@ -242,17 +262,7 @@ export function setupRouterGuard(router: Router) {
       appStore.setPageLoading(false)
     }
 
-    if (!appStore.dynamicTitle) {
-      setDocumentTitle('XiHan BasicApp')
-      return
-    }
-    const title = to.meta?.title as string | undefined
-    if (title) {
-      const translated = i18n.global.te(title)
-        ? i18n.global.t(title)
-        : title
-      setDocumentTitle(`${translated} - XiHan BasicApp`)
-    }
+    applyDocumentTitle(to)
   })
 
   router.onError(() => {

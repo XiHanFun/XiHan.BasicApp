@@ -5,10 +5,6 @@
 
 import { ref } from 'vue'
 import {
-  BRAND_DESCRIPTION_KEY,
-  BRAND_LOGO_KEY,
-  BRAND_SUBTITLE_KEY,
-  BRAND_TITLE_KEY,
   BREADCRUMB_ENABLED_KEY,
   BREADCRUMB_HIDE_ONLY_ONE_KEY,
   BREADCRUMB_NAV_BUTTONS_KEY,
@@ -57,19 +53,6 @@ export function createLayoutSlice() {
   // ---- 布局模式 ----
   const layoutMode = ref<string>(LocalStorage.get<string>(LAYOUT_MODE_KEY) ?? DEFAULT_LAYOUT_MODE)
 
-  // ---- 品牌 ----
-  const brandTitle = ref<string>(
-    LocalStorage.get<string>(BRAND_TITLE_KEY) ?? import.meta.env.VITE_APP_TITLE ?? '',
-  )
-  const brandSubtitle = ref<string>(
-    LocalStorage.get<string>(BRAND_SUBTITLE_KEY) ?? import.meta.env.VITE_APP_SUBTITLE ?? '',
-  )
-  const brandDescription = ref<string>(
-    LocalStorage.get<string>(BRAND_DESCRIPTION_KEY) ?? import.meta.env.VITE_APP_DESCRIPTION ?? '',
-  )
-  const brandLogo = ref<string>(
-    LocalStorage.get<string>(BRAND_LOGO_KEY) ?? import.meta.env.VITE_APP_LOGO ?? '',
-  )
   const pageLoading = ref(false)
 
   // ---- 侧边栏 ----
@@ -172,10 +155,6 @@ export function createLayoutSlice() {
 
   // ---- 持久化绑定 ----
   bindPersist(LAYOUT_MODE_KEY, layoutMode, DEFAULT_LAYOUT_MODE)
-  bindPersist(BRAND_TITLE_KEY, brandTitle, import.meta.env.VITE_APP_TITLE)
-  bindPersist(BRAND_SUBTITLE_KEY, brandSubtitle, import.meta.env.VITE_APP_SUBTITLE)
-  bindPersist(BRAND_DESCRIPTION_KEY, brandDescription, import.meta.env.VITE_APP_DESCRIPTION)
-  bindPersist(BRAND_LOGO_KEY, brandLogo, import.meta.env.VITE_APP_LOGO || '/favicon.png')
   bindPersist(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed, false)
   bindPersist(SIDEBAR_WIDTH_KEY, sidebarWidth, 224)
   bindPersist(SIDEBAR_SHOW_KEY, sidebarShow, true)
@@ -217,29 +196,6 @@ export function createLayoutSlice() {
   // ---- Actions ----
   function setLayoutMode(mode: string) {
     save(LAYOUT_MODE_KEY, layoutMode, mode)
-  }
-  function setBrandTitle(title: string) {
-    save(BRAND_TITLE_KEY, brandTitle, title)
-  }
-  function setBrandLogo(logo: string) {
-    save(BRAND_LOGO_KEY, brandLogo, logo)
-  }
-  function setBrandSubtitle(subtitle: string) {
-    save(BRAND_SUBTITLE_KEY, brandSubtitle, subtitle)
-  }
-  function setBrandDescription(description: string) {
-    save(BRAND_DESCRIPTION_KEY, brandDescription, description)
-  }
-  function setBranding(branding: { title?: string, subtitle?: string, description?: string, logo?: string }) {
-    if (branding.title)
-      setBrandTitle(branding.title)
-    if (branding.subtitle !== undefined)
-      setBrandSubtitle(branding.subtitle ?? '')
-    if (branding.description !== undefined)
-      setBrandDescription(branding.description ?? '')
-    // logo 显式给出（含空串）即视为「设置」：空串回落品牌默认，避免上一租户/登录态的 Logo 通过持久化泄漏到无 Logo 的上下文
-    if (branding.logo !== undefined)
-      setBrandLogo(branding.logo || import.meta.env.VITE_APP_LOGO || '/favicon.png')
   }
   function setPageLoading(loading: boolean) {
     pageLoading.value = loading
@@ -361,10 +317,6 @@ export function createLayoutSlice() {
 
   return {
     layoutMode,
-    brandTitle,
-    brandSubtitle,
-    brandDescription,
-    brandLogo,
     pageLoading,
     sidebarCollapsed,
     sidebarWidth,
@@ -404,11 +356,6 @@ export function createLayoutSlice() {
     breadcrumbStyle,
     breadcrumbNavButtons,
     setLayoutMode,
-    setBrandTitle,
-    setBrandSubtitle,
-    setBrandDescription,
-    setBrandLogo,
-    setBranding,
     setPageLoading,
     toggleSidebar,
     setSidebarCollapsed,

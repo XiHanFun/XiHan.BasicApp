@@ -17,9 +17,11 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 独立库的连接串经 <c>ISecretProtector</c> 加密存，同步进目录时仍是密文、由 Runtime 的分片解析器解密；独立库就绪之后不能再改连接，数据已在那个库里
 /// <see cref="EditionId"/> 为空即不受套餐限制，只能显式选择（开通时总会落到指定或缺省的套餐）；换套餐后让该租户的门控缓存失效
 /// 还有注册地在该租户的用户就不能删；删除即软删本行并从目录移除，成员行不连带删除。只在平台侧管理，带租户声明的调用一律拒绝
+/// <see cref="Domain"/> 是自定义域名，由平台填（要配 DNS 与证书）：登录前按访问的域名显示租户的品牌、预填租户，不参与身份判定；部分唯一索引只约束未删除的行，不绑定的为空
 /// </remarks>
 [SugarTable(TableName = "sys_tenant", TableDescription = "租户（平台库业务实体）")]
 [ActiveUniqueIndex(nameof(TenantId), Name = "ux_sys_tenant_tenant_id")]
+[ActiveUniqueIndex(nameof(Domain), Name = "ux_sys_tenant_domain")]
 [SugarIndex("ix_sys_tenant_edition_id", nameof(EditionId), OrderByType.Asc)]
 [SugarIndex("ix_sys_tenant_admin_user_id", nameof(AdminUserId), OrderByType.Asc)]
 public sealed class SysTenant : AppAuditedEntity
@@ -41,6 +43,15 @@ public sealed class SysTenant : AppAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "description", Length = 512, IsNullable = true, ColumnDescription = "说明")]
     public string? Description { get; set; }
+
+    /// <summary>
+    /// 自定义域名
+    /// </summary>
+    /// <remarks>
+    /// 小写、不带端口；为空即没有绑定
+    /// </remarks>
+    [SugarColumn(ColumnName = "domain", Length = 253, IsNullable = true, ColumnDescription = "自定义域名")]
+    public string? Domain { get; set; }
 
     /// <summary>
     /// 状态

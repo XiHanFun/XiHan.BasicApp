@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "Restablecer reglas de numeración",
   "permissions.settings.numbering_rules.reset.description": "Avanzar la secuencia de una regla más allá de todos los valores emitidos en el período actual.",
   "permissions.settings.numbering_rules.generate.name": "Emitir números",
-  "permissions.settings.numbering_rules.generate.description": "Emitir números de las reglas del llamante o de reglas de la plataforma compartidas con los inquilinos."
+  "permissions.settings.numbering_rules.generate.description": "Emitir números de las reglas del llamante o de reglas de la plataforma compartidas con los inquilinos.",
+  "site.get.title": "Obtener la configuración del sitio",
+  "site.get.description": "Para la página de configuración: la plataforma obtiene la configuración del sitio; un inquilino, su propia marca y la configuración de la plataforma que hereda.",
+  "site.update.title": "Modificar la configuración del sitio",
+  "site.update.description": "Sustituye por completo la configuración del lado que llama: la plataforma modifica la configuración del sitio y un inquilino su propia marca (los campos vacíos heredan los de la plataforma). Las imágenes solo se pueden conservar o quitar; para cambiarlas, súbalas por el punto de carga.",
+  "site.resolve.title": "Obtener la configuración vigente del sitio",
+  "site.resolve.description": "Anónimo: con sesión usa el inquilino del token; sin sesión busca el inquilino vinculado al dominio visitado. Devuelve el nombre, las imágenes y el pie vigentes. Solo para mostrar; nunca decide la identidad.",
+  "openapi.tags.site.name": "Configuración del sitio",
+  "openapi.tags.site.description": "Nombre del sitio, logotipo, página de inicio de sesión y pie; los inquilinos pueden sustituirlos por su propia marca.",
+  "permissions.settings.site.read.name": "Ver la configuración del sitio",
+  "permissions.settings.site.read.description": "Ver la configuración del sitio en la plataforma, o la marca propia del inquilino y la configuración de la plataforma que hereda.",
+  "permissions.settings.site.update.name": "Modificar la configuración del sitio",
+  "permissions.settings.site.update.description": "Modificar la configuración del sitio en la plataforma, o la marca propia del inquilino, y subir sus imágenes.",
+  "settings.site.asset_unknown": "'{field}' solo puede conservar la imagen actual o quitarla; suba una imagen nueva para cambiarla ('{id}' no es la imagen actual).",
+  "settings.site.asset_invalid": "Suba una imagen PNG, JPEG, WebP o ICO de {max} MB como máximo."
 }

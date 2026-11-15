@@ -72,6 +72,8 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddMessageCatalog(TenancyMessages.Catalog);
         context.Services.AddGeneratedRepositories();
         context.Services.AddScoped<TenantService>();
+        context.Services.AddScoped<TenantDomains>();
+        context.Services.AddScoped<ITenantDomainResolver>(static sp => sp.GetRequiredService<TenantDomains>());
         context.Services.AddScoped<TenantQueries>();
         context.Services.AddScoped<ITenantMembershipResolver, TenantMembershipResolver>();
         context.Services.AddScoped<EditionService>();

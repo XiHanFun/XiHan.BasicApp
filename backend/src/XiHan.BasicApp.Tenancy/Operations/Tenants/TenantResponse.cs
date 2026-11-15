@@ -24,6 +24,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="DatabaseProvider">独立库的库类型；为空即与平台库相同。连接串不出现在响应里</param>
 /// <param name="DatabaseStatus">独立库的状态</param>
 /// <param name="DatabaseError">最近一次初始化失败的原因</param>
+/// <param name="Domain">自定义域名；没有绑定为空</param>
 public sealed record TenantResponse(
     Guid Id,
     string TenantId,
@@ -40,7 +41,8 @@ public sealed record TenantResponse(
     TenantIsolationMode IsolationMode,
     string? DatabaseProvider,
     TenantDatabaseStatus DatabaseStatus,
-    string? DatabaseError)
+    string? DatabaseError,
+    string? Domain)
 {
     /// <summary>
     /// 由实体投影
@@ -48,6 +50,6 @@ public sealed record TenantResponse(
     public static TenantResponse From(SysTenant tenant)
     {
         ArgumentNullException.ThrowIfNull(tenant);
-        return new TenantResponse(tenant.Id, tenant.TenantId, tenant.Name, tenant.Description, tenant.Status, tenant.ExpiresAt, tenant.AdminUserId, tenant.EditionId, tenant.Order, tenant.CreatedAt, tenant.UserLimit, tenant.StorageLimitMb, tenant.IsolationMode, tenant.DatabaseProvider, tenant.DatabaseStatus, tenant.DatabaseError);
+        return new TenantResponse(tenant.Id, tenant.TenantId, tenant.Name, tenant.Description, tenant.Status, tenant.ExpiresAt, tenant.AdminUserId, tenant.EditionId, tenant.Order, tenant.CreatedAt, tenant.UserLimit, tenant.StorageLimitMb, tenant.IsolationMode, tenant.DatabaseProvider, tenant.DatabaseStatus, tenant.DatabaseError, tenant.Domain);
     }
 }

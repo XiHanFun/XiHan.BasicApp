@@ -356,6 +356,11 @@
       "description": "Query, summarize and force sign-out of the active sessions in the current tenant."
     },
     {
+      "name": "site",
+      "x-displayName": "Site settings",
+      "description": "Site name, logo, sign-in page and footer; tenants can override them with their own branding."
+    },
+    {
       "name": "sms",
       "x-displayName": "SMS send records",
       "description": "Query, resend, cancel and delete SMS send records."
@@ -52374,6 +52379,371 @@
         }
       }
     },
+    "/api/site": {
+      "get": {
+        "operationId": "site.get",
+        "tags": [
+          "site"
+        ],
+        "summary": "Get site settings",
+        "description": "For the settings page: the platform gets the site settings; a tenant gets its own branding and the platform settings it inherits.\n\nRequires permission settings.site.read (Read site settings).",
+        "x-xihan-permission": "settings.site.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u8BBE\u7F6E\u9875\u770B\u5230\u7684\u7AD9\u70B9\u8BBE\u7F6E",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "site.update",
+        "tags": [
+          "site"
+        ],
+        "summary": "Update site settings",
+        "description": "Replace the caller\u0027s side as a whole: the platform edits the site settings, a tenant edits its own branding (blank fields inherit the platform\u0027s). Images can only be kept or removed; upload a new one through the upload endpoint.\n\nRequires permission settings.site.update (Update site settings).",
+        "x-xihan-permission": "settings.site.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "site.update \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateSiteRequest",
+                "description": "site.update \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "\u7CFB\u7EDF\u540D",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "subtitle": {
+                    "description": "\u767B\u5F55\u9875\u7684\u6807\u8BED",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "description": {
+                    "description": "\u767B\u5F55\u9875\u7684\u8BF4\u660E",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "logo": {
+                    "description": "Logo\uFF1A\u73B0\u5728\u7684\u6587\u4EF6 ID \u5373\u4FDD\u7559\uFF0C\u4E3A\u7A7A\u5373\u53BB\u6389",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "favicon": {
+                    "description": "\u6D4F\u89C8\u5668\u56FE\u6807\uFF1A\u73B0\u5728\u7684\u6587\u4EF6 ID \u5373\u4FDD\u7559\uFF0C\u4E3A\u7A7A\u5373\u53BB\u6389",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "loginBackground": {
+                    "description": "\u767B\u5F55\u9875\u80CC\u666F\u56FE\uFF1A\u73B0\u5728\u7684\u6587\u4EF6 ID \u5373\u4FDD\u7559\uFF0C\u4E3A\u7A7A\u5373\u53BB\u6389",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "copyrightOwner": {
+                    "description": "\u9875\u811A\u7684\u7248\u6743\u65B9",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "copyrightUrl": {
+                    "description": "\u7248\u6743\u65B9\u7684\u94FE\u63A5\uFF08http \u6216 https\uFF09",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "copyrightSince": {
+                    "description": "\u7248\u6743\u8D77\u59CB\u5E74\u4EFD",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "icp": {
+                    "description": "\u5907\u6848\u53F7",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "icpUrl": {
+                    "description": "\u5907\u6848\u53F7\u7684\u94FE\u63A5\uFF08http \u6216 https\uFF09",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u8BBE\u7F6E\u9875\u770B\u5230\u7684\u7AD9\u70B9\u8BBE\u7F6E",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SiteSettingsResponse",
+                  "description": "\u8BBE\u7F6E\u9875\u770B\u5230\u7684\u7AD9\u70B9\u8BBE\u7F6E",
+                  "type": "object",
+                  "properties": {
+                    "isPlatform": {
+                      "description": "\u8C03\u7528\u65B9\u662F\u4E0D\u662F\u5E73\u53F0\uFF1A\u5E73\u53F0\u6539\u7684\u662F\u7AD9\u70B9\u8BBE\u7F6E\uFF0C\u79DF\u6237\u6539\u7684\u662F\u81EA\u5DF1\u7684\u54C1\u724C",
+                      "type": "boolean"
+                    },
+                    "own": {
+                      "description": "\u8FD9\u4E00\u4FA7\u81EA\u5DF1\u5B58\u7740\u7684\uFF08\u79DF\u6237\u6CA1\u8BBE\u7684\u5B57\u6BB5\u4E3A\u7A7A\uFF09",
+                      "$ref": "#/components/schemas/SiteProfileResponse"
+                    },
+                    "inherited": {
+                      "description": "\u79DF\u6237\u6CBF\u7528\u7684\u5E73\u53F0\u8BBE\u7F6E\uFF1B\u5E73\u53F0\u4E3A\u7A7A",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/SiteProfileResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "isPlatform",
+                    "own"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/site/assets/{id}": {
+      "get": {
+        "operationId": "site.asset",
+        "tags": [
+          "site"
+        ],
+        "summary": "Read a site image anonymously, so the sign-in page can show it before anyone signs in.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/site/assets/{slot}": {
+      "post": {
+        "operationId": "site.upload-asset",
+        "tags": [
+          "site"
+        ],
+        "summary": "Replace the caller\u0027s side\u0027s logo, favicon or sign-in background (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field \u0060file\u0060).",
+        "description": "Requires permission settings.site.update (Update site settings).",
+        "x-xihan-permission": "settings.site.update",
+        "parameters": [
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteSettingsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/site:resolve": {
+      "get": {
+        "operationId": "site.resolve",
+        "tags": [
+          "site"
+        ],
+        "summary": "Resolve the site settings",
+        "description": "Anonymous: signed in, it uses the tenant in the token; signed out, it finds the tenant bound to the visited domain. Returns the effective site name, images and footer. Display only; it never decides identity.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "\u524D\u7AEF\u8BBF\u95EE\u7684\u4E3B\u673A\u540D\uFF08\u53EF\u4EE5\u5E26\u7AEF\u53E3\uFF09\uFF1A\u6CA1\u767B\u5F55\u65F6\u6309\u5B83\u627E\u7ED1\u5B9A\u4E86\u8FD9\u4E2A\u57DF\u540D\u7684\u79DF\u6237",
+            "required": false,
+            "schema": {
+              "description": "\u524D\u7AEF\u8BBF\u95EE\u7684\u4E3B\u673A\u540D\uFF08\u53EF\u4EE5\u5E26\u7AEF\u53E3\uFF09\uFF1A\u6CA1\u767B\u5F55\u65F6\u6309\u5B83\u627E\u7ED1\u5B9A\u4E86\u8FD9\u4E2A\u57DF\u540D\u7684\u79DF\u6237",
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 260
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u524D\u7AEF\u58F3\u5C42\u7528\u7684\u751F\u6548\u8BBE\u7F6E",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ResolvedSiteResponse",
+                  "description": "\u524D\u7AEF\u58F3\u5C42\u7528\u7684\u751F\u6548\u8BBE\u7F6E",
+                  "type": "object",
+                  "properties": {
+                    "profile": {
+                      "description": "\u751F\u6548\u7684\u8BBE\u7F6E\uFF1A\u79DF\u6237\u7684\u53E0\u5728\u5E73\u53F0\u7684\u4E4B\u4E0A",
+                      "$ref": "#/components/schemas/SiteProfileResponse"
+                    },
+                    "tenantId": {
+                      "description": "\u6CA1\u767B\u5F55\u65F6\u6309\u57DF\u540D\u627E\u5230\u7684\u79DF\u6237\uFF08\u767B\u5F55\u9875\u9884\u586B\uFF09\uFF1B\u767B\u5F55\u4E86\u6216\u6CA1\u627E\u5230\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "profile"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sms": {
       "delete": {
         "operationId": "sms.delete",
@@ -56687,6 +57057,15 @@
                     "format": "int64",
                     "minimum": 0,
                     "maximum": 1000000000
+                  },
+                  "domain": {
+                    "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF08\u5982 acme.example.com\uFF09\uFF1A\u767B\u5F55\u524D\u6309\u5B83\u663E\u793A\u79DF\u6237\u7684\u54C1\u724C\u3001\u9884\u586B\u79DF\u6237\uFF1B\u4E3A\u7A7A\u5373\u4E0D\u7ED1\u5B9A",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 253,
+                    "pattern": "^\\s*([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)\u002B[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.?\\s*$"
                   }
                 },
                 "required": [
@@ -56798,6 +57177,13 @@
                     },
                     "databaseError": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u521D\u59CB\u5316\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -56989,6 +57375,15 @@
                     "format": "int64",
                     "minimum": 0,
                     "maximum": 1000000000
+                  },
+                  "domain": {
+                    "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF08\u5982 acme.example.com\uFF09\uFF1A\u767B\u5F55\u524D\u6309\u5B83\u663E\u793A\u79DF\u6237\u7684\u54C1\u724C\u3001\u9884\u586B\u79DF\u6237\uFF1B\u4E3A\u7A7A\u5373\u4E0D\u7ED1\u5B9A",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 253,
+                    "pattern": "^\\s*([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)\u002B[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.?\\s*$"
                   }
                 },
                 "required": [
@@ -57100,6 +57495,13 @@
                     },
                     "databaseError": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u521D\u59CB\u5316\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57287,6 +57689,13 @@
                     },
                     "databaseError": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u521D\u59CB\u5316\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57487,6 +57896,13 @@
                     },
                     "databaseError": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u521D\u59CB\u5316\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -57880,6 +58296,13 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "domain": {
+                      "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -58061,6 +58484,13 @@
                     },
                     "databaseError": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u521D\u59CB\u5316\u5931\u8D25\u7684\u539F\u56E0",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -75501,6 +75931,150 @@
           "expiresAt"
         ]
       },
+      "SiteAssetResponse": {
+        "description": "\u4E00\u5F20\u7AD9\u70B9\u56FE\u7247",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u6587\u4EF6 ID",
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "description": "\u533F\u540D\u53EF\u8BFB\u7684\u5730\u5740\uFF08\u7AD9\u5185\u76F8\u5BF9\u8DEF\u5F84\uFF09",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url"
+        ]
+      },
+      "SiteProfileResponse": {
+        "description": "\u7AD9\u70B9\u8BBE\u7F6E\u7684\u5185\u5BB9",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u7CFB\u7EDF\u540D",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subtitle": {
+            "description": "\u767B\u5F55\u9875\u7684\u6807\u8BED",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "description": "\u767B\u5F55\u9875\u7684\u8BF4\u660E",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logo": {
+            "description": "Logo",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SiteAssetResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "favicon": {
+            "description": "\u6D4F\u89C8\u5668\u56FE\u6807",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SiteAssetResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "loginBackground": {
+            "description": "\u767B\u5F55\u9875\u80CC\u666F\u56FE",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SiteAssetResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "copyrightOwner": {
+            "description": "\u9875\u811A\u7684\u7248\u6743\u65B9",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "copyrightUrl": {
+            "description": "\u7248\u6743\u65B9\u7684\u94FE\u63A5",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "copyrightSince": {
+            "description": "\u7248\u6743\u8D77\u59CB\u5E74\u4EFD",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "icp": {
+            "description": "\u5907\u6848\u53F7",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "icpUrl": {
+            "description": "\u5907\u6848\u53F7\u7684\u94FE\u63A5",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "SiteSettingsResponse": {
+        "title": "SiteSettingsResponse",
+        "description": "\u8BBE\u7F6E\u9875\u770B\u5230\u7684\u7AD9\u70B9\u8BBE\u7F6E",
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "description": "\u8C03\u7528\u65B9\u662F\u4E0D\u662F\u5E73\u53F0\uFF1A\u5E73\u53F0\u6539\u7684\u662F\u7AD9\u70B9\u8BBE\u7F6E\uFF0C\u79DF\u6237\u6539\u7684\u662F\u81EA\u5DF1\u7684\u54C1\u724C",
+            "type": "boolean"
+          },
+          "own": {
+            "description": "\u8FD9\u4E00\u4FA7\u81EA\u5DF1\u5B58\u7740\u7684\uFF08\u79DF\u6237\u6CA1\u8BBE\u7684\u5B57\u6BB5\u4E3A\u7A7A\uFF09",
+            "$ref": "#/components/schemas/SiteProfileResponse"
+          },
+          "inherited": {
+            "description": "\u79DF\u6237\u6CBF\u7528\u7684\u5E73\u53F0\u8BBE\u7F6E\uFF1B\u5E73\u53F0\u4E3A\u7A7A",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SiteProfileResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "isPlatform",
+          "own"
+        ]
+      },
       "SmsConfigResponse": {
         "description": "\u4E00\u4E2A\u77ED\u4FE1\u914D\u7F6E\uFF08\u8BBF\u95EE\u5BC6\u94A5\u4E0D\u56DE\u663E\uFF09",
         "type": "object",
@@ -76229,6 +76803,13 @@
           },
           "databaseError": {
             "description": "\u6700\u8FD1\u4E00\u6B21\u521D\u59CB\u5316\u5931\u8D25\u7684\u539F\u56E0",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "domain": {
+            "description": "\u81EA\u5B9A\u4E49\u57DF\u540D\uFF1B\u6CA1\u6709\u7ED1\u5B9A\u4E3A\u7A7A",
             "type": [
               "string",
               "null"
@@ -79390,6 +79971,16 @@
         "displayName": "Update numbering rules",
         "description": "Edit numbering rules on the caller\u0027s side; the format freezes after the first issue."
       },
+      "settings.site.read": {
+        "code": "settings.site.read",
+        "displayName": "Read site settings",
+        "description": "View the site settings on the platform, or the tenant\u0027s own branding and the platform settings it inherits."
+      },
+      "settings.site.update": {
+        "code": "settings.site.update",
+        "displayName": "Update site settings",
+        "description": "Edit the site settings on the platform, or the tenant\u0027s own branding, and upload their images."
+      },
       "tenancy.editions.create": {
         "code": "tenancy.editions.create",
         "displayName": "Create editions",
@@ -79577,7 +80168,8 @@
         "configs",
         "dict-items",
         "dicts",
-        "numbering-rules"
+        "numbering-rules",
+        "site"
       ]
     },
     {

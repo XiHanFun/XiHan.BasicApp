@@ -4,14 +4,14 @@
  */
 
 import { createPinia } from 'pinia'
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { markLockedFromServer, toast } from '~/composables'
 import { LOGIN_PATH } from '~/constants'
 import { setupIconifyOffline } from '~/iconify'
 import { $t, DEFAULT_LOCALE, isLocale, setLocale, setupI18n } from '~/locales'
 import { configureRequest } from '~/request'
-import { setupRouterGuard } from '~/router/guard'
-import { useAppStore, useAuthStore } from '~/stores'
+import { applyDocumentTitle, setupRouterGuard } from '~/router/guard'
+import { useAppStore, useAuthStore, useSiteStore } from '~/stores'
 import { resetSetupStorePlugin } from '~/stores/plugins'
 import App from './App.vue'
 import { registerApplicationContext } from './app/context'
@@ -81,6 +81,15 @@ async function bootstrap() {
 
   // 壳层要的接口实现、路由实例与应用路由（packages 不直接依赖 src）
   registerApplicationContext(router)
+  // 站点设置与租户品牌：挂载之前先取（登录页、标题与浏览器图标都要），登录态或所在租户变了再取；取不到时照常进应用，用前端自带的名称与图标
+  const site = useSiteStore()
+  const loadSite = () => site.load().catch(error => console.error('[site] failed to resolve the site settings', error))
+  await loadSite()
+  watch(() => [
+    Boolean(auth.accessToken),
+    auth.tenantId,
+  ] as const, () => void loadSite())
+  watch(() => site.name, () => applyDocumentTitle(router.currentRoute.value))
   setupRouterGuard(router)
   app.use(router)
   await router.isReady()

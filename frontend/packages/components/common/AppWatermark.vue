@@ -5,11 +5,12 @@
 
 <script lang="ts" setup>
 import { XhWatermarkRoot } from '@xihan-ui/vue'
-import { useAppStore } from '~/stores'
+import { useAppStore, useSiteStore } from '~/stores'
 
 defineOptions({ name: 'AppWatermark' })
 
 const appStore = useAppStore()
+const site = useSiteStore()
 </script>
 
 <template>
@@ -20,7 +21,7 @@ const appStore = useAppStore()
   <XhWatermarkRoot
     v-if="appStore.watermarkEnabled"
     class="app-watermark"
-    :text="appStore.watermarkText || 'XiHan BasicApp'"
+    :text="appStore.watermarkText || site.name"
     :rotate="-25"
     :font-size="16"
     :gap="160"

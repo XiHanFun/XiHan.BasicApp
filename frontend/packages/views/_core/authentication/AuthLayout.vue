@@ -9,7 +9,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, FOUNDATION_PROJECTS, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
-import { useAppContext, useAppStore } from '~/stores'
+import { useAppContext, useAppStore, useSiteStore } from '~/stores'
 import AuthEntrySwitcher from './AuthEntrySwitcher.vue'
 import LoginToolbar from './LoginToolbar.vue'
 
@@ -20,14 +20,16 @@ const { t } = useI18n()
 const route = useRoute()
 const appStore = useAppStore()
 
-const appTitle = computed(
-  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp',
-)
-const appLogo = computed(
-  () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
-)
-const appSubtitle = computed(() => appStore.brandSubtitle)
-const appDescription = computed(() => appStore.brandDescription)
+const site = useSiteStore()
+const appTitle = computed(() => site.name)
+const appLogo = computed(() => site.logo)
+const appSubtitle = computed(() => site.subtitle)
+const appDescription = computed(() => site.description)
+/** 登录页背景图：站点设置里有才铺，叠在品牌区的光斑之下 */
+const backgroundStyle = computed(() => site.loginBackground
+  ? { backgroundImage: `url("${site.loginBackground}")` }
+  : undefined)
+const copyright = computed(() => site.copyright)
 
 const showFooter = computed(
   () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
@@ -89,9 +91,10 @@ const appName = __APP_NAME__
             'lg:grid-cols-[1fr_520px]': formAlign === 'right',
           }"
         >
-          <!-- 插图面板 -->
+          <!-- 插图面板：站点设置里有背景图即铺满，光斑叠在上面 -->
           <div
-            class="relative hidden overflow-hidden bg-[hsl(var(--muted)/0.5)] px-10 py-14 lg:flex lg:flex-col xl:px-14 xl:py-16"
+            class="auth-showcase relative hidden overflow-hidden bg-[hsl(var(--muted)/0.5)] px-10 py-14 lg:flex lg:flex-col xl:px-14 xl:py-16"
+            :style="backgroundStyle"
             :class="{
               'lg:order-1': formAlign === 'left',
               'lg:hidden': formAlign === 'center',
@@ -169,36 +172,46 @@ const appName = __APP_NAME__
         </template>
       </div>
       <div
-        v-if="appStore.copyrightEnable"
+        v-if="appStore.copyrightEnable && (copyright.owner || copyright.icp)"
         class="flex flex-wrap gap-x-3 justify-center items-center"
       >
-        <span>
-          Copyright &copy; {{ appStore.copyrightDate || new Date().getFullYear() }}-{{
+        <span v-if="copyright.owner">
+          Copyright &copy; {{ copyright.since || new Date().getFullYear() }}-{{
             new Date().getFullYear()
           }}
           <a
-            v-if="appStore.copyrightSite"
-            :href="appStore.copyrightSite"
+            v-if="copyright.url"
+            :href="copyright.url"
             target="_blank"
+            rel="noopener"
             class="hover:underline"
-          >{{ appStore.copyrightName }}</a>
-          <span v-else>{{ appStore.copyrightName }}</span>.
+          >{{ copyright.owner }}</a>
+          <span v-else>{{ copyright.owner }}</span>.
           All Rights Reserved.
         </span>
         <a
-          v-if="appStore.copyrightIcp"
-          :href="appStore.copyrightIcpUrl || '#'"
+          v-if="copyright.icp && copyright.icpUrl"
+          :href="copyright.icpUrl"
           target="_blank"
+          rel="noopener"
           class="hover:underline"
         >
-          {{ appStore.copyrightIcp }}
+          {{ copyright.icp }}
         </a>
+        <span v-else-if="copyright.icp">{{ copyright.icp }}</span>
       </div>
     </footer>
   </div>
 </template>
 
 <style scoped>
+/* 站点设置的登录页背景图：铺满插图面板 */
+.auth-showcase {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
 .slogan-tag {
   transition:
     background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter),

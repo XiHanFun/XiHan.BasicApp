@@ -67,13 +67,13 @@ describe('默认值', () => {
     expect(store.watermarkEnabled).toBe(false)
   })
 
-  it('过渡动画名、加载动画名、毛玻璃强度、水印文案的默认取值', () => {
+  it('过渡动画名、加载动画名、毛玻璃强度、水印文案的默认取值（水印文案空即用站点的系统名）', () => {
     const store = freshStore()
 
     expect(store.transitionName).toBe('scale-up')
     expect(store.loadingName).toBe('lissajous-drift')
     expect(store.frostedGlassIntensity).toBe(10)
-    expect(store.watermarkText).toBe('XiHan BasicApp')
+    expect(store.watermarkText).toBe('')
   })
 })
 

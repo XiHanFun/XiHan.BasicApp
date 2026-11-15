@@ -667,16 +667,16 @@ describe('document.title', () => {
     useAppStore().dynamicTitle = false
     const router = createGuardedRouter()
     await router.push('/identity/user')
-    expect(document.title).toBe('XiHan BasicApp')
+    expect(document.title).toBe('XiHan.BasicApp')
   })
 
   it('meta.title 是国际化键时按当前语言翻译后再拼应用名，不是键时原样使用', async () => {
     signInWithLoadedRoutes()
     const router = createGuardedRouter()
     await router.push('/identity/user')
-    expect(document.title).toBe('无权限访问 - XiHan BasicApp')
+    expect(document.title).toBe('无权限访问 - XiHan.BasicApp')
     await router.push('/plain')
-    expect(document.title).toBe('自定义标题🚀 - XiHan BasicApp')
+    expect(document.title).toBe('自定义标题🚀 - XiHan.BasicApp')
   })
 
   it('路由没有 meta.title 时不动标题；重定向后取最终落点的 meta.title', async () => {
@@ -686,7 +686,7 @@ describe('document.title', () => {
     await router.push('/no-title')
     expect(document.title).toBe('上一页标题')
     await router.push('/no-such-page')
-    expect(document.title).toBe('页面不存在 - XiHan BasicApp')
+    expect(document.title).toBe('页面不存在 - XiHan.BasicApp')
   })
 })
 

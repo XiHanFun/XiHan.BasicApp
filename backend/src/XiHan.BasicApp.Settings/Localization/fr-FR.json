@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "Réinitialiser les règles de numérotation",
   "permissions.settings.numbering_rules.reset.description": "Avancer la séquence d’une règle au-delà de toutes les valeurs attribuées dans la période courante.",
   "permissions.settings.numbering_rules.generate.name": "Attribuer des numéros",
-  "permissions.settings.numbering_rules.generate.description": "Attribuer des numéros à partir des règles de l’appelant ou des règles de la plateforme partagées avec les locataires."
+  "permissions.settings.numbering_rules.generate.description": "Attribuer des numéros à partir des règles de l’appelant ou des règles de la plateforme partagées avec les locataires.",
+  "site.get.title": "Obtenir les paramètres du site",
+  "site.get.description": "Pour la page de paramètres : la plateforme obtient les paramètres du site ; un locataire, sa propre identité visuelle et les paramètres de la plateforme dont il hérite.",
+  "site.update.title": "Modifier les paramètres du site",
+  "site.update.description": "Remplace entièrement les paramètres du côté appelant : la plateforme modifie les paramètres du site, un locataire sa propre identité visuelle (les champs vides héritent de ceux de la plateforme). Les images ne peuvent qu’être conservées ou retirées ; pour en changer, passez par le point de téléversement.",
+  "site.resolve.title": "Obtenir les paramètres du site en vigueur",
+  "site.resolve.description": "Anonyme : connecté, il prend le locataire du jeton ; déconnecté, il cherche le locataire associé au domaine visité. Renvoie le nom, les images et le pied de page en vigueur. Pour l’affichage uniquement ; il ne détermine jamais l’identité.",
+  "openapi.tags.site.name": "Paramètres du site",
+  "openapi.tags.site.description": "Nom du site, logo, page de connexion et pied de page ; les locataires peuvent les remplacer par leur propre identité visuelle.",
+  "permissions.settings.site.read.name": "Consulter les paramètres du site",
+  "permissions.settings.site.read.description": "Consulter les paramètres du site sur la plateforme, ou l’identité visuelle propre au locataire et les paramètres de la plateforme dont il hérite.",
+  "permissions.settings.site.update.name": "Modifier les paramètres du site",
+  "permissions.settings.site.update.description": "Modifier les paramètres du site sur la plateforme, ou l’identité visuelle propre au locataire, et téléverser leurs images.",
+  "settings.site.asset_unknown": "« {field} » ne peut que conserver l’image actuelle ou la retirer ; téléversez une nouvelle image pour la remplacer (« {id} » n’est pas l’image actuelle).",
+  "settings.site.asset_invalid": "Téléversez une image PNG, JPEG, WebP ou ICO de {max} Mo au plus."
 }

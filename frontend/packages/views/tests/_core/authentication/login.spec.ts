@@ -12,7 +12,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
 import { configureRequest } from '~/request'
-import { registerAppContext, useAuthStore } from '~/stores'
+import { registerAppContext, useAuthStore, useSiteStore } from '~/stores'
 import LoginPage from '~/views/_core/authentication/login.vue'
 
 vi.mock('~/utils/device-fingerprint', () => ({
@@ -115,6 +115,31 @@ describe('登录页与第三方登录', () => {
     const github = wrapper.findAll('button').find(button => button.text() === 'GitHub')
     await github!.trigger('click')
     expect(start).toHaveBeenCalledWith({ name: 'github', displayName: 'GitHub', type: 'github' }, { tenant: 'acme', redirect: '/settings/configs' })
+  })
+
+  it('按访问的域名找到了租户（站点设置）即预填进租户一栏，仍可改', async () => {
+    setActivePinia(createPinia())
+    useSiteStore().apply({
+      profile: {
+        name: 'Contoso',
+        subtitle: null,
+        description: null,
+        logo: null,
+        favicon: null,
+        loginBackground: null,
+        copyrightOwner: null,
+        copyrightUrl: null,
+        copyrightSince: null,
+        icp: null,
+        icpUrl: null,
+      },
+      tenantId: 'contoso',
+    })
+    const wrapper = await open(LOGIN_PATH)
+    const tenant = wrapper.find<HTMLInputElement>('input[autocomplete="organization"]')
+    expect(tenant.element.value).toBe('contoso')
+    await tenant.setValue('fabrikam')
+    expect(tenant.element.value).toBe('fabrikam')
   })
 })
 

@@ -14,6 +14,7 @@ export default {
         tenant_id: '租戶 ID',
         name: '名稱',
         description: '說明',
+        domain: '自訂網域',
         status: '狀態',
         edition: '套餐',
         admin: '管理員',
@@ -32,6 +33,8 @@ export default {
         database: '資料庫',
         database_status: '資料庫狀態',
       },
+      domain_placeholder: '如 portal.example.com',
+      domain_hint: '未登入時依存取的網域顯示這個租戶的品牌、預填租戶；需先在 DNS 與憑證裡把網域指向本平台。只用於展示，不參與身分判定。',
       status: {
         active: '啟用',
         suspended: '已停用',

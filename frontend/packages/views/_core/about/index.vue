@@ -12,7 +12,7 @@ import { toast } from '~/composables'
 import { server as serverApi } from '~/contracts'
 import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
-import { useAuthStore, useWelcomeStore } from '~/stores'
+import { useAuthStore, useSiteStore, useWelcomeStore } from '~/stores'
 import PackageJson from '../../../../package.json'
 
 defineOptions({ name: 'AboutPage' })
@@ -28,7 +28,8 @@ const devDependencies = __APP_DEV_DEPENDENCIES__
 const keywords = PackageJson.keyword
 
 const appName = __APP_NAME__
-const appLogo = import.meta.env.VITE_APP_LOGO || '/favicon.png'
+const site = useSiteStore()
+const appLogo = computed(() => site.logo)
 const version = __APP_VERSION__
 const lastBuildTime = __APP_BUILD_TIME__
 const license = PackageJson.license

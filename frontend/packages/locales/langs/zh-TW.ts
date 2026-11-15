@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: '版權',
         enabled: '啟用',
-        name: '名稱',
-        site: '首頁',
-        start_date: '開始年份',
-        icp: 'ICP 備案號',
-        icp_url: 'ICP 網站連結',
-        optional: '選填',
       },
     },
     general: {

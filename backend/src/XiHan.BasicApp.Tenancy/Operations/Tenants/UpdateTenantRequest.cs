@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <c>tenants.update</c> 的请求
 /// </summary>
 /// <remarks>
-/// 改名称、说明、到期与排序（租户 ID 不可改，状态走 suspend / resume）。标识由路由值 <c>{id}</c> 绑定
+/// 改名称、说明、到期、排序、配额与自定义域名（租户 ID 不可改，状态走 suspend / resume）。标识由路由值 <c>{id}</c> 绑定
 /// </remarks>
 /// <param name="Id">租户主键</param>
 /// <param name="Name">名称</param>
@@ -18,6 +18,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="Order">排序号</param>
 /// <param name="UserLimit">租户自己的席位上限，覆盖套餐的；为空即沿用套餐</param>
 /// <param name="StorageLimitMb">租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐</param>
+/// <param name="Domain">自定义域名（如 <c>acme.example.com</c>）：登录前按它显示租户的品牌、预填租户；为空即不绑定</param>
 public sealed record UpdateTenantRequest(
     Guid Id,
     [Required, StringLength(128, MinimumLength = 1)] string Name,
@@ -25,4 +26,5 @@ public sealed record UpdateTenantRequest(
     DateTimeOffset? ExpiresAt = null,
     [Range(0, 100_000)] int Order = 0,
     [Range(0, 10_000_000)] int? UserLimit = null,
-    [Range(0, 1_000_000_000)] long? StorageLimitMb = null);
+    [Range(0, 1_000_000_000)] long? StorageLimitMb = null,
+    [StringLength(253), RegularExpression(@"^\s*([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.?\s*$")] string? Domain = null);

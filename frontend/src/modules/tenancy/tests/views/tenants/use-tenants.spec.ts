@@ -377,6 +377,7 @@ describe('useTenantEditor', () => {
       editionId: null,
       userLimit: 30,
       storageLimitMb: null,
+      domain: null,
     })
   })
 
@@ -415,6 +416,7 @@ describe('useTenantEditor', () => {
       order: 10,
       userLimit: null,
       storageLimitMb: 2048,
+      domain: null,
     })
 
     calls = record(call => json(200, tenant({

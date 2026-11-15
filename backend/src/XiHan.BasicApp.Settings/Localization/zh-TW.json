@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "重設業務編號規則",
   "permissions.settings.numbering_rules.reset.description": "把規則的流水值向前推進，越過目前週期已發出的所有值。",
   "permissions.settings.numbering_rules.generate.name": "產生編號",
-  "permissions.settings.numbering_rules.generate.description": "依目前一側自己的規則，或供租戶使用的平台規則發出編號。"
+  "permissions.settings.numbering_rules.generate.description": "依目前一側自己的規則，或供租戶使用的平台規則發出編號。",
+  "site.get.title": "取得站台設定",
+  "site.get.description": "設定頁用：平台取站台設定，租戶取自己的品牌與沿用的平台設定。",
+  "site.update.title": "修改站台設定",
+  "site.update.description": "整體覆蓋呼叫方這一側的設定：平台改站台設定，租戶改自己的品牌（留空的沿用平台的）；圖片只能保留或移除，換圖走上傳端點。",
+  "site.resolve.title": "取生效的站台設定",
+  "site.resolve.description": "匿名：登入了依權杖裡的租戶，沒登入依存取的網域找綁定了它的租戶，回傳生效的站台名、圖片與頁尾；只用於展示，不參與身分判定。",
+  "openapi.tags.site.name": "站台設定",
+  "openapi.tags.site.description": "站台名、Logo、登入頁與頁尾；租戶可以覆蓋成自己的品牌。",
+  "permissions.settings.site.read.name": "讀取站台設定",
+  "permissions.settings.site.read.description": "平台檢視站台設定；租戶檢視自己的品牌與沿用的平台設定。",
+  "permissions.settings.site.update.name": "修改站台設定",
+  "permissions.settings.site.update.description": "平台修改站台設定，租戶修改自己的品牌，並上傳其中的圖片。",
+  "settings.site.asset_unknown": "{field} 只能保留目前的圖片或移除，換圖請上傳新圖片（{id} 不是目前的圖片）。",
+  "settings.site.asset_invalid": "請上傳 PNG、JPEG、WebP 或 ICO 圖片，不超過 {max} MB。"
 }

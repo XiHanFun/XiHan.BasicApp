@@ -775,7 +775,6 @@ Vite 按模式叠加读取，后者覆盖前者：
 | `VITE_ROUTER_HISTORY` | `hash` | `history` 需要静态托管把未知路径回退到 `index.html` |
 | `VITE_BASE` | `/` | 部署子路径 |
 | `VITE_REALTIME_HUB` | `/hubs/notification` | 通知 Hub 路径；留空即不建实时连接（强制下线、站内通知、跨端设置同步都不再实时） |
-| `VITE_APP_TITLE` / `VITE_APP_SUBTITLE` / `VITE_APP_DESCRIPTION` / `VITE_APP_LOGO` | 空 | 登录页品牌区；留空取应用名文案与 `/favicon.png` |
 
 ## 下一步
 

@@ -14,6 +14,7 @@ export default {
         tenant_id: 'ID de inquilino',
         name: 'Nombre',
         description: 'Descripción',
+        domain: 'Dominio propio',
         status: 'Estado',
         edition: 'Edición',
         admin: 'Administrador',
@@ -32,6 +33,8 @@ export default {
         database: 'Base de datos',
         database_status: 'Estado de la base de datos',
       },
+      domain_placeholder: 'p. ej. portal.example.com',
+      domain_hint: 'Antes de iniciar sesión, quien visite este dominio verá la marca del inquilino y el inquilino ya rellenado. Apunte antes el dominio a esta plataforma en el DNS y el certificado. Solo para mostrar; nunca decide la identidad.',
       status: {
         active: 'Activo',
         suspended: 'Suspendido',

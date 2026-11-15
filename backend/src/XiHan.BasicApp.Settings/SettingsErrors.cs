@@ -152,6 +152,16 @@ public static class SettingsErrors
     public const string ValueRejected = "SETTINGS_VALIDATION_011";
 
     /// <summary>
+    /// 站点设置的图片只能保留现在的或去掉
+    /// </summary>
+    public const string SiteAssetUnknown = "SETTINGS_VALIDATION_012";
+
+    /// <summary>
+    /// 站点图片不是 PNG、JPEG、WebP 或 ICO，或超过大小上限
+    /// </summary>
+    public const string SiteAssetInvalid = "SETTINGS_VALIDATION_013";
+
+    /// <summary>
     /// 数据属于另一侧：平台数据只能在平台维护，租户要不同的值请新建自己的
     /// </summary>
     public const string OtherSide = "SETTINGS_DENIED_001";

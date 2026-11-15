@@ -16,7 +16,7 @@ import { useSequence } from '~/composables'
 import { welcomeGreetings } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useWelcomeStore } from '~/stores'
+import { useSiteStore, useWelcomeStore } from '~/stores'
 import { SAND_DISPERSE_SECONDS, useWelcomeSand } from './welcome/use-welcome-sand'
 
 /**
@@ -50,7 +50,6 @@ const TONE_COLORS: Record<WelcomeTone, string> = {
 }
 
 const welcome = useWelcomeStore()
-const appStore = useAppStore()
 const router = useRouter()
 const { t, locale } = useI18n()
 const { isDark } = useTheme()
@@ -76,8 +75,9 @@ let exitTimer: null | ReturnType<typeof setTimeout> = null
 /** 问候落在哪张画面上收的尾：主画面的第一个形状用另一张，两者才能交叠 */
 let lastGreetingLayer: 0 | 1 = 0
 
-const appTitle = computed(() => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp')
-const appLogo = computed(() => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png')
+const site = useSiteStore()
+const appTitle = computed(() => site.name)
+const appLogo = computed(() => site.logo)
 /** 版本线的主版本号：主画面聚成的那个数字 */
 const major = computed(() => welcome.release?.split('.')[0] ?? '')
 const slides = computed(() => welcome.slides)

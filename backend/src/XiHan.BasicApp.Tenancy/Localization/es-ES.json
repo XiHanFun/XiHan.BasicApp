@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "Crea el primer administrador de un inquilino con todos los permisos del lado del inquilino; la contraseña debe cambiarse en el primer inicio de sesión. Una vez por inquilino.",
   "tenancy.tenant.not_found": "El inquilino '{id}' no existe.",
   "tenancy.tenant.id_taken": "El ID de inquilino '{tenantId}' ya está en uso.",
+  "tenancy.tenant.domain_taken": "El dominio {domain} ya está vinculado a otro inquilino.",
   "tenancy.tenant.admin_initialized": "El inquilino '{tenantId}' ya tiene administrador.",
   "tenancy.tenant.has_users": "El inquilino '{tenantId}' aún tiene {count} usuarios y no se puede eliminar.",
   "tenancy.tenant.expired": "El inquilino '{tenantId}' ha caducado. Amplíe primero la fecha de caducidad.",

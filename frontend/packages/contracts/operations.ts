@@ -437,6 +437,9 @@ export const routes = {
   'sessions.list': { method: 'POST', template: '/api/sessions:list', path: [], query: [], success: 200 },
   'sessions.revoke': { method: 'POST', template: '/api/sessions:revoke', path: [], query: [], success: 200 },
   'sessions.summary': { method: 'GET', template: '/api/sessions:summary', path: [], query: [], success: 200 },
+  'site.get': { method: 'GET', template: '/api/site', path: [], query: [], success: 200 },
+  'site.resolve': { method: 'GET', template: '/api/site:resolve', path: [], query: ['host'], success: 200 },
+  'site.update': { method: 'PUT', template: '/api/site', path: [], query: [], success: 200 },
   'sms-configs.create': { method: 'POST', template: '/api/sms-configs', path: [], query: [], success: 201 },
   'sms-configs.delete': { method: 'DELETE', template: '/api/sms-configs', path: [], query: ['ids'], success: 200 },
   'sms-configs.get': { method: 'GET', template: '/api/sms-configs/{id}', path: ['id'], query: [], success: 200 },
@@ -1251,6 +1254,13 @@ export const sessions = {
   list: (request: RequestOf<'sessions.list'>, options?: CallOptions) => invoke<RequestOf<'sessions.list'>, ResponseOf<'sessions.list'>>('sessions.list', routes['sessions.list'], request, options),
   revoke: (request: RequestOf<'sessions.revoke'>, options?: CallOptions) => invoke<RequestOf<'sessions.revoke'>, ResponseOf<'sessions.revoke'>>('sessions.revoke', routes['sessions.revoke'], request, options),
   summary: (request: RequestOf<'sessions.summary'>, options?: CallOptions) => invoke<RequestOf<'sessions.summary'>, ResponseOf<'sessions.summary'>>('sessions.summary', routes['sessions.summary'], request, options),
+}
+
+/** 资源 `site` 的操作 */
+export const site = {
+  get: (request: RequestOf<'site.get'>, options?: CallOptions) => invoke<RequestOf<'site.get'>, ResponseOf<'site.get'>>('site.get', routes['site.get'], request, options),
+  resolve: (request: RequestOf<'site.resolve'>, options?: CallOptions) => invoke<RequestOf<'site.resolve'>, ResponseOf<'site.resolve'>>('site.resolve', routes['site.resolve'], request, options),
+  update: (request: RequestOf<'site.update'>, options?: CallOptions) => invoke<RequestOf<'site.update'>, ResponseOf<'site.update'>>('site.update', routes['site.update'], request, options),
 }
 
 /** 资源 `sms-configs` 的操作 */

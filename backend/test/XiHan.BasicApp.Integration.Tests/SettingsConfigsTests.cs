@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Chat.Domain.Services;
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
@@ -14,6 +15,7 @@ using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.Notification.Jobs;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.BasicApp.Settings.Domain.Entities;
+using XiHan.BasicApp.Settings.Domain.Services;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -182,7 +184,7 @@ public sealed class SettingsConfigsTests : IDisposable
         // 每个代码读取的参数都登记了，种子建成内建参数、值留空
         var registered = server.Services.GetServices<ConfigCatalogSection>().SelectMany(static s => s.Configs).ToList();
         Assert.Equal(
-            ["access.security.login-auto-ban", "auditing.retention-days", "chat.policy", "identity.impersonation", "identity.login-methods", "identity.password", "notification.retention-days", "notification.telegram", "notification.telegram.webhook-secret-token"],
+            ["access.security.login-auto-ban", "auditing.retention-days", "chat.policy", "identity.impersonation", "identity.login-methods", "identity.password", "notification.retention-days", "notification.telegram", "notification.telegram.webhook-secret-token", "settings.site"],
             registered.Select(static c => c.Key).Order(StringComparer.Ordinal));
         foreach (var descriptor in registered)
         {
@@ -201,9 +203,11 @@ public sealed class SettingsConfigsTests : IDisposable
             Telegram: (await TelegramSettings.LoadAsync(ctx)).ValueOrThrow(),
             Chat: (await ctx.Services.GetRequiredService<ChatPolicy>().ReadAsync(ctx)).ValueOrThrow(),
             Retention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(AuditLogOptions.RetentionDaysConfigKey, ctx)).ValueOrThrow(),
-            MessageRetention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(MessageRetentionJob.RetentionDaysConfigKey, ctx)).ValueOrThrow()));
+            MessageRetention: (await ctx.Services.GetRequiredService<IConfigValueReader>().GetAsync(MessageRetentionJob.RetentionDaysConfigKey, ctx)).ValueOrThrow(),
+            Site: (await ctx.Services.GetRequiredService<SiteProfiles>().OwnAsync(TenantIds.Platform, ctx.CancellationToken)).ValueOrThrow()));
         Assert.Equal([LoginMethods.Password], read.Methods);
         Assert.Equal(PasswordSettings.Default, read.Password);
+        Assert.Equal(SiteSettings.Default, read.Site);
         Assert.Equal(ImpersonationSettings.Default, read.Impersonation);
         Assert.Equal(LoginAutoBanSettings.Default, read.Ban);
         Assert.Equal(TelegramSettings.Default with { Network = new TelegramNetwork() }, read.Telegram);

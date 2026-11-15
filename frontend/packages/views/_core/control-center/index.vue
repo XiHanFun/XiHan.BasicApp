@@ -11,13 +11,12 @@ import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
-import { useAppContext, useAppStore, useAuthStore, useUserStore } from '~/stores'
+import { useAppContext, useAuthStore, useSiteStore, useUserStore } from '~/stores'
 
 defineOptions({ name: 'ControlCenter' })
 
 const { t } = useI18n()
 const { apis } = useAppContext()
-const appStore = useAppStore()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 
@@ -32,9 +31,10 @@ const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?
 const platformIsCurrent = computed(() => userStore.userInfo?.isPlatform ?? false)
 const displayName = computed(() => userStore.nickname || userStore.username)
 const avatar = computed(() => userStore.avatar)
-// 与侧栏品牌同一套回退：偏好里的品牌 → 构建期 VITE_APP_TITLE / VITE_APP_LOGO → 缺省
-const brandTitle = computed(() => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp')
-const brandLogo = computed(() => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png')
+// 与侧栏同一份品牌：站点设置（租户侧是租户的品牌）
+const site = useSiteStore()
+const brandTitle = computed(() => site.name)
+const brandLogo = computed(() => site.logo)
 
 async function loadTenants() {
   loading.value = true

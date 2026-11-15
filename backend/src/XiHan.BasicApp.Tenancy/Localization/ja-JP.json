@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "テナント側の全権限を持つ最初の管理者を作成します。初回ログイン時にパスワード変更が必要です。テナントごとに一度だけ。",
   "tenancy.tenant.not_found": "テナント '{id}' は存在しません。",
   "tenancy.tenant.id_taken": "テナント ID '{tenantId}' は既に使用されています。",
+  "tenancy.tenant.domain_taken": "ドメイン {domain} はすでに別のテナントに割り当てられています。",
   "tenancy.tenant.admin_initialized": "テナント '{tenantId}' には既に管理者がいます。",
   "tenancy.tenant.has_users": "テナント '{tenantId}' にはまだ {count} 人のユーザーがいるため削除できません。",
   "tenancy.tenant.expired": "テナント '{tenantId}' は有効期限を過ぎています。再開する前に有効期限を延長してください。",

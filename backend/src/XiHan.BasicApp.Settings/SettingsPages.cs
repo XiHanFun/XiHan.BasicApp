@@ -29,7 +29,12 @@ public static class SettingsPages
     public static PageDescriptor NumberingRules { get; } = new("settings.numbering-rules", "/settings/numbering-rules", "settings.numbering_rules.title", "lucide:hash", 420, SettingsPermissions.NumberingRulesRead, directory: MenuDirectories.SystemSettings);
 
     /// <summary>
+    /// 站点设置：平台改站点名、Logo 与页脚，租户改自己的品牌
+    /// </summary>
+    public static PageDescriptor Site { get; } = new("settings.site", "/settings/site", "settings.site.title", "lucide:palette", 430, SettingsPermissions.SiteRead, directory: MenuDirectories.SystemSettings);
+
+    /// <summary>
     /// 全部顶层页面
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Configs, Dicts, NumberingRules];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Configs, Dicts, NumberingRules, Site];
 }

@@ -7,7 +7,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
-import { useAppStore } from '~/stores'
+import { useSiteStore } from '~/stores'
 
 /**
  * 欢迎页演示：通行密钥。点登录、验证指纹、直接进入，一遍 8 秒循环播放
@@ -16,8 +16,8 @@ import { useAppStore } from '~/stores'
 defineOptions({ name: 'WelcomePasskeyDemo' })
 
 const { t } = useI18n()
-const appStore = useAppStore()
-const appLogo = computed(() => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png')
+const site = useSiteStore()
+const appLogo = computed(() => site.logo)
 </script>
 
 <template>

@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "Reset numbering rules",
   "permissions.settings.numbering_rules.reset.description": "Move a rule's sequence forward past every value issued in the current period.",
   "permissions.settings.numbering_rules.generate.name": "Issue numbers",
-  "permissions.settings.numbering_rules.generate.description": "Issue numbers from the caller's rules or from platform rules shared with tenants."
+  "permissions.settings.numbering_rules.generate.description": "Issue numbers from the caller's rules or from platform rules shared with tenants.",
+  "site.get.title": "Get site settings",
+  "site.get.description": "For the settings page: the platform gets the site settings; a tenant gets its own branding and the platform settings it inherits.",
+  "site.update.title": "Update site settings",
+  "site.update.description": "Replace the caller's side as a whole: the platform edits the site settings, a tenant edits its own branding (blank fields inherit the platform's). Images can only be kept or removed; upload a new one through the upload endpoint.",
+  "site.resolve.title": "Resolve the site settings",
+  "site.resolve.description": "Anonymous: signed in, it uses the tenant in the token; signed out, it finds the tenant bound to the visited domain. Returns the effective site name, images and footer. Display only; it never decides identity.",
+  "openapi.tags.site.name": "Site settings",
+  "openapi.tags.site.description": "Site name, logo, sign-in page and footer; tenants can override them with their own branding.",
+  "permissions.settings.site.read.name": "Read site settings",
+  "permissions.settings.site.read.description": "View the site settings on the platform, or the tenant's own branding and the platform settings it inherits.",
+  "permissions.settings.site.update.name": "Update site settings",
+  "permissions.settings.site.update.description": "Edit the site settings on the platform, or the tenant's own branding, and upload their images.",
+  "settings.site.asset_unknown": "'{field}' can only keep the current image or remove it; upload a new image to replace it ('{id}' is not the current image).",
+  "settings.site.asset_invalid": "Upload a PNG, JPEG, WebP or ICO image of at most {max} MB."
 }

@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "Nummernkreise zurücksetzen",
   "permissions.settings.numbering_rules.reset.description": "Den Zähler eines Nummernkreises über jeden im aktuellen Zeitraum vergebenen Wert hinaus vorrücken.",
   "permissions.settings.numbering_rules.generate.name": "Nummern vergeben",
-  "permissions.settings.numbering_rules.generate.description": "Nummern aus den eigenen Nummernkreisen oder aus für Mandanten freigegebenen Plattformregeln vergeben."
+  "permissions.settings.numbering_rules.generate.description": "Nummern aus den eigenen Nummernkreisen oder aus für Mandanten freigegebenen Plattformregeln vergeben.",
+  "site.get.title": "Website-Einstellungen abrufen",
+  "site.get.description": "Für die Einstellungsseite: Die Plattform erhält die Website-Einstellungen, ein Mandant sein eigenes Branding und die geerbten Plattform-Einstellungen.",
+  "site.update.title": "Website-Einstellungen ändern",
+  "site.update.description": "Ersetzt die Einstellungen der aufrufenden Seite vollständig: Die Plattform ändert die Website-Einstellungen, ein Mandant sein eigenes Branding (leere Felder erben die der Plattform). Bilder lassen sich nur behalten oder entfernen; ein neues Bild über den Upload-Endpunkt hochladen.",
+  "site.resolve.title": "Wirksame Website-Einstellungen abrufen",
+  "site.resolve.description": "Anonym: Angemeldet gilt der Mandant aus dem Token, abgemeldet der Mandant, an den die aufgerufene Domain gebunden ist. Liefert den wirksamen Website-Namen, die Bilder und die Fußzeile. Nur zur Anzeige, nie zur Identitätsprüfung.",
+  "openapi.tags.site.name": "Website-Einstellungen",
+  "openapi.tags.site.description": "Website-Name, Logo, Anmeldeseite und Fußzeile; Mandanten können sie mit ihrem eigenen Branding überschreiben.",
+  "permissions.settings.site.read.name": "Website-Einstellungen lesen",
+  "permissions.settings.site.read.description": "Auf der Plattform die Website-Einstellungen ansehen, beim Mandanten sein eigenes Branding und die geerbten Plattform-Einstellungen.",
+  "permissions.settings.site.update.name": "Website-Einstellungen ändern",
+  "permissions.settings.site.update.description": "Auf der Plattform die Website-Einstellungen, beim Mandanten sein eigenes Branding ändern und deren Bilder hochladen.",
+  "settings.site.asset_unknown": "'{field}' kann nur das aktuelle Bild behalten oder entfernen; laden Sie zum Ersetzen ein neues Bild hoch ('{id}' ist nicht das aktuelle Bild).",
+  "settings.site.asset_invalid": "Laden Sie ein PNG-, JPEG-, WebP- oder ICO-Bild mit höchstens {max} MB hoch."
 }

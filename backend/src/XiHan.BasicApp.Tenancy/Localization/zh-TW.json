@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "為租戶建立第一個管理員，持有租戶側全部權限；首次登入須變更密碼。每個租戶只能初始化一次。",
   "tenancy.tenant.not_found": "租戶 '{id}' 不存在。",
   "tenancy.tenant.id_taken": "租戶 ID '{tenantId}' 已被使用。",
+  "tenancy.tenant.domain_taken": "網域 {domain} 已綁定在別的租戶上。",
   "tenancy.tenant.admin_initialized": "租戶 '{tenantId}' 已有管理員。",
   "tenancy.tenant.has_users": "租戶 '{tenantId}' 下還有 {count} 個使用者，不能刪除。",
   "tenancy.tenant.expired": "租戶 '{tenantId}' 已過到期時間，要先延長到期時間才能恢復。",

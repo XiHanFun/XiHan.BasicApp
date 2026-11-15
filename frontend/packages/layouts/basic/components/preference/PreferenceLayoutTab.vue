@@ -8,7 +8,7 @@ import type { useAppStore } from '~/stores'
 import { XhSwitch, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XHelpTip as PrefTip, XInput, XNumberInput, XSelect } from '~/components'
+import { XHelpTip as PrefTip, XNumberInput, XSelect } from '~/components'
 import LayoutPreviewSvg from './LayoutPreviewSvg.vue'
 
 defineOptions({ name: 'PreferenceLayoutTab' })
@@ -114,7 +114,6 @@ const breadcrumbShowHomeDisabled = computed(
 )
 
 const copyrightDisabled = computed(() => !appStore.footerEnable)
-const copyrightItemDisabled = computed(() => copyrightDisabled.value || !appStore.copyrightEnable)
 
 watch(() => appStore.sidebarShow, (val) => {
   if (!val) {
@@ -607,64 +606,6 @@ watch(() => appStore.sidebarCollapsed, (val) => {
       <div class="pref-row" :class="{ 'opacity-50': copyrightDisabled }">
         <span>{{ t('preference.layout.copyright.enabled') }}</span>
         <XhSwitch v-model:checked="appStore.copyrightEnable" :disabled="copyrightDisabled" :aria-label="t('preference.layout.copyright.enabled')" />
-      </div>
-      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
-        <span>{{ t('preference.layout.copyright.name') }}</span>
-        <XInput
-          v-model:value="appStore.copyrightName"
-          size="sm"
-          style="width: 150px"
-          class="pref-num pref-num--right"
-          :disabled="copyrightItemDisabled"
-          :aria-label="t('preference.layout.copyright.name')"
-        />
-      </div>
-      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
-        <span>{{ t('preference.layout.copyright.site') }}</span>
-        <XInput
-          v-model:value="appStore.copyrightSite"
-          size="sm"
-          style="width: 150px"
-          class="pref-num pref-num--right"
-          :disabled="copyrightItemDisabled"
-          :aria-label="t('preference.layout.copyright.site')"
-        />
-      </div>
-      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
-        <span>{{ t('preference.layout.copyright.start_date') }}</span>
-        <XInput
-          v-model:value="appStore.copyrightDate"
-          size="sm"
-          style="width: 90px"
-          class="pref-num pref-num--right"
-          placeholder="2016"
-          :disabled="copyrightItemDisabled"
-          :aria-label="t('preference.layout.copyright.start_date')"
-        />
-      </div>
-      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
-        <span>{{ t('preference.layout.copyright.icp') }}</span>
-        <XInput
-          v-model:value="appStore.copyrightIcp"
-          size="sm"
-          style="width: 150px"
-          class="pref-num pref-num--right"
-          :placeholder="t('preference.layout.copyright.optional')"
-          :disabled="copyrightItemDisabled"
-          :aria-label="t('preference.layout.copyright.icp')"
-        />
-      </div>
-      <div class="pref-row" :class="{ 'opacity-50': copyrightItemDisabled }">
-        <span>{{ t('preference.layout.copyright.icp_url') }}</span>
-        <XInput
-          v-model:value="appStore.copyrightIcpUrl"
-          size="sm"
-          style="width: 150px"
-          class="pref-num pref-num--right"
-          :placeholder="t('preference.layout.copyright.optional')"
-          :disabled="copyrightItemDisabled"
-          :aria-label="t('preference.layout.copyright.icp_url')"
-        />
       </div>
     </section>
   </div>

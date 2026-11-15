@@ -180,4 +180,9 @@ public static class TenancyErrors
     /// 缺省套餐必须启用
     /// </summary>
     public const string EditionDefaultDisabled = "TENANCY_CONFLICT_017";
+
+    /// <summary>
+    /// 自定义域名已被别的租户绑定
+    /// </summary>
+    public const string DomainTaken = "TENANCY_CONFLICT_018";
 }

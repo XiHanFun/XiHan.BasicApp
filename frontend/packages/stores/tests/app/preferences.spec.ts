@@ -135,18 +135,13 @@ describe('默认值', () => {
     expect(store.widgetPreferencePosition).toBe('auto')
   })
 
-  it('页脚与版权默认：全部开启，署名 XiHanFun / 2016 起，ICP 为空', () => {
+  it('页脚与版权默认全部开启（版权的文字在站点设置里）', () => {
     const store = freshStore()
 
     expect(store.footerEnable).toBe(true)
     expect(store.footerFixed).toBe(true)
     expect(store.footerShowDevInfo).toBe(true)
     expect(store.copyrightEnable).toBe(true)
-    expect(store.copyrightName).toBe('XiHanFun')
-    expect(store.copyrightSite).toBe('https://www.xihanfun.com')
-    expect(store.copyrightDate).toBe('2016')
-    expect(store.copyrightIcp).toBe('')
-    expect(store.copyrightIcpUrl).toBe('')
   })
 
   it('快捷键总开关与子项默认开启', () => {
@@ -349,28 +344,18 @@ describe('setter 落地', () => {
     expect(localStorage.getItem(WIDGET_PREFERENCE_POSITION_KEY)).toBe(JSON.stringify('header'))
   })
 
-  it('页脚与版权文案可自定义，含中文与备案链接', () => {
+  it('页脚与版权的开关可改', () => {
     const store = freshStore()
 
     store.setFooterEnable(false)
     store.setFooterFixed(false)
     store.setFooterShowDevInfo(false)
     store.setCopyrightEnable(false)
-    store.setCopyrightName('曦寒科技')
-    store.setCopyrightSite('https://example.com')
-    store.setCopyrightDate('2020')
-    store.setCopyrightIcp('京ICP备00000000号')
-    store.setCopyrightIcpUrl('https://beian.miit.gov.cn')
 
     expect(store.footerEnable).toBe(false)
     expect(store.footerFixed).toBe(false)
     expect(store.footerShowDevInfo).toBe(false)
     expect(store.copyrightEnable).toBe(false)
-    expect(store.copyrightName).toBe('曦寒科技')
-    expect(store.copyrightSite).toBe('https://example.com')
-    expect(store.copyrightDate).toBe('2020')
-    expect(store.copyrightIcp).toBe('京ICP备00000000号')
-    expect(store.copyrightIcpUrl).toBe('https://beian.miit.gov.cn')
   })
 
   it('快捷键总开关与四个子项互相独立', () => {

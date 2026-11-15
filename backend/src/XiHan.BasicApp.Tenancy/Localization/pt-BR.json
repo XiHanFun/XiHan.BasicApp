@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "Cria o primeiro administrador de um locatário com todas as permissões do lado do locatário; a senha deve ser alterada no primeiro login. Uma vez por locatário.",
   "tenancy.tenant.not_found": "O locatário '{id}' não existe.",
   "tenancy.tenant.id_taken": "O ID de locatário '{tenantId}' já está em uso.",
+  "tenancy.tenant.domain_taken": "O domínio {domain} já está vinculado a outro locatário.",
   "tenancy.tenant.admin_initialized": "O locatário '{tenantId}' já tem administrador.",
   "tenancy.tenant.has_users": "O locatário '{tenantId}' ainda tem {count} usuários e não pode ser excluído.",
   "tenancy.tenant.expired": "O locatário '{tenantId}' expirou. Prorrogue a data de expiração primeiro.",

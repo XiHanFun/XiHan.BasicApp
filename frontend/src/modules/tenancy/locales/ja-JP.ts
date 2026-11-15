@@ -14,6 +14,7 @@ export default {
         tenant_id: 'テナント ID',
         name: '名前',
         description: '説明',
+        domain: 'カスタムドメイン',
         status: '状態',
         edition: 'エディション',
         admin: '管理者',
@@ -32,6 +33,8 @@ export default {
         database: 'データベース',
         database_status: 'データベースの状態',
       },
+      domain_placeholder: '例：portal.example.com',
+      domain_hint: 'ログイン前にこのドメインへアクセスすると、テナントのブランドを表示しテナントを自動入力します。先に DNS と証明書でドメインを本プラットフォームに向けてください。表示専用で、本人確認には使いません。',
       status: {
         active: '有効',
         suspended: '停止中',

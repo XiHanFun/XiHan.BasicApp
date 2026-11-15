@@ -18,7 +18,7 @@ import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
-import { useAppContext, useAuthStore } from '~/stores'
+import { useAppContext, useAuthStore, useSiteStore } from '~/stores'
 import { isPasskeyCancelled, passkeysSupported } from '~/utils'
 import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
@@ -113,8 +113,10 @@ const methodIcons: Record<string, string> = {
   phone: 'lucide:phone',
 }
 
+// 按访问的域名找到了租户（站点设置）即预填进租户框，只是方便，登录仍由后端按账号判定
+const site = useSiteStore()
 const formData = ref({
-  tenant: '',
+  tenant: site.tenantId ?? '',
   username: '',
   password: '',
 })

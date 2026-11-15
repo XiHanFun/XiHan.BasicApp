@@ -1800,6 +1800,7 @@ CREATE TABLE IF NOT EXISTS "sys_tenant" (
     "tenant_id" character varying(512) NOT NULL,
     "name" character varying(512) NOT NULL,
     "description" character varying(512) DEFAULT NULL::character varying NULL,
+    "domain" character varying(253) DEFAULT NULL::character varying NULL,
     "status" integer DEFAULT 0 NOT NULL,
     "expires_at" timestamp with time zone NULL,
     "admin_user_id" uuid NULL,
@@ -1825,6 +1826,7 @@ CREATE TABLE IF NOT EXISTS "sys_tenant" (
 );
 CREATE INDEX IF NOT EXISTS ix_sys_tenant_admin_user_id ON public.sys_tenant USING btree (admin_user_id);
 CREATE INDEX IF NOT EXISTS ix_sys_tenant_edition_id ON public.sys_tenant USING btree (edition_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_tenant_domain ON public.sys_tenant USING btree (domain) WHERE (is_deleted = false);
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_tenant_tenant_id ON public.sys_tenant USING btree (tenant_id) WHERE (is_deleted = false);
 
 CREATE TABLE IF NOT EXISTS "sys_tenant_member" (

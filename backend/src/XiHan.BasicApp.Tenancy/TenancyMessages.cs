@@ -120,6 +120,14 @@ public static class TenancyMessages
     public const string TenantIdTaken = "tenancy.tenant.id_taken";
 
     /// <summary>
+    /// 自定义域名已被别的租户绑定
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>domain</c>
+    /// </remarks>
+    public const string DomainTaken = "tenancy.tenant.domain_taken";
+
+    /// <summary>
     /// 管理员已初始化
     /// </summary>
     /// <remarks>

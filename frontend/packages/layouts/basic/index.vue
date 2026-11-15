@@ -24,7 +24,7 @@ import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { FOUNDATION_PROJECTS } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useShellExtensions, useSplitViewStore, useTabbarStore, useWelcomeStore } from '~/stores'
+import { useShellExtensions, useSiteStore, useSplitViewStore, useTabbarStore, useWelcomeStore } from '~/stores'
 import AppBackTop from './components/AppBackTop.vue'
 import AppFavorites from './components/AppFavorites.vue'
 import AppFloatToolbar from './components/AppFloatToolbar.vue'
@@ -49,6 +49,8 @@ defineOptions({ name: 'BasicLayout' })
 
 const { isDark } = useTheme()
 const shell = useLayoutShellAdapter()
+/** 页脚的版权与备案：站点设置（租户侧是租户的品牌） */
+const site = useSiteStore()
 const route = useRoute()
 const router = useRouter()
 const { t, te } = useI18n()
@@ -634,28 +636,28 @@ const sidebarEnableState = computed(
         <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
 
         <!-- Center: Copyright -->
-        <div v-if="shell.appStore.copyrightEnable" class="footer-section-center">
+        <div v-if="shell.appStore.copyrightEnable && site.copyright.owner" class="footer-section-center">
           <span>
-            Copyright &copy; {{ shell.appStore.copyrightDate || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
+            Copyright &copy; {{ site.copyright.since || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
             <a
-              v-if="shell.appStore.copyrightSite"
-              :href="shell.appStore.copyrightSite"
+              v-if="site.copyright.url"
+              :href="site.copyright.url"
               target="_blank"
               class="hover:underline"
-            >{{ shell.appStore.copyrightName }}</a>
-            <span v-else>{{ shell.appStore.copyrightName }}</span>.
+            >{{ site.copyright.owner }}</a>
+            <span v-else>{{ site.copyright.owner }}</span>.
             All Rights Reserved.
           </span>
         </div>
         <div v-else-if="!shell.isMobile.value" class="footer-section-center" />
 
         <!-- Right: ICP -->
-        <div v-if="shell.appStore.copyrightEnable && shell.appStore.copyrightIcp" :class="shell.isMobile.value ? '' : 'footer-section-right'">
+        <div v-if="shell.appStore.copyrightEnable && site.copyright.icp" :class="shell.isMobile.value ? '' : 'footer-section-right'">
           <a
-            :href="shell.appStore.copyrightIcpUrl || '#'"
+            :href="site.copyright.icpUrl || undefined"
             target="_blank"
             class="hover:underline"
-          >{{ shell.appStore.copyrightIcp }}</a>
+          >{{ site.copyright.icp }}</a>
         </div>
         <div v-else-if="!shell.isMobile.value" class="footer-section-right" />
       </footer>
