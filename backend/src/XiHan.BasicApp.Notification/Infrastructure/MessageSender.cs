@@ -66,6 +66,7 @@ public sealed class MessageDispatchSignal : IDisposable
 /// <param name="sms">短信记录仓储</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="options">选项</param>
+/// <param name="brand">模板变量 brand 的补值</param>
 /// <param name="signal">唤醒信号</param>
 public sealed class MessageSender(
     MessageTemplateService templates,
@@ -74,10 +75,9 @@ public sealed class MessageSender(
     IRepository<SysSms, Guid> sms,
     IIdGenerator<Guid> ids,
     NotificationOptions options,
+    MessageBrand brand,
     MessageDispatchSignal signal) : IMessageSender
 {
-    private const string BrandParameter = "brand";
-
     /// <inheritdoc />
     public async ValueTask<bool> CanSendAsync(InvocationContext context, MessageKind kind, string templateCode)
     {
@@ -111,9 +111,12 @@ public sealed class MessageSender(
             return Error.Unavailable(NotificationErrors.ChannelUnavailable, NotificationMessages.ChannelUnavailable, MessageArguments.Of(("kind", message.Kind.ToString())));
         }
 
-        var parameters = message.Parameters.Any(static p => string.Equals(p.Key, BrandParameter, StringComparison.Ordinal))
-            ? message.Parameters
-            : [.. message.Parameters, new KeyValuePair<string, string?>(BrandParameter, options.Brand)];
+        var completed = await brand.CompleteAsync(message.Parameters, owner, context.CancellationToken).ConfigureAwait(false);
+        if (!completed.TryGetValue(out var parameters))
+        {
+            return completed.Error!;
+        }
+
         if (!TemplateRenderer.TryRender(template.Content, parameters, template.IsHtml, out var content, out var contentError))
         {
             return Invalid(contentError);

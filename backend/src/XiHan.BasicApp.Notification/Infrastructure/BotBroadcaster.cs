@@ -26,8 +26,9 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// <param name="messages">机器人消息仓储</param>
 /// <param name="ids">标识生成器</param>
 /// <param name="options">选项</param>
+/// <param name="brand">模板变量 brand 的补值</param>
 /// <param name="signal">唤醒信号</param>
-public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigService bots, TelegramBotService telegram, IRepository<SysBotMessage, Guid> messages, IIdGenerator<Guid> ids, NotificationOptions options, MessageDispatchSignal signal)
+public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigService bots, TelegramBotService telegram, IRepository<SysBotMessage, Guid> messages, IIdGenerator<Guid> ids, NotificationOptions options, MessageBrand brand, MessageDispatchSignal signal)
 {
     /// <summary>
     /// 当前一侧有没有可用的机器人与模板
@@ -48,7 +49,7 @@ public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigSe
     /// 按模板渲染一条纯文本消息，排队到本侧每个服务商的缺省机器人
     /// </summary>
     /// <remarks>
-    /// 没给品牌名即补上配置的品牌名（与邮件、短信同）
+    /// 没给品牌名即补上这一侧站点设置的系统名（与邮件、短信同）
     /// </remarks>
     /// <param name="context">调用上下文</param>
     /// <param name="templateCode">机器人渠道的模板编码</param>
@@ -67,9 +68,12 @@ public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigSe
             return Error.Unavailable(NotificationErrors.TemplateMissing, NotificationMessages.TemplateMissing, MessageArguments.Of(("code", templateCode)));
         }
 
-        IReadOnlyList<KeyValuePair<string, string?>> values = parameters.Any(static p => string.Equals(p.Key, BrandParameter, StringComparison.Ordinal))
-            ? parameters
-            : [.. parameters, new KeyValuePair<string, string?>(BrandParameter, options.Brand)];
+        var completed = await brand.CompleteAsync(parameters, owner, context.CancellationToken).ConfigureAwait(false);
+        if (!completed.TryGetValue(out var values))
+        {
+            return completed.Error!;
+        }
+
         if (!TemplateRenderer.TryRender(template.Content, values, html: false, out var rendered, out var error))
         {
             return Error.Validation(NotificationErrors.TemplateInvalid, NotificationMessages.TemplateInvalid, MessageArguments.Of(("detail", error ?? string.Empty)));
@@ -113,8 +117,6 @@ public sealed class BotBroadcaster(MessageTemplateService templates, BotConfigSe
 
         return targets.Count;
     }
-
-    private const string BrandParameter = "brand";
 
     private static bool IsPlatform(string owner) => string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal);
 }

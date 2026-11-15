@@ -91,7 +91,6 @@ public sealed class MessagingTests : IDisposable
         {
             builder.Configuration.AddInMemoryCollection(
             [
-                new("BasicApp:Notification:Brand", "Acme"),
                 new("BasicApp:Notification:DispatchInterval", "00:00:00.100"),
                 new("BasicApp:Notification:RetryDelay", "00:00:00"),
                 new("BasicApp:Notification:MaxAttempts", "2"),
@@ -100,6 +99,8 @@ public sealed class MessagingTests : IDisposable
             builder.Services.AddSingleton<ISmsTransport>(_sms);
         });
         await using var running = server;
+        // 邮件、短信与机器人消息的品牌名 brand 取站点设置的系统名
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, "/api/site", new { name = "Acme" }, platform)).Status);
 
         // 模板：平台种子 9 个；语法错误与同渠道同编码拒绝
         Assert.Equal(9, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
@@ -211,9 +212,11 @@ public sealed class MessagingTests : IDisposable
         Assert.Equal(new Dictionary<string, bool> { [platformEmail] = true, [ours] = false }, both);
         Assert.Equal(11, (await SendAsync(server, HttpMethod.Post, "/api/message-templates:list", "{}", platform)).Body.GetProperty("total").GetInt32());
         var dana = await CreatedAsync(server, "/api/users", new { userName = "dana", displayName = "Dana", password = "Pass@123456", email = "dana@example.com" }, tenant);
+        // 品牌名取发送这一侧的站点设置：租户设了自己的系统名即用它
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(server, HttpMethod.Put, "/api/site", new { name = "Contoso Mail" }, tenant)).Status);
         await PublishAsync(server, tenant, new { title = "Team", content = "<hello>", targetType = "User", targetIds = new[] { dana }, deliveryChannels = _withEmail });
         var tenantEmails = await SettledAsync(server, tenant, "emails", 1);
-        Assert.Equal(("Success", "[Acme] Team"), (tenantEmails[0].GetProperty("status").GetString(), tenantEmails[0].GetProperty("subject").GetString()));
+        Assert.Equal(("Success", "[Contoso Mail] Team"), (tenantEmails[0].GetProperty("status").GetString(), tenantEmails[0].GetProperty("subject").GetString()));
         var (_, tenantMail) = _email.Sent.Last();
         Assert.Equal(("dana@example.com", "Hi: <hello>", false), (tenantMail.To, tenantMail.Body, tenantMail.IsHtml));
         Assert.Equal("NOTIFICATION_NOTFOUND_006", await CodeAsync(server, HttpMethod.Get, $"/api/emails/{sending}", null, tenant));

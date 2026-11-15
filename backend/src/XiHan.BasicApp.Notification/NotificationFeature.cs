@@ -109,6 +109,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<IInboxDelivery, InboxDelivery>();
         context.Services.AddScoped<BotConfigService>();
         context.Services.AddScoped<TelegramBotService>();
+        context.Services.AddScoped<MessageBrand>();
         context.Services.AddScoped<BotBroadcaster>();
         context.Services.AddSingleton<MessageDispatchSignal>();
         context.Services.AddScoped<IMessageSender, MessageSender>();

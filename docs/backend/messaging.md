@@ -50,7 +50,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 
 - 租户优先、平台回退：发送时先找当前一侧启用的同编码模板，再找平台的；都没有即该渠道不可用。
 - 租户的模板列表同时列出平台模板（`isPlatform`），平台模板对租户只读（改删给 `NOTIFICATION_DENIED_002`），新建同编码即覆盖。
-- 平台种子 `notification.templates` 写 9 个，只首写：登录验证码邮件与短信、验证码（绑定 / 换绑 / 两步验证）邮件与短信、重置密码邮件、注册欢迎邮件、系统通知的邮件与短信，以及机器人消息 `notification-bot`（变量 `title / content / link / brand`）。`brand` 取 `BasicApp:Notification:Brand`，不写即应用名。
+- 平台种子 `notification.templates` 写 9 个，只首写：登录验证码邮件与短信、验证码（绑定 / 换绑 / 两步验证）邮件与短信、重置密码邮件、注册欢迎邮件、系统通知的邮件与短信，以及机器人消息 `notification-bot`（变量 `title / content / link / brand`）。`brand` 调用方没传即取发送这一侧站点设置的系统名（租户取它的品牌，没设沿用平台的，见[系统设置](./settings#站点设置与租户品牌)）。
 - 模板不加载别的文件，循环与递归有上限，语法树限深（`TemplateLimits`，保存与渲染前都判），一次渲染最多 5 秒；HTML 模板里的参数值先做 HTML 编码。
 
 操作 `message-templates.list / get / create / update / delete`，权限 `notification.message-templates.*`。
