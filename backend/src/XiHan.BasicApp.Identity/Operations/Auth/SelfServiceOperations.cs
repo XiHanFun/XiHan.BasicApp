@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="CaptchaCode">图形验证码</param>
 public sealed record RegisterRequest(
     [Required, StringLength(64, MinimumLength = 3), RegularExpression("^[a-z][a-z0-9._-]*$")] string UserName,
-    [Required, StringLength(128, MinimumLength = 8)] string Password,
+    [Required, StringLength(128, MinimumLength = 1)] string Password,
     [Required, StringLength(256, MinimumLength = 3)] string Email,
     [StringLength(64)] string? DisplayName = null,
     [StringLength(64)] string? CaptchaId = null,
@@ -61,7 +61,7 @@ public sealed record ResetPasswordWithCodeRequest(
     ContactChannel Channel,
     [Required, StringLength(200, MinimumLength = 1)] string Target,
     [Required, StringLength(10, MinimumLength = 4)] string Code,
-    [Required, StringLength(128, MinimumLength = 8)] string NewPassword,
+    [Required, StringLength(128, MinimumLength = 1)] string NewPassword,
     [StringLength(64)] string? Tenant = null);
 
 /// <summary>
@@ -156,7 +156,7 @@ public sealed class Register(
             return securityResult.Error!;
         }
 
-        var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: false, context.CancellationToken).ConfigureAwait(false);
+        var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: false, context).ConfigureAwait(false);
         if (set.IsFailure)
         {
             return set.Error!;
@@ -235,9 +235,8 @@ public sealed class RequestPasswordReset(UserAccountService accounts, ContactCod
 /// <param name="codes">验证码</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="clock">时间源（租户到期）</param>
-/// <param name="options">身份配置（密码策略）</param>
 [Operation(Id, Expose = Expose.Http)]
-public sealed class ResetPasswordWithCode(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes, ITenantStore tenants, TimeProvider clock, IdentityOptions options) : IOperation<ResetPasswordWithCodeRequest, PasswordResetResponse>
+public sealed class ResetPasswordWithCode(IRepository<SysUser, Guid> users, UserAccountService accounts, VerificationCodes codes, ITenantStore tenants, TimeProvider clock) : IOperation<ResetPasswordWithCodeRequest, PasswordResetResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -267,7 +266,7 @@ public sealed class ResetPasswordWithCode(IRepository<SysUser, Guid> users, User
             return normalized.Error!;
         }
 
-        var policy = PasswordPolicy.Validate(request.NewPassword, options);
+        var policy = await PasswordPolicy.CheckAsync(request.NewPassword, context).ConfigureAwait(false);
         if (policy.IsFailure)
         {
             return policy.Error!;
@@ -304,7 +303,7 @@ public sealed class ResetPasswordWithCode(IRepository<SysUser, Guid> users, User
             return securityResult.Error!;
         }
 
-        var set = await accounts.SetPasswordAsync(security, request.NewPassword, mustChange: false, context.CancellationToken).ConfigureAwait(false);
+        var set = await accounts.SetPasswordAsync(security, request.NewPassword, mustChange: false, context).ConfigureAwait(false);
         if (set.IsFailure)
         {
             return set.Error!;

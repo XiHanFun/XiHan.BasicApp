@@ -52,7 +52,7 @@ public sealed class ImportUsers(
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var password = accounts.CheckPassword(request.Password);
+        var password = await PasswordPolicy.CheckAsync(request.Password, context).ConfigureAwait(false);
         if (password.IsFailure)
         {
             return password.Error!;

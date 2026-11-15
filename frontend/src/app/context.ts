@@ -435,6 +435,7 @@ export function registerApplicationContext(router: Router): void {
         oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName, type: provider.type })),
         captchaEnabled: config.captchaEnabled,
         registrationEnabled: config.registrationEnabled,
+        passwordPolicy: { ...config.passwordPolicy },
       }
     },
     getCaptchaApi: () => authOps.captcha({}, { anonymous: true }),

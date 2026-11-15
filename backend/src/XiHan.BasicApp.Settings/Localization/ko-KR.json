@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "필터 '{field} {operator}'은(는) 지원하지 않습니다.",
   "settings.query.sort_unsupported": "'{field}' 기준 정렬은 지원하지 않습니다.",
   "settings.config.value_type": "'{field}'이(가) 데이터 형식 '{type}'과(와) 맞지 않습니다.",
+  "settings.config.value_rejected": "매개변수 {key}의 값이 요구 사항에 맞지 않아 저장하지 않았습니다. 사용할 수 있는 값은 매개변수 설명을 참고하세요.",
   "settings.dict_item.metadata_not_json": "메타데이터는 올바른 JSON이어야 합니다.",
   "settings.dict_item.parent_invalid": "상위 항목은 같은 사전에 있어야 하며 자기 자신이나 하위 항목이면 안 됩니다.",
   "settings.numbering_rule.format_unsafe": "날짜 형식 '{dateFormat}'으로는 재설정 주기 '{resetCycle}'를 구분할 수 없어 중복 번호가 생깁니다.",

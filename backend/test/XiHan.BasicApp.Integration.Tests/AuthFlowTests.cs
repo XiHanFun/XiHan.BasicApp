@@ -255,7 +255,7 @@ public sealed class AuthFlowTests : IDisposable
         var (weak, weakBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:change-password", """{"currentPassword":"Alice@12345","newPassword":"onlyletters"}""", access, "zh-CN"));
         Assert.Equal(HttpStatusCode.BadRequest, weak.StatusCode);
         Assert.Equal("IDENTITY_VALIDATION_003", weakBody.GetProperty("code").GetString());
-        Assert.Equal("密码须同时包含字母与数字。", weakBody.GetProperty("detail").GetString());
+        Assert.Equal("密码须包含数字。", weakBody.GetProperty("detail").GetString());
         var (reused, reusedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:change-password", """{"currentPassword":"Alice@12345","newPassword":"Alice@12345"}""", access));
         Assert.Equal(HttpStatusCode.BadRequest, reused.StatusCode);
         Assert.Equal("IDENTITY_VALIDATION_004", reusedBody.GetProperty("code").GetString());

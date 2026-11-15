@@ -147,6 +147,11 @@ public static class SettingsErrors
     public const string NumberingResetBelowIssued = "SETTINGS_VALIDATION_010";
 
     /// <summary>
+    /// 内建参数的值不符合登记它的包的要求
+    /// </summary>
+    public const string ValueRejected = "SETTINGS_VALIDATION_011";
+
+    /// <summary>
     /// 数据属于另一侧：平台数据只能在平台维护，租户要不同的值请新建自己的
     /// </summary>
     public const string OtherSide = "SETTINGS_DENIED_001";

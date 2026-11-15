@@ -1744,7 +1744,7 @@
         },
         "Auth": {
           "type": "object",
-          "description": "身份认证：令牌、登录失败锁定、密码策略、图形验证码、登录节流、双因素、验证码与自助注册；数字须为正数（PasswordHistoryDepth 可为 0）；登录页开放哪些方式在系统参数 identity.login-methods",
+          "description": "身份认证：令牌、登录失败锁定、图形验证码、登录节流、双因素、验证码与自助注册；数字须为正数；登录页开放哪些方式在系统参数 identity.login-methods，密码策略在系统参数 identity.password",
           "properties": {
             "AccessTokenMinutes": {
               "type": "integer",
@@ -1765,16 +1765,6 @@
               "type": "integer",
               "description": "锁定时长（分钟）",
               "default": 15
-            },
-            "PasswordMinLength": {
-              "type": "integer",
-              "description": "密码最短长度",
-              "default": 8
-            },
-            "PasswordHistoryDepth": {
-              "type": "integer",
-              "description": "不得与最近多少个历史密码相同；0 不检查，最多 1000",
-              "default": 3
             },
             "SessionCacheSeconds": {
               "type": "integer",

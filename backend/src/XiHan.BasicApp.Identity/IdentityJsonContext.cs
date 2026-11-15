@@ -85,6 +85,7 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(CaptchaResponse))]
 [JsonSerializable(typeof(LoginConfigRequest))]
 [JsonSerializable(typeof(LoginConfigResponse))]
+[JsonSerializable(typeof(PasswordPolicyResponse))]
 [JsonSerializable(typeof(ProfileRequest))]
 [JsonSerializable(typeof(ProfileResponse))]
 [JsonSerializable(typeof(SendVerificationCodeRequest))]

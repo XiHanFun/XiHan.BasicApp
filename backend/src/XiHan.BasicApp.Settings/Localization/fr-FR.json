@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "Le filtre '{field} {operator}' n’est pas pris en charge.",
   "settings.query.sort_unsupported": "Le tri par '{field}' n’est pas pris en charge.",
   "settings.config.value_type": "'{field}' ne correspond pas au type '{type}'.",
+  "settings.config.value_rejected": "La valeur du paramètre « {key} » ne respecte pas ses exigences et n’a pas été enregistrée ; consultez la description du paramètre pour les valeurs valides.",
   "settings.dict_item.metadata_not_json": "Les métadonnées doivent être un JSON valide.",
   "settings.dict_item.parent_invalid": "Le parent doit être dans le même dictionnaire et ne peut être ni l’élément lui-même ni un descendant.",
   "settings.numbering_rule.format_unsafe": "Le format de date '{dateFormat}' ne distingue pas les périodes du cycle '{resetCycle}' et produirait des doublons.",

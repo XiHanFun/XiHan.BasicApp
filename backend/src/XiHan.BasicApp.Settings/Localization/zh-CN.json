@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "不支持筛选 '{field} {operator}'。",
   "settings.query.sort_unsupported": "不支持按 '{field}' 排序。",
   "settings.config.value_type": "'{field}' 与数据类型 '{type}' 不符。",
+  "settings.config.value_rejected": "参数 {key} 的值不符合它的要求，没有保存，取值见参数说明。",
   "settings.dict_item.metadata_not_json": "元数据必须是合法的 JSON。",
   "settings.dict_item.parent_invalid": "上级项必须在同一字典里，且不能是自己或自己的下级。",
   "settings.numbering_rule.format_unsafe": "日期格式 '{dateFormat}' 区分不了重置周期 '{resetCycle}'，会出重复号。",

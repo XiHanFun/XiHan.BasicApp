@@ -6,9 +6,9 @@
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
 
-import type { UserProfile } from '~/types'
+import type { PasswordPolicy, UserProfile } from '~/types'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhMatrixCode, XhPinInputInput, XhPinInputRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XTooltip } from '~/components'
 import { prompt, toast } from '~/composables'
@@ -16,7 +16,7 @@ import { LOGIN_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
 import { useAccessStore, useAppContext, useUserStore } from '~/stores'
-import { copyToClipboard, formatDate } from '~/utils'
+import { copyToClipboard, formatDate, passwordPolicyError } from '~/utils'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import ProfilePasskeys from './ProfilePasskeys.vue'
 
@@ -48,6 +48,18 @@ const pwdForm = ref({
   confirmPassword: '',
 })
 // 校验时机由表单的 validate-on 统一定；确认密码挂 deps，先填它、再改新密码时跟着重验
+/** 设新密码的规则：取到登录页配置之前为空 */
+const passwordPolicy = ref<null | PasswordPolicy>(null)
+
+onMounted(async () => {
+  try {
+    passwordPolicy.value = (await apis.getLoginConfigApi()).passwordPolicy
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('page.auth.load_config_failed'))
+  }
+})
+
 const pwdRules = computed<FormRules<typeof pwdForm.value>>(() => ({
   oldPassword: [
     {
@@ -61,9 +73,13 @@ const pwdRules = computed<FormRules<typeof pwdForm.value>>(() => ({
       message: t('component.profile.security.rule_new_password_required'),
     },
     {
-      min: 6,
-      max: 32,
-      message: t('component.profile.security.rule_password_length'),
+      // 按登录页配置里的密码规则提示（后端按同一份校验）；规则没取到或空值时只按上面那条 required
+      validator: (value) => {
+        const password = String(value ?? '')
+        return password && passwordPolicy.value
+          ? passwordPolicyError(password, passwordPolicy.value, t)
+          : null
+      },
     },
   ],
   confirmPassword: [

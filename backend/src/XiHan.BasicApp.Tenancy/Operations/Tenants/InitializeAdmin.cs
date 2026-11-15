@@ -95,7 +95,7 @@ public sealed class InitializeAdmin(
             return securityResult.Error!;
         }
 
-        var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: true, context.CancellationToken).ConfigureAwait(false);
+        var set = await accounts.SetPasswordAsync(security, request.Password, mustChange: true, context).ConfigureAwait(false);
         if (set.IsFailure)
         {
             return set.Error!;

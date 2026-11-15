@@ -12,4 +12,4 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// <param name="NewPassword">新密码（策略：最短 8 位、含字母与数字、不与最近的历史密码相同）</param>
 public sealed record ChangePasswordRequest(
     [Required, StringLength(128, MinimumLength = 1)] string CurrentPassword,
-    [Required, StringLength(128, MinimumLength = 8)] string NewPassword);
+    [Required, StringLength(128, MinimumLength = 1)] string NewPassword);

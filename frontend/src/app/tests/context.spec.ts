@@ -541,7 +541,7 @@ describe('应用上下文：壳层接口接到契约操作', () => {
     })
   })
 
-  it('登录配置：第三方登录提供方原样给登录页（名称、显示名与类型），注册开关一并带上', async () => {
+  it('登录配置：第三方登录提供方原样给登录页（名称、显示名与类型），注册开关与密码规则一并带上', async () => {
     const calls: Call[] = []
     record(calls, () => json(200, {
       loginMethods: ['password'],
@@ -551,6 +551,14 @@ describe('应用上下文：壳层接口接到契约操作', () => {
       ],
       captchaEnabled: true,
       registrationEnabled: true,
+      passwordPolicy: {
+        minLength: 10,
+        requireLetter: true,
+        requireDigit: false,
+        requireUppercase: true,
+        requireLowercase: false,
+        requireSymbol: true,
+      },
     }))
     expect(await useAppContext().apis.getLoginConfigApi()).toEqual({
       loginMethods: ['password'],
@@ -560,6 +568,14 @@ describe('应用上下文：壳层接口接到契约操作', () => {
       ],
       captchaEnabled: true,
       registrationEnabled: true,
+      passwordPolicy: {
+        minLength: 10,
+        requireLetter: true,
+        requireDigit: false,
+        requireUppercase: true,
+        requireLowercase: false,
+        requireSymbol: true,
+      },
     })
     expect(calls[0]).toEqual({ method: 'GET', url: '/api/auth:login-config', body: null })
   })

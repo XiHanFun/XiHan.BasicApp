@@ -11,13 +11,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Settings.Domain.Services;
 
 /// <summary>
-/// 参数值的规则：按数据类型校验、加密值的保护与还原
+/// 参数值的规则：按数据类型与登记的要求校验、加密值的保护与还原
 /// </summary>
 /// <remarks>
 /// 加密只针对值，缺省值不加密
 /// </remarks>
 /// <param name="protector">数据保护</param>
-public sealed class ConfigValues(ISecretProtector protector)
+/// <param name="catalog">各包登记的内建参数</param>
+public sealed class ConfigValues(ISecretProtector protector, IEnumerable<ConfigCatalogSection> catalog)
 {
     /// <summary>
     /// 参数值的数据保护用途
@@ -61,6 +62,27 @@ public sealed class ConfigValues(ISecretProtector protector)
         return Matches(type, defaultValue)
             ? Result.Success()
             : Error.Validation(SettingsErrors.ValueTypeMismatch, SettingsMessages.ValueTypeMismatch, MessageArguments.Of(("field", "defaultValue"), ("type", type.ToString())));
+    }
+
+    /// <summary>
+    /// 按登记的要求核对内建参数的值
+    /// </summary>
+    /// <remarks>
+    /// 登记时给了 <see cref="ConfigDescriptor.Accepts"/> 的参数才核对，空值不核对（表示没有值）；不符的报 <see cref="SettingsErrors.ValueRejected"/>
+    /// </remarks>
+    /// <param name="key">参数键</param>
+    /// <param name="plaintext">值的明文</param>
+    public Result Accept(string key, string? plaintext)
+    {
+        if (string.IsNullOrEmpty(plaintext))
+        {
+            return Result.Success();
+        }
+
+        var accepts = catalog.SelectMany(static s => s.Configs).FirstOrDefault(c => string.Equals(c.Key, key, StringComparison.Ordinal))?.Accepts;
+        return accepts is null || accepts(plaintext)
+            ? Result.Success()
+            : Error.Validation(SettingsErrors.ValueRejected, SettingsMessages.ValueRejected, MessageArguments.Of(("field", "value"), ("key", key)));
     }
 
     /// <summary>

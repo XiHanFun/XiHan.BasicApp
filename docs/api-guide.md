@@ -107,7 +107,7 @@ Content-Language: zh-CN
 
 | 操作 | HTTP | 认证 |
 | --- | --- | --- |
-| `auth.login-config` | `GET /api/auth:login-config` | 匿名：登录方式、第三方提供方、是否要验证码 |
+| `auth.login-config` | `GET /api/auth:login-config` | 匿名：登录方式、第三方提供方、是否要验证码、是否开放注册与密码规则 |
 | `auth.captcha` | `POST /api/auth:captcha` | 匿名：SVG 图形验证码 |
 | `auth.login` | `POST /api/auth:login` | 匿名：密码登录 |
 | `auth.send-login-code` / `auth.login-by-code` | `POST /api/auth:send-login-code` / `:login-by-code` | 匿名：邮箱 / 手机验证码登录 |

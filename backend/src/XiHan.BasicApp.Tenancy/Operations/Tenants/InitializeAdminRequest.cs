@@ -19,6 +19,6 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 public sealed record InitializeAdminRequest(
     Guid Id,
     [Required, StringLength(64, MinimumLength = 3), RegularExpression("^[a-z][a-z0-9._-]*$")] string UserName,
-    [Required, StringLength(128, MinimumLength = 8)] string Password,
+    [Required, StringLength(128, MinimumLength = 1)] string Password,
     [StringLength(64)] string? DisplayName = null,
     [StringLength(256)] string? Email = null);

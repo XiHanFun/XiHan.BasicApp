@@ -156,7 +156,7 @@ public sealed class DemoTenantSeeder(
             return securityResult.ToResult();
         }
 
-        var set = await accounts.SetPasswordAsync(security, DemoAdminPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
+        var set = await accounts.SetPasswordAsync(security, DemoAdminPassword, mustChange: true, context).ConfigureAwait(false);
         if (set.IsFailure)
         {
             return set;
@@ -203,6 +203,6 @@ public sealed class DemoTenantSeeder(
             return securityResult.ToResult();
         }
 
-        return await accounts.SetPasswordAsync(security, DemoAdminPassword, mustChange: true, context.CancellationToken).ConfigureAwait(false);
+        return await accounts.SetPasswordAsync(security, DemoAdminPassword, mustChange: true, context).ConfigureAwait(false);
     }
 }

@@ -331,9 +331,29 @@ public static class IdentityMessages
     public const string PasswordTooShort = "identity.password.too_short";
 
     /// <summary>
-    /// 密码须同时含字母与数字
+    /// 密码须含字母
     /// </summary>
-    public const string PasswordTooSimple = "identity.password.too_simple";
+    public const string PasswordNeedsLetter = "identity.password.needs_letter";
+
+    /// <summary>
+    /// 密码须含数字
+    /// </summary>
+    public const string PasswordNeedsDigit = "identity.password.needs_digit";
+
+    /// <summary>
+    /// 密码须含大写字母
+    /// </summary>
+    public const string PasswordNeedsUppercase = "identity.password.needs_uppercase";
+
+    /// <summary>
+    /// 密码须含小写字母
+    /// </summary>
+    public const string PasswordNeedsLowercase = "identity.password.needs_lowercase";
+
+    /// <summary>
+    /// 密码须含字母与数字以外的字符
+    /// </summary>
+    public const string PasswordNeedsSymbol = "identity.password.needs_symbol";
 
     /// <summary>
     /// 密码与最近的历史密码相同
@@ -437,6 +457,19 @@ public static class IdentityMessages
     /// 提醒本人先改密的通知的正文
     /// </summary>
     public const string PasswordChangeNoticeContent = "identity.password.notice_content";
+
+    /// <summary>
+    /// 提醒本人密码已过期的通知的标题
+    /// </summary>
+    public const string PasswordExpiredNoticeTitle = "identity.password.expired_notice_title";
+
+    /// <summary>
+    /// 提醒本人密码已过期的通知的正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>days</c>
+    /// </remarks>
+    public const string PasswordExpiredNoticeContent = "identity.password.expired_notice_content";
 
     /// <summary>
     /// 操作 <c>auth.verify-two-factor</c> 的说明

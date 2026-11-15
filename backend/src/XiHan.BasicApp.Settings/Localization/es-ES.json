@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
   "settings.query.sort_unsupported": "Ordenar por '{field}' no es compatible.",
   "settings.config.value_type": "'{field}' no coincide con el tipo '{type}'.",
+  "settings.config.value_rejected": "El valor del parámetro '{key}' no cumple sus requisitos y no se guardó; consulte la descripción del parámetro para ver los valores válidos.",
   "settings.dict_item.metadata_not_json": "Los metadatos deben ser JSON válido.",
   "settings.dict_item.parent_invalid": "El padre debe estar en el mismo diccionario y no puede ser el propio elemento ni un descendiente.",
   "settings.numbering_rule.format_unsafe": "El formato de fecha '{dateFormat}' no distingue los períodos del ciclo '{resetCycle}' y produciría duplicados.",

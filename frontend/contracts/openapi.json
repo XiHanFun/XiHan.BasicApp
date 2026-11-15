@@ -5684,12 +5684,12 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u53EF\u7528\u7684\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u3001\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u4E0E\u662F\u5426\u5F00\u653E\u6CE8\u518C",
+            "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u3001\u9A8C\u8BC1\u7801\u3001\u6CE8\u518C\u4E0E\u5BC6\u7801\u89C4\u5219",
             "content": {
               "application/json": {
                 "schema": {
                   "title": "LoginConfigResponse",
-                  "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u53EF\u7528\u7684\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u3001\u662F\u5426\u8981\u6C42\u56FE\u5F62\u9A8C\u8BC1\u7801\u4E0E\u662F\u5426\u5F00\u653E\u6CE8\u518C",
+                  "description": "\u767B\u5F55\u9875\u7684\u914D\u7F6E\uFF1A\u767B\u5F55\u65B9\u5F0F\u3001\u7B2C\u4E09\u65B9\u767B\u5F55\u3001\u9A8C\u8BC1\u7801\u3001\u6CE8\u518C\u4E0E\u5BC6\u7801\u89C4\u5219",
                   "type": "object",
                   "properties": {
                     "loginMethods": {
@@ -5713,13 +5713,18 @@
                     "registrationEnabled": {
                       "description": "\u662F\u5426\u5F00\u653E\u81EA\u52A9\u6CE8\u518C\uFF08BasicApp:Auth:SelfRegistrationEnabled\uFF09",
                       "type": "boolean"
+                    },
+                    "passwordPolicy": {
+                      "description": "\u8BBE\u65B0\u5BC6\u7801\u7684\u89C4\u5219\uFF08\u6CE8\u518C\u3001\u627E\u56DE\u4E0E\u6539\u5BC6\u7684\u8868\u5355\u636E\u6B64\u63D0\u793A\uFF09",
+                      "$ref": "#/components/schemas/PasswordPolicyResponse"
                     }
                   },
                   "required": [
                     "loginMethods",
                     "oAuthProviders",
                     "captchaEnabled",
-                    "registrationEnabled"
+                    "registrationEnabled",
+                    "passwordPolicy"
                   ]
                 }
               }
@@ -6116,7 +6121,7 @@
                   "password": {
                     "description": "\u5BC6\u7801\uFF0C\u6309\u5BC6\u7801\u7B56\u7565\u6821\u9A8C",
                     "type": "string",
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   },
                   "email": {
@@ -6322,7 +6327,7 @@
                   "newPassword": {
                     "description": "\u65B0\u5BC6\u7801\uFF0C\u6309\u5BC6\u7801\u7B56\u7565\u4E0E\u5386\u53F2\u6821\u9A8C",
                     "type": "string",
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   },
                   "tenant": {
@@ -48336,7 +48341,7 @@
                   "newPassword": {
                     "description": "\u65B0\u5BC6\u7801\uFF08\u7B56\u7565\uFF1A\u6700\u77ED 8 \u4F4D\u3001\u542B\u5B57\u6BCD\u4E0E\u6570\u5B57\u3001\u4E0D\u4E0E\u6700\u8FD1\u7684\u5386\u53F2\u5BC6\u7801\u76F8\u540C\uFF09",
                     "type": "string",
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   }
                 },
@@ -57562,7 +57567,7 @@
                   "password": {
                     "description": "\u521D\u59CB\u5BC6\u7801\uFF08\u7B56\u7565\uFF1A\u6700\u77ED 8 \u4F4D\u3001\u542B\u5B57\u6BCD\u4E0E\u6570\u5B57\uFF09\uFF1B\u7BA1\u7406\u5458\u9996\u6B21\u767B\u5F55\u5FC5\u987B\u6539\u5BC6",
                     "type": "string",
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   },
                   "displayName": {
@@ -59531,7 +59536,7 @@
                       "string",
                       "null"
                     ],
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   },
                   "homeTenantId": {
@@ -60396,7 +60401,7 @@
                   "newPassword": {
                     "description": "\u65B0\u5BC6\u7801\uFF08\u7B56\u7565\uFF1A\u6700\u77ED 8 \u4F4D\u3001\u542B\u5B57\u6BCD\u4E0E\u6570\u5B57\u3001\u4E0D\u4E0E\u6700\u8FD1\u7684\u5386\u53F2\u5BC6\u7801\u76F8\u540C\uFF09",
                     "type": "string",
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   }
                 },
@@ -60756,7 +60761,7 @@
                   "password": {
                     "description": "\u8FD9\u6279\u7528\u6237\u5171\u7528\u7684\u521D\u59CB\u5BC6\u7801\uFF0C\u8D26\u53F7\u6807\u8BB0\u4E3A\u987B\u6539\u5BC6",
                     "type": "string",
-                    "minLength": 8,
+                    "minLength": 1,
                     "maxLength": 128
                   }
                 },
@@ -69678,7 +69683,7 @@
         "type": "object",
         "properties": {
           "key": {
-            "description": "\u5B57\u6BB5\u540D\uFF08\u5217\u8868\u54CD\u5E94\u91CC\u7684\u5C5E\u6027\u540D\uFF09",
+            "description": "\u5B57\u6BB5\u5728\u5217\u8868\u54CD\u5E94\u4E00\u884C\u91CC\u7684\u8DEF\u5F84\uFF1A\u5C5E\u6027\u540D\uFF0C\u6DF1\u4E00\u5C42\u7528\u70B9\u53F7\u63A5\uFF0C\u6570\u7EC4\u7528\u4E0B\u6807\uFF08\u5982 last.startedAt\u3001triggers.0.kind\uFF09\uFF1B| \u5206\u9694\u51E0\u6761\u5907\u9009\uFF0C\u53D6\u7B2C\u4E00\u6761\u6709\u6587\u5B57\u7684",
             "type": "string",
             "minLength": 1,
             "maxLength": 128
@@ -73833,6 +73838,45 @@
         },
         "required": [
           "field"
+        ]
+      },
+      "PasswordPolicyResponse": {
+        "description": "\u8BBE\u65B0\u5BC6\u7801\u7684\u89C4\u5219",
+        "type": "object",
+        "properties": {
+          "minLength": {
+            "description": "\u6700\u77ED\u957F\u5EA6",
+            "type": "integer",
+            "format": "int32"
+          },
+          "requireLetter": {
+            "description": "\u987B\u542B\u5B57\u6BCD",
+            "type": "boolean"
+          },
+          "requireDigit": {
+            "description": "\u987B\u542B\u6570\u5B57",
+            "type": "boolean"
+          },
+          "requireUppercase": {
+            "description": "\u987B\u542B\u5927\u5199\u5B57\u6BCD",
+            "type": "boolean"
+          },
+          "requireLowercase": {
+            "description": "\u987B\u542B\u5C0F\u5199\u5B57\u6BCD",
+            "type": "boolean"
+          },
+          "requireSymbol": {
+            "description": "\u987B\u542B\u5B57\u6BCD\u4E0E\u6570\u5B57\u4EE5\u5916\u7684\u5B57\u7B26",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "minLength",
+          "requireLetter",
+          "requireDigit",
+          "requireUppercase",
+          "requireLowercase",
+          "requireSymbol"
         ]
       },
       "PermissionAction": {

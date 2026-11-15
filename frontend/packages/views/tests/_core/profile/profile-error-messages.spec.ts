@@ -27,6 +27,7 @@ beforeEach(() => {
   const names = [
     'getApiCredentialsApi',
     'getApiCallSettingsApi',
+    'getLoginConfigApi',
     'getMyOAuthAppsApi',
     'getOAuthConsentsApi',
     'getProfileApi',

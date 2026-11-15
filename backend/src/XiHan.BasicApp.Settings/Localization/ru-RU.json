@@ -73,6 +73,7 @@
   "settings.query.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
   "settings.query.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
   "settings.config.value_type": "'{field}' не соответствует типу данных '{type}'.",
+  "settings.config.value_rejected": "Значение параметра «{key}» не соответствует его требованиям и не сохранено; допустимые значения указаны в описании параметра.",
   "settings.dict_item.metadata_not_json": "Метаданные должны быть корректным JSON.",
   "settings.dict_item.parent_invalid": "Родитель должен быть в том же словаре и не может быть самим элементом или его потомком.",
   "settings.numbering_rule.format_unsafe": "Формат даты '{dateFormat}' не различает периоды цикла '{resetCycle}' и даст повторяющиеся номера.",

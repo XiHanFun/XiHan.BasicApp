@@ -64,6 +64,12 @@ public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
             return valid.Error!;
         }
 
+        var accepted = values.Accept(key, value);
+        if (accepted.IsFailure)
+        {
+            return accepted.Error!;
+        }
+
         var config = new SysConfig
         {
             Id = ids.NewId(),

@@ -98,6 +98,18 @@ export interface LoginConfig {
   captchaEnabled: boolean
   /** 是否开放自助注册（后端 BasicApp:Auth:SelfRegistrationEnabled）：开了登录页才给注册入口 */
   registrationEnabled: boolean
+  /** 设新密码的规则（系统参数 identity.password）：注册、找回与改密的表单据此提示 */
+  passwordPolicy: PasswordPolicy
+}
+
+/** 设新密码的规则 */
+export interface PasswordPolicy {
+  minLength: number
+  requireLetter: boolean
+  requireDigit: boolean
+  requireUppercase: boolean
+  requireLowercase: boolean
+  requireSymbol: boolean
 }
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */

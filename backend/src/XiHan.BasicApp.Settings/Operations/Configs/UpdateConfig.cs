@@ -63,6 +63,12 @@ public sealed class UpdateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
             return valid.Error!;
         }
 
+        var accepted = values.Accept(config.Key, plan.Plaintext.ValueOr(string.Empty));
+        if (accepted.IsFailure)
+        {
+            return accepted.Error!;
+        }
+
         config.Name = request.Name.Trim();
         config.Group = string.IsNullOrWhiteSpace(request.Group) ? null : request.Group.Trim();
         config.Value = plan.Stored;
