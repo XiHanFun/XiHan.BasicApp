@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "Redefinir regras de numeração",
   "permissions.settings.numbering_rules.reset.description": "Avançar a sequência de uma regra além de todos os valores emitidos no período atual.",
   "permissions.settings.numbering_rules.generate.name": "Emitir números",
-  "permissions.settings.numbering_rules.generate.description": "Emitir números a partir das regras do chamador ou das regras da plataforma compartilhadas com locatários."
+  "permissions.settings.numbering_rules.generate.description": "Emitir números a partir das regras do chamador ou das regras da plataforma compartilhadas com locatários.",
+  "site.get.title": "Obter as configurações do site",
+  "site.get.description": "Para a página de configurações: a plataforma obtém as configurações do site; um locatário, sua própria marca e as configurações da plataforma que herda.",
+  "site.update.title": "Alterar as configurações do site",
+  "site.update.description": "Substitui por inteiro as configurações do lado que chama: a plataforma altera as configurações do site e um locatário a própria marca (campos vazios herdam os da plataforma). As imagens só podem ser mantidas ou removidas; para trocar, envie pelo ponto de upload.",
+  "site.resolve.title": "Obter as configurações vigentes do site",
+  "site.resolve.description": "Anônimo: com sessão, usa o locatário do token; sem sessão, procura o locatário vinculado ao domínio acessado. Retorna o nome, as imagens e o rodapé vigentes. Só para exibição; nunca decide a identidade.",
+  "openapi.tags.site.name": "Configurações do site",
+  "openapi.tags.site.description": "Nome do site, logotipo, página de login e rodapé; os locatários podem substituí-los pela própria marca.",
+  "permissions.settings.site.read.name": "Ver as configurações do site",
+  "permissions.settings.site.read.description": "Ver as configurações do site na plataforma, ou a marca do locatário e as configurações da plataforma que ele herda.",
+  "permissions.settings.site.update.name": "Alterar as configurações do site",
+  "permissions.settings.site.update.description": "Alterar as configurações do site na plataforma, ou a marca do locatário, e enviar suas imagens.",
+  "settings.site.asset_unknown": "'{field}' só pode manter a imagem atual ou removê-la; envie uma nova imagem para trocá-la ('{id}' não é a imagem atual).",
+  "settings.site.asset_invalid": "Envie uma imagem PNG, JPEG, WebP ou ICO de no máximo {max} MB."
 }

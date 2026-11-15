@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "採番ルールのリセット",
   "permissions.settings.numbering_rules.reset.description": "ルールの連番を、今周期に発行済みのすべての値より先へ進めます。",
   "permissions.settings.numbering_rules.generate.name": "番号の発行",
-  "permissions.settings.numbering_rules.generate.description": "自分のルール、またはテナントに共有されたプラットフォームのルールから番号を発行します。"
+  "permissions.settings.numbering_rules.generate.description": "自分のルール、またはテナントに共有されたプラットフォームのルールから番号を発行します。",
+  "site.get.title": "サイト設定を取得",
+  "site.get.description": "設定ページ用：プラットフォームはサイト設定を、テナントは自身のブランドと引き継ぐプラットフォーム設定を取得します。",
+  "site.update.title": "サイト設定を変更",
+  "site.update.description": "呼び出し側の設定を丸ごと上書きします。プラットフォームはサイト設定を、テナントは自身のブランドを変更します（空欄はプラットフォームのものを引き継ぎます）。画像は保持か削除のみで、差し替えはアップロード用エンドポイントで行います。",
+  "site.resolve.title": "有効なサイト設定を取得",
+  "site.resolve.description": "匿名：ログイン済みならトークンのテナント、未ログインならアクセスしたドメインに割り当てられたテナントを探し、有効なサイト名・画像・フッターを返します。表示専用で、本人確認には使いません。",
+  "openapi.tags.site.name": "サイト設定",
+  "openapi.tags.site.description": "サイト名、ロゴ、ログインページとフッター。テナントは自身のブランドで上書きできます。",
+  "permissions.settings.site.read.name": "サイト設定の閲覧",
+  "permissions.settings.site.read.description": "プラットフォームはサイト設定を、テナントは自身のブランドと引き継ぐプラットフォーム設定を閲覧します。",
+  "permissions.settings.site.update.name": "サイト設定の変更",
+  "permissions.settings.site.update.description": "プラットフォームはサイト設定を、テナントは自身のブランドを変更し、その画像をアップロードします。",
+  "settings.site.asset_unknown": "{field} は現在の画像の保持か削除のみ可能です。差し替えるには新しい画像をアップロードしてください（{id} は現在の画像ではありません）。",
+  "settings.site.asset_invalid": "PNG、JPEG、WebP または ICO の画像（{max} MB 以下）をアップロードしてください。"
 }

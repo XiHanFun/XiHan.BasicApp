@@ -9,12 +9,7 @@ import {
   APP_TIMEZONE_KEY,
   CHECK_UPDATES_INTERVAL_KEY,
   CHECK_UPDATES_KEY,
-  COPYRIGHT_DATE_KEY,
   COPYRIGHT_ENABLE_KEY,
-  COPYRIGHT_ICP_KEY,
-  COPYRIGHT_ICP_URL_KEY,
-  COPYRIGHT_NAME_KEY,
-  COPYRIGHT_SITE_KEY,
   DEFAULT_LOCALE,
   DYNAMIC_TITLE_KEY,
   FAVORITES_SYNC_KEY,
@@ -129,13 +124,6 @@ export function createPreferencesSlice() {
     LocalStorage.get<boolean>(FOOTER_SHOW_DEV_INFO_KEY) ?? true,
   )
   const copyrightEnable = ref<boolean>(LocalStorage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
-  const copyrightName = ref<string>(LocalStorage.get<string>(COPYRIGHT_NAME_KEY) ?? 'XiHanFun')
-  const copyrightSite = ref<string>(
-    LocalStorage.get<string>(COPYRIGHT_SITE_KEY) ?? 'https://www.xihanfun.com',
-  )
-  const copyrightDate = ref<string>(LocalStorage.get<string>(COPYRIGHT_DATE_KEY) ?? '2016')
-  const copyrightIcp = ref<string>(LocalStorage.get<string>(COPYRIGHT_ICP_KEY) ?? '')
-  const copyrightIcpUrl = ref<string>(LocalStorage.get<string>(COPYRIGHT_ICP_URL_KEY) ?? '')
 
   // ---- 快捷键 ----
   const shortcutEnable = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
@@ -178,11 +166,6 @@ export function createPreferencesSlice() {
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)
   bindPersist(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, true)
   bindPersist(COPYRIGHT_ENABLE_KEY, copyrightEnable, true)
-  bindPersist(COPYRIGHT_NAME_KEY, copyrightName, 'XiHanFun')
-  bindPersist(COPYRIGHT_SITE_KEY, copyrightSite, 'https://www.xihanfun.com')
-  bindPersist(COPYRIGHT_DATE_KEY, copyrightDate, '2016')
-  bindPersist(COPYRIGHT_ICP_KEY, copyrightIcp, '')
-  bindPersist(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl, '')
   bindPersist(SHORTCUT_ENABLE_KEY, shortcutEnable, true)
   bindPersist(SHORTCUT_SEARCH_KEY, shortcutSearch, true)
   bindPersist(SHORTCUT_LOGOUT_KEY, shortcutLogout, true)
@@ -287,21 +270,6 @@ export function createPreferencesSlice() {
   function setCopyrightEnable(v: boolean) {
     save(COPYRIGHT_ENABLE_KEY, copyrightEnable, v)
   }
-  function setCopyrightName(v: string) {
-    save(COPYRIGHT_NAME_KEY, copyrightName, v)
-  }
-  function setCopyrightSite(v: string) {
-    save(COPYRIGHT_SITE_KEY, copyrightSite, v)
-  }
-  function setCopyrightDate(v: string) {
-    save(COPYRIGHT_DATE_KEY, copyrightDate, v)
-  }
-  function setCopyrightIcp(v: string) {
-    save(COPYRIGHT_ICP_KEY, copyrightIcp, v)
-  }
-  function setCopyrightIcpUrl(v: string) {
-    save(COPYRIGHT_ICP_URL_KEY, copyrightIcpUrl, v)
-  }
   function setShortcutEnable(v: boolean) {
     save(SHORTCUT_ENABLE_KEY, shortcutEnable, v)
   }
@@ -348,11 +316,6 @@ export function createPreferencesSlice() {
     footerFixed,
     footerShowDevInfo,
     copyrightEnable,
-    copyrightName,
-    copyrightSite,
-    copyrightDate,
-    copyrightIcp,
-    copyrightIcpUrl,
     shortcutEnable,
     shortcutSearch,
     shortcutLogout,
@@ -387,11 +350,6 @@ export function createPreferencesSlice() {
     setFooterFixed,
     setFooterShowDevInfo,
     setCopyrightEnable,
-    setCopyrightName,
-    setCopyrightSite,
-    setCopyrightDate,
-    setCopyrightIcp,
-    setCopyrightIcpUrl,
     setShortcutEnable,
     setShortcutSearch,
     setShortcutLogout,

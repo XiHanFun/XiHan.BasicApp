@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "Legt den ersten Administrator eines Mandanten mit allen mandantenseitigen Berechtigungen an; das Passwort muss bei der ersten Anmeldung geändert werden. Einmal je Mandant.",
   "tenancy.tenant.not_found": "Der Mandant '{id}' existiert nicht.",
   "tenancy.tenant.id_taken": "Die Mandanten-ID '{tenantId}' ist bereits vergeben.",
+  "tenancy.tenant.domain_taken": "Die Domain {domain} ist bereits einem anderen Mandanten zugeordnet.",
   "tenancy.tenant.admin_initialized": "Der Mandant '{tenantId}' hat bereits einen Administrator.",
   "tenancy.tenant.has_users": "Der Mandant '{tenantId}' hat noch {count} Benutzer und kann nicht gelöscht werden.",
   "tenancy.tenant.expired": "Der Mandant '{tenantId}' ist abgelaufen. Verlängern Sie zuerst das Ablaufdatum.",

@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "번호 규칙 초기화",
   "permissions.settings.numbering_rules.reset.description": "규칙의 일련번호를 현재 주기에 발급된 모든 값보다 뒤로 옮깁니다.",
   "permissions.settings.numbering_rules.generate.name": "번호 발급",
-  "permissions.settings.numbering_rules.generate.description": "호출자 측의 규칙 또는 테넌트에 공유된 플랫폼 규칙으로 번호를 발급합니다."
+  "permissions.settings.numbering_rules.generate.description": "호출자 측의 규칙 또는 테넌트에 공유된 플랫폼 규칙으로 번호를 발급합니다.",
+  "site.get.title": "사이트 설정 조회",
+  "site.get.description": "설정 페이지용: 플랫폼은 사이트 설정을, 테넌트는 자체 브랜드와 물려받는 플랫폼 설정을 조회합니다.",
+  "site.update.title": "사이트 설정 수정",
+  "site.update.description": "호출한 쪽의 설정을 통째로 덮어씁니다. 플랫폼은 사이트 설정을, 테넌트는 자체 브랜드를 수정합니다(비워 둔 항목은 플랫폼 설정을 따릅니다). 이미지는 유지하거나 제거만 할 수 있고, 교체는 업로드 엔드포인트로 합니다.",
+  "site.resolve.title": "적용되는 사이트 설정 조회",
+  "site.resolve.description": "익명: 로그인했으면 토큰의 테넌트, 로그인하지 않았으면 접속한 도메인에 연결된 테넌트를 찾아 적용되는 사이트 이름, 이미지와 바닥글을 돌려줍니다. 표시 전용이며 신원 판정에는 쓰지 않습니다.",
+  "openapi.tags.site.name": "사이트 설정",
+  "openapi.tags.site.description": "사이트 이름, 로고, 로그인 페이지와 바닥글. 테넌트는 자체 브랜드로 덮어쓸 수 있습니다.",
+  "permissions.settings.site.read.name": "사이트 설정 조회",
+  "permissions.settings.site.read.description": "플랫폼은 사이트 설정을, 테넌트는 자체 브랜드와 물려받는 플랫폼 설정을 조회합니다.",
+  "permissions.settings.site.update.name": "사이트 설정 수정",
+  "permissions.settings.site.update.description": "플랫폼은 사이트 설정을, 테넌트는 자체 브랜드를 수정하고 그 이미지를 업로드합니다.",
+  "settings.site.asset_unknown": "{field}은(는) 현재 이미지를 유지하거나 제거만 할 수 있습니다. 바꾸려면 새 이미지를 업로드하세요({id}은(는) 현재 이미지가 아닙니다).",
+  "settings.site.asset_invalid": "{max}MB 이하의 PNG, JPEG, WebP 또는 ICO 이미지를 업로드하세요."
 }

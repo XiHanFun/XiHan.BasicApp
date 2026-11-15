@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "Crée le premier administrateur d'un locataire avec toutes les permissions côté locataire ; le mot de passe doit être changé à la première connexion. Une fois par locataire.",
   "tenancy.tenant.not_found": "Le locataire '{id}' n'existe pas.",
   "tenancy.tenant.id_taken": "L'identifiant de locataire '{tenantId}' est déjà pris.",
+  "tenancy.tenant.domain_taken": "Le domaine {domain} est déjà associé à un autre locataire.",
   "tenancy.tenant.admin_initialized": "Le locataire '{tenantId}' a déjà un administrateur.",
   "tenancy.tenant.has_users": "Le locataire '{tenantId}' a encore {count} utilisateurs et ne peut pas être supprimé.",
   "tenancy.tenant.expired": "Le locataire '{tenantId}' a expiré. Prolongez d'abord sa date d'expiration.",

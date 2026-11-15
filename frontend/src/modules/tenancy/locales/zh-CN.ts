@@ -14,6 +14,7 @@ export default {
         tenant_id: '租户 ID',
         name: '名称',
         description: '说明',
+        domain: '自定义域名',
         status: '状态',
         edition: '套餐',
         admin: '管理员',
@@ -32,6 +33,8 @@ export default {
         database: '数据库',
         database_status: '数据库状态',
       },
+      domain_placeholder: '如 portal.example.com',
+      domain_hint: '没登录时按访问的域名显示这个租户的品牌、预填租户；要先在 DNS 与证书里把域名指向本平台。只用于展示，不参与身份判定。',
       status: {
         active: '启用',
         suspended: '已停用',

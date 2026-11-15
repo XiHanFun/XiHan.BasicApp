@@ -14,6 +14,7 @@ export default {
         tenant_id: 'Identifiant',
         name: 'Nom',
         description: 'Description',
+        domain: 'Domaine personnalisé',
         status: 'Statut',
         edition: 'Édition',
         admin: 'Administrateur',
@@ -32,6 +33,8 @@ export default {
         database: 'Base de données',
         database_status: 'État de la base de données',
       },
+      domain_placeholder: 'p. ex. portal.example.com',
+      domain_hint: 'Avant la connexion, les visiteurs de ce domaine voient l’identité visuelle du locataire, et le locataire est prérempli. Faites d’abord pointer le domaine vers cette plateforme (DNS et certificat). Pour l’affichage uniquement ; il ne détermine jamais l’identité.',
       status: {
         active: 'Actif',
         suspended: 'Suspendu',

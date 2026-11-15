@@ -106,8 +106,6 @@ export const LAYOUT_CONTRACT_SNAPSHOT = {
     'navigationStyle',
     'navigationSplit',
     'navigationAccordion',
-    'brandTitle',
-    'brandLogo',
     'breadcrumbEnabled',
     'breadcrumbShowHome',
     'breadcrumbShowIcon',

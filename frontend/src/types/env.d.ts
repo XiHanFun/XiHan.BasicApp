@@ -21,10 +21,6 @@ interface ImportMetaEnv {
   readonly VITE_DEV_PROXY_TARGET?: string
   readonly VITE_PORT?: string
   /** 应用名与标志（登录页品牌区；缺省取文案与 /favicon.png） */
-  readonly VITE_APP_TITLE?: string
-  readonly VITE_APP_LOGO?: string
-  readonly VITE_APP_SUBTITLE?: string
-  readonly VITE_APP_DESCRIPTION?: string
   /** 新版欢迎页开关：设为 false 即不出现（缺省开） */
   readonly VITE_APP_WELCOME?: string
   /** 首页兜底路径（壳层固定首页标签、守卫重定向） */

@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: '著作権',
         enabled: '有効',
-        name: '表示名',
-        site: 'サイト',
-        start_date: '開始年',
-        icp: 'ICP 登録番号',
-        icp_url: 'ICP サイト URL',
-        optional: '任意',
       },
     },
     general: {

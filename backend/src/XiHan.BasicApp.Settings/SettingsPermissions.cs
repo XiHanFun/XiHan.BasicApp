@@ -105,6 +105,16 @@ public static class SettingsPermissions
     public const string NumberingRulesGenerate = "settings.numbering-rules.generate";
 
     /// <summary>
+    /// 读取站点设置
+    /// </summary>
+    public const string SiteRead = "settings.site.read";
+
+    /// <summary>
+    /// 修改站点设置
+    /// </summary>
+    public const string SiteUpdate = "settings.site.update";
+
+    /// <summary>
     /// 全部权限描述
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -127,5 +137,7 @@ public static class SettingsPermissions
         new(NumberingRulesDelete, "Delete numbering rules", PermissionScope.Both, audited: true, description: "Delete numbering rules on the caller's side that never issued a number."),
         new(NumberingRulesReset, "Reset numbering rules", PermissionScope.Both, audited: true, description: "Move a rule's sequence forward past every value issued in the current period."),
         new(NumberingRulesGenerate, "Issue numbers", PermissionScope.Both, audited: true, description: "Issue numbers from the caller's rules or from platform rules shared with tenants."),
+        new(SiteRead, "Read site settings", PermissionScope.Both, description: "View the site settings on the platform, or the tenant's own branding and the platform settings it inherits."),
+        new(SiteUpdate, "Update site settings", PermissionScope.Both, audited: true, description: "Edit the site settings on the platform, or the tenant's own branding, and upload their images."),
     ];
 }

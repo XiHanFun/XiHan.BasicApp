@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: 'Copyright',
         enabled: 'Enable',
-        name: 'Name',
-        site: 'Website',
-        start_date: 'Start Year',
-        icp: 'ICP Filing',
-        icp_url: 'ICP URL',
-        optional: 'Optional',
       },
     },
     general: {

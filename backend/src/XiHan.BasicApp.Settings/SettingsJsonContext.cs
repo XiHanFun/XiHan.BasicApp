@@ -5,11 +5,13 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Settings;
+using XiHan.BasicApp.Settings.Domain.Services;
 using XiHan.BasicApp.Settings.Infrastructure;
 using XiHan.BasicApp.Settings.Operations.Configs;
 using XiHan.BasicApp.Settings.Operations.DictItems;
 using XiHan.BasicApp.Settings.Operations.Dicts;
 using XiHan.BasicApp.Settings.Operations.NumberingRules;
+using XiHan.BasicApp.Settings.Operations.Site;
 
 namespace XiHan.BasicApp.Settings;
 
@@ -30,6 +32,12 @@ namespace XiHan.BasicApp.Settings;
 [JsonSerializable(typeof(ConfigIdsRequest))]
 [JsonSerializable(typeof(ConfigResponse))]
 [JsonSerializable(typeof(ConfigEntry))]
+[JsonSerializable(typeof(SiteSettings))]
+[JsonSerializable(typeof(GetSiteRequest))]
+[JsonSerializable(typeof(UpdateSiteRequest))]
+[JsonSerializable(typeof(ResolveSiteRequest))]
+[JsonSerializable(typeof(SiteSettingsResponse))]
+[JsonSerializable(typeof(ResolvedSiteResponse))]
 [JsonSerializable(typeof(PageResult<ConfigResponse>))]
 [JsonSerializable(typeof(CreateDictRequest))]
 [JsonSerializable(typeof(GetDictRequest))]

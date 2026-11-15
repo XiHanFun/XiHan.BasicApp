@@ -8406,6 +8406,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get site settings
+         * @description For the settings page: the platform gets the site settings; a tenant gets its own branding and the platform settings it inherits.
+         *
+         *     Requires permission settings.site.read (Read site settings).
+         */
+        get: operations["site.get"];
+        /**
+         * Update site settings
+         * @description Replace the caller's side as a whole: the platform edits the site settings, a tenant edits its own branding (blank fields inherit the platform's). Images can only be kept or removed; upload a new one through the upload endpoint.
+         *
+         *     Requires permission settings.site.update (Update site settings).
+         */
+        put: operations["site.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/site/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a site image anonymously, so the sign-in page can show it before anyone signs in. */
+        get: operations["site.asset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/site/assets/{slot}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replace the caller's side's logo, favicon or sign-in background (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field `file`).
+         * @description Requires permission settings.site.update (Update site settings).
+         */
+        post: operations["site.upload-asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/site:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve the site settings
+         * @description Anonymous: signed in, it uses the tenant in the token; signed out, it finds the tenant bound to the visited domain. Returns the effective site name, images and footer. Display only; it never decides identity.
+         */
+        get: operations["site.resolve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sms": {
         parameters: {
             query?: never;
@@ -15571,6 +15656,53 @@ export interface components {
              */
             expiresAt: string;
         };
+        /** @description 一张站点图片 */
+        SiteAssetResponse: {
+            /**
+             * Format: uuid
+             * @description 文件 ID
+             */
+            id: string;
+            /** @description 匿名可读的地址（站内相对路径） */
+            url: string;
+        };
+        /** @description 站点设置的内容 */
+        SiteProfileResponse: {
+            /** @description 系统名 */
+            name?: string | null;
+            /** @description 登录页的标语 */
+            subtitle?: string | null;
+            /** @description 登录页的说明 */
+            description?: string | null;
+            /** @description Logo */
+            logo?: components["schemas"]["SiteAssetResponse"] | null;
+            /** @description 浏览器图标 */
+            favicon?: components["schemas"]["SiteAssetResponse"] | null;
+            /** @description 登录页背景图 */
+            loginBackground?: components["schemas"]["SiteAssetResponse"] | null;
+            /** @description 页脚的版权方 */
+            copyrightOwner?: string | null;
+            /** @description 版权方的链接 */
+            copyrightUrl?: string | null;
+            /** @description 版权起始年份 */
+            copyrightSince?: string | null;
+            /** @description 备案号 */
+            icp?: string | null;
+            /** @description 备案号的链接 */
+            icpUrl?: string | null;
+        };
+        /**
+         * SiteSettingsResponse
+         * @description 设置页看到的站点设置
+         */
+        SiteSettingsResponse: {
+            /** @description 调用方是不是平台：平台改的是站点设置，租户改的是自己的品牌 */
+            isPlatform: boolean;
+            /** @description 这一侧自己存着的（租户没设的字段为空） */
+            own: components["schemas"]["SiteProfileResponse"];
+            /** @description 租户沿用的平台设置；平台为空 */
+            inherited?: components["schemas"]["SiteProfileResponse"] | null;
+        };
         /** @description 一个短信配置（访问密钥不回显） */
         SmsConfigResponse: {
             /**
@@ -15940,6 +16072,8 @@ export interface components {
             databaseStatus: components["schemas"]["TenantDatabaseStatus"];
             /** @description 最近一次初始化失败的原因 */
             databaseError?: string | null;
+            /** @description 自定义域名；没有绑定为空 */
+            domain?: string | null;
         };
         /**
          * @description 租户状态
@@ -43606,6 +43740,214 @@ export interface operations {
             };
         };
     };
+    "site.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 设置页看到的站点设置 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteSettingsResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "site.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description site.update 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 系统名 */
+                    name?: string | null;
+                    /** @description 登录页的标语 */
+                    subtitle?: string | null;
+                    /** @description 登录页的说明 */
+                    description?: string | null;
+                    /**
+                     * Format: uuid
+                     * @description Logo：现在的文件 ID 即保留，为空即去掉
+                     */
+                    logo?: string | null;
+                    /**
+                     * Format: uuid
+                     * @description 浏览器图标：现在的文件 ID 即保留，为空即去掉
+                     */
+                    favicon?: string | null;
+                    /**
+                     * Format: uuid
+                     * @description 登录页背景图：现在的文件 ID 即保留，为空即去掉
+                     */
+                    loginBackground?: string | null;
+                    /** @description 页脚的版权方 */
+                    copyrightOwner?: string | null;
+                    /** @description 版权方的链接（http 或 https） */
+                    copyrightUrl?: string | null;
+                    /** @description 版权起始年份 */
+                    copyrightSince?: string | null;
+                    /** @description 备案号 */
+                    icp?: string | null;
+                    /** @description 备案号的链接（http 或 https） */
+                    icpUrl?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 设置页看到的站点设置 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 调用方是不是平台：平台改的是站点设置，租户改的是自己的品牌 */
+                        isPlatform: boolean;
+                        /** @description 这一侧自己存着的（租户没设的字段为空） */
+                        own: components["schemas"]["SiteProfileResponse"];
+                        /** @description 租户沿用的平台设置；平台为空 */
+                        inherited?: components["schemas"]["SiteProfileResponse"] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "site.asset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "site.upload-asset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slot: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SiteSettingsResponse"];
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "site.resolve": {
+        parameters: {
+            query?: {
+                /** @description 前端访问的主机名（可以带端口）：没登录时按它找绑定了这个域名的租户 */
+                host?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 前端壳层用的生效设置 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 生效的设置：租户的叠在平台的之上 */
+                        profile: components["schemas"]["SiteProfileResponse"];
+                        /** @description 没登录时按域名找到的租户（登录页预填）；登录了或没找到为空 */
+                        tenantId?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "sms.delete": {
         parameters: {
             query: {
@@ -45731,6 +46073,8 @@ export interface operations {
                      * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐
                      */
                     storageLimitMb?: number | null;
+                    /** @description 自定义域名（如 acme.example.com）：登录前按它显示租户的品牌、预填租户；为空即不绑定 */
+                    domain?: string | null;
                 };
             };
         };
@@ -45798,6 +46142,8 @@ export interface operations {
                         databaseStatus: components["schemas"]["TenantDatabaseStatus"];
                         /** @description 最近一次初始化失败的原因 */
                         databaseError?: string | null;
+                        /** @description 自定义域名；没有绑定为空 */
+                        domain?: string | null;
                     };
                 };
             };
@@ -45934,6 +46280,8 @@ export interface operations {
                      * @description 租户自己的存储空间上限（MB），覆盖套餐的；为空即沿用套餐
                      */
                     storageLimitMb?: number | null;
+                    /** @description 自定义域名（如 acme.example.com）：登录前按它显示租户的品牌、预填租户；为空即不绑定 */
+                    domain?: string | null;
                 };
             };
         };
@@ -46001,6 +46349,8 @@ export interface operations {
                         databaseStatus: components["schemas"]["TenantDatabaseStatus"];
                         /** @description 最近一次初始化失败的原因 */
                         databaseError?: string | null;
+                        /** @description 自定义域名；没有绑定为空 */
+                        domain?: string | null;
                     };
                 };
             };
@@ -46106,6 +46456,8 @@ export interface operations {
                         databaseStatus: components["schemas"]["TenantDatabaseStatus"];
                         /** @description 最近一次初始化失败的原因 */
                         databaseError?: string | null;
+                        /** @description 自定义域名；没有绑定为空 */
+                        domain?: string | null;
                     };
                 };
             };
@@ -46212,6 +46564,8 @@ export interface operations {
                         databaseStatus: components["schemas"]["TenantDatabaseStatus"];
                         /** @description 最近一次初始化失败的原因 */
                         databaseError?: string | null;
+                        /** @description 自定义域名；没有绑定为空 */
+                        domain?: string | null;
                     };
                 };
             };
@@ -46389,6 +46743,8 @@ export interface operations {
                         databaseStatus: components["schemas"]["TenantDatabaseStatus"];
                         /** @description 最近一次初始化失败的原因 */
                         databaseError?: string | null;
+                        /** @description 自定义域名；没有绑定为空 */
+                        domain?: string | null;
                     };
                 };
             };
@@ -46494,6 +46850,8 @@ export interface operations {
                         databaseStatus: components["schemas"]["TenantDatabaseStatus"];
                         /** @description 最近一次初始化失败的原因 */
                         databaseError?: string | null;
+                        /** @description 自定义域名；没有绑定为空 */
+                        domain?: string | null;
                     };
                 };
             };

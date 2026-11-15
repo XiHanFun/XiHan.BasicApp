@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "Create the first administrator of a tenant with every tenant-side permission; the password must be changed at first sign-in. Once per tenant.",
   "tenancy.tenant.not_found": "Tenant '{id}' does not exist.",
   "tenancy.tenant.id_taken": "Tenant ID '{tenantId}' is already taken.",
+  "tenancy.tenant.domain_taken": "The domain {domain} is already bound to another tenant.",
   "tenancy.tenant.admin_initialized": "Tenant '{tenantId}' already has an administrator.",
   "tenancy.tenant.has_users": "Tenant '{tenantId}' still has {count} users and cannot be deleted.",
   "tenancy.tenant.expired": "Tenant '{tenantId}' is past its expiry time. Extend the expiry time before resuming it.",

@@ -267,6 +267,37 @@ public static class SettingsMessages
     public const string ValueRejected = "settings.config.value_rejected";
 
     /// <summary>
+    /// 站点设置的图片只能保留现在的或去掉
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>id</c>
+    /// </remarks>
+    public const string SiteAssetUnknown = "settings.site.asset_unknown";
+
+    /// <summary>
+    /// 站点图片不是 PNG、JPEG、WebP 或 ICO，或超过大小上限
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>（MB）
+    /// </remarks>
+    public const string SiteAssetInvalid = "settings.site.asset_invalid";
+
+    /// <summary>
+    /// 操作 <c>site.get</c> 的说明
+    /// </summary>
+    public const string GetSiteDescription = "site.get.description";
+
+    /// <summary>
+    /// 操作 <c>site.update</c> 的说明
+    /// </summary>
+    public const string UpdateSiteDescription = "site.update.description";
+
+    /// <summary>
+    /// 操作 <c>site.resolve</c> 的说明
+    /// </summary>
+    public const string ResolveSiteDescription = "site.resolve.description";
+
+    /// <summary>
     /// 元数据不是 JSON
     /// </summary>
     public const string MetadataNotJson = "settings.dict_item.metadata_not_json";

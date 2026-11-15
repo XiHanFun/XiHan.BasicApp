@@ -74,6 +74,8 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddScoped<NumberingRuleService>();
         context.Services.AddScoped<INumberGenerator, NumberGenerator>();
         context.Services.AddScoped<ConfigQueries>();
+        context.Services.AddScoped<SiteProfiles>();
+        context.Services.AddConfigCatalog("settings", [SiteSettings.Config]);
         context.Services.AddScoped<DictQueries>();
         context.Services.AddScoped<DictItemQueries>();
         context.Services.AddScoped<NumberingRuleQueries>();

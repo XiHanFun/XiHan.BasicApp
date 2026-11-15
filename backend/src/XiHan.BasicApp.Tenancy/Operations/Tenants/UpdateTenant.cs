@@ -17,8 +17,9 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
+/// <param name="domains">自定义域名</param>
 [Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsUpdate)]
-public sealed class UpdateTenant(IRepository<SysTenant, Guid> tenants, TenantService service) : IOperation<UpdateTenantRequest, TenantResponse>
+public sealed class UpdateTenant(IRepository<SysTenant, Guid> tenants, TenantService service, TenantDomains domains) : IOperation<UpdateTenantRequest, TenantResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -40,6 +41,13 @@ public sealed class UpdateTenant(IRepository<SysTenant, Guid> tenants, TenantSer
             return Error.NotFound(TenancyErrors.TenantNotFound, TenancyMessages.TenantNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
+        var domain = TenantDomains.Normalize(request.Domain);
+        if (domain is not null && await domains.IsTakenAsync(domain, tenant.Id, context.CancellationToken).ConfigureAwait(false))
+        {
+            return Error.Conflict(TenancyErrors.DomainTaken, TenancyMessages.DomainTaken, MessageArguments.Of(("domain", domain)));
+        }
+
+        tenant.Domain = domain;
         tenant.Name = request.Name.Trim();
         tenant.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         tenant.ExpiresAt = request.ExpiresAt;

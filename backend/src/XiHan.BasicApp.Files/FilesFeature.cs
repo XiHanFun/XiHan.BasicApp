@@ -96,6 +96,7 @@ public sealed class FilesFeature : IHostedFeature, IDisposable
         context.Services.AddScoped<IWorkbenchWidgetProvider, FilesWidgets>();
         context.Services.AddScoped<IStorageUsage, FileStorageUsage>();
         context.Services.AddScoped<IAvatarFiles, AvatarFiles>();
+        context.Services.AddScoped<ISiteAssetFiles, SiteAssetFiles>();
         // 业务附件（聊天以会话为访问范围，方案 H2）：业务自己核对范围后经它存取，不再要通用的文件权限
         context.Services.AddScoped<IAttachmentFiles, AttachmentFiles>();
         context.Services.AddScoped<ITemporaryFiles, TemporaryFiles>();

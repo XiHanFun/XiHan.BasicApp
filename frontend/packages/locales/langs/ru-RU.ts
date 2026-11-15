@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: 'Авторские права',
         enabled: 'Включить',
-        name: 'Название',
-        site: 'Сайт',
-        start_date: 'Год начала',
-        icp: 'Регистрация ICP',
-        icp_url: 'Ссылка ICP',
-        optional: 'Необязательно',
       },
     },
     general: {

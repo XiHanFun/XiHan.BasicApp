@@ -14,6 +14,7 @@ export default {
         tenant_id: 'Tenant ID',
         name: 'Name',
         description: 'Description',
+        domain: 'Custom domain',
         status: 'Status',
         edition: 'Edition',
         admin: 'Administrator',
@@ -32,6 +33,8 @@ export default {
         database: 'Database',
         database_status: 'Database status',
       },
+      domain_placeholder: 'e.g. portal.example.com',
+      domain_hint: 'Before sign-in, visitors to this domain see the tenant\'s branding and the tenant is filled in for them. Point the domain at this platform in DNS and the certificate first. Display only; it never decides identity.',
       status: {
         active: 'Active',
         suspended: 'Suspended',

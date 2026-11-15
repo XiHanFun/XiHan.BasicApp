@@ -847,6 +847,10 @@ function formatNullableDate(value: null | string | undefined): string {
                   </XhDescriptionsItem>
                   <!-- 前面十四个单格项两两成行；说明是长文本，独占一行 -->
                   <XhDescriptionsItem :span="2">
+                    <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.domain') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ formatNullable(detail.detail.value.tenant.domain) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenancy.tenants.fields.description') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>{{ formatNullable(detail.detail.value.tenant.description) }}</XhDescriptionsValue>
                   </XhDescriptionsItem>
@@ -1026,6 +1030,17 @@ function formatNullableDate(value: null | string | undefined): string {
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('editionId')">
             {{ editor.fieldError('editionId') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('domain')">
+          <XFieldLabel :help="t('tenancy.tenants.domain_hint')">
+            {{ t('tenancy.tenants.fields.domain') }}
+          </XFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.domain" name="domain" clearable autocomplete="off" :placeholder="t('tenancy.tenants.domain_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('domain')">
+            {{ editor.fieldError('domain') }}
           </XhFieldErrorText>
         </XhFieldRoot>
         <XhFieldRoot :invalid="!!editor.fieldError('expiresAt')">

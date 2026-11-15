@@ -14,6 +14,7 @@ export default {
         tenant_id: 'Mandanten-ID',
         name: 'Name',
         description: 'Beschreibung',
+        domain: 'Eigene Domain',
         status: 'Status',
         edition: 'Edition',
         admin: 'Administrator',
@@ -32,6 +33,8 @@ export default {
         database: 'Datenbank',
         database_status: 'Datenbankstatus',
       },
+      domain_placeholder: 'z. B. portal.example.com',
+      domain_hint: 'Vor der Anmeldung sehen Besucher dieser Domain das Branding des Mandanten, und der Mandant wird vorausgefüllt. Richten Sie die Domain zuvor per DNS und Zertifikat auf diese Plattform. Nur zur Anzeige, nie zur Identitätsprüfung.',
       status: {
         active: 'Aktiv',
         suspended: 'Ausgesetzt',

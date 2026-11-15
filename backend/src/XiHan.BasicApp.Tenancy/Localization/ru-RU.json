@@ -17,6 +17,7 @@
   "tenants.initialize_admin.description": "Создаёт первого администратора арендатора со всеми разрешениями стороны арендатора; пароль нужно сменить при первом входе. Один раз на арендатора.",
   "tenancy.tenant.not_found": "Арендатор '{id}' не существует.",
   "tenancy.tenant.id_taken": "Идентификатор арендатора '{tenantId}' уже занят.",
+  "tenancy.tenant.domain_taken": "Домен {domain} уже привязан к другому арендатору.",
   "tenancy.tenant.admin_initialized": "У арендатора '{tenantId}' уже есть администратор.",
   "tenancy.tenant.has_users": "У арендатора '{tenantId}' ещё {count} пользователей, удалить нельзя.",
   "tenancy.tenant.expired": "Срок действия арендатора '{tenantId}' истёк. Сначала продлите его.",

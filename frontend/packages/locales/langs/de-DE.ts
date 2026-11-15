@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: 'Urheberrecht',
         enabled: 'Aktivieren',
-        name: 'Name',
-        site: 'Website',
-        start_date: 'Startjahr',
-        icp: 'ICP-Registrierung',
-        icp_url: 'ICP-URL',
-        optional: 'Optional',
       },
     },
     general: {

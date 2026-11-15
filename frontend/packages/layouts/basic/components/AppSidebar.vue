@@ -14,7 +14,7 @@ import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
-import { useAccessStore, useAppStore } from '~/stores'
+import { useAccessStore, useAppStore, useSiteStore } from '~/stores'
 import { useEffectiveLayoutMode, useLayoutMenuDomain } from '../composables'
 import { renderSidebarBadgeLabel } from './MenuBadge.vue'
 import { useMenuExternalLinks } from './sidebar/menu-links'
@@ -105,12 +105,9 @@ const {
 } = useLayoutMenuDomain()
 const externalLinkOf = useMenuExternalLinks()
 
-const appTitle = computed(
-  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan.BasicApp',
-)
-const appLogo = computed(
-  () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
-)
+const site = useSiteStore()
+const appTitle = computed(() => site.name)
+const appLogo = computed(() => site.logo)
 
 const activeKey = computed(() => String(route.meta?.activePath || route.path || ''))
 const effectiveLayoutMode = useEffectiveLayoutMode()

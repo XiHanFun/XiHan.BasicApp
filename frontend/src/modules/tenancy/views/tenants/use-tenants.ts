@@ -82,6 +82,8 @@ export interface TenantForm {
   tenantId: string
   name: string
   description: string
+  /** 自定义域名：登录前按它显示租户的品牌、预填租户；空即不绑定 */
+  domain: string
   /** 到期时间（毫秒时间戳，日期选择的取值）；空即长期有效 */
   expiresAt: number | null
   order: number
@@ -433,6 +435,7 @@ function emptyForm(): TenantForm {
     tenantId: '',
     name: '',
     description: '',
+    domain: '',
     expiresAt: null,
     order: 0,
     editionId: null,
@@ -484,6 +487,7 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
       tenantId: row.tenantId,
       name: row.name,
       description: row.description ?? '',
+      domain: row.domain ?? '',
       expiresAt: toTimestamp(row.expiresAt),
       order: row.order,
       editionId: row.editionId ?? null,
@@ -533,6 +537,7 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
           order: form.order,
           userLimit: form.userLimit,
           storageLimitMb: form.storageLimitMb,
+          domain: blankToNull(form.domain),
         })
         // 空选即不受套餐限制（显式选择）；后端写入后立即失效该租户的门控缓存
         if ((form.editionId ?? null) !== (current.editionId ?? null))
@@ -548,6 +553,7 @@ export function useTenantEditor(canConfigureDatabase: () => boolean) {
           editionId: form.editionId,
           userLimit: form.userLimit,
           storageLimitMb: form.storageLimitMb,
+          domain: blankToNull(form.domain),
         })
       }
       // 更新与换套餐不动隔离设置：保存后的租户就是配库前的现状（开通的即共库）

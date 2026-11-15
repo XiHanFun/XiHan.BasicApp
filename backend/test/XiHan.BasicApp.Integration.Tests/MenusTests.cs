@@ -44,7 +44,7 @@ public sealed class MenusTests : IDisposable
             + "custom.tenant-management[tenancy.tenants, tenancy.editions, tenancy.subscription], "
             + "custom.system-management["
             + "custom.system-permission[organization.departments, organization.positions, identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security, access.menus], "
-            + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
+            + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules, settings.site], "
             + "custom.system-services[maintenance.jobs, maintenance.caches, maintenance.versions, maintenance.migrations], "
             + "custom.system-monitor[maintenance.server, identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "

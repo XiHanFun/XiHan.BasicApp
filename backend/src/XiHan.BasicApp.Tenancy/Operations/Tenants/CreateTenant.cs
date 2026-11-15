@@ -16,14 +16,15 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// </summary>
 /// <remarks>
 /// <c>POST /api/tenants</c>。写 <see cref="SysTenant"/> 并在同一工作单元里登记框架租户目录（启用）。<c>platform</c> 是保留 ID
-/// 套餐不指定即用缺省套餐（没有缺省即 <c>TENANCY_VALIDATION_003</c>），指定的不存在即 <c>TENANCY_NOTFOUND_004</c>，已停用即 <c>TENANCY_CONFLICT_016</c>
+/// 套餐不指定即用缺省套餐（没有缺省即 <c>TENANCY_VALIDATION_003</c>），指定的不存在即 <c>TENANCY_NOTFOUND_004</c>，已停用即 <c>TENANCY_CONFLICT_016</c>；自定义域名已被别的租户绑定即 <c>TENANCY_CONFLICT_018</c>
 /// </remarks>
 /// <param name="tenants">租户仓储</param>
 /// <param name="service">租户域服务</param>
 /// <param name="editions">套餐域服务</param>
+/// <param name="domains">自定义域名</param>
 /// <param name="ids">标识生成器</param>
 [Operation(Id, Expose = Expose.Http, Permission = TenancyPermissions.TenantsCreate)]
-public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantService service, EditionService editions, IIdGenerator<Guid> ids) : IOperation<CreateTenantRequest, TenantResponse>
+public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantService service, EditionService editions, TenantDomains domains, IIdGenerator<Guid> ids) : IOperation<CreateTenantRequest, TenantResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -44,6 +45,12 @@ public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantSer
         if (string.Equals(tenantId, TenantIds.Platform, StringComparison.OrdinalIgnoreCase) || (await service.FindByTenantIdAsync(tenantId, context.CancellationToken).ConfigureAwait(false)).HasValue)
         {
             return Error.Conflict(TenancyErrors.TenantIdTaken, TenancyMessages.TenantIdTaken, MessageArguments.Of(("tenantId", tenantId)));
+        }
+
+        var domain = TenantDomains.Normalize(request.Domain);
+        if (domain is not null && await domains.IsTakenAsync(domain, null, context.CancellationToken).ConfigureAwait(false))
+        {
+            return Error.Conflict(TenancyErrors.DomainTaken, TenancyMessages.DomainTaken, MessageArguments.Of(("domain", domain)));
         }
 
         Guid editionId;
@@ -76,6 +83,7 @@ public sealed class CreateTenant(IRepository<SysTenant, Guid> tenants, TenantSer
             TenantId = tenantId,
             Name = request.Name.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+            Domain = domain,
             ExpiresAt = request.ExpiresAt,
             Order = request.Order,
             EditionId = editionId,

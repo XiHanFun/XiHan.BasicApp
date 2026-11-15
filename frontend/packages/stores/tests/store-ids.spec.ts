@@ -50,6 +50,7 @@ describe('枚举取值本身', () => {
       'Notification',
       'TabbarPreferences',
       'Welcome',
+      'Site',
     ])
   })
 })

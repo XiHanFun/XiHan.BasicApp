@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: '版权',
         enabled: '启用',
-        name: '名称',
-        site: '主页',
-        start_date: '起始年份',
-        icp: 'ICP 备案号',
-        icp_url: 'ICP 网站链接',
-        optional: '选填',
       },
     },
     general: {

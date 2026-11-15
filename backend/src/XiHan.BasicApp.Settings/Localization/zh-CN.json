@@ -130,5 +130,19 @@
   "permissions.settings.numbering_rules.reset.name": "重置业务编号规则",
   "permissions.settings.numbering_rules.reset.description": "把规则的流水向前推进，越过当前周期已发出的所有值。",
   "permissions.settings.numbering_rules.generate.name": "生成编号",
-  "permissions.settings.numbering_rules.generate.description": "按本侧的规则，或供租户使用的平台规则发号。"
+  "permissions.settings.numbering_rules.generate.description": "按本侧的规则，或供租户使用的平台规则发号。",
+  "site.get.title": "获取站点设置",
+  "site.get.description": "设置页用：平台取站点设置，租户取自己的品牌与沿用的平台设置。",
+  "site.update.title": "修改站点设置",
+  "site.update.description": "整体覆盖调用方这一侧的设置：平台改站点设置，租户改自己的品牌（留空的沿用平台的）；图片只能保留或去掉，换图走上传端点。",
+  "site.resolve.title": "取生效的站点设置",
+  "site.resolve.description": "匿名：登录了按令牌里的租户，没登录按访问的域名找绑定了它的租户，返回生效的站点名、图片与页脚；只用于展示，不参与身份判定。",
+  "openapi.tags.site.name": "站点设置",
+  "openapi.tags.site.description": "站点名、Logo、登录页与页脚；租户可以覆盖成自己的品牌。",
+  "permissions.settings.site.read.name": "读取站点设置",
+  "permissions.settings.site.read.description": "平台查看站点设置；租户查看自己的品牌与沿用的平台设置。",
+  "permissions.settings.site.update.name": "修改站点设置",
+  "permissions.settings.site.update.description": "平台修改站点设置，租户修改自己的品牌，并上传其中的图片。",
+  "settings.site.asset_unknown": "{field} 只能保留现在的图片或去掉，换图请上传新图片（{id} 不是现在的图片）。",
+  "settings.site.asset_invalid": "请上传 PNG、JPEG、WebP 或 ICO 图片，不超过 {max} MB。"
 }

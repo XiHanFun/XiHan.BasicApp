@@ -14,6 +14,7 @@ export default {
         tenant_id: 'ID do locatário',
         name: 'Nome',
         description: 'Descrição',
+        domain: 'Domínio próprio',
         status: 'Status',
         edition: 'Edição',
         admin: 'Administrador',
@@ -32,6 +33,8 @@ export default {
         database: 'Banco de dados',
         database_status: 'Status do banco de dados',
       },
+      domain_placeholder: 'ex.: portal.example.com',
+      domain_hint: 'Antes do login, quem acessar este domínio vê a marca do locatário e o locatário já preenchido. Aponte antes o domínio para esta plataforma no DNS e no certificado. Só para exibição; nunca decide a identidade.',
       status: {
         active: 'Ativo',
         suspended: 'Suspenso',

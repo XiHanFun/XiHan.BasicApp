@@ -2,17 +2,10 @@
  * 布局切片（app/layout）单元测试
  * 职责边界：布局模式、品牌、侧栏、顶栏、导航、内容区、标签栏、面包屑等布局偏好的
  * 默认值与本地还原、侧栏宽度夹取（读与写两侧）、顶栏对齐的旧值迁移、
- * 以及 setBranding 的逐字段语义（注释点名：logo 空串要回落默认，防止上一租户 Logo 泄漏）
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import {
-  BRAND_LOGO_KEY,
-  BRAND_TITLE_KEY,
-  DEFAULT_LAYOUT_MODE,
-  HEADER_MENU_ALIGN_KEY,
-  SIDEBAR_WIDTH_KEY,
-} from '~/constants'
+import { DEFAULT_LAYOUT_MODE, HEADER_MENU_ALIGN_KEY, SIDEBAR_WIDTH_KEY } from '~/constants'
 import { useAppStore } from '~/stores/app'
 
 function freshStore(): ReturnType<typeof useAppStore> {
@@ -31,15 +24,6 @@ describe('默认值', () => {
     expect(store.layoutMode).toBe(DEFAULT_LAYOUT_MODE)
     expect(store.sidebarWidth).toBe(224)
     expect(store.contentMaxWidth).toBe(1280)
-  })
-
-  it('品牌信息默认取自构建期环境变量，没配即空（壳层回退到应用名与站点图标）', () => {
-    const store = freshStore()
-
-    expect(store.brandTitle).toBe(import.meta.env.VITE_APP_TITLE ?? '')
-    expect(store.brandLogo).toBe(import.meta.env.VITE_APP_LOGO ?? '')
-    expect(store.brandSubtitle).toBe(import.meta.env.VITE_APP_SUBTITLE ?? '')
-    expect(store.brandDescription).toBe(import.meta.env.VITE_APP_DESCRIPTION ?? '')
   })
 
   it('侧栏相关开关的默认：显示/折叠按钮/固定按钮/悬停展开/自动激活子项默认开，折叠态标题与深色默认关', () => {
@@ -164,89 +148,6 @@ describe('顶栏菜单对齐的旧值迁移', () => {
     localStorage.setItem(HEADER_MENU_ALIGN_KEY, JSON.stringify('乱写的'))
 
     expect(freshStore().headerMenuAlign).toBe('start')
-  })
-})
-
-describe('setBranding 的逐字段语义', () => {
-  it('title 为真值时更新品牌标题', () => {
-    const store = freshStore()
-
-    store.setBranding({ title: '某某租户' })
-
-    expect(store.brandTitle).toBe('某某租户')
-    expect(localStorage.getItem(BRAND_TITLE_KEY)).toBe(JSON.stringify('某某租户'))
-  })
-
-  it('title 为空串时保留原标题（空标题没有意义）', () => {
-    const store = freshStore()
-    store.setBrandTitle('原标题')
-
-    store.setBranding({ title: '' })
-
-    expect(store.brandTitle).toBe('原标题')
-  })
-
-  it('subtitle / description 显式给空串即视为清空', () => {
-    const store = freshStore()
-
-    store.setBranding({ subtitle: '', description: '' })
-
-    expect(store.brandSubtitle).toBe('')
-    expect(store.brandDescription).toBe('')
-  })
-
-  it('subtitle / description 未给出时保持不变', () => {
-    const store = freshStore()
-    store.setBrandSubtitle('副标题')
-
-    store.setBranding({ title: '新标题' })
-
-    expect(store.brandSubtitle).toBe('副标题')
-  })
-
-  it('logo 显式给空串时回落默认 Logo —— 防止上一租户的 Logo 通过持久化泄漏', () => {
-    const store = freshStore()
-    store.setBrandLogo('/tenant-a.png')
-
-    store.setBranding({ logo: '' })
-
-    expect(store.brandLogo).toBe('/favicon.png')
-    expect(localStorage.getItem(BRAND_LOGO_KEY)).toBe(JSON.stringify('/favicon.png'))
-  })
-
-  it('logo 未给出时保持不变', () => {
-    const store = freshStore()
-    store.setBrandLogo('/tenant-a.png')
-
-    store.setBranding({ title: '新标题' })
-
-    expect(store.brandLogo).toBe('/tenant-a.png')
-  })
-
-  it('logo 给出非空值时原样设置', () => {
-    const store = freshStore()
-
-    store.setBranding({ logo: '/tenant-b.svg' })
-
-    expect(store.brandLogo).toBe('/tenant-b.svg')
-  })
-
-  it('传空对象时四项品牌信息一项都不变', () => {
-    const store = freshStore()
-    store.setBrandTitle('T')
-    store.setBrandSubtitle('S')
-    store.setBrandDescription('D')
-    store.setBrandLogo('/L.png')
-
-    store.setBranding({})
-
-    expect([
-      store.brandTitle,
-      store.brandSubtitle,
-      store.brandDescription,
-      store.brandLogo,
-    ])
-      .toEqual(['T', 'S', 'D', '/L.png'])
   })
 })
 

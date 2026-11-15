@@ -14,6 +14,7 @@ export default {
         tenant_id: '테넌트 ID',
         name: '이름',
         description: '설명',
+        domain: '사용자 지정 도메인',
         status: '상태',
         edition: '에디션',
         admin: '관리자',
@@ -32,6 +33,8 @@ export default {
         database: '데이터베이스',
         database_status: '데이터베이스 상태',
       },
+      domain_placeholder: '예: portal.example.com',
+      domain_hint: '로그인 전에 이 도메인으로 접속하면 테넌트 브랜드를 보여 주고 테넌트를 미리 채웁니다. 먼저 DNS와 인증서에서 도메인을 이 플랫폼으로 연결하세요. 표시 전용이며 신원 판정에는 쓰지 않아요.',
       status: {
         active: '활성',
         suspended: '중지됨',

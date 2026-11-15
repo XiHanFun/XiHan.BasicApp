@@ -1466,12 +1466,6 @@ export default {
       copyright: {
         title: '저작권',
         enabled: '활성화',
-        name: '이름',
-        site: '홈페이지',
-        start_date: '시작 연도',
-        icp: 'ICP 등록번호',
-        icp_url: 'ICP 사이트 링크',
-        optional: '선택 입력',
       },
     },
     general: {

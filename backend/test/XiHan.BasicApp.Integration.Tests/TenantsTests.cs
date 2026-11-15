@@ -96,7 +96,7 @@ public sealed class TenantsTests : IDisposable
             + "custom.tenant-management[tenancy.subscription], "
             + "custom.system-management["
             + "custom.system-permission[organization.departments, organization.positions, identity.users, access.roles, access.permissions, access.delegations, access.policies, access.constraint-rules, access.field-security], "
-            + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules], "
+            + "custom.system-settings[settings.configs, settings.dicts, settings.numbering-rules, settings.site], "
             + "custom.system-monitor[identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
