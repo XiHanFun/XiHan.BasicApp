@@ -34,7 +34,7 @@ const centerOffset = computed(() => {
   let maxY = Number.NEGATIVE_INFINITY
   const steps = 240
   for (let i = 0; i <= steps; i++) {
-    const point = cfg.point(i / steps, 0.8, cfg)
+    const point = cfg.point(i / steps, 0.8)
     minX = Math.min(minX, point.x)
     maxX = Math.max(maxX, point.x)
     minY = Math.min(minY, point.y)
