@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: 'Dissolving "{name}" removes every member. Nobody will be able to see the group or its messages again, and this cannot be undone. Dissolve it?',
       dissolve_done: 'Group dissolved',
       dissolved_notice: 'The group "{name}" was dissolved by its owner',
+      removed_notice: 'You were removed from the group "{name}"',
     },
     picker: {
       search_placeholder: 'Search by username or display name',

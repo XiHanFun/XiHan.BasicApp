@@ -218,7 +218,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（12 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`、`ChatCallChanged`、`ChatCallSignal` |
 | 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库）、`CallSignal`（核对是接通了的通话里的人后转给指定的人或通话里的其他人，不落库） |
 
-`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`、`dissolved`。群被解散时推给解散那一刻还在里面的成员，前端把它从列表里拿掉（正开着就收起），不是群主的另出一条提示说是哪个群。
+`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`、`removed`、`left`、`dissolved`。成员少了时留下的人收到 `member-removed`（部门群是 `department-kicked`），据此重读成员；出去的那个人另收一种、只推给他本人：被移出（含随部门归属移出）是 `removed`，自己退群是 `left`——他再读这个会话只会被拒绝，前端直接把它从列表里拿掉（正开着就收起），被移出的另出一条提示说是哪个群。群被解散时推给解散那一刻还在里面的成员，前端同样把它拿掉，不是群主的另出一条提示。
 
 ## 在线状态
 

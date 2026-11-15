@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: 'Al disolver «{name}» se quita a todos los miembros. Nadie podrá volver a ver el grupo ni sus mensajes, y no se puede deshacer. ¿Disolverlo?',
       dissolve_done: 'Grupo disuelto',
       dissolved_notice: 'El propietario ha disuelto el grupo «{name}»',
+      removed_notice: 'Te han eliminado del grupo «{name}»',
     },
     picker: {
       search_placeholder: 'Buscar por nombre de usuario o nombre visible',

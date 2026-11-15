@@ -66,9 +66,10 @@ public sealed class MembershipChangedHandler(ChatStore store, ChatConversationSe
                 return recounted.Error!;
             }
 
-            // 剩下的成员刷新列表，被移出的人自己也要收到（会话列表随之收敛）
+            // 剩下的成员刷新列表；被移出的人另收一种，端上直接把会话拿掉
             var recipients = await store.MemberIdsAsync(side, conversation.Id, cancellationToken).ConfigureAwait(false);
-            await push.ChangedAsync(side, conversation.Id, ChatRealtimeMethods.ChangeTypes.DepartmentKicked, [.. recipients, userId], cancellationToken).ConfigureAwait(false);
+            await push.ChangedAsync(side, conversation.Id, ChatRealtimeMethods.ChangeTypes.DepartmentKicked, recipients, cancellationToken).ConfigureAwait(false);
+            await push.ChangedAsync(side, conversation.Id, ChatRealtimeMethods.ChangeTypes.Removed, [userId], cancellationToken).ConfigureAwait(false);
         }
 
         return Result.Success();

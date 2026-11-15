@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: '"{name}" 그룹을 해산하면 모든 구성원이 나가게 되고, 누구도 이 그룹과 그 안의 메시지를 볼 수 없게 되며 되돌릴 수 없습니다. 해산하시겠습니까?',
       dissolve_done: '그룹이 해산되었습니다',
       dissolved_notice: '그룹 "{name}"이(가) 방장에 의해 해산되었습니다',
+      removed_notice: '그룹 "{name}"에서 내보내졌습니다',
     },
     picker: {
       search_placeholder: '사용자 이름 또는 표시 이름 검색',

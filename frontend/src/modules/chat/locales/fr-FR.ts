@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: 'Dissoudre « {name} » retire tous les membres. Plus personne ne pourra voir le groupe ni ses messages, et cette action est irréversible. Le dissoudre ?',
       dissolve_done: 'Groupe dissous',
       dissolved_notice: 'Le groupe « {name} » a été dissous par son propriétaire',
+      removed_notice: 'Vous avez été retiré du groupe « {name} »',
     },
     picker: {
       search_placeholder: 'Rechercher par nom d\'utilisateur ou nom affiché',

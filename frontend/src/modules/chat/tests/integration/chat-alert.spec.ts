@@ -1,11 +1,12 @@
 /**
- * integration/chat-alert.ts：推来的消息要不要提醒、桌面通知写什么
+ * integration/chat-alert.ts：推来的消息要不要提醒、桌面通知写什么、会话没了要不要说一声
  * 锁定：自己发的、系统提示、不是自己没接到的通话记录不提醒，免打扰的会话不提醒；
- * 桌面通知在群里是「群名 / 谁: 内容」，单聊、助手会话与没有名字的群是「对方 / 内容」
+ * 桌面通知在群里是「群名 / 谁: 内容」，单聊、助手会话与没有名字的群是「对方 / 内容」；
+ * 群被解散告诉不是群主的人，被移出的告诉本人，自己退群与别的变更不说
  */
 import type { ChatConversationSnapshot, ChatMessageItem } from '@/modules/chat/types'
 import { describe, expect, it } from 'vitest'
-import { chatDesktopNotificationText, shouldAlertChatMessage } from '@/modules/chat/integration/chat-alert'
+import { chatDesktopNotificationText, conversationGoneNotice, shouldAlertChatMessage } from '@/modules/chat/integration/chat-alert'
 
 function message(overrides: Partial<ChatMessageItem> = {}): ChatMessageItem {
   return {
@@ -71,6 +72,30 @@ describe('shouldAlertChatMessage', () => {
       mentionedUserIds: ['u-1'],
     }), 'u-1', true)).toBe(false)
     expect(shouldAlertChatMessage(callRecord(['u-1']), 'u-1', true)).toBe(false)
+  })
+})
+
+describe('conversationGoneNotice', () => {
+  /** 回显键与参数的翻译替身 */
+  const t = (key: string, named?: Record<string, unknown>) => `${key}${JSON.stringify(named ?? {})}`
+  const member = { displayName: '项目群', memberRole: 'Member' } as const
+  const owner = { displayName: '项目群', memberRole: 'Owner' } as const
+
+  it('群被解散：告诉不是群主的人是哪个群；群主自己解散的不说', () => {
+    expect(conversationGoneNotice(t, 'dissolved', member)).toBe('chat.members.dissolved_notice{"name":"项目群"}')
+    expect(conversationGoneNotice(t, 'dissolved', owner)).toBeNull()
+  })
+
+  it('被移出：告诉本人是哪个群', () => {
+    expect(conversationGoneNotice(t, 'removed', member)).toBe('chat.members.removed_notice{"name":"项目群"}')
+  })
+
+  it('自己退群、别人进出与别的变更都不说；列表里本来就没有的也不说', () => {
+    expect(conversationGoneNotice(t, 'left', member)).toBeNull()
+    expect(conversationGoneNotice(t, 'member-removed', member)).toBeNull()
+    expect(conversationGoneNotice(t, 'info-changed', member)).toBeNull()
+    expect(conversationGoneNotice(t, 'removed', undefined)).toBeNull()
+    expect(conversationGoneNotice(t, 'dissolved', undefined)).toBeNull()
   })
 })
 

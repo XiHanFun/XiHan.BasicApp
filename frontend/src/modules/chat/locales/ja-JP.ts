@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: '「{name}」を解散すると、全メンバーが外され、このグループとその中のメッセージは誰にも見えなくなります。元に戻せません。解散しますか？',
       dissolve_done: 'グループを解散しました',
       dissolved_notice: 'グループ「{name}」はオーナーによって解散されました',
+      removed_notice: 'グループ「{name}」から削除されました',
     },
     picker: {
       search_placeholder: 'ユーザー名または表示名で検索',

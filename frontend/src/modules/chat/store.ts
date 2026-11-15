@@ -867,8 +867,8 @@ export const useChatStore = defineStore('chat', () => {
       }
       return
     }
-    // 群被解散：它已经不在了，直接从列表里拿掉（正开着就收起）；不走下面的修订号与重读，读它的成员只会被拒绝
-    if (payload.changeType === 'dissolved') {
+    // 这个会话里已经没有我了（群被解散、被移出、自己退了群）：直接从列表里拿掉（正开着就收起）；不走下面的修订号与重读，读它的成员只会被拒绝
+    if (payload.changeType === 'dissolved' || payload.changeType === 'removed' || payload.changeType === 'left') {
       if (activeConversationId.value === payload.conversationId) {
         closeActiveConversation()
       }

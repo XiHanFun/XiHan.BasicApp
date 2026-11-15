@@ -27,7 +27,7 @@ import { useChatCallStore } from '../call/call-store'
 import { previewText } from '../components/chat-helpers'
 import { CHAT_PAGE_PATH, CHAT_PERMISSIONS } from '../constants'
 import { useChatStore } from '../store'
-import { chatDesktopNotificationText, shouldAlertChatMessage } from './chat-alert'
+import { chatDesktopNotificationText, conversationGoneNotice, shouldAlertChatMessage } from './chat-alert'
 
 const CHAT_RECONNECT_INTERVAL_MS = 15000
 
@@ -100,17 +100,11 @@ export function useChatIntegration() {
     }).info()
   }
 
-  /**
-   * 所在的群被解散了：告诉一声是哪个群，免得它从列表里不声不响地没了
-   * 解散只有群主能做，自己是群主的那一下（含自己的别的设备）不用提示
-   */
-  function notifyDissolved(payload: ChatConversationChangedPushPayload) {
-    if (payload.changeType !== 'dissolved') {
-      return
-    }
-    const gone = chatStore.conversations.find(c => c.conversationId === payload.conversationId)
-    if (gone && gone.memberRole !== 'Owner') {
-      toast.info(t('chat.members.dissolved_notice', { name: gone.displayName }))
+  /** 所在的群被解散了、自己被移出了：告诉一声是哪个群，免得它从列表里不声不响地没了 */
+  function notifyGone(payload: ChatConversationChangedPushPayload) {
+    const notice = conversationGoneNotice(t, payload.changeType, chatStore.conversations.find(c => c.conversationId === payload.conversationId))
+    if (notice) {
+      toast.info(notice)
     }
   }
 
@@ -133,7 +127,7 @@ export function useChatIntegration() {
       chatStore.applyMessageRecalled(payload as ChatRecalledPushPayload))
     signalR.on(RealtimeMethods.ChatConversationChanged, (payload) => {
       // 先认出是哪个群再交给 store：store 一收到就把它从列表里拿掉了
-      notifyDissolved(payload as ChatConversationChangedPushPayload)
+      notifyGone(payload as ChatConversationChangedPushPayload)
       chatStore.applyConversationChanged(payload as ChatConversationChangedPushPayload)
     })
     signalR.on(RealtimeMethods.ChatTyping, payload =>

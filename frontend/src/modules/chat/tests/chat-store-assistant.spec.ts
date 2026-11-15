@@ -552,6 +552,28 @@ describe('会话变更推送', () => {
     store.applyConversationChanged({ conversationId: 'gone-already', changeType: 'dissolved' })
     expect([store.activeConversationId, store.conversations.length]).toEqual(['b', 1])
   })
+
+  it.each(['removed', 'left'] as const)('我已经不在里面了（%s）：同样直接拿掉、正开着就收起，不重读列表也不动修订号', async (changeType) => {
+    let listCalls = 0
+    const store = setup({
+      myConversations: () => {
+        listCalls += 1
+        return Promise.resolve([
+          conversation({ conversationId: 'a', unreadCount: 2 }),
+          conversation({ conversationId: 'b', unreadCount: 1 }),
+        ])
+      },
+    })
+    await store.loadConversations()
+    await store.openConversation('a')
+
+    store.applyConversationChanged({ conversationId: 'a', changeType })
+    await Promise.resolve()
+
+    expect(store.conversations.map(item => item.conversationId)).toEqual(['b'])
+    expect([store.activeConversationId, store.totalUnread]).toEqual([null, 1])
+    expect([listCalls, store.conversationRevisions.a]).toEqual([1, undefined])
+  })
 })
 
 describe('$reset 清理', () => {

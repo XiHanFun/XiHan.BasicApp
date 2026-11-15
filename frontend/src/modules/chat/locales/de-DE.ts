@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: 'Wenn „{name}“ aufgelöst wird, werden alle Mitglieder entfernt. Niemand kann die Gruppe oder ihre Nachrichten danach noch sehen, und das lässt sich nicht rückgängig machen. Gruppe auflösen?',
       dissolve_done: 'Gruppe aufgelöst',
       dissolved_notice: 'Die Gruppe „{name}“ wurde vom Inhaber aufgelöst',
+      removed_notice: 'Sie wurden aus der Gruppe „{name}“ entfernt',
     },
     picker: {
       search_placeholder: 'Nach Benutzername oder Anzeigename suchen',

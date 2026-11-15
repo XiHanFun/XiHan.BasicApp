@@ -184,6 +184,20 @@ public static class ChatRealtimeMethods
         public const string DepartmentKicked = "department-kicked";
 
         /// <summary>
+        /// 被移出了会话（只推被移出的人）
+        /// </summary>
+        /// <remarks>
+        /// 群主或管理员移出，或随部门归属移出部门群；他再读这个会话只会被拒绝，端上直接把它拿掉
+        /// 留下的成员收到的是 <see cref="MemberRemoved"/> 或 <see cref="DepartmentKicked"/>
+        /// </remarks>
+        public const string Removed = "removed";
+
+        /// <summary>
+        /// 本人退了群（只推本人的连接）
+        /// </summary>
+        public const string Left = "left";
+
+        /// <summary>
         /// 群被群主解散了
         /// </summary>
         public const string Dissolved = "dissolved";

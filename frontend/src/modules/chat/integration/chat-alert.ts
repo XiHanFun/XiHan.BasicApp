@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import type { ChatConversationSnapshot, ChatMessageItem } from '../types'
+import type { ChatConversationChangedPushPayload, ChatConversationListItem, ChatConversationSnapshot, ChatMessageItem } from '../types'
 import { isMissedCallRecord } from '../call/call-helpers'
 
 /**
@@ -18,6 +18,32 @@ export function shouldAlertChatMessage(message: ChatMessageItem, currentUserId: 
     return false
   }
   return message.messageType !== 'Call' || isMissedCallRecord(message.content, currentUserId)
+}
+
+/**
+ * 会话从列表里没了要不要说一声、说什么：免得它不声不响地没了
+ * 群被解散告诉不是群主的人（解散只有群主能做，那是他自己刚做的）；被移出的告诉本人；自己退群的不用说
+ * @param t 翻译
+ * @param changeType 推来的变更种类
+ * @param conversation 拿掉之前列表里的那个会话；列表里本来就没有的不说
+ * @returns 提示的文字；不用说时为 null
+ */
+export function conversationGoneNotice(
+  t: (key: string, named?: Record<string, unknown>) => string,
+  changeType: ChatConversationChangedPushPayload['changeType'],
+  conversation: Pick<ChatConversationListItem, 'displayName' | 'memberRole'> | undefined,
+): null | string {
+  if (!conversation) {
+    return null
+  }
+  if (changeType === 'dissolved') {
+    return conversation.memberRole === 'Owner'
+      ? null
+      : t('chat.members.dissolved_notice', { name: conversation.displayName })
+  }
+  return changeType === 'removed'
+    ? t('chat.members.removed_notice', { name: conversation.displayName })
+    : null
 }
 
 /**

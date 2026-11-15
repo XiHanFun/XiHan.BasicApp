@@ -126,7 +126,7 @@ export interface ChatRecalledPushPayload {
 /** SignalR ChatConversationChanged 载荷（变更种类见后端 ChatRealtimeMethods.ChangeTypes） */
 export interface ChatConversationChangedPushPayload {
   conversationId: string
-  changeType: 'created' | 'dissolved' | 'member-added' | 'member-removed' | 'pinned-changed' | (string & {})
+  changeType: 'created' | 'dissolved' | 'left' | 'member-added' | 'member-removed' | 'pinned-changed' | 'removed' | (string & {})
 }
 
 /** SignalR ChatTyping 载荷 */

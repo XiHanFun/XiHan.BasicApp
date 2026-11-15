@@ -246,7 +246,17 @@ public sealed class ChatTests : IDisposable
         var (_, carolJoined) = await CallAsync(server, HttpMethod.Post, "/api/memberships", new { userId = users["carol"], departmentId }, organizer);
         await EventuallyAsync(async () => (await MineAsync(server, users["carol"])).Any(c => c.GetProperty("conversationId").GetString() == conversation));
         Assert.Equal(3, (await ConversationAsync(server, users["alice"], conversation)).GetProperty("memberCount").GetInt32());
+
+        // 移出部门：留下的成员收到有人随部门出去了，出去的人自己收到的是「你被移出了」
+        await using var aliceHub = Connect(server, (await AuthFlowTests.LoginAsync(server, "alice", Password, "acme")).GetProperty("accessToken").GetString()!);
+        await using var carolHub = Connect(server, (await AuthFlowTests.LoginAsync(server, "carol", Password, "acme")).GetProperty("accessToken").GetString()!);
+        var (kickedSeen, carolRemoved, carolStray) = (ExpectChange(aliceHub, "department-kicked"), ExpectChange(carolHub, "removed"), ExpectChange(carolHub, "department-kicked"));
+        await aliceHub.StartAsync();
+        await carolHub.StartAsync();
         Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Delete, $"/api/memberships?ids={carolJoined.GetProperty("id").GetString()}", null, organizer)).Status);
+        Assert.Equal(conversation, (await kickedSeen.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+        Assert.Equal(conversation, (await carolRemoved.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+        Assert.False(carolStray.Task.IsCompleted);
         await EventuallyAsync(async () => (await MineAsync(server, users["carol"])).All(c => c.GetProperty("conversationId").GetString() != conversation));
         Assert.Equal(2, (await ConversationAsync(server, users["alice"], conversation)).GetProperty("memberCount").GetInt32());
     }
@@ -715,6 +725,39 @@ public sealed class ChatTests : IDisposable
     }
 
     [Fact]
+    public async Task LeavingOrBeingRemoved_IsToldToThatPersonApartFromTheRemainingMembers()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob, carol) = (users["alice"], users["bob"], users["carol"]);
+        var group = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:create-group", new { conversationName = "Team", memberUserIds = new[] { bob, carol } }, alice)).Body.GetProperty("conversationId").GetString()!;
+        await using var aliceHub = Connect(server, (await AuthFlowTests.LoginAsync(server, "alice", Password, "acme")).GetProperty("accessToken").GetString()!);
+        await using var bobHub = Connect(server, (await AuthFlowTests.LoginAsync(server, "bob", Password, "acme")).GetProperty("accessToken").GetString()!);
+        await using var carolHub = Connect(server, (await AuthFlowTests.LoginAsync(server, "carol", Password, "acme")).GetProperty("accessToken").GetString()!);
+        var (bobRemoved, bobStray) = (ExpectChange(bobHub, "removed"), ExpectChange(bobHub, "member-removed"));
+        var (carolLeft, carolSawRemoval) = (ExpectChange(carolHub, "left"), ExpectChange(carolHub, "member-removed"));
+        var aliceSawRemoval = ExpectChange(aliceHub, "member-removed");
+        await aliceHub.StartAsync();
+        await bobHub.StartAsync();
+        await carolHub.StartAsync();
+
+        // 被移出：留下的人收到成员少了；被移出的人收到的是「你被移出了」，不是让他去重读成员的那一种（重读只会被拒绝）
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:remove-members", new { conversationId = group, userIds = new[] { bob } }, alice)).Status);
+        Assert.Equal(group, (await aliceSawRemoval.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+        Assert.Equal(group, (await carolSawRemoval.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+        Assert.Equal(group, (await bobRemoved.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+        Assert.False(bobStray.Task.IsCompleted);
+        Assert.False(carolLeft.Task.IsCompleted);
+        Assert.Equal("CHAT_DENIED_001", (await CallAsync(server, HttpMethod.Get, $"/api/chat-conversations:members?conversationId={group}", null, bob)).Body.GetProperty("code").GetString());
+
+        // 退群：留下的人同样收到成员少了，本人的连接收到的是「你退出了」
+        var aliceSawLeave = ExpectChange(aliceHub, "member-removed");
+        Assert.Equal(HttpStatusCode.OK, (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:leave", new { conversationId = group }, carol)).Status);
+        Assert.Equal(group, (await aliceSawLeave.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+        Assert.Equal(group, (await carolLeft.Task.WaitAsync(_wait)).GetProperty("conversationId").GetString());
+    }
+
+    [Fact]
     public async Task Presence_RidesOnReads_AndIsPushedToPeersAndOpenGroups()
     {
         // 离线宽限调到 2 秒：够在宽限内重连一次验证「回来不推离线」，又不用干等缺省的 8 秒
@@ -913,6 +956,25 @@ public sealed class ChatTests : IDisposable
     {
         var received = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
         connection.On<JsonElement>(method, payload => received.TrySetResult(payload));
+        return received;
+    }
+
+    /// <summary>
+    /// 等某一种会话变更推到这条连接
+    /// </summary>
+    /// <remarks>
+    /// 别的种类不算：同一个会话前后脚的变更不会被错认
+    /// </remarks>
+    private static TaskCompletionSource<JsonElement> ExpectChange(HubConnection connection, string changeType)
+    {
+        var received = new TaskCompletionSource<JsonElement>(TaskCreationOptions.RunContinuationsAsynchronously);
+        connection.On<JsonElement>(ChatRealtimeMethods.ChatConversationChanged, payload =>
+        {
+            if (payload.GetProperty("changeType").GetString() == changeType)
+            {
+                received.TrySetResult(payload);
+            }
+        });
         return received;
     }
 

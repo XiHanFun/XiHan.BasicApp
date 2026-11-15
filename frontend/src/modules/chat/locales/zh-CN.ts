@@ -183,6 +183,7 @@ export default {
       dissolve_confirm: '解散「{name}」后，所有成员都会被移出，谁都看不到这个群和里面的聊天记录了，而且不能恢复。确认解散？',
       dissolve_done: '群聊已解散',
       dissolved_notice: '群聊「{name}」已被群主解散',
+      removed_notice: '你已被移出群聊「{name}」',
     },
     picker: {
       search_placeholder: '搜索用户名或显示名',

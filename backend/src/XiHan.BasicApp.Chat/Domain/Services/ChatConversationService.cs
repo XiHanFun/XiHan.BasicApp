@@ -265,7 +265,7 @@ public sealed class ChatConversationService(
             return announced.Error!;
         }
 
-        await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.MemberRemoved, removedIds, context.CancellationToken).ConfigureAwait(false);
+        await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.Removed, removedIds, context.CancellationToken).ConfigureAwait(false);
         return new BatchResult(removedIds, failed);
     }
 
@@ -306,7 +306,7 @@ public sealed class ChatConversationService(
             return announced.Error!;
         }
 
-        await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.MemberRemoved, [caller.UserId], context.CancellationToken).ConfigureAwait(false);
+        await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.Left, [caller.UserId], context.CancellationToken).ConfigureAwait(false);
         return Result.Success();
     }
 
