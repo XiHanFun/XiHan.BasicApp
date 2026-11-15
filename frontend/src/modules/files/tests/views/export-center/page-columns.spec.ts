@@ -30,7 +30,11 @@ function deref(node: SchemaNode | undefined): SchemaNode | undefined {
     return undefined
   if (node.$ref)
     return deref(document.components.schemas[node.$ref.replace('#/components/schemas/', '')])
-  const variant = [...(node.oneOf ?? []), ...(node.anyOf ?? []), ...(node.allOf ?? [])].map(deref).find(item => item?.properties || item?.items)
+  const variant = [
+    ...(node.oneOf ?? []),
+    ...(node.anyOf ?? []),
+    ...(node.allOf ?? []),
+  ].map(deref).find(item => item?.properties || item?.items)
   return variant ?? node
 }
 
@@ -104,8 +108,11 @@ describe('接了导出中心的列表页', () => {
         const path = center.columnPaths?.[field.key]
         if (path === null)
           continue
-        if (!resolves(row!, path ?? field.key))
-          missing.push(`${center.businessType}: ${field.key}${path ? ` → ${path}` : ''}`)
+        if (!resolves(row!, path ?? field.key)) {
+          missing.push(`${center.businessType}: ${field.key}${path
+            ? ` → ${path}`
+            : ''}`)
+        }
       }
     }
     expect(missing).toEqual([])
