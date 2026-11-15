@@ -141,15 +141,40 @@ describe('导出任务的行操作', () => {
 describe('导出任务的文案', () => {
   it('认得的业务类型翻成页面名，未登记的照原样显示列表操作 ID', () => {
     expect(KNOWN_BUSINESS_TYPES.map(type => businessTypeLabel(t, type))).toEqual([
-      'files.export_center.business_types.users',
-      'files.export_center.business_types.operation_logs',
-      'files.export_center.business_types.access_logs',
-      'files.export_center.business_types.login_logs',
-      'files.export_center.business_types.exception_logs',
-      'files.export_center.business_types.diff_logs',
-      'files.export_center.business_types.open_api_logs',
+      'identity.users.title',
+      'identity.online_users.title',
+      'access.roles.title',
+      'access.permissions.title',
+      'access.menus.title',
+      'access.delegations.tab',
+      'access.permission_requests.tab',
+      'access.field_security.title',
+      'access.constraint_rules.title',
+      'tenancy.tenants.title',
+      'tenancy.editions.title',
+      'organization.positions.title',
+      'auditing.operation_logs.title',
+      'auditing.access_logs.title',
+      'auditing.login_logs.title',
+      'auditing.exception_logs.title',
+      'auditing.diff_logs.title',
+      'auditing.open_api_logs.title',
+      'auditing.permission_change_logs.title',
+      'auditing.condition_hits.title',
+      'files.library.title',
+      'openplatform.oauth_apps.title',
+      'notification.templates.title',
+      'notification.messages.tab_email',
+      'notification.messages.tab_sms',
+      'notification.notifications.title',
+      'settings.configs.title',
+      'settings.dicts.title',
+      'settings.dicts.items',
+      'settings.numbering_rules.title',
+      'maintenance.jobs.title',
+      'maintenance.versions.title',
     ])
-    expect(businessTypeLabel(t, 'roles.list')).toBe('roles.list')
+    expect(businessTypeLabel(t, 'tasks.list')).toBe('tasks.list')
   })
 
   it('重启打断的失败原因翻成文案，取消与其余原因照原样，没有原因为空', () => {

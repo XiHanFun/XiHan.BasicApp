@@ -301,15 +301,6 @@ export default {
         search_result: '查詢結果',
         all: '全部資料',
       },
-      business_types: {
-        users: '使用者',
-        operation_logs: '操作日誌',
-        access_logs: '存取日誌',
-        login_logs: '登入日誌',
-        exception_logs: '例外日誌',
-        diff_logs: '資料變更日誌',
-        open_api_logs: '開放 API 日誌',
-      },
       fields: {
         keyword: '關鍵字',
         task_name: '任務名稱',

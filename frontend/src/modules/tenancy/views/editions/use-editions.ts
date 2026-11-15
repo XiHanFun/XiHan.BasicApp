@@ -6,7 +6,7 @@
 import type { PermissionGrantItem, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { editions as editionsApi, permissions as permissionsApi, toSchemaPageResult } from '~/contracts'
+import { editions as editionsApi, exportCenter, permissions as permissionsApi, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { randomString } from '~/utils'
 
@@ -113,6 +113,7 @@ export function editionsResource(): SchemaResource<EditionRow> {
         page: { index: params.page, size: params.pageSize },
       }, params)
     },
+    export: exportCenter('editions.list', () => ({}), { wholeList: true }),
     // 还有租户绑定的套餐由后端逐项拒绝（TENANCY_CONFLICT_007）
     remove: async id => throwOnFailed(await editionsApi.delete({
       ids: [

@@ -89,7 +89,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 | `updateStatus(id, enabled)` | 启停单条；批量启停调它 |
 | `create(record)` | 导入时逐行新建 |
 | `importMany(records)` | 导入时按批交给后端的批量导入操作，返回其中不能导入的记录（与 `create` 二选一） |
-| `export` | `{ businessType, buildQuery? }`：接入导出中心 |
+| `export` | 接入导出中心：用 `~/contracts` 的 `exportCenter(列表操作 ID, 筛选登记或请求构造, { wholeList?, columnPaths? })` 生成 |
 
 `toPageRequest(params, mapping)`：
 
@@ -110,7 +110,14 @@ export function configsResource(): SchemaResource<ConfigRow> {
 页面声明了 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段，没有标的就导出当前可见列；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
 
 - 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
-- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
+- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。除部门树之外，声明了导出的列表页都接了导出中心。
+
+`exportCenter()` 的查询快照与列表共用同一份筛选登记（传给 `toPageRequest` 的映射，或页面自己的请求构造，如作业页补运行状态、字典项补 `dictId`）。服务端按字段键从响应的一行里取值，所以：
+
+- `wholeList: true`：列表操作一次返回整份、不分页也不收筛选（权限目录、菜单、套餐），只给「全部」一档；菜单整棵树按先序展开成行。
+- `columnPaths`：在浏览器里算出来的字段，响应里没有这个键。给响应里的取值路径（点号接下一层、数组用下标，`|` 分隔几条备选），如作业的 `kind: 'triggers.0.kind'`、委托对象的 `target: 'roleName|permission'`；给 `null` 即导出中心不导这一列（作业的运行状态、约束规则的项数）。本地 CSV 不受影响，照常取行里的值。
+
+`files/tests/views/export-center/page-columns.spec.ts` 挂载每个声明了导出的页面，核对导出的列都能在列表操作的响应里取到值、业务类型都登记在导出中心页的 `KNOWN_BUSINESS_TYPES` 里（导出中心按它把业务类型显示成页面或页签的标题）。
 
 有导入字段且资源实现了 `create` 或 `importMany` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入字段缺省是标了 `importable` 的字段；模板与列表列对不上时（列表一列合并显示了几个字段，或导入要的字段列表里没有）在页面上写 `importFields` 显式给出，选项直接写 `options`。导入时下载按导入字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填与取值，再交给资源：
 

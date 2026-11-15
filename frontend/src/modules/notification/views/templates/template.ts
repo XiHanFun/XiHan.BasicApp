@@ -6,7 +6,7 @@
 import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf, TemplateChannel } from '~/contracts'
-import { messageTemplates as templatesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, messageTemplates as templatesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { throwOnFailed } from '~/request'
 import { MESSAGING_CODE_PATTERN } from '../../labels'
 
@@ -160,6 +160,7 @@ export function toUpdateBody(form: TemplateForm & { id: string }): RequestOf<'me
 export function templateResource(): SchemaResource<TemplateRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await templatesApi.list(toPageRequest(params, TEMPLATE_QUERY)), params),
+    export: exportCenter('message-templates.list', TEMPLATE_QUERY),
     remove: async id => throwOnFailed(await templatesApi.delete({
       ids: [
         String(id),

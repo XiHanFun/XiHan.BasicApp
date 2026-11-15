@@ -7,7 +7,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import type { TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
-import { menus as menusApi } from '~/contracts'
+import { exportCenter, menus as menusApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type MenuRow = ResponseOf<'menus.list'>['items'][number]
@@ -114,6 +114,8 @@ export function menusResource(titleOf: (node: MenuRow) => string, onLoaded: (nod
       onLoaded(items)
       return filterMenuTree(items, params, titleOf)
     },
+    // 整棵树按先序展开成行
+    export: exportCenter('menus.list', () => ({}), { wholeList: true }),
     remove: async id => throwOnFailed(await menusApi.delete({
       ids: [
         String(id),

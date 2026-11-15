@@ -5,10 +5,10 @@
 
 import type { PermissionNameOf } from '../permissions/permission-names'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { RequestOf, ResponseOf } from '~/contracts'
+import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
 import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
-import { delegations as delegationsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { delegations as delegationsApi, exportCenter, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type DelegationRow = ResponseOf<'delegations.list'>['items'][number]
@@ -94,6 +94,11 @@ export function toCreateRequest(form: DelegationForm): RequestOf<'delegations.cr
   }
 }
 
+/** 委托列表的筛选登记 */
+const DELEGATION_QUERY: PageQueryMapping = {
+  multiples: ['status'],
+}
+
 /**
  * 委托的 SchemaPage 资源
  * 作用侧为当前租户或平台；关键字匹配权限码与原因，排序只放生效、到期与创建时间
@@ -103,13 +108,15 @@ export function delegationsResource(loadNames: () => Promise<void>): SchemaResou
   return {
     page: async (params: SchemaQueryParams) => {
       const [list] = await Promise.all([
-        delegationsApi.list(toPageRequest(params, {
-          multiples: ['status'],
-        })),
+        delegationsApi.list(toPageRequest(params, DELEGATION_QUERY)),
         loadNames(),
       ])
       return toSchemaPageResult(list, params)
     },
+    // 委托对象在页面上按界面语言显示角色名或权限名；导出中心取角色名，没有即权限码
+    export: exportCenter('delegations.list', DELEGATION_QUERY, {
+      columnPaths: { target: 'roleName|permission' },
+    }),
     remove: async id => throwOnFailed(await delegationsApi.delete({
       ids: [
         String(id),

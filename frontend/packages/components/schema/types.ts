@@ -208,14 +208,25 @@ export interface SchemaResource<TRow> {
    */
   importMany?: (records: Record<string, unknown>[]) => Promise<ImportManyFailure[]>
   /**
-   * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口
-   * businessType 须匹配后端 IExportProvider.BusinessType（即导出按钮所属的后端页面码，与本页 pageCode 一致）；buildQuery 复用页面适配器的查询构建，
-   * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（与线上报文同形，枚举按成员名或数值均可）
+   * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口（CSV 与 Excel）
+   * 后台以发起人的身份逐页调列表操作，导出的列按字段键从响应的一行里取值；用 `~/contracts` 的 `exportCenter()` 生成
    */
-  export?: {
-    businessType: string
-    buildQuery?: (params: SchemaQueryParams) => unknown
-  }
+  export?: SchemaExportCenter
+}
+
+/** 提交到导出中心的配置 */
+export interface SchemaExportCenter {
+  /** 业务类型：列表操作 ID（如 `users.list`） */
+  businessType: string
+  /** 查询快照：列表操作的请求（与列表页的分页请求同形） */
+  buildQuery?: (params: SchemaQueryParams) => unknown
+  /** 列表操作一次返回整份、不分页也不收筛选（筛选在浏览器里做）：只给「全部」 */
+  wholeList?: boolean
+  /**
+   * 在浏览器里算出来的字段：响应的一行里没有这个键
+   * 值是响应里的取值路径（点号接下一层、数组用下标，如 `last.startedAt`、`triggers.0.kind`），`null` 即导出中心不导这一列
+   */
+  columnPaths?: Readonly<Record<string, null | string>>
 }
 
 /**

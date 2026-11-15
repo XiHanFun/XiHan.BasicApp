@@ -301,15 +301,6 @@ export default {
         search_result: 'Search Result',
         all: 'All',
       },
-      business_types: {
-        users: 'Users',
-        operation_logs: 'Operation logs',
-        access_logs: 'Access logs',
-        login_logs: 'Sign-in logs',
-        exception_logs: 'Exception logs',
-        diff_logs: 'Data change logs',
-        open_api_logs: 'Open API logs',
-      },
       fields: {
         keyword: 'Keyword',
         task_name: 'Task Name',

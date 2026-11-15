@@ -22,10 +22,19 @@ beforeEach(() => {
 })
 
 describe('文件库的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
+  it('按读权限出导出按钮，能提交到导出中心；查询快照与列表一样把扩展名规范成小写带点', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('files.files.read')
-    expect(schema.resource.export).toBeUndefined()
+    expect(schema.resource.export?.businessType).toBe('files.list')
+    expect(schema.resource.export?.buildQuery?.({
+      page: 1,
+      pageSize: 20,
+      filters: { extension: 'PDF' },
+    })).toMatchObject({
+      filters: [
+        { field: 'extension', operator: 'eq', value: '.pdf' },
+      ],
+    })
   })
 
   it('字段对齐列表的列；图标列没有值，不导出', () => {

@@ -31,6 +31,7 @@ export type {
   SchemaActionPayload,
   SchemaActionScope,
   SchemaColumn,
+  SchemaExportCenter,
   SchemaFieldDataType,
   SchemaPageInstance,
   SchemaQueryParams,

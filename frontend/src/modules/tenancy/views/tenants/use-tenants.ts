@@ -5,10 +5,10 @@
 
 import type { HintTone } from '../subscription/subscription'
 import type { SchemaResource } from '~/components'
-import type { RequestOf, ResponseOf } from '~/contracts'
+import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref, shallowRef } from 'vue'
 import { PLATFORM_TENANT_ID } from '~/constants'
-import { editions as editionsApi, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { editions as editionsApi, exportCenter, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { formatFileSize } from '~/utils'
 import { formatSeats, quotaLevel, storageLimitBytes, usageText } from '../subscription/subscription'
@@ -188,17 +188,21 @@ function captureErrors(error: unknown, fieldErrors: { value: Record<string, stri
  * 关键字匹配租户 ID 与名称；排序只放租户 ID / 名称 / 排序 / 到期 / 创建时间
  * 给了 quotas 就随每次取页并行取全部租户的配额与用量，用量列按租户 ID 对上
  */
+/** 租户列表的筛选登记 */
+const TENANT_QUERY: PageQueryMapping = {
+  filters: { status: 'eq' },
+}
+
 export function tenantsResource(quotas?: { load: () => Promise<void> }): SchemaResource<TenantRow> {
   return {
     page: async (params) => {
       const [page] = await Promise.all([
-        tenantsApi.list(toPageRequest(params, {
-          filters: { status: 'eq' },
-        })),
+        tenantsApi.list(toPageRequest(params, TENANT_QUERY)),
         quotas?.load(),
       ])
       return toSchemaPageResult(page, params)
     },
+    export: exportCenter('tenants.list', TENANT_QUERY),
     // 还有用户的租户由后端逐项拒绝（TENANCY_CONFLICT_003）
     remove: async id => throwOnFailed(await tenantsApi.delete({
       ids: [

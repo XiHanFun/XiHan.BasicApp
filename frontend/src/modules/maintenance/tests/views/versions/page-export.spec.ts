@@ -24,10 +24,13 @@ beforeEach(() => {
 })
 
 describe('版本管理的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
+  it('按读权限出导出按钮，能提交到导出中心；库名取原值', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('maintenance.versions.read')
-    expect(schema.resource.export).toBeUndefined()
+    expect(schema.resource.export).toMatchObject({
+      businessType: 'versions.list',
+      columnPaths: { databaseName: 'database' },
+    })
   })
 
   it('库名写显示文本，升级状态写文案，读不到台账的原因单独成列', async () => {

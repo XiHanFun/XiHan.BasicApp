@@ -7,7 +7,7 @@ import type { ImportManyFailure, SchemaQueryParams, SchemaResource } from '~/com
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import type { SelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
-import { departments as departmentsApi, roles as rolesApi, sessions as sessionsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, exportCenter, roles as rolesApi, sessions as sessionsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { flattenDepartments } from './use-user-departments'
 
@@ -168,7 +168,7 @@ export function usersResource(importPassword: () => string): SchemaResource<User
             String(id),
           ],
         })),
-    export: { businessType: 'users.list', buildQuery: toRequest },
+    export: exportCenter('users.list', USER_QUERY),
   }
 }
 

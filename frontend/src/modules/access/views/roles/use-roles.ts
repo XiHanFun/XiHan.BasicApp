@@ -7,9 +7,9 @@ import type { PermissionNameOf } from '../permissions/permission-names'
 import type { DataScopeDraft, DataScopeValue, DepartmentNode } from './data-scope'
 import type { InheritedPermission, InheritedPermissionSources, RoleHierarchy } from './role-parents'
 import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { departments as departmentsApi, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, exportCenter, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { useAppStore } from '~/stores'
 import { partitionApprovals } from '../constraint-rules/constraint-rule'
@@ -47,6 +47,11 @@ function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {
   }
 }
 
+/** 角色列表的筛选登记 */
+const ROLE_QUERY: PageQueryMapping = {
+  filters: { status: 'eq' },
+}
+
 /**
  * 角色的 SchemaPage 资源
  * 作用侧为当前租户或平台；关键字匹配角色码与名称，排序只放角色码、名称、排序与创建时间
@@ -54,11 +59,10 @@ function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {
 export function rolesResource(): SchemaResource<RoleRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await rolesApi.list(toPageRequest(params, {
-        filters: { status: 'eq' },
-      })),
+      await rolesApi.list(toPageRequest(params, ROLE_QUERY)),
       params,
     ),
+    export: exportCenter('roles.list', ROLE_QUERY),
     // 内建角色由后端逐项拒绝（ACCESS_CONFLICT_002）
     remove: async id => throwOnFailed(await rolesApi.delete({
       ids: [

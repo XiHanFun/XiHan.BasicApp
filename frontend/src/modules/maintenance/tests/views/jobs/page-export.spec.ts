@@ -23,10 +23,19 @@ beforeEach(() => {
 })
 
 describe('任务调度的导出', () => {
-  it('按读权限出导出按钮，是本地 CSV，不提交到导出中心', () => {
+  it('按读权限出导出按钮，能提交到导出中心；浏览器里算的列取响应里的原值或不导', () => {
     const schema = pageSchema()
     expect(schema.exportPermission).toBe('maintenance.jobs.read')
-    expect(schema.resource.export).toBeUndefined()
+    expect(schema.resource.export).toMatchObject({
+      businessType: 'jobs.list',
+      columnPaths: {
+        group: null,
+        runState: null,
+        executedCount: null,
+        kind: 'triggers.0.kind',
+        lastRunAt: 'last.startedAt',
+      },
+    })
   })
 
   it('字段对齐列表的列，枚举与启停写文案', () => {

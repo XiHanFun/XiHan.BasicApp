@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Files.Operations.ExportTasks;
 /// <summary>
 /// 导出的一列（请求）
 /// </summary>
-/// <param name="Key">字段名（列表响应里的属性名）</param>
+/// <param name="Key">字段在列表响应一行里的路径：属性名，深一层用点号接，数组用下标（如 <c>last.startedAt</c>、<c>triggers.0.kind</c>）；<c>|</c> 分隔几条备选，取第一条有文字的</param>
 /// <param name="Title">表头</param>
 /// <param name="ValueMap">原值到显示文字的映射</param>
 public sealed record ExportColumnRequest(

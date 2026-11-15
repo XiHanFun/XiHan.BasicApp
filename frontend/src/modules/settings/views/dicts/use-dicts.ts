@@ -4,10 +4,10 @@
  */
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { ResponseOf } from '~/contracts'
+import type { PageQueryMapping, ResponseOf } from '~/contracts'
 import type { TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
-import { dictItems as dictItemsApi, dicts as dictsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { dictItems as dictItemsApi, dicts as dictsApi, exportCenter, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
 export type DictRow = ResponseOf<'dicts.list'>['items'][number]
@@ -128,6 +128,16 @@ export function dictItemParentOptions(nodes: readonly DictItemNode[], excludeId?
     })
 }
 
+/** 字典列表的筛选登记 */
+const DICT_QUERY: PageQueryMapping = {
+  filters: {
+    category: 'eq',
+    owner: 'eq',
+    status: 'eq',
+    isBuiltIn: 'eq',
+  },
+}
+
 /**
  * 左栏字典的 SchemaPage 资源：分页、删除、启停与导入新建
  * 读共享：列出平台字典与本侧字典；关键字匹配编码、名称与分类
@@ -135,16 +145,10 @@ export function dictItemParentOptions(nodes: readonly DictItemNode[], excludeId?
 export function dictsResource(): SchemaResource<DictRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(
-      await dictsApi.list(toPageRequest(params, {
-        filters: {
-          category: 'eq',
-          owner: 'eq',
-          status: 'eq',
-          isBuiltIn: 'eq',
-        },
-      })),
+      await dictsApi.list(toPageRequest(params, DICT_QUERY)),
       params,
     ),
+    export: exportCenter('dicts.list', DICT_QUERY),
     // 内建、还有项、另一侧的字典由后端逐项拒绝
     remove: async id => throwOnFailed(await dictsApi.delete({
       ids: [
@@ -188,17 +192,20 @@ export async function loadDictItemTree(dictId: string): Promise<DictItemNode[]> 
  * `editable`（字典在调用方这一侧）时才带删除、启停与导入新建，导入的项都在顶层
  */
 export function dictItemsResource(dictId: string, editable: boolean): SchemaResource<DictItemRow> {
-  const page = async (params: SchemaQueryParams) => {
+  const toRequest = (params: SchemaQueryParams) => {
     const request = toPageRequest(params, {
       filters: { status: 'eq' },
     })
     request.filters.push({ field: 'dictId', operator: 'eq', value: dictId })
-    return toSchemaPageResult(await dictItemsApi.list(request), params)
+    return request
   }
+  const page = async (params: SchemaQueryParams) => toSchemaPageResult(await dictItemsApi.list(toRequest(params)), params)
+  const exported = exportCenter('dict-items.list', toRequest)
   if (!editable)
-    return { page }
+    return { page, export: exported }
   return {
     page,
+    export: exported,
     // 还有下级的项由后端拒绝
     remove: async id => throwOnFailed(await dictItemsApi.delete({
       ids: [

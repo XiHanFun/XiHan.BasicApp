@@ -5,9 +5,9 @@
 
 import type { Tone } from '@xihan-ui/core'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { components, RequestOf } from '~/contracts'
+import type { components, PageQueryMapping, RequestOf } from '~/contracts'
 import { reactive, ref } from 'vue'
-import { permissionRequests as requestsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { exportCenter, permissionRequests as requestsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { formatDate } from '~/utils'
 
@@ -168,15 +168,19 @@ export function toForm(row: PermissionRequestRow): PermissionRequestForm {
   }
 }
 
+/** 权限申请列表的筛选登记 */
+const PERMISSION_REQUEST_QUERY: PageQueryMapping = {
+  multiples: ['status'],
+}
+
 /**
  * 权限申请的 SchemaPage 资源
  * 作用侧为当前租户或平台；关键字匹配申请原因与备注，排序只放提交时间
  */
 export function permissionRequestsResource(): SchemaResource<PermissionRequestRow> {
   return {
-    page: async (params: SchemaQueryParams) => toSchemaPageResult(await requestsApi.list(toPageRequest(params, {
-      multiples: ['status'],
-    })), params),
+    page: async (params: SchemaQueryParams) => toSchemaPageResult(await requestsApi.list(toPageRequest(params, PERMISSION_REQUEST_QUERY)), params),
+    export: exportCenter('permission-requests.list', PERMISSION_REQUEST_QUERY),
   }
 }
 

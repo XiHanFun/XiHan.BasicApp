@@ -301,15 +301,6 @@ export default {
         search_result: 'Résultats de recherche',
         all: 'Tout',
       },
-      business_types: {
-        users: 'Utilisateurs',
-        operation_logs: 'Journaux d’opérations',
-        access_logs: 'Journaux d’accès',
-        login_logs: 'Journaux de connexion',
-        exception_logs: 'Journaux d’exceptions',
-        diff_logs: 'Journaux de modifications de données',
-        open_api_logs: 'Journaux d’API ouverte',
-      },
       fields: {
         keyword: 'Mot-clé',
         task_name: 'Nom de la tâche',

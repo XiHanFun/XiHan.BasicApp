@@ -475,28 +475,31 @@ const EXPORT_FORMATS = [
   { format: 1, group: 'xlsx', label: 'component.schema_page.export_group_xlsx' },
 ] as const
 
-/** 菜单值 center:<范围>:<格式>，范围 0 当前页 / 1 查询结果 / 2 全部 */
+/** 导出中心的范围：0 当前页 / 1 查询结果 / 2 全部；一次返回整份的列表只有「全部」 */
+const exportScopes = computed(() => props.schema.resource.export?.wholeList
+  ? [
+      { scope: 2, label: 'component.schema_page.export_all' },
+    ]
+  : [
+      { scope: 1, label: 'component.schema_page.export_results' },
+      { scope: 0, label: 'component.schema_page.export_current_page' },
+      { scope: 2, label: 'component.schema_page.export_all' },
+    ])
+
+/** 菜单值 center:<范围>:<格式> */
 const exportMenuOptions = computed<MenuNode[]>(() => [
-  // 每种格式一组、组内三档范围，组与组之间画分隔线
-  ...EXPORT_FORMATS.flatMap(({ format, group, label }, index) => [
-    {
-      value: `center:1:${format}`,
-      label: t('component.schema_page.export_results'),
-      group,
-      groupLabel: t(label),
-      separatorBefore: index > 0,
-    },
-    {
-      value: `center:0:${format}`,
-      label: t('component.schema_page.export_current_page'),
-      group,
-    },
-    {
-      value: `center:2:${format}`,
-      label: t('component.schema_page.export_all'),
-      group,
-    },
-  ]),
+  // 每种格式一组、组内各档范围，组与组之间画分隔线
+  ...EXPORT_FORMATS.flatMap(({ format, group, label }, index) => exportScopes.value.map((item, position) => ({
+    value: `center:${item.scope}:${format}`,
+    label: t(item.label),
+    group,
+    ...(position === 0
+      ? {
+          groupLabel: t(label),
+          separatorBefore: index > 0,
+        }
+      : {}),
+  }))),
   // 本地 CSV 与提交到导出中心不是一类事，条前画一条分隔线
   {
     value: 'local',
@@ -505,10 +508,11 @@ const exportMenuOptions = computed<MenuNode[]>(() => [
   },
 ])
 
-/** 导出列定义：键/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染） */
+/** 导出列定义：响应里的取值路径/标题 + 枚举/字典 valueMap（原始值 → label，供服务端渲染）；浏览器里算出来、没有路径的字段不导 */
 function buildExportColumns() {
-  return effectiveExportFields.value.map((field) => {
-    const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: field.key, title: field.title }
+  const paths = props.schema.resource.export?.columnPaths ?? {}
+  return effectiveExportFields.value.filter(field => paths[field.key] !== null).map((field) => {
+    const column: { key: string, title: string, valueMap?: Record<string, string> } = { key: paths[field.key] ?? field.key, title: field.title }
     if (field.options?.length) {
       column.valueMap = Object.fromEntries(field.options.map(option => [
         String(option.value),

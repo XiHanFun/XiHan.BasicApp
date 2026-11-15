@@ -5,7 +5,7 @@
 
 import type { SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
-import { permissions as permissionsApi, toSchemaPageResult } from '~/contracts'
+import { exportCenter, permissions as permissionsApi, toSchemaPageResult } from '~/contracts'
 
 export type PermissionRow = ResponseOf<'permissions.list'>['items'][number]
 export type PermissionScope = PermissionRow['scope']
@@ -57,6 +57,7 @@ export function permissionsResource(): SchemaResource<PermissionRow> {
         page: { index: params.page, size: params.pageSize },
       }, params)
     },
+    export: exportCenter('permissions.list', () => ({}), { wholeList: true }),
   }
 }
 

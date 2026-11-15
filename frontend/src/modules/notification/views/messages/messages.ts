@@ -5,7 +5,7 @@
 
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { MessageSendStatus, PageQueryMapping, ResponseOf } from '~/contracts'
-import { emails as emailsApi, sms as smsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { emails as emailsApi, exportCenter, sms as smsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 import { throwOnFailed } from '~/request'
 
 export type EmailRecordRow = ResponseOf<'emails.list'>['items'][number]
@@ -47,6 +47,7 @@ export function formatAttempts(row: { attempts: number, maxAttempts: number }): 
 export function emailRecordResource(): SchemaResource<EmailRecordRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await emailsApi.list(toPageRequest(params, RECORD_QUERY)), params),
+    export: exportCenter('emails.list', RECORD_QUERY),
     remove: async id => throwOnFailed(await emailsApi.delete({
       ids: [
         String(id),
@@ -58,6 +59,7 @@ export function emailRecordResource(): SchemaResource<EmailRecordRow> {
 export function smsRecordResource(): SchemaResource<SmsRecordRow> {
   return {
     page: async (params: SchemaQueryParams) => toSchemaPageResult(await smsApi.list(toPageRequest(params, RECORD_QUERY)), params),
+    export: exportCenter('sms.list', RECORD_QUERY),
     remove: async id => throwOnFailed(await smsApi.delete({
       ids: [
         String(id),
