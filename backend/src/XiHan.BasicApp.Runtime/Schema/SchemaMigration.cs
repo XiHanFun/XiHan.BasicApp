@@ -16,8 +16,8 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// 一个库的结构升级步骤
 /// </summary>
 /// <remarks>
-/// 平台库（<see cref="SchemaUpgrader"/>）与租户独立库（<see cref="TenantSchemas"/>）共用：先按版本执行比台账新的脚本，再按实体建缺的表、补缺的列与部分唯一索引，每一步都记进该库的 <see cref="SysMigrationHistory"/>
-/// 建表补列只在新库、执行了脚本或应用版本变了时做：同一版本的节点重启不再逐表核对。调用方持有升级锁
+/// 平台库（<see cref="SchemaUpgrader"/>）与租户独立库（<see cref="TenantSchemas"/>）共用：先按版本执行比台账新的脚本，再按实体建缺的表、补缺的列与部分唯一索引，每一步都记进该库的 <see cref="SysMigrationHistory"/>（带批次号与执行的 SQL）
+/// 建表补列只在新库、执行了脚本或应用版本变了时做：同一版本的节点重启不再逐表核对。失败的原因与时间写进台账，成功即清空。调用方持有升级锁
 /// </remarks>
 internal static partial class SchemaMigration
 {
@@ -37,7 +37,7 @@ internal static partial class SchemaMigration
     /// <param name="sync">按实体建表补列（实体可能落在不同的连接上，由调用方分组）</param>
     /// <param name="versions">脚本目录里的版本（已按这个库的类型取了脚本）</param>
     /// <param name="tenant">是否租户独立库：执行 <see cref="SchemaVersionScripts.TenantFiles"/></param>
-    /// <param name="node">执行的节点</param>
+    /// <param name="run">这一次升级</param>
     /// <param name="clock">时间源</param>
     /// <param name="logger">日志</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -46,12 +46,37 @@ internal static partial class SchemaMigration
         Action sync,
         IReadOnlyList<SchemaVersionScripts> versions,
         bool tenant,
-        string node,
+        SchemaRun run,
         TimeProvider clock,
         ILogger logger,
         CancellationToken cancellationToken)
     {
         var row = await client.Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false);
+        var outcome = await StepsAsync(client, sync, versions, tenant, run, row, clock, logger, cancellationToken).ConfigureAwait(false);
+        if (outcome.IsFailure)
+        {
+            var failedAt = clock.GetUtcNow();
+            var message = outcome.Error!.Message;
+            await client.Updateable<SysVersion>()
+                .SetColumns(v => new SysVersion { LastError = message, LastFailedAt = failedAt })
+                .Where(v => v.Id == SysVersion.RowId)
+                .ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        return outcome;
+    }
+
+    private static async Task<Result<SchemaUpgradeReport>> StepsAsync(
+        ISqlSugarClient client,
+        Action sync,
+        IReadOnlyList<SchemaVersionScripts> versions,
+        bool tenant,
+        SchemaRun run,
+        SysVersion row,
+        TimeProvider clock,
+        ILogger logger,
+        CancellationToken cancellationToken)
+    {
         var from = row.DbVersion;
         var target = SchemaScripts.Current(versions);
         var targetName = SchemaScripts.NameOf(target);
@@ -70,7 +95,7 @@ internal static partial class SchemaMigration
                 foreach (var file in tenant ? version.TenantFiles : version.Files)
                 {
                     var script = provider + "/" + (tenant ? SchemaScripts.TenantDirectory + "/" : string.Empty) + Path.GetFileName(file);
-                    var failed = await RunScriptAsync(client, version.Name, script, file, node, clock, cancellationToken).ConfigureAwait(false);
+                    var failed = await RunScriptAsync(client, version.Name, script, file, run, clock, cancellationToken).ConfigureAwait(false);
                     if (failed is not null)
                     {
                         LogStepFailed(logger, version.Name, script, failed);
@@ -87,7 +112,7 @@ internal static partial class SchemaMigration
 
         if (from is null || applied.Count > 0 || !string.Equals(row.AppVersion, AppInfo.Version, StringComparison.Ordinal))
         {
-            var failed = await RunSyncAsync(client, sync, targetName, node, clock, cancellationToken).ConfigureAwait(false);
+            var failed = await RunSyncAsync(client, sync, targetName, run, clock, cancellationToken).ConfigureAwait(false);
             if (failed is not null)
             {
                 LogStepFailed(logger, targetName, SysMigrationHistory.OrmSync, failed);
@@ -100,7 +125,7 @@ internal static partial class SchemaMigration
 
         var upgradedAt = clock.GetUtcNow();
         await client.Updateable<SysVersion>()
-            .SetColumns(v => new SysVersion { DbVersion = targetName, AppVersion = AppInfo.Version, UpgradedAt = upgradedAt })
+            .SetColumns(v => new SysVersion { DbVersion = targetName, AppVersion = AppInfo.Version, UpgradedAt = upgradedAt, LastError = null, LastFailedAt = null })
             .Where(v => v.Id == SysVersion.RowId)
             .ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
         return new SchemaUpgradeReport(from, targetName, applied);
@@ -113,7 +138,7 @@ internal static partial class SchemaMigration
     /// 一个脚本一个事务；MySQL 与 Oracle 的 DDL 会隐式提交、回滚不了，所以脚本要写成可重复执行。Oracle 不能一次执行多条语句：脚本里的语句以只有 <c>/</c> 的一行分隔
     /// </remarks>
     /// <returns>失败的原因；成功为 <see langword="null"/></returns>
-    private static async Task<string?> RunScriptAsync(ISqlSugarClient client, string version, string script, string file, string node, TimeProvider clock, CancellationToken cancellationToken)
+    private static async Task<string?> RunScriptAsync(ISqlSugarClient client, string version, string script, string file, SchemaRun run, TimeProvider clock, CancellationToken cancellationToken)
     {
         var sql = await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false);
         var executedAt = clock.GetUtcNow();
@@ -135,7 +160,7 @@ internal static partial class SchemaMigration
             error = exception.Message;
         }
 
-        await RecordAsync(client, version, script, executedAt, watch.ElapsedMilliseconds, error, node, cancellationToken).ConfigureAwait(false);
+        await RecordAsync(client, new Step(version, script, executedAt, watch.ElapsedMilliseconds, error, sql), run, cancellationToken).ConfigureAwait(false);
         return error;
     }
 
@@ -143,38 +168,52 @@ internal static partial class SchemaMigration
     /// 按实体建表补列并记下这一步
     /// </summary>
     /// <returns>失败的原因；成功为 <see langword="null"/></returns>
-    private static async Task<string?> RunSyncAsync(ISqlSugarClient client, Action sync, string version, string node, TimeProvider clock, CancellationToken cancellationToken)
+    private static async Task<string?> RunSyncAsync(ISqlSugarClient client, Action sync, string version, SchemaRun run, TimeProvider clock, CancellationToken cancellationToken)
     {
         var executedAt = clock.GetUtcNow();
         var watch = Stopwatch.StartNew();
         string? error = null;
-        try
+        IReadOnlyList<string> statements;
+        using (var capture = DdlCapture.Begin())
         {
-            sync();
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            // 建表失败的原因各式各样（数据库异常、不支持的库类型、映射错误），都记下来交给调用方中断升级
-            error = exception.Message;
+            try
+            {
+                sync();
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // 建表失败的原因各式各样（数据库异常、不支持的库类型、映射错误），都记下来交给调用方中断升级
+                error = exception.Message;
+            }
+
+            statements = capture.Statements;
         }
 
-        await RecordAsync(client, version, SysMigrationHistory.OrmSync, executedAt, watch.ElapsedMilliseconds, error, node, cancellationToken).ConfigureAwait(false);
+        var sql = statements.Count == 0 ? null : string.Join(";\n", statements) + ";";
+        await RecordAsync(client, new Step(version, SysMigrationHistory.OrmSync, executedAt, watch.ElapsedMilliseconds, error, sql), run, cancellationToken).ConfigureAwait(false);
         return error;
     }
 
-    private static async Task RecordAsync(ISqlSugarClient client, string version, string script, DateTimeOffset executedAt, long elapsed, string? error, string node, CancellationToken cancellationToken)
+    private static async Task RecordAsync(ISqlSugarClient client, Step step, SchemaRun run, CancellationToken cancellationToken)
         => await client.Insertable(new SysMigrationHistory
         {
             Id = Guid.CreateVersion7(),
             ConcurrencyStamp = Guid.NewGuid().ToString("N"),
-            Version = version,
-            ScriptName = script,
-            ExecutedAt = executedAt,
-            DurationMs = elapsed,
-            Success = error is null,
-            NodeName = node,
-            ErrorMessage = error,
+            Version = step.Version,
+            ScriptName = step.Script,
+            ExecutedAt = step.ExecutedAt,
+            DurationMs = step.DurationMs,
+            Success = step.Error is null,
+            NodeName = run.Node,
+            ErrorMessage = step.Error,
+            RunId = run.Id,
+            SqlText = step.Sql,
         }).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
+
+    /// <summary>
+    /// 执行完的一步
+    /// </summary>
+    private sealed record Step(string Version, string Script, DateTimeOffset ExecutedAt, long DurationMs, string? Error, string? Sql);
 
     /// <summary>
     /// 把脚本拆成逐条执行的语句

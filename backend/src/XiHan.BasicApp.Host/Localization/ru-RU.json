@@ -1,6 +1,6 @@
 {
   "host.commands.seed_description": "Выполняет сидеры по порядку (--only <имя,...> — выбрать отдельные, --list — показать без выполнения).",
   "host.commands.seeder_unknown": "Неизвестный сидер '{name}'. Выполните 'seed --list', чтобы показать сидеры.",
-  "host.commands.schema_description": "Обновление схемы: schema upgrade выполняет ещё не применённые скрипты платформенной БД по журналу версий (новая БД создаётся из базовой линии).",
-  "host.commands.schema_action_unknown": "Неизвестное действие schema '{action}'; доступно только upgrade."
+  "host.commands.schema_description": "Обновление схемы: schema upgrade выполняет скрипты обновления новее журнала версий и создаёт недостающие таблицы и столбцы по сущностям (платформенная БД и выделенные БД арендаторов); schema plan только показывает предстоящие изменения, не применяя их.",
+  "host.commands.schema_action_unknown": "Неизвестное действие schema '{action}'; используйте upgrade или plan."
 }

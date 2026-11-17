@@ -121,4 +121,20 @@ public static class MaintenanceErrors
     /// 标记里带着所在的层（对象缓存或字节存储），不是上一页给的、或那一层已不支持键管理时即此码
     /// </remarks>
     public const string CacheContinuationInvalid = "MAINTENANCE_VALIDATION_006";
+
+    /// <summary>
+    /// 平台库不能在维护页里重试升级
+    /// </summary>
+    /// <remarks>
+    /// 平台库在节点启动时升级（或由 <c>schema upgrade</c>），实体在用的时候改平台库的结构不安全
+    /// </remarks>
+    public const string PlatformUpgradeAtStartup = "MAINTENANCE_VALIDATION_007";
+
+    /// <summary>
+    /// 升级锁不在指定的节点手里
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>（库名）、<c>node</c>：锁已释放，或已换了节点持有
+    /// </remarks>
+    public const string SchemaLockNotHeld = "MAINTENANCE_CONFLICT_005";
 }

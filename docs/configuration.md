@@ -481,7 +481,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `AutoUpgrade` | `true` | 启动时自动升级，失败即中断启动；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
+| `AutoUpgrade` | `true` | 启动时自动升级，平台库失败即中断启动（租户独立库失败时照常启动，这个租户暂不可用）；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
 | `CreateDatabase` | `false` | 升级前平台库不存在时先建库（经各库的维护库，连接账号要有建库权限；Oracle 的库是 DBA 事先建好的用户，不建）；缺省关，库名写错时不悄悄建一个空库，开发环境打开 |
 | `Directory` | 程序目录下的 `Schema` | 升级脚本目录；相对路径按程序目录（不是当前目录）解析，没有脚本时可以不存在 |
 | `LockExpiryMinutes` | `30` | 升级锁的失效时间（1–1440）：持锁节点中途退出时，过了这么久别的节点才能接手 |

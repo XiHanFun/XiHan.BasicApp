@@ -79,6 +79,16 @@ public static class MaintenancePermissions
     public const string MigrationsRead = "maintenance.migrations.read";
 
     /// <summary>
+    /// 重试升级租户独立库
+    /// </summary>
+    public const string VersionsUpgrade = "maintenance.versions.upgrade";
+
+    /// <summary>
+    /// 手动释放升级锁
+    /// </summary>
+    public const string VersionsReleaseLock = "maintenance.versions.release-lock";
+
+    /// <summary>
     /// 本包全部权限码
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -96,5 +106,7 @@ public static class MaintenancePermissions
         new(JobRunsRead, "Read job runs", PermissionScope.Platform, description: "View the run history of scheduled jobs."),
         new(VersionsRead, "Read versions", PermissionScope.Platform, description: "View the database version ledger."),
         new(MigrationsRead, "Read upgrade records", PermissionScope.Platform, description: "View the upgrade script records."),
+        new(VersionsUpgrade, "Retry tenant database upgrades", PermissionScope.Platform, audited: true, description: "Upgrade a dedicated tenant database again after it failed; the tenant becomes available once it succeeds."),
+        new(VersionsReleaseLock, "Release upgrade locks", PermissionScope.Platform, audited: true, description: "Release a schema upgrade lock left by a node that is gone."),
     ];
 }

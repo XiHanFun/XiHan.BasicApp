@@ -9,7 +9,8 @@ namespace XiHan.BasicApp.Host;
 /// 启动前的结构升级
 /// </summary>
 /// <remarks>
-/// 在开始监听之前执行（方案 5.14）：升级完成前这个节点不接请求，失败即中断启动；关掉 <c>BasicApp:Schema:AutoUpgrade</c> 时跳过
+/// 在开始监听之前执行（方案 5.14）：升级完成前这个节点不接请求，平台库失败即中断启动；关掉 <c>BasicApp:Schema:AutoUpgrade</c> 时跳过
+/// 只有租户独立库失败时照常启动：失败的租户在升级成功之前调用一律 503，健康检查降级，原因进日志与版本台账
 /// 别的节点升级共享的库期间，已在运行的节点按台账返回 503（<see cref="Runtime.Middleware.MaintenanceModeMiddleware"/>）
 /// </remarks>
 public static partial class SchemaStartup

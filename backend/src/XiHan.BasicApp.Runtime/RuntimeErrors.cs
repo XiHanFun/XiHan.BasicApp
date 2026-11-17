@@ -71,4 +71,9 @@ public static class RuntimeErrors
     /// 后台逐侧遍历有一处没有处理成功
     /// </summary>
     public const string SweepIncomplete = "RUNTIME_UNAVAILABLE_006";
+
+    /// <summary>
+    /// 租户的独立库没有升级到当前结构版本，暂时不可用
+    /// </summary>
+    public const string TenantSchemaUnavailable = "RUNTIME_UNAVAILABLE_007";
 }

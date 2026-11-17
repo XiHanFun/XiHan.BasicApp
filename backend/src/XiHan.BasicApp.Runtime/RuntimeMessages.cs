@@ -23,6 +23,11 @@ public static class RuntimeMessages
     /// </summary>
     public const string SweepIncomplete = "runtime.sweep.incomplete";
 
+    /// <summary>
+    /// 租户的独立库没有升级到当前结构版本
+    /// </summary>
+    public const string TenantSchemaUnavailable = "runtime.schema.tenant_unavailable";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(RuntimeMessages)));
 
     /// <summary>

@@ -49,6 +49,9 @@ public sealed class MaintenanceSchemaRecordsTests : IDisposable
         Assert.Equal("platform", version.GetProperty("database").GetString());
         Assert.Equal("6.0.0", version.GetProperty("dbVersion").GetString());
         Assert.False(version.GetProperty("isUpgrading").GetBoolean());
+        // 库类型取连接；结构版本与应用带的不同即待升级
+        Assert.Equal(TestDatabase.Provider, version.GetProperty("provider").GetString());
+        Assert.Equal(version.GetProperty("targetVersion").GetString() == "6.0.0" ? "Current" : "Behind", version.GetProperty("status").GetString());
         // 按库名取：平台库是 platform，不认识的库名找不到
         Assert.Equal("6.0.0-preview.1", (await SendAsync(server, HttpMethod.Get, "/api/versions/platform", null, platform)).Body.GetProperty("appVersion").GetString());
         Assert.Equal("MAINTENANCE_NOTFOUND_002", (await SendAsync(server, HttpMethod.Get, "/api/versions/nowhere", null, platform)).Body.GetProperty("code").GetString());
@@ -60,7 +63,8 @@ public sealed class MaintenanceSchemaRecordsTests : IDisposable
         Assert.Equal(1, failed.GetProperty("total").GetInt64());
         var (got, record) = await SendAsync(server, HttpMethod.Get, $"/api/migrations/{failedId}", null, platform);
         Assert.Equal(HttpStatusCode.OK, got);
-        Assert.Contains("sys_users", record.GetProperty("errorMessage").GetString(), StringComparison.Ordinal);
+        Assert.Contains("sys_users", record.GetProperty("migration").GetProperty("errorMessage").GetString(), StringComparison.Ordinal);
+        Assert.Equal("platform", record.GetProperty("migration").GetProperty("database").GetString());
         Assert.Equal("MAINTENANCE_NOTFOUND_002", (await SendAsync(server, HttpMethod.Get, $"/api/migrations/{Guid.CreateVersion7()}", null, platform)).Body.GetProperty("code").GetString());
         Assert.Equal("MAINTENANCE_VALIDATION_001", (await SendAsync(server, HttpMethod.Post, "/api/migrations:list", new { sorts = new[] { new { field = "nodeName", descending = false } } }, platform)).Body.GetProperty("code").GetString());
     }

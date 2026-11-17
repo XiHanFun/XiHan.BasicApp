@@ -228,7 +228,7 @@
     {
       "name": "migrations",
       "x-displayName": "Upgrade records",
-      "description": "Each upgrade script run: version, script, duration, outcome and node."
+      "description": "The run, version, script, SQL, duration, outcome and node of every schema upgrade step."
     },
     {
       "name": "my-activity",
@@ -428,7 +428,7 @@
     {
       "name": "versions",
       "x-displayName": "Versions",
-      "description": "Each database\u0027s version ledger: schema version, upgrade lock and last upgrade."
+      "description": "The version ledger of each database, schema status, upgrade preview, retries and upgrade locks."
     },
     {
       "name": "workbench",
@@ -35106,7 +35106,7 @@
           "migrations"
         ],
         "summary": "Get upgrade record",
-        "description": "Get one upgrade script record by ID, including the failure reason.\n\nRequires permission maintenance.migrations.read (Read upgrade records).",
+        "description": "Get one upgrade step with the SQL it ran (the script text, or the statements issued while adding tables and columns from the entities) and the reason of a failure.\n\nRequires permission maintenance.migrations.read (Read upgrade records).",
         "x-xihan-permission": "maintenance.migrations.read",
         "parameters": [
           {
@@ -35119,54 +35119,39 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "database",
+            "in": "query",
+            "description": "\u8BB0\u5F55\u6240\u5728\u7684\u5E93\uFF1A\u4E0D\u586B\u4E3A\u5E73\u53F0\u5E93\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+            "required": false,
+            "schema": {
+              "description": "\u8BB0\u5F55\u6240\u5728\u7684\u5E93\uFF1A\u4E0D\u586B\u4E3A\u5E73\u53F0\u5E93\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 64
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "\u4E00\u4E2A\u5347\u7EA7\u811A\u672C\u7684\u6267\u884C\u8BB0\u5F55",
+            "description": "\u4E00\u6B65\u7ED3\u6784\u5347\u7EA7\u7684\u6267\u884C\u8BB0\u5F55\u4E0E\u6267\u884C\u7684 SQL",
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "MigrationResponse",
-                  "description": "\u4E00\u4E2A\u5347\u7EA7\u811A\u672C\u7684\u6267\u884C\u8BB0\u5F55",
+                  "title": "MigrationDetailResponse",
+                  "description": "\u4E00\u6B65\u7ED3\u6784\u5347\u7EA7\u7684\u6267\u884C\u8BB0\u5F55\u4E0E\u6267\u884C\u7684 SQL",
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "description": "\u8BB0\u5F55 ID",
-                      "type": "string",
-                      "format": "uuid"
+                    "migration": {
+                      "description": "\u6267\u884C\u8BB0\u5F55",
+                      "$ref": "#/components/schemas/MigrationResponse"
                     },
-                    "version": {
-                      "description": "\u811A\u672C\u6240\u5728\u7684\u7248\u672C\u76EE\u5F55",
-                      "type": "string"
-                    },
-                    "scriptName": {
-                      "description": "\u811A\u672C\u6587\u4EF6\u540D",
-                      "type": "string"
-                    },
-                    "executedAt": {
-                      "description": "\u5F00\u59CB\u6267\u884C\u7684\u65F6\u95F4",
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "durationMs": {
-                      "description": "\u8017\u65F6\uFF08\u6BEB\u79D2\uFF09",
-                      "type": "integer",
-                      "format": "int64"
-                    },
-                    "success": {
-                      "description": "\u662F\u5426\u6210\u529F",
-                      "type": "boolean"
-                    },
-                    "nodeName": {
-                      "description": "\u6267\u884C\u7684\u8282\u70B9",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "errorMessage": {
-                      "description": "\u5931\u8D25\u7684\u539F\u56E0",
+                    "sqlText": {
+                      "description": "\u6267\u884C\u7684 SQL\uFF1A\u811A\u672C\u539F\u6587\uFF0C\u6216\u6309\u5B9E\u4F53\u5EFA\u8868\u8865\u5217\u5B9E\u9645\u53D1\u51FA\u7684\u8BED\u53E5\uFF1B\u6CA1\u6709\u8BB0\u4E0B\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -35174,12 +35159,7 @@
                     }
                   },
                   "required": [
-                    "id",
-                    "version",
-                    "scriptName",
-                    "executedAt",
-                    "durationMs",
-                    "success"
+                    "migration"
                   ]
                 }
               }
@@ -35205,7 +35185,7 @@
           "migrations"
         ],
         "summary": "List upgrade records",
-        "description": "List upgrade script records page by page (successes and failures), newest first by default, filterable by version, script, node, outcome and time.\n\nRequires permission maintenance.migrations.read (Read upgrade records).",
+        "description": "List the upgrade steps of one database (scripts and adding tables and columns from the entities, successes and failures), newest first by default; pick the database with database and filter by run, version, script, node, outcome and time.\n\nRequires permission maintenance.migrations.read (Read upgrade records).",
         "x-xihan-permission": "maintenance.migrations.read",
         "parameters": [],
         "requestBody": {
@@ -61594,7 +61574,7 @@
           "versions"
         ],
         "summary": "Get version",
-        "description": "Get one version ledger row by ID.\n\nRequires permission maintenance.versions.read (Read versions).",
+        "description": "Get the version ledger of one database by name (platform for the platform database, the tenant ID for a dedicated database).\n\nRequires permission maintenance.versions.read (Read versions).",
         "x-xihan-permission": "maintenance.versions.read",
         "parameters": [
           {
@@ -61629,23 +61609,41 @@
                       "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform",
                       "type": "string"
                     },
+                    "provider": {
+                      "description": "\u5E93\u7C7B\u578B\uFF1B\u8BFB\u4E0D\u5230\u53F0\u8D26\u65F6\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u7ED3\u6784\u72B6\u6001",
+                      "$ref": "#/components/schemas/SchemaVersionStatus"
+                    },
                     "appVersion": {
                       "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u8FD9\u4E2A\u5E93\u7684\u5E94\u7528\u7248\u672C",
                       "type": "string"
                     },
                     "dbVersion": {
-                      "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u8FD8\u6CA1\u6267\u884C\u8FC7\u57FA\u7EBF\u4E3A null",
+                      "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u65B0\u5E93\u8FD8\u6CA1\u5347\u7EA7\u4E3A null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetVersion": {
+                      "description": "\u5E94\u7528\u5E26\u7684\u7ED3\u6784\u7248\u672C",
                       "type": [
                         "string",
                         "null"
                       ]
                     },
                     "isUpgrading": {
-                      "description": "\u662F\u5426\u6B63\u5728\u5347\u7EA7",
+                      "description": "\u662F\u5426\u6301\u7740\u5347\u7EA7\u9501\uFF08\u8FC7\u671F\u7684\u9501\u4E5F\u7B97\uFF0C\u53EF\u4EE5\u624B\u52A8\u91CA\u653E\uFF09",
                       "type": "boolean"
                     },
                     "upgradeNode": {
-                      "description": "\u6301\u6709\u5347\u7EA7\u9501\u7684\u8282\u70B9",
+                      "description": "\u6301\u6709\u5347\u7EA7\u9501\u3001\u6216\u6700\u8FD1\u4E00\u6B21\u6301\u9501\u7684\u8282\u70B9",
                       "type": [
                         "string",
                         "null"
@@ -61667,6 +61665,21 @@
                       ],
                       "format": "date-time"
                     },
+                    "lastError": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5931\u8D25\u7684\u539F\u56E0\uFF1B\u6210\u529F\u540E\u6E05\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "lastFailedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5931\u8D25\u7684\u65F6\u95F4",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
                     "error": {
                       "description": "\u8BFB\u4E0D\u5230\u8FD9\u4E2A\u5E93\u7684\u53F0\u8D26\u65F6\u7684\u539F\u56E0\uFF08\u5176\u4F59\u5217\u4E3A\u7A7A\uFF09",
                       "type": [
@@ -61678,8 +61691,399 @@
                   "required": [
                     "id",
                     "database",
+                    "status",
                     "appVersion",
                     "isUpgrading"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/versions/{id}:plan": {
+      "get": {
+        "operationId": "versions.plan",
+        "tags": [
+          "versions"
+        ],
+        "summary": "Preview upgrade",
+        "description": "Read-only preview of the schema changes a database still needs for the current application version: the scripts to run (with their text), the tables to create, the columns to add and the indexes to create; nothing is applied.\n\nRequires permission maintenance.versions.read (Read versions).",
+        "x-xihan-permission": "maintenance.versions.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+            "required": true,
+            "schema": {
+              "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u5E93\u5347\u5230\u5F53\u524D\u5E94\u7528\u7248\u672C\u8FD8\u8981\u505A\u7684\u7ED3\u6784\u53D8\u66F4",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SchemaPlanResponse",
+                  "description": "\u4E00\u4E2A\u5E93\u5347\u5230\u5F53\u524D\u5E94\u7528\u7248\u672C\u8FD8\u8981\u505A\u7684\u7ED3\u6784\u53D8\u66F4",
+                  "type": "object",
+                  "properties": {
+                    "database": {
+                      "description": "\u5E93\u540D",
+                      "type": "string"
+                    },
+                    "provider": {
+                      "description": "\u5E93\u7C7B\u578B",
+                      "type": "string"
+                    },
+                    "from": {
+                      "description": "\u53F0\u8D26\u4E0A\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u65B0\u5E93\u4E3A null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "to": {
+                      "description": "\u5E94\u7528\u5E26\u7684\u7ED3\u6784\u7248\u672C",
+                      "type": "string"
+                    },
+                    "syncDue": {
+                      "description": "\u8FD9\u6B21\u5347\u7EA7\u4F1A\u4E0D\u4F1A\u6309\u5B9E\u4F53\u5EFA\u8868\u8865\u5217\uFF1A\u65B0\u5E93\u3001\u6709\u811A\u672C\u8981\u6267\u884C\u6216\u5E94\u7528\u7248\u672C\u53D8\u4E86\u624D\u505A",
+                      "type": "boolean"
+                    },
+                    "scripts": {
+                      "description": "\u8981\u6267\u884C\u7684\u811A\u672C\uFF0C\u6309\u6267\u884C\u987A\u5E8F",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SchemaPlanScriptResponse"
+                      }
+                    },
+                    "tables": {
+                      "description": "\u8981\u5EFA\u7684\u8868\u4E0E\u8981\u52A0\u7684\u5217",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SchemaPlanTableResponse"
+                      }
+                    },
+                    "indexes": {
+                      "description": "\u8981\u5EFA\u7684\u7D22\u5F15",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SchemaPlanIndexResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "database",
+                    "provider",
+                    "to",
+                    "syncDue",
+                    "scripts",
+                    "tables",
+                    "indexes"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/versions/{id}:release-lock": {
+      "post": {
+        "operationId": "versions.release-lock",
+        "tags": [
+          "versions"
+        ],
+        "summary": "Release upgrade lock",
+        "description": "Release an upgrade lock by hand when the node holding it is gone; it is released only while the given node still holds it, so a lock just taken by another node is never taken away.\n\nRequires permission maintenance.versions.release-lock (Release upgrade locks).",
+        "x-xihan-permission": "maintenance.versions.release-lock",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+            "required": true,
+            "schema": {
+              "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "\u624B\u52A8\u91CA\u653E\u5347\u7EA7\u9501\u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ReleaseVersionLockRequest",
+                "description": "\u624B\u52A8\u91CA\u653E\u5347\u7EA7\u9501\u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "node": {
+                    "description": "\u6301\u9501\u7684\u8282\u70B9\uFF08\u7248\u672C\u53F0\u8D26\u4E0A\u663E\u793A\u7684\uFF09\uFF1A\u9501\u8FD8\u5728\u5B83\u624B\u91CC\u624D\u91CA\u653E",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "id",
+                  "node"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E00\u4E2A\u5E93\u7684\u7248\u672C\u53F0\u8D26",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SchemaVersionResponse",
+                  "description": "\u4E00\u4E2A\u5E93\u7684\u7248\u672C\u53F0\u8D26",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u53F0\u8D26\u884C ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "database": {
+                      "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform",
+                      "type": "string"
+                    },
+                    "provider": {
+                      "description": "\u5E93\u7C7B\u578B\uFF1B\u8BFB\u4E0D\u5230\u53F0\u8D26\u65F6\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "description": "\u7ED3\u6784\u72B6\u6001",
+                      "$ref": "#/components/schemas/SchemaVersionStatus"
+                    },
+                    "appVersion": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u8FD9\u4E2A\u5E93\u7684\u5E94\u7528\u7248\u672C",
+                      "type": "string"
+                    },
+                    "dbVersion": {
+                      "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u65B0\u5E93\u8FD8\u6CA1\u5347\u7EA7\u4E3A null",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetVersion": {
+                      "description": "\u5E94\u7528\u5E26\u7684\u7ED3\u6784\u7248\u672C",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isUpgrading": {
+                      "description": "\u662F\u5426\u6301\u7740\u5347\u7EA7\u9501\uFF08\u8FC7\u671F\u7684\u9501\u4E5F\u7B97\uFF0C\u53EF\u4EE5\u624B\u52A8\u91CA\u653E\uFF09",
+                      "type": "boolean"
+                    },
+                    "upgradeNode": {
+                      "description": "\u6301\u6709\u5347\u7EA7\u9501\u3001\u6216\u6700\u8FD1\u4E00\u6B21\u6301\u9501\u7684\u8282\u70B9",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "upgradeStartedAt": {
+                      "description": "\u8FD9\u4E00\u8F6E\u5347\u7EA7\u7684\u5F00\u59CB\u65F6\u95F4",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "upgradedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5B8C\u6210\u7684\u65F6\u95F4",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "lastError": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5931\u8D25\u7684\u539F\u56E0\uFF1B\u6210\u529F\u540E\u6E05\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "lastFailedAt": {
+                      "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5931\u8D25\u7684\u65F6\u95F4",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "error": {
+                      "description": "\u8BFB\u4E0D\u5230\u8FD9\u4E2A\u5E93\u7684\u53F0\u8D26\u65F6\u7684\u539F\u56E0\uFF08\u5176\u4F59\u5217\u4E3A\u7A7A\uFF09",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "database",
+                    "status",
+                    "appVersion",
+                    "isUpgrading"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/versions/{id}:upgrade": {
+      "post": {
+        "operationId": "versions.upgrade",
+        "tags": [
+          "versions"
+        ],
+        "summary": "Retry upgrade",
+        "description": "Upgrade a dedicated tenant database again: only its own ledger row is locked and other calls are not affected; the tenant becomes available once it succeeds. The platform database is upgraded when a node starts and cannot be retried here.\n\nRequires permission maintenance.versions.upgrade (Retry tenant database upgrades).",
+        "x-xihan-permission": "maintenance.versions.upgrade",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+            "required": true,
+            "schema": {
+              "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "\u6307\u5B9A\u4E00\u4E2A\u5E93\u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "VersionIdRequest",
+                "description": "\u6307\u5B9A\u4E00\u4E2A\u5E93\u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u91CD\u8BD5\u5347\u7EA7\u4E00\u4E2A\u79DF\u6237\u72EC\u7ACB\u5E93\u7684\u7ED3\u679C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SchemaUpgradeResponse",
+                  "description": "\u91CD\u8BD5\u5347\u7EA7\u4E00\u4E2A\u79DF\u6237\u72EC\u7ACB\u5E93\u7684\u7ED3\u679C",
+                  "type": "object",
+                  "properties": {
+                    "database": {
+                      "description": "\u5E93\u540D\uFF08\u79DF\u6237 ID\uFF09",
+                      "type": "string"
+                    },
+                    "runId": {
+                      "description": "\u8FD9\u6B21\u5347\u7EA7\u7684\u6279\u6B21\u53F7\uFF08\u5347\u7EA7\u8BB0\u5F55\u91CC\u6309\u5B83\u7B5B\uFF09",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "from": {
+                      "description": "\u5347\u7EA7\u524D\u7684\u7ED3\u6784\u7248\u672C",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "to": {
+                      "description": "\u5347\u7EA7\u540E\u7684\u7ED3\u6784\u7248\u672C",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "applied": {
+                      "description": "\u6267\u884C\u4E86\u7684\u6B65\u9AA4",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "database",
+                    "runId",
+                    "applied"
                   ]
                 }
               }
@@ -61705,7 +62109,7 @@
           "versions"
         ],
         "summary": "List versions",
-        "description": "List each database\u0027s version ledger page by page: schema version, the app version and time of the last upgrade, and whether an upgrade is running; maintained by the upgrade runner, read-only.\n\nRequires permission maintenance.versions.read (Read versions).",
+        "description": "List the version ledger of each database: provider, schema status, schema version, the application version and time of the last upgrade, the upgrade lock and the reason of the last failure.\n\nRequires permission maintenance.versions.read (Read versions).",
         "x-xihan-permission": "maintenance.versions.read",
         "parameters": [],
         "requestBody": {
@@ -72647,7 +73051,7 @@
         ]
       },
       "MigrationResponse": {
-        "description": "\u4E00\u4E2A\u5347\u7EA7\u811A\u672C\u7684\u6267\u884C\u8BB0\u5F55",
+        "description": "\u4E00\u6B65\u7ED3\u6784\u5347\u7EA7\u7684\u6267\u884C\u8BB0\u5F55",
         "type": "object",
         "properties": {
           "id": {
@@ -72655,12 +73059,24 @@
             "type": "string",
             "format": "uuid"
           },
+          "database": {
+            "description": "\u8BB0\u5F55\u6240\u5728\u7684\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform\uFF0C\u72EC\u7ACB\u5E93\u4E3A\u79DF\u6237 ID",
+            "type": "string"
+          },
+          "runId": {
+            "description": "\u6240\u5C5E\u7684\u4E00\u6B21\u5347\u7EA7\uFF08\u540C\u4E00\u6B21\u5347\u7EA7\u91CC\u5404\u5E93\u7684\u6B65\u9AA4\u76F8\u540C\uFF1B\u66F4\u65E9\u7684\u8BB0\u5F55\u4E3A\u7A7A\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
           "version": {
-            "description": "\u811A\u672C\u6240\u5728\u7684\u7248\u672C\u76EE\u5F55",
+            "description": "\u8FD9\u4E00\u6B65\u6240\u5C5E\u7684\u7248\u672C",
             "type": "string"
           },
           "scriptName": {
-            "description": "\u811A\u672C\u6587\u4EF6\u540D",
+            "description": "\u811A\u672C\u540D\uFF0C\u6309\u5B9E\u4F53\u5EFA\u8868\u8865\u5217\u4E3A orm-sync",
             "type": "string"
           },
           "executedAt": {
@@ -72690,15 +73106,21 @@
               "string",
               "null"
             ]
+          },
+          "hasSql": {
+            "description": "\u662F\u5426\u8BB0\u4E0B\u4E86\u6267\u884C\u7684 SQL\uFF08\u53D6\u5355\u6761\u65F6\u5E26\u539F\u6587\uFF09",
+            "type": "boolean"
           }
         },
         "required": [
           "id",
+          "database",
           "version",
           "scriptName",
           "executedAt",
           "durationMs",
-          "success"
+          "success",
+          "hasSql"
         ]
       },
       "MyApiCredentialResponse": {
@@ -75697,6 +76119,96 @@
           "gen2Collections"
         ]
       },
+      "SchemaPlanColumnResponse": {
+        "description": "\u4E00\u4E2A\u8981\u5EFA\u6216\u8981\u52A0\u7684\u5217",
+        "type": "object",
+        "properties": {
+          "column": {
+            "description": "\u5217\u540D",
+            "type": "string"
+          },
+          "type": {
+            "description": "\u5217\u7C7B\u578B\uFF08\u6309\u8FD9\u4E2A\u5E93\u7684\u7C7B\u578B\u540D\uFF0C\u5E26\u957F\u5EA6\uFF09",
+            "type": "string"
+          },
+          "isNullable": {
+            "description": "\u662F\u5426\u53EF\u7A7A",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "column",
+          "type",
+          "isNullable"
+        ]
+      },
+      "SchemaPlanIndexResponse": {
+        "description": "\u4E00\u4E2A\u8981\u5EFA\u7684\u7D22\u5F15",
+        "type": "object",
+        "properties": {
+          "table": {
+            "description": "\u6240\u5728\u7684\u8868",
+            "type": "string"
+          },
+          "index": {
+            "description": "\u7D22\u5F15\u540D",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table",
+          "index"
+        ]
+      },
+      "SchemaPlanScriptResponse": {
+        "description": "\u4E00\u4E2A\u8981\u6267\u884C\u7684\u5347\u7EA7\u811A\u672C",
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "\u6240\u5C5E\u7684\u7248\u672C",
+            "type": "string"
+          },
+          "script": {
+            "description": "\u811A\u672C\u540D\uFF08\u5E93\u7C7B\u578B\u76EE\u5F55\u8D77\u7684\u76F8\u5BF9\u8DEF\u5F84\uFF09",
+            "type": "string"
+          },
+          "sql": {
+            "description": "\u811A\u672C\u539F\u6587",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "script",
+          "sql"
+        ]
+      },
+      "SchemaPlanTableResponse": {
+        "description": "\u4E00\u5F20\u8981\u5EFA\u7684\u8868\uFF0C\u6216\u4E00\u5F20\u5DF2\u6709\u7684\u8868\u4E0A\u8981\u52A0\u7684\u5217",
+        "type": "object",
+        "properties": {
+          "table": {
+            "description": "\u8868\u540D",
+            "type": "string"
+          },
+          "isNew": {
+            "description": "\u662F\u5426\u65B0\u8868\uFF08\u662F\u5373\u5217\u4E3A\u5168\u90E8\u5217\uFF09",
+            "type": "boolean"
+          },
+          "columns": {
+            "description": "\u8981\u5EFA\u6216\u8981\u52A0\u7684\u5217",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SchemaPlanColumnResponse"
+            }
+          }
+        },
+        "required": [
+          "table",
+          "isNew",
+          "columns"
+        ]
+      },
       "SchemaVersionResponse": {
         "description": "\u4E00\u4E2A\u5E93\u7684\u7248\u672C\u53F0\u8D26",
         "type": "object",
@@ -75710,23 +76222,41 @@
             "description": "\u54EA\u4E2A\u5E93\uFF1A\u5E73\u53F0\u5E93\u4E3A platform",
             "type": "string"
           },
+          "provider": {
+            "description": "\u5E93\u7C7B\u578B\uFF1B\u8BFB\u4E0D\u5230\u53F0\u8D26\u65F6\u4E3A\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "description": "\u7ED3\u6784\u72B6\u6001",
+            "$ref": "#/components/schemas/SchemaVersionStatus"
+          },
           "appVersion": {
             "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u8FD9\u4E2A\u5E93\u7684\u5E94\u7528\u7248\u672C",
             "type": "string"
           },
           "dbVersion": {
-            "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u8FD8\u6CA1\u6267\u884C\u8FC7\u57FA\u7EBF\u4E3A null",
+            "description": "\u5E93\u7684\u7ED3\u6784\u7248\u672C\uFF1B\u65B0\u5E93\u8FD8\u6CA1\u5347\u7EA7\u4E3A null",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetVersion": {
+            "description": "\u5E94\u7528\u5E26\u7684\u7ED3\u6784\u7248\u672C",
             "type": [
               "string",
               "null"
             ]
           },
           "isUpgrading": {
-            "description": "\u662F\u5426\u6B63\u5728\u5347\u7EA7",
+            "description": "\u662F\u5426\u6301\u7740\u5347\u7EA7\u9501\uFF08\u8FC7\u671F\u7684\u9501\u4E5F\u7B97\uFF0C\u53EF\u4EE5\u624B\u52A8\u91CA\u653E\uFF09",
             "type": "boolean"
           },
           "upgradeNode": {
-            "description": "\u6301\u6709\u5347\u7EA7\u9501\u7684\u8282\u70B9",
+            "description": "\u6301\u6709\u5347\u7EA7\u9501\u3001\u6216\u6700\u8FD1\u4E00\u6B21\u6301\u9501\u7684\u8282\u70B9",
             "type": [
               "string",
               "null"
@@ -75748,6 +76278,21 @@
             ],
             "format": "date-time"
           },
+          "lastError": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5931\u8D25\u7684\u539F\u56E0\uFF1B\u6210\u529F\u540E\u6E05\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastFailedAt": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u5347\u7EA7\u5931\u8D25\u7684\u65F6\u95F4",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
           "error": {
             "description": "\u8BFB\u4E0D\u5230\u8FD9\u4E2A\u5E93\u7684\u53F0\u8D26\u65F6\u7684\u539F\u56E0\uFF08\u5176\u4F59\u5217\u4E3A\u7A7A\uFF09",
             "type": [
@@ -75759,8 +76304,20 @@
         "required": [
           "id",
           "database",
+          "status",
           "appVersion",
           "isUpgrading"
+        ]
+      },
+      "SchemaVersionStatus": {
+        "description": "\u5E93\u7684\u7ED3\u6784\u72B6\u6001",
+        "type": "string",
+        "enum": [
+          "Current",
+          "Behind",
+          "Upgrading",
+          "Failed",
+          "Unreachable"
         ]
       },
       "ServerPackageResponse": {
@@ -79605,6 +80162,16 @@
         "code": "maintenance.versions.read",
         "displayName": "Read versions",
         "description": "View the database version ledger."
+      },
+      "maintenance.versions.release-lock": {
+        "code": "maintenance.versions.release-lock",
+        "displayName": "Release upgrade locks",
+        "description": "Release a schema upgrade lock left by a node that is gone."
+      },
+      "maintenance.versions.upgrade": {
+        "code": "maintenance.versions.upgrade",
+        "displayName": "Retry tenant database upgrades",
+        "description": "Upgrade a dedicated tenant database again after it failed; the tenant becomes available once it succeeds."
       },
       "notification.bot-configs.create": {
         "code": "notification.bot-configs.create",

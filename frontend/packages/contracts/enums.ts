@@ -292,6 +292,9 @@ export type PrintTemplateStatus = (typeof PrintTemplateStatus)[number]
 export const RoleStatus = ['Active', 'Disabled'] as const
 export type RoleStatus = (typeof RoleStatus)[number]
 
+export const SchemaVersionStatus = ['Current', 'Behind', 'Upgrading', 'Failed', 'Unreachable'] as const
+export type SchemaVersionStatus = (typeof SchemaVersionStatus)[number]
+
 export const SessionRoleStatus = ['Active', 'Inactive', 'Expired'] as const
 export type SessionRoleStatus = (typeof SessionRoleStatus)[number]
 
@@ -467,6 +470,7 @@ export const enums = {
   PrintTemplateScope,
   PrintTemplateStatus,
   RoleStatus,
+  SchemaVersionStatus,
   SessionRoleStatus,
   SettingStatus,
   SmsProvider,

@@ -5631,7 +5631,7 @@ export interface paths {
         };
         /**
          * Get upgrade record
-         * @description Get one upgrade script record by ID, including the failure reason.
+         * @description Get one upgrade step with the SQL it ran (the script text, or the statements issued while adding tables and columns from the entities) and the reason of a failure.
          *
          *     Requires permission maintenance.migrations.read (Read upgrade records).
          */
@@ -5655,7 +5655,7 @@ export interface paths {
         put?: never;
         /**
          * List upgrade records
-         * @description List upgrade script records page by page (successes and failures), newest first by default, filterable by version, script, node, outcome and time.
+         * @description List the upgrade steps of one database (scripts and adding tables and columns from the entities, successes and failures), newest first by default; pick the database with database and filter by run, version, script, node, outcome and time.
          *
          *     Requires permission maintenance.migrations.read (Read upgrade records).
          */
@@ -9810,13 +9810,79 @@ export interface paths {
         };
         /**
          * Get version
-         * @description Get one version ledger row by ID.
+         * @description Get the version ledger of one database by name (platform for the platform database, the tenant ID for a dedicated database).
          *
          *     Requires permission maintenance.versions.read (Read versions).
          */
         get: operations["versions.get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versions/{id}:plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview upgrade
+         * @description Read-only preview of the schema changes a database still needs for the current application version: the scripts to run (with their text), the tables to create, the columns to add and the indexes to create; nothing is applied.
+         *
+         *     Requires permission maintenance.versions.read (Read versions).
+         */
+        get: operations["versions.plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versions/{id}:release-lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Release upgrade lock
+         * @description Release an upgrade lock by hand when the node holding it is gone; it is released only while the given node still holds it, so a lock just taken by another node is never taken away.
+         *
+         *     Requires permission maintenance.versions.release-lock (Release upgrade locks).
+         */
+        post: operations["versions.release-lock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/versions/{id}:upgrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry upgrade
+         * @description Upgrade a dedicated tenant database again: only its own ledger row is locked and other calls are not affected; the tenant becomes available once it succeeds. The platform database is upgraded when a node starts and cannot be retried here.
+         *
+         *     Requires permission maintenance.versions.upgrade (Retry tenant database upgrades).
+         */
+        post: operations["versions.upgrade"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9834,7 +9900,7 @@ export interface paths {
         put?: never;
         /**
          * List versions
-         * @description List each database's version ledger page by page: schema version, the app version and time of the last upgrade, and whether an upgrade is running; maintained by the upgrade runner, read-only.
+         * @description List the version ledger of each database: provider, schema status, schema version, the application version and time of the last upgrade, the upgrade lock and the reason of the last failure.
          *
          *     Requires permission maintenance.versions.read (Read versions).
          */
@@ -14200,16 +14266,23 @@ export interface components {
              */
             modifiedAt?: string | null;
         };
-        /** @description 一个升级脚本的执行记录 */
+        /** @description 一步结构升级的执行记录 */
         MigrationResponse: {
             /**
              * Format: uuid
              * @description 记录 ID
              */
             id: string;
-            /** @description 脚本所在的版本目录 */
+            /** @description 记录所在的库：平台库为 platform，独立库为租户 ID */
+            database: string;
+            /**
+             * Format: uuid
+             * @description 所属的一次升级（同一次升级里各库的步骤相同；更早的记录为空）
+             */
+            runId?: string | null;
+            /** @description 这一步所属的版本 */
             version: string;
-            /** @description 脚本文件名 */
+            /** @description 脚本名，按实体建表补列为 orm-sync */
             scriptName: string;
             /**
              * Format: date-time
@@ -14227,6 +14300,8 @@ export interface components {
             nodeName?: string | null;
             /** @description 失败的原因 */
             errorMessage?: string | null;
+            /** @description 是否记下了执行的 SQL（取单条时带原文） */
+            hasSql: boolean;
         };
         /** @description 本人的一个开放接口凭证（密钥不回显） */
         MyApiCredentialResponse: {
@@ -15537,6 +15612,40 @@ export interface components {
             /** Format: double */
             processCpuUsagePercent?: number | null;
         };
+        /** @description 一个要建或要加的列 */
+        SchemaPlanColumnResponse: {
+            /** @description 列名 */
+            column: string;
+            /** @description 列类型（按这个库的类型名，带长度） */
+            type: string;
+            /** @description 是否可空 */
+            isNullable: boolean;
+        };
+        /** @description 一个要建的索引 */
+        SchemaPlanIndexResponse: {
+            /** @description 所在的表 */
+            table: string;
+            /** @description 索引名 */
+            index: string;
+        };
+        /** @description 一个要执行的升级脚本 */
+        SchemaPlanScriptResponse: {
+            /** @description 所属的版本 */
+            version: string;
+            /** @description 脚本名（库类型目录起的相对路径） */
+            script: string;
+            /** @description 脚本原文 */
+            sql: string;
+        };
+        /** @description 一张要建的表，或一张已有的表上要加的列 */
+        SchemaPlanTableResponse: {
+            /** @description 表名 */
+            table: string;
+            /** @description 是否新表（是即列为全部列） */
+            isNew: boolean;
+            /** @description 要建或要加的列 */
+            columns: components["schemas"]["SchemaPlanColumnResponse"][];
+        };
         /** @description 一个库的版本台账 */
         SchemaVersionResponse: {
             /**
@@ -15546,13 +15655,19 @@ export interface components {
             id: string;
             /** @description 哪个库：平台库为 platform */
             database: string;
+            /** @description 库类型；读不到台账时为空 */
+            provider?: string | null;
+            /** @description 结构状态 */
+            status: components["schemas"]["SchemaVersionStatus"];
             /** @description 最近一次升级这个库的应用版本 */
             appVersion: string;
-            /** @description 库的结构版本；还没执行过基线为 null */
+            /** @description 库的结构版本；新库还没升级为 null */
             dbVersion?: string | null;
-            /** @description 是否正在升级 */
+            /** @description 应用带的结构版本 */
+            targetVersion?: string | null;
+            /** @description 是否持着升级锁（过期的锁也算，可以手动释放） */
             isUpgrading: boolean;
-            /** @description 持有升级锁的节点 */
+            /** @description 持有升级锁、或最近一次持锁的节点 */
             upgradeNode?: string | null;
             /**
              * Format: date-time
@@ -15564,9 +15679,21 @@ export interface components {
              * @description 最近一次升级完成的时间
              */
             upgradedAt?: string | null;
+            /** @description 最近一次升级失败的原因；成功后清空 */
+            lastError?: string | null;
+            /**
+             * Format: date-time
+             * @description 最近一次升级失败的时间
+             */
+            lastFailedAt?: string | null;
             /** @description 读不到这个库的台账时的原因（其余列为空） */
             error?: string | null;
         };
+        /**
+         * @description 库的结构状态
+         * @enum {string}
+         */
+        SchemaVersionStatus: "Current" | "Behind" | "Upgrading" | "Failed" | "Unreachable";
         /** @description 一个后端依赖 */
         ServerPackageResponse: {
             /** @description 程序集名 */
@@ -34838,7 +34965,10 @@ export interface operations {
     };
     "migrations.get": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description 记录所在的库：不填为平台库，独立库为租户 ID */
+                database?: string | null;
+            };
             header?: never;
             path: {
                 /** @description 记录 ID */
@@ -34848,38 +34978,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description 一个升级脚本的执行记录 */
+            /** @description 一步结构升级的执行记录与执行的 SQL */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        /**
-                         * Format: uuid
-                         * @description 记录 ID
-                         */
-                        id: string;
-                        /** @description 脚本所在的版本目录 */
-                        version: string;
-                        /** @description 脚本文件名 */
-                        scriptName: string;
-                        /**
-                         * Format: date-time
-                         * @description 开始执行的时间
-                         */
-                        executedAt: string;
-                        /**
-                         * Format: int64
-                         * @description 耗时（毫秒）
-                         */
-                        durationMs: number;
-                        /** @description 是否成功 */
-                        success: boolean;
-                        /** @description 执行的节点 */
-                        nodeName?: string | null;
-                        /** @description 失败的原因 */
-                        errorMessage?: string | null;
+                        /** @description 执行记录 */
+                        migration: components["schemas"]["MigrationResponse"];
+                        /** @description 执行的 SQL：脚本原文，或按实体建表补列实际发出的语句；没有记下为空 */
+                        sqlText?: string | null;
                     };
                 };
             };
@@ -48410,13 +48519,19 @@ export interface operations {
                         id: string;
                         /** @description 哪个库：平台库为 platform */
                         database: string;
+                        /** @description 库类型；读不到台账时为空 */
+                        provider?: string | null;
+                        /** @description 结构状态 */
+                        status: components["schemas"]["SchemaVersionStatus"];
                         /** @description 最近一次升级这个库的应用版本 */
                         appVersion: string;
-                        /** @description 库的结构版本；还没执行过基线为 null */
+                        /** @description 库的结构版本；新库还没升级为 null */
                         dbVersion?: string | null;
-                        /** @description 是否正在升级 */
+                        /** @description 应用带的结构版本 */
+                        targetVersion?: string | null;
+                        /** @description 是否持着升级锁（过期的锁也算，可以手动释放） */
                         isUpgrading: boolean;
-                        /** @description 持有升级锁的节点 */
+                        /** @description 持有升级锁、或最近一次持锁的节点 */
                         upgradeNode?: string | null;
                         /**
                          * Format: date-time
@@ -48428,8 +48543,201 @@ export interface operations {
                          * @description 最近一次升级完成的时间
                          */
                         upgradedAt?: string | null;
+                        /** @description 最近一次升级失败的原因；成功后清空 */
+                        lastError?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次升级失败的时间
+                         */
+                        lastFailedAt?: string | null;
                         /** @description 读不到这个库的台账时的原因（其余列为空） */
                         error?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "versions.plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 哪个库：平台库为 platform，独立库为租户 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 一个库升到当前应用版本还要做的结构变更 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 库名 */
+                        database: string;
+                        /** @description 库类型 */
+                        provider: string;
+                        /** @description 台账上的结构版本；新库为 null */
+                        from?: string | null;
+                        /** @description 应用带的结构版本 */
+                        to: string;
+                        /** @description 这次升级会不会按实体建表补列：新库、有脚本要执行或应用版本变了才做 */
+                        syncDue: boolean;
+                        /** @description 要执行的脚本，按执行顺序 */
+                        scripts: components["schemas"]["SchemaPlanScriptResponse"][];
+                        /** @description 要建的表与要加的列 */
+                        tables: components["schemas"]["SchemaPlanTableResponse"][];
+                        /** @description 要建的索引 */
+                        indexes: components["schemas"]["SchemaPlanIndexResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "versions.release-lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 哪个库：平台库为 platform，独立库为租户 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 手动释放升级锁的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 哪个库：平台库为 platform，独立库为租户 ID */
+                    id: string;
+                    /** @description 持锁的节点（版本台账上显示的）：锁还在它手里才释放 */
+                    node: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 一个库的版本台账 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 台账行 ID
+                         */
+                        id: string;
+                        /** @description 哪个库：平台库为 platform */
+                        database: string;
+                        /** @description 库类型；读不到台账时为空 */
+                        provider?: string | null;
+                        /** @description 结构状态 */
+                        status: components["schemas"]["SchemaVersionStatus"];
+                        /** @description 最近一次升级这个库的应用版本 */
+                        appVersion: string;
+                        /** @description 库的结构版本；新库还没升级为 null */
+                        dbVersion?: string | null;
+                        /** @description 应用带的结构版本 */
+                        targetVersion?: string | null;
+                        /** @description 是否持着升级锁（过期的锁也算，可以手动释放） */
+                        isUpgrading: boolean;
+                        /** @description 持有升级锁、或最近一次持锁的节点 */
+                        upgradeNode?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 这一轮升级的开始时间
+                         */
+                        upgradeStartedAt?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次升级完成的时间
+                         */
+                        upgradedAt?: string | null;
+                        /** @description 最近一次升级失败的原因；成功后清空 */
+                        lastError?: string | null;
+                        /**
+                         * Format: date-time
+                         * @description 最近一次升级失败的时间
+                         */
+                        lastFailedAt?: string | null;
+                        /** @description 读不到这个库的台账时的原因（其余列为空） */
+                        error?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "versions.upgrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 哪个库：平台库为 platform，独立库为租户 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 指定一个库的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 哪个库：平台库为 platform，独立库为租户 ID */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 重试升级一个租户独立库的结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 库名（租户 ID） */
+                        database: string;
+                        /**
+                         * Format: uuid
+                         * @description 这次升级的批次号（升级记录里按它筛）
+                         */
+                        runId: string;
+                        /** @description 升级前的结构版本 */
+                        from?: string | null;
+                        /** @description 升级后的结构版本 */
+                        to?: string | null;
+                        /** @description 执行了的步骤 */
+                        applied: string[];
                     };
                 };
             };

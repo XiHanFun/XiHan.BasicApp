@@ -37,7 +37,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 1. 装配全部能力包；数据库绑定缺失即以 `RUNTIME_VALIDATION_001` 中断启动。
 2. Development 打开了 `InitTables`，按已登记的实体建缺表、加缺列。
-3. 表结构升级器执行 `Schema/6.0.0/*.sql` 并写版本台账，失败即中断启动（`BasicApp:Schema:AutoUpgrade`，缺省开）；库不存在时先建库（`BasicApp:Schema:CreateDatabase`，Development 打开）。
+3. 表结构升级器按实体建表补列、执行比台账新的升级脚本并写版本台账，平台库失败即中断启动（`BasicApp:Schema:AutoUpgrade`，缺省开）；库不存在时先建库（`BasicApp:Schema:CreateDatabase`，Development 打开）。
 4. 执行一遍种子，失败即中断启动（`BasicApp:Seed:RunOnStartup`，Development 打开），见下一节。
 5. 监听 `http://localhost:9710`（HTTP）与 `http://127.0.0.1:9711`（gRPC），浏览器打开 `/scalar` 接口文档。
 

@@ -346,6 +346,10 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         using (var client = new SqlSugarClient(SqlSugarConventions.Apply(Configure(shard.ConnectionString))))
         {
             client.CodeFirst.InitTables<SysKnowledgeDocument>();
+            // 就绪的独立库都有台账、在当前结构版本：没有的话启动核对把这个租户判为不可用
+            SqlSugarConventions.InitTables(client, typeof(SysVersion), typeof(SysMigrationHistory));
+            var versions = SchemaScripts.Discover(new SchemaOptions().Directory, DatabaseProviders.Sqlite).ValueOrThrow();
+            client.Insertable(new SysVersion { Id = SysVersion.RowId, AppVersion = XiHan.BasicApp.Contracts.AppInfo.Version, DbVersion = SchemaScripts.NameOf(SchemaScripts.Current(versions)), ConcurrencyStamp = Guid.NewGuid().ToString("N") }).ExecuteCommand();
         }
 
         await using var server = await StartAsync(acmeProperties: new Dictionary<string, string>(StringComparer.Ordinal)

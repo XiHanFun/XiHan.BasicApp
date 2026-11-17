@@ -6,20 +6,35 @@
 <script setup lang="ts">
 import type { MigrationRow } from './migration'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { booleanTone } from '@/modules/auditing/components/log-tones'
 import LogDetailDrawer from '@/modules/auditing/components/LogDetailDrawer.vue'
 import { useLogDetail } from '@/modules/auditing/components/use-log-detail'
 import { renderTag, SchemaPage } from '~/components'
-import { getMigration, migrationDetailSchema, migrationResource, successLabel, successOptions } from './migration'
+import { toast } from '~/composables'
+import { errorText } from '../jobs/job'
+import { databaseOptions, getMigration, migrationDetailSchema, migrationResource, PLATFORM_DATABASE, successLabel, successOptions } from './migration'
 
 defineOptions({ name: 'MaintenanceMigrationsView' })
 
 const { t } = useI18n()
-const resource = migrationResource()
+// 记录在各自的库里：列表记下每行所在的库，详情按它取
+const rowDatabases = new Map<string, string>()
+const resource = migrationResource(rowDatabases)
 // 详情抽屉与审计包的日志页共用：先用列表行垫上，再取详情；取不到就留着列表行并提示
-const { visible: detailVisible, loading: detailLoading, record: detailRecord, open: openDetail } = useLogDetail<MigrationRow>(getMigration, () => t('maintenance.migrations.detail_load_failed'))
+const { visible: detailVisible, loading: detailLoading, record: detailRecord, open: openDetail } = useLogDetail<MigrationRow>(id => getMigration(id, rowDatabases.get(id) ?? PLATFORM_DATABASE), () => t('maintenance.migrations.detail_load_failed'))
+
+// 库的选项取自版本台账：平台库与已就绪的租户独立库
+const databases = ref<{ label: string, value: string }[]>([])
+onMounted(async () => {
+  try {
+    databases.value = await databaseOptions(t('maintenance.versions.platform_database'))
+  }
+  catch (error) {
+    toast.danger(errorText(error) || t('maintenance.migrations.database_load_failed'))
+  }
+})
 
 const asRow = (row: unknown) => row as MigrationRow
 
@@ -33,6 +48,30 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchable: true,
     searchPlaceholder: t('maintenance.migrations.keyword_placeholder'),
     order: 0,
+  },
+  {
+    key: 'database',
+    title: t('maintenance.migrations.database'),
+    dataType: 'enum',
+    searchable: true,
+    options: databases.value,
+    searchPlaceholder: t('maintenance.migrations.database_placeholder'),
+    width: 140,
+    order: 1,
+    render: row => asRow(row).database === PLATFORM_DATABASE
+      ? t('maintenance.versions.platform_database')
+      : asRow(row).database,
+  },
+  {
+    key: 'runId',
+    title: t('maintenance.migrations.run_id'),
+    dataType: 'string',
+    advancedSearch: true,
+    searchPlaceholder: t('maintenance.migrations.run_id_placeholder'),
+    width: 120,
+    order: 2,
+    // 批次号只显示前 8 位，同一次升级的步骤一眼能对上；完整值在详情里
+    render: row => asRow(row).runId?.slice(0, 8) ?? '-',
   },
   {
     key: 'version',

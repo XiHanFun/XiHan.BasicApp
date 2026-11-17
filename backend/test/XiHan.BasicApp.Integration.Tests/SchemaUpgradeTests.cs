@@ -49,6 +49,17 @@ public sealed class SchemaUpgradeTests
         Assert.Equal(JsonValueKind.Null, report.GetProperty("from").ValueKind);
         Assert.Equal(Baseline, report.GetProperty("to").GetString());
         Assert.Equal($"{Baseline}/{SysMigrationHistory.OrmSync}", Assert.Single(report.GetProperty("applied").EnumerateArray()).GetString());
+        Assert.Equal(0, report.GetProperty("failures").GetArrayLength());
+
+        // schema plan：升完之后平台库没有要做的
+        Assert.True(SchemaCommand.IsBeforeStart(["schema", "plan"]));
+        using var planOutput = new StringWriter();
+        Assert.Equal(CommandLineExitCodes.Success, await SchemaCommand.RunBeforeStartAsync(["schema", "plan"], app.Services, planOutput, error, TestContext.Current.CancellationToken));
+        var plan = Assert.Single(JsonElement.Parse(planOutput.ToString()).GetProperty("plans").EnumerateArray());
+        Assert.Equal(SchemaUpgrader.PlatformDatabase, plan.GetProperty("database").GetString());
+        Assert.Equal(Baseline, plan.GetProperty("from").GetString());
+        Assert.Equal(0, plan.GetProperty("scripts").GetArrayLength());
+        Assert.Equal(0, plan.GetProperty("tables").GetArrayLength());
 
         // 升级之后同一个库能正常启动，表都在（还没执行种子，登录是账号不存在）
         await using var server = await BasicAppTestServer.StartAsync(database.ConnectionString, DatabaseProviders.PostgreSql, settings);

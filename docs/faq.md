@@ -19,7 +19,7 @@
 ### 宿主启动后立即退出
 
 - 日志有 `RUNTIME_VALIDATION_001`：没有配置 `XiHan:Bindings:db`。
-- 日志有 `Startup aborted: schema upgrade failed`：表结构升级脚本执行失败，看后面的错误码与信息；修好后重启即可，台账里记着执行到哪。
+- 日志有 `Startup aborted: schema upgrade failed`：平台库的表结构升级失败，看后面的错误码与信息；修好后重启即可，台账与升级记录里记着执行到哪、为什么失败。发版前可以先用 `schema plan` 看要做哪些变更。
 - JWT 密钥或签名地址密钥缺失、不足 32 字节：非 Development 环境必须配 `XiHan:Security:Jwt:Secret` 与 `XiHan:ObjectStorage:SignedUrls:Secret`。
 - 框架节写了空的 `[]` / `{}`：整项删掉，见[配置参考](./configuration#文件与优先级)。
 
@@ -30,6 +30,10 @@
 ```bash
 dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- seed
 ```
+
+### 某个租户的调用全部返回 503，`code` 是 `RUNTIME_UNAVAILABLE_007`
+
+这个租户的独立库没有升级到当前结构版本（升级失败，或关掉自动升级后还没跑 `schema upgrade`），别的租户与平台不受影响。到「系统管理 › 系统服务 › 版本管理」看这一行的失败原因与升级预览，修好后用「重试升级」；成功后各节点在一分钟内放行。见[表结构升级](./backend/upgrade#执行顺序)。
 
 ### 前端提示跨域错误
 

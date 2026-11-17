@@ -9,22 +9,30 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, PageRequest, ResponseOf } from '~/contracts'
 import type { QueryFilter } from '~/types/contracts'
 import { booleanTone } from '@/modules/auditing/components/log-tones'
-import { migrations as migrationsApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import { migrations as migrationsApi, toPageRequest, toSchemaPageResult, versions as versionsApi } from '~/contracts'
 import { QueryOperator } from '~/types/contracts'
 
-/** 升级脚本的一次执行记录 */
+/** 一步结构升级的执行记录（脚本或按实体建表补列） */
 export type MigrationRow = ResponseOf<'migrations.list'>['items'][number]
+
+/** 详情：执行记录摊平，带执行的 SQL */
+export type MigrationDetail = MigrationRow & { sqlText: string | null }
+
+/** 平台库的库名；不选库即平台库 */
+export const PLATFORM_DATABASE = 'platform'
 type PageFilter = PageRequest['filters'][number]
 
 /** 执行时间的区间筛选另行换算（后端收 `ge` / `lt`，PageQueryMapping 的区间拆成的是 `ge` / `le`） */
 const EXECUTED_AT = 'executedAt'
 
 /**
- * 列表的后端筛选：关键字匹配版本、脚本名与节点；版本、脚本名与节点按包含匹配，执行结果精确匹配
+ * 列表的后端筛选：按 database 选库（记录在各自的库里）；关键字匹配版本、脚本名与节点；版本、脚本名与节点按包含匹配，执行结果与批次精确匹配
  * 缺省（不排序）由后端按执行时间倒序
  */
 export const MIGRATION_QUERY: PageQueryMapping = {
   filters: {
+    database: 'eq',
+    runId: 'eq',
     version: 'contains',
     scriptName: 'contains',
     nodeName: 'contains',
@@ -86,16 +94,45 @@ export function successOptions(t: Translate): { label: string, value: string }[]
   ]
 }
 
-/** SchemaPage 的资源：只有分页（升级记录由升级执行器写入，只读） */
-export function migrationResource(): SchemaResource<MigrationRow> {
+/**
+ * SchemaPage 的资源：只有分页（升级记录由升级执行器写入，只读）
+ * 记下每行所在的库：详情按记录 ID 与库名取
+ */
+export function migrationResource(databases: Map<string, string>): SchemaResource<MigrationRow> {
   return {
-    page: async (params: SchemaQueryParams) => toSchemaPageResult(await migrationsApi.list(toMigrationsRequest(params)), params),
+    page: async (params: SchemaQueryParams) => {
+      const result = await migrationsApi.list(toMigrationsRequest(params))
+      for (const row of result.items)
+        databases.set(row.id, row.database)
+      return toSchemaPageResult(result, params)
+    },
   }
 }
 
-/** 详情：按记录 ID 取（含失败原因） */
-export function getMigration(id: string): Promise<MigrationRow> {
-  return migrationsApi.get({ id })
+/** 详情：按记录 ID 与所在的库取（含失败原因与执行的 SQL） */
+export async function getMigration(id: string, database: string): Promise<MigrationDetail> {
+  const detail = await migrationsApi.get({
+    id,
+    database: database === PLATFORM_DATABASE
+      ? null
+      : database,
+  })
+  return { ...detail.migration, sqlText: detail.sqlText ?? null }
+}
+
+/** 库的选项：平台库与已就绪的租户独立库（取自版本台账） */
+export async function databaseOptions(platformLabel: string): Promise<{ label: string, value: string }[]> {
+  const result = await versionsApi.list({
+    page: { index: 1, size: 200 },
+    filters: [],
+    sorts: [],
+  })
+  return result.items.map(row => ({
+    label: row.database === PLATFORM_DATABASE
+      ? platformLabel
+      : row.database,
+    value: row.database,
+  }))
 }
 
 /** 升级记录详情抽屉的定义，与审计包的日志详情同一套写法 */
@@ -139,14 +176,30 @@ export function migrationDetailSchema(t: Translate): LogDetailSchema {
         label: t('maintenance.migrations.node_name'),
       },
       {
+        key: 'database',
+        label: t('maintenance.migrations.database'),
+        group: 'trace',
+      },
+      {
         key: 'id',
         label: t('maintenance.migrations.record_id'),
         group: 'trace',
         mono: true,
       },
       {
+        key: 'runId',
+        label: t('maintenance.migrations.run_id'),
+        group: 'trace',
+        mono: true,
+      },
+      {
         key: 'errorMessage',
         label: t('maintenance.migrations.error_message'),
+        type: 'code',
+      },
+      {
+        key: 'sqlText',
+        label: t('maintenance.migrations.sql_text'),
         type: 'code',
       },
     ],

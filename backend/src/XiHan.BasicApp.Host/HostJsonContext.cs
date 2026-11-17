@@ -17,4 +17,5 @@ namespace XiHan.BasicApp.Host;
 [JsonSerializable(typeof(HostInfo))]
 [JsonSerializable(typeof(SeedReport))]
 [JsonSerializable(typeof(SchemaUpgradeReport))]
+[JsonSerializable(typeof(SchemaPlanResult))]
 internal sealed partial class HostJsonContext : JsonSerializerContext;

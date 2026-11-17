@@ -33,15 +33,20 @@ describe('版本管理的导出', () => {
     })
   })
 
-  it('库名写显示文本，升级状态写文案，读不到台账的原因单独成列', async () => {
+  it('库名写显示文本，结构状态写文案，失败原因与读不到台账的原因各成一列', async () => {
     const row = {
       database: 'platform',
+      provider: 'postgresql',
+      status: 'Upgrading',
       appVersion: '6.0.0',
       dbVersion: '6.0.0',
+      targetVersion: '6.0.0',
       isUpgrading: true,
       upgradeNode: null,
       upgradeStartedAt: null,
       upgradedAt: null,
+      lastError: null,
+      lastFailedAt: null,
       error: null,
     }
     configureRequest({
@@ -53,6 +58,10 @@ describe('版本管理的导出', () => {
           {
             ...row,
             database: 'tenant_acme',
+            provider: null,
+            status: 'Unreachable',
+            dbVersion: null,
+            targetVersion: null,
             isUpgrading: false,
             error: 'boom',
           },
@@ -73,8 +82,8 @@ describe('版本管理的导出', () => {
       sorts: [],
     })
     const [header, platform, tenant] = toCsv(toExportFields(schema, () => true), items).replace('﻿', '').split('\r\n')
-    expect(header).toBe('数据库,应用版本,数据库版本,升级状态,升级节点,升级开始时间,最近升级时间,读取失败的原因')
-    expect(platform).toBe('平台库,6.0.0,6.0.0,升级中,-,-,-,-')
-    expect(tenant).toBe('tenant_acme,6.0.0,6.0.0,正常,-,-,-,boom')
+    expect(header).toBe('数据库,库类型,结构状态,数据库版本,应用的结构版本,应用版本,升级节点,最近升级时间,最近一次失败的原因,升级开始时间,最近一次失败时间,读取失败的原因')
+    expect(platform).toBe('平台库,postgresql,升级中,6.0.0,6.0.0,6.0.0,-,-,-,-,-,-')
+    expect(tenant).toBe('tenant_acme,-,不可达,-,-,6.0.0,-,-,-,-,-,boom')
   })
 })

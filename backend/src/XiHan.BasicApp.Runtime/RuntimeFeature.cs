@@ -18,6 +18,7 @@ using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.MultiTenancy.Abstractions.Resolution;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -61,6 +62,7 @@ public sealed class RuntimeFeature : IHostedFeature
             [
                 new PipelineContribution(typeof(CacheInvalidationMiddleware).FullName!, PipelineStage.Transaction) { Before = [typeof(UnitOfWorkMiddleware).FullName!] },
                 new PipelineContribution(typeof(AuditorStampMiddleware).FullName!, PipelineStage.Transaction),
+                new PipelineContribution(typeof(TenantSchemaGateMiddleware).FullName!, PipelineStage.Tenant) { After = [typeof(TenantResolutionMiddleware).FullName!] },
             ],
             Permissions = RuntimePermissions.All.Select(static p => p.Code).ToList(),
         },
@@ -82,6 +84,10 @@ public sealed class RuntimeFeature : IHostedFeature
         context.Services.AddSingleton(_ => EntityTypeCatalog.From(registrations));
         context.Services.AddSingleton<MaintenanceModeState>();
         context.Services.AddHostedService(static sp => sp.GetRequiredService<MaintenanceModeState>());
+        // 没有升级到当前结构版本的租户独立库：启动升级与重试记下，启动后核对一遍、之后复查，调用拦下、健康项降级
+        context.Services.AddSingleton<SchemaHealth>();
+        context.Services.AddSingleton<IHealthContributor, SchemaHealthContributor>();
+        context.Services.AddHostedService<TenantSchemaWatch>();
         context.Services.AddRepository<SysVersion, Guid>();
         context.Services.AddRepository<SysMigrationHistory, Guid>();
         context.Services.AddSingleton<ITenantScopeRunner, TenantScopeRunner>();
@@ -105,6 +111,9 @@ public sealed class RuntimeFeature : IHostedFeature
         // 失效要落在工作单元提交或回滚之后：排在 Transaction 阶段开头，并显式排在框架工作单元中间件之前
         context.AddMiddleware<CacheInvalidationMiddleware>(PipelineStage.Transaction, Placement.Beginning);
         context.Pipeline.Before<CacheInvalidationMiddleware, UnitOfWorkMiddleware>();
+        // 租户解析之后才知道调用的租户
+        context.AddMiddleware<TenantSchemaGateMiddleware>(PipelineStage.Tenant);
+        context.Pipeline.After<TenantSchemaGateMiddleware, TenantResolutionMiddleware>();
     }
 
     /// <inheritdoc />

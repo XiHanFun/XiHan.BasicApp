@@ -293,7 +293,7 @@ export const routes = {
   'message-templates.get': { method: 'GET', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
   'message-templates.list': { method: 'POST', template: '/api/message-templates:list', path: [], query: [], success: 200 },
   'message-templates.update': { method: 'PUT', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
-  'migrations.get': { method: 'GET', template: '/api/migrations/{id}', path: ['id'], query: [], success: 200 },
+  'migrations.get': { method: 'GET', template: '/api/migrations/{id}', path: ['id'], query: ['database'], success: 200 },
   'migrations.list': { method: 'POST', template: '/api/migrations:list', path: [], query: [], success: 200 },
   'my-activity.summary': { method: 'GET', template: '/api/my-activity:summary', path: [], query: ['timeZone'], success: 200 },
   'my-api-credentials.create': { method: 'POST', template: '/api/my-api-credentials', path: [], query: [], success: 201 },
@@ -511,6 +511,9 @@ export const routes = {
   'users.update': { method: 'PUT', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
   'versions.get': { method: 'GET', template: '/api/versions/{id}', path: ['id'], query: [], success: 200 },
   'versions.list': { method: 'POST', template: '/api/versions:list', path: [], query: [], success: 200 },
+  'versions.plan': { method: 'GET', template: '/api/versions/{id}:plan', path: ['id'], query: [], success: 200 },
+  'versions.release-lock': { method: 'POST', template: '/api/versions/{id}:release-lock', path: ['id'], query: [], success: 200 },
+  'versions.upgrade': { method: 'POST', template: '/api/versions/{id}:upgrade', path: ['id'], query: [], success: 200 },
   'workbench.widget-data': { method: 'GET', template: '/api/workbench:widget-data', path: [], query: ['key', 'days', 'offset'], success: 200 },
   'workbench.widgets': { method: 'GET', template: '/api/workbench:widgets', path: [], query: [], success: 200 },
   'workflow-assignees.departments': { method: 'GET', template: '/api/workflow-assignees:departments', path: [], query: [], success: 200 },
@@ -1388,6 +1391,9 @@ export const users = {
 export const versions = {
   get: (request: RequestOf<'versions.get'>, options?: CallOptions) => invoke<RequestOf<'versions.get'>, ResponseOf<'versions.get'>>('versions.get', routes['versions.get'], request, options),
   list: (request: RequestOf<'versions.list'>, options?: CallOptions) => invoke<RequestOf<'versions.list'>, ResponseOf<'versions.list'>>('versions.list', routes['versions.list'], request, options),
+  plan: (request: RequestOf<'versions.plan'>, options?: CallOptions) => invoke<RequestOf<'versions.plan'>, ResponseOf<'versions.plan'>>('versions.plan', routes['versions.plan'], request, options),
+  releaseLock: (request: RequestOf<'versions.release-lock'>, options?: CallOptions) => invoke<RequestOf<'versions.release-lock'>, ResponseOf<'versions.release-lock'>>('versions.release-lock', routes['versions.release-lock'], request, options),
+  upgrade: (request: RequestOf<'versions.upgrade'>, options?: CallOptions) => invoke<RequestOf<'versions.upgrade'>, ResponseOf<'versions.upgrade'>>('versions.upgrade', routes['versions.upgrade'], request, options),
 }
 
 /** 资源 `workbench` 的操作 */

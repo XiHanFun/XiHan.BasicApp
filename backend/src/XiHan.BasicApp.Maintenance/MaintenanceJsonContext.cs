@@ -56,4 +56,8 @@ namespace XiHan.BasicApp.Maintenance;
 [JsonSerializable(typeof(SchemaVersionResponse))]
 [JsonSerializable(typeof(PageResult<MigrationResponse>))]
 [JsonSerializable(typeof(MigrationResponse))]
+[JsonSerializable(typeof(MigrationDetailResponse))]
+[JsonSerializable(typeof(ReleaseVersionLockRequest))]
+[JsonSerializable(typeof(SchemaPlanResponse))]
+[JsonSerializable(typeof(SchemaUpgradeResponse))]
 public sealed partial class MaintenanceJsonContext : JsonSerializerContext;

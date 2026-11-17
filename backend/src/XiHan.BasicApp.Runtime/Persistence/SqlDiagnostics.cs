@@ -63,11 +63,21 @@ public sealed partial class SqlDiagnostics(DatabaseOptions options, ILogger? log
     public void Attach(AopEvents events)
     {
         ArgumentNullException.ThrowIfNull(events);
-        if (options.LogSql || options.LogSlowSql)
+        var timed = options.LogSql || options.LogSlowSql;
+        if (timed)
         {
             events.OnLogExecuting = (_, _) => _startedAt.Value = Stopwatch.GetTimestamp();
-            events.OnLogExecuted = (sql, _) => Executed(sql);
         }
+
+        // 结构升级收集发出的 DDL 不看日志开关
+        events.OnLogExecuted = (sql, _) =>
+        {
+            DdlCapture.Active?.Record(sql);
+            if (timed)
+            {
+                Executed(sql);
+            }
+        };
 
         if (options.LogSqlErrors)
         {

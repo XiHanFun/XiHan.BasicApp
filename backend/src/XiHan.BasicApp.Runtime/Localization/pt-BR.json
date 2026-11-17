@@ -1,5 +1,6 @@
 {
-  "permissions.runtime.cloud_events.deliver.name": "Entregar CloudEvents",
   "permissions.runtime.cloud_events.deliver.description": "Entregar eventos ao endpoint de entrada de CloudEvents; conceda-a apenas a contas de serviço da plataforma ou a papéis de serviço.",
+  "permissions.runtime.cloud_events.deliver.name": "Entregar CloudEvents",
+  "runtime.schema.tenant_unavailable": "O banco de dados do locatário '{tenant}' ainda não foi atualizado para a versão atual e está indisponível no momento; entre em contato com o administrador.",
   "runtime.sweep.incomplete": "O trabalho em segundo plano '{job}' falhou em {failures} pontos; veja os logs para mais detalhes."
 }

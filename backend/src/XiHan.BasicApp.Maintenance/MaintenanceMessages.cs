@@ -147,6 +147,21 @@ public static class MaintenanceMessages
     public const string GetVersionDescription = "versions.get.description";
 
     /// <summary>
+    /// 操作 <c>versions.plan</c> 的说明
+    /// </summary>
+    public const string PlanVersionDescription = "versions.plan.description";
+
+    /// <summary>
+    /// 操作 <c>versions.upgrade</c> 的说明
+    /// </summary>
+    public const string UpgradeVersionDescription = "versions.upgrade.description";
+
+    /// <summary>
+    /// 操作 <c>versions.release-lock</c> 的说明
+    /// </summary>
+    public const string ReleaseVersionLockDescription = "versions.release_lock.description";
+
+    /// <summary>
     /// 操作 <c>migrations.list</c> 的说明
     /// </summary>
     public const string ListMigrationsDescription = "migrations.list.description";
@@ -271,6 +286,19 @@ public static class MaintenanceMessages
     /// 参数 <c>id</c>
     /// </remarks>
     public const string SchemaRecordNotFound = "maintenance.schema.not_found";
+
+    /// <summary>
+    /// 平台库不能在维护页里重试升级
+    /// </summary>
+    public const string PlatformUpgradeAtStartup = "maintenance.schema.platform_upgrade_at_startup";
+
+    /// <summary>
+    /// 升级锁不在指定的节点手里
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>、<c>node</c>
+    /// </remarks>
+    public const string SchemaLockNotHeld = "maintenance.schema.lock_not_held";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(MaintenanceMessages)));
 

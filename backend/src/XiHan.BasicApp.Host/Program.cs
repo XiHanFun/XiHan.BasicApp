@@ -17,8 +17,8 @@ if (ContractsExporter.TryParse(args, out var outputDirectory))
 if (CommandLineMode.IsCommand(args))
 {
     var commandApp = BasicAppHost.Create(args, CommandLineMode.Configure);
-    return SchemaCommand.IsUpgrade(args)
-        ? await SchemaCommand.UpgradeBeforeStartAsync(commandApp.Services, Console.Out, Console.Error, CancellationToken.None)
+    return SchemaCommand.IsBeforeStart(args)
+        ? await SchemaCommand.RunBeforeStartAsync(args, commandApp.Services, Console.Out, Console.Error, CancellationToken.None)
         : await commandApp.RunXiHanCommandLineAsync(args);
 }
 

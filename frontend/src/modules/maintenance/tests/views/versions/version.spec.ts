@@ -1,6 +1,6 @@
 import type { VersionRow } from '@/modules/maintenance/views/versions/version'
 import { describe, expect, it } from 'vitest'
-import { databaseLabel, getVersion, upgradingLabel, upgradingOptions, upgradingTone, VERSION_QUERY, versionResource } from '@/modules/maintenance/views/versions/version'
+import { canReleaseLock, canUpgrade, databaseLabel, getVersion, planVersion, releaseVersionLock, statusLabel, statusOptions, statusTone, upgradeVersion, VERSION_QUERY, versionResource } from '@/modules/maintenance/views/versions/version'
 import { toPageRequest } from '~/contracts'
 import { configureRequest } from '~/request'
 
@@ -32,16 +32,21 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
 const ROW: VersionRow = {
   id: '0199a1b2-0000-7000-8000-000000000001',
   database: 'platform',
+  provider: 'postgresql',
+  status: 'Current',
   appVersion: '6.0.0',
   dbVersion: '6.0.0',
+  targetVersion: '6.0.0',
   isUpgrading: false,
   upgradeNode: null,
   upgradeStartedAt: '2026-10-30T02:00:00Z',
   upgradedAt: '2026-10-30T02:00:03Z',
+  lastError: null,
+  lastFailedAt: null,
 }
 
 describe('版本管理：列表筛选', () => {
-  it('应用版本、数据库版本与升级状态精确匹配，关键字去空白，排序原样下发', () => {
+  it('应用版本、数据库版本、库类型与结构状态精确匹配，关键字去空白，排序原样下发', () => {
     const request = toPageRequest({
       page: 1,
       pageSize: 20,
@@ -49,7 +54,8 @@ describe('版本管理：列表筛选', () => {
         keyword: ' node ',
         appVersion: '6.0.0',
         dbVersion: ' 5.9.0 ',
-        isUpgrading: 'true',
+        provider: 'mysql',
+        status: 'Failed',
       },
       sorts: [
         { field: 'upgradedAt', order: 'desc' },
@@ -61,7 +67,8 @@ describe('版本管理：列表筛选', () => {
       filters: [
         { field: 'appVersion', operator: 'eq', value: '6.0.0' },
         { field: 'dbVersion', operator: 'eq', value: '5.9.0' },
-        { field: 'isUpgrading', operator: 'eq', value: 'true' },
+        { field: 'provider', operator: 'eq', value: 'mysql' },
+        { field: 'status', operator: 'eq', value: 'Failed' },
       ],
       sorts: [
         { field: 'upgradedAt', descending: true },
@@ -79,16 +86,40 @@ describe('版本管理：列表筛选', () => {
 })
 
 describe('版本管理：文案', () => {
-  it('平台库显示「平台库」，租户库原样；升级中黄、正常绿；搜索选项按 true / false 下发', () => {
+  it('平台库显示「平台库」，租户库原样；结构状态最新绿、待升级黄、升级中蓝、失败与不可达红；搜索选项按状态名下发', () => {
     expect(databaseLabel(t, 'platform')).toBe('maintenance.versions.platform_database')
     expect(databaseLabel(t, 'tenant_acme')).toBe('tenant_acme')
-    expect(upgradingLabel(t, true)).toBe('maintenance.versions.upgrading')
-    expect(upgradingLabel(t, false)).toBe('maintenance.versions.normal')
-    expect([
-      upgradingTone(true),
-      upgradingTone(false),
-    ]).toEqual(['warning', 'success'])
-    expect(upgradingOptions(t).map(option => option.value)).toEqual(['true', 'false'])
+    expect(statusLabel(t, 'Failed')).toBe('maintenance.versions.status_failed')
+    expect(([
+      'Current',
+      'Behind',
+      'Upgrading',
+      'Failed',
+      'Unreachable',
+    ] as const).map(statusTone)).toEqual([
+      'success',
+      'warning',
+      'info',
+      'danger',
+      'danger',
+    ])
+    expect(statusOptions(t).map(option => option.value)).toEqual([
+      'Current',
+      'Behind',
+      'Upgrading',
+      'Failed',
+      'Unreachable',
+    ])
+  })
+
+  it('只有失败或待升级的租户独立库能重试；台账标着升级中且有节点才能释放锁', () => {
+    expect(canUpgrade({ ...ROW, database: 'acme', status: 'Failed' })).toBe(true)
+    expect(canUpgrade({ ...ROW, database: 'acme', status: 'Behind' })).toBe(true)
+    expect(canUpgrade({ ...ROW, database: 'acme', status: 'Current' })).toBe(false)
+    expect(canUpgrade({ ...ROW, status: 'Failed' })).toBe(false)
+    expect(canReleaseLock({ ...ROW, isUpgrading: true, upgradeNode: 'ghost:1' })).toBe(true)
+    expect(canReleaseLock({ ...ROW, isUpgrading: true, upgradeNode: null })).toBe(false)
+    expect(canReleaseLock(ROW)).toBe(false)
   })
 })
 
@@ -125,5 +156,21 @@ describe('版本管理：资源', () => {
     expect(result.page.totalCount).toBe(1)
     expect(await getVersion('tenant_acme')).toEqual(ROW)
     expect(calls[1]).toMatchObject({ method: 'GET', url: '/api/versions/tenant_acme' })
+  })
+
+  it('预览走 GET，重试与释放锁走 POST，库名在路径里', async () => {
+    const calls = stub({}, {}, ROW)
+    await planVersion('acme')
+    await upgradeVersion('acme')
+    await releaseVersionLock('platform', 'ghost:1')
+    expect(calls).toMatchObject([
+      { method: 'GET', url: '/api/versions/acme:plan' },
+      { method: 'POST', url: '/api/versions/acme:upgrade' },
+      {
+        method: 'POST',
+        url: '/api/versions/platform:release-lock',
+        body: { node: 'ghost:1' },
+      },
+    ])
   })
 })

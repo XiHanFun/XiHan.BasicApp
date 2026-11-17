@@ -74,6 +74,7 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
             {
                 return snapshot.Error!;
             }
+
             var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
             SchemaMigration.Sync(shard, types);
             var current = SchemaScripts.NameOf(SchemaScripts.Current(versions));
@@ -97,9 +98,15 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
     /// </summary>
     /// <remarks>
     /// 只对已初始化的库调用；库比应用新即 <see cref="RuntimeErrors.SchemaNewerThanApp"/>。每一步成功与失败都记进该库的升级记录，失败即停
+    /// 升级期间锁这个库自己的台账行（<see cref="SchemaLock"/>）：启动升级与手动重试不会同时升同一个库
     /// </remarks>
-    public async Task<Result<SchemaUpgradeReport>> UpgradeAsync(string tenantId, string node, CancellationToken cancellationToken)
+    /// <param name="tenantId">租户 ID</param>
+    /// <param name="run">这一次升级</param>
+    /// <param name="wait">别的节点正在升级这个库时最多等多久</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result<SchemaUpgradeReport>> UpgradeAsync(string tenantId, SchemaRun run, TimeSpan wait, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(run);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         await using var scope = scopes.CreateAsyncScope();
         var bound = await BindAsync(scope.ServiceProvider, tenantId, cancellationToken).ConfigureAwait(false);
@@ -121,21 +128,149 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
             {
                 return snapshot.Error!;
             }
+
             var row = await shard.Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false);
             if (row?.DbVersion is null)
             {
                 return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"The database of tenant '{tenantId}' has no schema version; initialize it first.");
             }
 
-            var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
-            var upgraded = await SchemaMigration.ApplyAsync(shard, () => SchemaMigration.Sync(shard, types), versions, tenant: true, node, clock, logger, cancellationToken).ConfigureAwait(false);
-            return upgraded.IsFailure
-                ? Error.Literal(upgraded.Error!.Code, $"Tenant '{tenantId}': {upgraded.Error.Text ?? upgraded.Error.Code}")
-                : upgraded;
+            var locked = await SchemaLock.AcquireAsync(shard, run.Node, options.LockExpiry, wait, clock, logger, cancellationToken).ConfigureAwait(false);
+            if (locked.IsFailure)
+            {
+                return Error.Literal(locked.Error!.Code, $"Tenant '{tenantId}': {locked.Error.Message}");
+            }
+
+            try
+            {
+                var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
+                var upgraded = await SchemaMigration.ApplyAsync(shard, () => SchemaMigration.Sync(shard, types), versions, tenant: true, run, clock, logger, cancellationToken).ConfigureAwait(false);
+                return upgraded.IsFailure
+                    ? Error.Literal(upgraded.Error!.Code, $"Tenant '{tenantId}': {upgraded.Error.Text ?? upgraded.Error.Code}")
+                    : upgraded;
+            }
+            finally
+            {
+                await SchemaLock.ReleaseAsync(shard, run.Node, CancellationToken.None).ConfigureAwait(false);
+            }
         }
         catch (Exception exception) when (exception is DbException or SqlSugarException)
         {
             return Error.Literal(RuntimeErrors.SchemaUpgradeFailed, $"Upgrading the database of tenant '{tenantId}' failed: {exception.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 释放租户独立库的升级锁
+    /// </summary>
+    /// <param name="tenantId">租户 ID</param>
+    /// <param name="node">持锁的节点</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>锁确实在这个节点手里、已释放为 <see langword="true"/></returns>
+    public Task<Result<bool>> ReleaseLockAsync(string tenantId, string node, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(node);
+        return ReadAsync(tenantId, (shard, ct) => SchemaLock.ReleaseAsync(shard, node, ct), cancellationToken);
+    }
+
+    /// <summary>
+    /// 预览租户独立库要做的结构变更
+    /// </summary>
+    /// <param name="tenantId">租户 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result<SchemaPlan>> PlanAsync(string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        await using var scope = scopes.CreateAsyncScope();
+        var bound = await BindAsync(scope.ServiceProvider, tenantId, cancellationToken).ConfigureAwait(false);
+        if (!bound.TryGetValue(out var shard))
+        {
+            return bound.Error!;
+        }
+
+        var discovered = SchemaScripts.Discover(options.Directory, DatabaseProviders.NameOf(shard.CurrentConnectionConfig.DbType));
+        if (!discovered.TryGetValue(out var versions))
+        {
+            return discovered.Error!;
+        }
+
+        try
+        {
+            var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory));
+            return SchemaPlanning.Plan(tenantId, shard, types.GroupBy(_ => shard), versions, tenant: true);
+        }
+        catch (Exception exception) when (exception is DbException or SqlSugarException || exception.GetType() == typeof(Exception))
+        {
+            return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"Reading the database schema of tenant '{tenantId}' failed: {exception.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 核对租户独立库是否在当前结构版本
+    /// </summary>
+    /// <remarks>
+    /// 读不到、没有台账、上次升级失败或结构版本不是应用的版本，即给出原因
+    /// </remarks>
+    /// <param name="tenantId">租户 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>不可用的原因；在当前版本为无值</returns>
+    public async Task<Maybe<SchemaUpgradeFailure>> CheckAsync(string tenantId, CancellationToken cancellationToken)
+    {
+        var checkedAt = clock.GetUtcNow();
+        var read = await ReadAsync(tenantId, async (shard, ct) =>
+        {
+            var discovered = SchemaScripts.Discover(options.Directory, DatabaseProviders.NameOf(shard.CurrentConnectionConfig.DbType));
+            if (!discovered.TryGetValue(out var versions))
+            {
+                return Maybe.Some(new SchemaUpgradeFailure(tenantId, discovered.Error!.Code, discovered.Error.Message, checkedAt));
+            }
+
+            var target = SchemaScripts.NameOf(SchemaScripts.Current(versions));
+            var row = await shard.Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, ct).ConfigureAwait(false);
+            if (row is null)
+            {
+                return Maybe.Some(new SchemaUpgradeFailure(tenantId, RuntimeErrors.TenantDatabaseFailed, $"The database of tenant '{tenantId}' has no schema version ledger.", checkedAt));
+            }
+
+            if (row.LastError is { } error)
+            {
+                return Maybe.Some(new SchemaUpgradeFailure(tenantId, RuntimeErrors.SchemaUpgradeFailed, error, row.LastFailedAt ?? checkedAt));
+            }
+
+            return string.Equals(row.DbVersion, target, StringComparison.Ordinal)
+                ? Maybe.None<SchemaUpgradeFailure>()
+                : Maybe.Some(new SchemaUpgradeFailure(tenantId, RuntimeErrors.SchemaUpgradeFailed, $"The database of tenant '{tenantId}' is at schema {row.DbVersion ?? "(none)"}; the application needs {target}.", checkedAt));
+        }, cancellationToken).ConfigureAwait(false);
+        return read.TryGetValue(out var verdict) ? verdict : Maybe.Some(new SchemaUpgradeFailure(tenantId, read.Error!.Code, read.Error.Message, checkedAt));
+    }
+
+    /// <summary>
+    /// 在租户独立库上读
+    /// </summary>
+    /// <remarks>
+    /// 给维护页读独立库自己的台账与升级记录：在自建作用域里绑定分片，连不上或读失败即 <see cref="RuntimeErrors.TenantDatabaseFailed"/>
+    /// </remarks>
+    /// <param name="tenantId">租户 ID</param>
+    /// <param name="read">在分片连接上读</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result<T>> ReadAsync<T>(string tenantId, Func<ISqlSugarClient, CancellationToken, Task<T>> read, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentNullException.ThrowIfNull(read);
+        await using var scope = scopes.CreateAsyncScope();
+        var bound = await BindAsync(scope.ServiceProvider, tenantId, cancellationToken).ConfigureAwait(false);
+        if (!bound.TryGetValue(out var shard))
+        {
+            return bound.Error!;
+        }
+
+        try
+        {
+            return await read(shard, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is DbException or SqlSugarException)
+        {
+            return Error.Literal(RuntimeErrors.TenantDatabaseFailed, $"Reading the database of tenant '{tenantId}' failed: {exception.Message}");
         }
     }
 

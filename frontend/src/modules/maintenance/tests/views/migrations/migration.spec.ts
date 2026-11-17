@@ -32,6 +32,9 @@ function stub(...responses: object[]): { method: string, url: string, body: unkn
 
 const FAILED: MigrationRow = {
   id: '0199a1b2-0000-7000-8000-000000000002',
+  database: 'platform',
+  runId: '0199a1b2-0000-7000-8000-0000000000aa',
+  hasSql: false,
   version: '6.0.1',
   scriptName: '6.0.1.sql',
   executedAt: '2026-10-30T02:00:00Z',
@@ -42,12 +45,14 @@ const FAILED: MigrationRow = {
 }
 
 describe('升级记录：列表筛选', () => {
-  it('版本、脚本名与节点按包含匹配，执行结果精确匹配；执行时间区间换成 ge 起点与 lt 终点后 1 毫秒', () => {
+  it('库与批次精确匹配，版本、脚本名与节点按包含匹配，执行结果精确匹配；执行时间区间换成 ge 起点与 lt 终点后 1 毫秒', () => {
     const request = toMigrationsRequest({
       page: 2,
       pageSize: 20,
       filters: {
         keyword: ' 6.0 ',
+        database: 'acme',
+        runId: 'run-1',
         version: '6.0',
         scriptName: 'init',
         nodeName: 'node',
@@ -69,6 +74,8 @@ describe('升级记录：列表筛选', () => {
       page: { index: 2, size: 20 },
       keyword: '6.0',
       filters: [
+        { field: 'database', operator: 'eq', value: 'acme' },
+        { field: 'runId', operator: 'eq', value: 'run-1' },
         { field: 'version', operator: 'contains', value: '6.0' },
         { field: 'scriptName', operator: 'contains', value: 'init' },
         { field: 'nodeName', operator: 'contains', value: 'node' },
@@ -104,7 +111,7 @@ describe('升级记录：文案与详情', () => {
     expect(successOptions(t).map(option => option.value)).toEqual(['true', 'false'])
   })
 
-  it('详情抬头是版本 · 脚本、红色的失败标签与耗时，副信息是执行时间与节点；记录 ID 在追踪组，失败原因排在最后', () => {
+  it('详情抬头是版本 · 脚本、红色的失败标签与耗时，副信息是执行时间与节点；所在的库、记录 ID 与批次在追踪组，失败原因排在最后', () => {
     const view = buildLogDetailView(migrationDetailSchema(t), FAILED, (field, value) => field.type === 'boolean'
       ? (value ? field.trueText! : field.falseText!)
       : String(value))
@@ -116,7 +123,9 @@ describe('升级记录：文案与详情', () => {
       {
         group: 'trace',
         entries: [
+          expect.objectContaining({ raw: FAILED.database }),
           expect.objectContaining({ raw: FAILED.id }),
+          expect.objectContaining({ raw: FAILED.runId }),
         ],
       },
     ])
@@ -125,13 +134,17 @@ describe('升级记录：文案与详情', () => {
 })
 
 describe('升级记录：资源', () => {
-  it('分页走 POST migrations:list，详情按 ID 取', async () => {
+  it('分页走 POST migrations:list 并记下每行的库；详情按 ID 与库取，摊平带上执行的 SQL', async () => {
     const calls = stub({
       items: [FAILED],
       total: 1,
       page: { index: 1, size: 20 },
-    }, FAILED)
-    const result = await migrationResource().page!({
+    }, { migration: FAILED, sqlText: null }, {
+      migration: { ...FAILED, database: 'acme' },
+      sqlText: 'CREATE TABLE demo_note (id INTEGER);',
+    })
+    const databases = new Map<string, string>()
+    const result = await migrationResource(databases).page!({
       page: 1,
       pageSize: 20,
       filters: {},
@@ -149,7 +162,10 @@ describe('升级记录：资源', () => {
       },
     })
     expect(result.items).toEqual([FAILED])
-    expect(await getMigration(FAILED.id)).toEqual(FAILED)
+    expect(databases.get(FAILED.id)).toBe('platform')
+    expect(await getMigration(FAILED.id, 'platform')).toEqual({ ...FAILED, sqlText: null })
     expect(calls[1]).toMatchObject({ method: 'GET', url: `/api/migrations/${FAILED.id}` })
+    expect(await getMigration(FAILED.id, 'acme')).toMatchObject({ database: 'acme', sqlText: 'CREATE TABLE demo_note (id INTEGER);' })
+    expect(calls[2]).toMatchObject({ method: 'GET', url: `/api/migrations/${FAILED.id}?database=acme` })
   })
 })
