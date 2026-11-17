@@ -26,7 +26,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 public sealed class SysEmail : AppAuditedEntity, IOwnedByTenant, IMessageRecord
 {
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>

@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>

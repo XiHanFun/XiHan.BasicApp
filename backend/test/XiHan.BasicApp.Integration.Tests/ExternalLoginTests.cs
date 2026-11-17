@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class ExternalLoginTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeGitHub _github = new();
 
     public void Dispose() => _database.Dispose();

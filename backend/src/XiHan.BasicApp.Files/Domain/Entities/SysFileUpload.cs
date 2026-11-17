@@ -58,7 +58,7 @@ public sealed class SysFileUpload : TenantScopedAuditedEntity
     /// <summary>
     /// 对象键
     /// </summary>
-    [SugarColumn(ColumnName = "key", Length = 1024, IsNullable = false, ColumnDescription = "对象键")]
+    [SugarColumn(ColumnName = "key", Length = 512, IsNullable = false, ColumnDescription = "对象键")]
     public string Key { get; set; } = string.Empty;
 
     /// <summary>

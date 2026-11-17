@@ -21,7 +21,7 @@ public sealed class ProfileInfoTests : IDisposable
     private static readonly byte[] _png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, 0x01];
     private static readonly byte[] _jpeg = [0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x02];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-avatars-" + Guid.NewGuid().ToString("N"));
 
     public void Dispose()

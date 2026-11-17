@@ -167,6 +167,7 @@ public sealed class CreateMyPasskey(IRepository<SysUser, Guid> users, UserAccoun
             HomeTenantId = user.HomeTenantId,
             Name = string.IsNullOrWhiteSpace(request.Name) ? context.Localize(IdentityMessages.PasskeyDefaultName) : request.Name.Trim(),
             CredentialId = credential.CredentialId,
+            CredentialHash = PasskeyCeremonies.CredentialHashOf(credential.CredentialId),
             PublicKey = credential.PublicKey,
             Algorithm = credential.Algorithm,
             SignCount = credential.SignCount,

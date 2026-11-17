@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class SettingsDictsTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
@@ -227,7 +227,11 @@ public sealed class SettingsDictsTests : IDisposable
                 ConcurrencyStamp = Guid.NewGuid().ToString("N"),
                 CreatedAt = DateTimeOffset.UtcNow,
             }).ToList();
-            await client.Insertable(rows).ExecuteCommandAsync(TestContext.Current.CancellationToken);
+            // 分批写：SQL Server 一条语句最多 2100 个参数，时间列按参数传
+            foreach (var chunk in rows.Chunk(200))
+            {
+                await client.Insertable(chunk.ToList()).ExecuteCommandAsync(TestContext.Current.CancellationToken);
+            }
         }
 
         var (items, itemsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/dict-items:tree?dictId={dictId}", token: tenant));

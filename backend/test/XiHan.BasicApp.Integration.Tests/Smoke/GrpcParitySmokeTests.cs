@@ -25,7 +25,7 @@ public sealed class GrpcParitySmokeTests : IDisposable
 {
     private static readonly Marshaller<byte[]> _bytes = Marshallers.Create<byte[]>(static b => b, static b => b);
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

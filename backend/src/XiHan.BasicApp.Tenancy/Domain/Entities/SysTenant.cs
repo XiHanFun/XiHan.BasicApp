@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 
@@ -29,7 +30,7 @@ public sealed class SysTenant : AppAuditedEntity
     /// <summary>
     /// 租户 ID（目录键）：字母或数字开头，只含字母、数字、<c>.</c>、<c>_</c>、<c>-</c>，最长 64
     /// </summary>
-    [SugarColumn(ColumnName = "tenant_id", Length = 512, IsNullable = false, ColumnDescription = "租户 ID（目录键）：字母或数字开头，只含字母、数字、.、_、-，最长 64")]
+    [SugarColumn(ColumnName = "tenant_id", Length = 64, IsNullable = false, ColumnDescription = "租户 ID（目录键）：字母或数字开头，只含字母、数字、.、_、-，最长 64")]
     public string TenantId { get; set; } = string.Empty;
 
     /// <summary>
@@ -130,7 +131,8 @@ public sealed class SysTenant : AppAuditedEntity
     /// <remarks>
     /// 经 <c>ISecretProtector</c> 加密存放，同步进租户目录时仍是密文，由 Runtime 的分片解析器解密；不进任何响应
     /// </remarks>
-    [SugarColumn(ColumnName = "connection_string", Length = 2048, IsNullable = true, ColumnDescription = "独立库的连接串（密文）")]
+    [SugarColumn(ColumnName = "connection_string", IsNullable = true, ColumnDescription = "独立库的连接串（密文）")]
+    [LongText]
     public string? ConnectionString { get; set; }
 
     /// <summary>

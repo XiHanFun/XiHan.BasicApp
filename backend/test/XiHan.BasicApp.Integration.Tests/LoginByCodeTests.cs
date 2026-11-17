@@ -25,7 +25,7 @@ public sealed class LoginByCodeTests : IDisposable
 {
     private const string Code = "135790";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeEmailTransport _email = new();
     private readonly FakeSmsTransport _sms = new();
 

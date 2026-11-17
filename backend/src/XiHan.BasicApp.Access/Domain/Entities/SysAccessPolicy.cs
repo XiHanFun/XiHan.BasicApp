@@ -33,7 +33,7 @@ public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
     public const int MaxConditions = 100;
 
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
@@ -120,7 +120,7 @@ public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
 public sealed class SysAccessPolicyCondition : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>

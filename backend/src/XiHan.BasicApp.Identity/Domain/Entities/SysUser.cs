@@ -78,7 +78,7 @@ public sealed class SysUser : AppAuditedEntity
     /// <remarks>
     /// 平台账号为 <c>platform</c>
     /// </remarks>
-    [SugarColumn(ColumnName = "home_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "注册地租户 ID")]
+    [SugarColumn(ColumnName = "home_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "注册地租户 ID")]
     public string HomeTenantId { get; set; } = string.Empty;
 
     /// <summary>

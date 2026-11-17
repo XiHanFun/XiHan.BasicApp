@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class FileTemporaryPurgeTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-files-purge-" + Guid.NewGuid().ToString("N"));
 
     public void Dispose()

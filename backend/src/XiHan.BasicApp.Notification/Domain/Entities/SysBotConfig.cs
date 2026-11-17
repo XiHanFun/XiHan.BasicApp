@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
@@ -21,7 +22,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 public sealed class SysBotConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
@@ -49,7 +50,8 @@ public sealed class SysBotConfig : AppAuditedEntity, IOwnedByTenant
     /// 钉钉带 <c>access_token</c>、飞书带机器人令牌、企业微信带 <c>key</c>，拿到就能往群里发消息
     /// 请求限 500 字符，全是三字节字符的最长地址加密后约 2100 字符
     /// </remarks>
-    [SugarColumn(ColumnName = "webhook_url", Length = 2500, IsNullable = false, ColumnDescription = "完整的 Webhook 地址（密文）")]
+    [SugarColumn(ColumnName = "webhook_url", IsNullable = false, ColumnDescription = "完整的 Webhook 地址（密文）")]
+    [LongText]
     public string WebhookUrl { get; set; } = string.Empty;
 
     /// <summary>

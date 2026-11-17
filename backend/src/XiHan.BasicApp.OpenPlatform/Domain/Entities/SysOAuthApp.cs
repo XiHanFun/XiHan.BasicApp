@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
@@ -72,7 +73,8 @@ public sealed class SysOAuthApp : AppAuditedEntity
     /// <summary>
     /// 回调地址（换行分隔，授权时逐字匹配）
     /// </summary>
-    [SugarColumn(ColumnName = "redirect_uris", Length = 2048, IsNullable = false, ColumnDescription = "回调地址（换行分隔，授权时逐字匹配）")]
+    [SugarColumn(ColumnName = "redirect_uris", IsNullable = false, ColumnDescription = "回调地址（换行分隔，授权时逐字匹配）")]
+    [LongText]
     public string RedirectUris { get; set; } = string.Empty;
 
     /// <summary>

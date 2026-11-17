@@ -9,6 +9,7 @@ using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Auditing.Database.Trail;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -22,6 +23,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class TenantDatabaseTests : IDisposable
 {
+    // 用例直接以 SQLite 语句查主库，固定在 SQLite 上跑
     private readonly SqliteDatabase _database = new();
     private readonly SqliteDatabase _tenantDatabase = new();
 
@@ -66,7 +68,7 @@ public sealed class TenantDatabaseTests : IDisposable
     [Fact]
     public async Task DedicatedDatabase_IsConfiguredInitialized_AndHoldsTheTenantData()
     {
-        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, DatabaseProviders.Sqlite);
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;

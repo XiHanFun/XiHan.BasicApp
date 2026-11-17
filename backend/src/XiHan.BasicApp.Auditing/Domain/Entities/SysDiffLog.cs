@@ -73,7 +73,8 @@ public sealed class SysDiffLog : AuditLogRecord
     /// <summary>
     /// 有变化的列，逗号分隔
     /// </summary>
-    [SugarColumn(ColumnName = "changed_fields", Length = 2048, IsNullable = true, ColumnDescription = "有变化的列，逗号分隔")]
+    [SugarColumn(ColumnName = "changed_fields", IsNullable = true, ColumnDescription = "有变化的列，逗号分隔")]
+    [LongText]
     public string? ChangedFields { get; set; }
 }
 

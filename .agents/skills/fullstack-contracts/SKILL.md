@@ -1,6 +1,6 @@
 ---
 name: xihan-basicapp-fullstack-contracts
-description: 设计、变更、审查或诊断 XiHan.BasicApp 前后端契约时使用。覆盖操作 ID 与 HTTP 路由约定、请求响应与分页批量形态、错误码与 Problem Details、权限码与作用侧、页面登记与菜单组件路径、推送方法、contracts export 与 gen-contracts、框架锁定与快照构建、配置节与 Provider、表结构基线与部署边界。
+description: 设计、变更、审查或诊断 XiHan.BasicApp 前后端契约时使用。覆盖操作 ID 与 HTTP 路由约定、请求响应与分页批量形态、错误码与 Problem Details、权限码与作用侧、页面登记与菜单组件路径、推送方法、contracts export 与 gen-contracts、框架锁定与快照构建、配置节与 Provider、表结构与部署边界。
 ---
 
 # XiHan.BasicApp 全栈契约

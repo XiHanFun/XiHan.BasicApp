@@ -21,7 +21,7 @@ public sealed class CodeGenerationSchemaTests : IDisposable
 {
     private const string Admin = "codegen-admin";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

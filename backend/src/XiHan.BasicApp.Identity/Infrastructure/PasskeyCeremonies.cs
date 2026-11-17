@@ -82,8 +82,19 @@ public sealed class PasskeyCeremonies(ISharedCache cache, IRepository<SysUserPas
     /// <param name="cancellationToken">取消令牌</param>
     public async Task<SysUserPasskey?> FindAsync(string credentialId, CancellationToken cancellationToken)
     {
-        var rows = await passkeys.ListAsync(EntityQuery.All<SysUserPasskey>().Where(new Specification<SysUserPasskey>(p => p.CredentialId == credentialId)).Page(0, 1), cancellationToken).ConfigureAwait(false);
+        var hash = CredentialHashOf(credentialId);
+        var rows = await passkeys.ListAsync(EntityQuery.All<SysUserPasskey>().Where(new Specification<SysUserPasskey>(p => p.CredentialHash == hash)).Page(0, 1), cancellationToken).ConfigureAwait(false);
         return rows.Count == 0 ? null : rows[0];
+    }
+
+    /// <summary>
+    /// 凭据 ID 的 SHA-256
+    /// </summary>
+    /// <returns>小写十六进制</returns>
+    public static string CredentialHashOf(string credentialId)
+    {
+        ArgumentNullException.ThrowIfNull(credentialId);
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(credentialId)));
     }
 
     /// <summary>

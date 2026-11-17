@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Integration.Tests.Smoke;
 /// </remarks>
 public sealed class HubCoexistenceSmokeTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly string _webRoot = Path.Combine(Path.GetTempPath(), "xihan-basicapp-static-" + Guid.NewGuid().ToString("N"));
 
     public void Dispose()

@@ -52,7 +52,7 @@ public sealed class SysFileStorage : TenantScopedAuditedEntity
     /// <remarks>
     /// 格式为 <c>&lt;侧&gt;/&lt;年&gt;/&lt;月&gt;/&lt;日&gt;/&lt;文件 ID&gt;&lt;扩展名&gt;</c>
     /// </remarks>
-    [SugarColumn(ColumnName = "key", Length = 1024, IsNullable = false, ColumnDescription = "对象键")]
+    [SugarColumn(ColumnName = "key", Length = 512, IsNullable = false, ColumnDescription = "对象键")]
     public string Key { get; set; } = string.Empty;
 
     /// <summary>

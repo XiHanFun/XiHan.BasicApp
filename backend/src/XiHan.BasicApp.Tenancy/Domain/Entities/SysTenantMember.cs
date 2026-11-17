@@ -26,7 +26,7 @@ public sealed class SysTenantMember : AppAuditedEntity
     /// <summary>
     /// 租户 ID（目录键）
     /// </summary>
-    [SugarColumn(ColumnName = "tenant_id", Length = 512, IsNullable = false, ColumnDescription = "租户 ID（目录键）")]
+    [SugarColumn(ColumnName = "tenant_id", Length = 64, IsNullable = false, ColumnDescription = "租户 ID（目录键）")]
     public string TenantId { get; set; } = string.Empty;
 
     /// <summary>

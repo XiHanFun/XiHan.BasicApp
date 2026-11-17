@@ -44,8 +44,8 @@ public sealed class DistributedProvidersTests : IDisposable
     private const string Topic = "basicapp.tests.ping";
     private const string CacheBinding = "XiHan:Bindings:cache:value";
     private const string QueueBinding = "XiHan:Bindings:queue:value";
-    private readonly SqliteDatabase _first = new();
-    private readonly SqliteDatabase _second = new();
+    private readonly TestDatabase _first = new();
+    private readonly TestDatabase _second = new();
 
     public void Dispose()
     {

@@ -105,7 +105,8 @@ public sealed class ConstraintRuleService(
 
         var list = ruleIds.ToList();
         var rows = await items.ListAsync(EntityQuery.All<SysConstraintRuleItem>().Where(new Specification<SysConstraintRuleItem>(i => i.OwnerTenantId == owner && list.Contains(i.RuleId))), cancellationToken).ConfigureAwait(false);
-        return rows.OrderBy(static i => i.GroupNo).ThenBy(static i => i.CreatedAt).ToLookup(static i => i.RuleId);
+        // 同一次写入的各项创建时间相同：再按 ID 排，每次读出的先后一致（规则项本身没有先后的含义）
+        return rows.OrderBy(static i => i.GroupNo).ThenBy(static i => i.CreatedAt).ThenBy(static i => i.Id).ToLookup(static i => i.RuleId);
     }
 
     /// <summary>

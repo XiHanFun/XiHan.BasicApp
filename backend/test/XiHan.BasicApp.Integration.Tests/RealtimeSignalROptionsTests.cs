@@ -20,7 +20,7 @@ public sealed class RealtimeSignalROptionsTests : IDisposable
 {
     private const string Section = "BasicApp:Realtime:SignalR:";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

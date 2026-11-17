@@ -22,7 +22,7 @@ public sealed class AIAssistantsTests : IDisposable
     private static readonly string[] _unknownTool = ["no_such_tool"];
     private static readonly string[] _repeatedTool = ["users_list", "users_list"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeOpenAIHandler _model = new();
 
     public void Dispose()

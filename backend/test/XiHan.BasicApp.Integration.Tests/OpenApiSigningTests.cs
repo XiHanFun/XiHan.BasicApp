@@ -25,13 +25,13 @@ public sealed class OpenApiSigningTests : IDisposable
 {
     private const string ClientIpHeader = "X-Test-Client-Ip";
     private static readonly string[] _normalizedAllowList = ["10.0.0.0/24", "192.168.1.9"];
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
     private sealed record Credential(string Id, string AppKey, string Secret);
 
-    private static async Task<BasicAppTestServer> StartAsync(SqliteDatabase database)
+    private static async Task<BasicAppTestServer> StartAsync(TestDatabase database)
     {
         var server = await BasicAppTestServer.StartAsync(database.ConnectionString, configureApp: app => app.Use(async (http, next) =>
         {

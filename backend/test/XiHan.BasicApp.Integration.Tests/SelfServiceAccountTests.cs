@@ -24,7 +24,7 @@ public sealed class SelfServiceAccountTests : IDisposable
 {
     private const string Code = "246810";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeEmailTransport _email = new();
 
     public void Dispose() => _database.Dispose();
@@ -153,12 +153,9 @@ public sealed class SelfServiceAccountTests : IDisposable
         Assert.Equal(JsonValueKind.Null, record.GetProperty("content").ValueKind);
         Assert.DoesNotContain(Code, record.ToString(), StringComparison.Ordinal);
         Assert.Equal("NOTIFICATION_CONFLICT_009", (await SendAsync(server, HttpMethod.Post, "/api/emails:resend", new { ids = new[] { record.GetProperty("id").GetString() } }, platform)).Body.GetProperty("failed")[0].GetProperty("code").GetString());
-        await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(_database.ConnectionString))
+        using (var client = _database.Client())
         {
-            await connection.OpenAsync(TestContext.Current.CancellationToken);
-            await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT content FROM sys_email WHERE business_type = 'identity.verification'";
-            Assert.Equal(string.Empty, Convert.ToString(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken), System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal(string.Empty, Convert.ToString(await client.Ado.GetScalarAsync("SELECT content FROM sys_email WHERE business_type = 'identity.verification'"), System.Globalization.CultureInfo.InvariantCulture));
         }
         Assert.DoesNotContain(_email.Sent, m => m.To == "nobody@example.com");
 

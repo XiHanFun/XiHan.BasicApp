@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -143,7 +144,8 @@ public sealed class SysUserSecurity : AppAuditedEntity
     /// <remarks>
     /// 每行一个 IP 或 CIDR，作用于本人全部凭证。为空即不限
     /// </remarks>
-    [SugarColumn(ColumnName = "api_ip_allow_list", Length = 2048, IsNullable = true, ColumnDescription = "开放接口的 IP 白名单")]
+    [SugarColumn(ColumnName = "api_ip_allow_list", IsNullable = true, ColumnDescription = "开放接口的 IP 白名单")]
+    [LongText]
     public string? ApiIpAllowList { get; set; }
 
     /// <summary>

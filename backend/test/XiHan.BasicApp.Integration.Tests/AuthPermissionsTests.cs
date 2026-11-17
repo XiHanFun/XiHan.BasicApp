@@ -18,7 +18,7 @@ public sealed class AuthPermissionsTests : IDisposable
     // 只有 identity.users.read 的主体看到的树：登录即可见的页面（工作台、审批中心、导出中心、我的消息、关于）加用户页，空了的目录不下发
     private const string PrunedOutline = "workbench.dashboard, custom.workflow-center[workflow.approvals], custom.message-center[notification.inbox], custom.system-management[custom.system-permission[identity.users], custom.file-services[files.export-center]], custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

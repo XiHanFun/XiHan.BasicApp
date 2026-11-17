@@ -26,7 +26,7 @@ public sealed class FileUploadsTests : IDisposable
 {
     private const int MiB = 1024 * 1024;
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-uploads-" + Guid.NewGuid().ToString("N"));
 
     public void Dispose()

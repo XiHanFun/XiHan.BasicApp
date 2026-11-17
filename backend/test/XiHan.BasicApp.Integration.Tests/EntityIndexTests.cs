@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class EntityIndexTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

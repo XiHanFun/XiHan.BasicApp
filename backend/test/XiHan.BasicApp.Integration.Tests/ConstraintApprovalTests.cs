@@ -26,7 +26,7 @@ public sealed class ConstraintApprovalTests : IDisposable
     private static readonly string[] _readAndDelete = ["identity.users.read", "identity.users.delete"];
     private static readonly string[] _cashierAndAuditor = ["cashier", "auditor"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

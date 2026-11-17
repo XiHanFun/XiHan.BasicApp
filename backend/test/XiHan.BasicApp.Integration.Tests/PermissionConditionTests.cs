@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class PermissionConditionTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
@@ -29,7 +29,7 @@ public sealed class PermissionConditionTests : IDisposable
         await server.Services.GetRequiredService<AuditLogWriter>().FlushAsync(CancellationToken.None);
     }
 
-    private static async Task<(BasicAppTestServer Server, string Admin, string DanaId, string RoleId, string Dana)> StartAsync(SqliteDatabase database, IEnumerable<KeyValuePair<string, string?>>? settings = null)
+    private static async Task<(BasicAppTestServer Server, string Admin, string DanaId, string RoleId, string Dana)> StartAsync(TestDatabase database, IEnumerable<KeyValuePair<string, string?>>? settings = null)
     {
         var server = await BasicAppTestServer.StartAsync(database.ConnectionString, settings: settings);
         await server.SeedDefaultsAsync();

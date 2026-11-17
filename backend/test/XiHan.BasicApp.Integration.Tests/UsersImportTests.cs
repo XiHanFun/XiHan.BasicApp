@@ -25,7 +25,7 @@ public sealed class UsersImportTests : IDisposable
     private static readonly string[] _cashierAndAuditor = ["cashier", "auditor"];
     private static readonly string[] _ghost = ["ghost"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

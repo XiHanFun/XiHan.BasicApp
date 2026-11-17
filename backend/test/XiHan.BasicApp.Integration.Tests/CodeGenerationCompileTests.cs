@@ -11,6 +11,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -29,6 +30,7 @@ public sealed class CodeGenerationCompileTests : IDisposable
     private const string Variable = "XIHAN_TEST_CODEGEN_COMPILE";
     private const string Admin = "codegen-admin";
 
+    // 用例直接以 SQLite 语句在主库里建导入素材，固定在 SQLite 上跑
     private readonly SqliteDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-codegen-compile-" + Guid.NewGuid().ToString("N")[..8]);
     private readonly List<string> _links = [];
@@ -129,6 +131,7 @@ public sealed class CodeGenerationCompileTests : IDisposable
     {
         var server = await BasicAppTestServer.StartAsync(
             _database.ConnectionString,
+            DatabaseProviders.Sqlite,
             settings:
             [
                 new("Logging:LogLevel:XiHan", "Warning"),

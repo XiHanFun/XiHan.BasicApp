@@ -15,6 +15,6 @@ namespace XiHan.BasicApp.Contracts.Entities;
 public abstract class TenantScopedAggregateRoot : AppAggregateRoot, IMultiTenant
 {
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "tenant_id", Length = 512, IsNullable = false, ColumnDescription = "租户 ID")]
+    [SugarColumn(ColumnName = "tenant_id", Length = 64, IsNullable = false, ColumnDescription = "租户 ID")]
     public string TenantId { get; set; } = string.Empty;
 }

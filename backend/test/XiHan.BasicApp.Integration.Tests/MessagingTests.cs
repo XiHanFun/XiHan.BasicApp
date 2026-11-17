@@ -26,7 +26,7 @@ public sealed class MessagingTests : IDisposable
     private static readonly string[] _withEmail = ["InApp", "Email"];
     private static readonly string[] _emailOnly = ["Email"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeEmailTransport _email = new();
     private readonly FakeSmsTransport _sms = new();
 

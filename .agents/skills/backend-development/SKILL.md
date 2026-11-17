@@ -1,6 +1,6 @@
 ---
 name: xihan-basicapp-backend-development
-description: 实现、重构、审查或测试 XiHan.BasicApp 后端（backend/，基于 XiHan.Framework）时使用。覆盖能力包与 Tier、Feature 显式登记、操作与 Expose、权限码与种子、错误与消息目录、仓储与 Queries、平台库与租户库实体、表结构基线与升级脚本、宿主 Provider、快照构建与测试门禁；跨端契约变化同时用 fullstack-contracts。
+description: 实现、重构、审查或测试 XiHan.BasicApp 后端（backend/，基于 XiHan.Framework）时使用。覆盖能力包与 Tier、Feature 显式登记、操作与 Expose、权限码与种子、错误与消息目录、仓储与 Queries、平台库与租户库实体、表结构与升级脚本、宿主 Provider、快照构建与测试门禁；跨端契约变化同时用 fullstack-contracts。
 ---
 
 # XiHan.BasicApp 后端开发

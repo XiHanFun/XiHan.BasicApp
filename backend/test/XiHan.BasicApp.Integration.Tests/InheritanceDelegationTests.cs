@@ -19,11 +19,11 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class InheritanceDelegationTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
-    private static async Task<(BasicAppTestServer Server, ManualClock Clock, string Admin)> StartAsync(SqliteDatabase database)
+    private static async Task<(BasicAppTestServer Server, ManualClock Clock, string Admin)> StartAsync(TestDatabase database)
     {
         var clock = new ManualClock(DateTimeOffset.UtcNow);
         var server = await BasicAppTestServer.StartAsync(database.ConnectionString, configure: builder => builder.Services.AddSingleton<TimeProvider>(clock));

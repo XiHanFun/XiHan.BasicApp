@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 public sealed class SysNumberingAllocation : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />
-    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
 
     /// <summary>
@@ -42,7 +42,7 @@ public sealed class SysNumberingAllocation : AppRecord, IOwnedByTenant
     /// <summary>
     /// 发起调用的一侧：租户 ID，平台为 <c>platform</c>
     /// </summary>
-    [SugarColumn(ColumnName = "request_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "发起调用的一侧：租户 ID，平台为 platform")]
+    [SugarColumn(ColumnName = "request_tenant_id", Length = 64, IsNullable = false, ColumnDescription = "发起调用的一侧：租户 ID，平台为 platform")]
     public string RequestTenantId { get; set; } = string.Empty;
 
     /// <summary>

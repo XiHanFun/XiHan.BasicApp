@@ -37,7 +37,7 @@ public sealed class ChatCallTests : IDisposable
     private const string Password = "Chat@123456";
     private const string CallsSection = "BasicApp:Chat:Calls";
     private static readonly TimeSpan _wait = TimeSpan.FromSeconds(10);
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly ManualClock _clock = new(DateTimeOffset.UtcNow);
 
     public void Dispose() => _database.Dispose();

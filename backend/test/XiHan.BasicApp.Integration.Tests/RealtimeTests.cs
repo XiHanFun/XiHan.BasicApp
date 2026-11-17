@@ -20,7 +20,7 @@ public sealed class RealtimeTests : IDisposable
 {
     private static readonly TimeSpan _wait = TimeSpan.FromSeconds(10);
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

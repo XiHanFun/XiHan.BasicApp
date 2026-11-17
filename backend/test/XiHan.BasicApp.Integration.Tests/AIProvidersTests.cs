@@ -28,7 +28,7 @@ public sealed class AIProvidersTests : IDisposable
 {
     private const string Admin = "ai-admin";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     private readonly FakeOpenAIHandler _model = new();
 

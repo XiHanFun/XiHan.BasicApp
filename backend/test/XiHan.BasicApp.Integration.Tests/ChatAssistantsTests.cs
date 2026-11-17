@@ -31,7 +31,7 @@ public sealed class ChatAssistantsTests : IDisposable
     private const string Password = "Chat@123456";
     private static readonly TimeSpan _wait = TimeSpan.FromSeconds(10);
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeOpenAIHandler _model = new();
 
     public void Dispose()

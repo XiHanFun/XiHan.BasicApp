@@ -22,7 +22,7 @@ public sealed class AIProviderCatalogConformanceTests : AIProviderConformance, I
 {
     private const string ProviderName = "conformance";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     private readonly FakeOpenAIHandler _model = new();
 

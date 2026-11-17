@@ -26,7 +26,7 @@ public sealed class TaskProgressTests : IDisposable
 {
     private static readonly TimeSpan _wait = TimeSpan.FromSeconds(15);
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-progress-" + Guid.NewGuid().ToString("N"));
 
     public void Dispose()

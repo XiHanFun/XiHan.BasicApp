@@ -31,7 +31,7 @@ public sealed class TelegramTests : IDisposable
 
     private static readonly string[] _withBot = ["InApp", "Bot"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeBotApi _api = new();
 
     public void Dispose() => _database.Dispose();

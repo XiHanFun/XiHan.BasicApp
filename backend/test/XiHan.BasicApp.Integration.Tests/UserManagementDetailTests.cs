@@ -24,7 +24,7 @@ public sealed class UserManagementDetailTests : IDisposable
     private const string Password = "Passw0rd!x";
     private const string ClientIpHeader = "X-Test-Client-Ip";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

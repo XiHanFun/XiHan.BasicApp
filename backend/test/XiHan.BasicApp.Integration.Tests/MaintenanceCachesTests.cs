@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class MaintenanceCachesTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     /// <summary>
     /// 写进对象缓存的值

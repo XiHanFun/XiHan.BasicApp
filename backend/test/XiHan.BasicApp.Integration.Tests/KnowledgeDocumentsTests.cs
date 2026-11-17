@@ -32,7 +32,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
     private const string Reader = "ai-reader";
     private const string ProviderCode = "embedder";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     private readonly FakeOpenAIHandler _model = new();
 
@@ -360,7 +360,7 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         var document = await IngestAsync(server, token, "Isolated", "Isolated tenant text.", provider: ProviderCode);
         Assert.Equal("Indexed", document.GetProperty("status").GetString());
         Assert.Equal(1, CountIn(shard.ConnectionString));
-        Assert.Equal(0, CountIn(_database.ConnectionString));
+        Assert.Equal(0, CountIn(_database.ConnectionString, TestDatabase.Provider));
         Assert.Equal(["Isolated"], await ListTitlesAsync(server, token));
         Assert.Empty(await ListTitlesAsync(server, Platform()));
 
@@ -372,16 +372,16 @@ public sealed class KnowledgeDocumentsTests : IDisposable
         Assert.Equal(AIErrors.ProviderInUse, Assert.Single(rejectedBody.GetProperty("failed").EnumerateArray()).GetProperty("code").GetString());
     }
 
-    private static int CountIn(string connectionString)
+    private static int CountIn(string connectionString, string provider = DatabaseProviders.Sqlite)
     {
-        using var client = new SqlSugarClient(SqlSugarConventions.Apply(Configure(connectionString)));
+        using var client = new SqlSugarClient(SqlSugarConventions.Apply(Configure(connectionString, provider)));
         return client.Queryable<SysKnowledgeDocument>().Where(static d => !d.IsDeleted).Count();
     }
 
-    private static ConnectionConfig Configure(string connectionString)
+    private static ConnectionConfig Configure(string connectionString, string provider = DatabaseProviders.Sqlite)
     {
         var config = new ConnectionConfig();
-        SqlSugarRuntime.Configure(Maybe.Some(new BindingValue("db", "connection:relational", connectionString, new Dictionary<string, string>(StringComparer.Ordinal) { ["provider"] = "sqlite" })), config);
+        SqlSugarRuntime.Configure(Maybe.Some(new BindingValue("db", "connection:relational", connectionString, new Dictionary<string, string>(StringComparer.Ordinal) { ["provider"] = provider })), config);
         return config;
     }
 

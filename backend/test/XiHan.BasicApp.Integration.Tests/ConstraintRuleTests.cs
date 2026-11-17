@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class ConstraintRuleTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
@@ -29,7 +29,7 @@ public sealed class ConstraintRuleTests : IDisposable
         return (response.StatusCode, body);
     }
 
-    private static async Task<(BasicAppTestServer Server, string Admin)> StartAsync(SqliteDatabase database)
+    private static async Task<(BasicAppTestServer Server, string Admin)> StartAsync(TestDatabase database)
     {
         var server = await BasicAppTestServer.StartAsync(database.ConnectionString);
         await server.SeedDefaultsAsync();
@@ -75,7 +75,7 @@ public sealed class ConstraintRuleTests : IDisposable
         var (created, ssd) = await RuleAsync(server, admin, new { code = "cash-audit", name = "Cash vs audit", type = "Ssd", targetType = "Role", priority = 10, items = new[] { new { targetId = cashier }, new { targetId = auditor } } });
         Assert.Equal(HttpStatusCode.Created, created);
         Assert.Equal(2, ssd.GetProperty("items").GetArrayLength());
-        Assert.Equal("cashier", ssd.GetProperty("items")[0].GetProperty("targetCode").GetString());
+        Assert.Equal(["auditor", "cashier"], ssd.GetProperty("items").EnumerateArray().Select(static i => i.GetProperty("targetCode").GetString()).Order(StringComparer.Ordinal));
         Assert.Equal("ACCESS_CONFLICT_011", (await RuleAsync(server, admin, new { code = "cash-audit", name = "again", type = "Ssd", targetType = "Role", items = new[] { new { targetId = cashier }, new { targetId = auditor } } })).Body.GetProperty("code").GetString());
         Assert.Null(FailureOf(await AssignAsync(server, admin, cashier, dana)));
         Assert.Equal("ACCESS_CONFLICT_012", FailureOf(await AssignAsync(server, admin, auditor, dana)));

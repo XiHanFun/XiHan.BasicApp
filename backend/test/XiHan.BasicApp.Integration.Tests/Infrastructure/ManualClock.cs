@@ -9,11 +9,12 @@ namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 /// <remarks>
 /// 在宿主装配前登记为 <see cref="TimeProvider"/>（框架用 TryAdd，先登记的生效）
 /// 令牌校验走真实时间，所以拨动时钟的用例只在进程内调用，不走 HTTP
+/// 起始时刻截到整微秒：PostgreSQL、MySQL、Oracle 的时间列只到微秒，用例拿时钟算出的时刻比对读回的值
 /// </remarks>
 /// <param name="start">起始时刻</param>
 public sealed class ManualClock(DateTimeOffset start) : TimeProvider
 {
-    private long _ticks = start.UtcTicks;
+    private long _ticks = start.UtcTicks - (start.UtcTicks % TimeSpan.TicksPerMicrosecond);
 
     /// <inheritdoc />
     public override DateTimeOffset GetUtcNow() => new(Interlocked.Read(ref _ticks), TimeSpan.Zero);

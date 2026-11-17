@@ -15,6 +15,7 @@ using XiHan.BasicApp.Notification.Domain.Services;
 using XiHan.BasicApp.Notification.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Runtime.Security;
+using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.SqlSugar;
@@ -40,7 +41,7 @@ public sealed class BotTests : IDisposable
 
     private static readonly string[] _withBot = ["InApp", "Bot"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly ConcurrentQueue<(BotEndpoint Endpoint, string Text)> _sent = new();
 
     public void Dispose() => _database.Dispose();
@@ -221,10 +222,10 @@ public sealed class BotTests : IDisposable
         await PublishAsync(server, "Second", platform);
         Assert.Equal(next, (await WaitSentAsync("Second")).WebhookUrl);
 
-        // 请求限 500 字符，全是三字节字符的地址加密后也放得下
+        // 请求限 500 字符，全是三字节字符的地址加密后远超 500，列是长文本，不受普通字符串列的长度限制
         var longest = "https://oapi.dingtalk.com/" + new string('中', 500 - 26);
-        var column = typeof(SysBotConfig).GetProperty(nameof(SysBotConfig.WebhookUrl))!.GetCustomAttribute<SugarColumn>()!.Length;
-        Assert.InRange(secrets.Protect(BotConfigService.WebhookPurpose, longest).Length, 501, column);
+        Assert.True(secrets.Protect(BotConfigService.WebhookPurpose, longest).Length > 500);
+        Assert.NotNull(typeof(SysBotConfig).GetProperty(nameof(SysBotConfig.WebhookUrl))!.GetCustomAttribute<LongTextAttribute>());
     }
 
     [Theory]

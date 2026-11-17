@@ -45,17 +45,47 @@ public sealed class ExternalDatabase : IAsyncDisposable
     /// <param name="databaseType">数据库类型名：PostgreSql、MySql、SqlServer 或 Oracle</param>
     public static ExternalDatabase Create(string databaseType)
     {
-        var (variable, type) = databaseType switch
+        var (variable, _) = Server(databaseType);
+        Assert.SkipWhen(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(variable)), $"{variable} is not set; this case only runs against a real {databaseType} server.");
+        return CreateOn(databaseType);
+    }
+
+    /// <summary>
+    /// 在环境变量指向的服务器上建一个临时库，没设即抛出
+    /// </summary>
+    /// <remarks>
+    /// 给整套用例换库（<see cref="TestDatabase"/>）用：选了库却没配服务器是配置错误，不跳过
+    /// </remarks>
+    /// <param name="provider">数据库绑定的库类型名：postgresql、mysql、sqlserver 或 oracle</param>
+    public static ExternalDatabase CreateRequired(string provider)
+    {
+        var databaseType = provider switch
         {
-            "PostgreSql" => (PostgresDatabase.Variable, DbType.PostgreSQL),
-            "MySql" => ("XIHAN_TEST_MYSQL", DbType.MySql),
-            "SqlServer" => ("XIHAN_TEST_SQLSERVER", DbType.SqlServer),
-            "Oracle" => ("XIHAN_TEST_ORACLE", DbType.Oracle),
-            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null),
+            "postgresql" => "PostgreSql",
+            "mysql" => "MySql",
+            "sqlserver" => "SqlServer",
+            "oracle" => "Oracle",
+            _ => throw new ArgumentOutOfRangeException(nameof(provider), provider, null),
         };
-        var server = Environment.GetEnvironmentVariable(variable);
-        Assert.SkipWhen(string.IsNullOrWhiteSpace(server), $"{variable} is not set; this case only runs against a real {databaseType} server.");
-        server = server!.TrimEnd(';');
+        var (variable, _) = Server(databaseType);
+        return string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(variable))
+            ? throw new InvalidOperationException($"{TestDatabase.Variable}={provider} needs {variable} pointing at a {databaseType} server.")
+            : CreateOn(databaseType);
+    }
+
+    private static (string Variable, DbType Type) Server(string databaseType) => databaseType switch
+    {
+        "PostgreSql" => (PostgresDatabase.Variable, DbType.PostgreSQL),
+        "MySql" => ("XIHAN_TEST_MYSQL", DbType.MySql),
+        "SqlServer" => ("XIHAN_TEST_SQLSERVER", DbType.SqlServer),
+        "Oracle" => ("XIHAN_TEST_ORACLE", DbType.Oracle),
+        _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null),
+    };
+
+    private static ExternalDatabase CreateOn(string databaseType)
+    {
+        var (variable, type) = Server(databaseType);
+        var server = Environment.GetEnvironmentVariable(variable)!.TrimEnd(';');
         if (type == DbType.Oracle)
         {
             var user = $"CG_{Guid.NewGuid():N}"[..20].ToUpperInvariant();
@@ -83,6 +113,12 @@ public sealed class ExternalDatabase : IAsyncDisposable
                 DbType.SqlServer => $"CREATE DATABASE [{name}]",
                 _ => $"CREATE DATABASE \"{name}\"",
             });
+
+            // 读已提交按快照读，与正式部署的要求一致（宿主启动时建表在结构升级之前，升级看到已有表的库没打开会失败）
+            if (type == DbType.SqlServer)
+            {
+                maintenance.Ado.ExecuteCommand($"ALTER DATABASE [{name}] SET READ_COMMITTED_SNAPSHOT ON");
+            }
         }
 
         return new ExternalDatabase(type, server, name, databaseType, $"{server};Database={name}");
@@ -106,6 +142,15 @@ public sealed class ExternalDatabase : IAsyncDisposable
     {
         SqlConnectionPools.Clear();
         using var maintenance = Client(_type, _type == DbType.Oracle ? _server : MaintenanceOf(_type, _server));
+        if (_type == DbType.Oracle)
+        {
+            // 还连着的会话（宿主停下前后台作业开的）会挡住 DROP USER（ORA-01940）
+            foreach (var session in maintenance.Ado.SqlQuery<string>("SELECT sid || ',' || serial# FROM v$session WHERE username = :u", new SugarParameter(":u", _name)))
+            {
+                maintenance.Ado.ExecuteCommand($"ALTER SYSTEM KILL SESSION '{session}' IMMEDIATE");
+            }
+        }
+
         maintenance.Ado.ExecuteCommand(_type switch
         {
             DbType.Oracle => $"DROP USER {_name} CASCADE",

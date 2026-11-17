@@ -69,6 +69,11 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
                 shard.DbMaintenance.CreateDatabase();
             }
 
+            var snapshot = SnapshotReads.Ensure(shard, RuntimeErrors.TenantDatabaseFailed);
+            if (snapshot.IsFailure)
+            {
+                return snapshot.Error!;
+            }
             var types = entities.TenantScoped.Append(typeof(SysVersion)).Append(typeof(SysMigrationHistory)).ToArray();
             SchemaMigration.Sync(shard, types);
             var current = SchemaScripts.NameOf(SchemaScripts.Current(versions));
@@ -111,6 +116,11 @@ public sealed partial class TenantSchemas(IServiceScopeFactory scopes, EntityTyp
 
         try
         {
+            var snapshot = SnapshotReads.Ensure(shard, RuntimeErrors.TenantDatabaseFailed);
+            if (snapshot.IsFailure)
+            {
+                return snapshot.Error!;
+            }
             var row = await shard.Queryable<SysVersion>().FirstAsync(v => v.Id == SysVersion.RowId, cancellationToken).ConfigureAwait(false);
             if (row?.DbVersion is null)
             {

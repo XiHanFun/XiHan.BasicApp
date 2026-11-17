@@ -143,6 +143,65 @@ public sealed class SchemaUpgradeTests
     }
 
     [Fact]
+    public async Task Upgrader_OnlyAddsTablesAndColumns_LeavingExistingColumnsAlone()
+    {
+        await using var database = await PostgresDatabase.CreateAsync(PostgresDatabase.RequireServer(), "xihan_basicapp_test_schema_additive");
+        var directory = EmptyDirectory();
+        try
+        {
+            await using (var created = Create(database.ConnectionString, DatabaseProviders.PostgreSql, [new("XiHan:Persistence:SqlSugar:InitTables", "false"), new(SchemaOptions.ConfigurationSection + ":Directory", directory)]))
+            {
+                (await created.Services.GetRequiredService<SchemaUpgrader>().UpgradeAsync(TestContext.Current.CancellationToken)).ValueOrThrow();
+            }
+
+            // 实体里没有的列、长度与可空跟实体不一致的列，补表补列之后原样保留（SqlSugar 缺省会删列、改列）
+            using var client = new SqlSugarClient(new ConnectionConfig { DbType = DbType.PostgreSQL, ConnectionString = database.ConnectionString, IsAutoCloseConnection = true });
+            await client.Ado.ExecuteCommandAsync("ALTER TABLE sys_config ADD COLUMN legacy_note varchar(10); ALTER TABLE sys_config ALTER COLUMN name TYPE varchar(600); ALTER TABLE sys_config ALTER COLUMN name DROP NOT NULL; DROP TABLE sys_dict_item");
+            Script(directory, "6.0.1/postgresql/0001-noop.sql", "SELECT 1;");
+            await using var app = Create(database.ConnectionString, DatabaseProviders.PostgreSql, [new("XiHan:Persistence:SqlSugar:InitTables", "false"), new(SchemaOptions.ConfigurationSection + ":Directory", directory)]);
+            var upgraded = (await app.Services.GetRequiredService<SchemaUpgrader>().UpgradeAsync(TestContext.Current.CancellationToken)).ValueOrThrow();
+            Assert.Equal(["6.0.1/postgresql/0001-noop.sql", $"6.0.1/{SysMigrationHistory.OrmSync}"], upgraded.Applied);
+
+            const string Columns = "SELECT column_name || ' ' || COALESCE(character_maximum_length::text, '') || ' ' || is_nullable FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'sys_config' AND column_name IN ('legacy_note', 'name') ORDER BY column_name";
+            Assert.Equal(["legacy_note 10 YES", "name 600 YES"], await client.Ado.SqlQueryAsync<string>(Columns));
+            Assert.Equal(1, await client.Ado.GetIntAsync("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'sys_dict_item'"));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Upgrader_OnSqlServer_TurnsOnSnapshotReadsForAnEmptyDatabase_AndRejectsATabledOneWithout()
+    {
+        Assert.SkipWhen(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("XIHAN_TEST_SQLSERVER")), "XIHAN_TEST_SQLSERVER is not set.");
+        IEnumerable<KeyValuePair<string, string?>> settings = [new("XiHan:Persistence:SqlSugar:InitTables", "false"), new(SchemaOptions.ConfigurationSection + ":Directory", NoScripts())];
+        const string Snapshot = "SELECT CAST(is_read_committed_snapshot_on AS int) FROM sys.databases WHERE name = DB_NAME()";
+
+        // 还没有表的库：升级先打开快照读再建表
+        await using var empty = ExternalDatabase.CreateRequired(DatabaseProviders.SqlServer);
+        empty.Execute("ALTER DATABASE CURRENT SET READ_COMMITTED_SNAPSHOT OFF WITH ROLLBACK IMMEDIATE");
+        await using (var app = Create(empty.ConnectionString, DatabaseProviders.SqlServer, settings))
+        {
+            (await app.Services.GetRequiredService<SchemaUpgrader>().UpgradeAsync(TestContext.Current.CancellationToken)).ValueOrThrow();
+        }
+
+        using (var client = new SqlSugarClient(new ConnectionConfig { DbType = DbType.SqlServer, ConnectionString = empty.ConnectionString, IsAutoCloseConnection = true }))
+        {
+            Assert.Equal(1, await client.Ado.GetIntAsync(Snapshot));
+        }
+
+        // 已有表的库不替它改：升级失败，消息里带要执行的语句
+        await using var tabled = ExternalDatabase.CreateRequired(DatabaseProviders.SqlServer);
+        tabled.Execute("ALTER DATABASE CURRENT SET READ_COMMITTED_SNAPSHOT OFF WITH ROLLBACK IMMEDIATE", "CREATE TABLE legacy_note (id int PRIMARY KEY)");
+        await using var rejected = Create(tabled.ConnectionString, DatabaseProviders.SqlServer, settings);
+        var failed = await rejected.Services.GetRequiredService<SchemaUpgrader>().UpgradeAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(RuntimeErrors.SchemaUpgradeFailed, failed.Error?.Code);
+        Assert.Contains("SET READ_COMMITTED_SNAPSHOT ON", failed.Error!.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Upgrader_RunsPendingScriptsOfItsDatabaseType_BeforeSyncing_AndStopsAtAFailure()
     {
         using var database = new SqliteDatabase();

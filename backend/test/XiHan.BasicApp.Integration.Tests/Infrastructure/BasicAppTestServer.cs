@@ -57,13 +57,15 @@ public sealed class BasicAppTestServer : IAsyncDisposable
 
     public static async Task<BasicAppTestServer> StartAsync(
         string connectionString,
-        string provider = "sqlite",
+        string? provider = null,
         IEnumerable<KeyValuePair<string, string?>>? settings = null,
         Action<WebApplicationBuilder>? configure = null,
         Action<WebApplication>? configureApp = null,
         Action<WebApplication>? afterMap = null,
         string[]? args = null)
     {
+        // 不指定库类型即这一轮用例选的库（TestDatabase）
+        provider ??= TestDatabase.Provider;
         // 命令行参数给要换宿主环境的用例（如 --environment Development），环境在建宿主时就定下
         var app = BasicAppHost.Create(
             args ?? [],
@@ -78,7 +80,17 @@ public sealed class BasicAppTestServer : IAsyncDisposable
             },
             configureApp);
         afterMap?.Invoke(app);
-        await app.StartAsync();
+        try
+        {
+            await app.StartAsync();
+        }
+        catch
+        {
+            // 启动失败的宿主也要释放：已起的后台作业会一直轮询用例删掉的库
+            await app.DisposeAsync();
+            throw;
+        }
+
         return new BasicAppTestServer(app);
     }
 
@@ -91,6 +103,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Bindings:db:value", connectionString),
         new("XiHan:Bindings:db:provider", provider),
         new("XiHan:Persistence:SqlSugar:InitTables", "true"),
+        // 每个用例的空库在启动时建全部表：MySQL、SQL Server、Oracle 上的 DDL 比 SQLite、PostgreSQL 慢得多，并行跑或机器忙时会超过宿主的 60 秒
+        new("XiHan:Kernel:StartTimeoutSeconds", "300"),
         // 宿主用数据库调度：测试库是 SQLite，引擎每秒轮询会和用例的写入抢锁；拉长到 5 秒，作业相关的用例自己等同步
         new("XiHan:Scheduling:PollIntervalSeconds", "5"),
         // 工作流的到期书签轮询同理拉长；用例要推进流程时自己调轮询器

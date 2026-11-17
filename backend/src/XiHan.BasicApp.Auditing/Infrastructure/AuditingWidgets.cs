@@ -152,7 +152,8 @@ public sealed class AuditingWidgets(SqlSugarUnitOfWork unitOfWork, TimeProvider 
                 Day = SqlFunc.DateValue(e.OccurredAt, DateType.Day),
                 Hour = SqlFunc.DateValue(e.OccurredAt, DateType.Hour),
                 Count = SqlFunc.AggregateCount(e.Id),
-                Failed = SqlFunc.AggregateSum(SqlFunc.IIF(e.Succeeded, 0, 1)),
+                // 写成比较：SQL Server 的 bit 不能直接当 CASE 的条件
+                Failed = SqlFunc.AggregateSum(SqlFunc.IIF(e.Succeeded == true, 0, 1)),
             })
             .ToListAsync(cancellationToken).ConfigureAwait(false);
         var days = Days(query, now);

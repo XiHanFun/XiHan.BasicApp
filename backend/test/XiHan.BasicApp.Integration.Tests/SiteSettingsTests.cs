@@ -23,7 +23,7 @@ public sealed class SiteSettingsTests : IDisposable
 {
     private static readonly byte[] _png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-site-" + Guid.NewGuid().ToString("N"));
 
     public void Dispose()

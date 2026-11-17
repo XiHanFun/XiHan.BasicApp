@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.CodeGeneration.Seeds;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -24,13 +25,14 @@ public sealed class CodeGenerationPreviewTests : IDisposable
 {
     private const string Admin = "codegen-admin";
 
+    // 用例直接以 SQLite 语句在主库里建导入素材，固定在 SQLite 上跑
     private readonly SqliteDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
     private async Task<BasicAppTestServer> StartAsync()
     {
-        var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, DatabaseProviders.Sqlite);
         await server.SeedDefaultsAsync();
         await server.SeedAsync([], [.. CodeGenerationPermissions.All.Select(static p => new PermissionGrant(GrantSubject.ForRole(Admin), p.Code))]);
         await server.RunSeedersAsync(["codegeneration.templates"]);

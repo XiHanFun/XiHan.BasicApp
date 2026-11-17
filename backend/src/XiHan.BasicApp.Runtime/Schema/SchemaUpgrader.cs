@@ -61,6 +61,11 @@ public sealed partial class SchemaUpgrader(IServiceScopeFactory scopes, SchemaOp
                 return database.Error!;
             }
 
+            var snapshot = SnapshotReads.Ensure(client, RuntimeErrors.SchemaUpgradeFailed);
+            if (snapshot.IsFailure)
+            {
+                return snapshot.Error!;
+            }
             var ledger = await EnsureLedgerAsync(client, cancellationToken).ConfigureAwait(false);
             if (ledger.IsFailure)
             {

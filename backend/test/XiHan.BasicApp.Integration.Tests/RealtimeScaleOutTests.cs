@@ -27,7 +27,7 @@ public sealed class RealtimeScaleOutTests : IDisposable
     private const string RedisVariable = "XIHAN_TEST_REDIS";
     private const string RabbitMQVariable = "XIHAN_TEST_RABBITMQ";
     private static readonly TimeSpan _wait = TimeSpan.FromSeconds(10);
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

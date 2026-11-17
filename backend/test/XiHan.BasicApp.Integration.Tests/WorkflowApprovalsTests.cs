@@ -55,7 +55,7 @@ public sealed class WorkflowApprovalsTests : IDisposable
         }
         """;
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
@@ -95,13 +95,9 @@ public sealed class WorkflowApprovalsTests : IDisposable
         Assert.Equal([engineIds[1]], seen);
 
         // 实例行缺失时列表还在：节点名退回节点 ID
-        await using (var connection = new Microsoft.Data.Sqlite.SqliteConnection(_database.ConnectionString))
+        using (var client = _database.Client())
         {
-            await connection.OpenAsync(TestContext.Current.CancellationToken);
-            await using var command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM workflow_instance_record WHERE id = $id";
-            command.Parameters.AddWithValue("$id", engineIds[1]);
-            Assert.Equal(1, await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken));
+            Assert.Equal(1, await client.Ado.ExecuteCommandAsync("DELETE FROM workflow_instance_record WHERE id = @id", new { id = engineIds[1] }));
         }
 
         var (listed, afterDelete) = await SendAsync(server, HttpMethod.Post, "/api/tasks:list", """{"page":{"index":1,"size":50}}""", tenant);

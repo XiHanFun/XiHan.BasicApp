@@ -21,7 +21,7 @@ public sealed class HostNetworkingTests : IDisposable
     private const string ConnectionIpHeader = "X-Test-Client-Ip";
     private const string Proxy = "10.0.0.5";
     private const string Origin = "https://admin.example.com";
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

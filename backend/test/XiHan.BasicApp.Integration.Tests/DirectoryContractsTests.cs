@@ -29,7 +29,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class DirectoryContractsTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
@@ -125,7 +125,8 @@ public sealed class DirectoryContractsTests : IDisposable
             Assert.Empty(await directory.InSideAsync(TenantIds.Platform, [admin, lead], ctx.CancellationToken));
             Assert.Empty(await directory.SearchActiveInSideAsync("demo", "example.com", 50, ctx.CancellationToken));
             Assert.Equal(["admin", "hr", "manager"], (await directory.SearchActiveInSideAsync("demo", null, 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
-            Assert.Equal(["manager"], (await directory.SearchActiveInSideAsync("demo", "Manager", 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
+            // 关键字的大小写照库的规则（PostgreSQL 区分、SQLite 不区分），这里与账号名同大小写
+            Assert.Equal(["manager"], (await directory.SearchActiveInSideAsync("demo", "manag", 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
             Assert.Equal(["admin", "hr", "lead", "manager"], (await directory.SearchInSideAsync("demo", null, 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
             Assert.Equal(["lead"], (await directory.SearchInSideAsync("demo", "lea", 50, ctx.CancellationToken)).Select(static u => u.UserName).ToList());
             Assert.Empty(await directory.SearchInSideAsync(TenantIds.Platform, "lead", 50, ctx.CancellationToken));

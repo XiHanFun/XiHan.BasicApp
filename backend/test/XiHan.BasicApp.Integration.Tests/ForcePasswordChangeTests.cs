@@ -22,7 +22,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
 {
     private const string Reason = "PasswordChangeRequired";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

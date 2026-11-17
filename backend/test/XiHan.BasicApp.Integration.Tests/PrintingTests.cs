@@ -27,7 +27,7 @@ public sealed class PrintingTests : IDisposable
     private const string User = "printing-user";
     private const string Reader = "printing-reader";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

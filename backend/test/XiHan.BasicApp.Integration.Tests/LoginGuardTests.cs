@@ -21,12 +21,12 @@ namespace XiHan.BasicApp.Integration.Tests;
 public sealed class LoginGuardTests : IDisposable
 {
     private const string ClientIpHeader = "X-Test-Client-Ip";
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
     // 用例按请求头给出来源地址（测试服务器没有远端地址）
-    private static Task<BasicAppTestServer> StartAsync(SqliteDatabase database)
+    private static Task<BasicAppTestServer> StartAsync(TestDatabase database)
         => BasicAppTestServer.StartAsync(database.ConnectionString, configureApp: app => app.Use(async (http, next) =>
         {
             if (http.Request.Headers.TryGetValue(ClientIpHeader, out var ip))

@@ -36,7 +36,7 @@ public sealed class ChatTests : IDisposable
     private const string Organizer = "organizer";
     private const string Password = "Chat@123456";
     private static readonly TimeSpan _wait = TimeSpan.FromSeconds(10);
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

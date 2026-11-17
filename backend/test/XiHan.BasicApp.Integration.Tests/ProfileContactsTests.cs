@@ -24,7 +24,7 @@ public sealed class ProfileContactsTests : IDisposable
 {
     private const string Code = "246810";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeEmailTransport _email = new();
     private readonly FakeSmsTransport _sms = new();
 

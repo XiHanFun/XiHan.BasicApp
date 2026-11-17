@@ -18,7 +18,7 @@ public sealed class OAuthAppsTests : IDisposable
 {
     private static readonly string[] _toolCallback = ["https://tool.example.com/cb"];
     private static readonly string[] _toolCallback2 = ["https://tool.example.com/cb2"];
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

@@ -39,7 +39,7 @@ internal sealed class ConformanceHosts(bool postgres) : IAsyncDisposable
         {
             var file = new SqliteDatabase();
             _files.Add(file);
-            var sqlite = await BasicAppTestServer.StartAsync(file.ConnectionString);
+            var sqlite = await BasicAppTestServer.StartAsync(file.ConnectionString, DatabaseProviders.Sqlite);
             _owned.Add(sqlite);
             return sqlite;
         }

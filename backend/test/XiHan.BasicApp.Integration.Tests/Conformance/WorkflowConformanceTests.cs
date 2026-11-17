@@ -45,7 +45,7 @@ internal static class WorkflowConformanceHosts
         {
             var sqlite = new SqliteDatabase();
             file = sqlite;
-            server = await BasicAppTestServer.StartAsync(sqlite.ConnectionString, settings: configuration, configure: builder => configure(builder.Services));
+            server = await BasicAppTestServer.StartAsync(sqlite.ConnectionString, DatabaseProviders.Sqlite, configuration, configure: builder => configure(builder.Services));
         }
 
         await server.SeedAsync(_tenants, []);

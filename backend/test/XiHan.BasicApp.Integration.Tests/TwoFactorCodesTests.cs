@@ -25,7 +25,7 @@ public sealed class TwoFactorCodesTests : IDisposable
 {
     private const string Code = "246801";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
     private readonly FakeEmailTransport _email = new();
     private readonly FakeSmsTransport _sms = new();
 

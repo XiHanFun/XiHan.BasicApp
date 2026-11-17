@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using SqlSugar;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Auditing.Domain.Entities;
 
@@ -111,12 +112,14 @@ public sealed class SysOpenApiLog : AuditLogRecord
     /// <summary>
     /// 请求正文摘要（截断）
     /// </summary>
-    [SugarColumn(ColumnName = "request_body", Length = 4096, IsNullable = true, ColumnDescription = "请求正文摘要（截断）")]
+    [SugarColumn(ColumnName = "request_body", IsNullable = true, ColumnDescription = "请求正文摘要（截断）")]
+    [LongText]
     public string? RequestBody { get; set; }
 
     /// <summary>
     /// 响应正文摘要（截断）
     /// </summary>
-    [SugarColumn(ColumnName = "response_body", Length = 4096, IsNullable = true, ColumnDescription = "响应正文摘要（截断）")]
+    [SugarColumn(ColumnName = "response_body", IsNullable = true, ColumnDescription = "响应正文摘要（截断）")]
+    [LongText]
     public string? ResponseBody { get; set; }
 }

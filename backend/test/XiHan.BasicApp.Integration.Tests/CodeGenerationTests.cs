@@ -25,7 +25,7 @@ public sealed class CodeGenerationTests : IDisposable
     private const string Admin = "codegen-admin";
     private const string Reader = "codegen-reader";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     private readonly SqliteDatabase _external = new();
 

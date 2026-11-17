@@ -18,6 +18,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// <remarks>
 /// 由 <c>SqlSugarPersistenceFeature(SqlSugarRuntime.Configure)</c> 在装配时对默认连接调用一次，带分片的调用再对 <c>shard</c> 连接调用一次
 /// 这里只负责库类型、连接串、操作人字段与框架数据库记录的 snake_case 命名（BasicApp 的实体显式写 <c>[SugarTable]</c> / <c>[SugarColumn]</c>）；协议约定（主键、并发戳、UTC 时间、可空列）由框架随后施加
+/// 建表一律只增不改：已有的表不删列、不改列
 /// </remarks>
 public static class SqlSugarRuntime
 {
@@ -83,6 +84,10 @@ public static class SqlSugarRuntime
 
     private static void ApplyTableName(Type type, EntityInfo entity)
     {
+        // 建表只建缺的表、加缺的列：SqlSugar 缺省会删掉实体里没有的列、按实体改已有列的类型 / 长度 / 可空，正式库上会丢数据或改写大表
+        // 删列、改列由升级脚本做（见 docs/backend/upgrade.md）；改列的开关在 ApplyColumnName
+        entity.IsDisabledDelete = true;
+
         // 显式 [SugarTable] 的名字已由 SqlSugar 写进 DbTableName，与类型名不同即不改
         if (string.Equals(entity.DbTableName, type.Name, StringComparison.Ordinal))
         {
@@ -92,6 +97,7 @@ public static class SqlSugarRuntime
 
     private static void ApplyColumnName(System.Reflection.PropertyInfo property, EntityColumnInfo column)
     {
+        column.IsDisabledAlterColumn = true;
         if (string.Equals(column.DbColumnName, property.Name, StringComparison.Ordinal))
         {
             column.DbColumnName = SnakeCaseNaming.Of(property.Name);

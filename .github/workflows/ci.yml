@@ -96,6 +96,75 @@ jobs:
           path: 'XiHan.BasicApp/**/TestResults/*.trx'
           if-no-files-found: ignore
 
+  # 集成测试整套换一种库跑：XIHAN_TEST_DB 选库，每个用例在该库上建临时库（Oracle 是临时用户）
+  # 库用 docker run 起，不用 services：services 传不了启动参数，测试库要关掉刷盘，否则 MySQL 每个用例建表要几十秒
+  backend-databases:
+    name: 集成测试（${{ matrix.db }}）
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [postgresql, mysql, sqlserver]
+    env:
+      DB_PASSWORD: XiHan_Test_2026
+    steps:
+      - name: 检出 BasicApp
+        uses: actions/checkout@v7
+        with:
+          path: XiHan.BasicApp
+
+      - name: 启动数据库
+        run: |
+          case "${{ matrix.db }}" in
+            postgresql)
+              docker run -d --name db -p 5432:5432 -e POSTGRES_PASSWORD="$DB_PASSWORD" postgres:17-alpine \
+                -c fsync=off -c synchronous_commit=off -c full_page_writes=off -c max_connections=500
+              echo "XIHAN_TEST_POSTGRES=Host=127.0.0.1;Port=5432;Username=postgres;Password=$DB_PASSWORD" >> "$GITHUB_ENV"
+              ready() { docker exec db pg_isready -U postgres; } ;;
+            mysql)
+              docker run -d --name db -p 3306:3306 -e MYSQL_ROOT_PASSWORD="$DB_PASSWORD" mysql:8.4 \
+                --max-connections=1000 --innodb-flush-log-at-trx-commit=0 --sync-binlog=0 --skip-log-bin --innodb-doublewrite=OFF
+              echo "XIHAN_TEST_MYSQL=Server=127.0.0.1;Port=3306;User ID=root;Password=$DB_PASSWORD" >> "$GITHUB_ENV"
+              ready() { docker exec db mysql -uroot -p"$DB_PASSWORD" -e "SELECT 1"; } ;;
+            sqlserver)
+              docker run -d --name db -p 1433:1433 -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="$DB_PASSWORD" mcr.microsoft.com/mssql/server:2022-latest
+              echo "XIHAN_TEST_SQLSERVER=Server=127.0.0.1,1433;User ID=sa;Password=$DB_PASSWORD;TrustServerCertificate=True;Encrypt=False" >> "$GITHUB_ENV"
+              ready() { docker exec db /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$DB_PASSWORD" -Q "SELECT 1"; } ;;
+            oracle)
+              docker run -d --name db -p 1521:1521 -e ORACLE_PASSWORD="$DB_PASSWORD" gvenzl/oracle-free:23-slim-faststart
+              echo "XIHAN_TEST_ORACLE=Data Source=127.0.0.1:1521/FREEPDB1;User Id=system;Password=$DB_PASSWORD" >> "$GITHUB_ENV"
+              ready() { docker exec db healthcheck.sh; } ;;
+          esac
+          for attempt in $(seq 1 60); do
+            if ready > /dev/null 2>&1; then exit 0; fi
+            sleep 5
+          done
+          docker logs db
+          exit 1
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 构建
+        run: dotnet build XiHan.BasicApp/backend/test/XiHan.BasicApp.Integration.Tests -c Release
+
+      - name: 集成测试
+        working-directory: XiHan.BasicApp
+        env:
+          XIHAN_TEST_DB: ${{ matrix.db }}
+        run: dotnet test --project backend/test/XiHan.BasicApp.Integration.Tests -c Release --no-build -- --max-threads 4 --report-xunit-trx
+
+      - name: 上传测试结果
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-results-${{ matrix.db }}
+          path: 'XiHan.BasicApp/**/TestResults/*.trx'
+          if-no-files-found: ignore
+
   contracts:
     name: 契约漂移门禁
     runs-on: ubuntu-latest

@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -11,14 +12,14 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 跟着账号走、落平台库；只存公钥、签名计数与认证器属性，私钥不离开认证器，拿到库也冒用不了
-/// 凭据 ID 由认证器随机生成，部分唯一索引 <c>ux_sys_user_passkey_credential_id</c> 在全局约束：免用户名登录在认出人之前只有凭据 ID，要按它全局找到通行密钥再认出账号
+/// 凭据 ID 由认证器随机生成，按它的 SHA-256（<see cref="CredentialHash"/>）建部分唯一索引 <c>ux_sys_user_passkey_credential_hash</c> 在全局约束：免用户名登录在认出人之前只有凭据 ID，要按它全局找到通行密钥再认出账号；凭据 ID 本身最长 1364 个字符，超过 MySQL 与 SQL Server 的索引键上限
 /// 登录进的注册地取自所属用户；行上的 <see cref="HomeTenantId"/> 只随登记写下，登录不读它
 /// 每次登录按认证器的回答刷新 <see cref="SignCount"/> 与 <see cref="BackedUp"/>，签名计数由框架核对
 /// 每人最多 10 个，本人的列表按用户取、没有单独的索引；标 <c>[DiffLogIgnored]</c> 不进数据变更日志
 /// 宿主配了 <c>XiHan:Security:WebAuthn</c>、系统参数 <c>identity.login-methods</c> 也开放了才可用
 /// </remarks>
 [SugarTable(TableName = "sys_user_passkey", TableDescription = "账号登记的通行密钥")]
-[ActiveUniqueIndex(nameof(CredentialId), Name = "ux_sys_user_passkey_credential_id")]
+[ActiveUniqueIndex(nameof(CredentialHash), Name = "ux_sys_user_passkey_credential_hash")]
 [DiffLogIgnored]
 public sealed class SysUserPasskey : AppAuditedEntity
 {
@@ -50,9 +51,19 @@ public sealed class SysUserPasskey : AppAuditedEntity
     public string CredentialId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 凭据 ID 的 SHA-256
+    /// </summary>
+    /// <remarks>
+    /// 小写十六进制，取凭据 ID（base64url 文本）的 UTF-8 字节算出；全局唯一约束与按凭据找通行密钥都用它
+    /// </remarks>
+    [SugarColumn(ColumnName = "credential_hash", Length = 64, IsNullable = false, ColumnDescription = "凭据 ID 的 SHA-256（小写十六进制）")]
+    public string CredentialHash { get; set; } = string.Empty;
+
+    /// <summary>
     /// COSE 编码的公钥（base64url）
     /// </summary>
-    [SugarColumn(ColumnName = "public_key", Length = 2048, IsNullable = false, ColumnDescription = "COSE 编码的公钥（base64url）")]
+    [SugarColumn(ColumnName = "public_key", IsNullable = false, ColumnDescription = "COSE 编码的公钥（base64url）")]
+    [LongText]
     public string PublicKey { get; set; } = string.Empty;
 
     /// <summary>

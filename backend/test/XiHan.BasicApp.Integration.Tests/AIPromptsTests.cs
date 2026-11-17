@@ -20,7 +20,7 @@ public sealed class AIPromptsTests : IDisposable
     private const string Admin = "ai-admin";
     private const string Reader = "ai-reader";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

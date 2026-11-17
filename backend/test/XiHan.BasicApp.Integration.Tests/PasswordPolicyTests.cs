@@ -30,7 +30,7 @@ public sealed class PasswordPolicyTests : IDisposable
     /// </summary>
     private static readonly string[] _rejections = ["SETTINGS_VALIDATION_002", "SETTINGS_VALIDATION_011"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

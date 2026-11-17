@@ -23,7 +23,7 @@ public sealed class PasskeyTests : IDisposable
     private const string RelyingParty = "localhost";
     private const string Origin = "http://localhost:9100";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

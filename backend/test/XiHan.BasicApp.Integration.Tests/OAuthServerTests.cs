@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 public sealed class OAuthServerTests : IDisposable
 {
     private const string Callback = "https://rp.example.com/cb";
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

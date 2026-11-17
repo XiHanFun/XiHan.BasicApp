@@ -29,7 +29,7 @@ public sealed class AccessPolicyProtocolsTests : IDisposable
     private const string TestClient = "xihan-test-client";
     private const string DenyAll = "deny-all";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

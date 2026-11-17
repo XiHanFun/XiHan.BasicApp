@@ -56,7 +56,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 写法：
 
-1. 每个版本一个新目录，脚本放进各库类型的目录：`Schema/<新版本>/postgresql/0001-xxx.sql`、`…/mysql/…`、`…/sqlserver/…`、`…/oracle/…`，四种库都要有；影响租户库实体的，另在各库类型目录的 `tenant/` 里写一份。
+1. 每个版本一个新目录，脚本放进各库类型的目录：`Schema/<新版本>/postgresql/0001-xxx.sql`、`…/mysql/…`、`…/sqlserver/…`、`…/oracle/…`，每种可能有旧库的库类型都要有一份（MySQL、SQL Server、Oracle 从 `6.0.1` 起支持，更早的版本目录只有 PostgreSQL 的）；影响租户库实体的，另在各库类型目录的 `tenant/` 里写一份。
 2. 脚本在按实体补表补列之前执行：要往新列搬数据的，在脚本里先把列加上。
 3. 写成可重复执行（先判断表、列、索引是否存在）：MySQL 与 Oracle 的 DDL 会隐式提交、回滚不了，失败后修好重跑，已执行的部分要能跳过。
 4. Oracle 不能一次执行多条语句：语句之间用只有 `/` 的一行隔开，普通语句末尾不写分号，PL/SQL 块照常写。SQL Server 的脚本不要写 `GO`。

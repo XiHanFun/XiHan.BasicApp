@@ -25,7 +25,7 @@ public sealed class AuthFlowTests : IDisposable
 {
     private const string SuperAdminLogin = """{"userName":"superadmin","password":"SuperAdmin@123"}""";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

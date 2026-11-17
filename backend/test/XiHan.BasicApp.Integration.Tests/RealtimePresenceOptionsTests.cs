@@ -17,7 +17,7 @@ public sealed class RealtimePresenceOptionsTests : IDisposable
 {
     private const string Key = "BasicApp:Realtime:Presence:OfflineGrace";
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

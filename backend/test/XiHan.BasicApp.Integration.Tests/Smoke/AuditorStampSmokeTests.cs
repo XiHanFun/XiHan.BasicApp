@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Integration.Tests.Smoke;
 /// </remarks>
 public sealed class AuditorStampSmokeTests : IDisposable
 {
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 

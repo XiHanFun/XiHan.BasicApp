@@ -21,7 +21,7 @@ public sealed class MaintenanceJobsTests : IDisposable
     private static readonly string[] _restoreTargets = ["auditing.retention", "nope.job"];
     private static readonly string[] _oauthCleanup = ["openplatform.oauth-cleanup"];
 
-    private readonly SqliteDatabase _database = new();
+    private readonly TestDatabase _database = new();
 
     public void Dispose() => _database.Dispose();
 
