@@ -130,6 +130,12 @@ export default {
       unavailable: 'Archivo no disponible (eliminado o sin permiso de lectura)',
       open_failed: 'No se pudo abrir el archivo',
     },
+    image_crop: {
+      alt: 'Imagen para recortar',
+      failed: 'Error al recortar la imagen',
+      unreadable: 'No se pudo leer la imagen. Elige otra',
+      zoom: 'Zoom',
+    },
     lock_screen: {
       setup_password_hint: 'Defina la contraseña de bloqueo de pantalla (4-64 caracteres)',
       new_password_placeholder: 'Contraseña de bloqueo (4-64 caracteres)',
@@ -446,11 +452,8 @@ export default {
         confirm_change: 'Confirmar cambio',
         confirm_remove: 'Confirmar eliminación',
         country_placeholder: 'p. ej.: España',
-        crop_avatar_alt: 'Imagen para recortar',
         crop_avatar_title: 'Recortar avatar',
-        crop_zoom: 'Zoom',
         current_password_placeholder: 'Introduzca su contraseña actual para confirmar su identidad',
-        err_avatar_crop_failed: 'Error al recortar la imagen',
         err_avatar_remove_failed: 'Error al eliminar',
         err_profile_save_failed: 'Error al guardar',
         msg_code_sent_email: 'Código enviado a tu correo',
@@ -510,7 +513,6 @@ export default {
         value_not_set: 'Sin definir',
         warn_avatar_format: 'Solo se admiten imágenes JPG y PNG',
         warn_avatar_size: 'El tamaño de la imagen no puede superar {size} MB',
-        warn_avatar_unreadable: 'No se pudo leer la imagen. Elige otra',
         warn_no_avatar_to_remove: 'No hay ningún avatar que eliminar',
       },
       login_logs: {

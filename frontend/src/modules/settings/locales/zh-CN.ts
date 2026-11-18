@@ -233,6 +233,7 @@ export default {
       inherited_image: '沿用平台的图片',
       upload: '上传',
       replace: '更换',
+      crop_title: '裁剪图片：{name}',
       remove: '去掉',
       save: '保存',
       saved: '站点设置已保存',

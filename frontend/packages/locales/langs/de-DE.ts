@@ -130,6 +130,12 @@ export default {
       unavailable: 'Datei nicht verfügbar (gelöscht oder keine Leseberechtigung)',
       open_failed: 'Datei konnte nicht geöffnet werden',
     },
+    image_crop: {
+      alt: 'Zuzuschneidendes Bild',
+      failed: 'Zuschneiden des Bildes fehlgeschlagen',
+      unreadable: 'Das Bild konnte nicht gelesen werden. Bitte ein anderes wählen',
+      zoom: 'Zoom',
+    },
     lock_screen: {
       setup_password_hint: 'Sperrbildschirm-Passwort festlegen (4-64 Zeichen)',
       new_password_placeholder: 'Sperrbildschirm-Passwort (4-64 Zeichen)',
@@ -446,11 +452,8 @@ export default {
         confirm_change: 'Änderung bestätigen',
         confirm_remove: 'Entfernen bestätigen',
         country_placeholder: 'z. B. Deutschland',
-        crop_avatar_alt: 'Zuzuschneidendes Bild',
         crop_avatar_title: 'Avatar zuschneiden',
-        crop_zoom: 'Zoom',
         current_password_placeholder: 'Aktuelles Passwort zur Identitätsbestätigung eingeben',
-        err_avatar_crop_failed: 'Zuschneiden des Bildes fehlgeschlagen',
         err_avatar_remove_failed: 'Entfernen fehlgeschlagen',
         err_profile_save_failed: 'Speichern fehlgeschlagen',
         msg_code_sent_email: 'Bestätigungscode an Ihre E-Mail-Adresse gesendet',
@@ -510,7 +513,6 @@ export default {
         value_not_set: 'Nicht festgelegt',
         warn_avatar_format: 'Nur JPG- und PNG-Bilder werden unterstützt',
         warn_avatar_size: 'Die Bildgröße darf {size}MB nicht überschreiten',
-        warn_avatar_unreadable: 'Das Bild konnte nicht gelesen werden. Bitte ein anderes wählen',
         warn_no_avatar_to_remove: 'Kein Avatar zum Entfernen vorhanden',
       },
       login_logs: {

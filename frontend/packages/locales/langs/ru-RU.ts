@@ -130,6 +130,12 @@ export default {
       unavailable: 'Файл недоступен (удалён или нет прав на просмотр)',
       open_failed: 'Не удалось открыть файл',
     },
+    image_crop: {
+      alt: 'Изображение для обрезки',
+      failed: 'Не удалось обрезать изображение',
+      unreadable: 'Не удалось прочитать изображение. Выберите другое',
+      zoom: 'Масштаб',
+    },
     lock_screen: {
       setup_password_hint: 'Задайте пароль блокировки экрана (4–64 символа)',
       new_password_placeholder: 'Пароль блокировки (4–64 символа)',
@@ -446,11 +452,8 @@ export default {
         confirm_change: 'Подтвердить изменение',
         confirm_remove: 'Подтвердить удаление',
         country_placeholder: 'Например: Россия',
-        crop_avatar_alt: 'Изображение для обрезки',
         crop_avatar_title: 'Обрезка аватара',
-        crop_zoom: 'Масштаб',
         current_password_placeholder: 'Введите текущий пароль для подтверждения личности',
-        err_avatar_crop_failed: 'Не удалось обрезать изображение',
         err_avatar_remove_failed: 'Не удалось удалить',
         err_profile_save_failed: 'Не удалось сохранить',
         msg_code_sent_email: 'Код отправлен на почту',
@@ -510,7 +513,6 @@ export default {
         value_not_set: 'Не указано',
         warn_avatar_format: 'Поддерживаются только изображения JPG и PNG',
         warn_avatar_size: 'Размер изображения не может превышать {size} МБ',
-        warn_avatar_unreadable: 'Не удалось прочитать изображение. Выберите другое',
         warn_no_avatar_to_remove: 'Нет аватара для удаления',
       },
       login_logs: {

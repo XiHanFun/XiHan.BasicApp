@@ -1,12 +1,12 @@
 /**
- * 头像裁剪的解码与出图（avatar-crop.ts）：
- * 初始裁切框是居中的最大正方形；出图是整块正方形（不带圆形）、边长封顶 512、格式随原图，JPEG 先铺白底；
- * 解不出来的图片拒绝并回收对象地址
+ * 图片裁剪的解码与出图（image-crop.ts）：
+ * 初始裁切框锁比例时取居中的最大框、不锁取整张图；出图是整块矩形、宽度封顶不放大，
+ * 原图是 JPEG 或要求不透明时出 JPEG 并先铺白底，其余出 PNG；解不出来的图片拒绝并回收对象地址
  */
-import type { AvatarCropSource } from '~/views/_core/profile/avatar-crop'
+import type { ImageCropSource } from '~/components/common/image-crop'
 import { cropToCanvas } from '@xihan-ui/headless'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { centeredSquare, exportAvatar, loadAvatarSource, releaseAvatarSource } from '~/views/_core/profile/avatar-crop'
+import { exportCroppedImage, initialCropRect, loadImageCropSource, releaseImageCropSource } from '~/components/common/image-crop'
 
 vi.mock('@xihan-ui/headless', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@xihan-ui/headless')>()
@@ -25,11 +25,11 @@ function canvasOf(encodable = true) {
   } as unknown as HTMLCanvasElement
 }
 
-function sourceOf(name: string, type: string): AvatarCropSource {
+function sourceOf(name: string, type: string): ImageCropSource {
   return {
     file: new File(['raw'], name, { type }),
     image: { naturalWidth: 2000, naturalHeight: 1000 } as HTMLImageElement,
-    url: 'blob:avatar',
+    url: 'blob:image',
   }
 }
 
@@ -42,15 +42,15 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('头像裁剪', () => {
-  it('初始裁切框是居中的最大正方形', () => {
-    expect(centeredSquare({ naturalWidth: 800, naturalHeight: 600 })).toEqual({
+describe('初始裁切框', () => {
+  it('锁 1:1 时是居中的最大正方形', () => {
+    expect(initialCropRect({ naturalWidth: 800, naturalHeight: 600 }, 1)).toEqual({
       x: 100,
       y: 0,
       width: 600,
       height: 600,
     })
-    expect(centeredSquare({ naturalWidth: 300, naturalHeight: 900 })).toEqual({
+    expect(initialCropRect({ naturalWidth: 300, naturalHeight: 900 }, 1)).toEqual({
       x: 0,
       y: 300,
       width: 300,
@@ -58,16 +58,36 @@ describe('头像裁剪', () => {
     })
   })
 
-  it('出图是整块正方形：边长封顶 512、不放大小图，PNG 不铺底色，文件名与格式随原图', async () => {
+  it('锁别的比例时按比例取居中的最大框', () => {
+    expect(initialCropRect({ naturalWidth: 1000, naturalHeight: 1000 }, 2)).toEqual({
+      x: 0,
+      y: 250,
+      width: 1000,
+      height: 500,
+    })
+  })
+
+  it('不锁比例时是整张图', () => {
+    expect(initialCropRect({ naturalWidth: 1600, naturalHeight: 900 })).toEqual({
+      x: 0,
+      y: 0,
+      width: 1600,
+      height: 900,
+    })
+  })
+})
+
+describe('出图', () => {
+  it('宽度封顶、不放大小图，PNG 不铺底色，文件名与格式随原图', async () => {
     vi.mocked(cropToCanvas).mockReturnValue(canvasOf())
     const source = sourceOf('me.png', 'image/png')
 
-    const large = await exportAvatar(source, {
+    const large = await exportCroppedImage(source, {
       x: 500,
       y: 0,
       width: 1000,
       height: 1000,
-    })
+    }, { maxWidth: 512 })
     expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, {
       x: 500,
       y: 0,
@@ -76,12 +96,12 @@ describe('头像裁剪', () => {
     }, { width: 512, background: undefined })
     expect(large).toMatchObject({ name: 'me.png', type: 'image/png' })
 
-    await exportAvatar(source, {
+    await exportCroppedImage(source, {
       x: 0,
       y: 0,
       width: 120.4,
       height: 120.4,
-    })
+    }, { maxWidth: 512 })
     expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, expect.anything(), { width: 120, background: undefined })
   })
 
@@ -89,21 +109,37 @@ describe('头像裁剪', () => {
     vi.mocked(cropToCanvas).mockReturnValue(canvasOf())
     const source = sourceOf('me.jpg', 'image/jpeg')
 
-    const file = await exportAvatar(source, { x: 0, y: 0, width: 600, height: 600 })
+    const file = await exportCroppedImage(source, { x: 0, y: 0, width: 600, height: 600 }, { maxWidth: 512 })
     expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, expect.anything(), { width: 512, background: '#fff' })
     expect(file).toMatchObject({ name: 'me.jpg', type: 'image/jpeg' })
+  })
+
+  it('要求不透明时 PNG 原图也铺白底出 JPEG', async () => {
+    vi.mocked(cropToCanvas).mockReturnValue(canvasOf())
+    const source = sourceOf('bg.png', 'image/png')
+
+    const file = await exportCroppedImage(source, {
+      x: 0,
+      y: 0,
+      width: 3000,
+      height: 1500,
+    }, { maxWidth: 1920, opaque: true })
+    expect(cropToCanvas).toHaveBeenLastCalledWith(source.image, expect.anything(), { width: 1920, background: '#fff' })
+    expect(file).toMatchObject({ type: 'image/jpeg' })
   })
 
   it('画不出来或编码不出来都回 null', async () => {
     const source = sourceOf('me.png', 'image/png')
     vi.mocked(cropToCanvas).mockReturnValue(null)
-    expect(await exportAvatar(source, { x: 0, y: 0, width: 600, height: 600 })).toBeNull()
+    expect(await exportCroppedImage(source, { x: 0, y: 0, width: 600, height: 600 }, { maxWidth: 512 })).toBeNull()
     vi.mocked(cropToCanvas).mockReturnValue(canvasOf(false))
-    expect(await exportAvatar(source, { x: 0, y: 0, width: 600, height: 600 })).toBeNull()
+    expect(await exportCroppedImage(source, { x: 0, y: 0, width: 600, height: 600 }, { maxWidth: 512 })).toBeNull()
   })
+})
 
+describe('解码', () => {
   it('解码成功回文件、图片与对象地址；解不出来或尺寸为 0 即拒绝并回收对象地址', async () => {
-    const createObjectURL = vi.fn(() => 'blob:avatar')
+    const createObjectURL = vi.fn(() => 'blob:image')
     const revokeObjectURL = vi.fn()
     vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL }))
     const file = new File(['raw'], 'me.png', { type: 'image/png' })
@@ -113,22 +149,22 @@ describe('头像裁剪', () => {
     const decode = vi.fn(async () => {})
     HTMLImageElement.prototype.decode = decode
 
-    const source = await loadAvatarSource(file)
-    expect(source).toMatchObject({ file, url: 'blob:avatar' })
+    const source = await loadImageCropSource(file)
+    expect(source).toMatchObject({ file, url: 'blob:image' })
     expect(source.image.naturalWidth).toBe(640)
     expect(revokeObjectURL).not.toHaveBeenCalled()
-    releaseAvatarSource(source)
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:avatar')
+    releaseImageCropSource(source)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:image')
 
     revokeObjectURL.mockClear()
     size.width = 0
-    await expect(loadAvatarSource(file)).rejects.toThrow()
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:avatar')
+    await expect(loadImageCropSource(file)).rejects.toThrow()
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:image')
 
     revokeObjectURL.mockClear()
     size.width = 640
     decode.mockRejectedValueOnce(new Error('cannot decode'))
-    await expect(loadAvatarSource(file)).rejects.toThrow('cannot decode')
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:avatar')
+    await expect(loadImageCropSource(file)).rejects.toThrow('cannot decode')
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:image')
   })
 })

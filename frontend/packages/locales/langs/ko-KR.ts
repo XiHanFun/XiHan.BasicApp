@@ -130,6 +130,12 @@ export default {
       unavailable: '파일을 사용할 수 없습니다(삭제되었거나 조회 권한 없음)',
       open_failed: '파일을 열지 못했습니다',
     },
+    image_crop: {
+      alt: '자를 이미지',
+      failed: '이미지를 자르지 못했어요',
+      unreadable: '이미지를 읽을 수 없어요. 다른 이미지를 선택해 주세요',
+      zoom: '확대/축소',
+    },
     lock_screen: {
       setup_password_hint: '이번 화면 잠금 비밀번호를 설정하세요(4-64자)',
       new_password_placeholder: '화면 잠금 비밀번호(4-64자)',
@@ -446,11 +452,8 @@ export default {
         confirm_change: '변경 확인',
         confirm_remove: '삭제 확인',
         country_placeholder: '예: 중국',
-        crop_avatar_alt: '자를 이미지',
         crop_avatar_title: '프로필 사진 자르기',
-        crop_zoom: '확대/축소',
         current_password_placeholder: '본인 확인을 위해 현재 비밀번호 입력',
-        err_avatar_crop_failed: '이미지를 자르지 못했어요',
         err_avatar_remove_failed: '삭제하지 못했어요',
         err_profile_save_failed: '저장하지 못했어요',
         msg_code_sent_email: '인증 코드를 이메일로 보냈어요',
@@ -510,7 +513,6 @@ export default {
         value_not_set: '설정 안 함',
         warn_avatar_format: 'JPG, PNG 형식의 이미지만 지원해요',
         warn_avatar_size: '이미지 크기는 {size}MB를 넘을 수 없어요',
-        warn_avatar_unreadable: '이미지를 읽을 수 없어요. 다른 이미지를 선택해 주세요',
         warn_no_avatar_to_remove: '삭제할 프로필 사진이 없어요',
       },
       login_logs: {

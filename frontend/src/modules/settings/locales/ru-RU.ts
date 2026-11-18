@@ -233,6 +233,7 @@ export default {
       inherited_image: 'Унаследовано от платформы',
       upload: 'Загрузить',
       replace: 'Заменить',
+      crop_title: 'Обрезка изображения: {name}',
       remove: 'Убрать',
       save: 'Сохранить',
       saved: 'Настройки сайта сохранены',

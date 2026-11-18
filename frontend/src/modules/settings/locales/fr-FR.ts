@@ -233,6 +233,7 @@ export default {
       inherited_image: 'Hérité de la plateforme',
       upload: 'Téléverser',
       replace: 'Remplacer',
+      crop_title: 'Recadrer l’image : {name}',
       remove: 'Retirer',
       save: 'Enregistrer',
       saved: 'Paramètres du site enregistrés',

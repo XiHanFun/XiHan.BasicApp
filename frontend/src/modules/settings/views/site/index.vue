@@ -5,10 +5,11 @@
 
 <script lang="ts" setup>
 import type { SiteAssetField, SiteTextField } from './use-site'
+import type { ImageCropSource } from '~/components'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldRoot, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
-import { computed, onMounted, useId, useTemplateRef } from 'vue'
+import { computed, onBeforeUnmount, onMounted, shallowRef, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XFieldLabel, XHelpTip, XInput } from '~/components'
+import { Icon, loadImageCropSource, releaseImageCropSource, XFieldLabel, XHelpTip, XImageCropDialog, XInput } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { SITE_ASSET_ACCEPT, siteAssetUrl, useSiteSettings } from './use-site'
@@ -83,6 +84,16 @@ const groups = computed<Array<{ key: string, title: string, fields: Array<{ fiel
   },
 ])
 
+/**
+ * 各张图的裁剪：Logo 与浏览器图标在壳层里按正方形铺满，锁 1:1；
+ * 登录页背景按区域铺满（cover），自由裁切、出 JPEG 控制体积
+ */
+const CROP: Record<SiteAssetField, { aspectRatio?: number, maxWidth: number, opaque?: boolean, size?: 'sm' | 'md' }> = {
+  logo: { aspectRatio: 1, maxWidth: 512 },
+  favicon: { aspectRatio: 1, maxWidth: 256 },
+  loginBackground: { maxWidth: 1920, opaque: true, size: 'md' },
+}
+
 /** 图片槽位：当前图与沿用的平台图 */
 const images = computed<Array<{ field: SiteAssetField, label: string, help: string, wide?: boolean }>>(() => [
   {
@@ -113,22 +124,51 @@ function inheritedImageOf(field: SiteAssetField): null | string {
 
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
 let picking: null | SiteAssetField = null
+/** 待裁剪的图片；有值即裁剪弹窗开着。槽位收起后仍留着，弹窗退场时标题与尺寸不跳 */
+const cropSource = shallowRef<ImageCropSource | null>(null)
+const cropField = shallowRef<SiteAssetField>('logo')
+const cropOptions = computed(() => CROP[cropField.value])
+const cropLabel = computed(() => images.value.find(image => image.field === cropField.value)?.label ?? '')
 
 function pick(field: SiteAssetField): void {
   picking = field
   fileInput.value?.click()
 }
 
+/** 选了图片先进裁剪弹窗，确认后才上传 */
 async function onFileSelected(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
-  if (!file || !picking)
+  const field = picking
+  if (!file || !field)
     return
-  if (await editor.upload(picking, file))
+  try {
+    cropSource.value = await loadImageCropSource(file)
+    cropField.value = field
+  }
+  catch {
+    toast.warning(t('component.image_crop.unreadable'))
+  }
+}
+
+function closeCrop(): void {
+  if (cropSource.value)
+    releaseImageCropSource(cropSource.value)
+  cropSource.value = null
+}
+
+onBeforeUnmount(closeCrop)
+
+/** 传裁好的那张：成功即收起弹窗；被拒提示后端文案，弹窗留着可再传 */
+async function uploadCropped(file: File): Promise<void> {
+  if (await editor.upload(cropField.value, file)) {
     toast.success(t('settings.site.uploaded'))
-  else if (editor.submitError.value)
+    closeCrop()
+  }
+  else if (editor.submitError.value) {
     toast.danger(editor.submitError.value)
+  }
 }
 
 async function onRemove(field: SiteAssetField): Promise<void> {
@@ -165,7 +205,7 @@ async function onSubmit(): Promise<void> {
       </XhEmptyStateRoot>
 
       <div v-else-if="editor.settings.value" class="site-settings__body" data-testid="site-settings">
-        <XhAlertRoot :tone="isPlatform ? 'info' : 'neutral'" variant="subtle">
+        <XhAlertRoot tone="info" variant="subtle">
           <XhAlertIndicator>
             <Icon :icon="isPlatform ? 'lucide:globe' : 'lucide:building-2'" />
           </XhAlertIndicator>
@@ -245,6 +285,20 @@ async function onSubmit(): Promise<void> {
         </XhFormRoot>
       </div>
     </div>
+
+    <!-- 图片裁剪：确认后才上传，上传中关不掉，传完或取消才收起 -->
+    <XImageCropDialog
+      :source="cropSource"
+      :title="t('settings.site.crop_title', { name: cropLabel })"
+      :confirm-text="t('settings.site.upload')"
+      :loading="editor.uploading.value === cropField"
+      :aspect-ratio="cropOptions.aspectRatio"
+      :max-width="cropOptions.maxWidth"
+      :opaque="cropOptions.opaque"
+      :size="cropOptions.size"
+      @confirm="uploadCropped"
+      @cancel="closeCrop"
+    />
   </div>
 </template>
 

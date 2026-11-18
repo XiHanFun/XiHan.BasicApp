@@ -130,6 +130,12 @@ export default {
       unavailable: 'ファイルを利用できません（削除済みまたは閲覧権限なし）',
       open_failed: 'ファイルを開けませんでした',
     },
+    image_crop: {
+      alt: '切り抜く画像',
+      failed: '画像の切り抜きに失敗しました',
+      unreadable: '画像を読み込めません。別の画像を選んでください',
+      zoom: 'ズーム',
+    },
     lock_screen: {
       setup_password_hint: '今回のロック画面パスワードを設定（4-64 文字）',
       new_password_placeholder: 'ロック画面パスワード（4-64 文字）',
@@ -446,11 +452,8 @@ export default {
         confirm_change: '変更を確定',
         confirm_remove: '削除を確定',
         country_placeholder: '例：中国',
-        crop_avatar_alt: '切り抜く画像',
         crop_avatar_title: 'アバターの切り抜き',
-        crop_zoom: 'ズーム',
         current_password_placeholder: '本人確認のため現在のパスワードを入力',
-        err_avatar_crop_failed: '画像の切り抜きに失敗しました',
         err_avatar_remove_failed: '削除に失敗しました',
         err_profile_save_failed: '保存に失敗しました',
         msg_code_sent_email: '認証コードをメールに送信しました',
@@ -510,7 +513,6 @@ export default {
         value_not_set: '未設定',
         warn_avatar_format: 'JPG、PNG 形式の画像のみ対応しています',
         warn_avatar_size: '画像サイズは {size}MB を超えられません',
-        warn_avatar_unreadable: '画像を読み込めません。別の画像を選んでください',
         warn_no_avatar_to_remove: '削除できるアバターがありません',
       },
       login_logs: {

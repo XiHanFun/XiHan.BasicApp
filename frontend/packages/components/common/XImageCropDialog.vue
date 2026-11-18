@@ -4,24 +4,54 @@
 -->
 
 <script lang="ts" setup>
-import type { ImageCropperRect } from '@xihan-ui/headless'
-import type { AvatarCropSource } from './avatar-crop'
+import type { ImageCropperRect, ImageCropperShape } from '@xihan-ui/headless'
+import type { ImageCropSource } from './image-crop'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhImageCropperCropArea, XhImageCropperCropHandle, XhImageCropperImage, XhImageCropperRoot, XhImageCropperViewport, XhImageCropperZoomSlider } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
-import { centeredSquare, exportAvatar } from './avatar-crop'
+import { exportCroppedImage, initialCropRect } from './image-crop'
 
-defineOptions({ name: 'ProfileAvatarCropDialog' })
+defineOptions({ name: 'XImageCropDialog' })
 
-/** source 有值即打开；loading 为上传中：裁切器与取消都停用，关不掉 */
-const props = defineProps<{ source: AvatarCropSource | null, loading?: boolean }>()
+/**
+ * 选好图片后的裁剪弹窗：source 有值即打开，确认后交出裁好的那张
+ * loading 为上传中：裁切器与取消都停用，关不掉
+ */
+const props = withDefaults(defineProps<{
+  source: ImageCropSource | null
+  title: string
+  confirmText: string
+  loading?: boolean
+  /** 锁定的宽高比；不传即自由裁切 */
+  aspectRatio?: number
+  shape?: ImageCropperShape
+  /** 出图宽度的上限（像素） */
+  maxWidth: number
+  /** 一律出 JPEG（照片类图片控制体积） */
+  opaque?: boolean
+  size?: 'sm' | 'md'
+}>(), {
+  shape: 'rect',
+  opaque: false,
+  size: 'sm',
+})
 const emit = defineEmits<{ confirm: [file: File], cancel: [] }>()
 
 const { t } = useI18n()
 
-/** 头像只给四个角的把手：锁了 1:1，边上的把手与角等效 */
-const HANDLES = ['nw', 'ne', 'se', 'sw'] as const
+/** 锁了比例只给四个角的把手：边上的把手与角等效 */
+const CORNER_HANDLES = ['nw', 'ne', 'se', 'sw'] as const
+const ALL_HANDLES = [
+  'nw',
+  'n',
+  'ne',
+  'e',
+  'se',
+  's',
+  'sw',
+  'w',
+] as const
 /** 裁切框的最小边长（原图像素） */
 const MIN_CROP_SIZE = 32
 
@@ -29,9 +59,13 @@ const zoomId = useId()
 const rect = ref<ImageCropperRect>()
 const exporting = ref(false)
 
+const handles = computed(() => props.aspectRatio
+  ? CORNER_HANDLES
+  : ALL_HANDLES)
+
 watch(() => props.source, (source) => {
   rect.value = source
-    ? centeredSquare(source.image)
+    ? initialCropRect(source.image, props.aspectRatio)
     : undefined
 }, { immediate: true })
 
@@ -58,11 +92,11 @@ async function confirm() {
     return
   exporting.value = true
   try {
-    const file = await exportAvatar(props.source, rect.value)
+    const file = await exportCroppedImage(props.source, rect.value, { maxWidth: props.maxWidth, opaque: props.opaque })
     if (file)
       emit('confirm', file)
     else
-      toast.danger(t('component.profile.info.err_avatar_crop_failed'))
+      toast.danger(t('component.image_crop.failed'))
   }
   finally {
     exporting.value = false
@@ -73,12 +107,12 @@ async function confirm() {
 <template>
   <XhDialogRoot
     :open="source !== null"
-    size="sm"
+    :size="size"
     @update:open="(open: boolean) => !open && cancel()"
   >
     <XhDialogContent>
       <XhDialogHeader>
-        <XhDialogTitle>{{ t('component.profile.info.crop_avatar_title') }}</XhDialogTitle>
+        <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
       <XhDialogCloseTrigger />
       <XhDialogBody>
@@ -86,21 +120,21 @@ async function confirm() {
           v-if="source"
           v-model:value="rect"
           :src="source.url"
-          :alt="t('component.profile.info.crop_avatar_alt')"
-          shape="round"
-          :aspect-ratio="1"
+          :alt="t('component.image_crop.alt')"
+          :shape="shape"
+          :aspect-ratio="aspectRatio"
           :min-width="minSize"
           :min-height="minSize"
           :disabled="loading"
         >
-          <XhImageCropperViewport class="pf-avatar-crop__viewport" :style="{ inlineSize: viewportWidth }">
+          <XhImageCropperViewport class="x-image-crop__viewport" :style="{ inlineSize: viewportWidth }">
             <XhImageCropperImage />
             <XhImageCropperCropArea>
-              <XhImageCropperCropHandle v-for="position in HANDLES" :key="position" :position="position" />
+              <XhImageCropperCropHandle v-for="position in handles" :key="position" :position="position" />
             </XhImageCropperCropArea>
           </XhImageCropperViewport>
-          <div class="pf-avatar-crop__zoom">
-            <label :for="zoomId">{{ t('component.profile.info.crop_zoom') }}</label>
+          <div class="x-image-crop__zoom">
+            <label :for="zoomId">{{ t('component.image_crop.zoom') }}</label>
             <XhImageCropperZoomSlider :id="zoomId" />
           </div>
         </XhImageCropperRoot>
@@ -111,7 +145,7 @@ async function confirm() {
         </XhButton>
         <XhButton size="sm" variant="solid" tone="brand" :loading="loading || exporting" @click="confirm">
           <XhButtonIndicator />
-          <XhButtonLabel>{{ t('component.profile.info.btn_upload') }}</XhButtonLabel>
+          <XhButtonLabel>{{ confirmText }}</XhButtonLabel>
         </XhButton>
       </XhDialogFooter>
     </XhDialogContent>
@@ -120,11 +154,11 @@ async function confirm() {
 
 <style scoped>
 /* 竖长图的视口比弹窗窄，居中放；缩放那一行仍占满弹窗的宽 */
-.pf-avatar-crop__viewport {
+.x-image-crop__viewport {
   margin-inline: auto;
 }
 
-.pf-avatar-crop__zoom {
+.x-image-crop__zoom {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;

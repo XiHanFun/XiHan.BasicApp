@@ -233,6 +233,7 @@ export default {
       inherited_image: 'Von der Plattform übernommen',
       upload: 'Hochladen',
       replace: 'Ersetzen',
+      crop_title: 'Bild zuschneiden: {name}',
       remove: 'Entfernen',
       save: 'Speichern',
       saved: 'Website-Einstellungen gespeichert',

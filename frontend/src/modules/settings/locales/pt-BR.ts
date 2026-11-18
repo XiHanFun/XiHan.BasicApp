@@ -233,6 +233,7 @@ export default {
       inherited_image: 'Herdado da plataforma',
       upload: 'Enviar',
       replace: 'Trocar',
+      crop_title: 'Recortar imagem: {name}',
       remove: 'Remover',
       save: 'Salvar',
       saved: 'Configurações do site salvas',

@@ -4,12 +4,12 @@
 -->
 
 <script lang="ts" setup>
-import type { AvatarCropSource } from './avatar-crop'
+import type { ImageCropSource } from '~/components'
 import type { UserProfile } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
+import { loadImageCropSource, releaseImageCropSource, XDatePicker, XImageCropDialog, XInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, prompt, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
@@ -17,8 +17,6 @@ import { ApiError } from '~/request'
 import { useAppContext, useUserStore } from '~/stores'
 import CodeCountdown from '../shared/CodeCountdown.vue'
 import { OTP_CODE_LENGTH } from '../shared/pin-code'
-import { loadAvatarSource, releaseAvatarSource } from './avatar-crop'
-import ProfileAvatarCropDialog from './ProfileAvatarCropDialog.vue'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
@@ -134,12 +132,14 @@ const genderOptions = computed(() => [
 
 const AVATAR_MAX_SIZE = 2 * 1024 * 1024 // 2MB
 const AVATAR_ACCEPT = ['image/jpeg', 'image/png']
+/** 裁出的头像边长上限：够各处显示用，文件也远小于上传上限 */
+const AVATAR_OUTPUT_SIZE = 512
 
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 const avatarRemoving = ref(false)
 /** 待裁剪的图片；有值即裁剪弹窗开着 */
-const avatarCropSource = shallowRef<AvatarCropSource | null>(null)
+const avatarCropSource = shallowRef<ImageCropSource | null>(null)
 
 /** 头像原始值（fileId），用于按钮禁用判断与显示 */
 const currentAvatar = computed(() => props.profile?.avatar || userStore.avatar)
@@ -165,16 +165,16 @@ async function handleAvatarChange(event: Event) {
     return
   }
   try {
-    avatarCropSource.value = await loadAvatarSource(file)
+    avatarCropSource.value = await loadImageCropSource(file)
   }
   catch {
-    toast.warning(t('component.profile.info.warn_avatar_unreadable'))
+    toast.warning(t('component.image_crop.unreadable'))
   }
 }
 
 function closeAvatarCrop() {
   if (avatarCropSource.value)
-    releaseAvatarSource(avatarCropSource.value)
+    releaseImageCropSource(avatarCropSource.value)
   avatarCropSource.value = null
 }
 
@@ -737,9 +737,14 @@ function cancelChange() {
     </section>
 
     <!-- 头像裁剪：确认后才上传，上传中关不掉，传完或取消才收起 -->
-    <ProfileAvatarCropDialog
+    <XImageCropDialog
       :source="avatarCropSource"
+      :title="t('component.profile.info.crop_avatar_title')"
+      :confirm-text="t('component.profile.info.btn_upload')"
       :loading="avatarUploading"
+      :aspect-ratio="1"
+      shape="round"
+      :max-width="AVATAR_OUTPUT_SIZE"
       @confirm="uploadCroppedAvatar"
       @cancel="closeAvatarCrop"
     />

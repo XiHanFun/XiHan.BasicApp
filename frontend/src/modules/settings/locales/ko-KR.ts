@@ -233,6 +233,7 @@ export default {
       inherited_image: '플랫폼 이미지 사용',
       upload: '업로드',
       replace: '변경',
+      crop_title: '이미지 자르기: {name}',
       remove: '제거',
       save: '저장',
       saved: '사이트 설정을 저장했어요',

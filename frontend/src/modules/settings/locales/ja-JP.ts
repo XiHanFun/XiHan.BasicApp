@@ -233,6 +233,7 @@ export default {
       inherited_image: 'プラットフォームの画像を使用',
       upload: 'アップロード',
       replace: '変更',
+      crop_title: '画像の切り抜き：{name}',
       remove: '削除',
       save: '保存',
       saved: 'サイト設定を保存しました',

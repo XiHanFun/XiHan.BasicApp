@@ -130,6 +130,12 @@ export default {
       unavailable: 'File unavailable (deleted or no permission to view)',
       open_failed: 'Failed to open the file',
     },
+    image_crop: {
+      alt: 'Image to crop',
+      failed: 'Failed to crop the image',
+      unreadable: 'The image could not be read. Please choose another one',
+      zoom: 'Zoom',
+    },
     lock_screen: {
       setup_password_hint: 'Set lock screen password (4-64 characters)',
       new_password_placeholder: 'Lock screen password (4-64 characters)',
@@ -446,11 +452,8 @@ export default {
         confirm_change: 'Confirm Change',
         confirm_remove: 'Confirm Remove',
         country_placeholder: 'e.g. China',
-        crop_avatar_alt: 'Image to crop',
         crop_avatar_title: 'Crop Avatar',
-        crop_zoom: 'Zoom',
         current_password_placeholder: 'Enter current password to confirm identity',
-        err_avatar_crop_failed: 'Failed to crop the image',
         err_avatar_remove_failed: 'Remove failed',
         err_profile_save_failed: 'Save failed',
         msg_code_sent_email: 'Verification code sent to your email',
@@ -510,7 +513,6 @@ export default {
         value_not_set: 'Not set',
         warn_avatar_format: 'Only JPG and PNG images are supported',
         warn_avatar_size: 'Image size cannot exceed {size}MB',
-        warn_avatar_unreadable: 'The image could not be read. Please choose another one',
         warn_no_avatar_to_remove: 'No avatar to remove',
       },
       login_logs: {

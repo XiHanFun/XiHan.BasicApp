@@ -130,6 +130,12 @@ export default {
       unavailable: '文件不可用（已删除或无查看权限）',
       open_failed: '打开文件失败',
     },
+    image_crop: {
+      alt: '待裁剪的图片',
+      failed: '图片裁剪失败',
+      unreadable: '图片无法读取，请换一张',
+      zoom: '缩放',
+    },
     lock_screen: {
       setup_password_hint: '设置本次锁屏密码（4-64 位）',
       new_password_placeholder: '锁屏密码（4-64 位）',
@@ -446,11 +452,8 @@ export default {
         confirm_change: '确认修改',
         confirm_remove: '确认删除',
         country_placeholder: '例如：中国',
-        crop_avatar_alt: '待裁剪的图片',
         crop_avatar_title: '裁剪头像',
-        crop_zoom: '缩放',
         current_password_placeholder: '输入当前密码确认身份',
-        err_avatar_crop_failed: '图片裁剪失败',
         err_avatar_remove_failed: '删除失败',
         err_profile_save_failed: '保存失败',
         msg_code_sent_email: '验证码已发送至邮箱',
@@ -510,7 +513,6 @@ export default {
         value_not_set: '未设置',
         warn_avatar_format: '仅支持 JPG、PNG 格式的图片',
         warn_avatar_size: '图片大小不能超过 {size}MB',
-        warn_avatar_unreadable: '图片无法读取，请换一张',
         warn_no_avatar_to_remove: '当前没有可删除的头像',
       },
       login_logs: {
