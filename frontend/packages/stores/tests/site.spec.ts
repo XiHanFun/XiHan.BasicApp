@@ -31,7 +31,6 @@ function profile(extra: Record<string, unknown> = {}) {
     description: null,
     logo: null,
     favicon: null,
-    loginBackground: null,
     copyrightOwner: null,
     copyrightUrl: null,
     copyrightSince: null,
@@ -53,13 +52,11 @@ describe('站点设置', () => {
       site.name,
       site.logo,
       site.favicon,
-      site.loginBackground,
       site.tenantId,
     ]).toEqual([
       DEFAULT_SITE_NAME,
       DEFAULT_SITE_LOGO,
       DEFAULT_SITE_LOGO,
-      null,
       null,
     ])
   })
@@ -70,7 +67,6 @@ describe('站点设置', () => {
         name: 'Contoso Portal',
         subtitle: 'One console',
         logo: { id: 'l-1', url: '/api/site/assets/l-1' },
-        loginBackground: { id: 'b-1', url: '/api/site/assets/b-1' },
         copyrightOwner: 'Contoso',
         icp: 'ICP-1',
       }),
@@ -86,7 +82,6 @@ describe('站点设置', () => {
     expect(site.logo).toBe('https://api.example.test/api/site/assets/l-1')
     // 没传浏览器图标即用 Logo
     expect(site.favicon).toBe(site.logo)
-    expect(site.loginBackground).toBe('https://api.example.test/api/site/assets/b-1')
     expect(site.copyright).toEqual({
       owner: 'Contoso',
       url: null,

@@ -195,11 +195,6 @@ public sealed class SiteSettingsTests : IDisposable
         Assert.Equal((HttpStatusCode.OK, JsonValueKind.Null), (removed, removedBody.GetProperty("own").GetProperty("logo").ValueKind));
         Assert.Equal(HttpStatusCode.NotFound, (await server.Client.GetAsync($"/api/site/assets/{next}")).StatusCode);
         Assert.Equal(JsonValueKind.Null, (await SendAsync(server, HttpMethod.Get, "/api/site:resolve", null, tenant)).Body.GetProperty("profile").GetProperty("logo").ValueKind);
-
-        // 平台的背景图租户沿用
-        var (background, _) = await UploadAsync(server, "login-background", _png, platform);
-        Assert.Equal(HttpStatusCode.OK, background);
-        Assert.Equal(JsonValueKind.Object, (await SendAsync(server, HttpMethod.Get, "/api/site:resolve", null, tenant)).Body.GetProperty("profile").GetProperty("loginBackground").ValueKind);
     }
 
     private static async Task<string> UploadFileAsync(BasicAppTestServer server, string token)

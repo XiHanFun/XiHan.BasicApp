@@ -52451,14 +52451,6 @@
                     ],
                     "format": "uuid"
                   },
-                  "loginBackground": {
-                    "description": "\u767B\u5F55\u9875\u80CC\u666F\u56FE\uFF1A\u73B0\u5728\u7684\u6587\u4EF6 ID \u5373\u4FDD\u7559\uFF0C\u4E3A\u7A7A\u5373\u53BB\u6389",
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "format": "uuid"
-                  },
                   "copyrightOwner": {
                     "description": "\u9875\u811A\u7684\u7248\u6743\u65B9",
                     "type": [
@@ -52604,7 +52596,7 @@
         "tags": [
           "site"
         ],
-        "summary": "Replace the caller\u0027s side\u0027s logo, favicon or sign-in background (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field \u0060file\u0060).",
+        "summary": "Replace the caller\u0027s side\u0027s logo or favicon (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field \u0060file\u0060).",
         "description": "Requires permission settings.site.update (Update site settings).",
         "x-xihan-permission": "settings.site.update",
         "parameters": [
@@ -76545,17 +76537,6 @@
           },
           "favicon": {
             "description": "\u6D4F\u89C8\u5668\u56FE\u6807",
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SiteAssetResponse"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "loginBackground": {
-            "description": "\u767B\u5F55\u9875\u80CC\u666F\u56FE",
             "anyOf": [
               {
                 "$ref": "#/components/schemas/SiteAssetResponse"

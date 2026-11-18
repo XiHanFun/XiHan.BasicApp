@@ -85,13 +85,13 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 ## 站点设置与租户品牌
 
-站点名、Logo、浏览器图标、登录页（标语、说明、背景图）与页脚（版权方、链接、起始年份、备案号与链接）存在系统参数 `settings.site`：平台的是站点设置，租户的同键参数是它的品牌，只写要改的字段，没写的沿用平台的；文字为空即前端用界面自带的文案。
+站点名、Logo、浏览器图标、登录页（标语与说明）与页脚（版权方、链接、起始年份、备案号与链接）存在系统参数 `settings.site`：平台的是站点设置，租户的同键参数是它的品牌，只写要改的字段，没写的沿用平台的；文字为空即前端用界面自带的文案。
 
 | 操作 / 端点 | 权限 | 说明 |
 | --- | --- | --- |
 | `site.get`（`GET /api/site`） | `settings.site.read` | 设置页用：平台取站点设置，租户取自己的品牌（`own`）与沿用的平台设置（`inherited`） |
 | `site.update`（`PUT /api/site`） | `settings.site.update` | 整体覆盖调用方这一侧；图片只能保留现在的或去掉（去掉的随即回收），给别的文件 ID 即 `SETTINGS_VALIDATION_012` |
-| `POST /api/site/assets/{slot}` | `settings.site.update` | 换掉 `logo`、`favicon` 或 `login-background`：按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG），不超过 2 MB，否则 `SETTINGS_VALIDATION_013`；旧图回收 |
+| `POST /api/site/assets/{slot}` | `settings.site.update` | 换掉 `logo` 或 `favicon`：按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG），不超过 2 MB，否则 `SETTINGS_VALIDATION_013`；旧图回收 |
 | `site.resolve`（`GET /api/site:resolve?host=`） | 匿名 | 前端壳层用：登录了按令牌里的租户，没登录按 `host` 找绑定了这个域名的租户，返回生效的设置（租户的叠在平台的之上）与按域名找到的租户 ID |
 | `GET /api/site/assets/{id}` | 匿名 | 读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件，按不可变内容缓存一年 |
 

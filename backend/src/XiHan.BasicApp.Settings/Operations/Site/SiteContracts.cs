@@ -28,7 +28,6 @@ public sealed record ResolveSiteRequest([StringLength(260)] string? Host = null)
 /// <param name="Description">登录页的说明</param>
 /// <param name="Logo">Logo：现在的文件 ID 即保留，为空即去掉</param>
 /// <param name="Favicon">浏览器图标：现在的文件 ID 即保留，为空即去掉</param>
-/// <param name="LoginBackground">登录页背景图：现在的文件 ID 即保留，为空即去掉</param>
 /// <param name="CopyrightOwner">页脚的版权方</param>
 /// <param name="CopyrightUrl">版权方的链接（http 或 https）</param>
 /// <param name="CopyrightSince">版权起始年份</param>
@@ -40,7 +39,6 @@ public sealed record UpdateSiteRequest(
     [StringLength(SiteSettings.LongTextMaxLength)] string? Description = null,
     Guid? Logo = null,
     Guid? Favicon = null,
-    Guid? LoginBackground = null,
     [StringLength(SiteSettings.TextMaxLength)] string? CopyrightOwner = null,
     [StringLength(SiteSettings.LongTextMaxLength)] string? CopyrightUrl = null,
     [StringLength(SiteSettings.TextMaxLength)] string? CopyrightSince = null,
@@ -50,7 +48,7 @@ public sealed record UpdateSiteRequest(
     /// <summary>
     /// 换成设置
     /// </summary>
-    public SiteSettings ToSettings() => new(Name, Subtitle, Description, Logo, Favicon, LoginBackground, CopyrightOwner, CopyrightUrl, CopyrightSince, Icp, IcpUrl);
+    public SiteSettings ToSettings() => new(Name, Subtitle, Description, Logo, Favicon, CopyrightOwner, CopyrightUrl, CopyrightSince, Icp, IcpUrl);
 }
 
 /// <summary>
@@ -79,7 +77,6 @@ public sealed record SiteAssetResponse(Guid Id, string Url)
 /// <param name="Description">登录页的说明</param>
 /// <param name="Logo">Logo</param>
 /// <param name="Favicon">浏览器图标</param>
-/// <param name="LoginBackground">登录页背景图</param>
 /// <param name="CopyrightOwner">页脚的版权方</param>
 /// <param name="CopyrightUrl">版权方的链接</param>
 /// <param name="CopyrightSince">版权起始年份</param>
@@ -91,7 +88,6 @@ public sealed record SiteProfileResponse(
     string? Description,
     SiteAssetResponse? Logo,
     SiteAssetResponse? Favicon,
-    SiteAssetResponse? LoginBackground,
     string? CopyrightOwner,
     string? CopyrightUrl,
     string? CopyrightSince,
@@ -104,7 +100,7 @@ public sealed record SiteProfileResponse(
     public static SiteProfileResponse From(SiteSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        return new(settings.Name, settings.Subtitle, settings.Description, SiteAssetResponse.From(settings.Logo), SiteAssetResponse.From(settings.Favicon), SiteAssetResponse.From(settings.LoginBackground), settings.CopyrightOwner, settings.CopyrightUrl, settings.CopyrightSince, settings.Icp, settings.IcpUrl);
+        return new(settings.Name, settings.Subtitle, settings.Description, SiteAssetResponse.From(settings.Logo), SiteAssetResponse.From(settings.Favicon), settings.CopyrightOwner, settings.CopyrightUrl, settings.CopyrightSince, settings.Icp, settings.IcpUrl);
     }
 }
 

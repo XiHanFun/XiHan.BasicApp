@@ -53,7 +53,6 @@ export const useSiteStore = defineStore(SetupStoreId.Site, () => {
   const description = computed(() => profile.value?.description ?? null)
   const logo = computed(() => assetUrl(profile.value?.logo) ?? DEFAULT_SITE_LOGO)
   const favicon = computed(() => assetUrl(profile.value?.favicon) ?? logo.value)
-  const loginBackground = computed(() => assetUrl(profile.value?.loginBackground))
   const copyright = computed(() => ({
     owner: profile.value?.copyrightOwner ?? null,
     url: profile.value?.copyrightUrl ?? null,
@@ -82,7 +81,6 @@ export const useSiteStore = defineStore(SetupStoreId.Site, () => {
     description,
     logo,
     favicon,
-    loginBackground,
     copyright,
     apply,
     load,

@@ -30,7 +30,6 @@ export type SiteTextField = typeof SITE_TEXT_FIELDS[number]
 export const SITE_ASSET_SLOTS = [
   { field: 'logo', slot: 'logo' },
   { field: 'favicon', slot: 'favicon' },
-  { field: 'loginBackground', slot: 'login-background' },
 ] as const
 export type SiteAssetField = typeof SITE_ASSET_SLOTS[number]['field']
 
@@ -107,9 +106,6 @@ export function useSiteSettings() {
       favicon: images.favicon === undefined
         ? own?.favicon?.id ?? null
         : images.favicon,
-      loginBackground: images.loginBackground === undefined
-        ? own?.loginBackground?.id ?? null
-        : images.loginBackground,
     }
   }
 
@@ -173,9 +169,6 @@ export function useSiteSettings() {
         favicon: field === 'favicon'
           ? null
           : own.favicon?.id ?? null,
-        loginBackground: field === 'loginBackground'
-          ? null
-          : own.loginBackground?.id ?? null,
       }))
     }
     finally {

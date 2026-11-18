@@ -12,7 +12,6 @@ function profile(extra: Record<string, unknown> = {}) {
     description: null,
     logo: null,
     favicon: null,
-    loginBackground: null,
     copyrightOwner: null,
     copyrightUrl: null,
     copyrightSince: null,
@@ -90,7 +89,6 @@ describe('站点设置页', () => {
       icpUrl: null,
       logo: 'l-1',
       favicon: null,
-      loginBackground: null,
     })
   })
 

@@ -1,6 +1,6 @@
 /**
  * 站点设置页（views/site/index.vue）：
- * 选了图片先进裁剪弹窗（标题带图片名），Logo 与浏览器图标锁 1:1，登录页背景自由裁切、出 JPEG；
+ * 选了图片先进裁剪弹窗（标题带图片名），Logo 与浏览器图标锁 1:1；
  * 确认后把裁好的那张传到对应槽位，成功即收起并回收，被拒提示后端文案、弹窗留着；读不出来的图片只提示；
  * 页首提示平台侧与租户侧都是信息色
  */
@@ -33,7 +33,6 @@ function emptyProfile() {
     description: null,
     logo: null,
     favicon: null,
-    loginBackground: null,
     copyrightOwner: null,
     copyrightUrl: null,
     copyrightSince: null,
@@ -182,28 +181,6 @@ describe('站点图片上传先裁剪', () => {
     expect(success).toHaveBeenLastCalledWith('图片已更换')
     expect(openDialog()).toBeNull()
     expect(releaseImageCropSource).toHaveBeenCalledWith(source)
-  })
-
-  it('登录页背景：自由裁切（初始取整张图）、出 JPEG 且宽度封顶 1920', async () => {
-    const original = new File([
-      new Uint8Array(16),
-    ], 'bg.png', { type: 'image/png' })
-    const source = sourceOf(original)
-    vi.mocked(loadImageCropSource).mockResolvedValue(source)
-    vi.mocked(exportCroppedImage).mockResolvedValue(new File([
-      new Uint8Array(8),
-    ], 'bg.png', { type: 'image/jpeg' }))
-    editor.upload.mockResolvedValue(true)
-    const wrapper = await render()
-
-    await choose(wrapper, 2, original)
-    expect((await cropDialog()).text()).toContain('裁剪图片：登录页背景')
-    expect(openDialog()!.findAll('[data-scope="image-cropper"][data-part="crop-handle"]')).toHaveLength(8)
-
-    await buttonIn(openDialog()!, '上传').trigger('click')
-    await flushPromises()
-    expect(exportCroppedImage).toHaveBeenLastCalledWith(source, { x: 0, y: 0, width: 800, height: 600 }, { maxWidth: 1920, opaque: true })
-    expect(editor.upload).toHaveBeenCalledWith('loginBackground', expect.any(File))
   })
 
   it('上传被拒：提示后端文案，弹窗留着可再传；取消才收起并回收', async () => {

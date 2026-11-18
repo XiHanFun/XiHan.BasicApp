@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Host.Endpoints;
 /// </summary>
 /// <remarks>
 /// <list type="bullet">
-/// <item><c>POST /api/site/assets/{slot}</c>（multipart，字段 <c>file</c>）：要 <c>settings.site.update</c>，换掉调用方这一侧的 Logo（<c>logo</c>）、浏览器图标（<c>favicon</c>）或登录页背景（<c>login-background</c>），旧图随即回收；回设置页看到的站点设置</item>
+/// <item><c>POST /api/site/assets/{slot}</c>（multipart，字段 <c>file</c>）：要 <c>settings.site.update</c>，换掉调用方这一侧的 Logo（<c>logo</c>）或浏览器图标（<c>favicon</c>），旧图随即回收；回设置页看到的站点设置</item>
 /// <item><c>GET /api/site/assets/{id}</c>：匿名读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件；文件 ID 不变，按不可变内容缓存一年</item>
 /// </list>
 /// 按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG：同源打开会执行脚本），不超过 2 MB；存平台侧、公开级别，不计入租户的存储配额（与头像同一做法）
@@ -61,7 +61,7 @@ internal static class SiteEndpoints
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<SiteSettingsResponse>()
             .WithName("site.upload-asset")
-            .WithSummary("Replace the caller's side's logo, favicon or sign-in background (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field `file`).")
+            .WithSummary("Replace the caller's side's logo or favicon (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field `file`).")
             .WithTags("site")
             .AddEndpointFilter(new AuditedEndpointFilter("site.upload-asset", audited: true));
         endpoints.MapGet("/api/site/assets/{id:guid}", ContentAsync)
@@ -76,7 +76,7 @@ internal static class SiteEndpoints
     private static async Task<IResult> UploadAsync(HttpContext http, string slot, FileService files, SiteProfiles profiles)
     {
         var context = ContextOf(http);
-        if (slot is not ("logo" or "favicon" or "login-background"))
+        if (slot is not ("logo" or "favicon"))
         {
             return Fail(context, Error.Validation(SettingsErrors.SiteAssetUnknown, SettingsMessages.SiteAssetUnknown, MessageArguments.Of(("field", slot), ("id", string.Empty))));
         }
@@ -127,8 +127,7 @@ internal static class SiteEndpoints
             var next = slot switch
             {
                 "logo" => own with { Logo = created.Id },
-                "favicon" => own with { Favicon = created.Id },
-                _ => own with { LoginBackground = created.Id },
+                _ => own with { Favicon = created.Id },
             };
             var saved = await profiles.SaveAsync(owner, next, http.RequestAborted).ConfigureAwait(false);
             if (!saved.TryGetValue(out var savedSettings))

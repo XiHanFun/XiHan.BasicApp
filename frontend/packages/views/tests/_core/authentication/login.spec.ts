@@ -126,7 +126,6 @@ describe('登录页与第三方登录', () => {
         description: null,
         logo: null,
         favicon: null,
-        loginBackground: null,
         copyrightOwner: null,
         copyrightUrl: null,
         copyrightSince: null,

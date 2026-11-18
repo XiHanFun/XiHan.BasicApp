@@ -84,18 +84,14 @@ const groups = computed<Array<{ key: string, title: string, fields: Array<{ fiel
   },
 ])
 
-/**
- * 各张图的裁剪：Logo 与浏览器图标在壳层里按正方形铺满，锁 1:1；
- * 登录页背景按区域铺满（cover），自由裁切、出 JPEG 控制体积
- */
-const CROP: Record<SiteAssetField, { aspectRatio?: number, maxWidth: number, opaque?: boolean, size?: 'sm' | 'md' }> = {
+/** 各张图的裁剪：Logo 与浏览器图标在壳层里按正方形铺满，锁 1:1 */
+const CROP: Record<SiteAssetField, { aspectRatio: number, maxWidth: number }> = {
   logo: { aspectRatio: 1, maxWidth: 512 },
   favicon: { aspectRatio: 1, maxWidth: 256 },
-  loginBackground: { maxWidth: 1920, opaque: true, size: 'md' },
 }
 
 /** 图片槽位：当前图与沿用的平台图 */
-const images = computed<Array<{ field: SiteAssetField, label: string, help: string, wide?: boolean }>>(() => [
+const images = computed<Array<{ field: SiteAssetField, label: string, help: string }>>(() => [
   {
     field: 'logo',
     label: t('settings.site.fields.logo'),
@@ -105,12 +101,6 @@ const images = computed<Array<{ field: SiteAssetField, label: string, help: stri
     field: 'favicon',
     label: t('settings.site.fields.favicon'),
     help: t('settings.site.help.favicon'),
-  },
-  {
-    field: 'loginBackground',
-    label: t('settings.site.fields.login_background'),
-    help: t('settings.site.help.login_background'),
-    wide: true,
   },
 ])
 
@@ -222,13 +212,13 @@ async function onSubmit(): Promise<void> {
           </h3>
           <input ref="fileInput" class="site-settings__file" type="file" :accept="SITE_ASSET_ACCEPT" :aria-label="t('settings.site.upload')" @change="onFileSelected">
           <div class="site-settings__images">
-            <div v-for="image in images" :key="image.field" class="site-settings__image" :class="{ 'is-wide': image.wide }">
+            <div v-for="image in images" :key="image.field" class="site-settings__image">
               <!-- 图片不是表单字段：字段名与问号提示并排写在这里，不用依赖字段上下文的标签 -->
               <span class="site-settings__label">
                 <span>{{ image.label }}</span>
                 <XHelpTip :content="image.help" />
               </span>
-              <div class="site-settings__preview" :class="{ 'is-wide': image.wide }">
+              <div class="site-settings__preview">
                 <img v-if="imageOf(image.field)" :src="imageOf(image.field)!" :alt="image.label">
                 <img v-else-if="inheritedImageOf(image.field)" :src="inheritedImageOf(image.field)!" :alt="image.label" class="is-inherited">
                 <span v-else class="site-settings__placeholder">{{ t('settings.site.no_image') }}</span>
@@ -294,8 +284,6 @@ async function onSubmit(): Promise<void> {
       :loading="editor.uploading.value === cropField"
       :aspect-ratio="cropOptions.aspectRatio"
       :max-width="cropOptions.maxWidth"
-      :opaque="cropOptions.opaque"
-      :size="cropOptions.size"
       @confirm="uploadCropped"
       @cancel="closeCrop"
     />
@@ -350,10 +338,11 @@ async function onSubmit(): Promise<void> {
   color: var(--xh-fg-default);
 }
 
+/* Logo 与浏览器图标都按正方形预览，与壳层里一致 */
 .site-settings__images {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
-  gap: var(--xh-space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-6);
 }
 
 .site-settings__image {
@@ -362,15 +351,12 @@ async function onSubmit(): Promise<void> {
   gap: var(--xh-space-2);
 }
 
-.site-settings__image.is-wide {
-  grid-column: span 2;
-}
-
 .site-settings__preview {
   display: flex;
   align-items: center;
   justify-content: center;
-  block-size: 6rem;
+  inline-size: 7.5rem;
+  block-size: 7.5rem;
   border: var(--xh-stroke-thin) dashed var(--xh-border-default);
   border-radius: var(--xh-shape-control);
   background: var(--xh-bg-subtle);
@@ -378,12 +364,6 @@ async function onSubmit(): Promise<void> {
 }
 
 .site-settings__preview img {
-  max-block-size: 100%;
-  max-inline-size: 100%;
-  object-fit: contain;
-}
-
-.site-settings__preview.is-wide img {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
@@ -416,11 +396,5 @@ async function onSubmit(): Promise<void> {
 .site-settings__error {
   margin: 0;
   color: var(--xh-fg-danger);
-}
-
-@media (width <= 40rem) {
-  .site-settings__image.is-wide {
-    grid-column: auto;
-  }
 }
 </style>

@@ -25,10 +25,6 @@ const appTitle = computed(() => site.name)
 const appLogo = computed(() => site.logo)
 const appSubtitle = computed(() => site.subtitle)
 const appDescription = computed(() => site.description)
-/** 登录页背景图：站点设置里有才铺，叠在品牌区的光斑之下 */
-const backgroundStyle = computed(() => site.loginBackground
-  ? { backgroundImage: `url("${site.loginBackground}")` }
-  : undefined)
 const copyright = computed(() => site.copyright)
 
 const showFooter = computed(
@@ -91,10 +87,9 @@ const appName = __APP_NAME__
             'lg:grid-cols-[1fr_520px]': formAlign === 'right',
           }"
         >
-          <!-- 插图面板：站点设置里有背景图即铺满，光斑叠在上面 -->
+          <!-- 插图面板 -->
           <div
-            class="auth-showcase relative hidden overflow-hidden bg-[hsl(var(--muted)/0.5)] px-10 py-14 lg:flex lg:flex-col xl:px-14 xl:py-16"
-            :style="backgroundStyle"
+            class="relative hidden overflow-hidden bg-[hsl(var(--muted)/0.5)] px-10 py-14 lg:flex lg:flex-col xl:px-14 xl:py-16"
             :class="{
               'lg:order-1': formAlign === 'left',
               'lg:hidden': formAlign === 'center',
@@ -205,13 +200,6 @@ const appName = __APP_NAME__
 </template>
 
 <style scoped>
-/* 站点设置的登录页背景图：铺满插图面板 */
-.auth-showcase {
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
 .slogan-tag {
   transition:
     background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter),

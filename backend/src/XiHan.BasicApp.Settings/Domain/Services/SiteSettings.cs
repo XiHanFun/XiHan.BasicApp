@@ -19,7 +19,6 @@ namespace XiHan.BasicApp.Settings.Domain.Services;
 /// <param name="Description">登录页的说明</param>
 /// <param name="Logo">Logo 的文件 ID</param>
 /// <param name="Favicon">浏览器图标的文件 ID；为空即用 Logo</param>
-/// <param name="LoginBackground">登录页背景图的文件 ID</param>
 /// <param name="CopyrightOwner">页脚的版权方</param>
 /// <param name="CopyrightUrl">版权方的链接</param>
 /// <param name="CopyrightSince">版权起始年份</param>
@@ -31,7 +30,6 @@ public sealed record SiteSettings(
     string? Description = null,
     Guid? Logo = null,
     Guid? Favicon = null,
-    Guid? LoginBackground = null,
     string? CopyrightOwner = null,
     string? CopyrightUrl = null,
     string? CopyrightSince = null,
@@ -67,7 +65,7 @@ public sealed record SiteSettings(
         "系统设置",
         ConfigDataType.Json,
         """{"name":"XiHan.BasicApp","copyrightOwner":"XiHanFun","copyrightUrl":"https://www.xihanfun.com","copyrightSince":"2016"}""",
-        "name：系统名；subtitle / description：登录页的标语与说明；logo / favicon / loginBackground：图片的文件 ID（在站点设置页上传）；copyrightOwner / copyrightUrl / copyrightSince / icp / icpUrl：页脚的版权与备案。租户的同键参数是它的品牌，只写要改的字段。文字最长 128（说明与链接 512），链接须是 http(s)，写错的值保存时即拒绝",
+        "name：系统名；subtitle / description：登录页的标语与说明；logo / favicon：图片的文件 ID（在站点设置页上传）；copyrightOwner / copyrightUrl / copyrightSince / icp / icpUrl：页脚的版权与备案。租户的同键参数是它的品牌，只写要改的字段。文字最长 128（说明与链接 512），链接须是 http(s)，写错的值保存时即拒绝",
         AllowTenantOverride: true,
         Order: 10,
         Accepts: static json => Parse(json) is not null);
@@ -93,7 +91,6 @@ public sealed record SiteSettings(
             Description ?? baseline.Description,
             Logo ?? baseline.Logo,
             Favicon ?? baseline.Favicon,
-            LoginBackground ?? baseline.LoginBackground,
             CopyrightOwner ?? baseline.CopyrightOwner,
             CopyrightUrl ?? baseline.CopyrightUrl,
             CopyrightSince ?? baseline.CopyrightSince,
@@ -121,7 +118,7 @@ public sealed record SiteSettings(
     /// </summary>
     public IEnumerable<Guid> Assets()
     {
-        foreach (var id in new[] { Logo, Favicon, LoginBackground })
+        foreach (var id in new[] { Logo, Favicon })
         {
             if (id is { } value)
             {

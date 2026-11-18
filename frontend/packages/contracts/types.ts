@@ -8461,7 +8461,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Replace the caller's side's logo, favicon or sign-in background (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field `file`).
+         * Replace the caller's side's logo or favicon (PNG, JPEG, WebP or ICO, at most 2 MB) with an image uploaded as multipart form data (field `file`).
          * @description Requires permission settings.site.update (Update site settings).
          */
         post: operations["site.upload-asset"];
@@ -15805,8 +15805,6 @@ export interface components {
             logo?: components["schemas"]["SiteAssetResponse"] | null;
             /** @description 浏览器图标 */
             favicon?: components["schemas"]["SiteAssetResponse"] | null;
-            /** @description 登录页背景图 */
-            loginBackground?: components["schemas"]["SiteAssetResponse"] | null;
             /** @description 页脚的版权方 */
             copyrightOwner?: string | null;
             /** @description 版权方的链接 */
@@ -43905,11 +43903,6 @@ export interface operations {
                      * @description 浏览器图标：现在的文件 ID 即保留，为空即去掉
                      */
                     favicon?: string | null;
-                    /**
-                     * Format: uuid
-                     * @description 登录页背景图：现在的文件 ID 即保留，为空即去掉
-                     */
-                    loginBackground?: string | null;
                     /** @description 页脚的版权方 */
                     copyrightOwner?: string | null;
                     /** @description 版权方的链接（http 或 https） */

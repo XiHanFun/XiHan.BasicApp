@@ -62,7 +62,7 @@ public sealed class UpdateSite(SiteProfiles profiles) : IOperation<UpdateSiteReq
             return current.Error!;
         }
 
-        foreach (var (field, requested, kept) in new[] { ("logo", request.Logo, own.Logo), ("favicon", request.Favicon, own.Favicon), ("loginBackground", request.LoginBackground, own.LoginBackground) })
+        foreach (var (field, requested, kept) in new[] { ("logo", request.Logo, own.Logo), ("favicon", request.Favicon, own.Favicon) })
         {
             if (requested is { } id && id != kept)
             {
