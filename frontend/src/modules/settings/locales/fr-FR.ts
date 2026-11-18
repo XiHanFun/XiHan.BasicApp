@@ -197,7 +197,7 @@ export default {
     },
     site: {
       title: 'Paramètres du site',
-      platform_hint: 'Le nom du système, le logo, la page de connexion et le pied de page définis ici sont les valeurs par défaut de toute la plateforme ; chaque locataire peut les remplacer par sa propre identité visuelle dans ses paramètres du site.',
+      platform_hint: 'Le nom du système, le logo, la page de connexion et le pied de page définis ici sont les valeurs par défaut de toute la plateforme. Chaque locataire définit sa propre identité visuelle dans les paramètres du site, à l’intérieur du locataire ; « Modifier le locataire » sur la plateforme ne contient pas ces champs.',
       tenant_hint: 'Voici l’identité visuelle de votre locataire : les champs vides héritent des paramètres du site de la plateforme (en gris), les images aussi.',
       sections: {
         basic: 'Informations de base',

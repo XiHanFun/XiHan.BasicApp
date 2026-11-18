@@ -197,7 +197,7 @@ export default {
     },
     site: {
       title: 'Site settings',
-      platform_hint: 'The system name, logo, sign-in page and footer here are the defaults for the whole platform; each tenant can replace them with its own branding in its site settings.',
+      platform_hint: 'The system name, logo, sign-in page and footer here are the defaults for the whole platform. A tenant sets its own branding in the site settings inside the tenant; "Edit tenant" on the platform has no branding fields.',
       tenant_hint: 'This is your tenant\'s branding: blank fields inherit the platform\'s site settings (shown in grey), and so do images.',
       sections: {
         basic: 'Basics',

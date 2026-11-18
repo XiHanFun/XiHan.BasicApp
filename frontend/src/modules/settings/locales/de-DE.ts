@@ -197,7 +197,7 @@ export default {
     },
     site: {
       title: 'Website-Einstellungen',
-      platform_hint: 'Systemname, Logo, Anmeldeseite und Fußzeile hier sind die Vorgaben der ganzen Plattform; jeder Mandant kann sie in seinen Website-Einstellungen durch sein eigenes Branding ersetzen.',
+      platform_hint: 'Systemname, Logo, Anmeldeseite und Fußzeile hier sind die Vorgaben der ganzen Plattform. Sein eigenes Branding legt jeder Mandant in den Website-Einstellungen innerhalb des Mandanten fest; „Mandant bearbeiten“ auf der Plattform enthält dafür keine Felder.',
       tenant_hint: 'Dies ist das Branding Ihres Mandanten: Leere Felder erben die Website-Einstellungen der Plattform (grau angezeigt), Bilder ebenso.',
       sections: {
         basic: 'Grunddaten',

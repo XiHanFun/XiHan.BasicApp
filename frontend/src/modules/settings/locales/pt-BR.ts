@@ -197,7 +197,7 @@ export default {
     },
     site: {
       title: 'Configurações do site',
-      platform_hint: 'O nome do sistema, o logotipo, a página de login e o rodapé daqui são os padrões de toda a plataforma; cada locatário pode substituí-los pela própria marca nas configurações do site.',
+      platform_hint: 'O nome do sistema, o logotipo, a página de login e o rodapé daqui são os padrões de toda a plataforma. Cada locatário define a própria marca nas configurações do site dentro do locatário; "Editar locatário" na plataforma não tem esses campos.',
       tenant_hint: 'Esta é a marca do seu locatário: campos vazios herdam as configurações do site da plataforma (em cinza), e as imagens também.',
       sections: {
         basic: 'Informações básicas',

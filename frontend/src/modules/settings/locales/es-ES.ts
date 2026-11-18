@@ -197,7 +197,7 @@ export default {
     },
     site: {
       title: 'Configuración del sitio',
-      platform_hint: 'El nombre del sistema, el logotipo, la página de inicio de sesión y el pie de aquí son los predeterminados de toda la plataforma; cada inquilino puede sustituirlos por su propia marca en su configuración del sitio.',
+      platform_hint: 'El nombre del sistema, el logotipo, la página de inicio de sesión y el pie de aquí son los predeterminados de toda la plataforma. Cada inquilino define su propia marca en la configuración del sitio dentro del inquilino; «Editar inquilino» en la plataforma no tiene estos campos.',
       tenant_hint: 'Esta es la marca de su inquilino: los campos vacíos heredan la configuración del sitio de la plataforma (en gris), y las imágenes también.',
       sections: {
         basic: 'Datos básicos',
