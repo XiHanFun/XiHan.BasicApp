@@ -19,15 +19,16 @@ namespace XiHan.BasicApp.Identity.Operations.Profile;
 /// </summary>
 /// <remarks>
 /// 自助操作，只要求已认证。<c>POST /api/profile:change-password</c>。校验当前密码后设新密码，吊销除当前会话外的其他会话
-/// 当前会话处于强制改密锁定时一并解开（门禁单独放行本操作）
+/// 当前会话处于强制改密锁定时一并解开（门禁单独放行本操作）；改完给本人发一条「密码已修改」的安全通知
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="sessions">会话仓储</param>
 /// <param name="accounts">账号域服务</param>
+/// <param name="notices">发给本人的安全通知</param>
 /// <param name="gate">会话门禁</param>
 /// <param name="clock">时间源</param>
 [Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository<SysUserSession, Guid> sessions, UserAccountService accounts, SessionGate gate, TimeProvider clock) : IOperation<ChangePasswordRequest, PasswordChangedResponse>
+public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository<SysUserSession, Guid> sessions, UserAccountService accounts, SecurityNotices notices, SessionGate gate, TimeProvider clock) : IOperation<ChangePasswordRequest, PasswordChangedResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -84,6 +85,7 @@ public sealed class ChangePassword(IRepository<SysUser, Guid> users, IRepository
             await gate.InvalidateAsync(id, context.CancellationToken).ConfigureAwait(false);
         }
 
+        await notices.PasswordChangedAsync(user, context).ConfigureAwait(false);
         return new PasswordChangedResponse(user.Id, clock.GetUtcNow(), SessionsRevoked: true);
     }
 }

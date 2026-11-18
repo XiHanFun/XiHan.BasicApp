@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -102,14 +103,15 @@ public sealed class UpdateProfile(IRepository<SysUser, Guid> users, UserAccountS
 /// <c>POST /api/profile:change-username</c>
 /// 要当前密码（不对即 <c>IDENTITY_DENIED_003</c>），90 天一次（<c>IDENTITY_CONFLICT_009</c>），
 /// 与现在的相同即 <c>IDENTITY_VALIDATION_017</c>，同一注册地里已被占用即 <c>IDENTITY_CONFLICT_001</c>。模仿会话不能做
-/// 规则与新建用户相同；已签发的令牌里的用户名到下次续签才换
+/// 规则与新建用户相同；已签发的令牌里的用户名到下次续签才换。改完给本人发一条「用户名已修改」的安全通知
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="securities">账号安全仓储</param>
 /// <param name="accounts">账号域服务</param>
+/// <param name="notices">发给本人的安全通知</param>
 /// <param name="clock">时钟</param>
 [Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts, TimeProvider clock) : IOperation<ChangeUserNameRequest, ProfileResponse>
+public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository<SysUserSecurity, Guid> securities, UserAccountService accounts, SecurityNotices notices, TimeProvider clock) : IOperation<ChangeUserNameRequest, ProfileResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -164,7 +166,13 @@ public sealed class ChangeUserName(IRepository<SysUser, Guid> users, IRepository
         }
 
         var saved = await securities.UpdateAsync(security, context.CancellationToken).ConfigureAwait(false);
-        return saved.IsFailure ? saved.Error! : ProfileResponse.From(user, security);
+        if (saved.IsFailure)
+        {
+            return saved.Error!;
+        }
+
+        await notices.UserNameChangedAsync(user, context).ConfigureAwait(false);
+        return ProfileResponse.From(user, security);
     }
 }
 

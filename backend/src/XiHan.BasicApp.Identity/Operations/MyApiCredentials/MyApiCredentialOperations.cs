@@ -5,6 +5,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Profile;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Localization.Abstractions.Messages;
@@ -51,12 +52,14 @@ public sealed class ListMyApiCredentials(IRepository<SysUser, Guid> users, UserA
 /// </summary>
 /// <remarks>
 /// <c>POST /api/my-api-credentials</c>。密钥只在这一次返回；每人最多 5 个（<c>IDENTITY_CONFLICT_007</c>）。模仿会话不能做
+/// 建好给本人发一条「新建了 API 凭证」的安全通知
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
+/// <param name="notices">发给本人的安全通知</param>
 [Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class CreateMyApiCredential(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<CreateMyApiCredentialRequest, ApiCredentialSecretResponse>
+public sealed class CreateMyApiCredential(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service, SecurityNotices notices) : IOperation<CreateMyApiCredentialRequest, ApiCredentialSecretResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -76,7 +79,13 @@ public sealed class CreateMyApiCredential(IRepository<SysUser, Guid> users, User
 
         var name = string.IsNullOrWhiteSpace(request.Name) ? context.Localize(IdentityMessages.ApiCredentialDefaultName) : request.Name.Trim();
         var created = await service.CreateAsync(found.User.Id, name, context.CancellationToken).ConfigureAwait(false);
-        return created.TryGetValue(out var pair) ? new ApiCredentialSecretResponse(pair.Credential.Id, pair.Credential.AppKey, pair.Secret) : created.Error!;
+        if (!created.TryGetValue(out var pair))
+        {
+            return created.Error!;
+        }
+
+        await notices.ApiCredentialCreatedAsync(pair.Credential, context).ConfigureAwait(false);
+        return new ApiCredentialSecretResponse(pair.Credential.Id, pair.Credential.AppKey, pair.Secret);
     }
 }
 
@@ -124,12 +133,14 @@ public sealed class UpdateMyApiCredential(IRepository<SysUser, Guid> users, User
 /// </summary>
 /// <remarks>
 /// <c>POST /api/my-api-credentials/{id}:rotate-secret</c>。旧密钥立即失效，新密钥只在这一次返回。模仿会话不能做
+/// 滚动后给本人发一条「API 凭证密钥已滚动」的安全通知
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
+/// <param name="notices">发给本人的安全通知</param>
 [Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<MyApiCredentialIdRequest, ApiCredentialSecretResponse>
+public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service, SecurityNotices notices) : IOperation<MyApiCredentialIdRequest, ApiCredentialSecretResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -154,7 +165,13 @@ public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users
         }
 
         var rotated = await service.RotateAsync(credential, context.CancellationToken).ConfigureAwait(false);
-        return rotated.TryGetValue(out var secret) ? new ApiCredentialSecretResponse(credential.Id, credential.AppKey, secret) : rotated.Error!;
+        if (!rotated.TryGetValue(out var secret))
+        {
+            return rotated.Error!;
+        }
+
+        await notices.ApiCredentialRotatedAsync(credential, context).ConfigureAwait(false);
+        return new ApiCredentialSecretResponse(credential.Id, credential.AppKey, secret);
     }
 }
 
@@ -163,12 +180,14 @@ public sealed class RotateMyApiCredentialSecret(IRepository<SysUser, Guid> users
 /// </summary>
 /// <remarks>
 /// <c>DELETE /api/my-api-credentials?ids=</c>（AppKey 立即不能用）。模仿会话不能做
+/// 删掉的每一个都给本人发一条「删除了 API 凭证」的安全通知（每人最多 5 个）
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="service">凭证服务</param>
+/// <param name="notices">发给本人的安全通知</param>
 [Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class DeleteMyApiCredentials(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service) : IOperation<MyApiCredentialIdsRequest, BatchResult>
+public sealed class DeleteMyApiCredentials(IRepository<SysUser, Guid> users, UserAccountService accounts, ApiCredentialService service, SecurityNotices notices) : IOperation<MyApiCredentialIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -186,7 +205,14 @@ public sealed class DeleteMyApiCredentials(IRepository<SysUser, Guid> users, Use
             return subject.Error!;
         }
 
-        return await service.DeleteAsync(found.User.Id, request.Ids, context.CancellationToken).ConfigureAwait(false);
+        var owned = (await service.ListAsync(found.User.Id, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static c => c.Id);
+        var deleted = await service.DeleteAsync(found.User.Id, request.Ids, context.CancellationToken).ConfigureAwait(false);
+        foreach (var id in deleted.Succeeded)
+        {
+            await notices.ApiCredentialDeletedAsync(owned[id], context).ConfigureAwait(false);
+        }
+
+        return deleted;
     }
 }
 

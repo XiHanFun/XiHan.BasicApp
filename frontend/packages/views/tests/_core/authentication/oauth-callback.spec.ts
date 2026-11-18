@@ -15,6 +15,10 @@ import { configureRequest } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 import OAuthCallbackPage from '~/views/_core/authentication/oauth-callback.vue'
 
+vi.mock('~/utils/device-fingerprint', () => ({
+  generateDeviceFingerprint: async () => 'device-1',
+}))
+
 const Blank = {
   render: () => null,
 }

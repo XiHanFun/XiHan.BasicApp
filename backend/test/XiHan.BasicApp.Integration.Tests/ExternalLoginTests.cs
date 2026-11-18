@@ -123,6 +123,8 @@ public sealed class ExternalLoginTests : IDisposable
         Assert.Equal("IDENTITY_VALIDATION_015", (await PostAsync(server, "/api/profile:link-external", new { ticket = (await RoundTripAsync(server, "?mode=login&tenant=contoso"))["ticket"] }, tenant)).Body.GetProperty("code").GetString());
         var (linked, linkedBody) = await PostAsync(server, "/api/profile:link-external", new { ticket = bind["ticket"] }, tenant);
         Assert.Equal((HttpStatusCode.OK, "github", "octo"), (linked, linkedBody.GetProperty("provider").GetString(), linkedBody.GetProperty("displayName").GetString()));
+        var (_, inbox) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/inbox:list", "{}", tenant, "en-US"));
+        Assert.Contains(inbox.GetProperty("items").EnumerateArray(), static n => n.GetProperty("title").GetString() == "A third-party account was linked");
 
         // 绑定后能登录（资料随登录刷新）；拿到的令牌是本系统的会话
         _github.Login = "octo-renamed";

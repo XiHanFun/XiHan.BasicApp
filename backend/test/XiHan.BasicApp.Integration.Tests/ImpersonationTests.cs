@@ -61,7 +61,7 @@ public sealed class ImpersonationTests : IDisposable
     {
         var (inbox, inboxBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/inbox:list", "{}", token));
         Assert.Equal(HttpStatusCode.OK, inbox.StatusCode);
-        return inboxBody.GetProperty("items").EnumerateArray().Where(static n => n.GetProperty("notificationType").GetString() == "Security").ToList();
+        return inboxBody.GetProperty("items").EnumerateArray().Where(static n => n.GetProperty("notificationType").GetString() == "Security" && !SecurityNoticeTests.IsSignInNotice(n)).ToList();
     }
 
     [Fact]

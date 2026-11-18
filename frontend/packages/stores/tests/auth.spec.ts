@@ -17,6 +17,10 @@ import { useTabbarStore } from '~/stores/tabbar'
 vi.mock('~/stores/relaunch', () => ({
   relaunchApp: vi.fn(),
 }))
+// 设备指纹换成固定值：各种登录都报它
+vi.mock('~/utils/device-fingerprint', () => ({
+  generateDeviceFingerprint: async () => 'dfp_test',
+}))
 vi.mock('~/composables/useSignalR', () => ({
   destroyAllSignalRConnections: vi.fn(async () => {}),
 }))
@@ -168,6 +172,7 @@ describe('auth store', () => {
       tenant: null,
       captchaId: 'c-1',
       captchaCode: '1234',
+      deviceId: 'dfp_test',
     })
     expect(store.isAuthenticated).toBe(false)
 
@@ -181,7 +186,12 @@ describe('auth store', () => {
     }, '//evil.example')).toBeNull()
     expect(bodies[1]).toEqual({
       url: '/api/auth:verify-two-factor',
-      body: { ticket: 't-1', method: 'Totp', code: '654321' },
+      body: {
+        ticket: 't-1',
+        method: 'Totp',
+        code: '654321',
+        deviceId: 'dfp_test',
+      },
     })
     expect(store.accessToken).toBe('a-1')
     expect(replace).toHaveBeenCalledWith('/')
@@ -244,7 +254,12 @@ describe('auth store', () => {
     })).toBeNull()
     expect(calls[1]).toEqual({
       url: '/api/auth:verify-two-factor',
-      body: { ticket: 't-1', method: 'Phone', code: '246801' },
+      body: {
+        ticket: 't-1',
+        method: 'Phone',
+        code: '246801',
+        deviceId: 'dfp_test',
+      },
       auth: null,
     })
     expect(store.accessToken).toBe('a-1')
@@ -298,6 +313,7 @@ describe('auth store', () => {
         target: 'ann@example.com',
         code: '135790',
         tenant: 'acme',
+        deviceId: 'dfp_test',
       },
       auth: null,
     })
@@ -311,6 +327,7 @@ describe('auth store', () => {
       target: '13800000000',
       code: '246810',
       tenant: null,
+      deviceId: 'dfp_test',
     })
     expect(replace).toHaveBeenLastCalledWith({
       path: '/auth/login',
@@ -714,7 +731,7 @@ describe('第三方登录与绑定', () => {
     expect(calls).toEqual([
       {
         url: '/api/auth:external-login',
-        body: { ticket: 'x-1' },
+        body: { ticket: 'x-1', deviceId: 'dfp_test' },
         authorization: undefined,
       },
     ])
@@ -782,7 +799,12 @@ describe('第三方登录与绑定', () => {
     }, '/oauth/authorize?client_id=c')).toBeNull()
     expect(bodies[1]).toEqual({
       url: '/api/auth:verify-two-factor',
-      body: { ticket: 't-1', method: 'Totp', code: '654321' },
+      body: {
+        ticket: 't-1',
+        method: 'Totp',
+        code: '654321',
+        deviceId: 'dfp_test',
+      },
     })
     expect(store.accessToken).toBe('a-1')
   })

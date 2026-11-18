@@ -237,13 +237,6 @@ async function retryLoginConfig() {
   }
 }
 
-const cachedDeviceId = ref('')
-
-onMounted(async () => {
-  const { generateDeviceFingerprint } = await import('~/utils/device-fingerprint')
-  cachedDeviceId.value = await generateDeviceFingerprint()
-})
-
 function buildLoginParams() {
   // 持票即为两步验证的后续阶段：只带票不带图形码（图形码已在首段消费销毁，再带必红）；
   // 无票时才是凭据阶段，按配置携带图形码
@@ -262,7 +255,6 @@ function buildLoginParams() {
       : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     twoFactorTicket: twoFactorTicket.value || undefined,
-    deviceId: cachedDeviceId.value || undefined,
   }
 }
 

@@ -25,6 +25,14 @@ public static class SessionClient
     private const int MaxLength = 512;
 
     /// <summary>
+    /// 登录请求里设备标识的文法
+    /// </summary>
+    /// <remarks>
+    /// 前端的设备指纹形如 <c>dfp_1a2b3c4d_5e6f7a8b</c>；只收字母、数字、下划线与连字符，最长 64 个字符（会话的 <c>device_id</c> 列）
+    /// </remarks>
+    public const string DeviceIdPattern = "^[A-Za-z0-9_-]{1,64}$";
+
+    /// <summary>
     /// 远端地址
     /// </summary>
     public static string? AddressOf(InvocationContext context)

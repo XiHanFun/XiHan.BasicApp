@@ -129,8 +129,6 @@ export interface LoginParams {
   twoFactorMethod?: string
   /** 两步验证票据（首段挑战响应签发；后续阶段携带即免图形验证码） */
   twoFactorTicket?: string
-  /** 设备唯一标识（设备指纹） */
-  deviceId?: string
 }
 
 /** 自助注册（auth.register）：注册的是平台账号，登录用用户名 */
@@ -158,7 +156,6 @@ export interface EmailLoginParams {
   tenant?: string
   email: string
   code: string
-  deviceId?: string
 }
 
 export interface VerificationCodeResult {

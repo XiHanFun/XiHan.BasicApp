@@ -5236,6 +5236,14 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 128
+                  },
+                  "deviceId": {
+                    "description": "\u8BBE\u5907\u6807\u8BC6\uFF08\u524D\u7AEF\u7684\u8BBE\u5907\u6307\u7EB9\uFF09\uFF0C\u7528\u6765\u5224\u65AD\u8FD9\u53F0\u8BBE\u5907\u4EE5\u524D\u767B\u5F55\u8FC7\u6CA1\u6709\uFF1B\u4E0D\u62A5\u5373\u5F53\u4F5C\u65B0\u8BBE\u5907",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$"
                   }
                 },
                 "required": [
@@ -5424,6 +5432,14 @@
                       "null"
                     ],
                     "maxLength": 16
+                  },
+                  "deviceId": {
+                    "description": "\u8BBE\u5907\u6807\u8BC6\uFF08\u524D\u7AEF\u7684\u8BBE\u5907\u6307\u7EB9\uFF09\uFF0C\u7528\u6765\u5224\u65AD\u8FD9\u53F0\u8BBE\u5907\u4EE5\u524D\u767B\u5F55\u8FC7\u6CA1\u6709\uFF1B\u4E0D\u62A5\u5373\u5F53\u4F5C\u65B0\u8BBE\u5907\u3002\u5F00\u4E86\u53CC\u56E0\u7D20\u65F6\u8FD9\u4E00\u6B65\u4E0D\u5F00\u4F1A\u8BDD\uFF0C\u7B2C\u4E8C\u6B65\u518D\u62A5",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$"
                   }
                 },
                 "required": [
@@ -5527,6 +5543,14 @@
                       "null"
                     ],
                     "maxLength": 64
+                  },
+                  "deviceId": {
+                    "description": "\u8BBE\u5907\u6807\u8BC6\uFF08\u524D\u7AEF\u7684\u8BBE\u5907\u6307\u7EB9\uFF09\uFF0C\u7528\u6765\u5224\u65AD\u8FD9\u53F0\u8BBE\u5907\u4EE5\u524D\u767B\u5F55\u8FC7\u6CA1\u6709\uFF1B\u4E0D\u62A5\u5373\u5F53\u4F5C\u65B0\u8BBE\u5907",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$"
                   }
                 },
                 "required": [
@@ -5617,6 +5641,14 @@
                   "credential": {
                     "description": "\u6D4F\u89C8\u5668\u7ED9\u7684\u65AD\u8A00\uFF08PublicKeyCredential.toJSON()\uFF09",
                     "$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
+                  },
+                  "deviceId": {
+                    "description": "\u8BBE\u5907\u6807\u8BC6\uFF08\u524D\u7AEF\u7684\u8BBE\u5907\u6307\u7EB9\uFF09\uFF0C\u7528\u6765\u5224\u65AD\u8FD9\u53F0\u8BBE\u5907\u4EE5\u524D\u767B\u5F55\u8FC7\u6CA1\u6709\uFF1B\u4E0D\u62A5\u5373\u5F53\u4F5C\u65B0\u8BBE\u5907",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$"
                   }
                 },
                 "required": [
@@ -6820,6 +6852,14 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 16
+                  },
+                  "deviceId": {
+                    "description": "\u8BBE\u5907\u6807\u8BC6\uFF08\u524D\u7AEF\u7684\u8BBE\u5907\u6307\u7EB9\uFF09\uFF0C\u7528\u6765\u5224\u65AD\u8FD9\u53F0\u8BBE\u5907\u4EE5\u524D\u767B\u5F55\u8FC7\u6CA1\u6709\uFF1B\u4E0D\u62A5\u5373\u5F53\u4F5C\u65B0\u8BBE\u5907",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$"
                   }
                 },
                 "required": [

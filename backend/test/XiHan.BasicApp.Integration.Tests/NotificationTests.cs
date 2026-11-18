@@ -43,8 +43,9 @@ public sealed class NotificationTests : IDisposable
         return body.GetProperty("id").GetString()!;
     }
 
+    // 登录给本人记的提醒不算
     private static async Task<List<JsonElement>> InboxAsync(BasicAppTestServer server, string token, string filters = "[]")
-        => (await SendAsync(server, HttpMethod.Post, "/api/inbox:list", $$"""{"page":{"index":1,"size":50},"filters":{{filters}}}""", token)).Body.GetProperty("items").EnumerateArray().ToList();
+        => (await SendAsync(server, HttpMethod.Post, "/api/inbox:list", $$"""{"page":{"index":1,"size":50},"filters":{{filters}}}""", token)).Body.GetProperty("items").EnumerateArray().Where(static n => !SecurityNoticeTests.IsSignInNotice(n)).ToList();
 
     private static async Task<int> ShowcaseAsync(BasicAppTestServer server, string token, string which)
         => (await SendAsync(server, HttpMethod.Get, $"/api/inbox:{which}", null, token)).Body.GetProperty("items").GetArrayLength();
@@ -111,8 +112,8 @@ public sealed class NotificationTests : IDisposable
         Assert.Equal("Read", confirmed.GetProperty("status").GetString());
         Assert.NotEqual(JsonValueKind.Null, confirmed.GetProperty("confirmedAt").ValueKind);
 
-        // 统计、接收人与提醒：ann 读了全部，bob 与超管未读
-        Assert.Equal(1, (await SendAsync(server, HttpMethod.Post, "/api/inbox:mark-all-read", "{}", annToken)).Body.GetProperty("count").GetInt32());
+        // 统计、接收人与提醒：ann 读了全部（另一条是她登录时记的「登录成功」），bob 与超管未读
+        Assert.Equal(2, (await SendAsync(server, HttpMethod.Post, "/api/inbox:mark-all-read", "{}", annToken)).Body.GetProperty("count").GetInt32());
         var stats = (await SendAsync(server, HttpMethod.Get, $"/api/notifications/{all}:read-stats", null, platform)).Body;
         Assert.Equal((3, 1, 2), (stats.GetProperty("recipientCount").GetInt32(), stats.GetProperty("readCount").GetInt32(), stats.GetProperty("unreadCount").GetInt32()));
         var unread = (await SendAsync(server, HttpMethod.Post, $"/api/notifications/{all}:recipients", """{"filter":"Unread"}""", platform)).Body;
@@ -145,7 +146,8 @@ public sealed class NotificationTests : IDisposable
         Assert.Equal(2, (await InboxAsync(server, annToken)).Count);
         Assert.Empty((await SendAsync(server, HttpMethod.Delete, $"/api/notifications?ids={all}", null, platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Equal(["Policy"], (await InboxAsync(server, annToken)).Select(static i => i.GetProperty("title").GetString()).ToList());
-        var listed = (await SendAsync(server, HttpMethod.Post, "/api/notifications:list", """{"page":{"index":1,"size":20},"filters":[{"field":"isPublished","operator":"eq","value":"true"}]}""", platform)).Body;
-        Assert.Equal(2, listed.GetProperty("total").GetInt32());
+        // 登录给本人记的安全通知不算
+        var listed = (await SendAsync(server, HttpMethod.Post, "/api/notifications:list", """{"page":{"index":1,"size":50},"filters":[{"field":"isPublished","operator":"eq","value":"true"}]}""", platform)).Body;
+        Assert.Equal(2, listed.GetProperty("items").EnumerateArray().Count(static n => !SecurityNoticeTests.IsSignInNotice(n)));
     }
 }

@@ -19,11 +19,13 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 模仿登录另开一行，记发起人与他当时的会话：发起人的会话保留，结束模仿时回到它；它失效（注销、被吊销或过期）时模仿会话随之失效。模仿会话的期限在发起时定死，续签不顺延
 /// 锁定记在会话上而不是账号上：锁屏只作用于这一个端，不影响同一用户的其他端；强制改密锁也按会话，解开它的办法就是改密。解锁的失败计数与吊销在独立作用域里提交，否则随失败的调用回滚
 /// 每次续签都写，属写得极频繁的运行态数据，标 <c>[DiffLogIgnored]</c> 不进数据变更日志
-/// 索引按读法建：刷新令牌散列唯一（部分唯一索引）、按用户找有效会话、按一侧列在线用户、按发起人与原会话找模仿会话
+/// 记下登录设备的标识（客户端报的设备指纹）：账号在别处登录时，按它判断那台设备以前登录过没有，提醒里分「其他设备」与「新设备」；指纹可被伪造、也会撞，只用于提醒的措辞
+/// 索引按读法建：刷新令牌散列唯一（部分唯一索引）、按用户找有效会话、按用户与设备找登录过的设备、按一侧列在线用户、按发起人与原会话找模仿会话
 /// </remarks>
 [SugarTable(TableName = "sys_user_session", TableDescription = "登录会话")]
 [ActiveUniqueIndex(nameof(RefreshTokenHash), Name = "ux_sys_user_session_refresh_token_hash")]
 [SugarIndex("ix_sys_user_session_user_id_revoked_at", nameof(UserId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]
+[SugarIndex("ix_sys_user_session_user_id_device_id", nameof(UserId), OrderByType.Asc, nameof(DeviceId), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_session_active_tenant_id_revoked_at_issued_at", nameof(ActiveTenantId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc, nameof(IssuedAt), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_session_impersonator_session_id", nameof(ImpersonatorSessionId), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_session_impersonator_user_id", nameof(ImpersonatorUserId), OrderByType.Asc)]
@@ -128,6 +130,15 @@ public sealed class SysUserSession : AppAuditedEntity
     /// </remarks>
     [SugarColumn(ColumnName = "location", Length = 128, IsNullable = true, ColumnDescription = "登录地点")]
     public string? Location { get; set; }
+
+    /// <summary>
+    /// 设备标识
+    /// </summary>
+    /// <remarks>
+    /// 登录时客户端报上来的设备指纹，用来判断这台设备以前登录过没有（新设备登录的提醒），不作安全判定。没报、模仿会话为 <see langword="null"/>
+    /// </remarks>
+    [SugarColumn(ColumnName = "device_id", Length = 64, IsNullable = true, ColumnDescription = "设备标识（登录时客户端报上来的设备指纹）")]
+    public string? DeviceId { get; set; }
 
     /// <summary>
     /// 模仿会话中发起模仿的用户 ID

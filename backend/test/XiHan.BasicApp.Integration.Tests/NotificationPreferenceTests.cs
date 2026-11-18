@@ -80,6 +80,6 @@ public sealed class NotificationPreferenceTests : IDisposable
         Assert.Equal(1, await PublishAsync(server, platform, both, new { notificationType = "Security" }));
         Assert.Equal(2, await PublishAsync(server, platform, both, new { notificationType = "Emergency" }));
         var (_, inbox) = await SendAsync(server, HttpMethod.Post, "/api/inbox:list", """{"page":{"index":1,"size":50}}""", ann);
-        Assert.Equal(4, inbox.GetProperty("items").GetArrayLength());
+        Assert.Equal(4, inbox.GetProperty("items").EnumerateArray().Count(static n => !SecurityNoticeTests.IsSignInNotice(n)));
     }
 }

@@ -138,6 +138,87 @@ public static class IdentityMessages
     public const string CurrentSessionNotRevocable = "identity.session.current";
 
     /// <summary>
+    /// 安全通知里认不出的客户端
+    /// </summary>
+    /// <remarks>
+    /// 浏览器、系统、IP 与地点都没有时代替参数 <c>client</c>
+    /// </remarks>
+    public const string UnknownClient = "identity.session.unknown_client";
+
+    /// <summary>
+    /// 登录成功的安全通知标题
+    /// </summary>
+    public const string LoginNoticeTitle = "identity.session.login_notice_title";
+
+    /// <summary>
+    /// 登录成功的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>client</c>（这次登录的浏览器、系统、IP 与地点）
+    /// </remarks>
+    public const string LoginNoticeContent = "identity.session.login_notice_content";
+
+    /// <summary>
+    /// 账号在其他设备登录的安全通知标题
+    /// </summary>
+    public const string LoginElsewhereNoticeTitle = "identity.session.elsewhere_notice_title";
+
+    /// <summary>
+    /// 账号在其他设备登录的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>client</c>（新登录的浏览器、系统、IP 与地点）
+    /// </remarks>
+    public const string LoginElsewhereNoticeContent = "identity.session.elsewhere_notice_content";
+
+    /// <summary>
+    /// 账号在新设备登录的安全通知标题
+    /// </summary>
+    public const string NewDeviceNoticeTitle = "identity.session.new_device_notice_title";
+
+    /// <summary>
+    /// 账号在新设备登录的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>client</c>（新登录的浏览器、系统、IP 与地点）
+    /// </remarks>
+    public const string NewDeviceNoticeContent = "identity.session.new_device_notice_content";
+
+    /// <summary>
+    /// 账号在其他设备退出登录的安全通知标题
+    /// </summary>
+    public const string LogoutNoticeTitle = "identity.session.logout_notice_title";
+
+    /// <summary>
+    /// 账号在其他设备退出登录的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>client</c>（退出的那台设备的浏览器、系统、IP 与地点）
+    /// </remarks>
+    public const string LogoutNoticeContent = "identity.session.logout_notice_content";
+
+    /// <summary>
+    /// 管理员强制下线的安全通知标题
+    /// </summary>
+    public const string SessionRevokedNoticeTitle = "identity.session.revoked_notice_title";
+
+    /// <summary>
+    /// 管理员强制下线的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>client</c>（被下线的那台设备的浏览器、系统、IP 与地点）
+    /// </remarks>
+    public const string SessionRevokedNoticeContent = "identity.session.revoked_notice_content";
+
+    /// <summary>
+    /// 管理员强制下线的安全通知正文（带原因）
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>client</c>（被下线的那台设备）、<c>reason</c>（管理员填的原因）
+    /// </remarks>
+    public const string SessionRevokedNoticeContentWithReason = "identity.session.revoked_notice_content_with_reason";
+
+    /// <summary>
     /// 用户不存在
     /// </summary>
     /// <remarks>
@@ -472,6 +553,16 @@ public static class IdentityMessages
     public const string PasswordExpiredNoticeContent = "identity.password.expired_notice_content";
 
     /// <summary>
+    /// 密码已修改的安全通知标题
+    /// </summary>
+    public const string PasswordChangedNoticeTitle = "identity.password.changed_notice_title";
+
+    /// <summary>
+    /// 密码已修改的安全通知正文
+    /// </summary>
+    public const string PasswordChangedNoticeContent = "identity.password.changed_notice_content";
+
+    /// <summary>
     /// 操作 <c>auth.verify-two-factor</c> 的说明
     /// </summary>
     public const string VerifyTwoFactorDescription = "auth.verify_two_factor.description";
@@ -668,6 +759,45 @@ public static class IdentityMessages
     public const string ApiCredentialDefaultName = "identity.api_credentials.default_name";
 
     /// <summary>
+    /// 新建 API 凭证的安全通知标题
+    /// </summary>
+    public const string ApiCredentialCreatedNoticeTitle = "identity.api_credentials.created_notice_title";
+
+    /// <summary>
+    /// 新建 API 凭证的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>（凭证名）、<c>appKey</c>
+    /// </remarks>
+    public const string ApiCredentialCreatedNoticeContent = "identity.api_credentials.created_notice_content";
+
+    /// <summary>
+    /// 滚动 API 凭证密钥的安全通知标题
+    /// </summary>
+    public const string ApiCredentialRotatedNoticeTitle = "identity.api_credentials.rotated_notice_title";
+
+    /// <summary>
+    /// 滚动 API 凭证密钥的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>（凭证名）、<c>appKey</c>
+    /// </remarks>
+    public const string ApiCredentialRotatedNoticeContent = "identity.api_credentials.rotated_notice_content";
+
+    /// <summary>
+    /// 删除 API 凭证的安全通知标题
+    /// </summary>
+    public const string ApiCredentialDeletedNoticeTitle = "identity.api_credentials.deleted_notice_title";
+
+    /// <summary>
+    /// 删除 API 凭证的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>（凭证名）、<c>appKey</c>
+    /// </remarks>
+    public const string ApiCredentialDeletedNoticeContent = "identity.api_credentials.deleted_notice_content";
+
+    /// <summary>
     /// 开放接口凭证到了上限
     /// </summary>
     /// <remarks>
@@ -747,6 +877,19 @@ public static class IdentityMessages
     /// 参数 <c>provider</c>
     /// </remarks>
     public const string ExternalLoginTaken = "identity.external.taken";
+
+    /// <summary>
+    /// 绑定第三方账号的安全通知标题
+    /// </summary>
+    public const string ExternalLinkedNoticeTitle = "identity.external.linked_notice_title";
+
+    /// <summary>
+    /// 绑定第三方账号的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>provider</c>（第三方登录方式的名字）
+    /// </remarks>
+    public const string ExternalLinkedNoticeContent = "identity.external.linked_notice_content";
 
     /// <summary>
     /// 本人没有绑定这个提供商
@@ -842,6 +985,19 @@ public static class IdentityMessages
     /// 参数 <c>days</c>（还要等几天）
     /// </remarks>
     public const string UserNameChangeTooSoon = "identity.user_name.too_soon";
+
+    /// <summary>
+    /// 用户名已修改的安全通知标题
+    /// </summary>
+    public const string UserNameChangedNoticeTitle = "identity.user_name.changed_notice_title";
+
+    /// <summary>
+    /// 用户名已修改的安全通知正文
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>userName</c>（新用户名）
+    /// </remarks>
+    public const string UserNameChangedNoticeContent = "identity.user_name.changed_notice_content";
 
     /// <summary>
     /// 操作 <c>profile.send-verification-code</c> 的说明

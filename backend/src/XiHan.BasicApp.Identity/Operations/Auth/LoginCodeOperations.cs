@@ -34,7 +34,8 @@ public sealed record SendLoginCodeRequest(ContactChannel Channel, [Required, Str
 /// <param name="Target">收码的邮箱或手机号</param>
 /// <param name="Code">收到的验证码</param>
 /// <param name="Tenant">注册地租户；平台账号留空</param>
-public sealed record LoginByCodeRequest(ContactChannel Channel, [Required, StringLength(200, MinimumLength = 1)] string Target, [Required, StringLength(10, MinimumLength = 4)] string Code, [StringLength(64)] string? Tenant = null);
+/// <param name="DeviceId">设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备</param>
+public sealed record LoginByCodeRequest(ContactChannel Channel, [Required, StringLength(200, MinimumLength = 1)] string Target, [Required, StringLength(10, MinimumLength = 4)] string Code, [StringLength(64)] string? Tenant = null, [RegularExpression(SessionClient.DeviceIdPattern)] string? DeviceId = null);
 
 /// <summary>
 /// 发登录验证码到邮箱或手机号
@@ -222,7 +223,7 @@ public sealed class LoginByCode(
             return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
-        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);
+        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, request.DeviceId, log, context).ConfigureAwait(false);
         return token.TryGetValue(out var issued) ? new LoginResponse(issued, null) : token.Error!;
     }
 }

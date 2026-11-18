@@ -50,6 +50,17 @@ function clearSessionStorage(): void {
   catch {}
 }
 
+let deviceIdPending: Promise<string> | null = null
+
+/**
+ * 这台设备的标识（设备指纹），各种登录都报给服务端：账号在别处登录时它据此分「其他设备」与「新设备」
+ * 页面里只采集一次；采集代码按需加载，不进主包
+ */
+function deviceId(): Promise<string> {
+  deviceIdPending ??= import('~/utils/device-fingerprint').then(module => module.generateDeviceFingerprint())
+  return deviceIdPending
+}
+
 /** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`） */
 export type Session = ResponseOf<'auth.refresh'>
 
@@ -234,7 +245,12 @@ export const useAuthStore = defineStore('auth', () => {
             token: null,
           }
         }
-        const token = await authApi.verifyTwoFactor({ ticket: params.twoFactorTicket, method, code: params.twoFactorCode }, { anonymous: true })
+        const token = await authApi.verifyTwoFactor({
+          ticket: params.twoFactorTicket,
+          method,
+          code: params.twoFactorCode,
+          deviceId: await deviceId(),
+        }, { anonymous: true })
         await afterLogin(token, redirect)
         return null
       }
@@ -244,6 +260,7 @@ export const useAuthStore = defineStore('auth', () => {
         tenant: params.tenant?.trim() || null,
         captchaId: params.captchaId ?? null,
         captchaCode: params.captchaCode ?? null,
+        deviceId: await deviceId(),
       }, { anonymous: true })
       if (result.twoFactor)
         return toPageChallenge(result.twoFactor)
@@ -299,7 +316,7 @@ export const useAuthStore = defineStore('auth', () => {
    * 拿到令牌即同密码登录存会话、跳回跳地址；开了双因素即记下挑战、带回跳地址回登录页，由两步验证阶段凭挑战票据走 `auth.verify-two-factor`
    */
   async function handleOAuthCallback(ticket: string, redirect?: string): Promise<void> {
-    await finishOrChallenge(() => authApi.externalLogin({ ticket }, { anonymous: true }), redirect)
+    await finishOrChallenge(async () => authApi.externalLogin({ ticket, deviceId: await deviceId() }, { anonymous: true }), redirect)
   }
 
   /**
@@ -307,21 +324,23 @@ export const useAuthStore = defineStore('auth', () => {
    * 同第三方登录：拿到令牌即落地，开了双因素即记下挑战、回登录页由两步验证阶段接着走
    */
   async function loginByPhoneCode(params: PhoneLoginParams, redirect?: string): Promise<void> {
-    await finishOrChallenge(() => authApi.loginByCode({
+    await finishOrChallenge(async () => authApi.loginByCode({
       channel: 'Phone',
       target: params.phone.trim(),
       code: params.code,
       tenant: params.tenant?.trim() || null,
+      deviceId: await deviceId(),
     }, { anonymous: true }), redirect)
   }
 
   /** 邮箱验证码登录（同上） */
   async function loginByEmailCode(params: EmailLoginParams, redirect?: string): Promise<void> {
-    await finishOrChallenge(() => authApi.loginByCode({
+    await finishOrChallenge(async () => authApi.loginByCode({
       channel: 'Email',
       target: params.email.trim(),
       code: params.code,
       tenant: params.tenant?.trim() || null,
+      deviceId: await deviceId(),
     }, { anonymous: true }), redirect)
   }
 
@@ -333,7 +352,7 @@ export const useAuthStore = defineStore('auth', () => {
     await finishOrChallenge(async () => {
       const begun = await authApi.beginPasskeyLogin({}, { anonymous: true })
       const credential = await getPasskey(begun.options)
-      return authApi.loginByPasskey({ ticket: begun.ticket, credential }, { anonymous: true })
+      return authApi.loginByPasskey({ ticket: begun.ticket, credential, deviceId: await deviceId() }, { anonymous: true })
     }, redirect)
   }
 

@@ -144,7 +144,7 @@ public sealed class Login(
             return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
-        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context, byPassword: true).ConfigureAwait(false);
+        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, request.DeviceId, log, context, byPassword: true).ConfigureAwait(false);
         return token.TryGetValue(out var issued) ? new LoginResponse(issued, null) : token.Error!;
     }
 

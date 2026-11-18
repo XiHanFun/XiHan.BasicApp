@@ -22,7 +22,8 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <c>auth.external-login</c> 的请求
 /// </summary>
 /// <param name="Ticket">第三方登录回调发给前端的一次性票据</param>
-public sealed record ExternalLoginRequest([Required, StringLength(128)] string Ticket);
+/// <param name="DeviceId">设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备</param>
+public sealed record ExternalLoginRequest([Required, StringLength(128)] string Ticket, [RegularExpression(SessionClient.DeviceIdPattern)] string? DeviceId = null);
 
 /// <summary>
 /// 凭第三方身份票据登录
@@ -149,7 +150,7 @@ public sealed class ExternalLogin(
             return new LoginResponse(null, new TwoFactorChallengeResponse(twoFactorTicket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
-        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);
+        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, request.DeviceId, log, context).ConfigureAwait(false);
         return token.TryGetValue(out var issued) ? new LoginResponse(issued, null) : token.Error!;
     }
 

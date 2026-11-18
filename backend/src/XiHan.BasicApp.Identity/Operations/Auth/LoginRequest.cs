@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Identity.Infrastructure;
 
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
@@ -16,9 +17,11 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="Tenant">注册地租户 ID；平台账号不填</param>
 /// <param name="CaptchaId">图形验证码标识</param>
 /// <param name="CaptchaCode">图形验证码</param>
+/// <param name="DeviceId">设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备。开了双因素时这一步不开会话，第二步再报</param>
 public sealed record LoginRequest(
     [Required, StringLength(64, MinimumLength = 1)] string UserName,
     [Required, StringLength(128, MinimumLength = 1)] string Password,
     [RegularExpression("^[a-z0-9][a-z0-9._-]{0,63}$")] string? Tenant = null,
     [StringLength(64)] string? CaptchaId = null,
-    [StringLength(16)] string? CaptchaCode = null);
+    [StringLength(16)] string? CaptchaCode = null,
+    [RegularExpression(SessionClient.DeviceIdPattern)] string? DeviceId = null);

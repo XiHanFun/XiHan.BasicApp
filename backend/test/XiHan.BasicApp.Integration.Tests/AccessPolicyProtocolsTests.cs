@@ -153,7 +153,7 @@ public sealed class AccessPolicyProtocolsTests : IDisposable
         await EventuallyAsync(async () =>
         {
             var (_, inbox) = await SendAsync(server, HttpMethod.Post, "/api/inbox:list", new { page = new { index = 1, size = 20 } }, aliceToken);
-            return inbox.GetProperty("items").GetArrayLength() > 0;
+            return inbox.GetProperty("items").EnumerateArray().Any(static n => !SecurityNoticeTests.IsSignInNotice(n));
         }, "the message handler did not notify the assignee");
         await AssertNoHitsAsync(server, platform);
     }

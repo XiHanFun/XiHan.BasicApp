@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
@@ -26,7 +27,14 @@ public sealed class TenantScopeRunner(App app, IServiceScopeFactory scopes) : IT
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentNullException.ThrowIfNull(action);
         await using var scope = scopes.CreateAsyncScope();
-        var context = App.CreateContext(scope.ServiceProvider, new InvocationContextOptions { Baggage = new Dictionary<string, string>(StringComparer.Ordinal) { [BaggageKeys.Tenant] = tenantId } }, cancellationToken);
+        // 平台一侧不带租户：没有租户声明也没有 Baggage 即平台
+        var baggage = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!string.Equals(tenantId, TenantIds.Platform, StringComparison.Ordinal))
+        {
+            baggage[BaggageKeys.Tenant] = tenantId;
+        }
+
+        var context = App.CreateContext(scope.ServiceProvider, new InvocationContextOptions { Baggage = baggage }, cancellationToken);
         return await app.InvokeAsync(context, async ctx => ctx.SetOutcome(await action(ctx).ConfigureAwait(false))).ConfigureAwait(false);
     }
 }

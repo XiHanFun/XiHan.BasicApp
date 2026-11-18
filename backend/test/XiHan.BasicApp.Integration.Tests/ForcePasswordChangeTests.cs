@@ -122,7 +122,7 @@ public sealed class ForcePasswordChangeTests : IDisposable
             Assert.Equal(HttpStatusCode.OK, me.StatusCode);
             var (inbox, inboxBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/inbox:list", "{}", token, "en-US"));
             Assert.Equal(HttpStatusCode.OK, inbox.StatusCode);
-            var notice = Assert.Single(inboxBody.GetProperty("items").EnumerateArray());
+            var notice = Assert.Single(inboxBody.GetProperty("items").EnumerateArray(), static n => !SecurityNoticeTests.IsSignInNotice(n) && n.GetProperty("title").GetString() != "Your password was changed");
             Assert.Equal("Security", notice.GetProperty("notificationType").GetString());
 
             // 之后再登录不再要求

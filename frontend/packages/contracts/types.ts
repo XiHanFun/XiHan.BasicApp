@@ -19460,6 +19460,8 @@ export interface operations {
                 "application/json": {
                     /** @description 第三方登录回调发给前端的一次性票据 */
                     ticket: string;
+                    /** @description 设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备 */
+                    deviceId?: string | null;
                 };
             };
         };
@@ -19555,6 +19557,8 @@ export interface operations {
                     captchaId?: string | null;
                     /** @description 图形验证码 */
                     captchaCode?: string | null;
+                    /** @description 设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备。开了双因素时这一步不开会话，第二步再报 */
+                    deviceId?: string | null;
                 };
             };
         };
@@ -19603,6 +19607,8 @@ export interface operations {
                     code: string;
                     /** @description 注册地租户；平台账号留空 */
                     tenant?: string | null;
+                    /** @description 设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备 */
+                    deviceId?: string | null;
                 };
             };
         };
@@ -19647,6 +19653,8 @@ export interface operations {
                     ticket: string;
                     /** @description 浏览器给的断言（PublicKeyCredential.toJSON()） */
                     credential: components["schemas"]["WebAuthnAuthenticationResponse"];
+                    /** @description 设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备 */
+                    deviceId?: string | null;
                 };
             };
         };
@@ -20311,6 +20319,8 @@ export interface operations {
                     method: components["schemas"]["TwoFactorMethod"];
                     /** @description 验证码 */
                     code: string;
+                    /** @description 设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备 */
+                    deviceId?: string | null;
                 };
             };
         };

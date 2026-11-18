@@ -26,7 +26,7 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | 方法 | 谁发 | 内容 |
 | --- | --- | --- |
 | `ForceLogout` | Identity | 会话被吊销（强制下线、改密、锁定、停用、删除），带给用户看的原因 |
-| `ReceiveNotification` | Notification | 发布或提醒时按接收人推送 |
+| `ReceiveNotification` | Notification | 发布或提醒时按接收人推送；Identity 的[安全通知](./authentication#安全通知)（别处登录、退出、强制下线等）也经它推给本人的端 |
 | `TaskProgress` | Files、Notification | 导出任务与通知发布的进度，只推给发起人，见[任务进度](#任务进度) |
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
 | `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更、正在输入与通话（状态与信令），见[在线聊天](./chat#推送) |
@@ -54,7 +54,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、助手的流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
 
-吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
+吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。本人退出登录（`auth.logout`）不推 `ForceLogout`，只断开这个会话的连接，排在「其他设备退出登录」的提醒之前。
 
 ## 任务进度
 

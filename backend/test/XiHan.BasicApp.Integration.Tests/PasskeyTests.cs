@@ -125,7 +125,7 @@ public sealed class PasskeyTests : IDisposable
         Assert.Equal(annHandle, registeredHandle);
         Assert.Equal("Laptop", registered.GetProperty("name").GetString());
         var (_, inbox) = await SendAsync(server, HttpMethod.Post, "/api/inbox:list", new { }, ann);
-        var notice = Assert.Single(inbox.GetProperty("items").EnumerateArray());
+        var notice = Assert.Single(inbox.GetProperty("items").EnumerateArray(), static n => !SecurityNoticeTests.IsSignInNotice(n));
         Assert.Equal("Security", notice.GetProperty("notificationType").GetString());
         Assert.Contains("Laptop", notice.GetProperty("content").GetString(), StringComparison.Ordinal);
 

@@ -185,7 +185,7 @@ public sealed class PasswordPolicyTests : IDisposable
             Assert.Equal(HttpStatusCode.OK, renewed.StatusCode);
             var (inbox, inboxBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/inbox:list", "{}", token, "en-US"));
             Assert.Equal(HttpStatusCode.OK, inbox.StatusCode);
-            var notice = Assert.Single(inboxBody.GetProperty("items").EnumerateArray());
+            var notice = Assert.Single(inboxBody.GetProperty("items").EnumerateArray(), static n => !SecurityNoticeTests.IsSignInNotice(n) && n.GetProperty("title").GetString() != "Your password was changed");
             Assert.Equal(("Security", "Your password has expired"), (notice.GetProperty("notificationType").GetString(), notice.GetProperty("title").GetString()));
 
             // 改完重新计时；关掉有效期即不再锁

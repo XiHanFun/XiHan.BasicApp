@@ -17,6 +17,9 @@ public interface ITenantScopeRunner
     /// <summary>
     /// 为 <paramref name="tenantId"/> 开一次独立调用并执行 <paramref name="action"/>
     /// </summary>
+    /// <remarks>
+    /// <paramref name="tenantId"/> 为 <see cref="TenantIds.Platform"/> 即平台一侧的调用（不带租户）
+    /// </remarks>
     /// <returns>调用的结果；调用失败（租户不存在、已停用、动作返回失败）即回滚并返回该失败</returns>
     Task<Result> RunAsync(string tenantId, Func<InvocationContext, ValueTask<Result>> action, CancellationToken cancellationToken);
 }

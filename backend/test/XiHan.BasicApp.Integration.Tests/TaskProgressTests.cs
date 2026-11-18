@@ -258,12 +258,17 @@ public sealed class TaskProgressTests : IDisposable
     }
 
     /// <summary>
-    /// 排在真实推送之前的推送：发收件箱推送时抛出，别的什么也不做
+    /// 排在真实推送之前的推送：发那条公告的收件箱推送时抛出，别的什么也不做
     /// </summary>
+    /// <remarks>
+    /// 登录给本人发的安全通知同样经收件箱推送，只认公告标题才不挡住起手的登录
+    /// </remarks>
     private sealed class BrokenInboxPush : IRealtimePush
     {
         public ValueTask SendAsync<T>(string hub, RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo, CancellationToken cancellationToken)
-            => method == RealtimeMethods.ReceiveNotification ? throw new InvalidOperationException("The inbox push is broken.") : ValueTask.CompletedTask;
+            => method == RealtimeMethods.ReceiveNotification && JsonSerializer.SerializeToElement(payload, payloadInfo).GetProperty("title").GetString() == "Maintenance"
+                ? throw new InvalidOperationException("The inbox push is broken.")
+                : ValueTask.CompletedTask;
 
         public ValueTask SendNowAsync<T>(string hub, RealtimeAudience audience, string method, T payload, JsonTypeInfo<T> payloadInfo, CancellationToken cancellationToken)
             => ValueTask.CompletedTask;

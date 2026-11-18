@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Infrastructure.External;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Domain.Specifications;
@@ -138,14 +139,16 @@ public sealed class BeginExternalBind(IRepository<SysUser, Guid> users, UserAcco
 /// 凭绑定流程的一次性票据，把第三方账号绑到当前登录的人；票据记着发起绑定的人，不是本人即 <c>IDENTITY_VALIDATION_015</c>
 /// （发起要本人领的意图、确认要本人：拿着别人发起的链接或别人完成的回调地址都绑不上）；
 /// 已被同一注册地的别人绑定即 <c>IDENTITY_CONFLICT_008</c>，本人已绑过这个提供商的另一个账号即换成这一个。模仿会话不能做
+/// 绑上新的第三方账号（不是重绑同一个）时给本人发一条「绑定了第三方账号」的安全通知
 /// </remarks>
 /// <param name="users">用户仓储</param>
 /// <param name="accounts">账号域服务</param>
 /// <param name="bindings">第三方绑定仓储</param>
 /// <param name="cache">共享缓存（票据）</param>
 /// <param name="ids">标识生成器</param>
+/// <param name="notices">发给本人的安全通知</param>
 [Operation(Id, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings, ISharedCache cache, IIdGenerator<Guid> ids) : IOperation<LinkExternalLoginRequest, ExternalLoginResponse>
+public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAccountService accounts, IRepository<SysUserExternalLogin, Guid> bindings, ISharedCache cache, IIdGenerator<Guid> ids, SecurityNotices notices) : IOperation<LinkExternalLoginRequest, ExternalLoginResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -184,6 +187,7 @@ public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAcco
             ? taken
             : await bindings.ListAsync(EntityQuery.All<SysUserExternalLogin>().Where(new Specification<SysUserExternalLogin>(b => b.UserId == userId && b.Provider == provider)).Page(0, 1), context.CancellationToken).ConfigureAwait(false);
         var binding = existing.Count > 0 ? existing[0] : new SysUserExternalLogin { Id = ids.NewId(), UserId = userId, HomeTenantId = tenant, Provider = provider };
+        var linked = existing.Count == 0 || !string.Equals(binding.ProviderKey, key, StringComparison.Ordinal);
         binding.ProviderKey = key;
         binding.DisplayName = Clip(ticket.Identity.DisplayName, 200);
         binding.Email = Clip(ticket.Identity.Email, 200);
@@ -191,7 +195,17 @@ public sealed class LinkExternalLogin(IRepository<SysUser, Guid> users, UserAcco
         var saved = existing.Count > 0
             ? await bindings.UpdateAsync(binding, context.CancellationToken).ConfigureAwait(false)
             : await bindings.AddAsync(binding, context.CancellationToken).ConfigureAwait(false);
-        return saved.IsFailure ? saved.Error! : new ExternalLoginResponse(binding.Provider, binding.DisplayName, binding.Email, binding.AvatarUrl, binding.CreatedAt, binding.LastLoginAt);
+        if (saved.IsFailure)
+        {
+            return saved.Error!;
+        }
+
+        if (linked)
+        {
+            await notices.ExternalLinkedAsync(binding, ticket.Provider, context).ConfigureAwait(false);
+        }
+
+        return new ExternalLoginResponse(binding.Provider, binding.DisplayName, binding.Email, binding.AvatarUrl, binding.CreatedAt, binding.LastLoginAt);
     }
 
     private static string? Clip(string? value, int max) => value is null || value.Length <= max ? value : value[..max];

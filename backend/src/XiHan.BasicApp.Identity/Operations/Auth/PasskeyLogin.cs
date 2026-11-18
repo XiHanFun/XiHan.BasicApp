@@ -33,7 +33,8 @@ public sealed record BeginPasskeyLoginResponse(string Ticket, WebAuthnRequestOpt
 /// </summary>
 /// <param name="Ticket">发起登录时给的票据</param>
 /// <param name="Credential">浏览器给的断言（<c>PublicKeyCredential.toJSON()</c>）</param>
-public sealed record LoginByPasskeyRequest([Required, StringLength(128)] string Ticket, [Required] WebAuthnAuthenticationResponse Credential);
+/// <param name="DeviceId">设备标识（前端的设备指纹），用来判断这台设备以前登录过没有；不报即当作新设备</param>
+public sealed record LoginByPasskeyRequest([Required, StringLength(128)] string Ticket, [Required] WebAuthnAuthenticationResponse Credential, [RegularExpression(SessionClient.DeviceIdPattern)] string? DeviceId = null);
 
 /// <summary>
 /// 发起通行密钥登录
@@ -209,7 +210,7 @@ public sealed class LoginByPasskey(
             return new LoginResponse(null, new TwoFactorChallengeResponse(twoFactorTicket, methods, TwoFactorSettings.PreselectedOf(methods), CodeSent: false, expiresAt));
         }
 
-        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);
+        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, request.DeviceId, log, context).ConfigureAwait(false);
         return token.TryGetValue(out var issued) ? new LoginResponse(issued, null) : token.Error!;
     }
 }

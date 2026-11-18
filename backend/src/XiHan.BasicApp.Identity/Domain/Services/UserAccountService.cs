@@ -263,27 +263,66 @@ public sealed class UserAccountService
     }
 
     /// <summary>
-    /// 按登录策略吊销多出来的会话
+    /// 账号此刻登录着的设备会话
     /// </summary>
     /// <remarks>
-    /// 登录时、新会话已写入之后调用：不允许多端只留新会话，限了设备数就留新会话和最近的几个。模仿会话不算设备
+    /// 没吊销、没过期的会话，跨所有侧；模仿会话不算设备
     /// </remarks>
-    /// <param name="security">账号安全</param>
-    /// <param name="current">新会话</param>
+    /// <param name="userId">用户 ID</param>
     /// <param name="cancellationToken">取消令牌</param>
-    public async Task<Result> EnforceLoginPolicyAsync(SysUserSecurity security, Guid current, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<SysUserSession>> DevicesOfAsync(Guid userId, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(security);
-        var limit = security.DenyMultiLogin ? 1 : security.MaxLoginDevices;
-        if (limit <= 0)
+        var now = _clock.GetUtcNow();
+        return await _sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && !s.RevokedAt.HasValue && !s.ImpersonatorUserId.HasValue && s.RefreshExpiresAt > now)), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 这台设备以前登录过这个账号没有
+    /// </summary>
+    /// <remarks>
+    /// 按设备标识找账号以前的会话（已吊销、过期的也算，模仿会话不算）；新会话写入之前调用。没有设备标识即当作没登录过
+    /// </remarks>
+    /// <param name="userId">用户 ID</param>
+    /// <param name="deviceId">设备标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<bool> IsKnownDeviceAsync(Guid userId, string? deviceId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(deviceId))
         {
-            return Result.Success();
+            return false;
         }
 
-        var now = _clock.GetUtcNow();
-        var userId = security.UserId;
-        var active = await _sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && !s.RevokedAt.HasValue && !s.ImpersonatorUserId.HasValue && s.RefreshExpiresAt > now)), cancellationToken).ConfigureAwait(false);
-        var surplus = active.Where(s => s.Id != current).OrderByDescending(static s => s.IssuedAt).Skip(limit - 1).ToList();
+        var seen = await _sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.UserId == userId && s.DeviceId == deviceId && !s.ImpersonatorUserId.HasValue)).Page(0, 1), cancellationToken).ConfigureAwait(false);
+        return seen.Count > 0;
+    }
+
+    /// <summary>
+    /// 新登录按登录策略要挤掉的会话
+    /// </summary>
+    /// <remarks>
+    /// 不允许多端只留新会话，限了设备数就留新会话和最近的几个
+    /// </remarks>
+    /// <param name="security">账号安全</param>
+    /// <param name="devices">新会话写入之前账号登录着的设备会话（<see cref="DevicesOfAsync"/>）</param>
+    public static IReadOnlyList<SysUserSession> SurplusOf(SysUserSecurity security, IReadOnlyList<SysUserSession> devices)
+    {
+        ArgumentNullException.ThrowIfNull(security);
+        ArgumentNullException.ThrowIfNull(devices);
+        var limit = security.DenyMultiLogin ? 1 : security.MaxLoginDevices;
+        return limit <= 0 ? [] : devices.OrderByDescending(static s => s.IssuedAt).Skip(limit - 1).ToList();
+    }
+
+    /// <summary>
+    /// 按登录策略吊销挤掉的会话
+    /// </summary>
+    /// <remarks>
+    /// 新会话写入之后调用；被挤掉的端收到 <see cref="RealtimeMethods.ForceLogout"/>，不带说明（客户端的缺省文案即「已在其他设备登录」）
+    /// </remarks>
+    /// <param name="surplus">要挤掉的会话（<see cref="SurplusOf"/>）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result> EnforceLoginPolicyAsync(IReadOnlyList<SysUserSession> surplus, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(surplus);
         return surplus.Count == 0 ? Result.Success() : await RevokeAsync(surplus, "login-policy", null, cancellationToken).ConfigureAwait(false);
     }
 
