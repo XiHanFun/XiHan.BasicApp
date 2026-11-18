@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
+export * from './color-vision-filter'
 export * from './desktop-notification'
 export * from './document-title'
 export * from './prompt-service'

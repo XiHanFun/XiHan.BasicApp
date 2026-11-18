@@ -7,6 +7,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent, nextTick } from 'vue'
+import { COLOR_VISION_FILTER_ID } from '~/composables/color-vision-filter'
 import { useHtmlStyle } from '~/composables/useHtmlStyle'
 import { useAppStore } from '~/stores'
 
@@ -24,6 +25,8 @@ beforeEach(() => {
 afterEach(() => {
   delete document.documentElement.dataset.xhChartPalette
   delete document.documentElement.dataset.contrast
+  document.documentElement.style.filter = ''
+  document.getElementById(COLOR_VISION_FILTER_ID)?.closest('svg')?.remove()
 })
 
 describe('图表配色写到 <html>', () => {
@@ -62,6 +65,31 @@ describe('高对比度写到 <html>', () => {
     store.setHighContrastEnabled(false)
     await nextTick()
     expect(document.documentElement.dataset.contrast).toBe('default')
+    wrapper.unmount()
+  })
+})
+
+describe('色弱与灰度滤镜写到 <html>', () => {
+  it('色弱挂色觉校正滤镜，灰度同时开着时灰度优先，都关时撤掉', async () => {
+    const store = useAppStore()
+    const wrapper = mount(Host)
+    await nextTick()
+    expect(document.documentElement.style.filter).toBe('')
+
+    store.setColorWeaknessEnabled(true)
+    await nextTick()
+    // 样式序列化会把 url(#x) 规整成 url("#x")
+    expect(document.documentElement.style.filter).toMatch(new RegExp(`^url\\("?#${COLOR_VISION_FILTER_ID}"?\\)$`))
+    expect(document.getElementById(COLOR_VISION_FILTER_ID)).not.toBeNull()
+
+    store.setGrayscaleEnabled(true)
+    await nextTick()
+    expect(document.documentElement.style.filter).toBe('grayscale(100%)')
+
+    store.setGrayscaleEnabled(false)
+    store.setColorWeaknessEnabled(false)
+    await nextTick()
+    expect(document.documentElement.style.filter).toBe('')
     wrapper.unmount()
   })
 })

@@ -7,6 +7,7 @@ import { watchEffect } from 'vue'
 import { DEFAULT_CHART_PALETTE } from '~/constants'
 import { useTheme } from '~/hooks/useTheme'
 import { useAppStore } from '~/stores'
+import { ensureColorVisionFilter } from './color-vision-filter'
 
 /** 换算根字号百分比时的参照基准：CSS 规范里浏览器默认的根字号（px） */
 const ROOT_FONT_SIZE_BASELINE = 16
@@ -41,10 +42,11 @@ export function useHtmlStyle() {
     // 半透明材质退回实底、撤掉阴影与模糊；Portal 视觉桥把它带到浮层壳，下拉、菜单与页面同一档
     el.dataset.contrast = appStore.highContrastEnabled ? 'more' : 'default'
 
+    // 灰度压过色弱：两个都开时整页已经没有颜色可校正
     el.style.filter = appStore.grayscaleEnabled
       ? 'grayscale(100%)'
       : appStore.colorWeaknessEnabled
-        ? 'invert(0.8) hue-rotate(180deg)'
+        ? ensureColorVisionFilter()
         : ''
 
     // 根字号写成相对于浏览器默认字号的百分比：偏好里的档位仍表示「浏览器默认设置下等于多少 px」，

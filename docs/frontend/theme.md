@@ -13,7 +13,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | Tailwind | `src/styles/index.css` | 样式总入口：定死层序，`@theme inline` 把页面用到的主题色与排版工具类映射到 `hsl(var(--x))` 与 `--xh-*`，在使用处解析，嵌套的 `.dark` 容器随之切换 |
 | 应用样式 | `packages/design/*.css`、`src/styles/admin-page.css` | 宿主基线、动效令牌桥、页面过渡、原生滚动条与共享结构件，只读 `--xh-*` 语义令牌 |
 
-偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，高对比度写 `data-contrast`（`more` / `default`），主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度与色弱滤镜。
+偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，高对比度写 `data-contrast`（`more` / `default`），主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度滤镜与色弱模式的红绿色觉校正滤镜（隐藏的 SVG `feColorMatrix`，明暗不变，只把红绿差异挪到蓝黄方向）。
 
 ## 约束
 
