@@ -53,7 +53,7 @@ describe('默认值', () => {
     expect(store.uiDensity).toBe(UI_DENSITY_COMFORTABLE)
   })
 
-  it('动态取色、主题动画、页面过渡默认开启；毛玻璃、灰度、色弱、水印默认关闭', () => {
+  it('动态取色、主题动画、页面过渡默认开启；毛玻璃、灰度、色弱、高对比度、水印默认关闭', () => {
     const store = freshStore()
 
     expect(store.themeDynamicColor).toBe(true)
@@ -64,6 +64,7 @@ describe('默认值', () => {
     expect(store.frostedGlassEnabled).toBe(false)
     expect(store.grayscaleEnabled).toBe(false)
     expect(store.colorWeaknessEnabled).toBe(false)
+    expect(store.highContrastEnabled).toBe(false)
     expect(store.watermarkEnabled).toBe(false)
   })
 
@@ -294,11 +295,13 @@ describe('开关型偏好逐个可写', () => {
 
     store.setGrayscaleEnabled(true)
     store.setColorWeaknessEnabled(true)
+    store.setHighContrastEnabled(true)
     store.setWatermarkEnabled(true)
     store.setFrostedGlassEnabled(true)
 
     expect(store.grayscaleEnabled).toBe(true)
     expect(store.colorWeaknessEnabled).toBe(true)
+    expect(store.highContrastEnabled).toBe(true)
     expect(store.watermarkEnabled).toBe(true)
     expect(store.frostedGlassEnabled).toBe(true)
   })

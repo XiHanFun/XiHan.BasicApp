@@ -1322,8 +1322,10 @@ export default {
         title: '其它',
         color_weakness: '色弱模式',
         grayscale: '灰色模式',
+        high_contrast: '高对比度模式',
         color_weakness_tip: '色觉辅助模式，适合红绿色觉异常用户，通过滤镜提升颜色辨识度',
         grayscale_tip: '将整个页面渲染为灰度，常用于特殊纪念日',
+        high_contrast_tip: '加深描边、分隔线与图表网格，半透明的面板改为实底，并去掉阴影与模糊，界面层次更分明',
       },
     },
     layout: {

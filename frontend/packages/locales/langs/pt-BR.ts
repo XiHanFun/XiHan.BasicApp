@@ -1322,8 +1322,10 @@ export default {
         title: 'Outros',
         color_weakness: 'Daltonismo',
         grayscale: 'Escala de cinza',
+        high_contrast: 'Alto contraste',
         color_weakness_tip: 'Modo de acessibilidade de cores para usuários com deficiência na visão vermelho-verde',
         grayscale_tip: 'Exibe toda a página em escala de cinza, comum em dias de luto',
+        high_contrast_tip: 'Reforça bordas, divisórias e a grade dos gráficos e dá aos painéis translúcidos um fundo sólido, sem sombras nem desfoque, para distinguir melhor as camadas',
       },
     },
     layout: {

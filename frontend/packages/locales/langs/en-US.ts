@@ -1322,8 +1322,10 @@ export default {
         title: 'Other',
         color_weakness: 'Color Weakness',
         grayscale: 'Grayscale',
+        high_contrast: 'High Contrast',
         color_weakness_tip: 'Color accessibility mode for users with red-green color vision deficiency',
         grayscale_tip: 'Render the entire page in grayscale, commonly used on memorial days',
+        high_contrast_tip: 'Strengthen borders, dividers and chart gridlines, and give translucent panels a solid background without shadows or blur, so layers stand apart more clearly',
       },
     },
     layout: {

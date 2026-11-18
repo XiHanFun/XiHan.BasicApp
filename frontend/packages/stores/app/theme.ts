@@ -19,6 +19,7 @@ import {
   FROSTED_GLASS_ENABLED_KEY,
   FROSTED_GLASS_INTENSITY_KEY,
   GRAYSCALE_ENABLED_KEY,
+  HIGH_CONTRAST_ENABLED_KEY,
   LOADING_NAME_KEY,
   THEME_ANIMATION_ENABLED_KEY,
   THEME_AUTO,
@@ -73,6 +74,8 @@ export function createThemeSlice() {
   const colorWeaknessEnabled = ref<boolean>(
     LocalStorage.get<boolean>(COLOR_WEAKNESS_ENABLED_KEY) ?? false,
   )
+  // 高对比度：由 useHtmlStyle 写到 <html data-contrast>，组件库的描边、分隔线、图表网格与材质整套换档
+  const highContrastEnabled = ref<boolean>(LocalStorage.get<boolean>(HIGH_CONTRAST_ENABLED_KEY) ?? false)
   const watermarkEnabled = ref<boolean>(LocalStorage.get<boolean>(WATERMARK_ENABLED_KEY) ?? false)
   const watermarkText = ref<string>(
     LocalStorage.get<string>(WATERMARK_TEXT_KEY) ?? '',
@@ -98,6 +101,7 @@ export function createThemeSlice() {
   bindPersist(FROSTED_GLASS_INTENSITY_KEY, frostedGlassIntensity, 10)
   bindPersist(GRAYSCALE_ENABLED_KEY, grayscaleEnabled, false)
   bindPersist(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled, false)
+  bindPersist(HIGH_CONTRAST_ENABLED_KEY, highContrastEnabled, false)
   bindPersist(WATERMARK_ENABLED_KEY, watermarkEnabled, false)
   bindPersist(WATERMARK_TEXT_KEY, watermarkText, '')
 
@@ -163,6 +167,9 @@ export function createThemeSlice() {
   function setColorWeaknessEnabled(v: boolean) {
     save(COLOR_WEAKNESS_ENABLED_KEY, colorWeaknessEnabled, v)
   }
+  function setHighContrastEnabled(v: boolean) {
+    save(HIGH_CONTRAST_ENABLED_KEY, highContrastEnabled, v)
+  }
   function setWatermarkEnabled(v: boolean) {
     save(WATERMARK_ENABLED_KEY, watermarkEnabled, v)
   }
@@ -190,6 +197,7 @@ export function createThemeSlice() {
     frostedGlassIntensity,
     grayscaleEnabled,
     colorWeaknessEnabled,
+    highContrastEnabled,
     watermarkEnabled,
     watermarkText,
     toggleTheme,
@@ -212,6 +220,7 @@ export function createThemeSlice() {
     setFrostedGlassIntensity,
     setGrayscaleEnabled,
     setColorWeaknessEnabled,
+    setHighContrastEnabled,
     setWatermarkEnabled,
     setWatermarkText,
   }

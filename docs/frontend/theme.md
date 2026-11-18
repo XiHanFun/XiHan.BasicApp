@@ -13,7 +13,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | Tailwind | `src/styles/index.css` | 样式总入口：定死层序，`@theme inline` 把页面用到的主题色与排版工具类映射到 `hsl(var(--x))` 与 `--xh-*`，在使用处解析，嵌套的 `.dark` 容器随之切换 |
 | 应用样式 | `packages/design/*.css`、`src/styles/admin-page.css` | 宿主基线、动效令牌桥、页面过渡、原生滚动条与共享结构件，只读 `--xh-*` 语义令牌 |
 
-偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度与色弱滤镜。
+偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，高对比度写 `data-contrast`（`more` / `default`），主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度与色弱滤镜。
 
 ## 约束
 
@@ -56,7 +56,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 
 ## 偏好与同步
 
-亮 / 暗 / 跟随系统、主题色、圆角、密度、字号、色弱 / 灰度、布局、区域与时区等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，登录或刷新时拉取。偏好与收藏在其他设备上改了经 `UserSettingChanged` 实时应用；搜索设置、表格设置与看板布局在打开页面时取后端那份。偏好、收藏、搜索、表格与看板各有同步开关（设备本地，不上行），缺省都开。
+亮 / 暗 / 跟随系统、主题色、圆角、密度、字号、色弱 / 灰度 / 高对比度、布局、区域与时区等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，登录或刷新时拉取。偏好与收藏在其他设备上改了经 `UserSettingChanged` 实时应用；搜索设置、表格设置与看板布局在打开页面时取后端那份。偏好、收藏、搜索、表格与看板各有同步开关（设备本地，不上行），缺省都开。
 
 ## 无障碍与适配
 

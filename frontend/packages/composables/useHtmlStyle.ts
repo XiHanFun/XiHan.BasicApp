@@ -37,6 +37,10 @@ export function useHtmlStyle() {
     else
       el.dataset.xhChartPalette = appStore.chartPalette
 
+    // 对比度轴由组件库按 [data-contrast] 取值：高对比档的描边、分隔线与图表网格换成实色，
+    // 半透明材质退回实底、撤掉阴影与模糊；Portal 视觉桥把它带到浮层壳，下拉、菜单与页面同一档
+    el.dataset.contrast = appStore.highContrastEnabled ? 'more' : 'default'
+
     el.style.filter = appStore.grayscaleEnabled
       ? 'grayscale(100%)'
       : appStore.colorWeaknessEnabled

@@ -1322,8 +1322,10 @@ export default {
         title: 'その他',
         color_weakness: '色覚サポートモード',
         grayscale: 'グレースケール',
+        high_contrast: 'ハイコントラストモード',
         color_weakness_tip: '色覚補助モードです。赤緑色覚特性のあるユーザー向けに、フィルターで色の識別しやすさを高めます',
         grayscale_tip: 'ページ全体をグレースケールで表示します。追悼日などに使われます',
+        high_contrast_tip: '枠線・区切り線・グラフの目盛線を濃くし、半透明のパネルは影やぼかしのない不透明な背景にします。画面の階層がよりはっきりします',
       },
     },
     layout: {

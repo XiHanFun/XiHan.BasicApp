@@ -1322,8 +1322,10 @@ export default {
         title: 'Sonstiges',
         color_weakness: 'Farbschwäche',
         grayscale: 'Graustufen',
+        high_contrast: 'Hoher Kontrast',
         color_weakness_tip: 'Barrierefreiheitsmodus für Benutzer mit Rot-Grün-Sehschwäche',
         grayscale_tip: 'Die gesamte Seite in Graustufen darstellen, häufig an Gedenktagen verwendet',
+        high_contrast_tip: 'Rahmen, Trennlinien und Diagrammraster verstärken und halbtransparenten Bereichen einen deckenden Hintergrund ohne Schatten und Unschärfe geben, damit sich Ebenen deutlicher abheben',
       },
     },
     layout: {

@@ -40,6 +40,7 @@ export const BREADCRUMB_ENABLED_KEY = `${STORAGE_PREFIX}breadcrumb_enabled`
 export const THEME_ANIMATION_ENABLED_KEY = `${STORAGE_PREFIX}theme_animation_enabled`
 export const GRAYSCALE_ENABLED_KEY = `${STORAGE_PREFIX}grayscale_enabled`
 export const COLOR_WEAKNESS_ENABLED_KEY = `${STORAGE_PREFIX}color_weakness_enabled`
+export const HIGH_CONTRAST_ENABLED_KEY = `${STORAGE_PREFIX}high_contrast_enabled`
 export const WATERMARK_ENABLED_KEY = `${STORAGE_PREFIX}watermark_enabled`
 export const WATERMARK_TEXT_KEY = `${STORAGE_PREFIX}watermark_text`
 export const UI_RADIUS_KEY = `${STORAGE_PREFIX}ui_radius`

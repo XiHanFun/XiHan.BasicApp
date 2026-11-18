@@ -1322,8 +1322,10 @@ export default {
         title: '기타',
         color_weakness: '색약 모드',
         grayscale: '흑백 모드',
+        high_contrast: '고대비 모드',
         color_weakness_tip: '색각 보조 모드로, 적록 색각 이상 사용자를 위해 필터로 색 구분을 쉽게 해 줘요',
         grayscale_tip: '페이지 전체를 흑백으로 표시해요. 추모일 등에 주로 사용해요',
+        high_contrast_tip: '테두리, 구분선, 차트 눈금선을 진하게 하고 반투명 패널은 그림자와 흐림 없이 불투명한 배경으로 바꿔요. 화면의 층이 더 뚜렷해져요',
       },
     },
     layout: {

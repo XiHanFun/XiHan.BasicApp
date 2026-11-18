@@ -160,6 +160,21 @@
   }
 
   /*
+   * 高对比度：--border / --input 已在 variables.css 换成实色灰；这里把上面按透明度减淡的几支（浅描边、分隔线）改成实色，
+   * 粗描边接到输入框那一档（应用的 --heavy 是淡底色，高对比下比描边还浅），输入框悬停改实色主色，不比静止时更淡
+   * 阴影、模糊与半透明材质的撤除由组件库在同一属性上自己做
+   */
+  [data-contrast='more'],
+  [data-contrast='more'] .dark,
+  [data-contrast='more'] [data-theme] {
+    --xh-border-subtle: hsl(var(--border));
+    --xh-border-strong: hsl(var(--input));
+    --xh-border-control-hover: hsl(var(--primary));
+    --xh-material-frosted-separator: hsl(var(--border));
+    --xh-material-elevated-separator: hsl(var(--border));
+  }
+
+  /*
    * 通知卡片宽取浮层 lg 档：右下角的通知常带凭证号、文件名这类长串，组件库缺省的卡片宽放不下
    * 只写组件留给作者的宽度槽，挂在卡片形态的分组上，顶部的轻提示照旧按库的宽度；窄屏仍由库夹到视口宽减两侧留白
    */

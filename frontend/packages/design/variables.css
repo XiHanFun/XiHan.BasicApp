@@ -85,3 +85,19 @@
 
   color-scheme: dark;
 }
+
+/*
+ * 高对比度（<html data-contrast="more">）：描边与输入框边框换成实色中性灰，明度对齐组件库高对比档
+ * （亮色描边 neutral-550、输入框 neutral-600，暗色都是 neutral-400），组件库与应用自己的 border-border 一起变深
+ * 选择器叠写抬到 (0,3,0)，压过 Material You 动态配色写的 :root:root / .dark.dark；暗色规则在后，根元素同时是 .dark 时取暗色
+ */
+:root:root[data-contrast='more'] {
+  --border: 240 4% 42%;
+  --input: 240 4% 35%;
+}
+
+.dark.dark[data-contrast='more'],
+[data-contrast='more'] .dark.dark {
+  --border: 240 4% 62%;
+  --input: 240 4% 62%;
+}

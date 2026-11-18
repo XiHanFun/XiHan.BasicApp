@@ -1322,8 +1322,10 @@ export default {
         title: '其他',
         color_weakness: '色弱輔助模式',
         grayscale: '灰階模式',
+        high_contrast: '高對比模式',
         color_weakness_tip: '色覺輔助模式，適合紅綠色覺異常的使用者，透過濾鏡提升顏色辨識度',
         grayscale_tip: '將整個頁面轉為灰階顯示，常用於特殊紀念日',
+        high_contrast_tip: '加深描邊、分隔線與圖表格線，半透明的面板改為實底，並去掉陰影與模糊，介面層次更分明',
       },
     },
     layout: {

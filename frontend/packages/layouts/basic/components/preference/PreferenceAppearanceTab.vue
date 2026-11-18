@@ -610,6 +610,13 @@ const loaderItems = computed(() =>
         </div>
         <XhSwitch v-model:checked="appStore.grayscaleEnabled" :aria-label="t('preference.appearance.other.grayscale')" />
       </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.appearance.other.high_contrast') }}</span>
+          <PrefTip :content="t('preference.appearance.other.high_contrast_tip')" />
+        </div>
+        <XhSwitch v-model:checked="appStore.highContrastEnabled" :aria-label="t('preference.appearance.other.high_contrast')" />
+      </div>
     </section>
   </div>
 </template>
