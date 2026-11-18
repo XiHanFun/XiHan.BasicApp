@@ -151,18 +151,23 @@ const placement = useWidgetPlacement()
       @refresh="emit('notificationRefresh')"
     />
 
-    <!-- 当前上下文：平台或租户名，点击进控制中心切换。皮肤与其它顶栏图标钮同一套，只是带上文字 -->
-    <AppIconButton
-      v-if="props.contextLabel"
-      labeled
-      class="mr-1"
-      :tooltip="t('header.context.switch', { name: props.contextLabel })"
-      @click="emit('userAction', 'control-center')"
-    >
-      <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
-      <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
-      <Icon icon="lucide:chevron-down" width="13" height="13" class="toolbar-chevron shrink-0" />
-    </AppIconButton>
+    <!-- 当前上下文：平台或租户名，点击进控制中心切换
+         它换的是身份与数据范围，不是只改前端的开关：用品牌色描边钮（不铺底）与左边那排工具区分开，并隔一道分割线；
+         打开的是控制中心面板、不是下拉菜单，所以不带下拉箭头 -->
+    <template v-if="props.contextLabel">
+      <div class="mx-1 h-4 w-px bg-border" />
+      <AppIconButton
+        labeled
+        variant="outline"
+        tone="brand"
+        class="context-switch mx-1"
+        :tooltip="t('header.context.switch', { name: props.contextLabel })"
+        @click="emit('userAction', 'control-center')"
+      >
+        <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
+        <span class="hidden max-w-32 truncate text-sm md:block">{{ props.contextLabel }}</span>
+      </AppIconButton>
+    </template>
 
     <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致
          窄屏只剩头像，名字经 tooltip 进 aria-label：菜单触发钮任何宽度下都有名字 -->
@@ -189,5 +194,11 @@ const placement = useWidgetPlacement()
   inline-size: var(--xh-glyph-size-xs);
   block-size: var(--xh-glyph-size-xs);
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
+}
+
+/* 组件库带色调的描边钮静止时铺一层色调浅底；上下文切换钮只要描边，悬停与按下的反馈底色照旧 */
+.context-switch {
+  --xh-action-bg-rest: transparent;
+  --xh-action-bg-focus-visible: transparent;
 }
 </style>
