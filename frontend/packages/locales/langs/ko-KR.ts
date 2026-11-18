@@ -883,18 +883,6 @@ export default {
       remove: '즐겨찾기 삭제',
       hint: '클릭하면 해당 페이지로 이동, 드래그로 정렬, ×로 삭제',
     },
-    locale: {
-      zh_cn: '중국어(간체)',
-      zh_tw: '중국어(번체)',
-      en_us: '영어',
-      ja_jp: '일본어',
-      ko_kr: '한국어',
-      de_de: '독일어',
-      es_es: 'Español',
-      fr_fr: 'Français',
-      pt_br: 'Português (Brasil)',
-      ru_ru: 'Русский',
-    },
     timezone: {
       switch_success: '시간대를 변경했어요: {timezone}',
       search: '시간대 검색',

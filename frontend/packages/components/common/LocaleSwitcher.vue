@@ -65,17 +65,18 @@ const { setLocale } = useLocale()
 const { t } = useI18n()
 
 // 已上架语言。新增语言时此处与 locales/xihan-ui 的 xhLocales（组件库有该语言包时）两处需同步
+// 每种语言用它自己的名字，不随界面语言翻译：看不懂当前界面的人也认得出自己的语言
 const LOCALES = [
-  { value: 'zh-CN', labelKey: 'header.locale.zh_cn' },
-  { value: 'zh-TW', labelKey: 'header.locale.zh_tw' },
-  { value: 'en-US', labelKey: 'header.locale.en_us' },
-  { value: 'ja-JP', labelKey: 'header.locale.ja_jp' },
-  { value: 'ko-KR', labelKey: 'header.locale.ko_kr' },
-  { value: 'de-DE', labelKey: 'header.locale.de_de' },
-  { value: 'es-ES', labelKey: 'header.locale.es_es' },
-  { value: 'fr-FR', labelKey: 'header.locale.fr_fr' },
-  { value: 'pt-BR', labelKey: 'header.locale.pt_br' },
-  { value: 'ru-RU', labelKey: 'header.locale.ru_ru' },
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'zh-TW', label: '正體中文' },
+  { value: 'en-US', label: 'English' },
+  { value: 'ja-JP', label: '日本語' },
+  { value: 'ko-KR', label: '한국어' },
+  { value: 'de-DE', label: 'Deutsch' },
+  { value: 'es-ES', label: 'Español' },
+  { value: 'fr-FR', label: 'Français' },
+  { value: 'pt-BR', label: 'Português (Brasil)' },
+  { value: 'ru-RU', label: 'Русский' },
 ] as const
 
 /** 当前选中：apply 取应用语言，否则取受控值（兜底应用语言） */
@@ -83,10 +84,10 @@ const current = computed(() => (props.apply
   ? appStore.locale
   : (props.value ?? appStore.locale)))
 
-const options = computed<MenuNode[]>(() => LOCALES.map(l => ({
+const options: MenuNode[] = LOCALES.map(l => ({
   value: l.value,
-  label: t(l.labelKey),
-})))
+  label: l.label,
+}))
 
 /** 选中值：组件库的选中值恒为数组，单选也是长度 1 */
 const selected = computed(() => [current.value])

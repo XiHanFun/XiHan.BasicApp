@@ -883,18 +883,6 @@ export default {
       remove: 'Убрать из избранного',
       hint: 'Нажмите, чтобы перейти; перетащите, чтобы изменить порядок; × — удалить.',
     },
-    locale: {
-      zh_cn: '简体中文',
-      zh_tw: '繁體中文',
-      en_us: 'English',
-      ja_jp: '日本語',
-      ko_kr: '한국어',
-      de_de: 'Deutsch',
-      es_es: 'Español',
-      fr_fr: 'Français',
-      pt_br: 'Português (Brasil)',
-      ru_ru: 'Русский',
-    },
     timezone: {
       switch_success: 'Часовой пояс изменён: {timezone}',
       search: 'Поиск часового пояса',

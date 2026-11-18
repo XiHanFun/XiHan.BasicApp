@@ -883,18 +883,6 @@ export default {
       remove: '取消收藏',
       hint: '點擊導覽至對應頁面；拖曳可排序；× 取消收藏',
     },
-    locale: {
-      zh_cn: '簡體中文',
-      zh_tw: '正體中文',
-      en_us: '英文',
-      ja_jp: '日文',
-      ko_kr: '韓文',
-      de_de: '德文',
-      es_es: 'Español',
-      fr_fr: 'Français',
-      pt_br: 'Português (Brasil)',
-      ru_ru: 'Русский',
-    },
     timezone: {
       switch_success: '已切換時區：{timezone}',
       search: '搜尋時區',

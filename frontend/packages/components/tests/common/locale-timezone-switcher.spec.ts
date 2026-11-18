@@ -40,8 +40,29 @@ describe('localeSwitcher 行内下拉的读屏名', () => {
     await flushPromises()
 
     const trigger = wrapper.find('[data-scope="select"][data-part="trigger"]').element
-    expect(nameFromLabelledBy(trigger)).toBe(`${i18n.global.t('preference.general.language')} ${i18n.global.t('header.locale.en_us')}`)
+    expect(nameFromLabelledBy(trigger)).toBe(`${i18n.global.t('preference.general.language')} English`)
     wrapper.unmount()
+  })
+
+  it('各语言用自己的名字，不随界面语言翻译', async () => {
+    const before = i18n.global.locale.value
+    i18n.global.locale.value = 'zh-TW'
+    try {
+      const wrapper = mount(LocaleSwitcher, {
+        props: { variant: 'select', value: 'ja-JP' },
+        global: {
+          plugins: [i18n],
+        },
+        attachTo: document.body,
+      })
+      await flushPromises()
+
+      expect(wrapper.find('[data-scope="select"][data-part="value-text"]').text()).toBe('日本語')
+      wrapper.unmount()
+    }
+    finally {
+      i18n.global.locale.value = before
+    }
   })
 })
 

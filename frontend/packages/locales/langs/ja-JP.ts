@@ -883,18 +883,6 @@ export default {
       remove: 'お気に入りから削除',
       hint: 'クリックで該当ページへ移動、ドラッグで並べ替え、× で削除',
     },
-    locale: {
-      zh_cn: '中国語（簡体字）',
-      zh_tw: '中国語（繁体字）',
-      en_us: '英語（米国）',
-      ja_jp: '日本語（日本）',
-      ko_kr: '韓国語（韓国）',
-      de_de: 'ドイツ語（ドイツ）',
-      es_es: 'Español',
-      fr_fr: 'Français',
-      pt_br: 'Português (Brasil)',
-      ru_ru: 'Русский',
-    },
     timezone: {
       switch_success: 'タイムゾーンを切り替えました：{timezone}',
       search: 'タイムゾーンを検索',

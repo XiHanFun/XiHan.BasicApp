@@ -883,18 +883,6 @@ export default {
       remove: 'Remove favorite',
       hint: 'Click to navigate; drag to reorder; × to remove.',
     },
-    locale: {
-      zh_cn: '简体中文',
-      zh_tw: '繁體中文',
-      en_us: 'English',
-      ja_jp: '日本語',
-      ko_kr: '한국어',
-      de_de: 'Deutsch',
-      es_es: 'Español',
-      fr_fr: 'Français',
-      pt_br: 'Português (Brasil)',
-      ru_ru: 'Русский',
-    },
     timezone: {
       switch_success: 'Timezone switched: {timezone}',
       search: 'Search timezones',
