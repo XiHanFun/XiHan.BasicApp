@@ -119,6 +119,33 @@ export function useWidgetPlacement() {
 }
 
 /**
+ * 截断的这段是不是顶到了自己（或面包屑里某一层祖先）的宽度上限
+ * 组件库给面包屑每一级设了最大宽，长标题（如法文）在空档很多时也截断，这与顶栏挤不挤无关
+ */
+function cappedByMaxWidth(node: HTMLElement, root: HTMLElement): boolean {
+  for (let el: HTMLElement | null = node; el; el = el === root
+    ? null
+    : el.parentElement) {
+    const max = getComputedStyle(el).maxInlineSize
+    if (max.endsWith('px') && el.getBoundingClientRect().width >= Number.parseFloat(max) - 0.5) {
+      return true
+    }
+  }
+  return false
+}
+
+/** 面包屑因挤而被截掉的宽度：各段自行裁切的文字超出可视宽的总和，顶到自身宽度上限而截的不算 */
+export function squeezedTruncation(root: HTMLElement): number {
+  let width = 0
+  for (const node of root.querySelectorAll<HTMLElement>('*')) {
+    if (node.scrollWidth > node.clientWidth && getComputedStyle(node).overflowX !== 'visible' && !cappedByMaxWidth(node, root)) {
+      width += node.scrollWidth - node.clientWidth
+    }
+  }
+  return width
+}
+
+/**
  * 顶栏挤压的测量端，只在 AppHeader 挂一份
  * 挤时（溢出或面包屑截断）逐档加挤：先收命令面板，再把「自动」工具从左往右让到悬浮组，记下每档腾出的宽度；空档够放回上一档时放回，放回又挤就退回改记
  * 腾出宽度只看工具自身，路由与断点变化不会记过时；加挤与放回在同一轮微任务里完成，不会逐档闪
@@ -140,24 +167,11 @@ export function useHeaderSqueeze(
   let settling = false
   const maxLevel = computed(() => 1 + squeezable.value.length)
 
-  /** 面包屑被截掉的宽度：各段自行裁切的文字超出可视宽的总和 */
-  function truncated() {
-    const el = breadcrumb.value
-    if (!el) {
-      return 0
-    }
-    let width = 0
-    for (const node of el.querySelectorAll<HTMLElement>('*')) {
-      if (node.scrollWidth > node.clientWidth && getComputedStyle(node).overflowX !== 'visible') {
-        width += node.scrollWidth - node.clientWidth
-      }
-    }
-    return width
-  }
-
-  /** 挤了多少：这一行溢出的宽度加面包屑被截掉的宽度 */
+  /** 挤了多少：这一行溢出的宽度加面包屑因挤而被截掉的宽度 */
   function pressure(el: HTMLElement) {
-    return el.scrollWidth - el.clientWidth + truncated()
+    return el.scrollWidth - el.clientWidth + (breadcrumb.value
+      ? squeezedTruncation(breadcrumb.value)
+      : 0)
   }
 
   function toolbarWidth() {
