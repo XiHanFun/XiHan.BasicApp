@@ -9,12 +9,12 @@ import {
   APP_TIMEZONE_KEY,
   CHECK_UPDATES_INTERVAL_KEY,
   CHECK_UPDATES_KEY,
-  COPYRIGHT_ENABLE_KEY,
   DEFAULT_LOCALE,
   DYNAMIC_TITLE_KEY,
   FAVORITES_SYNC_KEY,
   FOOTER_ENABLE_KEY,
   FOOTER_FIXED_KEY,
+  FOOTER_SHOW_COPYRIGHT_KEY,
   FOOTER_SHOW_DEV_INFO_KEY,
   LEGACY_SEARCH_ENABLED_KEY,
   LEGACY_WIDGET_FULLSCREEN_KEY,
@@ -71,7 +71,7 @@ function readWidgetPlacement(key: string, legacyKey: string): WidgetPlacement {
   return migrated
 }
 
-/** 通用偏好、Widget、快捷键、页脚版权相关状态 */
+/** 通用偏好、Widget、快捷键、底栏相关状态 */
 export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
@@ -117,13 +117,13 @@ export function createPreferencesSlice() {
     LocalStorage.get<PreferenceEntryPlacement>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
 
-  // ---- 页脚与版权 ----
+  // ---- 底栏 ----
   const footerEnable = ref<boolean>(LocalStorage.get<boolean>(FOOTER_ENABLE_KEY) ?? true)
   const footerFixed = ref<boolean>(LocalStorage.get<boolean>(FOOTER_FIXED_KEY) ?? true)
   const footerShowDevInfo = ref<boolean>(
     LocalStorage.get<boolean>(FOOTER_SHOW_DEV_INFO_KEY) ?? true,
   )
-  const copyrightEnable = ref<boolean>(LocalStorage.get<boolean>(COPYRIGHT_ENABLE_KEY) ?? true)
+  const footerShowCopyright = ref<boolean>(LocalStorage.get<boolean>(FOOTER_SHOW_COPYRIGHT_KEY) ?? true)
 
   // ---- 快捷键 ----
   const shortcutEnable = ref<boolean>(LocalStorage.get<boolean>(SHORTCUT_ENABLE_KEY) ?? true)
@@ -165,7 +165,7 @@ export function createPreferencesSlice() {
   bindPersist(FOOTER_ENABLE_KEY, footerEnable, true)
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)
   bindPersist(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, true)
-  bindPersist(COPYRIGHT_ENABLE_KEY, copyrightEnable, true)
+  bindPersist(FOOTER_SHOW_COPYRIGHT_KEY, footerShowCopyright, true)
   bindPersist(SHORTCUT_ENABLE_KEY, shortcutEnable, true)
   bindPersist(SHORTCUT_SEARCH_KEY, shortcutSearch, true)
   bindPersist(SHORTCUT_LOGOUT_KEY, shortcutLogout, true)
@@ -267,8 +267,8 @@ export function createPreferencesSlice() {
   function setFooterShowDevInfo(v: boolean) {
     save(FOOTER_SHOW_DEV_INFO_KEY, footerShowDevInfo, v)
   }
-  function setCopyrightEnable(v: boolean) {
-    save(COPYRIGHT_ENABLE_KEY, copyrightEnable, v)
+  function setFooterShowCopyright(v: boolean) {
+    save(FOOTER_SHOW_COPYRIGHT_KEY, footerShowCopyright, v)
   }
   function setShortcutEnable(v: boolean) {
     save(SHORTCUT_ENABLE_KEY, shortcutEnable, v)
@@ -315,7 +315,7 @@ export function createPreferencesSlice() {
     footerEnable,
     footerFixed,
     footerShowDevInfo,
-    copyrightEnable,
+    footerShowCopyright,
     shortcutEnable,
     shortcutSearch,
     shortcutLogout,
@@ -349,7 +349,7 @@ export function createPreferencesSlice() {
     setFooterEnable,
     setFooterFixed,
     setFooterShowDevInfo,
-    setCopyrightEnable,
+    setFooterShowCopyright,
     setShortcutEnable,
     setShortcutSearch,
     setShortcutLogout,

@@ -1462,10 +1462,7 @@ export default {
         show: '顯示',
         fixed: '固定於底部',
         show_dev_info: '顯示開發版本資訊',
-      },
-      copyright: {
-        title: '版權',
-        enabled: '啟用',
+        show_copyright: '顯示版權資訊',
       },
     },
     general: {

@@ -1462,10 +1462,7 @@ export default {
         show: 'Anzeigen',
         fixed: 'Unten fixiert',
         show_dev_info: 'Entwicklungsversion anzeigen',
-      },
-      copyright: {
-        title: 'Urheberrecht',
-        enabled: 'Aktivieren',
+        show_copyright: 'Copyright-Hinweis anzeigen',
       },
     },
     general: {

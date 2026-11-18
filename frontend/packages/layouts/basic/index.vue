@@ -636,7 +636,7 @@ const sidebarEnableState = computed(
         <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
 
         <!-- Center: Copyright -->
-        <div v-if="shell.appStore.copyrightEnable && site.copyright.owner" class="footer-section-center">
+        <div v-if="shell.appStore.footerShowCopyright && site.copyright.owner" class="footer-section-center">
           <span>
             Copyright &copy; {{ site.copyright.since || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
             <a
@@ -652,7 +652,7 @@ const sidebarEnableState = computed(
         <div v-else-if="!shell.isMobile.value" class="footer-section-center" />
 
         <!-- Right: ICP -->
-        <div v-if="shell.appStore.copyrightEnable && site.copyright.icp" :class="shell.isMobile.value ? '' : 'footer-section-right'">
+        <div v-if="shell.appStore.footerShowCopyright && site.copyright.icp" :class="shell.isMobile.value ? '' : 'footer-section-right'">
           <a
             :href="site.copyright.icpUrl || undefined"
             target="_blank"

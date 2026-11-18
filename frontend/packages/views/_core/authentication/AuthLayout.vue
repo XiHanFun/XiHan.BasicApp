@@ -32,7 +32,7 @@ const backgroundStyle = computed(() => site.loginBackground
 const copyright = computed(() => site.copyright)
 
 const showFooter = computed(
-  () => appStore.footerEnable && (appStore.copyrightEnable || appStore.footerShowDevInfo),
+  () => appStore.footerEnable && (appStore.footerShowCopyright || appStore.footerShowDevInfo),
 )
 const showEntryTabs = computed(() =>
   [
@@ -172,7 +172,7 @@ const appName = __APP_NAME__
         </template>
       </div>
       <div
-        v-if="appStore.copyrightEnable && (copyright.owner || copyright.icp)"
+        v-if="appStore.footerShowCopyright && (copyright.owner || copyright.icp)"
         class="flex flex-wrap gap-x-3 justify-center items-center"
       >
         <span v-if="copyright.owner">

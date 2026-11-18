@@ -1462,10 +1462,7 @@ export default {
         show: 'Afficher',
         fixed: 'Fixé en bas',
         show_dev_info: 'Afficher les informations de version',
-      },
-      copyright: {
-        title: 'Copyright',
-        enabled: 'Activer',
+        show_copyright: 'Afficher les informations de copyright',
       },
     },
     general: {

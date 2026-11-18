@@ -1,7 +1,7 @@
 /**
  * 通用偏好切片（app/preferences）单元测试
  * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐与位置（含旧开关键迁移）、
- * 快捷键、页脚版权等偏好的默认值、本地还原与落地；以及
+ * 快捷键、底栏等偏好的默认值、本地还原与落地；以及
  * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点
  */
 import { createPinia, setActivePinia } from 'pinia'
@@ -11,6 +11,7 @@ import {
   APP_TIMEZONE_KEY,
   CHECK_UPDATES_INTERVAL_KEY,
   DEFAULT_LOCALE,
+  FOOTER_SHOW_COPYRIGHT_KEY,
   LEGACY_SEARCH_ENABLED_KEY,
   LEGACY_WIDGET_FULLSCREEN_KEY,
   LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY,
@@ -135,13 +136,13 @@ describe('默认值', () => {
     expect(store.widgetPreferencePosition).toBe('auto')
   })
 
-  it('页脚与版权默认全部开启（版权的文字在站点设置里）', () => {
+  it('底栏各项默认全部开启（版权的文字在站点设置里）', () => {
     const store = freshStore()
 
     expect(store.footerEnable).toBe(true)
     expect(store.footerFixed).toBe(true)
     expect(store.footerShowDevInfo).toBe(true)
-    expect(store.copyrightEnable).toBe(true)
+    expect(store.footerShowCopyright).toBe(true)
   })
 
   it('快捷键总开关与子项默认开启', () => {
@@ -344,18 +345,19 @@ describe('setter 落地', () => {
     expect(localStorage.getItem(WIDGET_PREFERENCE_POSITION_KEY)).toBe(JSON.stringify('header'))
   })
 
-  it('页脚与版权的开关可改', () => {
+  it('底栏各项开关可改', () => {
     const store = freshStore()
 
     store.setFooterEnable(false)
     store.setFooterFixed(false)
     store.setFooterShowDevInfo(false)
-    store.setCopyrightEnable(false)
+    store.setFooterShowCopyright(false)
 
     expect(store.footerEnable).toBe(false)
     expect(store.footerFixed).toBe(false)
     expect(store.footerShowDevInfo).toBe(false)
-    expect(store.copyrightEnable).toBe(false)
+    expect(store.footerShowCopyright).toBe(false)
+    expect(localStorage.getItem(FOOTER_SHOW_COPYRIGHT_KEY)).toBe('false')
   })
 
   it('快捷键总开关与四个子项互相独立', () => {

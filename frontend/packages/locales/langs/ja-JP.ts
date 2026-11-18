@@ -1462,10 +1462,7 @@ export default {
         show: '表示',
         fixed: '下部に固定',
         show_dev_info: '開発版のバージョン情報を表示',
-      },
-      copyright: {
-        title: '著作権',
-        enabled: '有効',
+        show_copyright: '著作権情報を表示',
       },
     },
     general: {

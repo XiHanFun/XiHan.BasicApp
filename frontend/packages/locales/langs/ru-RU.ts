@@ -1462,10 +1462,7 @@ export default {
         show: 'Показывать',
         fixed: 'Закрепить внизу',
         show_dev_info: 'Показывать сведения о версии',
-      },
-      copyright: {
-        title: 'Авторские права',
-        enabled: 'Включить',
+        show_copyright: 'Показывать сведения об авторских правах',
       },
     },
     general: {

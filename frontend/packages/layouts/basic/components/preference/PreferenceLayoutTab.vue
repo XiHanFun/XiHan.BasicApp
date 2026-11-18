@@ -113,8 +113,6 @@ const breadcrumbShowHomeDisabled = computed(
   () => breadcrumbItemDisabled.value || !appStore.breadcrumbShowIcon,
 )
 
-const copyrightDisabled = computed(() => !appStore.footerEnable)
-
 watch(() => appStore.sidebarShow, (val) => {
   if (!val) {
     appStore.sidebarCollapsed = false
@@ -596,16 +594,9 @@ watch(() => appStore.sidebarCollapsed, (val) => {
         <span>{{ t('preference.layout.footer.show_dev_info') }}</span>
         <XhSwitch v-model:checked="appStore.footerShowDevInfo" :disabled="!appStore.footerEnable" :aria-label="t('preference.layout.footer.show_dev_info')" />
       </div>
-    </section>
-
-    <!-- 版权 -->
-    <section class="pref-card" :class="{ 'opacity-60': copyrightDisabled }">
-      <div class="section-title">
-        {{ t('preference.layout.copyright.title') }}
-      </div>
-      <div class="pref-row" :class="{ 'opacity-50': copyrightDisabled }">
-        <span>{{ t('preference.layout.copyright.enabled') }}</span>
-        <XhSwitch v-model:checked="appStore.copyrightEnable" :disabled="copyrightDisabled" :aria-label="t('preference.layout.copyright.enabled')" />
+      <div class="pref-row" :class="{ 'opacity-50': !appStore.footerEnable }">
+        <span>{{ t('preference.layout.footer.show_copyright') }}</span>
+        <XhSwitch v-model:checked="appStore.footerShowCopyright" :disabled="!appStore.footerEnable" :aria-label="t('preference.layout.footer.show_copyright')" />
       </div>
     </section>
   </div>

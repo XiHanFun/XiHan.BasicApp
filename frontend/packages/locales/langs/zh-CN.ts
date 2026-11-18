@@ -1462,10 +1462,7 @@ export default {
         show: '显示',
         fixed: '固定在底部',
         show_dev_info: '显示开发版本信息',
-      },
-      copyright: {
-        title: '版权',
-        enabled: '启用',
+        show_copyright: '显示版权信息',
       },
     },
     general: {

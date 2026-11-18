@@ -1462,10 +1462,7 @@ export default {
         show: '표시',
         fixed: '하단에 고정',
         show_dev_info: '개발 버전 정보 표시',
-      },
-      copyright: {
-        title: '저작권',
-        enabled: '활성화',
+        show_copyright: '저작권 정보 표시',
       },
     },
     general: {
