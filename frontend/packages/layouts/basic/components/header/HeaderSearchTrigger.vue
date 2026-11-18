@@ -72,15 +72,18 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
   background: color-mix(in srgb, var(--xh-bg-muted) 80%, transparent);
 }
 
+/* 文字与键帽取正文色的 85%（与标签栏、面包屑同一档）：次要色在换了主题色、底色带色时看不清 */
 .search-trigger-text {
   font-size: var(--xh-font-size-sm);
-  color: var(--xh-fg-muted);
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
   white-space: nowrap;
   user-select: none;
 }
 
 /* 键帽画在触发按钮里，点它等于点按钮 */
 .search-kbd {
+  --xh-kbd-fg: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
+
   pointer-events: none;
 }
 </style>

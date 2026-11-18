@@ -161,7 +161,7 @@ const placement = useWidgetPlacement()
     >
       <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
       <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
-      <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
+      <Icon icon="lucide:chevron-down" width="13" height="13" class="toolbar-chevron shrink-0" />
     </AppIconButton>
 
     <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致
@@ -176,8 +176,15 @@ const placement = useWidgetPlacement()
         <span class="hidden max-w-[96px] truncate text-sm text-foreground md:block">
           {{ props.userStore.nickname || props.userStore.username }}
         </span>
-        <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
+        <Icon icon="lucide:chevron-down" width="13" height="13" class="toolbar-chevron shrink-0" />
       </AppIconButton>
     </XDropdown>
   </div>
 </template>
+
+<style scoped>
+/* 下拉入口的箭头取正文色的 85%（与命令面板入口同一档）：次要色在换了主题色、底色带色时看不清 */
+.toolbar-chevron {
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
+}
+</style>
