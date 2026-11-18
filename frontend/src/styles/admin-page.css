@@ -30,6 +30,15 @@
   grid-column: span 2;
 }
 
+/*
+ * 错误文案那一行是表单根给直接子项留的：网格加在普通 div 上（字段分在几张卡片里）时字段不是表单根的直接子项，
+ * 按同一规则、同一档间距（表单根缺省的项距）补上，两种写法行距一致；报错时文案顶进这一行
+ */
+.xh-edit-form-grid:not([data-scope='form'])
+  > [data-scope='field'][data-part='root']:not(:last-child, :has(> [data-scope='field'][data-part='error-text'])) {
+  margin-block-end: var(--xh-space-5);
+}
+
 /* 小屏单列 */
 @media (max-width: 960px) {
   .xh-edit-form-grid {

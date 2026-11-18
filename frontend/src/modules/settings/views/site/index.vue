@@ -264,10 +264,12 @@ async function onSubmit(): Promise<void> {
   gap: var(--xh-space-3);
 }
 
+/* 卡片之间只隔外层的 gap：表单根给直接子项的项距在这里不要，否则表单里的两张卡片隔得比图片卡远 */
 .site-settings__card {
   display: flex;
   flex-direction: column;
   gap: var(--xh-space-3);
+  margin: 0;
   padding: var(--xh-space-4);
   border: var(--xh-stroke-thin) solid var(--xh-border-subtle);
   border-radius: var(--xh-shape-surface);
