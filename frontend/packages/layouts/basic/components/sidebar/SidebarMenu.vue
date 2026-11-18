@@ -104,7 +104,8 @@ watch(
   --xh-side-nav-link-px: 12px;
   --xh-side-nav-link-gap: 8px;
   --xh-side-nav-link-font-size: 14px;
-  --xh-side-nav-row-fg: color-mix(in srgb, var(--xh-fg-default) 80%, transparent);
+  /* 菜单字用正文色本身：字形细，再减淡在换了主题色、底色带色时就看不清 */
+  --xh-side-nav-row-fg: var(--xh-fg-default);
   --xh-side-nav-row-bg-hover: var(--xh-bg-subtle-hover);
   --xh-side-nav-row-bg-active: color-mix(in srgb, var(--xh-fg-brand) 15%, transparent);
   --xh-side-nav-row-fg-active: var(--xh-fg-brand);
@@ -142,7 +143,7 @@ watch(
   display: inline-flex;
   flex: none;
   align-items: center;
-  color: color-mix(in srgb, var(--xh-fg-default) 72%, transparent);
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
   /* 选中时图标换色与行底色同步渐变 */
   transition:
     transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
@@ -168,7 +169,7 @@ watch(
 
 .sidebar-menu :deep(.sidebar-menu__arrow) {
   flex: none;
-  color: color-mix(in srgb, var(--xh-fg-default) 55%, transparent);
+  color: color-mix(in srgb, var(--xh-fg-default) 65%, transparent);
 }
 
 /* —— 圆角档 / 直角档：圆角走行的 radius 槽 —— */

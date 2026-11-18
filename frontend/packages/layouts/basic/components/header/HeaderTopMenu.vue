@@ -402,6 +402,8 @@ watch(() => props.activeKey, () => {
   --xh-navigation-menu-trigger-px: 10px;
   --xh-navigation-menu-trigger-radius: 6px;
   --xh-navigation-menu-trigger-bg-active: color-mix(in srgb, var(--xh-fg-brand) 15%, transparent);
+  /* 有子级的入口也用正文色，与没子级的链接、侧栏菜单同一档 */
+  --xh-navigation-menu-trigger-fg: var(--xh-fg-default);
   --xh-navigation-menu-link-font-size: var(--xh-navigation-menu-font-size);
   --xh-navigation-menu-link-px: var(--xh-navigation-menu-trigger-px);
   --xh-navigation-menu-link-py: 0;

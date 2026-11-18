@@ -286,8 +286,9 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   transition: fill var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
+/* 未选中的标签字取正文色的 85%：字形细，用更淡的次要色在换了主题色、底色带色时看不清 */
 .chrome-tab__main {
-  color: var(--xh-fg-muted);
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
   border-radius: var(--xh-shape-control);
   transition:
     color var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep),
@@ -370,7 +371,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   font-size: var(--xh-font-size-sm);
   font-weight: var(--xh-font-weight-medium);
   cursor: default;
-  color: var(--xh-fg-muted);
+  color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
 }
 
 .flat-tab__inner {

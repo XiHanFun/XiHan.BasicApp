@@ -83,7 +83,7 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
   <!-- 分隔符在组件库里是独立部件，摆在两项之间 -->
   <XhBreadcrumbRoot
     v-if="shouldShowBreadcrumb"
-    class="flex min-w-0 items-center"
+    class="header-crumbs flex min-w-0 items-center"
     :class="appStore.breadcrumbStyle === 'background' ? 'rounded-md bg-muted px-2 py-1' : ''"
   >
     <!-- 顶栏只有一行：皮肤缺省 flex-wrap 会在顶栏挤压时把路径折成两行，这里改为不换行，
@@ -173,6 +173,11 @@ const crumbEntries = computed(() => props.breadcrumbs.flatMap((item, index) => {
 </template>
 
 <style scoped>
+/* 可点的层级取正文色的 85%（与标签栏同一档），当前页是正文色本身：字形细，用次要色在换了主题色后看不清 */
+.header-crumbs {
+  --xh-breadcrumb-fg: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
+}
+
 .crumb-item {
   display: inline-flex;
   align-items: center;
