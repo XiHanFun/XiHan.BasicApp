@@ -315,6 +315,12 @@
   --xh-button-fg: var(--xh-fg-brand);
 }
 
+/* 主题、全屏的图标外面套着切换动画的格子，铃铛、聊天的外面套着角标，接不上上面按档位定尺的规则；补上同一把尺，一排图标一样大 */
+.app-icon-btn[data-xh-action-size='md'] > :is(.icon-swap, [data-scope='badge'][data-part='root']) > svg {
+  inline-size: var(--xh-button-icon-size, var(--xh-glyph-size-md));
+  block-size: var(--xh-button-icon-size, var(--xh-glyph-size-md));
+}
+
 /* 认证页的主提交钮（账号、手机、邮箱登录，注册，找回与重置密码）：尺寸与形状取控件令牌，与 size="lg" 的输入框同一套，随密度与圆角偏好走 */
 .auth-submit {
   block-size: var(--xh-control-h-lg);

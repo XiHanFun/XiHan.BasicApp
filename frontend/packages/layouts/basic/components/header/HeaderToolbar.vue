@@ -183,8 +183,11 @@ const placement = useWidgetPlacement()
 </template>
 
 <style scoped>
-/* 下拉入口的箭头取正文色的 85%（与命令面板入口同一档）：次要色在换了主题色、底色带色时看不清 */
-.toolbar-chevron {
+/* 下拉入口的箭头取正文色的 85%（与命令面板入口同一档）：次要色在换了主题色、底色带色时看不清
+   箭头是附在文字后的小记号，取最小一档；按钮按档位给直接子图标定尺，这里要压过那一条 */
+.app-icon-btn > .toolbar-chevron {
+  inline-size: var(--xh-glyph-size-xs);
+  block-size: var(--xh-glyph-size-xs);
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
 }
 </style>
