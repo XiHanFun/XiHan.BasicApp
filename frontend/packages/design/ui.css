@@ -304,14 +304,17 @@
 
 /*
  * 顶栏图标钮（AppIconButton：主题、全屏、偏好、语言、时区、铃铛、星标、聊天入口、上下文与用户菜单）
- * 本体是组件库的 ghost 钮，悬停、按下、禁用、聚焦环与过渡都由它给；这里只补「开着面板」那一态，经按钮的公开槽给
+ * 本体是组件库的 ghost 钮，禁用、聚焦环与过渡都由它给；悬停、按下与「开着面板」的底色经按钮的公开槽换成品牌浅底，
+ * 与上下文切换钮同一档，一排钮的反馈底色一致
  */
 .app-icon-btn {
+  --xh-button-bg-hover: var(--xh-bg-brand-subtle);
+  --xh-button-bg-active: var(--xh-bg-brand-subtle-hover);
   flex-shrink: 0;
 }
 
 .app-icon-btn.app-icon-btn--active {
-  --xh-button-bg: var(--xh-bg-subtle-hover);
+  --xh-button-bg: var(--xh-bg-brand-subtle);
   --xh-button-fg: var(--xh-fg-brand);
 }
 

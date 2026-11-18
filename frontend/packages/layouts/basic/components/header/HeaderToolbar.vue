@@ -196,9 +196,8 @@ const placement = useWidgetPlacement()
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
 }
 
-/* 组件库带色调的描边钮静止时铺一层色调浅底；上下文切换钮只要描边，悬停与按下的反馈底色照旧 */
+/* 组件库带色调的描边钮静止时铺一层色调浅底；上下文切换钮只要描边，悬停与按下的底色随顶栏图标钮（.app-icon-btn） */
 .context-switch {
-  --xh-action-bg-rest: transparent;
-  --xh-action-bg-focus-visible: transparent;
+  --xh-button-bg: transparent;
 }
 </style>
