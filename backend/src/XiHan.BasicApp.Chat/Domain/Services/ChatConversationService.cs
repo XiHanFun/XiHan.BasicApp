@@ -625,6 +625,38 @@ public sealed class ChatConversationService(
     }
 
     /// <summary>
+    /// 隐藏会话或重新显示（个人设置，只推本人的其他端）
+    /// </summary>
+    /// <remarks>
+    /// 隐藏记下此刻会话的最大消息序号，之后来了新消息会话自己回到列表；置顶、免打扰与未读都不动
+    /// </remarks>
+    public async Task<Result<ChatToggleResponse>> SetHiddenAsync(InvocationContext context, ChatCaller caller, Guid conversationId, bool isHidden)
+    {
+        var member = await store.RequireMemberAsync(caller.Side, conversationId, caller.UserId, context.CancellationToken).ConfigureAwait(false);
+        if (!member.TryGetValue(out var mine))
+        {
+            return member.Error!;
+        }
+
+        long? hiddenUpTo = null;
+        if (isHidden)
+        {
+            var found = await store.ConversationAsync(caller.Side, conversationId, context.CancellationToken).ConfigureAwait(false);
+            if (!found.TryGetValue(out var conversation))
+            {
+                return found.Error!;
+            }
+
+            hiddenUpTo = conversation.LastSeq;
+        }
+
+        mine.HiddenUpToSeq = hiddenUpTo;
+        await store.Rows.UpdateAsync(mine, context.CancellationToken).ConfigureAwait(false);
+        await push.ChangedAsync(caller.Side, conversationId, ChatRealtimeMethods.ChangeTypes.MemberSettingChanged, [caller.UserId], context.CancellationToken).ConfigureAwait(false);
+        return new ChatToggleResponse(isHidden);
+    }
+
+    /// <summary>
     /// 部门对应的部门群
     /// </summary>
     public async Task<SysChatConversation?> DepartmentConversationAsync(string side, Guid departmentId, CancellationToken cancellationToken)

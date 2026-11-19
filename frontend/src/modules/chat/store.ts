@@ -171,9 +171,9 @@ export const useChatStore = defineStore('chat', () => {
     return useUserStore().userInfo?.basicId ?? ''
   }
 
-  // 未读合计（免打扰会话不计入顶栏角标）
+  // 未读合计（免打扰与隐藏的会话不计入顶栏角标）
   const totalUnread = computed(() =>
-    conversations.value.filter(c => !c.isMuted).reduce((sum, c) => sum + c.unreadCount, 0),
+    conversations.value.filter(c => !c.isMuted && !c.isHidden).reduce((sum, c) => sum + c.unreadCount, 0),
   )
   const activeConversation = computed(() =>
     conversations.value.find(c => c.conversationId === activeConversationId.value) ?? null,
@@ -318,6 +318,7 @@ export const useChatStore = defineStore('chat', () => {
     if (activeConversationId.value === conversationId) {
       // 重复点击当前会话：仍消费未读（窗口失焦期间积累的未读需要一个触发点）
       consumeActiveUnread()
+      showHiddenConversation(conversationId)
       return
     }
     if (activeConversationId.value) {
@@ -327,6 +328,7 @@ export const useChatStore = defineStore('chat', () => {
     replyTarget.value = null
     editTarget.value = null
     delete mentionsPending.value[conversationId]
+    showHiddenConversation(conversationId)
     void invokeHub(RealtimeInvocations.JoinConversation, conversationId)
     if (!messages.value[conversationId]) {
       try {
@@ -692,6 +694,37 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  /**
+   * 隐藏会话（个人维度）：从列表里拿掉，正开着就收起；置顶、免打扰与未读都不动
+   * 之后来了新消息、或从搜索与资料卡里再打开，它就回到列表
+   */
+  async function hideConversation(conversationId: string) {
+    if (!findConversation(conversationId)) {
+      return
+    }
+    const result = await api().setConversationHidden(conversationId, true)
+    const conv = findConversation(conversationId)
+    if (conv) {
+      conv.isHidden = result.isOn
+    }
+    if (result.isOn && activeConversationId.value === conversationId) {
+      closeActiveConversation()
+    }
+  }
+
+  /**
+   * 打开的是隐藏的会话（搜索命中、资料卡里的共同群、发起单聊找回）：回到列表
+   * 本地先放回来；请求失败时服务端仍算隐藏，下次读列表以服务端为准
+   */
+  function showHiddenConversation(conversationId: string) {
+    const conv = findConversation(conversationId)
+    if (!conv?.isHidden) {
+      return
+    }
+    conv.isHidden = false
+    api().setConversationHidden(conversationId, false).catch(() => {})
+  }
+
   // ===== 草稿（localStorage 持久化） =====
 
   function getDraft(conversationId: string): string {
@@ -763,6 +796,8 @@ export const useChatStore = defineStore('chat', () => {
     conv.lastMessageAt = conversation.lastMessageAt ?? message.createdAt
     conv.lastMessagePreview = conversation.lastMessagePreview ?? previewOf(message)
     conv.lastSeq = Math.max(conv.lastSeq ?? 0, message.seq)
+    // 隐藏的会话来了新消息即回到列表（与服务端一致，不用另发请求）
+    conv.isHidden = false
     const isSelf = message.senderUserId === currentUserId()
     // 系统提示消息（中性提示没有发送人，公告带操作人）：只刷时间线与预览，不计未读（与后端一致）
     // 通话记录只给没接到的人计未读，接通过的、自己拒绝的与没被邀请的不计（与后端一致）
@@ -1128,6 +1163,7 @@ export const useChatStore = defineStore('chat', () => {
     loadReadPositions,
     togglePinConversation,
     toggleMuteConversation,
+    hideConversation,
     getDraft,
     setDraft,
     readCountFor,

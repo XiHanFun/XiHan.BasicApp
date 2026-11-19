@@ -114,6 +114,18 @@ public sealed class ChatTests : IDisposable
         var aliceView = await ConversationAsync(server, alice, conversation);
         Assert.Equal((true, true), (aliceView.GetProperty("isPinned").GetBoolean(), aliceView.GetProperty("isMuted").GetBoolean()));
         Assert.False((await ConversationAsync(server, bob, conversation)).GetProperty("isPinned").GetBoolean());
+
+        // 隐藏只藏自己的、不动置顶；来了新消息自己回到列表，也能直接取消；不是成员的藏不了
+        Assert.True((await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:hide", new { conversationId = conversation, isHidden = true }, alice)).Body.GetProperty("isOn").GetBoolean());
+        var hidden = await ConversationAsync(server, alice, conversation);
+        Assert.Equal((true, true), (hidden.GetProperty("isHidden").GetBoolean(), hidden.GetProperty("isPinned").GetBoolean()));
+        Assert.False((await ConversationAsync(server, bob, conversation)).GetProperty("isHidden").GetBoolean());
+        await SendTextAsync(server, bob, conversation, "still there?");
+        Assert.False((await ConversationAsync(server, alice, conversation)).GetProperty("isHidden").GetBoolean());
+        Assert.True((await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:hide", new { conversationId = conversation, isHidden = true }, alice)).Body.GetProperty("isOn").GetBoolean());
+        Assert.False((await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:hide", new { conversationId = conversation, isHidden = false }, alice)).Body.GetProperty("isOn").GetBoolean());
+        Assert.False((await ConversationAsync(server, alice, conversation)).GetProperty("isHidden").GetBoolean());
+        Assert.Equal("CHAT_DENIED_001", (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:hide", new { conversationId = conversation, isHidden = true }, users["carol"])).Body.GetProperty("code").GetString());
     }
 
     [Fact]

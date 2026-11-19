@@ -2,7 +2,7 @@
  * store.ts 的会话维度行为
  *
  * 职责边界：会话列表拉取与并发去重、排序（置顶优先 + 最后消息时间倒序）、未读合计与免打扰、
- * 打开/关闭会话时的 Hub 进出组、已读防抖上报、typing 展示与节流、草稿持久化、置顶/免打扰开关、在线状态
+ * 打开/关闭会话时的 Hub 进出组、已读防抖上报、typing 展示与节流、草稿持久化、置顶/免打扰开关、隐藏会话、在线状态
  * 消息流与助手流分别在 chat-store-messages / chat-store-assistant 两个文件里
  *
  * SignalR 被整体替身掉（不建立真实连接），并记录每次 invoke 以便断言进出组顺序
@@ -44,6 +44,7 @@ function conversation(patch: Partial<ChatConversationListItem> & { conversationI
     unreadCount: 0,
     isMuted: false,
     isPinned: false,
+    isHidden: false,
     isSilenced: false,
     ...patch,
   }
@@ -276,6 +277,87 @@ describe('会话排序', () => {
   })
 })
 
+describe('隐藏会话', () => {
+  it('隐藏传真值、只改标志位：置顶与未读不动，正开着的收起并退组', async () => {
+    const sent: { conversationId: string, isHidden: boolean }[] = []
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', isPinned: true, unreadCount: 2 }),
+      ]),
+      setConversationHidden: (conversationId: string, isHidden: boolean) => {
+        sent.push({ conversationId, isHidden })
+        return Promise.resolve({ isOn: isHidden })
+      },
+    })
+    await store.loadConversations()
+    await store.openConversation('a')
+    store.conversations[0]!.unreadCount = 2
+    hub.calls = []
+
+    await store.hideConversation('a')
+
+    expect(sent).toStrictEqual([
+      { conversationId: 'a', isHidden: true },
+    ])
+    expect(store.conversations[0]).toMatchObject({ isHidden: true, isPinned: true, unreadCount: 2 })
+    expect(store.activeConversationId).toBeNull()
+    expect(hub.calls).toStrictEqual([
+      { method: RealtimeInvocations.LeaveConversation, conversationId: 'a' },
+    ])
+  })
+
+  it('打开隐藏的会话（搜索命中、资料卡里的群）即放回列表并告诉服务端；没隐藏的不发请求', async () => {
+    const sent: { conversationId: string, isHidden: boolean }[] = []
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'hidden', isHidden: true }),
+        conversation({ conversationId: 'shown' }),
+      ]),
+      setConversationHidden: (conversationId: string, isHidden: boolean) => {
+        sent.push({ conversationId, isHidden })
+        return Promise.resolve({ isOn: isHidden })
+      },
+    })
+    await store.loadConversations()
+
+    await store.openConversation('shown')
+    await store.openConversation('hidden')
+
+    expect(sent).toStrictEqual([
+      { conversationId: 'hidden', isHidden: false },
+    ])
+    expect(store.conversations.find(item => item.conversationId === 'hidden')?.isHidden).toBe(false)
+  })
+
+  it('放回列表的请求失败不挡住打开会话', async () => {
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', isHidden: true }),
+      ]),
+      setConversationHidden: () => Promise.reject(new Error('网络错误')),
+    })
+    await store.loadConversations()
+
+    await expect(store.openConversation('a')).resolves.toBeUndefined()
+
+    expect(store.activeConversationId).toBe('a')
+  })
+
+  it('隐藏失败时抛给调用方，列表不变', async () => {
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a' }),
+      ]),
+      setConversationHidden: () => Promise.reject(new Error('403')),
+    })
+    await store.loadConversations()
+
+    await expect(store.hideConversation('a')).rejects.toThrow('403')
+
+    expect(store.conversations[0]?.isHidden).toBe(false)
+  })
+})
+
 describe('未读合计', () => {
   it('免打扰会话的未读不计入顶栏角标', async () => {
     const store = setup({
@@ -289,6 +371,19 @@ describe('未读合计', () => {
     await store.loadConversations()
 
     expect(store.totalUnread).toBe(7)
+  })
+
+  it('隐藏的会话的未读也不计入顶栏角标', async () => {
+    const store = setup({
+      myConversations: () => Promise.resolve([
+        conversation({ conversationId: 'a', unreadCount: 3 }),
+        conversation({ conversationId: 'hidden', unreadCount: 5, isHidden: true }),
+      ]),
+    })
+
+    await store.loadConversations()
+
+    expect(store.totalUnread).toBe(3)
   })
 
   it('列表为空时未读合计是 0 而非 NaN', () => {

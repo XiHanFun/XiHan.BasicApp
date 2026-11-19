@@ -41,10 +41,11 @@ const userStore = useUserStore()
 
 const keyword = ref('')
 
+// 隐藏的会话不列出，按名字搜得到（点开即回到列表）
 const filteredConversations = computed(() => {
   const key = keyword.value.trim().toLowerCase()
   if (!key) {
-    return chatStore.conversations
+    return chatStore.conversations.filter(c => !c.isHidden)
   }
   return chatStore.conversations.filter(c => c.displayName.toLowerCase().includes(key))
 })
@@ -158,6 +159,12 @@ const ctxItems = computed<ChatContextMenuItem[]>(() => {
           label: t('chat.list.mute'),
           icon: 'lucide:bell-off',
         },
+    {
+      key: 'hide',
+      label: t('chat.list.hide'),
+      icon: 'lucide:eye-off',
+      divided: true,
+    },
   ]
 })
 
@@ -179,6 +186,9 @@ function handleItemAction(key: string) {
   }
   else if (key === 'mute') {
     chatStore.toggleMuteConversation(id).catch(notifyFailure)
+  }
+  else if (key === 'hide') {
+    chatStore.hideConversation(id).catch(notifyFailure)
   }
 }
 </script>

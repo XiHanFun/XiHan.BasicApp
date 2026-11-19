@@ -33,6 +33,7 @@ function createFakeApi(tag: string): ChatApiContract {
     unpinMessage: notUsed,
     setConversationPinned: notUsed,
     setConversationMuted: notUsed,
+    setConversationHidden: notUsed,
     updateConversationInfo: notUsed,
     transferOwner: notUsed,
     setMemberSilence: notUsed,

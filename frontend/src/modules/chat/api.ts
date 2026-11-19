@@ -83,6 +83,7 @@ export function createChatApi(): ChatApiContract {
     },
     setConversationPinned: (conversationId, isPinned) => chatConversations.pin({ conversationId, isPinned }),
     setConversationMuted: (conversationId, isMuted) => chatConversations.mute({ conversationId, isMuted }),
+    setConversationHidden: (conversationId, isHidden) => chatConversations.hide({ conversationId, isHidden }),
     updateConversationInfo: async (input) => {
       await chatConversations.updateInfo(input)
     },

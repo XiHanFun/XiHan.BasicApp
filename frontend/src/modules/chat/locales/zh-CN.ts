@@ -51,6 +51,7 @@ export default {
       unpin: '取消置顶',
       mute: '免打扰',
       unmute: '取消免打扰',
+      hide: '隐藏会话',
       mention_me: '[有人{\'@\'}我] ',
       section_conversations: '会话',
       section_messages: '聊天记录',

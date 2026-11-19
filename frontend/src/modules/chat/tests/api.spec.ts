@@ -185,12 +185,16 @@ describe('批量操作的逐项失败', () => {
 })
 
 describe('个人开关与查询', () => {
-  it('置顶与免打扰传新值（不是切换），返回生效后的状态', async () => {
-    const calls = record(call => json(200, { isOn: (call.body as { isPinned?: boolean, isMuted?: boolean }).isPinned ?? (call.body as { isMuted: boolean }).isMuted }))
+  it('置顶、免打扰与隐藏传新值（不是切换），返回生效后的状态', async () => {
+    const calls = record((call) => {
+      const body = call.body as { isPinned?: boolean, isMuted?: boolean, isHidden?: boolean }
+      return json(200, { isOn: body.isPinned ?? body.isMuted ?? body.isHidden })
+    })
     const api = createChatApi()
 
     await expect(api.setConversationPinned('c-1', true)).resolves.toEqual({ isOn: true })
     await expect(api.setConversationMuted('c-1', false)).resolves.toEqual({ isOn: false })
+    await expect(api.setConversationHidden('c-1', true)).resolves.toEqual({ isOn: true })
     expect(calls.map(call => [call.url, call.body])).toEqual([
       [
         '/api/chat-conversations:pin',
@@ -199,6 +203,10 @@ describe('个人开关与查询', () => {
       [
         '/api/chat-conversations:mute',
         { conversationId: 'c-1', isMuted: false },
+      ],
+      [
+        '/api/chat-conversations:hide',
+        { conversationId: 'c-1', isHidden: true },
       ],
     ])
   })

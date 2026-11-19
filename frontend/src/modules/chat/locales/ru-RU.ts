@@ -51,6 +51,7 @@ export default {
       unpin: 'Открепить',
       mute: 'Без звука',
       unmute: 'Включить звук',
+      hide: 'Скрыть беседу',
       mention_me: '[Вас упомянули через {\'@\'}] ',
       section_conversations: 'Беседы',
       section_messages: 'Сообщения',

@@ -37,6 +37,7 @@ namespace XiHan.BasicApp.Chat;
 [JsonSerializable(typeof(SetMemberRoleRequest))]
 [JsonSerializable(typeof(PinConversationRequest))]
 [JsonSerializable(typeof(MuteConversationRequest))]
+[JsonSerializable(typeof(HideConversationRequest))]
 [JsonSerializable(typeof(MarkReadRequest))]
 [JsonSerializable(typeof(ChatUserOptionsRequest))]
 [JsonSerializable(typeof(ChatUserProfileRequest))]

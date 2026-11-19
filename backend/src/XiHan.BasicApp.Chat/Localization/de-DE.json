@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "Heftet eine Unterhaltung nur für den Aufrufer an oder löst sie wieder; wird mit seinen anderen Geräten synchronisiert.",
   "chat_conversations.mute.title": "Unterhaltung stummschalten",
   "chat_conversations.mute.description": "Schaltet eine Unterhaltung nur für den Aufrufer stumm oder hebt das wieder auf; wird mit seinen anderen Geräten synchronisiert.",
+  "chat_conversations.hide.title": "Unterhaltung ausblenden",
+  "chat_conversations.hide.description": "Blendet eine Unterhaltung nur für den Aufrufer aus oder wieder ein; wird mit seinen anderen Geräten synchronisiert. Eine ausgeblendete Unterhaltung erscheint wieder in der Liste, sobald eine neue Nachricht eintrifft.",
   "chat_conversations.mark_read.title": "Als gelesen markieren",
   "chat_conversations.mark_read.description": "Setzt die Zahl ungelesener Nachrichten zurück und rückt die Leseposition vor (nie zurück; ohne Nachrichtenangabe bis zur neuesten); die Leseposition wird an alle Mitglieder gesendet.",
   "chat_messages.history.title": "Nachrichtenverlauf",

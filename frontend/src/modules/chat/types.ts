@@ -202,7 +202,7 @@ export const CHAT_MAX_MENTION_COUNT = 20
 
 /**
  * 聊天 API 契约：本模块的 api.ts 用生成的操作客户端实现并经 setChatApi 注册，聊天 store 与组件只依赖这份契约
- * 置顶与免打扰传新值（不是切换）；转发是服务端操作；附件地址按会话签出
+ * 置顶、免打扰与隐藏传新值（不是切换）；转发是服务端操作；附件地址按会话签出
  */
 export interface ChatApiContract {
   openSingleConversation: (peerUserId: string) => Promise<ChatConversationOpenResult>
@@ -234,6 +234,8 @@ export interface ChatApiContract {
   /** 会话置顶 / 免打扰（个人维度）：传新值，返回生效后的状态 */
   setConversationPinned: (conversationId: string, isPinned: boolean) => Promise<{ isOn: boolean }>
   setConversationMuted: (conversationId: string, isMuted: boolean) => Promise<{ isOn: boolean }>
+  /** 隐藏会话或重新显示（个人维度）：传新值，返回生效后的状态；隐藏之后来了新消息，服务端即不再算它隐藏 */
+  setConversationHidden: (conversationId: string, isHidden: boolean) => Promise<{ isOn: boolean }>
   /** 群治理：信息编辑 / 转让群主 / 成员禁言（群主与管理员） */
   updateConversationInfo: (input: ChatConversationInfoUpdateInput) => Promise<void>
   transferOwner: (conversationId: string, newOwnerUserId: string) => Promise<void>

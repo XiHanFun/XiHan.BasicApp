@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "Fixa ou desafixa uma conversa só para o chamador, sincronizado com os outros dispositivos dele.",
   "chat_conversations.mute.title": "Silenciar conversa",
   "chat_conversations.mute.description": "Ativa ou desativa o silenciamento de uma conversa só para o chamador, sincronizado com os outros dispositivos dele.",
+  "chat_conversations.hide.title": "Ocultar conversa",
+  "chat_conversations.hide.description": "Oculta ou volta a mostrar uma conversa só para o chamador, sincronizado com os outros dispositivos dele; uma conversa oculta volta à lista quando chega uma mensagem nova.",
   "chat_conversations.mark_read.title": "Marcar como lido",
   "chat_conversations.mark_read.description": "Zera a contagem de não lidas e avança a posição de leitura (nunca recua; até a mais recente se nenhuma mensagem for informada), enviada a todos os membros.",
   "chat_messages.history.title": "Histórico de mensagens",

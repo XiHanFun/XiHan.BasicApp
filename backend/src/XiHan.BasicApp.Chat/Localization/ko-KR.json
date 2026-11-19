@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "대화를 고정하거나 고정 해제합니다(개인 설정). 본인의 다른 기기에만 동기화됩니다.",
   "chat_conversations.mute.title": "대화 알림 끄기",
   "chat_conversations.mute.description": "대화의 알림을 끄거나 다시 켭니다(개인 설정). 본인의 다른 기기에만 동기화됩니다.",
+  "chat_conversations.hide.title": "대화 숨기기",
+  "chat_conversations.hide.description": "대화를 숨기거나 다시 표시합니다(개인 설정). 본인의 다른 기기에만 동기화되며, 숨긴 대화는 새 메시지가 오면 목록에 다시 나타납니다.",
   "chat_conversations.mark_read.title": "읽음으로 표시",
   "chat_conversations.mark_read.description": "읽지 않은 수를 0으로 만들고 읽음 위치를 앞으로 옮깁니다(뒤로 돌리지 않으며, 메시지를 지정하지 않으면 최신까지 읽음). 읽음 위치는 모든 멤버에게 푸시됩니다.",
   "chat_messages.history.title": "메시지 기록",

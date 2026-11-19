@@ -125,6 +125,11 @@ public static class ChatMessages
     public const string MuteChatConversationDescription = "chat_conversations.mute.description";
 
     /// <summary>
+    /// 操作 <c>chat-conversations.hide</c> 的说明
+    /// </summary>
+    public const string HideChatConversationDescription = "chat_conversations.hide.description";
+
+    /// <summary>
     /// 操作 <c>chat-conversations.mark-read</c> 的说明
     /// </summary>
     public const string MarkReadChatConversationDescription = "chat_conversations.mark_read.description";

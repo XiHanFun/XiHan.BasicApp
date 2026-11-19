@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "会話のピン留めを設定または解除します（個人設定）。本人の他の端末にのみ同期されます。",
   "chat_conversations.mute.title": "会話をミュート",
   "chat_conversations.mute.description": "会話のミュートを切り替えます（個人設定）。本人の他の端末にのみ同期されます。",
+  "chat_conversations.hide.title": "会話を非表示",
+  "chat_conversations.hide.description": "会話を非表示にするか再表示します（個人設定）。本人の他の端末にのみ同期されます。非表示にした会話は新しいメッセージが届くと一覧に戻ります。",
   "chat_conversations.mark_read.title": "既読にする",
   "chat_conversations.mark_read.description": "未読数をクリアして既読位置を進めます（戻ることはなく、メッセージを指定しなければ最新まで既読）。既読位置は全メンバーにプッシュされます。",
   "chat_messages.history.title": "メッセージ履歴",

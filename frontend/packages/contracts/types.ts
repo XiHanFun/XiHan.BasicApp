@@ -1616,6 +1616,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/chat-conversations:hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hide conversation
+         * @description Hides or shows a conversation for the caller only, synced to their other devices; a hidden conversation comes back to the list when a new message arrives.
+         *
+         *     Requires permission chat.chat-conversations.read (Use chat conversations).
+         */
+        post: operations["chat-conversations.hide"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/chat-conversations:leave": {
         parameters: {
             query?: never;
@@ -11395,6 +11417,8 @@ export interface components {
             isMuted: boolean;
             /** @description 我置顶了它 */
             isPinned: boolean;
+            /** @description 我隐藏了它，且隐藏之后还没有新消息 */
+            isHidden: boolean;
             /** @description 我被禁言 */
             isSilenced: boolean;
             /** @description 群公告 */
@@ -22067,6 +22091,51 @@ export interface operations {
                          * @description 会话
                          */
                         conversationId: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "chat-conversations.hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description chat-conversations.hide 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 会话
+                     */
+                    conversationId: string;
+                    /** @description 隐藏为真，重新显示为假 */
+                    isHidden: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description 个人开关的新状态 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 开为真 */
+                        isOn: boolean;
                     };
                 };
             };

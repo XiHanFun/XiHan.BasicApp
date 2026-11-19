@@ -10072,6 +10072,80 @@
         }
       }
     },
+    "/api/chat-conversations:hide": {
+      "post": {
+        "operationId": "chat-conversations.hide",
+        "tags": [
+          "chat-conversations"
+        ],
+        "summary": "Hide conversation",
+        "description": "Hides or shows a conversation for the caller only, synced to their other devices; a hidden conversation comes back to the list when a new message arrives.\n\nRequires permission chat.chat-conversations.read (Use chat conversations).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "chat.chat-conversations.read",
+        "parameters": [],
+        "requestBody": {
+          "description": "chat-conversations.hide \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "HideConversationRequest",
+                "description": "chat-conversations.hide \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "conversationId": {
+                    "description": "\u4F1A\u8BDD",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "isHidden": {
+                    "description": "\u9690\u85CF\u4E3A\u771F\uFF0C\u91CD\u65B0\u663E\u793A\u4E3A\u5047",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "conversationId",
+                  "isHidden"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u4E2A\u4EBA\u5F00\u5173\u7684\u65B0\u72B6\u6001",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ChatToggleResponse",
+                  "description": "\u4E2A\u4EBA\u5F00\u5173\u7684\u65B0\u72B6\u6001",
+                  "type": "object",
+                  "properties": {
+                    "isOn": {
+                      "description": "\u5F00\u4E3A\u771F",
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "isOn"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chat-conversations:leave": {
       "post": {
         "operationId": "chat-conversations.leave",
@@ -66667,6 +66741,10 @@
             "description": "\u6211\u7F6E\u9876\u4E86\u5B83",
             "type": "boolean"
           },
+          "isHidden": {
+            "description": "\u6211\u9690\u85CF\u4E86\u5B83\uFF0C\u4E14\u9690\u85CF\u4E4B\u540E\u8FD8\u6CA1\u6709\u65B0\u6D88\u606F",
+            "type": "boolean"
+          },
           "isSilenced": {
             "description": "\u6211\u88AB\u7981\u8A00",
             "type": "boolean"
@@ -66719,6 +66797,7 @@
           "unreadCount",
           "isMuted",
           "isPinned",
+          "isHidden",
           "isSilenced",
           "lastSeq",
           "peerOnline"

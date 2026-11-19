@@ -51,6 +51,7 @@ export default {
       unpin: 'Nicht mehr anheften',
       mute: 'Stummschalten',
       unmute: 'Stummschaltung aufheben',
+      hide: 'Unterhaltung ausblenden',
       mention_me: '[Erwähnt] ',
       section_conversations: 'Unterhaltungen',
       section_messages: 'Nachrichten',

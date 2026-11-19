@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Chat.Operations.ChatConversations;
 /// 我的会话
 /// </summary>
 /// <remarks>
-/// <c>GET /api/chat-conversations:mine</c>。置顶优先，再按最后消息时间倒序；单聊显示对端的用户名
+/// <c>GET /api/chat-conversations:mine</c>。置顶优先，再按最后消息时间倒序；单聊显示对端的用户名；隐藏的会话也在，带隐藏标记
 /// </remarks>
 /// <param name="queries">聊天的查询</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
@@ -550,6 +550,31 @@ public sealed class MuteChatConversation(ChatConversationService service) : IOpe
         ArgumentNullException.ThrowIfNull(context);
         var caller = ChatCaller.Of(context);
         return caller.TryGetValue(out var me) ? await service.SetPersonalAsync(context, me, request.ConversationId, isPinned: null, request.IsMuted).ConfigureAwait(false) : caller.Error!;
+    }
+}
+
+/// <summary>
+/// 隐藏会话（个人设置）
+/// </summary>
+/// <remarks>
+/// <c>POST /api/chat-conversations:hide</c>。请求带开关值，只推本人的其他端；隐藏之后来了新消息，会话自己回到列表
+/// </remarks>
+/// <param name="service">会话服务</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = ChatPermissions.ChatConversationsRead)]
+public sealed class HideChatConversation(ChatConversationService service) : IOperation<HideConversationRequest, ChatToggleResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "chat-conversations.hide";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<ChatToggleResponse>> HandleAsync(HideConversationRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var caller = ChatCaller.Of(context);
+        return caller.TryGetValue(out var me) ? await service.SetHiddenAsync(context, me, request.ConversationId, request.IsHidden).ConfigureAwait(false) : caller.Error!;
     }
 }
 

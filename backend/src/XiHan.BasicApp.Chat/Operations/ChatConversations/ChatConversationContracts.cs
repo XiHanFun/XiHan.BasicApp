@@ -101,6 +101,13 @@ public sealed record PinConversationRequest(Guid ConversationId, bool IsPinned);
 public sealed record MuteConversationRequest(Guid ConversationId, bool IsMuted);
 
 /// <summary>
+/// <c>chat-conversations.hide</c> 的请求
+/// </summary>
+/// <param name="ConversationId">会话</param>
+/// <param name="IsHidden">隐藏为真，重新显示为假</param>
+public sealed record HideConversationRequest(Guid ConversationId, bool IsHidden);
+
+/// <summary>
 /// <c>chat-conversations.mark-read</c> 的请求
 /// </summary>
 /// <param name="ConversationId">会话</param>
@@ -147,6 +154,7 @@ public sealed record ChatConversationOpenResponse(Guid ConversationId, ChatConve
 /// <param name="UnreadCount">我的未读数</param>
 /// <param name="IsMuted">我设了免打扰</param>
 /// <param name="IsPinned">我置顶了它</param>
+/// <param name="IsHidden">我隐藏了它，且隐藏之后还没有新消息</param>
 /// <param name="IsSilenced">我被禁言</param>
 /// <param name="Announcement">群公告</param>
 /// <param name="Description">群描述</param>
@@ -167,6 +175,7 @@ public sealed record ChatConversationListItem(
     int UnreadCount,
     bool IsMuted,
     bool IsPinned,
+    bool IsHidden,
     bool IsSilenced,
     string? Announcement,
     string? Description,

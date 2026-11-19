@@ -51,6 +51,7 @@ export default {
       unpin: '고정 해제',
       mute: '알림 끄기',
       unmute: '알림 켜기',
+      hide: '대화 숨기기',
       mention_me: '[{\'@\'}멘션됨] ',
       section_conversations: '대화',
       section_messages: '메시지',

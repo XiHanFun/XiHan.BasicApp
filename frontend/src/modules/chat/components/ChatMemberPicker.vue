@@ -76,12 +76,14 @@ const scopeOptions = computed(() => [
   },
 ])
 
-/** 最近联系人取自单聊会话（已按置顶与最后消息时间排好），名字与会话列表同一个 */
+/** 最近联系人取自单聊会话（已按置顶与最后消息时间排好），名字与会话列表同一个；隐藏的单聊按名字搜才列出 */
 const recentUsers = computed<ChatUserOption[]>(() => {
   const key = keyword.value.trim().toLowerCase()
   return chatStore.conversations
     .filter(conversation => conversation.conversationType === 'Single' && conversation.peerUserId)
-    .filter(conversation => !key || conversation.displayName.toLowerCase().includes(key))
+    .filter(conversation => key
+      ? conversation.displayName.toLowerCase().includes(key)
+      : !conversation.isHidden)
     .map(conversation => ({
       userId: conversation.peerUserId!,
       userName: conversation.displayName,

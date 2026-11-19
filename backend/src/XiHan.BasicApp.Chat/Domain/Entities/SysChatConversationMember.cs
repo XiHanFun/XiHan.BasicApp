@@ -10,7 +10,8 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 会话成员（租户库实体）
 /// </summary>
 /// <remarks>
-/// 成员行同时承载「某人在某会话」的个人状态（角色、禁言、置顶、免打扰、未读数、已读位）：这些和成员身份同生同灭，不另建表
+/// 成员行同时承载「某人在某会话」的个人状态（角色、禁言、置顶、免打扰、隐藏、未读数、已读位）：这些和成员身份同生同灭，不另建表
+/// 隐藏记下隐藏时会话的最大消息序号，之后来了新消息（序号超过它）会话自己回到列表，发消息的路径不用为它多写一笔
 /// 未读数冗余存：发消息时一条更新语句给其他成员加一、标已读清零，会话列表不用按已读位去数消息；已读位存序号、只前移，群的已读回执按它比较
 /// 退群、被移出或离开部门即软删除，部分唯一索引让再入群另写一行
 /// 入群的人须注册在本侧或是本侧的租户成员：成员行记的是建行时的一侧，不拦就会建出对方那一侧看不到的会话
@@ -77,6 +78,12 @@ public sealed class SysChatConversationMember : TenantScopedAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "is_pinned", IsNullable = false, ColumnDescription = "会话置顶（个人设置）")]
     public bool IsPinned { get; set; }
+
+    /// <summary>
+    /// 隐藏时会话的最大消息序号（个人设置，没隐藏为空）
+    /// </summary>
+    [SugarColumn(ColumnName = "hidden_up_to_seq", IsNullable = true, ColumnDescription = "隐藏时会话的最大消息序号（个人设置，没隐藏为空）")]
+    public long? HiddenUpToSeq { get; set; }
 
     /// <summary>
     /// 被禁言

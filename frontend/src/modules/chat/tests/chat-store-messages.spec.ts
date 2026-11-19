@@ -62,6 +62,7 @@ function conversation(patch: Partial<ChatConversationListItem> & { conversationI
     unreadCount: 0,
     isMuted: false,
     isPinned: false,
+    isHidden: false,
     isSilenced: false,
     ...patch,
   }
@@ -600,6 +601,20 @@ describe('推送回灌', () => {
 
     expect(store.conversations[0]?.unreadCount).toBe(2)
     expect(store.mentionsPending.a).toBe(true)
+  })
+
+  it('隐藏的会话来了新消息即回到列表，未读照记，不另发请求', () => {
+    const store = setup()
+    store.conversations = [
+      conversation({ conversationId: 'a', unreadCount: 1, isHidden: true }),
+    ]
+
+    store.applyIncomingMessage({
+      message: message({ messageId: '5' }),
+      conversation: { conversationId: 'a', conversationType: 'Single' },
+    })
+
+    expect(store.conversations[0]).toMatchObject({ isHidden: false, unreadCount: 2 })
   })
 
   it('提及所有人也算提到我；聊天记录的预览用它的标签，不把 JSON 摆出来', () => {

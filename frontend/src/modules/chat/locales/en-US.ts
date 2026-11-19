@@ -51,6 +51,7 @@ export default {
       unpin: 'Unpin',
       mute: 'Mute',
       unmute: 'Unmute',
+      hide: 'Hide conversation',
       mention_me: '[Mentioned] ',
       section_conversations: 'Conversations',
       section_messages: 'Messages',

@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "置頂或取消置頂對話（個人設定），只推送給本人的其他裝置。",
   "chat_conversations.mute.title": "對話免打擾",
   "chat_conversations.mute.description": "開關對話的免打擾（個人設定），只推送給本人的其他裝置。",
+  "chat_conversations.hide.title": "隱藏對話",
+  "chat_conversations.hide.description": "隱藏或重新顯示對話（個人設定），只推送給本人的其他裝置；隱藏後有新訊息，對話會自己回到清單。",
   "chat_conversations.mark_read.title": "標記已讀",
   "chat_conversations.mark_read.description": "未讀歸零、已讀位置前移（不回退，未指定訊息即讀到最新），已讀位置推送給全體成員。",
   "chat_messages.history.title": "訊息記錄",

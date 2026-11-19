@@ -80,6 +80,7 @@ public sealed class ChatQueries(ChatStore store, IRealtimePresence presence)
                 member.UnreadCount,
                 member.IsMuted,
                 member.IsPinned,
+                member.HiddenUpToSeq is { } hiddenUpTo && conversation.LastSeq <= hiddenUpTo,
                 member.IsSilenced,
                 conversation.Announcement,
                 conversation.Description,

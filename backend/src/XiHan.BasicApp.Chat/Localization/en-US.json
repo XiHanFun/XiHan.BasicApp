@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "Pins or unpins a conversation for the caller only, synced to their other devices.",
   "chat_conversations.mute.title": "Mute conversation",
   "chat_conversations.mute.description": "Mutes or unmutes a conversation for the caller only, synced to their other devices.",
+  "chat_conversations.hide.title": "Hide conversation",
+  "chat_conversations.hide.description": "Hides or shows a conversation for the caller only, synced to their other devices; a hidden conversation comes back to the list when a new message arrives.",
   "chat_conversations.mark_read.title": "Mark as read",
   "chat_conversations.mark_read.description": "Clears the unread count and moves the read position forward (never back; to the latest when no message is given), pushed to all members.",
   "chat_messages.history.title": "Message history",

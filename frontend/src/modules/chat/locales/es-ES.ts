@@ -51,6 +51,7 @@ export default {
       unpin: 'Desfijar',
       mute: 'Silenciar',
       unmute: 'Reactivar sonido',
+      hide: 'Ocultar conversación',
       mention_me: '[Te han mencionado con {\'@\'}] ',
       section_conversations: 'Conversaciones',
       section_messages: 'Mensajes',

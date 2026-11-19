@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "置顶或取消置顶会话（个人设置），只推本人的其他端。",
   "chat_conversations.mute.title": "会话免打扰",
   "chat_conversations.mute.description": "开关会话的免打扰（个人设置），只推本人的其他端。",
+  "chat_conversations.hide.title": "隐藏会话",
+  "chat_conversations.hide.description": "隐藏或重新显示会话（个人设置），只推本人的其他端；隐藏之后来了新消息，会话自己回到列表。",
   "chat_conversations.mark_read.title": "标记已读",
   "chat_conversations.mark_read.description": "未读清零、已读位前移（不回退，没给消息即读到最新），已读位推给全体成员。",
   "chat_messages.history.title": "消息历史",

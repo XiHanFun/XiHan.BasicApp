@@ -33,6 +33,8 @@
   "chat_conversations.pin.description": "Épingle ou désépingle une conversation pour l’appelant seul, synchronisé sur ses autres appareils.",
   "chat_conversations.mute.title": "Mettre la conversation en sourdine",
   "chat_conversations.mute.description": "Met en sourdine ou réactive une conversation pour l’appelant seul, synchronisé sur ses autres appareils.",
+  "chat_conversations.hide.title": "Masquer la conversation",
+  "chat_conversations.hide.description": "Masque ou réaffiche une conversation pour l’appelant seul, synchronisé sur ses autres appareils ; une conversation masquée revient dans la liste dès qu’un nouveau message arrive.",
   "chat_conversations.mark_read.title": "Marquer comme lu",
   "chat_conversations.mark_read.description": "Remet à zéro le nombre de non-lus et avance la position de lecture (jamais en arrière ; jusqu’au dernier message si aucun n’est indiqué), diffusée à tous les membres.",
   "chat_messages.history.title": "Historique des messages",

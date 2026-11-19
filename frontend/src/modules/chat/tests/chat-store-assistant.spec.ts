@@ -49,6 +49,7 @@ function conversation(patch: Partial<ChatConversationListItem> & { conversationI
     unreadCount: 0,
     isMuted: false,
     isPinned: false,
+    isHidden: false,
     isSilenced: false,
     ...patch,
   }

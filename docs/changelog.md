@@ -10,6 +10,7 @@
 - **转发接口的请求变了**：`chat-messages.forward` 的 `messageId` 改为 `messageIds`（同一个会话里的一条或多条），自己调这个接口的要跟着改。
 :::
 
+- **新增** 聊天会话的右键菜单加「隐藏会话」：只从自己的列表里拿掉，置顶、免打扰与未读都不动，未读不计入角标；来了新消息自己回到列表，按名字搜得到，再打开也回到列表（`chat-conversations.hide`，会话列表项多了 `isHidden`）
 - **优化** 来电与呼出的提示音改为连着响的长音（来电铃声、等对方接听的回铃），一直响到接通、挂断或响铃到点，不再隔一阵敲一下短音；收到聊天消息与站内通知的提示音拉开，一听就分得出来
 - **调整** 桌面通知缺省打开，只在页面看不到（窗口最小化、切到别的标签页或被别的窗口整个挡住）时发，页面看得到时即使窗口没有焦点也不发；除了聊天消息也提醒站内通知与来电（来电那条挂着不消失，有了结果即收起），浏览器的授权在进入页面后的第一下操作时询问一次；同一个会话的后一条通知照样弹出，不再被前一条静默顶掉。偏好的存储键随之更换，之前存下的开关不再读取
 - **调整** 实体的表名、列名、长度、可空、说明与索引名都显式写在实体上，不再由类名、属性名按命名约定推出（缩写会被拆错）；拆错的名字随之改正：表 `sys_o_auth_app`、`sys_o_auth_code`、`sys_o_auth_consent`、`sys_o_auth_signing_key`、`sys_o_auth_token` 改为 `sys_oauth_app`、`sys_oauth_code`、`sys_oauth_consent`、`sys_oauth_signing_key`、`sys_oauth_token`（主键约束与索引名随之改为 `sys_oauth_*`），`sys_code_gen_table_column` 的列 `c_sharp_type`、`c_sharp_property` 改为 `csharp_type`、`csharp_property`，其余表名、列名与索引名不变。代码生成出的实体同样显式写表名、列名、长度、可空、说明与唯一索引名（见[实体](./backend/entity)）

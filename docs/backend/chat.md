@@ -11,7 +11,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 表 | 说明 |
 | --- | --- |
 | `sys_chat_conversation` | 会话：类型（单聊、群聊、部门群、助手）、名称、头像、单聊唯一键、部门、群主、助手、成员数、最大消息序号、最后消息、公告、描述；软删除（解散群即软删除它），不进差异日志 |
-| `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、禁言、入会时间；退群、移出与解散群即软删除 |
+| `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、隐藏（隐藏时会话的最大消息序号）、禁言、入会时间；退群、移出与解散群即软删除 |
 | `sys_chat_message` | 消息：会话内序号、发送人与名字快照、类型、正文、附件（JSON）、撤回、编辑、回复快照、提及（点名的成员与提及所有人）、置顶；不软删除，按保留期物理删除 |
 | `sys_chat_message_reaction` | 表情回应：同一消息、同一用户、同一表情只有一条 |
 | `sys_chat_call` | 通话：会话、发起人、媒体（语音、视频）、状态、结束的原因、响铃到几时、接通与结束时间、通话记录消息；不进差异日志 |
@@ -164,7 +164,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 资源 | 操作 |
 | --- | --- |
-| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`dissolve`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
+| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`dissolve`、`silence-members`、`set-member-role`、`pin`、`mute`、`hide`、`mark-read` |
 | `chat-messages` | `history`、`search`、`search-all`、`media`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
 | `chat-audit` | `list`、`get`、`members`、`list-calls`（都只读） |
 | `chat-calls` | `active`、`ongoing`、`settings`、`ice-servers`（只读）；`start`、`accept`、`reject`、`join`、`hangup` |
@@ -173,7 +173,7 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 权限码 | 说明 |
 | --- | --- |
-| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读、看成员的资料也用它） |
+| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、隐藏、已读、看成员的资料也用它） |
 | `chat.chat-messages.read` | 查看历史、会话内与跨会话搜索、会话的图片与文件、置顶消息与换附件地址 |
 | `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
 | `chat.chat-conversations.manage` | 建群、群治理与解散群（进操作日志） |
@@ -196,6 +196,8 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 响应的 `hasMore` 说明后面还有没有；每个人带头像文件与主部门的名称（没有任职或在平台一侧为空）。会话成员（`members`）同样带头像文件。
 
 前端的选人是可勾选的候选列表：可搜索、可只看最近联系人（取自单聊会话）或按部门筛选，往下逐页加载；多选时旁边列出已选的人，换一批候选也留着。加成员时已在群里的人照样列出、标注而不可选。会话的资料、公告、个人设置（置顶、免打扰）与成员治理都在会话详情里：宽屏是消息流旁边的第三栏，放不下时顶替消息流。
+
+会话列表的右键菜单可以置顶、免打扰或隐藏会话。隐藏（`chat-conversations.hide`）只从自己的列表里拿掉，置顶、免打扰与未读都不动，未读也不计入角标；服务端记下隐藏时会话的最大消息序号，之后来了新消息（别人或自己在别的端发的、系统提示、通话记录都算）会话自己回到列表，发消息不用为它多写一笔。会话列表照样返回隐藏的会话、带 `isHidden`：前端按名字搜得到，从搜索、资料卡里共同的群或发起单聊再打开即回到列表；转发的会话与选人的最近联系人同样只在按名字搜时列出隐藏的。
 
 ## 搜索、图片与文件、资料
 

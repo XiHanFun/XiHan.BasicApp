@@ -43,9 +43,11 @@ const sendingTo = ref<null | string>(null)
 const candidates = computed(() => {
   const key = keyword.value.trim().toLowerCase()
   return chatStore.conversations.filter(c =>
-    // 不能转发回原会话（无意义），其余全部可选
+    // 不能转发回原会话（无意义）；隐藏的会话与会话列表一样，按名字搜才列出
     c.conversationId !== props.messages[0]?.conversationId
-    && (!key || c.displayName.toLowerCase().includes(key)))
+    && (key
+      ? c.displayName.toLowerCase().includes(key)
+      : !c.isHidden))
 })
 
 watch(show, (visible) => {

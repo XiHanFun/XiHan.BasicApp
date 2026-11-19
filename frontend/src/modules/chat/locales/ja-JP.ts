@@ -51,6 +51,7 @@ export default {
       unpin: 'ピン留めを解除',
       mute: 'ミュート',
       unmute: 'ミュート解除',
+      hide: 'チャットを非表示',
       mention_me: '[{\'@\'}メンションあり] ',
       section_conversations: 'チャット',
       section_messages: 'メッセージ',
