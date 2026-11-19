@@ -111,8 +111,8 @@ export function createPreferencesSlice() {
   const widgetFavorites = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FAVORITES_KEY) ?? true)
   const widgetDynamicIsland = ref<boolean>(LocalStorage.get<boolean>(WIDGET_DYNAMIC_ISLAND_KEY) ?? true)
   const notifySound = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_SOUND_KEY) ?? true)
-  // 桌面通知缺省关：要浏览器授权，授权只能在用户手势里申请
-  const notifyDesktop = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_DESKTOP_KEY) ?? false)
+  // 桌面通知缺省开：页面最小化时也收得到消息、通知与来电；浏览器授权借进入页面后的第一下操作申请
+  const notifyDesktop = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_DESKTOP_KEY) ?? true)
   const widgetPreferencePosition = ref<PreferenceEntryPlacement>(
     LocalStorage.get<PreferenceEntryPlacement>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
@@ -160,7 +160,7 @@ export function createPreferencesSlice() {
   bindPersist(WIDGET_FAVORITES_KEY, widgetFavorites, true)
   bindPersist(WIDGET_DYNAMIC_ISLAND_KEY, widgetDynamicIsland, true)
   bindPersist(NOTIFY_SOUND_KEY, notifySound, true)
-  bindPersist(NOTIFY_DESKTOP_KEY, notifyDesktop, false)
+  bindPersist(NOTIFY_DESKTOP_KEY, notifyDesktop, true)
   bindPersist(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, 'auto')
   bindPersist(FOOTER_ENABLE_KEY, footerEnable, true)
   bindPersist(FOOTER_FIXED_KEY, footerFixed, true)

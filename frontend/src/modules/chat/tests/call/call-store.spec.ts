@@ -61,7 +61,10 @@ const fakes = vi.hoisted(() => {
 
   const state = {
     hub: [] as { method: string, args: unknown[] }[],
-    sounds: [] as string[],
+    /** 开始过的铃声，按先后 */
+    rings: [] as string[],
+    /** 此刻在响的铃声 */
+    ringing: [] as string[],
     acquired: [] as string[],
     streams: [] as ReturnType<typeof createStream>[],
     mediaFailure: null as unknown,
@@ -135,8 +138,15 @@ vi.mock('~/composables/useSignalR', () => ({
 }))
 
 vi.mock('~/composables/useNotificationSound', () => ({
-  playNotificationSound: (kind: string) => {
-    fakes.state.sounds.push(kind)
+  startNotificationRing: (kind: string) => {
+    fakes.state.rings.push(kind)
+    fakes.state.ringing.push(kind)
+    return () => {
+      const index = fakes.state.ringing.indexOf(kind)
+      if (index !== -1) {
+        fakes.state.ringing.splice(index, 1)
+      }
+    }
   },
 }))
 
@@ -369,7 +379,8 @@ beforeEach(() => {
   sessionStorage.clear()
   Object.assign(fakes.state, {
     hub: [],
-    sounds: [],
+    rings: [],
+    ringing: [],
     acquired: [],
     streams: [],
     mediaFailure: null,
@@ -401,13 +412,16 @@ describe('发起', () => {
     ]).toStrictEqual(['outgoing', true, true, true, false])
     expect(store.peer?.userId).toBe(BOB)
     expect(store.localStream).toBe(fakes.state.streams[0])
-    expect(fakes.state.sounds).toStrictEqual(['receive'])
+    expect(fakes.state.ringing).toStrictEqual(['ringback'])
     expect(sessionStorage.getItem(CHAT_CALL_SESSION_KEY)).toBe('call-1')
     expect(store.working).toBe(false)
 
-    // 回铃隔一阵响一次
+    // 回铃是一段连着响的循环，不是隔一阵敲一下
     await vi.advanceTimersByTimeAsync(3200)
-    expect(fakes.state.sounds).toStrictEqual(['receive', 'receive'])
+    expect([fakes.state.rings, fakes.state.ringing]).toStrictEqual([
+      ['ringback'],
+      ['ringback'],
+    ])
   })
 
   it('设备取不到就不打：不问服务端', async () => {
@@ -581,9 +595,7 @@ describe('发起', () => {
     ])
 
     // 接通了不再响铃
-    fakes.state.sounds.length = 0
-    await vi.advanceTimersByTimeAsync(10000)
-    expect(fakes.state.sounds).toStrictEqual([])
+    expect(fakes.state.ringing).toStrictEqual([])
   })
 
   it('连接还在建时先到的信令存着，建好后按先后交给它；之后的直接给', async () => {
@@ -656,7 +668,7 @@ describe('来电', () => {
     store.applyCallChanged(incoming())
 
     expect([store.phase, store.engaged, store.peer?.displayName]).toStrictEqual(['incoming', false, 'BOB'])
-    expect(fakes.state.sounds).toStrictEqual(['notification'])
+    expect(fakes.state.ringing).toStrictEqual(['ring'])
     expect(sessionStorage.getItem(CHAT_CALL_SESSION_KEY)).toBeNull()
   })
 
@@ -737,11 +749,12 @@ describe('来电', () => {
     store.applyCallChanged(incoming())
 
     store.applyCallChanged(accepted())
-    fakes.state.sounds.length = 0
-    await vi.advanceTimersByTimeAsync(10000)
 
     expect([store.phase, store.notice]).toStrictEqual(['idle', null])
-    expect(fakes.state.sounds).toStrictEqual([])
+    expect([fakes.state.rings, fakes.state.ringing]).toStrictEqual([
+      ['ring'],
+      [],
+    ])
     expect(fakes.state.sessions).toHaveLength(0)
   })
 
@@ -841,10 +854,9 @@ describe('来电', () => {
         participant(CAROL, 'Joined', T1),
       ],
     })
-    fakes.state.sounds.length = 0
     await vi.advanceTimersByTimeAsync(2200)
     expect([store.phase, store.call?.status]).toStrictEqual(['incoming', 'Ongoing'])
-    expect(fakes.state.sounds).toStrictEqual(['notification'])
+    expect(fakes.state.ringing).toStrictEqual(['ring'])
 
     // 在别的端拒绝了
     store.applyCallChanged({
@@ -1613,7 +1625,7 @@ describe('与服务端对一遍', () => {
     await store.restore()
 
     expect(store.phase).toBe('idle')
-    expect(fakes.state.sounds).toStrictEqual([])
+    expect(fakes.state.rings).toStrictEqual([])
   })
 
   it('没有通话读权限不问服务端', async () => {
@@ -1649,12 +1661,19 @@ describe('与服务端对一遍', () => {
 
     await store.restore()
     expect(store.phase).toBe('incoming')
-    expect(fakes.state.sounds).toStrictEqual(['notification'])
+    expect(fakes.state.ringing).toStrictEqual(['ring'])
 
+    // 铃声一直响到到点替它挂断那一刻
     await vi.advanceTimersByTimeAsync(21999)
-    expect(calls).toStrictEqual(['activeCall'])
+    expect([calls, fakes.state.ringing]).toStrictEqual([
+      ['activeCall'],
+      ['ring'],
+    ])
     await vi.advanceTimersByTimeAsync(1)
-    expect(calls).toStrictEqual(['activeCall', 'hangupCall:call-1'])
+    expect([calls, fakes.state.ringing]).toStrictEqual([
+      ['activeCall', 'hangupCall:call-1'],
+      [],
+    ])
   })
 
   it('刷新之前这个页签占着的那一通：媒体已经没了，替自己挂断', async () => {

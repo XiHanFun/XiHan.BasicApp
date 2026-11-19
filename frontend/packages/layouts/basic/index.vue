@@ -19,6 +19,7 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, r
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { XDropdown, XIconButton } from '~/components'
+import { attachDesktopNotificationPrompt } from '~/composables/desktop-notification'
 import { isLockedState, SESSION_LOCK_CHANGED_EVENT } from '~/composables/session-lock'
 import { setupContainerTransform } from '~/composables/useContainerTransform'
 import { FOUNDATION_PROJECTS } from '~/constants'
@@ -59,6 +60,9 @@ const tabbarStore = useTabbarStore()
 
 // 初始化 SignalR 连接（实时通知 + 踢下线）
 useSignalRIntegration()
+
+// 桌面通知：偏好开着、浏览器还没问过授权的，借进入壳层后的第一下操作请浏览器问一次
+onBeforeUnmount(attachDesktopNotificationPrompt(() => shell.appStore.notifyDesktop))
 
 // 壳层扩展：可选模块注册的布局集成钩子在 setup 顶层逐个调用（如聊天实时链路），浮层组件在模板尾部渲染
 const shellExtensions = useShellExtensions()

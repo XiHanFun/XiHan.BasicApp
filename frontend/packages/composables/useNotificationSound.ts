@@ -7,8 +7,8 @@
  * 消息提示音
  *
  * 声音取组件库 @xihan-ui/sound 的语义音效，与组件库文档里试听的是同一套：站内通知 notification、
- * 收到聊天消息 receive、自己的消息发送成功 send。走 @xihan-ui/vue/sound 的共享播放器，音频上下文等第一次
- * 真正发声才建立；是否发声由偏好 `notifySound` 决定
+ * 收到聊天消息 receive、自己的消息发送成功 send；来电 ring 与回铃 ringback 循环播放到有结果为止。
+ * 走 @xihan-ui/vue/sound 的共享播放器，音频上下文等第一次真正发声才建立；是否发声由偏好 `notifySound` 决定
  */
 import type { BuiltinSoundName } from '@xihan-ui/sound'
 import { attachDocumentSoundUnlock } from '@xihan-ui/sound'
@@ -22,6 +22,9 @@ const MAX_QUEUE_AHEAD = 1400
 
 /** 提示音：组件库声音主题里的语义名 */
 export type NotifySoundKind = Extract<BuiltinSoundName, 'notification' | 'receive' | 'send'>
+
+/** 铃声：来电 ring、呼出等待对方接听 ringback */
+export type NotifyRingKind = Extract<BuiltinSoundName, 'ring' | 'ringback'>
 
 /** 下一声最早可以从什么时候开始（performance.now 时钟） */
 let nextAvailableAt = 0
@@ -68,4 +71,16 @@ export function playNotificationSound(kind: NotifySoundKind): void {
     if (enabled())
       getSoundPlayer().play(kind)
   }, startAt - now)
+}
+
+/**
+ * 响铃：循环播放到调用返回的函数为止（接听、挂断、超时）
+ * 偏好关闭时不响，返回的函数照常可调
+ * @returns 停下铃声
+ */
+export function startNotificationRing(kind: NotifyRingKind): () => void {
+  if (!enabled())
+    return () => {}
+  const ringing = getSoundPlayer().loop(kind)
+  return () => ringing.stop()
 }

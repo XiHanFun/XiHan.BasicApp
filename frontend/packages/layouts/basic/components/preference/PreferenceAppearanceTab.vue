@@ -12,7 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { XHelpTip as PrefTip, XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
-import { desktopNotificationPermission, requestDesktopNotificationPermission, toast } from '~/composables'
+import { desktopNotificationPermission, onDesktopNotificationPermissionChange, requestDesktopNotificationPermission, toast } from '~/composables'
 import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_PRESETS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -48,6 +48,10 @@ watch(
 // ── 桌面通知：打开开关时才向浏览器申请授权（只能在用户手势里问）；这个浏览器没授权时开关显示为关 ──
 const desktopPermission = ref(desktopNotificationPermission())
 const notifyDesktopOn = computed(() => appStore.notifyDesktop && desktopPermission.value === 'granted')
+// 抽屉关上也不卸载：授权在开关之外变了（进入页面后第一下操作时的询问、浏览器的网站设置），开关跟着变
+onBeforeUnmount(onDesktopNotificationPermissionChange(() => {
+  desktopPermission.value = desktopNotificationPermission()
+}))
 
 async function handleNotifyDesktopChange(next: boolean) {
   if (!next) {

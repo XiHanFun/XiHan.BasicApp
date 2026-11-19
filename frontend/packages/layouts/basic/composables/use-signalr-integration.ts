@@ -10,10 +10,10 @@ import type { NotificationContentFormat } from '~/types/enums'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { applyRemotePageSetting } from '~/components/schema'
-import { applyServerTaskProgress, dialog, islandStatus, notification, playNotificationSound, useSignalR } from '~/composables'
+import { applyServerTaskProgress, dialog, islandStatus, notification, playNotificationSound, showDesktopNotification, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID } from '~/constants'
 import { RealtimeMethods } from '~/contracts'
-import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
+import { applyRemotePreferenceSnapshot, useAccessStore, useAppStore, useAuthStore, useFavoritesStore } from '~/stores'
 import { notificationSummary } from '~/utils'
 
 /**
@@ -51,6 +51,7 @@ export function useSignalRIntegration() {
   const { t } = useI18n()
   const accessStore = useAccessStore()
   const authStore = useAuthStore()
+  const appStore = useAppStore()
   const signalR = useSignalR(REALTIME_HUB_PATH)
 
   let isHandlingForceLogout = false
@@ -104,19 +105,25 @@ export function useSignalRIntegration() {
       Error: 'danger',
     }
     const tone = toneMap[payload?.type ?? 'Info'] ?? 'info'
+    const title = payload?.title || t('page.signalr.new_notification')
+    const summary = notificationSummary(payload?.content, payload?.contentFormat)
 
     // 卡片只出一句纯文本摘要：命令式通知的 description 是 string，承不了富文本；
     // 整篇公告原样塞进来会露出 Markdown 记号、把卡片撑到整屏高。完整正文在消息中心按原格式渲染
     notification.create({
       tone,
-      title: payload?.title || t('page.signalr.new_notification'),
-      description: notificationSummary(payload?.content, payload?.contentFormat),
+      title,
+      description: summary,
       placement: 'bottom-end',
       duration: 5000,
       closable: false,
     })
 
     playNotificationSound('notification')
+    // 页面看不到（最小化、切到别的标签页）时卡片也看不到，另发一条系统通知
+    if (appStore.notifyDesktop) {
+      showDesktopNotification({ title, body: summary })
+    }
     window.dispatchEvent(new CustomEvent(NOTIFICATION_RECEIVED_EVENT, { detail: payload }))
   }
 

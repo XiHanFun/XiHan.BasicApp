@@ -9,7 +9,7 @@ import type { ChatCallSignal } from './call-signal'
 import type { ChatCallMedia } from '~/contracts'
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
-import { playNotificationSound } from '~/composables/useNotificationSound'
+import { startNotificationRing } from '~/composables/useNotificationSound'
 import { useSignalR } from '~/composables/useSignalR'
 import { RealtimeHubs, RealtimeInvocations } from '~/contracts'
 import { ApiError } from '~/request'
@@ -74,8 +74,6 @@ const CALLEE_RING_GRACE_MS = 2000
 const DROP_GRACE_MS = 8000
 /** 与一个人之间这么久媒体还没连上即当它连不上（两端之间不通，又没有可用的中继） */
 const CONNECT_TIMEOUT_MS = 30000
-/** 响铃的间隔：来电急一些，回铃缓一些 */
-const RING_INTERVAL_MS = { incoming: 2200, outgoing: 3200 } as const
 /** 一个人的连接建好之前先到的信令最多存这么多条（一次协商用不了这么多，多出来的是乱发的） */
 const MAX_PENDING_SIGNALS = 200
 
@@ -178,7 +176,8 @@ export const useChatCallStore = defineStore('chat-call', () => {
   let pushes = 0
   let sharing = false
   let ringTimer: null | ReturnType<typeof setTimeout> = null
-  let ringInterval: null | ReturnType<typeof setInterval> = null
+  /** 正在响的铃声：调用即停 */
+  let stopRinging: (() => void) | null = null
   /** 正开着的会话：重连之后把它里面的通话重取一遍 */
   let watchedConversationId: null | string = null
   const ongoingRevisions = new Map<string, number>()
@@ -237,19 +236,16 @@ export const useChatCallStore = defineStore('chat-call', () => {
   // ===== 响铃 =====
 
   function stopRing(): void {
-    if (ringInterval) {
-      clearInterval(ringInterval)
-      ringInterval = null
-    }
+    stopRinging?.()
+    stopRinging = null
   }
 
+  /** 来电响铃声、打出去响回铃，连着响到接通、挂断或到点 */
   function startRing(kind: 'incoming' | 'outgoing'): void {
     stopRing()
-    const sound = kind === 'incoming'
-      ? 'notification'
-      : 'receive'
-    playNotificationSound(sound)
-    ringInterval = setInterval(playNotificationSound, RING_INTERVAL_MS[kind], sound)
+    stopRinging = startNotificationRing(kind === 'incoming'
+      ? 'ring'
+      : 'ringback')
   }
 
   function clearRingTimer(): void {

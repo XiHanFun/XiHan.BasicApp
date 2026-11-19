@@ -3,10 +3,11 @@
  * 职责：声音交给组件库的共享播放器（@xihan-ui/vue/sound），这里锁定应用自己那一层：
  * 「按语义名交给共享播放器」「偏好关闭时不响，排队期间关掉的那一声也不响」
  * 「密集到达按 200ms 依次排开、排到 1.4s 之后的直接丢」「首次手势解锁只挂一次，偏好关着时不解锁」
+ * 「响铃交给共享播放器循环播放、调返回的函数才停，偏好关着不响」
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const player = vi.hoisted(() => ({ played: [] as Array<{ kind: string, at: number }>, unlocks: 0 }))
+const player = vi.hoisted(() => ({ played: [] as Array<{ kind: string, at: number }>, unlocks: 0, looping: [] as string[] }))
 const gesture = vi.hoisted(() => ({ attached: 0, unlock: null as null | (() => void) }))
 
 vi.mock('@xihan-ui/vue/sound', () => ({
@@ -19,6 +20,14 @@ vi.mock('@xihan-ui/vue/sound', () => ({
     },
     unlock: () => {
       player.unlocks += 1
+    },
+    loop: (kind: string) => {
+      player.looping.push(kind)
+      return {
+        stop: () => {
+          player.looping.splice(player.looping.indexOf(kind), 1)
+        },
+      }
     },
   }),
 }))
@@ -43,6 +52,7 @@ beforeEach(() => {
   })
   player.played = []
   player.unlocks = 0
+  player.looping = []
   gesture.attached = 0
   gesture.unlock = null
 })
@@ -163,5 +173,41 @@ describe('首次手势解锁', () => {
     enabled = true
     gesture.unlock?.()
     expect(player.unlocks).toBe(1)
+  })
+})
+
+describe('响铃', () => {
+  it('来电与回铃交给共享播放器循环播放，调返回的函数才停', async () => {
+    const { startNotificationRing } = await loadModule()
+
+    const stopRing = startNotificationRing('ring')
+    const stopRingback = startNotificationRing('ringback')
+    vi.advanceTimersByTime(60_000)
+    expect(player.looping).toStrictEqual(['ring', 'ringback'])
+
+    stopRing()
+    expect(player.looping).toStrictEqual(['ringback'])
+    stopRingback()
+    expect(player.looping).toStrictEqual([])
+  })
+
+  it('偏好关着不响，返回的函数照常可调', async () => {
+    const { configureNotificationSound, startNotificationRing } = await loadModule()
+    configureNotificationSound(() => false)
+
+    const stop = startNotificationRing('ring')
+
+    expect(player.looping).toStrictEqual([])
+    expect(() => stop()).not.toThrow()
+  })
+
+  it('不走提示音的排队：刚响过提示音也立刻开始响铃', async () => {
+    const { playNotificationSound, startNotificationRing } = await loadModule()
+
+    playNotificationSound('receive')
+    playNotificationSound('receive')
+    startNotificationRing('ring')
+
+    expect(player.looping).toStrictEqual(['ring'])
   })
 })

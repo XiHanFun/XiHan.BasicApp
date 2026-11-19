@@ -50,7 +50,7 @@ export function useChatIntegration() {
   /**
    * 提醒他人发来的消息；提示音、桌面通知与岛提示各看各的场合
    * 提示音：只有正开着这条会话且窗口在前台才不响，否则会漏掉
-   * 桌面通知：偏好开着、页面不在眼前才发，点了回到这个会话
+   * 桌面通知：偏好开着、页面看不到才发，点了回到这个会话
    * 岛提示：在聊天页就不弹，消息就在眼前
    */
   function notifyIncomingMessage(payload: ChatMessagePushPayload) {

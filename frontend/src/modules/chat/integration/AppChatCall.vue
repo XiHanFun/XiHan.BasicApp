@@ -6,6 +6,7 @@
 <script setup lang="ts">
 import type { FloatingPanelPosition, FloatingPanelSize, FloatingPanelWindowState } from '@xihan-ui/headless'
 import type { ChatCallNoticeKind } from '../call/call-store'
+import type { DesktopNotificationHandle } from '~/composables'
 import {
   XhButton,
   XhFloatingPanelBody,
@@ -26,9 +27,9 @@ import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XIconButton from '~/components/common/XIconButton.vue'
 import XSelect from '~/components/common/XSelect.vue'
-import { toast, useIsMobile } from '~/composables'
+import { showDesktopNotification, toast, useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
-import { useUserStore } from '~/stores'
+import { useAppStore, useUserStore } from '~/stores'
 import { callMediaFailureText, callMediaLabel, callParticipantName, formatCallDuration, isGroupCall } from '../call/call-helpers'
 import { canShareScreen, ChatCallMediaError, listCallDevices } from '../call/call-media'
 import { useChatCallStore } from '../call/call-store'
@@ -58,6 +59,7 @@ const MIN_SIZE: FloatingPanelSize = { width: 280, height: 300 }
 const { t } = useI18n()
 const callStore = useChatCallStore()
 const userStore = useUserStore()
+const appStore = useAppStore()
 const { isMobile } = useIsMobile()
 
 const call = computed(() => callStore.call)
@@ -89,6 +91,48 @@ const incomingDetail = computed(() => {
         ? t('chat.call.incoming_group_voice', { group })
         : t('chat.call.incoming_voice')
   }
+})
+
+// ── 来电的桌面通知：页面看不到时发一条挂着不消失的，点了回到页面接听；来电有了结果就收起 ──
+let incomingNotification: DesktopNotificationHandle | null = null
+const ringingCallId = computed(() => (incoming.value
+  ? call.value?.callId ?? null
+  : null))
+
+function closeIncomingNotification(): void {
+  incomingNotification?.close()
+  incomingNotification = null
+}
+
+/** 来电在响、还没发过时发一条；页面看得到时不发，等它看不到了（最小化、切走）再发 */
+function notifyIncoming(): void {
+  const callId = ringingCallId.value
+  if (!callId || incomingNotification || !appStore.notifyDesktop) {
+    return
+  }
+  incomingNotification = showDesktopNotification({
+    title: peerName.value,
+    body: incomingDetail.value,
+    tag: `chat-call:${callId}`,
+    requireInteraction: true,
+  })
+}
+
+function handleVisibilityChange(): void {
+  if (document.visibilityState === 'hidden') {
+    notifyIncoming()
+  }
+}
+
+watch(ringingCallId, () => {
+  closeIncomingNotification()
+  notifyIncoming()
+})
+document.addEventListener('visibilitychange', handleVisibilityChange)
+
+onBeforeUnmount(() => {
+  closeIncomingNotification()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 // ── 一人一格：已经在里面的与还在响铃的 ───────────────────────────────
