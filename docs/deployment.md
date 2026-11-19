@@ -170,7 +170,7 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 平台库可以配从库（配置见 [`BasicApp:Database`](./configuration#basicapp-database) 与 [`XiHan:Persistence:SqlSugar`](./configuration#xihan-persistence-sqlsugar)）。配之前先看这几条：
 
 - **跨调用不保证读己之写**：写完马上发起的 `get`、`list` 可能读到落后的数据。比如保存之后立刻刷新列表，可能看到旧值。
-- **授权相关的读走主库**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，框架的授予与租户目录也读主库；强制下线、改密、禁用、撤销角色与停用租户不受复制延迟影响，生效时间只取决于缓存时长（如授予缓存 `XiHan:Security:Database:CacheTimeToLiveSeconds`）。
+- **授权相关的读走主库**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，框架的授予与租户目录也读主库；强制下线、改密、禁用、撤销角色与停用租户不受复制延迟影响；框架的授予与租户目录在提交之后即失效，BasicApp 自己的读穿缓存按各自时长与失效时机生效（见[缓存](./backend/caching)）。
 - **探测只看连通**：落后很多但连得上的从库照常接读流量，复制延迟要另外监控。
 - **只在 PostgreSQL 上实测过**：MySQL、SQL Server、Oracle 的从库没有实测。
 - 独立库租户不配从库，读写都走它自己的主库。主库不同的连接不能共用从库，启动失败（`PERSISTENCE_VALIDATION_009`）。

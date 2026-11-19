@@ -287,8 +287,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `Jwt:Issuer` / `Jwt:Audience` | `xihan.basicapp` | 写了就按它校验，整项不写才不校验；写成空串不等于不写 |
 | `Jwt:ClockSkewSeconds` | `60` | 校验有效期时允许的时钟偏移 |
 | `Jwt:NameClaim` | `sub` | 作为主体 ID 的声明 |
-| `Database:CacheSize` | `10000` | 授予缓存条目上限（每个主体与租户组合一条），满时整体清空 |
-| `Database:CacheTimeToLiveSeconds` | `30` | 授予缓存的存活时间，0 为不过期 |
+| `Database:CacheTimeToLiveSeconds` | `30` | 授予缓存的兜底存活时间，必须为正；授予与撤销经失效在所有实例立即生效，缓存容量由 `XiHan:Caching` 的本机缓存管 |
 | `Ip2Region:V4Database` / `V6Database` | `IpDatabases/ip2region_v4.xdb` / `IpDatabases/ip2region_v6.xdb` | IP 归属地离线库（随发布目录分发），相对路径按程序目录；文件缺失不影响启动，首次查询记一条警告，之后该类地址没有归属地；写成空白启动即失败 |
 
 ## `XiHan:Security:Outbound`
@@ -329,10 +328,8 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `RequireTenant` | `false` | 调用必须带租户；平台主体没有租户声明，必须为 `false` |
 | `ValidateAgainstStore` | `true` | 解析出的租户必须在租户目录里存在且启用；关掉后只校验格式 |
 | `TenantClaim` | `tenant` | 令牌里承载租户 ID 的声明 |
-| `ShardCacheSize` | `10000` | 租户分库解析的缓存容量（租户数），满时整体清空 |
-| `ShardCacheTimeToLiveSeconds` | `30` | 租户分库解析缓存条目的存活时间，别的实例改了独立库连接最迟这么久后本实例换用新库；0 为不过期 |
 | `DefaultTenant` | 不写 | BasicApp 不用：配了会把平台调用落到这个租户上 |
-| `Database:CacheSize` / `Database:CacheTimeToLiveSeconds` | `10000` / `30` | 租户目录缓存的容量与存活时间 |
+| `Database:CacheTimeToLiveSeconds` | `30` | 租户目录缓存的兜底存活时间，必须为正；停用、改独立库连接与删除经失效在所有实例立即生效，分库解析每次读租户目录、不另缓存 |
 | `Database:MaxListedTenants` | `10000` | 列出租户时返回的上限，超出不返回并记警告 |
 
 ## `XiHan:Localization`
@@ -341,7 +338,8 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | --- | --- | --- |
 | `Locales` | `en-US,zh-CN,zh-TW,ja-JP,ko-KR,de-DE,es-ES,fr-FR,pt-BR,ru-RU` | 启用的区域，逗号分隔、按优先级排列；是一个字符串，写成数组会被当成没写 |
 | `DefaultLocale` | `en-US` | 协商不到时用的区域，必须在 `Locales` 里 |
-| `Database:RefreshIntervalSeconds` | `300` | 数据库译文快照的刷新间隔，0 只在启动时加载 |
+| `Database:ChangeCheckIntervalSeconds` | `1` | 核对译文版本戳的间隔，别的实例写入的译文最迟这么久后重新加载；0 不核对，只靠周期刷新 |
+| `Database:RefreshIntervalSeconds` | `300` | 数据库译文快照的刷新间隔，兜住直接改表；0 只在启动时加载 |
 | `Database:MaxTranslations` | `100000` | 快照最多加载的译文条数，超出记警告 |
 
 请求按 `Accept-Language` 在启用的区域里协商。文案有两个来源：

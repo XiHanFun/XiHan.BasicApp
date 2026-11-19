@@ -32,7 +32,7 @@
 | 用户设置（按用户 × 场景 × 键，没存过的也缓存） | 10 分钟 | 写这一条设置时 |
 | 消息模板（按侧 × 渠道 × 编码，只存启用的） | 10 分钟 | 模板增删改时 |
 | 部门与各部门成员数（按租户整份） | 60 秒 | 部门增删改与移动、任职增删、导入用户时 |
-| 租户目录、权限授予 | 框架进程内缓存，`XiHan:MultiTenancy:Database:CacheTimeToLiveSeconds` / `XiHan:Security:Database:CacheTimeToLiveSeconds`（30 秒） | 框架 `TenantRecordStore` / `PermissionGrantRecordStore` 写入时失效本实例的条目 |
+| 租户目录、权限授予 | 框架经 `ICache` 缓存，兜底存活时间 `XiHan:MultiTenancy:Database:CacheTimeToLiveSeconds` / `XiHan:Security:Database:CacheTimeToLiveSeconds`（30 秒） | 框架 `TenantRecordStore` / `PermissionGrantRecordStore` 写入时与提交之后各失效一次；配了 Redis 时所有实例一起失效 |
 
 授予与指派的生效、到期在判定时按当前时间比较，不依赖缓存重建。
 

@@ -415,11 +415,17 @@
             "Database": {
               "type": "object",
               "properties": {
+                "ChangeCheckIntervalSeconds": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 1,
+                  "description": "核对译文版本戳的间隔（秒），别的实例写入的译文最迟这么久后重新加载；0 不核对，只靠周期刷新"
+                },
                 "RefreshIntervalSeconds": {
                   "type": "number",
                   "minimum": 0,
                   "default": 300,
-                  "description": "快照刷新间隔（秒）；0 只在启动时加载"
+                  "description": "快照刷新间隔（秒），兜住直接改表与版本戳丢失；0 只在启动时加载"
                 },
                 "MaxTranslations": {
                   "type": "integer",
@@ -575,32 +581,14 @@
               "default": "tenant",
               "description": "令牌里承载租户 ID 的声明类型"
             },
-            "ShardCacheSize": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 10000,
-              "description": "租户分库解析的缓存容量（租户数），满时整体清空"
-            },
-            "ShardCacheTimeToLiveSeconds": {
-              "type": "number",
-              "minimum": 0,
-              "default": 30,
-              "description": "租户分库解析缓存条目的存活时间（秒），别的实例改了独立库连接最迟这么久后本实例换用新库；0 为不过期"
-            },
             "Database": {
               "type": "object",
               "properties": {
-                "CacheSize": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "default": 10000,
-                  "description": "缓存容量（租户数，不存在的租户也占一条），满时整体清空"
-                },
                 "CacheTimeToLiveSeconds": {
                   "type": "number",
-                  "minimum": 0,
+                  "exclusiveMinimum": 0,
                   "default": 30,
-                  "description": "缓存条目的存活时间（秒）；0 为不过期"
+                  "description": "租户目录缓存条目的兜底存活时间（秒），必须为正；停用、改连接串与删除经失效立即生效，容量由 XiHan:Caching 的本机缓存管"
                 },
                 "MaxListedTenants": {
                   "type": "integer",
@@ -1144,17 +1132,11 @@
             "Database": {
               "type": "object",
               "properties": {
-                "CacheSize": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "default": 10000,
-                  "description": "授予缓存条目上限（每个主体与租户组合一条），满时整体清空"
-                },
                 "CacheTimeToLiveSeconds": {
                   "type": "number",
-                  "minimum": 0,
+                  "exclusiveMinimum": 0,
                   "default": 30,
-                  "description": "授予缓存条目的存活时间（秒）；0 为不过期"
+                  "description": "授予缓存条目的兜底存活时间（秒），必须为正；授予与撤销经失效立即生效，容量由 XiHan:Caching 的本机缓存管"
                 }
               },
               "description": "数据库授权：授予缓存"
