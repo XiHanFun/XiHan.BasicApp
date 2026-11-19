@@ -47,8 +47,8 @@ function isSectionSyncEnabled(section: string): boolean {
  * - 列设置 → section `table`
  * - 个人视图 → section `views`
  *
- * 设计为「尽力而为」：localStorage 仍是同步事实源；后端加载成功则覆盖本地，
- * 保存失败（如端点未就绪/离线）静默忽略，不阻塞交互
+ * 设计为「尽力而为」：localStorage 仍是同步事实源；后端加载成功则覆盖本地，保存失败只在灵动岛提示，不阻塞交互
+ * 一次保存传的是整页载荷：没拿到后端那份（拉取失败或还在拉）之前不上行，否则只带一个分区的载荷会把其它分区抹掉
  */
 interface UserSettingApiShape {
   get: (input: { scene: number, settingKey: string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
@@ -57,21 +57,37 @@ interface UserSettingApiShape {
 
 let sharedApi: UserSettingApiShape | null = null
 
-/** pageCode → 已合并的载荷对象（内存缓存，分区读写共享同一条后端记录） */
+/** pageCode → 后端那份叠上本机还没传上去的改动（拉取成功或收到推送之后才有，分区读写共享同一条后端记录） */
 const cache = new Map<string, Record<string, unknown>>()
-const loading = new Map<string, Promise<Record<string, unknown>>>()
+/** pageCode → 本机改过、还没确认传上去的分区：拿到后端那份时盖在上面，传成功才去掉 */
+const unsent = new Map<string, Record<string, unknown>>()
+const loading = new Map<string, Promise<Record<string, unknown> | null>>()
 const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
+/** 会话代次：退出登录或切换身份之后，还在路上的拉取与保存回来不再动缓存 */
+let generation = 0
 
 function resolveApi(): UserSettingApiShape {
   sharedApi ??= useAppContext().apis.userSettingApi as UserSettingApiShape
   return sharedApi
 }
 
-async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
+function withUnsent(pageCode: string, payload: Record<string, unknown>): Record<string, unknown> {
+  const local = unsent.get(pageCode)
+  return local
+    ? {
+        ...payload,
+        ...local,
+      }
+    : payload
+}
+
+/** 拉后端那份；失败 resolve null 且不留结果，下次读或保存时重拉 */
+async function loadPayload(pageCode: string): Promise<Record<string, unknown> | null> {
   let pending = loading.get(pageCode)
   if (!pending) {
     // 后台读取：灵动岛只在拉取期间显示「同步中」活动态，完成即静默消失（不弹成功提示，避免每次进页面刷屏）
     const task = settingSyncIsland('page-load', i18n.global.t('island.sync.name.page'))
+    const session = generation
     pending = resolveApi()
       .get({ scene: UserSettingScene.Page, settingKey: pageCode })
       .then((dto) => {
@@ -84,15 +100,20 @@ async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
             parsed = {}
           }
         }
-        cache.set(pageCode, parsed)
-        task.dismiss()
-        return parsed
+        if (session !== generation) {
+          return null
+        }
+        const payload = withUnsent(pageCode, parsed)
+        cache.set(pageCode, payload)
+        return payload
       })
       .catch(() => {
-        cache.set(pageCode, {})
-        task.dismiss()
-        return {}
+        if (session === generation) {
+          loading.delete(pageCode)
+        }
+        return null
       })
+      .finally(() => task.dismiss())
     loading.set(pageCode, pending)
   }
   return pending
@@ -109,9 +130,13 @@ function saveSection(pageCode: string, section: string, value: unknown): void {
   if (!isSectionSyncEnabled(section)) {
     return
   }
-  const payload = cache.get(pageCode) ?? {}
-  payload[section] = value
-  cache.set(pageCode, payload)
+  const local = unsent.get(pageCode) ?? {}
+  local[section] = value
+  unsent.set(pageCode, local)
+  const known = cache.get(pageCode)
+  if (known) {
+    known[section] = value
+  }
 
   const existing = saveTimers.get(pageCode)
   if (existing) {
@@ -120,18 +145,53 @@ function saveSection(pageCode: string, section: string, value: unknown): void {
   saveTimers.set(
     pageCode,
     setTimeout(() => {
-      const task = settingSyncIsland(`page:${pageCode}`, sectionName(section))
-      void resolveApi()
-        .save({
-          scene: UserSettingScene.Page,
-          settingKey: pageCode,
-          settingValue: JSON.stringify(payload),
-          clientId: USER_SETTING_CLIENT_ID,
-        })
-        .then(() => task.success())
-        .catch(() => task.error())
+      saveTimers.delete(pageCode)
+      void flushPage(pageCode, section)
     }, 600),
   )
+}
+
+/** 把这页整条载荷传上去：还没拿到后端那份先拉，拉不到就不传，改动留在本机等下一次保存 */
+async function flushPage(pageCode: string, section: string): Promise<void> {
+  const task = settingSyncIsland(`page:${pageCode}`, sectionName(section))
+  const session = generation
+  const payload = cache.get(pageCode) ?? await loadPayload(pageCode)
+  if (session !== generation) {
+    task.dismiss()
+    return
+  }
+  if (!payload) {
+    task.error()
+    return
+  }
+  const sent = {
+    ...unsent.get(pageCode),
+  }
+  try {
+    await resolveApi().save({
+      scene: UserSettingScene.Page,
+      settingKey: pageCode,
+      settingValue: JSON.stringify(payload),
+      clientId: USER_SETTING_CLIENT_ID,
+    })
+  }
+  catch {
+    task.error()
+    return
+  }
+  // 传的途中又改了的分区留着，等下一次
+  const local = unsent.get(pageCode)
+  if (local && session === generation) {
+    for (const [key, value] of Object.entries(sent)) {
+      if (local[key] === value) {
+        delete local[key]
+      }
+    }
+    if (Object.keys(local).length === 0) {
+      unsent.delete(pageCode)
+    }
+  }
+  task.success()
 }
 
 // ── 远端实时推送（SignalR UserSettingChanged，scene=Page）────────
@@ -178,13 +238,15 @@ export function applyRemotePageSetting(pageCode: string, settingValue?: null | s
     return
   }
   const previous = cache.get(pageCode)
-  cache.set(pageCode, payload)
+  const local = unsent.get(pageCode)
+  cache.set(pageCode, withUnsent(pageCode, payload))
   const sections = remoteListeners.get(pageCode)
   if (!sections) {
     return
   }
   sections.forEach((listeners, section) => {
-    if (listeners.size === 0 || !isSectionSyncEnabled(section)) {
+    // 本机还没传上去的改动比推来的新
+    if (listeners.size === 0 || !isSectionSyncEnabled(section) || (local && section in local)) {
       return
     }
     const value = payload[section]
@@ -199,17 +261,21 @@ export function applyRemotePageSetting(pageCode: string, settingValue?: null | s
   })
 }
 
-/** 清掉本会话已拉取的页面设置（退出登录、切换身份后不能沿用上一个人的那份） */
+/** 清掉本会话已拉取的页面设置（退出登录、切换身份后不能沿用上一个人的那份，上一个人还没发出的回写也不能带着新令牌写进新身份） */
 export function resetPageSettingCache(): void {
+  generation++
   cache.clear()
+  unsent.clear()
   loading.clear()
+  saveTimers.forEach(timer => clearTimeout(timer))
+  saveTimers.clear()
 }
 onSettingSessionReset(resetPageSettingCache)
 
 export interface UserSettingSync {
   /** 读取指定分区的远端值（首次触发后端加载，后续走缓存） */
   hydrate: <T>(section: string) => Promise<T | undefined>
-  /** 写入指定分区（合并入整条载荷，防抖落库；失败静默） */
+  /** 写入指定分区（合并入整条载荷，防抖落库；没拿到后端那份或保存失败时灵动岛提示失败） */
   save: (section: string, value: unknown) => void
   /** 订阅该分区的远端实时变更（返回退订函数） */
   subscribeRemote: (section: string, listener: (value: unknown) => void) => () => void

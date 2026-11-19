@@ -2,21 +2,24 @@
  * 页面设置的分区绑定（useUserSettingSync.bindSection）
  * 锁定：分区关着同步不请求后端；同一页的几个分区只拉一次，回来后各自应用并写回本地；
  * 本会话拉过的页再绑直接用缓存；其它设备推来的分发给对应分区并写回本地；推来以后再保存，hydrate 取的是保存后的值；
- * 退出登录后缓存清掉、再绑重新拉取
+ * 退出登录后缓存清掉、再绑重新拉取；
+ * 没拿到后端那份（拉取失败或还在拉）之前不上行，拿到后合并上传；推来的值不盖掉本机还没传上去的分区；退出登录取消还没发出的回写
  */
 import type { SyncedSettingTarget } from '~/composables/useSyncedSetting'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { applyRemotePageSetting, resetPageSettingCache, useUserSettingSync } from '~/components/schema/useUserSettingSync'
 import { resetPreferenceBackendSync, useAppStore } from '~/stores'
 import { registerAppContext } from '~/stores/app-context'
 
 let resolveGet: (dto: { settingValue?: null | string }) => void = () => {}
+let rejectGet: (error: Error) => void = () => {}
 const api = {
-  get: vi.fn(() => new Promise<{ scene: number, settingKey: string, settingValue?: null | string }>((resolve) => {
+  get: vi.fn(() => new Promise<{ scene: number, settingKey: string, settingValue?: null | string }>((resolve, reject) => {
     resolveGet = dto => resolve({ scene: 0, settingKey: '', ...dto })
+    rejectGet = reject
   })),
-  save: vi.fn(() => Promise.resolve({ scene: 0, settingKey: '' })),
+  save: vi.fn((_input: { settingValue?: null | string }) => Promise.resolve({ scene: 0, settingKey: '' })),
 }
 registerAppContext({
   apis: { userSettingApi: api } as never,
@@ -33,6 +36,18 @@ function recorder() {
   return { applied, written, target }
 }
 
+/** 上传过的整页载荷 */
+function savedPayloads(): unknown[] {
+  return api.save.mock.calls.map(([input]) => JSON.parse(input.settingValue ?? '{}'))
+}
+
+/** 等手头的微任务跑完（不靠计时器，假计时器下也能用） */
+async function drain(): Promise<void> {
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve()
+  }
+}
+
 beforeEach(() => {
   setActivePinia(createPinia())
   const store = useAppStore()
@@ -40,6 +55,11 @@ beforeEach(() => {
   store.tableSyncEnabled = true
   resetPageSettingCache()
   api.get.mockClear()
+  api.save.mockClear()
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 describe('分区关着同步', () => {
@@ -163,5 +183,128 @@ describe('开着同步', () => {
     expect(api.get).toHaveBeenCalledTimes(1)
     expect(binding.ready.value).toBe(false)
     expect(next.applied).toStrictEqual([])
+  })
+})
+
+describe('一次保存传整页载荷', () => {
+  it('拉取失败：之后的保存不上行；重拉成功后再保存，载荷带着后端原有的分区与之前没传上去的改动', async () => {
+    vi.useFakeTimers()
+    const sync = useUserSettingSync('page-f')
+    const first = sync.hydrate('search')
+    rejectGet(new Error('offline'))
+    expect(await first).toBeUndefined()
+
+    sync.save('table', ['mine'])
+    await vi.advanceTimersByTimeAsync(600)
+    // 保存时手里没有后端那份：先重拉，仍失败就不传
+    expect(api.get).toHaveBeenCalledTimes(2)
+    rejectGet(new Error('offline'))
+    await drain()
+    expect(api.save).not.toHaveBeenCalled()
+
+    const again = sync.hydrate('search')
+    expect(api.get).toHaveBeenCalledTimes(3)
+    resolveGet({
+      settingValue: JSON.stringify({
+        search: ['kept'],
+        views: ['v'],
+      }),
+    })
+    expect(await again).toStrictEqual(['kept'])
+
+    sync.save('views', ['v2'])
+    await vi.advanceTimersByTimeAsync(600)
+    await drain()
+    expect(savedPayloads()).toStrictEqual([
+      {
+        search: ['kept'],
+        views: ['v2'],
+        table: ['mine'],
+      },
+    ])
+  })
+
+  it('保存早于拉取回来：等后端那份回来再合并上传', async () => {
+    vi.useFakeTimers()
+    const sync = useUserSettingSync('page-g')
+    const loaded = sync.hydrate('search')
+    sync.save('table', ['t'])
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(api.save).not.toHaveBeenCalled()
+
+    resolveGet({
+      settingValue: JSON.stringify({
+        search: ['s'],
+        views: ['v'],
+      }),
+    })
+    expect(await loaded).toStrictEqual(['s'])
+    await drain()
+    expect(savedPayloads()).toStrictEqual([
+      {
+        search: ['s'],
+        views: ['v'],
+        table: ['t'],
+      },
+    ])
+  })
+
+  it('其它设备推来时，本机还没传上去的分区不被盖掉；传上去以后推来的照常应用', async () => {
+    vi.useFakeTimers()
+    const sync = useUserSettingSync('page-h')
+    const loaded = sync.hydrate('search')
+    resolveGet({
+      settingValue: JSON.stringify({
+        search: ['s'],
+        table: ['old'],
+      }),
+    })
+    await loaded
+    const table = recorder()
+    sync.bindSection('table', table.target)
+    sync.save('table', ['mine'])
+
+    applyRemotePageSetting('page-h', JSON.stringify({
+      search: ['s2'],
+      table: ['theirs'],
+    }))
+    expect(table.applied).toStrictEqual([
+      ['old'],
+    ])
+
+    await vi.advanceTimersByTimeAsync(600)
+    await drain()
+    expect(savedPayloads()).toStrictEqual([
+      {
+        search: ['s2'],
+        table: ['mine'],
+      },
+    ])
+
+    applyRemotePageSetting('page-h', JSON.stringify({
+      search: ['s2'],
+      table: ['theirs'],
+    }))
+    expect(table.applied).toStrictEqual([
+      ['old'],
+      ['theirs'],
+    ])
+  })
+
+  it('退出登录时取消还没发出的回写，不带着新令牌写进下一个人的记录', async () => {
+    vi.useFakeTimers()
+    const sync = useUserSettingSync('page-i')
+    const loaded = sync.hydrate('table')
+    resolveGet({ settingValue: '{}' })
+    await loaded
+    sync.save('table', ['previous-user'])
+
+    resetPreferenceBackendSync()
+    await vi.advanceTimersByTimeAsync(600)
+    await drain()
+
+    expect(api.save).not.toHaveBeenCalled()
   })
 })
