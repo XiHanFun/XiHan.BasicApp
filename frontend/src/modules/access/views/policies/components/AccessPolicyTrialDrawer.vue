@@ -10,7 +10,9 @@ import { ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XCombobox, XDatePicker, XInput, XSelect } from '~/components'
 import { toast } from '~/composables'
+import { sideUserFilters } from '~/constants'
 import { policies as policiesApi, users as usersApi } from '~/contracts'
+import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 import { attributeLabel, operatorLabel } from '../../roles/condition-labels'
 import { outcomeLabel, outcomeTone } from '../../roles/condition-trial'
@@ -46,6 +48,7 @@ interface TrialFormModel {
 }
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const formId = useId()
 const methodOptions = [
   'GET',
@@ -80,7 +83,7 @@ async function searchUsers(keyword = '') {
   try {
     const page = await usersApi.list({
       page: { index: 1, size: 50 },
-      filters: [],
+      filters: sideUserFilters(auth.tenantId === null),
       sorts: [],
       keyword: keyword.trim() || null,
     })

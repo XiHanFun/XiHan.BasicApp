@@ -12,6 +12,7 @@ import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XCombobox, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
+import { useAuthStore } from '~/stores'
 import { FIELD_MASK_STRATEGIES, FIELD_TARGET_KINDS, fieldSecurityResource, fieldTitleKey, MAX_MASK_KEEP, messageKeys, useFieldRuleEditor, useFieldSecurityEntities } from './use-field-security'
 
 defineOptions({ name: 'AccessFieldSecurityView' })
@@ -19,9 +20,10 @@ defineOptions({ name: 'AccessFieldSecurityView' })
 const { t, te, locale, getLocaleMessage } = useI18n()
 /** 当前语言的全部文案键：字段显示名按它兜底查找 */
 const messageKeyList = computed(() => messageKeys(getLocaleMessage(locale.value)))
+const auth = useAuthStore()
 const resource = fieldSecurityResource()
 const catalog = useFieldSecurityEntities()
-const editor = useFieldRuleEditor(catalog.find)
+const editor = useFieldRuleEditor(catalog.find, () => auth.tenantId === null)
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

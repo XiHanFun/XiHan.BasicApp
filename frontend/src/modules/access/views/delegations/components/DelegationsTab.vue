@@ -12,6 +12,7 @@ import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, XCombobox, XDatePicker, XEditModal, XInput, XSegmented } from '~/components'
 import { toast } from '~/composables'
+import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 import { usePermissionNames } from '../../permissions/permission-names'
 import { canRevoke, DELEGATION_STATUSES, delegationName, delegationsResource, delegationTarget, revokeDelegation, useDelegationEditor } from '../use-delegations'
@@ -20,9 +21,10 @@ import { canRevoke, DELEGATION_STATUSES, delegationName, delegationsResource, de
 defineOptions({ name: 'AccessDelegationsTab' })
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const permissionNames = usePermissionNames()
 const resource = delegationsResource(permissionNames.load)
-const editor = useDelegationEditor()
+const editor = useDelegationEditor(() => auth.tenantId === null)
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
 const editFormId = useId()

@@ -34,7 +34,7 @@ const resource = rolesResource()
 const editor = useRoleEditor()
 const detailView = useRoleDetail()
 const permissionEditor = useRolePermissionEditor()
-const memberEditor = useRoleMemberEditor()
+const memberEditor = useRoleMemberEditor(() => !isTenantCaller.value)
 const scopeEditor = useRoleDataScopeEditor()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */

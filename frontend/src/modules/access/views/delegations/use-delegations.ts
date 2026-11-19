@@ -7,7 +7,7 @@ import type { PermissionNameOf } from '../permissions/permission-names'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
-import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
+import { NOT_SUPPORT_MEMBER_FILTER, sideUserFilters } from '~/constants'
 import { delegations as delegationsApi, exportCenter, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
@@ -132,9 +132,9 @@ export function revokeDelegation(id: string): Promise<DelegationRow> {
 
 /**
  * 新建委托的弹窗
- * 委托人与接收人检索本侧用户；委托对象二选一：启用的非内置角色，或本侧权限目录
+ * 委托人与接收人检索本侧用户（平台侧只列平台账号）；委托对象二选一：启用的非内置角色，或本侧权限目录
  */
-export function useDelegationEditor() {
+export function useDelegationEditor(isPlatformCaller: () => boolean) {
   const open = ref(false)
   const form = reactive<DelegationForm>(emptyForm())
   const fieldErrors = ref<Record<string, string[]>>({})
@@ -157,7 +157,10 @@ export function useDelegationEditor() {
     try {
       const result = await usersApi.list({
         page: { index: 1, size: 50 },
-        filters: [NOT_SUPPORT_MEMBER_FILTER],
+        filters: [
+          ...sideUserFilters(isPlatformCaller()),
+          NOT_SUPPORT_MEMBER_FILTER,
+        ],
         sorts: [],
         keyword: keyword.trim() || null,
       })

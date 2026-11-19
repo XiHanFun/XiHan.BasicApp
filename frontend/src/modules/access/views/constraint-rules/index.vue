@@ -14,9 +14,10 @@ import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XCombobox, XDatePicker, XEditModal, XFieldLabel, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
-import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
+import { NOT_SUPPORT_MEMBER_FILTER, sideUserFilters } from '~/constants'
 import { constraintRules as constraintRulesApi, permissions as permissionsApi, policies as policiesApi, roles as rolesApi, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
+import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 import { findIncomplete, incompleteMessage, toConditions, toGroups } from '../policies/access-policy'
 import AccessPolicyConditionEditor from '../policies/components/AccessPolicyConditionEditor.vue'
@@ -46,6 +47,7 @@ import {
 defineOptions({ name: 'AccessConstraintRulesView' })
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const resource = constraintRuleResource()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
@@ -563,7 +565,10 @@ async function searchTargets(keyword = '') {
       case 'User': {
         const page = await usersApi.list({
           page: { index: 1, size: 50 },
-          filters: [NOT_SUPPORT_MEMBER_FILTER],
+          filters: [
+            ...sideUserFilters(auth.tenantId === null),
+            NOT_SUPPORT_MEMBER_FILTER,
+          ],
           sorts: [],
           keyword: kw,
         })

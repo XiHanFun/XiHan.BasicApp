@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { COMMON_FIELD_PREFIX, fieldSecurityResource, fieldTitleKey, flattenDepartments, messageKeys, toDefinition, useFieldRuleEditor } from '@/modules/access/views/field-security/use-field-security'
-import { fieldSecurity } from '~/contracts'
+import { fieldSecurity, users as usersApi } from '~/contracts'
 import { QueryOperator } from '~/types/contracts'
 
 const users = {
@@ -83,7 +83,7 @@ describe('field rule editor', () => {
   it('offers only the strategies the field supports and falls back when the field changes', () => {
     const editor = useFieldRuleEditor(code => (code === users.code
       ? users
-      : undefined))
+      : undefined), () => false)
     editor.changeEntity('identity.users')
     editor.changeField('displayName')
     expect(editor.strategyAllowed('Hidden')).toBe(false)
@@ -95,6 +95,30 @@ describe('field rule editor', () => {
     expect(editor.strategyAllowed('FullMask')).toBe(false)
     editor.changeEntity('identity.users')
     expect(editor.form.field).toBe('lastLoginAt')
+  })
+
+  it('searches user targets on the caller side only, never support members', async () => {
+    const list = vi.spyOn(usersApi, 'list').mockResolvedValue({
+      items: [],
+      total: 0,
+      page: { index: 1, size: 50 },
+    })
+    const platform = useFieldRuleEditor(() => undefined, () => true)
+    platform.form.targetKind = 'User'
+    await platform.searchTargets('fin')
+    const tenant = useFieldRuleEditor(() => undefined, () => false)
+    tenant.form.targetKind = 'User'
+    await tenant.searchTargets('fin')
+    expect(list.mock.calls.map(call => call[0].filters)).toEqual([
+      [
+        { field: 'homeTenantId', operator: 'eq', value: 'platform' },
+        { field: 'isSupportMember', operator: 'eq', value: 'false' },
+      ],
+      [
+        { field: 'isSupportMember', operator: 'eq', value: 'false' },
+      ],
+    ])
+    list.mockRestore()
   })
 })
 

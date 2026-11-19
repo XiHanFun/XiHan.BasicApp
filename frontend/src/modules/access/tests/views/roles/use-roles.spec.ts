@@ -671,10 +671,12 @@ describe('useRoleMemberEditor', () => {
       }
       return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
     })
-    const editor = useRoleMemberEditor()
+    const editor = useRoleMemberEditor(() => false)
     await editor.start(role('r-1', 'auditor') as never, true)
+    // 租户侧后端已收窄到本租户的用户与成员（运维支持成员也能配角色），不另加筛选
     expect(calls.find(c => c.url === '/api/users:list')?.body).toMatchObject({
       page: { index: 1, size: 500 },
+      filters: [],
     })
     expect(editor.items.value.map(item => item.basicId)).toEqual(['u-1', 'u-3', 'u-2'])
     expect(editor.draft.value).toEqual(['u-1', 'u-2'])
@@ -741,7 +743,7 @@ describe('useRoleMemberEditor', () => {
       }
       return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
     })
-    const editor = useRoleMemberEditor()
+    const editor = useRoleMemberEditor(() => false)
     await editor.start(role('r-1', 'auditor') as never, true)
 
     editor.draft.value = ['u-1', 'u-3']
@@ -776,13 +778,30 @@ describe('useRoleMemberEditor', () => {
       ],
       total: 1,
     }))
-    const editor = useRoleMemberEditor()
+    const editor = useRoleMemberEditor(() => false)
     await editor.start(role('r-1', 'auditor') as never, false)
     expect(calls.map(c => c.url)).toEqual(['/api/roles/r-1:members'])
     expect(editor.items.value).toEqual([
       { basicId: 'u-2', displayName: 'CAROL', userName: 'carol' },
     ])
     expect(mergeMemberCandidates([], [])).toEqual([])
+  })
+
+  it('平台角色的候选只列平台账号（租户用户指派到平台角色后端不认）', async () => {
+    const calls = record(call => call.url === '/api/users:list'
+      ? json(200, {
+          items: [],
+          total: 0,
+          page: { index: 1, size: 500 },
+        })
+      : json(200, { items: [], total: 0 }))
+    const editor = useRoleMemberEditor(() => true)
+    await editor.start(role('r-1', 'auditor', { ownerTenantId: 'platform' }) as never, true)
+    expect(calls.find(c => c.url === '/api/users:list')?.body).toMatchObject({
+      filters: [
+        { field: 'homeTenantId', operator: 'eq', value: 'platform' },
+      ],
+    })
   })
 
   it('运维支持成员在候选与现有成员里都带标记', () => {

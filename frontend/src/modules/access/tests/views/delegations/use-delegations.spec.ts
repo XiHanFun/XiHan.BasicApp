@@ -202,15 +202,16 @@ describe('useDelegationEditor', () => {
         traceId: 'x',
       }, 'application/problem+json')
     })
-    const editor = useDelegationEditor()
+    const editor = useDelegationEditor(() => true)
     await editor.start()
     expect(editor.open.value).toBe(true)
     expect(editor.userOptions.value).toEqual([
       { value: 'u-1', label: 'Alice', description: '@alice' },
     ])
-    // 运维支持成员后端不认，不进候选
+    // 平台侧只认平台账号；运维支持成员后端不认，都不进候选
     expect(calls.find(c => c.url === '/api/users:list')?.body).toMatchObject({
       filters: [
+        { field: 'homeTenantId', operator: 'eq', value: 'platform' },
         { field: 'isSupportMember', operator: 'eq', value: 'false' },
       ],
     })

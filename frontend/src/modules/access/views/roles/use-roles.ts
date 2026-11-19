@@ -10,6 +10,7 @@ import type { InheritedPermission, InheritedPermissionSources, RoleHierarchy } f
 import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, PermissionAction, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
+import { sideUserFilters } from '~/constants'
 import { departments as departmentsApi, exportCenter, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { useAppStore } from '~/stores'
@@ -509,9 +510,9 @@ export type MemberEditorTab = 'members' | 'validity'
 
 /**
  * 角色成员抽屉：挪好后一次提交加入与移出，新加入的带上抽屉里填的有效期；「有效期」页签逐个改现有成员的
- * 读不到用户目录时只能移出现有成员
+ * 读不到用户目录时只能移出现有成员；候选只列调用方这一侧的账号（平台角色只认平台账号）
  */
-export function useRoleMemberEditor() {
+export function useRoleMemberEditor(isPlatformCaller: () => boolean) {
   const open = ref(false)
   const role = ref<RoleRow | null>(null)
   const tab = ref<MemberEditorTab>('members')
@@ -549,7 +550,7 @@ export function useRoleMemberEditor() {
         canListUsers
           ? usersApi.list({
               page: { index: 1, size: CANDIDATE_LIMIT },
-              filters: [],
+              filters: sideUserFilters(isPlatformCaller()),
               sorts: [
                 { field: 'userName' },
               ],

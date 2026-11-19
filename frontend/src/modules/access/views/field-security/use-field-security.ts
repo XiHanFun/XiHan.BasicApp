@@ -6,7 +6,7 @@
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { NOT_SUPPORT_MEMBER_FILTER } from '~/constants'
+import { NOT_SUPPORT_MEMBER_FILTER, sideUserFilters } from '~/constants'
 import { departments as departmentsApi, exportCenter, fieldSecurity as fieldSecurityApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 
@@ -227,8 +227,8 @@ export function useFieldSecurityEntities() {
   return { entities, loading, load, find }
 }
 
-/** 字段规则的编辑弹窗：目标按类型远程检索，实体与字段从目录选 */
-export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEntity | undefined) {
+/** 字段规则的编辑弹窗：目标按类型远程检索（用户只列本侧账号），实体与字段从目录选 */
+export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEntity | undefined, isPlatformCaller: () => boolean) {
   const open = ref(false)
   const editing = ref<FieldRuleRow | null>(null)
   const form = reactive<FieldRuleForm>(emptyForm())
@@ -271,7 +271,10 @@ export function useFieldRuleEditor(findEntity: (code: string) => FieldSecurityEn
         case 'User': {
           const result = await usersApi.list({
             page: { index: 1, size: 50 },
-            filters: [NOT_SUPPORT_MEMBER_FILTER],
+            filters: [
+              ...sideUserFilters(isPlatformCaller()),
+              NOT_SUPPORT_MEMBER_FILTER,
+            ],
             sorts: [],
             keyword: kw,
           })
