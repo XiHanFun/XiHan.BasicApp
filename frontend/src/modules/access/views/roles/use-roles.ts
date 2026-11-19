@@ -5,16 +5,19 @@
 
 import type { PermissionNameOf } from '../permissions/permission-names'
 import type { DataScopeDraft, DataScopeValue, DepartmentNode } from './data-scope'
+import type { GrantWindowDraft, PermissionWindowDraft } from './grant-window'
 import type { InheritedPermission, InheritedPermissionSources, RoleHierarchy } from './role-parents'
 import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/components'
-import type { PageQueryMapping, ResponseOf } from '~/contracts'
+import type { PageQueryMapping, PermissionAction, ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, exportCenter, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError, throwOnFailed } from '~/request'
 import { useAppStore } from '~/stores'
 import { partitionApprovals } from '../constraint-rules/constraint-rule'
+import { applyPermissionTransfer, diffPermissionGrants } from '../permissions/grant-actions'
 import { usePermissionNames } from '../permissions/permission-names'
 import { buildNameMap, isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from './data-scope'
+import { emptyGrantWindow, isGrantWindowValid, toGrantWindowPayload, toPermissionWindowPayload } from './grant-window'
 import { summarizeInheritedPermissions } from './role-parents'
 
 export type RoleRow = ResponseOf<'roles.list'>['items'][number]
@@ -206,7 +209,7 @@ export function useRoleEditor() {
   }
 }
 
-// ── 权限分配（穿梭框） ──
+// ── 权限分配（授予 / 拒绝穿梭框与逐条有效期） ──
 
 /** 权限穿梭框条目：主键即权限码 */
 export interface RolePermissionItem extends PermissionGrantItem {
@@ -220,10 +223,10 @@ function groupOf(code: string): string {
 
 /**
  * 权限目录 → 穿梭框条目，按「包.资源」分段
- * 已授予却不在目录里的（如套餐收窄后不再列出）补进来，原样显示权限码
+ * 已授予或已拒绝却不在目录里的（如套餐收窄后不再列出）补进来，原样显示权限码
  * 穿梭框只认条目里的键，不补进来，一动穿梭框它们就被当成收回
  */
-export function toPermissionItems(catalog: readonly PermissionItem[], granted: readonly string[]): RolePermissionItem[] {
+export function toPermissionItems(catalog: readonly PermissionItem[], current: readonly string[]): RolePermissionItem[] {
   const items: RolePermissionItem[] = catalog.map(item => ({
     basicId: item.code,
     permissionCode: item.code,
@@ -232,7 +235,7 @@ export function toPermissionItems(catalog: readonly PermissionItem[], granted: r
     groupName: `${item.package}.${item.resource}`,
   }))
   const known = new Set(items.map(item => item.basicId))
-  for (const code of granted) {
+  for (const code of current) {
     if (!known.has(code)) {
       items.push({
         basicId: code,
@@ -246,58 +249,97 @@ export function toPermissionItems(catalog: readonly PermissionItem[], granted: r
   return items
 }
 
-/** 草稿与已授予比出差量：新勾的授予、取消的撤销 */
-export function diffGrants(draft: readonly string[], granted: readonly string[]): { grant: string[], revoke: string[] } {
-  const current = new Set(granted)
-  const next = new Set(draft)
-  return {
-    grant: draft.filter(code => !current.has(code)),
-    revoke: granted.filter(code => !next.has(code)),
+/** 角色现有的授予与拒绝（按权限码）：授予取 `permissions`，拒绝只在 `rules` 里，两者按权限码互斥 */
+export function roleActions(detail: Pick<RoleDetail, 'permissions' | 'rules'>): Map<string, PermissionAction> {
+  const actions = new Map<string, PermissionAction>(detail.permissions.map(code => [code, 'Grant'] as const))
+  for (const rule of detail.rules) {
+    if (rule.action === 'Deny')
+      actions.set(rule.permission, 'Deny')
   }
+  return actions
 }
 
-/** 一次保存的结果：成功授予 / 撤销的条数，逐项失败的原因，转为审批的说明（触犯需审批的约束规则，已替用户发起授权申请） */
+function codesOf(actions: ReadonlyMap<string, PermissionAction>, action: PermissionAction): string[] {
+  return [...actions].filter(([, value]) => value === action).map(([code]) => code)
+}
+
+/** 一次保存的结果：成功授予 / 拒绝 / 撤销的条数，逐项失败的原因，转为审批的说明（触犯需审批的约束规则，已替用户发起授权申请） */
 export interface ChangeOutcome {
   added: number
+  denied: number
   removed: number
   failures: string[]
   submitted: string[]
 }
 
-/** 权限分配抽屉：目录一次取全并缓存，草稿只改本地，保存时按差量授予 / 撤销 */
+function emptyOutcome(): ChangeOutcome {
+  return {
+    added: 0,
+    denied: 0,
+    removed: 0,
+    failures: [],
+    submitted: [],
+  }
+}
+
+export type PermissionEditorTab = 'deny' | 'grant' | 'validity'
+
+/**
+ * 权限分配抽屉：授予与拒绝两个页签共用一份草稿，保存时按差量提交；「有效期」页签逐条改现有的
+ * 目录一次取全并按界面语言缓存；这次新授予、新拒绝的一并带上抽屉里填的有效期与原因
+ */
 export function useRolePermissionEditor() {
   const open = ref(false)
   const role = ref<RoleRow | null>(null)
+  const tab = ref<PermissionEditorTab>('grant')
   const catalog = ref<PermissionItem[]>([])
   /** 目录是按哪种界面语言取的：显示名随语言变，换了语言再取 */
   let catalogLocale: null | string = null
-  const granted = ref<string[]>([])
-  const draft = ref<string[]>([])
+  const detail = ref<RoleDetail | null>(null)
+  const current = ref(new Map<string, PermissionAction>())
+  const actions = ref(new Map<string, PermissionAction>())
+  /** 这次新授予、新拒绝的有效期与原因 */
+  const windowDraft = ref<PermissionWindowDraft>(emptyGrantWindow())
   /** 从上级继承来的授予与拒绝（按权限码）：穿梭框里标「继承」与「上级拒绝」 */
   const inherited = ref<Map<string, InheritedPermissionSources>>(new Map())
   const loading = ref(false)
   const saving = ref(false)
 
-  const items = computed(() => toPermissionItems(catalog.value, granted.value))
+  const items = computed(() => toPermissionItems(catalog.value, [
+    ...current.value.keys(),
+  ]))
+  const grantIds = computed(() => codesOf(actions.value, 'Grant'))
+  const denyIds = computed(() => codesOf(actions.value, 'Deny'))
   const dirty = computed(() => {
-    const { grant, revoke } = diffGrants(draft.value, granted.value)
-    return grant.length > 0 || revoke.length > 0
+    const { grant, deny, revoke } = diffPermissionGrants(actions.value, current.value)
+    return grant.length + deny.length + revoke.length > 0
   })
+  const windowValid = computed(() => isGrantWindowValid(windowDraft.value))
+  const catalogNames = computed(() => new Map(catalog.value.map(item => [item.code, item.displayName] as const)))
+  /** 「有效期」页签：现有的授予与拒绝 */
+  const entries = computed<RolePermissionEntry[]>(() => detail.value
+    ? rolePermissionEntries(detail.value.permissions, detail.value.rules, code => catalogNames.value.get(code) ?? code)
+    : [])
 
-  function applyGranted(codes: string[]) {
-    granted.value = codes
-    draft.value = [...codes]
+  function applyDetail(next: RoleDetail | null) {
+    detail.value = next
+    current.value = next
+      ? roleActions(next)
+      : new Map()
+    actions.value = new Map(current.value)
   }
 
   async function start(row: RoleRow): Promise<void> {
     role.value = row
-    applyGranted([])
+    tab.value = 'grant'
+    applyDetail(null)
+    windowDraft.value = emptyGrantWindow()
     inherited.value = new Map()
     open.value = true
     loading.value = true
     try {
       const locale = useAppStore().locale
-      const [list, detail, hierarchy] = await Promise.all([
+      const [list, roleDetail, hierarchy] = await Promise.all([
         catalogLocale === locale
           ? Promise.resolve(null)
           : permissionsApi.list({}),
@@ -308,7 +350,7 @@ export function useRolePermissionEditor() {
         catalog.value = list.items
         catalogLocale = locale
       }
-      applyGranted(detail.permissions)
+      applyDetail(roleDetail)
       inherited.value = summarizeInheritedPermissions(hierarchy.inherited)
     }
     finally {
@@ -316,34 +358,73 @@ export function useRolePermissionEditor() {
     }
   }
 
-  /** 没有改动返回 null；请求失败照常抛出 */
+  /** 某个页签的右栏变成 next */
+  function transfer(action: PermissionAction, next: readonly string[]) {
+    if (loading.value || saving.value)
+      return
+    actions.value = applyPermissionTransfer(actions.value, action, next)
+  }
+
+  /** 没有改动或有效期不成立返回 null；请求失败照常抛出 */
   async function save(): Promise<ChangeOutcome | null> {
-    const current = role.value
-    if (!current)
+    const target = role.value
+    if (!target || !windowValid.value)
       return null
-    const { grant, revoke } = diffGrants(draft.value, granted.value)
-    if (grant.length === 0 && revoke.length === 0)
+    const { grant, deny, revoke } = diffPermissionGrants(actions.value, current.value)
+    if (grant.length + deny.length + revoke.length === 0)
       return null
     saving.value = true
     try {
-      const outcome: ChangeOutcome = {
-        added: 0,
-        removed: 0,
-        failures: [],
-        submitted: [],
-      }
-      if (grant.length > 0) {
-        const result = await rolesApi.grant({ id: current.id, permissions: grant })
-        outcome.added = result.succeeded.length
-        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.message}`))
-      }
+      const outcome = emptyOutcome()
+      const validity = toPermissionWindowPayload(windowDraft.value)
       if (revoke.length > 0) {
-        const result = await rolesApi.revoke({ id: current.id, permissions: revoke })
+        const result = await rolesApi.revoke({ id: target.id, permissions: revoke })
         outcome.removed = result.succeeded.length
         outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.message}`))
       }
-      applyGranted((await rolesApi.get({ id: current.id })).permissions)
+      if (grant.length > 0) {
+        const result = await rolesApi.grant({ id: target.id, permissions: grant, ...validity })
+        outcome.added = result.succeeded.length
+        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.message}`))
+      }
+      if (deny.length > 0) {
+        const result = await rolesApi.deny({ id: target.id, permissions: deny, ...validity })
+        outcome.denied = result.succeeded.length
+        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.message}`))
+      }
+      applyDetail(await rolesApi.get({ id: target.id }))
+      windowDraft.value = emptyGrantWindow()
       return outcome
+    }
+    finally {
+      saving.value = false
+    }
+  }
+
+  /**
+   * 逐条改现有授予或拒绝的有效期与原因：按原动作带新的有效期再提交一次，都清空即普通授予
+   * 改完重读现状、草稿随之重置，所以页面在有未保存的穿梭框改动时不放出这个入口
+   */
+  async function updateEntry(code: string, action: PermissionAction, next: PermissionWindowDraft): Promise<void> {
+    const target = role.value
+    if (!target)
+      return
+    saving.value = true
+    try {
+      const request = {
+        id: target.id,
+        permissions: [
+          code,
+        ],
+        ...toPermissionWindowPayload(next),
+      }
+      const result = action === 'Deny'
+        ? await rolesApi.deny(request)
+        : await rolesApi.grant(request)
+      const failed = result.failed[0]
+      if (failed)
+        throw new Error(failed.message)
+      applyDetail(await rolesApi.get({ id: target.id }))
     }
     finally {
       saving.value = false
@@ -353,20 +434,28 @@ export function useRolePermissionEditor() {
   return {
     open,
     role,
+    tab,
     catalog,
-    granted,
-    draft,
+    current,
+    actions,
+    grantIds,
+    denyIds,
+    windowDraft,
+    windowValid,
+    entries,
     inherited,
     items,
     dirty,
     loading,
     saving,
     start,
+    transfer,
     save,
+    updateEntry,
   }
 }
 
-// ── 角色成员（穿梭框） ──
+// ── 角色成员（穿梭框与逐个有效期） ──
 
 /** 成员穿梭框的一项：主键即用户主键 */
 export interface MemberCandidate {
@@ -416,13 +505,21 @@ export function diffMembers(draft: readonly string[], members: readonly RoleMemb
   }
 }
 
-/** 角色成员抽屉：挪好后一次提交加入与移出；读不到用户目录时只能移出现有成员 */
+export type MemberEditorTab = 'members' | 'validity'
+
+/**
+ * 角色成员抽屉：挪好后一次提交加入与移出，新加入的带上抽屉里填的有效期；「有效期」页签逐个改现有成员的
+ * 读不到用户目录时只能移出现有成员
+ */
 export function useRoleMemberEditor() {
   const open = ref(false)
   const role = ref<RoleRow | null>(null)
+  const tab = ref<MemberEditorTab>('members')
   const members = ref<RoleMember[]>([])
   const users = ref<UserOption[]>([])
   const draft = ref<string[]>([])
+  /** 这次新加入成员的有效期 */
+  const windowDraft = ref<PermissionWindowDraft>(emptyGrantWindow())
   const loading = ref(false)
   const saving = ref(false)
 
@@ -431,6 +528,7 @@ export function useRoleMemberEditor() {
     const { assign, unassign } = diffMembers(draft.value, members.value)
     return assign.length > 0 || unassign.length > 0
   })
+  const windowValid = computed(() => isGrantWindowValid(windowDraft.value))
 
   function applyMembers(current: RoleMember[]) {
     members.value = current
@@ -439,8 +537,10 @@ export function useRoleMemberEditor() {
 
   async function start(row: RoleRow, canListUsers: boolean): Promise<void> {
     role.value = row
+    tab.value = 'members'
     users.value = []
     applyMembers([])
+    windowDraft.value = emptyGrantWindow()
     open.value = true
     loading.value = true
     try {
@@ -464,23 +564,23 @@ export function useRoleMemberEditor() {
     }
   }
 
+  /** 没有改动或有效期不成立返回 null；请求失败照常抛出 */
   async function save(): Promise<ChangeOutcome | null> {
     const current = role.value
-    if (!current)
+    if (!current || !windowValid.value)
       return null
     const { assign, unassign } = diffMembers(draft.value, members.value)
     if (assign.length === 0 && unassign.length === 0)
       return null
     saving.value = true
     try {
-      const outcome: ChangeOutcome = {
-        added: 0,
-        removed: 0,
-        failures: [],
-        submitted: [],
-      }
+      const outcome = emptyOutcome()
       if (assign.length > 0) {
-        const result = await rolesApi.assign({ id: current.id, userIds: assign })
+        const result = await rolesApi.assign({
+          id: current.id,
+          userIds: assign,
+          ...toGrantWindowPayload(windowDraft.value),
+        })
         const { submitted, failed } = partitionApprovals(result.failed)
         outcome.added = result.succeeded.length
         outcome.failures.push(...failed.map(f => f.message))
@@ -492,7 +592,30 @@ export function useRoleMemberEditor() {
         outcome.failures.push(...result.failed.map(f => f.message))
       }
       applyMembers((await rolesApi.members({ id: current.id })).items)
+      windowDraft.value = emptyGrantWindow()
       return outcome
+    }
+    finally {
+      saving.value = false
+    }
+  }
+
+  /**
+   * 改一个现有成员的有效期，都清空即立即生效、长期有效
+   * 改完重读成员、草稿随之重置，所以页面在有未保存的成员改动时不放出这个入口
+   */
+  async function updateMember(userId: string, next: GrantWindowDraft): Promise<void> {
+    const current = role.value
+    if (!current)
+      return
+    saving.value = true
+    try {
+      await rolesApi.updateMember({
+        id: current.id,
+        userId,
+        ...toGrantWindowPayload(next),
+      })
+      applyMembers((await rolesApi.members({ id: current.id })).items)
     }
     finally {
       saving.value = false
@@ -502,15 +625,19 @@ export function useRoleMemberEditor() {
   return {
     open,
     role,
+    tab,
     members,
     users,
     draft,
+    windowDraft,
+    windowValid,
     items,
     dirty,
     loading,
     saving,
     start,
     save,
+    updateMember,
   }
 }
 

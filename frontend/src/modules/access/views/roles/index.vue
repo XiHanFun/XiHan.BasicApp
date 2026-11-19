@@ -4,19 +4,24 @@
 -->
 
 <script lang="ts" setup>
-import type { ChangeOutcome, DataScopeValue, MemberCandidate, RoleMember, RoleRow, RoleStatus } from './use-roles'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
+import type { PermissionWindowDraft } from './grant-window'
+import type { ChangeOutcome, DataScopeValue, MemberCandidate, RoleMember, RolePermissionEntry, RoleRow, RoleStatus } from './use-roles'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
+import type { PermissionAction } from '~/contracts'
 import type { SelectOption } from '~/types'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, ref, useId } from 'vue'
+import { computed, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
+import { deleteConfirmText, Icon, renderRowActionMenu, renderTag, SchemaPage, statusConfirmText, XDataTable, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 import DataScopeEditor from './components/DataScopeEditor.vue'
 import GrantConditionsDrawer from './components/GrantConditionsDrawer.vue'
+import GrantWindowDialog from './components/GrantWindowDialog.vue'
+import GrantWindowFields from './components/GrantWindowFields.vue'
 import RoleParentsDialog from './components/RoleParentsDialog.vue'
+import { emptyGrantWindow, grantWindowOf } from './grant-window'
 import { ROLE_STATUSES, rolesResource, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
 
 defineOptions({ name: 'AccessRolesView' })
@@ -412,7 +417,7 @@ async function toggleStatus(row: RoleRow) {
 }
 
 /** 授予 / 指派的结果：逐项失败单独提示原因，其余按条数报成功；转为审批的另起一条提示 */
-function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, revoke: number) => string, noChange: string) {
+function reportOutcome(outcome: ChangeOutcome | null, saved: (outcome: ChangeOutcome) => string, noChange: string) {
   if (!outcome) {
     toast.info(noChange)
     return
@@ -422,8 +427,8 @@ function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, rev
       failures: outcome.failures.join('; '),
     }))
   }
-  else if (outcome.added + outcome.removed > 0 || outcome.submitted.length === 0) {
-    toast.success(saved(outcome.added, outcome.removed))
+  else if (outcome.added + outcome.denied + outcome.removed > 0 || outcome.submitted.length === 0) {
+    toast.success(saved(outcome))
   }
   if (outcome.submitted.length > 0)
     toast.info(outcome.submitted.join('; '))
@@ -432,12 +437,64 @@ function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, rev
 // ── 权限分配 ──
 async function savePermissions() {
   try {
-    reportOutcome(await permissionEditor.save(), (grant, revoke) => t('access.roles.perm_saved', { grant, revoke }), t('access.roles.perm_no_change'))
+    reportOutcome(await permissionEditor.save(), outcome => t('access.roles.perm_saved', { grant: outcome.added, deny: outcome.denied, revoke: outcome.removed }), t('access.roles.perm_no_change'))
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.save_failed'))
   }
 }
+
+/** 有未保存的穿梭框改动时不放出逐条改：改完会重读现状、草稿随之重置 */
+const permissionEntryColumns = computed<XDataTableColumn<RolePermissionEntry>[]>(() => [
+  {
+    key: 'displayName',
+    title: t('access.roles.th.permission'),
+    minWidth: 160,
+    ellipsis: true,
+    render: entry => entry.displayName,
+  },
+  {
+    key: 'code',
+    title: t('access.roles.th.code'),
+    minWidth: 180,
+    ellipsis: true,
+    render: entry => entry.code,
+  },
+  {
+    key: 'action',
+    title: t('access.roles.th.action'),
+    width: 80,
+    render: entry => entry.action === 'Deny'
+      ? renderTag(t('access.roles.action_deny'), 'danger')
+      : renderTag(t('access.roles.action_grant'), 'success'),
+  },
+  {
+    key: 'validity',
+    title: t('access.roles.th.validity'),
+    minWidth: 220,
+    render: entry => validityRange(entry.effectiveAt, entry.expiresAt),
+  },
+  {
+    key: 'reason',
+    title: t('access.roles.th.reason'),
+    minWidth: 120,
+    ellipsis: true,
+    render: entry => formatNullable(entry.reason),
+  },
+  {
+    key: 'actions',
+    title: t('component.schema_page.actions_column'),
+    width: 90,
+    render: entry => renderRowActionMenu([
+      {
+        key: 'window',
+        title: t('access.roles.validity_edit'),
+        icon: 'lucide:calendar-clock',
+        disabled: permissionEditor.dirty.value || permissionEditor.saving.value,
+      },
+    ], t('component.schema_page.more'), () => openEntryWindow(entry)),
+  },
+])
 
 // ── 角色成员 ──
 /** 读不到用户目录时候选里只有现有成员：只能移出 */
@@ -464,7 +521,99 @@ function memberDescription(item: MemberCandidate): string {
 
 async function saveMembers() {
   try {
-    reportOutcome(await memberEditor.save(), (grant, revoke) => t('access.roles.members_saved', { grant, revoke }), t('access.roles.members_no_change'))
+    reportOutcome(await memberEditor.save(), outcome => t('access.roles.members_saved', { grant: outcome.added, revoke: outcome.removed }), t('access.roles.members_no_change'))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
+  }
+}
+
+/** 有未保存的成员改动时不放出逐个改：改完会重读成员、草稿随之重置 */
+const memberColumns = computed<XDataTableColumn<RoleMember>[]>(() => [
+  {
+    key: 'displayName',
+    title: t('access.roles.th.user'),
+    minWidth: 140,
+    ellipsis: true,
+    render: member => memberMark(member)
+      ? `${member.displayName} · ${memberMark(member)}`
+      : member.displayName,
+  },
+  {
+    key: 'userName',
+    title: t('access.roles.th.user_name'),
+    minWidth: 120,
+    ellipsis: true,
+    render: member => member.userName,
+  },
+  {
+    key: 'status',
+    title: t('access.roles.th.status'),
+    width: 80,
+    render: member => memberStatusLabel(member.status),
+  },
+  {
+    key: 'validity',
+    title: t('access.roles.th.validity'),
+    minWidth: 220,
+    render: member => validityRange(member.effectiveAt, member.expiresAt),
+  },
+  {
+    key: 'actions',
+    title: t('component.schema_page.actions_column'),
+    width: 90,
+    render: member => renderRowActionMenu([
+      {
+        key: 'window',
+        title: t('access.roles.validity_edit'),
+        icon: 'lucide:calendar-clock',
+        disabled: memberEditor.dirty.value || memberEditor.saving.value,
+      },
+    ], t('component.schema_page.more'), () => openMemberWindow(member)),
+  },
+])
+
+// ── 逐条改有效期（权限的授予与拒绝、成员的指派共用一个弹窗） ──
+type WindowTarget
+  = | { kind: 'permission', code: string, action: PermissionAction }
+    | { kind: 'member', userId: string }
+
+const windowDialog = reactive({
+  show: false,
+  title: '',
+  withReason: false,
+  initial: emptyGrantWindow(),
+})
+const windowTarget = ref<null | WindowTarget>(null)
+const windowSaving = computed(() => permissionEditor.saving.value || memberEditor.saving.value)
+
+function openEntryWindow(entry: RolePermissionEntry) {
+  windowTarget.value = { kind: 'permission', code: entry.code, action: entry.action }
+  windowDialog.title = t('access.roles.validity_edit_title', { name: entry.displayName })
+  windowDialog.withReason = true
+  windowDialog.initial = grantWindowOf(entry)
+  windowDialog.show = true
+}
+
+function openMemberWindow(member: RoleMember) {
+  windowTarget.value = { kind: 'member', userId: member.userId }
+  windowDialog.title = t('access.roles.validity_edit_title', { name: member.displayName })
+  windowDialog.withReason = false
+  windowDialog.initial = grantWindowOf(member)
+  windowDialog.show = true
+}
+
+async function submitWindow(next: PermissionWindowDraft) {
+  const target = windowTarget.value
+  if (!target)
+    return
+  try {
+    if (target.kind === 'permission')
+      await permissionEditor.updateEntry(target.code, target.action, next)
+    else
+      await memberEditor.updateMember(target.userId, next)
+    windowDialog.show = false
+    toast.success(t('access.roles.validity_saved'))
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.save_failed'))
@@ -841,48 +990,115 @@ async function saveScope() {
         </XhDrawerHeader>
         <XhDrawerCloseTrigger />
         <XhDrawerBody class="xh-overlay-body">
-          <p v-if="permissionEditor.inherited.value.size > 0" class="drawer-tip">
-            {{ t('access.roles.perm_inherit_tip') }}
-          </p>
-          <XPermissionTransfer
-            :items="permissionEditor.items.value"
-            :value="permissionEditor.draft.value"
-            :loading="permissionEditor.loading.value"
-            :disabled="permissionEditor.loading.value || permissionEditor.saving.value"
-            :source-title="t('access.roles.perm_available')"
-            :target-title="t('access.roles.perm_granted')"
-            :search-placeholder="t('access.roles.perm_search')"
-            :other-group-label="t('access.roles.perm_group_other')"
-            @update:value="value => (permissionEditor.draft.value = value)"
-          >
-            <template #suffix="{ item }">
-              <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
-              <XhTagRoot
-                v-if="permissionEditor.inherited.value.get(String(item.basicId))?.deniedBy.length"
-                variant="subtle"
-                size="sm"
-                tone="danger"
-                :title="t('access.roles.perm_denied_by', { names: permissionEditor.inherited.value.get(String(item.basicId))?.deniedBy.join('、') })"
+          <XhTabsRoot v-model:value="permissionEditor.tab.value" class="grant-tabs" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="grant">
+                {{ t('access.roles.action_grant') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="deny">
+                {{ t('access.roles.action_deny') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="validity">
+                {{ t('access.roles.tab_validity') }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="grant">
+              <p v-if="permissionEditor.inherited.value.size > 0" class="drawer-tip">
+                {{ t('access.roles.perm_inherit_tip') }}
+              </p>
+              <GrantWindowFields
+                v-model="permissionEditor.windowDraft.value"
+                with-reason
+                :effective-help="t('access.roles.window.new_permission_help')"
+                :disabled="permissionEditor.loading.value || permissionEditor.saving.value"
+              />
+              <XPermissionTransfer
+                :items="permissionEditor.items.value"
+                :value="permissionEditor.grantIds.value"
+                :loading="permissionEditor.loading.value"
+                :disabled="permissionEditor.loading.value || permissionEditor.saving.value"
+                :source-title="t('access.roles.perm_available')"
+                :target-title="t('access.roles.perm_granted')"
+                :search-placeholder="t('access.roles.perm_search')"
+                :other-group-label="t('access.roles.perm_group_other')"
+                @update:value="next => permissionEditor.transfer('Grant', next)"
               >
-                <XhTagLabel>{{ t('access.roles.perm_inherited_denied') }}</XhTagLabel>
-              </XhTagRoot>
-              <XhTagRoot
-                v-else-if="permissionEditor.inherited.value.get(String(item.basicId))?.grantedBy.length"
-                variant="subtle"
-                size="sm"
-                tone="success"
-                :title="t('access.roles.perm_granted_by', { names: permissionEditor.inherited.value.get(String(item.basicId))?.grantedBy.join('、') })"
+                <template #suffix="{ item, side }">
+                  <!-- 左栏标出已在拒绝里的：挪过来会把拒绝改成授予 -->
+                  <XhTagRoot v-if="side === 'source' && permissionEditor.actions.value.get(String(item.basicId)) === 'Deny'" variant="subtle" size="sm" tone="danger">
+                    <XhTagLabel>{{ t('access.roles.perm_denied') }}</XhTagLabel>
+                  </XhTagRoot>
+                  <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
+                  <XhTagRoot
+                    v-else-if="permissionEditor.inherited.value.get(String(item.basicId))?.deniedBy.length"
+                    variant="subtle"
+                    size="sm"
+                    tone="danger"
+                    :title="t('access.roles.perm_denied_by', { names: permissionEditor.inherited.value.get(String(item.basicId))?.deniedBy.join('、') })"
+                  >
+                    <XhTagLabel>{{ t('access.roles.perm_inherited_denied') }}</XhTagLabel>
+                  </XhTagRoot>
+                  <XhTagRoot
+                    v-else-if="permissionEditor.inherited.value.get(String(item.basicId))?.grantedBy.length"
+                    variant="subtle"
+                    size="sm"
+                    tone="success"
+                    :title="t('access.roles.perm_granted_by', { names: permissionEditor.inherited.value.get(String(item.basicId))?.grantedBy.join('、') })"
+                  >
+                    <XhTagLabel>{{ t('access.roles.perm_inherited') }}</XhTagLabel>
+                  </XhTagRoot>
+                </template>
+              </XPermissionTransfer>
+            </XhTabsContent>
+            <XhTabsContent value="deny">
+              <p class="drawer-tip">
+                {{ t('access.roles.perm_deny_tip') }}
+              </p>
+              <GrantWindowFields
+                v-model="permissionEditor.windowDraft.value"
+                with-reason
+                :effective-help="t('access.roles.window.new_permission_help')"
+                :disabled="permissionEditor.loading.value || permissionEditor.saving.value"
+              />
+              <XPermissionTransfer
+                :items="permissionEditor.items.value"
+                :value="permissionEditor.denyIds.value"
+                :loading="permissionEditor.loading.value"
+                :disabled="permissionEditor.loading.value || permissionEditor.saving.value"
+                :source-title="t('access.roles.perm_deny_available')"
+                :target-title="t('access.roles.perm_denied')"
+                :search-placeholder="t('access.roles.perm_search')"
+                :other-group-label="t('access.roles.perm_group_other')"
+                @update:value="next => permissionEditor.transfer('Deny', next)"
               >
-                <XhTagLabel>{{ t('access.roles.perm_inherited') }}</XhTagLabel>
-              </XhTagRoot>
-            </template>
-          </XPermissionTransfer>
+                <template #suffix="{ item, side }">
+                  <!-- 左栏标出已在授予里的：挪过来会把授予改成拒绝 -->
+                  <XhTagRoot v-if="side === 'source' && permissionEditor.actions.value.get(String(item.basicId)) === 'Grant'" variant="subtle" size="sm" tone="success">
+                    <XhTagLabel>{{ t('access.roles.perm_granted') }}</XhTagLabel>
+                  </XhTagRoot>
+                </template>
+              </XPermissionTransfer>
+            </XhTabsContent>
+            <XhTabsContent value="validity">
+              <p v-if="permissionEditor.dirty.value" class="drawer-tip">
+                {{ t('access.roles.validity_dirty_tip') }}
+              </p>
+              <XDataTable
+                :columns="permissionEntryColumns"
+                :data="permissionEditor.entries.value"
+                row-key="code"
+                :loading="permissionEditor.loading.value"
+                :empty-text="t('access.roles.empty_permissions')"
+              />
+            </XhTabsContent>
+          </XhTabsRoot>
         </XhDrawerBody>
         <XhDrawerFooter>
           <XhButton variant="subtle" @click="permissionEditor.open.value = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="permissionEditor.saving.value" :disabled="!permissionEditor.dirty.value || permissionEditor.loading.value" @click="savePermissions">
+          <XhButton variant="subtle" tone="brand" :loading="permissionEditor.saving.value" :disabled="!permissionEditor.dirty.value || !permissionEditor.windowValid.value || permissionEditor.loading.value" @click="savePermissions">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('access.roles.perm_save') }}</XhButtonLabel>
           </XhButton>
@@ -898,28 +1114,60 @@ async function saveScope() {
         </XhDrawerHeader>
         <XhDrawerCloseTrigger />
         <XhDrawerBody class="xh-overlay-body">
-          <p class="drawer-tip">
-            {{ canListUsers ? t('access.roles.members_tip') : t('access.roles.members_tip_readonly') }}
-          </p>
-          <XGrantTransfer
-            :items="memberEditor.items.value"
-            :value="memberEditor.draft.value"
-            :groups="memberGroups"
-            :get-label="item => item.displayName"
-            :get-description="memberDescription"
-            :loading="memberEditor.loading.value"
-            :disabled="memberEditor.loading.value || memberEditor.saving.value"
-            :source-title="t('access.roles.members_source')"
-            :target-title="t('access.roles.members_target')"
-            :search-placeholder="t('access.roles.members_search')"
-            @update:value="value => (memberEditor.draft.value = value)"
-          />
+          <XhTabsRoot v-model:value="memberEditor.tab.value" class="grant-tabs" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="members">
+                {{ t('access.roles.members_tab') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="validity">
+                {{ t('access.roles.tab_validity') }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="members">
+              <p class="drawer-tip">
+                {{ canListUsers ? t('access.roles.members_tip') : t('access.roles.members_tip_readonly') }}
+              </p>
+              <!-- 读不到用户目录时加不了人：有效期只给新加入的成员 -->
+              <GrantWindowFields
+                v-if="canListUsers"
+                v-model="memberEditor.windowDraft.value"
+                :effective-help="t('access.roles.window.new_member_help')"
+                :disabled="memberEditor.loading.value || memberEditor.saving.value"
+              />
+              <XGrantTransfer
+                :items="memberEditor.items.value"
+                :value="memberEditor.draft.value"
+                :groups="memberGroups"
+                :get-label="item => item.displayName"
+                :get-description="memberDescription"
+                :loading="memberEditor.loading.value"
+                :disabled="memberEditor.loading.value || memberEditor.saving.value"
+                :source-title="t('access.roles.members_source')"
+                :target-title="t('access.roles.members_target')"
+                :search-placeholder="t('access.roles.members_search')"
+                @update:value="value => (memberEditor.draft.value = value)"
+              />
+            </XhTabsContent>
+            <XhTabsContent value="validity">
+              <p v-if="memberEditor.dirty.value" class="drawer-tip">
+                {{ t('access.roles.validity_dirty_tip') }}
+              </p>
+              <XDataTable
+                :columns="memberColumns"
+                :data="memberEditor.members.value"
+                row-key="userId"
+                :loading="memberEditor.loading.value"
+                :empty-text="t('access.roles.empty_members')"
+              />
+            </XhTabsContent>
+          </XhTabsRoot>
         </XhDrawerBody>
         <XhDrawerFooter>
           <XhButton variant="subtle" @click="memberEditor.open.value = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="memberEditor.saving.value" :disabled="!memberEditor.dirty.value || memberEditor.loading.value" @click="saveMembers">
+          <XhButton variant="subtle" tone="brand" :loading="memberEditor.saving.value" :disabled="!memberEditor.dirty.value || !memberEditor.windowValid.value || memberEditor.loading.value" @click="saveMembers">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('access.roles.members_save') }}</XhButtonLabel>
           </XhButton>
@@ -954,6 +1202,14 @@ async function saveScope() {
       </XhDrawerContent>
     </XhDrawerRoot>
 
+    <GrantWindowDialog
+      v-model:show="windowDialog.show"
+      :title="windowDialog.title"
+      :initial="windowDialog.initial"
+      :with-reason="windowDialog.withReason"
+      :loading="windowSaving"
+      @submit="submitWindow"
+    />
     <RoleParentsDialog v-model:show="parentsVisible" :role="parentsRole" @saved="reload" />
     <GrantConditionsDrawer v-model:open="conditionsVisible" :title="t('access.conditions.drawer_title', { name: conditionsRole?.name ?? '' })" subject-kind="Role" :subject-id="conditionsRole?.id ?? null" />
   </SchemaPage>
@@ -968,11 +1224,27 @@ async function saveScope() {
   padding-block: var(--xh-space-6);
 }
 
-/* 抽屉顶部的说明（角色成员、权限分配的继承提示） */
+/* 页签里的说明（成员、继承、拒绝的作用范围、有未保存改动） */
 .drawer-tip {
   margin: 0;
   color: var(--xh-fg-muted);
   font-size: var(--xh-text-caption-size);
+}
+
+.grant-tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+/* 当前页签的面板接着往下撑，穿梭框才拿得到剩余高度 */
+.grant-tabs > [data-scope='tabs'][data-part='content'][data-state='active'] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--xh-space-3);
+  min-block-size: 0;
 }
 
 /* 数据范围抽屉：编辑区撑满抽屉剩余高度，保存 / 取消落在抽屉底部；部门多时在这里滚动 */

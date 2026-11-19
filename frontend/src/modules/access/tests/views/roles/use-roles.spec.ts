@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { findCoveredDepartments, isDataScopeDirty, syncPickedDepartments } from '@/modules/access/views/roles/data-scope'
-import { diffGrants, mergeMemberCandidates, rolePermissionEntries, rolesResource, toPermissionItems, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from '@/modules/access/views/roles/use-roles'
+import { mergeMemberCandidates, roleActions, rolePermissionEntries, rolesResource, toPermissionItems, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from '@/modules/access/views/roles/use-roles'
 import { configureRequest } from '~/request'
 import { useAppStore, useAuthStore } from '~/stores'
 
@@ -296,6 +296,7 @@ describe('useRolePermissionEditor', () => {
           permissions: granted,
           memberCount: 0,
           customDepartments: [],
+          rules: [],
         })
       }
       if (call.url === '/api/roles/r-1:hierarchy') {
@@ -369,22 +370,25 @@ describe('useRolePermissionEditor', () => {
     expect(editor.dirty.value).toBe(false)
     expect(await editor.save()).toBeNull()
 
-    editor.draft.value = ['tenancy.tenants.read', 'identity.users.create', 'access.roles.read']
+    editor.transfer('Grant', ['tenancy.tenants.read', 'identity.users.create', 'access.roles.read'])
     expect(editor.dirty.value).toBe(true)
     const outcome = await editor.save()
+    // 没填有效期与原因：普通授予，请求里不带这几个字段
     expect(calls.find(c => c.url.endsWith(':grant'))?.body).toEqual({
       permissions: ['identity.users.create', 'access.roles.read'],
     })
     expect(calls.find(c => c.url.endsWith(':revoke'))?.body).toEqual({
       permissions: ['identity.users.read'],
     })
+    expect(calls.some(c => c.url.endsWith(':deny'))).toBe(false)
     expect(outcome).toEqual({
       added: 1,
+      denied: 0,
       removed: 1,
       failures: ['access.roles.read: ACCESS_VALIDATION_002 的原因'],
       submitted: [],
     })
-    expect(editor.draft.value).toEqual(['tenancy.tenants.read', 'identity.users.create'])
+    expect(editor.grantIds.value).toEqual(['tenancy.tenants.read', 'identity.users.create'])
 
     await editor.start(role('r-1', 'auditor') as never)
     expect(calls.filter(c => c.url === '/api/permissions')).toHaveLength(1)
@@ -396,9 +400,222 @@ describe('useRolePermissionEditor', () => {
     expect(calls.filter(c => c.url === '/api/permissions')).toHaveLength(2)
   })
 
-  it('差量只比集合：顺序不同不算改动', () => {
-    expect(diffGrants(['b', 'a'], ['a', 'b'])).toEqual({ grant: [], revoke: [] })
+  it('现有的授予与拒绝按权限码互斥，拒绝只来自规则；目录外的码同样补进条目', () => {
+    const actions = roleActions({
+      permissions: ['identity.users.read'],
+      rules: [
+        {
+          permission: 'identity.users.read',
+          action: 'Grant',
+          effectiveAt: null,
+          expiresAt: '2026-12-31T00:00:00.000Z',
+          reason: null,
+        },
+        {
+          permission: 'identity.users.update',
+          action: 'Deny',
+          effectiveAt: null,
+          expiresAt: null,
+          reason: '离岗',
+        },
+      ],
+    })
+    expect([
+      ...actions,
+    ]).toEqual([
+      ['identity.users.read', 'Grant'],
+      ['identity.users.update', 'Deny'],
+    ])
     expect(toPermissionItems([], ['custom.thing'])[0]).toMatchObject({ basicId: 'custom.thing', permissionName: 'custom.thing', groupCode: 'custom.thing' })
+  })
+
+  it('授予挪到拒绝：只提交拒绝并带上抽屉里的有效期与原因；有效期不成立不提交；保存后有效期清空', async () => {
+    const from = Date.parse('2026-12-01T00:00:00Z')
+    const to = Date.parse('2027-01-01T00:00:00Z')
+    let detail: Record<string, unknown> = {
+      role: role('r-1', 'auditor'),
+      permissions: ['identity.users.read', 'identity.users.update'],
+      memberCount: 0,
+      customDepartments: [],
+      rules: [],
+    }
+    const calls = record((call) => {
+      if (call.url === '/api/permissions') {
+        return json(200, {
+          items: [
+            permission('identity.users.read', 'Read'),
+            permission('identity.users.update', 'Update'),
+          ],
+        })
+      }
+      if (call.url === '/api/roles/r-1')
+        return json(200, detail)
+      if (call.url === '/api/roles/r-1:hierarchy') {
+        return json(200, {
+          roleId: 'r-1',
+          ancestors: [],
+          descendants: [],
+          inherited: [],
+        })
+      }
+      if (call.url.endsWith(':deny')) {
+        detail = {
+          ...detail,
+          permissions: ['identity.users.update'],
+          rules: [
+            {
+              permission: 'identity.users.read',
+              action: 'Deny',
+              effectiveAt: '2026-12-01T00:00:00.000Z',
+              expiresAt: '2027-01-01T00:00:00.000Z',
+              reason: '临时',
+            },
+          ],
+        }
+        return json(200, {
+          succeeded: ['identity.users.read'],
+          failed: [],
+        })
+      }
+      return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
+    })
+    const editor = useRolePermissionEditor()
+    await editor.start(role('r-1', 'auditor') as never)
+    editor.transfer('Deny', ['identity.users.read'])
+    expect(editor.grantIds.value).toEqual(['identity.users.update'])
+    expect(editor.denyIds.value).toEqual(['identity.users.read'])
+
+    editor.windowDraft.value = { effectiveAt: to, expiresAt: from, reason: ' 临时 ' }
+    expect(editor.windowValid.value).toBe(false)
+    expect(await editor.save()).toBeNull()
+    expect(calls.some(c => c.url.endsWith(':deny'))).toBe(false)
+
+    editor.windowDraft.value = { effectiveAt: from, expiresAt: to, reason: ' 临时 ' }
+    expect(await editor.save()).toEqual({
+      added: 0,
+      denied: 1,
+      removed: 0,
+      failures: [],
+      submitted: [],
+    })
+    expect(calls.find(c => c.url.endsWith(':deny'))?.body).toEqual({
+      permissions: ['identity.users.read'],
+      effectiveAt: '2026-12-01T00:00:00.000Z',
+      expiresAt: '2027-01-01T00:00:00.000Z',
+      reason: '临时',
+    })
+    expect(calls.some(c => c.url.endsWith(':grant') || c.url.endsWith(':revoke'))).toBe(false)
+    expect(editor.windowDraft.value).toEqual({ effectiveAt: null, expiresAt: null, reason: '' })
+    expect(editor.dirty.value).toBe(false)
+    // 「有效期」页签：先列授予再列拒绝，拒绝带着它的有效期与原因
+    expect(editor.entries.value).toEqual([
+      {
+        code: 'identity.users.update',
+        displayName: 'Update',
+        action: 'Grant',
+        effectiveAt: null,
+        expiresAt: null,
+        reason: null,
+      },
+      {
+        code: 'identity.users.read',
+        displayName: 'Read',
+        action: 'Deny',
+        effectiveAt: '2026-12-01T00:00:00.000Z',
+        expiresAt: '2027-01-01T00:00:00.000Z',
+        reason: '临时',
+      },
+    ])
+  })
+
+  it('逐条改有效期：按原动作单条再提交，都清空即普通授予；逐项失败带原因抛出', async () => {
+    let detail: Record<string, unknown> = {
+      role: role('r-1', 'auditor'),
+      permissions: ['identity.users.read'],
+      memberCount: 0,
+      customDepartments: [],
+      rules: [
+        {
+          permission: 'identity.users.read',
+          action: 'Grant',
+          effectiveAt: null,
+          expiresAt: '2026-12-31T00:00:00.000Z',
+          reason: '临时',
+        },
+        {
+          permission: 'identity.users.update',
+          action: 'Deny',
+          effectiveAt: null,
+          expiresAt: null,
+          reason: null,
+        },
+      ],
+    }
+    const calls = record((call) => {
+      if (call.url === '/api/permissions')
+        return json(200, { items: [] })
+      if (call.url === '/api/roles/r-1')
+        return json(200, detail)
+      if (call.url === '/api/roles/r-1:hierarchy') {
+        return json(200, {
+          roleId: 'r-1',
+          ancestors: [],
+          descendants: [],
+          inherited: [],
+        })
+      }
+      if (call.url.endsWith(':grant')) {
+        detail = {
+          ...detail,
+          rules: [
+            {
+              permission: 'identity.users.update',
+              action: 'Deny',
+              effectiveAt: null,
+              expiresAt: null,
+              reason: null,
+            },
+          ],
+        }
+        return json(200, {
+          succeeded: ['identity.users.read'],
+          failed: [],
+        })
+      }
+      if (call.url.endsWith(':deny')) {
+        return json(200, {
+          succeeded: [],
+          failed: [
+            { permission: 'identity.users.update', code: 'ACCESS_CONFLICT_012', message: '触犯权限互斥' },
+          ],
+        })
+      }
+      return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
+    })
+    const editor = useRolePermissionEditor()
+    await editor.start(role('r-1', 'auditor') as never)
+
+    await editor.updateEntry('identity.users.read', 'Grant', { effectiveAt: null, expiresAt: null, reason: '' })
+    expect(calls.find(c => c.url.endsWith(':grant'))?.body).toEqual({
+      permissions: ['identity.users.read'],
+    })
+    expect(editor.entries.value[0]).toMatchObject({
+      code: 'identity.users.read',
+      action: 'Grant',
+      expiresAt: null,
+      reason: null,
+    })
+
+    await expect(editor.updateEntry('identity.users.update', 'Deny', {
+      effectiveAt: null,
+      expiresAt: Date.parse('2027-01-01T00:00:00Z'),
+      reason: '',
+    })).rejects.toThrow('触犯权限互斥')
+    expect(calls.find(c => c.url.endsWith(':deny'))?.body).toEqual({
+      permissions: ['identity.users.update'],
+      expiresAt: '2027-01-01T00:00:00.000Z',
+    })
+    expect(editor.saving.value).toBe(false)
   })
 })
 
@@ -472,10 +689,83 @@ describe('useRoleMemberEditor', () => {
     })
     expect(outcome).toEqual({
       added: 1,
+      denied: 0,
       removed: 1,
       failures: [],
       submitted: [],
     })
+    expect(editor.dirty.value).toBe(false)
+  })
+
+  it('新加入的带上抽屉里的有效期；逐个改现有成员的有效期，都清空即长期有效', async () => {
+    let current: Record<string, unknown>[] = [
+      member('u-1', 'bob'),
+    ]
+    const calls = record((call) => {
+      if (call.url === '/api/users:list') {
+        return json(200, {
+          items: [
+            {
+              id: 'u-3',
+              userName: 'dave',
+              displayName: 'Dave',
+              homeTenantId: 'acme',
+              status: 'Active',
+              createdAt: '2026-10-28T00:00:00Z',
+            },
+          ],
+          total: 1,
+          page: { index: 1, size: 500 },
+        })
+      }
+      if (call.url === '/api/roles/r-1:members')
+        return json(200, { items: current, total: current.length })
+      if (call.url.endsWith(':assign')) {
+        current = [
+          ...current,
+          {
+            ...member('u-3', 'dave'),
+            expiresAt: '2027-01-01T00:00:00.000Z',
+          },
+        ]
+        return json(200, {
+          succeeded: ['u-3'],
+          failed: [],
+        })
+      }
+      if (call.url.endsWith(':update-member')) {
+        current = current.map(item => item.userId === 'u-1'
+          ? { ...item, effectiveAt: '2026-12-01T00:00:00.000Z', expiresAt: null }
+          : item)
+        return json(200, current[0]!)
+      }
+      return json(404, { code: 'PROTOCOLS_NOTFOUND_000', status: 404, detail: call.url }, 'application/problem+json')
+    })
+    const editor = useRoleMemberEditor()
+    await editor.start(role('r-1', 'auditor') as never, true)
+
+    editor.draft.value = ['u-1', 'u-3']
+    editor.windowDraft.value = {
+      effectiveAt: null,
+      expiresAt: Date.parse('2027-01-01T00:00:00Z'),
+      reason: '',
+    }
+    await editor.save()
+    expect(calls.find(c => c.url.endsWith(':assign'))?.body).toEqual({
+      userIds: ['u-3'],
+      expiresAt: '2027-01-01T00:00:00.000Z',
+    })
+    expect(editor.windowDraft.value.expiresAt).toBeNull()
+
+    await editor.updateMember('u-1', {
+      effectiveAt: Date.parse('2026-12-01T00:00:00Z'),
+      expiresAt: null,
+    })
+    expect(calls.find(c => c.url.endsWith(':update-member'))?.body).toEqual({
+      userId: 'u-1',
+      effectiveAt: '2026-12-01T00:00:00.000Z',
+    })
+    expect(editor.members.value[0]).toMatchObject({ userId: 'u-1', effectiveAt: '2026-12-01T00:00:00.000Z' })
     expect(editor.dirty.value).toBe(false)
   })
 

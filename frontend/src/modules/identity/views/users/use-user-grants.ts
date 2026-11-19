@@ -7,6 +7,7 @@ import type { PermissionGrantItem } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, ref } from 'vue'
 import { partitionApprovals } from '@/modules/access/views/constraint-rules/constraint-rule'
+import { applyPermissionTransfer, diffPermissionGrants } from '@/modules/access/views/permissions/grant-actions'
 import { permissions as permissionsApi, userGrants as userGrantsApi } from '~/contracts'
 import { ApiError } from '~/request'
 import { useAppStore } from '~/stores'
@@ -19,43 +20,6 @@ type UserRow = ResponseOf<'users.list'>['items'][number]
 export interface UserGrantItem extends PermissionGrantItem {
   basicId: string
   outside: boolean
-}
-
-/**
- * 某个动作的右栏变成 next：移出的回到未设置，移入的落为该动作
- * 授予与拒绝互斥，从另一栏挪进来的就从另一栏移走
- */
-export function applyPermissionTransfer(actions: ReadonlyMap<string, GrantAction>, action: GrantAction, next: readonly string[]): Map<string, GrantAction> {
-  const keep = new Set(next)
-  const result = new Map(actions)
-  for (const [code, value] of result) {
-    if (value === action && !keep.has(code))
-      result.delete(code)
-  }
-  for (const code of keep)
-    result.set(code, action)
-  return result
-}
-
-/**
- * 直接授权的差量，动作没变的不重复提交
- * 新增或改了动作的分别授予或拒绝，草稿里已没有的当前项撤销
- */
-export function diffPermissionGrants(actions: ReadonlyMap<string, GrantAction>, current: ReadonlyMap<string, GrantAction>): { grant: string[], deny: string[], revoke: string[] } {
-  const grant: string[] = []
-  const deny: string[] = []
-  for (const [code, action] of actions) {
-    if (current.get(code) === action)
-      continue
-    if (action === 'Grant')
-      grant.push(code)
-    else
-      deny.push(code)
-  }
-  const revoke = [
-    ...current.keys(),
-  ].filter(code => !actions.has(code))
-  return { grant, deny, revoke }
 }
 
 /** 目录 + 当前直接授权 → 穿梭框条目，按「包.资源」分段 */
