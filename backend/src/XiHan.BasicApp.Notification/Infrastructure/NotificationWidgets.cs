@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using SqlSugar;
-using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Contracts.Workbench;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Notification.Queries;
@@ -18,7 +17,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// 通知包给工作台的小组件
 /// </summary>
 /// <remarks>
-/// 公告取本人收件箱里最近的几条（与收件箱同一口径，人人可见）；消息发送统计只看当前一侧的发件记录
+/// 公告取本人收件箱里最近的几条公告（不含系统投递的待办与账号安全提醒，人人可见）；消息发送统计只看当前一侧的发件记录
 /// </remarks>
 /// <param name="inbox">收件箱查询</param>
 /// <param name="unitOfWork">SqlSugar 工作单元</param>
@@ -27,7 +26,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork unitOfWork, IPermissionChecker permissions, TimeProvider clock) : IWorkbenchWidgetProvider
 {
     /// <summary>
-    /// 公告（本人收件箱里最近的几条）
+    /// 公告（本人收件箱里最近的几条公告）
     /// </summary>
     public const string Announcements = "notification.announcements";
 
@@ -62,20 +61,15 @@ public sealed class NotificationWidgets(InboxQueries inbox, SqlSugarUnitOfWork u
     }
 
     /// <summary>
-    /// 本人收件箱里最近发布的几条
+    /// 本人收件箱里最近发布的几条公告
     /// </summary>
     /// <remarks>
-    /// 条目的标识是收件箱这一条的 ID，类别是通知类型，时间是发布时间
+    /// 系统投递的待办与账号安全提醒不算；条目的标识是收件箱这一条的 ID，类别是通知类型，时间是发布时间
     /// </remarks>
     private async Task<Result<WorkbenchWidgetData>> AnnouncementsAsync(InvocationContext context)
     {
-        var page = await inbox.ListAsync(new PageRequest { Page = new PageInfo { Index = 1, Size = AnnouncementLimit } }, context).ConfigureAwait(false);
-        if (!page.TryGetValue(out var items))
-        {
-            return page.Error!;
-        }
-
-        return new WorkbenchWidgetData(Items: items.Items
+        var items = await inbox.AnnouncementsAsync(context, AnnouncementLimit).ConfigureAwait(false);
+        return new WorkbenchWidgetData(Items: items
             .Select(static i => new WorkbenchItem(i.Id.ToString(), i.Title, i.NotificationType.ToString(), i.PublishedAt, i.Link))
             .ToList());
     }

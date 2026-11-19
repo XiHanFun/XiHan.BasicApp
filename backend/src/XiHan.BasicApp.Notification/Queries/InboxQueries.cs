@@ -136,6 +136,22 @@ public sealed class InboxQueries(SqlSugarUnitOfWork unitOfWork, TimeProvider clo
     }
 
     /// <summary>
+    /// 最近发布的几条公告（发布时间倒序）
+    /// </summary>
+    /// <remarks>
+    /// 只取通知公告：系统投递的待办与账号安全提醒不算
+    /// </remarks>
+    /// <param name="context">调用上下文</param>
+    /// <param name="limit">至多几条</param>
+    /// <returns>条目</returns>
+    public async Task<IReadOnlyList<InboxItemResponse>> AnnouncementsAsync(InvocationContext context, int limit)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        var rows = await Project(Visible(context).Where((u, n) => !n.IsSystem).OrderBy((u, n) => n.PublishedAt, OrderByType.Desc)).Take(limit).ToListAsync(context.CancellationToken).ConfigureAwait(false);
+        return rows.Select(static r => r.ToResponse()).ToList();
+    }
+
+    /// <summary>
     /// 此刻可见的未读条目 ID
     /// </summary>
     /// <remarks>

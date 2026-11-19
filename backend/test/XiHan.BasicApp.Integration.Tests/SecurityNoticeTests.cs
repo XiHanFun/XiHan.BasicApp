@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 登录：别处都没登录着记一条「登录成功」，别的设备登录着就推给那些端，按设备标识分「其他设备」与「新设备」，投到那些会话各自所在的一侧；
-/// 退出推给账号别的端，退出的这台收不到；管理员强制下线、改密、改用户名、API 凭证的新建滚动删除都落进本人的收件箱；这些只在收件箱里，不进通知公告管理
+/// 退出推给账号别的端，退出的这台收不到；管理员强制下线、改密、改用户名、API 凭证的新建滚动删除都落进本人的收件箱；这些只在收件箱里，不进通知公告管理与工作台的公告
 /// </remarks>
 public sealed class SecurityNoticeTests : IDisposable
 {
@@ -168,7 +168,7 @@ public sealed class SecurityNoticeTests : IDisposable
     }
 
     [Fact]
-    public async Task Notices_StayOutOfNotificationManagement()
+    public async Task Notices_StayOutOfNotificationManagement_AndWorkbenchAnnouncements()
     {
         var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
         await using var running = server;
@@ -185,6 +185,14 @@ public sealed class SecurityNoticeTests : IDisposable
         var (_, deleted) = await SendAsync(server, HttpMethod.Delete, $"/api/notifications?ids={notice}", null, platform);
         Assert.Equal("NOTIFICATION_NOTFOUND_001", Assert.Single(deleted.GetProperty("failed").EnumerateArray()).GetProperty("code").GetString());
         Assert.Contains((await SendAsync(server, HttpMethod.Post, "/api/inbox:list", """{"page":{"index":1,"size":50}}""", carol)).Body.GetProperty("items").EnumerateArray(), IsSignInNotice);
+
+        // 工作台的公告只取公告：收件箱里自己登录时记的提醒不算
+        var (published, publishedBody) = await SendAsync(server, HttpMethod.Post, "/api/notifications", """{"title":"Release notes","publishImmediately":true}""", platform);
+        Assert.True(published == HttpStatusCode.Created, publishedBody.ToString());
+        var (_, platformInbox) = await SendAsync(server, HttpMethod.Post, "/api/inbox:list", """{"page":{"index":1,"size":50}}""", platform);
+        Assert.Contains(platformInbox.GetProperty("items").EnumerateArray(), IsSignInNotice);
+        var (_, widget) = await SendAsync(server, HttpMethod.Get, "/api/workbench:widget-data?key=notification.announcements", null, platform);
+        Assert.Equal(["Release notes"], widget.GetProperty("items").EnumerateArray().Select(static i => i.GetProperty("title").GetString()));
     }
 
     [Fact]

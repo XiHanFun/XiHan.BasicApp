@@ -44,7 +44,7 @@ Workbench 是 Tier 3 的可选模块（`BasicApp:Modules:Workbench:Enabled`，�
 | Identity | `identity.session-devices` | Chart | `identity.sessions.read` |
 | Files | `files.storage-mix` | Chart | `files.files.read` |
 | Maintenance | `maintenance.job-runs` | Chart | `maintenance.job-runs.read` |
-| Notification | `notification.announcements` | List | —（本人收件箱里最近的几条） |
+| Notification | `notification.announcements` | List | —（本人收件箱里最近的几条公告，不含系统投递的待办与安全提醒） |
 | Notification | `notification.deliveries` | Chart | `notification.emails.read`（短信那部分另要 `notification.sms.read`） |
 | Workflow | `workflow.todo` | List | —（Workflow 开着才有） |
 

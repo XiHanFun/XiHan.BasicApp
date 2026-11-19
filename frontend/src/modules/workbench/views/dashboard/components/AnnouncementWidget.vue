@@ -22,7 +22,7 @@ const INBOX_PATH = '/notification/inbox'
 const { t } = useI18n()
 const router = useRouter()
 
-// 轮播公告：本人收件箱里最近发布的几条（工作台 notification.announcements，与收件箱同一口径）
+// 轮播公告：本人收件箱里最近发布的几条公告（工作台 notification.announcements，不含系统投递的待办与安全提醒）
 const { data, loading } = useWidgetData('notification.announcements')
 const announcements = computed<Announcement[]>(() => data.value?.items ?? [])
 /** 不止一条才轮播：只有一条时不自动翻页，也不画翻页、播放与指示点 */
