@@ -192,8 +192,7 @@ public sealed class DataScopeTests : IDisposable
         {
             var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, path, "{}", daveToken));
             Assert.Equal(HttpStatusCode.OK, list.StatusCode);
-            // 登录给本人记的安全通知不是谁建的，不算
-            return [.. listBody.GetProperty("items").EnumerateArray().Where(static i => !i.TryGetProperty("notificationType", out var type) || type.GetString() != "Security").Select(i => i.GetProperty(property).GetString()).Order(StringComparer.Ordinal)];
+            return [.. listBody.GetProperty("items").EnumerateArray().Select(i => i.GetProperty(property).GetString()).Order(StringComparer.Ordinal)];
         }
 
         async Task SetScope(string scope)

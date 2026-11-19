@@ -23,9 +23,6 @@ public sealed class DemoSeedTests : IDisposable
 
     private static JsonElement Find(JsonElement items, string field, string value) => items.EnumerateArray().Single(i => i.GetProperty(field).GetString() == value);
 
-    // 登录本身给本人记的安全通知不是种子写的
-    private static bool IsSeeded(JsonElement notification) => !SecurityNoticeTests.IsSignInNotice(notification);
-
     private static Task<string> DemoAdminAsync(BasicAppTestServer server)
         => LoginAsync(server, "admin", "Demo@123456", "demo");
 
@@ -128,7 +125,7 @@ public sealed class DemoSeedTests : IDisposable
         // 平台：上手指南是草稿，全员、横幅、弹窗、必读并确认
         var (platform, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/notifications:list", "{}", superadmin));
         Assert.Equal(HttpStatusCode.OK, platform.StatusCode);
-        var guide = Assert.Single(platformBody.GetProperty("items").EnumerateArray(), IsSeeded);
+        var guide = Assert.Single(platformBody.GetProperty("items").EnumerateArray());
         Assert.Equal("XiHan BasicApp 系统功能总览与上手指南", guide.GetProperty("title").GetString());
         Assert.False(guide.GetProperty("isPublished").GetBoolean());
         Assert.Equal("All", guide.GetProperty("targetType").GetString());
@@ -145,7 +142,7 @@ public sealed class DemoSeedTests : IDisposable
         var (tenant, tenantBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/notifications:list", "{}", admin));
         Assert.Equal(HttpStatusCode.OK, tenant.StatusCode);
         var items = tenantBody.GetProperty("items");
-        Assert.Equal(["研发部周会：周五下午三点", "请尽快修改初始密码"], items.EnumerateArray().Where(IsSeeded).Select(static n => n.GetProperty("title").GetString()).Order(StringComparer.Ordinal));
+        Assert.Equal(["研发部周会：周五下午三点", "请尽快修改初始密码"], Values(items, "title").Order(StringComparer.Ordinal));
         var meeting = Find(items, "title", "研发部周会：周五下午三点");
         Assert.False(meeting.GetProperty("isPublished").GetBoolean());
         Assert.Equal("Department", meeting.GetProperty("targetType").GetString());
@@ -171,11 +168,11 @@ public sealed class DemoSeedTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, removedGuide.StatusCode);
         await server.RunSeedersAsync();
         var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/notifications:list", "{}", admin));
-        var left = Assert.Single(afterSeed.GetProperty("items").EnumerateArray(), IsSeeded);
+        var left = Assert.Single(afterSeed.GetProperty("items").EnumerateArray());
         Assert.Equal("请尽快修改初始密码", left.GetProperty("title").GetString());
         Assert.True(left.GetProperty("isPublished").GetBoolean());
         var (_, platformAfterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/notifications:list", "{}", superadmin));
-        Assert.DoesNotContain(platformAfterSeed.GetProperty("items").EnumerateArray(), IsSeeded);
+        Assert.Equal(0, platformAfterSeed.GetProperty("items").GetArrayLength());
     }
 
     [Fact]
@@ -187,7 +184,7 @@ public sealed class DemoSeedTests : IDisposable
         var (_, dicts) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/dicts:list", """{"keyword":"demo_"}""", superadmin));
         Assert.Equal(0, dicts.GetProperty("items").GetArrayLength());
         var (_, notifications) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/notifications:list", "{}", superadmin));
-        Assert.DoesNotContain(notifications.GetProperty("items").EnumerateArray(), IsSeeded);
+        Assert.Equal(0, notifications.GetProperty("items").GetArrayLength());
         var (_, policies) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/policies:list", """{"keyword":"demo."}""", superadmin));
         Assert.Equal(0, policies.GetProperty("items").GetArrayLength());
     }

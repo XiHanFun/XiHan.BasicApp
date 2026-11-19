@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Notification.Infrastructure;
 /// <see cref="IInboxDelivery"/> 的实现
 /// </summary>
 /// <remarks>
-/// 待办提醒与账号通知：在调用所在的一侧建一条指定用户的通知（纯文本、普通优先级、只走站内）并立即发布，实时推送在提交之后发出（<see cref="NotificationService.PublishAsync"/>）
+/// 待办提醒与账号通知：在调用所在的一侧建一条指定用户的系统投递（纯文本、普通优先级、只走站内，不进通知公告管理）并立即发布，实时推送在提交之后发出（<see cref="NotificationService.PublishAsync"/>）
 /// 待办按收件人的站内偏好过滤；账号安全不看偏好
 /// </remarks>
 /// <param name="notifications">通知域服务</param>
@@ -50,7 +50,7 @@ public sealed class InboxDelivery(NotificationService notifications) : IInboxDel
             ExpiresAt: null,
             Remark: null,
             MessageChannels.InApp);
-        var created = await notifications.CreateAsync(context, draft).ConfigureAwait(false);
+        var created = await notifications.CreateAsync(context, draft, system: true).ConfigureAwait(false);
         return created.TryGetValue(out var notification)
             ? await notifications.PublishAsync(context, notification, ignorePreferences: security).ConfigureAwait(false)
             : created.Error!;

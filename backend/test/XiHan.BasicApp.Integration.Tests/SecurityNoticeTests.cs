@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 登录：别处都没登录着记一条「登录成功」，别的设备登录着就推给那些端，按设备标识分「其他设备」与「新设备」，投到那些会话各自所在的一侧；
-/// 退出推给账号别的端，退出的这台收不到；管理员强制下线、改密、改用户名、API 凭证的新建滚动删除都落进本人的收件箱
+/// 退出推给账号别的端，退出的这台收不到；管理员强制下线、改密、改用户名、API 凭证的新建滚动删除都落进本人的收件箱；这些只在收件箱里，不进通知公告管理
 /// </remarks>
 public sealed class SecurityNoticeTests : IDisposable
 {
@@ -165,6 +165,26 @@ public sealed class SecurityNoticeTests : IDisposable
         // 设备标识只收字母、数字、下划线与连字符
         var (invalid, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", JsonSerializer.Serialize(new { userName = "carol", password = Password, deviceId = "not a device id" })));
         Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+    }
+
+    [Fact]
+    public async Task Notices_StayOutOfNotificationManagement()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        await CreateUserAsync(server, platform, "carol");
+        var carol = (await LoginAsync(server, "carol")).GetProperty("accessToken").GetString()!;
+        var (_, inbox) = await SendAsync(server, HttpMethod.Post, "/api/inbox:list", """{"page":{"index":1,"size":50}}""", carol);
+        var notice = Assert.Single(inbox.GetProperty("items").EnumerateArray(), IsSignInNotice).GetProperty("notificationId").GetString();
+
+        // 系统投递只在本人收件箱里：通知公告的列表不列出，按 ID 查看与删除都当作不存在
+        var (listed, list) = await SendAsync(server, HttpMethod.Post, "/api/notifications:list", """{"page":{"index":1,"size":50}}""", platform);
+        Assert.Equal(HttpStatusCode.OK, listed);
+        Assert.DoesNotContain(list.GetProperty("items").EnumerateArray(), static n => IsSignInNotice(n));
+        Assert.Equal(HttpStatusCode.NotFound, (await SendAsync(server, HttpMethod.Get, $"/api/notifications/{notice}", null, platform)).Status);
+        var (_, deleted) = await SendAsync(server, HttpMethod.Delete, $"/api/notifications?ids={notice}", null, platform);
+        Assert.Equal("NOTIFICATION_NOTFOUND_001", Assert.Single(deleted.GetProperty("failed").EnumerateArray()).GetProperty("code").GetString());
+        Assert.Contains((await SendAsync(server, HttpMethod.Post, "/api/inbox:list", """{"page":{"index":1,"size":50}}""", carol)).Body.GetProperty("items").EnumerateArray(), IsSignInNotice);
     }
 
     [Fact]

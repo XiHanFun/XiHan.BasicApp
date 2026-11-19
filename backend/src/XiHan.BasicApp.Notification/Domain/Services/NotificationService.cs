@@ -239,8 +239,9 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// </summary>
     /// <param name="context">调用上下文</param>
     /// <param name="draft">内容</param>
+    /// <param name="system">系统投递（<see cref="InboxDelivery"/>），不进通知公告管理</param>
     /// <returns>新通知</returns>
-    public async Task<Result<SysNotification>> CreateAsync(InvocationContext context, NotificationDraft draft)
+    public async Task<Result<SysNotification>> CreateAsync(InvocationContext context, NotificationDraft draft, bool system = false)
     {
         ArgumentNullException.ThrowIfNull(context);
         var valid = Validate(context, draft);
@@ -249,7 +250,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             return valid.Error!;
         }
 
-        var notification = new SysNotification { Id = ids.NewId(), TenantId = SideRows.SideOf(context) };
+        var notification = new SysNotification { Id = ids.NewId(), TenantId = SideRows.SideOf(context), IsSystem = system };
         Apply(notification, draft);
         await rows.InsertAsync(notification, context.CancellationToken).ConfigureAwait(false);
         return notification;
@@ -288,6 +289,9 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// <summary>
     /// 按 ID 取当前一侧的通知
     /// </summary>
+    /// <remarks>
+    /// 系统投递不归通知公告管理，当作不存在
+    /// </remarks>
     /// <param name="context">调用上下文</param>
     /// <param name="id">通知 ID</param>
     /// <returns>通知；不存在即 <c>NOTIFICATION_NOTFOUND_001</c></returns>
@@ -295,7 +299,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     {
         ArgumentNullException.ThrowIfNull(context);
         var found = await rows.FindAsync<SysNotification>(SideRows.SideOf(context), id, context.CancellationToken).ConfigureAwait(false);
-        return found.TryGetValue(out var notification)
+        return found.TryGetValue(out var notification) && !notification.IsSystem
             ? notification
             : Error.NotFound(NotificationErrors.NotificationNotFound, NotificationMessages.NotificationNotFound, MessageArguments.Of(("id", id)));
     }
@@ -429,7 +433,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
     /// 批量删除通知
     /// </summary>
     /// <remarks>
-    /// 已发布的连同收件箱里的那一条一起软删除
+    /// 已发布的连同收件箱里的那一条一起软删除；系统投递当作不存在
     /// </remarks>
     /// <param name="context">调用上下文</param>
     /// <param name="notificationIds">通知 ID</param>
@@ -440,7 +444,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         ArgumentNullException.ThrowIfNull(notificationIds);
         var side = SideRows.SideOf(context);
         var wanted = notificationIds.Distinct().ToList();
-        var found = (await rows.Query<SysNotification>(side).Where(n => wanted.Contains(n.Id)).ToListAsync(context.CancellationToken).ConfigureAwait(false)).ToDictionary(static n => n.Id);
+        var found = (await rows.Query<SysNotification>(side).Where(n => wanted.Contains(n.Id) && !n.IsSystem).ToListAsync(context.CancellationToken).ConfigureAwait(false)).ToDictionary(static n => n.Id);
         var succeeded = new List<Guid>();
         var failed = new List<BatchFailure>();
         foreach (var id in wanted)

@@ -146,8 +146,7 @@ public sealed class NotificationTests : IDisposable
         Assert.Equal(2, (await InboxAsync(server, annToken)).Count);
         Assert.Empty((await SendAsync(server, HttpMethod.Delete, $"/api/notifications?ids={all}", null, platform)).Body.GetProperty("failed").EnumerateArray());
         Assert.Equal(["Policy"], (await InboxAsync(server, annToken)).Select(static i => i.GetProperty("title").GetString()).ToList());
-        // 登录给本人记的安全通知不算
-        var listed = (await SendAsync(server, HttpMethod.Post, "/api/notifications:list", """{"page":{"index":1,"size":50},"filters":[{"field":"isPublished","operator":"eq","value":"true"}]}""", platform)).Body;
-        Assert.Equal(2, listed.GetProperty("items").EnumerateArray().Count(static n => !SecurityNoticeTests.IsSignInNotice(n)));
+        var listed = (await SendAsync(server, HttpMethod.Post, "/api/notifications:list", """{"page":{"index":1,"size":20},"filters":[{"field":"isPublished","operator":"eq","value":"true"}]}""", platform)).Body;
+        Assert.Equal(2, listed.GetProperty("total").GetInt32());
     }
 }

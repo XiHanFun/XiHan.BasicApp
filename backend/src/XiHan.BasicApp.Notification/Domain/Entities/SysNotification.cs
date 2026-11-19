@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 落租户库（平台一侧租户为 <c>platform</c>）：通知与收件箱随租户分库隔离，收件箱查询能和它在同一个库里联表
 /// 先存草稿，发布时按目标解析出此刻正常的接收人、一次展开成收件箱行：之后组织与角色变动不影响已发出的这条，所以发布后不能再改；目标 ID 只在展开时用，存成 JSON 列，接收人数冗余记在行上
 /// 投递渠道按位组合、站内信必有：邮件、短信与机器人只是站内信之外的补充，经发件箱随发布一起提交；开了的外发渠道先核对能发，发不出即整次发布失败，不悄悄只发站内信
-/// 别的包经 Contracts 的 <c>IInboxDelivery</c> 建一条指定用户的通知并立即发布（Workflow 的待办、Identity 的账号安全通知）：复用同一套收件箱与推送，不另建表
+/// 别的包经 Contracts 的 <c>IInboxDelivery</c> 建一条指定用户的通知并立即发布（Workflow 的待办、Identity 的账号安全通知）：复用同一套收件箱与推送，不另建表；这类记为系统投递，只进收件箱，通知公告的管理列表与按 ID 的管理操作都看不到
 /// 列表的数据范围按创建人套用（方案 5.9），收件箱不受影响
 /// 软删除；删除已发布的连同收件箱条目一起软删除，已入发件箱的外发照常发出；到期只是不再显示，没有清理作业
 /// </remarks>
@@ -164,6 +164,15 @@ public sealed class SysNotification : TenantScopedAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "recipient_count", IsNullable = false, ColumnDescription = "发布时解析出的接收人数")]
     public int RecipientCount { get; set; }
+
+    /// <summary>
+    /// 系统投递
+    /// </summary>
+    /// <remarks>
+    /// 别的包经 <c>IInboxDelivery</c> 发给指定用户的待办与账号安全提醒；不进通知公告管理
+    /// </remarks>
+    [SugarColumn(ColumnName = "is_system", IsNullable = false, ColumnDescription = "系统投递（待办与账号安全提醒，不进通知公告管理）")]
+    public bool IsSystem { get; set; }
 
     /// <summary>
     /// 备注
