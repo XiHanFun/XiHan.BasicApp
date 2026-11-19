@@ -70,7 +70,11 @@ export function useSchemaTable<TRow extends object>(
     }
   }
 
+  /** 最近一次 load 的序号：翻页、搜索连着发时先发的可能后回来，只有最后一次的结果、失败与收尾算数 */
+  let latestLoad = 0
+
   async function load() {
+    const ticket = ++latestLoad
     loading.value = true
     try {
       if (isTree) {
@@ -79,6 +83,9 @@ export function useSchemaTable<TRow extends object>(
           throw new Error('[SchemaPage] 树形模式需在 resource.tree 提供取数函数')
         }
         const items = await treeFn(buildParams())
+        if (ticket !== latestLoad) {
+          return
+        }
         rows.value = items
         total.value = countTreeNodes(items)
         return
@@ -88,16 +95,24 @@ export function useSchemaTable<TRow extends object>(
         throw new Error('[SchemaPage] 列表模式需在 resource.page 提供取数函数')
       }
       const result = await pageFn(buildParams())
+      if (ticket !== latestLoad) {
+        return
+      }
       rows.value = result.items
       total.value = result.page?.totalCount ?? 0
     }
     catch (error) {
+      if (ticket !== latestLoad) {
+        return
+      }
       toast.danger((error as Error)?.message || (options.loadErrorText ?? i18n.global.t('component.schema_page.load_failed')))
       rows.value = []
       total.value = 0
     }
     finally {
-      loading.value = false
+      if (ticket === latestLoad) {
+        loading.value = false
+      }
     }
   }
 
