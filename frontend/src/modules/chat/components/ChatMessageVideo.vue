@@ -142,8 +142,8 @@ onBeforeUnmount(release)
     </button>
     <button type="button" class="chat-video__meta" @click="emit('download')">
       <Icon icon="lucide:video" width="16" height="16" class="shrink-0 text-primary" />
-      <span class="min-w-0 flex-1 truncate text-left text-[13px] font-medium">{{ fileName }}</span>
-      <span class="shrink-0 text-[11px] opacity-70">{{ formatFileSize(fileSize) }}</span>
+      <span class="min-w-0 flex-1 truncate text-left text-secondary font-medium">{{ fileName }}</span>
+      <span class="shrink-0 text-caption opacity-70">{{ formatFileSize(fileSize) }}</span>
       <Icon icon="lucide:download" width="14" height="14" class="shrink-0 opacity-70" />
     </button>
   </div>

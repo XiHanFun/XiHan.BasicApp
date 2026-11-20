@@ -88,14 +88,14 @@ const title = computed(() => {
 const currentUserId = computed(() => userStore.userInfo?.basicId ?? '')
 
 // 建群要并排放下候选与已选两栏，其余几种只有一栏或一个字段
-const dialogWidth = computed(() => {
+const dialogWidthClass = computed(() => {
   switch (props.mode) {
     case 'group':
-      return '680px'
+      return 'max-w-3xl'
     case 'single':
-      return '480px'
+      return 'max-w-xl'
     default:
-      return '420px'
+      return 'max-w-lg'
   }
 })
 
@@ -222,7 +222,7 @@ async function handleConfirm() {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent :style="{ '--xh-dialog-max-w': dialogWidth }">
+    <XhDialogContent :class="dialogWidthClass">
       <XhDialogHeader>
         <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>

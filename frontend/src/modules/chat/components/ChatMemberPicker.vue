@@ -263,7 +263,7 @@ onMounted(() => {
             <ChatPresenceBadge :user-id="user.userId">
               <XUserAvatar :avatar="user.avatarFileId" :name="user.displayName" :size="28" />
             </ChatPresenceBadge>
-            <span class="min-w-0 flex-1 truncate text-[13px] text-foreground">{{ user.displayName }}</span>
+            <span class="min-w-0 flex-1 truncate text-secondary text-foreground">{{ user.displayName }}</span>
             <XIconButton icon="lucide:x" :label="t('chat.picker.remove', { name: user.displayName })" @click="handleRemove(user.userId)" />
           </li>
         </ul>

@@ -74,7 +74,7 @@ async function handleConfirm() {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="--xh-dialog-max-w: 680px">
+    <XhDialogContent class="max-w-3xl">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('chat.members.add') }}</XhDialogTitle>
       </XhDialogHeader>

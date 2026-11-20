@@ -209,8 +209,8 @@ const empty = computed(() => !loading.value && messages.value.length === 0)
               <button type="button" class="chat-media__file-main" @click="handleDownload(file.conversationId, file.fileId)">
                 <Icon icon="lucide:file" width="22" height="22" class="shrink-0 text-primary" />
                 <span class="min-w-0 flex-1 text-left">
-                  <span class="block truncate text-[13px] text-foreground">{{ file.fileName }}</span>
-                  <span class="block truncate text-[11px] text-muted-foreground">
+                  <span class="block truncate text-secondary text-foreground">{{ file.fileName }}</span>
+                  <span class="block truncate text-caption text-muted-foreground">
                     {{ formatFileSize(file.fileSize) }} · {{ file.senderUserName }} · {{ formatMessageTime(file.createdAt) }}
                   </span>
                 </span>

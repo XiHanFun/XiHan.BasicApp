@@ -294,7 +294,7 @@ async function handleDownload(fileId: string) {
 <template>
   <!-- 中性系统提示：居中时间线（公告卡片走下方对话流归属样式） -->
   <div v-if="isSystem && !isAnnouncement" class="my-2 flex justify-center">
-    <span class="rounded-full bg-muted/60 px-3 py-0.5 text-[11px] text-muted-foreground">
+    <span class="rounded-full bg-muted/60 px-3 py-0.5 text-caption text-muted-foreground">
       {{ message.content }}
     </span>
   </div>
@@ -320,7 +320,7 @@ async function handleDownload(fileId: string) {
     </component>
     <div class="flex max-w-[86%] min-w-0 flex-col sm:max-w-[72%]" :class="isSelf ? 'items-end' : 'items-start'">
       <!-- 群聊双侧都显示昵称（本人取当前用户资料，右对齐），与对方样式一致 -->
-      <div v-if="showSenderName" class="mb-0.5 px-1 text-[11px] text-muted-foreground">
+      <div v-if="showSenderName" class="mb-0.5 px-1 text-caption text-muted-foreground">
         {{ isSelf ? (userStore.nickname || userStore.username) : message.senderUserName }}
       </div>
 
@@ -342,7 +342,7 @@ async function handleDownload(fileId: string) {
         ]"
       >
         <!-- 被 Pin 标记 -->
-        <div v-if="message.isPinned" class="mb-1 flex items-center gap-1 text-[11px] text-primary/80">
+        <div v-if="message.isPinned" class="mb-1 flex items-center gap-1 text-caption text-primary/80">
           <Icon icon="lucide:pin" width="11" height="11" />
           {{ t('chat.thread.pinned_flag') }}
         </div>
@@ -374,7 +374,7 @@ async function handleDownload(fileId: string) {
               @select="gallery.open(message.messageId, att.fileId)"
             />
           </div>
-          <div v-if="message.content" class="mt-1 text-[13px]">
+          <div v-if="message.content" class="mt-1 text-secondary">
             {{ message.content }}
           </div>
         </template>
@@ -400,14 +400,14 @@ async function handleDownload(fileId: string) {
               >
                 <Icon icon="lucide:file" width="26" height="26" class="shrink-0 text-primary" />
                 <span class="min-w-0 flex-1 text-left">
-                  <span class="block truncate text-[13px] font-medium">{{ att.fileName }}</span>
-                  <span class="block text-[11px] opacity-70">{{ formatFileSize(att.fileSize) }}</span>
+                  <span class="block truncate text-secondary font-medium">{{ att.fileName }}</span>
+                  <span class="block text-caption opacity-70">{{ formatFileSize(att.fileSize) }}</span>
                 </span>
                 <Icon icon="lucide:download" width="14" height="14" class="shrink-0 opacity-70" />
               </button>
             </template>
           </div>
-          <div v-if="message.content" class="mt-1 text-[13px]">
+          <div v-if="message.content" class="mt-1 text-secondary">
             {{ message.content }}
           </div>
         </template>
@@ -449,14 +449,14 @@ async function handleDownload(fileId: string) {
             @click="callRecord && emit('call', callRecord.media)"
           >
             <Icon :icon="callMediaIcon(callRecord?.media)" width="14" height="14" class="shrink-0" />
-            <span class="text-[13px] leading-relaxed">{{ callRecordLine }}</span>
+            <span class="text-secondary leading-relaxed">{{ callRecordLine }}</span>
           </button>
         </template>
 
         <!-- 聊天记录：标题、前几行与条数，整张卡片可点开 -->
         <template v-else-if="isRecord">
           <button type="button" class="chat-record-card" :disabled="!chatRecord" @click="chatRecord && emit('record', chatRecord)">
-            <span class="block truncate text-[13px] font-medium">{{ chatRecord ? chatRecordTitle(t, chatRecord) : t('chat.record.title') }}</span>
+            <span class="block truncate text-secondary font-medium">{{ chatRecord ? chatRecordTitle(t, chatRecord) : t('chat.record.title') }}</span>
             <span v-for="(line, index) in chatRecordLines" :key="index" class="block truncate text-xs opacity-70">{{ line }}</span>
             <span class="chat-record-card__footer">
               <Icon icon="lucide:messages-square" width="12" height="12" class="shrink-0" />
@@ -467,17 +467,17 @@ async function handleDownload(fileId: string) {
 
         <!-- 公告卡片（钉钉式：小喇叭标题 + 全文保留换行，发布人经头像/昵称归属） -->
         <template v-else-if="isAnnouncement">
-          <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-amber-600">
+          <div class="mb-1 flex items-center gap-1.5 text-secondary font-semibold text-amber-600">
             <Icon icon="lucide:megaphone" width="14" height="14" />
             {{ t('chat.members.announcement_title') }}
           </div>
-          <span class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
+          <span class="text-secondary leading-relaxed whitespace-pre-wrap break-words">{{ message.content }}</span>
         </template>
 
         <!-- 文本：助手的回复按 Markdown 显示，别的照原文；点到人的「@名字」是按钮，点开他的资料卡 -->
         <template v-else>
           <ChatAssistantMarkdown v-if="isAssistantReply" :text="message.content ?? ''" />
-          <span v-else class="text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+          <span v-else class="text-secondary leading-relaxed whitespace-pre-wrap break-words">
             <template v-for="(segment, index) in textSegments" :key="index">
               <button
                 v-if="segment.userId"
@@ -504,13 +504,13 @@ async function handleDownload(fileId: string) {
             @click="emit('react', group.emoji)"
           >
             <span>{{ group.emoji }}</span>
-            <span class="text-[11px]">{{ group.count }}</span>
+            <span class="text-caption">{{ group.count }}</span>
           </button>
         </XTooltip>
       </div>
 
       <!-- 元信息：时间 + 状态 + 已读回执 + 悬浮操作 -->
-      <div class="mt-0.5 flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground">
+      <div class="mt-0.5 flex items-center gap-1.5 px-1 text-caption text-muted-foreground">
         <template v-if="message.failed">
           <Icon icon="lucide:circle-alert" width="12" height="12" class="text-destructive" />
           <span class="text-destructive">{{ t('chat.thread.send_failed') }}</span>

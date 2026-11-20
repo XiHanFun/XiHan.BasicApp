@@ -23,7 +23,7 @@ onBeforeUnmount(() => renderer.dispose())
 </script>
 
 <template>
-  <div class="chat-assistant-md text-[13px] leading-relaxed">
+  <div class="chat-assistant-md text-secondary leading-relaxed">
     <XhMarkdownStreamRoot :blocks="blocks" :streaming="!!props.streaming">
       <XhMarkdownStreamContent />
     </XhMarkdownStreamRoot>

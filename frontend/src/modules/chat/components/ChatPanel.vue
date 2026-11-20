@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import type { ChatStartMode } from './ChatStartDialog.vue'
-import { useMediaQuery } from '@vueuse/core'
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useIsMobile } from '~/composables'
 import { useChatStore } from '../store'
@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
 const chatStore = useChatStore()
 const { isMobile } = useIsMobile()
 // 三栏并排要的宽度：列表与详情各一栏之外，消息流还得留得下气泡
-const isWide = useMediaQuery('(min-width: 1280px)')
+const isWide = useBreakpoints(breakpointsTailwind).greaterOrEqual('xl')
 
 const startMode = ref<ChatStartMode>('single')
 const showStartDialog = ref(false)
@@ -87,7 +87,7 @@ onUnmounted(() => {
   <div class="flex h-full min-h-0 overflow-hidden rounded-lg border border-border bg-card">
     <!-- 多栏：列表 + 消息流（+ 详情） -->
     <template v-if="!singlePane">
-      <div class="w-80 shrink-0 border-r border-border xl:w-[360px]">
+      <div class="w-80 shrink-0 border-r border-border xl:w-103">
         <ChatConversationList @select="handleSelect" @start="handleStart" @locate="handleLocate" />
       </div>
       <div class="min-w-0 flex-1">

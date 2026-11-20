@@ -363,7 +363,7 @@ function handleDissolve() {
 <template>
   <div class="flex h-full min-h-0 flex-col">
     <!-- 头：与会话列表、消息流的头同高，三栏的底线连成一条 -->
-    <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
+    <div class="flex h-16 shrink-0 items-center gap-2 border-b border-border px-3">
       <XIconButton v-if="!props.inline" icon="lucide:arrow-left" :label="t('header.toolbar.nav_back')" @click="emit('close')" />
       <span class="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{{ t('chat.details.title') }}</span>
       <XIconButton v-if="props.inline" icon="lucide:x" :label="t('chat.details.close')" @click="emit('close')" />
@@ -417,7 +417,7 @@ function handleDissolve() {
       <section v-if="conversation.conversationType !== 'Assistant'" class="chat-details__section">
         <button type="button" class="chat-details__link" @click="showMedia = true">
           <Icon icon="lucide:images" width="14" height="14" class="shrink-0 text-muted-foreground" />
-          <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ t('chat.media.title') }}</span>
+          <span class="min-w-0 flex-1 truncate text-left text-secondary text-foreground">{{ t('chat.media.title') }}</span>
           <Icon icon="lucide:chevron-right" width="14" height="14" class="shrink-0 text-muted-foreground" />
         </button>
       </section>
@@ -428,7 +428,7 @@ function handleDissolve() {
           {{ t('chat.details.section_settings') }}
         </h3>
         <div class="flex items-center justify-between gap-3 py-1">
-          <span class="text-[13px] text-foreground">{{ t('chat.list.pin') }}</span>
+          <span class="text-secondary text-foreground">{{ t('chat.list.pin') }}</span>
           <XhSwitch
             :checked="conversation.isPinned"
             :disabled="settingBusy"
@@ -437,7 +437,7 @@ function handleDissolve() {
           />
         </div>
         <div class="flex items-center justify-between gap-3 py-1">
-          <span class="text-[13px] text-foreground">{{ t('chat.list.mute') }}</span>
+          <span class="text-secondary text-foreground">{{ t('chat.list.mute') }}</span>
           <XhSwitch
             :checked="conversation.isMuted"
             :disabled="settingBusy"
@@ -506,7 +506,7 @@ function handleDissolve() {
               </button>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-1.5">
-                  <span class="truncate text-[13px] text-foreground">{{ memberName(member) }}</span>
+                  <span class="truncate text-secondary text-foreground">{{ memberName(member) }}</span>
                   <XhTagRoot v-if="member.memberRole !== 'Member'" variant="subtle" size="sm" :tone="roleTone(member.memberRole)">
                     <XhTagLabel>{{ roleLabel(member.memberRole) }}</XhTagLabel>
                   </XhTagRoot>
@@ -514,7 +514,7 @@ function handleDissolve() {
                     <XhTagLabel>{{ t('chat.members.silenced') }}</XhTagLabel>
                   </XhTagRoot>
                 </div>
-                <div class="truncate text-[11px] text-muted-foreground">
+                <div class="truncate text-caption text-muted-foreground">
                   {{ t('chat.members.joined', { time: formatMessageTime(member.joinedAt) }) }}
                 </div>
               </div>

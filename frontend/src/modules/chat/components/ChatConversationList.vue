@@ -196,7 +196,7 @@ function handleItemAction(key: string) {
 <template>
   <div class="flex h-full min-h-0 flex-col">
     <!-- 头部：搜索 + 发起聊天（固定高度与消息区会话头对齐，底部分割线） -->
-    <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
+    <div class="flex h-16 shrink-0 items-center gap-2 border-b border-border px-3">
       <XInput
         v-model:value="keyword"
         size="sm"
@@ -265,9 +265,9 @@ function handleItemAction(key: string) {
                   height="11"
                   class="shrink-0 text-primary/70"
                 />
-                <span class="truncate text-[13px] font-semibold text-foreground">{{ conv.displayName }}</span>
+                <span class="truncate text-secondary font-semibold text-foreground">{{ conv.displayName }}</span>
               </span>
-              <span class="shrink-0 text-[11px] text-muted-foreground">
+              <span class="shrink-0 text-caption text-muted-foreground">
                 {{ formatConversationTime(t, conv.lastMessageAt) }}
               </span>
             </div>
@@ -290,7 +290,7 @@ function handleItemAction(key: string) {
                 />
                 <span
                   v-if="conv.isMuted && conv.unreadCount > 0"
-                  class="text-[11px] text-muted-foreground/70"
+                  class="text-caption text-muted-foreground/70"
                 >{{ conv.unreadCount }}</span>
               </span>
             </div>
@@ -317,8 +317,8 @@ function handleItemAction(key: string) {
             <ChatConversationAvatar :conversation-id="conversation.conversationId" :conversation-type="conversation.conversationType" :avatar="conversation.avatar" :name="conversation.displayName" :size="38" />
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-2">
-                <span class="truncate text-[13px] font-semibold text-foreground">{{ conversation.displayName }}</span>
-                <span class="shrink-0 text-[11px] text-muted-foreground">{{ formatConversationTime(t, hit.createdAt) }}</span>
+                <span class="truncate text-secondary font-semibold text-foreground">{{ conversation.displayName }}</span>
+                <span class="shrink-0 text-caption text-muted-foreground">{{ formatConversationTime(t, hit.createdAt) }}</span>
               </div>
               <div class="mt-0.5 truncate text-xs text-muted-foreground">
                 {{ hit.senderUserName }}: {{ messageBodyLabel(hit) }}

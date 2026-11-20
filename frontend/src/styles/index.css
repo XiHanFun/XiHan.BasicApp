@@ -58,6 +58,7 @@
   --color-fg-danger: var(--xh-fg-danger);
 
   --text-caption: var(--xh-text-caption-size);
+  --text-secondary: var(--xh-text-secondary-size);
   --text-body: var(--xh-text-body-size);
 }
 

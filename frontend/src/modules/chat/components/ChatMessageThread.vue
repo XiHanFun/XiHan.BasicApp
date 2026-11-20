@@ -1041,7 +1041,7 @@ onBeforeUnmount(() => {
     @drop="handleDrop"
   >
     <!-- 会话头（固定高度：单聊无副行时与群聊保持一致） -->
-    <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
+    <div class="flex h-16 shrink-0 items-center gap-2 border-b border-border px-3">
       <XIconButton v-if="props.showBack" icon="lucide:arrow-left" :label="t('header.toolbar.nav_back')" @click="emit('back')" />
       <ChatPresenceBadge :user-id="peerUserId">
         <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="32" />
@@ -1055,10 +1055,10 @@ onBeforeUnmount(() => {
             </XhTagLabel>
           </XhTagRoot>
         </div>
-        <div v-if="isGroupLike" class="text-[11px] text-muted-foreground">
+        <div v-if="isGroupLike" class="text-caption text-muted-foreground">
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
         </div>
-        <div v-else-if="peerUserId" class="text-[11px] text-muted-foreground">
+        <div v-else-if="peerUserId" class="text-caption text-muted-foreground">
           {{ chatStore.isUserOnline(peerUserId) ? t('chat.presence.online') : t('chat.presence.offline') }}
         </div>
       </div>
@@ -1105,8 +1105,8 @@ onBeforeUnmount(() => {
           @click="handleLocate(hit)"
         >
           <span class="flex items-center justify-between gap-2">
-            <span class="text-[11px] text-muted-foreground">{{ hit.senderUserName }} · {{ formatMessageTime(hit.createdAt) }}</span>
-            <span class="text-[11px] text-primary">{{ t('chat.thread.locate') }}</span>
+            <span class="text-caption text-muted-foreground">{{ hit.senderUserName }} · {{ formatMessageTime(hit.createdAt) }}</span>
+            <span class="text-caption text-primary">{{ t('chat.thread.locate') }}</span>
           </span>
           <span class="block truncate text-left text-xs text-foreground">{{ messageBodyLabel(hit) }}</span>
         </button>
@@ -1145,7 +1145,7 @@ onBeforeUnmount(() => {
           <XhPopoverContent :style="announcementPanelStyle">
             <div class="max-h-64 overflow-y-auto">
               <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
-              <XhPopoverTitle class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+              <XhPopoverTitle class="mb-1 flex items-center gap-1.5 text-secondary font-semibold text-foreground">
                 <Icon icon="lucide:megaphone" width="13" height="13" class="text-amber-500" />
                 {{ t('chat.members.announcement_title') }}
               </XhPopoverTitle>
@@ -1180,7 +1180,7 @@ onBeforeUnmount(() => {
                 class="flex items-start gap-2 border-b border-border/50 py-1.5 last:border-b-0"
               >
                 <div class="min-w-0 flex-1">
-                  <div class="text-[11px] text-muted-foreground">
+                  <div class="text-caption text-muted-foreground">
                     {{ pinnedItem.senderUserName }} · {{ formatMessageTime(pinnedItem.createdAt) }}
                   </div>
                   <div class="truncate text-xs text-foreground">
@@ -1275,7 +1275,7 @@ onBeforeUnmount(() => {
 
           <!-- 助手回复流：生成期间的临时气泡，落库消息到达后由 store 丢弃 -->
           <div v-if="assistantStream" class="flex justify-start px-2 py-1">
-            <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
+            <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-secondary leading-relaxed whitespace-pre-wrap break-words">
               <template v-if="assistantStream.error">
                 <span class="text-error">{{ assistantStream.error }}</span>
                 <XhButton variant="subtle" size="sm" tone="brand" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
@@ -1328,7 +1328,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 输入中提示 -->
-    <div v-if="chatStore.activeTyping" class="app-fade px-4 pb-1 text-[11px] text-muted-foreground">
+    <div v-if="chatStore.activeTyping" class="app-fade px-4 pb-1 text-caption text-muted-foreground">
       {{ t('chat.thread.typing', { name: chatStore.activeTyping.userName ?? '' }) }}
     </div>
 

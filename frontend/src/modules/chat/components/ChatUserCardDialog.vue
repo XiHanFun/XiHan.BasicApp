@@ -196,8 +196,8 @@ function handleOpenGroup(conversationId: string) {
                     :name="group.conversationName"
                     :size="28"
                   />
-                  <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ group.conversationName }}</span>
-                  <span class="shrink-0 text-[11px] text-muted-foreground">{{ t('chat.members.count', { n: group.memberCount }) }}</span>
+                  <span class="min-w-0 flex-1 truncate text-left text-secondary text-foreground">{{ group.conversationName }}</span>
+                  <span class="shrink-0 text-caption text-muted-foreground">{{ t('chat.members.count', { n: group.memberCount }) }}</span>
                 </button>
               </li>
             </ul>

@@ -108,8 +108,10 @@ const placeholder = computed(() =>
 
 /** 发送模式下拉（当前项打勾，另一项占位对齐） */
 const sendKeyOptions = computed<AppDropdownOption[]>(() => {
-  const check = () => h(Icon, { icon: 'lucide:check', width: 14, height: 14 })
-  const blank = () => h('span', { style: 'display:inline-block;width:14px' })
+  const checkIcon = { icon: 'lucide:check', width: 14, height: 14 }
+  const check = () => h(Icon, checkIcon)
+  // 占位用同一枚图标隐身，宽度天然与勾一致
+  const blank = () => h(Icon, { ...checkIcon, style: 'visibility:hidden' })
   return [
     {
       key: 'enter',
@@ -772,7 +774,7 @@ defineExpose({ acceptsFiles, addFiles })
           class="flex-1"
           :aria-labelledby="uploadingLabelId"
         />
-        <span :id="uploadingLabelId" class="shrink-0 text-[11px] text-muted-foreground">
+        <span :id="uploadingLabelId" class="shrink-0 text-caption text-muted-foreground">
           {{ t('chat.composer.uploading', { percent: uploadingPercent }) }}
         </span>
       </div>
@@ -814,7 +816,7 @@ defineExpose({ acceptsFiles, addFiles })
                   <span class="chat-mention-item__all">
                     <Icon icon="lucide:users" width="14" height="14" />
                   </span>
-                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ t('chat.composer.mention_all') }}</span>
+                  <span class="min-w-0 flex-1 truncate text-left text-secondary">{{ t('chat.composer.mention_all') }}</span>
                 </button>
                 <button
                   v-for="member in mentionMembers"
@@ -825,7 +827,7 @@ defineExpose({ acceptsFiles, addFiles })
                   @click="insertMention(member)"
                 >
                   <XUserAvatar :name="member.userName" :size="24" />
-                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
+                  <span class="min-w-0 flex-1 truncate text-left text-secondary">{{ member.userName }}</span>
                 </button>
               </div>
             </XhPopoverContent>

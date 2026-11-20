@@ -48,7 +48,7 @@ const { t } = useI18n()
   <div
     v-else
     class="flex items-center justify-center rounded bg-muted/40"
-    :class="thumb ? 'h-[88px] w-[88px]' : 'h-24 w-40'"
+    :class="thumb ? 'size-25' : 'h-24 w-40'"
   >
     <XhSpinner />
   </div>

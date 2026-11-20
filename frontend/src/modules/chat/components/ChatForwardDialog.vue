@@ -92,7 +92,7 @@ async function handleForward(conversationId: string) {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="--xh-dialog-max-w: 380px">
+    <XhDialogContent class="max-w-md">
       <XhDialogHeader>
         <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
@@ -118,7 +118,7 @@ async function handleForward(conversationId: string) {
             <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>
-        <div v-else class="xh-scroll-area mt-2" style="max-height: 320px">
+        <div v-else class="xh-scroll-area mt-2 max-h-91">
           <button
             v-for="conv in candidates"
             :key="conv.conversationId"
@@ -128,7 +128,7 @@ async function handleForward(conversationId: string) {
             @click="handleForward(conv.conversationId)"
           >
             <ChatConversationAvatar :conversation-id="conv.conversationId" :conversation-type="conv.conversationType" :avatar="conv.avatar" :name="conv.displayName" :size="32" />
-            <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ conv.displayName }}</span>
+            <span class="min-w-0 flex-1 truncate text-left text-secondary text-foreground">{{ conv.displayName }}</span>
             <Icon
               v-if="sendingTo === conv.conversationId"
               icon="lucide:loader-circle"

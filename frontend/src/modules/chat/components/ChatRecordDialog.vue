@@ -105,7 +105,7 @@ async function handleOpenFile(fileId: string, download: boolean) {
           <li v-for="(item, index) in current.items" :key="index" class="flex gap-2 py-2">
             <XUserAvatar :name="item.senderUserName ?? ''" :size="28" class="shrink-0" />
             <div class="min-w-0 flex-1">
-              <div class="flex items-baseline gap-2 text-[11px] text-muted-foreground">
+              <div class="flex items-baseline gap-2 text-caption text-muted-foreground">
                 <span class="truncate">{{ item.senderUserName }}</span>
                 <span class="shrink-0">{{ formatMessageTime(item.createdAt) }}</span>
               </div>
@@ -132,7 +132,7 @@ async function handleOpenFile(fileId: string, download: boolean) {
                     </button>
                   </li>
                 </ul>
-                <p v-if="item.content" class="m-0 mt-1 text-[13px] leading-relaxed whitespace-pre-wrap break-words text-foreground">
+                <p v-if="item.content" class="m-0 mt-1 text-secondary leading-relaxed whitespace-pre-wrap break-words text-foreground">
                   {{ item.content }}
                 </p>
               </template>
