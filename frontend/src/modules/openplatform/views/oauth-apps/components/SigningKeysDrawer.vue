@@ -154,7 +154,7 @@ watch(open, (value) => {
 
 <template>
   <XhDrawerRoot v-model:open="open" side="right">
-    <XhDrawerContent style="--xh-drawer-size: 960px">
+    <XhDrawerContent class="w-6xl">
       <XhDrawerHeader>
         <XhDrawerTitle>{{ t('openplatform.signing_keys.title') }}</XhDrawerTitle>
       </XhDrawerHeader>

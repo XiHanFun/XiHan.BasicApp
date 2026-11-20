@@ -707,7 +707,7 @@ function handleRestore(row: JobRow) {
     </template>
 
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 640px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('maintenance.jobs.detail_title') }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -724,7 +724,7 @@ function handleRestore(row: JobRow) {
               <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('maintenance.jobs.detail_empty') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
-            <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <div v-else-if="detailData" class="xh-scroll-area max-h-[calc(100vh-(--spacing(34)))]">
               <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('maintenance.jobs.task_name') }}</XhDescriptionsLabel>
@@ -1037,7 +1037,7 @@ function handleRestore(row: JobRow) {
 
     <!-- 执行日志抽屉：按任务过滤的运行历史，行点击查看这次运行的详情与异常信息 -->
     <XhDrawerRoot v-model:open="logVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 860px">
+      <XhDrawerContent class="w-5xl">
         <XhDrawerTitle>{{ t('maintenance.jobs.log_title', { name: logJob?.title ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div class="xh-task-log-toolbar">
@@ -1048,7 +1048,7 @@ function handleRestore(row: JobRow) {
             :placeholder="t('maintenance.jobs.log_status_filter_placeholder')"
             :aria-label="t('maintenance.jobs.log_status_filter_placeholder')"
             size="sm"
-            style="width: 140px"
+            class="w-40"
             @update:value="changeLogState"
           />
           <XSelect
@@ -1058,7 +1058,7 @@ function handleRestore(row: JobRow) {
             :placeholder="t('maintenance.jobs.log_failed_placeholder')"
             :aria-label="t('maintenance.jobs.log_failed_placeholder')"
             size="sm"
-            style="width: 120px"
+            class="w-34"
             @update:value="changeLogFailed"
           />
           <!-- 触发器名与节点按值精确匹配；关键字是三者的模糊匹配 -->
@@ -1068,7 +1068,7 @@ function handleRestore(row: JobRow) {
             :placeholder="t('maintenance.jobs.log_trigger_name_placeholder')"
             :aria-label="t('maintenance.jobs.log_trigger_name_placeholder')"
             size="sm"
-            style="width: 140px"
+            class="w-40"
             @clear="loadJobRuns(1)"
             @enter="loadJobRuns(1)"
           />
@@ -1078,7 +1078,7 @@ function handleRestore(row: JobRow) {
             :placeholder="t('maintenance.jobs.log_node_placeholder')"
             :aria-label="t('maintenance.jobs.log_node_placeholder')"
             size="sm"
-            style="width: 140px"
+            class="w-40"
             @clear="loadJobRuns(1)"
             @enter="loadJobRuns(1)"
           />
@@ -1088,7 +1088,7 @@ function handleRestore(row: JobRow) {
             :placeholder="t('maintenance.jobs.log_keyword_placeholder')"
             :aria-label="t('maintenance.jobs.log_keyword_placeholder')"
             size="sm"
-            style="width: 180px"
+            class="w-51"
             @clear="loadJobRuns(1)"
             @enter="loadJobRuns(1)"
           />
@@ -1119,7 +1119,7 @@ function handleRestore(row: JobRow) {
 
     <!-- 执行日志详情：这次运行的触发、节点、起止与耗时，失败时的错误码与异常信息 -->
     <XhDialogRoot v-model:open="runDetailVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 760px">
+      <XhDialogContent class="max-w-4xl">
         <XhDialogTitle>{{ t('maintenance.jobs.log_detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
         <div v-if="runDetail" class="xh-scroll-area" style="max-height: 70vh">

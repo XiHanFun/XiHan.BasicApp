@@ -555,7 +555,7 @@ function confirmRemoveMember(member: MembershipRow) {
     @action="onAction"
   >
     <XhDialogRoot v-model:open="detail.open.value">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
+      <XhDialogContent class="xh-mgmt-detail-modal max-w-3xl">
         <XhDialogHeader>
           <!-- 标题取树里的这一行，弹窗打开期间一直在 -->
           <XhDialogTitle>

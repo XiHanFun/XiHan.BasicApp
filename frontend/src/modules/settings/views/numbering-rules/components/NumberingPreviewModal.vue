@@ -97,13 +97,13 @@ async function executePreview(): Promise<void> {
     :open="show"
     @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <XhDialogContent style="--xh-dialog-max-w: 1040px">
+    <XhDialogContent class="max-w-6xl">
       <XhDialogHeader>
         <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
       <XhDialogCloseTrigger />
       <XhDialogBody class="xh-overlay-body">
-        <div class="grid min-h-[480px] grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
+        <div class="grid min-h-137 grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
           <XhCardRoot variant="ghost">
             <XhCardContent>
               <XhFlex orientation="vertical" gap="lg">
@@ -175,7 +175,7 @@ async function executePreview(): Promise<void> {
                   :row-key="(row: PreviewTableRow) => String(row.sequence)"
                 />
               </XhFlex>
-              <div v-else class="flex min-h-[400px] items-center justify-center">
+              <div v-else class="flex min-h-114 items-center justify-center">
                 <XhEmptyStateRoot>
                   <XhEmptyStateIndicator>
                     <Icon icon="lucide:inbox" width="28" />

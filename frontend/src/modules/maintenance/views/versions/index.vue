@@ -329,7 +329,7 @@ function handleReleaseLock(row: VersionRow) {
 
     <!-- 详情抽屉：版本信息 -->
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 720px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerTitle>{{ t('maintenance.versions.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
@@ -343,7 +343,7 @@ function handleReleaseLock(row: VersionRow) {
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('maintenance.versions.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
-          <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+          <div v-else-if="detailData" class="xh-scroll-area max-h-[calc(100vh-(--spacing(34)))]">
             <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('maintenance.versions.database') }}</XhDescriptionsLabel>
@@ -429,14 +429,14 @@ function handleReleaseLock(row: VersionRow) {
 
     <!-- 升级预览抽屉：只读，列出要执行的脚本、要建的表与列、要建的索引 -->
     <XhDrawerRoot v-model:open="planVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 860px">
+      <XhDrawerContent class="w-5xl">
         <XhDrawerTitle>{{ t('maintenance.versions.plan_title', { database: planDatabase }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div class="xh-loading-stage" :class="{ 'is-loading': planLoading }">
           <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
-          <div v-if="planData" class="xh-scroll-area xh-version-plan" style="max-height: calc(100vh - 120px)">
+          <div v-if="planData" class="xh-scroll-area xh-version-plan max-h-[calc(100vh-(--spacing(34)))]">
             <XhDescriptionsRoot :columns="3" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('maintenance.versions.provider') }}</XhDescriptionsLabel>

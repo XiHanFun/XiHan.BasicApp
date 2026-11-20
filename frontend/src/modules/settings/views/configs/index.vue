@@ -409,7 +409,7 @@ function formatBoolean(value: boolean): string {
     @action="onAction"
   >
     <XhDialogRoot v-model:open="detailOpen">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
+      <XhDialogContent class="xh-mgmt-detail-modal max-w-3xl">
         <XhDialogHeader>
           <XhDialogTitle>
             <div v-if="detail" class="det-hd-entity">

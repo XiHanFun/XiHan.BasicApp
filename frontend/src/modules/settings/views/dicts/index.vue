@@ -660,7 +660,7 @@ function formatBoolean(value: boolean): string {
         </template>
 
         <XhDialogRoot v-model:open="dictDetailOpen">
-          <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
+          <XhDialogContent class="xh-mgmt-detail-modal max-w-3xl">
             <XhDialogHeader>
               <XhDialogTitle>
                 <div v-if="dictDetail" class="det-hd-entity">
@@ -802,7 +802,7 @@ function formatBoolean(value: boolean): string {
         </template>
 
         <XhDialogRoot v-model:open="itemDetailOpen">
-          <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
+          <XhDialogContent class="xh-mgmt-detail-modal max-w-3xl">
             <XhDialogHeader>
               <XhDialogTitle>
                 <div v-if="itemDetail" class="det-hd-entity">

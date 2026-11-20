@@ -727,7 +727,7 @@ function formatNullableDate(value: null | string | undefined): string {
     @action="onAction"
   >
     <XhDrawerRoot v-model:open="detail.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 800px">
+      <XhDrawerContent class="w-4xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('tenancy.tenants.detail_title') }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -949,7 +949,7 @@ function formatNullableDate(value: null | string | undefined): string {
 
     <!-- 配额核对：只列超出席位或存储上限的租户；配额只拦新增，已超额的不回收 -->
     <XhDrawerRoot v-model:open="audit.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 760px">
+      <XhDrawerContent class="w-4xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('tenancy.tenants.quota.audit_title') }}</XhDrawerTitle>
         </XhDrawerHeader>

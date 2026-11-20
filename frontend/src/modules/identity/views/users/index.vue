@@ -1324,7 +1324,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 
     <!-- 详情 -->
     <XhDialogRoot v-model:open="detail.open.value">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
+      <XhDialogContent class="xh-mgmt-detail-modal max-w-3xl">
         <XhDialogHeader>
           <XhDialogTitle>
             <div v-if="detail.user.value" class="det-hd-entity">
@@ -1494,7 +1494,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 
     <!-- 分配角色抽屉（穿梭框，挪好后一次提交） -->
     <XhDrawerRoot v-model:open="roleAssign.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 720px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('identity.users.roles_title', { name: roleAssign.user.value ? displayNameOf(roleAssign.user.value) : '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1537,7 +1537,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 
     <!-- 所属部门抽屉（租户侧）：归属一览，加入与移出即时生效 -->
     <XhDrawerRoot v-model:open="departments.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 640px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('identity.users.departments_title', { name: departments.user.value ? displayNameOf(departments.user.value) : '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1587,7 +1587,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 
     <!-- 直接授权抽屉：授予与拒绝两个页签，用户上的拒绝压过一切授予 -->
     <XhDrawerRoot v-model:open="grants.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 980px">
+      <XhDrawerContent class="w-6xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('identity.users.grants.title', { name: grants.user.value ? displayNameOf(grants.user.value) : '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1669,7 +1669,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
 
     <!-- 成员数据范围抽屉（租户侧）：「跟随角色」即不覆盖 -->
     <XhDrawerRoot v-model:open="dataScope.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 720px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('identity.users.data_scope.title', { name: dataScope.user.value ? displayNameOf(dataScope.user.value) : '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>

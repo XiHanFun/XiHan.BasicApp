@@ -624,7 +624,7 @@ async function removeRow(row: AccessPolicyRow) {
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 详情 -->
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 820px">
+      <XhDrawerContent class="w-4xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ detail?.name }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -695,7 +695,7 @@ async function removeRow(row: AccessPolicyRow) {
 
     <!-- 从模板新建 -->
     <XhDrawerRoot v-model:open="templatesVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 640px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('access.policies.template_title') }}</XhDrawerTitle>
         </XhDrawerHeader>

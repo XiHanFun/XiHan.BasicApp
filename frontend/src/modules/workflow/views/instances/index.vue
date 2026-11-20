@@ -454,7 +454,7 @@ function onAction(payload: SchemaActionPayload) {
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 详情抽屉：实例信息 + 变量 + 执行历史 + 等待点 -->
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 820px">
+      <XhDrawerContent class="w-4xl">
         <XhDrawerTitle>{{ t('workflow.instances.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
@@ -543,7 +543,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhSeparator class="my-3" :aria-label="t('workflow.instances.graph_label')">
               {{ t('workflow.instances.graph_label') }}
             </XhSeparator>
-            <div class="h-[380px] overflow-hidden rounded border border-gray-200 dark:border-gray-700">
+            <div class="h-109 overflow-hidden rounded border border-gray-200 dark:border-gray-700">
               <WorkflowGraphView :definition-json="detailData.document" :statuses="nodeStatuses" />
             </div>
             <div class="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">

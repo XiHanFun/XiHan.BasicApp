@@ -516,7 +516,7 @@ async function handleDelete(row: OAuthAppRow) {
   >
     <!-- 详情抽屉 -->
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 560px">
+      <XhDrawerContent class="w-2xl">
         <XhDrawerTitle>{{ t('openplatform.oauth_apps.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
@@ -530,7 +530,7 @@ async function handleDelete(row: OAuthAppRow) {
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('openplatform.oauth_apps.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
-          <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 180px)">
+          <div v-else-if="currentDetail" class="xh-scroll-area max-h-[calc(100vh-(--spacing(51)))]">
             <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('openplatform.oauth_apps.detail_app_name') }}</XhDescriptionsLabel>
@@ -796,7 +796,7 @@ async function handleDelete(row: OAuthAppRow) {
 
     <!-- 密钥抽屉 -->
     <XhDrawerRoot v-model:open="secretVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 420px">
+      <XhDrawerContent class="w-lg">
         <XhDrawerTitle>{{ t('openplatform.oauth_apps.secret_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <XhFlex v-if="currentSecret" orientation="vertical" gap="md">

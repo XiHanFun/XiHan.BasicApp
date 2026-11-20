@@ -954,7 +954,7 @@ async function copyPreviewText() {
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 上传：拖拽区点选或拖入即上传（落在当前一侧的缺省存储配置上） -->
     <XhDialogRoot v-model:open="uploadVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 520px">
+      <XhDialogContent class="max-w-xl">
         <XhDialogHeader>
           <XhDialogTitle>{{ t('files.library.upload.title') }}</XhDialogTitle>
         </XhDialogHeader>
@@ -1015,7 +1015,7 @@ async function copyPreviewText() {
 
     <!-- 编辑元数据：访问级别、临时与到期、标签与备注 -->
     <XhDrawerRoot v-model:open="metadataVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 460px">
+      <XhDrawerContent class="w-lg">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('files.library.metadata.title') }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1068,7 +1068,7 @@ async function copyPreviewText() {
 
     <!-- 详情：文件与副本共用 -->
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 680px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ detailTitle }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1219,7 +1219,7 @@ async function copyPreviewText() {
 
     <!-- 存储副本：列出这个文件的全部副本（主副本在前），可看详情、设主副本、校验、启停 -->
     <XhDrawerRoot v-model:open="storagesVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 760px">
+      <XhDrawerContent class="w-4xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('files.library.storage_list.title', { name: storageFile ? displayName(storageFile) : '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>

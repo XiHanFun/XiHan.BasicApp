@@ -27,12 +27,10 @@ const props = withDefaults(
     record?: object | null
     show: boolean
     title: string
-    width?: number
   }>(),
   {
     loading: false,
     record: null,
-    width: 820,
   },
 )
 
@@ -123,7 +121,7 @@ const clipboardTranslations = computed(() => ({
 
 <template>
   <XhDrawerRoot v-model:open="visible" side="right">
-    <XhDrawerContent :style="{ '--xh-drawer-size': `${width}px` }">
+    <XhDrawerContent class="w-4xl">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
       <XhDrawerCloseTrigger />
       <div class="xh-loading-stage" :class="{ 'is-loading': loading }">

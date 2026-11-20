@@ -214,7 +214,7 @@ function orDash(value: null | string | undefined): string {
 <template>
   <SchemaPage :schema="schema" @action="onAction">
     <XhDialogRoot v-model:open="detailOpen">
-      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 820px">
+      <XhDialogContent class="xh-mgmt-detail-modal max-w-4xl">
         <XhDialogHeader>
           <XhDialogTitle>{{ t('codegeneration.code_gen.history.detail_title') }}</XhDialogTitle>
         </XhDialogHeader>

@@ -222,7 +222,7 @@ async function withdraw() {
 
 <template>
   <XhDrawerRoot v-model:open="open" side="right">
-    <XhDrawerContent class="approval-drawer" style="--xh-drawer-size: 760px">
+    <XhDrawerContent class="approval-drawer w-4xl">
       <XhDrawerTitle>{{ detail?.title || t('workflow.approvals.detail_title') }}</XhDrawerTitle>
       <XhDrawerCloseTrigger />
 

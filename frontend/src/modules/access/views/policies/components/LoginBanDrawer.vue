@@ -75,7 +75,7 @@ watch(open, (value) => {
 
 <template>
   <XhDrawerRoot v-model:open="open" side="right">
-    <XhDrawerContent style="--xh-drawer-size: 720px">
+    <XhDrawerContent class="w-3xl">
       <XhDrawerHeader>
         <XhDrawerTitle>{{ t('access.policies.bans.title') }}</XhDrawerTitle>
       </XhDrawerHeader>

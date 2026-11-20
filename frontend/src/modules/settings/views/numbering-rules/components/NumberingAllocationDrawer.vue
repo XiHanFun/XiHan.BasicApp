@@ -133,7 +133,7 @@ function changePage(page: number): void {
     side="right"
     @update:open="(open: boolean) => emit('update:show', open)"
   >
-    <XhDrawerContent style="--xh-drawer-size: 1080px">
+    <XhDrawerContent class="w-7xl">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
       <XhDrawerCloseTrigger />
       <XhFlex orientation="vertical" gap="md">
@@ -141,7 +141,7 @@ function changePage(page: number): void {
           v-model:value="allocations.keyword.value"
           clearable
           :placeholder="t('settings.numbering_rules.allocation_search_placeholder')"
-          style="max-width: 360px"
+          class="max-w-103"
         />
         <XDataTable
           :columns="columns"

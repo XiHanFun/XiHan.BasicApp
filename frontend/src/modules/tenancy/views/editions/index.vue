@@ -532,7 +532,7 @@ async function saveWhitelist() {
     </XEditModal>
 
     <XhDrawerRoot v-model:open="whitelist.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 980px">
+      <XhDrawerContent class="w-6xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('tenancy.editions.permissions_title', { name: whitelist.edition.value?.name ?? '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>

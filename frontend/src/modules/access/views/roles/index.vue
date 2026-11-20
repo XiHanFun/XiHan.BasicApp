@@ -646,7 +646,7 @@ async function saveScope() {
   >
     <!-- 详情 -->
     <XhDrawerRoot v-model:open="detailView.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 900px">
+      <XhDrawerContent class="w-5xl">
         <XhDrawerTitle>{{ t('access.roles.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div class="xh-loading-stage" :class="{ 'is-loading': detailView.loading.value }">
@@ -660,7 +660,7 @@ async function saveScope() {
             <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('access.roles.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
-          <div v-else-if="detailView.detail.value" class="xh-scroll-area app-fade" style="max-height: calc(100vh - 120px)">
+          <div v-else-if="detailView.detail.value" class="xh-scroll-area app-fade max-h-[calc(100vh-(--spacing(34)))]">
             <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
             <XhTabsRoot default-value="overview" variant="line">
               <XhTabsList>
@@ -984,7 +984,7 @@ async function saveScope() {
 
     <!-- 权限分配 -->
     <XhDrawerRoot v-model:open="permissionEditor.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 980px">
+      <XhDrawerContent class="w-6xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('access.roles.perm_drawer_title', { name: permissionEditor.role.value?.name ?? '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1108,7 +1108,7 @@ async function saveScope() {
 
     <!-- 角色成员 -->
     <XhDrawerRoot v-model:open="memberEditor.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 720px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('access.roles.members_title', { name: memberEditor.role.value?.name ?? '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>
@@ -1177,7 +1177,7 @@ async function saveScope() {
 
     <!-- 数据范围（租户侧） -->
     <XhDrawerRoot v-model:open="scopeEditor.open.value" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 640px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerHeader>
           <XhDrawerTitle>{{ t('access.roles.scope_editor.drawer_title', { name: scopeEditor.role.value?.name ?? '' }) }}</XhDrawerTitle>
         </XhDrawerHeader>

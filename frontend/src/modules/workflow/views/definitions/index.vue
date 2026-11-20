@@ -541,7 +541,7 @@ function onAction(payload: SchemaActionPayload) {
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 详情抽屉 -->
     <XhDrawerRoot v-model:open="detailVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 720px">
+      <XhDrawerContent class="w-3xl">
         <XhDrawerTitle>{{ t('workflow.definitions.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
@@ -602,7 +602,7 @@ function onAction(payload: SchemaActionPayload) {
               {{ showDetailJson ? t('workflow.definitions.hide_json') : t('workflow.definitions.show_json') }}
             </XhButton>
           </div>
-          <div class="h-[440px] overflow-hidden rounded border border-gray-200 dark:border-gray-700">
+          <div class="h-126 overflow-hidden rounded border border-gray-200 dark:border-gray-700">
             <WorkflowGraphView :definition-json="detailData.document" />
           </div>
           <template v-if="showDetailJson">

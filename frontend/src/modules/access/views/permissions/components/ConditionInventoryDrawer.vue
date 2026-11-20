@@ -104,7 +104,7 @@ watch(open, (value) => {
 
 <template>
   <XhDrawerRoot v-model:open="open" side="right">
-    <XhDrawerContent style="--xh-drawer-size: 1100px">
+    <XhDrawerContent class="w-7xl">
       <XhDrawerHeader>
         <XhDrawerTitle>{{ t('access.conditions.inventory_title') }}</XhDrawerTitle>
       </XhDrawerHeader>
