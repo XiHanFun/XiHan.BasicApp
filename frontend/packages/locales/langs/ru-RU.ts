@@ -847,6 +847,7 @@ export default {
     back_home: 'На главную',
     back_prev: 'Назад',
     maintenance: 'Система обновляется. Повторите попытку чуть позже.',
+    request_timeout: 'Время ожидания запроса истекло. Повторите попытку позже.',
   },
   header: {
     context: {

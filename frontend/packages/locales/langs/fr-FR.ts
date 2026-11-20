@@ -847,6 +847,7 @@ export default {
     back_home: 'Retour à l\'accueil',
     back_prev: 'Retour',
     maintenance: 'Le système est en cours de mise à niveau. Réessayez dans quelques instants.',
+    request_timeout: 'La requête a expiré. Veuillez réessayer plus tard.',
   },
   header: {
     context: {

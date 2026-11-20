@@ -1,6 +1,6 @@
 import type { RouteDef } from '~/request/client'
-import { describe, expect, it, vi } from 'vitest'
-import { ApiError, buildRequest, configureRequest, downloadEndpoint, invoke } from '~/request/client'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ApiError, buildRequest, configureRequest, DEFAULT_TIMEOUT_MS, downloadEndpoint, invoke } from '~/request/client'
 
 const create: RouteDef = {
   method: 'POST',
@@ -218,6 +218,87 @@ describe('invoke', () => {
     code = 'KERNEL_UNEXPECTED_001'
     await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'KERNEL_UNEXPECTED_001' })
     expect(onMaintenance).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('invoke deadline', () => {
+  /** 不回应、只在被中止时以中止原因拒绝的 fetch：模拟后端挂死 */
+  function hangingFetch() {
+    return vi.fn((_url: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init!.signal!.addEventListener('abort', () => reject(init!.signal!.reason), { once: true })
+    }))
+  }
+
+  afterEach(() => {
+    vi.useRealTimers()
+    configureRequest({ timeoutMs: undefined, getTimeoutMessage: undefined })
+  })
+
+  it('writes the deadline into xihan-deadline: the configured timeout, or the per-call one, from now', async () => {
+    vi.useFakeTimers({
+      now: new Date('2026-11-21T08:00:00Z'),
+      toFake: ['Date', 'setTimeout', 'clearTimeout'],
+    })
+    const deadlines: (string | undefined)[] = []
+    configureRequest({
+      baseUrl: '',
+      fetch: (async (_url: RequestInfo | URL, init?: RequestInit) => {
+        deadlines.push((init!.headers as Record<string, string>)['xihan-deadline'])
+        return new Response('{}', { status: 200 })
+      }) as unknown as typeof fetch,
+      getToken: () => 't',
+    })
+
+    await invoke('users.list', list, {})
+    configureRequest({ timeoutMs: 5_000 })
+    await invoke('users.list', list, {})
+    await invoke('users.list', list, {}, { timeoutMs: 300_000 })
+    await invoke('users.list', list, {}, { timeoutMs: 0 })
+
+    expect(deadlines).toEqual([
+      new Date(Date.parse('2026-11-21T08:00:00Z') + DEFAULT_TIMEOUT_MS).toISOString(),
+      '2026-11-21T08:00:05.000Z',
+      '2026-11-21T08:05:00.000Z',
+      undefined,
+    ])
+  })
+
+  it('aborts a call that outlives its deadline and reports it with the backend timeout code', async () => {
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout'],
+    })
+    const fetchMock = hangingFetch()
+    configureRequest({
+      baseUrl: '',
+      fetch: fetchMock as unknown as typeof fetch,
+      getToken: () => 't',
+      timeoutMs: 1_000,
+      getTimeoutMessage: () => '请求超时',
+    })
+
+    const call = invoke('users.list', list, {})
+    const settled = expect(call).rejects.toMatchObject({ name: 'ApiError', code: 'KERNEL_TIMEOUT_001', message: '请求超时' })
+    // 截止时间到了还在宽限期里：后端可能正在回超时，前端不抢先中止
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(fetchMock.mock.calls[0]![1]!.signal!.aborted).toBe(false)
+    await vi.advanceTimersByTimeAsync(5_000)
+    await settled
+  })
+
+  it('passes a caller abort through as it is, not as a timeout', async () => {
+    configureRequest({
+      baseUrl: '',
+      fetch: hangingFetch() as unknown as typeof fetch,
+      getToken: () => 't',
+    })
+    const controller = new AbortController()
+
+    const call = invoke('users.list', list, {}, { signal: controller.signal })
+    controller.abort(new DOMException('left the page', 'AbortError'))
+
+    const error = await call.catch((reason: unknown) => reason)
+    expect(error).not.toBeInstanceOf(ApiError)
+    expect(error).toMatchObject({ name: 'AbortError', message: 'left the page' })
   })
 })
 

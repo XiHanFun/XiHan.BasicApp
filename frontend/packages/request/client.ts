@@ -23,8 +23,10 @@ export interface RouteDef {
 export interface CallOptions {
   signal?: AbortSignal
   headers?: Record<string, string>
-  /** 截止时间，写进 xihan-deadline（RFC 3339，UTC） */
+  /** 截止时间，写进 xihan-deadline（RFC 3339，UTC）；给了即以它为准，不再按超时推 */
   deadline?: Date
+  /** 本次调用的超时（毫秒）：缺省取 `RequestConfig.timeoutMs`，再缺省是 `DEFAULT_TIMEOUT_MS`；0 表示不设截止时间 */
+  timeoutMs?: number
   /** 覆盖本次调用的区域 */
   locale?: string
   /** 匿名调用（登录、刷新令牌）：不带 Authorization，未认证也不走刷新钩子 */
@@ -49,7 +51,29 @@ export interface RequestConfig {
   getLocale?: () => string
   fetch?: typeof fetch
   hooks?: RequestHooks
+  /** 普通调用的超时（毫秒），缺省 `DEFAULT_TIMEOUT_MS` */
+  timeoutMs?: number
+  /** 前端自己中止超时调用时给用户看的文案（后端没来得及回本地化正文） */
+  getTimeoutMessage?: () => string
 }
+
+/**
+ * 普通调用缺省的超时
+ * 截止时间写进 xihan-deadline，后端到点取消调用并回 `KERNEL_TIMEOUT_001`
+ */
+export const DEFAULT_TIMEOUT_MS = 60_000
+
+/**
+ * 跑得久的调用用的超时
+ * 调模型（知识库导入、问答、连通测试）、生成代码、随文件大小增长的存储操作（合并分片、跨存储复制、校验）
+ */
+export const LONG_TIMEOUT_MS = 300_000
+
+/**
+ * 截止时间过后再等这么久仍没有响应，前端自己中止
+ * 后端挂死或网络中断时它回不了超时，留出余量让它正常回的先到
+ */
+const TIMEOUT_GRACE_MS = 5_000
 
 export const ErrorCodes = {
   unauthenticated: 'SECURITY_DENIED_001',
@@ -59,6 +83,8 @@ export const ErrorCodes = {
   locked: 'IDENTITY_DENIED_002',
   /** 维护模式：别的节点正在升级共享的库，除健康检查外一律 503 */
   maintenance: 'RUNTIME_UNAVAILABLE_003',
+  /** 调用超过截止时间：后端回的，或前端等不到响应自己中止的 */
+  timeout: 'KERNEL_TIMEOUT_001',
   /** 内核还没就绪或正在停机（滚动重启的间隙），同样稍后重试 */
   notServing: 'KERNEL_UNAVAILABLE_001',
 } as const
@@ -136,7 +162,58 @@ export function buildRequest(id: string, route: RouteDef, request: unknown): { u
 }
 
 /** 调用一个操作：成功返回响应 DTO（无正文时为 undefined），失败抛 `ApiError` */
+/**
+ * 截止时间的看守：到点再过宽限期仍没结束就中止请求
+ * 调用方自己的取消照常传过来；`expired` 区分是看守中止的还是调用方取消的
+ */
+function watchDeadline(deadline: Date, outer: AbortSignal | undefined) {
+  const controller = new AbortController()
+  let expired = false
+  const timer = setTimeout(() => {
+    expired = true
+    controller.abort(new DOMException('The request timed out.', 'TimeoutError'))
+  }, Math.max(0, deadline.getTime() - Date.now()) + TIMEOUT_GRACE_MS)
+  const forward = () => controller.abort(outer?.reason)
+  if (outer?.aborted)
+    forward()
+  else
+    outer?.addEventListener('abort', forward, { once: true })
+  return {
+    signal: controller.signal,
+    get expired() {
+      return expired
+    },
+    dispose() {
+      clearTimeout(timer)
+      outer?.removeEventListener('abort', forward)
+    },
+  }
+}
+
 export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, request: TRequest, options: CallOptions = {}): Promise<TResponse> {
+  const timeout = options.timeoutMs ?? config.timeoutMs ?? DEFAULT_TIMEOUT_MS
+  const deadline = options.deadline ?? (timeout > 0
+    ? new Date(Date.now() + timeout)
+    : undefined)
+  const watch = deadline
+    ? watchDeadline(deadline, options.signal)
+    : undefined
+  try {
+    return await invokeOnce<TResponse>(id, route, request, options, deadline, watch?.signal ?? options.signal)
+  }
+  catch (error) {
+    // 看守中止的是超时：换成与后端同码的错误，调用方取消的照原样抛
+    if (watch?.expired)
+      throw new ApiError(504, { code: ErrorCodes.timeout, detail: config.getTimeoutMessage?.() ?? 'The request timed out.' })
+    throw error
+  }
+  finally {
+    watch?.dispose()
+  }
+}
+
+/** 发出一次调用（未认证时换令牌重放一次），截止时间与取消信号由 `invoke` 定好 */
+async function invokeOnce<TResponse>(id: string, route: RouteDef, request: unknown, options: CallOptions, deadline: Date | undefined, signal: AbortSignal | undefined): Promise<TResponse> {
   const { url, body } = buildRequest(id, route, request)
   const traceparent = newTraceparent()
   const send = async (token: string | null): Promise<Response> => {
@@ -150,13 +227,13 @@ export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, r
       headers['Content-Type'] = 'application/json'
     if (token)
       headers.Authorization = `Bearer ${token}`
-    if (options.deadline)
-      headers['xihan-deadline'] = options.deadline.toISOString()
+    if (deadline)
+      headers['xihan-deadline'] = deadline.toISOString()
     return (config.fetch ?? fetch)(url, {
       method: route.method,
       headers,
       body,
-      signal: options.signal,
+      signal,
     })
   }
 

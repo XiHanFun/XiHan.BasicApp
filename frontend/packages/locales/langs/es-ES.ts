@@ -847,6 +847,7 @@ export default {
     back_home: 'Volver al inicio',
     back_prev: 'Volver',
     maintenance: 'El sistema se está actualizando. Inténtelo de nuevo en unos momentos.',
+    request_timeout: 'La solicitud ha superado el tiempo de espera. Inténtalo de nuevo más tarde.',
   },
   header: {
     context: {

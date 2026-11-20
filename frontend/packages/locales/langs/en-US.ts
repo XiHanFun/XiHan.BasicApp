@@ -847,6 +847,7 @@ export default {
     back_home: 'Back to Home',
     back_prev: 'Go Back',
     maintenance: 'The system is being upgraded. Please try again shortly.',
+    request_timeout: 'The request timed out. Please try again later.',
   },
   header: {
     context: {

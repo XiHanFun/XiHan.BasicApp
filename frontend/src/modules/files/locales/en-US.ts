@@ -6,6 +6,7 @@
 // Message file: its key set must match the other locales exactly (guarded by scripts/check-i18n.mjs).
 export default {
   files: {
+    download_unavailable: 'The file cannot be downloaded right now. It may have been deleted, or the storage is unavailable.',
     library: {
       title: 'File Management',
       kinds: {

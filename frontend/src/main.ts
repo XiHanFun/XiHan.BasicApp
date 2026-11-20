@@ -50,6 +50,8 @@ async function bootstrap() {
     baseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
     getToken: () => auth.accessToken,
     getLocale: () => appStore.locale,
+    // 后端挂死或网络中断、等不到它回超时时，前端自己中止给的文案
+    getTimeoutMessage: () => $t('error.request_timeout'),
     hooks: {
       // 访问令牌过期：用刷新令牌换一次并重放；刷新也失败即回登录页
       onUnauthenticated: async () => {

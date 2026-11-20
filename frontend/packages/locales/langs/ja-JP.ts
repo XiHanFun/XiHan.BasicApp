@@ -847,6 +847,7 @@ export default {
     back_home: 'ホームに戻る',
     back_prev: '前のページに戻る',
     maintenance: 'システムを更新中です。しばらくしてから再試行してください。',
+    request_timeout: 'リクエストがタイムアウトしました。しばらくしてから再試行してください',
   },
   header: {
     context: {

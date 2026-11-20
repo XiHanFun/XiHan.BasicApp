@@ -6,6 +6,7 @@
 // 文言ファイル：キー集合は en-US.ts と完全に一致させること（scripts/check-i18n.mjs で検査）
 export default {
   files: {
+    download_unavailable: 'ファイルを今ダウンロードできません。削除されたか、ストレージを利用できない可能性があります',
     library: {
       title: 'ファイル管理',
       kinds: {

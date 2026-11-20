@@ -6,6 +6,7 @@
 // 문구 파일: 키 집합은 en-US.ts와 완전히 같아야 해요(scripts/check-i18n.mjs가 검사).
 export default {
   files: {
+    download_unavailable: '지금은 파일을 다운로드할 수 없습니다. 삭제되었거나 스토리지를 사용할 수 없을 수 있습니다',
     library: {
       title: '파일 관리',
       kinds: {

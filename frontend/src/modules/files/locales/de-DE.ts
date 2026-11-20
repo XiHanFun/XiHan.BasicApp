@@ -6,6 +6,7 @@
 // Textdatei: Der Schlüsselsatz muss exakt mit en-US.ts übereinstimmen (geprüft von scripts/check-i18n.mjs).
 export default {
   files: {
+    download_unavailable: 'Die Datei kann gerade nicht heruntergeladen werden. Sie wurde möglicherweise gelöscht oder der Speicher ist nicht verfügbar.',
     library: {
       title: 'Dateiverwaltung',
       kinds: {

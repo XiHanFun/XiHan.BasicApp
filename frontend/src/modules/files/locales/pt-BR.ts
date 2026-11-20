@@ -6,6 +6,7 @@
 // Arquivo de textos: o conjunto de chaves deve coincidir exatamente com en-US.ts (verificado por scripts/check-i18n.mjs).
 export default {
   files: {
+    download_unavailable: 'Não é possível baixar o arquivo agora. Ele pode ter sido excluído ou o armazenamento está indisponível.',
     library: {
       title: 'Gerenciamento de arquivos',
       kinds: {

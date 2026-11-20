@@ -7,7 +7,7 @@ import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { reactive, ref } from 'vue'
 import { knowledgeDocuments, toPageRequest, toSchemaPageResult } from '~/contracts'
-import { ApiError, throwOnFailed } from '~/request'
+import { ApiError, LONG_TIMEOUT_MS, throwOnFailed } from '~/request'
 
 export type KnowledgeRow = ResponseOf<'knowledge-documents.list'>['items'][number]
 export type KnowledgeDetail = ResponseOf<'knowledge-documents.get'>
@@ -109,7 +109,7 @@ export function useKnowledgeIngest() {
         embeddingProviderCode: blankToNull(form.embeddingProviderCode),
         order: 0,
         remark: blankToNull(form.remark),
-      })
+      }, { timeoutMs: LONG_TIMEOUT_MS })
       open.value = false
       return document
     }
@@ -167,7 +167,7 @@ export function useKnowledgePlayground() {
         top: top.value,
         provider: blankToNull(provider.value),
         answer: wantAnswer.value,
-      })
+      }, { timeoutMs: LONG_TIMEOUT_MS })
       answer.value = result.answer ?? null
       citations.value = result.citations
       searched.value = true

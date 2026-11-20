@@ -847,6 +847,7 @@ export default {
     back_home: '返回首页',
     back_prev: '返回上一页',
     maintenance: '系统正在升级维护，请稍后重试',
+    request_timeout: '请求超时，请稍后重试',
   },
   header: {
     context: {

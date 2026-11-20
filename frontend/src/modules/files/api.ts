@@ -5,7 +5,8 @@
 
 import type { ResponseOf } from '~/contracts'
 import { files as filesOps } from '~/contracts'
-import { endpointUrl, parseProblem, uploadForm } from '~/request'
+import { $t } from '~/locales'
+import { endpointUrl, LONG_TIMEOUT_MS, parseProblem, uploadForm } from '~/request'
 
 export type FileRow = ResponseOf<'files.get'>
 export type FileAccessLevel = FileRow['accessLevel']
@@ -93,7 +94,7 @@ async function uploadInParts(file: File, options: UploadFileOptions): Promise<Fi
         report()
       })
     }
-    const created = await filesOps.completeUpload({ uploadId: upload.id }, { signal })
+    const created = await filesOps.completeUpload({ uploadId: upload.id }, { signal, timeoutMs: LONG_TIMEOUT_MS })
     options.onProgress?.(100)
     return created
   }
@@ -101,6 +102,34 @@ async function uploadInParts(file: File, options: UploadFileOptions): Promise<Fi
     // 放弃这次上传，原来的错误照常抛出；放弃失败的由后端的过期作业兜底清理
     filesOps.abortUpload({ uploadId: upload.id }).catch(() => undefined)
     throw error
+  }
+}
+
+/**
+ * 下载前的探测：带 `Range: bytes=0-0` 只取第一个字节，读完响应头就中止，服务端不认 Range 时也不把整份下下来
+ * 本地存储（宿主的 `/blobs/…`）出错回问题详情，按它的本地化正文报；S3 兼容存储回 XML、网络不通或跨域被拦时没有可读的原因，报「暂时无法下载」
+ */
+async function ensureDownloadable(url: string): Promise<void> {
+  const controller = new AbortController()
+  let response: Response
+  try {
+    response = await fetch(url, {
+      headers: { Range: 'bytes=0-0' },
+      signal: controller.signal,
+    })
+  }
+  catch {
+    throw new Error($t('files.download_unavailable'))
+  }
+  try {
+    if (response.ok)
+      return
+    if (response.headers.get('Content-Type')?.includes('json'))
+      throw await parseProblem(response, '')
+    throw new Error($t('files.download_unavailable'))
+  }
+  finally {
+    controller.abort()
   }
 }
 
@@ -171,10 +200,15 @@ export async function fetchFileBlob(id: string): Promise<Blob> {
   return response.blob()
 }
 
-/** 以附件下载：经签名地址让浏览器自己下载（带原始文件名），不把内容读进内存 */
+/**
+ * 以附件下载：经签名地址让浏览器自己下载（带原始文件名），不把内容读进内存
+ * 先只取第一个字节探一下：存储不可用、文件已删或地址失效时在当前页报错，不让浏览器跳到错误响应上
+ */
 export async function downloadFile(id: string): Promise<void> {
+  const url = await fileLink(id, true)
+  await ensureDownloadable(url)
   const anchor = document.createElement('a')
-  anchor.href = await fileLink(id, true)
+  anchor.href = url
   anchor.rel = 'noopener'
   document.body.append(anchor)
   anchor.click()

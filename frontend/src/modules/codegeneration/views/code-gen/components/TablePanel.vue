@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { deleteConfirmText, renderTag, SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { codegenTables } from '~/contracts'
-import { throwOnFailed } from '~/request'
+import { LONG_TIMEOUT_MS, throwOnFailed } from '~/request'
 import ColumnConfigModal from './ColumnConfigModal.vue'
 import ImportTableModal from './ImportTableModal.vue'
 import PreviewModal from './PreviewModal.vue'
@@ -332,7 +332,7 @@ async function handleGenerate(row: TableRow) {
     return
   generating.value = true
   try {
-    const result = await codegenTables.generate({ id: row.id, deliveryType: 'Zip' })
+    const result = await codegenTables.generate({ id: row.id, deliveryType: 'Zip' }, { timeoutMs: LONG_TIMEOUT_MS })
     await downloadPackage({ id: result.historyId, tableName: row.tableName, batchNumber: null })
     toast.success(t('codegeneration.code_gen.generate.generate_success', { count: result.fileCount }))
     reload()
@@ -352,7 +352,7 @@ async function handleGenerateToDisk(row: TableRow) {
     return
   generating.value = true
   try {
-    const result = await codegenTables.generate({ id: row.id, deliveryType: 'Project' })
+    const result = await codegenTables.generate({ id: row.id, deliveryType: 'Project' }, { timeoutMs: LONG_TIMEOUT_MS })
     toast.success(t('codegeneration.code_gen.generate.write_success', {
       written: result.writtenCount,
       skipped: result.skippedPaths.length,

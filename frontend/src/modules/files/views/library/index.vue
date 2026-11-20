@@ -52,7 +52,7 @@ import { actionConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker
 import { confirmDanger, dialog, islandStart, toast } from '~/composables'
 import { files as filesApi, storageConfigs as storageConfigsApi } from '~/contracts'
 import { usePermission } from '~/hooks'
-import { throwOnFailed } from '~/request'
+import { LONG_TIMEOUT_MS, throwOnFailed } from '~/request'
 import { formatDate, formatFileSize } from '~/utils'
 import { downloadFile, fetchFileBlob, fileLink, uploadFile } from '../../api'
 import { storageTypeLabel } from '../storage-configs/storage-config'
@@ -664,7 +664,7 @@ async function saveCopy() {
     return
   copySaving.value = true
   try {
-    const copy = await filesApi.copyStorage({ id: file.id, storageConfigId: target })
+    const copy = await filesApi.copyStorage({ id: file.id, storageConfigId: target }, { timeoutMs: LONG_TIMEOUT_MS })
     toast.success(t('files.library.messages.copied', { name: copy.storageConfigName ?? copy.storageConfigCode ?? '' }))
     copyVisible.value = false
     await loadStorages()
@@ -703,7 +703,7 @@ async function verifyStorage(storage: FileStorageRow) {
   if (!file)
     return
   try {
-    await filesApi.verifyStorage({ id: file.id, storageId: storage.id })
+    await filesApi.verifyStorage({ id: file.id, storageId: storage.id }, { timeoutMs: LONG_TIMEOUT_MS })
     await afterStorageChange()
     const verified = storageRows.value.find(row => row.id === storage.id)
     if (verified?.status === 'VerificationFailed')

@@ -17,7 +17,7 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, deleteConfirmText, renderTag, SchemaPage, statusConfirmText, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { notification, toast } from '~/composables'
 import { aiProviders } from '~/contracts'
-import { throwOnFailed } from '~/request'
+import { LONG_TIMEOUT_MS, throwOnFailed } from '~/request'
 import { endpointRequired, probeLines, providersResource, useProviderEditor, vendorOptions } from './use-providers'
 
 defineOptions({ name: 'AiProvidersPage' })
@@ -256,7 +256,7 @@ async function handleTest(row: ProviderRow) {
   testingId.value = row.id
   const loading = toast.loading(t('ai.providers.testing'))
   try {
-    const result = await aiProviders.test({ id: row.id })
+    const result = await aiProviders.test({ id: row.id }, { timeoutMs: LONG_TIMEOUT_MS })
     loading.destroy()
     // 成功 5 秒后自动关闭，失败常驻待看完
     if (result.success) {

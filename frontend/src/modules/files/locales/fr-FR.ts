@@ -6,6 +6,7 @@
 // Fichier de textes : l’ensemble des clés doit correspondre exactement à en-US.ts (contrôlé par scripts/check-i18n.mjs).
 export default {
   files: {
+    download_unavailable: 'Impossible de télécharger le fichier pour le moment. Il a peut-être été supprimé ou le stockage est indisponible.',
     library: {
       title: 'Gestion des fichiers',
       kinds: {

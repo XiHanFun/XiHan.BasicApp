@@ -6,6 +6,7 @@
 // 文案檔：鍵集須與 en-US.ts 完全對稱（scripts/check-i18n.mjs 守護）
 export default {
   files: {
+    download_unavailable: '檔案暫時無法下載，可能已被刪除或儲存空間無法使用',
     library: {
       title: '檔案管理',
       kinds: {

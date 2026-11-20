@@ -19,6 +19,7 @@ import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput } from '~/compo
 import { toast } from '~/composables'
 import { knowledgeDocuments } from '~/contracts'
 import { Icon } from '~/iconify'
+import { LONG_TIMEOUT_MS } from '~/request'
 import { citationTitle, INGEST_FILE_ACCEPT, knowledgeDocumentsResource, useKnowledgeIngest, useKnowledgePlayground } from './use-knowledge-documents'
 
 defineOptions({ name: 'AiKnowledgeDocumentsPage' })
@@ -211,7 +212,7 @@ function notifyIndexed(status: KnowledgeIndexStatus, errorMessage: null | string
 
 async function handleReindex(row: KnowledgeRow) {
   try {
-    const document = await knowledgeDocuments.reindex({ id: row.id })
+    const document = await knowledgeDocuments.reindex({ id: row.id }, { timeoutMs: LONG_TIMEOUT_MS })
     notifyIndexed(document.status, document.errorMessage, () => toast.success(t('ai.knowledge_documents.reindex_success')))
     reload()
   }

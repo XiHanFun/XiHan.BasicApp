@@ -847,6 +847,7 @@ export default {
     back_home: '홈으로 돌아가기',
     back_prev: '이전 페이지로',
     maintenance: '시스템을 업그레이드하는 중이에요. 잠시 후 다시 시도하세요.',
+    request_timeout: '요청 시간이 초과되었습니다. 잠시 후 다시 시도하세요',
   },
   header: {
     context: {

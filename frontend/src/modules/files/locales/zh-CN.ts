@@ -6,6 +6,7 @@
 // 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）
 export default {
   files: {
+    download_unavailable: '文件暂时无法下载，可能已被删除或存储不可用',
     library: {
       title: '文件管理',
       kinds: {

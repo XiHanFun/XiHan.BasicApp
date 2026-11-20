@@ -847,6 +847,7 @@ export default {
     back_home: 'Zurück zur Startseite',
     back_prev: 'Zurück',
     maintenance: 'Das System wird gerade aktualisiert. Bitte versuchen Sie es in Kürze erneut.',
+    request_timeout: 'Die Anfrage hat das Zeitlimit überschritten. Bitte versuchen Sie es später erneut.',
   },
   header: {
     context: {
