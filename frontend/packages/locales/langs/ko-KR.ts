@@ -358,6 +358,17 @@ export default {
       tip_pinned: '기본 검색 영역(항상 표시)',
       title: '검색 설정',
     },
+    schema_views: {
+      empty: '아직 보기가 없습니다. 필터와 정렬을 설정한 뒤 아래에서 이름을 붙여 저장하세요.',
+      name_label: '보기 이름',
+      name_placeholder: '예: 이번 주 실패',
+      overwrite: '덮어쓰기',
+      remove: '보기 "{name}" 삭제',
+      save: '저장',
+      set_default: '"{name}"을(를) 기본 보기로 설정(페이지를 열 때 자동 적용)',
+      title: '내 보기',
+      unset_default: '"{name}"을(를) 기본 보기에서 해제',
+    },
     profile: {
       binding: {
         btn_bind: '연동',

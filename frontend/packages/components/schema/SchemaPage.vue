@@ -7,6 +7,7 @@
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
 import type { TableDensity } from './useTableSettings'
+import type { ViewSnapshot } from './useViewManager'
 import type { ApiId } from '~/types/contracts'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
@@ -16,6 +17,7 @@ import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore } from '~/stores'
+import { deepClone } from '~/utils'
 import XIconButton from '../common/XIconButton.vue'
 import { formatFieldText } from './renderer'
 import { renderRowActionMenu } from './row-action-menu'
@@ -25,6 +27,7 @@ import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
+import SchemaViewMenu from './SchemaViewMenu.vue'
 import { indexColWidth, PREFIX_COL_W, queryFiltersFromSchema, toColumns, toExportFields, toImportFields } from './selectors'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
@@ -179,19 +182,43 @@ function toggleFullscreen() {
 }
 
 /**
- * 搜索方案（个人视图）—— 作为接口暴露，不内置 UI
- * 当前持久化到本地（localStorage，按 pageCode）；后续可替换为后端按用户保存
- * 页面可通过模板 ref 调用 saveView / applyView / views 自定义方案入口
+ * 个人视图：把筛选、排序与每页条数存成命名方案，按 pageCode 存本地并随表格设置的同步开关跨端同步
+ * 设了默认的视图在首次加载时套用；搜索区的视图按钮与模板 ref 上的 saveView / applyView 都走这里
  */
 const viewManager = useViewManager(props.schema.pageCode)
 
-/** 保存当前列表状态为命名方案 */
-function saveView(name: string) {
-  viewManager.addView(name, {
+/** 当前列表状态的快照（深拷贝，之后改筛选不影响已存的视图） */
+function currentSnapshot(): ViewSnapshot {
+  return deepClone({
     filters: { ...filters },
     sorts: [...sorts.value],
     pageSize: pageSize.value,
   })
+}
+
+/** 保存当前列表状态为命名方案：同名的覆盖它的快照，并成为当前视图 */
+function saveView(name: string) {
+  const trimmed = name.trim()
+  const existing = viewManager.views.value.find(view => view.name === trimmed)
+  if (existing)
+    viewManager.updateView(existing.code, currentSnapshot())
+  const code = existing?.code ?? viewManager.addView(trimmed, currentSnapshot()).code
+  viewManager.applyView(code)
+}
+
+/** 把快照落到表格状态（不查询） */
+function restoreSnapshot(snapshot: ViewSnapshot) {
+  // 置 null 而非 delete：保持搜索控件受控，避免控件回退到自己的内部值而残留旧选择（同 reset）
+  for (const key of Object.keys(filters)) {
+    filters[key] = null
+  }
+  Object.assign(filters, deepClone(snapshot.filters))
+  sorts.value = snapshot.sorts
+    ? [...snapshot.sorts]
+    : []
+  if (snapshot.pageSize) {
+    pageSize.value = snapshot.pageSize
+  }
 }
 
 /** 应用方案：落地快照到表格状态并刷新 */
@@ -200,17 +227,7 @@ function applyView(code: string) {
   if (!snapshot) {
     return
   }
-  // 置 null 而非 delete：保持搜索控件受控，避免控件回退到自己的内部值而残留旧选择（同 reset）
-  for (const key of Object.keys(filters)) {
-    filters[key] = null
-  }
-  Object.assign(filters, snapshot.filters)
-  sorts.value = snapshot.sorts
-    ? [...snapshot.sorts]
-    : []
-  if (snapshot.pageSize) {
-    pageSize.value = snapshot.pageSize
-  }
+  restoreSnapshot(snapshot)
   search()
 }
 
@@ -594,6 +611,14 @@ function onImportFinished(summary: { total: number, success: number, failed: num
 
 onMounted(async () => {
   void dictionaries.resolve()
+  // 设了默认视图的按它首次加载；开着同步时等后端那份视图回来（与表格设置同一条记录，不多等一趟）
+  await viewManager.settled
+  const preferred = viewManager.views.value.find(view => view.isDefault)
+  const snapshot = preferred
+    ? viewManager.applyView(preferred.code)
+    : undefined
+  if (snapshot)
+    restoreSnapshot(snapshot)
   await table.load()
   firstLoaded.value = true
 })
@@ -621,7 +646,7 @@ defineExpose({
   filters,
   // 当前页数据：主从页据此同步「当前行」（选中项被过滤掉时改选首条）
   rows,
-  // 搜索方案接口（无内置 UI，供页面自定义方案入口调用）
+  // 个人视图（搜索区有内置入口，页面也可以自己调）
   views: viewManager.views,
   activeViewCode: viewManager.activeCode,
   saveView,
@@ -718,6 +743,14 @@ const skeletonColumns = computed(() => {
                 @toggle-pin="searchSettings.togglePin"
                 @toggle-visible="searchSettings.toggleVisible"
                 @save="onSaveSearchSettings"
+              />
+              <SchemaViewMenu
+                :views="viewManager.views.value"
+                :active-code="viewManager.activeCode.value"
+                @apply="applyView"
+                @save="saveView"
+                @set-default="viewManager.setDefault"
+                @remove="viewManager.removeView"
               />
             </template>
           </SchemaSearchPanel>

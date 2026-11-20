@@ -358,6 +358,17 @@ export default {
       tip_pinned: '基本検索エリア（常に表示）',
       title: '検索設定',
     },
+    schema_views: {
+      empty: 'ビューはまだありません。絞り込みと並び替えを設定し、下で名前を付けて保存してください。',
+      name_label: 'ビュー名',
+      name_placeholder: '例：今週の失敗分',
+      overwrite: '上書き',
+      remove: 'ビュー「{name}」を削除',
+      save: '保存',
+      set_default: '「{name}」を既定のビューにする（ページを開くと自動で適用）',
+      title: 'マイビュー',
+      unset_default: '「{name}」を既定のビューから外す',
+    },
     profile: {
       binding: {
         btn_bind: '連携',

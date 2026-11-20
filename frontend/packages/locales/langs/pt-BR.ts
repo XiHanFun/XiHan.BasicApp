@@ -358,6 +358,17 @@ export default {
       tip_pinned: 'Área de busca básica (sempre exibida)',
       title: 'Configurações de busca',
     },
+    schema_views: {
+      empty: 'Ainda não há visões. Ajuste filtros e ordenação e salve-os abaixo com um nome.',
+      name_label: 'Nome da visão',
+      name_placeholder: 'ex.: Falhas desta semana',
+      overwrite: 'Substituir',
+      remove: 'Excluir a visão "{name}"',
+      save: 'Salvar',
+      set_default: 'Tornar "{name}" a visão padrão (aplicada ao abrir a página)',
+      title: 'Minhas visões',
+      unset_default: 'Deixar de usar "{name}" como visão padrão',
+    },
     profile: {
       binding: {
         btn_bind: 'Vincular',

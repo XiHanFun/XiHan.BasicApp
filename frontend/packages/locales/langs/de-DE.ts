@@ -358,6 +358,17 @@ export default {
       tip_pinned: 'Einfacher Suchbereich (immer angezeigt)',
       title: 'Sucheinstellungen',
     },
+    schema_views: {
+      empty: 'Noch keine Ansichten. Filter und Sortierung einstellen und unten unter einem Namen speichern.',
+      name_label: 'Name der Ansicht',
+      name_placeholder: 'z. B. Fehlgeschlagen diese Woche',
+      overwrite: 'Überschreiben',
+      remove: 'Ansicht „{name}“ löschen',
+      save: 'Speichern',
+      set_default: '„{name}“ als Standardansicht festlegen (beim Öffnen der Seite angewendet)',
+      title: 'Meine Ansichten',
+      unset_default: '„{name}“ nicht mehr als Standardansicht verwenden',
+    },
     profile: {
       binding: {
         btn_bind: 'Verknüpfen',

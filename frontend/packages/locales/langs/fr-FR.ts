@@ -358,6 +358,17 @@ export default {
       tip_pinned: 'Zone de recherche de base (toujours affichée)',
       title: 'Paramètres de recherche',
     },
+    schema_views: {
+      empty: 'Aucune vue pour l’instant. Réglez les filtres et le tri, puis enregistrez-les ci-dessous sous un nom.',
+      name_label: 'Nom de la vue',
+      name_placeholder: 'ex. Échecs de la semaine',
+      overwrite: 'Remplacer',
+      remove: 'Supprimer la vue « {name} »',
+      save: 'Enregistrer',
+      set_default: 'Définir « {name} » comme vue par défaut (appliquée à l’ouverture de la page)',
+      title: 'Mes vues',
+      unset_default: 'Ne plus utiliser « {name} » comme vue par défaut',
+    },
     profile: {
       binding: {
         btn_bind: 'Associer',

@@ -358,6 +358,17 @@ export default {
       tip_pinned: 'Basic search area (always shown)',
       title: 'Search Settings',
     },
+    schema_views: {
+      empty: 'No views yet. Set up filters and sorting, then save them under a name below.',
+      name_label: 'View name',
+      name_placeholder: 'e.g. Failed this week',
+      overwrite: 'Overwrite',
+      remove: 'Delete view "{name}"',
+      save: 'Save',
+      set_default: 'Make "{name}" the default view (applied when the page opens)',
+      title: 'My views',
+      unset_default: 'Stop using "{name}" as the default view',
+    },
     profile: {
       binding: {
         btn_bind: 'Bind',

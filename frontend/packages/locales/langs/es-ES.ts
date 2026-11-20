@@ -358,6 +358,17 @@ export default {
       tip_pinned: 'Área de búsqueda básica (siempre visible)',
       title: 'Configuración de búsqueda',
     },
+    schema_views: {
+      empty: 'Aún no hay vistas. Configure filtros y orden y guárdelos abajo con un nombre.',
+      name_label: 'Nombre de la vista',
+      name_placeholder: 'p. ej. Fallidos esta semana',
+      overwrite: 'Sobrescribir',
+      remove: 'Eliminar la vista «{name}»',
+      save: 'Guardar',
+      set_default: 'Usar «{name}» como vista predeterminada (se aplica al abrir la página)',
+      title: 'Mis vistas',
+      unset_default: 'Dejar de usar «{name}» como vista predeterminada',
+    },
     profile: {
       binding: {
         btn_bind: 'Vincular',

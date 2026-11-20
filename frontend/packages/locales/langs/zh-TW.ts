@@ -358,6 +358,17 @@ export default {
       tip_pinned: '常用搜尋區（一律顯示）',
       title: '搜尋設定',
     },
+    schema_views: {
+      empty: '還沒有檢視：設好篩選與排序後，在下面取個名字儲存',
+      name_label: '檢視名稱',
+      name_placeholder: '如：本週失敗的',
+      overwrite: '覆蓋',
+      remove: '刪除檢視「{name}」',
+      save: '儲存',
+      set_default: '設為預設檢視「{name}」（開啟頁面時自動套用）',
+      title: '我的檢視',
+      unset_default: '取消預設檢視「{name}」',
+    },
     profile: {
       binding: {
         btn_bind: '綁定',

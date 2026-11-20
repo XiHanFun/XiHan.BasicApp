@@ -103,8 +103,8 @@ export function useViewManager(pageCode: string) {
     persist()
   }
 
-  /** 设为默认（唯一） */
-  function setDefault(code: string) {
+  /** 设为默认（唯一）；传 null 取消默认 */
+  function setDefault(code: null | string) {
     for (const v of views.value) {
       v.isDefault = v.code === code
     }
@@ -124,6 +124,8 @@ export function useViewManager(pageCode: string) {
   return {
     /** 首屏能否渲染：开着同步时等后端那份回来 */
     ready: remote.ready,
+    /** 后端那份处理完（或本来就不用等）时 resolve：首次加载据此决定用不用默认视图 */
+    settled: remote.settled,
     views,
     activeCode,
     addView,

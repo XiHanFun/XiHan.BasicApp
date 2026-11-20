@@ -358,6 +358,17 @@ export default {
       tip_pinned: '常用搜索区（始终展示）',
       title: '搜索设置',
     },
+    schema_views: {
+      empty: '还没有视图：设好筛选与排序后，在下面起个名字保存',
+      name_label: '视图名称',
+      name_placeholder: '如：本周失败的',
+      overwrite: '覆盖',
+      remove: '删除视图「{name}」',
+      save: '保存',
+      set_default: '设为默认视图「{name}」（打开页面时自动套用）',
+      title: '我的视图',
+      unset_default: '取消默认视图「{name}」',
+    },
     profile: {
       binding: {
         btn_bind: '绑定',
