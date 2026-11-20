@@ -589,11 +589,6 @@
                   "exclusiveMinimum": 0,
                   "default": 30,
                   "description": "租户目录缓存条目的兜底存活时间（秒），必须为正；停用、改连接串与删除经失效立即生效，容量由 XiHan:Caching 的本机缓存管"
-                },
-                "MaxListedTenants": {
-                  "type": "integer",
-                  "description": "列出租户时返回的上限，超出部分不返回并记警告",
-                  "default": 10000
                 }
               },
               "description": "租户目录（数据库）的缓存"

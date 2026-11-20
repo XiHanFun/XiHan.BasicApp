@@ -330,7 +330,6 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `TenantClaim` | `tenant` | 令牌里承载租户 ID 的声明 |
 | `DefaultTenant` | 不写 | BasicApp 不用：配了会把平台调用落到这个租户上 |
 | `Database:CacheTimeToLiveSeconds` | `30` | 租户目录缓存的兜底存活时间，必须为正；停用、改独立库连接与删除经失效在所有实例立即生效，分库解析每次读租户目录、不另缓存 |
-| `Database:MaxListedTenants` | `10000` | 列出租户时返回的上限，超出不返回并记警告 |
 
 ## `XiHan:Localization`
 
