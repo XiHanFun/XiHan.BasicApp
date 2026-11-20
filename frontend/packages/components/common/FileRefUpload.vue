@@ -5,10 +5,11 @@
 
 <script lang="ts" setup>
 import type { FileUploadRequest } from '@xihan-ui/vue'
-import { useFieldControl, XhButton, XhButtonIndicator, XhButtonLabel, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger } from '@xihan-ui/vue'
-import { computed, ref, watch } from 'vue'
+import { useFieldControl, XhAlertAction, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger, XhProgress } from '@xihan-ui/vue'
+import { computed, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveAvatarUrl, toast, useAvatarUrl } from '~/composables'
+import { ResumableUploadError } from '~/files'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores/app-context'
 
@@ -17,7 +18,7 @@ import { useAppContext } from '~/stores/app-context'
  *
  * 展示地址按需换取（签名地址会过期，不落库）；也兼容历史数据里的直链
  * image 显示预览图，file 显示原始文件名与打开入口。上传与查看走文件库的接口，
- * 使用者要有文件的上传与查看权限
+ * 使用者要有文件的上传与查看权限；上传与文件库同一条路径：先试秒传，大文件分片，中断了可以接着传
  */
 defineOptions({ name: 'XFileRefUpload' })
 
@@ -28,7 +29,7 @@ const props = withDefaults(defineProps<{
   kind?: 'file' | 'image'
   /** 接受的 MIME / 扩展名；图片缺省只收图片 */
   accept?: string
-  /** 最大体积（MB） */
+  /** 最大体积（MB）；图片缺省 10，文件缺省不在前端限制，以文件库的上限为准 */
   maxSizeMb?: number
   /** 是否禁用 */
   disabled?: boolean
@@ -36,7 +37,7 @@ const props = withDefaults(defineProps<{
   value: null,
   kind: 'file',
   accept: undefined,
-  maxSizeMb: 10,
+  maxSizeMb: undefined,
   disabled: false,
 })
 
@@ -49,10 +50,20 @@ const fieldControl = useFieldControl()
 
 const { t } = useI18n()
 const uploading = ref(false)
+const progress = ref(0)
+const progressLabelId = useId()
+
+/** 中断了、还能接着传的那个文件：再传它时只补没传完的部分 */
+const interrupted = shallowRef<{ file: File, message: string } | null>(null)
+/** 「继续上传」不经上传组件，字段卸载时由这里中止 */
+let resuming: AbortController | null = null
 
 const isImage = computed(() => props.kind === 'image')
 const acceptTypes = computed(() => props.accept ?? (isImage.value ? 'image/*' : undefined))
-const maxFileSize = computed(() => props.maxSizeMb * 1024 * 1024)
+const sizeLimitMb = computed(() => props.maxSizeMb ?? (isImage.value ? 10 : undefined))
+const maxFileSize = computed(() => (sizeLimitMb.value === undefined
+  ? undefined
+  : sizeLimitMb.value * 1024 * 1024))
 const reference = computed(() => props.value?.trim() || null)
 
 /** 图片预览地址：文件 ID 换签名地址（带缓存），直链按源解析 */
@@ -115,23 +126,43 @@ const fileLabel = computed(() => {
   return fileName.value || reference.value || ''
 })
 
-const hint = computed(() =>
-  isImage.value
-    ? t('component.file_ref_upload.hint_image', { size: props.maxSizeMb })
-    : t('component.file_ref_upload.hint_file', { size: props.maxSizeMb }),
-)
+const hint = computed(() => {
+  if (sizeLimitMb.value === undefined) {
+    return ''
+  }
+  return isImage.value
+    ? t('component.file_ref_upload.hint_image', { size: sizeLimitMb.value })
+    : t('component.file_ref_upload.hint_file', { size: sizeLimitMb.value })
+})
 
-async function handleUpload(request: FileUploadRequest) {
+/**
+ * 传一个文件并回填它的 ID
+ * 中断了可以续传的留下提示与「继续上传」，别的失败轻提示；中止（字段卸载）不报
+ */
+async function transfer(file: File, onProgress?: (percent: number) => void, signal?: AbortSignal) {
   uploading.value = true
+  progress.value = 0
+  interrupted.value = null
   try {
-    const uploaded = await useAppContext().apis.uploadFileApi(request.file)
+    const uploaded = await useAppContext().apis.uploadFileApi(file, {
+      onProgress: (percent) => {
+        progress.value = percent
+        onProgress?.(percent)
+      },
+      signal,
+    })
     knownNames.set(uploaded.id, uploaded.originalName)
     // 只落文件 ID：展示地址由读取侧按需换取，避免持久化会过期的签名地址
     emit('update:value', uploaded.id)
     toast.success(t('component.file_ref_upload.success'))
   }
   catch (error) {
-    toast.danger((error as Error)?.message || t('component.file_ref_upload.failed'))
+    if (error instanceof ResumableUploadError) {
+      interrupted.value = { file, message: error.message }
+    }
+    else if (!(error instanceof DOMException && error.name === 'AbortError')) {
+      toast.danger((error as Error)?.message || t('component.file_ref_upload.failed'))
+    }
     throw error
   }
   finally {
@@ -139,9 +170,36 @@ async function handleUpload(request: FileUploadRequest) {
   }
 }
 
+/** 抛回去让上传组件把这个文件记成失败态；组件卸载时由它的信号中止 */
+function handleUpload(request: FileUploadRequest) {
+  return transfer(request.file, request.onProgress, request.signal)
+}
+
+async function resume() {
+  const pending = interrupted.value
+  if (!pending) {
+    return
+  }
+  const controller = new AbortController()
+  resuming = controller
+  try {
+    await transfer(pending.file, undefined, controller.signal)
+  }
+  catch {
+    // 失败已在 transfer 里报出或留下续传提示
+  }
+  finally {
+    if (resuming === controller) {
+      resuming = null
+    }
+  }
+}
+
+onBeforeUnmount(() => resuming?.abort())
+
 /** 超限由上传组件判定后回调，这里只负责报出来 */
 function handleReject() {
-  toast.danger(t('component.file_ref_upload.too_large', { size: props.maxSizeMb }))
+  toast.danger(t('component.file_ref_upload.too_large', { size: sizeLimitMb.value }))
 }
 
 async function open() {
@@ -210,7 +268,34 @@ function clear() {
           {{ t('component.file_ref_upload.remove') }}
         </XhButton>
       </div>
-      <div class="x-file-ref-upload__hint">
+      <div v-if="uploading" class="x-file-ref-upload__progress">
+        <XhProgress
+          class="x-file-ref-upload__bar"
+          :value="progress"
+          variant="line"
+          size="sm"
+          :aria-labelledby="progressLabelId"
+        />
+        <span :id="progressLabelId" class="x-file-ref-upload__percent">
+          {{ t('component.file_ref_upload.uploading', { percent: progress }) }}
+        </span>
+      </div>
+      <XhAlertRoot v-else-if="interrupted" tone="warning" variant="subtle">
+        <XhAlertIndicator>
+          <Icon icon="lucide:triangle-alert" />
+        </XhAlertIndicator>
+        <XhAlertContent>
+          <XhAlertTitle>{{ t('component.file_ref_upload.interrupted', { name: interrupted.file.name }) }}</XhAlertTitle>
+          <XhAlertDescription>{{ interrupted.message }}</XhAlertDescription>
+        </XhAlertContent>
+        <XhAlertAction>
+          <XhButton size="sm" variant="ghost" :disabled="disabled" @click="resume">
+            <Icon icon="lucide:rotate-cw" />
+            <XhButtonLabel>{{ t('component.file_ref_upload.resume') }}</XhButtonLabel>
+          </XhButton>
+        </XhAlertAction>
+      </XhAlertRoot>
+      <div v-if="hint" class="x-file-ref-upload__hint">
         {{ hint }}
       </div>
     </div>
@@ -258,8 +343,10 @@ function clear() {
   object-fit: contain;
 }
 
+/* 撑满字段宽，进度条与续传提示随字段铺开 */
 .x-file-ref-upload__body {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--xh-space-2);
   min-width: 0;
@@ -284,6 +371,24 @@ function clear() {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--xh-space-2);
+}
+
+.x-file-ref-upload__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-2);
+}
+
+.x-file-ref-upload__bar {
+  flex: 1;
+  min-width: 0;
+}
+
+.x-file-ref-upload__percent {
+  flex-shrink: 0;
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
+  font-variant-numeric: tabular-nums;
 }
 
 .x-file-ref-upload__hint {

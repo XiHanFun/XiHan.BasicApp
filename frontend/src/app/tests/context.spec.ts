@@ -1326,6 +1326,36 @@ describe('应用上下文：壳层接口接到契约操作', () => {
     expect(useUserStore().avatar).toBe('f-2')
   })
 
+  it('文件引用上传：与文件库同一条路径，先按内容摘要试 files.fast-upload，命中即回文件 ID 与原始文件名、进度到 100', async () => {
+    const calls: Call[] = []
+    record(calls, url => url.endsWith('/api/files:fast-upload')
+      ? json(200, {
+          file: { id: 'f-9', originalName: 'a.txt' },
+        })
+      : json(500, {}))
+    const progress: number[] = []
+    const file = new File([
+      'hello',
+    ], 'a.txt', { type: 'text/plain' })
+
+    expect(await useAppContext().apis.uploadFileApi(file, {
+      onProgress: percent => progress.push(percent),
+    })).toEqual({ id: 'f-9', originalName: 'a.txt' })
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      url: '/api/files:fast-upload',
+      body: {
+        // 'hello' 的 SHA-256
+        hash: '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824',
+        size: 5,
+        originalName: 'a.txt',
+        contentType: 'text/plain',
+      },
+    })
+    expect(progress).toEqual([100])
+  })
+
   it('模仿：范围只取正常状态的租户；候选与发起把范围原样传给操作', async () => {
     const calls: Call[] = []
     record(calls, (url) => {

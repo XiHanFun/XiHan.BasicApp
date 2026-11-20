@@ -85,7 +85,7 @@ files.abort-upload        放弃，丢弃已上传的分片
 
 上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。完成时缺片或总大小不符（`FILES_CONFLICT_009` / `010`）可以补传后再完成；拼好后回读的大小仍与声明的不符时，对象删掉、上传记为失败（`Failed`），只能重新发起。
 
-前端文件库的上传（`src/modules/files/api.ts` 的 `uploadFile`）按这个顺序走：
+前端上传到文件库都走公共包 `~/files` 的 `uploadFile`（文件管理页与业务表单里的文件引用控件 `XFileRefUpload` 共用），按这个顺序走：
 
 1. 200 MiB 以内、浏览器有 Web Crypto（HTTPS 或 localhost）时，先算 SHA-256 试 `files.fast-upload`。命中即直接得到新文件；没命中或探测失败照常上传。
 2. 16 MiB 以内一次请求传完。更大的走分片：每批至多签 100 片、3 片并发，一片失败了换新签名地址重试，至多 3 次，间隔 1 秒、2 秒。

@@ -129,6 +129,9 @@ export default {
       too_large: '檔案大小不能超過 {size}MB',
       unavailable: '檔案無法使用（已刪除或無檢視權限）',
       open_failed: '開啟檔案失敗',
+      uploading: '上傳中 {percent}%',
+      interrupted: '上傳中斷：{name}',
+      resume: '繼續上傳',
     },
     image_crop: {
       alt: '待裁切的圖片',
@@ -1601,6 +1604,9 @@ export default {
     title: '發現新版本',
     description: '偵測到網頁有更新，請重新整理頁面以載入最新版本。',
     refresh: '立即重新整理',
+  },
+  file_upload: {
+    interrupted: '上傳中斷了，已傳的部分會保留：再次上傳同一個檔案即從中斷處繼續',
   },
   print_service: {
     template_version_changed: '列印範本已更新，請關閉模擬資料表單後重新開啟。',

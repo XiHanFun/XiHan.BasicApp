@@ -129,6 +129,9 @@ export default {
       too_large: 'Le fichier ne doit pas dépasser {size}MB',
       unavailable: 'Fichier indisponible (supprimé ou sans droit de lecture)',
       open_failed: 'Impossible d’ouvrir le fichier',
+      uploading: 'Téléversement {percent} %',
+      interrupted: 'Téléversement interrompu : {name}',
+      resume: 'Reprendre le téléversement',
     },
     image_crop: {
       alt: 'Image à recadrer',
@@ -1601,6 +1604,9 @@ export default {
     title: 'Nouvelle version disponible',
     description: 'Une nouvelle version a été détectée. Actualisez la page pour charger la dernière version.',
     refresh: 'Actualiser maintenant',
+  },
+  file_upload: {
+    interrupted: 'Le téléversement a été interrompu. Les parties déjà envoyées sont conservées : téléversez à nouveau le même fichier pour reprendre là où il s’est arrêté.',
   },
   print_service: {
     template_version_changed: 'Le modèle d’impression a été mis à jour. Fermez le formulaire de données d’exemple puis rouvrez-le.',

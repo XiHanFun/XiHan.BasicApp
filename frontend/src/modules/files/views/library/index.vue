@@ -51,10 +51,11 @@ import { useI18n } from 'vue-i18n'
 import { actionConfirmText, Icon, renderTag, SchemaPage, XDataTable, XDatePicker, XIconButton, XInput, XSelect } from '~/components'
 import { confirmDanger, dialog, islandStart, toast } from '~/composables'
 import { files as filesApi, storageConfigs as storageConfigsApi } from '~/contracts'
+import { uploadFile } from '~/files'
 import { usePermission } from '~/hooks'
 import { LONG_TIMEOUT_MS, throwOnFailed } from '~/request'
 import { formatDate, formatFileSize } from '~/utils'
-import { downloadFile, fetchFileBlob, fileLink, uploadFile } from '../../api'
+import { downloadFile, fetchFileBlob, fileLink } from '../../api'
 import { storageTypeLabel } from '../storage-configs/storage-config'
 import {
   accessLevelLabel,

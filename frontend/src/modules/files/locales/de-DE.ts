@@ -7,7 +7,6 @@
 export default {
   files: {
     download_unavailable: 'Die Datei kann gerade nicht heruntergeladen werden. Sie wurde möglicherweise gelöscht oder der Speicher ist nicht verfügbar.',
-    upload_interrupted: 'Der Upload wurde unterbrochen. Bereits übertragene Teile bleiben erhalten: Laden Sie dieselbe Datei erneut hoch, um an der unterbrochenen Stelle fortzufahren.',
     library: {
       title: 'Dateiverwaltung',
       kinds: {

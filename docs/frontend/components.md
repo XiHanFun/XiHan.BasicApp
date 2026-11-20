@@ -31,7 +31,7 @@
 | `XPermissionTransfer` / `XGrantTransfer` | 权限分配穿梭框（角色、用户直授、套餐）：条目来自权限目录 `permissions.list`，按 `groupPermissions` 分组 |
 | `XTree` | 树（数据范围里的部门、缓存键、生成代码的文件） |
 | `XUserAvatar` | 用户头像：值是文件 ID 时换签名地址，没有头像时显示首字母 |
-| `XFileRefUpload` | 业务表单里的文件引用上传：上传到文件库，字段只存文件 ID |
+| `XFileRefUpload` | 业务表单里的文件引用上传：与文件库页面同一条上传路径（秒传、大文件分片、中断后续传），字段只存文件 ID；图片缺省限 10MB，文件以文件库的上限为准 |
 
 ## 其他组件
 

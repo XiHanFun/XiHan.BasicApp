@@ -129,6 +129,9 @@ export default {
       too_large: 'Die Datei darf höchstens {size}MB groß sein',
       unavailable: 'Datei nicht verfügbar (gelöscht oder keine Leseberechtigung)',
       open_failed: 'Datei konnte nicht geöffnet werden',
+      uploading: 'Wird hochgeladen {percent}%',
+      interrupted: 'Upload unterbrochen: {name}',
+      resume: 'Upload fortsetzen',
     },
     image_crop: {
       alt: 'Zuzuschneidendes Bild',
@@ -1601,6 +1604,9 @@ export default {
     title: 'Neue Version verfügbar',
     description: 'Es wurde eine neue Version erkannt. Bitte aktualisieren Sie die Seite, um die neueste Version zu laden.',
     refresh: 'Jetzt aktualisieren',
+  },
+  file_upload: {
+    interrupted: 'Der Upload wurde unterbrochen. Bereits übertragene Teile bleiben erhalten: Laden Sie dieselbe Datei erneut hoch, um an der unterbrochenen Stelle fortzufahren.',
   },
   print_service: {
     template_version_changed: 'Die Druckvorlage wurde aktualisiert. Schließen Sie das Formular mit den Beispieldaten und öffnen Sie es erneut.',

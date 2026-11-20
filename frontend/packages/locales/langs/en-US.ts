@@ -129,6 +129,9 @@ export default {
       too_large: 'File must not exceed {size}MB',
       unavailable: 'File unavailable (deleted or no permission to view)',
       open_failed: 'Failed to open the file',
+      uploading: 'Uploading {percent}%',
+      interrupted: 'Upload interrupted: {name}',
+      resume: 'Resume upload',
     },
     image_crop: {
       alt: 'Image to crop',
@@ -1601,6 +1604,9 @@ export default {
     title: 'New Version Available',
     description: 'A new version has been detected. Please refresh the page to load the latest version.',
     refresh: 'Refresh Now',
+  },
+  file_upload: {
+    interrupted: 'The upload was interrupted. The parts already sent are kept: upload the same file again to continue from where it stopped.',
   },
   print_service: {
     template_version_changed: 'The print template has been updated. Close the sample data form and open it again.',

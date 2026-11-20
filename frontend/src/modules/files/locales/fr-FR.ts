@@ -7,7 +7,6 @@
 export default {
   files: {
     download_unavailable: 'Impossible de télécharger le fichier pour le moment. Il a peut-être été supprimé ou le stockage est indisponible.',
-    upload_interrupted: 'Le téléversement a été interrompu. Les parties déjà envoyées sont conservées : téléversez à nouveau le même fichier pour reprendre là où il s’est arrêté.',
     library: {
       title: 'Gestion des fichiers',
       kinds: {

@@ -129,6 +129,9 @@ export default {
       too_large: 'El archivo no puede superar {size}MB',
       unavailable: 'Archivo no disponible (eliminado o sin permiso de lectura)',
       open_failed: 'No se pudo abrir el archivo',
+      uploading: 'Subiendo {percent}%',
+      interrupted: 'Subida interrumpida: {name}',
+      resume: 'Reanudar la subida',
     },
     image_crop: {
       alt: 'Imagen para recortar',
@@ -1601,6 +1604,9 @@ export default {
     title: 'Nueva versión disponible',
     description: 'Se ha detectado una nueva versión. Actualice la página para cargar la última versión.',
     refresh: 'Actualizar ahora',
+  },
+  file_upload: {
+    interrupted: 'La subida se interrumpió. Las partes ya enviadas se conservan: vuelva a subir el mismo archivo para continuar desde donde se detuvo.',
   },
   print_service: {
     template_version_changed: 'La plantilla de impresión se ha actualizado. Cierra el formulario de datos de ejemplo y vuelve a abrirlo.',

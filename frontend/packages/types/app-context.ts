@@ -214,8 +214,11 @@ export interface AppContextApis {
   }
   /** 由文件主键换取对象存储预签名访问 URL（头像）；文件服务接入前显式拒绝，头像退回首字母 */
   getFilePresignedUrlApi: (fileId: string) => Promise<string>
-  /** 文件引用上传（业务表单里的上传控件）：存进文件库，返回文件 ID 与原始文件名 */
-  uploadFileApi: (file: File) => Promise<{ id: string, originalName: string }>
+  /**
+   * 文件引用上传（业务表单里的上传控件）：存进文件库，返回文件 ID 与原始文件名
+   * 中断了可以续传的抛 `~/files` 的 `ResumableUploadError`，再传同一个文件只补缺的部分
+   */
+  uploadFileApi: (file: File, options?: { onProgress?: (percent: number) => void, signal?: AbortSignal }) => Promise<{ id: string, originalName: string }>
   /** 文件的原始文件名（回填文件引用时显示）；文件没有了或看不到即抛错 */
   getFileApi: (fileId: string) => Promise<{ originalName: string }>
   /** 时区目录（顶栏 / 个人中心共用） */

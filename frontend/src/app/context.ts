@@ -8,6 +8,7 @@ import type { components, LoginEvent, ResponseOf, TwoFactorMethod, UserGender } 
 import type { ApiCallSettings, ApiCredentialItem, ApiCredentialSecret, AppContextApis, AppUserInboxDisplayItem, AppUserInboxItem, ExternalLoginItem, LoginAuditResult, LoginLogItem, MyOAuthAppItem, MyOAuthAppSecret, NotificationPreference, OAuthConsentItem, PasskeyItem, UserActivity, UserActivityPeriod, UserProfile, UserSessionItem } from '~/types'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType } from '~/types/enums'
 import { auth as authOps, dicts as dictOps, exportTasks as exportTaskOps, files as fileOps, impersonation as impersonationOps, importHistories as importHistoryOps, inbox as inboxOps, myActivity as myActivityOps, myApiCredentials as myApiCredentialOps, myLoginLogs as myLoginLogOps, myOauthApps as myOAuthAppOps, myPasskeys as myPasskeyOps, oauthConsents as oauthConsentOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { uploadFile } from '~/files'
 import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
 import { registerAppContext, useAuthStore } from '~/stores'
 import { createPasskey, getDisplayTimeZone } from '~/utils'
@@ -659,11 +660,9 @@ export function registerApplicationContext(router: Router): void {
     },
     // 文件引用（头像、表格里的文件列）：files.presign 签发的签名地址补上接口前缀，图片标签不带令牌也能取
     getFilePresignedUrlApi: async fileId => endpointUrl((await fileOps.presign({ id: fileId })).url),
-    // 文件引用上传（代码生成的页面里的上传控件）：普通端点 POST /api/files/upload（multipart 字段 file）；回填时按 ID 取原始文件名
-    uploadFileApi: async (file) => {
-      const form = new FormData()
-      form.append('file', file, file.name)
-      const uploaded = await uploadForm<ResponseOf<'files.get'>>('/api/files/upload', form)
+    // 文件引用上传（代码生成的页面里的上传控件）：与文件库同一条上传路径（秒传、大文件分片、中断续传）；回填时按 ID 取原始文件名
+    uploadFileApi: async (file, options) => {
+      const uploaded = await uploadFile(file, options)
       return { id: uploaded.id, originalName: uploaded.originalName }
     },
     getFileApi: async fileId => ({ originalName: (await fileOps.get({ id: fileId })).originalName }),

@@ -7,7 +7,6 @@
 export default {
   files: {
     download_unavailable: 'Não é possível baixar o arquivo agora. Ele pode ter sido excluído ou o armazenamento está indisponível.',
-    upload_interrupted: 'O envio foi interrompido. As partes já enviadas são mantidas: envie o mesmo arquivo novamente para continuar de onde parou.',
     library: {
       title: 'Gerenciamento de arquivos',
       kinds: {

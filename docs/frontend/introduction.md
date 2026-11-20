@@ -15,6 +15,7 @@ frontend/
 ├─ packages/  (~)        壳层与通用能力，不得引用 @/
 │  ├─ contracts/         生成的契约层 + 手写的分页适配 paging.ts
 │  ├─ request/           运行时客户端
+│  ├─ files/             上传到文件库（秒传、分片重试、中断续传）
 │  ├─ router/            守卫、菜单 → 路由、核心路由、视图解析
 │  ├─ stores/            会话、权限、偏好、标签栏、壳层扩展等 Pinia store
 │  ├─ layouts/           前端壳（侧栏、顶栏、标签栏、偏好中心……）

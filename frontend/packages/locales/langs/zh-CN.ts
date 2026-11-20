@@ -129,6 +129,9 @@ export default {
       too_large: '文件大小不能超过 {size}MB',
       unavailable: '文件不可用（已删除或无查看权限）',
       open_failed: '打开文件失败',
+      uploading: '上传中 {percent}%',
+      interrupted: '上传中断：{name}',
+      resume: '继续上传',
     },
     image_crop: {
       alt: '待裁剪的图片',
@@ -1601,6 +1604,9 @@ export default {
     title: '发现新版本',
     description: '检测到网页有更新，请刷新页面以加载最新版本。',
     refresh: '立即刷新',
+  },
+  file_upload: {
+    interrupted: '上传中断了，已传的部分会保留：再次上传同一个文件即从中断处继续',
   },
   print_service: {
     template_version_changed: '打印模板已被更新，请关闭模拟数据表单后重新打开。',

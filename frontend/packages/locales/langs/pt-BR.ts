@@ -129,6 +129,9 @@ export default {
       too_large: 'O arquivo não pode passar de {size}MB',
       unavailable: 'Arquivo indisponível (excluído ou sem permissão de leitura)',
       open_failed: 'Não foi possível abrir o arquivo',
+      uploading: 'Enviando {percent}%',
+      interrupted: 'Envio interrompido: {name}',
+      resume: 'Retomar o envio',
     },
     image_crop: {
       alt: 'Imagem a recortar',
@@ -1601,6 +1604,9 @@ export default {
     title: 'Nova versão disponível',
     description: 'Uma nova versão foi detectada. Atualize a página para carregar a versão mais recente.',
     refresh: 'Atualizar agora',
+  },
+  file_upload: {
+    interrupted: 'O envio foi interrompido. As partes já enviadas são mantidas: envie o mesmo arquivo novamente para continuar de onde parou.',
   },
   print_service: {
     template_version_changed: 'O modelo de impressão foi atualizado. Feche o formulário de dados de exemplo e abra-o novamente.',

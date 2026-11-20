@@ -129,6 +129,9 @@ export default {
       too_large: '파일 크기는 {size}MB를 넘을 수 없습니다',
       unavailable: '파일을 사용할 수 없습니다(삭제되었거나 조회 권한 없음)',
       open_failed: '파일을 열지 못했습니다',
+      uploading: '업로드 중 {percent}%',
+      interrupted: '업로드 중단됨: {name}',
+      resume: '업로드 재개',
     },
     image_crop: {
       alt: '자를 이미지',
@@ -1601,6 +1604,9 @@ export default {
     title: '새 버전 발견',
     description: '웹 페이지 업데이트가 감지됐어요. 최신 버전을 불러오려면 페이지를 새로 고침해 주세요.',
     refresh: '지금 새로 고침',
+  },
+  file_upload: {
+    interrupted: '업로드가 중단되었습니다. 이미 보낸 부분은 유지됩니다. 같은 파일을 다시 업로드하면 중단된 곳부터 이어서 올립니다.',
   },
   print_service: {
     template_version_changed: '인쇄 템플릿이 업데이트되었습니다. 샘플 데이터 양식을 닫았다가 다시 여세요.',

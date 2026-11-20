@@ -129,6 +129,9 @@ export default {
       too_large: 'ファイルサイズは {size}MB を超えられません',
       unavailable: 'ファイルを利用できません（削除済みまたは閲覧権限なし）',
       open_failed: 'ファイルを開けませんでした',
+      uploading: 'アップロード中 {percent}%',
+      interrupted: 'アップロードが中断されました：{name}',
+      resume: 'アップロードを再開',
     },
     image_crop: {
       alt: '切り抜く画像',
@@ -1601,6 +1604,9 @@ export default {
     title: '新しいバージョンがあります',
     description: 'ページの更新が検出されました。最新バージョンを読み込むには、ページを再読み込みしてください。',
     refresh: '今すぐ再読み込み',
+  },
+  file_upload: {
+    interrupted: 'アップロードが中断されました。送信済みの部分は保持されます。同じファイルをもう一度アップロードすると中断したところから再開します。',
   },
   print_service: {
     template_version_changed: '印刷テンプレートが更新されました。サンプルデータのフォームを閉じて開き直してください。',
