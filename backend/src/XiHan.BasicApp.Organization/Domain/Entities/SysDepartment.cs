@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
@@ -20,7 +21,7 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// Access 与 Chat 直接引用本包读仓储；Identity 在本包之下，Workflow 与 Notification 不引用本包，都经 Contracts 的组织目录与接收人来源读部门
 /// </remarks>
 [SugarTable(TableName = "sys_department", TableDescription = "部门（租户库实体，严格按租户过滤）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(Code), Name = "ux_sys_department_tenant_id_code")]
+[EntityIndex(nameof(TenantId), nameof(Code), IsUnique = true, Name = "ux_sys_department_tenant_id_code")]
 public sealed class SysDepartment : TenantScopedAuditedEntity
 {
     /// <summary>

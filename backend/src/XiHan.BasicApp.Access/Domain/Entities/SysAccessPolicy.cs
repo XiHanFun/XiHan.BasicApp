@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Security.Abstractions.Conditions;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 编码同侧唯一是部分唯一索引，软删除后同一编码可以重建；<see cref="TemplateCode"/> 只记来自哪个代码里的预置模板，种子按模板补写平台侧还没有的编码，已有的（含改过的）不动
 /// </remarks>
 [SugarTable(TableName = "sys_access_policy", TableDescription = "访问策略（平台库实体，随所属侧）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_access_policy_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_access_policy_owner_tenant_id_code")]
 public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>

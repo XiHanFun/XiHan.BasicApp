@@ -45,7 +45,7 @@ src/XiHan.BasicApp.<包>/
 | 后台对租户库的工作 | `TenantShardScope.BindTenantAsync`（框架 ADR-0057）或 `ITenantScopeRunner` |
 
 - 库决定协议：平台库实体（租户、用户与账号、角色与授权、菜单、参数、字典、模板、存储配置……）不实现 `IMultiTenant`，用 `OwnerTenantId`（平台 = `TenantIds.Platform`）分侧；租户库实体（部门、文件、日志、通知投递……）用 `TenantScoped*` 基类，没有租户上下文时什么都查不到。
-- 基类：`AppEntity` / `AppRecord` / `AppAuditedEntity` / `AppAggregateRoot` 及 `TenantScoped*` 变体。软删除实体的唯一约束写 `[ActiveUniqueIndex(…, Name = "ux_<表>_<列>…")]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`。
+- 基类：`AppEntity` / `AppRecord` / `AppAuditedEntity` / `AppAggregateRoot` 及 `TenantScoped*` 变体。软删除实体的唯一约束写 `[EntityIndex(…, IsUnique = true, Name = "ux_<表>_<列>…")]`（框架建成部分唯一索引，并发撞上返回 `PERSISTENCE_CONFLICT_003`），不软删除的用唯一 `[SugarIndex]`。
 - 映射全部显式写，不靠命名约定（缩写会被拆错）：实体 `[SugarTable(TableName = "sys_xxx", TableDescription = "<summary> 那一句")]`，每个映射属性 `[SugarColumn(ColumnName = "xxx_yyy", Length = n, IsNullable = …, ColumnDescription = "…")]`，名字小写下划线，可空与属性类型一致，字符串写 `Length`、长文本不写长度另标 `[LongText]`，不用 `[StringLength]` / `[MaxLength]`；索引名 `ix_` / `ux_` + 表名 + 列（按月分表用 `{split_table}`）。`EntityMappingTests` 守护。
 - 实体字段用的枚举：只被一个实体用到的，写在那个实体的文件里（实体类之后，同一命名空间，照 OpenPlatform 的 `SysOAuthApp.cs`）；两个以上实体共用的才单独成文件（如 `SettingStatus.cs`、`DataScope.cs`），一个包几个共用枚举可以合在 `<主题>Enums.cs`。
 - 规约里可空值类型判空写 `!x.HasValue`；查询 `Take` 只收 1–1000，读全量按主键分页读完。

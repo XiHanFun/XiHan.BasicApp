@@ -1,12 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
-using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -44,7 +43,7 @@ public sealed class ColumnWidthTests : IDisposable
                 .Select(c => $"{entity.DbTableName}.{c.DbColumnName}: length {c.Length} is over Oracle's {OracleTextLimit}, use [LongText]"));
 
             var indexes = (entity.Indexs ?? []).Select(static i => (i.IndexName, Fields: (IReadOnlyList<string>)[.. i.IndexFields.Keys]))
-                .Concat(type.GetCustomAttributes<ActiveUniqueIndexAttribute>(inherit: false).Select(static a => (IndexName: a.Name ?? "?", Fields: a.Columns)));
+                .Concat(EntityIndexes.Resolve(type, entity.DbTableName).Where(static i => i.ExcludesDeleted).Select(static i => (IndexName: i.Name, Fields: i.Properties)));
             foreach (var (name, fields) in indexes)
             {
                 var columns = fields.Select(field => entity.Columns.First(c => c.PropertyName == field || string.Equals(c.DbColumnName, field, StringComparison.OrdinalIgnoreCase))).ToList();

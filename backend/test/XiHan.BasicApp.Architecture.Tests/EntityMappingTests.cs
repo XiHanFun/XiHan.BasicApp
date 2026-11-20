@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using SqlSugar;
 using XiHan.BasicApp.Architecture.Tests.Model;
-using XiHan.BasicApp.Contracts.Entities;
 using XiHan.Framework.Domain.Entities;
 using XiHan.Framework.Persistence.Abstractions;
 
@@ -19,7 +18,7 @@ namespace XiHan.BasicApp.Architecture.Tests;
 /// <remarks>
 /// 表名与列名不靠命名约定从类名、属性名推出（缩写会被拆错：<c>SysOAuthApp</c> 推成 <c>sys_o_auth_app</c>）
 /// 实体写 <c>[SugarTable]</c>（表名、表说明）；映射到列的属性写 <c>[SugarColumn]</c>（列名、可空、说明），可空与属性类型一致，字符串列写长度或标 <c>[LongText]</c>，长度只写在 <c>[SugarColumn]</c> 里
-/// 名字都是小写下划线；索引名明确写出：<c>[SugarIndex]</c> 是 <c>ix_</c> / <c>ux_</c> 加表名（按月分表用 <c>{split_table}</c>）再加列，<c>[ActiveUniqueIndex]</c> 写 <c>Name</c>，是 <c>ux_</c> 加表名再加列
+/// 名字都是小写下划线；索引名明确写出：<c>[SugarIndex]</c> 是 <c>ix_</c> / <c>ux_</c> 加表名（按月分表用 <c>{split_table}</c>）再加列，软删除实体的唯一约束 <c>[EntityIndex]</c> 写 <c>Name</c>，是 <c>ux_</c> 加表名再加列
 /// </remarks>
 public sealed partial class EntityMappingTests
 {
@@ -144,12 +143,12 @@ public sealed partial class EntityMappingTests
             }
         }
 
-        foreach (var index in type.GetCustomAttributes<ActiveUniqueIndexAttribute>(inherit: false))
+        foreach (var index in type.GetCustomAttributes<EntityIndexAttribute>(inherit: false))
         {
-            var prefix = "ux_" + tableName + "_";
+            var prefix = (index.IsUnique ? "ux_" : "ix_") + tableName + "_";
             if (index.Name is null || !index.Name.StartsWith(prefix, StringComparison.Ordinal) || !SnakeCase().IsMatch(index.Name[prefix.Length..]))
             {
-                yield return $"{type.Name}: [ActiveUniqueIndex] on ({string.Join(", ", index.Columns)}) has no Name '{prefix}<columns>'.";
+                yield return $"{type.Name}: [EntityIndex] on ({string.Join(", ", index.Properties)}) has no Name '{prefix}<columns>'.";
             }
         }
     }

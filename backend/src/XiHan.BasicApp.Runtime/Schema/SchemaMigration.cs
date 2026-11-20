@@ -27,7 +27,6 @@ internal static partial class SchemaMigration
     public static void Sync(ISqlSugarClient client, IReadOnlyCollection<Type> entityTypes)
     {
         SqlSugarConventions.InitTables(client, [.. entityTypes]);
-        ActiveUniqueIndexes.Ensure(client, entityTypes);
     }
 
     /// <summary>

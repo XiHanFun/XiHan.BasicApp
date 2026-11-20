@@ -211,7 +211,7 @@ public sealed class CodeGenerationPreviewTests : IDisposable
         var entity = files[Package + "Domain/Entities/Product.Generated.cs"];
         Assert.Contains("public sealed partial class Product : TenantScopedAuditedEntity", entity, StringComparison.Ordinal);
         Assert.Contains("[SugarTable(TableName = \"biz_product\", TableDescription = \"", entity, StringComparison.Ordinal);
-        Assert.Contains("[ActiveUniqueIndex(nameof(TenantId), nameof(ProductCode), Name = \"ux_biz_product_tenant_id_product_code\")]", entity, StringComparison.Ordinal);
+        Assert.Contains("[EntityIndex(nameof(TenantId), nameof(ProductCode), IsUnique = true, Name = \"ux_biz_product_tenant_id_product_code\")]", entity, StringComparison.Ordinal);
         Assert.Contains("[SugarColumn(ColumnName = \"product_code\", Length = 30, IsNullable = false, ColumnDescription = \"ProductCode\")]", entity, StringComparison.Ordinal);
         Assert.Contains("[SugarColumn(ColumnName = \"remark\", IsNullable = true, ColumnDescription = \"Remark\")]\n    [LongText]", entity.ReplaceLineEndings("\n"), StringComparison.Ordinal);
         Assert.DoesNotContain("StringLength", entity, StringComparison.Ordinal);

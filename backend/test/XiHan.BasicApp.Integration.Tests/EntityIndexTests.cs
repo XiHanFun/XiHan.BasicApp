@@ -5,11 +5,15 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using SqlSugar;
 using XiHan.BasicApp.Access.Domain.Entities;
-using XiHan.BasicApp.Contracts.Entities;
+using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Settings.Domain.Entities;
 using XiHan.Framework.Domain.Entities;
+using XiHan.Framework.Persistence.Abstractions;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -17,8 +21,9 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 守护实体的索引声明
 /// </summary>
 /// <remarks>
-/// 软删除实体的唯一约束只约束未删除的行（<see cref="ActiveUniqueIndexAttribute"/>，部分唯一索引），不写唯一的 <c>[SugarIndex]</c>（同一个键第二次删除会撞约束）；
-/// 部分唯一索引只用于软删除实体；索引列都是实体的属性；按实际表名算出的索引名不超过 PostgreSQL 的 63 字符且不重名。语义上：未删的行插重复被数据库拒绝，已删的行同键可以有多条
+/// 软删除实体的唯一约束只约束未删除的行（<see cref="EntityIndexAttribute"/> 写 <c>IsUnique</c> 与 <c>Name</c>，框架建成部分唯一索引），不写唯一的 <c>[SugarIndex]</c>（同一个键第二次删除会撞约束）；
+/// <c>[EntityIndex]</c> 只用于软删除实体的唯一约束，其余索引写 <c>[SugarIndex]</c>；索引列都是实体的属性；按实际表名算出的索引名不超过 PostgreSQL 的 63 字符且不重名（不区分大小写）
+/// 语义上：未删的行插重复被数据库拒绝，已删的行同键可以有多条；并发写入越过操作里的查重、撞上索引时，第二个写入方拿到唯一键重复（409），不是 500
 /// </remarks>
 public sealed class EntityIndexTests : IDisposable
 {
@@ -52,10 +57,11 @@ public sealed class EntityIndexTests : IDisposable
         var types = EntityTypes();
         Assert.True(types.Count >= 60, $"Expected the BasicApp entities, found {types.Count}.");
         var problems = new List<string>();
-        var names = new Dictionary<string, string>(StringComparer.Ordinal);
+        // PostgreSQL 把名字折成小写、Oracle 存成大写，只差大小写的两个名字在那里是同一个
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         void Name(Type type, string name)
         {
-            if (name.Length > ActiveUniqueIndexes.MaxNameLength)
+            if (name.Length > EntityIndexes.MaxNameLength)
             {
                 problems.Add($"{type.Name}: index name '{name}' has {name.Length} characters.");
             }
@@ -74,22 +80,33 @@ public sealed class EntityIndexTests : IDisposable
             {
                 if (index.IsUnique && softDeletable)
                 {
-                    problems.Add($"{type.Name}: unique [SugarIndex] '{index.IndexName}' on a soft-deletable entity; use [ActiveUniqueIndex].");
+                    problems.Add($"{type.Name}: unique [SugarIndex] '{index.IndexName}' on a soft-deletable entity; use [EntityIndex(..., IsUnique = true, Name = ...)].");
                 }
 
                 problems.AddRange(index.IndexFields.Keys.Where(field => type.GetProperty(field) is null).Select(field => $"{type.Name}: [SugarIndex] '{index.IndexName}' names a missing property '{field}'."));
                 Name(type, index.IndexName.Replace("{table}", table, StringComparison.Ordinal).Replace("{split_table}", table, StringComparison.Ordinal));
             }
 
-            foreach (var index in type.GetCustomAttributes<ActiveUniqueIndexAttribute>(inherit: false))
+            foreach (var index in type.GetCustomAttributes<EntityIndexAttribute>(inherit: false))
             {
-                if (!softDeletable)
+                var columns = string.Join(", ", index.Properties);
+                if (!softDeletable || !index.IsUnique || index.Properties.Contains(nameof(ISoftDeletable.IsDeleted)))
                 {
-                    problems.Add($"{type.Name}: [ActiveUniqueIndex] on an entity without soft delete; use a unique [SugarIndex].");
+                    problems.Add($"{type.Name}: [EntityIndex] on ({columns}) is only for the unique keys of soft-deletable entities (without 'IsDeleted'); use [SugarIndex].");
                 }
 
-                problems.AddRange(index.Columns.Where(column => type.GetProperty(column) is null).Select(column => $"{type.Name}: [ActiveUniqueIndex] names a missing property '{column}'."));
-                Name(type, index.Name ?? $"(unnamed on {string.Join(", ", index.Columns)})");
+                problems.AddRange(index.Properties.Where(column => type.GetProperty(column) is null).Select(column => $"{type.Name}: [EntityIndex] names a missing property '{column}'."));
+                Name(type, index.Name ?? $"(unnamed on {columns})");
+            }
+
+            // 框架的声明规则（显式名字的写法、多租户实体的唯一索引含 TenantId 等）在建表时才报出，这里先过一遍
+            try
+            {
+                _ = EntityIndexes.Resolve(type, table);
+            }
+            catch (InvalidOperationException exception)
+            {
+                problems.Add($"{type.Name}: {exception.Message}");
             }
         }
 
@@ -97,7 +114,7 @@ public sealed class EntityIndexTests : IDisposable
     }
 
     [Fact]
-    public async Task ActiveUniqueIndex_RejectsDuplicateLiveRows_ButKeepsAnyNumberOfDeletedOnes()
+    public async Task PartialUniqueIndex_RejectsDuplicateLiveRows_ButKeepsAnyNumberOfDeletedOnes()
     {
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
         await using var scope = server.Services.CreateAsyncScope();
@@ -121,5 +138,26 @@ public sealed class EntityIndexTests : IDisposable
         // 未删的同键行只能有一条：操作里的查重之外，并发写入由数据库兜住
         await Assert.ThrowsAnyAsync<Exception>(() => client.Insertable(Role(deleted: false)).ExecuteCommandAsync(TestContext.Current.CancellationToken));
         Assert.Equal(3, await client.Ado.GetIntAsync("SELECT COUNT(*) FROM sys_role WHERE code = 'index-probe'"));
+    }
+
+    [Fact]
+    public async Task WriteThatSlipsPastTheCodeCheck_IsAUniqueKeyConflict_NotAServerError()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        var scopes = server.Services.GetRequiredService<IServiceScopeFactory>();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        SysDict Dict() => new() { Id = Guid.NewGuid(), OwnerTenantId = TenantIds.Platform, Code = "race-probe", Name = "Race probe" };
+        Task<Result> AddAsync(SysDict dict) => StoreScope.WriteAsync(scopes, async (services, ct) => await services.GetRequiredService<IRepository<SysDict, Guid>>().AddAsync(dict, ct), cancellationToken);
+
+        // 两个请求同时新建同一编码：先提交的那个照常写入
+        (await AddAsync(Dict())).ThrowIfFailure();
+
+        // 后一个的查重在前一个提交之前做完、没有查到，写入撞上部分唯一索引：仓储核对出唯一键重复（HTTP 409），工作单元回滚
+        var outcome = await AddAsync(Dict());
+
+        Assert.Equal(PersistenceErrors.UniqueKeyConflict, outcome.Error?.Code);
+        Assert.Equal("ux_sys_dict_owner_tenant_id_code", outcome.Error!.Details!["index"]);
+        await using var scope = server.Services.CreateAsyncScope();
+        Assert.Equal(1, await scope.ServiceProvider.GetRequiredService<ISqlSugarClient>().Ado.GetIntAsync("SELECT COUNT(*) FROM sys_dict WHERE code = 'race-probe'"));
     }
 }

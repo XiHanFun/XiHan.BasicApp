@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
@@ -17,7 +18,7 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 只能本人同意或撤销，模仿会话不能做
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_consent", TableDescription = "用户对某个应用的授权同意")]
-[ActiveUniqueIndex(nameof(UserId), nameof(ClientId), Name = "ux_sys_oauth_consent_user_id_client_id")]
+[EntityIndex(nameof(UserId), nameof(ClientId), IsUnique = true, Name = "ux_sys_oauth_consent_user_id_client_id")]
 [DiffLogIgnored]
 public sealed class SysOAuthConsent : AppAuditedEntity
 {

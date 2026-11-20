@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -18,8 +19,8 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 删除用户不连带删除绑定：账号不在了登录按没绑定拒绝，但那个第三方身份在同一注册地仍被这行占着
 /// </remarks>
 [SugarTable(TableName = "sys_user_external_login", TableDescription = "第三方账号绑定")]
-[ActiveUniqueIndex(nameof(HomeTenantId), nameof(Provider), nameof(ProviderKey), Name = "ux_sys_user_external_login_home_tenant_id_provider_provider_key")]
-[ActiveUniqueIndex(nameof(UserId), nameof(Provider), Name = "ux_sys_user_external_login_user_id_provider")]
+[EntityIndex(nameof(HomeTenantId), nameof(Provider), nameof(ProviderKey), IsUnique = true, Name = "ux_sys_user_external_login_home_tenant_id_provider_provider_key")]
+[EntityIndex(nameof(UserId), nameof(Provider), IsUnique = true, Name = "ux_sys_user_external_login_user_id_provider")]
 [DiffLogIgnored]
 public sealed class SysUserExternalLogin : AppAuditedEntity
 {

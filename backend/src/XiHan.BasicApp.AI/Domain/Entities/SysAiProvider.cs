@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.AI.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 超时接框架的 Provider 超时，最大输出与温度随每次聊天调用带上（方案 N4 D2）；缺省最多一个，引用的编码为空即用它
 /// </remarks>
 [SugarTable(TableName = "sys_ai_provider", TableDescription = "模型提供商")]
-[ActiveUniqueIndex(nameof(Code), Name = "ux_sys_ai_provider_code")]
+[EntityIndex(nameof(Code), IsUnique = true, Name = "ux_sys_ai_provider_code")]
 public sealed class SysAiProvider : AppAuditedEntity
 {
     /// <summary>

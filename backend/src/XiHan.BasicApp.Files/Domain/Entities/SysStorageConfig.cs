@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Files.Domain.Entities;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.Files.Domain.Entities;
 /// 编码同侧唯一、建好后不改，部分唯一索引让软删除后同编码可以重建；种子只在编码不存在时写平台的 <c>local-default</c>（本地目录），全新部署即可上传，之后由运营维护
 /// </remarks>
 [SugarTable(TableName = "sys_storage_config", TableDescription = "存储配置：本地目录或 S3 兼容的对象存储")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_storage_config_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_storage_config_owner_tenant_id_code")]
 public sealed class SysStorageConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

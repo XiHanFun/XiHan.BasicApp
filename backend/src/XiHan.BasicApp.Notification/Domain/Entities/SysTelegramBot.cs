@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 软删除不检查引用：发件箱里还在排队的广播到发送时找不到机器人即失败
 /// </remarks>
 [SugarTable(TableName = "sys_telegram_bot", TableDescription = "Telegram 机器人（平台库实体，平台托管）")]
-[ActiveUniqueIndex(nameof(Name), Name = "ux_sys_telegram_bot_name")]
+[EntityIndex(nameof(Name), IsUnique = true, Name = "ux_sys_telegram_bot_name")]
 public sealed class SysTelegramBot : AppAuditedEntity
 {
     /// <summary>

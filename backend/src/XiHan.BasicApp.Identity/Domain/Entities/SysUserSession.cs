@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -23,7 +24,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 索引按读法建：刷新令牌散列唯一（部分唯一索引）、按用户找有效会话、按用户与设备找登录过的设备、按一侧列在线用户、按发起人与原会话找模仿会话
 /// </remarks>
 [SugarTable(TableName = "sys_user_session", TableDescription = "登录会话")]
-[ActiveUniqueIndex(nameof(RefreshTokenHash), Name = "ux_sys_user_session_refresh_token_hash")]
+[EntityIndex(nameof(RefreshTokenHash), IsUnique = true, Name = "ux_sys_user_session_refresh_token_hash")]
 [SugarIndex("ix_sys_user_session_user_id_revoked_at", nameof(UserId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_session_user_id_device_id", nameof(UserId), OrderByType.Asc, nameof(DeviceId), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_session_active_tenant_id_revoked_at_issued_at", nameof(ActiveTenantId), OrderByType.Asc, nameof(RevokedAt), OrderByType.Asc, nameof(IssuedAt), OrderByType.Asc)]

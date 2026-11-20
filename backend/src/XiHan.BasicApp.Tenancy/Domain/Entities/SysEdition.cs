@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 还有租户绑定即不能删，删除时先物理删掉白名单再软删套餐；门控遇到绑定的套餐已不存在时按空白名单处理，宁可拒绝
 /// </remarks>
 [SugarTable(TableName = "sys_edition", TableDescription = "租户套餐（平台库，表 sys_edition）")]
-[ActiveUniqueIndex(nameof(Code), Name = "ux_sys_edition_code")]
+[EntityIndex(nameof(Code), IsUnique = true, Name = "ux_sys_edition_code")]
 public sealed class SysEdition : AppAuditedEntity
 {
     /// <summary>

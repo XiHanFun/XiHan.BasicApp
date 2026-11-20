@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -16,7 +17,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// Notification 发布与扇出时经 Contracts 的 <c>INotificationPreferences</c> 按一批接收人取，渠道与类别都开着才收；强制阅读与紧急通知由 Notification 跳过过滤，用户关不掉
 /// </remarks>
 [SugarTable(TableName = "sys_user_notification_preference", TableDescription = "用户的通知偏好")]
-[ActiveUniqueIndex(nameof(UserId), Name = "ux_sys_user_notification_preference_user_id")]
+[EntityIndex(nameof(UserId), IsUnique = true, Name = "ux_sys_user_notification_preference_user_id")]
 public sealed class SysUserNotificationPreference : AppAuditedEntity
 {
     /// <summary>

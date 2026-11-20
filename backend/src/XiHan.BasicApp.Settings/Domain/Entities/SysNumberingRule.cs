@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 编码在本侧唯一是部分唯一索引，软删除后同码可重建；修改与重置期间有并发发号即并发戳不符、整笔失败
 /// </remarks>
 [SugarTable(TableName = "sys_numbering_rule", TableDescription = "业务编号规则（平台库实体）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_numbering_rule_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_numbering_rule_owner_tenant_id_code")]
 public sealed class SysNumberingRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>

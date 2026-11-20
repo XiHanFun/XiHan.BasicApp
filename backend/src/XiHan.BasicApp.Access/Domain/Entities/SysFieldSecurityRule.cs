@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Contracts.Security;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
@@ -20,7 +21,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 删角色时连同删掉以它为目标的规则；用户与部门删除不连带清理
 /// </remarks>
 [SugarTable(TableName = "sys_field_security_rule", TableDescription = "字段安全规则（平台库实体，随所属侧）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(TargetKind), nameof(TargetId), nameof(Entity), nameof(Field), Name = "ux_sys_field_security_rule_target_field")]
+[EntityIndex(nameof(OwnerTenantId), nameof(TargetKind), nameof(TargetId), nameof(Entity), nameof(Field), IsUnique = true, Name = "ux_sys_field_security_rule_target_field")]
 [SugarIndex("ix_sys_field_security_rule_owner_tenant_id_entity_status", nameof(OwnerTenantId), OrderByType.Asc, nameof(Entity), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public sealed class SysFieldSecurityRule : AppAuditedEntity, IOwnedByTenant
 {

@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 库里已删的列在同步时软删列配置；零代码运行时只逐列取列配置里有的列，库里已没有的读不出，要先同步结构
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_table_column", TableDescription = "代码生成的列配置")]
-[ActiveUniqueIndex(nameof(TableId), nameof(ColumnName), Name = "ux_sys_code_gen_table_column_table_id_column_name")]
+[EntityIndex(nameof(TableId), nameof(ColumnName), IsUnique = true, Name = "ux_sys_code_gen_table_column_table_id_column_name")]
 public sealed class SysCodeGenTableColumn : AppAuditedEntity
 {
     /// <summary>

@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 软删除并连带软删列配置，生成历史保留；表名是部分唯一索引，删掉后同一张表可以重新导入；停用的表配置不能用于零代码运行时
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_table", TableDescription = "代码生成的表配置")]
-[ActiveUniqueIndex(nameof(TableName), Name = "ux_sys_code_gen_table_table_name")]
+[EntityIndex(nameof(TableName), IsUnique = true, Name = "ux_sys_code_gen_table_table_name")]
 [SugarIndex("ix_sys_code_gen_table_class_name", nameof(ClassName), OrderByType.Asc)]
 [SugarIndex("ix_sys_code_gen_table_module_name", nameof(ModuleName), OrderByType.Asc)]
 public sealed class SysCodeGenTable : AppAuditedEntity

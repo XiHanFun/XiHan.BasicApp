@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// 删除用户或租户都不连带删除成员行
 /// </remarks>
 [SugarTable(TableName = "sys_tenant_member", TableDescription = "租户成员（平台库，表 sys_tenant_member）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(UserId), Name = "ux_sys_tenant_member_tenant_id_user_id")]
+[EntityIndex(nameof(TenantId), nameof(UserId), IsUnique = true, Name = "ux_sys_tenant_member_tenant_id_user_id")]
 [SugarIndex("ix_sys_tenant_member_user_id", nameof(UserId), OrderByType.Asc)]
 public sealed class SysTenantMember : AppAuditedEntity
 {

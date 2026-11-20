@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Chat.Domain.Entities;
 
@@ -17,7 +18,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 状态几秒一变、没有要追溯的字段改动，不进差异日志
 /// </remarks>
 [SugarTable(TableName = "sys_chat_call_participant", TableDescription = "通话的参与者（租户库实体）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(CallId), nameof(UserId), Name = "ux_sys_chat_call_participant_tenant_id_call_id_user_id")]
+[EntityIndex(nameof(TenantId), nameof(CallId), nameof(UserId), IsUnique = true, Name = "ux_sys_chat_call_participant_tenant_id_call_id_user_id")]
 [SugarIndex("ix_sys_chat_call_participant_tenant_id_user_id_status", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysChatCallParticipant : TenantScopedAuditedEntity

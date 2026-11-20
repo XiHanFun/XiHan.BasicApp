@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 访问密钥加密存储、不回显，修改时不填即保留；解不开就发不出，不把库里的值当明文用
 /// </remarks>
 [SugarTable(TableName = "sys_sms_config", TableDescription = "短信配置（平台库实体，随所属侧）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_sms_config_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_sms_config_owner_tenant_id_code")]
 public sealed class SysSmsConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

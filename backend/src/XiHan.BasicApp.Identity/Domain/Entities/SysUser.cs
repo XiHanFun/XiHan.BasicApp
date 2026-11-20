@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -22,7 +23,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 索引都以注册地开头，因为对用户的读法几乎都先限定注册地：列表按创建时间、验证码登录与找回密码按手机号，也服务按注册地计数
 /// </remarks>
 [SugarTable(TableName = "sys_user", TableDescription = "用户账号实体")]
-[ActiveUniqueIndex(nameof(HomeTenantId), nameof(UserName), Name = "ux_sys_user_home_tenant_id_user_name")]
+[EntityIndex(nameof(HomeTenantId), nameof(UserName), IsUnique = true, Name = "ux_sys_user_home_tenant_id_user_name")]
 [SugarIndex("ix_sys_user_home_tenant_id_created_at", nameof(HomeTenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_home_tenant_id_phone_number", nameof(HomeTenantId), OrderByType.Asc, nameof(PhoneNumber), OrderByType.Asc)]
 public sealed class SysUser : AppAuditedEntity

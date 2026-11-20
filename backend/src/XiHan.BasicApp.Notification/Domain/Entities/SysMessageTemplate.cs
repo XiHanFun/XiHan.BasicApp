@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 按 Scriban 渲染，保存前做语法检查：坏模板在保存时就被拒，不等到发送时才失败
 /// </remarks>
 [SugarTable(TableName = "sys_message_template", TableDescription = "消息模板（平台库实体，随所属侧）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Channel), nameof(Code), Name = "ux_sys_message_template_owner_tenant_id_channel_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Channel), nameof(Code), IsUnique = true, Name = "ux_sys_message_template_owner_tenant_id_channel_code")]
 public sealed class SysMessageTemplate : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

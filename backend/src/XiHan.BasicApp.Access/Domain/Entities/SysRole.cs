@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 删除是软删除，但成员指派、授予、规则行、条件、委托、字段安全规则、自定义部门与它作为下级的继承边一并清掉：不会留下仍在生效的授予；仍被别的角色继承的不能删，免得悄悄拿走下级持有人的授予
 /// </remarks>
 [SugarTable(TableName = "sys_role", TableDescription = "角色（平台库实体，不实现 IMultiTenant）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_role_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_role_owner_tenant_id_code")]
 public sealed class SysRole : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

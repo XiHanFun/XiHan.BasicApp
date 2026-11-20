@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 写入后的失效经 <c>CacheInvalidation</c> 推到工作单元结束之后再删：提交前的旧数据不会被并发的读回填进缓存
 /// </remarks>
 [SugarTable(TableName = "sys_config", TableDescription = "系统参数（平台库实体，不实现 IMultiTenant）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key), Name = "ux_sys_config_owner_tenant_id_key")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Key), IsUnique = true, Name = "ux_sys_config_owner_tenant_id_key")]
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

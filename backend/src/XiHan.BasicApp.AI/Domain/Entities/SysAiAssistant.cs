@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 缺省最多一个、停用的不能设为缺省；工具以调用方身份执行，没有权限时模型收到拒绝、回复本身不失败
 /// </remarks>
 [SugarTable(TableName = "sys_ai_assistant", TableDescription = "助手")]
-[ActiveUniqueIndex(nameof(Code), Name = "ux_sys_ai_assistant_code")]
+[EntityIndex(nameof(Code), IsUnique = true, Name = "ux_sys_ai_assistant_code")]
 public sealed class SysAiAssistant : AppAuditedEntity
 {
     /// <summary>

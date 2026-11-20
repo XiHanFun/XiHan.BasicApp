@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 名称是部分唯一索引，软删除后同名可以重建
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_data_source", TableDescription = "代码生成的外部数据源")]
-[ActiveUniqueIndex(nameof(SourceName), Name = "ux_sys_code_gen_data_source_source_name")]
+[EntityIndex(nameof(SourceName), IsUnique = true, Name = "ux_sys_code_gen_data_source_source_name")]
 public sealed class SysCodeGenDataSource : AppAuditedEntity
 {
     /// <summary>

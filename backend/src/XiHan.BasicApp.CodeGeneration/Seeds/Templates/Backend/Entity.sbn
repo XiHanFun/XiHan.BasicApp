@@ -22,7 +22,7 @@ namespace {{ Namespace }}.Domain.Entities;
 [GeneratedCode("XiHan.CodeGen", "6.0")]
 [SugarTable(TableName = "{{ TableName | cs_string }}", TableDescription = "{{ TableDescription | cs_string }}")]
 {{~ for col in UniqueColumns ~}}
-[ActiveUniqueIndex(nameof(TenantId), nameof({{ col.CSharpProperty }}), Name = "ux_{{ TableName | cs_string }}_tenant_id_{{ col.ColumnName | cs_string }}")]
+[EntityIndex(nameof(TenantId), nameof({{ col.CSharpProperty }}), IsUnique = true, Name = "ux_{{ TableName | cs_string }}_tenant_id_{{ col.ColumnName | cs_string }}")]
 {{~ end ~}}
 public sealed partial class {{ ClassName }} : TenantScopedAuditedEntity
 {

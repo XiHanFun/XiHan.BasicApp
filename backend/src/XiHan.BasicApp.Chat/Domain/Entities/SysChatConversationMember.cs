@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Chat.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 用户在平台库、聊天在租户库，分库时不能联表，名字按主键批量补；读写频繁，所以不进差异日志
 /// </remarks>
 [SugarTable(TableName = "sys_chat_conversation_member", TableDescription = "会话成员（租户库实体）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(ConversationId), nameof(UserId), Name = "ux_sys_chat_conversation_member_conversation_user")]
+[EntityIndex(nameof(TenantId), nameof(ConversationId), nameof(UserId), IsUnique = true, Name = "ux_sys_chat_conversation_member_conversation_user")]
 [SugarIndex("ix_sys_chat_conversation_member_tenant_id_user_id", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 [SugarIndex("ix_sys_chat_conversation_member_tenant_id_conversation_id", nameof(TenantId), OrderByType.Asc, nameof(ConversationId), OrderByType.Asc)]
 [DiffLogIgnored]

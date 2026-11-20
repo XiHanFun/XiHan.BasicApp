@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Contracts.Organization;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// 任职是数据范围从部门展开成用户的依据，也是部门成员数的来源，所以加入与移出让部门缓存失效；任职列表本身也按调用方的数据范围收窄
 /// </remarks>
 [SugarTable(TableName = "sys_user_department", TableDescription = "用户部门归属（租户库实体）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(UserId), nameof(DepartmentId), Name = "ux_sys_user_department_tenant_id_user_id_department_id")]
+[EntityIndex(nameof(TenantId), nameof(UserId), nameof(DepartmentId), IsUnique = true, Name = "ux_sys_user_department_tenant_id_user_id_department_id")]
 [SugarIndex("ix_sys_user_department_tenant_id_department_id", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
 [SugarIndex("ix_sys_user_department_tenant_id_position_id", nameof(TenantId), OrderByType.Asc, nameof(PositionId), OrderByType.Asc)]
 public sealed class SysUserDepartment : TenantScopedAggregateRoot

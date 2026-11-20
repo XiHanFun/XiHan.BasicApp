@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
@@ -17,7 +18,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 编码同侧唯一用部分唯一索引，删除后同编码可重建
 /// </remarks>
 [SugarTable(TableName = "sys_email_config", TableDescription = "邮件配置（平台库实体，随所属侧）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_email_config_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_email_config_owner_tenant_id_code")]
 public sealed class SysEmailConfig : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

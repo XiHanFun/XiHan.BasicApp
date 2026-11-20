@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 我的应用的授权类型、范围（<c>openid profile email</c>）与有效期固定，也不能跳过同意页：个人建的应用只拿身份，跳过同意只留给平台登记的应用
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_app", TableDescription = "OAuth 应用：接入本系统单点登录的第三方应用")]
-[ActiveUniqueIndex(nameof(ClientId), Name = "ux_sys_oauth_app_client_id")]
+[EntityIndex(nameof(ClientId), IsUnique = true, Name = "ux_sys_oauth_app_client_id")]
 [SugarIndex("ix_sys_oauth_app_owner_user_id", nameof(OwnerUserId), OrderByType.Asc)]
 public sealed class SysOAuthApp : AppAuditedEntity
 {

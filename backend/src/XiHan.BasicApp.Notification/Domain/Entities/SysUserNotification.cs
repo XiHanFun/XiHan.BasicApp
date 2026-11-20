@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Notification.Domain.Entities;
 
@@ -17,7 +18,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 状态改得频繁，所以不进差异日志
 /// </remarks>
 [SugarTable(TableName = "sys_user_notification", TableDescription = "收件箱的一条（租户库实体，平台一侧租户为 platform）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(NotificationId), nameof(UserId), Name = "ux_sys_user_notification_tenant_id_notification_id_user_id")]
+[EntityIndex(nameof(TenantId), nameof(NotificationId), nameof(UserId), IsUnique = true, Name = "ux_sys_user_notification_tenant_id_notification_id_user_id")]
 [SugarIndex("ix_sys_user_notification_tenant_id_user_id_status", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysUserNotification : TenantScopedAuditedEntity

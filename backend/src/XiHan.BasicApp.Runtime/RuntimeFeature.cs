@@ -23,7 +23,6 @@ using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
-using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 
@@ -34,11 +33,9 @@ namespace XiHan.BasicApp.Runtime;
 /// </summary>
 /// <remarks>
 /// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；把调用里的缓存失效推到工作单元之后（<see cref="Persistence.CacheInvalidation"/>）；提供 <c>basicapp.runtime@1</c> 供各能力包依赖
-/// 依赖关系型持久化，启动排在框架建表之后：打开 <c>InitTables</c> 时随即补建软删除实体的部分唯一索引（<see cref="ActiveUniqueIndexes"/>）
 /// </remarks>
 public sealed class RuntimeFeature : IHostedFeature
 {
-    private bool _initTables;
     private ILogger? _sqlLogger;
 
     /// <inheritdoc />
@@ -73,7 +70,6 @@ public sealed class RuntimeFeature : IHostedFeature
     public void Configure(FeatureContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        _initTables = SqlSugarPersistenceOptions.FromConfiguration(context.Configuration).InitTables;
         context.Services.AddSingleton(SeedOptions.FromConfiguration(context.Configuration));
         context.Services.AddSingleton<SeedRunner>();
         context.Services.AddSingleton(SchemaOptions.FromConfiguration(context.Configuration));
@@ -117,20 +113,12 @@ public sealed class RuntimeFeature : IHostedFeature
     }
 
     /// <inheritdoc />
-    public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
+    public Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(services);
         _sqlLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("XiHan.BasicApp.Sql");
         SqlDiagnostics.UseSharedLogger(_sqlLogger);
-        if (!_initTables)
-        {
-            return;
-        }
-
-        // 框架建表在默认连接上（启动时没有调用也就没有分片），部分唯一索引跟着建在同一个库里
-        await using var scope = services.CreateAsyncScope();
-        var client = scope.ServiceProvider.GetRequiredService<ISqlSugarClient>();
-        ActiveUniqueIndexes.Ensure(client, scope.ServiceProvider.GetRequiredService<EntityTypeCatalog>().All);
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />

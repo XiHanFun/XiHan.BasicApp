@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 编码同侧唯一是部分唯一索引，软删除后同一编码可以重建
 /// </remarks>
 [SugarTable(TableName = "sys_constraint_rule", TableDescription = "约束规则（平台库实体，随所属侧）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_constraint_rule_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_constraint_rule_owner_tenant_id_code")]
 public sealed class SysConstraintRule : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>

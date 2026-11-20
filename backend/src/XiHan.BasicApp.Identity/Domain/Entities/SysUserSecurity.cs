@@ -22,7 +22,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 只有本人注销账号时连同账号软删，管理员删除用户不动本行
 /// </remarks>
 [SugarTable(TableName = "sys_user_security", TableDescription = "账号安全信息：密码散列、失败计数与锁定、安全戳与双因素")]
-[ActiveUniqueIndex(nameof(UserId), Name = "ux_sys_user_security_user_id")]
+[EntityIndex(nameof(UserId), IsUnique = true, Name = "ux_sys_user_security_user_id")]
 [DiffLogIgnored]
 public sealed class SysUserSecurity : AppAuditedEntity
 {

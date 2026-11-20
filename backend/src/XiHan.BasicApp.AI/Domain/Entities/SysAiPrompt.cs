@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// 引用它的助手在它停用后回复即失败、不回落到缺省提示词：配错要暴露出来，不悄悄换成别的提示词
 /// </remarks>
 [SugarTable(TableName = "sys_ai_prompt", TableDescription = "提示词")]
-[ActiveUniqueIndex(nameof(Code), Name = "ux_sys_ai_prompt_code")]
+[EntityIndex(nameof(Code), IsUnique = true, Name = "ux_sys_ai_prompt_code")]
 public sealed class SysAiPrompt : AppAuditedEntity
 {
     /// <summary>

@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Identity.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 存的是密钥密文，标 <c>[DiffLogIgnored]</c> 不进数据变更日志；删除用户不连带删除凭证，归属人不在了凭证目录就取不出它
 /// </remarks>
 [SugarTable(TableName = "sys_user_api_credential", TableDescription = "开放接口凭证")]
-[ActiveUniqueIndex(nameof(AppKey), Name = "ux_sys_user_api_credential_app_key")]
+[EntityIndex(nameof(AppKey), IsUnique = true, Name = "ux_sys_user_api_credential_app_key")]
 [SugarIndex("ix_sys_user_api_credential_user_id", nameof(UserId), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysUserApiCredential : AppAuditedEntity

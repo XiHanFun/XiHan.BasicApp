@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
@@ -16,7 +17,7 @@ namespace XiHan.BasicApp.Organization.Domain.Entities;
 /// 软删除，还被任职引用的不能删，免得任职悬空；不用的岗位改停用，停用后不再出现在组织目录的选项与任职人里，也不进权限条件的岗位属性
 /// </remarks>
 [SugarTable(TableName = "sys_position", TableDescription = "岗位（租户库实体）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(Code), Name = "ux_sys_position_tenant_id_code")]
+[EntityIndex(nameof(TenantId), nameof(Code), IsUnique = true, Name = "ux_sys_position_tenant_id_code")]
 public sealed class SysPosition : TenantScopedAuditedEntity
 {
     /// <summary>

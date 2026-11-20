@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Printing.Domain.Entities;
 /// 只有停用的模板能删（软删除）；并发戳参与修改与启停的乐观并发
 /// </remarks>
 [SugarTable(TableName = "sys_print_template", TableDescription = "打印模板（平台库实体，不实现 IMultiTenant）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(TemplateCode), Name = "ux_sys_print_template_owner_tenant_id_template_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(TemplateCode), IsUnique = true, Name = "ux_sys_print_template_owner_tenant_id_template_code")]
 public sealed class SysPrintTemplate : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

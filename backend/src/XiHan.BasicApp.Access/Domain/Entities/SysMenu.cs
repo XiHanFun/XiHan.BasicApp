@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 /// 编码唯一是部分唯一索引：页面节点被软删除后，同一页面码再登记时新建一行
 /// </remarks>
 [SugarTable(TableName = "sys_menu", TableDescription = "菜单（平台库目录实体，两侧共用一棵树，按权限裁剪）")]
-[ActiveUniqueIndex(nameof(Code), Name = "ux_sys_menu_code")]
+[EntityIndex(nameof(Code), IsUnique = true, Name = "ux_sys_menu_code")]
 public sealed class SysMenu : AppAuditedEntity
 {
     /// <summary>

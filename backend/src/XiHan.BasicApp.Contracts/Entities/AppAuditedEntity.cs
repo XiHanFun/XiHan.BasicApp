@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Contracts.Entities;
 /// </summary>
 /// <remarks>
 /// <see cref="AppRecord"/> + 修改时间 / 修改人 + 软删除 / 删除人
-/// 时间与删除标记由框架维护，操作人由 <c>Runtime</c> 在写库时填充；唯一约束用 <see cref="ActiveUniqueIndexAttribute"/>（只约束未删除的行）
+/// 时间与删除标记由框架维护，操作人由 <c>Runtime</c> 在写库时填充；唯一约束写 <c>[EntityIndex(…, IsUnique = true, Name = …)]</c>，框架建成只约束未删除行的部分唯一索引
 /// </remarks>
 public abstract class AppAuditedEntity : AppRecord, IHasModificationTime, IHasModifier, ISoftDeletable, IHasDeleter
 {

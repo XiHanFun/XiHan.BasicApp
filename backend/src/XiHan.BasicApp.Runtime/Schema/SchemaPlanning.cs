@@ -1,11 +1,10 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Reflection;
 using SqlSugar;
 using XiHan.BasicApp.Contracts;
-using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Runtime.Schema;
 
@@ -81,8 +80,9 @@ internal static class SchemaPlanning
                 }
             }
 
+            // 软删除实体的部分唯一索引不在 SqlSugar 的索引列表里，由框架建表之后补建，名字按声明另取
             var names = (entity.Indexs ?? []).Select(static i => i.IndexName)
-                .Concat(type.GetCustomAttributes<ActiveUniqueIndexAttribute>(inherit: false).Select(static a => a.Name).OfType<string>());
+                .Concat(EntityIndexes.Resolve(type, table).Where(static i => i.ExcludesDeleted).Select(static i => i.Name));
             foreach (var name in names.Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 if (isNew || !client.DbMaintenance.IsAnyIndex(name))

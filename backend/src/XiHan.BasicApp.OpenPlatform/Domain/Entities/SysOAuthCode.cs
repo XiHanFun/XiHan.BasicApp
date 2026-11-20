@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 寿命取应用的授权码有效期（缺省 300 秒）；作业 <c>openplatform.oauth-cleanup</c> 在过期一天后物理删除（重放与吊销的判定只看没过期的），运行态凭据不进数据变更日志
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_code", TableDescription = "OAuth 授权码：只存散列，用一次即作废")]
-[ActiveUniqueIndex(nameof(CodeHash), Name = "ux_sys_oauth_code_code_hash")]
+[EntityIndex(nameof(CodeHash), IsUnique = true, Name = "ux_sys_oauth_code_code_hash")]
 [SugarIndex("ix_sys_oauth_code_expires_at", nameof(ExpiresAt), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysOAuthCode : AppAuditedEntity

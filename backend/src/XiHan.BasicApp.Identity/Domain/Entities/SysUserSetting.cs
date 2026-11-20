@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 写得频繁，标 <c>[DiffLogIgnored]</c> 不进数据变更日志
 /// </remarks>
 [SugarTable(TableName = "sys_user_setting", TableDescription = "用户设置，供前端跨端同步偏好、收藏与页面设置")]
-[ActiveUniqueIndex(nameof(UserId), nameof(Scene), nameof(Key), Name = "ux_sys_user_setting_user_id_scene_key")]
+[EntityIndex(nameof(UserId), nameof(Scene), nameof(Key), IsUnique = true, Name = "ux_sys_user_setting_user_id_scene_key")]
 [DiffLogIgnored]
 public sealed class SysUserSetting : AppAuditedEntity
 {

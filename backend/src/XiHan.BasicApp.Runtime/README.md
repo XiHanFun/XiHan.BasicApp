@@ -9,7 +9,6 @@ Tier 0 基座：把框架的持久化、租户与管道接到 BasicApp 的约定
 | `CacheInvalidationMiddleware` + `CacheInvalidation` | 读穿缓存的失效推到工作单元之后：Transaction 阶段开头、排在框架工作单元中间件之前开一段范围，调用里经 `CacheInvalidation.RemoveAsync` / `RemoveManyAsync` 的失效只记下，工作单元提交或回滚之后才删键（回滚了照样删，同一缓存的键一次往返）。缓存未命中时经 `StoreScope` 在独立工作单元里读库、看不到未提交的写入，提交前失效会让同一请求或并发请求把旧数据写回缓存；管道之外（种子、作业）即刻删除。Access 的授权类缓存、Identity 的会话门禁与 Tenancy 的套餐门控都经它失效 |
 | `TenantScopedQuery.For<T>` | 包内 `Queries/` 的起手式：按实体落点取连接（`SqlSugarUnitOfWork.ConnectionFor`），补软删除与租户条件；`OwnedByCurrentTenantOrPlatform` / `OwnedByCurrentTenant` 给 `IOwnedByTenant` 实体用 |
 | `DataScopeQuery` | 数据范围：取当前主体的判定（没装 Access 即不受限），`ApplyDataScope` 按归属人列 / 部门列、`ApplyDataScopeByCreator` 按审计列 `CreatedBy` 套到查询上 |
-| `ActiveUniqueIndexes` | 软删除实体的部分唯一索引（实体上的 `[ActiveUniqueIndex]`，`… WHERE is_deleted = false`）：`RuntimeFeature` 在框架建表之后、`TenantSchemas` 初始化独立库时补建 |
 | `DatabaseProviders` / `SnakeCaseNaming` | 库类型名映射；框架数据库记录的命名约定 |
 | `ISecretProtector` | 可逆加密（ASP.NET Core Data Protection）：按用途隔离，密文带 `dp:` 前缀，解不开即失败、不回退明文；多实例共享密钥时配 `BasicApp:DataProtection:KeysDirectory` |
 | `RuntimePermissions` + `RuntimeMessages` | 宿主普通端点用到、不归哪个能力包的权限码，进权限目录：`runtime.cloud-events.deliver`（CloudEvents 入站端点 `/events`，平台侧，只授给服务账号或服务角色）；显示名在 `Localization/<区域>.json` |

@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 增删改都失效所在字典的选项缓存
 /// </remarks>
 [SugarTable(TableName = "sys_dict_item", TableDescription = "字典项（平台库实体，属主与所在字典相同）")]
-[ActiveUniqueIndex(nameof(DictId), nameof(Code), Name = "ux_sys_dict_item_dict_id_code")]
+[EntityIndex(nameof(DictId), nameof(Code), IsUnique = true, Name = "ux_sys_dict_item_dict_id_code")]
 [SugarIndex("ix_sys_dict_item_parent_id", nameof(ParentId), OrderByType.Asc)]
 public sealed class SysDictItem : AppAuditedEntity, IOwnedByTenant
 {

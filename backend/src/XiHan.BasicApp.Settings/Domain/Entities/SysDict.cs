@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Settings.Domain.Entities;
 
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Settings.Domain.Entities;
 /// 演示字典只在 <c>BasicApp:Seed:EnableDemoData</c> 打开时由种子写入，不是内建的
 /// </remarks>
 [SugarTable(TableName = "sys_dict", TableDescription = "字典（平台库实体）")]
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Code), Name = "ux_sys_dict_owner_tenant_id_code")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Code), IsUnique = true, Name = "ux_sys_dict_owner_tenant_id_code")]
 public sealed class SysDict : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />

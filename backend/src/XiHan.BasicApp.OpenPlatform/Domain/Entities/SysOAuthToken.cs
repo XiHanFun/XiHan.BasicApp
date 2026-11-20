@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 
@@ -18,7 +19,7 @@ namespace XiHan.BasicApp.OpenPlatform.Domain.Entities;
 /// 随兑换与刷新频繁写入，不进数据变更日志；作业 <c>openplatform.oauth-cleanup</c> 在过期七天后物理删除
 /// </remarks>
 [SugarTable(TableName = "sys_oauth_token", TableDescription = "发给第三方应用的访问令牌与刷新令牌")]
-[ActiveUniqueIndex(nameof(TokenHash), Name = "ux_sys_oauth_token_token_hash")]
+[EntityIndex(nameof(TokenHash), IsUnique = true, Name = "ux_sys_oauth_token_token_hash")]
 [SugarIndex("ix_sys_oauth_token_family_id", nameof(FamilyId), OrderByType.Asc)]
 [SugarIndex("ix_sys_oauth_token_user_id_client_id", nameof(UserId), OrderByType.Asc, nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("ix_sys_oauth_token_expires_at", nameof(ExpiresAt), OrderByType.Asc)]

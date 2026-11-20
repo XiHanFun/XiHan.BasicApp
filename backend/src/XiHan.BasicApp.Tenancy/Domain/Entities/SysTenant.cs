@@ -21,8 +21,8 @@ namespace XiHan.BasicApp.Tenancy.Domain.Entities;
 /// <see cref="Domain"/> 是自定义域名，由平台填（要配 DNS 与证书）：登录前按访问的域名显示租户的品牌、预填租户，不参与身份判定；部分唯一索引只约束未删除的行，不绑定的为空
 /// </remarks>
 [SugarTable(TableName = "sys_tenant", TableDescription = "租户（平台库业务实体）")]
-[ActiveUniqueIndex(nameof(TenantId), Name = "ux_sys_tenant_tenant_id")]
-[ActiveUniqueIndex(nameof(Domain), Name = "ux_sys_tenant_domain")]
+[EntityIndex(nameof(TenantId), IsUnique = true, Name = "ux_sys_tenant_tenant_id")]
+[EntityIndex(nameof(Domain), IsUnique = true, Name = "ux_sys_tenant_domain")]
 [SugarIndex("ix_sys_tenant_edition_id", nameof(EditionId), OrderByType.Asc)]
 [SugarIndex("ix_sys_tenant_admin_user_id", nameof(AdminUserId), OrderByType.Asc)]
 public sealed class SysTenant : AppAuditedEntity

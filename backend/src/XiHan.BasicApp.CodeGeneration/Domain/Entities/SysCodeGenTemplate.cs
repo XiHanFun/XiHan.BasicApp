@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 /// 文件名与目录也是模板表达式，渲染出的路径只能是那一侧根目录下的相对路径（不带盘符与 <c>..</c>），自定义模板写不到根目录之外
 /// </remarks>
 [SugarTable(TableName = "sys_code_gen_template", TableDescription = "代码生成的模板")]
-[ActiveUniqueIndex(nameof(TemplateCode), Name = "ux_sys_code_gen_template_template_code")]
+[EntityIndex(nameof(TemplateCode), IsUnique = true, Name = "ux_sys_code_gen_template_template_code")]
 [SugarIndex("ix_sys_code_gen_template_template_group", nameof(TemplateGroup), OrderByType.Asc)]
 public sealed class SysCodeGenTemplate : AppAuditedEntity
 {

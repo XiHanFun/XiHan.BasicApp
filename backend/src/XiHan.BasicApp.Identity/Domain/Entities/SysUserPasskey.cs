@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 宿主配了 <c>XiHan:Security:WebAuthn</c>、系统参数 <c>identity.login-methods</c> 也开放了才可用
 /// </remarks>
 [SugarTable(TableName = "sys_user_passkey", TableDescription = "账号登记的通行密钥")]
-[ActiveUniqueIndex(nameof(CredentialHash), Name = "ux_sys_user_passkey_credential_hash")]
+[EntityIndex(nameof(CredentialHash), IsUnique = true, Name = "ux_sys_user_passkey_credential_hash")]
 [DiffLogIgnored]
 public sealed class SysUserPasskey : AppAuditedEntity
 {

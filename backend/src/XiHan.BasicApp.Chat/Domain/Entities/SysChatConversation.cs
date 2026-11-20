@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Contracts.Entities;
+using XiHan.Framework.Persistence.Abstractions;
 
 namespace XiHan.BasicApp.Chat.Domain.Entities;
 
@@ -20,7 +21,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 没有删除入口，只有群聊能由群主解散：解散即软删除会话与它的全部成员行，消息留着（保留清理只删消息），聊天审计连解散了的一起看
 /// </remarks>
 [SugarTable(TableName = "sys_chat_conversation", TableDescription = "聊天会话（租户库实体）")]
-[ActiveUniqueIndex(nameof(TenantId), nameof(PairKey), Name = "ux_sys_chat_conversation_tenant_id_pair_key")]
+[EntityIndex(nameof(TenantId), nameof(PairKey), IsUnique = true, Name = "ux_sys_chat_conversation_tenant_id_pair_key")]
 [SugarIndex("ix_sys_chat_conversation_tenant_id_department_id", nameof(TenantId), OrderByType.Asc, nameof(DepartmentId), OrderByType.Asc)]
 [DiffLogIgnored]
 public sealed class SysChatConversation : TenantScopedAuditedEntity
