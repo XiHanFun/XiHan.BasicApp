@@ -17,7 +17,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="flex-col-center h-full min-h-[400px]">
+  <div class="flex-col-center h-full min-h-114">
     <XhEmptyStateRoot status="403" size="lg" live="off">
       <XhEmptyStateIndicator>
         <Icon icon="lucide:shield-off" width="48" height="48" />

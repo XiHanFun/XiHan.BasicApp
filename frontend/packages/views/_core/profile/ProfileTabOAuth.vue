@@ -430,7 +430,7 @@ onMounted(() => {
 
     <XEditModal
       v-model:show="modalVisible"
-      :width="520"
+      width="xl"
       :title="editingId == null ? t('component.profile.oauth.create_title') : t('component.profile.oauth.edit_title')"
       :save-text="t('component.profile.oauth.btn_submit')"
       :loading="submitting"

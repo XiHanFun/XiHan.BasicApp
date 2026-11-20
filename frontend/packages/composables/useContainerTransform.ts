@@ -76,7 +76,7 @@ function morph(from: DOMRect, to: DOMRect, duration: number): void {
     top: `${to.top}px`,
     width: `${to.width}px`,
     height: `${to.height}px`,
-    borderRadius: 'var(--radius-card, 10px)',
+    borderRadius: 'var(--xh-shape-surface)',
     background: 'hsl(var(--card))',
     border: '1px solid hsl(var(--border))',
     boxShadow: '0 18px 48px hsl(var(--foreground) / 18%)',

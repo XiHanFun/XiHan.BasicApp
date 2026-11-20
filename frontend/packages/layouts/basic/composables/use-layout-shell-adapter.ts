@@ -14,6 +14,9 @@ import { useAppStore, useLayoutBridgeStore } from '~/stores'
 import { useEffectiveLayoutMode } from './use-effective-layout-mode'
 import { useLayout } from './use-layout'
 
+/** 顶栏高度（px）：布局偏移按它算，侧栏品牌区与它等高 */
+export const LAYOUT_HEADER_HEIGHT = 50
+
 export function useLayoutShellAdapter() {
   const SIDEBAR_COLLAPSE_WIDTH = 60
   const SIDEBAR_MIXED_WIDTH = 80
@@ -59,7 +62,7 @@ export function useLayoutShellAdapter() {
   const isHeaderAutoMode = computed(() => headerMode.value === 'auto')
   const isHeaderAutoScrollMode = computed(() => headerMode.value === 'auto-scroll')
 
-  const headerHeight = computed(() => 50)
+  const headerHeight = computed(() => LAYOUT_HEADER_HEIGHT)
   const tabbarHeight = computed(() => 40)
   const footerHeight = computed(() => {
     if (isNarrowScreen.value) {

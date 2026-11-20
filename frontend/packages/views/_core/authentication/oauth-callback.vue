@@ -158,7 +158,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 </script>
 
 <template>
-  <div class="flex flex-col justify-center items-center min-h-[300px] py-16">
+  <div class="flex flex-col justify-center items-center min-h-86 py-16">
     <template v-if="loading">
       <XhSpinner />
       <p

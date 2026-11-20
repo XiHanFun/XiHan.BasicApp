@@ -164,7 +164,7 @@ const onAuthInvalid = useAuthFormInvalid()
 <template>
   <div class="py-1">
     <div class="mb-8">
-      <h1 class="text-[32px] font-semibold leading-tight sm:text-[36px]">
+      <h1 class="text-(length:--xh-font-size-4xl) font-semibold leading-tight sm:text-(length:--xh-font-size-5xl)">
         {{ t('page.auth.forget_password_title') }}
       </h1>
       <p
@@ -249,7 +249,7 @@ const onAuthInvalid = useAuthFormInvalid()
               variant="outline"
               :disabled="resendSeconds > 0"
               size="lg"
-              style="min-width: 132px"
+              class="min-w-38"
               @click="handleSendCode"
             >
               <CodeCountdown v-if="resendSeconds > 0" :seconds="resendSeconds" @finish="resendSeconds = 0" />

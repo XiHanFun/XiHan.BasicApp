@@ -221,7 +221,7 @@ function handleClose(): void {
     :close-on-interact-outside="phase !== 'importing'"
     @update:open="(value: boolean) => (show = value)"
   >
-    <XhDialogContent class="xh-import-modal" style="--xh-dialog-max-w: 720px">
+    <XhDialogContent class="xh-import-modal max-w-3xl">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
       </XhDialogHeader>

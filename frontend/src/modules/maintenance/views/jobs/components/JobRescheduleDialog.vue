@@ -207,7 +207,6 @@ async function submit() {
     :loading="saving"
     :save-disabled="!form.expression.trim() || retryIncomplete(retry)"
     :form-id="formId"
-    :width="640"
     @update:show="(value: boolean) => emit('update:show', value)"
   >
     <p class="job-reschedule__hint">

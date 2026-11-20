@@ -134,7 +134,6 @@ async function submit() {
     :loading="saving"
     :save-disabled="!canSave"
     :form-id="formId"
-    :width="640"
     @update:show="(value: boolean) => emit('update:show', value)"
   >
     <XhFormRoot :id="formId" class="xh-edit-form-grid" data-testid="job-create-form" @submit="submit">

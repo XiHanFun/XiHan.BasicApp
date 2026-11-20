@@ -728,7 +728,7 @@ async function removeRow(row: AccessPolicyRow) {
     </XhDrawerRoot>
 
     <!-- 新建 / 编辑 -->
-    <XEditModal v-model:show="modalVisible" :title="modalTitle" :loading="submitting" :form-id="editFormId" width="1080px">
+    <XEditModal v-model:show="modalVisible" :title="modalTitle" :loading="submitting" :form-id="editFormId" width="7xl">
       <XhAlertRoot v-if="!form.id" tone="info" variant="subtle" class="policy-form__alert">
         <XhAlertIndicator>
           <Icon icon="lucide:info" width="16" />

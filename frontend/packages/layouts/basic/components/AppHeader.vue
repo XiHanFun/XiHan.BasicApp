@@ -8,9 +8,10 @@ import type { ComponentPublicInstance } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import type { AppDropdownOption, AppMenuOption } from '~/types'
 
+import { XhKbd } from '@xihan-ui/vue'
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { toast, useIsMobile } from '~/composables'
+import { GLOBAL_HOTKEYS, toast, useIsMobile } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
@@ -220,19 +221,7 @@ const breadcrumbs = computed(() => {
   })
 })
 
-const shortcutKbdStyle = [
-  'display:inline-flex',
-  'align-items:center',
-  'padding:1px 6px',
-  'font-size:11px',
-  'font-family:ui-monospace,SFMono-Regular,monospace',
-  'color:hsl(var(--muted-foreground))',
-  'background:hsl(var(--muted))',
-  'border:1px solid hsl(var(--border))',
-  'border-radius:4px',
-  'line-height:1.6',
-  'white-space:nowrap',
-].join(';')
+const shortcutLabelStyle = 'display:inline-flex;align-items:center;gap:var(--xh-space-1_5)'
 
 /** 当前上下文的显示名：平台或租户名；应用没注册控制中心（没有租户切换概念）时不展示 */
 const contextLabel = computed(() => {
@@ -289,11 +278,13 @@ const userOptions = computed<AppDropdownOption[]>(() => [
     ? [
         {
           label: () =>
-            h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+            h('span', { style: shortcutLabelStyle }, [
               h('span', t('header.user.lock')),
               ...(appStore.shortcutEnable && appStore.shortcutLock
                 ? [
-                    h('kbd', { style: shortcutKbdStyle }, 'Alt L'),
+                    h(XhKbd, {
+                      keys: [...GLOBAL_HOTKEYS.lock],
+                    }),
                   ]
                 : []),
             ]),
@@ -305,11 +296,13 @@ const userOptions = computed<AppDropdownOption[]>(() => [
   { key: 'divider', type: 'divider' },
   {
     label: () =>
-      h('span', { style: 'display:inline-flex;align-items:center;gap:6px' }, [
+      h('span', { style: shortcutLabelStyle }, [
         h('span', t('header.user.logout')),
         ...(appStore.shortcutEnable && appStore.shortcutLogout
           ? [
-              h('kbd', { style: shortcutKbdStyle }, 'Alt Q'),
+              h(XhKbd, {
+                keys: [...GLOBAL_HOTKEYS.logout],
+              }),
             ]
           : []),
       ]),

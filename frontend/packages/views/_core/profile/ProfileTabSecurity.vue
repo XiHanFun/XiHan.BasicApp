@@ -592,7 +592,7 @@ function handleDeleteAccount() {
                     </XhButton>
                   </XTooltip>
                 </div>
-                <span class="pf-hint" style="margin-top: 10px; display: block">{{ t('component.profile.security.enter_6_digit') }}</span>
+                <span class="pf-hint mt-(--xh-space-2_5) block">{{ t('component.profile.security.enter_6_digit') }}</span>
                 <div class="pf-otp-row">
                   <XhPinInputRoot
                     v-model:value="tfTotpCode"

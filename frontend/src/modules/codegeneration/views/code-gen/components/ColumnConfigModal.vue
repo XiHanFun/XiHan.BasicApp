@@ -499,7 +499,7 @@ async function handleSubmit() {
   <XEditModal
     :show="show"
     :title="t('codegeneration.code_gen.column.title')"
-    :width="1280"
+    width="7xl"
     :loading="submitLoading"
     @update:show="emit('update:show', $event)"
     @save="handleSubmit"

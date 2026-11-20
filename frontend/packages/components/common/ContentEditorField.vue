@@ -4,6 +4,7 @@
 -->
 
 <script setup lang="ts">
+import type { EditModalWidth } from './edit-modal-width'
 import { useFieldControl, XhButton } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { Icon } from '../../iconify'
@@ -24,12 +25,12 @@ const props = withDefaults(defineProps<{
   /** 字数标签，接收字符数 */
   countLabel?: (count: number) => string
   /** 弹窗宽度 */
-  width?: number | string
+  width?: EditModalWidth
   /** 摘要区最多展示的字符数 */
   summaryLimit?: number
   disabled?: boolean
 }>(), {
-  width: 'min(1400px, calc(100vw - 64px))',
+  width: '7xl',
   summaryLimit: 160,
 })
 

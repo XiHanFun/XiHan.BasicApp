@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="--xh-dialog-max-w: 420px">
+    <XhDialogContent class="max-w-lg">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('header.impersonation.title') }}</XhDialogTitle>
       </XhDialogHeader>

@@ -497,7 +497,7 @@ const onAuthInvalid = useAuthFormInvalid()
             >
               <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: var(--xh-glyph-size-lg)"><Icon :icon="methodIcons[selectedMethod] || 'lucide:shield-check'" /></span>
             </div>
-            <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
+            <h1 class="text-(length:--xh-font-size-3xl) font-semibold leading-tight sm:text-(length:--xh-font-size-4xl)">
               {{ t('page.auth.two_factor_title') }}
             </h1>
           </div>
@@ -585,7 +585,7 @@ const onAuthInvalid = useAuthFormInvalid()
             >
               <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: var(--xh-glyph-size-lg)"><Icon icon="lucide:shield-check" /></span>
             </div>
-            <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
+            <h1 class="text-(length:--xh-font-size-3xl) font-semibold leading-tight sm:text-(length:--xh-font-size-4xl)">
               {{ t('page.auth.two_factor_select_title') }}
             </h1>
           </div>

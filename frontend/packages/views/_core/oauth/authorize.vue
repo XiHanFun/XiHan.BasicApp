@@ -184,7 +184,7 @@ onMounted(async () => {
       <!-- 授权确认态 -->
       <div v-else-if="preview?.valid" class="flex flex-col items-center">
         <!-- src / alt 是根部件的属性：写在 image 部件上状态机拿不到地址，只会一直显示首字母 -->
-        <XhAvatarRoot v-if="preview.logo" class="shadow-sm" :src="preview.logo" :alt="preview.appName ?? ''" :style="{ '--xh-avatar-size': '64px' }">
+        <XhAvatarRoot v-if="preview.logo" class="shadow-sm [--xh-avatar-size:--spacing(18)]" :src="preview.logo" :alt="preview.appName ?? ''">
           <XhAvatarImage />
           <XhAvatarFallback>{{ appInitial }}</XhAvatarFallback>
         </XhAvatarRoot>

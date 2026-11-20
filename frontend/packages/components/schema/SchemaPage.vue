@@ -25,7 +25,7 @@ import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import { queryFiltersFromSchema, toColumns, toExportFields, toImportFields } from './selectors'
+import { indexColWidth, PREFIX_COL_W, queryFiltersFromSchema, toColumns, toExportFields, toImportFields } from './selectors'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
@@ -655,7 +655,7 @@ const skeletonColumns = computed(() => {
   if (renderExpand.value) {
     prefix.push({
       key: '__expand__',
-      width: '40px',
+      width: `${PREFIX_COL_W}px`,
       control: true,
       fill: '',
     })
@@ -663,7 +663,7 @@ const skeletonColumns = computed(() => {
   if (settings.selectable.value) {
     prefix.push({
       key: '__select__',
-      width: '40px',
+      width: `${PREFIX_COL_W}px`,
       control: true,
       fill: '',
     })
@@ -671,7 +671,7 @@ const skeletonColumns = computed(() => {
   if (settings.showIndex.value) {
     prefix.push({
       key: '__index__',
-      width: '60px',
+      width: `${indexColWidth(Boolean(props.schema.tree))}px`,
       control: false,
       fill: '40%',
     })
@@ -818,7 +818,7 @@ const skeletonColumns = computed(() => {
                 class="xh-skel-cell"
                 :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
               >
-                <XhSkeletonItem v-if="!col.control" class="xh-skel-bar" style="inline-size: 52%; block-size: 13px" />
+                <XhSkeletonItem v-if="!col.control" class="xh-skel-bar h-3.5" style="inline-size: 52%" />
               </div>
             </div>
             <div
@@ -833,8 +833,8 @@ const skeletonColumns = computed(() => {
                 class="xh-skel-cell"
                 :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
               >
-                <XhSkeletonItem v-if="col.control" class="xh-skel-bar xh-skel-bar--square" style="inline-size: 16px; block-size: 16px" />
-                <XhSkeletonItem v-else class="xh-skel-bar" :style="{ inlineSize: col.fill, blockSize: '15px' }" />
+                <XhSkeletonItem v-if="col.control" class="xh-skel-bar xh-skel-bar--square size-4.5" />
+                <XhSkeletonItem v-else class="xh-skel-bar h-4.5" :style="{ inlineSize: col.fill }" />
               </div>
             </div>
           </XhSkeletonRoot>

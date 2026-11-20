@@ -460,7 +460,7 @@ async function onSubmit() {
 
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
-    <XEditModal v-model:show="open" :title="modalTitle" :loading="submitting" :width="920" :form-id="editFormId">
+    <XEditModal v-model:show="open" :title="modalTitle" :loading="submitting" width="5xl" :form-id="editFormId">
       <XhFormRoot :id="editFormId" class="xh-edit-form-grid" novalidate @submit="onSubmit">
         <XhFieldRoot :invalid="!!fieldError('templateCode')" :required="!isEdit">
           <XhFieldLabel>{{ t('codegeneration.code_gen.template.form_template_code') }}</XhFieldLabel>

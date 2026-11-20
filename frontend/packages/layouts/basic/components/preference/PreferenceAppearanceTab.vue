@@ -396,8 +396,7 @@ const loaderItems = computed(() =>
             :max="20"
             :step="1"
             size="sm"
-            class="pref-num pref-num--center"
-            style="width: 130px"
+            class="pref-num pref-num--center w-37"
             :aria-label="t('preference.appearance.font.size')"
             @update:value="(value) => value !== null && appStore.setFontSize(value)"
           />
@@ -573,7 +572,7 @@ const loaderItems = computed(() =>
           :step="1"
           show-value
           :aria-label="t('preference.general.frosted_glass_intensity')"
-          style="width: 150px"
+          class="w-43"
         />
       </div>
       <div class="pref-row">
@@ -588,7 +587,7 @@ const loaderItems = computed(() =>
         <XInput
           v-model:value="appStore.watermarkText"
           size="sm"
-          style="width: 150px"
+          class="w-43"
           :placeholder="t('preference.general.watermark_text')"
           :aria-label="t('preference.general.watermark_content')"
         />

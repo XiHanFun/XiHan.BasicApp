@@ -93,7 +93,7 @@ onMounted(async () => {
     :close-on-escape="false"
     :close-on-interact-outside="false"
   >
-    <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
+    <XhDialogContent class="notif-gate-modal max-w-4xl">
       <XhDialogHeader>
         <XhDialogTitle>{{ currentMandatory.title }}</XhDialogTitle>
       </XhDialogHeader>
@@ -126,7 +126,7 @@ onMounted(async () => {
     :close-on-interact-outside="false"
     @update:open="(open: boolean) => !open && onPopupConfirm(currentPopup!)"
   >
-    <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
+    <XhDialogContent class="notif-gate-modal max-w-4xl">
       <XhDialogHeader>
         <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
       </XhDialogHeader>

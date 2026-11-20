@@ -146,7 +146,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
           </svg>
         </div>
         <div
-          class="chrome-tab__main relative z-[2] mx-[12px] flex h-full min-w-[60px] items-center gap-1 pr-1"
+          class="chrome-tab__main relative z-[2] mx-(--xh-space-3) flex h-full min-w-17 items-center gap-1 pr-1"
         >
           <span v-if="showIcon && item.meta?.icon" class="flex-shrink-0 opacity-70" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
             <Icon :icon="resolveIcon(item.meta.icon as string)" />

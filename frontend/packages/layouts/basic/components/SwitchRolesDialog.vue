@@ -77,7 +77,7 @@ watch(show, (open) => {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent style="--xh-dialog-max-w: 420px">
+    <XhDialogContent class="max-w-lg">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('header.switch_roles.title') }}</XhDialogTitle>
       </XhDialogHeader>

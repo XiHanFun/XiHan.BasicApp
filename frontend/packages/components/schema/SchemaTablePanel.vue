@@ -31,6 +31,7 @@ import { Icon } from '~/iconify'
 import { VNodeRender } from '../common/VNodeRender'
 import SchemaPagination from './SchemaPagination.vue'
 import SchemaRowPeek from './SchemaRowPeek.vue'
+import { indexColWidth, PREFIX_COL_W } from './selectors'
 import { useRowPeek } from './useRowPeek'
 
 defineOptions({ name: 'SchemaTablePanel' })
@@ -123,8 +124,6 @@ const SELECT_COL = '__select__'
 const EXPAND_COL = '__expand__'
 const INDEX_COL = '__index__'
 const ACTION_COL = '__actions__'
-/** 展开列与勾选列的宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
-const PREFIX_COL_W = 48
 
 const { t } = useI18n()
 const { isMobile } = useIsMobile()
@@ -244,7 +243,7 @@ const prefixColumns = computed<Array<{ id: string, width: number }>>(() => {
   if (props.showIndex) {
     list.push({
       id: INDEX_COL,
-      width: props.tree ? 90 : 60,
+      width: indexColWidth(props.tree),
     })
   }
   return list

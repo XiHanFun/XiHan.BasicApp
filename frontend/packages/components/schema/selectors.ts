@@ -8,6 +8,14 @@ import type { QueryFilter } from '~/types/contracts'
 import { QueryOperator } from '~/types/contracts'
 import { renderFieldCell } from './renderer'
 
+/** 展开列与勾选列的宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
+export const PREFIX_COL_W = 48
+
+/** 序号列的宽度：树表的序号格里还有缩进与展开钮 */
+export function indexColWidth(tree: boolean): number {
+  return tree ? 90 : 60
+}
+
 /** 字段是否对当前用户可见，can 取 usePermission().hasPermission */
 function isFieldPermitted(field: { permission?: string }, can: (code: string) => boolean): boolean {
   return !field.permission || can(field.permission)

@@ -207,7 +207,7 @@ const onAuthInvalid = useAuthFormInvalid()
               variant="outline"
               :disabled="resendSeconds > 0"
               size="lg"
-              style="min-width: 132px"
+              class="min-w-38"
               @click="handleSendCode"
             >
               <CodeCountdown v-if="resendSeconds > 0" :seconds="resendSeconds" @finish="resendSeconds = 0" />

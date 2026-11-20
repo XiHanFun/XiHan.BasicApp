@@ -103,8 +103,7 @@ const { t } = useI18n()
             :max="300"
             :step="10"
             size="sm"
-            class="pref-num pref-num--center"
-            style="width: 90px"
+            class="pref-num pref-num--center w-26"
             :aria-label="t('preference.general.check_updates_interval')"
           />
           <span class="unit-label">{{ t('preference.general.check_updates_interval_unit') }}</span>

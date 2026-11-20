@@ -273,8 +273,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
             :min="180"
             :max="320"
             size="sm"
-            class="pref-num pref-num--center"
-            style="width: 130px"
+            class="pref-num pref-num--center w-37"
             :disabled="sidebarItemDisabled"
             :aria-label="t('preference.layout.sidebar.width')"
           />
@@ -425,8 +424,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
             :min="0"
             :max="30"
             size="sm"
-            class="pref-num pref-num--center"
-            style="width: 120px"
+            class="pref-num pref-num--center w-34"
             :disabled="!appStore.tabbarEnabled"
             :aria-label="t('preference.layout.tabbar.max_count')"
           />
@@ -476,7 +474,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.tabbarStyle"
           :options="tabbarStyleOptions"
           size="sm"
-          style="width: 100px"
+          class="w-29"
           :aria-label="t('preference.layout.tabbar.style')"
           :disabled="!appStore.tabbarEnabled"
         />
@@ -513,7 +511,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.widgetSearchPlacement"
           :options="widgetPlacementOptions"
           size="sm"
-          style="width: 110px"
+          class="w-31"
           :aria-label="t('preference.layout.widget.global_search')"
         />
       </div>
@@ -523,7 +521,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.widgetLanguagePlacement"
           :options="widgetPlacementOptions"
           size="sm"
-          style="width: 110px"
+          class="w-31"
           :aria-label="t('preference.layout.widget.language_toggle')"
         />
       </div>
@@ -533,7 +531,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.widgetTimezonePlacement"
           :options="widgetPlacementOptions"
           size="sm"
-          style="width: 110px"
+          class="w-31"
           :aria-label="t('preference.layout.widget.timezone_toggle')"
         />
       </div>
@@ -543,7 +541,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.widgetThemePlacement"
           :options="widgetPlacementOptions"
           size="sm"
-          style="width: 110px"
+          class="w-31"
           :aria-label="t('preference.layout.widget.theme_toggle')"
         />
       </div>
@@ -553,7 +551,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.widgetFullscreenPlacement"
           :options="widgetPlacementOptions"
           size="sm"
-          style="width: 110px"
+          class="w-31"
           :aria-label="t('preference.layout.widget.fullscreen')"
         />
       </div>
@@ -563,7 +561,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
           v-model:value="appStore.widgetPreferencePosition"
           :options="preferencePositionOptions"
           size="sm"
-          style="width: 110px"
+          class="w-31"
           :aria-label="t('preference.layout.widget.preference_position')"
         />
       </div>

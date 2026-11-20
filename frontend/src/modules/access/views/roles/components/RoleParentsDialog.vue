@@ -129,7 +129,7 @@ async function save() {
     :title="title"
     :loading="saving"
     :save-disabled="loading"
-    :width="560"
+    width="2xl"
     @update:show="(value: boolean) => emit('update:show', value)"
     @save="save"
   >

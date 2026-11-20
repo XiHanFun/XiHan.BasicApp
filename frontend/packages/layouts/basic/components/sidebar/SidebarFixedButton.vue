@@ -17,7 +17,7 @@ function toggle() {
 
 <template>
   <div
-    class="absolute bottom-2 right-3 z-10 flex cursor-pointer items-center justify-center rounded-sm bg-accent p-[5px] text-foreground/60 transition-all duration-300 hover:bg-accent-hover hover:text-foreground"
+    class="absolute bottom-2 right-3 z-10 flex cursor-pointer items-center justify-center rounded-sm bg-accent p-1.5 text-foreground/60 transition-all duration-300 hover:bg-accent-hover hover:text-foreground"
     @click.stop="toggle"
   >
     <Icon

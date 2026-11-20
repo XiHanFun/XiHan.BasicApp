@@ -5,6 +5,7 @@
 
 <script lang="ts" setup>
 import type { Tone } from '@xihan-ui/core'
+import type { EditModalWidth } from './edit-modal-width'
 import {
   XhButton,
   XhButtonIndicator,
@@ -20,6 +21,7 @@ import {
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { FIRST_CONTROL_SELECTOR } from './edit-modal-focus'
+import { EDIT_MODAL_WIDTH_CLASS } from './edit-modal-width'
 
 defineOptions({ name: 'XEditModal' })
 
@@ -28,8 +30,8 @@ const props = withDefaults(defineProps<{
   show: boolean
   /** 弹窗标题 */
   title?: string
-  /** 弹窗宽度：数字为 px，字符串原样使用（默认 640px，小屏自动收窄） */
-  width?: number | string
+  /** 弹窗宽度档（缺省 3xl，小屏自动收窄） */
+  width?: EditModalWidth
   /** 保存按钮 loading */
   loading?: boolean
   /** 保存按钮禁用 */
@@ -59,7 +61,7 @@ const props = withDefaults(defineProps<{
   initialFocus?: string
 }>(), {
   title: undefined,
-  width: 640,
+  width: '3xl',
   loading: false,
   saveDisabled: false,
   saveText: undefined,
@@ -77,11 +79,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const modalStyle = computed(() => ({
-  '--xh-dialog-max-w': typeof props.width === 'number'
-    ? `${props.width}px`
-    : props.width,
-}))
+const modalWidthClass = computed(() => EDIT_MODAL_WIDTH_CLASS[props.width])
 
 function handleCancel() {
   emit('update:show', false)
@@ -98,7 +96,7 @@ function handleCancel() {
     :initial-focus="initialFocus ?? FIRST_CONTROL_SELECTOR"
     @update:open="(value: boolean) => emit('update:show', value)"
   >
-    <XhDialogContent class="xh-edit-modal" :style="modalStyle">
+    <XhDialogContent class="xh-edit-modal" :class="modalWidthClass">
       <!-- 头、正文、尾三段：头尾定在原处、正文自己滚，头下尾上的分隔线与三段内衬都由组件库给 -->
       <XhDialogHeader>
         <!-- 标题恒在：它是对话框的名字（content 的 aria-labelledby 指向它） -->

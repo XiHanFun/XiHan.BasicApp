@@ -5,6 +5,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { LAYOUT_HEADER_HEIGHT } from '../../composables'
 import AppBrand from '../AppBrand.vue'
 
 defineOptions({ name: 'SidebarBrand' })
@@ -25,7 +26,7 @@ const showCollapsed = computed(() => props.collapsed)
 </script>
 
 <template>
-  <div class="flex h-[50px] w-full min-w-0 shrink-0">
+  <div class="flex w-full min-w-0 shrink-0" :style="{ blockSize: `${LAYOUT_HEADER_HEIGHT}px` }">
     <AppBrand
       :app-title="props.appTitle"
       :app-logo="props.appLogo"

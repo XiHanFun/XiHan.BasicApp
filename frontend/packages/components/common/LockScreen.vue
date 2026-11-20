@@ -86,7 +86,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
               type="password"
               :placeholder="t('component.lock_screen.confirm_password_placeholder')"
               size="lg"
-              style="margin-top: 8px"
+              class="mt-(--xh-space-2)"
               :invalid="Boolean(lockPwdError)"
               autocomplete="new-password"
             >
@@ -166,7 +166,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
               type="password"
               :placeholder="t('component.lock_screen.change_new_password_placeholder')"
               size="lg"
-              style="margin-top: 8px"
+              class="mt-(--xh-space-2)"
               :invalid="Boolean(changePwdError)"
               autocomplete="new-password"
             >
@@ -179,7 +179,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
               type="password"
               :placeholder="t('component.lock_screen.confirm_password_placeholder')"
               size="lg"
-              style="margin-top: 8px"
+              class="mt-(--xh-space-2)"
               :invalid="Boolean(changePwdError)"
               autocomplete="new-password"
             >

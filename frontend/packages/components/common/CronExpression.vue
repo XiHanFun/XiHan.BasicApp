@@ -533,7 +533,7 @@ function onPresetChange(v: string | null): void {
     <XEditModal
       v-model:show="builderVisible"
       :title="t('component.cron.title')"
-      :width="600"
+      width="2xl"
       :save-text="t('component.cron.done')"
       @save="builderVisible = false"
     >
@@ -594,7 +594,7 @@ function onPresetChange(v: string | null): void {
                     :min="defOf(node.value as FieldKey).min"
                     :max="defOf(node.value as FieldKey).max"
                     :disabled="fields[node.value as FieldKey].mode !== 'interval'"
-                    style="inline-size: 76px"
+                    class="w-22"
                   />
                   {{ t('component.cron.every_step') }}
                   <XNumberInput
@@ -604,7 +604,7 @@ function onPresetChange(v: string | null): void {
                     :min="1"
                     :max="defOf(node.value as FieldKey).max"
                     :disabled="fields[node.value as FieldKey].mode !== 'interval'"
-                    style="inline-size: 76px"
+                    class="w-22"
                   />
                   {{ defOf(node.value as FieldKey).label }}
                 </span>
@@ -622,7 +622,7 @@ function onPresetChange(v: string | null): void {
                     :min="defOf(node.value as FieldKey).min"
                     :max="defOf(node.value as FieldKey).max"
                     :disabled="fields[node.value as FieldKey].mode !== 'range'"
-                    style="inline-size: 76px"
+                    class="w-22"
                   />
                   {{ t('component.cron.to') }}
                   <XNumberInput
@@ -632,7 +632,7 @@ function onPresetChange(v: string | null): void {
                     :min="defOf(node.value as FieldKey).min"
                     :max="defOf(node.value as FieldKey).max"
                     :disabled="fields[node.value as FieldKey].mode !== 'range'"
-                    style="inline-size: 76px"
+                    class="w-22"
                   />
                 </span>
               </div>

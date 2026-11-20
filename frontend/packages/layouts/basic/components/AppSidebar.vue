@@ -354,10 +354,14 @@ const asideStyle = computed((): CSSProperties => {
   }
 })
 
+/** 侧栏底部折叠钮那一条的高度（px）：菜单区高度扣掉它，占位与它等高 */
+const COLLAPSE_BAR_HEIGHT = 42
+const collapseBarStyle: CSSProperties = { blockSize: `${COLLAPSE_BAR_HEIGHT}px` }
+
 const sidebarContentStyle = computed(
   (): CSSProperties => ({
-    height: `calc(100% - ${props.headerHeight + 42}px)`,
-    paddingTop: '8px',
+    height: `calc(100% - ${props.headerHeight + COLLAPSE_BAR_HEIGHT}px)`,
+    paddingTop: 'var(--xh-space-2)',
   }),
 )
 
@@ -391,7 +395,7 @@ const extraContentStyle = computed((): CSSProperties => {
   const titleH = props.headerHeight > 0
     ? props.headerHeight
     : 0
-  return { height: `calc(100% - ${titleH + 42}px)` }
+  return { height: `calc(100% - ${titleH + COLLAPSE_BAR_HEIGHT}px)` }
 })
 
 // --- Links ---
@@ -626,7 +630,7 @@ watch(
               @menu-update="handleSideMixedPrimaryUpdate"
             />
           </div>
-          <div style="height: 42px" />
+          <div :style="collapseBarStyle" />
         </template>
 
         <!-- Header-mix layout: collapsed logo + menu -->
@@ -658,7 +662,7 @@ watch(
               @menu-update="handleHeaderMixPrimaryUpdate"
             />
           </div>
-          <div style="height: 42px" />
+          <div :style="collapseBarStyle" />
         </template>
 
         <!-- Standard layout -->
@@ -695,7 +699,7 @@ watch(
 
           <!-- Collapse button spacer + button (hidden on mobile) -->
           <template v-if="!isMobile">
-            <div style="height: 42px" />
+            <div :style="collapseBarStyle" />
             <SidebarCollapseButton
               v-if="appStore.sidebarCollapseButton && !isDualColumn"
               :collapsed="collapse"

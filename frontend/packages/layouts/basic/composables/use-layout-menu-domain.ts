@@ -137,7 +137,7 @@ function buildMenuOptionsFromRoutes(
     const label = meta.link && config.linkIcon
       ? () => h(
           'span',
-          { style: 'display:inline-flex;align-items:center;gap:4px;min-width:0' },
+          { style: 'display:inline-flex;align-items:center;gap:var(--xh-space-1);min-width:0' },
           [
             typeof baseLabel === 'function'
               ? baseLabel()

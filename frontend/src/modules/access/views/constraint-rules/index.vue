@@ -711,7 +711,7 @@ async function removeRow(row: ConstraintRuleRow) {
     </XhDrawerRoot>
 
     <!-- 新建 / 编辑 -->
-    <XEditModal v-model:show="modalVisible" :title="modalTitle" :loading="submitting" :form-id="editFormId" width="1080px">
+    <XEditModal v-model:show="modalVisible" :title="modalTitle" :loading="submitting" :form-id="editFormId" width="7xl">
       <XhFormRoot :id="editFormId" class="xh-edit-form-grid" data-testid="constraint-rule-form" @submit="onSubmit">
         <XhFieldRoot required>
           <XhFieldLabel>{{ t('access.constraint_rules.fields.code') }}</XhFieldLabel>

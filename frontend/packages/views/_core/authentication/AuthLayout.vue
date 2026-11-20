@@ -59,13 +59,13 @@ const appName = __APP_NAME__
   >
     <div class="overflow-hidden absolute inset-0 pointer-events-none">
       <div
-        class="auth-blob auth-blob--1 absolute h-[620px] w-[620px] rounded-full bg-[hsl(var(--primary)/0.24)] blur-[100px]"
+        class="auth-blob auth-blob--1 absolute size-177 rounded-full bg-[hsl(var(--primary)/0.24)] blur-[100px]"
       />
       <div
-        class="auth-blob auth-blob--2 absolute h-[520px] w-[520px] rounded-full bg-[hsl(var(--info)/0.20)] blur-[120px]"
+        class="auth-blob auth-blob--2 absolute size-149 rounded-full bg-[hsl(var(--info)/0.20)] blur-[120px]"
       />
       <div
-        class="auth-blob auth-blob--3 absolute h-[580px] w-[580px] rounded-full bg-[hsl(var(--success)/0.16)] blur-[100px]"
+        class="auth-blob auth-blob--3 absolute size-166 rounded-full bg-[hsl(var(--success)/0.16)] blur-[100px]"
       />
     </div>
 
@@ -74,7 +74,7 @@ const appName = __APP_NAME__
     <!-- 小屏上下各留 80px：上面给绝对定位的工具条（16 + 42）让路，下面给页脚折成两行（约 65）让路；
          宽屏两者都够不着卡片，退回 56 -->
     <div
-      class="relative z-[1] mx-auto flex min-h-screen w-full max-w-[1420px] items-center px-4 py-20 sm:px-8 sm:py-14"
+      class="relative z-[1] mx-auto flex min-h-screen w-full max-w-406 items-center px-4 py-20 sm:px-8 sm:py-14"
     >
       <div
         class="app-glass relative w-full overflow-hidden rounded-[30px]"
@@ -100,7 +100,7 @@ const appName = __APP_NAME__
             />
 
             <div class="relative z-[1] lg:absolute lg:left-10 lg:top-14 xl:left-14 xl:top-16">
-              <img :src="appLogo" :alt="appTitle" class="mb-3 h-[78px] w-[78px] rounded-2xl object-contain">
+              <img :src="appLogo" :alt="appTitle" class="mb-3 size-22 rounded-2xl object-contain">
               <p
                 class="auth-caption font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"
               >
@@ -110,7 +110,7 @@ const appName = __APP_NAME__
 
             <div class="relative z-[1] flex w-full flex-1 items-center justify-center">
               <div class="inline-flex max-w-[92%] flex-col items-start">
-                <h2 class="text-left text-[36px] font-semibold leading-[1.15] xl:text-[44px]">
+                <h2 class="text-left text-(length:--xh-font-size-5xl) font-semibold leading-[1.15] xl:text-[44px]">
                   {{ appSubtitle || t('page.auth.slogan_title') }}
                 </h2>
                 <span
@@ -124,7 +124,7 @@ const appName = __APP_NAME__
 
           <!-- 表单面板 -->
           <div
-            class="flex min-h-[680px] justify-center px-6 py-12 sm:px-10 lg:h-[760px] lg:min-h-[760px] lg:px-14 lg:py-16"
+            class="flex min-h-194 justify-center px-6 py-12 sm:px-10 lg:h-217 lg:min-h-217 lg:px-14 lg:py-16"
             :class="{
               'lg:border-r lg:border-[hsl(var(--border))]': formAlign === 'left',
               'lg:border-l lg:border-[hsl(var(--border))]': formAlign === 'right',
@@ -134,12 +134,12 @@ const appName = __APP_NAME__
           >
             <div
               class="overflow-hidden w-full h-full"
-              :class="formAlign === 'center' ? 'max-w-[560px]' : 'max-w-[460px]'"
+              :class="formAlign === 'center' ? 'max-w-160' : 'max-w-131'"
             >
               <!-- 登录四种入口下表单即当前标签的面板，故由切换器接住；其余页面它只透传内容 -->
               <AuthEntrySwitcher :enabled="showEntryTabs" :methods="loginMethods">
                 <!-- 这层裁掉切换过渡的 ±24px 平移。不必为聚焦环留内衬：组件库的环画在控件盒内，裁切容器裁不到它 -->
-                <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
+                <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-149' : ''">
                   <router-view v-slot="{ Component }">
                     <transition name="auth-slide" mode="out-in">
                       <component :is="Component" />

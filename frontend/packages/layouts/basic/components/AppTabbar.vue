@@ -525,7 +525,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
     v-if="appStore.tabbarEnabled"
     :style="tabThemeVars"
     class="tabbar-root flex items-center bg-header px-2"
-    :class="appStore.tabbarStyle === 'chrome' ? 'h-10 pt-[4px] pb-0' : 'h-[38px] py-0'"
+    :class="appStore.tabbarStyle === 'chrome' ? 'h-10 pt-(--xh-space-1) pb-0' : 'h-11 py-0'"
   >
     <!-- 左侧滚动箭头 -->
     <XhButton

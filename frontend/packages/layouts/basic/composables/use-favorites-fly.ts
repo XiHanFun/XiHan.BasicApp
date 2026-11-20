@@ -57,22 +57,21 @@ export function flyToFavorites(source: DOMRect | null, payload: FlyPayload): voi
   const dy = ty - sy
 
   const ghost = document.createElement('div')
-  ghost.className = 'xh-fav-fly'
+  ghost.className = 'xh-fav-fly max-w-46'
   ghost.textContent = payload.label
   Object.assign(ghost.style, {
     position: 'fixed',
     left: `${sx}px`,
     top: `${sy}px`,
     zIndex: '3000',
-    maxWidth: '160px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-    padding: '4px 12px',
+    padding: 'var(--xh-space-1) var(--xh-space-3)',
     borderRadius: '9999px',
-    fontSize: '13px',
+    fontSize: 'var(--xh-text-secondary-size)',
     fontWeight: '500',
-    lineHeight: '20px',
+    lineHeight: 'var(--xh-leading-normal)',
     color: 'hsl(var(--primary-foreground))',
     background: 'var(--xh-color-brand-600)',
     boxShadow: '0 8px 24px hsl(var(--primary) / 45%)',

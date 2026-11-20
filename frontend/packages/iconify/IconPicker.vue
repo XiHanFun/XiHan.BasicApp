@@ -141,7 +141,7 @@ function handleClear() {
     </XhButton>
 
     <XhDialogRoot v-model:open="visible">
-      <XhDialogContent class="icon-picker-modal" style="--xh-dialog-max-w: 560px">
+      <XhDialogContent class="icon-picker-modal max-w-2xl">
         <XhDialogHeader>
           <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
         </XhDialogHeader>
@@ -210,7 +210,7 @@ function handleClear() {
               :key="meta.prefix"
               :value="meta.prefix"
             >
-              <div class="xh-scroll-area" style="max-height: 320px">
+              <div class="xh-scroll-area max-h-91">
                 <div v-if="loading" class="icon-picker-loading">
                   {{ t('common.loading') }}
                 </div>

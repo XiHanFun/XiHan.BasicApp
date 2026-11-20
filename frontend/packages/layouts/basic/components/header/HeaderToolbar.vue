@@ -178,7 +178,7 @@ const placement = useWidgetPlacement()
           :avatar="props.userStore.avatar"
           :name="props.userStore.nickname || props.userStore.username"
         />
-        <span class="hidden max-w-[96px] truncate text-sm text-foreground md:block">
+        <span class="hidden max-w-27 truncate text-sm text-foreground md:block">
           {{ props.userStore.nickname || props.userStore.username }}
         </span>
         <Icon icon="lucide:chevron-down" width="13" height="13" class="toolbar-chevron shrink-0" />

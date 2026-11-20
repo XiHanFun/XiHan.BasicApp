@@ -278,7 +278,7 @@ function handleSave() {
     <XEditModal
       v-model:show="jsonVisible"
       :title="t('workflow.designer.engine_json')"
-      :width="960"
+      width="6xl"
       :save-text="t('workflow.designer.btn_apply_json')"
       @save="applyJsonToCanvas"
     >
