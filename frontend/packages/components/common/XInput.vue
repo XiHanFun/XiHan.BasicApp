@@ -248,8 +248,11 @@ defineExpose({ el, focus, blur })
 </template>
 
 <style scoped>
-.x-input {
-  inline-size: 100%;
+/* 缺省铺满整行；放进 components 层，调用处的 w-* 工具类压得住 */
+@layer components {
+  .x-input {
+    inline-size: 100%;
+  }
 }
 
 /* 视觉盒由组件库的 control 部件承担，这里只把它铺满整行 */
