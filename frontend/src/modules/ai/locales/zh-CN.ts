@@ -130,6 +130,10 @@ export default {
       no_result_title: '没有匹配的结果',
       no_result: '未检索到相关片段',
       col_created_at: '创建时间',
+      col_modified_at: '修改时间',
+      detail_title: '文档详情',
+      detail_raw: '原文',
+      open_document: '查看文档「{title}」',
     },
     assistants: {
       title: 'AI 助手',

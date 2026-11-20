@@ -130,6 +130,10 @@ export default {
       no_result_title: 'Keine passenden Ergebnisse',
       no_result: 'Keine relevanten Chunks gefunden',
       col_created_at: 'Erstellt am',
+      col_modified_at: 'Geändert',
+      detail_title: 'Dokumentdetails',
+      detail_raw: 'Originaltext',
+      open_document: 'Dokument „{title}“ öffnen',
     },
     assistants: {
       title: 'KI-Assistenten',

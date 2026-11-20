@@ -130,6 +130,10 @@ export default {
       no_result_title: '일치하는 결과가 없어요',
       no_result: '관련 청크를 찾지 못했어요',
       col_created_at: '생성 시간',
+      col_modified_at: '수정 시간',
+      detail_title: '문서 상세',
+      detail_raw: '원문',
+      open_document: '문서 "{title}" 열기',
     },
     assistants: {
       title: 'AI 어시스턴트',

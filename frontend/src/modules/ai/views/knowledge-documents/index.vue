@@ -5,10 +5,11 @@
 
 <!--
   AI / 知识库：文档与检索试玩两个页签
-  接口取自后端契约（knowledge-documents.*）；平台与租户各自维护，只看调用方一侧。没有编辑，只有摄取、重建索引与删除
+  接口取自后端契约（knowledge-documents.*）；平台与租户各自维护，只看调用方一侧。没有编辑，只有摄取、查看、重建索引与删除
+  试玩里命中片段的标题可以点开所属文档，原文里标出这一段
 -->
 <script setup lang="ts">
-import type { KnowledgeIndexStatus, KnowledgeRow, KnowledgeSourceType } from './use-knowledge-documents'
+import type { KnowledgeCitation, KnowledgeIndexStatus, KnowledgeRow, KnowledgeSourceType } from './use-knowledge-documents'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
 import type { SelectOption } from '~/types'
 import { isComposingEvent } from '@xihan-ui/core'
@@ -18,9 +19,11 @@ import { useI18n } from 'vue-i18n'
 import { renderTag, SchemaPage, XEditModal, XInput, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { knowledgeDocuments } from '~/contracts'
+import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { LONG_TIMEOUT_MS } from '~/request'
-import { citationTitle, INGEST_FILE_ACCEPT, knowledgeDocumentsResource, useKnowledgeIngest, useKnowledgePlayground } from './use-knowledge-documents'
+import KnowledgeDocumentDrawer from './components/KnowledgeDocumentDrawer.vue'
+import { citationTitle, INGEST_FILE_ACCEPT, knowledgeDocumentsResource, sourceTypeLabelKey, STATUS_TONE, statusLabelKey, useKnowledgeDetail, useKnowledgeIngest, useKnowledgePlayground } from './use-knowledge-documents'
 
 defineOptions({ name: 'AiKnowledgeDocumentsPage' })
 
@@ -28,6 +31,10 @@ const { t } = useI18n()
 const resource = knowledgeDocumentsResource()
 const ingest = useKnowledgeIngest()
 const playground = useKnowledgePlayground()
+const detail = useKnowledgeDetail()
+const { hasPermission } = usePermission()
+/** 试玩要的是执行权限，点开文档还要读权限 */
+const canReadDocuments = computed(() => hasPermission('ai.knowledge-documents.read'))
 
 const activeTab = ref<'documents' | 'playground'>('documents')
 
@@ -43,19 +50,11 @@ function reload() {
 const asRow = (row: object) => row as KnowledgeRow
 
 function sourceTypeLabel(type: KnowledgeSourceType): string {
-  return type === 'UploadFile'
-    ? t('ai.knowledge_documents.source_upload')
-    : t('ai.knowledge_documents.source_paste')
+  return t(sourceTypeLabelKey(type))
 }
 
-const STATUS_TONE = { Pending: 'warning', Indexed: 'success', Failed: 'danger' } as const
-
 function statusLabel(status: KnowledgeIndexStatus): string {
-  if (status === 'Indexed')
-    return t('ai.knowledge_documents.status_indexed')
-  return status === 'Failed'
-    ? t('ai.knowledge_documents.status_failed')
-    : t('ai.knowledge_documents.status_pending')
+  return t(statusLabelKey(status))
 }
 
 const sourceTypeOptions = computed<SelectOption[]>(() => (['PasteText', 'UploadFile'] as const).map(type => ({
@@ -162,6 +161,13 @@ const schema = computed<PageSchema>(() => ({
       permission: 'ai.knowledge-documents.create',
     },
     {
+      key: 'detail',
+      title: t('common.actions.detail'),
+      scope: 'row',
+      icon: 'lucide:file-text',
+      permission: 'ai.knowledge-documents.read',
+    },
+    {
       key: 'reindex',
       title: t('ai.knowledge_documents.action_reindex'),
       scope: 'row',
@@ -192,6 +198,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'create':
       ingest.startCreate()
       break
+    case 'detail':
+      if (row)
+        void openDetail(row.id)
+      break
     case 'reindex':
       if (row)
         void handleReindex(row)
@@ -208,6 +218,19 @@ function notifyIndexed(status: KnowledgeIndexStatus, errorMessage: null | string
     toast.danger(t('ai.knowledge_documents.ingest_index_failed', { msg: errorMessage ?? '' }))
   else
     onSuccess()
+}
+
+async function openDetail(id: string, hit: null | string = null) {
+  try {
+    await detail.show(id, hit)
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('ai.common.load_detail_failed'))
+  }
+}
+
+function openCitation(citation: KnowledgeCitation) {
+  void openDetail(citation.documentId, citation.text)
 }
 
 async function handleReindex(row: KnowledgeRow) {
@@ -408,7 +431,17 @@ function onQueryKeydown(event: KeyboardEvent) {
                   <XhTagRoot variant="subtle" size="sm" tone="info">
                     <XhTagLabel>[{{ index + 1 }}]</XhTagLabel>
                   </XhTagRoot>
-                  <span class="playground__citation-title">{{ citationTitle(citation) }}</span>
+                  <XhButton
+                    v-if="canReadDocuments"
+                    variant="link"
+                    size="sm"
+                    class="xh-link-button playground__citation-title"
+                    :aria-label="t('ai.knowledge_documents.open_document', { title: citationTitle(citation) })"
+                    @click="openCitation(citation)"
+                  >
+                    {{ citationTitle(citation) }}
+                  </XhButton>
+                  <span v-else class="playground__citation-title">{{ citationTitle(citation) }}</span>
                   <XhTagRoot variant="subtle" size="sm">
                     <XhTagLabel>{{ citation.score.toFixed(3) }}</XhTagLabel>
                   </XhTagRoot>
@@ -432,6 +465,12 @@ function onQueryKeydown(event: KeyboardEvent) {
         </div>
       </XhTabsContent>
     </XhTabsRoot>
+    <KnowledgeDocumentDrawer
+      v-model:show="detail.open.value"
+      :document="detail.document.value"
+      :hit="detail.hit.value"
+      :loading="detail.loading.value"
+    />
   </div>
 </template>
 

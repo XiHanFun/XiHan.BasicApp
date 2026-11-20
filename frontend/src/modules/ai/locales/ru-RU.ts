@@ -130,6 +130,10 @@ export default {
       no_result_title: 'Ничего не найдено',
       no_result: 'Подходящих фрагментов нет',
       col_created_at: 'Создан',
+      col_modified_at: 'Изменён',
+      detail_title: 'Сведения о документе',
+      detail_raw: 'Исходный текст',
+      open_document: 'Открыть документ «{title}»',
     },
     assistants: {
       title: 'Ассистенты ИИ',

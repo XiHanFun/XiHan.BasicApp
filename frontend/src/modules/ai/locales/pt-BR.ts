@@ -130,6 +130,10 @@ export default {
       no_result_title: 'Nenhum resultado',
       no_result: 'Nenhum fragmento relevante encontrado',
       col_created_at: 'Criado em',
+      col_modified_at: 'Modificado em',
+      detail_title: 'Detalhes do documento',
+      detail_raw: 'Texto original',
+      open_document: 'Abrir o documento "{title}"',
     },
     assistants: {
       title: 'Assistentes de IA',

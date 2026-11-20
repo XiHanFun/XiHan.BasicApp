@@ -130,6 +130,10 @@ export default {
       no_result_title: 'No matching results',
       no_result: 'No relevant chunks found',
       col_created_at: 'Created At',
+      col_modified_at: 'Modified',
+      detail_title: 'Document details',
+      detail_raw: 'Original text',
+      open_document: 'Open document "{title}"',
     },
     assistants: {
       title: 'AI Assistants',

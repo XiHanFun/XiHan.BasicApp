@@ -130,6 +130,10 @@ export default {
       no_result_title: '沒有相符的結果',
       no_result: '未檢索到相關片段',
       col_created_at: '建立時間',
+      col_modified_at: '修改時間',
+      detail_title: '文件詳情',
+      detail_raw: '原文',
+      open_document: '檢視文件「{title}」',
     },
     assistants: {
       title: 'AI 助理',

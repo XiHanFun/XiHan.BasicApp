@@ -130,6 +130,10 @@ export default {
       no_result_title: '一致する結果がありません',
       no_result: '関連するチャンクが見つかりませんでした',
       col_created_at: '作成日時',
+      col_modified_at: '更新日時',
+      detail_title: 'ドキュメントの詳細',
+      detail_raw: '原文',
+      open_document: 'ドキュメント「{title}」を開く',
     },
     assistants: {
       title: 'AI アシスタント',

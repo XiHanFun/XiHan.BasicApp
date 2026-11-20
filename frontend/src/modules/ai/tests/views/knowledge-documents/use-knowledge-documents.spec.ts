@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { citationTitle, knowledgeDocumentsResource, useKnowledgeIngest, useKnowledgePlayground } from '@/modules/ai/views/knowledge-documents/use-knowledge-documents'
+import { citationTitle, knowledgeDocumentsResource, splitByHit, useKnowledgeDetail, useKnowledgeIngest, useKnowledgePlayground } from '@/modules/ai/views/knowledge-documents/use-knowledge-documents'
 import { configureRequest } from '~/request'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
@@ -212,6 +212,32 @@ describe('useKnowledgePlayground', () => {
     expect(playground.loading.value).toBe(false)
   })
 
+  it('不要答案时只检索：走 search，不带 answer，答案清空', async () => {
+    const calls = record(() => json(200, {
+      citations: [
+        {
+          documentId: 'd-2',
+          index: 1,
+          title: null,
+          source: 'faq.md',
+          score: 0.7,
+          text: 'chunk',
+        },
+      ],
+    }))
+    const playground = useKnowledgePlayground()
+    playground.answer.value = 'earlier answer'
+    playground.question.value = 'refund?'
+    playground.wantAnswer.value = false
+    expect(await playground.run()).toBe(true)
+    expect(calls[0]!.method).toBe('GET')
+    expect(calls[0]!.url).toContain('/api/knowledge-documents:search?')
+    expect(calls[0]!.url).toContain('question=refund%3F')
+    expect(calls[0]!.url).not.toContain('answer=')
+    expect(playground.answer.value).toBeNull()
+    expect(playground.citations.value.map(c => c.documentId)).toEqual(['d-2'])
+  })
+
   it('请求失败抛出，加载状态收回', async () => {
     record(() => json(503, {
       type: 'x',
@@ -225,6 +251,66 @@ describe('useKnowledgePlayground', () => {
     await expect(playground.run()).rejects.toThrow()
     expect(playground.loading.value).toBe(false)
     expect(playground.searched.value).toBe(false)
+  })
+})
+
+describe('useKnowledgeDetail', () => {
+  it('按 ID 取详情，带上命中片段；加载完收起加载状态', async () => {
+    const calls = record(() => json(200, detail({ rawContent: 'a b c' })))
+    const view = useKnowledgeDetail()
+    await view.show('d-1', 'b')
+    expect(calls[0]!.url).toBe('/api/knowledge-documents/d-1')
+    expect(view.open.value).toBe(true)
+    expect(view.loading.value).toBe(false)
+    expect(view.document.value?.rawContent).toBe('a b c')
+    expect(view.hit.value).toBe('b')
+  })
+
+  it('连着打开两次只认后一次', async () => {
+    const pending: Array<(response: Response) => void> = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => 't',
+      fetch: (() => new Promise<Response>((resolve) => {
+        pending.push(resolve)
+      })) as unknown as typeof fetch,
+    })
+    const view = useKnowledgeDetail()
+    const first = view.show('d-1')
+    const second = view.show('d-2')
+    await Promise.resolve()
+    pending[1]!(json(200, detail({ id: 'd-2' })))
+    await second
+    pending[0]!(json(200, detail({ id: 'd-1' })))
+    await first
+    expect(view.document.value?.id).toBe('d-2')
+    expect(view.loading.value).toBe(false)
+  })
+
+  it('加载失败关掉抽屉并抛出', async () => {
+    record(() => json(404, {
+      type: 'x',
+      title: 'x',
+      status: 404,
+      code: 'AI_NOTFOUND_003',
+      detail: 'gone',
+    }, 'application/problem+json'))
+    const view = useKnowledgeDetail()
+    await expect(view.show('d-1')).rejects.toThrow('gone')
+    expect(view.open.value).toBe(false)
+    expect(view.loading.value).toBe(false)
+  })
+})
+
+describe('splitByHit', () => {
+  it('原文按命中片段切三段，片段两端的空白不算', () => {
+    expect(splitByHit('one two three', ' two ')).toEqual({ before: 'one ', hit: 'two', after: ' three' })
+  })
+
+  it('没有片段或找不到时整段在 before', () => {
+    expect(splitByHit('one two', null)).toEqual({ before: 'one two', hit: '', after: '' })
+    expect(splitByHit('one two', '  ')).toEqual({ before: 'one two', hit: '', after: '' })
+    expect(splitByHit('one two', 'four')).toEqual({ before: 'one two', hit: '', after: '' })
   })
 })
 
