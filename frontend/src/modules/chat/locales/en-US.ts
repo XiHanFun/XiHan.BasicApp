@@ -18,6 +18,7 @@ export default {
       open_page: 'Open full page',
     },
     start: {
+      assistant_unavailable: 'The AI assistant is not available because the AI module is not installed.',
       button: 'Start Chat',
       single: 'Direct Message',
       group: 'Create Group',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: 'Start a screen share',
       banner_ringing_screen: '{name} started a screen share',
       banner_ongoing_screen: 'Screen share in progress · {n} in the call',
+    },
+    preview: {
+      record: '[Chat record]',
+      image: '[Image]',
+      images: '[Images] {count}',
+      voice: '[Voice] {seconds}s',
+      file: '[File] {name}',
+      files: '[Files] {count}',
+      voice_call: '[Voice call]',
+      video_call: '[Video call]',
+      screen_share: '[Screen share]',
     },
     time: {
       yesterday: 'Yesterday',

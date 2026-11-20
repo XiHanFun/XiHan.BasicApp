@@ -9,6 +9,7 @@ import type {
   ChatMessageAttachment,
 } from '../types'
 import type { ChatConversationType, ChatMessageType } from '~/contracts'
+import { $t } from '~/locales'
 import { ApiError } from '~/request'
 import { formatDateTime, getDisplayTimeZone } from '~/utils'
 import { callRecordLabel } from '../call/call-helpers'
@@ -69,7 +70,7 @@ export function messageBodyLabel(message: {
     return callRecordLabel(message.content)
   }
   if (message.messageType === 'Record') {
-    return '[聊天记录]'
+    return $t('chat.preview.record')
   }
   if (message.content) {
     return message.content
@@ -77,16 +78,16 @@ export function messageBodyLabel(message: {
   const count = message.attachments?.length ?? 0
   if (message.messageType === 'Image') {
     return count > 1
-      ? `[图片] ${count}张`
-      : '[图片]'
+      ? $t('chat.preview.images', { count })
+      : $t('chat.preview.image')
   }
   if (message.messageType === 'Voice') {
-    return `[语音] ${message.attachments?.[0]?.durationSeconds ?? 0}"`
+    return $t('chat.preview.voice', { seconds: message.attachments?.[0]?.durationSeconds ?? 0 })
   }
   if (count > 0) {
     return count > 1
-      ? `[文件] ${count}个`
-      : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
+      ? $t('chat.preview.files', { count })
+      : $t('chat.preview.file', { name: message.attachments?.[0]?.fileName ?? '' }).trimEnd()
   }
   return ''
 }

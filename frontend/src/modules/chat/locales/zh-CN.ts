@@ -18,6 +18,7 @@ export default {
       open_page: '打开独立页',
     },
     start: {
+      assistant_unavailable: 'AI 助手能力未注册（AI 模块未安装），无法发起助手会话。',
       button: '发起聊天',
       single: '发起单聊',
       group: '创建群聊',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: '发起屏幕共享',
       banner_ringing_screen: '{name} 发起了屏幕共享',
       banner_ongoing_screen: '屏幕共享进行中 · {n} 人',
+    },
+    preview: {
+      record: '[聊天记录]',
+      image: '[图片]',
+      images: '[图片] {count} 张',
+      voice: '[语音] {seconds} 秒',
+      file: '[文件] {name}',
+      files: '[文件] {count} 个',
+      voice_call: '[语音通话]',
+      video_call: '[视频通话]',
+      screen_share: '[屏幕共享]',
     },
     time: {
       yesterday: '昨天',

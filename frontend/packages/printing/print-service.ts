@@ -18,6 +18,7 @@ import type {
   PrintTemplateScope,
   ResolvedPrintTemplate,
 } from './types'
+import { $t } from '~/locales'
 import { getPrintingConfiguration } from './configuration'
 import { requirePrintDataSource } from './data-source-registry'
 import { parsePrintTemplateJson } from './document'
@@ -32,7 +33,7 @@ import { loadPrintRuntime } from './runtime'
 export class PrintTemplateVersionChangedError extends Error {
   /** 创建一个模板版本冲突错误 */
   constructor() {
-    super('打印模板已被更新，请关闭模拟数据表单后重新打开。')
+    super($t('print_service.template_version_changed'))
     this.name = 'PrintTemplateVersionChangedError'
   }
 }
@@ -42,19 +43,19 @@ const DEFAULT_DIRECT_TIMEOUT_MS = 30_000
 const MIN_COPIES = 1
 const MAX_COPIES = 99
 
-/** 客户端错误码 → 提示；没列出的按「直接打印失败」加错误码提示 */
+/** 客户端错误码 → 提示的文案键；没列出的按「直接打印失败」加错误码提示 */
 const CLIENT_ERROR_MESSAGES: Readonly<Record<string, string>> = {
-  CLIENT_UNAVAILABLE: '没有连上本地打印客户端，请确认已安装并运行 XiHan 打印客户端。',
-  PROTOCOL_UNSUPPORTED: '本地打印客户端版本过旧，请升级 XiHan 打印客户端。',
-  LOCAL_NETWORK_DENIED: '浏览器拦下了到本机打印客户端的连接，请在网站设置里允许访问本机应用。',
-  CONSENT_DENIED: '打印客户端没有允许这个网站打印，可在客户端托盘的「设置」里修改。',
-  CONSENT_TIMEOUT: '打印客户端的授权窗口超时未处理，请重试并在弹出的窗口里允许。',
-  NO_PRINTERS: '本地打印客户端没有找到任何打印机。',
-  PRINTER_NOT_FOUND: '找不到指定的打印机，它可能已被移除或改名。',
-  PRINTER_OFFLINE: '打印机处于脱机状态。',
-  PAPER_UNSUPPORTED: '打印机不支持模板里的纸张尺寸。',
-  TIMEOUT: '等待打印客户端响应超时。',
-  CONNECTION_LOST: '与打印客户端的连接中断。',
+  CLIENT_UNAVAILABLE: 'print_service.client_unavailable',
+  PROTOCOL_UNSUPPORTED: 'print_service.protocol_unsupported',
+  LOCAL_NETWORK_DENIED: 'print_service.local_network_denied',
+  CONSENT_DENIED: 'print_service.consent_denied',
+  CONSENT_TIMEOUT: 'print_service.consent_timeout',
+  NO_PRINTERS: 'print_service.no_printers',
+  PRINTER_NOT_FOUND: 'print_service.printer_not_found',
+  PRINTER_OFFLINE: 'print_service.printer_offline',
+  PAPER_UNSUPPORTED: 'print_service.paper_unsupported',
+  TIMEOUT: 'print_service.timeout',
+  CONNECTION_LOST: 'print_service.connection_lost',
 }
 
 // Promise 链只保存任务完成信号，不保存打印数据；成功或失败都吞入下一环，确保后续任务不会被前一个失败永久阻塞
@@ -112,7 +113,7 @@ function ensureExpectedRowVersion(
     return
   const expected = expectedRowVersion.trim()
   if (!expected)
-    throw new TypeError('预期打印模板版本不能为空。')
+    throw new TypeError($t('print_service.version_required'))
   if (resolved.rowVersion !== expected)
     throw new PrintTemplateVersionChangedError()
 }
@@ -178,7 +179,7 @@ export async function setPreferredPrinter(
   if (normalized) {
     const printers = await listPrinters()
     if (!printers.some(printer => printer.name === normalized))
-      throw new Error(`打印机不存在或已离线：${normalized}`)
+      throw new Error($t('print_service.printer_unavailable', { name: normalized }))
   }
   savePreferredPrinter(templateCode, normalized || null)
 }
@@ -198,7 +199,7 @@ async function executeDirectPrint<T>(
 
   const printers = await listPrinters()
   if (printers.length === 0)
-    throw new Error(CLIENT_ERROR_MESSAGES.NO_PRINTERS)
+    throw new Error($t('print_service.no_printers'))
   const printerName = choosePrinter(templateCode, printers, options.printerName)
   options.signal?.throwIfAborted()
 
@@ -228,7 +229,7 @@ async function executeDirectPrint<T>(
     if (options.signal?.aborted) {
       throw options.signal.reason instanceof Error
         ? options.signal.reason
-        : new DOMException('打印任务已取消。', 'AbortError')
+        : new DOMException($t('print_service.cancelled'), 'AbortError')
     }
     throw toClientError(error)
   }
@@ -252,7 +253,7 @@ function choosePrinter(
   const explicit = explicitPrinter?.trim()
   if (explicit) {
     if (!printers.some(printer => printer.name === explicit))
-      throw new Error(`指定打印机不存在或已离线：${explicit}`)
+      throw new Error($t('print_service.explicit_printer_unavailable', { name: explicit }))
     return explicit
   }
 
@@ -270,7 +271,7 @@ async function resolveTemplate(
 ): Promise<ResolvedPrintTemplate> {
   const normalizedCode = templateCode?.trim()
   if (!normalizedCode)
-    throw new Error('打印模板编码不能为空。')
+    throw new Error($t('print_service.code_required'))
   const resolved = await getPrintingConfiguration().resolveTemplate(normalizedCode, scope)
   // 自由模板不依赖目录；仅在模板绑定数据源时才拉取，目录接口异常不影响自由模板打印
   if (resolved.dataSourceCode?.trim()) {
@@ -286,21 +287,21 @@ function toRecords<T>(data: T | T[]): unknown[] {
     ? data
     : [data]
   if (records.length === 0)
-    throw new RangeError('打印数据不能为空数组。')
+    throw new RangeError($t('print_service.data_empty'))
   return records
 }
 
 /** 归一 1～99 的打印份数 */
 function normalizeCopies(copies = 1): number {
   if (!Number.isInteger(copies) || copies < MIN_COPIES || copies > MAX_COPIES)
-    throw new RangeError(`打印份数必须是 ${MIN_COPIES}～${MAX_COPIES} 的整数。`)
+    throw new RangeError($t('print_service.copies_range', { min: MIN_COPIES, max: MAX_COPIES }))
   return copies
 }
 
 /** 归一直打超时 */
 function normalizeTimeout(timeoutMs = DEFAULT_DIRECT_TIMEOUT_MS): number {
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0)
-    throw new RangeError('直接打印超时时间必须大于 0。')
+    throw new RangeError($t('print_service.timeout_positive'))
   return timeoutMs
 }
 
@@ -308,9 +309,12 @@ function normalizeTimeout(timeoutMs = DEFAULT_DIRECT_TIMEOUT_MS): number {
 function toClientError(error: unknown): Error {
   if (error instanceof Error && error.name === 'PrintClientError') {
     const code = (error as PrintClientError).code
-    return new Error(CLIENT_ERROR_MESSAGES[code] ?? `直接打印失败：${code}`, { cause: error })
+    const key = CLIENT_ERROR_MESSAGES[code]
+    return new Error(key
+      ? $t(key)
+      : $t('print_service.failed_with_code', { code }), { cause: error })
   }
   return error instanceof Error
     ? error
-    : new Error('直接打印失败。')
+    : new Error($t('print_service.failed'))
 }

@@ -18,6 +18,7 @@ export default {
       open_page: '전체 페이지 열기',
     },
     start: {
+      assistant_unavailable: 'AI 어시스턴트 기능이 등록되지 않아(AI 모듈 미설치) 어시스턴트 대화를 시작할 수 없습니다.',
       button: '채팅 시작',
       single: '1:1 채팅',
       group: '그룹 채팅 만들기',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: '화면 공유 시작',
       banner_ringing_screen: '{name} 님이 화면 공유를 시작했습니다',
       banner_ongoing_screen: '화면 공유 진행 중 · {n}명',
+    },
+    preview: {
+      record: '[대화 기록]',
+      image: '[이미지]',
+      images: '[이미지] {count}장',
+      voice: '[음성] {seconds}초',
+      file: '[파일] {name}',
+      files: '[파일] {count}개',
+      voice_call: '[음성 통화]',
+      video_call: '[영상 통화]',
+      screen_share: '[화면 공유]',
     },
     time: {
       yesterday: '어제',

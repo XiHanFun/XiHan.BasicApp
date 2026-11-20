@@ -18,6 +18,7 @@ export default {
       open_page: 'Открыть на всю страницу',
     },
     start: {
+      assistant_unavailable: 'ИИ-ассистент недоступен: модуль ИИ не установлен.',
       button: 'Начать чат',
       single: 'Личное сообщение',
       group: 'Создать группу',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: 'Начать демонстрацию экрана',
       banner_ringing_screen: '{name} начинает демонстрацию экрана',
       banner_ongoing_screen: 'Идёт демонстрация экрана · участников: {n}',
+    },
+    preview: {
+      record: '[Запись переписки]',
+      image: '[Изображение]',
+      images: '[Изображения] {count}',
+      voice: '[Голосовое] {seconds} с',
+      file: '[Файл] {name}',
+      files: '[Файлы] {count}',
+      voice_call: '[Голосовой звонок]',
+      video_call: '[Видеозвонок]',
+      screen_share: '[Демонстрация экрана]',
     },
     time: {
       yesterday: 'Вчера',

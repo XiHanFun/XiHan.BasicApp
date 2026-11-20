@@ -18,6 +18,7 @@ export default {
       open_page: 'Abrir página inteira',
     },
     start: {
+      assistant_unavailable: 'O assistente de IA não está disponível porque o módulo de IA não está instalado.',
       button: 'Iniciar conversa',
       single: 'Mensagem direta',
       group: 'Criar grupo',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: 'Iniciar compartilhamento de tela',
       banner_ringing_screen: '{name} iniciou um compartilhamento de tela',
       banner_ongoing_screen: 'Compartilhamento de tela em andamento · {n} na chamada',
+    },
+    preview: {
+      record: '[Registro de conversa]',
+      image: '[Imagem]',
+      images: '[Imagens] {count}',
+      voice: '[Voz] {seconds} s',
+      file: '[Arquivo] {name}',
+      files: '[Arquivos] {count}',
+      voice_call: '[Chamada de voz]',
+      video_call: '[Chamada de vídeo]',
+      screen_share: '[Compartilhamento de tela]',
     },
     time: {
       yesterday: 'Ontem',

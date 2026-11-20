@@ -18,6 +18,7 @@ export default {
       open_page: 'Ouvrir en pleine page',
     },
     start: {
+      assistant_unavailable: 'L’assistant IA n’est pas disponible car le module IA n’est pas installé.',
       button: 'Démarrer une discussion',
       single: 'Message direct',
       group: 'Créer un groupe',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: 'Démarrer un partage d’écran',
       banner_ringing_screen: '{name} a démarré un partage d’écran',
       banner_ongoing_screen: 'Partage d’écran en cours · {n} dans l’appel',
+    },
+    preview: {
+      record: '[Historique de discussion]',
+      image: '[Image]',
+      images: '[Images] {count}',
+      voice: '[Vocal] {seconds} s',
+      file: '[Fichier] {name}',
+      files: '[Fichiers] {count}',
+      voice_call: '[Appel vocal]',
+      video_call: '[Appel vidéo]',
+      screen_share: '[Partage d’écran]',
     },
     time: {
       yesterday: 'Hier',

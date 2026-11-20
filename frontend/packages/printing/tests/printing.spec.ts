@@ -33,11 +33,15 @@ beforeEach(async () => {
   vi.doMock('~/printing/runtime', () => ({
     loadPrintRuntime: async () => runtime.api,
   }))
-  ;[printing, piniaModule, storesModule] = await Promise.all([
+  let locales: typeof import('~/locales')
+  ;[printing, piniaModule, storesModule, locales] = await Promise.all([
     import('~/printing/index'),
     import('pinia'),
     import('~/stores'),
+    import('~/locales'),
   ])
+  // 重置模块后 i18n 也是新实例：断言按中文文案写，切到 zh-CN（按需载入壳层文案）
+  await locales.setLocale('zh-CN')
   // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store
   piniaModule.setActivePinia(piniaModule.createPinia())
 })

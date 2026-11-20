@@ -18,6 +18,7 @@ export default {
       open_page: '開啟獨立頁面',
     },
     start: {
+      assistant_unavailable: 'AI 助理能力未註冊（AI 模組未安裝），無法發起助理對話。',
       button: '發起聊天',
       single: '發起單聊',
       group: '建立群組聊天',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: '發起螢幕分享',
       banner_ringing_screen: '{name} 發起了螢幕分享',
       banner_ongoing_screen: '螢幕分享進行中 · {n} 人',
+    },
+    preview: {
+      record: '[聊天記錄]',
+      image: '[圖片]',
+      images: '[圖片] {count} 張',
+      voice: '[語音] {seconds} 秒',
+      file: '[檔案] {name}',
+      files: '[檔案] {count} 個',
+      voice_call: '[語音通話]',
+      video_call: '[視訊通話]',
+      screen_share: '[螢幕分享]',
     },
     time: {
       yesterday: '昨日',

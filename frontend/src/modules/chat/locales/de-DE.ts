@@ -18,6 +18,7 @@ export default {
       open_page: 'Vollständige Seite öffnen',
     },
     start: {
+      assistant_unavailable: 'Der KI-Assistent ist nicht verfügbar, weil das KI-Modul nicht installiert ist.',
       button: 'Chat starten',
       single: 'Direktnachricht',
       group: 'Gruppe erstellen',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: 'Bildschirmfreigabe starten',
       banner_ringing_screen: '{name} hat eine Bildschirmfreigabe gestartet',
       banner_ongoing_screen: 'Bildschirmfreigabe läuft · {n} im Anruf',
+    },
+    preview: {
+      record: '[Chatverlauf]',
+      image: '[Bild]',
+      images: '[Bilder] {count}',
+      voice: '[Sprachnachricht] {seconds} s',
+      file: '[Datei] {name}',
+      files: '[Dateien] {count}',
+      voice_call: '[Sprachanruf]',
+      video_call: '[Videoanruf]',
+      screen_share: '[Bildschirmfreigabe]',
     },
     time: {
       yesterday: 'Gestern',

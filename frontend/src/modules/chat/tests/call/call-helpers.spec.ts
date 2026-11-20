@@ -6,7 +6,7 @@
  * 只有自己没接到的记录算未读；两个人之间后加入的一方出 offer。翻译函数用回显键的替身，断言落在键与参数上
  */
 import type { ChatCallItem, ChatCallParticipantItem } from '@/modules/chat/types'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import {
   callJoinedAt,
   callMediaFailureText,
@@ -23,6 +23,12 @@ import {
   parseCallRecord,
   peerOfCall,
 } from '@/modules/chat/call/call-helpers'
+import { setLocale } from '~/locales'
+
+// 断言按中文文案写
+beforeAll(async () => {
+  await setLocale('zh-CN')
+})
 
 /** 回显键与参数的翻译替身 */
 function t(key: string, named?: Record<string, unknown>): string {

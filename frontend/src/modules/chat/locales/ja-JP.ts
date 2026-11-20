@@ -18,6 +18,7 @@ export default {
       open_page: '独立ページを開く',
     },
     start: {
+      assistant_unavailable: 'AI アシスタント機能が登録されていません（AI モジュール未インストール）。アシスタントとの会話を開始できません。',
       button: 'チャットを開始',
       single: '個人チャット',
       group: 'グループを作成',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: '画面共有を開始',
       banner_ringing_screen: '{name} が画面共有を開始しました',
       banner_ongoing_screen: '画面共有中 · {n} 人',
+    },
+    preview: {
+      record: '[チャット記録]',
+      image: '[画像]',
+      images: '[画像] {count} 枚',
+      voice: '[音声] {seconds} 秒',
+      file: '[ファイル] {name}',
+      files: '[ファイル] {count} 件',
+      voice_call: '[音声通話]',
+      video_call: '[ビデオ通話]',
+      screen_share: '[画面共有]',
     },
     time: {
       yesterday: '昨日',

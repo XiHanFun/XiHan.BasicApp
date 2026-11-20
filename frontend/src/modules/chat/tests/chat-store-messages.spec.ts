@@ -8,11 +8,17 @@
 import type { ChatApiContract, ChatConversationListItem, ChatMessageItem } from '@/modules/chat/types'
 import type { Session } from '~/stores'
 import { createPinia, setActivePinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setChatApi } from '@/modules/chat/api-contract'
 import { CHAT_VOICE_PLAYED_CAP, CHAT_VOICE_PLAYED_STORAGE_KEY } from '@/modules/chat/constants'
 import { useChatStore } from '@/modules/chat/store'
+import { setLocale } from '~/locales'
 import { useAuthStore } from '~/stores'
+
+// 断言按中文文案写
+beforeAll(async () => {
+  await setLocale('zh-CN')
+})
 
 const hub = vi.hoisted(() => ({ calls: [] as string[] }))
 const sound = vi.hoisted(() => ({ played: [] as string[] }))
@@ -579,7 +585,7 @@ describe('乐观上屏与回执收敛', () => {
 
     await store.sendMessage({ conversationId: 'a', messageType: 'Image', content: null })
 
-    expect(store.conversations[0]?.lastMessagePreview).toBe('[图片] 2张')
+    expect(store.conversations[0]?.lastMessagePreview).toBe('[图片] 2 张')
   })
 })
 

@@ -24,11 +24,13 @@ import { computed, ref, shallowRef } from 'vue'
 import { playNotificationSound } from '~/composables/useNotificationSound'
 import { useSignalR } from '~/composables/useSignalR'
 import { RealtimeHubs, RealtimeInvocations } from '~/contracts'
+import { $t } from '~/locales'
 import { ApiError } from '~/request'
 import { getChatAssistantProvider, useUserStore } from '~/stores'
 import { LocalStorage } from '~/utils'
 import { getChatApi } from './api-contract'
-import { callRecordLabel, isMissedCallRecord } from './call/call-helpers'
+import { isMissedCallRecord } from './call/call-helpers'
+import { messageBodyLabel } from './components/chat-helpers'
 import {
   CHAT_ASSISTANT_UNAVAILABLE_CODE,
   CHAT_DRAFTS_STORAGE_KEY,
@@ -382,27 +384,8 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function previewOf(message: ChatMessageItem): string {
-    // 通话记录与聊天记录的正文是 JSON，预览用它们的标签
-    if (message.messageType === 'Call') {
-      return callRecordLabel(message.content)
-    }
-    if (message.messageType === 'Record') {
-      return '[聊天记录]'
-    }
-    const count = message.attachments?.length ?? 0
-    let text = message.content || ''
-    if (!text) {
-      if (message.messageType === 'Image') {
-        text = count > 1
-          ? `[图片] ${count}张`
-          : '[图片]'
-      }
-      else if (count > 0) {
-        text = count > 1
-          ? `[文件] ${count}个`
-          : `[文件] ${message.attachments?.[0]?.fileName ?? ''}`.trimEnd()
-      }
-    }
+    // 与回复引用、搜索命中同一个标签：通话记录与聊天记录的正文是 JSON，附件按类型与数量
+    const text = messageBodyLabel(message)
     return text.length > 60
       ? `${text.slice(0, 60)}…`
       : text
@@ -987,7 +970,7 @@ export const useChatStore = defineStore('chat', () => {
   async function startAssistantConversation(assistantId: string) {
     const provider = getChatAssistantProvider()
     if (!provider)
-      throw new Error('AI 助手能力未注册（AI 模块未安装），无法发起助手会话。')
+      throw new Error($t('chat.start.assistant_unavailable'))
     const result = await provider.openConversation(assistantId)
     await loadConversations()
     await openConversation(result.conversationId)

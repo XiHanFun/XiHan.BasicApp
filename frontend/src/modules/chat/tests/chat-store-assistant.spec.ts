@@ -8,11 +8,17 @@
 import type { ChatApiContract, ChatConversationListItem, ChatConversationOpenResult, ChatMessageItem } from '@/modules/chat/types'
 import type { ChatAssistantProvider, Session } from '~/stores'
 import { createPinia, setActivePinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setChatApi } from '@/modules/chat/api-contract'
 import { useChatStore } from '@/modules/chat/store'
+import { setLocale } from '~/locales'
 import { ApiError } from '~/request'
 import { useAuthStore } from '~/stores'
+
+// 断言按中文文案写
+beforeAll(async () => {
+  await setLocale('zh-CN')
+})
 
 const hub = vi.hoisted(() => ({ calls: [] as string[] }))
 

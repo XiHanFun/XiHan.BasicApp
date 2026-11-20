@@ -18,6 +18,7 @@ export default {
       open_page: 'Abrir página completa',
     },
     start: {
+      assistant_unavailable: 'El asistente de IA no está disponible porque el módulo de IA no está instalado.',
       button: 'Iniciar chat',
       single: 'Mensaje directo',
       group: 'Crear grupo',
@@ -320,6 +321,17 @@ export default {
       invite_title_screen: 'Iniciar pantalla compartida',
       banner_ringing_screen: '{name} ha iniciado una pantalla compartida',
       banner_ongoing_screen: 'Pantalla compartida en curso · {n} en la llamada',
+    },
+    preview: {
+      record: '[Registro de chat]',
+      image: '[Imagen]',
+      images: '[Imágenes] {count}',
+      voice: '[Voz] {seconds} s',
+      file: '[Archivo] {name}',
+      files: '[Archivos] {count}',
+      voice_call: '[Llamada de voz]',
+      video_call: '[Videollamada]',
+      screen_share: '[Pantalla compartida]',
     },
     time: {
       yesterday: 'Ayer',

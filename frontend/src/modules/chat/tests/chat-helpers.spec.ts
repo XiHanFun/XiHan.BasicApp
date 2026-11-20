@@ -7,10 +7,16 @@
  * （`2026-08-27T09:05:00` 按本地时区解析），结果与本机时区无关；设了应用时区的用例用 UTC 时刻作为输入
  */
 import { createStreamRenderer } from '@xihan-ui/markdown'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { assistantMarkdownSource, chatErrorText, droppedFiles, formatConversationTime, formatFileSize, formatMessageTime, hasReadReceipt, isChatVideoFile, messageBodyLabel, previewText, splitMentionText } from '@/modules/chat/components/chat-helpers'
+import { setLocale } from '~/locales'
 import { ApiError } from '~/request'
 import { setDisplayTimeZone } from '~/utils'
+
+// 断言按中文文案写
+beforeAll(async () => {
+  await setLocale('zh-CN')
+})
 
 /** 测试用翻译器：直接回显 key，便于断言走到了 i18n 分支 */
 function echoTranslate(key: string): string {
@@ -65,7 +71,7 @@ describe('messageBodyLabel 摘要标签', () => {
       ],
     })
 
-    expect(many).toBe('[图片] 2张')
+    expect(many).toBe('[图片] 2 张')
     expect(messageBodyLabel({ messageType: 'Image', attachments: [] })).toBe('[图片]')
   })
 
@@ -77,9 +83,9 @@ describe('messageBodyLabel 摘要标签', () => {
       ],
     })
 
-    expect(withDuration).toBe('[语音] 12"')
-    expect(messageBodyLabel({ messageType: 'Voice', attachments: [] })).toBe('[语音] 0"')
-    expect(messageBodyLabel({ messageType: 'Voice' })).toBe('[语音] 0"')
+    expect(withDuration).toBe('[语音] 12 秒')
+    expect(messageBodyLabel({ messageType: 'Voice', attachments: [] })).toBe('[语音] 0 秒')
+    expect(messageBodyLabel({ messageType: 'Voice' })).toBe('[语音] 0 秒')
   })
 
   it('语音分支排在附件计数之前，带多个附件的语音仍显示时长而非文件数', () => {
@@ -91,7 +97,7 @@ describe('messageBodyLabel 摘要标签', () => {
       ],
     })
 
-    expect(label).toBe('[语音] 3"')
+    expect(label).toBe('[语音] 3 秒')
   })
 
   it('单文件带文件名、多文件只给个数', () => {
@@ -110,7 +116,7 @@ describe('messageBodyLabel 摘要标签', () => {
     })
 
     expect(single).toBe('[文件] 合同.pdf')
-    expect(many).toBe('[文件] 2个')
+    expect(many).toBe('[文件] 2 个')
   })
 
   it('单文件缺文件名时尾部空格被裁掉，不留下“[文件] ”', () => {
@@ -133,7 +139,7 @@ describe('messageBodyLabel 摘要标签', () => {
       ],
     })
 
-    expect(label).toBe('[文件] 2个')
+    expect(label).toBe('[文件] 2 个')
   })
 
   it('通话记录的正文是 JSON：按媒体给标签，不把 JSON 当文字', () => {

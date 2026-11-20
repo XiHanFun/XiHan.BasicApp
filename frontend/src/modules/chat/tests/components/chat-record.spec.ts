@@ -6,8 +6,14 @@
  * 翻译函数用回显键的替身，断言落在键与参数上
  */
 import type { ChatRecord } from '@/modules/chat/components/chat-record'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { CHAT_MAX_FORWARD_MESSAGES, chatRecordPreviewLines, chatRecordTitle, isForwardableMessage, parseChatRecord } from '@/modules/chat/components/chat-record'
+import { setLocale } from '~/locales'
+
+// 断言按中文文案写
+beforeAll(async () => {
+  await setLocale('zh-CN')
+})
 
 /** 回显键与参数的翻译替身 */
 function t(key: string, named?: Record<string, unknown>): string {
@@ -188,7 +194,7 @@ describe('标题与预览', () => {
 
     expect(chatRecordPreviewLines(parsed)).toStrictEqual([
       'alice: line one line two',
-      'bob: [图片] 2张',
+      'bob: [图片] 2 张',
       'alice: [聊天记录]',
       'no name',
     ])

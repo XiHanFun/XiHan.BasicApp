@@ -9,6 +9,7 @@ import type { ChatCallItem, ChatCallParticipantItem } from '../types'
 import type { ChatCallMediaFailure } from './call-media'
 import type { ChatCallMedia } from '~/contracts'
 import { ChatCallEndReason, ChatCallMedia as ChatCallMedias } from '~/contracts'
+import { $t } from '~/locales'
 
 type Translate = (key: string, named?: Record<string, unknown>) => string
 
@@ -75,11 +76,11 @@ export function parseCallRecord(content?: null | string): ChatCallRecord | null 
 export function callRecordLabel(content?: null | string): string {
   switch (parseCallRecord(content)?.media) {
     case 'Video':
-      return '[视频通话]'
+      return $t('chat.preview.video_call')
     case 'Screen':
-      return '[屏幕共享]'
+      return $t('chat.preview.screen_share')
     default:
-      return '[语音通话]'
+      return $t('chat.preview.voice_call')
   }
 }
 
