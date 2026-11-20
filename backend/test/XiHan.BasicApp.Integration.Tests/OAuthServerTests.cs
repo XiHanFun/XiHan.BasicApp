@@ -200,8 +200,9 @@ public sealed class OAuthServerTests : IDisposable
             return Segment(tokens.GetProperty("id_token").GetString()!, 0).GetProperty("kid").GetString()!;
         }
 
+        // JWKS 里的先后没有约定（同一时刻建的密钥按随机的 kid 排），按 kid 排好再比
         async Task<string[]> PublishedAsync()
-            => [.. (await SendAsync(server, HttpMethod.Get, "/api/oauth2/jwks", null, null)).Body.GetProperty("keys").EnumerateArray().Select(static k => k.GetProperty("kid").GetString()!)];
+            => [.. (await SendAsync(server, HttpMethod.Get, "/api/oauth2/jwks", null, null)).Body.GetProperty("keys").EnumerateArray().Select(static k => k.GetProperty("kid").GetString()!).Order(StringComparer.Ordinal)];
 
         Task<(HttpStatusCode Status, JsonElement Body)> KeysAsync(string path = "")
             => path.Length == 0 ? SendAsync(server, HttpMethod.Get, "/api/oauth-signing-keys", null, platform) : SendAsync(server, HttpMethod.Post, "/api/oauth-signing-keys" + path, "{}", platform);
@@ -226,7 +227,8 @@ public sealed class OAuthServerTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, rotatedStatus);
         var second = Statuses(rotated).Single(static p => p.Value == "Pending").Key;
         Assert.Equal(clock.GetUtcNow().AddMinutes(15), Key(rotated, second).GetProperty("signsFrom").GetDateTimeOffset());
-        Assert.Equal([first, second], await PublishedAsync());
+        string[] both = [.. new[] { first, second }.Order(StringComparer.Ordinal)];
+        Assert.Equal(both, await PublishedAsync());
         Assert.Equal(first, await SignedByAsync());
         Assert.Equal("OPENPLATFORM_CONFLICT_004", (await KeysAsync(":rotate")).Body.GetProperty("code").GetString());
 
