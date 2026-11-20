@@ -35,6 +35,11 @@ public static class OAuthEndpoints
     public const string Prefix = "/api/oauth2";
 
     /// <summary>
+    /// 发现文档与 JWKS 允许缓存的秒数
+    /// </summary>
+    public const int MetadataMaxAgeSeconds = 300;
+
+    /// <summary>
     /// 映射端点
     /// </summary>
     /// <param name="endpoints">端点</param>
@@ -341,7 +346,7 @@ public static class OAuthEndpoints
         http.Response.ContentType = "application/json; charset=utf-8";
         if (cache)
         {
-            http.Response.Headers.CacheControl = "public, max-age=300";
+            http.Response.Headers.CacheControl = FormattableString.Invariant($"public, max-age={MetadataMaxAgeSeconds}");
         }
         else
         {

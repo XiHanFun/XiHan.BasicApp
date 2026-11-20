@@ -14,6 +14,7 @@ import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEdi
 import { toast } from '~/composables'
 import { oauthApps as oauthAppsApi } from '~/contracts'
 import { copyToClipboard, formatDate } from '~/utils'
+import SigningKeysDrawer from './components/SigningKeysDrawer.vue'
 import {
   appTypeLabel,
   clientTypeLabel,
@@ -269,6 +270,13 @@ const schema = computed<PageSchema>(() => ({
       permission: 'openplatform.oauth-apps.create',
     },
     {
+      key: 'signing-keys',
+      title: t('openplatform.oauth_apps.action_signing_keys'),
+      scope: 'page',
+      icon: 'lucide:key-round',
+      permission: 'openplatform.oauth-signing-keys.read',
+    },
+    {
       key: 'view',
       title: t('openplatform.oauth_apps.action_view'),
       scope: 'row',
@@ -315,6 +323,9 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
+// ── 签名密钥抽屉 ────────────────────────────────────────────────
+const signingKeysVisible = ref(false)
+
 // ── 行/页面操作分发 ─────────────────────────────────────────────
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row
@@ -323,6 +334,9 @@ function onAction(payload: SchemaActionPayload) {
   switch (payload.key) {
     case 'create':
       handleAdd()
+      break
+    case 'signing-keys':
+      signingKeysVisible.value = true
       break
     case 'view':
       if (row)
@@ -818,6 +832,9 @@ async function handleDelete(row: OAuthAppRow) {
         </XhFlex>
       </XhDrawerContent>
     </XhDrawerRoot>
+
+    <!-- 签名密钥抽屉 -->
+    <SigningKeysDrawer v-model:open="signingKeysVisible" />
   </SchemaPage>
 </template>
 

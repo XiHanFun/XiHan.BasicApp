@@ -60,7 +60,7 @@
 | `POST /api/oauth2/revoke` | RFC 7009 |
 | `GET` / `POST /api/oauth2/userinfo` | 用户信息 |
 | `GET /api/oauth2/.well-known/openid-configuration` | OIDC 发现文档 |
-| `GET /api/oauth2/jwks` | 签名公钥（`SysOAuthSigningKey`） |
+| `GET /api/oauth2/jwks` | 全部在用的签名公钥（`SysOAuthSigningKey`） |
 
 签发者取 `BasicApp:OpenPlatform:Issuer`，不配即请求来源加 `/api/oauth2`；反向代理后必须显式配置。ID 令牌有效期 `IdTokenLifetimeSeconds`（缺省 600 秒）。
 
@@ -82,6 +82,18 @@
 | `oauth-apps.create` / `update` / `delete` | `openplatform.oauth-apps.create` / `update` / `delete` | 类型 `Web` / `Mobile` / `Desktop` / `Service`，客户端 `Confidential` / `Public`，回调地址、范围；删除后发给它的令牌即失效 |
 | `oauth-apps.reset-secret` | `openplatform.oauth-apps.update` | 重置客户端密钥 |
 | `my-oauth-apps.list` / `get` / `create` / `update` / `reset-secret` / `delete` | 登录即可 | 个人中心「我的应用」：用户自助注册的应用 |
+
+### 签名密钥
+
+id_token 用 RS256 签名，私钥加密存平台库，第一次签发时自动生成一把。「应用管理」页的「签名密钥」抽屉：
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `oauth-signing-keys.list` | `openplatform.oauth-signing-keys.read` | 全部密钥与状态：签名中、待接替、仅验证、已停用 |
+| `oauth-signing-keys.rotate` | `openplatform.oauth-signing-keys.rotate` | 生成新密钥：即刻在 JWKS 公布，15 分钟后接替签名（各实例十分钟重读一次、JWKS 响应缓存五分钟）；已有一把待接替的即拒绝 |
+| `oauth-signing-keys.retire` | `openplatform.oauth-signing-keys.retire` | 停用不再签名的密钥：JWKS 不再公布，它签过的 id_token 随之验不过；正在签名的不能停用，停用待接替的即取消这次轮换 |
+
+被接替的密钥至少留过 id_token 有效期（`IdTokenLifetimeSeconds`）再停用。
 
 权限码只在平台一侧。作业 `openplatform.oauth-cleanup` 每天 03:30（UTC）物理删除过期一天的授权码与过期七天的令牌。
 

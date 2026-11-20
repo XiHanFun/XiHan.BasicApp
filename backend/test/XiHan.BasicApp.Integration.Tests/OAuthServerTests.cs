@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
@@ -19,7 +20,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// <remarks>
 /// 授权端点把查询串带去同意页；同意页预览校验请求（客户端、回调地址、PKCE、openid）；同意发授权码、记下同意，再来即不必确认；
 /// 令牌端点（机密客户端 Basic / 表单认证、公开客户端 PKCE）发不透明的访问令牌与刷新令牌和 RS256 的 id_token（受众 ClientId、nonce、按范围的声明，用 JWKS 验得过）；
-/// 授权码重放与作废的刷新令牌再用都整族吊销；撤销与撤销同意立即让令牌失效；第三方的访问令牌后台接口不认；拒绝只跳回登记过的地址
+/// 授权码重放与作废的刷新令牌再用都整族吊销；撤销与撤销同意立即让令牌失效；第三方的访问令牌后台接口不认；拒绝只跳回登记过的地址；
+/// 签名密钥轮换后先公布、到点才接替签名，正在签名的不能停用，停用的不再公布
 /// </remarks>
 public sealed class OAuthServerTests : IDisposable
 {
@@ -83,9 +85,11 @@ public sealed class OAuthServerTests : IDisposable
         return query["code"].ToString();
     }
 
-    private static JsonElement Payload(string jwt)
+    private static JsonElement Payload(string jwt) => Segment(jwt, 1);
+
+    private static JsonElement Segment(string jwt, int index)
     {
-        var part = jwt.Split('.')[1].Replace('-', '+').Replace('_', '/');
+        var part = jwt.Split('.')[index].Replace('-', '+').Replace('_', '/');
         part = part.PadRight(part.Length + ((4 - (part.Length % 4)) % 4), '=');
         return JsonDocument.Parse(Convert.FromBase64String(part)).RootElement.Clone();
     }
@@ -179,5 +183,74 @@ public sealed class OAuthServerTests : IDisposable
         Assert.Equal(HttpStatusCode.Unauthorized, await UserInfoStatusAsync(server, third.GetProperty("access_token").GetString()!));
         Assert.Equal("OPENPLATFORM_NOTFOUND_002", (await SendAsync(server, HttpMethod.Post, "/api/oauth-consents:revoke", """{"clientId":"rp-app"}""", tenant)).Body.GetProperty("code").GetString());
         Assert.False((await SendAsync(server, HttpMethod.Get, "/api/oauth-consents:resolve" + Query("rp-app"), null, tenant)).Body.GetProperty("skipConsent").GetBoolean());
+    }
+
+    [Fact]
+    public async Task SigningKeys_TakeOverAfterTheLead_AndOnlyRetireWhenNoLongerSigning()
+    {
+        var clock = new ManualClock(DateTimeOffset.UtcNow);
+        var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder => builder.Services.AddSingleton<TimeProvider>(clock));
+        await using var running = server;
+        var app = new { appName = "RP", clientId = "rp-app", clientType = "Confidential", appType = "Web", grantTypes = new[] { "authorization_code" }, redirectUris = new[] { Callback }, scopes = new[] { "openid" }, accessTokenLifetime = 3600, refreshTokenLifetime = 86400, authorizationCodeLifetime = 300, skipConsent = true, isEnabled = true };
+        var secret = (await SendAsync(server, HttpMethod.Post, "/api/oauth-apps", JsonSerializer.Serialize(app), platform)).Body.GetProperty("clientSecret").GetString()!;
+
+        async Task<string> SignedByAsync()
+        {
+            var (_, tokens) = await FormAsync(server, "/api/oauth2/token", new() { ["grant_type"] = "authorization_code", ["code"] = await CodeAsync(server, tenant, "rp-app", scope: "openid"), ["redirect_uri"] = Callback }, basic: "rp-app:" + secret);
+            return Segment(tokens.GetProperty("id_token").GetString()!, 0).GetProperty("kid").GetString()!;
+        }
+
+        async Task<string[]> PublishedAsync()
+            => [.. (await SendAsync(server, HttpMethod.Get, "/api/oauth2/jwks", null, null)).Body.GetProperty("keys").EnumerateArray().Select(static k => k.GetProperty("kid").GetString()!)];
+
+        Task<(HttpStatusCode Status, JsonElement Body)> KeysAsync(string path = "")
+            => path.Length == 0 ? SendAsync(server, HttpMethod.Get, "/api/oauth-signing-keys", null, platform) : SendAsync(server, HttpMethod.Post, "/api/oauth-signing-keys" + path, "{}", platform);
+
+        static Dictionary<string, string> Statuses(JsonElement list)
+            => list.GetProperty("items").EnumerateArray().ToDictionary(static k => k.GetProperty("keyId").GetString()!, static k => k.GetProperty("status").GetString()!);
+
+        static JsonElement Key(JsonElement list, string kid)
+            => list.GetProperty("items").EnumerateArray().Single(k => k.GetProperty("keyId").GetString() == kid);
+
+        // 第一次用到自动生成、即刻签名；正在签名的不能停用；租户一侧看不到
+        var first = await SignedByAsync();
+        var (_, listed) = await KeysAsync();
+        Assert.Equal(new Dictionary<string, string> { [first] = "Signing" }, Statuses(listed));
+        Assert.Equal(900, listed.GetProperty("rotationLeadSeconds").GetInt32());
+        var (inUse, inUseBody) = await KeysAsync($"/{Key(listed, first).GetProperty("id").GetString()}:retire");
+        Assert.Equal((HttpStatusCode.Conflict, "OPENPLATFORM_CONFLICT_005"), (inUse, inUseBody.GetProperty("code").GetString()));
+        Assert.Equal(HttpStatusCode.Forbidden, (await SendAsync(server, HttpMethod.Get, "/api/oauth-signing-keys", null, tenant)).Status);
+
+        // 轮换：新密钥即刻公布，到点才接替签名；待接替时不能再轮换
+        var (rotatedStatus, rotated) = await KeysAsync(":rotate");
+        Assert.Equal(HttpStatusCode.OK, rotatedStatus);
+        var second = Statuses(rotated).Single(static p => p.Value == "Pending").Key;
+        Assert.Equal(clock.GetUtcNow().AddMinutes(15), Key(rotated, second).GetProperty("signsFrom").GetDateTimeOffset());
+        Assert.Equal([first, second], await PublishedAsync());
+        Assert.Equal(first, await SignedByAsync());
+        Assert.Equal("OPENPLATFORM_CONFLICT_004", (await KeysAsync(":rotate")).Body.GetProperty("code").GetString());
+
+        clock.Set(clock.GetUtcNow().AddMinutes(15));
+        Assert.Equal(second, await SignedByAsync());
+        (_, listed) = await KeysAsync();
+        Assert.Equal(new Dictionary<string, string> { [first] = "Retained", [second] = "Signing" }, Statuses(listed));
+
+        // 停用被接替的那把：不再公布；再停用原样返回；不存在即 404
+        var firstId = Key(listed, first).GetProperty("id").GetString();
+        var (retiredStatus, retired) = await KeysAsync($"/{firstId}:retire");
+        Assert.Equal(HttpStatusCode.OK, retiredStatus);
+        Assert.Equal(("Retired", clock.GetUtcNow()), (Key(retired, first).GetProperty("status").GetString(), Key(retired, first).GetProperty("retiredAt").GetDateTimeOffset()));
+        Assert.Equal([second], await PublishedAsync());
+        Assert.Equal(HttpStatusCode.OK, (await KeysAsync($"/{firstId}:retire")).Status);
+        var (missing, missingBody) = await KeysAsync($"/{Guid.NewGuid()}:retire");
+        Assert.Equal((HttpStatusCode.NotFound, "OPENPLATFORM_NOTFOUND_003"), (missing, missingBody.GetProperty("code").GetString()));
+
+        // 停用待接替的即取消这次轮换：到点仍是原来那把签名
+        var (_, again) = await KeysAsync(":rotate");
+        var third = Statuses(again).Single(static p => p.Value == "Pending").Key;
+        Assert.Equal(HttpStatusCode.OK, (await KeysAsync($"/{Key(again, third).GetProperty("id").GetString()}:retire")).Status);
+        clock.Set(clock.GetUtcNow().AddMinutes(15));
+        Assert.Equal(second, await SignedByAsync());
+        Assert.Equal([second], await PublishedAsync());
     }
 }

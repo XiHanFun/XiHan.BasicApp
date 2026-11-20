@@ -308,6 +308,45 @@ public static class OpenPlatformMessages
     public const string AuthorizeRequestInvalid = "openplatform.oauth.authorize_invalid";
 
     /// <summary>
+    /// 操作 <c>oauth-signing-keys.list</c> 的说明
+    /// </summary>
+    public const string OAuthSigningKeysListDescription = "oauth_signing_keys.list.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-signing-keys.rotate</c> 的说明
+    /// </summary>
+    public const string OAuthSigningKeysRotateDescription = "oauth_signing_keys.rotate.description";
+
+    /// <summary>
+    /// 操作 <c>oauth-signing-keys.retire</c> 的说明
+    /// </summary>
+    public const string OAuthSigningKeysRetireDescription = "oauth_signing_keys.retire.description";
+
+    /// <summary>
+    /// 签名密钥不存在
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>
+    /// </remarks>
+    public const string SigningKeyNotFound = "openplatform.oauth_signing_keys.not_found";
+
+    /// <summary>
+    /// 已有一把待接替的签名密钥，不能再轮换
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>keyId</c>（待接替的那把）
+    /// </remarks>
+    public const string SigningKeyRotationPending = "openplatform.oauth_signing_keys.rotation_pending";
+
+    /// <summary>
+    /// 正在签名的密钥不能停用
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>keyId</c>
+    /// </remarks>
+    public const string SigningKeyInUse = "openplatform.oauth_signing_keys.in_use";
+
+    /// <summary>
     /// 作业 <c>openplatform.oauth-cleanup</c> 的显示名
     /// </summary>
     public const string OAuthCleanupJobTitle = "jobs.openplatform.oauth_cleanup.title";

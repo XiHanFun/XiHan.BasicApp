@@ -276,6 +276,11 @@
       "description": "Preview, approve and deny on the consent page, and view or revoke the apps you have authorized."
     },
     {
+      "name": "oauth-signing-keys",
+      "x-displayName": "Signing keys",
+      "description": "View, rotate and retire the id_token signing keys."
+    },
+    {
       "name": "open",
       "x-displayName": "Open API",
       "description": "Self-check endpoints that third parties call with requests signed by an open API credential."
@@ -41825,6 +41830,217 @@
         }
       }
     },
+    "/api/oauth-signing-keys": {
+      "get": {
+        "operationId": "oauth-signing-keys.list",
+        "tags": [
+          "oauth-signing-keys"
+        ],
+        "summary": "List signing keys",
+        "description": "List the id_token signing keys (retired ones included, newest first) with their status: signing, pending, retained or retired; private keys are never shown.\n\nRequires permission openplatform.oauth-signing-keys.read (Read signing keys).",
+        "x-xihan-permission": "openplatform.oauth-signing-keys.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u5168\u90E8\u7B7E\u540D\u5BC6\u94A5\uFF08\u542B\u505C\u7528\u7684\uFF0C\u65B0\u7684\u5728\u524D\uFF09",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthSigningKeysResponse",
+                  "description": "\u5168\u90E8\u7B7E\u540D\u5BC6\u94A5\uFF08\u542B\u505C\u7528\u7684\uFF0C\u65B0\u7684\u5728\u524D\uFF09",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5BC6\u94A5",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OAuthSigningKeyResponse"
+                      }
+                    },
+                    "rotationLeadSeconds": {
+                      "description": "\u8F6E\u6362\u51FA\u7684\u65B0\u5BC6\u94A5\u4ECE\u516C\u5E03\u5230\u63A5\u66FF\u7B7E\u540D\u7684\u79D2\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "rotationLeadSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth-signing-keys/{id}:retire": {
+      "post": {
+        "operationId": "oauth-signing-keys.retire",
+        "tags": [
+          "oauth-signing-keys"
+        ],
+        "summary": "Retire signing key",
+        "description": "Retire a key that no longer signs: JWKS stops publishing it and the id_tokens it signed no longer validate. The key that signs now cannot be retired.\n\nRequires permission openplatform.oauth-signing-keys.retire (Retire signing keys).",
+        "x-xihan-permission": "openplatform.oauth-signing-keys.retire",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u5BC6\u94A5\u884C ID",
+            "required": true,
+            "schema": {
+              "description": "\u5BC6\u94A5\u884C ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "\u6309 ID \u505C\u7528\u4E00\u628A\u7B7E\u540D\u5BC6\u94A5\u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "OAuthSigningKeyIdRequest",
+                "description": "\u6309 ID \u505C\u7528\u4E00\u628A\u7B7E\u540D\u5BC6\u94A5\u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u5BC6\u94A5\u884C ID",
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u5168\u90E8\u7B7E\u540D\u5BC6\u94A5\uFF08\u542B\u505C\u7528\u7684\uFF0C\u65B0\u7684\u5728\u524D\uFF09",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthSigningKeysResponse",
+                  "description": "\u5168\u90E8\u7B7E\u540D\u5BC6\u94A5\uFF08\u542B\u505C\u7528\u7684\uFF0C\u65B0\u7684\u5728\u524D\uFF09",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5BC6\u94A5",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OAuthSigningKeyResponse"
+                      }
+                    },
+                    "rotationLeadSeconds": {
+                      "description": "\u8F6E\u6362\u51FA\u7684\u65B0\u5BC6\u94A5\u4ECE\u516C\u5E03\u5230\u63A5\u66FF\u7B7E\u540D\u7684\u79D2\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "rotationLeadSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth-signing-keys:rotate": {
+      "post": {
+        "operationId": "oauth-signing-keys.rotate",
+        "tags": [
+          "oauth-signing-keys"
+        ],
+        "summary": "Rotate signing key",
+        "description": "Generate a new id_token signing key: it is published in JWKS at once and takes over signing after a lead (rotationLeadSeconds in the response), while the old key stays published to validate the id_tokens it signed. Not allowed while another key is pending.\n\nRequires permission openplatform.oauth-signing-keys.rotate (Rotate signing keys).",
+        "x-xihan-permission": "openplatform.oauth-signing-keys.rotate",
+        "parameters": [],
+        "requestBody": {
+          "description": "oauth-signing-keys.list \u4E0E oauth-signing-keys.rotate \u7684\u8BF7\u6C42\uFF1A\u6CA1\u6709\u8F93\u5165",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "OAuthSigningKeysRequest",
+                "description": "oauth-signing-keys.list \u4E0E oauth-signing-keys.rotate \u7684\u8BF7\u6C42\uFF1A\u6CA1\u6709\u8F93\u5165",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u5168\u90E8\u7B7E\u540D\u5BC6\u94A5\uFF08\u542B\u505C\u7528\u7684\uFF0C\u65B0\u7684\u5728\u524D\uFF09",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OAuthSigningKeysResponse",
+                  "description": "\u5168\u90E8\u7B7E\u540D\u5BC6\u94A5\uFF08\u542B\u505C\u7528\u7684\uFF0C\u65B0\u7684\u5728\u524D\uFF09",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "description": "\u5BC6\u94A5",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OAuthSigningKeyResponse"
+                      }
+                    },
+                    "rotationLeadSeconds": {
+                      "description": "\u8F6E\u6362\u51FA\u7684\u65B0\u5BC6\u94A5\u4ECE\u516C\u5E03\u5230\u63A5\u66FF\u7B7E\u540D\u7684\u79D2\u6570",
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "rotationLeadSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/open-api-logs/{id}": {
       "get": {
         "operationId": "open-api-logs.get",
@@ -74330,6 +74546,60 @@
           "grantedAt"
         ]
       },
+      "OAuthSigningKeyResponse": {
+        "description": "\u4E00\u628A\u7B7E\u540D\u5BC6\u94A5\uFF08\u79C1\u94A5\u4E0D\u56DE\u663E\uFF09",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u5BC6\u94A5\u884C ID",
+            "type": "string",
+            "format": "uuid"
+          },
+          "keyId": {
+            "description": "\u5BC6\u94A5 ID\uFF08JWKS \u7684 kid\uFF09",
+            "type": "string"
+          },
+          "status": {
+            "description": "\u72B6\u6001",
+            "$ref": "#/components/schemas/OAuthSigningKeyStatus"
+          },
+          "signsFrom": {
+            "description": "\u5F00\u59CB\u7B7E\u540D\u7684\u65F6\u95F4",
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "description": "\u751F\u6210\u65F6\u95F4",
+            "type": "string",
+            "format": "date-time"
+          },
+          "retiredAt": {
+            "description": "\u505C\u7528\u65F6\u95F4",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "keyId",
+          "status",
+          "signsFrom",
+          "createdAt"
+        ]
+      },
+      "OAuthSigningKeyStatus": {
+        "description": "\u7B7E\u540D\u5BC6\u94A5\u7684\u72B6\u6001",
+        "type": "string",
+        "enum": [
+          "Signing",
+          "Pending",
+          "Retained",
+          "Retired"
+        ]
+      },
       "OnlineSessionResponse": {
         "description": "\u5728\u7EBF\u7528\u6237\u5217\u8868\u7684\u4E00\u884C\uFF1A\u4E00\u4E2A\u6709\u6548\u4F1A\u8BDD\uFF08\u540C\u4E00\u7528\u6237\u591A\u7AEF\u767B\u5F55\u5373\u591A\u884C\uFF09",
         "type": "object",
@@ -80448,6 +80718,21 @@
         "displayName": "Update OAuth apps",
         "description": "Edit, enable and disable OAuth apps and reset their client secrets."
       },
+      "openplatform.oauth-signing-keys.read": {
+        "code": "openplatform.oauth-signing-keys.read",
+        "displayName": "Read signing keys",
+        "description": "View the id_token signing keys and which one signs now; private keys are never shown."
+      },
+      "openplatform.oauth-signing-keys.retire": {
+        "code": "openplatform.oauth-signing-keys.retire",
+        "displayName": "Retire signing keys",
+        "description": "Retire id_token signing keys that no longer sign; the id_tokens they signed no longer validate."
+      },
+      "openplatform.oauth-signing-keys.rotate": {
+        "code": "openplatform.oauth-signing-keys.rotate",
+        "displayName": "Rotate signing keys",
+        "description": "Generate a new id_token signing key; it is published at once and takes over signing after a short lead."
+      },
       "organization.departments.create": {
         "code": "organization.departments.create",
         "displayName": "Create departments",
@@ -80895,6 +81180,7 @@
         "my-oauth-apps",
         "oauth-apps",
         "oauth-consents",
+        "oauth-signing-keys",
         "open"
       ]
     },

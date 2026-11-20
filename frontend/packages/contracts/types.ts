@@ -6558,6 +6558,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/oauth-signing-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List signing keys
+         * @description List the id_token signing keys (retired ones included, newest first) with their status: signing, pending, retained or retired; private keys are never shown.
+         *
+         *     Requires permission openplatform.oauth-signing-keys.read (Read signing keys).
+         */
+        get: operations["oauth-signing-keys.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-signing-keys/{id}:retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retire signing key
+         * @description Retire a key that no longer signs: JWKS stops publishing it and the id_tokens it signed no longer validate. The key that signs now cannot be retired.
+         *
+         *     Requires permission openplatform.oauth-signing-keys.retire (Retire signing keys).
+         */
+        post: operations["oauth-signing-keys.retire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/oauth-signing-keys:rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate signing key
+         * @description Generate a new id_token signing key: it is published in JWKS at once and takes over signing after a lead (rotationLeadSeconds in the response), while the old key stays published to validate the id_tokens it signed. Not allowed while another key is pending.
+         *
+         *     Requires permission openplatform.oauth-signing-keys.rotate (Rotate signing keys).
+         */
+        post: operations["oauth-signing-keys.rotate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/open-api-logs/{id}": {
         parameters: {
             query?: never;
@@ -14810,6 +14876,38 @@ export interface components {
              */
             grantedAt: string;
         };
+        /** @description 一把签名密钥（私钥不回显） */
+        OAuthSigningKeyResponse: {
+            /**
+             * Format: uuid
+             * @description 密钥行 ID
+             */
+            id: string;
+            /** @description 密钥 ID（JWKS 的 kid） */
+            keyId: string;
+            /** @description 状态 */
+            status: components["schemas"]["OAuthSigningKeyStatus"];
+            /**
+             * Format: date-time
+             * @description 开始签名的时间
+             */
+            signsFrom: string;
+            /**
+             * Format: date-time
+             * @description 生成时间
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 停用时间
+             */
+            retiredAt?: string | null;
+        };
+        /**
+         * @description 签名密钥的状态
+         * @enum {string}
+         */
+        OAuthSigningKeyStatus: "Signing" | "Pending" | "Retained" | "Retired";
         /** @description 在线用户列表的一行：一个有效会话（同一用户多端登录即多行） */
         OnlineSessionResponse: {
             /**
@@ -38314,6 +38412,136 @@ export interface operations {
                     "application/json": {
                         /** @description 是否撤销了（成功即 true） */
                         revoked: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-signing-keys.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 全部签名密钥（含停用的，新的在前） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 密钥 */
+                        items: components["schemas"]["OAuthSigningKeyResponse"][];
+                        /**
+                         * Format: int32
+                         * @description 轮换出的新密钥从公布到接替签名的秒数
+                         */
+                        rotationLeadSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-signing-keys.retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 密钥行 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description 按 ID 停用一把签名密钥的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 密钥行 ID
+                     */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 全部签名密钥（含停用的，新的在前） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 密钥 */
+                        items: components["schemas"]["OAuthSigningKeyResponse"][];
+                        /**
+                         * Format: int32
+                         * @description 轮换出的新密钥从公布到接替签名的秒数
+                         */
+                        rotationLeadSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "oauth-signing-keys.rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description oauth-signing-keys.list 与 oauth-signing-keys.rotate 的请求：没有输入 */
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description 全部签名密钥（含停用的，新的在前） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 密钥 */
+                        items: components["schemas"]["OAuthSigningKeyResponse"][];
+                        /**
+                         * Format: int32
+                         * @description 轮换出的新密钥从公布到接替签名的秒数
+                         */
+                        rotationLeadSeconds: number;
                     };
                 };
             };

@@ -191,4 +191,28 @@ public static class OpenPlatformErrors
     /// 消息用 <c>FilterUnsupported</c> 或 <c>SortUnsupported</c>
     /// </remarks>
     public const string QueryUnsupported = "OPENPLATFORM_VALIDATION_013";
+
+    /// <summary>
+    /// 签名密钥不存在
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>
+    /// </remarks>
+    public const string SigningKeyNotFound = "OPENPLATFORM_NOTFOUND_003";
+
+    /// <summary>
+    /// 已有一把待接替的签名密钥，不能再轮换
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>keyId</c>（待接替的那把）
+    /// </remarks>
+    public const string SigningKeyRotationPending = "OPENPLATFORM_CONFLICT_004";
+
+    /// <summary>
+    /// 正在签名的密钥不能停用
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>keyId</c>
+    /// </remarks>
+    public const string SigningKeyInUse = "OPENPLATFORM_CONFLICT_005";
 }

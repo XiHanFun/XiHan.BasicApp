@@ -265,6 +265,9 @@ export type OAuthAppType = (typeof OAuthAppType)[number]
 export const OAuthClientType = ['Confidential', 'Public'] as const
 export type OAuthClientType = (typeof OAuthClientType)[number]
 
+export const OAuthSigningKeyStatus = ['Signing', 'Pending', 'Retained', 'Retired'] as const
+export type OAuthSigningKeyStatus = (typeof OAuthSigningKeyStatus)[number]
+
 export const OperationalStatus = ['Up', 'Down', 'Testing', 'Unknown', 'Dormant', 'NotPresent', 'LowerLayerDown'] as const
 export type OperationalStatus = (typeof OperationalStatus)[number]
 
@@ -461,6 +464,7 @@ export const enums = {
   NumberingScope,
   OAuthAppType,
   OAuthClientType,
+  OAuthSigningKeyStatus,
   OperationalStatus,
   OrganizationStatus,
   PermissionAction,

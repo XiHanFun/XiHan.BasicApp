@@ -345,6 +345,9 @@ export const routes = {
   'oauth-consents.list': { method: 'GET', template: '/api/oauth-consents', path: [], query: [], success: 200 },
   'oauth-consents.resolve': { method: 'GET', template: '/api/oauth-consents:resolve', path: [], query: ['responseType', 'clientId', 'redirectUri', 'scope', 'state', 'codeChallenge', 'codeChallengeMethod', 'nonce'], success: 200 },
   'oauth-consents.revoke': { method: 'POST', template: '/api/oauth-consents:revoke', path: [], query: [], success: 200 },
+  'oauth-signing-keys.list': { method: 'GET', template: '/api/oauth-signing-keys', path: [], query: [], success: 200 },
+  'oauth-signing-keys.retire': { method: 'POST', template: '/api/oauth-signing-keys/{id}:retire', path: ['id'], query: [], success: 200 },
+  'oauth-signing-keys.rotate': { method: 'POST', template: '/api/oauth-signing-keys:rotate', path: [], query: [], success: 200 },
   'open-api-logs.get': { method: 'GET', template: '/api/open-api-logs/{id}', path: ['id'], query: [], success: 200 },
   'open-api-logs.list': { method: 'POST', template: '/api/open-api-logs:list', path: [], query: [], success: 200 },
   'open.echo': { method: 'POST', template: '/api/open:echo', path: [], query: [], success: 200 },
@@ -1102,6 +1105,13 @@ export const oauthConsents = {
   list: (request: RequestOf<'oauth-consents.list'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.list'>, ResponseOf<'oauth-consents.list'>>('oauth-consents.list', routes['oauth-consents.list'], request, options),
   resolve: (request: RequestOf<'oauth-consents.resolve'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.resolve'>, ResponseOf<'oauth-consents.resolve'>>('oauth-consents.resolve', routes['oauth-consents.resolve'], request, options),
   revoke: (request: RequestOf<'oauth-consents.revoke'>, options?: CallOptions) => invoke<RequestOf<'oauth-consents.revoke'>, ResponseOf<'oauth-consents.revoke'>>('oauth-consents.revoke', routes['oauth-consents.revoke'], request, options),
+}
+
+/** 资源 `oauth-signing-keys` 的操作 */
+export const oauthSigningKeys = {
+  list: (request: RequestOf<'oauth-signing-keys.list'>, options?: CallOptions) => invoke<RequestOf<'oauth-signing-keys.list'>, ResponseOf<'oauth-signing-keys.list'>>('oauth-signing-keys.list', routes['oauth-signing-keys.list'], request, options),
+  retire: (request: RequestOf<'oauth-signing-keys.retire'>, options?: CallOptions) => invoke<RequestOf<'oauth-signing-keys.retire'>, ResponseOf<'oauth-signing-keys.retire'>>('oauth-signing-keys.retire', routes['oauth-signing-keys.retire'], request, options),
+  rotate: (request: RequestOf<'oauth-signing-keys.rotate'>, options?: CallOptions) => invoke<RequestOf<'oauth-signing-keys.rotate'>, ResponseOf<'oauth-signing-keys.rotate'>>('oauth-signing-keys.rotate', routes['oauth-signing-keys.rotate'], request, options),
 }
 
 /** 资源 `open-api-logs` 的操作 */

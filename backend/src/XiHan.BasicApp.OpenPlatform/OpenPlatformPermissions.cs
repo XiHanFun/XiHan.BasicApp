@@ -34,6 +34,21 @@ public static class OpenPlatformPermissions
     public const string OAuthAppsDelete = "openplatform.oauth-apps.delete";
 
     /// <summary>
+    /// 查看 id_token 的签名密钥
+    /// </summary>
+    public const string OAuthSigningKeysRead = "openplatform.oauth-signing-keys.read";
+
+    /// <summary>
+    /// 轮换 id_token 的签名密钥
+    /// </summary>
+    public const string OAuthSigningKeysRotate = "openplatform.oauth-signing-keys.rotate";
+
+    /// <summary>
+    /// 停用 id_token 的签名密钥
+    /// </summary>
+    public const string OAuthSigningKeysRetire = "openplatform.oauth-signing-keys.retire";
+
+    /// <summary>
     /// 本包全部权限码
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -42,5 +57,8 @@ public static class OpenPlatformPermissions
         new(OAuthAppsCreate, "Create OAuth apps", PermissionScope.Platform, audited: true, description: "Create OAuth apps for single sign-on."),
         new(OAuthAppsUpdate, "Update OAuth apps", PermissionScope.Platform, audited: true, description: "Edit, enable and disable OAuth apps and reset their client secrets."),
         new(OAuthAppsDelete, "Delete OAuth apps", PermissionScope.Platform, audited: true, description: "Delete OAuth apps; tokens issued to them stop working."),
+        new(OAuthSigningKeysRead, "Read OAuth signing keys", PermissionScope.Platform, description: "View the id_token signing keys and which one signs now; private keys are never shown."),
+        new(OAuthSigningKeysRotate, "Rotate OAuth signing keys", PermissionScope.Platform, audited: true, description: "Generate a new id_token signing key; it is published at once and takes over signing after a short lead."),
+        new(OAuthSigningKeysRetire, "Retire OAuth signing keys", PermissionScope.Platform, audited: true, description: "Stop publishing an id_token signing key that no longer signs; id_tokens it signed no longer validate."),
     ];
 }
