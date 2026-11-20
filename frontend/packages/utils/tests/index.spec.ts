@@ -10,6 +10,7 @@ import * as utils from '~/utils/index'
 
 const SUB_MODULES = [
   () => import('~/utils/common'),
+  () => import('~/utils/content-hash'),
   () => import('~/utils/csv'),
   () => import('~/utils/download'),
   () => import('~/utils/file-url'),
@@ -21,7 +22,7 @@ const SUB_MODULES = [
 ] as const
 
 describe('汇总入口转出范围', () => {
-  it('九个子模块的运行时导出全部可从入口取到', async () => {
+  it('十个子模块的运行时导出全部可从入口取到', async () => {
     const modules = await Promise.all(SUB_MODULES.map(load => load()))
 
     const missing: string[] = []

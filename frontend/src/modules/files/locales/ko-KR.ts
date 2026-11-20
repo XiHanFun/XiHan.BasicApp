@@ -7,6 +7,7 @@
 export default {
   files: {
     download_unavailable: '지금은 파일을 다운로드할 수 없습니다. 삭제되었거나 스토리지를 사용할 수 없을 수 있습니다',
+    upload_interrupted: '업로드가 중단되었습니다. 이미 보낸 부분은 유지됩니다. 같은 파일을 다시 업로드하면 중단된 곳부터 이어서 올립니다.',
     library: {
       title: '파일 관리',
       kinds: {

@@ -7,6 +7,7 @@
 export default {
   files: {
     download_unavailable: 'The file cannot be downloaded right now. It may have been deleted, or the storage is unavailable.',
+    upload_interrupted: 'The upload was interrupted. The parts already sent are kept: upload the same file again to continue from where it stopped.',
     library: {
       title: 'File Management',
       kinds: {

@@ -11,6 +11,7 @@ import type {
 import type { components } from '~/contracts'
 import { chatCalls, chatConversations, chatMessages } from '~/contracts'
 import { endpointUrl, throwOnFailed, uploadForm } from '~/request'
+import { canHashForFastUpload, sha256Hex } from '~/utils'
 
 type ChatAttachmentResponse = components['schemas']['ChatAttachmentResponse']
 type ChatAttachmentUploadResponse = components['schemas']['ChatAttachmentUploadResponse']
@@ -18,9 +19,6 @@ type ChatDepartmentNode = components['schemas']['ChatDepartmentNode']
 
 /** 普通上传端点（multipart 字段 file，只要聊天的发送权限；不在操作路由表里） */
 export const CHAT_ATTACHMENT_UPLOAD_PATH = '/api/chat-messages/attachments'
-
-/** 秒传探测的大小上限：整份读进内存算 SHA-256，超大文件直接走普通上传 */
-export const FAST_UPLOAD_MAX_BYTES = 200 * 1024 * 1024
 
 function mapDepartment(node: ChatDepartmentNode): ChatDepartmentPickerNode {
   return {
@@ -34,14 +32,6 @@ function mapDepartment(node: ChatDepartmentNode): ChatDepartmentPickerNode {
 
 function toUploadResult(attachment: ChatAttachmentResponse): ChatAttachmentUploadResult {
   return { fileId: attachment.fileId, fileName: attachment.fileName, fileSize: attachment.fileSize }
-}
-
-/** SHA-256（十六进制小写，与后端秒传同一算法） */
-async function sha256Hex(file: File): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
-  return [
-    ...new Uint8Array(digest),
-  ].map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 /**
@@ -113,7 +103,7 @@ export function createChatApi(): ChatApiContract {
     departmentTree: async () => (await chatConversations.departmentTree({})).items.map(mapDepartment),
     async uploadAttachment(file, onProgress) {
       // 秒传：同一侧已有内容相同的文件即直接得到附件；没命中、浏览器不支持或文件超大时走普通上传
-      if (file.size > 0 && file.size <= FAST_UPLOAD_MAX_BYTES && globalThis.crypto?.subtle) {
+      if (canHashForFastUpload(file)) {
         try {
           const fast = await chatMessages.fastUpload({
             hash: await sha256Hex(file),

@@ -7,6 +7,7 @@
 export default {
   files: {
     download_unavailable: '檔案暫時無法下載，可能已被刪除或儲存空間無法使用',
+    upload_interrupted: '上傳中斷了，已傳的部分會保留：再次上傳同一個檔案即從中斷處繼續',
     library: {
       title: '檔案管理',
       kinds: {

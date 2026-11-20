@@ -7,6 +7,7 @@
 export default {
   files: {
     download_unavailable: 'ファイルを今ダウンロードできません。削除されたか、ストレージを利用できない可能性があります',
+    upload_interrupted: 'アップロードが中断されました。送信済みの部分は保持されます。同じファイルをもう一度アップロードすると中断したところから再開します。',
     library: {
       title: 'ファイル管理',
       kinds: {

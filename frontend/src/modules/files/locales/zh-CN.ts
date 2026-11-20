@@ -7,6 +7,7 @@
 export default {
   files: {
     download_unavailable: '文件暂时无法下载，可能已被删除或存储不可用',
+    upload_interrupted: '上传中断了，已传的部分会保留：再次上传同一个文件即从中断处继续',
     library: {
       title: '文件管理',
       kinds: {
