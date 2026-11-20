@@ -46,7 +46,8 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 - 登记了组件路径但找不到文件：控制台报错并回落到 404 页（侧栏仍显示该条目，报错用于定位配置错误）；菜单缺路由名的节点同样报错并跳过；
 - 视图路径要求 kebab-case 且全局唯一，由 `pnpm modules:check` 检查；
 - 每个页面包一层「名字 = 路由名」的壳组件，KeepAlive 按路由名命中缓存，页面组件自己的名字不参与；
-- 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载。
+- 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载；
+- 后端集成测试 `PageViewsTests` 双向核对：各包登记的页面与审批单据都能按上面的规则找到视图，`src/modules/*/views/**/index.vue` 也都有登记，多出来的视图没有入口能到。
 
 ## 守卫
 
