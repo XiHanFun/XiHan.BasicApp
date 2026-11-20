@@ -84,7 +84,7 @@ pnpm build
 | --- | --- |
 | `type-check` | `vue-tsc --noEmit` |
 | `lint` | oxlint + eslint（`@antfu/eslint-config`）+ stylelint（`.css` 与 `.vue` 的 `<style>`，后者经 postcss-html 解析）；`packages/` 不得引用 `@/` |
-| `px:check` | 样式里的裸 px 按文件计数（`scripts/px-allowlist.json`，`--update` 收紧） |
+| `px:check` | 裸 px 按文件计数：样式、模板（行内 style、Tailwind 任意值）与脚本都算（`scripts/px-allowlist.json`，`--update` 收紧） |
 | `token:check` | 引用的 `--xh-*` 令牌在已安装的组件库里存在 |
 | `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
 | `modules:check` | 模块名是后端能力包名；有 `setup.ts`、`locales/`、`views/`；视图路径是 kebab-case 且全局唯一 |

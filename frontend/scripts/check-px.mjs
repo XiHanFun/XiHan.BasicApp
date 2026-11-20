@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// 门禁：样式里的裸 px 按文件计数、只许减不许增（方案 6.7 修订（十一））
-// 计数口径：.css 全文与 .vue 的 <style> 块，去掉注释后的 <数字>px 字面量；不计 0px、1px / 2px（描边与发丝线）、9999px（胶囊圆角）
+// 门禁：裸 px 按文件计数、只许减不许增（方案 6.7 修订（十一））
+// 计数口径：.css、.vue 全文（样式、模板与脚本：行内 style、Tailwind 任意值、渲染函数的样式对象都算）与 .ts（不含测试与类型声明），去掉注释后的 <数字>px 字面量；
+// 不计 0px、1px / 2px（描边与发丝线）、9999px（胶囊圆角）
 // 白名单 scripts/px-allowlist.json 记每个文件允许的上限：超出或出现名单外的文件即失败；少于上限时提示把上限降下来（传 --update 自动收紧）
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
@@ -10,9 +11,8 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const ALLOWLIST = join(ROOT, 'scripts', 'px-allowlist.json')
 const SCAN = ['src', 'packages']
-const SKIP = new Set(['node_modules', 'dist'])
+const SKIP = new Set(['node_modules', 'dist', 'tests'])
 const PX = /(?<![\w-])(-?\d+(?:\.\d+)?)px\b/g
-const STYLE_BLOCK = /<style[^>]*>([\s\S]*?)<\/style>/g
 const update = process.argv.includes('--update')
 
 function files(dir, out = []) {
@@ -22,10 +22,19 @@ function files(dir, out = []) {
     const path = join(dir, entry.name)
     if (entry.isDirectory())
       files(path, out)
-    else if (/\.(?:css|vue)$/.test(entry.name))
+    else if (/\.(?:css|vue|ts)$/.test(entry.name) && !/\.(?:d|spec)\.ts$/.test(entry.name))
       out.push(path)
   }
   return out
+}
+
+/** 去掉注释：块注释与 HTML 注释，脚本里另去掉行注释（`//` 前面是行首或空白与标点，不碰 URL 里的 `//`） */
+function stripComments(source, file) {
+  let body = source.replace(/\/\*[\s\S]*?\*\//g, '')
+  if (file.endsWith('.css'))
+    return body
+  body = body.replace(/<!--[\s\S]*?-->/g, '')
+  return body.replace(/(^|[\s;{}(,])\/\/.*$/gm, '$1')
 }
 
 function counts(value) {
@@ -38,13 +47,7 @@ const allowed = JSON.parse(readFileSync(ALLOWLIST, 'utf8'))
 /** @type {Record<string, number>} */
 const actual = {}
 for (const file of SCAN.flatMap(dir => files(join(ROOT, dir)))) {
-  const source = readFileSync(file, 'utf8')
-  const css = file.endsWith('.vue')
-    ? [
-        ...source.matchAll(STYLE_BLOCK),
-      ].map(m => m[1]).join('\n')
-    : source
-  const body = css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const body = stripComments(readFileSync(file, 'utf8'), file)
   const hits = [
     ...body.matchAll(PX),
   ].filter(m => counts(m[1]))
