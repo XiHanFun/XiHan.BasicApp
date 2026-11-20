@@ -115,9 +115,11 @@ public sealed class ExternalDatabase : IAsyncDisposable
             });
 
             // 读已提交按快照读，与正式部署的要求一致（宿主启动时建表在结构升级之前，升级看到已有表的库没打开会失败）
+            // 强制参数化：SqlSugar 建表时逐列按字面量查一遍列说明，每条都要现编译（一个库约 1700 条、每条十几毫秒），参数化后同形语句共用一份计划
             if (type == DbType.SqlServer)
             {
                 maintenance.Ado.ExecuteCommand($"ALTER DATABASE [{name}] SET READ_COMMITTED_SNAPSHOT ON");
+                maintenance.Ado.ExecuteCommand($"ALTER DATABASE [{name}] SET PARAMETERIZATION FORCED");
             }
         }
 
