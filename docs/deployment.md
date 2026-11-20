@@ -82,10 +82,10 @@ dotnet XiHan.BasicApp.Host.dll
 | 端点 | 用途 |
 | --- | --- |
 | `/health/startup` | 启动探针 |
-| `/health/ready` | 就绪探针：含各 Feature 与 Provider 健康项 |
+| `/health/ready` | 就绪探针：应用处于 Ready 或 Degraded 即通过，只给总状态 |
 | `/health/live` | 存活探针 |
 
-配了 Redis / RabbitMQ 时就绪探针多出 `caching.redis.connection` / `messaging.rabbitmq.connection`：启动时连不上即启动失败，运行中断开只记 Degraded，应用照常服务。
+探针不带各 Feature 与健康项的详情，详情在服务监控里看（`maintenance.server.read`），见[健康检查与可观测](./backend/health-observability)。配了 Redis / RabbitMQ 时健康项多出 `caching.redis.connection` / `messaging.rabbitmq.connection`：启动时连不上即启动失败，运行中断开只记 Degraded，就绪探针照样通过、应用照常服务。
 
 宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp`（tag 与版本号一致）、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。清单只列了必需的 `db`；要让打包工具一并生成 Redis 与 RabbitMQ，在 `bindings` 里加上 `{ "name": "cache", "type": "cache:distributed" }` 与 `{ "name": "queue", "type": "queue" }`。
 

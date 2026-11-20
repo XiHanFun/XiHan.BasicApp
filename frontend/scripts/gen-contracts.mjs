@@ -200,7 +200,7 @@ function collectEnums(doc) {
 
 function emitEnums(enums) {
   const lines = [HEADER]
-  lines.push('// 枚举文案由后端消息目录按语言提供（随 N1 的 metadata.enums.list 接入）；这里只有成员与类型')
+  lines.push('// 这里只有成员与类型；显示文案由各模块按成员写在自己的语言文件里')
   lines.push('')
   for (const [name, members] of enums) {
     lines.push(`export const ${name} = [${members.map(m => `'${m}'`).join(', ')}] as const`)
@@ -214,11 +214,6 @@ function emitEnums(enums) {
   lines.push('} as const')
   lines.push('')
   lines.push('export type EnumName = keyof typeof enums')
-  lines.push('')
-  lines.push('/** 枚举成员的显示文案；后端枚举文案（metadata.enums.list）接入前原样返回成员名，未知成员也原样返回 */')
-  lines.push('export function enumLabel(_type: EnumName, value: string): string {')
-  lines.push('  return value')
-  lines.push('}')
   lines.push('')
   return lines.join('\n')
 }

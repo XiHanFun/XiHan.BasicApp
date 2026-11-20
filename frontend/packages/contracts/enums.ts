@@ -5,7 +5,7 @@
 
 // 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts
 
-// 枚举文案由后端消息目录按语言提供（随 N1 的 metadata.enums.list 接入）；这里只有成员与类型
+// 这里只有成员与类型；显示文案由各模块按成员写在自己的语言文件里
 
 export const AccessPolicyAction = ['LogOnly', 'Deny', 'Allow'] as const
 export type AccessPolicyAction = (typeof AccessPolicyAction)[number]
@@ -504,8 +504,3 @@ export const enums = {
 } as const
 
 export type EnumName = keyof typeof enums
-
-/** 枚举成员的显示文案；后端枚举文案（metadata.enums.list）接入前原样返回成员名，未知成员也原样返回 */
-export function enumLabel(_type: EnumName, value: string): string {
-  return value
-}
