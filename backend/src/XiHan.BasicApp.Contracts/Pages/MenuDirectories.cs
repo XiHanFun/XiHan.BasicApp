@@ -8,7 +8,7 @@ namespace XiHan.BasicApp.Contracts.Pages;
 /// </summary>
 /// <remarks>
 /// 各包的页面登记用 <see cref="PageDescriptor.Directory"/> 指到这里的目录，目录节点本身由 Access 的内置节点种子首写，之后与运营建的一样可改可删，删了的目录下的页面留在顶层
-/// 顶层是 AI 中心、流程中心、集成中心、消息中心、租户管理、系统管理、帮助中心七个目录，集成中心下再分推送服务与开放接口，系统管理下分权限、设置、服务、监控、日志、文件、开发七个二级目录
+/// 顶层是 AI 中心、流程中心、集成中心、消息中心、租户管理、平台管理、帮助中心七个目录，集成中心下再分推送服务与开放接口，平台管理下分权限、设置、服务、监控、日志、文件、打印、开发八个二级目录
 /// </remarks>
 public static class MenuDirectories
 {
@@ -38,12 +38,12 @@ public static class MenuDirectories
     public const string OpenApi = "custom.open-api";
 
     /// <summary>
-    /// 系统管理
+    /// 平台管理
     /// </summary>
     public const string SystemManagement = "custom.system-management";
 
     /// <summary>
-    /// 系统管理 › 系统权限
+    /// 平台管理 › 系统权限
     /// </summary>
     public const string SystemPermission = "custom.system-permission";
 
@@ -53,32 +53,37 @@ public static class MenuDirectories
     public const string TenantManagement = "custom.tenant-management";
 
     /// <summary>
-    /// 系统管理 › 系统设置
+    /// 平台管理 › 系统设置
     /// </summary>
     public const string SystemSettings = "custom.system-settings";
 
     /// <summary>
-    /// 系统管理 › 系统服务
+    /// 平台管理 › 系统服务
     /// </summary>
     public const string SystemServices = "custom.system-services";
 
     /// <summary>
-    /// 系统管理 › 系统监控
+    /// 平台管理 › 系统监控
     /// </summary>
     public const string SystemMonitor = "custom.system-monitor";
 
     /// <summary>
-    /// 系统管理 › 系统日志
+    /// 平台管理 › 系统日志
     /// </summary>
     public const string SystemLogs = "custom.system-logs";
 
     /// <summary>
-    /// 系统管理 › 文件服务
+    /// 平台管理 › 文件服务
     /// </summary>
     public const string FileServices = "custom.file-services";
 
     /// <summary>
-    /// 系统管理 › 在线开发
+    /// 平台管理 › 打印服务
+    /// </summary>
+    public const string PrintServices = "custom.print-services";
+
+    /// <summary>
+    /// 平台管理 › 在线开发
     /// </summary>
     public const string OnlineDev = "custom.online-dev";
 

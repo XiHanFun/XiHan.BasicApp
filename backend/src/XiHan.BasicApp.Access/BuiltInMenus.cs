@@ -45,6 +45,7 @@ public static class BuiltInMenus
         new(MenuDirectories.SystemMonitor, MenuKind.Directory, "menu.system_monitor", "lucide:activity", 400, MenuDirectories.SystemManagement),
         new(MenuDirectories.SystemLogs, MenuKind.Directory, "menu.system_logs", "lucide:scroll-text", 500, MenuDirectories.SystemManagement),
         new(MenuDirectories.FileServices, MenuKind.Directory, "menu.file_services", "lucide:folder-cog", 600, MenuDirectories.SystemManagement),
+        new(MenuDirectories.PrintServices, MenuKind.Directory, "menu.print_services", "lucide:printer-check", 650, MenuDirectories.SystemManagement),
         new(MenuDirectories.OnlineDev, MenuKind.Directory, "menu.online_dev", "lucide:code", 700, MenuDirectories.SystemManagement),
         new(MenuDirectories.About, MenuKind.Directory, "menu.about", "lucide:info", 1100),
         new("custom.about-docs", MenuKind.Link, "menu.about_docs", "lucide:book-open-text", 1120, MenuDirectories.About, "https://docs.xihanfun.com"),

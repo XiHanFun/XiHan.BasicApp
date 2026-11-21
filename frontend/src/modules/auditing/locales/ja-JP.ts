@@ -225,7 +225,7 @@ export default {
       detail: '備考',
     },
     condition_hits: {
-      title: '条件ヒット',
+      title: '条件ヒットログ',
       detail_title: '条件ヒットの詳細',
       keyword_placeholder: 'ポリシーコード、名前、パスを検索',
       source: 'ソース',

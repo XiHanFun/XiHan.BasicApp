@@ -225,7 +225,7 @@ export default {
       detail: 'Note',
     },
     condition_hits: {
-      title: 'Conditions satisfaites',
+      title: 'Journaux des conditions satisfaites',
       detail_title: 'Détails de la condition satisfaite',
       keyword_placeholder: 'Rechercher des codes de politique, noms ou chemins',
       source: 'Source',

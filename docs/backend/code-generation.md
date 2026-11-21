@@ -6,7 +6,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 
 ## 页面与权限
 
-页面 `codegeneration.code-gen`（路由 `/codegeneration/code-gen`，在「系统管理 › 在线开发」目录下，菜单按 `codegeneration.codegen-tables.read` 下发），一页四签：表配置、数据源、模板、生成历史，各页签按自己资源的读权限显示。
+页面 `codegeneration.code-gen`（路由 `/codegeneration/code-gen`，在「平台管理 › 在线开发」目录下，菜单按 `codegeneration.codegen-tables.read` 下发），一页四签：表配置、数据源、模板、生成历史，各页签按自己资源的读权限显示。
 
 权限码只在平台一侧，资源段与操作一致：
 

@@ -225,7 +225,7 @@ export default {
       detail: '설명',
     },
     condition_hits: {
-      title: '조건 적중',
+      title: '조건 적중 로그',
       detail_title: '조건 적중 상세',
       keyword_placeholder: '정책 코드, 이름, 경로 검색',
       source: '출처',

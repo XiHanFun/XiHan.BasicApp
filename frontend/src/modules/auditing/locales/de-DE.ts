@@ -225,7 +225,7 @@ export default {
       detail: 'Hinweis',
     },
     condition_hits: {
-      title: 'Bedingungstreffer',
+      title: 'Bedingungstrefferprotokolle',
       detail_title: 'Bedingungstreffer-Details',
       keyword_placeholder: 'Richtliniencodes, Namen oder Pfade suchen',
       source: 'Quelle',

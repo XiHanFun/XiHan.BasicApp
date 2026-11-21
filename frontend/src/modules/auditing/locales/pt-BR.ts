@@ -225,7 +225,7 @@ export default {
       detail: 'Observação',
     },
     condition_hits: {
-      title: 'Condições atendidas',
+      title: 'Registros de condições atendidas',
       detail_title: 'Detalhes da condição atendida',
       keyword_placeholder: 'Pesquisar códigos de política, nomes ou caminhos',
       source: 'Origem',

@@ -225,7 +225,7 @@ export default {
       detail: 'Note',
     },
     condition_hits: {
-      title: 'Condition hits',
+      title: 'Condition hit logs',
       detail_title: 'Condition hit details',
       keyword_placeholder: 'Search policy codes, names or paths',
       source: 'Source',

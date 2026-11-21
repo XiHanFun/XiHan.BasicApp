@@ -14,7 +14,7 @@ Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志�
 | 异常日志 | `sys_exception_log_{year}{month}{day}` | `AuditLogMiddleware`：未预期的失败与异常 | `exception-logs.*` / `auditing.exception-logs.read` |
 | 数据变更日志 | `sys_diff_log_{year}{month}{day}` | SqlSugar 差异事件（`OnDiffLogEvent`），按调用缓冲、成功才落库 | `diff-logs.*` / `auditing.diff-logs.read` |
 | 权限变更日志 | `sys_permission_change_log_{year}{month}{day}` | Access / Tenancy 在调用里登记，成功才落库 | `permission-change-logs.*` / `auditing.permission-change-logs.read` |
-| 条件命中 | `sys_condition_hit_{year}{month}{day}` | 访问策略与权限条件，与调用成败无关 | `condition-hits.*` / `auditing.condition-hits.read` |
+| 条件命中日志 | `sys_condition_hit_{year}{month}{day}` | 访问策略与权限条件，与调用成败无关 | `condition-hits.*` / `auditing.condition-hits.read` |
 | 开放接口日志 | `sys_open_api_log_{year}{month}{day}` | OpenPlatform 的验签中间件，每次调用无论成败 | `open-api-logs.*` / `auditing.open-api-logs.read` |
 
 每类都是 `list`（`POST /api/<资源>:list`，分页筛选）与 `get`（`GET /api/<资源>/{id}`）两个操作。
@@ -57,7 +57,7 @@ Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志�
 
 ## 页面
 
-`src/modules/auditing`：链路追踪与八个日志页（SchemaPage），详情抽屉、追踪跳转、时间线与流向图。开放接口日志挂在「集成中心 › 开放接口」目录下，其余在「系统管理 › 系统日志」下。
+`src/modules/auditing`：链路追踪与八个日志页（SchemaPage），详情抽屉、追踪跳转、时间线与流向图。开放接口日志挂在「集成中心 › 开放接口」目录下，其余在「平台管理 › 系统日志」下。
 
 ## 下一步
 

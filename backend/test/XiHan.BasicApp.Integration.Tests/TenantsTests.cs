@@ -100,7 +100,7 @@ public sealed class TenantsTests : IDisposable
             + "custom.system-monitor[identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
-            + "custom.online-dev[printing.print-templates]], "
+            + "custom.print-services[printing.print-templates]], "
             + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
             MenuTrees.Outline(permissionsBody.GetProperty("menus")));
 

@@ -225,7 +225,7 @@ export default {
       detail: 'Nota',
     },
     condition_hits: {
-      title: 'Condiciones cumplidas',
+      title: 'Registros de condiciones cumplidas',
       detail_title: 'Detalles de la condición cumplida',
       keyword_placeholder: 'Buscar códigos de política, nombres o rutas',
       source: 'Origen',

@@ -32,7 +32,7 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        // 整棵树：两侧的页面节点都在（含租户侧的部门、岗位、我的订阅），工作台排在最前，其余页面按登记挂在内置目录下（三层：系统管理 › 系统权限 › 页面）
+        // 整棵树：两侧的页面节点都在（含租户侧的部门、岗位、我的订阅），工作台排在最前，其余页面按登记挂在内置目录下（三层：平台管理 › 系统权限 › 页面）
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         Assert.Equal(
@@ -49,7 +49,8 @@ public sealed class MenusTests : IDisposable
             + "custom.system-monitor[maintenance.server, identity.online-users], "
             + "custom.system-logs[auditing.login-logs, auditing.access-logs, auditing.operation-logs, auditing.exception-logs, auditing.diff-logs, auditing.permission-change-logs, auditing.condition-hits, auditing.traces], "
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
-            + "custom.online-dev[codegeneration.code-gen, printing.print-templates]], "
+            + "custom.print-services[printing.print-templates], "
+            + "custom.online-dev[codegeneration.code-gen]], "
             + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
             MenuTrees.Outline(listBody.GetProperty("items")));
         var roles = MenuTrees.Find(listBody.GetProperty("items"), "access.roles");

@@ -225,7 +225,7 @@ export default {
       detail: 'Примечание',
     },
     condition_hits: {
-      title: 'Срабатывания условий',
+      title: 'Журнал срабатываний условий',
       detail_title: 'Сведения о срабатывании условия',
       keyword_placeholder: 'Поиск по кодам политик, названиям или путям',
       source: 'Источник',

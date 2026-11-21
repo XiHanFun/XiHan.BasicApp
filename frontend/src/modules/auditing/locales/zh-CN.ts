@@ -225,7 +225,7 @@ export default {
       detail: '说明',
     },
     condition_hits: {
-      title: '条件命中',
+      title: '条件命中日志',
       detail_title: '条件命中详情',
       keyword_placeholder: '搜索策略编码、名称或路径',
       source: '来源',

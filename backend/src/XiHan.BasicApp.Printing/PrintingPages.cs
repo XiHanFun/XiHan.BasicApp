@@ -16,7 +16,7 @@ public static class PrintingPages
     /// <summary>
     /// 打印模板页
     /// </summary>
-    public static PageDescriptor PrintTemplates { get; } = new("printing.print-templates", "/printing/print-templates", "printing.print_templates.title", "lucide:printer", 820, PrintingPermissions.PrintTemplatesRead, directory: MenuDirectories.OnlineDev);
+    public static PageDescriptor PrintTemplates { get; } = new("printing.print-templates", "/printing/print-templates", "printing.print_templates.title", "lucide:printer", 820, PrintingPermissions.PrintTemplatesRead, directory: MenuDirectories.PrintServices);
 
     /// <summary>
     /// 全部顶层页面
