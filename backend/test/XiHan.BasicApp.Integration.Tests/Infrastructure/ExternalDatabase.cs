@@ -160,6 +160,7 @@ public sealed class ExternalDatabase : IAsyncDisposable
             DbType.SqlServer => $"ALTER DATABASE [{_name}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{_name}]",
             _ => $"DROP DATABASE IF EXISTS \"{_name}\" WITH (FORCE)",
         });
+        TestFileStorage.Delete(ConnectionString);
         return ValueTask.CompletedTask;
     }
 

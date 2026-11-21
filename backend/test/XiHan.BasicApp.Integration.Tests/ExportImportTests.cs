@@ -5,7 +5,9 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -226,7 +228,9 @@ public sealed class ExportImportTests : IDisposable
         Assert.Contains($"\r\n{root.GetProperty("code").GetString()}\r\n{child.GetProperty("code").GetString()}\r\n", menuCsv, StringComparison.Ordinal);
 
         // 列按路径取值：深一层用点号、数组用下标，走不到的为空，| 分隔的备选取第一条有文字的
-        var single = new { page = new { index = 1, size = 1 }, filters = Array.Empty<object>(), sorts = Array.Empty<object>(), keyword = (string?)null };
+        // 代码登记的作业在调度引擎的第一个轮询周期才写进存储，之前列出来没有触发器：先跑一个周期，再只取有 Cron 触发器的作业
+        await server.Services.GetRequiredService<JobSchedulerEngine>().PollOnceAsync(CancellationToken.None);
+        var single = new { page = new { index = 1, size = 1 }, filters = new[] { new { field = "kind", @operator = "eq", value = "Cron" } }, sorts = Array.Empty<object>(), keyword = (string?)null };
         var job = (await SendAsync(server, HttpMethod.Post, "/api/jobs:list", JsonSerializer.Serialize(single), platform)).Body.GetProperty("items")[0];
         var kind = job.GetProperty("triggers")[0].GetProperty("kind").GetString();
         var (_, jobCsv) = await ExportAsync("jobs.list", "CurrentPage", single, [new { key = "name", title = "Name" }, new { key = "triggers.0.kind", title = "Kind", valueMap = new Dictionary<string, string> { [kind!] = "触发" } }, new { key = "triggers.9.kind", title = "Missing" }, new { key = "triggers.9.kind|name", title = "Fallback" }]);

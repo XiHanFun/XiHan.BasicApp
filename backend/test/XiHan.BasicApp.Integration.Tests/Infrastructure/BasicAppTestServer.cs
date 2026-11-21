@@ -103,6 +103,9 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Bindings:db:value", connectionString),
         new("XiHan:Bindings:db:provider", provider),
         new("XiHan:Persistence:SqlSugar:InitTables", "true"),
+        // 本地存储跟着库走：不同用例的宿主不共用根目录（启动扫描会删掉别的宿主写到一半的临时文件），用例自己给了目录的照用自己的
+        new("BasicApp:Files:LocalRootPath", TestFileStorage.FilesOf(connectionString)),
+        new("XiHan:ObjectStorage:FileSystem:RootPath", TestFileStorage.BlobsOf(connectionString)),
         // 每个用例的空库在启动时建全部表：MySQL、SQL Server、Oracle 上的 DDL 比 SQLite、PostgreSQL 慢得多，并行跑或机器忙时会超过宿主的 60 秒
         new("XiHan:Kernel:StartTimeoutSeconds", "300"),
         // 宿主用数据库调度：测试库是 SQLite，引擎每秒轮询会和用例的写入抢锁；拉长到 5 秒，作业相关的用例自己等同步

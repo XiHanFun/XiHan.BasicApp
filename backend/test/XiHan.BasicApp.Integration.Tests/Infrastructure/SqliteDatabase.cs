@@ -32,6 +32,8 @@ public sealed class SqliteDatabase : IDisposable
                 DeleteWithRetry(file + suffix);
             }
         }
+
+        TestFileStorage.Delete(ConnectionString);
     }
 
     private static void DeleteWithRetry(string path)
