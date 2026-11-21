@@ -37,12 +37,19 @@ public sealed class MaintenanceModeState(IServiceScopeFactory scopes, SchemaOpti
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(PollInterval, clock);
-        do
+        try
         {
-            _active = await ReadAsync(stoppingToken).ConfigureAwait(false);
+            using var timer = new PeriodicTimer(PollInterval, clock);
+            do
+            {
+                _active = await ReadAsync(stoppingToken).ConfigureAwait(false);
+            }
+            while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false));
         }
-        while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false));
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+            // 停止：宿主启动失败时不经 StopAsync 直接释放，取消要正常结束，不报成后台服务故障
+        }
     }
 
     private async Task<bool> ReadAsync(CancellationToken cancellationToken)
