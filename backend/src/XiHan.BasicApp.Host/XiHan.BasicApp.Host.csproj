@@ -5,6 +5,8 @@
     <!-- 最小 API 的端点委托在编译期生成，去掉反射绑定 -->
     <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
     <UserSecretsId>xihan-basicapp-next</UserSecretsId>
+    <!-- App_Data 是本机运行时写入的文件存储，不属于工程：不进编译、发布与解决方案资源管理器 -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);App_Data/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

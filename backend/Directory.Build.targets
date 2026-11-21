@@ -1,4 +1,9 @@
 <Project>
+  <!-- 包的 README 留在包目录供仓库与文档阅读，只是不在解决方案资源管理器里显示 -->
+  <ItemGroup>
+    <None Update="README.md" Visible="false" />
+  </ItemGroup>
+
   <!--
     把工程里声明的框架引用项翻译成真正的引用：
       <XiHanFrameworkReference Include="XiHan.Framework.Domain" />          运行时引用
