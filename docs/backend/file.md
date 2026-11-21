@@ -66,6 +66,8 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 
 浏览器里的图片、链接与新窗口用 `files.presign` 换的签名地址。地址由存储签出（框架 ADR-0049）：S3 兼容存储直连存储，本地存储走宿主的 `/blobs` 签名端点（密钥 `XiHan:ObjectStorage:SignedUrls:Secret`）。有效期缺省 `LinkLifetime`（30 分钟），请求可指定 60 秒到 `MaxLinkLifetime`（7 天），超出即 `FILES_VALIDATION_008`；地址在有效期内不再校验身份，签出之后的归档或改访问级别都不影响它。
 
+预览读内容、以附件下载前只取第一个字节探一下（`Range: bytes=0-0`），都是浏览器跨域取签名地址，所以 S3 兼容存储的桶要给前端的来源放行 `GET`（CORS 规则）；没放行时预览失败，下载提示文件暂时无法下载。
+
 内容类型是上传方给的，所以签名地址与 `GET /api/files/{id}/content` 都只让图片（PNG、JPEG、GIF、WebP、BMP、AVIF，不含 SVG）、音视频、PDF 与纯文本内联打开，别的类型（HTML、SVG、XML 等）即使不要 `download` 也以附件下载。宿主的响应一律带 `X-Content-Type-Options: nosniff`；`/blobs` 的响应除 PDF 外都在沙箱里（`Content-Security-Policy: sandbox`），上传的脚本拿不到前端的源。
 
 普通端点经宿主的端点过滤器登记审计身份，访问日志按 `files.upload`、`files.content` 记录。

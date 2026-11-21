@@ -8,6 +8,7 @@ import type { Translate } from '../jobs/job'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { PageQueryMapping, ResponseOf, SchemaVersionStatus } from '~/contracts'
 import { exportCenter, toPageRequest, toSchemaPageResult, versions as versionsApi } from '~/contracts'
+import { LONG_TIMEOUT_MS } from '~/request'
 
 /** 版本台账的一行：一个库一行（平台库为 platform，已就绪的独立库按租户 ID 各一行；读不到台账的状态为不可达并带 error） */
 export type VersionRow = ResponseOf<'versions.list'>['items'][number]
@@ -119,9 +120,9 @@ export function planVersion(database: string): Promise<VersionPlan> {
   return versionsApi.plan({ id: database })
 }
 
-/** 重试升级一个租户独立库 */
+/** 重试升级一个租户独立库：DDL 可能跑得久，放宽到长超时 */
 export function upgradeVersion(database: string): Promise<VersionUpgrade> {
-  return versionsApi.upgrade({ id: database })
+  return versionsApi.upgrade({ id: database }, { timeoutMs: LONG_TIMEOUT_MS })
 }
 
 /** 释放节点留下的升级锁：锁还在这个节点手里才释放 */
