@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Data;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -201,16 +202,31 @@ public sealed class DataScopeTests : IDisposable
             Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
         }
 
+        // 通知列表不对时把库里的通知行一并写进失败信息：CI 上偶发只看自己时 dave 的列表为空，本机复现不出来，要看那条行的创建人与租户
+        async Task ExpectNotifications(params string[] expected)
+        {
+            var visible = await Visible("/api/notifications:list", "title");
+            if (visible.SequenceEqual(expected, StringComparer.Ordinal))
+            {
+                return;
+            }
+
+            using var client = _database.Client();
+            var rows = await client.Ado.GetDataTableAsync("SELECT id, title, tenant_id, created_by, created_at, is_system, is_deleted FROM sys_notification");
+            var dump = string.Join("; ", rows.Rows.Cast<DataRow>().Select(r => string.Join(", ", rows.Columns.Cast<DataColumn>().Select(c => $"{c.ColumnName}={r[c]}"))));
+            Assert.Fail($"expected [{string.Join(", ", expected)}], got [{string.Join(", ", visible)}]; dave={dave}, bob={bob}; sys_notification: {dump}");
+        }
+
         // 只看自己：只有自己上传的文件与自己建的通知
         Assert.Equal(["dave.txt"], await Visible("/api/files:list", "originalName"));
-        Assert.Equal(["dave"], await Visible("/api/notifications:list", "title"));
+        await ExpectNotifications("dave");
 
         // 本部门及子部门：加上 rd 的 bob；全部：连管理员的也看得到
         await SetScope("DepartmentAndChildren");
         Assert.Equal(["bob.txt", "dave.txt"], await Visible("/api/files:list", "originalName"));
-        Assert.Equal(["bob", "dave"], await Visible("/api/notifications:list", "title"));
+        await ExpectNotifications("bob", "dave");
         await SetScope("All");
         Assert.Equal(["admin.txt", "bob.txt", "dave.txt"], await Visible("/api/files:list", "originalName"));
-        Assert.Equal(["admin", "bob", "dave"], await Visible("/api/notifications:list", "title"));
+        await ExpectNotifications("admin", "bob", "dave");
     }
 }
