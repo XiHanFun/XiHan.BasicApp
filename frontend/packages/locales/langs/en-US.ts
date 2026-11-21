@@ -1048,7 +1048,7 @@ export default {
         page: 'page settings',
         table: 'table settings',
         search: 'search settings',
-        views: 'views',
+        views: 'condition presets',
         widgets: 'dashboard board',
       },
     },

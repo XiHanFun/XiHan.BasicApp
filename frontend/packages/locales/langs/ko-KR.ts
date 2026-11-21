@@ -1048,7 +1048,7 @@ export default {
         page: '페이지 설정',
         table: '테이블 설정',
         search: '검색 설정',
-        views: '뷰',
+        views: '조건 프리셋',
         widgets: '대시보드 위젯',
       },
     },

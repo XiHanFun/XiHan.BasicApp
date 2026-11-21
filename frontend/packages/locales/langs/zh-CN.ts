@@ -1048,7 +1048,7 @@ export default {
         page: '页面设置',
         table: '表格设置',
         search: '搜索设置',
-        views: '视图',
+        views: '条件预设',
         widgets: '仪表盘看板',
       },
     },

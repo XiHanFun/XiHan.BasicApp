@@ -1048,7 +1048,7 @@ export default {
         page: '頁面設定',
         table: '表格設定',
         search: '搜尋設定',
-        views: '檢視',
+        views: '條件預設集',
         widgets: '儀表板看板',
       },
     },

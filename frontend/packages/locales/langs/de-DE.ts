@@ -1048,7 +1048,7 @@ export default {
         page: 'Seiteneinstellungen',
         table: 'Tabelleneinstellungen',
         search: 'Sucheinstellungen',
-        views: 'Ansichten',
+        views: 'Filtervorlagen',
         widgets: 'Dashboard-Board',
       },
     },

@@ -1048,7 +1048,7 @@ export default {
         page: 'paramètres de page',
         table: 'paramètres de tableau',
         search: 'paramètres de recherche',
-        views: 'vues',
+        views: 'préréglages de conditions',
         widgets: 'tableau de bord',
       },
     },

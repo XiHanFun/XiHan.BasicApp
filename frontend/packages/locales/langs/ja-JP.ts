@@ -1048,7 +1048,7 @@ export default {
         page: 'ページ設定',
         table: 'テーブル設定',
         search: '検索設定',
-        views: 'ビュー',
+        views: '条件プリセット',
         widgets: 'ダッシュボードウィジェット',
       },
     },

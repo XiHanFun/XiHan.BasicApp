@@ -1048,7 +1048,7 @@ export default {
         page: 'configurações da página',
         table: 'configurações da tabela',
         search: 'configurações de busca',
-        views: 'visões',
+        views: 'predefinições de condições',
         widgets: 'painel inicial',
       },
     },
