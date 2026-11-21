@@ -880,6 +880,7 @@ export default {
   },
   header: {
     context: {
+      platform: 'Plattform-Admin',
       switch: 'Aktuell: {name}. Zum Wechseln klicken',
     },
     user: {

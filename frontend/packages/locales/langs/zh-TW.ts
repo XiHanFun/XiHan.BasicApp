@@ -880,6 +880,7 @@ export default {
   },
   header: {
     context: {
+      platform: '平台管理',
       switch: '目前：{name}，點擊切換',
     },
     user: {
