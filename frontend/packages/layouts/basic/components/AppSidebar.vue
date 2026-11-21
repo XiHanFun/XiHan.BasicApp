@@ -5,6 +5,7 @@
 
 <script lang="ts" setup>
 import type { CSSProperties } from 'vue'
+import type { MenuTrailingKind } from '../composables'
 import type { LayoutRouteRecord } from '../contracts'
 import type { MenuLinkTarget } from './sidebar/menu-links'
 import type { AppMenuOption } from '~/types'
@@ -15,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore, useSiteStore } from '~/stores'
-import { useEffectiveLayoutMode, useLayoutMenuDomain } from '../composables'
+import { MENU_TRAILING_ICONS, useEffectiveLayoutMode, useLayoutMenuDomain } from '../composables'
 import { renderSidebarBadgeLabel } from './MenuBadge.vue'
 import { useMenuExternalLinks } from './sidebar/menu-links'
 import SidebarBrand from './sidebar/SidebarBrand.vue'
@@ -146,8 +147,8 @@ const menuBuildConfig = {
   translate: translateTitle,
   iconRenderer: renderIcon,
   badgeLabelRenderer: renderSidebarBadgeLabel,
-  linkIcon: () => h(Icon, {
-    icon: 'lucide:external-link',
+  trailingIcon: (kind: MenuTrailingKind) => h(Icon, {
+    icon: MENU_TRAILING_ICONS[kind],
     width: 13,
     height: 13,
     style: 'opacity:0.5;flex-shrink:0',

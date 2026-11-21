@@ -16,7 +16,7 @@ import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { NotificationStatus } from '~/types/enums'
-import { useEffectiveLayoutMode, useHeaderSqueeze, useLayoutMenuDomain, useWidgetPlacement } from '../composables'
+import { MENU_TRAILING_ICONS, useEffectiveLayoutMode, useHeaderSqueeze, useLayoutMenuDomain, useWidgetPlacement } from '../composables'
 import AppIconButton from './AppIconButton.vue'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
@@ -160,8 +160,8 @@ const topMenuOptions = computed<AppMenuOption[]>(() => {
     translate: translateMenuTitle,
     iconRenderer: renderRouteIcon,
     badgeLabelRenderer: renderHorizontalBadgeLabel,
-    linkIcon: () => h(Icon, {
-      icon: 'lucide:external-link',
+    trailingIcon: kind => h(Icon, {
+      icon: MENU_TRAILING_ICONS[kind],
       width: 13,
       height: 13,
       style: 'opacity:0.5;flex-shrink:0',

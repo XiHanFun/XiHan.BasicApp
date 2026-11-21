@@ -23,8 +23,17 @@ interface BuildMenuOptionsConfig {
   iconRenderer?: (icon: string) => AppMenuOption['icon']
   /** 标签渲染器：将菜单文本与标签信息合并为带标签的 label */
   badgeLabelRenderer?: (text: string, badge: BadgeInfo) => string | (() => VNodeChild)
-  /** 外链图标渲染器：外链菜单（meta.link）标签末尾追加的小图标 */
-  linkIcon?: () => VNodeChild
+  /** 尾部图标渲染器：外链（meta.link）与内嵌（meta.iframeSrc）菜单标签末尾追加的小图标 */
+  trailingIcon?: (kind: MenuTrailingKind) => VNodeChild
+}
+
+/** 带尾部图标的菜单：外链新标签打开，内嵌在应用里的 iframe 中打开 */
+export type MenuTrailingKind = 'link' | 'embed'
+
+/** 尾部图标：侧栏与顶栏同一套 */
+export const MENU_TRAILING_ICONS: Record<MenuTrailingKind, string> = {
+  link: 'lucide:external-link',
+  embed: 'lucide:app-window',
 }
 
 type RouteRecordName = LayoutRouteRecord['name']
@@ -133,8 +142,13 @@ function buildMenuOptionsFromRoutes(
         })
       : rawLabel
 
-    // 外链菜单：标签末尾追加外链图标（保留已有 badge 渲染），提示点击后新标签打开
-    const label = meta.link && config.linkIcon
+    // 外链与内嵌菜单：标签末尾追加图标（保留已有 badge 渲染），提示点开后在哪里打开
+    const trailing: MenuTrailingKind | undefined = meta.link
+      ? 'link'
+      : meta.iframeSrc
+        ? 'embed'
+        : undefined
+    const label = trailing && config.trailingIcon
       ? () => h(
           'span',
           { style: 'display:inline-flex;align-items:center;gap:var(--xh-space-1);min-width:0' },
@@ -142,7 +156,7 @@ function buildMenuOptionsFromRoutes(
             typeof baseLabel === 'function'
               ? baseLabel()
               : baseLabel,
-            config.linkIcon!(),
+            config.trailingIcon!(trailing),
           ],
         )
       : baseLabel

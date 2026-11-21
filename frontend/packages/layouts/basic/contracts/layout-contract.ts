@@ -74,7 +74,7 @@ export interface LayoutRouteMeta extends Partial<MenuMeta> {
   title?: string
   icon?: string
   openInNewWindow?: boolean
-  /** 外链地址：存在即为外链菜单（新标签打开），菜单项后追加外链图标 */
+  /** 外链地址：存在即为外链菜单（新标签打开），菜单项后追加外链图标；内嵌菜单（iframeSrc）追加窗口图标 */
   link?: string
 }
 
