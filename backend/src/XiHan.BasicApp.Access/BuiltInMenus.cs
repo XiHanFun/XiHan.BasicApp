@@ -20,10 +20,10 @@ namespace XiHan.BasicApp.Access;
 public sealed record BuiltInMenu(string Code, MenuKind Kind, string TitleKey, string Icon, int Order, string? ParentCode = null, string? ExternalUrl = null, MenuBadge? Badge = null);
 
 /// <summary>
-/// 内置的运营节点：各包页面登记指到的目录（见 <see cref="MenuDirectories"/>）与帮助中心的官方文档（内嵌）、GitHub 与 Gitee 外链
+/// 内置的运营节点：页面登记指到的目录与帮助中心的文档和外链
 /// </summary>
 /// <remarks>
-/// 种类与运营建的一样（可改、可停用、可删），种子 <c>access.menus</c> 只首写：写过一次之后不再碰，删掉的也不补。上级目录排在它的下级之前，种子按顺序写才找得到上级
+/// 目录见 <see cref="MenuDirectories"/>，帮助中心是官方文档（内嵌）与 GitHub、Gitee 外链。种类与运营建的一样（可改、可停用、可删），种子 <c>access.menus</c> 只首写：写过一次之后不再碰，删掉的也不补。上级目录排在它的下级之前，种子按顺序写才找得到上级
 /// </remarks>
 public static class BuiltInMenus
 {
