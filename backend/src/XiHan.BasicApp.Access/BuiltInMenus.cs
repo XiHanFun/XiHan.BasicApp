@@ -16,7 +16,8 @@ namespace XiHan.BasicApp.Access;
 /// <param name="Order">排序号</param>
 /// <param name="ParentCode">所属目录的节点编码，顶层为空</param>
 /// <param name="ExternalUrl">外链地址，目录为空</param>
-public sealed record BuiltInMenu(string Code, MenuKind Kind, string TitleKey, string Icon, int Order, string? ParentCode = null, string? ExternalUrl = null);
+/// <param name="Badge">徽标，为空即不显示</param>
+public sealed record BuiltInMenu(string Code, MenuKind Kind, string TitleKey, string Icon, int Order, string? ParentCode = null, string? ExternalUrl = null, MenuBadge? Badge = null);
 
 /// <summary>
 /// 内置的运营节点：各包页面登记指到的目录（见 <see cref="MenuDirectories"/>）与帮助中心的三个外链
@@ -31,7 +32,7 @@ public static class BuiltInMenus
     /// </summary>
     public static IReadOnlyList<BuiltInMenu> All { get; } =
     [
-        new(MenuDirectories.AiCenter, MenuKind.Directory, "menu.ai_center", "lucide:brain-circuit", 100),
+        new(MenuDirectories.AiCenter, MenuKind.Directory, "menu.ai_center", "lucide:brain-circuit", 100, Badge: new MenuBadge("new", "brand")),
         new(MenuDirectories.WorkflowCenter, MenuKind.Directory, "menu.workflow_center", "lucide:workflow", 200),
         new(MenuDirectories.IntegrationCenter, MenuKind.Directory, "menu.integration_center", "lucide:plug-zap", 300),
         new(MenuDirectories.PushService, MenuKind.Directory, "menu.push_service", "lucide:bell-ring", 600, MenuDirectories.IntegrationCenter),

@@ -102,7 +102,7 @@ function statusLabel(status: MenuStatus): string {
     : t('access.menus.statuses.disabled')
 }
 
-/** 圆点与侧栏同色：没配标签类型时按提醒红 */
+/** 圆点与侧栏同色：没配标签类型时按提醒红；标签类型下拉的每一项也用它示意语气 */
 function badgeDotStyle(badgeType?: null | string) {
   return {
     display: 'inline-block',
@@ -838,7 +838,11 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
         <XhFieldRoot :invalid="!!editor.fieldError('badgeType')">
           <XhFieldLabel>{{ t('access.menus.fields.badge_type') }}</XhFieldLabel>
           <XhFieldControl>
-            <XSelect v-model:value="editor.form.badgeType" name="badgeType" :options="badgeTypeOptions" clearable :placeholder="t('access.menus.badge_type_placeholder')" />
+            <XSelect v-model:value="editor.form.badgeType" name="badgeType" :options="badgeTypeOptions" clearable :placeholder="t('access.menus.badge_type_placeholder')">
+              <template #item-prefix="{ value }">
+                <span aria-hidden="true" :style="badgeDotStyle(String(value))" />
+              </template>
+            </XSelect>
           </XhFieldControl>
           <XhFieldErrorText v-if="editor.fieldError('badgeType')">
             {{ editor.fieldError('badgeType') }}

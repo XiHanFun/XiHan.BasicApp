@@ -13,6 +13,7 @@ import {
   XhSelectIndicator,
   XhSelectItem,
   XhSelectItemIndicator,
+  XhSelectItemPrefix,
   XhSelectItemText,
   XhSelectLabel,
   XhSelectList,
@@ -75,6 +76,11 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   'update:value': [value: string | number | Array<string | number> | null]
+}>()
+
+const slots = defineSlots<{
+  /** 条目文字前的装饰，参数是该条的原始值 */
+  'item-prefix'?: (props: { value: string | number }) => unknown
 }>()
 
 // 字段挂来的 id 与 aria-* 转交给触发器，见 control-attrs.ts
@@ -174,6 +180,10 @@ function onValueChange(next: string[]): void {
         <!-- 列表不随在途收放：它是触发器 aria-controls 指向的 listbox，后台刷新时也保留上一帧 -->
         <XhSelectList>
           <XhSelectItem v-for="node in collection" :key="node.value" :value="node.value">
+            <!-- 条目前的装饰（色点、图标）：拿到的是原始值，不进条目文字，读屏与连打定位只认标签 -->
+            <XhSelectItemPrefix v-if="slots['item-prefix']">
+              <slot name="item-prefix" :value="originalByKey.get(node.value) ?? node.value" />
+            </XhSelectItemPrefix>
             <XhSelectItemText>{{ node.label }}</XhSelectItemText>
             <XhSelectItemIndicator />
           </XhSelectItem>

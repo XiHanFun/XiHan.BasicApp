@@ -61,7 +61,7 @@ public static class AccessPages
     /// <summary>
     /// 关于项目（登录即可见，缺省挂在帮助中心目录下）
     /// </summary>
-    public static PageDescriptor AboutProject { get; } = new("about.project", "/about/project", "menu.about_project", "lucide:file-text", 1110, directory: MenuDirectories.About);
+    public static PageDescriptor AboutProject { get; } = new("about.project", "/about/project", "menu.about_project", "lucide:file-text", 1110, directory: MenuDirectories.About, badge: new MenuBadge(tone: "success", dot: true));
 
     /// <summary>
     /// 关于页的全部页面

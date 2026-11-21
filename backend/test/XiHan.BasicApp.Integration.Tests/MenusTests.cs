@@ -462,6 +462,36 @@ public sealed class MenusTests : IDisposable
     }
 
     [Fact]
+    public async Task BadgeDefaults_ComeFromTheRegistration_AndTheBuiltInNodes()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+
+        // AI 中心是内置目录，首写带品牌色的 new；项目概览登记为成功色的圆点；菜单树照此下发
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var aiCenter = MenuTrees.Find(listBody.GetProperty("items"), "custom.ai-center");
+        Assert.Equal(("new", "brand", false), (aiCenter.GetProperty("badge").GetString(), aiCenter.GetProperty("badgeType").GetString(), aiCenter.GetProperty("badgeDot").GetBoolean()));
+        var about = MenuTrees.Find(listBody.GetProperty("items"), "about.project");
+        var aboutId = about.GetProperty("id").GetString()!;
+        Assert.Equal(JsonValueKind.Null, about.GetProperty("badge").ValueKind);
+        Assert.Equal(("success", true), (about.GetProperty("badgeType").GetString(), about.GetProperty("badgeDot").GetBoolean()));
+        var (_, delivered) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.Equal("new", MenuTrees.Find(delivered.GetProperty("menus"), "custom.ai-center").GetProperty("badge").GetString());
+        Assert.True(MenuTrees.Find(delivered.GetProperty("menus"), "about.project").GetProperty("badgeDot").GetBoolean());
+
+        // 运营去掉圆点即为定制，种子再跑不改回；恢复默认取回登记的圆点
+        var (updated, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{aboutId}", """{"order":1110,"badgeDot":false}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        await server.RunSeedersAsync();
+        var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/menus/{aboutId}", token: superadmin));
+        Assert.False(afterSeed.GetProperty("badgeDot").GetBoolean());
+        var (_, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{aboutId}:reset", "{}", superadmin));
+        Assert.Equal(("success", true), (resetBody.GetProperty("badgeType").GetString(), resetBody.GetProperty("badgeDot").GetBoolean()));
+    }
+
+    [Fact]
     public async Task Badges_ReachTheMenuTree_AreKeptByTheSeeder_AndClearedByReset()
     {
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);

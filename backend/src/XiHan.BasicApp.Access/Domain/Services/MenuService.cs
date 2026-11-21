@@ -167,9 +167,9 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
         row.KeepAlive = false;
         row.IsAffix = page.Affix;
         row.Status = MenuStatus.Active;
-        row.Badge = null;
-        row.BadgeType = null;
-        row.BadgeDot = false;
+        row.Badge = page.Badge?.Text;
+        row.BadgeType = page.Badge?.Tone;
+        row.BadgeDot = page.Badge?.Dot ?? false;
         row.IsCustomized = false;
     }
 }

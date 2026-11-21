@@ -8,7 +8,7 @@
 src/XiHan.BasicApp.<包>/
 ├─ <包>Feature.cs          IFeature：清单（Id = xihan.basicapp.<包>、Provides basicapp.<包>@1、Requires 能力而不是包名）+ Configure 显式登记
 ├─ <包>Permissions.cs      权限码常量与 All（PermissionDescriptor：码、显示名、作用侧、audited、说明）
-├─ <包>Pages.cs            页面登记（页面码、路由、标题键、图标、排序、读权限、缺省目录与固定标签）
+├─ <包>Pages.cs            页面登记（页面码、路由、标题键、图标、排序、读权限、缺省目录、固定标签与徽标）
 ├─ <包>Messages.cs         消息键常量与 Catalog
 ├─ <包>Errors.cs           错误码常量 <包大写>_<KIND>_<NNN>
 ├─ <包>JsonContext.cs      本包全部请求 / 响应 / 推送载荷的源生成上下文（枚举按字符串）

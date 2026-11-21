@@ -117,6 +117,35 @@ describe('xSelect 取值与三态', () => {
   })
 })
 
+describe('xSelect 条目前缀', () => {
+  it('item-prefix 插槽按原始值渲染进前缀部件，不混进条目文字', async () => {
+    const wrapper = mount(XSelect, {
+      props: { options },
+      slots: {
+        'item-prefix': ({ value }: { value: string | number }) => `#${typeof value}-${value}`,
+      },
+      global: {
+        plugins: [i18n],
+      },
+      attachTo: document.body,
+    })
+    await open(wrapper)
+
+    const items = [
+      ...document.querySelectorAll<HTMLElement>('[data-scope="select"][data-part="item"]'),
+    ]
+    expect(items.map(item => item.querySelector('[data-part="item-prefix"]')?.textContent)).toEqual(['#number-1', '#number-2', '#number-3'])
+    expect(items.map(item => item.querySelector('[data-part="item-text"]')?.textContent)).toEqual(['启用', '停用', '锁定'])
+  })
+
+  it('没给插槽时不出前缀部件', async () => {
+    const wrapper = mountSelect()
+    await open(wrapper)
+
+    expect(document.querySelector('[data-scope="select"][data-part="item-prefix"]')).toBeNull()
+  })
+})
+
 describe('xSelect 读屏名', () => {
   it('aria-label 放进视觉隐藏的 label 部件，触发器的 aria-labelledby 指得到它', async () => {
     const wrapper = mountSelect({ value: 1 }, { 'aria-label': '模拟范围' })

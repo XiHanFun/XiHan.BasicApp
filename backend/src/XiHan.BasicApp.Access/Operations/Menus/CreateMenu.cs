@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Contracts.Pages;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -92,7 +93,7 @@ internal static class MenuRules
     /// <summary>
     /// 徽标语气的取值：与组件库的 tone 同名
     /// </summary>
-    public const string BadgeTypePattern = "^(neutral|brand|info|success|warning|danger)$";
+    public const string BadgeTypePattern = MenuBadge.TonePattern;
 
     /// <summary>
     /// 去掉首尾空白，空白即空

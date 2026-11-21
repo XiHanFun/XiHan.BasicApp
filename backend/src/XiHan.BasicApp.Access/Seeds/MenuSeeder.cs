@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Access.Seeds;
 /// <remarks>
 /// 号段 400，目录类每次对齐元数据
 /// 各包的页面登记 → 页面节点。按页面码匹配：有则对齐，没有则新增，登记里已不存在的页面节点删除；子页面挂到父页面
-/// 登记的字段（包、路由、组件、标题键、权限、子页面的上级）每次对齐；展示字段（图标、排序、固定标签、顶层页面的上级）只在节点没被运营定制时对齐，启停与徽标登记里没有，只有新建时取缺省值
+/// 登记的字段（包、路由、组件、标题键、权限、子页面的上级）每次对齐；展示字段（图标、排序、固定标签、徽标、顶层页面的上级）只在节点没被运营定制时对齐，启停登记里没有，只有新建时取缺省值
 /// 内置的目录与外链（<see cref="BuiltInMenus"/>）只首写：写过一次（含已删除的）就不再碰；运营建的目录与外链不碰
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
@@ -89,6 +89,9 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
                 Icon = node.Icon,
                 Order = node.Order,
                 ExternalUrl = node.ExternalUrl,
+                Badge = node.Badge?.Text,
+                BadgeType = node.Badge?.Tone,
+                BadgeDot = node.Badge?.Dot ?? false,
             };
             var added = await menus.AddAsync(row, cancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
@@ -154,7 +157,8 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
            || !string.Equals(row.Permission, page.Permission, StringComparison.Ordinal)
            || row.ExternalUrl is not null
            || (parentId is not null && row.ParentId != parentId)
-           || (!row.IsCustomized && (row.ParentId != defaultParent || !string.Equals(row.Icon, page.Icon, StringComparison.Ordinal) || row.Order != page.Order || row.IsAffix != page.Affix));
+           || (!row.IsCustomized && (row.ParentId != defaultParent || !string.Equals(row.Icon, page.Icon, StringComparison.Ordinal) || row.Order != page.Order || row.IsAffix != page.Affix
+               || !string.Equals(row.Badge, page.Badge?.Text, StringComparison.Ordinal) || !string.Equals(row.BadgeType, page.Badge?.Tone, StringComparison.Ordinal) || row.BadgeDot != (page.Badge?.Dot ?? false)));
 
     private static void Apply(SysMenu row, PageDescriptor page, string package, Guid? parentId, Guid? defaultParent)
     {
@@ -176,6 +180,9 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
             row.Icon = page.Icon;
             row.Order = page.Order;
             row.IsAffix = page.Affix;
+            row.Badge = page.Badge?.Text;
+            row.BadgeType = page.Badge?.Tone;
+            row.BadgeDot = page.Badge?.Dot ?? false;
         }
     }
 }
