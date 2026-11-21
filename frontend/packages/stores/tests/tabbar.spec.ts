@@ -184,6 +184,48 @@ describe('ensureTab：新增与去重合并', () => {
   })
 })
 
+describe('syncHomeTab：菜单装好后对齐首页标签', () => {
+  it('占位的首页标签换成首页路由的标题、图标与缓存字段，固定状态与当前标签不变', () => {
+    sessionStorage.removeItem(TABS_LIST_KEY)
+    const store = useTabbarStore()
+    useAppStore().tabbarPersist = true
+    store.ensureTab(tab('/a'))
+
+    store.syncHomeTab(tab(HOME_PATH, {
+      name: 'workbench.dashboard',
+      title: 'workbench.dashboard.title',
+      keepAlive: true,
+      pinned: true,
+      closable: false,
+      meta: { icon: 'lucide:layout-dashboard' },
+    }))
+
+    expect(store.tabs[0]).toMatchObject({
+      key: HOME_PATH,
+      name: 'workbench.dashboard',
+      title: 'workbench.dashboard.title',
+      keepAlive: true,
+      pinned: true,
+      closable: false,
+      meta: { icon: 'lucide:layout-dashboard' },
+    })
+    expect(store.activeTab).toBe('/a')
+    expect(readPersisted()?.[0]?.title).toBe('workbench.dashboard.title')
+  })
+
+  it('标签栏里没有这个首页标签时不新增', () => {
+    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([
+      tab('/a'),
+    ]))
+    setActivePinia(createPinia())
+    const store = useTabbarStore()
+
+    store.syncHomeTab(tab(HOME_PATH, { title: 'workbench.dashboard.title', meta: {} }))
+
+    expect(store.tabKeys).toEqual(['/a'])
+  })
+})
+
 describe('cachedTabNames 派生（KeepAlive include）', () => {
   it('只收「开了缓存且有路由名」的标签，且包含非当前标签', () => {
     const store = useTabbarStore()

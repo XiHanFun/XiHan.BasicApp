@@ -3,7 +3,8 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  */
 
-import type { RouteLocationNormalized, Router, RouteRecordRaw } from 'vue-router'
+import type { RouteLocation, RouteLocationNormalized, Router, RouteRecordRaw } from 'vue-router'
+import type { TabItem } from '~/types'
 
 import { isLockedState, loadingBar, setDocumentTitle } from '~/composables'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
@@ -40,6 +41,35 @@ export function applyDocumentTitle(to: Pick<RouteLocationNormalized, 'meta'>): v
       : title
     setDocumentTitle(`${translated} - ${name}`)
   }
+}
+
+/**
+ * 路由对应的标签项
+ * 标题存国际化键而不是解析出的文本：标签栏与标签总览都按「是键就翻译、不是键就原样显示」渲染，
+ * 提前解析会把语言固化在打开标签的那一刻，之后切换语言标签栏不再跟随
+ */
+function toTab(route: Pick<RouteLocation, 'fullPath' | 'name' | 'meta'>, pinned: boolean): TabItem {
+  return {
+    key: route.fullPath,
+    // 路由名 + keepAlive 标记：供 KeepAlive 的 include 构建（见 tabbarStore.cachedTabNames）
+    name: route.name
+      ? String(route.name)
+      : undefined,
+    title: (route.meta?.title as string) || (route.name as string) || 'Untitled',
+    path: route.fullPath,
+    pinned,
+    closable: !pinned,
+    keepAlive: Boolean(route.meta?.keepAlive),
+    meta: {
+      icon: route.meta?.icon as string | undefined,
+    },
+  }
+}
+
+function isNotFoundRoute(route: Pick<RouteLocation, 'name'> & { matched: readonly unknown[] }): boolean {
+  return route.name === 'NotFound'
+    || route.name === 'NotFoundCatchAll'
+    || route.matched.length === 0
 }
 
 export function setupRouterGuard(router: Router) {
@@ -134,6 +164,11 @@ export function setupRouterGuard(router: Router) {
         }
         // 动态模式：后端菜单驱动（accessRoutes 是 auth.permissions 菜单树的投影）
         installDynamicRoutes(mapMenuToRoutes(accessStore.accessRoutes))
+        // 直接打开别的页面时首页还没访问过，首页标签按首页路由对齐标题与图标
+        const home = router.resolve(accessStore.homePath || HOME_PATH)
+        if (!isNotFoundRoute(home)) {
+          tabbarStore.syncHomeTab(toTab(home, true))
+        }
       }
       catch (error) {
         // 会话锁定（423）：权限/菜单接口在解锁前拿不到，直接放行挂壳（遮罩盖住空白内容区），
@@ -189,13 +224,11 @@ export function setupRouterGuard(router: Router) {
     if (to.path === '/') {
       return { path: resolvedHomePath, replace: true }
     }
-    const isNotFoundRoute = to.name === 'NotFound'
-      || to.name === 'NotFoundCatchAll'
-      || to.matched.length === 0
-    if (to.path === HOME_PATH && resolvedHomePath !== HOME_PATH && isNotFoundRoute) {
+    const notFound = isNotFoundRoute(to)
+    if (to.path === HOME_PATH && resolvedHomePath !== HOME_PATH && notFound) {
       return { path: resolvedHomePath, replace: true }
     }
-    if (isNotFoundRoute && to.path !== NOT_FOUND_PATH) {
+    if (notFound && to.path !== NOT_FOUND_PATH) {
       return { path: NOT_FOUND_PATH, replace: true }
     }
 
@@ -220,26 +253,8 @@ export function setupRouterGuard(router: Router) {
       return true
     }
 
-    // 标签标题存的是国际化键而不是当次导航解析出的文本：
-    // 标签栏与标签总览都按「是键就翻译、不是键就原样显示」渲染，
-    // 在这里提前解析会把语言固化在打开标签的那一刻，之后切换语言标签栏不再跟随
-    const routeTitle = (to.meta?.title as string) || (to.name as string) || 'Untitled'
     const pinned = to.path === (accessStore.homePath || HOME_PATH) || Boolean(to.meta?.affixTab)
-    tabbarStore.ensureTab({
-      key: to.fullPath,
-      // 路由名 + keepAlive 标记：供 KeepAlive 的 include 构建（见 tabbarStore.cachedTabNames）
-      name: to.name
-        ? String(to.name)
-        : undefined,
-      title: routeTitle,
-      path: to.fullPath,
-      pinned,
-      closable: !pinned,
-      keepAlive: Boolean(to.meta?.keepAlive),
-      meta: {
-        icon: to.meta?.icon as string | undefined,
-      },
-    })
+    tabbarStore.ensureTab(toTab(to, pinned))
     if (!appStore.tabbarVisitHistory) {
       tabbarStore.closeOthers(to.fullPath)
     }

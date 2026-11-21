@@ -15,7 +15,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
   // 每次新建：ensureTab 会就地改写已有标签（name、keepAlive 等）
   const createDefaultTab = (): TabItem => ({
     key: HOME_PATH,
-    // 首页标签的标题键：首页跳到第一个菜单页，标签本身叫「首页」
+    // 菜单装好前的占位标题，装好后由 syncHomeTab 换成真实首页的标题与图标
     title: 'common.actions.home',
     path: HOME_PATH,
     pinned: true,
@@ -36,27 +36,46 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tabs.value.filter(item => item.keepAlive && item.name).map(item => item.name as string),
   )
 
+  // 补齐缓存相关字段：默认标签 / sessionStorage 里旧的持久化标签可能缺 name、keepAlive
+  function mergeTab(existing: TabItem, tab: TabItem) {
+    existing.name = tab.name
+    existing.keepAlive = tab.keepAlive
+    if (tab.meta) {
+      existing.meta = {
+        ...existing.meta,
+        ...tab.meta,
+      }
+      existing.title = tab.title
+    }
+  }
+
   function ensureTab(tab: TabItem) {
     const existing = tabs.value.find(item => item.key === tab.key)
     if (!existing) {
       tabs.value.push(tab)
     }
     else {
-      // 补齐缓存相关字段：默认标签 / sessionStorage 里旧的持久化标签可能缺 name、keepAlive
-      existing.name = tab.name
-      existing.keepAlive = tab.keepAlive
-      if (tab.meta) {
-        existing.meta = {
-          ...existing.meta,
-          ...tab.meta,
-        }
-        existing.title = tab.title
-      }
+      mergeTab(existing, tab)
     }
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
     activeTab.value = tab.key
+  }
+
+  /**
+   * 菜单装好后把首页标签的标题、图标与缓存字段对齐到首页路由，不改当前标签
+   * 直接打开别的页面时首页没访问过，占位标签不该停在「首页」
+   */
+  function syncHomeTab(home: TabItem) {
+    const existing = tabs.value.find(item => item.key === home.key)
+    if (!existing) {
+      return
+    }
+    mergeTab(existing, home)
+    if (appStore.tabbarPersist) {
+      SessionStorage.set(TABS_LIST_KEY, tabs.value)
+    }
   }
 
   function togglePin(key: string) {
@@ -195,6 +214,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tabKeys,
     cachedTabNames,
     ensureTab,
+    syncHomeTab,
     setActiveTab,
     removeTab,
     closeOthers,

@@ -719,6 +719,27 @@ describe('标签栏写入', () => {
     expect(tabbarStore.cachedTabNames).not.toContain('Plain')
   })
 
+  it('直接打开别的页面：菜单装好后首页标签换成首页路由的标题，不停在占位的「首页」', async () => {
+    signInPending(() => json(200, permissions([
+      page('workbench.dashboard', HOME_PATH),
+      page('identity.users', '/identity/users'),
+    ])))
+    const tabbarStore = useTabbarStore()
+    expect(tabbarStore.tabs[0]).toMatchObject({ key: HOME_PATH, title: 'common.actions.home' })
+    const router = createGuardedRouter()
+    await router.push('/identity/users')
+
+    expect(router.currentRoute.value.path).toBe('/identity/users')
+    expect(tabbarStore.tabs[0]).toMatchObject({
+      key: HOME_PATH,
+      title: 'page.control_center.title',
+      name: 'Dashboard',
+      pinned: true,
+      closable: false,
+    })
+    expect(tabbarStore.activeTab).toBe('/identity/users')
+  })
+
   it('首页与 meta.affixTab 的页面固定且不可关闭', async () => {
     signInWithLoadedRoutes()
     const router = createGuardedRouter()
