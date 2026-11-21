@@ -5,7 +5,7 @@
 
 import { nextTick, ref, watch } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
-import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, THEME_ANIMATION_ENABLED_KEY, THEME_AUTO, THEME_MODE_KEY, USER_SETTING_CLIENT_ID, UserSettingScene, WIDGETS_SYNC_KEY } from '~/constants'
+import { FAVORITES_SYNC_KEY, PREFERENCE_SETTING_KEY, PREFERENCE_SYNC_KEY, PRESET_SYNC_KEY, SEARCH_SYNC_KEY, STORAGE_PREFIX, TABLE_SYNC_KEY, THEME_ANIMATION_ENABLED_KEY, THEME_AUTO, THEME_MODE_KEY, USER_SETTING_CLIENT_ID, UserSettingScene, WIDGETS_SYNC_KEY } from '~/constants'
 import { i18n } from '~/locales'
 import { LocalStorage, runThemeTransition } from '~/utils'
 import { useAppContext } from './app-context'
@@ -69,6 +69,7 @@ const DEVICE_LOCAL_KEYS = new Set<string>([
   FAVORITES_SYNC_KEY,
   SEARCH_SYNC_KEY,
   TABLE_SYNC_KEY,
+  PRESET_SYNC_KEY,
   WIDGETS_SYNC_KEY,
 ])
 
@@ -145,9 +146,14 @@ export function isSearchSyncEnabled(): boolean {
   return registry.get(SEARCH_SYNC_KEY)?.value === true
 }
 
-/** 表格/视图设置后端同步是否启用（默认开启；关闭后仅本地存储） */
+/** 表格设置后端同步是否启用（默认开启；关闭后仅本地存储） */
 export function isTableSyncEnabled(): boolean {
   return registry.get(TABLE_SYNC_KEY)?.value === true
+}
+
+/** 条件预设后端同步是否启用（默认开启；关闭后仅本地存储） */
+export function isPresetSyncEnabled(): boolean {
+  return registry.get(PRESET_SYNC_KEY)?.value === true
 }
 
 /** 小组件看板后端同步是否启用（默认开启；关闭后仅本地存储） */

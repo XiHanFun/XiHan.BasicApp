@@ -80,6 +80,13 @@ const { t } = useI18n()
         </div>
         <XhSwitch v-model:checked="appStore.tableSyncEnabled" :aria-label="t('preference.general.table_sync')" />
       </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.general.preset_sync') }}</span>
+          <PrefTip :content="t('preference.general.preset_sync_tip')" />
+        </div>
+        <XhSwitch v-model:checked="appStore.presetSyncEnabled" :aria-label="t('preference.general.preset_sync')" />
+      </div>
     </section>
 
     <!-- 更新 -->

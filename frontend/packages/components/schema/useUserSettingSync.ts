@@ -8,7 +8,7 @@ import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSe
 import { bindSyncedSetting } from '~/composables/useSyncedSetting'
 import { USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { i18n } from '~/locales'
-import { isSearchSyncEnabled, isTableSyncEnabled, isWidgetsSyncEnabled, onSettingSessionReset, useAppContext } from '~/stores'
+import { isPresetSyncEnabled, isSearchSyncEnabled, isTableSyncEnabled, isWidgetsSyncEnabled, onSettingSessionReset, useAppContext } from '~/stores'
 
 /** 分区 → i18n 名称键（用于灵动岛同步提示） */
 const SECTION_NAME_KEYS: Record<string, string> = {
@@ -23,15 +23,18 @@ function sectionName(section: string): string {
 }
 
 /**
- * 分区是否开启后端同步：搜索、表格 / 视图、看板各看对应开关，其余缺省开启
+ * 分区是否开启后端同步：搜索、表格、条件预设、看板各看对应开关，其余缺省开启
  * 关闭时只走本地（localStorage 由各调用方维护），不上行也不拉取
  */
 function isSectionSyncEnabled(section: string): boolean {
   if (section === 'search') {
     return isSearchSyncEnabled()
   }
-  if (section === 'table' || section === 'views') {
+  if (section === 'table') {
     return isTableSyncEnabled()
+  }
+  if (section === 'views') {
+    return isPresetSyncEnabled()
   }
   if (section === 'board') {
     return isWidgetsSyncEnabled()
@@ -45,7 +48,7 @@ function isSectionSyncEnabled(section: string): boolean {
  * 后端用户设置以 (用户 × 场景 × 设置键) 存一条 JSON 载荷；页面设置场景固定 scene=Page、settingKey=pageCode，
  * 前端在该载荷中按「分区」(section) 读写：
  * - 列设置 → section `table`
- * - 个人视图 → section `views`
+ * - 条件预设 → section `views`
  *
  * 设计为「尽力而为」：localStorage 仍是同步事实源；后端加载成功则覆盖本地，保存失败只在灵动岛提示，不阻塞交互
  * 一次保存传的是整页载荷：没拿到后端那份（拉取失败或还在拉）之前不上行，否则只带一个分区的载荷会把其它分区抹掉

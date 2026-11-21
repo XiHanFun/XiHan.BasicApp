@@ -98,13 +98,14 @@ describe('默认值', () => {
     expect(store.appTimezone).toBe('Asia/Shanghai')
   })
 
-  it('五个后端同步开关默认全部开启', () => {
+  it('六个后端同步开关默认全部开启', () => {
     const store = freshStore()
 
     expect(store.preferenceSyncEnabled).toBe(true)
     expect(store.favoritesSyncEnabled).toBe(true)
     expect(store.searchSyncEnabled).toBe(true)
     expect(store.tableSyncEnabled).toBe(true)
+    expect(store.presetSyncEnabled).toBe(true)
     expect(store.widgetsSyncEnabled).toBe(true)
   })
 
@@ -261,19 +262,21 @@ describe('重置偏好', () => {
 })
 
 describe('setter 落地', () => {
-  it('五个同步开关可逐个关闭并落地本地', () => {
+  it('六个同步开关可逐个关闭并落地本地', () => {
     const store = freshStore()
 
     store.setPreferenceSyncEnabled(false)
     store.setFavoritesSyncEnabled(false)
     store.setSearchSyncEnabled(false)
     store.setTableSyncEnabled(false)
+    store.setPresetSyncEnabled(false)
     store.setWidgetsSyncEnabled(false)
 
     expect(store.preferenceSyncEnabled).toBe(false)
     expect(store.favoritesSyncEnabled).toBe(false)
     expect(store.searchSyncEnabled).toBe(false)
     expect(store.tableSyncEnabled).toBe(false)
+    expect(store.presetSyncEnabled).toBe(false)
     expect(store.widgetsSyncEnabled).toBe(false)
   })
 

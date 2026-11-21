@@ -222,7 +222,7 @@ function onSort(details: { from: number, to: number }) {
     </XhPopoverTrigger>
     <XhPopoverPositioner>
       <XhPopoverContent class="xh-set-panel">
-        <div class="flex flex-col gap-2">
+        <div class="xh-set-body flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
@@ -323,7 +323,7 @@ function onSort(details: { from: number, to: number }) {
 
           <XhSortableRoot
             :ids="columns.map(x => x.key)"
-            class="flex flex-col max-h-72 overflow-auto"
+            class="xh-set-list flex flex-col overflow-auto"
             style="--xh-sortable-gap: 0"
             @sort="onSort"
           >
@@ -421,6 +421,17 @@ function onSort(details: { from: number, to: number }) {
   inline-size: 340px;
   max-inline-size: 340px;
   --xh-popover-max-h: 560px;
+}
+
+/* 浮层给面板高度上限（窗口矮时再收）：列清单吃剩下的高度、自己滚动，标题、选项与底部说明始终露出 */
+.xh-set-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
+.xh-set-list {
+  flex: 1 1 auto;
+  min-block-size: calc(var(--xh-control-h-sm) * 3);
 }
 
 /* 表头 */

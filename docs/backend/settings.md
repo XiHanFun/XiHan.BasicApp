@@ -101,7 +101,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 ## 用户设置
 
-个人偏好不在 Settings，而在 Identity 的 `SysUserSetting`（用户 × 场景 `Preference` / `Page` × 键，值是 JSON）：`user-settings.get` / `update`（只要求登录）。壳层的偏好、收藏、列表的个人视图与列设置、工作台看板布局都存在这里，改了经 `UserSettingChanged` 推到同一用户的其他设备。
+个人偏好不在 Settings，而在 Identity 的 `SysUserSetting`（用户 × 场景 `Preference` / `Page` × 键，值是 JSON）：`user-settings.get` / `update`（只要求登录）。壳层的偏好、收藏、列表的条件预设与列设置、工作台看板布局都存在这里，改了经 `UserSettingChanged` 推到同一用户的其他设备。
 
 ## 页面
 

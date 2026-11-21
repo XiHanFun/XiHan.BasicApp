@@ -21,7 +21,7 @@ export interface ViewSnapshot {
 }
 
 /**
- * 个人视图（运行时数据，存 localStorage）
+ * 条件预设（运行时数据，存 localStorage）
  */
 export interface PersonalView {
   /** 视图码（唯一） */
@@ -36,7 +36,7 @@ export interface PersonalView {
 
 const STORAGE_PREFIX = 'xh:views:'
 
-/** 视图管理状态机：个人视图的增删改查与默认设置，按 pageCode 持久化 */
+/** 条件预设的状态：增删改查与默认设置，按 pageCode 持久化 */
 export function useViewManager(pageCode: string) {
   const storageKey = `${STORAGE_PREFIX}${pageCode}`
   const sync = useUserSettingSync(pageCode)

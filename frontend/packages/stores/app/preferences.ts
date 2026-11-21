@@ -25,6 +25,7 @@ import {
   NOTIFY_DESKTOP_KEY,
   NOTIFY_SOUND_KEY,
   PREFERENCE_SYNC_KEY,
+  PRESET_SYNC_KEY,
   SEARCH_SYNC_KEY,
   SHORTCUT_ENABLE_KEY,
   SHORTCUT_LOCK_KEY,
@@ -76,11 +77,12 @@ export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
-  // 偏好、收藏、SchemaPage 的搜索 / 表格设置与看板布局都已接 Identity 的 user-settings，缺省开
+  // 偏好、收藏、SchemaPage 的搜索设置 / 表格设置 / 条件预设与看板布局都已接 Identity 的 user-settings，缺省开
   const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? true)
   const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
   const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? true)
   const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? true)
+  const presetSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PRESET_SYNC_KEY) ?? true)
   const widgetsSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(WIDGETS_SYNC_KEY) ?? true)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)
@@ -142,6 +144,7 @@ export function createPreferencesSlice() {
   bindPersist(FAVORITES_SYNC_KEY, favoritesSyncEnabled, true)
   bindPersist(SEARCH_SYNC_KEY, searchSyncEnabled, true)
   bindPersist(TABLE_SYNC_KEY, tableSyncEnabled, true)
+  bindPersist(PRESET_SYNC_KEY, presetSyncEnabled, true)
   bindPersist(WIDGETS_SYNC_KEY, widgetsSyncEnabled, true)
   bindPersist(TABLE_ROW_PEEK_KEY, tableRowPeek, true)
   bindPersist(APP_TIMEZONE_KEY, appTimezone, 'Asia/Shanghai')
@@ -200,6 +203,9 @@ export function createPreferencesSlice() {
   }
   function setTableSyncEnabled(v: boolean) {
     save(TABLE_SYNC_KEY, tableSyncEnabled, v)
+  }
+  function setPresetSyncEnabled(v: boolean) {
+    save(PRESET_SYNC_KEY, presetSyncEnabled, v)
   }
   function setWidgetsSyncEnabled(v: boolean) {
     save(WIDGETS_SYNC_KEY, widgetsSyncEnabled, v)
@@ -293,6 +299,7 @@ export function createPreferencesSlice() {
     favoritesSyncEnabled,
     searchSyncEnabled,
     tableSyncEnabled,
+    presetSyncEnabled,
     widgetsSyncEnabled,
     tableRowPeek,
     appTimezone,
@@ -327,6 +334,7 @@ export function createPreferencesSlice() {
     setFavoritesSyncEnabled,
     setSearchSyncEnabled,
     setTableSyncEnabled,
+    setPresetSyncEnabled,
     setWidgetsSyncEnabled,
     setTableRowPeek,
     setAppTimezone,

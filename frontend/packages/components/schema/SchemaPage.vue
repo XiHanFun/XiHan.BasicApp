@@ -101,13 +101,18 @@ const columnFields = computed<ListFieldSchema[]>(() =>
   resolvedFields.value.filter(f => f.visible !== false && (!f.permission || hasPermission(f.permission))),
 )
 
+/** 当前主体能读的全部字段（含表格隐藏列与只供搜索的字段） */
+const readableFields = computed<ListFieldSchema[]>(() =>
+  resolvedFields.value.filter(f => !f.permission || hasPermission(f.permission)),
+)
+
 /**
  * 悬停速览字段：全部可读字段（含表格隐藏列——速览的增量价值），脱敏已由服务端落地
  * 受偏好「表格悬停速览」开关控制：关闭时返回空列表，下游据此停用悬停行为
  */
 const peekFields = computed<ListFieldSchema[]>(() =>
   appStore.tableRowPeek
-    ? resolvedFields.value.filter(f => !f.permission || hasPermission(f.permission))
+    ? readableFields.value
     : [],
 )
 
@@ -182,7 +187,7 @@ function toggleFullscreen() {
 }
 
 /**
- * 个人视图：把筛选、排序与每页条数存成命名方案，按 pageCode 存本地并随表格设置的同步开关跨端同步
+ * 条件预设：把筛选、排序与每页条数存成命名方案，按 pageCode 存本地并随「条件预设」同步开关跨端同步
  * 设了默认的视图在首次加载时套用；搜索区的视图按钮与模板 ref 上的 saveView / applyView 都走这里
  */
 const viewManager = useViewManager(props.schema.pageCode)
@@ -191,6 +196,13 @@ const viewManager = useViewManager(props.schema.pageCode)
 function resetSearch() {
   reset([...settings.defaultSorts.value])
 }
+
+/** 当前的筛选、排序与每页条数：条件预设浮层据此说明「保存的是什么」 */
+const currentConditions = computed<ViewSnapshot>(() => ({
+  filters: { ...filters },
+  sorts: sorts.value,
+  pageSize: pageSize.value,
+}))
 
 /** 当前列表状态的快照（深拷贝，之后改筛选不影响已存的视图） */
 function currentSnapshot(): ViewSnapshot {
@@ -652,7 +664,7 @@ defineExpose({
   filters,
   // 当前页数据：主从页据此同步「当前行」（选中项被过滤掉时改选首条）
   rows,
-  // 个人视图（搜索区有内置入口，页面也可以自己调）
+  // 条件预设（搜索区有内置入口，页面也可以自己调）
   views: viewManager.views,
   activeViewCode: viewManager.activeCode,
   saveView,
@@ -753,6 +765,8 @@ const skeletonColumns = computed(() => {
               <SchemaViewMenu
                 :views="viewManager.views.value"
                 :active-code="viewManager.activeCode.value"
+                :fields="readableFields"
+                :current="currentConditions"
                 @apply="applyView"
                 @save="saveView"
                 @set-default="viewManager.setDefault"

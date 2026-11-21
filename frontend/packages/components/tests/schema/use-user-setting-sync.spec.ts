@@ -53,6 +53,7 @@ beforeEach(() => {
   const store = useAppStore()
   store.searchSyncEnabled = true
   store.tableSyncEnabled = true
+  store.presetSyncEnabled = true
   resetPageSettingCache()
   api.get.mockClear()
   api.save.mockClear()
@@ -71,6 +72,26 @@ describe('分区关着同步', () => {
 
     expect(binding.ready.value).toBe(true)
     expect(api.get).not.toHaveBeenCalled()
+  })
+
+  it('条件预设跟自己的开关：关掉它不影响表格设置，关掉表格设置也不影响它', () => {
+    const store = useAppStore()
+    store.presetSyncEnabled = false
+    const presets = useUserSettingSync('page-presets-off').bindSection('views', recorder().target)
+    expect(presets.ready.value).toBe(true)
+    expect(api.get).not.toHaveBeenCalled()
+
+    const table = useUserSettingSync('page-presets-off').bindSection('table', recorder().target)
+    expect(table.ready.value).toBe(false)
+    expect(api.get).toHaveBeenCalledTimes(1)
+
+    store.presetSyncEnabled = true
+    store.tableSyncEnabled = false
+    const tableOff = useUserSettingSync('page-table-off').bindSection('table', recorder().target)
+    expect(tableOff.ready.value).toBe(true)
+    const presetsOn = useUserSettingSync('page-table-off').bindSection('views', recorder().target)
+    expect(presetsOn.ready.value).toBe(false)
+    expect(api.get).toHaveBeenCalledTimes(2)
   })
 })
 

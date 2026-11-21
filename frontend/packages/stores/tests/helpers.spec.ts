@@ -13,6 +13,7 @@ import {
   FAVORITES_SYNC_KEY,
   PREFERENCE_SETTING_KEY,
   PREFERENCE_SYNC_KEY,
+  PRESET_SYNC_KEY,
   SEARCH_SYNC_KEY,
   STORAGE_PREFIX,
   TABLE_SYNC_KEY,
@@ -35,6 +36,7 @@ import {
   invalidateCacheIfBuildTimeChanged,
   isFavoritesSyncEnabled,
   isPreferenceSyncEnabled,
+  isPresetSyncEnabled,
   isSearchSyncEnabled,
   isTableSyncEnabled,
   isWidgetsSyncEnabled,
@@ -123,14 +125,15 @@ describe('构建时间变化时作废本地偏好缓存', () => {
   })
 })
 
-describe('五个同步开关：默认开启且属设备本地维度', () => {
-  it('新装用户五个开关默认全部开启', () => {
+describe('六个同步开关：默认开启且属设备本地维度', () => {
+  it('新装用户六个开关默认全部开启', () => {
     freshAppStore()
 
     expect(isPreferenceSyncEnabled()).toBe(true)
     expect(isFavoritesSyncEnabled()).toBe(true)
     expect(isSearchSyncEnabled()).toBe(true)
     expect(isTableSyncEnabled()).toBe(true)
+    expect(isPresetSyncEnabled()).toBe(true)
     expect(isWidgetsSyncEnabled()).toBe(true)
   })
 
@@ -143,6 +146,7 @@ describe('五个同步开关：默认开启且属设备本地维度', () => {
     expect(isPreferenceSyncEnabled()).toBe(true)
     expect(isSearchSyncEnabled()).toBe(true)
     expect(isTableSyncEnabled()).toBe(true)
+    expect(isPresetSyncEnabled()).toBe(true)
     expect(isWidgetsSyncEnabled()).toBe(true)
   })
 
@@ -154,7 +158,7 @@ describe('五个同步开关：默认开启且属设备本地维度', () => {
     expect(isSearchSyncEnabled()).toBe(false)
   })
 
-  it('五个开关不进入上行快照 —— 它们只属于本设备', async () => {
+  it('六个开关不进入上行快照 —— 它们只属于本设备', async () => {
     vi.useFakeTimers()
     const appStore = freshAppStore()
     await hydratePreferencesFromBackend({ showIsland: false })
@@ -169,6 +173,7 @@ describe('五个同步开关：默认开启且属设备本地维度', () => {
       FAVORITES_SYNC_KEY,
       SEARCH_SYNC_KEY,
       TABLE_SYNC_KEY,
+      PRESET_SYNC_KEY,
       WIDGETS_SYNC_KEY,
     ]) {
       expect(key in snapshot).toBe(false)
