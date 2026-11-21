@@ -33,10 +33,15 @@ namespace XiHan.BasicApp.Runtime;
 /// </summary>
 /// <remarks>
 /// 在 Transaction 阶段把当前主体交给 <see cref="Persistence.AuditorStamp"/>，供 SqlSugar 回调填操作人字段；把调用里的缓存失效推到工作单元之后（<see cref="Persistence.CacheInvalidation"/>）；提供 <c>basicapp.runtime@1</c> 供各能力包依赖
+/// 维护模式与租户独立库核对的轮询随本包启动与停止：内核启动核对通过之后才开始，宿主起不来时它们没有开始过
 /// </remarks>
-public sealed class RuntimeFeature : IHostedFeature
+public sealed class RuntimeFeature : IHostedFeature, IDisposable
 {
     private ILogger? _sqlLogger;
+
+    private CancellationTokenSource? _stopping;
+
+    private Task? _polling;
 
     /// <inheritdoc />
     public Manifest Manifest { get; } = new()
@@ -78,12 +83,12 @@ public sealed class RuntimeFeature : IHostedFeature
         // 实体类型清单在容器建好后第一次取用时才收集，那时各包都已登记完
         var registrations = context.Services.GetRepositoryRegistrations();
         context.Services.AddSingleton(_ => EntityTypeCatalog.From(registrations));
+        // 维护模式与独立库核对的轮询在 StartAsync 里开始：内核启动核对通过之后才跑，不登记成宿主的后台服务
         context.Services.AddSingleton<MaintenanceModeState>();
-        context.Services.AddHostedService(static sp => sp.GetRequiredService<MaintenanceModeState>());
         // 没有升级到当前结构版本的租户独立库：启动升级与重试记下，进入服务状态后核对一遍、之后复查，调用拦下、健康项降级
         context.Services.AddSingleton<SchemaHealth>();
         context.Services.AddSingleton<IHealthContributor, SchemaHealthContributor>();
-        context.Services.AddHostedService<TenantSchemaWatch>();
+        context.Services.AddSingleton<TenantSchemaWatch>();
         context.Services.AddRepository<SysVersion, Guid>();
         context.Services.AddRepository<SysMigrationHistory, Guid>();
         context.Services.AddSingleton<ITenantScopeRunner, TenantScopeRunner>();
@@ -118,17 +123,35 @@ public sealed class RuntimeFeature : IHostedFeature
         ArgumentNullException.ThrowIfNull(services);
         _sqlLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("XiHan.BasicApp.Sql");
         SqlDiagnostics.UseSharedLogger(_sqlLogger);
+        _stopping = new CancellationTokenSource();
+        _polling = Task.WhenAll(
+            services.GetRequiredService<MaintenanceModeState>().RunAsync(_stopping.Token),
+            services.GetRequiredService<TenantSchemaWatch>().RunAsync(_stopping.Token));
         return Task.CompletedTask;
     }
 
     /// <inheritdoc />
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
+        if (_stopping is not null && _polling is not null)
+        {
+            await _stopping.CancelAsync().ConfigureAwait(false);
+            await _polling.ConfigureAwait(false);
+            _stopping.Dispose();
+            _stopping = null;
+            _polling = null;
+        }
+
         if (_sqlLogger is { } logger)
         {
             SqlDiagnostics.ReleaseSharedLogger(logger);
         }
+    }
 
-        return Task.CompletedTask;
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _stopping?.Dispose();
+        _stopping = null;
     }
 }

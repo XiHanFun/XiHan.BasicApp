@@ -7,15 +7,16 @@ using XiHan.BasicApp.Contracts.Printing;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Printing.Domain.Services;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Runtime.Schema;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证宿主起不来时后台服务的收尾
+/// 验证宿主起不来时没有后台轮询要收尾
 /// </summary>
 /// <remarks>
-/// 内核启动核对失败时宿主不经 StopAsync 直接释放，已经开始执行的后台服务随之取消：要正常结束，
-/// 以取消或异常结束的会被宿主记成后台服务故障（Error 加 Critical），还要去停一个本来就起不来的宿主
+/// 内核启动核对失败时宿主不经 StopAsync 直接释放。宿主的后台服务在核对之前就已开始，执行体还没跑起来就被取消时宿主照样记成后台服务故障，
+/// 所以后台轮询一律由能力包在内核启动核对通过之后开始，宿主里不登记后台服务
 /// </remarks>
 public sealed class BackgroundServicesTests : IDisposable
 {
@@ -24,24 +25,24 @@ public sealed class BackgroundServicesTests : IDisposable
     public void Dispose() => _database.Dispose();
 
     [Fact]
-    public async Task FailedStart_EndsStartedBackgroundServicesNormally()
+    public async Task FailedStart_LeavesNoBackgroundLoopsToEnd()
     {
-        IReadOnlyList<BackgroundService> services = [];
+        IReadOnlyList<IHostedService> hosted = [];
+        TenantSchemaWatch? watch = null;
 
-        // 打印数据源重复登记：内核启动核对时失败，那时排在内核前面的后台服务都已开始执行
+        // 打印数据源重复登记：内核启动核对时失败
         await Assert.ThrowsAnyAsync<Exception>(() => BasicAppTestServer.StartAsync(
             _database.ConnectionString,
             DatabaseProviders.Sqlite,
             configure: static builder => builder.Services.AddPrintDataSource(BuiltInPrintDataSources.SystemPrintDemo),
-            afterMap: app => services = [.. app.Services.GetServices<IHostedService>().OfType<BackgroundService>()]));
+            afterMap: app =>
+            {
+                hosted = [.. app.Services.GetServices<IHostedService>()];
+                watch = app.Services.GetRequiredService<TenantSchemaWatch>();
+            }));
 
-        var started = services.Where(static s => s.ExecuteTask is not null).ToList();
-        Assert.NotEmpty(started);
-        foreach (var service in started)
-        {
-            await Task.WhenAny(service.ExecuteTask!, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
-        }
-
-        Assert.Empty(started.Where(static s => !s.ExecuteTask!.IsCompletedSuccessfully).Select(static s => $"{s.GetType().FullName}: {s.ExecuteTask!.Status}"));
+        Assert.Empty(hosted.OfType<BackgroundService>().Select(static s => s.GetType().FullName));
+        // 独立库核对的轮询没开始过：第一遍核对既没完成也没被取消
+        Assert.False(watch!.FirstPass.IsCompleted);
     }
 }

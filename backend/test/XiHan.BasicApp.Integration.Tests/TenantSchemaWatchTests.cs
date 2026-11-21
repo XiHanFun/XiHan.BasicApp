@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
@@ -118,7 +117,7 @@ public sealed class TenantSchemaWatchTests : IDisposable
     }
 
     private static Task FirstPassAsync(IServiceProvider services)
-        => services.GetServices<IHostedService>().OfType<TenantSchemaWatch>().Single().FirstPass.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
+        => services.GetRequiredService<TenantSchemaWatch>().FirstPass.WaitAsync(TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken);
 
     /// <summary>
     /// 没有提前读租户目录
