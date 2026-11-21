@@ -105,6 +105,26 @@ describe('menu projection for the shell', () => {
     })
   })
 
+  it('maps embedded nodes to their /embed route with meta.iframeSrc, not to meta.link', () => {
+    const [embedded] = toMenuRoutes([
+      {
+        ...link,
+        code: 'custom.wiki',
+        kind: 'Embed',
+        route: '/embed/wiki',
+        title: 'Wiki',
+        affix: true,
+      },
+    ])
+    expect(embedded).toMatchObject({
+      path: '/embed/wiki',
+      name: 'custom.wiki',
+      component: undefined,
+      meta: { title: 'Wiki', iframeSrc: 'https://docs.xihanfun.com', affixTab: true },
+    })
+    expect(embedded?.meta.link).toBeUndefined()
+  })
+
   it('maps badges to the shell metadata: text and tone, the dot flag, nothing when unset', () => {
     const [labelled, dotted, plain] = toMenuRoutes([
       { ...users, badge: 'New', badgeType: 'success' },

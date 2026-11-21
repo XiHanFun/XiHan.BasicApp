@@ -206,12 +206,13 @@ export default {
         title_key: '文言キー',
         title_override: 'タイトルの上書き',
         parent: '所属ディレクトリ',
-        url: '外部リンクのアドレス',
+        url: '外部アドレス',
       },
       kinds: {
         page: 'ページ',
         directory: 'ディレクトリ',
         link: '外部リンク',
+        embed: '埋め込み',
       },
       statuses: {
         active: '有効',
@@ -229,11 +230,13 @@ export default {
         create: 'メニューを追加',
         add_directory: 'サブディレクトリを追加',
         add_link: '外部リンクを追加',
+        add_embed: '埋め込みページを追加',
         toggle: '有効化／無効化',
         reset: '既定に戻す',
       },
       create_title: 'ディレクトリを追加',
       create_link_title: '外部リンクを追加',
+      create_embed_title: '埋め込みページを追加',
       edit_title: 'メニューを編集',
       tabs: {
         overview: '概要',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'クリックしてアイコンを選択',
       permission_placeholder: '省略可。入力する場合は権限カタログのコード',
       registered_parent_hint: '子ページは登録された親ページの下に固定されます',
+      url_embed_hint: 'アプリのタブ内の iframe で開きます。埋め込みを禁止しているサイトは表示されません',
     },
     permissions: {
       title: '権限一覧',

@@ -206,12 +206,13 @@ export default {
         title_key: '文案鍵',
         title_override: '標題覆寫',
         parent: '所屬目錄',
-        url: '外部連結位址',
+        url: '外部位址',
       },
       kinds: {
         page: '頁面',
         directory: '目錄',
         link: '外部連結',
+        embed: '內嵌',
       },
       statuses: {
         active: '啟用',
@@ -229,11 +230,13 @@ export default {
         create: '新增選單',
         add_directory: '新增子目錄',
         add_link: '新增外部連結',
+        add_embed: '新增內嵌',
         toggle: '啟停',
         reset: '還原預設',
       },
       create_title: '新增目錄',
       create_link_title: '新增外部連結',
+      create_embed_title: '新增內嵌',
       edit_title: '編輯選單',
       tabs: {
         overview: '概覽',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: '點擊選擇圖示',
       permission_placeholder: '可留空；填寫時須是權限目錄中的權限碼',
       registered_parent_hint: '子頁面固定在登記的父頁面下',
+      url_embed_hint: '在應用程式的分頁裡以 iframe 開啟；對方網站禁止被嵌入時無法顯示',
     },
     permissions: {
       title: '權限目錄',

@@ -206,12 +206,13 @@ export default {
         title_key: 'Chave de texto',
         title_override: 'Título substituído',
         parent: 'Diretório',
-        url: 'Endereço do link',
+        url: 'Endereço externo',
       },
       kinds: {
         page: 'Página',
         directory: 'Diretório',
         link: 'Link',
+        embed: 'Incorporado',
       },
       statuses: {
         active: 'Ativo',
@@ -229,11 +230,13 @@ export default {
         create: 'Adicionar menu',
         add_directory: 'Adicionar subdiretório',
         add_link: 'Adicionar link',
+        add_embed: 'Adicionar página incorporada',
         toggle: 'Ativar / desativar',
         reset: 'Restaurar padrão',
       },
       create_title: 'Adicionar diretório',
       create_link_title: 'Adicionar link',
+      create_embed_title: 'Adicionar página incorporada',
       edit_title: 'Editar menu',
       tabs: {
         overview: 'Visão geral',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'Clique para selecionar um ícone',
       permission_placeholder: 'Opcional; deve ser um código do catálogo de permissões',
       registered_parent_hint: 'Subpáginas ficam sob a página pai registrada',
+      url_embed_hint: 'Abre em uma aba do app dentro de um iframe; sites que proíbem incorporação não são exibidos',
     },
     permissions: {
       title: 'Permissões',

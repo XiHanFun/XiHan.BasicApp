@@ -328,7 +328,7 @@ describe('useMenuEditor', () => {
     }
   }
 
-  it('新建：缺省目录、放在顶层，目录与外链都可选所属目录；在目录行上新建即挂在该目录；切换种类所属目录照留', async () => {
+  it('新建：缺省目录、放在顶层，目录、外链与内嵌都可选所属目录；在目录行上新建即挂在该目录；只有内嵌送固定标签；切换种类所属目录照留', async () => {
     const calls = record(call => json(201, node('m-new', `custom.${(call.body as { code: string }).code}`, (call.body as { kind: 'Directory' }).kind)))
     const { editor } = editorWithTree()
     editor.startCreate()
@@ -354,6 +354,7 @@ describe('useMenuEditor', () => {
       externalUrl: null,
       permission: null,
       isVisible: true,
+      isAffix: false,
       status: 'Active',
       badge: null,
       badgeType: null,
@@ -385,10 +386,27 @@ describe('useMenuEditor', () => {
       externalUrl: 'https://docs.xihanfun.com/2',
       permission: 'access.roles.read',
       isVisible: false,
+      isAffix: false,
       status: 'Disabled',
       badge: 'New',
       badgeType: 'success',
       badgeDot: true,
+    })
+
+    editor.startCreate('Embed')
+    Object.assign(editor.form, {
+      code: 'wiki',
+      title: 'Wiki',
+      externalUrl: ' https://docs.xihanfun.com ',
+      isAffix: true,
+    })
+    expect(await editor.submit()).toBe(true)
+    expect(calls[2]!.body).toMatchObject({
+      kind: 'Embed',
+      code: 'wiki',
+      parentId: null,
+      externalUrl: 'https://docs.xihanfun.com',
+      isAffix: true,
     })
 
     editor.startCreate('Directory', 'm-sys')

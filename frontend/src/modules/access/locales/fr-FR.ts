@@ -206,12 +206,13 @@ export default {
         title_key: 'Clé de texte',
         title_override: 'Titre remplacé',
         parent: 'Répertoire',
-        url: 'Adresse du lien',
+        url: 'Adresse externe',
       },
       kinds: {
         page: 'Page',
         directory: 'Répertoire',
         link: 'Lien',
+        embed: 'Intégré',
       },
       statuses: {
         active: 'Activé',
@@ -229,11 +230,13 @@ export default {
         create: 'Ajouter un menu',
         add_directory: 'Ajouter un sous-répertoire',
         add_link: 'Ajouter un lien',
+        add_embed: 'Ajouter une page intégrée',
         toggle: 'Activer / désactiver',
         reset: 'Rétablir par défaut',
       },
       create_title: 'Ajouter un répertoire',
       create_link_title: 'Ajouter un lien',
+      create_embed_title: 'Ajouter une page intégrée',
       edit_title: 'Modifier le menu',
       tabs: {
         overview: 'Aperçu',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'Cliquez pour choisir une icône',
       permission_placeholder: 'Facultatif ; doit être un code du catalogue des permissions',
       registered_parent_hint: 'Les sous-pages restent sous leur page parente enregistrée',
+      url_embed_hint: 'S\'ouvre dans un onglet de l\'application, dans un iframe ; les sites qui interdisent l\'intégration ne s\'affichent pas',
     },
     permissions: {
       title: 'Autorisations',

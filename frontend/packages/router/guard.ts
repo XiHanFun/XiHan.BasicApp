@@ -75,7 +75,7 @@ function affixTabsOf(router: Router, routes: readonly MenuRoute[]): TabItem[] {
   const tabs: TabItem[] = []
   const walk = (items: readonly MenuRoute[]) => {
     for (const item of items) {
-      if (item.component && item.meta.affixTab) {
+      if ((item.component || item.meta.iframeSrc) && item.meta.affixTab) {
         const route = router.resolve(item.path)
         if (!isNotFoundRoute(route)) {
           tabs.push(toTab(route))

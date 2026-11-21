@@ -59,7 +59,7 @@ public sealed class SysMenu : AppAuditedEntity
     /// 路由路径（以 <c>/</c> 开头的 kebab 段）
     /// </summary>
     /// <remarks>
-    /// 目录与外链为空
+    /// 目录与外链为空；内嵌是 <c>/embed/&lt;名&gt;</c>
     /// </remarks>
     [SugarColumn(ColumnName = "route", Length = 512, IsNullable = false, ColumnDescription = "路由路径（以 / 开头的 kebab 段）")]
     public string Route { get; set; } = string.Empty;
@@ -116,7 +116,7 @@ public sealed class SysMenu : AppAuditedEntity
     /// 外链地址（http / https 绝对地址）
     /// </summary>
     /// <remarks>
-    /// 只有外链节点有
+    /// 外链与内嵌节点有：外链新标签打开，内嵌在应用里的 iframe 中打开
     /// </remarks>
     [SugarColumn(ColumnName = "external_url", Length = 512, IsNullable = true, ColumnDescription = "外链地址（http / https 绝对地址）")]
     public string? ExternalUrl { get; set; }
@@ -204,9 +204,17 @@ public enum MenuKind
     /// 外链：运营建的外部地址
     /// </summary>
     /// <remarks>
-    /// 新标签打开，不生成路由；可在顶层或目录下。内置的三个外链由种子只首写一次
+    /// 新标签打开，不生成路由；可在顶层或目录下。内置的 GitHub 与 Gitee 外链由种子只首写一次
     /// </remarks>
     Link = 2,
+
+    /// <summary>
+    /// 内嵌：运营建的外部地址，在应用里的 iframe 中打开
+    /// </summary>
+    /// <remarks>
+    /// 路由是 <c>/embed/&lt;名&gt;</c>（建节点时按编码生成），进标签栏、可固定；可在顶层或目录下。对方站点禁止被嵌入时浏览器不显示。内置的官方文档是内嵌，由种子只首写一次
+    /// </remarks>
+    Embed = 3,
 }
 
 /// <summary>

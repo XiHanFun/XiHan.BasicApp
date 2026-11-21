@@ -741,6 +741,31 @@ describe('标签栏写入', () => {
     expect(tabbarStore.activeTab).toBe('/identity/users')
   })
 
+  it('设为固定标签的内嵌菜单同样在菜单装好后进标签栏，能直接打开', async () => {
+    signInPending(() => json(200, permissions([
+      page('identity.users', '/identity/users'),
+      {
+        ...page('custom.wiki', '/embed/wiki', { affix: true }),
+        kind: 'Embed',
+        component: '',
+        titleKey: '',
+        title: 'Wiki',
+        externalUrl: 'https://docs.xihanfun.com',
+      },
+    ])))
+    const router = createGuardedRouter()
+    await router.push('/identity/users')
+
+    const tabbarStore = useTabbarStore()
+    expect(tabbarStore.tabKeys).toEqual(['/embed/wiki', '/identity/users'])
+    expect(tabbarStore.tabs[0]).toMatchObject({ title: 'Wiki', name: 'custom.wiki', affix: true })
+    await router.push('/embed/wiki')
+    expect(router.currentRoute.value).toMatchObject({
+      name: 'custom.wiki',
+      meta: { iframeSrc: 'https://docs.xihanfun.com' },
+    })
+  })
+
   it('固定只看 meta.affixTab：首页没设固定标签也能关，设了的页面固定且不可关闭', async () => {
     signInWithLoadedRoutes()
     const router = createGuardedRouter()

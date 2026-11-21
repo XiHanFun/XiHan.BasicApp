@@ -206,12 +206,13 @@ export default {
         title_key: 'Ключ текста',
         title_override: 'Заголовок переопределён',
         parent: 'Каталог',
-        url: 'Адрес ссылки',
+        url: 'Внешний адрес',
       },
       kinds: {
         page: 'Страница',
         directory: 'Каталог',
         link: 'Ссылка',
+        embed: 'Встроенная',
       },
       statuses: {
         active: 'Включён',
@@ -229,11 +230,13 @@ export default {
         create: 'Добавить меню',
         add_directory: 'Добавить подкаталог',
         add_link: 'Добавить ссылку',
+        add_embed: 'Добавить встроенную страницу',
         toggle: 'Включить / отключить',
         reset: 'Восстановить по умолчанию',
       },
       create_title: 'Добавить каталог',
       create_link_title: 'Добавить ссылку',
+      create_embed_title: 'Добавить встроенную страницу',
       edit_title: 'Изменить меню',
       tabs: {
         overview: 'Обзор',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'Нажмите, чтобы выбрать значок',
       permission_placeholder: 'Необязательно; должен быть кодом из каталога разрешений',
       registered_parent_hint: 'Дочерние страницы остаются под зарегистрированной родительской страницей',
+      url_embed_hint: 'Открывается во вкладке приложения в iframe; сайты, запрещающие встраивание, не отображаются',
     },
     permissions: {
       title: 'Разрешения',

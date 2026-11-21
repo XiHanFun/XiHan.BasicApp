@@ -16,14 +16,14 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// <param name="Kind">种类</param>
 /// <param name="Package">所属包；运营节点是 <c>custom</c></param>
 /// <param name="ParentId">上级</param>
-/// <param name="Route">路由路径；目录与外链为空</param>
-/// <param name="Component">组件路径；目录与外链为空</param>
+/// <param name="Route">路由路径；目录与外链为空，内嵌是 <c>/embed/&lt;名&gt;</c></param>
+/// <param name="Component">组件路径；只有页面节点有</param>
 /// <param name="TitleKey">标题文案键；运营建的节点为空</param>
 /// <param name="Title">标题原文（运营建的节点）或覆盖（页面节点与内置节点）</param>
 /// <param name="Icon">图标</param>
 /// <param name="Order">排序号</param>
 /// <param name="Permission">所需权限码</param>
-/// <param name="ExternalUrl">外链地址</param>
+/// <param name="ExternalUrl">外部地址；只有外链与内嵌节点有</param>
 /// <param name="IsVisible">是否在导航里显示</param>
 /// <param name="KeepAlive">页面标签是否参与缓存</param>
 /// <param name="IsAffix">是否固定在标签栏</param>

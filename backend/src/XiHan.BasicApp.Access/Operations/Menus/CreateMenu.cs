@@ -15,8 +15,8 @@ namespace XiHan.BasicApp.Access.Operations.Menus;
 /// 新建运营节点
 /// </summary>
 /// <remarks>
-/// <c>POST /api/menus</c>（平台侧）。只能建目录或外链（页面 <c>ACCESS_VALIDATION_008</c>）；编码存为 <c>custom.&lt;名&gt;</c> 且唯一（<c>ACCESS_CONFLICT_003</c>）；
-/// 上级须是目录（<c>ACCESS_VALIDATION_006</c>），目录下可以再建目录；外链地址须是 http / https 绝对地址（<c>ACCESS_VALIDATION_007</c>）；权限码须在目录里（<c>ACCESS_VALIDATION_001</c>）
+/// <c>POST /api/menus</c>（平台侧）。只能建目录、外链或内嵌（页面 <c>ACCESS_VALIDATION_008</c>）；编码存为 <c>custom.&lt;名&gt;</c> 且唯一（<c>ACCESS_CONFLICT_003</c>）；
+/// 上级须是目录（<c>ACCESS_VALIDATION_006</c>），目录下可以再建目录；外链与内嵌的地址须是 http / https 绝对地址（<c>ACCESS_VALIDATION_007</c>），内嵌的路由按编码生成为 <c>/embed/&lt;名&gt;</c>；权限码须在目录里（<c>ACCESS_VALIDATION_001</c>）
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
 /// <param name="service">菜单域服务</param>
@@ -68,13 +68,15 @@ public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
             Code = code,
             Kind = request.Kind,
             Package = MenuService.CustomPackage,
+            Route = request.Kind == MenuKind.Embed ? MenuService.EmbedRoute(code) : string.Empty,
             ParentId = request.ParentId,
             Title = request.Title.Trim(),
             Icon = string.IsNullOrWhiteSpace(request.Icon) ? null : request.Icon.Trim(),
             Order = request.Order,
             Permission = string.IsNullOrWhiteSpace(request.Permission) ? null : request.Permission.Trim(),
-            ExternalUrl = request.Kind == MenuKind.Link ? request.ExternalUrl!.Trim() : null,
+            ExternalUrl = request.Kind is MenuKind.Link or MenuKind.Embed ? request.ExternalUrl!.Trim() : null,
             IsVisible = request.IsVisible,
+            IsAffix = request.IsAffix,
             Status = request.Status,
             Badge = MenuRules.Normalize(request.Badge),
             BadgeType = MenuRules.Normalize(request.BadgeType),
@@ -86,7 +88,7 @@ public sealed class CreateMenu(IRepository<SysMenu, Guid> menus, MenuService ser
 }
 
 /// <summary>
-/// 菜单节点的外链、权限与徽标规则（新建与修改共用）
+/// 菜单节点的外部地址、权限与徽标规则（新建与修改共用）
 /// </summary>
 internal static class MenuRules
 {
@@ -101,14 +103,14 @@ internal static class MenuRules
     public static string? Normalize(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
-    /// 校验外链地址与权限码
+    /// 校验外部地址与权限码
     /// </summary>
     /// <remarks>
-    /// 外链必须有合规地址、目录不能有地址；权限码可空，非空须在目录里
+    /// 外链与内嵌必须有合规地址、目录不能有地址；权限码可空，非空须在目录里
     /// </remarks>
     public static Error? CheckUrlAndPermission(MenuKind kind, string? url, string? permission, PermissionCatalog catalog)
     {
-        if (kind == MenuKind.Link ? !MenuService.IsValidUrl(url) : !string.IsNullOrWhiteSpace(url))
+        if (kind is MenuKind.Link or MenuKind.Embed ? !MenuService.IsValidUrl(url) : !string.IsNullOrWhiteSpace(url))
         {
             return Error.Validation(AccessErrors.MenuUrlInvalid, AccessMessages.MenuUrlInvalid);
         }

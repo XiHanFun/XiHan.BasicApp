@@ -44,6 +44,11 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
     public static string CustomCode(string name) => $"{CustomPackage}.{name}";
 
     /// <summary>
+    /// 内嵌节点的路由：编码 <c>custom.&lt;名&gt;</c> 对应 <c>/embed/&lt;名&gt;</c>
+    /// </summary>
+    public static string EmbedRoute(string code) => $"/embed/{code[(CustomPackage.Length + 1)..]}";
+
+    /// <summary>
     /// 全部菜单行
     /// </summary>
     public Task<IReadOnlyList<SysMenu>> ListAsync(CancellationToken cancellationToken) => menus.ListAsync(EntityQuery.All<SysMenu>(), cancellationToken);

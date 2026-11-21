@@ -16,8 +16,13 @@ export type MenuStatus = MenuRow['status']
 /** 运营能新建的种类：页面菜单来自页面登记，不在这里新建 */
 export type OperatorKind = Exclude<MenuKind, 'Page'>
 
-export const MENU_KINDS: readonly MenuKind[] = ['Directory', 'Page', 'Link']
-export const OPERATOR_KINDS: readonly OperatorKind[] = ['Directory', 'Link']
+export const MENU_KINDS: readonly MenuKind[] = ['Directory', 'Page', 'Link', 'Embed']
+export const OPERATOR_KINDS: readonly OperatorKind[] = ['Directory', 'Link', 'Embed']
+/** 带外部地址的种类：外链新标签打开，内嵌在应用里的 iframe 中打开 */
+export function takesUrl(kind: MenuKind): boolean {
+  return kind === 'Link' || kind === 'Embed'
+}
+
 export const MENU_STATUSES: readonly MenuStatus[] = ['Active', 'Disabled']
 
 /** 运营节点的编码存为 custom.<名>（后端补前缀） */
@@ -252,7 +257,7 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
     submitError.value = null
     fieldErrors.value = {}
     try {
-      const link = form.kind === 'Link'
+      const hasUrl = takesUrl(form.kind)
       const current = editing.value
       if (mode.value === 'edit' && current) {
         await menusApi.update({
@@ -264,7 +269,7 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           isVisible: form.isVisible,
           keepAlive: form.keepAlive,
           isAffix: form.isAffix,
-          externalUrl: link
+          externalUrl: hasUrl
             ? blankToNull(form.externalUrl)
             : null,
           permission: current.kind === 'Page'
@@ -283,11 +288,12 @@ export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
           icon: blankToNull(form.icon),
           order: form.order,
           parentId: form.parentId,
-          externalUrl: link
+          externalUrl: hasUrl
             ? blankToNull(form.externalUrl)
             : null,
           permission: blankToNull(form.permission),
           isVisible: form.isVisible,
+          isAffix: form.kind === 'Embed' && form.isAffix,
           status: form.status,
           badge: blankToNull(form.badge),
           badgeType: form.badgeType,

@@ -19,7 +19,10 @@ export interface MenuMeta {
   badge?: string | number
   badgeType?: string
   dot?: boolean
+  /** 外链：新标签打开，不生成路由 */
   link?: string
+  /** 内嵌：路由挂壳层的 iframe 视图，在应用里打开这个地址 */
+  iframeSrc?: string
 }
 
 export interface MenuRoute {

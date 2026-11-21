@@ -21,17 +21,18 @@ public sealed record GetMenuRequest(Guid Id);
 /// <c>menus.create</c> 的请求
 /// </summary>
 /// <remarks>
-/// 新建运营节点（目录或外链；页面节点由页面登记生成，不能新建）
+/// 新建运营节点（目录、外链或内嵌；页面节点由页面登记生成，不能新建）
 /// </remarks>
-/// <param name="Kind">种类：<c>Directory</c> 或 <c>Link</c></param>
+/// <param name="Kind">种类：<c>Directory</c>、<c>Link</c> 或 <c>Embed</c></param>
 /// <param name="Code">名称：小写字母开头，只含小写字母、数字与 <c>-</c>，2 到 32 个字符；存为 <c>custom.&lt;名&gt;</c>，创建后不可改</param>
 /// <param name="Title">标题原文：1 到 64 个字符</param>
 /// <param name="Icon">图标（如 <c>lucide:folder</c>），可空</param>
 /// <param name="Order">排序号</param>
 /// <param name="ParentId">上级：空即顶层，否则须是某个目录（目录下可以再建目录）</param>
-/// <param name="ExternalUrl">外链地址（http / https 绝对地址）；外链必填，目录不填</param>
+/// <param name="ExternalUrl">外部地址（http / https 绝对地址）；外链与内嵌必填，目录不填</param>
 /// <param name="Permission">所需权限码，可空；须在权限目录里</param>
 /// <param name="IsVisible">是否在导航里显示</param>
+/// <param name="IsAffix">是否固定在标签栏（页面与内嵌才有标签）</param>
 /// <param name="Status">启停状态</param>
 /// <param name="Badge">徽标文字，可空，最多 50 个字符</param>
 /// <param name="BadgeType">徽标语气，可空：<c>neutral</c>、<c>brand</c>、<c>info</c>、<c>success</c>、<c>warning</c>、<c>danger</c></param>
@@ -43,9 +44,10 @@ public sealed record CreateMenuRequest(
     [StringLength(64)] string? Icon = null,
     [Range(0, 100_000)] int Order = 0,
     Guid? ParentId = null,
-    [StringLength(1024)] string? ExternalUrl = null,
+    [StringLength(512)] string? ExternalUrl = null,
     [StringLength(128)] string? Permission = null,
     bool IsVisible = true,
+    bool IsAffix = false,
     MenuStatus Status = MenuStatus.Active,
     [StringLength(50)] string? Badge = null,
     [RegularExpression(MenuRules.BadgeTypePattern)] string? BadgeType = null,
@@ -66,7 +68,7 @@ public sealed record CreateMenuRequest(
 /// <param name="IsVisible">是否在导航里显示（隐藏的页面仍可直接访问）</param>
 /// <param name="KeepAlive">页面标签是否参与缓存</param>
 /// <param name="IsAffix">是否固定在标签栏</param>
-/// <param name="ExternalUrl">外链地址：外链必填，其余为空</param>
+/// <param name="ExternalUrl">外部地址：外链与内嵌必填，其余为空</param>
 /// <param name="Permission">所需权限码：运营节点可选，页面节点为空</param>
 /// <param name="Badge">徽标文字，可空，最多 50 个字符</param>
 /// <param name="BadgeType">徽标语气，可空：<c>neutral</c>、<c>brand</c>、<c>info</c>、<c>success</c>、<c>warning</c>、<c>danger</c></param>
@@ -80,7 +82,7 @@ public sealed record UpdateMenuRequest(
     bool IsVisible = true,
     bool KeepAlive = false,
     bool IsAffix = false,
-    [StringLength(1024)] string? ExternalUrl = null,
+    [StringLength(512)] string? ExternalUrl = null,
     [StringLength(128)] string? Permission = null,
     [StringLength(50)] string? Badge = null,
     [RegularExpression(MenuRules.BadgeTypePattern)] string? BadgeType = null,

@@ -206,12 +206,13 @@ export default {
         title_key: 'Clave de texto',
         title_override: 'Título sustituido',
         parent: 'Directorio',
-        url: 'Dirección del enlace',
+        url: 'Dirección externa',
       },
       kinds: {
         page: 'Página',
         directory: 'Directorio',
         link: 'Enlace',
+        embed: 'Incrustado',
       },
       statuses: {
         active: 'Habilitado',
@@ -229,11 +230,13 @@ export default {
         create: 'Añadir menú',
         add_directory: 'Añadir subdirectorio',
         add_link: 'Añadir enlace',
+        add_embed: 'Añadir página incrustada',
         toggle: 'Habilitar / deshabilitar',
         reset: 'Restablecer',
       },
       create_title: 'Añadir directorio',
       create_link_title: 'Añadir enlace',
+      create_embed_title: 'Añadir página incrustada',
       edit_title: 'Editar menú',
       tabs: {
         overview: 'Resumen',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'Haga clic para elegir un icono',
       permission_placeholder: 'Opcional; debe ser un código del catálogo de permisos',
       registered_parent_hint: 'Las subpáginas permanecen bajo su página padre registrada',
+      url_embed_hint: 'Se abre en una pestaña de la aplicación dentro de un iframe; los sitios que prohíben la incrustación no se muestran',
     },
     permissions: {
       title: 'Permisos',

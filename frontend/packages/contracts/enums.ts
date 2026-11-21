@@ -223,7 +223,7 @@ export type LifecycleState = (typeof LifecycleState)[number]
 export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset', 'RoleActivation'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
 
-export const MenuKind = ['Page', 'Directory', 'Link'] as const
+export const MenuKind = ['Page', 'Directory', 'Link', 'Embed'] as const
 export type MenuKind = (typeof MenuKind)[number]
 
 export const MenuStatus = ['Active', 'Disabled'] as const

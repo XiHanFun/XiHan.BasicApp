@@ -15,7 +15,7 @@ import { actionConfirmText, deleteConfirmText, Icon, IconPicker, renderTag, Sche
 import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { menuBadgeDotColor, resolveMenuBadgeTone } from '~/utils'
-import { CUSTOM_CODE_PREFIX, MENU_KINDS, MENU_STATUSES, menusResource, OPERATOR_KINDS, resetMenu, useMenuEditor, useMenuTree } from './use-menus'
+import { CUSTOM_CODE_PREFIX, MENU_KINDS, MENU_STATUSES, menusResource, OPERATOR_KINDS, resetMenu, takesUrl, useMenuEditor, useMenuTree } from './use-menus'
 
 defineOptions({ name: 'AccessMenusView' })
 
@@ -51,22 +51,26 @@ function reload() {
 function kindLabel(kind: MenuKind): string {
   if (kind === 'Directory')
     return t('access.menus.kinds.directory')
+  if (kind === 'Embed')
+    return t('access.menus.kinds.embed')
   return kind === 'Link'
     ? t('access.menus.kinds.link')
     : t('access.menus.kinds.page')
 }
 
-/** 种类标签配色：按层级递减强调，目录最显眼，外链最安静 */
+/** 种类标签配色：按层级递减强调，目录最显眼，外链最安静；内嵌在应用里打开，单独一色 */
 function kindTone(kind: MenuKind): Tone {
   if (kind === 'Directory')
     return 'warning'
+  if (kind === 'Embed')
+    return 'success'
   return kind === 'Page'
     ? 'info'
     : 'neutral'
 }
 
 function targetOf(node: MenuRow): string {
-  return node.kind === 'Link'
+  return takesUrl(node.kind)
     ? node.externalUrl ?? ''
     : node.route
 }
@@ -339,7 +343,7 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:plus',
       permission: 'access.menus.create',
     },
-    // 目录下可以再建目录、挂外链（页面来自登记，只能改所属目录挪进来）
+    // 目录下可以再建目录、挂外链与内嵌（页面来自登记，只能改所属目录挪进来）
     {
       key: 'addDirectory',
       title: t('access.menus.actions.add_directory'),
@@ -353,6 +357,14 @@ const schema = computed<PageSchema>(() => ({
       title: t('access.menus.actions.add_link'),
       scope: 'row',
       icon: 'lucide:link',
+      visible: row => asRow(row).kind === 'Directory',
+      permission: 'access.menus.create',
+    },
+    {
+      key: 'addEmbed',
+      title: t('access.menus.actions.add_embed'),
+      scope: 'row',
+      icon: 'lucide:app-window',
       visible: row => asRow(row).kind === 'Directory',
       permission: 'access.menus.create',
     },
@@ -420,6 +432,10 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         editor.startCreate('Link', row.id)
       break
+    case 'addEmbed':
+      if (row)
+        editor.startCreate('Embed', row.id)
+      break
     case 'view':
       if (row)
         openDetail(row)
@@ -446,6 +462,8 @@ function onAction(payload: SchemaActionPayload) {
 const modalTitle = computed(() => {
   if (editor.isEdit.value)
     return t('access.menus.edit_title')
+  if (editor.form.kind === 'Embed')
+    return t('access.menus.create_embed_title')
   return editor.form.kind === 'Link'
     ? t('access.menus.create_link_title')
     : t('access.menus.create_title')
@@ -701,7 +719,7 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
                   <XhDescriptionsValue>{{ tree.find(detail.parentId) ? titleOf(tree.find(detail.parentId)!) : t('access.menus.top_level') }}</XhDescriptionsValue>
                 </XhDescriptionsItem>
                 <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
-                <XhDescriptionsItem v-if="detail.kind === 'Link'" style="grid-column: span 2">
+                <XhDescriptionsItem v-if="takesUrl(detail.kind)" style="grid-column: span 2">
                   <XhDescriptionsLabel>{{ t('access.menus.fields.url') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>{{ formatNullable(detail.externalUrl) }}</XhDescriptionsValue>
                 </XhDescriptionsItem>
@@ -808,8 +826,10 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
             {{ editor.fieldError('order') }}
           </XhFieldErrorText>
         </XhFieldRoot>
-        <XhFieldRoot v-if="editor.form.kind === 'Link'" class="xh-span-2" :invalid="!!editor.fieldError('externalUrl')" required>
-          <XhFieldLabel>{{ t('access.menus.fields.url') }}</XhFieldLabel>
+        <XhFieldRoot v-if="takesUrl(editor.form.kind)" class="xh-span-2" :invalid="!!editor.fieldError('externalUrl')" required>
+          <XFieldLabel :help="editor.form.kind === 'Embed' ? t('access.menus.url_embed_hint') : undefined">
+            {{ t('access.menus.fields.url') }}
+          </XFieldLabel>
           <XhFieldControl>
             <XInput v-model:value="editor.form.externalUrl" name="externalUrl" type="url" clearable autocomplete="off" placeholder="https://" />
           </XhFieldControl>
@@ -866,20 +886,19 @@ const childColumns = computed<XDataTableColumn<MenuRow>[]>(() => [
             <XhSwitch v-model:checked="editor.form.isVisible" name="isVisible" />
           </XhFieldControl>
         </XhFieldRoot>
-        <template v-if="editor.isPage.value">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('access.menus.fields.keep_alive') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XhSwitch v-model:checked="editor.form.keepAlive" name="keepAlive" />
-            </XhFieldControl>
-          </XhFieldRoot>
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('access.menus.fields.affix') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XhSwitch v-model:checked="editor.form.isAffix" name="isAffix" />
-            </XhFieldControl>
-          </XhFieldRoot>
-        </template>
+        <XhFieldRoot v-if="editor.isPage.value">
+          <XhFieldLabel>{{ t('access.menus.fields.keep_alive') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="editor.form.keepAlive" name="keepAlive" />
+          </XhFieldControl>
+        </XhFieldRoot>
+        <!-- 页面与内嵌才进标签栏；内嵌不给缓存：iframe 离开文档就会重新加载，缓存留不住它 -->
+        <XhFieldRoot v-if="editor.isPage.value || editor.form.kind === 'Embed'">
+          <XhFieldLabel>{{ t('access.menus.fields.affix') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhSwitch v-model:checked="editor.form.isAffix" name="isAffix" />
+          </XhFieldControl>
+        </XhFieldRoot>
         <p v-if="editor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
           {{ editor.submitError.value }}
         </p>

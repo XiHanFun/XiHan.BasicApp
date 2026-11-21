@@ -206,12 +206,13 @@ export default {
         title_key: 'Message key',
         title_override: 'Title override',
         parent: 'Directory',
-        url: 'Link address',
+        url: 'External URL',
       },
       kinds: {
         page: 'Page',
         directory: 'Directory',
         link: 'Link',
+        embed: 'Embedded',
       },
       statuses: {
         active: 'Enabled',
@@ -229,11 +230,13 @@ export default {
         create: 'Add menu',
         add_directory: 'Add subdirectory',
         add_link: 'Add link',
+        add_embed: 'Add embedded page',
         toggle: 'Toggle',
         reset: 'Restore defaults',
       },
       create_title: 'Add directory',
       create_link_title: 'Add link',
+      create_embed_title: 'Add embedded page',
       edit_title: 'Edit menu',
       tabs: {
         overview: 'Overview',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'Click to select an icon',
       permission_placeholder: 'Optional; must be a code from the permission catalog',
       registered_parent_hint: 'Child pages stay under their registered parent page',
+      url_embed_hint: 'Opens in an app tab inside an iframe; sites that forbid embedding will not display',
     },
     permissions: {
       title: 'Permissions',

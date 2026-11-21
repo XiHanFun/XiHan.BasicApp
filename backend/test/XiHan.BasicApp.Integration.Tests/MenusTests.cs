@@ -266,7 +266,7 @@ public sealed class MenusTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        // 目录、关于页与三个外链：目录与外链是运营节点（标题走文案键），关于页不要权限
+        // 目录、关于页、官方文档（内嵌）与两个外链：目录、内嵌与外链是运营节点（标题走文案键），关于页不要权限
         var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
         var directory = Node(listBody.GetProperty("items"), "custom.about");
         var directoryId = directory.GetProperty("id").GetString()!;
@@ -287,8 +287,7 @@ public sealed class MenusTests : IDisposable
         Assert.Equal(directoryId, project.GetProperty("parentId").GetString());
         var docs = Node(directory.GetProperty("children"), "custom.about-docs");
         var docsId = docs.GetProperty("id").GetString()!;
-        Assert.Equal("Link", docs.GetProperty("kind").GetString());
-        Assert.Equal("https://docs.xihanfun.com", docs.GetProperty("externalUrl").GetString());
+        Assert.Equal(("Embed", "/embed/about-docs", "https://basicapp.docs.xihanfun.com/"), (docs.GetProperty("kind").GetString(), docs.GetProperty("route").GetString(), docs.GetProperty("externalUrl").GetString()));
         Assert.Equal("https://github.com/XiHanFun/XiHan.BasicApp", Node(directory.GetProperty("children"), "custom.about-github").GetProperty("externalUrl").GetString());
         Assert.Equal("https://gitee.com/XiHanFun/XiHan.BasicApp", Node(directory.GetProperty("children"), "custom.about-gitee").GetProperty("externalUrl").GetString());
 
@@ -298,7 +297,7 @@ public sealed class MenusTests : IDisposable
         Assert.Equal(["about.project", "custom.about-docs", "custom.about-github", "custom.about-gitee"], Codes(tenantDirectory.GetProperty("children")));
         Assert.Contains("about.project", tenantBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
 
-        // 运营改过的留着：目录改名（标题留空也行，走文案键），外链改地址，删掉的外链不补；关于页没定制时跟着登记的目录
+        // 运营改过的留着：目录改名（标题留空也行，走文案键），官方文档改地址，删掉的外链不补；关于页没定制时跟着登记的目录
         var (renamed, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{directoryId}", """{"title":"Help","icon":"lucide:life-buoy","order":5}""", superadmin));
         Assert.Equal(HttpStatusCode.OK, renamed.StatusCode);
         var (repointed, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{docsId}", $$"""{"parentId":"{{directoryId}}","order":1120,"externalUrl":"https://example.com/docs"}""", superadmin));
@@ -351,10 +350,10 @@ public sealed class MenusTests : IDisposable
         var children = directory.GetProperty("children");
         var projectId = Node(children, "about.project").GetProperty("id").GetString()!;
 
-        // 目录下还有节点时删不掉：页面挪到顶层、外链删掉，目录才删得掉
+        // 目录下还有节点时删不掉：页面挪到顶层、官方文档与外链删掉，目录才删得掉
         var (moved, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{projectId}", """{"order":1110}""", superadmin));
         Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
-        string[] ids = [.. children.EnumerateArray().Where(static c => c.GetProperty("kind").GetString() == "Link").Select(static c => c.GetProperty("id").GetString()!), directory.GetProperty("id").GetString()!];
+        string[] ids = [.. children.EnumerateArray().Where(static c => c.GetProperty("kind").GetString() != "Page").Select(static c => c.GetProperty("id").GetString()!), directory.GetProperty("id").GetString()!];
         var (deleted, deletedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/menus?{string.Join('&', ids.Select(static id => $"ids={id}"))}", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
         Assert.Equal(4, deletedBody.GetProperty("succeeded").GetArrayLength());
@@ -459,6 +458,41 @@ public sealed class MenusTests : IDisposable
         var (_, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{dashboardId}:reset", "{}", superadmin));
         Assert.True(resetBody.GetProperty("isAffix").GetBoolean());
         Assert.False(resetBody.GetProperty("isCustomized").GetBoolean());
+    }
+
+    [Fact]
+    public async Task EmbedNodes_GetAnEmbedRoute_NeedAUrl_AndReachTheMenuTree()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+
+        // 内嵌与外链一样必须给 http / https 地址
+        foreach (var body in new[] { """{"kind":"Embed","code":"wiki","title":"Wiki"}""", """{"kind":"Embed","code":"wiki","title":"Wiki","externalUrl":"ftp://docs.xihanfun.com"}""" })
+        {
+            var (rejected, rejectedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", body, superadmin));
+            Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+            Assert.Equal("ACCESS_VALIDATION_007", rejectedBody.GetProperty("code").GetString());
+        }
+
+        // 建好即有按编码生成的路由，建的时候就能固定；菜单树照此下发
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Embed","code":"wiki","title":"Wiki","externalUrl":"https://docs.xihanfun.com","isAffix":true}""", superadmin));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var id = createdBody.GetProperty("id").GetString()!;
+        Assert.Equal(("custom.wiki", "Embed", "/embed/wiki", "https://docs.xihanfun.com", true), (createdBody.GetProperty("code").GetString(), createdBody.GetProperty("kind").GetString(), createdBody.GetProperty("route").GetString(), createdBody.GetProperty("externalUrl").GetString(), createdBody.GetProperty("isAffix").GetBoolean()));
+        var (_, delivered) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        var node = Node(delivered.GetProperty("menus"), "custom.wiki");
+        Assert.Equal(("Embed", "/embed/wiki", "https://docs.xihanfun.com", true), (node.GetProperty("kind").GetString(), node.GetProperty("route").GetString(), node.GetProperty("externalUrl").GetString(), node.GetProperty("affix").GetBoolean()));
+        Assert.DoesNotContain("custom.wiki", delivered.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));
+
+        // 改地址照常校验，路由随编码不变
+        var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{id}", """{"title":"Wiki","order":5,"externalUrl":"https://example.com/wiki"}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        Assert.Equal(("https://example.com/wiki", "/embed/wiki"), (updatedBody.GetProperty("externalUrl").GetString(), updatedBody.GetProperty("route").GetString()));
+        var (noUrl, noUrlBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{id}", """{"title":"Wiki","order":5}""", superadmin));
+        Assert.Equal(HttpStatusCode.BadRequest, noUrl.StatusCode);
+        Assert.Equal("ACCESS_VALIDATION_007", noUrlBody.GetProperty("code").GetString());
     }
 
     [Fact]

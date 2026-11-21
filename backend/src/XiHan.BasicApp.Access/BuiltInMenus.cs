@@ -7,20 +7,20 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 内置的目录与外链节点
+/// 内置的目录、外链与内嵌节点
 /// </summary>
 /// <param name="Code">节点编码（<c>custom.&lt;名&gt;</c>）</param>
-/// <param name="Kind">种类：目录或外链</param>
+/// <param name="Kind">种类：目录、外链或内嵌</param>
 /// <param name="TitleKey">标题文案键（运营没改标题时按语言取）</param>
 /// <param name="Icon">图标</param>
 /// <param name="Order">排序号</param>
 /// <param name="ParentCode">所属目录的节点编码，顶层为空</param>
-/// <param name="ExternalUrl">外链地址，目录为空</param>
+/// <param name="ExternalUrl">外部地址（外链与内嵌），目录为空</param>
 /// <param name="Badge">徽标，为空即不显示</param>
 public sealed record BuiltInMenu(string Code, MenuKind Kind, string TitleKey, string Icon, int Order, string? ParentCode = null, string? ExternalUrl = null, MenuBadge? Badge = null);
 
 /// <summary>
-/// 内置的运营节点：各包页面登记指到的目录（见 <see cref="MenuDirectories"/>）与帮助中心的三个外链
+/// 内置的运营节点：各包页面登记指到的目录（见 <see cref="MenuDirectories"/>）与帮助中心的官方文档（内嵌）、GitHub 与 Gitee 外链
 /// </summary>
 /// <remarks>
 /// 种类与运营建的一样（可改、可停用、可删），种子 <c>access.menus</c> 只首写：写过一次之后不再碰，删掉的也不补。上级目录排在它的下级之前，种子按顺序写才找得到上级
@@ -49,7 +49,7 @@ public static class BuiltInMenus
         new(MenuDirectories.PrintServices, MenuKind.Directory, "menu.print_services", "lucide:printer-check", 650, MenuDirectories.SystemManagement),
         new(MenuDirectories.OnlineDev, MenuKind.Directory, "menu.online_dev", "lucide:code", 700, MenuDirectories.SystemManagement),
         new(MenuDirectories.About, MenuKind.Directory, "menu.about", "lucide:info", 1100),
-        new("custom.about-docs", MenuKind.Link, "menu.about_docs", "lucide:book-open-text", 1120, MenuDirectories.About, "https://docs.xihanfun.com"),
+        new("custom.about-docs", MenuKind.Embed, "menu.about_docs", "lucide:book-open-text", 1120, MenuDirectories.About, "https://basicapp.docs.xihanfun.com/"),
         new("custom.about-github", MenuKind.Link, "menu.about_github", "lucide:github", 1130, MenuDirectories.About, "https://github.com/XiHanFun/XiHan.BasicApp"),
         new("custom.about-gitee", MenuKind.Link, "menu.about_gitee", "lucide:git-branch", 1140, MenuDirectories.About, "https://gitee.com/XiHanFun/XiHan.BasicApp"),
     ];

@@ -16,6 +16,7 @@ import { SetupStoreId } from './store-ids'
  * 后端菜单树（auth.permissions 的 MenuNode）→ 壳层的 MenuRoute
  * 标题：运营改过或建的节点给原文，其余给文案键，由壳层按 te / t 翻译（文案在各能力包语言文件登记）
  * 目录与外链给一条以节点码命名的占位路径（侧栏当展开键 / 外链键，不生成路由记录）；外链经 meta.link 新标签打开
+ * 内嵌用后端给的 `/embed/<名>` 路由，经 meta.iframeSrc 挂壳层的 iframe 视图
  */
 export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
   return menus.map(node => ({
@@ -32,6 +33,9 @@ export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
       keepAlive: node.keepAlive || undefined,
       affixTab: node.affix || undefined,
       link: node.kind === 'Link'
+        ? node.externalUrl ?? undefined
+        : undefined,
+      iframeSrc: node.kind === 'Embed'
         ? node.externalUrl ?? undefined
         : undefined,
       permissions: node.permission

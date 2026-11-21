@@ -206,12 +206,13 @@ export default {
         title_key: '文案键',
         title_override: '标题覆盖',
         parent: '所属目录',
-        url: '外链地址',
+        url: '外部地址',
       },
       kinds: {
         page: '页面',
         directory: '目录',
         link: '外链',
+        embed: '内嵌',
       },
       statuses: {
         active: '启用',
@@ -229,11 +230,13 @@ export default {
         create: '新增菜单',
         add_directory: '新增子目录',
         add_link: '新增外链',
+        add_embed: '新增内嵌',
         toggle: '启停',
         reset: '恢复默认',
       },
       create_title: '新增目录',
       create_link_title: '新增外链',
+      create_embed_title: '新增内嵌',
       edit_title: '编辑菜单',
       tabs: {
         overview: '概览',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: '点击选择图标',
       permission_placeholder: '可留空；填写时须是权限目录里的权限码',
       registered_parent_hint: '子页面固定在登记的父页面下',
+      url_embed_hint: '在应用的标签页里以 iframe 打开；对方站点禁止被嵌入时无法显示',
     },
     permissions: {
       title: '权限目录',

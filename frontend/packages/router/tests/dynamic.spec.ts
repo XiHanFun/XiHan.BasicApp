@@ -35,6 +35,17 @@ vi.mock('~/views/_core/fallback/not-found.vue', async () => {
   }
 })
 
+// 内嵌视图同样换成替身：用例只关心内嵌菜单挂到了它
+vi.mock('~/views/_core/embed/index.vue', async () => {
+  const { defineComponent: define } = await import('vue')
+  return {
+    default: define({
+      name: 'EmbedPage',
+      render: () => null,
+    }),
+  }
+})
+
 const { mapMenuToRoutes } = await import('~/router/dynamic')
 
 function menu(partial: Partial<MenuRoute> & { path: string }): MenuRoute {
@@ -209,6 +220,19 @@ describe('组件解析与兜底视图', () => {
     ])
     const shell = await loaderOf(route)?.() as Component & { name?: string }
     expect(shell.name).toBe('identity.users')
+  })
+
+  it('内嵌菜单（meta.iframeSrc）挂壳层的 iframe 视图，同样按路由名包壳', async () => {
+    const [route] = mapMenuToRoutes([
+      menu({
+        path: '/embed/wiki',
+        name: 'custom.wiki',
+        meta: { title: 'Wiki', iframeSrc: 'https://docs.xihanfun.com' },
+      }),
+    ])
+    const shell = await loaderOf(route)?.() as Component & { name?: string }
+    expect(shell.name).toBe('custom.wiki')
+    expect(mount(shell).findComponent({ name: 'EmbedPage' }).exists()).toBe(true)
   })
 
   it('component 未配置的叶子节点回落到统一的 not-found 兜底视图', async () => {

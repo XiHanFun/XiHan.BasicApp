@@ -5469,7 +5469,7 @@ export interface paths {
         };
         /**
          * List menu tree
-         * @description List the whole menu tree (including hidden and disabled nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.
+         * @description List the whole menu tree (including hidden and disabled nodes, operator-created directories, links and embedded pages, and the customization flag of page nodes). Platform side only.
          *
          *     Requires permission access.menus.read (Read menus).
          */
@@ -5477,7 +5477,7 @@ export interface paths {
         put?: never;
         /**
          * Create menu
-         * @description Create an operator node: a directory or an external link (http / https), either at the top level or inside a directory; page nodes come from page registrations and cannot be created.
+         * @description Create an operator node: a directory, an external link or an embedded page (http / https; an embedded page opens inside the app in an iframe at /embed/<name>), either at the top level or inside a directory; page nodes come from page registrations and cannot be created.
          *
          *     Requires permission access.menus.create (Create menus).
          */
@@ -5510,7 +5510,7 @@ export interface paths {
         get: operations["menus.get"];
         /**
          * Update menu
-         * @description Update a menu node: page nodes only change their presentation (title, icon, order, directory, visibility, keep-alive, affix, badge) and become customized; operator nodes can also change the link and the permission.
+         * @description Update a menu node: page nodes only change their presentation (title, icon, order, directory, visibility, keep-alive, affix, badge) and become customized; operator nodes can also change the external address and the permission.
          *
          *     Requires permission access.menus.update (Update menus).
          */
@@ -14206,16 +14206,16 @@ export interface components {
          * @description 菜单节点的种类
          * @enum {string}
          */
-        MenuKind: "Page" | "Directory" | "Link";
+        MenuKind: "Page" | "Directory" | "Link" | "Embed";
         /** @description 菜单节点 */
         MenuNode: {
             /** @description 节点编码（页面码或 custom.<名>） */
             code: string;
             /** @description 种类 */
             kind: components["schemas"]["MenuKind"];
-            /** @description 路由路径；目录与外链为空 */
+            /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
             route: string;
-            /** @description 组件路径（<包>/<路径>/index）；目录与外链为空 */
+            /** @description 组件路径（<包>/<路径>/index）；只有页面节点有 */
             component: string;
             /** @description 标题文案键；运营建的节点为空 */
             titleKey: string;
@@ -14230,7 +14230,7 @@ export interface components {
             order: number;
             /** @description 所需权限码 */
             permission?: string | null;
-            /** @description 外链地址；只有外链节点有 */
+            /** @description 外部地址；只有外链与内嵌节点有 */
             externalUrl?: string | null;
             /** @description 导航里不显示（页面仍可直接访问） */
             hidden: boolean;
@@ -14265,9 +14265,9 @@ export interface components {
              * @description 上级
              */
             parentId?: string | null;
-            /** @description 路由路径；目录与外链为空 */
+            /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
             route: string;
-            /** @description 组件路径；目录与外链为空 */
+            /** @description 组件路径；只有页面节点有 */
             component: string;
             /** @description 标题文案键；运营建的节点为空 */
             titleKey: string;
@@ -14282,7 +14282,7 @@ export interface components {
             order: number;
             /** @description 所需权限码 */
             permission?: string | null;
-            /** @description 外链地址 */
+            /** @description 外部地址；只有外链与内嵌节点有 */
             externalUrl?: string | null;
             /** @description 是否在导航里显示 */
             isVisible: boolean;
@@ -34231,7 +34231,7 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description 种类：Directory 或 Link */
+                    /** @description 种类：Directory、Link 或 Embed */
                     kind: components["schemas"]["MenuKind"];
                     /** @description 名称：小写字母开头，只含小写字母、数字与 -，2 到 32 个字符；存为 custom.<名>，创建后不可改 */
                     code: string;
@@ -34249,12 +34249,14 @@ export interface operations {
                      * @description 上级：空即顶层，否则须是某个目录（目录下可以再建目录）
                      */
                     parentId?: string | null;
-                    /** @description 外链地址（http / https 绝对地址）；外链必填，目录不填 */
+                    /** @description 外部地址（http / https 绝对地址）；外链与内嵌必填，目录不填 */
                     externalUrl?: string | null;
                     /** @description 所需权限码，可空；须在权限目录里 */
                     permission?: string | null;
                     /** @description 是否在导航里显示 */
                     isVisible?: boolean;
+                    /** @description 是否固定在标签栏（页面与内嵌才有标签） */
+                    isAffix?: boolean;
                     /** @description 启停状态 */
                     status?: components["schemas"]["MenuStatus"];
                     /** @description 徽标文字，可空，最多 50 个字符 */
@@ -34290,9 +34292,9 @@ export interface operations {
                          * @description 上级
                          */
                         parentId?: string | null;
-                        /** @description 路由路径；目录与外链为空 */
+                        /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
                         route: string;
-                        /** @description 组件路径；目录与外链为空 */
+                        /** @description 组件路径；只有页面节点有 */
                         component: string;
                         /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
@@ -34307,7 +34309,7 @@ export interface operations {
                         order: number;
                         /** @description 所需权限码 */
                         permission?: string | null;
-                        /** @description 外链地址 */
+                        /** @description 外部地址；只有外链与内嵌节点有 */
                         externalUrl?: string | null;
                         /** @description 是否在导航里显示 */
                         isVisible: boolean;
@@ -34411,9 +34413,9 @@ export interface operations {
                          * @description 上级
                          */
                         parentId?: string | null;
-                        /** @description 路由路径；目录与外链为空 */
+                        /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
                         route: string;
-                        /** @description 组件路径；目录与外链为空 */
+                        /** @description 组件路径；只有页面节点有 */
                         component: string;
                         /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
@@ -34428,7 +34430,7 @@ export interface operations {
                         order: number;
                         /** @description 所需权限码 */
                         permission?: string | null;
-                        /** @description 外链地址 */
+                        /** @description 外部地址；只有外链与内嵌节点有 */
                         externalUrl?: string | null;
                         /** @description 是否在导航里显示 */
                         isVisible: boolean;
@@ -34501,7 +34503,7 @@ export interface operations {
                     keepAlive?: boolean;
                     /** @description 是否固定在标签栏 */
                     isAffix?: boolean;
-                    /** @description 外链地址：外链必填，其余为空 */
+                    /** @description 外部地址：外链与内嵌必填，其余为空 */
                     externalUrl?: string | null;
                     /** @description 所需权限码：运营节点可选，页面节点为空 */
                     permission?: string | null;
@@ -34538,9 +34540,9 @@ export interface operations {
                          * @description 上级
                          */
                         parentId?: string | null;
-                        /** @description 路由路径；目录与外链为空 */
+                        /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
                         route: string;
-                        /** @description 组件路径；目录与外链为空 */
+                        /** @description 组件路径；只有页面节点有 */
                         component: string;
                         /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
@@ -34555,7 +34557,7 @@ export interface operations {
                         order: number;
                         /** @description 所需权限码 */
                         permission?: string | null;
-                        /** @description 外链地址 */
+                        /** @description 外部地址；只有外链与内嵌节点有 */
                         externalUrl?: string | null;
                         /** @description 是否在导航里显示 */
                         isVisible: boolean;
@@ -34635,9 +34637,9 @@ export interface operations {
                          * @description 上级
                          */
                         parentId?: string | null;
-                        /** @description 路由路径；目录与外链为空 */
+                        /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
                         route: string;
-                        /** @description 组件路径；目录与外链为空 */
+                        /** @description 组件路径；只有页面节点有 */
                         component: string;
                         /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
@@ -34652,7 +34654,7 @@ export interface operations {
                         order: number;
                         /** @description 所需权限码 */
                         permission?: string | null;
-                        /** @description 外链地址 */
+                        /** @description 外部地址；只有外链与内嵌节点有 */
                         externalUrl?: string | null;
                         /** @description 是否在导航里显示 */
                         isVisible: boolean;
@@ -34734,9 +34736,9 @@ export interface operations {
                          * @description 上级
                          */
                         parentId?: string | null;
-                        /** @description 路由路径；目录与外链为空 */
+                        /** @description 路由路径；目录与外链为空，内嵌是 /embed/<名> */
                         route: string;
-                        /** @description 组件路径；目录与外链为空 */
+                        /** @description 组件路径；只有页面节点有 */
                         component: string;
                         /** @description 标题文案键；运营建的节点为空 */
                         titleKey: string;
@@ -34751,7 +34753,7 @@ export interface operations {
                         order: number;
                         /** @description 所需权限码 */
                         permission?: string | null;
-                        /** @description 外链地址 */
+                        /** @description 外部地址；只有外链与内嵌节点有 */
                         externalUrl?: string | null;
                         /** @description 是否在导航里显示 */
                         isVisible: boolean;

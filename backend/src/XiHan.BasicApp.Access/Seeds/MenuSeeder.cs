@@ -84,6 +84,7 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
                 Code = node.Code,
                 Kind = node.Kind,
                 Package = MenuService.CustomPackage,
+                Route = node.Kind == MenuKind.Embed ? MenuService.EmbedRoute(node.Code) : string.Empty,
                 ParentId = node.ParentCode is not null && existing.TryGetValue(node.ParentCode, out var parent) && parent.Kind == MenuKind.Directory ? parent.Id : null,
                 TitleKey = node.TitleKey,
                 Icon = node.Icon,

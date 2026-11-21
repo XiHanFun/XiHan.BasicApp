@@ -206,12 +206,13 @@ export default {
         title_key: '문구 키',
         title_override: '제목 재정의',
         parent: '소속 디렉터리',
-        url: '외부 링크 주소',
+        url: '외부 주소',
       },
       kinds: {
         page: '페이지',
         directory: '디렉터리',
         link: '외부 링크',
+        embed: '임베드',
       },
       statuses: {
         active: '활성',
@@ -229,11 +230,13 @@ export default {
         create: '메뉴 추가',
         add_directory: '하위 디렉터리 추가',
         add_link: '외부 링크 추가',
+        add_embed: '임베드 페이지 추가',
         toggle: '활성화/비활성화',
         reset: '기본값 복원',
       },
       create_title: '디렉터리 추가',
       create_link_title: '외부 링크 추가',
+      create_embed_title: '임베드 페이지 추가',
       edit_title: '메뉴 편집',
       tabs: {
         overview: '개요',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: '클릭해서 아이콘 선택',
       permission_placeholder: '선택 사항. 입력하면 권한 카탈로그의 코드여야 해요',
       registered_parent_hint: '하위 페이지는 등록된 상위 페이지 아래에 고정돼요',
+      url_embed_hint: '앱 탭 안의 iframe으로 열려요. 임베드를 막는 사이트는 표시되지 않아요',
     },
     permissions: {
       title: '권한 목록',

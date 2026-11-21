@@ -33318,7 +33318,7 @@
           "menus"
         ],
         "summary": "List menu tree",
-        "description": "List the whole menu tree (including hidden and disabled nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only.\n\nRequires permission access.menus.read (Read menus).",
+        "description": "List the whole menu tree (including hidden and disabled nodes, operator-created directories, links and embedded pages, and the customization flag of page nodes). Platform side only.\n\nRequires permission access.menus.read (Read menus).",
         "x-xihan-permission": "access.menus.read",
         "parameters": [],
         "responses": {
@@ -33364,7 +33364,7 @@
           "menus"
         ],
         "summary": "Create menu",
-        "description": "Create an operator node: a directory or an external link (http / https), either at the top level or inside a directory; page nodes come from page registrations and cannot be created.\n\nRequires permission access.menus.create (Create menus).",
+        "description": "Create an operator node: a directory, an external link or an embedded page (http / https; an embedded page opens inside the app in an iframe at /embed/\u003Cname\u003E), either at the top level or inside a directory; page nodes come from page registrations and cannot be created.\n\nRequires permission access.menus.create (Create menus).",
         "x-xihan-permission": "access.menus.create",
         "parameters": [],
         "requestBody": {
@@ -33378,7 +33378,7 @@
                 "type": "object",
                 "properties": {
                   "kind": {
-                    "description": "\u79CD\u7C7B\uFF1ADirectory \u6216 Link",
+                    "description": "\u79CD\u7C7B\uFF1ADirectory\u3001Link \u6216 Embed",
                     "$ref": "#/components/schemas/MenuKind"
                   },
                   "code": {
@@ -33418,12 +33418,12 @@
                     "format": "uuid"
                   },
                   "externalUrl": {
-                    "description": "\u5916\u94FE\u5730\u5740\uFF08http / https \u7EDD\u5BF9\u5730\u5740\uFF09\uFF1B\u5916\u94FE\u5FC5\u586B\uFF0C\u76EE\u5F55\u4E0D\u586B",
+                    "description": "\u5916\u90E8\u5730\u5740\uFF08http / https \u7EDD\u5BF9\u5730\u5740\uFF09\uFF1B\u5916\u94FE\u4E0E\u5185\u5D4C\u5FC5\u586B\uFF0C\u76EE\u5F55\u4E0D\u586B",
                     "type": [
                       "string",
                       "null"
                     ],
-                    "maxLength": 1024
+                    "maxLength": 512
                   },
                   "permission": {
                     "description": "\u6240\u9700\u6743\u9650\u7801\uFF0C\u53EF\u7A7A\uFF1B\u987B\u5728\u6743\u9650\u76EE\u5F55\u91CC",
@@ -33435,6 +33435,10 @@
                   },
                   "isVisible": {
                     "description": "\u662F\u5426\u5728\u5BFC\u822A\u91CC\u663E\u793A",
+                    "type": "boolean"
+                  },
+                  "isAffix": {
+                    "description": "\u662F\u5426\u56FA\u5B9A\u5728\u6807\u7B7E\u680F\uFF08\u9875\u9762\u4E0E\u5185\u5D4C\u624D\u6709\u6807\u7B7E\uFF09",
                     "type": "boolean"
                   },
                   "status": {
@@ -33507,11 +33511,11 @@
                       "format": "uuid"
                     },
                     "route": {
-                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
                       "type": "string"
                     },
                     "component": {
-                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
                       "type": "string"
                     },
                     "titleKey": {
@@ -33545,7 +33549,7 @@
                       ]
                     },
                     "externalUrl": {
-                      "description": "\u5916\u94FE\u5730\u5740",
+                      "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
                       "type": [
                         "string",
                         "null"
@@ -33689,11 +33693,11 @@
                       "format": "uuid"
                     },
                     "route": {
-                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
                       "type": "string"
                     },
                     "component": {
-                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
                       "type": "string"
                     },
                     "titleKey": {
@@ -33727,7 +33731,7 @@
                       ]
                     },
                     "externalUrl": {
-                      "description": "\u5916\u94FE\u5730\u5740",
+                      "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
                       "type": [
                         "string",
                         "null"
@@ -33818,7 +33822,7 @@
           "menus"
         ],
         "summary": "Update menu",
-        "description": "Update a menu node: page nodes only change their presentation (title, icon, order, directory, visibility, keep-alive, affix, badge) and become customized; operator nodes can also change the link and the permission.\n\nRequires permission access.menus.update (Update menus).",
+        "description": "Update a menu node: page nodes only change their presentation (title, icon, order, directory, visibility, keep-alive, affix, badge) and become customized; operator nodes can also change the external address and the permission.\n\nRequires permission access.menus.update (Update menus).",
         "x-xihan-permission": "access.menus.update",
         "parameters": [
           {
@@ -33892,12 +33896,12 @@
                     "type": "boolean"
                   },
                   "externalUrl": {
-                    "description": "\u5916\u94FE\u5730\u5740\uFF1A\u5916\u94FE\u5FC5\u586B\uFF0C\u5176\u4F59\u4E3A\u7A7A",
+                    "description": "\u5916\u90E8\u5730\u5740\uFF1A\u5916\u94FE\u4E0E\u5185\u5D4C\u5FC5\u586B\uFF0C\u5176\u4F59\u4E3A\u7A7A",
                     "type": [
                       "string",
                       "null"
                     ],
-                    "maxLength": 1024
+                    "maxLength": 512
                   },
                   "permission": {
                     "description": "\u6240\u9700\u6743\u9650\u7801\uFF1A\u8FD0\u8425\u8282\u70B9\u53EF\u9009\uFF0C\u9875\u9762\u8282\u70B9\u4E3A\u7A7A",
@@ -33971,11 +33975,11 @@
                       "format": "uuid"
                     },
                     "route": {
-                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
                       "type": "string"
                     },
                     "component": {
-                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
                       "type": "string"
                     },
                     "titleKey": {
@@ -34009,7 +34013,7 @@
                       ]
                     },
                     "externalUrl": {
-                      "description": "\u5916\u94FE\u5730\u5740",
+                      "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
                       "type": [
                         "string",
                         "null"
@@ -34176,11 +34180,11 @@
                       "format": "uuid"
                     },
                     "route": {
-                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
                       "type": "string"
                     },
                     "component": {
-                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
                       "type": "string"
                     },
                     "titleKey": {
@@ -34214,7 +34218,7 @@
                       ]
                     },
                     "externalUrl": {
-                      "description": "\u5916\u94FE\u5730\u5740",
+                      "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
                       "type": [
                         "string",
                         "null"
@@ -34386,11 +34390,11 @@
                       "format": "uuid"
                     },
                     "route": {
-                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
                       "type": "string"
                     },
                     "component": {
-                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+                      "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
                       "type": "string"
                     },
                     "titleKey": {
@@ -34424,7 +34428,7 @@
                       ]
                     },
                     "externalUrl": {
-                      "description": "\u5916\u94FE\u5730\u5740",
+                      "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
                       "type": [
                         "string",
                         "null"
@@ -73018,7 +73022,8 @@
         "enum": [
           "Page",
           "Directory",
-          "Link"
+          "Link",
+          "Embed"
         ]
       },
       "MenuNode": {
@@ -73034,11 +73039,11 @@
             "$ref": "#/components/schemas/MenuKind"
           },
           "route": {
-            "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+            "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
             "type": "string"
           },
           "component": {
-            "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF08\u003C\u5305\u003E/\u003C\u8DEF\u5F84\u003E/index\uFF09\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+            "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF08\u003C\u5305\u003E/\u003C\u8DEF\u5F84\u003E/index\uFF09\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
             "type": "string"
           },
           "titleKey": {
@@ -73072,7 +73077,7 @@
             ]
           },
           "externalUrl": {
-            "description": "\u5916\u94FE\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u8282\u70B9\u6709",
+            "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
             "type": [
               "string",
               "null"
@@ -73160,11 +73165,11 @@
             "format": "uuid"
           },
           "route": {
-            "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+            "description": "\u8DEF\u7531\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A\uFF0C\u5185\u5D4C\u662F /embed/\u003C\u540D\u003E",
             "type": "string"
           },
           "component": {
-            "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u76EE\u5F55\u4E0E\u5916\u94FE\u4E3A\u7A7A",
+            "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF1B\u53EA\u6709\u9875\u9762\u8282\u70B9\u6709",
             "type": "string"
           },
           "titleKey": {
@@ -73198,7 +73203,7 @@
             ]
           },
           "externalUrl": {
-            "description": "\u5916\u94FE\u5730\u5740",
+            "description": "\u5916\u90E8\u5730\u5740\uFF1B\u53EA\u6709\u5916\u94FE\u4E0E\u5185\u5D4C\u8282\u70B9\u6709",
             "type": [
               "string",
               "null"
@@ -79956,12 +79961,12 @@
       "access.menus.create": {
         "code": "access.menus.create",
         "displayName": "Create menus",
-        "description": "Create directories and external links in the menu."
+        "description": "Create directories, external links and embedded pages in the menu."
       },
       "access.menus.delete": {
         "code": "access.menus.delete",
         "displayName": "Delete menus",
-        "description": "Delete operator-created directories and links."
+        "description": "Delete operator-created directories, links and embedded pages."
       },
       "access.menus.read": {
         "code": "access.menus.read",

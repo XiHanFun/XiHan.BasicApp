@@ -206,12 +206,13 @@ export default {
         title_key: 'Textschlüssel',
         title_override: 'Titel überschrieben',
         parent: 'Verzeichnis',
-        url: 'Linkadresse',
+        url: 'Externe Adresse',
       },
       kinds: {
         page: 'Seite',
         directory: 'Verzeichnis',
         link: 'Link',
+        embed: 'Eingebettet',
       },
       statuses: {
         active: 'Aktiviert',
@@ -229,11 +230,13 @@ export default {
         create: 'Menü hinzufügen',
         add_directory: 'Unterverzeichnis hinzufügen',
         add_link: 'Link hinzufügen',
+        add_embed: 'Eingebettete Seite hinzufügen',
         toggle: 'Umschalten',
         reset: 'Standard wiederherstellen',
       },
       create_title: 'Verzeichnis hinzufügen',
       create_link_title: 'Link hinzufügen',
+      create_embed_title: 'Eingebettete Seite hinzufügen',
       edit_title: 'Menü bearbeiten',
       tabs: {
         overview: 'Übersicht',
@@ -252,6 +255,7 @@ export default {
       icon_placeholder: 'Klicken, um ein Symbol auszuwählen',
       permission_placeholder: 'Optional; muss ein Code aus dem Berechtigungskatalog sein',
       registered_parent_hint: 'Unterseiten bleiben unter ihrer registrierten Elternseite',
+      url_embed_hint: 'Öffnet sich in einem App-Tab in einem iframe; Websites, die das Einbetten verbieten, werden nicht angezeigt',
     },
     permissions: {
       title: 'Berechtigungen',

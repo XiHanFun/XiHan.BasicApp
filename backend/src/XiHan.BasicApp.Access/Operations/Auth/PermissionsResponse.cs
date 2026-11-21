@@ -35,18 +35,18 @@ public sealed record RoleSummary(Guid Id, string Code, string Name);
 /// 菜单节点
 /// </summary>
 /// <remarks>
-/// 页面生成路由记录；目录只做分组；外链在新标签打开、不生成路由；停用的节点不下发
+/// 页面生成路由记录；目录只做分组；外链在新标签打开、不生成路由；内嵌按路由在应用里的 iframe 中打开；停用的节点不下发
 /// </remarks>
 /// <param name="Code">节点编码（页面码或 <c>custom.&lt;名&gt;</c>）</param>
 /// <param name="Kind">种类</param>
-/// <param name="Route">路由路径；目录与外链为空</param>
-/// <param name="Component">组件路径（<c>&lt;包&gt;/&lt;路径&gt;/index</c>）；目录与外链为空</param>
+/// <param name="Route">路由路径；目录与外链为空，内嵌是 <c>/embed/&lt;名&gt;</c></param>
+/// <param name="Component">组件路径（<c>&lt;包&gt;/&lt;路径&gt;/index</c>）；只有页面节点有</param>
 /// <param name="TitleKey">标题文案键；运营建的节点为空</param>
 /// <param name="Title">标题原文：运营建的节点必有，页面节点与内置节点非空即覆盖文案键</param>
 /// <param name="Icon">图标</param>
 /// <param name="Order">排序号</param>
 /// <param name="Permission">所需权限码</param>
-/// <param name="ExternalUrl">外链地址；只有外链节点有</param>
+/// <param name="ExternalUrl">外部地址；只有外链与内嵌节点有</param>
 /// <param name="Hidden">导航里不显示（页面仍可直接访问）</param>
 /// <param name="KeepAlive">页面标签是否参与缓存</param>
 /// <param name="Affix">是否固定在标签栏</param>

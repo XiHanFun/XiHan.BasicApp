@@ -14,6 +14,7 @@ import {
 import { resolveView } from './views'
 
 const fallbackView = () => import('~/views/_core/fallback/not-found.vue')
+const embedView = () => import('~/views/_core/embed/index.vue')
 
 /**
  * 按页面登记的组件路径取视图加载器，取不到返回 null
@@ -70,14 +71,16 @@ function withRouteName(
 
 /**
  * 壳层菜单模型（accessStore.accessRoutes）转成路由记录
- * 目录重定向到第一个可导航子页，页面按组件路径解析视图，外链不生成路由
+ * 目录重定向到第一个可导航子页，页面按组件路径解析视图，内嵌（meta.iframeSrc）挂壳层的 iframe 视图，外链不生成路由
  */
 export function mapMenuToRoutes(menuRoutes: MenuRoute[]): RouteRecordRaw[] {
   return menuRoutes
     // 外链菜单（meta.link）不生成路由——由侧边栏/顶栏菜单点击新标签直接打开
     .filter(item => !!item.path && !item.meta?.link)
     .map((item) => {
-      const component = loadView(item.component)
+      const component = item.meta?.iframeSrc
+        ? embedView
+        : loadView(item.component)
       const route = {
         path: item.path,
         name: item.name,
