@@ -25,7 +25,7 @@ public static class RuntimeErrors
     /// 结构升级的脚本目录不对
     /// </summary>
     /// <remarks>
-    /// 目录不存在、没有版本子目录，或子目录名不是版本号
+    /// 子目录名不是版本号、脚本没放进库类型目录，或库类型目录名不认识；目录不存在等于没有脚本
     /// </remarks>
     public const string SchemaScriptsInvalid = "RUNTIME_VALIDATION_003";
 
