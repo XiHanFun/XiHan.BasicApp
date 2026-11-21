@@ -152,7 +152,7 @@ const placement = useWidgetPlacement()
     />
 
     <!-- 当前上下文：平台或租户名，点击进控制中心切换
-         它换的是身份与数据范围，不是只改前端的开关：用品牌色描边钮（不铺底）与左边那排工具区分开，并隔一道分割线；
+         它换的是身份与数据范围，不是只改前端的开关：用品牌色虚线描边钮（不铺底）与左边那排工具区分开，并隔一道分割线；
          打开的是控制中心面板、不是下拉菜单，所以不带下拉箭头 -->
     <template v-if="props.contextLabel">
       <div class="mx-1 h-4 w-px bg-border" />
@@ -196,8 +196,9 @@ const placement = useWidgetPlacement()
   color: color-mix(in srgb, var(--xh-fg-default) 85%, transparent);
 }
 
-/* 组件库带色调的描边钮静止时铺一层色调浅底；上下文切换钮只要描边，悬停与按下的底色随顶栏图标钮（.app-icon-btn） */
+/* 组件库带色调的描边钮静止时铺一层色调浅底；上下文切换钮只要一圈虚线描边，悬停与按下的底色随顶栏图标钮（.app-icon-btn） */
 .context-switch {
   --xh-button-bg: transparent;
+  border-style: dashed;
 }
 </style>

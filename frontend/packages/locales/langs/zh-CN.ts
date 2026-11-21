@@ -866,7 +866,6 @@ export default {
   },
   header: {
     context: {
-      platform: '平台',
       switch: '当前：{name}，点击切换',
     },
     user: {

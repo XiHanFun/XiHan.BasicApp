@@ -223,13 +223,13 @@ const breadcrumbs = computed(() => {
 
 const shortcutLabelStyle = 'display:inline-flex;align-items:center;gap:var(--xh-space-1_5)'
 
-/** 当前上下文的显示名：平台或租户名；应用没注册控制中心（没有租户切换概念）时不展示 */
+/** 当前上下文的显示名，与控制中心切换页的标题一致：平台侧是平台管理，租户侧是租户名；应用没注册控制中心（没有租户切换概念）时不展示 */
 const contextLabel = computed(() => {
   if (!appContext.shellRoutes.controlCenter || !userStore.userInfo) {
     return null
   }
   return userStore.userInfo.isPlatform
-    ? t('header.context.platform')
+    ? t('page.control_center.platform_panel')
     : (userStore.userInfo.tenantName || null)
 })
 

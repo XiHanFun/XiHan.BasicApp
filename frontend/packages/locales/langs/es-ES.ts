@@ -866,7 +866,6 @@ export default {
   },
   header: {
     context: {
-      platform: 'Plataforma',
       switch: 'Actual: {name}. Haga clic para cambiar',
     },
     user: {
