@@ -11,6 +11,7 @@ using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Runtime.Schema;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
+using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -46,17 +47,19 @@ public sealed class SchemaRunsTests : IDisposable
     {
         Directory.CreateDirectory(_directory);
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString, DatabaseProviders.Sqlite, [new(SchemaOptions.ConfigurationSection + ":Directory", _directory)]);
-        await server.SeedDefaultsAsync(new Dictionary<string, string>(StringComparer.Ordinal)
+        var shard = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             [TenantShardKeys.ConnectionString] = _shard.ConnectionString,
             [TenantShardKeys.DatabaseProvider] = DatabaseProviders.Sqlite,
-            [TenantSchemas.ReadyProperty] = "true",
-        });
+        };
+        await server.SeedDefaultsAsync(shard);
         await server.RunSeedersAsync();
         var platform = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
         var upgrader = server.Services.GetRequiredService<SchemaUpgrader>();
         var health = server.Services.GetRequiredService<SchemaHealth>();
         (await server.Services.GetRequiredService<TenantSchemas>().InitializeAsync("acme", TestContext.Current.CancellationToken)).ValueOrThrow();
+        // 建好库再标为就绪（与租户管理的初始化同一顺序），启动后的核对读到的就绪库都有台账
+        await server.SeedAsync([new TenantInfo { Id = "acme", DisplayName = "Acme", Properties = new Dictionary<string, string>(shard, StringComparer.Ordinal) { [TenantSchemas.ReadyProperty] = "true" } }], []);
         (await upgrader.UpgradeAsync(TestContext.Current.CancellationToken)).ValueOrThrow();
 
         // 6.0.1：平台脚本能执行，租户脚本写错了

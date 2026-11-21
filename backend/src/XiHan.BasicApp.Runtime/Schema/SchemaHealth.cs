@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Runtime.Schema;
 /// 本节点所知的、没有升级到当前结构版本的租户独立库
 /// </summary>
 /// <remarks>
-/// 单例。启动升级、重试升级记下成败；<see cref="TenantSchemaWatch"/> 启动时把就绪的独立库逐个核对一遍，之后定时复查不可用的库，别的节点重试成功之后本节点随之放行
+/// 单例。启动升级、重试升级记下成败；<see cref="TenantSchemaWatch"/> 在内核进入服务状态后把就绪的独立库逐个核对一遍，之后定时复查不可用的库，别的节点重试成功之后本节点随之放行
 /// 这里的租户在恢复之前调用一律 503（<see cref="Middleware.TenantSchemaGateMiddleware"/>），健康检查为降级（<see cref="SchemaHealthContributor"/>）
 /// </remarks>
 public sealed class SchemaHealth

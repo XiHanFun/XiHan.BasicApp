@@ -80,7 +80,7 @@ public sealed class RuntimeFeature : IHostedFeature
         context.Services.AddSingleton(_ => EntityTypeCatalog.From(registrations));
         context.Services.AddSingleton<MaintenanceModeState>();
         context.Services.AddHostedService(static sp => sp.GetRequiredService<MaintenanceModeState>());
-        // 没有升级到当前结构版本的租户独立库：启动升级与重试记下，启动后核对一遍、之后复查，调用拦下、健康项降级
+        // 没有升级到当前结构版本的租户独立库：启动升级与重试记下，进入服务状态后核对一遍、之后复查，调用拦下、健康项降级
         context.Services.AddSingleton<SchemaHealth>();
         context.Services.AddSingleton<IHealthContributor, SchemaHealthContributor>();
         context.Services.AddHostedService<TenantSchemaWatch>();
