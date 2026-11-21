@@ -1,0 +1,179 @@
+name: 发布镜像
+
+# 推送 v* 标签（如 vX.Y.Z-preview.N、vX.Y.Z）触发：按 backend/Dockerfile 构建后端镜像，推到 xihan.app.json 登记的仓库，
+# 镜像 tag 是去掉 v 的版本号，正式版另打 latest。GitHub Release 不在这里建，仍按 version-release 技能手工建。
+#
+# 发布必须同时满足两条，由 guard job 把关，缺一不发：
+# ① 标签指向的提交在发布分支的历史里：带预发布后缀的是预览版，看 preview；不带的是正式版，看 main
+# ② 标签号与四处版本一致：backend/Directory.Build.props 的 <Version>、frontend/package.json 与 docs/package.json 的 version、
+#    xihan.app.json 的镜像 tag——否则推出去的镜像 tag 与里面的程序版本对不上
+# 手动运行时填一个已有的版本标签，按那个标签检出构建，用来补发；手动运行要求本工作流已在缺省分支上
+#
+# 只管发布，不跑测试：测试门禁在 ci.yml，提交进发布分支时已经跑过
+# 推送用 GITHUB_TOKEN（packages: write），没有长期密钥；镜像带 org.opencontainers.image.source，自动关联到本仓库
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 要发布的版本标签，如 v6.0.0-preview.3
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: 校验标签
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+      sha: ${{ steps.branch.outputs.sha }}
+      version: ${{ steps.versions.outputs.version }}
+      image: ${{ steps.versions.outputs.image }}
+
+    steps:
+      - name: 取版本标签
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            tag="$INPUT_TAG"
+          elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            tag="$GITHUB_REF_NAME"
+          else
+            echo "::error::发布只接受版本标签，收到 $GITHUB_REF_TYPE $GITHUB_REF_NAME"
+            exit 1
+          fi
+          if ! printf '%s' "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::$tag 不是版本标签（vX.Y.Z 或 vX.Y.Z-<后缀>），拒绝发布"
+            exit 1
+          fi
+          # 带预发布后缀（v6.0.0-preview.3）的是预览版
+          case "$tag" in
+            *-*) prerelease=true ;;
+            *) prerelease=false ;;
+          esac
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+      - name: 检出
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ steps.tag.outputs.tag }}
+          # 要拿完整历史才能判断祖先关系
+          fetch-depth: 0
+
+      - name: 预览版标签只放行 preview，正式版标签只放行 main
+        id: branch
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          PRERELEASE: ${{ steps.tag.outputs.prerelease }}
+        run: |
+          if [ "$PRERELEASE" = true ]; then branch=preview; else branch=main; fi
+          sha="$(git rev-parse HEAD)"
+          git fetch --no-tags origin "$branch:refs/remotes/origin/$branch"
+          if ! git merge-base --is-ancestor "$sha" "refs/remotes/origin/$branch"; then
+            echo "::error::标签 $TAG 指向的提交 $sha 不在 $branch 的历史里，拒绝发布。先把要发布的提交快进到 $branch，再在上面打标签。"
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "标签 $TAG 在 $branch 上，放行"
+
+      - name: 标签号与四处版本对账
+        id: versions
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          expected="${TAG#v}"
+          manifest=backend/src/XiHan.BasicApp.Host/xihan.app.json
+          # 没读到时留空，由下面的对账报出来（run 带 pipefail，grep 没匹配会直接退出）
+          backend="$(grep -oP '(?<=<Version>)[^<]+' backend/Directory.Build.props | head -n 1 || true)"
+          frontend="$(jq -r '.version' frontend/package.json)"
+          docs="$(jq -r '.version' docs/package.json)"
+          image_tag="$(jq -r '.image.tag' "$manifest")"
+          image="$(jq -r '.image.repository' "$manifest")"
+          failed=0
+          check() {
+            if [ "$2" != "$expected" ]; then
+              echo "::error::$1 是「$2」，与标签 $TAG 不一致"
+              failed=1
+            fi
+          }
+          check 'backend/Directory.Build.props 的 <Version>' "$backend"
+          check 'frontend/package.json 的 version' "$frontend"
+          check 'docs/package.json 的 version' "$docs"
+          check "$manifest 的 image.tag" "$image_tag"
+          if [ -z "$image" ] || [ "$image" = null ]; then
+            echo "::error::$manifest 里没有 image.repository"
+            failed=1
+          fi
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::拒绝发布。先把版本提到位并快进到发布分支，再在那个提交上打 v<版本>。"
+            exit 1
+          fi
+          echo "version=$expected" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "四处版本都是 $expected，镜像 $image，放行"
+
+  publish:
+    name: 构建并推送后端镜像
+    needs: guard
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 检出
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.guard.outputs.sha }}
+
+      - name: 镜像 tag
+        id: tags
+        env:
+          IMAGE: ${{ needs.guard.outputs.image }}
+          VERSION: ${{ needs.guard.outputs.version }}
+          PRERELEASE: ${{ needs.guard.outputs.prerelease }}
+        run: |
+          tags="$IMAGE:$VERSION"
+          # latest 只跟正式版，预览版不动它
+          if [ "$PRERELEASE" != true ]; then tags="$tags,$IMAGE:latest"; fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+          echo "推送 $tags"
+
+      - name: 安装 Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: 登录 GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 构建并推送
+        # 构建上下文是 backend/，与 docker compose 同一份 Dockerfile；XiHan.Framework 按 props/framework.props 的版本从 NuGet 还原
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          file: backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=XiHan.BasicApp
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.guard.outputs.version }}
+            org.opencontainers.image.revision=${{ needs.guard.outputs.sha }}
+            org.opencontainers.image.licenses=MIT

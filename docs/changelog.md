@@ -4,6 +4,7 @@
 
 ## 未发布
 
+- **新增** 后端镜像随版本发布：每个版本标签都构建后端镜像推到 `ghcr.io/xihanfun/xihan-basicapp`，tag 是版本号（正式版另有 `latest`，只有 `linux/amd64`），docker compose 部署可以直接拉取，不用本地构建（见[部署](./deployment#容器-docker-compose)）
 - **调整** 顶栏上下文切换钮在平台一侧改用短文案（英文为 Platform Admin，西、法、葡、俄、日文只写「平台」），长文本语言下不再截断；控制中心切换页的标题仍是全称
 
 ## v6.0.0-preview.3 (2026-11-22)
