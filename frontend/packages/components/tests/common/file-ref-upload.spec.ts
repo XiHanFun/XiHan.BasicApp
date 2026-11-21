@@ -176,4 +176,48 @@ describe('xFileRefUpload', () => {
     expect(mountWith({}, { kind: 'image' }).find('.x-file-ref-upload__hint').text()).toBe(i18n.global.t('component.file_ref_upload.hint_image', { size: 10 }))
     expect(mountWith({}, { maxSizeMb: 50 }).find('.x-file-ref-upload__hint').text()).toBe(i18n.global.t('component.file_ref_upload.hint_file', { size: 50 }))
   })
+
+  it('拒收按原因提示：类型不符报类型，超过上限报大小，都不上传', async () => {
+    const danger = vi.spyOn(toast, 'danger')
+    const uploadFileApi = vi.fn<UploadFileApi>()
+    const pdf = new File([
+      new Uint8Array(8),
+    ], '合同.pdf', { type: 'application/pdf' })
+
+    await choose(mountWith({ uploadFileApi }, { kind: 'image' }), pdf)
+    expect(danger).toHaveBeenLastCalledWith(i18n.global.t('component.file_ref_upload.type_rejected', { name: '合同.pdf' }))
+
+    await choose(mountWith({ uploadFileApi }, { maxSizeMb: 1 }), new File([
+      new Uint8Array(2 * 1024 * 1024),
+    ], 'big.bin'))
+    expect(danger).toHaveBeenLastCalledWith(i18n.global.t('component.file_ref_upload.too_large', { size: 1 }))
+
+    expect(danger).toHaveBeenCalledTimes(2)
+    expect(uploadFileApi).not.toHaveBeenCalled()
+  })
+
+  it('一次给了多个文件只传第一个，其余提示一次只能选一个', async () => {
+    const danger = vi.spyOn(toast, 'danger')
+    const uploadFileApi = vi.fn<UploadFileApi>(async () => ({ id: 'f-11', originalName: 'a.txt' }))
+    const wrapper = mountWith({ uploadFileApi })
+    const input = wrapper.find('input[type="file"]')
+    Object.defineProperty(input.element, 'files', {
+      value: [
+        new File(['a'], 'a.txt'),
+        new File(['b'], 'b.txt'),
+        new File(['c'], 'c.txt'),
+      ],
+      configurable: true,
+    })
+    await input.trigger('change')
+    await flushPromises()
+
+    expect(uploadFileApi).toHaveBeenCalledOnce()
+    expect(uploadFileApi.mock.calls[0]![0].name).toBe('a.txt')
+    expect(danger.mock.calls).toEqual([
+      [
+        i18n.global.t('component.file_ref_upload.too_many'),
+      ],
+    ])
+  })
 })

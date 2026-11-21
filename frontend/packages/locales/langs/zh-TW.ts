@@ -127,6 +127,8 @@ export default {
       success: '上傳成功',
       failed: '上傳失敗',
       too_large: '檔案大小不能超過 {size}MB',
+      type_rejected: '不支援這種檔案類型：{name}',
+      too_many: '一次只能選擇一個檔案',
       unavailable: '檔案無法使用（已刪除或無檢視權限）',
       open_failed: '開啟檔案失敗',
       uploading: '上傳中 {percent}%',

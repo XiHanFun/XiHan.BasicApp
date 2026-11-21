@@ -127,6 +127,8 @@ export default {
       success: 'Téléversé',
       failed: 'Échec du téléversement',
       too_large: 'Le fichier ne doit pas dépasser {size}MB',
+      type_rejected: 'Ce type de fichier n’est pas pris en charge : {name}',
+      too_many: 'Sélectionnez un seul fichier à la fois',
       unavailable: 'Fichier indisponible (supprimé ou sans droit de lecture)',
       open_failed: 'Impossible d’ouvrir le fichier',
       uploading: 'Téléversement {percent} %',

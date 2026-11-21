@@ -127,6 +127,8 @@ export default {
       success: 'Subido',
       failed: 'Error al subir',
       too_large: 'El archivo no puede superar {size}MB',
+      type_rejected: 'Este tipo de archivo no es compatible: {name}',
+      too_many: 'Seleccione un solo archivo a la vez',
       unavailable: 'Archivo no disponible (eliminado o sin permiso de lectura)',
       open_failed: 'No se pudo abrir el archivo',
       uploading: 'Subiendo {percent}%',

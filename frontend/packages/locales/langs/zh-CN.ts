@@ -127,6 +127,8 @@ export default {
       success: '上传成功',
       failed: '上传失败',
       too_large: '文件大小不能超过 {size}MB',
+      type_rejected: '不支持这种文件类型：{name}',
+      too_many: '一次只能选择一个文件',
       unavailable: '文件不可用（已删除或无查看权限）',
       open_failed: '打开文件失败',
       uploading: '上传中 {percent}%',

@@ -127,6 +127,8 @@ export default {
       success: 'Загружено',
       failed: 'Не удалось загрузить',
       too_large: 'Файл не должен превышать {size}MB',
+      type_rejected: 'Этот тип файлов не поддерживается: {name}',
+      too_many: 'Выберите только один файл',
       unavailable: 'Файл недоступен (удалён или нет прав на просмотр)',
       open_failed: 'Не удалось открыть файл',
       uploading: 'Загрузка {percent}%',

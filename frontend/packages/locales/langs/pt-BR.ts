@@ -127,6 +127,8 @@ export default {
       success: 'Enviado',
       failed: 'Falha no envio',
       too_large: 'O arquivo não pode passar de {size}MB',
+      type_rejected: 'Este tipo de arquivo não é suportado: {name}',
+      too_many: 'Selecione um arquivo por vez',
       unavailable: 'Arquivo indisponível (excluído ou sem permissão de leitura)',
       open_failed: 'Não foi possível abrir o arquivo',
       uploading: 'Enviando {percent}%',

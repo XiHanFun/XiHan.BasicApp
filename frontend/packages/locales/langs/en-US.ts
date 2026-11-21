@@ -127,6 +127,8 @@ export default {
       success: 'Uploaded',
       failed: 'Upload failed',
       too_large: 'File must not exceed {size}MB',
+      type_rejected: 'This file type is not supported: {name}',
+      too_many: 'Choose one file at a time',
       unavailable: 'File unavailable (deleted or no permission to view)',
       open_failed: 'Failed to open the file',
       uploading: 'Uploading {percent}%',

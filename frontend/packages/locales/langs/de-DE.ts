@@ -127,6 +127,8 @@ export default {
       success: 'Hochgeladen',
       failed: 'Hochladen fehlgeschlagen',
       too_large: 'Die Datei darf höchstens {size}MB groß sein',
+      type_rejected: 'Dieser Dateityp wird nicht unterstützt: {name}',
+      too_many: 'Bitte jeweils nur eine Datei auswählen',
       unavailable: 'Datei nicht verfügbar (gelöscht oder keine Leseberechtigung)',
       open_failed: 'Datei konnte nicht geöffnet werden',
       uploading: 'Wird hochgeladen {percent}%',

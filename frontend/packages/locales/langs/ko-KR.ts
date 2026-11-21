@@ -127,6 +127,8 @@ export default {
       success: '업로드했습니다',
       failed: '업로드에 실패했습니다',
       too_large: '파일 크기는 {size}MB를 넘을 수 없습니다',
+      type_rejected: '지원하지 않는 파일 형식입니다: {name}',
+      too_many: '파일은 한 번에 하나만 선택할 수 있습니다',
       unavailable: '파일을 사용할 수 없습니다(삭제되었거나 조회 권한 없음)',
       open_failed: '파일을 열지 못했습니다',
       uploading: '업로드 중 {percent}%',

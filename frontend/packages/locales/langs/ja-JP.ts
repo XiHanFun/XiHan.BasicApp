@@ -127,6 +127,8 @@ export default {
       success: 'アップロードしました',
       failed: 'アップロードに失敗しました',
       too_large: 'ファイルサイズは {size}MB を超えられません',
+      type_rejected: 'このファイル形式には対応していません：{name}',
+      too_many: 'ファイルは一度に 1 つだけ選択できます',
       unavailable: 'ファイルを利用できません（削除済みまたは閲覧権限なし）',
       open_failed: 'ファイルを開けませんでした',
       uploading: 'アップロード中 {percent}%',

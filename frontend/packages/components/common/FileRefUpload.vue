@@ -4,6 +4,7 @@
 -->
 
 <script lang="ts" setup>
+import type { FileUploadFileRejectDetails } from '@xihan-ui/headless'
 import type { FileUploadRequest } from '@xihan-ui/vue'
 import { useFieldControl, XhAlertAction, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger, XhProgress } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue'
@@ -197,9 +198,23 @@ async function resume() {
 
 onBeforeUnmount(() => resuming?.abort())
 
-/** 超限由上传组件判定后回调，这里只负责报出来 */
-function handleReject() {
-  toast.danger(t('component.file_ref_upload.too_large', { size: sizeLimitMb.value }))
+/** 类型、大小与数量由上传组件判定后回调，这里按原因报出来，同样的提示只报一次 */
+function handleReject(details: FileUploadFileRejectDetails) {
+  const messages = new Set(details.files.map(({ file, reasons }) => {
+    if (reasons.includes('type')) {
+      return t('component.file_ref_upload.type_rejected', { name: file.name })
+    }
+    if (reasons.includes('size-too-large')) {
+      return t('component.file_ref_upload.too_large', { size: sizeLimitMb.value })
+    }
+    if (reasons.includes('too-many-files')) {
+      return t('component.file_ref_upload.too_many')
+    }
+    return t('component.file_ref_upload.failed')
+  }))
+  for (const message of messages) {
+    toast.danger(message)
+  }
 }
 
 async function open() {
