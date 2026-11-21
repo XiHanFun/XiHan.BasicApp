@@ -16,11 +16,11 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 验证发送记录与工作流事件回执的保留清理
+/// 验证发送记录、系统通知与工作流事件回执的保留清理
 /// </summary>
 /// <remarks>
 /// 发件箱只删过了保留期且已结束的（含软删除的），排队中与发送中的再老也留着；Telegram 出站审计按时间删；保留天数写错即失败、什么都不删；
-/// 工作流回执平台与租户两侧各删 90 天前的
+/// 系统投递的站内通知在各侧连同收件箱条目删，管理员发的通知公告不删；工作流回执平台与租户两侧各删 90 天前的
 /// </remarks>
 public sealed class RetentionJobsTests : IDisposable
 {
@@ -84,6 +84,34 @@ public sealed class RetentionJobsTests : IDisposable
         Assert.Equal(["recent-failed"], await RemainingAsync<SysSms>(server, static s => s.ToPhone));
         Assert.Empty(await RemainingAsync<SysBotMessage>(server, static b => b.Id.ToString()));
         Assert.Equal(["recent"], await RemainingAsync<SysTelegramMessage>(server, static t => t.BotName));
+    }
+
+    [Fact]
+    public async Task SystemNotifications_OlderThanTheRetention_GoWithTheirInboxOnEverySide_AnnouncementsStay()
+    {
+        var (server, _, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        var now = DateTimeOffset.UtcNow;
+        var old = now.AddDays(-200);
+        SysNotification Notice(string tenant, string title, bool system, DateTimeOffset createdAt, bool deleted = false)
+            => new() { Id = Guid.NewGuid(), TenantId = tenant, Title = title, IsSystem = system, IsPublished = true, PublishedAt = createdAt, IsDeleted = deleted, ConcurrencyStamp = Guid.NewGuid().ToString("N"), CreatedAt = createdAt };
+        SysNotification[] notices =
+        [
+            Notice("platform", "platform-system-old", system: true, old),
+            Notice("contoso", "contoso-system-old", system: true, old, deleted: true),
+            Notice("contoso", "contoso-system-recent", system: true, now.AddDays(-10)),
+            Notice("contoso", "contoso-announcement-old", system: false, old),
+        ];
+        await InsertAsync(server, notices);
+        await InsertAsync(server, [.. notices.Select(static n => new SysUserNotification { Id = Guid.NewGuid(), TenantId = n.TenantId, NotificationId = n.Id, UserId = Guid.NewGuid(), ConcurrencyStamp = Guid.NewGuid().ToString("N"), CreatedAt = n.CreatedAt })]);
+
+        // 缺省 180 天：两侧过期的系统通知连同收件箱条目删掉（含软删除的）；近期的与管理员发的公告留着
+        Assert.True((await RunAsync<MessageRetentionJob>(server, MessageRetentionJob.Name)).IsSuccess);
+        // 登录等流程另有自己的系统通知，只看这里插的几条
+        var mine = notices.Select(static n => n.Id.ToString()).ToHashSet();
+        var titles = notices.Select(static n => n.Title).ToHashSet();
+        Assert.Equal(["contoso-announcement-old", "contoso-system-recent"], (await RemainingAsync<SysNotification>(server, static n => n.Title)).Where(titles.Contains));
+        Assert.Equal([.. new[] { notices[2].Id, notices[3].Id }.Select(static id => id.ToString()).Order(StringComparer.Ordinal)], (await RemainingAsync<SysUserNotification>(server, static u => u.NotificationId.ToString())).Where(mine.Contains));
     }
 
     [Fact]

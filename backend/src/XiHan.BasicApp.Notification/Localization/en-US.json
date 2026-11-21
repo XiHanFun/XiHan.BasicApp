@@ -240,5 +240,5 @@
   "permissions.notification.sms.delete.description": "Delete SMS send records of the caller's side.",
   "notification.retention.invalid": "The value {value} of system parameter notification.retention-days is invalid: use an integer from 1 to 3650.",
   "jobs.notification.messages.cleanup.title": "Clean up message records",
-  "jobs.notification.messages.cleanup.description": "Delete finished email, SMS and bot message records and Telegram outbound audits older than the retention period (platform parameter notification.retention-days, 180 days by default); queued and sending messages are kept."
+  "jobs.notification.messages.cleanup.description": "Delete finished email, SMS and bot message records, Telegram outbound audits, and system-sent in-app notifications (workflow tasks, account security alerts and the like) with their inbox entries, older than the retention period (platform parameter notification.retention-days, 180 days by default); queued and sending messages are kept, and announcements sent by administrators are not deleted."
 }

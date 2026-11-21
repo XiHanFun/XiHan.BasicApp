@@ -124,7 +124,7 @@
   "chat.preview.files": "[Dateien] {count}",
   "chat.preview.recalled": "[Nachricht zurückgerufen]",
   "jobs.chat.messages.cleanup.title": "Aufbewahrung von Chat-Nachrichten",
-  "jobs.chat.messages.cleanup.description": "Löscht Chat-Nachrichten, die älter als die Aufbewahrungsfrist sind, samt ihren Reaktionen (Tage aus dem Plattformparameter chat.policy), getrennt für die Plattform und jeden Mandanten; Unterhaltungen und Anhangsdateien bleiben erhalten.",
+  "jobs.chat.messages.cleanup.description": "Löscht Chatnachrichten, die älter als die Aufbewahrungsfrist sind, samt ihren Reaktionen (Tage aus der Plattformeinstellung chat.policy) sowie davor beendete Anrufe samt Teilnehmern; Anhangsdateien, die nur diese Nachrichten verwenden, werden mitgelöscht, Dateien, die eine aufbewahrte Nachricht noch verwendet, und Unterhaltungsbilder bleiben. Läuft getrennt für die Plattform und jeden Mandanten; Unterhaltungen und Mitglieder bleiben erhalten.",
   "openapi.groups.chat.name": "Chat",
   "openapi.groups.chat.description": "Direktchats, Gruppenchats und Abteilungsgruppen: Unterhaltungen, Nachrichten, Anhänge und Chat-Audit.",
   "openapi.tags.chat_conversations.name": "Chat-Unterhaltungen",

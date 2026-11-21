@@ -190,11 +190,13 @@ public sealed class TenantSweepTests : IDisposable
         Assert.True(removed == HttpStatusCode.OK, removedBody.ToString());
         Assert.Equal(spare, Assert.Single(removedBody.GetProperty("succeeded").EnumerateArray()).GetString());
 
-        // 已就绪的库读写失败：作业报失败，其余侧照常；删除提供商也失败，不当作没有引用
+        // 已就绪的库读写失败：作业报失败、这一侧整批回滚，其余侧照常；删除提供商也失败，不当作没有引用
         await DropTableAsync(server, Dedicated, "sys_chat_message_reaction");
+        await SeedOldMessageAsync(server, Dedicated);
         await SeedOldMessageAsync(server, null);
         var failed = await RunAsync<ChatRetentionJob>(server, ChatRetentionJob.Name);
         Assert.Equal(RuntimeErrors.SweepIncomplete, failed.Error?.Code);
+        Assert.Equal(1, await CountAsync<SysChatMessage>(server, Dedicated));
         Assert.Equal(0, await CountAsync<SysChatMessage>(server, null));
 
         var (another, anotherBody) = await SendAsync(server, HttpMethod.Post, "/api/ai-providers", JsonSerializer.Serialize(new { code = "other", name = "Other", chatModel = "m", vendor = "OpenAI", endpoint = "https://example.invalid/v1" }), superadmin);

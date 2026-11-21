@@ -124,7 +124,7 @@
   "chat.preview.files": "[Arquivos] {count}",
   "chat.preview.recalled": "[Mensagem retirada]",
   "jobs.chat.messages.cleanup.title": "Retenção de mensagens de chat",
-  "jobs.chat.messages.cleanup.description": "Exclui as mensagens de chat mais antigas que o período de retenção, com suas reações (dias do parâmetro de plataforma chat.policy), separadamente para a plataforma e cada locatário; conversas e arquivos anexos são mantidos.",
+  "jobs.chat.messages.cleanup.description": "Exclui mensagens de chat mais antigas que o período de retenção com suas reações (dias do parâmetro de plataforma chat.policy) e as chamadas encerradas antes disso com seus participantes; os arquivos anexos usados apenas por essas mensagens também são excluídos, e os que uma mensagem retida ainda usa e os avatares de conversa são mantidos. Executa separadamente para a plataforma e cada inquilino; conversas e membros são mantidos.",
   "openapi.groups.chat.name": "Chat",
   "openapi.groups.chat.description": "Chats individuais, em grupo e de departamento: conversas, mensagens, anexos e auditoria do chat.",
   "openapi.tags.chat_conversations.name": "Conversas de chat",

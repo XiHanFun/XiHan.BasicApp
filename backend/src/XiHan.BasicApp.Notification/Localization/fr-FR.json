@@ -239,6 +239,6 @@
   "permissions.notification.sms.delete.name": "Supprimer les envois de SMS",
   "permissions.notification.sms.delete.description": "Supprimer les enregistrements d’envoi de SMS du côté de l’appelant.",
   "notification.retention.invalid": "La valeur {value} du paramètre système notification.retention-days est invalide : utilisez un entier de 1 à 3650.",
-  "jobs.notification.messages.cleanup.title": "Nettoyer les journaux d’envoi",
-  "jobs.notification.messages.cleanup.description": "Supprime les journaux terminés d’e-mails, de SMS et de messages de bot ainsi que les audits sortants Telegram plus anciens que la durée de conservation (paramètre de plateforme notification.retention-days, 180 jours par défaut) ; les messages en file ou en cours d’envoi sont conservés."
+  "jobs.notification.messages.cleanup.title": "Nettoyer les journaux de messages",
+  "jobs.notification.messages.cleanup.description": "Supprime les journaux d’envoi terminés des e-mails, SMS et messages de bot, les audits sortants Telegram et les notifications internes envoyées par le système (tâches de workflow, alertes de sécurité du compte, etc.) avec leurs entrées de boîte de réception, plus anciens que la période de conservation (paramètre de plateforme notification.retention-days, 180 jours par défaut) ; les messages en file d’attente ou en cours d’envoi sont conservés et les annonces envoyées par les administrateurs ne sont pas supprimées."
 }

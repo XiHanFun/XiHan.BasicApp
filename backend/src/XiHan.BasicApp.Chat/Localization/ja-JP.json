@@ -124,7 +124,7 @@
   "chat.preview.files": "[ファイル] {count} 件",
   "chat.preview.recalled": "[メッセージは取り消されました]",
   "jobs.chat.messages.cleanup.title": "チャットメッセージ保持期間のクリーンアップ",
-  "jobs.chat.messages.cleanup.description": "保持期間より古いチャットメッセージとそのリアクションを削除します（日数はプラットフォームのパラメーター chat.policy）。プラットフォームとテナントごとに処理し、会話と添付ファイルは削除しません。",
+  "jobs.chat.messages.cleanup.description": "保持期間より古いチャットメッセージとそのリアクション（日数はプラットフォーム設定 chat.policy）、および保持期間より前に終了した通話と参加記録を削除します。これらのメッセージだけが使う添付ファイルも削除し、保持中のメッセージがまだ使うファイルと会話のアイコンは残します。プラットフォームと各テナントで個別に実行し、会話とメンバーは残します。",
   "openapi.groups.chat.name": "オンラインチャット",
   "openapi.groups.chat.description": "個人チャット、グループチャット、部門グループの会話、メッセージ、添付ファイルとチャット監査。",
   "openapi.tags.chat_conversations.name": "チャットの会話",

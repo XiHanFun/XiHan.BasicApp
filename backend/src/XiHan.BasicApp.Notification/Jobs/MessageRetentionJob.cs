@@ -9,6 +9,7 @@ using XiHan.BasicApp.Contracts.Entities;
 using XiHan.BasicApp.Contracts.Settings;
 using XiHan.BasicApp.Notification.Domain.Entities;
 using XiHan.BasicApp.Runtime.MultiTenancy;
+using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
@@ -18,18 +19,20 @@ using XiHan.Framework.Scheduling.Abstractions.Schedules;
 namespace XiHan.BasicApp.Notification.Jobs;
 
 /// <summary>
-/// 发送记录的保留清理
+/// 消息记录的保留清理
 /// </summary>
 /// <remarks>
 /// 内建作业（每天 3 点半）。保留天数读平台参数 <c>notification.retention-days</c>（1 到 3650，缺省 180），不合法直接失败，不按错误的保留期删数据
-/// 邮件、短信与机器人消息兼作发件箱，只删已结束的（已发送、失败、已取消）：排队中与发送中的还要发，再老也不动；Telegram 出站审计按时间删
-/// 四张表都在平台库、跨侧一遍删完，连同软删除的行；逐批（每批 <see cref="BatchSize"/> 条，一批一个工作单元）物理删除，一类失败只记日志、计入失败，不影响其他
+/// 邮件、短信与机器人消息兼作发件箱，只删已结束的（已发送、失败、已取消）：排队中与发送中的还要发，再老也不动；Telegram 出站审计按时间删。这四张表都在平台库、跨侧一遍删完
+/// 系统投递的站内通知（别的包经 <c>IInboxDelivery</c> 发的流程待办、账号安全提醒等）连同收件箱条目，按创建时间删；它们落在各侧的库里，平台与目录里的每个租户逐个作用域删（独立库的租户先绑定分片）。管理员发的通知公告不删
+/// 都连同软删除的行，逐批（每批 <see cref="BatchSize"/> 条，一批一个工作单元）物理删除；一类或一个作用域失败只记日志、计入失败，不影响其他
 /// </remarks>
 /// <param name="readers">参数读取（Settings 实现）</param>
+/// <param name="sides">要清理系统通知的各侧</param>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="clock">时间源</param>
 /// <param name="logger">日志</param>
-public sealed partial class MessageRetentionJob(IEnumerable<IConfigValueReader> readers, IServiceScopeFactory scopes, TimeProvider clock, ILogger<MessageRetentionJob> logger) : IJob
+public sealed partial class MessageRetentionJob(IEnumerable<IConfigValueReader> readers, TenantSides sides, IServiceScopeFactory scopes, TimeProvider clock, ILogger<MessageRetentionJob> logger) : IJob
 {
     /// <summary>
     /// 作业名
@@ -66,11 +69,11 @@ public sealed partial class MessageRetentionJob(IEnumerable<IConfigValueReader> 
     /// </summary>
     public static ConfigDescriptor RetentionDaysConfig { get; } = new(
         RetentionDaysConfigKey,
-        "发送记录保留天数",
+        "消息记录保留天数",
         "消息通知",
         ConfigDataType.Number,
         "180",
-        "邮件、短信与机器人消息的发送记录（只算已结束的）与 Telegram 出站审计保留的天数（1–3650 的整数），保留清理作业删掉更早的；只认平台的，写错即清理失败",
+        "邮件、短信与机器人消息的发送记录（只算已结束的）、Telegram 出站审计，以及系统自动发的站内通知（流程待办、账号安全提醒等，连同收件箱条目）保留的天数（1–3650 的整数），保留清理作业删掉更早的；管理员发的通知公告不删；只认平台的，写错即清理失败",
         Order: 420);
 
     /// <inheritdoc />
@@ -108,8 +111,73 @@ public sealed partial class MessageRetentionJob(IEnumerable<IConfigValueReader> 
             }
         }
 
+        var listedSides = await sides.ListAsync(cancellationToken).ConfigureAwait(false);
+        if (!listedSides.TryGetValue(out var sideIds))
+        {
+            return listedSides.Error!;
+        }
+
+        foreach (var side in sideIds)
+        {
+            try
+            {
+                removed += await PurgeSystemNotificationsAsync(side, cutoff, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                failures++;
+                LogPurgeFailed(logger, exception, $"sys_notification ({side})");
+            }
+        }
+
         LogPurged(logger, retention, cutoff, removed, failures);
         return TenantSides.Outcome(Name, failures);
+    }
+
+    /// <summary>
+    /// 一侧系统投递的通知连同收件箱条目
+    /// </summary>
+    /// <remarks>
+    /// 逐批取出创建早于保留期的系统通知，先删它们的收件箱条目再删通知，取不满一批即结束
+    /// </remarks>
+    private async Task<long> PurgeSystemNotificationsAsync(string side, DateTimeOffset cutoff, CancellationToken cancellationToken)
+    {
+        var removed = 0L;
+        while (true)
+        {
+            await using var scope = scopes.CreateAsyncScope();
+            (await scope.ServiceProvider.GetRequiredService<TenantShardScope>().BindTenantAsync(side, cancellationToken).ConfigureAwait(false)).ToResult().ThrowIfFailure();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<SqlSugarUnitOfWork>();
+            await unitOfWork.BeginAsync(new UnitOfWorkOptions { TenantId = side }, cancellationToken).ConfigureAwait(false);
+            int batch;
+            try
+            {
+                var client = unitOfWork.ConnectionFor(typeof(SysNotification));
+                var ids = await client.Queryable<SysNotification>().ClearFilter().Where(n => n.TenantId == side && n.IsSystem && n.CreatedAt < cutoff).OrderBy(n => n.Id).Take(BatchSize).Select(n => n.Id).ToListAsync(cancellationToken).ConfigureAwait(false);
+                batch = ids.Count;
+                if (batch > 0)
+                {
+                    removed += await client.Deleteable<SysUserNotification>().Where(u => u.TenantId == side && ids.Contains(u.NotificationId)).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
+                    removed += await client.Deleteable<SysNotification>().In(ids).ExecuteCommandAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                (await unitOfWork.CommitAsync(cancellationToken).ConfigureAwait(false)).ThrowIfFailure();
+            }
+            catch
+            {
+                if (unitOfWork.State == UnitOfWorkState.Active)
+                {
+                    await unitOfWork.RollbackAsync(CancellationToken.None).ConfigureAwait(false);
+                }
+
+                throw;
+            }
+
+            if (batch < BatchSize)
+            {
+                return removed;
+            }
+        }
     }
 
     /// <summary>
@@ -182,6 +250,6 @@ public sealed partial class MessageRetentionJob(IEnumerable<IConfigValueReader> 
     [LoggerMessage(Level = LogLevel.Information, Message = "Notification retention ({Days} days, before {Cutoff:O}) removed {Removed} records with {Failures} failures.")]
     private static partial void LogPurged(ILogger logger, int days, DateTimeOffset cutoff, long removed, int failures);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Notification retention failed for table '{Table}'.")]
+    [LoggerMessage(Level = LogLevel.Error, Message = "Notification retention failed for '{Table}'.")]
     private static partial void LogPurgeFailed(ILogger logger, Exception exception, string table);
 }

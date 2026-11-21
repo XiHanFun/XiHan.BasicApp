@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// 落租户库、跟着会话走：两侧都能通话，独立库的租户记在它自己的库里
 /// 参与者单独成表（<see cref="SysChatCallParticipant"/>）：每个人各有应答与进出时间，群通话是多人各自进出
 /// 状态的改动都先对会话行加锁再改：两个人同时互相呼叫、两个端同时接听都在锁里排出先后
-/// 没有删除入口：通话记录跟消息一样是会话的历史；状态几秒一变，不进差异日志
+/// 没有删除入口：通话记录跟消息一样是会话的历史，结束早于保留期（<c>chat.policy</c>）的由作业 <c>chat.messages.cleanup</c> 连同参与者物理删除；状态几秒一变，不进差异日志
 /// </remarks>
 [SugarTable(TableName = "sys_chat_call", TableDescription = "聊天通话（租户库实体）")]
 [SugarIndex("ix_sys_chat_call_tenant_id_conversation_id", nameof(TenantId), OrderByType.Asc, nameof(ConversationId), OrderByType.Asc)]

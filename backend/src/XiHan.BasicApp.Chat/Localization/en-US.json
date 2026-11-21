@@ -124,7 +124,7 @@
   "chat.preview.files": "[Files] {count}",
   "chat.preview.recalled": "[Message recalled]",
   "jobs.chat.messages.cleanup.title": "Chat message retention",
-  "jobs.chat.messages.cleanup.description": "Deletes chat messages older than the retention period with their reactions (days from the platform setting chat.policy), separately for the platform and each tenant; conversations and attachment files are kept.",
+  "jobs.chat.messages.cleanup.description": "Deletes chat messages older than the retention period with their reactions (days from the platform setting chat.policy), and calls that ended before it with their participants; attachment files used only by those messages are deleted too, while files a retained message still uses and conversation avatars are kept. Runs separately for the platform and each tenant; conversations and members are kept.",
   "openapi.groups.chat.name": "Chat",
   "openapi.groups.chat.description": "Single, group and department chats: conversations, messages, attachments and chat audit.",
   "openapi.tags.chat_conversations.name": "Chat conversations",

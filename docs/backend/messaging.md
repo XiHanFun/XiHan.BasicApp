@@ -35,7 +35,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 | `inbox.mark-read` / `mark-all-read` / `confirm` / `mark-popup-shown` | 已读、全部已读、确认、弹窗已展示 |
 | `inbox.delete` | 删除自己的投递 |
 
-别的包直接给某些人投递站内信（工作流的待办、Identity 的安全提醒）经 `Contracts` 的 `IInboxDelivery`。这类通知记为系统投递，只在本人的收件箱里：通知公告的列表不列出，按 ID 的查看、统计、提醒与删除都当作不存在。
+别的包直接给某些人投递站内信（工作流的待办、Identity 的安全提醒）经 `Contracts` 的 `IInboxDelivery`。这类通知记为系统投递，只在本人的收件箱里：通知公告的列表不列出，按 ID 的查看、统计、提醒与删除都当作不存在。创建早于平台参数 `notification.retention-days`（缺省 180 天）的，由作业 `notification.messages.cleanup` 在平台与各租户连同收件箱条目物理删除；管理员发的通知公告不清理，到期只是不再显示。
 
 ## 消息模板
 

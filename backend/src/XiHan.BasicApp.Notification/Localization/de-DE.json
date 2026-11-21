@@ -239,6 +239,6 @@
   "permissions.notification.sms.delete.name": "SMS-Sendeprotokolle löschen",
   "permissions.notification.sms.delete.description": "SMS-Sendeprotokolle der eigenen Seite löschen.",
   "notification.retention.invalid": "Der Wert {value} des Systemparameters notification.retention-days ist ungültig: Verwenden Sie eine ganze Zahl von 1 bis 3650.",
-  "jobs.notification.messages.cleanup.title": "Versandprotokolle bereinigen",
-  "jobs.notification.messages.cleanup.description": "Löscht abgeschlossene E-Mail-, SMS- und Bot-Nachrichtenprotokolle sowie Telegram-Ausgangsprotokolle, die älter als die Aufbewahrungsfrist sind (Plattformparameter notification.retention-days, standardmäßig 180 Tage); wartende und laufende Nachrichten bleiben erhalten."
+  "jobs.notification.messages.cleanup.title": "Nachrichtenprotokolle bereinigen",
+  "jobs.notification.messages.cleanup.description": "Löscht abgeschlossene E-Mail-, SMS- und Bot-Nachrichtenprotokolle, Telegram-Ausgangsprüfungen sowie vom System gesendete In-App-Benachrichtigungen (Workflow-Aufgaben, Kontosicherheitshinweise usw.) samt Posteingangseinträgen, die älter als die Aufbewahrungsfrist sind (Plattformparameter notification.retention-days, standardmäßig 180 Tage); wartende und sendende Nachrichten bleiben, von Administratoren gesendete Ankündigungen werden nicht gelöscht."
 }

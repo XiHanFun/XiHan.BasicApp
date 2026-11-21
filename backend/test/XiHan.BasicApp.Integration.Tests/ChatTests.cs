@@ -12,6 +12,7 @@ using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Jobs;
 using XiHan.BasicApp.Contracts.Realtime;
+using XiHan.BasicApp.Files.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Organization;
@@ -697,6 +698,76 @@ public sealed class ChatTests : IDisposable
         Assert.Equal("a recent message", Assert.Single(remaining).GetProperty("content").GetString());
         var reactions = await SettingsTestHost.InvokeAsync(server, "acme", async ctx => await ctx.Services.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysChatMessageReaction)).Queryable<SysChatMessageReaction>().Where(r => r.MessageId == oldId).CountAsync(ctx.CancellationToken));
         Assert.Equal(0, reactions);
+    }
+
+    [Fact]
+    public async Task Retention_AlsoRemovesOldCalls_AndAttachmentFilesNoRetainedMessageUses()
+    {
+        var (server, users) = await StartAsync();
+        await using var running = server;
+        var (alice, bob) = (users["alice"], users["bob"]);
+        var platform = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+        var (config, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, "chat.policy", """{"retentionDays":30}""");
+        Assert.Equal(HttpStatusCode.OK, config);
+        var conversation = (await CallAsync(server, HttpMethod.Post, "/api/chat-conversations:open-single", new { peerUserId = bob }, alice)).Body.GetProperty("conversationId").GetString()!;
+
+        async Task<Guid> UploadAsync(string name)
+        {
+            var request = BasicAppTestServer.Request(HttpMethod.Post, "/api/chat-messages/attachments", token: Token(alice));
+            // 内容各不相同：相同内容会共用存储对象
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes($"%PDF-1.4 {name}"));
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            request.Content = new MultipartFormDataContent { { content, "file", name } };
+            var (_, uploaded) = await server.SendAsync(request);
+            return Guid.Parse(uploaded.GetProperty("attachment").GetProperty("fileId").GetString()!);
+        }
+
+        async Task<Guid> SendFileAsync(Guid fileId, string name)
+        {
+            var (status, sent) = await CallAsync(server, HttpMethod.Post, "/api/chat-messages:send", new { conversationId = conversation, messageType = "File", attachments = new[] { new { fileId, fileName = name, size = 8L } } }, alice);
+            Assert.True(status == HttpStatusCode.OK, sent.ToString());
+            return Guid.Parse(sent.GetProperty("messageId").GetString()!);
+        }
+
+        // shared 挂在一条过期消息与一条留存消息上（如同转发），only 只挂在过期消息上
+        var shared = await UploadAsync("shared.pdf");
+        var only = await UploadAsync("only.pdf");
+        var oldShared = await SendFileAsync(shared, "shared.pdf");
+        await SendFileAsync(shared, "shared.pdf");
+        var oldOnly = await SendFileAsync(only, "only.pdf");
+        var (oldCall, recentCall) = (Guid.NewGuid(), Guid.NewGuid());
+        await SettingsTestHost.InvokeAsync(server, "acme", async ctx =>
+        {
+            var unitOfWork = ctx.Services.GetRequiredService<SqlSugarUnitOfWork>();
+            await unitOfWork.EnsureTransactionAsync(ctx.CancellationToken);
+            var client = unitOfWork.ConnectionFor(typeof(SysChatMessage));
+            var past = DateTimeOffset.UtcNow.AddDays(-31);
+            await client.Updateable<SysChatMessage>().SetColumns(m => new SysChatMessage { CreatedAt = past }).Where(m => m.Id == oldShared || m.Id == oldOnly).ExecuteCommandAsync(ctx.CancellationToken);
+            SysChatCall Call(Guid id, DateTimeOffset endedAt) => new() { Id = id, TenantId = "acme", ConversationId = Guid.Parse(conversation), InitiatorUserId = Guid.Parse(alice), Media = ChatCallMedia.Voice, Status = ChatCallStatus.Ended, RingExpiresAt = endedAt, EndedAt = endedAt, ConcurrencyStamp = Guid.NewGuid().ToString("N"), CreatedAt = endedAt };
+            SysChatCallParticipant Participant(Guid callId, DateTimeOffset at) => new() { Id = Guid.NewGuid(), TenantId = "acme", CallId = callId, UserId = Guid.Parse(bob), Status = ChatCallParticipantStatus.Missed, ConcurrencyStamp = Guid.NewGuid().ToString("N"), CreatedAt = at };
+            var recent = DateTimeOffset.UtcNow.AddDays(-1);
+            await client.Insertable(new List<SysChatCall> { Call(oldCall, past), Call(recentCall, recent) }).ExecuteCommandAsync(ctx.CancellationToken);
+            return await client.Insertable(new List<SysChatCallParticipant> { Participant(oldCall, past), Participant(recentCall, recent) }).ExecuteCommandAsync(ctx.CancellationToken);
+        });
+
+        var ran = await SettingsTestHost.InvokeAsync(server, null, async ctx => await ctx.Services.GetRequiredService<ChatRetentionJob>().RunAsync(JobRun.Create(new JobName(ChatRetentionJob.Name), DateTimeOffset.UtcNow, JobTrigger.Manual), ctx));
+        Assert.True(ran.IsSuccess, ran.Error?.Code);
+
+        // 过期消息删了；只挂在它们身上的文件随之删除，留存消息还在用的留着
+        Assert.Single(await HistoryAsync(server, alice, conversation));
+        var state = await SettingsTestHost.InvokeAsync(server, "acme", async ctx =>
+        {
+            var client = ctx.Services.GetRequiredService<SqlSugarUnitOfWork>().ConnectionFor(typeof(SysChatCall));
+            var deleted = (await client.Queryable<SysFile>().ClearFilter().Where(f => f.Id == shared || f.Id == only).ToListAsync(ctx.CancellationToken)).ToDictionary(static f => f.Id, static f => f.IsDeleted);
+            var calls = await client.Queryable<SysChatCall>().ClearFilter().Select(c => c.Id).ToListAsync(ctx.CancellationToken);
+            var participants = await client.Queryable<SysChatCallParticipant>().ClearFilter().Select(p => p.CallId).ToListAsync(ctx.CancellationToken);
+            return (deleted, calls, participants);
+        });
+        Assert.False(state.deleted[shared]);
+        Assert.True(state.deleted[only]);
+        // 结束早于保留期的通话连同参与者删了
+        Assert.Equal([recentCall], state.calls);
+        Assert.Equal([recentCall], state.participants);
     }
 
     [Fact]

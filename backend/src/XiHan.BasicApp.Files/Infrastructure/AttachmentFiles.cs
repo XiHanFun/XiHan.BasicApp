@@ -73,5 +73,24 @@ public sealed class AttachmentFiles(FileService files) : IAttachmentFiles
         return signed.TryGetValue(out var link) ? new AttachmentLink(link.Url, link.ExpiresAt) : signed.Error!;
     }
 
+    /// <inheritdoc />
+    public async Task<int> DeleteAsync(string side, string source, IReadOnlyCollection<Guid> fileIds, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(side);
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+        ArgumentNullException.ThrowIfNull(fileIds);
+        // 只删业务自己存的：别的来源的文件即使 ID 撞进来也不动
+        var owned = new List<Guid>();
+        foreach (var id in fileIds.Distinct())
+        {
+            if ((await files.FindAsync(side, id, cancellationToken).ConfigureAwait(false)).TryGetValue(out var file) && string.Equals(file.Source, source, StringComparison.Ordinal))
+            {
+                owned.Add(id);
+            }
+        }
+
+        return owned.Count == 0 ? 0 : (await files.DeleteAsync(side, owned, cancellationToken).ConfigureAwait(false)).Succeeded.Count;
+    }
+
     private static AttachmentFile From(SysFile file) => new(file.Id, file.OriginalName, file.ContentType, file.Size, file.Source, file.CreatedBy);
 }

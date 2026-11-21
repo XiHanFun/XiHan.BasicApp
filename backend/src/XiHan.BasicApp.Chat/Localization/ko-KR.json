@@ -124,7 +124,7 @@
   "chat.preview.files": "[파일] {count}개",
   "chat.preview.recalled": "[전송 취소된 메시지]",
   "jobs.chat.messages.cleanup.title": "채팅 메시지 보존 정리",
-  "jobs.chat.messages.cleanup.description": "보존 기간보다 오래된 채팅 메시지와 그 이모지 반응을 삭제합니다(일수는 플랫폼 매개변수 chat.policy). 플랫폼과 각 테넌트별로 정리하며 대화와 첨부 파일은 삭제하지 않습니다.",
+  "jobs.chat.messages.cleanup.description": "보존 기간보다 오래된 채팅 메시지와 그 반응(일수는 플랫폼 설정 chat.policy), 그리고 그 전에 끝난 통화와 참여 기록을 삭제합니다. 이 메시지들만 쓰는 첨부 파일도 함께 삭제하며, 보존 중인 메시지가 아직 쓰는 파일과 대화 아바타는 남깁니다. 플랫폼과 각 테넌트별로 따로 실행하며 대화와 멤버는 남깁니다.",
   "openapi.groups.chat.name": "온라인 채팅",
   "openapi.groups.chat.description": "1:1 채팅, 그룹 채팅, 부서 그룹의 대화, 메시지, 첨부 파일과 채팅 감사.",
   "openapi.tags.chat_conversations.name": "채팅 대화",

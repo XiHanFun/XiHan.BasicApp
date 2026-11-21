@@ -62,6 +62,20 @@ public interface IAttachmentFiles
     /// <param name="download">是否以附件下载（带原始文件名）</param>
     /// <returns>地址与到期时间；文件不在这一侧或不可用为失败</returns>
     Task<Result<AttachmentLink>> SignAsync(InvocationContext context, Guid fileId, bool download);
+
+    /// <summary>
+    /// 删除这一侧某个来源的附件
+    /// </summary>
+    /// <remarks>
+    /// 给业务的保留清理用，业务先核对过这些文件不再被它引用；在调用方开着的、带这一侧租户的工作单元里执行
+    /// 来源不是 <paramref name="source"/> 的与已经删除的跳过；文件与副本软删除，不再被这一侧其他副本引用的存储对象随之删除（对象删不掉只记警告，记录照删）
+    /// </remarks>
+    /// <param name="side">侧</param>
+    /// <param name="source">来源</param>
+    /// <param name="fileIds">文件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>删除的条数</returns>
+    Task<int> DeleteAsync(string side, string source, IReadOnlyCollection<Guid> fileIds, CancellationToken cancellationToken);
 }
 
 /// <summary>

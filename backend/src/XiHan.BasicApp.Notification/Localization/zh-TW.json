@@ -239,6 +239,6 @@
   "permissions.notification.sms.delete.name": "刪除簡訊發送紀錄",
   "permissions.notification.sms.delete.description": "刪除目前一側的簡訊發送紀錄。",
   "notification.retention.invalid": "系統參數 notification.retention-days 的值 {value} 不合法：須為 1 到 3650 的整數。",
-  "jobs.notification.messages.cleanup.title": "發送記錄保留清理",
-  "jobs.notification.messages.cleanup.description": "刪除早於保留期（平台參數 notification.retention-days，預設 180 天）的已結束郵件、簡訊與機器人訊息發送記錄，以及 Telegram 外送稽核；排隊中與發送中的不動。"
+  "jobs.notification.messages.cleanup.title": "訊息記錄保留清理",
+  "jobs.notification.messages.cleanup.description": "刪除早於保留期（平台參數 notification.retention-days，預設 180 天）的已結束的郵件、簡訊與機器人訊息發送記錄、Telegram 出站稽核，以及系統自動發的站內通知（流程待辦、帳號安全提醒等）連同收件匣條目；排隊中與發送中的不動，管理員發的通知公告不刪。"
 }

@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Notification.Domain.Entities;
 /// 投递渠道按位组合、站内信必有：邮件、短信与机器人只是站内信之外的补充，经发件箱随发布一起提交；开了的外发渠道先核对能发，发不出即整次发布失败，不悄悄只发站内信
 /// 别的包经 Contracts 的 <c>IInboxDelivery</c> 建一条指定用户的通知并立即发布（Workflow 的待办、Identity 的账号安全通知）：复用同一套收件箱与推送，不另建表；这类记为系统投递，只进收件箱，通知公告的管理列表与按 ID 的管理操作都看不到
 /// 列表的数据范围按创建人套用（方案 5.9），收件箱不受影响
-/// 软删除；删除已发布的连同收件箱条目一起软删除，已入发件箱的外发照常发出；到期只是不再显示，没有清理作业
+/// 软删除；删除已发布的连同收件箱条目一起软删除，已入发件箱的外发照常发出；通知公告到期只是不再显示，不清理；系统投递的创建早于 <c>notification.retention-days</c> 即由保留清理连同收件箱条目物理删除
 /// </remarks>
 [SugarTable(TableName = "sys_notification", TableDescription = "通知公告（租户库实体，平台一侧租户为 platform）")]
 [SugarIndex("ix_sys_notification_tenant_id_created_at", nameof(TenantId), OrderByType.Asc, nameof(CreatedAt), OrderByType.Asc)]

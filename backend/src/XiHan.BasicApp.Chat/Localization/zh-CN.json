@@ -124,7 +124,7 @@
   "chat.preview.files": "[文件] {count} 个",
   "chat.preview.recalled": "[消息已撤回]",
   "jobs.chat.messages.cleanup.title": "聊天消息保留清理",
-  "jobs.chat.messages.cleanup.description": "删除早于保留期的聊天消息与它们的表情回应（保留天数读平台参数 chat.policy），平台与每个租户分别清理；不删会话与附件文件。",
+  "jobs.chat.messages.cleanup.description": "删除早于保留期的聊天消息与它们的表情回应（保留天数读平台参数 chat.policy），以及结束早于保留期的通话与参与记录；只挂在这些消息上的附件文件一并删除，留存的消息还在用的与会话头像不删。平台与每个租户分别清理，不删会话与成员。",
   "openapi.groups.chat.name": "在线聊天",
   "openapi.groups.chat.description": "单聊、群聊与部门群的会话、消息、附件与聊天审计。",
   "openapi.tags.chat_conversations.name": "聊天会话",

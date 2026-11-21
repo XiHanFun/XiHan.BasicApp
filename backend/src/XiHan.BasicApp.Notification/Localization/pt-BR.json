@@ -239,6 +239,6 @@
   "permissions.notification.sms.delete.name": "Excluir registros de envio de SMS",
   "permissions.notification.sms.delete.description": "Excluir registros de envio de SMS do lado do chamador.",
   "notification.retention.invalid": "O valor {value} do parâmetro de sistema notification.retention-days é inválido: use um inteiro de 1 a 3650.",
-  "jobs.notification.messages.cleanup.title": "Limpar registros de envio",
-  "jobs.notification.messages.cleanup.description": "Exclui registros concluídos de e-mail, SMS e mensagens de bot e auditorias de saída do Telegram mais antigos que o período de retenção (parâmetro de plataforma notification.retention-days, 180 dias por padrão); mensagens na fila ou em envio são mantidas."
+  "jobs.notification.messages.cleanup.title": "Limpar registros de mensagens",
+  "jobs.notification.messages.cleanup.description": "Exclui registros de envio concluídos de e-mails, SMS e mensagens de bot, auditorias de saída do Telegram e notificações internas enviadas pelo sistema (tarefas de fluxo, alertas de segurança da conta etc.) com suas entradas na caixa de entrada, mais antigos que o período de retenção (parâmetro de plataforma notification.retention-days, 180 dias por padrão); mensagens na fila e em envio são mantidas, e os avisos enviados por administradores não são excluídos."
 }
