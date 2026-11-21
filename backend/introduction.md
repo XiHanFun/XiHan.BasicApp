@@ -17,7 +17,7 @@ public sealed class SettingsFeature : IFeature
         Package = "XiHan.BasicApp.Settings",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(SettingsCapabilities.Settings, SettingsCapabilities.Version)],  // basicapp.settings@1
         Requires =
@@ -162,7 +162,7 @@ builder.AddXiHan(xihan =>
 | OpenPlatform | `basicapp.openplatform@1` | 应用管理（OAuth 应用） | `RequestSigningMiddleware`（Authenticate）、`openplatform.oauth-cleanup` |
 | Workbench | `basicapp.workbench@1` | 工作台 | — |
 | Printing | `basicapp.printing@1` | 打印模板 | — |
-| Chat | `basicapp.chat@1` | 在线聊天、聊天审计 | `/hubs/chat`、`chat.messages.cleanup` |
+| Chat | `basicapp.chat@1` | 在线聊天（含语音与视频通话、屏幕共享）、聊天审计 | `/hubs/chat`、`chat.messages.cleanup`、`chat.calls.sweep` |
 | Workflow | `basicapp.workflow@1` | 审批中心、流程定义、流程实例 | 待办、转办与故障通知的消息处理器 |
 | CodeGeneration | `basicapp.codegeneration@1` | 代码生成 | — |
 | AI | `basicapp.ai@1` | AI 提供商、助手、提示词、知识库 | `AiProviderCatalogMiddleware`（Transaction 开头） |

@@ -83,7 +83,7 @@ Printing 的注册表在启动时收下全部登记并校验，编码重复或�
 
 ## 前端
 
-- 页面 `printing.print-templates`（路由 `/printing/print-templates`）在 `src/modules/printing`：平台管全局模板，租户在「本租户模板」与「可用全局模板」之间切换；新增与编辑元数据在弹窗里，版面在全屏设计器里改，另有样例数据预览与直打。
+- 页面 `printing.print-templates`（路由 `/printing/print-templates`，在「平台管理 › 打印服务」目录下）在 `src/modules/printing`：平台管全局模板，租户在「本租户模板」与「可用全局模板」之间切换；新增与编辑元数据在弹窗里，版面在全屏设计器里改，另有样例数据预览与直打。
 - `setup.ts` 调 `configurePrinting`：`resolveTemplate` 接 `print-templates.resolve`，`listDataSources` 接 `print-data-sources.list`。业务页面打印单据用 `~/printing` 的 `previewPrintByCode(code, data)` 或 `directPrintByCode`。
 - 设计器 `@xihan-print/*`（文档见 [print.docs.xihanfun.com](https://print.docs.xihanfun.com)）经 `packages/printing` 接入，设计器共用的接线（跟随应用语言、属性编辑器、宿主命令图标、菜单栏标题与状态栏）在 `packages/designers`，流程设计器随 Workflow 接到同一处。
 - 静默直打依赖每台操作机装 XiHan 打印客户端（本机 WebSocket），连不上时不退回浏览器打印；预览只代表打印对话框已打开，不知道用户最终是打印还是取消。

@@ -23,7 +23,7 @@ XiHan.BasicApp 是曦寒生态的企业级中后台应用。后端基于 XiHan.F
 | 主键与租户 | 主键 UUID v7；租户 ID 是字符串；平台库实体不实现 `IMultiTenant`，租户库实体可随租户分库 |
 | 权限码 | `<包>.<资源>.<动作>` 点分三段；按钮直接用操作的权限码 |
 | 前端接口层 | 由 `openapi.json` 生成类型、操作客户端、权限码与枚举，不手写 |
-| 表结构 | `Schema/<版本>/*.sql` 加版本台账，启动时自动升级；新库经 `schema upgrade` + `seed` 初始化（见[表结构升级](./backend/upgrade)） |
+| 表结构 | ORM 按实体建表补列，ORM 做不了的改动写按库类型分目录的升级脚本，版本台账记每一步，启动时自动升级；新库经 `schema upgrade` + `seed` 初始化（见[表结构升级](./backend/upgrade)） |
 
 取舍与理由见[设计取舍](./why)，逐项能力见[功能清单](./features)，版本变化见[更新日志](./changelog)。
 

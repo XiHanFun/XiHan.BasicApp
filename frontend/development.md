@@ -86,7 +86,7 @@ pnpm build
 | --- | --- |
 | `type-check` | `vue-tsc --noEmit` |
 | `lint` | oxlint + eslint（`@antfu/eslint-config`）+ stylelint（`.css` 与 `.vue` 的 `<style>`，后者经 postcss-html 解析）；`packages/` 不得引用 `@/` |
-| `px:check` | 样式里的裸 px 按文件计数（`scripts/px-allowlist.json`，`--update` 收紧） |
+| `px:check` | 裸 px 按文件计数：样式、模板（行内 style、Tailwind 任意值）与脚本都算（`scripts/px-allowlist.json`，`--update` 收紧） |
 | `token:check` | 引用的 `--xh-*` 令牌在已安装的组件库里存在 |
 | `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
 | `modules:check` | 模块名是后端能力包名；有 `setup.ts`、`locales/`、`views/`；视图路径是 kebab-case 且全局唯一 |
@@ -101,7 +101,7 @@ pnpm build
 
 ### 端到端冒烟
 
-`e2e/` 下是 Playwright 用例，按真实用户的操作走一条主干：超管登录与退出、开通企业版租户并初始化管理员、租户管理员以租户 ID 登录、建角色与成员并直授申请权限、成员提交角色申请、管理员在审批中心同意、成员看到已批准。
+`e2e/` 下是 Playwright 用例，按真实用户的操作走一条主干：超管登录与退出、开通企业版租户并初始化管理员、租户管理员以租户 ID 登录、建角色与成员并直授申请权限、成员提交角色申请、管理员在审批中心同意、成员看到已批准。聊天另有一条：超管建一个平台账号并直授聊天权限，两个人单聊、互发消息实时收到，语音通话接通再挂断（Chromium 带假的媒体设备、授权提示自动同意），聊天审计里查到那条消息与那通电话。
 
 ```bash
 pnpm exec playwright install chromium   # 首次

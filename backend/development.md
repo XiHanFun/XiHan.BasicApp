@@ -59,7 +59,7 @@ public sealed record CreateConfigRequest(
 ## 三、实现操作
 
 ```csharp
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
 public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, IIdGenerator<Guid> ids)
     : IOperation<CreateConfigRequest, ConfigResponse>
 {
@@ -85,6 +85,7 @@ public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
 要点：
 
 - 一个类一个操作，类名是动词短语（`CreateConfig`、`DeleteConfigs`），操作 ID 写成 `const string Id`，命名空间是 `<包>.Operations.<资源 Pascal>`（架构测试核对）。
+- 稳定级别：Tier 0–2 的包清单与操作是 `Stable`（缺省值，操作上不写），6.x 内操作 ID、路由、请求与响应字段、权限码与错误码不破坏，要去掉先标 `Deprecated`、下个大版本再删；Tier 3 可选模块的清单与操作写 `Stability = Stability.Preview`，小版本里可以破坏。Stable 包里的新操作可以先以 `Preview` 发布，操作不能比所在的包更稳定（`StabilityTests` 守护）。非 Stable 的操作在 `openapi.json` 里带 `x-xihan-stability`。
 - `Expose` 必须显式写：没写即编译错误（框架诊断 `XHG004` 在 `backend/.editorconfig` 里设为 error）。管理操作只 `Expose.Http`；超出 `Expose.Http` 的（MCP、AI 工具、gRPC）必须只读，并逐个登记到 `OperationExposureTests`。
 - 授权：`Permission = <包>Permissions.Xxx`；自助操作写 `Policy = "authenticated"`；匿名操作两者都不写，并登记到 `OperationContractTests` 的匿名白名单。
 - 失败是值：可恢复的失败返回 `Error.Validation / NotFound / Conflict / Denied / Unavailable(...)`，不抛业务异常；异常只用于编程错误与基础设施故障。批量操作的失败项用 `BatchFailure.From(id, error)` 带上文案。

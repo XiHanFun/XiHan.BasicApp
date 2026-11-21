@@ -15,7 +15,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | Tailwind | `src/styles/index.css` | 样式总入口：定死层序，`@theme inline` 把页面用到的主题色与排版工具类映射到 `hsl(var(--x))` 与 `--xh-*`，在使用处解析，嵌套的 `.dark` 容器随之切换 |
 | 应用样式 | `packages/design/*.css`、`src/styles/admin-page.css` | 宿主基线、动效令牌桥、页面过渡、原生滚动条与共享结构件，只读 `--xh-*` 语义令牌 |
 
-偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度与色弱滤镜。
+偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，高对比度写 `data-contrast`（`more` / `default`），主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度滤镜与色弱模式的红绿色觉校正滤镜（隐藏的 SVG `feColorMatrix`，明暗不变，只把红绿差异挪到蓝黄方向）。
 
 ## 约束
 
@@ -27,7 +27,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | 浮层 | 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊）；玻璃拟态只用在命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览遮罩、控制中心面板、页面切换的加载遮罩，统一取 `packages/design/ui.css` 的 `.app-glass` / `--app-glass-*` |
 | 取值 | 颜色、间距、圆角、阴影、层级、动效只用语义令牌，不写裸色值 |
 | CSS 写法 | `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量，组件局部变量的取值也一样；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；字号取 `--xh-font-size-*` / `--xh-text-*-size`、图标尺寸取 `--xh-glyph-size-*`，不写 px、rem；原生滚动条只在 `scrollbar.css` 里给 |
-| 裸 px | `pnpm px:check`：`.css` 与 `.vue` 的 `<style>` 里的裸 px 按文件计数（`scripts/px-allowlist.json`），只许减不许增，新文件不进白名单；`0px`、`1px` / `2px`（描边与发丝线）、`9999px` 不计 |
+| 裸 px | `pnpm px:check`：`.css`、`.vue` 全文（样式、模板里的行内 style 与 Tailwind 任意值如 `text-[13px]`、脚本里的样式对象）与 `.ts`（不含测试）里的裸 px 按文件计数（`scripts/px-allowlist.json`），只许减不许增，新文件不进白名单；`0px`、`1px` / `2px`（描边与发丝线）、`9999px` 不计 |
 | 令牌 | 引用的 `--xh-*` 必须存在于已安装的组件库里（`pnpm token:check`） |
 | 修补 | 不用页面 CSS 修补组件库的通用缺陷，回 XiHan.UI 修；令牌桥只映射品牌与布局语义，不改组件结构 |
 | 风格 | 紧凑、任务导向，不在控制台页面用营销式大标题、装饰性 Hero、夸张渐变或装饰留白 |
@@ -58,7 +58,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 
 ## 偏好与同步
 
-亮 / 暗 / 跟随系统、主题色、圆角、密度、字号、色弱 / 灰度、布局、区域与时区等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，登录或刷新时拉取。偏好与收藏在其他设备上改了经 `UserSettingChanged` 实时应用；搜索设置、表格设置与看板布局在打开页面时取后端那份。偏好、收藏、搜索、表格与看板各有同步开关（设备本地，不上行），缺省都开。
+亮 / 暗 / 跟随系统、主题色、圆角、密度、字号、色弱 / 灰度 / 高对比度、布局、区域与时区等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，登录或刷新时拉取。偏好与收藏在其他设备上改了经 `UserSettingChanged` 实时应用；搜索设置、表格设置与看板布局在打开页面时取后端那份。偏好、收藏、搜索、表格、条件预设与看板各有同步开关（设备本地，不上行），缺省都开。
 
 ## 无障碍与适配
 

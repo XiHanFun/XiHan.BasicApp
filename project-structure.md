@@ -64,7 +64,7 @@ XiHan.BasicApp.Host/
 ├─ HostModules.cs  HostProviders.cs   # 可选模块开关；按配置装 Redis、RabbitMQ
 ├─ Commands/                    # seed、schema upgrade
 ├─ Endpoints/                   # 文件、头像、聊天附件、代码生成产物包等普通端点
-├─ Schema/6.0.0/0001-baseline.sql     # 表结构基线
+├─ Schema/<版本>/<库类型>/*.sql       # 升级脚本，只放 ORM 做不了的改动（有才建目录）
 ├─ IpDatabases/                 # IP 归属地离线库
 ├─ appsettings.json  appsettings.Development.json
 ├─ ConfigurationSchema.json     # 配置的 JSON Schema（编辑器补全与校验）
@@ -80,7 +80,7 @@ XiHan.BasicApp.Identity/
 ├─ IdentityFeature.cs           # IFeature：清单（Id、Provides、Requires）与 Configure 登记
 ├─ IdentityCapabilities.cs      # 本包对外提供的能力 ID（basicapp.identity@1）
 ├─ IdentityPermissions.cs       # PermissionDescriptor 常量：码、显示名、作用侧、是否审计
-├─ IdentityPages.cs             # 页面登记：页面码、路由、文案键、图标、排序、所需权限
+├─ IdentityPages.cs             # 页面登记：页面码、路由、文案键、图标、排序、所需权限、缺省所属目录、固定标签与徽标
 ├─ IdentityMessages.cs          # 消息键常量与消息目录
 ├─ IdentityErrors.cs            # 错误码常量 IDENTITY_<KIND>_<NNN>
 ├─ IdentityJsonContext.cs       # 本包请求 / 响应 DTO 的源生成序列化上下文
@@ -141,7 +141,7 @@ frontend/
 | 新增权限码 | `<包>Permissions.cs`（`PermissionDescriptor`），在 `All` 里登记 |
 | 新增页面（菜单） | `<包>Pages.cs`，前端在 `src/modules/<包>/views/<路径>/index.vue` |
 | 新增错误码 / 文案 | `<包>Errors.cs`、`<包>Messages.cs` 与 `Localization/*.json`（10 种区域键集一致） |
-| 改表结构 | 实体 + `Host/Schema/<版本>/*.sql` |
+| 改表结构 | 实体；改名、改类型、删列、搬数据另写 `Host/Schema/<版本>/<库类型>/*.sql` |
 | 新增配置项 | 包的 `<包>Options.cs`（`BasicApp:*`）与 `Host/appsettings.json` |
 | 新增种子 | 包的 `Seeds/`，实现 `ISeeder`，号段见 `Contracts/Seeding/SeedOrders.cs` |
 | 新增后台作业 | 包的 `Jobs/`，在 `Configure` 里登记 |

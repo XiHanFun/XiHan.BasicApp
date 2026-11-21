@@ -19,7 +19,9 @@
 
 ## 租户目录与业务实体
 
-租户目录是框架 `MultiTenancy.Database` 的 `tenant_record`：租户 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，带有界缓存（`XiHan:MultiTenancy:Database`）。`SysTenant` 是 Tenancy 的业务实体：套餐、到期时间、席位与存储上限、管理员（所有者）、隔离方式与独立库状态。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入；目录里的连接串是密文，由 Runtime 的分片解析器解密。
+租户目录是框架 `MultiTenancy.Database` 的 `tenant_record`：租户 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，带有界缓存（`XiHan:MultiTenancy:Database`）。`SysTenant` 是 Tenancy 的业务实体：套餐、到期时间、席位与存储上限、管理员（所有者）、隔离方式、独立库状态与自定义域名。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入；目录里的连接串是密文，由 Runtime 的分片解析器解密。
+
+自定义域名（`domain`，`tenants.create` / `update` 填，小写、不带端口与末尾的点，一个域名只能绑一个租户，否则 `TENANCY_CONFLICT_018`）只用于登录前按访问的域名显示租户的品牌、预填租户框（`site.resolve`，见[系统设置](./settings#站点设置与租户品牌)），停用或到期的租户不再按域名显示；身份仍只认令牌声明，不接受按域名切换租户。
 
 租户停用（`tenants.suspend`）后，目录将其标记为禁用，带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录同样被拒绝。
 
@@ -50,7 +52,7 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 | `tenants.quotas` | `tenancy.tenants.read` | 各租户的用量与配额（平台侧） |
 | `tenants.mine` | 登录即可 | 我能进入的租户（控制中心、个人中心「我的租户」） |
 
-独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构脚本只为 PostgreSQL 编写，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
+独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构按实体建出，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
 
 ## 成员与切换
 

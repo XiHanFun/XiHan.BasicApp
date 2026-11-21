@@ -29,7 +29,7 @@ docker compose up -d --build
 - `init` 服务先执行 `schema upgrade` 与 `seed`（可重复执行，每次 `up` 都会跑一遍），成功退出后后端才启动；后端以 `Production` 运行，接口文档不映射，演示数据按 `.env` 的 `ENABLE_DEMO_DATA`（缺省 `false`）。
 - 可写的数据都在后端容器的 `/app/data` 卷：文件存储、数据保护密钥与框架缺省的文件系统存储。`init` 与后端共用这个卷，种子加密写入的值才解得开。
 - 编排网络固定为 `172.30.0.0/24`，后端只信这个网段里的 Nginx 转发头（`BasicApp__ForwardedHeaders__KnownNetworks__0`）。
-- Redis（`redis:8-alpine`）、RabbitMQ（`rabbitmq:4-alpine`）、Qdrant（`qdrant/qdrant:v1.15.1`）在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应配置的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
+- Redis（`redis:8-alpine`）、RabbitMQ（`rabbitmq:4-alpine`）、Qdrant（`qdrant/qdrant:v1.15.1`）与通话的 TURN 中继（`coturn/coturn:4-alpine`，见[语音与视频通话](#语音与视频通话)）在 `docker-compose.yml` 里以注释给出，打开服务后再取消 `x-backend-env` 里对应配置的注释。其余配置按 `appsettings.json` 的键名加环境变量（双下划线分节）。
 
 ## 后端：发布
 
@@ -39,7 +39,7 @@ docker compose up -d --build
 dotnet publish backend/src/XiHan.BasicApp.Host -c Release -o ./publish/basicapp
 ```
 
-发布目录里带着 `Schema/<版本>/*.sql`、`IpDatabases/*.xdb`（IP 归属地离线库）与 `appsettings.json`。
+发布目录里带着 `IpDatabases/*.xdb`（IP 归属地离线库）与 `appsettings.json`，有升级脚本的版本还带着 `Schema/<版本>/<库类型>/*.sql`。
 
 ### 生产配置清单
 
@@ -66,7 +66,7 @@ Kubernetes 也可以经 Service Binding 提供三个连接：`SERVICE_BINDING_RO
 ### 首次初始化
 
 1. 建空库。
-2. 执行表结构升级：启动宿主时升级器执行 `Schema/6.0.0/` 基线并写版本台账，失败即中断启动；也可以先单独执行 `schema upgrade`。
+2. 执行表结构升级：启动宿主时升级器按实体建出全部表并写版本台账，平台库失败即中断启动；也可以先单独执行 `schema upgrade`。
 3. 执行一次种子：`seed`（命令模式不监听端口，可在宿主运行时执行；可重复执行）。
 4. 用 `superadmin` 登录，立即修改密码，再建租户与租户管理员。
 
@@ -84,10 +84,10 @@ dotnet XiHan.BasicApp.Host.dll
 | 端点 | 用途 |
 | --- | --- |
 | `/health/startup` | 启动探针 |
-| `/health/ready` | 就绪探针：含各 Feature 与 Provider 健康项 |
+| `/health/ready` | 就绪探针：应用处于 Ready 或 Degraded 即通过，只给总状态 |
 | `/health/live` | 存活探针 |
 
-配了 Redis / RabbitMQ 时就绪探针多出 `caching.redis.connection` / `messaging.rabbitmq.connection`：启动时连不上即启动失败，运行中断开只记 Degraded，应用照常服务。
+探针不带各 Feature 与健康项的详情，详情在服务监控里看（`maintenance.server.read`），见[健康检查与可观测](./backend/health-observability)。配了 Redis / RabbitMQ 时健康项多出 `caching.redis.connection` / `messaging.rabbitmq.connection`：启动时连不上即启动失败，运行中断开只记 Degraded，就绪探针照样通过、应用照常服务。
 
 宿主目录里的 `xihan.app.json` 是框架打包规范的应用清单：镜像 `ghcr.io/xihanfun/xihan-basicapp`（tag 与版本号一致）、端口 `http 9710` / `grpc 9711`、绑定 `db`、启动探针 60 秒、停机宽限 30 秒与资源请求。清单只列了必需的 `db`；要让打包工具一并生成 Redis 与 RabbitMQ，在 `bindings` 里加上 `{ "name": "cache", "type": "cache:distributed" }` 与 `{ "name": "queue", "type": "queue" }`。
 
@@ -172,7 +172,7 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 平台库可以配从库（配置见 [`BasicApp:Database`](./configuration#basicapp-database) 与 [`XiHan:Persistence:SqlSugar`](./configuration#xihan-persistence-sqlsugar)）。配之前先看这几条：
 
 - **跨调用不保证读己之写**：写完马上发起的 `get`、`list` 可能读到落后的数据。比如保存之后立刻刷新列表，可能看到旧值。
-- **授权相关的读走主库**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，框架的授予与租户目录也读主库；强制下线、改密、禁用、撤销角色与停用租户不受复制延迟影响，生效时间只取决于缓存时长（如授予缓存 `XiHan:Security:Database:CacheTimeToLiveSeconds`）。
+- **授权相关的读走主库**：会话门禁、角色指派、权限规则、角色继承、委托、权限条件、访问策略、约束规则、字段安全、套餐门控与 API 凭证读主库，框架的授予与租户目录也读主库；强制下线、改密、禁用、撤销角色与停用租户不受复制延迟影响；框架的授予与租户目录在提交之后即失效，BasicApp 自己的读穿缓存按各自时长与失效时机生效（见[缓存](./backend/caching)）。
 - **探测只看连通**：落后很多但连得上的从库照常接读流量，复制延迟要另外监控。
 - **只在 PostgreSQL 上实测过**：MySQL、SQL Server、Oracle 的从库没有实测。
 - 独立库租户不配从库，读写都走它自己的主库。主库不同的连接不能共用从库，启动失败（`PERSISTENCE_VALIDATION_009`）。
@@ -189,6 +189,30 @@ CloudEvents 入站端点 `POST /events`（`BasicApp:CloudEvents:Enabled`，缺�
 
 1. 删掉要还原那一侧的集合（Qdrant 的 `DELETE /collections/<集合名>`）；
 2. 在那一侧逐篇重建索引：知识库页的行操作「重建索引」，或操作 `knowledge-documents.reindex`。集合在第一次写入时重新建好，重建用的是库里留存的原文。
+
+## 语音与视频通话
+
+通话的媒体在浏览器之间走 WebRTC，不经后端；多人通话里每两个人之间各一条连接。上线前要备好两件事：
+
+- **HTTPS**：浏览器只在 HTTPS（与 `localhost`）下给麦克风、摄像头与屏幕，站点要挂证书。
+- **TURN 中继**：两端在同一网段或都能直连时不用它；隔着对称型 NAT、企业防火墙的两端要靠 TURN 转发媒体，否则接通后这两个人之间连不上（一对一通话 30 秒后自动挂断，多人通话里互相连不上的两个人听不到对方）。
+
+TURN 服务器自己部署，仓库只给配置项与示例。以 coturn 为例（`docker-compose.yml` 里有注释掉的 `coturn` 服务）：
+
+1. 准备一台有公网地址的主机，放行 3478（UDP 与 TCP）与中继端口段（示例是 UDP 49160–49200，按并发通话数放大，每通经中继的通话占两到四个端口）。
+2. coturn 以 `use-auth-secret` 运行，`static-auth-secret` 取一个随机串，`external-ip` 写公网地址，`realm` 写站点域名。
+3. 后端配 `BasicApp:Chat:Calls`：`TurnUrls` 指向这台主机，`TurnSecret` 与 `static-auth-secret` 相同，`StunUrls` 可以指向同一台（coturn 同时应答 STUN）。
+
+```bash
+BasicApp__Chat__Calls__StunUrls__0=stun:turn.example.com:3478
+BasicApp__Chat__Calls__TurnUrls__0=turn:turn.example.com:3478?transport=udp
+BasicApp__Chat__Calls__TurnUrls__1=turn:turn.example.com:3478?transport=tcp
+BasicApp__Chat__Calls__TurnSecret=<与 static-auth-secret 相同的随机串>
+```
+
+后端按共享密钥给每个用户现签限时凭据（缺省一小时），密钥不下发到浏览器。要走 TLS 的 TURN（`turns:`，穿只放行 443 的网络）时给 coturn 配证书并把地址写成 `turns:turn.example.com:5349?transport=tcp`。中继的流量按通话码率计，视频与共享的屏幕每路约 1–2 Mbps，带宽按经中继的并发路数估：多人通话是全互联，N 个人的通话有 N×(N−1)/2 条连接，每条经中继的连接两个方向各算一路。
+
+已有部署升级后，通话的两个权限码（`chat.chat-calls.read`、`chat.chat-calls.call`）要在套餐白名单与角色里授予，用户才看得到通话按钮、接得到来电。
 
 ## 多实例部署
 

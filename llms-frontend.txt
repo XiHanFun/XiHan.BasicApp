@@ -1,6 +1,6 @@
 # 曦寒基础应用 · 前端手册
 
-共 11 页。索引见 https://basicapp.docs.xihanfun.com/llms.txt
+共 13 页。索引见 https://basicapp.docs.xihanfun.com/llms.txt
 
 ---
 
@@ -39,7 +39,7 @@
 | `XPermissionTransfer` / `XGrantTransfer` | 权限分配穿梭框（角色、用户直授、套餐）：条目来自权限目录 `permissions.list`，按 `groupPermissions` 分组 |
 | `XTree` | 树（数据范围里的部门、缓存键、生成代码的文件） |
 | `XUserAvatar` | 用户头像：值是文件 ID 时换签名地址，没有头像时显示首字母 |
-| `XFileRefUpload` | 业务表单里的文件引用上传：上传到文件库，字段只存文件 ID |
+| `XFileRefUpload` | 业务表单里的文件引用上传：与文件库页面同一条上传路径（秒传、大文件分片、中断后续传），字段只存文件 ID；图片缺省限 10MB，文件以文件库的上限为准 |
 
 ## 其他组件
 
@@ -60,8 +60,9 @@
 | --- | --- |
 | `CronExpression` | Cron 构建器（作业的新建与改计划），配合 `jobs.validate-schedule` 预览执行时间 |
 | `LocaleSwitcher`、`TimezoneSwitcher` | 区域与时区切换（顶栏、悬浮工具栏、偏好设置） |
-| `LockScreen`、`DynamicIsland`、`AppWatermark` | 锁屏、灵动岛、水印，挂在 `App.vue` |
+| `LockScreen`、`DynamicIsland`、`AppWatermark` | 锁屏、灵动岛（往岛上放活动见[灵动岛](./dynamic-island)）、水印，挂在 `App.vue` |
 | `SyncStatusBadge`、`PageLoader` | 设置同步状态、页面加载占位 |
+| `XArtboard` | 按固定的设计尺寸排版再整体缩放的画板，给只当画面看的演示用（见[新版欢迎页](./welcome#演示组件)） |
 
 ## 写法约定
 
@@ -164,7 +165,7 @@ pnpm build
 | --- | --- |
 | `type-check` | `vue-tsc --noEmit` |
 | `lint` | oxlint + eslint（`@antfu/eslint-config`）+ stylelint（`.css` 与 `.vue` 的 `<style>`，后者经 postcss-html 解析）；`packages/` 不得引用 `@/` |
-| `px:check` | 样式里的裸 px 按文件计数（`scripts/px-allowlist.json`，`--update` 收紧） |
+| `px:check` | 裸 px 按文件计数：样式、模板（行内 style、Tailwind 任意值）与脚本都算（`scripts/px-allowlist.json`，`--update` 收紧） |
 | `token:check` | 引用的 `--xh-*` 令牌在已安装的组件库里存在 |
 | `i18n:check` | 10 种区域键集对称；源码静态引用的 `t('…')` 键存在 |
 | `modules:check` | 模块名是后端能力包名；有 `setup.ts`、`locales/`、`views/`；视图路径是 kebab-case 且全局唯一 |
@@ -179,7 +180,7 @@ pnpm build
 
 ### 端到端冒烟
 
-`e2e/` 下是 Playwright 用例，按真实用户的操作走一条主干：超管登录与退出、开通企业版租户并初始化管理员、租户管理员以租户 ID 登录、建角色与成员并直授申请权限、成员提交角色申请、管理员在审批中心同意、成员看到已批准。
+`e2e/` 下是 Playwright 用例，按真实用户的操作走一条主干：超管登录与退出、开通企业版租户并初始化管理员、租户管理员以租户 ID 登录、建角色与成员并直授申请权限、成员提交角色申请、管理员在审批中心同意、成员看到已批准。聊天另有一条：超管建一个平台账号并直授聊天权限，两个人单聊、互发消息实时收到，语音通话接通再挂断（Chromium 带假的媒体设备、授权提示自动同意），聊天审计里查到那条消息与那通电话。
 
 ```bash
 pnpm exec playwright install chromium   # 首次
@@ -202,6 +203,135 @@ pnpm e2e
 ## 下一步
 
 - [菜单与路由](./routing) · [契约与请求](./request) · [Schema 驱动页面](./schema-page)
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/dynamic-island
+
+# 灵动岛
+
+本页说明灵动岛能呈现什么、各区放什么由谁决定，以及调用方怎样把一件事放上岛，适用于前端开发者。
+
+灵动岛是屏幕顶部正中常驻的深色胶囊，呈现进行中的任务、刚完成的结果和需要一直看得见的状态（网络或实时连接断开、模仿登录）。组件 `DynamicIsland` 挂在 `App.vue`，调用方只经 `~/composables` 的函数往岛上放活动，不碰组件本身。偏好设置里能关掉灵动岛：关掉后进行中与常驻状态不再出现，成功、失败与信息改由轻提示呈现。
+
+## 三种呈现
+
+一件事在岛上叫一条活动。分区参照 iOS 的实时活动，同一条活动有三种呈现：
+
+| 呈现 | 何时出现 | 分区 |
+| --- | --- | --- |
+| 胶囊 | 一直在：最新的消息，没有消息时是最近的进行中或常驻状态 | 左侧 `leading`、中间标题、右侧 `trailing`；消息叠了 3 条以上时右端还有岛自己的计数 |
+| 卡片 | 有新内容时自动短暂展开，几秒后收回胶囊；鼠标停在卡片上时不收回 | 首行 `leading`、标题与 `trailing`；其下 `detail`（最多两行）、内容块 `blocks`、进度与操作 `actions` 铺满整宽 |
+| 面板 | 鼠标停在胶囊上展开、移开收起；触屏点按、键盘聚焦胶囊后按 Enter 也能展开，Esc、点外部或 Tab 出岛收起 | 每条与卡片同一套分区，`detail` 完整显示，进行中的显示已用时，非常驻的悬停可移除 |
+
+多条消息同时到达时在胶囊后方叠起来，最新的在最前；同时存活的消息最多 5 条，再来就丢最旧的。面板展开期间消息不倒计时，收起后重新计时。
+
+## 放上岛
+
+| 函数 | 用途 |
+| --- | --- |
+| `islandStart(id, label, init?)` | 开始一条活动，缺省进行中；返回句柄推进到终态 |
+| `islandStatus(id, label, init?)` | 常驻状态，不自动消失，缺省信息态；经句柄的 `success` / `info` / `dismiss` 收尾 |
+| `applyServerTaskProgress(payload)` | 服务端 `TaskProgress` 推送的后台任务进度，由实时通信接好，页面不用调 |
+
+同一个 `id` 复用同一条：再调一次即更新这一条，不新增。句柄的方法：
+
+| 方法 | 说明 |
+| --- | --- |
+| `update(label)` | 只换标题，保持进行中 |
+| `patch(fields)` | 合并更新任意字段，省略的字段沿用原值 |
+| `setProgress(n)` | 设进度 0-100 |
+| `success(label?, fields?)` | 成功，停留 1.6 秒后消失 |
+| `error(label?, fields?)` | 失败，停留 3.2 秒后消失 |
+| `info(label?, fields?)` | 信息，停留 2.4 秒后消失；带 `persistent: true` 则常驻 |
+| `dismiss()` | 立即移除 |
+
+```ts
+import { islandStart } from '~/composables'
+
+const task = islandStart('report:export', t('report.exporting'), { icon: 'lucide:download', progress: 0 })
+task.setProgress(40)
+task.success(t('report.exported', { n: total }), {
+  actions: [{ key: 'open', label: t('report.open'), icon: 'lucide:folder-open', handler: openFolder }],
+})
+```
+
+## 字段
+
+| 字段 | 说明 |
+| --- | --- |
+| `state` | `loading` / `success` / `error` / `info` |
+| `detail` | 副文本：卡片里最多两行，面板里完整显示 |
+| `icon` | 缺省指示器上的图标：进行中画在进度环中心，终态替换状态图标 |
+| `progress` | 进度 0-100；省略即不确定态（旋转弧环） |
+| `leading` | 胶囊左侧与卡片、面板首行标题前的小件，缺省是状态指示器 |
+| `trailing` | 胶囊右侧与卡片、面板首行末尾的小件，缺省在进行中且有进度时显示百分比（只在胶囊上） |
+| `blocks` | 正文下方的内容块，自上而下 |
+| `actions` | 操作按钮：`{ key, label, icon?, tone?, handler, keepOpen? }`，`tone` 取 `neutral` / `brand` / `danger`，点击后缺省移除这一条，`keepOpen: true` 则保留 |
+| `actionLayout` | `inline` 一行带字的按钮（缺省），`bar` 底部等宽的图标栏（读屏念 `label`） |
+| `alert` | 有新内容时是否自动展开成卡片，缺省带 `detail` 或 `blocks` 时展开 |
+| `elapsed` | 进行中时面板里是否显示已用时，缺省显示 |
+| `dismissible` | 面板里能否手动移除，缺省非常驻的都能 |
+| `duration` | 终态停留的毫秒数，改写上面的缺省值 |
+| `link` / `onClick` | 点卡片或面板里这一条时跳转的应用内路径，或执行的回调 |
+| `persistent` | 常驻，不自动消失；`islandStatus` 自动带上 |
+
+## 两侧小件
+
+`leading` 与 `trailing` 放得下一个图标、一枚头像、一个小环或一小段字，胶囊、卡片与面板三处用同一份：
+
+| `type` | 字段 | 呈现 |
+| --- | --- | --- |
+| `icon` | `icon`、`tone?` | 图标 |
+| `avatar` | `name`、`avatar?` | 用户头像（`avatar` 是文件主键或直链），没有图时显示名字的前两个字 |
+| `ring` | `value?`、`max?`、`icon?`、`tone?` | 进度环，`value` 省略即旋转；环心可放图标 |
+| `text` | `text`、`tone?` | 一小段字，如 `3/8`、`12%` |
+| `elapsed` | — | 自活动开始起的计时，读作 `m:ss` |
+| `custom` | `component`、`props?` | 调用方自己的组件 |
+
+`tone` 取组件库的语气：`neutral`、`brand`、`success`、`warning`、`danger`、`info`。没写 `leading` 时左侧是状态指示器，带状态色，成功、失败与信息在胶囊上还有一枚实心圆底；常驻状态不画圆底。
+
+## 内容块
+
+`blocks` 自上而下排在卡片与面板里每一条的正文下方：
+
+| `type` | 字段 | 呈现 |
+| --- | --- | --- |
+| `text` | `text` | 一段说明 |
+| `metric` | `value`、`unit?`、`caption?`、`accessory?` | 大号数值与单位，下方说明，右侧可挂一枚小件（如 `ring` 画目标完成度） |
+| `progress` | `value`、`max?`、`label?`、`valueText?`、`tone?` | 线形进度，上方左侧名称、右侧取值（缺省百分比） |
+| `list` | `items: { key, label, leading?, value?, progress?, tone? }[]` | 列表：行首小件、名称、右侧取值，给了 `progress` 就在行下画一条进度 |
+| `grid` | `items: { key, label, icon?, value }[]` | 等宽网格：每格自上而下是标题、图标、取值 |
+| `media` | `src`、`alt` | 图片，按 16:9 裁切 |
+| `custom` | `component`、`props?` | 调用方自己的组件 |
+
+```ts
+islandStatus('fleet:car', t('fleet.car.title'), {
+  leading: { type: 'icon', icon: 'lucide:car' },
+  trailing: { type: 'text', text: t('fleet.car.parked') },
+  blocks: [
+    { type: 'metric', value: 323, unit: 'km', caption: t('fleet.car.updated_at', { time }) },
+    { type: 'progress', value: 76, label: t('fleet.car.battery'), tone: 'success' },
+  ],
+  actionLayout: 'bar',
+  actions: [
+    { key: 'lock', label: t('fleet.car.lock'), icon: 'lucide:lock', keepOpen: true, handler: lock },
+    { key: 'charge', label: t('fleet.car.charge'), icon: 'lucide:zap', keepOpen: true, handler: charge },
+  ],
+})
+```
+
+## 约定
+
+- 文案走 `t()`，岛不替调用方翻译；切换语言后要以同一个 `id` 再调一次更新文案。
+- `custom` 组件在深色底上渲染，颜色取 `--xh-*` 语义令牌即随岛的深色墨域；它自己管交互，整条点击不覆盖它。胶囊本身是一枚按钮，胶囊上的 `custom` 只做展示。
+- 调用方的组件放进来时被标成非响应式，`props` 变了要经 `patch` 重新给。
+- 刷新页面后只恢复服务端进行中的任务（等推送续上），本地活动随页面结束。
+- 只在岛上显示、不能丢的状态，关掉灵动岛后要有自己的退路：模仿登录在岛关掉时退回顶部横幅。
+
+## 下一步
+
+- [实时通信](./realtime) · [常用组件](./components) · [布局与主题](./theme)
 
 ---
 
@@ -357,6 +487,7 @@ frontend/
 ├─ packages/  (~)        壳层与通用能力，不得引用 @/
 │  ├─ contracts/         生成的契约层 + 手写的分页适配 paging.ts
 │  ├─ request/           运行时客户端
+│  ├─ files/             上传到文件库（秒传、分片重试、中断续传）
 │  ├─ router/            守卫、菜单 → 路由、核心路由、视图解析
 │  ├─ stores/            会话、权限、偏好、标签栏、壳层扩展等 Pinia store
 │  ├─ layouts/           前端壳（侧栏、顶栏、标签栏、偏好中心……）
@@ -544,9 +675,9 @@ SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`�
 | 方法 | 前端处理 |
 | --- | --- |
 | `ForceLogout` | 会话被吊销：载荷带 `targetSessionIds` 时只处理本会话；断开连接、清会话，弹窗提示原因，确认后退出 |
-| `ReceiveNotification` | 右下角通知卡片（纯文本摘要，5 秒）、提示音，并通知顶栏的通知中心刷新 |
-| `TaskProgress` | 导出等后台任务进度，显示在灵动岛（`applyServerTaskProgress`） |
-| `UserSettingChanged` | 同一用户在其他设备上改了设置：偏好与收藏按 `settingKey` 实时应用；页面设置（`scene = Page`：列设置、搜索设置、个人视图、看板布局）按页面码分发给已打开的页面，关着对应同步开关的部分不应用；载荷带 `sourceClientId`，本端据此忽略自己的回显 |
+| `ReceiveNotification` | 右下角通知卡片（纯文本摘要，5 秒）、提示音，并通知顶栏的通知中心刷新；页面看不到（窗口最小化、切到别的标签页）时另发系统通知 |
+| `TaskProgress` | 导出等后台任务进度，显示在[灵动岛](./dynamic-island)（`applyServerTaskProgress`） |
+| `UserSettingChanged` | 同一用户在其他设备上改了设置：偏好与收藏按 `settingKey` 实时应用；页面设置（`scene = Page`：列设置、搜索设置、条件预设、看板布局）按页面码分发给已打开的页面，关着对应同步开关的部分不应用；载荷带 `sourceClientId`，本端据此忽略自己的回显 |
 
 推送不保证送达：断线期间错过的通知以收件箱为准（打开通知中心或刷新时重新拉取）。强制阅读与登录弹窗的公告由布局在挂载时经 `inbox.mandatory`、`inbox.popups` 拉取，不依赖推送。
 
@@ -556,15 +687,21 @@ SchemaPage 的 `actions[].permission`、`removePermission`、`statusPermission`�
 
 | 方向 | 方法 | 前端处理 |
 | --- | --- | --- |
-| 推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatMessageEdited`、`ChatReactionChanged` | 按会话内序号 `seq` 并入消息流，重复到达的不覆盖已有那条；别人发来的消息不在当前会话时响提示音，不在聊天页时上灵动岛 |
+| 推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatMessageEdited`、`ChatReactionChanged` | 按会话内序号 `seq` 并入消息流，重复到达的不覆盖已有那条；别人发来的消息不在当前会话时响提示音（与站内通知的音不同），不在聊天页时上灵动岛，页面看不到时发系统通知；免打扰的会话都不提醒。未读合计写在页面标题前面 |
 | 推送 | `ChatReadPositionChanged` | 已读位只前移，群消息的已读人数按序号比 |
 | 推送 | `ChatConversationChanged` | 按变更类型刷新会话列表、成员与群信息 |
 | 推送 | `ChatTyping` | 显示「正在输入」4 秒 |
+| 推送 | `ChatPresenceChanged` | 改写那个人的在线状态；头像的在线点、单聊的「在线 / 离线」与群成员的在线人数随之变。连接连上时（断线重连，或会话列表在连接建好之前就读了）重取会话列表与当前会话的成员 |
 | 推送 | `ChatAssistantDelta`、`ChatAssistantCompleted` | 助手流式回复：增量立即推给本人，结束或失败时收到完成，失败带 `errorCode` 与 `error` |
+| 推送 | `ChatCallChanged` | 通话此刻的样子：等自己答复的来电出卡片并连着响铃声，页面看不到时另发一条挂着不消失的系统通知，自己在里面的按参与者对齐与各人的媒体连接，结束了收场；在别处接听的只停铃；群通话另记到会话名下，供会话顶上的横幅用 |
+| 推送 | `ChatCallSignal` | 对端转来的信令（会话描述、ICE 候选，麦克风、摄像头与屏幕共享的开关）；只有占着这通电话的页签处理，按发来的人交给与他的那条连接 |
 | 调用 | `JoinConversation` / `LeaveConversation` | 打开与离开会话时进出会话组 |
 | 调用 | `Typing` | 输入时节流，3 秒至多调用一次 |
+| 调用 | `CallSignal` | 通话中把本端的信令交给对端：会话描述与候选指给一个人，开关状态发给通话里的所有人 |
 
 客户端可调的方法名来自生成的 `RealtimeInvocations`。会话列表与消息里的时间按应用时区显示，「今天 / 昨天」也按应用时区的日历日算。附件与群头像经 `chat-messages.presign` 凭会话换签名地址，不走通用文件的签名。
+
+语音与视频通话的媒体走浏览器原生的 WebRTC，不经 Hub；通话状态在 `call/call-store.ts`，与每个人之间的媒体连接在 `call/call-session.ts`（一人一条，各留麦克风、摄像头、屏幕三个轨道位），来电卡片与通话窗是壳层浮层 `integration/AppChatCall.vue`（一人一格是 `ChatCallTile.vue`），群里点名邀请的对话框是 `components/ChatCallInviteDialog.vue`。每次连上（含重连）都调 `chat-calls.active` 与服务端对一遍：还在等自己答复的来电认回来，断线期间结束了的收场，正开着的群会话里的通话重取。规则见[在线聊天](../backend/chat#语音与视频通话)。
 
 ## 订阅推送
 
@@ -652,7 +789,8 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 | 项 | 说明 |
 | --- | --- |
 | `signal` | 取消 |
-| `deadline` | 截止时间（`Date`），以 UTC ISO 8601 写进 `xihan-deadline` |
+| `deadline` | 截止时间（`Date`），以 UTC ISO 8601 写进 `xihan-deadline`；给了即以它为准 |
+| `timeoutMs` | 本次调用的超时（毫秒），缺省 60 秒（`DEFAULT_TIMEOUT_MS`）；调模型、生成代码、合并分片、跨存储复制与校验、重试升级这类跑得久的传 `LONG_TIMEOUT_MS`（5 分钟）；`0` 不设截止时间。截止时间过后 5 秒仍没有响应，前端自己中止并提示超时 |
 | `locale` | 覆盖本次调用的区域 |
 | `headers` | 额外请求头 |
 | `anonymous` | 匿名调用（登录、刷新、注册、找回密码）：不带令牌，未认证也不走刷新钩子 |
@@ -676,7 +814,7 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 | `Authorization: Bearer` | `getToken()`，匿名调用不带 |
 | `Accept-Language` | 当前区域（缺省 `en-US`） |
 | `traceparent` | 每个请求新生成（W3C） |
-| `xihan-deadline` | 传了 `deadline` 才有 |
+| `xihan-deadline` | `deadline`，没给时按超时推出；`timeoutMs: 0` 时不带。后端到点取消调用，回 504 `KERNEL_TIMEOUT_001` |
 
 ## 错误
 
@@ -734,7 +872,7 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 ## 菜单来源
 
 1. 后端各包在 `<包>Pages.cs` 登记页面：页面码、路由、文案键、图标、排序、所需权限码与所在目录；
-2. 种子把页面对齐成菜单，运营可在菜单管理里改展示、启停、配徽标、加目录（可多级嵌套）与外链；
+2. 种子把页面对齐成菜单，运营可在菜单管理里改展示、启停、配徽标、加目录（可多级嵌套）、外链与内嵌；
 3. `auth.permissions` 返回按权限裁剪的菜单树（停用的节点连同子树不下发，也就没有路由），以及有效权限码、角色与页面码。
 
 前端把菜单树投影成路由（`toMenuRoutes`）：
@@ -748,6 +886,7 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 | `permission` | `meta.permissions` |
 | `badge`、`badgeType`、`badgeDot` | `meta.badge`、`meta.badgeType`、`meta.dot`，由 `MenuBadge` 渲染 |
 | 外链的 `externalUrl` | `meta.link`，点击时新标签打开 |
+| 内嵌的 `externalUrl` | `meta.iframeSrc`，路由（`/embed/<名>`）挂壳层的 iframe 视图，在应用里打开 |
 
 目录节点自动重定向到第一个可导航的子页。侧栏会展开到当前页：按地址直达、刷新或从标签页切过来时，通往当前页的各级目录自动展开；手动收起的目录在当前页换掉之前不会被重新打开。
 
@@ -759,11 +898,12 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 component: settings/configs/index  →  src/modules/settings/views/configs/index.vue
 ```
 
-- 壳层自带、不归任何模块的页面在 `packages/router/views.ts` 的 `coreViews` 里逐条登记（关于页 `about/project/index` → `packages/views/_core/about/index.vue`）；
+- 壳层自带、不归任何模块的页面在 `packages/router/views.ts` 的 `coreViews` 里逐条登记（关于页 `about/project/index` → `packages/views/_core/about/index.vue`）；内嵌节点不走组件路径，统一挂 `packages/views/_core/embed/index.vue`，地址取 `meta.iframeSrc`，对方站点禁止被嵌入时浏览器不显示；
 - 登记了组件路径但找不到文件：控制台报错并回落到 404 页（侧栏仍显示该条目，报错用于定位配置错误）；菜单缺路由名的节点同样报错并跳过；
 - 视图路径要求 kebab-case 且全局唯一，由 `pnpm modules:check` 检查；
 - 每个页面包一层「名字 = 路由名」的壳组件，KeepAlive 按路由名命中缓存，页面组件自己的名字不参与；
-- 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载。
+- 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载；
+- 后端集成测试 `PageViewsTests` 双向核对：各包登记的页面与审批单据都能按上面的规则找到视图，`src/modules/*/views/**/index.vue` 也都有登记，多出来的视图没有入口能到。
 
 ## 守卫
 
@@ -786,11 +926,11 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 
 ## 首页
 
-登录后的落点与 `/` 的跳转目标取菜单树里第一个显示的页面（深度优先），它也是固定的首页标签。菜单里没有页面时用 `VITE_HOME_PATH` 兜底（仓库的 `.env` 设为 `/workbench/dashboard`）；关掉后端工作台模块时把它留空。
+登录后的落点与 `/` 的跳转目标取菜单树里第一个显示的页面（深度优先）。菜单里没有页面时用 `VITE_HOME_PATH` 兜底（仓库的 `.env` 设为 `/workbench/dashboard`）；关掉后端工作台模块时把它留空。
 
 ## 标签页与缓存
 
-访问过的页面进标签栏（首页与固定标签不可关）。标签标题存文案键，切换语言时跟着变。偏好里可关掉访问历史（只留当前页）或限制标签数。菜单的「缓存」与「固定标签」两个展示字段在菜单管理里可调，后端登记给缺省值。
+访问过的页面进标签栏。菜单里设为固定标签的页面在菜单装好后就排在标签栏最前（没访问过也在），不能关闭、也不能取消固定，工作台缺省固定；固定与否只看菜单，首页不特殊。手动固定的标签可以取消。标签标题存文案键，切换语言时跟着变。偏好里可关掉访问历史（只留当前页）或限制标签数。菜单的「缓存」与「固定标签」两个展示字段在菜单管理里可调，后端登记给缺省值。
 
 ## 下一步
 
@@ -804,7 +944,7 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 
 本页说明列表页引擎 SchemaPage 的页面定义、资源适配器与导入导出，适用于编写列表页的前端开发者。
 
-`SchemaPage`（`~/components`）用一份字段定义（`ListFieldSchema[]`）同时派生搜索、列、导出与导入；列设置、多列排序、密度、个人视图、树表、行速览、批量删除与批量启停都已内置。资源适配器把它的查询参数转成后端的 `PageRequest`。
+`SchemaPage`（`~/components`）用一份字段定义（`ListFieldSchema[]`）同时派生搜索、列、导出与导入；列设置、多列排序、密度、条件预设、树表、行速览、批量删除与批量启停都已内置。资源适配器把它的查询参数转成后端的 `PageRequest`。
 
 用户、角色、菜单、租户、套餐、部门、岗位、参数、字典、业务编号、文件、各日志页等列表页都用它。样板见 `src/modules/settings/views/configs`。
 
@@ -812,7 +952,7 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 
 ```ts
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'settings.configs', // 列设置、搜索设置、个人视图、导入历史按它存
+  pageCode: 'settings.configs', // 列设置、搜索设置、条件预设、导入历史按它存
   pageName: t('settings.configs.title'),
   rowKey: 'id', // 缺省 basicId，契约的行主键是 id
   fields: fields.value,
@@ -891,7 +1031,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 | `updateStatus(id, enabled)` | 启停单条；批量启停调它 |
 | `create(record)` | 导入时逐行新建 |
 | `importMany(records)` | 导入时按批交给后端的批量导入操作，返回其中不能导入的记录（与 `create` 二选一） |
-| `export` | `{ businessType, buildQuery? }`：接入导出中心 |
+| `export` | 接入导出中心：用 `~/contracts` 的 `exportCenter(列表操作 ID, 筛选登记或请求构造, { wholeList?, columnPaths? })` 生成 |
 
 `toPageRequest(params, mapping)`：
 
@@ -912,7 +1052,14 @@ export function configsResource(): SchemaResource<ConfigRow> {
 页面声明了 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段，没有标的就导出当前可见列；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
 
 - 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
-- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
+- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。除部门树之外，声明了导出的列表页都接了导出中心。
+
+`exportCenter()` 的查询快照与列表共用同一份筛选登记（传给 `toPageRequest` 的映射，或页面自己的请求构造，如作业页补运行状态、字典项补 `dictId`）。服务端按字段键从响应的一行里取值，所以：
+
+- `wholeList: true`：列表操作一次返回整份、不分页也不收筛选（权限目录、菜单、套餐），只给「全部」一档；菜单整棵树按先序展开成行。
+- `columnPaths`：在浏览器里算出来的字段，响应里没有这个键。给响应里的取值路径（点号接下一层、数组用下标，`|` 分隔几条备选），如作业的 `kind: 'triggers.0.kind'`、委托对象的 `target: 'roleName|permission'`；给 `null` 即导出中心不导这一列（作业的运行状态、约束规则的项数）。本地 CSV 不受影响，照常取行里的值。
+
+`files/tests/views/export-center/page-columns.spec.ts` 挂载每个声明了导出的页面，核对导出的列都能在列表操作的响应里取到值、业务类型都登记在导出中心页的 `KNOWN_BUSINESS_TYPES` 里（导出中心按它把业务类型显示成页面或页签的标题）。
 
 有导入字段且资源实现了 `create` 或 `importMany` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入字段缺省是标了 `importable` 的字段；模板与列表列对不上时（列表一列合并显示了几个字段，或导入要的字段列表里没有）在页面上写 `importFields` 显式给出，选项直接写 `options`。导入时下载按导入字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填与取值，再交给资源：
 
@@ -923,7 +1070,16 @@ export function configsResource(): SchemaResource<ConfigRow> {
 
 ## 个人设置
 
-列设置、搜索设置与个人视图按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到；其他设备上改了，已打开的页面经实时推送（`UserSettingChanged`）即时应用。
+列设置、搜索设置与条件预设按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到；其他设备上改了，已打开的页面经实时推送（`UserSettingChanged`）即时应用。
+
+排序有三处来源：列设置里每列的升 / 降箭头是这页的默认排序（多列时按列的先后定优先级），点列头排序只在本次浏览有效，条件预设存的是保存那一刻正在用的排序。首次加载时设了默认预设的按预设，否则按默认排序；开着同步时等后端那份回来再定，换了设备也按账号上的默认排序。搜索区「重置」清空筛选后回到默认排序。
+
+条件预设的入口是搜索区的书签按钮，跨设备同步由偏好设置里单独的「条件预设」开关控制（与表格设置分开）：
+
+- 点开后在「预设条件」下列出已存的预设：点名称即套用（筛选、排序与每页条数），悬停能看到它存的筛选与排序；点眼睛预览，下面那块换成它存的条件（名称行收起、保存置灰），再点一次或关掉浮层即还原；星标设为默认（再点一次取消），也可以删除。浮层底部有一段同款说明。
+- 「当前条件」第一行填预设名称，下面每个条件一个标签、一行一个，列出现在的筛选（字段名与选项名、日期区间、多选的值）、排序与每页条数，保存的就是这些；右上角保存（在名称框里回车也行），与已有预设同名时覆盖它。
+- 设了默认预设的页面在首次加载时就按它查询，不会先按空条件查一遍。开着同步时会等后端那份回来，它和列设置是同一条记录，不多等一趟。
+- 页面也可以经模板 ref 调用 `saveView`、`applyView`、`removeView` 与 `setDefaultView`（传 `null` 取消默认）。
 
 ## 已知限制
 
@@ -952,7 +1108,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | Tailwind | `src/styles/index.css` | 样式总入口：定死层序，`@theme inline` 把页面用到的主题色与排版工具类映射到 `hsl(var(--x))` 与 `--xh-*`，在使用处解析，嵌套的 `.dark` 容器随之切换 |
 | 应用样式 | `packages/design/*.css`、`src/styles/admin-page.css` | 宿主基线、动效令牌桥、页面过渡、原生滚动条与共享结构件，只读 `--xh-*` 语义令牌 |
 
-偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度与色弱滤镜。
+偏好由 `useTheme` 与 `useHtmlStyle` 写到 `<html>`：明暗写 `.dark` / `.light` 类与 `data-theme`，密度写 `data-density`，图表配色写 `data-xh-chart-palette`，高对比度写 `data-contrast`（`more` / `default`），主题色写 `--primary` 与派生的品牌色阶，圆角写 `--radius` / `--radius-card`，另有根字号、灰度滤镜与色弱模式的红绿色觉校正滤镜（隐藏的 SVG `feColorMatrix`，明暗不变，只把红绿差异挪到蓝黄方向）。
 
 ## 约束
 
@@ -964,7 +1120,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 | 浮层 | 锚定浮层走 frosted（实体底 + 描边 + 柔和投影，不叠背景模糊）；玻璃拟态只用在命令面板、登录与注册页的卡片和右上角工具条、灵动岛、标签总览遮罩、控制中心面板、页面切换的加载遮罩，统一取 `packages/design/ui.css` 的 `.app-glass` / `--app-glass-*` |
 | 取值 | 颜色、间距、圆角、阴影、层级、动效只用语义令牌，不写裸色值 |
 | CSS 写法 | `.css` 文件和 `.vue` 的 `<style>` 块用与 XiHan.UI 皮肤同一套 stylelint 规则（`stylelint.config.mjs`，随 `pnpm lint`）：逻辑属性；颜色只取 `--xh-*` 或由它调出的 `color-mix()`，不读应用配色变量，组件局部变量的取值也一样；圆角、内距、间隙只取 `--xh-shape-*` / `--xh-space-*`；过渡逐个列属性、不写 `all`；字号取 `--xh-font-size-*` / `--xh-text-*-size`、图标尺寸取 `--xh-glyph-size-*`，不写 px、rem；原生滚动条只在 `scrollbar.css` 里给 |
-| 裸 px | `pnpm px:check`：`.css` 与 `.vue` 的 `<style>` 里的裸 px 按文件计数（`scripts/px-allowlist.json`），只许减不许增，新文件不进白名单；`0px`、`1px` / `2px`（描边与发丝线）、`9999px` 不计 |
+| 裸 px | `pnpm px:check`：`.css`、`.vue` 全文（样式、模板里的行内 style 与 Tailwind 任意值如 `text-[13px]`、脚本里的样式对象）与 `.ts`（不含测试）里的裸 px 按文件计数（`scripts/px-allowlist.json`），只许减不许增，新文件不进白名单；`0px`、`1px` / `2px`（描边与发丝线）、`9999px` 不计 |
 | 令牌 | 引用的 `--xh-*` 必须存在于已安装的组件库里（`pnpm token:check`） |
 | 修补 | 不用页面 CSS 修补组件库的通用缺陷，回 XiHan.UI 修；令牌桥只映射品牌与布局语义，不改组件结构 |
 | 风格 | 紧凑、任务导向，不在控制台页面用营销式大标题、装饰性 Hero、夸张渐变或装饰留白 |
@@ -995,7 +1151,7 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 
 ## 偏好与同步
 
-亮 / 暗 / 跟随系统、主题色、圆角、密度、字号、色弱 / 灰度、布局、区域与时区等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，登录或刷新时拉取。偏好与收藏在其他设备上改了经 `UserSettingChanged` 实时应用；搜索设置、表格设置与看板布局在打开页面时取后端那份。偏好、收藏、搜索、表格与看板各有同步开关（设备本地，不上行），缺省都开。
+亮 / 暗 / 跟随系统、主题色、圆角、密度、字号、色弱 / 灰度 / 高对比度、布局、区域与时区等偏好存在本地，并经用户设置（`user-settings`）跨端同步：开着同步时以后端那份为准，登录或刷新时拉取。偏好与收藏在其他设备上改了经 `UserSettingChanged` 实时应用；搜索设置、表格设置与看板布局在打开页面时取后端那份。偏好、收藏、搜索、表格、条件预设与看板各有同步开关（设备本地，不上行），缺省都开。
 
 ## 无障碍与适配
 
@@ -1005,3 +1161,95 @@ XiHan.UI 是组件与样式契约的真源：组件只认 `--xh-*` 语义令牌�
 ## 下一步
 
 - [常用组件](./components) · [字体图标](./icon) · [国际化与时区](./i18n)
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/welcome
+
+# 新版欢迎页
+
+本页说明新版欢迎页何时出现、怎样给它登记一屏亮点、怎样关掉，适用于前端开发者。
+
+新版欢迎页是登录后首次进入一条新的版本线时出现一次的全屏欢迎层：各国问候由沙粒依次聚成又吹散，接着是欢迎主画面（标志与版本号由沙粒循环聚散）、亮点导览和收尾，操作都在页面底部。组件 `AppWelcome` 挂在基础布局里；出不出现、有哪几屏由 `~/stores` 的 `useWelcomeStore` 决定，壳层与各能力包只管登记自己的亮点。
+
+## 何时出现
+
+版本线是应用版本的「主版本.次版本」。欢迎页取登记过亮点、又不高于当前版本的最新一条版本线，账号还没看过它才出现。
+
+| 情形 | 行为 |
+| --- | --- |
+| 账号没有记录，或记下的版本线更早 | 进入壳层后出现 |
+| 跳过、按 Esc、看完后点「开始使用」 | 关闭并把这条版本线记到账号上（用户设置，偏好场景、键 `welcome`），换设备登录不再出现 |
+| 模仿登录 | 不出现，也不读记录 |
+| 锁屏期间（如首次登录强制改密） | 解锁后再判断 |
+| 读不到记录 | 这一次不出现，下次进入再判断 |
+| 没有登记过不高于当前版本的亮点 | 不出现，也不发请求 |
+
+出现期间背后的壳层不接操作，强制阅读的通知与登录后弹窗等它关掉再出现。看过之后可以在「关于」页点「新版亮点」重看，重看不读也不改账号上的记录。
+
+构建时把环境变量 `VITE_APP_WELCOME` 设为 `false` 即整个关掉：不出现、不读记录，「关于」页的入口也收起。
+
+## 登记一屏亮点
+
+亮点经 `registerWelcomeHighlights` 登记，各能力包在自己的 `setup.ts` 里调用，壳层的几屏在 `packages/layouts/basic/components/welcome/highlights.ts`。同一条版本线里 `key` 相同的后登记覆盖先登记。
+
+```ts
+import { registerWelcomeHighlights } from '~/stores'
+
+registerWelcomeHighlights({
+  release: '<主版本>.<次版本>',
+  key: 'report',
+  order: 70,
+  icon: 'lucide:chart-column',
+  tone: 'info',
+  categoryKey: 'report.welcome.category',
+  titleKey: 'report.welcome.title',
+  descriptionKey: 'report.welcome.description',
+  pointKeys: ['report.welcome.point_export', 'report.welcome.point_share'],
+  demo: () => import('./components/WelcomeDemo.vue'),
+  page: 'report.dashboards',
+  action: { labelKey: 'report.welcome.action', to: '/report/dashboards' },
+})
+```
+
+| 字段 | 说明 |
+| --- | --- |
+| `release` | 归属的版本线；到了这个版本才会出现 |
+| `key`、`order` | 同一条版本线里的标识与排序，小的在前；各包的排序号与壳层的穿插 |
+| `icon`、`tone` | 类目图标与语气（`brand` / `info` / `success` / `warning` / `danger`），背景光斑与类目标签跟着语气取色 |
+| `categoryKey`、`titleKey`、`descriptionKey`、`pointKeys` | 类目、标题、说明与两三条要点的文案键，十种区域都要有 |
+| `demo` | 右侧的演示组件，按需加载 |
+| `page` | 所属页面的编码：后端没有给当前用户下发这个页面（可选模块关掉、套餐不含或没有权限）时这一屏不出现 |
+| `permission` | 权限码：没有这个权限时不出现 |
+| `when` | 另外的出现条件，可以是异步的；不成立或判断出错时这一屏不出现，其余照常 |
+| `action` | 这一屏末尾的按钮：`to` 是应用内路由，`run` 是别的动作（如打开命令面板），二选一；点了先退场再执行 |
+
+只介绍使用者感知得到的变化；一屏只讲一件事。一屏亮点都没有的用户看到的是欢迎主画面接收尾。
+
+## 演示组件
+
+演示放在 `XArtboard`（`~/components`）里：按固定的设计尺寸排版，再随舞台整体缩放，窄屏上不会重排走样。演示只是画面，不接指针与键盘，文字用模块自己的文案键。
+
+要循环播放的演示用 `~/composables` 的 `useSequence`：
+
+```ts
+import { useSequence } from '~/composables'
+
+const loop = useSequence(async (wait) => {
+  step.value = 'typing'
+  await wait(1200)
+  step.value = 'done'
+  await wait(2400)
+})
+
+onMounted(() => loop.start())
+```
+
+一遍跑完自动从头再来；`wait(Number.POSITIVE_INFINITY)` 让序列停在最后一步；组件卸载时自动停下。颜色、间距、圆角与动效只用 XiHan.UI 的语义令牌，数字滚动、快捷键等直接用组件库的组件。
+
+## 画面与无障碍
+
+- 沙粒是 `@xihan-ui/backgrounds` 的 `sand` 效果；文字的配色与背景光斑取自应用的标志（站点设置的 Logo，没设即 `/favicon.png`），换了标志跟着换。
+- 标志读不了像素（跨源且没有 CORS 头）时主画面放一张静止的标志，文字改取语义令牌的颜色；浏览器不支持 WebGL2 时同样放静止的标志，不演问候。
+- 减少动态效果时不演问候，直接到欢迎主画面，标志聚成即止，关闭没有退场动画。
+- 键盘：`Enter` 与 `→` 前进，`←` 后退，`Esc` 关闭；每一幕的焦点落在主操作上，关闭后焦点回到打开它的入口。

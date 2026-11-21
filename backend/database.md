@@ -4,7 +4,25 @@
 
 本页说明数据库连接、从库与 SQL 日志、多库落点、数据访问方式与建表策略，适用于后端开发者与部署人员。
 
-数据层是 SqlSugar（框架 `Persistence.SqlSugar` 的「方式一」：应用提供连接配置回调）。PostgreSQL 14+ 是缺省库，表结构脚本只为它写，CI 对它跑真实库用例；集成测试另用 SQLite 跑快速用例。不引入 EF Core 作为平行的业务数据层。
+数据层是 SqlSugar（框架 `Persistence.SqlSugar` 的「方式一」：应用提供连接配置回调）。支持 PostgreSQL（缺省）、MySQL 与 SQL Server（Oracle 在做），表结构由 ORM 按实体建出（见[建表策略](#建表策略)）；CI 在每种库上跑全量集成测试，日常的集成测试用 SQLite 跑。不引入 EF Core 作为平行的业务数据层。
+
+## 支持的数据库
+
+| 库 | `provider` | 要求 | 说明 |
+| --- | --- | --- | --- |
+| PostgreSQL | `postgresql` | 14 及以上 | 缺省库 |
+| MySQL | `mysql` | 8.0.13 及以上，字符集 utf8mb4 | 软删除实体的唯一索引是函数索引，8.0.13 起才有 |
+| SQL Server | `sqlserver` | 实测 2022，库要打开 `READ_COMMITTED_SNAPSHOT` | 字符串列建成 `nvarchar`；缺省的读已提交是加锁读，读未提交的行要等写入方结束，在调用事务之外另开连接的读会一直等到超时。还没有表的新库由结构升级打开；已有表的库没打开即升级失败，由 DBA 执行 `ALTER DATABASE [库名] SET READ_COMMITTED_SNAPSHOT ON` |
+| Oracle | `oracle` | 还不能部署 | 能建表，但 Oracle 把空字符串当 NULL，框架与 BasicApp 按空字符串存取的值还没有改完；库是 DBA 事先建好的用户（`CreateDatabase` 不建），字符串列建成 `nvarchar2`，最长 2000 个字符 |
+| SQLite | `sqlite` | — | 只给测试用 |
+
+各库的差异由 ORM 与框架约定抹平，实体照常写：
+
+- 字符串列的长度按字符计。SQL Server 与 Oracle 建成 Unicode 类型（`nvarchar` / `nvarchar2`）；超过 2000 个字符的列写 `[LongText]`（Oracle 的 `nvarchar2` 装不下），长文本列不能进索引。
+- 索引键不超过 MySQL 的 3072 字节（utf8mb4 每字符 4 字节）与 SQL Server 的 1700 字节（每字符 2 字节）：单列字符串索引最长 768 个字符，组合索引按各列之和算。集成测试 `ColumnWidthTests` 逐个核对全部实体。
+- 日期时间列精度到微秒（MySQL `datetime(6)`、Oracle `timestamp(6)`）。
+- 软删除实体的唯一索引只约束未删除的行：PostgreSQL、SQL Server 是带条件的索引，MySQL 与 Oracle 是函数索引；可空列为空的行不参与唯一，各库一致。
+- 关键字搜索（`Contains` / `StartsWith` / `EndsWith`）按字面匹配，大小写照各库自己的规则：PostgreSQL 与 Oracle 区分大小写，MySQL 与 SQL Server 按库的排序规则（缺省不区分），SQLite 只对 ASCII 字母不区分。
 
 ## 平台库连接
 
@@ -25,7 +43,7 @@
 ```
 
 - 数据库是启动硬要求：绑定缺失或为空即 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
-- `provider` 不写即 `postgresql`（也认 `postgres` / `pgsql` / `npgsql`），另认 `sqlite`、`mysql`、`sqlserver`（`mssql`）；写了别的即 `RUNTIME_VALIDATION_002`。
+- `provider` 不写即 `postgresql`（也认 `postgres` / `pgsql` / `npgsql`），另认 `mysql`、`sqlserver`（`mssql`）、`oracle`、`sqlite`；写了别的即 `RUNTIME_VALIDATION_002`。
 - 不提交真实连接串：`appsettings.json` 不写绑定，本机开发写在 `appsettings.Development.json`，部署用环境变量 `XiHan__Bindings__db__value` 或 Kubernetes Service Binding。
 - 语句超时 `XiHan:Persistence:SqlSugar:CommandTimeoutSeconds`（缺省 300 秒）。
 
@@ -50,13 +68,14 @@
 | 项 | 内容 |
 | --- | --- |
 | 库类型与连接串 | 读绑定 `db`（分片连接由框架按租户目录推出） |
-| 命名约定 | 表名、列名 snake_case（`SysUserRole` → `sys_user_role`）；显式写了 `[SugarTable]` / `[SugarColumn]` 名字的不改 |
+| 命名约定 | 只给框架的数据库记录：表名、列名 snake_case（`AuditRecord` → `audit_record`）；BasicApp 的实体显式写 `[SugarTable]` / `[SugarColumn]`，不经这条约定 |
 | 操作人 | `AopEvents.DataExecuting` 填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
-| 字符串缺省长度 | 没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)` |
+| 字符串缺省长度 | 框架记录里没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)`；BasicApp 的实体在 `[SugarColumn]` 里写长度 |
+| 建表只增不改 | 已有的表不删列、不改列：SqlSugar 缺省会删掉实体里没有的列、按实体改已有列的类型、长度与可空，正式库上会丢数据或改写大表 |
 | 差异日志 | 全审计实体的写入带差异事件，供数据变更日志使用；标了 `[DiffLogIgnored]` 的实体除外 |
 | 从库与 SQL 日志 | 按 `BasicApp:Database` 挂上 |
 
-框架随后施加协议约定：主键、并发戳（长度 32）、软删除、租户列、`DateTimeOffset` 按 UTC 往返、可空列。
+框架随后施加协议约定：主键、并发戳（长度 32）、软删除、租户列、`DateTimeOffset` 按 UTC 往返、日期时间列精度、SQL Server 与 Oracle 的 Unicode 字符串列、可空列。
 
 ## 多库：默认连接与租户分片
 
@@ -92,18 +111,19 @@
 | 环境 | 方式 |
 | --- | --- |
 | 开发 | `XiHan:Persistence:SqlSugar:InitTables` 为 `true`（`appsettings.Development.json` 已打开）：启动时按已登记的实体建缺表、加缺列，再补建部分唯一索引 |
-| 正式 | `Host/Schema/<版本>/*.sql` 与版本台账，由表结构升级器在启动时执行，见[表结构升级](./upgrade) |
+| 正式 | 表结构升级器在启动时执行：新库按实体建全部表；已有库先执行比台账新的升级脚本，再按实体补缺的表与列，见[表结构升级](./upgrade) |
 
-`InitTables` 只建缺表、加缺列。给已有行的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持，应在实体里声明成可空，或重建开发库。
+两条路径都只建缺表、加缺列，不删、不改已有的列。给已有行的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持，应在实体里声明成可空，或写升级脚本先加列并回填。
 
 ## 测试库
 
 | 用例 | 库 |
 | --- | --- |
 | 绝大多数集成测试 | SQLite 临时库，经 `BasicAppTestServer` 走完整管道 |
-| PostgreSQL 用例（两库冒烟、从库读主库、并发发号、Provider 一致性、表结构基线等） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），测试自建临时库；没设置即跳过 |
+| PostgreSQL 用例（两库冒烟、从库读主库、并发发号、Provider 一致性、表结构升级等） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），测试自建临时库；没设置即跳过 |
+| 整套换一种库跑 | 环境变量 `XIHAN_TEST_DB` 设为 `postgresql`、`mysql`、`sqlserver` 或 `oracle`，每个用例在 `XIHAN_TEST_POSTGRES`、`XIHAN_TEST_MYSQL`、`XIHAN_TEST_SQLSERVER`、`XIHAN_TEST_ORACLE` 指向的服务器上建临时库（Oracle 是临时用户，连接账号要能建用户）；选了库却没配服务器即失败。直接用 SQLite 语句准备数据的用例固定在 SQLite 上 |
 
-CI（`.github/workflows/ci.yml`）起一个 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`。
+CI（`.github/workflows/ci.yml`）的主作业起 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`；另有一组作业按库各跑一遍集成测试（PostgreSQL 17、MySQL 8.4、SQL Server 2022），测试库关掉刷盘以缩短建表时间。
 
 ## 下一步
 

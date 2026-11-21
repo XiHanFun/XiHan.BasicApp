@@ -64,7 +64,7 @@ createdb -h 127.0.0.1 -U postgres xihan_basicapp
 export XiHan__Bindings__db__value="Host=127.0.0.1;Port=5432;Database=xihan_basicapp;Username=<用户>;Password=<密码>"
 ```
 
-Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已登记的实体建缺表、加缺列，改了实体重启即生效。正式环境由 `Schema/<版本>/*.sql` 管理表结构，见[表结构升级](./backend/upgrade)。
+Development 打开了 `XiHan:Persistence:SqlSugar:InitTables`：启动时按已登记的实体建缺表、加缺列，改了实体重启即生效。正式环境由表结构升级器在启动时按实体建表补列、执行升级脚本，见[表结构升级](./backend/upgrade)。
 
 ## 可选服务
 

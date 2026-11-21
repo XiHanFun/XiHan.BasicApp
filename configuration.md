@@ -67,6 +67,7 @@ appsettings.json
    ├─ Files                 上传、分片与签名下载
    ├─ Notification          通知发件箱与 Telegram
    ├─ Realtime              SignalR Hub 参数
+   ├─ Chat                  语音与视频通话的穿透服务器
    ├─ OpenPlatform          开放接口签名与 OAuth2 / OIDC 授权服务
    ├─ CodeGeneration        代码生成
    └─ AI                    知识库的向量库（Qdrant）
@@ -288,8 +289,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `Jwt:Issuer` / `Jwt:Audience` | `xihan.basicapp` | 写了就按它校验，整项不写才不校验；写成空串不等于不写 |
 | `Jwt:ClockSkewSeconds` | `60` | 校验有效期时允许的时钟偏移 |
 | `Jwt:NameClaim` | `sub` | 作为主体 ID 的声明 |
-| `Database:CacheSize` | `10000` | 授予缓存条目上限（每个主体与租户组合一条），满时整体清空 |
-| `Database:CacheTimeToLiveSeconds` | `30` | 授予缓存的存活时间，0 为不过期 |
+| `Database:CacheTimeToLiveSeconds` | `30` | 授予缓存的兜底存活时间，必须为正；授予与撤销经失效在所有实例立即生效，缓存容量由 `XiHan:Caching` 的本机缓存管 |
 | `Ip2Region:V4Database` / `V6Database` | `IpDatabases/ip2region_v4.xdb` / `IpDatabases/ip2region_v6.xdb` | IP 归属地离线库（随发布目录分发），相对路径按程序目录；文件缺失不影响启动，首次查询记一条警告，之后该类地址没有归属地；写成空白启动即失败 |
 
 ## `XiHan:Security:Outbound`
@@ -330,11 +330,8 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `RequireTenant` | `false` | 调用必须带租户；平台主体没有租户声明，必须为 `false` |
 | `ValidateAgainstStore` | `true` | 解析出的租户必须在租户目录里存在且启用；关掉后只校验格式 |
 | `TenantClaim` | `tenant` | 令牌里承载租户 ID 的声明 |
-| `ShardCacheSize` | `10000` | 租户分库解析的缓存容量（租户数），满时整体清空 |
-| `ShardCacheTimeToLiveSeconds` | `30` | 租户分库解析缓存条目的存活时间，别的实例改了独立库连接最迟这么久后本实例换用新库；0 为不过期 |
 | `DefaultTenant` | 不写 | BasicApp 不用：配了会把平台调用落到这个租户上 |
-| `Database:CacheSize` / `Database:CacheTimeToLiveSeconds` | `10000` / `30` | 租户目录缓存的容量与存活时间 |
-| `Database:MaxListedTenants` | `10000` | 列出租户时返回的上限，超出不返回并记警告 |
+| `Database:CacheTimeToLiveSeconds` | `30` | 租户目录缓存的兜底存活时间，必须为正；停用、改独立库连接与删除经失效在所有实例立即生效，分库解析每次读租户目录、不另缓存 |
 
 ## `XiHan:Localization`
 
@@ -342,7 +339,8 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | --- | --- | --- |
 | `Locales` | `en-US,zh-CN,zh-TW,ja-JP,ko-KR,de-DE,es-ES,fr-FR,pt-BR,ru-RU` | 启用的区域，逗号分隔、按优先级排列；是一个字符串，写成数组会被当成没写 |
 | `DefaultLocale` | `en-US` | 协商不到时用的区域，必须在 `Locales` 里 |
-| `Database:RefreshIntervalSeconds` | `300` | 数据库译文快照的刷新间隔，0 只在启动时加载 |
+| `Database:ChangeCheckIntervalSeconds` | `1` | 核对译文版本戳的间隔，别的实例写入的译文最迟这么久后重新加载；0 不核对，只靠周期刷新 |
+| `Database:RefreshIntervalSeconds` | `300` | 数据库译文快照的刷新间隔，兜住直接改表；0 只在启动时加载 |
 | `Database:MaxTranslations` | `100000` | 快照最多加载的译文条数，超出记警告 |
 
 请求按 `Accept-Language` 在启用的区域里协商。文案有两个来源：
@@ -478,13 +476,13 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 ## `BasicApp:Schema`
 
-表结构升级：按 `Schema/<版本>/*.sql` 与版本台账升级平台库与各独立库租户。
+表结构升级：按实体建表补列，并执行 `Schema/<版本>/<库类型>/*.sql` 里比台账新的升级脚本，平台库与各独立库租户都升。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `AutoUpgrade` | `true` | 启动时自动升级，失败即中断启动；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
-| `CreateDatabase` | `false` | 升级前平台库不存在时先建库（经维护库 `postgres`，连接账号要有建库权限）；缺省关，库名写错时不悄悄建一个空库，开发环境打开 |
-| `Directory` | 程序目录下的 `Schema` | 脚本目录；相对路径按程序目录（不是当前目录）解析 |
+| `AutoUpgrade` | `true` | 启动时自动升级，平台库失败即中断启动（租户独立库失败时照常启动，这个租户暂不可用）；关掉时由运维先执行 `XiHan.BasicApp.Host schema upgrade` 再启动 |
+| `CreateDatabase` | `false` | 升级前平台库不存在时先建库（经各库的维护库，连接账号要有建库权限；Oracle 的库是 DBA 事先建好的用户，不建）；缺省关，库名写错时不悄悄建一个空库，开发环境打开 |
+| `Directory` | 程序目录下的 `Schema` | 升级脚本目录；相对路径按程序目录（不是当前目录）解析，没有脚本时可以不存在 |
 | `LockExpiryMinutes` | `30` | 升级锁的失效时间（1–1440）：持锁节点中途退出时，过了这么久别的节点才能接手 |
 | `LockWaitMinutes` | `10` | 等别的节点升级完的最长时间（1–1440）；等不到即升级失败、中断启动 |
 
@@ -561,15 +559,13 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 
 ## `BasicApp:Auth`
 
-身份认证：令牌、登录失败锁定、密码策略、图形验证码、登录节流、双因素、验证码与自助注册。数字须为正数（`PasswordHistoryDepth` 可为 0）。
+身份认证：令牌、登录失败锁定、图形验证码、登录节流、双因素、验证码与自助注册。数字须为正数。密码策略（长度、复杂度、历史与有效期）在系统参数 `identity.password`，见[统一认证](./backend/authentication#密码策略)。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `AccessTokenMinutes` | `120` | 访问令牌有效期（分钟） |
 | `RefreshTokenDays` | `7` | 刷新令牌（会话）有效期（天） |
 | `MaxFailedAccessAttempts` / `LockoutMinutes` | `5` / `15` | 连续登录失败多少次锁定账号、锁定多久 |
-| `PasswordMinLength` | `8` | 密码最短长度 |
-| `PasswordHistoryDepth` | `3` | 不得与最近多少个历史密码相同；0 不检查，最多 1000，配得更大启动即失败 |
 | `SessionCacheSeconds` | `30` | 会话门禁的缓存秒数；吊销会话最迟在这么久后对其他实例生效 |
 | `CaptchaEnabled` / `CaptchaSeconds` | `true` / `300` | 密码登录是否要求图形验证码、验证码有效期 |
 | `LoginThrottleWindowSeconds` | `60` | 登录节流的固定窗口 |
@@ -665,7 +661,6 @@ BasicApp 自己的访问、异常、登录与变更日志，按月分表。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
-| `Brand` | 不写（应用名） | 邮件与短信模板变量 `brand` 的缺省值 |
 | `DispatchInterval` | `00:00:05` | 发送循环的轮询间隔；有新记录时提前唤醒 |
 | `RetryDelay` | `00:00:30` | 失败后重试的基础间隔，第 n 次失败后等 n 倍 |
 | `MaxAttempts` | `3` | 每条记录最多尝试的次数 |
@@ -696,6 +691,29 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 | `MaximumParallelInvocationsPerClient` | `1` | 每个客户端的最大并行调用数 |
 
 时长写 `hh:mm:ss`（可带天数 `d.hh:mm:ss`），必须大于零；只写 `15` 或 `00:15` 都算写错。数字必须是正整数。前端用 SignalR 客户端的缺省超时（30 秒没收到服务端消息即断开），把 `KeepAliveInterval` 调到 30 秒以上会让浏览器不断掉线重连。
+
+## `BasicApp:Realtime:Presence`
+
+用户上线与离线的发布参数（见[实时推送](./backend/realtime#在线状态)）。配置写错启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `OfflineGrace` | `00:00:08` | 最后一条连接断开之后多久才算离线；宽限之内又连上（刷新页面、断线重连）不发布离线 |
+
+时长的写法同上一节。
+
+## `BasicApp:Chat:Calls`
+
+语音与视频通话的穿透服务器（见[在线聊天](./backend/chat#语音与视频通话)）。媒体在两端的浏览器之间直连，直连不通时经 TURN 中继；都不配也能用，只是只有同一网段或能直连的两端打得通。配置写错启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `StunUrls` | 空 | STUN 地址，`stun:` 或 `stuns:` 开头，如 `stun:turn.example.com:3478` |
+| `TurnUrls` | 空 | TURN 地址，`turn:` 或 `turns:` 开头，如 `turn:turn.example.com:3478?transport=udp`；配了它就必须配 `TurnSecret` |
+| `TurnSecret` | 空 | TURN 的共享密钥，与 TURN 服务器上配的同一个值（coturn 的 `static-auth-secret`）；只留在服务端，按它给每个用户现签限时凭据 |
+| `TurnCredentialLifetime` | `01:00:00` | TURN 凭据的有效期；凭据只在建立连接时核对，过期不影响已经接通的通话 |
+
+时长的写法同 `BasicApp:Realtime:SignalR`。响铃秒数与通话的人数上限不在这里，在系统参数 `chat.policy`（`callRingSeconds`、`callMaxVoiceParticipants`、`callMaxVideoParticipants`）。TURN 服务器的部署见[部署](./deployment#语音与视频通话)。
 
 ## `BasicApp:OpenPlatform`
 
@@ -751,11 +769,10 @@ Vite 按模式叠加读取，后者覆盖前者：
 | `VITE_PORT` | `9100` | 开发服务器端口 |
 | `VITE_DEV_PROXY_TARGET` | `http://localhost:9710` | 开发代理目标，即后端的 `Kestrel:Endpoints:Http` |
 | `VITE_API_BASE_URL` | 空（同源） | 构建期 API 源 |
-| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页（固定首页标签、守卫兜底）；关掉工作台模块时留空，登录后落到第一个有权限的页面 |
+| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页（守卫兜底、标签栏缺省激活项）；关掉工作台模块时留空，登录后落到第一个有权限的页面 |
 | `VITE_ROUTER_HISTORY` | `hash` | `history` 需要静态托管把未知路径回退到 `index.html` |
 | `VITE_BASE` | `/` | 部署子路径 |
 | `VITE_REALTIME_HUB` | `/hubs/notification` | 通知 Hub 路径；留空即不建实时连接（强制下线、站内通知、跨端设置同步都不再实时） |
-| `VITE_APP_TITLE` / `VITE_APP_SUBTITLE` / `VITE_APP_DESCRIPTION` / `VITE_APP_LOGO` | 空 | 登录页品牌区；留空取应用名文案与 `/favicon.png` |
 
 ## 下一步
 

@@ -22,7 +22,7 @@
 
 **本人关闭账号**：`profile.deactivate-account`（停用，管理员可以重新启用）与 `profile.delete-account`（注销，账号软删除）。都要当前密码，模仿会话不能做，租户所有者要先转移所有权（`IDENTITY_CONFLICT_011`），成功后吊销本人全部会话。
 
-**密码**：PBKDF2-SHA256 散列；至少 `PasswordMinLength`（8）位、同时含字母与数字；不能与最近 `PasswordHistoryDepth`（3）个密码相同。
+**密码**：PBKDF2-SHA256 散列；规则见[密码策略](#密码策略)。
 
 ## 令牌与会话
 
@@ -30,14 +30,16 @@
 | --- | --- |
 | 访问令牌 | HS256 JWT，缺省 120 分钟（`AccessTokenMinutes`）；声明 `sub` 用户 ID、`tenant` 当前租户（平台没有）、`sid` 会话 ID、`role` 本会话激活的角色、模仿时 `act` |
 | 刷新令牌 | 32 字节随机数，库里只存 SHA-256 散列，缺省 7 天（`RefreshTokenDays`）；每次刷新轮换、旧的立即失效，并顺延会话有效期；模仿会话的到期时间不顺延 |
-| 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型、IP 与登录地点（IP 归属地） |
-| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期或用户不正常即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
+| 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型、IP、登录地点（IP 归属地）与客户端报的设备标识 |
+| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期、用户不正常或签发时的安全戳已换新即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
 
-吊销会话的场景：注销、改密、管理员重置密码、找回密码、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
+吊销会话的场景：注销、改密、管理员重置密码、找回密码、本人开关双因素、管理员重置双因素、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
+
+账号的安全戳在设密码、开关或重置双因素、本人停用账号时换新。会话签发时记下当时的戳，门禁与 `auth.refresh` 对不上即 `IDENTITY_DENIED_001`：与换新并发的登录开出的会话也用不了。换新的同时吊销本人的其余会话；本人改密、开关双因素时当前会话改记新戳，照常可用。
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
+开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码、是否开放注册与设新密码的规则返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
 ### 密码登录 `auth.login`
 
@@ -49,16 +51,35 @@
 
 账号开了双因素即返回挑战（见[双因素](#双因素)）；否则先过登录守卫（Access 实现：访问策略的登录时机、登录失败自动封禁），再开会话、签令牌对。
 
-### 强制修改由他人设置的密码
+### 密码策略
 
-密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，缺省关）的 `forceChange` 决定要不要逼：
+规则都在系统参数 `identity.password`（JSON，只认平台的：账号跨租户、登录在进入租户之前），没建参数即缺省值，参数配置页改了立即生效：
+
+| 字段 | 缺省 | 含义 |
+| --- | --- | --- |
+| `minLength` | `8` | 最短长度，6 到 128 |
+| `requireLetter` / `requireDigit` | `true` / `true` | 须含字母、数字 |
+| `requireUppercase` / `requireLowercase` / `requireSymbol` | `false` | 须含大写字母、小写字母、字母与数字以外的字符 |
+| `historyDepth` | `3` | 不得与最近几个用过的密码相同（连同当前密码）；0 不检查，最多 1000 |
+| `expiryDays` | `0` | 密码有效天数，0 不过期，最多 3650；过期后凭密码登录要先改密，见下一节 |
+| `forceChange` | `false` | 强制修改由他人设置的密码，见下一节 |
+
+设密码的各个入口（创建用户、重置、导入、开通租户管理员、注册、找回、本人改密、种子）按同一份规则校验，不满足报 `IDENTITY_VALIDATION_003`（文案说明第一条不满足的规则）或 `IDENTITY_VALIDATION_004`（用过的密码）；请求只限 128 位上限，下限由 `minLength` 定。登录页配置 `auth.login-config` 带出 `passwordPolicy`（长度与须含的字符），注册、找回与改密的表单据此提示。
+
+写错的值（字段类型不对、取值越界、不是 JSON 对象）经参数配置保存时即拒绝（`SETTINGS_VALIDATION_011` / `002`），不会挡住登录；库里的值被直接改坏时，设密码与凭密码登录都报 `IDENTITY_VALIDATION_025`，已登录的会话不受影响。
+
+### 强制修改由他人设置的密码与过期的密码
+
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。`identity.password` 的 `forceChange` 决定要不要逼；`expiryDays` 大于 0 时，最近一次设密码超过这么多天的账号同样要先改密：
 
 | 状态 | 效果 |
 | --- | --- |
 | 关（缺省） | 只留着标记，直接放行 |
 | 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（令牌响应 `mustChangePassword` 为 `true`，锁定原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
 
-锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
+密码过期的账号凭密码登录时同样锁定、原因同样是 `PasswordChangeRequired`，站内信说明是过期（标题「密码已过期」，正文带有效天数）；没有改密时间的按已过期算。改密之后重新计时；已经在线的会话不因到期被锁，下次凭密码登录才受影响。
+
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
@@ -142,7 +163,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 ## 锁屏
 
-`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码](#强制修改由他人设置的密码)；锁屏的会话也不能靠改密解开。
+`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码与过期的密码](#强制修改由他人设置的密码与过期的密码)；锁屏的会话也不能靠改密解开。
 
 ## 模仿登录
 
@@ -175,7 +196,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | 允许多端、`maxLoginDevices` 为 1 到 99 | 保留新会话和最近的几个，超过的吊销最早的 |
 | 允许多端、`maxLoginDevices` 为 0（缺省） | 不限 |
 
-模仿会话不算设备。被吊销的会话收到 `ForceLogout`。
+模仿会话不算设备。被吊销的会话先收到登录提醒（见[安全通知](#安全通知)），再收到 `ForceLogout`。
 
 ## 用户详情
 
@@ -196,6 +217,24 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | `sessions.summary` | `identity.sessions.read` | 有效会话数、有会话的用户数（同样按数据范围收窄）与持有实时连接的用户数 |
 | `sessions.revoke` | `identity.sessions.revoke` | 批量吊销，可带给被下线用户看的原因；看不到的会话逐项 `IDENTITY_NOTFOUND_002`，调用方自己当前的会话逐项 `IDENTITY_CONFLICT_005` |
 | `profile.sessions` / `profile.revoke-session` / `profile.revoke-other-sessions` | 登录即可 | 个人中心的「登录设备」：只按本人，不分侧、不套数据范围 |
+
+## 安全通知
+
+账号上发生下面这些事时，Identity 经 Notification 的站内投递给本人发一条安全站内信：类型是安全（前端弹警告色卡片），不看通知偏好，按本人的界面语言（没存语言的按触发这次调用的区域），点开到个人中心；只进本人的收件箱，不出现在通知公告管理里；投递失败只记日志，不挡业务。收件箱与推送都按侧，提醒别的设备时投到那些会话各自所在的一侧、每侧一条，那一侧在线的端实时收到；运维支持成员在租户一侧不是收件人，投到那一侧的提醒落空。
+
+| 时机 | 通知 | 投到 |
+| --- | --- | --- |
+| 登录（五种登录方式都算），账号别的设备上还登录着 | 「账号在其他设备登录」或「账号在新设备登录」，带新登录的浏览器、系统、IP 与地点 | 别的设备会话所在的各侧 |
+| 登录，账号别处都没登录着 | 「登录成功」 | 新会话这一侧 |
+| `auth.logout` | 「账号在其他设备退出登录」，带退出的那台设备；退出的这台设备先断开实时连接，收不到它 | 退出的这一侧与别的设备所在的各侧 |
+| `sessions.revoke` 下线别人的会话 | 「登录会话被强制下线」，带那台设备与管理员填的原因 | 那个会话所在的一侧 |
+| `profile.change-password` / `profile.change-username` | 「密码已修改」/「用户名已修改」 | 当前一侧 |
+| `profile.link-external` 绑上新的第三方账号 | 「绑定了第三方账号」 | 当前一侧 |
+| `my-api-credentials.create` / `rotate-secret` / `delete` | 「新建了 API 凭证」/「API 凭证密钥已滚动」/「删除了 API 凭证」，带凭证名与 AppKey | 当前一侧 |
+
+另有强制改密与密码过期的提醒（见上文）、模仿登录的通知（`notifyTarget`）与添加通行密钥的通知。
+
+只提醒、不踢人：同时登录几端由[登录策略](#登录策略)决定，被它挤掉的会话也先收到登录提醒，再收到 `ForceLogout`。「新设备」按设备标识判断：各种登录请求都可带 `deviceId`（前端报浏览器的设备指纹，只收字母、数字、下划线与连字符，最长 64 个字符），记在会话上；这个账号以前（含已吊销、已过期的会话，模仿会话不算）有同一标识的会话即「其他设备」，没有或没报即「新设备」。指纹可被伪造、也会撞，只决定提醒的措辞，不作安全判定。
 
 ## 下一步
 

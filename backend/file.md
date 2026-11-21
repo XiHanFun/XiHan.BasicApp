@@ -39,7 +39,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 
 ## 文件与副本
 
-`SysFile` / `SysFileStorage` 是租户库实体（平台一侧的租户为 `platform`）：一个文件可以有多个存储副本，其中一个是主副本，读写取主副本。同一侧内容相同（SHA-256 相同）的文件共用存储里的对象，各有各的记录，删到最后一条才删对象。
+`SysFile` / `SysFileStorage` 是租户库实体（平台一侧的租户为 `platform`）：一个文件可以有多个存储副本，其中一个是主副本，读写取主副本。上传只写主副本，`files.copy-storage` 把它复制到另一条存储配置，再设为主副本即把文件迁过去（文件库「存储副本」抽屉里的「复制到其他存储」）；副本不计入存储配额。同一侧内容相同（SHA-256 相同）的文件共用存储里的对象，各有各的记录，删到最后一条才删对象。
 
 | 访问级别（`FileAccessLevel`） | 谁能换取下载地址 |
 | --- | --- |
@@ -55,6 +55,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 | `files.delete` | `files.files.delete` | 批量；不再被别的文件用到的内容随之从存储删除 |
 | `files.fast-upload` | `files.files.create` | 秒传：同一侧已有相同内容的正常文件即直接建记录，没命中返回空，前端再走普通上传 |
 | `files.set-primary-storage` / `verify-storage` / `set-storage-status` | `files.files.update` | 换主副本（目标须正常且校验过）、按 SHA-256 校验、停用副本（主副本不能停用） |
+| `files.copy-storage` | `files.files.update` | 从主副本复制到另一条本侧或平台的启用配置，得到正常、已校验的非主副本；同一配置只放一份（`FILES_CONFLICT_011`），停用的配置不收（`FILES_CONFLICT_012`），主副本读出的内容与记录不符先校验（`FILES_CONFLICT_013`） |
 | `files.presign` | 登录即可，按访问级别判定 | 换限时签名地址；归档或损坏的文件换不到，换一次记一次下载 |
 
 ## 上传与下载
@@ -66,6 +67,8 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 | `POST /api/profile/avatar` | 头像（字段 `file`）：只要求登录，按文件头认 JPEG / PNG，不超过 2 MB；存平台侧、公开级别，跟着用户走、不计入租户配额；去掉头像走 `profile.remove-avatar` |
 
 浏览器里的图片、链接与新窗口用 `files.presign` 换的签名地址。地址由存储签出（框架 ADR-0049）：S3 兼容存储直连存储，本地存储走宿主的 `/blobs` 签名端点（密钥 `XiHan:ObjectStorage:SignedUrls:Secret`）。有效期缺省 `LinkLifetime`（30 分钟），请求可指定 60 秒到 `MaxLinkLifetime`（7 天），超出即 `FILES_VALIDATION_008`；地址在有效期内不再校验身份，签出之后的归档或改访问级别都不影响它。
+
+预览读内容、以附件下载前只取第一个字节探一下（`Range: bytes=0-0`），都是浏览器跨域取签名地址，所以 S3 兼容存储的桶要给前端的来源放行 `GET`（CORS 规则）；没放行时预览失败，下载提示文件暂时无法下载。
 
 内容类型是上传方给的，所以签名地址与 `GET /api/files/{id}/content` 都只让图片（PNG、JPEG、GIF、WebP、BMP、AVIF，不含 SVG）、音视频、PDF 与纯文本内联打开，别的类型（HTML、SVG、XML 等）即使不要 `download` 也以附件下载。宿主的响应一律带 `X-Content-Type-Options: nosniff`；`/blobs` 的响应除 PDF 外都在沙箱里（`Content-Security-Policy: sandbox`），上传的脚本拿不到前端的源。
 
@@ -84,20 +87,29 @@ files.complete-upload     按存储里已上传的分片拼成对象（不用客
 files.abort-upload        放弃，丢弃已上传的分片
 ```
 
-上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。
+上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。完成时缺片或总大小不符（`FILES_CONFLICT_009` / `010`）可以补传后再完成；拼好后回读的大小仍与声明的不符时，对象删掉、上传记为失败（`Failed`），只能重新发起。
+
+前端上传到文件库都走公共包 `~/files` 的 `uploadFile`（文件管理页与业务表单里的文件引用控件 `XFileRefUpload` 共用），按这个顺序走：
+
+1. 200 MiB 以内、浏览器有 Web Crypto（HTTPS 或 localhost）时，先算 SHA-256 试 `files.fast-upload`。命中即直接得到新文件；没命中或探测失败照常上传。
+2. 16 MiB 以内一次请求传完。更大的走分片：每批至多签 100 片、3 片并发，一片失败了换新签名地址重试，至多 3 次，间隔 1 秒、2 秒。
+3. 网络不通、超时、限流或服务端错误导致中断时，上传会话留着，浏览器本地记下它。用户在同一个浏览器里以同样的附加信息再传同一个文件（名称、大小、修改时间都相同），先经 `files.upload-session` 取回会话，只补缺的分片；会话已过期或已结束就重新发起。
+4. 中止和其他失败（如签名一直被拒）调用 `files.abort-upload` 放弃。
 
 ## 导出中心
 
 | 操作 | 说明 |
 | --- | --- |
-| `export-tasks.submit` | 提交导出：要导出的列表操作 ID（如 `users.list`）、请求快照、列、范围（`CurrentPage` / `SearchResult` / `All`）、格式（`Csv` / `Xlsx`） |
+| `export-tasks.submit` | 提交导出：要导出的列表操作 ID（如 `users.list`）、请求快照、列（取值路径、表头与取值映射）、范围（`CurrentPage` / `SearchResult` / `All`）、格式（`Csv` / `Xlsx`） |
 | `export-tasks.list` / `get` | 我的导出，缺省按提交时间倒序 |
 | `export-tasks.cancel` | 只能取消排队中的，执行中的不能取消；取消记为失败并写明已取消 |
 | `export-tasks.delete` | 批量；结果文件一并删除，执行中的逐项拒绝 |
 
 都只要求登录，每人只看得到自己的任务。任务进进程内队列，后台至多并发 2 个，以发起人的凭据逐页调用对应的列表操作，权限、租户、数据范围与字段安全照常判定；凭据过期或会话吊销即失败，进程重启时没执行完的任务记为中断（失败）。结果存成 7 天的临时文件。进度经 `TaskProgress` 推给发起人（每写一千行或到 99%、完成或失败，见[任务进度](./realtime#任务进度)），文案与失败原因按提交时的区域翻译；执行时抛异常，任务的失败原因只有异常类型，完整异常看应用日志。
 
-前端的用户页与六种日志页接了导出中心，其余声明了导出的列表页是浏览器里的本地 CSV（见[列表页引擎](../frontend/schema-page#导出与导入)）。
+列按取值路径从列表响应的一行里取值：属性名，深一层用点号接，数组用下标（`last.startedAt`、`triggers.0.kind`），`|` 分隔几条备选、取第一条有文字的；走不到即空。一次返回整份的列表（权限目录、菜单、套餐）没有 `total`，按取到的行数算；树形列表（项带 `children`）按先序展开成行。
+
+前端声明了导出的列表页都接了导出中心，只有部门树（`departments.tree` 不是列表操作）仍是浏览器里的本地 CSV（见[列表页引擎](../frontend/schema-page#导出与导入)）。
 
 CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换行开头时前面加单引号，防止电子表格软件当公式执行，单个字符与普通数字保持原样。XLSX 写的是内联字符串，不会被当公式。
 
@@ -119,7 +131,7 @@ CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换�
 
 ## 页面
 
-菜单在「系统管理 › 文件服务」目录下，前端模块在 `frontend/src/modules/files`：
+菜单在「平台管理 › 文件服务」目录下，前端模块在 `frontend/src/modules/files`：
 
 | 页面码 | 路由 | 读权限 |
 | --- | --- | --- |

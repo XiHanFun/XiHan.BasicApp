@@ -109,7 +109,7 @@ Content-Language: zh-CN
 
 | 操作 | HTTP | 认证 |
 | --- | --- | --- |
-| `auth.login-config` | `GET /api/auth:login-config` | 匿名：登录方式、第三方提供方、是否要验证码 |
+| `auth.login-config` | `GET /api/auth:login-config` | 匿名：登录方式、第三方提供方、是否要验证码、是否开放注册与密码规则 |
 | `auth.captcha` | `POST /api/auth:captcha` | 匿名：SVG 图形验证码 |
 | `auth.login` | `POST /api/auth:login` | 匿名：密码登录 |
 | `auth.send-login-code` / `auth.login-by-code` | `POST /api/auth:send-login-code` / `:login-by-code` | 匿名：邮箱 / 手机验证码登录 |
@@ -177,7 +177,7 @@ curl -X POST http://localhost:9710/api/roles:list \
 
 - `page.index` 1–100000，`size` 1–500；越界是 400 `KERNEL_VALIDATION_003`，字段错误（`errors["page.index"]`）按 `Accept-Language` 给文案。`filters` 最多 32 条、`sorts` 最多 8 条。
 - 运算符只有 `eq`、`ne`、`contains`、`gt`、`ge`、`lt`、`le`、`in`；每个操作只接受白名单里的字段与运算符，其余给 VALIDATION 错误。
-- 受字段安全保护的字段不能筛选或排序（如 `IDENTITY_DENIED_011`）。
+- 受字段安全保护的字段不能筛选或排序（`ACCESS_DENIED_006`）。
 
 响应：
 

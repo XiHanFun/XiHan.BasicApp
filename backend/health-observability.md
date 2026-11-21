@@ -16,11 +16,12 @@
 
 单个 Feature 的启动超时是 `XiHan:Kernel:StartTimeoutSeconds`（BasicApp 取 60 秒，表结构升级与开发环境建表都在启动阶段完成），失败策略见 `XiHan:Kernel:FailurePolicy`。
 
-健康项由各 Provider 自带（框架 ADR-0030），BasicApp 不另写。常见的有：
+健康项大多由各 Provider 自带（框架 ADR-0030），BasicApp 只另加结构升级一项。常见的有：
 
 | 健康项 | 来源 |
 | --- | --- |
 | `persistence.sqlsugar.database` | 平台库；配了从库另有 `persistence.sqlsugar.replicas`（有从库不可读时 Degraded） |
+| `basicapp.schema` | BasicApp 的结构升级：有租户独立库没有升到当前结构版本时 Degraded（这些租户暂不可用），数据带不可用的库数与库名，见[表结构升级](./upgrade#执行顺序) |
 | `scheduling.database.leader` | 调度的领导租约表，不可达时 Degraded |
 | `workflow.database.poller` | 工作流到期书签的轮询 |
 | `objectstorage.store.<名>` | Files 存储配置对应的每个命名实例 |

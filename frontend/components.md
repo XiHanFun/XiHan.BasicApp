@@ -33,7 +33,7 @@
 | `XPermissionTransfer` / `XGrantTransfer` | 权限分配穿梭框（角色、用户直授、套餐）：条目来自权限目录 `permissions.list`，按 `groupPermissions` 分组 |
 | `XTree` | 树（数据范围里的部门、缓存键、生成代码的文件） |
 | `XUserAvatar` | 用户头像：值是文件 ID 时换签名地址，没有头像时显示首字母 |
-| `XFileRefUpload` | 业务表单里的文件引用上传：上传到文件库，字段只存文件 ID |
+| `XFileRefUpload` | 业务表单里的文件引用上传：与文件库页面同一条上传路径（秒传、大文件分片、中断后续传），字段只存文件 ID；图片缺省限 10MB，文件以文件库的上限为准 |
 
 ## 其他组件
 
@@ -54,8 +54,9 @@
 | --- | --- |
 | `CronExpression` | Cron 构建器（作业的新建与改计划），配合 `jobs.validate-schedule` 预览执行时间 |
 | `LocaleSwitcher`、`TimezoneSwitcher` | 区域与时区切换（顶栏、悬浮工具栏、偏好设置） |
-| `LockScreen`、`DynamicIsland`、`AppWatermark` | 锁屏、灵动岛、水印，挂在 `App.vue` |
+| `LockScreen`、`DynamicIsland`、`AppWatermark` | 锁屏、灵动岛（往岛上放活动见[灵动岛](./dynamic-island)）、水印，挂在 `App.vue` |
 | `SyncStatusBadge`、`PageLoader` | 设置同步状态、页面加载占位 |
+| `XArtboard` | 按固定的设计尺寸排版再整体缩放的画板，给只当画面看的演示用（见[新版欢迎页](./welcome#演示组件)） |
 
 ## 写法约定
 

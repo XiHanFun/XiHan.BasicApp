@@ -4,7 +4,7 @@
 
 本页说明列表页引擎 SchemaPage 的页面定义、资源适配器与导入导出，适用于编写列表页的前端开发者。
 
-`SchemaPage`（`~/components`）用一份字段定义（`ListFieldSchema[]`）同时派生搜索、列、导出与导入；列设置、多列排序、密度、个人视图、树表、行速览、批量删除与批量启停都已内置。资源适配器把它的查询参数转成后端的 `PageRequest`。
+`SchemaPage`（`~/components`）用一份字段定义（`ListFieldSchema[]`）同时派生搜索、列、导出与导入；列设置、多列排序、密度、条件预设、树表、行速览、批量删除与批量启停都已内置。资源适配器把它的查询参数转成后端的 `PageRequest`。
 
 用户、角色、菜单、租户、套餐、部门、岗位、参数、字典、业务编号、文件、各日志页等列表页都用它。样板见 `src/modules/settings/views/configs`。
 
@@ -12,7 +12,7 @@
 
 ```ts
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'settings.configs', // 列设置、搜索设置、个人视图、导入历史按它存
+  pageCode: 'settings.configs', // 列设置、搜索设置、条件预设、导入历史按它存
   pageName: t('settings.configs.title'),
   rowKey: 'id', // 缺省 basicId，契约的行主键是 id
   fields: fields.value,
@@ -91,7 +91,7 @@ export function configsResource(): SchemaResource<ConfigRow> {
 | `updateStatus(id, enabled)` | 启停单条；批量启停调它 |
 | `create(record)` | 导入时逐行新建 |
 | `importMany(records)` | 导入时按批交给后端的批量导入操作，返回其中不能导入的记录（与 `create` 二选一） |
-| `export` | `{ businessType, buildQuery? }`：接入导出中心 |
+| `export` | 接入导出中心：用 `~/contracts` 的 `exportCenter(列表操作 ID, 筛选登记或请求构造, { wholeList?, columnPaths? })` 生成 |
 
 `toPageRequest(params, mapping)`：
 
@@ -112,7 +112,14 @@ export function configsResource(): SchemaResource<ConfigRow> {
 页面声明了 `exportPermission`（填读权限）且当前用户有这个权限，工具栏才出导出按钮。导出的列是标了 `exportable` 的字段，没有标的就导出当前可见列；单元格按字段类型与 `options` 写文本，不走列的 `render`，要导出的值必须在行的同名键上（规则项数这类算出来的列，由资源在分页时算进行里）。
 
 - 只声明了 `exportPermission`：按当前筛选逐页取回，在浏览器里生成 CSV（至多 5000 行；树表导出当前整棵树）。
-- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。用户页与六种日志页（操作、访问、登录、异常、数据变更、开放接口）接了导出中心。
+- 资源还实现了 `export`：导出菜单分 CSV 与 Excel（XLSX）两组，每组有查询结果、当前页、全部三档，向导出中心提交任务（`export-tasks.submit`，`businessType` 是列表操作 ID，如 `users.list`）。后台以当前用户的身份逐页调用同一个列表操作，生成所选格式的文件，进度经 `TaskProgress` 推送到灵动岛，结果在 `/files/export-center` 下载。除部门树之外，声明了导出的列表页都接了导出中心。
+
+`exportCenter()` 的查询快照与列表共用同一份筛选登记（传给 `toPageRequest` 的映射，或页面自己的请求构造，如作业页补运行状态、字典项补 `dictId`）。服务端按字段键从响应的一行里取值，所以：
+
+- `wholeList: true`：列表操作一次返回整份、不分页也不收筛选（权限目录、菜单、套餐），只给「全部」一档；菜单整棵树按先序展开成行。
+- `columnPaths`：在浏览器里算出来的字段，响应里没有这个键。给响应里的取值路径（点号接下一层、数组用下标，`|` 分隔几条备选），如作业的 `kind: 'triggers.0.kind'`、委托对象的 `target: 'roleName|permission'`；给 `null` 即导出中心不导这一列（作业的运行状态、约束规则的项数）。本地 CSV 不受影响，照常取行里的值。
+
+`files/tests/views/export-center/page-columns.spec.ts` 挂载每个声明了导出的页面，核对导出的列都能在列表操作的响应里取到值、业务类型都登记在导出中心页的 `KNOWN_BUSINESS_TYPES` 里（导出中心按它把业务类型显示成页面或页签的标题）。
 
 有导入字段且资源实现了 `create` 或 `importMany` 时出导入按钮，声明了 `importPermission` 的还要有该权限（导入用新建权限）。导入字段缺省是标了 `importable` 的字段；模板与列表列对不上时（列表一列合并显示了几个字段，或导入要的字段列表里没有）在页面上写 `importFields` 显式给出，选项直接写 `options`。导入时下载按导入字段生成的 CSV 模板，上传 CSV 后前端解析、校验必填与取值，再交给资源：
 
@@ -123,7 +130,16 @@ export function configsResource(): SchemaResource<ConfigRow> {
 
 ## 个人设置
 
-列设置、搜索设置与个人视图按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到；其他设备上改了，已打开的页面经实时推送（`UserSettingChanged`）即时应用。
+列设置、搜索设置与条件预设按 `pageCode` 存在本地，并写入用户设置（`user-settings`，场景 `Page`）：开着同步时以后端那份为准，换设备打开页面即取到；其他设备上改了，已打开的页面经实时推送（`UserSettingChanged`）即时应用。
+
+排序有三处来源：列设置里每列的升 / 降箭头是这页的默认排序（多列时按列的先后定优先级），点列头排序只在本次浏览有效，条件预设存的是保存那一刻正在用的排序。首次加载时设了默认预设的按预设，否则按默认排序；开着同步时等后端那份回来再定，换了设备也按账号上的默认排序。搜索区「重置」清空筛选后回到默认排序。
+
+条件预设的入口是搜索区的书签按钮，跨设备同步由偏好设置里单独的「条件预设」开关控制（与表格设置分开）：
+
+- 点开后在「预设条件」下列出已存的预设：点名称即套用（筛选、排序与每页条数），悬停能看到它存的筛选与排序；点眼睛预览，下面那块换成它存的条件（名称行收起、保存置灰），再点一次或关掉浮层即还原；星标设为默认（再点一次取消），也可以删除。浮层底部有一段同款说明。
+- 「当前条件」第一行填预设名称，下面每个条件一个标签、一行一个，列出现在的筛选（字段名与选项名、日期区间、多选的值）、排序与每页条数，保存的就是这些；右上角保存（在名称框里回车也行），与已有预设同名时覆盖它。
+- 设了默认预设的页面在首次加载时就按它查询，不会先按空条件查一遍。开着同步时会等后端那份回来，它和列设置是同一条记录，不多等一趟。
+- 页面也可以经模板 ref 调用 `saveView`、`applyView`、`removeView` 与 `setDefaultView`（传 `null` 取消默认）。
 
 ## 已知限制
 

@@ -281,6 +281,11 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 - **删除**：先删向量再软删行。向量库不可达时这一项失败、行不删；索引失败且块数为 0 的文档没写入过向量，不碰向量库，没配向量库也删得掉。
 - **问答**：要答案且有命中时才调模型，用框架内置的增强模板，最大输出与温度取提供商的配置。片段在列表里的顺序就是答案里的引用编号：`[n]` 对应第 n 个片段。检索失败照框架的错误码返回，不退化成纯模型回答。
 
+前端的知识库页有两个页签：
+
+- 文档：列表行上的「详情」经 `get` 显示索引状态、失败原因与原文。
+- 检索试玩：打开「生成答案」走 `query`，关掉只走 `search`。命中片段的标题可以点开所属文档，原文里标出这一段；只有执行权限、没有读权限的人看到的标题不能点。
+
 向量库是 Qdrant，配置见[配置参考](../configuration#basicapp-ai-qdrant)：写了 `BasicApp:AI:Qdrant:Host` 才装知识库，健康检查多一项 `ai.vectordata.store`。不配即知识库不可用：摄入的文档以失败保存，问答与检索返回 503 `AI_UNAVAILABLE_002`，不悄悄退到内存。向量维度要与嵌入模型一致（`XiHan:AI:Knowledge:Dimensions`，缺省 1536），不一致报 `AI_VALIDATION_002`；检索条数与切块参数也在这一节，缺省 5 条、块 1000 个字符、重叠 100。
 
 提供商还被知识文档或助手引用时不能删除，逐项报 `AI_CONFLICT_104`。文档可能在任何一侧，所以删除时要逐个租户查一遍，独立库的租户查它自己的库；哪一侧查不了，这次删除就失败（503 `AI_UNAVAILABLE_104`）。
@@ -471,7 +476,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 **本人关闭账号**：`profile.deactivate-account`（停用，管理员可以重新启用）与 `profile.delete-account`（注销，账号软删除）。都要当前密码，模仿会话不能做，租户所有者要先转移所有权（`IDENTITY_CONFLICT_011`），成功后吊销本人全部会话。
 
-**密码**：PBKDF2-SHA256 散列；至少 `PasswordMinLength`（8）位、同时含字母与数字；不能与最近 `PasswordHistoryDepth`（3）个密码相同。
+**密码**：PBKDF2-SHA256 散列；规则见[密码策略](#密码策略)。
 
 ## 令牌与会话
 
@@ -479,14 +484,16 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 | --- | --- |
 | 访问令牌 | HS256 JWT，缺省 120 分钟（`AccessTokenMinutes`）；声明 `sub` 用户 ID、`tenant` 当前租户（平台没有）、`sid` 会话 ID、`role` 本会话激活的角色、模仿时 `act` |
 | 刷新令牌 | 32 字节随机数，库里只存 SHA-256 散列，缺省 7 天（`RefreshTokenDays`）；每次刷新轮换、旧的立即失效，并顺延会话有效期；模仿会话的到期时间不顺延 |
-| 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型、IP 与登录地点（IP 归属地） |
-| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期或用户不正常即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
+| 会话 | `SysUserSession` 一行一个，ID 即 `sid`；记下浏览器、操作系统、设备类型、IP、登录地点（IP 归属地）与客户端报的设备标识 |
+| 会话门禁 | `SessionGateMiddleware` 在 Authenticate 阶段、框架 JWT 认证之后核对会话仍有效（结果缓存 `SessionCacheSeconds` 秒，缺省 30），已吊销、已过期、用户不正常或签发时的安全戳已换新即 `IDENTITY_DENIED_001`；不带 `sid` 的令牌不经门禁 |
 
-吊销会话的场景：注销、改密、管理员重置密码、找回密码、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
+吊销会话的场景：注销、改密、管理员重置密码、找回密码、本人开关双因素、管理员重置双因素、锁定或停用用户、删除用户、本人关闭账号、登录策略超限、强制下线、结束模仿、锁屏密码连错 5 次。吊销提交之后经 Realtime 推 `ForceLogout` 并断开这些会话的连接。
+
+账号的安全戳在设密码、开关或重置双因素、本人停用账号时换新。会话签发时记下当时的戳，门禁与 `auth.refresh` 对不上即 `IDENTITY_DENIED_001`：与换新并发的登录开出的会话也用不了。换新的同时吊销本人的其余会话；本人改密、开关双因素时当前会话改记新戳，照常可用。
 
 ## 登录方式
 
-开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码与是否开放注册返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
+开放哪些方式由系统参数 `identity.login-methods` 决定（方式名的 JSON 数组，如 `["password","passkey"]`，可写 `password`、`email`、`phone`、`passkey`，只认平台的）：缺省 `["password"]` 即只有密码登录，密码登录总是开着；不是字符串数组或有认不出的方式名即 `IDENTITY_VALIDATION_021`。`passkey` 还要宿主配了 `XiHan:Security:WebAuthn`，没配时列出也不算开放。`auth.login-config`（匿名 `GET`）把开放的方式、可用的第三方提供方、是否要图形验证码、是否开放注册与设新密码的规则返回给登录页。登录页取不到它时在表单上方常驻提示并可重试，取到之前「登录」不可点。
 
 ### 密码登录 `auth.login`
 
@@ -498,16 +505,35 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 账号开了双因素即返回挑战（见[双因素](#双因素)）；否则先过登录守卫（Access 实现：访问策略的登录时机、登录失败自动封禁），再开会话、签令牌对。
 
-### 强制修改由他人设置的密码
+### 密码策略
 
-密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。系统参数 `identity.password`（JSON，只认平台的，缺省关）的 `forceChange` 决定要不要逼：
+规则都在系统参数 `identity.password`（JSON，只认平台的：账号跨租户、登录在进入租户之前），没建参数即缺省值，参数配置页改了立即生效：
+
+| 字段 | 缺省 | 含义 |
+| --- | --- | --- |
+| `minLength` | `8` | 最短长度，6 到 128 |
+| `requireLetter` / `requireDigit` | `true` / `true` | 须含字母、数字 |
+| `requireUppercase` / `requireLowercase` / `requireSymbol` | `false` | 须含大写字母、小写字母、字母与数字以外的字符 |
+| `historyDepth` | `3` | 不得与最近几个用过的密码相同（连同当前密码）；0 不检查，最多 1000 |
+| `expiryDays` | `0` | 密码有效天数，0 不过期，最多 3650；过期后凭密码登录要先改密，见下一节 |
+| `forceChange` | `false` | 强制修改由他人设置的密码，见下一节 |
+
+设密码的各个入口（创建用户、重置、导入、开通租户管理员、注册、找回、本人改密、种子）按同一份规则校验，不满足报 `IDENTITY_VALIDATION_003`（文案说明第一条不满足的规则）或 `IDENTITY_VALIDATION_004`（用过的密码）；请求只限 128 位上限，下限由 `minLength` 定。登录页配置 `auth.login-config` 带出 `passwordPolicy`（长度与须含的字符），注册、找回与改密的表单据此提示。
+
+写错的值（字段类型不对、取值越界、不是 JSON 对象）经参数配置保存时即拒绝（`SETTINGS_VALIDATION_011` / `002`），不会挡住登录；库里的值被直接改坏时，设密码与凭密码登录都报 `IDENTITY_VALIDATION_025`，已登录的会话不受影响。
+
+### 强制修改由他人设置的密码与过期的密码
+
+密码由管理员创建或重置、由平台开通、由种子写入的账号都记着「密码由他人设置」，本人改密或找回密码后清除。`identity.password` 的 `forceChange` 决定要不要逼；`expiryDays` 大于 0 时，最近一次设密码超过这么多天的账号同样要先改密：
 
 | 状态 | 效果 |
 | --- | --- |
 | 关（缺省） | 只留着标记，直接放行 |
 | 开 | 这些账号**凭密码登录**（含两步验证的第二步）时会话一开即锁定（令牌响应 `mustChangePassword` 为 `true`，锁定原因 `PasswordChangeRequired`），并发一条安全站内信提醒；打开之前已有的标记同样生效，已经在线的会话下次登录才受影响 |
 
-锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。参数写错即 `IDENTITY_VALIDATION_025`，只影响有标记的账号的密码登录。
+密码过期的账号凭密码登录时同样锁定、原因同样是 `PasswordChangeRequired`，站内信说明是过期（标题「密码已过期」，正文带有效天数）；没有改密时间的按已过期算。改密之后重新计时；已经在线的会话不因到期被锁，下次凭密码登录才受影响。
+
+锁定中除 `profile.change-password` 与 `auth.logout` 外都是 `IDENTITY_DENIED_002`（`auth.refresh` 照常可用，新令牌还锁着）；前端弹改密表单，改完当场解开。验证码登录、第三方登录、通行密钥登录与模仿打开的会话不走这一步。
 
 ### 验证码登录 `auth.send-login-code` → `auth.login-by-code`
 
@@ -591,7 +617,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 ## 锁屏
 
-`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码](#强制修改由他人设置的密码)；锁屏的会话也不能靠改密解开。
+`auth.lock` 给当前会话记下锁屏密码的散列，之后这个会话除 `auth.unlock` 与 `auth.logout` 外都以 `IDENTITY_DENIED_002` 拒绝（`details.reason` 是 `ScreenLock`），只影响这一个端。解锁密码错一次是 `IDENTITY_DENIED_013`（带剩余次数），连错 5 次吊销会话（`IDENTITY_DENIED_014`）。强制改密的锁（`PasswordChangeRequired`）用不了锁屏密码（`IDENTITY_CONFLICT_006`），见[强制修改由他人设置的密码与过期的密码](#强制修改由他人设置的密码与过期的密码)；锁屏的会话也不能靠改密解开。
 
 ## 模仿登录
 
@@ -624,7 +650,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | 允许多端、`maxLoginDevices` 为 1 到 99 | 保留新会话和最近的几个，超过的吊销最早的 |
 | 允许多端、`maxLoginDevices` 为 0（缺省） | 不限 |
 
-模仿会话不算设备。被吊销的会话收到 `ForceLogout`。
+模仿会话不算设备。被吊销的会话先收到登录提醒（见[安全通知](#安全通知)），再收到 `ForceLogout`。
 
 ## 用户详情
 
@@ -646,6 +672,24 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | `sessions.revoke` | `identity.sessions.revoke` | 批量吊销，可带给被下线用户看的原因；看不到的会话逐项 `IDENTITY_NOTFOUND_002`，调用方自己当前的会话逐项 `IDENTITY_CONFLICT_005` |
 | `profile.sessions` / `profile.revoke-session` / `profile.revoke-other-sessions` | 登录即可 | 个人中心的「登录设备」：只按本人，不分侧、不套数据范围 |
 
+## 安全通知
+
+账号上发生下面这些事时，Identity 经 Notification 的站内投递给本人发一条安全站内信：类型是安全（前端弹警告色卡片），不看通知偏好，按本人的界面语言（没存语言的按触发这次调用的区域），点开到个人中心；只进本人的收件箱，不出现在通知公告管理里；投递失败只记日志，不挡业务。收件箱与推送都按侧，提醒别的设备时投到那些会话各自所在的一侧、每侧一条，那一侧在线的端实时收到；运维支持成员在租户一侧不是收件人，投到那一侧的提醒落空。
+
+| 时机 | 通知 | 投到 |
+| --- | --- | --- |
+| 登录（五种登录方式都算），账号别的设备上还登录着 | 「账号在其他设备登录」或「账号在新设备登录」，带新登录的浏览器、系统、IP 与地点 | 别的设备会话所在的各侧 |
+| 登录，账号别处都没登录着 | 「登录成功」 | 新会话这一侧 |
+| `auth.logout` | 「账号在其他设备退出登录」，带退出的那台设备；退出的这台设备先断开实时连接，收不到它 | 退出的这一侧与别的设备所在的各侧 |
+| `sessions.revoke` 下线别人的会话 | 「登录会话被强制下线」，带那台设备与管理员填的原因 | 那个会话所在的一侧 |
+| `profile.change-password` / `profile.change-username` | 「密码已修改」/「用户名已修改」 | 当前一侧 |
+| `profile.link-external` 绑上新的第三方账号 | 「绑定了第三方账号」 | 当前一侧 |
+| `my-api-credentials.create` / `rotate-secret` / `delete` | 「新建了 API 凭证」/「API 凭证密钥已滚动」/「删除了 API 凭证」，带凭证名与 AppKey | 当前一侧 |
+
+另有强制改密与密码过期的提醒（见上文）、模仿登录的通知（`notifyTarget`）与添加通行密钥的通知。
+
+只提醒、不踢人：同时登录几端由[登录策略](#登录策略)决定，被它挤掉的会话也先收到登录提醒，再收到 `ForceLogout`。「新设备」按设备标识判断：各种登录请求都可带 `deviceId`（前端报浏览器的设备指纹，只收字母、数字、下划线与连字符，最长 64 个字符），记在会话上；这个账号以前（含已吊销、已过期的会话，模仿会话不算）有同一标识的会话即「其他设备」，没有或没报即「新设备」。指纹可被伪造、也会撞，只决定提醒的措辞，不作安全判定。
+
 ## 下一步
 
 - [权限管理](./permission) · [访问策略与权限条件](./access-policy) · [实时推送](./realtime)
@@ -664,7 +708,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 | 接口 | 来源 | 用途 |
 | --- | --- | --- |
-| `ISharedCache` | 框架 `Caching.Abstractions` | 跨实例共享的缓存，各包都用它：授权规则、角色指派、会话门禁、验证码与登录节流、套餐白名单、打印模板等 |
+| `ISharedCache` | 框架 `Caching.Abstractions` | 跨实例共享的缓存，各包都用它：授权规则、角色指派、会话门禁、验证码与登录节流、套餐白名单、参数、字典选项、用户设置、部门、消息模板、打印模板等 |
 | `ICache` | 框架 | 类型化缓存；配了 Redis 时是本机 L1 + Redis L2 |
 | `ICacheStore` | 框架 | 字节存储，供分布式锁与幂等去重 |
 
@@ -678,16 +722,23 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 
 | 数据 | 时长 | 失效 |
 | --- | --- | --- |
-| 会话门禁 | `BasicApp:Auth:SessionCacheSeconds`（30 秒） | 注销、吊销、改密、锁屏、解锁、结束模仿时 |
+| 会话门禁 | `BasicApp:Auth:SessionCacheSeconds`（30 秒） | 注销、吊销、改密、开关或重置双因素、锁屏、解锁、结束模仿时 |
 | 套餐白名单（按租户） | 30 秒 | 换套餐、改白名单时 |
 | 权限规则、角色指派、继承图、委托、权限条件 | 60 秒 | 写入方即时失效 |
 | 访问策略、字段安全规则、约束规则（按侧） | 60 秒 | 写入方即时失效 |
 | 打印模板（按侧 × 编码） | 30 分钟 | 模板写入时 |
-| 租户目录、权限授予 | 框架进程内缓存，`XiHan:MultiTenancy:Database:CacheTimeToLiveSeconds` / `XiHan:Security:Database:CacheTimeToLiveSeconds`（30 秒） | 框架 `TenantRecordStore` / `PermissionGrantRecordStore` 写入时失效本实例的条目 |
+| 参数（按侧 × 键，加密的存密文） | 10 分钟 | 参数增删改、内建参数对齐时 |
+| 字典选项（按侧 × 字典编码） | 10 分钟 | 字典与字典项增删改时 |
+| 用户设置（按用户 × 场景 × 键，没存过的也缓存） | 10 分钟 | 写这一条设置时 |
+| 消息模板（按侧 × 渠道 × 编码，只存启用的） | 10 分钟 | 模板增删改时 |
+| 部门与各部门成员数（按租户整份） | 60 秒 | 部门增删改与移动、任职增删、导入用户时 |
+| 租户目录、权限授予 | 框架经 `ICache` 缓存，兜底存活时间 `XiHan:MultiTenancy:Database:CacheTimeToLiveSeconds` / `XiHan:Security:Database:CacheTimeToLiveSeconds`（30 秒） | 框架 `TenantRecordStore` / `PermissionGrantRecordStore` 写入时与提交之后各失效一次；配了 Redis 时所有实例一起失效 |
 
 授予与指派的生效、到期在判定时按当前时间比较，不依赖缓存重建。
 
-上面这些读穿缓存未命中时，经 `Runtime.Persistence.StoreScope` 在独立的只读工作单元里读库，看不到调用里还没提交的写入。所以写入方在调用里失效要用 `CacheInvalidation.RemoveAsync` / `RemoveManyAsync`（Runtime）：调用里只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库；同一缓存的键一次往返）。管道之外（种子、作业）调用即刻删除。
+参数、字典选项与消息模板按侧各存一份：租户读时先看自己的、再看平台的，平台那一份改了只失效平台的键，不用逐个租户失效；这一侧没有的也缓存成「没有」，新建时一并失效。
+
+上面这些读穿缓存未命中时，经 `Runtime.Persistence.StoreScope` 在独立的只读工作单元里读主库，看不到调用里还没提交的写入。部门是租户库实体，要在调用自己的租户上下文里读，只在只读操作（`departments.tree`）里读；只读工作单元可能读从库，所以它的时长取 60 秒。所以写入方在调用里失效要用 `CacheInvalidation.RemoveAsync` / `RemoveManyAsync`（Runtime）：调用里只记下，由 Transaction 阶段开头的 `CacheInvalidationMiddleware` 在工作单元提交或回滚之后才删键（回滚了照样删，多失效一次只是多读一次库；同一缓存的键一次往返）。管道之外（种子、作业）调用即刻删除。
 
 ::: warning 不要在提交前删键
 直接调 `cache.RemoveAsync` 会在提交之前删键。同一请求里的后续读取或并发请求在删键与提交之间未命中，会把提交前的旧数据写回缓存，变更要等缓存过期才生效。新写的读穿缓存一律经 `CacheInvalidation` 失效。
@@ -700,6 +751,7 @@ GitHub、Gitee、Google、QQ、微信、企业微信、飞书、钉钉，配置�
 | 命名空间 | 能否改写值 |
 | --- | --- |
 | `access:`、`identity:`、`tenancy:`、`openplatform:` | 否（鉴权、签名与套餐门控相关） |
+| `settings:`、`organization:` | 否（参数里有密文，部门数据要整份一致） |
 | `ai:` | 否（提供商目录的戳键） |
 | `realtime:`（配了 Redis 时才有） | 否（在线状态） |
 | `notification:`、`printing:` | 是 |
@@ -728,7 +780,7 @@ BasicApp 没有自建的后台任务框架，异步工作分下面几类：
 | 后台循环 | `IHostedFeature` 随应用启停 | Notification 的发送循环与 Telegram 机器人；Auditing 的日志批量写入；Files 的导出执行；Realtime 的在线状态心跳（配了 Redis 时） |
 | 有界队列 | 调用里只入队，后台批量落库 | 七类分表日志（`BasicApp:Auditing:QueueCapacity` / `BatchSize` / `FlushIntervalSeconds`）；操作日志走框架的 `XiHan:Auditing:Database` 队列 |
 | 提交后推送 | `IRealtimePush.SendAsync` 在调用里暂存，`RealtimeDispatchMiddleware` 在调用成功、事务提交之后发出 | `ForceLogout`、`ReceiveNotification`、`TaskProgress` |
-| 提交后失效 | `CacheInvalidation` 暂存，`CacheInvalidationMiddleware` 在工作单元结束后删键 | Access 的授权类缓存、会话门禁、套餐白名单 |
+| 提交后失效 | `CacheInvalidation` 暂存，`CacheInvalidationMiddleware` 在工作单元结束后删键 | Access 的授权类缓存、会话门禁、套餐白名单、参数、字典选项、用户设置、部门、消息模板 |
 | 领域事件 | 发件箱随业务写入同一事务，后台投递给订阅方 | 见[实体基类](./entity#领域事件) |
 
 不落库的瞬时推送（正在输入、助手的流式增量）用 `IRealtimePush.SendNowAsync`，只能在事务之外调用。
@@ -739,10 +791,13 @@ BasicApp 没有自建的后台任务框架，异步工作分下面几类：
 | --- | --- | --- |
 | `auditing.retention` | `BasicApp:Auditing:RetentionCron`（缺省 `0 3 * * *`） | 按保留天数清理日志，见[日志审计](./logging) |
 | `chat.messages.cleanup` | `0 4 * * *` | 按保留期清理聊天消息，见[在线聊天](./chat) |
+| `chat.calls.sweep` | `*/5 * * * *` | 收尾没人管的聊天通话，见[在线聊天](./chat#语音与视频通话) |
 | `tenancy.tenants.expire` | `*/5 * * * *` | 把已过到期时间的租户标为到期，并停用租户目录里的记录 |
 | `files.uploads.expire` | `15 * * * *` | 清理过期的分片上传 |
 | `files.temporary.purge` | `45 * * * *` | 清理到期的临时文件，见[文件与存储](./file#临时文件) |
 | `openplatform.oauth-cleanup` | `30 3 * * *` | 物理删除过期一天的授权码与过期七天的令牌 |
+| `notification.messages.cleanup` | `30 3 * * *` | 按保留天数删除已结束的发送记录与 Telegram 出站审计 |
+| `workflow.receipts.cleanup` | `30 4 * * *` | 删除 90 天前的工作流事件回执 |
 
 作业的查看、暂停、立即执行与改计划见[定时任务](./scheduling)。
 
@@ -766,20 +821,22 @@ BasicApp 没有自建的后台任务框架，异步工作分下面几类：
 
 # 在线聊天
 
-本页说明在线聊天的会话与消息规则、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
+本页说明在线聊天的会话与消息规则、语音与视频通话、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
 
-Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，聊天 Hub 与聊天审计。
+Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话，消息的发送、撤回、编辑、回应、置顶、转发、已读与提及，语音与视频通话（单聊里一对一，群聊与部门群里多人，可以共享屏幕），聊天 Hub 与聊天审计。
 
 ## 数据
 
-四张租户库表（`TenantScoped*`），平台一侧以 `platform` 为租户落在同一张表里，平台账号之间同样能聊天；独立库的租户在自己的库里。
+六张租户库表（`TenantScoped*`），平台一侧以 `platform` 为租户落在同一张表里，平台账号之间同样能聊天；独立库的租户在自己的库里。
 
 | 表 | 说明 |
 | --- | --- |
-| `sys_chat_conversation` | 会话：类型（单聊、群聊、部门群、助手）、名称、头像、单聊唯一键、部门、群主、助手、成员数、最大消息序号、最后消息、公告、描述；软删除，不进差异日志 |
-| `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、禁言、入会时间；退群与移出即软删除 |
-| `sys_chat_message` | 消息：会话内序号、发送人与名字快照、类型、正文、附件（JSON）、撤回、编辑、回复快照、提及、置顶；不软删除，按保留期物理删除 |
+| `sys_chat_conversation` | 会话：类型（单聊、群聊、部门群、助手）、名称、头像、单聊唯一键、部门、群主、助手、成员数、最大消息序号、最后消息、公告、描述；软删除（解散群即软删除它），不进差异日志 |
+| `sys_chat_conversation_member` | 成员：角色（群主、管理员、成员）、未读数、已读到的消息与序号、免打扰、置顶、隐藏（隐藏时会话的最大消息序号）、禁言、入会时间；退群、移出与解散群即软删除 |
+| `sys_chat_message` | 消息：会话内序号、发送人与名字快照、类型、正文、附件（JSON）、撤回、编辑、回复快照、提及（点名的成员与提及所有人）、置顶；不软删除，按保留期物理删除 |
 | `sys_chat_message_reaction` | 表情回应：同一消息、同一用户、同一表情只有一条 |
+| `sys_chat_call` | 通话：会话、发起人、媒体（语音、视频）、状态、结束的原因、响铃到几时、接通与结束时间、通话记录消息；不进差异日志 |
+| `sys_chat_call_participant` | 通话的参与者：状态（受邀、已加入、已拒绝、未接听、已离开）、加入与离开时间；同一通话里一个用户只有一行 |
 
 会话内的消息按序号排序：发消息时对会话行加一取得序号（行锁让同一会话的发送串行），历史的游标、已读位与已读回执都比序号。主键是 GUIDv7，同一毫秒内没有先后，不能用来排序。
 
@@ -788,18 +845,28 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 | 规则 | 说明 |
 | --- | --- |
 | 单聊 | 同一对用户每侧只有一个，没有即建；不能和自己单聊 |
-| 群聊 | 含群主至少两人，发起人为群主；加人、移出、改信息与公告、禁言要群主或管理员，转让群主与设管理员只有群主；群主不能退群或被移出；没有解散 |
+| 群聊 | 含群主至少两人，发起人为群主；加人、移出、改信息与公告、禁言要群主或管理员，转让群主、设管理员与解散只有群主；群主不能退群或被移出，只能转让或解散 |
+| 解散群 | 只在群聊（`CHAT_VALIDATION_003`）、只有群主（`CHAT_DENIED_003`）。里面还没结束的通话先结束（还没人接的记已取消，通话中的以中断结束），追加一条解散提示，再把会话与它的全部成员行一起软删除：谁的会话列表里都不再有它，之后在里面做什么都当它不存在（`CHAT_NOTFOUND_001`，查历史这类先核对成员的是 `CHAT_DENIED_001`）。消息留着、保留清理照常，聊天审计照样看得到；解散不能撤销 |
 | 部门群 | 只有本部门的成员能进，打开时补齐部门现有成员；没有群主与管理员，所以没人能改信息、置顶消息或禁言；名称随部门、不能改；平台没有部门，部门群只在租户一侧 |
 | 成员范围 | 加进会话的人必须属于当前一侧：平台是注册在平台的账号，租户是注册在本租户的用户与租户成员（`CHAT_VALIDATION_021`） |
-| 发送 | 只有成员、没被禁言；文本必填不超过 4000 个字符，图片与文件至少一个附件（可带说明），语音恰好一个附件、1 到 60 秒、没有正文；系统提示与助手回复只由服务端追加 |
-| 提及与回复 | 最多提及 20 名成员；只能回复本会话未撤回的消息，存「发送人: 内容」快照 |
-| 撤回 | 本人、发出 2 分钟内，清空正文、保留行与附件 |
+| 发送 | 只有成员、没被禁言；文本必填不超过 4000 个字符，图片与文件至少一个附件（可带说明），语音恰好一个附件、1 到 60 秒、没有正文；系统提示、助手回复、通话记录与聊天记录只由服务端追加 |
+| 提及与回复 | 最多提及 20 名成员；提及所有人（`mentionAll`）只有群聊的群主与管理员能用（`CHAT_DENIED_002`），单聊、助手会话与部门群用不了（`CHAT_VALIDATION_033`，部门群没有群主与管理员）；只能回复本会话未撤回的消息，存「发送人: 内容」快照 |
+| 撤回 | 本人、发出 2 分钟内，清空正文、保留行与附件；通话记录不能撤回 |
 | 编辑 | 本人的文本、发出 5 分钟内、没被禁言 |
 | 置顶消息 | 单聊双方都能，群与部门群只有群主与管理员，每会话最多 10 条（`CHAT_CONFLICT_001`） |
-| 转发 | 服务端单条转发到一个或多个会话，原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；系统提示与已撤回的不能转发，不是成员或被禁言的会话逐项失败 |
+| 转发 | 在服务端做：同一个会话里的一条或多条（最多 50 条，不同会话的不能一起转，`CHAT_VALIDATION_034`）转到一个或多个会话。逐条转发按原来的先后原样复制类型、正文与附件，不带转发来源，助手回复按文本转出；合并转发（`merge`）收成一条聊天记录。系统提示、通话记录与已撤回的不能转发（`CHAT_VALIDATION_022`），不是成员或被禁言的会话逐项失败 |
+| 聊天记录 | 合并转发出来的一条类型为 `Record` 的消息：发送人是转发的人，正文是 JSON（`sourceType`、`sourceName`、`participants`、`items`，每条带发送人、原来的时间、类型、正文与附件），附件列是里面所有消息的附件，目标会话的成员凭它换得到下载地址；会话预览写「[聊天记录]」。它能再被转发、再被合并（套在里面），不进会话内搜索；正文超过 50 万个字符即拒绝（`CHAT_VALIDATION_035`） |
 | 已读 | 未读清零、已读位前移（不回退，没给消息即读到最新），已读位推给全体成员 |
 
 系统提示（建群、邀请、退群、移出、转让）与会话预览按发起调用的区域写进库里，公告以操作人的身份进消息流。
+
+前端在消息的右键菜单里进多选：勾选能转发的消息（系统提示、通话记录与已撤回的选不了），输入区换成操作条，逐条或合并转发到选中的会话；聊天记录在消息流里是一张卡片（标题、前几行、条数），点开按原来的先后列出里面的消息，套着的聊天记录能再点进去。群主与管理员在群聊的提及列表里多一项「所有人」，收到的人会话列表里出「有人@我」、气泡高亮。
+
+消息只带被提及的用户 ID，正文里的「@名字」由前端按会话成员名单对上：对得上的可以点，打开那个人的资料卡；改过名或已不在群里的照普通文字显示。回复的引用块点了定位到被回复的那条：它就在眼前这一段里直接滚过去，不在就以它为中心重载；定位到的消息（引用块、搜索命中、置顶都一样）整行铺一条底色、几秒后撤掉，原消息已被保留期清理的提示一声。
+
+附件可以点按钮选、从剪贴板粘贴，或把文件拖到消息流上，都先暂存在输入区、发送时才上传。文件消息里浏览器通常放得了的视频（按扩展名认：`mp4`、`m4v`、`mov`、`webm`、`ogv`）在气泡里就地播放：点了封面才换签名地址、开始取流，地址放到一半过期就换一个接着放，浏览器解不了的退回按普通文件显示。同一时刻只有一段语音或视频出声。
+
+别人发来消息时的提醒：不在看这个会话时响提示音（与站内通知的音不同），不在聊天页时上灵动岛；页面看不到（窗口最小化、切到别的标签页或被别的窗口整个挡住）时另发系统通知，看得到时不发（窗口没有焦点也一样）（单聊是「对方 / 内容」，群里是「群名 / 谁: 内容」，同一个会话只留最新一条，后一条照样弹出），点了回到那个会话。系统通知由偏好设置的「桌面通知」控制，缺省开，浏览器的授权在进入页面后的第一下操作时询问一次。免打扰的会话都不提醒，未读照记。未读合计（不含免打扰的会话）还写在页面标题前面。
 
 ## 助手会话
 
@@ -822,25 +889,149 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 助手本身的配置见 [AI 能力](./ai#助手)。
 
+## 语音与视频通话
+
+单聊里是一对一通话，群聊与部门群里是多人通话，通话中可以共享屏幕。通话的媒体有三种：语音（`Voice`）、视频（`Video`）与屏幕共享（`Screen`）——屏幕共享是单独发起的那一种：发起人先挑要共享的画面、带着麦克风开始响铃，别人按语音进、进来就看到屏幕，人数上限与视频通话相同。媒体在浏览器之间走 WebRTC：多人通话里每两个人之间各一条连接（全互联，不经媒体服务器），能直连就直连，直连不通时经 TURN 中继；服务端只记通话的状态、转发信令，不经手也不录制媒体。
+
+### 状态
+
+| 通话的状态 | 说明 |
+| --- | --- |
+| `Ringing` | 响铃中：发起人已加入，还没有别人进来 |
+| `Ongoing` | 通话中：有人接听或加入过 |
+| `Ended` | 已结束，带结束的原因 |
+
+| 参与者的状态 | 说明 |
+| --- | --- |
+| `Invited` | 受邀，在响铃 |
+| `Joined` | 在通话里 |
+| `Rejected` | 拒绝了 |
+| `Missed` | 没接到：响铃到点、响铃时离线，或发起时占线、不在线没能响铃 |
+| `Left` | 离开了 |
+
+| 结束的原因 | 说明 |
+| --- | --- |
+| `Completed` | 通话中的人陆续挂断，剩下不到两个人 |
+| `Cancelled` | 没人接之前发起人挂断，或发起人离线 |
+| `Rejected` | 受邀的人都拒绝了（响铃时受邀的人挂断也算拒绝） |
+| `Missed` | 受邀的人都没来，其中有人没接到（响铃到点、离线，或没能响铃） |
+| `Interrupted` | 通话中有人离线，剩下不到两个人 |
+
+### 规则
+
+| 规则 | 说明 |
+| --- | --- |
+| 发起 | 单聊呼叫对方：自己与对方都不在别的通话里（受邀还没接也算占着），对方此刻在线，否则不响铃、直接拒绝。群聊与部门群点名邀请成员（`inviteeUserIds`）：不能为空、都得是会话成员、连发起人在内不超过人数上限；占线与不在线的受邀人不响铃、记成没接到，一个能响铃的都没有即拒绝；一个会话同一时刻只有一通。助手会话不能通话 |
+| 人数上限 | 读 `chat.policy`：语音 `callMaxVoiceParticipants`（缺省 8），视频 `callMaxVideoParticipants`（缺省 6）。发起时按受邀的人数核对，接听与加入时按已经在通话里的人数核对 |
+| 接听与拒绝 | 只有受邀还没答复的人、通话还没结束时；多端同时接听只有先到的成功，其余端随推送停铃。有人接听即接通，别的受邀人照常响铃 |
+| 加入 | 多人通话还没结束时会话成员都能加入（`chat-calls.join`）：没被邀请的、拒绝过的、没接到的、离开了的都能来；人数满了即拒绝 |
+| 挂断 | 没人接时发起人挂断即取消，受邀的人在响铃时挂断即拒绝；通话中挂断即离开，剩下不到两个人、又没人还在响铃时通话结束；已经结束的、早就不在里面的照样成功（几个人可能同时挂） |
+| 响铃到点 | 响铃秒数读 `chat.policy` 的 `callRingSeconds`（缺省 60）。到点由端上来挂：发起端准点挂，受邀端晚 2 秒挂掉自己那份邀请；服务端把到点前 3 秒起的挂断一律记未接听 |
+| 离线 | 用户离线（过了[离线宽限](#在线状态)）即离开他占着的通话：受邀的记没接到，没人接时发起人离线即取消，通话中的记离开、剩下的人不够时以中断结束 |
+| 收尾 | 内建作业 `chat.calls.sweep` 每 5 分钟按平台与每个租户收一遍没人管的通话（响铃过点、发起人已离线、通话中已经离线的人与过点还挂着的邀请）；停用的租户跳过 |
+| 先后 | 同一会话里的发起、接听、拒绝、加入、挂断对会话行加锁排成先后：两个人同时互相呼叫只成一通，一个群里不会同时起两通。锁只在会话上，两个不同会话里的人在同一瞬间呼叫同一个人时可能各响一通，先接的成立，另一通到点记未接听 |
+
+### 通话记录
+
+通话结束时往会话里追加一条类型为 `Call` 的消息：发送人是发起人，正文是 JSON（`callId`、`media`、`reason`、`durationSeconds`、`missedUserIds`），会话预览按媒体写「[语音通话]」「[视频通话]」或「[屏幕共享]」。只给没接到的人（`missedUserIds`）各记一条未读，接通过的、自己拒绝的与没被邀请的不记。通话记录不能撤回、不能转发，也不进会话内搜索；聊天审计里显示为「媒体 · 结果」。
+
+### 信令与穿透
+
+- 信令经聊天 Hub：占着通话的端调 `CallSignal(callId, toUserId, data)`，服务端核对它是这通接通了的电话里的人，把 `ChatCallSignal`（`callId`、`fromUserId`、`data`）转出去：给了 `toUserId` 只转给他（他也得在通话里），没给转给已经加入的其他人。`data` 是两端之间约定的 JSON，不超过 20000 个字符，服务端不解析、不落库：会话描述与 ICE 候选指给一个人，麦克风、摄像头与屏幕共享的开关发给所有人。
+- 通话每次变化推 `ChatCallChanged`，载荷是通话此刻的样子，发给参与过这通电话的每个人的全部连接；多人通话另发给正开着这个会话的连接（会话组），没被邀请的成员据此看到有通话在进行。打开会话时用 `chat-calls.ongoing` 取这个会话里还没结束的那一通。
+- 穿透服务器由 `chat-calls.ice-servers` 给出，取自宿主配置 `BasicApp:Chat:Calls`（见[配置](../configuration#basicapp-chat-calls)）。TURN 用共享密钥的限时凭据：用户名是「到期秒数:用户」，凭据是它的 HMAC-SHA1，按调用方现签，密钥不下发。都不配也能用，只是只有同一网段或能直连的两端打得通。
+
+### 媒体连接与屏幕共享
+
+- 通话里每两个人之间一条连接，后加入通话的一方出 offer（同一毫秒加入的比用户 ID），两端各自按同一份参与者算，不会同时出。有人离开只关与他的那条，他再加入时重新建。
+- 每条连接在协商时按固定次序留好三个轨道位：麦克风、摄像头、屏幕。之后开关摄像头、换设备、开始与停止共享屏幕都只是往位上换轨道，不重新协商；对端凭位置认出是哪一路。
+- 屏幕共享在哪种通话里都能开：浏览器让用户挑整个屏幕、一个窗口或一个标签页，只共享画面、不带系统声音；从浏览器自己的「停止共享」上停掉也算停止。不支持的浏览器（多数手机浏览器）不出这个按钮。
+- 单独发起屏幕共享（会话头的第三颗钮，媒体 `Screen`）时先挑画面再呼叫，在选择框里取消就不打；挑好的画面一发起就放在屏幕位上，接听与中途加入的人建连接时直接拿到。发起人停止共享后通话照旧，谁都可以再共享。
+- 全互联里每个人要给其余每个人各发一路媒体，上行带宽随人数增长，人数上限按此定；人更多要换成经媒体服务器转发的架构。
+
+### 前端
+
+- 会话头有语音与视频按钮：单聊直接呼叫对方；群聊与部门群先开点名的对话框，列出会话成员，不在线的选不了，最多选到人数上限减一。通话记录的气泡可点，用同样的媒体再打一次。
+- 群里有通话在进行时，会话顶上出一条横幅（谁发起的、几个人在里面），没在里面的成员点「加入」即进通话；自己已经在别处接听的只显示提示。
+- 来电卡片与通话窗挂在布局根部：任何页面都能接听，离开聊天页通话不断。多人通话的来电写明是哪个群。通话窗可拖动、收拢成标题栏或铺满视口，里面一人一格（还在响铃的也占一格，连不上的标出来），有人共享屏幕时屏幕占主画面、各人收成底下一排；有静音、关摄像头、共享屏幕、换麦克风与摄像头（浏览器支持时还有扬声器）与挂断。
+- 来电响铃声，打出去等对方接听时响回铃，都是连着响的长音，直到接通、挂断或响铃到点；页面看不到时来电另发一条挂着不消失的系统通知（谁打来、什么通话），来电有了结果即收起。
+- 来电在每个开着的页签都响；只有发起、接听或加入的那个页签建媒体连接、处理信令，别的页签随推送停铃。没有 `chat.chat-calls.call` 的人不出来电卡片，那份邀请到点记没接到。
+- 与一个人之间 30 秒媒体还没连上、或连接断开 8 秒没恢复，这条连接作废、他那一格标成连不上；与所有人都这样了，端上自己挂断并提示。
+- 响应与推送之间没有先后：接听、加入的请求在路上时到过推送的，以推送为准，不拿可能更旧的响应对齐连接。
+- 刷新页面：还在等自己答复的来电经 `chat-calls.active` 认回来；刷新之前占着通话的那个页签，媒体已经随页面没了，回来后替自己挂断（多人通话里别人照常，可以从横幅再加入）。
+- 浏览器只在 HTTPS 与 `localhost` 下给麦克风、摄像头与屏幕。
+
+### 错误码
+
+| 错误码 | 说明 |
+| --- | --- |
+| `CHAT_VALIDATION_028` | 这个会话不能发起通话（助手会话） |
+| `CHAT_VALIDATION_029` | 通话记录不能撤回 |
+| `CHAT_VALIDATION_030` | 群通话至少要邀请一名成员 |
+| `CHAT_VALIDATION_031` | 只能邀请这个会话的成员 |
+| `CHAT_VALIDATION_032` | 超过这种通话的人数上限 |
+| `CHAT_NOTFOUND_006` | 通话不存在 |
+| `CHAT_DENIED_010` | 不是这通电话的参与者 |
+| `CHAT_CONFLICT_002` | 自己正在另一通电话里 |
+| `CHAT_CONFLICT_003` | 对方正在通话中 |
+| `CHAT_CONFLICT_004` | 对方不在线 |
+| `CHAT_CONFLICT_005` | 这通电话已经被接听或已结束 |
+| `CHAT_CONFLICT_006` | 这个会话里已经有一通电话 |
+| `CHAT_CONFLICT_007` | 邀请的人都不在线或正在通话中 |
+| `CHAT_CONFLICT_008` | 通话人数已满 |
+| `CHAT_CONFLICT_009` | 这通电话已经结束 |
+
 ## 操作与权限
 
 | 资源 | 操作 |
 | --- | --- |
-| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`silence-members`、`set-member-role`、`pin`、`mute`、`mark-read` |
-| `chat-messages` | `history`、`search`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
-| `chat-audit` | `list`、`get`、`members` |
+| `chat-conversations` | `mine`、`members`、`read-positions`、`department-tree`、`user-options`、`user-profile`、`assistants`（只读）；`open-single`、`open-assistant`、`create-group`、`open-department`、`add-members`、`remove-members`、`leave`、`update-info`、`transfer-owner`、`dissolve`、`silence-members`、`set-member-role`、`pin`、`mute`、`hide`、`mark-read` |
+| `chat-messages` | `history`、`search`、`search-all`、`media`、`pinned`、`presign`（只读）；`send`、`recall`、`edit`、`react`、`pin`、`unpin`、`forward`、`fast-upload`、`reply-assistant` |
+| `chat-audit` | `list`、`get`、`members`、`list-calls`（都只读） |
+| `chat-calls` | `active`、`ongoing`、`settings`、`ice-servers`（只读）；`start`、`accept`、`reject`、`join`、`hangup` |
 
 普通端点 `POST /api/chat-messages/attachments` 上传附件（multipart 字段 `file`，要 `chat.chat-messages.send`，访问日志记作 `chat-messages.upload`）。
 
 | 权限码 | 说明 |
 | --- | --- |
-| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、已读也用它） |
-| `chat.chat-messages.read` | 查看历史、搜索、置顶消息与换附件地址 |
+| `chat.chat-conversations.read` | 查看与参与会话（打开、退群、置顶、免打扰、隐藏、已读、看成员的资料也用它） |
+| `chat.chat-messages.read` | 查看历史、会话内与跨会话搜索、会话的图片与文件、置顶消息与换附件地址 |
 | `chat.chat-messages.send` | 发送、撤回、编辑、回应、置顶消息、转发与上传附件（进操作日志） |
-| `chat.chat-conversations.manage` | 建群与群治理（进操作日志） |
+| `chat.chat-conversations.manage` | 建群、群治理与解散群（进操作日志） |
 | `chat.chat-audit.read` | 聊天审计 |
+| `chat.chat-calls.read` | 查看自己此刻所在的通话与所在会话里的通话，取通话设置与穿透服务器 |
+| `chat.chat-calls.call` | 发起、接听、拒绝、加入与挂断通话（进操作日志） |
 
-权限码两侧都有。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）在「消息中心」目录下。
+权限码两侧都有。套餐白名单与角色的授权是运营数据，种子只在首次写入：已有的套餐与角色不会自动带上之后新增的权限码，要在套餐页与角色页授予。页面 `chat.conversations`（`/chat/conversations`）与 `chat.audit`（`/chat/audit`）在「消息中心」目录下。
+
+## 选人
+
+`chat-conversations.user-options` 供发起单聊、建群与加成员：列出当前一侧的正常账号（范围同上面的「成员范围」），只要会话读权限，不要身份的用户读权限与组织的归属读权限。
+
+| 参数 | 说明 |
+| --- | --- |
+| `keyword` | 匹配用户名与显示名 |
+| `departmentId` | 只看这个部门及其全部下级里任职的人；平台没有部门 |
+| `skip`、`limit` | 按显示名排序逐页取，`limit` 缺省 50、最大 500 |
+
+响应的 `hasMore` 说明后面还有没有；每个人带头像文件与主部门的名称（没有任职或在平台一侧为空）。会话成员（`members`）同样带头像文件。
+
+前端的选人是可勾选的候选列表：可搜索、可只看最近联系人（取自单聊会话）或按部门筛选，往下逐页加载；多选时旁边列出已选的人，换一批候选也留着。加成员时已在群里的人照样列出、标注而不可选。会话的资料、公告、个人设置（置顶、免打扰）与成员治理都在会话详情里：宽屏是消息流旁边的第三栏，放不下时顶替消息流。
+
+会话列表的右键菜单可以置顶、免打扰或隐藏会话。隐藏（`chat-conversations.hide`）只从自己的列表里拿掉，置顶、免打扰与未读都不动，未读也不计入角标；服务端记下隐藏时会话的最大消息序号，之后来了新消息（别人或自己在别的端发的、系统提示、通话记录都算）会话自己回到列表，发消息不用为它多写一笔。会话列表照样返回隐藏的会话、带 `isHidden`：前端按名字搜得到，从搜索、资料卡里共同的群或发起单聊再打开即回到列表；转发的会话与选人的最近联系人同样只在按名字搜时列出隐藏的。
+
+## 搜索、图片与文件、资料
+
+| 操作 | 说明 |
+| --- | --- |
+| `chat-messages.search` | 在一个会话里按关键字找（匹配正文与附件名），只有成员能搜；最近的在前，`beforeMessageId` 往前翻页 |
+| `chat-messages.search-all` | 在调用方所在的全部会话里按关键字找，口径同上；最近的在前，结果跨着会话、没有共同的序号，按偏移翻页（`skip` 最大 10000，`take` 缺省 20、最大 50），翻页之间来了新消息会错开一两条 |
+| `chat-messages.media` | 一个会话里发过的图片（`kind=Image`）或文件（`kind=File`）消息，只有成员能看（`CHAT_DENIED_001`）；最近的在前，`beforeMessageId` 往前翻页，`take` 缺省 30、最大 100。聊天记录里套着的附件不在这里 |
+| `chat-conversations.user-profile` | 聊天里看一个人的资料：用户名、显示名、头像、主部门、在不在线，与两个人都在的群聊与部门群（按群名排，单聊与助手会话不算，看自己时为空）。那个人须属于当前一侧（`CHAT_VALIDATION_021`），不存在是 `CHAT_NOTFOUND_003`；只要会话读权限，不要身份的用户读权限 |
+
+搜索都不算已撤回的消息、通话记录与聊天记录，关键字为空返回空；图片与文件同样不列已撤回的。三个列表的响应都带 `hasMore`。
+
+前端会话列表的搜索框同时找会话与聊天记录：上面是名字匹配的会话，下面是聊天记录里的命中（哪个会话、谁说的、说了什么），点了打开那个会话并定位到那条消息。会话详情里的「图片与文件」把会话里发过的图片与文件分开列出、逐页往下取：图片点开是这一组的看片浮层，文件点了下载、另能定位到它所在的那条消息。消息流里点别人的头像、头像右键菜单的「查看资料」、会话详情里点成员的头像都打开同一张资料卡，从卡上能发消息、打语音或视频（对方在线时），也能进共同的群。
 
 ## 推送
 
@@ -848,14 +1039,25 @@ Chat 是 Tier 3 的可选模块：单聊、群聊、部门群与 AI 助手会话
 
 | 方向 | 方法 |
 | --- | --- |
-| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（11 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted` |
-| 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库） |
+| 服务端推送 | `ReceiveChatMessage`、`ChatMessageRecalled`、`ChatConversationChanged`（12 种变更）、`ChatTyping`、`ChatMessageEdited`、`ChatReactionChanged`、`ChatReadPositionChanged`、`ChatPresenceChanged`、`ChatAssistantDelta`、`ChatAssistantCompleted`、`ChatCallChanged`、`ChatCallSignal` |
+| 客户端可调 | `JoinConversation`（核对成员后加入会话组）、`LeaveConversation`、`Typing`（核对成员后组播给组里的其他连接，不落库）、`CallSignal`（核对是接通了的通话里的人后转给指定的人或通话里的其他人，不落库） |
 
-`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`。
+`ChatConversationChanged` 的变更种类：`created`、`member-added`、`member-removed`、`info-changed`、`owner-transferred`、`member-silenced`、`member-role-changed`、`pinned-changed`、`member-setting-changed`、`department-joined`、`department-kicked`、`removed`、`left`、`dissolved`。成员少了时留下的人收到 `member-removed`（部门群是 `department-kicked`），据此重读成员；出去的那个人另收一种、只推给他本人：被移出（含随部门归属移出）是 `removed`，自己退群是 `left`——他再读这个会话只会被拒绝，前端直接把它从列表里拿掉（正开着就收起），被移出的另出一条提示说是哪个群。群被解散时推给解散那一刻还在里面的成员，前端同样把它拿掉，不是群主的另出一条提示。
+
+## 在线状态
+
+在线即此刻在这一侧持有实时连接（任一 Hub 都算，见[实时推送](./realtime#在线状态)）。
+
+- 读的时候带当时的状态：会话列表的单聊带 `peerOnline`，会话成员与选人候选带 `isOnline`。
+- 之后的变化推 `ChatPresenceChanged`（`userId`、`isOnline`）：Chat 订阅 Realtime 的 `basicapp.realtime.presence-changed`，按处理时的在线状态推，乱序或重复投递推出去的都是当时的事实。
+- 受众是他的单聊对端（按人点发），以及正开着他所在的群或部门群的连接（会话组，即调过 `JoinConversation` 的连接）；不按群的全体成员扇出，没参加任何会话的人不推。
+- 刷新页面、断线重连不闪：最后一条连接断开后有一段宽限（缺省 8 秒），宽限内又连上即不推离线，只在回来时补推一次在线。
+
+前端把读回来的状态与推来的变化记在同一处，头像右下角的绿点、单聊头部与详情里的「在线 / 离线」、群成员的在线人数都从那里取；实时连接连上时（断线重连，或会话列表在连接建好之前就读了）把会话列表与当前会话的成员重取一遍。
 
 ## 附件
 
-附件以会话为访问范围，经 Files 的附件契约 `IAttachmentFiles` 存取：上传与秒传只要聊天的发送权限，文件存在调用方这一侧、来源记 `chat`，大小上限与存储配额同普通上传；发送时核对附件是自己在聊天里上传的（`CHAT_DENIED_009`），文件名与大小以文件记录为准；会话成员经 `chat-messages.presign` 凭会话换签名地址，附件须出现在这个会话的消息里，或是自己上传、还没发出的文件。文件管理照旧要 `files.files.read`。保留清理不删附件文件。
+附件以会话为访问范围，经 Files 的附件契约 `IAttachmentFiles` 存取：上传与秒传只要聊天的发送权限，文件存在调用方这一侧、来源记 `chat`，大小上限与存储配额同普通上传；发送时核对附件是自己在聊天里上传的（`CHAT_DENIED_009`），文件名与大小以文件记录为准；会话成员经 `chat-messages.presign` 凭会话换签名地址，附件须出现在这个会话的消息里，或是自己上传、还没发出的文件。文件管理照旧要 `files.files.read`。保留清理删掉消息时，附件文件没有留存的消息再用、也不是会话头像的才一并删除（见[策略与保留清理](#策略与保留清理)）。
 
 群头像是文件主键或直链：给文件主键时同样须是自己在聊天里上传的（`CHAT_DENIED_009`），设上之后会话成员经 `chat-messages.presign` 凭会话换它的地址。单聊的头像是对端用户的头像。
 
@@ -865,34 +1067,48 @@ Organization 在加入与移出部门时记领域事件 `basicapp.organization.m
 
 ## 聊天审计
 
-持 `chat.chat-audit.read` 即看当前一侧全部会话的消息，不要求是成员：
+持 `chat.chat-audit.read` 即看当前一侧全部会话的消息与通话记录，不要求是成员：
 
-- 列表按关键字（正文、发送人名、附件）与会话、发送人、消息类型、发送时间、是否撤回筛选，缺省不含已撤回的，筛选 `includeRecalled` 为 `true` 即都看；
-- 消息详情带所在会话、附件、提及、回复与表情回应；
-- 会话成员列出会话与它现在的成员。
+- 列表按关键字（正文、发送人名、附件）与会话、发送人、消息类型（含通话记录与聊天记录）、发送时间、是否撤回筛选，缺省不含已撤回的，筛选 `includeRecalled` 为 `true` 即都看；
+- 消息详情带所在会话、附件、提及（含提及所有人）、回复与表情回应；
+- 会话成员列出会话与它现在的成员；
+- 已解散的群照样查得到：消息还在（末尾是那条解散提示），会话带解散时间 `dissolvedAt`，成员列的是解散时还在里面的人；
+- 通话记录（`chat-audit.list-calls`）按发起时间倒着列出通话：所在会话、发起人、媒体、状态与结束原因、发起 / 接通 / 结束时间、时长（没接通或还没结束为空），以及每个参与者的状态与进出时间。可按会话、发起人、参与者（`participantUserId`）、媒体、状态（`eq`）、结束原因（`eq` / `in`）与发起时间（`startedAt` 的 `ge` / `le`）筛选，只能按发起时间排序，没有关键字；不认识的筛选、排序与关键字一律 `CHAT_VALIDATION_025`。媒体在浏览器之间直连、不经服务端，所以只有通话的状态可查，没有通话内容。
 
 撤回清空的正文与编辑前的正文不另留。
 
+前端的审计页一页两签：「消息」是消息列表、消息详情与会话成员，「通话记录」是通话列表，行上的「详情」看参与者、「成员」看所在会话的成员。
+
 ## 策略与保留清理
 
-参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词），缺省值：
+参数 `chat.policy`（JSON，种子建好的内建参数，租户可建同键参数覆盖敏感词、响铃秒数与通话人数上限），缺省值：
 
 ```json
-{ "retentionDays": 365, "sensitiveWords": [] }
+{ "retentionDays": 365, "sensitiveWords": [], "callRingSeconds": 60, "callMaxVoiceParticipants": 8, "callMaxVideoParticipants": 6 }
 ```
 
 | 字段 | 说明 |
 | --- | --- |
-| `retentionDays` | 消息保留天数，1 到 3650，只读平台的值 |
+| `retentionDays` | 消息与通话记录的保留天数，1 到 3650，只读平台的值 |
 | `sensitiveWords` | 敏感词，不区分大小写的包含匹配；租户建了同键参数即用租户的；管发送与编辑的正文（含图片与文件的说明），不管群名、公告与文件名（`CHAT_VALIDATION_023`） |
+| `callRingSeconds` | 通话响铃秒数，10 到 300；到点没人接即未接听；租户建了同键参数即用租户的 |
+| `callMaxVoiceParticipants` | 语音通话连发起人在内的人数上限，2 到 12；租户建了同键参数即用租户的 |
+| `callMaxVideoParticipants` | 视频通话与屏幕共享连发起人在内的人数上限，2 到 8；租户建了同键参数即用租户的 |
 
-JSON 不合法或保留天数越界即 `CHAT_VALIDATION_024`，发送与清理都不按错误的值执行。
+JSON 不合法、保留天数、响铃秒数或人数上限越界即 `CHAT_VALIDATION_024`，发送、通话与清理都不按错误的值执行。前端经 `chat-calls.settings` 取响铃秒数与两个人数上限。
 
-内建作业 `chat.messages.cleanup` 每天 04:00（UTC）按平台与每个租户逐个清理（独立库的租户清它自己的库）：先删所属消息已过期的表情回应，再删过期的消息；不删会话、成员与附件文件。一侧失败只记日志，不影响其他侧。
+内建作业 `chat.messages.cleanup` 每天 04:00（UTC）按平台与每个租户逐个清理（独立库的租户清它自己的库），每批 500 条、一批一个事务：
+
+- 消息：取创建早于保留期的消息，先删它们的表情回应，再删消息。
+- 附件文件：这批消息挂着的文件，只要还有留存的消息（含转发与合并转发的聊天记录）挂着它，或它是某个会话的头像，就留着；其余的按文件管理的删除处理。
+- 通话：结束早于保留期的通话连同参与者删除；响铃与通话中的再老也不动。
+- 不删会话与成员。
+
+每侧最多 200 批，没删完的下一次接着删（日志记为延后）。一批失败整批回滚，这一侧记为失败、只记日志，不影响其他侧。
 
 ## 开关
 
-`BasicApp:Modules:Chat:Enabled`（缺省开）。关掉后宿主不装配 Chat：权限目录、页面、Hub、附件上传端点与部门归属订阅都不在，菜单不下发、操作 404；Organization 照常发出领域事件，没有订阅方。四张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
+`BasicApp:Modules:Chat:Enabled`（缺省开）。关掉后宿主不装配 Chat：权限目录、页面、Hub、附件上传端点、两个内建作业与部门归属、在线状态的订阅都不在，菜单不下发、操作 404；Organization 照常发出领域事件，没有订阅方。六张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
 
 ## 下一步
 
@@ -910,7 +1126,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 
 ## 页面与权限
 
-页面 `codegeneration.code-gen`（路由 `/codegeneration/code-gen`，在「系统管理 › 在线开发」目录下，菜单按 `codegeneration.codegen-tables.read` 下发），一页四签：表配置、数据源、模板、生成历史，各页签按自己资源的读权限显示。
+页面 `codegeneration.code-gen`（路由 `/codegeneration/code-gen`，在「平台管理 › 在线开发」目录下，菜单按 `codegeneration.codegen-tables.read` 下发），一页四签：表配置、数据源、模板、生成历史，各页签按自己资源的读权限显示。
 
 权限码只在平台一侧，资源段与操作一致：
 
@@ -977,7 +1193,7 @@ CodeGeneration 是 Tier 3 的可选模块（`BasicApp:Modules:CodeGeneration:Ena
 
 ### 生成的后端代码
 
-一张表生成一个资源：资源名是类名的 kebab 复数（`SalesOrder` → `sales-orders`），操作 `<资源>.list / get / create / update / delete / set-status / tree / <属性>-options`，权限码 `<包>.<资源>.read / create / update / delete`（只在租户侧，写操作记审计），页面 `<包>.<资源>`（路由 `/<包>/<资源>`）。实体是租户库实体（`TenantScopedAuditedEntity`），表名或列名与按约定换算的不同时才写 `[SugarTable]` / `[SugarColumn]`，唯一列是部分唯一索引。
+一张表生成一个资源：资源名是类名的 kebab 复数（`SalesOrder` → `sales-orders`），操作 `<资源>.list / get / create / update / delete / set-status / tree / <属性>-options`，权限码 `<包>.<资源>.read / create / update / delete`（只在租户侧，写操作记审计），页面 `<包>.<资源>`（路由 `/<包>/<资源>`）。实体是租户库实体（`TenantScopedAuditedEntity`），显式写 `[SugarTable]`（表名、表说明取表注释，没有即业务名）与每列的 `[SugarColumn]`（列名、长度、可空、说明取列注释），长文本另标 `[LongText]`，唯一列是带名字的部分唯一索引（`ux_<表>_tenant_id_<列>`）。
 
 文件落在 `src/<命名空间>/` 下：
 
@@ -1097,8 +1313,8 @@ XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
 | --- | --- |
 | `SysUser` | 账号：`HomeTenantId` 为注册地租户（平台账号为 `platform`），状态、是否系统内置账号、资料与头像 |
 | `SysUserSecurity` | 账号安全：密码散列、失败计数、锁定期、双因素（密钥加密存储）、开放接口签名设置、登录策略 |
-| `SysUserSession` | 会话：ID 即令牌的 `sid`，`ActiveTenantId` 为会话当前所在的租户（平台为空）；刷新令牌散列、客户端信息、登录地点、锁屏、模仿发起人 |
-| `SysPasswordHistory` | 密码历史（不可复用的深度见 `BasicApp:Auth:PasswordHistoryDepth`） |
+| `SysUserSession` | 会话：ID 即令牌的 `sid`，`ActiveTenantId` 为会话当前所在的租户（平台为空）；刷新令牌散列、客户端信息、登录地点、设备标识、锁屏、模仿发起人 |
+| `SysPasswordHistory` | 密码历史（不可复用的深度见系统参数 `identity.password` 的 `historyDepth`） |
 | `SysUserSetting` | 用户设置（用户 × 场景 × 键，值是 JSON）：偏好、收藏、工作台布局 |
 | `SysUserNotificationPreference` | 通知偏好 |
 | `SysUserExternalLogin` | 第三方账号绑定 |
@@ -1149,7 +1365,6 @@ XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
 | 包 | 实体 | 说明 |
 | --- | --- | --- |
 | Organization | `SysDepartment`、`SysDepartmentHierarchy`、`SysPosition`、`SysUserDepartment` | 部门（闭包表维护层级）、岗位、部门成员（聚合根，发出领域事件） |
-| Identity | `SysUserStatistics` | 用户使用统计，在注册地租户 |
 | Access | `SysPermissionRequest` | 授权申请 |
 | Files | `SysFile`、`SysFileStorage`、`SysFileUpload`、`SysExportTask`、`SysImportHistory` | 文件、副本、分片上传会话、导出任务、导入历史 |
 | Notification | `SysNotification`、`SysUserNotification` | 通知与按人投递 |
@@ -1160,11 +1375,11 @@ XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
 
 操作日志没有应用表：它就是框架的操作审计 `audit_record`（经 `Auditing.Database` 落库），Auditing 包只提供查询面。
 
-按月分表的日志不在基线脚本里，写入时由框架按月建表。
+按月分表的日志建表时只建当期的表，之后写入时由框架按月建表。
 
 ## 框架 Provider 的表
 
-基线 `Schema/6.0.0/0001-baseline.sql` 同时包含框架 Provider 的表，由同一套升级器管理：
+框架 Provider 的表与应用实体一起由表结构升级器按实体建出：
 
 | 表 | 来源 |
 | --- | --- |
@@ -1180,11 +1395,11 @@ XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
 
 编码、键名这类唯一性由操作在写入前检查并返回本包的 `CONFLICT` 错误码（如参数键在本侧唯一），数据库再用唯一索引兜住并发写入：
 
-- 软删除实体用部分唯一索引，只约束未删除的行（`ux_<表>_<列>… WHERE is_deleted = false`）：同一个编码删了再建、再删都不冲突。实体上写 `[ActiveUniqueIndex(nameof(…))]`，开发库由 Runtime 在建表之后补建，独立库在初始化时补建，生产库随基线脚本建出；只支持 PostgreSQL 与 SQLite。
-- 不软删除的实体（关联表、只增的记录）用唯一的 `[SugarIndex]`；外键查找与列表的筛选、排序用普通 `[SugarIndex]`（`ix_<表>_<列>`）。按月分表的日志用 `{split_table}` 占位，每张月表各带一份。
-- 结构测试（`EntityIndexTests`）守护：软删除实体不写唯一的 `[SugarIndex]`，部分唯一索引只用于软删除实体，列都是实体的属性，索引名不超过 PostgreSQL 的 63 字符（过长时写 `Name` 给一个短名）且不重名。
+- 软删除实体用部分唯一索引，只约束未删除的行（`ux_<表>_<列>… WHERE is_deleted = false`）：同一个编码删了再建、再删都不冲突。实体上写 `[EntityIndex(nameof(…), IsUnique = true, Name = "ux_<表>_<列>…")]`，由框架在建表之后补建（开发库跟着 InitTables，正式库与租户独立库跟着表结构升级器）：PostgreSQL、SQLite、SQL Server 是带条件的索引，MySQL（8.0.13 起）与 Oracle 是每列 `CASE WHEN is_deleted = 0 THEN 列 END` 的函数索引。
+- 不软删除的实体（关联表、只增的记录）用唯一的 `[SugarIndex]`；外键查找与列表的筛选、排序用普通 `[SugarIndex]`（`ix_<表>_<列>`）。索引名都写出表名（`ix_sys_oauth_app_owner_user_id`），按月分表的日志用 `{split_table}` 占位，每张月表各带一份。
+- 结构测试（`EntityIndexTests`）守护：软删除实体不写唯一的 `[SugarIndex]`，`[EntityIndex]` 只用于软删除实体的唯一约束，列都是实体的属性，索引名不超过 PostgreSQL 的 63 字符（过长时列段写短名）且不重名；`EntityMappingTests` 另守住索引名是 `ix_` / `ux_` + 表名 + 列。
 
-跨归属的规则（如字典码平台与租户不可重复）索引表达不了，只靠操作里的检查。并发写入撞上唯一 `[SugarIndex]` 时，框架仓储核对后按唯一键重复返回 `PERSISTENCE_CONFLICT_003`；撞上 `[ActiveUniqueIndex]` 建的部分唯一索引时框架识别不了，第二个写入方拿到的是数据库错误。
+跨归属的规则（如字典码平台与租户不可重复）索引表达不了，只靠操作里的检查。并发写入越过操作里的检查、撞上唯一索引（唯一的 `[SugarIndex]` 或软删除实体的 `[EntityIndex]`）时，框架仓储核对后按唯一键重复返回 `PERSISTENCE_CONFLICT_003`（HTTP 409，`index` 是索引名），调用回滚。
 
 ## 下一步
 
@@ -1371,7 +1586,25 @@ services.AddFieldSecurity("organization", OrganizationJsonContext.Default, field
 
 本页说明数据库连接、从库与 SQL 日志、多库落点、数据访问方式与建表策略，适用于后端开发者与部署人员。
 
-数据层是 SqlSugar（框架 `Persistence.SqlSugar` 的「方式一」：应用提供连接配置回调）。PostgreSQL 14+ 是缺省库，表结构脚本只为它写，CI 对它跑真实库用例；集成测试另用 SQLite 跑快速用例。不引入 EF Core 作为平行的业务数据层。
+数据层是 SqlSugar（框架 `Persistence.SqlSugar` 的「方式一」：应用提供连接配置回调）。支持 PostgreSQL（缺省）、MySQL 与 SQL Server（Oracle 在做），表结构由 ORM 按实体建出（见[建表策略](#建表策略)）；CI 在每种库上跑全量集成测试，日常的集成测试用 SQLite 跑。不引入 EF Core 作为平行的业务数据层。
+
+## 支持的数据库
+
+| 库 | `provider` | 要求 | 说明 |
+| --- | --- | --- | --- |
+| PostgreSQL | `postgresql` | 14 及以上 | 缺省库 |
+| MySQL | `mysql` | 8.0.13 及以上，字符集 utf8mb4 | 软删除实体的唯一索引是函数索引，8.0.13 起才有 |
+| SQL Server | `sqlserver` | 实测 2022，库要打开 `READ_COMMITTED_SNAPSHOT` | 字符串列建成 `nvarchar`；缺省的读已提交是加锁读，读未提交的行要等写入方结束，在调用事务之外另开连接的读会一直等到超时。还没有表的新库由结构升级打开；已有表的库没打开即升级失败，由 DBA 执行 `ALTER DATABASE [库名] SET READ_COMMITTED_SNAPSHOT ON` |
+| Oracle | `oracle` | 还不能部署 | 能建表，但 Oracle 把空字符串当 NULL，框架与 BasicApp 按空字符串存取的值还没有改完；库是 DBA 事先建好的用户（`CreateDatabase` 不建），字符串列建成 `nvarchar2`，最长 2000 个字符 |
+| SQLite | `sqlite` | — | 只给测试用 |
+
+各库的差异由 ORM 与框架约定抹平，实体照常写：
+
+- 字符串列的长度按字符计。SQL Server 与 Oracle 建成 Unicode 类型（`nvarchar` / `nvarchar2`）；超过 2000 个字符的列写 `[LongText]`（Oracle 的 `nvarchar2` 装不下），长文本列不能进索引。
+- 索引键不超过 MySQL 的 3072 字节（utf8mb4 每字符 4 字节）与 SQL Server 的 1700 字节（每字符 2 字节）：单列字符串索引最长 768 个字符，组合索引按各列之和算。集成测试 `ColumnWidthTests` 逐个核对全部实体。
+- 日期时间列精度到微秒（MySQL `datetime(6)`、Oracle `timestamp(6)`）。
+- 软删除实体的唯一索引只约束未删除的行：PostgreSQL、SQL Server 是带条件的索引，MySQL 与 Oracle 是函数索引；可空列为空的行不参与唯一，各库一致。
+- 关键字搜索（`Contains` / `StartsWith` / `EndsWith`）按字面匹配，大小写照各库自己的规则：PostgreSQL 与 Oracle 区分大小写，MySQL 与 SQL Server 按库的排序规则（缺省不区分），SQLite 只对 ASCII 字母不区分。
 
 ## 平台库连接
 
@@ -1392,7 +1625,7 @@ services.AddFieldSecurity("organization", OrganizationJsonContext.Default, field
 ```
 
 - 数据库是启动硬要求：绑定缺失或为空即 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
-- `provider` 不写即 `postgresql`（也认 `postgres` / `pgsql` / `npgsql`），另认 `sqlite`、`mysql`、`sqlserver`（`mssql`）；写了别的即 `RUNTIME_VALIDATION_002`。
+- `provider` 不写即 `postgresql`（也认 `postgres` / `pgsql` / `npgsql`），另认 `mysql`、`sqlserver`（`mssql`）、`oracle`、`sqlite`；写了别的即 `RUNTIME_VALIDATION_002`。
 - 不提交真实连接串：`appsettings.json` 不写绑定，本机开发写在 `appsettings.Development.json`，部署用环境变量 `XiHan__Bindings__db__value` 或 Kubernetes Service Binding。
 - 语句超时 `XiHan:Persistence:SqlSugar:CommandTimeoutSeconds`（缺省 300 秒）。
 
@@ -1417,13 +1650,14 @@ services.AddFieldSecurity("organization", OrganizationJsonContext.Default, field
 | 项 | 内容 |
 | --- | --- |
 | 库类型与连接串 | 读绑定 `db`（分片连接由框架按租户目录推出） |
-| 命名约定 | 表名、列名 snake_case（`SysUserRole` → `sys_user_role`）；显式写了 `[SugarTable]` / `[SugarColumn]` 名字的不改 |
+| 命名约定 | 只给框架的数据库记录：表名、列名 snake_case（`AuditRecord` → `audit_record`）；BasicApp 的实体显式写 `[SugarTable]` / `[SugarColumn]`，不经这条约定 |
 | 操作人 | `AopEvents.DataExecuting` 填 `CreatedBy` / `ModifiedBy` / `DeletedBy` |
-| 字符串缺省长度 | 没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)` |
+| 字符串缺省长度 | 框架记录里没有 `[LongText]` / `[StringLength]` / `[MaxLength]` 的字符串列一律 `varchar(512)`；BasicApp 的实体在 `[SugarColumn]` 里写长度 |
+| 建表只增不改 | 已有的表不删列、不改列：SqlSugar 缺省会删掉实体里没有的列、按实体改已有列的类型、长度与可空，正式库上会丢数据或改写大表 |
 | 差异日志 | 全审计实体的写入带差异事件，供数据变更日志使用；标了 `[DiffLogIgnored]` 的实体除外 |
 | 从库与 SQL 日志 | 按 `BasicApp:Database` 挂上 |
 
-框架随后施加协议约定：主键、并发戳（长度 32）、软删除、租户列、`DateTimeOffset` 按 UTC 往返、可空列。
+框架随后施加协议约定：主键、并发戳（长度 32）、软删除、租户列、`DateTimeOffset` 按 UTC 往返、日期时间列精度、SQL Server 与 Oracle 的 Unicode 字符串列、可空列。
 
 ## 多库：默认连接与租户分片
 
@@ -1459,18 +1693,19 @@ services.AddFieldSecurity("organization", OrganizationJsonContext.Default, field
 | 环境 | 方式 |
 | --- | --- |
 | 开发 | `XiHan:Persistence:SqlSugar:InitTables` 为 `true`（`appsettings.Development.json` 已打开）：启动时按已登记的实体建缺表、加缺列，再补建部分唯一索引 |
-| 正式 | `Host/Schema/<版本>/*.sql` 与版本台账，由表结构升级器在启动时执行，见[表结构升级](./upgrade) |
+| 正式 | 表结构升级器在启动时执行：新库按实体建全部表；已有库先执行比台账新的升级脚本，再按实体补缺的表与列，见[表结构升级](./upgrade) |
 
-`InitTables` 只建缺表、加缺列。给已有行的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持，应在实体里声明成可空，或重建开发库。
+两条路径都只建缺表、加缺列，不删、不改已有的列。给已有行的表新增非可空列时：数值、枚举、布尔、`Guid` 列在 PostgreSQL 上按 CLR 缺省值回填；非可空的字符串与日期时间列不受支持，应在实体里声明成可空，或写升级脚本先加列并回填。
 
 ## 测试库
 
 | 用例 | 库 |
 | --- | --- |
 | 绝大多数集成测试 | SQLite 临时库，经 `BasicAppTestServer` 走完整管道 |
-| PostgreSQL 用例（两库冒烟、从库读主库、并发发号、Provider 一致性、表结构基线等） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），测试自建临时库；没设置即跳过 |
+| PostgreSQL 用例（两库冒烟、从库读主库、并发发号、Provider 一致性、表结构升级等） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），测试自建临时库；没设置即跳过 |
+| 整套换一种库跑 | 环境变量 `XIHAN_TEST_DB` 设为 `postgresql`、`mysql`、`sqlserver` 或 `oracle`，每个用例在 `XIHAN_TEST_POSTGRES`、`XIHAN_TEST_MYSQL`、`XIHAN_TEST_SQLSERVER`、`XIHAN_TEST_ORACLE` 指向的服务器上建临时库（Oracle 是临时用户，连接账号要能建用户）；选了库却没配服务器即失败。直接用 SQLite 语句准备数据的用例固定在 SQLite 上 |
 
-CI（`.github/workflows/ci.yml`）起一个 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`。
+CI（`.github/workflows/ci.yml`）的主作业起 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`；另有一组作业按库各跑一遍集成测试（PostgreSQL 17、MySQL 8.4、SQL Server 2022），测试库关掉刷盘以缩短建表时间。
 
 ## 下一步
 
@@ -1539,7 +1774,7 @@ public sealed record CreateConfigRequest(
 ## 三、实现操作
 
 ```csharp
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
+[Operation(Id, Expose = Expose.Http, Permission = SettingsPermissions.ConfigsCreate)]
 public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigValues values, IIdGenerator<Guid> ids)
     : IOperation<CreateConfigRequest, ConfigResponse>
 {
@@ -1565,6 +1800,7 @@ public sealed class CreateConfig(IRepository<SysConfig, Guid> configs, ConfigVal
 要点：
 
 - 一个类一个操作，类名是动词短语（`CreateConfig`、`DeleteConfigs`），操作 ID 写成 `const string Id`，命名空间是 `<包>.Operations.<资源 Pascal>`（架构测试核对）。
+- 稳定级别：Tier 0–2 的包清单与操作是 `Stable`（缺省值，操作上不写），6.x 内操作 ID、路由、请求与响应字段、权限码与错误码不破坏，要去掉先标 `Deprecated`、下个大版本再删；Tier 3 可选模块的清单与操作写 `Stability = Stability.Preview`，小版本里可以破坏。Stable 包里的新操作可以先以 `Preview` 发布，操作不能比所在的包更稳定（`StabilityTests` 守护）。非 Stable 的操作在 `openapi.json` 里带 `x-xihan-stability`。
 - `Expose` 必须显式写：没写即编译错误（框架诊断 `XHG004` 在 `backend/.editorconfig` 里设为 error）。管理操作只 `Expose.Http`；超出 `Expose.Http` 的（MCP、AI 工具、gRPC）必须只读，并逐个登记到 `OperationExposureTests`。
 - 授权：`Permission = <包>Permissions.Xxx`；自助操作写 `Policy = "authenticated"`；匿名操作两者都不写，并登记到 `OperationContractTests` 的匿名白名单。
 - 失败是值：可恢复的失败返回 `Error.Validation / NotFound / Conflict / Denied / Unavailable(...)`，不抛业务异常；异常只用于编程错误与基础设施故障。批量操作的失败项用 `BatchFailure.From(id, error)` 带上文案。
@@ -1734,27 +1970,30 @@ Runtime 的 `TenantScopedQuery` 为 `IOwnedByTenant` 提供两个查询扩展：
 ## 实体示例
 
 ```csharp
-[ActiveUniqueIndex(nameof(OwnerTenantId), nameof(Key))]
+[SugarTable(TableName = "sys_config", TableDescription = "系统参数（平台库实体，不实现 IMultiTenant）")]
+[EntityIndex(nameof(OwnerTenantId), nameof(Key), IsUnique = true, Name = "ux_sys_config_owner_tenant_id_key")]
 public sealed class SysConfig : AppAuditedEntity, IOwnedByTenant
 {
+    [SugarColumn(ColumnName = "owner_tenant_id", Length = 512, IsNullable = false, ColumnDescription = "属主租户 ID")]
     public string OwnerTenantId { get; set; } = string.Empty;
+
+    [SugarColumn(ColumnName = "key", Length = 512, IsNullable = false, ColumnDescription = "参数键")]
     public string Key { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
+
+    [SugarColumn(ColumnName = "group", Length = 512, IsNullable = true, ColumnDescription = "分组（自由文本，用于列表归类）")]
     public string? Group { get; set; }
 
+    [SugarColumn(ColumnName = "value", IsNullable = true, ColumnDescription = "参数值")]
     [LongText]
     public string? Value { get; set; }
 
-    [LongText]
-    public string? DefaultValue { get; set; }
-
+    [SugarColumn(ColumnName = "data_type", IsNullable = false, ColumnDescription = "数据类型")]
     public ConfigDataType DataType { get; set; } = ConfigDataType.Text;
-    public bool IsEncrypted { get; set; }
-    public bool IsBuiltIn { get; set; }
-    public bool AllowTenantOverride { get; set; }
+
+    [SugarColumn(ColumnName = "status", IsNullable = false, ColumnDescription = "状态")]
     public SettingStatus Status { get; set; } = SettingStatus.Active;
-    public int Order { get; set; }
-    public string? Description { get; set; }
+
+    // 其余列同样写法
 }
 
 public enum ConfigDataType
@@ -1767,9 +2006,11 @@ public enum ConfigDataType
 }
 ```
 
-- 类名以 `Sys` 开头，表名、列名由命名约定转成 snake_case（`SysConfig` → `sys_config`，`OwnerTenantId` → `owner_tenant_id`）。
-- 没写长度的字符串列缺省 `varchar(512)`；长文本标 `[LongText]`，固定长度用 `[StringLength]` / `[MaxLength]`（`PersistenceMappingTests` 守护）。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
-- 软删除实体的唯一约束写 `[ActiveUniqueIndex]`（部分唯一索引），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 类名以 `Sys` 开头。表名、列名不靠命名约定推出（缩写会被拆错，`SysOAuthApp` 会推成 `sys_o_auth_app`），实体显式写 `[SugarTable(TableName, TableDescription)]`，映射到列的属性写 `[SugarColumn(ColumnName, Length, IsNullable, ColumnDescription)]`；名字用小写下划线（`sys_oauth_app`、`owner_tenant_id`），说明取 `<summary>` 那一句，可空与属性类型一致。基类的公共列（`id`、`concurrency_stamp`、`created_at`、`tenant_id` 等）在 Contracts 的基类上写好了。
+- 字符串列在 `[SugarColumn]` 里写 `Length`（常规短文本 512），长文本不写长度、另标 `[LongText]`；不再用 `[StringLength]` / `[MaxLength]` 给实体定长度。给已有行的表加列时，非可空的字符串与日期列要声明成可空。
+- 索引名明确写出：`[SugarIndex("ix_<表>_<列>…", …)]`，唯一的 `ux_` 开头，按月分表的用 `{split_table}` 占位；软删除实体的唯一约束写 `[EntityIndex(…, IsUnique = true, Name = "ux_<表>_<列>…")]`（框架建成部分唯一索引，并发撞上时返回唯一键重复），不软删除的用唯一 `[SugarIndex]`，见[索引与唯一性](./data-model#索引与唯一性)。
+- 实体类的 `<remarks>` 讲这个实体为什么这样设计：为什么单独成表、落哪个库、结构与唯一性的取舍、为什么软删或只追加、已知限制；每行一个决定和理由，不罗列操作与错误码，也不套固定分段。
+- 架构测试 `EntityMappingTests` 守护上面几条：缺表名、列名、说明、长度，可空与类型不符，或索引名不合 `ix_` / `ux_` + 表名 + 列即失败。
 - 枚举在库里存整数，JSON 里是字符串（各包 `JsonContext` 按字符串序列化）。只被一个实体用到的枚举写在那个实体的文件里（实体类之后，同一命名空间），两个以上实体共用的才单独成文件（如 `SettingStatus.cs`）。
 - 写入极频繁或只存密文与计数的实体（会话、用户设置、账号安全、OAuth 授权码与令牌、邮件短信的发送记录、聊天会话与成员等）在类上标 `[DiffLogIgnored]`，不进数据变更日志；其余全审计实体缺省都记前后值。
 
@@ -1838,7 +2079,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 
 ## 文件与副本
 
-`SysFile` / `SysFileStorage` 是租户库实体（平台一侧的租户为 `platform`）：一个文件可以有多个存储副本，其中一个是主副本，读写取主副本。同一侧内容相同（SHA-256 相同）的文件共用存储里的对象，各有各的记录，删到最后一条才删对象。
+`SysFile` / `SysFileStorage` 是租户库实体（平台一侧的租户为 `platform`）：一个文件可以有多个存储副本，其中一个是主副本，读写取主副本。上传只写主副本，`files.copy-storage` 把它复制到另一条存储配置，再设为主副本即把文件迁过去（文件库「存储副本」抽屉里的「复制到其他存储」）；副本不计入存储配额。同一侧内容相同（SHA-256 相同）的文件共用存储里的对象，各有各的记录，删到最后一条才删对象。
 
 | 访问级别（`FileAccessLevel`） | 谁能换取下载地址 |
 | --- | --- |
@@ -1854,6 +2095,7 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 | `files.delete` | `files.files.delete` | 批量；不再被别的文件用到的内容随之从存储删除 |
 | `files.fast-upload` | `files.files.create` | 秒传：同一侧已有相同内容的正常文件即直接建记录，没命中返回空，前端再走普通上传 |
 | `files.set-primary-storage` / `verify-storage` / `set-storage-status` | `files.files.update` | 换主副本（目标须正常且校验过）、按 SHA-256 校验、停用副本（主副本不能停用） |
+| `files.copy-storage` | `files.files.update` | 从主副本复制到另一条本侧或平台的启用配置，得到正常、已校验的非主副本；同一配置只放一份（`FILES_CONFLICT_011`），停用的配置不收（`FILES_CONFLICT_012`），主副本读出的内容与记录不符先校验（`FILES_CONFLICT_013`） |
 | `files.presign` | 登录即可，按访问级别判定 | 换限时签名地址；归档或损坏的文件换不到，换一次记一次下载 |
 
 ## 上传与下载
@@ -1865,6 +2107,8 @@ S3 兼容配置有一个「条件写入」开关（`conditionalWrites`，缺省�
 | `POST /api/profile/avatar` | 头像（字段 `file`）：只要求登录，按文件头认 JPEG / PNG，不超过 2 MB；存平台侧、公开级别，跟着用户走、不计入租户配额；去掉头像走 `profile.remove-avatar` |
 
 浏览器里的图片、链接与新窗口用 `files.presign` 换的签名地址。地址由存储签出（框架 ADR-0049）：S3 兼容存储直连存储，本地存储走宿主的 `/blobs` 签名端点（密钥 `XiHan:ObjectStorage:SignedUrls:Secret`）。有效期缺省 `LinkLifetime`（30 分钟），请求可指定 60 秒到 `MaxLinkLifetime`（7 天），超出即 `FILES_VALIDATION_008`；地址在有效期内不再校验身份，签出之后的归档或改访问级别都不影响它。
+
+预览读内容、以附件下载前只取第一个字节探一下（`Range: bytes=0-0`），都是浏览器跨域取签名地址，所以 S3 兼容存储的桶要给前端的来源放行 `GET`（CORS 规则）；没放行时预览失败，下载提示文件暂时无法下载。
 
 内容类型是上传方给的，所以签名地址与 `GET /api/files/{id}/content` 都只让图片（PNG、JPEG、GIF、WebP、BMP、AVIF，不含 SVG）、音视频、PDF 与纯文本内联打开，别的类型（HTML、SVG、XML 等）即使不要 `download` 也以附件下载。宿主的响应一律带 `X-Content-Type-Options: nosniff`；`/blobs` 的响应除 PDF 外都在沙箱里（`Content-Security-Policy: sandbox`），上传的脚本拿不到前端的源。
 
@@ -1883,20 +2127,29 @@ files.complete-upload     按存储里已上传的分片拼成对象（不用客
 files.abort-upload        放弃，丢弃已上传的分片
 ```
 
-上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。
+上传会话从发起起 `BasicApp:Files:UploadLifetime`（1 天）后过期，作业 `files.uploads.expire` 每小时清理并放弃存储里的分片。完成时缺片或总大小不符（`FILES_CONFLICT_009` / `010`）可以补传后再完成；拼好后回读的大小仍与声明的不符时，对象删掉、上传记为失败（`Failed`），只能重新发起。
+
+前端上传到文件库都走公共包 `~/files` 的 `uploadFile`（文件管理页与业务表单里的文件引用控件 `XFileRefUpload` 共用），按这个顺序走：
+
+1. 200 MiB 以内、浏览器有 Web Crypto（HTTPS 或 localhost）时，先算 SHA-256 试 `files.fast-upload`。命中即直接得到新文件；没命中或探测失败照常上传。
+2. 16 MiB 以内一次请求传完。更大的走分片：每批至多签 100 片、3 片并发，一片失败了换新签名地址重试，至多 3 次，间隔 1 秒、2 秒。
+3. 网络不通、超时、限流或服务端错误导致中断时，上传会话留着，浏览器本地记下它。用户在同一个浏览器里以同样的附加信息再传同一个文件（名称、大小、修改时间都相同），先经 `files.upload-session` 取回会话，只补缺的分片；会话已过期或已结束就重新发起。
+4. 中止和其他失败（如签名一直被拒）调用 `files.abort-upload` 放弃。
 
 ## 导出中心
 
 | 操作 | 说明 |
 | --- | --- |
-| `export-tasks.submit` | 提交导出：要导出的列表操作 ID（如 `users.list`）、请求快照、列、范围（`CurrentPage` / `SearchResult` / `All`）、格式（`Csv` / `Xlsx`） |
+| `export-tasks.submit` | 提交导出：要导出的列表操作 ID（如 `users.list`）、请求快照、列（取值路径、表头与取值映射）、范围（`CurrentPage` / `SearchResult` / `All`）、格式（`Csv` / `Xlsx`） |
 | `export-tasks.list` / `get` | 我的导出，缺省按提交时间倒序 |
 | `export-tasks.cancel` | 只能取消排队中的，执行中的不能取消；取消记为失败并写明已取消 |
 | `export-tasks.delete` | 批量；结果文件一并删除，执行中的逐项拒绝 |
 
 都只要求登录，每人只看得到自己的任务。任务进进程内队列，后台至多并发 2 个，以发起人的凭据逐页调用对应的列表操作，权限、租户、数据范围与字段安全照常判定；凭据过期或会话吊销即失败，进程重启时没执行完的任务记为中断（失败）。结果存成 7 天的临时文件。进度经 `TaskProgress` 推给发起人（每写一千行或到 99%、完成或失败，见[任务进度](./realtime#任务进度)），文案与失败原因按提交时的区域翻译；执行时抛异常，任务的失败原因只有异常类型，完整异常看应用日志。
 
-前端的用户页与六种日志页接了导出中心，其余声明了导出的列表页是浏览器里的本地 CSV（见[列表页引擎](../frontend/schema-page#导出与导入)）。
+列按取值路径从列表响应的一行里取值：属性名，深一层用点号接，数组用下标（`last.startedAt`、`triggers.0.kind`），`|` 分隔几条备选、取第一条有文字的；走不到即空。一次返回整份的列表（权限目录、菜单、套餐）没有 `total`，按取到的行数算；树形列表（项带 `children`）按先序展开成行。
+
+前端声明了导出的列表页都接了导出中心，只有部门树（`departments.tree` 不是列表操作）仍是浏览器里的本地 CSV（见[列表页引擎](../frontend/schema-page#导出与导入)）。
 
 CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换行开头时前面加单引号，防止电子表格软件当公式执行，单个字符与普通数字保持原样。XLSX 写的是内联字符串，不会被当公式。
 
@@ -1918,7 +2171,7 @@ CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换�
 
 ## 页面
 
-菜单在「系统管理 › 文件服务」目录下，前端模块在 `frontend/src/modules/files`：
+菜单在「平台管理 › 文件服务」目录下，前端模块在 `frontend/src/modules/files`：
 
 | 页面码 | 路由 | 读权限 |
 | --- | --- | --- |
@@ -1950,11 +2203,12 @@ CSV 是带 BOM 的 UTF-8；单元格以 `=`、`+`、`-`、`@`、制表符或换�
 
 单个 Feature 的启动超时是 `XiHan:Kernel:StartTimeoutSeconds`（BasicApp 取 60 秒，表结构升级与开发环境建表都在启动阶段完成），失败策略见 `XiHan:Kernel:FailurePolicy`。
 
-健康项由各 Provider 自带（框架 ADR-0030），BasicApp 不另写。常见的有：
+健康项大多由各 Provider 自带（框架 ADR-0030），BasicApp 只另加结构升级一项。常见的有：
 
 | 健康项 | 来源 |
 | --- | --- |
 | `persistence.sqlsugar.database` | 平台库；配了从库另有 `persistence.sqlsugar.replicas`（有从库不可读时 Degraded） |
+| `basicapp.schema` | BasicApp 的结构升级：有租户独立库没有升到当前结构版本时 Degraded（这些租户暂不可用），数据带不可用的库数与库名，见[表结构升级](./upgrade#执行顺序) |
 | `scheduling.database.leader` | 调度的领导租约表，不可达时 Degraded |
 | `workflow.database.poller` | 工作流到期书签的轮询 |
 | `objectstorage.store.<名>` | Files 存储配置对应的每个命名实例 |
@@ -2019,7 +2273,7 @@ public sealed class SettingsFeature : IFeature
         Package = "XiHan.BasicApp.Settings",
         Version = AppInfo.Version,
         Primitives = 1,
-        Stability = Stability.Preview,
+        Stability = Stability.Stable,
         Kind = ManifestKind.Capability,
         Provides = [new CapabilityDeclaration(SettingsCapabilities.Settings, SettingsCapabilities.Version)],  // basicapp.settings@1
         Requires =
@@ -2164,7 +2418,7 @@ builder.AddXiHan(xihan =>
 | OpenPlatform | `basicapp.openplatform@1` | 应用管理（OAuth 应用） | `RequestSigningMiddleware`（Authenticate）、`openplatform.oauth-cleanup` |
 | Workbench | `basicapp.workbench@1` | 工作台 | — |
 | Printing | `basicapp.printing@1` | 打印模板 | — |
-| Chat | `basicapp.chat@1` | 在线聊天、聊天审计 | `/hubs/chat`、`chat.messages.cleanup` |
+| Chat | `basicapp.chat@1` | 在线聊天（含语音与视频通话、屏幕共享）、聊天审计 | `/hubs/chat`、`chat.messages.cleanup`、`chat.calls.sweep` |
 | Workflow | `basicapp.workflow@1` | 审批中心、流程定义、流程实例 | 待办、转办与故障通知的消息处理器 |
 | CodeGeneration | `basicapp.codegeneration@1` | 代码生成 | — |
 | AI | `basicapp.ai@1` | AI 提供商、助手、提示词、知识库 | `AiProviderCatalogMiddleware`（Transaction 开头） |
@@ -2195,7 +2449,7 @@ Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志�
 | 异常日志 | `sys_exception_log_{year}{month}{day}` | `AuditLogMiddleware`：未预期的失败与异常 | `exception-logs.*` / `auditing.exception-logs.read` |
 | 数据变更日志 | `sys_diff_log_{year}{month}{day}` | SqlSugar 差异事件（`OnDiffLogEvent`），按调用缓冲、成功才落库 | `diff-logs.*` / `auditing.diff-logs.read` |
 | 权限变更日志 | `sys_permission_change_log_{year}{month}{day}` | Access / Tenancy 在调用里登记，成功才落库 | `permission-change-logs.*` / `auditing.permission-change-logs.read` |
-| 条件命中 | `sys_condition_hit_{year}{month}{day}` | 访问策略与权限条件，与调用成败无关 | `condition-hits.*` / `auditing.condition-hits.read` |
+| 条件命中日志 | `sys_condition_hit_{year}{month}{day}` | 访问策略与权限条件，与调用成败无关 | `condition-hits.*` / `auditing.condition-hits.read` |
 | 开放接口日志 | `sys_open_api_log_{year}{month}{day}` | OpenPlatform 的验签中间件，每次调用无论成败 | `open-api-logs.*` / `auditing.open-api-logs.read` |
 
 每类都是 `list`（`POST /api/<资源>:list`，分页筛选）与 `get`（`GET /api/<资源>/{id}`）两个操作。
@@ -2238,7 +2492,7 @@ Auditing 包（Tier 2）负责日志的写入队列与查询面。八类日志�
 
 ## 页面
 
-`src/modules/auditing`：链路追踪与八个日志页（SchemaPage），详情抽屉、追踪跳转、时间线与流向图。开放接口日志挂在「集成中心 › 开放接口」目录下，其余在「系统管理 › 系统日志」下。
+`src/modules/auditing`：链路追踪与八个日志页（SchemaPage），详情抽屉、追踪跳转、时间线与流向图。开放接口日志挂在「集成中心 › 开放接口」目录下，其余在「平台管理 › 系统日志」下。
 
 ## 下一步
 
@@ -2285,7 +2539,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 | `inbox.mark-read` / `mark-all-read` / `confirm` / `mark-popup-shown` | 已读、全部已读、确认、弹窗已展示 |
 | `inbox.delete` | 删除自己的投递 |
 
-别的包直接给某些人投递站内信（工作流的待办、Identity 的安全提醒）经 `Contracts` 的 `IInboxDelivery`。
+别的包直接给某些人投递站内信（工作流的待办、Identity 的安全提醒）经 `Contracts` 的 `IInboxDelivery`。这类通知记为系统投递，只在本人的收件箱里：通知公告的列表不列出，按 ID 的查看、统计、提醒与删除都当作不存在。创建早于平台参数 `notification.retention-days`（缺省 180 天）的，由作业 `notification.messages.cleanup` 在平台与各租户连同收件箱条目物理删除；管理员发的通知公告不清理，到期只是不再显示。
 
 ## 消息模板
 
@@ -2300,7 +2554,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 
 - 租户优先、平台回退：发送时先找当前一侧启用的同编码模板，再找平台的；都没有即该渠道不可用。
 - 租户的模板列表同时列出平台模板（`isPlatform`），平台模板对租户只读（改删给 `NOTIFICATION_DENIED_002`），新建同编码即覆盖。
-- 平台种子 `notification.templates` 写 9 个，只首写：登录验证码邮件与短信、验证码（绑定 / 换绑 / 两步验证）邮件与短信、重置密码邮件、注册欢迎邮件、系统通知的邮件与短信，以及机器人消息 `notification-bot`（变量 `title / content / link / brand`）。`brand` 取 `BasicApp:Notification:Brand`，不写即应用名。
+- 平台种子 `notification.templates` 写 9 个，只首写：登录验证码邮件与短信、验证码（绑定 / 换绑 / 两步验证）邮件与短信、重置密码邮件、注册欢迎邮件、系统通知的邮件与短信，以及机器人消息 `notification-bot`（变量 `title / content / link / brand`）。`brand` 调用方没传即取发送这一侧站点设置的系统名（租户取它的品牌，没设沿用平台的，见[系统设置](./settings#站点设置与租户品牌)）。
 - 模板不加载别的文件，循环与递归有上限，语法树限深（`TemplateLimits`，保存与渲染前都判），一次渲染最多 5 秒；HTML 模板里的参数值先做 HTML 编码。
 
 操作 `message-templates.list / get / create / update / delete`，权限 `notification.message-templates.*`。
@@ -2315,6 +2569,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 - 租户没有可用通道时回落平台的配置（平台代发）；机器人不回落。
 - 密钥经 `ISecretProtector` 加密存放，不回显。
 - 发送记录 `SysEmail` / `SysSms` 本身即发件箱：`emails.list / get / resend / cancel / delete`、`sms.*` 同（权限 `notification.emails.read / resend / delete`，`cancel` 用 `resend`；短信同理）。验证码（业务类型 `identity.verification`）的记录不返回正文与参数，发送结束即清空，也不能重发：读记录的权限不能拿它接管账号。
+- 发送记录按平台参数 `notification.retention-days`（缺省 180 天）保留：作业 `notification.messages.cleanup` 每天删掉更早的、已结束（已发送、失败、已取消）的邮件、短信与机器人消息记录，连同 Telegram 出站审计；排队中与发送中的再老也不动。
 - 改通道的地址（SMTP 的主机、端口，关掉加密或不再验证书）时，留空的口令不再保留，要重新填（`NOTIFICATION_VALIDATION_016`）。AI 提供商的地址（`AI_VALIDATION_107`）、代码生成数据源的地址（`CODEGENERATION_VALIDATION_014`）同样。
 - 发送循环按 `BasicApp:Notification` 的 `DispatchInterval`、`RetryDelay`、`MaxAttempts`、`StuckAfter` 工作；启动时把上个进程发到一半的记录改回排队中。
 
@@ -2374,7 +2629,9 @@ Webhook 地址带凭据：经 `ISecretProtector` 加密存放，响应只给主�
 
 ## 租户目录与业务实体
 
-租户目录是框架 `MultiTenancy.Database` 的 `tenant_record`：租户 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，带有界缓存（`XiHan:MultiTenancy:Database`）。`SysTenant` 是 Tenancy 的业务实体：套餐、到期时间、席位与存储上限、管理员（所有者）、隔离方式与独立库状态。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入；目录里的连接串是密文，由 Runtime 的分片解析器解密。
+租户目录是框架 `MultiTenancy.Database` 的 `tenant_record`：租户 ID、显示名、是否启用、`ConnectionString`、`DatabaseProvider` 等属性，带有界缓存（`XiHan:MultiTenancy:Database`）。`SysTenant` 是 Tenancy 的业务实体：套餐、到期时间、席位与存储上限、管理员（所有者）、隔离方式、独立库状态与自定义域名。开通、启停、改名与修改连接时，两者在同一个工作单元中同步写入；目录里的连接串是密文，由 Runtime 的分片解析器解密。
+
+自定义域名（`domain`，`tenants.create` / `update` 填，小写、不带端口与末尾的点，一个域名只能绑一个租户，否则 `TENANCY_CONFLICT_018`）只用于登录前按访问的域名显示租户的品牌、预填租户框（`site.resolve`，见[系统设置](./settings#站点设置与租户品牌)），停用或到期的租户不再按域名显示；身份仍只认令牌声明，不接受按域名切换租户。
 
 租户停用（`tenants.suspend`）后，目录将其标记为禁用，带该租户声明的调用被框架拒绝（`MULTITENANCY_DENIED_001`），登录同样被拒绝。
 
@@ -2405,7 +2662,7 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 | `tenants.quotas` | `tenancy.tenants.read` | 各租户的用量与配额（平台侧） |
 | `tenants.mine` | 登录即可 | 我能进入的租户（控制中心、个人中心「我的租户」） |
 
-独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构脚本只为 PostgreSQL 编写，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
+独立库支持的库类型：`postgresql`、`sqlite`、`mysql`、`sqlserver`（表结构按实体建出，见[表结构升级](./upgrade)）。跨库写入是顺序提交，不是两阶段提交，见[数据库配置](./database)。
 
 ## 成员与切换
 
@@ -2550,7 +2807,7 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 | `POST /api/oauth2/revoke` | RFC 7009 |
 | `GET` / `POST /api/oauth2/userinfo` | 用户信息 |
 | `GET /api/oauth2/.well-known/openid-configuration` | OIDC 发现文档 |
-| `GET /api/oauth2/jwks` | 签名公钥（`SysOAuthSigningKey`） |
+| `GET /api/oauth2/jwks` | 全部在用的签名公钥（`SysOAuthSigningKey`） |
 
 签发者取 `BasicApp:OpenPlatform:Issuer`，不配即请求来源加 `/api/oauth2`；反向代理后必须显式配置。ID 令牌有效期 `IdTokenLifetimeSeconds`（缺省 600 秒）。
 
@@ -2572,6 +2829,18 @@ tenants.initialize-admin              建租户管理员（系统参数 identity
 | `oauth-apps.create` / `update` / `delete` | `openplatform.oauth-apps.create` / `update` / `delete` | 类型 `Web` / `Mobile` / `Desktop` / `Service`，客户端 `Confidential` / `Public`，回调地址、范围；删除后发给它的令牌即失效 |
 | `oauth-apps.reset-secret` | `openplatform.oauth-apps.update` | 重置客户端密钥 |
 | `my-oauth-apps.list` / `get` / `create` / `update` / `reset-secret` / `delete` | 登录即可 | 个人中心「我的应用」：用户自助注册的应用 |
+
+### 签名密钥
+
+id_token 用 RS256 签名，私钥加密存平台库，第一次签发时自动生成一把。「应用管理」页的「签名密钥」抽屉：
+
+| 操作 | 权限码 | 说明 |
+| --- | --- | --- |
+| `oauth-signing-keys.list` | `openplatform.oauth-signing-keys.read` | 全部密钥与状态：签名中、待接替、仅验证、已停用 |
+| `oauth-signing-keys.rotate` | `openplatform.oauth-signing-keys.rotate` | 生成新密钥：即刻在 JWKS 公布，15 分钟后接替签名（各实例十分钟重读一次、JWKS 响应缓存五分钟）；已有一把待接替的即拒绝 |
+| `oauth-signing-keys.retire` | `openplatform.oauth-signing-keys.retire` | 停用不再签名的密钥：JWKS 不再公布，它签过的 id_token 随之验不过；正在签名的不能停用，停用待接替的即取消这次轮换 |
+
+被接替的密钥至少留过 id_token 有效期（`IdTokenLifetimeSeconds`）再停用。
 
 权限码只在平台一侧。作业 `openplatform.oauth-cleanup` 每天 03:30（UTC）物理删除过期一天的授权码与过期七天的令牌。
 
@@ -2759,13 +3028,13 @@ Authorize 阶段之后
 
 菜单从各包的 `<包>Pages.cs` 页面登记汇总而来（种子 `access.menus` 每次对齐）：
 
-- 页面节点的来源字段（页面码、路由、组件路径、所需权限）归登记，展示字段（标题、图标、排序、是否缓存、是否固定标签、上级目录、启停、徽标）可以在菜单管理里定制，改过即标为已定制、种子不再覆盖，`menus.reset` 恢复登记值（启用、没有徽标）；登记里已不存在的页面节点随种子删除；
-- 运营可以另建目录与外链节点（`menus.create`），都可以放在顶层或某个目录下：目录可以一层层套，只是不能挂到自己或自己的下级目录下，上级也只能是目录（`ACCESS_VALIDATION_006`）；内置的目录与帮助中心的外链（官方文档、GitHub、Gitee）种类相同，种子只首写一次，之后改、停用、删掉都不再覆盖或补回；
+- 页面节点的来源字段（页面码、路由、组件路径、所需权限）归登记，展示字段（标题、图标、排序、是否缓存、是否固定标签、上级目录、启停、徽标）可以在菜单管理里定制，改过即标为已定制、种子不再覆盖，`menus.reset` 恢复登记值（启用，徽标取登记的缺省值）；登记里已不存在的页面节点随种子删除；
+- 运营可以另建目录、外链与内嵌节点（`menus.create`），都可以放在顶层或某个目录下：外链新标签打开；内嵌的路由按编码生成为 `/embed/<名>`，在应用里的 iframe 中打开，能进标签栏、能固定（对方站点禁止被嵌入时浏览器不显示）；目录可以一层层套，只是不能挂到自己或自己的下级目录下，上级也只能是目录（`ACCESS_VALIDATION_006`）；内置的目录、帮助中心的官方文档（内嵌）与 GitHub、Gitee 外链种类相同，种子只首写一次，之后改、停用、删掉都不再覆盖或补回；
 - 没有按钮节点，也不给角色另行分配菜单：菜单可见性完全由页面的权限码决定。
 
 菜单管理的权限码 `access.menus.read / create / update / delete` 只在平台一侧，`menus.set-status` 与 `menus.reset` 用 `update`。
 
-页面登记用 `directory` 指定缺省所属目录（编码在 `Contracts` 的 `MenuDirectories`）：没被定制的页面跟着目录走，目录不在即留在顶层，`menus.reset` 回到这个目录。缺省的树是：
+页面登记用 `directory` 指定缺省所属目录（编码在 `Contracts` 的 `MenuDirectories`）：没被定制的页面跟着目录走，目录不在即留在顶层，`menus.reset` 回到这个目录。`affix` 是缺省的固定标签，`badge`（`MenuBadge`）是缺省徽标，没被定制的页面跟着它们对齐：工作台登记为固定，项目概览登记为成功色的圆点。内置目录也可以带徽标，AI 中心首写时带品牌色的 new。缺省的树是：
 
 - 工作台：单页，在顶层；
 - AI 中心：AI 提供商、AI 助手、AI 提示词、AI 知识库；
@@ -2773,8 +3042,8 @@ Authorize 阶段之后
 - 集成中心：邮件配置、短信配置，推送服务（机器人配置、Telegram 机器人），开放接口（应用管理、开放接口日志）；
 - 消息中心：我的消息、通知公告、消息模板、邮件短信、在线聊天、聊天审计；
 - 租户管理：租户、套餐、我的订阅；
-- 系统管理：系统权限（部门、岗位、用户、角色、权限目录、授权申请、访问策略、约束规则、字段安全、菜单）、系统设置（参数配置、字典、业务编号）、系统服务（任务调度、缓存管理、版本管理、升级记录）、系统监控（服务监控、在线用户）、系统日志（链路追踪与七类日志）、文件服务（文件管理、存储配置、导出中心）、在线开发（代码生成、打印模板）；
-- 帮助中心：关于项目与三个外链，排在最后。
+- 平台管理：系统权限（部门、岗位、用户、角色、权限目录、授权申请、访问策略、约束规则、字段安全、菜单）、系统设置（参数配置、字典、业务编号）、系统服务（任务调度、缓存管理、版本管理、升级记录）、系统监控（服务监控、在线用户）、系统日志（链路追踪与七类日志）、文件服务（文件管理、存储配置、导出中心）、打印服务（打印模板）、在线开发（代码生成）；
+- 帮助中心：关于项目、官方文档（内嵌，在应用里打开本项目文档站）与 GitHub、Gitee 两个外链，排在最后。
 
 目录只管展示，页面跨包归到一个目录没有问题；裁剪后空了的目录不下发，所以租户侧看不到只装平台页面的「系统服务」。
 
@@ -2877,7 +3146,7 @@ Printing 的注册表在启动时收下全部登记并校验，编码重复或�
 
 ## 前端
 
-- 页面 `printing.print-templates`（路由 `/printing/print-templates`）在 `src/modules/printing`：平台管全局模板，租户在「本租户模板」与「可用全局模板」之间切换；新增与编辑元数据在弹窗里，版面在全屏设计器里改，另有样例数据预览与直打。
+- 页面 `printing.print-templates`（路由 `/printing/print-templates`，在「平台管理 › 打印服务」目录下）在 `src/modules/printing`：平台管全局模板，租户在「本租户模板」与「可用全局模板」之间切换；新增与编辑元数据在弹窗里，版面在全屏设计器里改，另有样例数据预览与直打。
 - `setup.ts` 调 `configurePrinting`：`resolveTemplate` 接 `print-templates.resolve`，`listDataSources` 接 `print-data-sources.list`。业务页面打印单据用 `~/printing` 的 `previewPrintByCode(code, data)` 或 `directPrintByCode`。
 - 设计器 `@xihan-print/*`（文档见 [print.docs.xihanfun.com](https://print.docs.xihanfun.com)）经 `packages/printing` 接入，设计器共用的接线（跟随应用语言、属性编辑器、宿主命令图标、菜单栏标题与状态栏）在 `packages/designers`，流程设计器随 Workflow 接到同一处。
 - 静默直打依赖每台操作机装 XiHan 打印客户端（本机 WebSocket），连不上时不退回浏览器打印；预览只代表打印对话框已打开，不知道用户最终是打印还是取消。
@@ -2926,10 +3195,10 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | 方法 | 谁发 | 内容 |
 | --- | --- | --- |
 | `ForceLogout` | Identity | 会话被吊销（强制下线、改密、锁定、停用、删除），带给用户看的原因 |
-| `ReceiveNotification` | Notification | 发布或提醒时按接收人推送 |
+| `ReceiveNotification` | Notification | 发布或提醒时按接收人推送；Identity 的[安全通知](./authentication#安全通知)（别处登录、退出、强制下线等）也经它推给本人的端 |
 | `TaskProgress` | Files、Notification | 导出任务与通知发布的进度，只推给发起人，见[任务进度](#任务进度) |
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
-| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更与正在输入，见[在线聊天](./chat#推送) |
+| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更、正在输入与通话（状态与信令），见[在线聊天](./chat#推送) |
 
 方法清单由 `contracts export` 一并导出为 `frontend/contracts/realtime.json`，前端生成 `packages/contracts/realtime.ts`。推送载荷是各包自己的记录，按各包的源生成序列化上下文序列化（枚举按名称）。
 
@@ -2946,6 +3215,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 | `UsersIn(side, ids)` | 用户在某一侧的连接：同一个人切到别的租户时收不到 |
 | `Users(ids)` | 用户的全部连接，不分侧 |
 | `Side(side)` | 平台或某个租户的全部在线连接 |
+| `HubGroups(names)` | Hub 自己让连接加入的组（如聊天的会话组）里的连接：组名由登记那个 Hub 的包定，只有此刻在组里的连接收得到 |
 
 第一个参数是 Hub 路径，没登记的 Hub 在调用里即抛出。
 
@@ -2953,7 +3223,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、助手的流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
 
-吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
+吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。本人退出登录（`auth.logout`）不推 `ForceLogout`，只断开这个会话的连接，排在「其他设备退出登录」的提醒之前。
 
 ## 任务进度
 
@@ -2980,12 +3250,17 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 ## 在线状态
 
-`Contracts` 的在线状态接口（Realtime 实现）回答「哪些会话此刻持有实时连接」「某一侧有多少在线用户」：
+`Contracts` 的在线状态接口（Realtime 实现）回答「哪些会话此刻持有实时连接」「某一侧有多少在线用户」「一批用户里谁此刻在这一侧在线」：
 
 - 在线用户页（`sessions.list`）标出实时在线的会话；
-- 工作台的在线设备、访问概况小组件。
+- 工作台的在线设备、访问概况小组件；
+- 在线聊天的会话列表、成员与选人带在线状态（见[在线聊天](./chat#在线状态)）；通话只给此刻在线的人响铃，离线即让他离开占着的通话（见[在线聊天](./chat#语音与视频通话)）。
 
 任一 Hub 上的连接都算在线。
+
+用户在某一侧的第一条连接到了、最后一条连接断了，Realtime 各发一条消息 `basicapp.realtime.presence-changed`（载荷只有用户，信封带侧；直接发布、不经发件箱），订阅的包据此把变化推给相关的人。消息不带「上线还是离线」：投递至少一次、可能乱序，订阅方读处理时的状态。
+
+离线留一段宽限（配置 `BasicApp:Realtime:Presence:OfflineGrace`，缺省 8 秒，见[配置参考](../configuration#basicapp-realtime-presence)）：宽限之内又连上的（刷新页面、断线重连）不发离线，别人看到的不闪；回来的那一下照发一条，没有连接的这段空档里读到离线的人靠它纠正。发布只看本实例的连接、尽力而为：失败只记日志，停机时还在宽限里的离线不再发，各处读到的状态以接口为准。
 
 ## 跨实例
 
@@ -3105,10 +3380,13 @@ Ingress → Observe → Resilience → Authenticate → Tenant → Authorize →
 | --- | --- | --- |
 | `auditing.retention` | `0 3 * * *`（`BasicApp:Auditing:RetentionCron`） | 按参数 `auditing.retention-days`（为空即 180 天）逐批删除平台与各租户的过期日志，再清操作审计表 |
 | `openplatform.oauth-cleanup` | `30 3 * * *` | 授权码过期一天、令牌过期七天后物理删除 |
+| `notification.messages.cleanup` | `30 3 * * *` | 按参数 `notification.retention-days`（缺省 180 天）逐批物理删除已结束（已发送、失败、已取消）的邮件、短信与机器人消息发送记录（含软删除的）与 Telegram 出站审计，再在平台与各租户删系统投递的站内通知连同收件箱条目；排队中与发送中的不动，管理员发的通知公告不删 |
 | `files.uploads.expire` | `15 * * * *` | 过期的分片上传会话：中止存储上的分片并清理记录 |
 | `files.temporary.purge` | `45 * * * *` | 过了到期时间的临时文件（代码生成的产物包、导出中心的结果）：平台与各租户逐批（每批 100 条、一侧一次至多 20 批）删记录，存储里不再被引用的对象一起删 |
 | `tenancy.tenants.expire` | `*/5 * * * *` | 过了到期时间、仍生效的租户标为到期并停用目录（到期时间一过登录即被拒，不等作业） |
-| `chat.messages.cleanup` | `0 4 * * *` | Chat 模块开着才有：按平台参数 `chat.policy` 的保留天数（缺省 365 天）删平台与各租户的过期消息与表情回应，不删会话、成员与附件文件 |
+| `chat.messages.cleanup` | `0 4 * * *` | Chat 模块开着才有：按平台参数 `chat.policy` 的保留天数（缺省 365 天）删平台与各租户的过期消息与表情回应、结束早于保留期的通话与参与者，以及不再有留存消息使用、也不是会话头像的附件文件；不删会话与成员 |
+| `chat.calls.sweep` | `*/5 * * * *` | Chat 模块开着才有：按平台与各租户收尾没人管的通话——响铃过点的记未接听，发起人已离线的响铃取消，通话中已经离线的人记离开、过点还挂着的邀请记没接到，剩下的人不够时以中断结束；正常由两端的计时器与离线处理先一步做掉，停用的租户跳过 |
+| `workflow.receipts.cleanup` | `30 4 * * *` | Workflow 模块开着才有：删平台与各租户 90 天前的工作流事件回执（回执只防同一事件被处理两次，重投都在这之内） |
 
 作业的显示名与说明取包的文案 `jobs.<作业名>.title` / `.description`（作业名里的 `-` 换 `_`）。
 
@@ -3201,13 +3479,15 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 键 | 谁读 | 类型 | 含义 |
 | --- | --- | --- | --- |
 | `identity.login-methods` | Identity | 数组 | 登录页开放的方式（只认平台的，不许租户覆盖）：`password`、`email`、`phone`、`passkey`（还要宿主配了 `XiHan:Security:WebAuthn`）；缺省 `["password"]` 即只有密码登录，写错即登录配置报错 |
-| `identity.password` | Identity | JSON | 密码设置（只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
+| `settings.site` | Settings | JSON | 站点设置（允许租户覆盖：租户的同键参数是它的品牌，只写要改的字段）：缺省系统名 `XiHan.BasicApp`、版权方 `XiHanFun`，写错的值保存时即拒绝，见下文[站点设置与租户品牌](#站点设置与租户品牌) |
+| `identity.password` | Identity | JSON | 密码策略（只认平台的）：最短长度、须含的字符、历史深度、有效天数与强制改密，写错的值保存时即拒绝，见[统一认证](./authentication#密码策略) |
 | `identity.impersonation` | Identity | JSON | 模仿登录（租户可覆盖）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
 | `access.security.login-auto-ban` | Access | JSON | 登录失败自动封禁（只认平台的，缺省关闭），见[访问策略](./access-policy) |
 | `auditing.retention-days` | Auditing | 数字 | 日志保留天数（1–3650，只认平台的）；不给缺省值，为空即配置项 `BasicApp:Auditing:DefaultRetentionDays`（缺省 180） |
 | `notification.telegram` | Notification | JSON | Telegram 的总开关、Webhook 根地址、刷新周期、兜底回复与网络设置（只认平台的，缺省关） |
 | `notification.telegram.webhook-secret-token` | Notification | 文本（加密） | Telegram Webhook 密钥（只认平台的） |
-| `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
+| `notification.retention-days` | Notification | 数字 | 消息记录保留天数（1–3650，缺省 180，只认平台的）：作业 `notification.messages.cleanup` 删掉更早的、已结束的邮件、短信与机器人消息记录、Telegram 出站审计，以及系统投递的站内通知连同收件箱条目（管理员发的通知公告不删）；写错即清理失败 |
+| `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（消息与通话记录的保留天数，1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
 
 ## 字典
 
@@ -3218,6 +3498,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 字典码 | 创建后不可改；平台新建要求全库无同码，租户新建要求平台与本租户都无同码（字典不覆盖） |
 | 可见性 | 读共享：平台字典 + 本租户字典；租户改不了平台字典 |
 | 停用 | 停用的字典不再出现在下拉选项里 |
+| 内建 | 各包登记的字典，不能删，登记的项也不能删（`SETTINGS_CONFLICT_006`） |
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
@@ -3227,7 +3508,11 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 `dict-items.list` 分页检索字典项（按 `dictId` 筛选某本字典，关键字匹配编码、名称与附加值），`dict-items.tree` 一次取整本字典的项（深度优先、带层级，同级按排序号再按编码，给上级选择与级联取值用）。`dicts.list / get / options` 与 `dict-items.list / tree` 也是 MCP / AI 工具。前端 SchemaPage 的字典列与壳层的 `dictApi.options` 都接在 `dicts.options` 上。
 
-系统不依赖任何内置字典；演示字典由种子 `settings.demo` 在演示开关打开时写入。
+### 内建字典
+
+业务按编码依赖某本字典的包在 `Configure` 里 `AddDictCatalog` 登记 `DictDescriptor`（编码的首段是包名，项的上级排在下级前面、缺省项至多一个），种子 `settings.dicts` 据此写成平台的内建字典：字典的名称、分类、说明与登记的项（名称、附加值、上级）每次对齐，没变不写；状态、排序号与缺省项只首写，之后归运营；运营另加的项不动，照常可删。运营先手建了同码的平台字典即收为内建；租户已有同码的字典时种子报 `SETTINGS_CONFLICT_002`、不改它，要由人处理。目前没有包登记内建字典。
+
+演示字典由种子 `settings.demo` 在演示开关打开时写入，不是内建的。
 
 ## 业务编号
 
@@ -3246,13 +3531,29 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | `numbering-rules.allocations` | `settings.numbering-rules.read` | 发号记录 |
 | `numbering-rules.reset` | `settings.numbering-rules.reset` | 重置流水，理由必填（进操作审计） |
 
+## 站点设置与租户品牌
+
+站点名、Logo、浏览器图标、登录页（标语与说明）与页脚（版权方、链接、起始年份、备案号与链接）存在系统参数 `settings.site`：平台的是站点设置，租户的同键参数是它的品牌，只写要改的字段，没写的沿用平台的；文字为空即前端用界面自带的文案。
+
+| 操作 / 端点 | 权限 | 说明 |
+| --- | --- | --- |
+| `site.get`（`GET /api/site`） | `settings.site.read` | 设置页用：平台取站点设置，租户取自己的品牌（`own`）与沿用的平台设置（`inherited`） |
+| `site.update`（`PUT /api/site`） | `settings.site.update` | 整体覆盖调用方这一侧；图片只能保留现在的或去掉（去掉的随即回收），给别的文件 ID 即 `SETTINGS_VALIDATION_012` |
+| `POST /api/site/assets/{slot}` | `settings.site.update` | 换掉 `logo` 或 `favicon`：按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG），不超过 2 MB，否则 `SETTINGS_VALIDATION_013`；旧图回收 |
+| `site.resolve`（`GET /api/site:resolve?host=`） | 匿名 | 前端壳层用：登录了按令牌里的租户，没登录按 `host` 找绑定了这个域名的租户，返回生效的设置（租户的叠在平台的之上）与按域名找到的租户 ID |
+| `GET /api/site/assets/{id}` | 匿名 | 读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件，按不可变内容缓存一年 |
+
+邮件、短信与机器人消息模板里的变量 `brand` 调用方没传时，取发送这一侧生效的系统名（经 Contracts 的 `ISiteBrand`），租户发出的消息即带它自己的品牌。
+
+图片与头像一样存平台侧、公开级别，不计入租户的存储配额。按域名识别租户（`SysTenant.domain`，平台在租户编辑里填）只用于登录页展示品牌与预填租户框，不参与身份判定：租户仍只从令牌声明解析。套餐按包放行，基础版及以上的租户才能改自己的品牌。
+
 ## 用户设置
 
-个人偏好不在 Settings，而在 Identity 的 `SysUserSetting`（用户 × 场景 `Preference` / `Page` × 键，值是 JSON）：`user-settings.get` / `update`（只要求登录）。壳层的偏好、收藏、列表的个人视图与列设置、工作台看板布局都存在这里，改了经 `UserSettingChanged` 推到同一用户的其他设备。
+个人偏好不在 Settings，而在 Identity 的 `SysUserSetting`（用户 × 场景 `Preference` / `Page` × 键，值是 JSON）：`user-settings.get` / `update`（只要求登录）。壳层的偏好、收藏、列表的条件预设与列设置、工作台看板布局都存在这里，改了经 `UserSettingChanged` 推到同一用户的其他设备。
 
 ## 页面
 
-`src/modules/settings`：参数配置（租户行可「覆盖此参数」）、字典（主从两栏）、业务编号（预览与发号记录）。
+`src/modules/settings`：参数配置（租户行可「覆盖此参数」）、字典（主从两栏）、业务编号（预览与发号记录）、站点设置（平台改站点设置，租户改自己的品牌，没填的项以灰字显示沿用的平台值）。
 
 ## 下一步
 
@@ -3264,43 +3565,48 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 # 表结构升级
 
-本页说明正式库的表结构如何建立与升级、升级脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
+本页说明库的表结构如何建立与升级、什么时候要写升级脚本、脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
 
-开发库与正式库建表的方式不同：
+表结构由 ORM 按实体建出与补齐，各种库走同一条路径；升级脚本只做 ORM 做不了的事。
 
 | 库 | 建表方式 |
 | --- | --- |
-| 开发库 | Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动时按实体建缺表、加缺列（另补软删除实体的部分唯一索引） |
-| 正式库 | 只认 `Schema/<版本>/*.sql` 与版本台账，由 `SchemaUpgrader` 执行；`InitTables` 保持关闭 |
+| 开发库 | Development 打开 `XiHan:Persistence:SqlSugar:InitTables`：每次启动按实体建缺表、加缺列（另补软删除实体的部分唯一索引），改了实体重启即生效 |
+| 正式库 | 表结构升级器（`SchemaUpgrader`）在启动时执行：新库按实体建全部表；已有库先执行比台账新的升级脚本，再按实体补缺的表与列；`InitTables` 保持关闭 |
 
 ## 机制
 
 | 项 | 说明 |
 | --- | --- |
-| 脚本 | `backend/src/XiHan.BasicApp.Host/Schema/<版本>/*.sql`：每个子目录是一个版本（`主.次.修订`，目录名不是版本号即报错），PostgreSQL 方言、`CREATE TABLE IF NOT EXISTS` 风格、可重复执行；目录里的 `.sql` 按文件名顺序执行。目录可用 `BasicApp:Schema:Directory` 改（相对路径按程序目录解析） |
-| 基线 | 最低的版本目录：`Schema/6.0.0/0001-baseline.sql`，由 `SchemaBaselineTests` 按 InitTables 建出的结构生成，包含应用实体与框架 Provider 的表（`tenant_record`、`permission_grant_record`、`audit_record`、`message_translation`、`outbox_message`、调度五张表、工作流九张表） |
-| 台账 | 每个库自己的 `sys_version`（结构版本、应用版本、是否升级中、升级节点与开始时间）与 `sys_migration_history`（每个脚本的执行记录：版本、脚本、节点、成败、耗时、错误） |
+| 按实体建表 | 新库建出全部已登记实体的表（含框架 Provider 的 `tenant_record`、`permission_grant_record`、`audit_record`、`message_translation`、`outbox_message`、调度与工作流的表），再补软删除实体的部分唯一索引；已有库只建缺的表、加缺的列，不改、不删已有的列。只在新库、执行了脚本或应用版本变了时做，同一版本的节点重启不再逐表核对 |
+| 升级脚本 | `backend/src/XiHan.BasicApp.Host/Schema/<版本>/<库类型>/*.sql`：每个子目录是一个版本（`主.次.修订`），其下按库类型分目录（`postgresql`、`mysql`、`sqlserver`、`oracle`，测试用 `sqlite`），租户独立库的脚本在库类型目录下的 `tenant/` 里；按文件名顺序执行。目录名不是版本号、库类型写错、脚本没放进库类型目录都报错。目录可用 `BasicApp:Schema:Directory` 改（相对路径按程序目录解析），没有脚本时目录可以不存在 |
+| 结构版本 | 新库登记为当前结构版本：脚本目录里最高的版本与 `6.0.0` 取大者；执行完某个版本的脚本即推进到那个版本 |
+| 台账 | 每个库自己的 `sys_version`（结构版本、应用版本、是否升级中、升级节点与开始时间、最近一次失败的原因与时间）与 `sys_migration_history`（每一步的执行记录：批次、版本、脚本或 `orm-sync`、执行的 SQL、节点、成败、耗时、错误） |
 | 执行器 | Runtime 的 `SchemaUpgrader`，租户独立库由 `TenantSchemas` 升级 |
 
 ### 执行顺序
 
-1. 打开 `BasicApp:Schema:CreateDatabase`（开发环境打开，缺省关）时，平台库不存在即先建库；台账两张表再按实体建好；
-2. 经台账行的条件更新抢升级锁（时间按库的 `now()`，各节点时钟不必对齐）；锁过了 `BasicApp:Schema:LockExpiryMinutes`（缺省 30 分钟）即视为持锁节点已退出，别的节点可以接手；等别的节点升级最多 `LockWaitMinutes`（缺省 10 分钟），等不到即升级失败；
-3. 新库从基线建起，之后每个版本一个目录，只执行比台账新的；每个脚本一个事务，成功与失败都记进升级记录，失败即停；库的结构版本比应用带的脚本还新即 `RUNTIME_VALIDATION_004`（不能用旧版本的应用连新库）；
-4. 平台库升完后，在同一把锁里逐个升级已就绪的租户独立库：只跑 `Schema/<版本>/tenant/*.sql`，台账在各自的库里，停用的租户也升；没有租户脚本的版本只推进台账。
+1. 打开 `BasicApp:Schema:CreateDatabase`（开发环境打开，缺省关）时，平台库不存在即先建库（Oracle 的库是 DBA 事先建好的用户，不建）；台账两张表再按实体建好；
+2. 经台账行的条件更新抢升级锁；锁过了 `BasicApp:Schema:LockExpiryMinutes`（缺省 30 分钟）即视为持锁节点已退出，别的节点可以接手；等别的节点升级最多 `LockWaitMinutes`（缺省 10 分钟），等不到即升级失败。锁的时间取节点时钟，各节点的偏差远小于失效时间即可；
+3. 新库按实体建全部表，登记当前结构版本；已有库先执行比台账新的、本库类型的脚本（每个脚本一个事务，成功与失败都记进升级记录，失败即停），再按实体补缺的表与列（记一步 `orm-sync`）。库的结构版本比应用还新即 `RUNTIME_VALIDATION_004`（不能用旧版本的应用连新库）；
+4. 平台库升完后，在同一把锁里逐个升级已就绪的租户独立库：执行本库类型目录下 `tenant/` 里的脚本，再按租户库实体补表补列；台账在各自的库里，停用的租户也升。每个独立库升级期间另锁它自己的台账行，启动升级与维护页的重试不会同时升同一个库。
+
+一次升级（一次启动、一次 `schema upgrade` 或一次重试）在各库记下的步骤共用一个批次号；脚本记原文，按实体补表补列记实际发出的建表、加列与建索引语句。失败的原因与时间写进这个库的台账，下一次成功即清空。
+
+平台库失败即升级失败。只有租户独立库失败时升级照样算成功，接着升下一个库，失败的库进报告的 `failures`；这个租户在升级成功之前不可用：它的调用一律 503（`RUNTIME_UNAVAILABLE_007`），健康项 `basicapp.schema` 降级，别的租户与平台照常。修好原因后在版本管理页重试即恢复。节点进入服务状态后还会把已就绪的独立库逐个核对一遍（关掉 `AutoUpgrade`、由运维先跑命令时也知道哪些库落后；启动升级记下的失败照样按台账核对，台账上还是失败或落后的保持不可用；读不到租户目录就每分钟再试，直到核对过一遍），之后每分钟复查不可用的库，别的节点重试成功之后本节点随之放行。
 
 升级期间，已在运行的其他节点每 10 秒读一次台账，看到有节点持着没过期的锁即进入维护模式：除 `/health` 与 `/.well-known/` 外一律 503（`RUNTIME_UNAVAILABLE_003`，带 `Retry-After`）。
-
-只支持 PostgreSQL：别的库（测试用的 SQLite）跳过脚本，由 InitTables 建表。
 
 ### 执行时机
 
 | 方式 | 说明 |
 | --- | --- |
-| 启动时 | `BasicApp:Schema:AutoUpgrade`（缺省 `true`）：开始监听之前执行，升完前这个节点不接请求；失败即以日志 `Startup aborted: schema upgrade failed` 中断启动 |
-| 命令 | `XiHan.BasicApp.Host schema upgrade`：不启动应用（Feature 一启动就要读写自己的表，新库上升级要排在它们之前），执行后以 JSON 输出报告（`from`、`to`、`applied`），失败即非零退出；关掉 `AutoUpgrade` 时由运维先跑它再启动 |
+| 启动时 | `BasicApp:Schema:AutoUpgrade`（缺省 `true`）：开始监听之前执行，升完前这个节点不接请求；平台库失败即以日志 `Startup aborted: schema upgrade failed` 中断启动，只有租户独立库失败时照常启动 |
+| 命令 | `XiHan.BasicApp.Host schema upgrade`：不启动应用（Feature 一启动就要读写自己的表，新库上升级要排在它们之前），执行后以 JSON 输出报告（`from`、`to`、`applied`、`runId`、`failures`）；平台库失败即非零退出，只有租户独立库失败时照样输出报告，再以失败退出；关掉 `AutoUpgrade` 时由运维先跑它再启动 |
+| 预览 | `XiHan.BasicApp.Host schema plan`：不启动应用、只读，以 JSON 输出每个库要执行的脚本（带原文）、要建的表、要加的列与要建的索引，以及这次升级会不会按实体补表补列；有读不到的租户库即非零退出。发版前用新版本的程序对旧库跑一遍，再决定何时升级 |
 
 ```bash
+dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- schema plan
 dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Development -- schema upgrade
 ```
 
@@ -3308,34 +3614,53 @@ dotnet run --project backend/src/XiHan.BasicApp.Host --launch-profile Developmen
 
 ### 租户独立库
 
-`tenants.initialize-database` 在租户的分片上建库、只建租户库实体的表（按当前实体建即是最新结构），并在该库的台账登记当前结构版本；之后随平台的升级只跑 `tenant/` 下的脚本。见[多租户 SaaS](./multi-tenancy#开通三步)。
+`tenants.initialize-database` 在租户的分片上建库、按实体只建租户库实体的表，并在该库的台账登记当前结构版本；之后随平台一起升级。独立库的库类型可以与平台库不同，脚本按它自己的类型取。见[多租户 SaaS](./multi-tenancy#开通三步)。
 
 ## 写升级脚本
 
-改了实体（加表、加列、改长度）时：
+加表、加列、加索引都不用写脚本，ORM 会补。要写脚本的只有 ORM 做不了的：
 
-1. 首个正式版发布之前，直接重生成基线：设 `XIHAN_TEST_POSTGRES`（服务器连接串，不带库名）与 `XIHAN_UPDATE_SCHEMA_BASELINE=1` 跑 `SchemaBaselineTests.Baseline_BuildsTheSameTablesAsInitTables_AndRunsOnce`，测试自建临时库、按 InitTables 写回 `0001-baseline.sql`，再校验基线建出的库与 InitTables 一致；只提交基线里属于本次改动的变化。
-2. 正式版发布之后，每个版本一个新目录（`Schema/<新版本>/`），新增脚本、文件名带序号：
-   - 写成可重复执行（`CREATE TABLE IF NOT EXISTS`、`ADD COLUMN IF NOT EXISTS` …），只用 PostgreSQL 方言；
-   - 影响租户库实体的，另在 `Schema/<新版本>/tenant/` 写一份。
-3. 开发库由 InitTables 自动对齐，但正式环境只执行脚本，两者必须一致，`SchemaBaselineTests` 守着基线与实体的一致性。
+- 改列名、改表名（ORM 会把新名字当成新列或新表）；
+- 改列的类型或长度，或把可空改成非空（ORM 不改已有的列）；
+- 删列、删表、删索引；
+- 搬数据：新列要从旧列算出来、拆表合表、给已有行回填非空字符串或日期时间列。
+
+写法：
+
+1. 每个版本一个新目录，脚本放进各库类型的目录：`Schema/<新版本>/postgresql/0001-xxx.sql`、`…/mysql/…`、`…/sqlserver/…`、`…/oracle/…`，每种可能有旧库的库类型都要有一份（MySQL、SQL Server、Oracle 从 `6.0.1` 起支持，更早的版本目录只有 PostgreSQL 的）；影响租户库实体的，另在各库类型目录的 `tenant/` 里写一份。
+2. 脚本在按实体补表补列之前执行：要往新列搬数据的，在脚本里先把列加上。
+3. 写成可重复执行（先判断表、列、索引是否存在）：MySQL 与 Oracle 的 DDL 会隐式提交、回滚不了，失败后修好重跑，已执行的部分要能跳过。
+4. Oracle 不能一次执行多条语句：语句之间用只有 `/` 的一行隔开，普通语句末尾不写分号，PL/SQL 块照常写。SQL Server 的脚本不要写 `GO`。
 
 ::: tip 给已有行的表加列
-开发库的 InitTables 只能给已有行的表加可空列，或数值 / 枚举 / 布尔 / `Guid` 这类能按 CLR 缺省值回填的非可空列；非可空的字符串与日期时间列在实体里声明成可空，或者重建开发库。
+InitTables 与升级器补列时，只能给已有行的表加可空列，或数值 / 枚举 / 布尔 / `Guid` 这类能按 CLR 缺省值回填的非可空列；非可空的字符串与日期时间列在实体里声明成可空，或者写脚本先加列并回填。
 :::
 
 ::: tip 新的唯一索引建不出来
-实体或框架的表多了唯一索引时，开发库里已有重复数据会让 InitTables 建不出索引，宿主启动即失败。开发库重建后重新 `seed`，或按报错的表去掉重复行再启动。
+实体或框架的表多了唯一索引时，库里已有重复数据会让建索引失败，升级即中断。按报错的表去掉重复行再启动；开发库也可以重建后重新 `seed`。
 :::
 
 ## 版本与升级记录
 
-Maintenance 包提供只读的管理面（平台侧，页面在「系统管理 › 系统服务」下）：
+Maintenance 包提供管理面（平台侧，页面在「平台管理 › 系统服务」下）：
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
-| `versions.list` / `get` | `maintenance.versions.read` | 每个库一行（平台库为 `platform`，另加各独立库租户，按库名取）：应用版本、结构版本、是否升级中、升级节点；读不到的库带错误说明 |
-| `migrations.list` / `get` | `maintenance.migrations.read` | 脚本执行台账：版本、脚本、节点、成败、耗时 |
+| `versions.list` / `get` | `maintenance.versions.read` | 每个库一行（平台库为 `platform`，另加各独立库租户，按库名取）：库类型、结构状态、结构版本与应用带的版本、最近一次升级的应用版本与时间、升级锁、最近一次失败的原因；读不到的库带错误说明 |
+| `versions.plan` | `maintenance.versions.read` | `GET /api/versions/{id}:plan`：只读预览这个库要执行的脚本、要建的表、列与索引，与 `schema plan` 同一份 |
+| `versions.upgrade` | `maintenance.versions.upgrade` | `POST /api/versions/{id}:upgrade`：重试升级一个租户独立库，只锁这个库，别的调用不受影响；成功后这个租户恢复可用。平台库在节点启动时升级，不在这里重试（`MAINTENANCE_VALIDATION_007`） |
+| `versions.release-lock` | `maintenance.versions.release-lock` | `POST /api/versions/{id}:release-lock`：持锁的节点已经退出时手动释放锁，不用等它过期；锁还在指定的节点手里才释放（否则 `MAINTENANCE_CONFLICT_005`）。节点还在升级时释放会让两个节点同时改同一个库 |
+| `migrations.list` / `get` | `maintenance.migrations.read` | 一个库的升级记录（筛选 `database` 选库，不给为平台库）：批次、版本、脚本或 `orm-sync`、节点、成败、耗时；取单条带执行的 SQL |
+
+结构状态：
+
+| 状态 | 含义 |
+| --- | --- |
+| 最新（`Current`） | 结构版本等于应用带的版本 |
+| 待升级（`Behind`） | 结构版本与应用带的不同，还没有升级 |
+| 升级中（`Upgrading`） | 有节点持着没过期的升级锁 |
+| 升级失败（`Failed`） | 最近一次升级失败，台账记着原因 |
+| 不可达（`Unreachable`） | 读不到这个库的台账 |
 
 ## 下一步
 
@@ -3391,7 +3716,7 @@ Workbench 是 Tier 3 的可选模块（`BasicApp:Modules:Workbench:Enabled`，�
 | Identity | `identity.session-devices` | Chart | `identity.sessions.read` |
 | Files | `files.storage-mix` | Chart | `files.files.read` |
 | Maintenance | `maintenance.job-runs` | Chart | `maintenance.job-runs.read` |
-| Notification | `notification.announcements` | List | —（本人收件箱里最近的几条） |
+| Notification | `notification.announcements` | List | —（本人收件箱里最近的几条公告，不含系统投递的待办与安全提醒） |
 | Notification | `notification.deliveries` | Chart | `notification.emails.read`（短信那部分另要 `notification.sms.read`） |
 | Workflow | `workflow.todo` | List | —（Workflow 开着才有） |
 
@@ -3510,7 +3835,7 @@ Workflow 是 Tier 3 的可选模块（`BasicApp:Modules:Workflow:Enabled`，缺�
 
 ## 通知
 
-订阅 `workflow.task.created`、`workflow.task.transferred` 与 `workflow.instance.faulted`（竞争消费），经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心：受理人收待办；被抄送人收抄送并写抄送记录（同一实例同一节点对同一人只记一次、只通知一次）；转办的新受理人收转办；实例故障时发起人收故障。投递至少一次，按消息 ID 去重（`sys_workflow_message_receipt`）；Notification 没装或投递失败只记日志，不阻断流程。文案按收件人的界面语言出（偏好里同步到后端的语言，经 Contracts 的 `IUserLocales`，Identity 实现），收件人按语言分组各投一条；没存语言的按这次调用的区域，后台恢复流程（定时、延时、超时）时没有区域，落到缺省区域。
+订阅 `workflow.task.created`、`workflow.task.transferred` 与 `workflow.instance.faulted`（竞争消费），经 Notification 的站内待办投递发「待办」类站内信，链接到审批中心：受理人收待办；被抄送人收抄送并写抄送记录（同一实例同一节点对同一人只记一次、只通知一次）；转办的新受理人收转办；实例故障时发起人收故障。投递至少一次，按消息 ID 去重（`sys_workflow_message_receipt`，回执留 90 天，作业 `workflow.receipts.cleanup` 删掉更早的）；Notification 没装或投递失败只记日志，不阻断流程。文案按收件人的界面语言出（偏好里同步到后端的语言，经 Contracts 的 `IUserLocales`，Identity 实现），收件人按语言分组各投一条；没存语言的按这次调用的区域，后台恢复流程（定时、延时、超时）时没有区域，落到缺省区域。
 
 工作台小组件 `workflow.todo`（我的待办）：值是调用方的待办数，条目是最近到达的 5 条，点开到审批中心直接办理。前端经 `registerWorkbenchWidget` 把它登记到看板（挂在审批中心页上，模块关掉即隐藏），见[工作台](./workbench#为能力包添加小组件)。
 

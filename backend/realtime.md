@@ -28,10 +28,10 @@ Realtime 自己登记通知 Hub，别的包的 Hub 继承 `RealtimeHub` 并在�
 | 方法 | 谁发 | 内容 |
 | --- | --- | --- |
 | `ForceLogout` | Identity | 会话被吊销（强制下线、改密、锁定、停用、删除），带给用户看的原因 |
-| `ReceiveNotification` | Notification | 发布或提醒时按接收人推送 |
+| `ReceiveNotification` | Notification | 发布或提醒时按接收人推送；Identity 的[安全通知](./authentication#安全通知)（别处登录、退出、强制下线等）也经它推给本人的端 |
 | `TaskProgress` | Files、Notification | 导出任务与通知发布的进度，只推给发起人，见[任务进度](#任务进度) |
 | `UserSettingChanged` | Identity | 个人设置在其他设备上改了（偏好、收藏、看板布局跨端同步） |
-| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更与正在输入，见[在线聊天](./chat#推送) |
+| `ReceiveChatMessage` 等 | Chat | 聊天 Hub 上的消息、撤回、编辑、回应、已读位、会话变更、正在输入与通话（状态与信令），见[在线聊天](./chat#推送) |
 
 方法清单由 `contracts export` 一并导出为 `frontend/contracts/realtime.json`，前端生成 `packages/contracts/realtime.ts`。推送载荷是各包自己的记录，按各包的源生成序列化上下文序列化（枚举按名称）。
 
@@ -48,6 +48,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 | `UsersIn(side, ids)` | 用户在某一侧的连接：同一个人切到别的租户时收不到 |
 | `Users(ids)` | 用户的全部连接，不分侧 |
 | `Side(side)` | 平台或某个租户的全部在线连接 |
+| `HubGroups(names)` | Hub 自己让连接加入的组（如聊天的会话组）里的连接：组名由登记那个 Hub 的包定，只有此刻在组里的连接收得到 |
 
 第一个参数是 Hub 路径，没登记的 Hub 在调用里即抛出。
 
@@ -55,7 +56,7 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 立即推送 `SendNowAsync` 给不落库的瞬时事件（正在输入、助手的流式增量）：不等提交、不随回滚撤回。操作都有工作单元，但事务到第一次写入才开：写入之前可以立即推送，事务开了之后调用即抛出 `InvalidOperationException`。
 
-吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。
+吊销会话时先推 `ForceLogout`，再经 `DisconnectAsync`（发出时机同 `SendAsync`）把连接移出全部组、宽限 2 秒后断开，任一 Hub 上的连接都算。本人退出登录（`auth.logout`）不推 `ForceLogout`，只断开这个会话的连接，排在「其他设备退出登录」的提醒之前。
 
 ## 任务进度
 
@@ -82,12 +83,17 @@ await push.SendAsync(RealtimeHubs.Notification, RealtimeAudience.UsersIn(side, u
 
 ## 在线状态
 
-`Contracts` 的在线状态接口（Realtime 实现）回答「哪些会话此刻持有实时连接」「某一侧有多少在线用户」：
+`Contracts` 的在线状态接口（Realtime 实现）回答「哪些会话此刻持有实时连接」「某一侧有多少在线用户」「一批用户里谁此刻在这一侧在线」：
 
 - 在线用户页（`sessions.list`）标出实时在线的会话；
-- 工作台的在线设备、访问概况小组件。
+- 工作台的在线设备、访问概况小组件；
+- 在线聊天的会话列表、成员与选人带在线状态（见[在线聊天](./chat#在线状态)）；通话只给此刻在线的人响铃，离线即让他离开占着的通话（见[在线聊天](./chat#语音与视频通话)）。
 
 任一 Hub 上的连接都算在线。
+
+用户在某一侧的第一条连接到了、最后一条连接断了，Realtime 各发一条消息 `basicapp.realtime.presence-changed`（载荷只有用户，信封带侧；直接发布、不经发件箱），订阅的包据此把变化推给相关的人。消息不带「上线还是离线」：投递至少一次、可能乱序，订阅方读处理时的状态。
+
+离线留一段宽限（配置 `BasicApp:Realtime:Presence:OfflineGrace`，缺省 8 秒，见[配置参考](../configuration#basicapp-realtime-presence)）：宽限之内又连上的（刷新页面、断线重连）不发离线，别人看到的不闪；回来的那一下照发一条，没有连接的这段空档里读到离线的人靠它纠正。发布只看本实例的连接、尽力而为：失败只记日志，停机时还在宽限里的离线不再发，各处读到的状态以接口为准。
 
 ## 跨实例
 

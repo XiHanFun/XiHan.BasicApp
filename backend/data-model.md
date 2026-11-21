@@ -26,8 +26,8 @@
 | --- | --- |
 | `SysUser` | 账号：`HomeTenantId` 为注册地租户（平台账号为 `platform`），状态、是否系统内置账号、资料与头像 |
 | `SysUserSecurity` | 账号安全：密码散列、失败计数、锁定期、双因素（密钥加密存储）、开放接口签名设置、登录策略 |
-| `SysUserSession` | 会话：ID 即令牌的 `sid`，`ActiveTenantId` 为会话当前所在的租户（平台为空）；刷新令牌散列、客户端信息、登录地点、锁屏、模仿发起人 |
-| `SysPasswordHistory` | 密码历史（不可复用的深度见 `BasicApp:Auth:PasswordHistoryDepth`） |
+| `SysUserSession` | 会话：ID 即令牌的 `sid`，`ActiveTenantId` 为会话当前所在的租户（平台为空）；刷新令牌散列、客户端信息、登录地点、设备标识、锁屏、模仿发起人 |
+| `SysPasswordHistory` | 密码历史（不可复用的深度见系统参数 `identity.password` 的 `historyDepth`） |
 | `SysUserSetting` | 用户设置（用户 × 场景 × 键，值是 JSON）：偏好、收藏、工作台布局 |
 | `SysUserNotificationPreference` | 通知偏好 |
 | `SysUserExternalLogin` | 第三方账号绑定 |
@@ -78,7 +78,6 @@
 | 包 | 实体 | 说明 |
 | --- | --- | --- |
 | Organization | `SysDepartment`、`SysDepartmentHierarchy`、`SysPosition`、`SysUserDepartment` | 部门（闭包表维护层级）、岗位、部门成员（聚合根，发出领域事件） |
-| Identity | `SysUserStatistics` | 用户使用统计，在注册地租户 |
 | Access | `SysPermissionRequest` | 授权申请 |
 | Files | `SysFile`、`SysFileStorage`、`SysFileUpload`、`SysExportTask`、`SysImportHistory` | 文件、副本、分片上传会话、导出任务、导入历史 |
 | Notification | `SysNotification`、`SysUserNotification` | 通知与按人投递 |
@@ -89,11 +88,11 @@
 
 操作日志没有应用表：它就是框架的操作审计 `audit_record`（经 `Auditing.Database` 落库），Auditing 包只提供查询面。
 
-按月分表的日志不在基线脚本里，写入时由框架按月建表。
+按月分表的日志建表时只建当期的表，之后写入时由框架按月建表。
 
 ## 框架 Provider 的表
 
-基线 `Schema/6.0.0/0001-baseline.sql` 同时包含框架 Provider 的表，由同一套升级器管理：
+框架 Provider 的表与应用实体一起由表结构升级器按实体建出：
 
 | 表 | 来源 |
 | --- | --- |
@@ -109,11 +108,11 @@
 
 编码、键名这类唯一性由操作在写入前检查并返回本包的 `CONFLICT` 错误码（如参数键在本侧唯一），数据库再用唯一索引兜住并发写入：
 
-- 软删除实体用部分唯一索引，只约束未删除的行（`ux_<表>_<列>… WHERE is_deleted = false`）：同一个编码删了再建、再删都不冲突。实体上写 `[ActiveUniqueIndex(nameof(…))]`，开发库由 Runtime 在建表之后补建，独立库在初始化时补建，生产库随基线脚本建出；只支持 PostgreSQL 与 SQLite。
-- 不软删除的实体（关联表、只增的记录）用唯一的 `[SugarIndex]`；外键查找与列表的筛选、排序用普通 `[SugarIndex]`（`ix_<表>_<列>`）。按月分表的日志用 `{split_table}` 占位，每张月表各带一份。
-- 结构测试（`EntityIndexTests`）守护：软删除实体不写唯一的 `[SugarIndex]`，部分唯一索引只用于软删除实体，列都是实体的属性，索引名不超过 PostgreSQL 的 63 字符（过长时写 `Name` 给一个短名）且不重名。
+- 软删除实体用部分唯一索引，只约束未删除的行（`ux_<表>_<列>… WHERE is_deleted = false`）：同一个编码删了再建、再删都不冲突。实体上写 `[EntityIndex(nameof(…), IsUnique = true, Name = "ux_<表>_<列>…")]`，由框架在建表之后补建（开发库跟着 InitTables，正式库与租户独立库跟着表结构升级器）：PostgreSQL、SQLite、SQL Server 是带条件的索引，MySQL（8.0.13 起）与 Oracle 是每列 `CASE WHEN is_deleted = 0 THEN 列 END` 的函数索引。
+- 不软删除的实体（关联表、只增的记录）用唯一的 `[SugarIndex]`；外键查找与列表的筛选、排序用普通 `[SugarIndex]`（`ix_<表>_<列>`）。索引名都写出表名（`ix_sys_oauth_app_owner_user_id`），按月分表的日志用 `{split_table}` 占位，每张月表各带一份。
+- 结构测试（`EntityIndexTests`）守护：软删除实体不写唯一的 `[SugarIndex]`，`[EntityIndex]` 只用于软删除实体的唯一约束，列都是实体的属性，索引名不超过 PostgreSQL 的 63 字符（过长时列段写短名）且不重名；`EntityMappingTests` 另守住索引名是 `ix_` / `ux_` + 表名 + 列。
 
-跨归属的规则（如字典码平台与租户不可重复）索引表达不了，只靠操作里的检查。并发写入撞上唯一 `[SugarIndex]` 时，框架仓储核对后按唯一键重复返回 `PERSISTENCE_CONFLICT_003`；撞上 `[ActiveUniqueIndex]` 建的部分唯一索引时框架识别不了，第二个写入方拿到的是数据库错误。
+跨归属的规则（如字典码平台与租户不可重复）索引表达不了，只靠操作里的检查。并发写入越过操作里的检查、撞上唯一索引（唯一的 `[SugarIndex]` 或软删除实体的 `[EntityIndex]`）时，框架仓储核对后按唯一键重复返回 `PERSISTENCE_CONFLICT_003`（HTTP 409，`index` 是索引名），调用回滚。
 
 ## 下一步
 

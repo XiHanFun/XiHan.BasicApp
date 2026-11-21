@@ -19,7 +19,7 @@
 ## 菜单来源
 
 1. 后端各包在 `<包>Pages.cs` 登记页面：页面码、路由、文案键、图标、排序、所需权限码与所在目录；
-2. 种子把页面对齐成菜单，运营可在菜单管理里改展示、启停、配徽标、加目录（可多级嵌套）与外链；
+2. 种子把页面对齐成菜单，运营可在菜单管理里改展示、启停、配徽标、加目录（可多级嵌套）、外链与内嵌；
 3. `auth.permissions` 返回按权限裁剪的菜单树（停用的节点连同子树不下发，也就没有路由），以及有效权限码、角色与页面码。
 
 前端把菜单树投影成路由（`toMenuRoutes`）：
@@ -33,6 +33,7 @@
 | `permission` | `meta.permissions` |
 | `badge`、`badgeType`、`badgeDot` | `meta.badge`、`meta.badgeType`、`meta.dot`，由 `MenuBadge` 渲染 |
 | 外链的 `externalUrl` | `meta.link`，点击时新标签打开 |
+| 内嵌的 `externalUrl` | `meta.iframeSrc`，路由（`/embed/<名>`）挂壳层的 iframe 视图，在应用里打开 |
 
 目录节点自动重定向到第一个可导航的子页。侧栏会展开到当前页：按地址直达、刷新或从标签页切过来时，通往当前页的各级目录自动展开；手动收起的目录在当前页换掉之前不会被重新打开。
 
@@ -44,11 +45,12 @@
 component: settings/configs/index  →  src/modules/settings/views/configs/index.vue
 ```
 
-- 壳层自带、不归任何模块的页面在 `packages/router/views.ts` 的 `coreViews` 里逐条登记（关于页 `about/project/index` → `packages/views/_core/about/index.vue`）；
+- 壳层自带、不归任何模块的页面在 `packages/router/views.ts` 的 `coreViews` 里逐条登记（关于页 `about/project/index` → `packages/views/_core/about/index.vue`）；内嵌节点不走组件路径，统一挂 `packages/views/_core/embed/index.vue`，地址取 `meta.iframeSrc`，对方站点禁止被嵌入时浏览器不显示；
 - 登记了组件路径但找不到文件：控制台报错并回落到 404 页（侧栏仍显示该条目，报错用于定位配置错误）；菜单缺路由名的节点同样报错并跳过；
 - 视图路径要求 kebab-case 且全局唯一，由 `pnpm modules:check` 检查；
 - 每个页面包一层「名字 = 路由名」的壳组件，KeepAlive 按路由名命中缓存，页面组件自己的名字不参与；
-- 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载。
+- 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载；
+- 后端集成测试 `PageViewsTests` 双向核对：各包登记的页面与审批单据都能按上面的规则找到视图，`src/modules/*/views/**/index.vue` 也都有登记，多出来的视图没有入口能到。
 
 ## 守卫
 
@@ -71,11 +73,11 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 
 ## 首页
 
-登录后的落点与 `/` 的跳转目标取菜单树里第一个显示的页面（深度优先），它也是固定的首页标签。菜单里没有页面时用 `VITE_HOME_PATH` 兜底（仓库的 `.env` 设为 `/workbench/dashboard`）；关掉后端工作台模块时把它留空。
+登录后的落点与 `/` 的跳转目标取菜单树里第一个显示的页面（深度优先）。菜单里没有页面时用 `VITE_HOME_PATH` 兜底（仓库的 `.env` 设为 `/workbench/dashboard`）；关掉后端工作台模块时把它留空。
 
 ## 标签页与缓存
 
-访问过的页面进标签栏（首页与固定标签不可关）。标签标题存文案键，切换语言时跟着变。偏好里可关掉访问历史（只留当前页）或限制标签数。菜单的「缓存」与「固定标签」两个展示字段在菜单管理里可调，后端登记给缺省值。
+访问过的页面进标签栏。菜单里设为固定标签的页面在菜单装好后就排在标签栏最前（没访问过也在），不能关闭、也不能取消固定，工作台缺省固定；固定与否只看菜单，首页不特殊。手动固定的标签可以取消。标签标题存文案键，切换语言时跟着变。偏好里可关掉访问历史（只留当前页）或限制标签数。菜单的「缓存」与「固定标签」两个展示字段在菜单管理里可调，后端登记给缺省值。
 
 ## 下一步
 

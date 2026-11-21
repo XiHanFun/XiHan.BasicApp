@@ -63,7 +63,8 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 | 项 | 说明 |
 | --- | --- |
 | `signal` | 取消 |
-| `deadline` | 截止时间（`Date`），以 UTC ISO 8601 写进 `xihan-deadline` |
+| `deadline` | 截止时间（`Date`），以 UTC ISO 8601 写进 `xihan-deadline`；给了即以它为准 |
+| `timeoutMs` | 本次调用的超时（毫秒），缺省 60 秒（`DEFAULT_TIMEOUT_MS`）；调模型、生成代码、合并分片、跨存储复制与校验、重试升级这类跑得久的传 `LONG_TIMEOUT_MS`（5 分钟）；`0` 不设截止时间。截止时间过后 5 秒仍没有响应，前端自己中止并提示超时 |
 | `locale` | 覆盖本次调用的区域 |
 | `headers` | 额外请求头 |
 | `anonymous` | 匿名调用（登录、刷新、注册、找回密码）：不带令牌，未认证也不走刷新钩子 |
@@ -87,7 +88,7 @@ const result = await users.lock({ ids: [id] }) // BatchResult：{ succeeded, fai
 | `Authorization: Bearer` | `getToken()`，匿名调用不带 |
 | `Accept-Language` | 当前区域（缺省 `en-US`） |
 | `traceparent` | 每个请求新生成（W3C） |
-| `xihan-deadline` | 传了 `deadline` 才有 |
+| `xihan-deadline` | `deadline`，没给时按超时推出；`timeoutMs: 0` 时不带。后端到点取消调用，回 504 `KERNEL_TIMEOUT_001` |
 
 ## 错误
 

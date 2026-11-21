@@ -33,13 +33,15 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 键 | 谁读 | 类型 | 含义 |
 | --- | --- | --- | --- |
 | `identity.login-methods` | Identity | 数组 | 登录页开放的方式（只认平台的，不许租户覆盖）：`password`、`email`、`phone`、`passkey`（还要宿主配了 `XiHan:Security:WebAuthn`）；缺省 `["password"]` 即只有密码登录，写错即登录配置报错 |
-| `identity.password` | Identity | JSON | 密码设置（只认平台的）：`forceChange` 缺省 `false`，打开后密码由他人设置的账号凭密码登录要先改密，见[统一认证](./authentication#强制修改由他人设置的密码) |
+| `settings.site` | Settings | JSON | 站点设置（允许租户覆盖：租户的同键参数是它的品牌，只写要改的字段）：缺省系统名 `XiHan.BasicApp`、版权方 `XiHanFun`，写错的值保存时即拒绝，见下文[站点设置与租户品牌](#站点设置与租户品牌) |
+| `identity.password` | Identity | JSON | 密码策略（只认平台的）：最短长度、须含的字符、历史深度、有效天数与强制改密，写错的值保存时即拒绝，见[统一认证](./authentication#密码策略) |
 | `identity.impersonation` | Identity | JSON | 模仿登录（租户可覆盖）：`sessionMinutes` 缺省 30、`notifyTarget` 缺省 `true`；写错即不能发起，见[统一认证](./authentication#模仿登录) |
 | `access.security.login-auto-ban` | Access | JSON | 登录失败自动封禁（只认平台的，缺省关闭），见[访问策略](./access-policy) |
 | `auditing.retention-days` | Auditing | 数字 | 日志保留天数（1–3650，只认平台的）；不给缺省值，为空即配置项 `BasicApp:Auditing:DefaultRetentionDays`（缺省 180） |
 | `notification.telegram` | Notification | JSON | Telegram 的总开关、Webhook 根地址、刷新周期、兜底回复与网络设置（只认平台的，缺省关） |
 | `notification.telegram.webhook-secret-token` | Notification | 文本（加密） | Telegram Webhook 密钥（只认平台的） |
-| `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
+| `notification.retention-days` | Notification | 数字 | 消息记录保留天数（1–3650，缺省 180，只认平台的）：作业 `notification.messages.cleanup` 删掉更早的、已结束的邮件、短信与机器人消息记录、Telegram 出站审计，以及系统投递的站内通知连同收件箱条目（管理员发的通知公告不删）；写错即清理失败 |
+| `chat.policy` | Chat | JSON | 聊天策略（Chat 模块开着才有，敏感词租户可覆盖）：`retentionDays`（消息与通话记录的保留天数，1–3650，缺省 365）与 `sensitiveWords`；写错即失败，不按错误的值删数据或放过敏感词 |
 
 ## 字典
 
@@ -50,6 +52,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | 字典码 | 创建后不可改；平台新建要求全库无同码，租户新建要求平台与本租户都无同码（字典不覆盖） |
 | 可见性 | 读共享：平台字典 + 本租户字典；租户改不了平台字典 |
 | 停用 | 停用的字典不再出现在下拉选项里 |
+| 内建 | 各包登记的字典，不能删，登记的项也不能删（`SETTINGS_CONFLICT_006`） |
 
 | 操作 | 权限码 | 说明 |
 | --- | --- | --- |
@@ -59,7 +62,11 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 
 `dict-items.list` 分页检索字典项（按 `dictId` 筛选某本字典，关键字匹配编码、名称与附加值），`dict-items.tree` 一次取整本字典的项（深度优先、带层级，同级按排序号再按编码，给上级选择与级联取值用）。`dicts.list / get / options` 与 `dict-items.list / tree` 也是 MCP / AI 工具。前端 SchemaPage 的字典列与壳层的 `dictApi.options` 都接在 `dicts.options` 上。
 
-系统不依赖任何内置字典；演示字典由种子 `settings.demo` 在演示开关打开时写入。
+### 内建字典
+
+业务按编码依赖某本字典的包在 `Configure` 里 `AddDictCatalog` 登记 `DictDescriptor`（编码的首段是包名，项的上级排在下级前面、缺省项至多一个），种子 `settings.dicts` 据此写成平台的内建字典：字典的名称、分类、说明与登记的项（名称、附加值、上级）每次对齐，没变不写；状态、排序号与缺省项只首写，之后归运营；运营另加的项不动，照常可删。运营先手建了同码的平台字典即收为内建；租户已有同码的字典时种子报 `SETTINGS_CONFLICT_002`、不改它，要由人处理。目前没有包登记内建字典。
+
+演示字典由种子 `settings.demo` 在演示开关打开时写入，不是内建的。
 
 ## 业务编号
 
@@ -78,13 +85,29 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | `numbering-rules.allocations` | `settings.numbering-rules.read` | 发号记录 |
 | `numbering-rules.reset` | `settings.numbering-rules.reset` | 重置流水，理由必填（进操作审计） |
 
+## 站点设置与租户品牌
+
+站点名、Logo、浏览器图标、登录页（标语与说明）与页脚（版权方、链接、起始年份、备案号与链接）存在系统参数 `settings.site`：平台的是站点设置，租户的同键参数是它的品牌，只写要改的字段，没写的沿用平台的；文字为空即前端用界面自带的文案。
+
+| 操作 / 端点 | 权限 | 说明 |
+| --- | --- | --- |
+| `site.get`（`GET /api/site`） | `settings.site.read` | 设置页用：平台取站点设置，租户取自己的品牌（`own`）与沿用的平台设置（`inherited`） |
+| `site.update`（`PUT /api/site`） | `settings.site.update` | 整体覆盖调用方这一侧；图片只能保留现在的或去掉（去掉的随即回收），给别的文件 ID 即 `SETTINGS_VALIDATION_012` |
+| `POST /api/site/assets/{slot}` | `settings.site.update` | 换掉 `logo` 或 `favicon`：按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG），不超过 2 MB，否则 `SETTINGS_VALIDATION_013`；旧图回收 |
+| `site.resolve`（`GET /api/site:resolve?host=`） | 匿名 | 前端壳层用：登录了按令牌里的租户，没登录按 `host` 找绑定了这个域名的租户，返回生效的设置（租户的叠在平台的之上）与按域名找到的租户 ID |
+| `GET /api/site/assets/{id}` | 匿名 | 读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件，按不可变内容缓存一年 |
+
+邮件、短信与机器人消息模板里的变量 `brand` 调用方没传时，取发送这一侧生效的系统名（经 Contracts 的 `ISiteBrand`），租户发出的消息即带它自己的品牌。
+
+图片与头像一样存平台侧、公开级别，不计入租户的存储配额。按域名识别租户（`SysTenant.domain`，平台在租户编辑里填）只用于登录页展示品牌与预填租户框，不参与身份判定：租户仍只从令牌声明解析。套餐按包放行，基础版及以上的租户才能改自己的品牌。
+
 ## 用户设置
 
-个人偏好不在 Settings，而在 Identity 的 `SysUserSetting`（用户 × 场景 `Preference` / `Page` × 键，值是 JSON）：`user-settings.get` / `update`（只要求登录）。壳层的偏好、收藏、列表的个人视图与列设置、工作台看板布局都存在这里，改了经 `UserSettingChanged` 推到同一用户的其他设备。
+个人偏好不在 Settings，而在 Identity 的 `SysUserSetting`（用户 × 场景 `Preference` / `Page` × 键，值是 JSON）：`user-settings.get` / `update`（只要求登录）。壳层的偏好、收藏、列表的条件预设与列设置、工作台看板布局都存在这里，改了经 `UserSettingChanged` 推到同一用户的其他设备。
 
 ## 页面
 
-`src/modules/settings`：参数配置（租户行可「覆盖此参数」）、字典（主从两栏）、业务编号（预览与发号记录）。
+`src/modules/settings`：参数配置（租户行可「覆盖此参数」）、字典（主从两栏）、业务编号（预览与发号记录）、站点设置（平台改站点设置，租户改自己的品牌，没填的项以灰字显示沿用的平台值）。
 
 ## 下一步
 

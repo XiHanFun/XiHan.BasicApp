@@ -6,9 +6,9 @@
 
 ## 机读资产
 
-- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 57 页正文
+- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 59 页正文
 - [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt): 29 页后端手册
-- [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt): 11 页前端手册
+- [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt): 13 页前端手册
 - 每页 Markdown：把站点地址后缀成 `.md`，如 https://basicapp.docs.xihanfun.com/ai/agents.md
 
 ## 开始
@@ -41,7 +41,7 @@
 - [约束规则与审批](https://basicapp.docs.xihanfun.com/backend/approval): 本页说明约束规则、会话角色激活与授权申请，适用于后端开发者与权限配置人员。
 - [统一认证](https://basicapp.docs.xihanfun.com/backend/authentication): 本页说明账号模型、令牌与会话、登录方式、锁屏与模仿登录，适用于后端开发者与接口对接方。
 - [缓存与异步](https://basicapp.docs.xihanfun.com/backend/caching): 本页说明缓存接口、缓存时长与失效、缓存管理，以及定时作业、后台循环、日志队列、发件箱与提交后推送等异步机制，适用于后端开发者。
-- [在线聊天](https://basicapp.docs.xihanfun.com/backend/chat): 本页说明在线聊天的会话与消息规则、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
+- [在线聊天](https://basicapp.docs.xihanfun.com/backend/chat): 本页说明在线聊天的会话与消息规则、语音与视频通话、推送、附件、部门群同步、聊天审计、策略参数与保留清理，适用于后端与前端开发者。
 - [代码生成](https://basicapp.docs.xihanfun.com/backend/code-generation): 本页说明代码生成的数据源、表与列配置、模板与生成的代码、交付、零代码运行时和退出验证，适用于用它生成业务包的开发者与维护模板的人。
 - [数据模型](https://basicapp.docs.xihanfun.com/backend/data-model): 本页说明各包实体落在平台库还是租户库、各自实现哪些协议接口，以及索引与唯一性规则，适用于需要了解表结构归属的后端开发者。
 - [数据权限与字段安全](https://basicapp.docs.xihanfun.com/backend/data-permission): 本页说明数据范围与字段安全的规则、登记方式与管理操作，适用于后端开发者与权限配置人员。
@@ -62,7 +62,7 @@
 - [请求生命周期](https://basicapp.docs.xihanfun.com/backend/request-lifecycle): 本页说明一次调用从进入宿主到返回响应所经过的各个阶段，以及 BasicApp 在各阶段贡献的中间件，适用于排查认证、权限与审计问题的后端开发者。
 - [定时任务](https://basicapp.docs.xihanfun.com/backend/scheduling): 本页说明作业的登记方式、内建作业、计划写法与管理操作，适用于后端开发者与运维人员。
 - [系统设置](https://basicapp.docs.xihanfun.com/backend/settings): 本页说明参数配置、字典与业务编号，适用于后端开发者与运营配置人员。
-- [表结构升级](https://basicapp.docs.xihanfun.com/backend/upgrade): 本页说明正式库的表结构如何建立与升级、升级脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
+- [表结构升级](https://basicapp.docs.xihanfun.com/backend/upgrade): 本页说明库的表结构如何建立与升级、什么时候要写升级脚本、脚本怎么写，以及版本与升级记录的查看方式，适用于部署人员与修改实体的后端开发者。
 - [工作台](https://basicapp.docs.xihanfun.com/backend/workbench): 本页说明工作台小组件的提供者契约、操作、已登记的小组件与布局同步，适用于为能力包添加小组件的后端开发者。
 - [工作流](https://basicapp.docs.xihanfun.com/backend/workflow): 本页说明工作流的引擎与存储、流程定义与实例的操作和权限、组织类受理人、待办与审批中心、审批业务的接入、通知、演示流程与模块开关，适用于设计流程、接入审批的后端与前端开发者。
 
@@ -70,6 +70,7 @@
 
 - [常用组件](https://basicapp.docs.xihanfun.com/frontend/components): 本页列出前端常用的组件及其用途，适用于前端开发者。
 - [开发流程](https://basicapp.docs.xihanfun.com/frontend/development): 本页以 Settings 模块的参数页为例，说明前端新增页面的步骤，适用于前端开发者。
+- [灵动岛](https://basicapp.docs.xihanfun.com/frontend/dynamic-island): 本页说明灵动岛能呈现什么、各区放什么由谁决定，以及调用方怎样把一件事放上岛，适用于前端开发者。
 - [国际化与时区](https://basicapp.docs.xihanfun.com/frontend/i18n): 本页说明前端的区域、文案组织、文案门禁与时区处理，适用于前端开发者。
 - [字体图标](https://basicapp.docs.xihanfun.com/frontend/icon): 本页说明前端的图标写法、离线图标集与图标选择器，适用于前端开发者。
 - [框架简介](https://basicapp.docs.xihanfun.com/frontend/introduction): 本页说明前端的技术栈、目录结构、模块划分与启动流程，适用于前端开发者。
@@ -79,3 +80,4 @@
 - [菜单与路由](https://basicapp.docs.xihanfun.com/frontend/routing): 本页说明前端的路由组成、菜单来源、组件解析与路由守卫，适用于前端开发者。
 - [Schema 驱动页面](https://basicapp.docs.xihanfun.com/frontend/schema-page): 本页说明列表页引擎 SchemaPage 的页面定义、资源适配器与导入导出，适用于编写列表页的前端开发者。
 - [布局与主题](https://basicapp.docs.xihanfun.com/frontend/theme): 本页说明前端的设计令牌、样式约束、布局与偏好同步，适用于前端开发者。
+- [新版欢迎页](https://basicapp.docs.xihanfun.com/frontend/welcome): 本页说明新版欢迎页何时出现、怎样给它登记一屏亮点、怎样关掉，适用于前端开发者。

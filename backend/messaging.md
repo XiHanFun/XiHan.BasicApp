@@ -37,7 +37,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 | `inbox.mark-read` / `mark-all-read` / `confirm` / `mark-popup-shown` | 已读、全部已读、确认、弹窗已展示 |
 | `inbox.delete` | 删除自己的投递 |
 
-别的包直接给某些人投递站内信（工作流的待办、Identity 的安全提醒）经 `Contracts` 的 `IInboxDelivery`。
+别的包直接给某些人投递站内信（工作流的待办、Identity 的安全提醒）经 `Contracts` 的 `IInboxDelivery`。这类通知记为系统投递，只在本人的收件箱里：通知公告的列表不列出，按 ID 的查看、统计、提醒与删除都当作不存在。创建早于平台参数 `notification.retention-days`（缺省 180 天）的，由作业 `notification.messages.cleanup` 在平台与各租户连同收件箱条目物理删除；管理员发的通知公告不清理，到期只是不再显示。
 
 ## 消息模板
 
@@ -52,7 +52,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 
 - 租户优先、平台回退：发送时先找当前一侧启用的同编码模板，再找平台的；都没有即该渠道不可用。
 - 租户的模板列表同时列出平台模板（`isPlatform`），平台模板对租户只读（改删给 `NOTIFICATION_DENIED_002`），新建同编码即覆盖。
-- 平台种子 `notification.templates` 写 9 个，只首写：登录验证码邮件与短信、验证码（绑定 / 换绑 / 两步验证）邮件与短信、重置密码邮件、注册欢迎邮件、系统通知的邮件与短信，以及机器人消息 `notification-bot`（变量 `title / content / link / brand`）。`brand` 取 `BasicApp:Notification:Brand`，不写即应用名。
+- 平台种子 `notification.templates` 写 9 个，只首写：登录验证码邮件与短信、验证码（绑定 / 换绑 / 两步验证）邮件与短信、重置密码邮件、注册欢迎邮件、系统通知的邮件与短信，以及机器人消息 `notification-bot`（变量 `title / content / link / brand`）。`brand` 调用方没传即取发送这一侧站点设置的系统名（租户取它的品牌，没设沿用平台的，见[系统设置](./settings#站点设置与租户品牌)）。
 - 模板不加载别的文件，循环与递归有上限，语法树限深（`TemplateLimits`，保存与渲染前都判），一次渲染最多 5 秒；HTML 模板里的参数值先做 HTML 编码。
 
 操作 `message-templates.list / get / create / update / delete`，权限 `notification.message-templates.*`。
@@ -67,6 +67,7 @@ Notification 包（Tier 2）负责以上全部。推送到浏览器经 Realtime 
 - 租户没有可用通道时回落平台的配置（平台代发）；机器人不回落。
 - 密钥经 `ISecretProtector` 加密存放，不回显。
 - 发送记录 `SysEmail` / `SysSms` 本身即发件箱：`emails.list / get / resend / cancel / delete`、`sms.*` 同（权限 `notification.emails.read / resend / delete`，`cancel` 用 `resend`；短信同理）。验证码（业务类型 `identity.verification`）的记录不返回正文与参数，发送结束即清空，也不能重发：读记录的权限不能拿它接管账号。
+- 发送记录按平台参数 `notification.retention-days`（缺省 180 天）保留：作业 `notification.messages.cleanup` 每天删掉更早的、已结束（已发送、失败、已取消）的邮件、短信与机器人消息记录，连同 Telegram 出站审计；排队中与发送中的再老也不动。
 - 改通道的地址（SMTP 的主机、端口，关掉加密或不再验证书）时，留空的口令不再保留，要重新填（`NOTIFICATION_VALIDATION_016`）。AI 提供商的地址（`AI_VALIDATION_107`）、代码生成数据源的地址（`CODEGENERATION_VALIDATION_014`）同样。
 - 发送循环按 `BasicApp:Notification` 的 `DispatchInterval`、`RetryDelay`、`MaxAttempts`、`StuckAfter` 工作；启动时把上个进程发到一半的记录改回排队中。
 
