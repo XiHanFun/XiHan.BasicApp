@@ -71,7 +71,7 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 
 ## 首页
 
-登录后的落点与 `/` 的跳转目标取菜单树里第一个显示的页面（深度优先），它也是固定的首页标签。菜单里没有页面时用 `VITE_HOME_PATH` 兜底（仓库的 `.env` 设为 `/workbench/dashboard`）；关掉后端工作台模块时把它留空。
+登录后的落点与 `/` 的跳转目标取菜单树里第一个显示的页面（深度优先）。菜单里没有页面时用 `VITE_HOME_PATH` 兜底（仓库的 `.env` 设为 `/workbench/dashboard`）；关掉后端工作台模块时把它留空。
 
 ## 标签页与缓存
 

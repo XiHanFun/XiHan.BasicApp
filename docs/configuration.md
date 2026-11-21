@@ -767,7 +767,7 @@ Vite 按模式叠加读取，后者覆盖前者：
 | `VITE_PORT` | `9100` | 开发服务器端口 |
 | `VITE_DEV_PROXY_TARGET` | `http://localhost:9710` | 开发代理目标，即后端的 `Kestrel:Endpoints:Http` |
 | `VITE_API_BASE_URL` | 空（同源） | 构建期 API 源 |
-| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页（固定首页标签、守卫兜底）；关掉工作台模块时留空，登录后落到第一个有权限的页面 |
+| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页（守卫兜底、标签栏缺省激活项）；关掉工作台模块时留空，登录后落到第一个有权限的页面 |
 | `VITE_ROUTER_HISTORY` | `hash` | `history` 需要静态托管把未知路径回退到 `index.html` |
 | `VITE_BASE` | `/` | 部署子路径 |
 | `VITE_REALTIME_HUB` | `/hubs/notification` | 通知 Hub 路径；留空即不建实时连接（强制下线、站内通知、跨端设置同步都不再实时） |
