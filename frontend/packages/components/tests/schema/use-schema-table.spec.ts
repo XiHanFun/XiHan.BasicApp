@@ -1,7 +1,7 @@
 /**
  * 列表取数（useSchemaTable.load）的先后
  * 锁定：连着翻页、搜索时先发的请求后回来，不覆盖最后一次的结果；先发的失败不清空、不提示；
- * loading 等最后一次收尾才放开
+ * loading 等最后一次收尾才放开；重置清空筛选与页码，排序换成调用方给的（页面给默认排序）
  */
 import type { PageSchema } from '~/components/schema/types'
 import type { PageResult } from '~/types/contracts'
@@ -115,5 +115,30 @@ describe('连着发的取数', () => {
     expect(table.rows.value).toStrictEqual([])
     expect(table.total.value).toBe(0)
     expect(table.loading.value).toBe(false)
+  })
+})
+
+describe('重置', () => {
+  it('清空筛选、回到第一页；排序换成给定的，缺省不排序', () => {
+    const calls: Pending[] = []
+    const table = useSchemaTable(schemaWith(calls))
+    table.filters.name = 'alice'
+    table.page.value = 3
+    table.sorts.value = [
+      { field: 'name', order: 'asc' },
+    ]
+
+    table.reset([
+      { field: 'createdAt', order: 'desc' },
+    ])
+    expect(table.filters.name).toBeNull()
+    expect(table.page.value).toBe(1)
+    expect(table.sorts.value).toEqual([
+      { field: 'createdAt', order: 'desc' },
+    ])
+
+    table.reset()
+    expect(table.sorts.value).toEqual([])
+    expect(calls).toHaveLength(2)
   })
 })

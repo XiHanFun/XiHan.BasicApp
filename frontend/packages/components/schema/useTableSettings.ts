@@ -330,6 +330,8 @@ export function useTableSettings(
   return {
     /** 首屏能否渲染：开着同步时等后端那份回来 */
     ready: remote.ready,
+    /** 后端那份处理完（或本来就不用等）：首次加载据此取默认排序 */
+    settled: remote.settled,
     columns,
     density,
     style,

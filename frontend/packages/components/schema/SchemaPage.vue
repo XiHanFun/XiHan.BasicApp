@@ -114,12 +114,12 @@ const peekFields = computed<ListFieldSchema[]>(() =>
 /** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽/每列默认排序，按 pageCode 持久化）。多选默认打开 */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: true })
 
-// 初始默认排序：来自列设置本地持久化（restore 同步执行）；用户列头排序/方案应用会覆盖本会话
+// 初始默认排序先取本地的（restore 同步执行），首次加载前等后端那份回来再取一次（见 onMounted）；列头排序与套用视图只改本次会话
 if (settings.defaultSorts.value.length) {
   sorts.value = [...settings.defaultSorts.value]
 }
 
-// 远端 hydrate 带来默认排序：仅当首屏已加载且用户尚未手动排序时应用并刷新（避免覆盖用户当前排序）
+// 首次加载之后其它设备推来默认排序：用户还没自己排序时才应用并刷新（避免覆盖用户当前排序）
 watch(() => settings.defaultSorts.value, (ds) => {
   if (ds.length && firstLoaded.value && !sorts.value.length) {
     changeSort([...ds])
@@ -186,6 +186,11 @@ function toggleFullscreen() {
  * 设了默认的视图在首次加载时套用；搜索区的视图按钮与模板 ref 上的 saveView / applyView 都走这里
  */
 const viewManager = useViewManager(props.schema.pageCode)
+
+/** 搜索区重置：清空筛选后回到默认排序 */
+function resetSearch() {
+  reset([...settings.defaultSorts.value])
+}
 
 /** 当前列表状态的快照（深拷贝，之后改筛选不影响已存的视图） */
 function currentSnapshot(): ViewSnapshot {
@@ -611,8 +616,9 @@ function onImportFinished(summary: { total: number, success: number, failed: num
 
 onMounted(async () => {
   void dictionaries.resolve()
-  // 设了默认视图的按它首次加载；开着同步时等后端那份视图回来（与表格设置同一条记录，不多等一趟）
-  await viewManager.settled
+  // 首次加载用的排序：设了默认视图的按视图，否则按默认排序；开着同步时等后端的表格设置与视图都回来（同一条记录，不多等一趟）再定
+  await Promise.all([viewManager.settled, settings.settled])
+  sorts.value = [...settings.defaultSorts.value]
   const preferred = viewManager.views.value.find(view => view.isDefault)
   const snapshot = preferred
     ? viewManager.applyView(preferred.code)
@@ -732,7 +738,7 @@ const skeletonColumns = computed(() => {
             :advanced-fields="advancedFields"
             :common-fields="searchFields"
             :model="filters"
-            @reset="reset"
+            @reset="resetSearch"
             @search="search"
           >
             <template #settings>

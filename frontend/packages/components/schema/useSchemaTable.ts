@@ -121,14 +121,15 @@ export function useSchemaTable<TRow extends object>(
     void load()
   }
 
-  function reset() {
+  /** 清空筛选并回到第一页；排序换成给定的（页面传默认排序，缺省不排序） */
+  function reset(nextSorts: SchemaSortRule[] = []) {
     // 置 null 而非 delete：控件在交互时会更新自己的非受控值，
     // 删除键使受控值变 undefined 会回退到该内部值（控件保留旧选择不清空）；
     // 置 null 保持受控并清空，与 clearable 「×」行为一致
     for (const key of Object.keys(filters)) {
       filters[key] = null
     }
-    sorts.value = []
+    sorts.value = [...nextSorts]
     page.value = 1
     void load()
   }
