@@ -1,6 +1,6 @@
 {
   "name": "xihan-basicapp-docs",
-  "version": "6.0.0-preview.2",
+  "version": "6.0.0-preview.3",
   "type": "module",
   "description": "XiHan.BasicApp 6.0 document site. Capability-package admin application built on XiHan.Framework 5 and XiHan.UI.",
   "author": {
