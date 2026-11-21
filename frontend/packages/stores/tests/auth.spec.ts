@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SESSION_LOCK_CHANGED_EVENT } from '~/composables/session-lock'
 import { destroyAllSignalRConnections } from '~/composables/useSignalR'
-import { HOME_PATH, LOCK_STATE_KEY, LOGIN_PATH, TABS_LIST_KEY } from '~/constants'
+import { LOCK_STATE_KEY, LOGIN_PATH, TABS_LIST_KEY } from '~/constants'
 import { configureRequest } from '~/request'
 import { registerAppContext } from '~/stores/app-context'
 import { oauthChallengeUrl, takeIdentitySwitchedMarker, takeOAuthPending, useAuthStore } from '~/stores/auth'
@@ -516,7 +516,7 @@ describe('退出登录的本地清理', () => {
     localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
   })
 
-  it('先断开实时连接再吊销会话，最后回登录页；标签栏只剩首页（置顶的也不留）', async () => {
+  it('先断开实时连接再吊销会话，最后回登录页；标签栏清空（固定的也不留）', async () => {
     const tabbar = useTabbarStore()
     tabbar.ensureTab({
       key: '/ai/providers',
@@ -533,7 +533,7 @@ describe('退出登录的本地清理', () => {
     expect(replace).toHaveBeenCalledWith(LOGIN_PATH)
     expect(store.isAuthenticated).toBe(false)
     expect(store.permissions).toBeNull()
-    expect(tabbar.tabs.map(tab => tab.key)).toEqual([HOME_PATH])
+    expect(tabbar.tabs).toEqual([])
     expect(sessionStorage.getItem(TABS_LIST_KEY)).toBeNull()
   })
 
@@ -578,7 +578,7 @@ describe('退出登录的本地清理', () => {
     await useAuthStore().logout()
 
     expect(order).toEqual(['hub', 'route'])
-    expect(tabbar.tabs.map(tab => tab.key)).toEqual([HOME_PATH])
+    expect(tabbar.tabs).toEqual([])
     expect(localStorage.getItem(LOCK_STATE_KEY)).toBeNull()
   })
 

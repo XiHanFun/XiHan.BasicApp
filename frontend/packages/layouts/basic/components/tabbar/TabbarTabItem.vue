@@ -8,7 +8,6 @@ import type { TabItem } from '~/types'
 import { XhButton, XhSortableItem } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 
 interface Props {
@@ -172,7 +171,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
             <Icon icon="lucide:x" />
           </XhButton>
           <XhButton
-            v-else-if="item.pinned && item.path !== HOME_PATH"
+            v-else-if="item.pinned && !item.affix"
             variant="ghost"
             size="sm"
             icon-only
@@ -183,9 +182,9 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
           >
             <Icon icon="lucide:pin" />
           </XhButton>
-          <!-- 首页固定标签：只读锁图标（强制固定、不可取消，纯展示不触发 togglePin） -->
+          <!-- 菜单固定的标签：只读锁图标（由菜单决定、不可取消，纯展示不触发 togglePin） -->
           <span
-            v-else-if="item.pinned && item.path === HOME_PATH"
+            v-else-if="item.affix"
             class="chrome-tab__lock chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             :aria-label="t('tabbar.pinned')"
             :title="t('tabbar.pinned')"
@@ -223,7 +222,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
           <Icon icon="lucide:x" />
         </XhButton>
         <XhButton
-          v-else-if="item.pinned && item.path !== HOME_PATH"
+          v-else-if="item.pinned && !item.affix"
           variant="ghost"
           size="sm"
           icon-only
@@ -234,9 +233,9 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
         >
           <Icon icon="lucide:pin" />
         </XhButton>
-        <!-- 首页固定标签：只读锁图标（强制固定、不可取消，纯展示不触发 togglePin） -->
+        <!-- 菜单固定的标签：只读锁图标（由菜单决定、不可取消，纯展示不触发 togglePin） -->
         <span
-          v-else-if="item.pinned && item.path === HOME_PATH"
+          v-else-if="item.affix"
           class="flat-tab__lock flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           :aria-label="t('tabbar.pinned')"
           :title="t('tabbar.pinned')"

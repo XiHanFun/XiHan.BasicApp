@@ -432,6 +432,36 @@ public sealed class MenusTests : IDisposable
     }
 
     [Fact]
+    public async Task Affix_DefaultsFromTheRegistration_IsKeptWhenCustomized_AndRestoredByReset()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
+
+        // 工作台登记为固定，其余页面不固定；菜单树照此下发
+        var (_, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: superadmin));
+        var dashboard = MenuTrees.Find(listBody.GetProperty("items"), "workbench.dashboard");
+        var dashboardId = dashboard.GetProperty("id").GetString()!;
+        Assert.True(dashboard.GetProperty("isAffix").GetBoolean());
+        Assert.False(MenuTrees.Find(listBody.GetProperty("items"), "access.roles").GetProperty("isAffix").GetBoolean());
+        var (_, delivered) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
+        Assert.True(MenuTrees.Find(delivered.GetProperty("menus"), "workbench.dashboard").GetProperty("affix").GetBoolean());
+
+        // 运营取消固定即为定制，种子再跑不改回；恢复默认取回登记的固定
+        var (updated, updatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/menus/{dashboardId}", """{"isAffix":false}""", superadmin));
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        Assert.False(updatedBody.GetProperty("isAffix").GetBoolean());
+        Assert.True(updatedBody.GetProperty("isCustomized").GetBoolean());
+        await server.RunSeedersAsync();
+        var (_, afterSeed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/menus/{dashboardId}", token: superadmin));
+        Assert.False(afterSeed.GetProperty("isAffix").GetBoolean());
+        var (_, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/menus/{dashboardId}:reset", "{}", superadmin));
+        Assert.True(resetBody.GetProperty("isAffix").GetBoolean());
+        Assert.False(resetBody.GetProperty("isCustomized").GetBoolean());
+    }
+
+    [Fact]
     public async Task Badges_ReachTheMenuTree_AreKeptByTheSeeder_AndClearedByReset()
     {
         await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);

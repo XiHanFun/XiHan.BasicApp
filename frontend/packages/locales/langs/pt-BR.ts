@@ -13,7 +13,6 @@ export default {
       refresh: 'Atualizar',
       previous: 'Anterior',
       next: 'Próxima',
-      home: 'Início',
       cancel: 'Cancelar',
       confirm: 'Confirmar',
       save: 'Salvar',

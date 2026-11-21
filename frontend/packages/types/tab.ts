@@ -12,6 +12,8 @@ export interface TabItem {
   title: string
   path: string
   pinned?: boolean
+  /** 菜单设为固定标签（meta.affixTab）：随菜单装载进标签栏，不可关闭、不可取消固定 */
+  affix?: boolean
   closable: boolean
   /** 该标签是否参与 keep-alive 缓存（来自菜单 meta.keepAlive） */
   keepAlive?: boolean

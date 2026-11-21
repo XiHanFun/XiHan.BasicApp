@@ -165,7 +165,7 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
         row.ParentId = parentId;
         row.IsVisible = true;
         row.KeepAlive = false;
-        row.IsAffix = false;
+        row.IsAffix = page.Affix;
         row.Status = MenuStatus.Active;
         row.Badge = null;
         row.BadgeType = null;

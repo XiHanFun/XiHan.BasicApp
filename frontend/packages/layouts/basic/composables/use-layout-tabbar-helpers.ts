@@ -6,7 +6,6 @@
 import type { AppDropdownOption, TabItem } from '~/types'
 
 import { h } from 'vue'
-import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
 
 export function createDropdownIcon(icon: string) {
@@ -34,7 +33,7 @@ export function getTabDisableState(tabs: TabItem[], path: string, closable: bool
     closeLeftDisabled: !hasLeftClosable,
     closeOthersDisabled: !hasOtherClosable,
     closeRightDisabled: !hasRightClosable,
-    pinDisabled: currentTab?.path === HOME_PATH,
+    pinDisabled: Boolean(currentTab?.affix),
   }
 }
 

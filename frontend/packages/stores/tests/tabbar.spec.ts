@@ -1,6 +1,6 @@
 /**
  * 标签栏 Store（tabbar）单元测试
- * 职责边界：标签的增（去重合并）、删（固定页不可关）、批量关闭（其它/左侧/右侧/全部）、
+ * 职责边界：标签的增（去重合并）、菜单固定标签的放入与降级、删（固定页不可关）、批量关闭（其它/左侧/右侧/全部）、
  * 拖拽排序、固定切换、刷新种子，以及 tabbarPersist 开关对 SessionStorage 落地的门控
  */
 import type { TabItem } from '~/types'
@@ -20,6 +20,25 @@ function tab(path: string, overrides?: Partial<TabItem>): TabItem {
   }
 }
 
+/** 菜单设为固定标签的页面 */
+function affix(path: string, overrides?: Partial<TabItem>): TabItem {
+  return tab(path, {
+    affix: true,
+    pinned: true,
+    closable: false,
+    ...overrides,
+  })
+}
+
+/** 菜单装好、工作台固定在最前的标签栏 */
+function storeWithDashboard() {
+  const store = useTabbarStore()
+  store.syncAffixTabs([
+    affix('/dashboard'),
+  ])
+  return store
+}
+
 function readPersisted(): TabItem[] | null {
   const raw = sessionStorage.getItem(TABS_LIST_KEY)
   return raw
@@ -28,53 +47,33 @@ function readPersisted(): TabItem[] | null {
 }
 
 beforeEach(() => {
+  sessionStorage.removeItem(TABS_LIST_KEY)
   setActivePinia(createPinia())
 })
 
 describe('$reset（退出登录）', () => {
-  it('只剩首页，置顶的标签与持久化的那份都不留', () => {
-    sessionStorage.removeItem(TABS_LIST_KEY)
-    const store = useTabbarStore()
+  it('一个标签都不留：菜单固定的、手动固定的与持久化的那份都清掉', () => {
+    const store = storeWithDashboard()
     useAppStore().tabbarPersist = true
     store.ensureTab(tab('/ai/providers'))
-    store.ensureTab(tab('/files/library'))
+    store.ensureTab(tab('/files/library', { name: 'FilesLibrary', keepAlive: true }))
     store.togglePin('/ai/providers')
     expect(readPersisted()).toHaveLength(3)
 
     store.$reset()
 
-    expect(store.tabs.map(item => item.key)).toEqual([HOME_PATH])
+    expect(store.tabs).toEqual([])
     expect(store.activeTab).toBe(HOME_PATH)
     expect(store.cachedTabNames).toEqual([])
     expect(readPersisted()).toBeNull()
   })
-
-  it('首页标签不被上一次的导航改写', () => {
-    sessionStorage.removeItem(TABS_LIST_KEY)
-    const store = useTabbarStore()
-    store.ensureTab(tab(HOME_PATH, {
-      name: 'Dashboard',
-      keepAlive: true,
-      title: 'x',
-      meta: { icon: 'lucide:home' },
-    }))
-
-    store.$reset()
-
-    expect(store.tabs[0]).toMatchObject({ key: HOME_PATH, pinned: true, closable: false })
-    expect(store.tabs[0]?.name).toBeUndefined()
-    expect(store.tabs[0]?.keepAlive).toBeUndefined()
-  })
 })
 
 describe('初始标签与会话恢复', () => {
-  it('无会话缓存时只有一个不可关闭的首页固定标签', () => {
+  it('无会话缓存时标签栏是空的，固定标签等菜单装好再放', () => {
     const store = useTabbarStore()
 
-    expect(store.tabs).toHaveLength(1)
-    expect(store.tabs[0]?.path).toBe(HOME_PATH)
-    expect(store.tabs[0]?.pinned).toBe(true)
-    expect(store.tabs[0]?.closable).toBe(false)
+    expect(store.tabs).toEqual([])
     expect(store.activeTab).toBe(HOME_PATH)
   })
 
@@ -90,17 +89,8 @@ describe('初始标签与会话恢复', () => {
     expect(store.tabKeys).toEqual(['/a', '/b'])
   })
 
-  it('会话缓存是损坏 JSON 时回落到默认首页标签，不抛异常', () => {
+  it('会话缓存是损坏 JSON 时当作没有缓存，不抛异常', () => {
     sessionStorage.setItem(TABS_LIST_KEY, '{坏数据')
-    setActivePinia(createPinia())
-
-    const store = useTabbarStore()
-
-    expect(store.tabKeys).toEqual([HOME_PATH])
-  })
-
-  it('会话缓存为空数组时按「已有值」处理，不再补默认首页标签', () => {
-    sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([]))
     setActivePinia(createPinia())
 
     const store = useTabbarStore()
@@ -111,11 +101,11 @@ describe('初始标签与会话恢复', () => {
 
 describe('ensureTab：新增与去重合并', () => {
   it('新 key 追加到末尾并成为当前标签', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
 
     store.ensureTab(tab('/a'))
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a'])
+    expect(store.tabKeys).toEqual(['/dashboard', '/a'])
     expect(store.activeTab).toBe('/a')
   })
 
@@ -126,7 +116,7 @@ describe('ensureTab：新增与去重合并', () => {
 
     store.ensureTab(tab('/a'))
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a', '/b'])
+    expect(store.tabKeys).toEqual(['/a', '/b'])
     expect(store.activeTab).toBe('/a')
   })
 
@@ -154,8 +144,8 @@ describe('ensureTab：新增与去重合并', () => {
 
     store.ensureTab(tab('/a'))
 
-    expect(store.tabs[1]?.name).toBeUndefined()
-    expect(store.tabs[1]?.keepAlive).toBeUndefined()
+    expect(store.tabs[0]?.name).toBeUndefined()
+    expect(store.tabs[0]?.keepAlive).toBeUndefined()
   })
 
   it('带 meta 的重复 ensureTab 才会合并 meta 并刷新标题', () => {
@@ -170,8 +160,8 @@ describe('ensureTab：新增与去重合并', () => {
       meta: { icon: 'new' },
     }))
 
-    expect(store.tabs[1]?.title).toBe('新标题')
-    expect(store.tabs[1]?.meta).toEqual({ icon: 'new', keep: 1 })
+    expect(store.tabs[0]?.title).toBe('新标题')
+    expect(store.tabs[0]?.meta).toEqual({ icon: 'new', keep: 1 })
   })
 
   it('不带 meta 的重复 ensureTab 不会改动标题', () => {
@@ -180,49 +170,71 @@ describe('ensureTab：新增与去重合并', () => {
 
     store.ensureTab(tab('/a', { title: '新标题' }))
 
-    expect(store.tabs[1]?.title).toBe('旧标题')
+    expect(store.tabs[0]?.title).toBe('旧标题')
   })
 })
 
-describe('syncHomeTab：菜单装好后对齐首页标签', () => {
-  it('占位的首页标签换成首页路由的标题、图标与缓存字段，固定状态与当前标签不变', () => {
-    sessionStorage.removeItem(TABS_LIST_KEY)
+describe('syncAffixTabs：菜单装好后放进固定标签', () => {
+  it('按菜单顺序排在最前，没访问过也在，当前标签不变，并落地会话缓存', () => {
     const store = useTabbarStore()
-    useAppStore().tabbarPersist = true
     store.ensureTab(tab('/a'))
 
-    store.syncHomeTab(tab(HOME_PATH, {
-      name: 'workbench.dashboard',
-      title: 'workbench.dashboard.title',
-      keepAlive: true,
-      pinned: true,
-      closable: false,
-      meta: { icon: 'lucide:layout-dashboard' },
-    }))
+    store.syncAffixTabs([
+      affix('/dashboard', {
+        title: 'workbench.dashboard.title',
+        meta: { icon: 'lucide:layout-dashboard' },
+      }),
+      affix('/inbox'),
+    ])
 
+    expect(store.tabKeys).toEqual(['/dashboard', '/inbox', '/a'])
     expect(store.tabs[0]).toMatchObject({
-      key: HOME_PATH,
-      name: 'workbench.dashboard',
       title: 'workbench.dashboard.title',
-      keepAlive: true,
+      affix: true,
       pinned: true,
       closable: false,
       meta: { icon: 'lucide:layout-dashboard' },
     })
     expect(store.activeTab).toBe('/a')
-    expect(readPersisted()?.[0]?.title).toBe('workbench.dashboard.title')
+    expect(readPersisted()?.map(t => t.key)).toEqual(['/dashboard', '/inbox', '/a'])
   })
 
-  it('标签栏里没有这个首页标签时不新增', () => {
+  it('已打开的同一页面并进来：移到最前、换上菜单的标题并变成固定', () => {
+    const store = useTabbarStore()
+    store.ensureTab(tab('/a'))
+    store.ensureTab(tab('/dashboard', { title: '旧标题' }))
+
+    store.syncAffixTabs([
+      affix('/dashboard', { title: 'workbench.dashboard.title', meta: {} }),
+    ])
+
+    expect(store.tabKeys).toEqual(['/dashboard', '/a'])
+    expect(store.tabs[0]).toMatchObject({
+      title: 'workbench.dashboard.title',
+      affix: true,
+      pinned: true,
+      closable: false,
+    })
+  })
+
+  it('菜单不再固定的标签降成普通标签：可关闭，也能手动固定', () => {
     sessionStorage.setItem(TABS_LIST_KEY, JSON.stringify([
+      affix('/dashboard'),
       tab('/a'),
     ]))
     setActivePinia(createPinia())
     const store = useTabbarStore()
 
-    store.syncHomeTab(tab(HOME_PATH, { title: 'workbench.dashboard.title', meta: {} }))
+    store.syncAffixTabs([])
 
-    expect(store.tabKeys).toEqual(['/a'])
+    expect(store.tabs[0]).toMatchObject({
+      key: '/dashboard',
+      affix: false,
+      pinned: false,
+      closable: true,
+    })
+    store.togglePin('/dashboard')
+    expect(store.tabs[0]).toMatchObject({ pinned: true, closable: false })
   })
 })
 
@@ -261,8 +273,8 @@ describe('固定与关闭', () => {
 
     store.togglePin('/a')
 
-    expect(store.tabs[1]?.pinned).toBe(true)
-    expect(store.tabs[1]?.closable).toBe(false)
+    expect(store.tabs[0]?.pinned).toBe(true)
+    expect(store.tabs[0]?.closable).toBe(false)
   })
 
   it('再次 togglePin 取消固定并恢复可关闭', () => {
@@ -272,14 +284,14 @@ describe('固定与关闭', () => {
 
     store.togglePin('/a')
 
-    expect(store.tabs[1]?.pinned).toBe(false)
-    expect(store.tabs[1]?.closable).toBe(true)
+    expect(store.tabs[0]?.pinned).toBe(false)
+    expect(store.tabs[0]?.closable).toBe(true)
   })
 
-  it('首页标签不允许取消固定', () => {
-    const store = useTabbarStore()
+  it('菜单固定的标签不允许取消固定', () => {
+    const store = storeWithDashboard()
 
-    store.togglePin(HOME_PATH)
+    store.togglePin('/dashboard')
 
     expect(store.tabs[0]?.pinned).toBe(true)
     expect(store.tabs[0]?.closable).toBe(false)
@@ -289,15 +301,15 @@ describe('固定与关闭', () => {
     const store = useTabbarStore()
 
     expect(() => store.togglePin('/nope')).not.toThrow()
-    expect(store.tabKeys).toEqual([HOME_PATH])
+    expect(store.tabs).toEqual([])
   })
 
   it('removeTab 拒绝关闭 closable=false 的标签', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
 
-    store.removeTab(HOME_PATH)
+    store.removeTab('/dashboard')
 
-    expect(store.tabKeys).toEqual([HOME_PATH])
+    expect(store.tabKeys).toEqual(['/dashboard'])
   })
 
   it('removeTab 传不存在的 key 静默返回', () => {
@@ -306,7 +318,7 @@ describe('固定与关闭', () => {
 
     store.removeTab('/nope')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a'])
+    expect(store.tabKeys).toEqual(['/a'])
   })
 
   it('关闭当前标签后激活其左邻标签', () => {
@@ -330,13 +342,13 @@ describe('固定与关闭', () => {
   })
 
   it('关闭首个可关闭标签且它是当前项时，激活序号 0 的标签', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.setActiveTab('/a')
 
     store.removeTab('/a')
 
-    expect(store.activeTab).toBe(HOME_PATH)
+    expect(store.activeTab).toBe('/dashboard')
   })
 
   it('关掉最后一个标签后 activeTab 回落到 HOME_PATH', () => {
@@ -356,36 +368,36 @@ describe('固定与关闭', () => {
 
 describe('批量关闭', () => {
   it('closeOthers 保留目标标签与全部不可关闭标签，并激活目标', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
     store.ensureTab(tab('/c'))
 
     store.closeOthers('/b')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/b'])
+    expect(store.tabKeys).toEqual(['/dashboard', '/b'])
     expect(store.activeTab).toBe('/b')
   })
 
   it('closeOthers 传不存在的 key 会关掉所有可关闭标签，并把它设为当前项', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
 
     store.closeOthers('/nope')
 
-    expect(store.tabKeys).toEqual([HOME_PATH])
+    expect(store.tabKeys).toEqual(['/dashboard'])
     expect(store.activeTab).toBe('/nope')
   })
 
   it('closeLeft 只关左侧可关闭标签，目标及右侧保留', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
     store.ensureTab(tab('/c'))
 
     store.closeLeft('/b')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/b', '/c'])
+    expect(store.tabKeys).toEqual(['/dashboard', '/b', '/c'])
   })
 
   it('closeLeft 不改变当前激活标签（关左侧不切页）', () => {
@@ -402,26 +414,26 @@ describe('批量关闭', () => {
   // 回归锚点（缺陷 34）：closeLeft/closeRight 曾只做 filter 不碰 activeTab，
   // 关掉的正好是当前标签时留下悬空激活值——标签栏没有高亮项，内容区还停在已关闭的页
   it('closeLeft 关掉了当前标签时 activeTab 收敛到目标标签', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
     store.setActiveTab('/a')
 
     store.closeLeft('/b')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/b'])
+    expect(store.tabKeys).toEqual(['/dashboard', '/b'])
     expect(store.activeTab).toBe('/b')
   })
 
   // 回归锚点（缺陷 34）：与 removeTab / closeOthers / closeAll 的兜底口径对齐
   it('closeRight 关掉了当前标签时 activeTab 收敛到目标标签', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
 
     store.closeRight('/a')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a'])
+    expect(store.tabKeys).toEqual(['/dashboard', '/a'])
     expect(store.activeTab).toBe('/a')
   })
 
@@ -431,18 +443,18 @@ describe('批量关闭', () => {
 
     store.closeLeft('/nope')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a'])
+    expect(store.tabKeys).toEqual(['/a'])
   })
 
   it('closeRight 只关右侧可关闭标签，目标及左侧保留', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
     store.ensureTab(tab('/c'))
 
     store.closeRight('/b')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a', '/b'])
+    expect(store.tabKeys).toEqual(['/dashboard', '/a', '/b'])
   })
 
   it('closeRight 不会误伤右侧的固定标签', () => {
@@ -453,7 +465,7 @@ describe('批量关闭', () => {
 
     store.closeRight('/a')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a', '/pinned'])
+    expect(store.tabKeys).toEqual(['/a', '/pinned'])
   })
 
   it('closeRight 传不存在的 key 时不做任何事', () => {
@@ -462,18 +474,18 @@ describe('批量关闭', () => {
 
     store.closeRight('/nope')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/a'])
+    expect(store.tabKeys).toEqual(['/a'])
   })
 
   it('closeAll 只留不可关闭标签并激活第一个', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
 
     store.closeAll()
 
-    expect(store.tabKeys).toEqual([HOME_PATH])
-    expect(store.activeTab).toBe(HOME_PATH)
+    expect(store.tabKeys).toEqual(['/dashboard'])
+    expect(store.activeTab).toBe('/dashboard')
   })
 
   it('closeAll 在没有任何固定标签时 activeTab 回落到 HOME_PATH', () => {
@@ -500,7 +512,7 @@ describe('拖拽排序 moveTab（按 path 定位）', () => {
 
     store.moveTab('/c', '/a')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/c', '/a', '/b'])
+    expect(store.tabKeys).toEqual(['/c', '/a', '/b'])
   })
 
   it('把前面的标签拖到后面', () => {
@@ -511,7 +523,7 @@ describe('拖拽排序 moveTab（按 path 定位）', () => {
 
     store.moveTab('/a', '/c')
 
-    expect(store.tabKeys).toEqual([HOME_PATH, '/b', '/c', '/a'])
+    expect(store.tabKeys).toEqual(['/b', '/c', '/a'])
   })
 
   it('源与目标相同、任一为空串时都不动', () => {
@@ -563,7 +575,7 @@ describe('tabbarPersist 门控 SessionStorage 落地', () => {
 
     store.ensureTab(tab('/a'))
 
-    expect(readPersisted()?.map(t => t.key)).toEqual([HOME_PATH, '/a'])
+    expect(readPersisted()?.map(t => t.key)).toEqual(['/a'])
   })
 
   it('关闭 tabbarPersist 后各类变更都不再写会话缓存', () => {
@@ -571,6 +583,9 @@ describe('tabbarPersist 门控 SessionStorage 落地', () => {
     appStore.setTabbarPersist(false)
     const store = useTabbarStore()
 
+    store.syncAffixTabs([
+      affix('/dashboard'),
+    ])
     store.ensureTab(tab('/a'))
     store.togglePin('/a')
     store.removeTab('/a')
@@ -580,13 +595,13 @@ describe('tabbarPersist 门控 SessionStorage 落地', () => {
   })
 
   it('批量关闭同样受持久化开关控制，会话缓存与内存保持一致', () => {
-    const store = useTabbarStore()
+    const store = storeWithDashboard()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
 
     store.closeOthers('/a')
 
-    expect(readPersisted()?.map(t => t.key)).toEqual([HOME_PATH, '/a'])
+    expect(readPersisted()?.map(t => t.key)).toEqual(['/dashboard', '/a'])
   })
 
   it('moveTab 的新顺序会落地会话缓存', () => {
@@ -596,6 +611,6 @@ describe('tabbarPersist 门控 SessionStorage 落地', () => {
 
     store.moveTab('/b', '/a')
 
-    expect(readPersisted()?.map(t => t.key)).toEqual([HOME_PATH, '/b', '/a'])
+    expect(readPersisted()?.map(t => t.key)).toEqual(['/b', '/a'])
   })
 })

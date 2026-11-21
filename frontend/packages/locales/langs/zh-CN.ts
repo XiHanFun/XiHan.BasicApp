@@ -13,7 +13,6 @@ export default {
       refresh: '刷新',
       previous: '上一页',
       next: '下一页',
-      home: '首页',
       cancel: '取消',
       confirm: '确认',
       save: '保存',

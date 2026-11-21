@@ -12,18 +12,8 @@ import { SessionStorage } from '~/utils'
 
 export const useTabbarStore = defineStore('tabbar', () => {
   const appStore = useAppStore()
-  // 每次新建：ensureTab 会就地改写已有标签（name、keepAlive 等）
-  const createDefaultTab = (): TabItem => ({
-    key: HOME_PATH,
-    // 菜单装好前的占位标题，装好后由 syncHomeTab 换成真实首页的标题与图标
-    title: 'common.actions.home',
-    path: HOME_PATH,
-    pinned: true,
-    closable: false,
-  })
-  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [
-    createDefaultTab(),
-  ])
+  // 菜单固定的标签由 syncAffixTabs 在菜单装好后放进来
+  const tabs = ref<TabItem[]>(SessionStorage.get<TabItem[]>(TABS_LIST_KEY) ?? [])
 
   const activeTab = ref(HOME_PATH)
   const refreshSeeds = ref<Record<string, number>>({})
@@ -36,7 +26,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tabs.value.filter(item => item.keepAlive && item.name).map(item => item.name as string),
   )
 
-  // 补齐缓存相关字段：默认标签 / sessionStorage 里旧的持久化标签可能缺 name、keepAlive
+  // 补齐缓存相关字段：sessionStorage 里旧的持久化标签可能缺 name、keepAlive
   function mergeTab(existing: TabItem, tab: TabItem) {
     existing.name = tab.name
     existing.keepAlive = tab.keepAlive
@@ -46,6 +36,11 @@ export const useTabbarStore = defineStore('tabbar', () => {
         ...tab.meta,
       }
       existing.title = tab.title
+    }
+    if (tab.affix) {
+      existing.affix = true
+      existing.pinned = true
+      existing.closable = false
     }
   }
 
@@ -64,15 +59,30 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   /**
-   * 菜单装好后把首页标签的标题、图标与缓存字段对齐到首页路由，不改当前标签
-   * 直接打开别的页面时首页没访问过，占位标签不该停在「首页」
+   * 菜单装好后放进菜单固定的标签：按菜单顺序排在最前，没访问过也在，不改当前标签
+   * 上一份菜单固定、这一份不再固定的标签降成普通标签
    */
-  function syncHomeTab(home: TabItem) {
-    const existing = tabs.value.find(item => item.key === home.key)
-    if (!existing) {
-      return
+  function syncAffixTabs(affixTabs: TabItem[]) {
+    const keys = new Set(affixTabs.map(tab => tab.key))
+    for (const tab of tabs.value) {
+      if (tab.affix && !keys.has(tab.key)) {
+        tab.affix = false
+        tab.pinned = false
+        tab.closable = true
+      }
     }
-    mergeTab(existing, home)
+    const fixed = affixTabs.map((tab) => {
+      const existing = tabs.value.find(item => item.key === tab.key)
+      if (!existing) {
+        return tab
+      }
+      mergeTab(existing, tab)
+      return existing
+    })
+    tabs.value = [
+      ...fixed,
+      ...tabs.value.filter(tab => !keys.has(tab.key)),
+    ]
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
@@ -80,7 +90,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
 
   function togglePin(key: string) {
     const tab = tabs.value.find(item => item.key === key)
-    if (!tab || tab.path === HOME_PATH) {
+    if (!tab || tab.affix) {
       return
     }
     tab.pinned = !tab.pinned
@@ -177,13 +187,11 @@ export const useTabbarStore = defineStore('tabbar', () => {
   }
 
   /**
-   * 回到初始状态（退出登录）：只剩首页，也不留持久化的那份
-   * 不用 closeAll：它留着置顶的标签，那些页面下一个登录的人未必有
+   * 回到初始状态（退出登录）：一个标签都不留，也不留持久化的那份
+   * 不用 closeAll：它留着固定的标签，那些页面下一个登录的人未必有
    */
   function $reset() {
-    tabs.value = [
-      createDefaultTab(),
-    ]
+    tabs.value = []
     activeTab.value = HOME_PATH
     refreshSeeds.value = {}
     SessionStorage.remove(TABS_LIST_KEY)
@@ -214,7 +222,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
     tabKeys,
     cachedTabNames,
     ensureTab,
-    syncHomeTab,
+    syncAffixTabs,
     setActiveTab,
     removeTab,
     closeOthers,

@@ -13,7 +13,6 @@ export default {
       refresh: '重新整理',
       previous: '上一頁',
       next: '下一頁',
-      home: '首頁',
       cancel: '取消',
       confirm: '確認',
       save: '儲存',

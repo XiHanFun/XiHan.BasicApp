@@ -13,7 +13,6 @@ export default {
       refresh: 'Refresh',
       previous: 'Previous',
       next: 'Next',
-      home: 'Home',
       cancel: 'Cancel',
       confirm: 'Confirm',
       save: 'Save',

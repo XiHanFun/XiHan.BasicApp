@@ -13,7 +13,6 @@ export default {
       refresh: '새로 고침',
       previous: '이전',
       next: '다음',
-      home: '홈',
       cancel: '취소',
       confirm: '확인',
       save: '저장',

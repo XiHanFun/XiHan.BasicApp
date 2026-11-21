@@ -78,7 +78,7 @@ XiHan.BasicApp.Identity/
 ├─ IdentityFeature.cs           # IFeature：清单（Id、Provides、Requires）与 Configure 登记
 ├─ IdentityCapabilities.cs      # 本包对外提供的能力 ID（basicapp.identity@1）
 ├─ IdentityPermissions.cs       # PermissionDescriptor 常量：码、显示名、作用侧、是否审计
-├─ IdentityPages.cs             # 页面登记：页面码、路由、文案键、图标、排序、所需权限
+├─ IdentityPages.cs             # 页面登记：页面码、路由、文案键、图标、排序、所需权限、缺省所属目录与固定标签
 ├─ IdentityMessages.cs          # 消息键常量与消息目录
 ├─ IdentityErrors.cs            # 错误码常量 IDENTITY_<KIND>_<NNN>
 ├─ IdentityJsonContext.cs       # 本包请求 / 响应 DTO 的源生成序列化上下文

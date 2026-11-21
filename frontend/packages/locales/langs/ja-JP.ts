@@ -13,7 +13,6 @@ export default {
       refresh: '更新',
       previous: '前へ',
       next: '次へ',
-      home: 'ホーム',
       cancel: 'キャンセル',
       confirm: '確認',
       save: '保存',

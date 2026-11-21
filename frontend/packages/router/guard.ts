@@ -4,7 +4,7 @@
  */
 
 import type { RouteLocation, RouteLocationNormalized, Router, RouteRecordRaw } from 'vue-router'
-import type { TabItem } from '~/types'
+import type { MenuRoute, TabItem } from '~/types'
 
 import { isLockedState, loadingBar, setDocumentTitle } from '~/composables'
 import { AUTH_PATH, FORBIDDEN_PATH, HOME_PATH, LOGIN_PATH, NOT_FOUND_PATH, OAUTH_CALLBACK_PATH, SERVER_ERROR_PATH } from '~/constants'
@@ -48,7 +48,8 @@ export function applyDocumentTitle(to: Pick<RouteLocationNormalized, 'meta'>): v
  * 标题存国际化键而不是解析出的文本：标签栏与标签总览都按「是键就翻译、不是键就原样显示」渲染，
  * 提前解析会把语言固化在打开标签的那一刻，之后切换语言标签栏不再跟随
  */
-function toTab(route: Pick<RouteLocation, 'fullPath' | 'name' | 'meta'>, pinned: boolean): TabItem {
+function toTab(route: Pick<RouteLocation, 'fullPath' | 'name' | 'meta'>): TabItem {
+  const affix = Boolean(route.meta?.affixTab)
   return {
     key: route.fullPath,
     // 路由名 + keepAlive 标记：供 KeepAlive 的 include 构建（见 tabbarStore.cachedTabNames）
@@ -57,13 +58,34 @@ function toTab(route: Pick<RouteLocation, 'fullPath' | 'name' | 'meta'>, pinned:
       : undefined,
     title: (route.meta?.title as string) || (route.name as string) || 'Untitled',
     path: route.fullPath,
-    pinned,
-    closable: !pinned,
+    pinned: affix,
+    affix,
+    closable: !affix,
     keepAlive: Boolean(route.meta?.keepAlive),
     meta: {
       icon: route.meta?.icon as string | undefined,
     },
   }
+}
+
+/**
+ * 菜单里设为固定标签的页面，按菜单顺序（深度优先）
+ */
+function affixTabsOf(router: Router, routes: readonly MenuRoute[]): TabItem[] {
+  const tabs: TabItem[] = []
+  const walk = (items: readonly MenuRoute[]) => {
+    for (const item of items) {
+      if (item.component && item.meta.affixTab) {
+        const route = router.resolve(item.path)
+        if (!isNotFoundRoute(route)) {
+          tabs.push(toTab(route))
+        }
+      }
+      walk(item.children ?? [])
+    }
+  }
+  walk(routes)
+  return tabs
 }
 
 function isNotFoundRoute(route: Pick<RouteLocation, 'name'> & { matched: readonly unknown[] }): boolean {
@@ -164,11 +186,7 @@ export function setupRouterGuard(router: Router) {
         }
         // 动态模式：后端菜单驱动（accessRoutes 是 auth.permissions 菜单树的投影）
         installDynamicRoutes(mapMenuToRoutes(accessStore.accessRoutes))
-        // 直接打开别的页面时首页还没访问过，首页标签按首页路由对齐标题与图标
-        const home = router.resolve(accessStore.homePath || HOME_PATH)
-        if (!isNotFoundRoute(home)) {
-          tabbarStore.syncHomeTab(toTab(home, true))
-        }
+        tabbarStore.syncAffixTabs(affixTabsOf(router, accessStore.accessRoutes))
       }
       catch (error) {
         // 会话锁定（423）：权限/菜单接口在解锁前拿不到，直接放行挂壳（遮罩盖住空白内容区），
@@ -253,8 +271,7 @@ export function setupRouterGuard(router: Router) {
       return true
     }
 
-    const pinned = to.path === (accessStore.homePath || HOME_PATH) || Boolean(to.meta?.affixTab)
-    tabbarStore.ensureTab(toTab(to, pinned))
+    tabbarStore.ensureTab(toTab(to))
     if (!appStore.tabbarVisitHistory) {
       tabbarStore.closeOthers(to.fullPath)
     }

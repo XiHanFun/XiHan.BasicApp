@@ -719,35 +719,36 @@ describe('标签栏写入', () => {
     expect(tabbarStore.cachedTabNames).not.toContain('Plain')
   })
 
-  it('直接打开别的页面：菜单装好后首页标签换成首页路由的标题，不停在占位的「首页」', async () => {
+  it('菜单设为固定标签的页面在菜单装好后就进标签栏：没访问过也在、排在最前，当前标签照常', async () => {
     signInPending(() => json(200, permissions([
-      page('workbench.dashboard', HOME_PATH),
+      page('workbench.dashboard', '/workbench/home', { affix: true, icon: 'lucide:layout-dashboard' }),
       page('identity.users', '/identity/users'),
     ])))
-    const tabbarStore = useTabbarStore()
-    expect(tabbarStore.tabs[0]).toMatchObject({ key: HOME_PATH, title: 'common.actions.home' })
     const router = createGuardedRouter()
     await router.push('/identity/users')
 
+    const tabbarStore = useTabbarStore()
     expect(router.currentRoute.value.path).toBe('/identity/users')
+    expect(tabbarStore.tabKeys).toEqual(['/workbench/home', '/identity/users'])
     expect(tabbarStore.tabs[0]).toMatchObject({
-      key: HOME_PATH,
-      title: 'page.control_center.title',
-      name: 'Dashboard',
+      title: 'workbench.dashboard.title',
+      name: 'workbench.dashboard',
+      affix: true,
       pinned: true,
       closable: false,
+      meta: { icon: 'lucide:layout-dashboard' },
     })
     expect(tabbarStore.activeTab).toBe('/identity/users')
   })
 
-  it('首页与 meta.affixTab 的页面固定且不可关闭', async () => {
+  it('固定只看 meta.affixTab：首页没设固定标签也能关，设了的页面固定且不可关闭', async () => {
     signInWithLoadedRoutes()
     const router = createGuardedRouter()
     await router.push(HOME_PATH)
     await router.push('/affix')
     const tabs = useTabbarStore().tabs
-    expect(tabs.find(item => item.key === HOME_PATH)).toMatchObject({ pinned: true, closable: false })
-    expect(tabs.find(item => item.key === '/affix')).toMatchObject({ pinned: true, closable: false })
+    expect(tabs.find(item => item.key === HOME_PATH)).toMatchObject({ pinned: false, closable: true })
+    expect(tabs.find(item => item.key === '/affix')).toMatchObject({ affix: true, pinned: true, closable: false })
   })
 
   it('无 meta.title 时标签标题回落到路由名，连路由名都没有时兜底 Untitled', async () => {
@@ -799,12 +800,10 @@ describe('标签栏裁剪', () => {
     signInWithLoadedRoutes()
     useAppStore().tabbarVisitHistory = false
     const router = createGuardedRouter()
+    await router.push('/affix')
     await router.push('/identity/user')
     await router.push('/plain')
-    const tabs = useTabbarStore().tabs
-    expect(tabs.some(item => item.key === '/identity/user')).toBe(false)
-    expect(tabs.some(item => item.key === '/plain')).toBe(true)
-    expect(tabs.some(item => item.closable === false)).toBe(true)
+    expect(useTabbarStore().tabKeys).toEqual(['/affix', '/plain'])
   })
 
   it('超过上限时淘汰第一个可关闭且不是当前页的标签，不误删固定标签；上限 0 表示不限制', async () => {
@@ -813,16 +812,20 @@ describe('标签栏裁剪', () => {
     appStore.tabbarVisitHistory = true
     appStore.tabbarMaxCount = 2
     const router = createGuardedRouter()
+    await router.push('/affix')
     await router.push('/identity/user')
     await router.push('/plain')
     const tabbarStore = useTabbarStore()
-    expect(tabbarStore.tabs).toHaveLength(2)
-    expect(tabbarStore.tabs.some(item => item.key === '/identity/user')).toBe(false)
-    expect(tabbarStore.tabs.some(item => item.key === HOME_PATH && item.closable === false)).toBe(true)
+    expect(tabbarStore.tabKeys).toEqual(['/affix', '/plain'])
 
     appStore.tabbarMaxCount = 0
     await router.push('/identity/user')
-    await router.push('/affix')
-    expect(tabbarStore.tabs.length).toBeGreaterThanOrEqual(4)
+    await router.push(HOME_PATH)
+    expect(tabbarStore.tabKeys).toEqual([
+      '/affix',
+      '/plain',
+      '/identity/user',
+      HOME_PATH,
+    ])
   })
 })

@@ -93,7 +93,7 @@ Authorize 阶段之后
 
 菜单管理的权限码 `access.menus.read / create / update / delete` 只在平台一侧，`menus.set-status` 与 `menus.reset` 用 `update`。
 
-页面登记用 `directory` 指定缺省所属目录（编码在 `Contracts` 的 `MenuDirectories`）：没被定制的页面跟着目录走，目录不在即留在顶层，`menus.reset` 回到这个目录。缺省的树是：
+页面登记用 `directory` 指定缺省所属目录（编码在 `Contracts` 的 `MenuDirectories`）：没被定制的页面跟着目录走，目录不在即留在顶层，`menus.reset` 回到这个目录。`affix` 是缺省的固定标签，没被定制的页面跟着它对齐，目前只有工作台登记为固定。缺省的树是：
 
 - 工作台：单页，在顶层；
 - AI 中心：AI 提供商、AI 助手、AI 提示词、AI 知识库；

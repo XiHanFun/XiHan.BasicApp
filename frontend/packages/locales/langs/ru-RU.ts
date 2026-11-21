@@ -13,7 +13,6 @@ export default {
       refresh: 'Обновить',
       previous: 'Назад',
       next: 'Далее',
-      home: 'Главная',
       cancel: 'Отмена',
       confirm: 'Подтвердить',
       save: 'Сохранить',
