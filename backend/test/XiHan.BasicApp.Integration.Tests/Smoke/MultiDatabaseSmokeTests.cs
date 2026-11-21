@@ -166,6 +166,7 @@ public sealed class MultiDatabaseSmokeTests
             using var client = Maintenance(server);
             await client.Ado.ExecuteCommandAsync($"DROP DATABASE IF EXISTS \"{platformName}\" WITH (FORCE)");
             await client.Ado.ExecuteCommandAsync($"DROP DATABASE IF EXISTS \"{tenantName}\" WITH (FORCE)");
+            TestFileStorage.Delete(Platform);
         }
 
         private static SqlSugarClient Maintenance(string server)

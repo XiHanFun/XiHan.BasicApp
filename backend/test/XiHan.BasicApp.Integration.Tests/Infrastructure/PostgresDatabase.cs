@@ -74,6 +74,7 @@ public sealed class PostgresDatabase : IAsyncDisposable
     {
         using var client = Maintenance(_server);
         await client.Ado.ExecuteCommandAsync($"DROP DATABASE IF EXISTS \"{_name}\" WITH (FORCE)");
+        TestFileStorage.Delete(ConnectionString);
     }
 
     private static SqlSugarClient Maintenance(string server)
