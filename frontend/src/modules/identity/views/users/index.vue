@@ -1339,7 +1339,7 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
     <XEditModal
       v-model:show="passwordReset.open.value"
       :title="resetTitle"
-      width="xl"
+      :width="480"
       :loading="passwordReset.submitting.value"
       :form-id="resetFormId"
       :save-text="t('identity.users.reset_confirm')"

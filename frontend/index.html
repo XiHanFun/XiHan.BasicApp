@@ -2,6 +2,10 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <!-- CSS 层序按首次出现排定：在任何样式表之前先声明一次，组件 scoped 样式里写的 @layer 就抢不了先；与 src/styles/index.css 开头的声明一致 -->
+    <style>
+      @layer xihan.reset, xihan.tokens, xihan.motion, xihan.components, theme, base, components, utilities, xihan.overrides;
+    </style>
     <meta name="description" content="XiHan.BasicApp" />
     <meta
       name="viewport"

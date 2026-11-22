@@ -620,7 +620,7 @@ function onAction(payload: SchemaActionPayload) {
     <XEditModal
       v-model:show="reasonVisible"
       :title="reasonTitle"
-      width="xl"
+      :width="480"
       :loading="reasonLoading"
       :save-text="t('workflow.instances.btn_confirm')"
       :save-tone="reasonAction === 'terminate' ? 'danger' : 'warning'"

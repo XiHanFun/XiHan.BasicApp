@@ -4,7 +4,7 @@
 -->
 
 <script setup lang="ts">
-import type { EditModalWidth } from './edit-modal-width'
+import type { DialogWidth } from './dialog-width'
 import { useFieldControl, XhButton } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { Icon } from '../../iconify'
@@ -24,13 +24,14 @@ const props = withDefaults(defineProps<{
   cancelText?: string
   /** 字数标签，接收字符数 */
   countLabel?: (count: number) => string
-  /** 弹窗宽度 */
-  width?: EditModalWidth
+  /** 弹窗宽度：数字按 px */
+  width?: DialogWidth
   /** 摘要区最多展示的字符数 */
   summaryLimit?: number
   disabled?: boolean
 }>(), {
-  width: '7xl',
+  // 至多 1400px（缺省字号下的 100rem），窄屏两侧各留 32px
+  width: 'min(100rem, calc(100vw - var(--xh-space-8) * 2))',
   summaryLimit: 160,
 })
 

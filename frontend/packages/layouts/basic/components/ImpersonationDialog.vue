@@ -22,7 +22,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XInput, XSelect } from '~/components'
+import { dialogWidthStyle, XInput, XSelect } from '~/components'
 import { Icon } from '~/iconify'
 import { useAuthStore, useUserStore } from '~/stores'
 
@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent class="max-w-lg">
+    <XhDialogContent :style="dialogWidthStyle(420)">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('header.impersonation.title') }}</XhDialogTitle>
       </XhDialogHeader>

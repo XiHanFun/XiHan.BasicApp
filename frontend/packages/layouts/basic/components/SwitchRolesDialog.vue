@@ -8,6 +8,7 @@ import type { SessionRoleOption } from '~/types'
 import { XhButton, XhCheckbox, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { dialogWidthStyle } from '~/components'
 import { useAuthStore } from '~/stores'
 
 /**
@@ -77,7 +78,7 @@ watch(show, (open) => {
 
 <template>
   <XhDialogRoot v-model:open="show">
-    <XhDialogContent class="max-w-lg">
+    <XhDialogContent :style="dialogWidthStyle(420)">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('header.switch_roles.title') }}</XhDialogTitle>
       </XhDialogHeader>

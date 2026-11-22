@@ -645,7 +645,7 @@ async function exportUnread() {
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 新建 / 编辑 -->
-    <XEditModal v-model:show="modalVisible" :title="modalTitle" :loading="submitting" :form-id="editFormId" width="4xl">
+    <XEditModal v-model:show="modalVisible" :title="modalTitle" :loading="submitting" :form-id="editFormId" :width="760">
       <XhFormRoot :id="editFormId" class="xh-edit-form-grid" data-testid="notification-form" @submit="onSubmit">
         <XhFieldRoot class="xh-span-2" required>
           <XhFieldLabel>{{ t('notification.notifications.form_title') }}</XhFieldLabel>

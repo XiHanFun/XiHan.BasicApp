@@ -12,6 +12,8 @@ export const NotificationContent = defineAsyncComponent(() => import('./Notifica
 
 export { default as XChartInView } from './ChartInView.vue'
 export { default as XContentEditorField } from './ContentEditorField.vue'
+export type { DialogWidth } from './dialog-width'
+export { dialogWidthStyle } from './dialog-width'
 export { indexDropdownOptions, toDropdownCollection } from './dropdown-collection'
 export { default as XEditModal } from './EditModal.vue'
 export { default as XFileRefUpload } from './FileRefUpload.vue'

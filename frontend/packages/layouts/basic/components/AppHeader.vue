@@ -223,6 +223,20 @@ const breadcrumbs = computed(() => {
 
 const shortcutLabelStyle = 'display:inline-flex;align-items:center;gap:var(--xh-space-1_5)'
 
+/** 菜单行尾的快捷键：小号等宽字、细描边的扁键帽，键与键之间隔一个字宽 */
+const shortcutKbdStyle = {
+  '--xh-kbd-h': 'var(--xh-space-5)',
+  '--xh-kbd-min-w': 'auto',
+  '--xh-kbd-px': 'var(--xh-space-1_5)',
+  '--xh-kbd-gap': '1ch',
+  '--xh-kbd-radius': 'var(--xh-shape-inset)',
+  '--xh-kbd-border': 'hsl(var(--border))',
+  '--xh-kbd-bg': 'hsl(var(--muted))',
+  '--xh-kbd-fg': 'hsl(var(--muted-foreground))',
+  '--xh-kbd-font': 'var(--xh-font-family-mono)',
+  '--xh-kbd-font-size': 'var(--xh-text-caption-size)',
+}
+
 /**
  * 当前上下文的显示名：平台侧是平台管理，租户侧是租户名；应用没注册控制中心（没有租户切换概念）时不展示
  * 平台侧用短文案：控制中心切换页标题的全称在长文本语言下放不进顶栏钮的最大宽
@@ -287,6 +301,7 @@ const userOptions = computed<AppDropdownOption[]>(() => [
                 ? [
                     h(XhKbd, {
                       keys: [...GLOBAL_HOTKEYS.lock],
+                      style: shortcutKbdStyle,
                     }),
                   ]
                 : []),
@@ -305,6 +320,7 @@ const userOptions = computed<AppDropdownOption[]>(() => [
           ? [
               h(XhKbd, {
                 keys: [...GLOBAL_HOTKEYS.logout],
+                style: shortcutKbdStyle,
               }),
             ]
           : []),

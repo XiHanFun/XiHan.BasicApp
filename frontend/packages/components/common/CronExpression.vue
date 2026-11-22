@@ -533,7 +533,7 @@ function onPresetChange(v: string | null): void {
     <XEditModal
       v-model:show="builderVisible"
       :title="t('component.cron.title')"
-      width="2xl"
+      :width="600"
       :save-text="t('component.cron.done')"
       @save="builderVisible = false"
     >

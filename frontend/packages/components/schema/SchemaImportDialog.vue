@@ -35,6 +35,7 @@ import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
 import { formatDate } from '~/utils'
+import { dialogWidthStyle } from '../common/dialog-width'
 import XDataTable from '../common/XDataTable.vue'
 import { useSchemaImport } from './useSchemaImport'
 
@@ -221,7 +222,7 @@ function handleClose(): void {
     :close-on-interact-outside="phase !== 'importing'"
     @update:open="(value: boolean) => (show = value)"
   >
-    <XhDialogContent class="xh-import-modal max-w-3xl">
+    <XhDialogContent class="xh-import-modal" :style="dialogWidthStyle(720)">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
       </XhDialogHeader>

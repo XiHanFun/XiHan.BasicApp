@@ -19,7 +19,7 @@ import {
 } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NotificationContent } from '~/components'
+import { dialogWidthStyle, NotificationContent } from '~/components'
 import { useAppContext, useGuideStore, useWelcomeStore } from '~/stores'
 
 defineOptions({ name: 'NotificationGate' })
@@ -102,7 +102,7 @@ onMounted(async () => {
     :close-on-escape="false"
     :close-on-interact-outside="false"
   >
-    <XhDialogContent class="notif-gate-modal max-w-4xl">
+    <XhDialogContent class="notif-gate-modal" :style="dialogWidthStyle(820)">
       <XhDialogHeader>
         <XhDialogTitle>{{ currentMandatory.title }}</XhDialogTitle>
       </XhDialogHeader>
@@ -135,7 +135,7 @@ onMounted(async () => {
     :close-on-interact-outside="false"
     @update:open="(open: boolean) => !open && onPopupConfirm(currentPopup!)"
   >
-    <XhDialogContent class="notif-gate-modal max-w-4xl">
+    <XhDialogContent class="notif-gate-modal" :style="dialogWidthStyle(820)">
       <XhDialogHeader>
         <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
       </XhDialogHeader>

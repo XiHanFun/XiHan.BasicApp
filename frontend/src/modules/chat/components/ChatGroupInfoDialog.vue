@@ -112,7 +112,7 @@ async function handleSubmit() {
   <XEditModal
     v-model:show="show"
     :title="t('chat.details.edit_info')"
-    width="xl"
+    :width="480"
     :loading="saving"
     :form-id="formId"
     :initial-focus="isDepartment ? 'textarea[name=announcement]' : 'input[name=conversationName]'"

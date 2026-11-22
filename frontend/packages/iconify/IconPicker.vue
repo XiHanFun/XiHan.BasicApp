@@ -7,6 +7,7 @@
 import { useFieldControl, XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { dialogWidthStyle } from '../components/common/dialog-width'
 import XInput from '../components/common/XInput.vue'
 import { Icon } from './icon'
 import { ICON_SET_META, loadIconNames } from './offline'
@@ -141,7 +142,7 @@ function handleClear() {
     </XhButton>
 
     <XhDialogRoot v-model:open="visible">
-      <XhDialogContent class="icon-picker-modal max-w-2xl">
+      <XhDialogContent class="icon-picker-modal" :style="dialogWidthStyle(560)">
         <XhDialogHeader>
           <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
         </XhDialogHeader>
