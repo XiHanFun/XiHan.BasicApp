@@ -168,7 +168,7 @@ AI 是 Tier 3 的可选模块（`BasicApp:Modules:AI:Enabled`，缺省开），�
 
 ## 模块开关
 
-`BasicApp:Modules:AI:Enabled` 设为 `false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，也不装向量库连接器与知识库 Provider；`sys_ai_provider`、`sys_ai_prompt`、`sys_ai_assistant` 与 `sys_knowledge_document` 仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。写成 `true` / `false` 以外的值启动即失败。框架的工具目录随 Full Profile 照常装配，`XiHan:AI` 节照常校验，其他操作的 MCP 工具不受影响。
+`BasicApp:Modules:AI:Enabled` 设为 `false` 时宿主不装配 AI 包与 OpenAI 兼容的 Provider：权限码与页面不下发、操作 404，也不装向量库连接器与知识库 Provider；`sys_ai_provider`、`sys_ai_prompt`、`sys_ai_assistant` 与 `sys_knowledge_document` 也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。写成 `true` / `false` 以外的值启动即失败。框架的工具目录随 Full Profile 照常装配，`XiHan:AI` 节照常校验，其他操作的 MCP 工具不受影响。
 
 聊天不依赖 AI：关掉之后聊天照常，聊天的三个助手操作返回 503 `CHAT_UNAVAILABLE_001`，前端首次展开「新建」菜单时据此隐藏助手入口。
 

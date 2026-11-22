@@ -157,7 +157,7 @@ XIHAN_TEST_CODEGEN_COMPILE=<框架源码的 src 目录>/ \
 
 ## 模块开关
 
-`BasicApp:Modules:CodeGeneration:Enabled` 设为 `false` 时宿主不装配 CodeGeneration：权限码与页面不下发、操作 404，产物包下载端点不映射，已登记的外部数据源连接不再建立；`sys_code_gen_data_source`、`sys_code_gen_table`、`sys_code_gen_table_column`、`sys_code_gen_template` 与 `sys_code_gen_history` 五张表仍由正式库的基线脚本建出（开发库的 `InitTables` 只建装配了的包的表）。
+`BasicApp:Modules:CodeGeneration:Enabled` 设为 `false` 时宿主不装配 CodeGeneration：权限码与页面不下发、操作 404，产物包下载端点不映射，已登记的外部数据源连接不再建立；`sys_code_gen_data_source`、`sys_code_gen_table`、`sys_code_gen_table_column`、`sys_code_gen_template` 与 `sys_code_gen_history` 五张表也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。
 
 ## 下一步
 

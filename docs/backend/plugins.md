@@ -101,7 +101,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 { "BasicApp": { "Modules": { "Plugins": { "Enabled": false } } } }
 ```
 
-关掉后宿主不装 Plugins 与进程外插件宿主，权限目录与操作都不在。隔离级别与包上限见[配置参考](../configuration#basicapp-plugins)。
+关掉后宿主不装 Plugins 与进程外插件宿主，权限目录与操作都不在；三张表也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。隔离级别与包上限见[配置参考](../configuration#basicapp-plugins)。
 
 ## 下一步
 
