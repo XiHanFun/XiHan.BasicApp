@@ -157,13 +157,14 @@ jobs:
       - name: 构建
         run: dotnet build XiHan.BasicApp/backend/test/XiHan.BasicApp.Integration.Tests -c Release
 
-      # 按类分片：列出全部测试方法，按用例数均衡分到各片（.github/scripts/test-shard.mjs），这一片的类写进 classes.txt
+      # 按类分片：列出全部测试方法，按这种库上各类的实测耗时（test-weights.json）均衡分到各片（test-shard.mjs），这一片的类写进 classes.txt
       # -noColor 不能省：Linux 上 xUnit 退出前往标准输出补一个颜色复位符，跟在 JSON 后面
+      # 各片耗时差得多了，从一轮全绿的结果重算权重：gh run download <运行号> --pattern "backend-test-results-*-*" -D <目录>，再 node .github/scripts/test-weights.mjs <目录> .github/scripts/test-weights.json "<来源>"
       - name: 分片
         working-directory: XiHan.BasicApp
         run: |
           dotnet backend/test/XiHan.BasicApp.Integration.Tests/bin/Release/net10.0/XiHan.BasicApp.Integration.Tests.dll -list methods/json -noColor > "$RUNNER_TEMP/methods.json"
-          node .github/scripts/test-shard.mjs "$RUNNER_TEMP/methods.json" "${{ matrix.shard }}" "$SHARDS" > "$RUNNER_TEMP/classes.txt"
+          node .github/scripts/test-shard.mjs "$RUNNER_TEMP/methods.json" "${{ matrix.shard }}" "$SHARDS" .github/scripts/test-weights.json "${{ matrix.db }}" > "$RUNNER_TEMP/classes.txt"
 
       - name: 集成测试
         working-directory: XiHan.BasicApp
