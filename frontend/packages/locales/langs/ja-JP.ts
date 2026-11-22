@@ -362,7 +362,7 @@ export default {
       tip_pinned: '基本検索エリア（常に表示）',
       title: '検索設定',
     },
-    schema_views: {
+    schema_presets: {
       asc: '昇順',
       current: '現在の条件',
       desc: '降順',

@@ -243,7 +243,7 @@ export interface SchemaPageInstance {
  * 页面 Schema —— 整页单一事实源
  */
 export interface PageSchema<TRow = Record<string, unknown>> {
-  /** 页面唯一码（偏好/视图按此维度存储） */
+  /** 页面唯一码（表格设置、搜索设置与条件预设按此维度存储） */
   pageCode: string
   /** 页面名称（i18n key） */
   pageName: string

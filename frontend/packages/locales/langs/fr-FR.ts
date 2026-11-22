@@ -362,7 +362,7 @@ export default {
       tip_pinned: 'Zone de recherche de base (toujours affichée)',
       title: 'Paramètres de recherche',
     },
-    schema_views: {
+    schema_presets: {
       asc: 'Croissant',
       current: 'Conditions actuelles',
       desc: 'Décroissant',

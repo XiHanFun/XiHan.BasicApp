@@ -40,6 +40,9 @@ export type {
   SchemaSortRule,
 } from './types'
 
+export { usePresetManager } from './usePresetManager'
+export type { ConditionPreset, PresetSnapshot } from './usePresetManager'
+
 export { useSchemaDictionaries } from './useSchemaDictionaries'
 export type { UseSchemaDictionaries } from './useSchemaDictionaries'
 
@@ -60,6 +63,3 @@ export type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings
 
 export { applyRemotePageSetting, subscribeRemotePageSetting, useUserSettingSync } from './useUserSettingSync'
 export type { UserSettingSync } from './useUserSettingSync'
-
-export { useViewManager } from './useViewManager'
-export type { PersonalView, ViewSnapshot } from './useViewManager'

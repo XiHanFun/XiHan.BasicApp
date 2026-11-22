@@ -4,7 +4,7 @@
  */
 
 import type { ListFieldSchema } from './types'
-import type { ViewSnapshot } from './useViewManager'
+import type { PresetSnapshot } from './usePresetManager'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -23,7 +23,7 @@ function t(key: string, args: Record<string, unknown> = {}): string {
 }
 
 function pair(label: string, value: string): string {
-  return t('component.schema_views.pair', { label, value })
+  return t('component.schema_presets.pair', { label, value })
 }
 
 function isBlank(value: unknown): boolean {
@@ -72,7 +72,7 @@ function formatValue(field: ListFieldSchema | undefined, value: unknown): string
 }
 
 /** 把一份筛选、排序与每页条数说成人看得懂的几项 */
-export function describeConditions(fields: readonly ListFieldSchema[], snapshot: ViewSnapshot): ConditionSummary {
+export function describeConditions(fields: readonly ListFieldSchema[], snapshot: PresetSnapshot): ConditionSummary {
   const byKey = new Map(fields.map(field => [field.key, field]))
   const filters = Object.entries(snapshot.filters)
     .filter(([, value]) => !isBlank(value))
@@ -83,8 +83,8 @@ export function describeConditions(fields: readonly ListFieldSchema[], snapshot:
   const sorts = (snapshot.sorts ?? []).map(rule => pair(
     byKey.get(rule.field)?.title ?? rule.field,
     rule.order === 'desc'
-      ? t('component.schema_views.desc')
-      : t('component.schema_views.asc'),
+      ? t('component.schema_presets.desc')
+      : t('component.schema_presets.asc'),
   ))
   return {
     filters,
@@ -97,12 +97,12 @@ export function describeConditions(fields: readonly ListFieldSchema[], snapshot:
 export function conditionText(items: string[]): string {
   return items.length
     ? joinList(items, 'conjunction')
-    : t('component.schema_views.none')
+    : t('component.schema_presets.none')
 }
 
 /** 悬停提示用的一句话：筛选与排序 */
 export function conditionSentence(summary: ConditionSummary): string {
-  return t('component.schema_views.summary', {
+  return t('component.schema_presets.summary', {
     filters: conditionText(summary.filters),
     sorts: conditionText(summary.sorts),
   })

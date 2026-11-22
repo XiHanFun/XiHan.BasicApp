@@ -6,8 +6,8 @@
 <script setup lang="ts">
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
+import type { PresetSnapshot } from './usePresetManager'
 import type { TableDensity } from './useTableSettings'
-import type { ViewSnapshot } from './useViewManager'
 import type { ApiId } from '~/types/contracts'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
@@ -23,18 +23,18 @@ import { formatFieldText } from './renderer'
 import { renderRowActionMenu } from './row-action-menu'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
+import SchemaPresetMenu from './SchemaPresetMenu.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
 import SchemaSearchSettings from './SchemaSearchSettings.vue'
 import SchemaTablePanel from './SchemaTablePanel.vue'
 import SchemaTableSettings from './SchemaTableSettings.vue'
-import SchemaViewMenu from './SchemaViewMenu.vue'
 import { indexColWidth, PREFIX_COL_W, queryFiltersFromSchema, toColumns, toExportFields, toImportFields } from './selectors'
+import { usePresetManager } from './usePresetManager'
 import { useSchemaDictionaries } from './useSchemaDictionaries'
 import { useSchemaExport } from './useSchemaExport'
 import { useSchemaTable } from './useSchemaTable'
 import { useSearchSettings } from './useSearchSettings'
 import { useTableSettings } from './useTableSettings'
-import { useViewManager } from './useViewManager'
 
 defineOptions({ name: 'SchemaPage' })
 
@@ -119,7 +119,7 @@ const peekFields = computed<ListFieldSchema[]>(() =>
 /** 列设置（显隐/顺序/固定/密度/风格/多选/序号/列宽/每列默认排序，按 pageCode 持久化）。多选默认打开 */
 const settings = useTableSettings(props.schema.pageCode, columnFields, { defaultSelectable: true })
 
-// 初始默认排序先取本地的（restore 同步执行），首次加载前等后端那份回来再取一次（见 onMounted）；列头排序与套用视图只改本次会话
+// 初始默认排序先取本地的（restore 同步执行），首次加载前等后端那份回来再取一次（见 onMounted）；列头排序与套用预设只改本次会话
 if (settings.defaultSorts.value.length) {
   sorts.value = [...settings.defaultSorts.value]
 }
@@ -188,9 +188,9 @@ function toggleFullscreen() {
 
 /**
  * 条件预设：把筛选、排序与每页条数存成命名方案，按 pageCode 存本地并随「条件预设」同步开关跨端同步
- * 设了默认的视图在首次加载时套用；搜索区的视图按钮与模板 ref 上的 saveView / applyView 都走这里
+ * 设了默认的预设在首次加载时套用；搜索区的条件预设按钮与模板 ref 上的 savePreset / applyPreset 都走这里
  */
-const viewManager = useViewManager(props.schema.pageCode)
+const presetManager = usePresetManager(props.schema.pageCode)
 
 /** 搜索区重置：清空筛选后回到默认排序 */
 function resetSearch() {
@@ -198,14 +198,14 @@ function resetSearch() {
 }
 
 /** 当前的筛选、排序与每页条数：条件预设浮层据此说明「保存的是什么」 */
-const currentConditions = computed<ViewSnapshot>(() => ({
+const currentConditions = computed<PresetSnapshot>(() => ({
   filters: { ...filters },
   sorts: sorts.value,
   pageSize: pageSize.value,
 }))
 
-/** 当前列表状态的快照（深拷贝，之后改筛选不影响已存的视图） */
-function currentSnapshot(): ViewSnapshot {
+/** 当前列表状态的快照（深拷贝，之后改筛选不影响已存的预设） */
+function currentSnapshot(): PresetSnapshot {
   return deepClone({
     filters: { ...filters },
     sorts: [...sorts.value],
@@ -213,18 +213,18 @@ function currentSnapshot(): ViewSnapshot {
   })
 }
 
-/** 保存当前列表状态为命名方案：同名的覆盖它的快照，并成为当前视图 */
-function saveView(name: string) {
+/** 保存当前列表状态为命名方案：同名的覆盖它的快照，并成为当前预设 */
+function savePreset(name: string) {
   const trimmed = name.trim()
-  const existing = viewManager.views.value.find(view => view.name === trimmed)
+  const existing = presetManager.presets.value.find(preset => preset.name === trimmed)
   if (existing)
-    viewManager.updateView(existing.code, currentSnapshot())
-  const code = existing?.code ?? viewManager.addView(trimmed, currentSnapshot()).code
-  viewManager.applyView(code)
+    presetManager.updatePreset(existing.code, currentSnapshot())
+  const code = existing?.code ?? presetManager.addPreset(trimmed, currentSnapshot()).code
+  presetManager.applyPreset(code)
 }
 
 /** 把快照落到表格状态（不查询） */
-function restoreSnapshot(snapshot: ViewSnapshot) {
+function restoreSnapshot(snapshot: PresetSnapshot) {
   // 置 null 而非 delete：保持搜索控件受控，避免控件回退到自己的内部值而残留旧选择（同 reset）
   for (const key of Object.keys(filters)) {
     filters[key] = null
@@ -238,9 +238,9 @@ function restoreSnapshot(snapshot: ViewSnapshot) {
   }
 }
 
-/** 应用方案：落地快照到表格状态并刷新 */
-function applyView(code: string) {
-  const snapshot = viewManager.applyView(code)
+/** 套用预设：落地快照到表格状态并刷新 */
+function applyPreset(code: string) {
+  const snapshot = presetManager.applyPreset(code)
   if (!snapshot) {
     return
   }
@@ -628,12 +628,12 @@ function onImportFinished(summary: { total: number, success: number, failed: num
 
 onMounted(async () => {
   void dictionaries.resolve()
-  // 首次加载用的排序：设了默认视图的按视图，否则按默认排序；开着同步时等后端的表格设置与视图都回来（同一条记录，不多等一趟）再定
-  await Promise.all([viewManager.settled, settings.settled])
+  // 首次加载用的排序：设了默认预设的按预设，否则按默认排序；开着同步时等后端的表格设置与预设都回来（同一条记录，不多等一趟）再定
+  await Promise.all([presetManager.settled, settings.settled])
   sorts.value = [...settings.defaultSorts.value]
-  const preferred = viewManager.views.value.find(view => view.isDefault)
+  const preferred = presetManager.presets.value.find(preset => preset.isDefault)
   const snapshot = preferred
-    ? viewManager.applyView(preferred.code)
+    ? presetManager.applyPreset(preferred.code)
     : undefined
   if (snapshot)
     restoreSnapshot(snapshot)
@@ -665,12 +665,12 @@ defineExpose({
   // 当前页数据：主从页据此同步「当前行」（选中项被过滤掉时改选首条）
   rows,
   // 条件预设（搜索区有内置入口，页面也可以自己调）
-  views: viewManager.views,
-  activeViewCode: viewManager.activeCode,
-  saveView,
-  applyView,
-  removeView: viewManager.removeView,
-  setDefaultView: viewManager.setDefault,
+  presets: presetManager.presets,
+  activePresetCode: presetManager.activeCode,
+  savePreset,
+  applyPreset,
+  removePreset: presetManager.removePreset,
+  setDefaultPreset: presetManager.setDefault,
 })
 
 // 列表骨架屏：列宽/列数/行高全部对应真实表格 —— 从 columns 派生每列宽度，行高随密度（sm/md/lg）
@@ -762,15 +762,15 @@ const skeletonColumns = computed(() => {
                 @toggle-visible="searchSettings.toggleVisible"
                 @save="onSaveSearchSettings"
               />
-              <SchemaViewMenu
-                :views="viewManager.views.value"
-                :active-code="viewManager.activeCode.value"
+              <SchemaPresetMenu
+                :presets="presetManager.presets.value"
+                :active-code="presetManager.activeCode.value"
                 :fields="readableFields"
                 :current="currentConditions"
-                @apply="applyView"
-                @save="saveView"
-                @set-default="viewManager.setDefault"
-                @remove="viewManager.removeView"
+                @apply="applyPreset"
+                @save="savePreset"
+                @set-default="presetManager.setDefault"
+                @remove="presetManager.removePreset"
               />
             </template>
           </SchemaSearchPanel>

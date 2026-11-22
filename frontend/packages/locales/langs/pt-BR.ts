@@ -362,7 +362,7 @@ export default {
       tip_pinned: 'Área de busca básica (sempre exibida)',
       title: 'Configurações de busca',
     },
-    schema_views: {
+    schema_presets: {
       asc: 'Crescente',
       current: 'Condições atuais',
       desc: 'Decrescente',

@@ -362,7 +362,7 @@ export default {
       tip_pinned: '常用搜索区（始终展示）',
       title: '搜索设置',
     },
-    schema_views: {
+    schema_presets: {
       asc: '升序',
       current: '当前条件',
       desc: '降序',

@@ -362,7 +362,7 @@ export default {
       tip_pinned: 'Область основного поиска (видна всегда)',
       title: 'Настройки поиска',
     },
-    schema_views: {
+    schema_presets: {
       asc: 'По возрастанию',
       current: 'Текущие условия',
       desc: 'По убыванию',

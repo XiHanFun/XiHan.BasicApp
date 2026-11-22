@@ -362,7 +362,7 @@ export default {
       tip_pinned: '기본 검색 영역(항상 표시)',
       title: '검색 설정',
     },
-    schema_views: {
+    schema_presets: {
       asc: '오름차순',
       current: '현재 조건',
       desc: '내림차순',

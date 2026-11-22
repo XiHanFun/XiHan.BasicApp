@@ -362,7 +362,7 @@ export default {
       tip_pinned: '常用搜尋區（一律顯示）',
       title: '搜尋設定',
     },
-    schema_views: {
+    schema_presets: {
       asc: '升冪',
       current: '目前條件',
       desc: '降冪',

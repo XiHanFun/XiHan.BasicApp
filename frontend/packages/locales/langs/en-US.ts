@@ -362,7 +362,7 @@ export default {
       tip_pinned: 'Basic search area (always shown)',
       title: 'Search Settings',
     },
-    schema_views: {
+    schema_presets: {
       asc: 'Ascending',
       current: 'Current conditions',
       desc: 'Descending',

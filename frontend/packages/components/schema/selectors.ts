@@ -115,7 +115,7 @@ function endOfDayTimestamp(timestamp: number): number {
 
 /**
  * 派生表格列（visible 为 true 且有权限）
- * options 叠加视图与列设置的可见列、顺序、固定方向与列宽（px），没给的项沿用 schema
+ * options 叠加列设置的可见列、顺序、固定方向与列宽（px），没给的项沿用 schema
  */
 export function toColumns<TRow extends object>(
   schema: PageSchema<TRow>,
@@ -171,7 +171,7 @@ export function toColumns<TRow extends object>(
     else if (field.width !== undefined) {
       column.width = field.width
     }
-    // 固定方向：列设置/视图覆盖优先（含「取消固定」），否则用字段默认
+    // 固定方向：列设置覆盖优先（含「取消固定」），否则用字段默认
     const overriddenFixed = options?.fixedMap && field.key in options.fixedMap
       ? options.fixedMap[field.key]
       : field.fixed
