@@ -22,6 +22,7 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// 没有覆盖时按令牌 <c>role</c> 声明里能解析成本租户应用角色的角色求并集——任一 <see cref="DataScope.All"/> 即不受限，
 /// 否则把「本部门 / 本部门及子部门 / 自定义部门」经归属与闭包表展开成部门集合，再展开成用户集合（总含自己）
 /// 没有覆盖、也没有一个声明能解析成应用角色（只有框架级的角色字符串）时不受限：数据范围是应用角色的属性
+/// 插件主体（<see cref="PluginPrincipal"/>）在租户侧缺省什么都看不到，平台批准了「全部」的插件不受限（方案 5.6）
 /// </remarks>
 /// <param name="roles">角色仓储</param>
 /// <param name="scopes">角色数据范围服务</param>
@@ -29,13 +30,15 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 /// <param name="memberships">归属仓储（租户库）</param>
 /// <param name="hierarchy">部门闭包表仓储（租户库）</param>
 /// <param name="options">安全配置（角色声明名）</param>
+/// <param name="plugins">插件主体的数据范围（插件模块关掉时没有）</param>
 public sealed class DataScopeResolver(
     IRepository<SysRole, Guid> roles,
     RoleDataScopeService scopes,
     UserDataScopeService userScopes,
     IRepository<SysUserDepartment, Guid> memberships,
     IRepository<SysDepartmentHierarchy, Guid> hierarchy,
-    SecurityOptions options) : IDataScopeResolver
+    SecurityOptions options,
+    IEnumerable<IPluginDataScopes> plugins) : IDataScopeResolver
 {
     private DataScopeDecision? _cached;
 
@@ -50,6 +53,11 @@ public sealed class DataScopeResolver(
     {
         var security = context.GetSecurity();
         var tenantId = security.Tenant?.Id;
+        if (tenantId is not null && PluginPrincipal.Is(security.Principal))
+        {
+            return security.Principal.Id is { } manifestId && plugins.Any(p => p.IsUnrestricted(manifestId)) ? DataScopeDecision.Everything : DataScopeDecision.Nothing;
+        }
+
         if (tenantId is null || !Guid.TryParse(security.Principal.Id, out var userId))
         {
             return DataScopeDecision.Everything;

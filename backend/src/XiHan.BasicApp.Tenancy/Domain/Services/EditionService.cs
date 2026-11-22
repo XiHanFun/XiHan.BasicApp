@@ -16,18 +16,18 @@ namespace XiHan.BasicApp.Tenancy.Domain.Services;
 /// </summary>
 /// <remarks>
 /// 按编码 / 缺省查找、白名单的校验与整体替换、缺省标记互斥、哪些租户在用
-/// 白名单只能放租户能生效的权限（作用侧 Tenant / Both）：目录取各包登记的 <see cref="PermissionCatalogSection"/>（Tenancy 不引用 Access）
+/// 白名单只能放租户能生效的权限（作用侧 Tenant / Both）：目录取 <see cref="RegisteredPermissions"/>（Tenancy 不引用 Access），含已加载插件的权限码
 /// </remarks>
 /// <param name="editions">套餐仓储</param>
 /// <param name="permissions">白名单仓储</param>
 /// <param name="tenants">租户仓储</param>
-/// <param name="sections">各包登记的权限目录片段</param>
+/// <param name="registered">已登记的全部权限描述</param>
 /// <param name="ids">标识生成器</param>
 public sealed class EditionService(
     IRepository<SysEdition, Guid> editions,
     IRepository<SysEditionGrant, Guid> permissions,
     IRepository<SysTenant, Guid> tenants,
-    IEnumerable<PermissionCatalogSection> sections,
+    RegisteredPermissions registered,
     IIdGenerator<Guid> ids)
 {
     /// <summary>
@@ -35,14 +35,26 @@ public sealed class EditionService(
     /// </summary>
     public const int MaxPermissions = 500;
 
+    private IReadOnlyList<PermissionDescriptor>? _tenantEffective;
+
     /// <summary>
     /// 租户能生效的全部权限（作用侧 Tenant / Both），按权限码排序
     /// </summary>
-    public IReadOnlyList<PermissionDescriptor> TenantEffective { get; } = sections
-        .SelectMany(static s => s.Permissions)
-        .Where(static p => p.Scope is PermissionScope.Tenant or PermissionScope.Both)
-        .OrderBy(static p => p.Code, StringComparer.Ordinal)
-        .ToList();
+    /// <remarks>
+    /// 本次调用里取一次：同一调用内插件加载或卸载不改变校验口径
+    /// </remarks>
+    public IReadOnlyList<PermissionDescriptor> TenantEffective => _tenantEffective ??= TenantSide(registered.All);
+
+    /// <summary>
+    /// 各包启动期登记的、租户能生效的权限，按权限码排序
+    /// </summary>
+    /// <remarks>
+    /// 内置套餐的种子只取这些：插件的权限码缺省不进任何套餐，由平台显式加进去
+    /// </remarks>
+    public IReadOnlyList<PermissionDescriptor> BuiltInTenantEffective => TenantSide(registered.BuiltIn);
+
+    private static List<PermissionDescriptor> TenantSide(IEnumerable<PermissionDescriptor> all)
+        => [.. all.Where(static p => p.Scope is PermissionScope.Tenant or PermissionScope.Both)];
 
     /// <summary>
     /// 按主键查找

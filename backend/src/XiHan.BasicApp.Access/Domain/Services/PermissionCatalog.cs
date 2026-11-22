@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Collections.Frozen;
 using XiHan.BasicApp.Contracts.Security;
 
 namespace XiHan.BasicApp.Access.Domain.Services;
@@ -10,33 +9,21 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 权限目录（单例）
 /// </summary>
 /// <remarks>
-/// 汇总各包登记的 <see cref="PermissionCatalogSection"/>；按作用侧筛选（平台主体只命中 Platform / Both，租户主体只命中 Tenant / Both）
+/// 取 <see cref="RegisteredPermissions"/>：各包登记的 <see cref="PermissionCatalogSection"/> 加上运行期贡献的（已加载插件的权限码），随加载与卸载变化；按作用侧筛选（平台主体只命中 Platform / Both，租户主体只命中 Tenant / Both）
 /// 目录来自操作注册表侧的描述，不落库（方案 5.14：权限目录从注册表派生，不再手写清单）
 /// </remarks>
-public sealed class PermissionCatalog
+/// <param name="registered">已登记的全部权限描述</param>
+public sealed class PermissionCatalog(RegisteredPermissions registered)
 {
-    private readonly FrozenDictionary<string, PermissionDescriptor> _byCode;
-
-    /// <summary>
-    /// 从登记的片段汇总
-    /// </summary>
-    public PermissionCatalog(IEnumerable<PermissionCatalogSection> sections)
-    {
-        ArgumentNullException.ThrowIfNull(sections);
-        var all = sections.SelectMany(static s => s.Permissions).OrderBy(static p => p.Code, StringComparer.Ordinal).ToList();
-        _byCode = all.ToFrozenDictionary(static p => p.Code, StringComparer.Ordinal);
-        All = all;
-    }
-
     /// <summary>
     /// 全部权限描述，按权限码排序
     /// </summary>
-    public IReadOnlyList<PermissionDescriptor> All { get; }
+    public IReadOnlyList<PermissionDescriptor> All => registered.All;
 
     /// <summary>
     /// 按权限码取描述
     /// </summary>
-    public PermissionDescriptor? Find(string code) => _byCode.GetValueOrDefault(code);
+    public PermissionDescriptor? Find(string code) => registered.Find(code);
 
     /// <summary>
     /// 取某一侧可见的权限

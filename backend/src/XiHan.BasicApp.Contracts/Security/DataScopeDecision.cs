@@ -23,6 +23,14 @@ public sealed record DataScopeDecision(bool Unrestricted, IReadOnlySet<Guid> Use
     public static DataScopeDecision Everything { get; } = new(true, _none, _none);
 
     /// <summary>
+    /// 什么都看不到
+    /// </summary>
+    /// <remarks>
+    /// 没有可见的用户与部门：受数据范围约束的查询查不到行（插件主体缺省如此）
+    /// </remarks>
+    public static DataScopeDecision Nothing { get; } = new(false, _none, _none);
+
+    /// <summary>
     /// 某个用户是否在范围内
     /// </summary>
     public bool Allows(Guid userId) => Unrestricted || UserIds.Contains(userId);

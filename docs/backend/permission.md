@@ -28,7 +28,7 @@ Authorize 阶段之后
 | 作用侧 | `Platform` / `Tenant` / `Both`，平台主体与租户主体只能命中各自作用侧的权限（持 `*` 也一样）。任务调度、缓存管理、租户与套餐管理、菜单管理为 `Platform`，用户级数据范围与「我的订阅」为 `Tenant`，多数目录类为 `Both` |
 | 审计 | `audited: true` 的操作写操作日志 |
 
-全部权限码可在权限目录页（`/access/permissions`，操作 `permissions.list`）按包、作用侧与审计筛选查看；可选模块关掉后它的权限码不在目录里。
+全部权限码可在权限目录页（`/access/permissions`，操作 `permissions.list`）按包、作用侧与审计筛选查看；可选模块关掉后它的权限码不在目录里；插件的权限码随插件加载进目录，卸载即撤回（见[插件](./plugins#加载后的权限与主体)）。
 
 权限码没有通配匹配的语义：前端 `can('identity.users.create')` 精确匹配；后端只有通配授予 `*` 覆盖全部权限（内置角色 `admin` 持有），它同样会被 Deny、作用侧与套餐收窄。
 
@@ -80,7 +80,7 @@ Authorize 阶段之后
 租户主体的有效权限与所在租户套餐的白名单求交（Tenancy 经 `Contracts` 的 `IEditionGate` 暴露套餐网关，Access 的 `EditionPermissionFilter` 消费）。作用于 `auth.permissions`、`permissions.list` 与判定本身，不在白名单里即 `SECURITY_DENIED_004`。平台主体不门控；租户未绑定套餐即不受限；新租户缺省绑定 Free 套餐（见[多租户 SaaS](./multi-tenancy#套餐与配额)）。
 
 ::: tip 种子只首写
-套餐白名单在套餐创建时按当时的权限目录写入，之后新增的权限码不会自动进已有套餐。升级后要在套餐页给相应套餐放行新权限。
+套餐白名单在套餐创建时按当时的权限目录写入，之后新增的权限码不会自动进已有套餐。升级后要在套餐页给相应套餐放行新权限。插件的权限码不进任何内置套餐，同样要在套餐页放行。
 :::
 
 ## 菜单

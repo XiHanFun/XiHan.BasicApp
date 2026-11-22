@@ -10,20 +10,18 @@ namespace XiHan.BasicApp.Auditing.Domain.Services;
 /// 哪些操作进操作日志
 /// </summary>
 /// <remarks>
-/// 权限描述标了「审计」（D4 的 <see cref="PermissionDescriptor.Audited"/>）的权限所保护的操作
+/// 权限描述标了「审计」（D4 的 <see cref="PermissionDescriptor.Audited"/>）的权限所保护的操作，含运行期加载的插件按旁挂清单标的
 /// 框架审计中间件的选择规则设为 <c>None</c>，由本包的中间件对这些操作显式声明审计动作，读操作因此不进操作日志（它们在访问日志里）
 /// </remarks>
-/// <param name="sections">各包登记的权限描述</param>
-public sealed class AuditedOperations(IEnumerable<PermissionCatalogSection> sections)
+/// <param name="registered">已登记的全部权限描述</param>
+public sealed class AuditedOperations(RegisteredPermissions registered)
 {
-    private readonly HashSet<string> _audited = sections.SelectMany(static s => s.Permissions).Where(static p => p.Audited).Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
-
     /// <summary>
     /// 操作是否进操作日志
     /// </summary>
     public bool IsAudited(OperationDescriptor operation)
     {
         ArgumentNullException.ThrowIfNull(operation);
-        return operation.Contract.Permission is { } permission && _audited.Contains(permission);
+        return operation.Contract.Permission is { } permission && registered.Find(permission) is { Audited: true };
     }
 }

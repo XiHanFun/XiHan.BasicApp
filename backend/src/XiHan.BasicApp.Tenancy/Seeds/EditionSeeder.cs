@@ -55,7 +55,7 @@ public sealed class EditionSeeder(IRepository<SysEdition, Guid> editions, Editio
     public async ValueTask<Result> SeedAsync(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        var catalog = service.TenantEffective;
+        var catalog = service.BuiltInTenantEffective;
         bool IsRead(PermissionDescriptor p) => string.Equals(p.Action, "read", StringComparison.Ordinal);
         bool IsBasic(PermissionDescriptor p) => IsRead(p) || ((p.Package is "identity" or "organization" or "settings" or "files") && !string.Equals(p.Resource, "impersonation", StringComparison.Ordinal));
         bool IsPro(PermissionDescriptor p) => IsBasic(p) || string.Equals(p.Package, "access", StringComparison.Ordinal);

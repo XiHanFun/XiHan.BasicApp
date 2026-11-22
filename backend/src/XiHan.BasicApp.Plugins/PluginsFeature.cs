@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Plugins.Domain.Services;
+using XiHan.BasicApp.Plugins.Infrastructure;
 using XiHan.BasicApp.Plugins.Queries;
 using XiHan.BasicApp.Runtime;
 using XiHan.Framework.Kernel;
@@ -15,6 +16,7 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Security.Abstractions;
+using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Plugins;
 
@@ -61,6 +63,12 @@ public sealed class PluginsFeature : IFeature
         context.Services.AddScoped<PluginInspector>();
         context.Services.AddScoped<PluginService>();
         context.Services.AddScoped<PluginQueries>();
+
+        // 已加载插件的权限码进已登记的权限，回调权限码给插件主体，数据范围按批准的授予
+        context.Services.AddSingleton<PluginRuntimeCatalog>();
+        context.Services.AddSingleton<IRuntimePermissionSource>(static sp => sp.GetRequiredService<PluginRuntimeCatalog>());
+        context.Services.AddSingleton<IPluginDataScopes>(static sp => sp.GetRequiredService<PluginRuntimeCatalog>());
+        context.Services.AddSingleton<IPermissionGrantSource, PluginGrantSource>();
         context.Services.AddPermissionCatalog("plugins", PluginsPermissions.All);
         foreach (var permission in PluginsPermissions.All)
         {
