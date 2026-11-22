@@ -8,12 +8,14 @@ on:
       - "backend/**"
       - "frontend/**"
       - ".github/workflows/ci.yml"
+      - ".github/scripts/**"
   pull_request:
     branches: [main, dev, preview]
     paths:
       - "backend/**"
       - "frontend/**"
       - ".github/workflows/ci.yml"
+      - ".github/scripts/**"
   workflow_dispatch:
 
 concurrency:
@@ -98,16 +100,20 @@ jobs:
 
   # 集成测试整套换一种库跑：XIHAN_TEST_DB 选库，每个用例在该库上建临时库（Oracle 是临时用户）
   # 库用 docker run 起，不用 services：services 传不了启动参数，测试库要关掉刷盘，否则 MySQL 每个用例建表要几十秒
+  # 每种库分 3 片并行：每个用例都在新库上起宿主（SQL Server 上一次约 15 秒），一片只跑分到的测试类，各片自己起库、互不相干
   backend-databases:
-    name: 集成测试（${{ matrix.db }}）
+    name: 集成测试（${{ matrix.db }} ${{ matrix.shard }}/3）
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         db: [postgresql, mysql, sqlserver]
+        # 改片数要同时改下面的 SHARDS 与作业名里的 /3
+        shard: [1, 2, 3]
     env:
       DB_PASSWORD: XiHan_Test_2026
+      SHARDS: 3
     steps:
       - name: 检出 BasicApp
         uses: actions/checkout@v7
@@ -151,17 +157,25 @@ jobs:
       - name: 构建
         run: dotnet build XiHan.BasicApp/backend/test/XiHan.BasicApp.Integration.Tests -c Release
 
+      # 按类分片：列出全部测试方法，按用例数均衡分到各片（.github/scripts/test-shard.mjs），这一片的类写进 classes.txt
+      - name: 分片
+        working-directory: XiHan.BasicApp
+        run: |
+          dotnet backend/test/XiHan.BasicApp.Integration.Tests/bin/Release/net10.0/XiHan.BasicApp.Integration.Tests.dll -list methods/json > "$RUNNER_TEMP/methods.json"
+          node .github/scripts/test-shard.mjs "$RUNNER_TEMP/methods.json" "${{ matrix.shard }}" "$SHARDS" > "$RUNNER_TEMP/classes.txt"
+
       - name: 集成测试
         working-directory: XiHan.BasicApp
         env:
           XIHAN_TEST_DB: ${{ matrix.db }}
-        run: dotnet test --project backend/test/XiHan.BasicApp.Integration.Tests -c Release --no-build -- --max-threads 4 --report-xunit-trx
+        # 类全名里没有空白，按行展开成 --filter-class 的多个值（多个之间是或）
+        run: dotnet test --project backend/test/XiHan.BasicApp.Integration.Tests -c Release --no-build -- --max-threads 4 --report-xunit-trx --filter-class $(cat "$RUNNER_TEMP/classes.txt")
 
       - name: 上传测试结果
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: backend-test-results-${{ matrix.db }}
+          name: backend-test-results-${{ matrix.db }}-${{ matrix.shard }}
           path: 'XiHan.BasicApp/**/TestResults/*.trx'
           if-no-files-found: ignore
 

@@ -121,7 +121,7 @@
 | PostgreSQL 用例（两库冒烟、从库读主库、并发发号、Provider 一致性、表结构升级等） | 读环境变量 `XIHAN_TEST_POSTGRES`（服务器级连接串，不含库名），测试自建临时库；没设置即跳过 |
 | 整套换一种库跑 | 环境变量 `XIHAN_TEST_DB` 设为 `postgresql`、`mysql`、`sqlserver` 或 `oracle`，每个用例在 `XIHAN_TEST_POSTGRES`、`XIHAN_TEST_MYSQL`、`XIHAN_TEST_SQLSERVER`、`XIHAN_TEST_ORACLE` 指向的服务器上建临时库（Oracle 是临时用户，连接账号要能建用户）；选了库却没配服务器即失败。直接用 SQLite 语句准备数据的用例固定在 SQLite 上 |
 
-CI（`.github/workflows/ci.yml`）的主作业起 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`；另有一组作业按库各跑一遍集成测试（PostgreSQL 17、MySQL 8.4、SQL Server 2022），测试库关掉刷盘以缩短建表时间。
+CI（`.github/workflows/ci.yml`）的主作业起 `postgres:17-alpine` 服务并设置 `XIHAN_TEST_POSTGRES`；另有一组作业按库各跑一遍集成测试（PostgreSQL 17、MySQL 8.4、SQL Server 2022），测试库关掉刷盘以缩短建表时间。每种库分 3 片并行：`.github/scripts/test-shard.mjs` 按各测试类的用例数把类均衡分到各片，每片自己起库，只跑分到的类（`--filter-class`）。本机要复现某一片，先用测试程序的 `-list methods/json` 列出方法，再用这个脚本算出这一片的类。
 
 ## 下一步
 
