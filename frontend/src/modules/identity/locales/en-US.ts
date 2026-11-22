@@ -177,6 +177,32 @@ export default {
       enabled_done: 'Account enabled',
       signed_out: '{n} session(s) signed out',
       no_sessions: 'This user has no active sessions',
+      guide: {
+        user_info: {
+          title: 'User info',
+          description: 'Display name on top, user name below. Accounts tagged System are built in and cannot be deleted, disabled or locked.',
+        },
+        status: {
+          title: 'Account status',
+          description: 'Active, Locked or Disabled. The account status filter in the search area accepts several values at once.',
+        },
+        security: {
+          title: 'Security',
+          description: 'Marks accounts that are locked or have two-factor authentication (2FA) turned on. Unlock or reset 2FA from More when needed.',
+        },
+        roles: {
+          title: 'Roles',
+          description: 'The roles currently in effect for the user. Change them with More → Assign roles.',
+        },
+        create: {
+          title: 'New user',
+          description: 'Fill in the user name, display name, email and initial password to create an account.',
+        },
+        row_actions: {
+          title: 'User actions',
+          description: 'Edit, assign roles, grant permissions, lock or disable, force sign-out, reset the password, impersonate and more, listed according to your permissions and the state of the account.',
+        },
+      },
     },
     online_users: {
       title: 'Online Users',

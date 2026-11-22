@@ -170,7 +170,7 @@ function handleItemClick(item: NotificationItem) {
         <XhTooltipTrigger as-child>
           <!-- 气泡只是描述，图标钮的名字自己给；未读数随名字一起念 -->
           <XhPopoverTrigger as-child>
-            <AppIconButton class="mr-1" :aria-label="bellLabel">
+            <AppIconButton class="mr-1" data-guide="shell.notifications" :aria-label="bellLabel">
               <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
               <XhBadge
                 size="sm"

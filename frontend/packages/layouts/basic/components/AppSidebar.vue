@@ -593,6 +593,7 @@ watch(
       <!-- Primary sidebar panel -->
       <div
         class="relative h-full bg-sidebar"
+        data-guide="shell.sidebar"
         :class="[sidebarTheme, isDualColumn ? '' : 'border-r border-border']"
         :style="{ width: `${sidebarWidth}px` }"
       >

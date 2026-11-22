@@ -1744,4 +1744,200 @@ export default {
       demo_verified: 'Confirmé',
     },
   },
+  guide: {
+    entry: 'Guide de la page',
+    replay_shell: 'Visite de l\'interface',
+    close: 'Fermer le guide',
+    skip: 'Passer',
+    prev: 'Précédent',
+    next: 'Suivant',
+    finish: 'Terminé',
+    progress: 'Étape {step} sur {count}',
+    shell: {
+      title: 'Visite de l\'interface',
+      intro: {
+        title: 'Découvrir l\'interface',
+        description: 'Prenez une minute pour découvrir le menu, la barre supérieure, la barre d\'onglets et la zone de contenu, et le rôle de chaque bouton. Vous pouvez passer à tout moment et revoir la visite dans Centre d\'aide → À propos du projet.',
+      },
+      sidebar: {
+        title: 'Menu de navigation',
+        description: 'Toutes les pages auxquelles vous avez accès, regroupées par module. Cliquez sur un groupe pour le déplier et sur une page pour l\'ouvrir.',
+      },
+      top_menu: {
+        title: 'Menu supérieur',
+        description: 'Cette disposition place le menu dans la barre supérieure. Choisissez ici le module et la page.',
+      },
+      sidebar_collapse: {
+        title: 'Replier le menu',
+        description: 'Réduit le menu latéral à une colonne d\'icônes pour laisser plus de place au contenu. Cliquez à nouveau pour le déplier.',
+      },
+      sidebar_toggle: {
+        title: 'Afficher ou masquer la barre latérale',
+        description: 'Masque toute la barre latérale pour que le contenu occupe toute la largeur. Cliquez à nouveau pour la rétablir.',
+      },
+      favorites: {
+        title: 'Favoris',
+        description: 'Rangez ici les pages que vous utilisez le plus et ouvrez-les en un clic. Les favoris suivent votre compte sur tous vos appareils.',
+      },
+      history: {
+        title: 'Précédent et suivant',
+        description: 'Naviguez entre les pages visitées, comme avec les boutons précédent et suivant du navigateur.',
+      },
+      refresh: {
+        title: 'Recharger la page',
+        description: 'Recharge toute la page, comme la touche F5. Pour actualiser seulement l\'onglet courant, utilisez le bouton à droite de la barre d\'onglets.',
+      },
+      breadcrumb: {
+        title: 'Fil d\'Ariane',
+        description: 'Indique où se trouve la page courante dans le menu. Les niveaux qui ont des pages sœurs ouvrent une liste pour y aller directement.',
+      },
+      search: {
+        title: 'Palette de commandes',
+        description: 'Cherchez des pages et des actions, puis appuyez sur Entrée pour y aller. Ouvrez-la à tout moment avec Ctrl K (⌘ K sur Mac).',
+      },
+      language: {
+        title: 'Langue',
+        description: 'Change la langue de l\'interface. Dix langues sont disponibles.',
+      },
+      timezone: {
+        title: 'Fuseau horaire',
+        description: 'Les heures s\'affichent dans le fuseau choisi ici : plus besoin de convertir quand vous travaillez entre fuseaux.',
+      },
+      theme: {
+        title: 'Clair et sombre',
+        description: 'Bascule entre le thème clair et le thème sombre. D\'autres options d\'apparence, comme la couleur du thème, sont dans les Préférences.',
+      },
+      fullscreen: {
+        title: 'Plein écran',
+        description: 'Passe le navigateur en plein écran. Cliquez à nouveau pour en sortir.',
+      },
+      preferences: {
+        title: 'Préférences',
+        description: 'Disposition, couleur du thème, barre d\'onglets, animations et autres préférences d\'interface. Les changements s\'appliquent tout de suite et se synchronisent avec votre compte.',
+      },
+      notifications: {
+        title: 'Notifications',
+        description: 'Messages internes et ceux qui vous mentionnent. Le badge indique le nombre de non-lus.',
+      },
+      context: {
+        title: 'Où vous êtes',
+        description: 'Indique si vous travaillez sur la plateforme ou dans un locataire. Ouvrez le centre de contrôle pour changer.',
+      },
+      user: {
+        title: 'Votre menu',
+        description: 'Profil, changement de rôle, verrouillage de l\'écran et déconnexion se trouvent ici.',
+      },
+      float_toolbar: {
+        title: 'Outils rapides',
+        description: 'Les outils qui ne tiennent pas dans la barre supérieure sont dans ce bouton flottant. Ouvrez-le pour les utiliser ou faites-le glisser ailleurs.',
+      },
+      tabs: {
+        title: 'Barre d\'onglets',
+        description: 'Chaque page ouverte reste en onglet et garde son état quand vous y revenez. Glissez pour réordonner ; clic droit pour d\'autres actions.',
+      },
+      tab_more: {
+        title: 'Actions d\'onglet',
+        description: 'Pour l\'onglet courant : recharger, épingler, ajouter aux favoris, ouvrir dans une nouvelle fenêtre ou en vue partagée, et fermer les onglets à gauche, à droite ou tous les autres.',
+      },
+      tab_overview: {
+        title: 'Vue des onglets',
+        description: 'Quand les onglets sont nombreux, affichez-les tous pour les chercher, passer de l\'un à l\'autre et les fermer facilement.',
+      },
+      tab_reload: {
+        title: 'Recharger cet onglet',
+        description: 'Recharge seulement la page de l\'onglet courant ; les autres onglets ne sont pas touchés.',
+      },
+      tab_maximize: {
+        title: 'Agrandir le contenu',
+        description: 'Masque le menu, la barre supérieure et la barre d\'onglets pour ne garder que le contenu. Cliquez à nouveau pour rétablir.',
+      },
+      content: {
+        title: 'Zone de contenu',
+        description: 'La page courante s\'ouvre ici. La première fois que vous ouvrez une page de liste, ses actions communes sont aussi présentées.',
+      },
+      footer: {
+        title: 'Pied de page',
+        description: 'Version, droits d\'auteur et informations d\'enregistrement.',
+      },
+      replay: {
+        title: 'Revoir à tout moment',
+        description: 'Cliquez ici pour revoir la présentation de cette page. La visite de l\'interface se revoit dans Centre d\'aide → À propos du projet.',
+      },
+    },
+    schema: {
+      title: 'Pages de liste',
+      search: {
+        title: 'Zone de recherche',
+        description: 'Les filtres courants sont sur cette ligne. Remplissez-les puis appuyez sur Entrée ou cliquez sur Rechercher. Toutes les pages de liste fonctionnent de la même façon.',
+      },
+      search_submit: {
+        title: 'Rechercher',
+        description: 'Lance la recherche avec les filtres saisis.',
+      },
+      search_reset: {
+        title: 'Réinitialiser',
+        description: 'Efface tous les filtres et rétablit le tri par défaut.',
+      },
+      search_settings: {
+        title: 'Réglages de recherche',
+        description: 'Choisissez quels filtres restent sur la ligne de recherche, lesquels passent dans la recherche avancée, et leur ordre.',
+      },
+      presets: {
+        title: 'Préréglages de conditions',
+        description: 'Enregistrez les filtres, le tri et la taille de page comme un préréglage et appliquez-le plus tard en un clic. Le préréglage par défaut s\'applique à l\'ouverture de la page.',
+      },
+      advanced: {
+        title: 'Recherche avancée',
+        description: 'Les filtres moins utilisés sont rangés ici. Dépliez pour les remplir.',
+      },
+      toolbar: {
+        title: 'Barre d\'actions',
+        description: 'À gauche, les actions de cette page, comme Créer ; à droite, les outils du tableau.',
+      },
+      refresh: {
+        title: 'Actualiser',
+        description: 'Recharge les données avec les filtres actuels.',
+      },
+      import: {
+        title: 'Importer',
+        description: 'Téléchargez le modèle, remplissez-le et envoyez-le. Les lignes sont d\'abord vérifiées, puis créées en lot.',
+      },
+      export: {
+        title: 'Exporter',
+        description: 'Exporte les données correspondant aux filtres actuels. Pour de gros volumes, envoyez l\'export au centre d\'export qui le génère en arrière-plan.',
+      },
+      table_settings: {
+        title: 'Réglages du tableau',
+        description: 'Réglez l\'affichage, l\'ordre, l\'épinglage et la largeur des colonnes, ainsi que la hauteur des lignes, le style, la numérotation et la sélection. Cliquez sur Enregistrer pour les garder.',
+      },
+      fullscreen: {
+        title: 'Tableau en plein écran',
+        description: 'La liste occupe toute la fenêtre pour en voir davantage. Cliquez à nouveau pour rétablir.',
+      },
+      table: {
+        title: 'Tableau de données',
+        description: 'Les résultats s\'affichent ici. L\'en-tête reste en place pendant le défilement vertical et horizontal.',
+      },
+      sort: {
+        title: 'Tri et largeur des colonnes',
+        description: 'Cliquez sur la flèche d\'un en-tête pour trier ; vous pouvez combiner plusieurs colonnes. Faites glisser le bord droit d\'un en-tête pour changer la largeur.',
+      },
+      select: {
+        title: 'Sélection et actions groupées',
+        description: 'Une fois des lignes cochées, la barre du bas propose des actions groupées comme activer, désactiver ou supprimer.',
+      },
+      peek: {
+        title: 'Aperçu au survol',
+        description: 'Laissez le pointeur un instant sur une ligne pour voir tous ses champs, y compris les colonnes masquées. Désactivable dans les Préférences.',
+      },
+      row_actions: {
+        title: 'Actions de ligne',
+        description: 'Tout ce que vous pouvez faire avec cette ligne se trouve sous Plus, selon vos droits et l\'état de la ligne.',
+      },
+      footer: {
+        title: 'Pagination',
+        description: 'Le total, le numéro de page et la taille de page sont ici. Les actions groupées des lignes cochées apparaissent aussi dans cette barre.',
+      },
+    },
+  },
 }

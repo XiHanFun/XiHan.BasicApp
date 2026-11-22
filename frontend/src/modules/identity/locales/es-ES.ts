@@ -177,6 +177,32 @@ export default {
       enabled_done: 'Cuenta activada',
       signed_out: '{n} sesión(es) cerrada(s)',
       no_sessions: 'Este usuario no tiene sesiones activas',
+      guide: {
+        user_info: {
+          title: 'Información del usuario',
+          description: 'Arriba el nombre visible y debajo el nombre de usuario. Las cuentas marcadas como Sistema son integradas y no se pueden eliminar, deshabilitar ni bloquear.',
+        },
+        status: {
+          title: 'Estado de la cuenta',
+          description: 'Activo, Bloqueado o Deshabilitado. El filtro de estado de la cuenta en el área de búsqueda admite varios valores a la vez.',
+        },
+        security: {
+          title: 'Seguridad',
+          description: 'Señala las cuentas bloqueadas y las que tienen activada la autenticación en dos pasos (2FA). Desbloquea o restablece la 2FA desde Más cuando haga falta.',
+        },
+        roles: {
+          title: 'Roles',
+          description: 'Los roles vigentes del usuario. Cámbialos con Más → Asignar roles.',
+        },
+        create: {
+          title: 'Nuevo usuario',
+          description: 'Rellena el nombre de usuario, el nombre visible, el correo y la contraseña inicial para crear una cuenta.',
+        },
+        row_actions: {
+          title: 'Acciones de usuario',
+          description: 'Editar, asignar roles, conceder permisos, bloquear o deshabilitar, forzar el cierre de sesión, restablecer la contraseña, suplantar y más, según tus permisos y el estado de la cuenta.',
+        },
+      },
     },
     online_users: {
       title: 'Usuarios en línea',

@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { useAccessStore } from '~/stores/access'
 import { useAppStore } from '~/stores/app'
 import { useFavoritesStore } from '~/stores/favorites'
+import { useGuideStore } from '~/stores/guide'
 import { useLayoutBridgeStore } from '~/stores/modules/layout-bridge'
 import { useLayoutStateStore } from '~/stores/modules/layout-state'
 import { useNotificationStore } from '~/stores/notification'
@@ -50,6 +51,7 @@ describe('枚举取值本身', () => {
       'Notification',
       'TabbarPreferences',
       'Welcome',
+      'Guide',
       'Site',
     ])
   })
@@ -67,6 +69,7 @@ describe('实际 store 的 $id 与枚举登记一致', () => {
     expect(useLayoutBridgeStore().$id).toBe(SetupStoreId.LayoutBridge)
     expect(useNotificationStore().$id).toBe(SetupStoreId.Notification)
     expect(useWelcomeStore().$id).toBe(SetupStoreId.Welcome)
+    expect(useGuideStore().$id).toBe(SetupStoreId.Guide)
   })
 
   it('同一个 pinia 实例里各 store 互相独立，不因 id 冲突而共享状态', () => {
@@ -81,8 +84,9 @@ describe('实际 store 的 $id 与枚举登记一致', () => {
       useLayoutBridgeStore().$id,
       useNotificationStore().$id,
       useWelcomeStore().$id,
+      useGuideStore().$id,
     ])
 
-    expect(ids.size).toBe(10)
+    expect(ids.size).toBe(11)
   })
 })

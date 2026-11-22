@@ -23,6 +23,8 @@ interface ImportMetaEnv {
   /** 应用名与标志（登录页品牌区；缺省取文案与 /favicon.png） */
   /** 新版欢迎页开关：设为 false 即不出现（缺省开） */
   readonly VITE_APP_WELCOME?: string
+  /** 界面与页面引导开关：设为 false 即不自动播放、也不出重看入口（缺省开） */
+  readonly VITE_APP_GUIDE?: string
   /** 首页兜底路径（壳层固定首页标签、守卫重定向） */
   readonly VITE_HOME_PATH?: string
   /** 路由模式：history 用 HTML5 历史，其余（缺省 hash）用 # 路由；静态托管不配回退规则时用 hash */

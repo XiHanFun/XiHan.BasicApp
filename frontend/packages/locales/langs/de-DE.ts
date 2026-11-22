@@ -1744,4 +1744,200 @@ export default {
       demo_verified: 'Bestätigt',
     },
   },
+  guide: {
+    entry: 'Seitenführung',
+    replay_shell: 'Oberflächen-Rundgang',
+    close: 'Führung schließen',
+    skip: 'Überspringen',
+    prev: 'Zurück',
+    next: 'Weiter',
+    finish: 'Fertig',
+    progress: 'Schritt {step} von {count}',
+    shell: {
+      title: 'Oberflächen-Rundgang',
+      intro: {
+        title: 'Die Oberfläche kennenlernen',
+        description: 'Lernen Sie in einer Minute Menü, Kopfleiste, Tableiste und Inhaltsbereich kennen – und was jede Schaltfläche tut. Sie können jederzeit überspringen und den Rundgang später unter Hilfecenter → Über das Projekt erneut ansehen.',
+      },
+      sidebar: {
+        title: 'Navigationsmenü',
+        description: 'Alle Seiten, auf die Sie Zugriff haben, nach Modulen gruppiert. Klicken Sie auf eine Gruppe zum Aufklappen und auf eine Seite zum Öffnen.',
+      },
+      top_menu: {
+        title: 'Obere Menüleiste',
+        description: 'In diesem Layout steht das Menü in der Kopfleiste. Wählen Sie hier Modul und Seite.',
+      },
+      sidebar_collapse: {
+        title: 'Menü einklappen',
+        description: 'Verkleinert das Seitenmenü auf eine Symbolspalte und schafft Platz für den Inhalt. Erneut klicken zum Aufklappen.',
+      },
+      sidebar_toggle: {
+        title: 'Seitenleiste ein- oder ausblenden',
+        description: 'Blendet die ganze Seitenleiste aus, sodass der Inhalt die volle Breite nutzt. Erneut klicken zum Einblenden.',
+      },
+      favorites: {
+        title: 'Favoriten',
+        description: 'Legen Sie häufig genutzte Seiten hier ab und öffnen Sie sie mit einem Klick. Favoriten sind an Ihr Konto gebunden und auf jedem Gerät verfügbar.',
+      },
+      history: {
+        title: 'Zurück und vor',
+        description: 'Wechselt zwischen besuchten Seiten – wie Zurück und Vor im Browser.',
+      },
+      refresh: {
+        title: 'Seite neu laden',
+        description: 'Lädt die ganze Seite neu, wie F5. Um nur den aktuellen Tab zu aktualisieren, nutzen Sie die Schaltfläche rechts in der Tableiste.',
+      },
+      breadcrumb: {
+        title: 'Brotkrümelnavigation',
+        description: 'Zeigt, wo die aktuelle Seite im Menü liegt. Ebenen mit weiteren Seiten öffnen eine Liste, über die Sie direkt springen.',
+      },
+      search: {
+        title: 'Befehlspalette',
+        description: 'Seiten und Aktionen suchen und mit Enter direkt hin. Jederzeit mit Strg K (⌘ K auf dem Mac) aufrufbar.',
+      },
+      language: {
+        title: 'Sprache',
+        description: 'Wechselt die Sprache der Oberfläche. Zehn Sprachen stehen zur Wahl.',
+      },
+      timezone: {
+        title: 'Zeitzone',
+        description: 'Zeiten werden in der hier gewählten Zeitzone angezeigt – über Zeitzonen hinweg müssen Sie nichts umrechnen.',
+      },
+      theme: {
+        title: 'Hell und dunkel',
+        description: 'Wechselt zwischen hellem und dunklem Design. Weitere Optionen wie die Akzentfarbe finden Sie in den Einstellungen.',
+      },
+      fullscreen: {
+        title: 'Vollbild',
+        description: 'Schaltet den Browser in den Vollbildmodus. Erneut klicken zum Beenden.',
+      },
+      preferences: {
+        title: 'Einstellungen',
+        description: 'Layout, Akzentfarbe, Tableiste, Animationen und weitere Oberflächeneinstellungen. Änderungen wirken sofort und werden mit Ihrem Konto synchronisiert.',
+      },
+      notifications: {
+        title: 'Benachrichtigungen',
+        description: 'Nachrichten im System und solche, in denen Sie erwähnt werden. Das Abzeichen zeigt die Zahl der ungelesenen.',
+      },
+      context: {
+        title: 'Aktueller Bereich',
+        description: 'Zeigt, ob Sie auf der Plattform oder in einem Mandanten arbeiten. Über das Kontrollzentrum wechseln Sie.',
+      },
+      user: {
+        title: 'Ihr Menü',
+        description: 'Profil, Rollenwechsel, Bildschirmsperre und Abmelden finden Sie hier.',
+      },
+      float_toolbar: {
+        title: 'Schnellwerkzeuge',
+        description: 'Werkzeuge, die nicht in die Kopfleiste passen, liegen in dieser schwebenden Schaltfläche. Öffnen Sie sie oder ziehen Sie sie an eine andere Stelle.',
+      },
+      tabs: {
+        title: 'Tableiste',
+        description: 'Jede geöffnete Seite bleibt als Tab erhalten und behält ihren Zustand. Ziehen zum Umsortieren, Rechtsklick für weitere Aktionen.',
+      },
+      tab_more: {
+        title: 'Tab-Aktionen',
+        description: 'Für den aktuellen Tab: neu laden, anheften, zu Favoriten hinzufügen, in neuem Fenster oder geteilter Ansicht öffnen sowie Tabs links, rechts oder alle anderen schließen.',
+      },
+      tab_overview: {
+        title: 'Tab-Übersicht',
+        description: 'Bei vielen Tabs alle ausgebreitet anzeigen, um sie zu suchen, zu wechseln und zu schließen.',
+      },
+      tab_reload: {
+        title: 'Diesen Tab neu laden',
+        description: 'Lädt nur die Seite im aktuellen Tab neu; andere Tabs bleiben unberührt.',
+      },
+      tab_maximize: {
+        title: 'Inhalt maximieren',
+        description: 'Blendet Menü, Kopfleiste und Tableiste aus, sodass nur der Seiteninhalt bleibt. Erneut klicken zum Wiederherstellen.',
+      },
+      content: {
+        title: 'Inhaltsbereich',
+        description: 'Hier öffnet sich die aktuelle Seite. Beim ersten Öffnen einer Listenseite werden auch ihre gemeinsamen Aktionen vorgestellt.',
+      },
+      footer: {
+        title: 'Fußzeile',
+        description: 'Version, Copyright und Registrierungsangaben.',
+      },
+      replay: {
+        title: 'Jederzeit erneut ansehen',
+        description: 'Klicken Sie hier, um die Einführung zu dieser Seite noch einmal zu sehen. Den Oberflächen-Rundgang finden Sie unter Hilfecenter → Über das Projekt.',
+      },
+    },
+    schema: {
+      title: 'Listenseiten',
+      search: {
+        title: 'Suchbereich',
+        description: 'Häufige Filter stehen in dieser Zeile. Ausfüllen, dann Enter drücken oder auf Suchen klicken. Alle Listenseiten funktionieren gleich.',
+      },
+      search_submit: {
+        title: 'Suchen',
+        description: 'Sucht mit den eingetragenen Filtern.',
+      },
+      search_reset: {
+        title: 'Zurücksetzen',
+        description: 'Leert alle Filter und stellt die Standardsortierung wieder her.',
+      },
+      search_settings: {
+        title: 'Sucheinstellungen',
+        description: 'Legen Sie fest, welche Filter in der Suchzeile bleiben, welche in die erweiterte Suche wandern und in welcher Reihenfolge.',
+      },
+      presets: {
+        title: 'Filtervorlagen',
+        description: 'Speichern Sie Filter, Sortierung und Seitengröße als Vorlage und wenden Sie sie später mit einem Klick an. Die Standardvorlage wird beim Öffnen der Seite automatisch angewendet.',
+      },
+      advanced: {
+        title: 'Erweiterte Suche',
+        description: 'Seltener genutzte Filter liegen hier. Aufklappen und ausfüllen.',
+      },
+      toolbar: {
+        title: 'Aktionsleiste',
+        description: 'Links die Aktionen dieser Seite, etwa Neu anlegen; rechts die Tabellenwerkzeuge.',
+      },
+      refresh: {
+        title: 'Aktualisieren',
+        description: 'Lädt die Daten mit den aktuellen Filtern erneut.',
+      },
+      import: {
+        title: 'Importieren',
+        description: 'Vorlage herunterladen, ausfüllen und hochladen. Die Zeilen werden zuerst geprüft und dann gesammelt angelegt.',
+      },
+      export: {
+        title: 'Exportieren',
+        description: 'Exportiert die Daten zu den aktuellen Filtern. Bei großen Datenmengen übergeben Sie den Export an das Exportcenter, das ihn im Hintergrund erstellt.',
+      },
+      table_settings: {
+        title: 'Tabelleneinstellungen',
+        description: 'Spalten ein- und ausblenden, sortieren, fixieren und in der Breite anpassen, dazu Zeilenhöhe, Stil, Zeilennummern und Mehrfachauswahl. Mit Speichern merken.',
+      },
+      fullscreen: {
+        title: 'Tabelle im Vollbild',
+        description: 'Lässt die Liste das ganze Fenster füllen, damit Sie mehr auf einmal sehen. Erneut klicken zum Wiederherstellen.',
+      },
+      table: {
+        title: 'Datentabelle',
+        description: 'Hier erscheinen die Ergebnisse. Der Tabellenkopf bleibt stehen, während Sie vertikal und horizontal scrollen.',
+      },
+      sort: {
+        title: 'Sortieren und Spaltenbreite',
+        description: 'Klicken Sie auf den Pfeil im Spaltenkopf, um zu sortieren – auch über mehrere Spalten. Ziehen Sie die rechte Kante eines Kopfes, um die Breite zu ändern.',
+      },
+      select: {
+        title: 'Auswahl und Massenaktionen',
+        description: 'Sobald Zeilen markiert sind, erscheinen in der unteren Leiste Massenaktionen wie Aktivieren, Deaktivieren oder Löschen.',
+      },
+      peek: {
+        title: 'Vorschau beim Überfahren',
+        description: 'Bleiben Sie kurz mit dem Zeiger auf einer Zeile, um alle ihre Felder zu sehen – auch ausgeblendete Spalten. Abschaltbar in den Einstellungen.',
+      },
+      row_actions: {
+        title: 'Zeilenaktionen',
+        description: 'Alles, was Sie mit dieser Zeile tun können, steht unter Mehr – passend zu Ihren Rechten und dem Zustand der Zeile.',
+      },
+      footer: {
+        title: 'Seitennavigation',
+        description: 'Gesamtzahl, Seitennummer und Seitengröße stehen hier. Massenaktionen für markierte Zeilen erscheinen ebenfalls in dieser Leiste.',
+      },
+    },
+  },
 }

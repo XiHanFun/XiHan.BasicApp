@@ -1744,4 +1744,200 @@ export default {
       demo_verified: '확인됨',
     },
   },
+  guide: {
+    entry: '페이지 가이드',
+    replay_shell: '화면 둘러보기',
+    close: '가이드 닫기',
+    skip: '건너뛰기',
+    prev: '이전',
+    next: '다음',
+    finish: '완료',
+    progress: '{step} / {count} 단계',
+    shell: {
+      title: '화면 둘러보기',
+      intro: {
+        title: '화면 살펴보기',
+        description: '메뉴, 헤더, 탭 바, 콘텐츠 영역과 각 버튼의 역할을 1분 만에 알아봅니다. 언제든 건너뛸 수 있고, 나중에 「도움말 센터 → 프로젝트 개요」에서 다시 볼 수 있습니다.',
+      },
+      sidebar: {
+        title: '탐색 메뉴',
+        description: '권한이 있는 페이지를 모듈별로 묶어 보여 줍니다. 그룹을 누르면 펼쳐지고 페이지를 누르면 열립니다.',
+      },
+      top_menu: {
+        title: '상단 메뉴',
+        description: '현재 레이아웃은 메뉴를 헤더에 둡니다. 여기서 모듈과 페이지를 고릅니다.',
+      },
+      sidebar_collapse: {
+        title: '메뉴 접기',
+        description: '사이드 메뉴를 아이콘 한 줄로 줄여 콘텐츠 너비를 넓힙니다. 다시 누르면 펼쳐집니다.',
+      },
+      sidebar_toggle: {
+        title: '사이드바 표시/숨기기',
+        description: '사이드바 전체를 숨겨 콘텐츠가 전체 너비를 쓰게 합니다. 다시 누르면 돌아옵니다.',
+      },
+      favorites: {
+        title: '즐겨찾기',
+        description: '자주 쓰는 페이지를 모아 두고 한 번에 엽니다. 즐겨찾기는 계정에 저장되어 다른 기기에서도 그대로입니다.',
+      },
+      history: {
+        title: '뒤로/앞으로',
+        description: '브라우저의 뒤로·앞으로처럼 방문한 페이지 사이를 오갑니다.',
+      },
+      refresh: {
+        title: '페이지 새로고침',
+        description: '페이지 전체를 다시 불러옵니다(F5와 같음). 현재 탭만 새로 고치려면 탭 바 오른쪽의 새로고침을 쓰세요.',
+      },
+      breadcrumb: {
+        title: '이동 경로',
+        description: '현재 페이지가 메뉴의 어디에 있는지 보여 줍니다. 같은 단계에 다른 페이지가 있으면 눌러서 바로 이동할 수 있습니다.',
+      },
+      search: {
+        title: '명령 팔레트',
+        description: '페이지와 작업을 검색하고 Enter로 이동합니다. Ctrl K(Mac에서는 ⌘ K)로 언제든 열 수 있습니다.',
+      },
+      language: {
+        title: '표시 언어',
+        description: '화면 표시 언어를 바꿉니다. 10개 언어를 지원합니다.',
+      },
+      timezone: {
+        title: '표시 시간대',
+        description: '화면의 시간은 여기서 고른 시간대로 표시됩니다. 시간대가 다른 사람과 일해도 직접 환산할 필요가 없습니다.',
+      },
+      theme: {
+        title: '라이트/다크',
+        description: '밝은 테마와 어두운 테마를 전환합니다. 테마 색 등 더 많은 외관 설정은 환경 설정에 있습니다.',
+      },
+      fullscreen: {
+        title: '전체 화면',
+        description: '브라우저를 전체 화면으로 전환합니다. 다시 누르면 해제됩니다.',
+      },
+      preferences: {
+        title: '환경 설정',
+        description: '레이아웃, 테마 색, 탭 바, 애니메이션 등 화면 설정이 모여 있습니다. 바꾸면 바로 적용되고 계정과 동기화됩니다.',
+      },
+      notifications: {
+        title: '알림',
+        description: '사이트 메시지와 나를 언급한 메시지가 여기에 옵니다. 배지는 읽지 않은 개수입니다.',
+      },
+      context: {
+        title: '현재 위치',
+        description: '플랫폼에서 작업 중인지, 어느 테넌트에서 작업 중인지 보여 줍니다. 컨트롤 센터를 열어 전환할 수 있습니다.',
+      },
+      user: {
+        title: '개인 메뉴',
+        description: '개인 센터, 역할 전환, 화면 잠금, 로그아웃이 여기에 있습니다.',
+      },
+      float_toolbar: {
+        title: '빠른 도구',
+        description: '헤더에 들어가지 못한 도구는 이 떠 있는 버튼에 모여 있습니다. 열어서 쓰거나 다른 위치로 끌어 옮길 수 있습니다.',
+      },
+      tabs: {
+        title: '탭 바',
+        description: '연 페이지는 탭으로 남고 다시 돌아와도 상태가 유지됩니다. 끌어서 순서를 바꾸고, 오른쪽 클릭으로 더 많은 작업을 할 수 있습니다.',
+      },
+      tab_more: {
+        title: '탭 작업',
+        description: '현재 탭 새로고침, 고정, 즐겨찾기, 새 창이나 분할 화면으로 열기, 왼쪽·오른쪽·다른 탭 닫기를 할 수 있습니다.',
+      },
+      tab_overview: {
+        title: '탭 개요',
+        description: '탭이 많을 때 한눈에 펼쳐 보고 검색, 전환, 닫기를 쉽게 할 수 있습니다.',
+      },
+      tab_reload: {
+        title: '현재 탭 새로고침',
+        description: '현재 탭의 페이지만 다시 불러옵니다. 다른 탭에는 영향이 없습니다.',
+      },
+      tab_maximize: {
+        title: '콘텐츠 최대화',
+        description: '메뉴, 헤더, 탭 바를 숨기고 페이지 내용만 남깁니다. 다시 누르면 돌아옵니다.',
+      },
+      content: {
+        title: '콘텐츠 영역',
+        description: '현재 페이지가 여기에 표시됩니다. 목록 페이지를 처음 열면 목록의 공통 작업도 이어서 소개합니다.',
+      },
+      footer: {
+        title: '바닥글',
+        description: '버전, 저작권, 등록 정보입니다.',
+      },
+      replay: {
+        title: '언제든 다시 보기',
+        description: '이 페이지 소개를 다시 보려면 여기를 누르세요. 화면 둘러보기는 「도움말 센터 → 프로젝트 개요」에서 다시 볼 수 있습니다.',
+      },
+    },
+    schema: {
+      title: '목록 페이지',
+      search: {
+        title: '검색 영역',
+        description: '자주 쓰는 조건이 이 줄에 있습니다. 입력한 뒤 Enter를 누르거나 조회를 누르세요. 모든 목록 페이지가 같은 방식입니다.',
+      },
+      search_submit: {
+        title: '조회',
+        description: '입력한 조건으로 조회합니다.',
+      },
+      search_reset: {
+        title: '초기화',
+        description: '모든 조건을 지우고 기본 정렬로 되돌립니다.',
+      },
+      search_settings: {
+        title: '검색 설정',
+        description: '어떤 조건을 검색 줄에 항상 두고 어떤 조건을 고급 검색에 넣을지, 그리고 순서를 정합니다.',
+      },
+      presets: {
+        title: '조건 프리셋',
+        description: '현재 조건, 정렬, 페이지당 개수를 프리셋으로 저장해 다음에 한 번에 적용합니다. 기본값으로 지정한 프리셋은 페이지를 열 때 자동으로 적용됩니다.',
+      },
+      advanced: {
+        title: '고급 검색',
+        description: '자주 쓰지 않는 조건은 여기에 있습니다. 펼쳐서 입력하세요.',
+      },
+      toolbar: {
+        title: '작업 영역',
+        description: '왼쪽은 새로 만들기 같은 이 페이지의 작업, 오른쪽은 표 도구입니다.',
+      },
+      refresh: {
+        title: '새로고침',
+        description: '현재 조건으로 데이터를 다시 가져옵니다.',
+      },
+      import: {
+        title: '가져오기',
+        description: '템플릿을 내려받아 채운 뒤 올리면 각 행을 검증한 다음 한꺼번에 만듭니다.',
+      },
+      export: {
+        title: '내보내기',
+        description: '현재 조건에 맞는 데이터를 내보냅니다. 데이터가 많으면 내보내기 센터에 제출해 백그라운드에서 만들 수 있습니다.',
+      },
+      table_settings: {
+        title: '표 설정',
+        description: '열의 표시, 순서, 고정, 너비와 행 높이, 스타일, 번호, 다중 선택을 조정합니다. 저장을 누르면 기억됩니다.',
+      },
+      fullscreen: {
+        title: '표 전체 화면',
+        description: '목록을 창 전체로 넓혀 더 많은 데이터를 봅니다. 다시 누르면 돌아옵니다.',
+      },
+      table: {
+        title: '데이터 표',
+        description: '조회 결과가 여기에 표시됩니다. 머리글은 고정되고 상하좌우로 스크롤할 수 있습니다.',
+      },
+      sort: {
+        title: '정렬과 열 너비',
+        description: '열 머리글의 화살표를 눌러 정렬하며 여러 열을 겹쳐 정렬할 수 있습니다. 머리글 오른쪽 끝을 끌어 열 너비를 조정합니다.',
+      },
+      select: {
+        title: '선택과 일괄 작업',
+        description: '행을 선택하면 아래 바에 일괄 활성화, 비활성화, 삭제 같은 작업이 나타납니다.',
+      },
+      peek: {
+        title: '미리 보기',
+        description: '행 위에 포인터를 잠시 두면 표에서 숨긴 열까지 그 행의 모든 필드를 볼 수 있습니다. 환경 설정에서 끌 수 있습니다.',
+      },
+      row_actions: {
+        title: '행 작업',
+        description: '이 행에 할 수 있는 작업은 「더 보기」에 있으며, 권한과 행의 상태에 따라 표시됩니다.',
+      },
+      footer: {
+        title: '페이지 이동',
+        description: '전체 개수, 페이지 번호, 페이지당 개수가 여기에 있습니다. 행을 선택하면 일괄 작업도 이 줄에 나타납니다.',
+      },
+    },
+  },
 }

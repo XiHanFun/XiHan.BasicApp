@@ -177,6 +177,32 @@ export default {
       enabled_done: 'Konto aktiviert',
       signed_out: '{n} Sitzung(en) abgemeldet',
       no_sessions: 'Dieser Benutzer hat keine aktiven Sitzungen',
+      guide: {
+        user_info: {
+          title: 'Benutzerinfo',
+          description: 'Oben der Anzeigename, darunter der Benutzername. Mit System markierte Konten sind eingebaut und lassen sich weder löschen noch deaktivieren oder sperren.',
+        },
+        status: {
+          title: 'Kontostatus',
+          description: 'Aktiv, Gesperrt oder Deaktiviert. Der Kontostatus-Filter im Suchbereich erlaubt mehrere Werte gleichzeitig.',
+        },
+        security: {
+          title: 'Sicherheit',
+          description: 'Kennzeichnet gesperrte Konten und Konten mit Zwei-Faktor-Authentifizierung (2FA). Entsperren oder 2FA zurücksetzen bei Bedarf über Mehr.',
+        },
+        roles: {
+          title: 'Rollen',
+          description: 'Die aktuell wirksamen Rollen des Benutzers. Ändern über Mehr → Rollen zuweisen.',
+        },
+        create: {
+          title: 'Neuer Benutzer',
+          description: 'Benutzername, Anzeigename, E-Mail und Startpasswort eingeben, um ein Konto anzulegen.',
+        },
+        row_actions: {
+          title: 'Benutzeraktionen',
+          description: 'Bearbeiten, Rollen zuweisen, Berechtigungen erteilen, sperren oder deaktivieren, Abmeldung erzwingen, Passwort zurücksetzen, Identität übernehmen und mehr – passend zu Ihren Rechten und dem Kontostatus.',
+        },
+      },
     },
     online_users: {
       title: 'Online-Benutzer',

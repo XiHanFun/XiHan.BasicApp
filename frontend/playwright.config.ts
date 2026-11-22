@@ -74,6 +74,8 @@ export default defineConfig({
       timeout: 300_000,
       env: {
         VITE_DEV_PROXY_TARGET: BACKEND_URL,
+        // 首次进入自动播放的界面引导会用遮罩挡住用例的点击：这份构建关掉它，引导自己的行为由单测与浏览器验证覆盖
+        VITE_APP_GUIDE: 'false',
       },
     },
   ],

@@ -6,17 +6,19 @@
 <script lang="ts" setup>
 import type { Component } from 'vue'
 import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, defineAsyncComponent, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Icon } from '~/iconify'
-import { useSplitViewStore } from '~/stores'
+import { PAGE_GUIDE_HOST, useSplitViewStore } from '~/stores'
 
 defineOptions({ name: 'SplitPane' })
 
 const { t } = useI18n()
 const splitView = useSplitViewStore()
 const router = useRouter()
+// 副侧的页面不是当前页：不登记页面引导，标签栏的引导入口与自动播放只认锚定侧
+provide(PAGE_GUIDE_HOST, false)
 
 /** 重载令牌：变更 key 触发组件重建（由分割线工具组调用 reload） */
 const reloadKey = ref(0)

@@ -1744,4 +1744,200 @@ export default {
       demo_verified: '已验证',
     },
   },
+  guide: {
+    entry: '页面引导',
+    replay_shell: '界面导览',
+    close: '关闭引导',
+    skip: '跳过',
+    prev: '上一步',
+    next: '下一步',
+    finish: '完成',
+    progress: '第 {step} 步，共 {count} 步',
+    shell: {
+      title: '界面导览',
+      intro: {
+        title: '认识一下界面',
+        description: '花一分钟熟悉菜单、顶栏、标签栏和内容区，看看每个按钮管什么。随时可以跳过，之后在「帮助中心 → 项目概览」里能重看。',
+      },
+      sidebar: {
+        title: '导航菜单',
+        description: '按模块分组列出你有权限的页面，点分组展开，点页面打开。',
+      },
+      top_menu: {
+        title: '顶部菜单',
+        description: '当前布局把菜单放在顶栏，从这里选模块和页面。',
+      },
+      sidebar_collapse: {
+        title: '折叠菜单',
+        description: '把侧边菜单收成一列图标，给内容让出宽度；再点一次展开。',
+      },
+      sidebar_toggle: {
+        title: '显示或隐藏侧栏',
+        description: '整块收起侧边栏，内容占满宽度；再点一次放回来。',
+      },
+      favorites: {
+        title: '收藏夹',
+        description: '常用的页面收藏在这里，一键打开。收藏跟着账号走，换台设备也在。',
+      },
+      history: {
+        title: '后退与前进',
+        description: '在访问过的页面之间来回切换，和浏览器的后退、前进一样。',
+      },
+      refresh: {
+        title: '刷新页面',
+        description: '整页重新加载，相当于按 F5。只想刷新当前标签，用标签栏右侧的刷新。',
+      },
+      breadcrumb: {
+        title: '面包屑',
+        description: '显示当前页面在菜单里的位置；有同级页面的那一级，点开就能直接跳过去。',
+      },
+      search: {
+        title: '命令面板',
+        description: '搜页面、搜操作，回车直达。按 Ctrl K（Mac 上是 ⌘ K）随时呼出。',
+      },
+      language: {
+        title: '界面语言',
+        description: '切换界面显示的语言，共十种可选。',
+      },
+      timezone: {
+        title: '显示时区',
+        description: '页面上的时间都按这里选的时区显示，跨时区协作不用自己换算。',
+      },
+      theme: {
+        title: '明暗主题',
+        description: '在浅色与深色之间切换；主题色等更多外观在偏好设置里。',
+      },
+      fullscreen: {
+        title: '全屏',
+        description: '让浏览器进入全屏，再点一次退出。',
+      },
+      preferences: {
+        title: '偏好设置',
+        description: '布局、主题色、标签栏、动画等界面偏好都在这里，改了立即生效，并跟着账号同步。',
+      },
+      notifications: {
+        title: '消息通知',
+        description: '站内消息和提到你的消息都在这里，角标是未读数。',
+      },
+      context: {
+        title: '当前所在',
+        description: '显示你正在平台还是哪个租户里操作，点开控制中心可以切换。',
+      },
+      user: {
+        title: '个人菜单',
+        description: '个人中心、切换角色、锁屏和退出登录都在这里。',
+      },
+      float_toolbar: {
+        title: '快捷工具',
+        description: '顶栏放不下的工具收在这颗悬浮按钮里，点开就能用，还能拖到别的位置。',
+      },
+      tabs: {
+        title: '标签栏',
+        description: '打开过的页面都留成标签，切回来时页面状态还在。可以拖动排序，右键有更多操作。',
+      },
+      tab_more: {
+        title: '标签操作',
+        description: '对当前标签：刷新、固定、收藏、在新窗口或分屏打开，关闭左侧、右侧或其他标签。',
+      },
+      tab_overview: {
+        title: '标签总览',
+        description: '标签多了用它平铺查看，搜索、切换、关闭都方便。',
+      },
+      tab_reload: {
+        title: '刷新当前标签',
+        description: '只重新加载当前标签里的页面，其他标签不受影响。',
+      },
+      tab_maximize: {
+        title: '内容最大化',
+        description: '收起菜单、顶栏和标签栏，只留页面内容；再点一次还原。',
+      },
+      content: {
+        title: '内容区',
+        description: '当前页面在这里展开。列表页第一次打开时，还会接着介绍列表的通用操作。',
+      },
+      footer: {
+        title: '页脚',
+        description: '版本、版权与备案信息。',
+      },
+      replay: {
+        title: '随时重看',
+        description: '想再看一遍本页的介绍就点这里；界面导览在「帮助中心 → 项目概览」里重看。',
+      },
+    },
+    schema: {
+      title: '列表页',
+      search: {
+        title: '搜索区',
+        description: '常用的查询条件摆在这一行，填好后回车或点查询。各个列表页都是这一套操作。',
+      },
+      search_submit: {
+        title: '查询',
+        description: '按填好的条件查询。',
+      },
+      search_reset: {
+        title: '重置',
+        description: '清空全部条件，恢复默认排序。',
+      },
+      search_settings: {
+        title: '搜索设置',
+        description: '调整哪些条件常驻在搜索行、哪些收进高级搜索，以及它们的顺序。',
+      },
+      presets: {
+        title: '条件预设',
+        description: '把当前的条件、排序和每页条数存成一份预设，下次一键套用；设为默认的在打开页面时自动套用。',
+      },
+      advanced: {
+        title: '高级搜索',
+        description: '不常用的条件收在这里，展开就能填。',
+      },
+      toolbar: {
+        title: '操作区',
+        description: '左边是本页的操作，比如新建；右边是表格工具。',
+      },
+      refresh: {
+        title: '刷新',
+        description: '按当前条件重新取一次数据。',
+      },
+      import: {
+        title: '导入',
+        description: '下载模板填好后上传，逐行校验通过再批量创建。',
+      },
+      export: {
+        title: '导出',
+        description: '导出当前条件下的数据；数据多时可以提交到导出中心，在后台生成。',
+      },
+      table_settings: {
+        title: '表格设置',
+        description: '调整列的显示、顺序、固定和宽度，以及行高、样式、序号与多选，点保存记住。',
+      },
+      fullscreen: {
+        title: '表格全屏',
+        description: '让列表铺满整个窗口，数据多时看得更全；再点一次还原。',
+      },
+      table: {
+        title: '数据表格',
+        description: '查询结果在这里，表头固定，可以上下、左右滚动。',
+      },
+      sort: {
+        title: '排序与列宽',
+        description: '点列头的箭头排序，可以叠加多列；拖列头右边缘调整列宽。',
+      },
+      select: {
+        title: '勾选与批量',
+        description: '勾选行之后，底栏会出现批量操作，比如批量启用、停用或删除。',
+      },
+      peek: {
+        title: '悬停速览',
+        description: '鼠标在一行上停一会儿，就能看到这一行的全部字段，连表格里隐藏的列也在。偏好设置里可以关掉。',
+      },
+      row_actions: {
+        title: '行操作',
+        description: '对这一行能做的事都在「更多」里，按你的权限和这一行的状态列出。',
+      },
+      footer: {
+        title: '分页',
+        description: '总条数、页码和每页条数在这里，勾选行后的批量操作也出现在这一栏。',
+      },
+    },
+  },
 }

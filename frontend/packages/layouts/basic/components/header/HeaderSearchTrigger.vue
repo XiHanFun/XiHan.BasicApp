@@ -35,7 +35,7 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
   <div>
     <!-- 宽屏铺开完整的命令面板入口；收紧时（compact）只留图标钮，把宽度让给横向菜单 -->
     <div v-if="!props.compact" class="hidden sm:block">
-      <button type="button" class="search-trigger" @click="layoutBridgeStore.requestOpenGlobalSearch()">
+      <button type="button" class="search-trigger" data-guide="shell.search" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <span class="shrink-0 text-[hsl(var(--muted-foreground))]" style="display: inline-flex; font-size: var(--xh-glyph-size-text)">
           <Icon icon="lucide:search" />
         </span>
@@ -44,7 +44,7 @@ const showShortcut = computed(() => appStore.shortcutEnable && appStore.shortcut
       </button>
     </div>
     <div :class="props.compact ? undefined : 'sm:hidden'">
-      <AppIconButton :tooltip="t('header.search.placeholder')" @click="layoutBridgeStore.requestOpenGlobalSearch()">
+      <AppIconButton data-guide="shell.search" :tooltip="t('header.search.placeholder')" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <Icon width="16" height="16" icon="lucide:search" />
       </AppIconButton>
     </div>

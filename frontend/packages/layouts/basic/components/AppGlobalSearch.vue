@@ -14,7 +14,7 @@ import { useRecentRoutes } from '~/composables/useRecentRoutes'
 import { AUTH_PATH, LAYOUT_EVENT_OPEN_GLOBAL_SEARCH } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAccessStore, useAppStore, useAuthStore, useFavoritesStore, useLayoutBridgeStore } from '~/stores'
+import { useAccessStore, useAppStore, useAuthStore, useFavoritesStore, useGuideStore, useLayoutBridgeStore } from '~/stores'
 
 /**
  * 命令面板：布局层常驻一份，由 layoutBridgeStore.requestOpenGlobalSearch 打开
@@ -30,6 +30,7 @@ const accessStore = useAccessStore()
 const authStore = useAuthStore()
 const favoritesStore = useFavoritesStore()
 const layoutBridgeStore = useLayoutBridgeStore()
+const guideStore = useGuideStore()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { refresh: refreshCurrentTab } = useRefresh()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
@@ -194,6 +195,27 @@ const actionItems = computed<PaletteItem[]>(() => {
       run: () => layoutBridgeStore.requestSidebarToggle(),
     },
   ]
+  // 引导：当前页登记了引导才出「页面引导」，界面导览随时可看
+  if (guideStore.pageAvailable) {
+    list.push({
+      id: 'act:guide-page',
+      group: 'action',
+      title: t('guide.entry'),
+      icon: 'lucide:compass',
+      keywords: 'guide tour help 引导 帮助 介绍',
+      run: () => guideStore.playPage(),
+    })
+  }
+  if (guideStore.shellAvailable) {
+    list.push({
+      id: 'act:guide-shell',
+      group: 'action',
+      title: t('guide.replay_shell'),
+      icon: 'lucide:map',
+      keywords: 'guide tour help 导览 引导 帮助 介绍',
+      run: () => guideStore.playShell(),
+    })
+  }
   if (appStore.widgetLockScreen) {
     list.push({
       id: 'act:lock',

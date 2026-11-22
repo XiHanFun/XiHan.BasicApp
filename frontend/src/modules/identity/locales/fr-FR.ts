@@ -177,6 +177,32 @@ export default {
       enabled_done: 'Compte activé',
       signed_out: '{n} session(s) déconnectée(s)',
       no_sessions: 'Cet utilisateur n’a aucune session active',
+      guide: {
+        user_info: {
+          title: 'Infos utilisateur',
+          description: 'En haut le nom affiché, en dessous le nom d\'utilisateur. Les comptes marqués Système sont intégrés et ne peuvent être ni supprimés, ni désactivés, ni verrouillés.',
+        },
+        status: {
+          title: 'État du compte',
+          description: 'Actif, Verrouillé ou Désactivé. Le filtre d\'état du compte dans la zone de recherche accepte plusieurs valeurs.',
+        },
+        security: {
+          title: 'Sécurité',
+          description: 'Signale les comptes verrouillés et ceux qui ont activé l\'authentification à deux facteurs (2FA). Déverrouillez ou réinitialisez la 2FA depuis Plus si besoin.',
+        },
+        roles: {
+          title: 'Rôles',
+          description: 'Les rôles en vigueur pour l\'utilisateur. Modifiez-les via Plus → Attribuer des rôles.',
+        },
+        create: {
+          title: 'Nouvel utilisateur',
+          description: 'Saisissez le nom d\'utilisateur, le nom affiché, l\'e-mail et le mot de passe initial pour créer un compte.',
+        },
+        row_actions: {
+          title: 'Actions utilisateur',
+          description: 'Modifier, attribuer des rôles, accorder des droits, verrouiller ou désactiver, forcer la déconnexion, réinitialiser le mot de passe, se connecter en tant que l\'utilisateur, etc., selon vos droits et l\'état du compte.',
+        },
+      },
     },
     online_users: {
       title: 'Utilisateurs en ligne',

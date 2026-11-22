@@ -12,7 +12,7 @@ import { toast } from '~/composables'
 import { server as serverApi } from '~/contracts'
 import { Icon } from '~/iconify'
 import { ApiError } from '~/request'
-import { useAuthStore, useSiteStore, useWelcomeStore } from '~/stores'
+import { useAuthStore, useGuideStore, useSiteStore, useWelcomeStore } from '~/stores'
 import PackageJson from '../../../../package.json'
 
 defineOptions({ name: 'AboutPage' })
@@ -21,6 +21,8 @@ const { t } = useI18n()
 const auth = useAuthStore()
 /** 新版欢迎页的重看入口：这一版登记过亮点、开关也开着才出现 */
 const welcome = useWelcomeStore()
+/** 界面导览的重看入口：引导开关开着才出现 */
+const guide = useGuideStore()
 
 // package.json 里的依赖值是 pnpm 的 catalog: 协议串，真实版本由构建期解析后注入
 const dependencies = __APP_DEPENDENCIES__
@@ -162,6 +164,10 @@ onMounted(() => {
         <XhButton v-if="welcome.available" class="ab-banner-action" variant="outline" size="sm" @click="welcome.show()">
           <Icon icon="lucide:sparkles" width="14" />
           {{ t('welcome.replay') }}
+        </XhButton>
+        <XhButton v-if="guide.shellAvailable" class="ab-banner-action" variant="outline" size="sm" @click="guide.playShell()">
+          <Icon icon="lucide:map" width="14" />
+          {{ t('guide.replay_shell') }}
         </XhButton>
       </div>
       <div class="ab-hero">
@@ -442,7 +448,7 @@ onMounted(() => {
   color: var(--xh-fg-default);
 }
 
-/* 重看欢迎页的入口靠在标题行的另一头 */
+/* 重看欢迎页与界面导览的入口靠在标题行的另一头，几颗挨着排 */
 /* 横幅铺着一层有色的光：描边钮缺省透明底，在上面不显眼，给它实心的面 */
 .ab-banner-action {
   --xh-button-bg: var(--xh-bg-surface);
@@ -451,6 +457,10 @@ onMounted(() => {
 
   position: relative;
   margin-inline-start: auto;
+}
+
+.ab-banner-action + .ab-banner-action {
+  margin-inline-start: 0;
 }
 
 .ab-hero {

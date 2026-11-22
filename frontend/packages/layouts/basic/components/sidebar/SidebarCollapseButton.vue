@@ -33,6 +33,7 @@ function toggle() {
     size="sm"
     icon-only
     class="absolute bottom-2 left-3 z-10"
+    data-guide="shell.sidebar-collapse"
     :aria-label="label"
     :title="label"
     @click.stop="toggle"

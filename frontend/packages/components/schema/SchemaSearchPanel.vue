@@ -79,11 +79,13 @@ function toggleExpand() {
         <XIconButton
           variant="solid"
           icon="lucide:search"
+          data-guide="schema.search-submit"
           :label="t('component.search_panel.search')"
           @click="emit('search')"
         />
         <XIconButton
           icon="lucide:rotate-ccw"
+          data-guide="schema.search-reset"
           :label="t('component.search_panel.reset')"
           @click="emit('reset')"
         />
@@ -92,6 +94,7 @@ function toggleExpand() {
         <XIconButton
           v-if="hasAdvanced"
           :icon="expanded ? 'lucide:chevron-up' : 'lucide:sliders-horizontal'"
+          data-guide="schema.advanced"
           :label="expanded ? t('component.search_panel.hide_conditions') : t('component.search_panel.advanced_search')"
           @click="toggleExpand"
         />

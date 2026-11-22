@@ -12,13 +12,14 @@ import type { ApiId } from '~/types/contracts'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { dialog, toast } from '~/composables'
+import { dialog, toast, usePageGuide } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore } from '~/stores'
 import { deepClone } from '~/utils'
 import XIconButton from '../common/XIconButton.vue'
+import { schemaGuideChapter, schemaPageGuideChapter } from './guide'
 import { formatFieldText } from './renderer'
 import { renderRowActionMenu } from './row-action-menu'
 import SchemaActionPanel from './SchemaActionPanel.vue'
@@ -55,12 +56,14 @@ const emit = defineEmits<{
 // eslint-disable-next-line ts/no-explicit-any
 type Row = Record<string, any>
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { hasPermission } = usePermission()
 const appStore = useAppStore()
 
 const firstLoaded = ref(false)
 const checkedKeys = ref<Array<string | number>>([])
+/** 页面根：页面引导的锚点只在它里面找 */
+const pageRootRef = ref<HTMLElement | null>(null)
 
 const table = useSchemaTable<Row>(props.schema)
 const { loading, rows, total, page, pageSize, filters, sorts, search, reset, changePage, changePageSize, changeSort, remove } = table
@@ -179,6 +182,23 @@ function onSaveTableSettings() {
 function onSaveSearchSettings() {
   searchSettings.save()
 }
+
+/**
+ * 页面引导：先是列表页通用的一章，页面写了 guide 再接本页的业务一章
+ * 首批数据回来、表格与搜索区按同步后的设置摆好之后才算就绪，自动播放等它
+ */
+usePageGuide({
+  root: () => pageRootRef.value,
+  ready: () => firstLoaded.value && settings.ready.value && searchSettings.ready.value,
+  chapters: () => props.schema.guide
+    ? [
+        schemaGuideChapter,
+        schemaPageGuideChapter(props.schema.pageCode, () => te(props.schema.pageName)
+          ? t(props.schema.pageName)
+          : props.schema.pageName, props.schema.guide),
+      ]
+    : [schemaGuideChapter],
+})
 
 /** 局部全屏 */
 const isFullscreen = ref(false)
@@ -735,7 +755,7 @@ const skeletonColumns = computed(() => {
 </script>
 
 <template>
-  <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
+  <div ref="pageRootRef" class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
     <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉
          开着搜索设置同步时等后端那份回来再出，免得先按本地旧的常用 / 高级划分摆出来再换 -->
     <Transition name="app-arrive">
@@ -744,6 +764,7 @@ const skeletonColumns = computed(() => {
         class="xh-schema-card"
         variant="outline"
         style="overflow: visible"
+        data-guide="schema.search"
       >
         <XhCardContent>
           <SchemaSearchPanel
@@ -779,7 +800,7 @@ const skeletonColumns = computed(() => {
     </Transition>
 
     <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/导入/导出/列设置/全屏） -->
-    <XhCardRoot class="xh-schema-card xh-schema-card--toolbar" variant="outline" style="overflow: visible">
+    <XhCardRoot class="xh-schema-card xh-schema-card--toolbar" variant="outline" style="overflow: visible" data-guide="schema.toolbar">
       <XhCardContent>
         <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
           <!-- 页面自定义的前置标签（如主从页的当前对象名） -->
@@ -791,12 +812,14 @@ const skeletonColumns = computed(() => {
             <slot name="toolbar" :reload="reload" />
             <XIconButton
               icon="lucide:refresh-cw"
+              data-guide="schema.refresh"
               :label="t('common.actions.refresh')"
               @click="reload"
             />
             <XIconButton
               v-if="canImport"
               icon="lucide:upload"
+              data-guide="schema.import"
               :label="t('component.schema_page.import_csv')"
               @click="importVisible = true"
             />
@@ -812,7 +835,7 @@ const skeletonColumns = computed(() => {
                 @item-select="(details: { value: string }) => onExportSelect(details.value)"
               >
                 <template #trigger>
-                  <XhButton class="x-icon-btn" variant="ghost" size="sm" icon-only :aria-label="t('component.schema_page.export_menu')">
+                  <XhButton class="x-icon-btn" variant="ghost" size="sm" icon-only data-guide="schema.export" :aria-label="t('component.schema_page.export_menu')">
                     <Icon icon="lucide:download" />
                   </XhButton>
                 </template>
@@ -821,6 +844,7 @@ const skeletonColumns = computed(() => {
               <XIconButton
                 v-else
                 icon="lucide:download"
+                data-guide="schema.export"
                 :label="t('component.schema_page.export_csv')"
                 :loading="exporting"
                 @click="exportCsv"
@@ -848,6 +872,7 @@ const skeletonColumns = computed(() => {
             />
             <XIconButton
               :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
+              data-guide="schema.fullscreen"
               :label="isFullscreen ? t('component.schema_page.exit_fullscreen') : t('component.schema_page.enter_fullscreen')"
               @click="toggleFullscreen"
             />
@@ -857,7 +882,7 @@ const skeletonColumns = computed(() => {
     </XhCardRoot>
 
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
-    <XhCardRoot class="xh-schema-card flex-1" variant="outline" style="height: 0">
+    <XhCardRoot class="xh-schema-card flex-1" variant="outline" style="height: 0" data-guide="schema.table">
       <XhCardContent class="xh-schema-card__body--table">
         <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据
              开着表格设置同步时也等后端那份回来，免得先按本地旧的列顺序、显隐与宽度摆出表格再换 -->

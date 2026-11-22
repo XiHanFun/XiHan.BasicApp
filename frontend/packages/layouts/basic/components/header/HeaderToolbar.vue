@@ -63,7 +63,7 @@ const placement = useWidgetPlacement()
       variant="dropdown"
       apply
     >
-      <AppIconButton class="mr-1" :tooltip="t('header.toolbar.switch_language')">
+      <AppIconButton class="mr-1" data-guide="shell.language" :tooltip="t('header.toolbar.switch_language')">
         <Icon icon="lucide:languages" width="16" height="16" />
       </AppIconButton>
     </LocaleSwitcher>
@@ -74,7 +74,7 @@ const placement = useWidgetPlacement()
       variant="dropdown"
       apply
     >
-      <AppIconButton class="mr-1" :tooltip="t('header.toolbar.switch_timezone')">
+      <AppIconButton class="mr-1" data-guide="shell.timezone" :tooltip="t('header.toolbar.switch_timezone')">
         <Icon icon="lucide:clock-3" width="16" height="16" />
       </AppIconButton>
     </TimezoneSwitcher>
@@ -83,6 +83,7 @@ const placement = useWidgetPlacement()
     <AppIconButton
       v-if="placement.theme.value === 'header'"
       class="mr-1"
+      data-guide="shell.theme"
       :tooltip="props.isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
       @mousedown.prevent
       @click="(event: MouseEvent) => emit('themeToggle', event)"
@@ -103,6 +104,7 @@ const placement = useWidgetPlacement()
     <AppIconButton
       v-if="placement.fullscreen.value === 'header'"
       class="mr-1"
+      data-guide="shell.fullscreen"
       :tooltip="props.isFullscreen ? t('header.toolbar.fullscreen_exit') : t('header.toolbar.fullscreen_enter')"
       @click="emit('fullscreenToggle')"
     >
@@ -122,6 +124,7 @@ const placement = useWidgetPlacement()
     <AppIconButton
       v-if="props.showPreferencesInHeader !== false"
       class="mr-1"
+      data-guide="shell.preferences"
       :tooltip="t('header.toolbar.preferences')"
       @mousedown.prevent
       @click="emit('preferencesOpen')"
@@ -161,6 +164,7 @@ const placement = useWidgetPlacement()
         variant="outline"
         tone="brand"
         class="context-switch mx-1"
+        data-guide="shell.context"
         :tooltip="t('header.context.switch', { name: props.contextLabel })"
         @click="emit('userAction', 'control-center')"
       >
@@ -172,7 +176,7 @@ const placement = useWidgetPlacement()
     <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致
          窄屏只剩头像，名字经 tooltip 进 aria-label：菜单触发钮任何宽度下都有名字 -->
     <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
-      <AppIconButton labeled class="ml-1" :tooltip="props.userStore.nickname || props.userStore.username">
+      <AppIconButton labeled class="ml-1" data-guide="shell.user" :tooltip="props.userStore.nickname || props.userStore.username">
         <XUserAvatar
           :size="24"
           :avatar="props.userStore.avatar"

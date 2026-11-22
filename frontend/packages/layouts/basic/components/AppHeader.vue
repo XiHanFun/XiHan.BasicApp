@@ -532,6 +532,7 @@ watch(() => route.fullPath, () => {
   <template v-if="appStore.breadcrumbNavButtons && !isMobile">
     <AppIconButton
       class="my-0 rounded-md"
+      data-guide="shell.history"
       :tooltip="t('header.toolbar.nav_back')"
       :disabled="!canGoBack"
       @click="router.back()"
@@ -552,6 +553,7 @@ watch(() => route.fullPath, () => {
   <AppIconButton
     v-if="appStore.widgetRefresh"
     class="my-0 mr-1 rounded-md"
+    data-guide="shell.refresh"
     :tooltip="t('header.toolbar.refresh_page')"
     @click="handleReloadPage"
   >
@@ -560,7 +562,7 @@ watch(() => route.fullPath, () => {
 
   <!-- Breadcrumb：允许被压缩（min-w-0），但顶栏挤压时排在最后让：命令面板收成图标、「自动」的工具让到悬浮组之后，
        才由 HeaderNav 单行截断，不折成两行 -->
-  <div v-if="showBreadcrumb" ref="breadcrumbRef" class="hidden min-w-0 lg:block">
+  <div v-if="showBreadcrumb" ref="breadcrumbRef" class="hidden min-w-0 lg:block" data-guide="shell.breadcrumb">
     <HeaderNav
       :app-store="appStore"
       :breadcrumbs="breadcrumbs"
@@ -571,7 +573,7 @@ watch(() => route.fullPath, () => {
   <!-- Menu area：弹性区，放得下时多出来的宽度都在它身上，顶栏挤压按它量空档 -->
   <div ref="menuAreaRef" class="flex flex-1 items-center min-w-0">
     <!-- 菜单铺满整条空档：排得下时按对齐方式摆，排不下时在里面横向滚动 -->
-    <div v-if="showTopMenu" class="hidden min-w-0 flex-1 items-center xihan-top-menu lg:flex">
+    <div v-if="showTopMenu" class="hidden min-w-0 flex-1 items-center xihan-top-menu lg:flex" data-guide="shell.top-menu">
       <HeaderTopMenu
         :options="topMenuOptions"
         :active-key="topMenuActive"

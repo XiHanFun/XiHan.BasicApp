@@ -16,7 +16,7 @@ import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
 import GrantConditionsDrawer from '@/modules/access/views/roles/components/GrantConditionsDrawer.vue'
-import { deleteConfirmText, Icon, renderRowActionMenu, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XFieldLabel, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
+import { deleteConfirmText, Icon, renderRowActionMenu, renderTag, schemaGuideTarget, SchemaPage, XDataTable, XDatePicker, XEditModal, XFieldLabel, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { useAuthStore, useUserStore } from '~/stores'
@@ -470,6 +470,54 @@ const schema = computed<PageSchema>(() => ({
   rowKey: 'id',
   fields: fields.value,
   resource: resource as unknown as PageSchema['resource'],
+  // 页面引导：接在列表页通用的一章之后，讲本页的业务列与操作；目标不在（没有权限、列被隐藏、没有数据）的步骤自动去掉
+  guide: {
+    version: 1,
+    steps: [
+      {
+        id: 'create',
+        target: schemaGuideTarget.action('create'),
+        titleKey: 'identity.users.guide.create.title',
+        descriptionKey: 'identity.users.guide.create.description',
+        placement: 'bottom-start',
+      },
+      {
+        id: 'user_info',
+        target: schemaGuideTarget.cell('userName'),
+        titleKey: 'identity.users.guide.user_info.title',
+        descriptionKey: 'identity.users.guide.user_info.description',
+        placement: 'right',
+      },
+      {
+        id: 'status',
+        target: schemaGuideTarget.column('status'),
+        titleKey: 'identity.users.guide.status.title',
+        descriptionKey: 'identity.users.guide.status.description',
+        placement: 'bottom',
+      },
+      {
+        id: 'security',
+        target: schemaGuideTarget.column('security'),
+        titleKey: 'identity.users.guide.security.title',
+        descriptionKey: 'identity.users.guide.security.description',
+        placement: 'bottom',
+      },
+      {
+        id: 'roles',
+        target: schemaGuideTarget.column('roleNames'),
+        titleKey: 'identity.users.guide.roles.title',
+        descriptionKey: 'identity.users.guide.roles.description',
+        placement: 'bottom',
+      },
+      {
+        id: 'row_actions',
+        target: schemaGuideTarget.rowActions(),
+        titleKey: 'identity.users.guide.row_actions.title',
+        descriptionKey: 'identity.users.guide.row_actions.description',
+        placement: 'left',
+      },
+    ],
+  },
   actions: [
     {
       key: 'create',

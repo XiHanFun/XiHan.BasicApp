@@ -1744,4 +1744,200 @@ export default {
       demo_verified: 'Verified',
     },
   },
+  guide: {
+    entry: 'Page guide',
+    replay_shell: 'Interface tour',
+    close: 'Close guide',
+    skip: 'Skip',
+    prev: 'Back',
+    next: 'Next',
+    finish: 'Done',
+    progress: 'Step {step} of {count}',
+    shell: {
+      title: 'Interface tour',
+      intro: {
+        title: 'Get to know the interface',
+        description: 'Take a minute to learn the menu, header, tab bar and content area, and what each button does. Skip anytime and replay it later from Help Center → About Project.',
+      },
+      sidebar: {
+        title: 'Navigation menu',
+        description: 'Every page you have access to, grouped by module. Click a group to expand it and a page to open it.',
+      },
+      top_menu: {
+        title: 'Top menu',
+        description: 'This layout puts the menu in the header. Pick a module and page from here.',
+      },
+      sidebar_collapse: {
+        title: 'Collapse the menu',
+        description: 'Shrinks the side menu to a column of icons to give the content more room. Click again to expand it.',
+      },
+      sidebar_toggle: {
+        title: 'Show or hide the sidebar',
+        description: 'Hides the whole sidebar so the content fills the width. Click again to bring it back.',
+      },
+      favorites: {
+        title: 'Favorites',
+        description: 'Keep the pages you use most here and open them in one click. Favorites follow your account to every device.',
+      },
+      history: {
+        title: 'Back and forward',
+        description: 'Move between the pages you have visited, just like the browser back and forward buttons.',
+      },
+      refresh: {
+        title: 'Reload the page',
+        description: 'Reloads the whole page, the same as pressing F5. To refresh only the current tab, use the reload button at the right of the tab bar.',
+      },
+      breadcrumb: {
+        title: 'Breadcrumb',
+        description: 'Shows where the current page sits in the menu. Levels with sibling pages open a list you can jump to.',
+      },
+      search: {
+        title: 'Command palette',
+        description: 'Search pages and actions, then press Enter to go. Open it anytime with Ctrl K (⌘ K on Mac).',
+      },
+      language: {
+        title: 'Language',
+        description: 'Switch the interface language. Ten languages are available.',
+      },
+      timezone: {
+        title: 'Time zone',
+        description: 'Times across the app are shown in the time zone you pick here, so you never convert by hand when working across zones.',
+      },
+      theme: {
+        title: 'Light and dark',
+        description: 'Switch between the light and dark theme. More appearance options, such as the theme color, are in Preferences.',
+      },
+      fullscreen: {
+        title: 'Full screen',
+        description: 'Puts the browser in full screen. Click again to exit.',
+      },
+      preferences: {
+        title: 'Preferences',
+        description: 'Layout, theme color, tab bar, animations and other interface preferences. Changes apply right away and sync with your account.',
+      },
+      notifications: {
+        title: 'Notifications',
+        description: 'In-app messages and the ones that mention you. The badge shows how many are unread.',
+      },
+      context: {
+        title: 'Where you are',
+        description: 'Shows whether you are working in the platform or in a tenant. Open the control center to switch.',
+      },
+      user: {
+        title: 'Your menu',
+        description: 'Profile, role switching, lock screen and sign out are all here.',
+      },
+      float_toolbar: {
+        title: 'Quick tools',
+        description: 'Tools that do not fit in the header live in this floating button. Open it to use them, or drag it somewhere else.',
+      },
+      tabs: {
+        title: 'Tab bar',
+        description: 'Every page you open stays as a tab and keeps its state when you come back. Drag to reorder; right-click for more actions.',
+      },
+      tab_more: {
+        title: 'Tab actions',
+        description: 'For the current tab: reload, pin, add to favorites, open in a new window or split view, and close tabs to the left, to the right or all others.',
+      },
+      tab_overview: {
+        title: 'Tab overview',
+        description: 'When there are many tabs, lay them all out to search, switch and close them easily.',
+      },
+      tab_reload: {
+        title: 'Reload this tab',
+        description: 'Reloads only the page in the current tab; other tabs are untouched.',
+      },
+      tab_maximize: {
+        title: 'Maximize content',
+        description: 'Hides the menu, header and tab bar so only the page content remains. Click again to restore.',
+      },
+      content: {
+        title: 'Content area',
+        description: 'The current page opens here. The first time you open a list page, its common actions are introduced as well.',
+      },
+      footer: {
+        title: 'Footer',
+        description: 'Version, copyright and registration information.',
+      },
+      replay: {
+        title: 'Replay anytime',
+        description: 'Click here to see the introduction to this page again. Replay the interface tour from Help Center → About Project.',
+      },
+    },
+    schema: {
+      title: 'List pages',
+      search: {
+        title: 'Search area',
+        description: 'Common filters sit in this row. Fill them in, then press Enter or click Search. Every list page works the same way.',
+      },
+      search_submit: {
+        title: 'Search',
+        description: 'Runs the query with the filters you filled in.',
+      },
+      search_reset: {
+        title: 'Reset',
+        description: 'Clears all filters and restores the default sort.',
+      },
+      search_settings: {
+        title: 'Search settings',
+        description: 'Choose which filters stay in the search row, which move into advanced search, and their order.',
+      },
+      presets: {
+        title: 'Condition presets',
+        description: 'Save the current filters, sort and page size as a preset and apply it in one click later. The default preset is applied whenever the page opens.',
+      },
+      advanced: {
+        title: 'Advanced search',
+        description: 'Less common filters are tucked away here. Expand to fill them in.',
+      },
+      toolbar: {
+        title: 'Action bar',
+        description: 'Actions for this page, such as Create, are on the left; table tools are on the right.',
+      },
+      refresh: {
+        title: 'Refresh',
+        description: 'Fetches the data again with the current filters.',
+      },
+      import: {
+        title: 'Import',
+        description: 'Download the template, fill it in and upload it. Rows are validated first, then created in bulk.',
+      },
+      export: {
+        title: 'Export',
+        description: 'Exports the data matching the current filters. For large data sets, submit it to the export center to build it in the background.',
+      },
+      table_settings: {
+        title: 'Table settings',
+        description: 'Adjust column visibility, order, pinning and width, plus row height, style, row numbers and selection. Click Save to keep them.',
+      },
+      fullscreen: {
+        title: 'Full-screen table',
+        description: 'Lets the list fill the whole window so you can see more at once. Click again to restore.',
+      },
+      table: {
+        title: 'Data table',
+        description: 'Results appear here. The header stays in place while you scroll vertically and horizontally.',
+      },
+      sort: {
+        title: 'Sort and resize',
+        description: 'Click the arrow in a column header to sort; you can stack several columns. Drag the right edge of a header to resize the column.',
+      },
+      select: {
+        title: 'Select and bulk actions',
+        description: 'After you check rows, bulk actions such as enable, disable or delete appear in the bottom bar.',
+      },
+      peek: {
+        title: 'Hover preview',
+        description: 'Rest the pointer on a row for a moment to see all of its fields, including columns hidden from the table. You can turn this off in Preferences.',
+      },
+      row_actions: {
+        title: 'Row actions',
+        description: 'Everything you can do with this row is under More, listed according to your permissions and the state of the row.',
+      },
+      footer: {
+        title: 'Pagination',
+        description: 'Total count, page number and page size live here. Bulk actions for checked rows show up in this bar too.',
+      },
+    },
+  },
 }

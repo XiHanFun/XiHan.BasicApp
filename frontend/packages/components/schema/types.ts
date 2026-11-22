@@ -5,6 +5,7 @@
 
 import type { Tone } from '@xihan-ui/core'
 import type { VNodeChild } from 'vue'
+import type { SchemaGuide } from './guide'
 import type { ApiId, PageResult, QueryFilter } from '~/types/contracts'
 
 /**
@@ -287,6 +288,11 @@ export interface PageSchema<TRow = Record<string, unknown>> {
     /** 默认展开全部（默认 true） */
     defaultExpandAll?: boolean
   }
+  /**
+   * 本页的业务引导：排在列表页通用的一章之后，介绍本页自己的列与操作
+   * 目标用 schemaGuideTarget 取列头、首行单元格、页面操作与行操作；不给即本页只有通用的一章
+   */
+  guide?: SchemaGuide
 }
 
 /**

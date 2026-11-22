@@ -18,5 +18,6 @@ export enum SetupStoreId {
   Notification = 'notification',
   TabbarPreferences = 'tabbar-preferences',
   Welcome = 'welcome',
+  Guide = 'guide',
   Site = 'site',
 }

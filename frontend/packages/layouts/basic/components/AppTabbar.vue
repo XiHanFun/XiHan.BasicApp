@@ -15,7 +15,7 @@ import { GLOBAL_HOTKEYS } from '~/composables/useGlobalShortcuts'
 import { usePlatform } from '~/composables/usePlatform'
 import { useContentMaximize, useRefresh } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAppStore, useFavoritesStore, useLayoutBridgeStore, useSplitViewStore, useTabbarPreferences, useTabbarStore } from '~/stores'
+import { useAppStore, useFavoritesStore, useGuideStore, useLayoutBridgeStore, useSplitViewStore, useTabbarPreferences, useTabbarStore } from '~/stores'
 import {
   buildTabContextOptions,
   flyToFavorites,
@@ -36,6 +36,8 @@ const tabbarStore = useTabbarStore()
 const favoritesStore = useFavoritesStore()
 const splitViewStore = useSplitViewStore()
 const layoutBridgeStore = useLayoutBridgeStore()
+/** 页面引导：当前页登记了引导才出入口 */
+const guideStore = useGuideStore()
 const { formatShortcut } = usePlatform()
 // 标签总览按钮 title 里的键位提示，键位取自全局快捷键声明
 const tabOverviewShortcut = formatShortcut(GLOBAL_HOTKEYS.tabOverview.join('+'))
@@ -544,6 +546,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
     <!-- 标签列表（无滚动条，通过箭头控制） -->
     <div
       class="tabbar-list min-w-0 flex-1 overflow-hidden"
+      data-guide="shell.tabs"
       :class="appStore.tabbarStyle !== 'chrome' ? 'h-9' : 'h-full'"
     >
       <div
@@ -616,11 +619,31 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       @select="handleDropdownSelect"
     />
     <span class="tab-divider" />
+    <!-- 页面引导：重看本页的介绍（列表页的通用操作与本页业务） -->
+    <template v-if="guideStore.pageAvailable">
+      <XhButton
+        variant="ghost"
+        size="sm"
+        icon-only
+        data-guide="shell.guide"
+        :aria-label="t('guide.entry')"
+        :title="t('guide.entry')"
+        @click="guideStore.playPage()"
+      >
+        <Icon icon="lucide:compass" width="14" />
+      </XhButton>
+      <!-- 后面紧跟的钮自带前导分隔线（标签总览）时不再画一道 -->
+      <span
+        v-if="tabbarPreferences.tabbarShowMore.value || (!tabbarPreferences.tabbarShowOverview.value && (appStore.widgetRefresh || tabbarPreferences.tabbarShowMaximize.value))"
+        class="tab-divider"
+      />
+    </template>
     <XhButton
       v-if="tabbarPreferences.tabbarShowMore.value"
       variant="ghost"
       size="sm"
       icon-only
+      data-guide="shell.tab-more"
       :aria-label="t('tabbar.more')"
       @click="openActiveTabMenu"
     >
@@ -632,6 +655,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       variant="ghost"
       size="sm"
       icon-only
+      data-guide="shell.tab-overview"
       :aria-label="t('tabbar.overview')"
       :title="`${t('tabbar.overview')} (${tabOverviewShortcut})`"
       @click="layoutBridgeStore.requestOpenTabOverview()"
@@ -647,6 +671,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       variant="ghost"
       size="sm"
       icon-only
+      data-guide="shell.tab-reload"
       :aria-label="t('tabbar.reload')"
       @click="refreshCurrentTab"
     >
@@ -658,6 +683,7 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       variant="ghost"
       size="sm"
       icon-only
+      data-guide="shell.tab-maximize"
       :aria-label="isContentMaximized ? t('tabbar.unmaximize') : t('tabbar.maximize')"
       @click="toggleMaximize"
     >

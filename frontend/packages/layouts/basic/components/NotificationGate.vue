@@ -17,10 +17,10 @@ import {
   XhDialogRoot,
   XhDialogTitle,
 } from '@xihan-ui/vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
-import { useAppContext, useWelcomeStore } from '~/stores'
+import { useAppContext, useGuideStore, useWelcomeStore } from '~/stores'
 
 defineOptions({ name: 'NotificationGate' })
 
@@ -42,6 +42,12 @@ const popupIndex = ref(0)
 const currentPopup = computed<AppUserInboxDisplayItem | null>(() => popupList.value[popupIndex.value] ?? null)
 // 强制阅读未清空前不弹普通 popup
 const popupVisible = computed(() => !held.value && mandatoryList.value.length === 0 && currentPopup.value !== null)
+
+// 界面引导排在公告之后：还没取回、或还有没处理完的公告时不自动开始，免得引导的遮罩盖在公告上
+const guide = useGuideStore()
+const fetched = ref(false)
+watchEffect(() => guide.setHold('notification-gate', !fetched.value || mandatoryList.value.length > 0 || currentPopup.value !== null))
+onBeforeUnmount(() => guide.setHold('notification-gate', false))
 
 async function onMandatoryRead(item: AppUserInboxDisplayItem): Promise<void> {
   markingId.value = item.basicId
@@ -80,6 +86,9 @@ onMounted(async () => {
   }
   catch {
     // 拉取失败静默：不弹出即可
+  }
+  finally {
+    fetched.value = true
   }
 })
 </script>

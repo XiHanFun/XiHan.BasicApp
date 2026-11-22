@@ -98,6 +98,7 @@ onBeforeUnmount(() => {
     <span ref="anchorRef" class="mr-1 inline-flex">
       <XhPopoverTrigger as-child>
         <AppIconButton
+          data-guide="shell.favorites"
           :active="showPanel"
           :class="{ 'fav-btn--pulse': pulsing }"
           :tooltip="t('header.favorites.title')"

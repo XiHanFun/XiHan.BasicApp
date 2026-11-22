@@ -373,6 +373,9 @@ function onSortChange(chain: TableSortDescriptor[]): void {
 // ── 多选 ──────────────────────────────────────────────────────────────
 const selection = computed<TableSelection>(() => props.checkedKeys.map(String))
 
+/** 页面引导讲排序时指的那颗排序钮：第一列能排序的 */
+const firstSortableKey = computed(() => props.columns.find(column => column.sortable)?.key)
+
 function onSelectionChange(next: TableSelection): void {
   // 裸 'all' 摊成当前页的显式键：上层按键数组做批量操作
   const keys = next === 'all'
@@ -417,7 +420,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
       <XhTableHeader>
         <XhTableRow>
           <XhTableColumnHeader v-if="renderExpand" :value="EXPAND_COL" />
-          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL">
+          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL" data-guide="schema.select">
             <XhTableSelectAllTrigger />
           </XhTableColumnHeader>
           <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL">
@@ -427,12 +430,17 @@ function rowAttrs(row: TRow, rowIndex: number) {
             v-for="column in columns"
             :key="column.key"
             :value="column.key"
+            :data-guide-head="column.key"
           >
             <!-- 列名一律放进 column-label：它是列头里唯一可收窄的一格，超宽出省略号；
                  排序钮与调宽把手都是它的兄弟，排在列名之后被推到行尾并排。点列名不排序，点钮才排序 -->
             <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
             <!-- 定尺图标钮，不包列名；箭头由皮肤按当前方向兜底画，可及名由库的 translations.sort(列名) 给 -->
-            <XhTableSortTrigger v-if="column.sortable" :title="t('component.schema_table.sort_tip')" />
+            <XhTableSortTrigger
+              v-if="column.sortable"
+              :title="t('component.schema_table.sort_tip')"
+              :data-guide="column.key === firstSortableKey ? 'schema.sort' : undefined"
+            />
             <!-- 调宽把手与排序钮是兄弟节点，拖它不会连带触发排序 -->
             <XhTableColumnResizeTrigger :title="t('component.schema_table.resize_tip')" />
           </XhTableColumnHeader>
@@ -441,7 +449,8 @@ function rowAttrs(row: TRow, rowIndex: number) {
 
       <XhTableBody>
         <template v-for="(item, rowIndex) in flatRows" :key="item.key">
-          <XhTableRow :value="item.key" v-bind="rowAttrs(item.row, rowIndex)">
+          <!-- 第一行带上引导锚点：页面引导拿它讲速览、行操作与业务列 -->
+          <XhTableRow :value="item.key" v-bind="rowAttrs(item.row, rowIndex)" :data-guide="rowIndex === 0 ? 'schema.first-row' : undefined">
             <XhTableCell v-if="renderExpand" :value="EXPAND_COL">
               <XhTableExpandTrigger />
             </XhTableCell>
@@ -455,6 +464,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
               v-for="column in columns"
               :key="column.key"
               :value="column.key"
+              :data-guide-cell="rowIndex === 0 ? column.key : undefined"
             >
               <!-- 树形列：缩进 + 展开箭头，其余列照常渲染 -->
               <template v-if="tree && column.tree">
@@ -503,7 +513,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
       :y="peek.y.value"
     />
 
-    <div class="xh-table-panel__footer">
+    <div class="xh-table-panel__footer" data-guide="schema.footer">
       <!-- 底部左侧：数据量/页码提示 + 批量操作浮条（选中后在此展示，避免挤压表格） -->
       <div class="xh-table-panel__footer-left">
         <div class="xh-table__count">

@@ -30,12 +30,14 @@ import AppBackTop from './components/AppBackTop.vue'
 import AppFavorites from './components/AppFavorites.vue'
 import AppFloatToolbar from './components/AppFloatToolbar.vue'
 import AppGlobalSearch from './components/AppGlobalSearch.vue'
+import AppGuide from './components/AppGuide.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppIconButton from './components/AppIconButton.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
 import AppTabOverview from './components/AppTabOverview.vue'
+import { registerShellGuide } from './components/guide/shell-guide'
 import ImpersonationBanner from './components/ImpersonationBanner.vue'
 import NotificationBanner from './components/NotificationBanner.vue'
 import NotificationGate from './components/NotificationGate.vue'
@@ -80,6 +82,8 @@ useCheckUpdates()
 const welcome = useWelcomeStore()
 // 壳层自己的几屏亮点在这里登记：布局挂载时应用上下文（个人中心的路由）已经就绪
 registerShellWelcomeHighlights()
+// 界面导览：步骤指向壳层各处的 data-guide 锚点，自动播放的时机由 AppGuide 管
+registerShellGuide()
 // 欢迎层按需加载：没轮到它出现的人不必下载沙粒画面那部分代码；出现过一次就留着，重看不用再等
 const AppWelcome = defineAsyncComponent(() => import('./components/AppWelcome.vue'))
 const welcomeLoaded = ref(false)
@@ -417,6 +421,7 @@ const sidebarEnableState = computed(
           <AppIconButton
             v-if="shell.showHeaderToggleButton.value"
             class="my-0 mr-1"
+            data-guide="shell.sidebar-toggle"
             :tooltip="shell.showSider.value ? t('header.toolbar.sidebar_collapse') : t('header.toolbar.sidebar_expand')"
             @click="shell.handleHeaderToggle"
           >
@@ -471,6 +476,7 @@ const sidebarEnableState = computed(
         <XhScrollAreaRoot
           v-if="!showSplit"
           class="xh-content-scroll min-h-0 flex-1"
+          data-guide="shell.content"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
@@ -502,6 +508,7 @@ const sidebarEnableState = computed(
           v-else
           ref="splitRowRef"
           class="relative flex min-h-0 w-full flex-1 overflow-hidden"
+          data-guide="shell.content"
           :class="{ 'split-collapsed': swapPhase === 'shrink' || swapPhase === 'fly' }"
         >
           <!-- reversed 时用 dir 让指针位移与方向键跟着视觉顺序一起翻转 -->
@@ -615,6 +622,7 @@ const sidebarEnableState = computed(
       <!-- 内容最大化时页脚向下滑出画面并让出高度，滑出后打 inert -->
       <footer
         v-if="shell.appStore.footerEnable"
+        data-guide="shell.footer"
         :inert="shell.contentMaximized.value || undefined"
         :style="{
           minHeight: `${shell.footerHeight.value}px`,
@@ -678,6 +686,9 @@ const sidebarEnableState = computed(
 
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
+
+    <!-- 界面与页面引导（浮层 teleport 到 body）：首次进入时播没看过的章节，入口在标签栏右侧与帮助中心 -->
+    <AppGuide />
 
     <!-- 新版欢迎页（teleport 到 body 的全屏层，首次进入新的版本线时出现一次） -->
     <AppWelcome v-if="welcomeLoaded" />

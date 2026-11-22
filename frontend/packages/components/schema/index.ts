@@ -4,6 +4,8 @@
  */
 
 export { actionConfirmText, deleteConfirmText, statusConfirmText } from './confirm-text'
+export { schemaGuideChapter, schemaGuideTarget, schemaPageGuideChapter } from './guide'
+export type { SchemaGuide } from './guide'
 export { formatFieldText, renderFieldCell } from './renderer'
 export { renderRowActionMenu } from './row-action-menu'
 export type { RowMenuAction } from './row-action-menu'

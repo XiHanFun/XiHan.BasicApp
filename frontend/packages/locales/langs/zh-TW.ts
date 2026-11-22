@@ -1744,4 +1744,200 @@ export default {
       demo_verified: '已驗證',
     },
   },
+  guide: {
+    entry: '頁面引導',
+    replay_shell: '介面導覽',
+    close: '關閉引導',
+    skip: '略過',
+    prev: '上一步',
+    next: '下一步',
+    finish: '完成',
+    progress: '第 {step} 步，共 {count} 步',
+    shell: {
+      title: '介面導覽',
+      intro: {
+        title: '認識一下介面',
+        description: '花一分鐘熟悉選單、頂欄、分頁列和內容區，看看每個按鈕管什麼。隨時可以略過，之後在「說明中心 → 專案概覽」裡能重看。',
+      },
+      sidebar: {
+        title: '導覽選單',
+        description: '依模組分組列出你有權限的頁面，點分組展開，點頁面開啟。',
+      },
+      top_menu: {
+        title: '頂部選單',
+        description: '目前的版面把選單放在頂欄，從這裡選模組和頁面。',
+      },
+      sidebar_collapse: {
+        title: '收合選單',
+        description: '把側邊選單收成一列圖示，讓出內容寬度；再點一次展開。',
+      },
+      sidebar_toggle: {
+        title: '顯示或隱藏側欄',
+        description: '整塊收起側邊欄，內容佔滿寬度；再點一次放回來。',
+      },
+      favorites: {
+        title: '我的最愛',
+        description: '常用的頁面收藏在這裡，一鍵開啟。收藏跟著帳號走，換台裝置也在。',
+      },
+      history: {
+        title: '上一頁與下一頁',
+        description: '在造訪過的頁面之間來回切換，和瀏覽器的上一頁、下一頁一樣。',
+      },
+      refresh: {
+        title: '重新整理頁面',
+        description: '整頁重新載入，相當於按 F5。只想重新整理目前的分頁，用分頁列右側的重新整理。',
+      },
+      breadcrumb: {
+        title: '麵包屑',
+        description: '顯示目前頁面在選單裡的位置；有同級頁面的那一級，點開就能直接跳過去。',
+      },
+      search: {
+        title: '命令面板',
+        description: '搜尋頁面與操作，按 Enter 直達。按 Ctrl K（Mac 上是 ⌘ K）隨時叫出。',
+      },
+      language: {
+        title: '介面語言',
+        description: '切換介面顯示的語言，共十種可選。',
+      },
+      timezone: {
+        title: '顯示時區',
+        description: '頁面上的時間都依這裡選的時區顯示，跨時區協作不用自己換算。',
+      },
+      theme: {
+        title: '明暗主題',
+        description: '在淺色與深色之間切換；主題色等更多外觀在偏好設定裡。',
+      },
+      fullscreen: {
+        title: '全螢幕',
+        description: '讓瀏覽器進入全螢幕，再點一次離開。',
+      },
+      preferences: {
+        title: '偏好設定',
+        description: '版面、主題色、分頁列、動畫等介面偏好都在這裡，改了立即生效，並跟著帳號同步。',
+      },
+      notifications: {
+        title: '訊息通知',
+        description: '站內訊息和提到你的訊息都在這裡，角標是未讀數。',
+      },
+      context: {
+        title: '目前所在',
+        description: '顯示你正在平台還是哪個租戶裡操作，點開控制中心可以切換。',
+      },
+      user: {
+        title: '個人選單',
+        description: '個人中心、切換角色、鎖定畫面和登出都在這裡。',
+      },
+      float_toolbar: {
+        title: '快捷工具',
+        description: '頂欄放不下的工具收在這顆懸浮按鈕裡，點開就能用，還能拖到別的位置。',
+      },
+      tabs: {
+        title: '分頁列',
+        description: '開過的頁面都留成分頁，切回來時頁面狀態還在。可以拖動排序，按右鍵有更多操作。',
+      },
+      tab_more: {
+        title: '分頁操作',
+        description: '對目前的分頁：重新整理、釘選、收藏、在新視窗或分割畫面開啟，關閉左側、右側或其他分頁。',
+      },
+      tab_overview: {
+        title: '分頁總覽',
+        description: '分頁多了用它平鋪檢視，搜尋、切換、關閉都方便。',
+      },
+      tab_reload: {
+        title: '重新整理目前分頁',
+        description: '只重新載入目前分頁裡的頁面，其他分頁不受影響。',
+      },
+      tab_maximize: {
+        title: '內容最大化',
+        description: '收起選單、頂欄和分頁列，只留頁面內容；再點一次還原。',
+      },
+      content: {
+        title: '內容區',
+        description: '目前的頁面在這裡展開。清單頁第一次開啟時，還會接著介紹清單的通用操作。',
+      },
+      footer: {
+        title: '頁尾',
+        description: '版本、版權與備案資訊。',
+      },
+      replay: {
+        title: '隨時重看',
+        description: '想再看一遍本頁的介紹就點這裡；介面導覽在「說明中心 → 專案概覽」裡重看。',
+      },
+    },
+    schema: {
+      title: '清單頁',
+      search: {
+        title: '搜尋區',
+        description: '常用的查詢條件擺在這一行，填好後按 Enter 或點搜尋。各個清單頁都是這一套操作。',
+      },
+      search_submit: {
+        title: '搜尋',
+        description: '依填好的條件查詢。',
+      },
+      search_reset: {
+        title: '重設',
+        description: '清空全部條件，恢復預設排序。',
+      },
+      search_settings: {
+        title: '搜尋設定',
+        description: '調整哪些條件常駐在搜尋列、哪些收進進階搜尋，以及它們的順序。',
+      },
+      presets: {
+        title: '條件預設集',
+        description: '把目前的條件、排序和每頁筆數存成一份預設集，下次一鍵套用；設為預設的在開啟頁面時自動套用。',
+      },
+      advanced: {
+        title: '進階搜尋',
+        description: '不常用的條件收在這裡，展開就能填。',
+      },
+      toolbar: {
+        title: '操作區',
+        description: '左邊是本頁的操作，例如新增；右邊是表格工具。',
+      },
+      refresh: {
+        title: '重新整理',
+        description: '依目前的條件重新取一次資料。',
+      },
+      import: {
+        title: '匯入',
+        description: '下載範本填好後上傳，逐列驗證通過再批次建立。',
+      },
+      export: {
+        title: '匯出',
+        description: '匯出目前條件下的資料；資料多時可以提交到匯出中心，在背景產生。',
+      },
+      table_settings: {
+        title: '表格設定',
+        description: '調整欄位的顯示、順序、固定和寬度，以及列高、樣式、序號與多選，點儲存記住。',
+      },
+      fullscreen: {
+        title: '表格全螢幕',
+        description: '讓清單鋪滿整個視窗，資料多時看得更全；再點一次還原。',
+      },
+      table: {
+        title: '資料表格',
+        description: '查詢結果在這裡，表頭固定，可以上下、左右捲動。',
+      },
+      sort: {
+        title: '排序與欄寬',
+        description: '點欄位標題的箭頭排序，可以疊加多欄；拖欄位標題右緣調整欄寬。',
+      },
+      select: {
+        title: '勾選與批次',
+        description: '勾選列之後，底欄會出現批次操作，例如批次啟用、停用或刪除。',
+      },
+      peek: {
+        title: '懸停速覽',
+        description: '滑鼠在一列上停一會兒，就能看到這一列的全部欄位，連表格裡隱藏的欄也在。偏好設定裡可以關掉。',
+      },
+      row_actions: {
+        title: '列操作',
+        description: '對這一列能做的事都在「更多操作」裡，依你的權限和這一列的狀態列出。',
+      },
+      footer: {
+        title: '分頁',
+        description: '總筆數、頁碼和每頁筆數在這裡，勾選列後的批次操作也出現在這一欄。',
+      },
+    },
+  },
 }

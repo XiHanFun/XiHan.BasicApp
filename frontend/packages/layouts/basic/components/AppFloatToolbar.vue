@@ -102,7 +102,7 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
     draggable
     :translations="translations"
   >
-    <XhFloatButtonTrigger>
+    <XhFloatButtonTrigger data-guide="shell.float-toolbar">
       <!-- 收起时是螺母（快捷工具），展开后换成关闭，读得出再按一下就收起 -->
       <Icon :icon="open ? 'lucide:x' : 'lucide:bolt'" :style="glyphStyle" />
     </XhFloatButtonTrigger>

@@ -177,6 +177,32 @@ export default {
       enabled_done: '账号已启用',
       signed_out: '已下线 {n} 个会话',
       no_sessions: '该用户当前没有有效会话',
+      guide: {
+        user_info: {
+          title: '用户信息',
+          description: '显示名在上、用户名在下；带「系统」标记的是内置账号，不能删除、停用或锁定。',
+        },
+        status: {
+          title: '账号状态',
+          description: '分正常、锁定、停用三种；搜索区的账号状态可以多选筛选。',
+        },
+        security: {
+          title: '安全',
+          description: '标出被锁定和开了双因素验证（2FA）的账号，需要时在「更多」里解锁或重置双因素。',
+        },
+        roles: {
+          title: '角色',
+          description: '用户当前生效的角色，在「更多 → 分配角色」里调整。',
+        },
+        create: {
+          title: '新建用户',
+          description: '填写用户名、显示名、邮箱和初始密码，创建一个新账号。',
+        },
+        row_actions: {
+          title: '用户操作',
+          description: '编辑、分配角色、授权、锁定或停用、强制下线、重置密码、模仿登录等都在这里，按你的权限和这个账号的状态列出。',
+        },
+      },
     },
     online_users: {
       title: '在线用户',

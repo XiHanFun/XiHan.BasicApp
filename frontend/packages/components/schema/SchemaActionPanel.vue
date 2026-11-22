@@ -77,6 +77,7 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
         v-if="isIconOnly(action)"
         :icon="action.icon!"
         :label="action.title"
+        :data-guide-action="action.key"
         @click="emit('action', action.key)"
       />
       <XhButton
@@ -85,6 +86,7 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
         :variant="action.tone && action.tone !== 'neutral' ? 'solid' : 'outline'"
         :tone="action.tone ?? 'neutral'"
         :aria-label="action.title"
+        :data-guide-action="action.key"
         @click="emit('action', action.key)"
       >
         <Icon v-if="action.icon" :icon="action.icon" />

@@ -177,6 +177,32 @@ export default {
       enabled_done: '帳號已啟用',
       signed_out: '已登出 {n} 個工作階段',
       no_sessions: '該使用者目前沒有有效工作階段',
+      guide: {
+        user_info: {
+          title: '使用者資訊',
+          description: '顯示名稱在上、使用者名稱在下；帶「系統」標記的是內建帳號，不能刪除、停用或鎖定。',
+        },
+        status: {
+          title: '帳號狀態',
+          description: '分正常、鎖定、停用三種；搜尋區的帳號狀態可以多選篩選。',
+        },
+        security: {
+          title: '安全',
+          description: '標出被鎖定和開了雙因素驗證（2FA）的帳號，需要時在「更多操作」裡解鎖或重設雙因素。',
+        },
+        roles: {
+          title: '角色',
+          description: '使用者目前生效的角色，在「更多操作 → 指派角色」裡調整。',
+        },
+        create: {
+          title: '新增使用者',
+          description: '填寫使用者名稱、顯示名稱、電子郵件和初始密碼，建立一個新帳號。',
+        },
+        row_actions: {
+          title: '使用者操作',
+          description: '編輯、指派角色、授權、鎖定或停用、強制登出、重設密碼、模擬登入等都在這裡，依你的權限和這個帳號的狀態列出。',
+        },
+      },
     },
     online_users: {
       title: '線上使用者',

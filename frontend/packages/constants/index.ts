@@ -4,6 +4,7 @@
  */
 
 export * from './app'
+export * from './guide'
 export * from './http'
 export * from './layout-events'
 export * from './notification'

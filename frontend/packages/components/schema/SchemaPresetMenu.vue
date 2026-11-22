@@ -142,6 +142,7 @@ function toggleDefault(preset: ConditionPreset) {
         variant="ghost"
         size="sm"
         icon-only
+        data-guide="schema.presets"
         :aria-label="t('component.schema_presets.title')"
       >
         <Icon :icon="activeCode ? 'lucide:bookmark-check' : 'lucide:bookmark'" />

@@ -1744,4 +1744,200 @@ export default {
       demo_verified: 'Confirmado',
     },
   },
+  guide: {
+    entry: 'Guia da página',
+    replay_shell: 'Tour pela interface',
+    close: 'Fechar guia',
+    skip: 'Pular',
+    prev: 'Voltar',
+    next: 'Avançar',
+    finish: 'Concluir',
+    progress: 'Passo {step} de {count}',
+    shell: {
+      title: 'Tour pela interface',
+      intro: {
+        title: 'Conheça a interface',
+        description: 'Leve um minuto para conhecer o menu, a barra superior, a barra de abas e a área de conteúdo, e o que cada botão faz. Pule quando quiser e reveja depois em Central de ajuda → Sobre o projeto.',
+      },
+      sidebar: {
+        title: 'Menu de navegação',
+        description: 'Todas as páginas a que você tem acesso, agrupadas por módulo. Clique em um grupo para expandir e em uma página para abrir.',
+      },
+      top_menu: {
+        title: 'Menu superior',
+        description: 'Este layout coloca o menu na barra superior. Escolha aqui o módulo e a página.',
+      },
+      sidebar_collapse: {
+        title: 'Recolher o menu',
+        description: 'Reduz o menu lateral a uma coluna de ícones para dar mais espaço ao conteúdo. Clique de novo para expandir.',
+      },
+      sidebar_toggle: {
+        title: 'Mostrar ou ocultar a barra lateral',
+        description: 'Oculta a barra lateral inteira para o conteúdo ocupar toda a largura. Clique de novo para trazê-la de volta.',
+      },
+      favorites: {
+        title: 'Favoritos',
+        description: 'Guarde aqui as páginas que você mais usa e abra-as com um clique. Os favoritos acompanham sua conta em qualquer dispositivo.',
+      },
+      history: {
+        title: 'Voltar e avançar',
+        description: 'Navegue entre as páginas visitadas, como os botões voltar e avançar do navegador.',
+      },
+      refresh: {
+        title: 'Recarregar a página',
+        description: 'Recarrega a página inteira, como apertar F5. Para atualizar só a aba atual, use o botão de recarregar à direita da barra de abas.',
+      },
+      breadcrumb: {
+        title: 'Trilha de navegação',
+        description: 'Mostra onde a página atual fica no menu. Níveis com páginas irmãs abrem uma lista para ir direto a elas.',
+      },
+      search: {
+        title: 'Paleta de comandos',
+        description: 'Busque páginas e ações e pressione Enter para ir. Abra a qualquer momento com Ctrl K (⌘ K no Mac).',
+      },
+      language: {
+        title: 'Idioma',
+        description: 'Troca o idioma da interface. Há dez idiomas disponíveis.',
+      },
+      timezone: {
+        title: 'Fuso horário',
+        description: 'Os horários aparecem no fuso escolhido aqui, então você não precisa converter ao trabalhar entre fusos.',
+      },
+      theme: {
+        title: 'Claro e escuro',
+        description: 'Alterna entre o tema claro e o escuro. Mais opções de aparência, como a cor do tema, estão em Preferências.',
+      },
+      fullscreen: {
+        title: 'Tela cheia',
+        description: 'Coloca o navegador em tela cheia. Clique de novo para sair.',
+      },
+      preferences: {
+        title: 'Preferências',
+        description: 'Layout, cor do tema, barra de abas, animações e outras preferências da interface. As mudanças valem na hora e são sincronizadas com sua conta.',
+      },
+      notifications: {
+        title: 'Notificações',
+        description: 'Mensagens internas e as que mencionam você. O selo mostra quantas não foram lidas.',
+      },
+      context: {
+        title: 'Onde você está',
+        description: 'Mostra se você está trabalhando na plataforma ou em um locatário. Abra a central de controle para trocar.',
+      },
+      user: {
+        title: 'Seu menu',
+        description: 'Perfil, troca de papel, bloqueio de tela e sair estão aqui.',
+      },
+      float_toolbar: {
+        title: 'Ferramentas rápidas',
+        description: 'As ferramentas que não cabem na barra superior ficam neste botão flutuante. Abra para usá-las ou arraste para outro lugar.',
+      },
+      tabs: {
+        title: 'Barra de abas',
+        description: 'Cada página aberta vira uma aba e mantém o estado quando você volta. Arraste para reordenar; clique com o botão direito para mais ações.',
+      },
+      tab_more: {
+        title: 'Ações da aba',
+        description: 'Para a aba atual: recarregar, fixar, adicionar aos favoritos, abrir em nova janela ou em tela dividida e fechar as abas à esquerda, à direita ou todas as outras.',
+      },
+      tab_overview: {
+        title: 'Visão geral das abas',
+        description: 'Com muitas abas, exiba todas lado a lado para buscar, trocar e fechar com facilidade.',
+      },
+      tab_reload: {
+        title: 'Recarregar esta aba',
+        description: 'Recarrega só a página da aba atual; as outras abas não são afetadas.',
+      },
+      tab_maximize: {
+        title: 'Maximizar o conteúdo',
+        description: 'Oculta o menu, a barra superior e a barra de abas, deixando só o conteúdo da página. Clique de novo para restaurar.',
+      },
+      content: {
+        title: 'Área de conteúdo',
+        description: 'A página atual abre aqui. Na primeira vez que você abrir uma página de lista, as ações comuns dela também serão apresentadas.',
+      },
+      footer: {
+        title: 'Rodapé',
+        description: 'Versão, direitos autorais e informações de registro.',
+      },
+      replay: {
+        title: 'Rever quando quiser',
+        description: 'Clique aqui para ver de novo a apresentação desta página. O tour pela interface está em Central de ajuda → Sobre o projeto.',
+      },
+    },
+    schema: {
+      title: 'Páginas de lista',
+      search: {
+        title: 'Área de busca',
+        description: 'Os filtros mais usados ficam nesta linha. Preencha e pressione Enter ou clique em Buscar. Todas as páginas de lista funcionam do mesmo jeito.',
+      },
+      search_submit: {
+        title: 'Buscar',
+        description: 'Busca com os filtros preenchidos.',
+      },
+      search_reset: {
+        title: 'Redefinir',
+        description: 'Limpa todos os filtros e volta à ordenação padrão.',
+      },
+      search_settings: {
+        title: 'Configurações de busca',
+        description: 'Escolha quais filtros ficam na linha de busca, quais vão para a busca avançada e em que ordem.',
+      },
+      presets: {
+        title: 'Predefinições de condições',
+        description: 'Salve os filtros, a ordenação e o tamanho da página como uma predefinição e aplique depois com um clique. A predefinição padrão é aplicada ao abrir a página.',
+      },
+      advanced: {
+        title: 'Busca avançada',
+        description: 'Os filtros menos usados ficam aqui. Expanda para preencher.',
+      },
+      toolbar: {
+        title: 'Barra de ações',
+        description: 'À esquerda, as ações desta página, como Criar; à direita, as ferramentas da tabela.',
+      },
+      refresh: {
+        title: 'Atualizar',
+        description: 'Busca os dados de novo com os filtros atuais.',
+      },
+      import: {
+        title: 'Importar',
+        description: 'Baixe o modelo, preencha e envie. As linhas são validadas primeiro e depois criadas em lote.',
+      },
+      export: {
+        title: 'Exportar',
+        description: 'Exporta os dados que atendem aos filtros atuais. Com muitos dados, envie para a central de exportação gerar em segundo plano.',
+      },
+      table_settings: {
+        title: 'Configurações da tabela',
+        description: 'Ajuste a exibição, a ordem, a fixação e a largura das colunas, além da altura das linhas, do estilo, da numeração e da seleção. Clique em Salvar para guardar.',
+      },
+      fullscreen: {
+        title: 'Tabela em tela cheia',
+        description: 'Faz a lista ocupar a janela inteira para você ver mais de uma vez. Clique de novo para restaurar.',
+      },
+      table: {
+        title: 'Tabela de dados',
+        description: 'Os resultados aparecem aqui. O cabeçalho fica fixo enquanto você rola na vertical e na horizontal.',
+      },
+      sort: {
+        title: 'Ordenação e largura',
+        description: 'Clique na seta do cabeçalho para ordenar; dá para combinar várias colunas. Arraste a borda direita do cabeçalho para mudar a largura.',
+      },
+      select: {
+        title: 'Seleção e ações em lote',
+        description: 'Ao marcar linhas, a barra inferior mostra ações em lote como habilitar, desabilitar ou excluir.',
+      },
+      peek: {
+        title: 'Prévia ao passar o mouse',
+        description: 'Deixe o ponteiro um instante sobre uma linha para ver todos os campos dela, inclusive colunas ocultas. Dá para desligar em Preferências.',
+      },
+      row_actions: {
+        title: 'Ações da linha',
+        description: 'Tudo o que você pode fazer com esta linha fica em Mais, conforme suas permissões e o estado da linha.',
+      },
+      footer: {
+        title: 'Paginação',
+        description: 'O total, o número da página e o tamanho da página ficam aqui. As ações em lote das linhas marcadas também aparecem nesta barra.',
+      },
+    },
+  },
 }

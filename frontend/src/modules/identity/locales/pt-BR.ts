@@ -177,6 +177,32 @@ export default {
       enabled_done: 'Conta ativada',
       signed_out: '{n} sessão(ões) encerrada(s)',
       no_sessions: 'Este usuário não tem sessões ativas',
+      guide: {
+        user_info: {
+          title: 'Informações do usuário',
+          description: 'Em cima o nome de exibição, embaixo o nome de usuário. Contas marcadas como Sistema são nativas e não podem ser excluídas, desabilitadas nem bloqueadas.',
+        },
+        status: {
+          title: 'Status da conta',
+          description: 'Ativo, Bloqueado ou Desabilitado. O filtro de status da conta na área de busca aceita vários valores ao mesmo tempo.',
+        },
+        security: {
+          title: 'Segurança',
+          description: 'Indica as contas bloqueadas e as que ativaram a autenticação em dois fatores (2FA). Desbloqueie ou redefina a 2FA em Mais quando precisar.',
+        },
+        roles: {
+          title: 'Papéis',
+          description: 'Os papéis em vigor para o usuário. Altere em Mais → Atribuir papéis.',
+        },
+        create: {
+          title: 'Novo usuário',
+          description: 'Preencha o nome de usuário, o nome de exibição, o e-mail e a senha inicial para criar uma conta.',
+        },
+        row_actions: {
+          title: 'Ações do usuário',
+          description: 'Editar, atribuir papéis, conceder permissões, bloquear ou desabilitar, forçar saída, redefinir a senha, personificar e mais, conforme suas permissões e o status da conta.',
+        },
+      },
     },
     online_users: {
       title: 'Usuários online',

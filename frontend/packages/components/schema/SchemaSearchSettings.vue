@@ -55,6 +55,7 @@ function onSort(details: { from: number, to: number }) {
         variant="ghost"
         size="sm"
         icon-only
+        data-guide="schema.search-settings"
         :aria-label="t('component.search_settings.title')"
       >
         <Icon icon="lucide:settings-2" />
