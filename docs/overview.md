@@ -26,7 +26,7 @@ Ring 1  Kernel（操作、管道、Result / Error、消息目录）    Ring 0  P
 Tier 0 基座       Contracts → Runtime
 Tier 1 身份租户    Identity → Tenancy → Organization → Access
 Tier 2 平台能力    Settings | Notification | Files | Auditing | Maintenance | OpenPlatform | Realtime
-Tier 3 可选模块    Workbench | Workflow | Printing | CodeGeneration | Chat | AI
+Tier 3 可选模块    Workbench | Workflow | Printing | CodeGeneration | Chat | AI | Plugins
 Host              XiHan.BasicApp.Host
 ```
 
@@ -70,6 +70,7 @@ Host              XiHan.BasicApp.Host
 | `CodeGeneration` | 3 | 数据源、表结构导入、模板、代码生成、零代码只读运行时 |
 | `Chat` | 3 | 单聊、群聊、部门群与助手会话、聊天 Hub、聊天审计、保留清理 |
 | `AI` | 3 | AI 提供商、提示词、知识库、助手 |
+| `Plugins` | 3 | 插件包的安装前核对、安装、授予与卸载 |
 
 ## 技术栈
 

@@ -92,6 +92,7 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["开放平台", "open-api"],
       ["代码生成", "code-generation"],
       ["AI 能力", "ai"],
+      ["插件", "plugins"],
       ["工作台", "workbench"],
     ]),
   },

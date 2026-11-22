@@ -69,6 +69,7 @@
 | Printing | `SysPrintTemplate`（`IOwnedByTenant`） |
 | AI | `SysAiProvider`、`SysAiPrompt`、`SysAiAssistant`（只在平台） |
 | CodeGeneration | `SysCodeGenDataSource`、`SysCodeGenTable`、`SysCodeGenTableColumn`、`SysCodeGenTemplate`、`SysCodeGenHistory`（只在平台） |
+| Plugins | `SysPlugin`、`SysPluginVersion`、`SysPluginGrant`（只在平台） |
 | Runtime | `SysVersion`、`SysMigrationHistory`：结构版本台账与升级脚本记录，平台库与每个独立库各一份 |
 
 ## 租户库实体

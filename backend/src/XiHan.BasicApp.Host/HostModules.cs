@@ -57,12 +57,20 @@ public sealed record HostModules
     public bool AI { get; init; } = true;
 
     /// <summary>
+    /// 插件模块
+    /// </summary>
+    /// <remarks>
+    /// 只在平台一侧：上传、核对、授权与安装插件包；开着时宿主同时装配框架的进程外插件宿主
+    /// </remarks>
+    public bool Plugins { get; init; } = true;
+
+    /// <summary>
     /// 从配置读取
     /// </summary>
     public static HostModules FromConfiguration(IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow"), CodeGeneration = Enabled(configuration, "CodeGeneration"), AI = Enabled(configuration, "AI") };
+        return new HostModules { Workbench = Enabled(configuration, "Workbench"), Printing = Enabled(configuration, "Printing"), Chat = Enabled(configuration, "Chat"), Workflow = Enabled(configuration, "Workflow"), CodeGeneration = Enabled(configuration, "CodeGeneration"), AI = Enabled(configuration, "AI"), Plugins = Enabled(configuration, "Plugins") };
     }
 
     private static bool Enabled(IConfiguration configuration, string module)

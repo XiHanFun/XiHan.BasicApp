@@ -84,7 +84,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 
 ### 能力包
 
-- 能力包按 Tier 分层，只能向下依赖：Tier 0 `Contracts → Runtime`；Tier 1 `Identity → Tenancy → Organization → Access`；Tier 2 平台能力 `Settings`、`Notification`、`Files`、`Auditing`、`Maintenance`、`OpenPlatform`、`Realtime`；Tier 3 可选模块 `Workbench`、`Workflow`、`Printing`、`CodeGeneration`、`Chat`、`AI`；`Host` 装配。同层之间经 `Contracts` 的接口协作，`TierDependencyTests` 守护。
+- 能力包按 Tier 分层，只能向下依赖：Tier 0 `Contracts → Runtime`；Tier 1 `Identity → Tenancy → Organization → Access`；Tier 2 平台能力 `Settings`、`Notification`、`Files`、`Auditing`、`Maintenance`、`OpenPlatform`、`Realtime`；Tier 3 可选模块 `Workbench`、`Workflow`、`Printing`、`CodeGeneration`、`Chat`、`AI`、`Plugins`；`Host` 装配。同层之间经 `Contracts` 的接口协作，`TierDependencyTests` 守护。
 - 每个包一个 `<包>Feature : IFeature`，在 `Configure` 里显式登记仓储、服务、权限目录、页面、消息目录、中间件、作业与生成的操作；没有约定扫描、`IScopedDependency` 或拦截器。
 - 可选模块由 `BasicApp:Modules:<名>:Enabled` 开关：后端装配、页面与权限码下发、前端模块随菜单出现，同一开关语义。
 

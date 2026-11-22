@@ -19,6 +19,7 @@ using XiHan.BasicApp.Notification.Infrastructure.Telegram;
 using XiHan.BasicApp.OpenPlatform;
 using XiHan.BasicApp.OpenPlatform.Infrastructure;
 using XiHan.BasicApp.OpenPlatform.Infrastructure.OAuth;
+using XiHan.BasicApp.Plugins;
 using XiHan.BasicApp.Printing;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Middleware;
@@ -42,6 +43,7 @@ using XiHan.Framework.Messaging.Abstractions.Outbox;
 using XiHan.Framework.Messaging.RabbitMQ;
 using XiHan.Framework.MultiTenancy.Database;
 using XiHan.Framework.Persistence.SqlSugar;
+using XiHan.Framework.Plugins.OutOfProcess;
 using XiHan.Framework.Profiles.Full;
 using XiHan.Framework.Protocols.CloudEvents.Inbound;
 using XiHan.Framework.Protocols.Grpc.Services;
@@ -169,6 +171,12 @@ public static class BasicAppHost
             if (modules.CodeGeneration)
             {
                 xihan.UseFeature<CodeGenerationFeature>();
+            }
+
+            if (modules.Plugins)
+            {
+                // 插件由插件模块在运行期按库加载与卸载，框架的插件宿主不在配置里列目录
+                xihan.UseFeature<PluginsFeature>().UseFeature<OutOfProcessPluginsFeature>();
             }
 
             if (modules.AI)

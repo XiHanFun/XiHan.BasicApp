@@ -68,7 +68,8 @@ appsettings.json
    ├─ Chat                  语音与视频通话的穿透服务器
    ├─ OpenPlatform          开放接口签名与 OAuth2 / OIDC 授权服务
    ├─ CodeGeneration        代码生成
-   └─ AI                    知识库的向量库（Qdrant）
+   ├─ AI                    知识库的向量库（Qdrant）
+   └─ Plugins               允许的隔离级别与插件包上限
 ```
 
 各节点的键、缺省值与说明见下文对应小节。
@@ -506,6 +507,7 @@ BasicApp 的存储（本地目录、S3 兼容）在后台「存储配置」页�
 | `Workflow` | 流程定义、流程实例与审批中心 | 引擎与它的表照旧（宿主恒装数据库工作流）；其他包登记的审批业务没有消费方，见[工作流](./backend/workflow#模块开关) |
 | `CodeGeneration` | 代码生成（只在平台一侧） | 表照样建，已登记的外部数据源连接不再建立，产物包下载端点不映射，见[代码生成](./backend/code-generation#模块开关) |
 | `AI` | AI 提供商、提示词、知识库与助手 | 表照样建；框架的工具目录与 MCP 工具照常，聊天照常、助手入口隐藏，见[AI 能力](./backend/ai#模块开关) |
+| `Plugins` | 插件（只在平台一侧） | 插件的三张表不建，进程外插件宿主不装，见[插件](./backend/plugins#开关) |
 
 ## `BasicApp:ApiDocs`
 
@@ -747,6 +749,15 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 | `ApiKey` | 不写 | API 密钥，不要提交到仓库 |
 
 向量维度、检索条数与切块参数在 [`XiHan:AI`](#xihan-ai) 的 `Knowledge:*`。
+
+## `BasicApp:Plugins`
+
+插件的安装规则，见[插件](./backend/plugins)。写错的值启动即失败。
+
+| 键 | 缺省 | 说明 |
+| --- | --- | --- |
+| `Isolations` | `["out-of-process"]` | 允许安装的隔离级别：`out-of-process`、`wasm`；不在里面的包核对即拒（`PLUGINS_VALIDATION_103`） |
+| `MaxPackageSizeMegabytes` | `100` | 插件包上限（MB，正整数）；上传还受 [`BasicApp:Files`](#basicapp-files) 的 `MaxUploadBytes` 限制 |
 
 ## 前端 `.env`
 

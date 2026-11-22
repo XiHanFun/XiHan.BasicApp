@@ -1,0 +1,290 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Files.Domain.Services;
+using XiHan.BasicApp.Plugins.Domain.Entities;
+using XiHan.BasicApp.Plugins.Domain.Packages;
+using XiHan.BasicApp.Plugins.Operations.Plugins;
+using XiHan.Framework.Domain.Specifications;
+using XiHan.Framework.Kernel.Capabilities;
+using XiHan.Framework.Persistence.Abstractions.Identifiers;
+using XiHan.Framework.Persistence.Abstractions.Queries;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Primitives;
+
+namespace XiHan.BasicApp.Plugins.Domain.Services;
+
+/// <summary>
+/// 插件的安装、授权与卸载
+/// </summary>
+/// <remarks>
+/// 插件包是平台一侧在 Files 里上传的文件：读到临时文件上再按 zip 解析（包可能上百 MB，不整个读进内存），核对交给 <see cref="PluginInspector"/>
+/// 清单 ID 与短名都不能与已安装的重复；授予要含核对给出的全部必须项，另外只能有可选项
+/// </remarks>
+/// <param name="files">文件服务</param>
+/// <param name="inspector">插件包核对</param>
+/// <param name="options">插件模块选项</param>
+/// <param name="plugins">插件仓储</param>
+/// <param name="versions">版本仓储</param>
+/// <param name="grants">授予仓储</param>
+/// <param name="ids">标识生成器</param>
+public sealed class PluginService(FileService files, PluginInspector inspector, PluginsOptions options, IRepository<SysPlugin, Guid> plugins, IRepository<SysPluginVersion, Guid> versions, IRepository<SysPluginGrant, Guid> grants, IIdGenerator<Guid> ids)
+{
+    /// <summary>
+    /// 复制包内容的缓冲区大小
+    /// </summary>
+    private const int BufferSize = 81920;
+
+    /// <summary>
+    /// 插件不存在的错误
+    /// </summary>
+    /// <param name="id">插件 ID</param>
+    public static Error NotFound(Guid id) => Error.NotFound(PluginsErrors.PluginNotFound, PluginsMessages.PluginNotFound, MessageArguments.Of(("id", id)));
+
+    /// <summary>
+    /// 读并核对一个已上传的插件包
+    /// </summary>
+    /// <remarks>
+    /// 文件不在平台一侧即 Files 的 <c>FILES_NOTFOUND_*</c>；包或清单不合规则见 <see cref="PluginPackage.ReadAsync"/> 与 <see cref="PluginInspector.Inspect"/>；清单 ID 或短名已经安装过 <c>PLUGINS_CONFLICT_101</c>
+    /// </remarks>
+    /// <param name="fileId">文件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result<PluginInspection>> InspectAsync(Guid fileId, CancellationToken cancellationToken)
+    {
+        var found = await files.FindAsync(TenantIds.Platform, fileId, cancellationToken).ConfigureAwait(false);
+        if (!found.TryGetValue(out var file))
+        {
+            return found.Error!;
+        }
+
+        if (file.Size > options.MaxPackageBytes)
+        {
+            return Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageTooLarge, MessageArguments.Of(("max", options.MaxPackageSizeMegabytes)));
+        }
+
+        var opened = await files.OpenAsync(file, null, cancellationToken).ConfigureAwait(false);
+        if (!opened.TryGetValue(out var content))
+        {
+            return opened.Error!;
+        }
+
+        // zip 要能定位：落到关闭即删的临时文件上，不整个读进内存
+        var temporary = new FileStream(Path.GetTempFileName(), FileMode.Create, FileAccess.ReadWrite, FileShare.None, BufferSize, FileOptions.DeleteOnClose | FileOptions.Asynchronous);
+        await using (temporary.ConfigureAwait(false))
+        {
+            await using (content.ConfigureAwait(false))
+            {
+                await content.Content.CopyToAsync(temporary, BufferSize, cancellationToken).ConfigureAwait(false);
+            }
+
+            var read = await PluginPackage.ReadAsync(temporary, options.MaxPackageBytes, cancellationToken).ConfigureAwait(false);
+            if (!read.TryGetValue(out var package))
+            {
+                return read.Error!;
+            }
+
+            var inspected = inspector.Inspect(package);
+            if (!inspected.TryGetValue(out var inspection))
+            {
+                return inspected.Error!;
+            }
+
+            var manifestId = package.Manifest.Id;
+            var name = package.Descriptor.Name;
+            var taken = await plugins.ListAsync(EntityQuery.All<SysPlugin>().Where(new Specification<SysPlugin>(p => p.ManifestId == manifestId || p.Name == name)).Page(0, 1), cancellationToken).ConfigureAwait(false);
+            return taken.Count > 0
+                ? Error.Conflict(PluginsErrors.AlreadyInstalled, PluginsMessages.AlreadyInstalled, MessageArguments.Of(("id", taken[0].ManifestId == manifestId ? manifestId : name)))
+                : inspection;
+        }
+    }
+
+    /// <summary>
+    /// 安装一个已上传的插件包
+    /// </summary>
+    /// <remarks>
+    /// 核对同 <see cref="InspectAsync"/>，授予不全 <c>PLUGINS_DENIED_101</c>、有不认得的 <c>PLUGINS_VALIDATION_106</c>；装好是停用状态。并发安装同一插件由清单 ID 与短名的唯一索引兜住
+    /// </remarks>
+    /// <param name="request">安装请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result<SysPlugin>> InstallAsync(InstallPluginRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var inspected = await InspectAsync(request.FileId, cancellationToken).ConfigureAwait(false);
+        if (!inspected.TryGetValue(out var inspection))
+        {
+            return inspected.Error!;
+        }
+
+        var approved = NormalizeGrants(request.Grants, inspection.RequiredGrants, inspection.OptionalGrants);
+        if (!approved.TryGetValue(out var granted))
+        {
+            return approved.Error!;
+        }
+
+        var package = inspection.Package;
+        var pluginId = ids.NewId();
+        var version = new SysPluginVersion
+        {
+            Id = ids.NewId(),
+            PluginId = pluginId,
+            Version = package.Manifest.Version,
+            FileId = request.FileId,
+            Sha256 = package.Sha256,
+            Size = package.Size,
+            ManifestJson = package.ManifestJson,
+            DescriptorJson = package.DescriptorJson,
+        };
+        var plugin = new SysPlugin
+        {
+            Id = pluginId,
+            ManifestId = package.Manifest.Id,
+            Name = package.Descriptor.Name,
+            Publisher = package.Descriptor.Publisher,
+            Version = package.Manifest.Version,
+            CurrentVersionId = version.Id,
+            Isolation = package.Manifest.Isolation!.Value,
+            IsEnabled = false,
+            Remark = request.Remark,
+        };
+        var addedPlugin = await plugins.AddAsync(plugin, cancellationToken).ConfigureAwait(false);
+        if (addedPlugin.IsFailure)
+        {
+            return addedPlugin.Error!;
+        }
+
+        var addedVersion = await versions.AddAsync(version, cancellationToken).ConfigureAwait(false);
+        if (addedVersion.IsFailure)
+        {
+            return addedVersion.Error!;
+        }
+
+        var written = await ReplaceGrantsAsync(plugin.Id, granted, cancellationToken).ConfigureAwait(false);
+        return written.IsFailure ? written.Error! : plugin;
+    }
+
+    /// <summary>
+    /// 核对批准的授予
+    /// </summary>
+    /// <remarks>
+    /// 必须项缺一项即 <c>PLUGINS_DENIED_101</c>（缺的项列在 <c>grants</c> 里），既不是必须项也不是可选项的 <c>PLUGINS_VALIDATION_106</c>；重复的合并，结果按序数排序
+    /// </remarks>
+    /// <param name="approved">批准的授予</param>
+    /// <param name="required">必须项</param>
+    /// <param name="optional">可选项</param>
+    public static Result<IReadOnlyList<string>> NormalizeGrants(IReadOnlyList<string> approved, IReadOnlyList<string> required, IReadOnlyList<string> optional)
+    {
+        ArgumentNullException.ThrowIfNull(approved);
+        ArgumentNullException.ThrowIfNull(required);
+        ArgumentNullException.ThrowIfNull(optional);
+        var set = approved.Select(static g => g.Trim()).ToHashSet(StringComparer.Ordinal);
+        if (set.FirstOrDefault(g => !required.Contains(g, StringComparer.Ordinal) && !optional.Contains(g, StringComparer.Ordinal)) is { } unknown)
+        {
+            return Error.Validation(PluginsErrors.GrantInvalid, PluginsMessages.GrantInvalid, MessageArguments.Of(("grant", unknown)));
+        }
+
+        var missing = required.Where(g => !set.Contains(g)).ToList();
+        return missing.Count > 0
+            ? Error.Denied(PluginsErrors.GrantsMissing, PluginsMessages.GrantsMissing, MessageArguments.Of(("grants", string.Join(", ", missing))))
+            : set.Order(StringComparer.Ordinal).ToList();
+    }
+
+    /// <summary>
+    /// 整组替换一个插件的授予
+    /// </summary>
+    /// <param name="pluginId">插件 ID</param>
+    /// <param name="granted">核对过的授予</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result> ReplaceGrantsAsync(Guid pluginId, IReadOnlyList<string> granted, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(granted);
+        var current = await GrantsOfAsync(pluginId, cancellationToken).ConfigureAwait(false);
+        foreach (var result in await grants.RemoveRangeAsync(current, cancellationToken).ConfigureAwait(false))
+        {
+            if (result.IsFailure)
+            {
+                return result;
+            }
+        }
+
+        foreach (var result in await grants.AddRangeAsync([.. granted.Select(g => new SysPluginGrant { Id = ids.NewId(), PluginId = pluginId, GrantValue = g })], cancellationToken).ConfigureAwait(false))
+        {
+            if (result.IsFailure)
+            {
+                return result;
+            }
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// 一个插件已批准的授予
+    /// </summary>
+    /// <param name="pluginId">插件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public Task<IReadOnlyList<SysPluginGrant>> GrantsOfAsync(Guid pluginId, CancellationToken cancellationToken)
+        => grants.ListAsync(EntityQuery.All<SysPluginGrant>().Where(new Specification<SysPluginGrant>(g => g.PluginId == pluginId)), cancellationToken);
+
+    /// <summary>
+    /// 一个插件的全部版本，新的在前
+    /// </summary>
+    /// <param name="pluginId">插件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<IReadOnlyList<SysPluginVersion>> VersionsOfAsync(Guid pluginId, CancellationToken cancellationToken)
+        => [.. (await versions.ListAsync(EntityQuery.All<SysPluginVersion>().Where(new Specification<SysPluginVersion>(v => v.PluginId == pluginId)), cancellationToken).ConfigureAwait(false)).OrderByDescending(static v => v.CreatedAt)];
+
+    /// <summary>
+    /// 插件的详情
+    /// </summary>
+    /// <remarks>
+    /// 贡献与申请的授予按当前版本的清单原文解释；当前版本的清单读不出说明库里的数据被改坏了，按缺陷抛出
+    /// </remarks>
+    /// <param name="plugin">插件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<PluginDetailResponse> DetailAsync(SysPlugin plugin, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(plugin);
+        var all = await VersionsOfAsync(plugin.Id, cancellationToken).ConfigureAwait(false);
+        var current = all.First(v => v.Id == plugin.CurrentVersionId);
+        var manifest = ManifestReader.Read(current.ManifestJson).ValueOrThrow();
+        var descriptor = System.Text.Json.JsonSerializer.Deserialize(current.DescriptorJson, PluginsJsonContext.Default.PluginDescriptor)
+            ?? throw new InvalidOperationException($"The descriptor of plugin '{plugin.ManifestId}' version '{current.Version}' is empty.");
+        var approved = await GrantsOfAsync(plugin.Id, cancellationToken).ConfigureAwait(false);
+        return new PluginDetailResponse(
+            PluginResponse.From(plugin),
+            PluginContributionsResponse.From(manifest, descriptor),
+            PluginInspector.RequiredGrantsOf(manifest, descriptor),
+            [PluginInspector.DataScopeAll],
+            [.. approved.Select(static g => g.GrantValue).Order(StringComparer.Ordinal)],
+            [.. all.Select(v => new PluginVersionResponse(v.Id, v.Version, v.FileId, v.Sha256, v.Size, v.Id == plugin.CurrentVersionId, v.CreatedAt))]);
+    }
+
+    /// <summary>
+    /// 卸载一个插件：插件、全部版本与授予
+    /// </summary>
+    /// <remarks>
+    /// 插件与版本软删除（同一插件可以再装），授予物理删除；包文件留在 Files 里，由 Files 自己管
+    /// </remarks>
+    /// <param name="plugin">插件</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<Result> UninstallAsync(SysPlugin plugin, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(plugin);
+        var cleared = await ReplaceGrantsAsync(plugin.Id, [], cancellationToken).ConfigureAwait(false);
+        if (cleared.IsFailure)
+        {
+            return cleared;
+        }
+
+        foreach (var result in await versions.RemoveRangeAsync(await VersionsOfAsync(plugin.Id, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false))
+        {
+            if (result.IsFailure)
+            {
+                return result;
+            }
+        }
+
+        return await plugins.RemoveAsync(plugin, cancellationToken).ConfigureAwait(false);
+    }
+}

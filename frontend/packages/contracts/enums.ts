@@ -286,6 +286,9 @@ export type PermissionRequestStatus = (typeof PermissionRequestStatus)[number]
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
 export type PermissionScope = (typeof PermissionScope)[number]
 
+export const PluginIsolation = ['InProcess', 'Wasm', 'OutOfProcess'] as const
+export type PluginIsolation = (typeof PluginIsolation)[number]
+
 export const PrintTemplateScope = ['Auto', 'Tenant', 'Global'] as const
 export type PrintTemplateScope = (typeof PrintTemplateScope)[number]
 
@@ -471,6 +474,7 @@ export const enums = {
   PermissionChangeType,
   PermissionRequestStatus,
   PermissionScope,
+  PluginIsolation,
   PrintTemplateScope,
   PrintTemplateStatus,
   RoleStatus,

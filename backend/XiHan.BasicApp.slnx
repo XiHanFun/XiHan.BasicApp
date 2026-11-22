@@ -20,6 +20,7 @@
   </Folder>
   <Folder Name="/3.Optional/">
     <Project Path="src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
+    <Project Path="src/XiHan.BasicApp.Plugins/XiHan.BasicApp.Plugins.csproj" />
     <Project Path="src/XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
     <Project Path="src/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
     <Project Path="src/XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.csproj" />

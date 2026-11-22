@@ -1601,6 +1601,39 @@
                   "default": true
                 }
               }
+            },
+            "Plugins": {
+              "type": "object",
+              "description": "插件：平台上传、核对、授权与安装第三方插件包；开着时同时装配框架的进程外插件宿主",
+              "properties": {
+                "Enabled": {
+                  "type": "boolean",
+                  "description": "是否开启；不写即开启",
+                  "default": true
+                }
+              }
+            }
+          }
+        },
+        "Plugins": {
+          "type": "object",
+          "description": "插件模块：允许的隔离级别与插件包大小上限；写错的值启动即失败",
+          "properties": {
+            "Isolations": {
+              "type": "array",
+              "description": "允许安装的隔离级别；不写只有进程外，Wasm 仍是实验阶段，要显式打开",
+              "items": {
+                "type": "string",
+                "enum": [ "out-of-process", "wasm" ]
+              },
+              "minItems": 1,
+              "default": [ "out-of-process" ]
+            },
+            "MaxPackageSizeMegabytes": {
+              "type": "integer",
+              "description": "插件包的大小上限（MB），与文件上传的上限一起生效",
+              "minimum": 1,
+              "default": 100
             }
           }
         },

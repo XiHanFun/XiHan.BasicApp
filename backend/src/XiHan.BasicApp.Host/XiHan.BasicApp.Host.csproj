@@ -25,6 +25,7 @@
     <ProjectReference Include="../XiHan.BasicApp.OpenPlatform/XiHan.BasicApp.OpenPlatform.csproj" />
     <!-- Tier 3 可选模块：按 BasicApp:Modules:<名>:Enabled 装配 -->
     <ProjectReference Include="../XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Plugins/XiHan.BasicApp.Plugins.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Printing/XiHan.BasicApp.Printing.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Workflow/XiHan.BasicApp.Workflow.csproj" />
@@ -53,6 +54,8 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.RabbitMQ" />
     <!-- 知识库：配了向量库才装配（QdrantSettings），没配即知识库不可用 -->
     <XiHanFrameworkReference Include="XiHan.Framework.AI.VectorData" />
+    <!-- 插件模块开着时装配进程外插件宿主：插件由插件模块在运行期按库加载，配置里不列目录 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Plugins.OutOfProcess" />
     <!-- 命令模式：help / graph / pipeline / operations / invoke 由框架提供，seed 由本宿主登记 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Hosting.CommandLine" />
   </ItemGroup>

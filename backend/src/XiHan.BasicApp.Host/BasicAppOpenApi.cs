@@ -41,6 +41,7 @@ public static class BasicAppOpenApi
             Group("workflow", 120),
             Group("codegeneration", 130),
             Group("ai", 140),
+            Group("plugins", 150),
         ],
     };
 

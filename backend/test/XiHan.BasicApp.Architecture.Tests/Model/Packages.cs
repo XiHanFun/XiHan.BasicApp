@@ -15,6 +15,7 @@ using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Notification;
 using XiHan.BasicApp.Maintenance;
 using XiHan.BasicApp.OpenPlatform;
+using XiHan.BasicApp.Plugins;
 using XiHan.BasicApp.Printing;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Organization;
@@ -64,6 +65,7 @@ public static class Packages
         ["Workbench"] = 30,
         ["Workflow"] = 30,
         ["Printing"] = 30,
+        ["Plugins"] = 30,
         ["CodeGeneration"] = 30,
         ["Chat"] = 30,
         ["AI"] = 30,
@@ -104,6 +106,7 @@ public static class Packages
         typeof(OpenPlatformFeature).Assembly,
         typeof(WorkbenchFeature).Assembly,
         typeof(PrintingFeature).Assembly,
+        typeof(PluginsFeature).Assembly,
         typeof(ChatFeature).Assembly,
         typeof(WorkflowFeature).Assembly,
         typeof(CodeGenerationFeature).Assembly,

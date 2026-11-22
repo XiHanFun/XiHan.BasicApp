@@ -1,0 +1,256 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.Framework.Localization.Abstractions.Messages;
+
+namespace XiHan.BasicApp.Plugins;
+
+/// <summary>
+/// 插件模块的消息键
+/// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（资源段的 <c>-</c> 换成 <c>_</c>）
+/// 与框架插件宿主共用首段 <c>plugins.</c>，二级段避开框架已用的（<c>assembly</c>、<c>callback</c>、<c>entry</c>、<c>event</c>、<c>handshake</c>、<c>host</c>、<c>manifest</c>、<c>module</c>、<c>permission</c>、<c>plugin</c>、<c>process</c>、<c>sandbox</c>）
+/// </remarks>
+public static class PluginsMessages
+{
+    /// <summary>
+    /// 消息目录名
+    /// </summary>
+    public const string CatalogName = "basicapp.plugins";
+
+    /// <summary>
+    /// 操作 <c>plugins.list</c> 的说明
+    /// </summary>
+    public const string ListPluginsDescription = "plugins.list.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.get</c> 的说明
+    /// </summary>
+    public const string GetPluginDescription = "plugins.get.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.inspect</c> 的说明
+    /// </summary>
+    public const string InspectPluginDescription = "plugins.inspect.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.install</c> 的说明
+    /// </summary>
+    public const string InstallPluginDescription = "plugins.install.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.grant</c> 的说明
+    /// </summary>
+    public const string GrantPluginDescription = "plugins.grant.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.delete</c> 的说明
+    /// </summary>
+    public const string DeletePluginsDescription = "plugins.delete.description";
+
+    /// <summary>
+    /// 插件不存在
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>id</c>
+    /// </remarks>
+    public const string PluginNotFound = "plugins.installation.not_found";
+
+    /// <summary>
+    /// 上传的文件不是能读的插件包
+    /// </summary>
+    public const string PackageUnreadable = "plugins.package.unreadable";
+
+    /// <summary>
+    /// 插件包超过上限
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>max</c>（上限，MB）
+    /// </remarks>
+    public const string PackageTooLarge = "plugins.package.too_large";
+
+    /// <summary>
+    /// 插件包里有不安全的路径
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>entry</c>
+    /// </remarks>
+    public const string PackageEntryUnsafe = "plugins.package.entry_unsafe";
+
+    /// <summary>
+    /// 插件包缺少必需的文件
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>entry</c>
+    /// </remarks>
+    public const string PackageEntryMissing = "plugins.package.entry_missing";
+
+    /// <summary>
+    /// 插件包没有当前平台的运行时
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>runtime</c>
+    /// </remarks>
+    public const string PackageRuntimeMissing = "plugins.package.runtime_missing";
+
+    /// <summary>
+    /// 插件包缺少某种区域的前端文案
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>locale</c>
+    /// </remarks>
+    public const string PackageLocaleMissing = "plugins.package.locale_missing";
+
+    /// <summary>
+    /// 框架清单的种类不是插件
+    /// </summary>
+    public const string PackageKindInvalid = "plugins.package.kind_invalid";
+
+    /// <summary>
+    /// 不允许的隔离级别
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>isolation</c>
+    /// </remarks>
+    public const string PackageIsolationNotAllowed = "plugins.package.isolation_not_allowed";
+
+    /// <summary>
+    /// 插件贡献了管道中间件
+    /// </summary>
+    public const string PackagePipelineUnsupported = "plugins.package.pipeline_unsupported";
+
+    /// <summary>
+    /// 旁挂清单读不出或不合格式
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>path</c>（出问题的 JSON 路径）
+    /// </remarks>
+    public const string DescriptorInvalid = "plugins.descriptor.invalid";
+
+    /// <summary>
+    /// 旁挂清单的接口版本不受支持
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>version</c>
+    /// </remarks>
+    public const string DescriptorApiUnsupported = "plugins.descriptor.api_unsupported";
+
+    /// <summary>
+    /// 短名不合文法
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>name</c>
+    /// </remarks>
+    public const string NameInvalid = "plugins.name.invalid";
+
+    /// <summary>
+    /// 短名是保留名
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>name</c>
+    /// </remarks>
+    public const string NameReserved = "plugins.name.reserved";
+
+    /// <summary>
+    /// 操作的资源段不在短名之下
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>id</c>、<c>name</c>
+    /// </remarks>
+    public const string OperationOutsideName = "plugins.contribution.operation_outside";
+
+    /// <summary>
+    /// 旁挂清单与框架清单的权限码不一致
+    /// </summary>
+    public const string CodesMismatch = "plugins.contribution.codes_mismatch";
+
+    /// <summary>
+    /// 权限码不合规则
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>code</c>
+    /// </remarks>
+    public const string CodeInvalid = "plugins.contribution.code_invalid";
+
+    /// <summary>
+    /// 页面不合规则
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>code</c>
+    /// </remarks>
+    public const string PageInvalid = "plugins.contribution.page_invalid";
+
+    /// <summary>
+    /// 回调的权限码宿主没有登记
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>code</c>
+    /// </remarks>
+    public const string CallbackUnknown = "plugins.contribution.callback_unknown";
+
+    /// <summary>
+    /// 要回调却没有申请管道能力
+    /// </summary>
+    public const string CallbackPipelineRequired = "plugins.contribution.callback_pipeline_required";
+
+    /// <summary>
+    /// 扩展点还不支持
+    /// </summary>
+    public const string ExtendsUnsupported = "plugins.contribution.extends_unsupported";
+
+    /// <summary>
+    /// 清单 ID 或短名已经安装过
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>id</c>（清单 ID 或短名）
+    /// </remarks>
+    public const string AlreadyInstalled = "plugins.installation.taken";
+
+    /// <summary>
+    /// 贡献与已登记的重复
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>item</c>（重复的操作 ID 或权限码）
+    /// </remarks>
+    public const string ContributionConflict = "plugins.installation.conflict";
+
+    /// <summary>
+    /// 申请的授予没有全部批准
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>grants</c>（缺的项，逗号分隔）
+    /// </remarks>
+    public const string GrantsMissing = "plugins.grants.missing";
+
+    /// <summary>
+    /// 授予里有不认得的项
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>grant</c>
+    /// </remarks>
+    public const string GrantInvalid = "plugins.grants.invalid";
+
+    /// <summary>
+    /// 不支持的筛选
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>field</c>、<c>operator</c>
+    /// </remarks>
+    public const string FilterUnsupported = "plugins.query.filter_unsupported";
+
+    /// <summary>
+    /// 不支持的排序
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>field</c>
+    /// </remarks>
+    public const string SortUnsupported = "plugins.query.sort_unsupported";
+
+    private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(PluginsMessages)));
+
+    /// <summary>
+    /// 本模块的消息目录（嵌入的 10 种区域文件）
+    /// </summary>
+    public static MessageCatalog Catalog => _catalog.Value;
+}

@@ -7100,6 +7100,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plugins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Uninstall plugins
+         * @description Uninstall plugins in a batch together with their versions and grants; the same plugin can be installed again afterwards.
+         *
+         *     Requires permission plugins.plugins.delete (Uninstall plugins).
+         */
+        delete: operations["plugins.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a plugin
+         * @description Get a plugin with the contributions of its current version, the grants it requests and those approved, and all of its versions.
+         *
+         *     Requires permission plugins.plugins.read (Read plugins).
+         */
+        get: operations["plugins.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins/{id}:grant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Grant a plugin
+         * @description Replace the grants approved for an installed plugin; they must cover every required grant and may add only the optional ones. Send back the concurrency stamp you read.
+         *
+         *     Requires permission plugins.plugins.grant (Grant plugins).
+         */
+        post: operations["plugins.grant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins:inspect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inspect a plugin package
+         * @description Check an uploaded plugin package without installing it: both manifests, the files and the naming rules; returns its contributions and the grants it requests.
+         *
+         *     Requires permission plugins.plugins.install (Install plugins).
+         */
+        get: operations["plugins.inspect"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins:install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Install a plugin
+         * @description Install an uploaded plugin package with the approved grants, which must cover every required grant; the plugin starts disabled.
+         *
+         *     Requires permission plugins.plugins.install (Install plugins).
+         */
+        post: operations["plugins.install"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * List plugins
+         * @description Page through the installed plugins with their version, isolation and whether they are enabled.
+         *
+         *     Requires permission plugins.plugins.read (Read plugins).
+         */
+        post: operations["plugins.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/policies": {
         parameters: {
             query?: never;
@@ -15410,6 +15542,109 @@ export interface components {
         };
         /** @enum {string} */
         PermissionScope: "Platform" | "Tenant" | "Both";
+        /** @description 插件的贡献 */
+        PluginContributionsResponse: {
+            /** @description 操作 ID */
+            operations: string[];
+            /** @description 定义的权限码 */
+            permissions: components["schemas"]["PluginPermissionResponse"][];
+            /** @description 页面 */
+            pages: components["schemas"]["PluginPageResponse"][];
+            /** @description 回调宿主操作要持有的宿主权限码 */
+            callbacks: string[];
+        };
+        /** @enum {string} */
+        PluginIsolation: "InProcess" | "Wasm" | "OutOfProcess";
+        /** @description 插件贡献的一个页面 */
+        PluginPageResponse: {
+            /** @description 页面码 */
+            code: string;
+            /** @description 路由 */
+            route: string;
+            /** @description 标题文案键 */
+            titleKey: string;
+            /** @description 图标名 */
+            icon?: string | null;
+            /**
+             * Format: int32
+             * @description 同级排序
+             */
+            order: number;
+            /** @description 进入页面所需的权限码，为空只要求登录 */
+            permission?: string | null;
+        };
+        /** @description 插件定义的一个权限码 */
+        PluginPermissionResponse: {
+            /** @description 权限码 */
+            code: string;
+            /** @description 作用侧 */
+            scope: components["schemas"]["PermissionScope"];
+            /** @description 该权限保护的操作是否进审计 */
+            audited: boolean;
+        };
+        /** @description 插件的列表项 */
+        PluginResponse: {
+            /**
+             * Format: uuid
+             * @description 主键
+             */
+            id: string;
+            /** @description 清单 ID */
+            manifestId: string;
+            /** @description 短名 */
+            name: string;
+            /** @description 当前版本号 */
+            version: string;
+            /** @description 发布者 */
+            publisher?: string | null;
+            /** @description 隔离级别 */
+            isolation: components["schemas"]["PluginIsolation"];
+            /** @description 是否启用 */
+            isEnabled: boolean;
+            /** @description 备注 */
+            remark?: string | null;
+            /** @description 并发戳：授权时原样交回 */
+            concurrencyStamp: string;
+            /**
+             * Format: date-time
+             * @description 安装时间（UTC）
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 修改时间（UTC）
+             */
+            modifiedAt?: string | null;
+        };
+        /** @description 插件的一个版本 */
+        PluginVersionResponse: {
+            /**
+             * Format: uuid
+             * @description 主键
+             */
+            id: string;
+            /** @description 版本号 */
+            version: string;
+            /**
+             * Format: uuid
+             * @description 包文件
+             */
+            fileId: string;
+            /** @description 包的 SHA-256 */
+            sha256: string;
+            /**
+             * Format: int64
+             * @description 包的字节数
+             */
+            size: number;
+            /** @description 是否是当前版本 */
+            isCurrent: boolean;
+            /**
+             * Format: date-time
+             * @description 上传时间（UTC）
+             */
+            createdAt: string;
+        };
         /** @description 岗位的网络契约 */
         PositionResponse: {
             /**
@@ -40088,6 +40323,302 @@ export interface operations {
                     "application/json": {
                         /** @description 权限，按权限码排序 */
                         items: components["schemas"]["PermissionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.delete": {
+        parameters: {
+            query: {
+                /** @description 插件 ID，1 到 100 个 */
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 插件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 插件的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 插件 */
+                        plugin: components["schemas"]["PluginResponse"];
+                        /** @description 当前版本的贡献 */
+                        contributions: components["schemas"]["PluginContributionsResponse"];
+                        /** @description 当前版本必须全部批准的授予 */
+                        requiredGrants: string[];
+                        /** @description 可以另外批准的授予 */
+                        optionalGrants: string[];
+                        /** @description 已批准的授予 */
+                        grants: string[];
+                        /** @description 全部版本，新的在前 */
+                        versions: components["schemas"]["PluginVersionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.grant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 插件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description plugins.grant 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 插件 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /** @description 批准的授予：整组替换，须含全部必须项，另外只能有可选项 */
+                    grants: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 插件的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 插件 */
+                        plugin: components["schemas"]["PluginResponse"];
+                        /** @description 当前版本的贡献 */
+                        contributions: components["schemas"]["PluginContributionsResponse"];
+                        /** @description 当前版本必须全部批准的授予 */
+                        requiredGrants: string[];
+                        /** @description 可以另外批准的授予 */
+                        optionalGrants: string[];
+                        /** @description 已批准的授予 */
+                        grants: string[];
+                        /** @description 全部版本，新的在前 */
+                        versions: components["schemas"]["PluginVersionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.inspect": {
+        parameters: {
+            query: {
+                /** @description 已上传的插件包文件（平台一侧） */
+                fileId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 插件包的核对结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 清单 ID */
+                        manifestId: string;
+                        /** @description 短名 */
+                        name: string;
+                        /** @description 版本号 */
+                        version: string;
+                        /** @description 发布者 */
+                        publisher?: string | null;
+                        /** @description 隔离级别 */
+                        isolation: components["schemas"]["PluginIsolation"];
+                        /** @description 包的 SHA-256 */
+                        sha256: string;
+                        /**
+                         * Format: int64
+                         * @description 包的字节数
+                         */
+                        size: number;
+                        /** @description 贡献 */
+                        contributions: components["schemas"]["PluginContributionsResponse"];
+                        /** @description 必须全部批准的授予 */
+                        requiredGrants: string[];
+                        /** @description 可以另外批准的授予 */
+                        optionalGrants: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description plugins.install 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 已上传的插件包文件（平台一侧）
+                     */
+                    fileId: string;
+                    /** @description 批准的授予：须含核对给出的全部必须项，另外只能有可选项 */
+                    grants: string[];
+                    /** @description 备注 */
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description 插件的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 插件 */
+                        plugin: components["schemas"]["PluginResponse"];
+                        /** @description 当前版本的贡献 */
+                        contributions: components["schemas"]["PluginContributionsResponse"];
+                        /** @description 当前版本必须全部批准的授予 */
+                        requiredGrants: string[];
+                        /** @description 可以另外批准的授予 */
+                        optionalGrants: string[];
+                        /** @description 已批准的授予 */
+                        grants: string[];
+                        /** @description 全部版本，新的在前 */
+                        versions: components["schemas"]["PluginVersionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PluginResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };

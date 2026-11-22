@@ -57,7 +57,7 @@ public sealed class SettingsFeature : IFeature
 Tier 0 基座       Contracts → Runtime
 Tier 1 身份租户    Identity → Tenancy → Organization → Access
 Tier 2 平台能力    Settings | Notification | Files | Auditing | Maintenance | OpenPlatform | Realtime
-Tier 3 可选模块    Workbench | Workflow | Printing | CodeGeneration | Chat | AI
+Tier 3 可选模块    Workbench | Workflow | Printing | CodeGeneration | Chat | AI | Plugins
 Host              XiHan.BasicApp.Host
 ```
 
@@ -110,7 +110,7 @@ builder.AddXiHan(xihan =>
         xihan.UseFeature<WorkbenchFeature>();
     }
 
-    // Printing、Chat、Workflow、CodeGeneration 同理；AI 另装 OpenAIFeature，配了 Qdrant 再装知识库
+    // Printing、Chat、Workflow、CodeGeneration 同理；AI 另装 OpenAIFeature，配了 Qdrant 再装知识库；Plugins 另装进程外插件宿主
 });
 ```
 
@@ -164,6 +164,7 @@ builder.AddXiHan(xihan =>
 | Workflow | `basicapp.workflow@1` | 审批中心、流程定义、流程实例 | 待办、转办与故障通知的消息处理器 |
 | CodeGeneration | `basicapp.codegeneration@1` | 代码生成 | — |
 | AI | `basicapp.ai@1` | AI 提供商、助手、提示词、知识库 | `AiProviderCatalogMiddleware`（Transaction 开头） |
+| Plugins | `basicapp.plugins@1` | — | 进程外插件宿主 `plugins.out-of-process@1` |
 
 ## 下一步
 

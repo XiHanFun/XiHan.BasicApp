@@ -316,6 +316,11 @@
       "description": "The catalog of grantable permissions."
     },
     {
+      "name": "plugins",
+      "x-displayName": "Plugins",
+      "description": "Installed plugins, their versions and the grants approved for them."
+    },
+    {
       "name": "policies",
       "x-displayName": "Access policies",
       "description": "Policies that allow or deny requests by their context, with templates and trials."
@@ -45162,6 +45167,635 @@
         }
       }
     },
+    "/api/plugins": {
+      "delete": {
+        "operationId": "plugins.delete",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Uninstall plugins",
+        "description": "Uninstall plugins in a batch together with their versions and grants; the same plugin can be installed again afterwards.\n\nRequires permission plugins.plugins.delete (Uninstall plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "\u63D2\u4EF6 ID\uFF0C1 \u5230 100 \u4E2A",
+            "required": true,
+            "schema": {
+              "description": "\u63D2\u4EF6 ID\uFF0C1 \u5230 100 \u4E2A",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins/{id}": {
+      "get": {
+        "operationId": "plugins.get",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Get a plugin",
+        "description": "Get a plugin with the contributions of its current version, the grants it requests and those approved, and all of its versions.\n\nRequires permission plugins.plugins.read (Read plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D2\u4EF6 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D2\u4EF6 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginDetailResponse",
+                  "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "plugin": {
+                      "description": "\u63D2\u4EF6",
+                      "$ref": "#/components/schemas/PluginResponse"
+                    },
+                    "contributions": {
+                      "description": "\u5F53\u524D\u7248\u672C\u7684\u8D21\u732E",
+                      "$ref": "#/components/schemas/PluginContributionsResponse"
+                    },
+                    "requiredGrants": {
+                      "description": "\u5F53\u524D\u7248\u672C\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "optionalGrants": {
+                      "description": "\u53EF\u4EE5\u53E6\u5916\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grants": {
+                      "description": "\u5DF2\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "versions": {
+                      "description": "\u5168\u90E8\u7248\u672C\uFF0C\u65B0\u7684\u5728\u524D",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginVersionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "plugin",
+                    "contributions",
+                    "requiredGrants",
+                    "optionalGrants",
+                    "grants",
+                    "versions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins/{id}:grant": {
+      "post": {
+        "operationId": "plugins.grant",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Grant a plugin",
+        "description": "Replace the grants approved for an installed plugin; they must cover every required grant and may add only the optional ones. Send back the concurrency stamp you read.\n\nRequires permission plugins.plugins.grant (Grant plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.grant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D2\u4EF6 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D2\u4EF6 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "plugins.grant \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "GrantPluginRequest",
+                "description": "plugins.grant \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D2\u4EF6 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "grants": {
+                    "description": "\u6279\u51C6\u7684\u6388\u4E88\uFF1A\u6574\u7EC4\u66FF\u6362\uFF0C\u987B\u542B\u5168\u90E8\u5FC5\u987B\u9879\uFF0C\u53E6\u5916\u53EA\u80FD\u6709\u53EF\u9009\u9879",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 200
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "grants"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginDetailResponse",
+                  "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "plugin": {
+                      "description": "\u63D2\u4EF6",
+                      "$ref": "#/components/schemas/PluginResponse"
+                    },
+                    "contributions": {
+                      "description": "\u5F53\u524D\u7248\u672C\u7684\u8D21\u732E",
+                      "$ref": "#/components/schemas/PluginContributionsResponse"
+                    },
+                    "requiredGrants": {
+                      "description": "\u5F53\u524D\u7248\u672C\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "optionalGrants": {
+                      "description": "\u53EF\u4EE5\u53E6\u5916\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grants": {
+                      "description": "\u5DF2\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "versions": {
+                      "description": "\u5168\u90E8\u7248\u672C\uFF0C\u65B0\u7684\u5728\u524D",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginVersionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "plugin",
+                    "contributions",
+                    "requiredGrants",
+                    "optionalGrants",
+                    "grants",
+                    "versions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins:inspect": {
+      "get": {
+        "operationId": "plugins.inspect",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Inspect a plugin package",
+        "description": "Check an uploaded plugin package without installing it: both manifests, the files and the naming rules; returns its contributions and the grants it requests.\n\nRequires permission plugins.plugins.install (Install plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.install",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "query",
+            "description": "\u5DF2\u4E0A\u4F20\u7684\u63D2\u4EF6\u5305\u6587\u4EF6\uFF08\u5E73\u53F0\u4E00\u4FA7\uFF09",
+            "required": true,
+            "schema": {
+              "description": "\u5DF2\u4E0A\u4F20\u7684\u63D2\u4EF6\u5305\u6587\u4EF6\uFF08\u5E73\u53F0\u4E00\u4FA7\uFF09",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u5305\u7684\u6838\u5BF9\u7ED3\u679C",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginInspectionResponse",
+                  "description": "\u63D2\u4EF6\u5305\u7684\u6838\u5BF9\u7ED3\u679C",
+                  "type": "object",
+                  "properties": {
+                    "manifestId": {
+                      "description": "\u6E05\u5355 ID",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "\u77ED\u540D",
+                      "type": "string"
+                    },
+                    "version": {
+                      "description": "\u7248\u672C\u53F7",
+                      "type": "string"
+                    },
+                    "publisher": {
+                      "description": "\u53D1\u5E03\u8005",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isolation": {
+                      "description": "\u9694\u79BB\u7EA7\u522B",
+                      "$ref": "#/components/schemas/PluginIsolation"
+                    },
+                    "sha256": {
+                      "description": "\u5305\u7684 SHA-256",
+                      "type": "string"
+                    },
+                    "size": {
+                      "description": "\u5305\u7684\u5B57\u8282\u6570",
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "contributions": {
+                      "description": "\u8D21\u732E",
+                      "$ref": "#/components/schemas/PluginContributionsResponse"
+                    },
+                    "requiredGrants": {
+                      "description": "\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "optionalGrants": {
+                      "description": "\u53EF\u4EE5\u53E6\u5916\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "manifestId",
+                    "name",
+                    "version",
+                    "isolation",
+                    "sha256",
+                    "size",
+                    "contributions",
+                    "requiredGrants",
+                    "optionalGrants"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins:install": {
+      "post": {
+        "operationId": "plugins.install",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Install a plugin",
+        "description": "Install an uploaded plugin package with the approved grants, which must cover every required grant; the plugin starts disabled.\n\nRequires permission plugins.plugins.install (Install plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.install",
+        "parameters": [],
+        "requestBody": {
+          "description": "plugins.install \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "InstallPluginRequest",
+                "description": "plugins.install \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "fileId": {
+                    "description": "\u5DF2\u4E0A\u4F20\u7684\u63D2\u4EF6\u5305\u6587\u4EF6\uFF08\u5E73\u53F0\u4E00\u4FA7\uFF09",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "grants": {
+                    "description": "\u6279\u51C6\u7684\u6388\u4E88\uFF1A\u987B\u542B\u6838\u5BF9\u7ED9\u51FA\u7684\u5168\u90E8\u5FC5\u987B\u9879\uFF0C\u53E6\u5916\u53EA\u80FD\u6709\u53EF\u9009\u9879",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 200
+                  },
+                  "remark": {
+                    "description": "\u5907\u6CE8",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "grants"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginDetailResponse",
+                  "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "plugin": {
+                      "description": "\u63D2\u4EF6",
+                      "$ref": "#/components/schemas/PluginResponse"
+                    },
+                    "contributions": {
+                      "description": "\u5F53\u524D\u7248\u672C\u7684\u8D21\u732E",
+                      "$ref": "#/components/schemas/PluginContributionsResponse"
+                    },
+                    "requiredGrants": {
+                      "description": "\u5F53\u524D\u7248\u672C\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "optionalGrants": {
+                      "description": "\u53EF\u4EE5\u53E6\u5916\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grants": {
+                      "description": "\u5DF2\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "versions": {
+                      "description": "\u5168\u90E8\u7248\u672C\uFF0C\u65B0\u7684\u5728\u524D",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginVersionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "plugin",
+                    "contributions",
+                    "requiredGrants",
+                    "optionalGrants",
+                    "grants",
+                    "versions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins:list": {
+      "post": {
+        "operationId": "plugins.list",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "List plugins",
+        "description": "Page through the installed plugins with their version, isolation and whether they are enabled.\n\nRequires permission plugins.plugins.read (Read plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfPluginResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/policies": {
       "delete": {
         "operationId": "policies.delete",
@@ -75762,6 +76396,239 @@
           "Both"
         ]
       },
+      "PluginContributionsResponse": {
+        "description": "\u63D2\u4EF6\u7684\u8D21\u732E",
+        "type": "object",
+        "properties": {
+          "operations": {
+            "description": "\u64CD\u4F5C ID",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "description": "\u5B9A\u4E49\u7684\u6743\u9650\u7801",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PluginPermissionResponse"
+            }
+          },
+          "pages": {
+            "description": "\u9875\u9762",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PluginPageResponse"
+            }
+          },
+          "callbacks": {
+            "description": "\u56DE\u8C03\u5BBF\u4E3B\u64CD\u4F5C\u8981\u6301\u6709\u7684\u5BBF\u4E3B\u6743\u9650\u7801",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "operations",
+          "permissions",
+          "pages",
+          "callbacks"
+        ]
+      },
+      "PluginIsolation": {
+        "type": "string",
+        "enum": [
+          "InProcess",
+          "Wasm",
+          "OutOfProcess"
+        ]
+      },
+      "PluginPageResponse": {
+        "description": "\u63D2\u4EF6\u8D21\u732E\u7684\u4E00\u4E2A\u9875\u9762",
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "\u9875\u9762\u7801",
+            "type": "string"
+          },
+          "route": {
+            "description": "\u8DEF\u7531",
+            "type": "string"
+          },
+          "titleKey": {
+            "description": "\u6807\u9898\u6587\u6848\u952E",
+            "type": "string"
+          },
+          "icon": {
+            "description": "\u56FE\u6807\u540D",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "description": "\u540C\u7EA7\u6392\u5E8F",
+            "type": "integer",
+            "format": "int32"
+          },
+          "permission": {
+            "description": "\u8FDB\u5165\u9875\u9762\u6240\u9700\u7684\u6743\u9650\u7801\uFF0C\u4E3A\u7A7A\u53EA\u8981\u6C42\u767B\u5F55",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "route",
+          "titleKey",
+          "order"
+        ]
+      },
+      "PluginPermissionResponse": {
+        "description": "\u63D2\u4EF6\u5B9A\u4E49\u7684\u4E00\u4E2A\u6743\u9650\u7801",
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "\u6743\u9650\u7801",
+            "type": "string"
+          },
+          "scope": {
+            "description": "\u4F5C\u7528\u4FA7",
+            "$ref": "#/components/schemas/PermissionScope"
+          },
+          "audited": {
+            "description": "\u8BE5\u6743\u9650\u4FDD\u62A4\u7684\u64CD\u4F5C\u662F\u5426\u8FDB\u5BA1\u8BA1",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "scope",
+          "audited"
+        ]
+      },
+      "PluginResponse": {
+        "description": "\u63D2\u4EF6\u7684\u5217\u8868\u9879",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E",
+            "type": "string",
+            "format": "uuid"
+          },
+          "manifestId": {
+            "description": "\u6E05\u5355 ID",
+            "type": "string"
+          },
+          "name": {
+            "description": "\u77ED\u540D",
+            "type": "string"
+          },
+          "version": {
+            "description": "\u5F53\u524D\u7248\u672C\u53F7",
+            "type": "string"
+          },
+          "publisher": {
+            "description": "\u53D1\u5E03\u8005",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isolation": {
+            "description": "\u9694\u79BB\u7EA7\u522B",
+            "$ref": "#/components/schemas/PluginIsolation"
+          },
+          "isEnabled": {
+            "description": "\u662F\u5426\u542F\u7528",
+            "type": "boolean"
+          },
+          "remark": {
+            "description": "\u5907\u6CE8",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "concurrencyStamp": {
+            "description": "\u5E76\u53D1\u6233\uFF1A\u6388\u6743\u65F6\u539F\u6837\u4EA4\u56DE",
+            "type": "string"
+          },
+          "createdAt": {
+            "description": "\u5B89\u88C5\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "description": "\u4FEE\u6539\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "manifestId",
+          "name",
+          "version",
+          "isolation",
+          "isEnabled",
+          "concurrencyStamp",
+          "createdAt"
+        ]
+      },
+      "PluginVersionResponse": {
+        "description": "\u63D2\u4EF6\u7684\u4E00\u4E2A\u7248\u672C",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u4E3B\u952E",
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "description": "\u7248\u672C\u53F7",
+            "type": "string"
+          },
+          "fileId": {
+            "description": "\u5305\u6587\u4EF6",
+            "type": "string",
+            "format": "uuid"
+          },
+          "sha256": {
+            "description": "\u5305\u7684 SHA-256",
+            "type": "string"
+          },
+          "size": {
+            "description": "\u5305\u7684\u5B57\u8282\u6570",
+            "type": "integer",
+            "format": "int64"
+          },
+          "isCurrent": {
+            "description": "\u662F\u5426\u662F\u5F53\u524D\u7248\u672C",
+            "type": "boolean"
+          },
+          "createdAt": {
+            "description": "\u4E0A\u4F20\u65F6\u95F4\uFF08UTC\uFF09",
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "fileId",
+          "sha256",
+          "size",
+          "isCurrent",
+          "createdAt"
+        ]
+      },
       "PositionResponse": {
         "description": "\u5C97\u4F4D\u7684\u7F51\u7EDC\u5951\u7EA6",
         "type": "object",
@@ -80798,6 +81665,26 @@
         "displayName": "Update positions",
         "description": "Edit and disable positions."
       },
+      "plugins.plugins.delete": {
+        "code": "plugins.plugins.delete",
+        "displayName": "Uninstall plugins",
+        "description": "Uninstall plugins together with their versions and grants."
+      },
+      "plugins.plugins.grant": {
+        "code": "plugins.plugins.grant",
+        "displayName": "Grant plugins",
+        "description": "Change the grants approved for an installed plugin."
+      },
+      "plugins.plugins.install": {
+        "code": "plugins.plugins.install",
+        "displayName": "Install plugins",
+        "description": "Inspect uploaded plugin packages and install them with the approved grants."
+      },
+      "plugins.plugins.read": {
+        "code": "plugins.plugins.read",
+        "displayName": "Read plugins",
+        "description": "View installed plugins, their contributions, approved grants and versions."
+      },
       "printing.print-templates.create": {
         "code": "printing.print-templates.create",
         "displayName": "Create print templates",
@@ -81233,6 +82120,12 @@
         "ai-prompts",
         "ai-providers",
         "knowledge-documents"
+      ]
+    },
+    {
+      "name": "Plugins",
+      "tags": [
+        "plugins"
       ]
     },
     {

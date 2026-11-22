@@ -17,7 +17,7 @@ backend/
 │  ├─ XiHan.BasicApp.Runtime        Tier 0：SqlSugar 回调、租户作用域查询、种子、表结构升级、数据保护、多租户
 │  ├─ Identity / Tenancy / Organization / Access                  Tier 1：身份、租户、组织、授权
 │  ├─ Settings / Notification / Files / Auditing / Maintenance / OpenPlatform / Realtime   Tier 2：平台能力
-│  ├─ Workbench / Workflow / Printing / CodeGeneration / Chat / AI   Tier 3：可选模块（BasicApp:Modules 开关）
+│  ├─ Workbench / Workflow / Printing / CodeGeneration / Chat / AI / Plugins   Tier 3：可选模块（BasicApp:Modules 开关）
 │  └─ XiHan.BasicApp.Host           宿主：装配、配置、表结构脚本、普通端点；HTTP / OpenAPI / Scalar / MCP / gRPC
 └─ test/
    ├─ XiHan.BasicApp.Architecture.Tests   层级依赖、Expose 显式、权限码文法、匿名白名单、目录与文案、框架提交锁定

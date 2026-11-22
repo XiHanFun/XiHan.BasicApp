@@ -8,7 +8,7 @@
 | --- | --- |
 | `/api/` | 全部操作，前缀由 `XiHan:Protocols:Http:RoutePrefix` 决定 |
 | `/openapi.json` | OpenAPI 3.1 全量文档，带 `x-tagGroups`（Development 缺省打开，见 `BasicApp:ApiDocs:Enabled`） |
-| `/openapi/<组名>.json` | 按包分组的文档：`identity`、`access`、`tenancy`、`organization`、`settings`、`files`、`notification`、`auditing`、`maintenance`、`openplatform`、`printing`、`chat`、`workflow`、`codegeneration`、`ai` |
+| `/openapi/<组名>.json` | 按包分组的文档：`identity`、`access`、`tenancy`、`organization`、`settings`、`files`、`notification`、`auditing`、`maintenance`、`openplatform`、`printing`、`chat`、`workflow`、`codegeneration`、`ai`、`plugins` |
 | `/scalar` | 交互式文档，下拉切换全量与各组 |
 | `/operations.proto` | 由同一份操作 Schema 生成的 gRPC 定义（只含 `Expose.Grpc` 的操作） |
 | `/mcp` | MCP 端点，见 [MCP Server](./ai/mcp) |

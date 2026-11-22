@@ -47,6 +47,7 @@ backend/
 │  ├─ XiHan.BasicApp.CodeGeneration Tier 3  代码生成与零代码运行时
 │  ├─ XiHan.BasicApp.Chat           Tier 3  在线聊天与聊天审计
 │  ├─ XiHan.BasicApp.AI             Tier 3  AI 提供商、提示词、知识库、助手
+│  ├─ XiHan.BasicApp.Plugins        Tier 3  插件包的核对、安装与授予
 │  └─ XiHan.BasicApp.Host           装配、普通端点、命令、Schema/、IpDatabases/、appsettings
 └─ test/
    ├─ XiHan.BasicApp.Architecture.Tests   层级、Expose、权限码、目录与文案、XML 文档、框架锁定
