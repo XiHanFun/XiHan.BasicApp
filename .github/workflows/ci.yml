@@ -158,10 +158,11 @@ jobs:
         run: dotnet build XiHan.BasicApp/backend/test/XiHan.BasicApp.Integration.Tests -c Release
 
       # 按类分片：列出全部测试方法，按用例数均衡分到各片（.github/scripts/test-shard.mjs），这一片的类写进 classes.txt
+      # -noColor 不能省：Linux 上 xUnit 退出前往标准输出补一个颜色复位符，跟在 JSON 后面
       - name: 分片
         working-directory: XiHan.BasicApp
         run: |
-          dotnet backend/test/XiHan.BasicApp.Integration.Tests/bin/Release/net10.0/XiHan.BasicApp.Integration.Tests.dll -list methods/json > "$RUNNER_TEMP/methods.json"
+          dotnet backend/test/XiHan.BasicApp.Integration.Tests/bin/Release/net10.0/XiHan.BasicApp.Integration.Tests.dll -list methods/json -noColor > "$RUNNER_TEMP/methods.json"
           node .github/scripts/test-shard.mjs "$RUNNER_TEMP/methods.json" "${{ matrix.shard }}" "$SHARDS" > "$RUNNER_TEMP/classes.txt"
 
       - name: 集成测试
