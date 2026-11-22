@@ -108,7 +108,7 @@ public sealed class AuditingTests : IDisposable
         // 租户看不到平台的操作日志：同一条按主键取即找不到
         var (hidden, hiddenBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/operation-logs/{provision.GetProperty("id").GetString()}", token: tenant));
         Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode);
-        Assert.Equal("AUDITING_NOTFOUND_001", hiddenBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_NOTFOUND_101", hiddenBody.GetProperty("code").GetString());
     }
 
     [Fact]
@@ -228,13 +228,13 @@ public sealed class AuditingTests : IDisposable
         // 不合法的链路查询
         var (blank, blankBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/traces:timeline?dimension=TraceId&value=%20%20", token: tenant));
         Assert.Equal(HttpStatusCode.BadRequest, blank.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_003", blankBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_103", blankBody.GetProperty("code").GetString());
         var (reversed, reversedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/traces:timeline?dimension=TraceId&value={traceId}&from=2026-02-01T00:00:00Z&to=2026-01-01T00:00:00Z", token: tenant));
         Assert.Equal(HttpStatusCode.BadRequest, reversed.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_003", reversedBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_103", reversedBody.GetProperty("code").GetString());
         var (badSession, badSessionBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/traces:timeline?dimension=SessionId&value=not-a-guid", token: tenant));
         Assert.Equal(HttpStatusCode.BadRequest, badSession.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_002", badSessionBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_102", badSessionBody.GetProperty("code").GetString());
     }
 
     [Fact]
@@ -268,18 +268,18 @@ public sealed class AuditingTests : IDisposable
         Assert.Empty(await ListAsync(server, "access-logs", platform, """{"filters":[{"field":"durationMs","operator":"ge","value":"3600000"}]}"""));
         var (badDuration, badDurationBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/access-logs:list", """{"filters":[{"field":"durationMs","operator":"ge","value":"fast"}]}""", platform));
         Assert.Equal(HttpStatusCode.BadRequest, badDuration.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_002", badDurationBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_102", badDurationBody.GetProperty("code").GetString());
 
         // 白名单外的筛选与排序、不合法的值都拒绝；时间范围既是条件也限定扫描的月表（范围里没有月表即空）
         var (unsupported, unsupportedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/access-logs:list", """{"filters":[{"field":"durationMs","operator":"eq","value":"1"}]}""", platform));
         Assert.Equal(HttpStatusCode.BadRequest, unsupported.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_001", unsupportedBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_101", unsupportedBody.GetProperty("code").GetString());
         var (badSort, badSortBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/login-logs:list", """{"sorts":[{"field":"userAgent"}]}""", platform));
         Assert.Equal(HttpStatusCode.BadRequest, badSort.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_001", badSortBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_101", badSortBody.GetProperty("code").GetString());
         var (badDate, badDateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/login-logs:list", """{"filters":[{"field":"occurredAt","operator":"ge","value":"yesterday"}]}""", platform));
         Assert.Equal(HttpStatusCode.BadRequest, badDate.StatusCode);
-        Assert.Equal("AUDITING_VALIDATION_002", badDateBody.GetProperty("code").GetString());
+        Assert.Equal("AUDITING_VALIDATION_102", badDateBody.GetProperty("code").GetString());
         Assert.Empty(await ListAsync(server, "login-logs", platform, """{"filters":[{"field":"occurredAt","operator":"ge","value":"2001-01-01T00:00:00Z"},{"field":"occurredAt","operator":"le","value":"2001-02-01T00:00:00Z"}]}"""));
         Assert.NotEmpty(await ListAsync(server, "login-logs", platform, $$"""{"filters":[{"field":"occurredAt","operator":"ge","value":"{{DateTimeOffset.UtcNow.AddDays(-1):O}}"}],"sorts":[{"field":"occurredAt","descending":true}]}"""));
         Assert.NotEmpty(await ListAsync(server, "access-logs", platform, """{"filters":[{"field":"result","operator":"in","value":"Success,Unauthorized"}]}"""));
@@ -316,7 +316,7 @@ public sealed class AuditingTests : IDisposable
         // 参数写了不合法的值：作业失败，不按错误的保留期删
         var (config, _) = await SettingsTestHost.SetBuiltInConfigAsync(server, platform, "auditing.retention-days", "0");
         Assert.Equal(HttpStatusCode.OK, config);
-        Assert.Equal("AUDITING_VALIDATION_004", (await RunAsync()).Error?.Code);
+        Assert.Equal("AUDITING_VALIDATION_104", (await RunAsync()).Error?.Code);
     }
 
     [Fact]

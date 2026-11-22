@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 操作 ID | `<资源>.<动词>`，资源复数 kebab | `configs.create`、`users.reset-password` |
 | 权限码 | `<包>.<资源>.<动作>`，资源段与操作 ID 的资源段相同 | `settings.configs.create` |
-| 错误码 | `<包大写>_<KIND>_<NNN>` | `SETTINGS_CONFLICT_001` |
+| 错误码 | `<包大写>_<KIND>_<NNN>`；与框架同一个前缀的包（`AI`、`AUDITING`、`WORKFLOW`）从 101 起编，001 段留给框架 | `SETTINGS_CONFLICT_001`、`AUDITING_VALIDATION_101` |
 | 消息键 | `<操作 ID>.title` / `.description`（资源段的 `-` 换 `_`），以及包内的错误文案键 | `configs.create.title` |
 
 动词约定：标准动词 `create / get / list / update / delete`；写动作用动词原形（`lock`、`reset-password`、`transfer-owner`）；查询变体用 `list-<限定>`（如 `approvals.list-done`）或独立资源，`get` / `list` 以外的只读动词一律声明 `ReadOnly = true`。对已有对象按标识的写操作（删除、启停、授权、撤销）只提供批量形态，返回 `BatchResult`。

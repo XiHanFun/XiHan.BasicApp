@@ -10,7 +10,7 @@ src/XiHan.BasicApp.<包>/
 ├─ <包>Permissions.cs      权限码常量与 All（PermissionDescriptor：码、显示名、作用侧、audited、说明）
 ├─ <包>Pages.cs            页面登记（页面码、路由、标题键、图标、排序、读权限、缺省目录、固定标签与徽标）
 ├─ <包>Messages.cs         消息键常量与 Catalog
-├─ <包>Errors.cs           错误码常量 <包大写>_<KIND>_<NNN>
+├─ <包>Errors.cs           错误码常量 <包大写>_<KIND>_<NNN>（与框架同前缀的从 101 起编）
 ├─ <包>JsonContext.cs      本包全部请求 / 响应 / 推送载荷的源生成上下文（枚举按字符串）
 ├─ Localization/<区域>.json × 10
 ├─ Domain/  Operations/<资源 Pascal>/  Queries/  Handlers/  Middleware/  Jobs/  Infrastructure/  Seeds/  Schema/

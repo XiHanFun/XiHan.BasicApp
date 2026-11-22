@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using XiHan.BasicApp.Architecture.Tests.Model;
@@ -15,7 +16,7 @@ namespace XiHan.BasicApp.Architecture.Tests;
 /// 检查包的目录名、区域文件、错误码与清单
 /// </summary>
 /// <remarks>
-/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀、包内不重复；清单 ID、包名与版本按附录 B
+/// 方案 5.3：目录名在白名单内；10 个区域文件键集一致且与消息键常量一一对应；错误码带包前缀、包内不重复，与框架同领域段的从 101 起编；清单 ID、包名与版本按附录 B
 /// </remarks>
 public sealed class PackageStructureTests
 {
@@ -160,6 +161,77 @@ public sealed class PackageStructureTests
         }
 
         Assert.True(duplicates.Count == 0, $"error codes declared more than once:{Environment.NewLine}{string.Join(Environment.NewLine, duplicates)}");
+    }
+
+    [Fact]
+    public void ErrorCodes_SharingAFrameworkDomain_StartAt101()
+    {
+        // 框架占 001 段：与框架同一个领域段的包从 101 起编，前端按码就分得清是框架还是 BasicApp 报的
+        var framework = FrameworkErrorCodes();
+        var domains = framework.Select(ErrorCode.DomainOf).ToHashSet(StringComparer.Ordinal);
+        var violations = new List<string>();
+        foreach (var assembly in Packages.Assemblies)
+        {
+            var package = Packages.ShortName(assembly.GetName().Name!);
+            var errorsType = assembly.GetType($"{Packages.Prefix}{package}.{package}Errors");
+            if (errorsType is null)
+            {
+                continue;
+            }
+
+            foreach (var field in errorsType.GetFields(BindingFlags.Public | BindingFlags.Static).Where(static f => f.IsLiteral && f.FieldType == typeof(string)))
+            {
+                var code = (string)field.GetRawConstantValue()!;
+                if (framework.Contains(code))
+                {
+                    violations.Add($"{package}Errors.{field.Name}: {code} is also a framework error code");
+                }
+                else if (domains.Contains(ErrorCode.DomainOf(code)) && int.Parse(code.AsSpan(code.Length - 3), CultureInfo.InvariantCulture) < 101)
+                {
+                    violations.Add($"{package}Errors.{field.Name}: {code} shares the framework domain and must be numbered from 101");
+                }
+            }
+        }
+
+        Assert.True(violations.Count == 0, $"error codes overlap the framework:{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
+    }
+
+    /// <summary>
+    /// 框架各包的错误码
+    /// </summary>
+    /// <remarks>
+    /// 从能力包与宿主出发，按引用找到用到的全部框架程序集，收集各个 <c>*Errors</c> 类（含内部类）里的错误码常量
+    /// </remarks>
+    private static HashSet<string> FrameworkErrorCodes()
+    {
+        var codes = new HashSet<string>(StringComparer.Ordinal);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var pending = new Queue<AssemblyName>(Packages.Assemblies.SelectMany(static a => a.GetReferencedAssemblies()));
+        while (pending.TryDequeue(out var name))
+        {
+            if (name.Name is not { } simple || !simple.StartsWith("XiHan.Framework.", StringComparison.Ordinal) || !visited.Add(simple))
+            {
+                continue;
+            }
+
+            var assembly = Assembly.Load(name);
+            foreach (var reference in assembly.GetReferencedAssemblies())
+            {
+                pending.Enqueue(reference);
+            }
+
+            foreach (var type in assembly.GetTypes().Where(static t => t.IsAbstract && t.IsSealed && t.Name.EndsWith("Errors", StringComparison.Ordinal)))
+            {
+                codes.UnionWith(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
+                    .Where(static f => f.IsLiteral && f.FieldType == typeof(string))
+                    .Select(static f => (string)f.GetRawConstantValue()!)
+                    .Where(ErrorCode.IsValid));
+            }
+        }
+
+        // 一个都没收到说明找法失效了，不能当作没有重号
+        Assert.Contains(codes, static c => ErrorCode.DomainOf(c) == "KERNEL");
+        return codes;
     }
 
     [Fact]

@@ -93,7 +93,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 - 业务接口是操作：`Operations/<资源 Pascal>/<动词>.cs` 里一个 `[Operation(Id, Expose = …, Permission = …)]` 类实现 `IOperation<TRequest, TResponse>`。不写 Controller 或 Minimal API 业务入口；普通端点只留给文件上传下载、OAuth 重定向、Hub 与 Webhook。
 - 操作 ID `<资源>.<动词>`；每个操作显式写 `Expose`（`XHG004` 编译期强制），超出 HTTP 的必须只读并登记在 `OperationExposureTests`；匿名操作登记匿名白名单。
 - 权限码 `<包>.<资源>.<动作>`，资源段等于操作 ID 的资源段，在 `<包>Permissions.All` 登记（作用侧、`audited`）；权限目录、菜单门控与种子都由它派生。前端隐藏按钮不能替代后端授权。
-- 失败是值（`Error.Validation / NotFound / Conflict / Denied / Unavailable`），错误码 `<包大写>_<KIND>_<NNN>`，消息键同时补 10 个区域文件；不吞异常、不返回伪成功。
+- 失败是值（`Error.Validation / NotFound / Conflict / Denied / Unavailable`），错误码 `<包大写>_<KIND>_<NNN>`（与框架同前缀的从 101 起编），消息键同时补 10 个区域文件；不吞异常、不返回伪成功。
 - 事务由管道开启；`context.CancellationToken` 一路传下去；独立于调用事务的读写走 `StoreScope`。
 
 ### 数据与租户

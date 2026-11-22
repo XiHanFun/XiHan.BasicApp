@@ -169,7 +169,7 @@ describe('统计页签', () => {
 
   it('加载被拒即提示后端文案', async () => {
     const danger = vi.spyOn(toast, 'danger').mockImplementation(() => '')
-    apis.getActivityApi.mockRejectedValue(new ApiError(400, { code: 'AUDITING_VALIDATION_001', detail: '时区无效。' }))
+    apis.getActivityApi.mockRejectedValue(new ApiError(400, { code: 'AUDITING_VALIDATION_105', detail: '时区无效。' }))
     await render()
     expect(danger).toHaveBeenCalledWith('时区无效。')
   })

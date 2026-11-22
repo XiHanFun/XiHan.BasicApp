@@ -134,6 +134,6 @@ public sealed class MySessionsTests : IDisposable
         var (_, demoActivity) = await GetAsync(server, "/api/my-activity:summary", demo);
         Assert.Equal(1, demoActivity.GetProperty("thisMonth").GetProperty("logins").GetInt32());
         var (badZone, badZoneBody) = await GetAsync(server, "/api/my-activity:summary?timeZone=Mars/Olympus", current);
-        Assert.Equal((HttpStatusCode.BadRequest, "AUDITING_VALIDATION_005"), (badZone, badZoneBody.GetProperty("code").GetString()));
+        Assert.Equal((HttpStatusCode.BadRequest, "AUDITING_VALIDATION_105"), (badZone, badZoneBody.GetProperty("code").GetString()));
     }
 }
