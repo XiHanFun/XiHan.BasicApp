@@ -59,5 +59,7 @@
   "permissions.plugins.plugins.update.name": "Activer des plugins",
   "permissions.plugins.plugins.update.description": "Active ou désactive des plugins installés ; un plugin activé est chargé sur chaque nœud.",
   "plugins.runtime.isolation_unavailable": "Ce serveur n’a pas d’hôte de plugins pour l’isolation '{isolation}'.",
-  "plugins.runtime.package_unavailable": "Le paquet du plugin '{name}' en version {version} est absent du stockage de fichiers ou ne correspond plus à son SHA-256."
+  "plugins.runtime.package_unavailable": "Le paquet du plugin '{name}' en version {version} est absent du stockage de fichiers ou ne correspond plus à son SHA-256.",
+  "plugins.delete_preview.title": "Aperçu de la désinstallation du plugin",
+  "plugins.delete_preview.description": "Liste ce que supprime la désinstallation d’un plugin : les codes de permission de toutes ses versions et toutes les références à ceux-ci (autorisations de rôles et d’utilisateurs, règles d’autorisation, conditions, délégations, règles d’exclusion mutuelle, nœuds de menu contrôlés, listes blanches d’éditions). Les demandes d’autorisation en attente dans les bases des locataires sont listées mais conservées."
 }

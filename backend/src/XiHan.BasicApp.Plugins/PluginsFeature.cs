@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Plugins.Domain.Services;
@@ -83,6 +84,8 @@ public sealed class PluginsFeature : IHostedFeature
 
         // 插件宿主按隔离级别取键控服务；测试可以先登记替身，这里只在没登记时补上框架的进程外宿主
         context.Services.TryAddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => services.GetRequiredService<OutOfProcessPluginHost>());
+        context.Services.AddSingleton<PluginPages>();
+        context.Services.AddSingleton<IRuntimePageSource>(static sp => sp.GetRequiredService<PluginPages>());
         context.Services.AddSingleton<PluginCache>();
         context.Services.AddSingleton<PluginReconciler>();
         context.Services.AddScoped<PluginChanges>();

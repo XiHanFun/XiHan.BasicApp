@@ -235,6 +235,20 @@ public sealed class PluginService(FileService files, PluginInspector inspector, 
         => [.. (await versions.ListAsync(EntityQuery.All<SysPluginVersion>().Where(new Specification<SysPluginVersion>(v => v.PluginId == pluginId)), cancellationToken).ConfigureAwait(false)).OrderByDescending(static v => v.CreatedAt)];
 
     /// <summary>
+    /// 插件全部版本贡献过的权限码
+    /// </summary>
+    /// <remarks>
+    /// 卸载要清掉对它们的引用：升级换掉的旧版本贡献过的码也算，授予可能还留着
+    /// </remarks>
+    /// <param name="pluginId">插件 ID</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<IReadOnlyList<string>> PermissionsOfAsync(Guid pluginId, CancellationToken cancellationToken)
+        => [.. (await VersionsOfAsync(pluginId, cancellationToken).ConfigureAwait(false))
+            .SelectMany(static v => (System.Text.Json.JsonSerializer.Deserialize(v.DescriptorJson, PluginsJsonContext.Default.PluginDescriptor)?.Permissions ?? []).Select(static p => p.Code))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)];
+
+    /// <summary>
     /// 插件的详情
     /// </summary>
     /// <remarks>

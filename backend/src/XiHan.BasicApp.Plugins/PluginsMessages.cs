@@ -65,6 +65,11 @@ public static class PluginsMessages
     public const string GetPluginStatusDescription = "plugins.status.description";
 
     /// <summary>
+    /// 操作 <c>plugins.delete-preview</c> 的说明
+    /// </summary>
+    public const string PreviewPluginDeleteDescription = "plugins.delete_preview.description";
+
+    /// <summary>
     /// 插件不存在
     /// </summary>
     /// <remarks>

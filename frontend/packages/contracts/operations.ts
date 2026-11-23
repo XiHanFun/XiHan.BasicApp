@@ -373,6 +373,7 @@ export const routes = {
   'permission-requests.withdraw': { method: 'POST', template: '/api/permission-requests:withdraw', path: [], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'plugins.delete': { method: 'DELETE', template: '/api/plugins', path: [], query: ['ids'], success: 200 },
+  'plugins.delete-preview': { method: 'GET', template: '/api/plugins/{id}:delete-preview', path: ['id'], query: [], success: 200 },
   'plugins.disable': { method: 'POST', template: '/api/plugins:disable', path: [], query: [], success: 200 },
   'plugins.enable': { method: 'POST', template: '/api/plugins:enable', path: [], query: [], success: 200 },
   'plugins.get': { method: 'GET', template: '/api/plugins/{id}', path: ['id'], query: [], success: 200 },
@@ -1178,6 +1179,7 @@ export const permissions = {
 /** 资源 `plugins` 的操作 */
 export const plugins = {
   delete: (request: RequestOf<'plugins.delete'>, options?: CallOptions) => invoke<RequestOf<'plugins.delete'>, ResponseOf<'plugins.delete'>>('plugins.delete', routes['plugins.delete'], request, options),
+  deletePreview: (request: RequestOf<'plugins.delete-preview'>, options?: CallOptions) => invoke<RequestOf<'plugins.delete-preview'>, ResponseOf<'plugins.delete-preview'>>('plugins.delete-preview', routes['plugins.delete-preview'], request, options),
   disable: (request: RequestOf<'plugins.disable'>, options?: CallOptions) => invoke<RequestOf<'plugins.disable'>, ResponseOf<'plugins.disable'>>('plugins.disable', routes['plugins.disable'], request, options),
   enable: (request: RequestOf<'plugins.enable'>, options?: CallOptions) => invoke<RequestOf<'plugins.enable'>, ResponseOf<'plugins.enable'>>('plugins.enable', routes['plugins.enable'], request, options),
   get: (request: RequestOf<'plugins.get'>, options?: CallOptions) => invoke<RequestOf<'plugins.get'>, ResponseOf<'plugins.get'>>('plugins.get', routes['plugins.get'], request, options),

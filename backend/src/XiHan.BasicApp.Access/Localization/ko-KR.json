@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "결재 워크플로가 중단됨",
   "access.permission_request.grant_reason": "권한 신청 {id} 승인에 따른 자동 부여",
   "access.permission_request.constraint_role_reason": "역할 지정이 제약 규칙 「{name}」({code})에 걸려 규칙에 따라 결재로 넘깁니다.",
-  "access.permission_request.constraint_permission_reason": "권한 직접 부여가 제약 규칙 「{name}」({code})에 걸려 규칙에 따라 결재로 넘깁니다."
+  "access.permission_request.constraint_permission_reason": "권한 직접 부여가 제약 규칙 「{name}」({code})에 걸려 규칙에 따라 결재로 넘깁니다.",
+  "access.permission_reference.unavailable": "'{side}' 쪽의 데이터를 읽을 수 없어 이 권한 코드에 대한 참조를 모두 나열할 수 없습니다."
 }

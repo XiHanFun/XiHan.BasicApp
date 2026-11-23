@@ -59,5 +59,7 @@
   "permissions.plugins.plugins.update.name": "啟用與停用外掛",
   "permissions.plugins.plugins.update.description": "啟用或停用已安裝的外掛；啟用後每個節點都會載入它。",
   "plugins.runtime.isolation_unavailable": "本伺服器沒有隔離等級 '{isolation}' 的外掛宿主。",
-  "plugins.runtime.package_unavailable": "外掛 '{name}' 版本 {version} 的套件檔已不在檔案儲存中，或與安裝時的 SHA-256 不一致。"
+  "plugins.runtime.package_unavailable": "外掛 '{name}' 版本 {version} 的套件檔已不在檔案儲存中，或與安裝時的 SHA-256 不一致。",
+  "plugins.delete_preview.title": "預覽卸載外掛",
+  "plugins.delete_preview.description": "列出卸載外掛會清掉的內容：它全部版本的權限碼與對它們的各處引用（角色與使用者授予、授予規則、權限條件、委派、互斥約束、營運節點的門控權限碼、方案白名單）。各租戶庫裡待審的授權申請只列出、保留不改。"
 }

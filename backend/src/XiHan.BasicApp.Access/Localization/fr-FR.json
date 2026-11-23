@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "Le workflow d'approbation a été interrompu",
   "access.permission_request.grant_reason": "Accordé automatiquement à l'approbation de la demande d'autorisation {id}",
   "access.permission_request.constraint_role_reason": "L’attribution du rôle a déclenché la règle de contrainte « {name} » ({code}), qui exige une approbation.",
-  "access.permission_request.constraint_permission_reason": "L’octroi direct de l’autorisation a déclenché la règle de contrainte « {name} » ({code}), qui exige une approbation."
+  "access.permission_request.constraint_permission_reason": "L’octroi direct de l’autorisation a déclenché la règle de contrainte « {name} » ({code}), qui exige une approbation.",
+  "access.permission_reference.unavailable": "Les données du côté '{side}' n’ont pas pu être lues ; les références à ces codes de permission sont incomplètes."
 }

@@ -1080,6 +1080,7 @@ export default {
     file_services: '文件服务',
     print_services: '打印服务',
     online_dev: '在线开发',
+    plugin_apps: '插件应用',
     message_center: '消息中心',
     about: '帮助中心',
     about_project: '项目概览',

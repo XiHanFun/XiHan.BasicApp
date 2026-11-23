@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "The approval workflow was aborted",
   "access.permission_request.grant_reason": "Granted automatically on approval of permission request {id}",
   "access.permission_request.constraint_role_reason": "Assigning the role triggered constraint rule \"{name}\" ({code}), which requires approval.",
-  "access.permission_request.constraint_permission_reason": "Granting the permission directly triggered constraint rule \"{name}\" ({code}), which requires approval."
+  "access.permission_request.constraint_permission_reason": "Granting the permission directly triggered constraint rule \"{name}\" ({code}), which requires approval.",
+  "access.permission_reference.unavailable": "The data of side '{side}' could not be read, so the references to these permission codes are incomplete."
 }

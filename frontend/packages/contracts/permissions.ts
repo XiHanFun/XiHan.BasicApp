@@ -544,6 +544,7 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'permission-requests.withdraw': 'access.permission-requests.withdraw',
   'permissions.list': 'access.permissions.read',
   'plugins.delete': 'plugins.plugins.delete',
+  'plugins.delete-preview': 'plugins.plugins.delete',
   'plugins.disable': 'plugins.plugins.update',
   'plugins.enable': 'plugins.plugins.update',
   'plugins.get': 'plugins.plugins.read',

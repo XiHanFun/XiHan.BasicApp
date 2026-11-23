@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "承認ワークフローが中止されました",
   "access.permission_request.grant_reason": "権限申請 {id} の承認による自動付与",
   "access.permission_request.constraint_role_reason": "ロールの割り当てが制約ルール「{name}」（{code}）に該当したため、規則どおり承認にかけます。",
-  "access.permission_request.constraint_permission_reason": "権限の直接付与が制約ルール「{name}」（{code}）に該当したため、規則どおり承認にかけます。"
+  "access.permission_request.constraint_permission_reason": "権限の直接付与が制約ルール「{name}」（{code}）に該当したため、規則どおり承認にかけます。",
+  "access.permission_reference.unavailable": "'{side}' 側のデータを読み取れないため、これらの権限コードへの参照を完全には列挙できません。"
 }

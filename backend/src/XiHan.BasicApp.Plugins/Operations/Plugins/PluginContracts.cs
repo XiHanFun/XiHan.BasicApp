@@ -51,6 +51,30 @@ public sealed record PluginResponse(
 }
 
 /// <summary>
+/// 卸载一个插件会清掉的内容
+/// </summary>
+/// <param name="Id">插件 ID</param>
+/// <param name="ManifestId">清单 ID</param>
+/// <param name="Name">短名</param>
+/// <param name="Permissions">插件全部版本贡献过的权限码</param>
+/// <param name="References">对这些权限码的引用：卸载时一并清掉，待审的授权申请留档不改</param>
+public sealed record PluginDeletePreviewResponse(
+    Guid Id,
+    string ManifestId,
+    string Name,
+    IReadOnlyList<string> Permissions,
+    IReadOnlyList<PermissionReferenceResponse> References);
+
+/// <summary>
+/// 一条对权限码的引用
+/// </summary>
+/// <param name="Kind">引用的种类</param>
+/// <param name="Side">所属一侧：<c>platform</c>、租户 ID，或 <c>*</c>（对每个租户都生效的授予）</param>
+/// <param name="Subject">引用方：角色编码、用户 ID、套餐编码、菜单编码、规则编码等</param>
+/// <param name="Permission">被引用的权限码</param>
+public sealed record PermissionReferenceResponse(PermissionReferenceKind Kind, string Side, string Subject, string Permission);
+
+/// <summary>
 /// 插件在应答节点上的运行状态
 /// </summary>
 /// <remarks>

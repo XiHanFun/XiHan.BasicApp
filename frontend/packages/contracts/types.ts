@@ -7144,6 +7144,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plugins/{id}:delete-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview plugin uninstall
+         * @description List what uninstalling a plugin removes: the permission codes of all its versions and every reference to them (role and user grants, grant rules, conditions, delegations, mutual-exclusion rules, gated operator menu nodes, edition whitelists). Pending permission requests in tenant databases are listed but kept.
+         *
+         *     Requires permission plugins.plugins.delete (Uninstall plugins).
+         */
+        get: operations["plugins.delete-preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plugins/{id}:grant": {
         parameters: {
             query?: never;
@@ -15436,6 +15458,19 @@ export interface components {
             code: string;
             /** @description 失败原因，已按这次调用的区域本地化，可直接显示 */
             message: string;
+        };
+        /** @enum {string} */
+        PermissionReferenceKind: "RoleGrant" | "UserGrant" | "PermissionRule" | "PermissionCondition" | "Delegation" | "ConstraintRule" | "Menu" | "Edition" | "PermissionRequest";
+        /** @description 一条对权限码的引用 */
+        PermissionReferenceResponse: {
+            /** @description 引用的种类 */
+            kind: components["schemas"]["PermissionReferenceKind"];
+            /** @description 所属一侧：platform、租户 ID，或 *（对每个租户都生效的授予） */
+            side: string;
+            /** @description 引用方：角色编码、用户 ID、套餐编码、菜单编码、规则编码等 */
+            subject: string;
+            /** @description 被引用的权限码 */
+            permission: string;
         };
         /** @description 等着办的人 */
         PermissionRequestAssignee: {
@@ -40471,6 +40506,52 @@ export interface operations {
                         grants: string[];
                         /** @description 全部版本，新的在前 */
                         versions: components["schemas"]["PluginVersionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.delete-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 插件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 卸载一个插件会清掉的内容 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 插件 ID
+                         */
+                        id: string;
+                        /** @description 清单 ID */
+                        manifestId: string;
+                        /** @description 短名 */
+                        name: string;
+                        /** @description 插件全部版本贡献过的权限码 */
+                        permissions: string[];
+                        /** @description 对这些权限码的引用：卸载时一并清掉，待审的授权申请留档不改 */
+                        references: components["schemas"]["PermissionReferenceResponse"][];
                     };
                 };
             };

@@ -698,4 +698,9 @@ public static class AccessErrors
     /// Workflow 模块关掉时提交与重新提交授权申请即这个错误（方案 W1），列表照常、进度为空
     /// </remarks>
     public const string ApprovalUnavailable = "ACCESS_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 某一侧的库读不出，列不全对权限码的引用
+    /// </summary>
+    public const string PermissionReferencesUnavailable = "ACCESS_UNAVAILABLE_003";
 }

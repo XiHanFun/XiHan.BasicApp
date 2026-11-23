@@ -1080,6 +1080,7 @@ export default {
     file_services: 'Serviços de arquivos',
     print_services: 'Serviços de impressão',
     online_dev: 'Desenvolvimento online',
+    plugin_apps: 'Aplicativos de plugins',
     message_center: 'Central de mensagens',
     about: 'Central de ajuda',
     about_project: 'Sobre o projeto',

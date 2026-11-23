@@ -81,6 +81,7 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddScoped<ITenantQuota>(static sp => sp.GetRequiredService<TenantQuotas>());
         context.Services.AddSingleton<EditionGate>();
         context.Services.AddSingleton<IEditionGate>(static sp => sp.GetRequiredService<EditionGate>());
+        context.Services.AddScoped<IPermissionReferences, EditionPermissionReferences>();
         context.Services.AddSeeder<EditionSeeder>();
         context.Services.AddSeeder<DemoTenantSeeder>();
         context.Services.AddJob<TenantExpiryJob>(new JobName(TenantExpiryJob.Name), TenantExpiryJob.Schedule);

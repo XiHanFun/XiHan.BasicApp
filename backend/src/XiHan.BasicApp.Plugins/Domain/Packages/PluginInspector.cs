@@ -246,7 +246,8 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
                 && !string.IsNullOrWhiteSpace(page.TitleKey)
                 && (page.Permission is null || pluginCodes.Contains(page.Permission) || permissions.Find(page.Permission).HasValue)
                 && string.Equals(page.View.Kind, SchemaView, StringComparison.Ordinal)
-                && package.Entries.Contains(page.View.File);
+                && package.Entries.Contains(page.View.File)
+                && IsMenuPage(page);
             if (!valid)
             {
                 return Error.Validation(PluginsErrors.ContributionInvalid, PluginsMessages.PageInvalid, MessageArguments.Of(("code", page.Code)));
@@ -254,6 +255,25 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 页面能登记成菜单页面
+    /// </summary>
+    /// <remarks>
+    /// 以菜单页面登记自己的文法为准（路由每段 kebab-case、权限码文法），装好之后对齐菜单时不会被拒
+    /// </remarks>
+    private static bool IsMenuPage(PluginPageDescriptor page)
+    {
+        try
+        {
+            _ = new PageDescriptor(page.Code, page.Route, page.TitleKey, page.Icon, page.Order, page.Permission);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 
     /// <summary>

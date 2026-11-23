@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "Der Genehmigungs-Workflow wurde abgebrochen",
   "access.permission_request.grant_reason": "Automatisch vergeben nach Genehmigung des Berechtigungsantrags {id}",
   "access.permission_request.constraint_role_reason": "Die Rollenzuweisung hat die Einschränkungsregel „{name}“ ({code}) ausgelöst, die eine Genehmigung verlangt.",
-  "access.permission_request.constraint_permission_reason": "Die direkte Berechtigungsvergabe hat die Einschränkungsregel „{name}“ ({code}) ausgelöst, die eine Genehmigung verlangt."
+  "access.permission_request.constraint_permission_reason": "Die direkte Berechtigungsvergabe hat die Einschränkungsregel „{name}“ ({code}) ausgelöst, die eine Genehmigung verlangt.",
+  "access.permission_reference.unavailable": "Die Daten der Seite '{side}' konnten nicht gelesen werden; die Verweise auf diese Berechtigungscodes sind unvollständig."
 }

@@ -51,6 +51,7 @@ public sealed class MenusTests : IDisposable
             + "custom.file-services[files.library, files.storage-configs, files.export-center], "
             + "custom.print-services[printing.print-templates], "
             + "custom.online-dev[codegeneration.code-gen]], "
+            + "custom.plugin-apps, "
             + "custom.about[about.project, custom.about-docs, custom.about-github, custom.about-gitee]",
             MenuTrees.Outline(listBody.GetProperty("items")));
         var roles = MenuTrees.Find(listBody.GetProperty("items"), "access.roles");

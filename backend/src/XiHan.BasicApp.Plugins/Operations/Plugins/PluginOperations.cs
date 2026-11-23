@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Plugins.Domain.Entities;
 using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Plugins.Domain.Services;
@@ -94,11 +95,12 @@ public sealed class InspectPlugin(PluginService service) : IOperation<InspectPlu
 /// 安装一个已上传的插件包
 /// </summary>
 /// <remarks>
-/// <c>POST /api/plugins</c>。核对同 <c>plugins.inspect</c>；授予要含全部必须项（缺了 <c>PLUGINS_DENIED_101</c>），另外只能有可选项（<c>PLUGINS_VALIDATION_106</c>）。装好是停用状态
+/// <c>POST /api/plugins</c>。核对同 <c>plugins.inspect</c>；授予要含全部必须项（缺了 <c>PLUGINS_DENIED_101</c>），另外只能有可选项（<c>PLUGINS_VALIDATION_106</c>）。装好是停用状态，页面节点提交后进「插件应用」目录（启用前不下发）
 /// </remarks>
 /// <param name="service">插件服务</param>
+/// <param name="changes">本次调用的插件改动</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = PluginsPermissions.PluginsInstall)]
-public sealed class InstallPlugin(PluginService service) : IOperation<InstallPluginRequest, PluginDetailResponse>
+public sealed class InstallPlugin(PluginService service, PluginChanges changes) : IOperation<InstallPluginRequest, PluginDetailResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -111,9 +113,13 @@ public sealed class InstallPlugin(PluginService service) : IOperation<InstallPlu
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var installed = await service.InstallAsync(request, context.CancellationToken).ConfigureAwait(false);
-        return installed.TryGetValue(out var plugin)
-            ? await service.DetailAsync(plugin, context.CancellationToken).ConfigureAwait(false)
-            : installed.Error!;
+        if (!installed.TryGetValue(out var plugin))
+        {
+            return installed.Error!;
+        }
+
+        changes.Request();
+        return await service.DetailAsync(plugin, context.CancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -175,12 +181,14 @@ public sealed class GrantPlugin(IRepository<SysPlugin, Guid> plugins, PluginServ
 /// </summary>
 /// <remarks>
 /// <c>DELETE /api/plugins?ids=...</c>。逐项：不存在 <c>PLUGINS_NOTFOUND_101</c>；卸载软删除插件与全部版本、删掉授予，同一插件之后可以再装。加载着的插件提交后即卸下
+/// 插件全部版本贡献过的权限码，各处的引用在同一个工作单元里清掉（先用 <c>plugins.delete-preview</c> 看会清掉什么）；授权申请与日志是留档，不改
 /// </remarks>
 /// <param name="plugins">插件仓储</param>
 /// <param name="service">插件服务</param>
+/// <param name="references">各包对权限码的引用</param>
 /// <param name="changes">本次调用的插件改动</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = PluginsPermissions.PluginsDelete)]
-public sealed class DeletePlugins(IRepository<SysPlugin, Guid> plugins, PluginService service, PluginChanges changes) : IOperation<PluginIdsRequest, BatchResult>
+public sealed class DeletePlugins(IRepository<SysPlugin, Guid> plugins, PluginService service, IEnumerable<IPermissionReferences> references, PluginChanges changes) : IOperation<PluginIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID
@@ -203,6 +211,16 @@ public sealed class DeletePlugins(IRepository<SysPlugin, Guid> plugins, PluginSe
                 continue;
             }
 
+            var codes = await service.PermissionsOfAsync(plugin.Id, context.CancellationToken).ConfigureAwait(false);
+            foreach (var store in references)
+            {
+                var cleared = await store.RemoveAsync(codes, context.CancellationToken).ConfigureAwait(false);
+                if (cleared.IsFailure)
+                {
+                    return cleared.Error!;
+                }
+            }
+
             var removed = await service.UninstallAsync(plugin, context.CancellationToken).ConfigureAwait(false);
             if (removed.IsFailure)
             {
@@ -218,6 +236,51 @@ public sealed class DeletePlugins(IRepository<SysPlugin, Guid> plugins, PluginSe
         }
 
         return new BatchResult(succeeded, failed);
+    }
+}
+
+/// <summary>
+/// 卸载一个插件会清掉的内容
+/// </summary>
+/// <remarks>
+/// <c>GET /api/plugins/{id}:delete-preview</c>。插件全部版本贡献过的权限码，与各处对它们的引用：角色与用户授予、授予规则、权限条件、委托、互斥约束、运营节点的门控权限码、套餐白名单（卸载时清掉），以及各租户库里待审的授权申请（留档不改，批准时会因权限码不存在被拒）
+/// 有一侧的库读不出即 <c>ACCESS_UNAVAILABLE_003</c>，不给出不全的清单；不存在 <c>PLUGINS_NOTFOUND_101</c>
+/// </remarks>
+/// <param name="plugins">插件仓储</param>
+/// <param name="service">插件服务</param>
+/// <param name="references">各包对权限码的引用</param>
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = PluginsPermissions.PluginsDelete)]
+public sealed class PreviewPluginDelete(IRepository<SysPlugin, Guid> plugins, PluginService service, IEnumerable<IPermissionReferences> references) : IOperation<GetPluginRequest, PluginDeletePreviewResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "plugins.delete-preview";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<PluginDeletePreviewResponse>> HandleAsync(GetPluginRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        if (!(await plugins.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var plugin))
+        {
+            return PluginService.NotFound(request.Id);
+        }
+
+        var codes = await service.PermissionsOfAsync(plugin.Id, context.CancellationToken).ConfigureAwait(false);
+        var found = new List<PermissionReferenceResponse>();
+        foreach (var store in references)
+        {
+            var listed = await store.FindAsync(codes, context.CancellationToken).ConfigureAwait(false);
+            if (!listed.TryGetValue(out var items))
+            {
+                return listed.Error!;
+            }
+
+            found.AddRange(items.Select(static r => new PermissionReferenceResponse(r.Kind, r.Side, r.Subject, r.Permission)));
+        }
+
+        return new PluginDeletePreviewResponse(plugin.Id, plugin.ManifestId, plugin.Name, codes, [.. found.OrderBy(static r => r.Kind).ThenBy(static r => r.Side, StringComparer.Ordinal).ThenBy(static r => r.Subject, StringComparer.Ordinal).ThenBy(static r => r.Permission, StringComparer.Ordinal)]);
     }
 }
 

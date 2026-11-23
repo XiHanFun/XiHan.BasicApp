@@ -48,6 +48,7 @@ public static class BuiltInMenus
         new(MenuDirectories.FileServices, MenuKind.Directory, "menu.file_services", "lucide:folder-cog", 600, MenuDirectories.SystemManagement),
         new(MenuDirectories.PrintServices, MenuKind.Directory, "menu.print_services", "lucide:printer-check", 650, MenuDirectories.SystemManagement),
         new(MenuDirectories.OnlineDev, MenuKind.Directory, "menu.online_dev", "lucide:code", 700, MenuDirectories.SystemManagement),
+        new(MenuDirectories.PluginApps, MenuKind.Directory, "menu.plugin_apps", "lucide:puzzle", 1000),
         new(MenuDirectories.About, MenuKind.Directory, "menu.about", "lucide:info", 1100),
         new("custom.about-docs", MenuKind.Embed, "menu.about_docs", "lucide:book-open-text", 1120, MenuDirectories.About, "https://basicapp.docs.xihanfun.com/"),
         new("custom.about-github", MenuKind.Link, "menu.about_github", "lucide:github", 1130, MenuDirectories.About, "https://github.com/XiHanFun/XiHan.BasicApp"),

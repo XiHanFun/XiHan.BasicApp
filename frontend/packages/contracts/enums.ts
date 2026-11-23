@@ -280,6 +280,9 @@ export type PermissionAction = (typeof PermissionAction)[number]
 export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange', 'ConstraintViolation', 'TenantOwner'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
+export const PermissionReferenceKind = ['RoleGrant', 'UserGrant', 'PermissionRule', 'PermissionCondition', 'Delegation', 'ConstraintRule', 'Menu', 'Edition', 'PermissionRequest'] as const
+export type PermissionReferenceKind = (typeof PermissionReferenceKind)[number]
+
 export const PermissionRequestStatus = ['Pending', 'Approved', 'Rejected', 'Withdrawn'] as const
 export type PermissionRequestStatus = (typeof PermissionRequestStatus)[number]
 
@@ -472,6 +475,7 @@ export const enums = {
   OrganizationStatus,
   PermissionAction,
   PermissionChangeType,
+  PermissionReferenceKind,
   PermissionRequestStatus,
   PermissionScope,
   PluginIsolation,

@@ -59,5 +59,7 @@
   "permissions.plugins.plugins.update.name": "プラグインの有効化と無効化",
   "permissions.plugins.plugins.update.description": "インストール済みのプラグインを有効化または無効化します。有効化するとすべてのノードで読み込まれます。",
   "plugins.runtime.isolation_unavailable": "このサーバーには分離レベル '{isolation}' のプラグインホストがありません。",
-  "plugins.runtime.package_unavailable": "プラグイン '{name}' バージョン {version} のパッケージがファイルストレージにないか、インストール時の SHA-256 と一致しません。"
+  "plugins.runtime.package_unavailable": "プラグイン '{name}' バージョン {version} のパッケージがファイルストレージにないか、インストール時の SHA-256 と一致しません。",
+  "plugins.delete_preview.title": "プラグインのアンインストールをプレビュー",
+  "plugins.delete_preview.description": "プラグインのアンインストールで削除されるものを一覧します。全バージョンの権限コードと、それらへの参照（ロールとユーザーの付与、付与ルール、権限条件、委任、相互排他制約、運用ノードのゲート権限コード、プランのホワイトリスト）です。各テナントのデータベースにある審査待ちの権限申請は一覧するだけで残します。"
 }

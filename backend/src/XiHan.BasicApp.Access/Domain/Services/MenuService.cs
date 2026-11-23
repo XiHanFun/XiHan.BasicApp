@@ -18,8 +18,8 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 /// 规则：目录、外链与顶层页面可在顶层或某个目录下，目录可以一层层套下去，但不能挂到自己或自己的下级目录下；子页面钉在登记的父页面下
 /// </remarks>
 /// <param name="menus">菜单仓储</param>
-/// <param name="sections">各包的页面登记</param>
-public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<PageCatalogSection> sections)
+/// <param name="pages">已登记的全部页面（含已安装插件的）</param>
+public sealed class MenuService(IRepository<SysMenu, Guid> menus, RegisteredPages pages)
 {
     /// <summary>
     /// 运营节点的包名与编码前缀
@@ -59,7 +59,7 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
     /// <returns>登记与父页面码（顶层为空）；登记里没有即空</returns>
     public (PageDescriptor Page, string? ParentCode)? FindRegistered(string code)
     {
-        foreach (var section in sections)
+        foreach (var section in pages.Sections)
         {
             if (Find(section.Pages, null) is { } found)
             {

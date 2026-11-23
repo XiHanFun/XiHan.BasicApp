@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Plugins.Domain.Entities;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Domain.Specifications;
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// 把本节点加载的插件对齐到库里启用的插件（单例）
 /// </summary>
 /// <remarks>
-/// 方案 5.4：启动时与管理操作提交后各对齐一次。先卸掉不再启用的，再逐个加载启用的：版本或授予变了先卸后载；加载成功即把运行期贡献放进 <see cref="PluginRuntimeCatalog"/>
+/// 方案 5.4：启动时与管理操作提交后各对齐一次。已安装插件的页面变了先把菜单对齐过去（<see cref="PluginPages"/>）；再卸掉不再启用的，逐个加载启用的：版本或授予变了先卸后载；加载成功即把运行期贡献放进 <see cref="PluginRuntimeCatalog"/>
 /// 加载失败只让这个插件失败：错误码记进 <c>sys_plugin.last_error_code</c>，节点的健康项降级；换版本失败时重载旧版本，旧版本也起不来就留着失败
 /// 插件宿主按隔离级别取键控服务 <see cref="IPluginHost"/>，没装的隔离级别 <c>PLUGINS_UNAVAILABLE_101</c>
 /// 一次对齐有总时限（<see cref="PluginsOptions.ReconcileTimeoutSeconds"/>），超时的插件记为失败，下一次对齐再试；对齐之间串行
@@ -28,10 +29,13 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// <param name="services">根容器（取键控的插件宿主）</param>
 /// <param name="cache">本机解包目录</param>
 /// <param name="catalog">已加载插件的运行期贡献</param>
+/// <param name="pages">已安装插件的页面</param>
 /// <param name="options">插件模块选项</param>
 /// <param name="logger">日志</param>
-public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServiceProvider services, PluginCache cache, PluginRuntimeCatalog catalog, PluginsOptions options, ILogger<PluginReconciler> logger) : IDisposable
+public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServiceProvider services, PluginCache cache, PluginRuntimeCatalog catalog, PluginPages pages, PluginsOptions options, ILogger<PluginReconciler> logger) : IDisposable
 {
+    private bool _menusStale;
+
     private readonly SemaphoreSlim _gate = new(1, 1);
     private ImmutableDictionary<string, PluginRelease> _loaded = ImmutableDictionary.Create<string, PluginRelease>(StringComparer.Ordinal);
     private ImmutableDictionary<Guid, PluginFailure> _failures = ImmutableDictionary<Guid, PluginFailure>.Empty;
@@ -89,7 +93,9 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
 
     private async Task AlignAsync(CancellationToken cancellationToken)
     {
-        var desired = (await StoreScope.ReadPrimaryAsync(scopes, DesiredAsync, cancellationToken).ConfigureAwait(false)).ToDictionary(static r => r.ManifestId, StringComparer.Ordinal);
+        var snapshot = await StoreScope.ReadPrimaryAsync(scopes, SnapshotAsync, cancellationToken).ConfigureAwait(false);
+        await AlignMenusAsync(snapshot.Pages, cancellationToken).ConfigureAwait(false);
+        var desired = snapshot.Releases.ToDictionary(static r => r.ManifestId, StringComparer.Ordinal);
         foreach (var loaded in Loaded.Values.Where(l => !desired.ContainsKey(l.ManifestId)).ToList())
         {
             await UnloadAsync(loaded, cancellationToken).ConfigureAwait(false);
@@ -131,26 +137,67 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
     }
 
     /// <summary>
-    /// 库里启用的插件与它们应当加载的样子
+    /// 库里的插件：启用的应当加载成什么样，已安装的有哪些页面
     /// </summary>
-    private static async Task<IReadOnlyList<PluginRelease>> DesiredAsync(IServiceProvider provider, CancellationToken cancellationToken)
+    private static async Task<PluginSnapshot> SnapshotAsync(IServiceProvider provider, CancellationToken cancellationToken)
     {
-        var plugins = await provider.GetRequiredService<IRepository<SysPlugin, Guid>>().ListAsync(EntityQuery.All<SysPlugin>().Where(new Specification<SysPlugin>(static p => p.IsEnabled)), cancellationToken).ConfigureAwait(false);
+        var plugins = await provider.GetRequiredService<IRepository<SysPlugin, Guid>>().ListAsync(EntityQuery.All<SysPlugin>(), cancellationToken).ConfigureAwait(false);
         if (plugins.Count == 0)
         {
-            return [];
+            return new PluginSnapshot([], []);
         }
 
         var versions = (await provider.GetRequiredService<IRepository<SysPluginVersion, Guid>>().FindManyAsync([.. plugins.Select(static p => p.CurrentVersionId)], cancellationToken).ConfigureAwait(false)).ToDictionary(static v => v.Id);
-        var ids = plugins.Select(static p => p.Id).ToList();
+        var pages = plugins
+            .OrderBy(static p => p.Name, StringComparer.Ordinal)
+            .Select(p => new PageCatalogSection(p.Name, PluginPages.PagesOf(versions[p.CurrentVersionId].DescriptorJson)))
+            .Where(static s => s.Pages.Count > 0)
+            .ToList();
+        var enabled = plugins.Where(static p => p.IsEnabled).ToList();
+        if (enabled.Count == 0)
+        {
+            return new PluginSnapshot([], pages);
+        }
+
+        var ids = enabled.Select(static p => p.Id).ToList();
         var grants = (await provider.GetRequiredService<IRepository<SysPluginGrant, Guid>>().ListAsync(EntityQuery.All<SysPluginGrant>().Where(new Specification<SysPluginGrant>(g => ids.Contains(g.PluginId))), cancellationToken).ConfigureAwait(false))
             .ToLookup(static g => g.PluginId, static g => g.GrantValue);
-        return [.. plugins.Select(p =>
-        {
-            var version = versions[p.CurrentVersionId];
-            return new PluginRelease(p.Id, p.ManifestId, p.Name, p.Isolation, version.Id, version.Version, version.FileId, version.Sha256, version.DescriptorJson, [.. grants[p.Id].Order(StringComparer.Ordinal)], p.LastErrorCode);
-        })];
+        return new PluginSnapshot(
+            [.. enabled.Select(p =>
+            {
+                var version = versions[p.CurrentVersionId];
+                return new PluginRelease(p.Id, p.ManifestId, p.Name, p.Isolation, version.Id, version.Version, version.FileId, version.Sha256, version.DescriptorJson, [.. grants[p.Id].Order(StringComparer.Ordinal)], p.LastErrorCode);
+            })],
+            pages);
     }
+
+    /// <summary>
+    /// 已安装插件的页面变了：换上新的一份，再把菜单对齐过去
+    /// </summary>
+    /// <remarks>
+    /// 对齐失败（如菜单表一时写不进）记日志，下一次对齐再试
+    /// </remarks>
+    private async Task AlignMenusAsync(IReadOnlyList<PageCatalogSection> installed, CancellationToken cancellationToken)
+    {
+        if (!pages.Replace(installed) && !_menusStale)
+        {
+            return;
+        }
+
+        var aligned = await StoreScope.WriteAsync(scopes, static (provider, ct) => provider.GetRequiredService<IPageMenuAligner>().AlignAsync(ct), cancellationToken).ConfigureAwait(false);
+        _menusStale = aligned.IsFailure;
+        if (aligned.IsFailure)
+        {
+            LogMenusFailed(logger, aligned.Error!.Code);
+        }
+    }
+
+    /// <summary>
+    /// 一次读库的结果
+    /// </summary>
+    /// <param name="Releases">启用的插件应当加载的样子</param>
+    /// <param name="Pages">已安装插件的页面</param>
+    private sealed record PluginSnapshot(IReadOnlyList<PluginRelease> Releases, IReadOnlyList<PageCatalogSection> Pages);
 
     /// <summary>
     /// 加载一个版本
@@ -266,6 +313,9 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "The load result of plugin {ManifestId} could not be recorded: {Code}.")]
     private static partial void LogRecordFailed(ILogger logger, string manifestId, string code);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Menus could not be aligned to the installed plugin pages: {Code}; retried on the next reconciliation.")]
+    private static partial void LogMenusFailed(ILogger logger, string code);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Plugin reconciliation did not finish within {Seconds} s; the remaining plugins are retried on the next reconciliation.")]
     private static partial void LogTimedOut(ILogger logger, int seconds);

@@ -116,6 +116,9 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<RoleAssignmentService>();
         context.Services.AddScoped<UserGrantService>();
         context.Services.AddScoped<MenuService>();
+        context.Services.AddScoped<MenuAligner>();
+        context.Services.AddScoped<IPermissionReferences, AccessPermissionReferences>();
+        context.Services.AddScoped<IPageMenuAligner>(static sp => sp.GetRequiredService<MenuAligner>());
         context.Services.AddScoped<RoleGrants>();
         context.Services.AddScoped<UserGrants>();
         context.Services.AddScoped<PermissionRuleWriter>();

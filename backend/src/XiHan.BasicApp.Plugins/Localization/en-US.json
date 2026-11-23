@@ -59,5 +59,7 @@
   "permissions.plugins.plugins.update.name": "Enable plugins",
   "permissions.plugins.plugins.update.description": "Enable or disable installed plugins; enabling loads the plugin on every node.",
   "plugins.runtime.isolation_unavailable": "This server has no plugin host for isolation '{isolation}'.",
-  "plugins.runtime.package_unavailable": "The package of plugin '{name}' version {version} is missing from file storage or no longer matches its SHA-256."
+  "plugins.runtime.package_unavailable": "The package of plugin '{name}' version {version} is missing from file storage or no longer matches its SHA-256.",
+  "plugins.delete_preview.title": "Preview plugin uninstall",
+  "plugins.delete_preview.description": "List what uninstalling a plugin removes: the permission codes of all its versions and every reference to them (role and user grants, grant rules, conditions, delegations, mutual-exclusion rules, gated operator menu nodes, edition whitelists). Pending permission requests in tenant databases are listed but kept."
 }

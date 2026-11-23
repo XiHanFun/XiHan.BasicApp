@@ -1,6 +1,6 @@
 # 插件
 
-本页说明插件包的格式、安装前的核对、授予、启用与加载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
+本页说明插件包的格式、安装前的核对、授予、启用与加载、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
 
 Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省开）：平台一侧上传 `.xhplugin` 包，核对通过、批准授予后登记安装。插件由框架的插件宿主隔离运行（缺省只允许进程外），宿主不编译、不执行插件源码；核对只读包，插件代码一行不跑。安装只登记包与授予，装好的插件缺省停用；启用后各节点按库加载，没有任何启用的插件时不起插件进程。
 
@@ -92,9 +92,10 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | `plugins.enable` | `POST /api/plugins:enable` | `update` |
 | `plugins.disable` | `POST /api/plugins:disable` | `update` |
 | `plugins.status` | `GET /api/plugins/{id}:status` | `read` |
+| `plugins.delete-preview` | `GET /api/plugins/{id}:delete-preview` | `delete` |
 | `plugins.delete` | `DELETE /api/plugins?ids=` | `delete` |
 
-权限码 `plugins.plugins.{read,install,update,grant,delete}` 只在平台一侧，写操作记审计。`fileId` 是平台一侧经 `POST /api/files/upload` 上传的包。详情含贡献、申请与已批准的授予、全部版本（新的在前）。列表可筛选 `name`、`manifestId`（`eq` / `contains`）、`isEnabled`、`isolation`，排序 `name`、`manifestId`、`version`、`createdAt`。删除是软删除，连同版本与授予；删了可以重装。接口文档分组 `plugins`。
+权限码 `plugins.plugins.{read,install,update,grant,delete}` 只在平台一侧，写操作记审计。`fileId` 是平台一侧经 `POST /api/files/upload` 上传的包。详情含贡献、申请与已批准的授予、全部版本（新的在前）。列表可筛选 `name`、`manifestId`（`eq` / `contains`）、`isEnabled`、`isolation`，排序 `name`、`manifestId`、`version`、`createdAt`。删除是软删除，连同版本与授予，并清掉对插件权限码的引用（见[卸载](#卸载)）；删了可以重装。接口文档分组 `plugins`。
 
 插件、版本与授予分别存 `sys_plugin`、`sys_plugin_version`（包文件、SHA-256、大小与两份清单原文）、`sys_plugin_grant`，都在平台库。
 
@@ -115,7 +116,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 
 ## 加载后的权限与主体
 
-插件加载之后，它贡献的东西接进宿主现有的授权链，卸载即撤回：
+插件加载之后，它贡献的东西接进宿主现有的授权链与菜单，停用即撤回：
 
 | 方面 | 规则 |
 | --- | --- |
@@ -123,6 +124,23 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 套餐 | 租户侧的插件权限码不在任何套餐里，平台在套餐页放行后租户才用得上 |
 | 回调授权 | 插件回调宿主操作时以插件主体执行（主体 ID 是清单 ID、认证方案 `Plugin`），只持有批准的 `callback:<权限码>`，照常经作用侧与套餐收窄，其余即 `SECURITY_DENIED_004` |
 | 数据范围 | 插件主体在租户侧缺省什么都看不到（受数据范围约束的列表查不到行），批准了 `data-scope:all` 才不受限；平台侧不受限 |
+| 菜单 | 旁挂清单的页面装好即进「插件应用」目录（`custom.plugin-apps`），与内置页面一样按「页面菜单归登记」对齐、可在菜单管理里定制；插件没在本节点加载时不下发，节点与运营的展示调整留着；卸载才删 |
+
+## 卸载
+
+`plugins.delete-preview` 先列出卸载会清掉什么：插件全部版本贡献过的权限码，以及各处对它们的引用。卸载（`plugins.delete`）在同一个工作单元里把这些引用清掉，重装同一个插件也不会让旧的授予复活：
+
+| 引用 | 所在 | 卸载时 |
+| --- | --- | --- |
+| 角色与用户的授予 | 平台库的授予表（各租户的授予都在这里，按租户列区分） | 撤销，授予缓存随之失效 |
+| 授予的生效时段与拒绝规则、授予上的条件 | 平台库 | 删掉 |
+| 按权限码的委托 | 平台库 | 删掉 |
+| 互斥约束的项 | 平台库 | 删掉；剩不到两个权限码的规则整条删掉 |
+| 运营建的目录、外链与内嵌节点的门控权限码 | 平台库 | 去掉权限码，节点留着 |
+| 套餐白名单 | 平台库 | 删掉，用到这些套餐的租户的门控缓存失效 |
+| 待审的授权申请 | 各租户库 | 只列出、不改：申请是留档，批准时会因权限码不存在被拒 |
+
+预览逐个租户库读授权申请，有一侧读不出即 `ACCESS_UNAVAILABLE_003`，不给出不全的清单。操作日志、权限变更日志与条件命中记录里的权限码是留档，不算引用；访问策略与约束规则的条件表达式里手写的权限码也不在此列，要运营自己改。插件的页面节点在卸载提交之后随菜单对齐删掉。
 
 ## 开关
 

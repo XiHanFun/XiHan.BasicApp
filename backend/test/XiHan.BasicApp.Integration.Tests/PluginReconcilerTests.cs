@@ -4,7 +4,10 @@
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Access.Domain.Entities;
+using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Plugins;
@@ -12,11 +15,15 @@ using XiHan.BasicApp.Plugins.Domain.Entities;
 using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Plugins.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Tenancy.Domain.Entities;
+using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Plugins;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -252,6 +259,110 @@ public sealed class PluginReconcilerTests : IDisposable
         var version = (await DetailAsync(server, platform, id)).GetProperty("versions")[0].GetProperty("id").GetString()!;
         Assert.False(Directory.Exists(Path.Combine(CacheDirectory, PluginsTests.ManifestId, Guid.Parse(version).ToString("N"))));
     }
+
+    [Fact]
+    public async Task Pages_JoinTheMenu_AreDeliveredOnlyWhileLoaded_AndGoAwayOnUninstall()
+    {
+        var (server, platform, _) = await StartAsync();
+        await using var _ = server;
+        const string Page = "weather.forecast";
+        async Task<string> OutlineAsync()
+        {
+            var (listed, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/menus", token: platform));
+            Assert.True(listed.StatusCode == HttpStatusCode.OK, body.GetRawText());
+            return MenuTrees.Outline(body.GetProperty("items"));
+        }
+
+        async Task<string[]> DeliveredAsync()
+        {
+            var (got, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: platform));
+            Assert.True(got.StatusCode == HttpStatusCode.OK, body.GetRawText());
+            return [.. body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()!)];
+        }
+
+        // 页面不要求权限码，平台管理员看得到；装好即进「插件应用」目录，没加载不下发
+        var id = await InstallAsync(server, platform, PluginsTests.Package(descriptor: static d => d["pages"]![0]!["permission"] = null), Cache, Config);
+        Assert.Contains($"{MenuDirectories.PluginApps}[{Page}]", await OutlineAsync(), StringComparison.Ordinal);
+        Assert.DoesNotContain(Page, await DeliveredAsync());
+
+        await SwitchAsync(server, platform, id, enable: true);
+        Assert.Contains(Page, await DeliveredAsync());
+
+        // 重跑菜单种子：已安装插件的页面也在登记里，节点不会被当成过期删掉
+        await server.RunSeedersAsync();
+        Assert.Contains(Page, await DeliveredAsync());
+
+        // 停用只是不下发，节点留着；卸载才删
+        await SwitchAsync(server, platform, id, enable: false);
+        Assert.DoesNotContain(Page, await DeliveredAsync());
+        Assert.Contains($"{MenuDirectories.PluginApps}[{Page}]", await OutlineAsync(), StringComparison.Ordinal);
+        var (deleted, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/plugins?ids={id}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
+        Assert.DoesNotContain(Page, await OutlineAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Uninstall_PreviewsTheReferences_ClearsThemEverywhere_AndReinstallStartsClean()
+    {
+        var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder =>
+        {
+            builder.Configuration.AddInMemoryCollection([new("BasicApp:Files:LocalRootPath", Path.Combine(_root, "files")), new("BasicApp:Plugins:CacheDirectory", CacheDirectory)]);
+            builder.Services.AddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => new StandInPluginHost(services.GetRequiredService<XiHan.Framework.Kernel.Operations.OperationRegistry>()));
+        });
+        await using var _ = server;
+        const string Read = PluginsTests.Read;
+        var id = await InstallAsync(server, platform, PluginsTests.Package(), Cache, Config);
+        await SwitchAsync(server, platform, id, enable: true);
+
+        // 引用：租户角色的限期授予（授予与生效时段两行）、套餐白名单、以插件码门控的运营外链
+        var (createdRole, roleBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles", """{"code":"forecaster","name":"Forecaster"}""", tenant));
+        Assert.True(createdRole.StatusCode == HttpStatusCode.Created, roleBody.GetRawText());
+        var roleId = roleBody.GetProperty("id").GetString()!;
+        var (granted, grantedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:grant", JsonSerializer.Serialize(new { permissions = new[] { Read }, expiresAt = DateTimeOffset.UtcNow.AddDays(30) }), tenant));
+        Assert.True(granted.StatusCode == HttpStatusCode.OK && grantedBody.GetProperty("failed").GetArrayLength() == 0, grantedBody.GetRawText());
+        var enterprise = await EditionsTests.EditionIdAsync(server, platform, "enterprise");
+        var (_, edition) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/editions/{enterprise}", token: platform));
+        string[] whitelist = [.. edition.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()!), Read];
+        var (set, setBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/editions/{enterprise}:set-permissions", JsonSerializer.Serialize(new { permissions = whitelist }), platform));
+        Assert.True(set.StatusCode == HttpStatusCode.OK, setBody.GetRawText());
+        var (link, linkBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", JsonSerializer.Serialize(new { kind = "Link", code = "weather-site", title = "Weather", externalUrl = "https://weather.example.com", permission = Read }), platform));
+        Assert.True(link.StatusCode == HttpStatusCode.Created, linkBody.GetRawText());
+        var linkId = linkBody.GetProperty("id").GetString()!;
+
+        // 预览：全部版本的权限码与各处引用
+        var (previewed, preview) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/plugins/{id}:delete-preview", token: platform));
+        Assert.True(previewed.StatusCode == HttpStatusCode.OK, preview.GetRawText());
+        Assert.Equal([Read], preview.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()!));
+        var references = preview.GetProperty("references").EnumerateArray().Select(static r => $"{r.GetProperty("kind").GetString()}|{r.GetProperty("side").GetString()}|{r.GetProperty("subject").GetString()}").ToList();
+        Assert.Contains("RoleGrant|contoso|forecaster", references);
+        Assert.Contains("Edition|platform|enterprise", references);
+        Assert.Contains("Menu|platform|custom.weather-site", references);
+        Assert.Contains(references, static r => r.StartsWith("PermissionRule|contoso|", StringComparison.Ordinal));
+
+        // 卸载：引用清干净，运营节点留着、只去掉门控权限码
+        var (deleted, deletedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/plugins?ids={id}", token: platform));
+        Assert.True(deleted.StatusCode == HttpStatusCode.OK && deletedBody.GetProperty("failed").GetArrayLength() == 0, deletedBody.GetRawText());
+        Assert.Equal((0, 0, 0), await CountReferencesAsync(server, Read));
+        var (_, menu) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/menus/{linkId}", token: platform));
+        Assert.Equal(JsonValueKind.Null, menu.GetProperty("permission").ValueKind);
+
+        // 重装同一个包：旧授予不会复活
+        var again = await InstallAsync(server, platform, PluginsTests.Package(), Cache, Config);
+        await SwitchAsync(server, platform, again, enable: true);
+        Assert.Equal((0, 0, 0), await CountReferencesAsync(server, Read));
+    }
+
+    /// <summary>
+    /// 库里对一个权限码的授予、生效时段规则与套餐白名单各有几行
+    /// </summary>
+    private static Task<(int Grants, int Rules, int Editions)> CountReferencesAsync(BasicAppTestServer server, string code)
+        => StoreScope.ReadAsync(server.Services.GetRequiredService<IServiceScopeFactory>(), async (services, ct) =>
+        {
+            var grants = await services.GetRequiredService<IRepository<PermissionGrantRecord, Guid>>().ListAsync(EntityQuery.All<PermissionGrantRecord>().Where(new Specification<PermissionGrantRecord>(r => r.Permission == code)), ct);
+            var rules = await services.GetRequiredService<IRepository<SysPermissionRule, Guid>>().ListAsync(EntityQuery.All<SysPermissionRule>().Where(new Specification<SysPermissionRule>(r => r.Permission == code)), ct);
+            var editions = await services.GetRequiredService<IRepository<SysEditionGrant, Guid>>().ListAsync(EntityQuery.All<SysEditionGrant>().Where(new Specification<SysEditionGrant>(g => g.PermissionCode == code)), ct);
+            return (grants.Count, rules.Count, editions.Count);
+        }, CancellationToken.None);
 
     /// <summary>
     /// 给插件加一个版本并换成当前版本

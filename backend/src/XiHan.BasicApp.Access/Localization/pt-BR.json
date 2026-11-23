@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "O fluxo de aprovação foi interrompido",
   "access.permission_request.grant_reason": "Concedido automaticamente na aprovação da solicitação de permissão {id}",
   "access.permission_request.constraint_role_reason": "Atribuir a função acionou a regra de restrição \"{name}\" ({code}), que exige aprovação.",
-  "access.permission_request.constraint_permission_reason": "Conceder a permissão diretamente acionou a regra de restrição \"{name}\" ({code}), que exige aprovação."
+  "access.permission_request.constraint_permission_reason": "Conceder a permissão diretamente acionou a regra de restrição \"{name}\" ({code}), que exige aprovação.",
+  "access.permission_reference.unavailable": "Não foi possível ler os dados do lado '{side}', então as referências a esses códigos de permissão estão incompletas."
 }

@@ -59,5 +59,7 @@
   "permissions.plugins.plugins.update.name": "启用与停用插件",
   "permissions.plugins.plugins.update.description": "启用或停用已安装的插件；启用后每个节点都会加载它。",
   "plugins.runtime.isolation_unavailable": "本服务器没有隔离级别 '{isolation}' 的插件宿主。",
-  "plugins.runtime.package_unavailable": "插件 '{name}' 版本 {version} 的包文件不在文件存储里了，或与安装时的 SHA-256 不一致。"
+  "plugins.runtime.package_unavailable": "插件 '{name}' 版本 {version} 的包文件不在文件存储里了，或与安装时的 SHA-256 不一致。",
+  "plugins.delete_preview.title": "预览卸载插件",
+  "plugins.delete_preview.description": "列出卸载插件会清掉的内容：它全部版本的权限码与对它们的各处引用（角色与用户授予、授予规则、权限条件、委托、互斥约束、运营节点的门控权限码、套餐白名单）。各租户库里待审的授权申请只列出、保留不改。"
 }

@@ -388,5 +388,6 @@
   "access.permission_request.aborted": "审批流程已中止",
   "access.permission_request.grant_reason": "授权申请 {id} 审批通过自动授予",
   "access.permission_request.constraint_role_reason": "指派角色时触犯约束规则「{name}」（{code}），按规则转为审批。",
-  "access.permission_request.constraint_permission_reason": "直授权限时触犯约束规则「{name}」（{code}），按规则转为审批。"
+  "access.permission_request.constraint_permission_reason": "直授权限时触犯约束规则「{name}」（{code}），按规则转为审批。",
+  "access.permission_reference.unavailable": "一侧 '{side}' 的数据读不出，列不全对这些权限码的引用。"
 }

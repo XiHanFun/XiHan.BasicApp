@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace XiHan.BasicApp.Contracts.Pages;
 
@@ -9,7 +10,7 @@ namespace XiHan.BasicApp.Contracts.Pages;
 /// 一个能力包登记的页面片段（包名 + 它的顶层 <see cref="PageDescriptor"/>）
 /// </summary>
 /// <remarks>
-/// 各包在 <c>Configure</c> 里 <see cref="PageCatalogServiceCollectionExtensions.AddPageCatalog"/>，Access 据此生成菜单种子
+/// 各包在 <c>Configure</c> 里 <see cref="PageCatalogServiceCollectionExtensions.AddPageCatalog"/>，与运行期来源一起汇总成 <see cref="RegisteredPages"/>，Access 据此对齐菜单
 /// </remarks>
 /// <param name="Package">包名（页面码的首段，小写）</param>
 /// <param name="Pages">该包的顶层页面（子页面在 <see cref="PageDescriptor.Children"/>）</param>
@@ -40,6 +41,7 @@ public static class PageCatalogServiceCollectionExtensions
         }
 
         services.AddSingleton(new PageCatalogSection(package, pages));
+        services.TryAddSingleton<RegisteredPages>();
         return services;
     }
 }

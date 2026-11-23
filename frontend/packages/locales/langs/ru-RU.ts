@@ -1080,6 +1080,7 @@ export default {
     file_services: 'Файловые службы',
     print_services: 'Службы печати',
     online_dev: 'Онлайн-разработка',
+    plugin_apps: 'Приложения плагинов',
     message_center: 'Центр сообщений',
     about: 'Справочный центр',
     about_project: 'О проекте',

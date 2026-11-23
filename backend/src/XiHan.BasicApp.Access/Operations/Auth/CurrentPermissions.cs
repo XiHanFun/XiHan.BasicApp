@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Contracts.Pages;
 using SecurityPolicies = XiHan.BasicApp.Contracts.Security.Policies;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
@@ -26,8 +27,9 @@ namespace XiHan.BasicApp.Access.Operations.Auth;
 /// <param name="roles">角色仓储</param>
 /// <param name="menus">菜单仓储</param>
 /// <param name="options">安全选项（角色声明名）</param>
+/// <param name="pages">已登记的全部页面（已安装但没加载的插件页面不下发）</param>
 [Operation(Id, ReadOnly = true, Expose = Expose.Http, Policy = SecurityPolicies.Authenticated)]
-public sealed class CurrentPermissions(EffectivePermissions effective, GrantEvaluator evaluator, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options) : IOperation<PermissionsRequest, PermissionsResponse>
+public sealed class CurrentPermissions(EffectivePermissions effective, GrantEvaluator evaluator, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options, RegisteredPages pages) : IOperation<PermissionsRequest, PermissionsResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -63,7 +65,10 @@ public sealed class CurrentPermissions(EffectivePermissions effective, GrantEval
                 .Select(static r => new RoleSummary(r.Id, r.Code, r.Name))
                 .ToList();
 
-        var rows = await menus.ListAsync(EntityQuery.All<SysMenu>(), context.CancellationToken).ConfigureAwait(false);
+        // 停用的插件页面节点留着（保留运营的展示调整），只是不下发
+        var rows = (await menus.ListAsync(EntityQuery.All<SysMenu>(), context.CancellationToken).ConfigureAwait(false))
+            .Where(m => m.Kind != MenuKind.Page || !pages.IsHidden(m.Package))
+            .ToList();
         var tree = MenuTree.Prune(MenuTree.Build(rows), permissions);
         return new PermissionsResponse(permissions.Order(StringComparer.Ordinal).ToList(), summaries, tree, MenuTree.Codes(tree), security.Tenant is null);
     }

@@ -1243,6 +1243,14 @@ public static class AccessMessages
     /// </remarks>
     public const string PermissionRequestGrantReason = "access.permission_request.grant_reason";
 
+    /// <summary>
+    /// 某一侧的库读不出，列不全对权限码的引用
+    /// </summary>
+    /// <remarks>
+    /// 参数 <c>side</c>
+    /// </remarks>
+    public const string PermissionReferencesUnavailable = "access.permission_reference.unavailable";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>
