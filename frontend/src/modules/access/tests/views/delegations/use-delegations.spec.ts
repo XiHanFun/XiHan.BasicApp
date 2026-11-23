@@ -188,6 +188,7 @@ describe('useDelegationEditor', () => {
               description: null,
               package: 'identity',
               resource: 'users',
+              resourceName: 'Users',
               action: 'read',
               scope: 'Both',
               audited: false,

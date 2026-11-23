@@ -63,6 +63,7 @@ function permission(code: string): CatalogItem {
     description: null,
     package: pkg,
     resource,
+    resourceName: `Name of ${resource}`,
     action,
     scope: 'Both',
     audited: false,
@@ -235,7 +236,7 @@ describe('toWhitelistItems', () => {
       ['identity.users.read', 'identity.users', false],
       ['files.legacy.read', 'outside', true],
     ])
-    expect(items[0]).toMatchObject({ permissionCode: 'access.roles.read', permissionName: 'Name of access.roles.read' })
+    expect(items[0]).toMatchObject({ permissionCode: 'access.roles.read', permissionName: 'Name of access.roles.read', groupName: 'Name of roles' })
   })
 })
 

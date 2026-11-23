@@ -1,4 +1,6 @@
 {
+  "openapi.tags.cloud_events.description": "内部サービスが CloudEvents 受信エンドポイントへ配信するイベント。",
+  "openapi.tags.cloud_events.name": "CloudEvents イベント",
   "permissions.runtime.cloud_events.deliver.description": "CloudEvents の受信エンドポイントにイベントを配信します。プラットフォームのサービスアカウントまたはサービスロールにのみ付与してください。",
   "permissions.runtime.cloud_events.deliver.name": "CloudEvents イベントを配信",
   "runtime.schema.tenant_unavailable": "テナント '{tenant}' のデータベースは現在のバージョンにアップグレードされていないため、一時的に利用できません。管理者に連絡してください。",

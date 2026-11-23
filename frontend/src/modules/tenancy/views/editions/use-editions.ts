@@ -156,7 +156,7 @@ export async function setDefaultEdition(id: string): Promise<EditionRow> {
 }
 
 /**
- * 租户侧权限目录 + 白名单 → 穿梭框条目，按「包.资源」分段
+ * 租户侧权限目录 + 白名单 → 穿梭框条目，按「包.资源」分段、段名取资源显示名
  * 白名单里有、目录里没有的码（权限已下线或改了作用侧）也列出并标 outside
  * 不列出来，一动穿梭框它们就被悄悄丢掉
  */
@@ -166,7 +166,7 @@ export function toWhitelistItems(catalog: readonly CatalogItem[], whitelist: rea
     permissionCode: item.code,
     permissionName: item.displayName,
     groupCode: `${item.package}.${item.resource}`,
-    groupName: `${item.package}.${item.resource}`,
+    groupName: item.resourceName,
     outside: false,
   }))
   const known = new Set(catalog.map(item => item.code))

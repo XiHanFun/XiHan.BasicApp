@@ -15637,6 +15637,8 @@ export interface components {
             package: string;
             /** @description 资源 */
             resource: string;
+            /** @description 资源显示名，与接口文档的资源标签同名 */
+            resourceName: string;
             /** @description 动作 */
             action: string;
             /** @description 作用侧 */

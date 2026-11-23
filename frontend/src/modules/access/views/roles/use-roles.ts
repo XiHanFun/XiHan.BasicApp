@@ -223,7 +223,7 @@ function groupOf(code: string): string {
 }
 
 /**
- * 权限目录 → 穿梭框条目，按「包.资源」分段
+ * 权限目录 → 穿梭框条目，按「包.资源」分段、段名取资源显示名
  * 已授予或已拒绝却不在目录里的（如套餐收窄后不再列出）补进来，原样显示权限码
  * 穿梭框只认条目里的键，不补进来，一动穿梭框它们就被当成收回
  */
@@ -233,7 +233,7 @@ export function toPermissionItems(catalog: readonly PermissionItem[], current: r
     permissionCode: item.code,
     permissionName: item.displayName,
     groupCode: `${item.package}.${item.resource}`,
-    groupName: `${item.package}.${item.resource}`,
+    groupName: item.resourceName,
   }))
   const known = new Set(items.map(item => item.basicId))
   for (const code of current) {

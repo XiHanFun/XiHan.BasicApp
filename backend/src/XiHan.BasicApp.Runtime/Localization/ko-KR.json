@@ -1,4 +1,6 @@
 {
+  "openapi.tags.cloud_events.description": "내부 서비스가 CloudEvents 수신 엔드포인트로 전달하는 이벤트입니다.",
+  "openapi.tags.cloud_events.name": "CloudEvents 이벤트",
   "permissions.runtime.cloud_events.deliver.description": "CloudEvents 인바운드 엔드포인트로 이벤트를 전달합니다. 플랫폼 서비스 계정이나 서비스 역할에만 부여해야 합니다.",
   "permissions.runtime.cloud_events.deliver.name": "CloudEvents 이벤트 전달",
   "runtime.schema.tenant_unavailable": "테넌트 '{tenant}'의 데이터베이스가 현재 버전으로 업그레이드되지 않아 일시적으로 사용할 수 없습니다. 관리자에게 문의하세요.",

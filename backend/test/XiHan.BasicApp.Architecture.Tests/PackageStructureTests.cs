@@ -63,12 +63,15 @@ public sealed class PackageStructureTests
                 .ToList();
 
             // 消息键常量之外，生成器按约定读的键（ADR-0052）：每个操作的 .title、本包的分组、本包每个权限的显示名与说明（permissions.list 也按区域取），以及本包登记的资源标签（每个资源恰好一个包登记，见下一个测试）
+            // 资源标签也是权限目录的资源显示名，只给普通端点用的权限码（没有操作）也要登记它的资源
             var operations = OperationContractTests.Operations().Where(o => string.Equals(o.Package, package, StringComparison.Ordinal)).Select(static o => o.Attribute.Id).ToList();
             var group = package.ToLowerInvariant();
             var conventional = operations.Select(static id => KeyOf(id) + ".title")
                 .Concat(operations.Count == 0 ? [] : [$"openapi.groups.{group}.name", $"openapi.groups.{group}.description"])
                 .Concat(PermissionCatalog.Of(package).SelectMany(static p => new[] { $"permissions.{KeyOf(p.Code)}.name", $"permissions.{KeyOf(p.Code)}.description" }));
-            var resources = operations.Select(static id => KeyOf(id[..id.LastIndexOf('.')])).ToHashSet(StringComparer.Ordinal);
+            var resources = operations.Select(static id => KeyOf(id[..id.LastIndexOf('.')]))
+                .Concat(PermissionCatalog.Of(package).Select(static p => KeyOf(p.Resource)))
+                .ToHashSet(StringComparer.Ordinal);
             foreach (var locale in files)
             {
                 using var document = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(localization, locale + ".json")));
@@ -115,6 +118,12 @@ public sealed class PackageStructureTests
         foreach (var resource in OperationContractTests.Operations().Select(static o => KeyOf(o.Attribute.Id[..o.Attribute.Id.LastIndexOf('.')])).Distinct(StringComparer.Ordinal))
         {
             Assert.True(owners.TryGetValue(resource, out var list) && list.Count == 1, $"resource '{resource}': tag registered by {(list is null ? "no package" : string.Join(", ", list))}, expected exactly one");
+        }
+
+        // 权限目录的资源显示名也取这个标签（permissions.list 的 resourceName），每个权限码的资源段都得有
+        foreach (var permission in Packages.Projects.Keys.SelectMany(PermissionCatalog.Of))
+        {
+            Assert.True(owners.ContainsKey(KeyOf(permission.Resource)), $"permission '{permission.Code}': resource '{permission.Resource}' has no tag");
         }
     }
 

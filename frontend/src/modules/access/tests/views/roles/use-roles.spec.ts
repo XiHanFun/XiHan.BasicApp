@@ -36,6 +36,7 @@ function permission(code: string, displayName: string) {
     description: null,
     package: pkg,
     resource,
+    resourceName: `Name of ${resource}`,
     action,
     scope: 'Both',
     audited: false,

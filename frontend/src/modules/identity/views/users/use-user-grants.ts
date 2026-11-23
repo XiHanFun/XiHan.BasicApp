@@ -22,14 +22,14 @@ export interface UserGrantItem extends PermissionGrantItem {
   outside: boolean
 }
 
-/** 目录 + 当前直接授权 → 穿梭框条目，按「包.资源」分段 */
+/** 目录 + 当前直接授权 → 穿梭框条目，按「包.资源」分段、段名取资源显示名 */
 export function toGrantItems(catalog: readonly CatalogItem[], current: Iterable<string>, outsideGroup: string): UserGrantItem[] {
   const items: UserGrantItem[] = catalog.map(item => ({
     basicId: item.code,
     permissionCode: item.code,
     permissionName: item.displayName,
     groupCode: `${item.package}.${item.resource}`,
-    groupName: `${item.package}.${item.resource}`,
+    groupName: item.resourceName,
     outside: false,
   }))
   const known = new Set(catalog.map(item => item.code))

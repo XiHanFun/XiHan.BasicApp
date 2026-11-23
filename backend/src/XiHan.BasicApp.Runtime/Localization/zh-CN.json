@@ -1,4 +1,6 @@
 {
+  "openapi.tags.cloud_events.description": "内部服务向 CloudEvents 入站端点投递的事件。",
+  "openapi.tags.cloud_events.name": "CloudEvents 事件",
   "permissions.runtime.cloud_events.deliver.description": "向 CloudEvents 入站端点投递事件；只授给平台的服务账号或服务角色。",
   "permissions.runtime.cloud_events.deliver.name": "投递 CloudEvents 事件",
   "runtime.schema.tenant_unavailable": "租户 '{tenant}' 的数据库还没有升级到当前版本，暂时不能使用，请联系管理员。",

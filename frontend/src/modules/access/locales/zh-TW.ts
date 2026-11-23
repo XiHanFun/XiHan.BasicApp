@@ -266,6 +266,7 @@ export default {
         name: '名稱',
         code: '權限碼',
         resource: '資源',
+        resource_name: '資源名稱',
         action: '動作',
         scope: '作用側',
         audited: '稽核',

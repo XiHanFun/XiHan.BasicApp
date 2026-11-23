@@ -9,14 +9,20 @@ describe('user direct grants', () => {
         displayName: 'Read',
         package: 'a',
         resource: 'b',
+        resourceName: 'B',
         action: 'read',
         scope: 'Both',
         audited: false,
       },
     ], ['*', 'a.b.read'], 'Outside')
-    expect(items.map(item => [item.basicId, item.groupCode, item.outside])).toEqual([
-      ['a.b.read', 'a.b', false],
-      ['*', 'Outside', true],
+    expect(items.map(item => [
+      item.basicId,
+      item.groupCode,
+      item.groupName,
+      item.outside,
+    ])).toEqual([
+      ['a.b.read', 'a.b', 'B', false],
+      ['*', 'Outside', 'Outside', true],
     ])
   })
 })

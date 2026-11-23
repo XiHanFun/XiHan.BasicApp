@@ -93,6 +93,11 @@ public sealed class PluginEndToEndTests : IDisposable
         var (_, chinese) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/plugin-views", token: contoso, acceptLanguage: "zh-CN"));
         Assert.Equal("客户", chinese.GetProperty("plugins")[0].GetProperty("texts").GetProperty("crm.customers.title").GetString());
 
+        // 权限目录：插件资源的显示名同样取握手带来的消息目录（资源标签），授权穿梭框按它分段
+        var (_, catalog) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions?side=tenant", token: platform, acceptLanguage: "zh-CN"));
+        var crmRead = catalog.GetProperty("items").EnumerateArray().Single(static i => i.GetProperty("code").GetString() == CrmPluginPackage.Read);
+        Assert.Equal(("crm-customers", "客户"), (crmRead.GetProperty("resource").GetString(), crmRead.GetProperty("resourceName").GetString()));
+
         // 接口文档：插件一组，全量文档的 x-tagGroups 里有它，分组文档只有它的操作；标题取插件的消息目录
         var (_, full) = await DocumentAsync(server, "/openapi.json");
         var group = Assert.Single(full.GetProperty("x-tagGroups").EnumerateArray(), static g => g.GetProperty("name").GetString() == "CRM");

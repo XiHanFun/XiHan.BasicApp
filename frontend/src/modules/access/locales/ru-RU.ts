@@ -266,6 +266,7 @@ export default {
         name: 'Название',
         code: 'Код',
         resource: 'Ресурс',
+        resource_name: 'Название ресурса',
         action: 'Действие',
         scope: 'Сторона',
         audited: 'Аудит',

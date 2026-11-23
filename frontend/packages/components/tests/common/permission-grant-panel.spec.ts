@@ -13,12 +13,25 @@ function item(basicId: string, permissionCode: string, permissionName: string, g
 }
 
 describe('groupPermissions', () => {
-  it('后端给了组名就用组名', () => {
+  it('后端给了组名就用组名，组码作为次要信息', () => {
     const groups = groupPermissions([
-      item('1', 'saas:tenant:read', '租户查看', 'tenant', '租户'),
+      item('1', 'access.permission-requests.create', '提交授权申请', 'access.permission-requests', '授权申请'),
+      item('2', 'access.permission-requests.withdraw', '撤回授权申请', 'access.permission-requests', '授权申请'),
     ])
 
-    expect(groups.map(group => group.name)).toEqual(['租户'])
+    expect(groups.map(group => [group.key, group.name, group.description])).toEqual([
+      ['access.permission-requests', '授权申请', 'access.permission-requests'],
+    ])
+  })
+
+  it('组名就是组码（目录外、没有显示名）时不重复显示组码', () => {
+    const groups = groupPermissions([
+      item('1', 'custom.unknown.read', 'custom.unknown.read', 'custom.unknown', 'custom.unknown'),
+    ])
+
+    expect(groups.map(group => [group.name, group.description])).toEqual([
+      ['custom.unknown', undefined],
+    ])
   })
 
   it('没有组名时按组内权限名的公共前缀命名，不显示组码', () => {

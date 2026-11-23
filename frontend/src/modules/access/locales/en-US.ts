@@ -266,6 +266,7 @@ export default {
         name: 'Name',
         code: 'Code',
         resource: 'Resource',
+        resource_name: 'Resource name',
         action: 'Action',
         scope: 'Side',
         audited: 'Audited',

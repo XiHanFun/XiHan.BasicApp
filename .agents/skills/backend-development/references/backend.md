@@ -31,7 +31,7 @@ src/XiHan.BasicApp.<包>/
 - 对已有对象按标识的写入（删除、启停、授权、撤销）只给批量形态，返回 `BatchResult`，逐项 `Result`。失败项要带文案：有 `Error` 用 `BatchFailure.From(id, error)`，只有错误码用 `new BatchFailure(id, XErrors.Y, XMessages.Y.L(("id", id)))`；`key.L()` 按这次调用的区域解析，不用传上下文。
 - 授权：`Permission = <包>Permissions.X`；自助操作 `Policy = "authenticated"`；匿名操作两者都不写，并登记进 `OperationContractTests` 的匿名白名单。
 - 请求 / 响应是 `record`：有缺省值的属性用 `set` 不用 `init`（`ContractDtoTests`）；时间 `DateTimeOffset`（UTC）；主键 `Guid`；租户 ID `string`；`long` 保持 `long`。单字段约束用 DataAnnotations，跨字段规则实现 `IValidatableObject`。
-- 文案：`<操作 ID>.title` / `.description`（资源段的 `-` 换 `_`），`openapi.tags.<资源>.name`，`permissions.<码>.name` / `.description`（`permissions.list` 按调用方区域取，界面不显示描述表里的英文）；10 个区域键集一致且与常量一一对应。
+- 文案：`<操作 ID>.title` / `.description`（资源段的 `-` 换 `_`），`openapi.tags.<资源>.name`（也是 `permissions.list` 的 `resourceName`，只给普通端点用的权限码也要登记它的资源），`permissions.<码>.name` / `.description`（`permissions.list` 按调用方区域取，界面不显示描述表里的英文）；10 个区域键集一致且与常量一一对应。
 - 在同一个调用上下文里不能再调另一个操作（派生上下文共享 Items）；要改操作响应用框架的 `IOperationResponseFilter`。
 - `Result` / `Result<T>` 是 struct：找第一个失败要写循环；`Result<T>` 不许空成功值，可空用 `Result<Maybe<T>>`。
 - 形状不定的 JSON（如零代码运行时的数据行）用 `JsonElement` / `IReadOnlyDictionary<string, JsonElement>`，框架的 Schema 生成器按「任意 JSON」写进契约；`JsonObject` 的值类型 `JsonNode?` 现在会被当成普通类型展开（已交框架会话）。

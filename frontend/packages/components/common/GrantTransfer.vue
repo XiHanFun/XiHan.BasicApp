@@ -156,9 +156,10 @@ const sides: { side: GrantTransferSide, panel: typeof XhTransferSourcePanel }[] 
         <XhTransferList>
           <template v-for="group in groups" :key="group.key">
             <XhTransferGroup v-if="inGroup(visible, group.key).length > 0" :value="group.key">
-              <XhTransferGroupLabel v-if="group.name">
-                {{ group.name }}
-              </XhTransferGroupLabel>
+              <div v-if="group.name" class="x-grant-transfer__group-head">
+                <XhTransferGroupLabel>{{ group.name }}</XhTransferGroupLabel>
+                <span v-if="group.description" class="x-grant-transfer__group-code">{{ group.description }}</span>
+              </div>
               <XhTransferItem v-for="key in inGroup(visible, group.key)" :key="key" :value="key">
                 <XhTransferItemCheckbox />
                 <XhTransferItemText>{{ getLabel(itemByKey.get(key)!) }}</XhTransferItemText>
@@ -193,5 +194,25 @@ const sides: { side: GrantTransferSide, panel: typeof XhTransferSourcePanel }[] 
 .x-grant-transfer {
   flex: 1;
   min-block-size: 0;
+}
+
+/* 段标题一行：段名后跟次要的资源码；行内边距与条目同一档，段名自己的内边距归零交给这一行 */
+.x-grant-transfer__group-head {
+  --xh-transfer-group-label-px: 0;
+
+  display: flex;
+  gap: var(--xh-control-gap-md);
+  align-items: baseline;
+  min-inline-size: 0;
+  padding-inline: var(--xh-control-px-md);
+}
+
+.x-grant-transfer__group-code {
+  overflow: hidden;
+  min-inline-size: 0;
+  color: var(--xh-fg-subtle);
+  font-size: var(--xh-text-caption-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

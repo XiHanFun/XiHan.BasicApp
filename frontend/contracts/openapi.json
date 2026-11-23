@@ -76770,6 +76770,10 @@
             "description": "\u8D44\u6E90",
             "type": "string"
           },
+          "resourceName": {
+            "description": "\u8D44\u6E90\u663E\u793A\u540D\uFF0C\u4E0E\u63A5\u53E3\u6587\u6863\u7684\u8D44\u6E90\u6807\u7B7E\u540C\u540D",
+            "type": "string"
+          },
           "action": {
             "description": "\u52A8\u4F5C",
             "type": "string"
@@ -76788,6 +76792,7 @@
           "displayName",
           "package",
           "resource",
+          "resourceName",
           "action",
           "scope",
           "audited"

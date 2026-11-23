@@ -266,6 +266,7 @@ export default {
         name: '名称',
         code: '权限码',
         resource: '资源',
+        resource_name: '资源名称',
         action: '动作',
         scope: '作用侧',
         audited: '审计',

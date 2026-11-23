@@ -1,4 +1,6 @@
 {
+  "openapi.tags.cloud_events.description": "События, которые внутренние сервисы доставляют во входную точку CloudEvents.",
+  "openapi.tags.cloud_events.name": "CloudEvents",
   "permissions.runtime.cloud_events.deliver.description": "Доставить события на входящую конечную точку CloudEvents; выдавать только служебным учётным записям платформы или служебным ролям.",
   "permissions.runtime.cloud_events.deliver.name": "Доставка CloudEvents",
   "runtime.schema.tenant_unavailable": "База данных арендатора '{tenant}' ещё не обновлена до текущей версии и временно недоступна; обратитесь к администратору.",

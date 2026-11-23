@@ -266,6 +266,7 @@ export default {
         name: '이름',
         code: '권한 코드',
         resource: '리소스',
+        resource_name: '리소스 이름',
         action: '동작',
         scope: '적용 측',
         audited: '감사',

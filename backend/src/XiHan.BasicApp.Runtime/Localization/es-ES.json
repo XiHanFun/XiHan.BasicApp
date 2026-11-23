@@ -1,4 +1,6 @@
 {
+  "openapi.tags.cloud_events.description": "Eventos que los servicios internos entregan al endpoint de entrada de CloudEvents.",
+  "openapi.tags.cloud_events.name": "CloudEvents",
   "permissions.runtime.cloud_events.deliver.description": "Entregar eventos al punto de conexión de entrada de CloudEvents; concederlo solo a cuentas de servicio de la plataforma o a roles de servicio.",
   "permissions.runtime.cloud_events.deliver.name": "Entregar CloudEvents",
   "runtime.schema.tenant_unavailable": "La base de datos del inquilino '{tenant}' aún no se ha actualizado a la versión actual y no está disponible por ahora; contacte con su administrador.",

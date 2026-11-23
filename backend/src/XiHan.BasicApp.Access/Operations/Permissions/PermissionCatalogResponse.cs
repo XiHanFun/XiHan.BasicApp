@@ -21,17 +21,18 @@ public sealed record PermissionCatalogResponse(IReadOnlyList<PermissionResponse>
 /// <param name="Description">说明</param>
 /// <param name="Package">包</param>
 /// <param name="Resource">资源</param>
+/// <param name="ResourceName">资源显示名，与接口文档的资源标签同名</param>
 /// <param name="Action">动作</param>
 /// <param name="Scope">作用侧</param>
 /// <param name="Audited">是否审计</param>
-public sealed record PermissionResponse(string Code, string DisplayName, string? Description, string Package, string Resource, string Action, PermissionScope Scope, bool Audited)
+public sealed record PermissionResponse(string Code, string DisplayName, string? Description, string Package, string Resource, string ResourceName, string Action, PermissionScope Scope, bool Audited)
 {
     /// <summary>
-    /// 由描述投影，显示名与说明取调用方区域的文案
+    /// 由描述投影，显示名、说明与资源显示名取调用方区域的文案
     /// </summary>
     public static PermissionResponse From(PermissionDescriptor descriptor, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return new PermissionResponse(descriptor.Code, PermissionTexts.NameOf(descriptor, context), PermissionTexts.DescriptionOf(descriptor, context), descriptor.Package, descriptor.Resource, descriptor.Action, descriptor.Scope, descriptor.Audited);
+        return new PermissionResponse(descriptor.Code, PermissionTexts.NameOf(descriptor, context), PermissionTexts.DescriptionOf(descriptor, context), descriptor.Package, descriptor.Resource, PermissionTexts.ResourceNameOf(descriptor, context), descriptor.Action, descriptor.Scope, descriptor.Audited);
     }
 }

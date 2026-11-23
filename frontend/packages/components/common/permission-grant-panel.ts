@@ -18,6 +18,8 @@ export interface PermissionGrantItem {
 export interface PermissionGroup<T extends PermissionGrantItem> {
   key: string
   name: string
+  /** 组名是后端给的显示名时，组码作为次要信息跟在后面 */
+  description?: string
   items: T[]
 }
 
@@ -73,11 +75,17 @@ export function groupPermissions<T extends PermissionGrantItem>(
   }
   return [
     ...map.entries(),
-  ].map(([key, groupItems]) => ({
-    key,
-    name: groupItems[0]?.groupName
-      || commonPrefix(groupItems.map(groupItem => groupItem.permissionName))
-      || key,
-    items: groupItems,
-  }))
+  ].map(([key, groupItems]) => {
+    const groupName = groupItems[0]?.groupName
+    return {
+      key,
+      name: groupName
+        || commonPrefix(groupItems.map(groupItem => groupItem.permissionName))
+        || key,
+      description: groupName && groupName !== key
+        ? key
+        : undefined,
+      items: groupItems,
+    }
+  })
 }

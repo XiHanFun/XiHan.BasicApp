@@ -30,6 +30,7 @@ function record(): Call[] {
         description: null,
         package: 'identity',
         resource: 'users',
+        resourceName: 'Users',
         action: 'read',
         scope: 'Both',
         audited: false,

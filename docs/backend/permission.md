@@ -21,7 +21,7 @@ Authorize 阶段之后
 
 每个包在 `<包>Permissions.cs` 中用 `PermissionDescriptor` 声明权限码（码、显示名、作用侧、是否审计、说明），并在 `Configure` 时登记到框架。权限目录、菜单门控、套餐白名单与前端生成的 `packages/contracts/permissions.ts` 都来自这份登记，没有手写的权限或按钮码清单。页面上的一个写动作对应一个操作，前端直接用该操作的权限码控制按钮。
 
-显示名与说明另写在所属包语言文件的 `permissions.<码>.name` / `.description`（权限码的 `-` 换 `_`，10 种区域齐全，`PackageStructureTests` 守着）：权限目录 `permissions.list`、约束规则的目标名与接口文档都按调用方的区域取，描述表里的英文只在回退链用尽时用。
+显示名与说明另写在所属包语言文件的 `permissions.<码>.name` / `.description`（权限码的 `-` 换 `_`，10 种区域齐全，`PackageStructureTests` 守着）：权限目录 `permissions.list`、约束规则的目标名与接口文档都按调用方的区域取，描述表里的英文只在回退链用尽时用。目录项的 `resourceName` 是资源的显示名，取接口文档的资源标签 `openapi.tags.<资源>.name`（只给普通端点用的权限码也要登记它的资源标签；插件的来自它握手带来的消息目录）；角色授权、用户直授与套餐白名单的穿梭框按「包.资源」分段，段名用它、资源码跟在后面。
 
 | 属性 | 说明 |
 | --- | --- |

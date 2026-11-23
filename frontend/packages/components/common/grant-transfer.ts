@@ -12,6 +12,8 @@ export interface GrantTransferItem {
 export interface GrantTransferGroup<T extends GrantTransferItem> {
   key: string
   name: string
+  /** 段标题后的次要信息（如资源码） */
+  description?: string
   items: T[]
 }
 

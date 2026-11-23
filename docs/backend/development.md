@@ -135,7 +135,7 @@ public static IReadOnlyList<PermissionDescriptor> All { get; } =
 }
 ```
 
-10 个区域文件（`en-US`、`zh-CN`、`zh-TW`、`ja-JP`、`ko-KR`、`de-DE`、`es-ES`、`fr-FR`、`pt-BR`、`ru-RU`）的键集必须一致，且与消息常量一一对应（`PackageStructureTests`）。`<操作 ID>.title` / `.description` 同时是 OpenAPI 的摘要与说明和 MCP 工具说明；OpenAPI 生成器会在说明末尾按区域追加一行授权要求，不要手写。
+10 个区域文件（`en-US`、`zh-CN`、`zh-TW`、`ja-JP`、`ko-KR`、`de-DE`、`es-ES`、`fr-FR`、`pt-BR`、`ru-RU`）的键集必须一致，且与消息常量一一对应（`PackageStructureTests`）。`<操作 ID>.title` / `.description` 同时是 OpenAPI 的摘要与说明和 MCP 工具说明；OpenAPI 生成器会在说明末尾按区域追加一行授权要求，不要手写。资源标签 `openapi.tags.<资源>.name` 同时是权限目录里的资源显示名（授权穿梭框的段名），只给普通端点用的权限码也要给它的资源登记标签。
 
 ## 五、登记页面（可选）
 
