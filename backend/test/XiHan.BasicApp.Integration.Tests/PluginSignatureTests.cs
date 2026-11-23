@@ -65,7 +65,7 @@ public sealed class PluginSignatureTests : IDisposable
 
     private static string PublicKeyOf(ECDsa key) => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
 
-    private static byte[] Sign(byte[] package, ECDsa key)
+    internal static byte[] Sign(byte[] package, ECDsa key)
     {
         using var buffer = new MemoryStream();
         buffer.Write(package);

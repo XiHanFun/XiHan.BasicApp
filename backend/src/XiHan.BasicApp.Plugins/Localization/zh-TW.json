@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "簽章檔 basicapp.signature.json 讀不出：要寫演算法 'ecdsa-p256-sha256'、64 位的公鑰指紋與 Base64 的 DER 簽章。",
   "plugins.signature.mismatch": "公鑰 '{key}' 的簽章與套件內容不符：套件在簽章之後被改過。",
   "plugins.signature.missing": "外掛套件沒有簽章，本服務只接受受信任的發行者簽章的套件。",
-  "plugins.signature.untrusted": "外掛套件由公鑰 '{key}' 簽章，它不是發行者 '{publisher}' 受信任的公鑰。"
+  "plugins.signature.untrusted": "外掛套件由公鑰 '{key}' 簽章，它不是發行者 '{publisher}' 受信任的公鑰。",
+  "plugins.upgrade.title": "升級外掛",
+  "plugins.upgrade.description": "把已安裝的外掛換成一個已上傳的新版本，連同新版本申請的授予；先帶上 pluginId 核對套件，看會變什麼。啟用中的外掛隨即載入新版本，起不來就退回舊版本。",
+  "plugins.rollback.title": "換回外掛版本",
+  "plugins.rollback.description": "把外掛換回它已上傳過的某個版本，連同那個版本申請的授予；先按載入時的信任規則判一次。啟用中的外掛隨即載入那個版本。",
+  "plugins.version.not_found": "外掛版本 '{id}' 不存在。",
+  "plugins.version.current": "版本 {version} 已經是目前版本。",
+  "plugins.upgrade.other_plugin": "這個套件是外掛 '{id}'（{name}），不是要升級的外掛（'{expected}'）。",
+  "plugins.upgrade.not_newer": "版本 {version} 不比目前版本 {current} 新；要換回已上傳過的版本請用回退。",
+  "plugins.upgrade.version_uploaded": "這個外掛的 {version} 版本以前上傳過；要換上它請用回退。"
 }

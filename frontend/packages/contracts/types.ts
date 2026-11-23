@@ -7210,6 +7210,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plugins/{id}:rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Roll back a plugin
+         * @description Switch a plugin back to one of its uploaded versions, with the grants that version requests; the trust rules of loading are checked first. An enabled plugin loads that version right away.
+         *
+         *     Requires permission plugins.plugins.install (Install plugins).
+         */
+        post: operations["plugins.rollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plugins/{id}:status": {
         parameters: {
             query?: never;
@@ -7226,6 +7248,28 @@ export interface paths {
         get: operations["plugins.status"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins/{id}:upgrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upgrade a plugin
+         * @description Switch an installed plugin to a newer uploaded version, with the grants that version requests; inspect the package with pluginId first to see what changes. An enabled plugin loads the new version right away and falls back to the old one if it cannot start.
+         *
+         *     Requires permission plugins.plugins.install (Install plugins).
+         */
+        post: operations["plugins.upgrade"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15755,6 +15799,30 @@ export interface components {
          * @enum {string}
          */
         PluginSignatureStatus: "None" | "Untrusted" | "Trusted";
+        /** @description 升级包与当前版本的对照 */
+        PluginUpgradeResponse: {
+            /**
+             * Format: uuid
+             * @description 插件 ID
+             */
+            pluginId: string;
+            /** @description 当前版本号 */
+            fromVersion: string;
+            /** @description 新增的操作 ID */
+            addedOperations: string[];
+            /** @description 去掉的操作 ID */
+            removedOperations: string[];
+            /** @description 新增的权限码 */
+            addedPermissions: string[];
+            /** @description 去掉的权限码：对它们的授予等引用留着，回退后照旧生效，卸载时一并清掉 */
+            removedPermissions: string[];
+            /** @description 新增的页面码 */
+            addedPages: string[];
+            /** @description 去掉的页面码：菜单节点随之删掉，运营对它的展示调整不保留 */
+            removedPages: string[];
+            /** @description 当前已批准的授予 */
+            grants: string[];
+        };
         /** @description 插件的一个版本 */
         PluginVersionResponse: {
             /**
@@ -15778,6 +15846,8 @@ export interface components {
             size: number;
             /** @description 上传核对时的签名结论 */
             signature: components["schemas"]["PluginSignatureResponse"];
+            /** @description 这个版本必须全部批准的授予：换回它时按这一组核对 */
+            requiredGrants: string[];
             /** @description 是否是当前版本 */
             isCurrent: boolean;
             /**
@@ -40748,6 +40818,71 @@ export interface operations {
             };
         };
     };
+    "plugins.rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 插件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description plugins.rollback 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 插件 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /**
+                     * Format: uuid
+                     * @description 要换回的版本（详情的 versions[].id）
+                     */
+                    versionId: string;
+                    /** @description 批准的授予：按那个版本申请的整组替换，须含全部必须项，另外只能有可选项 */
+                    grants: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 插件的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 插件 */
+                        plugin: components["schemas"]["PluginResponse"];
+                        /** @description 当前版本的贡献 */
+                        contributions: components["schemas"]["PluginContributionsResponse"];
+                        /** @description 当前版本必须全部批准的授予 */
+                        requiredGrants: string[];
+                        /** @description 可以另外批准的授予 */
+                        optionalGrants: string[];
+                        /** @description 已批准的授予 */
+                        grants: string[];
+                        /** @description 全部版本，新的在前 */
+                        versions: components["schemas"]["PluginVersionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "plugins.status": {
         parameters: {
             query?: never;
@@ -40784,6 +40919,71 @@ export interface operations {
                         state?: components["schemas"]["LifecycleState"] | null;
                         /** @description 本节点最近一次加载失败或宿主报告的错误码；没有为空 */
                         errorCode?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.upgrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 插件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description plugins.upgrade 的请求 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: uuid
+                     * @description 插件 ID
+                     */
+                    id: string;
+                    /** @description 读到的并发戳 */
+                    concurrencyStamp: string;
+                    /**
+                     * Format: uuid
+                     * @description 已上传的新版本包文件（平台一侧）
+                     */
+                    fileId: string;
+                    /** @description 批准的授予：按新版本申请的整组替换，须含全部必须项，另外只能有可选项 */
+                    grants: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description 插件的详情 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 插件 */
+                        plugin: components["schemas"]["PluginResponse"];
+                        /** @description 当前版本的贡献 */
+                        contributions: components["schemas"]["PluginContributionsResponse"];
+                        /** @description 当前版本必须全部批准的授予 */
+                        requiredGrants: string[];
+                        /** @description 可以另外批准的授予 */
+                        optionalGrants: string[];
+                        /** @description 已批准的授予 */
+                        grants: string[];
+                        /** @description 全部版本，新的在前 */
+                        versions: components["schemas"]["PluginVersionResponse"][];
                     };
                 };
             };
@@ -40883,6 +41083,8 @@ export interface operations {
             query: {
                 /** @description 已上传的插件包文件（平台一侧） */
                 fileId: string;
+                /** @description 要升级的插件；新装不填 */
+                pluginId?: string | null;
             };
             header?: never;
             path?: never;
@@ -40922,6 +41124,8 @@ export interface operations {
                         requiredGrants: string[];
                         /** @description 可以另外批准的授予 */
                         optionalGrants: string[];
+                        /** @description 升级核对时与当前版本的对照；新装为空 */
+                        upgrade?: components["schemas"]["PluginUpgradeResponse"] | null;
                     };
                 };
             };

@@ -40,6 +40,16 @@ public static class PluginsMessages
     public const string InstallPluginDescription = "plugins.install.description";
 
     /// <summary>
+    /// 操作 <c>plugins.upgrade</c> 的说明
+    /// </summary>
+    public const string UpgradePluginDescription = "plugins.upgrade.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.rollback</c> 的说明
+    /// </summary>
+    public const string RollbackPluginDescription = "plugins.rollback.description";
+
+    /// <summary>
     /// 操作 <c>plugins.grant</c> 的说明
     /// </summary>
     public const string GrantPluginDescription = "plugins.grant.description";
@@ -353,6 +363,46 @@ public static class PluginsMessages
     /// 参数：<c>key</c>（签名公钥的指纹）、<c>publisher</c>
     /// </remarks>
     public const string SignatureUntrusted = "plugins.signature.untrusted";
+
+    /// <summary>
+    /// 插件没有这个版本
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>id</c>
+    /// </remarks>
+    public const string VersionNotFound = "plugins.version.not_found";
+
+    /// <summary>
+    /// 要换回的版本已经是当前版本
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>version</c>
+    /// </remarks>
+    public const string VersionCurrent = "plugins.version.current";
+
+    /// <summary>
+    /// 升级用的包是另一个插件
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>id</c>、<c>name</c>（包的清单 ID 与短名）、<c>expected</c>（要升级的插件的清单 ID）
+    /// </remarks>
+    public const string UpgradeOtherPlugin = "plugins.upgrade.other_plugin";
+
+    /// <summary>
+    /// 升级用的版本不比当前版本新
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>version</c>、<c>current</c>
+    /// </remarks>
+    public const string VersionNotNewer = "plugins.upgrade.not_newer";
+
+    /// <summary>
+    /// 升级用的版本以前上传过
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>version</c>
+    /// </remarks>
+    public const string VersionUploaded = "plugins.upgrade.version_uploaded";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(PluginsMessages)));
 

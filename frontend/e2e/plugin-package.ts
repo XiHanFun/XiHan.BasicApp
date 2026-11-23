@@ -83,8 +83,9 @@ function zip(entries: ReadonlyArray<readonly [string, Buffer]>): Buffer {
 /**
  * 构建示例插件 CrmPlugin 并装成 .xhplugin
  * 旁挂清单的 runtimes 换成当前运行时标识，与包里有的一致（集成测试的 CrmPluginPackage 同一做法）
+ * @param version 给了即改写框架清单的版本号，造出升级用的新版本（插件握手不报清单版本，宿主按目录里的清单认）
  */
-export function crmPluginPackage(): Buffer {
+export function crmPluginPackage(version?: string): Buffer {
   fs.rmSync(outputDir, { recursive: true, force: true })
   execFileSync('dotnet', [
     'build',
@@ -107,6 +108,11 @@ export function crmPluginPackage(): Buffer {
       const descriptor = JSON.parse(content.toString('utf8')) as Record<string, unknown>
       descriptor.runtimes = [runtime]
       content = Buffer.from(JSON.stringify(descriptor), 'utf8')
+    }
+    if (file === 'xihan.manifest.json' && version) {
+      const manifest = JSON.parse(content.toString('utf8')) as Record<string, unknown>
+      manifest.version = version
+      content = Buffer.from(JSON.stringify(manifest), 'utf8')
     }
     return [
       atRoot

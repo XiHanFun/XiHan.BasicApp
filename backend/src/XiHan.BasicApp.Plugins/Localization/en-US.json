@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "The signature file basicapp.signature.json is unreadable: it holds the algorithm 'ecdsa-p256-sha256', the 64-character key fingerprint and a Base64 DER signature.",
   "plugins.signature.mismatch": "The signature by key '{key}' does not match the package content: the package was changed after it was signed.",
   "plugins.signature.missing": "The plugin package is not signed, and this server accepts only packages signed by a trusted publisher.",
-  "plugins.signature.untrusted": "The plugin package is signed by key '{key}', which is not a trusted key of publisher '{publisher}'."
+  "plugins.signature.untrusted": "The plugin package is signed by key '{key}', which is not a trusted key of publisher '{publisher}'.",
+  "plugins.upgrade.title": "Upgrade a plugin",
+  "plugins.upgrade.description": "Switch an installed plugin to a newer uploaded version, with the grants that version requests; inspect the package with pluginId first to see what changes. An enabled plugin loads the new version right away and falls back to the old one if it cannot start.",
+  "plugins.rollback.title": "Roll back a plugin",
+  "plugins.rollback.description": "Switch a plugin back to one of its uploaded versions, with the grants that version requests; the trust rules of loading are checked first. An enabled plugin loads that version right away.",
+  "plugins.version.not_found": "Plugin version '{id}' was not found.",
+  "plugins.version.current": "Version {version} is already the current version.",
+  "plugins.upgrade.other_plugin": "The package is plugin '{id}' ({name}), not the plugin being upgraded ('{expected}').",
+  "plugins.upgrade.not_newer": "Version {version} is not newer than the current version {current}; switch to an uploaded version with rollback instead.",
+  "plugins.upgrade.version_uploaded": "Version {version} of this plugin was uploaded before; switch to it with rollback instead."
 }

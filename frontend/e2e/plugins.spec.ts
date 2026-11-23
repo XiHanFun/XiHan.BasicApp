@@ -4,7 +4,7 @@ import { INITIAL_PASSWORD, SUPER_ADMIN } from './env.ts'
 import { crmPluginPackage } from './plugin-package.ts'
 import { expectToast, login, openPage, RUN, search } from './support.ts'
 
-// 一条主干：超管装示例插件并启用 → 套餐放行插件的权限码、开通租户 → 租户管理员从菜单进插件页面增删改查 → 超管看过卸载预览后卸载
+// 一条主干：超管装示例插件并启用 → 套餐放行插件的权限码、开通租户 → 租户管理员从菜单进插件页面增删改查 → 超管升级再换回旧版本 → 超管看过卸载预览后卸载
 // 后一步用前一步的结果，串行跑；库在本机保留，上一次没走完留下的示例插件先卸掉
 test.describe.configure({ mode: 'serial' })
 
@@ -139,6 +139,46 @@ test('租户管理员从「插件应用」菜单进客户页面，增删改查�
   await page.getByRole('button', { name: '确定', exact: true }).click()
   await expectToast(page, '删除成功')
   await expect(ada).toHaveCount(0)
+})
+
+test('超管把示例插件升级到 1.1.0，再从版本页换回 1.0.0', async ({ page }) => {
+  const upgraded = crmPluginPackage('1.1.0')
+  await login(page, SUPER_ADMIN)
+  const row = await pluginRow(page)
+  await row.getByRole('button', { name: '更多' }).click()
+  await page.getByRole('menuitem', { name: '升级' }).click()
+  const wizard = page.getByRole('dialog', { name: '升级 crm' })
+  await wizard.locator('input[type="file"]').setInputFiles({ name: 'crm-1.1.0.xhplugin', mimeType: 'application/zip', buffer: upgraded })
+  // 对照当前版本：只改了版本号，贡献不变；开发环境放行没签名的包，但要提示来源无从核实
+  await expect(wizard.getByText('相对 1.0.0 的变化')).toBeVisible()
+  await expect(wizard.getByText('贡献没有变化')).toBeVisible()
+  await expect(wizard.getByText('没有签名', { exact: true })).toBeVisible()
+  await expect(wizard.getByText(/没有受信任的发布者签名/)).toBeVisible()
+  await wizard.getByRole('button', { name: '升级', exact: true }).click()
+  await expect(wizard.getByText(/crm 已升级到 1\.1\.0/)).toBeVisible()
+  await wizard.getByRole('button', { name: '关闭', exact: true }).last().click()
+  await expect(wizard).toBeHidden()
+  await expect(row).toContainText('1.1.0')
+  await expect(row).not.toContainText('PLUGINS_')
+
+  // 详情的版本页：换回 1.0.0，原来的授予照旧
+  await row.getByRole('button', { name: '更多' }).click()
+  await page.getByRole('menuitem', { name: '查看' }).click()
+  const drawer = page.getByRole('dialog', { name: 'crm', exact: true })
+  await drawer.getByRole('tab', { name: '版本（2）' }).click()
+  const previous = drawer.getByRole('row').filter({ hasText: '1.0.0' })
+  await previous.getByRole('button', { name: '更多' }).click()
+  await page.getByRole('menuitem', { name: '换到这个版本' }).click()
+  const confirm = page.getByRole('dialog', { name: '换到 1.0.0' })
+  await expect(confirm.getByText('插件不需要任何授予')).toBeVisible()
+  await confirm.getByRole('button', { name: '换版本', exact: true }).click()
+  await expectToast(page, '已换到 1.0.0')
+  await expect(confirm).toBeHidden()
+  await expect(previous).toContainText('当前')
+  await page.keyboard.press('Escape')
+  await expect(drawer).toBeHidden()
+  await expect(row).toContainText('1.0.0')
+  await expect(row).not.toContainText('PLUGINS_')
 })
 
 test('超管看过卸载预览后卸载示例插件，套餐里的插件码一并清掉', async ({ page }) => {

@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "Não é possível ler o arquivo de assinatura basicapp.signature.json: ele deve conter o algoritmo 'ecdsa-p256-sha256', a impressão digital da chave com 64 caracteres e uma assinatura DER em Base64.",
   "plugins.signature.mismatch": "A assinatura da chave '{key}' não corresponde ao conteúdo do pacote: o pacote foi alterado depois de assinado.",
   "plugins.signature.missing": "O pacote do plugin não está assinado, e este servidor só aceita pacotes assinados por um editor confiável.",
-  "plugins.signature.untrusted": "O pacote do plugin está assinado com a chave '{key}', que não é uma chave confiável do editor '{publisher}'."
+  "plugins.signature.untrusted": "O pacote do plugin está assinado com a chave '{key}', que não é uma chave confiável do editor '{publisher}'.",
+  "plugins.upgrade.title": "Atualizar um plugin",
+  "plugins.upgrade.description": "Troca um plugin instalado por uma versão enviada mais nova, com as concessões que essa versão solicita; inspecione antes o pacote com pluginId para ver o que muda. Um plugin habilitado carrega a nova versão na hora e volta à anterior se não conseguir iniciar.",
+  "plugins.rollback.title": "Voltar a uma versão do plugin",
+  "plugins.rollback.description": "Volta um plugin a uma de suas versões enviadas, com as concessões que essa versão solicita; antes são verificadas as regras de confiança do carregamento. Um plugin habilitado carrega essa versão na hora.",
+  "plugins.version.not_found": "A versão do plugin '{id}' não foi encontrada.",
+  "plugins.version.current": "A versão {version} já é a versão atual.",
+  "plugins.upgrade.other_plugin": "O pacote é o plugin '{id}' ({name}), não o plugin que está sendo atualizado ('{expected}').",
+  "plugins.upgrade.not_newer": "A versão {version} não é mais nova que a versão atual {current}; para voltar a uma versão enviada, use a reversão.",
+  "plugins.upgrade.version_uploaded": "A versão {version} deste plugin já foi enviada antes; para trocar para ela, use a reversão."
 }

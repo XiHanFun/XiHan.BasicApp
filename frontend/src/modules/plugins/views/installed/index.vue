@@ -154,6 +154,13 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:eye',
     },
     {
+      key: 'upgrade',
+      title: t('plugins.installed.actions.upgrade'),
+      scope: 'row',
+      icon: 'lucide:circle-arrow-up',
+      permission: 'plugins.plugins.install',
+    },
+    {
       key: 'toggle',
       title: t('plugins.installed.actions.toggle'),
       scope: 'row',
@@ -174,6 +181,7 @@ const schema = computed<PageSchema>(() => ({
 }))
 
 const wizardOpen = ref(false)
+const upgrading = ref<PluginRow | null>(null)
 const detailOpen = ref(false)
 const detailId = ref<string | null>(null)
 const deleteOpen = ref(false)
@@ -185,7 +193,14 @@ function onAction(payload: SchemaActionPayload) {
     : undefined
   switch (payload.key) {
     case 'install':
+      upgrading.value = null
       wizardOpen.value = true
+      break
+    case 'upgrade':
+      if (row) {
+        upgrading.value = row
+        wizardOpen.value = true
+      }
       break
     case 'view':
       if (row) {
@@ -231,7 +246,7 @@ function onDeleted() {
     :schema="schema"
     @action="onAction"
   >
-    <PluginInstallWizard v-model:show="wizardOpen" @installed="reload" />
+    <PluginInstallWizard v-model:show="wizardOpen" :upgrade="upgrading" @saved="reload" />
     <PluginDetailDrawer v-model:open="detailOpen" :plugin-id="detailId" @changed="reload" />
     <PluginDeleteDialog v-model:show="deleteOpen" :plugin="deleting" @deleted="onDeleted" />
   </SchemaPage>

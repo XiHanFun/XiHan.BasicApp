@@ -61,6 +61,7 @@ export default {
         both: 'Les deux',
       },
       actions: {
+        upgrade: 'Mettre à niveau',
         install: 'Installer un plugin',
         toggle: 'Activer / désactiver',
         uninstall: 'Désinstaller',
@@ -72,6 +73,7 @@ export default {
         versions: 'Versions ({count})',
       },
       sections: {
+        changes: 'Changements par rapport à {version}',
         contributions: 'Ce que le plugin ajoute',
         grants: 'Autorisations à approuver',
       },
@@ -98,6 +100,7 @@ export default {
         save: 'Enregistrer les autorisations',
       },
       versions: {
+        switch: 'Passer à cette version',
         current: 'Actuelle',
         uploaded_at: 'Téléversé le',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: 'Demande d’autorisation',
       },
       wizard: {
+        upgrade_title: 'Mettre à niveau {name}',
+        step_upgraded: 'Mis à niveau',
+        upgrade: 'Mettre à niveau',
+        upgraded: '{name} est mis à niveau en {version}. Un plugin activé bascule aussitôt et revient à la version précédente s’il ne démarre pas ; la liste affiche alors le code d’erreur.',
         title: 'Installer un plugin',
         step_upload: 'Téléverser le paquet',
         step_review: 'Vérifier et approuver',
@@ -135,6 +142,21 @@ export default {
         reupload: 'Choisir un autre paquet',
         install: 'Installer',
         installed: '{name} {version} est installé et désactivé ; activez-le dans la liste quand vous êtes prêt',
+      },
+      changes: {
+        kind: 'Type',
+        change: 'Changement',
+        item: 'Élément',
+        added: 'Ajouté',
+        removed: 'Retiré',
+        none: 'Les contributions ne changent pas',
+        removal_note: 'Les codes d’autorisation retirés gardent leurs autorisations et autres références, qui reprennent effet après un retour de version et sont effacées à la désinstallation ; les pages retirées perdent leurs nœuds de menu et les réglages d’affichage associés.',
+      },
+      rollback: {
+        title: 'Passer à {version}',
+        summary: 'Le plugin passe à la version {version} avec les autorisations ci-dessous ; un plugin activé la charge aussitôt.',
+        confirm: 'Changer',
+        switched: 'Passé à {version}',
       },
       delete: {
         title: 'Désinstaller {name}',

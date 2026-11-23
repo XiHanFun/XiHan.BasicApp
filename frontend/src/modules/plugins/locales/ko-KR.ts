@@ -61,6 +61,7 @@ export default {
         both: '양쪽',
       },
       actions: {
+        upgrade: '업그레이드',
         install: '플러그인 설치',
         toggle: '사용 / 중지',
         uninstall: '제거',
@@ -72,6 +73,7 @@ export default {
         versions: '버전 ({count})',
       },
       sections: {
+        changes: '{version} 대비 변경',
         contributions: '플러그인이 추가하는 항목',
         grants: '승인할 부여',
       },
@@ -98,6 +100,7 @@ export default {
         save: '부여 저장',
       },
       versions: {
+        switch: '이 버전으로 전환',
         current: '현재',
         uploaded_at: '업로드 시각',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: '권한 요청',
       },
       wizard: {
+        upgrade_title: '{name} 업그레이드',
+        step_upgraded: '업그레이드 완료',
+        upgrade: '업그레이드',
+        upgraded: '{name}을(를) {version}(으)로 업그레이드했습니다. 사용 중인 플러그인은 바로 새 버전으로 바뀌며, 시작하지 못하면 이전 버전으로 돌아가고 목록에 오류 코드가 표시됩니다.',
         title: '플러그인 설치',
         step_upload: '패키지 업로드',
         step_review: '검토 및 승인',
@@ -135,6 +142,21 @@ export default {
         reupload: '다른 패키지 선택',
         install: '설치',
         installed: '{name} {version} 설치됨(사용 중지). 준비되면 목록에서 사용하세요',
+      },
+      changes: {
+        kind: '종류',
+        change: '변경',
+        item: '항목',
+        added: '추가',
+        removed: '제거',
+        none: '기여에 변경이 없습니다',
+        removal_note: '제거된 권한 코드의 부여 등 참조는 남아 있어 이전 버전으로 돌아가면 다시 적용되고, 제거할 때 함께 정리됩니다. 제거된 페이지는 메뉴 노드와 함께 사라지며 표시 조정도 남지 않습니다.',
+      },
+      rollback: {
+        title: '{version}(으)로 전환',
+        summary: '플러그인을 아래 부여로 {version} 버전으로 바꿉니다. 사용 중인 플러그인은 바로 로드합니다.',
+        confirm: '전환',
+        switched: '{version}(으)로 전환했습니다',
       },
       delete: {
         title: '{name} 제거',

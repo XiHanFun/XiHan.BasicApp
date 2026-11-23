@@ -10,7 +10,6 @@ using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Plugins;
-using XiHan.BasicApp.Plugins.Domain.Entities;
 using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Plugins.Infrastructure;
 using XiHan.BasicApp.Runtime.Persistence;
@@ -18,7 +17,6 @@ using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Plugins;
 using XiHan.Framework.Localization.Abstractions.Messages;
-using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -225,28 +223,28 @@ public sealed class PluginReconcilerTests : IDisposable
     {
         var (server, platform, host) = await StartAsync();
         await using var _ = server;
-        var id = Guid.Parse(await InstallAsync(server, platform, PluginsTests.Package(), Cache, Config));
-        await SwitchAsync(server, platform, id.ToString(), enable: true);
+        var id = await InstallAsync(server, platform, PluginsTests.Package(), Cache, Config);
+        await SwitchAsync(server, platform, id, enable: true);
 
-        // 换到 2.0.0（升级操作之前先直接改库），新版本起不来
-        var upgraded = PluginsTests.Package(manifest: static m => m["version"] = "2.0.0");
-        var fileId = Guid.Parse(await PluginsTests.UploadAsync(server, platform, upgraded));
-        await SwitchVersionAsync(server, id, fileId, upgraded);
+        // 升级到 2.0.0，新版本起不来：提交后本节点先卸旧版、载新版失败、再重载旧版
         host.FailWith = static m => m.Version == "2.0.0" ? new Error("PLUGINS_TIMEOUT_001", "plugins.standin.timeout") : null;
+        var fileId = await PluginsTests.UploadAsync(server, platform, PluginsTests.Package(manifest: static m => m["version"] = "2.0.0"));
+        var stamp = (await DetailAsync(server, platform, id)).GetProperty("plugin").GetProperty("concurrencyStamp").GetString()!;
+        var (upgraded, upgradedBody) = await PluginsTests.UpgradeAsync(server, platform, id, stamp, fileId, Cache, Config);
+        Assert.True(upgraded.StatusCode == HttpStatusCode.OK, upgradedBody.GetRawText());
         var reconciler = server.Services.GetRequiredService<PluginReconciler>();
-        await reconciler.ReconcileAsync(CancellationToken.None);
 
         Assert.Equal(["1.0.0", "2.0.0", "1.0.0"], host.Loads.Select(static l => l.Version));
         Assert.Equal("1.0.0", reconciler.Loaded[PluginsTests.ManifestId].Version);
-        var status = await StatusAsync(server, platform, id.ToString());
+        var status = await StatusAsync(server, platform, id);
         Assert.Equal(("1.0.0", "PLUGINS_TIMEOUT_001"), (status.GetProperty("loadedVersion").GetString(), ErrorCodeOf(status, "errorCode")));
-        Assert.Equal("PLUGINS_TIMEOUT_001", ErrorCodeOf((await DetailAsync(server, platform, id.ToString())).GetProperty("plugin"), "lastErrorCode"));
+        Assert.Equal("PLUGINS_TIMEOUT_001", ErrorCodeOf((await DetailAsync(server, platform, id)).GetProperty("plugin"), "lastErrorCode"));
 
         // 新版本能起来了：下一次对齐换上它
         host.FailWith = null;
         await reconciler.ReconcileAsync(CancellationToken.None);
         Assert.Equal("2.0.0", reconciler.Loaded[PluginsTests.ManifestId].Version);
-        Assert.Null(ErrorCodeOf((await DetailAsync(server, platform, id.ToString())).GetProperty("plugin"), "lastErrorCode"));
+        Assert.Null(ErrorCodeOf((await DetailAsync(server, platform, id)).GetProperty("plugin"), "lastErrorCode"));
     }
 
     [Fact]
@@ -387,39 +385,4 @@ public sealed class PluginReconcilerTests : IDisposable
             var editions = await services.GetRequiredService<IRepository<SysEditionGrant, Guid>>().ListAsync(EntityQuery.All<SysEditionGrant>().Where(new Specification<SysEditionGrant>(g => g.PermissionCode == code)), ct);
             return (grants.Count, rules.Count, editions.Count);
         }, CancellationToken.None);
-
-    /// <summary>
-    /// 给插件加一个版本并换成当前版本
-    /// </summary>
-    private static async Task SwitchVersionAsync(BasicAppTestServer server, Guid pluginId, Guid fileId, byte[] content)
-    {
-        using var stream = new MemoryStream(content);
-        var package = (await PluginPackage.ReadAsync(stream, 1024 * 1024, CancellationToken.None)).ValueOrThrow();
-        var written = await StoreScope.WriteAsync(server.Services.GetRequiredService<IServiceScopeFactory>(), async (services, ct) =>
-        {
-            var plugins = services.GetRequiredService<IRepository<SysPlugin, Guid>>();
-            var plugin = (await plugins.FindAsync(pluginId, ct)).ValueOrThrow();
-            var version = new SysPluginVersion
-            {
-                Id = services.GetRequiredService<IIdGenerator<Guid>>().NewId(),
-                PluginId = pluginId,
-                Version = package.Manifest.Version,
-                FileId = fileId,
-                Sha256 = package.Sha256,
-                Size = package.Size,
-                ManifestJson = package.ManifestJson,
-                DescriptorJson = package.DescriptorJson,
-            };
-            var added = await services.GetRequiredService<IRepository<SysPluginVersion, Guid>>().AddAsync(version, ct);
-            if (added.IsFailure)
-            {
-                return added;
-            }
-
-            plugin.CurrentVersionId = version.Id;
-            plugin.Version = version.Version;
-            return await plugins.UpdateAsync(plugin, ct);
-        }, CancellationToken.None);
-        Assert.True(written.IsSuccess, written.Error?.Code);
-    }
 }

@@ -50,13 +50,19 @@ import { plugins as pluginsApi } from '~/contracts'
 import { uploadFile } from '~/files'
 import { ApiError } from '~/request'
 import { formatFileSize } from '~/utils'
-import { approvedGrants, grantLabel, isolationLabel, signatureLabel, signatureTone } from '../use-plugins'
+import { approvedGrants, carriedOptional, grantLabel, isolationLabel, signatureLabel, signatureTone } from '../use-plugins'
 import PluginContributionsView from './PluginContributionsView.vue'
+import PluginUpgradeChanges from './PluginUpgradeChanges.vue'
 
 defineOptions({ name: 'PluginInstallWizard' })
 
+/** 给了 upgrade 即升级这个插件：核对带上插件 ID，对照当前版本，授予预选原来批准过的可选项 */
+const props = defineProps<{
+  upgrade?: PluginRow | null
+}>()
+
 const emit = defineEmits<{
-  installed: [plugin: PluginRow]
+  saved: [plugin: PluginRow]
 }>()
 
 const show = defineModel<boolean>('show', { required: true })
@@ -75,11 +81,17 @@ const chosenOptional = ref<string[]>([])
 const remark = ref('')
 const installed = ref<PluginRow | null>(null)
 
+const target = computed(() => props.upgrade ?? null)
+const title = computed(() => target.value
+  ? t('plugins.installed.wizard.upgrade_title', { name: target.value.name })
+  : t('plugins.installed.wizard.title'))
 const stepIndex = computed(() => ['upload', 'review', 'done'].indexOf(phase.value))
 const steps = computed(() => [
   t('plugins.installed.wizard.step_upload'),
   t('plugins.installed.wizard.step_review'),
-  t('plugins.installed.wizard.step_done'),
+  target.value
+    ? t('plugins.installed.wizard.step_upgraded')
+    : t('plugins.installed.wizard.step_done'),
 ])
 
 /** 已选文件受控为空：组件只当选择器用，重选不会因数量已满被拒 */
@@ -113,9 +125,15 @@ async function onFileAccept(details: { files: File[] }) {
   problem.value = null
   try {
     const uploaded = await uploadFile(file)
-    inspection.value = await pluginsApi.inspect({ fileId: uploaded.id })
+    const report = await pluginsApi.inspect({
+      fileId: uploaded.id,
+      pluginId: target.value?.id ?? null,
+    })
+    inspection.value = report
     fileId.value = uploaded.id
-    chosenOptional.value = []
+    chosenOptional.value = report.upgrade
+      ? carriedOptional(report.optionalGrants, report.upgrade.grants)
+      : []
     phase.value = 'review'
   }
   catch (error) {
@@ -136,15 +154,23 @@ async function install() {
     return
   busy.value = true
   problem.value = null
+  const grants = approvedGrants(report.requiredGrants, report.optionalGrants, chosenOptional.value)
   try {
-    const response = await pluginsApi.install({
-      fileId: fileId.value,
-      grants: approvedGrants(report.requiredGrants, report.optionalGrants, chosenOptional.value),
-      remark: remark.value.trim() || null,
-    })
+    const response = target.value
+      ? await pluginsApi.upgrade({
+          id: target.value.id,
+          concurrencyStamp: target.value.concurrencyStamp,
+          fileId: fileId.value,
+          grants,
+        })
+      : await pluginsApi.install({
+          fileId: fileId.value,
+          grants,
+          remark: remark.value.trim() || null,
+        })
     installed.value = response.plugin
     phase.value = 'done'
-    emit('installed', response.plugin)
+    emit('saved', response.plugin)
   }
   catch (error) {
     problem.value = messageOf(error)
@@ -164,13 +190,13 @@ async function install() {
   >
     <XhDialogContent :style="dialogWidthStyle(760)">
       <XhDialogHeader>
-        <XhDialogTitle>{{ t('plugins.installed.wizard.title') }}</XhDialogTitle>
+        <XhDialogTitle>{{ title }}</XhDialogTitle>
       </XhDialogHeader>
       <XhDialogCloseTrigger v-if="!busy" />
 
       <XhDialogBody>
         <div class="plugin-wizard">
-          <XhStepsRoot :count="steps.length" :value="stepIndex" size="sm" read-only :translations="{ list: t('plugins.installed.wizard.title') }">
+          <XhStepsRoot :count="steps.length" :value="stepIndex" size="sm" read-only :translations="{ list: title }">
             <XhStepsList>
               <XhStepsItem v-for="(step, index) in steps" :key="step" :value="index">
                 <XhStepsTrigger>
@@ -254,6 +280,11 @@ async function install() {
               </XhAlertContent>
             </XhAlertRoot>
 
+            <template v-if="inspection.upgrade">
+              <XhSeparator>{{ t('plugins.installed.sections.changes', { version: inspection.upgrade.fromVersion }) }}</XhSeparator>
+              <PluginUpgradeChanges :upgrade="inspection.upgrade" />
+            </template>
+
             <XhSeparator>{{ t('plugins.installed.sections.contributions') }}</XhSeparator>
             <PluginContributionsView :contributions="inspection.contributions" />
 
@@ -287,7 +318,7 @@ async function install() {
                   </XhCheckboxGroupRoot>
                 </XhFieldControl>
               </XhFieldRoot>
-              <XhFieldRoot>
+              <XhFieldRoot v-if="!target">
                 <XhFieldLabel>{{ t('plugins.installed.fields.remark') }}</XhFieldLabel>
                 <XhFieldControl>
                   <XInput v-model:value="remark" name="remark" type="textarea" :rows="2" clearable />
@@ -301,7 +332,11 @@ async function install() {
               <Icon icon="lucide:circle-check" width="16" height="16" />
             </XhAlertIndicator>
             <XhAlertContent>
-              <XhAlertDescription>{{ t('plugins.installed.wizard.installed', { name: installed.name, version: installed.version }) }}</XhAlertDescription>
+              <XhAlertDescription>
+                {{ target
+                  ? t('plugins.installed.wizard.upgraded', { name: installed.name, version: installed.version })
+                  : t('plugins.installed.wizard.installed', { name: installed.name, version: installed.version }) }}
+              </XhAlertDescription>
             </XhAlertContent>
           </XhAlertRoot>
 
@@ -322,7 +357,7 @@ async function install() {
             {{ t('plugins.installed.wizard.reupload') }}
           </XhButton>
           <XhButton tone="brand" size="sm" :loading="busy" @click="install">
-            {{ t('plugins.installed.wizard.install') }}
+            {{ target ? t('plugins.installed.wizard.upgrade') : t('plugins.installed.wizard.install') }}
           </XhButton>
         </template>
         <XhButton v-else variant="subtle" size="sm" :disabled="busy" @click="show = false">

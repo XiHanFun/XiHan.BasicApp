@@ -93,9 +93,11 @@ public sealed partial class PluginInspector(PluginsOptions options, PluginTrust 
     /// 核对读出来的包
     /// </summary>
     /// <param name="package">插件包</param>
+    /// <param name="owned">升级时当前版本贡献的操作 ID 与权限码：登记冲突不算它们（新装为空）</param>
     /// <returns>核对结果；第一处不过的错误</returns>
-    public Result<PluginInspection> Inspect(PluginPackage package)
+    public Result<PluginInspection> Inspect(PluginPackage package, IReadOnlySet<string> owned)
     {
+        ArgumentNullException.ThrowIfNull(owned);
         ArgumentNullException.ThrowIfNull(package);
         var signed = trust.Check(package);
         if (!signed.TryGetValue(out var signer))
@@ -146,7 +148,7 @@ public sealed partial class PluginInspector(PluginsOptions options, PluginTrust 
             () => CheckPages(package, name),
             () => CheckCallbacks(manifest, descriptor),
             () => descriptor.Extends.Count > 0 ? Error.Validation(PluginsErrors.ContributionInvalid, PluginsMessages.ExtendsUnsupported) : null,
-            () => CheckConflicts(manifest),
+            () => CheckConflicts(manifest, owned),
         };
         foreach (var check in checks)
         {
@@ -424,12 +426,12 @@ public sealed partial class PluginInspector(PluginsOptions options, PluginTrust 
     /// 贡献的操作与权限码都还没被别人登记
     /// </summary>
     /// <remarks>
-    /// 只是预检：加载时框架按登记表整组再核对一次（重名、路由与 tool 名冲突），以加载时为准
+    /// 只是预检：加载时框架按登记表整组再核对一次（重名、路由与 tool 名冲突），以加载时为准。升级时同一插件当前版本登记的不算冲突
     /// </remarks>
-    private Error? CheckConflicts(Manifest manifest)
+    private Error? CheckConflicts(Manifest manifest, IReadOnlySet<string> owned)
     {
-        var taken = manifest.Contributes.Operations.FirstOrDefault(id => operations.Find(id).HasValue)
-            ?? manifest.Contributes.Permissions.FirstOrDefault(code => permissions.Find(code).HasValue);
+        var taken = manifest.Contributes.Operations.FirstOrDefault(id => !owned.Contains(id) && operations.Find(id).HasValue)
+            ?? manifest.Contributes.Permissions.FirstOrDefault(code => !owned.Contains(code) && permissions.Find(code).HasValue);
         return taken is null ? null : Error.Conflict(PluginsErrors.ContributionConflict, PluginsMessages.ContributionConflict, MessageArguments.Of(("item", taken)));
     }
 
@@ -470,4 +472,36 @@ public sealed partial class PluginInspector(PluginsOptions options, PluginTrust 
 /// <param name="Signer">签名结论</param>
 /// <param name="RequiredGrants">必须批准的授予</param>
 /// <param name="OptionalGrants">可以另外批准的授予</param>
-public sealed record PluginInspection(PluginPackage Package, PluginSigner Signer, IReadOnlyList<string> RequiredGrants, IReadOnlyList<string> OptionalGrants);
+public sealed record PluginInspection(PluginPackage Package, PluginSigner Signer, IReadOnlyList<string> RequiredGrants, IReadOnlyList<string> OptionalGrants)
+{
+    /// <summary>
+    /// 升级核对时与当前版本的对照
+    /// </summary>
+    /// <remarks>
+    /// 新装为空
+    /// </remarks>
+    public PluginUpgrade? Upgrade { get; init; }
+}
+
+/// <summary>
+/// 升级包与当前版本的对照
+/// </summary>
+/// <param name="PluginId">插件 ID</param>
+/// <param name="FromVersion">当前版本号</param>
+/// <param name="AddedOperations">新增的操作 ID</param>
+/// <param name="RemovedOperations">去掉的操作 ID</param>
+/// <param name="AddedPermissions">新增的权限码</param>
+/// <param name="RemovedPermissions">去掉的权限码：对它们的授予等引用留着，回退后照旧生效，卸载时一并清掉</param>
+/// <param name="AddedPages">新增的页面码</param>
+/// <param name="RemovedPages">去掉的页面码：菜单节点随之删掉，运营对它的展示调整不保留</param>
+/// <param name="Grants">当前已批准的授予</param>
+public sealed record PluginUpgrade(
+    Guid PluginId,
+    string FromVersion,
+    IReadOnlyList<string> AddedOperations,
+    IReadOnlyList<string> RemovedOperations,
+    IReadOnlyList<string> AddedPermissions,
+    IReadOnlyList<string> RemovedPermissions,
+    IReadOnlyList<string> AddedPages,
+    IReadOnlyList<string> RemovedPages,
+    IReadOnlyList<string> Grants);

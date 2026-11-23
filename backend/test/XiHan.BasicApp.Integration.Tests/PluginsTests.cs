@@ -178,6 +178,12 @@ public sealed class PluginsTests : IDisposable
     internal static Task<(HttpResponseMessage Response, JsonElement Body)> InstallAsync(BasicAppTestServer server, string token, string fileId, params string[] grants)
         => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/plugins:install", JsonSerializer.Serialize(new { fileId, grants, remark = "weather plugin" }), token));
 
+    internal static Task<(HttpResponseMessage Response, JsonElement Body)> UpgradeAsync(BasicAppTestServer server, string token, string id, string stamp, string fileId, params string[] grants)
+        => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/plugins/{id}:upgrade", JsonSerializer.Serialize(new { concurrencyStamp = stamp, fileId, grants }), token));
+
+    internal static Task<(HttpResponseMessage Response, JsonElement Body)> RollbackAsync(BasicAppTestServer server, string token, string id, string stamp, string versionId, params string[] grants)
+        => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/plugins/{id}:rollback", JsonSerializer.Serialize(new { concurrencyStamp = stamp, versionId, grants }), token));
+
     private static Task<(HttpResponseMessage Response, JsonElement Body)> GrantAsync(BasicAppTestServer server, string token, string id, string stamp, params string[] grants)
         => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/plugins/{id}:grant", JsonSerializer.Serialize(new { concurrencyStamp = stamp, grants }), token));
 

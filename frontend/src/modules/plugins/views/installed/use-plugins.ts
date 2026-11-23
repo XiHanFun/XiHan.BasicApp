@@ -17,6 +17,8 @@ export type PluginStatus = ResponseOf<'plugins.status'>
 export type PluginLifecycleState = NonNullable<PluginStatus['state']>
 export type PluginInspection = ResponseOf<'plugins.inspect'>
 export type PluginSignatureStatus = PluginInspection['signature']['status']
+export type PluginUpgrade = NonNullable<PluginInspection['upgrade']>
+export type PluginVersion = PluginDetail['versions'][number]
 export type PluginDeletePreview = ResponseOf<'plugins.delete-preview'>
 export type PermissionReferenceKind = PluginDeletePreview['references'][number]['kind']
 
@@ -141,6 +143,37 @@ export function grantLabel(t: Translate, grant: string): string {
     })
   }
   return t('plugins.installed.grants.other')
+}
+
+/** 升级对照里的一项变化 */
+export interface PluginChangeRow {
+  key: string
+  kind: 'operation' | 'permission' | 'page'
+  added: boolean
+  item: string
+}
+
+/** 升级对照摊成一张表：操作、权限码、页面依次，各自先新增后去掉 */
+export function upgradeChanges(upgrade: PluginUpgrade): PluginChangeRow[] {
+  const rows = (kind: PluginChangeRow['kind'], added: boolean, items: readonly string[]) => items.map(item => ({
+    key: `${kind}:${added ? 'added' : 'removed'}:${item}`,
+    kind,
+    added,
+    item,
+  }))
+  return [
+    ...rows('operation', true, upgrade.addedOperations),
+    ...rows('operation', false, upgrade.removedOperations),
+    ...rows('permission', true, upgrade.addedPermissions),
+    ...rows('permission', false, upgrade.removedPermissions),
+    ...rows('page', true, upgrade.addedPages),
+    ...rows('page', false, upgrade.removedPages),
+  ]
+}
+
+/** 换版本时预选的可选授予：原来批准过、换上的版本也认的 */
+export function carriedOptional(optional: readonly string[], approved: readonly string[]): string[] {
+  return approved.filter(grant => optional.includes(grant))
 }
 
 /** 必须项一个不少，可选项只取勾上且在可选范围里的；整组按序数排好交给后端 */

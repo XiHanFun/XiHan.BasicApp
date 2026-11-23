@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { approvedGrants, grantLabel, signatureLabel, signatureTone, stateTone } from '@/modules/plugins/views/installed/use-plugins'
+import { approvedGrants, carriedOptional, grantLabel, signatureLabel, signatureTone, stateTone, upgradeChanges } from '@/modules/plugins/views/installed/use-plugins'
 import { $t } from '~/locales'
 
 describe('插件的授予', () => {
@@ -30,6 +30,34 @@ describe('插件的授予', () => {
       'danger',
       'neutral',
     ])
+  })
+})
+
+describe('插件的升级与换版本', () => {
+  it('升级对照按操作、权限码、页面依次摊开，各自先新增后去掉', () => {
+    const rows = upgradeChanges({
+      pluginId: 'p1',
+      fromVersion: '1.0.0',
+      addedOperations: ['weather-radar.list'],
+      removedOperations: [],
+      addedPermissions: ['weather.weather-radar.read'],
+      removedPermissions: ['weather.weather.export'],
+      addedPages: [],
+      removedPages: ['weather.forecast'],
+      grants: [],
+    })
+    expect(rows.map(row => [row.kind, row.added, row.item])).toEqual([
+      ['operation', true, 'weather-radar.list'],
+      ['permission', true, 'weather.weather-radar.read'],
+      ['permission', false, 'weather.weather.export'],
+      ['page', false, 'weather.forecast'],
+    ])
+    expect(new Set(rows.map(row => row.key)).size).toBe(rows.length)
+  })
+
+  it('换版本时只预选原来批准过、换上的版本也认的可选授予', () => {
+    expect(carriedOptional(['data-scope:all'], ['binding:cache', 'data-scope:all'])).toEqual(['data-scope:all'])
+    expect(carriedOptional(['data-scope:all'], ['binding:cache'])).toEqual([])
   })
 })
 

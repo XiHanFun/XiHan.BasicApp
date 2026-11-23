@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "Die Signaturdatei basicapp.signature.json ist nicht lesbar: Sie enthält den Algorithmus 'ecdsa-p256-sha256', den 64-stelligen Schlüssel-Fingerabdruck und eine Base64-DER-Signatur.",
   "plugins.signature.mismatch": "Die Signatur mit dem Schlüssel '{key}' passt nicht zum Paketinhalt: Das Paket wurde nach dem Signieren verändert.",
   "plugins.signature.missing": "Das Plugin-Paket ist nicht signiert, und dieser Server akzeptiert nur Pakete, die von einem vertrauenswürdigen Herausgeber signiert sind.",
-  "plugins.signature.untrusted": "Das Plugin-Paket ist mit dem Schlüssel '{key}' signiert, der kein vertrauenswürdiger Schlüssel des Herausgebers '{publisher}' ist."
+  "plugins.signature.untrusted": "Das Plugin-Paket ist mit dem Schlüssel '{key}' signiert, der kein vertrauenswürdiger Schlüssel des Herausgebers '{publisher}' ist.",
+  "plugins.upgrade.title": "Plugin aktualisieren",
+  "plugins.upgrade.description": "Ein installiertes Plugin auf eine neuere hochgeladene Version umstellen, mit den Freigaben, die diese Version anfordert; prüfen Sie das Paket zuerst mit pluginId, um die Änderungen zu sehen. Ein aktiviertes Plugin lädt die neue Version sofort und fällt auf die alte zurück, wenn sie nicht startet.",
+  "plugins.rollback.title": "Plugin-Version zurücksetzen",
+  "plugins.rollback.description": "Ein Plugin auf eine seiner hochgeladenen Versionen zurücksetzen, mit den Freigaben, die diese Version anfordert; zuerst werden die Vertrauensregeln des Ladens geprüft. Ein aktiviertes Plugin lädt diese Version sofort.",
+  "plugins.version.not_found": "Die Plugin-Version '{id}' wurde nicht gefunden.",
+  "plugins.version.current": "Version {version} ist bereits die aktuelle Version.",
+  "plugins.upgrade.other_plugin": "Das Paket ist das Plugin '{id}' ({name}), nicht das zu aktualisierende Plugin ('{expected}').",
+  "plugins.upgrade.not_newer": "Version {version} ist nicht neuer als die aktuelle Version {current}; wechseln Sie zu einer hochgeladenen Version stattdessen per Zurücksetzen.",
+  "plugins.upgrade.version_uploaded": "Version {version} dieses Plugins wurde bereits hochgeladen; wechseln Sie stattdessen per Zurücksetzen zu ihr."
 }

@@ -18,6 +18,11 @@ public static class PluginsErrors
     public const string PluginNotFound = "PLUGINS_NOTFOUND_101";
 
     /// <summary>
+    /// 插件没有这个版本
+    /// </summary>
+    public const string VersionNotFound = "PLUGINS_NOTFOUND_102";
+
+    /// <summary>
     /// 插件包读不出、过大或结构不对
     /// </summary>
     public const string PackageInvalid = "PLUGINS_VALIDATION_101";
@@ -63,6 +68,11 @@ public static class PluginsErrors
     public const string SignatureInvalid = "PLUGINS_VALIDATION_109";
 
     /// <summary>
+    /// 升级用的包是另一个插件
+    /// </summary>
+    public const string UpgradeMismatch = "PLUGINS_VALIDATION_110";
+
+    /// <summary>
     /// 清单 ID 或短名已经安装过
     /// </summary>
     public const string AlreadyInstalled = "PLUGINS_CONFLICT_101";
@@ -71,6 +81,21 @@ public static class PluginsErrors
     /// 贡献的操作或权限码与已登记的重复
     /// </summary>
     public const string ContributionConflict = "PLUGINS_CONFLICT_102";
+
+    /// <summary>
+    /// 升级用的版本不比当前版本新
+    /// </summary>
+    public const string VersionNotNewer = "PLUGINS_CONFLICT_103";
+
+    /// <summary>
+    /// 升级用的版本以前上传过
+    /// </summary>
+    public const string VersionUploaded = "PLUGINS_CONFLICT_104";
+
+    /// <summary>
+    /// 要换回的版本已经是当前版本
+    /// </summary>
+    public const string VersionCurrent = "PLUGINS_CONFLICT_105";
 
     /// <summary>
     /// 插件申请的授予没有全部批准

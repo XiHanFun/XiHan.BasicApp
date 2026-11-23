@@ -61,6 +61,7 @@ export default {
         both: '兩側',
       },
       actions: {
+        upgrade: '升級',
         install: '安裝外掛',
         toggle: '啟用 / 停用',
         uninstall: '解除安裝',
@@ -72,6 +73,7 @@ export default {
         versions: '版本（{count}）',
       },
       sections: {
+        changes: '相對 {version} 的變化',
         contributions: '外掛帶來的貢獻',
         grants: '要核准的授予',
       },
@@ -98,6 +100,7 @@ export default {
         save: '儲存授予',
       },
       versions: {
+        switch: '換到這個版本',
         current: '目前',
         uploaded_at: '上傳時間',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: '授權申請',
       },
       wizard: {
+        upgrade_title: '升級 {name}',
+        step_upgraded: '升級完成',
+        upgrade: '升級',
+        upgraded: '{name} 已升級到 {version}。啟用中的外掛隨即換上新版本，起不來就退回舊版本，清單裡會顯示錯誤碼。',
         title: '安裝外掛',
         step_upload: '上傳外掛套件',
         step_review: '檢查與核准',
@@ -135,6 +142,21 @@ export default {
         reupload: '換一個套件',
         install: '安裝',
         installed: '{name} {version} 已安裝，目前是停用的；準備好後在清單裡啟用',
+      },
+      changes: {
+        kind: '種類',
+        change: '變化',
+        item: '內容',
+        added: '新增',
+        removed: '移除',
+        none: '貢獻沒有變化',
+        removal_note: '移除的權限碼，授予等引用留著，換回舊版本照舊生效、解除安裝時一併清掉；移除的頁面，選單節點隨之刪掉，營運對它的顯示調整不保留。',
+      },
+      rollback: {
+        title: '換到 {version}',
+        summary: '外掛換到 {version} 版本，授予按下面這一組；啟用中的外掛隨即載入它。',
+        confirm: '換版本',
+        switched: '已換到 {version}',
       },
       delete: {
         title: '解除安裝 {name}',

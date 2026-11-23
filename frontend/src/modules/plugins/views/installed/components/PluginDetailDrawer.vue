@@ -32,9 +32,9 @@ import {
   XhTagLabel,
   XhTagRoot,
 } from '@xihan-ui/vue'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, h, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { renderTag, XDataTable } from '~/components'
+import { renderRowActionMenu, renderTag, XDataTable } from '~/components'
 import { toast } from '~/composables'
 import { plugins as pluginsApi } from '~/contracts'
 import { ApiError } from '~/request'
@@ -42,6 +42,7 @@ import { useAuthStore } from '~/stores'
 import { formatDate, formatFileSize } from '~/utils'
 import { approvedGrants, grantLabel, isolationLabel, signatureLabel, signatureTone, stateLabel, stateTone } from '../use-plugins'
 import PluginContributionsView from './PluginContributionsView.vue'
+import PluginRollbackDialog from './PluginRollbackDialog.vue'
 
 defineOptions({ name: 'PluginDetailDrawer' })
 
@@ -58,6 +59,7 @@ const open = defineModel<boolean>('open', { required: true })
 const { t } = useI18n()
 const auth = useAuthStore()
 const canGrant = computed(() => auth.can('plugins.plugins.grant'))
+const canSwitch = computed(() => auth.can('plugins.plugins.install'))
 
 const loading = ref(false)
 const detail = shallowRef<PluginDetail | null>(null)
@@ -66,6 +68,20 @@ const chosenOptional = ref<string[]>([])
 const saving = ref(false)
 
 type VersionRow = PluginDetail['versions'][number]
+
+const switchOpen = ref(false)
+const switching = shallowRef<VersionRow | null>(null)
+
+function openSwitch(row: VersionRow) {
+  switching.value = row
+  switchOpen.value = true
+}
+
+async function onSwitched() {
+  emit('changed')
+  if (detail.value)
+    await load(detail.value.plugin.id)
+}
 
 async function load(id: string) {
   loading.value = true
@@ -132,40 +148,56 @@ const versionColumns = computed<XDataTableColumn<VersionRow>[]>(() => [
   {
     key: 'version',
     title: t('plugins.installed.fields.version'),
-    width: 120,
-  },
-  {
-    key: 'isCurrent',
-    title: t('plugins.installed.versions.current'),
-    width: 100,
-    render: row => row.isCurrent
-      ? renderTag(t('plugins.installed.versions.current'), 'success')
-      : '-',
+    width: 140,
+    render: row => h('span', { class: 'plugin-version' }, [
+      row.version,
+      row.isCurrent
+        ? renderTag(t('plugins.installed.versions.current'), 'success')
+        : null,
+    ]),
   },
   {
     key: 'signature',
     title: t('plugins.installed.fields.signature'),
-    width: 170,
+    width: 150,
     render: row => renderTag(signatureLabel(t, row.signature.status), signatureTone(row.signature.status)),
   },
   {
     key: 'size',
     title: t('plugins.installed.fields.size'),
-    width: 110,
+    width: 100,
     render: row => formatFileSize(row.size),
   },
   {
     key: 'sha256',
     title: t('plugins.installed.fields.sha256'),
-    minWidth: 220,
+    minWidth: 120,
     ellipsis: true,
   },
   {
     key: 'createdAt',
     title: t('plugins.installed.versions.uploaded_at'),
-    width: 170,
+    width: 160,
     render: row => formatDate(row.createdAt),
   },
+  ...(canSwitch.value
+    ? [
+        {
+          key: 'actions',
+          title: t('component.schema_page.actions_column'),
+          width: 90,
+          fixed: 'right' as const,
+          render: (row: VersionRow) => renderRowActionMenu([
+            {
+              key: 'switch',
+              title: t('plugins.installed.versions.switch'),
+              icon: 'lucide:history',
+              disabled: row.isCurrent,
+            },
+          ], t('component.schema_page.more'), () => openSwitch(row)),
+        },
+      ]
+    : []),
 ])
 </script>
 
@@ -294,6 +326,7 @@ const versionColumns = computed<XDataTableColumn<VersionRow>[]>(() => [
 
             <XhTabsContent value="versions">
               <XDataTable :columns="versionColumns" :data="detail.versions" row-key="id" size="sm" />
+              <PluginRollbackDialog v-model:show="switchOpen" :detail="detail" :version="switching" @switched="onSwitched" />
             </XhTabsContent>
           </XhTabsRoot>
         </div>
@@ -303,6 +336,13 @@ const versionColumns = computed<XDataTableColumn<VersionRow>[]>(() => [
 </template>
 
 <style scoped>
+/* 版本列是渲染函数节点，不带本组件的 scope */
+:deep(.plugin-version) {
+  display: inline-flex;
+  gap: var(--xh-space-2);
+  align-items: center;
+}
+
 .plugin-grants {
   display: flex;
   flex-direction: column;

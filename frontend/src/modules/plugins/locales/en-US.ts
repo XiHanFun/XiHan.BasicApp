@@ -61,6 +61,7 @@ export default {
         both: 'Both',
       },
       actions: {
+        upgrade: 'Upgrade',
         install: 'Install plugin',
         toggle: 'Enable / disable',
         uninstall: 'Uninstall',
@@ -72,6 +73,7 @@ export default {
         versions: 'Versions ({count})',
       },
       sections: {
+        changes: 'Changes from {version}',
         contributions: 'What the plugin adds',
         grants: 'Grants to approve',
       },
@@ -98,6 +100,7 @@ export default {
         save: 'Save grants',
       },
       versions: {
+        switch: 'Switch to this version',
         current: 'Current',
         uploaded_at: 'Uploaded at',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: 'Permission request',
       },
       wizard: {
+        upgrade_title: 'Upgrade {name}',
+        step_upgraded: 'Upgraded',
+        upgrade: 'Upgrade',
+        upgraded: '{name} is upgraded to {version}. An enabled plugin switches to it right away and falls back to the previous version if it cannot start; the list then shows the error code.',
         title: 'Install a plugin',
         step_upload: 'Upload package',
         step_review: 'Review and approve',
@@ -135,6 +142,21 @@ export default {
         reupload: 'Choose another package',
         install: 'Install',
         installed: '{name} {version} is installed and disabled; enable it from the list when you are ready',
+      },
+      changes: {
+        kind: 'Kind',
+        change: 'Change',
+        item: 'Item',
+        added: 'Added',
+        removed: 'Removed',
+        none: 'The contributions do not change',
+        removal_note: 'Removed permission codes keep their grants and other references, which take effect again after switching back and are cleared on uninstall; removed pages lose their menu nodes along with the display changes made to them.',
+      },
+      rollback: {
+        title: 'Switch to {version}',
+        summary: 'The plugin switches to version {version} with the grants below; an enabled plugin loads it right away.',
+        confirm: 'Switch',
+        switched: 'Switched to {version}',
       },
       delete: {
         title: 'Uninstall {name}',

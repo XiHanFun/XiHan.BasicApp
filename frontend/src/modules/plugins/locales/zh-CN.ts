@@ -61,6 +61,7 @@ export default {
         both: '两侧',
       },
       actions: {
+        upgrade: '升级',
         install: '安装插件',
         toggle: '启用 / 停用',
         uninstall: '卸载',
@@ -72,6 +73,7 @@ export default {
         versions: '版本（{count}）',
       },
       sections: {
+        changes: '相对 {version} 的变化',
         contributions: '插件带来的贡献',
         grants: '要批准的授予',
       },
@@ -98,6 +100,7 @@ export default {
         save: '保存授予',
       },
       versions: {
+        switch: '换到这个版本',
         current: '当前',
         uploaded_at: '上传时间',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: '授权申请',
       },
       wizard: {
+        upgrade_title: '升级 {name}',
+        step_upgraded: '升级完成',
+        upgrade: '升级',
+        upgraded: '{name} 已升级到 {version}。启用着的插件随即换上新版本，起不来就退回旧版本，列表里会显示错误码。',
         title: '安装插件',
         step_upload: '上传插件包',
         step_review: '检查与批准',
@@ -135,6 +142,21 @@ export default {
         reupload: '换一个包',
         install: '安装',
         installed: '{name} {version} 已安装，当前是停用的；准备好后在列表里启用',
+      },
+      changes: {
+        kind: '种类',
+        change: '变化',
+        item: '内容',
+        added: '新增',
+        removed: '去掉',
+        none: '贡献没有变化',
+        removal_note: '去掉的权限码，授予等引用留着，换回旧版本照旧生效、卸载时一并清掉；去掉的页面，菜单节点随之删掉，运营对它的展示调整不保留。',
+      },
+      rollback: {
+        title: '换到 {version}',
+        summary: '插件换到 {version} 版本，授予按下面这一组；启用着的插件随即加载它。',
+        confirm: '换版本',
+        switched: '已换到 {version}',
       },
       delete: {
         title: '卸载 {name}',

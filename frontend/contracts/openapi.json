@@ -45607,6 +45607,146 @@
         }
       }
     },
+    "/api/plugins/{id}:rollback": {
+      "post": {
+        "operationId": "plugins.rollback",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Roll back a plugin",
+        "description": "Switch a plugin back to one of its uploaded versions, with the grants that version requests; the trust rules of loading are checked first. An enabled plugin loads that version right away.\n\nRequires permission plugins.plugins.install (Install plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.install",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D2\u4EF6 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D2\u4EF6 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "plugins.rollback \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RollbackPluginRequest",
+                "description": "plugins.rollback \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D2\u4EF6 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "versionId": {
+                    "description": "\u8981\u6362\u56DE\u7684\u7248\u672C\uFF08\u8BE6\u60C5\u7684 versions[].id\uFF09",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "grants": {
+                    "description": "\u6279\u51C6\u7684\u6388\u4E88\uFF1A\u6309\u90A3\u4E2A\u7248\u672C\u7533\u8BF7\u7684\u6574\u7EC4\u66FF\u6362\uFF0C\u987B\u542B\u5168\u90E8\u5FC5\u987B\u9879\uFF0C\u53E6\u5916\u53EA\u80FD\u6709\u53EF\u9009\u9879",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 200
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "versionId",
+                  "grants"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginDetailResponse",
+                  "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "plugin": {
+                      "description": "\u63D2\u4EF6",
+                      "$ref": "#/components/schemas/PluginResponse"
+                    },
+                    "contributions": {
+                      "description": "\u5F53\u524D\u7248\u672C\u7684\u8D21\u732E",
+                      "$ref": "#/components/schemas/PluginContributionsResponse"
+                    },
+                    "requiredGrants": {
+                      "description": "\u5F53\u524D\u7248\u672C\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "optionalGrants": {
+                      "description": "\u53EF\u4EE5\u53E6\u5916\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grants": {
+                      "description": "\u5DF2\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "versions": {
+                      "description": "\u5168\u90E8\u7248\u672C\uFF0C\u65B0\u7684\u5728\u524D",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginVersionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "plugin",
+                    "contributions",
+                    "requiredGrants",
+                    "optionalGrants",
+                    "grants",
+                    "versions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/plugins/{id}:status": {
       "get": {
         "operationId": "plugins.status",
@@ -45688,6 +45828,146 @@
                     "manifestId",
                     "isEnabled",
                     "isLoaded"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins/{id}:upgrade": {
+      "post": {
+        "operationId": "plugins.upgrade",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Upgrade a plugin",
+        "description": "Switch an installed plugin to a newer uploaded version, with the grants that version requests; inspect the package with pluginId first to see what changes. An enabled plugin loads the new version right away and falls back to the old one if it cannot start.\n\nRequires permission plugins.plugins.install (Install plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.install",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D2\u4EF6 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D2\u4EF6 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "plugins.upgrade \u7684\u8BF7\u6C42",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpgradePluginRequest",
+                "description": "plugins.upgrade \u7684\u8BF7\u6C42",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "description": "\u63D2\u4EF6 ID",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "concurrencyStamp": {
+                    "description": "\u8BFB\u5230\u7684\u5E76\u53D1\u6233",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "fileId": {
+                    "description": "\u5DF2\u4E0A\u4F20\u7684\u65B0\u7248\u672C\u5305\u6587\u4EF6\uFF08\u5E73\u53F0\u4E00\u4FA7\uFF09",
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "grants": {
+                    "description": "\u6279\u51C6\u7684\u6388\u4E88\uFF1A\u6309\u65B0\u7248\u672C\u7533\u8BF7\u7684\u6574\u7EC4\u66FF\u6362\uFF0C\u987B\u542B\u5168\u90E8\u5FC5\u987B\u9879\uFF0C\u53E6\u5916\u53EA\u80FD\u6709\u53EF\u9009\u9879",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 200
+                  }
+                },
+                "required": [
+                  "id",
+                  "concurrencyStamp",
+                  "fileId",
+                  "grants"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginDetailResponse",
+                  "description": "\u63D2\u4EF6\u7684\u8BE6\u60C5",
+                  "type": "object",
+                  "properties": {
+                    "plugin": {
+                      "description": "\u63D2\u4EF6",
+                      "$ref": "#/components/schemas/PluginResponse"
+                    },
+                    "contributions": {
+                      "description": "\u5F53\u524D\u7248\u672C\u7684\u8D21\u732E",
+                      "$ref": "#/components/schemas/PluginContributionsResponse"
+                    },
+                    "requiredGrants": {
+                      "description": "\u5F53\u524D\u7248\u672C\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "optionalGrants": {
+                      "description": "\u53EF\u4EE5\u53E6\u5916\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "grants": {
+                      "description": "\u5DF2\u6279\u51C6\u7684\u6388\u4E88",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "versions": {
+                      "description": "\u5168\u90E8\u7248\u672C\uFF0C\u65B0\u7684\u5728\u524D",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginVersionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "plugin",
+                    "contributions",
+                    "requiredGrants",
+                    "optionalGrants",
+                    "grants",
+                    "versions"
                   ]
                 }
               }
@@ -45893,6 +46173,20 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "pluginId",
+            "in": "query",
+            "description": "\u8981\u5347\u7EA7\u7684\u63D2\u4EF6\uFF1B\u65B0\u88C5\u4E0D\u586B",
+            "required": false,
+            "schema": {
+              "description": "\u8981\u5347\u7EA7\u7684\u63D2\u4EF6\uFF1B\u65B0\u88C5\u4E0D\u586B",
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
           }
         ],
         "responses": {
@@ -45958,6 +46252,17 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "upgrade": {
+                      "description": "\u5347\u7EA7\u6838\u5BF9\u65F6\u4E0E\u5F53\u524D\u7248\u672C\u7684\u5BF9\u7167\uFF1B\u65B0\u88C5\u4E3A\u7A7A",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/PluginUpgradeResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -77074,6 +77379,81 @@
           "Trusted"
         ]
       },
+      "PluginUpgradeResponse": {
+        "description": "\u5347\u7EA7\u5305\u4E0E\u5F53\u524D\u7248\u672C\u7684\u5BF9\u7167",
+        "type": "object",
+        "properties": {
+          "pluginId": {
+            "description": "\u63D2\u4EF6 ID",
+            "type": "string",
+            "format": "uuid"
+          },
+          "fromVersion": {
+            "description": "\u5F53\u524D\u7248\u672C\u53F7",
+            "type": "string"
+          },
+          "addedOperations": {
+            "description": "\u65B0\u589E\u7684\u64CD\u4F5C ID",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "removedOperations": {
+            "description": "\u53BB\u6389\u7684\u64CD\u4F5C ID",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "addedPermissions": {
+            "description": "\u65B0\u589E\u7684\u6743\u9650\u7801",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "removedPermissions": {
+            "description": "\u53BB\u6389\u7684\u6743\u9650\u7801\uFF1A\u5BF9\u5B83\u4EEC\u7684\u6388\u4E88\u7B49\u5F15\u7528\u7559\u7740\uFF0C\u56DE\u9000\u540E\u7167\u65E7\u751F\u6548\uFF0C\u5378\u8F7D\u65F6\u4E00\u5E76\u6E05\u6389",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "addedPages": {
+            "description": "\u65B0\u589E\u7684\u9875\u9762\u7801",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "removedPages": {
+            "description": "\u53BB\u6389\u7684\u9875\u9762\u7801\uFF1A\u83DC\u5355\u8282\u70B9\u968F\u4E4B\u5220\u6389\uFF0C\u8FD0\u8425\u5BF9\u5B83\u7684\u5C55\u793A\u8C03\u6574\u4E0D\u4FDD\u7559",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "grants": {
+            "description": "\u5F53\u524D\u5DF2\u6279\u51C6\u7684\u6388\u4E88",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "pluginId",
+          "fromVersion",
+          "addedOperations",
+          "removedOperations",
+          "addedPermissions",
+          "removedPermissions",
+          "addedPages",
+          "removedPages",
+          "grants"
+        ]
+      },
       "PluginVersionResponse": {
         "description": "\u63D2\u4EF6\u7684\u4E00\u4E2A\u7248\u672C",
         "type": "object",
@@ -77105,6 +77485,13 @@
             "description": "\u4E0A\u4F20\u6838\u5BF9\u65F6\u7684\u7B7E\u540D\u7ED3\u8BBA",
             "$ref": "#/components/schemas/PluginSignatureResponse"
           },
+          "requiredGrants": {
+            "description": "\u8FD9\u4E2A\u7248\u672C\u5FC5\u987B\u5168\u90E8\u6279\u51C6\u7684\u6388\u4E88\uFF1A\u6362\u56DE\u5B83\u65F6\u6309\u8FD9\u4E00\u7EC4\u6838\u5BF9",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "isCurrent": {
             "description": "\u662F\u5426\u662F\u5F53\u524D\u7248\u672C",
             "type": "boolean"
@@ -77122,6 +77509,7 @@
           "sha256",
           "size",
           "signature",
+          "requiredGrants",
           "isCurrent",
           "createdAt"
         ]

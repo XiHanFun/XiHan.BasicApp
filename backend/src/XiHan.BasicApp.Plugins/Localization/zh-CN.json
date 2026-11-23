@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "签名文件 basicapp.signature.json 读不出：要写算法 'ecdsa-p256-sha256'、64 位的公钥指纹与 Base64 的 DER 签名。",
   "plugins.signature.mismatch": "公钥 '{key}' 的签名与包内容不符：包在签名之后被改过。",
   "plugins.signature.missing": "插件包没有签名，本服务只接受受信任的发布者签名的包。",
-  "plugins.signature.untrusted": "插件包由公钥 '{key}' 签名，它不是发布者 '{publisher}' 受信任的公钥。"
+  "plugins.signature.untrusted": "插件包由公钥 '{key}' 签名，它不是发布者 '{publisher}' 受信任的公钥。",
+  "plugins.upgrade.title": "升级插件",
+  "plugins.upgrade.description": "把已安装的插件换成一个已上传的新版本，连同新版本申请的授予；先带上 pluginId 核对包，看会变什么。启用着的插件随即加载新版本，起不来就退回旧版本。",
+  "plugins.rollback.title": "换回插件版本",
+  "plugins.rollback.description": "把插件换回它已上传过的某个版本，连同那个版本申请的授予；先按加载时的信任规则判一次。启用着的插件随即加载那个版本。",
+  "plugins.version.not_found": "插件版本 '{id}' 不存在。",
+  "plugins.version.current": "版本 {version} 已经是当前版本。",
+  "plugins.upgrade.other_plugin": "这个包是插件 '{id}'（{name}），不是要升级的插件（'{expected}'）。",
+  "plugins.upgrade.not_newer": "版本 {version} 不比当前版本 {current} 新；要换回已上传过的版本请用回退。",
+  "plugins.upgrade.version_uploaded": "这个插件的 {version} 版本以前上传过；要换上它请用回退。"
 }

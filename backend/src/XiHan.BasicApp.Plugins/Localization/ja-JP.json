@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "署名ファイル basicapp.signature.json を読み取れません。アルゴリズム 'ecdsa-p256-sha256'、64 文字の公開鍵フィンガープリント、Base64 の DER 署名を記述してください。",
   "plugins.signature.mismatch": "鍵 '{key}' による署名がパッケージの内容と一致しません。署名後にパッケージが変更されています。",
   "plugins.signature.missing": "プラグインパッケージに署名がありません。このサーバーは信頼された発行者が署名したパッケージだけを受け付けます。",
-  "plugins.signature.untrusted": "プラグインパッケージは鍵 '{key}' で署名されていますが、これは発行者 '{publisher}' の信頼された鍵ではありません。"
+  "plugins.signature.untrusted": "プラグインパッケージは鍵 '{key}' で署名されていますが、これは発行者 '{publisher}' の信頼された鍵ではありません。",
+  "plugins.upgrade.title": "プラグインをアップグレード",
+  "plugins.upgrade.description": "インストール済みのプラグインを、アップロード済みの新しいバージョンに、そのバージョンが要求する付与とともに切り替えます。先に pluginId を付けてパッケージを確認し、何が変わるかを見てください。有効なプラグインはすぐ新しいバージョンを読み込み、起動できなければ旧バージョンに戻ります。",
+  "plugins.rollback.title": "プラグインのバージョンを戻す",
+  "plugins.rollback.description": "プラグインを、アップロード済みのいずれかのバージョンに、そのバージョンが要求する付与とともに戻します。先に読み込み時の信頼規則で判定します。有効なプラグインはすぐそのバージョンを読み込みます。",
+  "plugins.version.not_found": "プラグインのバージョン '{id}' が見つかりません。",
+  "plugins.version.current": "バージョン {version} はすでに現在のバージョンです。",
+  "plugins.upgrade.other_plugin": "このパッケージはプラグイン '{id}'（{name}）で、アップグレード対象のプラグイン（'{expected}'）ではありません。",
+  "plugins.upgrade.not_newer": "バージョン {version} は現在のバージョン {current} より新しくありません。アップロード済みのバージョンに戻すにはロールバックを使ってください。",
+  "plugins.upgrade.version_uploaded": "このプラグインのバージョン {version} は以前にアップロードされています。切り替えるにはロールバックを使ってください。"
 }

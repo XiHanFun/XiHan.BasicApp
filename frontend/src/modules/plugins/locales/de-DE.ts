@@ -61,6 +61,7 @@ export default {
         both: 'Beide',
       },
       actions: {
+        upgrade: 'Aktualisieren',
         install: 'Plugin installieren',
         toggle: 'Aktivieren / deaktivieren',
         uninstall: 'Deinstallieren',
@@ -72,6 +73,7 @@ export default {
         versions: 'Versionen ({count})',
       },
       sections: {
+        changes: 'Änderungen gegenüber {version}',
         contributions: 'Was das Plugin hinzufügt',
         grants: 'Zu genehmigende Freigaben',
       },
@@ -98,6 +100,7 @@ export default {
         save: 'Freigaben speichern',
       },
       versions: {
+        switch: 'Zu dieser Version wechseln',
         current: 'Aktuell',
         uploaded_at: 'Hochgeladen am',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: 'Berechtigungsanfrage',
       },
       wizard: {
+        upgrade_title: '{name} aktualisieren',
+        step_upgraded: 'Aktualisiert',
+        upgrade: 'Aktualisieren',
+        upgraded: '{name} ist auf {version} aktualisiert. Ein aktiviertes Plugin wechselt sofort und fällt auf die vorige Version zurück, wenn es nicht startet; die Liste zeigt dann den Fehlercode.',
         title: 'Plugin installieren',
         step_upload: 'Paket hochladen',
         step_review: 'Prüfen und genehmigen',
@@ -135,6 +142,21 @@ export default {
         reupload: 'Anderes Paket wählen',
         install: 'Installieren',
         installed: '{name} {version} ist installiert und deaktiviert; aktivieren Sie es in der Liste, wenn Sie bereit sind',
+      },
+      changes: {
+        kind: 'Art',
+        change: 'Änderung',
+        item: 'Eintrag',
+        added: 'Neu',
+        removed: 'Entfernt',
+        none: 'Die Beiträge ändern sich nicht',
+        removal_note: 'Entfernte Berechtigungscodes behalten ihre Freigaben und anderen Verweise; sie gelten nach dem Zurückwechseln wieder und werden beim Deinstallieren entfernt. Entfernte Seiten verlieren ihre Menüknoten samt den Anzeigeanpassungen.',
+      },
+      rollback: {
+        title: 'Zu {version} wechseln',
+        summary: 'Das Plugin wechselt mit den Freigaben unten zu Version {version}; ein aktiviertes Plugin lädt sie sofort.',
+        confirm: 'Wechseln',
+        switched: 'Zu {version} gewechselt',
       },
       delete: {
         title: '{name} deinstallieren',

@@ -379,10 +379,12 @@ export const routes = {
   'plugins.enable': { method: 'POST', template: '/api/plugins:enable', path: [], query: [], success: 200 },
   'plugins.get': { method: 'GET', template: '/api/plugins/{id}', path: ['id'], query: [], success: 200 },
   'plugins.grant': { method: 'POST', template: '/api/plugins/{id}:grant', path: ['id'], query: [], success: 200 },
-  'plugins.inspect': { method: 'GET', template: '/api/plugins:inspect', path: [], query: ['fileId'], success: 200 },
+  'plugins.inspect': { method: 'GET', template: '/api/plugins:inspect', path: [], query: ['fileId', 'pluginId'], success: 200 },
   'plugins.install': { method: 'POST', template: '/api/plugins:install', path: [], query: [], success: 200 },
   'plugins.list': { method: 'POST', template: '/api/plugins:list', path: [], query: [], success: 200 },
+  'plugins.rollback': { method: 'POST', template: '/api/plugins/{id}:rollback', path: ['id'], query: [], success: 200 },
   'plugins.status': { method: 'GET', template: '/api/plugins/{id}:status', path: ['id'], query: [], success: 200 },
+  'plugins.upgrade': { method: 'POST', template: '/api/plugins/{id}:upgrade', path: ['id'], query: [], success: 200 },
   'policies.attributes': { method: 'GET', template: '/api/policies:attributes', path: [], query: [], success: 200 },
   'policies.create': { method: 'POST', template: '/api/policies', path: [], query: [], success: 201 },
   'policies.delete': { method: 'DELETE', template: '/api/policies', path: [], query: ['ids'], success: 200 },
@@ -1193,7 +1195,9 @@ export const plugins = {
   inspect: (request: RequestOf<'plugins.inspect'>, options?: CallOptions) => invoke<RequestOf<'plugins.inspect'>, ResponseOf<'plugins.inspect'>>('plugins.inspect', routes['plugins.inspect'], request, options),
   install: (request: RequestOf<'plugins.install'>, options?: CallOptions) => invoke<RequestOf<'plugins.install'>, ResponseOf<'plugins.install'>>('plugins.install', routes['plugins.install'], request, options),
   list: (request: RequestOf<'plugins.list'>, options?: CallOptions) => invoke<RequestOf<'plugins.list'>, ResponseOf<'plugins.list'>>('plugins.list', routes['plugins.list'], request, options),
+  rollback: (request: RequestOf<'plugins.rollback'>, options?: CallOptions) => invoke<RequestOf<'plugins.rollback'>, ResponseOf<'plugins.rollback'>>('plugins.rollback', routes['plugins.rollback'], request, options),
   status: (request: RequestOf<'plugins.status'>, options?: CallOptions) => invoke<RequestOf<'plugins.status'>, ResponseOf<'plugins.status'>>('plugins.status', routes['plugins.status'], request, options),
+  upgrade: (request: RequestOf<'plugins.upgrade'>, options?: CallOptions) => invoke<RequestOf<'plugins.upgrade'>, ResponseOf<'plugins.upgrade'>>('plugins.upgrade', routes['plugins.upgrade'], request, options),
 }
 
 /** 资源 `policies` 的操作 */

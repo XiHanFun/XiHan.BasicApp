@@ -61,6 +61,7 @@ export default {
         both: 'Ambos',
       },
       actions: {
+        upgrade: 'Atualizar',
         install: 'Instalar plugin',
         toggle: 'Habilitar / desabilitar',
         uninstall: 'Desinstalar',
@@ -72,6 +73,7 @@ export default {
         versions: 'Versões ({count})',
       },
       sections: {
+        changes: 'Mudanças em relação a {version}',
         contributions: 'O que o plugin adiciona',
         grants: 'Concessões a aprovar',
       },
@@ -98,6 +100,7 @@ export default {
         save: 'Salvar concessões',
       },
       versions: {
+        switch: 'Trocar para esta versão',
         current: 'Atual',
         uploaded_at: 'Enviado em',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: 'Solicitação de permissão',
       },
       wizard: {
+        upgrade_title: 'Atualizar {name}',
+        step_upgraded: 'Atualizado',
+        upgrade: 'Atualizar',
+        upgraded: '{name} foi atualizado para {version}. Um plugin habilitado troca na hora e volta à versão anterior se não iniciar; a lista então mostra o código de erro.',
         title: 'Instalar um plugin',
         step_upload: 'Enviar pacote',
         step_review: 'Revisar e aprovar',
@@ -135,6 +142,21 @@ export default {
         reupload: 'Escolher outro pacote',
         install: 'Instalar',
         installed: '{name} {version} foi instalado e está desabilitado; habilite-o na lista quando estiver pronto',
+      },
+      changes: {
+        kind: 'Tipo',
+        change: 'Mudança',
+        item: 'Item',
+        added: 'Adicionado',
+        removed: 'Removido',
+        none: 'As contribuições não mudam',
+        removal_note: 'Os códigos de permissão removidos mantêm suas concessões e demais referências, que voltam a valer ao trocar de volta e são apagadas na desinstalação; as páginas removidas perdem seus nós de menu junto com os ajustes de exibição.',
+      },
+      rollback: {
+        title: 'Trocar para {version}',
+        summary: 'O plugin troca para a versão {version} com as concessões abaixo; um plugin habilitado a carrega na hora.',
+        confirm: 'Trocar',
+        switched: 'Trocado para {version}',
       },
       delete: {
         title: 'Desinstalar {name}',

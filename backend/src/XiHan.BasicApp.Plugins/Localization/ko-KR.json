@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "서명 파일 basicapp.signature.json을 읽을 수 없습니다. 알고리즘 'ecdsa-p256-sha256', 64자 공개 키 지문, Base64 DER 서명을 담아야 합니다.",
   "plugins.signature.mismatch": "키 '{key}'의 서명이 패키지 내용과 일치하지 않습니다. 서명한 뒤 패키지가 변경되었습니다.",
   "plugins.signature.missing": "플러그인 패키지에 서명이 없습니다. 이 서버는 신뢰할 수 있는 게시자가 서명한 패키지만 받습니다.",
-  "plugins.signature.untrusted": "플러그인 패키지는 키 '{key}'로 서명되었지만, 이 키는 게시자 '{publisher}'의 신뢰할 수 있는 키가 아닙니다."
+  "plugins.signature.untrusted": "플러그인 패키지는 키 '{key}'로 서명되었지만, 이 키는 게시자 '{publisher}'의 신뢰할 수 있는 키가 아닙니다.",
+  "plugins.upgrade.title": "플러그인 업그레이드",
+  "plugins.upgrade.description": "설치된 플러그인을 업로드된 새 버전으로, 그 버전이 요청하는 부여와 함께 바꿉니다. 먼저 pluginId를 붙여 패키지를 검사해 무엇이 바뀌는지 확인하세요. 사용 중인 플러그인은 바로 새 버전을 로드하고, 시작하지 못하면 이전 버전으로 돌아갑니다.",
+  "plugins.rollback.title": "플러그인 버전 되돌리기",
+  "plugins.rollback.description": "플러그인을 업로드했던 버전 중 하나로, 그 버전이 요청하는 부여와 함께 되돌립니다. 먼저 로드할 때의 신뢰 규칙으로 판단합니다. 사용 중인 플러그인은 바로 그 버전을 로드합니다.",
+  "plugins.version.not_found": "플러그인 버전 '{id}'을(를) 찾을 수 없습니다.",
+  "plugins.version.current": "버전 {version}은(는) 이미 현재 버전입니다.",
+  "plugins.upgrade.other_plugin": "이 패키지는 플러그인 '{id}'({name})이며, 업그레이드할 플러그인('{expected}')이 아닙니다.",
+  "plugins.upgrade.not_newer": "버전 {version}은(는) 현재 버전 {current}보다 새롭지 않습니다. 업로드한 버전으로 돌아가려면 되돌리기를 사용하세요.",
+  "plugins.upgrade.version_uploaded": "이 플러그인의 {version} 버전은 이전에 업로드되었습니다. 그 버전으로 바꾸려면 되돌리기를 사용하세요."
 }

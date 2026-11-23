@@ -61,6 +61,7 @@ export default {
         both: 'Ambos',
       },
       actions: {
+        upgrade: 'Actualizar',
         install: 'Instalar complemento',
         toggle: 'Habilitar / deshabilitar',
         uninstall: 'Desinstalar',
@@ -72,6 +73,7 @@ export default {
         versions: 'Versiones ({count})',
       },
       sections: {
+        changes: 'Cambios respecto a {version}',
         contributions: 'Lo que añade el complemento',
         grants: 'Concesiones por aprobar',
       },
@@ -98,6 +100,7 @@ export default {
         save: 'Guardar concesiones',
       },
       versions: {
+        switch: 'Cambiar a esta versión',
         current: 'Actual',
         uploaded_at: 'Subido el',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: 'Solicitud de permiso',
       },
       wizard: {
+        upgrade_title: 'Actualizar {name}',
+        step_upgraded: 'Actualizado',
+        upgrade: 'Actualizar',
+        upgraded: '{name} se actualizó a {version}. Un complemento habilitado cambia de inmediato y vuelve a la versión anterior si no puede iniciarse; la lista muestra entonces el código de error.',
         title: 'Instalar un complemento',
         step_upload: 'Subir paquete',
         step_review: 'Revisar y aprobar',
@@ -135,6 +142,21 @@ export default {
         reupload: 'Elegir otro paquete',
         install: 'Instalar',
         installed: '{name} {version} está instalado y deshabilitado; habilítelo en la lista cuando esté listo',
+      },
+      changes: {
+        kind: 'Tipo',
+        change: 'Cambio',
+        item: 'Elemento',
+        added: 'Añadido',
+        removed: 'Quitado',
+        none: 'Las contribuciones no cambian',
+        removal_note: 'Los códigos de permiso quitados conservan sus concesiones y demás referencias, que vuelven a valer al regresar de versión y se borran al desinstalar; las páginas quitadas pierden sus nodos de menú junto con los ajustes de presentación.',
+      },
+      rollback: {
+        title: 'Cambiar a {version}',
+        summary: 'El complemento cambia a la versión {version} con las concesiones de abajo; uno habilitado la carga de inmediato.',
+        confirm: 'Cambiar',
+        switched: 'Cambiado a {version}',
       },
       delete: {
         title: 'Desinstalar {name}',

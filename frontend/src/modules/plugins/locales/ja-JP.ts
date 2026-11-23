@@ -61,6 +61,7 @@ export default {
         both: '両方',
       },
       actions: {
+        upgrade: 'アップグレード',
         install: 'プラグインをインストール',
         toggle: '有効 / 無効',
         uninstall: 'アンインストール',
@@ -72,6 +73,7 @@ export default {
         versions: 'バージョン（{count}）',
       },
       sections: {
+        changes: '{version} からの変更',
         contributions: 'プラグインが追加するもの',
         grants: '承認する付与',
       },
@@ -98,6 +100,7 @@ export default {
         save: '付与を保存',
       },
       versions: {
+        switch: 'このバージョンに切り替え',
         current: '現在',
         uploaded_at: 'アップロード日時',
       },
@@ -119,6 +122,10 @@ export default {
         permission_request: '権限申請',
       },
       wizard: {
+        upgrade_title: '{name} をアップグレード',
+        step_upgraded: 'アップグレード完了',
+        upgrade: 'アップグレード',
+        upgraded: '{name} を {version} にアップグレードしました。有効なプラグインはすぐ新しいバージョンに切り替わり、起動できなければ旧バージョンに戻って一覧にエラーコードが表示されます。',
         title: 'プラグインのインストール',
         step_upload: 'パッケージをアップロード',
         step_review: '確認と承認',
@@ -135,6 +142,21 @@ export default {
         reupload: '別のパッケージを選ぶ',
         install: 'インストール',
         installed: '{name} {version} をインストールしました（無効）。準備ができたら一覧で有効にしてください',
+      },
+      changes: {
+        kind: '種類',
+        change: '変更',
+        item: '項目',
+        added: '追加',
+        removed: '削除',
+        none: '提供内容に変更はありません',
+        removal_note: '削除された権限コードの付与などの参照は残り、旧バージョンに戻すと再び有効になり、アンインストール時にまとめて消えます。削除されたページはメニューノードごと消え、表示の調整も残りません。',
+      },
+      rollback: {
+        title: '{version} に切り替え',
+        summary: 'プラグインを下の付与でバージョン {version} に切り替えます。有効なプラグインはすぐ読み込みます。',
+        confirm: '切り替え',
+        switched: '{version} に切り替えました',
       },
       delete: {
         title: '{name} をアンインストール',

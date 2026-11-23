@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "Le fichier de signature basicapp.signature.json est illisible : il contient l'algorithme 'ecdsa-p256-sha256', l'empreinte de clé de 64 caractères et une signature DER en Base64.",
   "plugins.signature.mismatch": "La signature de la clé '{key}' ne correspond pas au contenu du paquet : le paquet a été modifié après sa signature.",
   "plugins.signature.missing": "Le paquet du plugin n'est pas signé, et ce serveur n'accepte que les paquets signés par un éditeur de confiance.",
-  "plugins.signature.untrusted": "Le paquet du plugin est signé avec la clé '{key}', qui n'est pas une clé de confiance de l'éditeur '{publisher}'."
+  "plugins.signature.untrusted": "Le paquet du plugin est signé avec la clé '{key}', qui n'est pas une clé de confiance de l'éditeur '{publisher}'.",
+  "plugins.upgrade.title": "Mettre à niveau un plugin",
+  "plugins.upgrade.description": "Passe un plugin installé à une version téléversée plus récente, avec les autorisations que cette version demande ; inspectez d’abord le paquet avec pluginId pour voir ce qui change. Un plugin activé charge aussitôt la nouvelle version et revient à l’ancienne s’il ne peut pas démarrer.",
+  "plugins.rollback.title": "Revenir à une version du plugin",
+  "plugins.rollback.description": "Ramène un plugin à l’une de ses versions téléversées, avec les autorisations que cette version demande ; les règles de confiance du chargement sont vérifiées d’abord. Un plugin activé charge aussitôt cette version.",
+  "plugins.version.not_found": "La version de plugin '{id}' est introuvable.",
+  "plugins.version.current": "La version {version} est déjà la version actuelle.",
+  "plugins.upgrade.other_plugin": "Le paquet est le plugin '{id}' ({name}), et non le plugin à mettre à niveau ('{expected}').",
+  "plugins.upgrade.not_newer": "La version {version} n’est pas plus récente que la version actuelle {current} ; pour revenir à une version téléversée, utilisez le retour arrière.",
+  "plugins.upgrade.version_uploaded": "La version {version} de ce plugin a déjà été téléversée ; pour y passer, utilisez le retour arrière."
 }

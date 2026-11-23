@@ -1,6 +1,6 @@
 # 插件
 
-本页说明插件包的格式、签名与可信发布者、安装前的核对、授予、启用与加载、插件的页面与接口文档、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
+本页说明插件包的格式、签名与可信发布者、安装前的核对、授予、升级与回退、启用与加载、插件的页面与接口文档、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
 
 Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省开）：平台一侧上传 `.xhplugin` 包，核对通过、批准授予后登记安装。插件由框架的插件宿主隔离运行（缺省只允许进程外），宿主不编译、不执行插件源码；核对只读包，插件代码一行不跑。安装只登记包与授予，装好的插件缺省停用；启用后各节点按库加载，没有任何启用的插件时不起插件进程。
 
@@ -155,7 +155,15 @@ dotnet run --project backend/src/XiHan.BasicApp.Host -- plugins sign weather.xhp
 | `callback:<权限码>` | 旁挂清单 `callbacks` 的每一项 | 必须 |
 | `data-scope:all` | 插件主体看租户的全部数据（缺省数据范围为无） | 可选 |
 
-安装（`plugins.install`）与改授予（`plugins.grant`）交回的授予要含全部必须项，缺了即 403 `PLUGINS_DENIED_101`；另外只能有可选项，其余即 400 `PLUGINS_VALIDATION_106`；重复的合并。改授予是整组替换，要交回读到的 `concurrencyStamp`，与当前的不同即 409 `PERSISTENCE_CONFLICT_*`。
+安装（`plugins.install`）、改授予（`plugins.grant`）、升级与回退交回的授予要含全部必须项，缺了即 403 `PLUGINS_DENIED_101`；另外只能有可选项，其余即 400 `PLUGINS_VALIDATION_106`；重复的合并。改授予是整组替换，要交回读到的 `concurrencyStamp`，与当前的不同即 409 `PERSISTENCE_CONFLICT_*`。
+
+## 升级与回退
+
+升级先上传新版本的包，再用 `plugins.inspect` 带上 `pluginId` 核对：规则同新装，只是当前版本登记的操作与权限码不算冲突；另外要求包是同一个插件（清单 ID 与短名都相同，否则 400 `PLUGINS_VALIDATION_110`）、这个版本没上传过（409 `PLUGINS_CONFLICT_104`）且比当前版本新（按 SemVer 优先级，预发布版本在正式版之前，409 `PLUGINS_CONFLICT_103`）。核对结果多一项 `upgrade`：当前版本号、新增与去掉的操作 / 权限码 / 页面，以及当前已批准的授予。
+
+`plugins.upgrade` 按新版本申请的授予整组替换，要交回读到的 `concurrencyStamp`。`plugins.rollback` 换回一个上传过的版本（`versionId` 取详情的 `versions[].id`，旧的新的都行），授予按那个版本的 `versions[].requiredGrants` 核对，换之前按当时的配置判一次信任（同[签名与可信发布者](#签名与可信发布者)）；版本不是这个插件的 404 `PLUGINS_NOTFOUND_102`，已经是当前版本 409 `PLUGINS_CONFLICT_105`。
+
+启用着的插件提交后即换版本：先卸旧版再载新版，新版起不来就重载旧版，新版的错误码记在 `lastErrorCode` 上，下一次对齐再试。新版本去掉的权限码，各处对它的授予等引用留着，换回旧版本照旧生效，卸载时一并清掉；去掉的页面，菜单节点随之删掉，运营对它的展示调整不保留。版本只增不删，包文件留在 Files 里。
 
 ## 操作与权限
 
@@ -163,8 +171,10 @@ dotnet run --project backend/src/XiHan.BasicApp.Host -- plugins sign weather.xhp
 | --- | --- | --- |
 | `plugins.list` | `POST /api/plugins:list` | `read` |
 | `plugins.get` | `GET /api/plugins/{id}` | `read` |
-| `plugins.inspect` | `GET /api/plugins:inspect?fileId=` | `install` |
+| `plugins.inspect` | `GET /api/plugins:inspect?fileId=&pluginId=` | `install` |
 | `plugins.install` | `POST /api/plugins:install` | `install` |
+| `plugins.upgrade` | `POST /api/plugins/{id}:upgrade` | `install` |
+| `plugins.rollback` | `POST /api/plugins/{id}:rollback` | `install` |
 | `plugins.grant` | `POST /api/plugins/{id}:grant` | `grant` |
 | `plugins.enable` | `POST /api/plugins:enable` | `update` |
 | `plugins.disable` | `POST /api/plugins:disable` | `update` |
@@ -179,7 +189,7 @@ dotnet run --project backend/src/XiHan.BasicApp.Host -- plugins sign weather.xhp
 
 ## 启用与加载
 
-每个节点的对齐服务把本节点加载的插件对齐到库里启用的插件：启动时（结构升级之后、种子之前）对齐一次，完成之前节点不就绪；启停、改授予、卸载提交之后本节点立即再对齐，等对齐完才应答。
+每个节点的对齐服务把本节点加载的插件对齐到库里启用的插件：启动时（结构升级之后、种子之前）对齐一次，完成之前节点不就绪；启停、改授予、升级、回退、卸载提交之后本节点立即再对齐，等对齐完才应答。
 
 | 环节 | 规则 |
 | --- | --- |

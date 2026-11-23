@@ -159,6 +159,7 @@ public sealed record PluginContributionsResponse(
 /// <param name="Contributions">贡献</param>
 /// <param name="RequiredGrants">必须全部批准的授予</param>
 /// <param name="OptionalGrants">可以另外批准的授予</param>
+/// <param name="Upgrade">升级核对时与当前版本的对照；新装为空</param>
 public sealed record PluginInspectionResponse(
     string ManifestId,
     string Name,
@@ -170,7 +171,8 @@ public sealed record PluginInspectionResponse(
     PluginSignatureResponse Signature,
     PluginContributionsResponse Contributions,
     IReadOnlyList<string> RequiredGrants,
-    IReadOnlyList<string> OptionalGrants)
+    IReadOnlyList<string> OptionalGrants,
+    PluginUpgradeResponse? Upgrade)
 {
     /// <summary>
     /// 从核对结果投影
@@ -191,9 +193,35 @@ public sealed record PluginInspectionResponse(
             new PluginSignatureResponse(inspection.Signer.Status, inspection.Signer.KeyId),
             PluginContributionsResponse.From(package.Manifest, package.Descriptor),
             inspection.RequiredGrants,
-            inspection.OptionalGrants);
+            inspection.OptionalGrants,
+            inspection.Upgrade is { } upgrade
+                ? new PluginUpgradeResponse(upgrade.PluginId, upgrade.FromVersion, upgrade.AddedOperations, upgrade.RemovedOperations, upgrade.AddedPermissions, upgrade.RemovedPermissions, upgrade.AddedPages, upgrade.RemovedPages, upgrade.Grants)
+                : null);
     }
 }
+
+/// <summary>
+/// 升级包与当前版本的对照
+/// </summary>
+/// <param name="PluginId">插件 ID</param>
+/// <param name="FromVersion">当前版本号</param>
+/// <param name="AddedOperations">新增的操作 ID</param>
+/// <param name="RemovedOperations">去掉的操作 ID</param>
+/// <param name="AddedPermissions">新增的权限码</param>
+/// <param name="RemovedPermissions">去掉的权限码：对它们的授予等引用留着，回退后照旧生效，卸载时一并清掉</param>
+/// <param name="AddedPages">新增的页面码</param>
+/// <param name="RemovedPages">去掉的页面码：菜单节点随之删掉，运营对它的展示调整不保留</param>
+/// <param name="Grants">当前已批准的授予</param>
+public sealed record PluginUpgradeResponse(
+    Guid PluginId,
+    string FromVersion,
+    IReadOnlyList<string> AddedOperations,
+    IReadOnlyList<string> RemovedOperations,
+    IReadOnlyList<string> AddedPermissions,
+    IReadOnlyList<string> RemovedPermissions,
+    IReadOnlyList<string> AddedPages,
+    IReadOnlyList<string> RemovedPages,
+    IReadOnlyList<string> Grants);
 
 /// <summary>
 /// 插件包的签名结论
@@ -211,9 +239,10 @@ public sealed record PluginSignatureResponse(PluginSignatureStatus Status, strin
 /// <param name="Sha256">包的 SHA-256</param>
 /// <param name="Size">包的字节数</param>
 /// <param name="Signature">上传核对时的签名结论</param>
+/// <param name="RequiredGrants">这个版本必须全部批准的授予：换回它时按这一组核对</param>
 /// <param name="IsCurrent">是否是当前版本</param>
 /// <param name="CreatedAt">上传时间（UTC）</param>
-public sealed record PluginVersionResponse(Guid Id, string Version, Guid FileId, string Sha256, long Size, PluginSignatureResponse Signature, bool IsCurrent, DateTimeOffset CreatedAt);
+public sealed record PluginVersionResponse(Guid Id, string Version, Guid FileId, string Sha256, long Size, PluginSignatureResponse Signature, IReadOnlyList<string> RequiredGrants, bool IsCurrent, DateTimeOffset CreatedAt);
 
 /// <summary>
 /// 插件的详情
@@ -242,7 +271,8 @@ public sealed record GetPluginRequest(Guid Id);
 /// <c>plugins.inspect</c> 的请求
 /// </summary>
 /// <param name="FileId">已上传的插件包文件（平台一侧）</param>
-public sealed record InspectPluginRequest(Guid FileId);
+/// <param name="PluginId">要升级的插件；新装不填</param>
+public sealed record InspectPluginRequest(Guid FileId, Guid? PluginId = null);
 
 /// <summary>
 /// <c>plugins.install</c> 的请求
@@ -254,6 +284,32 @@ public sealed record InstallPluginRequest(
     Guid FileId,
     [Required, MaxLength(200)] IReadOnlyList<string> Grants,
     [StringLength(500)] string? Remark = null);
+
+/// <summary>
+/// <c>plugins.upgrade</c> 的请求
+/// </summary>
+/// <param name="Id">插件 ID</param>
+/// <param name="ConcurrencyStamp">读到的并发戳</param>
+/// <param name="FileId">已上传的新版本包文件（平台一侧）</param>
+/// <param name="Grants">批准的授予：按新版本申请的整组替换，须含全部必须项，另外只能有可选项</param>
+public sealed record UpgradePluginRequest(
+    Guid Id,
+    [Required, StringLength(64, MinimumLength = 1)] string ConcurrencyStamp,
+    Guid FileId,
+    [Required, MaxLength(200)] IReadOnlyList<string> Grants);
+
+/// <summary>
+/// <c>plugins.rollback</c> 的请求
+/// </summary>
+/// <param name="Id">插件 ID</param>
+/// <param name="ConcurrencyStamp">读到的并发戳</param>
+/// <param name="VersionId">要换回的版本（详情的 <c>versions[].id</c>）</param>
+/// <param name="Grants">批准的授予：按那个版本申请的整组替换，须含全部必须项，另外只能有可选项</param>
+public sealed record RollbackPluginRequest(
+    Guid Id,
+    [Required, StringLength(64, MinimumLength = 1)] string ConcurrencyStamp,
+    Guid VersionId,
+    [Required, MaxLength(200)] IReadOnlyList<string> Grants);
 
 /// <summary>
 /// <c>plugins.grant</c> 的请求

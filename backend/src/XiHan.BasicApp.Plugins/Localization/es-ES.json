@@ -74,5 +74,14 @@
   "plugins.signature.unreadable": "No se puede leer el archivo de firma basicapp.signature.json: debe contener el algoritmo 'ecdsa-p256-sha256', la huella de clave de 64 caracteres y una firma DER en Base64.",
   "plugins.signature.mismatch": "La firma de la clave '{key}' no coincide con el contenido del paquete: el paquete se modificó después de firmarlo.",
   "plugins.signature.missing": "El paquete del complemento no está firmado y este servidor solo acepta paquetes firmados por un editor de confianza.",
-  "plugins.signature.untrusted": "El paquete del complemento está firmado con la clave '{key}', que no es una clave de confianza del editor '{publisher}'."
+  "plugins.signature.untrusted": "El paquete del complemento está firmado con la clave '{key}', que no es una clave de confianza del editor '{publisher}'.",
+  "plugins.upgrade.title": "Actualizar un complemento",
+  "plugins.upgrade.description": "Cambia un complemento instalado a una versión subida más reciente, con las concesiones que esa versión solicita; inspeccione antes el paquete con pluginId para ver qué cambia. Un complemento habilitado carga la nueva versión de inmediato y vuelve a la anterior si no puede iniciarse.",
+  "plugins.rollback.title": "Volver a una versión del complemento",
+  "plugins.rollback.description": "Vuelve un complemento a una de sus versiones subidas, con las concesiones que esa versión solicita; primero se comprueban las reglas de confianza de la carga. Un complemento habilitado carga esa versión de inmediato.",
+  "plugins.version.not_found": "No se encontró la versión del complemento '{id}'.",
+  "plugins.version.current": "La versión {version} ya es la versión actual.",
+  "plugins.upgrade.other_plugin": "El paquete es el complemento '{id}' ({name}), no el complemento que se actualiza ('{expected}').",
+  "plugins.upgrade.not_newer": "La versión {version} no es más reciente que la versión actual {current}; para volver a una versión subida, use la reversión.",
+  "plugins.upgrade.version_uploaded": "La versión {version} de este complemento ya se subió antes; para cambiar a ella, use la reversión."
 }

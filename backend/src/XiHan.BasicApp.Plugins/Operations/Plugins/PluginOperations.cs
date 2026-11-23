@@ -70,7 +70,8 @@ public sealed class GetPlugin(IRepository<SysPlugin, Guid> plugins, PluginServic
 /// 核对一个已上传的插件包
 /// </summary>
 /// <remarks>
-/// <c>GET /api/plugins:inspect?fileId=</c>。只读：解包核对，给出贡献与申请的授予，不落库。包与清单的规则见 <see cref="PluginInspector"/>，清单 ID 或短名已经安装过 <c>PLUGINS_CONFLICT_101</c>
+/// <c>GET /api/plugins:inspect?fileId=&amp;pluginId=</c>。只读：解包核对，给出签名结论、贡献与申请的授予，不落库。包与清单的规则见 <see cref="PluginInspector"/>
+/// 不给 <c>pluginId</c> 是新装：清单 ID 或短名已经安装过 <c>PLUGINS_CONFLICT_101</c>；给了是升级核对，规则见 <see cref="PluginService.InspectAsync"/>，结果带上与当前版本的对照
 /// </remarks>
 /// <param name="service">插件服务</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = PluginsPermissions.PluginsInstall)]
@@ -86,7 +87,7 @@ public sealed class InspectPlugin(PluginService service) : IOperation<InspectPlu
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var inspected = await service.InspectAsync(request.FileId, context.CancellationToken).ConfigureAwait(false);
+        var inspected = await service.InspectAsync(request.FileId, request.PluginId, context.CancellationToken).ConfigureAwait(false);
         return inspected.TryGetValue(out var inspection) ? PluginInspectionResponse.From(inspection) : inspected.Error!;
     }
 }
@@ -116,6 +117,84 @@ public sealed class InstallPlugin(PluginService service, PluginChanges changes) 
         if (!installed.TryGetValue(out var plugin))
         {
             return installed.Error!;
+        }
+
+        changes.Request();
+        return await service.DetailAsync(plugin, context.CancellationToken).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// 把插件升级到一个已上传的新版本
+/// </summary>
+/// <remarks>
+/// <c>POST /api/plugins/{id}:upgrade</c>。先用 <c>plugins.inspect</c> 带上 <c>pluginId</c> 看会变什么；核对同那里的升级，授予按新版本申请的整组替换（规则同安装），交回的并发戳过期由框架仓储报
+/// 启用着的插件提交后即换上新版本：先卸旧版再载新版，新版起不来就重载旧版，错误码记在插件上；旧版本留着，可以用 <c>plugins.rollback</c> 换回
+/// </remarks>
+/// <param name="plugins">插件仓储</param>
+/// <param name="service">插件服务</param>
+/// <param name="changes">本次调用的插件改动</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = PluginsPermissions.PluginsInstall)]
+public sealed class UpgradePlugin(IRepository<SysPlugin, Guid> plugins, PluginService service, PluginChanges changes) : IOperation<UpgradePluginRequest, PluginDetailResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "plugins.upgrade";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<PluginDetailResponse>> HandleAsync(UpgradePluginRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        if (!(await plugins.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var plugin))
+        {
+            return PluginService.NotFound(request.Id);
+        }
+
+        var upgraded = await service.UpgradeAsync(plugin, request, context.CancellationToken).ConfigureAwait(false);
+        if (upgraded.IsFailure)
+        {
+            return upgraded.Error!;
+        }
+
+        changes.Request();
+        return await service.DetailAsync(plugin, context.CancellationToken).ConfigureAwait(false);
+    }
+}
+
+/// <summary>
+/// 把插件换回一个已上传过的版本
+/// </summary>
+/// <remarks>
+/// <c>POST /api/plugins/{id}:rollback</c>。版本取详情的 <c>versions[].id</c>，授予按那个版本申请的整组替换（<c>versions[].requiredGrants</c>，规则同安装）；规则与错误码见 <see cref="PluginService.RollbackAsync"/>
+/// 启用着的插件提交后即换上那个版本，加载结果同升级；换掉的版本留着，可以再换回来
+/// </remarks>
+/// <param name="plugins">插件仓储</param>
+/// <param name="service">插件服务</param>
+/// <param name="changes">本次调用的插件改动</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = PluginsPermissions.PluginsInstall)]
+public sealed class RollbackPlugin(IRepository<SysPlugin, Guid> plugins, PluginService service, PluginChanges changes) : IOperation<RollbackPluginRequest, PluginDetailResponse>
+{
+    /// <summary>
+    /// 操作 ID
+    /// </summary>
+    public const string Id = "plugins.rollback";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<PluginDetailResponse>> HandleAsync(RollbackPluginRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        if (!(await plugins.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var plugin))
+        {
+            return PluginService.NotFound(request.Id);
+        }
+
+        var switched = await service.RollbackAsync(plugin, request, context.CancellationToken).ConfigureAwait(false);
+        if (switched.IsFailure)
+        {
+            return switched.Error!;
         }
 
         changes.Request();
