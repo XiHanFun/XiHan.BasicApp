@@ -27,6 +27,7 @@ namespace XiHan.BasicApp.Plugins;
 [JsonSerializable(typeof(PluginIdsRequest))]
 [JsonSerializable(typeof(PluginResponse))]
 [JsonSerializable(typeof(PluginDetailResponse))]
+[JsonSerializable(typeof(PluginStatusResponse))]
 [JsonSerializable(typeof(PluginInspectionResponse))]
 [JsonSerializable(typeof(PageResult<PluginResponse>))]
 [JsonSerializable(typeof(PluginDescriptor))]

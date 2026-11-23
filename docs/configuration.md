@@ -69,7 +69,7 @@ appsettings.json
    ├─ OpenPlatform          开放接口签名与 OAuth2 / OIDC 授权服务
    ├─ CodeGeneration        代码生成
    ├─ AI                    知识库的向量库（Qdrant）
-   └─ Plugins               允许的隔离级别与插件包上限
+   └─ Plugins               隔离级别、插件包上限、解包目录与对齐时限
 ```
 
 各节点的键、缺省值与说明见下文对应小节。
@@ -752,12 +752,14 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 
 ## `BasicApp:Plugins`
 
-插件的安装规则，见[插件](./backend/plugins)。写错的值启动即失败。
+插件的安装与加载，见[插件](./backend/plugins)。写错的值启动即失败。
 
 | 键 | 缺省 | 说明 |
 | --- | --- | --- |
 | `Isolations` | `["out-of-process"]` | 允许安装的隔离级别：`out-of-process`、`wasm`；不在里面的包核对即拒（`PLUGINS_VALIDATION_103`） |
 | `MaxPackageSizeMegabytes` | `100` | 插件包上限（MB，正整数）；上传还受 [`BasicApp:Files`](#basicapp-files) 的 `MaxUploadBytes` 限制 |
+| `CacheDirectory` | `App_Data/plugins` | 本机解包目录，相对路径相对内容根目录；每个版本解到 `<清单 ID>/<版本 ID>/`，插件进程从这里启动 |
+| `ReconcileTimeoutSeconds` | `60` | 一次对齐的时限（秒，正整数）；启动时对齐完成之前节点不就绪，超时没轮到的插件留到下一次 |
 
 ## 前端 `.env`
 

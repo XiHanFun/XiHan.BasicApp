@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Plugins.Domain.Entities;
 using XiHan.BasicApp.Plugins.Domain.Packages;
+using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 
 namespace XiHan.BasicApp.Plugins.Operations.Plugins;
@@ -19,6 +20,7 @@ namespace XiHan.BasicApp.Plugins.Operations.Plugins;
 /// <param name="Publisher">发布者</param>
 /// <param name="Isolation">隔离级别</param>
 /// <param name="IsEnabled">是否启用</param>
+/// <param name="LastErrorCode">最近一次加载失败的错误码；加载成功后为空</param>
 /// <param name="Remark">备注</param>
 /// <param name="ConcurrencyStamp">并发戳：授权时原样交回</param>
 /// <param name="CreatedAt">安装时间（UTC）</param>
@@ -31,6 +33,7 @@ public sealed record PluginResponse(
     string? Publisher,
     PluginIsolation Isolation,
     bool IsEnabled,
+    string? LastErrorCode,
     string? Remark,
     string ConcurrencyStamp,
     DateTimeOffset CreatedAt,
@@ -43,9 +46,31 @@ public sealed record PluginResponse(
     public static PluginResponse From(SysPlugin plugin)
     {
         ArgumentNullException.ThrowIfNull(plugin);
-        return new PluginResponse(plugin.Id, plugin.ManifestId, plugin.Name, plugin.Version, plugin.Publisher, plugin.Isolation, plugin.IsEnabled, plugin.Remark, plugin.ConcurrencyStamp, plugin.CreatedAt, plugin.ModifiedAt);
+        return new PluginResponse(plugin.Id, plugin.ManifestId, plugin.Name, plugin.Version, plugin.Publisher, plugin.Isolation, plugin.IsEnabled, plugin.LastErrorCode, plugin.Remark, plugin.ConcurrencyStamp, plugin.CreatedAt, plugin.ModifiedAt);
     }
 }
+
+/// <summary>
+/// 插件在应答节点上的运行状态
+/// </summary>
+/// <remarks>
+/// 运行状态是每个节点自己的，不落库；多节点时各节点可能短暂不一致
+/// </remarks>
+/// <param name="Id">插件 ID</param>
+/// <param name="ManifestId">清单 ID</param>
+/// <param name="IsEnabled">是否启用</param>
+/// <param name="IsLoaded">本节点是否已加载</param>
+/// <param name="LoadedVersion">本节点加载的版本号；没加载为空</param>
+/// <param name="State">插件宿主报告的生命周期状态；宿主里没有它为空</param>
+/// <param name="ErrorCode">本节点最近一次加载失败或宿主报告的错误码；没有为空</param>
+public sealed record PluginStatusResponse(
+    Guid Id,
+    string ManifestId,
+    bool IsEnabled,
+    bool IsLoaded,
+    string? LoadedVersion,
+    LifecycleState? State,
+    string? ErrorCode);
 
 /// <summary>
 /// 插件定义的一个权限码

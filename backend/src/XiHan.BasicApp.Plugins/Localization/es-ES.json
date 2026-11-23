@@ -49,5 +49,15 @@
   "plugins.grants.missing": "A la aprobación le faltan concesiones obligatorias: {grants}.",
   "plugins.grants.invalid": "La concesión '{grant}' no es obligatoria ni opcional para este plugin.",
   "plugins.query.filter_unsupported": "No se admite el filtro '{field}' con el operador '{operator}'.",
-  "plugins.query.sort_unsupported": "No se admite ordenar por '{field}'."
+  "plugins.query.sort_unsupported": "No se admite ordenar por '{field}'.",
+  "plugins.enable.title": "Habilitar complementos",
+  "plugins.enable.description": "Habilita complementos instalados; cada uno se carga en cuanto se confirma el cambio y un fallo de carga queda registrado en el complemento.",
+  "plugins.disable.title": "Deshabilitar complementos",
+  "plugins.disable.description": "Deshabilita complementos; cada uno se descarga en cuanto se confirma el cambio y se retiran sus códigos de permiso y concesiones de devolución de llamada.",
+  "plugins.status.title": "Estado del complemento",
+  "plugins.status.description": "Estado de ejecución de un complemento en el nodo que responde: si está cargado, la versión cargada, el estado del ciclo de vida y el último código de error de carga.",
+  "permissions.plugins.plugins.update.name": "Habilitar complementos",
+  "permissions.plugins.plugins.update.description": "Habilita o deshabilita complementos instalados; al habilitarlo se carga en todos los nodos.",
+  "plugins.runtime.isolation_unavailable": "Este servidor no tiene un anfitrión de complementos para el aislamiento '{isolation}'.",
+  "plugins.runtime.package_unavailable": "El paquete del complemento '{name}' versión {version} no está en el almacenamiento de archivos o ya no coincide con su SHA-256."
 }

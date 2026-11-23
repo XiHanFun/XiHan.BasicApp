@@ -1,8 +1,8 @@
 # 插件
 
-本页说明插件包的格式、安装前的核对、授予、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
+本页说明插件包的格式、安装前的核对、授予、启用与加载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
 
-Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省开）：平台一侧上传 `.xhplugin` 包，核对通过、批准授予后登记安装。插件由框架的插件宿主隔离运行（缺省只允许进程外），宿主不编译、不执行插件源码；核对只读包，插件代码一行不跑。安装只登记包与授予，装好的插件缺省停用。
+Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省开）：平台一侧上传 `.xhplugin` 包，核对通过、批准授予后登记安装。插件由框架的插件宿主隔离运行（缺省只允许进程外），宿主不编译、不执行插件源码；核对只读包，插件代码一行不跑。安装只登记包与授予，装好的插件缺省停用；启用后各节点按库加载，没有任何启用的插件时不起插件进程。
 
 ## 插件包
 
@@ -89,11 +89,29 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | `plugins.inspect` | `GET /api/plugins:inspect?fileId=` | `install` |
 | `plugins.install` | `POST /api/plugins:install` | `install` |
 | `plugins.grant` | `POST /api/plugins/{id}:grant` | `grant` |
+| `plugins.enable` | `POST /api/plugins:enable` | `update` |
+| `plugins.disable` | `POST /api/plugins:disable` | `update` |
+| `plugins.status` | `GET /api/plugins/{id}:status` | `read` |
 | `plugins.delete` | `DELETE /api/plugins?ids=` | `delete` |
 
-权限码 `plugins.plugins.{read,install,grant,delete}` 只在平台一侧，写操作记审计。`fileId` 是平台一侧经 `POST /api/files/upload` 上传的包。详情含贡献、申请与已批准的授予、全部版本（新的在前）。列表可筛选 `name`、`manifestId`（`eq` / `contains`）、`isEnabled`、`isolation`，排序 `name`、`manifestId`、`version`、`createdAt`。删除是软删除，连同版本与授予；删了可以重装。接口文档分组 `plugins`。
+权限码 `plugins.plugins.{read,install,update,grant,delete}` 只在平台一侧，写操作记审计。`fileId` 是平台一侧经 `POST /api/files/upload` 上传的包。详情含贡献、申请与已批准的授予、全部版本（新的在前）。列表可筛选 `name`、`manifestId`（`eq` / `contains`）、`isEnabled`、`isolation`，排序 `name`、`manifestId`、`version`、`createdAt`。删除是软删除，连同版本与授予；删了可以重装。接口文档分组 `plugins`。
 
 插件、版本与授予分别存 `sys_plugin`、`sys_plugin_version`（包文件、SHA-256、大小与两份清单原文）、`sys_plugin_grant`，都在平台库。
+
+## 启用与加载
+
+每个节点的对齐服务把本节点加载的插件对齐到库里启用的插件：启动时（结构升级之后、种子之前）对齐一次，完成之前节点不就绪；启停、改授予、卸载提交之后本节点立即再对齐，等对齐完才应答。
+
+| 环节 | 规则 |
+| --- | --- |
+| 解包 | 每个版本解到 `<CacheDirectory>/<清单 ID>/<版本 ID>/`，目录在就直接用；不在时从 Files 取包，按安装时的 SHA-256 核对后解开，对不上或存储读不出即 `PLUGINS_UNAVAILABLE_102` |
+| 加载 | 按隔离级别交给对应的插件宿主（没装该宿主即 `PLUGINS_UNAVAILABLE_101`），带上批准的授予（`callback:` 与 `data-scope:` 由 BasicApp 自己解释，不交给宿主）；成功后贡献的权限码等接进来（见下节） |
+| 重新加载 | 版本或授予变了先卸后载；换版本失败即重载旧版本，新版本的错误码留着 |
+| 停用、卸载 | 先撤回权限码与回调授予，再让宿主停掉插件；在途调用照常完成或以框架的 `PLUGINS_UNAVAILABLE_001` 结束 |
+| 失败 | 只让这个插件失败：错误码记进 `lastErrorCode`，健康项 `basicapp.plugins` 降级；原因排除后再启用一次即重试 |
+| 时限 | 一次对齐不超过 `ReconcileTimeoutSeconds`，超时没轮到的插件留到下一次 |
+
+运行状态是各节点自己的：`plugins.status` 报应答节点是否已加载、加载的版本、宿主报告的生命周期状态与本节点最近一次的错误码；加载成功的插件另有框架宿主的健康项 `plugins.<清单 ID>`。
 
 ## 加载后的权限与主体
 
@@ -112,7 +130,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 { "BasicApp": { "Modules": { "Plugins": { "Enabled": false } } } }
 ```
 
-关掉后宿主不装 Plugins 与进程外插件宿主，权限目录与操作都不在；三张表也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。隔离级别与包上限见[配置参考](../configuration#basicapp-plugins)。
+关掉后宿主不装 Plugins 与进程外插件宿主，权限目录与操作都不在；三张表也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。隔离级别、包上限、解包目录与对齐时限见[配置参考](../configuration#basicapp-plugins)。
 
 ## 下一步
 

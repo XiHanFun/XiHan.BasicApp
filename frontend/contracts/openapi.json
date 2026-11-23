@@ -45468,6 +45468,271 @@
         }
       }
     },
+    "/api/plugins/{id}:status": {
+      "get": {
+        "operationId": "plugins.status",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Get plugin status",
+        "description": "Runtime state of a plugin on the node that answers: whether it is loaded, the loaded version, the lifecycle state and the last load error code.\n\nRequires permission plugins.plugins.read (Read plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "\u63D2\u4EF6 ID",
+            "required": true,
+            "schema": {
+              "description": "\u63D2\u4EF6 ID",
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u63D2\u4EF6\u5728\u5E94\u7B54\u8282\u70B9\u4E0A\u7684\u8FD0\u884C\u72B6\u6001",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginStatusResponse",
+                  "description": "\u63D2\u4EF6\u5728\u5E94\u7B54\u8282\u70B9\u4E0A\u7684\u8FD0\u884C\u72B6\u6001",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "\u63D2\u4EF6 ID",
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "manifestId": {
+                      "description": "\u6E05\u5355 ID",
+                      "type": "string"
+                    },
+                    "isEnabled": {
+                      "description": "\u662F\u5426\u542F\u7528",
+                      "type": "boolean"
+                    },
+                    "isLoaded": {
+                      "description": "\u672C\u8282\u70B9\u662F\u5426\u5DF2\u52A0\u8F7D",
+                      "type": "boolean"
+                    },
+                    "loadedVersion": {
+                      "description": "\u672C\u8282\u70B9\u52A0\u8F7D\u7684\u7248\u672C\u53F7\uFF1B\u6CA1\u52A0\u8F7D\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "state": {
+                      "description": "\u63D2\u4EF6\u5BBF\u4E3B\u62A5\u544A\u7684\u751F\u547D\u5468\u671F\u72B6\u6001\uFF1B\u5BBF\u4E3B\u91CC\u6CA1\u6709\u5B83\u4E3A\u7A7A",
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/LifecycleState"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "errorCode": {
+                      "description": "\u672C\u8282\u70B9\u6700\u8FD1\u4E00\u6B21\u52A0\u8F7D\u5931\u8D25\u6216\u5BBF\u4E3B\u62A5\u544A\u7684\u9519\u8BEF\u7801\uFF1B\u6CA1\u6709\u4E3A\u7A7A",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "manifestId",
+                    "isEnabled",
+                    "isLoaded"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins:disable": {
+      "post": {
+        "operationId": "plugins.disable",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Disable plugins",
+        "description": "Disable plugins; each one is unloaded right after the change is committed, and its permission codes and callbacks are withdrawn.\n\nRequires permission plugins.plugins.update (Enable plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "plugins.delete \u7684\u8BF7\u6C42\uFF1A\u96C6\u5408\u5165\u53C2",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PluginIdsRequest",
+                "description": "plugins.delete \u7684\u8BF7\u6C42\uFF1A\u96C6\u5408\u5165\u53C2",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u63D2\u4EF6 ID\uFF0C1 \u5230 100 \u4E2A",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plugins:enable": {
+      "post": {
+        "operationId": "plugins.enable",
+        "tags": [
+          "plugins"
+        ],
+        "summary": "Enable plugins",
+        "description": "Enable installed plugins; each one is loaded right after the change is committed, and a load failure is recorded on the plugin.\n\nRequires permission plugins.plugins.update (Enable plugins).",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "plugins.plugins.update",
+        "parameters": [],
+        "requestBody": {
+          "description": "plugins.delete \u7684\u8BF7\u6C42\uFF1A\u96C6\u5408\u5165\u53C2",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PluginIdsRequest",
+                "description": "plugins.delete \u7684\u8BF7\u6C42\uFF1A\u96C6\u5408\u5165\u53C2",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "description": "\u63D2\u4EF6 ID\uFF0C1 \u5230 100 \u4E2A",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/plugins:inspect": {
       "get": {
         "operationId": "plugins.inspect",
@@ -76546,6 +76811,13 @@
             "description": "\u662F\u5426\u542F\u7528",
             "type": "boolean"
           },
+          "lastErrorCode": {
+            "description": "\u6700\u8FD1\u4E00\u6B21\u52A0\u8F7D\u5931\u8D25\u7684\u9519\u8BEF\u7801\uFF1B\u52A0\u8F7D\u6210\u529F\u540E\u4E3A\u7A7A",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "remark": {
             "description": "\u5907\u6CE8",
             "type": [
@@ -81684,6 +81956,11 @@
         "code": "plugins.plugins.read",
         "displayName": "Read plugins",
         "description": "View installed plugins, their contributions, approved grants and versions."
+      },
+      "plugins.plugins.update": {
+        "code": "plugins.plugins.update",
+        "displayName": "Enable plugins",
+        "description": "Enable or disable installed plugins; enabling loads the plugin on every node."
       },
       "printing.print-templates.create": {
         "code": "printing.print-templates.create",

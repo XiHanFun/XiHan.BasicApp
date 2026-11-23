@@ -25,9 +25,9 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </remarks>
 public sealed class PluginsTests : IDisposable
 {
-    private const string Name = "weather";
-    private const string ManifestId = "xihan.contoso.weather";
-    private const string Read = "weather.weather.read";
+    internal const string Name = "weather";
+    internal const string ManifestId = "xihan.contoso.weather";
+    internal const string Read = "weather.weather.read";
 
     private readonly TestDatabase _database = new();
     private readonly string _root = Path.Combine(Path.GetTempPath(), "xihan-plugins-" + Guid.NewGuid().ToString("N"));
@@ -123,7 +123,7 @@ public sealed class PluginsTests : IDisposable
     /// <remarks>
     /// 三个回调各改清单、旁挂清单与文件
     /// </remarks>
-    private static byte[] Package(Action<JsonObject>? manifest = null, Action<JsonObject>? descriptor = null, Action<Dictionary<string, byte[]>>? files = null)
+    internal static byte[] Package(Action<JsonObject>? manifest = null, Action<JsonObject>? descriptor = null, Action<Dictionary<string, byte[]>>? files = null)
     {
         var manifestJson = Manifest();
         manifest?.Invoke(manifestJson);
@@ -146,7 +146,7 @@ public sealed class PluginsTests : IDisposable
         return buffer.ToArray();
     }
 
-    private static async Task<string> UploadAsync(BasicAppTestServer server, string token, byte[] content)
+    internal static async Task<string> UploadAsync(BasicAppTestServer server, string token, byte[] content)
     {
         using var form = new MultipartFormDataContent();
         var file = new ByteArrayContent(content);
@@ -162,7 +162,7 @@ public sealed class PluginsTests : IDisposable
     private static Task<(HttpResponseMessage Response, JsonElement Body)> InspectAsync(BasicAppTestServer server, string token, string fileId)
         => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/plugins:inspect?fileId={fileId}", token: token));
 
-    private static Task<(HttpResponseMessage Response, JsonElement Body)> InstallAsync(BasicAppTestServer server, string token, string fileId, params string[] grants)
+    internal static Task<(HttpResponseMessage Response, JsonElement Body)> InstallAsync(BasicAppTestServer server, string token, string fileId, params string[] grants)
         => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/plugins:install", JsonSerializer.Serialize(new { fileId, grants, remark = "weather plugin" }), token));
 
     private static Task<(HttpResponseMessage Response, JsonElement Body)> GrantAsync(BasicAppTestServer server, string token, string id, string stamp, params string[] grants)

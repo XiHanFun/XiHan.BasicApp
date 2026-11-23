@@ -50,6 +50,21 @@ public static class PluginsMessages
     public const string DeletePluginsDescription = "plugins.delete.description";
 
     /// <summary>
+    /// 操作 <c>plugins.enable</c> 的说明
+    /// </summary>
+    public const string EnablePluginsDescription = "plugins.enable.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.disable</c> 的说明
+    /// </summary>
+    public const string DisablePluginsDescription = "plugins.disable.description";
+
+    /// <summary>
+    /// 操作 <c>plugins.status</c> 的说明
+    /// </summary>
+    public const string GetPluginStatusDescription = "plugins.status.description";
+
+    /// <summary>
     /// 插件不存在
     /// </summary>
     /// <remarks>
@@ -246,6 +261,22 @@ public static class PluginsMessages
     /// 参数：<c>field</c>
     /// </remarks>
     public const string SortUnsupported = "plugins.query.sort_unsupported";
+
+    /// <summary>
+    /// 没有这个隔离级别的插件宿主
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>isolation</c>
+    /// </remarks>
+    public const string IsolationUnavailable = "plugins.runtime.isolation_unavailable";
+
+    /// <summary>
+    /// 版本的包文件不可用
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>name</c>、<c>version</c>
+    /// </remarks>
+    public const string PackageUnavailable = "plugins.runtime.package_unavailable";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(PluginsMessages)));
 

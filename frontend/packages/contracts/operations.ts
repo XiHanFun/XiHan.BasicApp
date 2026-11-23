@@ -373,11 +373,14 @@ export const routes = {
   'permission-requests.withdraw': { method: 'POST', template: '/api/permission-requests:withdraw', path: [], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'plugins.delete': { method: 'DELETE', template: '/api/plugins', path: [], query: ['ids'], success: 200 },
+  'plugins.disable': { method: 'POST', template: '/api/plugins:disable', path: [], query: [], success: 200 },
+  'plugins.enable': { method: 'POST', template: '/api/plugins:enable', path: [], query: [], success: 200 },
   'plugins.get': { method: 'GET', template: '/api/plugins/{id}', path: ['id'], query: [], success: 200 },
   'plugins.grant': { method: 'POST', template: '/api/plugins/{id}:grant', path: ['id'], query: [], success: 200 },
   'plugins.inspect': { method: 'GET', template: '/api/plugins:inspect', path: [], query: ['fileId'], success: 200 },
   'plugins.install': { method: 'POST', template: '/api/plugins:install', path: [], query: [], success: 200 },
   'plugins.list': { method: 'POST', template: '/api/plugins:list', path: [], query: [], success: 200 },
+  'plugins.status': { method: 'GET', template: '/api/plugins/{id}:status', path: ['id'], query: [], success: 200 },
   'policies.attributes': { method: 'GET', template: '/api/policies:attributes', path: [], query: [], success: 200 },
   'policies.create': { method: 'POST', template: '/api/policies', path: [], query: [], success: 201 },
   'policies.delete': { method: 'DELETE', template: '/api/policies', path: [], query: ['ids'], success: 200 },
@@ -1175,11 +1178,14 @@ export const permissions = {
 /** 资源 `plugins` 的操作 */
 export const plugins = {
   delete: (request: RequestOf<'plugins.delete'>, options?: CallOptions) => invoke<RequestOf<'plugins.delete'>, ResponseOf<'plugins.delete'>>('plugins.delete', routes['plugins.delete'], request, options),
+  disable: (request: RequestOf<'plugins.disable'>, options?: CallOptions) => invoke<RequestOf<'plugins.disable'>, ResponseOf<'plugins.disable'>>('plugins.disable', routes['plugins.disable'], request, options),
+  enable: (request: RequestOf<'plugins.enable'>, options?: CallOptions) => invoke<RequestOf<'plugins.enable'>, ResponseOf<'plugins.enable'>>('plugins.enable', routes['plugins.enable'], request, options),
   get: (request: RequestOf<'plugins.get'>, options?: CallOptions) => invoke<RequestOf<'plugins.get'>, ResponseOf<'plugins.get'>>('plugins.get', routes['plugins.get'], request, options),
   grant: (request: RequestOf<'plugins.grant'>, options?: CallOptions) => invoke<RequestOf<'plugins.grant'>, ResponseOf<'plugins.grant'>>('plugins.grant', routes['plugins.grant'], request, options),
   inspect: (request: RequestOf<'plugins.inspect'>, options?: CallOptions) => invoke<RequestOf<'plugins.inspect'>, ResponseOf<'plugins.inspect'>>('plugins.inspect', routes['plugins.inspect'], request, options),
   install: (request: RequestOf<'plugins.install'>, options?: CallOptions) => invoke<RequestOf<'plugins.install'>, ResponseOf<'plugins.install'>>('plugins.install', routes['plugins.install'], request, options),
   list: (request: RequestOf<'plugins.list'>, options?: CallOptions) => invoke<RequestOf<'plugins.list'>, ResponseOf<'plugins.list'>>('plugins.list', routes['plugins.list'], request, options),
+  status: (request: RequestOf<'plugins.status'>, options?: CallOptions) => invoke<RequestOf<'plugins.status'>, ResponseOf<'plugins.status'>>('plugins.status', routes['plugins.status'], request, options),
 }
 
 /** 资源 `policies` 的操作 */

@@ -49,5 +49,15 @@
   "plugins.grants.missing": "承認に必須の許可が不足しています: {grants}。",
   "plugins.grants.invalid": "許可 '{grant}' はこのプラグインの必須項目でも任意項目でもありません。",
   "plugins.query.filter_unsupported": "'{field}' に対する演算子 '{operator}' のフィルターはサポートされていません。",
-  "plugins.query.sort_unsupported": "'{field}' による並べ替えはサポートされていません。"
+  "plugins.query.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
+  "plugins.enable.title": "プラグインを有効化",
+  "plugins.enable.description": "インストール済みのプラグインを有効化します。変更の確定後すぐに読み込み、読み込みの失敗はプラグインに記録します。",
+  "plugins.disable.title": "プラグインを無効化",
+  "plugins.disable.description": "プラグインを無効化します。変更の確定後すぐにアンロードし、権限コードとコールバックの付与を取り下げます。",
+  "plugins.status.title": "プラグインの実行状態",
+  "plugins.status.description": "応答したノードでのプラグインの実行状態です。読み込み済みかどうか、読み込んだバージョン、ライフサイクル状態、直近の読み込み失敗のエラーコードを返します。",
+  "permissions.plugins.plugins.update.name": "プラグインの有効化と無効化",
+  "permissions.plugins.plugins.update.description": "インストール済みのプラグインを有効化または無効化します。有効化するとすべてのノードで読み込まれます。",
+  "plugins.runtime.isolation_unavailable": "このサーバーには分離レベル '{isolation}' のプラグインホストがありません。",
+  "plugins.runtime.package_unavailable": "プラグイン '{name}' バージョン {version} のパッケージがファイルストレージにないか、インストール時の SHA-256 と一致しません。"
 }

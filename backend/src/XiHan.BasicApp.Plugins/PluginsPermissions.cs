@@ -25,6 +25,11 @@ public static class PluginsPermissions
     public const string PluginsInstall = "plugins.plugins.install";
 
     /// <summary>
+    /// 启用与停用插件
+    /// </summary>
+    public const string PluginsUpdate = "plugins.plugins.update";
+
+    /// <summary>
     /// 批准插件申请的授予
     /// </summary>
     public const string PluginsGrant = "plugins.plugins.grant";
@@ -41,6 +46,7 @@ public static class PluginsPermissions
     [
         new(PluginsRead, "Read plugins", PermissionScope.Platform, description: "View installed plugins, their contributions, approved grants and versions."),
         new(PluginsInstall, "Install plugins", PermissionScope.Platform, audited: true, description: "Inspect uploaded plugin packages and install them with the approved grants."),
+        new(PluginsUpdate, "Enable plugins", PermissionScope.Platform, audited: true, description: "Enable or disable installed plugins; enabling loads the plugin on every node."),
         new(PluginsGrant, "Grant plugins", PermissionScope.Platform, audited: true, description: "Change the grants approved for an installed plugin."),
         new(PluginsDelete, "Uninstall plugins", PermissionScope.Platform, audited: true, description: "Uninstall plugins together with their versions and grants."),
     ];

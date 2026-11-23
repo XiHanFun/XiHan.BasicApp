@@ -18,6 +18,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.ObjectStorage.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Plugins.OutOfProcess" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>

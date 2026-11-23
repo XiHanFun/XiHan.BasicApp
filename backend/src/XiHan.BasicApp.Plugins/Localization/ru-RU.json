@@ -49,5 +49,15 @@
   "plugins.grants.missing": "В одобрении не хватает обязательных разрешений: {grants}.",
   "plugins.grants.invalid": "Разрешение '{grant}' не является ни обязательным, ни необязательным для этого плагина.",
   "plugins.query.filter_unsupported": "Фильтр '{field}' с оператором '{operator}' не поддерживается.",
-  "plugins.query.sort_unsupported": "Сортировка по '{field}' не поддерживается."
+  "plugins.query.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
+  "plugins.enable.title": "Включить плагины",
+  "plugins.enable.description": "Включает установленные плагины; каждый загружается сразу после фиксации изменения, ошибка загрузки записывается в плагин.",
+  "plugins.disable.title": "Отключить плагины",
+  "plugins.disable.description": "Отключает плагины; каждый выгружается сразу после фиксации изменения, его коды разрешений и разрешения обратных вызовов отзываются.",
+  "plugins.status.title": "Состояние плагина",
+  "plugins.status.description": "Состояние плагина на отвечающем узле: загружен ли он, загруженная версия, состояние жизненного цикла и код последней ошибки загрузки.",
+  "permissions.plugins.plugins.update.name": "Включение плагинов",
+  "permissions.plugins.plugins.update.description": "Включение и отключение установленных плагинов; включённый плагин загружается на каждом узле.",
+  "plugins.runtime.isolation_unavailable": "На этом сервере нет хоста плагинов для изоляции '{isolation}'.",
+  "plugins.runtime.package_unavailable": "Пакет плагина '{name}' версии {version} отсутствует в файловом хранилище или больше не совпадает со своим SHA-256."
 }

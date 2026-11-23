@@ -49,5 +49,15 @@
   "plugins.grants.missing": "Faltam concessões obrigatórias na aprovação: {grants}.",
   "plugins.grants.invalid": "A concessão '{grant}' não é obrigatória nem opcional para este plugin.",
   "plugins.query.filter_unsupported": "O filtro '{field}' com o operador '{operator}' não é suportado.",
-  "plugins.query.sort_unsupported": "A ordenação por '{field}' não é suportada."
+  "plugins.query.sort_unsupported": "A ordenação por '{field}' não é suportada.",
+  "plugins.enable.title": "Ativar plugins",
+  "plugins.enable.description": "Ativa plugins instalados; cada um é carregado logo após a confirmação da alteração e uma falha de carga fica registrada no plugin.",
+  "plugins.disable.title": "Desativar plugins",
+  "plugins.disable.description": "Desativa plugins; cada um é descarregado logo após a confirmação da alteração e seus códigos de permissão e concessões de retorno são retirados.",
+  "plugins.status.title": "Status do plugin",
+  "plugins.status.description": "Estado de execução de um plugin no nó que responde: se está carregado, a versão carregada, o estado do ciclo de vida e o último código de erro de carga.",
+  "permissions.plugins.plugins.update.name": "Ativar plugins",
+  "permissions.plugins.plugins.update.description": "Ativa ou desativa plugins instalados; ao ativar, o plugin é carregado em todos os nós.",
+  "plugins.runtime.isolation_unavailable": "Este servidor não tem um host de plugins para o isolamento '{isolation}'.",
+  "plugins.runtime.package_unavailable": "O pacote do plugin '{name}' versão {version} não está no armazenamento de arquivos ou não corresponde mais ao seu SHA-256."
 }

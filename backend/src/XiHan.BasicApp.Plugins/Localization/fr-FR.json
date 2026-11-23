@@ -49,5 +49,15 @@
   "plugins.grants.missing": "Il manque des autorisations requises dans l’approbation : {grants}.",
   "plugins.grants.invalid": "L’autorisation '{grant}' n’est ni requise ni facultative pour ce plugin.",
   "plugins.query.filter_unsupported": "Le filtre '{field}' avec l’opérateur '{operator}' n’est pas pris en charge.",
-  "plugins.query.sort_unsupported": "Le tri par '{field}' n’est pas pris en charge."
+  "plugins.query.sort_unsupported": "Le tri par '{field}' n’est pas pris en charge.",
+  "plugins.enable.title": "Activer des plugins",
+  "plugins.enable.description": "Active des plugins installés ; chacun est chargé dès la validation du changement et un échec de chargement est consigné sur le plugin.",
+  "plugins.disable.title": "Désactiver des plugins",
+  "plugins.disable.description": "Désactive des plugins ; chacun est déchargé dès la validation du changement et ses codes de permission et autorisations de rappel sont retirés.",
+  "plugins.status.title": "État du plugin",
+  "plugins.status.description": "État d’exécution d’un plugin sur le nœud qui répond : chargé ou non, version chargée, état du cycle de vie et dernier code d’erreur de chargement.",
+  "permissions.plugins.plugins.update.name": "Activer des plugins",
+  "permissions.plugins.plugins.update.description": "Active ou désactive des plugins installés ; un plugin activé est chargé sur chaque nœud.",
+  "plugins.runtime.isolation_unavailable": "Ce serveur n’a pas d’hôte de plugins pour l’isolation '{isolation}'.",
+  "plugins.runtime.package_unavailable": "Le paquet du plugin '{name}' en version {version} est absent du stockage de fichiers ou ne correspond plus à son SHA-256."
 }

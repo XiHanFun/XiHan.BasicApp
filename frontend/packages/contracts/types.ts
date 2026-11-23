@@ -7166,6 +7166,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plugins/{id}:status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get plugin status
+         * @description Runtime state of a plugin on the node that answers: whether it is loaded, the loaded version, the lifecycle state and the last load error code.
+         *
+         *     Requires permission plugins.plugins.read (Read plugins).
+         */
+        get: operations["plugins.status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins:disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable plugins
+         * @description Disable plugins; each one is unloaded right after the change is committed, and its permission codes and callbacks are withdrawn.
+         *
+         *     Requires permission plugins.plugins.update (Enable plugins).
+         */
+        post: operations["plugins.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plugins:enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enable plugins
+         * @description Enable installed plugins; each one is loaded right after the change is committed, and a load failure is recorded on the plugin.
+         *
+         *     Requires permission plugins.plugins.update (Enable plugins).
+         */
+        post: operations["plugins.enable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plugins:inspect": {
         parameters: {
             query?: never;
@@ -15601,6 +15667,8 @@ export interface components {
             isolation: components["schemas"]["PluginIsolation"];
             /** @description 是否启用 */
             isEnabled: boolean;
+            /** @description 最近一次加载失败的错误码；加载成功后为空 */
+            lastErrorCode?: string | null;
             /** @description 备注 */
             remark?: string | null;
             /** @description 并发戳：授权时原样交回 */
@@ -40463,6 +40531,136 @@ export interface operations {
                         grants: string[];
                         /** @description 全部版本，新的在前 */
                         versions: components["schemas"]["PluginVersionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 插件 ID */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 插件在应答节点上的运行状态 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description 插件 ID
+                         */
+                        id: string;
+                        /** @description 清单 ID */
+                        manifestId: string;
+                        /** @description 是否启用 */
+                        isEnabled: boolean;
+                        /** @description 本节点是否已加载 */
+                        isLoaded: boolean;
+                        /** @description 本节点加载的版本号；没加载为空 */
+                        loadedVersion?: string | null;
+                        /** @description 插件宿主报告的生命周期状态；宿主里没有它为空 */
+                        state?: components["schemas"]["LifecycleState"] | null;
+                        /** @description 本节点最近一次加载失败或宿主报告的错误码；没有为空 */
+                        errorCode?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description plugins.delete 的请求：集合入参 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 插件 ID，1 到 100 个 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugins.enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description plugins.delete 的请求：集合入参 */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 插件 ID，1 到 100 个 */
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
                     };
                 };
             };

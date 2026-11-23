@@ -66,4 +66,14 @@ public static class PluginsErrors
     /// 插件申请的授予没有全部批准
     /// </summary>
     public const string GrantsMissing = "PLUGINS_DENIED_101";
+
+    /// <summary>
+    /// 宿主没有装这个隔离级别的插件宿主
+    /// </summary>
+    public const string IsolationUnavailable = "PLUGINS_UNAVAILABLE_101";
+
+    /// <summary>
+    /// 版本的包文件不在了或与安装时的散列不一致
+    /// </summary>
+    public const string PackageUnavailable = "PLUGINS_UNAVAILABLE_102";
 }

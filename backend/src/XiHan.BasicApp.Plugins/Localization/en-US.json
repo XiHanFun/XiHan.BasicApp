@@ -49,5 +49,15 @@
   "plugins.grants.missing": "The approval lacks required grants: {grants}.",
   "plugins.grants.invalid": "Grant '{grant}' is neither required nor optional for this plugin.",
   "plugins.query.filter_unsupported": "Filter '{field}' with operator '{operator}' is not supported.",
-  "plugins.query.sort_unsupported": "Sorting by '{field}' is not supported."
+  "plugins.query.sort_unsupported": "Sorting by '{field}' is not supported.",
+  "plugins.enable.title": "Enable plugins",
+  "plugins.enable.description": "Enable installed plugins; each one is loaded right after the change is committed, and a load failure is recorded on the plugin.",
+  "plugins.disable.title": "Disable plugins",
+  "plugins.disable.description": "Disable plugins; each one is unloaded right after the change is committed, and its permission codes and callbacks are withdrawn.",
+  "plugins.status.title": "Get plugin status",
+  "plugins.status.description": "Runtime state of a plugin on the node that answers: whether it is loaded, the loaded version, the lifecycle state and the last load error code.",
+  "permissions.plugins.plugins.update.name": "Enable plugins",
+  "permissions.plugins.plugins.update.description": "Enable or disable installed plugins; enabling loads the plugin on every node.",
+  "plugins.runtime.isolation_unavailable": "This server has no plugin host for isolation '{isolation}'.",
+  "plugins.runtime.package_unavailable": "The package of plugin '{name}' version {version} is missing from file storage or no longer matches its SHA-256."
 }

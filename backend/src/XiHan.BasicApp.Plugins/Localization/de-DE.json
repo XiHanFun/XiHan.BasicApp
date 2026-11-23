@@ -49,5 +49,15 @@
   "plugins.grants.missing": "Der Genehmigung fehlen erforderliche Freigaben: {grants}.",
   "plugins.grants.invalid": "Die Freigabe '{grant}' ist für dieses Plugin weder erforderlich noch optional.",
   "plugins.query.filter_unsupported": "Der Filter '{field}' mit dem Operator '{operator}' wird nicht unterstützt.",
-  "plugins.query.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt."
+  "plugins.query.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",
+  "plugins.enable.title": "Plugins aktivieren",
+  "plugins.enable.description": "Aktiviert installierte Plugins; jedes wird direkt nach dem Festschreiben geladen, ein Ladefehler wird am Plugin vermerkt.",
+  "plugins.disable.title": "Plugins deaktivieren",
+  "plugins.disable.description": "Deaktiviert Plugins; jedes wird direkt nach dem Festschreiben entladen, seine Berechtigungscodes und Rückruf-Freigaben werden zurückgezogen.",
+  "plugins.status.title": "Plugin-Status abrufen",
+  "plugins.status.description": "Laufzeitstatus eines Plugins auf dem antwortenden Knoten: ob es geladen ist, die geladene Version, der Lebenszyklusstatus und der letzte Ladefehlercode.",
+  "permissions.plugins.plugins.update.name": "Plugins aktivieren",
+  "permissions.plugins.plugins.update.description": "Installierte Plugins aktivieren oder deaktivieren; ein aktiviertes Plugin wird auf jedem Knoten geladen.",
+  "plugins.runtime.isolation_unavailable": "Dieser Server hat keinen Plugin-Host für die Isolation '{isolation}'.",
+  "plugins.runtime.package_unavailable": "Das Paket des Plugins '{name}' in Version {version} fehlt im Dateispeicher oder stimmt nicht mehr mit seinem SHA-256 überein."
 }

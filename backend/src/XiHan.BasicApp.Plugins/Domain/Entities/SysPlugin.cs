@@ -68,6 +68,15 @@ public sealed class SysPlugin : AppAuditedEntity
     public bool IsEnabled { get; set; }
 
     /// <summary>
+    /// 最近一次加载失败的错误码
+    /// </summary>
+    /// <remarks>
+    /// 对齐服务加载失败时写入、加载成功后清空；多个节点各自加载，记的是最后写入的那个节点的结论
+    /// </remarks>
+    [SugarColumn(ColumnName = "last_error_code", Length = 64, IsNullable = true, ColumnDescription = "最近一次加载失败的错误码")]
+    public string? LastErrorCode { get; set; }
+
+    /// <summary>
     /// 备注
     /// </summary>
     [SugarColumn(ColumnName = "remark", Length = 512, IsNullable = true, ColumnDescription = "备注")]

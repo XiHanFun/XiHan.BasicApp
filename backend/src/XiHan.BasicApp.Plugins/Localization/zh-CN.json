@@ -49,5 +49,15 @@
   "plugins.grants.missing": "批准的授予缺少必须项：{grants}。",
   "plugins.grants.invalid": "授予 '{grant}' 对这个插件既不是必须项也不是可选项。",
   "plugins.query.filter_unsupported": "不支持对 '{field}' 用 '{operator}' 筛选。",
-  "plugins.query.sort_unsupported": "不支持按 '{field}' 排序。"
+  "plugins.query.sort_unsupported": "不支持按 '{field}' 排序。",
+  "plugins.enable.title": "启用插件",
+  "plugins.enable.description": "启用已安装的插件；提交之后立即加载，加载失败记在插件上。",
+  "plugins.disable.title": "停用插件",
+  "plugins.disable.description": "停用插件；提交之后立即卸载，它的权限码与回调授予随之撤回。",
+  "plugins.status.title": "插件运行状态",
+  "plugins.status.description": "插件在应答节点上的运行状态：是否已加载、加载的版本、生命周期状态与最近一次加载失败的错误码。",
+  "permissions.plugins.plugins.update.name": "启用与停用插件",
+  "permissions.plugins.plugins.update.description": "启用或停用已安装的插件；启用后每个节点都会加载它。",
+  "plugins.runtime.isolation_unavailable": "本服务器没有隔离级别 '{isolation}' 的插件宿主。",
+  "plugins.runtime.package_unavailable": "插件 '{name}' 版本 {version} 的包文件不在文件存储里了，或与安装时的 SHA-256 不一致。"
 }

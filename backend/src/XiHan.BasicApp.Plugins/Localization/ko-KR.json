@@ -49,5 +49,15 @@
   "plugins.grants.missing": "승인에 필수 권한이 빠져 있습니다: {grants}.",
   "plugins.grants.invalid": "권한 '{grant}'은(는) 이 플러그인의 필수 항목도 선택 항목도 아닙니다.",
   "plugins.query.filter_unsupported": "'{field}'에 대한 '{operator}' 연산자 필터는 지원되지 않습니다.",
-  "plugins.query.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다."
+  "plugins.query.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다.",
+  "plugins.enable.title": "플러그인 사용",
+  "plugins.enable.description": "설치된 플러그인을 사용합니다. 변경이 커밋되면 바로 로드하며 로드 실패는 플러그인에 기록합니다.",
+  "plugins.disable.title": "플러그인 사용 중지",
+  "plugins.disable.description": "플러그인 사용을 중지합니다. 변경이 커밋되면 바로 언로드하고 권한 코드와 콜백 부여를 회수합니다.",
+  "plugins.status.title": "플러그인 실행 상태",
+  "plugins.status.description": "응답한 노드에서의 플러그인 실행 상태입니다. 로드 여부, 로드된 버전, 수명 주기 상태, 마지막 로드 실패 오류 코드를 반환합니다.",
+  "permissions.plugins.plugins.update.name": "플러그인 사용 및 사용 중지",
+  "permissions.plugins.plugins.update.description": "설치된 플러그인을 사용하거나 사용 중지합니다. 사용하면 모든 노드에서 로드됩니다.",
+  "plugins.runtime.isolation_unavailable": "이 서버에는 격리 수준 '{isolation}'의 플러그인 호스트가 없습니다.",
+  "plugins.runtime.package_unavailable": "플러그인 '{name}' 버전 {version}의 패키지가 파일 저장소에 없거나 설치 시의 SHA-256과 일치하지 않습니다."
 }

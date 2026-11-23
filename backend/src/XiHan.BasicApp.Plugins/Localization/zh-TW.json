@@ -49,5 +49,15 @@
   "plugins.grants.missing": "核准的授予缺少必要項：{grants}。",
   "plugins.grants.invalid": "授予 '{grant}' 對這個外掛程式既不是必要項也不是可選項。",
   "plugins.query.filter_unsupported": "不支援對 '{field}' 使用 '{operator}' 篩選。",
-  "plugins.query.sort_unsupported": "不支援依 '{field}' 排序。"
+  "plugins.query.sort_unsupported": "不支援依 '{field}' 排序。",
+  "plugins.enable.title": "啟用外掛",
+  "plugins.enable.description": "啟用已安裝的外掛；提交之後立即載入，載入失敗記在外掛上。",
+  "plugins.disable.title": "停用外掛",
+  "plugins.disable.description": "停用外掛；提交之後立即卸載，它的權限碼與回呼授予隨之撤回。",
+  "plugins.status.title": "外掛執行狀態",
+  "plugins.status.description": "外掛在應答節點上的執行狀態：是否已載入、載入的版本、生命週期狀態與最近一次載入失敗的錯誤碼。",
+  "permissions.plugins.plugins.update.name": "啟用與停用外掛",
+  "permissions.plugins.plugins.update.description": "啟用或停用已安裝的外掛；啟用後每個節點都會載入它。",
+  "plugins.runtime.isolation_unavailable": "本伺服器沒有隔離等級 '{isolation}' 的外掛宿主。",
+  "plugins.runtime.package_unavailable": "外掛 '{name}' 版本 {version} 的套件檔已不在檔案儲存中，或與安裝時的 SHA-256 不一致。"
 }
