@@ -62,5 +62,10 @@
   "plugins.runtime.package_unavailable": "外掛 '{name}' 版本 {version} 的套件檔已不在檔案儲存中，或與安裝時的 SHA-256 不一致。",
   "plugins.delete_preview.title": "預覽卸載外掛",
   "plugins.delete_preview.description": "列出卸載外掛會清掉的內容：它全部版本的權限碼與對它們的各處引用（角色與使用者授予、授予規則、權限條件、委派、互斥約束、營運節點的門控權限碼、方案白名單）。各租戶庫裡待審的授權申請只列出、保留不改。",
-  "plugins.package.runtime_conflict": "外掛套件的根目錄與目前平台的執行階段目錄裡都有 '{path}'。"
+  "plugins.package.runtime_conflict": "外掛套件的根目錄與目前平台的執行階段目錄裡都有 '{path}'。",
+  "plugins.runtime.catalog_incomplete": "外掛 '{name}' 的訊息目錄缺少 en-US 的 '{key}'。",
+  "plugin_views.list.title": "列出外掛頁面",
+  "plugin_views.list.description": "目前呼叫方能開啟的已載入外掛的頁面，帶每個頁面的視圖描述與外掛操作的 HTTP 路由；前端執行期據此呈現外掛頁面。",
+  "openapi.tags.plugin_views.name": "外掛頁面",
+  "openapi.tags.plugin_views.description": "已載入外掛貢獻給前端的頁面。"
 }

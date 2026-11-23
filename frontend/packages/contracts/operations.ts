@@ -372,6 +372,7 @@ export const routes = {
   'permission-requests.update': { method: 'PUT', template: '/api/permission-requests/{id}', path: ['id'], query: [], success: 200 },
   'permission-requests.withdraw': { method: 'POST', template: '/api/permission-requests:withdraw', path: [], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
+  'plugin-views.list': { method: 'GET', template: '/api/plugin-views', path: [], query: [], success: 200 },
   'plugins.delete': { method: 'DELETE', template: '/api/plugins', path: [], query: ['ids'], success: 200 },
   'plugins.delete-preview': { method: 'GET', template: '/api/plugins/{id}:delete-preview', path: ['id'], query: [], success: 200 },
   'plugins.disable': { method: 'POST', template: '/api/plugins:disable', path: [], query: [], success: 200 },
@@ -1174,6 +1175,11 @@ export const permissionRequests = {
 /** 资源 `permissions` 的操作 */
 export const permissions = {
   list: (request: RequestOf<'permissions.list'>, options?: CallOptions) => invoke<RequestOf<'permissions.list'>, ResponseOf<'permissions.list'>>('permissions.list', routes['permissions.list'], request, options),
+}
+
+/** 资源 `plugin-views` 的操作 */
+export const pluginViews = {
+  list: (request: RequestOf<'plugin-views.list'>, options?: CallOptions) => invoke<RequestOf<'plugin-views.list'>, ResponseOf<'plugin-views.list'>>('plugin-views.list', routes['plugin-views.list'], request, options),
 }
 
 /** 资源 `plugins` 的操作 */

@@ -1,6 +1,6 @@
 # 插件
 
-本页说明插件包的格式、安装前的核对、授予、启用与加载、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
+本页说明插件包的格式、安装前的核对、授予、启用与加载、插件的页面与接口文档、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
 
 Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省开）：平台一侧上传 `.xhplugin` 包，核对通过、批准授予后登记安装。插件由框架的插件宿主隔离运行（缺省只允许进程外），宿主不编译、不执行插件源码；核对只读包，插件代码一行不跑。安装只登记包与授予，装好的插件缺省停用；启用后各节点按库加载，没有任何启用的插件时不起插件进程。
 
@@ -94,6 +94,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | `plugins.status` | `GET /api/plugins/{id}:status` | `read` |
 | `plugins.delete-preview` | `GET /api/plugins/{id}:delete-preview` | `delete` |
 | `plugins.delete` | `DELETE /api/plugins?ids=` | `delete` |
+| `plugin-views.list` | `GET /api/plugin-views` | 登录即可 |
 
 权限码 `plugins.plugins.{read,install,update,grant,delete}` 只在平台一侧，写操作记审计。`fileId` 是平台一侧经 `POST /api/files/upload` 上传的包。详情含贡献、申请与已批准的授予、全部版本（新的在前）。列表可筛选 `name`、`manifestId`（`eq` / `contains`）、`isEnabled`、`isolation`，排序 `name`、`manifestId`、`version`、`createdAt`。删除是软删除，连同版本与授予，并清掉对插件权限码的引用（见[卸载](#卸载)）；删了可以重装。接口文档分组 `plugins`。
 
@@ -106,7 +107,8 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 环节 | 规则 |
 | --- | --- |
 | 解包 | 每个版本解到 `<CacheDirectory>/<清单 ID>/<版本 ID>/`，目录在就直接用；不在时从 Files 取包，按安装时的 SHA-256 核对后解开，对不上或存储读不出即 `PLUGINS_UNAVAILABLE_102`。当前平台的 `runtimes/<运行时标识>/` 铺到目录的根上，别的平台的不解 |
-| 加载 | 按隔离级别交给对应的插件宿主（没装该宿主即 `PLUGINS_UNAVAILABLE_101`），带上批准的授予（`callback:` 与 `data-scope:` 由 BasicApp 自己解释，不交给宿主）；成功后贡献的权限码等接进来（见下节） |
+| 加载 | 按隔离级别交给对应的插件宿主（没装该宿主即 `PLUGINS_UNAVAILABLE_101`），带上批准的授予（`callback:` 与 `data-scope:` 由 BasicApp 自己解释，不交给宿主）。宿主把握手的消息目录、权限码与代理操作一次登记，插件的操作随即有 HTTP 路由；成功后贡献的权限码等接进来（见下节） |
+| 文案核对 | 加载成功后核对插件的消息目录：接口文档的分组名与说明 `openapi.groups.<短名>.name` / `.description`、插件每个资源的标签名 `openapi.tags.<资源>.name` 要有 en-US（键里的连字符写成下划线），缺了即卸掉、记 `PLUGINS_VALIDATION_108` |
 | 重新加载 | 版本或授予变了先卸后载；换版本失败即重载旧版本，新版本的错误码留着 |
 | 停用、卸载 | 先撤回权限码与回调授予，再让宿主停掉插件；在途调用照常完成或以框架的 `PLUGINS_UNAVAILABLE_001` 结束 |
 | 失败 | 只让这个插件失败：错误码记进 `lastErrorCode`，健康项 `basicapp.plugins` 降级；原因排除后再启用一次即重试 |
@@ -125,6 +127,15 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 回调授权 | 插件回调宿主操作时以插件主体执行（主体 ID 是清单 ID、认证方案 `Plugin`），只持有批准的 `callback:<权限码>`，照常经作用侧与套餐收窄，其余即 `SECURITY_DENIED_004` |
 | 数据范围 | 插件主体在租户侧缺省什么都看不到（受数据范围约束的列表查不到行），批准了 `data-scope:all` 才不受限；平台侧不受限 |
 | 菜单 | 旁挂清单的页面装好即进「插件应用」目录（`custom.plugin-apps`），与内置页面一样按「页面菜单归登记」对齐、可在菜单管理里定制；插件没在本节点加载时不下发，节点与运营的展示调整留着；卸载才删 |
+| 文案 | 插件的失败、权限码的显示名与说明（`permissions.<码>.name` / `.description`）、操作标题按握手的消息目录翻译成调用方的语言 |
+
+## 插件的页面与接口文档
+
+`plugin-views.list` 给前端运行期用：本节点加载成功、调用方能打开的插件页面。每个插件给出短名、清单 ID 与加载的版本，每个页面给出页面码、路由、组件路径（与菜单节点上的一致）、标题键、图标、次序、所需权限码、视图种类与视图描述的 JSON 原文（包里 `view.file` 的内容，加载时读入），以及插件发布到 HTTP 的操作的路由。页面要的权限码按调用方当前的有效权限判定，没有可见页面的插件不列出。
+
+每个加载成功的插件在接口文档里单独一组：组名是短名，归属是清单 ID，排在各包的分组之后（序号从 1000 起）。全量 `/openapi.json` 的 `x-tagGroups` 多出这一组，`/openapi/<短名>.json` 只含这个插件的操作，标题与说明取插件的消息目录；停用或卸载即撤回。导出的契约快照（`frontend/contracts`）不加载插件，只有内置操作。
+
+`backend/samples/CrmPlugin` 是一个进程外插件示例（短名 `crm`）：按租户在进程内存客户，演示两份清单、握手的消息目录、前端文案与页面描述怎样写；集成测试用它走安装到卸载的全程。
 
 ## 卸载
 

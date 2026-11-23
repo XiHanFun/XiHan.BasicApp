@@ -1,0 +1,435 @@
+// Copyright (c) XiHanFun Contributors. Licensed under the MIT License.
+// See the LICENSE file in the project root for full license text.
+
+// XiHan 进程外插件协议 xihan.plugin.v1（RFC-0017，规范性）。
+//
+// 宿主启动插件进程；插件以 gRPC 服务端提供 Plugin 服务，宿主以 gRPC 服务端提供 Host 服务供插件回调。
+// 业务载荷与 Schema 一律是 UTF-8 JSON（XGI 的规范编码，RFC-0011），协议不重复定义业务消息；
+// 清单、配置与错误细节也以 JSON 文本携带，各语言 SDK 只需 protobuf 与 JSON 两种编解码。
+// 启动方式、握手行、版本协商与会话令牌见 handshake.md；状态机、健康、重启与激活见 lifecycle.md；
+// 调用、流式、事件投递、回调与错误映射见 invocation.md；Wasm 载体（导出函数 + 线性内存，JSON 编码）见 wasm.md。
+
+syntax = "proto3";
+
+package xihan.plugin.v1;
+
+option csharp_namespace = "XiHan.Framework.Plugins.Protocol.V1";
+option go_package = "github.com/xihanfun/framework-sdk-go/plugin/v1;pluginv1";
+
+// ---------------------------------------------------------------------------
+// 服务
+// ---------------------------------------------------------------------------
+
+// 插件实现、宿主调用。调用顺序：Handshake → Configure → Start → (Invoke | InvokeStream | HandleEvent | Health | WatchHealth)* → Stop。
+// 每次调用都带元数据 `xihan-plugin-session`（会话令牌），插件校验，缺失或不匹配以 `Unauthenticated` 拒绝（`handshake.md` §4）。
+service Plugin {
+  // 握手：协商协议版本、核对原语层版本、交换清单、操作与订阅声明、消息目录。
+  rpc Handshake(HandshakeRequest) returns (HandshakeResponse);
+  // 配置：下发配置节、已授予的权限、资源绑定与工作目录。
+  rpc Configure(ConfigureRequest) returns (ConfigureResponse);
+  // 启动；返回后插件应能接受调用。
+  rpc Start(StartRequest) returns (StartResponse);
+  // 停止：在宽限期内完成在途调用并释放资源；返回后宿主等待进程退出。
+  rpc Stop(StopRequest) returns (StopResponse);
+  // 健康探测。
+  rpc Health(HealthRequest) returns (HealthResponse);
+  // 健康推送：订阅后先发当前状态，之后状态或健康项变化时各发一条。
+  rpc WatchHealth(HealthRequest) returns (stream HealthResponse);
+  // 调用插件服务的一个一元操作。
+  rpc Invoke(InvokeRequest) returns (InvokeResponse);
+  // 调用插件服务的一个流式操作：双向帧流，见 invocation.md。
+  rpc InvokeStream(stream StreamFrame) returns (stream StreamFrame);
+  // 把一条消息投递给插件的事件处理器。
+  rpc HandleEvent(HandleEventRequest) returns (HandleEventResponse);
+}
+
+// 宿主实现、插件回调。每次调用必须带元数据 `xihan-plugin-session`（握手前经环境变量下发的会话令牌）。
+service Host {
+  // 经宿主的完整管道调用一个操作；需要权限 `capability:kernel.pipeline`。
+  rpc Invoke(InvokeRequest) returns (InvokeResponse);
+  // 经宿主的消息代理发布消息（批量，逐项结果）；需要权限 `capability:messaging.queue`。
+  rpc Publish(PublishRequest) returns (PublishResponse);
+}
+
+// ---------------------------------------------------------------------------
+// 握手
+// ---------------------------------------------------------------------------
+
+// 宿主 → 插件。
+message HandshakeRequest {
+  // 宿主支持的协议版本，升序；插件选其中最高的自己也支持的版本。
+  repeated uint32 protocol_versions = 1;
+  // 宿主的原语层大版本（清单 `primitives`）。
+  uint32 primitives = 2;
+  // 本次启动的实例 ID（宿主分配，仅用于日志与诊断）。
+  string instance_id = 3;
+  // 宿主信息。
+  HostInfo host = 4;
+  // 宿主回调服务地址（与环境变量 `XIHAN_PLUGIN_HOST_ADDRESS` 相同）。
+  Endpoint host_endpoint = 5;
+  // 宿主默认区域（BCP 47）。
+  string default_locale = 6;
+}
+
+// 宿主信息。
+message HostInfo {
+  // 框架版本（SemVer）。
+  string framework_version = 1;
+  // 宿主 SDK 名（`dotnet`、`go` 等）。
+  string sdk = 2;
+  // 宿主 SDK 版本。
+  string sdk_version = 3;
+  // 应用名；可空。
+  string application = 4;
+}
+
+// 一个 gRPC 端点。
+message Endpoint {
+  // 网络类型：`unix`（Unix 域套接字）、`tcp`（仅回环地址）、`npipe`（Windows 命名管道）。
+  string network = 1;
+  // 地址：套接字路径、`host:port` 或管道名。
+  string address = 2;
+}
+
+// 插件 → 宿主。
+message HandshakeResponse {
+  // 插件选定的协议版本；不在宿主列表里即握手失败（`PLUGINS_VALIDATION_003`）。
+  uint32 protocol_version = 1;
+  // 插件的原语层大版本；与宿主不同即握手失败（`PLUGINS_VALIDATION_004`）。
+  uint32 primitives = 2;
+  // 插件清单 `xihan.manifest.json` 的 JSON 文本（RFC-0002）；必须与插件目录里的文件一致，
+  // `kind` 为 `plugin`、`isolation` 为 `out-of-process`。
+  string manifest = 3;
+  // 插件 SDK 信息。
+  SdkInfo sdk = 4;
+  // 插件服务的操作；每个 ID 必须出现在清单 `contributes.operations` 里。
+  repeated OperationDeclaration operations = 5;
+  // 插件订阅的主题；宿主据此与清单 `activation` 的 `onEvent:` 投递事件。
+  repeated Subscription subscriptions = 6;
+  // 插件的消息目录（RFC-0010）；宿主据此翻译插件返回的错误。
+  repeated MessageCatalog catalogs = 7;
+}
+
+// 插件 SDK 信息。
+message SdkInfo {
+  // SDK 名（`xihan-go`、`XiHan.Framework` 等）。
+  string name = 1;
+  // SDK 版本。
+  string version = 2;
+  // 实现语言。
+  string language = 3;
+}
+
+// 一个操作的契约与 Schema（RFC-0011 的 `OperationContract` + `OperationSchema`）。
+message OperationDeclaration {
+  // 操作 ID（`conventions/operation-ids.md`）。
+  string id = 1;
+  // 稳定性：`stable` / `preview` / `experimental` / `internal` / `deprecated`。
+  string stability = 2;
+  // 暴露给哪些协议：`http`、`grpc`、`mcp`、`commandline`、`ai` 的任意组合；空表示不对外发布。
+  repeated string expose = 3;
+  // 授权要求：权限码；与 `policy` 二选一，都空表示无要求。
+  string permission = 4;
+  // 授权要求：策略名。
+  string policy = 5;
+  // 请求的 JSON Schema（draft 2020-12）文本；可空。
+  string request_schema = 6;
+  // 响应的 JSON Schema 文本；可空。
+  string response_schema = 7;
+  // 为真时以 InvokeStream 调用，否则以 Invoke 调用。
+  bool streaming = 8;
+}
+
+// 一个事件订阅。
+message Subscription {
+  // 主题（RFC-0009 文法）。
+  string topic = 1;
+  // 只投递该 CloudEvents `type` 的消息；空表示主题下全部。
+  string message_type = 2;
+  // 订阅方式（RFC-0009「订阅方式」）：`competing`（订阅了主题的宿主实例里只有一个收到）或
+  // `broadcast`（每个在线的宿主实例各收到一份，尽力而为、不进死信）；空同 `competing`。
+  string mode = 3;
+}
+
+// 一个消息目录：目录名 + 每种区域的键 → 模板。
+message MessageCatalog {
+  // 目录名；默认取清单 ID 的领域段。
+  string name = 1;
+  // 各区域的模板。
+  repeated LocaleTemplates locales = 2;
+}
+
+// 一种区域的模板。
+message LocaleTemplates {
+  // 区域（BCP 47，如 `en-US`）。
+  string locale = 1;
+  // 消息键 → 模板（`{name}` 占位符，可带 `:format`）。
+  map<string, string> templates = 2;
+}
+
+// ---------------------------------------------------------------------------
+// 配置与生命周期
+// ---------------------------------------------------------------------------
+
+// 宿主 → 插件。
+message ConfigureRequest {
+  // 清单 `contributes.config.section` 节的 JSON 对象文本；没有声明配置节时为 `{}`。
+  string configuration = 1;
+  // 宿主授予的权限；等于清单 `permissions`（缺一项宿主就不会走到这一步）。
+  repeated string granted_permissions = 2;
+  // 已解析的资源绑定（清单 `bindings`）。
+  repeated Binding bindings = 3;
+  // 宿主为插件分配的可写工作目录。
+  string work_directory = 4;
+}
+
+// 一个已解析的资源绑定。
+message Binding {
+  // 绑定名。
+  string name = 1;
+  // 资源类型（`connection:relational`、`cache:distributed`、`queue`、`blob`）。
+  string type = 2;
+  // 连接串或地址。
+  string value = 3;
+}
+
+// 配置结果。
+message ConfigureResponse {
+  // 失败即插件进入 Failed。
+  Status status = 1;
+}
+
+// 启动请求；保留为空消息以便扩展。
+message StartRequest {}
+
+// 启动结果。
+message StartResponse {
+  // 失败即插件进入 Failed。
+  Status status = 1;
+}
+
+// 宿主 → 插件。
+message StopRequest {
+  // 宽限秒数；超过后宿主终止进程。
+  uint32 grace_seconds = 1;
+  // 原因：`shutdown`（宿主停止）、`unload`（卸载）、`restart`（重启）。
+  string reason = 2;
+}
+
+// 停止结果。
+message StopResponse {
+  // 失败只记录，进程仍会被回收。
+  Status status = 1;
+}
+
+// 健康请求；保留为空消息以便扩展。
+message HealthRequest {}
+
+// 健康应答。
+message HealthResponse {
+  // 插件自报的生命周期状态。
+  LifecycleState state = 1;
+  // 健康项；名字须在清单 `contributes.health` 里声明。
+  repeated HealthItem items = 2;
+  // Degraded / Failed 时的原因；可空。
+  Error error = 3;
+}
+
+// 一个健康项。
+message HealthItem {
+  // 健康项名。
+  string name = 1;
+  // 状态。
+  HealthStatus status = 2;
+  // 说明；可空。
+  string description = 3;
+}
+
+// 健康项状态。
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_DEGRADED = 2;
+  HEALTH_STATUS_UNHEALTHY = 3;
+}
+
+// 生命周期状态；数值与原语层 `LifecycleState` 一致（RFC-0001）。
+enum LifecycleState {
+  LIFECYCLE_STATE_DECLARED = 0;
+  LIFECYCLE_STATE_RESOLVED = 1;
+  LIFECYCLE_STATE_CONFIGURED = 2;
+  LIFECYCLE_STATE_STARTED = 3;
+  LIFECYCLE_STATE_READY = 4;
+  LIFECYCLE_STATE_DEGRADED = 5;
+  LIFECYCLE_STATE_DRAINING = 6;
+  LIFECYCLE_STATE_STOPPED = 7;
+  LIFECYCLE_STATE_FAILED = 8;
+}
+
+// ---------------------------------------------------------------------------
+// 调用
+// ---------------------------------------------------------------------------
+
+// 随调用传播的上下文（RFC-0003）；与 HTTP / gRPC 载体同源。
+message InvocationMetadata {
+  // W3C `traceparent`。
+  string trace_parent = 1;
+  // W3C `tracestate`；可空。
+  string trace_state = 2;
+  // 绝对截止时间（RFC 3339，UTC）；可空。gRPC 调用自身的截止时间必须与之一致。
+  string deadline = 3;
+  // 已登记的 Baggage（`conventions/baggage-keys.md`，键名原样），未登记的键必须剥离。
+  // 回调时 `xihan.tenant` 只能是宿主随调用交给插件的租户（`invocation.md` §2、§5）。
+  map<string, string> baggage = 4;
+}
+
+// 一次操作调用（RFC-0011 的 `OperationRequest`）。
+message InvokeRequest {
+  // 操作 ID。
+  string operation = 1;
+  // 请求载荷：请求类型的 UTF-8 JSON；空等价于 `{}`。
+  bytes payload = 2;
+  // 上下文。
+  InvocationMetadata metadata = 3;
+}
+
+// 调用结果（RFC-0011 的 `OperationResponse`）。
+message InvokeResponse {
+  // 结果；失败时 `payload` 为空。
+  Status status = 1;
+  // 成功时响应类型的 UTF-8 JSON。
+  bytes payload = 2;
+}
+
+// 流式调用的一帧。调用方先发 `start`，然后零个或多个 `chunk`，最后 `end`；被调方发零个或多个 `chunk`，最后 `end`。
+message StreamFrame {
+  oneof frame {
+    // 第一帧：操作、上下文与（可选的）起始载荷。
+    InvokeRequest start = 1;
+    // 一个完整的 JSON 值（UTF-8）。
+    bytes chunk = 2;
+    // 结束帧：`ok` 为正常结束，否则为中止原因。
+    Status end = 3;
+  }
+}
+
+// 宿主 → 插件：投递一条消息。
+message HandleEventRequest {
+  // 信封。
+  Envelope envelope = 1;
+  // 上下文（Baggage 与追踪来自信封扩展属性）。
+  InvocationMetadata metadata = 2;
+  // 投递次数，从 1 起。
+  uint32 attempt = 3;
+  // 这次投递的订阅方式（RFC-0009「订阅方式」）：`competing` 或 `broadcast`，宿主总是填写；空同 `competing`。
+  // 插件只把消息交给以这种方式订阅了该主题、类型也匹配的处理器：同一主题的不同类型可以各用一种方式，
+  // 一条消息可能以两种方式各到一次，没有它插件分不出该交给哪个处理器。
+  string mode = 4;
+}
+
+// 投递结果；失败按宿主消息代理的重试与死信策略处理。
+message HandleEventResponse {
+  // 结果。
+  Status status = 1;
+}
+
+// CloudEvents 1.0 信封（RFC-0009）。
+message Envelope {
+  // 主题。
+  string topic = 1;
+  // `id`。
+  string id = 2;
+  // `source`。
+  string source = 3;
+  // `type`。
+  string type = 4;
+  // `specversion`；固定 `1.0`。
+  string spec_version = 5;
+  // `subject`；可空。
+  string subject = 6;
+  // `time`（RFC 3339）；可空。
+  string time = 7;
+  // `datacontenttype`；默认 `application/json`。
+  string data_content_type = 8;
+  // `data`。
+  bytes data = 9;
+  // 扩展属性。
+  map<string, string> extensions = 10;
+}
+
+// 插件 → 宿主：发布消息。
+message PublishRequest {
+  // 信封；每个信封的 `topic` 必须非空。
+  repeated Envelope envelopes = 1;
+  // 上下文；宿主以插件身份执行，只采用其中的追踪与已登记 Baggage。
+  InvocationMetadata metadata = 2;
+}
+
+// 发布结果，与 `envelopes` 一一对应。
+message PublishResponse {
+  // 逐项结果。
+  repeated Status results = 1;
+}
+
+// ---------------------------------------------------------------------------
+// 中间件钩子（仅 wasm 隔离使用，RFC-0018；进程外插件不贡献中间件）
+// ---------------------------------------------------------------------------
+
+// 宿主 → 插件：一次调用进入下游之前（before）或之后（after）。
+message MiddlewareRequest {
+  // 清单 `contributes.pipeline` 里的中间件名。
+  string middleware = 1;
+  // 阶段：`ingress`、`observe`、`resilience`、`authenticate`、`tenant`、`authorize`、`validate`、`idempotency`、`transaction`、`egress`。
+  string stage = 2;
+  // `before` 或 `after`。
+  string phase = 3;
+  // 上下文：追踪、截止时间、已登记 Baggage。
+  InvocationMetadata metadata = 4;
+  // 操作 ID；非操作调用为空。
+  string operation = 5;
+  // `after`：下游结果；`before`：空。
+  Status outcome = 6;
+}
+
+// 插件 → 宿主。
+message MiddlewareResponse {
+  // 只在 `before` 有效；`after` 忽略。
+  MiddlewareAction action = 1;
+  // `SHORT_CIRCUIT` 时的调用结果；必须是失败。
+  Status outcome = 2;
+  // 追加或改写的已登记 Baggage（`xihan.principal` 与 `xihan.tenant` 不可改写）；只在 `before` 有效。
+  map<string, string> baggage = 3;
+}
+
+// 中间件动作。
+enum MiddlewareAction {
+  MIDDLEWARE_ACTION_UNSPECIFIED = 0;
+  MIDDLEWARE_ACTION_CONTINUE = 1;
+  MIDDLEWARE_ACTION_SHORT_CIRCUIT = 2;
+}
+
+// ---------------------------------------------------------------------------
+// 结果与错误（RFC-0001 的线上编码）
+// ---------------------------------------------------------------------------
+
+// 成功或失败；失败必有 `error`。
+message Status {
+  // 是否成功。
+  bool ok = 1;
+  // 失败原因。
+  Error error = 2;
+}
+
+// 错误（RFC-0001 `Error`）。
+message Error {
+  // 错误码 `<DOMAIN>_<KIND>_<NNN>`。
+  string code = 1;
+  // 消息键；可空。
+  string message_key = 2;
+  // 已解析的文案；可空（`Error.Literal` 创建的错误带文案、无键）。
+  string text = 3;
+  // 模板参数与结构化细节：JSON 对象文本；可空。
+  string details = 4;
+  // 内部错误；可空。
+  Error inner = 5;
+}

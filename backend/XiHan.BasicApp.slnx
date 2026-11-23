@@ -30,6 +30,9 @@
   <Folder Name="/Host/">
     <Project Path="src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
   </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="samples/CrmPlugin/CrmPlugin.csproj" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="test/XiHan.BasicApp.Architecture.Tests/XiHan.BasicApp.Architecture.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Integration.Tests/XiHan.BasicApp.Integration.Tests.csproj" />

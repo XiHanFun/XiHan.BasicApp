@@ -17,6 +17,7 @@ using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Plugins;
+using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -57,7 +58,7 @@ public sealed class PluginReconcilerTests : IDisposable
         var server = await BasicAppTestServer.StartAsync(
             _database.ConnectionString,
             settings: [new("BasicApp:Files:LocalRootPath", Path.Combine(_root, "files")), new("BasicApp:Plugins:CacheDirectory", CacheDirectory), .. settings],
-            configure: static builder => builder.Services.AddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => new StandInPluginHost(services.GetRequiredService<XiHan.Framework.Kernel.Operations.OperationRegistry>())));
+            configure: static builder => builder.Services.AddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => new StandInPluginHost(services.GetRequiredService<XiHan.Framework.Kernel.Operations.OperationRegistry>(), services.GetRequiredService<MessageCatalogRegistry>())));
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
         var platform = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
@@ -169,6 +170,28 @@ public sealed class PluginReconcilerTests : IDisposable
         Assert.Null(ErrorCodeOf(recovered, "errorCode"));
         Assert.Null(ErrorCodeOf((await DetailAsync(server, platform, id)).GetProperty("plugin"), "lastErrorCode"));
         Assert.Equal("Ready", server.HealthStates()[PluginsHealthContributor.Name]);
+    }
+
+    [Fact]
+    public async Task CatalogWithoutTheDocumentKeys_FailsTheLoad_AndTheHostUnloadsIt()
+    {
+        var (server, platform, host) = await StartAsync();
+        await using var _ = server;
+        var id = await InstallAsync(server, platform, PluginsTests.Package(), Cache, Config);
+        host.WithoutCatalog = true;
+
+        // 宿主加载成功，但插件的消息目录没有接口文档的分组名：这次加载算失败，插件被卸掉，贡献不进运行期目录
+        await SwitchAsync(server, platform, id, enable: true);
+        var failed = await StatusAsync(server, platform, id);
+        Assert.Equal((false, PluginsErrors.CatalogIncomplete), (failed.GetProperty("isLoaded").GetBoolean(), ErrorCodeOf(failed, "errorCode")));
+        Assert.Equal([PluginsTests.ManifestId], host.Unloads);
+        Assert.Empty(host.Plugins);
+        Assert.Null(server.Services.GetRequiredService<RegisteredPermissions>().Find(PluginsTests.Read));
+
+        // 插件补上目录后再启用即加载
+        host.WithoutCatalog = false;
+        await SwitchAsync(server, platform, id, enable: true);
+        Assert.True((await StatusAsync(server, platform, id)).GetProperty("isLoaded").GetBoolean());
     }
 
     [Fact]
@@ -308,7 +331,7 @@ public sealed class PluginReconcilerTests : IDisposable
         var (server, platform, tenant) = await SettingsTestHost.StartAsync(_database.ConnectionString, configure: builder =>
         {
             builder.Configuration.AddInMemoryCollection([new("BasicApp:Files:LocalRootPath", Path.Combine(_root, "files")), new("BasicApp:Plugins:CacheDirectory", CacheDirectory)]);
-            builder.Services.AddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => new StandInPluginHost(services.GetRequiredService<XiHan.Framework.Kernel.Operations.OperationRegistry>()));
+            builder.Services.AddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => new StandInPluginHost(services.GetRequiredService<XiHan.Framework.Kernel.Operations.OperationRegistry>(), services.GetRequiredService<MessageCatalogRegistry>()));
         });
         await using var _ = server;
         const string Read = PluginsTests.Read;

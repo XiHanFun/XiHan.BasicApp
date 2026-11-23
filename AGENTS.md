@@ -37,6 +37,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 │  ├─ XiHanFun.Local.slnx               # 另含同级框架源码工程，联调框架用
 │  ├─ props/framework.props             # 框架引用方式：包版本与源码的锁定提交
 │  ├─ src/XiHan.BasicApp.<包>/          # 能力包；Host 是宿主（配置、表结构脚本、普通端点）
+│  ├─ samples/CrmPlugin/                # 进程外插件示例，集成测试装成插件包走全程
 │  └─ test/                             # Architecture.Tests、Integration.Tests
 ├─ frontend/
 │  ├─ contracts/                        # 后端导出的 openapi.json、realtime.json（入库）

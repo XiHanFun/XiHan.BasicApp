@@ -316,6 +316,11 @@
       "description": "The catalog of grantable permissions."
     },
     {
+      "name": "plugin-views",
+      "x-displayName": "Plugin pages",
+      "description": "The pages that loaded plugins contribute to the frontend."
+    },
+    {
       "name": "plugins",
       "x-displayName": "Plugins",
       "description": "Installed plugins, their versions and the grants approved for them."
@@ -45167,6 +45172,55 @@
         }
       }
     },
+    "/api/plugin-views": {
+      "get": {
+        "operationId": "plugin-views.list",
+        "tags": [
+          "plugin-views"
+        ],
+        "summary": "List plugin pages",
+        "description": "The pages of loaded plugins that the caller may open, with each page\u0027s view description and the HTTP routes of the plugin\u0027s operations; the frontend reads it at runtime to render plugin pages.\n\nRequires sign-in.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "\u8C03\u7528\u65B9\u80FD\u6253\u5F00\u7684\u63D2\u4EF6\u9875\u9762",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PluginViewsResponse",
+                  "description": "\u8C03\u7528\u65B9\u80FD\u6253\u5F00\u7684\u63D2\u4EF6\u9875\u9762",
+                  "type": "object",
+                  "properties": {
+                    "plugins": {
+                      "description": "\u6709\u53EF\u89C1\u9875\u9762\u7684\u5DF2\u52A0\u8F7D\u63D2\u4EF6\uFF0C\u6309\u77ED\u540D",
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PluginViewResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "plugins"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/plugins": {
       "delete": {
         "operationId": "plugins.delete",
@@ -77028,6 +77082,133 @@
           "createdAt"
         ]
       },
+      "PluginViewOperationResponse": {
+        "description": "\u63D2\u4EF6\u4E00\u4E2A\u64CD\u4F5C\u7684 HTTP \u8DEF\u7531",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\u64CD\u4F5C ID",
+            "type": "string"
+          },
+          "method": {
+            "description": "HTTP \u65B9\u6CD5",
+            "type": "string"
+          },
+          "path": {
+            "description": "\u8DEF\u7531\u6A21\u677F\uFF08\u542B\u524D\u7F00\uFF0C\u5982 /api/crm-customers/{id}\uFF09",
+            "type": "string"
+          },
+          "permission": {
+            "description": "\u64CD\u4F5C\u8981\u7684\u6743\u9650\u7801\uFF1B\u4E3A\u7A7A\u5373\u6CA1\u6709\u6743\u9650\u8981\u6C42",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "method",
+          "path"
+        ]
+      },
+      "PluginViewPageResponse": {
+        "description": "\u63D2\u4EF6\u7684\u4E00\u4E2A\u9875\u9762",
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "\u9875\u9762\u7801",
+            "type": "string"
+          },
+          "route": {
+            "description": "\u8DEF\u7531",
+            "type": "string"
+          },
+          "component": {
+            "description": "\u7EC4\u4EF6\u8DEF\u5F84\uFF0C\u4E0E\u83DC\u5355\u8282\u70B9\u4E0A\u7684\u4E00\u81F4",
+            "type": "string"
+          },
+          "titleKey": {
+            "description": "\u6807\u9898\u7684\u524D\u7AEF\u6587\u6848\u952E",
+            "type": "string"
+          },
+          "icon": {
+            "description": "\u56FE\u6807",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "description": "\u6B21\u5E8F",
+            "type": "integer",
+            "format": "int32"
+          },
+          "permission": {
+            "description": "\u6253\u5F00\u9875\u9762\u8981\u7684\u6743\u9650\u7801\uFF1B\u4E3A\u7A7A\u5373\u767B\u5F55\u53EF\u89C1",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "viewKind": {
+            "description": "\u89C6\u56FE\u79CD\u7C7B",
+            "type": "string"
+          },
+          "viewJson": {
+            "description": "\u89C6\u56FE\u63CF\u8FF0\u7684 JSON \u539F\u6587",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "route",
+          "component",
+          "titleKey",
+          "order",
+          "viewKind",
+          "viewJson"
+        ]
+      },
+      "PluginViewResponse": {
+        "description": "\u4E00\u4E2A\u5DF2\u52A0\u8F7D\u63D2\u4EF6\u7684\u9875\u9762\u4E0E\u64CD\u4F5C\u8DEF\u7531",
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "\u77ED\u540D",
+            "type": "string"
+          },
+          "manifestId": {
+            "description": "\u6E05\u5355 ID",
+            "type": "string"
+          },
+          "version": {
+            "description": "\u672C\u8282\u70B9\u52A0\u8F7D\u7684\u7248\u672C",
+            "type": "string"
+          },
+          "pages": {
+            "description": "\u8C03\u7528\u65B9\u80FD\u6253\u5F00\u7684\u9875\u9762\uFF0C\u6309\u6B21\u5E8F\u4E0E\u9875\u9762\u7801",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PluginViewPageResponse"
+            }
+          },
+          "operations": {
+            "description": "\u63D2\u4EF6\u53D1\u5E03\u5230 HTTP \u7684\u64CD\u4F5C\uFF0C\u6309\u64CD\u4F5C ID",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PluginViewOperationResponse"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "manifestId",
+          "version",
+          "pages",
+          "operations"
+        ]
+      },
       "PositionResponse": {
         "description": "\u5C97\u4F4D\u7684\u7F51\u7EDC\u5951\u7EA6",
         "type": "object",
@@ -82529,6 +82710,7 @@
     {
       "name": "Plugins",
       "tags": [
+        "plugin-views",
         "plugins"
       ]
     },

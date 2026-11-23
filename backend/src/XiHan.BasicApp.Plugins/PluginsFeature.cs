@@ -24,6 +24,7 @@ using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Plugins.OutOfProcess;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
+using XiHan.Framework.Protocols.Http.OpenApi;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
@@ -86,6 +87,8 @@ public sealed class PluginsFeature : IHostedFeature
         context.Services.TryAddKeyedSingleton<IPluginHost>(PluginIsolation.OutOfProcess, static (services, _) => services.GetRequiredService<OutOfProcessPluginHost>());
         context.Services.AddSingleton<PluginPages>();
         context.Services.AddSingleton<IRuntimePageSource>(static sp => sp.GetRequiredService<PluginPages>());
+        // 每个已加载的插件一组接口文档，随加载与卸载出现与撤回
+        context.Services.AddSingleton<IOpenApiGroupSource, PluginOpenApiGroups>();
         context.Services.AddSingleton<PluginCache>();
         context.Services.AddSingleton<PluginReconciler>();
         context.Services.AddScoped<PluginChanges>();

@@ -8,7 +8,9 @@ using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Plugins.Domain.Entities;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Domain.Specifications;
+using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Plugins;
+using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -22,6 +24,7 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// <remarks>
 /// 方案 5.4：启动时与管理操作提交后各对齐一次。已安装插件的页面变了先把菜单对齐过去（<see cref="PluginPages"/>）；再卸掉不再启用的，逐个加载启用的：版本或授予变了先卸后载；加载成功即把运行期贡献放进 <see cref="PluginRuntimeCatalog"/>
 /// 加载失败只让这个插件失败：错误码记进 <c>sys_plugin.last_error_code</c>，节点的健康项降级；换版本失败时重载旧版本，旧版本也起不来就留着失败
+/// 宿主加载成功后再核对插件的消息目录（随握手进本地化器）：接口文档的分组名与说明、每个资源标签的显示名要有 en-US，缺了即卸掉、记为失败
 /// 插件宿主按隔离级别取键控服务 <see cref="IPluginHost"/>，没装的隔离级别 <c>PLUGINS_UNAVAILABLE_101</c>
 /// 一次对齐有总时限（<see cref="PluginsOptions.ReconcileTimeoutSeconds"/>），超时的插件记为失败，下一次对齐再试；对齐之间串行
 /// </remarks>
@@ -34,6 +37,11 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// <param name="logger">日志</param>
 public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServiceProvider services, PluginCache cache, PluginRuntimeCatalog catalog, PluginPages pages, PluginsOptions options, ILogger<PluginReconciler> logger) : IDisposable
 {
+    /// <summary>
+    /// 插件消息目录必有的源语言
+    /// </summary>
+    private const string SourceLocale = "en-US";
+
     private bool _menusStale;
 
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -218,6 +226,12 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
             return Fail(release, directory.Error!);
         }
 
+        var views = await ReadViewsAsync(release, path, cancellationToken).ConfigureAwait(false);
+        if (!views.TryGetValue(out var pageViews))
+        {
+            return Fail(release, views.Error!);
+        }
+
         await RemoveFromHostAsync(host, release.ManifestId, cancellationToken).ConfigureAwait(false);
         var loaded = await host.LoadAsync(new PluginSource(path, release.HostGrant), cancellationToken).ConfigureAwait(false);
         if (!loaded.TryGetValue(out var status))
@@ -226,10 +240,61 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
             return Fail(release, loaded.Error!);
         }
 
+        var localizer = services.GetRequiredService<IMessageLocalizer>();
+        if (MissingKey(release, localizer) is { } missing)
+        {
+            await RemoveFromHostAsync(host, release.ManifestId, cancellationToken).ConfigureAwait(false);
+            return Fail(release, Error.Validation(PluginsErrors.CatalogIncomplete, PluginsMessages.CatalogIncomplete, MessageArguments.Of(("name", release.Name), ("key", missing))));
+        }
+
         Volatile.Write(ref _loaded, _loaded.SetItem(release.ManifestId, release));
-        catalog.Put(release.ToLoaded());
+        catalog.Put(release.ToLoaded(pageViews, key => localizer.Find(key, SourceLocale).TryGetValue(out var template) ? template : null));
         LogLoaded(logger, release.ManifestId, release.Version, status.State);
         return Result.Success();
+    }
+
+    /// <summary>
+    /// 读入页面的视图描述
+    /// </summary>
+    /// <remarks>
+    /// 安装时核对过文件在包里，这里读不出同样当包不可用
+    /// </remarks>
+    private async Task<Result<IReadOnlyDictionary<string, string>>> ReadViewsAsync(PluginRelease release, string directory, CancellationToken cancellationToken)
+    {
+        var views = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var file in release.ReadDescriptor().Pages.Select(static p => p.View.File).Distinct(StringComparer.Ordinal))
+        {
+            try
+            {
+                views[file] = await File.ReadAllTextAsync(Path.Combine(directory, file), cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                LogViewUnreadable(logger, exception, release.ManifestId, file);
+                return Error.Unavailable(PluginsErrors.PackageUnavailable, PluginsMessages.PackageUnavailable, MessageArguments.Of(("name", release.Name), ("version", release.Version)));
+            }
+        }
+
+        return views;
+    }
+
+    /// <summary>
+    /// 插件的消息目录缺的第一个接口文档用键
+    /// </summary>
+    /// <remarks>
+    /// 分组名与说明（组名即短名）、插件每个资源的标签显示名，都按 en-US 找；资源取宿主里归属这个插件的操作。键里的连字符换成下划线，与接口文档生成器的找法一致
+    /// </remarks>
+    private string? MissingKey(PluginRelease release, IMessageLocalizer localizer)
+    {
+        var group = release.Name.Replace('-', '_');
+        var resources = services.GetRequiredService<OperationRegistry>().All()
+            .Where(d => string.Equals(d.OwnerId, release.ManifestId, StringComparison.Ordinal))
+            .Select(static d => d.Contract.Resource.Replace('-', '_'))
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal);
+        return new[] { $"openapi.groups.{group}.name", $"openapi.groups.{group}.description" }
+            .Concat(resources.Select(static r => $"openapi.tags.{r}.name"))
+            .FirstOrDefault(key => !localizer.Find(key, SourceLocale).HasValue);
     }
 
     /// <summary>
@@ -301,6 +366,9 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Plugin {ManifestId} {Version} loaded ({State}).")]
     private static partial void LogLoaded(ILogger logger, string manifestId, string version, LifecycleState state);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "The view '{File}' of plugin {ManifestId} could not be read from its package directory.")]
+    private static partial void LogViewUnreadable(ILogger logger, Exception exception, string manifestId, string file);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Plugin {ManifestId} {Version} unloaded.")]
     private static partial void LogUnloaded(ILogger logger, string manifestId, string version);

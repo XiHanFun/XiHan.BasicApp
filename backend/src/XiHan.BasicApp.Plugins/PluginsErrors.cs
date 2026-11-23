@@ -53,6 +53,11 @@ public static class PluginsErrors
     public const string QueryUnsupported = "PLUGINS_VALIDATION_107";
 
     /// <summary>
+    /// 加载后插件的消息目录缺少分组或资源标签的显示名
+    /// </summary>
+    public const string CatalogIncomplete = "PLUGINS_VALIDATION_108";
+
+    /// <summary>
     /// 清单 ID 或短名已经安装过
     /// </summary>
     public const string AlreadyInstalled = "PLUGINS_CONFLICT_101";

@@ -62,5 +62,10 @@
   "plugins.runtime.package_unavailable": "プラグイン '{name}' バージョン {version} のパッケージがファイルストレージにないか、インストール時の SHA-256 と一致しません。",
   "plugins.delete_preview.title": "プラグインのアンインストールをプレビュー",
   "plugins.delete_preview.description": "プラグインのアンインストールで削除されるものを一覧します。全バージョンの権限コードと、それらへの参照（ロールとユーザーの付与、付与ルール、権限条件、委任、相互排他制約、運用ノードのゲート権限コード、プランのホワイトリスト）です。各テナントのデータベースにある審査待ちの権限申請は一覧するだけで残します。",
-  "plugins.package.runtime_conflict": "プラグインパッケージのルートとこのサーバーのランタイムディレクトリの両方に '{path}' があります。"
+  "plugins.package.runtime_conflict": "プラグインパッケージのルートとこのサーバーのランタイムディレクトリの両方に '{path}' があります。",
+  "plugins.runtime.catalog_incomplete": "プラグイン '{name}' のメッセージカタログに en-US の '{key}' がありません。",
+  "plugin_views.list.title": "プラグインページを一覧",
+  "plugin_views.list.description": "呼び出し元が開ける読み込み済みプラグインのページ。各ページのビュー定義とプラグイン操作の HTTP ルートを含みます。フロントエンドは実行時にこれを読んでプラグインページを描画します。",
+  "openapi.tags.plugin_views.name": "プラグインページ",
+  "openapi.tags.plugin_views.description": "読み込み済みプラグインがフロントエンドに提供するページ。"
 }

@@ -15,8 +15,8 @@
     升级框架时包版本与锁定提交一起改，两者指向同一份框架代码。
   -->
   <PropertyGroup>
-    <XiHanFrameworkCommit>269f99769</XiHanFrameworkCommit>
-    <XiHanFrameworkPackageVersion>5.0.0-rc.6</XiHanFrameworkPackageVersion>
+    <XiHanFrameworkCommit>ad5a163a2</XiHanFrameworkCommit>
+    <XiHanFrameworkPackageVersion>5.0.0-rc.7</XiHanFrameworkPackageVersion>
     <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND '$(XiHanFrameworkSrc)' != ''">true</UseXiHanFrameworkSource>
     <XiHanFrameworkSrc Condition="'$(XiHanFrameworkSrc)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..\..\..\XiHan.Framework\framework\src'))</XiHanFrameworkSrc>
     <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND $(SolutionName.StartsWith('XiHanFun')) AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Kernel\XiHan.Framework.Kernel.csproj')">true</UseXiHanFrameworkSource>

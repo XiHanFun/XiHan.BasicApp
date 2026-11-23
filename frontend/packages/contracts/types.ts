@@ -7100,6 +7100,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plugin-views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List plugin pages
+         * @description The pages of loaded plugins that the caller may open, with each page's view description and the HTTP routes of the plugin's operations; the frontend reads it at runtime to render plugin pages.
+         *
+         *     Requires sign-in.
+         */
+        get: operations["plugin-views.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/plugins": {
         parameters: {
             query?: never;
@@ -15747,6 +15769,54 @@ export interface components {
              * @description 上传时间（UTC）
              */
             createdAt: string;
+        };
+        /** @description 插件一个操作的 HTTP 路由 */
+        PluginViewOperationResponse: {
+            /** @description 操作 ID */
+            id: string;
+            /** @description HTTP 方法 */
+            method: string;
+            /** @description 路由模板（含前缀，如 /api/crm-customers/{id}） */
+            path: string;
+            /** @description 操作要的权限码；为空即没有权限要求 */
+            permission?: string | null;
+        };
+        /** @description 插件的一个页面 */
+        PluginViewPageResponse: {
+            /** @description 页面码 */
+            code: string;
+            /** @description 路由 */
+            route: string;
+            /** @description 组件路径，与菜单节点上的一致 */
+            component: string;
+            /** @description 标题的前端文案键 */
+            titleKey: string;
+            /** @description 图标 */
+            icon?: string | null;
+            /**
+             * Format: int32
+             * @description 次序
+             */
+            order: number;
+            /** @description 打开页面要的权限码；为空即登录可见 */
+            permission?: string | null;
+            /** @description 视图种类 */
+            viewKind: string;
+            /** @description 视图描述的 JSON 原文 */
+            viewJson: string;
+        };
+        /** @description 一个已加载插件的页面与操作路由 */
+        PluginViewResponse: {
+            /** @description 短名 */
+            name: string;
+            /** @description 清单 ID */
+            manifestId: string;
+            /** @description 本节点加载的版本 */
+            version: string;
+            /** @description 调用方能打开的页面，按次序与页面码 */
+            pages: components["schemas"]["PluginViewPageResponse"][];
+            /** @description 插件发布到 HTTP 的操作，按操作 ID */
+            operations: components["schemas"]["PluginViewOperationResponse"][];
         };
         /** @description 岗位的网络契约 */
         PositionResponse: {
@@ -40426,6 +40496,38 @@ export interface operations {
                     "application/json": {
                         /** @description 权限，按权限码排序 */
                         items: components["schemas"]["PermissionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "plugin-views.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 调用方能打开的插件页面 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 有可见页面的已加载插件，按短名 */
+                        plugins: components["schemas"]["PluginViewResponse"][];
                     };
                 };
             };

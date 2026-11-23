@@ -23,7 +23,7 @@ public sealed partial class XmlDocumentationTests
     /// </summary>
     public const int MaxSummaryWidth = 40;
 
-    private static readonly string[] _scanned = ["src", "test"];
+    private static readonly string[] _scanned = ["src", "samples", "test"];
 
     [Fact]
     public void Summaries_AreOneConciseSentence_OnThreeLines()

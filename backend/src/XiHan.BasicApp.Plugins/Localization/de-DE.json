@@ -62,5 +62,10 @@
   "plugins.runtime.package_unavailable": "Das Paket des Plugins '{name}' in Version {version} fehlt im Dateispeicher oder stimmt nicht mehr mit seinem SHA-256 überein.",
   "plugins.delete_preview.title": "Plugin-Deinstallation vorab prüfen",
   "plugins.delete_preview.description": "Listet auf, was die Deinstallation eines Plugins entfernt: die Berechtigungscodes aller Versionen und alle Verweise darauf (Rollen- und Benutzerfreigaben, Freigaberegeln, Bedingungen, Delegierungen, Ausschlussregeln, gesteuerte Menüknoten, Editions-Whitelists). Offene Berechtigungsanträge in Mandantendatenbanken werden aufgeführt, aber behalten.",
-  "plugins.package.runtime_conflict": "Das Plugin-Paket enthält '{path}' sowohl im Stammverzeichnis als auch im Laufzeitverzeichnis dieses Servers."
+  "plugins.package.runtime_conflict": "Das Plugin-Paket enthält '{path}' sowohl im Stammverzeichnis als auch im Laufzeitverzeichnis dieses Servers.",
+  "plugins.runtime.catalog_incomplete": "Im Nachrichtenkatalog des Plugins '{name}' fehlt '{key}' für en-US.",
+  "plugin_views.list.title": "Plugin-Seiten auflisten",
+  "plugin_views.list.description": "Die Seiten geladener Plugins, die der Aufrufer öffnen darf, mit der Ansichtsbeschreibung jeder Seite und den HTTP-Routen der Plugin-Operationen; das Frontend liest sie zur Laufzeit, um Plugin-Seiten darzustellen.",
+  "openapi.tags.plugin_views.name": "Plugin-Seiten",
+  "openapi.tags.plugin_views.description": "Die Seiten, die geladene Plugins zum Frontend beitragen."
 }

@@ -70,6 +70,11 @@ public static class PluginsMessages
     public const string PreviewPluginDeleteDescription = "plugins.delete_preview.description";
 
     /// <summary>
+    /// 操作 <c>plugin-views.list</c> 的说明
+    /// </summary>
+    public const string ListPluginViewsDescription = "plugin_views.list.description";
+
+    /// <summary>
     /// 插件不存在
     /// </summary>
     /// <remarks>
@@ -290,6 +295,14 @@ public static class PluginsMessages
     /// 参数：<c>name</c>、<c>version</c>
     /// </remarks>
     public const string PackageUnavailable = "plugins.runtime.package_unavailable";
+
+    /// <summary>
+    /// 加载后插件的消息目录缺少接口文档要用的键
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>name</c>、<c>key</c>
+    /// </remarks>
+    public const string CatalogIncomplete = "plugins.runtime.catalog_incomplete";
 
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(PluginsMessages)));
 

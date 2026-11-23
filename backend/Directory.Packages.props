@@ -37,6 +37,13 @@
   </ItemGroup>
 
   <!-- 测试 -->
+  <ItemGroup Label="Samples">
+    <!-- 示例插件只依赖 protobuf 与 gRPC，与框架同一版本 -->
+    <PackageVersion Include="Google.Protobuf" Version="3.36.2" />
+    <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.85.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.85.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Test">
     <PackageVersion Include="CommunityToolkit.VectorData.InMemory" Version="1.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.15" />

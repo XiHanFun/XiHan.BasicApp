@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Plugins.Operations.Plugins;
+using XiHan.BasicApp.Plugins.Operations.PluginViews;
 
 namespace XiHan.BasicApp.Plugins;
 
@@ -31,6 +32,8 @@ namespace XiHan.BasicApp.Plugins;
 [JsonSerializable(typeof(PluginDeletePreviewResponse))]
 [JsonSerializable(typeof(PluginInspectionResponse))]
 [JsonSerializable(typeof(PageResult<PluginResponse>))]
+[JsonSerializable(typeof(PluginViewsRequest))]
+[JsonSerializable(typeof(PluginViewsResponse))]
 [JsonSerializable(typeof(PluginDescriptor))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]

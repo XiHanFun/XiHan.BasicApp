@@ -19,6 +19,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.ObjectStorage.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Plugins.OutOfProcess" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Protocols.Http" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
   </ItemGroup>

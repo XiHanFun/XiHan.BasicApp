@@ -1,0 +1,13 @@
+{
+  "list": "crm-customers.list",
+  "create": "crm-customers.create",
+  "delete": "crm-customers.delete",
+  "columns": [
+    { "key": "name", "titleKey": "crm.customers.name" },
+    { "key": "email", "titleKey": "crm.customers.email" }
+  ],
+  "form": [
+    { "key": "name", "labelKey": "crm.customers.name", "required": true },
+    { "key": "email", "labelKey": "crm.customers.email" }
+  ]
+}

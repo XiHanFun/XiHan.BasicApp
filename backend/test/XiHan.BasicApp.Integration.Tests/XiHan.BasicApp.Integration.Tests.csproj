@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
+    <!-- 示例插件不进测试的引用，只要它先构建：端到端用例把它的构建产物装成插件包 -->
+    <ProjectReference Include="../../samples/CrmPlugin/CrmPlugin.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
   <ItemGroup>

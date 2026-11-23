@@ -58,20 +58,37 @@ public sealed record PluginRelease(
     }
 
     /// <summary>
+    /// 旁挂清单
+    /// </summary>
+    public PluginDescriptor ReadDescriptor()
+        => JsonSerializer.Deserialize(DescriptorJson, PluginsJsonContext.Default.PluginDescriptor)
+            ?? throw new InvalidOperationException($"The descriptor of plugin '{ManifestId}' version '{Version}' is empty.");
+
+    /// <summary>
     /// 加载成功后交给宿主的运行期贡献
     /// </summary>
     /// <remarks>
-    /// 权限码的作用侧与审计取旁挂清单；显示名暂用权限码本身（插件的消息目录在运行期加载时还接不进本地化）
+    /// 权限码的作用侧与审计取旁挂清单，显示名与说明取插件消息目录里 en-US 的 <c>permissions.&lt;码&gt;.name</c> / <c>.description</c>，没有显示名就用权限码本身
     /// </remarks>
-    public LoadedPlugin ToLoaded()
+    /// <param name="views">页面的视图描述原文，按旁挂清单里的文件路径</param>
+    /// <param name="text">按消息键取 en-US 模板，没有为空</param>
+    public LoadedPlugin ToLoaded(IReadOnlyDictionary<string, string> views, Func<string, string?> text)
     {
-        var descriptor = JsonSerializer.Deserialize(DescriptorJson, PluginsJsonContext.Default.PluginDescriptor)
-            ?? throw new InvalidOperationException($"The descriptor of plugin '{ManifestId}' version '{Version}' is empty.");
+        ArgumentNullException.ThrowIfNull(views);
+        ArgumentNullException.ThrowIfNull(text);
+        var descriptor = ReadDescriptor();
         return new LoadedPlugin(
             ManifestId,
             Name,
-            [.. descriptor.Permissions.Select(static p => new PermissionDescriptor(p.Code, p.Code, p.Scope, p.Audited))],
+            Version,
+            [.. descriptor.Permissions.Select(p => new PermissionDescriptor(p.Code, text(PermissionKey(p.Code, "name")) ?? p.Code, p.Scope, p.Audited, text(PermissionKey(p.Code, "description"))))],
+            [.. descriptor.Pages.Select(p => new LoadedPluginPage(p.Code, p.Route, p.TitleKey, p.Icon, p.Order, p.Permission, p.View.Kind, views[p.View.File]))],
             [.. Grants.Where(static g => g.StartsWith(PluginInspector.CallbackPrefix, StringComparison.Ordinal)).Select(static g => g[PluginInspector.CallbackPrefix.Length..])],
             Grants.Contains(PluginInspector.DataScopeAll, StringComparer.Ordinal));
     }
+
+    /// <summary>
+    /// 权限码显示名或说明的消息键
+    /// </summary>
+    private static string PermissionKey(string code, string part) => "permissions." + code.Replace('-', '_') + "." + part;
 }

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- 进程外插件示例：可执行文件 + 两份清单 + 前端文案与页面描述；只依赖 protobuf 与 gRPC，不引用任何 XiHan 包 -->
+  <PropertyGroup>
+    <RootNamespace>CrmPlugin</RootNamespace>
+    <AssemblyName>CrmPlugin</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.AspNetCore.Server" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 协议 xihan.plugin.v1 的原样副本，只生成插件一侧的服务端 -->
+    <Protobuf Include="Protocol/plugin.proto" GrpcServices="Server" Access="Internal" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="xihan.manifest.json;basicapp.plugin.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="locales/*.json;pages/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

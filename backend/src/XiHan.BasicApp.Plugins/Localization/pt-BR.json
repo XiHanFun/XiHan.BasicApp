@@ -62,5 +62,10 @@
   "plugins.runtime.package_unavailable": "O pacote do plugin '{name}' versão {version} não está no armazenamento de arquivos ou não corresponde mais ao seu SHA-256.",
   "plugins.delete_preview.title": "Pré-visualizar a desinstalação do plugin",
   "plugins.delete_preview.description": "Lista o que a desinstalação de um plugin remove: os códigos de permissão de todas as suas versões e cada referência a eles (concessões a papéis e usuários, regras de concessão, condições, delegações, regras de exclusão mútua, nós de menu controlados, listas de permissões de edições). Solicitações de permissão pendentes nos bancos dos locatários são listadas, mas mantidas.",
-  "plugins.package.runtime_conflict": "O pacote do plugin tem '{path}' tanto na raiz quanto no diretório de runtime deste servidor."
+  "plugins.package.runtime_conflict": "O pacote do plugin tem '{path}' tanto na raiz quanto no diretório de runtime deste servidor.",
+  "plugins.runtime.catalog_incomplete": "O catálogo de mensagens do plugin '{name}' não tem '{key}' em en-US.",
+  "plugin_views.list.title": "Listar páginas de plugins",
+  "plugin_views.list.description": "As páginas dos plugins carregados que o chamador pode abrir, com a descrição da visualização de cada página e as rotas HTTP das operações do plugin; o frontend as lê em tempo de execução para renderizar as páginas.",
+  "openapi.tags.plugin_views.name": "Páginas de plugins",
+  "openapi.tags.plugin_views.description": "As páginas que os plugins carregados contribuem para o frontend."
 }

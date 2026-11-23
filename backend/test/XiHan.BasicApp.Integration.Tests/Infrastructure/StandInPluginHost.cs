@@ -1,10 +1,12 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.Json.Nodes;
 using XiHan.Framework.Kernel.Capabilities;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Plugins;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 
@@ -14,11 +16,13 @@ namespace XiHan.BasicApp.Integration.Tests.Infrastructure;
 /// 不起进程的替身插件宿主
 /// </summary>
 /// <remarks>
-/// 照框架进程外宿主的约定：从解包目录读清单，授予不全即拒；成功时以清单 ID 为归属把贡献的权限码登记进登记表，卸载时按归属撤回
+/// 照框架进程外宿主的约定：从解包目录读清单，授予不全即拒；成功时以清单 ID 为归属把贡献的权限码登记进登记表、把消息目录登记进本地化，卸载时按归属撤回
+/// 消息目录代替握手带来的那份：只有旁挂清单短名的接口文档分组名与说明（en-US）；<see cref="WithoutCatalog"/> 为真时不登记
 /// 记下每次加载的目录与授予；<see cref="FailWith"/> 让指定的清单加载失败
 /// </remarks>
 /// <param name="registry">操作登记表</param>
-public sealed class StandInPluginHost(OperationRegistry registry) : IPluginHost
+/// <param name="catalogs">消息目录登记表</param>
+public sealed class StandInPluginHost(OperationRegistry registry, MessageCatalogRegistry catalogs) : IPluginHost
 {
     private readonly Lock _gate = new();
     private readonly Dictionary<string, PluginStatus> _plugins = new(StringComparer.Ordinal);
@@ -29,6 +33,11 @@ public sealed class StandInPluginHost(OperationRegistry registry) : IPluginHost
     /// 让某次加载失败：返回非空即以它失败
     /// </summary>
     public Func<Manifest, Error?>? FailWith { get; set; }
+
+    /// <summary>
+    /// 加载时不登记消息目录
+    /// </summary>
+    public bool WithoutCatalog { get; set; }
 
     /// <summary>
     /// 每次加载
@@ -99,6 +108,11 @@ public sealed class StandInPluginHost(OperationRegistry registry) : IPluginHost
                 return Task.FromResult<Result<PluginStatus>>(registered.Error!);
             }
 
+            if (!WithoutCatalog)
+            {
+                catalogs.Add(manifest.Id, [CatalogOf(source.Directory)]);
+            }
+
             var status = new PluginStatus(manifest, LifecycleState.Ready);
             _plugins[manifest.Id] = status;
             return Task.FromResult<Result<PluginStatus>>(status);
@@ -106,6 +120,18 @@ public sealed class StandInPluginHost(OperationRegistry registry) : IPluginHost
     }
 
     /// <inheritdoc />
+    /// <summary>
+    /// 替身的消息目录：旁挂清单短名的分组名与说明
+    /// </summary>
+    private static MessageCatalog CatalogOf(string directory)
+    {
+        var name = JsonNode.Parse(File.ReadAllText(Path.Combine(directory, "basicapp.plugin.json")))!["name"]!.GetValue<string>().Replace('-', '_');
+        return new MessageCatalog("standin." + name, new Dictionary<string, IReadOnlyDictionary<string, string>>
+        {
+            ["en-US"] = new Dictionary<string, string> { [$"openapi.groups.{name}.name"] = name, [$"openapi.groups.{name}.description"] = "Stand-in plugin." },
+        });
+    }
+
     public Task<Result> UnloadAsync(string manifestId, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(manifestId);
@@ -117,6 +143,7 @@ public sealed class StandInPluginHost(OperationRegistry registry) : IPluginHost
             }
 
             registry.RemoveOwnedBy(manifestId);
+            catalogs.RemoveOwnedBy(manifestId);
             _unloads.Add(manifestId);
             return Task.FromResult(Result.Success());
         }

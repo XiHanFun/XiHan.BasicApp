@@ -37,7 +37,9 @@ public sealed class PluginRuntimeCatalogTests : IDisposable
     private static LoadedPlugin Weather(IReadOnlyList<string>? callbacks = null, bool unrestricted = false) => new(
         ManifestId,
         "weather",
+        "1.0.0",
         [new PermissionDescriptor(Read, Read, PermissionScope.Tenant, audited: true), new PermissionDescriptor(Manage, Manage, PermissionScope.Platform)],
+        [],
         callbacks ?? [],
         unrestricted);
 

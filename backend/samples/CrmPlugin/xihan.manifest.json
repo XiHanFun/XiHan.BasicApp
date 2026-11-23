@@ -1,0 +1,18 @@
+{
+  "$schema": "https://spec.xihanfun.com/manifest/v1.json",
+  "id": "xihan.samples.crm",
+  "package": "CrmPlugin",
+  "version": "1.0.0",
+  "primitives": "1",
+  "stability": "experimental",
+  "kind": "plugin",
+  "isolation": "out-of-process",
+  "requires": [ { "id": "kernel.plugins", "version": "1" } ],
+  "contributes": {
+    "operations": [ "crm-customers.list", "crm-customers.create", "crm-customers.delete" ],
+    "permissions": [ "crm.crm-customers.read", "crm.crm-customers.create", "crm.crm-customers.delete" ],
+    "health": [ "crm" ]
+  },
+  "activation": [ "onStartup" ],
+  "entry": "CrmPlugin"
+}

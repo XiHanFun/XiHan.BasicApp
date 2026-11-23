@@ -19,6 +19,8 @@ backend/
 │  ├─ Settings / Notification / Files / Auditing / Maintenance / OpenPlatform / Realtime   Tier 2：平台能力
 │  ├─ Workbench / Workflow / Printing / CodeGeneration / Chat / AI / Plugins   Tier 3：可选模块（BasicApp:Modules 开关）
 │  └─ XiHan.BasicApp.Host           宿主：装配、配置、表结构脚本、普通端点；HTTP / OpenAPI / Scalar / MCP / gRPC
+├─ samples/
+│  └─ CrmPlugin                     进程外插件示例：只依赖 protobuf 与 gRPC，集成测试把它装成插件包走安装到卸载的全程
 └─ test/
    ├─ XiHan.BasicApp.Architecture.Tests   层级依赖、Expose 显式、权限码文法、匿名白名单、目录与文案、框架提交锁定
    └─ XiHan.BasicApp.Integration.Tests    TestServer + SQLite：HTTP / MCP / gRPC 契约、事务；Smoke/ 是方案 9.1 的四项冒烟（两库冒烟需 XIHAN_TEST_POSTGRES）
