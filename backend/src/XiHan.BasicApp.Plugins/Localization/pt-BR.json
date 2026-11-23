@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "As páginas que os plugins carregados contribuem para o frontend.",
   "plugins.package.locale_invalid": "Os textos de interface em locales/{locale}.json são inválidos em '{key}': a raiz contém apenas o nome curto do plugin, cada segmento usa letras minúsculas, dígitos e sublinhados, e cada folha é uma string.",
   "plugins.contribution.page_view_invalid": "A descrição de visualização da página '{code}' é inválida em '{path}'.",
-  "plugins.contribution.page_text_missing": "A página '{code}' usa a chave de texto '{key}', que falta nos textos de interface en-US."
+  "plugins.contribution.page_text_missing": "A página '{code}' usa a chave de texto '{key}', que falta nos textos de interface en-US.",
+  "plugins.signature.unreadable": "Não é possível ler o arquivo de assinatura basicapp.signature.json: ele deve conter o algoritmo 'ecdsa-p256-sha256', a impressão digital da chave com 64 caracteres e uma assinatura DER em Base64.",
+  "plugins.signature.mismatch": "A assinatura da chave '{key}' não corresponde ao conteúdo do pacote: o pacote foi alterado depois de assinado.",
+  "plugins.signature.missing": "O pacote do plugin não está assinado, e este servidor só aceita pacotes assinados por um editor confiável.",
+  "plugins.signature.untrusted": "O pacote do plugin está assinado com a chave '{key}', que não é uma chave confiável do editor '{publisher}'."
 }

@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "Les pages que les plugins chargés apportent au frontend.",
   "plugins.package.locale_invalid": "Les textes d'interface de locales/{locale}.json ne sont pas valides à '{key}' : la racine ne contient que le nom court du plugin, chaque segment est en minuscules, chiffres et tirets bas, et chaque feuille est une chaîne.",
   "plugins.contribution.page_view_invalid": "La description de vue de la page '{code}' n'est pas valide à '{path}'.",
-  "plugins.contribution.page_text_missing": "La page '{code}' utilise la clé de texte '{key}', absente des textes d'interface en-US."
+  "plugins.contribution.page_text_missing": "La page '{code}' utilise la clé de texte '{key}', absente des textes d'interface en-US.",
+  "plugins.signature.unreadable": "Le fichier de signature basicapp.signature.json est illisible : il contient l'algorithme 'ecdsa-p256-sha256', l'empreinte de clé de 64 caractères et une signature DER en Base64.",
+  "plugins.signature.mismatch": "La signature de la clé '{key}' ne correspond pas au contenu du paquet : le paquet a été modifié après sa signature.",
+  "plugins.signature.missing": "Le paquet du plugin n'est pas signé, et ce serveur n'accepte que les paquets signés par un éditeur de confiance.",
+  "plugins.signature.untrusted": "Le paquet du plugin est signé avec la clé '{key}', qui n'est pas une clé de confiance de l'éditeur '{publisher}'."
 }

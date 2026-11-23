@@ -58,6 +58,11 @@ public static class PluginsErrors
     public const string CatalogIncomplete = "PLUGINS_VALIDATION_108";
 
     /// <summary>
+    /// 签名文件读不出或签名与包内容不符
+    /// </summary>
+    public const string SignatureInvalid = "PLUGINS_VALIDATION_109";
+
+    /// <summary>
     /// 清单 ID 或短名已经安装过
     /// </summary>
     public const string AlreadyInstalled = "PLUGINS_CONFLICT_101";
@@ -71,6 +76,16 @@ public static class PluginsErrors
     /// 插件申请的授予没有全部批准
     /// </summary>
     public const string GrantsMissing = "PLUGINS_DENIED_101";
+
+    /// <summary>
+    /// 插件包没有签名，且不放行没有签名的包
+    /// </summary>
+    public const string PackageUnsigned = "PLUGINS_DENIED_102";
+
+    /// <summary>
+    /// 签名的公钥不在受信任的发布者里，且不放行
+    /// </summary>
+    public const string PublisherUntrusted = "PLUGINS_DENIED_103";
 
     /// <summary>
     /// 宿主没有装这个隔离级别的插件宿主

@@ -16,6 +16,7 @@ export type PluginContributions = PluginDetail['contributions']
 export type PluginStatus = ResponseOf<'plugins.status'>
 export type PluginLifecycleState = NonNullable<PluginStatus['state']>
 export type PluginInspection = ResponseOf<'plugins.inspect'>
+export type PluginSignatureStatus = PluginInspection['signature']['status']
 export type PluginDeletePreview = ResponseOf<'plugins.delete-preview'>
 export type PermissionReferenceKind = PluginDeletePreview['references'][number]['kind']
 
@@ -81,6 +82,22 @@ export function stateTone(state: PluginLifecycleState | null | undefined): Tone 
     case 'Degraded':
     case 'Draining': return 'warning'
     case 'Failed': return 'danger'
+    default: return 'neutral'
+  }
+}
+
+export function signatureLabel(t: Translate, status: PluginSignatureStatus): string {
+  switch (status) {
+    case 'Trusted': return t('plugins.installed.signatures.trusted')
+    case 'Untrusted': return t('plugins.installed.signatures.untrusted')
+    default: return t('plugins.installed.signatures.none')
+  }
+}
+
+export function signatureTone(status: PluginSignatureStatus): Tone {
+  switch (status) {
+    case 'Trusted': return 'success'
+    case 'Untrusted': return 'warning'
     default: return 'neutral'
   }
 }

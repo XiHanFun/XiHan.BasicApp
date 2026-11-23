@@ -27,6 +27,12 @@ export default {
         remark: 'Bemerkung',
         size: 'Größe',
         sha256: 'SHA-256',
+        signature: 'Signatur',
+      },
+      signatures: {
+        trusted: 'Von vertrauenswürdigem Herausgeber signiert',
+        untrusted: 'Mit nicht vertrauenswürdigem Schlüssel signiert',
+        none: 'Nicht signiert',
       },
       status: {
         enabled: 'Aktiviert',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: 'Das Paket wird vor der Installation geprüft; kein Plugin-Code wird ausgeführt',
         inspecting: 'Paket wird hochgeladen und geprüft…',
         file_rejected: 'Wählen Sie ein .xhplugin-Paket',
+        untrusted_risk: 'Dieses Paket ist nicht von einem vertrauenswürdigen Herausgeber signiert; Herkunft und Inhalt lassen sich nicht prüfen. Installieren Sie es nur, wenn Sie die Herkunft kennen.',
         callbacks_risk: 'Das Plugin ruft mit {count} Host-Berechtigungen den Host auf; genehmigen Sie das nur für vertrauenswürdige Plugins',
         required_grants: 'Werden mit der Installation genehmigt (alle erforderlich):',
         no_required_grants: 'Das Plugin braucht keine Freigaben',

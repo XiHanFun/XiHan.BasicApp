@@ -1,6 +1,6 @@
 # 插件
 
-本页说明插件包的格式、安装前的核对、授予、启用与加载、插件的页面与接口文档、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
+本页说明插件包的格式、签名与可信发布者、安装前的核对、授予、启用与加载、插件的页面与接口文档、卸载、操作与权限和模块开关，适用于运营插件的平台管理员与编写插件的开发者。
 
 Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省开）：平台一侧上传 `.xhplugin` 包，核对通过、批准授予后登记安装。插件由框架的插件宿主隔离运行（缺省只允许进程外），宿主不编译、不执行插件源码；核对只读包，插件代码一行不跑。安装只登记包与授予，装好的插件缺省停用；启用后各节点按库加载，没有任何启用的插件时不起插件进程。
 
@@ -16,8 +16,9 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | `<entry>` | Wasm 插件的模块，在包根上 |
 | `locales/<区域>.json` | 10 种区域的前端文案，写法见[前端文案与页面描述](#前端文案与页面描述) |
 | `pages/*.json` | 声明式页面的描述，由旁挂清单的 `pages[].view.file` 指向，写法见[前端文案与页面描述](#前端文案与页面描述) |
+| `basicapp.signature.json` | 发布者签名（可选），见[签名与可信发布者](#签名与可信发布者) |
 
-读包的限制：包不超过 `BasicApp:Plugins:MaxPackageSizeMegabytes`；条目不超过 10000 个，解压后合计不超过包上限的 4 倍；条目只收相对的正斜杠路径，不许 `.`、`..`、反斜杠、盘符与重名；两份清单、前端文案与页面描述各不超过 1 MB、须是合法 UTF-8。
+读包的限制：包不超过 `BasicApp:Plugins:MaxPackageSizeMegabytes`；条目不超过 10000 个，解压后合计不超过包上限的 4 倍；条目只收相对的正斜杠路径，不许 `.`、`..`、反斜杠、盘符与重名；两份清单、前端文案、页面描述与签名文件各不超过 1 MB、须是合法 UTF-8。
 
 旁挂清单有未知字段即拒：
 
@@ -87,6 +88,40 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | `columns` | 至少一列。`key` 是行里的字段名（驼峰），`type` 取 `text`（缺省）、`number`、`boolean`、`datetime` |
 | `form` | 有新建或修改时至少一个字段。`type` 取 `text`（缺省）、`textarea`、`number`、`switch`；`helpKey` 的说明显示在字段名后面的问号提示里；选填的空文本交 `null` |
 
+## 签名与可信发布者
+
+发布者用 ECDSA P-256 私钥给包签名，签名文件 `basicapp.signature.json` 放在包根上，有未知字段即当读不出：
+
+```json
+{ "algorithm": "ecdsa-p256-sha256", "key": "<公钥指纹>", "signature": "<DER 签名的 Base64>" }
+```
+
+签的是包的内容清单：除签名文件之外的每个文件一行「SHA-256（小写十六进制）、两个空格、条目路径」，按路径的序数排序，每行以换行结尾，与 `sha256sum` 的输出同形。公钥指纹是公钥 SubjectPublicKeyInfo DER 的 SHA-256（小写十六进制）。旁挂清单在内容清单里，签名因此也绑定了发布者；包改了一个字节，内容清单就对不上。
+
+宿主自带签名工具，只读写本机文件，不构建宿主、不连数据库：
+
+```bash
+dotnet run --project backend/src/XiHan.BasicApp.Host -- plugins keygen contoso.key.pem
+dotnet run --project backend/src/XiHan.BasicApp.Host -- plugins sign weather.xhplugin --key contoso.key.pem
+```
+
+`keygen` 生成私钥（PKCS#8 PEM，文件已存在即拒绝），打出公钥指纹 `key` 与公钥 `publicKey`；`sign` 原地写入（或换掉）签名文件，要求旁挂清单写了 `publisher`。私钥由发布者保管，不放进包或仓库。不用这两个命令时，按上面的规则用 `sha256sum` 生成内容清单、`openssl dgst -sha256 -sign` 签名，结果一样能验。
+
+平台把发布者的公钥写进 `BasicApp:Plugins:TrustedPublishers`，`Name` 与旁挂清单的 `publisher` 一致；同一发布者可以写多把公钥，换钥时新旧并存：
+
+```json
+{ "BasicApp": { "Plugins": { "TrustedPublishers": [{ "Name": "Contoso", "PublicKey": "<keygen 打出的 publicKey>" }] } } }
+```
+
+| 包 | 结论 | 不放行时 |
+| --- | --- | --- |
+| 受信任发布者的公钥签过，内容没改过 | `Trusted` | 通过 |
+| 签名与内容对不上，或签名文件读不出 | — | 一律 400 `PLUGINS_VALIDATION_109` |
+| 没有签名 | `None` | 403 `PLUGINS_DENIED_102` |
+| 签名的公钥不是这个发布者受信任的 | `Untrusted` | 403 `PLUGINS_DENIED_103` |
+
+`BasicApp:Plugins:AllowUnsigned` 放行后两种，不写时 Development 为 `true`、其余环境为 `false`。结论记在版本上（详情 `versions[].signature`），每次加载前按它与当时的配置再判一次：撤掉的公钥、关掉的放行开关对已装的版本同样生效，不过即这个插件加载失败，错误码同上。
+
 ## 安装前核对
 
 `plugins.inspect` 按下表依次核对，第一处不过即返回它的错误：
@@ -94,6 +129,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 核对 | 规则 | 错误 |
 | --- | --- | --- |
 | 包 | 不超过上限、读得了、条目安全、两份清单都在且合格式 | `PLUGINS_VALIDATION_101`；旁挂清单不合格式 `PLUGINS_VALIDATION_102`，框架清单不合格式返回框架的清单错误 |
+| 签名 | 见[签名与可信发布者](#签名与可信发布者) | `PLUGINS_VALIDATION_109`、`PLUGINS_DENIED_102`、`PLUGINS_DENIED_103` |
 | 旁挂清单版本 | `pluginApi` 为 `1` | `PLUGINS_VALIDATION_102` |
 | 清单种类 | `kind` 为 `plugin` 且写了 `isolation`，隔离级别在 `BasicApp:Plugins:Isolations` 里，不贡献管道中间件 | `PLUGINS_VALIDATION_103` |
 | 短名 | 合 `^[a-z][a-z0-9-]{1,31}$`；不是内置包名，也不是 `plugins`、`installed`、`custom`、`system`、`api`、`embed` | `PLUGINS_VALIDATION_104` |
@@ -107,7 +143,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 登记冲突 | 操作与权限码都还没被登记 | `PLUGINS_CONFLICT_102` |
 | 已安装 | 清单 ID 与短名都没被已安装的插件占用 | `PLUGINS_CONFLICT_101` |
 
-核对通过返回清单 ID、短名、版本、发布方、隔离级别、包的 SHA-256 与大小、贡献的操作 / 权限码 / 页面 / 回调，以及申请的授予。
+核对通过返回清单 ID、短名、版本、发布方、隔离级别、包的 SHA-256 与大小、签名结论、贡献的操作 / 权限码 / 页面 / 回调，以及申请的授予。
 
 ## 授予
 
@@ -139,7 +175,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 
 权限码 `plugins.plugins.{read,install,update,grant,delete}` 只在平台一侧，写操作记审计。`fileId` 是平台一侧经 `POST /api/files/upload` 上传的包。详情含贡献、申请与已批准的授予、全部版本（新的在前）。列表可筛选 `name`、`manifestId`（`eq` / `contains`）、`isEnabled`、`isolation`，排序 `name`、`manifestId`、`version`、`createdAt`。删除是软删除，连同版本与授予，并清掉对插件权限码的引用（见[卸载](#卸载)）；删了可以重装。接口文档分组 `plugins`。
 
-插件、版本与授予分别存 `sys_plugin`、`sys_plugin_version`（包文件、SHA-256、大小与两份清单原文）、`sys_plugin_grant`，都在平台库。
+插件、版本与授予分别存 `sys_plugin`、`sys_plugin_version`（包文件、SHA-256、大小、两份清单原文与签名结论）、`sys_plugin_grant`，都在平台库。
 
 ## 启用与加载
 
@@ -147,6 +183,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 
 | 环节 | 规则 |
 | --- | --- |
+| 信任复核 | 按版本的签名结论与当时的 `TrustedPublishers`、`AllowUnsigned` 再判一次，不过即记 `PLUGINS_DENIED_102` / `PLUGINS_DENIED_103`，不起插件 |
 | 解包 | 每个版本解到 `<CacheDirectory>/<清单 ID>/<版本 ID>/`，目录在就直接用；不在时从 Files 取包，按安装时的 SHA-256 核对后解开，对不上或存储读不出即 `PLUGINS_UNAVAILABLE_102`。当前平台的 `runtimes/<运行时标识>/` 铺到目录的根上，别的平台的不解 |
 | 加载 | 按隔离级别交给对应的插件宿主（没装该宿主即 `PLUGINS_UNAVAILABLE_101`），带上批准的授予（`callback:` 与 `data-scope:` 由 BasicApp 自己解释，不交给宿主）。宿主把握手的消息目录、权限码与代理操作一次登记，插件的操作随即有 HTTP 路由；成功后贡献的权限码等接进来（见下节） |
 | 文案核对 | 加载成功后核对插件的消息目录：接口文档的分组名与说明 `openapi.groups.<短名>.name` / `.description`、插件每个资源的标签名 `openapi.tags.<资源>.name` 要有 en-US（键里的连字符写成下划线），缺了即卸掉、记 `PLUGINS_VALIDATION_108` |
@@ -202,7 +239,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 { "BasicApp": { "Modules": { "Plugins": { "Enabled": false } } } }
 ```
 
-关掉后宿主不装 Plugins 与进程外插件宿主，权限目录与操作都不在；三张表也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。隔离级别、包上限、解包目录与对齐时限见[配置参考](../configuration#basicapp-plugins)。
+关掉后宿主不装 Plugins 与进程外插件宿主，权限目录与操作都不在；三张表也不建（开发库的 `InitTables` 与正式库的表结构升级器都只按装配了的包的实体建表补列），关掉之前建好的表与数据留着，不删也不再补列。隔离级别、包上限、解包目录、对齐时限与签名的放行和可信发布者见[配置参考](../configuration#basicapp-plugins)。
 
 ## 下一步
 

@@ -27,6 +27,12 @@ export default {
         remark: '备注',
         size: '大小',
         sha256: 'SHA-256',
+        signature: '签名',
+      },
+      signatures: {
+        trusted: '受信任的发布者签名',
+        untrusted: '签名不受信任',
+        none: '没有签名',
       },
       status: {
         enabled: '已启用',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: '安装前先核对插件包，不运行插件的任何代码',
         inspecting: '正在上传并核对插件包…',
         file_rejected: '请选择一个 .xhplugin 插件包',
+        untrusted_risk: '这个包没有受信任的发布者签名，来源与内容都无从核实；确知来源时再安装。',
         callbacks_risk: '插件会持有 {count} 个宿主权限码回调宿主操作，只给信得过的插件批准',
         required_grants: '随安装一起批准（插件缺一不可）：',
         no_required_grants: '插件不需要任何授予',

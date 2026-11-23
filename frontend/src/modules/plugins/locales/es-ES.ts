@@ -27,6 +27,12 @@ export default {
         remark: 'Nota',
         size: 'Tamaño',
         sha256: 'SHA-256',
+        signature: 'Firma',
+      },
+      signatures: {
+        trusted: 'Firmado por un editor de confianza',
+        untrusted: 'Firmado con una clave no confiable',
+        none: 'Sin firma',
       },
       status: {
         enabled: 'Habilitado',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: 'El paquete se revisa antes de instalar; no se ejecuta código del complemento',
         inspecting: 'Subiendo y revisando el paquete…',
         file_rejected: 'Elija un paquete .xhplugin',
+        untrusted_risk: 'Este paquete no está firmado por un editor de confianza, por lo que no se pueden verificar su origen ni su contenido. Instálelo solo si conoce su procedencia.',
         callbacks_risk: 'El complemento llama al host con {count} permisos del host; apruébelo solo si confía en él',
         required_grants: 'Se aprueban con la instalación (todas son necesarias):',
         no_required_grants: 'El complemento no necesita concesiones',

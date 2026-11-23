@@ -73,6 +73,7 @@ public sealed class PluginsFeature : IHostedFeature
         context.Services.AddMessageCatalog(PluginsMessages.Catalog);
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton(static services => PluginsOptions.FromConfiguration(services.GetRequiredService<IConfiguration>(), services.GetService<IHostEnvironment>()));
+        context.Services.AddSingleton<PluginTrust>();
         context.Services.AddScoped<PluginInspector>();
         context.Services.AddScoped<PluginService>();
         context.Services.AddScoped<PluginQueries>();

@@ -27,6 +27,12 @@ export default {
         remark: '비고',
         size: '크기',
         sha256: 'SHA-256',
+        signature: '서명',
+      },
+      signatures: {
+        trusted: '신뢰할 수 있는 게시자 서명',
+        untrusted: '신뢰할 수 없는 키로 서명',
+        none: '서명 없음',
       },
       status: {
         enabled: '사용 중',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: '설치 전에 패키지를 검사하며 플러그인 코드는 실행하지 않습니다',
         inspecting: '패키지를 업로드하고 검사하는 중…',
         file_rejected: '.xhplugin 패키지를 하나 선택하세요',
+        untrusted_risk: '이 패키지에는 신뢰할 수 있는 게시자의 서명이 없어 출처와 내용을 확인할 수 없습니다. 출처를 알고 있을 때만 설치하세요.',
         callbacks_risk: '이 플러그인은 호스트 권한 {count}개로 호스트를 호출합니다. 신뢰하는 플러그인에만 승인하세요',
         required_grants: '설치와 함께 승인됩니다(모두 필요):',
         no_required_grants: '이 플러그인은 부여가 필요하지 않습니다',

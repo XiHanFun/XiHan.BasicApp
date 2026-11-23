@@ -155,6 +155,7 @@ public sealed record PluginContributionsResponse(
 /// <param name="Isolation">隔离级别</param>
 /// <param name="Sha256">包的 SHA-256</param>
 /// <param name="Size">包的字节数</param>
+/// <param name="Signature">签名结论</param>
 /// <param name="Contributions">贡献</param>
 /// <param name="RequiredGrants">必须全部批准的授予</param>
 /// <param name="OptionalGrants">可以另外批准的授予</param>
@@ -166,6 +167,7 @@ public sealed record PluginInspectionResponse(
     PluginIsolation Isolation,
     string Sha256,
     long Size,
+    PluginSignatureResponse Signature,
     PluginContributionsResponse Contributions,
     IReadOnlyList<string> RequiredGrants,
     IReadOnlyList<string> OptionalGrants)
@@ -186,11 +188,19 @@ public sealed record PluginInspectionResponse(
             package.Manifest.Isolation ?? PluginIsolation.OutOfProcess,
             package.Sha256,
             package.Size,
+            new PluginSignatureResponse(inspection.Signer.Status, inspection.Signer.KeyId),
             PluginContributionsResponse.From(package.Manifest, package.Descriptor),
             inspection.RequiredGrants,
             inspection.OptionalGrants);
     }
 }
+
+/// <summary>
+/// 插件包的签名结论
+/// </summary>
+/// <param name="Status">结论</param>
+/// <param name="KeyId">签名公钥的指纹；没有签名为空</param>
+public sealed record PluginSignatureResponse(PluginSignatureStatus Status, string? KeyId);
 
 /// <summary>
 /// 插件的一个版本
@@ -200,9 +210,10 @@ public sealed record PluginInspectionResponse(
 /// <param name="FileId">包文件</param>
 /// <param name="Sha256">包的 SHA-256</param>
 /// <param name="Size">包的字节数</param>
+/// <param name="Signature">上传核对时的签名结论</param>
 /// <param name="IsCurrent">是否是当前版本</param>
 /// <param name="CreatedAt">上传时间（UTC）</param>
-public sealed record PluginVersionResponse(Guid Id, string Version, Guid FileId, string Sha256, long Size, bool IsCurrent, DateTimeOffset CreatedAt);
+public sealed record PluginVersionResponse(Guid Id, string Version, Guid FileId, string Sha256, long Size, PluginSignatureResponse Signature, bool IsCurrent, DateTimeOffset CreatedAt);
 
 /// <summary>
 /// 插件的详情

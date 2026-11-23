@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "読み込み済みプラグインがフロントエンドに提供するページ。",
   "plugins.package.locale_invalid": "locales/{locale}.json のフロントエンド文言が '{key}' で規則に合いません。ルートにはプラグインの短縮名だけを置き、各セグメントは小文字・数字・アンダースコア、末端はすべて文字列にしてください。",
   "plugins.contribution.page_view_invalid": "ページ '{code}' のビュー定義が '{path}' で規則に合いません。",
-  "plugins.contribution.page_text_missing": "ページ '{code}' が使う文言キー '{key}' が en-US のフロントエンド文言にありません。"
+  "plugins.contribution.page_text_missing": "ページ '{code}' が使う文言キー '{key}' が en-US のフロントエンド文言にありません。",
+  "plugins.signature.unreadable": "署名ファイル basicapp.signature.json を読み取れません。アルゴリズム 'ecdsa-p256-sha256'、64 文字の公開鍵フィンガープリント、Base64 の DER 署名を記述してください。",
+  "plugins.signature.mismatch": "鍵 '{key}' による署名がパッケージの内容と一致しません。署名後にパッケージが変更されています。",
+  "plugins.signature.missing": "プラグインパッケージに署名がありません。このサーバーは信頼された発行者が署名したパッケージだけを受け付けます。",
+  "plugins.signature.untrusted": "プラグインパッケージは鍵 '{key}' で署名されていますが、これは発行者 '{publisher}' の信頼された鍵ではありません。"
 }

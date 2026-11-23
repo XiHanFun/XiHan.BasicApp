@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "Las páginas que los complementos cargados aportan al frontend.",
   "plugins.package.locale_invalid": "Los textos de interfaz de locales/{locale}.json no son válidos en '{key}': la raíz solo contiene el nombre corto del complemento, cada segmento usa minúsculas, dígitos y guiones bajos, y cada hoja es una cadena.",
   "plugins.contribution.page_view_invalid": "La descripción de vista de la página '{code}' no es válida en '{path}'.",
-  "plugins.contribution.page_text_missing": "La página '{code}' usa la clave de texto '{key}', que falta en los textos de interfaz en-US."
+  "plugins.contribution.page_text_missing": "La página '{code}' usa la clave de texto '{key}', que falta en los textos de interfaz en-US.",
+  "plugins.signature.unreadable": "No se puede leer el archivo de firma basicapp.signature.json: debe contener el algoritmo 'ecdsa-p256-sha256', la huella de clave de 64 caracteres y una firma DER en Base64.",
+  "plugins.signature.mismatch": "La firma de la clave '{key}' no coincide con el contenido del paquete: el paquete se modificó después de firmarlo.",
+  "plugins.signature.missing": "El paquete del complemento no está firmado y este servidor solo acepta paquetes firmados por un editor de confianza.",
+  "plugins.signature.untrusted": "El paquete del complemento está firmado con la clave '{key}', que no es una clave de confianza del editor '{publisher}'."
 }

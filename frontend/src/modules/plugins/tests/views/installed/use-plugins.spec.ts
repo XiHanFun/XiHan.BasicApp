@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { approvedGrants, grantLabel, stateTone } from '@/modules/plugins/views/installed/use-plugins'
+import { approvedGrants, grantLabel, signatureLabel, signatureTone, stateTone } from '@/modules/plugins/views/installed/use-plugins'
 import { $t } from '~/locales'
 
 describe('插件的授予', () => {
@@ -30,5 +30,21 @@ describe('插件的授予', () => {
       'danger',
       'neutral',
     ])
+  })
+})
+
+describe('插件包的签名', () => {
+  it('受信任绿、不受信任黄、没有签名灰，文案各自一条', () => {
+    expect([
+      signatureTone('Trusted'),
+      signatureTone('Untrusted'),
+      signatureTone('None'),
+    ]).toEqual([
+      'success',
+      'warning',
+      'neutral',
+    ])
+    expect(signatureLabel($t, 'Untrusted')).toBe($t('plugins.installed.signatures.untrusted'))
+    expect(signatureLabel($t, 'None')).toBe($t('plugins.installed.signatures.none'))
   })
 })

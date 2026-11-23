@@ -27,6 +27,12 @@ export default {
         remark: 'Remark',
         size: 'Size',
         sha256: 'SHA-256',
+        signature: 'Signature',
+      },
+      signatures: {
+        trusted: 'Signed by a trusted publisher',
+        untrusted: 'Signed by an untrusted key',
+        none: 'Not signed',
       },
       status: {
         enabled: 'Enabled',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: 'The package is checked before anything is installed; no plugin code runs',
         inspecting: 'Uploading and checking the package…',
         file_rejected: 'Choose one .xhplugin package',
+        untrusted_risk: 'This package is not signed by a trusted publisher, so its origin and content cannot be verified. Install it only if you know where it came from.',
         callbacks_risk: 'The plugin calls back into the host holding {count} host permission codes; approve them only for a plugin you trust',
         required_grants: 'Approved together with the install (the plugin needs all of them):',
         no_required_grants: 'The plugin needs no grants',

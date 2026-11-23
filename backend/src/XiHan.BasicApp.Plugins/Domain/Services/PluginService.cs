@@ -134,6 +134,8 @@ public sealed class PluginService(FileService files, PluginInspector inspector, 
             Size = package.Size,
             ManifestJson = package.ManifestJson,
             DescriptorJson = package.DescriptorJson,
+            SignatureStatus = inspection.Signer.Status,
+            SignerKey = inspection.Signer.KeyId,
         };
         var plugin = new SysPlugin
         {
@@ -271,7 +273,7 @@ public sealed class PluginService(FileService files, PluginInspector inspector, 
             PluginInspector.RequiredGrantsOf(manifest, descriptor),
             [PluginInspector.DataScopeAll],
             [.. approved.Select(static g => g.GrantValue).Order(StringComparer.Ordinal)],
-            [.. all.Select(v => new PluginVersionResponse(v.Id, v.Version, v.FileId, v.Sha256, v.Size, v.Id == plugin.CurrentVersionId, v.CreatedAt))]);
+            [.. all.Select(v => new PluginVersionResponse(v.Id, v.Version, v.FileId, v.Sha256, v.Size, new PluginSignatureResponse(v.SignatureStatus, v.SignerKey), v.Id == plugin.CurrentVersionId, v.CreatedAt))]);
     }
 
     /// <summary>

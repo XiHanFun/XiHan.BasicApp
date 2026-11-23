@@ -16,8 +16,8 @@ namespace XiHan.BasicApp.Plugins.Domain.Packages;
 /// </summary>
 /// <remarks>
 /// zip：根上是框架清单 <c>xihan.manifest.json</c> 与旁挂清单 <c>basicapp.plugin.json</c>，进程外插件的可执行文件在 <c>runtimes/&lt;运行时标识&gt;/</c> 下，
-/// Wasm 模块在根上，声明式页面在 <c>pages/</c>，前端文案在 <c>locales/&lt;区域&gt;.json</c>
-/// 只读条目清单、两份清单与前端文件（文案与页面描述），其余不解压；条目路径要是相对、不含 <c>..</c> 的正斜杠路径，条目数与解压后的总大小有上限，防路径穿越与解压炸弹
+/// Wasm 模块在根上，声明式页面在 <c>pages/</c>，前端文案在 <c>locales/&lt;区域&gt;.json</c>，发布者签名在根上的 <c>basicapp.signature.json</c>（<see cref="PluginSignature"/>）
+/// 只读条目清单、两份清单、前端文件（文案与页面描述）与签名，其余不解压；带签名时逐个条目算散列得出内容清单，供信任判定核对；条目路径要是相对、不含 <c>..</c> 的正斜杠路径，条目数与解压后的总大小有上限，防路径穿越与解压炸弹
 /// </remarks>
 public sealed class PluginPackage
 {
@@ -49,8 +49,9 @@ public sealed class PluginPackage
     /// <summary>
     /// 创建读出的包
     /// </summary>
-    private PluginPackage(Manifest manifest, string manifestJson, PluginDescriptor descriptor, string descriptorJson, IReadOnlySet<string> entries, IReadOnlyDictionary<string, string> documents, string sha256, long size)
+    private PluginPackage(Manifest manifest, string manifestJson, PluginDescriptor descriptor, string descriptorJson, IReadOnlySet<string> entries, IReadOnlyDictionary<string, string> documents, PluginPackageSignature? signature, string sha256, long size)
     {
+        Signature = signature;
         Manifest = manifest;
         ManifestJson = manifestJson;
         Descriptor = descriptor;
@@ -92,6 +93,14 @@ public sealed class PluginPackage
     public IReadOnlyDictionary<string, string> Documents { get; }
 
     /// <summary>
+    /// 发布者签名
+    /// </summary>
+    /// <remarks>
+    /// 包里没有签名文件为空
+    /// </remarks>
+    public PluginPackageSignature? Signature { get; }
+
+    /// <summary>
     /// 包的 SHA-256（小写十六进制）
     /// </summary>
     public string Sha256 { get; }
@@ -106,7 +115,7 @@ public sealed class PluginPackage
     /// </summary>
     /// <remarks>
     /// 不是 zip <c>PLUGINS_VALIDATION_101</c>（<c>plugins.package.unreadable</c>），超过上限 <c>plugins.package.too_large</c>，路径不安全 <c>plugins.package.entry_unsafe</c>，缺清单 <c>plugins.package.entry_missing</c>；
-    /// 框架清单读不出原样返回框架的错误，旁挂清单读不出 <c>PLUGINS_VALIDATION_102</c>
+    /// 框架清单读不出原样返回框架的错误，旁挂清单读不出 <c>PLUGINS_VALIDATION_102</c>，签名文件读不出 <c>PLUGINS_VALIDATION_109</c>
     /// </remarks>
     /// <param name="stream">包内容，可定位</param>
     /// <param name="maxBytes">包的大小上限（字节）；解压后的总大小上限是它的 4 倍</param>
@@ -213,8 +222,57 @@ public sealed class PluginPackage
                 documents[path] = content;
             }
 
-            return new PluginPackage(read, manifestJson, descriptor, descriptorJson, entries, documents, sha256, stream.Length);
+            PluginPackageSignature? signature = null;
+            if (entries.Contains(PluginSignature.Entry))
+            {
+                var signed = await ReadSignatureAsync(archive, cancellationToken).ConfigureAwait(false);
+                if (!signed.TryGetValue(out signature))
+                {
+                    return signed.Error!;
+                }
+            }
+
+            return new PluginPackage(read, manifestJson, descriptor, descriptorJson, entries, documents, signature, sha256, stream.Length);
         }
+    }
+
+    /// <summary>
+    /// 读签名文件并算出包的内容清单
+    /// </summary>
+    /// <remarks>
+    /// 算法要是 <see cref="PluginSignature.Algorithm"/>，公钥指纹是 64 位小写十六进制，签名是 Base64；不认得的字段同样当读不出
+    /// </remarks>
+    private static async Task<Result<PluginPackageSignature>> ReadSignatureAsync(ZipArchive archive, CancellationToken cancellationToken)
+    {
+        var text = await ReadTextAsync(archive, PluginSignature.Entry, cancellationToken).ConfigureAwait(false);
+        if (!text.TryGetValue(out var json))
+        {
+            return text.Error!;
+        }
+
+        PluginSignatureDocument? document;
+        try
+        {
+            document = JsonSerializer.Deserialize(json, PluginsJsonContext.Default.PluginSignatureDocument);
+        }
+        catch (JsonException)
+        {
+            document = null;
+        }
+
+        var value = new byte[document?.Signature.Length ?? 0];
+        if (document is null
+            || !string.Equals(document.Algorithm, PluginSignature.Algorithm, StringComparison.Ordinal)
+            || document.Key.Length != 64
+            || !document.Key.All(char.IsAsciiHexDigitLower)
+            || !Convert.TryFromBase64String(document.Signature, value, out var written)
+            || written == 0)
+        {
+            return Error.Validation(PluginsErrors.SignatureInvalid, PluginsMessages.SignatureUnreadable);
+        }
+
+        var contentList = await PluginSignature.ContentListAsync(archive, cancellationToken).ConfigureAwait(false);
+        return new PluginPackageSignature(document.Key, value.AsMemory(0, written), contentList);
     }
 
     /// <summary>

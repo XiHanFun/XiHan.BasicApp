@@ -328,6 +328,32 @@ public static class PluginsMessages
     /// </remarks>
     public const string CatalogIncomplete = "plugins.runtime.catalog_incomplete";
 
+    /// <summary>
+    /// 签名文件读不出
+    /// </summary>
+    public const string SignatureUnreadable = "plugins.signature.unreadable";
+
+    /// <summary>
+    /// 签名与包内容不符
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>key</c>（签名公钥的指纹）
+    /// </remarks>
+    public const string SignatureMismatch = "plugins.signature.mismatch";
+
+    /// <summary>
+    /// 插件包没有签名
+    /// </summary>
+    public const string SignatureMissing = "plugins.signature.missing";
+
+    /// <summary>
+    /// 签名的公钥不受信任
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>key</c>（签名公钥的指纹）、<c>publisher</c>
+    /// </remarks>
+    public const string SignatureUntrusted = "plugins.signature.untrusted";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(PluginsMessages)));
 
     /// <summary>

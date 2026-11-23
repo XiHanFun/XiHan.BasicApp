@@ -19,16 +19,17 @@ namespace XiHan.BasicApp.Plugins.Domain.Packages;
 /// 插件包的静态核对
 /// </summary>
 /// <remarks>
-/// 方案 4.3：安装前把框架清单、旁挂清单与包里的文件对一遍，插件代码一行都不跑。依次核对旁挂清单版本、清单种类与隔离级别、管道中间件、短名、当前平台的运行时或模块、
+/// 方案 4.3：安装前把框架清单、旁挂清单与包里的文件对一遍，插件代码一行都不跑。先判定签名（<see cref="PluginTrust"/>），再依次核对旁挂清单版本、清单种类与隔离级别、管道中间件、短名、当前平台的运行时或模块、
 /// 前端文案、操作的资源段、权限码、页面、回调、扩展点，最后与已登记的操作和权限码比对；第一处不过即返回它的错误
 /// 通过后给出插件申请的授予：框架要的（清单 <c>permissions</c>、<c>config:</c>、<c>binding:</c>）与回调要的 <c>callback:&lt;权限码&gt;</c> 都必须批准，<c>data-scope:all</c> 可选
 /// </remarks>
 /// <param name="options">插件模块选项</param>
+/// <param name="trust">信任判定</param>
 /// <param name="operations">操作登记表</param>
 /// <param name="permissions">权限登记表</param>
 /// <param name="permissionSections">各包登记的权限目录片段</param>
 /// <param name="pageSections">各包登记的页面片段</param>
-public sealed partial class PluginInspector(PluginsOptions options, OperationRegistry operations, PermissionRegistry permissions, IEnumerable<PermissionCatalogSection> permissionSections, IEnumerable<PageCatalogSection> pageSections)
+public sealed partial class PluginInspector(PluginsOptions options, PluginTrust trust, OperationRegistry operations, PermissionRegistry permissions, IEnumerable<PermissionCatalogSection> permissionSections, IEnumerable<PageCatalogSection> pageSections)
 {
     /// <summary>
     /// 旁挂清单当前的接口版本
@@ -96,6 +97,12 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
     public Result<PluginInspection> Inspect(PluginPackage package)
     {
         ArgumentNullException.ThrowIfNull(package);
+        var signed = trust.Check(package);
+        if (!signed.TryGetValue(out var signer))
+        {
+            return signed.Error!;
+        }
+
         var manifest = package.Manifest;
         var descriptor = package.Descriptor;
         if (!string.Equals(descriptor.PluginApi, PluginApi, StringComparison.Ordinal))
@@ -149,7 +156,7 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
             }
         }
 
-        return new PluginInspection(package, RequiredGrantsOf(manifest, descriptor), [DataScopeAll]);
+        return new PluginInspection(package, signer, RequiredGrantsOf(manifest, descriptor), [DataScopeAll]);
     }
 
     /// <summary>
@@ -460,6 +467,7 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
 /// 核对通过的插件包
 /// </summary>
 /// <param name="Package">插件包</param>
+/// <param name="Signer">签名结论</param>
 /// <param name="RequiredGrants">必须批准的授予</param>
 /// <param name="OptionalGrants">可以另外批准的授予</param>
-public sealed record PluginInspection(PluginPackage Package, IReadOnlyList<string> RequiredGrants, IReadOnlyList<string> OptionalGrants);
+public sealed record PluginInspection(PluginPackage Package, PluginSigner Signer, IReadOnlyList<string> RequiredGrants, IReadOnlyList<string> OptionalGrants);

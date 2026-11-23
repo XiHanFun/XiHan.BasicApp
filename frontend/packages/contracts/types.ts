@@ -15743,6 +15743,18 @@ export interface components {
              */
             modifiedAt?: string | null;
         };
+        /** @description 插件包的签名结论 */
+        PluginSignatureResponse: {
+            /** @description 结论 */
+            status: components["schemas"]["PluginSignatureStatus"];
+            /** @description 签名公钥的指纹；没有签名为空 */
+            keyId?: string | null;
+        };
+        /**
+         * @description 插件版本的签名结论
+         * @enum {string}
+         */
+        PluginSignatureStatus: "None" | "Untrusted" | "Trusted";
         /** @description 插件的一个版本 */
         PluginVersionResponse: {
             /**
@@ -15764,6 +15776,8 @@ export interface components {
              * @description 包的字节数
              */
             size: number;
+            /** @description 上传核对时的签名结论 */
+            signature: components["schemas"]["PluginSignatureResponse"];
             /** @description 是否是当前版本 */
             isCurrent: boolean;
             /**
@@ -40900,6 +40914,8 @@ export interface operations {
                          * @description 包的字节数
                          */
                         size: number;
+                        /** @description 签名结论 */
+                        signature: components["schemas"]["PluginSignatureResponse"];
                         /** @description 贡献 */
                         contributions: components["schemas"]["PluginContributionsResponse"];
                         /** @description 必须全部批准的授予 */

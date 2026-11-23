@@ -292,6 +292,9 @@ export type PermissionScope = (typeof PermissionScope)[number]
 export const PluginIsolation = ['InProcess', 'Wasm', 'OutOfProcess'] as const
 export type PluginIsolation = (typeof PluginIsolation)[number]
 
+export const PluginSignatureStatus = ['None', 'Untrusted', 'Trusted'] as const
+export type PluginSignatureStatus = (typeof PluginSignatureStatus)[number]
+
 export const PrintTemplateScope = ['Auto', 'Tenant', 'Global'] as const
 export type PrintTemplateScope = (typeof PrintTemplateScope)[number]
 
@@ -479,6 +482,7 @@ export const enums = {
   PermissionRequestStatus,
   PermissionScope,
   PluginIsolation,
+  PluginSignatureStatus,
   PrintTemplateScope,
   PrintTemplateStatus,
   RoleStatus,

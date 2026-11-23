@@ -23,7 +23,7 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// 把本节点加载的插件对齐到库里启用的插件（单例）
 /// </summary>
 /// <remarks>
-/// 方案 5.4：启动时与管理操作提交后各对齐一次。已安装插件的页面变了先把菜单对齐过去（<see cref="PluginPages"/>）；再卸掉不再启用的，逐个加载启用的：版本或授予变了先卸后载；加载成功即把运行期贡献放进 <see cref="PluginRuntimeCatalog"/>
+/// 方案 5.4：启动时与管理操作提交后各对齐一次。加载前按版本的签名结论与当时的受信任发布者再判一次信任（<see cref="PluginTrust.Recheck"/>），不过即记为失败、不起插件。已安装插件的页面变了先把菜单对齐过去（<see cref="PluginPages"/>）；再卸掉不再启用的，逐个加载启用的：版本或授予变了先卸后载；加载成功即把运行期贡献放进 <see cref="PluginRuntimeCatalog"/>
 /// 加载失败只让这个插件失败：错误码记进 <c>sys_plugin.last_error_code</c>，节点的健康项降级；换版本失败时重载旧版本，旧版本也起不来就留着失败
 /// 宿主加载成功后再核对插件的消息目录（随握手进本地化器）：接口文档的分组名与说明、每个资源标签的显示名要有 en-US，缺了即卸掉、记为失败
 /// 插件宿主按隔离级别取键控服务 <see cref="IPluginHost"/>，没装的隔离级别 <c>PLUGINS_UNAVAILABLE_101</c>
@@ -34,9 +34,10 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// <param name="cache">本机解包目录</param>
 /// <param name="catalog">已加载插件的运行期贡献</param>
 /// <param name="pages">已安装插件的页面</param>
+/// <param name="trust">信任判定</param>
 /// <param name="options">插件模块选项</param>
 /// <param name="logger">日志</param>
-public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServiceProvider services, PluginCache cache, PluginRuntimeCatalog catalog, PluginPages pages, PluginsOptions options, ILogger<PluginReconciler> logger) : IDisposable
+public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServiceProvider services, PluginCache cache, PluginRuntimeCatalog catalog, PluginPages pages, PluginTrust trust, PluginsOptions options, ILogger<PluginReconciler> logger) : IDisposable
 {
     /// <summary>
     /// 插件消息目录必有的源语言
@@ -175,7 +176,7 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
             [.. enabled.Select(p =>
             {
                 var version = versions[p.CurrentVersionId];
-                return new PluginRelease(p.Id, p.ManifestId, p.Name, p.Isolation, version.Id, version.Version, version.FileId, version.Sha256, version.DescriptorJson, [.. grants[p.Id].Order(StringComparer.Ordinal)], p.LastErrorCode);
+                return new PluginRelease(p.Id, p.ManifestId, p.Name, p.Isolation, version.Id, version.Version, version.FileId, version.Sha256, new PluginSigner(version.SignatureStatus, version.SignerKey), version.DescriptorJson, [.. grants[p.Id].Order(StringComparer.Ordinal)], p.LastErrorCode);
             })],
             pages);
     }
@@ -216,6 +217,12 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
     /// </remarks>
     private async Task<Result> LoadAsync(PluginRelease release, CancellationToken cancellationToken)
     {
+        var trusted = trust.Recheck(release.ReadDescriptor().Publisher, release.Signer);
+        if (trusted.IsFailure)
+        {
+            return Fail(release, trusted.Error!);
+        }
+
         if (services.GetKeyedService<IPluginHost>(release.Isolation) is not { } host)
         {
             return Fail(release, Error.Unavailable(PluginsErrors.IsolationUnavailable, PluginsMessages.IsolationUnavailable, MessageArguments.Of(("isolation", PluginsOptions.NameOf(release.Isolation)))));

@@ -40,7 +40,7 @@ import { plugins as pluginsApi } from '~/contracts'
 import { ApiError } from '~/request'
 import { useAuthStore } from '~/stores'
 import { formatDate, formatFileSize } from '~/utils'
-import { approvedGrants, grantLabel, isolationLabel, stateLabel, stateTone } from '../use-plugins'
+import { approvedGrants, grantLabel, isolationLabel, signatureLabel, signatureTone, stateLabel, stateTone } from '../use-plugins'
 import PluginContributionsView from './PluginContributionsView.vue'
 
 defineOptions({ name: 'PluginDetailDrawer' })
@@ -141,6 +141,12 @@ const versionColumns = computed<XDataTableColumn<VersionRow>[]>(() => [
     render: row => row.isCurrent
       ? renderTag(t('plugins.installed.versions.current'), 'success')
       : '-',
+  },
+  {
+    key: 'signature',
+    title: t('plugins.installed.fields.signature'),
+    width: 170,
+    render: row => renderTag(signatureLabel(t, row.signature.status), signatureTone(row.signature.status)),
   },
   {
     key: 'size',

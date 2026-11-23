@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "Die Seiten, die geladene Plugins zum Frontend beitragen.",
   "plugins.package.locale_invalid": "Die Frontend-Texte in locales/{locale}.json sind bei '{key}' ungültig: Die Wurzel enthält nur den Kurznamen des Plugins, jedes Segment besteht aus Kleinbuchstaben, Ziffern und Unterstrichen, und jedes Blatt ist eine Zeichenkette.",
   "plugins.contribution.page_view_invalid": "Die Ansichtsbeschreibung der Seite '{code}' ist bei '{path}' ungültig.",
-  "plugins.contribution.page_text_missing": "Die Seite '{code}' verwendet den Textschlüssel '{key}', der in den en-US-Frontend-Texten fehlt."
+  "plugins.contribution.page_text_missing": "Die Seite '{code}' verwendet den Textschlüssel '{key}', der in den en-US-Frontend-Texten fehlt.",
+  "plugins.signature.unreadable": "Die Signaturdatei basicapp.signature.json ist nicht lesbar: Sie enthält den Algorithmus 'ecdsa-p256-sha256', den 64-stelligen Schlüssel-Fingerabdruck und eine Base64-DER-Signatur.",
+  "plugins.signature.mismatch": "Die Signatur mit dem Schlüssel '{key}' passt nicht zum Paketinhalt: Das Paket wurde nach dem Signieren verändert.",
+  "plugins.signature.missing": "Das Plugin-Paket ist nicht signiert, und dieser Server akzeptiert nur Pakete, die von einem vertrauenswürdigen Herausgeber signiert sind.",
+  "plugins.signature.untrusted": "Das Plugin-Paket ist mit dem Schlüssel '{key}' signiert, der kein vertrauenswürdiger Schlüssel des Herausgebers '{publisher}' ist."
 }

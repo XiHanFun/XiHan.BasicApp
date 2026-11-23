@@ -27,6 +27,12 @@ export default {
         remark: '備考',
         size: 'サイズ',
         sha256: 'SHA-256',
+        signature: '署名',
+      },
+      signatures: {
+        trusted: '信頼された発行者の署名',
+        untrusted: '信頼されていない鍵で署名',
+        none: '署名なし',
       },
       status: {
         enabled: '有効',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: 'インストール前にパッケージを検査し、プラグインのコードは実行しません',
         inspecting: 'パッケージをアップロードして検査しています…',
         file_rejected: '.xhplugin パッケージを 1 つ選んでください',
+        untrusted_risk: 'このパッケージには信頼された発行者の署名がなく、出所と内容を確認できません。出所が分かっている場合にだけインストールしてください。',
         callbacks_risk: 'このプラグインは {count} 個のホスト権限でホストを呼び出します。信頼できるプラグインにだけ承認してください',
         required_grants: 'インストールと同時に承認されます（すべて必須）：',
         no_required_grants: 'このプラグインに必要な付与はありません',

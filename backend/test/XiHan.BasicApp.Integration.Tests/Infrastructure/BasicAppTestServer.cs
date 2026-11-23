@@ -128,6 +128,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Security:Outbound:AllowLoopback", "true"),
         // 图形验证码缺省关：需要它的用例自己打开并换上固定码源
         new("BasicApp:Auth:CaptchaEnabled", "false"),
+        // 用例拼的插件包都没有签名：放行它们，验证签名的用例自己关掉
+        new("BasicApp:Plugins:AllowUnsigned", "true"),
     ];
 
     /// <summary>

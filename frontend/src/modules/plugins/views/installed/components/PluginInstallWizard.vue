@@ -40,6 +40,8 @@ import {
   XhStepsSeparator,
   XhStepsTitle,
   XhStepsTrigger,
+  XhTagLabel,
+  XhTagRoot,
 } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -48,7 +50,7 @@ import { plugins as pluginsApi } from '~/contracts'
 import { uploadFile } from '~/files'
 import { ApiError } from '~/request'
 import { formatFileSize } from '~/utils'
-import { approvedGrants, grantLabel, isolationLabel } from '../use-plugins'
+import { approvedGrants, grantLabel, isolationLabel, signatureLabel, signatureTone } from '../use-plugins'
 import PluginContributionsView from './PluginContributionsView.vue'
 
 defineOptions({ name: 'PluginInstallWizard' })
@@ -231,7 +233,26 @@ async function install() {
                 <XhDescriptionsLabel>{{ t('plugins.installed.fields.sha256') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue><code class="plugin-wizard__mono">{{ inspection.sha256 }}</code></XhDescriptionsValue>
               </XhDescriptionsItem>
+              <XhDescriptionsItem style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('plugins.installed.fields.signature') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <span class="plugin-wizard__signature">
+                    <XhTagRoot variant="subtle" size="sm" :tone="signatureTone(inspection.signature.status)">
+                      <XhTagLabel>{{ signatureLabel(t, inspection.signature.status) }}</XhTagLabel>
+                    </XhTagRoot>
+                    <code v-if="inspection.signature.keyId" class="plugin-wizard__mono">{{ inspection.signature.keyId }}</code>
+                  </span>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
             </XhDescriptionsRoot>
+            <XhAlertRoot v-if="inspection.signature.status !== 'Trusted'" tone="warning">
+              <XhAlertIndicator>
+                <Icon icon="lucide:shield-question" width="16" height="16" />
+              </XhAlertIndicator>
+              <XhAlertContent>
+                <XhAlertDescription>{{ t('plugins.installed.wizard.untrusted_risk') }}</XhAlertDescription>
+              </XhAlertContent>
+            </XhAlertRoot>
 
             <XhSeparator>{{ t('plugins.installed.sections.contributions') }}</XhSeparator>
             <PluginContributionsView :contributions="inspection.contributions" />
@@ -353,6 +374,14 @@ async function install() {
   flex-wrap: wrap;
   gap: var(--xh-space-2);
   align-items: baseline;
+}
+
+.plugin-wizard__signature {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-2);
+  align-items: center;
+  min-inline-size: 0;
 }
 
 .plugin-wizard__mono {

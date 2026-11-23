@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "已加载插件贡献给前端的页面。",
   "plugins.package.locale_invalid": "locales/{locale}.json 的前端文案在 '{key}' 处不合规则：根上只能有插件短名，每一段是小写字母、数字与下划线，叶子都是文本。",
   "plugins.contribution.page_view_invalid": "页面 '{code}' 的页面描述在 '{path}' 处不合规则。",
-  "plugins.contribution.page_text_missing": "页面 '{code}' 用到的文案键 '{key}' 在 en-US 的前端文案里没有。"
+  "plugins.contribution.page_text_missing": "页面 '{code}' 用到的文案键 '{key}' 在 en-US 的前端文案里没有。",
+  "plugins.signature.unreadable": "签名文件 basicapp.signature.json 读不出：要写算法 'ecdsa-p256-sha256'、64 位的公钥指纹与 Base64 的 DER 签名。",
+  "plugins.signature.mismatch": "公钥 '{key}' 的签名与包内容不符：包在签名之后被改过。",
+  "plugins.signature.missing": "插件包没有签名，本服务只接受受信任的发布者签名的包。",
+  "plugins.signature.untrusted": "插件包由公钥 '{key}' 签名，它不是发布者 '{publisher}' 受信任的公钥。"
 }

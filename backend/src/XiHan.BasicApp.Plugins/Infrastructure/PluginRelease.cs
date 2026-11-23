@@ -23,6 +23,7 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// <param name="Version">当前版本号</param>
 /// <param name="FileId">包文件 ID</param>
 /// <param name="Sha256">包的 SHA-256</param>
+/// <param name="Signer">上传核对时的签名结论</param>
 /// <param name="DescriptorJson">旁挂清单原文</param>
 /// <param name="Grants">批准的授予（排序后）</param>
 /// <param name="LastErrorCode">库里记的最近一次加载失败的错误码</param>
@@ -35,6 +36,7 @@ public sealed record PluginRelease(
     string Version,
     Guid FileId,
     string Sha256,
+    PluginSigner Signer,
     string DescriptorJson,
     IReadOnlyList<string> Grants,
     string? LastErrorCode)

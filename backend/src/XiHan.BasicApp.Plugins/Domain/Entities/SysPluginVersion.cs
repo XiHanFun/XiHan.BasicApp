@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Plugins.Domain.Entities;
 /// <remarks>
 /// 包本身是 Files 里的一个文件，这里只按 ID 引用，并记下当时算出的 SHA-256，各实例同步包时据此核对没被换掉
 /// 框架清单与旁挂清单原文照存：详情、授权页与运行期都按它们解释，不再回去解包
+/// 签名结论是上传核对时的：受信任的记下公钥指纹，每次加载前按它与当时的受信任发布者再判一次
 /// 同一插件的版本号唯一；留着旧版本是为了升级失败时能退回
 /// </remarks>
 [SugarTable(TableName = "sys_plugin_version", TableDescription = "插件的一个已上传版本（平台库实体）")]
@@ -62,4 +63,40 @@ public sealed class SysPluginVersion : AppAuditedEntity
     [SugarColumn(ColumnName = "descriptor_json", IsNullable = false, ColumnDescription = "旁挂清单原文")]
     [LongText]
     public string DescriptorJson { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 签名结论
+    /// </summary>
+    [SugarColumn(ColumnName = "signature_status", IsNullable = false, ColumnDescription = "签名结论")]
+    public PluginSignatureStatus SignatureStatus { get; set; }
+
+    /// <summary>
+    /// 签名公钥的指纹
+    /// </summary>
+    /// <remarks>
+    /// 没有签名为空；签名不受信任时也记下，便于对照
+    /// </remarks>
+    [SugarColumn(ColumnName = "signer_key", Length = 64, IsNullable = true, ColumnDescription = "签名公钥的指纹")]
+    public string? SignerKey { get; set; }
+}
+
+/// <summary>
+/// 插件版本的签名结论
+/// </summary>
+public enum PluginSignatureStatus
+{
+    /// <summary>
+    /// 没有签名
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// 有签名，但公钥不在受信任的发布者里
+    /// </summary>
+    Untrusted = 1,
+
+    /// <summary>
+    /// 受信任的发布者签名，且与包内容一致
+    /// </summary>
+    Trusted = 2,
 }

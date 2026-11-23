@@ -1617,7 +1617,7 @@
         },
         "Plugins": {
           "type": "object",
-          "description": "插件模块：允许的隔离级别、插件包大小上限、本机解包目录与对齐时限；写错的值启动即失败",
+          "description": "插件模块：允许的隔离级别、插件包大小上限、本机解包目录、对齐时限、签名的放行与受信任的发布者；写错的值启动即失败",
           "properties": {
             "Isolations": {
               "type": "array",
@@ -1645,6 +1645,30 @@
               "description": "一次对齐的时限（秒）；启动时对齐完成之前节点不就绪，超时的插件留到下一次对齐",
               "minimum": 1,
               "default": 60
+            },
+            "AllowUnsigned": {
+              "type": "boolean",
+              "description": "是否放行没有签名或签名不受信任的插件包；不写时 Development 为 true、其余环境为 false。签名与内容对不上的包照样拒绝，关掉后已装的这类版本不再加载"
+            },
+            "TrustedPublishers": {
+              "type": "array",
+              "description": "受信任的发布者；同一发布者可以写多把公钥，换钥时新旧并存",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Name": {
+                    "type": "string",
+                    "description": "发布者名，与旁挂清单的 publisher 一致",
+                    "minLength": 1
+                  },
+                  "PublicKey": {
+                    "type": "string",
+                    "description": "P-256 公钥 SubjectPublicKeyInfo DER 的 Base64（plugins keygen 打出的 publicKey）"
+                  }
+                },
+                "required": [ "Name", "PublicKey" ]
+              },
+              "default": []
             }
           }
         },

@@ -6,6 +6,12 @@ using XiHan.BasicApp.Host.Commands;
 using XiHan.BasicApp.Host.Contracts;
 using XiHan.Framework.Hosting.CommandLine;
 
+// plugins keygen / sign：插件发布者的签名工具，只读写本机文件，不构建宿主
+if (PluginPackageCommand.Matches(args))
+{
+    return await PluginPackageCommand.RunAsync(args, Console.Out, Console.Error, CancellationToken.None);
+}
+
 // contracts export：构建宿主、导出接口文档，不启动应用、不连数据库
 if (ContractsExporter.TryParse(args, out var outputDirectory))
 {

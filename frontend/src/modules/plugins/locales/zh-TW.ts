@@ -27,6 +27,12 @@ export default {
         remark: '備註',
         size: '大小',
         sha256: 'SHA-256',
+        signature: '簽章',
+      },
+      signatures: {
+        trusted: '受信任的發佈者簽章',
+        untrusted: '簽章不受信任',
+        none: '沒有簽章',
       },
       status: {
         enabled: '已啟用',
@@ -121,6 +127,7 @@ export default {
         dragger_hint: '安裝前先核對外掛套件，不執行外掛的任何程式碼',
         inspecting: '正在上傳並核對外掛套件…',
         file_rejected: '請選擇一個 .xhplugin 外掛套件',
+        untrusted_risk: '這個套件沒有受信任的發佈者簽章，來源與內容都無從核實；確知來源時再安裝。',
         callbacks_risk: '外掛會持有 {count} 個主機權限碼回呼主機操作，只給信得過的外掛核准',
         required_grants: '隨安裝一起核准（外掛缺一不可）：',
         no_required_grants: '外掛不需要任何授予',

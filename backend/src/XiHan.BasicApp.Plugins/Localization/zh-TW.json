@@ -70,5 +70,9 @@
   "openapi.tags.plugin_views.description": "已載入外掛貢獻給前端的頁面。",
   "plugins.package.locale_invalid": "locales/{locale}.json 的前端文案在 '{key}' 處不合規則：根上只能有外掛簡稱，每一段是小寫字母、數字與底線，葉子都是文字。",
   "plugins.contribution.page_view_invalid": "頁面 '{code}' 的頁面描述在 '{path}' 處不合規則。",
-  "plugins.contribution.page_text_missing": "頁面 '{code}' 用到的文案鍵 '{key}' 在 en-US 的前端文案裡沒有。"
+  "plugins.contribution.page_text_missing": "頁面 '{code}' 用到的文案鍵 '{key}' 在 en-US 的前端文案裡沒有。",
+  "plugins.signature.unreadable": "簽章檔 basicapp.signature.json 讀不出：要寫演算法 'ecdsa-p256-sha256'、64 位的公鑰指紋與 Base64 的 DER 簽章。",
+  "plugins.signature.mismatch": "公鑰 '{key}' 的簽章與套件內容不符：套件在簽章之後被改過。",
+  "plugins.signature.missing": "外掛套件沒有簽章，本服務只接受受信任的發行者簽章的套件。",
+  "plugins.signature.untrusted": "外掛套件由公鑰 '{key}' 簽章，它不是發行者 '{publisher}' 受信任的公鑰。"
 }
