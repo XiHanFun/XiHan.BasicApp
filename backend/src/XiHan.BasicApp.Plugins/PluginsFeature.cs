@@ -19,6 +19,8 @@ using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Kernel.Plugins;
 using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.Messaging.Abstractions;
+using XiHan.Framework.Messaging.Abstractions.Handlers;
 using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Persistence.Abstractions.UnitOfWork;
 using XiHan.Framework.Plugins.OutOfProcess;
@@ -35,11 +37,14 @@ namespace XiHan.BasicApp.Plugins;
 /// </summary>
 /// <remarks>
 /// 平台上传插件包（<c>.xhplugin</c>），核对之后连同批准的授予安装；插件在框架的进程外插件宿主里运行（方案 <c>plans/插件方案.md</c>）
-/// 启动时（结构升级之后、种子之前）按库把启用的插件加载到本节点，对齐完成之前节点不就绪；管理操作提交后本节点立即再对齐（<see cref="PluginReconciler"/>）
+/// 启动时（结构升级之后、种子之前）按库把启用的插件加载到本节点，对齐完成之前节点不就绪；管理操作提交后本节点立即再对齐并广播，其他节点收到后各自对齐；另有定时对齐补上漏掉的广播（<see cref="PluginReconciler"/>）
 /// 宿主按 <c>BasicApp:Modules:Plugins:Enabled</c> 决定是否装配；关掉后权限目录与操作都不在
 /// </remarks>
-public sealed class PluginsFeature : IHostedFeature
+public sealed class PluginsFeature : IHostedFeature, IDisposable
 {
+    private CancellationTokenSource? _stopping;
+    private Task? _watch;
+
     /// <inheritdoc />
     public Manifest Manifest { get; } = new()
     {
@@ -56,6 +61,7 @@ public sealed class PluginsFeature : IHostedFeature
             new CapabilityRequirement(PersistenceCapabilities.Relational, PersistenceCapabilities.Version),
             new CapabilityRequirement(SecurityCapabilities.Authorization, SecurityCapabilities.Version),
             new CapabilityRequirement(RuntimeCapabilities.Runtime, RuntimeCapabilities.Version),
+            new CapabilityRequirement(MessagingCapabilities.Queue, MessagingCapabilities.Version),
             new CapabilityRequirement(OutOfProcessPluginsFeature.Capability, 1),
         ],
         Contributes = new Contributions
@@ -93,6 +99,9 @@ public sealed class PluginsFeature : IHostedFeature
         context.Services.AddSingleton<PluginCache>();
         context.Services.AddSingleton<PluginReconciler>();
         context.Services.AddScoped<PluginChanges>();
+        // 改动提交后广播给其他节点，各节点各收一份
+        context.Services.AddSingleton<PluginBroadcast>();
+        context.Services.AddMessageHandler<PluginChangedHandler>(PluginBroadcast.Topic, SubscriptionMode.Broadcast);
         context.Services.AddSingleton<IHealthContributor, PluginsHealthContributor>();
         context.Services.AddPermissionCatalog("plugins", PluginsPermissions.All);
         context.Services.AddPageCatalog("plugins", PluginsPages.All);
@@ -108,12 +117,34 @@ public sealed class PluginsFeature : IHostedFeature
     }
 
     /// <inheritdoc />
-    public Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
+    public async Task StartAsync(IServiceProvider services, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(services);
-        return services.GetRequiredService<PluginReconciler>().ReconcileAsync(cancellationToken);
+        var reconciler = services.GetRequiredService<PluginReconciler>();
+        await reconciler.ReconcileAsync(cancellationToken).ConfigureAwait(false);
+        _stopping = new CancellationTokenSource();
+        _watch = reconciler.WatchAsync(_stopping.Token);
     }
 
     /// <inheritdoc />
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_stopping is null || _watch is null)
+        {
+            return;
+        }
+
+        await _stopping.CancelAsync().ConfigureAwait(false);
+        await _watch.ConfigureAwait(false);
+        _stopping.Dispose();
+        _stopping = null;
+        _watch = null;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        _stopping?.Dispose();
+        _stopping = null;
+    }
 }

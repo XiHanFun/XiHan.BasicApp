@@ -1617,7 +1617,7 @@
         },
         "Plugins": {
           "type": "object",
-          "description": "插件模块：允许的隔离级别、插件包大小上限、本机解包目录、对齐时限、签名的放行与受信任的发布者；写错的值启动即失败",
+          "description": "插件模块：允许的隔离级别、插件包大小上限、本机解包目录、对齐的时限与间隔、签名的放行与受信任的发布者；写错的值启动即失败",
           "properties": {
             "Isolations": {
               "type": "array",
@@ -1643,6 +1643,12 @@
             "ReconcileTimeoutSeconds": {
               "type": "integer",
               "description": "一次对齐的时限（秒）；启动时对齐完成之前节点不就绪，超时的插件留到下一次对齐",
+              "minimum": 1,
+              "default": 60
+            },
+            "ReconcileIntervalSeconds": {
+              "type": "integer",
+              "description": "定时对齐的间隔（秒）；各节点每过这么久读一次库，要加载的样子变了才对齐，补上漏掉的广播",
               "minimum": 1,
               "default": 60
             },

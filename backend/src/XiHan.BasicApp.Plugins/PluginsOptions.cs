@@ -56,6 +56,14 @@ public sealed class PluginsOptions
     public int ReconcileTimeoutSeconds { get; init; } = 60;
 
     /// <summary>
+    /// 定时对齐的间隔（秒），缺省 60
+    /// </summary>
+    /// <remarks>
+    /// 管理操作提交后靠广播让各实例对齐，广播是尽力而为；每过这么久各实例再读一次库，库里要加载的样子变了才对齐，漏掉的变更由它补上
+    /// </remarks>
+    public int ReconcileIntervalSeconds { get; init; } = 60;
+
+    /// <summary>
     /// 是否允许没有签名或签名不受信任的插件包
     /// </summary>
     /// <remarks>
@@ -92,6 +100,7 @@ public sealed class PluginsOptions
             MaxPackageSizeMegabytes = PositiveOf(section, nameof(MaxPackageSizeMegabytes), defaults.MaxPackageSizeMegabytes),
             CacheDirectory = Path.GetFullPath(string.IsNullOrWhiteSpace(cache) ? "App_Data/plugins" : cache, environment?.ContentRootPath ?? Directory.GetCurrentDirectory()),
             ReconcileTimeoutSeconds = PositiveOf(section, nameof(ReconcileTimeoutSeconds), defaults.ReconcileTimeoutSeconds),
+            ReconcileIntervalSeconds = PositiveOf(section, nameof(ReconcileIntervalSeconds), defaults.ReconcileIntervalSeconds),
             AllowUnsigned = string.IsNullOrEmpty(allowUnsigned)
                 ? environment?.IsDevelopment() == true
                 : bool.TryParse(allowUnsigned, out var allowed) ? allowed : throw new ArgumentException($"'{Section}:{nameof(AllowUnsigned)}' must be true or false, but was '{allowUnsigned}'."),

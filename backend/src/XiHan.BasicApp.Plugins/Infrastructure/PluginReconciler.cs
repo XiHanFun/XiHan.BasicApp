@@ -28,6 +28,7 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// 宿主加载成功后再核对插件的消息目录（随握手进本地化器）：接口文档的分组名与说明、每个资源标签的显示名要有 en-US，缺了即卸掉、记为失败
 /// 插件宿主按隔离级别取键控服务 <see cref="IPluginHost"/>，没装的隔离级别 <c>PLUGINS_UNAVAILABLE_101</c>
 /// 一次对齐有总时限（<see cref="PluginsOptions.ReconcileTimeoutSeconds"/>），超时的插件记为失败，下一次对齐再试；对齐之间串行
+/// 定时对齐（<see cref="WatchAsync"/>）只在库里要加载的样子变了时才对齐，补上漏掉的广播；加载失败或超时没轮到的插件不在定时里重试，等管理员再启用或下一次变更
 /// </remarks>
 /// <param name="scopes">作用域工厂</param>
 /// <param name="services">根容器（取键控的插件宿主）</param>
@@ -45,6 +46,7 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
     private const string SourceLocale = "en-US";
 
     private bool _menusStale;
+    private string? _aligned;
 
     private readonly SemaphoreSlim _gate = new(1, 1);
     private ImmutableDictionary<string, PluginRelease> _loaded = ImmutableDictionary.Create<string, PluginRelease>(StringComparer.Ordinal);
@@ -98,12 +100,67 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
         }
     }
 
+    /// <summary>
+    /// 库里要加载的样子变了才对齐一次
+    /// </summary>
+    /// <remarks>
+    /// 与上一次对齐完成时读到的比：启用与否、当前版本与批准的授予
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task RefreshAsync(CancellationToken cancellationToken)
+    {
+        var snapshot = await StoreScope.ReadPrimaryAsync(scopes, SnapshotAsync, cancellationToken).ConfigureAwait(false);
+        if (!string.Equals(snapshot.Fingerprint, Volatile.Read(ref _aligned), StringComparison.Ordinal))
+        {
+            await ReconcileAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// 每隔 <see cref="PluginsOptions.ReconcileIntervalSeconds"/> 定时对齐一次，直到停止
+    /// </summary>
+    /// <remarks>
+    /// 一轮出了意外只记日志，下一轮照常；容器已经释放（宿主没停就被释放）时结束
+    /// </remarks>
+    /// <param name="stopping">停止信号</param>
+    /// <returns>停止后结束的任务</returns>
+    public async Task WatchAsync(CancellationToken stopping)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(options.ReconcileIntervalSeconds));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stopping).ConfigureAwait(false))
+            {
+                try
+                {
+                    await RefreshAsync(stopping).ConfigureAwait(false);
+                }
+#pragma warning disable CA1031 // 定时对齐不能因为一轮的意外停下：记下原因，下一轮再来
+                catch (Exception exception) when (exception is not OperationCanceledException and not ObjectDisposedException)
+#pragma warning restore CA1031
+                {
+                    LogRefreshFailed(logger, exception);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (stopping.IsCancellationRequested)
+        {
+            // 停止
+        }
+        catch (ObjectDisposedException)
+        {
+            // 容器已经释放
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose() => _gate.Dispose();
 
     private async Task AlignAsync(CancellationToken cancellationToken)
     {
         var snapshot = await StoreScope.ReadPrimaryAsync(scopes, SnapshotAsync, cancellationToken).ConfigureAwait(false);
+        // 先记下按哪一份对齐：这一份里没对齐成的（失败、超时）不由定时对齐重试
+        Volatile.Write(ref _aligned, snapshot.Fingerprint);
         await AlignMenusAsync(snapshot.Pages, cancellationToken).ConfigureAwait(false);
         var desired = snapshot.Releases.ToDictionary(static r => r.ManifestId, StringComparer.Ordinal);
         foreach (var loaded in Loaded.Values.Where(l => !desired.ContainsKey(l.ManifestId)).ToList())
@@ -154,7 +211,7 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
         var plugins = await provider.GetRequiredService<IRepository<SysPlugin, Guid>>().ListAsync(EntityQuery.All<SysPlugin>(), cancellationToken).ConfigureAwait(false);
         if (plugins.Count == 0)
         {
-            return new PluginSnapshot([], []);
+            return new PluginSnapshot([], [], string.Empty);
         }
 
         var versions = (await provider.GetRequiredService<IRepository<SysPluginVersion, Guid>>().FindManyAsync([.. plugins.Select(static p => p.CurrentVersionId)], cancellationToken).ConfigureAwait(false)).ToDictionary(static v => v.Id);
@@ -164,21 +221,22 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
             .Where(static s => s.Pages.Count > 0)
             .ToList();
         var enabled = plugins.Where(static p => p.IsEnabled).ToList();
+        var installed = string.Join('\n', plugins.OrderBy(static p => p.Id).Select(static p => $"{p.Id:N}|{p.CurrentVersionId:N}|{p.IsEnabled}"));
         if (enabled.Count == 0)
         {
-            return new PluginSnapshot([], pages);
+            return new PluginSnapshot([], pages, installed);
         }
 
         var ids = enabled.Select(static p => p.Id).ToList();
         var grants = (await provider.GetRequiredService<IRepository<SysPluginGrant, Guid>>().ListAsync(EntityQuery.All<SysPluginGrant>().Where(new Specification<SysPluginGrant>(g => ids.Contains(g.PluginId))), cancellationToken).ConfigureAwait(false))
             .ToLookup(static g => g.PluginId, static g => g.GrantValue);
-        return new PluginSnapshot(
-            [.. enabled.Select(p =>
-            {
-                var version = versions[p.CurrentVersionId];
-                return new PluginRelease(p.Id, p.ManifestId, p.Name, p.Isolation, version.Id, version.Version, version.FileId, version.Sha256, new PluginSigner(version.SignatureStatus, version.SignerKey), version.DescriptorJson, [.. grants[p.Id].Order(StringComparer.Ordinal)], p.LastErrorCode);
-            })],
-            pages);
+        var releases = enabled.Select(p =>
+        {
+            var version = versions[p.CurrentVersionId];
+            return new PluginRelease(p.Id, p.ManifestId, p.Name, p.Isolation, version.Id, version.Version, version.FileId, version.Sha256, new PluginSigner(version.SignatureStatus, version.SignerKey), version.DescriptorJson, [.. grants[p.Id].Order(StringComparer.Ordinal)], p.LastErrorCode);
+        }).ToList();
+        var granted = string.Join('\n', releases.OrderBy(static r => r.PluginId).Select(static r => $"{r.PluginId:N}|{string.Join(',', r.Grants)}"));
+        return new PluginSnapshot(releases, pages, installed + "\n" + granted);
     }
 
     /// <summary>
@@ -207,7 +265,8 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
     /// </summary>
     /// <param name="Releases">启用的插件应当加载的样子</param>
     /// <param name="Pages">已安装插件的页面</param>
-    private sealed record PluginSnapshot(IReadOnlyList<PluginRelease> Releases, IReadOnlyList<PageCatalogSection> Pages);
+    /// <param name="Fingerprint">比较用的指纹：每个插件的当前版本与启用与否、启用的插件批准的授予</param>
+    private sealed record PluginSnapshot(IReadOnlyList<PluginRelease> Releases, IReadOnlyList<PageCatalogSection> Pages, string Fingerprint);
 
     /// <summary>
     /// 加载一个版本
@@ -393,6 +452,9 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Menus could not be aligned to the installed plugin pages: {Code}; retried on the next reconciliation.")]
     private static partial void LogMenusFailed(ILogger logger, string code);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "A scheduled plugin reconciliation failed; it runs again on the next round.")]
+    private static partial void LogRefreshFailed(ILogger logger, Exception exception);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Plugin reconciliation did not finish within {Seconds} s; the remaining plugins are retried on the next reconciliation.")]
     private static partial void LogTimedOut(ILogger logger, int seconds);

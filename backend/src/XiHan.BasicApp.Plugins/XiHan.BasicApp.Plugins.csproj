@@ -17,6 +17,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.ObjectStorage.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Plugins.OutOfProcess" />
     <XiHanFrameworkReference Include="XiHan.Framework.Protocols.Http" />

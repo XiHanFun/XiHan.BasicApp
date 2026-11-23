@@ -760,6 +760,7 @@ SignalR 的 Hub 参数，对全部 Hub 生效；缺省即 ASP.NET Core 的缺省
 | `MaxPackageSizeMegabytes` | `100` | 插件包上限（MB，正整数）；上传还受 [`BasicApp:Files`](#basicapp-files) 的 `MaxUploadBytes` 限制 |
 | `CacheDirectory` | `App_Data/plugins` | 本机解包目录，相对路径相对内容根目录；每个版本解到 `<清单 ID>/<版本 ID>/`，插件进程从这里启动 |
 | `ReconcileTimeoutSeconds` | `60` | 一次对齐的时限（秒，正整数）；启动时对齐完成之前节点不就绪，超时没轮到的插件留到下一次 |
+| `ReconcileIntervalSeconds` | `60` | 定时对齐的间隔（秒，正整数）；各节点每过这么久读一次库，要加载的样子变了才对齐，补上漏掉的广播 |
 | `AllowUnsigned` | Development 为 `true`，其余 `false` | 是否放行没有签名或签名不受信任的包；写了必须是 `true` / `false`。签名与内容对不上的包照样拒绝；关掉后已装的这类版本不再加载 |
 | `TrustedPublishers` | `[]` | 受信任的发布者：每项 `Name`（与旁挂清单的 `publisher` 一致）与 `PublicKey`（P-256 公钥 SubjectPublicKeyInfo DER 的 Base64，`plugins keygen` 打出）；缺名字或公钥读不出即启动失败，见[签名与可信发布者](./backend/plugins#签名与可信发布者) |
 
