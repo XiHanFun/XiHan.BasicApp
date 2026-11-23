@@ -4,9 +4,11 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Caching.Abstractions.Stores;
@@ -22,7 +24,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 可改写的命名空间里改字节存储的值沿用过期，鉴权相关的只读、对象缓存的不能改；按键与按前缀删除两层；命名空间之外的键一律拒绝
 /// Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，没设即跳过）下只有字节存储一层，前缀稀疏时 SCAN 一段可能一个都没有，列键在操作里攒满一页再返回
 /// </remarks>
-public sealed class MaintenanceCachesTests : IDisposable
+public sealed partial class MaintenanceCachesTests : IDisposable
 {
     private readonly TestDatabase _database = new();
 
@@ -127,6 +129,29 @@ public sealed class MaintenanceCachesTests : IDisposable
     }
 
     [Fact]
+    public async Task EveryRegisteredNamespace_HasItsPackageLabelInTheFrontend()
+    {
+        // 缓存页命名空间下拉的包名写在前端 cache.ts 的 packageLabel（文案键静态写出，i18n 门禁才核对得到）；后端新登记命名空间时那里要跟着补，否则下拉显示原始包名
+        // 按配置才登记的（realtime 只在配了 Redis 时）起宿主取不到，所以按各包 Feature 源码里的登记核对；起宿主取到的都得在里面，扫描才算数
+        var root = PageViewsTests.RepositoryRoot();
+        var cancellation = TestContext.Current.CancellationToken;
+        var declared = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(root, "backend", "src"), "*Feature.cs", SearchOption.AllDirectories))
+        {
+            declared.UnionWith(CacheNamespaceCall().Matches(await File.ReadAllTextAsync(file, cancellation)).Select(static m => m.Groups["package"].Value));
+        }
+
+        await using var server = await BasicAppTestServer.StartAsync(_database.ConnectionString);
+        var registered = server.Services.GetServices<CacheNamespace>().Select(static n => n.Package).ToHashSet(StringComparer.Ordinal);
+        Assert.NotEmpty(registered);
+        Assert.Subset(declared, registered);
+
+        var source = await File.ReadAllTextAsync(Path.Combine(root, "frontend", "src", "modules", "maintenance", "views", "caches", "cache.ts"), cancellation);
+        var missing = declared.Order(StringComparer.Ordinal).Where(p => !source.Contains($"case '{p}': return t('maintenance.caches.packages.{p}')", StringComparison.Ordinal)).ToList();
+        Assert.True(missing.Count == 0, $"frontend/src/modules/maintenance/views/caches/cache.ts packageLabel has no label for: {string.Join(", ", missing)}");
+    }
+
+    [Fact]
     public async Task Keys_FillAWholePage_WhenRedisScansAreSparse()
     {
         var redis = Environment.GetEnvironmentVariable("XIHAN_TEST_REDIS");
@@ -169,4 +194,7 @@ public sealed class MaintenanceCachesTests : IDisposable
         var (badCursor, badCursorBody) = await SendAsync(server, HttpMethod.Get, "/api/caches:keys?prefix=notification:fill:&continuation=o:0", null, platform);
         Assert.Equal((HttpStatusCode.BadRequest, "MAINTENANCE_VALIDATION_006"), (badCursor, badCursorBody.GetProperty("code").GetString()));
     }
+
+    [GeneratedRegex(@"AddCacheNamespace\(""(?<package>[a-z0-9]+)""")]
+    private static partial Regex CacheNamespaceCall();
 }

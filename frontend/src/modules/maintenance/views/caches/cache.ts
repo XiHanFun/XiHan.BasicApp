@@ -45,9 +45,14 @@ function compareOrdinal(a: string, b: string): number {
 export function packageLabel(t: Translate, name: string): string {
   switch (name) {
     case 'access': return t('maintenance.caches.packages.access')
+    case 'ai': return t('maintenance.caches.packages.ai')
     case 'identity': return t('maintenance.caches.packages.identity')
     case 'notification': return t('maintenance.caches.packages.notification')
     case 'openplatform': return t('maintenance.caches.packages.openplatform')
+    case 'organization': return t('maintenance.caches.packages.organization')
+    case 'printing': return t('maintenance.caches.packages.printing')
+    case 'realtime': return t('maintenance.caches.packages.realtime')
+    case 'settings': return t('maintenance.caches.packages.settings')
     case 'tenancy': return t('maintenance.caches.packages.tenancy')
     default: return name
   }

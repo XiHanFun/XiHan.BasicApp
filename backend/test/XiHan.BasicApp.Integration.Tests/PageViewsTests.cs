@@ -97,7 +97,10 @@ public sealed partial class PageViewsTests : IDisposable
         return views;
     }
 
-    private static string RepositoryRoot()
+    /// <summary>
+    /// 仓库根目录：往上找到带 backend/XiHan.BasicApp.slnx 的那一层
+    /// </summary>
+    internal static string RepositoryRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {

@@ -123,6 +123,7 @@ const stored = (...keys: string[]) => keys.map(key => ({ key, layer: 'Store' as 
 describe('缓存管理：命名空间', () => {
   it('包名写出文案（不认得的原样），选项值是前缀、文本是前缀加包名，不可改写的标只读', async () => {
     expect(packageLabel(t, 'access')).toBe('maintenance.caches.packages.access')
+    expect(packageLabel(t, 'printing')).toBe('maintenance.caches.packages.printing')
     expect(packageLabel(t, 'billing')).toBe('billing')
     expect(namespaceOptions(t, NAMESPACES)).toEqual([
       { value: 'access:', label: 'maintenance.caches.namespace_option_read_only:{"prefix":"access:","name":"maintenance.caches.packages.access"}' },
